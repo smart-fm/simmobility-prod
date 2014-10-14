@@ -117,6 +117,9 @@ void sim_mob::Vehicle::setLatVelocity(double value) {
 
 void sim_mob::Vehicle::setAcceleration(double value) {
 	throw_if_error();
+	if(value > 1000){
+		int i = 0;
+	}
 	fwdAccel = value;
 }
 

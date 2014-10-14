@@ -53,6 +53,9 @@ struct LongTermParams{
 		bool enabled;
 		unsigned int timeInterval;
 		unsigned int timeOnMarket;
+		int numberOfUnits;
+		int numberOfHouseholds;
+		int numberOfVacantUnits;
 	} housingModel;
 };
 
@@ -250,6 +253,12 @@ struct EntityTemplate {
 	Point2D destPos;
 	unsigned int startTimeMs;// default is zero
 	unsigned int laneIndex;// default is zero
+	int angentId;
+	int initSegId;
+	int initDis;
+	double initSpeed;
+	int originNode;
+	int destNode;
 };
 
 

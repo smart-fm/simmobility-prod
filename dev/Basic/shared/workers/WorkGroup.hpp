@@ -14,6 +14,7 @@
 #include <boost/thread.hpp>
 #include <string>
 
+#include "entities/PersonLoader.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/DebugFlags.hpp"
 #include "util/FlexiBarrier.hpp"
@@ -51,7 +52,8 @@ private:
 	friend class WorkGroupManager;
 
 	//Private constructor: Use the static NewWorkGroup function instead.
-	WorkGroup(unsigned int wgNum, unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, sim_mob::AuraManager* auraMgr, sim_mob::PartitionManager* partitionMgr);
+	WorkGroup(unsigned int wgNum, unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep,
+			sim_mob::AuraManager* auraMgr, sim_mob::PartitionManager* partitionMgr, sim_mob::PeriodicPersonLoader* periodicLoader);
 
 	//Helper method; find the least congested worker (leas number of Agents). O(n), so be careful.
 	static sim_mob::Worker* GetLeastCongestedWorker(const std::vector<sim_mob::Worker*>& workers);
@@ -204,6 +206,8 @@ private:
 
 	//Number of agents who have no path and hence discarded from the simulation.
 	unsigned int numAgentsWithNoPath;
+
+	PeriodicPersonLoader* periodicPersonLoader;
 };
 
 

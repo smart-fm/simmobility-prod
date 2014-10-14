@@ -15,19 +15,15 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-TemplateDao::TemplateDao(DB_Connection& connection)
-: SqlAbstractDao<Template>(connection, DB_TABLE_TEMPLATE,
-EMPTY_STR, EMPTY_STR, EMPTY_STR,
-DB_GETALL_TEMPLATES, DB_GETBYID_TEMPLATE) {
-}
+TemplateDao::TemplateDao(DB_Connection& connection): SqlAbstractDao<Template>(connection, DB_TABLE_TEMPLATE,EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_TEMPLATES, DB_GETBYID_TEMPLATE)
+{}
 
-TemplateDao::~TemplateDao() {
-}
+TemplateDao::~TemplateDao() {}
 
-void TemplateDao::fromRow(Row& result, Template& outObj) {
+void TemplateDao::fromRow(Row& result, Template& outObj)
+{
     outObj.id = result.get<BigSerial>(DB_FIELD_ID, INVALID_ID);
     outObj.name = result.get<std::string>(DB_FIELD_NAME, EMPTY_STR);
 }
 
-void TemplateDao::toRow(Template& data, Parameters& outParams, bool update) {
-}
+void TemplateDao::toRow(Template& data, Parameters& outParams, bool update) {}

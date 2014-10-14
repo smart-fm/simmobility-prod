@@ -98,18 +98,19 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, i
 {
 }
 
-sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*>  tcs)
+sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc)
 	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegStats(nullptr), canMoveToNextSegment(NONE),
-	  databaseID(tcs.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
-	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
+	  databaseID(tc.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
+	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tc), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
 	  client_id(-1), nextLinkRequired(nullptr), currSegStats(nullptr)
 {
-	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
-		insertWaitingActivityToTrip(tcs);
-	}
-	else if(!ConfigManager::GetInstance().FullConfig().RunningMidDemand()){
-		simplyModifyTripChain(tcs);
-	}
+	//TODO: Check with MAX what to do with the below commented lines
+//	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
+//		insertWaitingActivityToTrip(tc);
+//	}
+//	else if(!ConfigManager::GetInstance().FullConfig().RunningMidDemand()){
+//		simplyModifyTripChain(tc);
+//	}
 
 	initTripChain();
 }
@@ -176,23 +177,58 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		    Warn() << "Error: input string was not valid" << std::endl;
 		}
 	}
-
-
-	//Consistency check: are they requesting a pseudo-trip chain when they actually have one?
-	map<string, string>::const_iterator origIt = configProps.find("originPos");
-	map<string, string>::const_iterator destIt = configProps.find("destPos");
-	if (origIt!=configProps.end() && destIt!=configProps.end()) {
-		//Double-check some potential error states.
-		if (!tripChain.empty()) {
-			throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
+	// initSegId
+	std::map<std::string, std::string>::const_iterator itt = configProps.find("initSegId");
+	if(itt != configProps.end())
+	{
+		try {
+			int x = boost::lexical_cast<int>( itt->second );
+			initSegId = x;
+		} catch( boost::bad_lexical_cast const& ) {
+			Warn() << "Error: input string was not valid" << std::endl;
 		}
-		if (this->originNode.node_ || this->destNode.node_ ) {
-			throw std::runtime_error("Manual position specified for Agent with existing start and end of Trip Chain.");
+	}
+	// initSegPer
+	itt = configProps.find("initDis");
+	if(itt != configProps.end())
+	{
+		try {
+			int x = boost::lexical_cast<int>( itt->second );
+			initDis = x;
+		} catch( boost::bad_lexical_cast const& ) {
+			Warn() << "Error: input string was not valid" << std::endl;
+		}
+	}
+	// initPosSegPer
+	itt = configProps.find("initSpeed");
+	if(itt != configProps.end())
+	{
+		try {
+			int x = boost::lexical_cast<int>( itt->second );
+			initSpeed = x;
+		} catch( boost::bad_lexical_cast const& ) {
+			Warn() << "Error: input string was not valid" << std::endl;
+		}
+	}
+
+	// node
+	map<string, string>::const_iterator oriNodeIt = configProps.find("originNode");
+	map<string, string>::const_iterator destNodeIt = configProps.find("destNode");
+	if(oriNodeIt!=configProps.end() && destNodeIt!=configProps.end()) {
+		int originNodeId;
+		int destNodeid;
+		try {
+			originNodeId = boost::lexical_cast<int>( oriNodeIt->second );
+			std::cout<<"originNodeId: "<<originNodeId<<std::endl;
+			destNodeid = boost::lexical_cast<int>( destNodeIt->second );
+			std::cout<<"destNodeid: "<<destNodeid<<std::endl;
+		} catch( boost::bad_lexical_cast const& ) {
+			Warn() << "Error: input string was not valid" << std::endl;
 		}
 
 		//Otherwise, make a trip chain for this Person.
-		this->originNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true) );
-		this->destNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destIt->second), true) );
+		this->originNode = WayPoint( ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(originNodeId) );
+		this->destNode = WayPoint( ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(destNodeid) );
 
 		//Make sure they have a mode specified for this trip
 		it = configProps.find("#mode");
@@ -216,7 +252,46 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		this->setTripChain(trip_chain);
 		this->initTripChain();
 	}
+	else {
+		//Consistency check: are they requesting a pseudo-trip chain when they actually have one?
+		map<string, string>::const_iterator origIt = configProps.find("originPos");
+		map<string, string>::const_iterator destIt = configProps.find("destPos");
+		if (origIt!=configProps.end() && destIt!=configProps.end()) {
+			//Double-check some potential error states.
+			if (!tripChain.empty()) {
+				throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
+			}
+			if (this->originNode.node_ || this->destNode.node_ ) {
+				throw std::runtime_error("Manual position specified for Agent with existing start and end of Trip Chain.");
+			}
 
+			//Otherwise, make a trip chain for this Person.
+			this->originNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true) );
+			this->destNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destIt->second), true) );
+
+			//Make sure they have a mode specified for this trip
+			it = configProps.find("#mode");
+			if (it==configProps.end()) {
+				throw std::runtime_error("Cannot load person: no mode");
+			}
+			std::string mode = it->second;
+
+			Trip* singleTrip = MakePseudoTrip(*this, mode);
+
+			std::vector<TripChainItem*> trip_chain;
+			trip_chain.push_back(singleTrip);
+
+			//////
+			//////TODO: Some of this should be performed in a centralized place; e.g., "Agent::setTripChain"
+			//////
+			////////TODO: This needs to go in a centralized place.
+			this->originNode = singleTrip->fromLocation;
+			this->destNode = singleTrip->toLocation;
+			this->setNextPathPlanned(false);
+			this->setTripChain(trip_chain);
+			this->initTripChain();
+		}
+	}
 	//One more check: If they have a special string, save it now
 	/*it = configProps.find("special");
 	if (it != configProps.end()) {
@@ -360,34 +435,27 @@ bool sim_mob::Person::updateOD(sim_mob::TripChainItem * tc, const sim_mob::SubTr
 	return tc->setPersonOD(this, subtrip);
 }
 
-bool sim_mob::Person::changeRoleRequired(sim_mob::Role & currRole,sim_mob::SubTrip &currSubTrip) const
+bool sim_mob::Person::changeRoleRequired(sim_mob::Role & currRole, sim_mob::SubTrip &currSubTrip) const
 {
-	string roleName = RoleFactory::GetSubTripMode(currSubTrip);
+	string roleName = RoleFactory::GetRoleName(currSubTrip.getMode());
 	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 	const sim_mob::Role* targetRole = rf.getPrototype(roleName);
-	if(targetRole->getRoleName() ==  currRole.getRoleName()) {
-		return false;
-	}
+	if(targetRole->getRoleName() ==  currRole.getRoleName()) { return false; }
 	//the current role type and target(next) role type are not same. so we need to change the role!
 	return true;
 }
 
 bool sim_mob::Person::changeRoleRequired(sim_mob::TripChainItem &tripChinItem) const
 {
-	if(tripChinItem.itemType == sim_mob::TripChainItem::IT_TRIP)
-		return changeRoleRequired_Trip();
-		return changeRoleRequired_Activity();
+	if(tripChinItem.itemType == sim_mob::TripChainItem::IT_TRIP) { return changeRoleRequired_Trip(); }
+	else { return changeRoleRequired_Activity(); }
 }
 bool sim_mob::Person::changeRoleRequired_Trip(/*sim_mob::Trip &trip*/) const
 {
-	//std::cout << "Checking if the change is required from currRole[" << currRole << "]: "<< currRole->getRoleName() << std::endl;
-	string roleName = RoleFactory::GetSubTripMode(*currSubTrip);
-	//std::cout << "Person::changeRoleRequired_Trip->roleName = " << roleName << std::endl;
+	string roleName = RoleFactory::GetRoleName((*currSubTrip).getMode());
 	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 	const sim_mob::Role* targetRole = rf.getPrototype(roleName);
-	//std::cout << " and targetRole->getRoleName() will be " << targetRole->getRoleName() << " vs curr:" << currRole->getRoleName()<< std::endl;
-	if(targetRole->getRoleName() ==  currRole->getRoleName())
-		return false;
+	if(targetRole->getRoleName() ==  currRole->getRoleName()) { return false; }
 	//the current role type and target(next) role type are not same. so we need to change the role!
 	return true;
 }
@@ -412,9 +480,11 @@ bool sim_mob::Person::findPersonNextRole()
 	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 
 	const sim_mob::TripChainItem* tci = *(this->nextTripChainItem);
-	const sim_mob::SubTrip* str = (tci->itemType == sim_mob::TripChainItem::IT_TRIP ? &(*nextSubTrip) : 0);
+	if(tci->itemType == sim_mob::TripChainItem::IT_TRIP)
+	{
+		nextRole = rf.createRole(tci, &(*nextSubTrip), this);
+	}
 
-	nextRole = rf.createRole(tci, str, this);
 	return true;
 }
 
@@ -428,17 +498,13 @@ bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 	// by saving it until the next time tick.
 	safe_delete_item(prevRole);
 	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
-//		prevRole = currRole;
-
 	const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
-
-	const sim_mob::SubTrip* str = 0;
+	const sim_mob::SubTrip* subTrip = nullptr;
 	if( tci->itemType==sim_mob::TripChainItem::IT_TRIP || tci->itemType==sim_mob::TripChainItem::IT_FMODSIM )
-		str =  &(*currSubTrip);
-
-	if(newRole == 0)
-		newRole = rf.createRole(tci, str, this);
-
+	{
+		subTrip = &(*currSubTrip);
+	}
+	if(!newRole) { newRole = rf.createRole(tci, subTrip, this); }
 	changeRole(newRole);
 	return true;
 }
@@ -729,24 +795,20 @@ bool sim_mob::Person::replaceATripChainItem(TripChainItem* rep, TripChainItem* n
 bool sim_mob::Person::updateNextSubTrip()
 {
 	sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *>(*currTripChainItem);
-	if(!trip) return false;
-	if (currSubTrip == trip->getSubTrips().end())//just a routine check
-		return false;
-
+	if(!trip) { return false; }
+	if (currSubTrip == trip->getSubTrips().end()) { return false; } //just a routine check
 	nextSubTrip = currSubTrip + 1;
-
-	if (nextSubTrip == trip->getSubTrips().end())
-		return false;
+	if(nextSubTrip == trip->getSubTrips().end()) { return false; }
 	return true;
 }
 
 bool sim_mob::Person::updateNextTripChainItem()
 {
 	bool res = false;
-	if(currTripChainItem == tripChain.end()) return false; //just a harmless basic check
+	if(currTripChainItem == tripChain.end()) { return false; } //just a harmless basic check
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
-		//dont advance to next tripchainItem immediately, check the subtrip first
+		//check for next subtrip first
 		res = updateNextSubTrip();
 	}
 
@@ -758,21 +820,14 @@ bool sim_mob::Person::updateNextTripChainItem()
 
 	//no, it is not the subtrip we need to advance, it is the tripchain item
 	nextTripChainItem = currTripChainItem + 1;
-	if(nextTripChainItem != tripChain.end())
-		if((*nextTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
-			//	std::cout << "processing Activity";
-		}
-	//but tripchainitems are also over, get out !
-	if(nextTripChainItem == tripChain.end()) return false;
+	if(nextTripChainItem == tripChain.end()) { return false; }
 
-	//so far, advancing the tripchainitem has been successful
-
-	//Also set the currSubTrip to the beginning of trip , just in case
+	//Also set the nextSubTrip to the beginning of trip , just in case
 	if((*nextTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
 		sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *>(*nextTripChainItem);//easy reading
-			if(!trip) throw std::runtime_error("non sim_mob::Trip cannot have subtrips");
-			nextSubTrip =  trip->getSubTrips().begin();
+		if(!trip) { throw std::runtime_error("non sim_mob::Trip cannot have subtrips"); }
+		nextSubTrip =  trip->getSubTrips().begin();
 	}
 
 	return true;
@@ -782,28 +837,12 @@ bool sim_mob::Person::updateNextTripChainItem()
 bool sim_mob::Person::advanceCurrentSubTrip()
 {
 	sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *>(*currTripChainItem);
-	if(!trip) {
-		return false;
-	}
-
-	if (currSubTrip == trip->getSubTripsRW().end()) /*just a routine check*/ {
-		return false;
-	}
-
+	if(!trip) { return false; }
+	if (currSubTrip == trip->getSubTripsRW().end()) { return false; } /*just a routine check*/
 	currSubTrip++;
-
-	if (currSubTrip == trip->getSubTripsRW().end()) {
-		return false;
-	}
-
+	if (currSubTrip == trip->getSubTripsRW().end()) { return false; }
 	return true;
 }
-
-////advance to the next subtrip inside the current TripChainItem assuming that the current TripChainItem is an activity
-//bool sim_mob::Person::advanceCurrentTripChainItem_Activity()
-//{
-//
-//}
 
 bool sim_mob::Person::advanceCurrentTripChainItem()
 {

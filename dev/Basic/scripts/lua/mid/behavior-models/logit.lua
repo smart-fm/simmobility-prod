@@ -17,9 +17,9 @@ local function calculate_multinomial_logit_probability(choices, utility, availab
 		probability[k] = availables[k] * exp(utility[k])
 		evsum = evsum + probability[k]	
 	end
-	for c in pairs(probability) do
-		if (probability[c] ~= 0) then
-			probability[c] = probability[c]/evsum
+	for cno,avl_ev in pairs(probability) do
+		if (avl_ev ~= 0) then
+			probability[cno] = avl_ev/evsum
 		end
 	end
 	return probability
@@ -32,7 +32,7 @@ local function calculate_nested_logit_probability(choiceset, utility, availables
 	local exp = math.exp
 	local pow = math.pow
 	for nest,choices in pairs(choiceset) do
-		local mu = scales[nest][1]
+		local mu = scales[nest]
 		local nest_evsum = 0
 		for i,c in ipairs(choices) do
 			if utility[c] ~= utility[c] then 
@@ -48,12 +48,12 @@ local function calculate_nested_logit_probability(choiceset, utility, availables
 		
 	sum_evsum_pow_muinv = 0
 	for nest,val in pairs(evsum) do
-		local mu = scales[nest][1]
+		local mu = scales[nest]
 		sum_evsum_pow_muinv = sum_evsum_pow_muinv + pow(evsum[nest], (1/mu))
 	end
 
 	for nest,choices in pairs(choiceset) do
-		local mu = scales[nest][1]
+		local mu = scales[nest]
 		for i,c in ipairs(choices) do
 			if evsum[nest] ~= 0 then
 				probability[c] = evmu[c] * pow(evsum[nest], (1/mu - 1))/sum_evsum_pow_muinv
@@ -107,4 +107,20 @@ function make_final_choice(probability)
 	end
 	idx = binary_search(choices_prob, math.random()) 
 	return choices[idx]
+end
+
+function compute_mnl_logsum(utility, availability)
+	local evsum = 0
+	local exp = math.exp
+	for k,v in ipairs(utility) do
+		--if utility is not a number, then availability is 0
+		local avl = availability[k]
+		if v~=v then 
+			v = 0
+			avl = 0 
+		end 
+		local ev = avl * exp(v)
+		evsum = evsum + ev	
+	end
+	return math.log(evsum)
 end

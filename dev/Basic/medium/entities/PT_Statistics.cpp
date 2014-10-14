@@ -185,7 +185,7 @@ void PT_Statistics::PrintStatistics() {
 
 void PT_Statistics::StoreStatistics() {
 	std::string filenameOfJourneyStats =
-			MT_Config::GetInstance().getFilenameOfJourneyTimeStats();
+			MT_Config::getInstance().getFilenameOfJourneyTimeStats();
 	if (filenameOfJourneyStats.size() > 0) {
 		std::ofstream outputFile(filenameOfJourneyStats.c_str());
 		if (outputFile.is_open()) {
@@ -212,7 +212,7 @@ void PT_Statistics::StoreStatistics() {
 	}
 
 	std::string filenameOfWaitingStats =
-			MT_Config::GetInstance().getFilenameOfWaitingTimeStats();
+			MT_Config::getInstance().getFilenameOfWaitingTimeStats();
 	if (filenameOfWaitingStats.size() > 0) {
 		std::ofstream outputFile(filenameOfWaitingStats.c_str());
 		if (outputFile.is_open()) {
@@ -241,7 +241,7 @@ void PT_Statistics::StoreStatistics() {
 	}
 
 	std::string filenameOfWaitingAmount =
-			MT_Config::GetInstance().getFilenameOfWaitingAmountStats();
+			MT_Config::getInstance().getFilenameOfWaitingAmountStats();
 	if (filenameOfWaitingAmount.size() > 0) {
 		std::ofstream outputFile(filenameOfWaitingAmount.c_str());
 		if (outputFile.is_open()) {

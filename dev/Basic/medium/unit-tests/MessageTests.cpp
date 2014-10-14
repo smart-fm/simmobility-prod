@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 /*
- * \file MessageTests.hpp
+ * \file MessageTests.cpp
  *
  * \author Harish Loganathan
  */
@@ -280,5 +280,3 @@ void unit_tests::MessageTests::testAll() {
 	//testSendInstantaneousMessage();
 	testInstantaneousEvent();
 }
-
-

@@ -94,6 +94,9 @@ public:
 	sim_mob::Node* locateNode(const sim_mob::Point2D& position, bool includeUniNodes=false, int maxDistCM=100) const;
 	sim_mob::Node* locateNode(double xPos, double yPos, bool includeUniNodes=false, int maxDistCM=100) const;
 
+	sim_mob::Node* getNodeById(int aimsunId);
+	std::map<int,sim_mob::Node*> nodeMap;
+
 	//Temporary; added for the XML loader
 	void setLinks(const std::vector<sim_mob::Link*>& lnks);
 	void setSegmentNodes(const std::set<sim_mob::UniNode*>& sn);
@@ -115,6 +118,27 @@ public:
 
 	//List of Road Runner Regions, if applicable.
 	std::map<int, sim_mob::RoadRunnerRegion> roadRunnerRegions;
+
+	///to store simmobility segment type table data, key = segment aimsun id,value=type
+	///segment type 1:freeway 2:ramp 3:urban road
+	std::map<std::string,int> segmentTypeMap;
+	/**
+	 * /brief get segment type by aimsun id
+	 * /param id segment aimsun id
+	 * /return type id, if not find in segmentTypeMap return 0, which is unknown
+	 */
+	int getSegmentType(std::string& id);
+	///to store simmobility node type table data, key = ndoe aimsun id,value=type
+	///node type 1:urban intersection with signal 2:urban intersection w/o signal 3:priority merge 4:non-priority merge
+	std::map<std::string,int> nodeTypeMap;
+	/**
+	 * /brief get node type by aimsun id
+	 * /param id segment aimsun id
+	 * /return type id, if not find in nodeTypeMap return 0, which is unknown
+	 */
+	int getNodeType(std::string& id);
+
+
 
 };
 

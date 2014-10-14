@@ -58,7 +58,26 @@ const sim_mob::Lane* sim_mob::RoadSegment::getLane(int laneID) const
 	}
 	return lanes[laneID];
 }
-
+size_t sim_mob::RoadSegment::getLanesSize(bool isIncludePedestrianLane) const
+{
+	if(isIncludePedestrianLane)
+	{
+		return getLanes().size();
+	}
+	else
+	{
+		size_t s = getLanes().size();
+		if(getLanes().at(s-1)->is_pedestrian_lane()) // most left lane is ped?
+		{
+			s--;
+		}
+		if(getLanes().at(0)->is_pedestrian_lane() )// most right lane is ped?
+		{
+			s--;
+		}
+		return s;
+	}
+}
 
 bool sim_mob::RoadSegment::isSingleDirectional()
 {
@@ -298,6 +317,9 @@ void sim_mob::RoadSegment::makeLanePolylineFromEdges(Lane* lane, const vector<Po
 //	}
 //	std::cout << "\n";
 	//Sanity check
+	if(originalDB_ID.getLogItem().find("3440") != std::string::npos){
+		int i=0;
+	}
 	if (outer.size()<=1 || inner.size()<=1) {
 		throw std::runtime_error("Can't manage with a Lane Edge polyline of 0 or 1 points.");
 	}

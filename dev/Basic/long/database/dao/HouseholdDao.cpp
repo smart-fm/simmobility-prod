@@ -15,16 +15,13 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-HouseholdDao::HouseholdDao(DB_Connection& connection)
-: SqlAbstractDao<Household>(connection, DB_TABLE_HOUSEHOLD,
-DB_INSERT_HOUSEHOLD, DB_UPDATE_HOUSEHOLD, DB_DELETE_HOUSEHOLD,
-DB_GETALL_HOUSEHOLD, DB_GETBYID_HOUSEHOLD) {
-}
+HouseholdDao::HouseholdDao(DB_Connection& connection): SqlAbstractDao<Household>(connection, DB_TABLE_HOUSEHOLD,DB_INSERT_HOUSEHOLD, DB_UPDATE_HOUSEHOLD, DB_DELETE_HOUSEHOLD,DB_GETALL_HOUSEHOLD, DB_GETBYID_HOUSEHOLD)
+{}
 
-HouseholdDao::~HouseholdDao() {
-}
+HouseholdDao::~HouseholdDao() {}
 
-void HouseholdDao::fromRow(Row& result, Household& outObj) {
+void HouseholdDao::fromRow(Row& result, Household& outObj)
+{
     outObj.id = result.get<BigSerial>(DB_FIELD_ID, INVALID_ID);
     outObj.lifestyleId = result.get<BigSerial>(DB_FIELD_LIFESTYLE_ID, INVALID_ID);
     outObj.unitId = result.get<BigSerial>(DB_FIELD_UNIT_ID, INVALID_ID);

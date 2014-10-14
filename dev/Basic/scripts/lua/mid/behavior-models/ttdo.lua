@@ -10,45 +10,44 @@ Authors - Siyu Li, Harish Loganathan
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 
-local beta_ARR_2_3 = 0.0375 
-local beta_ARR_2_2 = 0.0886 
-local beta_ARR_2_1 = -0.291 
-local beta_ARR_2_7 = 0.0505 
-local beta_ARR_2_6 = -0.0517 
-local beta_ARR_2_5 = -0.327 
-local beta_ARR_2_4 = 0.0152 
-local beta_DEP_2_8 = 0.0197 
-local beta_C = 0.0 
-local beta_ARR_2_8 = -0.0343 
-local beta_DEP_2_1 = -0.138 
-local beta_DEP_2_3 = -0.0442 
-local beta_DEP_2_2 = -0.268 
-local beta_DEP_2_5 = -0.565 
-local beta_DEP_1_8 = 0.27
-local beta_DEP_2_7 = 0.115 
-local beta_DEP_2_6 = 0.102 
-local beta_DEP_1_2 = -0.271 
-local beta_TT1 = 0.0
-local beta_TT2 = 0.0 
-local beta_DEP_1_6 = -0.71 
-local beta_DEP_1_7 = -0.0667 
-local beta_DEP_1_4 = -0.226 
-local beta_DEP_1_5 = 0.245 
-local beta_ARR_1_8 = 0.0614 
-local beta_DEP_1_3 = -0.687 
-local beta_DEP_1_1 = -0.0708 
-local beta_ARR_1_4 = 0.227
-local beta_ARR_1_5 = -2.17 
-local beta_ARR_1_6 = 0.00352 
-local beta_ARR_1_7 = 0.259
-local beta_ARR_1_1 = -1.23 
-local beta_ARR_1_2 = -1.74 
-local beta_ARR_1_3 = -0.341 
-local beta_DUR_1 = 0.0591
-local beta_DUR_2 = -0.0723 
-local beta_DUR_3 = 0.00338 
-local beta_DEP_2_4 = -0.0264
-
+local beta_ARR_2_3 = 0.00378 
+local beta_ARR_2_2 = 0.148
+local beta_ARR_2_1 = -0.111 
+local beta_ARR_2_7 = 0.0257 
+local beta_ARR_2_6 = -0.0509 
+local beta_ARR_2_5 = -0.216 
+local beta_ARR_2_4 = 0.0680 
+local beta_DEP_2_8 = 0.0194 
+local beta_C = -0.212
+local beta_ARR_2_8 = -0.00634 
+local beta_DEP_2_1 = -0.118 
+local beta_DEP_2_3 = -0.0309 
+local beta_DEP_2_2 = -0.178 
+local beta_DEP_2_5 = -0.389 
+local beta_DEP_1_8 = 0.217
+local beta_DEP_2_7 = -0.00251 
+local beta_DEP_2_6 = 0.00742 
+local beta_DEP_1_2 = -0.472 
+local beta_TT1 = -2.68
+local beta_TT2 = -1.28
+local beta_DEP_1_6 = -0.443
+local beta_DEP_1_7 = 0.00338 
+local beta_DEP_1_4 = -0.221
+local beta_DEP_1_5 = 0.773
+local beta_ARR_1_8 = -0.00315 
+local beta_DEP_1_3 = -0.567
+local beta_DEP_1_1 = -0.318 
+local beta_ARR_1_4 = 0.155
+local beta_ARR_1_5 = -2.77 
+local beta_ARR_1_6 = -0.166
+local beta_ARR_1_7 = 0.252
+local beta_ARR_1_1 = -0.943 
+local beta_ARR_1_2 = -1.81 
+local beta_ARR_1_3 = -0.273 
+local beta_DUR_1 = 0.00618
+local beta_DUR_2 = -0.0831 
+local beta_DUR_3 = 0.00390 
+local beta_DEP_2_4 = 0.00894
 
 local k = 3
 local n = 4
@@ -85,19 +84,19 @@ for i=1,48 do
 end
 
 local function sarr_1(t)
-	return beta_ARR_1_1 * math.sin(2*pi*t/24.) + beta_ARR_1_4 * math.cos(2*pi*t/24.)+beta_ARR_1_2 * math.sin(4*pi*t/24.) + beta_ARR_1_5 * math.cos(4*pi*t/24.)+beta_ARR_1_3 * math.sin(6*pi*t/24.) + beta_ARR_1_6 * math.cos(6*pi*t/24.)
+	return beta_ARR_1_1 * math.sin(2*pi*t/24.) + beta_ARR_1_5 * math.cos(2*pi*t/24.) + beta_ARR_1_2 * math.sin(4*pi*t/24.) + beta_ARR_1_6 * math.cos(4*pi*t/24.) + beta_ARR_1_3 * math.sin(6*pi*t/24.) + beta_ARR_1_7 * math.cos(6*pi*t/24.) + beta_ARR_1_4 * math.sin(8*pi*t/24.) + beta_ARR_1_8 * math.cos(8*pi*t/24.)
 end
 
 local function sdep_1(t)
-	return beta_DEP_1_1 * math.sin(2*pi*t/24.) + beta_DEP_1_4 * math.cos(2*pi*t/24.)+beta_DEP_1_2 * math.sin(4*pi*t/24.) + beta_DEP_1_5 * math.cos(4*pi*t/24.)+beta_DEP_1_3 * math.sin(6*pi*t/24.) + beta_DEP_1_6 * math.cos(6*pi*t/24.)
+	return beta_DEP_1_1 * math.sin(2*pi*t/24.) + beta_DEP_1_5 * math.cos(2*pi*t/24.) + beta_DEP_1_2 * math.sin(4*pi*t/24.) + beta_DEP_1_6 * math.cos(4*pi*t/24.) + beta_DEP_1_3 * math.sin(6*pi*t/24.) + beta_DEP_1_7 * math.cos(6*pi*t/24.) + beta_DEP_1_4 * math.sin(8*pi*t/24.) + beta_DEP_1_8 * math.cos(8*pi*t/24.)
 end
 
 local function sarr_2(t)
-	return beta_ARR_2_1 * math.sin(2*pi*t/24.) + beta_ARR_2_4 * math.cos(2*pi*t/24.)+beta_ARR_2_2 * math.sin(4*pi*t/24.) + beta_ARR_2_5 * math.cos(4*pi*t/24.)+beta_ARR_2_3 * math.sin(6*pi*t/24.) + beta_ARR_2_6 * math.cos(6*pi*t/24.)
+	return beta_ARR_2_1 * math.sin(2*pi*t/24.) + beta_ARR_2_5 * math.cos(2*pi*t/24.) + beta_ARR_2_2 * math.sin(4*pi*t/24.) + beta_ARR_2_6 * math.cos(4*pi*t/24.) + beta_ARR_2_3 * math.sin(6*pi*t/24.) + beta_ARR_2_7 * math.cos(6*pi*t/24.) + beta_ARR_2_4 * math.sin(8*pi*t/24.) + beta_ARR_2_8 * math.cos(8*pi*t/24.)
 end
 
 local function sdep_2(t)
-	return beta_DEP_2_1 * math.sin(2*pi*t/24.) + beta_DEP_2_4 * math.cos(2*pi*t/24.)+beta_DEP_2_2 * math.sin(4*pi*t/24.) + beta_DEP_2_5 * math.cos(4*pi*t/24.)+beta_DEP_2_3 * math.sin(6*pi*t/24.) + beta_DEP_2_6 * math.cos(6*pi*t/24.)
+	return beta_DEP_2_1 * math.sin(2*pi*t/24.) + beta_DEP_2_5 * math.cos(2*pi*t/24.) + beta_DEP_2_2 * math.sin(4*pi*t/24.) + beta_DEP_2_6 * math.cos(4*pi*t/24.) + beta_DEP_2_3 * math.sin(6*pi*t/24.) + beta_DEP_2_7 * math.cos(6*pi*t/24.) + beta_DEP_2_4 * math.sin(8*pi*t/24.) + beta_DEP_2_8 * math.cos(8*pi*t/24.)
 end
 
 local utility = {}
@@ -159,11 +158,11 @@ local function computeAvailabilities(params,dbparams)
 end
 
 --scale
-local scale={}
-for i = 1, 1176 do
-	scale[i]=1
-end
+local scale = 1 --for all choices
 
+-- function to call from C++ preday simulator
+-- params and dbparams tables contain data passed from C++
+-- to check variable bindings in params or dbparams, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
 function choose_ttdo(params,dbparams)
 	computeUtilities(params,dbparams) 
 	computeAvailabilities(params,dbparams)

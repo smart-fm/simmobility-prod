@@ -10,8 +10,13 @@
 
 #pragma once
 #include <boost/unordered_map.hpp>
-
+#include <deque>
+#include <list>
+#include <map>
+#include <vector>
+#include <sstream>
 #include "behavioral/lua/PredayLuaProvider.hpp"
+#include "CalibrationStatistics.hpp"
 #include "params/PersonParams.hpp"
 #include "PredayClasses.hpp"
 #include "database/PopulationSqlDao.hpp"
@@ -23,7 +28,7 @@ namespace medium {
 
 /**
  * Class for pre-day behavioral system of models.
- * Invokes behavior models in a sequence as specified by the system of models.
+ * Invokes behavior models in a sequence as specified by the system of models for 1 person.
  * Handles dependencies between models.
  * The models specified by modelers in an external scripting language are invoked via this class.
  *
@@ -35,9 +40,9 @@ class PredaySystem {
 private:
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
-	typedef boost::unordered_map<int, std::vector<long> > ZoneNodeMap;
-	typedef std::deque<Tour*> TourList;
-	typedef std::deque<Stop*> StopList;
+	typedef boost::unordered_map<int, std::vector<ZoneNodeParams*> > ZoneNodeMap;
+	typedef std::deque<Tour> TourList;
+	typedef std::list<Stop*> StopList;
 
 	/**
 	 * For each work tour, if the person has a usual work location, this function predicts whether the person goes to his usual location or some other location.
@@ -54,28 +59,63 @@ private:
 	 *
 	 * @param tour the tour for which the mode is to be predicted
 	 */
-	void predictTourMode(Tour* tour);
+	void predictTourMode(Tour& tour);
 
 	/**
 	 * Predicts the mode and destination together for tours to unusual locations
 	 *
 	 * @param tour the tour for which the mode and destination are to be predicted
 	 */
-	void predictTourModeDestination(Tour* tour);
+	void predictTourModeDestination(Tour& tour);
 
 	/**
 	 * Predicts the time period that will be allotted for the primary activity of a tour.
 	 *
 	 * @param tour the tour for which the time of day is to be predicted
+	 * @return time period for primary activity of tour
 	 */
-	TimeWindowAvailability predictTourTimeOfDay(Tour* tour);
+	TimeWindowAvailability predictTourTimeOfDay(Tour& tour);
+
+	/**
+	 * Predicts sub tours
+	 *
+	 * @param tour the tour for which the sub-tours are to be predicted
+	 */
+	void predictSubTours(Tour& tour);
+
+	/**
+	 * Predicts mode and destination for a subtour.
+	 * @param subTour the sub tour
+	 * @param parentTour the parent tour of the sub tour
+	 */
+	void predictSubTourModeDestination(Tour& subTour, const Tour& parentTour);
+
+	/**
+	 * Predicts the time period for the activity of sub tour
+	 *
+	 * @param subTour the subTour for which time of day is required
+	 * @return time period for activity of sub tour
+	 */
+	TimeWindowAvailability predictSubTourTimeOfDay(Tour& subTour, SubTourParams& subTourParams);
+
+	/**
+	 * Generates intermediate stops of types predicted by the day pattern model before and after the primary activity of a tour.
+	 * predicts stop location and time of day for each generated stop
+	 *
+	 * @param tour the tour for which stops are to be generated
+	 * @param remainingTours number of tours remaining for person after tour
+	 */
+	void constructIntermediateStops(Tour& tour, size_t remainingTours, double prevTourEndTime);
 
 	/**
 	 * Generates intermediate stops of types predicted by the day pattern model before and after the primary activity of a tour.
 	 *
+	 * @param halfTour the half tour for which we are constructing stops. admissible values are 1 and 2.
 	 * @param tour the tour for which stops are to be generated
+	 * @param primaryStop primary stop of tour
+	 * @param remainingTours number of tours remaining for person after tour
 	 */
-	void generateIntermediateStops(Tour* tour);
+	void generateIntermediateStops(uint8_t halfTour, Tour& tour,  const Stop* primaryStop, size_t remainingTours);
 
 	/**
 	 * Predicts the mode and destination together for stops.
@@ -90,12 +130,26 @@ private:
 	 * Predicts the departure time for stops after the primary activity.
 	 *
 	 * @param stop the stop for which the time of day is to be predicted
+	 * @param destintionLocation the location of the destination. (origin is the stop's location)
 	 * @param isBeforePrimary indicates whether stop is before the primary activity or after the primary activity of the tour
+	 * @return true if prediction is successful. false otherwise.
 	 */
-	void predictStopTimeOfDay(Stop* stop, bool isBeforePrimary);
+	bool predictStopTimeOfDay(Stop* stop, int destinationLocation, bool isBeforePrimary);
+
+	/**
+	 * issues query to time dependent travel time collection in mongoDB to fetch travel time
+	 * @param origin the origin zone code of trip
+	 * @param destination the destination zone code of trip
+	 * @param mode the travel mode code for trip
+	 * @param isArrivalBased travel time is arrival based. true implies arrival based, false implies departure based
+	 * @param timeIdx the time index to fetch
+	 * @return mode and time-of-day dependent travel time
+	 */
+	double fetchTravelTime(int origin, int destination, int mode, bool isArrivalBased, double timeIdx);
 
 	/**
 	 * Calculates the arrival time for stops in the second half tour.
+	 * this function sets the departure time for the currentStop
 	 *
 	 * @param currentStop the stop for which the arrival time is calculated
 	 * @param prevStop the stop before currentStop
@@ -104,25 +158,42 @@ private:
 
 	/**
 	 * Calculates the departure time for stops in the first half tour.
+	 * this function sets the departure time for the nextStop
 	 *
 	 * @param currentStop the stop for which the departure time is calculated
 	 * @param nextStop the stop after currentStop
 	 */
-	void calculateDepartureTime(Stop* currentStop, Stop* nextStop);
+	void calculateDepartureTime(Stop* currentStop, Stop* nextStop, double prevTourEndTimeIdx);
 
 	/**
 	 * Calculates the time to leave home for starting a tour.
 	 *
 	 * @param tour the tour object for which the start time is to be calculated
+	 * @param lowerBound lower bound for start time
 	 */
-	void calculateTourStartTime(Tour* tour);
+	void calculateTourStartTime(Tour& tour, double lowerBound);
 
 	/**
 	 * Calculates the time when the person reaches home at the end of the tour.
 	 *
 	 * @param tour the tour object for which the end time is to be calculated
 	 */
-	void calculateTourEndTime(Tour* tour);
+	void calculateTourEndTime(Tour& tour);
+
+	/**
+	 * calculates the time window for entire sub tour
+	 * @param subTour sub-tour whose primary activity has been established already
+	 */
+	void calculateSubTourTimeWindow(Tour& subTour, const Tour& parentTour);
+
+	/**
+	 * calculates travel time from tour destination to sub tour destination and blocks that time
+	 * calculates travel time from sub tour destination to tour destination and blocks that time
+	 * @param subTour sub-tour
+	 * @param parentTour parent tour of subTour
+	 * @param stParams sub-tour params which track availabilities
+	 */
+	void blockTravelTimeToSubTourLocation(const Tour& subTour, const Tour& parentTour, SubTourParams& stParams);
 
 	/**
 	 * constructs tour objects based on predicted number of tours. Puts the tour objects in tours deque.
@@ -142,7 +213,18 @@ private:
 	 * @param tour an object containing information pertinent to a tour
 	 * @param tourNumber the index of this tour among all tours of this person
 	 */
-	void insertTour(Tour* tour, int tourNumber);
+	void insertTour(const Tour& tour, int tourNumber);
+
+	/**
+	 * inserts sub tour of a tour
+	 * This function will be called once for every sub-tour of a tour
+	 *
+	 * @param subTour the sub tour to insert
+	 * @param parentTour the parent tour of sub-tour
+	 * @param tourNumber the index of this tour among all tours of this person
+	 * @param subTourNumber the index of this subTour among all subTours for this tour
+	 */
+	void insertSubTour(const Tour& subTour, const Tour& parentTour, int tourNumber, int subTourNumber);
 
 	/**
 	 * inserts tour level information for a person
@@ -152,15 +234,7 @@ private:
 	 * @param stopNumber the index of this stop among all stops of this tour
 	 * @param tourNumber the index of the stop's parent tour among all tours of this person
 	 */
-	void insertStop(Stop* stop, int stopNumber, int tourNumber);
-
-	/**
-	 * generates a random time  within the time window passed in preday's representation.
-	 *
-	 * @param window time window in preday format (E.g. 4.75 => 4:30 to 4:59 AM)
-	 * @return a random time within the window in hh24:mm:ss format
-	 */
-	std::string getRandomTimeInWindow(double window);
+	void insertStop(const Stop* stop, int stopNumber, int tourNumber);
 
 	/**
 	 * returns a random element from the list of nodes
@@ -168,7 +242,27 @@ private:
 	 * @param nodes the list of nodes
 	 * @returns a random element of the list
 	 */
-	long getRandomNodeInZone(std::vector<long>& nodes);
+	long getRandomNodeInZone(const std::vector<ZoneNodeParams*>& nodes) const;
+
+	/**
+	 * returns first element from the list of nodes
+	 * Always returning the first element helps to minimize the number of distinct
+	 * ODs for pathset generation
+	 * @param nodes the list of nodes
+	 * @returns first element of the list
+	 */
+	long getFirstNodeInZone(const std::vector<ZoneNodeParams*>& nodes) const;
+
+	/**
+	 * constructs trip chain from predictions for a person
+	 * \note This function will output all trips as car trips for now because the within day is not ready for other modes of transport.
+	 * \note This function assigns a random node from the zone as ODs for trips and for activity locations. This is because we do not have a model for mapping activity locations
+	 * to postal codes and ODs to nodes.
+	 * @param zoneNodeMap zone to nodes mapping
+	 * @param scale number of trip chains to be generated for this person
+	 * @param outTripChain output list (trip chain) to be constructed
+	 */
+	void constructTripChains(const ZoneNodeMap& zoneNodeMap, long scale, std::list<TripChainItemParams>& outTripChain);
 
 	/**
 	 * Person specific parameters
@@ -191,6 +285,11 @@ private:
     const CostMap& opCostMap;
 
     /**
+     * map of unavailable ODs for mode destination
+     */
+    const std::vector<OD_Pair>& unavailableODs;
+
+    /**
      * list of tours for this person
      */
     TourList tours;
@@ -208,12 +307,7 @@ private:
     /**
      * Data access objects for mongo
      */
-    boost::unordered_map<std::string, db::MongoDao*> mongoDao;
-
-    /**
-     * Data access objects to write trip chains
-     */
-    TripChainSqlDao& tripChainDao;
+    std::map<std::string, db::MongoDao*> mongoDao;
 
     /**
      * used for logging messages
@@ -224,8 +318,8 @@ public:
 	PredaySystem(PersonParams& personParams,
 			const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 			const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
-			const boost::unordered_map<std::string, db::MongoDao*>& mongoDao,
-			TripChainSqlDao& tripChainDao);
+			const std::map<std::string, db::MongoDao*>& mongoDao,
+			const std::vector<OD_Pair>& unavailableODs);
 	virtual ~PredaySystem();
 
 	/**
@@ -239,9 +333,41 @@ public:
 	void outputPredictionsToMongo();
 
 	/**
+	 * Invokes tour mode-destination models for computing logsums
+	 * Updates the logsums in personParams
+	 */
+	void computeLogsums();
+
+	/**
+	 * Writes the logsums to mongo
+	 */
+	void updateLogsumsToMongo();
+
+	/**
 	 * Converts predictions to Trip chains and writes them off to PostGreSQL
 	 */
-	void outputTripChainsToPostgreSQL(ZoneNodeMap& zoneNodeMap);
+	void outputTripChainsToPostgreSQL(const ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao);
+
+	/**
+	 * Converts predictions to Trip chains and writes them off to the given stringstream
+	 */
+	void outputTripChainsToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& outStream);
+
+	/**
+	 * Writes of the predicted stops for each tour to the given stringstream
+	 */
+	void outputActivityScheduleToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& outStream);
+
+	/**
+	 * Prints logs for person in console
+	 */
+	void printLogs();
+
+	/**
+	 * updates statsCollector with the stats for this person
+	 * @param statsCollector statistics collector to be updated
+	 */
+	void updateStatistics(CalibrationStatistics& statsCollector) const;
 };
 
 } // end namespace medium

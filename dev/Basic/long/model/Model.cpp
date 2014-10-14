@@ -20,9 +20,9 @@ using std::vector;
 using std::string;
 
 namespace {
-    void deleteAgents(vector<Agent*>& agents) {
+    void deleteAgents(vector<Agent_LT*>& agents) {
         while (!agents.empty()) {
-            Agent* ag = agents.back();
+            Agent_LT* ag = agents.back();
             agents.pop_back();
             safe_delete_item(ag);
         }
@@ -54,8 +54,7 @@ void Model::start() {
         startWatch.stop();
         running = true;
         addMetadata(START_TIME, startWatch.getTime());
-        MessageBus::PublishEvent(LTEID_MODEL_STARTED, this,
-                MessageBus::EventArgsPtr(new EventArgs()));
+        MessageBus::PublishEvent(LTEID_MODEL_STARTED, this, MessageBus::EventArgsPtr(new EventArgs()));
     }
 }
 
@@ -66,8 +65,7 @@ void Model::stop() {
         stopImpl();
         stopWatch.stop();
         addMetadata(STOP_TIME, stopWatch.getTime());
-        MessageBus::PublishEvent(LTEID_MODEL_STOPPED, this,
-                MessageBus::EventArgsPtr(new EventArgs()));
+        MessageBus::PublishEvent(LTEID_MODEL_STOPPED, this, MessageBus::EventArgsPtr(new EventArgs()));
     }
 }
 

@@ -49,13 +49,14 @@ namespace medium {
 
 class TimeWindowAvailability {
 public:
-	TimeWindowAvailability(double startTime, double endTime);
+	TimeWindowAvailability();
+	TimeWindowAvailability(double startTime, double endTime, bool availability = true);
 
 	int getAvailability() const {
 		return availability;
 	}
 
-	void setAvailability(int availability) {
+	void setAvailability(bool availability) {
 		this->availability = availability;
 	}
 
@@ -78,11 +79,11 @@ public:
 private:
 	double startTime;
 	double endTime;
-	int availability;
+	bool availability;
 };
 
 enum StopType {
-	WORK, EDUCATION, SHOP, OTHER
+	WORK, EDUCATION, SHOP, OTHER, NULL_STOP
 };
 
 class Tour;
@@ -94,7 +95,7 @@ class Tour;
  */
 class Stop {
 public:
-	Stop(StopType stopType, Tour* parentTour, bool primaryActivity, bool firstHalfTour)
+	Stop(StopType stopType, const Tour& parentTour, bool primaryActivity, bool firstHalfTour)
 	: stopType(stopType), parentTour(parentTour), primaryActivity(primaryActivity), arrivalTime(0), departureTime(0), stopMode(0),
 	  stopLocation(0), stopId(0), inFirstHalfTour(firstHalfTour)
 	{}
@@ -115,7 +116,7 @@ public:
 		this->departureTime = departureTime;
 	}
 
-	const Tour* getParentTour() const {
+	const Tour& getParentTour() const {
 		return parentTour;
 	}
 
@@ -180,8 +181,8 @@ public:
 	/**
 	 * Sets the arrival and departure time of the stop
 	 *
-	 * @param arrivalTime arrival time
-	 * @param departureTime departure time
+	 * @param arrivalTime arrival time (1 to 48)
+	 * @param departureTime departure time (1 to 40)
 	 */
 	void allotTime(double arrivalTime, double departureTime) {
 		this->arrivalTime = arrivalTime;
@@ -201,7 +202,7 @@ public:
 	}
 
 private:
-	const Tour* parentTour;
+	const Tour& parentTour;
 	StopType stopType;
 	bool primaryActivity;
 	double arrivalTime;
@@ -220,12 +221,13 @@ private:
  */
 class Tour {
 public:
-	Tour(StopType tourType)
-	: tourType(tourType), usualLocation(false), subTour(false), parentTour(nullptr), tourMode(0), tourDestination(0), primaryStop(nullptr), startTime(0), endTime(0)
+	Tour(StopType tourType, bool subTour=false)
+	: tourType(tourType), usualLocation(false), subTour(subTour), tourMode(0), tourDestination(0), primaryStop(nullptr), startTime(0),
+	  endTime(0), firstTour(false)
 	{}
 
 	virtual ~Tour() {
-		for(std::deque<Stop*>::iterator i = stops.begin(); i!=stops.end(); i++) {
+		for(std::list<Stop*>::iterator i = stops.begin(); i!=stops.end(); i++) {
 			safe_delete_item(*i);
 		}
 		stops.clear();
@@ -237,10 +239,6 @@ public:
 
 	void setEndTime(double endTime) {
 		this->endTime = endTime;
-	}
-
-	const Tour* getParentTour() const {
-		return parentTour;
 	}
 
 	double getStartTime() const {
@@ -281,6 +279,7 @@ public:
 		case EDUCATION: return "Education";
 		case SHOP: return "Shop";
 		case OTHER: return "Other";
+		default: return "NULL";
 		}
 	}
 
@@ -311,21 +310,6 @@ public:
 		}
 	}
 
-	/**
-	 * removes a stop to the stops list appropriately depending on whether the stop
-	 * is in the first half tour or the second.
-	 *
-	 * @param stop stop to be removed
-	 */
-	void removeStop(Stop* stop) {
-		if(stop->isInFirstHalfTour()) {
-			stops.pop_front();
-		}
-		else {
-			stops.pop_back();
-		}
-	}
-
 	const Stop* getPrimaryStop() const {
 		return primaryStop;
 	}
@@ -342,24 +326,70 @@ public:
 		this->tourDestination = tourDestination;
 	}
 
+	bool isFirstTour() const {
+		return firstTour;
+	}
+
+	void setFirstTour(bool firstTour) {
+		this->firstTour = firstTour;
+	}
+
+	bool hasSubTours() const {
+		return (!subTours.empty());
+	}
+
+	bool operator==(const Tour& rhs) const;
+	bool operator!=(const Tour& rhs) const;
+
 	/**
-	 * list of stops in this tour.
-	 * relative ordering of stops according to the time of day in which they occur is maintained in this list.
+	 * List of stops in this tour.
+	 * The relative ordering of stops in this list reflects the chronological order of the stops.
 	 */
-	std::deque<Stop*> stops;
+	std::list<Stop*> stops;
+
+	/**
+	 * List of sub tours for this tour.
+	 * The relative ordering of sub-tours in this list reflects the chronological order of the tours.
+	 */
+	std::deque<Tour> subTours;
 
 private:
 	StopType tourType;
 	bool usualLocation;
 	bool subTour;
-	Tour* parentTour; // in case of sub tours
 	int tourMode;
 	int tourDestination;
 	Stop* primaryStop;
 	double startTime;
 	double endTime;
+	bool firstTour;
 };
 
+class OD_Pair {
+private:
+	int origin;
+	int destination;
+
+public:
+	OD_Pair(int org, int dest) : origin(org), destination(dest) {}
+	virtual ~OD_Pair() {}
+
+	bool operator ==(const OD_Pair& rhs) const;
+	bool operator !=(const OD_Pair& rhs) const;
+
+	bool operator >(const OD_Pair& rhs) const;
+	bool operator <(const OD_Pair& rhs) const;
+
+	int getDestination() const
+	{
+		return destination;
+	}
+
+	int getOrigin() const
+	{
+		return origin;
+	}
+};
 
 } // end namespace medium
 } // end namespace sim_mob

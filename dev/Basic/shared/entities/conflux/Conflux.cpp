@@ -15,7 +15,9 @@
 #include <cmath>
 #include <map>
 #include <stdexcept>
+#include <stdint.h>
 #include <vector>
+#include "boost/lexical_cast.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/Person.hpp"
@@ -610,13 +612,18 @@ sim_mob::Person* sim_mob::Conflux::agentClosestToIntersection() {
 }
 
 void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
-	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin();
-			upstreamIt != upstreamSegStatsMap.end(); upstreamIt++) {
+	const ConfigManager& cfg = ConfigManager::GetInstance();
+	bool outputEnabled = cfg.CMakeConfig().OutputEnabled();
+	std::string updtInterval = cfg.FullConfig().system.genericProps.at("update_interval");
+	bool updateThisTick = ((frameNumber.frame() % boost::lexical_cast<uint32_t>(updtInterval))==0);
+	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin(); upstreamIt != upstreamSegStatsMap.end(); upstreamIt++)
+	{
 		const SegmentStatsList& linkSegments = upstreamIt->second;
-		for(SegmentStatsList::const_iterator segIt = linkSegments.begin();
-				segIt != linkSegments.end(); segIt++) {
+		for(SegmentStatsList::const_iterator segIt = linkSegments.begin(); segIt != linkSegments.end(); segIt++)
+		{
 			(*segIt)->updateLaneParams(frameNumber);
-			if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
+			if (updateThisTick && outputEnabled)
+			{
 				Log() << (*segIt)->reportSegmentStats(frameNumber);
 			}
 		}
@@ -1224,11 +1231,6 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 	std::vector<sim_mob::TripChainItem*> agTripChain = p->getTripChain();
 	const sim_mob::TripChainItem* firstItem = agTripChain.front();
 
-	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
-	std::string role = rf.GetTripChainMode(firstItem);
-
-	StreetDirectory& streetDirectory = StreetDirectory::instance();
-
 	std::vector<WayPoint> path;
 	const sim_mob::RoadSegment* rdSeg = nullptr;
 
@@ -1236,7 +1238,11 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 		path = PathSetManager::getInstance()->getPathByPerson(p);
 	}
 	else{
-		if (role == "driver") {
+		const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
+		std::string role = rf.GetRoleName(firstItem->getMode()); //getMode is a virtual function. see its documentation
+		StreetDirectory& streetDirectory = StreetDirectory::instance();
+
+		if (role=="driver" || role=="biker") {
 			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
 			path = streetDirectory.SearchShortestDrivingPath(streetDirectory.DrivingVertex(*firstSubTrip.fromLocation.node_), streetDirectory.DrivingVertex(*firstSubTrip.toLocation.node_));
 		}

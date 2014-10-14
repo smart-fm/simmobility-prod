@@ -95,7 +95,7 @@ sim_mob::DriverRequestParams sim_mob::medium::BusDriver::getDriverRequestParams(
 
 bool  sim_mob::medium::BusDriver::checkIsFull()
 {
-	if (passengerList.size() < MT_Config::GetInstance().getBusCapcacity()) {
+	if (passengerList.size() < MT_Config::getInstance().getBusCapacity()) {
 		return false;
 	} else {
 		return true;
@@ -191,7 +191,7 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 	unsigned int totalNumber = numAlighting + numBoarding;
 
 	const std::vector<float>& dwellTimeParams =
-				MT_Config::GetInstance().getDwellTimeParams();
+				MT_Config::getInstance().getDwellTimeParams();
 
 	const float fixedTime = Utils::generateFloat(dwellTimeParams[0],dwellTimeParams[1]);
 	const float individualTime = Utils::generateFloat(dwellTimeParams[2], dwellTimeParams[3]);
@@ -200,6 +200,7 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 
 	DailyTime dwellTime( converToMilliseconds(waitingTimeAtbusStop) );
 	storeArrivalTime(current, dwellTime.toString(), busStopAgent->getBusStop());
+
 
 	if (requestMode.get() == Role::REQUEST_DECISION_TIME) {
 		requestMode.set(Role::REQUEST_NONE);

@@ -58,11 +58,11 @@ public:
 	}
 
 private:
-	const double freeFlowSpeed;  ///<Maximum speed of the road segment
-	const double jamDensity;     ///<density during traffic jam in vehicles / m
-	const double minDensity;     ///<minimum traffic density in vehicles / m
-	const double minSpeed;       ///<minimum speed in the segment
-	const double capacity;       ///<segment capacity in vehicles/second
+	double freeFlowSpeed;  ///<Maximum speed of the road segment
+	double jamDensity;     ///<density during traffic jam in vehicles / m
+	double minDensity;     ///<minimum traffic density in vehicles / m
+	double minSpeed;       ///<minimum speed in the segment
+	double capacity;       ///<segment capacity in vehicles/second
 	const double alpha;          ///<Model parameter of speed density function
 	const double beta;           ///<Model parameter of speed density function
 };
@@ -663,7 +663,8 @@ public:
 	std::string reportSegmentStats(timeslice frameNumber);
 
 	/**
-	 * computes the density of the segment
+	 * computes the density of the moving part of the segment
+	 * the density value computed here is meant to be used in speed density function
 	 * @param vehicleLanes boolean flag indicating whether we want the density from vehicle lanes
 	 */
 	double getDensity(bool vehicleLanes);

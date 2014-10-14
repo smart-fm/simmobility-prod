@@ -54,23 +54,33 @@ namespace {
      * Maps common classes for lua models 
      * @param state
      */
-    inline void mapCommonClasses(lua_State* state) {
+    inline void mapCommonClasses(lua_State* state)
+    {
         getGlobalNamespace(state)
             .beginClass <Unit> ("Unit")
-            .addProperty("id", &Unit::getId)
-            .addProperty("buildingId", &Unit::getBuildingId)
-            .addProperty("typeId", &Unit::getTypeId)
-            .addProperty("postcodeId", &Unit::getPostcodeId)
-            .addProperty("floorArea", &Unit::getFloorArea)
-            .addProperty("storey", &Unit::getStorey)
-            .addProperty("rent", &Unit::getRent)
+            .addProperty("fmUnitId", &Unit::getId)
+        	.addProperty("fmBuildingId", &Unit::getBuildingId)
+        	.addProperty("slaAddressId", &Unit::getSlaAddressId)
+        	.addProperty("unitType", &Unit::getUnitType)
+        	.addProperty("storeyRange", &Unit::getStoreyRange)
+        	.addProperty("unitStatus", &Unit::getUnitStatus)
+        	.addProperty("floorArea", &Unit::getFloorArea)
+        	.addProperty("storey", &Unit::getStorey)
+        	.addProperty("rent", &Unit::getRent)
+        	.addProperty("saleFromDate", &Unit::getSaleFromDate)
+        	.addProperty("physicalFromDate", &Unit::getPhysicalFromDate)
+        	.addProperty("saleStatus", &Unit::getSaleStatus)
+        	.addProperty("physicalStatus", &Unit::getPhysicalStatus)
+
             .endClass();
     getGlobalNamespace(state)
             .beginClass <Postcode> ("Postcode")
-            .addProperty("id", &Postcode::getId)
-            .addProperty("code", &Postcode::getCode)
-            .addProperty("location", &Postcode::getLocation)
-            .addProperty("tazId", &Postcode::getTazId)
+            .addProperty("address_id", &Postcode::getAddressId)
+            .addProperty("sla_postcode", &Postcode::getSlaPostcode)
+            .addProperty("taz_id", &Postcode::getTazId)
+            .addProperty("longitude", &Postcode::getLongitude)
+            .addProperty("latitude", &Postcode::getLatitude)
+            .addProperty("primary_postcode", &Postcode::getPrimaryPostcode)
             .endClass();
     getGlobalNamespace(state)
             .beginClass <PostcodeAmenities> ("PostcodeAmenities")
@@ -93,24 +103,21 @@ namespace {
             .addProperty("bus_200m", &PostcodeAmenities::hasBus_200m)
             .addProperty("bus_400m", &PostcodeAmenities::hasBus_400m)
             .addProperty("pms_1km", &PostcodeAmenities::hasPms_1km)
-            .addProperty("apartment", &PostcodeAmenities::isApartment)
-            .addProperty("condo", &PostcodeAmenities::isCondo)
-            .addProperty("terrace", &PostcodeAmenities::isTerrace)
-            .addProperty("semi", &PostcodeAmenities::isSemi)
-            .addProperty("detached", &PostcodeAmenities::isDetached)
-            .addProperty("ec", &PostcodeAmenities::isEc)
-            .addProperty("_private", &PostcodeAmenities::isPrivate)
-            .addProperty("hdb", &PostcodeAmenities::isHdb)
             .endClass();
     getGlobalNamespace(state)
             .beginClass <Building> ("Building")
-            .addProperty("id", &Building::getId)
-            .addProperty("builtYear", &Building::getBuiltYear)
-            .addProperty("landedArea", &Building::getLandedArea)
-            .addProperty("parcelId", &Building::getParcelId)
-            .addProperty("parkingSpaces", &Building::getParkingSpaces)
-            .addProperty("tenureId", &Building::getTenureId)
-            .addProperty("typeId", &Building::getTypeId)
+            .addProperty("fmBuildingId", &Building::getFmBuildingId)
+            .addProperty("fmProjectId", &Building::getFmProjectId)
+            .addProperty("fmParcelId", &Building::getFmParcelId)
+            .addProperty("storeysAboveGround", &Building::getStoreysAboveGround)
+            .addProperty("storeysBelowGround", &Building::getStoreysBelowGround)
+            .addProperty("fromDate", &Building::getFromDate)
+            .addProperty("toDate", &Building::getToDate)
+            .addProperty("buildingStatus", &Building::getBuildingStatus)
+            .addProperty("grossSqmRes", &Building::getGrossSqmRes)
+            .addProperty("grossSqmOffice", &Building::getGrossSqmOffice)
+            .addProperty("grossSqmRetail", &Building::getGrossSqmRetail)
+            .addProperty("grossSqmOther", &Building::getGrossSqmOther)
             .endClass();
     }
 }
@@ -119,28 +126,29 @@ namespace {
  *                         EXTERNAL EVENTS LUA
  ******************************************************************************/
 
-ExternalEventsModel::ExternalEventsModel() : lua::LuaModel() {
-}
+ExternalEventsModel::ExternalEventsModel() : lua::LuaModel() {}
 
-ExternalEventsModel::ExternalEventsModel(const ExternalEventsModel& orig)
-: lua::LuaModel(orig) {
-}
+ExternalEventsModel::ExternalEventsModel(const ExternalEventsModel& orig): lua::LuaModel(orig) {}
 
 ExternalEventsModel::~ExternalEventsModel() {
 }
 
-void ExternalEventsModel::getExternalEvents(int day,
-        vector<ExternalEvent>& outValues) const {
+void ExternalEventsModel::getExternalEvents(int day, vector<ExternalEvent>& outValues) const
+{
     LuaRef funcRef = getGlobal(state.get(), "getExternalEvents");
     LuaRef retVal = funcRef(day);
-    if (retVal.isTable()) {
-        for (int i = 1; i <= retVal.length(); i++) {
+
+    if (retVal.isTable())
+    {
+        for (int i = 1; i <= retVal.length(); i++)
+        {
             outValues.push_back(retVal[i].cast<ExternalEvent>());
         }
     }
 }
 
-void ExternalEventsModel::mapClasses() {
+void ExternalEventsModel::mapClasses()
+{
     getGlobalNamespace(state.get())
         .beginClass <ExternalEvent> ("ExternalEvent")
         .addConstructor <void (*) (void) > ()
@@ -154,14 +162,11 @@ void ExternalEventsModel::mapClasses() {
  *                         HOUSING MARKET LUA
  ******************************************************************************/
 
-HM_LuaModel::HM_LuaModel() : lua::LuaModel() {
-}
+HM_LuaModel::HM_LuaModel() : lua::LuaModel() {}
 
-HM_LuaModel::HM_LuaModel(const HM_LuaModel& orig) : lua::LuaModel(orig) {
-}
+HM_LuaModel::HM_LuaModel(const HM_LuaModel& orig) : lua::LuaModel(orig) {}
 
-HM_LuaModel::~HM_LuaModel() {
-}
+HM_LuaModel::~HM_LuaModel() {}
 
 void HM_LuaModel::mapClasses() {
     getGlobalNamespace(state.get())
@@ -203,26 +208,28 @@ void HM_LuaModel::mapClasses() {
     mapCommonClasses(state.get());
 }
 
-void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket,
-        vector<ExpectationEntry>& outValues) const {
-    const BigSerial pcId = unit.getPostcodeId();
+void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, vector<ExpectationEntry>& outValues) const
+{
+    const BigSerial pcId = unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calulateUnitExpectations");
-    LuaRef retVal = funcRef(&unit, timeOnMarket, getBuilding(unit.getBuildingId()),
-            getPostcode(pcId), getAmenities(pcId));
-    if (retVal.isTable()) {
+    LuaRef retVal = funcRef(&unit, timeOnMarket, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
+
+    if (retVal.isTable())
+    {
         // Reverse the expectations (HM requirement).
-        for (int i = retVal.length(); i >= 1; i--) {
+        for (int i = retVal.length(); i >= 1; i--)
+        {
             ExpectationEntry entry = retVal[i].cast<ExpectationEntry>();
             outValues.push_back(entry);
         }
     }
 }
 
-double HM_LuaModel::calculateHedonicPrice(const Unit& unit) const {
-    const BigSerial pcId = unit.getPostcodeId();
+double HM_LuaModel::calculateHedonicPrice(const Unit& unit) const
+{
+    const BigSerial pcId = unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calculateHedonicPrice");
-    LuaRef retVal = funcRef(&unit, getBuilding(unit.getBuildingId()),
-            getPostcode(pcId), getAmenities(pcId));
+    LuaRef retVal = funcRef(&unit, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
     if (retVal.isNumber()) {
         return retVal.cast<double>();
     }
@@ -238,12 +245,13 @@ double HM_LuaModel::calculateSpeculation(const HousingMarket::Entry& entry, int 
     return INVALID_DOUBLE;
 }
 
-double HM_LuaModel::calulateWP(const Household& hh, const Unit& unit, 
-        const HM_Model::TazStats& stats) const {
-    const BigSerial pcId = unit.getPostcodeId();
+double HM_LuaModel::calulateWP(const Household& hh, const Unit& unit, const HM_Model::TazStats& stats) const
+{
+    const BigSerial pcId = unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calculateWP");
     LuaRef retVal = funcRef(&hh, &unit, &stats, getAmenities(pcId));
-    if (retVal.isNumber()) {
+    if (retVal.isNumber())
+    {
         return retVal.cast<double>();
     }
     return INVALID_DOUBLE;

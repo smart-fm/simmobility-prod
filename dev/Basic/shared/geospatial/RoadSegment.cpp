@@ -112,7 +112,11 @@ unsigned int sim_mob::RoadSegment::getSegmentAimsunId() const{
 
 	return originId;
 }
-
+std::string sim_mob::RoadSegment::getSegmentAimsunIdStr() const{
+	std::string aimsunId = originalDB_ID.getLogItem();
+	std::string segId = sim_mob::getNumberFromAimsunId(aimsunId);
+	return segId;
+}
 void sim_mob::RoadSegment::specifyEdgePolylines(const vector< vector<Point2D> >& calcdPolylines)
 {
 	//Save the edge polylines.

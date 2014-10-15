@@ -155,6 +155,13 @@ void sim_mob::DriverMovement::init() {
 	intModel = new SimpleIntDrivingModel();
 
 	parentDriver->initReactionTime();
+
+	// test stop point
+	std::string segid;
+	double dis =20;
+	double dwelltime = 10;
+	StopPoint sp(segid,dis,dwelltime);
+	p2.insertStopPoint(sp);
 }
 sim_mob::DriverMovement::~DriverMovement() {
 //Our movement models.
@@ -1073,9 +1080,71 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(
 	return res;
 }
 double sim_mob::DriverMovement::getDisToStopPoint(double perceptionDis){
-	double res=-1;
+	double distance=-1;
 	std::vector<const sim_mob::RoadSegment*>::iterator currentSegIt = fwdDriverMovement.currSegmentIt;
 	std::vector<const sim_mob::RoadSegment*>::iterator currentSegItEnd = fwdDriverMovement.fullPath.end();
+
+	// get moved distancd in current segment
+	double movedis =  fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
+	double itemDis = fwdDriverMovement.getCurrentSegmentLengthCM()
+							- fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
+
+	for (; currentSegIt != currentSegItEnd; ++currentSegIt) {
+			if (currentSegIt == currentSegItEnd) {
+				break;
+			}
+			// get segment
+			const RoadSegment* rs = *currentSegIt;
+			if (!rs) {
+				break;
+			}
+
+
+			// get segment aimsun id
+			std::string id = rs->getSegmentAimsunIdStr();
+			// get move distance in current seg
+			// get param
+			DriverUpdateParams& p = parentDriver->getParams();
+			// check if has stop point of the segment
+			std::map<std::string,std::vector<StopPoint> >::iterator it = p.stopPointPool.find(id);
+			if(it!=p.stopPointPool.end()){
+				std::vector<StopPoint> &v = it->second;
+				for(int i=0;i<v.size();++i){
+					if (rs == fwdDriverMovement.getCurrSegment()) {
+						if(v[i].distance>=movedis){
+							distance = v[i].distance - movedis;
+							if(distance>perceptionDis){
+								return -1;
+							}
+							return distance;// same segment
+						}
+					}// end of getCurrSegment
+					else{
+						// in forward segment
+						if(rs->getLink() == fwdDriverMovement.getCurrSegment()->getLink()){
+							// in same link
+							distance = itemDis + v[i].distance;
+							if(distance>perceptionDis){
+								return -1;
+							}
+							return distance;// same segment
+						}//end if link
+						else{
+							// already in next link
+							return -1;
+						}
+					}//end else
+				}//end for
+			}
+
+			// rs has no stop point , check next segment
+			itemDis += rs->getLengthOfSegment();
+			if(itemDis>perceptionDis){
+				return -1;
+			}
+
+	}//end of for
+	return distance;
 }
 void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 		std::vector<sim_mob::Lane*>& lanePool) {

@@ -1441,6 +1441,18 @@ double sim_mob::MITSIM_CF_Model::calcAdjacentRate(DriverUpdateParams& p) {
 //	acc += targetGapAccParm[12] / 0.824;
 //	return acc;
 }
+double sim_mob::MITSIM_CF_Model::calcStopPointRate(sim_mob::DriverUpdateParams& p){
+	double acc=p.maxAcceleration;
+	if(!p.getStatus(STATUS_CHANGING)){
+		if(p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT || p.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT){
+			acc = -10;
+		}// end of stopPointState
+	}
+	if(p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT && p.perceivedFwdVelocity / 100 < 0.1){
+		p.stopPointState = DriverUpdateParams::WAITING_AT_STOP_POINT;
+	}
+	return acc;
+}
 /*
  *-------------------------------------------------------------------
  * This function returns the acceleration rate required to

@@ -55,10 +55,11 @@ struct NearestPedestrian {
 };
 
 struct StopPoint{
-	StopPoint():id(-1),segmentId(std::string()),distance(-1),isPassed(true){}
+	StopPoint(std::string& segId,double& dis,double& dwellT):id(-1),segmentId(segId),distance(dis),isPassed(false),dwellTime(dwellT){}
 	int id;
 	std::string segmentId;
 	double distance;
+	double dwellTime;//10 sec
 	bool isPassed;
 };
 

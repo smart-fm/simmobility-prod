@@ -2353,7 +2353,7 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToStopPoint(DriverUpdateParams& p,set
 	//TODO
 
 	// check state machine
-
+	int res = 0;
 	// 1.0 find nearest forward stop point
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
 	// get dis to stop point of current link
@@ -2371,19 +2371,35 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToStopPoint(DriverUpdateParams& p,set
 			//
 			p.stopPointState = DriverUpdateParams::JUST_ARRIVE_STOP_POINT;
 		}
-		// only most left lane ok
+		// only most left lane is target lane
 		const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
+		// get target lane index
+		int tl = lanes.size() - 1;
 		if(lanes.back()->is_pedestrian_lane()){
-			targetLanes.insert(lanes.at(lanes.size()-2));
+			tl = lanes.size() - 2;
 		}
-		else{
-			targetLanes.insert(lanes.back());
+		// current lane not target lane, insert
+		if(p.currLaneIndex != tl){
+			targetLanes.insert(lanes.at(tl));
+			res = -1;
 		}
-		return -1;
+//		if(lanes.back()->is_pedestrian_lane()){
+//			if(p.currLane != lanes.at(lanes.size()-2)){
+//				targetLanes.insert(lanes.at(lanes.size()-2));
+//				res = -1;
+//			}// end of currLane
+//		}
+//		else{
+//			if(p.currLane != lanes.at(lanes.size()-2)){
+//				targetLanes.insert(lanes.at(lanes.size()-2));
+//				res = -1;
+//			}// end of currLane
+//			targetLanes.insert(lanes.back());
+//		}
 	}//end of dis
 
 	p.stopPointState = DriverUpdateParams::NO_FOUND_STOP_POINT;
-	return 0;
+	return res;
 
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdateParams& p)

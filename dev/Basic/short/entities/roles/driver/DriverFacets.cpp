@@ -157,7 +157,7 @@ void sim_mob::DriverMovement::init() {
 	parentDriver->initReactionTime();
 
 	// test stop point
-	std::string segid;
+	std::string segid = "34356";
 	double dis =20;
 	double dwelltime = 10;
 	StopPoint sp(segid,dis,dwelltime);
@@ -597,6 +597,9 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 			calcVehicleStates(params);
 // params.cftimer = cfModel->calcNextStepSize(params);
 		}
+		if(fwdDriverMovement.getCurrSegment()->getSegmentAimsunIdStr() == "34356"){
+				int i=0;
+			}
 // perform lc ,if status is STATUS_LC_CHANGING
 		params.overflowIntoIntersection = move(params);
 //Did our last move forward bring us into an intersection?
@@ -1080,15 +1083,19 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(
 	return res;
 }
 double sim_mob::DriverMovement::getDisToStopPoint(double perceptionDis){
-	double distance=-1;
+	double distance=-100;
 	std::vector<const sim_mob::RoadSegment*>::iterator currentSegIt = fwdDriverMovement.currSegmentIt;
 	std::vector<const sim_mob::RoadSegment*>::iterator currentSegItEnd = fwdDriverMovement.fullPath.end();
 
+	if((*currentSegIt)->getSegmentAimsunIdStr() == "34356"){
+		int i=0;
+	}
 	// get moved distancd in current segment
-	double movedis =  fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
-	double itemDis = fwdDriverMovement.getCurrentSegmentLengthCM()
-							- fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
+	double movedis =  fwdDriverMovement.getCurrDistAlongRoadSegmentCM()/100.0;
+	double itemDis = fwdDriverMovement.getCurrentSegmentLengthCM()/100.0
+							- fwdDriverMovement.getCurrDistAlongRoadSegmentCM()/100.0;
 
+	int i=0;
 	for (; currentSegIt != currentSegItEnd; ++currentSegIt) {
 			if (currentSegIt == currentSegItEnd) {
 				break;
@@ -1111,11 +1118,17 @@ double sim_mob::DriverMovement::getDisToStopPoint(double perceptionDis){
 				std::vector<StopPoint> &v = it->second;
 				for(int i=0;i<v.size();++i){
 					if (rs == fwdDriverMovement.getCurrSegment()) {
-						if(v[i].distance>=movedis){
+						if(v[i].distance<=perceptionDis){
 							distance = v[i].distance - movedis;
-							if(distance>perceptionDis){
-								return -1;
+							std::cout<<p.now.frame()<<" getDisToStopPoint: find stop point in segment <"<<id<<"> distance<"<<distance<<"> "<<itemDis<<" "<<fwdDriverMovement.getCurrDistAlongRoadSegmentCM()/100.0<<std::endl;
+							if(distance<-10){
+								return -100;
 							}
+
+							if(distance>perceptionDis){
+								return -100;
+							}
+							p.currentStopPoint = v[i];
 							return distance;// same segment
 						}
 					}// end of getCurrSegment
@@ -1124,23 +1137,31 @@ double sim_mob::DriverMovement::getDisToStopPoint(double perceptionDis){
 						if(rs->getLink() == fwdDriverMovement.getCurrSegment()->getLink()){
 							// in same link
 							distance = itemDis + v[i].distance;
+							std::cout<<p.now.frame()<<" getDisToStopPoint: find stop point forward segment <"<<id<<"> distance<"<<distance<<"> "<<itemDis<<" "<<fwdDriverMovement.getCurrDistAlongRoadSegmentCM()/100.0<<std::endl;
 							if(distance>perceptionDis){
-								return -1;
+								return -100;
 							}
+							p.currentStopPoint = v[i];
 							return distance;// same segment
 						}//end if link
 						else{
 							// already in next link
-							return -1;
+							return -100;
 						}
 					}//end else
 				}//end for
 			}
 
 			// rs has no stop point , check next segment
-			itemDis += rs->getLengthOfSegment();
+			if(i==0){
+				//itemDis += rs->getLengthOfSegment()/100.0;
+			}
+			else{
+				itemDis += rs->getLengthOfSegment()/100.0;
+			}
+			i++;
 			if(itemDis>perceptionDis){
-				return -1;
+				return -100;
 			}
 
 	}//end of for

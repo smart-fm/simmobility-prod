@@ -2113,6 +2113,15 @@ int sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
 		// stop point lane maybe not in laneConnectorTargetLanes,so just assige to targetLanes
 		p.targetLanes = laneConnectStopPoint;
 	}
+	if(p.stopPointState == DriverUpdateParams::APPROACHING_STOP_POINT ||
+			p.stopPointState == DriverUpdateParams::CLOSE_STOP_POINT||
+			p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT||
+			p.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT){
+		if(res==0){
+			//means already in most left lane
+			needMLC = false;
+		}
+	}
 
 	// 2.0 set flag
 	if (needMLC) {
@@ -2358,7 +2367,10 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToStopPoint(DriverUpdateParams& p,set
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
 	// get dis to stop point of current link
 	double distance = driverMvt->getDisToStopPoint(p.stopPointPerDis);
-	if(distance>0 || p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT){// in case car stop just bit ahead of the stop point
+	if(distance>-10 || p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT){// in case car stop just bit ahead of the stop point
+		if(p.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT){
+			return res;
+		}
 		// has stop point ahead
 		if(p.stopPointState == DriverUpdateParams::NO_FOUND_STOP_POINT){
 			p.stopPointState = DriverUpdateParams::APPROACHING_STOP_POINT;
@@ -2367,8 +2379,9 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToStopPoint(DriverUpdateParams& p,set
 			//
 			p.stopPointState = DriverUpdateParams::CLOSE_STOP_POINT;
 		}
-		if(distance > 0 && distance < 10){ // 0m-10m
+		if(p.stopPointState == DriverUpdateParams::CLOSE_STOP_POINT && abs(distance) < 10){ // 0m-10m
 			//
+			std::cout<<p.now.frame()<<" JUST_ARRIVE_STOP_POINT"<<std::endl;
 			p.stopPointState = DriverUpdateParams::JUST_ARRIVE_STOP_POINT;
 		}
 		// only most left lane is target lane
@@ -2381,8 +2394,10 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToStopPoint(DriverUpdateParams& p,set
 		// current lane not target lane, insert
 		if(p.currLaneIndex != tl){
 			targetLanes.insert(lanes.at(tl));
+			p.dis2stop = distance;
 			res = -1;
 		}
+		return res;
 //		if(lanes.back()->is_pedestrian_lane()){
 //			if(p.currLane != lanes.at(lanes.size()-2)){
 //				targetLanes.insert(lanes.at(lanes.size()-2));

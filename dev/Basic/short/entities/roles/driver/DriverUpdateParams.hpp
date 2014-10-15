@@ -55,7 +55,9 @@ struct NearestPedestrian {
 };
 
 struct StopPoint{
+	StopPoint(){}
 	StopPoint(std::string& segId,double& dis,double& dwellT):id(-1),segmentId(segId),distance(dis),isPassed(false),dwellTime(dwellT){}
+	StopPoint(const StopPoint& source):id(source.id),segmentId(source.segmentId),distance(source.distance),dwellTime(source.dwellTime),isPassed(source.isPassed){}
 	int id;
 	std::string segmentId;
 	double distance;
@@ -75,7 +77,7 @@ public:
 	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen) ,nextLaneIndex(0),isTargetLane(true),
 			status(0),flags(0),yieldTime(0,0),lcTimeTag(200),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0),utilityLeft(0),
 			utilityCurrent(0),utilityRight(0),perceivedDistToTrafficSignal(500),
-			disAlongPolyline(0),dorigPosx(0),dorigPosy(0),movementVectx(0),movementVecty(0),headway(999),currLane(NULL),stopPointPerDis(100),stopPointState(NO_FOUND_STOP_POINT){}
+			disAlongPolyline(0),dorigPosx(0),dorigPosy(0),movementVectx(0),movementVecty(0),headway(999),currLane(NULL),stopPointPerDis(100),stopPointState(NO_FOUND_STOP_POINT),startStopTime(0){}
 
 	virtual void reset(timeslice now, const Driver& owner);
 
@@ -329,9 +331,12 @@ public:
 		CLOSE_STOP_POINT		= 2,
 		JUST_ARRIVE_STOP_POINT 	= 3,
 		WAITING_AT_STOP_POINT 	= 4,
-		NO_FOUND_STOP_POINT		= 5
+		LEAVING_STOP_POINT 		= 5,
+		NO_FOUND_STOP_POINT		= 6
 	};
 	STOP_POINT_STATE stopPointState;
+	StopPoint currentStopPoint;
+	double startStopTime;
 public:
 #ifndef SIMMOB_DISABLE_MPI
 	static void pack(PackageUtils& package, const DriverUpdateParams* params);

@@ -10,7 +10,7 @@ namespace sim_mob
 DriverUpdateParams::DriverUpdateParams()
 : UpdateParams() ,status(0),flags(0),yieldTime(0,0),lcTimeTag(200),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0),
   utilityCurrent(0),utilityRight(0),utilityLeft(0),rnd(0),perceivedDistToTrafficSignal(500),disAlongPolyline(0),dorigPosx(0),dorigPosy(0),
-  movementVectx(0),movementVecty(0),headway(999),currLane(NULL),stopPointPerDis(100),stopPointState(NO_FOUND_STOP_POINT){
+  movementVectx(0),movementVecty(0),headway(999),currLane(NULL),stopPointPerDis(100),stopPointState(NO_FOUND_STOP_POINT),startStopTime(0){
 
 }
 void DriverUpdateParams::setStatus(unsigned int s)

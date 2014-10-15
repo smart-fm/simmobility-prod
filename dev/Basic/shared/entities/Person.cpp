@@ -105,9 +105,9 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 	  client_id(-1), nextLinkRequired(nullptr), currSegStats(nullptr)
 {
 	//TODO: Check with MAX what to do with the below commented lines
-//	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
-//		insertWaitingActivityToTrip(tc);
-//	}
+	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
+		insertWaitingActivityToTrip();
+	}
 //	else if(!ConfigManager::GetInstance().FullConfig().RunningMidDemand()){
 //		simplyModifyTripChain(tc);
 //	}
@@ -575,8 +575,7 @@ std::vector<sim_mob::SubTrip>::iterator sim_mob::Person::resetCurrSubTrip()
 	return trip->getSubTripsRW().begin();
 }
 
-void sim_mob::Person::insertWaitingActivityToTrip(
-		std::vector<TripChainItem*>& tripChain) {
+void sim_mob::Person::insertWaitingActivityToTrip() {
 	std::vector<TripChainItem*>::iterator tripChainItem;
 	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end();
 			tripChainItem++) {
@@ -608,6 +607,36 @@ void sim_mob::Person::insertWaitingActivityToTrip(
 	}
 }
 
+void sim_mob::Person::insertODTrips()
+{
+	ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	std::vector<TripChainItem*>::iterator tripChainItem;
+	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end();
+			tripChainItem++) {
+		if ((*tripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) {
+			std::vector<sim_mob::SubTrip>& subTrips =
+					(dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
+
+			std::vector<SubTrip>::iterator itSubTrip = subTrips.begin();
+			while (itSubTrip != subTrips.end()) {
+				if (itSubTrip->fromLocation.type_ == WayPoint::NODE
+						&& itSubTrip->toLocation.type_ == WayPoint::NODE
+						&& itSubTrip->mode == "BusTravel") {
+					std::vector<sim_mob::OD_Trip>& OD_Trips =
+							config.getOD_Trips();
+					MatchesOD_Trip matchsOD_Trip(
+							itSubTrip->fromLocation.node_->getID(),
+							itSubTrip->toLocation.node_->getID());
+					std::find_if(OD_Trips.begin(),OD_Trips.end(), MatchesOD_Trip);
+
+					if(matchsOD_Trip.result.size()>0){
+
+					}
+				}
+			}
+		}
+	}
+}
 
 void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripChain)
 {

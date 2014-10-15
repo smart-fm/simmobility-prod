@@ -6,6 +6,7 @@
 
 #include <string>
 #include "util/DailyTime.hpp"
+#include "boost/lexical_cast.hpp"
 
 namespace sim_mob {
 
@@ -53,6 +54,27 @@ public:
 	  int legId;
 	  std::string originNode;
 	  std::string destNode;
+};
+
+class MatchesOD_Trip {
+
+std::string originId;
+std::string destId;
+
+public:
+	std::vector<const OD_Trip*> result;
+	MatchesOD_Trip(const int original,const int dest){
+		originId=boost::lexical_cast<std::string>(original);
+		destId=boost::lexical_cast<std::string>(dest);
+	}
+
+	bool operator()(const OD_Trip* item){
+		if(item->originNode==originId && item->destNode==destId){
+			result.push_back(item);
+		}
+		return false;
+	}
+
 };
 
 }

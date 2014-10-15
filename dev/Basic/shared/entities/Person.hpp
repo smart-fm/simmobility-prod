@@ -94,7 +94,8 @@ public:
      * insert a waiting activity before bus travel
      * @param tripChain is the reference to current trip chain
      */
-    void insertWaitingActivityToTrip(std::vector<TripChainItem*>& tripChain);
+    void insertWaitingActivityToTrip();
+    void insertODTrips();
 
     // update nextTripChainItem, used only for NextRole
 	bool updateNextTripChainItem();

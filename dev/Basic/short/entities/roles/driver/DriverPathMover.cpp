@@ -679,7 +679,7 @@ double sim_mob::DriverPathMover::advanceToNextRoadSegment()
 				{
 					DebugStream << "Now in Intersection. Distance from Node center: " << centimeterToMeter(dist((*currSegmentIt)->getEnd()->location, myPos)) << endl;
 				}
-				inIntersection = true;
+				inIntersection = true; distAlongPolylineCM=0;
 				return distAlongPolylineCM;
 			}
 		}

@@ -120,6 +120,7 @@ public:
 	/**
 	 *  @brief get distance to nearest forward stop point in the link
 	 *  @param perceptionDis perception distance
+	 *  @return -1 not find bus, > 0 find and distance to stop point
 	 */
 	double getDisToStopPoint(double perceptionDis=20000);
 	/**

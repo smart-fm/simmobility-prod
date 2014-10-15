@@ -44,7 +44,6 @@ sim_mob::Profiler::Profiler(const std::string id, bool begin_):id(id){
 	{
 		start = lastTick = boost::chrono::system_clock::now();
 	}
-	std::cout << "New Profiler : " << id <<  "\n";
 	printTime(start);
 }
 
@@ -175,16 +174,10 @@ sim_mob::Profiler & sim_mob::BasicLogger::prof(const std::string id, bool timer)
 void  sim_mob::BasicLogger::initLogFile(const std::string& path)
 {
 	logFile.open(path.c_str());
-	if ((logFile.is_open() && logFile.good())){
-		std::cout << "Logfile for " << path << "  creatred" << std::endl;
-	}
+//	if ((logFile.is_open() && logFile.good())){
+//		std::cout << "Logfile for " << path << "  creatred" << std::endl;
+//	}
 }
-
-//sim_mob::BasicLogger&  sim_mob::BasicLogger::operator<<(StandardEndLine manip) {
-//	// call the function, but we cannot return it's value
-//		manip(*getOut());
-//	return *this;
-//}
 
 void sim_mob::BasicLogger::flushLog()
 {
@@ -229,7 +222,7 @@ void sim_mob::QueuedLogger::flushToFile()
     {
         while (logQueue.pop(buffer)){
 
-        	std::cout << "poped out  " << buffer << "  to Q" << std::endl;
+        	// std::cout << "poped out  " << buffer << "  to Q" << std::endl;
         	if(buffer){
         		buffer->str();
         		logFile << buffer->str();
@@ -249,13 +242,11 @@ void sim_mob::QueuedLogger::flushToFile()
     		safe_delete_item(buffer);
     	}
     }
-    std::cout << "Out of flushToFile" << std::endl;
 }
 
 void sim_mob::QueuedLogger::flushLog()
 {
 	std::stringstream *out = getOut(true);
-	Print() << "Pushing " << out << "  to Q" << std::endl;
 	logQueue.push(out);
 }
 
@@ -266,16 +257,6 @@ void sim_mob::QueuedLogger::flushLog()
  */
 sim_mob::Logger::~Logger()
 {
-	//debug code
-
-	std::cout << "Number of threads used: " << sim_mob::BasicLogger::threads.size() << std::endl;
-	for(std::map <boost::thread::id, int>::iterator item = sim_mob::BasicLogger::threads.begin(); item != sim_mob::BasicLogger::threads.end(); item++)
-	{
-		std::cout << "Thread[" << item->first << "] called out " << item->second << "  times" << std::endl;
-	}
-	std::cout << "Total calls to getOut: " << sim_mob::BasicLogger::ii << std::endl;
-	std::cout << "Number of flushes to files " << sim_mob::BasicLogger::flushCnt  << std::endl;
-	//debug...
 	std::pair<std::string, boost::shared_ptr<sim_mob::BasicLogger> > item;
 	BOOST_FOREACH(item,repo)
 	{
@@ -285,9 +266,6 @@ sim_mob::Logger::~Logger()
 }
 sim_mob::BasicLogger & sim_mob::Logger::operator()(const std::string &key)
 {
-	//todo
-//	boost::upgrade_lock<boost::shared_mutex> lock(repoMutex);
-//	boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
 	std::map<std::string, boost::shared_ptr<sim_mob::BasicLogger> >::iterator it = repo.find(key);
 	if(it == repo.end()){
 		std::cout << "creating a new Logger for " << key << std::endl;

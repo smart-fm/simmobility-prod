@@ -761,8 +761,6 @@ void sim_mob::printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node
 vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip)
 {
 	// get person id and current subtrip id
-	std::string personId = per->getDatabaseId();
-	std::vector<sim_mob::SubTrip>::const_iterator currSubTripIt = per->currSubTrip;
 	std::string fromToID = subTrip.fromLocation.node_->getID() + "," + subTrip.toLocation.node_->getID();
 	//todo. change the subtrip signature from pointer to referencer
 	logger << "+++++++++++++++++++++++++" << "\n";

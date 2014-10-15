@@ -1033,8 +1033,6 @@ void DatabaseLoader::LoadObjectsForShortTerm(map<string, string> const & storedP
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain", false));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal", false));
-	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
-	LoadBusStopSG(getStoredProcedure(storedProcs, "busstopSG", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
 
 	//add by xuyan
@@ -1053,6 +1051,8 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadNodes(getStoredProcedure(storedProcs, "node"));
 	LoadSections(getStoredProcedure(storedProcs, "section"));
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
+	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
+	LoadBusStopSG(getStoredProcedure(storedProcs, "busstopSG", false));
 }
 
 void DatabaseLoader::loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)

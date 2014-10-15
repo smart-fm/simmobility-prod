@@ -264,6 +264,8 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 				}*/
 
 				//std::cout << "busline:" << busline->getBusLineID() << " stop size:"<<stops.size()<<std::endl;
+				//std::cout << "busline:" << busline->getBusLineID() << " segments size:"<<segments.size()<<std::endl;
+
 				//calculate bus route
 				if(stops.size()>0 && segments.size()==0){
 					const BusStop* start = nullptr;
@@ -322,6 +324,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 			  }
 		     busstop_busline_registered = false;
 			}
+
 			if(bustrip.setBusRouteInfo(segments, stops)) {
 				busline->addBusTrip(bustrip);
 			}

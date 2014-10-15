@@ -191,8 +191,8 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 		}
 		else if ((*(person->currTripChainItem))->itemType == TripChainItem::IT_BUSTRIP) {
 			routeTracker = BusRouteTracker(bustrip->getBusRouteInfo()); //Calls the constructor and the assignment operator overload defined in this class. Copy-constructor is not called.
-			Print()<< "BusTrip path size = " << routeTracker.getRoadSegments().size() << std::endl;
-			Print()<< "BusTrip stop list size: " << routeTracker.getBusStops().size() << std::endl;
+			//Print()<< "BusTrip path size = " << routeTracker.getRoadSegments().size() << std::endl;
+			//Print()<< "BusTrip stop list size: " << routeTracker.getBusStops().size() << std::endl;
 		} else {
 			Print() << "BusTrip path not initialized because it is not a bustrip, (*(person->currTripChainItem))->itemType = "
 					<< (*(person->currTripChainItem))->itemType << std::endl;

@@ -2101,6 +2101,13 @@ int sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
 	if(res == 1) needDLC = true;
 	p.addTargetLanes(laneConnectorTargetLanes);
 
+	// 1.3 check stop point,like bus stop
+	set<const Lane*> laneConnectStopPoint;
+	res = isLaneConnectToStopPoint(p,laneConnectStopPoint);
+	if(res == -1) needMLC = true;
+	if(res == 1) needDLC = true;
+	p.addTargetLanes(laneConnectStopPoint);
+
 	// 2.0 set flag
 	if (needMLC) {
 		p.setFlag(FLAG_ESCAPE);
@@ -2335,6 +2342,9 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 		res = 0;
 	}
 	return res;
+}
+int sim_mob::MITSIM_LC_Model::isLaneConnectToStopPoint(DriverUpdateParams& p,set<const Lane*>& targetLanes){
+	//TODO
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdateParams& p)
 {

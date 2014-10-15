@@ -285,4 +285,16 @@ double DriverUpdateParams::lcMinGap(int type)
 	return b[2] * b[0];
 }
 
+void DriverUpdateParams::insertStopPoint(StopPoint& sp){
+	std::map<std::string,std::vector<StopPoint> >::iterator it = stopPointPool.find(sp.segmentId);
+	if(it!=stopPointPool.end()){
+		it->second.push_back(sp);
+	}
+	else{
+		std::vector<StopPoint> v;
+		v.push_back(sp);
+		stopPointPool.insert(std::make_pair(sp.segmentId,v));
+	}
+}
+
 }

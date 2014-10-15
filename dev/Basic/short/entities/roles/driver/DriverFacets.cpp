@@ -1072,6 +1072,10 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(
 
 	return res;
 }
+double sim_mob::DriverMovement::getDisToStopPoint(double perceptionDis){
+	std::vector<const sim_mob::RoadSegment*>::iterator currentSegIt = fwdDriverMovement.currSegmentIt;
+	std::vector<const sim_mob::RoadSegment*>::iterator currentSegItEnd = fwdDriverMovement.fullPath.end();
+}
 void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 		std::vector<sim_mob::Lane*>& lanePool) {
 	/*

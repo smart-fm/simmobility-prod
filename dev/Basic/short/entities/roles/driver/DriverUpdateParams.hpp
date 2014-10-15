@@ -54,6 +54,14 @@ struct NearestPedestrian {
 	double distance;
 };
 
+struct StopPoint{
+	StopPoint():id(-1),segmentId(std::string()),distance(-1),isPassed(true){}
+	int id;
+	std::string segmentId;
+	double distance;
+	bool isPassed;
+};
+
 
 ///Simple struct to hold parameters which only exist for a single update tick.
 /// \author Wang Xinyuan
@@ -305,6 +313,14 @@ public:
 
 //	//perform incident response
 //	IncidentPerformer incidentPerformer;
+
+	/// key=segment aimsun id, value= stoppoint vector, one segment may has more than one stoppoint
+	std::map<std::string,std::vector<StopPoint> > stopPointPool;
+	/**
+	 *  @brief insert stop point
+	 *  @param sp stop point
+	 */
+	void insertStopPoint(StopPoint& sp);
 public:
 #ifndef SIMMOB_DISABLE_MPI
 	static void pack(PackageUtils& package, const DriverUpdateParams* params);

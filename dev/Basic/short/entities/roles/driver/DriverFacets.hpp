@@ -118,6 +118,11 @@ public:
       */
 	const sim_mob::RoadItem* getRoadItemByDistance(sim_mob::RoadItemType type,double &dis, double perceptionDis=20000,bool isInSameLink=true);
 	/**
+	 *  @brief get distance to nearest forward stop point in the link
+	 *  @param perceptionDis perception distance
+	 */
+	double getDisToStopPoint(double perceptionDis=20000);
+	/**
 	 *  /brief get lanes connect to segment at look ahead distance
 	 *  /param distance look ahead distance from current position
 	 *  /param lanePool store found lanes

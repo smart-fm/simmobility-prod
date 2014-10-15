@@ -68,9 +68,9 @@ public:
 		destId=boost::lexical_cast<std::string>(dest);
 	}
 
-	bool operator()(const OD_Trip* item){
-		if(item->originNode==originId && item->destNode==destId){
-			result.push_back(item);
+	bool operator()(const OD_Trip& item){
+		if(item.originNode==originId && item.destNode==destId){
+			result.push_back(&item);
 		}
 		return false;
 	}

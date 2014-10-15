@@ -106,6 +106,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 {
 	//TODO: Check with MAX what to do with the below commented lines
 	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
+		convertODsToTrips();
 		insertWaitingActivityToTrip();
 	}
 //	else if(!ConfigManager::GetInstance().FullConfig().RunningMidDemand()){
@@ -607,9 +608,87 @@ void sim_mob::Person::insertWaitingActivityToTrip() {
 	}
 }
 
-void sim_mob::Person::insertODTrips()
-{
-	ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips,
+		std::vector<const sim_mob::OD_Trip*>& matchedTrips) {
+
+	if (matchedTrips.size() > 0) {
+		std::vector<const sim_mob::OD_Trip*>::iterator it =
+				matchedTrips.begin();
+		while (it != matchedTrips.end()) {
+			sim_mob::SubTrip subTrip;
+			WayPoint source, dest;
+			bool isValid = true;
+			if (it == matchedTrips.begin()) {
+				source = curSubTrip->fromLocation;
+				unsigned int endNo = boost::lexical_cast<unsigned int>((*it)->endStop);
+				sim_mob::BusStop* endBStop = sim_mob::BusStop::findBusStop(endNo);
+				if (endBStop) {
+					dest = WayPoint(endBStop);
+				} else {
+					isValid=false;
+				}
+			} else if (it == matchedTrips.end() - 1) {
+				dest = curSubTrip->toLocation;
+				unsigned int startNo = boost::lexical_cast<unsigned int>((*it)->startStop);
+				sim_mob::BusStop* startBStop = sim_mob::BusStop::findBusStop(startNo);
+				if (startBStop) {
+					source = WayPoint(startBStop);
+				} else {
+					isValid=false;
+				}
+			} else {
+				unsigned int startNo = boost::lexical_cast<unsigned int>((*it)->startStop);
+				sim_mob::BusStop* startBStop = sim_mob::BusStop::findBusStop(startNo);
+				unsigned int endNo = boost::lexical_cast<unsigned int>((*it)->endStop);
+				sim_mob::BusStop* endBStop = sim_mob::BusStop::findBusStop(endNo);
+				if (startBStop && endBStop) {
+					source = WayPoint(startBStop);
+					dest = WayPoint(endBStop);
+				} else {
+					isValid = false;
+				}
+			}
+			if (isValid) {
+				subTrip.setPersonID(-1);
+				subTrip.itemType = TripChainItem::getItemType("Trip");
+				subTrip.sequenceNumber = 1;
+				subTrip.startTime = curSubTrip->endTime;
+				subTrip.endTime = curSubTrip->endTime;
+				subTrip.fromLocation = source;
+				if(source.type_==WayPoint::BUS_STOP){
+					subTrip.fromLocationType = TripChainItem::LT_PUBLIC_TRANSIT_STOP;
+				}
+				else {
+					subTrip.fromLocationType = TripChainItem::LT_NODE;
+				}
+				subTrip.toLocation = dest;
+				if(dest.type_==WayPoint::BUS_STOP){
+					subTrip.toLocationType = TripChainItem::LT_PUBLIC_TRANSIT_STOP;
+				}
+				else {
+					subTrip.toLocationType = TripChainItem::LT_NODE;
+				}
+				subTrip.tripID = "";
+				if((*it)->type=="Walk"){
+					subTrip.mode = "Walk";
+				}
+				else {
+					subTrip.mode = "BusTravel";
+				}
+				subTrip.isPrimaryMode = true;
+				subTrip.ptLineId = "";
+				newSubTrips.push_back(subTrip);
+			}
+			else {
+				Print()<<"bus trips include some bus stops which can not be found"<<std::endl;
+			}
+			it++;
+		}
+	}
+}
+
+void sim_mob::Person::convertODsToTrips() {
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	std::vector<TripChainItem*>::iterator tripChainItem;
 	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end();
 			tripChainItem++) {
@@ -618,19 +697,24 @@ void sim_mob::Person::insertODTrips()
 					(dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
 
 			std::vector<SubTrip>::iterator itSubTrip = subTrips.begin();
-			while (itSubTrip != subTrips.end()) {
+			std::vector<sim_mob::SubTrip> newSubTrips;
+			if (itSubTrip != subTrips.end()) {
 				if (itSubTrip->fromLocation.type_ == WayPoint::NODE
 						&& itSubTrip->toLocation.type_ == WayPoint::NODE
 						&& itSubTrip->mode == "BusTravel") {
 					std::vector<sim_mob::OD_Trip>& OD_Trips =
-							config.getOD_Trips();
+							config.getODsTripsMap();
 					MatchesOD_Trip matchsOD_Trip(
-							itSubTrip->fromLocation.node_->getID(),
+				 			itSubTrip->fromLocation.node_->getID(),
 							itSubTrip->toLocation.node_->getID());
-					std::find_if(OD_Trips.begin(),OD_Trips.end(), MatchesOD_Trip);
+					std::find_if(OD_Trips.begin(), OD_Trips.end(),
+							matchsOD_Trip);
 
-					if(matchsOD_Trip.result.size()>0){
-
+					SubTrip subTrip = (*itSubTrip);
+					makeODsToTrips(&subTrip, newSubTrips, matchsOD_Trip.result);
+					if (newSubTrips.size() > 0) {
+						itSubTrip = subTrips.erase(itSubTrip);
+						subTrips = newSubTrips;
 					}
 				}
 			}

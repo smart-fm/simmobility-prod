@@ -25,7 +25,7 @@ class PartitionManager;
 class PackageUtils;
 class UnPackageUtils;
 class UpdateParams;
-
+class OD_Trip;
 
 
 /**
@@ -95,7 +95,9 @@ public:
      * @param tripChain is the reference to current trip chain
      */
     void insertWaitingActivityToTrip();
-    void insertODTrips();
+    void convertODsToTrips();
+    void makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips,
+    		std::vector<const sim_mob::OD_Trip*>& matchedTrips);
 
     // update nextTripChainItem, used only for NextRole
 	bool updateNextTripChainItem();

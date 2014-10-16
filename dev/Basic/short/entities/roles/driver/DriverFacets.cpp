@@ -493,6 +493,7 @@ void sim_mob::DriverMovement::frame_tick_output() {
 	std::string id = res.str();
 	if(getParent()->amodId != "-1"){
 		id = getParent()->amdoTripId;
+		p.debugInfo = p.debugInfo+"<AMOD>";
 	}
 	else{
 		id = res.str();

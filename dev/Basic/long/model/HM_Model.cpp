@@ -64,8 +64,15 @@ namespace
 	};
 
 	const int YEAR = 365;
+	
 
+	//These three units are from the unit_type table
+	//"7";"less than 70 Apartment"
+	//"52";"larger than 379 Mixed R and C"
+	const int LS70_APT = 7;
+	const int LG379_RC = 52;
 	const int NON_RESIDENTIAL_PROPERTY = 66;
+
 }
 
 
@@ -216,6 +223,9 @@ void HM_Model::startImpl()
 			households.resize(numHouseholds);
 		}
 	}
+
+
+	unitsFiltering();
 
 	workGroup.assignAWorker(&market);
 	unsigned int numberOfFakeSellers = workGroup.getNumberOfWorkers();
@@ -462,6 +472,64 @@ void HM_Model::startImpl()
 	PrintOut("Orphaned siblings " << household_stats.orphanSiblings << std::endl );
 	PrintOut("Multigenerational " << household_stats.multigeneration << std::endl );
 
+}
+
+void HM_Model::unitsFiltering()
+{
+	int numOfHDB = 0;
+	int numOfCondo = 0;
+
+	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
+	{
+		int unitType = (*it)->getUnitType();
+
+		//1:Studio HDB 2:2room HDB 3:3room HDB 4:4room HDB" 5:5room HDB 6:EC HDB
+		if( unitType < LS70_APT )
+		{
+			numOfHDB++;
+		}
+		else
+		if( unitType < LG379_RC )
+		{
+			numOfCondo++;
+		}
+	}
+
+
+	//we need to filter out 10% of apartments, condos and 5% of HDBs.
+	int targetNumOfHDB   = 0.05 * numOfHDB;
+	int targetNumOfCondo = 0.10 * numOfCondo;
+
+	PrintOut( "[Prefilter] Total number of HDB: " << numOfHDB  << std::endl );
+	PrintOut( "[Prefilter] Total number of Condos: " << numOfCondo << std::endl );
+	PrintOut( "Total units " << units.size() << std::endl );
+
+	srand(time(0));
+	for( int n = 0;  n < targetNumOfHDB; )
+	{
+		int random =  (double)rand() / RAND_MAX * units.size();
+
+		if( units[random]->getUnitType() < LS70_APT )
+		{
+			units.erase( units.begin() + random );
+			n++;
+		}
+	}
+
+	for( int n = 0;  n < targetNumOfCondo; )
+	{
+		int random =  (double)rand() / RAND_MAX * units.size();
+
+		if( units[random]->getUnitType() >= LS70_APT && units[random]->getUnitType() < LG379_RC )
+		{
+			units.erase( units.begin() + random );
+			n++;
+		}
+	}
+
+	PrintOut( "[Postfilter] Total number of HDB: " << numOfHDB - targetNumOfHDB  << std::endl );
+	PrintOut( "[Postfilter] Total number of Condos: " << numOfCondo - targetNumOfCondo << std::endl );
+	PrintOut( "Total units " << units.size() << std::endl );
 }
 
 void HM_Model::hdbEligibilityTest(int index)

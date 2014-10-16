@@ -1882,6 +1882,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			std::vector<sim_mob::TripChainItem*>  tcs;
 			tcs.push_back(tc);
 			vhAssigned->setTripChain(tcs); //add trip chain
+			vhAssigned->amdoTripId = tripId;
 			//			vhAssigned->initTripChain();
 
 			std::cout << "Assigned Path: Start";
@@ -1943,7 +1944,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			tripItr->second = atrip; //because the first line doesn't replace.
 			vhTripMapMutex.unlock();
 			// output
-			std::cout << " >>> Servicing " << originNodeId << " -> " << destNodeId << " with: " << vhAssigned->amodId << std::endl;
+			std::cout << " >>> Servicing " << originNodeId << " -> " << destNodeId << " with: " << vhAssigned->amodId << "tripID:"<< tripId <<std::endl;
 
 			//out_demandStat << tripId << " " << originNodeId << " " << destNodeId << " " << reqTime << " servicing " << "accepted " << " timePickedUp? " << "timeDropped? " << tripDistanceInM << "\n";
 
@@ -1963,6 +1964,9 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 		for (int i=0; i<justDispatched.size(); i++) {
 			vhOnTheRoad.insert(std::make_pair(justDispatched[i]->amodId,justDispatched[i]));
 		}
+
+		std::cout << " -------------------" << std::endl;
+		std::cout << " # of vehicles on the road: " << vhOnTheRoad.size()<< std::endl;
 
 	}
 	else cout << "Unable to open out_vhsStat or out_demandStat";

@@ -221,6 +221,7 @@ public:
 
     // amod
     std::string amodId;
+    std::string amdoTripId;
 	void setPath(std::vector<WayPoint>& path);
 	std::vector<WayPoint> amodPath;
 	sim_mob::Vehicle* amodVehicle;

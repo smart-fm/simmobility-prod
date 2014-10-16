@@ -20,6 +20,7 @@ int main_impl(int ARGC, char* ARGV[]);
 //The actual main method simply dispatches to main_impl() in main_impl.cpp
 int main(int ARGC, char* ARGV[])
 {
+
 	return main_impl(ARGC, ARGV);
 }
 

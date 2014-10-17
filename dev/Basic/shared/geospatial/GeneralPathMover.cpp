@@ -52,7 +52,8 @@ const std::string sim_mob::GeneralPathMover::ErrorGeneralPathDone("Entire path i
 
 sim_mob::GeneralPathMover::GeneralPathMover() :
 	distAlongPolylineCM(0), /*currPolylineLengthCM(0),*/
-	distMovedInCurrSegment(0), distOfThisSegment(0), distOfRestSegments(0), inIntersection(false), isMovingForwardsInLink(false), currLaneID(0), distToEndSegment(0.0)
+	distMovedInCurrSegment(0), distOfThisSegment(0), distOfRestSegments(0), inIntersection(false), isMovingForwardsInLink(false), currLaneID(0), distToEndSegment(0.0),
+	isMoveToNextSegment(false)
 {
 }
 
@@ -413,6 +414,8 @@ double sim_mob::GeneralPathMover::advance(double fwdDistance)
 {
 	throwIf(!isPathSet(), GeneralPathMover::ErrorPathNotSet);
 
+	isMoveToNextSegment = false;
+
 	//Taking precedence above everything else is the intersection model. If we are in an intersection,
 	//  simply update the total distance and return (let the user deal with it). Also udpate the
 	//  current polyline length to always be the same as the forward distance.
@@ -586,6 +589,7 @@ double sim_mob::GeneralPathMover::advanceToNextPolyline(bool isFwd)
 	}
 	else
 	{
+		isMoveToNextSegment = false;
 		if (Debug::Paths)
 		{
 			DebugStream << "\nOn new polyline (" << (currPolypoint - polypointsList.begin() + 1) << " of " << polypointsList.size() - 1 << ") of length: " << Fmt_M(currPolylineLengthCM())
@@ -617,6 +621,7 @@ double sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 				DebugStream << "Now in Intersection. Distance from Node center: " << Fmt_M(dist((*currSegmentIt)->getEnd()->location, myPos)) << endl;
 			}
 			inIntersection = true;
+			isMoveToNextSegment = false;
 			return distAlongPolylineCM;
 		}
 	}
@@ -630,6 +635,8 @@ const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 {
 	throwIf(!isPathSet(), GeneralPathMover::ErrorPathNotSet);
 	throwIf(isDoneWithEntireRoute(), GeneralPathMover::ErrorPathDoneActual);
+
+	isMoveToNextSegment = true;
 
 	//Record
 	bool nextInNewLink = ((currSegmentIt + 1) != fullPath.end()) && ((*(currSegmentIt + 1))->getLink() != (*currSegmentIt)->getLink());
@@ -818,7 +825,30 @@ double sim_mob::GeneralPathMover::getCurrDistAlongRoadSegment() const
 	//return distMovedInCurrSegment + distRatio * totalPolyDist;
 	return distMovedInCurrSegment + distAlongPolylineCM;
 }
+double sim_mob::GeneralPathMover::getX() const {
+	return getPosition().x;
+}
 
+double sim_mob::GeneralPathMover::getY() const {
+	return getPosition().y;
+}
+double sim_mob::GeneralPathMover::getDistanceMovedInSegment() const {
+	return getCurrDistAlongRoadSegment();
+}
+
+double sim_mob::GeneralPathMover::getDistanceToSegmentStart() const {
+	DynamicVector dis(this->getX(), this->getY(),
+			this->getCurrSegment()->getStart()->location.getX(),
+			this->getCurrSegment()->getStart()->location.getY());
+	return dis.getMagnitude();
+}
+
+double sim_mob::GeneralPathMover::getDistanceToSegmentEnd() const {
+	DynamicVector dis(this->getX(), this->getY(),
+			this->getCurrSegment()->getEnd()->location.getX(),
+			this->getCurrSegment()->getEnd()->location.getY());
+	return dis.getMagnitude();
+}
 double sim_mob::GeneralPathMover::getTotalRoadSegmentLength() const
 {
 	throwIf(!isPathSet(), GeneralPathMover::ErrorPathNotSet);

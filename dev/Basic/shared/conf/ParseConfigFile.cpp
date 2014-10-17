@@ -196,6 +196,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessSystemNode(GetSingleElementByName(rootNode,"system", true));
 	//ProcessGeometryNode(GetSingleElementByName(rootNode, "geometry", true));
 	ProcessFMOD_Node(GetSingleElementByName(rootNode, "fmodcontroller"));
+	ProcessAMOD_Node(GetSingleElementByName(rootNode, "amodcontroller"));
 	ProcessIncidentsNode(GetSingleElementByName(rootNode, "incidentsData"));
 	ProcessConstructsNode(GetSingleElementByName(rootNode,"constructs"));
 	ProcessBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes"));
@@ -482,11 +483,27 @@ void sim_mob::ParseConfigFile::ProcessFMOD_Node(xercesc::DOMElement* node)
 	//Now set the rest.
 	cfg.fmod.ipAddress = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "ip_address"), "value"), "");
 	cfg.fmod.port = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "port"), "value"), static_cast<unsigned int>(0));
-	cfg.fmod.updateTimeMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "update_time_ms"), "value"), static_cast<unsigned int>(0));
+	//cfg.fmod.updateTravelMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "interval_travel_MS"), "value"), static_cast<unsigned int>(0));
+	//cfg.fmod.updatePosMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "interval_pos_MS"), "value"), static_cast<unsigned int>(0));
 	cfg.fmod.mapfile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "map_file"), "value"), "");
-	cfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blocking_time_sec"), "value"), static_cast<unsigned int>(0));
+	cfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blocking_time_Sec"), "value"), static_cast<unsigned int>(0));
 }
+void sim_mob::ParseConfigFile::ProcessAMOD_Node(xercesc::DOMElement* node)
+{
+	if (!node) {
+		return;
+	}
 
+	//The fmod tag has an attribute
+	cfg.amod.enabled = ParseBoolean(GetNamedAttributeValue(node, "switch"), false);
+
+	//Now set the rest.
+	cfg.amod.ipAddress = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "ipaddress"), "value"), "");
+	cfg.amod.port = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "port"), "value"), static_cast<unsigned int>(0));
+	//cfg.amod.updateTravelMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "updateTimeMS"), "value"), static_cast<unsigned int>(0));
+	cfg.amod.mapfile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "mapfile"), "value"), "");
+	cfg.amod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blockingTimeSec"), "value"), static_cast<unsigned int>(0));
+}
 
 void sim_mob::ParseConfigFile::ProcessDriversNode(xercesc::DOMElement* node)
 {

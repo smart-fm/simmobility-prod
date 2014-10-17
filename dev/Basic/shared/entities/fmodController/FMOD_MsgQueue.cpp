@@ -34,17 +34,20 @@ FMOD_MsgQueue::~FMOD_MsgQueue() {
 	// TODO Auto-generated destructor stub
 }
 
-void FMOD_MsgQueue::pushMessage(std::string msg)
+void FMOD_MsgQueue::pushMessage(std::string msg, bool notified)
 {
-	boost::unique_lock< boost::mutex > lock(mutex);
+	boost::mutex::scoped_lock lock(mutex);
 	messages.push(msg);
-	condition.notify_one();
+	lock.unlock();
+	if(notified){
+		condition.notify_one();
+	}
 }
 
 bool FMOD_MsgQueue::popMessage(std::string& msg)
 {
 	bool ret=false;
-	boost::unique_lock< boost::mutex > lock(mutex);
+	boost::mutex::scoped_lock lock(mutex);
 	if(messages.size()>0)
 	{
 		msg = messages.front();
@@ -58,12 +61,15 @@ bool FMOD_MsgQueue::waitPopMessage(std::string& msg, int seconds)
 {
 	bool ret = false;
 	boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(seconds*1000);
-	boost::unique_lock< boost::mutex > lock(mutex);
+	boost::mutex::scoped_lock lock(mutex);
 	while(messages.size()==0)
 	{
 		if( !condition.timed_wait(lock, timeout ) ){
-			ret = false;
-			break;
+			boost::system_time current = boost::get_system_time();
+			if(current>timeout){
+				ret = false;
+				break;
+			}
 		}
 	}
 
@@ -80,7 +86,7 @@ bool FMOD_MsgQueue::waitPopMessage(std::string& msg, int seconds)
 MessageList FMOD_MsgQueue::readMessage()
 {
 	MessageList res;
-	boost::unique_lock< boost::mutex > lock(mutex);
+	boost::mutex::scoped_lock lock(mutex);
 	while(messages.size()>0)
 	{
 		std::string msg = messages.front();

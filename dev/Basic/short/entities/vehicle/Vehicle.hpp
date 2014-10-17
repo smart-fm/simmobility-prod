@@ -52,7 +52,7 @@ public:
 	bool isDone() const; ///<Are we fully done with our path?
 	bool hasPath() const; ///<Do we have a path to move on?
 
-
+	void resetPath(std::vector<sim_mob::WayPoint> wp_path);
 
 	//Special
 	LANE_CHANGE_SIDE getTurningDirection() const;
@@ -63,6 +63,10 @@ public:
 	const sim_mob::RoadSegment* getSecondSegmentAhead();
 	const sim_mob::RoadSegment* getPrevSegment(bool inSameLink=true) const;
 	const sim_mob::RoadSegment* hasNextSegment(bool inSameLink) const;
+
+	std::vector<const sim_mob::RoadSegment*>::iterator getPathIterator();
+	std::vector<const sim_mob::RoadSegment*>::iterator getPathIteratorEnd();
+
 	const sim_mob::Lane* getCurrLane() const;
 	void setPositionInIntersection(double x, double y);
 	const DPoint& getPositionInIntersection();
@@ -99,7 +103,7 @@ public:
 	FMODSchedule* schedule;
 	double stoppedtimecounter;
 
-private:
+public:
 	//Trying a slightly more dynamic moving model.
 	int vehicleId;
 	GeneralPathMover fwdMovement;

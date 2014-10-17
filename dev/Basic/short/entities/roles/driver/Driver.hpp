@@ -88,6 +88,8 @@ public:
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 	virtual std::vector<sim_mob::BufferedBase*> getDriverInternalParams();
 	void handleUpdateRequest(MovementFacet* mFacet);
+//handle parent event from other agents
+	virtual void onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 	bool isBus();
 //Buffered data
 public:
@@ -127,6 +129,7 @@ public:
 	// for path-mover splitting purpose
 	void setCurrPosition(DPoint currPosition);
 	const DPoint& getCurrPosition() const;
+void rerouteWithPath(const std::vector<sim_mob::WayPoint>& path);
 
 public:
 	double startTime;

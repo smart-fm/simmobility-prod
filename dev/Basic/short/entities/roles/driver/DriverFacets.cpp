@@ -158,11 +158,21 @@ void sim_mob::DriverMovement::init() {
 }
 sim_mob::DriverMovement::~DriverMovement() {
 //Our movement models.
+parent->amodVehicle = NULL;
 	safe_delete_item(lcModel);
 	safe_delete_item(cfModel);
 	safe_delete_item(intModel);
 }
-
+void sim_mob::DriverMovement::updateRdSegTravelTimes(const RoadSegment* prevSeg, double linkExitTimeSec){
+	//if prevSeg is already in travelStats, update it's rdSegTT and add to rdSegTravelStatsMap
+	if(prevSeg == getParent()->getRdSegTravelStats().rdSeg_){
+		getParent()->addToRdSegTravelStatsMap(getParent()->getRdSegTravelStats(), linkExitTimeSec); //in seconds
+//		prevSeg->getParentConflux()->setRdSegTravelTimes(getParent(), linkExitTimeSec);
+		AMOD::AMODController::instance()->setRdSegTravelTimes(getParent(), linkExitTimeSec);
+	}
+	//creating a new entry in agent's travelStats for the new road segment, with entry time
+	getParent()->initRdSegTravelStats(parentDriver->vehicle->getCurrSegment(), linkExitTimeSec);
+}
 void sim_mob::DriverMovement::frame_init() {
 //Save the path from orign to next activity location in allRoadSegments
 	parentDriver->getParams().initSegId = parent->initSegId;
@@ -221,7 +231,9 @@ void sim_mob::DriverMovement::frame_tick() {
 
 // lost some params
 	DriverUpdateParams& p2 = parentDriver->getParams();
-
+	if(p2.parentId == 6055){
+		int i=0;
+	}
 	if (!(parentDriver->vehicle)) {
 		throw std::runtime_error("Something wrong, Vehicle is NULL");
 	}
@@ -578,10 +590,9 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 //Next, handle driving on links.
 // Note that a vehicle may leave an intersection during intersectionDriving(), so the conditional check is necessary.
 // Note that there is no need to chain this back to intersectionDriving.
-	if(params.parentId == 1 && params.now.frame()>82)
-	{
-		int i=0;
-	}
+	if(params.parentId == 8){
+			int i = 0;
+		}
 	if (!(fwdDriverMovement.isInIntersection())) {
 		params.cftimer -= params.elapsedSeconds;
 // params.overflowIntoIntersection = linkDriving(params);
@@ -1588,6 +1599,13 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 
 		Person* parentP = dynamic_cast<Person*>(parent);
 		sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
+
+if(!parentP->amodPath.empty()){
+			path = parent->amodPath;
+		}
+		else
+		{
+
 		const StreetDirectory& stdir = StreetDirectory::instance();
 
 		if (subTrip->schedule == nullptr) {
@@ -1616,6 +1634,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 				path.insert(path.end(), subPath.begin(), subPath.end());
 			}
 		}
+}//if amod path
 
 //For now, empty paths aren't supported.
 		if (path.empty()) {
@@ -1656,8 +1675,11 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 //A non-null vehicle means we are moving.
 		if (allocateVehicle) {
 			res = new Vehicle(VehicleBase::CAR, length, width);
-//			initPath(path, startLaneId);
-			initPathWithInitSeg(path, startLaneId,parent->initSegId,parent->initDis,parent->initSpeed);
+			parent->amodVehicle = res;
+			if(parentDriver->origin.node->originalDB_ID.getLogItem().find("66508") != std::string::npos){
+				int i=0;
+			}
+			initPath(path, startLaneId);
 		}
 
 		if (subTrip->schedule && res) {
@@ -1671,7 +1693,17 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 	getParent()->setNextPathPlanned(true);
 	return res;
 }
-
+void sim_mob::DriverMovement::rerouteWithPath(const std::vector<sim_mob::WayPoint>& path)
+{
+	//Else, pre-pend the current segment, and reset the current driver.
+	//NOTE: This will put the current driver back onto the start of the current Segment, but since this is only
+	//      used in Road Runner, it doesn't matter right now.
+	//TODO: This *might* work if we save the current advance on the current segment and reset it.
+	vector<WayPoint> newpath = path;
+	vector<WayPoint>::iterator it = newpath.begin();
+	newpath.insert(it, WayPoint(parentDriver->vehicle->getCurrSegment()));
+	parentDriver->vehicle->resetPath(newpath);
+}
 void sim_mob::DriverMovement::rerouteWithBlacklist(
 		const std::vector<const sim_mob::RoadSegment*>& blacklisted) {
 //Skip if we're somehow not driving on a road.
@@ -1754,6 +1786,9 @@ void sim_mob::DriverMovement::setOrigin(DriverUpdateParams& p) {
 	p.desiredSpeed = targetSpeed;
 
 //Set our current and target lanes.
+	if(p.parentId == 6055){
+		int i=0;
+	}
 	p.currLane = fwdDriverMovement.getCurrLane();
 	p.currLaneIndex = getLaneIndex(p.currLane);
 	targetLaneIndex = p.currLaneIndex;
@@ -2720,10 +2755,9 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 // "(" << p.currLane->getRoadSegment()->getLink()->roadName << ")" <<
 // " To "<< nextLaneInNextLink <<
 // "(" << nextLaneInNextLink->getRoadSegment()->getLink()->roadName << ")" << std::endl;
-			if(p.parentId == 66508 && p.now.frame()>1300)
-					{
-						int i=1;
-					}
+			if(p.parentId == 1895 && p.now.frame()>630){
+					int i=0;
+				}
 			const Lane *nextLinkLane = hasNextSegment(false)->getLane(0);
 			color = trafficSignal->getDriverLight(*p.currLane,
 					*nextLinkLane);

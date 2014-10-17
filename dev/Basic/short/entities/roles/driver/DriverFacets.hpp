@@ -24,6 +24,7 @@
 #include "util/OneTimeFlag.hpp"
 #include "IncidentPerformer.hpp"
 #include "FmodSchedulesPerformer.hpp"
+#include "entities/amodController/AMODController.hpp"
 #include "entities/roles/driver/models/CarFollowModel.hpp"
 
 namespace sim_mob {
@@ -162,6 +163,7 @@ public:
 
 	///Reroutes around a given blacklisted set of RoadSegments. See Role for documentation.
 	void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
+	void rerouteWithPath(const std::vector<sim_mob::WayPoint>& path);
 
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
@@ -231,6 +233,7 @@ public:
 	double targetSpeed;			//the speed which the vehicle is going to achieve
 
 	void intersectionVelocityUpdate();
+void updateRdSegTravelTimes(const RoadSegment* prevSeg, double linkExitTimeSec);
 
 	//This always returns the lane we are moving towards; regardless of if we've passed the
 	//  halfway point or not.

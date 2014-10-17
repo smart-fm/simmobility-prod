@@ -160,7 +160,12 @@ void sim_mob::Driver::initReactionTime()
 	perceivedDistToTrafficSignal = new FixedDelayed<double>(reacTime,true);
 	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
 
+	// record start time
+	startTime = getParams().now.ms()/1000.0;
+	isAleadyStarted = false;
 }
+
+
 Role* sim_mob::Driver::clone(Person* parent) const
 {
 	DriverBehavior* behavior = new DriverBehavior(parent);
@@ -210,6 +215,31 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 
 	return res;
 }
+
+
+void sim_mob::Driver::onParentEvent(event::EventId eventId,
+		sim_mob::event::Context ctxId,
+		event::EventPublisher* sender,
+		const event::EventArgs& args)
+{
+//	if(eventId == sim_mob::FMOD::EVENT_DISPATCH_FMOD_SCHEDULES_REQUEST){
+//		const sim_mob::FMOD_RequestEventArgs& request = dynamic_cast<const sim_mob::FMOD_RequestEventArgs&>(args);
+//		sim_mob::DriverMovement* movement = dynamic_cast<sim_mob::DriverMovement*>(movementFacet);
+//		if(movement){
+//			movement->assignNewFMODSchedule(request);
+//		}
+//	}
+
+	if(eventId == event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH)
+	{
+		AMOD::AMODEventPublisher* pub = (AMOD::AMODEventPublisher*) sender;
+		const AMOD::AMODRerouteEventArgs& rrArgs = MSG_CAST(AMOD::AMODRerouteEventArgs, args);
+		std::cout<<"driver get reroute event <"<< rrArgs.reRoutePath.size() <<"> from <"<<pub->id<<">"<<std::endl;
+
+		rerouteWithPath(rrArgs.reRoutePath);
+	}
+}
+
 
 std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
 {
@@ -272,7 +302,6 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	UpdateParams::reset(now);
 
 	//Set to the previous known buffered values
-	//currLane = owner.currLane_.get();
 	if(owner.currLane_.get()) {
 		currLane = owner.currLane_.get();
 	}
@@ -364,6 +393,7 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	nvRightBack2 = NearestVehicle();
 }
 
+
 void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
 {
 	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
@@ -371,7 +401,6 @@ void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>
 		mov->rerouteWithBlacklist(blacklisted);
 	}
 }
-
 void Driver::setCurrPosition(DPoint currPosition)
 {
 	currPos = currPosition;
@@ -390,4 +419,12 @@ void Driver::resetReacTime(double t)
 	perceivedDistToFwdCar->set_delay(t);
 	perceivedDistToTrafficSignal->set_delay(t);
 	perceivedTrafficColor->set_delay(t);
+}
+
+void Driver::rerouteWithPath(const std::vector<sim_mob::WayPoint>& path)
+{
+	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
+	if (mov) {
+		mov->rerouteWithPath(path);
+	}
 }

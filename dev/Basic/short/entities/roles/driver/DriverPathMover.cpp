@@ -133,6 +133,10 @@ void sim_mob::DriverPathMover::setPath(const vector<const RoadSegment*>& path, i
 
 	inIntersection = false;
 
+	if((*currSegmentIt)->originalDB_ID.getLogItem().find("34394") != std::string::npos){
+					int i=0;
+				}
+
 	distMovedInCurrSegmentCM = 0;
 	distOfThisSegmentCM = CalcSegmentLaneZeroDistCM(currSegmentIt, fullPath.end());
 	distOfRestSegmentsCM = CalcRestSegmentsLaneZeroDistCM(currSegmentIt, fullPath.end());

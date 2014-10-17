@@ -15,6 +15,7 @@
 #include "entities/Person.hpp"
 #include "entities/BusController.hpp"
 #include "entities/fmodController/FMOD_Controller.hpp"
+#include "entities/amodController/AMODController.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -175,6 +176,8 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 
     //Start all "FMOD" entities.
     LoadFMOD_Controller();
+
+    LoadAMOD_Controller();
 
 	//combine incident information to road network
 	verifyIncidents();
@@ -347,11 +350,18 @@ void sim_mob::ExpandAndValidateConfigFile::LoadFMOD_Controller()
 {
 	if (cfg.fmod.enabled) {
 		sim_mob::FMOD::FMOD_Controller::registerController(-1, cfg.mutexStategy());
-		sim_mob::FMOD::FMOD_Controller::instance()->settings(cfg.fmod.ipAddress, cfg.fmod.port, cfg.fmod.updateTimeMS, cfg.fmod.mapfile, cfg.fmod.blockingTimeSec);
+		//sim_mob::FMOD::FMOD_Controller::instance()->settings(cfg.fmod.ipAddress, cfg.fmod.port, cfg.fmod.updateTravelMS, cfg.fmod.updatePosMS, cfg.fmod.mapfile, cfg.fmod.blockingTimeSec);
 		sim_mob::FMOD::FMOD_Controller::instance()->connectFmodService();
 	}
 }
-
+void sim_mob::ExpandAndValidateConfigFile::LoadAMOD_Controller()
+{
+	if (cfg.amod.enabled) {
+		sim_mob::AMOD::AMODController::registerController(-1, cfg.mutexStategy());
+		sim_mob::AMOD::AMODController::instance();
+//		sim_mob::AMOD::AMODController::instance()->connectAmodService();
+	}
+}
 
 
 void sim_mob::ExpandAndValidateConfigFile::LoadAgentsInOrder(ConfigParams::AgentConstraints& constraints)

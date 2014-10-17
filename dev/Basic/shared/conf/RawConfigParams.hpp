@@ -33,6 +33,17 @@ struct FMOD_ControllerParams {
 	unsigned int blockingTimeSec;
 };
 
+struct AMOD_ControllerParams {
+	AMOD_ControllerParams() : enabled(false), port(0), updateTimeMS(0), blockingTimeSec(0) {}
+
+	bool enabled;
+	std::string ipAddress;
+	unsigned int port;
+	unsigned int updateTimeMS;
+	std::string mapfile;
+	unsigned int blockingTimeSec;
+};
+
 //Represents the long-term developer model of the config file
 struct LongTermParams{
 	LongTermParams();
@@ -284,6 +295,8 @@ public:
 
 	///Settings for the FMOD controller.
 	FMOD_ControllerParams fmod;
+
+	FMOD_ControllerParams amod;
 
 	///Settings for Long Term Parameters
 	LongTermParams ltParams;

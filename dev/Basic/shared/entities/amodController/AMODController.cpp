@@ -196,17 +196,12 @@ vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::s
 		}
 
 		std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*origNode), stdir->DrivingVertex(*destNode),blacklist);
-		std::cout << "Waypoints from SearchShortestDrivingPath: " << destNodeID << std::endl;
 		for (int i=0; i<wp2.size(); i++) {
 
 			if (wp2[i].type_ == WayPoint::ROAD_SEGMENT ) {
-				std::cout << " -> " << wp2[i].roadSegment_->originalDB_ID.getLogItem();
 				wp.push_back(wp2[i]);
-			} else {
-				std::cout << " -> " << wp2[i].type_ << " (REM) ";
 			}
 		}
-		std::cout << "\n-------------------------\n";
 		shortestPaths.insert(std::make_pair(nodeKey, wp));
 		return wp;
 	}
@@ -215,20 +210,14 @@ vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::s
 
 vector <WayPoint> AMODController::getShortestPathWBlacklist(std::string origNodeID, std::string destNodeID, std::vector<const sim_mob::RoadSegment*> blacklist)
 {
-	//std::string nodeKey = origNodeID + "-" + destNodeID;
-	//boost::unordered_map<std::string, vector < WayPoint > >::iterator spItr = shortestPaths.find(nodeKey);
-	//if (spItr == shortestPaths.end()) {
-		//std::cout << "No such node pair. On-the-fly computation" << std::endl;
 		std::vector < WayPoint > wp;
 
 		Node* origNode = nodePool[origNodeID];
 		Node* destNode = nodePool[destNodeID];
 
 		if (origNode == destNode) {
-			//shortestPaths.insert(std::make_pair(nodeKey, wp));
 			return wp;
 		}
-
 		// compute shortest path
 		std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*origNode), stdir->DrivingVertex(*destNode),blacklist);
 		for (int i=0; i<wp2.size(); i++) {
@@ -237,10 +226,8 @@ vector <WayPoint> AMODController::getShortestPathWBlacklist(std::string origNode
 			}
 		}
 
-		//shortestPaths.insert(std::make_pair(nodeKey, wp));
 		return wp;
-	//}
-	//return spItr->second;
+
 }
 
 
@@ -349,10 +336,6 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		//assignVhs(origin, destination);
 		assignVhsFast(tripID, origin, destination, current_time);
 
-		//check for pickups and arrivels
-		//checkForPickups();
-		//checkForArrivals();
-		//checkForStuckVehicles();
 		//output the current running time
 		std::cout << "-----------------------------\n";
 		std::cout << "Run time (s): " << std::time(NULL) -  startRunTime << std::endl;
@@ -361,8 +344,6 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 	}
 	// return continue, make sure agent not remove from main loop
 	return Entity::UpdateStatus::Continue;
-
-
 }
 
 void AMODController::populateCarParks(int numberOfVhsAtNode = 1000)
@@ -488,10 +469,10 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 	if(node == NULL){ throw std::runtime_error("node not found"); }
 
 	int startTime = currTime;
-	int interval = 3000;//ms
+	//int interval = 3000;//ms
 	// create person
 	//DailyTime start = ConfigManager::GetInstance().FullConfig().simStartTime(); // DailyTime b("08:30:00");
-	startTime +=interval;
+	//startTime +=interval;
 	DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + startTime);
 	sim_mob::Trip* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", node, "node", node, "node");
 	sim_mob::SubTrip subTrip("", "Trip", 0, 1, start, DailyTime(), node, "node", node, "node", "Car");
@@ -513,6 +494,7 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 	person->amodId = id;
 	person->parkingNode = nodeId;
 	person->amodVehicle = NULL;
+	person->initSpeed = 0;
 	//person-> = false;
 	// add to virtual car park
 
@@ -802,6 +784,7 @@ void AMODController::handleVHDestruction(Person *vh)
 {
 	//if a vehicle gets destroyed by Simmobility, we have to make sure we're not still assuming it exists.
 	if (vh->currStatus == Person::REPLACED) {
+
 		//we have already replaced this guy. don't bother doing anything.
 		return;
 	}
@@ -848,31 +831,19 @@ void AMODController::handleVHDestruction(Person *vh)
 void AMODController::processArrival(Person *vh)
 {
 
-	WayPoint w = vh->amodPath.back();
-	const RoadSegment *rs = w.roadSegment_;
-	const Node *enode = rs->getEnd();
-	Node *pnode = (Node *) rs->getEnd();
-
-	std::cout << vh->amodId << " arriving at " << pnode->nodeId << std::endl;
+	if (vhTripMap.find(vh) == vhTripMap.end()) {
+		//this is not an AMOD vehicle
+		return;
+	}
 
 	AmodTrip atrip = vhTripMap[vh];
+
+
+	std::cout << vh->amodId << " arriving at " << atrip.destination << std::endl;
+
 	atrip.arrivalTime = currTime;
 	saveTripStat(atrip);
 	vhTripMap.erase(vh);
-
-	//std::cout << "Check against: " << vh->amodVehicle->getCurrSegment()->getEnd()->nodeId << std::endl;
-
-	std::string idNode = enode->originalDB_ID.getLogItem();// "aimsun-id":"123456"
-	std::cout << "NodeId before: " << idNode << std::endl;
-
-	char chars[] = "aimsun-id:,\"";
-	for (unsigned int i = 0; i < strlen(chars); ++i)
-	{
-		idNode.erase (std::remove(idNode.begin(), idNode.end(), chars[i]), idNode.end());
-	}
-	std::cout << "NodeId after: " << idNode << std::endl;
-
-
 
 	//mtx_.lock();
 
@@ -883,15 +854,15 @@ void AMODController::processArrival(Person *vh)
 	vhOnTheRoad.erase(vh->amodId);
 	allAMODCarsMutex.unlock();
 
-	addNewVh2CarPark(vhID,idNode);
+	addNewVh2CarPark(vhID,atrip.destination);
 	//mtx_.unlock();
 
 }
 
 void AMODController::handleVHArrive(Person* vh)
 {
-	vh->amodVehicle = NULL;
-	vh->currStatus = Person::REPLACED;
+	processArrival(vh);
+	//vh->currStatus = Person::REPLACED;
 	//mThread = boost::thread(&AMODController::processArrival, this, vh);
 
 	/*
@@ -1699,7 +1670,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 		// work through list using available free cars
 		ServiceIterator itr =serviceBuffer.begin();
 		int startTime = currTime;
-		int interval = 3000;//ms
+		//int interval = 3000;//ms
 		while (true) {
 			if (nFreeCars <= 0) break; //check if the number of free cars is non-zero
 			if (serviceBuffer.size() == 0) break;
@@ -1891,7 +1862,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			}
 
 			// create trip chain
-			startTime +=interval;
+			//startTime +=interval;
 			DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + startTime);
 			//			DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+ConfigManager::GetInstance().FullConfig().baseGranMS());
 			sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", carParkNode, "node", destNode, "node");
@@ -1901,6 +1872,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			std::vector<sim_mob::TripChainItem*>  tcs;
 			tcs.push_back(tc);
 			vhAssigned->setTripChain(tcs); //add trip chain
+			vhAssigned->amdoTripId = tripId;
 			//			vhAssigned->initTripChain();
 
 			std::cout << "Assigned Path: Start";
@@ -1962,7 +1934,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			tripItr->second = atrip; //because the first line doesn't replace.
 			vhTripMapMutex.unlock();
 			// output
-			std::cout << " >>> Servicing " << originNodeId << " -> " << destNodeId << " with: " << vhAssigned->amodId << std::endl;
+			std::cout << " >>> Servicing " << originNodeId << " -> " << destNodeId << " with: " << vhAssigned->amodId << "tripID:"<< tripId <<std::endl;
 
 			//out_demandStat << tripId << " " << originNodeId << " " << destNodeId << " " << reqTime << " servicing " << "accepted " << " timePickedUp? " << "timeDropped? " << tripDistanceInM << "\n";
 
@@ -1982,6 +1954,10 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 		for (int i=0; i<justDispatched.size(); i++) {
 			vhOnTheRoad.insert(std::make_pair(justDispatched[i]->amodId,justDispatched[i]));
 		}
+
+		std::cout << " -------------------" << std::endl;
+		std::cout << " # of vehicles on the road: " << vhOnTheRoad.size()<< std::endl;
+		std::cout << " # of vehicles in carParks: " << nFreeCars << std::endl;
 
 	}
 	else cout << "Unable to open out_vhsStat or out_demandStat";

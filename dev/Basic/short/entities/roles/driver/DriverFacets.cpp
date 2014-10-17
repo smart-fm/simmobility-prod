@@ -240,6 +240,7 @@ void sim_mob::DriverMovement::frame_tick() {
 
 //Are we done already?
 	if (fwdDriverMovement.isDoneWithEntireRoute()) {
+		getParent()->handleAMODArrival(); //handle AMOD arrival (if necessary)
 		getParent()->setToBeRemoved();
 		return;
 	}
@@ -416,7 +417,10 @@ bool sim_mob::DriverMovement::findEmptySpaceAhead()
 						DriverMovement *nearbyDriverMovement = dynamic_cast<DriverMovement *>(nearbyDriver->Movement());
 
 						//Get the gap to the nearby driver (in cm)
-						double gapInCM = fwdDriverMovement.getDisToCurrSegEnd() - nearbyDriverMovement->fwdDriverMovement.getDisToCurrSegEnd();
+						//double gapInCM = fwdDriverMovement.getDisToCurrSegEnd();
+						//if(!nearbyDriverMovement->fwdDriverMovement.isDoneWithEntireRoute()){
+							double gapInCM = fwdDriverMovement.getDisToCurrSegEnd() - nearbyDriverMovement->fwdDriverMovement.getDisToCurrSegEnd();
+						//}
 
 						//The gap between current driver and the one in front (or the one coming from behind) should be greater than
 						//length(in cm) + (headway(in s) * initial speed(in cm/s))
@@ -485,10 +489,21 @@ void sim_mob::DriverMovement::frame_tick_output() {
 				<< (this->getParent()->isFake ? "true" : "false");
 	}
 
+	int simid = getParent()->getId();
+	std::stringstream res;
+	res<<simid;
+	std::string id = res.str();
+	if(getParent()->amodId != "-1"){
+		id = getParent()->amdoTripId;
+		p.debugInfo = p.debugInfo+"<AMOD>";
+	}
+	else{
+		id = res.str();
+	}
 	LogOut(
 			"(\"Driver\"" <<","<<
 			p.now.frame() <<","<<
-			getParent()->getId() <<",{" <<
+			id <<",{" <<
 			"\"xPos\":\""<<static_cast<int>(parentDriver->getCurrPosition().x) <<
 			"\",\"yPos\":\""<<static_cast<int>(parentDriver->getCurrPosition().y) <<
 			"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI)) <<
@@ -593,7 +608,7 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 	if(params.parentId == 8){
 			int i = 0;
 		}
-	if (!(fwdDriverMovement.isInIntersection())) {
+	if (!fwdDriverMovement.isInIntersection() && !fwdDriverMovement.isDoneWithEntireRoute()) {
 		params.cftimer -= params.elapsedSeconds;
 // params.overflowIntoIntersection = linkDriving(params);
 // params.overflowIntoIntersection = linkDrivingNew(params);
@@ -702,10 +717,10 @@ void sim_mob::DriverMovement::intersectionDriving(DriverUpdateParams& p) {
 	if (intModel->isDone()) {
 		parentDriver->vehicle->setPositionInIntersection(0, 0);
 		p.currLane = fwdDriverMovement.leaveIntersection();
-		if (lastIndex != -1) {
-			p.currLane = fwdDriverMovement.getCurrSegment()->getLane(lastIndex);
-			lastIndex = -1;
-		}
+//		if (lastIndex != -1) {
+//			p.currLane = fwdDriverMovement.getCurrSegment()->getLane(lastIndex);
+//			lastIndex = -1;
+//		}
 		justLeftIntersection(p);
 	}
 }
@@ -1886,6 +1901,9 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 	double res = 0.0;
 //try {
 	res = fwdDriverMovement.advance(fwdDistance);
+	if(fwdDriverMovement.isDoneWithEntireRoute()){
+		return res;
+	}
 	if (!(fwdDriverMovement.isInIntersection())) {
 		double d = fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
 		double c = 0;
@@ -2104,10 +2122,10 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 				nextLane = uNode->getForwardDrivingLane(*params.currLane);
 			}
 
-			if (nextLane == nullptr) {
-				std::cout << "error getForwardDrivingLane no out lane"
-						<< std::endl;
-			}
+//			if (nextLane == nullptr) {
+//				std::cout << "error getForwardDrivingLane no out lane"
+//						<< std::endl;
+//			}
 
 // //
 // const sim_mob::Lane * currlan = params.currLane;
@@ -2207,7 +2225,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 			}*/
 
 			//as sub
-			if(params.currLaneIndex <= lanes.size()){
+			if(params.currLaneIndex < lanes.size()){
 				preLane = lanes.at(params.currLaneIndex);
 			}
 			else{
@@ -2697,9 +2715,19 @@ void sim_mob::DriverMovement::updateLateralMovement(DriverUpdateParams& p)
 void sim_mob::DriverMovement::syncInfoLateralMove(DriverUpdateParams& p)
 {
 	if (p.getStatus(STATUS_LC_RIGHT)) {
-		p.currLane = p.rightLane;
+		if(p.rightLane){
+			p.currLane = p.rightLane;
+		}
+		else{
+			//TODO
+		}
 	} else if (p.getStatus(STATUS_LC_LEFT)) {
-		p.currLane = p.leftLane;
+		if(p.leftLane){
+			p.currLane = p.leftLane;
+		}
+		else{
+			//TODO
+		}
 	} else {
 		std::stringstream msg;
 		msg << "syncInfoLateralMove (" << getParent()->getId()

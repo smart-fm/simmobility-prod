@@ -95,7 +95,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
 	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), remainingTimeThisTick(0.0),
 	requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
-	age(0), boardingTimeSecs(0), alightingTimeSecs(0), client_id(-1), resetParamsRequired(false), nextLinkRequired(nullptr), currSegStats(nullptr)
+	age(0), boardingTimeSecs(0), alightingTimeSecs(0), client_id(-1), resetParamsRequired(false), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1")
 {
 }
 
@@ -103,7 +103,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, s
 	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegStats(nullptr), canMoveToNextSegment(NONE),
 	  databaseID(tcs.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
 	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tcs), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
-	  client_id(-1),amodPath( std::vector<WayPoint>() ), nextLinkRequired(nullptr), currSegStats(nullptr)
+	  client_id(-1),amodPath( std::vector<WayPoint>() ), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1")
 {
 	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
 		insertWaitingActivityToTrip(tcs);
@@ -400,6 +400,13 @@ void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ct
 	 }
  }
 
+ void sim_mob::Person::handleAMODArrival() {
+		sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
+
+		//ask the AMODController to handle the arrival
+		a->handleVHArrive(this);
+ }
+
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {
 	currTick = now;
@@ -416,11 +423,13 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 	}
 
 //	DriverMovement *d = (DriverMovement *)currRole->Movement();
-	if(isToBeRemoved())
-	{
-		sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
-		a->handleVHArrive(this);
-	}
+//	if(isToBeRemoved())
+//	{
+//		sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
+//
+//		//ask the AMODController to handle the arrival
+//		a->handleVHArrive(this);
+//	}
 
 	//If we're "done", try checking to see if we have any more items in our Trip Chain.
 	// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"

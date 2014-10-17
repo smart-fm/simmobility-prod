@@ -240,6 +240,7 @@ void sim_mob::DriverMovement::frame_tick() {
 
 //Are we done already?
 	if (fwdDriverMovement.isDoneWithEntireRoute()) {
+		getParent()->handleAMODArrival(); //handle AMOD arrival (if necessary)
 		getParent()->setToBeRemoved();
 		return;
 	}
@@ -415,10 +416,10 @@ bool sim_mob::DriverMovement::findEmptySpaceAhead()
 						DriverMovement *nearbyDriverMovement = dynamic_cast<DriverMovement *>(nearbyDriver->Movement());
 
 						//Get the gap to the nearby driver (in cm)
-						double gapInCM = fwdDriverMovement.getDisToCurrSegEnd();
-						if(!nearbyDriverMovement->fwdDriverMovement.isDoneWithEntireRoute()){
+						//double gapInCM = fwdDriverMovement.getDisToCurrSegEnd();
+						//if(!nearbyDriverMovement->fwdDriverMovement.isDoneWithEntireRoute()){
 							double gapInCM = fwdDriverMovement.getDisToCurrSegEnd() - nearbyDriverMovement->fwdDriverMovement.getDisToCurrSegEnd();
-						}
+						//}
 
 						//The gap between current driver and the one in front (or the one coming from behind) should be greater than
 						//length(in cm) + (headway(in s) * initial speed(in cm/s))

@@ -51,6 +51,7 @@ public:
 		bool pickedUp;
 		int finalSegment;
 		int stuckCount;
+
 	};
 
 

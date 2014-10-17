@@ -494,6 +494,7 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 	person->amodId = id;
 	person->parkingNode = nodeId;
 	person->amodVehicle = NULL;
+	person->initSpeed = 0;
 	//person-> = false;
 	// add to virtual car park
 
@@ -783,6 +784,7 @@ void AMODController::handleVHDestruction(Person *vh)
 {
 	//if a vehicle gets destroyed by Simmobility, we have to make sure we're not still assuming it exists.
 	if (vh->currStatus == Person::REPLACED) {
+
 		//we have already replaced this guy. don't bother doing anything.
 		return;
 	}
@@ -829,31 +831,19 @@ void AMODController::handleVHDestruction(Person *vh)
 void AMODController::processArrival(Person *vh)
 {
 
-	WayPoint w = vh->amodPath.back();
-	const RoadSegment *rs = w.roadSegment_;
-	const Node *enode = rs->getEnd();
-	Node *pnode = (Node *) rs->getEnd();
-
-	std::cout << vh->amodId << " arriving at " << pnode->nodeId << std::endl;
+	if (vhTripMap.find(vh) == vhTripMap.end()) {
+		//this is not an AMOD vehicle
+		return;
+	}
 
 	AmodTrip atrip = vhTripMap[vh];
+
+
+	std::cout << vh->amodId << " arriving at " << atrip.destination << std::endl;
+
 	atrip.arrivalTime = currTime;
 	saveTripStat(atrip);
 	vhTripMap.erase(vh);
-
-	//std::cout << "Check against: " << vh->amodVehicle->getCurrSegment()->getEnd()->nodeId << std::endl;
-
-	std::string idNode = enode->originalDB_ID.getLogItem();// "aimsun-id":"123456"
-	std::cout << "NodeId before: " << idNode << std::endl;
-
-	char chars[] = "aimsun-id:,\"";
-	for (unsigned int i = 0; i < strlen(chars); ++i)
-	{
-		idNode.erase (std::remove(idNode.begin(), idNode.end(), chars[i]), idNode.end());
-	}
-	std::cout << "NodeId after: " << idNode << std::endl;
-
-
 
 	//mtx_.lock();
 
@@ -864,15 +854,15 @@ void AMODController::processArrival(Person *vh)
 	vhOnTheRoad.erase(vh->amodId);
 	allAMODCarsMutex.unlock();
 
-	addNewVh2CarPark(vhID,idNode);
+	addNewVh2CarPark(vhID,atrip.destination);
 	//mtx_.unlock();
 
 }
 
 void AMODController::handleVHArrive(Person* vh)
 {
-	vh->amodVehicle = NULL;
-	vh->currStatus = Person::REPLACED;
+	processArrival(vh);
+	//vh->currStatus = Person::REPLACED;
 	//mThread = boost::thread(&AMODController::processArrival, this, vh);
 
 	/*
@@ -1967,6 +1957,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 		std::cout << " -------------------" << std::endl;
 		std::cout << " # of vehicles on the road: " << vhOnTheRoad.size()<< std::endl;
+		std::cout << " # of vehicles in carParks: " << nFreeCars << std::endl;
 
 	}
 	else cout << "Unable to open out_vhsStat or out_demandStat";

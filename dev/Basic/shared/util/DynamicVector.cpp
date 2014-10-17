@@ -82,7 +82,8 @@ DynamicVector& sim_mob::DynamicVector::scaleVectTo(double val)
 	if (!isZero) {
 		if(mag.x==0 && mag.y==0) {
 			//This only happens if the vector is specifically initialize with zero size.
-			throw std::runtime_error("Impossible to scale a vector that has never had a size.");
+//			throw std::runtime_error("Impossible to scale a vector that has never had a size.");
+			return *this;
 		}
 
 		//Note: The old way (converting to a unit vector then scaling) is very likely

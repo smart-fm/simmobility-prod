@@ -975,7 +975,8 @@ void sim_mob::DriverPathMover::moveToNewPolyline(int newLaneID)
 	//Invalid ID?
 	if (newLaneID < 0 || newLaneID >= static_cast<int> ((*currSegmentIt)->getLanes().size()))
 	{
-		throw std::runtime_error("Switching to an invalid lane ID.");
+		newLaneID = currLaneID;
+		//throw std::runtime_error("Switching to an invalid lane ID.");
 	}
 
 	//Save our progress

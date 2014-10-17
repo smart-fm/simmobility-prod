@@ -400,6 +400,13 @@ void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ct
 	 }
  }
 
+ void sim_mob::Person::handleAMODArrival() {
+		sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
+
+		//ask the AMODController to handle the arrival
+		a->handleVHArrive(this);
+ }
+
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {
 	currTick = now;
@@ -416,11 +423,13 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 	}
 
 //	DriverMovement *d = (DriverMovement *)currRole->Movement();
-	if(isToBeRemoved())
-	{
-		sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
-		a->handleVHArrive(this);
-	}
+//	if(isToBeRemoved())
+//	{
+//		sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
+//
+//		//ask the AMODController to handle the arrival
+//		a->handleVHArrive(this);
+//	}
 
 	//If we're "done", try checking to see if we have any more items in our Trip Chain.
 	// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"

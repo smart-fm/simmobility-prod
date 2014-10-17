@@ -221,14 +221,16 @@ public:
 
     // amod
     std::string amodId;
-    std::string amdoTripId;
 	void setPath(std::vector<WayPoint>& path);
 	std::vector<WayPoint> amodPath;
+	std::string amdoTripId;
 	sim_mob::Vehicle* amodVehicle;
 	std::string parkingNode;
 //    std::list<sim_mob::FMOD_Schedule> schedules;
 
     AMOD::AMODEventPublisher eventPub;
+
+    void handleAMODArrival();
 
     enum Status {
     	IN_CAR_PARK = 0,

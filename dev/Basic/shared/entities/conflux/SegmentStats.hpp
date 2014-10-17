@@ -168,8 +168,9 @@ public:
 	 * removes the person from the lane
 	 * @param person the person to be removed
 	 * @param wasQueuing the queuing status of person to manage queue count
+	 * @return true if removal was successful; false otherwise.
 	 */
-	void removePerson(sim_mob::Person* person, bool wasQueuing);
+	bool removePerson(sim_mob::Person* person, bool wasQueuing);
 
 	/**
 	 * removes the person at the front in laneAgents list
@@ -451,8 +452,9 @@ public:
 	 * @param lane the lane to remove the person from
 	 * @param person the person to remove
 	 * @param wasQueuing the queuing status of person at the start of the tick
+	 * @return true if removal was successful; false otherwise
 	 */
-	void removeAgent(const sim_mob::Lane* lane, sim_mob::Person* person, bool wasQueuing);
+	bool removeAgent(const sim_mob::Lane* lane, sim_mob::Person* person, bool wasQueuing);
 
 	/**
 	 * removes person in the front from lane

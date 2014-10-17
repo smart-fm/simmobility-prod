@@ -143,15 +143,16 @@ void SegmentStats::addAgent(const sim_mob::Lane* lane, sim_mob::Person* p) {
 	numPersons++; //record addition to segment
 }
 
-void SegmentStats::removeAgent(const sim_mob::Lane* lane, sim_mob::Person* p, bool wasQueuing)
+bool SegmentStats::removeAgent(const sim_mob::Lane* lane, sim_mob::Person* p, bool wasQueuing)
 {
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
 		throw std::runtime_error("lane not found in segment stats");
 	}
-	laneIt->second->removePerson(p, wasQueuing);
-	numPersons--; //record removal from segment
+	bool removed = laneIt->second->removePerson(p, wasQueuing);
+	if(removed) { numPersons--; } //record removal from segment
+	return removed;
 }
 
 void SegmentStats::updateQueueStatus(const sim_mob::Lane* lane, sim_mob::Person* p)
@@ -597,8 +598,10 @@ double sim_mob::LaneStats::getMovingLength() const
 	{
 		printAgents();
 		std::stringstream debugMsgs;
-		debugMsgs << "totalLength cannot be less than queueLength." << "\nlane" << getLane()->getLaneID() << "|queueLength: " << queueLength << "|totalLength: "
-				<< totalLength << std::endl;
+		debugMsgs << "totalLength cannot be less than queueLength." << "\nlane" << getLane()->getLaneID()
+				<< "|queueLength: " << queueLength
+				<< "|totalLength: "	<< totalLength
+				<< std::endl;
 		throw std::runtime_error(debugMsgs.str());
 	}
 	return (totalLength - queueLength);
@@ -678,7 +681,7 @@ void sim_mob::LaneStats::updateQueueStatus(sim_mob::Person* p)
 	}
 }
 
-void sim_mob::LaneStats::removePerson(sim_mob::Person* p, bool wasQueuing)
+bool sim_mob::LaneStats::removePerson(sim_mob::Person* p, bool wasQueuing)
 {
 	PersonList::iterator pIt = std::find(laneAgents.begin(), laneAgents.end(), p);
 	VehicleBase* vehicle = p->getRole()->getResource();
@@ -707,11 +710,9 @@ void sim_mob::LaneStats::removePerson(sim_mob::Person* p, bool wasQueuing)
 				}
 			}
 		}
+		return true;
 	}
-	else
-	{
-		throw std::runtime_error("LaneStats::removePerson(): Attempt to remove non-existent person in Lane");
-	}
+	return false;
 }
 
 void LaneStats::resetIterator()

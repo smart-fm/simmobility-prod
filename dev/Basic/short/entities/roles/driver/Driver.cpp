@@ -272,26 +272,35 @@ double sim_mob::Driver::gapDistance(const Driver* front)
 {
 	double headway;
 	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
+
+
 	if (front) {			/* vehicle ahead */
 		DriverMovement* frontMov = dynamic_cast<DriverMovement*>(front->Movement());
-//	    if (lane_->segment() == front->segment())
-		if(mov->fwdDriverMovement.getCurrSegment() == frontMov->fwdDriverMovement.getCurrSegment())
-		{				/* same segment */
-//			headway = distance_ - front->distance_ - front->length();
-			headway = mov->fwdDriverMovement.getDisToCurrSegEnd() - frontMov->fwdDriverMovement.getDisToCurrSegEnd() - front->getVehicleLengthM();
-		}
-		else {				/* different segment */
-//			headway = distance_ + (front->lane_->length() -
-//									   front->distance_ -
-//									   front->length());
-			headway = mov->fwdDriverMovement.getDisToCurrSegEnd() + frontMov->fwdDriverMovement.getCurrDistAlongPolylineCM() - front->getVehicleLengthM();
-			  }
-	} else			/* no vehicle ahead. */
-		  {
-			headway = Math::FLT_INF;
-		  }
 
-	 return headway;
+		if (frontMov->fwdDriverMovement.isDoneWithEntireRoute()) {
+			/* vehicle ahead has already arrived at the destination */
+			headway = Math::FLT_INF;
+		} else {
+
+			//	    if (lane_->segment() == front->segment())
+			if(mov->fwdDriverMovement.getCurrSegment() == frontMov->fwdDriverMovement.getCurrSegment())
+			{				/* same segment */
+				//			headway = distance_ - front->distance_ - front->length();
+				headway = mov->fwdDriverMovement.getDisToCurrSegEnd() - frontMov->fwdDriverMovement.getDisToCurrSegEnd() - front->getVehicleLengthM();
+			}
+			else {				/* different segment */
+				//			headway = distance_ + (front->lane_->length() -
+				//									   front->distance_ -
+				//									   front->length());
+				headway = mov->fwdDriverMovement.getDisToCurrSegEnd() + frontMov->fwdDriverMovement.getCurrDistAlongPolylineCM() - front->getVehicleLengthM();
+			}
+		}
+	} else			/* no vehicle ahead. */
+	{
+		headway = Math::FLT_INF;
+	}
+
+	return headway;
 }
 bool sim_mob::Driver::isBus()
 {

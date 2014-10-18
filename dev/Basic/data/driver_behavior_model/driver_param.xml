@@ -307,4 +307,7 @@
     0.03    # three
 "/>
 
+<!-- meter -->
+<param name="check_stop_point_distance" value="200"/>
+
 </parameters>

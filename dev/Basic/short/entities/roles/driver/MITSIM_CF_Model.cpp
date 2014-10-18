@@ -572,6 +572,9 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	double aZ = calcCarFollowingRate(p);
 	p.aZ = aZ;
 
+	// stop point acc
+	double aSP = calcStopPointRate(p);
+
 	// Make decision
 	// Use the smallest
 	//	if(acc > aB) acc = aB;
@@ -602,6 +605,11 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	if (acc > aZ) {
 		acc = aZ;
 		p.accSelect = "aZ";
+	}
+
+	if (acc>aSP){
+		acc = aSP;
+		p.accSelect = "aSP";
 	}
 //	if (acc > aZ1)
 //		acc = aZ1;
@@ -1095,7 +1103,7 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p) {
 		if (p.nvRightBack.exists()) {
 			Driver* d = const_cast<Driver*>(p.nvRightBack.driver);
 			DriverUpdateParams& pd = d->getParams();
-			if (pd.flag(FLAG_YIELDING_LEFT)) {
+			if (pd.flag(FLAG_YIELDING_LEFT) || pd.flag(FLAG_NOSING)) {
 				rightBackVhFlag = true;
 			}
 		}
@@ -1103,7 +1111,7 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p) {
 		if (p.nvLeftBack.exists()) {
 			Driver* d = const_cast<Driver*>(p.nvLeftBack.driver);
 			DriverUpdateParams& pd = d->getParams();
-			if (pd.flag(FLAG_YIELDING_RIGHT)) {
+			if (pd.flag(FLAG_YIELDING_RIGHT) || pd.flag(FLAG_NOSING)) {
 				leftBackVhFlag = true;
 			}
 		}
@@ -1444,6 +1452,31 @@ double sim_mob::MITSIM_CF_Model::calcAdjacentRate(DriverUpdateParams& p) {
 //
 //	acc += targetGapAccParm[12] / 0.824;
 //	return acc;
+}
+double sim_mob::MITSIM_CF_Model::calcStopPointRate(sim_mob::DriverUpdateParams& p){
+	double acc=p.maxAcceleration;
+	if(!p.getStatus(STATUS_CHANGING)){
+		if(p.stopPointState == DriverUpdateParams::CLOSE_STOP_POINT){
+			acc = brakeToStop(p, p.dis2stop);
+			return acc;
+		}
+		if(p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT || p.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT){
+			acc = -10;
+		}// end of stopPointState
+	}
+	if(p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT && p.perceivedFwdVelocity / 100 < 0.1){
+		acc = -10;
+		p.stopPointState = DriverUpdateParams::WAITING_AT_STOP_POINT;
+		p.startStopTime = p.now.ms();
+	}
+	if(p.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT){
+		double currentTime = p.now.ms();
+		double t = (currentTime - p.startStopTime) / 1000.0;// convert ms to s
+		if(t>p.currentStopPoint.dwellTime){
+			p.stopPointState = DriverUpdateParams::LEAVING_STOP_POINT;
+		}
+	}
+	return acc;
 }
 /*
  *-------------------------------------------------------------------

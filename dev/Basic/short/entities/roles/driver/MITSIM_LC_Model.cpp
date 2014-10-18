@@ -683,6 +683,9 @@ void sim_mob::MITSIM_LC_Model::initParam(DriverUpdateParams& p)
 	ParameterManager::Instance()->param(modelName,"Target_Gap_Model",str,
 						string("-0.837   0.913  0.816  -1.218  -2.393  -1.662"));
 	sim_mob::Utils::convertStringToArray(str,p.targetGapParams);
+
+	//CF_CRITICAL_TIMER_RATIO
+	ParameterManager::Instance()->param(modelName,"check_stop_point_distance",p.stopPointPerDis,100.0);
 }
 void sim_mob::MITSIM_LC_Model::makeMCLParam(std::string& str)
 {
@@ -2101,6 +2104,25 @@ int sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
 	if(res == 1) needDLC = true;
 	p.addTargetLanes(laneConnectorTargetLanes);
 
+	// 1.3 check stop point,like bus stop
+	set<const Lane*> laneConnectStopPoint;
+	res = isLaneConnectToStopPoint(p,laneConnectStopPoint);
+	if(res == -1) needMLC = true;
+	if(res == 1) needDLC = true;
+	if(laneConnectStopPoint.size()>0){
+		// stop point lane maybe not in laneConnectorTargetLanes,so just assige to targetLanes
+		p.targetLanes = laneConnectStopPoint;
+	}
+	if(p.stopPointState == DriverUpdateParams::APPROACHING_STOP_POINT ||
+			p.stopPointState == DriverUpdateParams::CLOSE_STOP_POINT||
+			p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT||
+			p.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT){
+		if(res==0){
+			//means already in most left lane
+			needMLC = false;
+		}
+	}
+
 	// 2.0 set flag
 	if (needMLC) {
 		p.setFlag(FLAG_ESCAPE);
@@ -2335,6 +2357,65 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 		res = 0;
 	}
 	return res;
+}
+int sim_mob::MITSIM_LC_Model::isLaneConnectToStopPoint(DriverUpdateParams& p,set<const Lane*>& targetLanes){
+	//TODO
+
+	// check state machine
+	int res = 0;
+	// 1.0 find nearest forward stop point
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	// get dis to stop point of current link
+	double distance = driverMvt->getDisToStopPoint(p.stopPointPerDis);
+	if(distance>-10 || p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT){// in case car stop just bit ahead of the stop point
+		if(p.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT){
+			return res;
+		}
+		// has stop point ahead
+		if(p.stopPointState == DriverUpdateParams::NO_FOUND_STOP_POINT){
+			p.stopPointState = DriverUpdateParams::APPROACHING_STOP_POINT;
+		}
+		if(distance >= 10 && distance <= 50){ // 10m-50m
+			//
+			p.stopPointState = DriverUpdateParams::CLOSE_STOP_POINT;
+		}
+		if(p.stopPointState == DriverUpdateParams::CLOSE_STOP_POINT && abs(distance) < 10){ // 0m-10m
+			//
+			std::cout<<p.now.frame()<<" JUST_ARRIVE_STOP_POINT"<<std::endl;
+			p.stopPointState = DriverUpdateParams::JUST_ARRIVE_STOP_POINT;
+		}
+		// only most left lane is target lane
+		const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
+		// get target lane index
+		int tl = lanes.size() - 1;
+		if(lanes.back()->is_pedestrian_lane()){
+			tl = lanes.size() - 2;
+		}
+		// current lane not target lane, insert
+		if(p.currLaneIndex != tl){
+			targetLanes.insert(lanes.at(tl));
+			p.dis2stop = distance;
+			res = -1;
+		}
+		return res;
+//		if(lanes.back()->is_pedestrian_lane()){
+//			if(p.currLane != lanes.at(lanes.size()-2)){
+//				targetLanes.insert(lanes.at(lanes.size()-2));
+//				res = -1;
+//			}// end of currLane
+//		}
+//		else{
+//			if(p.currLane != lanes.at(lanes.size()-2)){
+//				targetLanes.insert(lanes.at(lanes.size()-2));
+//				res = -1;
+//			}// end of currLane
+//			targetLanes.insert(lanes.back());
+//		}
+	}//end of dis
+
+	p.stopPointState = DriverUpdateParams::NO_FOUND_STOP_POINT;
+	return res;
+
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdateParams& p)
 {

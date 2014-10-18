@@ -156,12 +156,14 @@ void sim_mob::DriverMovement::init() {
 
 	parentDriver->initReactionTime();
 
+#if 0
 	// test stop point
 	std::string segid = "34356";
 	double dis =20;
 	double dwelltime = 10;
 	StopPoint sp(segid,dis,dwelltime);
 	p2.insertStopPoint(sp);
+#endif
 }
 sim_mob::DriverMovement::~DriverMovement() {
 //Our movement models.
@@ -612,7 +614,7 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 //Next, handle driving on links.
 // Note that a vehicle may leave an intersection during intersectionDriving(), so the conditional check is necessary.
 // Note that there is no need to chain this back to intersectionDriving.
-	if(params.parentId == 8){
+	if(params.parentId == 128 && params.now.frame()>612){
 			int i = 0;
 		}
 	if (!fwdDriverMovement.isInIntersection() && !fwdDriverMovement.isDoneWithEntireRoute()) {
@@ -752,6 +754,61 @@ bool sim_mob::DriverMovement::AvoidCrashWhenLaneChanging(
 		return true;
 	return false;
 }
+void sim_mob::DriverMovement::calcDistanceToSP(DriverUpdateParams& p) {
+	// check state machine
+		int res = 0;
+		// 1.0 find nearest forward stop point
+		DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+		// get dis to stop point of current link
+		double distance = driverMvt->getDisToStopPoint(p.stopPointPerDis);
+		p.disToSP = distance;
+		if(distance>-10 || p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT){// in case car stop just bit ahead of the stop point
+			if(distance < 0 && p.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT){
+				return ;
+			}
+			// has stop point ahead
+			if(p.stopPointState == DriverUpdateParams::NO_FOUND_STOP_POINT){
+				p.stopPointState = DriverUpdateParams::APPROACHING_STOP_POINT;
+			}
+			if(distance >= 10 && distance <= 50){ // 10m-50m
+				//
+				p.stopPointState = DriverUpdateParams::CLOSE_STOP_POINT;
+			}
+			if(p.stopPointState == DriverUpdateParams::CLOSE_STOP_POINT && abs(distance) < 10){ // 0m-10m
+				//
+				std::cout<<p.now.frame()<<" JUST_ARRIVE_STOP_POINT"<<std::endl;
+				p.stopPointState = DriverUpdateParams::JUST_ARRIVE_STOP_POINT;
+			}
+			// only most left lane is target lane
+			const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
+			// get target lane index
+			int tl = lanes.size() - 1;
+			if(lanes.back()->is_pedestrian_lane()){
+				tl = lanes.size() - 2;
+			}
+			p.dis2stop = distance;
+			return ;
+	//		if(lanes.back()->is_pedestrian_lane()){
+	//			if(p.currLane != lanes.at(lanes.size()-2)){
+	//				targetLanes.insert(lanes.at(lanes.size()-2));
+	//				res = -1;
+	//			}// end of currLane
+	//		}
+	//		else{
+	//			if(p.currLane != lanes.at(lanes.size()-2)){
+	//				targetLanes.insert(lanes.at(lanes.size()-2));
+	//				res = -1;
+	//			}// end of currLane
+	//			targetLanes.insert(lanes.back());
+	//		}
+		}//end of dis
+		if(distance<-10 && p.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT){
+			p.stopPointState = DriverUpdateParams::NO_FOUND_STOP_POINT;
+		}
+
+		p.stopPointState = DriverUpdateParams::NO_FOUND_STOP_POINT;
+		return ;
+}
 void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 // TODO: if STATUS_LC_CHANGING ,means "perform lane changing",just return
 	p.lcDebugStr.str(std::string());
@@ -831,7 +888,10 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 				p.perceivedDistToTrafficSignal =
 						parentDriver->perceivedDistToTrafficSignal->sense();
 	}
-
+	if(p.parentId == 664 && p.now.frame()>751){
+			int i=0;
+		}
+	calcDistanceToSP(p);
 // make lc decision
 	LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
 // parentDriver->vehicle->setTurningDirection(lcs);

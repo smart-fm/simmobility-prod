@@ -77,7 +77,7 @@ public:
 	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen) ,nextLaneIndex(0),isTargetLane(true),
 			status(0),flags(0),yieldTime(0,0),lcTimeTag(200),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0),utilityLeft(0),
 			utilityCurrent(0),utilityRight(0),perceivedDistToTrafficSignal(500),
-			disAlongPolyline(0),dorigPosx(0),dorigPosy(0),movementVectx(0),movementVecty(0),headway(999),currLane(NULL),stopPointPerDis(100),stopPointState(NO_FOUND_STOP_POINT),startStopTime(0){}
+			disAlongPolyline(0),dorigPosx(0),dorigPosy(0),movementVectx(0),movementVecty(0),headway(999),currLane(NULL),stopPointPerDis(100),stopPointState(NO_FOUND_STOP_POINT),startStopTime(0),disToSP(999){}
 
 	virtual void reset(timeslice now, const Driver& owner);
 
@@ -335,6 +335,7 @@ public:
 		NO_FOUND_STOP_POINT		= 6
 	};
 	STOP_POINT_STATE stopPointState;
+	double disToSP;
 	StopPoint currentStopPoint;
 	double startStopTime;
 public:

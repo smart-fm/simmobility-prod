@@ -177,6 +177,10 @@ protected:
 	 *  /brief do lane change and car follow
 	 */
 	void calcVehicleStates(DriverUpdateParams& p);
+	/**
+	 *  @brief calculate distance to stop point
+	 */
+	void calcDistanceToSP(DriverUpdateParams& p);
 	/*
 	 *  /brief Calculate new location and speed after an iteration based on its
 	 * 	       current location, speed and acceleration.

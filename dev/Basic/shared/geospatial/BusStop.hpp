@@ -41,7 +41,7 @@ public:
 	///BusStops must be constructed with their stopPt, which must be the same
 	///  as the lane zero offset in their RoadSegment.
 	explicit BusStop() : RoadItem(), lane_location(0), busCapacityAsLength(0),
-	is_terminal(false), is_bay(false), xPos(0), yPos(0), has_shelter(false)
+	is_terminal(false), is_bay(false), xPos(0), yPos(0), has_shelter(false),distance(-1)
 	{}
 
 	///Adds a new bus stop to the Bus stop list
@@ -71,6 +71,8 @@ public:
 
 	///Is the pedestrian waiting area sheltered? Currently does not affect anything.
 	bool has_shelter;
+
+	double distance;
 
 	//The position bus shall stop in segment from start node
 	//NOTE: This is now correctly stored in the RoadSegment's obstacle list.

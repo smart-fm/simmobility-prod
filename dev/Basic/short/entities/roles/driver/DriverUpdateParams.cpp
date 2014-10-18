@@ -10,7 +10,7 @@ namespace sim_mob
 DriverUpdateParams::DriverUpdateParams()
 : UpdateParams() ,status(0),flags(0),yieldTime(0,0),lcTimeTag(200),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0),
   utilityCurrent(0),utilityRight(0),utilityLeft(0),rnd(0),perceivedDistToTrafficSignal(500),disAlongPolyline(0),dorigPosx(0),dorigPosy(0),
-  movementVectx(0),movementVecty(0),headway(999),currLane(NULL),stopPointPerDis(100),stopPointState(NO_FOUND_STOP_POINT),startStopTime(0){
+  movementVectx(0),movementVecty(0),headway(999),currLane(NULL),stopPointPerDis(100),stopPointState(NO_FOUND_STOP_POINT),startStopTime(0),disToSP(999){
 
 }
 void DriverUpdateParams::setStatus(unsigned int s)
@@ -77,7 +77,7 @@ void DriverUpdateParams::buildDebugInfo()
 				<<":"<<latx<<":"<<laty<<":"<<dl<<":"<<dox<<":"<<doy<<":"<<mx<<":"<<my;
 #endif
 
-#if 1
+#if 0
 		//debug car following
 		char newFwdAccChar[20] = "\0";
 		sprintf(newFwdAccChar,"acc%03.1f",newFwdAcc);
@@ -132,14 +132,16 @@ void DriverUpdateParams::buildDebugInfo()
 		}
 		s<<"            "<<parentId;
 		s<<":"<<accSelect;
-		s<<":"<<ul;
-		s<<":"<<uc;
-		s<<":"<<ur;
-		s<<":"<<rnd_;
-		s<<":"<<lcd;
-		s<<":"<<lc;
-		s<<":"<<sp;
-		s<<"=="<<lcDebugStr.str();
+		s<<lastAcc;
+//		s<<":"<<ul;
+//		s<<":"<<uc;
+//		s<<":"<<ur;
+//		s<<":"<<rnd_;
+//		s<<":"<<lcd;
+//		s<<":"<<lc;
+//		s<<":"<<sp;
+//		s<<"=="<<lcDebugStr.str();
+		s<<"++"<<cfDebugStr;
 
 //		int rightFwdcarid=-1;
 //		if(this->nvRightFwd.exists())

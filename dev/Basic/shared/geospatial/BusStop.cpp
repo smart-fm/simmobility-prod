@@ -28,7 +28,8 @@ double sim_mob::BusStop::EstimateStopPoint(double xPos, double yPos, const sim_m
 	double a = BusStopDistfromStart.getMagnitude();
 	double b = BusStopDistfromEnd.getMagnitude();
 	double c = SegmentLength.getMagnitude();
-	return (-b*b + a*a + c*c)/(2.0*c);
+	double res= (-b*b + a*a + c*c)/(2.0*c);
+	return res;
 }
 
 void sim_mob::BusStop::RegisterNewBusStop(unsigned int no, BusStop* busstop) {

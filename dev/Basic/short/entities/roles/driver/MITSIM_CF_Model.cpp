@@ -503,7 +503,7 @@ double sim_mob::MITSIM_CF_Model::headwayBuffer() {
 
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		double targetSpeed, double maxLaneSpeed) {
-
+	p.cfDebugStr="";
 	if(p.parentId == 1895 && p.now.frame()>888){
 		int i=0;
 	}
@@ -786,7 +786,7 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 //	else {
 //		res = p.maxDeceleration;
 //	}
-		p.cfDebugStr = debugStr.str();
+		//p.cfDebugStr = debugStr.str();
 	return res;
 }
 double sim_mob::MITSIM_CF_Model::calcCarFollowingRate(DriverUpdateParams& p)
@@ -1454,28 +1454,42 @@ double sim_mob::MITSIM_CF_Model::calcAdjacentRate(DriverUpdateParams& p) {
 //	return acc;
 }
 double sim_mob::MITSIM_CF_Model::calcStopPointRate(sim_mob::DriverUpdateParams& p){
+	if(p.parentId == 664 && p.now.frame()>751){
+		int i=0;
+	}
+	std::stringstream debugStr;
+	debugStr<<";SSPP"<<p.disToSP<<";"<<p.stopPointState<<";";
 	double acc=p.maxAcceleration;
 	if(!p.getStatus(STATUS_CHANGING)){
 		if(p.stopPointState == DriverUpdateParams::CLOSE_STOP_POINT){
 			acc = brakeToStop(p, p.dis2stop);
+			debugStr<<"SP-Close;";
+			p.cfDebugStr += debugStr.str();
 			return acc;
 		}
 		if(p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT || p.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT){
+			debugStr<<"SP-Arrive;";
 			acc = -10;
 		}// end of stopPointState
 	}
 	if(p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT && p.perceivedFwdVelocity / 100 < 0.1){
+		debugStr<<"SP-Arrive0;";
 		acc = -10;
 		p.stopPointState = DriverUpdateParams::WAITING_AT_STOP_POINT;
 		p.startStopTime = p.now.ms();
 	}
 	if(p.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT){
+		debugStr<<"SP-Waiting;";
 		double currentTime = p.now.ms();
 		double t = (currentTime - p.startStopTime) / 1000.0;// convert ms to s
+
+		debugStr<<"SPt;"<<t;
+
 		if(t>p.currentStopPoint.dwellTime){
 			p.stopPointState = DriverUpdateParams::LEAVING_STOP_POINT;
 		}
 	}
+	p.cfDebugStr += debugStr.str();
 	return acc;
 }
 /*

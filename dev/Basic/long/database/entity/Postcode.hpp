@@ -23,34 +23,39 @@ namespace sim_mob {
          */
         class Postcode {
         public:
-            Postcode(BigSerial id = INVALID_ID, BigSerial tazId = INVALID_ID,
-                    const std::string& code = EMPTY_STR, 
-                    double latitude = 0, double longitude = 0);
+            Postcode( BigSerial address_id = INVALID_ID, std::string sla_postcode = EMPTY_STR, BigSerial taz_id = INVALID_ID, float longitude = .0,
+            		  float latitude = .0, bool primary_postcode = false );
+
             Postcode(const Postcode& source);
+
             virtual ~Postcode();
             Postcode& operator=(const Postcode& source);
 
             /**
              * Getters 
              */
-            BigSerial getId() const;
+            BigSerial getAddressId() const;
+            std::string getSlaPostcode() const;
             BigSerial getTazId() const;
-            const std::string& getCode() const;
-            const LatLngLocation& getLocation() const;
+            float getLongitude() const;
+            float getLatitude() const;
+            bool getPrimaryPostcode() const;
 
             /**
              * Operator to print the Unit data.  
              */
-            friend std::ostream& operator<<(std::ostream& strm,
-                    const Postcode& data);
+            friend std::ostream& operator<<(std::ostream& strm, const Postcode& data);
 
         private:
             friend class PostcodeDao;
         private:
-            BigSerial id;
-            BigSerial tazId;
-            std::string code;
-            LatLngLocation location;
+            BigSerial address_id;
+            std::string sla_postcode;
+            BigSerial taz_id;
+            float longitude;
+            float latitude;
+            bool primary_postcode;
+
         };
     }
 }

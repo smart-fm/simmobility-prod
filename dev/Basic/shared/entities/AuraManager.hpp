@@ -85,6 +85,7 @@ public:
      *   \param refAgent The agent performing the query. If non-null, certain implementations
      *          (namely the Sim Tree) can make use of an optimized bottom-up query in some cases.
      *          If null, the algorithm used will always be the slower, top-down query.
+     *   \return a collection of agents
      *
      * The caller is responsible to determine the "type" of each agent in the returned array.
      */
@@ -105,6 +106,7 @@ public:
      *   \param refAgent The agent performing the query. If non-null, certain implementations
      *          (namely the Sim Tree) can make use of an optimized bottom-up query in some cases.
      *          If null, the algorithm used will always be the slower, top-down query.
+     *   \return a collection of agents
      *
      * This query is designed for Driver/Vehicle agents.  It calculates the search rectangle
      * based on \c position, \c lane, \c distanceInFront, and \c distanceBehind.  \c position
@@ -174,9 +176,6 @@ private:
 
     //Current time step.
     int time_step;
-
-    /*class Stats;
-    Stats* stats_;*/
 
 };
 

@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <string>
+#include <cstdlib>
 
 //TODO: Replace with <chrono> or something similar.
 #include <sys/time.h>
@@ -22,18 +23,17 @@
 #include "entities/Agent.hpp"
 #include "entities/BusController.hpp"
 #include "entities/Person.hpp"
-#include "entities/models/CarFollowModel.hpp"
-#include "entities/models/LaneChangeModel.hpp"
-#include "entities/models/IntersectionDrivingModel.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
+#include "entities/roles/driver/Biker.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/waitBusActivity/waitBusActivity.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/BusStopAgent.hpp"
-#include "entities/PT_Statistics.hpp"
+#include "entities/PersonLoader.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
+#include "entities/PT_Statistics.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/UniNode.hpp"
@@ -50,8 +50,6 @@
 #include "workers/WorkGroupManager.hpp"
 #include "config/MT_Config.hpp"
 #include "config/ParseMidTermConfigFile.hpp"
-
-
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -108,6 +106,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	rf.registerRole("waitBusActivity", new sim_mob::medium::WaitBusActivity(nullptr, mtx));
 	rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr, mtx));
 	rf.registerRole("passenger", new sim_mob::medium::Passenger(nullptr, mtx));
+	rf.registerRole("biker", new sim_mob::medium::Biker(nullptr, mtx));
 
 	//Load our user config file, which is a time costly function
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
@@ -171,20 +170,24 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		partMgr = &PartitionManager::instance();
 	}
 
+	PeriodicPersonLoader periodicPersonLoader(Agent::all_agents, Agent::pending_agents);
+
 	{ //Begin scope: WorkGroups
 	WorkGroupManager wgMgr;
 	wgMgr.setSingleThreadMode(config.singleThreaded());
 
 	//Work Group specifications
 	//Mid-term is not using Aura Manager at the moment. Therefore setting it to nullptr
-	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(),
-			config.totalRuntimeTicks, config.granPersonTicks,
-			nullptr /*AuraManager is not used in mid-term*/, partMgr);
+	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(), config.totalRuntimeTicks, config.granPersonTicks,
+			nullptr /*AuraManager is not used in mid-term*/, partMgr, &periodicPersonLoader);
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
 
 	messaging::MessageBus::RegisterHandler(PT_Statistics::GetInstance());
+
+	//Load persons for 0th tick
+	periodicPersonLoader.loadActivitySchedules();
 
 	//Initialize each work group individually
 	personWorkers->initWorkers(&entLoader);
@@ -249,8 +252,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		{
 			std::stringstream msg;
 			msg << "Approximate Tick Boundary: " << currTick << ", ";
-			msg << (currTick * config.baseGranMS())
-				<< " ms   [" <<currTickPercent <<"%]" << endl;
+			msg << (currTick * config.baseGranSecond())
+				<< "s   [" <<currTickPercent <<"%]" << endl;
 			if (!warmupDone)
 			{
 				msg << "  Warmup; output ignored." << endl;
@@ -373,17 +376,33 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	safe_delete_item(prof);
 	return true;
 }
+
 /**
- * Simulation loop for the demand simulator
+ * The preday demand simulator
  */
-bool performMainDemand(unsigned numThreads)
+bool performMainDemand()
 {
+	std::srand(clock()); // set random seed for RNGs in preday
+	const MT_Config& mtConfig = MT_Config::getInstance();
 	PredayManager predayManager;
 	predayManager.loadZones(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
 	predayManager.loadPersons(db::MONGO_DB);
-	predayManager.loadZoneNodes(db::MONGO_DB);
-	predayManager.distributeAndProcessPersons(numThreads);
+	predayManager.loadUnavailableODs(db::MONGO_DB);
+	if(mtConfig.isOutputTripchains())
+	{
+		predayManager.loadZoneNodes(db::MONGO_DB);
+	}
+	if(mtConfig.runningPredayCalibration())
+	{
+		Print() << "Preday mode: calibration" << std::endl;
+		predayManager.calibratePreday();
+	}
+	else
+	{
+		Print() << "Preday mode: " << (mtConfig.runningPredaySimulation()? "simulation":"logsum computation")  << std::endl;
+		predayManager.dispatchPersons();
+	}
 	return true;
 }
 
@@ -412,7 +431,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
 
 	//load configuration file for mid-term
-	ParseMidTermConfigFile parseMT_Cfg(MT_CONFIG_FILE, MT_Config::GetInstance(), ConfigManager::GetInstanceRW().FullConfig());
+	ParseMidTermConfigFile parseMT_Cfg(MT_CONFIG_FILE, MT_Config::getInstance(), ConfigManager::GetInstanceRW().FullConfig());
 
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
@@ -438,8 +457,8 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	}
 	else if (ConfigManager::GetInstance().FullConfig().RunningMidDemand())
 	{
-		Print() << "Mid-term run mode: demand" << endl;
-		return performMainDemand(MT_Config::GetInstance().getNumPredayThreads());
+		Print() << "Mid-term run mode: preday" << endl;
+		return performMainDemand();
 	}
 	else
 	{

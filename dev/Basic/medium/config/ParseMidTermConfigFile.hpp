@@ -46,9 +46,27 @@ private:
 
 	/**
 	 * processes the preday element in config file
-	 *  @param node node corresponding to the preday element in xml file
+	 * @param node node corresponding to the preday element in xml file
 	 */
 	void processPredayNode(xercesc::DOMElement* node);
+
+	/**
+	 * processes the stored procedure mappings under supply node
+	 * @param node node corresponding to the procedure mappings for supply in xml file
+	 */
+	void processProcMapNode(xercesc::DOMElement* node);
+
+	/**
+	 * processes the activity load interval node
+	 * @param node node specifying the value and unit for activity load interval
+	 */
+	void processActivityLoadIntervalElement(xercesc::DOMElement* node);
+
+	/**
+	 * processes update interval node
+	 * @param node node corresponding to update interval element
+	 */
+	void processUpdateIntervalElement(xercesc::DOMElement* node);
 
 	/**
 	 * processes dwell time element included in xml file.
@@ -70,12 +88,6 @@ private:
 	void processWalkSpeedElement(xercesc::DOMElement* node);
 
 	/**
-	 * processes threads element under preday element in config xml
-	 * @param node node corresponding to threads element inside xml file
-	 */
-	void processThreadsNode(xercesc::DOMElement* node);
-
-	/**
 	 * processes model scripts element in config xml
 	 * @param node node corresponding to model_scripts element inside xml file
 	 */
@@ -92,6 +104,13 @@ private:
 	 * @param node node corresponding to statistics output file element inside xml file
 	 */
 	void processStatisticsOutputNode(xercesc::DOMElement* node);
+
+	/**
+	 * processes calibration element in config xml
+	 * @param node node corresponding to calibration element inside xml file
+	 */
+	void processCalibrationNode(xercesc::DOMElement* node);
+
 
 	/**The config we are currently loading*/
 	MT_Config& mtCfg;

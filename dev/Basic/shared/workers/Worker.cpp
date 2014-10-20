@@ -221,8 +221,8 @@ void sim_mob::Worker::addPendingEntities()
 	for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
 		//Migrate its Buffered properties.
 		migrateIn(**it);
-                messaging::MessageBus::RegisterHandler((*it));
-                (*it)->onWorkerEnter();
+        messaging::MessageBus::RegisterHandler((*it));
+        (*it)->onWorkerEnter();
 	}
 	toBeAdded.clear();
 }
@@ -608,8 +608,8 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 				infCount += (*it)->getNumRemainingInLaneInfinity();
 			}
 			if(managedConfluxes.size() > 0) {
-				Print() << "Worker::outputSupplyStats Time: "<< currTime.ms()
-					<< "\tnumInLanes: "<< (total - infCount - vqCount) << "\tnumInLaneInf: "<< infCount << "\tvqCount: " << vqCount << std::endl;
+				Print() << "Worker::update_entities Time: "<< currTime.ms()/1000
+					<< "s \tnumInLanes: "<< (total - infCount - vqCount) << "\tnumInLaneInf: "<< infCount << "\tvqCount: " << vqCount << std::endl;
 			}
 		}
 		else {

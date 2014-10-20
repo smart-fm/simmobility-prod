@@ -76,7 +76,22 @@ public:
 	 * @param tourModeDestinationParams parameters specific to tour mode-destination models
 	 * @return an integer in the range of 1 to 9828 (9 modes * 1092 zones) which represents a combination of a zone (one of 1092) and a mode (one of 9)
 	 */
-	int predictTourModeDestination(PersonParams& personParams, TourModeDestinationParams& tourModeParams) const;
+	int predictTourModeDestination(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const;
+
+	/**
+	 * Computes log sums for all tour types by invoking corresponding functions in tour mode-destination model
+	 *
+	 * @param personParams object containing person and household related variables. logsums will be updated in this object
+	 * @param tourModeDestinationParams parameters specific to tour mode-destination models
+	 */
+	void computeTourModeDestinationLogsum(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const;
+
+	/**
+	 * Computes logsums from day-pattern tours and day-pattern stops models
+	 *
+	 * @param personParams object containing person and household related variables. logsums will be updated in this object
+	 */
+	void computeDayPatternLogsums(PersonParams& personParams) const;
 
 	/**
 	 * Predicts the time window for a tour
@@ -116,6 +131,34 @@ public:
 	 * @return an integer in the range of 1 to 48 representing a particular half-hour time window in the day
 	 */
 	int predictStopTimeOfDay(PersonParams& personParams, StopTimeOfDayParams& stopTimeOfDayParams) const;
+
+	/**
+	 * Predicts sub tour for a work tour
+	 *
+	 * @param personParams object containing person and household related variables
+	 * @param subTourParams parameters for sub tours model
+	 * @return an integer in the range 1-5 (1 for work; 2 for education; 3 for shopping; 4 for other; 5 for quit)
+	 */
+	int predictWorkBasedSubTour(PersonParams& personParams, SubTourParams& subTourParams) const;
+
+	/**
+	 * Predicts the mode and destination for sub-tour
+	 *
+	 * @param personParams object containing person and household related variables
+	 * @param tourModeDestinationParams parameters specific to tour mode-destination models
+	 * @return an integer in the range of 1 to 9828 (9 modes * 1092 zones) which represents a combination of a zone (one of 1092) and a mode (one of 9)
+	 */
+	int predictSubTourModeDestination(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const;
+
+	/**
+	 * Predicts the time window for a sub-tour
+	 *
+	 * @param personParams object containing person and household related variables
+	 * @param subTourParams parameters for the sub-tour time of day model
+	 * @return an integer in the range of 1 to 1176 representing a particular time window in the day
+	 * 			(1 = (3.25,3.25), 2 = (3.25,3.75), 3 = (3.25, 4.25), ... , 48 = (3.25, 26.75), 49 = (3.75, 3.75), ... , 1176 = (26.75,26.75))
+	 */
+	int predictSubTourTimeOfDay(PersonParams& personParams, SubTourParams& subTourParams) const;
 
 
 private:

@@ -22,6 +22,7 @@ public:
 	enum VehicleType {
 		CAR,
 		BUS,
+		BIKE,
 		OTHER
 	};
 

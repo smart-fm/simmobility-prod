@@ -309,6 +309,13 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetworkFromDatabase()
 		sim_mob::aimsun::Loader::LoadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings, cfg.getNetworkRW(), cfg.getTripChains(), nullptr);
 	} else {
 		std::cout <<"Loading Road Network from XML.\n";
+		// load segment,node type from db ,TODO add type attribute to xml file
+		sim_mob::aimsun::Loader::loadSegNodeType(cfg.getDatabaseConnectionString(false),
+				cfg.getDatabaseProcMappings().procedureMappings,
+				cfg.getNetworkRW());
+
+//		DatabaseLoader loader(cfg.getDatabaseConnectionString(false));
+//		loader.loadObjectType(cfg.getDatabaseProcMappings().procedureMappings,cfg.getNetworkRW());
 		if (!sim_mob::xml::InitAndLoadXML(cfg.networkXmlInputFile(), cfg.getNetworkRW(), cfg.getTripChains())) {
 			throw std::runtime_error("Error loading/parsing XML file (see stderr).");
 		}
@@ -435,19 +442,29 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		//TODO: Currently, this is only used for the "#mode" flag, and for forwarding the "originPos" and "destPos"
 		std::map<std::string, std::string> props;
 
-		//TODO: This is very wasteful
-		{
-		std::stringstream msg;
-		msg <<it->originPos.getX() <<"," <<it->originPos.getY();
-		props["originPos"] = msg.str();
-		}
-		{
-		std::stringstream msg;
-		msg <<it->destPos.getX() <<"," <<it->destPos.getY();
-		props["destPos"] = msg.str();
-		}
+
 
 		props["lane"] = Utils::toStr<unsigned int>(it->laneIndex);
+		props["initSegId"] = Utils::toStr<unsigned int>(it->initSegId);
+		props["initDis"] = Utils::toStr<unsigned int>(it->initDis);
+		props["initSpeed"] = Utils::toStr<unsigned int>(it->initSpeed);
+		if(it->originNode>0 && it->destNode>0) {
+			props["originNode"] = Utils::toStr<unsigned int>(it->originNode);
+			props["destNode"] = Utils::toStr<unsigned int>(it->destNode);
+		}
+		else {
+			//TODO: This is very wasteful
+			{
+			std::stringstream msg;
+			msg <<it->originPos.getX() <<"," <<it->originPos.getY();
+			props["originPos"] = msg.str();
+			}
+			{
+			std::stringstream msg;
+			msg <<it->destPos.getX() <<"," <<it->destPos.getY();
+			props["destPos"] = msg.str();
+			}
+		}
 //		props["lane"] = boost::lexical_cast<std::string>(it->laneIndex);
 		{
 			//Loop through attributes, ensuring that all required attributes are found.
@@ -464,6 +481,8 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		//  must deal with it here.
 		//TODO: At the moment, manual IDs don't work. We can easily re-add them if required.
 		int manualID = -1;
+		if(it->angentId != 0)
+			manualID = it->angentId;
 		//map<string, string>::iterator propIt = props.find("id");
 		/*if (propIt != props.end()) {
 			//Convert the ID to an integer.

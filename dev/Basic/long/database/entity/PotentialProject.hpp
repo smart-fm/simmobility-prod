@@ -28,8 +28,7 @@ namespace sim_mob {
             BigSerial getUnitTypeId() const;
             double getFloorArea() const;
             bool isFreehold() const;
-            friend std::ostream& operator<<(std::ostream& strm,
-                    const PotentialUnit& data);
+            friend std::ostream& operator<<(std::ostream& strm,  const PotentialUnit& data);
         private:
             BigSerial unitTypeId;
             double floorArea;

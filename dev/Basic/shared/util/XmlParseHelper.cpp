@@ -17,14 +17,6 @@ using namespace sim_mob;
 using namespace xercesc;
 namespace sim_mob
 {
-//Helper: turn a Xerces error message into a string.
-std::string TranscodeString(const XMLCh* str)
-{
-	char* raw = XMLString::transcode(str);
-	std::string res(raw);
-	XMLString::release(&raw);
-	return res;
-}
 
 //Helper: make sure we actually have an element
 DOMElement* NodeToElement(DOMNode* node)
@@ -284,6 +276,35 @@ unsigned int GetValueInMs(double amount, std::string units, unsigned int* defVal
 	return res;
 }
 
+unsigned int GetValueInSecond(double amount, std::string units, unsigned int* defValue)
+{
+	//Handle plural
+	if (units == "second") { units = "seconds"; }
+	if (units == "minute") { units = "minutes"; }
+	if (units == "hour") { units = "hours"; }
+
+	//Detect errors
+	if (units.empty() || (units != "minutes" && units != "seconds" && units != "ms" && units!= "hours"))
+	{
+		if (defValue) { return *defValue; }
+		else { throw std::runtime_error("Invalid units in parsing time granularity."); }
+	}
+
+	//Reduce to seconds
+	if (units == "ms") { amount /= 1000; }
+	if (units == "minutes") { amount *= 60; }
+	if (units == "hours") { amount *= 3600; }
+
+	//Check for overflow:
+	unsigned int res = static_cast<unsigned int>(amount);
+	if (static_cast<double>(res) != amount)
+	{
+		Warn() << "NOTE: Rounding value in ms from " << amount << " to " << res << "\n";
+	}
+
+	return res;
+}
+
 //Helper: Time units such as "10", "seconds"
 unsigned int ParseTimegranAsMs(const XMLCh* amountX, const XMLCh* unitsX, unsigned int* defValue)
 {
@@ -291,6 +312,13 @@ unsigned int ParseTimegranAsMs(const XMLCh* amountX, const XMLCh* unitsX, unsign
 	std::string units = TranscodeString(unitsX);
 
 	return GetValueInMs(amount, units, defValue);
+}
+
+unsigned int ParseTimegranAsSeconds(const XMLCh* amountX, const XMLCh* unitsX, unsigned int* defValue)
+{
+	double amount = boost::lexical_cast<double>(TranscodeString(amountX));
+	std::string units = TranscodeString(unitsX);
+	return GetValueInSecond(amount, units, defValue);
 }
 
 DailyTime ParseDailyTime(const XMLCh* srcX, DailyTime* defValue)
@@ -389,6 +417,10 @@ unsigned int ParseTimegranAsMs(const XMLCh* amount, const XMLCh* units, unsigned
 unsigned int ParseTimegranAsMs(const XMLCh* amount, const XMLCh* units)
 { //No default
 	return ParseTimegranAsMs(amount, units, nullptr);
+}
+unsigned int ParseTimegranAsSecond(const XMLCh* amount, const XMLCh* units, unsigned int defValue)
+{
+	return ParseTimegranAsSeconds(amount, units, &defValue);
 }
 
 //TODO: Now we are starting to overlap...

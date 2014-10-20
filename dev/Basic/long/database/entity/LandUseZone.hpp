@@ -35,8 +35,7 @@ namespace sim_mob {
             /**
              * Operator to print the LandUseZone data.  
              */
-            friend std::ostream& operator<<(std::ostream& strm,
-                    const LandUseZone& data);
+            friend std::ostream& operator<<(std::ostream& strm, const LandUseZone& data);
         private:
             friend class LandUseZoneDao;
         private:

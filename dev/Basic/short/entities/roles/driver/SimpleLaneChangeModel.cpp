@@ -4,7 +4,7 @@
 
 #include <limits>
 
-#include "entities/models/LaneChangeModel.hpp"
+#include "entities/roles/driver/models/LaneChangeModel.hpp"
 #include "geospatial/Lane.hpp"
 
 using std::numeric_limits;

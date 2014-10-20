@@ -8,15 +8,17 @@
  *  Created on: Mar 25, 2014
  *      Author: zhang
  */
-
+#pragma once
 #include "entities/IncidentStatus.hpp"
 #include "DriverUpdateParams.hpp"
 
-#pragma once
+
 
 namespace sim_mob {
 
-class Driver;
+//class Driver;
+class DriverUpdateParams;
+
 class IncidentPerformer {
 public:
 	IncidentPerformer();
@@ -35,7 +37,7 @@ public:
 	 * @param now is current simulation time
 	 * @return void .
 	 */
-	void checkIncidentStatus(Driver* parent, DriverUpdateParams& p, timeslice now);
+	void checkIncidentStatus(DriverUpdateParams& p, timeslice now);
 
 	/**
 	 * response processing when incident happen.
@@ -44,7 +46,7 @@ public:
 	 * @param now is current simulation time
 	 * @return void .
 	 */
-	void responseIncidentStatus(Driver* parent, DriverUpdateParams& p, timeslice now);
+	void responseIncidentStatus( DriverUpdateParams& p, timeslice now);
 
 
 private:
@@ -58,7 +60,7 @@ private:
 	 * @param p is reference to the DriverUpdateParam which recording parameters for updating driver
 	 * @return void .
 	 */
-	void checkAheadVehicles(Driver* parent, DriverUpdateParams& p);
+	void checkAheadVehicles( DriverUpdateParams& p);
 
 	/**
 	 * calculate new speed by current acceleration.
@@ -69,7 +71,7 @@ private:
 	 */
 	inline float calculateSpeedbyAcceleration(float curSpeed, float acc, float elapsedSeconds);
 
-	friend class Driver;
+//	friend class Driver;
 };
 
 } /* namespace sim_mob */

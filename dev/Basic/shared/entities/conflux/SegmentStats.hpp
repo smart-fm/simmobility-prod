@@ -58,11 +58,11 @@ public:
 	}
 
 private:
-	const double freeFlowSpeed;  ///<Maximum speed of the road segment
-	const double jamDensity;     ///<density during traffic jam in vehicles / m
-	const double minDensity;     ///<minimum traffic density in vehicles / m
-	const double minSpeed;       ///<minimum speed in the segment
-	const double capacity;       ///<segment capacity in vehicles/second
+	double freeFlowSpeed;  ///<Maximum speed of the road segment
+	double jamDensity;     ///<density during traffic jam in vehicles / m
+	double minDensity;     ///<minimum traffic density in vehicles / m
+	double minSpeed;       ///<minimum speed in the segment
+	double capacity;       ///<segment capacity in vehicles/second
 	const double alpha;          ///<Model parameter of speed density function
 	const double beta;           ///<Model parameter of speed density function
 };
@@ -168,8 +168,9 @@ public:
 	 * removes the person from the lane
 	 * @param person the person to be removed
 	 * @param wasQueuing the queuing status of person to manage queue count
+	 * @return true if removal was successful; false otherwise.
 	 */
-	void removePerson(sim_mob::Person* person, bool wasQueuing);
+	bool removePerson(sim_mob::Person* person, bool wasQueuing);
 
 	/**
 	 * removes the person at the front in laneAgents list
@@ -451,8 +452,9 @@ public:
 	 * @param lane the lane to remove the person from
 	 * @param person the person to remove
 	 * @param wasQueuing the queuing status of person at the start of the tick
+	 * @return true if removal was successful; false otherwise
 	 */
-	void removeAgent(const sim_mob::Lane* lane, sim_mob::Person* person, bool wasQueuing);
+	bool removeAgent(const sim_mob::Lane* lane, sim_mob::Person* person, bool wasQueuing);
 
 	/**
 	 * removes person in the front from lane
@@ -663,7 +665,8 @@ public:
 	std::string reportSegmentStats(timeslice frameNumber);
 
 	/**
-	 * computes the density of the segment
+	 * computes the density of the moving part of the segment
+	 * the density value computed here is meant to be used in speed density function
 	 * @param vehicleLanes boolean flag indicating whether we want the density from vehicle lanes
 	 */
 	double getDensity(bool vehicleLanes);

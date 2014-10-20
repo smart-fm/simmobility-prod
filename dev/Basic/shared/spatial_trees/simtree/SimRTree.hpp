@@ -2,6 +2,13 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+/**
+ * There are three different Tree-based Spatial Indexes implemented in SimMobility: R*-Tree, R-DU Tree and Sim-Tree.
+ * R*-Tree is the default choice
+ * R-DU Tree is used for research comparison
+ * Sim-Tree is the optimal choice
+ */
+
 #pragma once
 
 #include <map>
@@ -44,10 +51,7 @@ private:
 	double leaf_agents_sum;
 	double unbalance_ratio;
 
-#ifdef SIM_TREE_USE_REBALANCE
-	//parameters for re-balance
 public:
-	//the border of the network
 	static long network_minimum_x;
 	static long network_minimum_y;
 	static long network_maximum_x;
@@ -60,8 +64,8 @@ public:
 	static double minimum_Rectanle_Border_Length;
 
 
-	//xuyan:it is hard coded inside
-	static int bigtable[1000][1000];
+	//it is to divide the network into a 1000*1000 2-D matrix
+	static int bigtable[DIVIDE_NETWORK_X_INTO_CELLS][DIVIDE_NETWORK_Y_INTO_CELLS];
 
 	//if re-balance happens %rebalance_threshold times continuously, then need to rebuild the tree
 	int rebalance_threshold;
@@ -69,13 +73,10 @@ public:
 	int checking_frequency;
 
 	int rebalance_counts;
-#endif
 
 public:
 	SimRTree() : m_root(nullptr), first_leaf(nullptr), leaf_counts(0), leaf_agents_sum(0), unbalance_ratio(0)
-#ifdef SIM_TREE_USE_REBALANCE
 		,rebalance_counts(0), rebalance_threshold(2), rebalance_load_balance_maximum(0.3), checking_frequency(10)
-#endif
 {}
 
 	//Typedef to refer to our Bounding boxes.
@@ -88,7 +89,12 @@ public:
 	 *File Line Format:
 	 *(Parent-Item-ID, Own-ID, BOX_X1, BOX_Y1, BOX_X2, BOX_Y2)
 	 */
-	void build_tree_structure(const std::string& filename);
+	void buildTreeStructure(const std::string& filename);
+
+	/**
+	 * build the tree structure by re-using the road network
+	 */
+	void buildTreeStructure();
 
 	/**
 	 * Assumption:
@@ -131,21 +137,19 @@ public:
 	/**
 	 *
 	 */
-	void measureUnbalance(int time_step);
+	void measureUnbalance(int time_step, std::map<const sim_mob::Agent*, TreeItem*>& agent_connector_map);
 
 	/**
 	 *
 	 */
-	void rebalance();
+	void rebalance(std::map<const sim_mob::Agent*, TreeItem*>& agent_connector_map);
 
 	/**
 	 * DEBUG
 	 */
 	void checkLeaf();
 
-#ifdef SIM_TREE_USE_REBALANCE
-	void init_rebalance_settings();
-#endif
+	void initRebalanceSettings();
 
 private:
 	//release memory
@@ -170,16 +174,10 @@ private:
 	void connectLeafs(TreeNode * one_node);
 
 	//
-	TreeLeaf* get_rightest_leaf(TreeItem* item);
+	BoundingBox locationBoundingBox(Agent * agent);
 
 	//
-	TreeLeaf* get_leftest_leaf(TreeItem* item);
-
-	//
-	BoundingBox location_bounding_box(Agent * agent);
-
-	//
-	BoundingBox OD_bounding_box(Agent * agent);
+	BoundingBox ODBoundingBox(Agent * agent);
 
 	//
 	//The parameter "connectorMap" is passed in from the parent SimAuraManager. The SimRTree updates this instead of modifying the Agent directly.

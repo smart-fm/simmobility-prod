@@ -101,6 +101,7 @@ void PT_Statistics::HandleMessage(Message::MessageType type,
 		stat.timeSlice = msg.timeSlice;
 		stat.waitingAmount = boost::lexical_cast<std::string>(msg.waitingNum);
 		waitingAmounts[msg.busStopNo].push_back(stat);
+		break;
 	}
 	default:
 		break;
@@ -185,7 +186,7 @@ void PT_Statistics::PrintStatistics() {
 
 void PT_Statistics::StoreStatistics() {
 	std::string filenameOfJourneyStats =
-			MT_Config::GetInstance().getFilenameOfJourneyTimeStats();
+			MT_Config::getInstance().getFilenameOfJourneyTimeStats();
 	if (filenameOfJourneyStats.size() > 0) {
 		std::ofstream outputFile(filenameOfJourneyStats.c_str());
 		if (outputFile.is_open()) {
@@ -206,7 +207,7 @@ void PT_Statistics::StoreStatistics() {
 					outputFile << itArrivalTm->busLine << ",";
 					outputFile << itArrivalTm->tripId << ",";
 					outputFile << itArrivalTm->arrivalTime << ",";
-					outputFile << cu.toString() << std::endl;
+					outputFile << itArrivalTm->dwellTime << std::endl;
 					itArrivalTm++;
 				}
 			}
@@ -215,7 +216,7 @@ void PT_Statistics::StoreStatistics() {
 	}
 
 	std::string filenameOfWaitingStats =
-			MT_Config::GetInstance().getFilenameOfWaitingTimeStats();
+			MT_Config::getInstance().getFilenameOfWaitingTimeStats();
 	if (filenameOfWaitingStats.size() > 0) {
 		std::ofstream outputFile(filenameOfWaitingStats.c_str());
 		if (outputFile.is_open()) {
@@ -233,10 +234,9 @@ void PT_Statistics::StoreStatistics() {
 				while (itWaitingTime != waitingTimeList.end()) {
 					outputFile << stopNo << ",";
 					outputFile << itWaitingTime->first << ",";
-					/*outputFile << itWaitingTime->second.waitingTime << ",";
+					outputFile << itWaitingTime->second.waitingTime << ",";
 					outputFile << itWaitingTime->second.failedBoardingTime
-							<< std::endl;*/
-					outputFile << itWaitingTime->second.waitingTime << std::endl;
+							<< std::endl;
 					itWaitingTime++;
 				}
 			}
@@ -245,7 +245,7 @@ void PT_Statistics::StoreStatistics() {
 	}
 
 	std::string filenameOfWaitingAmount =
-			MT_Config::GetInstance().getFilenameOfWaitingAmountStats();
+			MT_Config::getInstance().getFilenameOfWaitingAmountStats();
 	if (filenameOfWaitingAmount.size() > 0) {
 		std::ofstream outputFile(filenameOfWaitingAmount.c_str());
 		if (outputFile.is_open()) {

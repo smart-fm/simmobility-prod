@@ -24,7 +24,7 @@ sim_mob::medium::Pedestrian::Pedestrian(Person* parent, MutexStrategy mtxStrat,
 sim_mob::medium::Pedestrian::~Pedestrian() {}
 
 Role* sim_mob::medium::Pedestrian::clone(Person* parent) const {
-	double walkSpeed = MT_Config::GetInstance().getPedestrianWalkSpeed();
+	double walkSpeed = MT_Config::getInstance().getPedestrianWalkSpeed();
 	PedestrianBehavior* behavior = new PedestrianBehavior(parent);
 	PedestrianMovement* movement = new PedestrianMovement(parent, walkSpeed);
 	Pedestrian* pedestrian = new Pedestrian(parent, parent->getMutexStrategy(), behavior, movement);

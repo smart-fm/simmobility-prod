@@ -45,8 +45,7 @@ namespace sim_mob {
             /**
              * Inherited from LT_Role
              */
-            virtual void HandleMessage(messaging::Message::MessageType type,
-                const messaging::Message& message);
+            virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
         private:
             friend class HouseholdAgent;
@@ -74,8 +73,7 @@ namespace sim_mob {
              *        If it not exists the values should be 0.
              * @return true if exists valid expectation, false otherwise.
              */
-            bool getCurrentExpectation(const BigSerial& unitId, 
-                ExpectationEntry& outEntry);
+            bool getCurrentExpectation(const BigSerial& unitId, ExpectationEntry& outEntry);
         public:
             typedef boost::unordered_map<BigSerial, unsigned int> CounterMap;
         private:

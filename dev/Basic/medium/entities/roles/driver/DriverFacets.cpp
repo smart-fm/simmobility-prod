@@ -116,6 +116,7 @@ void sim_mob::medium::DriverMovement::frame_init() {
 
 void sim_mob::medium::DriverMovement::frame_tick() {
 	sim_mob::medium::DriverUpdateParams& params = parentDriver->getParams();
+	Print() << "Person: " << getParent()->getId() << "|d.frame_tick" << std::endl;
 	const sim_mob::SegmentStats* currSegStats = pathMover.getCurrSegStats();
 	if(!currSegStats) {
 		//if currSegstats is NULL, either the driver did not find a path to his
@@ -245,17 +246,18 @@ bool sim_mob::medium::DriverMovement::initializePath() {
 
 void DriverMovement::setParentData(sim_mob::medium::DriverUpdateParams& params) {
 	if(!pathMover.isPathCompleted()) {
-		getParent()->distanceToEndOfSegment = pathMover.getPositionInSegment();
-		getParent()->setCurrLane(currLane);
-		getParent()->setCurrSegStats(pathMover.getCurrSegStats());
-		getParent()->setRemainingTimeThisTick(params.secondsInTick - params.elapsedSeconds);
+		Print() << "Person: " << parent->getId() << "|d.setParentData()" << std::endl;
+		parent->distanceToEndOfSegment = pathMover.getPositionInSegment();
+		parent->setCurrLane(currLane);
+		parent->setCurrSegStats(pathMover.getCurrSegStats());
+		parent->setRemainingTimeThisTick(params.secondsInTick - params.elapsedSeconds);
 	}
 	else {
-		getParent()->distanceToEndOfSegment = 0.0;
-		getParent()->setCurrLane(nullptr);
-		getParent()->setCurrSegStats(nullptr);
-		getParent()->setRemainingTimeThisTick(0.0);
-		getParent()->isQueuing = false;
+		parent->distanceToEndOfSegment = 0.0;
+		parent->setCurrLane(nullptr);
+		parent->setCurrSegStats(nullptr);
+		parent->setRemainingTimeThisTick(0.0);
+		parent->isQueuing = false;
 	}
 }
 
@@ -264,6 +266,7 @@ void DriverMovement::stepFwdInTime(sim_mob::medium::DriverUpdateParams& params, 
 }
 
 bool DriverMovement::advance(sim_mob::medium::DriverUpdateParams& params) {
+	Print() << "Person: " << parent->getId() << "|d.advance()" << std::endl;
 	if (pathMover.isPathCompleted()) {
 		getParent()->setToBeRemoved();
 		return false;
@@ -284,6 +287,7 @@ bool DriverMovement::advance(sim_mob::medium::DriverUpdateParams& params) {
 }
 
 bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& params) {
+	Print() << "Person: " << getParent()->getId() << "|d.moveToNextSegment" << std::endl;
 	bool res = false;
 	bool isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
 	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
@@ -361,7 +365,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 	//This function gets called for 2 cases.
 	//1. Driver is added to virtual queue
 	//2. Driver is in previous segment trying to add to the next
-
+	Print() << "Person: " << getParent()->getId() << "|d.flowIntoNextLinkIfPossible" << std::endl;
 	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
 	const sim_mob::SegmentStats* nextSegStats = pathMover.getNextSegStats(false);
 	const sim_mob::SegmentStats* nextToNextSegStats = pathMover.getSecondSegStatsAhead();
@@ -373,7 +377,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (converToSeconds(params.now.ms()))); //in seconds
 
-	if (canGoToNextRdSeg(params, nextSegStats)){
+	if (canGoToNextRdSeg(params, nextSegStats)) {
 		if (isQueuing){
 			removeFromQueue();
 		}
@@ -446,9 +450,17 @@ bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& param
 		return false;
 	}
 
+	double enteringVehicleLength =  parentDriver->getResource()->getLengthCm();
+	double maxAllowed = nextSegStats->getNumVehicleLanes() * nextSegStats->getLength();
 	double total = nextSegStats->getTotalVehicleLength();
-	double max_allowed = nextSegStats->getNumVehicleLanes() * nextSegStats->getLength();
-	return (total < max_allowed);
+
+	//if the segment is shorter than the vehicle's length and there are no vehicles in the segment just allow the vehicle to pass through
+	//this segment should ideally be removed from the segment. this is just an interim arrangment.
+	//if this hack is not in place, all vehicles will start queuing in upsream segments forever.
+	//TODO: remove this hack and put permanent fix
+	if((maxAllowed < enteringVehicleLength) && (total <= 0)) { return true; }
+
+	return ((maxAllowed - total) >= enteringVehicleLength);
 }
 
 void DriverMovement::moveInQueue() {

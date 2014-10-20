@@ -136,6 +136,12 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 		itWaitingPeople++;
 	}
 
+	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(),
+			STRORE_WAITING_AMOUNT,
+			messaging::MessageBus::MessagePtr(
+					new WaitingAmountMessage(busStop->getBusstopno_(),
+							DailyTime(now.ms()).toString(),
+							waitingPersons.size())));
 
 	return UpdateStatus::Continue;
 }

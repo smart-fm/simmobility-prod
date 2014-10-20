@@ -44,6 +44,8 @@ public:
 	///TODO: I'm not entirely sure that all cases of fwd/rev RoadSegments are handled properly.
 	void setPath(const std::vector<const sim_mob::RoadSegment*>& path, std::vector<bool>& areFwds, int startLaneID);
 	void setPath(const std::vector<const sim_mob::RoadSegment*>& path, int startLaneID);
+	void setPathWithInitSeg(const std::vector<const sim_mob::RoadSegment*>& path,
+			int startLaneID,int initSegId,int initPer,int initSpeed);
 
 	//reset path
 	//in route choice model, it will be used when the vehicle is approaching an intersection
@@ -85,11 +87,14 @@ public:
 
 	//Retrieve useful properties of the current polypoint
 	double getCurrDistAlongPolylineCM() const;
+	double getCurrDistAlongPolylineM() { return getCurrDistAlongPolylineCM()/100.0; }
 	double getCurrPolylineTotalDistCM() const;
 
 	// segment length is based on lane's polypoints , be careful, it is not relate to segment's start ,end nodes
 	// unit cm
 	double getCurrentSegmentLengthCM();
+
+	double getDistToLinkEndM();
 
 	//Retrieve the current distance moved in this road segment. Due to lane changing, etc., it
 	//  is entirely possible that this may appear longer than the actual RoadSegment.
@@ -105,7 +110,7 @@ public:
 	double getAllRestRoadSegmentsLengthCM() const;
 
 	//Retrieve our X/Y position based ONLY on forward movement (e.g., nothing with Lanes)
-	sim_mob::DPoint getPosition() const;
+	sim_mob::DPoint getPosition();
 
 	//We might be able to fold Lane movement in here later. For now, it has to be called externally.
 	void shiftToNewPolyline(bool moveLeft);
@@ -155,6 +160,8 @@ public:
 	std::vector<sim_mob::Point2D>::iterator currPolypoint;
 	std::vector<sim_mob::Point2D>::iterator nextPolypoint;
 
+	DynamicVector movementVect;
+
 	//Unfortuante duplication, but necessary to avoid aliasing
 	std::vector<sim_mob::Point2D>::const_iterator currLaneZeroPolypoint;
 	std::vector<sim_mob::Point2D>::const_iterator nextLaneZeroPolypoint;
@@ -199,6 +206,8 @@ public:
 		std::vector<bool> areFwds;
 	} pathWithDirection;
 
+	double getDisToCurrSegEnd();
+	double getDisToCurrSegEndM() { return getDisToCurrSegEnd()/100.0; }
 private:
 	//Error messages for throw_if.
 	//NOTE: We are keeping these as const-static because the simulation runtime keeps re-creating them

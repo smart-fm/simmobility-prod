@@ -7,12 +7,20 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <string>
+#include "behavioral/CalibrationStatistics.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/XmlParseHelper.hpp"
 
 namespace
 {
 const int DEFAULT_NUM_THREADS_DEMAND = 2; // default number of threads for demand
+const unsigned NUM_SECONDS_IN_AN_HOUR = 3600;
+
+unsigned int ProcessTimegranUnits(xercesc::DOMElement* node)
+{
+	return ParseTimegranAsSecond(GetNamedAttributeValue(node, "value"), GetNamedAttributeValue(node, "units"), NUM_SECONDS_IN_AN_HOUR);
+}
+
 }
 namespace sim_mob
 {
@@ -41,6 +49,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 	{
 		processPredayNode(GetSingleElementByName(rootNode, "preday", true));
 	}
+	mtCfg.sealConfig(); //no more updation in mtConfig
 }
 
 void ParseMidTermConfigFile::processMidTermRunMode(xercesc::DOMElement* node)
@@ -50,6 +59,9 @@ void ParseMidTermConfigFile::processMidTermRunMode(xercesc::DOMElement* node)
 
 void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 {
+	//processProcMapNode(GetSingleElementByName(node, "proc_map", true));
+	//processActivityLoadIntervalElement(GetSingleElementByName(node, "activity_load_interval", true));
+	processUpdateIntervalElement(GetSingleElementByName(node, "update_interval", true));
 	processDwellTimeElement(GetSingleElementByName(node, "dwell_time_parameters", true));
 	processWalkSpeedElement(GetSingleElementByName(node, "pedestrian_walk_speed", true));
 	processStatisticsOutputNode(GetSingleElementByName(node, "statistics_output_paramemters", true));
@@ -59,9 +71,61 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 
 void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 {
-	processThreadsNode(GetSingleElementByName(node, "threads", true));
+	DOMElement* childNode = nullptr;
+	childNode = GetSingleElementByName(node, "run_mode", true);
+	mtCfg.setPredayRunMode(ParseString(GetNamedAttributeValue(childNode, "value", true), "simulation"));
+
+	childNode = GetSingleElementByName(node, "threads", true);
+	mtCfg.setNumPredayThreads(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true), DEFAULT_NUM_THREADS_DEMAND));
+	childNode = GetSingleElementByName(node, "output_schedule", true);
+	mtCfg.setOutputTripchains(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
+	childNode = GetSingleElementByName(node, "output_predictions", true);
+	mtCfg.setOutputPredictions(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
+	childNode = GetSingleElementByName(node, "console_output", true);
+	mtCfg.setConsoleOutput(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
+
 	processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 	processMongoCollectionsNode(GetSingleElementByName(node, "mongo_collections", true));
+	processCalibrationNode(GetSingleElementByName(node, "calibration", true));
+}
+
+void ParseMidTermConfigFile::processProcMapNode(xercesc::DOMElement* node)
+{
+	StoredProcedureMap spMap(ParseString(GetNamedAttributeValue(node, "id")));
+	spMap.dbFormat = ParseString(GetNamedAttributeValue(node, "format"), "");
+
+	//Loop through and save child attributes.
+	for (DOMElement* mapItem=node->getFirstElementChild(); mapItem; mapItem=mapItem->getNextElementSibling()) {
+		if (TranscodeString(mapItem->getNodeName())!="mapping") {
+			Warn() <<"Invalid proc_map child node.\n";
+			continue;
+		}
+
+		std::string key = ParseString(GetNamedAttributeValue(mapItem, "name"), "");
+		std::string val = ParseString(GetNamedAttributeValue(mapItem, "procedure"), "");
+		if (key.empty() || val.empty()) {
+			Warn() <<"Invalid mapping; missing \"name\" or \"procedure\".\n";
+			continue;
+		}
+
+		spMap.procedureMappings[key] = val;
+	}
+	mtCfg.setStoredProcedureMap(spMap);
+	configParams.constructs.procedureMaps[spMap.getId()] = spMap;
+}
+
+void ParseMidTermConfigFile::processActivityLoadIntervalElement(xercesc::DOMElement* node)
+{
+	unsigned interval = ProcessTimegranUnits(node);
+	mtCfg.setActivityScheduleLoadInterval(interval);
+	configParams.system.genericProps["activity_load_interval"] = boost::lexical_cast<std::string>(interval);
+}
+
+void ParseMidTermConfigFile::processUpdateIntervalElement(xercesc::DOMElement* node)
+{
+	unsigned interval = ProcessTimegranUnits(node)/((unsigned)configParams.baseGranSecond());
+	mtCfg.setSupplyUpdateInterval(interval);
+	configParams.system.genericProps["update_interval"] = boost::lexical_cast<std::string>(interval);
 }
 
 void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)
@@ -74,12 +138,12 @@ void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)
 	std::string value = ParseString(GetNamedAttributeValue(child, "value"), "");
 	std::vector<std::string> valArray;
 	boost::split(valArray, value, boost::is_any_of(", "), boost::token_compress_on);
-	std::vector<int>& dwellTimeParams = mtCfg.getDwellTimeParams();
+	std::vector<float>& dwellTimeParams = mtCfg.getDwellTimeParams();
 	for (std::vector<std::string>::const_iterator it = valArray.begin(); it != valArray.end(); it++)
 	{
 		try
 		{
-			int val = boost::lexical_cast<int>(*it);
+			float val = boost::lexical_cast<float>(*it);
 			dwellTimeParams.push_back(val);
 		} catch (...)
 		{
@@ -124,12 +188,7 @@ void ParseMidTermConfigFile::processWalkSpeedElement(xercesc::DOMElement* node)
 
 void ParseMidTermConfigFile::processBusCapactiyElement(xercesc::DOMElement* node)
 {
-	mtCfg.setBusCapcacity(ParseUnsignedInt(GetNamedAttributeValue(node, "value", true), nullptr));
-}
-
-void ParseMidTermConfigFile::processThreadsNode(xercesc::DOMElement* node)
-{
-	mtCfg.setNumPredayThreads(ParseUnsignedInt(GetNamedAttributeValue(node, "value", true), DEFAULT_NUM_THREADS_DEMAND));
+	mtCfg.setBusCapacity(ParseUnsignedInt(GetNamedAttributeValue(node, "value", true), nullptr));
 }
 
 void ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
@@ -168,7 +227,7 @@ void ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
 			continue;
 		}
 
-		scriptsMap.scriptFileName[key] = val;
+		scriptsMap.addScriptFileName(key, val);
 	}
 	mtCfg.setModelScriptsMap(scriptsMap);
 }
@@ -191,9 +250,84 @@ void ParseMidTermConfigFile::processMongoCollectionsNode(xercesc::DOMElement* no
 			Warn() << "Invalid mongo_collection; missing \"name\" or \"collection\".\n";
 			continue;
 		}
-		mongoColls.collectionName[key] = val;
+		mongoColls.addCollectionName(key, val);
 	}
 	mtCfg.setMongoCollectionsMap(mongoColls);
 }
 
+void sim_mob::ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement* node)
+{
+	if(mtCfg.runningPredayCalibration())
+	{
+		PredayCalibrationParams spsaCalibrationParams;
+		PredayCalibrationParams wspsaCalibrationParams;
+
+		//get name of csv listing variables to calibrate
+		DOMElement* variablesNode = GetSingleElementByName(node, "variables", true);
+		spsaCalibrationParams.setCalibrationVariablesFile(ParseString(GetNamedAttributeValue(variablesNode, "file"), ""));
+		wspsaCalibrationParams.setCalibrationVariablesFile(ParseString(GetNamedAttributeValue(variablesNode, "file"), ""));
+
+		//get name of csv listing observed statistics
+		DOMElement* observedStatsNode = GetSingleElementByName(node, "observed_statistics", true);
+		std::string observedStatsFile = ParseString(GetNamedAttributeValue(observedStatsNode, "file"), "");
+		spsaCalibrationParams.setObservedStatisticsFile(observedStatsFile);
+		wspsaCalibrationParams.setObservedStatisticsFile(observedStatsFile);
+
+		DOMElement* calibrationMethod = GetSingleElementByName(node, "calibration_technique", true);
+		mtCfg.setCalibrationMethodology(ParseString(GetNamedAttributeValue(calibrationMethod, "value"), "WSPSA"));
+
+		DOMElement* logsumFrequencyNode = GetSingleElementByName(node, "logsum_computation_frequency", true);
+		mtCfg.setLogsumComputationFrequency(ParseUnsignedInt(GetNamedAttributeValue(logsumFrequencyNode, "value", true)));
+
+		/**parse SPSA node*/
+		DOMElement* spsaNode = GetSingleElementByName(node, "SPSA", true);
+		DOMElement* childNode = nullptr;
+
+		childNode = GetSingleElementByName(spsaNode, "iterations", true);
+		spsaCalibrationParams.setIterationLimit(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true)));
+
+		childNode = GetSingleElementByName(spsaNode, "tolerence", true);
+		spsaCalibrationParams.setTolerance(ParseFloat(GetNamedAttributeValue(childNode, "value", true)));
+
+		childNode = GetSingleElementByName(spsaNode, "gradient_step_size", true);
+		spsaCalibrationParams.setInitialGradientStepSize(ParseFloat(GetNamedAttributeValue(childNode, "initial_value", true)));
+		spsaCalibrationParams.setAlgorithmCoefficient2(ParseFloat(GetNamedAttributeValue(childNode, "algorithm_coefficient2", true)));
+
+		childNode = GetSingleElementByName(spsaNode, "step_size", true);
+		spsaCalibrationParams.setStabilityConstant(ParseFloat(GetNamedAttributeValue(childNode, "stability_constant", true)));
+		spsaCalibrationParams.setInitialStepSize(ParseFloat(GetNamedAttributeValue(childNode, "initial_value", true)));
+		spsaCalibrationParams.setAlgorithmCoefficient1(ParseFloat(GetNamedAttributeValue(childNode, "algorithm_coefficient1", true)));
+
+		/**process W-SPSA node*/
+		DOMElement* wspsaNode = GetSingleElementByName(node, "WSPSA", true);
+
+		childNode = GetSingleElementByName(wspsaNode, "iterations", true);
+		wspsaCalibrationParams.setIterationLimit(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true)));
+
+		childNode = GetSingleElementByName(wspsaNode, "tolerence", true);
+		wspsaCalibrationParams.setTolerance(ParseFloat(GetNamedAttributeValue(childNode, "value", true)));
+
+		childNode = GetSingleElementByName(wspsaNode, "gradient_step_size", true);
+		wspsaCalibrationParams.setInitialGradientStepSize(ParseFloat(GetNamedAttributeValue(childNode, "initial_value", true)));
+		wspsaCalibrationParams.setAlgorithmCoefficient2(ParseFloat(GetNamedAttributeValue(childNode, "algorithm_coefficient2", true)));
+
+		childNode = GetSingleElementByName(wspsaNode, "step_size", true);
+		wspsaCalibrationParams.setStabilityConstant(ParseFloat(GetNamedAttributeValue(childNode, "stability_constant", true)));
+		wspsaCalibrationParams.setInitialStepSize(ParseFloat(GetNamedAttributeValue(childNode, "initial_value", true)));
+		wspsaCalibrationParams.setAlgorithmCoefficient1(ParseFloat(GetNamedAttributeValue(childNode, "algorithm_coefficient1", true)));
+
+		childNode = GetSingleElementByName(wspsaNode, "weight_matrix", true);
+		wspsaCalibrationParams.setWeightMatrixFile(ParseString(GetNamedAttributeValue(childNode, "file"), ""));
+
+		mtCfg.setSPSA_CalibrationParams(spsaCalibrationParams);
+		mtCfg.setWSPSA_CalibrationParams(wspsaCalibrationParams);
+
+		DOMElement* outputNode = GetSingleElementByName(node, "output", true);
+		mtCfg.setCalibrationOutputFile(ParseString(GetNamedAttributeValue(outputNode, "file"), "out.txt"));
+	}
+	//else just return.
 }
+
+}
+
+

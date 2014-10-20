@@ -196,7 +196,9 @@ public:
 
 	FMODSchedule* schedule;
 
-	virtual const std::string getMode() const;
+	const std::string getMode() const ;
+	const std::string getBusLineID() const;
+
 };
 
 /**

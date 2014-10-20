@@ -25,7 +25,7 @@ class PartitionManager;
 class PackageUtils;
 class UnPackageUtils;
 class UpdateParams;
-
+class OD_Trip;
 
 
 /**
@@ -94,7 +94,10 @@ public:
      * insert a waiting activity before bus travel
      * @param tripChain is the reference to current trip chain
      */
-    void insertWaitingActivityToTrip(std::vector<TripChainItem*>& tripChain);
+    void insertWaitingActivityToTrip();
+    void convertODsToTrips();
+    void makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips,
+    		std::vector<const sim_mob::OD_Trip*>& matchedTrips);
 
     // update nextTripChainItem, used only for NextRole
 	bool updateNextTripChainItem();

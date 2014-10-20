@@ -180,6 +180,10 @@ const std::string sim_mob::Trip::getMode() const
 	return subTrips.front().getMode();
 }
 
+const std::string sim_mob::SubTrip::getBusLineID() const {
+	return ptLineId;
+}
+
 bool sim_mob::operator==(const SubTrip& s1, const SubTrip& s2)
 {
 	//For now, just assume two items are equal if their entity IDs are equal.

@@ -850,7 +850,7 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 		if (person->isToBeRemoved()) {
 			retVal = person->checkTripChain();
 			personRole = person->getRole();
-			if (personRole && retVal.status == UpdateStatus::RS_DONE && personRole->roleType == Role::RL_PEDESTRIAN) {
+			if (personRole && retVal.status == UpdateStatus::RS_DONE) {
 				return retVal;
 			}
 			else if(personRole && retVal.status==UpdateStatus::RS_CONTINUE && personRole->roleType==Role::RL_WAITBUSACTITITY) {

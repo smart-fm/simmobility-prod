@@ -704,6 +704,8 @@ void sim_mob::Person::convertODsToTrips() {
 						&& itSubTrip->mode == "BusTravel") {
 					std::vector<sim_mob::OD_Trip>& OD_Trips =
 							config.getODsTripsMap();
+					Print()<<"original Id:"<<itSubTrip->fromLocation.node_->getID()
+							<<" destination Id:"<<itSubTrip->toLocation.node_->getID() <<std::endl;
 					MatchesOD_Trip matchsOD_Trip(
 				 			itSubTrip->fromLocation.node_->getID(),
 							itSubTrip->toLocation.node_->getID());

@@ -69,6 +69,8 @@ public:
 	}
 
 	bool operator()(const OD_Trip& item){
+		Print()<<"original Id:"<<item.OD_Id
+				<<" destination Id:"<<item.destNode <<std::endl;
 		if(item.originNode==originId && item.destNode==destId){
 			result.push_back(&item);
 		}

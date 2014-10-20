@@ -86,6 +86,8 @@ public:
 		return waitingTimeAtbusStop;
 	}
 
+	const std::string getBusLineID() const;
+
 private:
 	/**passengers list*/
 	std::list<sim_mob::medium::Passenger*> passengerList;

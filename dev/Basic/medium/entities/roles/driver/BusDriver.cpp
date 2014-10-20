@@ -166,6 +166,23 @@ void sim_mob::medium::BusDriver::predictArrivalAtBusStop(double preArrivalTime,
 	}
 }
 
+const std::string sim_mob::medium::BusDriver::getBusLineID() const
+{
+	if (!parent) {
+		return std::string();
+	}
+
+	const BusTrip* busTrip =
+			dynamic_cast<const BusTrip*>(*(parent->currTripChainItem));
+	if (busTrip) {
+		return busTrip->getBusline()->getBusLineID();
+	}
+	else {
+		return std::string();
+	}
+}
+
+
 void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mob::medium::BusStopAgent* busStopAgent) {
 	if(!busStopAgent)
 	{
@@ -190,20 +207,16 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 
 	unsigned int totalNumber = numAlighting + numBoarding;
 
-	if(waitingTimeAtbusStop==0.0){
-		float secondPer = 2.5;
-		float fixTime = Utils::generateFloat(2,10);
-		int boardNum = std::max(numAlighting, numBoarding);
-		waitingTimeAtbusStop = fixTime+boardNum*secondPer;
-		waitingTimeAtbusStop = 22.0;
-	}
-
-	const std::vector<float>& dwellTimeParams = MT_Config::getInstance().getDwellTimeParams();
-
-	const float fixedTime = Utils::generateFloat(dwellTimeParams[0],dwellTimeParams[1]);
-	const float individualTime = Utils::generateFloat(dwellTimeParams[2], dwellTimeParams[3]);
 	int boardNum = std::max(numAlighting, numBoarding);
-	waitingTimeAtbusStop = fixedTime+boardNum*individualTime;
+	if(boardNum==0){
+		waitingTimeAtbusStop=0.0;
+	}
+	else{
+		const std::vector<float>& dwellTimeParams = MT_Config::getInstance().getDwellTimeParams();
+		const float fixedTime = Utils::generateFloat(dwellTimeParams[0],dwellTimeParams[1]);
+		const float individualTime = Utils::generateFloat(dwellTimeParams[2], dwellTimeParams[3]);
+		waitingTimeAtbusStop = fixedTime+boardNum*individualTime;
+	}
 
 	DailyTime dwellTime( converToMilliseconds(waitingTimeAtbusStop) );
 	storeArrivalTime(current, dwellTime.toString(), busStopAgent->getBusStop());

@@ -515,7 +515,7 @@ void sim_mob::Worker::migrateAllOut()
 void sim_mob::Worker::migrateOut(Entity& ag)
 {
 	//Sanity check
-	if (ag.currWorkerProvider != this) {
+	if (ag.currWorkerProvider && ag.currWorkerProvider!=this) {
 		std::stringstream msg;
 		msg <<"Error: Entity (" <<ag.getId() <<") has somehow switched workers: " <<ag.currWorkerProvider <<"," <<this;
 		throw std::runtime_error(msg.str().c_str());

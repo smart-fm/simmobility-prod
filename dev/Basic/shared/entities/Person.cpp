@@ -107,7 +107,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 {
 	//TODO: Check with MAX what to do with the below commented lines
 	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
-		convertODsToTrips();
+		//convertODsToTrips();
 		insertWaitingActivityToTrip();
 	}
 //	else if(!ConfigManager::GetInstance().FullConfig().RunningMidDemand()){
@@ -726,26 +726,41 @@ void sim_mob::Person::convertODsToTrips() {
 			if (newSubTrips.size() > 0) {
 				subTrips.clear();
 				subTrips = newSubTrips;
-				std::vector<SubTrip>::iterator subChainItem = subTrips.begin();
-				for(subChainItem = subTrips.begin();subChainItem!=subTrips.end(); subChainItem++)
-				{
-					int from=0, to = 0;
-					if(subChainItem->fromLocation.type_ == WayPoint::NODE){
-						from = subChainItem->fromLocation.node_->getID();
-					}
-					else if(subChainItem->fromLocation.type_ == WayPoint::BUS_STOP){
-						from = boost::lexical_cast<int>(subChainItem->fromLocation.busStop_->getBusstopno_());
-					}
+			}
+		}
+	}
 
-					if(subChainItem->toLocation.type_ == WayPoint::NODE){
-						to = subChainItem->toLocation.node_->getID();
-					}
-					else if(subChainItem->toLocation.type_ == WayPoint::BUS_STOP){
-						to = boost::lexical_cast<int>(subChainItem->toLocation.busStop_->getBusstopno_());
-					}
+	int index=0;
+	std::cout << "********person : " << this->GetId() <<" start time:"<<this->startTime<< std::endl;
+	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end();
+			tripChainItem++) {
 
-					std::cout << "first item : " << from << " second item:" <<to <<" mode:" <<subChainItem->mode << std::endl;
+		std::cout << "trips : " << index << (*tripChainItem)->getMode() <<" start time:"<<(*tripChainItem)->startTime.toString()<< std::endl;
+
+		sim_mob::Trip* trip = dynamic_cast<sim_mob::Trip*>(*tripChainItem);
+		if(trip){
+			std::vector<sim_mob::SubTrip>& subTrips = trip->getSubTripsRW();
+
+			std::vector<SubTrip>::iterator subChainItem = subTrips.begin();
+
+			for(subChainItem = subTrips.begin();subChainItem!=subTrips.end(); subChainItem++)
+			{
+				int from=0, to = 0;
+				if(subChainItem->fromLocation.type_ == WayPoint::NODE){
+					from = subChainItem->fromLocation.node_->getID();
 				}
+				else if(subChainItem->fromLocation.type_ == WayPoint::BUS_STOP){
+					from = boost::lexical_cast<int>(subChainItem->fromLocation.busStop_->getBusstopno_());
+				}
+
+				if(subChainItem->toLocation.type_ == WayPoint::NODE){
+					to = subChainItem->toLocation.node_->getID();
+				}
+				else if(subChainItem->toLocation.type_ == WayPoint::BUS_STOP){
+					to = boost::lexical_cast<int>(subChainItem->toLocation.busStop_->getBusstopno_());
+				}
+
+				std::cout << "first item : " << from << " second item:" <<to <<" mode:" <<subChainItem->mode << std::endl;
 			}
 		}
 	}

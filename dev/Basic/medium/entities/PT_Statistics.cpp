@@ -108,7 +108,7 @@ void PT_Statistics::HandleMessage(Message::MessageType type,
 }
 
 void PT_Statistics::PrintStatistics() {
-	Print()
+	/*Print()
 			<< "###################      PT_Statistics      ####################"
 			<< std::endl;
 	Print() << "\n" << std::endl;
@@ -178,7 +178,7 @@ void PT_Statistics::PrintStatistics() {
 
 	Print() << "#######################################################"
 			<< std::endl;
-	Print() << "\n" << std::endl;
+	Print() << "\n" << std::endl;*/
 
 	StoreStatistics();
 }

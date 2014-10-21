@@ -289,7 +289,9 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person)
 			// if the person has changed from an Activity to the current Trip/SubTrip during this tick,
 			// remove this person from the activityPerformers list
 			std::deque<Person*>::iterator pIt = std::find(activityPerformers.begin(), activityPerformers.end(), person);
-			activityPerformers.erase(pIt);
+			if(pIt!=activityPerformers.end()){
+				activityPerformers.erase(pIt);
+			}
 		}
 	}
 	//BusDriver role specific handling
@@ -671,7 +673,9 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, sim_mob::SegmentStats*
 	if (personRoleType == sim_mob::Role::RL_ACTIVITY)
 	{
 		PersonList::iterator pIt = std::find(activityPerformers.begin(), activityPerformers.end(), person);
-		activityPerformers.erase(pIt);
+		if(pIt!=activityPerformers.end()){
+			activityPerformers.erase(pIt);
+		}
 	}
 	else if (personRoleType == sim_mob::Role::RL_PEDESTRIAN)
 	{
@@ -861,6 +865,18 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 				}
 				return retVal;
 			}
+			else if(personRole && retVal.status==UpdateStatus::RS_CONTINUE && personRole->roleType==Role::RL_ACTIVITY){
+				PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
+				if(pIt!=pedestrianList.end()){
+					pedestrianList.erase(pIt);
+				}
+				sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(personRole);
+				ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
+				ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
+				callMovementFrameInit(now, person);
+				activityPerformers.push_back(person);
+				return retVal;
+			}
 
 			//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
 			person->setStartTime(now.ms());
@@ -992,6 +1008,12 @@ void sim_mob::Conflux::assignPersonToBusStopAgent(Person* person)
 		const BusStop* stop = nullptr;
 		if (person->originNode.type_ == WayPoint::BUS_STOP) {
 			stop = person->originNode.busStop_;
+		}
+
+		if(!stop){
+			if(person->currSubTrip->fromLocation.type_==WayPoint::BUS_STOP) {
+				stop = person->currSubTrip->fromLocation.busStop_;
+			}
 		}
 
 		if (!stop) {

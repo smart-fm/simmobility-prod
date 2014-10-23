@@ -34,6 +34,16 @@ void PedestrianMovement::setParentPedestrian(
 	this->parentPedestrian = parentPedestrian;
 }
 
+
+TravelMetric & PedestrianMovement::startTravelTimeMetric()
+{
+	return *travelTimeMetric;
+}
+
+TravelMetric & PedestrianMovement::finalizeTravelTimeMetric()
+{
+	return *travelTimeMetric;
+}
 void PedestrianBehavior::setParentPedestrian(
 		sim_mob::medium::Pedestrian* parentPedestrian) {
 	this->parentPedestrian = parentPedestrian;

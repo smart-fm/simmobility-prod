@@ -232,10 +232,10 @@ void sim_mob::WorkGroup::stageEntities()
 		//Call its "load" function
 		//TODO: Currently, only Person::load() is called (I think there was some bug in BusController).
 		//      We should really call load for ANY Agent subclass. ~Seth
-		Person* a = dynamic_cast<Person*>(ag);
-		if (a) {
-			a->load(a->getConfigProperties());
-			a->clearConfigProperties();
+		Person* person = dynamic_cast<Person*>(ag);
+		if (person) {
+			person->load(person->getConfigProperties());
+			person->clearConfigProperties();
 		}
 
 		//Add it to our global list.
@@ -246,8 +246,8 @@ void sim_mob::WorkGroup::stageEntities()
 		loader->entity_dest.insert(ag);
 
 		//Find a worker/conflux to assign this to and send it the Entity to manage.
-		if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
-			putAgentOnConflux(ag);
+		if (ConfigManager::GetInstance().FullConfig().RunningMidSupply() && person) {
+			putAgentOnConflux(person);
 		} else {
 			assignAWorker(ag);
 		}
@@ -613,8 +613,7 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 /**
  * Determines the first road segment of the agent and puts the agent in the corresponding conflux.
  */
-void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
-	sim_mob::Person* person = dynamic_cast<sim_mob::Person*>(ag);
+void sim_mob::WorkGroup::putAgentOnConflux(Person* person) {
 	if(person)
 	{
 		const sim_mob::RoadSegment* rdSeg = sim_mob::Conflux::constructPath(person);

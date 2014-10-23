@@ -84,7 +84,7 @@ namespace {
 		// 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
 		//mode_idx_ref = { 1 : 3, 2 : 5, 3 : 3, 4 : 1, 5 : 6, 6 : 6, 7 : 8, 8 : 2, 9 : 4 }
 		std::map<int, std::string> res;
-		res[1] = "Bus";
+		res[1] = "BusTravel";
 		res[2] = "MRT";
 		res[3] = "Bus";
 		res[4] = "Car";
@@ -104,7 +104,7 @@ namespace {
 		// 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
 		//mode_idx_ref = { 1 : 3, 2 : 5, 3 : 3, 4 : 1, 5 : 6, 6 : 6, 7 : 8, 8 : 2, 9 : 4 }
 		std::map<int, std::string> res;
-		res[1] = "Bus";
+		res[1] = "BusTravel";
 		res[2] = "Car";
 		res[3] = "Car";
 		res[4] = "Car";

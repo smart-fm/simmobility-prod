@@ -9,7 +9,7 @@
 #include <iostream>
 #include <limits>
 
-#include "entities/Agent.hpp"
+#include "entities/Person.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/aimsun/Lane.hpp"
 #include "geospatial/aimsun/Node.hpp"

@@ -239,9 +239,6 @@ option(SIMMOB_PROFILE_COMMSIM "Log the various stages of the Broker's update pha
 #Option: interactive mode flag (for the GUI)
 option(SIMMOB_INTERACTIVE_MODE "Force Sim Mobility to synchronize interactively with the GUI or console." OFF)
 
-#Option: use path set mode flag
-option(SIMMOB_PATHSET_MODE "Use path set when generate path for driver" OFF)
-
 #Force gcc to output single line errors. 
 # This makes it easier for Eclipse to parse and understand each error.
 IF(CMAKE_COMPILER_IS_GNUCC)
@@ -336,7 +333,7 @@ SET(LibraryList "")
 
 #Find boost
 set(Boost_ADDITIONAL_VERSIONS "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.52.0" "1.53" "1.53.0" "1.54" "1.54.0")
-find_package(Boost COMPONENTS system thread filesystem serialization date_time REQUIRED)
+find_package(Boost COMPONENTS system thread filesystem serialization date_time chrono REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 LIST(APPEND LibraryList ${Boost_LIBRARIES})
 

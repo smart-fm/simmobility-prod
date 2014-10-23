@@ -37,7 +37,7 @@ sim_mob::ActivityPerformer::ActivityPerformer(Person* parent, const sim_mob::Act
 Role* sim_mob::ActivityPerformer::clone(Person* parent) const
 {
 	ActivityPerformerBehavior* behavior = new ActivityPerformerBehavior(parent);
-	ActivityPerformerMovement* movement = new ActivityPerformerMovement(parent);
+	ActivityPerformerMovement* movement = nullptr/*new ActivityPerformerMovement(parent)*/;
 	ActivityPerformer* activityRole = new ActivityPerformer(parent, behavior, movement, "activityRole");
 	movement->parentActivity = activityRole;
 	return activityRole;

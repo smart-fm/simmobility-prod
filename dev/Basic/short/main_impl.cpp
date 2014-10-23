@@ -71,6 +71,7 @@
 #include "geospatial/Roundabout.hpp"
 #include "geospatial/Intersection.hpp"
 #include "geospatial/Route.hpp"
+#include "geospatial/PathSetManager.hpp"
 #include "perception/FixedDelayed.hpp"
 #include "buffering/Buffered.hpp"
 #include "buffering/Locked.hpp"
@@ -234,7 +235,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 //		psMgr->setTravleTimeTmpTableName(ConfigParams::GetInstance().travelTimeTmpTableName);
 //		psMgr->createTravelTimeTmpTable(psMgr->getTravleTimeTmpTableName());
 //		psMgr->getDataFromDB();
-		if(psMgr->isUseCatchMode())
+		if(psMgr->isUseCacheMode())
 		{
 			psMgr->generateAllPathSetWithTripChain2();
 		}
@@ -242,13 +243,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		t = time(0);   // get time now
 		now = localtime( & t );
 		std::cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
-		std::cout<<psMgr->size()<<std::endl;
 	}
-
-//	//DriverComms are only allowed if the communicator is enabled.
-//	if (ConfigParams::GetInstance().commSimEnabled) {
-//		androidBroker.enable();
-//	}
 
 	//Initialize the control manager and wait for an IDLE state (interactive mode only).
 	sim_mob::ControlManager* ctrlMgr = nullptr;

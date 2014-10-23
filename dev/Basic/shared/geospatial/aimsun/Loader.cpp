@@ -1283,6 +1283,7 @@ sim_mob::Activity* MakeActivity(const TripChainItem& tcItem) {
 	res->locationType = tcItem.locationType;
 	res->startTime = tcItem.startTime;
 	res->endTime = tcItem.endTime;
+	res->travelMode = tcItem.mode;
 	return res;
 }
 
@@ -1307,6 +1308,7 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	}
 	tripToSave->fromLocationType = tcItem.fromLocationType;
 	tripToSave->startTime = tcItem.startTime;
+	tripToSave->travelMode = tcItem.mode;
 	return tripToSave;
 }
 

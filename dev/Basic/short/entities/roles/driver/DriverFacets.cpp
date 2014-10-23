@@ -240,9 +240,7 @@ void sim_mob::DriverMovement::frame_tick() {
 
 // lost some params
 	DriverUpdateParams& p2 = parentDriver->getParams();
-	if(p2.parentId == 6055){
-		int i=0;
-	}
+
 	if (!(parentDriver->vehicle)) {
 		throw std::runtime_error("Something wrong, Vehicle is NULL");
 	}
@@ -502,12 +500,24 @@ void sim_mob::DriverMovement::frame_tick_output() {
 	std::stringstream res;
 	res<<simid;
 	std::string id = res.str();
-	if(getParent()->amodId != "-1"){
+
+	if(getParent()->amodId != "-1")
+	{
 		id = getParent()->amdoTripId;
 		p.debugInfo = p.debugInfo+"<AMOD>";
 	}
-	else{
+	else
+	{
 		id = res.str();
+
+		//Check if the trip mode is taxi, if so append <Taxi> to debug info,
+		//otherwise it means it is a private vehicle
+		vector<TripChainItem *>::iterator *currentTrip = &(getParent()->currTripChainItem);
+
+		if((*(*currentTrip))->travelMode.compare("Taxi") == 0)
+		{
+			p.debugInfo = p.debugInfo+"<Taxi>";
+		}
 	}
 	LogOut(
 			"(\"Driver\"" <<","<<
@@ -614,9 +624,7 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 //Next, handle driving on links.
 // Note that a vehicle may leave an intersection during intersectionDriving(), so the conditional check is necessary.
 // Note that there is no need to chain this back to intersectionDriving.
-	if(params.parentId == 128 && params.now.frame()>612){
-			int i = 0;
-		}
+
 	if (!fwdDriverMovement.isInIntersection() && !fwdDriverMovement.isDoneWithEntireRoute()) {
 		params.cftimer -= params.elapsedSeconds;
 // params.overflowIntoIntersection = linkDriving(params);
@@ -626,9 +634,7 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 			calcVehicleStates(params);
 // params.cftimer = cfModel->calcNextStepSize(params);
 		}
-		if(fwdDriverMovement.getCurrSegment()->getSegmentAimsunIdStr() == "34356"){
-				int i=0;
-			}
+
 // perform lc ,if status is STATUS_LC_CHANGING
 		params.overflowIntoIntersection = move(params);
 //Did our last move forward bring us into an intersection?
@@ -888,9 +894,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 				p.perceivedDistToTrafficSignal =
 						parentDriver->perceivedDistToTrafficSignal->sense();
 	}
-	if(p.parentId == 664 && p.now.frame()>751){
-			int i=0;
-		}
+
 	calcDistanceToSP(p);
 // make lc decision
 	LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
@@ -1176,9 +1180,6 @@ double sim_mob::DriverMovement::getDisToStopPoint(double perceptionDis){
 	std::vector<const sim_mob::RoadSegment*>::iterator currentSegIt = fwdDriverMovement.currSegmentIt;
 	std::vector<const sim_mob::RoadSegment*>::iterator currentSegItEnd = fwdDriverMovement.fullPath.end();
 
-	if((*currentSegIt)->getSegmentAimsunIdStr() == "34356"){
-		int i=0;
-	}
 	// get moved distancd in current segment
 	double movedis =  fwdDriverMovement.getCurrDistAlongRoadSegmentCM()/100.0;
 	double itemDis = fwdDriverMovement.getCurrentSegmentLengthCM()/100.0

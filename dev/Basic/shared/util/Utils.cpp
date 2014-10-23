@@ -20,8 +20,9 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/tss.hpp>
 #include <boost/algorithm/string.hpp>
-
+#include <boost/regex.hpp>
 #include "util/LangHelpers.hpp"
+#include "logging/Log.hpp"
 
 using namespace sim_mob;
 
@@ -80,6 +81,24 @@ double Utils::nRandom(double mean, double stddev) {
 		return (mean + stddev * sqrt(r) * sin(2 * 3.1415926 * r2));
 	else
 		return (mean);
+}
+
+std::string sim_mob::Utils::getNumberFromAimsunId(std::string &aimsunid)
+{
+	//"aimsun-id":"69324",
+	std::string number;
+	boost::regex expr (".*\"aimsun-id\":\"([0-9]+)\".*$");
+	boost::smatch matches;
+	if (boost::regex_match(aimsunid, matches, expr))
+	{
+		number  = std::string(matches[1].first, matches[1].second);
+	}
+	else
+	{
+		Print()<<"aimsun id not correct "+aimsunid<<std::endl;
+	}
+
+	return number;
 }
 
 std::vector<std::string> Utils::parseArgs(int argc, char* argv[])

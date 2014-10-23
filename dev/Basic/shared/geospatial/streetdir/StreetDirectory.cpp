@@ -11,6 +11,7 @@
 #include <boost/unordered_map.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include "geospatial/RoadRunnerRegion.hpp"
+#include "geospatial/PathSetManager.hpp"
 
 #include <cmath>
 
@@ -59,7 +60,7 @@ void sim_mob::StreetDirectory::init(const RoadNetwork& network, bool keepStats, 
     spImpl_ = new A_StarShortestPathImpl(network);
     if(ConfigManager::GetInstance().FullConfig().PathSetMode())
     {
-    	sttpImpl_ = new A_StarShortestTravelTimePathImpl(network,PathSetManager::getInstance()->getHighwayBias());
+    	sttpImpl_ = new A_StarShortestTravelTimePathImpl(network,PathSetParam::getInstance()->getHighwayBias());
     }
 
     //Save a cache of Nodes to Links

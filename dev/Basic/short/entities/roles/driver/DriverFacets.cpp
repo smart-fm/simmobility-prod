@@ -1581,24 +1581,26 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 //Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 		vector<WayPoint> path;
 
-		Person* parentP = dynamic_cast<Person*>(parent);
-		sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
+		Person* parentP = dynamic_cast<Person*> (parent);
+		sim_mob::SubTrip& subTrip = *parentP->currSubTrip;
 		const StreetDirectory& stdir = StreetDirectory::instance();
 
-		if (subTrip->schedule == nullptr) {
-// if use path set
+		if(subTrip.schedule==nullptr){
+			// if use path set
 			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-				path = PathSetManager::getInstance()->getPathByPerson(
-						getParent());
-			} else {
+				path = PathSetManager::getInstance()->getPath(getParent(),subTrip);
+			}
+			else
+			{
 				const StreetDirectory& stdir = StreetDirectory::instance();
 				path = stdir.SearchShortestDrivingPath(
 						stdir.DrivingVertex(*(parentDriver->origin).node),
 						stdir.DrivingVertex(*(parentDriver->goal).node));
 			}
 
-		} else {
-			std::vector<Node*>& routes = subTrip->schedule->routes;
+		}
+		else {
+			std::vector<Node*>& routes = subTrip.schedule->routes;
 			std::vector<Node*>::iterator first = routes.begin();
 			std::vector<Node*>::iterator second = first;
 
@@ -1655,9 +1657,9 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 			initPathWithInitSeg(path, startLaneId,parent->initSegId,parent->initDis,parent->initSpeed);
 		}
 
-		if (subTrip->schedule && res) {
-			int stopid = subTrip->schedule->stopSchdules[0].stopId;
-			res->schedule = subTrip->schedule;
+		if (subTrip.schedule && res) {
+			int stopid = subTrip.schedule->stopSchdules[0].stopId;
+			res->schedule = subTrip.schedule;
 		}
 
 	}

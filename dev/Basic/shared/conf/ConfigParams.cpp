@@ -521,6 +521,15 @@ std::set<sim_mob::SegmentStats*>& sim_mob::ConfigParams::getSegmentStatsWithBusS
 	return segmentStatsWithBusStops;
 }
 
+// use pathset to generate path of driver
+bool sim_mob::ConfigParams::PathSetMode() const {
+	return pathset.enabled;
+}
+
+const PathSetParams & sim_mob::ConfigParams::pathSet() const{
+	return pathset;
+}
+
 const std::set<sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxes() const
 {
 	return confluxes;

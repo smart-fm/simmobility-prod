@@ -50,6 +50,8 @@ public:
 	 * @param parentPassenger is pointer to parent passenger role
 	 */
 	void setParentPassenger(sim_mob::medium::Passenger* parentPassenger);
+	TravelMetric & startTravelTimeMetric();
+	TravelMetric & finalizeTravelTimeMetric();
 
 protected:
 	sim_mob::medium::Passenger* parentPassenger;

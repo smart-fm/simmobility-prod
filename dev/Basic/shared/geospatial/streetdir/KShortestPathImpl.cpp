@@ -7,7 +7,7 @@
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
-
+#include "geospatial/PathSetManager.hpp"
 
 using namespace sim_mob;
 
@@ -25,8 +25,8 @@ void sim_mob::K_ShortestPathImpl::init()
 	stdir = &StreetDirectory::instance();
 }
 std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, const sim_mob::Node *to,
-		sim_mob::PathSet& ps_,
-		std::map<std::string,SinglePath*>& wp_spPool)
+		boost::shared_ptr<sim_mob::PathSet> ps_,
+		std::set<std::string>& wp_spPool)
 {
 	std::vector< std::vector<sim_mob::WayPoint> > pathFound;
 	std::vector<const RoadSegment*> bl;
@@ -139,28 +139,24 @@ std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKS
 	{
 		std::vector<sim_mob::WayPoint> path_ = pathFound[i];
 		std::string id = sim_mob::makeWaypointsetString(path_);
-		std::map<std::string,SinglePath*>::iterator it_id =  wp_spPool.find(id);
+		std::set<std::string>::iterator it_id =  wp_spPool.find(id);
 		if(it_id==wp_spPool.end())
 		{
 			sim_mob::SinglePath *s = new sim_mob::SinglePath();
 			// fill data
 			s->isNeedSave2DB = true;
 			s->init(path_);
-	//		s->shortestWayPointpath = convertWaypoint2Point(wp);//stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*fromNode), stdir->DrivingVertex(*toNode),blacklist);
-	//		s->shortestSegPath = sim_mob::generateSegPathByWaypointPathP(s->shortestWayPointpath);
 			sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(s);
 			s->fromNode = from;
 			s->toNode = to;
-			s->excludeSeg = NULL;
-
-			s->pathSet = &ps_;
+			s->pathSet = ps_;
 			s->length = sim_mob::generateSinglePathLengthPT(s->shortestWayPointpath);
 
 			s->id = id;
-			s->scenario = ps_.scenario;
-			s->pathsize=0;
+			s->scenario = ps_->scenario;
+			s->pathSize=0;
 
-			wp_spPool.insert(std::make_pair(id,s));
+			wp_spPool.insert(id);
 		}
 	}
 	return pathFound;
@@ -184,17 +180,4 @@ bool sim_mob::K_ShortestPathImpl::segmentInPaths(const sim_mob::RoadSegment* seg
 		return true;
 	}
 	return false;
-}
-double sim_mob::generateSinglePathLength(std::vector<WayPoint>& wp)
-{
-	double res=0;
-	for(int i=0;i<wp.size();++i)
-	{
-		WayPoint* w = &wp[i];
-		if (w->type_ == WayPoint::ROAD_SEGMENT) {
-			const sim_mob::RoadSegment* seg = w->roadSegment_;
-			res += seg->length;
-		}
-	}
-	return res/100.0; //meter
 }

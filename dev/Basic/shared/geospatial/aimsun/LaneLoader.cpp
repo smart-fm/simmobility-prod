@@ -801,11 +801,10 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 
 		//Avoid looping forever
 		if (maxLoops-- == 0) {
-			//std::cout <<"ERROR_2903" <<std::endl; break;
 			//throw std::runtime_error("Error: Network contains RoadSegment loop."); // Loops are present in the entire Singapore network. So Commenting this line. ~Harish
 			sim_mob::Warn() << "Error: Network contains RoadSegment loop. " << std::endl;
-			if(currSectPair.first) std::cout << "currSectPair.first: " << currSectPair.first->id << " " << currSectPair.first->roadName << std::endl;
-			if(currSectPair.second) std::cout << "currSectPair.second: " << currSectPair.second->id << " " << currSectPair.second->roadName << std::endl;
+//			if(currSectPair.first) std::cout << "currSectPair.first: " << currSectPair.first->id << " " << currSectPair.first->roadName << std::endl;
+//			if(currSectPair.second) std::cout << "currSectPair.second: " << currSectPair.second->id << " " << currSectPair.second->roadName << std::endl;
 			break;
 
 		}

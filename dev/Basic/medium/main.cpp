@@ -2,11 +2,13 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+
 /*****************************************************************
  * WARNING: This file should ONLY contain a main function
  *          which dispatches to main_impl() and immediately
  *          returns. Please make all changes to main_impl.cpp.
  *          This file should NEVER change.
+>>>>>>> shared_enh_threadpool
  *
  * Explanation: We separate main() into its own file so that we can
  *              build the short/medium/long term simulator as a library.

@@ -67,7 +67,7 @@ sim_mob::Lane::Lane(sim_mob::RoadSegment* segment, unsigned long laneID, const s
 	if (segment) {
 		//10 lanes per segment
 		//TODO: This is not a reasonable restriction. ~Seth
-		laneID_ = segment->getSegmentID()*10 + laneID;/*10 lanes per segment*/
+		laneID_ = segment->getId()*10 + laneID;/*10 lanes per segment*/
 	}
 }
 

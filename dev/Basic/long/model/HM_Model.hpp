@@ -74,6 +74,7 @@ namespace sim_mob
             Individual* getIndividualById( BigSerial id) const;
 
             void hdbEligibilityTest(int );
+            void unitsFiltering();
 
 
         protected:

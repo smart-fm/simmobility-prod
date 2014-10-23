@@ -210,6 +210,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessPassengersNode(GetSingleElementByName(rootNode, "passengers"));
 	ProcessSignalsNode(GetSingleElementByName(rootNode, "signals"));
 	ProcessBusControllersNode(GetSingleElementByName(rootNode, "buscontrollers"));
+	ProcessPathSetNodeNode(GetSingleElementByName(rootNode, "pathset"));
 }
 
 
@@ -540,6 +541,47 @@ void sim_mob::ParseConfigFile::ProcessBusControllersNode(xercesc::DOMElement* no
 	}
 
 	ProcessFutureAgentList(node, "buscontroller", cfg.busControllerTemplates, false, false, true, false);
+}
+
+void sim_mob::ParseConfigFile::ProcessPathSetNodeNode(xercesc::DOMElement* node){
+
+	if (!node) {
+
+		cfg.pathset.setDefaultEnabled();
+		return;
+	}
+	cfg.pathset.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+
+	xercesc::DOMElement* dbNode = GetSingleElementByName(node, "pathset_database");
+	if(!dbNode){
+		cfg.pathset.setDefaultDB();
+	}
+	else
+	{
+		cfg.pathset.database = ParseString(GetNamedAttributeValue(dbNode, "database"), "fm_remote_path_choice");
+		cfg.pathset.credentials = ParseString(GetNamedAttributeValue(dbNode, "credentials"), "fm_remote_path_choice");
+	}
+
+	xercesc::DOMElement* tableNode = GetSingleElementByName(node, "tables");
+	if(!tableNode){
+		cfg.pathset.setDefaultTables();
+	}
+	else
+	{
+		cfg.pathset.pathSetTableName = ParseString(GetNamedAttributeValue(tableNode, "pathset_table"), "PathSet");
+		cfg.pathset.singlePathTableName = ParseString(GetNamedAttributeValue(tableNode, "singlepath_table"), "SinglePath");
+		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(tableNode, "function"), "get_path_set");
+	}
+	//function
+
+	xercesc::DOMElement* functionNode = GetSingleElementByName(node, "function");
+	if(!functionNode){
+		cfg.pathset.setDefaultFunction();
+	}
+	else
+	{
+		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(functionNode, "value"), "get_path_set");
+	}
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)

@@ -24,6 +24,7 @@ public:
 	 * @param path the path to be set
 	 */
 	void setPath(const std::vector<const sim_mob::SegmentStats*>& path);
+	const std::vector<const sim_mob::SegmentStats*> & getPath()const;
 
 	/**
 	 * resets the path. used when the path changes enroute.
@@ -111,6 +112,10 @@ protected:
 
 	//representation of position within segment stats
 	double distToSegmentEnd;
+public:
+	//debug
+	///print path by aimsun section id
+	static void printPath(const MesoPathMover::Path &path, const Node *node = 0);
 };
 }
 }

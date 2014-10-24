@@ -223,6 +223,8 @@ public:
     std::string amodId;
 	void setPath(std::vector<WayPoint>& path);
 	std::vector<WayPoint> amodPath;
+	const RoadSegment *amodPickUpSegment;
+	//WayPoint amodPickUpSegment;
 	std::string amdoTripId;
 	sim_mob::Vehicle* amodVehicle;
 	std::string parkingNode;

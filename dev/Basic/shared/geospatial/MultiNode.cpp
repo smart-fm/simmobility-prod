@@ -83,7 +83,7 @@ const set<LaneConnector*>& sim_mob::MultiNode::getOutgoingLanes(const RoadSegmen
 	if (!hasOutgoingLanes(from)) {
 		//TODO: How are we handling logical errors?
 		std::stringstream msg;
-		msg <<"No outgoing Lane for Road Segments(" <<  from->getSegmentID() << ")  at node(" << this << "): " <<originalDB_ID.getLogItem();
+		msg <<"getOutgoingLanes: No outgoing Lane for Road Segments(" <<  from->getId() << ")  at node(" << this << "): " <<originalDB_ID.getLogItem();
 		msg <<"   from node: " <<(from->getStart()==this?from->getEnd()->originalDB_ID.getLogItem():from->getStart()->originalDB_ID.getLogItem());
 		msg <<"\nExisting connectors:";
 		for (map<const RoadSegment*, set<LaneConnector*> >::const_iterator it=connectors.begin(); it!=connectors.end(); it++) {

@@ -11,12 +11,93 @@
 #include "soci.h"
 #include "soci-postgresql.h"
 
+#include "entities/misc/TripChain.hpp"
+#include "util/OneTimeFlag.hpp"
+
 namespace sim_mob
 {
 class Entity;
 class Agent;
 class Person;
 class StartTimePriorityQueue;
+//FDs for RestrictedRegion
+class Node;
+class TripChainItem;
+class WayPoint;
+
+
+class CBD_Pair
+{
+public:
+	int from_section,to_section;//to avoid confusion, code style conforms to database
+};
+
+class RestrictedRegion : private boost::noncopyable
+{
+	/*
+	 * all segments of the restricted area(aka CBD)
+	 */
+	std::set<const sim_mob::RoadSegment*> zoneSegments;//get_ban_section_CBD_aimsun()
+	/**
+	 * restricted area border segments
+	 * categorized based on in segments and out segments
+	 * each tem in each container is a from/to segment pair:
+	 * for example in 'in' container, the first item in each pair
+	 * demonstrates the segment before getting into the restricted
+	 * area, and the second item is the first segment inside the
+	 * restricted area.
+	 * similarly, in 'out' container, the first item in each pair
+	 * demonstrates the segment before getting out of the restricted
+	 * area, and the second item is the first segment outside the
+	 * restricted area.
+	 */
+	typedef std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> SegPair;
+	std::set<SegPair> in, out;
+	std::set<const Node*> zoneNodes;
+	sim_mob::OneTimeFlag populated;
+public:
+	/**
+	 * does the given "node"(or node wrapped in a WayPoint) lie in the restricted area,
+	 * returns the periphery node if the target is in the restricted zone
+	 * returns null if Node not found in the restricted region.
+	 */
+	 const Node* isInRestrictedZone(const Node* target) const;
+	 const Node* isInRestrictedZone(const WayPoint& target) const;
+	/**
+	 * does the given "RoadSegment"(segment wrapped in a WayPoint) lie in the restricted area,
+	 * returns true if the target is in the restricted zone
+	 */
+	 bool isInRestrictedZone(const sim_mob::RoadSegment * target) const;
+	 bool isEnteringRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg);
+	 bool isExittingRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg);
+	 std::set<const sim_mob::RoadSegment*> getZoneSegments() { return zoneSegments;}
+	/**
+	 * Function to split the subtrips crossing the restricted Areas
+	 */
+	void processSubTrips(std::vector<sim_mob::SubTrip>& subTrips);
+	/**
+	 * fill the input data into in,out,zoneSegments
+	 * generate data based on input for zoneNodes
+	 */
+	void populate();
+	static boost::shared_ptr<RestrictedRegion> instance;
+	/**
+	 * returns the singletone instance
+	 */
+	static RestrictedRegion & getInstance()
+	{
+		if(!instance)
+		{
+			instance.reset(new RestrictedRegion());
+		}
+		return *instance;
+	}
+	/**
+	 * modify trips whose orgigin and/or destination lies in a restricted area
+	 */
+	void processTripChains(std::map<std::string, std::vector<TripChainItem*> > &tripchains);
+
+};
 
 class PeriodicPersonLoader :  private boost::noncopyable
 {

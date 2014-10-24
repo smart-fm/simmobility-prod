@@ -7,6 +7,8 @@
 #include <stdexcept>
 
 #include "conf/settings/DisableMPI.h"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 //TEMP
 #include "geospatial/aimsun/Loader.hpp"
@@ -14,6 +16,7 @@
 #include "geospatial/Link.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/GeomHelpers.hpp"
+#include "util/Utils.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -29,7 +32,17 @@ using std::set;
 
 using namespace sim_mob;
 
-const unsigned long sim_mob::RoadSegment::getSegmentID()const
+std::map<unsigned long, const RoadSegment*> sim_mob::RoadSegment::allSegments;//map<segment id, segment pointer>
+
+sim_mob::RoadSegment::RoadSegment(sim_mob::Link* parent, unsigned long id) :
+	Pavement(),
+	maxSpeed(0), capacity(0), busstop(nullptr), lanesLeftOfDivider(0), parentLink(parent),segmentID(id),
+	parentConflux(nullptr), laneZeroLength(-1.0),type(LINK_TYPE_DEFAULT)
+{
+	allSegments[segmentID] = this;
+}
+
+const unsigned long sim_mob::RoadSegment::getId()const
 {
 	return segmentID;
 }
@@ -103,7 +116,7 @@ unsigned int sim_mob::RoadSegment::getSegmentAimsunId() const{
 	unsigned int originId = 0;
 
 	std::string aimsunId = originalDB_ID.getLogItem();
-	std::string segId = sim_mob::getNumberFromAimsunId(aimsunId);
+	std::string segId = sim_mob::Utils::getNumberFromAimsunId(aimsunId);
 	try {
 		originId = boost::lexical_cast<int>(segId);
 	} catch( boost::bad_lexical_cast const& ) {

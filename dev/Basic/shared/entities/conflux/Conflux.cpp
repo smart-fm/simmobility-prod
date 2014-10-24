@@ -743,14 +743,14 @@ void sim_mob::Conflux::setLinkTravelTimes(Person* person, double linkExitTime) {
 			person->getLinkTravelStatsMap().find(linkExitTime);
 	if (it != person->getLinkTravelStatsMap().end()){
 		double travelTime = (it->first) - (it->second).linkEntryTime_;
-		std::map<const Link*, linkTravelTimes>::iterator itTT = LinkTravelTimesMap.find((it->second).link_);
+		std::map<const Link*, LinkTravelTimes>::iterator itTT = LinkTravelTimesMap.find((it->second).link_);
 		if (itTT != LinkTravelTimesMap.end())
 		{
 			itTT->second.agentCount_ = itTT->second.agentCount_ + 1;
 			itTT->second.linkTravelTime_ = itTT->second.linkTravelTime_ + travelTime;
 		}
 		else{
-			linkTravelTimes tTimes(travelTime, 1);
+			LinkTravelTimes tTimes(travelTime, 1);
 			LinkTravelTimesMap.insert(std::make_pair(person->getCurrSegStats()->getRoadSegment()->getLink(), tTimes));
 		}
 	}
@@ -957,7 +957,7 @@ void sim_mob::Conflux::callMovementFrameOutput(timeslice now, Person* person) {
 
 void sim_mob::Conflux::reportLinkTravelTimes(timeslice frameNumber) {
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
-		std::map<const Link*, linkTravelTimes>::const_iterator it = LinkTravelTimesMap.begin();
+		std::map<const Link*, LinkTravelTimes>::const_iterator it = LinkTravelTimesMap.begin();
 		for( ; it != LinkTravelTimesMap.end(); ++it ) {
 			LogOut("(\"linkTravelTime\""
 				<<","<<frameNumber.frame()
@@ -1236,23 +1236,28 @@ bool sim_mob::Conflux::insertTravelTime2TmpTable(timeslice frameNumber, std::map
 		//sim_mob::Link_travel_time& data
 		std::map<const RoadSegment*, sim_mob::Conflux::rdSegTravelTimes>::const_iterator it = rdSegTravelTimesMap.begin();
 		for (; it != rdSegTravelTimesMap.end(); it++){
-			Link_travel_time tt;
+			LinkTravelTime tt;
 			DailyTime simStart = ConfigManager::GetInstance().FullConfig().simStartTime();
-			std::string aimsun_id = (*it).first->originalDB_ID.getLogItem();
-			std::string seg_id = getNumberFromAimsunId(aimsun_id);
+			std::string aimsunId = (*it).first->originalDB_ID.getLogItem();
+			std::string segId = sim_mob::Utils::getNumberFromAimsunId(aimsunId);
 			try {
-				tt.link_id = boost::lexical_cast<int>(seg_id);
+				tt.linkId = boost::lexical_cast<int>(segId);
 			} catch( boost::bad_lexical_cast const& ) {
 				Print() << "Error: seg_id string was not valid" << std::endl;
-				tt.link_id = -1;
+				tt.linkId = -1;
 			}
 
-			tt.start_time = (simStart + sim_mob::DailyTime(frameNumber.ms())).toString();
+			tt.startTime = (simStart + sim_mob::DailyTime(frameNumber.ms())).toString();
 			double frameLength = ConfigManager::GetInstance().FullConfig().baseGranMS();
-			tt.end_time = (simStart + sim_mob::DailyTime(frameNumber.ms() + frameLength)).toString();
-			tt.travel_time = (*it).second.rdSegTravelTime_/(*it).second.agentCount_;
-
-			PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
+			tt.endTime = (simStart + sim_mob::DailyTime(frameNumber.ms() + frameLength)).toString();
+			tt.travelTime = (*it).second.rdSegTravelTime_/(*it).second.agentCount_;
+			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+				PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
+			}
+			else
+			{
+				Warn() << "Unused Travel Time Measurement\n";
+			}
 		}
 	}
 	return res;
@@ -1308,7 +1313,7 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 	const sim_mob::RoadSegment* rdSeg = nullptr;
 
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		path = PathSetManager::getInstance()->getPathByPerson(p);
+		path = PathSetManager::getInstance()->getPath(p,dynamic_cast<const Trip*>(firstItem)->getSubTrips().front());
 	}
 	else{
 		const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();

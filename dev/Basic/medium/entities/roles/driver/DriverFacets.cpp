@@ -32,6 +32,9 @@
 #include "partitions/ParitionDebugOutput.hpp"
 
 #include "util/DebugFlags.hpp"
+#include "util/Utils.hpp"
+
+#include "boost/foreach.hpp"
 using namespace sim_mob;
 using namespace sim_mob::medium;
 using std::max;
@@ -39,6 +42,11 @@ using std::vector;
 using std::set;
 using std::map;
 using std::string;
+
+namespace{
+sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("path_set");
+//sim_mob::BasicLogger & cbdSELogger = sim_mob::Logger::log("start_end_logger");
+}
 
 namespace {
 /**
@@ -99,11 +107,19 @@ sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 {}
 
 
-sim_mob::medium::DriverMovement::~DriverMovement() {}
+sim_mob::medium::DriverMovement::~DriverMovement() {
+	//	usually the metrics for the last subtrip is not manually finalized
+	/*if(!travelTimeMetric.finalized){
+		finalizeTravelTimeMetric();
+	}*/
+}
 
 void sim_mob::medium::DriverMovement::frame_init() {
 	bool pathInitialized = initializePath();
 	if (pathInitialized) {
+		//initialize some travel metrics for this subTrip
+		//startTravelTimeMetric();
+		//done with metric initialization...
 		Vehicle* newVehicle = new Vehicle(Vehicle::CAR, PASSENGER_CAR_UNIT);
 		VehicleBase* oldVehicle = parentDriver->getResource();
 		safe_delete_item(oldVehicle);
@@ -111,6 +127,11 @@ void sim_mob::medium::DriverMovement::frame_init() {
 	}
 	else{
 		getParent()->setToBeRemoved();
+	}
+	//debug
+	if(!pathMover.getPath().size())
+	{
+		std::cout << getParent()->getId() << " Has No Path\n";
 	}
 }
 
@@ -174,7 +195,7 @@ void sim_mob::medium::DriverMovement::frame_tick_output() {
 			<<","<<getParent()->getId()
 			<<","<<params.now.frame()
 			<<",{"
-			<<"\"RoadSegment\":\""<< (getParent()->getCurrSegStats()->getRoadSegment()->getSegmentID())
+			<<"\"RoadSegment\":\""<< (getParent()->getCurrSegStats()->getRoadSegment()->getId())
 			<<"\",\"Lane\":\""<<((getParent()->getCurrLane())? getParent()->getCurrLane()->getLaneID():0)
 			<<"\",\"Segment\":\""<<(getParent()->getCurrSegStats()->getRoadSegment()->getStartEnd())
 			<<"\",\"DistanceToEndSeg\":\""<<getParent()->distanceToEndOfSegment;
@@ -212,7 +233,7 @@ bool sim_mob::medium::DriverMovement::initializePath() {
 		if(wp_path.empty()){
 			// if use path set
 			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-				wp_path = PathSetManager::getInstance()->getPathByPerson(person);
+				wp_path = PathSetManager::getInstance()->getPath(person,*(person->currSubTrip));
 			}
 			else
 			{
@@ -293,6 +314,16 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
 	const sim_mob::SegmentStats* nxtSegStat = pathMover.getNextSegStats(!isNewLinkNext);
 
+	//currently the best place to call a handler indicating 'Done' with segment.
+	const sim_mob::RoadSegment *curRs = (*(pathMover.getCurrSegStats())).getRoadSegment();
+	//Although the name of the method suggests segment change, it is actually segStat change. so we check again!
+	if(curRs && nxtSegStat && curRs->getEnd() == nxtSegStat->getRoadSegment()->getStart())
+	{
+		const sim_mob::RoadSegment *nxtRs = (nxtSegStat ? nxtSegStat->getRoadSegment() : nullptr);
+		//onSegmentCompleted(curRs,nxtRs);
+	}
+
+
 	if (!nxtSegStat) {
 		//vehicle is done
 		pathMover.advanceInPath();
@@ -361,6 +392,52 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 	return res;
 }
 
+
+void DriverMovement::onSegmentCompleted(const sim_mob::RoadSegment* completedRS, const sim_mob::RoadSegment* nextRS)
+{
+	std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getRepr_());
+	//search for CBD enter exit
+	//-get subtrip, where CBD indication is placed
+	TravelMetric::CDB_TraverseType type = travelTimeMetric.cbdTraverseType;
+	if(nextRS && !pathMover.isPathCompleted() && (type == TravelMetric::CBD_ENTER || type == TravelMetric::CBD_EXIT))
+	{
+
+		sim_mob::RestrictedRegion &cbd = sim_mob::RestrictedRegion::getInstance();
+		switch(type)
+		{
+		case TravelMetric::CBD_ENTER:
+			//search if you are about to enter CBD (we assume the trip started outside cbd and  is going to end inside cbd)
+			if(cbd.isEnteringRestrictedZone(completedRS,nextRS)) if(travelTimeMetric.cbdEntered.check())
+			{
+				travelTimeMetric.cbdOrigin = sim_mob::WayPoint(completedRS->getEnd());
+//				travelTimeMetric.cbdDestination = travelTimeMetric.destination;//(*(pathMover.getPath().rbegin()))->getRoadSegment()->getEnd();
+				travelTimeMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+
+//				cbdSELogger <<  now << (*(getParent()->currSubTrip)).fromLocation.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : ENTER SEGMENT : origin[" <<
+//						travelTimeMetric.cbdOrigin.node_->getID() << "], start time[" << travelTimeMetric.cbdStartTime.getRepr_() << "]\n";
+				//travelTimeMetric.cbdEndTime is the end time of the trip, so it will be populated when the subtrip is finalized
+				//cbd travel time also when subtrip in finalized
+			}
+			break;
+		case TravelMetric::CBD_EXIT:
+			//search if you are about to exit CBD(we assume the trip started inside cbd and is going to end outside cbd)
+			if(cbd.isExittingRestrictedZone(completedRS,nextRS)) if(travelTimeMetric.cbdExitted.check())
+			{
+//				travelTimeMetric.cbdOrigin = travelTimeMetric.origin;//(*(pathMover.getPath().begin()))->getRoadSegment()->getStart();
+				travelTimeMetric.cbdDestination = sim_mob::WayPoint(completedRS->getEnd());
+//				travelTimeMetric.cbdStartTime = travelTimeMetric.startTime;//is the start time of trip
+				travelTimeMetric.cbdEndTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+				travelTimeMetric.cbdTravelTime = sim_mob::TravelMetric::getTimeDiffHours(travelTimeMetric.cbdEndTime , travelTimeMetric.cbdStartTime);
+
+//				cbdSELogger << getParent()->GetId() << " , " << now << " , " << (*(getParent()->currSubTrip)).fromLocation.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : EXIT SEGMENT : destination[" <<
+//						travelTimeMetric.cbdDestination.node_->getID() << "], end time[" << travelTimeMetric.cbdEndTime.getRepr_() << "] TT[" << "," <<
+//						travelTimeMetric.cbdTravelTime << "\n";
+			}
+			break;
+		};
+	}
+}
+
 void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdateParams& params) {
 	//This function gets called for 2 cases.
 	//1. Driver is added to virtual queue
@@ -424,10 +501,10 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 			DebugStream << "Driver " << getParent()->getId()
 					<< "was neither in virtual queue nor in previous segment!"
 					<< "\ndriver| segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getStartEnd()
-					<< "|id: " << pathMover.getCurrSegStats()->getRoadSegment()->getSegmentID()
+					<< "|id: " << pathMover.getCurrSegStats()->getRoadSegment()->getId()
 					<< "|lane: " << currLane->getLaneID()
 					<< "\nPerson| segment: " << getParent()->getCurrSegStats()->getRoadSegment()->getStartEnd()
-					<< "|id: " << getParent()->getCurrSegStats()->getRoadSegment()->getSegmentID()
+					<< "|id: " << getParent()->getCurrSegStats()->getRoadSegment()->getId()
 					<< "|lane: " << (getParent()->getCurrLane()? getParent()->getCurrLane()->getLaneID():0)
 					<< std::endl;
 
@@ -894,6 +971,71 @@ void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSeg
 	//creating a new entry in agent's travelStats for the new road segment, with entry time
 	getParent()->initRdSegTravelStats(pathMover.getCurrSegStats()->getRoadSegment(), segStatExitTimeSec);
 }
+TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
+{return  travelTimeMetric;
 
+	std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getRepr_());
+	travelTimeMetric.startTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+	const Node* startNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getStart();
+	travelTimeMetric.origin = WayPoint(startNode);
+	travelTimeMetric.started = true;
+	//cbd
+	travelTimeMetric.cbdTraverseType = getParent()->currSubTrip->cbdTraverseType;
+	switch(travelTimeMetric.cbdTraverseType)
+	{
+	case TravelMetric::CBD_ENTER:
+//		cbdSELogger << getParent()->GetId() << " , " << now << " , " << travelTimeMetric.origin.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : ENTER START : No Action\n";
+		break;
+	case TravelMetric::CBD_EXIT:
+		travelTimeMetric.cbdOrigin = travelTimeMetric.origin;
+		travelTimeMetric.cbdStartTime = travelTimeMetric.startTime;
+//		cbdSELogger << getParent()->GetId() << " , " << now << " , " << travelTimeMetric.origin.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : EXIT START : origin[" <<
+//				travelTimeMetric.cbdOrigin.node_->getID() << "], end time[" << travelTimeMetric.cbdStartTime.getRepr_() << "]\n";
+		break;
+	};
+	return  travelTimeMetric;
+}
+
+TravelMetric& sim_mob::medium::DriverMovement::finalizeTravelTimeMetric()
+{return  travelTimeMetric;
+	std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getRepr_());
+//	dbgMsg << finalizeTravelTimeMetric
+	//debug
+	if(!pathMover.getPath().size())
+	{
+		std::cout << getParent()->getId() << " Has No Path\n";
+		return  travelTimeMetric;
+	}
+
+	const sim_mob::SegmentStats * currSegStat =
+	((pathMover.getCurrSegStats() == nullptr) ? *(pathMover.getPath().rbegin()) : (pathMover.getCurrSegStats()));
+	//Print() << ((pathMover.getCurrSegStats() == nullptr) ? "Trip possibly completed\n" : "Simulation ended before Trip completed\n");
+	const Node* endNode = currSegStat->getRoadSegment()->getEnd();
+	travelTimeMetric.destination = WayPoint(endNode);
+	travelTimeMetric.endTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+	travelTimeMetric.travelTime = TravelMetric::getTimeDiffHours(travelTimeMetric.endTime , travelTimeMetric.startTime);
+	travelTimeMetric.finalized = true;
+	//cbd
+	sim_mob::RestrictedRegion &cbd = sim_mob::RestrictedRegion::getInstance();
+
+	switch(travelTimeMetric.cbdTraverseType)
+	{
+	case TravelMetric::CBD_ENTER:
+		travelTimeMetric.cbdDestination = travelTimeMetric.destination;
+		travelTimeMetric.cbdEndTime = travelTimeMetric.endTime;
+		travelTimeMetric.cbdTravelTime = TravelMetric::getTimeDiffHours(travelTimeMetric.cbdEndTime , travelTimeMetric.cbdStartTime);
+		break;
+	case TravelMetric::CBD_EXIT:
+		break;
+	};
+
+	if(travelTimeMetric.cbdTraverseType == sim_mob::TravelMetric::CBD_ENTER ||
+			travelTimeMetric.cbdTraverseType == sim_mob::TravelMetric::CBD_EXIT)
+	{
+//		getParent()->serializeCBD_SubTrip(*travelTimeMetric);
+	}
+	//getParent()->addSubtripTravelMetrics(*travelTimeMetric);
+	return  travelTimeMetric;
+}
 } /* namespace medium */
 } /* namespace sim_mob */

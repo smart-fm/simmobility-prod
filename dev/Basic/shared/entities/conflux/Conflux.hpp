@@ -369,17 +369,17 @@ public:
 	std::stringstream debugMsgs;
 
 	//=======link travel time computation for current frame tick =================
-	struct linkTravelTimes
+	struct LinkTravelTimes
 	{
 	public:
 		double linkTravelTime_;
 		unsigned int agentCount_;
 
-		linkTravelTimes(double linkTravelTime, unsigned int agentCount)
+		LinkTravelTimes(double linkTravelTime, unsigned int agentCount)
 		: linkTravelTime_(linkTravelTime), agentCount_(agentCount) {}
 	};
 
-	std::map<const Link*, linkTravelTimes> LinkTravelTimesMap;
+	std::map<const Link*, LinkTravelTimes> LinkTravelTimesMap;
 	void setLinkTravelTimes(Person* ag, double linkExitTime);
 	void resetLinkTravelTimes(timeslice frameNumber);
 	void reportLinkTravelTimes(timeslice frameNumber);

@@ -82,7 +82,7 @@ public:
 	}
 
 	void addSegment(sim_mob::RoadSegment* segment) {
-		unsigned long id = segment->getSegmentID();
+		unsigned long id = segment->getId();
 		if (segmentLookup.count(id)>0) {
 			throw std::runtime_error("Segment already registered with bookkeeper.");
 		}

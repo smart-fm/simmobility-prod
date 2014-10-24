@@ -16,6 +16,10 @@
 #include <string>
 #include <utility>
 #include <sstream>
+#include <boost/shared_ptr.hpp>
+#include <boost/random.hpp>
+#include <boost/nondet_random.hpp>
+#include "boost/generator_iterator.hpp"
 #include <stdexcept>
 #include "boost/lexical_cast.hpp"
 
@@ -152,6 +156,8 @@ namespace sim_mob {
 
         static double urandom();
         static int brandom(double p);
+    	///	extract id string from aimsun id
+    	static std::string getNumberFromAimsunId(std::string &aimsunid);
     };
 
     /**

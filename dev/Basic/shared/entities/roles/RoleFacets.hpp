@@ -8,6 +8,7 @@
 
 #include "util/LangHelpers.hpp"
 #include "entities/UpdateParams.hpp"
+#include "entities/misc/TripChain.hpp"
 #include "logging/Log.hpp"
 #include "logging/NullableOutputStream.hpp"
 
@@ -104,15 +105,25 @@ public:
  */
 class MovementFacet : public Facet {
 public:
-	explicit MovementFacet(sim_mob::Person* parentAgent=nullptr) : Facet(parentAgent) { }
-	virtual ~MovementFacet() {}
+	explicit MovementFacet(sim_mob::Person* parentAgent=nullptr);// : Facet(parentAgent), MessageHandler(msgHandlerId ++) { }
+	virtual ~MovementFacet(); //{}
 	virtual void init() {}
 
 	virtual bool updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Driver* other_driver) { return false; };
 	virtual void updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Pedestrian* pedestrian) {};
+	
+	///	mark startTimeand origin
+	virtual TravelMetric& startTravelTimeMetric() = 0;
+	///	mark the destination and end time and travel time
+	virtual TravelMetric& finalizeTravelTimeMetric() = 0;
+
 
 public:
 	friend class sim_mob::PartitionManager;
+protected:
+
+	///	placeholder for various movement measurements
+	 TravelMetric travelTimeMetric;
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI

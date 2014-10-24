@@ -40,6 +40,7 @@
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/Lane.hpp"
+#include "geospatial/PathSetManager.hpp"
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "util/DailyTime.hpp"
@@ -131,26 +132,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			BusStopAgent::registerBusStopAgent(busStopAgent);
 			strDirectory.registerStopAgent(stop, busStopAgent);
 		}
-	}
-
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode())
-	{
-		// init path set manager
-		time_t t = time(0);   // get time now
-		struct tm * now = localtime( & t );
-		cout<<"begin time:"<<endl;
-		cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< endl;
-		PathSetManager* psMgr = PathSetManager::getInstance();
-		std::string name=configFileName;
-		psMgr->setScenarioName(name);
-		if(psMgr->isUseCatchMode())
-		{
-			psMgr->generateAllPathSetWithTripChain2();
-		}
-		t = time(0);   // get time now
-		now = localtime( & t );
-		cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< endl;
-		cout<<psMgr->size()<<endl;
 	}
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
@@ -287,10 +268,9 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}
 #endif
 
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode())
-	{
+	//finalize
+	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		PathSetManager::getInstance()->copyTravelTimeDataFromTmp2RealtimeTable();
-		PathSetManager::getInstance()->dropTravelTimeTmpTable();
 	}
 	cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<endl;
 	cout << "Max Agents at any given time: " <<maxAgents <<endl;

@@ -11,6 +11,7 @@
 #include <sstream>
 #include <stdint.h>
 #include <vector>
+#include <soci.h>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "Person.hpp"
@@ -18,6 +19,7 @@
 #include "misc/TripChain.hpp"
 #include "util/DailyTime.hpp"
 #include "util/Utils.hpp"
+#include "geospatial/aimsun/Loader.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -147,6 +149,157 @@ namespace
 		makeSubTrip(r, tripToSave);
 		return tripToSave;
 	}
+}//namespace
+
+/*************************************************************************************
+ * 						Restricted Region Tripchain processing
+ * ***********************************************************************************
+ */
+boost::shared_ptr<sim_mob::RestrictedRegion> sim_mob::RestrictedRegion::instance;
+
+void sim_mob::RestrictedRegion::populate()
+{
+	//skip if already populated
+	if(!populated.check())
+	{
+		return;
+	}
+	sim_mob::aimsun::Loader::getCBD_Border(in,out);
+	sim_mob::aimsun::Loader::getCBD_Segments(zoneSegments);
+	//zone nodes = start and end nodes of zoneSegments  minus border-in&out->from_section->toNode()
+	BOOST_FOREACH(const sim_mob::RoadSegment*rs,zoneSegments)
+	{
+		zoneNodes.insert(rs->getStart());
+		zoneNodes.insert(rs->getEnd());
+	}
+
+	BOOST_FOREACH(SegPair item, in)
+	{
+		zoneNodes.erase(item.first->getEnd());
+	}
+	BOOST_FOREACH(SegPair item, out)
+	{
+		zoneNodes.erase(item.first->getEnd());
+	}
+	//debug
+	sim_mob::BasicLogger & enterCbdLogger = sim_mob::Logger::log("Enter-CBD.csv");
+	BOOST_FOREACH(SegPair item, in)
+	{
+		enterCbdLogger << item.first->getId() << "," << item.second->getId() << ",\n";
+	}
+	sim_mob::BasicLogger & exitCbdLogger = sim_mob::Logger::log("Exit-CBD.csv");
+	BOOST_FOREACH(SegPair item, out)
+	{
+		exitCbdLogger << item.first->getId() << "," << item.second->getId() << ",\n";
+	}
+	sim_mob::BasicLogger & cbdSegLogger = sim_mob::Logger::log("CBD-Segments.csv");
+	BOOST_FOREACH(const sim_mob::RoadSegment*rs,zoneSegments)
+	{
+		cbdSegLogger << rs->getId() << ",";
+	}
+
+	sim_mob::BasicLogger & cbdNodeLogger = sim_mob::Logger::log("CBD-Nodes.csv");
+	BOOST_FOREACH(const sim_mob::Node *node,zoneNodes)
+	{
+		cbdNodeLogger << node->getID() << ",";
+	}
+
+	cout << "CBD Entering border Sections size: " << in.size() << "\n";
+	cout << "CBD Exitting border Sections size: " << out.size() << "\n";
+	cout << "Total segments in CBD Area: " << zoneSegments.size() << "\n";
+	cout << "Total nodes in CBD Area: " << zoneNodes.size() << "\n";
+}
+void sim_mob::RestrictedRegion::processTripChains(map<string, vector<TripChainItem*> > &tripchains)
+{
+	typedef std::map<string, vector<TripChainItem*> >::value_type TCI;
+	//iterate person
+	BOOST_FOREACH(TCI &item, tripchains)
+	{
+		//iterate person's tripchain
+		vector<TripChainItem*> &tcs = item.second;
+		BOOST_FOREACH(TripChainItem* tci, tcs)
+		{
+			if(tci->itemType != sim_mob::TripChainItem::IT_TRIP)
+			{
+				continue;
+			}
+			std::vector<sim_mob::SubTrip>& subTrips = static_cast<Trip*>(tci)->getSubTripsRW();
+			processSubTrips(subTrips);
+		}
+	}
+}
+
+void sim_mob::RestrictedRegion::processSubTrips(std::vector<sim_mob::SubTrip>& subTrips)
+{
+	for(int i = 0; i < subTrips.size(); i++)
+	{
+		const sim_mob::Node* o = isInRestrictedZone(subTrips[i].fromLocation);
+		const sim_mob::Node* d = isInRestrictedZone(subTrips[i].toLocation);
+		//	if either origin OR destination lie in the restricted zone (not both)
+		if((o || d) && !(o && d))
+		{
+			//create an extra subtrip for the restricted zone travel(restrictedSubTrip)
+			sim_mob::SubTrip restrictedSubTrip(subTrips[i]);
+			//origin in the restricted area
+			if(o != nullptr)
+			{
+				WayPoint wpo(o);
+				restrictedSubTrip.toLocation = wpo;
+				subTrips[i].fromLocation = wpo;
+				restrictedSubTrip.tripID += "-sb";//subtrip before the current subtrip
+				//insert restrictedSubTrip 'before' the current subtrip
+				subTrips.insert(subTrips.begin() + i , restrictedSubTrip);
+				i++;
+			}
+			//destination in the restricted area
+			else
+			{
+				WayPoint wpd(d);
+				subTrips[i].toLocation = wpd;
+				restrictedSubTrip.fromLocation = wpd;
+				restrictedSubTrip.tripID += "-sa";//split after the current subtrip
+				//insert restrictedSubTrip 'after' the current subtrip
+				subTrips.insert(subTrips.begin() + i + 1, restrictedSubTrip);
+				i++;
+			}
+		}
+	}
+
+}
+const sim_mob::Node* sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::Node* target) const
+{
+	std::set<const Node*>::const_iterator it(zoneNodes.find(target));
+	return (zoneNodes.end() == it ? nullptr : *it);
+}
+
+const sim_mob::Node* sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::WayPoint& target) const
+{
+	if(target.type_ != WayPoint::NODE)
+	{
+		throw std::runtime_error ("Checking a Waypoint whose type is not Node");
+	}
+	return isInRestrictedZone(target.node_);
+}
+
+
+
+bool sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::RoadSegment * target) const
+{
+	if (zoneSegments.find(target) != zoneSegments.end())
+	{
+		return true;
+	}
+	return false;
+}
+
+bool sim_mob::RestrictedRegion::isEnteringRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg)
+{
+	return in.find(std::make_pair(curSeg,nxtSeg)) != in.end();
+}
+
+bool sim_mob::RestrictedRegion::isExittingRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg)
+{
+	return out.find(std::make_pair(curSeg,nxtSeg)) != out.end();
 }
 
 sim_mob::PeriodicPersonLoader::PeriodicPersonLoader(std::set<sim_mob::Entity*>& activeAgents, StartTimePriorityQueue& pendinAgents)
@@ -191,6 +344,8 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }
 		actCtr++;
 	}
+	//CBD specific processing of trip chain
+	//RestrictedRegion::getInstance().processTripChains(tripchains);//todo, plan changed, we are not chopping off the trips here
 
 	//add or stash new persons
 	for(map<string, vector<TripChainItem*> >::iterator i=tripchains.begin(); i!=tripchains.end(); i++)

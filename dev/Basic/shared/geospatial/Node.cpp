@@ -15,7 +15,7 @@ unsigned int sim_mob::Node::getAimsunId() const
 		unsigned int originId = 0;
 
 		std::string aimsunId = originalDB_ID.getLogItem();
-		std::string id = sim_mob::getNumberFromAimsunId(aimsunId);
+		std::string id = sim_mob::Utils::getNumberFromAimsunId(aimsunId);
 		try {
 			originId = boost::lexical_cast<int>(id);
 		} catch( boost::bad_lexical_cast const& ) {

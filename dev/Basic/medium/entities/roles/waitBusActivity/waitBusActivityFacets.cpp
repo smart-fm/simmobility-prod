@@ -66,7 +66,12 @@ void WaitBusActivityMovement::frame_tick()
 void WaitBusActivityMovement::frame_tick_output(){
 
 }
+TravelMetric& WaitBusActivityMovement::startTravelTimeMetric(){
 
+}
+TravelMetric& WaitBusActivityMovement::finalizeTravelTimeMetric(){
+
+}
 
 }
 

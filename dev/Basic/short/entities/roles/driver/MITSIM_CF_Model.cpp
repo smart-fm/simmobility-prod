@@ -124,69 +124,79 @@ sim_mob::MITSIM_CF_Model::MITSIM_CF_Model(sim_mob::DriverUpdateParams& p)
 	initParam(p);
 }
 void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p) {
+
 	// speed scaler
 	string speedScalerStr, maxAccStr, decelerationStr, maxAccScaleStr,
 			normalDecScaleStr, maxDecScaleStr;
-	ParameterManager::Instance()->param(modelName, "speed_scaler",
+	bool isAMOD = false;
+
+	if (p.driver->getParent()->amodVehicle)
+	{
+		isAMOD = true;
+	}
+
+	ParameterManager *parameterMgr = ParameterManager::Instance(isAMOD);
+
+	parameterMgr->param(modelName, "speed_scaler",
 			speedScalerStr, string("5 20 20"));
 	// max acceleration
-	ParameterManager::Instance()->param(modelName, "max_acc_car1", maxAccStr,
+	parameterMgr->param(modelName, "max_acc_car1", maxAccStr,
 			string("10.00  7.90  5.60  4.00  4.00"));
 	makeSpeedIndex(Vehicle::CAR, speedScalerStr, maxAccStr, maxAccIndex,
 			maxAccUpperBound);
-	ParameterManager::Instance()->param(modelName, "max_acceleration_scale",
+	parameterMgr->param(modelName, "max_acceleration_scale",
 			maxAccScaleStr, string("0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"));
 	makeScaleIdx(maxAccScaleStr, maxAccScale);
 	// normal deceleration
-	ParameterManager::Instance()->param(modelName, "normal_deceleration_car1",
+	parameterMgr->param(modelName, "normal_deceleration_car1",
 			decelerationStr, string("7.8 	6.7 	4.8 	4.8 	4.8"));
 	makeSpeedIndex(Vehicle::CAR, speedScalerStr, decelerationStr,
 			normalDecelerationIndex, normalDecelerationUpperBound);
-	ParameterManager::Instance()->param(modelName, "normal_deceleration_scale",
+	parameterMgr->param(modelName, "normal_deceleration_scale",
 			normalDecScaleStr,
 			string("1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0"));
 	makeScaleIdx(maxAccScaleStr, normalDecelerationScale);
 	// speed limit add on
 	string str;
-	ParameterManager::Instance()->param(modelName, "speed_limit_add_on", str,
+	parameterMgr->param(modelName, "speed_limit_add_on", str,
 			string("-0.1911 -0.0708 -0.0082 0.0397 0.0810 0.1248 0.1661 0.2180 0.2745 0.3657"));
 	makeScaleIdx(str, speedLimitAddon);
 
 	// acc add on
-	ParameterManager::Instance()->param(modelName, "Car_following_acceleration_add_on", str,
+	parameterMgr->param(modelName, "Car_following_acceleration_add_on", str,
 				string("-1.3564 -0.8547 -0.5562 -0.3178 -0.1036 0.1036 0.3178 0.5562 0.8547 1.3564"));
 	sim_mob::Utils::convertStringToArray(str,accAddon);
 	// decl add on
-	ParameterManager::Instance()->param(modelName, "Car_following_deceleration_add_on", str,
+	parameterMgr->param(modelName, "Car_following_deceleration_add_on", str,
 					string("-1.3187 -0.8309 -0.5407 -0.3089 -0.1007 0.1007 0.3089 0.5407 0.8309 1.3187"));
 	sim_mob::Utils::convertStringToArray(str,declAddon);
 	// max deceleration
-	ParameterManager::Instance()->param(modelName, "max_deceleration_car1",
+	parameterMgr->param(modelName, "max_deceleration_car1",
 			decelerationStr, string("-16.0   -14.5   -13.0   -11.0   -9.0"));
 	makeSpeedIndex(Vehicle::CAR, speedScalerStr, decelerationStr,
 			maxDecelerationIndex, maxDecelerationUpperBound);
-	ParameterManager::Instance()->param(modelName, "max_deceleration_scale",
+	parameterMgr->param(modelName, "max_deceleration_scale",
 			maxDecScaleStr, string("1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0"));
 	makeScaleIdx(maxDecScaleStr, maxDecelerationScale);
 	// acceleration grade factor
-	ParameterManager::Instance()->param(modelName, "acceleration_grade_factor",
+	parameterMgr->param(modelName, "acceleration_grade_factor",
 			accGradeFactor, 0.305);
-	ParameterManager::Instance()->param(modelName, "tmp_all_grades", tmpGrade,
+	parameterMgr->param(modelName, "tmp_all_grades", tmpGrade,
 			0.0);
 	// param for distanceToNormalStop()
-	ParameterManager::Instance()->param(modelName, "min_speed", minSpeed, 0.1);
-	ParameterManager::Instance()->param(modelName, "min_response_distance",
+	parameterMgr->param(modelName, "min_speed", minSpeed, 0.1);
+	parameterMgr->param(modelName, "min_response_distance",
 			minResponseDistance, 5.0);
 	// param of calcSignalRate()
-	ParameterManager::Instance()->param(modelName, "yellow_stop_headway",
+	parameterMgr->param(modelName, "yellow_stop_headway",
 			yellowStopHeadway, 1.0);
-	ParameterManager::Instance()->param(modelName, "min_speed_yellow",
+	parameterMgr->param(modelName, "min_speed_yellow",
 			minSpeedYellow, 2.2352);
 	// param of carFollowingRate()
-	ParameterManager::Instance()->param(modelName, "hbuffer_lower",
+	parameterMgr->param(modelName, "hbuffer_lower",
 			hBufferLower, 0.8);
 	string hBufferUpperStr;
-	ParameterManager::Instance()->param(modelName, "hbuffer_Upper",
+	parameterMgr->param(modelName, "hbuffer_Upper",
 			hBufferUpperStr,
 			string(
 					"1.7498 2.2737 2.5871 2.8379 3.0633 3.2814 3.5068 3.7578 4.0718 4.5979"));
@@ -194,16 +204,16 @@ void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p) {
 	hBufferUpper = getBufferUppder();
 	// Car following parameters
 	string cfParamStr;
-	ParameterManager::Instance()->param(modelName, "CF_parameters_1",
+	parameterMgr->param(modelName, "CF_parameters_1",
 			cfParamStr,
 			string("0.0400, 0.7220, 0.2420, 0.6820, 0.6000, 0.8250"));
 	makeCFParam(cfParamStr, CF_parameters[0]);
-	ParameterManager::Instance()->param(modelName, "CF_parameters_2",
+	parameterMgr->param(modelName, "CF_parameters_2",
 			cfParamStr, string("-0.0418 0.0000 0.1510 0.6840 0.6800 0.8020"));
 	makeCFParam(cfParamStr, CF_parameters[1]);
 	//
 	string targetGapAccParmStr;
-	ParameterManager::Instance()->param(modelName, "target_gap_acc_parm",
+	parameterMgr->param(modelName, "target_gap_acc_parm",
 			targetGapAccParmStr,
 			string(
 					"0.604, 0.385, 0.323, 0.0678, 0.217,0.583, -0.596, -0.219, 0.0832, -0.170, 1.478, 0.131, 0.300"));
@@ -211,23 +221,23 @@ void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p) {
 	//UPDATE STEP SIZE (REACTION TIME RELATED)
 	string updateStepSizeStr;
 	// dec
-	ParameterManager::Instance()->param(modelName, "dec_update_step_size",
+	parameterMgr->param(modelName, "dec_update_step_size",
 			updateStepSizeStr, string("0.5     0.0     0.5     0.5 0.5"));
 	makeUpdateSizeParam(updateStepSizeStr, decUpdateStepSize);
 	//speed factor
-	ParameterManager::Instance()->param(modelName, "speed_factor", speedFactor,
+	parameterMgr->param(modelName, "speed_factor", speedFactor,
 			1.0);
 	// acc
-	ParameterManager::Instance()->param(modelName, "acc_update_step_size",
+	parameterMgr->param(modelName, "acc_update_step_size",
 			updateStepSizeStr, string("1.0     0.0     1.0     1.0 0.5"));
 	makeUpdateSizeParam(updateStepSizeStr, accUpdateStepSize);
 	// uniform speed
-	ParameterManager::Instance()->param(modelName,
+	parameterMgr->param(modelName,
 			"uniform_speed_update_step_size", updateStepSizeStr,
 			string("1.0     0.0     1.0     1.0 0.5"));
 	makeUpdateSizeParam(updateStepSizeStr, uniformSpeedUpdateStepSize);
 	// stopped vehicle
-	ParameterManager::Instance()->param(modelName,
+	parameterMgr->param(modelName,
 			"stopped_vehicle_update_step_size", updateStepSizeStr,
 			string("0.5     0.0     0.5     0.5 0.5"));
 	makeUpdateSizeParam(updateStepSizeStr, stoppedUpdateStepSize);
@@ -244,27 +254,27 @@ void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p) {
 	nextPerceptionSize = perceptionSize[3];
 
 	// visibility
-	ParameterManager::Instance()->param(modelName, "visibility_distance",
+	parameterMgr->param(modelName, "visibility_distance",
 			visibilityDistance, 10.0);
 
 	// merge model
-//	ParameterManager::Instance()->param(modelName,
-//				"Merging_Model", str,
-//				string("10 20 8 0.2"));
-//	sim_mob::Utils::convertStringToArray(str,accAddon);
+	//	parameterMgr->param(modelName,
+	//				"Merging_Model", str,
+	//				string("10 20 8 0.2"));
+	//	sim_mob::Utils::convertStringToArray(str,accAddon);
 
 	//FF Acc Params
-	ParameterManager::Instance()->param(modelName,
+	parameterMgr->param(modelName,
 					"FF_Acc_Params_b2", p.FFAccParamsBeta,
 					0.3091);
 
 	//density
-	ParameterManager::Instance()->param(modelName,
+	parameterMgr->param(modelName,
 						"density", p.density,
 						40.0);
 
 	// driver signal perception distance
-	ParameterManager::Instance()->param(modelName,
+	parameterMgr->param(modelName,
 							"driver_signal_perception_distance", percepDisM,
 							75.0);
 }

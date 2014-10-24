@@ -127,7 +127,7 @@ const std::string sim_mob::RoleFactory::GetTripChainItemMode(const sim_mob::Trip
 	}
 
 	const std::string roleName = tripChainItem->getMode(subTrip);
-	if (roleName == "Car")
+	if (roleName == "Car" || roleName == "Taxi")
 		return "driver";
 	if (roleName == "Walk")
 		return "pedestrian";

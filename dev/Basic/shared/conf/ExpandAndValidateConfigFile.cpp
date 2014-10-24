@@ -383,6 +383,7 @@ void sim_mob::ExpandAndValidateConfigFile::LoadAgentsInOrder(ConfigParams::Agent
 				break;
 			case SimulationParams::LoadAg_Drivers:
 				GenerateXMLAgents(cfg.driverTemplates, "driver", constraints);
+				GenerateXMLAgents(cfg.taxiDriverTemplates, "taxidriver", constraints);
 				GenerateXMLAgents(cfg.busDriverTemplates, "busdriver", constraints);
 				std::cout <<"Loaded Driver Agents (from config file).\n";
 				break;
@@ -520,12 +521,29 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		//
 		//TODO: We should just be able to save "driver" and "pedestrian", but we are
 		//      using different vocabulary for modes and roles. We need to change this.
-		props["#mode"] = (roleName=="driver"?"Car":(roleName=="pedestrian"?"Walk":"Unknown"));
-		if (roleName == "busdriver") {
+		if(roleName == "driver")
+		{
+			props["#mode"] = "Car";
+		}
+		else if(roleName == "taxidriver")
+		{
+			props["#mode"] = "Taxi";
+		}
+		else if(roleName == "pedestrian")
+		{
+			props["#mode"] = "Walk";
+		}
+		else if (roleName == "busdriver")
+		{
 			props["#mode"] = "Bus";
 		}
-		if (roleName == "passenger") {
+		else if (roleName == "passenger")
+		{
 			props["#mode"] = "BusTravel";
+		}
+		else
+		{
+			props["#mode"] = "Unknown";
 		}
 
 		//Create the Person agent with that given ID (or an auto-generated one)

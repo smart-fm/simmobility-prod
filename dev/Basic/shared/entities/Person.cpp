@@ -65,6 +65,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 	res->fromLocationType = TripChainItem::getLocationType("node");
 	res->toLocation = WayPoint(ag.destNode);
 	res->toLocationType = res->fromLocationType;
+	res->travelMode = mode;
 
 	//SubTrip generatedSubTrip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(),
 	//candidate.origin, "node", candidate.dest, "node", "Car", true, "");
@@ -233,13 +234,6 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		this->originNode = WayPoint( ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(originNodeId) );
 		this->destNode = WayPoint( ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(destNodeid) );
 
-		//Make sure they have a mode specified for this trip
-		it = configProps.find("#mode");
-		if (it==configProps.end()) {
-			throw std::runtime_error("Cannot load person: no mode");
-		}
-		std::string mode = it->second;
-
 		Trip* singleTrip = MakePseudoTrip(*this, mode);
 
 		std::vector<TripChainItem*> trip_chain;
@@ -271,13 +265,6 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 			//Otherwise, make a trip chain for this Person.
 			this->originNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true) );
 			this->destNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destIt->second), true) );
-
-			//Make sure they have a mode specified for this trip
-			it = configProps.find("#mode");
-			if (it==configProps.end()) {
-				throw std::runtime_error("Cannot load person: no mode");
-			}
-			std::string mode = it->second;
 
 			Trip* singleTrip = MakePseudoTrip(*this, mode);
 

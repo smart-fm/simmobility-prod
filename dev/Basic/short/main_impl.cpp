@@ -181,6 +181,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, mtx));
 		rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 		rf.registerRole("waitBusActivityRole", new sim_mob::WaitBusActivityRoleImpl(nullptr));
+		rf.registerRole("taxidriver", new sim_mob::Driver(nullptr, mtx));
 		//cannot allocate an object of abstract type
 		//rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 		//rf.registerRole("buscontroller", new sim_mob::BusController()); //Not a role!

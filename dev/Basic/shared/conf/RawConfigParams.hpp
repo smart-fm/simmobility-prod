@@ -313,6 +313,7 @@ public:
 	//@{
 	///Templates for creating entities of various types.
 	std::vector<EntityTemplate> driverTemplates;
+	std::vector<EntityTemplate> taxiDriverTemplates;
 	std::vector<EntityTemplate> pedestrianTemplates;
 	std::vector<EntityTemplate> busDriverTemplates;
 	std::vector<EntityTemplate> signalTemplates;

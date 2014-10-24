@@ -1477,6 +1477,7 @@ sim_mob::SubTrip MakeSubTrip(const TripChainItem& tcItem) {
 	aSubTripInTrip.isPrimaryMode = tcItem.isPrimaryMode;
 	aSubTripInTrip.ptLineId = tcItem.ptLineId;
 	aSubTripInTrip.startTime = tcItem.startTime;
+	aSubTripInTrip.mode = tcItem.mode;
 	return aSubTripInTrip;
 }
 

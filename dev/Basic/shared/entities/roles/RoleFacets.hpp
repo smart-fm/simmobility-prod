@@ -116,6 +116,11 @@ public:
 	virtual TravelMetric& startTravelTimeMetric() = 0;
 	///	mark the destination and end time and travel time
 	virtual TravelMetric& finalizeTravelTimeMetric() = 0;
+	//needed if the role are reused rather than deleted!
+	virtual void resetTravelTimeMetric()
+	{
+		travelTimeMetric.reset();
+	}
 
 
 public:

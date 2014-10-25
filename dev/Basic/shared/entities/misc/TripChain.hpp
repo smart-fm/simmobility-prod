@@ -41,7 +41,12 @@ struct TravelMetric
 	DailyTime startTime,endTime;
 	double travelTime;
 	bool started,finalized,valid;
-	TravelMetric():started(false),finalized(false),valid(false),cbdTraverseType(CBD_NONE),travelTime(0) {
+	TravelMetric():started(false),finalized(false),
+			valid(false),cbdTraverseType(CBD_NONE),
+			travelTime(0),cbdTravelTime(0),
+			cbdOrigin(WayPoint()),cbdDestination(WayPoint()),
+			origin(WayPoint()),destination(WayPoint()),
+			startTime(DailyTime()),endTime(DailyTime()),cbdStartTime(DailyTime()),cbdEndTime(DailyTime()){
 
 	}
 	//CBD information
@@ -61,6 +66,22 @@ struct TravelMetric
 	{
 		double  t = (double((end - start).getValue()) /1000) / 3600;
 		return t;
+	}
+	void reset()
+	{
+		started=false;
+		finalized=false;
+		valid=false;
+		cbdTraverseType=CBD_NONE;
+		travelTime=0;cbdTravelTime=0;
+		cbdOrigin=WayPoint();
+		cbdDestination=WayPoint();
+		origin=WayPoint();
+		destination=WayPoint();
+		startTime=DailyTime();
+		endTime=DailyTime();
+		cbdStartTime=DailyTime();
+		cbdEndTime=DailyTime();
 	}
 };
 

@@ -118,7 +118,7 @@ void sim_mob::medium::DriverMovement::frame_init() {
 	bool pathInitialized = initializePath();
 	if (pathInitialized) {
 		//initialize some travel metrics for this subTrip
-		//startTravelTimeMetric();
+		startTravelTimeMetric();
 		//done with metric initialization...
 		Vehicle* newVehicle = new Vehicle(Vehicle::CAR, PASSENGER_CAR_UNIT);
 		VehicleBase* oldVehicle = parentDriver->getResource();
@@ -972,7 +972,7 @@ void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSeg
 	getParent()->initRdSegTravelStats(pathMover.getCurrSegStats()->getRoadSegment(), segStatExitTimeSec);
 }
 TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
-{return  travelTimeMetric;
+{//return  travelTimeMetric;
 
 	std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getRepr_());
 	travelTimeMetric.startTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
@@ -997,7 +997,7 @@ TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
 }
 
 TravelMetric& sim_mob::medium::DriverMovement::finalizeTravelTimeMetric()
-{return  travelTimeMetric;
+{//return  travelTimeMetric;
 	std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getRepr_());
 //	dbgMsg << finalizeTravelTimeMetric
 	//debug

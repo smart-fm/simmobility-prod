@@ -1036,20 +1036,16 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 	if(currTripChainItem == tripChain.end()) /*just a harmless basic check*/ {
 		return false;
 	}
+	// current role (activity or sub-trip level role)[for now: only subtrip] is about to change, time to collect its movement metrics(even activity performer)
+	if(currRole != nullptr)
+	{
+		TravelMetric currRoleMetrics = currRole->Movement()->finalizeTravelTimeMetric();
+		currRole->Movement()->resetTravelTimeMetric();//sorry for manual reset, just a precaution for now
+		serializeSubTripChainItemTravelTimeMetrics(currRoleMetrics,currTripChainItem,currSubTrip);
+	}
 	//first check if you just need to advance the subtrip
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM )
 	{
-//		// current role (activity or sub-trip level role)[for now: only subtrip] is about to change, time to collect its movement metrics(even activity performer)
-//		TravelMetricPtr currRoleMetrics;
-//		if(currRole != nullptr)
-//		{
-//			currRoleMetrics = currRole->Movement()->finalizeTravelTimeMetric();
-//			if(currRoleMetrics)
-//			{
-//				serializeSubTripChainItemTravelTimeMetrics(*currRoleMetrics,currTripChainItem,currSubTrip);
-//			}
-//		}
-
 		//don't advance to next tripchainItem immediately, check the subtrip first
 		res = advanceCurrentSubTrip();
 		//	subtrip advanced successfully, no need to advance currTripChainItem
@@ -1223,7 +1219,7 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
 
  namespace
  {
- 	 sim_mob::BasicLogger & serializeSubTripChainItemTravelTimeMetrics_csv = sim_mob::Logger::log("subtrip_level_travel_metrics_for_preday.csv");
+ 	 sim_mob::BasicLogger & csv = sim_mob::Logger::log("subtrip_level_travel_metrics_for_preday.csv");
  }
  /**
   * A version of serializer for subtrip level travel time.
@@ -1253,7 +1249,7 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
 	 }
 
 	 // destination
-	 sim_mob::BasicLogger & csv = serializeSubTripChainItemTravelTimeMetrics_csv;
+	// sim_mob::BasicLogger & csv = serializeSubTripChainItemTravelTimeMetrics_csv;
 
 	 // restricted area which is to be appended at the end of the csv line
 	 std::stringstream restrictedRegion("");
@@ -1288,8 +1284,9 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
 		 		 "0";
 	 }
 
+	 std::stringstream res("");
 	 // actual writing
-	 csv <<
+	 res <<
 			 this->getId() << "," <<
 			 (static_cast<Trip*>(*currTripChainItem))->tripID  << "," <<
 			 st.tripID  << "," <<
@@ -1301,6 +1298,8 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
 			 TravelMetric::getTimeDiffHours(subtripMetrics.endTime, subtripMetrics.startTime)  << ","
 			 "0,0" << "," << //placeholder for paublic transit's waiting time and walk time
 			 restrictedRegion.str() << "\n";
+	 std::cout << res.str();
+	 csv << res.str();
  }
 
 /*

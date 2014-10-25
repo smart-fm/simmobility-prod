@@ -132,7 +132,7 @@ public:
 				std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool);
 	static bool LoadSinglePathDBwithIdST(soci::session& sql,
 					std::string& pathset_id,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool
-					,const std::string functionName,
+					,const std::string functionName,std::stringstream *outDbg=nullptr,
 					const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
 	bool LoadPathSetDBwithId(
 			std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pool,
@@ -356,24 +356,25 @@ bool DatabaseLoader::LoadSinglePathDBwithId2(
 bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 		std::string& pathset_id,
 		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,
-		const std::string functionName,
+		const std::string functionName,std::stringstream *outDbg,
 		const std::set<const sim_mob::RoadSegment *> & excludedRS)
 {
-	//todo: take care of exclusions
-	std::string excludesStr;
-	std::string excludeTable;
-
 	//prepare statement
 	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare	<< "select * from " + functionName + "(:pathset_id_in)", soci::use(pathset_id));
 
 	//	process result
 	int i = 0;
 	for (soci::rowset<sim_mob::SinglePath>::const_iterator it = rs.begin();	it != rs.end(); ++it) {
-		if(!it->includesRoadSegment(excludedRS))
+		sim_mob::SinglePath *s = new sim_mob::SinglePath(*it);
+		//todo clear point of improvement: create and discard!!
+		if(!s->includesRoadSegment(excludedRS, true,outDbg))
 		{
-			sim_mob::SinglePath *s = new sim_mob::SinglePath(*it);
 			spPool.insert(s).second;
 			i++;
+		}
+		else
+		{
+			delete s;
 		}
 	}
 	if (i == 0) {
@@ -2695,10 +2696,10 @@ bool sim_mob::aimsun::Loader::LoadSinglePathDBwithId2(const std::string& connect
 }
 bool sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(soci::session& sql,
 			std::string& pathset_id,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool
-			,const std::string functionName,
+			,const std::string functionName,std::stringstream *outDbg,
 			const std::set<const sim_mob::RoadSegment *> & excludedRS)
 {
-	bool res = DatabaseLoader::LoadSinglePathDBwithIdST(sql,pathset_id,spPool,functionName,excludedRS);
+	bool res = DatabaseLoader::LoadSinglePathDBwithIdST(sql,pathset_id,spPool,functionName,outDbg,excludedRS);
 	return res;
 }
 bool sim_mob::aimsun::Loader::LoadPathSetDBwithId(const std::string& connectionStr,

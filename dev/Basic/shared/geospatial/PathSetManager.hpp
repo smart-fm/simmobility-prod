@@ -244,7 +244,8 @@ public:
 	const std::set<const sim_mob::RoadSegment*> & getPartialExclusions(){return partialExclusions;}
 	void addPartialExclusion(const sim_mob::RoadSegment* value){ partialExclusions.insert(value);}
 	const std::set<const sim_mob::RoadSegment*> & getBlkLstSegs(){return blacklistSegments;}
-	void addBlkLstSegs(const sim_mob::RoadSegment* value){ blacklistSegments.insert(value);}
+	bool pathInBlackList(const std::vector<WayPoint> path, const std::set<const sim_mob::RoadSegment*> & blkLst);
+	//void addBlkLstSegs(const sim_mob::RoadSegment* value){ blacklistSegments.insert(value);}
 	bool generateAllPathSetWithTripChain2();
 	///	generate shortest path information
 	sim_mob::SinglePath *  findShortestDrivingPath( const sim_mob::Node *fromNode, const sim_mob::Node *toNode,std::set<std::string> duplicateChecker,
@@ -271,7 +272,7 @@ public:
 	 * with their counterparts in PathSetmanager only during the scope of this method to serve temporary purposes.
 	 */
 	 bool getBestPath(std::vector<sim_mob::WayPoint>& res,
-			 const sim_mob::SubTrip* st,
+			 const sim_mob::SubTrip* st,std::stringstream *outDbg=nullptr,
 			 const std::set<const sim_mob::RoadSegment*> tempBlckLstSegs=std::set<const sim_mob::RoadSegment*>(),
 			 bool usePartialExclusion = false,
 			 bool useBlackList = false,
@@ -350,6 +351,10 @@ public:
 	 * returns true/false to indicate if the search has been successful
 	 */
 	bool findCachedPathSet(std::string key, boost::shared_ptr<sim_mob::PathSet> &value);
+	//either this or the above method will remain todo
+	bool findCachedPathSet(std::string key,
+			boost::shared_ptr<sim_mob::PathSet> &value,
+			const std::set<const sim_mob::RoadSegment*> & blcklist);
 	///cache the generated pathset. returns true upon successful insertion
 	bool cachePathSet_orig(boost::shared_ptr<sim_mob::PathSet> &ps);
 	/**
@@ -392,9 +397,13 @@ private:
 	///example:like segments with incidents which have to be assigned
 	///a maximum travel time
 	std::set<const sim_mob::RoadSegment*> partialExclusions;
-	///	list of segments that must be considered off the network
-	//	in all operations of this class
-	std::set<const sim_mob::RoadSegment*> blacklistSegments;
+	///	list of segments that must be considered off the network throughout simulation
+	///	in all operations of this class. The list must be already ready and supplied to
+	/// PathsetManager's instance upon creation og PathSetManager's instance.
+	/// if any additional/temporary blacklist emerged during simulation, they can be supplied
+	///	to getPath() with proper switches. The management of such blacklists is not in the scope
+	///	of PathSetManager
+	const std::set<const sim_mob::RoadSegment*> &blacklistSegments;
 
 	///	protect access to incidents list
 	boost::shared_mutex mutexExclusion;
@@ -472,7 +481,7 @@ public:
 	void init(std::vector<WayPoint>& wpPools);
 	void clear();
 	std::vector<WayPoint> shortestWayPointpath;
-	std::set<const RoadSegment*> shortestSegPath;
+//	std::set<const RoadSegment*> shortestSegPath;
 	boost::shared_ptr<sim_mob::PathSet>pathSet; // parent
 	const sim_mob::RoadSegment* excludeSeg; // can be null
 	const sim_mob::Node *fromNode;
@@ -509,7 +518,7 @@ public:
 	///	returns the raugh size of object in Bytes
 	uint32_t getSize();
 	///does these SinglePath include the any of given RoadSegment(s)
-	bool includesRoadSegment(const std::set<const sim_mob::RoadSegment*> &segs);
+	bool includesRoadSegment(const std::set<const sim_mob::RoadSegment*> &segs, bool dbg= false, std::stringstream *out = nullptr);
 
 };
 
@@ -572,9 +581,10 @@ inline double getTravelCost2(sim_mob::SinglePath *sp)
 		sim_mob::Logger::log("path_set") << "gTC: sp is empty" << std::endl;
 	}
 	sim_mob::DailyTime trip_startTime = sp->pathSet->subTrip->startTime;
-	for(std::set<const RoadSegment*>::iterator it1 = sp->shortestSegPath.begin(); it1 != sp->shortestSegPath.end(); it1++)
+//	for(std::set<const RoadSegment*>::iterator it1 = sp->shortestSegPath.begin(); it1 != sp->shortestSegPath.end(); it1++)
+	for(std::vector<WayPoint>::iterator it1 = sp->shortestWayPointpath.begin(); it1 != sp->shortestWayPointpath.end(); it1++)
 	{
-		std::string seg_id = (*it1)->originalDB_ID.getLogItem();
+		std::string seg_id = (it1)->roadSegment_->originalDB_ID.getLogItem();
 		std::map<std::string,sim_mob::ERP_Section*>::iterator it = sim_mob::PathSetParam::getInstance()->ERP_SectionPool.find(seg_id);
 		//get travel time to this segment
 		double t = sim_mob::PathSetParam::getInstance()->getTravelTimeBySegId(seg_id,trip_startTime);

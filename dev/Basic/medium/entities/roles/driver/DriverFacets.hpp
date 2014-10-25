@@ -88,8 +88,9 @@ public:
 	MesoPathMover & getMesoPathMover() {
 		return pathMover;
 	}
+protected:
 	/// mark startTimeand origin. Called at every frame_init
-	TravelMetric& startTravelTimeMetric();
+	virtual TravelMetric& startTravelTimeMetric();
 	/**
 	 * mark the destination and end time and travel time.
 	 * upon every change in the role, this method is called
@@ -97,9 +98,8 @@ public:
 	 * role's period.
 	 */
 	//
-	TravelMetric& finalizeTravelTimeMetric();
+	virtual TravelMetric& finalizeTravelTimeMetric();
 
-protected:
 	/**
 	 * Pointer to the parent Driver role.
 	 */

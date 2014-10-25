@@ -282,11 +282,28 @@ const sim_mob::Node* sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob
 }
 
 
-
-bool sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::RoadSegment * target) const
+bool sim_mob::RestrictedRegion::isInRestrictedSegmentZone(const std::vector<WayPoint> & target) const
 {
-	if (zoneSegments.find(target) != zoneSegments.end())
+	BOOST_FOREACH(WayPoint wp, target)
 	{
+		if(wp.type_ != WayPoint::ROAD_SEGMENT)
+		{
+			throw std::runtime_error("Invalid WayPoint type Supplied\n");
+		}
+		if(isInRestrictedSegmentZone(wp.roadSegment_))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool sim_mob::RestrictedRegion::isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const
+{
+	std::set<const sim_mob::RoadSegment*>::iterator itDbg;
+	if ((itDbg = zoneSegments.find(target)) != zoneSegments.end())
+	{
+		std::cout << "segment " << (*itDbg)->getId() << " is in Zone Segments\n";
 		return true;
 	}
 	return false;

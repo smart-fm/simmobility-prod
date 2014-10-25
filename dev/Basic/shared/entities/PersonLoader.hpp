@@ -64,13 +64,25 @@ public:
 	 const Node* isInRestrictedZone(const Node* target) const;
 	 const Node* isInRestrictedZone(const WayPoint& target) const;
 	/**
+	 * does the given Path "RoadSegments"(segments wrapped in WayPoints) lie in the restricted area,
+	 * returns true if any part of the target is in the restricted zone
+	 */
+	 bool isInRestrictedSegmentZone(const std::vector<WayPoint> & target) const;
+	/**
 	 * does the given "RoadSegment"(segment wrapped in a WayPoint) lie in the restricted area,
 	 * returns true if the target is in the restricted zone
 	 */
-	 bool isInRestrictedZone(const sim_mob::RoadSegment * target) const;
+	 bool isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const;
 	 bool isEnteringRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg);
 	 bool isExittingRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg);
-	 std::set<const sim_mob::RoadSegment*> getZoneSegments() { return zoneSegments;}
+	 std::set<const sim_mob::RoadSegment*> & getZoneSegments() {
+		if(populated.check())
+		{
+			throw std::runtime_error("Requesting For CBD zone "
+					"Segments before Attempting to Populate the Containers\n");
+		}
+		 return zoneSegments;
+	 }
 	/**
 	 * Function to split the subtrips crossing the restricted Areas
 	 */

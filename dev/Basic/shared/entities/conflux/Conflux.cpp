@@ -1309,14 +1309,22 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 	std::vector<sim_mob::TripChainItem*> agTripChain = p->getTripChain();
 	const sim_mob::TripChainItem* firstItem = agTripChain.front();
 
-	std::vector<WayPoint> path;
+	std::vector<WayPoint> path = std::vector<WayPoint>();
 	const sim_mob::RoadSegment* rdSeg = nullptr;
+	const Trip* firstTrip = dynamic_cast<const Trip*>(firstItem);
+	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		path = PathSetManager::getInstance()->getPath(p,dynamic_cast<const Trip*>(firstItem)->getSubTrips().front());
+	bool pathSetRole = false;
+	if(firstTrip)
+	{
+		std::string mode = firstItem->getMode();
+		pathSetRole = (mode == "Car" || mode == "Taxi" || mode == "Motorcycle") ;
+	}
+	if (firstTrip && ConfigManager::GetInstance().FullConfig().PathSetMode() && pathSetRole) {
+		path = PathSetManager::getInstance()->getPath(p,firstTrip->getSubTrips().front());
 	}
 	else{
-		const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
+
 		std::string role = rf.GetRoleName(firstItem->getMode()); //getMode is a virtual function. see its documentation
 		StreetDirectory& streetDirectory = StreetDirectory::instance();
 

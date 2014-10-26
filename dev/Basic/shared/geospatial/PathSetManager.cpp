@@ -800,15 +800,17 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::Person* per,con
 	std::stringstream str("");
 	str << subTrip.fromLocation.node_->getID() << "," << subTrip.toLocation.node_->getID();
 	std::string fromToID(str.str());
-	str.str("");
 	//todo. change the subtrip signature from pointer to referencer
 	logger << "+++++++++++++++++++++++++" << "\n";
 	vector<WayPoint> res = vector<WayPoint>();
 	//CBD area logic
 	const Node * from = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.fromLocation);
 	const Node * to = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.toLocation);
+	str.str("");
+	str << fromToID << " getBestPath-CBD :";
 	if(to == nullptr && from ==nullptr){
-		cbdLogger << fromToID  << ": Enforce blacklist for " << "\n";
+		subTrip.cbdTraverseType = TravelMetric::CBD_PASS;
+		str << "Enforce blacklist for " ;
 		std::stringstream outDbg("");
 		getBestPath(res, &subTrip,&outDbg,std::set<const sim_mob::RoadSegment*>(),false,true);//use/enforce blacklist
 		if(sim_mob::RestrictedRegion::getInstance().isInRestrictedSegmentZone(res)){
@@ -819,20 +821,29 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::Person* per,con
 		}
 	}
 	else if(to == nullptr || from ==nullptr){
-		cbdLogger << fromToID  << ": Enter-Exit CBD " << "\n";
+		str  << (from ? " EXIT" : "ENTER") << " CBD " ;
+		subTrip.cbdTraverseType = (from ? TravelMetric::CBD_EXIT : TravelMetric::CBD_ENTER);
 		getBestPath(res, &subTrip);
+	}
+	else
+	{
+		str << " unknown-state ";
 	}
 	//subscribe person
 	logger << fromToID  << ": Path chosen for person[" << per->getId() << "]" << per->GetId() << "\n";
+	str <<  ": Path chosen for person[" << per->getId() << "]" << per->GetId() << "\n";
 	if(!res.empty())
 	{
 		logger << fromToID << " : was assigned path of size " << res.size()  << "\n";
+		str << " : was assigned path of size " << res.size()  << "\n";
 		//expensive due to call to getSegmentAimsunId()
 		//printWPpath(res);
 	}
 	else{
 		logger << fromToID <<" : NO PATH" << "\n";
+		str << " : NO PATH" << "\n";
 	}
+	std::cout << str.str();
 	return res;
 }
 
@@ -851,10 +862,10 @@ bool sim_mob::PathSetManager::getBestPath(
 		bool isUseCache)
 {
 	res.clear();
-	if(st->mode != "Car") //only driver need path set
-	{
-		return false;
-	}
+//	if(st->mode == "Car" || st->mode == "Taxi" || st->mode == "Motorcycle") //only driver need path set
+//	{
+//		return false;
+//	}
 	//take care of partially excluded and blacklisted segments here
 	std::set<const sim_mob::RoadSegment*> blckLstSegs(tempBlckLstSegs);
 	if(useBlackList && this->blacklistSegments.size())

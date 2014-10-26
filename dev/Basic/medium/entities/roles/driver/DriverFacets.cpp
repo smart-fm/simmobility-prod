@@ -317,10 +317,11 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 	//currently the best place to call a handler indicating 'Done' with segment.
 	const sim_mob::RoadSegment *curRs = (*(pathMover.getCurrSegStats())).getRoadSegment();
 	//Although the name of the method suggests segment change, it is actually segStat change. so we check again!
+
 	if(curRs && nxtSegStat && curRs->getEnd() == nxtSegStat->getRoadSegment()->getStart())
 	{
 		const sim_mob::RoadSegment *nxtRs = (nxtSegStat ? nxtSegStat->getRoadSegment() : nullptr);
-		//onSegmentCompleted(curRs,nxtRs);
+		onSegmentCompleted(curRs,nxtRs);
 	}
 
 
@@ -399,16 +400,21 @@ void DriverMovement::onSegmentCompleted(const sim_mob::RoadSegment* completedRS,
 	//search for CBD enter exit
 	//-get subtrip, where CBD indication is placed
 	TravelMetric::CDB_TraverseType type = travelTimeMetric.cbdTraverseType;
+	//std::cout << "onSegmentCompleted\n";
 	if(nextRS && !pathMover.isPathCompleted() && (type == TravelMetric::CBD_ENTER || type == TravelMetric::CBD_EXIT))
 	{
 
+		//std::cout << "onSegmentCompleted IF\n";
+
 		sim_mob::RestrictedRegion &cbd = sim_mob::RestrictedRegion::getInstance();
+		std::stringstream out("");
 		switch(type)
 		{
 		case TravelMetric::CBD_ENTER:
 			//search if you are about to enter CBD (we assume the trip started outside cbd and  is going to end inside cbd)
 			if(cbd.isEnteringRestrictedZone(completedRS,nextRS)) if(travelTimeMetric.cbdEntered.check())
 			{
+				out << getParent()->getId() << "onSegmentCompleted Enter CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
 				travelTimeMetric.cbdOrigin = sim_mob::WayPoint(completedRS->getEnd());
 //				travelTimeMetric.cbdDestination = travelTimeMetric.destination;//(*(pathMover.getPath().rbegin()))->getRoadSegment()->getEnd();
 				travelTimeMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
@@ -423,6 +429,7 @@ void DriverMovement::onSegmentCompleted(const sim_mob::RoadSegment* completedRS,
 			//search if you are about to exit CBD(we assume the trip started inside cbd and is going to end outside cbd)
 			if(cbd.isExittingRestrictedZone(completedRS,nextRS)) if(travelTimeMetric.cbdExitted.check())
 			{
+				out << getParent()->getId() << "onSegmentCompleted exit CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
 //				travelTimeMetric.cbdOrigin = travelTimeMetric.origin;//(*(pathMover.getPath().begin()))->getRoadSegment()->getStart();
 				travelTimeMetric.cbdDestination = sim_mob::WayPoint(completedRS->getEnd());
 //				travelTimeMetric.cbdStartTime = travelTimeMetric.startTime;//is the start time of trip
@@ -435,6 +442,7 @@ void DriverMovement::onSegmentCompleted(const sim_mob::RoadSegment* completedRS,
 			}
 			break;
 		};
+		std::cout << out.str() ;
 	}
 }
 
@@ -984,13 +992,13 @@ TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
 	switch(travelTimeMetric.cbdTraverseType)
 	{
 	case TravelMetric::CBD_ENTER:
-//		cbdSELogger << getParent()->GetId() << " , " << now << " , " << travelTimeMetric.origin.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : ENTER START : No Action\n";
+		std::cout << "startTT : " << getParent()->GetId() << " , " << now << " , " << travelTimeMetric.origin.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : ENTER START : No Action\n";
 		break;
 	case TravelMetric::CBD_EXIT:
 		travelTimeMetric.cbdOrigin = travelTimeMetric.origin;
 		travelTimeMetric.cbdStartTime = travelTimeMetric.startTime;
-//		cbdSELogger << getParent()->GetId() << " , " << now << " , " << travelTimeMetric.origin.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : EXIT START : origin[" <<
-//				travelTimeMetric.cbdOrigin.node_->getID() << "], end time[" << travelTimeMetric.cbdStartTime.getRepr_() << "]\n";
+		std::cout << "startTT : " << getParent()->GetId() << " , " << now << " , " << travelTimeMetric.origin.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : EXIT START : origin[" <<
+				travelTimeMetric.cbdOrigin.node_->getID() << "], end time[" << travelTimeMetric.cbdStartTime.getRepr_() << "]\n";
 		break;
 	};
 	return  travelTimeMetric;

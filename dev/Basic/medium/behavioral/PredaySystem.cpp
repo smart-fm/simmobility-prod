@@ -357,7 +357,12 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 
 		//unavail travel time to predicted destination by predicted mode
 		blockTravelTimeToSubTourLocation(subTour, parentTour, workBasedSubTourParams);
-		if(workBasedSubTourParams.allWindowsUnavailable()) { return; } //no-time for subtours
+		if(workBasedSubTourParams.allWindowsUnavailable())
+		{
+			//no-time for subtours. remove this and all subsequent sub-tours
+			while(tourIt!=subToursList.end()) { tourIt = subToursList.erase(tourIt); }
+			return;
+		}
 
 		// predict time of day
 		TimeWindowAvailability timeWindow = predictSubTourTimeOfDay(subTour, workBasedSubTourParams);

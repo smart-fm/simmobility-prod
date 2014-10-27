@@ -34,22 +34,20 @@
 	Default values are:-->
 	<!-- Car following parameters			alpha	beta	gama	lambda	rho	stddev -->	
 	<!-- From A44 (Portugal) trajectory calibration-->
-	<!-- param name="CF_parameters_1" value="	0.0401	0.740	0.205	0.650	0.494	1.091"/	--> <!-- ACC-->
-	<!-- param name="CF_parameters_2" value="	-0.374	0.000	0.650	0.750	0.605	0.492"/ --> <!-- DEC-->
+	<!-- param name="CF_parameters_1" value="	0.0401	0.740	0.205	0.650	0.494	1.091"/	ACC--> 
+	<!-- param name="CF_parameters_2" value="	-0.374	0.000	0.650	0.750	0.605	0.492"/	DEC-->
 	<!--From mitsim:-->
 	<!-- param name="CF_parameters_1" value="	0.0916	0.722	0.242	0.682	0.600	#0.825"/-->
 	<!-- param name="CF_parameters_2" value="	-0.0278	0.000	0.151	0.804	0.682	#0.802"/-->
 
 	<!-- Car following parameters		alpha	beta	gama	lambda	rho	stddev -->
-	<param name="CF_parameters_1" value="	0.0401	0.740	0.205	0.650	0.494	0.0"/>
-	<param name="CF_parameters_2" value="	-0.374	0.000	0.650	0.750	0.605	0.0"/>
-	
-	<!-- Each column represents the following population percentile
-		 							0.05 	0.15	0.25	0.35	0.45	0.55	0.65	0.75	0.85	0.95 -->
-	<!--param name="Car_following_acceleration_add_on" value="	-1.3564	-0.8547	-0.5562 -0.3178 -0.1036 0.1036	0.3178	0.5562	0.8547	1.3564"/-->
-	<param name="Car_following_acceleration_add_on" value="		-1.7945 -1.1307 -0.7358 -0.4203 -0.1370 0.1370	0.4203	0.7358	1.1307	1.7945"/>
-	<!--param name="Car_following_deceleration_add_on" value="	-1.3187	-0.8309	-0.5407	-0.3089	-0.1007	0.1007	0.3089	0.5407	0.8309	1.3187"/-->
-	<param name="Car_following_deceleration_add_on" value="		-0.8092	-0.5099	-0.3318	-0.1895	-0.0618	0.0618	0.1895	0.3318	0.5099	0.8092"/>
+	<param name="CF_parameters_1" value="	0.0360	0.38	0.2420	0.6820	0.6000	0.0"/>
+	<param name="CF_parameters_2" value="	-0.2303	0.0000	0.1510	0.6840	0.6800	0.0"/>
+
+	<!--param name="Car_following_acceleration_add_on" value="-1.3564 -0.8547 -0.5562 -0.3178 -0.1036 0.1036 0.3178 0.5562 0.8547 1.3564"/-->
+	<param name="Car_following_acceleration_add_on" value="0 0 0 0 0 0 0 0 0 0"/>
+	<!--param name="Car_following_deceleration_add_on" value="-1.3187 -0.8309 -0.5407 -0.3089 -0.1007 0.1007 0.3089 0.5407 0.8309 1.3187"/-->
+	<param name="Car_following_deceleration_add_on" value="0 0 0 0 0 0 0 0 0 0"/>
 
 	<!-- TODO: The add-ons should be specified with just the std dev param. -->
 
@@ -76,7 +74,7 @@
 
 	<param name="FF_Acc_Params_b0" value="3.0"/>
 	<param name="FF_Acc_Params_b2" value="0.3091"/>
-	<param name="FF_Acc_Params_stddev" value="1.15"/>
+	<param name="FF_Acc_Params_stddev" value="0"/>
 
 
 <!-- A.3. DESIRED SPEED
@@ -99,8 +97,9 @@
 	<param name="speed_factor" value="1.261"/>
 	<!-- Each column represents the following population percentile
 		 					0.05 	0.15	0.25	0.35	0.45	0.55	0.65	0.75	0.85	0.95 -->
-	<param name="speed_limit_add_on" value="	-0.3125 -0.1969	-0.1281	-0.0732	-0.0238	0.0238	0.0732	0.1281	0.1969	0.3125"/>
-	
+	<!-- param name="speed_limit_add_on" value="	-0.1911	-0.0708	-0.0082	0.0397	0.0810	0.1248	0.1661	0.2180	0.2745	0.3657"/-->
+	<param name="speed_limit_add_on" value="	0	0	0	0	0	0	0	0	0	0"/>
+
 
 	<!--TODO:
 	Deisred Speed =	b[3] + spdlmt + b[4] * front->Spd + b[5] * IsHeavy + b[6] * IsFreeFlow
@@ -144,11 +143,11 @@
 	TODO: for now we only have one table used by all vehicle types. The code needs to be changed to accept a variable number of vehicle classes -->	 
 	
 	<!-- Maximum acceleration -->
-	<param name="max_acc_car1"		value="6.00 	5.50	5.00	4.50	4.00"/>
+	<param name="max_acc_car1"		value="5.00 	5.00	5.00	5.00	5.00"/>
 	<!-- Normal deceleration -->
-	<param name="normal_deceleration_car1"	value="-2.50 	-2.25 	-2.00 	-1.75 	-1.50"/>
+	<param name="normal_deceleration_car1"	value="-1 	-1.00 	-1.00 	-1.00 	-1.00"/>
 	<!-- Maximum deceleration -->
-	<param name="max_deceleration_car1"	value="-9.00 	-8.50	-8.00	-7.50	-7.00"/>
+	<param name="max_deceleration_car1"	value="-3.00 	-3.00	-3.00	-3.00	-3.00"/>
 
 	<!-- VARIABILITY TABLES
 	For each new vehicle created in SimMoblity a stochastic factor drawn from the following distribution is used:
@@ -157,9 +156,10 @@
 
 	Each column represents the following population percentile
 							 0.05 0.15 0.25 0.35 0.45 0.55 0.65 0.75 0.85 0.95 -->
-	<param name="max_acceleration_scale"    value=	"0.75  0.80  0.85  0.90  0.95  1.00  1.05  1.10  1.15  1.20"/>
-	<param name="normal_deceleration_scale" value=	"0.75  0.80  0.85  0.90  0.95  1.00  1.05  1.10  1.15  1.20"/>
-	<param name="max_deceleration_scale"    value=	"0.75  0.80  0.85  0.90  0.95  1.00  1.05  1.10  1.15  1.20"/>							 	
+	<param name="max_acceleration_scale"    value=	"1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00"/>
+	<param name="normal_deceleration_scale" value=	"1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00"/>
+	<param name="max_deceleration_scale"    value=	"1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00"/>							 	
+
 	<!-- GENERAL FACTORS for TRESHOLDS (factor)-->
 	<!-- number of bins | first bin | bin size 
 	Example: "5 10 5" is equal to [0-10,10-15,15-20,20-25,25-]-->	
@@ -175,16 +175,16 @@
 	<!-- A headway buffer is found for each vehicle and is a behavioral parameter that describes the aggressiveness of a driver for accepting
 	a headway gap in lane changing, merging, and car-following. Some value between the lower and upper bound will be added to the minimum
 	headway gaps for the population, which are constants also provided in -->
-	<param name="hbuffer_lower" value="0.50"/>
+	<param name="hbuffer_lower" value="0.8"/>
 	<!-- Variation (factor)-->
 	<!-- Each column represents the following population percentile
 	 					0.05	0.15	0.25	0.35	0.45	0.55	0.65	0.75	0.85	0.95 -->
 	<!-- Default values are:-->
 	<!-- From A44 (Portugal) trajectory calibration-->
-	<!-- param name="hbuffer_Upper" value="	2.1775	2.4817	2.6627	2.8073	2.9371	3.0628	3.1926	3.3372	3.5182	3.8224"/-->
+	<!-- param name="hbuffer_Upper" value="	0.95946	1.1181	1.2125	1.2879	1.3556	1.4211	1.4888	1.5642	1.6586	1.8172"/-->
 	<!-- From mitsim:-->
 	<!-- param name="hbuffer_Upper" value="	1.7498	2.2737	2.5871	2.8379	3.0633	3.2814	3.5068	3.7578	4.0718	4.5979"/-->
-	<param name="hbuffer_Upper" value="	2.1775	2.4817	2.6627	2.8073	2.9371	3.0628	3.1926	3.3372	3.5182	3.8224"/>
+	<param name="hbuffer_Upper" value="	7	7	7	7	7	7	7	7	7	7"/>
 
 
 <!-- C. TRAFFIC LIGHT RESPONSE -->
@@ -211,10 +211,10 @@
 	<param name="uniform_speed_update_step_size"   value=	"1.0     0.0     1.0     1.0    0"/>
 	<param name="stopped_vehicle_update_step_size" value=	"0.5     0.0     0.5     0.5    0"/-->
 
-	<param name="dec_update_step_size"          value=	"0.637    0.20     0.25     2.05    0.0"/>
-	<param name="acc_update_step_size"             value=	"0.850    0.25     0.30     2.75    0.0"/>
-	<param name="uniform_speed_update_step_size"   value=	"0.850    0.25     0.30     2.75    0.0"/>
-	<param name="stopped_vehicle_update_step_size" value=	"0.637    0.20     0.25     2.05    0.0"/>
+	<param name="dec_update_step_size"             value=	"0.1     0.1     0.1     0.1    0.0"/>
+	<param name="acc_update_step_size"             value=	"0.1     0.1     0.1     0.1    0.0"/>
+	<param name="uniform_speed_update_step_size"   value=	"0.1     0.1     0.1     0.1    0.0"/>
+	<param name="stopped_vehicle_update_step_size" value=	"0.1     0.1     0.1     0.1    0.0"/>
 
 
 <!-- G. VISIBILITY
@@ -241,7 +241,7 @@
 	<param name="MLC_PARAMETERS" value="
 						100.0         #lower bound(meter) 
 						190.0         #delta(meter)
-						2.0 	      #minimum time in lane (sec)
+						2.0 	       #minimum time in lane (sec)
 	"/>
 
 <!-- H.2 Lane utility Model

@@ -1847,11 +1847,11 @@ DatabaseLoader::createPlans(sim_mob::Signal_SCATS & signal)
 		int nof_phases = signal.getNOF_Phases();
 //		std::cout << " Signal(" << sid << ") : Number of Phases : " << nof_phases << std::endl;
 		if(nof_phases > 0)
-			if((nof_phases > 5)||(nof_phases < 1))
+			if(nof_phases > 7 || nof_phases < 1)
 				std::cout << sid << " ignored due to lack of default choice set" << nof_phases ;
 			else
 			{
-				plan.setDefaultSplitPlan(nof_phases);//i hope the nof phases is within the range of 2-5
+				plan.setDefaultSplitPlan(nof_phases);//i hope the nof phases is within the range of 1-7
 			}
 		else
 			std::cout << sid << " ignored due to no phases" << nof_phases <<  std::endl;

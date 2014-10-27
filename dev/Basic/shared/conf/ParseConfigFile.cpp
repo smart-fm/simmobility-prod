@@ -207,6 +207,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 
 	ProcessPedestriansNode(GetSingleElementByName(rootNode, "pedestrians"));
 	ProcessDriversNode(GetSingleElementByName(rootNode, "drivers"));
+	ProcessTaxiDriversNode(GetSingleElementByName(rootNode, "taxidrivers"));
 	ProcessBusDriversNode(GetSingleElementByName(rootNode, "busdrivers"));
 	ProcessPassengersNode(GetSingleElementByName(rootNode, "passengers"));
 	ProcessSignalsNode(GetSingleElementByName(rootNode, "signals"));
@@ -512,6 +513,16 @@ void sim_mob::ParseConfigFile::ProcessDriversNode(xercesc::DOMElement* node)
 	}
 
 	ProcessFutureAgentList(node, "driver", cfg.driverTemplates);
+}
+
+void sim_mob::ParseConfigFile::ProcessTaxiDriversNode(xercesc::DOMElement* node)
+{
+	if(!node)
+	{
+		return;
+	}
+
+	ProcessFutureAgentList(node, "taxidriver", cfg.taxiDriverTemplates);
 }
 
 void sim_mob::ParseConfigFile::ProcessPedestriansNode(xercesc::DOMElement* node)

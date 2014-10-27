@@ -121,7 +121,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();
 	//TODO: Check if short term is okay with this approach of checking agent source
-	if(getAgentSrc() == "XML_TripChain")
+	if(getAgentSrc() == "XML_TripChain" || getAgentSrc() == "DAS_TripChain")
 	{
 		setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 	}
@@ -157,7 +157,7 @@ sim_mob::Person::~Person() {
 	safe_delete_item(currRole);
 	safe_delete_item(nextRole);
 	//last chance to collect travel time metrics(if any)
-	aggregateSubTripMetrics();
+	//aggregateSubTripMetrics();
 	//serialize them
 	serializeTripTravelTimeMetrics();
 }
@@ -1034,9 +1034,9 @@ bool sim_mob::Person::advanceCurrentSubTrip()
 		return false;
 	}
 	// subtrip about to change, time to collect its travel metrics
-	TravelMetric & subtripMetrics = currRole->Movement()->finalizeTravelTimeMetric();
+	if(currRole) { TravelMetric & subtripMetrics = currRole->Movement()->finalizeTravelTimeMetric(); }
 	//Also, it is a good time to serialize the information for this subtrip
-	serializeSubTripTravelTimeMetrics(subtripMetrics,currTripChainItem,currSubTrip);
+	//serializeSubTripTravelTimeMetrics(subtripMetrics,currTripChainItem,currSubTrip);
 	currSubTrip++;
 
 	if (currSubTrip == trip->getSubTrips().end()) {
@@ -1066,9 +1066,9 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 	serializeTripChainItem(currTripChainItem);
 	//2.Trip is about the change, it is a good time to collect the Metrics
 	serializeTripChainItem(currTripChainItem);
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP){
-		aggregateSubTripMetrics();
-	}
+//	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP){
+//		aggregateSubTripMetrics();
+//	}
 
 	//	do the increment
 	currTripChainItem++;
@@ -1196,7 +1196,7 @@ void sim_mob::Person::aggregateSubTripMetrics()
 	tripTravelMetrics.push_back(newTripMetric);
 }
 
-void sim_mob::Person::addSubtripTravelMetrics(TravelMetric & value){
+void sim_mob::Person::addSubtripTravelMetrics(TravelMetric & value) {
 	 subTripTravelMetrics.push_back(value);
  }
 /**
@@ -1362,4 +1362,33 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric & value){
 		 {
 			 csv << serializeActivity(currTripChainItem);
 		 }
- }
+}
+
+void sim_mob::Person::printTripChainItemTypes() const{
+	std::stringstream ss;
+	ss << "Person: " << id << "|TripChain: ";
+	for(std::vector<TripChainItem*>::const_iterator tci=tripChain.begin(); tci!=tripChain.end(); tci++)
+	{
+		const TripChainItem* tcItem = *tci;
+		switch(tcItem->itemType)
+		{
+		case TripChainItem::IT_TRIP:
+			ss << "|" << tcItem->getMode() << "-trip";
+			break;
+		case TripChainItem::IT_ACTIVITY:
+			ss << "|activity";
+			break;
+		case TripChainItem::IT_BUSTRIP:
+			ss << "|bus-trip";
+			break;
+		case TripChainItem::IT_FMODSIM:
+			ss << "|fmod-trip";
+			break;
+		case TripChainItem::IT_WAITBUSACTIVITY:
+			ss << "|waitbus-activity";
+			break;
+		}
+	}
+	ss << std::endl;
+	Print() << ss.str();
+}

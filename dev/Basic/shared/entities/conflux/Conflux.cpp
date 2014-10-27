@@ -192,16 +192,16 @@ void sim_mob::Conflux::updateUnsignalized()
 	PersonList orderedPersonsInLanes;
 	getAllPersonsUsingTopCMerge(orderedPersonsInLanes);
 
-//	{   //print persons to update
-//		std::stringstream pstrm;
-//		pstrm << "Conflux: " << this->multiNode->getID() << "|frame: " << currFrame.frame() << "|Persons to update: ";
-//		for(PersonList::const_iterator i=orderedPersonsInLanes.begin(); i!=orderedPersonsInLanes.end(); i++)
-//		{
-//			pstrm << (*i)->getId() << "|";
-//		}
-//		pstrm << std::endl;
-//		Print() << pstrm.str();
-//	}
+	{   //print persons to update
+		std::stringstream pstrm;
+		pstrm << "Conflux: " << this->multiNode->getID() << "|frame: " << currFrame.frame() << "|Persons to update: ";
+		for(PersonList::const_iterator i=orderedPersonsInLanes.begin(); i!=orderedPersonsInLanes.end(); i++)
+		{
+			pstrm << (*i)->getId() << "|";
+		}
+		pstrm << std::endl;
+		Print() << pstrm.str();
+	}
 
 	PersonList::iterator personIt = orderedPersonsInLanes.begin();
 	for (; personIt != orderedPersonsInLanes.end(); personIt++)
@@ -258,6 +258,13 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person)
 	//capture info about the person after update
 	PersonProps afterUpdate(person);
 
+	if(!beforeUpdate.segStats && !afterUpdate.segStats)
+	{
+		Print() << "Person: " << person->getId() << "|Role: " << afterUpdate.roleType
+				<< "|frame: " << currFrame.frame() << std::endl;
+		person->printTripChainItemTypes();
+	}
+
 	//perform person's role related handling
 	//activity role specific handling
 	if (afterUpdate.roleType == sim_mob::Role::RL_PEDESTRIAN)
@@ -281,8 +288,10 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person)
 		{
 			// else if the person currently in an activity and was in a Trip
 			// before the latest update. Remove this person from the network
-			// and add him to the activity performers list
-			if (beforeUpdate.lane)
+			// and add him to the activity performers list. However if the person
+			// was a pedestrian, we do not have to remove him from the pedestrian list
+			// here; we just add him to the activity performers list.
+			if(beforeUpdate.roleType != sim_mob::Role::RL_PEDESTRIAN && beforeUpdate.lane)
 			{
 				// if the person was not in from a virtual queue, we dequeue him;
 				beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
@@ -895,7 +904,7 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 		if (person->isToBeRemoved()) {
 			retVal = person->checkTripChain();
 			personRole = person->getRole();
-			if (personRole && retVal.status == UpdateStatus::RS_DONE) {
+			if (retVal.status == UpdateStatus::RS_DONE) {
 				return retVal;
 			}
 			else if(personRole && retVal.status==UpdateStatus::RS_CONTINUE && personRole->roleType==Role::RL_WAITBUSACTITITY) {
@@ -915,7 +924,7 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 				ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
 				ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
 				callMovementFrameInit(now, person);
-				activityPerformers.push_back(person);
+				//activityPerformers.push_back(person);
 				return retVal;
 			}
 

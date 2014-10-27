@@ -150,6 +150,20 @@ namespace
 		makeSubTrip(r, tripToSave);
 		return tripToSave;
 	}
+
+	/**
+	 * removes the activities at the start f the trip chain
+	 * We do not have to simulate the activities at the start of the trip chain; the person can
+	 * very well start from the first trip in his trip chain.
+	 */
+	void removeInitialActivity(std::vector<TripChainItem*>& tripChain)
+	{
+		std::vector<TripChainItem*>::iterator it = tripChain.begin();
+		while(it!=tripChain.end() && (*it)->itemType==TripChainItem::IT_ACTIVITY)
+		{
+			it = tripChain.erase(it);
+		}
+	}
 }//namespace
 
 /*************************************************************************************
@@ -295,7 +309,9 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	for(map<string, vector<TripChainItem*> >::iterator i=tripchains.begin(); i!=tripchains.end(); i++)
 	{
 		Person* person = new Person("DAS_TripChain", cfg.mutexStategy(), i->second);
-		addOrStashPerson(person);
+		std::vector<TripChainItem*>& personTripChain = i->second;
+		removeInitialActivity(personTripChain);
+		if(!personTripChain.empty()) { addOrStashPerson(person); }
 	}
 
 	Print() << "PeriodicPersonLoader:: activities loaded from " << nextLoadStart << " to " << end << ": " << actCtr
@@ -308,8 +324,9 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 
 void sim_mob::PeriodicPersonLoader::addOrStashPerson(Person* p)
 {
+	Print() << "person: " << p->getId() << " | start_time: " << p->getStartTime() << std::endl;
 	//Only agents with a start time of zero should start immediately in the all_agents list.
-	if (p->getStartTime()==0) //TODO: Check if this condition will suffice here
+	if (p->getStartTime()==0)
 	{
 		p->load(p->getConfigProperties());
 		p->clearConfigProperties();

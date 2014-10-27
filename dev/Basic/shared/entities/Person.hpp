@@ -312,7 +312,10 @@ private:
 	  */
 	 std::string serializeActivity(std::vector<TripChainItem*>::iterator item);
 
-
+	 /**
+	  * prints the trip chain item types of each item in tripChain
+	  */
+	 void printTripChainItemTypes() const;
 
 
 

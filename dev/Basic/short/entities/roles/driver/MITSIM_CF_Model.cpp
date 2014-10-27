@@ -130,7 +130,7 @@ void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p) {
 			normalDecScaleStr, maxDecScaleStr;
 	bool isAMOD = false;
 
-	if (p.driver->getParent()->amodVehicle)
+	if (p.driver->getParent()->amodId != "-1")
 	{
 		isAMOD = true;
 	}

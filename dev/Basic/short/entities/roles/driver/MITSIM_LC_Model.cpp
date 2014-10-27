@@ -609,7 +609,7 @@ void sim_mob::MITSIM_LC_Model::initParam(DriverUpdateParams& p)
 	std::string str;
 	bool isAMOD = false;
 
-	if(p.driver->getParent()->amodVehicle)
+	if(p.driver->getParent()->amodId != "-1")
 	{
 		isAMOD = true;
 	}

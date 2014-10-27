@@ -1847,9 +1847,7 @@ if(!parentP->amodPath.empty()){
 		if (allocateVehicle) {
 			res = new Vehicle(VehicleBase::CAR, length, width);
 			parent->amodVehicle = res;
-			if(parentDriver->origin.node->originalDB_ID.getLogItem().find("66508") != std::string::npos){
-				int i=0;
-			}
+
 			initPath(path, startLaneId);
 		}
 

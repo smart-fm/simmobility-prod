@@ -294,6 +294,7 @@ void DatabaseLoader::getCBD_Segments(const string & cnn, std::set<const sim_mob:
 		std::map<unsigned long, const sim_mob::RoadSegment*>::iterator itSeg(sim_mob::RoadSegment::allSegments.find(*it));
 		if(itSeg != sim_mob::RoadSegment::allSegments.end())
 		{
+			itSeg->second->CBD = true;
 			zoneSegments.insert(itSeg->second);
 		}
 	}
@@ -365,17 +366,65 @@ bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 	//	process result
 	int i = 0;
 	for (soci::rowset<sim_mob::SinglePath>::const_iterator it = rs.begin();	it != rs.end(); ++it) {
+		///////////////////
+		bool proceed = true;
+		std::vector<sim_mob::WayPoint> path = std::vector<sim_mob::WayPoint>();
+		//use id to build shortestWayPointpath
+		std::vector<std::string> segIds = std::vector<std::string>();
+//		std::cout << it->id << std::endl;
+		boost::split(segIds,it->id,boost::is_any_of(","));
+		// no path is correct
+		for(int ii = 0 ; ii < segIds.size(); ++ii)
+		{
+			unsigned long id = 0;
+			try
+			{
+				id = boost::lexical_cast<unsigned long> (segIds.at(ii));
+				if(id > 0)
+				{
+					std::map<unsigned long, const sim_mob::RoadSegment*>::iterator it = sim_mob::RoadSegment::allSegments.find(id);
+					const sim_mob::RoadSegment* seg = (it == sim_mob::RoadSegment::allSegments.end() ? nullptr : it->second);
+					if(!seg)
+					{
+						std::string str = "SinglePath: seg not find " + id;
+						throw std::runtime_error(str);
+					}
+	//				if(excludedRS.find(seg) != excludedRS.end())
+	//				if(seg->CBD && excludedRS.find(seg) != excludedRS.end())//hack(seg->CBD)!!
+					if(seg->CBD)//todo, do something for this hack(seg->CBD)
+					{
+						proceed = false;
+						break;
+					}
+					path.push_back(sim_mob::WayPoint(seg));//copy better than this twist
+				}
+				else
+				{
+					std::string str = "SinglePath: seg not find " + id;
+					throw std::runtime_error(str);
+				}
+			}
+			catch(std::exception &e)
+			{
+				if(ii  < (segIds.size()-1))//last comma
+				{
+					throw std::runtime_error(e.what());
+				}
+			}
+		}
+		if(!proceed)
+		{
+			continue;
+		}
+		//create path object
 		sim_mob::SinglePath *s = new sim_mob::SinglePath(*it);
-		//todo clear point of improvement: create and discard!!
-		if(!s->includesRoadSegment(excludedRS, true,outDbg))
+		s->shortestWayPointpath = boost::move(path);
+		if(s->shortestWayPointpath.empty())
 		{
-			spPool.insert(s).second;
-			i++;
+			throw std::runtime_error("Empty Path");
 		}
-		else
-		{
-			delete s;
-		}
+		spPool.insert(s);
+		i++;
 	}
 	if (i == 0) {
 		pathsetLogger << "DatabaseLoader::LoadSinglePathDBwithIdST: " << pathset_id << "no data in db\n" ;

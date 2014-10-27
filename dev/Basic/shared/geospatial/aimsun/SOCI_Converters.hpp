@@ -72,8 +72,8 @@ template<> struct type_conversion<sim_mob::PathSet>
     static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::PathSet &res)
     {
     	res.id = vals.get<std::string>("ID", "");
-    	res.fromNodeId = vals.get<std::string>("FROM_NODE_ID", "");
-    	res.toNodeId = vals.get<std::string>("TO_NODE_ID", "");
+//    	res.fromNodeId = vals.get<std::string>("FROM_NODE_ID", "");
+//    	res.toNodeId = vals.get<std::string>("TO_NODE_ID", "");
 //    	res.person_id = vals.get<string>("PERSON_ID", "");
 //    	res.trip_id = vals.get<string>("TRIP_ID", "");
     	res.singlepath_id = vals.get<std::string>("SINGLEPATH_ID", "");
@@ -83,8 +83,8 @@ template<> struct type_conversion<sim_mob::PathSet>
     static void to_base(const sim_mob::PathSet& src, soci::values& vals, soci::indicator& ind)
     {
     	vals.set("ID", src.id);
-        vals.set("FROM_NODE_ID", src.fromNodeId);
-        vals.set("TO_NODE_ID", src.toNodeId);
+//        vals.set("FROM_NODE_ID", src.fromNodeId);
+//        vals.set("TO_NODE_ID", src.toNodeId);
 //        vals.set("PERSON_ID", src.person_id);
 //        vals.set("TRIP_ID", src.trip_id);
         vals.set("SINGLEPATH_ID", src.singlepath_id);

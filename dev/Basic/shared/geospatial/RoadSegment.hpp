@@ -55,6 +55,7 @@ class LaneLoader;
  */
 class RoadSegment : public sim_mob::Pavement {
 public:
+	mutable bool CBD;
 	static std::map<unsigned long, const RoadSegment*> allSegments;
 	//TODO: Some of these are only used by the geo* classes; need to re-think.
 	void setParentLink(sim_mob::Link* parent);

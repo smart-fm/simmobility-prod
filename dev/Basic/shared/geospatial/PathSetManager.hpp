@@ -531,7 +531,7 @@ class PathSet
 public:
 	PathSet():hasPath(0) {};
 	PathSet(const sim_mob::Node *fn,const sim_mob::Node *tn) : fromNode(fn),toNode(tn),logsum(0),hasPath(0) {}
-	PathSet(const boost::shared_ptr<sim_mob::PathSet> &ps);
+//	PathSet(const boost::shared_ptr<sim_mob::PathSet> &ps);
 	~PathSet();
 	///	returns the rough size of object in Bytes
 	uint32_t getSize();
@@ -559,8 +559,8 @@ public:
 	double logsum;
 	const sim_mob::SubTrip* subTrip; // pathset use info of subtrip to generate all things
 	std::string id;
-	std::string fromNodeId;
-	std::string toNodeId;
+//	std::string fromNodeId;
+//	std::string toNodeId;
 	std::string singlepath_id;
 	std::string excludedPaths;
 	std::string scenario;

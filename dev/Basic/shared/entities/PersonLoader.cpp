@@ -156,7 +156,8 @@ namespace
  * ***********************************************************************************
  */
 boost::shared_ptr<sim_mob::RestrictedRegion> sim_mob::RestrictedRegion::instance;
-
+sim_mob::RestrictedRegion::RestrictedRegion():Impl(new TagSearch(*this)){}
+sim_mob::RestrictedRegion::~RestrictedRegion(){safe_delete_item(Impl);}
 void sim_mob::RestrictedRegion::populate()
 {
 	//skip if already populated
@@ -169,17 +170,17 @@ void sim_mob::RestrictedRegion::populate()
 	//zone nodes = start and end nodes of zoneSegments  minus border-in&out->from_section->toNode()
 	BOOST_FOREACH(const sim_mob::RoadSegment*rs,zoneSegments)
 	{
-		zoneNodes.insert(rs->getStart());
-		zoneNodes.insert(rs->getEnd());
+		zoneNodes[boost::lexical_cast<std::string>(rs->getStart()->getID())] = rs->getStart();
+		zoneNodes[boost::lexical_cast<std::string>(rs->getEnd()->getID())] = rs->getEnd();
 	}
 
 	BOOST_FOREACH(SegPair item, in)
 	{
-		zoneNodes.erase(item.first->getEnd());
+		zoneNodes.erase(boost::lexical_cast<std::string>(item.first->getEnd()->getID()));
 	}
 	BOOST_FOREACH(SegPair item, out)
 	{
-		zoneNodes.erase(item.first->getEnd());
+		zoneNodes.erase(boost::lexical_cast<std::string>(item.first->getEnd()->getID()));
 	}
 	//debug
 	sim_mob::BasicLogger & enterCbdLogger = sim_mob::Logger::log("Enter-CBD.csv");
@@ -199,16 +200,43 @@ void sim_mob::RestrictedRegion::populate()
 	}
 
 	sim_mob::BasicLogger & cbdNodeLogger = sim_mob::Logger::log("CBD-Nodes.csv");
-	BOOST_FOREACH(const sim_mob::Node *node,zoneNodes)
+	typedef std::map<std::string, const Node*>::value_type Pair;
+	BOOST_FOREACH(Pair node,zoneNodes)
 	{
-		cbdNodeLogger << node->getID() << ",";
+		cbdNodeLogger << node.first << ",";
 	}
 
 	cout << "CBD Entering border Sections size: " << in.size() << "\n";
 	cout << "CBD Exitting border Sections size: " << out.size() << "\n";
 	cout << "Total segments in CBD Area: " << zoneSegments.size() << "\n";
 	cout << "Total nodes in CBD Area: " << zoneNodes.size() << "\n";
+	/********************************************************
+	 * ********** String representations ********************
+	 * ******************************************************/
+	BOOST_FOREACH(const sim_mob::RoadSegment*rs,zoneSegments)
+	{
+		zoneSegmentsStr += rs->getId() + ",";
+	}
+	BOOST_FOREACH(Pair node, zoneNodes)
+	{
+		zoneNodesStr += node.first + ",";
+	}
+	std::stringstream out_("");
+	BOOST_FOREACH(SegPair item, in)
+	{
+		out_ << item.first->getId() << ":" << item.second->getId() << ",";
+	}
+	inStr = out_.str();
+	out_.str("");
+	BOOST_FOREACH(SegPair item, out)
+	{
+		out_ << item.first->getId() << ":" << item.second->getId() << ",";
+	}
+	outStr = out_.str();
+	out_.str("");
+
 }
+//obsolete
 void sim_mob::RestrictedRegion::processTripChains(map<string, vector<TripChainItem*> > &tripchains)
 {
 	typedef std::map<string, vector<TripChainItem*> >::value_type TCI;
@@ -228,24 +256,24 @@ void sim_mob::RestrictedRegion::processTripChains(map<string, vector<TripChainIt
 		}
 	}
 }
-
+//obsolete
 void sim_mob::RestrictedRegion::processSubTrips(std::vector<sim_mob::SubTrip>& subTrips)
 {
 	for(int i = 0; i < subTrips.size(); i++)
 	{
-		const sim_mob::Node* o = isInRestrictedZone(subTrips[i].fromLocation);
-		const sim_mob::Node* d = isInRestrictedZone(subTrips[i].toLocation);
+		bool o = isInRestrictedZone(subTrips[i].fromLocation);
+		bool d = isInRestrictedZone(subTrips[i].toLocation);
 		//	if either origin OR destination lie in the restricted zone (not both)
 		if((o || d) && !(o && d))
 		{
 			//create an extra subtrip for the restricted zone travel(restrictedSubTrip)
 			sim_mob::SubTrip restrictedSubTrip(subTrips[i]);
 			//origin in the restricted area
-			if(o != nullptr)
+			if(o != false)
 			{
-				WayPoint wpo(o);
-				restrictedSubTrip.toLocation = wpo;
-				subTrips[i].fromLocation = wpo;
+//				WayPoint wpo(o);
+				restrictedSubTrip.toLocation = subTrips[i].fromLocation/*wpo*/;
+//				subTrips[i].fromLocation = wpo;
 				restrictedSubTrip.tripID += "-sb";//subtrip before the current subtrip
 				//insert restrictedSubTrip 'before' the current subtrip
 				subTrips.insert(subTrips.begin() + i , restrictedSubTrip);
@@ -254,7 +282,7 @@ void sim_mob::RestrictedRegion::processSubTrips(std::vector<sim_mob::SubTrip>& s
 			//destination in the restricted area
 			else
 			{
-				WayPoint wpd(d);
+				WayPoint wpd(subTrips[i].toLocation);
 				subTrips[i].toLocation = wpd;
 				restrictedSubTrip.fromLocation = wpd;
 				restrictedSubTrip.tripID += "-sa";//split after the current subtrip
@@ -266,13 +294,12 @@ void sim_mob::RestrictedRegion::processSubTrips(std::vector<sim_mob::SubTrip>& s
 	}
 
 }
-const sim_mob::Node* sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::Node* target) const
+bool sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::Node* target) const
 {
-	std::set<const Node*>::const_iterator it(zoneNodes.find(target));
-	return (zoneNodes.end() == it ? nullptr : *it);
+	return Impl->isInRestrictedZone(target);
 }
 
-const sim_mob::Node* sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::WayPoint& target) const
+bool sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::WayPoint& target) const
 {
 	if(target.type_ != WayPoint::NODE)
 	{
@@ -290,23 +317,16 @@ bool sim_mob::RestrictedRegion::isInRestrictedSegmentZone(const std::vector<WayP
 		{
 			throw std::runtime_error("Invalid WayPoint type Supplied\n");
 		}
-		if(isInRestrictedSegmentZone(wp.roadSegment_))
+		if(Impl->isInRestrictedSegmentZone(wp.roadSegment_))
 		{
 			return true;
 		}
 	}
 	return false;
 }
-
 bool sim_mob::RestrictedRegion::isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const
 {
-	std::set<const sim_mob::RoadSegment*>::iterator itDbg;
-	if ((itDbg = zoneSegments.find(target)) != zoneSegments.end())
-	{
-		std::cout << "segment " << (*itDbg)->getId() << " is in Zone Segments\n";
-		return true;
-	}
-	return false;
+	return Impl->isInRestrictedSegmentZone(target);
 }
 
 bool sim_mob::RestrictedRegion::isEnteringRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg)
@@ -318,6 +338,65 @@ bool sim_mob::RestrictedRegion::isExittingRestrictedZone(const sim_mob::RoadSegm
 {
 	return out.find(std::make_pair(curSeg,nxtSeg)) != out.end();
 }
+
+/*********  Search Implementaiont *****************/
+sim_mob::RestrictedRegion::StrSearch::StrSearch(sim_mob::RestrictedRegion & instance):Search(instance){}
+bool sim_mob::RestrictedRegion::StrSearch::isInRestrictedZone(const Node* target) const
+{
+	return
+			(instance.zoneNodesStr.find(boost::lexical_cast<string>(target->getID())) != std::string::npos ?
+					true :
+					false);
+}
+
+bool sim_mob::RestrictedRegion::StrSearch::isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const
+{
+	return
+			(instance.zoneSegmentsStr.find(boost::lexical_cast<string>(target->getId())) != std::string::npos ?
+					true :
+					false);
+
+}
+///////////////////
+sim_mob::RestrictedRegion::ObjSearch::ObjSearch(sim_mob::RestrictedRegion & instance):Search(instance){}
+bool sim_mob::RestrictedRegion::ObjSearch::isInRestrictedZone(const Node* target) const
+{
+	std::map<std::string,const Node*>::const_iterator it(instance.zoneNodes.find(boost::lexical_cast<std::string>(target->getID())));
+	return (instance.zoneNodes.end() == it ? false : true);
+}
+
+bool sim_mob::RestrictedRegion::ObjSearch::isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const
+{
+	std::set<const sim_mob::RoadSegment*>::iterator itDbg;
+	if ((itDbg = instance.zoneSegments.find(target)) != instance.zoneSegments.end())
+	{
+		std::cout << "segment " << (*itDbg)->getId() << " is in Zone Segments\n";
+		return true;
+	}
+	return false;
+}
+///////////////////////
+sim_mob::RestrictedRegion::TagSearch::TagSearch(sim_mob::RestrictedRegion & instance):Search(instance){}
+bool sim_mob::RestrictedRegion::TagSearch::isInRestrictedZone(const Node* target) const
+{
+	return (target->CBD ? true : false);
+}
+
+bool sim_mob::RestrictedRegion::TagSearch::isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const
+{
+	return target->CBD;
+}
+
+///////////////////////
+//const Node* sim_mob::RestrictedRegion::StrSearch::isInRestrictedZone(const WayPoint& target) const;
+//bool sim_mob::RestrictedRegion::StrSearch::isInRestrictedSegmentZone(const std::vector<WayPoint> & target) const;
+//bool sim_mob::RestrictedRegion::StrSearch::isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const;
+//bool sim_mob::RestrictedRegion::StrSearch::isEnteringRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg);
+//bool sim_mob::RestrictedRegion::StrSearch::isExittingRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg);
+
+
+
+
 
 sim_mob::PeriodicPersonLoader::PeriodicPersonLoader(std::set<sim_mob::Entity*>& activeAgents, StartTimePriorityQueue& pendinAgents)
 	: activeAgents(activeAgents), pendingAgents(pendinAgents),

@@ -733,6 +733,7 @@ bool sim_mob::PathSetManager::findCachedPathSet(std::string  key,
 	//expensive operation, use with cautions
 	if(res && !blcklist.empty())
 	{
+		throw std::runtime_error("This demo shall NOT check cache for blacklist");
 		//expensive operation, use with cautions
 		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>::iterator it(value->pathChoices.begin());
 		for ( ; it != value->pathChoices.end(); ) {
@@ -804,11 +805,11 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::Person* per,con
 	logger << "+++++++++++++++++++++++++" << "\n";
 	vector<WayPoint> res = vector<WayPoint>();
 	//CBD area logic
-	const Node * from = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.fromLocation);
-	const Node * to = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.toLocation);
+	bool from = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.fromLocation);
+	bool to = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.toLocation);
 	str.str("");
 	str << fromToID << " getBestPath-CBD :";
-	if(to == nullptr && from ==nullptr){
+	if(to == false && from == false){
 		subTrip.cbdTraverseType = TravelMetric::CBD_PASS;
 		str << "Enforce blacklist for " ;
 		std::stringstream outDbg("");
@@ -820,7 +821,7 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::Person* per,con
 			throw std::runtime_error ("\npath inside cbd ");
 		}
 	}
-	else if(to == nullptr || from ==nullptr){
+	else if(to == false || from ==false){
 		str  << (from ? " EXIT" : "ENTER") << " CBD " ;
 		subTrip.cbdTraverseType = (from ? TravelMetric::CBD_EXIT : TravelMetric::CBD_ENTER);
 		getBestPath(res, &subTrip);
@@ -980,10 +981,10 @@ bool sim_mob::PathSetManager::getBestPath(
 		// 1.3 generate shortest path with full segs
 		ps_.reset(new PathSet(fromNode,toNode));
 		ps_->id = fromToID;
-		std:string temp = fromNode->originalDB_ID.getLogItem();
-		ps_->fromNodeId = sim_mob::Utils::getNumberFromAimsunId(temp);
-		temp = toNode->originalDB_ID.getLogItem();
-		ps_->toNodeId = sim_mob::Utils::getNumberFromAimsunId(temp);
+//		std:string temp = fromNode->originalDB_ID.getLogItem();
+//		ps_->fromNodeId = sim_mob::Utils::getNumberFromAimsunId(temp);
+//		temp = toNode->originalDB_ID.getLogItem();
+//		ps_->toNodeId = sim_mob::Utils::getNumberFromAimsunId(temp);
 		ps_->scenario = scenarioName;
 		ps_->subTrip = st;
 		ps_->psMgr = this;
@@ -1358,10 +1359,12 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 				ps_->id = fromToID;
 //				ps_->fromNodeId = fromNode->originalDB_ID.getLogItem();
 //				ps_->toNodeId = toNode->originalDB_ID.getLogItem();
-				std:string temp = fromNode->originalDB_ID.getLogItem();
-				ps_->fromNodeId = sim_mob::Utils::getNumberFromAimsunId(temp);
-				temp = toNode->originalDB_ID.getLogItem();
-				ps_->toNodeId = sim_mob::Utils::getNumberFromAimsunId(temp);
+
+//				std:string temp = fromNode->originalDB_ID.getLogItem();
+//				ps_->fromNodeId = sim_mob::Utils::getNumberFromAimsunId(temp);
+//				temp = toNode->originalDB_ID.getLogItem();
+//				ps_->toNodeId = sim_mob::Utils::getNumberFromAimsunId(temp);
+
 				ps_->scenario = scenarioName;
 				std::map<std::string,boost::shared_ptr<sim_mob::PathSet> > tmp;
 				tmp.insert(std::make_pair(fromToID,ps_));
@@ -1392,10 +1395,12 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 				std::vector< std::vector<sim_mob::WayPoint> > kshortestPaths = kshortestImpl->getKShortestPaths(fromNode,toNode,ps_,duplicateChecker);
 //				ps_->fromNodeId = fromNode->originalDB_ID.getLogItem();
 //				ps_->toNodeId = toNode->originalDB_ID.getLogItem();
-				std::string temp = fromNode->originalDB_ID.getLogItem();
-				ps_->fromNodeId = sim_mob::Utils::getNumberFromAimsunId(temp);
-				temp = toNode->originalDB_ID.getLogItem();
-				ps_->toNodeId = sim_mob::Utils::getNumberFromAimsunId(temp);
+
+//				std::string temp = fromNode->originalDB_ID.getLogItem();
+//				ps_->fromNodeId = sim_mob::Utils::getNumberFromAimsunId(temp);
+//				temp = toNode->originalDB_ID.getLogItem();
+//				ps_->toNodeId = sim_mob::Utils::getNumberFromAimsunId(temp);
+
 				ps_->scenario = scenarioName;
 				// 3. store pathset
 				sim_mob::generatePathSizeForPathSet2(ps_);
@@ -2216,27 +2221,27 @@ sim_mob::PathSet::~PathSet()
 	}
 }
 
-sim_mob::PathSet::PathSet(const boost::shared_ptr<sim_mob::PathSet> & ps) :
-		logsum(ps->logsum),oriPath(ps->oriPath),
-		subTrip(ps->subTrip),
-		id(ps->id),
-		fromNodeId(ps->fromNodeId),
-		toNodeId(ps->toNodeId),
-		scenario(ps->scenario),
-		pathChoices(ps->pathChoices),
-		singlepath_id(ps->singlepath_id),
-		hasPath(ps->hasPath),
-		bestWayPointpath(nullptr)
-{
-	isNeedSave2DB=false;
-	isInit = false;
-	hasBestChoice = false;
-	// 1. get from to nodes
-	//	can get nodes later,when insert to personPathSetPool
-	this->fromNode = sim_mob::PathSetParam::getInstance()->getCachedNode(fromNodeId);
-	this->toNode = sim_mob::PathSetParam::getInstance()->getCachedNode(toNodeId);
-//	// get all relative singlepath
-}
+//sim_mob::PathSet::PathSet(const boost::shared_ptr<sim_mob::PathSet> & ps) :
+//		logsum(ps->logsum),oriPath(ps->oriPath),
+//		subTrip(ps->subTrip),
+//		id(ps->id),
+//		fromNodeId(ps->fromNodeId),
+//		toNodeId(ps->toNodeId),
+//		scenario(ps->scenario),
+//		pathChoices(ps->pathChoices),
+//		singlepath_id(ps->singlepath_id),
+//		hasPath(ps->hasPath),
+//		bestWayPointpath(nullptr)
+//{
+//	isNeedSave2DB=false;
+//	isInit = false;
+//	hasBestChoice = false;
+//	// 1. get from to nodes
+//	//	can get nodes later,when insert to personPathSetPool
+//	this->fromNode = sim_mob::PathSetParam::getInstance()->getCachedNode(fromNodeId);
+//	this->toNode = sim_mob::PathSetParam::getInstance()->getCachedNode(toNodeId);
+////	// get all relative singlepath
+//}
 
 
 uint32_t sim_mob::PathSet::getSize(){
@@ -2267,8 +2272,8 @@ uint32_t sim_mob::PathSet::getSize(){
 		sum += sizeof(double);//double logsum;
 		sum += sizeof(const sim_mob::SubTrip*);//const sim_mob::SubTrip* subTrip;
 		sum += id.length();//std::string id;
-		sum += fromNodeId.length();//std::string fromNodeId;
-		sum += toNodeId.length();//std::string toNodeId;
+//		sum += fromNodeId.length();//std::string fromNodeId;
+//		sum += toNodeId.length();//std::string toNodeId;
 		sum += singlepath_id.length();//std::string singlepath_id;
 		sum += excludedPaths.length();//std::string excludedPaths;
 		sum += scenario.length();//std::string scenario;
@@ -2343,25 +2348,25 @@ sim_mob::SinglePath::SinglePath(const SinglePath& source) :
 
 	purpose = sim_mob::work;
 
-	//use id to build shortestWayPointpath
-	std::vector<std::string> segIds;
-	boost::split(segIds,source.id,boost::is_any_of(","));
-	// no path is correct
-	for(int i=0;i<segIds.size();++i)
-	{
-		std::string id = segIds.at(i);
-		if(id.size()>1)
-		{
-			sim_mob::RoadSegment* seg = sim_mob::PathSetParam::getInstance()->getRoadSegmentByAimsunId(id);
-			if(!seg)
-			{
-				std::string str = "SinglePath: seg not find " + id;
-				logger << "error: " << str << "\n";
-			}
-			this->shortestWayPointpath.push_back(WayPoint(seg));//copy better than this twist
-//			shortestSegPath.insert(seg);
-		}
-	}
+//	//use id to build shortestWayPointpath
+//	std::vector<std::string> segIds;
+//	boost::split(segIds,source.id,boost::is_any_of(","));
+//	// no path is correct
+//	for(int i=0;i<segIds.size();++i)
+//	{
+//		std::string id = segIds.at(i);
+//		if(id.size()>1)
+//		{
+//			sim_mob::RoadSegment* seg = sim_mob::PathSetParam::getInstance()->getRoadSegmentByAimsunId(id);
+//			if(!seg)
+//			{
+//				std::string str = "SinglePath: seg not find " + id;
+//				logger << "error: " << str << "\n";
+//			}
+//			this->shortestWayPointpath.push_back(WayPoint(seg));//copy better than this twist
+////			shortestSegPath.insert(seg);
+//		}
+//	}
 }
 
 sim_mob::SinglePath::~SinglePath(){
@@ -2398,8 +2403,8 @@ sim_mob::PathSet::PathSet(boost::shared_ptr<sim_mob::PathSet> &ps) :
 		logsum(ps->logsum),oriPath(ps->oriPath),
 		subTrip(ps->subTrip),
 		id(ps->id),
-		fromNodeId(ps->fromNodeId),
-		toNodeId(ps->toNodeId),
+//		fromNodeId(ps->fromNodeId),
+//		toNodeId(ps->toNodeId),
 		scenario(ps->scenario),
 		pathChoices(ps->pathChoices),
 		hasPath(ps->hasPath),

@@ -321,7 +321,7 @@ public:
 
 	///Settings used for generation/retrieval of paths
 	PathSetParams pathset;
-
+	bool cbd;
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;
 

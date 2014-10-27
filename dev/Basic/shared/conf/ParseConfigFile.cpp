@@ -210,7 +210,8 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessPassengersNode(GetSingleElementByName(rootNode, "passengers"));
 	ProcessSignalsNode(GetSingleElementByName(rootNode, "signals"));
 	ProcessBusControllersNode(GetSingleElementByName(rootNode, "buscontrollers"));
-	ProcessPathSetNodeNode(GetSingleElementByName(rootNode, "pathset"));
+	ProcessPathSetNode(GetSingleElementByName(rootNode, "pathset"));
+	ProcessCBD_Node(GetSingleElementByName(rootNode, "CBD"));
 }
 
 
@@ -543,7 +544,7 @@ void sim_mob::ParseConfigFile::ProcessBusControllersNode(xercesc::DOMElement* no
 	ProcessFutureAgentList(node, "buscontroller", cfg.busControllerTemplates, false, false, true, false);
 }
 
-void sim_mob::ParseConfigFile::ProcessPathSetNodeNode(xercesc::DOMElement* node){
+void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 
 	if (!node) {
 
@@ -582,6 +583,16 @@ void sim_mob::ParseConfigFile::ProcessPathSetNodeNode(xercesc::DOMElement* node)
 	{
 		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(functionNode, "value"), "get_path_set");
 	}
+}
+
+void sim_mob::ParseConfigFile::ProcessCBD_Node(xercesc::DOMElement* node){
+
+	if (!node) {
+
+		cfg.cbd = false;
+		return;
+	}
+	cfg.cbd = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)

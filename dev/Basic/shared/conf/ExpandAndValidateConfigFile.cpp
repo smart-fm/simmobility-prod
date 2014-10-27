@@ -190,7 +190,10 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//TODO: This should be moved into its own class; we should NOT be doing loading in ExpandAndValidate()
 	//      (it is here now to maintain compatibility with the old order or loading things).
 	LoadNetworkFromDatabase();
-	sim_mob::RestrictedRegion::getInstance().populate();
+	if(sim_mob::ConfigManager::GetInstance().FullConfig().CBD())
+	{
+		sim_mob::RestrictedRegion::getInstance().populate();
+	}
 
 	//TEMP: Test network output via boost.
 	//todo: enable/disble through cinfig

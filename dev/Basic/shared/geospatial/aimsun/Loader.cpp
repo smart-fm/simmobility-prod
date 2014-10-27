@@ -130,7 +130,7 @@ public:
 				std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 				std::string& pathset_id,
 				std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool);
-	static bool LoadSinglePathDBwithIdST(soci::session& sql,
+	static sim_mob::HasPath LoadSinglePathDBwithIdST(soci::session& sql,
 					std::string& pathset_id,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool
 					,const std::string functionName,std::stringstream *outDbg=nullptr,
 					const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
@@ -354,7 +354,7 @@ bool DatabaseLoader::LoadSinglePathDBwithId2(
 		}
 		return true;
 }
-bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
+sim_mob::HasPath DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 		std::string& pathset_id,
 		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,
 		const std::string functionName,std::stringstream *outDbg,
@@ -362,7 +362,20 @@ bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 {
 	//prepare statement
 	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare	<< "select * from " + functionName + "(:pathset_id_in)", soci::use(pathset_id));
-
+	//temp optimization todo remove hardcode
+	if(rs.begin() == rs.end())
+	{
+		soci::rowset<soci::row> rsPS = sql.prepare << "select * from \"PathSet_Scaled_HITS_distinctODs\" "
+													"where \"ID\" = '" + pathset_id + "' and \"HAS_PATH\" = -1";
+		if(rsPS.begin() != rsPS.end())
+		{
+			return sim_mob::PSM_HASNOPATH;
+		}
+	}
+	else
+	{
+		return sim_mob::PSM_NOTFOUND;
+	}
 	//	process result
 	int i = 0;
 	for (soci::rowset<sim_mob::SinglePath>::const_iterator it = rs.begin();	it != rs.end(); ++it) {
@@ -428,9 +441,9 @@ bool DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 	}
 	if (i == 0) {
 		pathsetLogger << "DatabaseLoader::LoadSinglePathDBwithIdST: " << pathset_id << "no data in db\n" ;
-		return false;
+		return sim_mob::PSM_HASNOPATH;
 	}
-	return true;
+	return sim_mob::PSM_HASPATH;
 }
 bool DatabaseLoader::LoadPathSetDBwithId(
 		std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pool,
@@ -2743,13 +2756,12 @@ bool sim_mob::aimsun::Loader::LoadSinglePathDBwithId2(const std::string& connect
 	bool res = loader.LoadSinglePathDBwithId2(waypoint_singlepathPool,pathset_id,spPool);
 	return res;
 }
-bool sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(soci::session& sql,
+sim_mob::HasPath sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(soci::session& sql,
 			std::string& pathset_id,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool
 			,const std::string functionName,std::stringstream *outDbg,
 			const std::set<const sim_mob::RoadSegment *> & excludedRS)
 {
-	bool res = DatabaseLoader::LoadSinglePathDBwithIdST(sql,pathset_id,spPool,functionName,outDbg,excludedRS);
-	return res;
+	return DatabaseLoader::LoadSinglePathDBwithIdST(sql,pathset_id,spPool,functionName,outDbg,excludedRS);
 }
 bool sim_mob::aimsun::Loader::LoadPathSetDBwithId(const std::string& connectionStr,
 		std::map<std::string,boost::shared_ptr<sim_mob::PathSet> > & pool,

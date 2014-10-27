@@ -34,6 +34,15 @@ class ERP_Section;
 class ERP_Surcharge;
 class LinkTravelTime;
 
+
+enum HasPath
+{
+	PSM_HASPATH,//found and valid
+	PSM_HASNOPATH,//previous attempt to build pathset failed
+	PSM_NOTFOUND,//search didn't find anything
+	PSM_UNKNOWN,
+};
+
 namespace aimsun
 {
 
@@ -70,7 +79,7 @@ public:
 				std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 				std::string& pathset_id,
 				std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool);
-	static bool LoadSinglePathDBwithIdST(soci::session& sql,std::string& pathset_id,
+	static sim_mob::HasPath LoadSinglePathDBwithIdST(soci::session& sql,std::string& pathset_id,
 			std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string functionName,std::stringstream *outDbg=0,
 			const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
 	static bool LoadPathSetDBwithId(const std::string& connectionStr,

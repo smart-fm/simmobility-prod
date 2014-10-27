@@ -403,7 +403,7 @@ private:
 	/// if any additional/temporary blacklist emerged during simulation, they can be supplied
 	///	to getPath() with proper switches. The management of such blacklists is not in the scope
 	///	of PathSetManager
-	const std::set<const sim_mob::RoadSegment*> &blacklistSegments;
+	const std::set<const sim_mob::RoadSegment*> blacklistSegments;
 
 	///	protect access to incidents list
 	boost::shared_mutex mutexExclusion;

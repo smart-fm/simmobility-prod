@@ -207,6 +207,7 @@ public:
 	std::set<sim_mob::SegmentStats*>& getSegmentStatsWithBusStops();
 		bool PathSetMode() const;
 	const PathSetParams & pathSet() const;
+	bool CBD() const;
 	
 
 

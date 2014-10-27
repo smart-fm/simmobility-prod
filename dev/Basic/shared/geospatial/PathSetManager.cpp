@@ -498,7 +498,8 @@ sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()),
 		pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName),
 		singlePathTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().singlePathTableName),
 		dbFunction(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().dbFunction),cacheLRU(2500),
-		blacklistSegments(RestrictedRegion::getInstance().getZoneSegments())//todo placeholder
+		blacklistSegments((sim_mob::ConfigManager::GetInstance().FullConfig().CBD() ?
+				RestrictedRegion::getInstance().getZoneSegments(): std::set<const sim_mob::RoadSegment*>()))//todo placeholder
 {
 	pathSetParam = PathSetParam::getInstance();
 	std::string dbStr(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
@@ -922,13 +923,13 @@ bool sim_mob::PathSetManager::getBestPath(
 		logger <<  fromToID << " : Cache Miss " << "\n";
 	}
 	//step-2:check  DB
-	bool hasPSinDB = false;
+	sim_mob::HasPath hasPath = PSM_UNKNOWN;
 	ps_.reset(new sim_mob::PathSet());
 	ps_->subTrip = st;
 	ps_->id = fromToID;
-	bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(*getSession(),fromToID,ps_->pathChoices, dbFunction,outDbg,blckLstSegs);
-	logger  <<  fromToID << " : " << (hasSPinDB ? "" : "Don't " ) << "have SinglePaths in DB \n" ;
-	if(hasSPinDB)
+	hasPath = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(*getSession(),fromToID,ps_->pathChoices, dbFunction,outDbg,blckLstSegs);
+	logger  <<  fromToID << " : " << (hasPath == PSM_HASPATH ? "" : "Don't " ) << "have SinglePaths in DB \n" ;
+	if(hasPath == PSM_HASPATH)
 	{
 		cout  <<  fromToID << " : DB Hit\n";
 		logger  <<  fromToID << " : DB Hit\n";
@@ -970,7 +971,7 @@ bool sim_mob::PathSetManager::getBestPath(
 				logger << "UNUSED DB hit\n";
 		}
 	}
-	else // !hasSPinDB
+	else if(hasPath == PSM_NOTFOUND)
 	{
 		cout  <<  fromToID << " : DB Miss\n";
 		logger  <<  fromToID << " : DB Miss\n";

@@ -82,9 +82,9 @@ template<> struct type_conversion<sim_mob::PathSet>
     }
     static void to_base(const sim_mob::PathSet& src, soci::values& vals, soci::indicator& ind)
     {
-    	vals.set("ID", src.id);
-//        vals.set("FROM_NODE_ID", src.fromNodeId);
-//        vals.set("TO_NODE_ID", src.toNodeId);
+    	vals.set("ID", src.id);//   'origin,destination'
+        vals.set("FROM_NODE_ID", src.id.substr(0,src.id.find(",")));//origin
+        vals.set("TO_NODE_ID", src.id.substr(src.id.find(",")+1, src.id.size() - src.id.find(",")));//destination
 //        vals.set("PERSON_ID", src.person_id);
 //        vals.set("TRIP_ID", src.trip_id);
         vals.set("SINGLEPATH_ID", src.singlepath_id);

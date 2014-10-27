@@ -8,67 +8,111 @@
 <parameters model_name="general_driver_model">
 
 <!-- A. ACCELERATION MODELS -->
-<!-- A.1. CAR FOLLOWING PARAMETERS 
-	The following parameters describe the boundaries of the car following
-	regime. The following vehicle is in a car following regime
-	(i.e. accelerates according to the car following models described below)
-	when the time headway between the lead and following vehicles is
-	between the CF Upper and Lower headway thresholds. 
-	The Min Response Distance is the minimum space headway between the
-	lead and following vehicles for which the following vehicle must apply some
-	acceleration (or deceleration). -->
-	<param name="min_response_distance" value="5.0"/>
+<!-- A.1. CAR FOLLOWING PARAMETERS
+
+	The following parameters describe the boundaries of the car following regime. The following vehicle is in a car following
+	regime when the time headway between the lead and following vehicles is between the CF Upper and Lower headway thresholds.
+	The Min Response Distance is the minimum space headway between the lead and following vehicles for which the following
+	vehicle must apply some acceleration (or deceleration). -->
+	<!-- From A44 (Portugal) trajectory calibration-->
+	<!--param name="min_response_distance" value="2.5"/-->
+	<!--From mitsim:-->
+	<!--param name="min_response_distance" value="4.6"/-->
+
+	<param name="min_response_distance" value="2.5"/>
+
 	
 	<!-- The SimMobility car-following model describes the
 	acceleration of the following vehicle in a car following regime:
 	
 	Acceleration = alpha * (v ^ beta / dx ^ gamma) * (k ^ rho) * (dv ^ lambda) + N(0, stddev^2)
 	
-	where v = speed of the following vehicle, dx = distance gap between
-	the lead and following vehicles, and dv = speed difference between
-	the lead and following vehicles. -->
+	where v = speed of the following vehicle, dx = distance gap between the lead and following vehicles, and 
+	dv = speed difference between the lead and following vehicles.
+	
+	Each pair of sucessive lines correspond to acceleraion - deceleration functions.
+	Default values are:-->
+	<!-- Car following parameters			alpha	beta	gama	lambda	rho	stddev -->	
+	<!-- From A44 (Portugal) trajectory calibration-->
+	<!-- param name="CF_parameters_1" value="	0.0401	0.740	0.205	0.650	0.494	1.091"/	--> <!-- ACC-->
+	<!-- param name="CF_parameters_2" value="	-0.374	0.000	0.650	0.750	0.605	0.492"/ --> <!-- DEC-->
+	<!--From mitsim:-->
+	<!-- param name="CF_parameters_1" value="	0.0916	0.722	0.242	0.682	0.600	#0.825"/-->
+	<!-- param name="CF_parameters_2" value="	-0.0278	0.000	0.151	0.804	0.682	#0.802"/-->
 
-	<!-- Car following parameters			alpha	beta	gama	lambda	rho		stddev -->
-	<param name="CF_parameters_1" value="	0.0400	0.7220	0.2420	0.6820	0.6000	0.0"/>
-	<param name="CF_parameters_2" value="	-0.0418	0.0000	0.1510	0.6840	0.6800	0.0"/>
-	<!-- param name="CF_parameters_1" value="	0.0355	0.2910	0.1660	0.520	0.571	0"/-->
-	<!-- param name="CF_parameters_2" value="	-0.860	0.0000	0.5650	0.8340	0.152	0"/-->
+	<!-- Car following parameters		alpha	beta	gama	lambda	rho	stddev -->
+	<param name="CF_parameters_1" value="	0.0401	0.740	0.205	0.650	0.494	0.0"/>
+	<param name="CF_parameters_2" value="	-0.374	0.000	0.650	0.750	0.605	0.0"/>
+	
+	<!-- Each column represents the following population percentile
+		 							0.05 	0.15	0.25	0.35	0.45	0.55	0.65	0.75	0.85	0.95 -->
+	<!--param name="Car_following_acceleration_add_on" value="	-1.3564	-0.8547	-0.5562 -0.3178 -0.1036 0.1036	0.3178	0.5562	0.8547	1.3564"/-->
+	<param name="Car_following_acceleration_add_on" value="		-1.7945 -1.1307 -0.7358 -0.4203 -0.1370 0.1370	0.4203	0.7358	1.1307	1.7945"/>
+	<!--param name="Car_following_deceleration_add_on" value="	-1.3187	-0.8309	-0.5407	-0.3089	-0.1007	0.1007	0.3089	0.5407	0.8309	1.3187"/-->
+	<param name="Car_following_deceleration_add_on" value="		-0.8092	-0.5099	-0.3318	-0.1895	-0.0618	0.0618	0.1895	0.3318	0.5099	0.8092"/>
 
-# Kazi formulates the free flow acceleration rate as:
-#
-#   acc = b[2] * stimulus + N(0,stddev)
-#
-# where:
-#
-#   Spd: speed of the subject vehicle
-#   Stimulus = b[3] + spdlmt + b[4] * front->Spd + b[5] * IsHeavy
-#            + b[6] * IsFreeFlow - spd
-# 
-# This model applies only if Spd is greater than b[0].  IsFreeFlow is
-# defined as segment density is less than or equal to b[1] vehicles per
-# km per lane (level of service A, B, or C). All units are already in
-# the metric system and no conversion is required.
-# 
-# The stddev is indirectly used in creating col 6 in Driver Group.
+	<!-- TODO: The add-ons should be specified with just the std dev param. -->
 
-#[FF Acc Params] = { # Spd is in meter/sec, acc is in meter/sec2
 
-#   b[0]  b[1] b[2]   b[3]     b[4]    b[5]    b[6]    # std dev
-#    10.0  19  0.3091  -12.365  0.6182  -0.670  7.5974  #  1.134
+<!--  A.2. FREE FLOW PARAMETERS
+	
+	Kazi formulates the free flow acceleration rate as:
+	acc = b[2] * stimulus + N(0,stddev)
+	
+	where:
+	Spd: speed of the subject vehicle
+	Stimulus = <Desired Speed> - <Current Speed
+
+	This model applies only if the current speed is greater than b[0].
+	Default values are:-->
+	<!-- From A44 (Portugal) trajectory calibration-->
+	<!--param name="FF_Acc_Params_b0" value="9.5"/>
+	<param name="FF_Acc_Params_b2" value="0.296"/>
+	<param name="FF_Acc_Params_stddev" value="1.151"/-->
+	<!--From mitsim:-->
+	<!--param name="FF_Acc_Params_b0" value="10.0"/>
+	<param name="FF_Acc_Params_b2" value="0.3091"/>
+	<param name="FF_Acc_Params_stddev" value="1.134"/-->
+
 	<param name="FF_Acc_Params_b0" value="3.0"/>
 	<param name="FF_Acc_Params_b2" value="0.3091"/>
-	<!--param name="FF_Acc_Params_stddev" value="1.134"/-->
-	<param name="FF_Acc_Params_stddev" value="0"/>
-#Car-following acceleration add on
-	<!--param name="Car_following_acceleration_add_on" value="-1.3564 -0.8547 -0.5562 -0.3178 -0.1036 0.1036 0.3178 0.5562 0.8547 1.3564"/-->
-	<param name="Car_following_acceleration_add_on" value="0 0 0 0 0 0 0 0 0 0"/>
-	<!--param name="Car_following_deceleration_add_on" value="-1.3187 -0.8309 -0.5407 -0.3089 -0.1007 0.1007 0.3089 0.5407 0.8309 1.3187"/-->
-	<param name="Car_following_deceleration_add_on" value="0 0 0 0 0 0 0 0 0 0"/>
+	<param name="FF_Acc_Params_stddev" value="1.15"/>
+
+
+<!-- A.3. DESIRED SPEED
+	The desired speed constrained by the posted speed limit is defined by
+	Vdesired = Vsign * ( speed_factor + speed_var)
 	
-<!-- A.2. TARGET GAP ACCELERATION PARAMETERS
-	The target gap acceleration model is the acceleration that a vehicle executes
-	to reach an acceptable gap for lane change. It is specified separately for the 
-	backward, forward and adjacent gaps:
+	where
+	speed_var stands for the variability of the desired speed and is read from the table bellow	
+	Vsign is the local speed limit
+	
+	Default values are:-->
+	<!-- From A44 (Portugal) trajectory calibration-->
+	<!--param name="speed_factor" value="1.261"/-->
+	<!--param name="speed_var" value="0.19"/-->
+	<!--From mitsim:-->
+	<!--param name="speed_factor" value="1.103"/-->
+	<!--param name="speed_var" value="0.17"/-->
+
+	
+	<param name="speed_factor" value="1.261"/>
+	<!-- Each column represents the following population percentile
+		 					0.05 	0.15	0.25	0.35	0.45	0.55	0.65	0.75	0.85	0.95 -->
+	<param name="speed_limit_add_on" value="	-0.3125 -0.1969	-0.1281	-0.0732	-0.0238	0.0238	0.0732	0.1281	0.1969	0.3125"/>
+	
+
+	<!--TODO:
+	Deisred Speed =	b[3] + spdlmt + b[4] * front->Spd + b[5] * IsHeavy + b[6] * IsFreeFlow
+	IsFreeFlow is defined as segment density is less than or equal to b[1] vehicles per km per lane (level of service A, B, or C). 
+	All units are already in the metric system and no conversion is required.
+	b[0]  b[1] b[2]   b[3]     b[4]    b[5]    b[6]    # std dev
+	10.0  19  0.3091  -12.365  0.6182  -0.670  7.5974  #  1.134 -->
+	
+
+<!-- A.4. TARGET GAP ACCELERATION PARAMETERS
+	The target gap acceleration model is the acceleration that a vehicle executes to reach an acceptable gap for lane change.
+	It is specified separately for the backward, forward and adjacent gaps:
 	
 	accFWDGap = [2] * (Desired position FWD) ^ [3] * exp( [4] * DeltaV+ ) * exp( [5] * DeltaV-) + N(0,[6]²)
 	accBCKGap = [7] * (Desired position BCK) ^ [8] * exp( [9] * DeltaV+ ) * exp( [10] * DeltaV-) + N(0,[11]²)
@@ -78,35 +122,44 @@
 	Desired position FWD = LeadHeadway + leadlenght + [1] * FWDgap
 	Desired position BCK = LagHeadway + length + laglength + ( 1- [1] ) * BCKgap
 	Desired position ADJ =  [1] * ADJgap + length - LagHeadway
+
+	Default values are:-->
+	<!-- From A44 (Portugal) trajectory calibration
 							[1]	[2]	[3]	[4]	[5]	[6]	[7]	[8]	[9]	[10]	[11]	[12]	[13] -->
+	<!--param name="target_gap_acc_parm" value="	0.735	0.526	0.171	0.034	0.332	0.564	-0.667	-0.231	0.080	0.192	1.809	0.065	0.279"/-->	
+	<!--From mitsim:-->
+	<!--param name="target_gap_acc_parm" value="	0.604	0.385	0.323	0.0678	0.217	0.583	-0.596	-0.219	0.0832	0.170	1.478	0.131	0.300"/-->
+
+						<!--	[1]	[2]	[3]	[4]	[5]	[6]	[7]	[8]	[9]	[10]	[11]	[12]	[13] -->
 	<param name="target_gap_acc_parm" value="	0.604	0.385	0.323	0.0678	0.217	0.583	-0.596	-0.219	0.0832	0.170	1.478	0.131	0.300"/>
 	
-<!--A.3. ACCELERATION THRESHOLDS
-	Following are the acceleration and deceleration characteristics
-	of the vehicle classes named earlier in the file
-	In determining the acceleration thresholds of a vehicle based on
-	grade and speed, 
-	acc = acc (based on speed and vehicle type, from the main tables below) - grade factor * grade
-	-->
-	<!--MAIN TABLES (m/s2)
-		Each column represents the following speed bins (m/s) defined in "speed_scaler" bellow
-		Each row represents a vehicle class
+<!--A.5. ACCELERATION THRESHOLDS
+	Here are the acceleration and deceleration thresholds of the vehicle types used by SimMobility
+	based on grade and speed from the tables bellow
 
-		NOTE: The code needs to be changed to accept a variable number of vehicle classes -->	 
+	acc_threshold_regime = acc (from the main tables below) - grade factor * grade
+	
+	Each column represents the following speed bins (m/s) defined in "speed_scaler" bellow
+	Each row represents a vehicle type; accelration values are in (m/s2)
+	TODO: for now we only have one table used by all vehicle types. The code needs to be changed to accept a variable number of vehicle classes -->	 
+	
 	<!-- Maximum acceleration -->
-	<param name="max_acc_car1"		value="5.00 	5.00	5.00	5.00	5.00"/>
+	<param name="max_acc_car1"		value="6.00 	5.50	5.00	4.50	4.00"/>
 	<!-- Normal deceleration -->
-	<param name="normal_deceleration_car1"	value="-1 	-1.00 	-1.00 	-1.00 	-1.00"/>
+	<param name="normal_deceleration_car1"	value="-2.50 	-2.25 	-2.00 	-1.75 	-1.50"/>
 	<!-- Maximum deceleration -->
-	<param name="max_deceleration_car1"	value="-3.00 	-3.00	-3.00	-3.00	-3.00"/>
-	<!-- VARIATION TABLES (factor)-->
-	<!-- Each column represents the following population percentile
-							 0.05 0.15 0.25 0.35 0.45 0.55 0.65 0.75 0.85 0.95 -->
-	<param name="max_acceleration_scale"    value=	"1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00"/>
-	<!--<param name="max_acceleration_scale"    value=	"1.0001 1.0002 1.0003 1.0004 1.0005 1.0006 1.0007 1.0008 1.0009 1.0010"/>-->
-	<param name="normal_deceleration_scale" value=	"1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00"/>
-	<param name="max_deceleration_scale"    value=	"1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00"/>							 	
+	<param name="max_deceleration_car1"	value="-9.00 	-8.50	-8.00	-7.50	-7.00"/>
 
+	<!-- VARIABILITY TABLES
+	For each new vehicle created in SimMoblity a stochastic factor drawn from the following distribution is used:
+	
+	acc_threshold_regime_vehicleN = acc_threshold_regime * acc_regime_factor
+
+	Each column represents the following population percentile
+							 0.05 0.15 0.25 0.35 0.45 0.55 0.65 0.75 0.85 0.95 -->
+	<param name="max_acceleration_scale"    value=	"0.75  0.80  0.85  0.90  0.95  1.00  1.05  1.10  1.15  1.20"/>
+	<param name="normal_deceleration_scale" value=	"0.75  0.80  0.85  0.90  0.95  1.00  1.05  1.10  1.15  1.20"/>
+	<param name="max_deceleration_scale"    value=	"0.75  0.80  0.85  0.90  0.95  1.00  1.05  1.10  1.15  1.20"/>							 	
 	<!-- GENERAL FACTORS for TRESHOLDS (factor)-->
 	<!-- number of bins | first bin | bin size 
 	Example: "5 10 5" is equal to [0-10,10-15,15-20,20-25,25-]-->	
@@ -116,65 +169,56 @@
 	<!-- Default grade (m/m) -->
 	<param name="tmp_all_grades" value="0"/>
 
+	<!-- TODO: Segments don't allow grade for now -->
+
 <!-- B. HEADWAY THRESHOLDS	-->
-	<!-- A headway buffer is found for each vehicle and is a behavioral
-	parameter that describes the aggressiveness of a driver for accepting
-	a headway gap in lane changing, merging, and car-following. Some
-	value between the lower and upper bound will be added to the minimum
+	<!-- A headway buffer is found for each vehicle and is a behavioral parameter that describes the aggressiveness of a driver for accepting
+	a headway gap in lane changing, merging, and car-following. Some value between the lower and upper bound will be added to the minimum
 	headway gaps for the population, which are constants also provided in -->
-	<param name="hbuffer_lower" value="1.5"/>
+	<param name="hbuffer_lower" value="0.50"/>
 	<!-- Variation (factor)-->
 	<!-- Each column represents the following population percentile
 	 					0.05	0.15	0.25	0.35	0.45	0.55	0.65	0.75	0.85	0.95 -->
+	<!-- Default values are:-->
+	<!-- From A44 (Portugal) trajectory calibration-->
+	<!-- param name="hbuffer_Upper" value="	2.1775	2.4817	2.6627	2.8073	2.9371	.0628	3.1926	3.3372	3.5182	3.8224"/-->
+	<!-- From mitsim:-->
 	<!-- param name="hbuffer_Upper" value="	1.7498	2.2737	2.5871	2.8379	3.0633	3.2814	3.5068	3.7578	4.0718	4.5979"/-->
-	<param name="hbuffer_Upper" value="	7	7	7	7	7	7	7	7	7	7"/>
-
-	<param name="density" value="100.0"/>
+	<param name="hbuffer_Upper" value="	2.1775	2.4817	2.6627	2.8073	2.9371	.0628	3.1926	3.3372	3.5182	3.8224"/>
 
 
 <!-- C. TRAFFIC LIGHT RESPONSE -->
-	<param name="yellow_stop_headway" value="1.0"/>
-	<param name="min_speed_yellow" value="2.2352"/>
+	<param name="yellow_stop_headway" value="1.0"/>	<!-- s -->
+	<param name="min_speed_yellow" value="2.2352"/>	<!-- m/s -->
         <param name="driver_signal_perception_distance" value="150.0"/>  <!-- meter -->
 
 <!-- D. UPDATE STEP SIZE (REACTION TIME RELATED)
-	Driver behavior (e.g. responses to stimuli) is updated periodically
-	during simulation depending on the state of the vehicle (i.e.
-	depending on whether the vehicle is decelerating, accelerating,
-	traveling at uniform speed, or is stopped). At each call of the function
-	updateStepSize (i.e. at the end of each decision instant) a new update state size is
-
-	drawn from a truncated log-normal (normal?) distribution (seconds):
+	Driver behavior (e.g. responses to stimuli) is updated periodically during simulation depending on the state of the vehicle (i.e.
+	depending on whether the vehicle is decelerating, accelerating, traveling at uniform speed, or is stopped). At each call of the function
+	updateStepSize (i.e. at the end of each decision instant) a new update state size is drawn from a truncated log-normal (normal?) distribution (seconds):
 	step sizes are as follows:
                                               	     		mean   stdev   lower   upper perception(percentage) -->
+	<!-- Default values are:-->
+	<!-- From A44 (Portugal) trajectory calibration-->
+	<!--param name="dec_update_step_size"          value=	"0.637    0.20     0.25     2.05    0.0"/>
+	<param name="acc_update_step_size"             value=	"0.850    0.25     0.30     2.75    0.0"/>
+	<param name="uniform_speed_update_step_size"   value=	"0.850    0.25     0.30     2.75    0.0"/>
+	<param name="stopped_vehicle_update_step_size" value=	"0.637    0.20     0.25     2.05    0.0"/-->
 
-	<!--param name="dec_update_step_size"             value=	"0    0     0     0    0.0"/>
-	<param name="acc_update_step_size"             value=	"0    0     0     0    0.0"/>
-	<param name="uniform_speed_update_step_size"   value=	"0    0     0     0    0.0"/>
-	<param name="stopped_vehicle_update_step_size" value=	"0    0     0     0    0.0"/-->
-
-	<param name="dec_update_step_size"             value=	"0.1     0.1     0.1     0.1    0.0"/>
-	<param name="acc_update_step_size"             value=	"0.1     0.1     0.1     0.1    0.0"/>
-	<param name="uniform_speed_update_step_size"   value=	"0.1     0.1     0.1     0.1    0.0"/>
-	<param name="stopped_vehicle_update_step_size" value=	"0.1     0.1     0.1     0.1    0.0"/>
-
-	<!--param name="dec_update_step_size"             value=	"0.5     0.0     0.5     0.5    0"/>
-	<param name="acc_update_step_size"             value=	"0.5     0.0     0.5     0.5    0"/>
-	<param name="uniform_speed_update_step_size"   value=	"0.5     0.0     0.5     0.5    0"/>
+	<!-- From mitsim: -->
+	<!--param name="dec_update_step_size"          value=	"0.5     0.0     0.5     0.5    0"/>
+	<param name="acc_update_step_size"             value=	"1.0     0.0     1.0     1.0	0"/>
+	<param name="uniform_speed_update_step_size"   value=	"1.0     0.0     1.0     1.0    0"/>
 	<param name="stopped_vehicle_update_step_size" value=	"0.5     0.0     0.5     0.5    0"/-->
 
-<!-- F. DESIRED SPEED
-	The desired speed constrained by the posted speed limit is defined by
-	Vdesired = speed_factor * Vsign * ( 1 + Vvar) -->
-	<param name="speed_factor" value="2.2352"/>
-	<!-- Vvar is read from the table bellow -->
-	<!-- Each column represents the following population percentile
-		 					0.05 	0.15	0.25	0.35	0.45	0.55	0.65	0.75	0.85	0.95 -->
-	<!-- param name="speed_limit_add_on" value="	-0.1911	-0.0708	-0.0082	0.0397	0.0810	0.1248	0.1661	0.2180	0.2745	0.3657"/-->
-	<param name="speed_limit_add_on" value="	0	0	0	0	0	0	0	0	0	0"/>
+	<param name="dec_update_step_size"          value=	"0.637    0.20     0.25     2.05    0.0"/>
+	<param name="acc_update_step_size"             value=	"0.850    0.25     0.30     2.75    0.0"/>
+	<param name="uniform_speed_update_step_size"   value=	"0.850    0.25     0.30     2.75    0.0"/>
+	<param name="stopped_vehicle_update_step_size" value=	"0.637    0.20     0.25     2.05    0.0"/>
+
 
 <!-- G. VISIBILITY
-	NOTE (Carlos): The structure of the visibility is not a mature one -> Needs work
+	TODO: The structure of the visibility is not a mature one -> Needs work
 	The visibility_distance parameter is used in the car follow model to reduce the follower reaction time 
 	when subject vehicle brakes (in meter) -->
 	<param name="visibility_distance" value="10"/>
@@ -182,11 +226,9 @@
 <!-- H. LANE CHANGE MODEL PARAMETERS -->
 
 <!-- H.1. LC Mandatory Probability Model
-	The probability of starting a mandatory lane change or staying in the
-	current lane model requires that the vehicle distance from the downstream node
-	(or lane drop)  be greater than a distance 'lower bound'. The probability that
+	The probability of starting a mandatory lane change or staying in the current lane model requires that the vehicle distance from the downstream node
+	(or lane drop)  be greater than a distance 'lower bound'. The probability that a vehicle will change to the appropriate lane is given by:
 
-	a vehicle will change to the appropriate lane is given by:
 	Prob = exp (-dis*dis/(delta^2))
 	dis = (Xn - Xo) - 'lower bound'
 	where	Xn = distance from vehicle to downstream node (or lane drop) 
@@ -199,13 +241,36 @@
 	<param name="MLC_PARAMETERS" value="
 						100.0         #lower bound(meter) 
 						190.0         #delta(meter)
-						2.0 	       #minimum time in lane (sec)
+						2.0 	      #minimum time in lane (sec)
 	"/>
 
 <!-- H.2 Lane utility Model
 	This model describes drivers’ choice of lane they would want to travel in. A driver
 	chooses one of up to three alternatives: to stay in the current lane ( CL ) or to target
 	changing either to the right lane ( RL ) or to the left lane ( LL ) -->
+	<!-- Default values are:-->
+	<!-- From A44 (Portugal) trajectory calibration-->
+	<!--param name="lane_utility_model" value="
+	4.209		# current lane constant
+	-0.422		# right lane constant
+	-1.350		# right most lane dummy
+	0		# currently unused
+	0.095		# front vehicle speed (all lanes)
+	-1.298		# bus following dummy
+	0.008		# front vehicle spacing
+	-0.270		# heavy neighbor in lane
+	-0.009		# density in lane
+	-1.977		# tailgate
+	13.0		# gap behind threshold for tailgate dummy (meters)
+	16.6		# density threshold for tailgate dummy
+	-2.848		# one lane change required
+	-4.901		# two lane changes required
+	-2.750		# each additional lane change required
+	-1.05		# next exit, one lane change required
+	-0.6		# next exit, each additional lane changes required
+	-0.309		# distance to exit
+	-->
+	<!-- From mitsim: -->
 	<param name="lane_utility_model" value="
 	3.9443		# current lane constant
 	0		# right lane constant
@@ -229,9 +294,9 @@
 
 <!--  I. GAP MODEL PARAMETERS -->
 <!--  I.1 CRITICAL GAP MODEL PARAMETERS
-	Once a driver has decided to change lanes, he/she will examine
-	adjacent gaps and deem them acceptable or unacceptable for merging.
-	Below are parameters to describe driver (critical) gap acceptance
+	Once a driver has decided to change lanes, he/she will examine adjacent gaps and deem them acceptable or unacceptable for merging.
+	Below are parameters to describe driver (critical) gap acceptance threshold
+
 						scale  alpha   lambda   beta0   beta1   beta2   beta3   beta4   stddev-->
 	<param name="LC_GAP_MODELS_0" value=	"1.00,  0.0,	0.000,	0.508,	0.000,	0.000,	-0.420,	0.000,	0.488"/>
 	<param name="LC_GAP_MODELS_1" value=	"1.00,	0.0,	0.000,	2.020,	0.000,	0.000,	0.153,	0.188,	0.526"/>
@@ -257,7 +322,7 @@
 
 	"/>
 
-<!--  I.2 GAP UTILITY MODEL PARAMETERS
+<!--  I.2 GAP UTILITY MODEL PARAMETERS - TARGET GAP CHOICE
 						const	   dis2gap	gap-size	gap-vel		dummy	vn-->
 	<param name="GAP_PARAM_0" value=	"-1.23,		-0.482,	0.224,		-0.0179,	2.10,	0.239"/>   #back
 	<param name="GAP_PARAM_1" value=	"0.00,		0.00,	0.224,		-0.0179,	2.10,	0.000"/>   #adj
@@ -281,33 +346,35 @@
 <!-- J.2. NOSING MODEL PARAMETERS -->
 	<param name="kazi_nosing_param" value="-3.159  0.313  -0.027  2.050  0.028  0.6"/>
 
+	<!-- This parameter is used to change drivers reaction time when in a nosing behavior
+	RT_nosing = RT * "CF_CRITICAL_TIMER_RATIO"  -->
 	<param name="CF_CRITICAL_TIMER_RATIO" value="0.5"/>
 
 <!-- J.2. YIELDING MODEL PARAMETERS 
 	currently yields to nosing vehicle only-->
 	<param name="LC_Yielding_Model" value="
 	   0.80	# previously not yielding
-	   1.00	# previously yielding
-	"/>
+	   1.00	# previously yieldind "/>
+	
+	<!-- Probabilities to yield to other vehicles -->
+	<param name="MLC_Yielding_Probabilities" value="
+	    0.13    # None
+	    0.71    # Upto one
+	    0.13    # two
+	    0.03    # three "/>
+
 
 <!-- K. OTHERS -->
-<!-- minimum speed to consider for a moving vehicle m/s-->
-	<param name="min_speed" value="0.1"/>
-                                                                                   #sec
-	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir" value="7"/>
-	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir" value="7"/>
+	<!-- minimum speed to consider for a moving vehicle -->
+	<param name="min_speed" value="0.1"/>  <!-- m/s -->
+	<!-- minimum time required between lane changing decisions -->
+	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir" value="7"/> <!-- s -->
+	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir" value="7"/> <!-- s -->
 
-# PROBABILITY OF YIELDING TO OTHER VEHICLES
+	<!-- Visibility of stopping points (default value) -->
+	<param name="check_stop_point_distance" value="200"/> <!-- meters -->
 
-[MLC Yielding Probabilities] = {
-<param name="MLC_Yielding_Probabilities" value="
-    0.13    # None
-    0.71    # Upto one
-    0.13    # two
-    0.03    # three
-"/>
-
-<!-- meter -->
-<param name="check_stop_point_distance" value="200"/>
+	<!-- Density (default value) - NOT USED!!! -->
+	<param name="density" value="100.0"/> <!-- veh/km/lane -->
 
 </parameters>

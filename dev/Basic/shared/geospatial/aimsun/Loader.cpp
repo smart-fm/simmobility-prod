@@ -139,7 +139,7 @@ public:
 			std::string& pathset_id);
 	bool LoadOnePathSetDBwithId(std::string& pathset_id,boost::shared_ptr<sim_mob::PathSet> & ps);
 	static bool LoadOnePathSetDBwithIdST(soci::session& sql,std::string& pathset_id,boost::shared_ptr<sim_mob::PathSet>  &ps, const std::string tableName);
-	void InsertPathSet2DB(std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pathSetPool,const std::string pathSetTableName);
+	static void InsertPathSet2DB(soci::session& sql,std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pathSetPool,const std::string pathSetTableName);
 	static bool InsertPathSet2DBST(soci::session& sql,std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pathSetPool,const std::string pathSetTableName);
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -371,10 +371,10 @@ sim_mob::HasPath DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 		{
 			return sim_mob::PSM_HASNOPATH;
 		}
-	}
-	else
-	{
-		return sim_mob::PSM_NOTFOUND;
+		else
+		{
+			return sim_mob::PSM_NOTFOUND;
+		}
 	}
 	//	process result
 	int i = 0;
@@ -516,7 +516,7 @@ bool DatabaseLoader::LoadOnePathSetDBwithIdST(soci::session& sql,std::string& pa
 		return true;
 	}
 }
-void DatabaseLoader::InsertPathSet2DB(std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pathSetPool,const std::string pathSetTableName)
+void DatabaseLoader::InsertPathSet2DB(soci::session& sql,std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pathSetPool,const std::string pathSetTableName)
 {
 	for(std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >::iterator it=pathSetPool.begin();it!=pathSetPool.end();++it)
 	{
@@ -527,7 +527,7 @@ void DatabaseLoader::InsertPathSet2DB(std::map<std::string,boost::shared_ptr<sim
 		}
 		if(ps->isNeedSave2DB)
 		{
-			sql_.prepare << "set_path_set_1(:ID, :FROM_NODE_ID, :TO_NODE_ID,:SINGLEPATH_ID,:SCENARIO,:HAS_PATH)",soci::use(*ps);
+			sql.prepare << "set_path_set_1(:ID, :FROM_NODE_ID, :TO_NODE_ID,:SINGLEPATH_ID,:SCENARIO,:HAS_PATH)",soci::use(*ps);
 		}
 	}
 }
@@ -2793,11 +2793,10 @@ bool sim_mob::aimsun::Loader::SaveOneSinglePathDataST(soci::session& sql,
 	bool res = DatabaseLoader::InsertSinglePath2DBST(sql,pathPool,singlePathTableName);
 	return res;
 }
-void sim_mob::aimsun::Loader::SaveOnePathSetData(const std::string& connectionStr,
+void sim_mob::aimsun::Loader::SaveOnePathSetData(soci::session& sql,
 		std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pathSetPool,const std::string pathSetTableName)
 {
-	DatabaseLoader loader(connectionStr);
-	loader.InsertPathSet2DB(pathSetPool,pathSetTableName);
+	DatabaseLoader::InsertPathSet2DB(sql,pathSetPool,pathSetTableName);
 }
 bool sim_mob::aimsun::Loader::SaveOnePathSetDataST(soci::session& sql,
 				std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pathSetPool,const std::string pathSetTableName)

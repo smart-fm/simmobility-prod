@@ -1275,6 +1275,7 @@ vector<WayPoint> sim_mob::A_StarShortestPathImpl::GetShortestDrivingPath(StreetD
 			blacklistV.insert(lookIt->second.begin(), lookIt->second.end());
 		}
 	}
+	std::cout << "blacklistV prepared" << std::endl;
 
     //NOTE: choiceSet[] is an interesting optimization, but we don't need to save cycles (and we definitely need to save memory).
     //      The within-day choice set model should have this kind of optimization; for us, we will simply search each time.
@@ -1383,7 +1384,7 @@ std::vector<WayPoint> sim_mob::A_StarShortestPathImpl::searchShortestPathWithBla
 			prev = it;
 		}
 	}
-
+	std::cout << "astar_search done" << std::endl;
 	/////////////////////////////
 	// END COPIED CODE
 	/////////////////////////////

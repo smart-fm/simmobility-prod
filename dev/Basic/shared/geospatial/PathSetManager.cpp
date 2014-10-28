@@ -822,15 +822,15 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::Person* per,con
 			throw std::runtime_error ("\npath inside cbd ");
 		}
 	}
-	else if(to == false || from ==false){
+	else {
 		str  << (from ? " EXIT" : "ENTER") << " CBD " ;
-		subTrip.cbdTraverseType = (from ? TravelMetric::CBD_EXIT : TravelMetric::CBD_ENTER);
+		if(!(to && from))
+		{
+			subTrip.cbdTraverseType = (from ? TravelMetric::CBD_EXIT : TravelMetric::CBD_ENTER);
+		}
 		getBestPath(res, &subTrip);
 	}
-	else
-	{
-		str << " unknown-state ";
-	}
+
 	//subscribe person
 	logger << fromToID  << ": Path chosen for person[" << per->getId() << "]" << per->GetId() << "\n";
 	str <<  ": Path chosen for person[" << per->getId() << "]" << per->GetId() << "\n";
@@ -891,6 +891,10 @@ bool sim_mob::PathSetManager::getBestPath(
 	std::string idStrFrom = fromNode->originalDB_ID.getLogItem();
 	out << Utils::getNumberFromAimsunId(idStrFrom) << "," << Utils::getNumberFromAimsunId(idStrTo);
 	std::string fromToID(out.str());
+	if(tempNoPath.find(fromToID) != tempNoPath.end())
+	{
+		return false;
+	}
 	logger << "[" << boost::this_thread::get_id() << "]searching for OD[" << fromToID << "]\n" ;
 	boost::shared_ptr<sim_mob::PathSet> ps_;
 
@@ -1039,6 +1043,11 @@ bool sim_mob::PathSetManager::getBestPath(
 			logger << "No best path, even after regenerating pathset " << "\n";
 		}
 	}
+	else if(hasPath == PSM_HASNOPATH)
+	{
+		tempNoPath.insert(fromToID);
+	}
+
 
 	return false;
 }
@@ -1046,7 +1055,7 @@ bool sim_mob::PathSetManager::getBestPath(
 
 bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob::PathSet> &ps, const std::set<const sim_mob::RoadSegment*> & excludedSegs)
 {
-
+	std::cout << "generateAllPathChoicesMT" << std::endl;
 	/**
 	 * step-1: find the shortest path. if not found: create an entry in the "PathSet" table and return(without adding any entry into SinglePath table)
 	 * step-2: from the Singlepath's waypoints collection, compute the "travel cost" and "travel time"
@@ -1058,6 +1067,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 	 */
 	std::set<std::string> duplicateChecker;
 	sim_mob::SinglePath *s = findShortestDrivingPath(ps->fromNode,ps->toNode,duplicateChecker,excludedSegs);
+	std::cout << "generateAllPathChoicesMT->findShortestDrivingPath finished" << std::endl;
 	if(!s)
 	{
 		// no path
@@ -1067,13 +1077,13 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 			ps->isNeedSave2DB = true;
 			std::map<std::string,boost::shared_ptr<sim_mob::PathSet> > tmp;
 			tmp.insert(std::make_pair(ps->id,ps));
-			std::string cnn(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
-			sim_mob::aimsun::Loader::SaveOnePathSetData(cnn,tmp, pathSetTableName);
+			sim_mob::aimsun::Loader::SaveOnePathSetData(*getSession(),tmp, pathSetTableName);
 			tempNoPath.insert(ps->id);
 		}
+		std::cout << "generateAllPathChoicesMT->findShortestDrivingPath FAIL" << std::endl;
 		return false;
 	}
-
+	std::cout << "generateAllPathChoicesMT->findShortestDrivingPath" << std::endl;
 	//	// 1.31 check path pool
 		// 1.4 create PathSet object
 	ps->hasPath = 1;
@@ -1086,7 +1096,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 	s->pathSet = ps;
 	s->travelCost = sim_mob::getTravelCost2(s);
 	s->travleTime = getTravelTime(s);
-
+	std::cout << "generateAllPathChoicesMT->getTravelCost2,getTravelTime" << std::endl;
 	// SHORTEST DISTANCE LINK ELIMINATION
 	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
 	sim_mob::Link *l = NULL;
@@ -1240,7 +1250,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 		std::string str = "path set " + ps->id + " has no shortest path\n" ;
 		throw std::runtime_error(str);
 	}
-
+	std::cout << "generateAllPathChoicesMT->perturbation" << std::endl;
 	if(!ps->oriPath->isShortestPath){
 		std::string str = "path set " + ps->id + " is supposed to be the shortest path but it is not!\n" ;
 		throw std::runtime_error(str);
@@ -1255,7 +1265,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 			ps->pathChoices.insert(p->s);
 		}
 	}
-
+	std::cout << "generateAllPathChoicesMT->finalize" << std::endl;
 	return true;
 }
 
@@ -1369,8 +1379,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 				ps_->scenario = scenarioName;
 				std::map<std::string,boost::shared_ptr<sim_mob::PathSet> > tmp;
 				tmp.insert(std::make_pair(fromToID,ps_));
-				std::string cnn(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
-				sim_mob::aimsun::Loader::SaveOnePathSetData(cnn,tmp, pathSetTableName);
+				sim_mob::aimsun::Loader::SaveOnePathSetData(*getSession(),tmp, pathSetTableName);
 				return res;
 			}
 			//	// 1.31 check path pool
@@ -1407,8 +1416,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 				sim_mob::generatePathSizeForPathSet2(ps_);
 				std::map<std::string,boost::shared_ptr<sim_mob::PathSet> > tmp;
 				tmp.insert(std::make_pair(fromToID,ps_));
-				std::string cnn(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
-				sim_mob::aimsun::Loader::SaveOnePathSetData(cnn,tmp, pathSetTableName);
+				sim_mob::aimsun::Loader::SaveOnePathSetData(*getSession(),tmp, pathSetTableName);
 				//
 				bool r = getBestPathChoiceFromPathSet(ps_);
 				if(r)
@@ -1778,14 +1786,7 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::findShortestDrivingPath(
 	 * step-4: return the resulting singlepath object as well as add it to the container supplied through args
 	 */
 	sim_mob::SinglePath *s=NULL;
-	std::vector<const sim_mob::RoadSegment*> blacklist;
-	if(excludedSegs.size())
-	{
-		const sim_mob::RoadSegment* rs;
-		BOOST_FOREACH(rs, excludedSegs){
-			blacklist.push_back(rs);
-		}
-	}
+	std::vector<const sim_mob::RoadSegment*> blacklist(excludedSegs.begin(), excludedSegs.end());
 	std::vector<WayPoint> wp = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*fromNode), stdir.DrivingVertex(*toNode),blacklist);
 	if(wp.empty())
 	{

@@ -318,7 +318,7 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 	const sim_mob::RoadSegment *curRs = (*(pathMover.getCurrSegStats())).getRoadSegment();
 	//Although the name of the method suggests segment change, it is actually segStat change. so we check again!
 
-	if(curRs && nxtSegStat && curRs->getEnd() == nxtSegStat->getRoadSegment()->getStart())
+	if(curRs && nxtSegStat && curRs != nxtSegStat->getRoadSegment())
 	{
 		const sim_mob::RoadSegment *nxtRs = (nxtSegStat ? nxtSegStat->getRoadSegment() : nullptr);
 		onSegmentCompleted(curRs,nxtRs);
@@ -396,16 +396,13 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 
 void DriverMovement::onSegmentCompleted(const sim_mob::RoadSegment* completedRS, const sim_mob::RoadSegment* nextRS)
 {
-	std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getRepr_());
 	//search for CBD enter exit
 	//-get subtrip, where CBD indication is placed
 	TravelMetric::CDB_TraverseType type = travelTimeMetric.cbdTraverseType;
 	//std::cout << "onSegmentCompleted\n";
 	if(nextRS && !pathMover.isPathCompleted() && (type == TravelMetric::CBD_ENTER || type == TravelMetric::CBD_EXIT))
 	{
-
-		//std::cout << "onSegmentCompleted IF\n";
-
+		std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getRepr_());
 		sim_mob::RestrictedRegion &cbd = sim_mob::RestrictedRegion::getInstance();
 		std::stringstream out("");
 		switch(type)
@@ -416,7 +413,6 @@ void DriverMovement::onSegmentCompleted(const sim_mob::RoadSegment* completedRS,
 			{
 				out << getParent()->getId() << "onSegmentCompleted Enter CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
 				travelTimeMetric.cbdOrigin = sim_mob::WayPoint(completedRS->getEnd());
-//				travelTimeMetric.cbdDestination = travelTimeMetric.destination;//(*(pathMover.getPath().rbegin()))->getRoadSegment()->getEnd();
 				travelTimeMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 
 //				cbdSELogger <<  now << (*(getParent()->currSubTrip)).fromLocation.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : ENTER SEGMENT : origin[" <<

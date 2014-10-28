@@ -211,15 +211,17 @@ void sim_mob::RestrictedRegion::populate()
 	cout << "Total segments in CBD Area: " << zoneSegments.size() << "\n";
 	cout << "Total nodes in CBD Area: " << zoneNodes.size() << "\n";
 	/********************************************************
-	 * ********** String representations ********************
+	 * ********** String representations & Tagging **********
 	 * ******************************************************/
 	BOOST_FOREACH(const sim_mob::RoadSegment*rs,zoneSegments)
 	{
 		zoneSegmentsStr += rs->getId() + ",";
+		rs->CBD = true;
 	}
 	BOOST_FOREACH(Pair node, zoneNodes)
 	{
 		zoneNodesStr += node.first + ",";
+		node.second->CBD = true;
 	}
 	std::stringstream out_("");
 	BOOST_FOREACH(SegPair item, in)
@@ -379,7 +381,7 @@ bool sim_mob::RestrictedRegion::ObjSearch::isInRestrictedSegmentZone(const sim_m
 sim_mob::RestrictedRegion::TagSearch::TagSearch(sim_mob::RestrictedRegion & instance):Search(instance){}
 bool sim_mob::RestrictedRegion::TagSearch::isInRestrictedZone(const Node* target) const
 {
-	return (target->CBD ? true : false);
+	return target->CBD;
 }
 
 bool sim_mob::RestrictedRegion::TagSearch::isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const

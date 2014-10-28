@@ -407,9 +407,9 @@ void DriverMovement::onSegmentCompleted(const sim_mob::RoadSegment* completedRS,
 		std::stringstream out("");
 		switch(type)
 		{
-		case TravelMetric::CBD_ENTER:
+		case TravelMetric::CBD_ENTER:{
 			//search if you are about to enter CBD (we assume the trip started outside cbd and  is going to end inside cbd)
-			if(cbd.isEnteringRestrictedZone(completedRS,nextRS)) if(travelTimeMetric.cbdEntered.check())
+			if(cbd.isEnteringRestrictedZone(completedRS,nextRS) && travelTimeMetric.cbdEntered.check())
 			{
 				out << getParent()->getId() << "onSegmentCompleted Enter CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
 				travelTimeMetric.cbdOrigin = sim_mob::WayPoint(completedRS->getEnd());
@@ -421,9 +421,10 @@ void DriverMovement::onSegmentCompleted(const sim_mob::RoadSegment* completedRS,
 				//cbd travel time also when subtrip in finalized
 			}
 			break;
-		case TravelMetric::CBD_EXIT:
+		}
+		case TravelMetric::CBD_EXIT:{
 			//search if you are about to exit CBD(we assume the trip started inside cbd and is going to end outside cbd)
-			if(cbd.isExittingRestrictedZone(completedRS,nextRS)) if(travelTimeMetric.cbdExitted.check())
+			if(cbd.isExittingRestrictedZone(completedRS,nextRS) && travelTimeMetric.cbdExitted.check())
 			{
 				out << getParent()->getId() << "onSegmentCompleted exit CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
 //				travelTimeMetric.cbdOrigin = travelTimeMetric.origin;//(*(pathMover.getPath().begin()))->getRoadSegment()->getStart();
@@ -437,6 +438,7 @@ void DriverMovement::onSegmentCompleted(const sim_mob::RoadSegment* completedRS,
 //						travelTimeMetric.cbdTravelTime << "\n";
 			}
 			break;
+		}
 		};
 		std::cout << out.str() ;
 	}

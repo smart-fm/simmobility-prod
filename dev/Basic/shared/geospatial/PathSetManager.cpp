@@ -823,17 +823,22 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::Person* per,con
 		}
 	}
 	else {
-		str  << (from ? " EXIT" : "ENTER") << " CBD " ;
+
 		if(!(to && from))
 		{
 			subTrip.cbdTraverseType = (from ? TravelMetric::CBD_EXIT : TravelMetric::CBD_ENTER);
+			str  << (from ? " EXIT" : "ENTER") << " CBD " ;
+		}
+		else
+		{
+			str  << "BOTH INSIDE CBD " ;
 		}
 		getBestPath(res, &subTrip);
 	}
 
 	//subscribe person
-	logger << fromToID  << ": Path chosen for person[" << per->getId() << "]" << per->GetId() << "\n";
-	str <<  ": Path chosen for person[" << per->getId() << "]" << per->GetId() << "\n";
+	logger << fromToID  << ": Path chosen for person[" << per->getId() << "]"  << "\n";
+	str <<  ": Path chosen for person[" << per->getId() << "]"  ;
 	if(!res.empty())
 	{
 		logger << fromToID << " : was assigned path of size " << res.size()  << "\n";
@@ -878,12 +883,12 @@ bool sim_mob::PathSetManager::getBestPath(
 
 	const sim_mob::Node* fromNode = st->fromLocation.node_;
 	const sim_mob::Node* toNode = st->toLocation.node_;
-	if(toNode == fromNode){
-		logger << "same OD objects discarded:" << toNode->getID() << "\n" ;
+	if(!(toNode && fromNode)){
+		std::cout << "Error, OD null\n" ;
 		return false;
 	}
 	if(toNode->getID() == fromNode->getID()){
-		logger << "Error: same OD id from different objects discarded:" << toNode->getID() << "\n" ;
+		std::cout << "Error: same OD id from different objects discarded:" << toNode->getID() << "\n" ;
 		return false;
 	}
 	std::stringstream out("");
@@ -893,6 +898,7 @@ bool sim_mob::PathSetManager::getBestPath(
 	std::string fromToID(out.str());
 	if(tempNoPath.find(fromToID) != tempNoPath.end())
 	{
+		cout <<  fromToID   << ":previously No path\n";
 		return false;
 	}
 	logger << "[" << boost::this_thread::get_id() << "]searching for OD[" << fromToID << "]\n" ;
@@ -933,58 +939,53 @@ bool sim_mob::PathSetManager::getBestPath(
 	ps_->id = fromToID;
 	hasPath = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(*getSession(),fromToID,ps_->pathChoices, dbFunction,outDbg,blckLstSegs);
 	logger  <<  fromToID << " : " << (hasPath == PSM_HASPATH ? "" : "Don't " ) << "have SinglePaths in DB \n" ;
-	if(hasPath == PSM_HASPATH)
-	{
-		cout  <<  fromToID << " : DB Hit\n";
-		logger  <<  fromToID << " : DB Hit\n";
+	switch (hasPath) {
+	case PSM_HASPATH: {
+		cout << fromToID << " : DB Hit\n";
+		logger << fromToID << " : DB Hit\n";
 		bool r = false;
 		ps_->oriPath = 0;
-		BOOST_FOREACH(sim_mob::SinglePath* sp, ps_->pathChoices)
-		{
-			if(sp->isShortestPath){
+		BOOST_FOREACH(sim_mob::SinglePath* sp, ps_->pathChoices) {
+			if (sp->isShortestPath) {
 				ps_->oriPath = sp;
 				break;
 			}
 		}
-		if(ps_->oriPath == 0)
-		{
-			std::string str = "Warning => SP: oriPath(shortest path) for "  + ps_->id + " not valid anymore\n";
-			logger<< str ;
+		if (ps_->oriPath == 0) {
+			std::string str = "Warning => SP: oriPath(shortest path) for "
+					+ ps_->id + " not valid anymore\n";
+			logger << str;
 		}
 		//	no need of processing and storing blacklisted paths
 		short psCnt = ps_->pathChoices.size();
 		r = getBestPathChoiceFromPathSet(ps_, partial);
-		logger << fromToID << " :  number of paths before blcklist: " << psCnt << " after blacklist:" << ps_->pathChoices.size() << "\n" ;
-		if(r)
-		{
+		logger << fromToID << " :  number of paths before blcklist: " << psCnt << " after blacklist:" << ps_->pathChoices.size() << "\n";
+		if (r) {
 			res = *(ps_->bestWayPointpath);
 			//cache
-			if(isUseCache){
+			if (isUseCache) {
 				r = cachePathSet(ps_);
-			}
-			else{
+			} else {
 				clearSinglePaths(ps_);
 			}
 			//test
 //			clearSinglePaths(ps_);
 			logger << "returning a path " << res.size() << "\n";
 			return true;
+		} else {
+			logger << "UNUSED DB hit\n";
 		}
-		else
-		{
-				logger << "UNUSED DB hit\n";
-		}
+		break;
 	}
-	else if(hasPath == PSM_NOTFOUND)
-	{
-		cout  <<  fromToID << " : DB Miss\n";
-		logger  <<  fromToID << " : DB Miss\n";
-	// Step-3 : If not found in DB, generate all 4 types of path
-		logger<<"generate All PathChoices for "<<fromToID << "\n" ;
+	case PSM_NOTFOUND: {
+		cout << fromToID << " : DB Miss\n";
+		logger << fromToID << " : DB Miss\n";
+		// Step-3 : If not found in DB, generate all 4 types of path
+		logger << "generate All PathChoices for " << fromToID << "\n";
 		// 1. generate shortest path with all segs
 		// 1.2 get all segs
 		// 1.3 generate shortest path with full segs
-		ps_.reset(new PathSet(fromNode,toNode));
+		ps_.reset(new PathSet(fromNode, toNode));
 		ps_->id = fromToID;
 //		std:string temp = fromNode->originalDB_ID.getLogItem();
 //		ps_->fromNodeId = sim_mob::Utils::getNumberFromAimsunId(temp);
@@ -994,61 +995,63 @@ bool sim_mob::PathSetManager::getBestPath(
 		ps_->subTrip = st;
 		ps_->psMgr = this;
 
-		bool r = generateAllPathChoicesMT(ps_,blckLstSegs);
-		if(!r)
-		{
+		bool r = generateAllPathChoicesMT(ps_, blckLstSegs);
+		if (!r) {
+			cout << fromToID << " : generateAllPathChoicesMT failure\n";
+			tempNoPath.insert(fromToID);
 			return false;
 		}
-		logger<<"generate All Done for "<<fromToID << "\n" ;
-		logger.prof("utility_path_size").tick();
+		logger << "generate All Done for " << fromToID << "\n";
 		sim_mob::generatePathSizeForPathSet2(ps_);
-		logger.prof("utility_path_size").tick(true);
-		r = getBestPathChoiceFromPathSet(ps_,partial);
-		logger << "getBestPathChoiceFromPathSet returned best path of size : " << ps_->bestWayPointpath->size() << "\n";
-		if(r)
-		{
+		r = getBestPathChoiceFromPathSet(ps_, partial);
+		logger << "getBestPathChoiceFromPathSet returned best path of size : "
+				<< ps_->bestWayPointpath->size() << "\n";
+		if (r) {
 			res = *(ps_->bestWayPointpath);
 			//cache
-			if(isUseCache){
+			if (isUseCache) {
 				r = cachePathSet(ps_);
-				if(r)
-				{
+				if (r) {
 					logger << "------------------\n";
 					uint32_t t = ps_->getSize();
-					logger.prof("cached_pathset_bytes",false).addUp(t);
-					logger.prof("cached_pathset_size",false).addUp(1);
+					logger.prof("cached_pathset_bytes", false).addUp(t);
+					logger.prof("cached_pathset_size", false).addUp(1);
 					logger << "------------------\n";
+				} else {
+					logger << ps_->id
+							<< " not cached, apparently, already in cache.\n";
 				}
-				else
-				{
-					logger << ps_->id << " not cached, apparently, already in cache.\n";
-				}
-			}
-			else{
+			} else {
 				clearSinglePaths(ps_);
 			}
 			//test...
 			//store in into the database
-			std::map<std::string,boost::shared_ptr<sim_mob::PathSet> > tmp;
-			tmp.insert(std::make_pair(fromToID,ps_));
-			pathSetParam->storePathSet(*getSession(),tmp,pathSetTableName);
-			pathSetParam->storeSinglePath(*getSession(),ps_->pathChoices,singlePathTableName);
+			std::map<std::string, boost::shared_ptr<sim_mob::PathSet> > tmp;
+			tmp.insert(std::make_pair(fromToID, ps_));
+			pathSetParam->storePathSet(*getSession(), tmp, pathSetTableName);
+			pathSetParam->storeSinglePath(*getSession(), ps_->pathChoices,
+					singlePathTableName);
 			//test
-	//			clearSinglePaths(ps_);
+			//			clearSinglePaths(ps_);
 			logger << "returning a path " << res.size() << "\n";
 			return true;
-		}
-		else
-		{
+		} else {
 			logger << "No best path, even after regenerating pathset " << "\n";
+			std::cout << fromToID
+					<< " : No best path, even after regenerating pathset "
+					<< "\n";
+			return false;
 		}
+		break;
 	}
-	else if(hasPath == PSM_HASNOPATH)
-	{
+	case PSM_NOGOODPATH:
+	default: {
 		tempNoPath.insert(fromToID);
+		break;
 	}
+	};
 
-
+	std::cout << fromToID << " : finally no result" << std::endl;
 	return false;
 }
 

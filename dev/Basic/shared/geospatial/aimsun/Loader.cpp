@@ -362,20 +362,24 @@ sim_mob::HasPath DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 {
 	//prepare statement
 	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare	<< "select * from " + functionName + "(:pathset_id_in)", soci::use(pathset_id));
-	//temp optimization todo remove hardcode
+//	//temp optimization todo remove hardcode
 	if(rs.begin() == rs.end())
 	{
-		soci::rowset<soci::row> rsPS = sql.prepare << "select * from \"PathSet_Scaled_HITS_distinctODs\" "
-													"where \"ID\" = '" + pathset_id + "' and \"HAS_PATH\" = -1";
-		if(rsPS.begin() != rsPS.end())
-		{
-			return sim_mob::PSM_HASNOPATH;
-		}
-		else
-		{
-			return sim_mob::PSM_NOTFOUND;
-		}
+		std::cout << pathset_id << " No path found in DB excludedRS:" << excludedRS.size() <<  std::endl;
+		return sim_mob::PSM_NOTFOUND;
 	}
+//		soci::rowset<soci::row> rsPS = sql.prepare << "select * from \"PathSet_Scaled_HITS_distinctODs\" "
+//													"where \"ID\" = '" + pathset_id + "' and \"HAS_PATH\" = -1";
+//		if(rsPS.begin() != rsPS.end())
+//		{
+//			std::cout << pathset_id << " pathset table says no path" << std::endl;
+//			return sim_mob::PSM_NOGOODPATH;
+//		}
+//		else
+//		{
+//			return sim_mob::PSM_NOTFOUND;
+//		}
+//	}
 	//	process result
 	int i = 0;
 	for (soci::rowset<sim_mob::SinglePath>::const_iterator it = rs.begin();	it != rs.end(); ++it) {
@@ -384,7 +388,6 @@ sim_mob::HasPath DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 		std::vector<sim_mob::WayPoint> path = std::vector<sim_mob::WayPoint>();
 		//use id to build shortestWayPointpath
 		std::vector<std::string> segIds = std::vector<std::string>();
-//		std::cout << it->id << std::endl;
 		boost::split(segIds,it->id,boost::is_any_of(","));
 		// no path is correct
 		for(int ii = 0 ; ii < segIds.size(); ++ii)
@@ -403,8 +406,7 @@ sim_mob::HasPath DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 						throw std::runtime_error(str);
 					}
 	//				if(excludedRS.find(seg) != excludedRS.end())
-	//				if(seg->CBD && excludedRS.find(seg) != excludedRS.end())//hack(seg->CBD)!!
-					if(seg->CBD)//todo, do something for this hack(seg->CBD)
+					if(seg->CBD && excludedRS.find(seg) != excludedRS.end())//hack(seg->CBD)!!
 					{
 						proceed = false;
 						break;
@@ -441,7 +443,8 @@ sim_mob::HasPath DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 	}
 	if (i == 0) {
 		pathsetLogger << "DatabaseLoader::LoadSinglePathDBwithIdST: " << pathset_id << "no data in db\n" ;
-		return sim_mob::PSM_HASNOPATH;
+		std::cout << "DatabaseLoader::LoadSinglePathDBwithIdST: " << pathset_id << " no data in db  excludedRS:"  << excludedRS.size() << std::endl;
+		return sim_mob::PSM_NOGOODPATH;
 	}
 	return sim_mob::PSM_HASPATH;
 }

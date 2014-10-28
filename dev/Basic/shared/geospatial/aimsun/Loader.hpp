@@ -38,7 +38,7 @@ class LinkTravelTime;
 enum HasPath
 {
 	PSM_HASPATH,//found and valid
-	PSM_HASNOPATH,//previous attempt to build pathset failed
+	PSM_NOGOODPATH,//previous attempt to build pathset failed
 	PSM_NOTFOUND,//search didn't find anything
 	PSM_UNKNOWN,
 };

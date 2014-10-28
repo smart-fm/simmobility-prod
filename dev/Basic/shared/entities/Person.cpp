@@ -223,9 +223,9 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		int destNodeid;
 		try {
 			originNodeId = boost::lexical_cast<int>( oriNodeIt->second );
-			std::cout<<"originNodeId: "<<originNodeId<<std::endl;
+			//std::cout<<"originNodeId: "<<originNodeId<<std::endl;
 			destNodeid = boost::lexical_cast<int>( destNodeIt->second );
-			std::cout<<"destNodeid: "<<destNodeid<<std::endl;
+			//std::cout<<"destNodeid: "<<destNodeid<<std::endl;
 		} catch( boost::bad_lexical_cast const& ) {
 			Warn() << "Error: input string was not valid" << std::endl;
 		}

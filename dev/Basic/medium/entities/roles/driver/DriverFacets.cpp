@@ -111,7 +111,7 @@ sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 
 sim_mob::medium::DriverMovement::~DriverMovement() {
 	//	usually the metrics for the last subtrip is not manually finalized
-	if(!travelTimeMetric->finalized){
+	if(!travelTimeMetric->finalized && !pathMover.getPath().empty()){
 		finalizeTravelTimeMetric();
 	}
 }

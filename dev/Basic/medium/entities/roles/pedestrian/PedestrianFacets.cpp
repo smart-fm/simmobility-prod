@@ -164,6 +164,7 @@ void PedestrianMovement::frame_tick() {
 	else {
 		remainingTimeToComplete -= tickSec;
 	}
+	getParent()->setRemainingTimeThisTick(0);
 }
 
 void PedestrianMovement::frame_tick_output() {}

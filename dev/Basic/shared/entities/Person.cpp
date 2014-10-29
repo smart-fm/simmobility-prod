@@ -108,14 +108,14 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 {
 	//TODO: Check with MAX what to do with the below commented lines
 	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
-		//convertODsToTrips();
+		convertODsToTrips();
 		insertWaitingActivityToTrip();
 	}
 //	else if(!ConfigManager::GetInstance().FullConfig().RunningMidDemand()){
 //		simplyModifyTripChain(tc);
 //	}
 
-	initTripChain();
+	if(!tripChain.empty()) { initTripChain(); }
 }
 
 void sim_mob::Person::initTripChain(){
@@ -169,6 +169,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 	if(!tripChain.empty()) {
 		return;// already have a tripchain usually from generateFromTripChain, no need to load
 	}
+	printTripChainItemTypes();
 	//Make sure they have a mode specified for this trip
 	map<string, string>::const_iterator it = configProps.find("#mode");
 	if (it==configProps.end()) {
@@ -628,10 +629,11 @@ void sim_mob::Person::insertWaitingActivityToTrip() {
 void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips,
 		std::vector<const sim_mob::OD_Trip*>& matchedTrips) {
 
-	if (matchedTrips.size() > 0) {
-		std::vector<const sim_mob::OD_Trip*>::iterator it =
-				matchedTrips.begin();
-		while (it != matchedTrips.end()) {
+	if (matchedTrips.size() > 0)
+	{
+		std::vector<const sim_mob::OD_Trip*>::iterator it = matchedTrips.begin();
+		while (it != matchedTrips.end())
+		{
 			sim_mob::SubTrip subTrip;
 			WayPoint source=curSubTrip->fromLocation;
 			WayPoint dest=curSubTrip->toLocation;
@@ -713,43 +715,65 @@ void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 void sim_mob::Person::convertODsToTrips() {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	std::vector<TripChainItem*>::iterator tripChainItem;
-	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end();
-			tripChainItem++) {
-		if ((*tripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) {
-			std::vector<sim_mob::SubTrip>& subTrips =
-					(dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
-
+	bool brokenBusTravel = false;
+	std::vector<TripChainItem*>::iterator brokenBusTravelItem;
+	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end(); tripChainItem++)
+	{
+		if(brokenBusTravel) { break; }
+		if ((*tripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+		{
+			std::vector<sim_mob::SubTrip>& subTrips = (dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
 			std::vector<SubTrip>::iterator itSubTrip = subTrips.begin();
 			std::vector<sim_mob::SubTrip> newSubTrips;
-			while (itSubTrip != subTrips.end()) {
+			while (itSubTrip != subTrips.end())
+			{
 				if (itSubTrip->fromLocation.type_ == WayPoint::NODE
 						&& itSubTrip->toLocation.type_ == WayPoint::NODE
-						&& itSubTrip->mode == "BusTravel") {
-					std::vector<sim_mob::OD_Trip>& OD_Trips =
-							config.getODsTripsMap();
+						&& itSubTrip->mode == "BusTravel")
+				{
+					std::vector<sim_mob::OD_Trip>& OD_Trips = config.getODsTripsMap();
 					Print()<<"original Id:"<<itSubTrip->fromLocation.node_->getID()
 							<<" destination Id:"<<itSubTrip->toLocation.node_->getID() <<std::endl;
 
 					std::vector<const OD_Trip*> result;
-					for(std::vector<sim_mob::OD_Trip>::iterator i=OD_Trips.begin(); i!=OD_Trips.end(); i++){
+					for(std::vector<sim_mob::OD_Trip>::iterator i=OD_Trips.begin(); i!=OD_Trips.end(); i++)
+					{
 						std::string originId=boost::lexical_cast<std::string>(itSubTrip->fromLocation.node_->getID());
 						std::string destId=boost::lexical_cast<std::string>(itSubTrip->toLocation.node_->getID());
-						if((*i).originNode==originId && (*i).destNode==destId){
+						if((*i).originNode==originId && (*i).destNode==destId)
+						{
 							result.push_back(new OD_Trip(*i));
 						}
 					}
-					Print()<<"size:"<<result.size()<<std::endl;
-					if(result.size()>0){
-						makeODsToTrips(&(*itSubTrip), newSubTrips, result);
+					Print()<<"result.size:"<<result.size()<<std::endl;
+					if(!result.empty()) { makeODsToTrips(&(*itSubTrip), newSubTrips, result); }
+					else
+					{
+						brokenBusTravel = true;
+						brokenBusTravelItem = tripChainItem;
+						break;
 					}
+					for(std::vector<const OD_Trip*>::iterator i = result.begin(); i!=result.end(); i++) { delete *i; }
+					result.clear();
 				}
 				itSubTrip++;
 			}
 
-			if (newSubTrips.size() > 0) {
+			if (!newSubTrips.empty())
+			{
 				subTrips.clear();
 				subTrips = newSubTrips;
 			}
+		}
+	}
+
+	if(brokenBusTravel)
+	{
+		tripChainItem = brokenBusTravelItem;
+		while(tripChainItem!=tripChain.end())
+		{
+			delete *tripChainItem;
+			tripChainItem = tripChain.erase(tripChainItem);
 		}
 	}
 
@@ -1373,8 +1397,16 @@ void sim_mob::Person::printTripChainItemTypes() const{
 		switch(tcItem->itemType)
 		{
 		case TripChainItem::IT_TRIP:
-			ss << "|" << tcItem->getMode() << "-trip";
+		{
+			ss << "|" << tcItem->getMode() << "-trip->";
+			const Trip* trip = dynamic_cast<const Trip*>(tcItem);
+			const std::vector<sim_mob::SubTrip>& subTrips = trip->getSubTrips();
+			for(std::vector<SubTrip>::const_iterator sti=subTrips.begin(); sti!=subTrips.end(); sti++)
+			{
+				ss << "~" << (*sti).getMode() << "-subtrip";
+			}
 			break;
+		}
 		case TripChainItem::IT_ACTIVITY:
 			ss << "|activity";
 			break;

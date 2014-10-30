@@ -524,13 +524,12 @@ void sim_mob::Conflux::buildSubscriptionList(std::vector<BufferedBase*>& subsLis
 }
 
 unsigned int sim_mob::Conflux::resetOutputBounds() {
-	vqBounds.clear();
-	sim_mob::Link* lnk = nullptr;
-	sim_mob::SegmentStats* segStats = nullptr;
-	int outputEstimate = 0;
-	unsigned int vqCount = 0;
-	{
 		boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
+		unsigned int vqCount = 0;
+		vqBounds.clear();
+		sim_mob::Link* lnk = nullptr;
+		sim_mob::SegmentStats* segStats = nullptr;
+		int outputEstimate = 0;
 		for(VirtualQueueMap::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++) {
 			lnk = i->first;
 			segStats = upstreamSegStatsMap.at(lnk).front();
@@ -555,7 +554,6 @@ unsigned int sim_mob::Conflux::resetOutputBounds() {
 			vqBounds.insert(std::make_pair(lnk, (unsigned int)outputEstimate));
 			vqCount += virtualQueuesMap.at(lnk).size();
 		}
-	}
 	return vqCount;
 }
 
@@ -921,12 +919,12 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 				if(nxtConflux->hasSpaceInVirtualQueue(nxtSegment->getLink())) {
 					person->setCurrSegStats(person->requestedNextSegStats);
 					person->setCurrLane(nullptr); // so that the updateAgent function will add this agent to the virtual queue
-					Print() << "Conflux: " << this->multiNode->getID()
-							<< "|Person: " << person->getId()
-							<< " setting currLane to NULL to add to VQ"
-							<< "|requestedNextSeg: " << nxtSegment->getSegmentAimsunId()
-							<< "|statsNum: " << person->requestedNextSegStats->getStatsNumberInSegment()
-							<< std::endl;
+//					Print() << "Conflux: " << this->multiNode->getID()
+//							<< "|Person: " << person->getId()
+//							<< " setting currLane to NULL to add to VQ"
+//							<< "|requestedNextSeg: " << nxtSegment->getSegmentAimsunId()
+//							<< "|statsNum: " << person->requestedNextSegStats->getStatsNumberInSegment()
+//							<< std::endl;
 					person->requestedNextSegStats = nullptr;
 					break; //break off from loop
 				}

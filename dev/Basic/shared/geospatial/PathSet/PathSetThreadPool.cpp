@@ -95,12 +95,10 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 			}
 		}
 	} else {
+		std::cout << "Blacklist NOT empty" << std::endl;
 		//Filter it.
-		sim_mob::A_StarShortestPathImpl::blacklist_edge_constraint filter(
-				blacklistV);
-		boost::filtered_graph<StreetDirectory::Graph,
-				sim_mob::A_StarShortestPathImpl::blacklist_edge_constraint> filtered(
-				*graph, filter);
+		sim_mob::A_StarShortestPathImpl::blacklist_edge_constraint filter(blacklistV);
+		boost::filtered_graph<StreetDirectory::Graph,sim_mob::A_StarShortestPathImpl::blacklist_edge_constraint> filtered(*graph, filter);
 		////////////////////////////////////////
 		// TODO: This code is copied (since filtered_graph is not the same as adjacency_list) from searchShortestPath.
 		////////////////////////////////////////
@@ -114,21 +112,19 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		//...which is available under the terms of the Boost Software License, 1.0
 		try {
 			boost::astar_search(filtered, *fromVertex,
-					sim_mob::A_StarShortestPathImpl::distance_heuristic_filtered(
-							&filtered, *toVertex),
-					boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(
-							sim_mob::A_StarShortestPathImpl::astar_goal_visitor(*toVertex)));
+					sim_mob::A_StarShortestPathImpl::distance_heuristic_filtered(&filtered, *toVertex),
+					boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(sim_mob::A_StarShortestPathImpl::astar_goal_visitor(*toVertex)));
 		} catch (sim_mob::A_StarShortestPathImpl::found_goal& goal) {
 			//Build backwards.
 			for (StreetDirectory::Vertex v = *toVertex;; v = p[v]) {
 				partialRes.push_front(v);
-				if (p[v] == v) {
+				if (p[v] == v)
+				{
 					break;
 				}
 			}
 			//Now build forwards.
-			std::list<StreetDirectory::Vertex>::const_iterator prev =
-					partialRes.end();
+			std::list<StreetDirectory::Vertex>::const_iterator prev = partialRes.end();
 			for (std::list<StreetDirectory::Vertex>::const_iterator it =
 					partialRes.begin(); it != partialRes.end(); it++) {
 				//Add this edge.
@@ -137,13 +133,12 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 					std::pair<StreetDirectory::Edge, bool> edge = boost::edge(
 							*prev, *it, filtered);
 					if (!edge.second) {
-						Warn()
-								<< "ERROR: Boost can't find an edge that it should know about."
-								<< std::endl;
+//						Warn()
+						std::cout
+								<< "ERROR: Boost can't find an edge that it should know about." << std::endl;
 					}
 					//Retrieve, add this edge's WayPoint.
-					WayPoint w = boost::get(boost::edge_name, filtered,
-							edge.first);
+					WayPoint w = boost::get(boost::edge_name, filtered,edge.first);
 					wps.push_back(w);
 				}
 
@@ -152,7 +147,7 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 			}
 		}				//catch
 
-	}				//else
+	}				//else Blacklist
 
 
 

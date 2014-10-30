@@ -570,6 +570,26 @@ public:
 	PathSet(boost::shared_ptr<sim_mob::PathSet> &ps);
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///// find the shortest path by analyzing the length of segments
+inline sim_mob::SinglePath* findShortestPath(std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices)
+{
+	if(pathChoices.begin() == pathChoices.end())
+	{
+		return nullptr;
+	}
+	sim_mob::SinglePath* res = *(pathChoices.begin());
+	double min = 0;
+	double tmp = 0;
+	BOOST_FOREACH(sim_mob::SinglePath*sp, pathChoices)
+	{
+		if ((min - (tmp = generateSinglePathLengthPT(sp->shortestWayPointpath))) > std::numeric_limits<double>::epsilon())
+		{
+			min = tmp;
+			res = sp;
+		}
+	}
+	return res;
+}
 
 inline double getTravelCost2(sim_mob::SinglePath *sp)
 {

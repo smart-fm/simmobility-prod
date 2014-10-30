@@ -365,7 +365,7 @@ sim_mob::HasPath DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 //	//temp optimization todo remove hardcode
 	if(rs.begin() == rs.end())
 	{
-		std::cout << pathset_id << " No path found in DB excludedRS:" << excludedRS.size() <<  std::endl;
+		std::cout << "[" << pathset_id << "] [QUERY NO PATH]" <<  std::endl;
 		return sim_mob::PSM_NOTFOUND;
 	}
 //		soci::rowset<soci::row> rsPS = sql.prepare << "select * from \"PathSet_Scaled_HITS_distinctODs\" "

@@ -156,7 +156,8 @@ namespace
  * ***********************************************************************************
  */
 boost::shared_ptr<sim_mob::RestrictedRegion> sim_mob::RestrictedRegion::instance;
-sim_mob::RestrictedRegion::RestrictedRegion():Impl(new TagSearch(*this)){}
+sim_mob::RestrictedRegion::RestrictedRegion():Impl(new TagSearch(*this)),zoneSegmentsStr(""),zoneNodesStr(""),inStr(""), outStr("")
+{}
 sim_mob::RestrictedRegion::~RestrictedRegion(){safe_delete_item(Impl);}
 void sim_mob::RestrictedRegion::populate()
 {
@@ -213,17 +214,22 @@ void sim_mob::RestrictedRegion::populate()
 	/********************************************************
 	 * ********** String representations & Tagging **********
 	 * ******************************************************/
+	std::stringstream out_("");
 	BOOST_FOREACH(const sim_mob::RoadSegment*rs,zoneSegments)
 	{
-		zoneSegmentsStr += rs->getId() + ",";
+		out_ << rs->getId() << ",";
 		rs->CBD = true;
 	}
+	zoneSegmentsStr = out_.str();
+	std::cout << "zoneSegmentsStr :" << zoneSegmentsStr << std::endl;
+	out_.str("");
 	BOOST_FOREACH(Pair node, zoneNodes)
 	{
 		zoneNodesStr += node.first + ",";
 		node.second->CBD = true;
 	}
-	std::stringstream out_("");
+	std::cout << "zoneNodesStr: " << zoneNodesStr << std::endl;
+	out_.str("");
 	BOOST_FOREACH(SegPair item, in)
 	{
 		out_ << item.first->getId() << ":" << item.second->getId() << ",";
@@ -321,6 +327,7 @@ bool sim_mob::RestrictedRegion::isInRestrictedSegmentZone(const std::vector<WayP
 		}
 		if(Impl->isInRestrictedSegmentZone(wp.roadSegment_))
 		{
+			std::cout << wp.roadSegment_->getId() << " in the CBD zone\n";
 			return true;
 		}
 	}
@@ -426,7 +433,9 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	double end = nextLoadStart + DEFAULT_LOAD_INTERVAL;
 	query << "select * from " << storedProcName << "(" << nextLoadStart << "," << end << ")";
 	std::string sql_str = query.str();
+	std::cout << "loadActivitySchedules Query[" << sql_str << "]" << std::endl;
 	soci::rowset<soci::row> rs = (sql_.prepare << sql_str);
+	std::cout << "loadActivitySchedules Query returned" << std::endl;
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	unsigned actCtr = 0;
 	map<string, vector<TripChainItem*> > tripchains;

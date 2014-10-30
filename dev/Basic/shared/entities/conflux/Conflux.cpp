@@ -1149,7 +1149,7 @@ std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersons() {
 		for(SegmentStatsList::const_iterator rdSegIt=upstreamSegments.begin();
 				rdSegIt!=upstreamSegments.end(); rdSegIt++) {
 			segStats = (*rdSegIt);
-			tmpAgents = segStats->getPersons();
+			segStats->getPersons(tmpAgents);
 			allPersonsInCfx.insert(allPersonsInCfx.end(), tmpAgents.begin(), tmpAgents.end());
 		}
 	}

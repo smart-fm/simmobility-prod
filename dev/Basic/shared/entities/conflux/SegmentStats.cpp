@@ -228,9 +228,8 @@ void SegmentStats::removeBusDriverFromStop(sim_mob::Person* driver, const sim_mo
 	}
 }
 
-std::deque<sim_mob::Person*> SegmentStats::getPersons()
+void SegmentStats::getPersons(std::deque<sim_mob::Person*>& segAgents)
 {
-	PersonList segAgents;
 	for (std::vector<sim_mob::Lane*>::const_iterator lnIt = roadSegment->getLanes().begin(); lnIt != roadSegment->getLanes().end(); lnIt++)
 	{
 		PersonList& lnAgents = laneStatsMap.find(*lnIt)->second->laneAgents;
@@ -245,7 +244,6 @@ std::deque<sim_mob::Person*> SegmentStats::getPersons()
 		PersonList& driversAtStop = busDrivers.at(stop);
 		segAgents.insert(segAgents.end(), driversAtStop.begin(), driversAtStop.end());
 	}
-	return segAgents;
 }
 
 void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)

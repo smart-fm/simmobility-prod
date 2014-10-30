@@ -266,7 +266,6 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 
 		populateCarParks(nCarsPerCarPark);
 
-		//myFile.open("/home/haroldsoh/Development/simmobility/dataFiles/inputfile1.txt");
 		lastReadLine = "";
 
 		if (out_demandStat.is_open()) {
@@ -1671,6 +1670,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 		ServiceIterator itr =serviceBuffer.begin();
 		int startTime = currTime;
 		const RoadSegment *StopPointRS; //vh will stop at this segment to pick up passenger
+		string pickUpSegmentStr;
 		//int interval = 3000;//ms
 		while (true) {
 			if (nFreeCars <= 0) break; //check if the number of free cars is non-zero
@@ -1761,6 +1761,8 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 				//get the last WayPoint from the wp1
 				WayPoint lastWP = wp1[wp1.size()-1];
 				const RoadSegment *lastWPrs = lastWP.roadSegment_;
+				pickUpSegmentStr = lastWPrs->originalDB_ID.getLogItem();
+
 				StopPointRS = lastWPrs; //this is the segment where picking up f the passenger will occur
 
 				//erase the last WayPoint from the wp1
@@ -1886,7 +1888,9 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			vhAssigned->setPath(mergedWP);
 
 			//amod pickUpSegment for the dwell time implementation
-			vhAssigned->amodPickUpSegment = StopPointRS;
+			//vhAssigned->amodPickUpSegment = StopPointRS;
+			vhAssigned->amodSegmLength = StopPointRS->length;
+			vhAssigned->amodPickUpSegmentStr = pickUpSegmentStr;
 
 			// set event
 			eventPub.registerEvent(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH);

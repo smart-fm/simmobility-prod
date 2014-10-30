@@ -1777,15 +1777,19 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		if(!parentP->amodPath.empty()){
 			path = parent->amodPath;
 			// set the stop point and dwell time
-			const RoadSegment *stopSegment = parentDriver->getParent()->amodPickUpSegment; //how to pass rs from amodController to here
-			string segAimsunId = stopSegment->originalDB_ID.getLogItem();
+			std::string stopSegmentStr = parentDriver->getParent()->amodPickUpSegmentStr; //how to pass rs from amodController to here
+			//const RoadSegment * stopSegRS = parentDriver->getParent()->amodPickUpSegment;
+			if(stopSegmentStr == "-1")
+			{
+				cout<<"\nStop Segment is Null!\n";
+			}
+			//string segAimsunId = stopSegment->originalDB_ID.getLogItem();
 			//string segAimsunId = toString(segAimsunID);
-			std::string segm = getNumberFromAimsunId(segAimsunId);
+			std::string segm = getNumberFromAimsunId(stopSegmentStr);
 			double dwelltime = 10; //in sec
-			double segl = stopSegment->getLengthOfSegment() /100.0; //length of the segment in m
+			double segl = parentDriver->getParent()->amodSegmLength /100.0; //length of the segment in m
 			double fd2 = (segl - segl/5); //distance where the vh will stop counting from the begining of the segment
-			boost::random::mt19937 rng;
-			boost::random::uniform_real_distribution<> fd_rand(0,segl);
+
 			//double fd = fd_rand(rng);
 			StopPoint stopPoint(segm,fd2,dwelltime);
 			parentDriver->getParams().insertStopPoint(stopPoint);

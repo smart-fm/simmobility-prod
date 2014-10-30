@@ -36,6 +36,16 @@ BusStopAgent* BusStopAgent::findBusStopAgentByBusStop(const BusStop* busstop)
 	}
 }
 
+void BusStopAgent::removeAllBusStopAgent()
+{
+	BusStopAgent::BusStopAgentsMap::iterator it=allBusstopAgents.begin();
+	while(it!=allBusstopAgents.end()){
+		delete (*it).second;
+		it++;
+	}
+}
+
+
 BusStopAgent::BusStopAgent(const MutexStrategy& mtxStrat, int id, const BusStop* stop, SegmentStats* stats) :
 		Agent(mtxStrat, id), busStop(stop), parentSegmentStats(stats), availableLength(stop->getBusCapacityAsLength())
 {
@@ -43,6 +53,13 @@ BusStopAgent::BusStopAgent(const MutexStrategy& mtxStrat, int id, const BusStop*
 
 BusStopAgent::~BusStopAgent()
 {
+	for(std::list<sim_mob::medium::WaitBusActivity*>::iterator i= waitingPersons.begin(); i!=waitingPersons.end();i++){
+		(*i)->getParent()->currWorkerProvider=nullptr;
+	}
+
+	for(std::list<sim_mob::medium::Passenger*>::iterator i = alightingPersons.begin(); i!=alightingPersons.end(); i++){
+		(*i)->getParent()->currWorkerProvider=nullptr;
+	}
 }
 
 void BusStopAgent::onEvent(event::EventId eventId, event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)

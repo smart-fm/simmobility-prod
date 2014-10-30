@@ -76,6 +76,11 @@ public:
 	static void registerBusStopAgent(BusStopAgent* busstopAgent);
 
 	/**
+	 * remove all bus stops agent.
+	 */
+	static void removeAllBusStopAgent();
+
+	/**
 	 * checks whether the bus stop can accommodate a vehicle of a given length
 	 * @param length length of the vehicle
 	 * @returns true if vehicle can be accommodated; false otherwise

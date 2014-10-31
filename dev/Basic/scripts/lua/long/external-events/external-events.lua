@@ -37,8 +37,8 @@ function getExternalEvents (day)
     --if events[day] ~= nil then
     --    return events[day];
     --end
-    --if day == 1 then     
-        for i= 1, 30 do
+    --if day == 1 then 
+        for i= 1, 10000 do
            local household = math.random(1,1146054)
            if excluded[household] == nil then
               addEvent(day, EventType.NEW_SCHOOL_LOCATION, household)

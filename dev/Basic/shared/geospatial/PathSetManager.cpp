@@ -1317,8 +1317,10 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 			}
 			ps->pathChoices.insert(p->s);
 		}
+		safe_delete_item(p);
 	}
-//	std::cout << "generateAllPathChoicesMT->finalize" << std::endl;
+	//cleanupworkPool
+	workPool.clear();
 	return true;
 }
 

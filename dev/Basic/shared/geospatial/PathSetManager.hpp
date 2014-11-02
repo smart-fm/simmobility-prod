@@ -476,7 +476,9 @@ class SinglePath
 public:
 	SinglePath() : purpose(work),utility(0.0),pathSize(0.0),travelCost(0.0),
 	signal_number(0.0),right_turn_number(0.0),length(0.0),travleTime(0.0),highWayDistance(0.0),
-	isMinTravelTime(0),isMinDistance(0),isMinSignal(0),isMinRightTurn(0),isMaxHighWayUsage(0),isShortestPath(0), shortestWayPointpath(std::vector<WayPoint>()){}
+	isMinTravelTime(0),isMinDistance(0),isMinSignal(0),isMinRightTurn(0),isMaxHighWayUsage(0),
+	isShortestPath(0), excludeSeg(nullptr), fromNode(nullptr),toNode(nullptr),
+	shortestWayPointpath(std::vector<WayPoint>()),isNeedSave2DB(false){}
 	SinglePath(const SinglePath &source);
 	void init(std::vector<WayPoint>& wpPools);
 	void clear();
@@ -529,8 +531,8 @@ public:
 class PathSet
 {
 public:
-	PathSet():hasPath(0) {};
-	PathSet(const sim_mob::Node *fn,const sim_mob::Node *tn) : fromNode(fn),toNode(tn),logsum(0),hasPath(0) {}
+	PathSet():hasPath(false) {};
+	PathSet(const sim_mob::Node *fn,const sim_mob::Node *tn) : fromNode(fn),toNode(tn),logsum(0),hasPath(false) {}
 //	PathSet(const boost::shared_ptr<sim_mob::PathSet> &ps);
 	~PathSet();
 	///	returns the rough size of object in Bytes
@@ -564,8 +566,8 @@ public:
 	std::string singlepath_id;
 	std::string excludedPaths;
 	std::string scenario;
-	int hasPath;
-	PathSetManager *psMgr;
+	bool hasPath;
+//	PathSetManager *psMgr;
 
 	PathSet(boost::shared_ptr<sim_mob::PathSet> &ps);
 };

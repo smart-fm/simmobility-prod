@@ -78,7 +78,7 @@ template<> struct type_conversion<sim_mob::PathSet>
 //    	res.trip_id = vals.get<string>("TRIP_ID", "");
     	res.singlepath_id = vals.get<std::string>("SINGLEPATH_ID", "");
     	res.scenario = vals.get<std::string>("SCENARIO", "");
-    	res.hasPath = vals.get<int>("HAS_PATH", 0);
+    	res.hasPath = (vals.get<int>("HAS_PATH", 0) > 0 ? true : false);
     }
     static void to_base(const sim_mob::PathSet& src, soci::values& vals, soci::indicator& ind)
     {
@@ -89,7 +89,7 @@ template<> struct type_conversion<sim_mob::PathSet>
 //        vals.set("TRIP_ID", src.trip_id);
         vals.set("SINGLEPATH_ID", src.singlepath_id);
         vals.set("SCENARIO", src.scenario);
-        vals.set("HAS_PATH", src.hasPath);
+        vals.set("HAS_PATH", (src.hasPath > 0 ? 1 : 0));
         ind = i_ok;
     }
 };

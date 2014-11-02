@@ -14,9 +14,8 @@ namespace{
 sim_mob::BasicLogger & logger = sim_mob::Logger::log("path_set");
 }
 
-sim_mob::PathSetWorkerThread::PathSetWorkerThread()
+sim_mob::PathSetWorkerThread::PathSetWorkerThread():s(nullptr)
 {
-	s = new sim_mob::SinglePath();
 	hasPath = false;
 	dbgStr = "";
 }
@@ -46,10 +45,6 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 	//TODO: Perhaps caching the most recent X searches might be a good idea, though. ~Seth.
 
 	vector<WayPoint> wps;
-	if (!s) {
-		std::cout << "in thread new failed " << std::endl;
-	}
-	s->shortestWayPointpath.clear();
 	if (blacklistV.empty()) {
 		std::list<StreetDirectory::Vertex> partialRes;
 		//Use A* to search for a path
@@ -161,6 +156,7 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		else{
 			logger << "Path generated through:" << dbgStr <<  ":" << id << "\n" ;
 		}
+		s = new sim_mob::SinglePath();
 		// fill data
 		s->pathSet = ps;
 		s->isNeedSave2DB = true;

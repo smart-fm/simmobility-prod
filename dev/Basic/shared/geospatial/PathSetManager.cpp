@@ -1036,7 +1036,7 @@ bool sim_mob::PathSetManager::getBestPath(
 //		ps_->toNodeId = sim_mob::Utils::getNumberFromAimsunId(temp);
 		ps_->scenario = scenarioName;
 		ps_->subTrip = st;
-		ps_->psMgr = this;
+//		ps_->psMgr = this;
 
 		bool r = generateAllPathChoicesMT(ps_, blckLstSegs);
 		if (!r) {
@@ -1129,7 +1129,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 		// no path
 		if(tempNoPath.find(ps->id) == tempNoPath.end())
 		{
-			ps->hasPath = -1;
+			ps->hasPath = false;
 			ps->isNeedSave2DB = true;
 			std::map<std::string,boost::shared_ptr<sim_mob::PathSet> > tmp;
 			tmp.insert(std::make_pair(ps->id,ps));
@@ -1142,7 +1142,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 //	std::cout << "generateAllPathChoicesMT->findShortestDrivingPath" << std::endl;
 	//	// 1.31 check path pool
 		// 1.4 create PathSet object
-	ps->hasPath = 1;
+	ps->hasPath = true;
 	ps->isNeedSave2DB = true;
 	ps->oriPath = s;
 	std::string fromToID(getFromToString(ps->fromNode, ps->toNode));
@@ -1288,7 +1288,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 		work->toNode = ps->toNode;
 //		work->excludeSeg = excludedSegs;
 //		work->s = NULL;
-		work->s->clear();
+//		work->s->clear();
 		work->ps = ps;
 		std::stringstream out("");
 		out << "random pertubation[" << i << "] '" << ps->fromNode->getID() << "," << ps->toNode->getID() << "'\n";

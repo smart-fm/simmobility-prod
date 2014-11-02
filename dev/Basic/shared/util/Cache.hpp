@@ -101,7 +101,9 @@ public:
     // No need to check return,
     // given previous assert.
   }
-
+  int size(){
+	  return keyToValue.size();
+  }
 private:
   // Purge the least-recently-used element in the cache
   void evict() {

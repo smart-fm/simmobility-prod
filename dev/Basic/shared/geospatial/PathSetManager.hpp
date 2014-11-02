@@ -306,7 +306,7 @@ public:
 	std::vector<WayPoint> getPath(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip);
 
 	///	calculate travel time of a path
-	double getTravelTime(sim_mob::SinglePath *sp);
+	static double getTravelTime(sim_mob::SinglePath *sp);
 
 	///	get travel time of a segment
 	double getTravelTimeBySegId(std::string id,sim_mob::DailyTime startTime);
@@ -319,8 +319,8 @@ public:
 
 	void init();
 
-	///clears various cache containers(unused for now)
-	void clearCachedPathSet();
+//	///clears various cache containers(unused for now)
+//	void clearCachedPathSet();
 
 	void setScenarioName(std::string& name){ scenarioName = name; }
 
@@ -328,7 +328,7 @@ public:
 
 	bool getCachedBestPath(std::string id, std::vector<WayPoint> & value);
 
-	void cacheODbySegment(const sim_mob::Person*,const SubTrip *,std::vector<WayPoint> &);
+//	void cacheODbySegment(const sim_mob::Person*,const SubTrip *,std::vector<WayPoint> &);
 
 	const std::pair<SGPER::const_iterator,SGPER::const_iterator > getODbySegment(const sim_mob::RoadSegment* segment) const;
 
@@ -355,15 +355,15 @@ public:
 	bool findCachedPathSet(std::string key,
 			boost::shared_ptr<sim_mob::PathSet> &value,
 			const std::set<const sim_mob::RoadSegment*> & blcklist);
-	///cache the generated pathset. returns true upon successful insertion
-	bool cachePathSet_orig(boost::shared_ptr<sim_mob::PathSet> &ps);
+//	///cache the generated pathset. returns true upon successful insertion
+//	bool cachePathSet_orig(boost::shared_ptr<sim_mob::PathSet> &ps);
 	/**
 	 * searches for a pathset in the cache.
 	 * \param key indicates the input key
 	 * \param value the result of the search
 	 * returns true/false to indicate if the search has been successful
 	 */
-	bool findCachedPathSet_orig(std::string key, boost::shared_ptr<sim_mob::PathSet> &value);
+//	bool findCachedPathSet_orig(std::string key, boost::shared_ptr<sim_mob::PathSet> &value);
 
 	///cache the generated pathset. returns true upon successful insertion
 	bool cachePathSet_LRU(boost::shared_ptr<sim_mob::PathSet> &ps);
@@ -425,7 +425,7 @@ private:
 
 	boost::shared_mutex cachedPathSetMutex;
 
-	std::map<std::string, boost::shared_ptr<sim_mob::PathSet> > cachedPathSet;//same as pathSetPool, used in a separate scenario //todo later use only one of the caches, cancel the other one
+//	std::map<std::string, boost::shared_ptr<sim_mob::PathSet> > cachedPathSet;//same as pathSetPool, used in a separate scenario //todo later use only one of the caches, cancel the other one
 
 	///	Yet another cache
 	sim_mob::LRU_Cache<std::string, boost::shared_ptr<PathSet> > cacheLRU;
@@ -476,7 +476,7 @@ class SinglePath
 public:
 	SinglePath() : purpose(work),utility(0.0),pathSize(0.0),travelCost(0.0),
 	signal_number(0.0),right_turn_number(0.0),length(0.0),travleTime(0.0),highWayDistance(0.0),
-	isMinTravelTime(0),isMinDistance(0),isMinSignal(0),isMinRightTurn(0),isMaxHighWayUsage(0),isShortestPath(0){}
+	isMinTravelTime(0),isMinDistance(0),isMinSignal(0),isMinRightTurn(0),isMaxHighWayUsage(0),isShortestPath(0), shortestWayPointpath(std::vector<WayPoint>()){}
 	SinglePath(const SinglePath &source);
 	void init(std::vector<WayPoint>& wpPools);
 	void clear();
@@ -553,7 +553,7 @@ public:
 	std::string personId; //person id
 	std::string tripId; // trip item id
 	SinglePath* oriPath;  // shortest path with all segments
-	std::map<std::string,sim_mob::SinglePath*> SinglePathPool;
+	//std::map<std::string,sim_mob::SinglePath*> SinglePathPool;
 	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> pathChoices;
 	bool isNeedSave2DB;
 	double logsum;

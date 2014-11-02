@@ -457,13 +457,13 @@ uint32_t sim_mob::PathSetManager::getSize(){
 	sum += (sizeof(boost::thread::id)) + sizeof(boost::shared_ptr<soci::session >) * cnnRepo.size();
 	sum += sizeof(sim_mob::batched::ThreadPool *); // sim_mob::batched::ThreadPool *threadpool_;
 	sum += sizeof(boost::shared_mutex); // boost::shared_mutex cachedPathSetMutex;
-	//map<const std::string,sim_mob::PathSet > cachedPathSet;
-	for(std::map<const std::string,boost::shared_ptr<sim_mob::PathSet> >::iterator it = cachedPathSet.begin(); it !=cachedPathSet.end(); it++)
-//			BOOST_FOREACH(cachedPathSet_pair,cachedPathSet)
-	{
-		sum += it->first.length();
-		sum += it->second->getSize();
-	}
+//	//map<const std::string,sim_mob::PathSet > cachedPathSet;
+//	for(std::map<const std::string,boost::shared_ptr<sim_mob::PathSet> >::iterator it = cachedPathSet.begin(); it !=cachedPathSet.end(); it++)
+////			BOOST_FOREACH(cachedPathSet_pair,cachedPathSet)
+//	{
+//		sum += it->first.length();
+//		sum += it->second->getSize();
+//	}
 	sum += scenarioName.length(); // std::string scenarioName;
 	// std::map<std::string ,std::vector<WayPoint> > fromto_bestPath;
 	sum += sizeof(WayPoint) * fromto_bestPath.size();
@@ -527,10 +527,10 @@ int pathsCnt = 0;
 int spCnt = 0;
 }
 
-void sim_mob::PathSetManager::clearCachedPathSet()
-{
-	cachedPathSet.clear();
-}
+//void sim_mob::PathSetManager::clearCachedPathSet()
+//{
+//	cachedPathSet.clear();
+//}
 
 bool sim_mob::PathSetManager::pathInBlackList(const std::vector<WayPoint> path, const std::set<const sim_mob::RoadSegment*> & blkLst)
 {
@@ -655,11 +655,11 @@ bool sim_mob::PathSetManager::getCachedBestPath(std::string id, std::vector<WayP
 	return true;
 }
 
-void sim_mob::PathSetManager::cacheODbySegment(const sim_mob::Person* per, const sim_mob::SubTrip * subTrip, std::vector<WayPoint> & wps){
-	BOOST_FOREACH(WayPoint &wp, wps){
-		pathSegments.insert(std::make_pair(wp.roadSegment_, per));
-	}
-}
+//void sim_mob::PathSetManager::cacheODbySegment(const sim_mob::Person* per, const sim_mob::SubTrip * subTrip, std::vector<WayPoint> & wps){
+//	BOOST_FOREACH(WayPoint &wp, wps){
+//		pathSegments.insert(std::make_pair(wp.roadSegment_, per));
+//	}
+//}
 
 const std::pair <SGPER::const_iterator,SGPER::const_iterator > sim_mob::PathSetManager::getODbySegment(const sim_mob::RoadSegment* segment) const{
 	logger << "pathSegments cache size =" <<  pathSegments.size() << "\n";
@@ -701,31 +701,31 @@ bool sim_mob::PathSetManager::cachePathSet_LRU(boost::shared_ptr<sim_mob::PathSe
 	cacheLRU.insert(ps->id, ps);
 }
 
-bool sim_mob::PathSetManager::cachePathSet_orig(boost::shared_ptr<sim_mob::PathSet>&ps){
-	logger << "caching [" << ps->id << "]\n";
-	//test
-//	return false;
-	//first step caching policy:
-	// if cache size excedded 250 (upper threshold), reduce the size to 200 (lowe threshold)
-	if(cachedPathSet.size() > 2500)
-	{
-		logger << "clearing some of the cached PathSets\n";
-		int i = cachedPathSet.size() - 2000;
-		std::map<std::string, boost::shared_ptr<sim_mob::PathSet> >::iterator it(cachedPathSet.begin());
-		for(; i >0 && it != cachedPathSet.end(); --i )
-		{
-			cachedPathSet.erase(it++);
-		}
-	}
-	{
-		boost::unique_lock<boost::shared_mutex> lock(cachedPathSetMutex);
-		bool res = cachedPathSet.insert(std::make_pair(ps->id,ps)).second;
-		if(!res){
-			logger << "Failed to cache [" << ps->id << "]\n";
-		}
-		return res;
-	}
-}
+//bool sim_mob::PathSetManager::cachePathSet_orig(boost::shared_ptr<sim_mob::PathSet>&ps){
+//	logger << "caching [" << ps->id << "]\n";
+//	//test
+////	return false;
+//	//first step caching policy:
+//	// if cache size excedded 250 (upper threshold), reduce the size to 200 (lowe threshold)
+//	if(cachedPathSet.size() > 2500)
+//	{
+//		logger << "clearing some of the cached PathSets\n";
+//		int i = cachedPathSet.size() - 2000;
+//		std::map<std::string, boost::shared_ptr<sim_mob::PathSet> >::iterator it(cachedPathSet.begin());
+//		for(; i >0 && it != cachedPathSet.end(); --i )
+//		{
+//			cachedPathSet.erase(it++);
+//		}
+//	}
+//	{
+//		boost::unique_lock<boost::shared_mutex> lock(cachedPathSetMutex);
+//		bool res = cachedPathSet.insert(std::make_pair(ps->id,ps)).second;
+//		if(!res){
+//			logger << "Failed to cache [" << ps->id << "]\n";
+//		}
+//		return res;
+//	}
+//}
 
 bool sim_mob::PathSetManager::findCachedPathSet(std::string  key,
 		boost::shared_ptr<sim_mob::PathSet> &value,
@@ -756,28 +756,28 @@ bool sim_mob::PathSetManager::findCachedPathSet_LRU(std::string  key, boost::sha
 	return cacheLRU.find(key,value);
 }
 
-bool sim_mob::PathSetManager::findCachedPathSet_orig(std::string  key, boost::shared_ptr<sim_mob::PathSet> &value){
-//	//test
-//	return false;
-	std::map<std::string, boost::shared_ptr<sim_mob::PathSet> >::iterator it ;
-	{
-		boost::unique_lock<boost::shared_mutex> lock(cachedPathSetMutex);
-		it = cachedPathSet.find(key);
-		if (it == cachedPathSet.end()) {
-			//debug
-			std::stringstream out("");
-			out << "Failed finding [" << key << "] in" << cachedPathSet.size() << " entries\n" ;
-			typedef std::map<std::string, boost::shared_ptr<sim_mob::PathSet> >::value_type ITEM;
-			BOOST_FOREACH(ITEM & item,cachedPathSet){
-				out << item.first << ",";
-			}
-			logger << out.str() << "\n";
-			return false;
-		}
-		value = it->second;
-	}
-	return true;
-}
+//bool sim_mob::PathSetManager::findCachedPathSet_orig(std::string  key, boost::shared_ptr<sim_mob::PathSet> &value){
+////	//test
+////	return false;
+//	std::map<std::string, boost::shared_ptr<sim_mob::PathSet> >::iterator it ;
+//	{
+//		boost::unique_lock<boost::shared_mutex> lock(cachedPathSetMutex);
+//		it = cachedPathSet.find(key);
+//		if (it == cachedPathSet.end()) {
+//			//debug
+//			std::stringstream out("");
+//			out << "Failed finding [" << key << "] in" << cachedPathSet.size() << " entries\n" ;
+//			typedef std::map<std::string, boost::shared_ptr<sim_mob::PathSet> >::value_type ITEM;
+//			BOOST_FOREACH(ITEM & item,cachedPathSet){
+//				out << item.first << ",";
+//			}
+//			logger << out.str() << "\n";
+//			return false;
+//		}
+//		value = it->second;
+//	}
+//	return true;
+//}
 
 void sim_mob::printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node* startingNode ){
 	std::ostringstream out("wp path--");
@@ -810,29 +810,31 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::Person* per,con
 	bool to = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.toLocation);
 	str.str("");
 	str << "[" << fromToID << "]";
-	if(to == false && from == false){
-		subTrip.cbdTraverseType = TravelMetric::CBD_PASS;
-		str << "[BLCKLST]" ;
-		std::stringstream outDbg("");
-		getBestPath(res, &subTrip,&outDbg,std::set<const sim_mob::RoadSegment*>(),false,true);//use/enforce blacklist
-		if(sim_mob::RestrictedRegion::getInstance().isInRestrictedSegmentZone(res)){
-			std::cout << "[" << fromToID << "]" <<  " [PERSON: " << per->getId() << "] " << "[PATH : " << res.size() << "]" << std::endl;
-			printWPpath(res) ;
-			std::cout << outDbg.str() << std::endl;
-			throw std::runtime_error ("\npath inside cbd ");
-		}
-	}
-	else {
+	if (sim_mob::ConfigManager::GetInstance().FullConfig().CBD()) {
+		if (to == false && from == false) {
+			subTrip.cbdTraverseType = TravelMetric::CBD_PASS;
+			str << "[BLCKLST]";
+			std::stringstream outDbg("");
+			getBestPath(res, &subTrip, &outDbg,
+					std::set<const sim_mob::RoadSegment*>(), false, true);//use/enforce blacklist
+			if (sim_mob::RestrictedRegion::getInstance().isInRestrictedSegmentZone(res)) {
+				std::cout << "[" << fromToID << "]" << " [PERSON: "	<< per->getId() << "] " << "[PATH : " << res.size() << "]" << std::endl;
+				printWPpath(res);
+				std::cout << outDbg.str() << std::endl;
+				throw std::runtime_error("\npath inside cbd ");
+			}
+		} else {
 
-		if(!(to && from))
-		{
-			subTrip.cbdTraverseType = (from ? TravelMetric::CBD_EXIT : TravelMetric::CBD_ENTER);
-			str  << (from ? " [EXIT CBD]" : "[ENTER CBD]");
+			if (!(to && from)) {
+				subTrip.cbdTraverseType =
+						(from ? TravelMetric::CBD_EXIT : TravelMetric::CBD_ENTER);
+				str << (from ? " [EXIT CBD]" : "[ENTER CBD]");
+			} else {
+				str << "[BOTH INSIDE CBD]";
+			}
+			getBestPath(res, &subTrip);
 		}
-		else
-		{
-			str  << "[BOTH INSIDE CBD]" ;
-		}
+	} else {
 		getBestPath(res, &subTrip);
 	}
 
@@ -2135,15 +2137,20 @@ void sim_mob::generatePathSizeForPathSet2(boost::shared_ptr<sim_mob::PathSet>&ps
 	{
 		minSP->isMaxHighWayUsage = 1;
 	}
-
+	int dbg_ind = -1;
 	//pathsize
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
+		dbg_ind ++;
 		//Set size = 0.
 		double size=0;
 		if(!sp)
 		{
-			continue;
+			throw std::runtime_error ("unexpected null singlepath");
+		}
+		if(sp->shortestWayPointpath.empty())
+		{
+			throw std::runtime_error ("unexpected empty shortestWayPointpath in singlepath");
 		}
 		// For each link a in the path:
 //		for(std::set<const RoadSegment*>::iterator it1 = sp->shortestSegPath.begin();it1 != sp->shortestSegPath.end(); it1++)
@@ -2180,7 +2187,7 @@ double sim_mob::PathSetManager::getTravelTime(sim_mob::SinglePath *sp)
 	{
 		if(sp->shortestWayPointpath[i].type_ == WayPoint::ROAD_SEGMENT){
 			std::string seg_id = sp->shortestWayPointpath[i].roadSegment_->originalDB_ID.getLogItem();
-			double t = getTravelTimeBySegId(seg_id,startTime);
+			double t = sim_mob::PathSetManager::getInstance()->getTravelTimeBySegId(seg_id,startTime);
 			ts += t;
 			startTime = startTime + sim_mob::DailyTime(ts*1000);
 		}
@@ -2332,12 +2339,12 @@ uint32_t sim_mob::PathSet::getSize(){
 		sum += tripId.length();//std::string tripId; // trip item id
 		sum += sizeof(SinglePath*);//SinglePath* oriPath;  // shortest path with all segments
 		//std::map<std::string,sim_mob::SinglePath*> SinglePathPool;//unused so far
-		typedef std::map<std::string,sim_mob::SinglePath*>::value_type tt;
-		BOOST_FOREACH(tt & pair_,SinglePathPool)
-		{
-			sum += pair_.first.length();
-			sum += sizeof(pair_.second);
-		}
+//		typedef std::map<std::string,sim_mob::SinglePath*>::value_type tt;
+//		BOOST_FOREACH(tt & pair_,SinglePathPool)
+//		{
+//			sum += pair_.first.length();
+//			sum += sizeof(pair_.second);
+//		}
 		//std::set<sim_mob::SinglePath*, sim_mob::SinglePath> pathChoices;
 		sim_mob::SinglePath* sp;
 		BOOST_FOREACH(sp,pathChoices)

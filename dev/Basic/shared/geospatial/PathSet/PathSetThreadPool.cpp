@@ -176,7 +176,7 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		s->scenario = ps->scenario;
 		s->pathSize = 0;
 		s->travelCost = sim_mob::getTravelCost2(s);
-		s->travleTime = s->pathSet->psMgr->getTravelTime(s);
+		s->travleTime = sim_mob::PathSetManager::getInstance()->getTravelTime(s);
 	}
 }
 

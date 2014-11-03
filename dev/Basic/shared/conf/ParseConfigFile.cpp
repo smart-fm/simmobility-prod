@@ -551,7 +551,10 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 		cfg.pathset.setDefaultEnabled();
 		return;
 	}
-	cfg.pathset.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+	if((cfg.pathset.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false")))
+	{
+		return;
+	}
 
 	xercesc::DOMElement* dbNode = GetSingleElementByName(node, "pathset_database");
 	if(!dbNode){
@@ -583,6 +586,11 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 	{
 		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(functionNode, "value"), "get_path_set");
 	}
+	/////////
+	DOMElement* tt = GetSingleElementByName(node, "pathset_traveltime_save_table",ConfigManager::GetInstance().FullConfig().PathSetMode());
+	if (tt) {
+		cfg.system.simulation.travelTimeTmpTableName  = ParseString(GetNamedAttributeValue(tt, "value"),"realtime_travel_time");
+	}
 }
 
 void sim_mob::ParseConfigFile::ProcessCBD_Node(xercesc::DOMElement* node){
@@ -612,29 +620,6 @@ void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* 
 	cfg.system.simulation.reactTimeDistribution2.stdev = ProcessValueInteger(GetSingleElementByName(node, "reacTime_standardDev2"));
 
 	cfg.system.simulation.simStartTime = ProcessValueDailyTime(GetSingleElementByName(node, "start_time", true));
-	//save travel time table name
-	if( ConfigManager::GetInstance().FullConfig().PathSetMode() )
-	{
-		DOMElement* rn = GetSingleElementByName(node, "pathset_traveltime_save_table",true);
-		if (rn) {
-		cfg.system.simulation.travelTimeTmpTableName  =
-				ParseString(GetNamedAttributeValue(rn, "value"),"aa");
-		}
-		else
-		{
-			cfg.system.simulation.travelTimeTmpTableName = "no_name";
-		}
-//				ParseString(GetNamedAttributeValue(node, "database"), "");
-//		TiXmlElement* node_table_name = handle.FirstChild("pathset_travletime_save_table").ToElement();
-//		const char* node_table_name_char = node_table_name ? node_table_name->Attribute("value") : nullptr;
-//		if(node_table_name_char==nullptr)
-//		{
-//			throw std::runtime_error("pls add pathset_travletime_save_table to config file");
-//		}
-//		std::string node_table_name_str = std::string(node_table_name_char);
-//		ConfigParams::GetInstance().travelTimeTmpTableName = node_table_name_str;
-//		PathSetManager::getInstance()->setTravleTimeTmpTableName(node_table_name_str);
-	}
 	//Now we're getting back to real properties.
 	ProcessSystemAuraManagerImplNode(GetSingleElementByName(node, "aura_manager_impl"));
 	ProcessSystemWorkgroupAssignmentNode(GetSingleElementByName(node, "workgroup_assignment"));

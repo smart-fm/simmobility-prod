@@ -620,7 +620,7 @@ bool sim_mob::PathSetManager::insertTravelTime2TmpTable(sim_mob::LinkTravelTime&
 bool sim_mob::PathSetManager::copyTravelTimeDataFromTmp2RealtimeTable()
 {
 	//1. prepare the csv file to be copied into DB
-	sim_mob::Logger::log("real_time_travel_time").flushLog();
+//	sim_mob::Logger::log("real_time_travel_time");
 	bool res=false;
 	//2.truncate/empty out the realtime travel time table
 	res = sim_mob::aimsun::Loader::truncateTable(*getSession(),	pathSetParam->pathSetTravelTimeRealTimeTableName);

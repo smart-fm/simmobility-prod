@@ -861,6 +861,7 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 	case MSG_PEDESTRIAN_TRANSFER_REQUEST:
 	{
 		const PedestrianTransferRequestMessage& msg = MSG_CAST(PedestrianTransferRequestMessage, message);
+		msg.pedestrian->currWorkerProvider = parentWorker;
 		pedestrianList.push_back(msg.pedestrian);
 		break;
 	}
@@ -965,7 +966,12 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 			Conflux* nextConflux = person->getNextLinkRequired()->getSegments().front()->getParentConflux();
 			messaging::MessageBus::PostMessage(nextConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST,
 					messaging::MessageBus::MessagePtr(new PedestrianTransferRequestMessage(person)));
-			return UpdateStatus::Done;
+			PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
+			if(pIt!=pedestrianList.end()){
+				pedestrianList.erase(pIt);
+				person->currWorkerProvider = nullptr;
+			}
+			return UpdateStatus::Continue;
 		}
 
 		if(person->requestedNextSegStats){

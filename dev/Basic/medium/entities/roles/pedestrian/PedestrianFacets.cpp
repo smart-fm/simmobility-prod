@@ -157,7 +157,6 @@ void PedestrianMovement::frame_tick() {
 			Link* nextLink = trajectory.front().first;
 			remainingTimeToComplete = trajectory.front().second - lastRemainingTime;
 			trajectory.erase(trajectory.begin());
-			lastRemainingTime = 0;
 			getParent()->setNextLinkRequired(nextLink);
 		}
 	}

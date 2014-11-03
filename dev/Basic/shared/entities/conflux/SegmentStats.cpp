@@ -230,9 +230,9 @@ void SegmentStats::removeBusDriverFromStop(sim_mob::Person* driver, const sim_mo
 
 void SegmentStats::getPersons(std::deque<sim_mob::Person*>& segAgents)
 {
-	for (std::vector<sim_mob::Lane*>::const_iterator lnIt = roadSegment->getLanes().begin(); lnIt != roadSegment->getLanes().end(); lnIt++)
+	for (LaneStatsMap::iterator lnStMpIt = laneStatsMap.begin(); lnStMpIt != laneStatsMap.end(); lnStMpIt++)
 	{
-		PersonList& lnAgents = laneStatsMap.find(*lnIt)->second->laneAgents;
+		PersonList& lnAgents = lnStMpIt->second->laneAgents;
 		segAgents.insert(segAgents.end(), lnAgents.begin(), lnAgents.end());
 	}
 	PersonList& lnAgents = laneStatsMap.find(laneInfinity)->second->laneAgents;

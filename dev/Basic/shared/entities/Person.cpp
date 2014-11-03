@@ -461,36 +461,6 @@ bool sim_mob::Person::updateOD(sim_mob::TripChainItem * tc, const sim_mob::SubTr
 	return tc->setPersonOD(this, subtrip);
 }
 
-bool sim_mob::Person::changeRoleRequired(sim_mob::Role & currRole, sim_mob::SubTrip &currSubTrip) const
-{
-	string roleName = RoleFactory::GetRoleName(currSubTrip.getMode());
-	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
-	const sim_mob::Role* targetRole = rf.getPrototype(roleName);
-	if(targetRole->getRoleName() ==  currRole.getRoleName()) { return false; }
-	//the current role type and target(next) role type are not same. so we need to change the role!
-	return true;
-}
-
-bool sim_mob::Person::changeRoleRequired(sim_mob::TripChainItem &tripChinItem) const
-{
-	if(tripChinItem.itemType == sim_mob::TripChainItem::IT_TRIP) { return changeRoleRequired_Trip(); }
-	else { return changeRoleRequired_Activity(); }
-}
-bool sim_mob::Person::changeRoleRequired_Trip(/*sim_mob::Trip &trip*/) const
-{
-	string roleName = RoleFactory::GetRoleName((*currSubTrip).getMode());
-	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
-	const sim_mob::Role* targetRole = rf.getPrototype(roleName);
-	if(targetRole->getRoleName() ==  currRole->getRoleName()) { return false; }
-	//the current role type and target(next) role type are not same. so we need to change the role!
-	return true;
-}
-
-bool sim_mob::Person::changeRoleRequired_Activity(/*sim_mob::Activity &activity*/) const
-{
-	return true;
-}
-
 bool sim_mob::Person::findPersonNextRole()
 {
 	if(!updateNextTripChainItem())
@@ -516,9 +486,6 @@ bool sim_mob::Person::findPersonNextRole()
 
 bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 {
-	if(!((!currRole) ||(changeRoleRequired(*(*(this->currTripChainItem)))))) {
-		return false;
-	}
 	//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
 	// it's better to avoid possible errors (e.g., if the equality operator is defined)
 	// by saving it until the next time tick.

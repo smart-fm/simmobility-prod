@@ -118,12 +118,6 @@ public:
     ///Check if any role changing is required.
     /// "nextValidTimeMS" is the next valid time tick, which may be the same at this time tick.
     Entity::UpdateStatus checkTripChain();
-    bool changeRoleRequired(sim_mob::Role & currRole,sim_mob::SubTrip &currSubTrip)const;//todo depricate later
-    bool changeRoleRequired_Trip /*sim_mob::Trip &trip*/
-	() const;
-	bool changeRoleRequired_Activity /*sim_mob::Activity &activity*/
-	() const;
-	bool changeRoleRequired(sim_mob::TripChainItem& tripChinItem) const;
 	//update origin and destination node based on the trip, subtrip or activity given
 	bool updateOD(sim_mob::TripChainItem* tc, const sim_mob::SubTrip* subtrip =
 			0);

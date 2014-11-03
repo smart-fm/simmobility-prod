@@ -121,7 +121,7 @@ private:
 			std::stringstream &out;
 			BasicLogger &basicLogger;
 			public:
-			Sentry(BasicLogger & basicLogger_,std::stringstream &out_):out(out_),basicLogger(basicLogger_){};
+			Sentry(BasicLogger & basicLogger_,std::stringstream *out_):out(*out_),basicLogger(basicLogger_){};
 			Sentry(const Sentry& t):basicLogger(t.basicLogger), out(t.out){}
 
 			//This is the type of std::cout
@@ -146,7 +146,7 @@ private:
 				// by some googling this estimated hardcode value promises less cycles to write to a file
 				if(out.tellp() > 512000/*500KB*/)
 				{
-					basicLogger.flushLog();
+					basicLogger.flushLog(out);
 				}
 			}
 		};
@@ -177,7 +177,7 @@ public:
 	BasicLogger(std::string id);
 
 	///	flush the log streams into the output buffer-Default version
-	virtual void flushLog();
+	virtual void flushLog(std::stringstream &out);
 
 	///	copy constructor
 	BasicLogger(const sim_mob::BasicLogger& value);
@@ -209,17 +209,16 @@ public:
 	Sentry operator<<(StandardEndLine manip) {
 		std::stringstream *out = getOut();
 		manip(*out);
-		return Sentry(*this,*out);
+		return Sentry(*this,out);
 	}
 
 	///	operator overload.	write the log items to buffer
 	template <typename T>
 	Sentry operator<< (const T& val)
 	{
-		//Sentry t(*this,*getOut());
-		//return(t << val);
-		// return t;
-		return (Sentry(*this,*getOut())<< val);
+		std::stringstream *out = getOut();
+		//std::cout << "assigning " << val << " to sentry with out=" << out << std::endl ;
+		return (Sentry(*this,out)<< val);
 	}
 	//for debugging purpose only
 	static std::map <boost::thread::id, int> threads;
@@ -259,11 +258,11 @@ protected:
 	std::map<const std::string, boost::shared_ptr<sim_mob::BasicLogger> > repo;
 	virtual sim_mob::BasicLogger & operator()(const std::string &key);
 	static boost::shared_ptr<sim_mob::Logger> log_;
-	boost::shared_mutex instanceMutex, repoMutex;
+	static boost::shared_mutex instanceMutex;
 public:
 	static sim_mob::BasicLogger &log(const std::string &key){
 		//todo
-//		boost::unique_lock<boost::shared_mutex> lock(instanceMutex);
+		boost::unique_lock<boost::shared_mutex> lock(instanceMutex);
 //		boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
 		if (!log_) {
 			log_.reset(new Logger());

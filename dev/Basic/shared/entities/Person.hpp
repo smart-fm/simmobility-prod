@@ -119,8 +119,7 @@ public:
     /// "nextValidTimeMS" is the next valid time tick, which may be the same at this time tick.
     Entity::UpdateStatus checkTripChain();
 	//update origin and destination node based on the trip, subtrip or activity given
-	bool updateOD(sim_mob::TripChainItem* tc, const sim_mob::SubTrip* subtrip =
-			0);
+	bool updateOD(sim_mob::TripChainItem* tc, const sim_mob::SubTrip* subtrip = 0);
 
 	///get this person's trip chain
 	const std::vector<TripChainItem*>& getTripChain() const {

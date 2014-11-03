@@ -137,12 +137,10 @@ void sim_mob::medium::DriverMovement::frame_init() {
 
 void sim_mob::medium::DriverMovement::frame_tick() {
 	sim_mob::medium::DriverUpdateParams& params = parentDriver->getParams();
-	Print() << "Person: " << getParent()->getId() << "|d.frame_tick" << std::endl;
 	const sim_mob::SegmentStats* currSegStats = pathMover.getCurrSegStats();
 	//debug
 	if(sectionId != currSegStats->getRoadSegment()->getSegmentAimsunId()){
 		sectionId = currSegStats->getRoadSegment()->getSegmentAimsunId();
-//		Print() << "frame:" <<  params.now.frame() << ",segment:" << sectionId << std::endl;
 	}
 	if(!currSegStats) {
 		//if currSegstats is NULL, either the driver did not find a path to his
@@ -270,7 +268,6 @@ bool sim_mob::medium::DriverMovement::initializePath() {
 
 void DriverMovement::setParentData(sim_mob::medium::DriverUpdateParams& params) {
 	if(!pathMover.isPathCompleted()) {
-		Print() << "Person: " << parent->getId() << "|d.setParentData()" << std::endl;
 		parent->distanceToEndOfSegment = pathMover.getPositionInSegment();
 		parent->setCurrLane(currLane);
 		parent->setCurrSegStats(pathMover.getCurrSegStats());
@@ -290,7 +287,6 @@ void DriverMovement::stepFwdInTime(sim_mob::medium::DriverUpdateParams& params, 
 }
 
 bool DriverMovement::advance(sim_mob::medium::DriverUpdateParams& params) {
-	Print() << "Person: " << parent->getId() << "|d.advance()" << std::endl;
 	if (pathMover.isPathCompleted()) {
 		getParent()->setToBeRemoved();
 		return false;
@@ -311,7 +307,6 @@ bool DriverMovement::advance(sim_mob::medium::DriverUpdateParams& params) {
 }
 
 bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& params) {
-	Print() << "Person: " << getParent()->getId() << "|d.moveToNextSegment" << std::endl;
 	bool res = false;
 	bool isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
 	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
@@ -389,7 +384,6 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 	//This function gets called for 2 cases.
 	//1. Driver is added to virtual queue
 	//2. Driver is in previous segment trying to add to the next
-	Print() << "Person: " << getParent()->getId() << "|d.flowIntoNextLinkIfPossible" << std::endl;
 	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
 	const sim_mob::SegmentStats* nextSegStats = pathMover.getNextSegStats(false);
 	const sim_mob::SegmentStats* nextToNextSegStats = pathMover.getSecondSegStatsAhead();
@@ -573,9 +567,7 @@ bool DriverMovement::advanceMovingVehicle(sim_mob::medium::DriverUpdateParams& p
 	//Therefore currSegStats cannot be NULL. It is safe to use it in this function.
 	double velocity = currSegStats->getSegSpeed(true);
 	double output = getOutputCounter(currLane, currSegStats);
-//	if(output <= 0){
-//		Print() << "Tick: " << params.now.frame() << "  : OutputCounter is <=0 " << std::endl;
-//	}
+
 	// add driver to queue if required
 	double laneQueueLength = getQueueLength(currLane);
 	if (laneQueueLength >  currSegStats->getLength())
@@ -1202,7 +1194,6 @@ TravelMetric & sim_mob::medium::DriverMovement::finalizeTravelTimeMetric()
 {
 	const sim_mob::SegmentStats * currSegStat =
 	((pathMover.getCurrSegStats() == nullptr) ? *(pathMover.getPath().rbegin()) : (pathMover.getCurrSegStats()));
-	//Print() << ((pathMover.getCurrSegStats() == nullptr) ? "Trip possibly completed\n" : "Simulation ended before Trip completed\n");
 	const Node* endNode = currSegStat->getRoadSegment()->getEnd();
 	travelTimeMetric->destination = WayPoint(endNode);
 	travelTimeMetric->endTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();

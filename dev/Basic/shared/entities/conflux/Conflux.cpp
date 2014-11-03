@@ -192,33 +192,9 @@ void sim_mob::Conflux::updateUnsignalized()
 	PersonList orderedPersonsInLanes;
 	getAllPersonsUsingTopCMerge(orderedPersonsInLanes);
 
-	{   //print persons to update
-		std::stringstream pstrm;
-		pstrm << "Conflux: " << this->multiNode->getID() << "|frame: " << currFrame.frame() << "|Persons to update: ";
-		for(PersonList::const_iterator i=orderedPersonsInLanes.begin(); i!=orderedPersonsInLanes.end(); i++)
-		{
-			pstrm << (*i)->getId() << "D|";
-		}
-		for (PersonList::const_iterator i = activityPerformers.begin(); i != activityPerformers.end(); i++)
-		{
-			pstrm << (*i)->getId() << "A|";
-		}
-		for (PersonList::const_iterator i = pedestrianList.begin(); i != pedestrianList.end(); i++)
-		{
-			pstrm << (*i)->getId() << "W|";
-		}
-		pstrm << std::endl;
-		Print() << pstrm.str();
-	}
-
 	PersonList::iterator personIt = orderedPersonsInLanes.begin();
 	for (; personIt != orderedPersonsInLanes.end(); personIt++)
 	{
-		if(!(*personIt)->getCurrLane())
-		{
-			Print() << "Conflux: " << this->multiNode->getID() << "|Person: " << (*personIt)->getId() << " NULL current lane before update" << std::endl;
-			if((*personIt)->getCurrSegStats()) { (*personIt)->getCurrSegStats()->printAgents(); }
-		}
 		updateAgent(*personIt);
 	}
 
@@ -265,13 +241,6 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person)
 
 	//capture info about the person after update
 	PersonProps afterUpdate(person);
-
-	if(!beforeUpdate.segStats && !afterUpdate.segStats)
-	{
-		Print() << "Person: " << person->getId() << "|Role: " << afterUpdate.roleType
-				<< "|frame: " << currFrame.frame() << std::endl;
-		person->printTripChainItemTypes();
-	}
 
 	//perform person's role related handling
 	if (afterUpdate.roleType == sim_mob::Role::RL_WAITBUSACTITITY)
@@ -867,7 +836,6 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 	}
 	case MSG_INSERT_INCIDENT:
 	{
-		Print() << "Conflux received MSG_INSERT_INCIDENT" << std::endl;
 		pathsetLogger << "Conflux received MSG_INSERT_INCIDENT" << std::endl;
 		const InsertIncidentMessage & msg = MSG_CAST(InsertIncidentMessage, message);
 		//change the flow rate of the segment
@@ -913,7 +881,6 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 	 */
 	unsigned i=0;
 	while(person->remainingTimeThisTick > 0.0) {
-		Print() << ++i << "looping person " << person->getId() << std::endl;
 		if (!person->isToBeRemoved()) {
 			personRole->Movement()->frame_tick();
 		}
@@ -986,12 +953,6 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 				if(nxtConflux->hasSpaceInVirtualQueue(nxtSegment->getLink())) {
 					person->setCurrSegStats(person->requestedNextSegStats);
 					person->setCurrLane(nullptr); // so that the updateAgent function will add this agent to the virtual queue
-					Print() << "Conflux: " << this->multiNode->getID()
-							<< "|Person: " << person->getId()
-							<< " setting currLane to NULL to add to VQ"
-							<< "|requestedNextSeg: " << nxtSegment->getSegmentAimsunId()
-							<< "|statsNum: " << person->requestedNextSegStats->getStatsNumberInSegment()
-							<< std::endl;
 					person->requestedNextSegStats = nullptr;
 					break; //break off from loop
 				}

@@ -12,93 +12,93 @@ Authors - Siyu Li, Harish Loganathan
 
 --!! see the documentation on the definition of AM,PM and OP table!!
 
-local beta_cons_bus = -2.2
-local beta_cons_mrt = -2.31
-local beta_cons_privatebus = -2.93
+local beta_cons_bus = -2.08
+local beta_cons_mrt = -2.19
+local beta_cons_privatebus = -2.71
 local beta_cons_drive1 = 0
-local beta_cons_share2 = -4.7
-local beta_cons_share3 = -5.92
-local beta_cons_motor = -8.99
-local beta_cons_walk = -2.48
-local beta_cons_taxi = -5.6
+local beta_cons_share2 = -4.73
+local beta_cons_share3 = -5.85
+local beta_cons_motor = -8.51
+local beta_cons_walk = -2.23
+local beta_cons_taxi = -5.57
 
-local beta1_1_tt = -0.379
-local beta1_2_tt = -0.564
-local beta1_3_tt = -1.39
+local beta1_1_tt = -0.344
+local beta1_2_tt = -0.472
+local beta1_3_tt = -1.10
 
-local beta_private_1_tt = -0.403
+local beta_private_1_tt = -0.344
 
-local beta2_tt_drive1 = -0.474
-local beta2_tt_share2 = -0.921
-local beta2_tt_share3 = -0.832
-local beta2_tt_motor = -0.649
+local beta2_tt_drive1 = -0.432
+local beta2_tt_share2 = -0.893
+local beta2_tt_share3 = -0.913
+local beta2_tt_motor = -0.815
 
-local beta_tt_walk = -2.05
-local beta_tt_taxi = -0.513
+local beta_tt_walk = -2.14
+local beta_tt_taxi = -0.458
 
-local beta4_1_cost = -7.37
-local beta4_2_cost = -0.15
-local beta5_1_cost = -8.36
-local beta5_2_cost = -0.163
-local beta6_1_cost = -6.26
-local beta6_2_cost = -0.0635
-local beta7_1_cost = -7.9
-local beta7_2_cost = -0.0829
-local beta8_1_cost = -6.56
-local beta8_2_cost = -0.117
-local beta9_1_cost = -5.61
-local beta9_2_cost = -0.052
-local beta10_1_cost = -5.09
-local beta10_2_cost = -0.0442
+local beta4_1_cost = -10.5
+local beta4_2_cost = -0.121
+local beta5_1_cost = -11.1
+local beta5_2_cost = -0.125
+local beta6_1_cost = -6.74
+local beta6_2_cost = -0.0545
+local beta7_1_cost = -8.99
+local beta7_2_cost = -0.0617
+local beta8_1_cost = -8.76
+local beta8_2_cost = -0.0704
+local beta9_1_cost = -6.53
+local beta9_2_cost = -0.0301
+local beta10_1_cost = -5.17
+local beta10_2_cost = -0.0382
 
 local beta_cost_erp = 0 
 local beta_cost_parking = 0
 
-local beta_central_bus = 0.518
-local beta_central_mrt = 0.867
-local beta_central_privatebus = 0.313
-local beta_central_share2 = 0.477
-local beta_central_share3 = -0.0389
-local beta_central_motor = 0.526
-local beta_central_taxi = 1.16
-local beta_central_walk = 0.856
+local beta_central_bus = 0.512
+local beta_central_mrt = 0.815
+local beta_central_privatebus = 0.330
+local beta_central_share2 = 0.433
+local beta_central_share3 = -0.128
+local beta_central_motor = 0.474
+local beta_central_taxi = 1.17
+local beta_central_walk = 0.880
 
 local beta_female_bus = 1.6
-local beta_female_mrt = 1.56
-local beta_female_privatebus = 1.52
+local beta_female_mrt = 1.57
+local beta_female_privatebus = 1.54
 local beta_female_drive1 = 0
-local beta_female_share2 = 1.43
-local beta_female_share3 = 0.948
-local beta_female_motor = -2.72
-local beta_female_taxi = 1.5
-local beta_female_walk = 1.78
+local beta_female_share2 = 1.46
+local beta_female_share3 = 1.08
+local beta_female_motor = -2.85
+local beta_female_taxi = 1.56
+local beta_female_walk = 1.70
 
 local beta_zero_drive1 = 0
 local beta_oneplus_drive1 = 0
-local beta_twoplus_drive1 = 1.29 
-local beta_threeplus_drive1 = 1.01
+local beta_twoplus_drive1 = 1.36 
+local beta_threeplus_drive1 = 0.915
 
 local beta_zero_share2 = 0
-local beta_oneplus_share2 = 2.7
-local beta_twoplus_share2 = 0.495
-local beta_threeplus_share2 = 1.13
+local beta_oneplus_share2 = 2.84
+local beta_twoplus_share2 = 0.547
+local beta_threeplus_share2 = 0.802
 
 local beta_zero_share3 = 0
-local beta_oneplus_share3 = 1.83
-local beta_twoplus_share3 = 0.356
+local beta_oneplus_share3 = 2.01
+local beta_twoplus_share3 = 0.400
 local beta_threeplus_share3 = 0
 
 local beta_zero_motor = 0
-local beta_oneplus_motor = 8.82
-local beta_twoplus_motor = 0.229
-local beta_threeplus_motor = 0.57
+local beta_oneplus_motor = 8.71
+local beta_twoplus_motor = 0.757
+local beta_threeplus_motor = 0.0263
 
-local beta_transfer = -0.0502
+local beta_transfer = -0.0329
 
 local beta_distance = 0
-local beta_residence = 0.0279 
+local beta_residence = 0.0190
 local beta_residence_2 = 0
-local beta_attraction = -0.0188 
+local beta_attraction = -0.0162 
 local beta_attraction_2 = 0 
 
 
@@ -164,7 +164,7 @@ local function computeUtilities(params,dbparams)
 	local income_id = params.income_id
 	local income_cat = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
 	local income_mid = income_cat[income_id]
-	local missing_income = (params.income_id >= 12) and 1 or 0
+	local missing_income = (params.income_id >= 13) and 1 or 0
 
 	local cost_taxi_1=3.4+((d1*(d1>10 and 1 or 0)-10*(d1>10 and 1 or 0))/0.35+(d1*(d1<=10 and 1 or 0)+10*(d1>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_first + central_dummy*3
 	local cost_taxi_2=3.4+((d2*(d2>10 and 1 or 0)-10*(d2>10 and 1 or 0))/0.35+(d2*(d2<=10 and 1 or 0)+10*(d2>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_second + central_dummy*3
@@ -294,8 +294,8 @@ end
 
 --scale
 local scale = {}
-scale["PT"] = {2.82,2.82,2.82}
-scale["non-PT"] = {1,1,1,1,1,1}
+scale["PT"] = 3.42
+scale["non-PT"] = 1
 
 -- function to call from C++ preday simulator
 -- params and dbparams tables contain data passed from C++

@@ -140,10 +140,13 @@ namespace medium {
 	const std::string MONGO_FIELD_CAR_OWN_OFFPEAK = "car_own_offpeak";
 	const std::string MONGO_FIELD_MOTOR_OWN = "motor_own";
 	const std::string MONGO_FIELD_MISSING_INCOME = "missingincome";
+	const std::string MONGO_FIELD_WORK_TIME_FLEX = "worktime_flex";
 	const std::string MONGO_FIELD_WORK_LOGSUM = "worklogsum";
 	const std::string MONGO_FIELD_EDU_LOGSUM = "edulogsum";
 	const std::string MONGO_FIELD_SHOP_LOGSUM = "shoplogsum";
 	const std::string MONGO_FIELD_OTHER_LOGSUM = "otherlogsum";
+	const std::string MONGO_FIELD_DPT_LOGSUM = "dptlogsum";
+	const std::string MONGO_FIELD_DPS_LOGSUM = "dpslogsum";
 
 	/**
 	 * Fields for mongoDB Zone data
@@ -159,6 +162,7 @@ namespace medium {
 	const std::string MONGO_FIELD_ZONE_AREA = "area";
 	const std::string MONGO_FIELD_ZONE_TOTAL_ENROLLMENT = "total_enrollment";
 	const std::string MONGO_FIELD_ZONE_RESIDENT_STUDENTS = "resident_students";
+	const std::string MONGO_FIELD_ZONE_CBD_ZONE = "cbd_dummy";
 
 	/**
 	 * Fields for MongoDB cost data

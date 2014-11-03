@@ -102,13 +102,12 @@ size_t getLaneIndex(const Lane* l) {
 
 } //End anon namespace
 
-
 //Initialize
 sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior, sim_mob::DriverMovement* movement, Role::type roleType_, std::string roleName_) :
 	Role(behavior, movement, parent, roleName_, roleType_), currLane_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
 	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),/*params(parent->getGenerator()),*/
 	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
-	,stop_event_nodeid(mtxStrat, -1)
+	,stop_event_nodeid(mtxStrat, -1), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false)
 {
 //	//This is something of a quick fix; if there is no parent, then that means the
 //	//  reaction times haven't been initialized yet and will crash. ~Seth
@@ -226,13 +225,19 @@ std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
 }
 
 void sim_mob::Driver::handleUpdateRequest(MovementFacet* mFacet){
-	mFacet->updateNearbyAgent(this->getParent(),this);
+
+	if(this->isVehicleInLoadingQueue == false)
+	{
+		mFacet->updateNearbyAgent(this->getParent(),this);
+	}
 }
+
 const double sim_mob::Driver::getFwdVelocityM() const
 {
 	double d= fwdVelocity.get() / 100.0;
 	return d;
 }
+
 double sim_mob::Driver::gapDistance(const Driver* front)
 {
 	double headway;
@@ -267,7 +272,10 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	UpdateParams::reset(now);
 
 	//Set to the previous known buffered values
-	currLane = owner.currLane_.get();
+	//currLane = owner.currLane_.get();
+	if(owner.currLane_.get()) {
+		currLane = owner.currLane_.get();
+	}
 	currLaneIndex = getLaneIndex(currLane);
 	currLaneLength = owner.currLaneLength_.get();
 	currLaneOffset = owner.currLaneOffset_.get();

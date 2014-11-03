@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <string>
+#include <cstdlib>
 
 //TODO: Replace with <chrono> or something similar.
 #include <sys/time.h>
@@ -18,17 +19,20 @@
 #include "conf/ParseConfigFile.hpp"
 #include "conf/ExpandAndValidateConfigFile.hpp"
 #include "database/DB_Connection.hpp"
+#include "entities/incident/IncidentManager.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/Agent.hpp"
 #include "entities/BusController.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
+#include "entities/roles/driver/Biker.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/waitBusActivity/waitBusActivity.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/PersonLoader.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/RoadNetwork.hpp"
@@ -36,6 +40,7 @@
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/Lane.hpp"
+#include "geospatial/PathSetManager.hpp"
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "util/DailyTime.hpp"
@@ -102,6 +107,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	rf.registerRole("waitBusActivity", new sim_mob::medium::WaitBusActivity(nullptr, mtx));
 	rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr, mtx));
 	rf.registerRole("passenger", new sim_mob::medium::Passenger(nullptr, mtx));
+	rf.registerRole("biker", new sim_mob::medium::Biker(nullptr, mtx));
 
 	//Load our user config file, which is a time costly function
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
@@ -127,26 +133,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			strDirectory.registerStopAgent(stop, busStopAgent);
 		}
 	}
-
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode())
-	{
-		// init path set manager
-		time_t t = time(0);   // get time now
-		struct tm * now = localtime( & t );
-		cout<<"begin time:"<<endl;
-		cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< endl;
-		PathSetManager* psMgr = PathSetManager::getInstance();
-		std::string name=configFileName;
-		psMgr->setScenarioName(name);
-		if(psMgr->isUseCatchMode())
-		{
-			psMgr->generateAllPathSetWithTripChain2();
-		}
-		t = time(0);   // get time now
-		now = localtime( & t );
-		cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< endl;
-		cout<<psMgr->size()<<endl;
-	}
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 
@@ -165,18 +151,22 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		partMgr = &PartitionManager::instance();
 	}
 
+	PeriodicPersonLoader periodicPersonLoader(Agent::all_agents, Agent::pending_agents);
+
 	{ //Begin scope: WorkGroups
 	WorkGroupManager wgMgr;
 	wgMgr.setSingleThreadMode(config.singleThreaded());
 
 	//Work Group specifications
 	//Mid-term is not using Aura Manager at the moment. Therefore setting it to nullptr
-	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(),
-			config.totalRuntimeTicks, config.granPersonTicks,
-			nullptr /*AuraManager is not used in mid-term*/, partMgr);
+	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(), config.totalRuntimeTicks, config.granPersonTicks,
+			nullptr /*AuraManager is not used in mid-term*/, partMgr, &periodicPersonLoader);
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
+
+	//Load persons for 0th tick
+	periodicPersonLoader.loadActivitySchedules();
 
 	//Initialize each work group individually
 	personWorkers->initWorkers(&entLoader);
@@ -187,15 +177,18 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++)
 	{
-		personWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
+		personWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Person*>(*it));
 	}
 
 	if(BusController::HasBusControllers())
 	{
 		personWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
-	}
 
-	cout << "Initial Agents dispatched or pushed to pending." << endl;
+	}
+	//incident
+	personWorkers->assignAWorker(IncidentManager::getInstance());
+
+	cout << "Initial Agents dispatched or pushed to pending.all_agents: " << Agent::all_agents.size() << " pending: " << Agent::pending_agents.size() << endl;
 
 	//Start work groups and all threads.
 	wgMgr.startAllWorkGroups();
@@ -241,8 +234,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		{
 			std::stringstream msg;
 			msg << "Approximate Tick Boundary: " << currTick << ", ";
-			msg << (currTick * config.baseGranMS())
-				<< " ms   [" <<currTickPercent <<"%]" << endl;
+			msg << (currTick * config.baseGranSecond())
+				<< "s   [" <<currTickPercent <<"%]" << endl;
 			if (!warmupDone)
 			{
 				msg << "  Warmup; output ignored." << endl;
@@ -276,12 +269,11 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}
 #endif
 
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode())
-	{
+	//finalize
+	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		PathSetManager::getInstance()->copyTravelTimeDataFromTmp2RealtimeTable();
-		PathSetManager::getInstance()->dropTravelTimeTmpTable();
 	}
-	cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<endl;
+	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;
 	cout << "Max Agents at any given time: " <<maxAgents <<endl;
 	cout << "Starting Agents: " << numStartAgents
 			<< ",     Pending: " << numPendingAgents << endl;
@@ -363,16 +355,19 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	safe_delete_item(prof);
 	return true;
 }
+
 /**
- * Simulation loop for the demand simulator
+ * The preday demand simulator
  */
 bool performMainDemand()
 {
+	std::srand(clock()); // set random seed for RNGs in preday
 	const MT_Config& mtConfig = MT_Config::getInstance();
 	PredayManager predayManager;
 	predayManager.loadZones(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
 	predayManager.loadPersons(db::MONGO_DB);
+	predayManager.loadUnavailableODs(db::MONGO_DB);
 	if(mtConfig.isOutputTripchains())
 	{
 		predayManager.loadZoneNodes(db::MONGO_DB);
@@ -410,6 +405,7 @@ bool performMainDemand()
 bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles)
 {
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
+	cout << "Main Thread[ " << boost::this_thread::get_id() << "]" << std::endl;
 
 	//Parse the config file (this *does not* create anything, it just reads it.).
 	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());

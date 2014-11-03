@@ -50,8 +50,8 @@ function getExternalEvents (day)
     --if events[day] ~= nil then
     --    return events[day];
     --end
-    if day == 1 then     
-        for i= 1, 10000 do
+    --if day == 1 then     
+        for i= 1, 30 do
            local household = math.random(1,1146054)
            if excluded[household] == nil then
               addHouseHoldEvent(day, EventType.NEW_SCHOOL_LOCATION, household)
@@ -61,6 +61,5 @@ function getExternalEvents (day)
        end
 --local developer = 2
    -- addDeveloperModelEvent(day,EventType.ZONING_RULE_CHANGE,developer)
-    end 
     return events[day]
 end

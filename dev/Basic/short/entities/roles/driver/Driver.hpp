@@ -136,6 +136,16 @@ public:
 	// me is doing yielding, and yieldVehicle is doing nosing
 	Driver* yieldVehicle;
 
+private:
+
+	//Indicates whether the driver is in a loading queue. There isn't actually any data structure to represent this
+	//queue. We use the fact that at every time tick, agents are going to be processed sequentially anyway.
+	//If this boolean is true, it means that there is no space for it on the road.
+	bool isVehicleInLoadingQueue;
+
+	//Indicates whether the position of the vehicle has been found.
+	bool isVehiclePositionDefined;
+
 //Basic data
 public:
 	//Pointer to the vehicle this driver is controlling.
@@ -174,6 +184,9 @@ public:
 	//This is probably ok.
 	const double getVehicleLengthCM() const { return vehicle->getLengthCm(); }
 	const double getVehicleLengthM() const { return getVehicleLengthCM()/100.0; }
+
+	//Getter method for isVehicleInLoadingQueue
+	bool IsVehicleInLoadingQueue() { return isVehicleInLoadingQueue; }
 
 private:
 	friend class DriverBehavior;

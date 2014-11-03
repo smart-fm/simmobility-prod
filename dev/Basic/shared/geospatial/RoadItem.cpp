@@ -11,7 +11,7 @@ using namespace sim_mob;
 
 unsigned long sim_mob::RoadItem::generateRoadItemID(const sim_mob::RoadSegment& rs)
 {
-	return rs.getSegmentID() * 10 + rs.obstacles.size();
+	return rs.getId() * 10 + rs.obstacles.size();
 }
 
 

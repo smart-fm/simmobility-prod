@@ -67,6 +67,7 @@ Role* sim_mob::BusDriver::clone(Person* parent) const {
 	movement->setParentDriver(busdriver);
 	behavior->setParentBusDriver(busdriver);
 	movement->setParentBusDriver(busdriver);
+	movement->init();
 	return busdriver;
 }
 

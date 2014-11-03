@@ -210,6 +210,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessPassengersNode(GetSingleElementByName(rootNode, "passengers"));
 	ProcessSignalsNode(GetSingleElementByName(rootNode, "signals"));
 	ProcessBusControllersNode(GetSingleElementByName(rootNode, "buscontrollers"));
+	ProcessPathSetNodeNode(GetSingleElementByName(rootNode, "pathset"));
 }
 
 
@@ -542,6 +543,47 @@ void sim_mob::ParseConfigFile::ProcessBusControllersNode(xercesc::DOMElement* no
 	ProcessFutureAgentList(node, "buscontroller", cfg.busControllerTemplates, false, false, true, false);
 }
 
+void sim_mob::ParseConfigFile::ProcessPathSetNodeNode(xercesc::DOMElement* node){
+
+	if (!node) {
+
+		cfg.pathset.setDefaultEnabled();
+		return;
+	}
+	cfg.pathset.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+
+	xercesc::DOMElement* dbNode = GetSingleElementByName(node, "pathset_database");
+	if(!dbNode){
+		cfg.pathset.setDefaultDB();
+	}
+	else
+	{
+		cfg.pathset.database = ParseString(GetNamedAttributeValue(dbNode, "database"), "fm_remote_path_choice");
+		cfg.pathset.credentials = ParseString(GetNamedAttributeValue(dbNode, "credentials"), "fm_remote_path_choice");
+	}
+
+	xercesc::DOMElement* tableNode = GetSingleElementByName(node, "tables");
+	if(!tableNode){
+		cfg.pathset.setDefaultTables();
+	}
+	else
+	{
+		cfg.pathset.pathSetTableName = ParseString(GetNamedAttributeValue(tableNode, "pathset_table"), "PathSet");
+		cfg.pathset.singlePathTableName = ParseString(GetNamedAttributeValue(tableNode, "singlepath_table"), "SinglePath");
+		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(tableNode, "function"), "get_path_set");
+	}
+	//function
+
+	xercesc::DOMElement* functionNode = GetSingleElementByName(node, "function");
+	if(!functionNode){
+		cfg.pathset.setDefaultFunction();
+	}
+	else
+	{
+		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(functionNode, "value"), "get_path_set");
+	}
+}
+
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)
 {
 	//Several properties are set up as "x ms", or "x seconds", etc.
@@ -849,6 +891,11 @@ void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMElement* node,
 			ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(item, "time", timeReq), static_cast<unsigned int>(0));
 			ent.laneIndex = ParseUnsignedInt(GetNamedAttributeValue(item, "lane", laneReq), static_cast<unsigned int>(0));
 			ent.angentId = ParseUnsignedInt(GetNamedAttributeValue(item, "id", false), static_cast<unsigned int>(0));
+			ent.initSegId = ParseUnsignedInt(GetNamedAttributeValue(item, "initSegId", false), static_cast<unsigned int>(0));
+			ent.initDis = ParseUnsignedInt(GetNamedAttributeValue(item, "initDis", false), static_cast<unsigned int>(0));
+			ent.initSpeed = ParseUnsignedInt(GetNamedAttributeValue(item, "initSpeed", false), static_cast<double>(0));
+			ent.originNode = ParseUnsignedInt(GetNamedAttributeValue(item, "originNode", false), static_cast<double>(0));
+			ent.destNode = ParseUnsignedInt(GetNamedAttributeValue(item, "destNode", false), static_cast<double>(0));
 			res.push_back(ent);
 		}
 	}

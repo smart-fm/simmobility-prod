@@ -187,7 +187,7 @@ const sim_mob::RoadNetwork& sim_mob::ConfigParams::getNetwork() const
 sim_mob::RoadNetwork& sim_mob::ConfigParams::getNetworkRW()
 {
 	if (sealedNetwork) {
-		throw std::runtime_error("getNetworkRW() failed; network has been sealed.");
+		//throw std::runtime_error("getNetworkRW() failed; network has been sealed.");
 	}
 	return network;
 }
@@ -416,7 +416,7 @@ bool sim_mob::ConfigParams::RunningMidDemand() const {
 void sim_mob::ConfigParams::setMidTermRunMode(const std::string& runMode)
 {
 	if(runMode.empty()) { return; }
-	if(runMode == "supply")
+	if(runMode == "supply" || runMode == "withinday")
 	{
 		midTermRunMode = ConfigParams::SUPPLY;
 	}
@@ -513,6 +513,15 @@ std::set<sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxes()
 std::set<sim_mob::SegmentStats*>& sim_mob::ConfigParams::getSegmentStatsWithBusStops()
 {
 	return segmentStatsWithBusStops;
+}
+
+// use pathset to generate path of driver
+bool sim_mob::ConfigParams::PathSetMode() const {
+	return pathset.enabled;
+}
+
+const PathSetParams & sim_mob::ConfigParams::pathSet() const{
+	return pathset;
 }
 
 const std::set<sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxes() const

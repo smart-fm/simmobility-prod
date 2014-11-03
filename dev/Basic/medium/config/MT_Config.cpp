@@ -27,7 +27,8 @@ PredayCalibrationParams::PredayCalibrationParams() :
 
 MT_Config::MT_Config() :
 		pedestrianWalkSpeed(0), numPredayThreads(0), configSealed(false), outputTripchains(false),
-consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA), logsumComputationFrequency(0)
+		consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA),
+		logsumComputationFrequency(0), supplyUpdateInterval(0)
 {}
 
 MT_Config::~MT_Config()
@@ -54,6 +55,45 @@ void MT_Config::setPredayRunMode(const std::string runMode)
 		else if(runMode == "logsum") { predayRunMode = MT_Config::LOGSUM_COMPUTATION; }
 		else if(runMode == "calibration") { predayRunMode = MT_Config::CALIBRATION; }
 		else { throw std::runtime_error("Inadmissible value for preday run_mode"); }
+	}
+}
+
+unsigned MT_Config::getActivityScheduleLoadInterval() const
+{
+	return activityScheduleLoadInterval;
+}
+
+void MT_Config::setActivityScheduleLoadInterval(unsigned activityScheduleLoadInterval)
+{
+	if(!configSealed)
+	{
+		this->activityScheduleLoadInterval = activityScheduleLoadInterval;
+	}
+}
+
+unsigned MT_Config::getSupplyUpdateInterval() const
+{
+	return supplyUpdateInterval;
+}
+
+void MT_Config::setSupplyUpdateInterval(unsigned supplyUpdateInterval)
+{
+	if(!configSealed)
+	{
+		this->supplyUpdateInterval = supplyUpdateInterval;
+	}
+}
+
+const StoredProcedureMap& MT_Config::getStoredProcedure() const
+{
+	return storedProcedure;
+}
+
+void MT_Config::setStoredProcedureMap(const StoredProcedureMap& storedProcedure)
+{
+	if(!configSealed)
+	{
+		this->storedProcedure = storedProcedure;
 	}
 }
 

@@ -105,9 +105,10 @@ public:
 	void setParentBufferedData();			///<set next data to parent buffer data
 	//Call once
 	void initPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
+	void initPathWithInitSeg(std::vector<sim_mob::WayPoint> wp_path, int startLaneID,int segId,int initPer,int initSpeed);
 	void resetPath(std::vector<sim_mob::WayPoint> wp_path);
 	const sim_mob::RoadSegment* hasNextSegment(bool inSameLink) const;
-	DPoint getPosition() const;
+	DPoint getPosition();
     /**
       * get nearest obstacle in perceptionDis
       * @param type is obstacle type, currently only two types are BusStop and Incident.
@@ -222,6 +223,9 @@ private:
 	sim_mob::DynamicVector getCurrPolylineVector() const;
 	sim_mob::DynamicVector getCurrPolylineVector2() const;
 
+	//This method is used to check if there is enough space on the lane where a vehicle from the
+	//loading queue wants to start its journey
+	bool findEmptySpaceAhead();
 
 public:
 	double targetSpeed;			//the speed which the vehicle is going to achieve

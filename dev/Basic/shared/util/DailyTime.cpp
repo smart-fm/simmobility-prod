@@ -104,3 +104,12 @@ uint32_t sim_mob::DailyTime::ParseStringRepr(std::string timeRepr)
 }
 
 
+bool sim_mob::operator==(const DailyTime& lhs, const DailyTime& rhs)
+{
+		return rhs.getValue() == lhs.getValue() && lhs.getRepr_() == rhs.getRepr_();
+}
+
+bool sim_mob::operator !=(const DailyTime& lhs, const DailyTime& rhs)
+{
+		return !(lhs == rhs);
+}

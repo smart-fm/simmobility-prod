@@ -77,17 +77,14 @@ std::string getColor(size_t id)
 			 * then instead of moving to the first phase , again the last phase may reset to green
 			 */
 			//
-//			Print() << "Phase " << name << " update: " << "lapse( " << lapse << ")=currentCycleTimer(" << currentCycleTimer << ") - phaseOffset(" << phaseOffset << ")" << std::endl;
 			(*linkIterator).second.currColor = (*linkIterator).second.colorSequence.computeColor(lapse);
 			if(((*linkIterator).second.currColor > sim_mob::FlashingGreen) || ((*linkIterator).second.currColor < sim_mob::Red))
 			{
 				o << "currentCycleTimer :" << currentCycleTimer << "  phaseOffset :" << phaseOffset  << "--->lapse :" << lapse << "\n creates out of range color";
 				throw std::runtime_error(o.str());
 			}
-//			Print() << " phase " << name << " --phaseOffset "<<phaseOffset <<  " --  timer: " << currentCycleTimer  << " -- current color = " << (*linkIterator).second.currColor << std::endl;
 		}
 
-//		Print() << "calling compute for crossings" << std::endl;
 		//update each crossing signal's color
 		//common sense says there is only one crossing per link, but I kept a container for it just in case
 		crossings_map_iterator crossing_it = crossings_map_.begin();
@@ -151,7 +148,7 @@ void Phase::addDefaultCrossings(LinkAndCrossingC const & LAC,sim_mob::MultiNode 
 	LinkAndCrossingC::iterator it = LAC.begin();
 	if(it == LAC.end())
 	{
-		Print() << "Link and crossing container for this node is empty, crossing mapping can not continue\n";
+		Warn() << "Link and crossing container for this node is empty, crossing mapping can not continue\n";
 		return;
 	}
 	//filter the crossings which are in the links_maps_ container(both link from s and link To s)
@@ -214,7 +211,6 @@ std::string Phase::createStringRepresentation(std::string newLine) const {
 		links_map_iterator it = linksMap.begin();
 		while(it != linksMap.end() )
 		{
-//			Print() << " linksMap.size() = "  << std::endl;
 			output << "{";
 			//link_based
 //			output << "\"link_from\":\"" << (*it).first << "\" ,"; //linkFrom
@@ -249,8 +245,6 @@ void Phase::initialize(sim_mob::SplitPlan& plan){
 	parentPlan = &plan;
 	calculatePhaseLength();
 	calculateGreen();
-//	printColorDuration();
-//	Print() << "phase: " << name << "   PhaseLength: " << phaseLength << "   offset: " << phaseOffset << std::endl;
 }
 void Phase::printColorDuration()
 {
@@ -270,7 +264,6 @@ void Phase::printColorDuration()
 
 void Phase::calculatePhaseLength(){
 	phaseLength = parentPlan->getCycleLength() * percentage /100;
-//	Print() << "phase " << name << " phaselength = " <<  phaseLength << "  (parentPlan->getCycleLength() * percentage /100):(" <<  parentPlan->getCycleLength() << "*" <<  percentage << ")\n";
 
 }
 
@@ -309,8 +302,6 @@ void Phase::calculateGreen_Links(){
 		if(greenIndex > -1)
 		{
 			cs.changeColorDuration(cs.getColorDuration().at(greenIndex).first, phaseLength - otherThanGreen);
-//			cs.getColorDuration().at(greenIndex).second = phaseLength - otherThanGreen;
-//			Print() << "phase :" << name << " phaselength:"<< phaseLength << "percentage: " << percentage << "  Green time : " << cs.getColorDuration().at(greenIndex).second << " (phaseLength - otherThanGreen):(" << phaseLength << " - " << otherThanGreen << ")" << std::endl;
 		}
 	}
 }

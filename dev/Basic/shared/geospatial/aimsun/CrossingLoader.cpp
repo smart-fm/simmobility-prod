@@ -213,10 +213,10 @@ void sim_mob::aimsun::CrossingLoader::GenerateACrossing(sim_mob::RoadNetwork& re
 			res->setParentSegment((*it)->generatedSegment);
 			//(*it)->generatedSegment->obstacles[distOrigin_] = res;
 			(*it)->generatedSegment->addObstacle(distOrigin,res);
-			res->setCrossingID( res->generateRoadItemID(*((*it)->generatedSegment))/*(*it)->generatedSegment->getSegmentID() * 10 + (*it)->generatedSegment->obstacles.size()*/); //sorry I have to put the formula here -vahid
-//			if((res->getRoadSegment()->getSegmentID() == 100001005)||(res->getRoadSegment()->getSegmentID() == 100001004))
+			res->setCrossingID( res->generateRoadItemID(*((*it)->generatedSegment))/*(*it)->generatedSegment->getId() * 10 + (*it)->generatedSegment->obstacles.size()*/); //sorry I have to put the formula here -vahid
+//			if((res->getRoadSegment()->getId() == 100001005)||(res->getRoadSegment()->getId() == 100001004))
 //			{
-//				std::cout << "Segment " << (*it)->generatedSegment << "  "<< (*it)->generatedSegment->getSegmentID() << " with length "  << (*it)->generatedSegment->length << " has a crossing at  " << distOrigin_ << " with crossingID: " << res->getCrossingID() << "  " << res << "  Obstacles size=" << (*it)->generatedSegment->obstacles.size() << "\n" ;
+//				std::cout << "Segment " << (*it)->generatedSegment << "  "<< (*it)->generatedSegment->getId() << " with length "  << (*it)->generatedSegment->length << " has a crossing at  " << distOrigin_ << " with crossingID: " << res->getCrossingID() << "  " << res << "  Obstacles size=" << (*it)->generatedSegment->obstacles.size() << "\n" ;
 //
 //			}
 

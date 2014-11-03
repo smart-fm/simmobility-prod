@@ -45,15 +45,13 @@ namespace sim_mob {
              */
             void onWorkerEnter();
             void onWorkerExit();
-            virtual void HandleMessage(messaging::Message::MessageType type,
-                    const messaging::Message& message);
+            virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
         private:
 
             /**
              * Events callbacks.
              */
-            virtual void onEvent(event::EventId eventId, event::Context ctxId,
-                    event::EventPublisher* sender, const event::EventArgs& args);
+            virtual void onEvent(event::EventId eventId, event::Context ctxId,event::EventPublisher* sender, const event::EventArgs& args);
 
             /**
             * Processes the given event.

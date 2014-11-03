@@ -35,11 +35,12 @@ using std::vector;
 using namespace sim_mob;
 
 
-sim_mob::WorkGroup::WorkGroup(unsigned int wgNum, unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr) :
+sim_mob::WorkGroup::WorkGroup(unsigned int wgNum, unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep,
+		AuraManager* auraMgr, PartitionManager* partitionMgr, PeriodicPersonLoader* periodicLoader) :
 	wgNum(wgNum), numWorkers(numWorkers), numSimTicks(numSimTicks), tickStep(tickStep), auraMgr(auraMgr), partitionMgr(partitionMgr),
 	tickOffset(0), started(false), currTimeTick(0), nextTimeTick(0), loader(nullptr), nextWorkerID(0),
 	frame_tick_barr(nullptr), buff_flip_barr(nullptr), aura_mgr_barr(nullptr), macro_tick_barr(nullptr),
-	profile(nullptr), numAgentsWithNoPath(0)
+	profile(nullptr), numAgentsWithNoPath(0), periodicPersonLoader(periodicLoader)
 {
 	if (ConfigManager::GetInstance().CMakeConfig().ProfileAuraMgrUpdates()) {
 		profile = new ProfileBuilder();
@@ -231,10 +232,10 @@ void sim_mob::WorkGroup::stageEntities()
 		//Call its "load" function
 		//TODO: Currently, only Person::load() is called (I think there was some bug in BusController).
 		//      We should really call load for ANY Agent subclass. ~Seth
-		Person* a = dynamic_cast<Person*>(ag);
-		if (a) {
-			a->load(a->getConfigProperties());
-			a->clearConfigProperties();
+		Person* person = dynamic_cast<Person*>(ag);
+		if (person) {
+			person->load(person->getConfigProperties());
+			person->clearConfigProperties();
 		}
 
 		//Add it to our global list.
@@ -245,8 +246,8 @@ void sim_mob::WorkGroup::stageEntities()
 		loader->entity_dest.insert(ag);
 
 		//Find a worker/conflux to assign this to and send it the Entity to manage.
-		if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
-			putAgentOnConflux(ag);
+		if (ConfigManager::GetInstance().FullConfig().RunningMidSupply() && person) {
+			putAgentOnConflux(person);
 		} else {
 			assignAWorker(ag);
 		}
@@ -368,6 +369,10 @@ void sim_mob::WorkGroup::waitFlipBuffers(bool singleThreaded, std::set<sim_mob::
 			}
 		}
 
+		if(periodicPersonLoader && periodicPersonLoader->checkTimeForNextLoad())
+		{
+			periodicPersonLoader->loadActivitySchedules();
+		}
 		//Stage Agent updates based on nextTimeTickToStage
 		stageEntities();
 		//Remove any Agents staged for removal.
@@ -608,16 +613,12 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 /**
  * Determines the first road segment of the agent and puts the agent in the corresponding conflux.
  */
-void sim_mob::WorkGroup::putAgentOnConflux(Agent* ag) {
-	sim_mob::Person* person = dynamic_cast<sim_mob::Person*>(ag);
-	if(person) {
+void sim_mob::WorkGroup::putAgentOnConflux(Person* person) {
+	if(person)
+	{
 		const sim_mob::RoadSegment* rdSeg = sim_mob::Conflux::constructPath(person);
-		if(rdSeg) {
-			rdSeg->getParentConflux()->addAgent(person,rdSeg);
-		}
-		else {
-			numAgentsWithNoPath = numAgentsWithNoPath + 1;
-		}
+		if(rdSeg) { rdSeg->getParentConflux()->addAgent(person,rdSeg); }
+		else { numAgentsWithNoPath = numAgentsWithNoPath + 1; }
 	}
 }
 

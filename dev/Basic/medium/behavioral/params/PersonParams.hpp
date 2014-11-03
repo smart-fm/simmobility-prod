@@ -4,7 +4,8 @@
 
 #pragma once
 #include <vector>
-#include <boost/unordered_map.hpp>
+#include <bitset>
+#include <stdint.h>
 #include "behavioral/PredayClasses.hpp"
 
 namespace sim_mob {
@@ -313,14 +314,7 @@ public:
 	/**
 	 * get the availability for a time window for tour
 	 */
-	int getTimeWindowAvailability(int timeWnd) const;
-
-	/**
-	 * set availability of times in timeWnd to 0
-	 *
-	 * @param timeWnd "<startTime>,<endTime>" to block
-	 */
-	void blockTime(std::string& timeWnd);
+	int getTimeWindowAvailability(size_t timeWnd) const;
 
 	/**
 	 * overload function to set availability of times in timeWnd to 0
@@ -334,6 +328,26 @@ public:
 	 * prints the fields of this object
 	 */
 	void print();
+
+	double getDpsLogsum() const
+	{
+		return dpsLogsum;
+	}
+
+	void setDpsLogsum(double dpsLogsum)
+	{
+		this->dpsLogsum = dpsLogsum;
+	}
+
+	double getDptLogsum() const
+	{
+		return dptLogsum;
+	}
+
+	void setDptLogsum(double dptLogsum)
+	{
+		this->dptLogsum = dptLogsum;
+	}
 
 private:
 	std::string personId;
@@ -366,11 +380,13 @@ private:
 	double eduLogSum;
 	double shopLogSum;
 	double otherLogSum;
+	double dptLogsum;
+	double dpsLogsum;
 
 	/**
-	 * Time windows currently available for the person.
+	 * Time windows availability for the person.
 	 */
-    boost::unordered_map<int, sim_mob::medium::TimeWindowAvailability*> timeWindowAvailability;
+    std::vector<sim_mob::medium::TimeWindowAvailability> timeWindowAvailability;
 };
 
 /**
@@ -426,6 +442,133 @@ private:
 	double walkDistanceAM;
 	double walkDistancePM;
 	double zoneEmployment;
+};
+
+/**
+ * Simple class to store information pertaining sub tour model
+ * \note This class is used by the mid-term behavior models.
+ *
+ * \author Harish Loganathan
+ */
+class SubTourParams {
+public:
+	SubTourParams(const Tour& tour);
+	virtual ~SubTourParams();
+
+	int isFirstOfMultipleTours() const
+	{
+		return firstOfMultipleTours;
+	}
+
+	void setFirstOfMultipleTours(bool firstOfMultipleTours)
+	{
+		this->firstOfMultipleTours = firstOfMultipleTours;
+	}
+
+	int isSubsequentOfMultipleTours() const
+	{
+		return subsequentOfMultipleTours;
+	}
+
+	void setSubsequentOfMultipleTours(bool subsequentOfMultipleTours)
+	{
+		this->subsequentOfMultipleTours = subsequentOfMultipleTours;
+	}
+
+	int getTourMode() const
+	{
+		return tourMode;
+	}
+
+	void setTourMode(int tourMode)
+	{
+		this->tourMode = tourMode;
+	}
+
+	int isUsualLocation() const
+	{
+		return usualLocation;
+	}
+
+	void setUsualLocation(bool usualLocation)
+	{
+		this->usualLocation = usualLocation;
+	}
+
+	int getSubTourPurpose() const
+	{
+		return subTourPurpose;
+	}
+
+	void setSubTourPurpose(StopType subTourpurpose)
+	{
+		this->subTourPurpose = subTourpurpose;
+	}
+
+	/**
+	 * make time windows between startTime and endTime available
+	 * @param startTime start time of available window
+	 * @param endTime end time of available window
+	 */
+	void initTimeWindows(double startTime, double endTime);
+
+	/**
+	 * get the availability for a time window for sub-tour
+	 */
+	int getTimeWindowAvailability(size_t timeWnd) const;
+
+	/**
+	 * make time windows between startTime and endTime unavailable
+	 *
+	 * @param startTime start time
+	 * @param endTime end time
+	 */
+	void blockTime(double startTime, double endTime);
+
+	/**
+	 * check if all time windows are unavailable
+	 * @return true if all time windows are unavailable; false otherwise
+	 */
+	bool allWindowsUnavailable();
+
+	bool isCbdDestZone() const
+	{
+		return cbdDestZone;
+	}
+
+	void setCbdDestZone(bool cbdDestZone)
+	{
+		this->cbdDestZone = cbdDestZone;
+	}
+
+	bool isCbdOrgZone() const
+	{
+		return cbdOrgZone;
+	}
+
+	void setCbdOrgZone(bool cbdOrgZone)
+	{
+		this->cbdOrgZone = cbdOrgZone;
+	}
+
+private:
+	/**mode choice for parent tour*/
+	int tourMode;
+	/**parent tour is the first of many tours for person*/
+	bool firstOfMultipleTours;
+	/**parent tour is the 2+ of many tours for person*/
+	bool subsequentOfMultipleTours;
+	/**parent tour is to a usual location*/
+	bool usualLocation;
+	/**sub tour type*/
+	StopType subTourPurpose;
+	/** Time windows available for sub-tour.*/
+	std::vector<sim_mob::medium::TimeWindowAvailability> timeWindowAvailability;
+    /** bitset of availablilities for fast checking*/
+    std::bitset<1176> availabilityBit;
+
+	bool cbdOrgZone;
+	bool cbdDestZone;
 };
 
 } //end namespace medium

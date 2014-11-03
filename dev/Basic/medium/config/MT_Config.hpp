@@ -11,6 +11,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include "conf/Constructs.hpp"
 #include "util/ProtectedCopyable.hpp"
 
 namespace sim_mob
@@ -242,6 +243,12 @@ public:
 	void setCalibrationOutputFile(const std::string& calibrationOutputFile);
 	unsigned getLogsumComputationFrequency() const;
 	void setLogsumComputationFrequency(unsigned logsumComputationFrequency);
+	const StoredProcedureMap& getStoredProcedure() const;
+	void setStoredProcedureMap(const StoredProcedureMap& storedProcedure);
+	unsigned getActivityScheduleLoadInterval() const;
+	void setActivityScheduleLoadInterval(unsigned activityScheduleLoadInterval);
+	unsigned getSupplyUpdateInterval() const;
+	void setSupplyUpdateInterval(unsigned supplyUpdateInterval);
 
 private:
 	MT_Config();
@@ -278,6 +285,9 @@ private:
 	PredayCalibrationParams wspsaCalibrationParams;
 	std::string calibrationOutputFile;
 	unsigned logsumComputationFrequency;
+	StoredProcedureMap storedProcedure;
+	unsigned activityScheduleLoadInterval; //seconds
+	unsigned supplyUpdateInterval; //frames
 };
 }
 }

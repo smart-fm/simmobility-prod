@@ -116,7 +116,7 @@ private:
 
 	double highway_bias;
 
-private:
+public:
 //    StreetDirectory::Graph drivingMap_; // A map for drivers, containing road-segments as edges.
     StreetDirectory::Graph drivingMap_MorningPeak; // travel time base on 06:00:00AM-10:00:00AM
     StreetDirectory::Graph drivingMap_EveningPeak; // travel time base on 17:00:00PM-20:00:00PM
@@ -226,7 +226,7 @@ private:
 
     std::vector<WayPoint> searchShortestPathWithBlacklist(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex, const StreetDirectory::Vertex& toVertex, const std::set<StreetDirectory::Edge>& blacklist) const;
     std::vector<WayPoint> searchShortestPath(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex, const StreetDirectory::Vertex& toVertex) const;
-
+public:
     //Distance heuristic for our A* search algorithm
     //Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
     //...which is available under the terms of the Boost Software License, 1.0

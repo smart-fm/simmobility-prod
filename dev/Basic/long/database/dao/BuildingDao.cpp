@@ -15,7 +15,8 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-BuildingDao::BuildingDao(DB_Connection& connection): SqlAbstractDao<Building>(connection, DB_TABLE_BUILDING,DB_INSERT_BUILDING, DB_UPDATE_BUILDING, DB_DELETE_BUILDING, DB_GETALL_BUILDING, DB_GETBYID_BUILDING) {}
+BuildingDao::BuildingDao(DB_Connection& connection): SqlAbstractDao<Building>( connection, DB_TABLE_BUILDING, DB_INSERT_BUILDING, DB_UPDATE_BUILDING, DB_DELETE_BUILDING,
+																			   DB_GETALL_BUILDING, DB_GETBYID_BUILDING ) {}
 
 BuildingDao::~BuildingDao() {}
 
@@ -35,5 +36,4 @@ void BuildingDao::fromRow(Row& result, Building& outObj)
     outObj.gross_sq_m_other 	= result.get<double>(		"gross_sq_m_other", 	0.0);
 }
 
-void BuildingDao::toRow(Building& data, Parameters& outParams, bool update) {
-}
+void BuildingDao::toRow(Building& data, Parameters& outParams, bool update) {}

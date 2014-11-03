@@ -5,11 +5,13 @@
 /* 
  * File:   DatabaseHelper.h
  * Author: gandola
+ *         chetan rogbeer <chetan.rogbeer@smart.mit.edu>
  *
  * Created on April 24, 2013, 12:14 PM
  */
 
 #pragma once
+#include <string>
 
 namespace sim_mob {
 
@@ -45,6 +47,8 @@ namespace sim_mob {
         const std::string DB_TABLE_PROJECT = APPLY_SCHEMA(MAIN_SCHEMA, "fm_project");
         const std::string DB_TABLE_PARCEL_MATCH = APPLY_SCHEMA(MAIN_SCHEMA, "parcel_match");
         const std::string DB_TABLE_SLA_PARCEL = APPLY_SCHEMA(MAIN_SCHEMA, "sla_parcel");
+        const std::string DB_TABLE_INDIVIDUAL = APPLY_SCHEMA(MAIN_SCHEMA, "individual");
+        const std::string DB_TABLE_RESIDENTIAL_STATUS = APPLY_SCHEMA( MAIN_SCHEMA, "residential_status");
 
 
         /**
@@ -56,35 +60,56 @@ namespace sim_mob {
          * Functions API
          */
         const std::string DB_FUNC_DEL_HOUSEHOLD_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "deleteHouseholdById(:id)");
-        const std::string DB_FUNC_GET_HOUSEHOLDS = APPLY_SCHEMA(MAIN_SCHEMA, "getHouseholds()");
+        const std::string DB_FUNC_GET_HOUSEHOLDS	  = APPLY_SCHEMA(MAIN_SCHEMA, "getHouseholds()");
         const std::string DB_FUNC_GET_HOUSEHOLD_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getHouseholdById(:id)");
+
         const std::string DB_FUNC_DEL_UNIT_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "deleteUnitById(:id)");
-        const std::string DB_FUNC_GET_UNITS = APPLY_SCHEMA(MAIN_SCHEMA, "getUnits()");
+        const std::string DB_FUNC_GET_UNITS 	 = APPLY_SCHEMA(MAIN_SCHEMA, "getUnits()");
         const std::string DB_FUNC_GET_UNIT_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getUnitById(:id)");
+
         const std::string DB_FUNC_DEL_BUILDING_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "deleteBuildingById(:id)");
-        const std::string DB_FUNC_GET_BUILDINGS = APPLY_SCHEMA(MAIN_SCHEMA, "getBuildings()");
+        const std::string DB_FUNC_GET_BUILDINGS 	 = APPLY_SCHEMA(MAIN_SCHEMA, "getBuildings()");
         const std::string DB_FUNC_GET_BUILDING_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getBuildingById(:id)");
-        const std::string DB_FUNC_GET_DEVELPERS = APPLY_SCHEMA(MAIN_SCHEMA, "getDevelopers()");
+
+        const std::string DB_FUNC_GET_DEVELPERS 	  = APPLY_SCHEMA(MAIN_SCHEMA, "getDevelopers()");
         const std::string DB_FUNC_GET_DEVELOPER_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getDeveloperById(:id)");
-        const std::string DB_FUNC_GET_PARCELS = APPLY_SCHEMA(MAIN_SCHEMA, "getParcels()");
+
+        const std::string DB_FUNC_GET_PARCELS 	   = APPLY_SCHEMA(MAIN_SCHEMA, "getParcels()");
         const std::string DB_FUNC_GET_PARCEL_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getParcelById(:id)");
-        const std::string DB_FUNC_GET_TEMPLATES = APPLY_SCHEMA(MAIN_SCHEMA, "getTemplates()");
+
+        const std::string DB_FUNC_GET_TEMPLATES 	 = APPLY_SCHEMA(MAIN_SCHEMA, "getTemplates()");
         const std::string DB_FUNC_GET_TEMPLATE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getTemplateById(:id)");
+
         const std::string DB_FUNC_DEL_POSTCODE_BY_ID = DB_EMPTY_QUERY;
-        const std::string DB_FUNC_GET_POSTCODES = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodes()");
+        const std::string DB_FUNC_GET_POSTCODES 	 = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodes()");
         const std::string DB_FUNC_GET_POSTCODE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodeById(:id)");
+
         const std::string DB_FUNC_DEL_POSTCODE_AMENITIES_BY_ID = DB_EMPTY_QUERY;
-        const std::string DB_FUNC_GET_POSTCODES_AMENITIES = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodeAmenities()");
+        const std::string DB_FUNC_GET_POSTCODES_AMENITIES 	   = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodeAmenities()");
         const std::string DB_FUNC_GET_POSTCODE_AMENITIES_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getPostcodeAmenitiesById(:id)");
-        const std::string DB_FUNC_GET_LAND_USE_ZONES = APPLY_SCHEMA(MAIN_SCHEMA, "getLandUseZones()");
+
+        const std::string DB_FUNC_GET_LAND_USE_ZONES 	  = APPLY_SCHEMA(MAIN_SCHEMA, "getLandUseZones()");
         const std::string DB_FUNC_GET_LAND_USE_ZONE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getLandUseZoneById(:id)");
-        const std::string DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATES = APPLY_SCHEMA(MAIN_SCHEMA, "getDevelopmentTypeTemplates()");
+
+        const std::string DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATES 	  = APPLY_SCHEMA(MAIN_SCHEMA, "getDevelopmentTypeTemplates()");
         const std::string DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getDevelopmentTypeTemplateById(:devId, :templateId)");
-        const std::string DB_FUNC_GET_TEMPLATE_UNIT_TYPES = APPLY_SCHEMA(MAIN_SCHEMA, "getTemplateUnitTypes()");
+
+        const std::string DB_FUNC_GET_TEMPLATE_UNIT_TYPES 	   = APPLY_SCHEMA(MAIN_SCHEMA, "getTemplateUnitTypes()");
         const std::string DB_FUNC_GET_TEMPLATE_UNIT_TYPE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getTemplateUnitTypeById(:templateId, :unitTypeId)");
+
         const std::string DB_FUNC_GET_PROJECTS = APPLY_SCHEMA(MAIN_SCHEMA, "getProjects()");
         const std::string DB_FUNC_GET_PARCEL_MATCHES = APPLY_SCHEMA(MAIN_SCHEMA, "getParcelMatches()");
         const std::string DB_FUNC_GET_SLA_PARCELS = APPLY_SCHEMA(MAIN_SCHEMA, "getSlaParcels()");
+
+
+        const std::string DB_FUNC_DEL_INDIVIDUAL_BY_ID  = APPLY_SCHEMA(MAIN_SCHEMA, "deleteIndividualById(:id)");
+        const std::string DB_FUNC_GET_INDIVIDUALS 		= APPLY_SCHEMA( MAIN_SCHEMA, "getIndividuals()");
+        const std::string DB_FUNC_GET_INDIVIDUAL_BY_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getIndividualsById(:id)");
+
+        const std::string DB_FUNC_DEL_RESIDENTIAL_STATUS_BY_ID = DB_EMPTY_QUERY;
+        const std::string DB_FUNC_GET_RESIDENTIAL_STATUS_BY_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getResidentialStatusById(:id)");
+        const std::string DB_FUNC_GET_RESIDENTIAL_STATUS 	   = APPLY_SCHEMA( MAIN_SCHEMA, "getResidentialStatus()");
+
         /**
          * Fields
          */
@@ -166,115 +191,92 @@ namespace sim_mob {
          * INSERT
          */
         const std::string DB_INSERT_HOUSEHOLD = "INSERT INTO "
-                + DB_TABLE_HOUSEHOLD + " ("
-                + DB_FIELD_ID + ", "
-                + DB_FIELD_UNIT_ID + ", "
-                + DB_FIELD_SIZE + ", "
-                + DB_FIELD_CHILDREN + ", "
-                + DB_FIELD_INCOME + ", "
-                + DB_FIELD_HOUSING_DURATION
-                + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)";
+												+ DB_TABLE_HOUSEHOLD + " ("
+												+ DB_FIELD_ID + ", "
+												+ DB_FIELD_UNIT_ID + ", "
+												+ DB_FIELD_SIZE + ", "
+												+ DB_FIELD_CHILDREN + ", "
+												+ DB_FIELD_INCOME + ", "
+												+ DB_FIELD_HOUSING_DURATION
+												+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)";
 
         const std::string DB_INSERT_BUILDING = DB_EMPTY_QUERY;
         const std::string DB_INSERT_UNIT = DB_EMPTY_QUERY;
         const std::string DB_INSERT_POSTCODE = DB_EMPTY_QUERY;
         const std::string DB_INSERT_POSTCODE_AMENITIES = DB_EMPTY_QUERY;
         const std::string DB_INSERT_PROJECT = DB_EMPTY_QUERY;
+        const std::string DB_INSERT_INDIVIDUAL = DB_EMPTY_QUERY;
+        const std::string DB_INSERT_RESIDENTIAL_STATUS = DB_EMPTY_QUERY;
 
         /**
          * UPDATE
          */
-        const std::string DB_UPDATE_HOUSEHOLD = "UPDATE "
-                + DB_TABLE_HOUSEHOLD + " SET "
-                + DB_FIELD_UNIT_ID + "= :v1, "
-                + DB_FIELD_SIZE + "= :v2, "
-                + DB_FIELD_CHILDREN + "= :v3, "
-                + DB_FIELD_INCOME + "= :v4, "
-                + DB_FIELD_HOUSING_DURATION
-                + "= :v5 WHERE "
-                + DB_FIELD_ID + "=:v6";
+        const std::string DB_UPDATE_HOUSEHOLD = "UPDATE "	+ DB_TABLE_HOUSEHOLD + " SET "
+															+ DB_FIELD_UNIT_ID + "= :v1, "
+															+ DB_FIELD_SIZE + "= :v2, "
+															+ DB_FIELD_CHILDREN + "= :v3, "
+															+ DB_FIELD_INCOME + "= :v4, "
+															+ DB_FIELD_HOUSING_DURATION
+															+ "= :v5 WHERE "
+															+ DB_FIELD_ID + "=:v6";
 
         const std::string DB_UPDATE_BUILDING = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_UNIT = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_POSTCODE = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_POSTCODE_AMENITIES = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_PROJECT = DB_EMPTY_QUERY;
+        const std::string DB_UPDATE_INDIVIDUAL = DB_EMPTY_QUERY;
+        const std::string DB_UPDATE_RESIDENTIAL_STATUS = DB_EMPTY_QUERY;
 
         /**
          * DELETE
          */
-        const std::string DB_DELETE_HOUSEHOLD = "SELECT * FROM "
-                + DB_FUNC_DEL_HOUSEHOLD_BY_ID;
-        const std::string DB_DELETE_BUILDING = "SDB_TABLE_BUILDINGELECT * FROM "
-                + DB_FUNC_DEL_BUILDING_BY_ID;
-        const std::string DB_DELETE_UNIT = "SELECT * FROM "
-                + DB_FUNC_DEL_UNIT_BY_ID;
-        const std::string DB_DELETE_POSTCODE = DB_EMPTY_QUERY;
+        const std::string DB_DELETE_HOUSEHOLD 	= "SELECT * FROM " + DB_FUNC_DEL_HOUSEHOLD_BY_ID;
+        const std::string DB_DELETE_BUILDING 	= "SELECT * FROM " + DB_FUNC_DEL_BUILDING_BY_ID;
+        const std::string DB_DELETE_UNIT 		= "SELECT * FROM " + DB_FUNC_DEL_UNIT_BY_ID;
+        const std::string DB_DELETE_POSTCODE 	= DB_EMPTY_QUERY;
         const std::string DB_DELETE_POSTCODE_AMENITIES = DB_EMPTY_QUERY;
+        const std::string DB_DELETE_INDIVIDUAL = "SELECT * FROM " + DB_FUNC_DEL_INDIVIDUAL_BY_ID;
+        const std::string DB_DELETE_RESIDENTIAL_STATUS = DB_EMPTY_QUERY;
         const std::string DB_DELETE_PROJECT = DB_EMPTY_QUERY;
+
 
         /**
          * GET ALL
          */
-        const std::string DB_GETALL_HOUSEHOLD = "SELECT * FROM "
-                + DB_FUNC_GET_HOUSEHOLDS
-                + LIMIT;
-        const std::string DB_GETALL_BUILDING = "SELECT * FROM "
-                + DB_FUNC_GET_BUILDINGS
-                + LIMIT;
-        const std::string DB_GETALL_UNIT = "SELECT * FROM "
-                + DB_FUNC_GET_UNITS
-                + LIMIT;
-        const std::string DB_GETALL_DEVELOPERS = "SELECT * FROM "
-                + DB_FUNC_GET_DEVELPERS;
-        const std::string DB_GETALL_PARCELS = "SELECT * FROM "
-                + DB_FUNC_GET_PARCELS;
-        const std::string DB_GETALL_TEMPLATES = "SELECT * FROM "
-                + DB_FUNC_GET_TEMPLATES;
-        const std::string DB_GETALL_POSTCODE = "SELECT * FROM "
-                + DB_FUNC_GET_POSTCODES;
-        const std::string DB_GETALL_POSTCODE_AMENITIES = "SELECT * FROM "
-                + DB_FUNC_GET_POSTCODES_AMENITIES;
-        const std::string DB_GETALL_LAND_USE_ZONES = "SELECT * FROM "
-                + DB_FUNC_GET_LAND_USE_ZONES;
-        const std::string DB_GETALL_DEVELOPMENT_TYPE_TEMPLATES = "SELECT * FROM "
-                + DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATES;
-        const std::string DB_GETALL_TEMPLATE_UNIT_TYPE = "SELECT * FROM "
-                + DB_FUNC_GET_TEMPLATE_UNIT_TYPES;
-        const std::string DB_GETALL_PROJECTS = "SELECT * FROM "
-                        + DB_FUNC_GET_PROJECTS
-                        + LIMIT;
-        const std::string DB_GETALL_PARCEL_MATCHES = "SELECT * FROM "
-                                + DB_FUNC_GET_PARCEL_MATCHES
-                                + LIMIT;
-        const std::string DB_GETALL_SLA_PARCELS = "SELECT * FROM "
-                                + DB_FUNC_GET_SLA_PARCELS
-                                + LIMIT;
+        const std::string DB_GETALL_HOUSEHOLD 	= "SELECT * FROM " + DB_FUNC_GET_HOUSEHOLDS + LIMIT;
+        const std::string DB_GETALL_BUILDING 	= "SELECT * FROM " + DB_FUNC_GET_BUILDINGS  + LIMIT;
+        const std::string DB_GETALL_UNIT 		= "SELECT * FROM " + DB_FUNC_GET_UNITS + LIMIT;
+        const std::string DB_GETALL_DEVELOPERS 	= "SELECT * FROM " + DB_FUNC_GET_DEVELPERS;
+        const std::string DB_GETALL_PARCELS 	= "SELECT * FROM " + DB_FUNC_GET_PARCELS;
+        const std::string DB_GETALL_TEMPLATES 	= "SELECT * FROM " + DB_FUNC_GET_TEMPLATES;
+        const std::string DB_GETALL_POSTCODE 	= "SELECT * FROM " + DB_FUNC_GET_POSTCODES;
+        const std::string DB_GETALL_POSTCODE_AMENITIES 	= "SELECT * FROM " + DB_FUNC_GET_POSTCODES_AMENITIES;
+        const std::string DB_GETALL_LAND_USE_ZONES 		= "SELECT * FROM " + DB_FUNC_GET_LAND_USE_ZONES;
+        const std::string DB_GETALL_TEMPLATE_UNIT_TYPE 	= "SELECT * FROM " + DB_FUNC_GET_TEMPLATE_UNIT_TYPES;
+        const std::string DB_GETALL_DEVELOPMENT_TYPE_TEMPLATES = "SELECT * FROM " + DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATES;
+        const std::string DB_GETALL_INDIVIDUAL = "SELECT * FROM " + DB_FUNC_GET_INDIVIDUALS + LIMIT;
+        const std::string DB_GETALL_RESIDENTIAL_STATUS = "SELECT * FROM " + DB_FUNC_GET_RESIDENTIAL_STATUS;
+        const std::string DB_GETALL_PROJECTS = "SELECT * FROM "+ DB_FUNC_GET_PROJECTS + LIMIT;
+        const std::string DB_GETALL_PARCEL_MATCHES = "SELECT * FROM "+ DB_FUNC_GET_PARCEL_MATCHES + LIMIT;
+        const std::string DB_GETALL_SLA_PARCELS = "SELECT * FROM "+ DB_FUNC_GET_SLA_PARCELS+ LIMIT;
 
         /**
          * GET BY ID
          */
-        const std::string DB_GETBYID_HOUSEHOLD = "SELECT * FROM "
-                + DB_FUNC_GET_HOUSEHOLD_BY_ID;
-        const std::string DB_GETBYID_BUILDING = "SELECT * FROM "
-                + DB_FUNC_GET_BUILDING_BY_ID;
-        const std::string DB_GETBYID_UNIT = "SELECT * FROM " +
-                DB_FUNC_GET_UNIT_BY_ID;
-        const std::string DB_GETBYID_DEVELOPER = "SELECT * FROM " +
-                DB_FUNC_GET_DEVELOPER_BY_ID;
-        const std::string DB_GETBYID_PARCEL = "SELECT * FROM " +
-                DB_FUNC_GET_PARCEL_BY_ID;
-        const std::string DB_GETBYID_TEMPLATE = "SELECT * FROM " +
-                DB_FUNC_GET_TEMPLATE_BY_ID;
-        const std::string DB_GETBYID_POSTCODE = "SELECT * FROM " +
-                DB_FUNC_GET_POSTCODE_BY_ID;
-        const std::string DB_GETBYID_POSTCODE_AMENITIES = "SELECT * FROM " +
-                DB_FUNC_GET_POSTCODE_AMENITIES_BY_ID;
-        const std::string DB_GETBYID_LAND_USE_ZONE = "SELECT * FROM " +
-                DB_FUNC_GET_LAND_USE_ZONE_BY_ID;
-        const std::string DB_GETBYID_DEVELOPMENT_TYPE_TEMPLATE = "SELECT * FROM " +
-                DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATE_BY_ID;
-        const std::string DB_GETBYID_TEMPLATE_UNIT_TYPE = "SELECT * FROM " +
-                DB_FUNC_GET_TEMPLATE_UNIT_TYPE_BY_ID;
+        const std::string DB_GETBYID_HOUSEHOLD = "SELECT * FROM " + DB_FUNC_GET_HOUSEHOLD_BY_ID;
+        const std::string DB_GETBYID_BUILDING  = "SELECT * FROM " + DB_FUNC_GET_BUILDING_BY_ID;
+        const std::string DB_GETBYID_UNIT      = "SELECT * FROM " + DB_FUNC_GET_UNIT_BY_ID;
+        const std::string DB_GETBYID_DEVELOPER = "SELECT * FROM " + DB_FUNC_GET_DEVELOPER_BY_ID;
+        const std::string DB_GETBYID_PARCEL    = "SELECT * FROM " + DB_FUNC_GET_PARCEL_BY_ID;
+        const std::string DB_GETBYID_TEMPLATE  = "SELECT * FROM " + DB_FUNC_GET_TEMPLATE_BY_ID;
+        const std::string DB_GETBYID_POSTCODE  = "SELECT * FROM " + DB_FUNC_GET_POSTCODE_BY_ID;
+        const std::string DB_GETBYID_POSTCODE_AMENITIES = "SELECT * FROM " + DB_FUNC_GET_POSTCODE_AMENITIES_BY_ID;
+        const std::string DB_GETBYID_LAND_USE_ZONE = "SELECT * FROM " 	   + DB_FUNC_GET_LAND_USE_ZONE_BY_ID;
+        const std::string DB_GETBYID_TEMPLATE_UNIT_TYPE = "SELECT * FROM " + DB_FUNC_GET_TEMPLATE_UNIT_TYPE_BY_ID;
+        const std::string DB_GETBYID_DEVELOPMENT_TYPE_TEMPLATE = "SELECT * FROM " + DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATE_BY_ID;
+        const std::string DB_GETBYID_INDIVIDUAL = "SELECT * FROM " + DB_FUNC_GET_INDIVIDUAL_BY_ID;
+        const std::string DB_GETBYID_RESIDENTIAL_STATUS = "SELECT * FROM " + DB_FUNC_GET_RESIDENTIAL_STATUS_BY_ID;
+
     }
 }

@@ -158,21 +158,18 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		}
 		s = new sim_mob::SinglePath();
 		// fill data
-		s->pathSet = ps;
 		s->isNeedSave2DB = true;
 		hasPath = true;
 		s->init(wps);
 		sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(s);
 		s->highWayDistance = sim_mob::calculateHighWayDistance(s);
-		s->fromNode = fromNode;
-		s->toNode = toNode;
 		s->pathset_id = ps->id;
 		s->length = sim_mob::generateSinglePathLength(s->shortestWayPointpath);
 		s->id = id;
 		s->scenario = ps->scenario;
 		s->pathSize = 0;
-		s->travelCost = sim_mob::getTravelCost2(s);
-		s->travleTime = sim_mob::PathSetManager::getInstance()->getTravelTime(s);
+		s->travelCost = sim_mob::getTravelCost2(s,ps->subTrip->startTime);
+		s->travleTime = sim_mob::PathSetManager::getInstance()->getTravelTime(s,ps->subTrip->startTime);
 	}
 }
 

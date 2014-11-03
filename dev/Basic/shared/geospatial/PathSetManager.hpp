@@ -306,10 +306,10 @@ public:
 	std::vector<WayPoint> getPath(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip);
 
 	///	calculate travel time of a path
-	static double getTravelTime(sim_mob::SinglePath *sp);
+	static double getTravelTime(sim_mob::SinglePath *sp,const sim_mob::DailyTime &startTime);
 
 	///	get travel time of a segment
-	double getTravelTimeBySegId(std::string id,sim_mob::DailyTime startTime);
+	double getTravelTimeBySegId(std::string id,const sim_mob::DailyTime &startTime);
 
 	void setCSVFileName();
 
@@ -451,20 +451,20 @@ private:
 	sim_mob::K_ShortestPathImpl *kshortestImpl;
 
 	///	different utility parameters
-	double bTTVOT;
-	double bCommonFactor;
-	double bLength;
-	double bHighway;
-	double bCost;
-	double bSigInter;
-	double bLeftTurns;
-	double bWork;
-	double bLeisure;
-	double highway_bias;
-	double minTravelTimeParam;
-	double minDistanceParam;
-	double minSignalParam;
-	double maxHighwayParam;
+//	double bTTVOT;
+//	double bCommonFactor;
+//	double bLength;
+//	double bHighway;
+//	double bCost;
+//	double bSigInter;
+//	double bLeftTurns;
+//	double bWork;
+//	double bLeisure;
+//	double highway_bias;
+//	double minTravelTimeParam;
+//	double minDistanceParam;
+//	double minSignalParam;
+//	double maxHighwayParam;
 
 };
 /*****************************************************
@@ -475,19 +475,15 @@ class SinglePath
 {
 public:
 	SinglePath() : purpose(work),utility(0.0),pathSize(0.0),travelCost(0.0),
-	signal_number(0.0),right_turn_number(0.0),length(0.0),travleTime(0.0),highWayDistance(0.0),
+	signalNumber(0.0),rightTurnNumber(0.0),length(0.0),travleTime(0.0),highWayDistance(0.0),
 	isMinTravelTime(0),isMinDistance(0),isMinSignal(0),isMinRightTurn(0),isMaxHighWayUsage(0),
-	isShortestPath(0), excludeSeg(nullptr), fromNode(nullptr),toNode(nullptr),
+	isShortestPath(0), excludeSeg(nullptr),
 	shortestWayPointpath(std::vector<WayPoint>()),isNeedSave2DB(false){}
 	SinglePath(const SinglePath &source);
 	void init(std::vector<WayPoint>& wpPools);
 	void clear();
 	std::vector<WayPoint> shortestWayPointpath;
-//	std::set<const RoadSegment*> shortestSegPath;
-	boost::shared_ptr<sim_mob::PathSet>pathSet; // parent
 	const sim_mob::RoadSegment* excludeSeg; // can be null
-	const sim_mob::Node *fromNode;
-	const sim_mob::Node *toNode;
 
 	double highWayDistance;
 	bool isMinTravelTime;
@@ -503,8 +499,8 @@ public:
 	double utility;
 	double pathSize;
 	double travelCost;
-	int signal_number;
-	int right_turn_number;
+	short signalNumber;
+	short rightTurnNumber;
 	std::string scenario;
 	double length;
 	double travleTime;
@@ -593,25 +589,24 @@ inline sim_mob::SinglePath* findShortestPath(std::set<sim_mob::SinglePath*, sim_
 	return res;
 }
 
-inline double getTravelCost2(sim_mob::SinglePath *sp)
+inline double getTravelCost2(sim_mob::SinglePath *sp,const sim_mob::DailyTime &tripStartTime_)
 {
-
+	sim_mob::DailyTime tripStartTime(tripStartTime_);
 //	sim_mob::Logger::log("path_set").prof("getTravelCost2").tick();
 	double res=0.0;
 	double ts=0.0;
 	if(!sp) {
 		sim_mob::Logger::log("path_set") << "gTC: sp is empty" << std::endl;
 	}
-	sim_mob::DailyTime trip_startTime = sp->pathSet->subTrip->startTime;
-//	for(std::set<const RoadSegment*>::iterator it1 = sp->shortestSegPath.begin(); it1 != sp->shortestSegPath.end(); it1++)
+//	sim_mob::DailyTime trip_startTime = sp->pathSet->subTrip->startTime;
 	for(std::vector<WayPoint>::iterator it1 = sp->shortestWayPointpath.begin(); it1 != sp->shortestWayPointpath.end(); it1++)
 	{
 		std::string seg_id = (it1)->roadSegment_->originalDB_ID.getLogItem();
 		std::map<std::string,sim_mob::ERP_Section*>::iterator it = sim_mob::PathSetParam::getInstance()->ERP_SectionPool.find(seg_id);
 		//get travel time to this segment
-		double t = sim_mob::PathSetParam::getInstance()->getTravelTimeBySegId(seg_id,trip_startTime);
+		double t = sim_mob::PathSetParam::getInstance()->getTravelTimeBySegId(seg_id,tripStartTime);
 		ts += t;
-		trip_startTime = trip_startTime + sim_mob::DailyTime(ts*1000);
+		tripStartTime = tripStartTime + sim_mob::DailyTime(ts*1000);
 		if(it!=sim_mob::PathSetParam::getInstance()->ERP_SectionPool.end())
 		{
 			sim_mob::ERP_Section* erp_section = (*it).second;
@@ -623,7 +618,7 @@ inline double getTravelCost2(sim_mob::SinglePath *sp)
 				for(int i=0;i<erp_surcharges.size();++i)
 				{
 					sim_mob::ERP_Surcharge* s = erp_surcharges[i];
-					if( s->startTime_DT.isBeforeEqual(trip_startTime) && s->endTime_DT.isAfter(trip_startTime) &&
+					if( s->startTime_DT.isBeforeEqual(tripStartTime) && s->endTime_DT.isAfter(tripStartTime) &&
 							s->vehicleTypeId == 1 && s->day == "Weekdays")
 					{
 						res += s->rate;

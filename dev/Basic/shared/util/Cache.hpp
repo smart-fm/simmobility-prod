@@ -115,7 +115,7 @@ private:
     const typename KeyToValueType::iterator it
       =keyToValue.find(keyTracker.front());
     assert(it!=keyToValue.end());
-    loggerCache << ++eraseCnt << " Erase from cache\n";
+    std::cout << "[" << ++eraseCnt << " EVICT]" << std::endl;
     // Erase both elements to completely purge record
     keyToValue.erase(it);
     keyTracker.pop_front();

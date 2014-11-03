@@ -1149,9 +1149,8 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 	ps->id = fromToID;
 	ps->singlepath_id = s->id;
 	s->pathset_id = ps->id;
-	s->pathSet = ps;
-	s->travelCost = sim_mob::getTravelCost2(s);
-	s->travleTime = getTravelTime(s);
+	s->travelCost = sim_mob::getTravelCost2(s,ps->subTrip->startTime);
+	s->travleTime = getTravelTime(s,ps->subTrip->startTime);
 //	std::cout << "generateAllPathChoicesMT->getTravelCost2,getTravelTime" << std::endl;
 	// SHORTEST DISTANCE LINK ELIMINATION
 	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
@@ -1191,7 +1190,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 //	logger << "waiting for SHORTEST DISTANCE LINK ELIMINATION" << "\n";
 //	threadpool_->wait();
 //	//kep your own ending time
-//
+//get_persons_between_demo
 //
 //	// SHORTEST TRAVEL TIME LINK ELIMINATION
 //	l=NULL;
@@ -1449,9 +1448,8 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 			ps_->id = fromToID;
 			ps_->singlepath_id = s->id;
 			s->pathset_id = ps_->id;
-			s->pathSet = ps_;
-			s->travelCost = getTravelCost2(s);
-			s->travleTime = getTravelTime(s);
+			s->travelCost = getTravelCost2(s,ps_->subTrip->startTime);
+			s->travleTime = getTravelTime(s,ps_->subTrip->startTime);
 			ps_->pathChoices.insert(s);
 				// 2. exclude each seg in shortest path, then generate new shortest path
 			generatePathesByLinkElimination(s->shortestWayPointpath,duplicateChecker,ps_,fromNode,toNode);
@@ -1513,9 +1511,8 @@ void sim_mob::PathSetManager::generatePathesByLinkElimination(std::vector<WayPoi
 			{
 				continue;
 			}
-			sinPath->pathSet = ps_; // set parent
-			sinPath->travelCost = getTravelCost2(sinPath);
-			sinPath->travleTime = getTravelTime(sinPath);
+			sinPath->travelCost = getTravelCost2(sinPath,ps_->subTrip->startTime);
+			sinPath->travleTime = getTravelTime(sinPath,ps_->subTrip->startTime);
 			sinPath->pathset_id = ps_->id;
 			ps_->pathChoices.insert(sinPath);
 		}
@@ -1538,9 +1535,8 @@ void sim_mob::PathSetManager::generatePathesByTravelTimeLinkElimination(std::vec
 			{
 				continue;
 			}
-			sinPath->pathSet = ps_; // set parent
-			sinPath->travelCost = getTravelCost2(sinPath);
-			sinPath->travleTime = getTravelTime(sinPath);
+			sinPath->travelCost = getTravelCost2(sinPath,ps_->subTrip->startTime);
+			sinPath->travleTime = getTravelTime(sinPath,ps_->subTrip->startTime);
 			sinPath->pathset_id = ps_->id;
 //			storePath(sinPath);
 			ps_->pathChoices.insert(sinPath);
@@ -1554,9 +1550,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	SinglePath *sinPath_morningPeak = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::MorningPeak);
 	if(sinPath_morningPeak)
 	{
-		sinPath_morningPeak->pathSet = ps_; // set parent
-		sinPath_morningPeak->travelCost = getTravelCost2(sinPath_morningPeak);
-		sinPath_morningPeak->travleTime = getTravelTime(sinPath_morningPeak);
+		sinPath_morningPeak->travelCost = getTravelCost2(sinPath_morningPeak,ps_->subTrip->startTime);
+		sinPath_morningPeak->travleTime = getTravelTime(sinPath_morningPeak,ps_->subTrip->startTime);
 		sinPath_morningPeak->pathset_id = ps_->id;
 		ps_->pathChoices.insert(sinPath_morningPeak);
 		generatePathesByTravelTimeLinkElimination(sinPath_morningPeak->shortestWayPointpath,duplicateChecker,ps_,fromNode,toNode,sim_mob::MorningPeak);
@@ -1564,9 +1559,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	SinglePath *sinPath_eveningPeak = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::EveningPeak);
 	if(sinPath_eveningPeak)
 	{
-		sinPath_eveningPeak->pathSet = ps_; // set parent
-		sinPath_eveningPeak->travelCost = getTravelCost2(sinPath_eveningPeak);
-		sinPath_eveningPeak->travleTime = getTravelTime(sinPath_eveningPeak);
+		sinPath_eveningPeak->travelCost = getTravelCost2(sinPath_eveningPeak,ps_->subTrip->startTime);
+		sinPath_eveningPeak->travleTime = getTravelTime(sinPath_eveningPeak,ps_->subTrip->startTime);
 		sinPath_eveningPeak->pathset_id = ps_->id;
 		ps_->pathChoices.insert(sinPath_eveningPeak);
 		generatePathesByTravelTimeLinkElimination(sinPath_eveningPeak->shortestWayPointpath,duplicateChecker,ps_,fromNode,toNode,sim_mob::EveningPeak);
@@ -1574,9 +1568,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	SinglePath *sinPath_offPeak = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::OffPeak);
 	if(sinPath_offPeak)
 	{
-		sinPath_offPeak->pathSet = ps_; // set parent
-		sinPath_offPeak->travelCost = getTravelCost2(sinPath_offPeak);
-		sinPath_offPeak->travleTime = getTravelTime(sinPath_offPeak);
+		sinPath_offPeak->travelCost = getTravelCost2(sinPath_offPeak,ps_->subTrip->startTime);
+		sinPath_offPeak->travleTime = getTravelTime(sinPath_offPeak,ps_->subTrip->startTime);
 		sinPath_offPeak->pathset_id = ps_->id;
 		ps_->pathChoices.insert(sinPath_offPeak);
 		generatePathesByTravelTimeLinkElimination(sinPath_offPeak->shortestWayPointpath,duplicateChecker,ps_,fromNode,toNode,sim_mob::OffPeak);
@@ -1584,9 +1577,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	SinglePath *sinPath_default = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::Default);
 	if(sinPath_default)
 	{
-		sinPath_default->pathSet = ps_; // set parent
-		sinPath_default->travelCost = getTravelCost2(sinPath_default);
-		sinPath_default->travleTime = getTravelTime(sinPath_default);
+		sinPath_default->travelCost = getTravelCost2(sinPath_default,ps_->subTrip->startTime);
+		sinPath_default->travleTime = getTravelTime(sinPath_default,ps_->subTrip->startTime);
 		sinPath_default->pathset_id = ps_->id;
 		ps_->pathChoices.insert(sinPath_default);
 		generatePathesByTravelTimeLinkElimination(sinPath_default->shortestWayPointpath,duplicateChecker,ps_,fromNode,toNode,sim_mob::Default);
@@ -1595,9 +1587,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	SinglePath *sinPath = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::HighwayBias_Distance);
 	if(sinPath)
 	{
-		sinPath->pathSet = ps_; // set parent
-		sinPath->travelCost = getTravelCost2(sinPath);
-		sinPath->travleTime = getTravelTime(sinPath);
+		sinPath->travelCost = getTravelCost2(sinPath,ps_->subTrip->startTime);
+		sinPath->travleTime = getTravelTime(sinPath,ps_->subTrip->startTime);
 		sinPath->pathset_id = ps_->id;
 		ps_->pathChoices.insert(sinPath);
 		generatePathesByTravelTimeLinkElimination(sinPath->shortestWayPointpath,duplicateChecker,ps_,fromNode,toNode,sim_mob::HighwayBias_Distance);
@@ -1605,9 +1596,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	sinPath = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::HighwayBias_MorningPeak);
 	if(sinPath)
 	{
-		sinPath->pathSet = ps_; // set parent
-		sinPath->travelCost = getTravelCost2(sinPath);
-		sinPath->travleTime = getTravelTime(sinPath);
+		sinPath->travelCost = getTravelCost2(sinPath,ps_->subTrip->startTime);
+		sinPath->travleTime = getTravelTime(sinPath,ps_->subTrip->startTime);
 		sinPath->pathset_id = ps_->id;
 		ps_->pathChoices.insert(sinPath);
 		generatePathesByTravelTimeLinkElimination(sinPath->shortestWayPointpath,duplicateChecker,ps_,fromNode,toNode,sim_mob::HighwayBias_MorningPeak);
@@ -1615,9 +1605,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	sinPath = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::HighwayBias_EveningPeak);
 	if(sinPath)
 	{
-		sinPath->pathSet = ps_; // set parent
-		sinPath->travelCost = getTravelCost2(sinPath);
-		sinPath->travleTime = getTravelTime(sinPath);
+		sinPath->travelCost = getTravelCost2(sinPath,ps_->subTrip->startTime);
+		sinPath->travleTime = getTravelTime(sinPath,ps_->subTrip->startTime);
 		sinPath->pathset_id = ps_->id;
 		ps_->pathChoices.insert(sinPath);
 		generatePathesByTravelTimeLinkElimination(sinPath->shortestWayPointpath,duplicateChecker,ps_,fromNode,toNode,sim_mob::HighwayBias_MorningPeak);
@@ -1625,9 +1614,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	sinPath = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::HighwayBias_OffPeak);
 	if(sinPath)
 	{
-		sinPath->pathSet = ps_; // set parent
-		sinPath->travelCost = getTravelCost2(sinPath);
-		sinPath->travleTime = getTravelTime(sinPath);
+		sinPath->travelCost = getTravelCost2(sinPath,ps_->subTrip->startTime);
+		sinPath->travleTime = getTravelTime(sinPath,ps_->subTrip->startTime);
 		sinPath->pathset_id = ps_->id;
 		ps_->pathChoices.insert(sinPath);
 		generatePathesByTravelTimeLinkElimination(sinPath->shortestWayPointpath,duplicateChecker,ps_,fromNode,toNode,sim_mob::HighwayBias_MorningPeak);
@@ -1635,9 +1623,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	sinPath = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::HighwayBias_Default);
 	if(sinPath)
 	{
-		sinPath->pathSet = ps_; // set parent
-		sinPath->travelCost = getTravelCost2(sinPath);
-		sinPath->travleTime = getTravelTime(sinPath);
+		sinPath->travelCost = getTravelCost2(sinPath,ps_->subTrip->startTime);
+		sinPath->travleTime = getTravelTime(sinPath,ps_->subTrip->startTime);
 		sinPath->pathset_id = ps_->id;
 		ps_->pathChoices.insert(sinPath);
 		//
@@ -1650,9 +1637,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 		sinPath = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::Random,rs,i);
 		if(sinPath)
 		{
-			sinPath->pathSet = ps_; // set parent
-			sinPath->travelCost = getTravelCost2(sinPath);
-			sinPath->travleTime = getTravelTime(sinPath);
+			sinPath->travelCost = getTravelCost2(sinPath,ps_->subTrip->startTime);
+			sinPath->travleTime = getTravelTime(sinPath,ps_->subTrip->startTime);
 			sinPath->pathset_id = ps_->id;
 			ps_->pathChoices.insert(sinPath);
 		}
@@ -1668,54 +1654,54 @@ double sim_mob::PathSetManager::getUtilityBySinglePath(sim_mob::SinglePath* sp)
 	//1.0
 	//Obtain the travel time tt of the path.
 	//Obtain value of time for the agent A: bTTlowVOT/bTTmedVOT/bTThiVOT.
-	utility += sp->travleTime * bTTVOT;
+	utility += sp->travleTime * pathSetParam->bTTVOT;
 	//2.0
 	//Obtain the path size PS of the path.
-	utility += sp->pathSize * bCommonFactor;
+	utility += sp->pathSize * pathSetParam->bCommonFactor;
 	//3.0
 	//Obtain the travel distance l and the highway distance w of the path.
-	utility += sp->length * bLength + sp->highWayDistance * bHighway;
+	utility += sp->length * pathSetParam->bLength + sp->highWayDistance * pathSetParam->bHighway;
 	//4.0
 	//Obtain the travel cost c of the path.
-	utility += sp->travelCost * bCost;
+	utility += sp->travelCost * pathSetParam->bCost;
 	//5.0
 	//Obtain the number of signalized intersections s of the path.
-	utility += sp->signal_number * bSigInter;
+	utility += sp->signalNumber * pathSetParam->bSigInter;
 	//6.0
 	//Obtain the number of right turns f of the path.
-	utility += sp->right_turn_number * bLeftTurns;
+	utility += sp->rightTurnNumber * pathSetParam->bLeftTurns;
 	//7.0
 	//min travel time param
 	if(sp->isMinTravelTime == 1)
 	{
-		utility += minTravelTimeParam;
+		utility += pathSetParam->minTravelTimeParam;
 	}
 	//8.0
 	//min distance param
 	if(sp->isMinDistance == 1)
 	{
-		utility += minDistanceParam;
+		utility += pathSetParam->minDistanceParam;
 	}
 	//9.0
 	//min signal param
 	if(sp->isMinSignal == 1)
 	{
-		utility += minSignalParam;
+		utility += pathSetParam->minSignalParam;
 	}
 	//10.0
 	//min highway param
 	if(sp->isMaxHighWayUsage == 1)
 	{
-		utility += maxHighwayParam;
+		utility += pathSetParam->maxHighwayParam;
 	}
 	//Obtain the trip purpose.
 	if(sp->purpose == sim_mob::work)
 	{
-		utility += sp->purpose * bWork;
+		utility += sp->purpose * pathSetParam->bWork;
 	}
 	else if(sp->purpose == sim_mob::leisure)
 	{
-		utility += sp->purpose * bLeisure;
+		utility += sp->purpose * pathSetParam->bLeisure;
 	}
 
 	return utility;
@@ -1746,7 +1732,6 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 			std::string str = temp + " Singlepath empty";
 			throw std::runtime_error (str);
 		}
-		sp->pathSet = ps;
 		//	trying to save some computation like getTravelTime(), getUtilityBySinglePath()
 		computeUtility = false;
 		//	state of the network changed
@@ -1757,7 +1742,7 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 		//	not previously calculated
 		if(sp->travleTime == 0.0)
 		{
-			sp->travleTime = getTravelTime(sp);
+			sp->travleTime = getTravelTime(sp,ps->subTrip->startTime);
 			computeUtility = true;
 		}
 		//	not previously calculated
@@ -1814,21 +1799,21 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 }
 void sim_mob::PathSetManager::initParameters()
 {
-	bTTVOT = pathSetParam->bTTVOT;//-0.0108879;
-	bCommonFactor = pathSetParam->bCommonFactor;
-	bLength = pathSetParam->bLength;//0.0;
-	bHighway = pathSetParam->bHighway;//0.0;
-	bCost = pathSetParam->bCost;
-	bSigInter = pathSetParam->bSigInter;//0.0;
-	bLeftTurns = pathSetParam->bLeftTurns;
-	bWork = pathSetParam->bWork;
-	bLeisure = pathSetParam->bLeisure;
-	highway_bias = pathSetParam->highway_bias;
-
-	minTravelTimeParam = pathSetParam->minTravelTimeParam;
-	minDistanceParam = pathSetParam->minDistanceParam;
-	minSignalParam = pathSetParam->minSignalParam;
-	maxHighwayParam = pathSetParam->maxHighwayParam;
+//	bTTVOT = pathSetParam->bTTVOT;//-0.0108879;
+//	bCommonFactor = pathSetParam->bCommonFactor;
+//	bLength = pathSetParam->bLength;//0.0;
+//	bHighway = pathSetParam->bHighway;//0.0;
+//	bCost = pathSetParam->bCost;
+//	bSigInter = pathSetParam->bSigInter;//0.0;
+//	bLeftTurns = pathSetParam->bLeftTurns;
+//	bWork = pathSetParam->bWork;
+//	bLeisure = pathSetParam->bLeisure;
+//	highway_bias = pathSetParam->highway_bias;
+//
+//	minTravelTimeParam = pathSetParam->minTravelTimeParam;
+//	minDistanceParam = pathSetParam->minDistanceParam;
+//	minSignalParam = pathSetParam->minSignalParam;
+//	maxHighwayParam = pathSetParam->maxHighwayParam;
 }
 
 sim_mob::SinglePath *  sim_mob::PathSetManager::findShortestDrivingPath(
@@ -1877,9 +1862,6 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::findShortestDrivingPath(
 		s->isNeedSave2DB = true;
 		s->init(wp);
 		sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(s);
-		s->fromNode = fromNode;
-		s->toNode = toNode;
-		s->pathSet.reset();
 		s->length = sim_mob::generateSinglePathLengthPT(s->shortestWayPointpath);
 		s->id = id;
 		s->scenario = scenarioName;
@@ -1930,9 +1912,6 @@ sim_mob::SinglePath* sim_mob::PathSetManager::generateShortestTravelTimePath(con
 			s->isNeedSave2DB = true;
 			s->init(wp);
 			sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(s);
-			s->fromNode = fromNode;
-			s->toNode = toNode;
-			s->pathSet.reset();
 			s->length = sim_mob::generateSinglePathLengthPT(s->shortestWayPointpath);
 			s->id = id;
 			s->scenario = scenarioName;
@@ -1949,8 +1928,8 @@ void sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::Single
 {
 	if(sp->shortestWayPointpath.size()<2)
 	{
-		sp->right_turn_number=0;
-		sp->signal_number=0;
+		sp->rightTurnNumber=0;
+		sp->signalNumber=0;
 		return ;
 	}
 	int res=0;
@@ -1991,8 +1970,8 @@ void sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::Single
 		}//end currEndNode
 		++itt;
 	}//end for
-	sp->right_turn_number=res;
-	sp->signal_number=signalNumber;
+	sp->rightTurnNumber=res;
+	sp->signalNumber=signalNumber;
 }
 
 void sim_mob::generatePathSizeForPathSet2(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUseCache)
@@ -2076,13 +2055,13 @@ void sim_mob::generatePathSizeForPathSet2(boost::shared_ptr<sim_mob::PathSet>&ps
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
 		if(ps->oriPath && sp->id == ps->oriPath->id){
-			minSignal = sp->signal_number;
+			minSignal = sp->signalNumber;
 			minSP = sp;
 		}
 		else{
-			if(sp->signal_number < minSignal)
+			if(sp->signalNumber < minSignal)
 			{
-				minSignal = sp->signal_number;
+				minSignal = sp->signalNumber;
 				minSP = sp;
 			}
 
@@ -2098,13 +2077,13 @@ void sim_mob::generatePathSizeForPathSet2(boost::shared_ptr<sim_mob::PathSet>&ps
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
 		if(ps->oriPath && sp->id == ps->oriPath->id){
-			minRightTurn = sp->right_turn_number;
+			minRightTurn = sp->rightTurnNumber;
 			minSP = sp;
 		}
 		else{
 			if(sp->travleTime < minTravelTime)
 			{
-				minRightTurn = sp->right_turn_number;
+				minRightTurn = sp->rightTurnNumber;
 				minSP = sp;
 			}
 
@@ -2178,11 +2157,11 @@ void sim_mob::generatePathSizeForPathSet2(boost::shared_ptr<sim_mob::PathSet>&ps
 	}// end for
 }
 
-double sim_mob::PathSetManager::getTravelTime(sim_mob::SinglePath *sp)
+double sim_mob::PathSetManager::getTravelTime(sim_mob::SinglePath *sp,const sim_mob::DailyTime &startTime_)
 {
 //	logger.prof("getTravelTime").tick();
 	double ts=0.0;
-	sim_mob::DailyTime startTime = sp->pathSet->subTrip->startTime;
+	sim_mob::DailyTime startTime(startTime_);
 	for(int i=0;i<sp->shortestWayPointpath.size();++i)
 	{
 		if(sp->shortestWayPointpath[i].type_ == WayPoint::ROAD_SEGMENT){
@@ -2195,7 +2174,7 @@ double sim_mob::PathSetManager::getTravelTime(sim_mob::SinglePath *sp)
 //	logger.prof("getTravelTime").tick(true);
 	return ts;
 }
-double sim_mob::PathSetManager::getTravelTimeBySegId(std::string id,sim_mob::DailyTime startTime)
+double sim_mob::PathSetManager::getTravelTimeBySegId(std::string id, const sim_mob::DailyTime &startTime)
 {
 	std::map<std::string,std::vector<sim_mob::LinkTravelTime> >::iterator it;
 	double res=0.0;
@@ -2242,14 +2221,11 @@ void sim_mob::SinglePath::clear()
 //	shortestSegPath.clear();
 	id="";
 	pathset_id="";
-	pathSet.reset();
-	fromNode = NULL;
-	toNode = NULL;
 	utility = 0.0;
 	pathSize = 0.0;
 	travelCost=0.0;
-	signal_number=0.0;
-	right_turn_number=0.0;
+	signalNumber=0.0;
+	rightTurnNumber=0.0;
 	length=0.0;
 	travleTime=0.0;
 	highWayDistance=0.0;
@@ -2283,8 +2259,8 @@ uint32_t sim_mob::SinglePath::getSize(){
 	sum += sizeof(double); // double utility;
 	sum += sizeof(double); // double pathsize;
 	sum += sizeof(double); // double travel_cost;
-	sum += sizeof(int); // int signal_number;
-	sum += sizeof(int); // int right_turn_number;
+	sum += sizeof(int); // int signalNumber;
+	sum += sizeof(int); // int rightTurnNumber;
 	sum += scenario.length(); // std::string scenario;
 	sum += sizeof(double); // double length;
 	sum += sizeof(double); // double travle_time;
@@ -2298,7 +2274,7 @@ sim_mob::PathSet::~PathSet()
 	fromNode = NULL;
 	toNode = NULL;
 	subTrip = NULL;
-	logger << "Deleting PathSet " << id << " and its " << pathChoices.size() << "  singlepaths\n";
+	std::cout << "[DELET PATHSET " << id << "] [" << pathChoices.size() << "  SINGLEPATH]" << std::endl;
 	BOOST_FOREACH(sim_mob::SinglePath*sp,pathChoices)
 	{
 		safe_delete_item(sp);
@@ -2421,8 +2397,8 @@ sim_mob::SinglePath::SinglePath(const SinglePath& source) :
 		id(source.id),
 		utility(source.utility),pathSize(source.pathSize),
 		travelCost(source.travelCost),
-		signal_number(source.signal_number),
-		right_turn_number(source.right_turn_number),
+		signalNumber(source.signalNumber),
+		rightTurnNumber(source.rightTurnNumber),
 		length(source.length),travleTime(source.travleTime),
 		pathset_id(source.pathset_id),highWayDistance(source.highWayDistance),
 		isMinTravelTime(source.isMinTravelTime),isMinDistance(source.isMinDistance),isMinSignal(source.isMinSignal),

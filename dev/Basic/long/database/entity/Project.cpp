@@ -44,8 +44,7 @@ double sim_mob::long_term::Project::getConstructionCost(){
 	return constructionCost;
 }
 
-void sim_mob::long_term::Project::setConstructionCost(
-		double constructionCost) {
+void sim_mob::long_term::Project::setConstructionCost(double constructionCost) {
 	this->constructionCost = constructionCost;
 }
 
@@ -53,8 +52,7 @@ std::tm sim_mob::long_term::Project::getConstructionDate(){
 	return constructionDate;
 }
 
-void sim_mob::long_term::Project::setConstructionDate(
-		std::tm constructionDate) {
+void sim_mob::long_term::Project::setConstructionDate(std::tm constructionDate) {
 	this->constructionDate = constructionDate;
 }
 

@@ -659,9 +659,6 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		p.cftimer = p.getNextStepSize();
 	}
 
-	if(p.now.frame() > 600 && p.parentId == 3){
-		int i = 0;
-	}
 	return acc;
 }
 
@@ -700,7 +697,7 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 //			&& p.perceivedFwdVelocityOfFwdCar / 100 < 1.0) {
 //		return p.maxDeceleration * 4.0;
 //	}
-//	if (p.space > 0.1)
+//	if (p.space > 0.1)nv
 //	{
 //		if (!nv.exists()) {
 	p.headway = 99;
@@ -741,7 +738,7 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 
 			// to fix bug: when subject vh speed=0 and space small, headway become large number
 			p.emergHeadway = -1;
-			if(emergSpace < 2.0) {
+			if(emergSpace < 10.0) {
 				double speed = p.perceivedFwdVelocity / 100;
 				double emergHeadway = CalcHeadway(emergSpace,
 												  speed,
@@ -815,13 +812,13 @@ double sim_mob::MITSIM_CF_Model::calcCarFollowingRate(DriverUpdateParams& p)
 //			int ii =0;
 //		}
 		double aZ1 = carFollowingRate(p, p.nvFwd);
-//		double aZ2 = carFollowingRate(p, p.nvFwdNextLink);
-//		if(aZ1<aZ2) {
+		double aZ2 = carFollowingRate(p, p.nvFwdNextLink);
+		if(aZ1<aZ2) {
 			acc = aZ1;
-//		}
-//		else {
-//			acc = aZ2;
-//		}
+		}
+		else {
+			acc = aZ2;
+		}
 	}
 
 	return acc;

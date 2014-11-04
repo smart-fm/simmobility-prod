@@ -391,10 +391,15 @@ bool sim_mob::DriverMovement::findEmptySpaceAhead()
 	//To store the agents that are in the nearby region
 	vector<const Agent *> nearby_agents;
 
-	//We need to find agents in front and those that may be coming in from behind!
-	const int lookAheadDistance = 1000, lookBehindDistance = 1000;
+	//To store the closest driver approaching from the rear, if any
+	//This is a pair of the driver object and his/her gap from the driver looking to exit the loading
+	//queue
+	pair<Driver *,double> driverApproachingFromRear(nullptr, DBL_MAX);
 
-	//Get the agents in nearby the current vehicle (within a distance of 1000cm i.e. 10m)
+	//We need to find agents in front and those that may be coming in from behind!
+	const int lookAheadDistance = parentDriver->distanceInFront, lookBehindDistance = parentDriver->distanceBehind;
+
+	//Get the agents in nearby the current vehicle 
 	nearby_agents = AuraManager::instance().nearbyAgents(Point2D(parentDriver->getCurrPosition().x,
 			parentDriver->getCurrPosition().y),	*driverUpdateParams.currLane, lookAheadDistance, lookBehindDistance, nullptr);
 
@@ -424,37 +429,58 @@ bool sim_mob::DriverMovement::findEmptySpaceAhead()
 						DriverMovement *nearbyDriverMovement = dynamic_cast<DriverMovement *>(nearbyDriver->Movement());
 
 						//Get the gap to the nearby driver (in cm)
-						//double gapInCM = fwdDriverMovement.getDisToCurrSegEnd();
-						//if(!nearbyDriverMovement->fwdDriverMovement.isDoneWithEntireRoute()){
-							double gapInCM = fwdDriverMovement.getDisToCurrSegEnd() - nearbyDriverMovement->fwdDriverMovement.getDisToCurrSegEnd();
-						//}
+						double availableGapInCM = fwdDriverMovement.getDisToCurrSegEnd() - nearbyDriverMovement->fwdDriverMovement.getDisToCurrSegEnd();
 
 						//The gap between current driver and the one in front (or the one coming from behind) should be greater than
 						//length(in cm) + (headway(in s) * initial speed(in cm/s))
-						double permissibleGapInCM = 0;
-						if(gapInCM > 0)
+						double requiredGapInCM = 0;
+						if(availableGapInCM > 0)
 						{
 							//As the gap is positive, there is a vehicle in front of us. We should have enough distance
 							//so as to avoid crashing into it
-							permissibleGapInCM = parentDriver->vehicle->getLengthCm() + (driverUpdateParams.headway * (driverUpdateParams.initSpeed / 100));
+							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *>(cfModel);
+							requiredGapInCM = (2 * parentDriver->vehicle->getLengthCm()) + (mitsim_cf_model->hBufferUpper * (driverUpdateParams.initSpeed / 100));
 						}
 						else
 						{
 							//As the gap is negative, there is a vehicle coming in from behind. We shouldn't appear right
 							//in front of it, so consider it's speed to calculate required gap
-							permissibleGapInCM = nearbyDriver->vehicle->getLengthCm() + (nearbyDriversParams.headway)* (nearbyDriversParams.currSpeed / 100);
+							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *>(nearbyDriverMovement->cfModel);
+							requiredGapInCM = (2 * nearbyDriver->vehicle->getLengthCm())+ (mitsim_cf_model->hBufferUpper)* (nearbyDriversParams.currSpeed / 100);
+
+							//In case a driver is approaching from the rear, we need to reduce the reaction time, so that he/she
+							//is aware of the presence of the car apprearing in front.
+							//But we need only the closest one
+							if(driverApproachingFromRear.second > availableGapInCM)
+							{
+								driverApproachingFromRear.first = nearbyDriver;
+								driverApproachingFromRear.second = availableGapInCM;
+							}
 						}
 
-						if(abs(gapInCM) <= abs(permissibleGapInCM))
+						if(abs(availableGapInCM) <= abs(requiredGapInCM))
 						{
-							//at least on vehicle is too close, so no need to search further
+							//at least one vehicle is too close, so no need to search further
 							isSpaceFound = false;
+
+							//If any driver was added to the pair - driverApproachingFromRear, remove it
+							//as we're not going to unload the vehicle from the loading queue
+							driverApproachingFromRear.first = nullptr;
+							driverApproachingFromRear.second = DBL_MAX;
+
 							break;
 						}
 					}
 				}
 			}
 		}
+	}
+
+	//If is any driver approaching from behind (also means that we've found space on the road), 
+	//reduce the reaction time
+	if(driverApproachingFromRear.first != nullptr)
+	{
+		driverApproachingFromRear.first->getParams().cftimer = driverApproachingFromRear.first->getParams().cftimer * CF_CRITICAL_TIMER_RATIO;
 	}
 
 	return isSpaceFound;
@@ -1210,7 +1236,7 @@ double sim_mob::DriverMovement::getDisToStopPoint(double perceptionDis){
 					if (rs == fwdDriverMovement.getCurrSegment()) {
 						if(v[i].distance<=perceptionDis){
 							distance = v[i].distance - movedis;
-							std::cout<<p.now.frame()<<" getDisToStopPoint: find stop point in segment <"<<id<<"> distance<"<<distance<<"> "<<itemDis<<" "<<fwdDriverMovement.getCurrDistAlongRoadSegmentCM()/100.0<<std::endl;
+							//std::cout<<p.now.frame()<<" getDisToStopPoint: find stop point in segment <"<<id<<"> distance<"<<distance<<"> "<<itemDis<<" "<<fwdDriverMovement.getCurrDistAlongRoadSegmentCM()/100.0<<std::endl;
 							if(distance<-10){
 								return -100;
 							}
@@ -1227,7 +1253,7 @@ double sim_mob::DriverMovement::getDisToStopPoint(double perceptionDis){
 						if(rs->getLink() == fwdDriverMovement.getCurrSegment()->getLink()){
 							// in same link
 							distance = itemDis + v[i].distance;
-							std::cout<<p.now.frame()<<" getDisToStopPoint: find stop point forward segment <"<<id<<"> distance<"<<distance<<"> "<<itemDis<<" "<<fwdDriverMovement.getCurrDistAlongRoadSegmentCM()/100.0<<std::endl;
+							//std::cout<<p.now.frame()<<" getDisToStopPoint: find stop point forward segment <"<<id<<"> distance<"<<distance<<"> "<<itemDis<<" "<<fwdDriverMovement.getCurrDistAlongRoadSegmentCM()/100.0<<std::endl;
 							if(distance>perceptionDis){
 								return -100;
 							}
@@ -2142,8 +2168,8 @@ void sim_mob::DriverMovement::check_and_set_min_car_dist2(NearestVehicle& res,
 void sim_mob::DriverMovement::check_and_set_min_nextlink_car_dist(
 		NearestVehicle& res, double distance, const Vehicle* veh,
 		const Driver* other) {
-//Subtract the size of the car from the distance between them
-	distance = fabs(distance) - other->getVehicleLengthCM() / 2;
+	//Subtract the size of the car from the distance between them
+	//distance = fabs(distance) - other->getVehicleLengthCM() / 2;
 	if (distance <= res.distance) {
 		res.driver = other;
 		res.distance = distance;
@@ -2436,9 +2462,6 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 			size_t otherVhLaneIndex = getLaneIndex(other_lane);
 			if (targetLaneIndex == otherVhLaneIndex) {
 
-				if (params.now.ms() / MILLISECS_CONVERT_UNIT == 92.8) {
-					int a = 1;
-				}
 				if (params.nvFwd.driver == NULL) {
 // std::cout<<"find this " <<other_driver->parent->getId()<<std::endl;
 // 2. other_driver's distance move in the segment, it is also the distance vh to intersection

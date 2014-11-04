@@ -177,6 +177,9 @@ void sim_mob::BusDriverMovement::frame_init() {
 		}
 		//Unique to BusDrivers: reset your route
 		waitAtStopMS = 0.0;
+
+		//Set initial speed of bus to 0
+		parentBusDriver->getParams().initSpeed = 0;
 	}
 
 	// put busStops to StopPointPool

@@ -185,6 +185,7 @@ private:
 	int nFreeCars;
 	int frameTicks;
 	int currTime;
+//	const RoadSegment *StopPointRS; //vh will stop at this segment to pick up passenger
 
 	//shortest paths
 	boost::unordered_map<std::string, std::vector <WayPoint> > shortestPaths;

@@ -63,9 +63,7 @@ namespace sim_mob {
                                           const event::EventArgs& args);
         
         private:
-            //Developer* developer;
             DeveloperModel* model;
-           // Parcel* parcel;
             IdVector parcelsToProcess;
         };
     }

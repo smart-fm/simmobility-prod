@@ -309,7 +309,7 @@ public:
 	static double getTravelTime(sim_mob::SinglePath *sp,const sim_mob::DailyTime &startTime);
 
 	///	get travel time of a segment
-	double getTravelTimeBySegId(std::string id,const sim_mob::DailyTime &startTime);
+//	double getTravelTimeBySegId(std::string id,const sim_mob::DailyTime &startTime);
 
 	void setCSVFileName();
 

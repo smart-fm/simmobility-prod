@@ -2166,7 +2166,7 @@ double sim_mob::PathSetManager::getTravelTime(sim_mob::SinglePath *sp,const sim_
 	{
 		if(sp->shortestWayPointpath[i].type_ == WayPoint::ROAD_SEGMENT){
 			std::string seg_id = sp->shortestWayPointpath[i].roadSegment_->originalDB_ID.getLogItem();
-			double t = sim_mob::PathSetManager::getInstance()->getTravelTimeBySegId(seg_id,startTime);
+			double t = sim_mob::PathSetParam::getInstance()->getTravelTimeBySegId(seg_id,startTime);
 			ts += t;
 			startTime = startTime + sim_mob::DailyTime(ts*1000);
 		}
@@ -2174,32 +2174,33 @@ double sim_mob::PathSetManager::getTravelTime(sim_mob::SinglePath *sp,const sim_
 //	logger.prof("getTravelTime").tick(true);
 	return ts;
 }
-double sim_mob::PathSetManager::getTravelTimeBySegId(std::string id, const sim_mob::DailyTime &startTime)
-{
-	std::map<std::string,std::vector<sim_mob::LinkTravelTime> >::iterator it;
-	double res=0.0;
-	//2. if no , check default
-	it = pathSetParam->segmentDefaultTravelTimePool.find(id);
-	if(it!= pathSetParam->segmentDefaultTravelTimePool.end())
-	{
-		std::vector<sim_mob::LinkTravelTime> &e = (*it).second;
-		for(int i=0;i<e.size();++i)
-		{
-			sim_mob::LinkTravelTime& l = e[i];
-			if( l.startTime_DT.isBeforeEqual(startTime) && l.endTime_DT.isAfter(startTime) )
-			{
-				res = l.travelTime;
-				return res;
-			}
-		}
-	}
-	else
-	{
-		std::string str = "PathSetManager::getTravelTimeBySegId=> no travel time for segment " + id + "  ";
-		logger<< "error: " << str << pathSetParam->segmentDefaultTravelTimePool.size() << "\n";
-	}
-	return res;
-}
+
+//double sim_mob::PathSetManager::getTravelTimeBySegId(std::string id, const sim_mob::DailyTime &startTime)
+//{
+//	std::map<std::string,std::vector<sim_mob::LinkTravelTime> >::iterator it;
+//	double res=0.0;
+//	//2. if no , check default
+//	it = pathSetParam->segmentDefaultTravelTimePool.find(id);
+//	if(it!= pathSetParam->segmentDefaultTravelTimePool.end())
+//	{
+//		std::vector<sim_mob::LinkTravelTime> &e = (*it).second;
+//		for(int i=0;i<e.size();++i)
+//		{
+//			sim_mob::LinkTravelTime& l = e[i];
+//			if( l.startTime_DT.isBeforeEqual(startTime) && l.endTime_DT.isAfter(startTime) )
+//			{
+//				res = l.travelTime;
+//				return res;
+//			}
+//		}
+//	}
+//	else
+//	{
+//		std::string str = "PathSetManager::getTravelTimeBySegId=> no travel time for segment " + id + "  ";
+//		logger<< "error: " << str << pathSetParam->segmentDefaultTravelTimePool.size() << "\n";
+//	}
+//	return res;
+//}
 
 namespace{
 struct segFilter{

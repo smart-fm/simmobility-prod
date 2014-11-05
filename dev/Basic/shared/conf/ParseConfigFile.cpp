@@ -551,7 +551,7 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 		cfg.pathset.setDefaultEnabled();
 		return;
 	}
-	if((cfg.pathset.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false")))
+	if(!(cfg.pathset.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false")))
 	{
 		return;
 	}
@@ -562,8 +562,8 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 	}
 	else
 	{
-		cfg.pathset.database = ParseString(GetNamedAttributeValue(dbNode, "database"), "fm_remote_path_choice");
-		cfg.pathset.credentials = ParseString(GetNamedAttributeValue(dbNode, "credentials"), "fm_remote_path_choice");
+		cfg.pathset.database = ParseString(GetNamedAttributeValue(dbNode, "database"), "");
+		cfg.pathset.credentials = ParseString(GetNamedAttributeValue(dbNode, "credentials"), "");
 	}
 
 	xercesc::DOMElement* tableNode = GetSingleElementByName(node, "tables");
@@ -572,9 +572,9 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 	}
 	else
 	{
-		cfg.pathset.pathSetTableName = ParseString(GetNamedAttributeValue(tableNode, "pathset_table"), "PathSet");
-		cfg.pathset.singlePathTableName = ParseString(GetNamedAttributeValue(tableNode, "singlepath_table"), "SinglePath");
-		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(tableNode, "function"), "get_path_set");
+		cfg.pathset.pathSetTableName = ParseString(GetNamedAttributeValue(tableNode, "pathset_table"), "");
+		cfg.pathset.singlePathTableName = ParseString(GetNamedAttributeValue(tableNode, "singlepath_table"), "");
+		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(tableNode, "function"), "");
 	}
 	//function
 

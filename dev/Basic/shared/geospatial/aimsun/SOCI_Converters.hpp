@@ -107,8 +107,8 @@ template<> struct type_conversion<sim_mob::SinglePath>
     	res.utility = vals.get<double>("UTILITY", 0);
     	res.pathSize = vals.get<double>("PATHSIZE", 0);
     	res.travelCost = vals.get<double>("TRAVEL_COST", 0);
-    	res.signalNumber = vals.get<short>("SIGNAL_NUMBER", 0);
-    	res.rightTurnNumber = vals.get<short>("RIGHT_TURN_NUMBER", 0);
+    	res.signalNumber = vals.get<int>("SIGNAL_NUMBER", 0);
+    	res.rightTurnNumber = vals.get<int>("RIGHT_TURN_NUMBER", 0);
     	res.scenario = vals.get<std::string>("SCENARIO", "");
     	res.length = vals.get<double>("LENGTH",0);
 //    	res.travle_time = vals.get<double>("TRAVEL_TIME",0);if reading from database, please dont bring travel time so that we can calculate it base on other parameters(like path start time)-vahid

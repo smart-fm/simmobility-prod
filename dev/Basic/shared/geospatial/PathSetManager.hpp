@@ -499,8 +499,8 @@ public:
 	double utility;
 	double pathSize;
 	double travelCost;
-	short signalNumber;
-	short rightTurnNumber;
+	int signalNumber;
+	int rightTurnNumber;
 	std::string scenario;
 	double length;
 	double travleTime;

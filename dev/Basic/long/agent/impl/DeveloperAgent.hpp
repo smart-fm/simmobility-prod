@@ -11,6 +11,8 @@
 #pragma once
 #include "agent/LT_Agent.hpp"
 #include "database/entity/Developer.hpp"
+#include "database/entity/Parcel.hpp"
+#include "database/entity/PotentialProject.hpp"
 
 namespace sim_mob {
 
@@ -20,7 +22,7 @@ namespace sim_mob {
         
         class DeveloperAgent : public LT_Agent {
         public:
-            DeveloperAgent(Developer* developer, DeveloperModel* model);
+            DeveloperAgent(Parcel* parcel, DeveloperModel* model);
             virtual ~DeveloperAgent();
             
             /**
@@ -49,10 +51,18 @@ namespace sim_mob {
             /**
              * Events callbacks.
              */
-            virtual void onEvent(event::EventId eventId, event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+            virtual void onEvent(event::EventId eventId, event::Context ctxId,event::EventPublisher* sender, const event::EventArgs& args);
+
+            /**
+            * Processes the given event.
+            * @param eventId
+            * @param ctxId
+            * @param args
+            */
+            void processEvent(event::EventId eventId, event::Context ctxId,
+                                          const event::EventArgs& args);
         
         private:
-            Developer* developer;
             DeveloperModel* model;
             IdVector parcelsToProcess;
         };

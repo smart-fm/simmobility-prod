@@ -13,13 +13,14 @@ using namespace sim_mob;
 using namespace sim_mob::long_term;
 
 ExternalEvent::ExternalEvent()
-: day(0), type(ExternalEvent::UNKNOWN), householdId(INVALID_ID) {
+: day(0), type(ExternalEvent::UNKNOWN), householdId(INVALID_ID), developerId(developerId){
 }
 
 ExternalEvent::ExternalEvent(const ExternalEvent& orig) {
     this->day = orig.day;
     this->householdId = orig.householdId;
     this->type = orig.type;
+    this->developerId = orig.developerId;
 }
 
 ExternalEvent::~ExternalEvent() {
@@ -37,6 +38,10 @@ BigSerial ExternalEvent::getHouseholdId() const {
     return householdId;
 }
 
+BigSerial ExternalEvent::getDeveloperId() const {
+    return developerId;
+}
+
 void ExternalEvent::setDay(int day) {
     this->day = day;
 }
@@ -48,4 +53,8 @@ void ExternalEvent::setType(unsigned int type) {
 
 void ExternalEvent::setHouseholdId(BigSerial id) {
     this->householdId = id;
+}
+
+void ExternalEvent::setDeveloperId(BigSerial id) {
+    this->developerId = id;
 }

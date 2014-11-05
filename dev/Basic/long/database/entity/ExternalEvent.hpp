@@ -35,6 +35,7 @@ namespace sim_mob {
                 NEW_JOB_LOCATION,
                 NEW_CHILD,
                 NEW_SCHOOL_LOCATION,
+                ZONING_RULE_CHANGE,
                 UNKNOWN,
             };
             
@@ -49,6 +50,7 @@ namespace sim_mob {
             int getDay() const;
             unsigned int getType() const; //int because lua does not support enums
             BigSerial getHouseholdId() const;
+            BigSerial getDeveloperId() const;
             
             /**
              * Setters 
@@ -56,11 +58,13 @@ namespace sim_mob {
             void setDay(int day);
             void setType(unsigned int type);
             void setHouseholdId(BigSerial id);
+            void setDeveloperId(BigSerial id);
 
         private:
             int day;
             Type type;
             BigSerial householdId;
+            BigSerial developerId;
         };
     }
 }

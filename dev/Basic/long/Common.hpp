@@ -41,6 +41,7 @@ namespace sim_mob {
             LTEID_EXT_NEW_JOB_LOCATION,
             LTEID_EXT_NEW_CHILD,
             LTEID_EXT_NEW_SCHOOL_LOCATION,
+            LTEID_EXT_ZONING_RULE_CHANGE,
         };
 
         /**

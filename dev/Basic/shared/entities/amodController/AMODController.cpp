@@ -1664,12 +1664,17 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			serviceBuffer.push_back(atrip);
 		}
 
-		std::cout << "Service Buffer Size: " << serviceBuffer.size() << ", Free Cars: " << nFreeCars << ", time: " << currTime << std::endl;
+		std::cout << "Service Buffer Size: " << serviceBuffer.size()
+				<< ", Free Cars: " << nFreeCars
+				<< ", time: " << currTime
+				<< " [" << ((double) currTime) / 360000.0 << "] hrs"
+				<< std::endl;
 
 		// work through list using available free cars
 		ServiceIterator itr =serviceBuffer.begin();
 		int startTime = currTime;
 		const RoadSegment *StopPointRS; //vh will stop at this segment to pick up passenger
+		StopPointRS = NULL;
 		string pickUpSegmentStr;
 		//int interval = 3000;//ms
 		while (true) {
@@ -1763,7 +1768,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 				const RoadSegment *lastWPrs = lastWP.roadSegment_;
 				pickUpSegmentStr = lastWPrs->originalDB_ID.getLogItem();
 
-				StopPointRS = lastWPrs; //this is the segment where picking up f the passenger will occur
+				StopPointRS = lastWP.roadSegment_; //this is the segment where picking up f the passenger will occur
 
 				//erase the last WayPoint from the wp1
 				wp1.pop_back();
@@ -1889,8 +1894,13 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 			//amod pickUpSegment for the dwell time implementation
 			//vhAssigned->amodPickUpSegment = StopPointRS;
-			vhAssigned->amodSegmLength = StopPointRS->length;
-			vhAssigned->amodPickUpSegmentStr = pickUpSegmentStr;
+			if (StopPointRS != NULL) {
+				vhAssigned->amodSegmLength = StopPointRS->length;
+				vhAssigned->amodPickUpSegmentStr = pickUpSegmentStr;
+			} else {
+				vhAssigned->amodSegmLength = 0.0;
+				vhAssigned->amodPickUpSegmentStr = "-1";
+			}
 
 			// set event
 			eventPub.registerEvent(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH);

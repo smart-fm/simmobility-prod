@@ -337,7 +337,10 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 
 		//output the current running time
 		std::cout << "-----------------------------\n";
-		std::cout << "Run time (s): " << std::time(NULL) -  startRunTime << std::endl;
+		std::cout << "Simulated Time: " << ((double) currTime)/1000.0 << " s, "
+				<< "[ " << ((double) currTime)/(60000.0) << " mins]"
+				<< std::endl;
+		std::cout << "Elapsed Running time (s): " << std::time(NULL) -  startRunTime << std::endl;
 		std::cout << "-----------------------------\n";
 		test = 1;
 	}
@@ -1664,10 +1667,8 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			serviceBuffer.push_back(atrip);
 		}
 
-		std::cout << "Service Buffer Size: " << serviceBuffer.size()
+		std::cout << "AMOD Service Buffer Size: " << serviceBuffer.size()
 				<< ", Free Cars: " << nFreeCars
-				<< ", time: " << currTime
-				<< " [" << ((double) currTime) / 360000.0 << "] hrs"
 				<< std::endl;
 
 		// work through list using available free cars
@@ -1975,9 +1976,8 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			vhOnTheRoad.insert(std::make_pair(justDispatched[i]->amodId,justDispatched[i]));
 		}
 
-		std::cout << " -------------------" << std::endl;
-		std::cout << " # of vehicles on the road: " << vhOnTheRoad.size()<< std::endl;
-		std::cout << " # of vehicles in carParks: " << nFreeCars << std::endl;
+		std::cout << " # of AMOD vehicles onroad: " << vhOnTheRoad.size()<< std::endl;
+		std::cout << " # of AMOD vehicles parked: " << nFreeCars << std::endl;
 
 	}
 	else cout << "Unable to open out_vhsStat or out_demandStat";

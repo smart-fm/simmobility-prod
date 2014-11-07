@@ -543,6 +543,7 @@ public:
 	 * eliminate those SinglePaths which have a section in the given set
 	 */
 	void excludeRoadSegment(const std::set<const sim_mob::RoadSegment*> & segs);
+	void addOrDeleteSinglePath(sim_mob::SinglePath* s);
 	bool isInit;
 	bool hasBestChoice;
 	std::vector<WayPoint> *bestWayPointpath;  //best choice

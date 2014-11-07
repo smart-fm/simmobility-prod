@@ -234,15 +234,15 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 //		psMgr->setTravleTimeTmpTableName(ConfigParams::GetInstance().travelTimeTmpTableName);
 //		psMgr->createTravelTimeTmpTable(psMgr->getTravleTimeTmpTableName());
 //		psMgr->getDataFromDB();
-		if(psMgr->isUseCatchMode())
-		{
-			psMgr->generateAllPathSetWithTripChain2();
-		}
+//		if(psMgr->isUseCatchMode())
+//		{
+//			psMgr->generateAllPathSetWithTripChain2();
+//		}
 //		psMgr->saveDataToDB();
-		t = time(0);   // get time now
-		now = localtime( & t );
-		std::cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
-		std::cout<<psMgr->size()<<std::endl;
+//		t = time(0);   // get time now
+//		now = localtime( & t );
+//		std::cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
+//		std::cout<<psMgr->size()<<std::endl;
 	}
 
 //	//DriverComms are only allowed if the communicator is enabled.

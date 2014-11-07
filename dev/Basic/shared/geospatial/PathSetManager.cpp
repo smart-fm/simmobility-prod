@@ -90,10 +90,10 @@ void sim_mob::PathSetParam::storeSinglePath(soci::session& sql,std::set<sim_mob:
 {
 	sim_mob::aimsun::Loader::SaveOneSinglePathDataST(sql,spPool,singlePathTableName);
 }
-void sim_mob::PathSetParam::storePathSet(soci::session& sql,std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& psPool,const std::string pathSetTableName)
-{
-	sim_mob::aimsun::Loader::SaveOnePathSetDataST(sql,psPool,pathSetTableName);
-}
+//void sim_mob::PathSetParam::storePathSet(soci::session& sql,std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& psPool,const std::string pathSetTableName)
+//{
+//	sim_mob::aimsun::Loader::SaveOnePathSetDataST(sql,psPool,pathSetTableName);
+//}
 
 bool sim_mob::PathSetParam::createTravelTimeTmpTable()
 {
@@ -1030,13 +1030,8 @@ bool sim_mob::PathSetManager::getBestPath(
 		// 1.3 generate shortest path with full segs
 		ps_.reset(new PathSet(fromNode, toNode));
 		ps_->id = fromToID;
-//		std:string temp = fromNode->originalDB_ID.getLogItem();
-//		ps_->fromNodeId = sim_mob::Utils::getNumberFromAimsunId(temp);
-//		temp = toNode->originalDB_ID.getLogItem();
-//		ps_->toNodeId = sim_mob::Utils::getNumberFromAimsunId(temp);
 		ps_->scenario = scenarioName;
 		ps_->subTrip = st;
-//		ps_->psMgr = this;
 
 		bool r = generateAllPathChoicesMT(ps_, blckLstSegs);
 		if (!r) {
@@ -1059,22 +1054,16 @@ bool sim_mob::PathSetManager::getBestPath(
 		logger << "generate All Done for " << "[" << fromToID << "]" <<  "\n";
 		sim_mob::generatePathSizeForPathSet2(ps_);
 		r = getBestPathChoiceFromPathSet(ps_, partial);
-		logger << "getBestPathChoiceFromPathSet returned best path of size : "
-				<< ps_->bestWayPointpath->size() << "\n";
+		logger << "getBestPathChoiceFromPathSet returned best path of size : " << ps_->bestWayPointpath->size() << "\n";
 		if (r) {
 			res = *(ps_->bestWayPointpath);
 			//cache
 			if (isUseCache) {
 				r = cachePathSet(ps_);
 				if (r) {
-					logger << "------------------\n";
 					uint32_t t = ps_->getSize();
-					logger.prof("cached_pathset_bytes", false).addUp(t);
-					logger.prof("cached_pathset_size", false).addUp(1);
-					logger << "------------------\n";
 				} else {
-					logger << ps_->id
-							<< " not cached, apparently, already in cache.\n";
+					Print() << ps_->id	<< " not cached, apparently, already in cache.\n";
 				}
 			} else {
 				clearSinglePaths(ps_);

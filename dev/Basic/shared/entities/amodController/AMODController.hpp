@@ -37,7 +37,8 @@ public:
 		std::string tripID;
 		std::string origin;
 		std::string destination;
-		std::string carParkId;
+		std::string carParkIdDeparture;
+		std::string carParkIdArrival;
 		std::string assignedAmodId;
 
 		int requestTime;
@@ -52,6 +53,15 @@ public:
 		int finalSegment;
 		int stuckCount;
 
+	};
+
+	struct EmptyVhTrip {
+		std::string tripID;
+		std::string origin;
+		std::string destination;
+		double tripDistanceInM;
+		int numberOfEmptyTrips;
+		int stuckCount;
 	};
 
 
@@ -88,6 +98,9 @@ public:
 	bool distPairComparator ( const distPair& l, const distPair& r){ return l.first < r.first; }
 	bool findNearestFreeVehicle(std::string originId, std::map<std::string, sim_mob::Node* > &nodePool, std::string &carParkId, Person**vh);
 	//void findAllFreeVhs(std::vector<std::string> carParkIdsWithVhs);
+	void findNearestCarPark(std::string& originId, std::vector<std::string>& AllCarParks, std::string &carParkIdArrival);
+	void calculateThePath(std::vector<WayPoint>& wp1, std::string& toNode, std::vector<const sim_mob::RoadSegment*> blacklist, std::string& pickUpSegmentStr, const RoadSegment* &StopPointRS, std::vector < sim_mob::WayPoint > &routeWP);
+	void blacklistForbiddenSegments(const RoadSegment* lastWPrs, const Node* startNode, std::vector<const sim_mob::RoadSegment*> &blacklist);
 
 	// For finding "best" free vehicle
 	bool getBestFreeVehicle(std::string originId, sim_mob::Person **vh, std::string &carParkId, std::vector < sim_mob::WayPoint > &leastCostPath, double &bestTravelCost);
@@ -127,6 +140,9 @@ public:
 	void testTravelTimePath();
 	void assignVhs(std::vector<std::string>& origin, std::vector<std::string>& destination);
 	void assignVhsFast(std::vector<std::string>& tripID, std::vector<std::string>& origin, std::vector<std::string>& destination, int currTime);
+	void assignVhToEmptyTrip(std::string& origin, std::string& destination, int currTime);
+	void rebalanceVhs();
+	void calculateDistancesBetweenCarparks(std::vector<std::string> carParkIds, std::vector<std::vector < double > > &distancesBetweenCarparks);
 
 	int test;
 
@@ -174,8 +190,12 @@ private:
 	AMODVirtualCarPark virtualCarPark;
 
 	boost::unordered_map<std::string,Person*> vhOnTheRoad;
+	boost::unordered_map<std::string,Person*> EmptyVhOnTheRoad;
 	boost::unordered_map<std::string,Person*> vhInCarPark;
 	boost::unordered_map<std::string,Person*> allAMODCars;
+	std::vector<std::string> carParkIds;
+	std::vector<std::vector < double > > distancesBetweenCarparks; //inCM
+	std::string emptyTripId;
 
 	boost::unordered_map<Person*, AmodTrip  > vhTripMap;
 	typedef boost::unordered_map< Person*, AmodTrip >::iterator TripMapIterator;
@@ -221,6 +241,7 @@ public:
 	std::string lastReadLine;
 	int nCarsPerCarPark;
 	int vehStatOutputModulus;
+	int rebalancingModulus;
 	boost::mutex allAMODCarsMutex;
 	boost::mutex carParksMutex;
 	boost::mutex vhTripMapMutex;

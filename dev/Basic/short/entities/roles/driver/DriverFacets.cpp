@@ -71,9 +71,9 @@ size_t updateStartEndIndex(
 	double offset = 0;
 	for (size_t i = 0; i < currLanePolyLine->size() - 1; i++) {
 		double xOffset = currLanePolyLine->at(i + 1).getX()
-						- currLanePolyLine->at(i).getX();
+										- currLanePolyLine->at(i).getX();
 		double yOffset = currLanePolyLine->at(i + 1).getY()
-						- currLanePolyLine->at(i).getY();
+										- currLanePolyLine->at(i).getY();
 		offset += sqrt(xOffset * xOffset + yOffset * yOffset);
 		if (offset >= currLaneOffset) {
 			return i;
@@ -100,7 +100,7 @@ size_t getLaneIndex(const Lane* l) {
 namespace sim_mob {
 
 DriverBehavior::DriverBehavior(sim_mob::Person* parentAgent) :
-				BehaviorFacet(parentAgent), parentDriver(nullptr) {
+								BehaviorFacet(parentAgent), parentDriver(nullptr) {
 }
 
 DriverBehavior::~DriverBehavior() {
@@ -199,8 +199,8 @@ void sim_mob::DriverMovement::frame_init() {
 		setOrigin(parentDriver->getParams());
 	} else {
 		Warn()
-						<< "ERROR: Vehicle[short] could not be created for driver; no route!"
-						<< std::endl;
+										<< "ERROR: Vehicle[short] could not be created for driver; no route!"
+										<< std::endl;
 	}
 }
 
@@ -247,7 +247,9 @@ void sim_mob::DriverMovement::frame_tick() {
 
 	//Are we done already?
 	if (fwdDriverMovement.isDoneWithEntireRoute()) {
-		getParent()->handleAMODArrival(); //handle AMOD arrival (if necessary)
+		if(getParent()->amodId != "-1"){
+			getParent()->handleAMODArrival(); //handle AMOD arrival (if necessary)
+		}
 		getParent()->setToBeRemoved();
 		return;
 	}
@@ -915,7 +917,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 	//Convert back to m/s
 	//TODO: Is this always m/s? We should rename the variable then...
 	p.currSpeed = parentDriver->vehicle->getVelocity()
-					/ METER_TO_CENTIMETER_CONVERT_UNIT;
+									/ METER_TO_CENTIMETER_CONVERT_UNIT;
 	//Call our model
 
 	//	p.targetSpeed = targetSpeed;
@@ -1109,7 +1111,7 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(
 		if (obstacles.size() == 0) {
 			if (rs == fwdDriverMovement.getCurrSegment()) {
 				itemDis = fwdDriverMovement.getCurrentSegmentLengthCM()
-								- fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
+												- fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
 			} else {
 				itemDis += rs->getLengthOfSegment();
 			}
@@ -1143,7 +1145,7 @@ const sim_mob::RoadItem* sim_mob::DriverMovement::getRoadItemByDistance(
 					} // end if moveDis
 				} //end if inc
 				itemDis = fwdDriverMovement.getCurrentSegmentLengthCM()
-								- fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
+												- fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
 			} //end rs==
 			else {
 				//2.0 in forword seg
@@ -1670,8 +1672,8 @@ void sim_mob::DriverMovement::calculateIntersectionTrajectory(DPoint movingFrom,
 	//If we have no target link, we have no target trajectory.
 	if (!nextLaneInNextLink) {
 		Warn()
-						<< "WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory."
-						<< std::endl;
+										<< "WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory."
+										<< std::endl;
 		return;
 	}
 
@@ -1788,11 +1790,23 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 			std::string segm = getNumberFromAimsunId(stopSegmentStr);
 			double dwelltime = 10; //in sec
 			double segl = parentDriver->getParent()->amodSegmLength /100.0; //length of the segment in m
-			double fd2 = (segl - segl/5); //distance where the vh will stop counting from the begining of the segment
+			double fd = (segl - segl/5); //distance where the vh will stop counting from the begining of the segment
 
 			//double fd = fd_rand(rng);
-			StopPoint stopPoint(segm,fd2,dwelltime);
+			StopPoint stopPoint(segm,fd,dwelltime);
 			parentDriver->getParams().insertStopPoint(stopPoint);
+
+			// set the stop point and dwell time for dropping off the passenger
+			std::string dropOffSegmentStr = parentDriver->getParent()->amodDropOffSegmentStr; //how to pass rs from amodController to here
+			if(dropOffSegmentStr == "-1")
+			{
+				cout<<"\nStop Segment is Null!\n";
+			}
+			std::string segm2 = getNumberFromAimsunId(dropOffSegmentStr);
+			double segld = parentDriver->getParent()->amodSegmLength2 /100.0; //length of the segment in m
+			double fd2 = (segld - segld/5); //distance where the vh will stop counting from the begining of the segment
+			StopPoint stopPoint2(segm2,fd2,dwelltime);
+			parentDriver->getParams().insertStopPoint(stopPoint2);
 		}
 		else
 		{
@@ -2057,8 +2071,8 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 
 	//Increase the vehicle's velocity based on its acceleration.
 	double vel = parentDriver->vehicle->getVelocity()
-									+ parentDriver->vehicle->getAcceleration()
-									* p.elapsedSeconds;
+													+ parentDriver->vehicle->getAcceleration()
+													* p.elapsedSeconds;
 	if(vel<0) vel = 0;
 	parentDriver->vehicle->setVelocity(vel);
 
@@ -2905,7 +2919,7 @@ void sim_mob::DriverMovement::syncInfoLateralMove(DriverUpdateParams& p)
 	} else {
 		std::stringstream msg;
 		msg << "syncInfoLateralMove (" << getParent()->getId()
-									<< ") is attempting to change lane when no lc decision made";
+													<< ") is attempting to change lane when no lc decision made";
 		throw std::runtime_error(msg.str().c_str());
 	}
 

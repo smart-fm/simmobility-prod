@@ -51,7 +51,7 @@ public:
 	void storeSinglePath(soci::session& sql,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string singlePathTableName);
 
 	///	insert an entry into pathset table in the database
-	void storePathSet(soci::session& sql,std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& psPool,const std::string pathSetTableName);
+//	void storePathSet(soci::session& sql,std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& psPool,const std::string pathSetTableName);
 
 	///	set the table name used to store temporary travel time information
 	void setTravleTimeTmpTableName(const std::string& value);
@@ -309,7 +309,7 @@ public:
 	static double getTravelTime(sim_mob::SinglePath *sp,const sim_mob::DailyTime &startTime);
 
 	///	get travel time of a segment
-	double getTravelTimeBySegId(std::string id,const sim_mob::DailyTime &startTime);
+//	double getTravelTimeBySegId(std::string id,const sim_mob::DailyTime &startTime);
 
 	void setCSVFileName();
 

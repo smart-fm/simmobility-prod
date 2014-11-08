@@ -480,10 +480,10 @@ bool sim_mob::DriverMovement::findEmptySpaceAhead()
 
 	//If is any driver approaching from behind (also means that we've found space on the road), 
 	//reduce the reaction time
-	if(driverApproachingFromRear.first != nullptr)
+	/*if(driverApproachingFromRear.first != nullptr)
 	{
 		driverApproachingFromRear.first->getParams().cftimer = driverApproachingFromRear.first->getParams().cftimer * CF_CRITICAL_TIMER_RATIO;
-	}
+	}*/
 
 	return isSpaceFound;
 }
@@ -2298,7 +2298,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 
 		//		if (distance == 0)
 		//			return false;
-		bool fwd = distance > 0;
+		bool fwd = distance >= 0;
 
 		//Set different variables depending on where the car is.
 		if (other_lane == params.currLane) { //the vehicle is on the current lane

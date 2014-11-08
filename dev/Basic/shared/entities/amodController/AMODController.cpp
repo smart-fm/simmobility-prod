@@ -172,9 +172,11 @@ void AMODController::precomputeAllPairsShortestPaths()
 
 vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::string destNodeID)
 {
+
 	std::string nodeKey = origNodeID + "-" + destNodeID;
 	boost::unordered_map<std::string, vector < WayPoint > >::iterator spItr = shortestPaths.find(nodeKey);
 	if (spItr == shortestPaths.end()) {
+
 		//std::cout << "No such node pair. On-the-fly computation" << std::endl;
 		std::vector < WayPoint > wp;
 
@@ -337,7 +339,13 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 
 		//output the current running time
 		std::cout << "-----------------------------\n";
-		std::cout << "Run time (s): " << std::time(NULL) -  startRunTime << std::endl;
+		std::cout << "Current Simulated Time: " << ((double) currTime)/1000.0 << " s, "
+				<< "[ " << ((double) currTime)/(60000.0) << " mins ]"
+				<< std::endl;
+		int elapsedTime = (int) (std::time(NULL) -  startRunTime);
+		std::cout << "Elapsed Running Time  : " << elapsedTime << " s, "
+				<< "[ " << ((double) elapsedTime)/(60.0) << " mins ]"
+				<< std::endl;
 		std::cout << "-----------------------------\n";
 		test = 1;
 	}
@@ -1655,21 +1663,26 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 			std::vector<WayPoint> wp1 = getShortestPath(origin[i], destination[i]);
 			if (wp1.size() == 0){
-
-				out_demandStat << tripID[i] << " " << origin[i] << " " << destination[i] << " rejected " << "no_path_from_origin_to_destination\n";
-
+				if (origin[i] == destination[i]) {
+					out_demandStat << tripID[i] << " " << origin[i] << " " << destination[i] << " rejected " << "origin_is_same_as_desination\n";
+				} else {
+					out_demandStat << tripID[i] << " " << origin[i] << " " << destination[i] << " rejected " << "no_path_from_origin_to_destination\n";
+				}
 				continue; //not possible to service this trip. no possible route.
 			}
 
 			serviceBuffer.push_back(atrip);
 		}
 
-		std::cout << "Service Buffer Size: " << serviceBuffer.size() << ", Free Cars: " << nFreeCars << ", time: " << currTime << std::endl;
+		std::cout << "AMOD Service Buffer Size: " << serviceBuffer.size()
+				<< ", Free Cars: " << nFreeCars
+				<< std::endl;
 
 		// work through list using available free cars
 		ServiceIterator itr =serviceBuffer.begin();
 		int startTime = currTime;
 		const RoadSegment *StopPointRS; //vh will stop at this segment to pick up passenger
+		StopPointRS = NULL;
 		string pickUpSegmentStr;
 		//int interval = 3000;//ms
 		while (true) {
@@ -1763,7 +1776,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 				const RoadSegment *lastWPrs = lastWP.roadSegment_;
 				pickUpSegmentStr = lastWPrs->originalDB_ID.getLogItem();
 
-				StopPointRS = lastWPrs; //this is the segment where picking up f the passenger will occur
+				StopPointRS = lastWP.roadSegment_; //this is the segment where picking up f the passenger will occur
 
 				//erase the last WayPoint from the wp1
 				wp1.pop_back();
@@ -1889,8 +1902,13 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 			//amod pickUpSegment for the dwell time implementation
 			//vhAssigned->amodPickUpSegment = StopPointRS;
-			vhAssigned->amodSegmLength = StopPointRS->length;
-			vhAssigned->amodPickUpSegmentStr = pickUpSegmentStr;
+			if (StopPointRS != NULL) {
+				vhAssigned->amodSegmLength = StopPointRS->length;
+				vhAssigned->amodPickUpSegmentStr = pickUpSegmentStr;
+			} else {
+				vhAssigned->amodSegmLength = 0.0;
+				vhAssigned->amodPickUpSegmentStr = "-1";
+			}
 
 			// set event
 			eventPub.registerEvent(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH);
@@ -1965,9 +1983,8 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			vhOnTheRoad.insert(std::make_pair(justDispatched[i]->amodId,justDispatched[i]));
 		}
 
-		std::cout << " -------------------" << std::endl;
-		std::cout << " # of vehicles on the road: " << vhOnTheRoad.size()<< std::endl;
-		std::cout << " # of vehicles in carParks: " << nFreeCars << std::endl;
+		std::cout << " # of AMOD vehicles onroad: " << vhOnTheRoad.size()<< std::endl;
+		std::cout << " # of AMOD vehicles parked: " << nFreeCars << std::endl;
 
 	}
 	else cout << "Unable to open out_vhsStat or out_demandStat";

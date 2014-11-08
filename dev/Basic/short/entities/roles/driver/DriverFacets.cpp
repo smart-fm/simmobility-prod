@@ -247,7 +247,9 @@ void sim_mob::DriverMovement::frame_tick() {
 
 	//Are we done already?
 	if (fwdDriverMovement.isDoneWithEntireRoute()) {
-		getParent()->handleAMODArrival(); //handle AMOD arrival (if necessary)
+		if (getParent()->amodId != "-1") {
+			getParent()->handleAMODArrival(); //handle AMOD arrival (if necessary)
+		}
 		getParent()->setToBeRemoved();
 		return;
 	}

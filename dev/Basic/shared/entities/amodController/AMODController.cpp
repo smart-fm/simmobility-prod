@@ -339,10 +339,13 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 
 		//output the current running time
 		std::cout << "-----------------------------\n";
-		std::cout << "Simulated Time: " << ((double) currTime)/1000.0 << " s, "
-				<< "[ " << ((double) currTime)/(60000.0) << " mins]"
+		std::cout << "Current Simulated Time: " << ((double) currTime)/1000.0 << " s, "
+				<< "[ " << ((double) currTime)/(60000.0) << " mins ]"
 				<< std::endl;
-		std::cout << "Elapsed Running time (s): " << std::time(NULL) -  startRunTime << std::endl;
+		int elapsedTime = (int) (std::time(NULL) -  startRunTime);
+		std::cout << "Elapsed Running Time  : " << elapsedTime << " s, "
+				<< "[ " << ((double) elapsedTime)/(60.0) << " mins ]"
+				<< std::endl;
 		std::cout << "-----------------------------\n";
 		test = 1;
 	}

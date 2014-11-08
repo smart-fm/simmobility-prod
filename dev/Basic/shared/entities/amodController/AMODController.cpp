@@ -368,7 +368,7 @@ Entity::UpdateStatus AMODController::frame_tick(timeslice now)
 		assignVhsFast(tripID, origin, destination, current_time);
 
 		if (currTime % rebalancingModulus == 0) {
-			rebalanceVhs();
+			//rebalanceVhs();
 		}
 
 		//output the current running time
@@ -2114,7 +2114,7 @@ void AMODController::rebalanceVhs()
 				string origin = carParkIds[k];
 				string destination = carParkIds[kk];
 
-				assignVhToEmptyTrip(origin, destination, currTime);
+				//assignVhToEmptyTrip(origin, destination, currTime);
 			}
 		}
 	}
@@ -2124,55 +2124,55 @@ void AMODController::rebalanceVhs()
 
 void assignVhToEmptyTrip(std::string& origin, std::string& destination, int currTime)
 {
-	Person* vhAssigned=nullptr;
-	int startTime = currTime;
-	// calculate sp
-	vector<WayPoint> sp = getShortestPath(origin, destination);
-	if ((sp.size() == 0) && origin !=destination) {
-		std::cout << " Rebalancing: rejected " << "no_path_from_carpark1 " << origin << " to carpark2 " << destination << std::endl;
-		continue;
-	}else
-	{ //dispach vh
-		//Create a AMOD Vehicle
-		//remove the vehicle from the car park
-		if (!removeVhFromCarPark(origin, &vhAssigned)) {
-			std::cout << "Rebalancing: Error! Cannot remove car from car park!" << std::endl;
-			continue;
-		}
-
-		// create trip chain
-		DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + startTime);
-		//			DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+ConfigManager::GetInstance().FullConfig().baseGranMS());
-		sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", origin, "node", destination, "node");
-		SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), origin, "node", destination, "node", "Car");
-		((Trip*)tc)->addSubTrip(subTrip);
-
-		std::vector<sim_mob::TripChainItem*>  tcs;
-		tcs.push_back(tc);
-		vhAssigned->setTripChain(tcs); //add trip chain
-
-		std::cout << "Assigned Path: Empty vh ride: ";
-		for (int i=0; i<sp.size(); i++) {
-			std::cout << " -> " << sp[i].roadSegment_->originalDB_ID.getLogItem();
-		}
-		std::cout << std::endl;
-
-		vhAssigned->setPath(sp);
-
-	}
-
-	// dispatch vehicle
-	dispatchVh(vhAssigned);
-	EmptyVhOnTheRoad.insert(std::make_pair(vhAssigned->amodId,vhAssigned));
-
-	double tripDistance;
-	WayPoint iterWP;
-	const RoadSegment *iterwp;
-	for (int j = 0; j< sp.size(); j++){
-		iterWP = sp[j];
-		const RoadSegment *rs = iterWP.roadSegment_;
-		tripDistance += sp[j].roadSegment_->length;
-	}
+//	Person* vhAssigned=nullptr;
+//	int startTime = currTime;
+//	// calculate sp
+//	vector<WayPoint> sp = getShortestPath(origin, destination);
+//	if ((sp.size() == 0) && origin !=destination) {
+//		std::cout << " Rebalancing: rejected " << "no_path_from_carpark1 " << origin << " to carpark2 " << destination << std::endl;
+//		continue;
+//	}else
+//	{ //dispach vh
+//		//Create a AMOD Vehicle
+//		//remove the vehicle from the car park
+//		if (!removeVhFromCarPark(origin, &vhAssigned)) {
+//			std::cout << "Rebalancing: Error! Cannot remove car from car park!" << std::endl;
+//			continue;
+//		}
+//
+//		// create trip chain
+//		DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue() + startTime);
+//		//			DailyTime start(ConfigManager::GetInstance().FullConfig().simStartTime().getValue()+ConfigManager::GetInstance().FullConfig().baseGranMS());
+//		sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", origin, "node", destination, "node");
+//		SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), origin, "node", destination, "node", "Car");
+//		((Trip*)tc)->addSubTrip(subTrip);
+//
+//		std::vector<sim_mob::TripChainItem*>  tcs;
+//		tcs.push_back(tc);
+//		vhAssigned->setTripChain(tcs); //add trip chain
+//
+//		std::cout << "Assigned Path: Empty vh ride: ";
+//		for (int i=0; i<sp.size(); i++) {
+//			std::cout << " -> " << sp[i].roadSegment_->originalDB_ID.getLogItem();
+//		}
+//		std::cout << std::endl;
+//
+//		vhAssigned->setPath(sp);
+//
+//	}
+//
+//	// dispatch vehicle
+//	dispatchVh(vhAssigned);
+//	EmptyVhOnTheRoad.insert(std::make_pair(vhAssigned->amodId,vhAssigned));
+//
+//	double tripDistance;
+//	WayPoint iterWP;
+//	const RoadSegment *iterwp;
+//	for (int j = 0; j< sp.size(); j++){
+//		iterWP = sp[j];
+//		const RoadSegment *rs = iterWP.roadSegment_;
+//		tripDistance += sp[j].roadSegment_->length;
+//	}
 
 }
 

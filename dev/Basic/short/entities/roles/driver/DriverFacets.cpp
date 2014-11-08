@@ -1616,7 +1616,7 @@ void sim_mob::DriverMovement::updateAdjacentLanes(DriverUpdateParams& p) {
 //General update information for whenever a Segment may have changed.
 void sim_mob::DriverMovement::syncCurrLaneCachedInfo(DriverUpdateParams& p) {
 	//The lane may have changed; reset the current lane index.
-	p.currLaneIndex = getLaneIndex(p.currLane);
+//	p.currLaneIndex = getLaneIndex(p.currLane);
 
 	//Update which lanes are adjacent.
 	updateAdjacentLanes(p);

@@ -172,9 +172,11 @@ void AMODController::precomputeAllPairsShortestPaths()
 
 vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::string destNodeID)
 {
+
 	std::string nodeKey = origNodeID + "-" + destNodeID;
 	boost::unordered_map<std::string, vector < WayPoint > >::iterator spItr = shortestPaths.find(nodeKey);
 	if (spItr == shortestPaths.end()) {
+
 		//std::cout << "No such node pair. On-the-fly computation" << std::endl;
 		std::vector < WayPoint > wp;
 
@@ -1658,9 +1660,11 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 			std::vector<WayPoint> wp1 = getShortestPath(origin[i], destination[i]);
 			if (wp1.size() == 0){
-
-				out_demandStat << tripID[i] << " " << origin[i] << " " << destination[i] << " rejected " << "no_path_from_origin_to_destination\n";
-
+				if (origin[i] == destination[i]) {
+					out_demandStat << tripID[i] << " " << origin[i] << " " << destination[i] << " rejected " << "origin_is_same_as_desination\n";
+				} else {
+					out_demandStat << tripID[i] << " " << origin[i] << " " << destination[i] << " rejected " << "no_path_from_origin_to_destination\n";
+				}
 				continue; //not possible to service this trip. no possible route.
 			}
 

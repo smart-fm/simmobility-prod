@@ -73,11 +73,18 @@ namespace
 	 * 							The arrival time can be chosen in the first 15 minutes and dep. time can be chosen in the 2nd 1 mins of the window
 	 * @return a random time within the window in hh24:mm:ss format
 	 */
-	std::string getRandomTimeInWindow(double mid, bool firstFifteenMins) {
+	std::string getRandomTimeInWindow(double mid, bool firstFifteenMins, const std::string pid = "") {
 		int hour = int(std::floor(mid));
-		int min = 15, max = 29;
-		if(firstFifteenMins) { min = 0; max = 14; }
+		int min = 0, max = 29;
+		//if(firstFifteenMins) { min = 0; max = 14; }
 		int minute = Utils::generateInt(min,max) + ((mid - hour - 0.25)*60);
+
+		/*~~~~ adding 5 minutes to fake drivers for cbd policy demo. note: pid parameter in this function must also be removed later ~~~~~*/
+		if(hour == 17 && minute <= 5 && boost::lexical_cast<long>(pid) > 5474288)
+		{
+			minute += 5;
+		}
+		/*~~~~ end of - adding 5 minutes to fake drivers for cbd policy demo ~~~~~*/
 		int second = Utils::generateInt(0,60);
 		std::stringstream random_time;
 		hour = hour % 24;
@@ -145,7 +152,7 @@ namespace
 		tripToSave->fromLocationType = sim_mob::TripChainItem::LT_NODE;
 		tripToSave->toLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(5)));
 		tripToSave->toLocationType = sim_mob::TripChainItem::LT_NODE;
-		tripToSave->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(11), true));
+		tripToSave->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(11), true, tripToSave->getPersonID()));
 		makeSubTrip(r, tripToSave);
 		return tripToSave;
 	}

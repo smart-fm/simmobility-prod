@@ -235,6 +235,7 @@ public:
     AMOD::AMODEventPublisher eventPub;
 
     void handleAMODArrival();
+    void handleAMODPickup();
 
     enum Status {
     	IN_CAR_PARK = 0,

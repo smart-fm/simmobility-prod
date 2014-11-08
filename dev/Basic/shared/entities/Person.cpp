@@ -263,7 +263,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 			}
 
 			//Otherwise, make a trip chain for this Person.
-			this->originNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true) );
+			this->originNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true));
 			this->destNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destIt->second), true) );
 
 			Trip* singleTrip = MakePseudoTrip(*this, mode);
@@ -392,6 +392,13 @@ void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ct
 
 		//ask the AMODController to handle the arrival
 		a->handleVHArrive(this);
+ }
+
+ void sim_mob::Person::handleAMODPickup() {
+		sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
+
+		//ask the AMODController to handle the arrival
+		a->handleVHPickup(this);
  }
 
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)

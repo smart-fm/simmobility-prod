@@ -795,7 +795,15 @@ void sim_mob::DriverMovement::calcDistanceToSP(DriverUpdateParams& p) {
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
 	// get dis to stop point of current link
 	double distance = driverMvt->getDisToStopPoint(p.stopPointPerDis);
+
+	if (abs(distance) < 50) {
+		if (getParent()->amodId != "-1") {
+			getParent()->handleAMODPickup(); //handle AMOD arrival (if necessary)
+		}
+	}
+
 	p.disToSP = distance;
+
 	if(distance>-10 || p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT){// in case car stop just bit ahead of the stop point
 		if(distance < 0 && p.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT){
 			return ;
@@ -807,6 +815,9 @@ void sim_mob::DriverMovement::calcDistanceToSP(DriverUpdateParams& p) {
 		if(distance >= 10 && distance <= 50){ // 10m-50m
 			//
 			p.stopPointState = DriverUpdateParams::CLOSE_STOP_POINT;
+
+
+
 		}
 		if(p.stopPointState == DriverUpdateParams::CLOSE_STOP_POINT && abs(distance) < 10){ // 0m-10m
 			//
@@ -1236,6 +1247,7 @@ double sim_mob::DriverMovement::getDisToStopPoint(double perceptionDis){
 			std::vector<StopPoint> &v = it->second;
 			for(int i=0;i<v.size();++i){
 				if (rs == fwdDriverMovement.getCurrSegment()) {
+
 					if(v[i].distance<=perceptionDis){
 						distance = v[i].distance - movedis;
 						//std::cout<<p.now.frame()<<" getDisToStopPoint: find stop point in segment <"<<id<<"> distance<"<<distance<<"> "<<itemDis<<" "<<fwdDriverMovement.getCurrDistAlongRoadSegmentCM()/100.0<<std::endl;
@@ -1247,12 +1259,15 @@ double sim_mob::DriverMovement::getDisToStopPoint(double perceptionDis){
 							return -100;
 						}
 						p.currentStopPoint = v[i];
+
 						return distance;// same segment
 					}
 				}// end of getCurrSegment
 				else{
 					// in forward segment
 					if(rs->getLink() == fwdDriverMovement.getCurrSegment()->getLink()){
+
+
 						// in same link
 						distance = itemDis + v[i].distance;
 						//std::cout<<p.now.frame()<<" getDisToStopPoint: find stop point forward segment <"<<id<<"> distance<"<<distance<<"> "<<itemDis<<" "<<fwdDriverMovement.getCurrDistAlongRoadSegmentCM()/100.0<<std::endl;
@@ -1260,6 +1275,8 @@ double sim_mob::DriverMovement::getDisToStopPoint(double perceptionDis){
 							return -100;
 						}
 						p.currentStopPoint = v[i];
+
+
 						return distance;// same segment
 					}//end if link
 					else{
@@ -1618,7 +1635,7 @@ void sim_mob::DriverMovement::updateAdjacentLanes(DriverUpdateParams& p) {
 //General update information for whenever a Segment may have changed.
 void sim_mob::DriverMovement::syncCurrLaneCachedInfo(DriverUpdateParams& p) {
 	//The lane may have changed; reset the current lane index.
-	p.currLaneIndex = getLaneIndex(p.currLane);
+//	p.currLaneIndex = getLaneIndex(p.currLane);
 
 	//Update which lanes are adjacent.
 	updateAdjacentLanes(p);
@@ -1814,7 +1831,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 			//string segAimsunId = stopSegment->originalDB_ID.getLogItem();
 			//string segAimsunId = toString(segAimsunID);
 			std::string segm = getNumberFromAimsunId(stopSegmentStr);
-			double dwelltime = 10; //in sec
+			double dwelltime = 5; //in sec
 			double segl = parentDriver->getParent()->amodSegmLength /100.0; //length of the segment in m
 			double fd2 = (segl - segl/5); //distance where the vh will stop counting from the begining of the segment
 
@@ -1892,11 +1909,13 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		const double width = 200;
 
 		//A non-null vehicle means we are moving.
+
 		if (allocateVehicle) {
 			res = new Vehicle(VehicleBase::CAR, length, width);
-			parent->amodVehicle = res;
-
 			initPath(path, startLaneId);
+			if (parent->amodId != "-1") {
+				parent->amodVehicle = res;
+			}
 		}
 
 		if (subTrip->schedule && res) {

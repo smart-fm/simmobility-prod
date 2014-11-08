@@ -795,7 +795,15 @@ void sim_mob::DriverMovement::calcDistanceToSP(DriverUpdateParams& p) {
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
 	// get dis to stop point of current link
 	double distance = driverMvt->getDisToStopPoint(p.stopPointPerDis);
+
+	if (abs(distance) < 50) {
+		if (getParent()->amodId != "-1") {
+			getParent()->handleAMODPickup(); //handle AMOD arrival (if necessary)
+		}
+	}
+
 	p.disToSP = distance;
+
 	if(distance>-10 || p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT){// in case car stop just bit ahead of the stop point
 		if(distance < 0 && p.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT){
 			return ;
@@ -808,9 +816,6 @@ void sim_mob::DriverMovement::calcDistanceToSP(DriverUpdateParams& p) {
 			//
 			p.stopPointState = DriverUpdateParams::CLOSE_STOP_POINT;
 
-			if (getParent()->amodId != "-1") {
-				getParent()->handleAMODPickup(); //handle AMOD arrival (if necessary)
-			}
 
 
 		}
@@ -818,12 +823,6 @@ void sim_mob::DriverMovement::calcDistanceToSP(DriverUpdateParams& p) {
 			//
 			std::cout<<p.now.frame()<<" JUST_ARRIVE_STOP_POINT"<<std::endl;
 			p.stopPointState = DriverUpdateParams::JUST_ARRIVE_STOP_POINT;
-
-			if (getParent()->amodId != "-1") {
-				getParent()->handleAMODPickup(); //handle AMOD arrival (if necessary)
-			}
-
-
 		}
 		// only most left lane is target lane
 		const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
@@ -1248,6 +1247,7 @@ double sim_mob::DriverMovement::getDisToStopPoint(double perceptionDis){
 			std::vector<StopPoint> &v = it->second;
 			for(int i=0;i<v.size();++i){
 				if (rs == fwdDriverMovement.getCurrSegment()) {
+
 					if(v[i].distance<=perceptionDis){
 						distance = v[i].distance - movedis;
 						//std::cout<<p.now.frame()<<" getDisToStopPoint: find stop point in segment <"<<id<<"> distance<"<<distance<<"> "<<itemDis<<" "<<fwdDriverMovement.getCurrDistAlongRoadSegmentCM()/100.0<<std::endl;
@@ -1259,12 +1259,15 @@ double sim_mob::DriverMovement::getDisToStopPoint(double perceptionDis){
 							return -100;
 						}
 						p.currentStopPoint = v[i];
+
 						return distance;// same segment
 					}
 				}// end of getCurrSegment
 				else{
 					// in forward segment
 					if(rs->getLink() == fwdDriverMovement.getCurrSegment()->getLink()){
+
+
 						// in same link
 						distance = itemDis + v[i].distance;
 						//std::cout<<p.now.frame()<<" getDisToStopPoint: find stop point forward segment <"<<id<<"> distance<"<<distance<<"> "<<itemDis<<" "<<fwdDriverMovement.getCurrDistAlongRoadSegmentCM()/100.0<<std::endl;
@@ -1272,6 +1275,8 @@ double sim_mob::DriverMovement::getDisToStopPoint(double perceptionDis){
 							return -100;
 						}
 						p.currentStopPoint = v[i];
+
+
 						return distance;// same segment
 					}//end if link
 					else{

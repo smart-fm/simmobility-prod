@@ -2298,7 +2298,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 
 		//		if (distance == 0)
 		//			return false;
-		bool fwd = distance >= 0;
+		bool fwd = distance > 0;
 
 		//Set different variables depending on where the car is.
 		if (other_lane == params.currLane) { //the vehicle is on the current lane

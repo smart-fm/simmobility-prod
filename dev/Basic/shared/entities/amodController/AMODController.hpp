@@ -139,6 +139,7 @@ public:
 
 	void handleVHArrive(Person* vh);
 	void handleVHDestruction(Person *vh);
+	void handleVHPickup(Person *vh);
 	void checkForPickups(void); //checks for pickups and sets the time in vhTripMap.
 	void checkForArrivals(void); //check for arrived vehicles
 	void checkForStuckVehicles(void); //check for Stuck vehicles (not sure why simmobility makes the vehicles get stuck from time to time)

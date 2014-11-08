@@ -807,11 +807,23 @@ void sim_mob::DriverMovement::calcDistanceToSP(DriverUpdateParams& p) {
 		if(distance >= 10 && distance <= 50){ // 10m-50m
 			//
 			p.stopPointState = DriverUpdateParams::CLOSE_STOP_POINT;
+
+			if (getParent()->amodId != "-1") {
+				getParent()->handleAMODPickup(); //handle AMOD arrival (if necessary)
+			}
+
+
 		}
 		if(p.stopPointState == DriverUpdateParams::CLOSE_STOP_POINT && abs(distance) < 10){ // 0m-10m
 			//
 			std::cout<<p.now.frame()<<" JUST_ARRIVE_STOP_POINT"<<std::endl;
 			p.stopPointState = DriverUpdateParams::JUST_ARRIVE_STOP_POINT;
+
+			if (getParent()->amodId != "-1") {
+				getParent()->handleAMODPickup(); //handle AMOD arrival (if necessary)
+			}
+
+
 		}
 		// only most left lane is target lane
 		const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
@@ -1814,7 +1826,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 			//string segAimsunId = stopSegment->originalDB_ID.getLogItem();
 			//string segAimsunId = toString(segAimsunID);
 			std::string segm = getNumberFromAimsunId(stopSegmentStr);
-			double dwelltime = 10; //in sec
+			double dwelltime = 5; //in sec
 			double segl = parentDriver->getParent()->amodSegmLength /100.0; //length of the segment in m
 			double fd2 = (segl - segl/5); //distance where the vh will stop counting from the begining of the segment
 
@@ -1892,11 +1904,13 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		const double width = 200;
 
 		//A non-null vehicle means we are moving.
+
 		if (allocateVehicle) {
 			res = new Vehicle(VehicleBase::CAR, length, width);
-			parent->amodVehicle = res;
-
 			initPath(path, startLaneId);
+			if (parent->amodId != "-1") {
+				parent->amodVehicle = res;
+			}
 		}
 
 		if (subTrip->schedule && res) {

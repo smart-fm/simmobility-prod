@@ -662,7 +662,7 @@ public:
 	 * @param frameNumber the timeslice of current frame
 	 * @return the statistics of this segment stats in string format
 	 */
-	std::string reportSegmentStats(timeslice frameNumber);
+	std::string reportSegmentStats(uint32_t frameNumber);
 
 	/**
 	 * computes the density of the moving part of the segment
@@ -670,6 +670,13 @@ public:
 	 * @param vehicleLanes boolean flag indicating whether we want the density from vehicle lanes
 	 */
 	double getDensity(bool vehicleLanes);
+
+	/**
+	 * computes the density of the total segment-stats
+	 * the density value computed here is meant to be used for outputs
+	 * @param vehicleLanes boolean flag indicating whether we want the density from vehicle lanes
+	 */
+	double getTotalDensity(bool vehicleLanes);
 
 	/**
 	 * computes the number of persons that can to leave this segment stats in

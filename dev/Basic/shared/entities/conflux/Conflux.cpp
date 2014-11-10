@@ -648,8 +648,8 @@ sim_mob::Person* sim_mob::Conflux::agentClosestToIntersection() {
 void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
 	const ConfigManager& cfg = ConfigManager::GetInstance();
 	bool outputEnabled = cfg.CMakeConfig().OutputEnabled();
-	std::string updtInterval = cfg.FullConfig().system.genericProps.at("update_interval");
-	bool updateThisTick = ((frameNumber.frame() % boost::lexical_cast<uint32_t>(updtInterval))==0);
+	uint32_t updtInterval = boost::lexical_cast<uint32_t>(cfg.FullConfig().system.genericProps.at("update_interval"));
+	bool updateThisTick = ((frameNumber.frame() % updtInterval)==0);
 	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin(); upstreamIt != upstreamSegStatsMap.end(); upstreamIt++)
 	{
 		const SegmentStatsList& linkSegments = upstreamIt->second;
@@ -658,7 +658,7 @@ void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
 			(*segIt)->updateLaneParams(frameNumber);
 			if (updateThisTick && outputEnabled)
 			{
-				Log() << (*segIt)->reportSegmentStats(frameNumber);
+				Log() << (*segIt)->reportSegmentStats(frameNumber.frame()/updtInterval);
 			}
 		}
 	}

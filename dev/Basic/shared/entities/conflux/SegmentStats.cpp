@@ -466,6 +466,28 @@ double SegmentStats::getDensity(bool hasVehicle)
 	return density;
 }
 
+//density will be computed in vehicles/km/seg for the moving part of the segment
+double SegmentStats::getTotalDensity(bool hasVehicle)
+{
+	double density = 0.0;
+	double totalPCUs = getTotalVehicleLength() / PASSENGER_CAR_UNIT;
+	if (length > PASSENGER_CAR_UNIT)
+	{
+		/*Some lines in this if section are commented as per Yang Lu's suggestion */
+		//if (roadSegment->getLaneZeroLength() > 10*vehicle_length) {
+		density = totalPCUs / (length / 100000.0); //(cm to km)
+		//}
+		//else {
+		//	density = queueCount/(movingLength/100.0);
+		//}
+	}
+	else
+	{
+		density = 1 / (PASSENGER_CAR_UNIT / 100.0);
+	}
+	return density;
+}
+
 unsigned int SegmentStats::numQueuingInSegment(bool hasVehicle) const
 {
 	unsigned int queuingCounts = 0;
@@ -864,21 +886,20 @@ void sim_mob::SegmentStats::updateLaneParams(timeslice frameNumber)
 	}
 }
 
-std::string sim_mob::SegmentStats::reportSegmentStats(timeslice frameNumber)
+std::string sim_mob::SegmentStats::reportSegmentStats(uint32_t frameNumber)
 {
 	std::stringstream msg;
-	double density = segDensity	* 1000.0; /* Density is converted to veh/km/seg for the output */
 
 #define SHOW_NUMBER_VEHICLE_ON_SEGMENT
 #ifdef SHOW_NUMBER_VEHICLE_ON_SEGMENT
 
 	msg << "(\"segmentState\""
-		<< "," << frameNumber.frame()
+		<< "," << frameNumber
 		<< "," << roadSegment
 		<< ",{"
 		<< "\"speed\":\"" << segVehicleSpeed
 		<< "\",\"flow\":\"" << segFlow
-		<< "\",\"density\":\"" << density
+		<< "\",\"density\":\"" << getTotalDensity(true)
 		<< "\",\"total\":\"" << (numPersons - numAgentsInLane(laneInfinity))
 		<< "\",\"totalL\":\"" << getTotalVehicleLength()
 		<< "\",\"moving\":\"" << numMovingInSegment(true)

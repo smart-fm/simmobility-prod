@@ -4,7 +4,7 @@
 <config>
         <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
         <!-- Admissible values are "preday", "withinday" and "supply". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.--> 
-        <mid_term_run_mode value="withinday"/>
+        <mid_term_run_mode value="preday"/>
         
         <!-- config specific to supply simulator -->            
         <supply>       
@@ -64,7 +64,7 @@
                 
                 <!-- Names of MongoDB database and collections -->
                 <mongo_collections db_name="preday">
-                        <mongo_collection name="population" collection="hits08_population_29k"/>
+                        <mongo_collection name="population" collection="hits12_fullpopulation_subset"/>
                         <mongo_collection name="tcost_bus" collection="tcost_bus"/>
                         <mongo_collection name="tcost_car" collection="tcost_car"/>
                         <mongo_collection name="AMCosts" collection="AMCosts"/>

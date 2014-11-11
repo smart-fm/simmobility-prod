@@ -1049,19 +1049,16 @@ bool sim_mob::PathSetManager::getBestPath(
 		//this hack conforms to the CBD property added to segment and node
 		if(useBlackList)
 		{
-//			std::cout << "pathset size before purging " << ps_->pathChoices.size() << std::endl;
 			if(!purgeBlacklist(*ps_))
 			{
 				cout << "[" << fromToID << "]" <<  " : All paths are in CBD\n";
 				tempNoPath.insert(fromToID);
 				return false;
 			}
-//			std::cout << "pathset size after purging " << ps_->pathChoices.size() << std::endl;
 		}
 		logger << "generate All Done for " << "[" << fromToID << "]" <<  "\n";
 		sim_mob::generatePathSizeForPathSet2(ps_);
 		r = getBestPathChoiceFromPathSet(ps_, partial);
-		logger << "getBestPathChoiceFromPathSet returned best path of size : " << ps_->bestWayPointpath->size() << "\n";
 		if (r) {
 			res = *(ps_->bestWayPointpath);
 			//cache
@@ -2145,7 +2142,7 @@ double sim_mob::PathSetManager::getTravelTime(sim_mob::SinglePath *sp,const sim_
 			std::string seg_id = sp->shortestWayPointpath[i].roadSegment_->originalDB_ID.getLogItem();
 			double t = sim_mob::PathSetParam::getInstance()->getTravelTimeBySegId(seg_id,startTime);
 			ts += t;
-			startTime = startTime + sim_mob::DailyTime(ts*1000);
+			startTime = startTime + sim_mob::DailyTime(t*1000);
 		}
 	}
 //	logger.prof("getTravelTime").tick(true);

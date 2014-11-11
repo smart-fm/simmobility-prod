@@ -226,6 +226,8 @@ public:
 	//const RoadSegment *amodPickUpSegment;
 	std::string amodPickUpSegmentStr;
 	double amodSegmLength;
+	double amodSegmLength2;
+	std::string amodDropOffSegmentStr;
 	//WayPoint amodPickUpSegment;
 	std::string amdoTripId;
 	sim_mob::Vehicle* amodVehicle;

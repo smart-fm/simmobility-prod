@@ -44,7 +44,7 @@ using std::map;
 using std::string;
 
 namespace{
-sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("path_set");
+//sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("path_set");
 //sim_mob::BasicLogger & cbdSELogger = sim_mob::Logger::log("start_end_logger");
 }
 

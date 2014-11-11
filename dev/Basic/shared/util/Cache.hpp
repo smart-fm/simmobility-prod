@@ -2,10 +2,6 @@
 #include <list>
 #include <map>
 
-namespace{
-sim_mob::BasicLogger & loggerCache = sim_mob::Logger::log("path_set");
-int eraseCnt = 0;
-}
 namespace sim_mob
 {
 /// Base template class for all cache implementations

@@ -12,7 +12,6 @@ using namespace boost::posix_time;
  *     Basic Logger Implementation
  * **********************************
  */
-boost::shared_ptr<sim_mob::Logger> sim_mob::Logger::log_;
 boost::shared_mutex sim_mob::Logger::instanceMutex;
 std::map <boost::thread::id, int> sim_mob::BasicLogger::threads= std::map <boost::thread::id, int>();//for debugging only
 int sim_mob::BasicLogger::flushCnt = 0;
@@ -37,7 +36,7 @@ sim_mob::Profiler::Profiler(const Profiler &t):
 
 
 sim_mob::Profiler::Profiler(const std::string id, bool begin_):id(id){
-boost::shared_mutex instanceMutex;
+	boost::shared_mutex instanceMutex;
 	started = 0;
 	total = 0;
 	if(begin_)
@@ -48,7 +47,7 @@ boost::shared_mutex instanceMutex;
 }
 
 //uint64_t sim_mob::Profiler::tick(bool addToTotal){
-boost::chrono::microseconds sim_mob::Profiler::tick(bool addToTotal){
+	boost::chrono::microseconds sim_mob::Profiler::tick(bool addToTotal){
 	boost::chrono::system_clock::time_point thisTick = getTime();
 	boost::chrono::microseconds elapsed = boost::chrono::duration_cast<boost::chrono::microseconds>(thisTick - lastTick);
 	if(addToTotal){
@@ -192,7 +191,6 @@ void sim_mob::BasicLogger::flushLog(std::stringstream &out)
 			boost::unique_lock<boost::mutex> lock(flushMutex);
 			logFile << out.str();
 			logFile.flush();
-			flushCnt++;
 			out.str(std::string());
 		}
 	}
@@ -231,7 +229,6 @@ void sim_mob::QueuedLogger::flushToFile()
         		buffer->str();
         		logFile << buffer->str();
         		logFile.flush();
-        		flushCnt++;
         		safe_delete_item(buffer);
         	}
         }
@@ -242,7 +239,6 @@ void sim_mob::QueuedLogger::flushToFile()
     	if(buffer){
     		logFile << buffer->str();
     		logFile.flush();
-    		flushCnt++;
     		safe_delete_item(buffer);
     	}
     }
@@ -274,8 +270,6 @@ sim_mob::BasicLogger & sim_mob::Logger::operator()(const std::string &key)
 	if(it == repo.end()){
 		std::cout << "creating a new Logger for " << key << std::endl;
 		boost::shared_ptr<sim_mob::BasicLogger> t(new sim_mob::LogEngine(key));
-//		std::map<const std::string, boost::shared_ptr<sim_mob::BasicLogger> > repo_;
-//		repo_.insert(std::make_pair(key,t));
 		repo.insert(std::make_pair(key,t));
 		return *t;
 	}

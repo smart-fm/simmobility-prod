@@ -857,7 +857,8 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::Person* per,con
 		logger << "[" << fromToID << "]" << " : NO PATH" << "\n";
 		str << "[NO PATH]" << "\n";
 	}
-	std::cout << str.str();
+	logger << str.str();
+	logger << "\nhi\n";
 	return res;
 }
 
@@ -1149,113 +1150,116 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 	StreetDirectory::Vertex* fromV = &from.source;
 	StreetDirectory::Vertex* toV = &to.sink;
 	//TODO: remove comment later
-//	for(int i=0;i<ps->oriPath->shortestWayPointpath.size();++i)
-//	{
-//		WayPoint *w = ps->oriPath->shortestWayPointpath[i];
-//		if (w->type_ == WayPoint::ROAD_SEGMENT && l != w->roadSegment_->getLink()) {
-//			const sim_mob::RoadSegment* seg = w->roadSegment_;
-//			PathSetWorkerThread * work = new PathSetWorkerThread();
-//			//introducing the profiling time accumulator
-//			//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
-//			work->graph = &impl->drivingMap_;
-//			work->segmentLookup = &impl->drivingSegmentLookup_;
-//			work->fromVertex = fromV;
-//			work->toVertex = toV;
-//			work->fromNode = ps->fromNode;
-//			work->toNode = ps->toNode;
-//			work->excludeSeg = seg;
-//			work->s->clear();
-//			work->ps = ps;
-//			std::stringstream out("");
-//			out << "sdle," << i << "," << ps->fromNode->getID() << "," << ps->toNode->getID() ;
-//			work->dbgStr = out.str();
-//			threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
-//			workPool.push_back(work);
-//		} //ROAD_SEGMENT
-//	}
-//
-//	logger << "waiting for SHORTEST DISTANCE LINK ELIMINATION" << "\n";
-//	threadpool_->wait();
-//	//kep your own ending time
-//get_persons_between_demo
-//
-//	// SHORTEST TRAVEL TIME LINK ELIMINATION
-//	l=NULL;
+	for(int i=0;i<ps->oriPath->shortestWayPointpath.size();++i)
+	{
+		WayPoint *w = &(ps->oriPath->shortestWayPointpath[i]);
+		if (w->type_ == WayPoint::ROAD_SEGMENT && l != w->roadSegment_->getLink()) {
+			const sim_mob::RoadSegment* seg = w->roadSegment_;
+			PathSetWorkerThread * work = new PathSetWorkerThread();
+			//introducing the profiling time accumulator
+			//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
+			work->graph = &impl->drivingMap_;
+			work->segmentLookup = &impl->drivingSegmentLookup_;
+			work->fromVertex = fromV;
+			work->toVertex = toV;
+			work->fromNode = ps->fromNode;
+			work->toNode = ps->toNode;
+			work->excludeSeg.insert(seg);
+			work->s->clear();
+			work->ps = ps;
+			std::stringstream out("");
+			out << "sdle," << i << "," << ps->fromNode->getID() << "," << ps->toNode->getID() ;
+			work->dbgStr = out.str();
+			threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
+			workPool.push_back(work);
+		} //ROAD_SEGMENT
+	}
+
+	std::cout  << "waiting for SHORTEST DISTANCE LINK ELIMINATION" << "\n";
+	threadpool_->wait();
+	//kep your own ending time
+
+	// SHORTEST TRAVEL TIME LINK ELIMINATION
+	l=NULL;
+
+	//keep this line uncommented
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir.getTravelTimeImpl();
-//	from = sttpImpl->DrivingVertexNormalTime(*ps->fromNode);
-//	to = sttpImpl->DrivingVertexNormalTime(*ps->toNode);
-//	fromV = &from.source;file:///home/fm-simmobility/vahid/simmobility/dev/Basic/tempIncident/private/simrun_basic-1.xml
-//	toV = &to.sink;
-//	SinglePath *sinPathTravelTimeDefault = generateShortestTravelTimePath(ps->fromNode,ps->toNode,duplicateChecker,sim_mob::Default);
-//	if(sinPathTravelTimeDefault)
-//	{
-//		for(int i=0;i<sinPathTravelTimeDefault->shortestWayPointpath.size();++i)
-//		{
-//			WayPoint *w = sinPathTravelTimeDefault->shortestWayPointpath[i];
-//			if (w->type_ == WayPoint::ROAD_SEGMENT && l != w->roadSegment_->getLink()) {
-//				const sim_mob::RoadSegment* seg = w->roadSegment_;
-//				PathSetWorkerThread *work = new PathSetWorkerThread();
-//				//introducing the profiling time accumulator
-//				//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
-//				work->graph = &sttpImpl->drivingMap_Default;
-//				work->segmentLookup = &sttpImpl->drivingSegmentLookup_Default_;
-//				work->fromVertex = fromV;
-//				work->toVertex = toV;
-//				work->fromNode = ps->fromNode;
-//				work->toNode = ps->toNode;
-//				work->excludeSeg = seg;
-//				work->s->clear();
-//				work->ps = ps;
-//				std::stringstream out("");
-//				out << "ttle," << i << "," << ps->fromNode->getID() << "," << ps->toNode->getID() ;
-//				work->dbgStr = out.str();
-//				threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
-//				workPool.push_back(work);
-//			} //ROAD_SEGMENT
-//		}//for
-//	}//if sinPathTravelTimeDefault
-//
-//	logger << "waiting for SHORTEST TRAVEL TIME LINK ELIMINATION" << "\n";
-//	threadpool_->wait();
-//
-//
-//	// TRAVEL TIME HIGHWAY BIAS
-//	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
-//	l=NULL;
-//	SinglePath *sinPathHightwayBias = generateShortestTravelTimePath(ps->fromNode,ps->toNode,duplicateChecker,sim_mob::HighwayBias_Distance);
-//	from = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->fromNode);
-//	to = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->toNode);
-//	fromV = &from.source;
-//	toV = &to.sink;
-//	if(sinPathHightwayBias)
-//	{
-//		for(int i=0;i<sinPathHightwayBias->shortestWayPointpath.size();++i)
-//		{
-//			WayPoint *w = sinPathHightwayBias->shortestWayPointpath[i];
-//			if (w->type_ == WayPoint::ROAD_SEGMENT && l != w->roadSegment_->getLink()) {
-//				const sim_mob::RoadSegment* seg = w->roadSegment_;
-//				PathSetWorkerThread *work = new PathSetWorkerThread();
-//				//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
-//				//introducing the profiling time accumulator
-//				work->graph = &sttpImpl->drivingMap_HighwayBias_Distance;
-//				work->segmentLookup = &sttpImpl->drivingSegmentLookup_HighwayBias_Distance_;
-//				work->fromVertex = fromV;
-//				work->toVertex = toV;
-//				work->fromNode = ps->fromNode;
-//				work->toNode = ps->toNode;
-//				work->excludeSeg = seg;
-//				work->s->clear();
-//				work->ps = ps;
-//				std::stringstream out("");
-//				out << "highway," << i << "," << ps->fromNode->getID() << "," << ps->toNode->getID() ;
-//				work->dbgStr = out.str();
-//				threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
-//				workPool.push_back(work);
-//			} //ROAD_SEGMENT
-//		}//for
-//	}//if sinPathTravelTimeDefault
-//	logger << "waiting for TRAVEL TIME HIGHWAY BIAS" << "\n";
-//	threadpool_->wait();
+
+	from = sttpImpl->DrivingVertexNormalTime(*ps->fromNode);
+	to = sttpImpl->DrivingVertexNormalTime(*ps->toNode);
+	fromV = &from.source;file:///home/fm-simmobility/vahid/simmobility/dev/Basic/tempIncident/private/simrun_basic-1.xml
+	toV = &to.sink;
+	SinglePath *sinPathTravelTimeDefault = generateShortestTravelTimePath(ps->fromNode,ps->toNode,duplicateChecker,sim_mob::Default);
+	if(sinPathTravelTimeDefault)
+	{
+		for(int i=0;i<sinPathTravelTimeDefault->shortestWayPointpath.size();++i)
+		{
+			WayPoint *w = &(sinPathTravelTimeDefault->shortestWayPointpath[i]);
+			if (w->type_ == WayPoint::ROAD_SEGMENT && l != w->roadSegment_->getLink()) {
+				const sim_mob::RoadSegment* seg = w->roadSegment_;
+				PathSetWorkerThread *work = new PathSetWorkerThread();
+				//introducing the profiling time accumulator
+				//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
+				work->graph = &sttpImpl->drivingMap_Default;
+				work->segmentLookup = &sttpImpl->drivingSegmentLookup_Default_;
+				work->fromVertex = fromV;
+				work->toVertex = toV;
+				work->fromNode = ps->fromNode;
+				work->toNode = ps->toNode;
+				work->excludeSeg.insert(seg);
+				work->s->clear();
+				work->ps = ps;
+				std::stringstream out("");
+				out << "ttle," << i << "," << ps->fromNode->getID() << "," << ps->toNode->getID() ;
+				work->dbgStr = out.str();
+				threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
+				workPool.push_back(work);
+			} //ROAD_SEGMENT
+		}//for
+	}//if sinPathTravelTimeDefault
+
+	std::cout  << "waiting for SHORTEST TRAVEL TIME LINK ELIMINATION" << "\n";
+	threadpool_->wait();
+
+
+	// TRAVEL TIME HIGHWAY BIAS
+	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
+	l=NULL;
+	SinglePath *sinPathHightwayBias = generateShortestTravelTimePath(ps->fromNode,ps->toNode,duplicateChecker,sim_mob::HighwayBias_Distance);
+	from = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->fromNode);
+	to = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->toNode);
+	fromV = &from.source;
+	toV = &to.sink;
+	if(sinPathHightwayBias)
+	{
+		for(int i=0;i<sinPathHightwayBias->shortestWayPointpath.size();++i)
+		{
+			WayPoint *w = &(sinPathHightwayBias->shortestWayPointpath[i]);
+			if (w->type_ == WayPoint::ROAD_SEGMENT && l != w->roadSegment_->getLink()) {
+				const sim_mob::RoadSegment* seg = w->roadSegment_;
+				PathSetWorkerThread *work = new PathSetWorkerThread();
+				//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
+				//introducing the profiling time accumulator
+				work->graph = &sttpImpl->drivingMap_HighwayBias_Distance;
+				work->segmentLookup = &sttpImpl->drivingSegmentLookup_HighwayBias_Distance_;
+				work->fromVertex = fromV;
+				work->toVertex = toV;
+				work->fromNode = ps->fromNode;
+				work->toNode = ps->toNode;
+				work->excludeSeg.insert(seg);
+				work->s->clear();
+				work->ps = ps;
+				std::stringstream out("");
+				out << "highway," << i << "," << ps->fromNode->getID() << "," << ps->toNode->getID() ;
+				work->dbgStr = out.str();
+				threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
+				workPool.push_back(work);
+			} //ROAD_SEGMENT
+		}//for
+	}//if sinPathTravelTimeDefault
+	std::cout  << "waiting for TRAVEL TIME HIGHWAY BIAS" << "\n";
+	threadpool_->wait();
+
 	// generate random path
 	for(int i=0;i<20;++i)//todo flexible number
 	{

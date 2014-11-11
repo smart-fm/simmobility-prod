@@ -89,7 +89,7 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 			}
 		}
 	} else {
-		std::cout << "Blacklist NOT empty" << std::endl;
+		//logger << "Blacklist NOT empty" << blacklistV.size() << std::endl;
 		//Filter it.
 		sim_mob::A_StarShortestPathImpl::blacklist_edge_constraint filter(blacklistV);
 		boost::filtered_graph<StreetDirectory::Graph,sim_mob::A_StarShortestPathImpl::blacklist_edge_constraint> filtered(*graph, filter);

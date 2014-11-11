@@ -408,8 +408,8 @@ private:
 	///	protect access to incidents list
 	boost::shared_mutex mutexExclusion;
 
-	///	stores the name of database's pathset table
-	const std::string &pathSetTableName;
+//	///	stores the name of database's pathset table
+//	const std::string &pathSetTableName;
 
 	///	stores the name of database's singlepath table//todo:doublecheck the usability
 	const std::string &singlePathTableName;

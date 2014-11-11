@@ -547,8 +547,7 @@ void sim_mob::ParseConfigFile::ProcessBusControllersNode(xercesc::DOMElement* no
 void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 
 	if (!node) {
-
-		cfg.pathset.setDefaultEnabled();
+		std::cerr << "Pathset Configuration Not Found\n" ;
 		return;
 	}
 	if(!(cfg.pathset.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false")))
@@ -558,7 +557,7 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 
 	xercesc::DOMElement* dbNode = GetSingleElementByName(node, "pathset_database");
 	if(!dbNode){
-		cfg.pathset.setDefaultDB();
+		throw std::runtime_error("Path Set Data Base Credentials not found\n");
 	}
 	else
 	{
@@ -568,11 +567,10 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 
 	xercesc::DOMElement* tableNode = GetSingleElementByName(node, "tables");
 	if(!tableNode){
-		cfg.pathset.setDefaultTables();
+		throw std::runtime_error("Pathset data base table specification not found");
 	}
 	else
 	{
-		cfg.pathset.pathSetTableName = ParseString(GetNamedAttributeValue(tableNode, "pathset_table"), "");
 		cfg.pathset.singlePathTableName = ParseString(GetNamedAttributeValue(tableNode, "singlepath_table"), "");
 		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(tableNode, "function"), "");
 	}
@@ -580,16 +578,16 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 
 	xercesc::DOMElement* functionNode = GetSingleElementByName(node, "function");
 	if(!functionNode){
-		cfg.pathset.setDefaultFunction();
+		throw std::runtime_error("Pathset Stored Procedure Not Found\n");
 	}
 	else
 	{
-		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(functionNode, "value"), "get_path_set");
+		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(functionNode, "value"));
 	}
 	/////////
 	DOMElement* tt = GetSingleElementByName(node, "pathset_traveltime_save_table",ConfigManager::GetInstance().FullConfig().PathSetMode());
 	if (tt) {
-		cfg.system.simulation.travelTimeTmpTableName  = ParseString(GetNamedAttributeValue(tt, "value"),"realtime_travel_time");
+		cfg.system.simulation.travelTimeTmpTableName  = ParseString(GetNamedAttributeValue(tt, "value"));
 	}
 }
 

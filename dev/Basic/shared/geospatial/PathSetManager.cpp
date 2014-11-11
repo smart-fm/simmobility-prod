@@ -495,7 +495,7 @@ uint32_t sim_mob::PathSetManager::getSize(){
 }
 
 sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()),
-		pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName),
+//		pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName),
 		singlePathTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().singlePathTableName),
 		dbFunction(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().dbFunction),cacheLRU(2500),
 		blacklistSegments((sim_mob::ConfigManager::GetInstance().FullConfig().CBD() ?
@@ -1165,7 +1165,6 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 			work->fromNode = ps->fromNode;
 			work->toNode = ps->toNode;
 			work->excludeSeg.insert(seg);
-			work->s->clear();
 			work->ps = ps;
 			std::stringstream out("");
 			out << "sdle," << i << "," << ps->fromNode->getID() << "," << ps->toNode->getID() ;
@@ -1207,7 +1206,6 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 				work->fromNode = ps->fromNode;
 				work->toNode = ps->toNode;
 				work->excludeSeg.insert(seg);
-				work->s->clear();
 				work->ps = ps;
 				std::stringstream out("");
 				out << "ttle," << i << "," << ps->fromNode->getID() << "," << ps->toNode->getID() ;
@@ -1247,7 +1245,6 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 				work->fromNode = ps->fromNode;
 				work->toNode = ps->toNode;
 				work->excludeSeg.insert(seg);
-				work->s->clear();
 				work->ps = ps;
 				std::stringstream out("");
 				out << "highway," << i << "," << ps->fromNode->getID() << "," << ps->toNode->getID() ;
@@ -1276,9 +1273,6 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 		work->toVertex = toV;
 		work->fromNode = ps->fromNode;
 		work->toNode = ps->toNode;
-//		work->excludeSeg = excludedSegs;
-//		work->s = NULL;
-//		work->s->clear();
 		work->ps = ps;
 		std::stringstream out("");
 		out << "random pertubation[" << i << "] '" << ps->fromNode->getID() << "," << ps->toNode->getID() << "'\n";
@@ -1339,7 +1333,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 		//
 		pathSetID = "'"+pathSetID+"'";
 		boost::shared_ptr<PathSet> ps_;
-#if 0
+#if 1
 		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithId(
 						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 						ps_,pathSetID);
@@ -1347,7 +1341,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
 						*getSession(),
 						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-						ps_,pathSetID, pathSetTableName);
+						ps_,pathSetID);
 #endif
 		if(ps_->hasPath == -1) //no path
 		{
@@ -1426,7 +1420,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 				ps_->scenario = scenarioName;
 				std::map<std::string,boost::shared_ptr<sim_mob::PathSet> > tmp;
 				tmp.insert(std::make_pair(fromToID,ps_));
-				sim_mob::aimsun::Loader::SaveOnePathSetData(*getSession(),tmp, pathSetTableName);
+//				sim_mob::aimsun::Loader::SaveOnePathSetData(*getSession(),tmp, pathSetTableName);
 				return res;
 			}
 			//	// 1.31 check path pool
@@ -1462,7 +1456,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 				sim_mob::generatePathSizeForPathSet2(ps_);
 				std::map<std::string,boost::shared_ptr<sim_mob::PathSet> > tmp;
 				tmp.insert(std::make_pair(fromToID,ps_));
-				sim_mob::aimsun::Loader::SaveOnePathSetData(*getSession(),tmp, pathSetTableName);
+//				sim_mob::aimsun::Loader::SaveOnePathSetData(*getSession(),tmp, pathSetTableName);
 				//
 				bool r = getBestPathChoiceFromPathSet(ps_);
 				if(r)
@@ -1644,7 +1638,9 @@ double sim_mob::PathSetManager::getUtilityBySinglePath(sim_mob::SinglePath* sp)
 {
 	double utility=0;
 	if(!sp)
+	{
 		return utility;
+	}
 	// calculate utility
 	//1.0
 	//Obtain the travel time tt of the path.
@@ -1728,28 +1724,14 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 			throw std::runtime_error (str);
 		}
 		//	trying to save some computation like getTravelTime(), getUtilityBySinglePath()
-		computeUtility = false;
 		//	state of the network changed
 		if (partialExclusion.size() && sp->includesRoadSegment(partialExclusion) ) {
 			sp->travleTime = maxTravelTime;//some large value like infinity
-			computeUtility = true;
 		}
-		//	not previously calculated
-		if(sp->travleTime == 0.0)
-		{
-			sp->travleTime = getTravelTime(sp,ps->subTrip->startTime);
-			computeUtility = true;
-		}
-		//	not previously calculated
-		if(sp->utility == 0.0)
-		{
-			computeUtility = true;
-		}
+		sp->travleTime = getTravelTime(sp,ps->subTrip->startTime);
+		sp->travelCost = getTravelCost2(sp,ps->subTrip->startTime);
 		//	calculate utility
-		if(computeUtility)
-		{
-			sp->utility = getUtilityBySinglePath(sp);
-		}
+		sp->utility = getUtilityBySinglePath(sp);
 
 		ps->logsum += exp(sp->utility);
 		temp++;

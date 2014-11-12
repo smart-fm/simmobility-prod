@@ -316,6 +316,7 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 				 //expectations are start on last element to the first.
 				 if( info.startedDay - currentTime.ms() > info.daysOnMarket )
 				 {
+					 PrintOut("Removing unit " << unitId << " from the market." << std::endl );
 					 market->removeEntry(unitId);
 					 continue;
 				 }

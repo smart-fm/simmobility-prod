@@ -259,6 +259,7 @@ public:
 	bool isUseCacheMode() { return false;/*isUseCache;*/ }//todo: take care of this later
 	double getUtilityBySinglePath(sim_mob::SinglePath* sp);
 	std::vector<WayPoint> generateBestPathChoice2(const sim_mob::SubTrip* st);
+	void processPathSet(boost::shared_ptr<PathSet> &ps);
 	/**
 	 * find/generate set of path choices for a given suntrip, and then return the best of them
 	 * \param st input subtrip
@@ -306,7 +307,7 @@ public:
 	std::vector<WayPoint> getPath(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip);
 
 	///	calculate travel time of a path
-	static double getTravelTime(sim_mob::SinglePath *sp,const sim_mob::DailyTime &startTime);
+	static double getTravelTime(sim_mob::SinglePath *sp,sim_mob::DailyTime startTime);
 
 	///	get travel time of a segment
 //	double getTravelTimeBySegId(std::string id,const sim_mob::DailyTime &startTime);

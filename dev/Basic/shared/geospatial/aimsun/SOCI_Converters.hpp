@@ -104,9 +104,9 @@ template<> struct type_conversion<sim_mob::SinglePath>
 //    	res.waypointset = vals.get<std::string>("WAYPOINTSET", "");
 //    	res.fromNodeId = vals.get<std::string>("FROM_NODE_ID", "");
 //    	res.toNodeId = vals.get<std::string>("TO_NODE_ID", "");
-    	res.utility = vals.get<double>("UTILITY", 0);
-    	res.pathSize = vals.get<double>("PATHSIZE", 0);
-    	res.travelCost = vals.get<double>("TRAVEL_COST", 0);
+//    	res.utility = vals.get<double>("UTILITY", 0);
+//    	res.pathSize = vals.get<double>("PATHSIZE", 0);
+//    	res.travelCost = vals.get<double>("TRAVEL_COST", 0);
     	res.signalNumber = vals.get<int>("SIGNAL_NUMBER", 0);
     	res.rightTurnNumber = vals.get<int>("RIGHT_TURN_NUMBER", 0);
     	res.scenario = vals.get<std::string>("SCENARIO", "");

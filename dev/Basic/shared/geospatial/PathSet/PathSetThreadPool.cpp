@@ -168,8 +168,9 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		s->id = id;
 		s->scenario = ps->scenario;
 		s->pathSize = 0;
-		s->travelCost = sim_mob::getTravelCost2(s,ps->subTrip->startTime);
-		s->travleTime = sim_mob::PathSetManager::getInstance()->getTravelTime(s,ps->subTrip->startTime);
+		//this is done in processPathSet so no need to repeat for now
+//		s->travelCost = sim_mob::getTravelCost2(s,ps->subTrip->startTime);
+//		s->travleTime = sim_mob::PathSetManager::getInstance()->getTravelTime(s,ps->subTrip->startTime);
 	}
 }
 

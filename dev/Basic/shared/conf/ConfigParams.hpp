@@ -328,7 +328,7 @@ public:
 
 	DailyTime& simStartTime();
 	const DailyTime& simStartTime() const;
-	const std::string& getTravelTimeTmpTableName() const;
+	const std::string& getTravelTimeTableName() const;
 
 	//This one's slightly tricky, as it's in generic_props
 	std::string busline_control_type() const;

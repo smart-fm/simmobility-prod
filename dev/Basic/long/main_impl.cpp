@@ -233,55 +233,41 @@ int main_impl(int ARGC, char* ARGV[])
         }
     }
     
-    if (!runTests)
-    {
-    	time_t  start_clock   = time(0);
-    	clock_t start_process = clock();
+	time_t  start_clock   = time(0);
+	clock_t start_process = clock();
 
-        //get start time of the simulation.
-        std::list<std::string> resLogFiles;
-        const unsigned int maxIterations = config.ltParams.maxIterations;
-        for (int i = 0; i < maxIterations; i++)
-        {
-            PrintOut("Simulation #:  " << std::dec << (i + 1) << endl);
-            performMain((i + 1), resLogFiles);
-        }
+	//get start time of the simulation.
+	std::list<std::string> resLogFiles;
+	const unsigned int maxIterations = config.ltParams.maxIterations;
+	for (int i = 0; i < maxIterations; i++)
+	{
+		PrintOut("Simulation #:  " << std::dec << (i + 1) << endl);
+		performMain((i + 1), resLogFiles);
+	}
 
-        //Concatenate output files?
-        /*if (!resLogFiles.empty()) {
-            resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
-            Utils::printAndDeleteLogFiles(resLogFiles);
-        }*/
-        ConfigManager::GetInstanceRW().reset();
+	ConfigManager::GetInstanceRW().reset();
 
-        time_t end_clock = time(0);
-        double time_clock = difftime( end_clock, start_clock );
+	time_t end_clock = time(0);
+	double time_clock = difftime( end_clock, start_clock );
 
-        clock_t end_process = clock();
-    	double time_process = (double) ( end_process - start_process ) / CLOCKS_PER_SEC;
+	clock_t end_process = clock();
+	double time_process = (double) ( end_process - start_process ) / CLOCKS_PER_SEC;
 
-     	cout << "Wall clock time passed: ";
-    	if( time_clock > 60 )
-    	{
-    		cout << (int)(time_clock / 60) << " minutes ";
-    	}
+	cout << "Wall clock time passed: ";
+	if( time_clock > 60 )
+	{
+		cout << (int)(time_clock / 60) << " minutes ";
+	}
 
-    	cout << time_clock - ( (int)( time_clock / 60 ) * 60 )<< " seconds." << endl;
+	cout << time_clock - ( (int)( time_clock / 60 ) * 60 )<< " seconds." << endl;
 
-    	cout << "CPU time used: ";
-    	if( time_process > 60 )
-    	{
-    		cout << (int)time_process / 60 << " minutes ";
-    	}
+	cout << "CPU time used: ";
+	if( time_process > 60 )
+	{
+		cout << (int)time_process / 60 << " minutes ";
+	}
 
-    	cout << (int)( time_process - ( (int)(time_process / 60)  * 60 ) ) << " seconds" << endl;
-    }
-    else
-    {
-        //unit_tests::DaoTests tests;
-        //tests.testAll();
-
-    }
+	cout << (int)( time_process - ( (int)(time_process / 60)  * 60 ) ) << " seconds" << endl;
     
     return 0;
 }

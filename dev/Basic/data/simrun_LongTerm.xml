@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright Singapore-MIT Alliance for Research and Technology -->
+
+<config>
+    <!-- Anything in the "constructs" section is created with an ID and some structure (e.g., an object) -->
+    <!-- The idea here is to allow re-using some common settings in multiple places, and to allow multiple optional -->
+    <!-- items (e.g. database connections), without having to comment out the ones which are not used. -->
+    <!-- Key to the idea of a construct is that if it is incorrectly specified, it is only considered to be an error if -->
+    <!-- it is USED. In other words, the parser will flag it as an error, but pend that error until the construct is requested. -->
+    <!-- A construct ID must be unique for its type (databases, credentials, etc.) -->
+    <!-- Note that constructs can be defined and used out-of-order, since their IDs are only resolved once they are retrieved. -->
+    <constructs>  
+        <!-- Various database connections, used for loading network and agent data. -->
+        <!-- Note that credentials (login details) are stored in a separate construct. -->
+        <databases>
+            <database id="fm_local_lt" dbtype="postgres">
+                <host value="localhost"/>
+                <port value="5432"/>
+                <dbname value="sim_mob_lt"/>
+            </database>
+        </databases>
+    
+        <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
+        <db_proc_groups/>
+    
+        <!-- Login credentials to be used for database connections. These can be plaintext, -->
+        <!-- file-based, and possibly even signed. Note that invalid credentials will simply be ignored. -->
+        <credentials>
+            <!-- A file-based credential loads credentials from a JSON file with its own special format. -->
+            <!-- Multiple files can be listed, and they will be tried in order until one is found. -->
+            <!-- If the first existing file has an error, parsing will NOT continue to the next file. -->
+            <!-- The actual credentials file looks something like this: -->
+            <!-- 
+            {
+                "username" : "postgres",
+                "password" : "AbCdEfG=",
+                "algorithm" : ["clear","xor23","base64","cipher"]
+            }
+            -->
+
+            <plaintext-credential id="LT_cred">
+                <username value="postgres"/>
+                <password value="postgres"/>
+            </plaintext-credential>
+        </credentials>
+    </constructs>
+
+    <!-- System configuration properties -->
+    <system>
+        <!-- Properties for a single simulation run -->
+        <!-- Total runtime need not be a multiple of the base granularity -->
+        <!-- (but will be rounded down.) -->
+        <simulation>
+            <base_granularity   value="5"   units="seconds" />
+            <total_runtime      value="245" units="minutes" />
+            <total_warmup       value="10"  units="seconds" />            
+            <start_time         value="03:00:00"/>
+            <pathset_traveltime_save_table value="pathset"/>
+            
+            <!-- Implementation to use for the Aura Manager. -->
+            <!-- Values include: simtree, rdu, rstar (default) -->
+            <aura_manager_impl value="rstar"/>
+            
+            <!-- Strategy for adding new Agents to Workers. -->
+            <!-- "roundrobin" assigns in order. (default) -->
+            <!-- "smallest" assigns to the Worker with the smallest Agent count. -->
+            <!--  Note that "smallest" does not appear to offer any benefit over "roundrobin" -->
+            <workgroup_assignment value="roundrobin"/>
+                        
+            <!-- Properties for SimMobility-MPI -->
+            <partitioning_solution_id   value="1"    units="unit" />
+            
+            <!-- Order in which agents are to be loaded into the simulation -->
+            <!-- Values include: database, drivers, pedestrians, passenger, xml-tripchains -->
+            <load_agents order="database"/>
+            
+            <!-- Optional. At what value do we start counting for automatically -->
+            <!-- generated Agent IDs? Set to a high value if you want to avoid  -->
+            <!-- ID collisions when manually specifying Agent IDs in the config file. -->
+            <!-- Setting this to zero has the same effect as leaving it out; the default value is zero. -->
+            <auto_id_start value="0"/>
+            
+            <!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
+            <mutex_enforcement    strategy="buffered" />
+
+            <!--  Commsim (communication) settings -->
+            <commsim enabled="false"> <!-- If false, the Broker is never added, so no commsim activities take place. -->
+                <min_clients value="1"/> <!-- Sim Mobility will hold on time tick 1 until this many clients connect. -->
+                <io_threads value="2"/> <!-- The number of threads to use for boost's io_service (for reading from Android clients). -->
+                <hold_tick value="500"/> <!-- Which tick to enforce the "min_clients" restriction at. -->
+                <use_ns3 value="true"/>  <!-- Use ns-3 to route network traffice between agents? If not, opaque messages are dispatched immediately. -->
+            </commsim>
+
+            <reacTime_distributionType1      value="1" /> <!-- 0 is normal distribution, 1 is log normal-->
+            <reacTime_distributionType2      value="1" />
+            <reacTime_mean1      value="500" />
+            <reacTime_mean2      value="500" />
+            <reacTime_standardDev1    value="100" />
+            <reacTime_standardDev2    value="100" />
+        </simulation>
+                
+        <!-- List of all Worker types and their properties. -->
+        <!-- granularity of each component must be a multiple of the "base" granularity -->
+        <workers>
+            <person count="1" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
+            <signal count="0" granularity="5 seconds"/> <!-- Traffic signals -->
+            <communication count="0" granularity="5 seconds"/>  <!-- Communication simulator -->
+        </workers>
+        
+        <!-- Setting to true should push everything onto one thread. -->
+        <!-- NOTE: Setting to true will cause the synchronization barriers not to be used. -->
+        <!-- Be careful about any functional logic which depends on the barriers -->
+        <single_threaded value="false"/>
+        
+        <!-- Setting to true will combine all out* files into one out.txt and delete the out* files. -->
+        <!-- Note that this may take quite some time to complete. -->
+        <!-- NOTE: We currently don't delete the source files; this seems un-needed. -->
+        <merge_log_files value="true"/>
+        
+        <!-- Setting to "database" will load the road network from the database. By default we load from "xml". -->
+        <!-- NOTE: This is fairly confusing; later we'll make it easier for different users to -->
+        <!--       maintain their own configurations. -->
+        <network_source value="database"/>
+
+        <!-- If loading from the database, which database, proc_map, and credentials are used? -->
+        <!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
+        <!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
+         <network_database database="fm_local_lt" credentials="LT_cred" /> 
+        <!--<network_database database="fm_remote" credentials="fm_remote" proc_map="bugis_large"/>-->
+        
+        <!-- Where to find our various schema files. -->
+        <!-- Overrides xsi:schemaLocation in the files themselves. -->
+        <!-- Note that absolute paths are allowed, and that relative paths are relative to the current working directory. -->
+        <xsd_schema_files/>  
+
+    </system>
+              
+    <!-- Long Term Configurations parameters -->
+    <longTermParams enabled ="true">
+    	<days value="365"/>
+    	<maxIterations value="1"/>
+    	<workers value="8"/>
+    	<tickStep value="1"/>
+    	<developerModel enabled="true">
+    		<timeInterval value="30"/>
+    	</developerModel>
+        <housingModel enabled="true"> 
+            <timeOnMarket value="30"/>
+            <timeInterval value="7"/>
+            <numberOfHouseholds value="-1"/>
+	        <numberOfUnits	value="-1"/>
+	        <numberOfVacantUnits value="-1"/> 
+        </housingModel>
+    </longTermParams>
+  
+</config>
+

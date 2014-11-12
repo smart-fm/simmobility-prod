@@ -42,6 +42,8 @@ namespace
                 return LTEID_EXT_NEW_JOB_LOCATION;
             case ExternalEvent::NEW_SCHOOL_LOCATION:
                 return LTEID_EXT_NEW_SCHOOL_LOCATION;
+            case ExternalEvent::ZONING_RULE_CHANGE:
+            	return LTEID_EXT_ZONING_RULE_CHANGE;
             default:
             	return -1;
         }
@@ -71,16 +73,25 @@ Entity::UpdateStatus EventsInjector::update(timeslice now)
     //(now+1) - events for the next day once our events are 1 tick delayed
     model.getExternalEvents((now.ms() + 1), events);
     vector<ExternalEvent>::iterator it = events.begin();
+
     AgentsLookup& lookup = AgentsLookupSingleton::getInstance();
     const HouseholdAgent* agent = nullptr;
-
+    const DeveloperAgent* devAgent = nullptr;
     for (it; it != events.end(); ++it)
     {
-        agent = lookup.getHouseholdById(it->getHouseholdId());
-        if (agent)
-        {
-                MessageBus::PublishEvent(toEventId(it->getType()), const_cast<HouseholdAgent*>(agent), MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
-        }
+    	devAgent = lookup.getDeveloperById(it->getDeveloperId());
+    	if(devAgent)
+    	{
+    		MessageBus::PublishEvent(toEventId(it->getType()), const_cast<DeveloperAgent*>(devAgent), MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
+    	}
+    	else
+    	{
+			agent = lookup.getHouseholdById(it->getHouseholdId());
+			if (agent)
+			{
+				MessageBus::PublishEvent(toEventId(it->getType()), const_cast<HouseholdAgent*>(agent), MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
+			}
+    	}
     }
     return Entity::UpdateStatus(Entity::UpdateStatus::RS_CONTINUE);
 }

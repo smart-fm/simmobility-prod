@@ -155,6 +155,7 @@ void ExternalEventsModel::mapClasses()
         .addProperty("day", &ExternalEvent::getDay, &ExternalEvent::setDay)
         .addProperty("type", &ExternalEvent::getType, &ExternalEvent::setType)
         .addProperty("householdId", &ExternalEvent::getHouseholdId, &ExternalEvent::setHouseholdId)
+        .addProperty("developerId", &ExternalEvent::getDeveloperId, &ExternalEvent::setDeveloperId)
     .endClass();
 }
 

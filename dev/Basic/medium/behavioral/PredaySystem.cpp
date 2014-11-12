@@ -116,7 +116,7 @@ namespace {
 		return res;
 	}
 
-	const std::map<int,std::string> modeMap = setModeMapTemp();
+	const std::map<int,std::string> modeMap = setModeMap();
 
 	/*
 	 * There are 48 half-hour indexes in a day from 3.25 to 26.75.
@@ -357,7 +357,12 @@ void sim_mob::medium::PredaySystem::predictSubTours(Tour& parentTour)
 
 		//unavail travel time to predicted destination by predicted mode
 		blockTravelTimeToSubTourLocation(subTour, parentTour, workBasedSubTourParams);
-		if(workBasedSubTourParams.allWindowsUnavailable()) { return; } //no-time for subtours
+		if(workBasedSubTourParams.allWindowsUnavailable())
+		{
+			//no-time for subtours. remove this and all subsequent sub-tours
+			while(tourIt!=subToursList.end()) { tourIt = subToursList.erase(tourIt); }
+			return;
+		}
 
 		// predict time of day
 		TimeWindowAvailability timeWindow = predictSubTourTimeOfDay(subTour, workBasedSubTourParams);
@@ -1761,7 +1766,7 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 	size_t numTours = tours.size();
 	if (numTours == 0) { return; }
 	std::string personId = personParams.getPersonId();
-	long hhFactor = (long)std::ceil(personParams.getHouseholdFactor());
+	long hhFactor = 8; //(long)std::ceil(personParams.getHouseholdFactor());
 	for(long k=1; k<=hhFactor; k++)
 	{
 		int homeNode = 0;
@@ -1828,14 +1833,14 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 				if(nextTourIt!=tours.end()) { homeActivityEndTime = getTimeWindowFromIndex((*nextTourIt).getStartTime()); }
 
 				//Home activity
-				//person_id character,tour_no,tour_type,stop_no integer NOT NULL,stop_type,stop_location,stop_mode,is_primary_stop,arrival_time,departure_time,prev_stop_location,prev_stop_departure_time
+				//person_id character,tour_no,tour_type,stop_no,stop_type,stop_location,stop_mode,is_primary_stop,arrival_time,departure_time,prev_stop_location,prev_stop_departure_time
 				tourStream << pid << ","
 						<< tourNum << ","
 						<< tour.getTourTypeStr() << ","
 						<< ++stopNum << ","
 						<< "Home" << ","
 						<< homeNode << ","
-						<< modeMap.at(4) << ","
+						<< modeMap.at(tour.getTourMode()) << ","
 						<< "False"  << ","
 						<< getTimeWindowFromIndex(tour.getEndTime()) << ","
 						<< homeActivityEndTime << ","

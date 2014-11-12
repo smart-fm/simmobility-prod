@@ -44,6 +44,9 @@ namespace sim_mob {
         const std::string DB_TABLE_LAND_USE_ZONE = APPLY_SCHEMA(MAIN_SCHEMA, "land_use_zone");
         const std::string DB_TABLE_DEVELOPMENT_TYPE_TEMPLATE = APPLY_SCHEMA(MAIN_SCHEMA, "development_type_template");
         const std::string DB_TABLE_TEMPLATE_UNIT_TYPE = APPLY_SCHEMA(MAIN_SCHEMA, "template_unit_type");
+        const std::string DB_TABLE_PROJECT = APPLY_SCHEMA(MAIN_SCHEMA, "fm_project");
+        const std::string DB_TABLE_PARCEL_MATCH = APPLY_SCHEMA(MAIN_SCHEMA, "parcel_match");
+        const std::string DB_TABLE_SLA_PARCEL = APPLY_SCHEMA(MAIN_SCHEMA, "sla_parcel");
         const std::string DB_TABLE_INDIVIDUAL = APPLY_SCHEMA(MAIN_SCHEMA, "individual");
         const std::string DB_TABLE_RESIDENTIAL_STATUS = APPLY_SCHEMA( MAIN_SCHEMA, "residential_status");
 
@@ -94,6 +97,11 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_TEMPLATE_UNIT_TYPES 	   = APPLY_SCHEMA(MAIN_SCHEMA, "getTemplateUnitTypes()");
         const std::string DB_FUNC_GET_TEMPLATE_UNIT_TYPE_BY_ID = APPLY_SCHEMA(MAIN_SCHEMA, "getTemplateUnitTypeById(:templateId, :unitTypeId)");
 
+        const std::string DB_FUNC_GET_PROJECTS = APPLY_SCHEMA(MAIN_SCHEMA, "getProjects()");
+        const std::string DB_FUNC_GET_PARCEL_MATCHES = APPLY_SCHEMA(MAIN_SCHEMA, "getParcelMatches()");
+        const std::string DB_FUNC_GET_SLA_PARCELS = APPLY_SCHEMA(MAIN_SCHEMA, "getSlaParcels()");
+
+
         const std::string DB_FUNC_DEL_INDIVIDUAL_BY_ID  = APPLY_SCHEMA(MAIN_SCHEMA, "deleteIndividualById(:id)");
         const std::string DB_FUNC_GET_INDIVIDUALS 		= APPLY_SCHEMA( MAIN_SCHEMA, "getIndividuals()");
         const std::string DB_FUNC_GET_INDIVIDUAL_BY_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getIndividualsById(:id)");
@@ -101,6 +109,7 @@ namespace sim_mob {
         const std::string DB_FUNC_DEL_RESIDENTIAL_STATUS_BY_ID = DB_EMPTY_QUERY;
         const std::string DB_FUNC_GET_RESIDENTIAL_STATUS_BY_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getResidentialStatusById(:id)");
         const std::string DB_FUNC_GET_RESIDENTIAL_STATUS 	   = APPLY_SCHEMA( MAIN_SCHEMA, "getResidentialStatus()");
+
         /**
          * Fields
          */
@@ -195,6 +204,7 @@ namespace sim_mob {
         const std::string DB_INSERT_UNIT = DB_EMPTY_QUERY;
         const std::string DB_INSERT_POSTCODE = DB_EMPTY_QUERY;
         const std::string DB_INSERT_POSTCODE_AMENITIES = DB_EMPTY_QUERY;
+        const std::string DB_INSERT_PROJECT = DB_EMPTY_QUERY;
         const std::string DB_INSERT_INDIVIDUAL = DB_EMPTY_QUERY;
         const std::string DB_INSERT_RESIDENTIAL_STATUS = DB_EMPTY_QUERY;
 
@@ -214,6 +224,7 @@ namespace sim_mob {
         const std::string DB_UPDATE_UNIT = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_POSTCODE = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_POSTCODE_AMENITIES = DB_EMPTY_QUERY;
+        const std::string DB_UPDATE_PROJECT = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_INDIVIDUAL = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_RESIDENTIAL_STATUS = DB_EMPTY_QUERY;
 
@@ -227,6 +238,8 @@ namespace sim_mob {
         const std::string DB_DELETE_POSTCODE_AMENITIES = DB_EMPTY_QUERY;
         const std::string DB_DELETE_INDIVIDUAL = "SELECT * FROM " + DB_FUNC_DEL_INDIVIDUAL_BY_ID;
         const std::string DB_DELETE_RESIDENTIAL_STATUS = DB_EMPTY_QUERY;
+        const std::string DB_DELETE_PROJECT = DB_EMPTY_QUERY;
+
 
         /**
          * GET ALL
@@ -244,6 +257,9 @@ namespace sim_mob {
         const std::string DB_GETALL_DEVELOPMENT_TYPE_TEMPLATES = "SELECT * FROM " + DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATES;
         const std::string DB_GETALL_INDIVIDUAL = "SELECT * FROM " + DB_FUNC_GET_INDIVIDUALS + LIMIT;
         const std::string DB_GETALL_RESIDENTIAL_STATUS = "SELECT * FROM " + DB_FUNC_GET_RESIDENTIAL_STATUS;
+        const std::string DB_GETALL_PROJECTS = "SELECT * FROM "+ DB_FUNC_GET_PROJECTS + LIMIT;
+        const std::string DB_GETALL_PARCEL_MATCHES = "SELECT * FROM "+ DB_FUNC_GET_PARCEL_MATCHES + LIMIT;
+        const std::string DB_GETALL_SLA_PARCELS = "SELECT * FROM "+ DB_FUNC_GET_SLA_PARCELS+ LIMIT;
 
         /**
          * GET BY ID

@@ -1898,7 +1898,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 				// break;
 			} else {
 				out_demandStat << tripID[i] << " " << atrip.requestTime << " " << origin[i] << " " << destination[i] << " 0 " << "2" << std::endl;
-				break;
+				continue;
 			}
 
 			//check if there is a route from destination to carpark
@@ -1914,7 +1914,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 				//break;
 			} else {
 				out_demandStat << tripID[i] << " " << atrip.requestTime << " " << origin[i] << " " << destination[i] << " 0 " << "3" << std::endl;
-				break;
+				continue;
 			}
 
 			//

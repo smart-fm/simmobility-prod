@@ -72,7 +72,7 @@ public:
 	double getDefaultTravelTimeBySegId(std::string id);
 
 	///	get travel time of a segment in a specific time from 'real time' or 'default' source
-	double getTravelTimeBySegId(std::string id,sim_mob::DailyTime startTime);
+	double getTravelTimeBySegId(const std::string &id,sim_mob::DailyTime startTime);
 
 	///	return cached node given its id
 	sim_mob::Node* getCachedNode(std::string id);
@@ -613,7 +613,7 @@ inline double getTravelCost2(sim_mob::SinglePath *sp,const sim_mob::DailyTime &t
 		double t = sim_mob::PathSetParam::getInstance()->getTravelTimeBySegId(seg_id,tripStartTime);
 		ts += t;
 		tripStartTime = tripStartTime + sim_mob::DailyTime(t*1000);
-		out << i << t << " " << ts << tripStartTime.getRepr_() << "  " ;
+		out << "iteration : " << i << t << " " << ts << tripStartTime.getRepr_() << "|  " ;
 		if(it!=sim_mob::PathSetParam::getInstance()->ERP_SectionPool.end())
 		{
 			sim_mob::ERP_Section* erp_section = (*it).second;
@@ -643,7 +643,7 @@ inline double getTravelCost2(sim_mob::SinglePath *sp,const sim_mob::DailyTime &t
 		}
 		out << "\n";
 	}
-		std::cout << out.str() << " |res:" << res << std::endl;
+		//std::cout << out.str() << " |res:" << res << std::endl;
 	return res;
 }
 

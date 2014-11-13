@@ -593,22 +593,27 @@ inline sim_mob::SinglePath* findShortestPath(std::set<sim_mob::SinglePath*, sim_
 
 inline double getTravelCost2(sim_mob::SinglePath *sp,const sim_mob::DailyTime &tripStartTime_)
 {
+	//debug
+	std::stringstream out("");
 	sim_mob::DailyTime tripStartTime(tripStartTime_);
 //	sim_mob::Logger::log("path_set").prof("getTravelCost2").tick();
 	double res=0.0;
 	double ts=0.0;
-	if(!sp) {
+	if(!sp || sp->shortestWayPointpath.begin() == sp->shortestWayPointpath.end()) {
 		sim_mob::Logger::log("path_set") << "gTC: sp is empty" << std::endl;
+		out << "\ngTC: sp is empty " << sp << "\n";
 	}
+	int i = 0;
 //	sim_mob::DailyTime trip_startTime = sp->pathSet->subTrip->startTime;
-	for(std::vector<WayPoint>::iterator it1 = sp->shortestWayPointpath.begin(); it1 != sp->shortestWayPointpath.end(); it1++)
+	for(std::vector<WayPoint>::iterator it1 = sp->shortestWayPointpath.begin(); it1 != sp->shortestWayPointpath.end(); it1++,i++)
 	{
 		std::string seg_id = (it1)->roadSegment_->originalDB_ID.getLogItem();
 		std::map<std::string,sim_mob::ERP_Section*>::iterator it = sim_mob::PathSetParam::getInstance()->ERP_SectionPool.find(seg_id);
 		//get travel time to this segment
 		double t = sim_mob::PathSetParam::getInstance()->getTravelTimeBySegId(seg_id,tripStartTime);
 		ts += t;
-		tripStartTime = tripStartTime + sim_mob::DailyTime(ts*1000);
+		tripStartTime = tripStartTime + sim_mob::DailyTime(t*1000);
+		out << i << t << " " << ts << tripStartTime.getRepr_() << "  " ;
 		if(it!=sim_mob::PathSetParam::getInstance()->ERP_SectionPool.end())
 		{
 			sim_mob::ERP_Section* erp_section = (*it).second;
@@ -627,9 +632,18 @@ inline double getTravelCost2(sim_mob::SinglePath *sp,const sim_mob::DailyTime &t
 					}
 				}
 			}
+			else
+			{
+				out << " |No ERP_SurchargePool data for " << erp_section->ERP_GantryNoStr;
+			}
 		}
+		else
+		{
+			out << " |No ERP_SectionPool data for section " << seg_id;
+		}
+		out << "\n";
 	}
-//	sim_mob::Logger::log("path_set").prof("getTravelCost2").tick(true);
+		std::cout << out.str() << " |res:" << res << std::endl;
 	return res;
 }
 

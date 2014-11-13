@@ -19,7 +19,7 @@
 	<!--From mitsim:-->
 	<!--param name="min_response_distance" value="4.6"/-->
 
-	<param name="min_response_distance" value="2.5"/>
+	<param name="min_response_distance" value="1.5"/>
 
 	
 	<!-- The SimMobility car-following model describes the
@@ -200,10 +200,10 @@
                                               	     		mean   stdev   lower   upper perception(percentage) -->
 	<!-- Default values are:-->
 	<!-- From A44 (Portugal) trajectory calibration-->
-	<!--param name="dec_update_step_size"          value=	"0.637    0.20     0.25     2.05    0.0"/>
-	<param name="acc_update_step_size"             value=	"0.850    0.25     0.30     2.75    0.0"/>
-	<param name="uniform_speed_update_step_size"   value=	"0.850    0.25     0.30     2.75    0.0"/>
-	<param name="stopped_vehicle_update_step_size" value=	"0.637    0.20     0.25     2.05    0.0"/-->
+	<!--param name="dec_update_step_size"          value=	"0.637    0.20     0.25     1.05    0.0"/>
+	<param name="acc_update_step_size"             value=	"0.850    0.25     0.30     1.55    0.0"/>
+	<param name="uniform_speed_update_step_size"   value=	"0.850    0.25     0.30     1.55    0.0"/>
+	<param name="stopped_vehicle_update_step_size" value=	"0.637    0.20     0.25     1.05    0.0"/-->
 
 	<!-- From mitsim: -->
 	<!--param name="dec_update_step_size"          value=	"0.5     0.0     0.5     0.5    0"/>
@@ -211,10 +211,10 @@
 	<param name="uniform_speed_update_step_size"   value=	"1.0     0.0     1.0     1.0    0"/>
 	<param name="stopped_vehicle_update_step_size" value=	"0.5     0.0     0.5     0.5    0"/-->
 
-	<param name="dec_update_step_size"          value=	"0.637    0.20     0.25     2.05    0.0"/>
-	<param name="acc_update_step_size"             value=	"0.850    0.25     0.30     2.75    0.0"/>
-	<param name="uniform_speed_update_step_size"   value=	"0.850    0.25     0.30     2.75    0.0"/>
-	<param name="stopped_vehicle_update_step_size" value=	"0.637    0.20     0.25     2.05    0.0"/>
+	<param name="dec_update_step_size"          value=	"0.537    0.20     0.25     1.05    0.0"/>
+	<param name="acc_update_step_size"             value=	"0.750    0.25     0.30     1.55    0.0"/>
+	<param name="uniform_speed_update_step_size"   value=	"0.750    0.25     0.30     1.55    0.0"/>
+	<param name="stopped_vehicle_update_step_size" value=	"0.537    0.20     0.25     1.05    0.0"/>
 
 
 <!-- G. VISIBILITY

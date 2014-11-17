@@ -574,7 +574,7 @@ bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql,std::string& 
 	}
 	catch (soci::soci_error const & err)
 	{
-		std::cout << "loadLinkRealTimeTravelTime: " << err.what() << std::endl;
+		std::cout << "[ERROR LOADING REALTIME TRAVEL TIME]: " << err.what() << std::endl;
 		return false;
 	}
 }

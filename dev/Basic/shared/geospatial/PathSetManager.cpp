@@ -1988,95 +1988,71 @@ void sim_mob::generatePathSizeForPathSet2(boost::shared_ptr<sim_mob::PathSet>&ps
 	// find MIN_DISTANCE
 	double minDistance=99999999.0;
 	minSP = *(ps->pathChoices.begin()); // record which is min
-
+	if(ps->oriPath ){
+		minDistance = ps->oriPath->length;
+		minSP = ps->oriPath;
+	}
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
-		if(ps->oriPath && sp->id == ps->oriPath->id){
+		if(sp->length < minDistance)
+		{
 			minDistance = sp->length;
 			minSP = sp;
 		}
-		else{
-			if(sp->travleTime < minTravelTime)
-			{
-				minTravelTime = sp->length;
-				minSP = sp;
-			}
-
-		}
-
 	}
-	if(!ps->pathChoices.empty() && minSP)
-	{
-		minSP->isMinDistance = 1;
-	}
+	minSP->isMinDistance = 1;
+
 	// find MIN_SIGNAL
 	int minSignal=99999999;
 	minSP = *(ps->pathChoices.begin()); // record which is min
-
+	if(ps->oriPath){
+		minSignal = ps->oriPath->signalNumber;
+		minSP = ps->oriPath;
+	}
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
-		if(ps->oriPath && sp->id == ps->oriPath->id){
+		if(sp->signalNumber < minSignal)
+		{
 			minSignal = sp->signalNumber;
 			minSP = sp;
 		}
-		else{
-			if(sp->signalNumber < minSignal)
-			{
-				minSignal = sp->signalNumber;
-				minSP = sp;
-			}
+	}
+	minSP->isMinSignal = 1;
 
-		}
-	}
-	if(!ps->pathChoices.empty())
-	{
-		minSP->isMinSignal = 1;
-	}
 	// find MIN_RIGHT_TURN
 	int minRightTurn=99999999;
 	minSP = *(ps->pathChoices.begin()); // record which is min
+	if(ps->oriPath){
+		minRightTurn = ps->oriPath->rightTurnNumber;
+		minSP = ps->oriPath;
+	}
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
-		if(ps->oriPath && sp->id == ps->oriPath->id){
+		if(sp->travleTime < minTravelTime)
+		{
 			minRightTurn = sp->rightTurnNumber;
 			minSP = sp;
 		}
-		else{
-			if(sp->travleTime < minTravelTime)
-			{
-				minRightTurn = sp->rightTurnNumber;
-				minSP = sp;
-			}
-
-		}
-
 	}
-	if(!ps->pathChoices.empty())
-	{
-		minSP->isMinRightTurn = 1;
-	}
+	minSP->isMinRightTurn = 1;
+
 	// find MAX_HIGH_WAY_USAGE
 	double maxHighWayUsage=0.0;
 	minSP = *(ps->pathChoices.begin()); // record which is min
+	if(ps->oriPath){
+		maxHighWayUsage = ps->oriPath->highWayDistance / ps->oriPath->length;
+		minSP = ps->oriPath;
+	}
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
-		if(ps->oriPath && sp->id == ps->oriPath->id){
+		if(maxHighWayUsage < sp->highWayDistance / sp->length)
+		{
 			maxHighWayUsage = sp->highWayDistance / sp->length;
 			minSP = sp;
 		}
-		else{
-			if(sp->travleTime < minTravelTime)
-			{
-				maxHighWayUsage = sp->highWayDistance / sp->length;
-				minSP = sp;
-			}
+	}
+	minSP->isMaxHighWayUsage = 1;
 
-		}
-	}
-	if(!ps->pathChoices.empty())
-	{
-		minSP->isMaxHighWayUsage = 1;
-	}
 	int dbg_ind = -1;
 	//pathsize
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)

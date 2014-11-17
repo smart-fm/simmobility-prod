@@ -442,7 +442,7 @@ MessageList FMOD_Controller::collectLinkTravelTime()
 		const std::map<double, linkTravelStats>& travelStatsMap = (*it)->linkTravelStatsMap.get();
 		for(std::map<double, linkTravelStats>::const_iterator itTravel=travelStatsMap.begin(); itTravel!=travelStatsMap.end(); itTravel++ ){
 
-			double travelTime = (itTravel->first) - (itTravel->second).linkEntryTime_;
+			double travelTime = (itTravel->first) - (itTravel->second).entryTime;
 			std::map<const Link*, travelTimes>::iterator itTT = LinkTravelTimesMap.find((itTravel->second).link_);
 
 			if (itTT != LinkTravelTimesMap.end())

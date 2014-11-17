@@ -373,10 +373,10 @@ public:
 	{
 	public:
 		double linkTravelTime_;
-		unsigned int agentCount_;
+		unsigned int agCnt;
 
 		LinkTravelTimes(double linkTravelTime, unsigned int agentCount)
-		: linkTravelTime_(linkTravelTime), agentCount_(agentCount) {}
+		: linkTravelTime_(linkTravelTime), agCnt(agentCount) {}
 	};
 
 	std::map<const Link*, LinkTravelTimes> LinkTravelTimesMap;
@@ -385,22 +385,22 @@ public:
 	void reportLinkTravelTimes(timeslice frameNumber);
 
 	//=======road segment travel time computation for current frame tick =================
-	struct rdSegTravelTimes
+	struct RdSegTravelTimes
 	{
 	public:
-		double rdSegTravelTime_;
-		unsigned int agentCount_;
+		double travelTimeSum;
+		unsigned int agCnt;
 
-		rdSegTravelTimes(double rdSegTravelTime, unsigned int agentCount)
-		: rdSegTravelTime_(rdSegTravelTime), agentCount_(agentCount) {}
+		RdSegTravelTimes(double rdSegTravelTime, unsigned int agentCount)
+		: travelTimeSum(rdSegTravelTime), agCnt(agentCount) {}
 	};
 
-	std::map<const RoadSegment*, rdSegTravelTimes> RdSegTravelTimesMap;
-	void setRdSegTravelTimes(Person* ag, double rdSegExitTime);
-	void resetRdSegTravelTimes(timeslice frameNumber);
+	std::map<const RoadSegment*, RdSegTravelTimes> rdSegTravelTimesMap;
+	void addRdSegTravelTimes(Person* ag, double rdSegExitTime);
+	void resetRdSegTravelTimes();
 	void reportRdSegTravelTimes(timeslice frameNumber);
 	bool insertTravelTime2TmpTable(timeslice frameNumber,
-			std::map<const RoadSegment*, sim_mob::Conflux::rdSegTravelTimes>& rdSegTravelTimesMap);
+			std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>& rdSegTravelTimesMap);
 	//================ end of road segment travel time computation ========================
 
 	/**

@@ -1005,9 +1005,9 @@ bool sim_mob::PathSetManager::getBestPath(
 		ps_->scenario = scenarioName;
 		ps_->subTrip = st;
 
-		bool r = generateAllPathChoicesMT(ps_, blckLstSegs);
+		bool r = generateAllPathChoices(ps_, blckLstSegs);
 		if (!r) {
-			cout << "[" << fromToID << "]" <<  " : generateAllPathChoicesMT failure\n";
+			cout << "[" << fromToID << "]" <<  " : generateAllPathChoices failure\n";
 			tempNoPath.insert(fromToID);
 			return false;
 		}
@@ -1060,12 +1060,12 @@ bool sim_mob::PathSetManager::getBestPath(
 	return false;
 }
 
-bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob::PathSet> &ps, const std::set<const sim_mob::RoadSegment*> & excludedSegs)
+bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, const std::set<const sim_mob::RoadSegment*> & excludedSegs)
 {
-	std::cout << "generateAllPathChoicesMT" << std::endl;
+	std::cout << "generateAllPathChoices" << std::endl;
 	/**
 	 * step-1: find the shortest path. if not found: create an entry in the "PathSet" table and return(without adding any entry into SinglePath table)
-	 * step-2: from the Singlepath's waypoints collection, compute the "travel cost" and "travel time"
+	 * step-2: cancelled for now! from the Singlepath's waypoints collection, compute the "travel cost" and "travel time"
 	 * step-3: SHORTEST DISTANCE LINK ELIMINATION
 	 * step-4: shortest travel time link elimination
 	 * step-5: TRAVEL TIME HIGHWAY BIAS
@@ -1246,7 +1246,7 @@ bool sim_mob::PathSetManager::generateAllPathChoicesMT(boost::shared_ptr<sim_mob
 		std::string str = "path set " + ps->id + " has no shortest path\n" ;
 		throw std::runtime_error(str);
 	}
-//	std::cout << "generateAllPathChoicesMT->perturbation" << std::endl;
+//	std::cout << "generateAllPathChoices->perturbation" << std::endl;
 	if(!ps->oriPath->isShortestPath){
 		std::string str = "path set " + ps->id + " is supposed to be the shortest path but it is not!\n" ;
 		throw std::runtime_error(str);
@@ -2073,22 +2073,22 @@ void sim_mob::generatePathSizeForPathSet2(boost::shared_ptr<sim_mob::PathSet>&ps
 		for(std::vector<WayPoint>::iterator it1=sp->shortestWayPointpath.begin(); it1!=sp->shortestWayPointpath.end(); ++it1)
 		{
 			const sim_mob::RoadSegment* seg = it1->roadSegment_;
-				double l=seg->length;
-				//Set sum = 0.
-				double sum=0;
-				//For each path j in the path choice set PathSet(O, D):
-				BOOST_FOREACH(sim_mob::SinglePath* spj, ps->pathChoices)
-				{
+			double l=seg->length;
+			//Set sum = 0.
+			double sum=0;
+			//For each path j in the path choice set PathSet(O, D):
+			BOOST_FOREACH(sim_mob::SinglePath* spj, ps->pathChoices)
+			{
 //					std::set<const RoadSegment*>::iterator itt2 = spj->shortestSegPath.find(seg);
-					std::vector<WayPoint>::iterator itt2;
-					for(itt2 = sp->shortestWayPointpath.begin(); itt2 != sp->shortestWayPointpath.end() && itt2->roadSegment_ != seg; ++itt2);
-					if(itt2!=spj->shortestWayPointpath.end())
-					{
-						//Set sum += minL / L(j)
-						sum += minL/(spj->length+0.000001);
-					} // itt2!=shortestSegPathj
-				} // for j
-				size += l/sp->length/(sum+0.000001);
+				std::vector<WayPoint>::iterator itt2;
+				for(itt2 = sp->shortestWayPointpath.begin(); itt2 != sp->shortestWayPointpath.end() && itt2->roadSegment_ != seg; ++itt2);
+				if(itt2!=spj->shortestWayPointpath.end())
+				{
+					//Set sum += minL / L(j)
+					sum += minL/(spj->length+0.000001);
+				} // itt2!=shortestSegPathj
+			} // for j
+			size += l/sp->length/(sum+0.000001);
 		}
 		sp->pathSize = log(size);
 	}// end for
@@ -2224,29 +2224,6 @@ sim_mob::PathSet::~PathSet()
 		safe_delete_item(sp);
 	}
 }
-
-//sim_mob::PathSet::PathSet(const boost::shared_ptr<sim_mob::PathSet> & ps) :
-//		logsum(ps->logsum),oriPath(ps->oriPath),
-//		subTrip(ps->subTrip),
-//		id(ps->id),
-//		fromNodeId(ps->fromNodeId),
-//		toNodeId(ps->toNodeId),
-//		scenario(ps->scenario),
-//		pathChoices(ps->pathChoices),
-//		singlepath_id(ps->singlepath_id),
-//		hasPath(ps->hasPath),
-//		bestWayPointpath(nullptr)
-//{
-//	isNeedSave2DB=false;
-//	isInit = false;
-//	hasBestChoice = false;
-//	// 1. get from to nodes
-//	//	can get nodes later,when insert to personPathSetPool
-//	this->fromNode = sim_mob::PathSetParam::getInstance()->getCachedNode(fromNodeId);
-//	this->toNode = sim_mob::PathSetParam::getInstance()->getCachedNode(toNodeId);
-////	// get all relative singlepath
-//}
-
 
 uint32_t sim_mob::PathSet::getSize(){
 	uint32_t sum = 0;

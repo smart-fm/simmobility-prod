@@ -78,7 +78,7 @@ public:
 	/**
 	 * remove all bus stops agent.
 	 */
-	static void removeAllBusStopAgent();
+	static void removeAllBusStopAgents();
 
 	/**
 	 * checks whether the bus stop can accommodate a vehicle of a given length

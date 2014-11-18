@@ -263,7 +263,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		BusController::CollectAndProcessAllRequests();
 	}
 
-	BusStopAgent::removeAllBusStopAgent();
+	BusStopAgent::removeAllBusStopAgents();
 
 	//Finalize partition manager
 #ifndef SIMMOB_DISABLE_MPI

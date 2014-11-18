@@ -109,12 +109,8 @@ sim_mob::BasicLogger::~BasicLogger(){
 		}
 	}
 
+	flush();
 	if (logFile.is_open()) {
-		outIt it = out.begin();
-		for(; it!= out.end(); it++)
-		{
-			flushLog(*(it->second));
-		}		
 		logFile.close();
 	}
 	for (outIt it(out.begin()); it != out.end();safe_delete_item(it->second), it++);
@@ -250,6 +246,17 @@ void sim_mob::QueuedLogger::flushLog()
 	logQueue.push(out);
 }
 
+
+void sim_mob::BasicLogger::flush()
+{
+	if (logFile.is_open()) {
+		outIt it = out.begin();
+		for(; it!= out.end(); it++)
+		{
+			flushLog(*(it->second));
+		}
+	}
+}
 
 /* ****************************************
  *     Default Logger wrap Implementation

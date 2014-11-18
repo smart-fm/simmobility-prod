@@ -170,17 +170,20 @@ protected:
 	///logger
 	std::ofstream logFile;
 
+	///	flush the the given log buffer into the output buffer-Default version
+	virtual void flushLog(std::stringstream &out);
+
 public:
 	/**
 	 * @param id arbitrary identification for this object
 	 */
 	BasicLogger(std::string id);
 
-	///	flush the log streams into the output buffer-Default version
-	virtual void flushLog(std::stringstream &out);
-
 	///	copy constructor
 	BasicLogger(const sim_mob::BasicLogger& value);
+
+	/// flush all buffers to the corresponding file
+	virtual void flush();
 
 	///	destructor
 	virtual ~BasicLogger();

@@ -575,6 +575,7 @@ bool sim_mob::PathSetManager::copyTravelTimeDataFromTmp2RealtimeTable()
 		return false;
 	}
 	//3.write into DB table
+	sim_mob::Logger::log("real_time_travel_time").flush();
 	sim_mob::aimsun::Loader::insertCSV2Table(*getSession(),	pathSetParam->pathSetTravelTimeRealTimeTableName, boost::filesystem::canonical("real_time_travel_time.txt").string());
 	return res;
 }

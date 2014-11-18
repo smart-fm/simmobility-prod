@@ -56,6 +56,12 @@ public:
 		this->parentWaitBusActivityRole = parentWaitBusActivityRole;
 	}
 
+	// mark startTimeand origin
+	virtual TravelMetric & startTravelTimeMetric() {}
+
+	//	mark the destination and end time and travel time
+	virtual TravelMetric & finalizeTravelTimeMetric() {}
+
 public:
     //Set by the BusDriver to the MS this Person should board the bus.
 	uint32_t boardingMS;

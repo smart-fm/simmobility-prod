@@ -243,33 +243,16 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		}
 
 		//Otherwise, make a trip chain for this Person.
-		Node * O = ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(oriNodeIt->second), true);
-		Node * D = ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destNodeIt->second), true);
-
-		if(!O || !D){
-			std::ostringstream out("");
-			out << "Nodes Located for (" << oriNodeIt->second << ") and (" << destNodeIt->second << ") :(" << O << "," << D << ")" << std::endl;
-			throw std::runtime_error(out.str());
-		}
-		this->originNode = WayPoint( O );
-		this->destNode = WayPoint( D );
-
-		//Make sure they have a mode specified for this trip
-		it = configProps.find("#mode");
-		if (it==configProps.end()) {
-			throw std::runtime_error("Cannot load person: no mode");
-		}
-		std::string mode = it->second;
+		this->originNode = WayPoint( ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(originNodeId) );
+		this->destNode = WayPoint( ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(destNodeid) );
 
 		Trip* singleTrip = MakePseudoTrip(*this, mode);
 
 		std::vector<TripChainItem*> trip_chain;
 		trip_chain.push_back(singleTrip);
 
-		//////
-		//////TODO: Some of this should be performed in a centralized place; e.g., "Agent::setTripChain"
-		//////
-		////////TODO: This needs to go in a centralized place.
+		//TODO: Some of this should be performed in a centralized place; e.g., "Agent::setTripChain"
+		//TODO: This needs to go in a centralized place.
 		this->originNode = singleTrip->fromLocation;
 		this->destNode = singleTrip->toLocation;
 		this->setNextPathPlanned(false);
@@ -293,22 +276,13 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 			this->originNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true) );
 			this->destNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destIt->second), true) );
 
-			//Make sure they have a mode specified for this trip
-			it = configProps.find("#mode");
-			if (it==configProps.end()) {
-				throw std::runtime_error("Cannot load person: no mode");
-			}
-			std::string mode = it->second;
-
 			Trip* singleTrip = MakePseudoTrip(*this, mode);
 
 			std::vector<TripChainItem*> trip_chain;
 			trip_chain.push_back(singleTrip);
 
-			//////
-			//////TODO: Some of this should be performed in a centralized place; e.g., "Agent::setTripChain"
-			//////
-			////////TODO: This needs to go in a centralized place.
+			//TODO: Some of this should be performed in a centralized place; e.g., "Agent::setTripChain"
+			//TODO: This needs to go in a centralized place.
 			this->originNode = singleTrip->fromLocation;
 			this->destNode = singleTrip->toLocation;
 			this->setNextPathPlanned(false);

@@ -486,9 +486,9 @@ public:
 
 	/**
 	 * get a list of all persons in the segment stats
-	 * @return list of all persons in the segment stats
+	 * @param out list for all persons in the segment stats
 	 */
-	std::deque<Person*> getPersons();
+	void getPersons(std::deque<Person*>& outList);
 
 	/**
 	 * updates the driving time to reach end of link of all persons in segment stats

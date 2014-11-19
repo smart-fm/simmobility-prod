@@ -171,6 +171,11 @@ const HM_Model::TazStats* HM_Model::getTazStats(BigSerial tazId) const
 	return nullptr;
 }
 
+HousingMarket* HM_Model::getMarket()
+{
+	return &market;
+}
+
 const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 {
 	BigSerial tazId = getUnitTazId(unitId);
@@ -219,7 +224,8 @@ void HM_Model::startImpl()
 			units.resize(numUnits);
 		}
 
-		if (numHouseholds != -1 && numHouseholds < households.size()) {
+		if (numHouseholds != -1 && numHouseholds < households.size())
+		{
 			households.resize(numHouseholds);
 		}
 	}

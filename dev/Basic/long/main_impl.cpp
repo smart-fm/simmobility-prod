@@ -39,8 +39,7 @@ using namespace sim_mob;
 using namespace sim_mob::long_term;
 
 //Current software version.
-const string SIMMOB_VERSION = string(
-        SIMMOB_VERSION_MAJOR) + "." + SIMMOB_VERSION_MINOR;
+const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + "." + SIMMOB_VERSION_MINOR;
 
 //Start time of program
 timeval start_time;
@@ -51,7 +50,8 @@ const std::string MODEL_LINE_FORMAT = "### %-30s : %-20s";
 //options
 const std::string OPTION_TESTS = "--tests";
 
-int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulationTime) {
+int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulationTime)
+{
     PrintOut("#################### LONG-TERM SIMULATION ####################" << endl);
     //Simulation Statistics
     PrintOut("#Simulation Number  : " << simulationNumber << endl);
@@ -60,11 +60,13 @@ int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulat
     PrintOut(endl);
     PrintOut("#Models:" << endl);
 
-    for (vector<Model*>::iterator itr = models.begin(); itr != models.end(); itr++) {
+    for (vector<Model*>::iterator itr = models.begin(); itr != models.end(); itr++)
+    {
         Model* model = *itr;
         const Model::Metadata& metadata = model->getMetadata();
 
-        for (Model::Metadata::const_iterator itMeta = metadata.begin(); itMeta != metadata.end(); itMeta++) {
+        for (Model::Metadata::const_iterator itMeta = metadata.begin(); itMeta != metadata.end(); itMeta++)
+        {
             boost::format fmtr = boost::format(MODEL_LINE_FORMAT);
             fmtr % itMeta->getKey() % itMeta->getValue();
             PrintOut(fmtr.str() << endl);
@@ -75,7 +77,8 @@ int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulat
     return 0;
 }
 
-void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
+void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
+{
     //Initiate configuration instance
     LT_ConfigSingleton::getInstance();
     PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
@@ -152,7 +155,8 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         	 models.push_back(developerModel);
 
         //start all models.
-        for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++) {
+        for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)
+        {
             (*it)->start();
         }
         
@@ -167,8 +171,10 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         const int LINE_BREAK = 20;
         bool isParcelRemain = true;
         for (unsigned int currTick = 0; currTick < days; currTick++)
-      {
-            PrintOut( currTick << " " );
+        {
+            PrintOut("Day " << currTick << std::endl );
+            PrintOut("The housing market has " << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize() << " units." << std::endl );
+
             wgMgr.waitAllGroups();
 
             DeveloperModel::ParcelList parcels;
@@ -184,9 +190,6 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
             {
             	isParcelRemain = false;
             }
-
-            if( currTick % LINE_BREAK == LINE_BREAK - 1 )
-            	PrintOut(endl);
         }
         PrintOut( endl );
 
@@ -197,7 +200,8 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         }
         
         //stop all models.
-        for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++) {
+        for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)
+        {
             (*it)->stop();
         }
     }
@@ -205,7 +209,8 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
     simulationWatch.stop();
     printReport(simulationNumber, models, simulationWatch);
     //delete all models.
-    while (!models.empty()) {
+    while (!models.empty())
+    {
         Model* modelToDelete = models.back();
         models.pop_back();
         safe_delete_item(modelToDelete);
@@ -217,11 +222,13 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
     agentsLookup.reset();    
 }
 
-int main_impl(int ARGC, char* ARGV[]) {
+int main_impl(int ARGC, char* ARGV[])
+{
 
     std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
-    if(args.size() < 2){
-       throw std::runtime_error("\n\nIt is necessary to provide the configuration XML file.\n\n    Example: ./SimMobility_Long ../data/simrun_basic.xml\n\n");
+    if(args.size() < 2)
+    {
+       throw std::runtime_error("\n\nIt is necessary to provide the configuration XML file.\n\n    Example: ./SimMobility_Long ../data/simrun_LongTerm.xml\n\n");
     }
     const std::string configFileName = args[1];
     //Parse the config file (this *does not* create anything, it just reads it.).
@@ -234,32 +241,50 @@ int main_impl(int ARGC, char* ARGV[]) {
     bool runTests = false;
     //process arguments.
     std::vector<std::string>::iterator it;
-    for (it = args.begin(); it != args.end(); it++){
-        if (it->compare(OPTION_TESTS) == 0){
+    for (it = args.begin(); it != args.end(); it++)
+    {
+        if (it->compare(OPTION_TESTS) == 0)
+        {
             runTests = true;
             continue;
         }
     }
     
-    if (!runTests) {
-        //get start time of the simulation.
-        std::list<std::string> resLogFiles;
-        const unsigned int maxIterations = config.ltParams.maxIterations;
-        for (int i = 0; i < maxIterations; i++) {
-            PrintOut("Simulation #:  " << (i + 1) << endl);
-            performMain((i + 1), resLogFiles);
-        }
+	time_t  start_clock   = time(0);
+	clock_t start_process = clock();
 
-        //Concatenate output files?
-        /*if (!resLogFiles.empty()) {
-            resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
-            Utils::printAndDeleteLogFiles(resLogFiles);
-        }*/
-        ConfigManager::GetInstanceRW().reset();
-    } else {
-    /*    unit_tests::DaoTests tests;
-        tests.testAll(); */
-    }
+	//get start time of the simulation.
+	std::list<std::string> resLogFiles;
+	const unsigned int maxIterations = config.ltParams.maxIterations;
+	for (int i = 0; i < maxIterations; i++)
+	{
+		PrintOut("Simulation #:  " << std::dec << (i + 1) << endl);
+		performMain((i + 1), resLogFiles);
+	}
+
+	ConfigManager::GetInstanceRW().reset();
+
+	time_t end_clock = time(0);
+	double time_clock = difftime( end_clock, start_clock );
+
+	clock_t end_process = clock();
+	double time_process = (double) ( end_process - start_process ) / CLOCKS_PER_SEC;
+
+	cout << "Wall clock time passed: ";
+	if( time_clock > 60 )
+	{
+		cout << (int)(time_clock / 60) << " minutes ";
+	}
+
+	cout << time_clock - ( (int)( time_clock / 60 ) * 60 )<< " seconds." << endl;
+
+	cout << "CPU time used: ";
+	if( time_process > 60 )
+	{
+		cout << (int)time_process / 60 << " minutes ";
+	}
+
+	cout << (int)( time_process - ( (int)(time_process / 60)  * 60 ) ) << " seconds" << endl;
     
     return 0;
 }

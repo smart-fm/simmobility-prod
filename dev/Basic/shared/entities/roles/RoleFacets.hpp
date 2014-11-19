@@ -116,6 +116,13 @@ public:
 
 	virtual bool updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Driver* other_driver) { return false; };
 	virtual void updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Pedestrian* pedestrian) {};
+	/**
+	 * message handler which provide a chance to handle message transfered from parent agent.
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void HandleMessage(messaging::Message::MessageType type,
+			const messaging::Message& message){}
 	
 	///	mark startTimeand origin
 	virtual TravelMetric& startTravelTimeMetric() = 0;

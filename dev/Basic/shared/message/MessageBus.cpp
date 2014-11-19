@@ -515,8 +515,6 @@ void MessageBus::SendInstantaneousMessage(MessageHandler* destination,
 	CheckThreadContext();
 	ThreadContext* context = GetThreadContext();
 	if (context && (destination->context==context || context->main)) {
-		Print() << "destination->context: " << destination->context << std::endl;
-		Print() << "current context: " << context << std::endl;
 		if (destination) {
 			destination->HandleMessage(type, *(message.get()));
 			context->receivedMessages++;

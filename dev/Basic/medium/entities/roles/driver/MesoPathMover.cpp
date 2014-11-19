@@ -155,7 +155,17 @@ void sim_mob::medium::MesoPathMover::moveFwdInSegStats(double fwdDisplacement)
 	distToSegmentEnd = std::max(distToSegmentEnd, 0.0);
 }
 
-
+void sim_mob::medium::MesoPathMover::printPath()
+{
+	std::stringstream pathStream;
+	pathStream << "SegmentStats path: ";
+	for(Path::iterator i=path.begin(); i!=path.end(); i++)
+	{
+		pathStream << (*i)->getRoadSegment()->getSegmentAimsunId() << "-" << (*i)->getStatsNumberInSegment() << "|";
+	}
+	pathStream << std::endl;
+	Print() << pathStream.str();
+}
 void sim_mob::medium::MesoPathMover::printPath(const Path &path, const Node *node){
 	std::ostringstream out("");
 	unsigned int id = 0;

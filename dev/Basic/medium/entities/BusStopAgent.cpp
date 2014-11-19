@@ -27,14 +27,21 @@ void BusStopAgent::registerBusStopAgent(BusStopAgent* busstopAgent)
 
 BusStopAgent* BusStopAgent::findBusStopAgentByBusStop(const BusStop* busstop)
 {
-	try
-	{
-		return allBusstopAgents.at(busstop);
-	} catch (const std::out_of_range& oor)
-	{
-		return nullptr;
-	}
+	try { return allBusstopAgents.at(busstop); }
+	catch (const std::out_of_range& oor) { return nullptr; }
 }
+
+void BusStopAgent::removeAllBusStopAgents()
+{
+	BusStopAgent::BusStopAgentsMap::iterator busStopAgIt = allBusstopAgents.begin();
+	while(busStopAgIt != allBusstopAgents.end())
+	{
+		safe_delete_item( (*busStopAgIt).second);
+		busStopAgIt++;
+	}
+	allBusstopAgents.clear();
+}
+
 
 BusStopAgent::BusStopAgent(const MutexStrategy& mtxStrat, int id, const BusStop* stop, SegmentStats* stats) :
 		Agent(mtxStrat, id), busStop(stop), parentSegmentStats(stats), availableLength(stop->getBusCapacityAsLength())
@@ -43,6 +50,13 @@ BusStopAgent::BusStopAgent(const MutexStrategy& mtxStrat, int id, const BusStop*
 
 BusStopAgent::~BusStopAgent()
 {
+	for(std::list<sim_mob::medium::WaitBusActivity*>::iterator i= waitingPersons.begin(); i!=waitingPersons.end();i++){
+		(*i)->getParent()->currWorkerProvider=nullptr;
+	}
+
+	for(std::list<sim_mob::medium::Passenger*>::iterator i = alightingPersons.begin(); i!=alightingPersons.end(); i++){
+		(*i)->getParent()->currWorkerProvider=nullptr;
+	}
 }
 
 void BusStopAgent::onEvent(event::EventId eventId, event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)

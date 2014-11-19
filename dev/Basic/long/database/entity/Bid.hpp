@@ -15,18 +15,17 @@
 #include "metrics/Frame.hpp"
 #include "agent/LT_Agent.hpp"
 
-namespace sim_mob {
-
-    namespace long_term {
-
+namespace sim_mob
+{
+    namespace long_term
+    {
         /**
          * Represents a bid to a unit.
          */
-        class Bid {
+        class Bid
+        {
         public:
-            Bid(BigSerial id, BigSerial bidderId, LT_Agent* bidder, double value, 
-                    timeslice& time, double willingnessToPay = 0.0, 
-                    double speculation = 0.0);
+            Bid(BigSerial id, BigSerial bidderId, LT_Agent* bidder, double value, timeslice& time, double willingnessToPay = 0.0, double speculation = 0.0);
             Bid(const Bid& source);
             virtual ~Bid();
 
@@ -82,8 +81,7 @@ namespace sim_mob {
             /**
              * Operator to print the Bid data.  
              */
-            friend std::ostream& operator<<(std::ostream& strm, 
-                const Bid& data);
+            friend std::ostream& operator<<(std::ostream& strm, const Bid& data);
             
         private:
             //TODO: FUTURE friend class BidDao;

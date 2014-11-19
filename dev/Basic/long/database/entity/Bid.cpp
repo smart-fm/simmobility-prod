@@ -15,7 +15,7 @@
 using namespace sim_mob::long_term;
 
 Bid::Bid(BigSerial unitId, BigSerial bidderId, LT_Agent* bidder, double value, timeslice& time, double willingnessToPay, double speculation)
-		 :unitId(unitId), bidderId(bidderId), value(value), time(time), bidder(bidder), willingnessToPay(willingnessToPay), speculation(speculation){}
+		:unitId(unitId), bidderId(bidderId), value(value), time(time), bidder(bidder), willingnessToPay(willingnessToPay), speculation(speculation){}
 
 Bid::Bid(const Bid& source) : time(source.time)
 {
@@ -81,11 +81,11 @@ namespace sim_mob {
 
         std::ostream& operator<<(std::ostream& strm, const Bid& data) {
             return strm << "{"
-                    << "\"unitId\":\"" << data.unitId << "\","
-                    << "\"bidderId\":\"" << data.bidderId << "\","
-                    << "\"value\":\"" << data.value << "\","
-                    << "\"day\":\"" << data.time.ms() << "\""
-                    << "}";
+						<< "\"unitId\":\"" << data.unitId << "\","
+						<< "\"bidderId\":\"" << data.bidderId << "\","
+						<< "\"value\":\"" << data.value << "\","
+						<< "\"day\":\"" << data.time.ms() << "\""
+						<< "}";
         }
     }
 }

@@ -4,6 +4,7 @@
 
 #include "BusDriverFacets.hpp"
 
+#include <sstream>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/BusStopAgent.hpp"
@@ -91,7 +92,6 @@ void BusDriverMovement::frame_tick() {
 	sim_mob::medium::DriverUpdateParams& params = parentBusDriver->getParams();
 	if(!parentBusDriver->getResource()->isMoving()) {
 		// isMoving()==false implies the bus is serving a stop
-		Print() << "Person: " << getParent()->getId() << "|bd.frame_tick|waitingTimeAtbusStop: " <<  parentBusDriver->waitingTimeAtbusStop << std::endl;
 		if (parentBusDriver->waitingTimeAtbusStop > params.secondsInTick) {
 			params.elapsedSeconds = params.secondsInTick;
 			parentBusDriver->waitingTimeAtbusStop -= params.secondsInTick;
@@ -104,6 +104,7 @@ void BusDriverMovement::frame_tick() {
 			//send bus departure message
 			const BusStop* stop = routeTracker.getNextStop();
 			BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(stop);
+			const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
 			parentBusDriver->closeBusDoors(stopAg);
 			routeTracker.updateNextStop();
 			DriverMovement::moveToNextSegment(params);
@@ -316,11 +317,6 @@ const sim_mob::Lane* BusDriverMovement::getBestTargetLane(
 
 bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 {
-	if(routeTracker.getBusRouteId() == "174_2")
-	{
-		Print() << "Person: " << getParent()->getId() << "|174_2" << std::endl;
-	}
-
 	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
 	const BusStop* nextStop = routeTracker.getNextStop();
 	if(nextStop && currSegStat->hasBusStop(nextStop))
@@ -337,14 +333,12 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				DailyTime startTm = ConfigManager::GetInstance().FullConfig().simStartTime();
 				DailyTime current(params.now.ms()+converToMilliseconds(params.elapsedSeconds)+startTm.getValue());
 				parentBusDriver->openBusDoors(current.toString(), stopAg);
-				Print() << "Person: " << getParent()->getId() << "|bd.moveToNextSegment|waitingTimeAtbusStop: " <<  parentBusDriver->waitingTimeAtbusStop << std::endl;
 				double remainingTime = params.secondsInTick - params.elapsedSeconds;
 				if(parentBusDriver->waitingTimeAtbusStop > remainingTime) {
 					parentBusDriver->waitingTimeAtbusStop -= remainingTime;
 					params.elapsedSeconds = params.secondsInTick;
 				}
 				else {
-					Print() << "Person: " << parent->getId() << "|moveToNextSegment|remaining: " << remainingTime << "|waitingTimeAtbusStop: " << parentBusDriver->waitingTimeAtbusStop  << endl;
 					params.elapsedSeconds += parentBusDriver->waitingTimeAtbusStop;
 					parentBusDriver->waitingTimeAtbusStop = 0;
 					parentBusDriver->closeBusDoors(stopAg);
@@ -415,23 +409,26 @@ void BusRouteTracker::updateNextStop()
 	nextStopIt++;
 }
 
-void BusRouteTracker::printBusRoute(unsigned int personId){
+void BusRouteTracker::printBusRoute(unsigned int personId)
+{
 	const vector<const sim_mob::RoadSegment*>& rsPath = getRoadSegments();
-	Print()<< "personId: " << personId << "|bus line: "<< this->busRouteId << std::endl;
-	Print()<< "segments in bus trip: "<< rsPath.size() << "\nsegments: ";
+	std::stringstream printStrm;
+	printStrm << "personId: " << personId << "|bus line: "<< this->busRouteId << std::endl;
+	printStrm << "segments in bus trip: "<< rsPath.size() << "\nsegments: ";
 	for (vector<const sim_mob::RoadSegment*>::const_iterator it = rsPath.begin(); it != rsPath.end(); it++)
 	{
 		const sim_mob::RoadSegment* rdSeg = *it;
-		Print() << rdSeg->getSegmentAimsunId() << "|";
+		printStrm << rdSeg->getSegmentAimsunId() << "|";
 	}
-	Print() << std::endl;
+	printStrm << std::endl;
 	const vector<const sim_mob::BusStop*>& stops = this->getBusStops();
-	Print()<< "stops in bus trip: "<< stops.size() << "\nstops: ";
+	printStrm << "stops in bus trip: "<< stops.size() << "\nstops: ";
 	for (vector<const sim_mob::BusStop*>::const_iterator it = stops.begin(); it != stops.end(); it++)
 	{
-		Print()<< (*it)->busstopno_ << "|";
+		printStrm << (*it)->busstopno_ << "|";
 	}
-	Print() << std::endl;
+	printStrm << std::endl;
+	Print() << printStrm.str();
 }
 }
 }

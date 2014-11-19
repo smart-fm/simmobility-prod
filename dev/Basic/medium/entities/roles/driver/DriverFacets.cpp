@@ -23,6 +23,7 @@
 #include "geospatial/Point2D.hpp"
 #include "geospatial/PathSetManager.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/PathSetManager.hpp"
 #include "message/MessageBus.hpp"
 
 #include "logging/Log.hpp"
@@ -148,7 +149,6 @@ void sim_mob::medium::DriverMovement::frame_tick() {
 	//debug
 	if(sectionId != currSegStats->getRoadSegment()->getSegmentAimsunId()){
 		sectionId = currSegStats->getRoadSegment()->getSegmentAimsunId();
-//		Print() << "frame:" <<  params.now.frame() << ",segment:" << sectionId << std::endl;
 	}
 	if(!currSegStats) {
 		//if currSegstats is NULL, either the driver did not find a path to his
@@ -276,7 +276,6 @@ bool sim_mob::medium::DriverMovement::initializePath() {
 
 void DriverMovement::setParentData(sim_mob::medium::DriverUpdateParams& params) {
 	if(!pathMover.isPathCompleted()) {
-		//Print() << "Person: " << parent->getId() << "|d.setParentData()" << std::endl;
 		parent->distanceToEndOfSegment = pathMover.getPositionInSegment();
 		parent->setCurrLane(currLane);
 		parent->setCurrSegStats(pathMover.getCurrSegStats());
@@ -296,7 +295,6 @@ void DriverMovement::stepFwdInTime(sim_mob::medium::DriverUpdateParams& params, 
 }
 
 bool DriverMovement::advance(sim_mob::medium::DriverUpdateParams& params) {
-	//Print() << "Person: " << parent->getId() << "|d.advance()" << std::endl;
 	if (pathMover.isPathCompleted()) {
 		getParent()->setToBeRemoved();
 		return false;
@@ -317,7 +315,6 @@ bool DriverMovement::advance(sim_mob::medium::DriverUpdateParams& params) {
 }
 
 bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& params) {
-	//Print() << "Person: " << getParent()->getId() << "|d.moveToNextSegment" << std::endl;
 	bool res = false;
 	bool isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
 	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
@@ -457,7 +454,6 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 	//This function gets called for 2 cases.
 	//1. Driver is added to virtual queue
 	//2. Driver is in previous segment trying to add to the next
-	//Print() << "Person: " << getParent()->getId() << "|d.flowIntoNextLinkIfPossible" << std::endl;
 	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
 	const sim_mob::SegmentStats* nextSegStats = pathMover.getNextSegStats(false);
 	const sim_mob::SegmentStats* nextToNextSegStats = pathMover.getSecondSegStatsAhead();
@@ -641,9 +637,7 @@ bool DriverMovement::advanceMovingVehicle(sim_mob::medium::DriverUpdateParams& p
 	//Therefore currSegStats cannot be NULL. It is safe to use it in this function.
 	double velocity = currSegStats->getSegSpeed(true);
 	double output = getOutputCounter(currLane, currSegStats);
-//	if(output <= 0){
-//		Print() << "Tick: " << params.now.frame() << "  : OutputCounter is <=0 " << std::endl;
-//	}
+
 	// add driver to queue if required
 	double laneQueueLength = getQueueLength(currLane);
 	if (laneQueueLength >  currSegStats->getLength())
@@ -1139,7 +1133,8 @@ bool DriverMovement::UTurnFree(std::vector<WayPoint> & newPath, std::vector<cons
 	//and then try again
 	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
 	//if no path, return false, if path found, return true
-	sim_mob::PathSetManager::getInstance()->getBestPath(newPath,&subTrip, excludeRS);
+	std::stringstream outDbg("");
+	sim_mob::PathSetManager::getInstance()->getBestPath(newPath,&subTrip, &outDbg, excludeRS);
 	//try again
 	if(!newPath.size()){
 		pathsetLogger<< "No other path can avoid a Uturn, suggest to discard \n" ;
@@ -1173,7 +1168,8 @@ bool DriverMovement::canJoinPaths(std::vector<WayPoint> & newPath, std::vector<c
 	//and then try again
 	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
 	//if no path, return false, if path found, return true
-	sim_mob::PathSetManager::getInstance()->getBestPath(newPath, &subTrip, excludeRS);
+	std::stringstream outDbg("");
+	sim_mob::PathSetManager::getInstance()->getBestPath(newPath,&subTrip, &outDbg, excludeRS);
 	to = newPath.begin()->roadSegment_;
 	bool res = isConnectedToNextSeg(from,to);
 	return res;
@@ -1320,15 +1316,6 @@ void DriverMovement::HandleMessage(messaging::Message::MessageType type,
 		break;
 	}
 	}
-}
-
-TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
-{
-	travelTimeMetric->startTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
-	const Node* startNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getStart();
-	travelTimeMetric->origin = WayPoint(startNode);
-	travelTimeMetric->started = true;
-	return *travelTimeMetric;
 }
 
 } /* namespace medium */

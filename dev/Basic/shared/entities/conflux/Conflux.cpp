@@ -192,25 +192,9 @@ void sim_mob::Conflux::updateUnsignalized()
 	PersonList orderedPersonsInLanes;
 	getAllPersonsUsingTopCMerge(orderedPersonsInLanes);
 
-//	{   //print persons to update
-//		std::stringstream pstrm;
-//		pstrm << "Conflux: " << this->multiNode->getID() << "|frame: " << currFrame.frame() << "|Persons to update: ";
-//		for(PersonList::const_iterator i=orderedPersonsInLanes.begin(); i!=orderedPersonsInLanes.end(); i++)
-//		{
-//			pstrm << (*i)->getId() << "|";
-//		}
-//		pstrm << std::endl;
-//		Print() << pstrm.str();
-//	}
-
 	PersonList::iterator personIt = orderedPersonsInLanes.begin();
 	for (; personIt != orderedPersonsInLanes.end(); personIt++)
 	{
-		if(!(*personIt)->getCurrLane())
-		{
-			Print() << "Conflux: " << this->multiNode->getID() << "|Person: " << (*personIt)->getId() << " NULL current lane before update" << std::endl;
-			if((*personIt)->getCurrSegStats()) { (*personIt)->getCurrSegStats()->printAgents(); }
-		}
 		updateAgent(*personIt);
 	}
 
@@ -259,17 +243,12 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person)
 	PersonProps afterUpdate(person);
 
 	//perform person's role related handling
-	//activity role specific handling
-	if (afterUpdate.roleType == sim_mob::Role::RL_PEDESTRIAN)
-	{
-		return;
-	}
-	else if (afterUpdate.roleType == sim_mob::Role::RL_WAITBUSACTITITY)
+	if (afterUpdate.roleType == sim_mob::Role::RL_WAITBUSACTITITY)
 	{
 		return;
 	}
 	else if (afterUpdate.roleType == sim_mob::Role::RL_ACTIVITY)
-	{
+	{	//activity role specific handling
 		// if role is ActivityPerformer after update
 		if (beforeUpdate.roleType == sim_mob::Role::RL_ACTIVITY)
 		{
@@ -277,11 +256,17 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person)
 			// nothing. It is also possible that the person has changed from
 			// one activity to another. Do nothing even in this case.
 		}
+		else if(beforeUpdate.roleType == sim_mob::Role::RL_PEDESTRIAN)
+		{
+			PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
+			if(pIt!=pedestrianList.end()){ pedestrianList.erase(pIt); }
+			activityPerformers.push_back(person);
+		}
 		else
 		{
 			// else if the person currently in an activity and was in a Trip
 			// before the latest update. Remove this person from the network
-			// and add him to the activity performers list
+			// and add him to the activity performers list.
 			if (beforeUpdate.lane)
 			{
 				// if the person was not in from a virtual queue, we dequeue him;
@@ -289,6 +274,10 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person)
 			}
 			activityPerformers.push_back(person);
 		}
+		return;
+	}
+	else if(beforeUpdate.roleType == sim_mob::Role::RL_PEDESTRIAN && afterUpdate.roleType == sim_mob::Role::RL_PEDESTRIAN)
+	{
 		return;
 	}
 	else
@@ -300,6 +289,11 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person)
 			std::deque<Person*>::iterator pIt = std::find(activityPerformers.begin(), activityPerformers.end(), person);
 			if(pIt!=activityPerformers.end()){
 				activityPerformers.erase(pIt);
+			}
+			if (afterUpdate.roleType == sim_mob::Role::RL_PEDESTRIAN)
+			{
+				pedestrianList.push_back(person);
+				return;
 			}
 		}
 	}
@@ -383,7 +377,10 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person)
 	else if ((beforeUpdate.segStats != afterUpdate.segStats) /*if the person has moved to another segment*/
 	|| (beforeUpdate.lane == beforeUpdate.segStats->laneInfinity && beforeUpdate.lane != afterUpdate.lane) /* or if the person has moved out of lane infinity*/)
 	{
-		beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
+		if(beforeUpdate.roleType!=sim_mob::Role::RL_ACTIVITY) // the person could have been an activity performer in which case segstats would be null
+		{
+			beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
+		}
 		if (afterUpdate.lane)
 		{
 			afterUpdate.segStats->addAgent(afterUpdate.lane, person);
@@ -394,7 +391,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person)
 			 * wants to enter a link which belongs to a conflux that is not yet
 			 * processed for this tick. We add this person to the virtual queue
 			 * for that link here */
-			person->distanceToEndOfSegment = afterUpdate.segment->getLaneZeroLength();
+			person->distanceToEndOfSegment = afterUpdate.segStats->getLength();
 			afterUpdate.segment->getParentConflux()->pushBackOntoVirtualQueue(afterUpdate.segment->getLink(), person);
 		}
 	}
@@ -713,7 +710,18 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, sim_mob::SegmentStats*
 		{
 			throw std::runtime_error("Conflux::killAgent(): Attempt to remove non-existent person in Lane");
 		}
-	} /*else the person must have started from a VQ*/
+	} 
+	else if(person->getRole()->roleType == sim_mob::Role::RL_DRIVER)
+	{
+		//It is possible that a driver is getting removed silently because
+		//a path could not be established for his current sub trip.
+		//In this case, the role will be Driver but the prevLane and prevSegStats will be NULL
+		//if the person's previous trip chain item is an Activity.
+		//TODO: There might be other weird scenarios like this, to be taken care of.
+		PersonList::iterator pIt = std::find(activityPerformers.begin(), activityPerformers.end(), person);
+		if(pIt!=activityPerformers.end()) { activityPerformers.erase(pIt); } //Check if he was indeed an activity performer and erase him
+	}
+	
 	parentWorker->remEntity(person);
 	parentWorker->scheduleForRemoval(person);
 }
@@ -797,12 +805,8 @@ bool sim_mob::Conflux::callMovementFrameInit(timeslice now, Person* person) {
 	//Now that the Role has been fully constructed, initialize it.
 	if(person->getRole()) {
 		person->getRole()->Movement()->frame_init();
-		// TODO: This line assumes that the only possible trip chain items are Car trips and Activity.
-		// person->setCurrPath() is not called bus drivers. Infact, bus drivers seem to have their own initialize path
-		// and are not overriding the initializePath() of the Driver class. More investigation and testing required.
-		// Leaving it like this for now to test for TRB paper.
-		// ~ Harish 27-7-2014
-		if(person->getRole()->roleType != sim_mob::Role::RL_ACTIVITY && person->getCurrPath().empty()){
+
+		if(person->getRole()->roleType == sim_mob::Role::RL_DRIVER && person->getCurrPath().empty()){
 			return false;
 		}
 	}
@@ -822,12 +826,12 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 	case MSG_PEDESTRIAN_TRANSFER_REQUEST:
 	{
 		const PedestrianTransferRequestMessage& msg = MSG_CAST(PedestrianTransferRequestMessage, message);
+		msg.pedestrian->currWorkerProvider = parentWorker;
 		pedestrianList.push_back(msg.pedestrian);
 		break;
 	}
 	case MSG_INSERT_INCIDENT:
 	{
-		Print() << "Conflux received MSG_INSERT_INCIDENT" << std::endl;
 		pathsetLogger << "Conflux received MSG_INSERT_INCIDENT" << std::endl;
 		const InsertIncidentMessage & msg = MSG_CAST(InsertIncidentMessage, message);
 		//change the flow rate of the segment
@@ -871,7 +875,7 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 	 * If the driver has reached the end of the current subtrip, the loop updates the current trip chain item of the person and change roles by calling person->checkTripChain().
 	 * We also set the current segment, set the lane as lane infinity and call the movement facet of the person's role again.
 	 */
-
+	unsigned i=0;
 	while(person->remainingTimeThisTick > 0.0) {
 		if (!person->isToBeRemoved()) {
 			personRole->Movement()->frame_tick();
@@ -880,7 +884,7 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 		if (person->isToBeRemoved()) {
 			retVal = person->checkTripChain();
 			personRole = person->getRole();
-			if (personRole && retVal.status == UpdateStatus::RS_DONE) {
+			if (retVal.status == UpdateStatus::RS_DONE) {
 				return retVal;
 			}
 			else if(personRole && retVal.status==UpdateStatus::RS_CONTINUE && personRole->roleType==Role::RL_WAITBUSACTITITY) {
@@ -889,18 +893,6 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 				if(pIt!=pedestrianList.end()){
 					pedestrianList.erase(pIt);
 				}
-				return retVal;
-			}
-			else if(personRole && retVal.status==UpdateStatus::RS_CONTINUE && personRole->roleType==Role::RL_ACTIVITY){
-				PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
-				if(pIt!=pedestrianList.end()){
-					pedestrianList.erase(pIt);
-				}
-				sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(personRole);
-				ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
-				ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
-				callMovementFrameInit(now, person);
-				activityPerformers.push_back(person);
 				return retVal;
 			}
 
@@ -923,7 +915,7 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 					}
 				}
 				else if((*person->currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) {
-					if (callMovementFrameInit(now, person)){
+					if (callMovementFrameInit(now, person)) {
 						person->setInitialized(true);
 					}
 					else{
@@ -937,7 +929,12 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 			Conflux* nextConflux = person->getNextLinkRequired()->getSegments().front()->getParentConflux();
 			messaging::MessageBus::PostMessage(nextConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST,
 					messaging::MessageBus::MessagePtr(new PedestrianTransferRequestMessage(person)));
-			return UpdateStatus::Done;
+			PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
+			if(pIt!=pedestrianList.end()){
+				pedestrianList.erase(pIt);
+				person->currWorkerProvider = nullptr;
+			}
+			return UpdateStatus::Continue;
 		}
 
 		if(person->requestedNextSegStats){
@@ -1121,7 +1118,7 @@ std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersons() {
 		for(SegmentStatsList::const_iterator rdSegIt=upstreamSegments.begin();
 				rdSegIt!=upstreamSegments.end(); rdSegIt++) {
 			segStats = (*rdSegIt);
-			tmpAgents = segStats->getPersons();
+			segStats->getPersons(tmpAgents);
 			allPersonsInCfx.insert(allPersonsInCfx.end(), tmpAgents.begin(), tmpAgents.end());
 		}
 	}
@@ -1132,6 +1129,7 @@ std::deque<sim_mob::Person*> sim_mob::Conflux::getAllPersons() {
 		allPersonsInCfx.insert(allPersonsInCfx.end(), tmpAgents.begin(), tmpAgents.end());
 	}
 	allPersonsInCfx.insert(allPersonsInCfx.end(), activityPerformers.begin(), activityPerformers.end());
+	allPersonsInCfx.insert(allPersonsInCfx.end(), pedestrianList.begin(), pedestrianList.end());
 	return allPersonsInCfx;
 }
 
@@ -1339,24 +1337,33 @@ unsigned int sim_mob::Conflux::getNumRemainingInLaneInfinity() {
 }
 
 const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
-	std::vector<sim_mob::TripChainItem*> agTripChain = p->getTripChain();
-	const sim_mob::TripChainItem* firstItem = agTripChain.front();
-
-	std::vector<WayPoint> path = std::vector<WayPoint>();
 	const sim_mob::RoadSegment* rdSeg = nullptr;
-	const Trip* firstTrip = dynamic_cast<const Trip*>(firstItem);
+	const std::vector<sim_mob::TripChainItem*> & agTripChain = p->getTripChain();
+	sim_mob::TripChainItem *tci;
+	BOOST_FOREACH(tci,agTripChain){
+		if(tci->itemType == sim_mob::TripChainItem::IT_TRIP){
+			break;
+		}
+	}
+	//sanity check
+	sim_mob::Trip *firstTrip = dynamic_cast<sim_mob::Trip*>(tci);
+	if(!firstTrip){ return nullptr; }
+
+	std::vector<WayPoint> path;
+	
 	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 
 	bool pathSetRole = false;
 	if(firstTrip)
 	{
-		std::string mode = firstItem->getMode();
+		std::string mode = firstTrip->getMode();
 		pathSetRole = (mode == "Car" || mode == "Taxi" || mode == "Motorcycle") ;
 	}
 	if (firstTrip && ConfigManager::GetInstance().FullConfig().PathSetMode() && pathSetRole) {
 		path = PathSetManager::getInstance()->getPath(p,firstTrip->getSubTrips().front());
 	}
 	else{
+		const sim_mob::TripChainItem* firstItem = agTripChain.front();
 
 		std::string role = rf.GetRoleName(firstItem->getMode()); //getMode is a virtual function. see its documentation
 		StreetDirectory& streetDirectory = StreetDirectory::instance();

@@ -26,6 +26,8 @@ class PartitionManager;
 class PackageUtils;
 class UnPackageUtils;
 class UpdateParams;
+class OD_Trip;
+
 
 /// simple structure used to collect travel time information
 struct TravelMetric
@@ -104,7 +106,10 @@ public:
      * insert a waiting activity before bus travel
      * @param tripChain is the reference to current trip chain
      */
-    void insertWaitingActivityToTrip(std::vector<TripChainItem*>& tripChain);
+    void insertWaitingActivityToTrip();
+    void convertODsToTrips();
+    void makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips,
+    		std::vector<const sim_mob::OD_Trip*>& matchedTrips);
 
     // update nextTripChainItem, used only for NextRole
 	bool updateNextTripChainItem();
@@ -113,15 +118,8 @@ public:
     ///Check if any role changing is required.
     /// "nextValidTimeMS" is the next valid time tick, which may be the same at this time tick.
     Entity::UpdateStatus checkTripChain();
-    bool changeRoleRequired(sim_mob::Role & currRole,sim_mob::SubTrip &currSubTrip)const;//todo depricate later
-    bool changeRoleRequired_Trip /*sim_mob::Trip &trip*/
-	() const;
-	bool changeRoleRequired_Activity /*sim_mob::Activity &activity*/
-	() const;
-	bool changeRoleRequired(sim_mob::TripChainItem& tripChinItem) const;
 	//update origin and destination node based on the trip, subtrip or activity given
-	bool updateOD(sim_mob::TripChainItem* tc, const sim_mob::SubTrip* subtrip =
-			0);
+	bool updateOD(sim_mob::TripChainItem* tc, const sim_mob::SubTrip* subtrip = 0);
 
 	///get this person's trip chain
 	const std::vector<TripChainItem*>& getTripChain() const {
@@ -307,7 +305,10 @@ private:
 	  */
 	 std::string serializeActivity(std::vector<TripChainItem*>::iterator item);
 
-
+	 /**
+	  * prints the trip chain item types of each item in tripChain
+	  */
+	 void printTripChainItemTypes() const;
 
 
 

@@ -65,14 +65,14 @@ public:
 	//todo: use this to register roles
 	enum type
 	{
+		RL_UNKNOWN=0,
 		RL_DRIVER,
 		RL_BIKER,
 		RL_PEDESTRIAN,
 		RL_BUSDRIVER,
 		RL_ACTIVITY,
 		RL_PASSENGER,
-		RL_WAITBUSACTITITY,
-		RL_UNKNOWN
+		RL_WAITBUSACTITITY
 	};
 
 	//todo: use this to identify the type of request

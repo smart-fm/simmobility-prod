@@ -82,18 +82,20 @@ namespace {
 
         MessageEntry()
         : destination(nullptr), internal(false), event(false),
-        priority(MessageBus::MB_MIN_MSG_PRIORITY), processOnMainThread(false){
+        priority(MessageBus::MB_MIN_MSG_PRIORITY), processOnMainThread(false),
+        countdownTicks(0){
         }
 
-        MessageEntry(const MessageEntry& source) {
-            this->destination = source.destination;
-            this->message = source.message;
-            this->type = source.type;
-            this->internal = source.internal;
-            this->priority = source.priority;
-            this->event = source.event;
-            this->processOnMainThread = source.processOnMainThread;
-        }
+		MessageEntry(const MessageEntry& source) {
+			this->destination = source.destination;
+			this->message = source.message;
+			this->type = source.type;
+			this->internal = source.internal;
+			this->priority = source.priority;
+			this->event = source.event;
+			this->processOnMainThread = source.processOnMainThread;
+			this->countdownTicks = source.countdownTicks;
+		}
 
         MessageHandler* destination;
         MessageBus::MessagePtr message;
@@ -102,6 +104,7 @@ namespace {
         int priority;
         bool event;
         bool processOnMainThread;
+        unsigned int countdownTicks;
     } *MessageEntryPtr;
 
     struct ComparePriority {
@@ -418,8 +421,16 @@ void MessageBus::DispatchMessages() {
         ContextList::iterator lstItr = threadContexts.begin();
         while (lstItr != threadContexts.end()) {
             ThreadContext* context = (*lstItr);
+            MessageQueue output;
             while (!context->output.empty()) {
                 const MessageEntry& entry = context->output.top();
+                if(entry.countdownTicks>0){
+                	MessageEntry rescheduleEntry(entry);
+                	rescheduleEntry.countdownTicks--;
+                 	output.push(rescheduleEntry);
+                	context->output.pop();
+                	continue;
+                }
                 if (entry.event) {
                     context->eventMessages++;
                     //if it is an event then we need to distribute the event for all
@@ -448,6 +459,9 @@ void MessageBus::DispatchMessages() {
                 // internal messages go to the input queue of the main context.
                 context->output.pop();
             }
+            if(!output.empty()){
+            	context->output = output;
+            }
             lstItr++;
         }
     }
@@ -473,8 +487,9 @@ void MessageBus::ThreadDispatchMessages() {
     }
 }
 
-void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType type, 
-                             MessageBus::MessagePtr message, bool processOnMainThread) {
+void MessageBus::PostMessage(MessageHandler* destination,
+		Message::MessageType type, MessageBus::MessagePtr message,
+		bool processOnMainThread, unsigned int countdownTicks) {
     CheckThreadContext();
     ThreadContext* context = GetThreadContext();
     if (context) {
@@ -489,6 +504,7 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
             entry.internal = (internalMsg != nullptr);
             entry.event = (eventMsg != nullptr);
             entry.processOnMainThread = processOnMainThread;
+            entry.countdownTicks = countdownTicks;
             context->output.push(entry);
         }
     }
@@ -498,9 +514,7 @@ void MessageBus::SendInstantaneousMessage(MessageHandler* destination,
 		Message::MessageType type, MessagePtr message) {
 	CheckThreadContext();
 	ThreadContext* context = GetThreadContext();
-	if (context && destination->context == context) {
-		Print() << "destination->context: " << destination->context << std::endl;
-		Print() << "current context: " << context << std::endl;
+	if (context && (destination->context==context || context->main)) {
 		if (destination) {
 			destination->HandleMessage(type, *(message.get()));
 			context->receivedMessages++;

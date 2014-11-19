@@ -450,6 +450,12 @@ std::vector<sim_mob::BusSchedule*>& sim_mob::ConfigParams::getBusSchedule()
 	return busschedule;
 }
 
+std::vector<sim_mob::OD_Trip>& sim_mob::ConfigParams::getODsTripsMap()
+{
+	return ODsTripsMap;
+}
+
+
 std::vector<sim_mob::PT_trip*>& sim_mob::ConfigParams::getPT_trip()
 {
 	return pt_trip;

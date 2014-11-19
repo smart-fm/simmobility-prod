@@ -49,6 +49,8 @@ public:
 	virtual void frame_init();
 	virtual void frame_tick();
 	virtual void frame_tick_output();
+	TravelMetric & startTravelTimeMetric();
+	TravelMetric & finalizeTravelTimeMetric();
 
 	/**
 	 * set parent reference to waiting activity role.

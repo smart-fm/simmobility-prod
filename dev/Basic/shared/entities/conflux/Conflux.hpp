@@ -96,10 +96,11 @@ private:
 	 */
     struct PersonProps {
     public:
-    	const sim_mob::Role* role;
     	const sim_mob::RoadSegment* segment;
     	const sim_mob::Lane* lane;
     	bool isQueuing;
+    	bool isMoving;
+    	unsigned int roleType;
     	sim_mob::SegmentStats* segStats;
 
     	PersonProps(const sim_mob::Person* person);

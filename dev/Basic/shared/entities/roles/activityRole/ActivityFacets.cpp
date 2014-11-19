@@ -51,3 +51,12 @@ sim_mob::ActivityPerformerMovement::ActivityPerformerMovement(sim_mob::Person* p
 	MovementFacet(parentAgent), parentActivity(parentRole) {
 }
 
+// dummy implementation to be consistent with other roles
+sim_mob::TravelMetric& sim_mob::ActivityPerformerMovement::startTravelTimeMetric() {
+	return *(travelTimeMetric.get());
+}
+
+// dummy implementation to be consistent with other roles
+sim_mob::TravelMetric& sim_mob::ActivityPerformerMovement::finalizeTravelTimeMetric() {
+	return *(travelTimeMetric.get());
+}

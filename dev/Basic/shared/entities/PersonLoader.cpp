@@ -295,7 +295,8 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	for(map<string, vector<TripChainItem*> >::iterator i=tripchains.begin(); i!=tripchains.end(); i++)
 	{
 		Person* person = new Person("DAS_TripChain", cfg.mutexStategy(), i->second);
-		addOrStashPerson(person);
+		if(!person->getTripChain().empty()) { addOrStashPerson(person); }
+		else { delete person; }
 	}
 
 	Print() << "PeriodicPersonLoader:: activities loaded from " << nextLoadStart << " to " << end << ": " << actCtr
@@ -308,8 +309,9 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 
 void sim_mob::PeriodicPersonLoader::addOrStashPerson(Person* p)
 {
+	Print() << "person: " << p->getId() << " | start_time: " << p->getStartTime() << std::endl;
 	//Only agents with a start time of zero should start immediately in the all_agents list.
-	if (p->getStartTime()==0) //TODO: Check if this condition will suffice here
+	if (p->getStartTime()==0)
 	{
 		p->load(p->getConfigProperties());
 		p->clearConfigProperties();

@@ -9,7 +9,6 @@
 #include "geospatial/RoadSegment.hpp"
 #include "logging/Log.hpp"
 
-
 void sim_mob::medium::MesoPathMover::setPath(const std::vector<const sim_mob::SegmentStats*>& segStatPath)
 {
 	if (segStatPath.empty())
@@ -156,14 +155,18 @@ void sim_mob::medium::MesoPathMover::moveFwdInSegStats(double fwdDisplacement)
 	distToSegmentEnd = std::max(distToSegmentEnd, 0.0);
 }
 
-void sim_mob::medium::MesoPathMover::printPath()
-{
-	std::stringstream pathStream;
-	pathStream << "SegmentStats path: ";
-	for(Path::iterator i=path.begin(); i!=path.end(); i++)
-	{
-		pathStream << (*i)->getRoadSegment()->getSegmentAimsunId() << "-" << (*i)->getStatsNumberInSegment() << "|";
+
+void sim_mob::medium::MesoPathMover::printPath(const Path &path, const Node *node){
+	std::ostringstream out("");
+	unsigned int id = 0;
+	if(node){
+		out << node->getID() << ": " ;
 	}
-	pathStream << std::endl;
-	Print() << pathStream.str();
+	for(Path::const_iterator it = path.begin(); it != path.end(); it++){
+		if(id != (*it)->getRoadSegment()->getSegmentAimsunId()){
+			id = (*it)->getRoadSegment()->getSegmentAimsunId();
+			out << id << "," ;
+		}
+	}
+	sim_mob::Logger::log("path_set") << out.str() << std::endl;
 }

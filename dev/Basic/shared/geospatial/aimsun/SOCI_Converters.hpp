@@ -36,8 +36,6 @@ class LinkTravelTime;
 class PathSet;
 class SinglePath;
 class CBD_Pair;
-
-
 template<> struct type_conversion<sim_mob::CBD_Pair>
 {
     typedef values base_type;

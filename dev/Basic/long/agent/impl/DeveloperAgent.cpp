@@ -54,26 +54,25 @@ namespace {
      * @param model Developer model.
      * @param outProjects (out parameter) list to receive all projects;
      */
-    inline void createPotentialProjects(std::vector<BigSerial>& parcelsToProcess, const DeveloperModel& model, std::vector<PotentialProject>& outProjects)
+inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel& model, std::vector<PotentialProject>& outProjects)
     {
         const DeveloperModel::DevelopmentTypeTemplateList& devTemplates = model.getDevelopmentTypeTemplates();
         const DeveloperModel::TemplateUnitTypeList& unitTemplates = model.getTemplateUnitType();
         /**
-         *  Iterates over all developer parcels and developmenttype templates and 
-         *  get all potential projects which have a density >= GPR. 
+         *  Iterates over all development type templates and
+         *  get all potential projects which have a density <= GPR.
          */
-        for (size_t i = 0; i < parcelsToProcess.size(); i++)
-        {
-            const Parcel* parcel = model.getParcelById(parcelsToProcess[i]);
+            const Parcel* parcel = model.getParcelById(parcelId);
             if (parcel)
             {
-                //const LandUseZone* zone = model.getZoneById(parcel->getLandUseZoneId());
-            	const LandUseZone* zone = NULL;
+            	BigSerial slaParcelId = model.getSlaParcelIdByFmParcelId(parcel->getId());
+            	SlaParcel *slaParcel = model.getSlaParcelById(slaParcelId);
+                const LandUseZone* zone = model.getZoneById(slaParcel->getLandUseZoneId());
                 DeveloperModel::DevelopmentTypeTemplateList::const_iterator it;
 
                 for (it = devTemplates.begin(); it != devTemplates.end(); it++)
                 {
-                    if ((*it)->getDensity() >= parcel->getGpr())
+                    if ((*it)->getDensity() <= parcel->getGpr())
                     {
                         PotentialProject project((*it), parcel, zone);
                         createProjectUnits(project, unitTemplates);
@@ -82,11 +81,10 @@ namespace {
                 }
             }
         }
-    }
 }
 
-DeveloperAgent::DeveloperAgent(Developer* developer, DeveloperModel* model)
-: LT_Agent((developer) ? developer->getId() : INVALID_ID), model(model) {
+DeveloperAgent::DeveloperAgent(Parcel* parcel, DeveloperModel* model)
+: LT_Agent((parcel) ? parcel->getId() : INVALID_ID), model(model) {
 }
 
 DeveloperAgent::~DeveloperAgent() {
@@ -107,21 +105,21 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     if (model && (now.ms() % model->getTimeInterval()) == 0)
     {
         std::vector<PotentialProject> projects;
-        createPotentialProjects(parcelsToProcess, *model, projects);
-        std::vector<PotentialProject>::iterator it;
-
-        for (it = projects.begin(); it != projects.end(); it++)
-        {
-            //PrintOut("Project: " << (*it) <<std::endl);
-            const std::vector<PotentialUnit>& units = (*it).getUnits();
-            std::vector<PotentialUnit>::const_iterator unitsItr;
-
-            for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++)
-            {
-                PostcodeAmenities amenities;
-                LuaProvider::getDeveloperModel().calulateUnitRevenue((*unitsItr), amenities);
-            }
-        }
+        createPotentialProjects(this->id, *model,projects);
+//        std::vector<PotentialProject>::iterator it;
+//
+//        for (it = projects.begin(); it != projects.end(); it++)
+//        {
+//            //PrintOut("Project: " << (*it) <<std::endl);
+//            const std::vector<PotentialUnit>& units = (*it).getUnits();
+//            std::vector<PotentialUnit>::const_iterator unitsItr;
+//
+//            for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++)
+//            {
+//                PostcodeAmenities amenities;
+//                LuaProvider::getDeveloperModel().calulateUnitRevenue((*unitsItr), amenities);
+//            }
+//        }
     }
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
@@ -130,12 +128,31 @@ void DeveloperAgent::onFrameOutput(timeslice now) {
 }
 
 void DeveloperAgent::onEvent(EventId eventId, Context ctxId, EventPublisher*, const EventArgs& args) {
+
+	processEvent(eventId, ctxId, args);
+}
+
+void DeveloperAgent::processEvent(EventId eventId, Context ctxId, const EventArgs& args)
+{
+	switch (eventId) {
+	        case LTEID_EXT_ZONING_RULE_CHANGE:
+	        {
+	        	model->reLoadZonesOnRuleChangeEvent();
+	        	model->processParcels();
+	            break;
+	        }
+	        default:break;
+	    };
 }
 
 void DeveloperAgent::onWorkerEnter() {
+
+	MessageBus::SubscribeEvent(LTEID_EXT_ZONING_RULE_CHANGE, this, this);
 }
 
 void DeveloperAgent::onWorkerExit() {
+
+	MessageBus::UnSubscribeEvent(LTEID_EXT_ZONING_RULE_CHANGE, this, this);
 }
 
 void DeveloperAgent::HandleMessage(Message::MessageType type, const Message& message) {

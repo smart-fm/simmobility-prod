@@ -277,6 +277,8 @@ sim_mob::BasicLogger & sim_mob::Logger::operator()(const std::string &key)
 	if(it == repo.end()){
 		std::cout << "creating a new Logger for " << key << std::endl;
 		boost::shared_ptr<sim_mob::BasicLogger> t(new sim_mob::LogEngine(key));
+		std::map<const std::string, boost::shared_ptr<sim_mob::BasicLogger> > repo_;
+		repo_.insert(std::make_pair(key,t));
 		repo.insert(std::make_pair(key,t));
 		return *t;
 	}

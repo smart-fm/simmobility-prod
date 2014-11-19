@@ -5,6 +5,7 @@
 #pragma once
 
 #include <boost/noncopyable.hpp>
+#include <boost/shared_ptr.hpp>
 #include <set>
 #include <string>
 
@@ -203,7 +204,6 @@ private:
 	 * adds person to active or pending agents list depending on start time
 	 */
 	void addOrStashPerson(Person* p);
-
 public:
 	PeriodicPersonLoader(std::set<sim_mob::Entity*>& activeAgents, StartTimePriorityQueue& pendinAgents);
 	virtual ~PeriodicPersonLoader();

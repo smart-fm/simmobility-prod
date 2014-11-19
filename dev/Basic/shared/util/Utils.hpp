@@ -106,7 +106,17 @@ namespace sim_mob {
          * @return value in meter.
          */
         static double toMeter(const double feet);
-        
+        typedef boost::shared_ptr<boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > > ND_PTR;
+        template<typename T>
+        static ND_PTR initDistribution(std::pair<T , T > range){
+
+        	//normal distribution
+        	boost::mt19937 rng; // I don't seed it on purpouse (it's not relevant)
+        	boost::normal_distribution<> nd(range.first, range.second);
+        	boost::shared_ptr<boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > > distributionPtr;
+        	distributionPtr.reset(new boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > (rng, nd));
+        	return distributionPtr;
+        }
         /**
          * Converts the given value (in centimeters) to meters.
          * @param cmValue

@@ -251,7 +251,10 @@ const sim_mob::Lane* BusDriverMovement::getBestTargetLane(
 			if (!((*lnIt)->is_pedestrian_lane()))
 			{
 				const Lane* lane = *lnIt;
-				if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats)) { continue; }
+				if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment()))
+				{
+					continue;
+				}
 				total = nextSegStats->getLaneTotalVehicleLength(lane);
 				que = nextSegStats->getLaneQueueLength(lane);
 				if (minLength > total)

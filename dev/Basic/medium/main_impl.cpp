@@ -19,6 +19,7 @@
 #include "conf/ParseConfigFile.hpp"
 #include "conf/ExpandAndValidateConfigFile.hpp"
 #include "database/DB_Connection.hpp"
+#include "entities/incident/IncidentManager.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/Agent.hpp"
 #include "entities/BusController.hpp"
@@ -179,15 +180,18 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++)
 	{
-		personWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Agent*>(*it));
+		personWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Person*>(*it));
 	}
 
 	if(BusController::HasBusControllers())
 	{
 		personWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
-	}
 
-	cout << "Initial Agents dispatched or pushed to pending." << endl;
+	}
+	//incident
+	personWorkers->assignAWorker(IncidentManager::getInstance());
+
+	cout << "Initial Agents dispatched or pushed to pending.all_agents: " << Agent::all_agents.size() << " pending: " << Agent::pending_agents.size() << endl;
 
 	//Start work groups and all threads.
 	wgMgr.startAllWorkGroups();
@@ -272,7 +276,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		PathSetManager::getInstance()->copyTravelTimeDataFromTmp2RealtimeTable();
 	}
-	cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<endl;
+	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;
 	cout << "Max Agents at any given time: " <<maxAgents <<endl;
 	cout << "Starting Agents: " << numStartAgents
 			<< ",     Pending: " << numPendingAgents << endl;
@@ -367,7 +371,7 @@ bool performMainDemand()
 	PredayManager predayManager;
 	predayManager.loadZones(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
-	predayManager.loadPersons(db::MONGO_DB);
+	predayManager.loadPersonIds(db::MONGO_DB);
 	predayManager.loadUnavailableODs(db::MONGO_DB);
 	if(mtConfig.isOutputTripchains())
 	{
@@ -406,6 +410,7 @@ bool performMainDemand()
 bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles)
 {
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
+	cout << "Main Thread[ " << boost::this_thread::get_id() << "]" << std::endl;
 
 	//Parse the config file (this *does not* create anything, it just reads it.).
 	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());

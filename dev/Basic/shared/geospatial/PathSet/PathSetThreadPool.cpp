@@ -21,6 +21,7 @@ sim_mob::PathSetWorkerThread::PathSetWorkerThread():s(nullptr)
 }
 sim_mob::PathSetWorkerThread::~PathSetWorkerThread()
 {
+	if(s) delete s; s=NULL;
 }
 
 //1.Create Blacklist

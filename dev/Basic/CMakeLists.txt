@@ -239,9 +239,6 @@ option(SIMMOB_PROFILE_COMMSIM "Log the various stages of the Broker's update pha
 #Option: interactive mode flag (for the GUI)
 option(SIMMOB_INTERACTIVE_MODE "Force Sim Mobility to synchronize interactively with the GUI or console." OFF)
 
-#Option: use path set mode flag
-option(SIMMOB_PATHSET_MODE "Use path set when generate path for driver" OFF)
-
 #Force gcc to output single line errors. 
 # This makes it easier for Eclipse to parse and understand each error.
 IF(CMAKE_COMPILER_IS_GNUCC)

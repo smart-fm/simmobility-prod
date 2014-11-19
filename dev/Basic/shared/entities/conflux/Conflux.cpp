@@ -39,8 +39,13 @@
 #include "workers/Worker.hpp"
 
 using namespace sim_mob;
+using namespace std;
+using namespace boost;
 typedef Entity::UpdateStatus UpdateStatus;
 
+namespace{
+sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("path_set");
+}
 namespace{
     const double INFINITESIMAL_DOUBLE = 0.000001;
     const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
@@ -147,6 +152,9 @@ bool sim_mob::Conflux::frame_init(timeslice now)
 			(*segIt)->initializeBusStops();
 		}
 	}
+	/**************test code insert incident *********************/
+
+	/*************************************************************/
 	return true;
 }
 
@@ -155,6 +163,7 @@ UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 		frame_init(frameNumber);
 		setInitialized(true);
 	}
+
 
 	currFrame = frameNumber;
 	resetPositionOfLastUpdatedAgentOnLanes();
@@ -553,6 +562,10 @@ unsigned int sim_mob::Conflux::resetOutputBounds() {
 			outputEstimate = (outputEstimate>0? outputEstimate : 0);
 			vqBounds.insert(std::make_pair(lnk, (unsigned int)outputEstimate));
 			vqCount += virtualQueuesMap.at(lnk).size();
+		}//loop
+
+		if(vqBounds.empty() && !virtualQueuesMap.empty()){
+			Print() << boost::this_thread::get_id() << "," << this->multiNode->getID() << " vqBounds.empty()" << std::endl;
 		}
 	return vqCount;
 }
@@ -565,7 +578,7 @@ bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
 			res = (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
 		}
 		catch(std::out_of_range& ex){
-			debugMsgs << "out_of_range exception occured in hasSpaceInVirtualQueue()"
+			debugMsgs  << boost::this_thread::get_id() << " out_of_range exception occured in hasSpaceInVirtualQueue()"
 					<< "|Conflux: " << this->multiNode->getID()
 					<< "|lnk:[" << lnk->getStart()->getID() << "," << lnk->getEnd()->getID() << "]"
 					<< "|lnk:" << lnk
@@ -574,6 +587,7 @@ bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
 			for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i!= virtualQueuesMap.end(); i++) {
 				debugMsgs << " ([" << i->first->getStart()->getID() << "," << i->first->getEnd()->getID() << "]:" << i->first << "," << i->second.size() << "),";
 			}
+			debugMsgs << "|\nvqBounds.size(): " << vqBounds.size() << std::endl;
 			throw std::runtime_error(debugMsgs.str());
 		}
 	}
@@ -778,12 +792,17 @@ bool sim_mob::Conflux::callMovementFrameInit(timeslice now, Person* person) {
 	//Get an UpdateParams instance.
 	//TODO: This is quite unsafe, but it's a relic of how Person::update() used to work.
 	//      We should replace this eventually (but this will require a larger code cleanup).
-	(person->getRole()->make_frame_tick_params(now));
+	person->getRole()->make_frame_tick_params(now);
 
 	//Now that the Role has been fully constructed, initialize it.
-	if(*(person->currTripChainItem)) {
+	if(person->getRole()) {
 		person->getRole()->Movement()->frame_init();
-		if(person->getCurrPath().empty()){
+		// TODO: This line assumes that the only possible trip chain items are Car trips and Activity.
+		// person->setCurrPath() is not called bus drivers. Infact, bus drivers seem to have their own initialize path
+		// and are not overriding the initializePath() of the Driver class. More investigation and testing required.
+		// Leaving it like this for now to test for TRB paper.
+		// ~ Harish 27-7-2014
+		if(person->getRole()->roleType != sim_mob::Role::RL_ACTIVITY && person->getCurrPath().empty()){
 			return false;
 		}
 	}
@@ -805,6 +824,15 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 		const PedestrianTransferRequestMessage& msg = MSG_CAST(PedestrianTransferRequestMessage, message);
 		pedestrianList.push_back(msg.pedestrian);
 		break;
+	}
+	case MSG_INSERT_INCIDENT:
+	{
+		Print() << "Conflux received MSG_INSERT_INCIDENT" << std::endl;
+		pathsetLogger << "Conflux received MSG_INSERT_INCIDENT" << std::endl;
+		const InsertIncidentMessage & msg = MSG_CAST(InsertIncidentMessage, message);
+		//change the flow rate of the segment
+		sim_mob::Conflux::insertIncident(msg.stats,msg.newFlowRate);
+		//tell
 	}
 	default:
 		break;
@@ -887,7 +915,12 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 					sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(personRole);
 					ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
 					ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
-					callMovementFrameInit(now, person);
+					if (callMovementFrameInit(now, person)){
+						person->setInitialized(true);
+					}
+					else{
+						return UpdateStatus::Done;
+					}
 				}
 				else if((*person->currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) {
 					if (callMovementFrameInit(now, person)){
@@ -1126,6 +1159,7 @@ void sim_mob::Conflux::getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>&
 	for (UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin(); upStrmSegMapIt != upstreamSegStatsMap.end(); upStrmSegMapIt++)
 	{
 		const SegmentStatsList& upstreamSegments = upStrmSegMapIt->second;
+		sumCapacity += (int)(ceil((*upstreamSegments.rbegin())->getRoadSegment()->getCapacityPerInterval()));
 		double totalTimeToSegEnd = 0;
 		std::deque<sim_mob::Person*> oneDeque;
 		for (SegmentStatsList::const_reverse_iterator rdSegIt = upstreamSegments.rbegin(); rdSegIt != upstreamSegments.rend(); rdSegIt++)
@@ -1334,7 +1368,7 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 		else if (role == "pedestrian") {
 			StreetDirectory::VertexDesc source, destination;
 			const sim_mob::SubTrip firstSubTrip =
-					dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
+					dynamic_cast<const sim_mob::Trip*>(firstTrip)->getSubTrips().front();
 			if (firstSubTrip.fromLocation.type_ == WayPoint::NODE) {
 				source = streetDirectory.DrivingVertex(
 						*firstSubTrip.fromLocation.node_);
@@ -1363,7 +1397,7 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 			}
 		}
 		else if( role == "waitBusActivity" ){
-			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
+			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstTrip)->getSubTrips().front();
 			const BusStop* stop = firstSubTrip.fromLocation.busStop_;
 			rdSeg = stop->getParentSegment();
 		}
@@ -1384,3 +1418,28 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 	}
 	return rdSeg;
 }
+
+
+void sim_mob::Conflux::insertIncident(sim_mob::SegmentStats* segStats, const double & newFlowRate) {
+	const std::vector<Lane*>& lanes = segStats->getRoadSegment()->getLanes();
+	for (std::vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++) {
+		segStats->updateLaneParams((*it), newFlowRate);
+	}
+}
+
+
+void sim_mob::Conflux::insertIncident(const std::vector<sim_mob::SegmentStats*> &segStats, const double & newFlowRate) {
+	BOOST_FOREACH(sim_mob::SegmentStats* stat,segStats){
+		insertIncident(stat,newFlowRate);
+	}
+}
+
+void sim_mob::Conflux::removeIncident(sim_mob::SegmentStats* segStats) {
+	const std::vector<Lane*>& lanes = segStats->getRoadSegment()->getLanes();
+	for (std::vector<Lane*>::const_iterator it = lanes.begin(); it != lanes.end(); it++){
+		segStats->restoreLaneParams(*it);
+	}
+}
+
+sim_mob::InsertIncidentMessage::InsertIncidentMessage(const std::vector<sim_mob::SegmentStats*>& stats, double newFlowRate):stats(stats), newFlowRate(newFlowRate){;}
+sim_mob::InsertIncidentMessage::~InsertIncidentMessage() {}

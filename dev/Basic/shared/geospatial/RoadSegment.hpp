@@ -55,6 +55,7 @@ class LaneLoader;
  */
 class RoadSegment : public sim_mob::Pavement {
 public:
+//	/is this segment part of CBD?
 	mutable bool CBD;
 	static std::map<unsigned long, const RoadSegment*> allSegments;
 	//TODO: Some of these are only used by the geo* classes; need to re-think.
@@ -81,7 +82,6 @@ public:
 	 * @return simmobility lane idx id
 	 */
 	unsigned int getAdjustedLaneId(unsigned int laneId);
-
 	/**
 	 * get aimsun id fro current road segment
 	 */

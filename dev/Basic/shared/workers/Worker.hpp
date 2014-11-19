@@ -12,9 +12,11 @@
 #include "metrics/Frame.hpp"
 #include "event/EventPublisher.hpp"
 #include "event/SystemEvents.hpp"
-
+#include "util/OneTimeFlag.hpp"
 #include "event/args/EventArgs.hpp"
 //#include "event/EventListener.hpp"
+#include "soci.h"
+#include "soci-postgresql.h"
 
 namespace sim_mob {
 
@@ -24,6 +26,7 @@ class ControlManager;
 class WorkGroup;
 class Conflux;
 class Entity;
+class PathSetManager;
 
 //subclassed Eventpublisher coz its destructor is pure virtual
 class UpdatePublisher: public sim_mob::event::EventPublisher  {
@@ -67,6 +70,8 @@ public:
 	virtual const std::set<Entity*>& getEntities() const = 0;
 
 	virtual ProfileBuilder* getProfileBuilder() const = 0;
+
+	virtual sim_mob::PathSetManager* getPathSetMgr() = 0;
 };
 
 
@@ -84,6 +89,8 @@ public:
  * \author Xu Yan
  */
 class Worker : public WorkerProvider {
+	//debug
+	sim_mob::OneTimeFlag flg;
 private:
 	friend class WorkGroup;
 	static UpdatePublisher  updatePublisher;
@@ -125,6 +132,9 @@ public:
 	void outputSupplyStats(uint32_t currTick);
 
 	virtual std::ostream* getLogFile() const;
+
+	/// return current worker's path set manager
+	virtual sim_mob::PathSetManager *getPathSetMgr();
 
 	virtual ProfileBuilder* getProfileBuilder() const;
 
@@ -224,6 +234,10 @@ private:
 	sim_mob::ProfileBuilder* profile;
 	//int thread_id;
 	//static int auto_matical_thread_id;
+public:
+	soci::session sql;
+	/// each worker has its own path set manager
+	sim_mob::PathSetManager *pathSetMgr;
 };
 
 }

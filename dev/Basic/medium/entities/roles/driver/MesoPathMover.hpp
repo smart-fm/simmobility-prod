@@ -112,6 +112,10 @@ protected:
 
 	//representation of position within segment stats
 	double distToSegmentEnd;
+public:
+	//debug
+	///print path by aimsun section id
+	static void printPath(const MesoPathMover::Path &path, const Node *node = 0);
 };
 }
 }

@@ -10,6 +10,7 @@
 #include <map>
 #include <sstream>
 #include <stdint.h>
+#include <utility>
 #include <vector>
 #include <soci.h>
 #include "conf/ConfigManager.hpp"
@@ -302,6 +303,7 @@ void sim_mob::RestrictedRegion::processSubTrips(std::vector<sim_mob::SubTrip>& s
 	}
 
 }
+
 bool sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::Node* target) const
 {
 	return Impl->isInRestrictedZone(target);

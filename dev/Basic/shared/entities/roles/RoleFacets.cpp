@@ -6,7 +6,7 @@
 
 #include "entities/Person.hpp"
 #include "workers/Worker.hpp"
-
+unsigned int sim_mob::Facet::msgHandlerId = FACET_MSG_HDLR_ID;
 sim_mob::NullableOutputStream sim_mob::Facet::Log()
 {
 	return NullableOutputStream(parent->currWorkerProvider->getLogFile());

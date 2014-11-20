@@ -19,10 +19,7 @@ sim_mob::PathSetWorkerThread::PathSetWorkerThread():s(nullptr)
 	hasPath = false;
 	dbgStr = "";
 }
-sim_mob::PathSetWorkerThread::~PathSetWorkerThread()
-{
-	if(s) delete s; s=NULL;
-}
+sim_mob::PathSetWorkerThread::~PathSetWorkerThread() { }
 
 //1.Create Blacklist
 //2.clear the shortestWayPointpath

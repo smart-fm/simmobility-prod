@@ -843,7 +843,6 @@ unsigned short purgeBlacklist(sim_mob::PathSet &ps)
 			it++;
 		}
 	}
-//	std::cout << "ps.pathChoices.size() " << ps.pathChoices.size() << std::endl;
 	return ps.pathChoices.size();
 }
 
@@ -1261,9 +1260,12 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 			}
 			ps->addOrDeleteSinglePath(p->s);
 		}
-		safe_delete_item(p);
 	}
+
 	//cleanupworkPool
+	for(std::vector<PathSetWorkerThread*>::iterator wrkPoolIt=workPool.begin(); wrkPoolIt!=workPool.end(); wrkPoolIt++) {
+		safe_delete_item(*wrkPoolIt);
+	}
 	workPool.clear();
 	return true;
 }

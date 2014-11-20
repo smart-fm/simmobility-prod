@@ -161,6 +161,8 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
             if (bidder)
             {
                 bidder->setActive(true);
+                model->incrementBidders();
+
             }
             break;
         }

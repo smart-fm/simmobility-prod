@@ -313,15 +313,15 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 			 {
 				 SellingUnitInfo& info = it->second;
 
-				 //expectations are start on last element to the first.
-				 if( info.startedDay - currentTime.ms() > info.daysOnMarket )
+				 if( currentTime.ms() - info.startedDay > info.daysOnMarket )
 				 {
-					 PrintOut("Removing unit " << unitId << " from the market." << std::endl );
+					 PrintOut("Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
 					 market->removeEntry(unitId);
 					 continue;
 				 }
 			 }
 
+			//expectations start on last element to the first.
             ExpectationEntry entry;
             if (getCurrentExpectation(unitId, entry) && entry.askingPrice != unitEntry->getAskingPrice())
             {

@@ -19,9 +19,7 @@ sim_mob::PathSetWorkerThread::PathSetWorkerThread():s(nullptr)
 	hasPath = false;
 	dbgStr = "";
 }
-sim_mob::PathSetWorkerThread::~PathSetWorkerThread()
-{
-}
+sim_mob::PathSetWorkerThread::~PathSetWorkerThread() { }
 
 //1.Create Blacklist
 //2.clear the shortestWayPointpath
@@ -89,7 +87,7 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 			}
 		}
 	} else {
-		std::cout << "Blacklist NOT empty" << std::endl;
+		//logger << "Blacklist NOT empty" << blacklistV.size() << std::endl;
 		//Filter it.
 		sim_mob::A_StarShortestPathImpl::blacklist_edge_constraint filter(blacklistV);
 		boost::filtered_graph<StreetDirectory::Graph,sim_mob::A_StarShortestPathImpl::blacklist_edge_constraint> filtered(*graph, filter);
@@ -168,8 +166,9 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		s->id = id;
 		s->scenario = ps->scenario;
 		s->pathSize = 0;
-		s->travelCost = sim_mob::getTravelCost2(s,ps->subTrip->startTime);
-		s->travleTime = sim_mob::PathSetManager::getInstance()->getTravelTime(s,ps->subTrip->startTime);
+		//this is done in processPathSet so no need to repeat for now
+//		s->travelCost = sim_mob::getTravelCost2(s,ps->subTrip->startTime);
+//		s->travleTime = sim_mob::PathSetManager::getInstance()->getTravelTime(s,ps->subTrip->startTime);
 	}
 }
 

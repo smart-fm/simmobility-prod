@@ -9,7 +9,6 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/PathSetManager.hpp"
 
-
 using namespace sim_mob;
 
 sim_mob::K_ShortestPathImpl::K_ShortestPathImpl()

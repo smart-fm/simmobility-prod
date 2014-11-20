@@ -28,7 +28,6 @@ class UnPackageUtils;
 class UpdateParams;
 class OD_Trip;
 
-
 /**
  * Basic Person class.
  *
@@ -108,18 +107,11 @@ public:
     ///Check if any role changing is required.
     /// "nextValidTimeMS" is the next valid time tick, which may be the same at this time tick.
     Entity::UpdateStatus checkTripChain();
-    bool changeRoleRequired(sim_mob::Role & currRole,sim_mob::SubTrip &currSubTrip)const;//todo depricate later
-    bool changeRoleRequired_Trip /*sim_mob::Trip &trip*/
-	() const;
-	bool changeRoleRequired_Activity /*sim_mob::Activity &activity*/
-	() const;
-	bool changeRoleRequired(sim_mob::TripChainItem& tripChinItem) const;
 	//update origin and destination node based on the trip, subtrip or activity given
-	bool updateOD(sim_mob::TripChainItem* tc, const sim_mob::SubTrip* subtrip =
-			0);
+	bool updateOD(sim_mob::TripChainItem* tc, const sim_mob::SubTrip* subtrip = 0);
 
 	///get this person's trip chain
-	std::vector<TripChainItem*>& getTripChain() {
+	const std::vector<TripChainItem*>& getTripChain() const {
 		return tripChain;
 	}
 
@@ -294,24 +286,28 @@ public:
 	  */
 	 void serializeCBD_Activity(const TravelMetric &metric);
 private:
-	 /**
-	  * serialize person's tripchain item
-	  */
-	void serializeTripChainItem(std::vector<TripChainItem*>::iterator currTripChainItem);
+//	 /**
+//	  * serialize person's tripchain item
+//	  */
+//	void serializeTripChainItem(std::vector<TripChainItem*>::iterator currTripChainItem);
+//
+//	 /**
+//	  * During Serialization of person's tripchain, this routine is called if the given
+//	  * tripchain item is a trip
+//	  */
+//	 std::string serializeTrip(std::vector<TripChainItem*>::iterator item);
+//
+//
+//	 /**
+//	  * During Serialization of person's tripchain, this routine is called if the given
+//	  * tripchain item is an activity
+//	  */
+//	 std::string serializeActivity(std::vector<TripChainItem*>::iterator item);
 
 	 /**
-	  * During Serialization of person's tripchain, this routine is called if the given
-	  * tripchain item is a trip
+	  * prints the trip chain item types of each item in tripChain
 	  */
-	 std::string serializeTrip(std::vector<TripChainItem*>::iterator item);
-
-
-	 /**
-	  * During Serialization of person's tripchain, this routine is called if the given
-	  * tripchain item is an activity
-	  */
-	 std::string serializeActivity(std::vector<TripChainItem*>::iterator item);
-
+	 void printTripChainItemTypes() const;
 protected:
 	virtual bool frame_init(timeslice now);
 	virtual Entity::UpdateStatus frame_tick(timeslice now);

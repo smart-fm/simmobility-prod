@@ -54,4 +54,16 @@ void PopulationMongoDao::fromRow(mongo::BSONObj document, PersonParams& outParam
    	outParam.setHasFixedWorkTiming(document.getField(MONGO_FIELD_WORK_TIME_FLEX).Int());
 }
 
+std::string PopulationMongoDao::getIdFromRow(mongo::BSONObj document)
+{
+	return document.getField(MONGO_FIELD_ID).String();
+}
 
+bool sim_mob::medium::PopulationMongoDao::getOneById(const std::string& id, PersonParams& outParam)
+{
+	mongo::BSONObj qry = BSON("_id" << id);
+	mongo::BSONObj fetchedDocument;
+	getOne(qry, fetchedDocument);
+	fromRow(fetchedDocument, outParam);
+	return true;
+}

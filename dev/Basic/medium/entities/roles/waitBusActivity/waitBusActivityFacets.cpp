@@ -61,18 +61,22 @@ void WaitBusActivityMovement::frame_tick()
 	if(parentWaitBusActivity){
 		parentWaitBusActivity->setWaitingTime(totalTimeToCompleteMS);
 	}
+	parent->setRemainingTimeThisTick(0);
 }
 
 void WaitBusActivityMovement::frame_tick_output(){
 
 }
-TravelMetric& WaitBusActivityMovement::startTravelTimeMetric(){
 
 }
-TravelMetric& WaitBusActivityMovement::finalizeTravelTimeMetric(){
-
+TravelMetric & medium::WaitBusActivityMovement::startTravelTimeMetric()
+{
+	return travelTimeMetric;
 }
 
+TravelMetric & medium::WaitBusActivityMovement::finalizeTravelTimeMetric()
+{
+	return travelTimeMetric;
 }
 
 } /* namespace sim_mob */

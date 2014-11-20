@@ -11,6 +11,8 @@
 #include "entities/misc/TripChain.hpp"
 #include "logging/Log.hpp"
 #include "logging/NullableOutputStream.hpp"
+#include "message/Message.hpp"
+#include "message/MessageHandler.hpp"
 
 namespace sim_mob {
 
@@ -22,8 +24,9 @@ class UnPackageUtils;
 class Driver;
 class Pedestrian;
 class Agent;
-
-
+struct TravelMetric;
+///used to initialize message handler id of all facets
+#define FACET_MSG_HDLR_ID 1000
 /**
  * A Facet is a subdivision of a Role. The Facet class contains shared functionality for each type of Facet;
  *  at the moment we only have Behavior and Movement facet subclasses. The Role class just serves as a
@@ -37,11 +40,14 @@ class Agent;
  * \author Harish Loganathan
  * \author Seth N. Hetu
  */
+
+
 class Facet {
 public:
 	explicit Facet(sim_mob::Person* parent=nullptr) : parent(parent) {}
 	virtual ~Facet() {}
-
+	///role facets need id if they register for message handlers
+	static unsigned int msgHandlerId;
 	//TODO: I am not sure it's a good idea to pass through directly to the parent. Might be better to
 	//      find the parent Agent from the parent Role.
 	sim_mob::Person* getParent();
@@ -97,13 +103,12 @@ public:
 #endif
 };
 
-
 /**
  * See: Facet
  *
  * \author Harish Loganathan
  */
-class MovementFacet : public Facet {
+class MovementFacet : public Facet, public messaging::MessageHandler {
 public:
 	explicit MovementFacet(sim_mob::Person* parentAgent=nullptr);// : Facet(parentAgent), MessageHandler(msgHandlerId ++) { }
 	virtual ~MovementFacet(); //{}
@@ -111,6 +116,13 @@ public:
 
 	virtual bool updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Driver* other_driver) { return false; };
 	virtual void updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Pedestrian* pedestrian) {};
+	/**
+	 * message handler which provide a chance to handle message transfered from parent agent.
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void HandleMessage(messaging::Message::MessageType type,
+			const messaging::Message& message){}
 	
 	///	mark startTimeand origin
 	virtual TravelMetric& startTravelTimeMetric() = 0;

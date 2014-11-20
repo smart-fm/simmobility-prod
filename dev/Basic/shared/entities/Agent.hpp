@@ -168,36 +168,36 @@ private:
 	sim_mob::Entity::UpdateStatus perform_update(timeslice now);
 
 public:
-	//Either linkTravelStats or rdSegTravelStats will be populated depending on the requirements for link or road segment travel times
+	//Either linkTravelStats or RdSegTravelStat will be populated depending on the requirements for link or road segment travel times
 	struct linkTravelStats
 	{
 	public:
 		const Link* link_;
-		double linkEntryTime_;
-		double linkExitTime_;
-		std::map<double, unsigned int> rolesMap; //<timestamp, newRoleID>
+		double entryTime;
+//		double exitTime;
+//		std::map<double, unsigned int> rolesMap; //<timestamp, newRoleID>
 
 		/* note: link exit time will be available only when the agent exits the
 		 * link. -1 is a dummy value indication that the agent is in the link*/
 		linkTravelStats(const Link* link,
 				unsigned int linkEntryTime)
-		: link_(link), linkEntryTime_(linkEntryTime), linkExitTime_(-1)
+		: link_(link), entryTime(linkEntryTime)//, exitTime(-1)
 		{}
 	};
 
-	struct rdSegTravelStats
+	struct RdSegTravelStat
 	{
 	public:
-		const RoadSegment* rdSeg_;
-		double rdSegEntryTime_;
-		double rdSegExitTime_;
-		std::map<double, unsigned int> rolesMap; //<timestamp, newRoleID>
+		const RoadSegment* rs;
+		double entryTime;
+//		double rdSegExitTime_;
+//		std::map<double, unsigned int> rolesMap; //<timestamp, newRoleID>
 
 		/* note: segment exit time will be available only when the agent exits the
 		 * segment. -1 is a dummy value indication that the agent is in the segment*/
-		rdSegTravelStats(const RoadSegment* rdSeg,
+		RdSegTravelStat(const RoadSegment* rdSeg,
 				unsigned int rdSegEntryTime)
-		: rdSeg_(rdSeg), rdSegEntryTime_(rdSegEntryTime), rdSegExitTime_(-1)
+		: rs(rdSeg), entryTime(rdSegEntryTime)//, rdSegExitTime_(-1)
 		{}
 	};
 
@@ -256,19 +256,19 @@ public:
 
 	//==================== road segment travel time computation ===================================
 	//travelStats for each agent will be updated either for a role change or road segment change
-	void initRdSegTravelStats(const RoadSegment* rdSeg, double entryTime);
-	void addToRdSegTravelStatsMap(rdSegTravelStats ts, double exitTime);
-	rdSegTravelStats getRdSegTravelStats()
+	void initCurrRdSegTravelStat(const RoadSegment* rdSeg, double entryTime);
+	void addRdSegTravelStat(double exitTime, RdSegTravelStat ts);
+	RdSegTravelStat getRdSegTravelStats()
 	{
 		return currRdSegTravelStats;
 	}
 
-	const std::map<double, rdSegTravelStats>& getRdSegTravelStatsMap()
+	const std::map<double, RdSegTravelStat>& getRdSegTravelStatsMap()
 	{
 		return this->rdSegTravelStatsMap.get();
 	}
-	rdSegTravelStats currRdSegTravelStats;
-	sim_mob::Shared< std::map<double, rdSegTravelStats> > rdSegTravelStatsMap; //<linkExitTime, travelStats>
+	RdSegTravelStat currRdSegTravelStats;
+	sim_mob::Shared< std::map<double, RdSegTravelStat> > rdSegTravelStatsMap; //<linkExitTime, travelStats>
 	//==================== end of road segment travel time computation ============================
 
 	//============================ link travel time computation ===================================

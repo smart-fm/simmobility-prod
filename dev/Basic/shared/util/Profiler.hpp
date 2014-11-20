@@ -170,17 +170,20 @@ protected:
 	///logger
 	std::ofstream logFile;
 
+	///	flush the the given log buffer into the output buffer-Default version
+	virtual void flushLog(std::stringstream &out);
+
 public:
 	/**
 	 * @param id arbitrary identification for this object
 	 */
 	BasicLogger(std::string id);
 
-	///	flush the log streams into the output buffer-Default version
-	virtual void flushLog(std::stringstream &out);
-
 	///	copy constructor
 	BasicLogger(const sim_mob::BasicLogger& value);
+
+	/// flush all buffers to the corresponding file
+	virtual void flush();
 
 	///	destructor
 	virtual ~BasicLogger();
@@ -257,16 +260,15 @@ protected:
 	///	repository of profilers. each profiler is distinguished by a file name!
 	std::map<const std::string, boost::shared_ptr<sim_mob::BasicLogger> > repo;
 	virtual sim_mob::BasicLogger & operator()(const std::string &key);
-	static boost::shared_ptr<sim_mob::Logger> log_;
+
+//	static sim_mob::Logger log_;
 	static boost::shared_mutex instanceMutex;
 public:
 	static sim_mob::BasicLogger &log(const std::string &key){
-		//todo
+		static boost::shared_ptr<sim_mob::Logger> log_;
 		boost::unique_lock<boost::shared_mutex> lock(instanceMutex);
-//		boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
 		if (!log_) {
 			log_.reset(new Logger());
-			return (*log_)(key);
 		}
 		return (*log_)(key);
 	}

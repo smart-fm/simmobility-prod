@@ -14,10 +14,10 @@
 #include "entities/Entity.hpp"
 #include "database/entity/Unit.hpp"
 
-namespace sim_mob {
-
-    namespace long_term {
-
+namespace sim_mob
+{
+    namespace long_term
+    {
         class LT_Agent;
 
         /**
@@ -45,7 +45,8 @@ namespace sim_mob {
          *  - avaliable units to sell
          *  - Notify agents which are looking for home. 
          */
-        class HousingMarket : public sim_mob::Entity {
+        class HousingMarket : public sim_mob::Entity
+        {
         public:
 
             /**
@@ -58,10 +59,10 @@ namespace sim_mob {
              * @param askingPrice of the unit.
              * @param hedonicPrice of the unit.
              */
-            class Entry {
+            class Entry
+            {
             public:
-                Entry(LT_Agent* owner, BigSerial unitId, BigSerial postcodeId, 
-                        BigSerial tazId, double askingPrice, double hedonicPrice);
+                Entry(LT_Agent* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice);
                 virtual ~Entry();
 
                 BigSerial getUnitId() const;
@@ -83,6 +84,7 @@ namespace sim_mob {
                 double hedonicPrice;
                 LT_Agent* owner;
             };
+
             typedef std::vector<Entry*> EntryList;
             typedef std::vector<const Entry*> ConstEntryList;
             typedef boost::unordered_map<BigSerial, Entry*> EntryMap;
@@ -145,14 +147,15 @@ namespace sim_mob {
              */
             virtual UpdateStatus update(timeslice now);
 
+            size_t getEntrySize();
+
         protected:
             /**
              * Inherited from Entity
              */
             virtual bool isNonspatial();
             virtual void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList);
-            virtual void HandleMessage(messaging::Message::MessageType type,
-                    const messaging::Message& message);
+            virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
         private:
             /**

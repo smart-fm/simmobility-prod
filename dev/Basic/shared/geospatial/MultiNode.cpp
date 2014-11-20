@@ -9,6 +9,7 @@
 
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
+#include "logging/Log.hpp"
 
 using namespace sim_mob;
 
@@ -93,7 +94,8 @@ const set<LaneConnector*>& sim_mob::MultiNode::getOutgoingLanes(const RoadSegmen
 			const RoadSegment* rs = it->first;
 		}
 		//throw std::runtime_error(msg.str().c_str());
-		std::cout<<"getOutgoingLanes: "<<msg.str()<<std::endl;
+		msg<<std::endl;
+		sim_mob::Warn() << msg.str();
 //		const set<LaneConnector*> lnull;
 		return EMPTY_LANE_CONNECTOR;
 	}

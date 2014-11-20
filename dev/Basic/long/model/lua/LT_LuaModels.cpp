@@ -155,6 +155,7 @@ void ExternalEventsModel::mapClasses()
         .addProperty("day", &ExternalEvent::getDay, &ExternalEvent::setDay)
         .addProperty("type", &ExternalEvent::getType, &ExternalEvent::setType)
         .addProperty("householdId", &ExternalEvent::getHouseholdId, &ExternalEvent::setHouseholdId)
+        .addProperty("developerId", &ExternalEvent::getDeveloperId, &ExternalEvent::setDeveloperId)
     .endClass();
 }
 
@@ -236,12 +237,16 @@ double HM_LuaModel::calculateHedonicPrice(const Unit& unit) const
     return INVALID_DOUBLE;
 }
 
-double HM_LuaModel::calculateSpeculation(const HousingMarket::Entry& entry, int unitBids) const {
+double HM_LuaModel::calculateSpeculation(const HousingMarket::Entry& entry, int unitBids) const
+{
     LuaRef funcRef = getGlobal(state.get(), "calculateSpeculation");
     LuaRef retVal = funcRef(&entry, unitBids);
-    if (retVal.isNumber()) {
+
+    if (retVal.isNumber())
+    {
         return retVal.cast<double>();
     }
+
     return INVALID_DOUBLE;
 }
 

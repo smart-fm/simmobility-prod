@@ -228,12 +228,11 @@ void SegmentStats::removeBusDriverFromStop(sim_mob::Person* driver, const sim_mo
 	}
 }
 
-std::deque<sim_mob::Person*> SegmentStats::getPersons()
+void SegmentStats::getPersons(std::deque<sim_mob::Person*>& segAgents)
 {
-	PersonList segAgents;
-	for (std::vector<sim_mob::Lane*>::const_iterator lnIt = roadSegment->getLanes().begin(); lnIt != roadSegment->getLanes().end(); lnIt++)
+	for (LaneStatsMap::iterator lnStMpIt = laneStatsMap.begin(); lnStMpIt != laneStatsMap.end(); lnStMpIt++)
 	{
-		PersonList& lnAgents = laneStatsMap.find(*lnIt)->second->laneAgents;
+		PersonList& lnAgents = lnStMpIt->second->laneAgents;
 		segAgents.insert(segAgents.end(), lnAgents.begin(), lnAgents.end());
 	}
 	PersonList& lnAgents = laneStatsMap.find(laneInfinity)->second->laneAgents;
@@ -245,7 +244,6 @@ std::deque<sim_mob::Person*> SegmentStats::getPersons()
 		PersonList& driversAtStop = busDrivers.at(stop);
 		segAgents.insert(segAgents.end(), driversAtStop.begin(), driversAtStop.end());
 	}
-	return segAgents;
 }
 
 void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
@@ -772,15 +770,15 @@ void sim_mob::LaneStats::updateOutputCounter()
 {
 	double tick_size = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	int tmp = int(laneParams->outputFlowRate * tick_size);
-	laneParams->fraction += laneParams->outputFlowRate * tick_size - float(tmp);
+	laneParams->fraction += laneParams->outputFlowRate * tick_size - tmp;
 	if (laneParams->fraction >= 1.0)
 	{
 		laneParams->fraction -= 1.0;
-		laneParams->outputCounter = float(tmp) + 1.0;
+		laneParams->outputCounter = tmp + 1;
 	}
 	else
 	{
-		laneParams->outputCounter = float(tmp);
+		laneParams->outputCounter = tmp;
 	}
 }
 
@@ -909,20 +907,10 @@ std::string sim_mob::SegmentStats::reportSegmentStats(uint32_t frameNumber)
 		<< "\",\"numVehicleLanes\":\"" << numVehicleLanes
 		<< "\",\"segment_length\":\"" << length
 		<< "\"})"
-		<< std::endl;
-#else
-
-	msg <<"(\"segmentState\""
-		<<","<<frameNumber.frame()
-		<<","<<roadSegment
-		<<",{"
-		<<"\"speed\":\""<< segVehicleSpeed
-		<<"\",\"flow\":\""<< segFlow
-		<<"\",\"density\":\""<< density
-		<<"\"})"
-		<<std::endl;
-#endif
+		<< "\n";
+	}
 	return msg.str();
+
 }
 
 double sim_mob::SegmentStats::getSegSpeed(bool hasVehicle) const

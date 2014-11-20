@@ -74,6 +74,9 @@ namespace sim_mob
             Individual* getIndividualById( BigSerial id) const;
 
             void hdbEligibilityTest(int );
+            void unitsFiltering();
+
+            HousingMarket* getMarket();
 
 
         protected:
@@ -94,9 +97,7 @@ namespace sim_mob
             IndividualList individuals;
             IndividualMap individualsById;
 
-
             HouseholdStatistics household_stats;
-
         };
     }
 }

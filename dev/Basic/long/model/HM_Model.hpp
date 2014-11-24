@@ -70,13 +70,17 @@ namespace sim_mob
             const TazStats* getTazStats(BigSerial tazId) const;
             const TazStats* getTazStatsByUnitId(BigSerial unitId) const;
 
-            Household* getHouseholdById( BigSerial id) const;
-            Individual* getIndividualById( BigSerial id) const;
+            Household*   getHouseholdById( BigSerial id) const;
+            Individual*  getIndividualById( BigSerial id) const;
 
             void hdbEligibilityTest(int );
             void unitsFiltering();
 
             HousingMarket* getMarket();
+
+            void incrementBidders();
+            void decrementBidders();
+            int	 getNumberOfBidders();
 
 
         protected:
@@ -98,6 +102,8 @@ namespace sim_mob
             IndividualMap individualsById;
 
             HouseholdStatistics household_stats;
+
+            int numberOfBidders;
         };
     }
 }

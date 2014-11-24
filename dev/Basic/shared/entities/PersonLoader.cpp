@@ -81,10 +81,10 @@ namespace
 		int minute = Utils::generateInt(min,max) + ((mid - hour - 0.25)*60);
 
 		/*~~~~ adding 5 minutes to fake drivers for cbd policy demo. note: pid parameter in this function must also be removed later ~~~~~*/
-		if(hour == 17 && minute <= 5 && boost::lexical_cast<long>(pid) > 5474288)
-		{
-			minute += 5;
-		}
+//		if(hour == 17 && minute <= 5 && boost::lexical_cast<long>(pid) > 5474288)
+//		{
+//			minute += 5;
+//		}
 		/*~~~~ end of - adding 5 minutes to fake drivers for cbd policy demo ~~~~~*/
 		int second = Utils::generateInt(0,60);
 		std::stringstream random_time;

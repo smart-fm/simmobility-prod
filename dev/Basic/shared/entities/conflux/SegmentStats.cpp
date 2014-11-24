@@ -886,10 +886,11 @@ void sim_mob::SegmentStats::updateLaneParams(timeslice frameNumber)
 
 std::string sim_mob::SegmentStats::reportSegmentStats(uint32_t frameNumber)
 {
-	std::stringstream msg;
 
-#define SHOW_NUMBER_VEHICLE_ON_SEGMENT
-#ifdef SHOW_NUMBER_VEHICLE_ON_SEGMENT
+	std::stringstream msg("");
+	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
+	{
+		double density = (numMovingInSegment(true) + numQueuingInSegment(true)) / ((length / 100000.0) * numVehicleLanes); //veh/km/lane
 
 	msg << "(\"segmentState\""
 		<< "," << frameNumber

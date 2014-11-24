@@ -716,11 +716,11 @@ void sim_mob::Person::convertODsToTrips() {
 	}
 
 	int index=0;
-	std::cout << "********person : " << this->GetId() <<" start time:"<<this->startTime<< std::endl;
+//	std::cout << "********person : " << this->GetId() <<" start time:"<<this->startTime<< std::endl;
 	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end();
 			tripChainItem++) {
 
-		std::cout << "trips : " << index << (*tripChainItem)->getMode() <<" start time:"<<(*tripChainItem)->startTime.toString()<< std::endl;
+		//std::cout << "trips : " << index << (*tripChainItem)->getMode() <<" start time:"<<(*tripChainItem)->startTime.toString()<< std::endl;
 
 		sim_mob::Trip* trip = dynamic_cast<sim_mob::Trip*>(*tripChainItem);
 		if(trip){
@@ -745,7 +745,7 @@ void sim_mob::Person::convertODsToTrips() {
 					to = boost::lexical_cast<int>(subChainItem->toLocation.busStop_->getBusstopno_());
 				}
 
-				std::cout << "first item : " << from << " second item:" <<to <<" mode:" <<subChainItem->mode << std::endl;
+//				std::cout << "first item : " << from << " second item:" <<to <<" mode:" <<subChainItem->mode << std::endl;
 			}
 		}
 	}

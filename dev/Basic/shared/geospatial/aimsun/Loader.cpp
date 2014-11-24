@@ -319,8 +319,9 @@ bool DatabaseLoader::InsertSinglePath2DBST(soci::session& sql,std::set<sim_mob::
 	{
 		if(sp->isNeedSave2DB)
 		{
-			sql<<"insert into \"" << singlePathTableName << "\"(\"ID\", \"PATHSET_ID\",\"UTILITY\",\"PATHSIZE\",\"TRAVEL_COST\",\"SIGNAL_NUMBER\",\"RIGHT_TURN_NUMBER\",\"SCENARIO\",\"LENGTH\",\"TRAVEL_TIME\",\"HIGHWAY_DIS\",\"MIN_TRAVEL_TIME\",\"MIN_DISTANCE\",\"MIN_SIGNAL\",\"MIN_RIGHT_TURN\",\"MAX_HIGH_WAY_USAGE\",\"SHORTEST_PATH\") "
+			sql << "insert into \"" << singlePathTableName << "\"(\"ID\", \"PATHSET_ID\",\"UTILITY\",\"PATHSIZE\",\"TRAVEL_COST\",\"SIGNAL_NUMBER\",\"RIGHT_TURN_NUMBER\",\"SCENARIO\",\"LENGTH\",\"TRAVEL_TIME\",\"HIGHWAY_DIS\",\"MIN_TRAVEL_TIME\",\"MIN_DISTANCE\",\"MIN_SIGNAL\",\"MIN_RIGHT_TURN\",\"MAX_HIGH_WAY_USAGE\",\"SHORTEST_PATH\") "
 					"values(:ID, :PATHSET_ID,:UTILITY,:PATHSIZE,:TRAVEL_COST,:SIGNAL_NUMBER,:RIGHT_TURN_NUMBER,:SCENARIO,:LENGTH,:TRAVEL_TIME,:HIGHWAY_DIS,:MIN_TRAVEL_TIME,:MIN_DISTANCE,:MIN_SIGNAL,:MIN_RIGHT_TURN,:MAX_HIGH_WAY_USAGE,:SHORTEST_PATH)", soci::use(*sp);
+			pathsetLogger << "insert into " << singlePathTableName << "\n";
 		}
 	}
 }
@@ -354,7 +355,7 @@ bool DatabaseLoader::LoadSinglePathDBwithId2(
 		}
 		return true;
 }
-
+std::map<std::string, sim_mob::OneTimeFlag> ontimeFlog;
 sim_mob::HasPath DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 		std::string& pathset_id,
 		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,
@@ -369,18 +370,6 @@ sim_mob::HasPath DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 		std::cout << "[" << pathset_id << "] [QUERY NO PATH]" <<  std::endl;
 		return sim_mob::PSM_NOTFOUND;
 	}
-//		soci::rowset<soci::row> rsPS = sql.prepare << "select * from \"PathSet_Scaled_HITS_distinctODs\" "
-//													"where \"ID\" = '" + pathset_id + "' and \"HAS_PATH\" = -1";
-//		if(rsPS.begin() != rsPS.end())
-//		{
-//			std::cout << pathset_id << " pathset table says no path" << std::endl;
-//			return sim_mob::PSM_NOGOODPATH;
-//		}
-//		else
-//		{
-//			return sim_mob::PSM_NOTFOUND;
-//		}
-//	}
 	//	process result
 	int i = 0;
 	for (soci::rowset<sim_mob::SinglePath>::const_iterator it = rs.begin();	it != rs.end(); ++it) {
@@ -442,6 +431,13 @@ sim_mob::HasPath DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 		spPool.insert(s);
 		i++;
 	}
+
+	if((pathset_id == "111502,79350" || pathset_id == "93122,114990" || pathset_id == "112768,93896")  && ontimeFlog[pathset_id].check())
+	{
+		pathsetLogger << "[" << pathset_id << " : PATHSET_SIZE : " << i << "  " << spPool.size() << "]\n";
+	}
+
+
 	if (i == 0) {
 		pathsetLogger << "DatabaseLoader::LoadSinglePathDBwithIdST: " << pathset_id << "no data in db\n" ;
 		std::cout << "DatabaseLoader::LoadSinglePathDBwithIdST: " << pathset_id << " no data in db  excludedRS:"  << excludedRS.size() << std::endl;

@@ -423,8 +423,8 @@ sim_mob::HasPath DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
 		}
 		//create path object
 		sim_mob::SinglePath *s = new sim_mob::SinglePath(*it);
-		s->shortestWayPointpath = boost::move(path);
-		if(s->shortestWayPointpath.empty())
+		s->path = boost::move(path);
+		if(s->path.empty())
 		{
 			throw std::runtime_error("Empty Path");
 		}

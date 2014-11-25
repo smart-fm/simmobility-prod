@@ -161,8 +161,8 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		s->init(wps);
 		sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(s);
 		s->highWayDistance = sim_mob::calculateHighWayDistance(s);
-		s->pathset_id = ps->id;
-		s->length = sim_mob::generateSinglePathLength(s->shortestWayPointpath);
+		s->pathSetId = ps->id;
+		s->length = sim_mob::generateSinglePathLength(s->path);
 		s->id = id;
 		s->scenario = ps->scenario;
 		s->pathSize = 0;

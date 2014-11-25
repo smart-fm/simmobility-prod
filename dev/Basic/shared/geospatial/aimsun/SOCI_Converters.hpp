@@ -74,7 +74,7 @@ template<> struct type_conversion<sim_mob::PathSet>
 //    	res.toNodeId = vals.get<std::string>("TO_NODE_ID", "");
 //    	res.person_id = vals.get<string>("PERSON_ID", "");
 //    	res.trip_id = vals.get<string>("TRIP_ID", "");
-    	res.singlepath_id = vals.get<std::string>("SINGLEPATH_ID", "");
+//    	res.singlepath_id = vals.get<std::string>("SINGLEPATH_ID", "");
     	res.scenario = vals.get<std::string>("SCENARIO", "");
     	res.hasPath = (vals.get<int>("HAS_PATH", 0) > 0 ? true : false);
     }
@@ -85,7 +85,7 @@ template<> struct type_conversion<sim_mob::PathSet>
         vals.set("TO_NODE_ID", src.id.substr(src.id.find(",")+1, src.id.size() - src.id.find(",")));//destination
 //        vals.set("PERSON_ID", src.person_id);
 //        vals.set("TRIP_ID", src.trip_id);
-        vals.set("SINGLEPATH_ID", src.singlepath_id);
+//        vals.set("SINGLEPATH_ID", src.singlepath_id);
         vals.set("SCENARIO", src.scenario);
         vals.set("HAS_PATH", (src.hasPath > 0 ? 1 : 0));
         ind = i_ok;
@@ -98,7 +98,7 @@ template<> struct type_conversion<sim_mob::SinglePath>
     {
     	res.id = vals.get<std::string>("ID", "");
 //    	res.exclude_seg_id = vals.get<string>("EXCLUDE_SEG_ID", "");
-    	res.pathset_id = vals.get<std::string>("PATHSET_ID", "");
+    	res.pathSetId = vals.get<std::string>("PATHSET_ID", "");
 //    	res.waypointset = vals.get<std::string>("WAYPOINTSET", "");
 //    	res.fromNodeId = vals.get<std::string>("FROM_NODE_ID", "");
 //    	res.toNodeId = vals.get<std::string>("TO_NODE_ID", "");
@@ -122,7 +122,7 @@ template<> struct type_conversion<sim_mob::SinglePath>
     {
     	vals.set("ID", src.id);
 //        vals.set("EXCLUDE_SEG_ID", src.exclude_seg_id);
-        vals.set("PATHSET_ID", src.pathset_id);
+        vals.set("PATHSET_ID", src.pathSetId);
 //        vals.set("WAYPOINTSET", src.waypointset);
 //        vals.set("FROM_NODE_ID", src.fromNodeId);
 //        vals.set("TO_NODE_ID", src.toNodeId);

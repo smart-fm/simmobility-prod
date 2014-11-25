@@ -147,7 +147,7 @@ std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKS
 			s->isNeedSave2DB = true;
 			s->init(path_);
 			sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(s);
-			s->length = sim_mob::generateSinglePathLengthPT(s->shortestWayPointpath);
+			s->length = sim_mob::generateSinglePathLength(s->path);
 
 			s->id = id;
 			s->scenario = ps_->scenario;

@@ -253,13 +253,9 @@ private:
 	 * removes the agent from the conflux and marks it for removal by the worker.
 	 * The person gets removed from the simulation at the end of the current tick.
 	 * @param ag the person to be removed
-	 * @param prevRdSeg the segment where the person started in the current tick
-	 * @param prevLane the lane from which the person started in the current tick
-	 * @param wasQueuing flag indicating whether the person was queuing at the start of the tick
-	 * @param wasActivityPerformer flag indicating whether the person was performing an activity at the start of the tick
+	 * @param beforeUpdate person properties before update
 	 */
-	void killAgent(sim_mob::Person* person, sim_mob::SegmentStats* prevSegStats,
-			const sim_mob::Lane* prevLane, bool wasQueuing);
+	void killAgent(sim_mob::Person* person, PersonProps& beforeUpdate);
 
 	/**
 bool sim_mob::insertIncidentS(const std::string fileName){
@@ -301,11 +297,12 @@ bool sim_mob::insertIncidentS(const std::string fileName){
 	void resetPersonRemTimes();
 
 	/**
-	 * handles book keeping for the conflux based on changes in roles of person
+	 * handles house keeping for the conflux based on state change of person after his update
 	 * @param beforeUpdate person properties before update
 	 * @param afterUpdate person properties after update
+	 * @param person the person being handled
 	 */
-	void handleRoles(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person);
+	void housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person);
 
 protected:
 	/**

@@ -249,7 +249,10 @@ public:
 	bool isUseCacheMode() { return false;/*isUseCache;*/ }//todo: take care of this later
 	double getUtilityBySinglePath(sim_mob::SinglePath* sp);
 	std::vector<WayPoint> generateBestPathChoice2(const sim_mob::SubTrip* st);
-	void processPathSet(boost::shared_ptr<PathSet> &ps);
+	///	update pathset paramenters before selecting the best path
+	void onPathSetRetrieval(boost::shared_ptr<PathSet> &ps);
+	///	post pathset generation processes
+	void onGeneratePathSet(boost::shared_ptr<PathSet> &ps);
 	/**
 	 * find/generate set of path choices for a given suntrip, and then return the best of them
 	 * \param st input subtrip
@@ -290,7 +293,6 @@ public:
 			const std::set<const sim_mob::RoadSegment *> & partialExclusion = std::set<const sim_mob::RoadSegment *>(),
 			const std::set<const sim_mob::RoadSegment*> &blckLstSegs = std::set<const sim_mob::RoadSegment *>());
 
-	///	initialize various(mainly utility) paramenters
 	void initParameters();
 
 	/// one of the main PathSetManager interfaces used to return a path for the current OD of the given person.
@@ -466,31 +468,36 @@ public:
 	isShortestPath(0), excludeSeg(nullptr),
 	shortestWayPointpath(std::vector<WayPoint>()),isNeedSave2DB(false){}
 	SinglePath(const SinglePath &source);
+	///	extract the segment waypoint from series og node-segments waypoints
 	void init(std::vector<WayPoint>& wpPools);
 	void clear();
+	/// path representation
 	std::vector<WayPoint> shortestWayPointpath;
 	const sim_mob::RoadSegment* excludeSeg; // can be null
 
+	bool isNeedSave2DB;
+	std::string scenario;
+	std::string id;   //id: seg1id_seg2id_seg3id
+	std::string pathset_id;
+
+	double travelCost;
+	double travleTime;
+
+	double utility;
+	double pathSize;
+
 	double highWayDistance;
+	int signalNumber;
+	int rightTurnNumber;
+	double length;
+	sim_mob::TRIP_PURPOSE purpose;
+
 	bool isMinTravelTime;
 	bool isMinDistance;
 	bool isMinSignal;
 	bool isMinRightTurn;
 	bool isMaxHighWayUsage;
 	bool isShortestPath;
-
-	bool isNeedSave2DB;
-	std::string id;   //id: seg1id_seg2id_seg3id
-	std::string pathset_id;
-	double utility;
-	double pathSize;
-	double travelCost;
-	int signalNumber;
-	int rightTurnNumber;
-	std::string scenario;
-	double length;
-	double travleTime;
-	sim_mob::TRIP_PURPOSE purpose;
 
 	SinglePath(SinglePath *source);
 	~SinglePath();
@@ -671,8 +678,11 @@ inline double generateSinglePathLength(std::vector<WayPoint*>& wp) // unit is me
 	return res/100.0; //meter
 }
 
-void generatePathSizeForPathSet2(boost::shared_ptr<sim_mob::PathSet> &ps,bool isUseCache=true);
+///	Generate pathsize of paths
+void findPathSize(boost::shared_ptr<sim_mob::PathSet> &ps,bool isUseCache=true);
 
+///	set some tags as a result of comparing attributes among paths in a pathset
+void setPathSetTags(boost::shared_ptr<sim_mob::PathSet>&ps);
 
 inline size_t getLaneIndex2(const Lane* l){
 	if (l) {

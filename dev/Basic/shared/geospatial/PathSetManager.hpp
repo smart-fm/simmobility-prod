@@ -229,10 +229,16 @@ public:
 			const sim_mob::RoadSegment* excludedSegs=NULL, int random_graph_idx=0);
 
 	bool isUseCacheMode() { return false;/*isUseCache;*/ }//todo: take care of this later
+	///	calculate part of utility which is not time dependent
+	double getPartialUtility(sim_mob::SinglePath* sp);
+	///	calculate utility
 	double getUtility(sim_mob::SinglePath* sp);
 	std::vector<WayPoint> generateBestPathChoice2(const sim_mob::SubTrip* st);
-	///	update pathset paramenters before selecting the best path
-	void onPathSetRetrieval(boost::shared_ptr<PathSet> &ps);
+	/**
+	 * update pathset paramenters before selecting the best path
+	 * \param travelTime decides if travel time retrieval should be included or not.(setPathSetTags can get TT during pathset generation)
+	 */
+	void onPathSetRetrieval(boost::shared_ptr<PathSet> &ps, bool travelTime = true);
 	///	post pathset generation processes
 	void onGeneratePathSet(boost::shared_ptr<PathSet> &ps);
 	/**
@@ -344,6 +350,8 @@ public:
 	 * returns true/false to indicate if the search has been successful
 	 */
 	bool findCachedPathSet_LRU(std::string key, boost::shared_ptr<sim_mob::PathSet> &value);
+	///	set some tags as a result of comparing attributes among paths in a pathset
+	void setPathSetTags(boost::shared_ptr<sim_mob::PathSet>&ps);
 
 	///	returns the raugh size of object in Bytes
 	uint32_t getSize();
@@ -428,7 +436,7 @@ private:
 class SinglePath
 {
 public:
-	SinglePath() : purpose(work),utility(0.0),pathSize(0.0),travelCost(0.0),
+	SinglePath() : purpose(work),utility(0.0),pathSize(0.0),travelCost(0.0),partialUtility(0.0),
 	signalNumber(0.0),rightTurnNumber(0.0),length(0.0),travleTime(0.0),highWayDistance(0.0),
 	isMinTravelTime(0),isMinDistance(0),isMinSignal(0),isMinRightTurn(0),isMaxHighWayUsage(0),
 	isShortestPath(0), excludeSeg(nullptr),
@@ -449,6 +457,8 @@ public:
 	double travelCost;
 	double travleTime;
 
+	/// time independent part of utility(used for optimization purposes)
+	double partialUtility;
 	double utility;
 	double pathSize;
 
@@ -640,9 +650,6 @@ inline double generateSinglePathLength(std::vector<WayPoint*>& wp) // unit is me
 
 ///	Generate pathsize of paths
 void findPathSize(boost::shared_ptr<sim_mob::PathSet> &ps,bool isUseCache=true);
-
-///	set some tags as a result of comparing attributes among paths in a pathset
-void setPathSetTags(boost::shared_ptr<sim_mob::PathSet>&ps);
 
 inline size_t getLaneIndex2(const Lane* l){
 	if (l) {

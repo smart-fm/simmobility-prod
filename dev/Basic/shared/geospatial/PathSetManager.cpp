@@ -687,6 +687,112 @@ bool sim_mob::PathSetManager::findCachedPathSet_LRU(std::string  key, boost::sha
 	return cacheLRU.find(key,value);
 }
 
+
+void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>&ps)
+{
+
+	double minTravelTime=99999999.0;
+	// find MIN_TRAVEL_TIME
+	// record which is min
+	sim_mob::SinglePath *minSP = *(ps->pathChoices.begin());
+	int i = 0;
+	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
+	{
+		/// todo getTravelTime will be called again in onPathSetRetrieval which will be rudimentary
+		if(sp->travleTime <= 0.0 && (sp->travleTime = getTravelTime(sp,ps->subTrip->startTime)) <= 0.0 )
+		{
+			std::stringstream out("");
+			out << i << "findPathSize=> invalid single path travleTime :" << sp->travleTime;
+			throw std::runtime_error(out.str());
+		}
+		if(ps->oriPath && sp->id == ps->oriPath->id){
+			minTravelTime = sp->travleTime;
+			minSP = sp;
+		}
+		else{
+			if(sp->travleTime < minTravelTime)
+			{
+				minTravelTime = sp->travleTime;
+				minSP = sp;
+			}
+
+		}
+		i++;
+	}
+	if(!ps->pathChoices.empty() && minSP)
+	{
+		minSP->isMinTravelTime = 1;
+	}
+	// find MIN_DISTANCE
+	double minDistance=99999999.0;
+	minSP = *(ps->pathChoices.begin()); // record which is min
+	if(ps->oriPath ){
+		minDistance = ps->oriPath->length;
+		minSP = ps->oriPath;
+	}
+	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
+	{
+		if(sp->length < minDistance)
+		{
+			minDistance = sp->length;
+			minSP = sp;
+		}
+	}
+	minSP->isMinDistance = 1;
+
+	// find MIN_SIGNAL
+	int minSignal=99999999;
+	minSP = *(ps->pathChoices.begin()); // record which is min
+	if(ps->oriPath){
+		minSignal = ps->oriPath->signalNumber;
+		minSP = ps->oriPath;
+	}
+	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
+	{
+		if(sp->signalNumber < minSignal)
+		{
+			minSignal = sp->signalNumber;
+			minSP = sp;
+		}
+	}
+	minSP->isMinSignal = 1;
+
+	// find MIN_RIGHT_TURN
+	int minRightTurn=99999999;
+	minSP = *(ps->pathChoices.begin()); // record which is min
+	if(ps->oriPath){
+		minRightTurn = ps->oriPath->rightTurnNumber;
+		minSP = ps->oriPath;
+	}
+	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
+	{
+		if(sp->travleTime < minTravelTime)
+		{
+			minRightTurn = sp->rightTurnNumber;
+			minSP = sp;
+		}
+	}
+	minSP->isMinRightTurn = 1;
+
+	// find MAX_HIGH_WAY_USAGE
+	double maxHighWayUsage=0.0;
+	minSP = *(ps->pathChoices.begin()); // record which is min
+	if(ps->oriPath){
+		maxHighWayUsage = ps->oriPath->highWayDistance / ps->oriPath->length;
+		minSP = ps->oriPath;
+	}
+	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
+	{
+		if(maxHighWayUsage < sp->highWayDistance / sp->length)
+		{
+			maxHighWayUsage = sp->highWayDistance / sp->length;
+			minSP = sp;
+		}
+	}
+	minSP->isMaxHighWayUsage = 1;
+
+}
+
 //bool sim_mob::PathSetManager::findCachedPathSet_orig(std::string  key, boost::shared_ptr<sim_mob::PathSet> &value){
 ////	//test
 ////	return false;
@@ -830,7 +936,7 @@ unsigned short purgeBlacklist(sim_mob::PathSet &ps)
 	return ps.pathChoices.size();
 }
 
-void sim_mob::PathSetManager::onPathSetRetrieval(boost::shared_ptr<PathSet> &ps)
+void sim_mob::PathSetManager::onPathSetRetrieval(boost::shared_ptr<PathSet> &ps, bool travelTime)
 {
 	//step-1 time dependent calculations
 	//logger << "onPathSetRetrieval:\nGenerating Travel Time and Travel Cost for " << ps->pathChoices.size() << " paths\n" ;
@@ -845,13 +951,18 @@ void sim_mob::PathSetManager::onPathSetRetrieval(boost::shared_ptr<PathSet> &ps)
 	//step-2 utility calculation
 	BOOST_FOREACH(SinglePath *sp, ps->pathChoices)
 	{
-		getUtilityBySinglePath(sp);
+		sp->utility = getUtility(sp);
 	}
 }
 void sim_mob::PathSetManager::onGeneratePathSet(boost::shared_ptr<PathSet> &ps)
 {
 	setPathSetTags(ps);
 	findPathSize(ps);
+	//partial utility calculation to save some time
+	BOOST_FOREACH(SinglePath *sp, ps->pathChoices)
+	{
+		sp->partialUtility = getPartialUtility(sp);
+	}
 }
 //Operations:
 //step-0: Initial preparations
@@ -1012,7 +1123,7 @@ bool sim_mob::PathSetManager::getBestPath(
 			}
 		}
 		logger << "[PATHSET GENERATED : " << fromToID << "]\n" ;
-		onPathSetRetrieval(ps_);
+		onPathSetRetrieval(ps_, false);
 		r = getBestPathChoiceFromPathSet(ps_, partial);
 		if (r) {
 			res = *(ps_->bestPath);
@@ -1574,7 +1685,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 		}
 	}
 }
-double sim_mob::PathSetManager::getUtilityBySinglePath(sim_mob::SinglePath* sp)
+
+double sim_mob::PathSetManager::getPartialUtility(sim_mob::SinglePath* sp)
 {
 	double utility=0;
 	if(!sp)
@@ -1585,24 +1697,20 @@ double sim_mob::PathSetManager::getUtilityBySinglePath(sim_mob::SinglePath* sp)
 	//1.0
 	//Obtain the travel time tt of the path.
 	//Obtain value of time for the agent A: bTTlowVOT/bTTmedVOT/bTThiVOT.
-	utility += sp->travleTime * pathSetParam->bTTVOT;
+//	utility += sp->travleTime * pathSetParam->bTTVOT;
 	//2.0
 	//Obtain the path size PS of the path.
+	if(sp->pathSize <= 0.0)
+	{
+		throw std::runtime_error("getUtility: invalid pathsize :");
+	}
 	utility += sp->pathSize * pathSetParam->bCommonFactor;
 	//3.0
 	//Obtain the travel distance l and the highway distance w of the path.
 	utility += sp->length * pathSetParam->bLength + sp->highWayDistance * pathSetParam->bHighway;
 	//4.0
 	//Obtain the travel cost c of the path.
-	//debug
-//	if(sp->travelCost <= 0.0 )
-//	{
-//		std::stringstream out("");
-//		out << "getUtilityBySinglePath=>invalid single path travelCost :" << sp->travelCost;
-//		//throw std::runtime_error(out.str());
-//	}
-	//debug...
-	utility += sp->travelCost * pathSetParam->bCost;
+//	utility += sp->travelCost * pathSetParam->bCost;
 	//5.0
 	//Obtain the number of signalized intersections s of the path.
 	utility += sp->signalNumber * pathSetParam->bSigInter;
@@ -1644,6 +1752,29 @@ double sim_mob::PathSetManager::getUtilityBySinglePath(sim_mob::SinglePath* sp)
 	}
 
 	return utility;
+
+}
+
+double sim_mob::PathSetManager::getUtility(sim_mob::SinglePath* sp)
+{
+	double utility=0;
+	if(!sp)
+	{
+		return utility;
+	}
+
+	if(sp->travleTime <= 0.0)
+	{
+		throw std::runtime_error("getUtility: invalid single path travleTime :");
+	}
+
+	utility = (sp->partialUtility > 0.0 ? sp->partialUtility : getPartialUtility(sp)) ;
+	// calculate utility
+	//Obtain value of time for the agent A: bTTlowVOT/bTTmedVOT/bTThiVOT.
+	utility += sp->travleTime * pathSetParam->bTTVOT;
+	//obtain travel cost part of utility
+	utility += sp->travelCost * pathSetParam->bCost;
+	return utility;
 }
 
 
@@ -1674,7 +1805,6 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 			std::string str = iteration + " Singlepath empty";
 			throw std::runtime_error (str);
 		}
-		//	trying to save some computation like getTravelTime(), getUtilityBySinglePath()
 		//	state of the network changed
 		//debug
 		if(sp->travleTime <= 0.0 )
@@ -1687,7 +1817,7 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 		if (partialExclusion.size() && sp->includesRoadSegment(partialExclusion) ) {
 			sp->travleTime = maxTravelTime;//some large value like infinity
 			//	RE-calculate utility
-			sp->utility = getUtilityBySinglePath(sp);
+			sp->utility = getUtility(sp);
 		}
 		//this is done in onPathSetRetrieval so no need to repeat for now
 //		sp->travleTime = getTravelTime(sp,ps->subTrip->startTime);
@@ -1987,111 +2117,6 @@ void sim_mob::findPathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUseCach
 	}// end for
 }
 
-void sim_mob::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>&ps)
-{
-
-	double minTravelTime=99999999.0;
-	// find MIN_TRAVEL_TIME
-	// record which is min
-	sim_mob::SinglePath *minSP = *(ps->pathChoices.begin());
-	int i = 0;
-	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
-	{
-		//debug
-		if(sp->travleTime <= 0.0 )
-		{
-			std::stringstream out("");
-			out << i << "findPathSize=> invalid single path travleTime :" << sp->travleTime;
-			throw std::runtime_error(out.str());
-		}
-		//debug...
-		if(ps->oriPath && sp->id == ps->oriPath->id){
-			minTravelTime = sp->travleTime;
-			minSP = sp;
-		}
-		else{
-			if(sp->travleTime < minTravelTime)
-			{
-				minTravelTime = sp->travleTime;
-				minSP = sp;
-			}
-
-		}
-		i++;
-	}
-	if(!ps->pathChoices.empty() && minSP)
-	{
-		minSP->isMinTravelTime = 1;
-	}
-	// find MIN_DISTANCE
-	double minDistance=99999999.0;
-	minSP = *(ps->pathChoices.begin()); // record which is min
-	if(ps->oriPath ){
-		minDistance = ps->oriPath->length;
-		minSP = ps->oriPath;
-	}
-	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
-	{
-		if(sp->length < minDistance)
-		{
-			minDistance = sp->length;
-			minSP = sp;
-		}
-	}
-	minSP->isMinDistance = 1;
-
-	// find MIN_SIGNAL
-	int minSignal=99999999;
-	minSP = *(ps->pathChoices.begin()); // record which is min
-	if(ps->oriPath){
-		minSignal = ps->oriPath->signalNumber;
-		minSP = ps->oriPath;
-	}
-	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
-	{
-		if(sp->signalNumber < minSignal)
-		{
-			minSignal = sp->signalNumber;
-			minSP = sp;
-		}
-	}
-	minSP->isMinSignal = 1;
-
-	// find MIN_RIGHT_TURN
-	int minRightTurn=99999999;
-	minSP = *(ps->pathChoices.begin()); // record which is min
-	if(ps->oriPath){
-		minRightTurn = ps->oriPath->rightTurnNumber;
-		minSP = ps->oriPath;
-	}
-	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
-	{
-		if(sp->travleTime < minTravelTime)
-		{
-			minRightTurn = sp->rightTurnNumber;
-			minSP = sp;
-		}
-	}
-	minSP->isMinRightTurn = 1;
-
-	// find MAX_HIGH_WAY_USAGE
-	double maxHighWayUsage=0.0;
-	minSP = *(ps->pathChoices.begin()); // record which is min
-	if(ps->oriPath){
-		maxHighWayUsage = ps->oriPath->highWayDistance / ps->oriPath->length;
-		minSP = ps->oriPath;
-	}
-	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
-	{
-		if(maxHighWayUsage < sp->highWayDistance / sp->length)
-		{
-			maxHighWayUsage = sp->highWayDistance / sp->length;
-			minSP = sp;
-		}
-	}
-	minSP->isMaxHighWayUsage = 1;
-
-}
 
 double sim_mob::PathSetManager::getTravelTime(sim_mob::SinglePath *sp,sim_mob::DailyTime startTime)
 {

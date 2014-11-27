@@ -906,7 +906,9 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 	for (soci::rowset<Polyline>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check nodes
 		if(sections_.count(it->TMP_SectionId)==0) {
-			throw std::runtime_error("Invalid polyline section reference.");
+			//throw std::runtime_error("Invalid polyline section reference.");
+			std::cout << "Invalid polyline section reference." << it->TMP_SectionId << std::endl;
+			continue;
 		}
 
 		//Convert meters to cm
@@ -1246,7 +1248,6 @@ void DatabaseLoader::LoadObjectsForShortTerm(map<string, string> const & storedP
 {
 	LoadCrossings(getStoredProcedure(storedProcs, "crossing"));
 	LoadLanes(getStoredProcedure(storedProcs, "lane"));
-	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain", false));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
@@ -1269,6 +1270,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
 	LoadBusStopSG(getStoredProcedure(storedProcs, "busstopSG", false));
+	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 }
 
 void DatabaseLoader::loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)
@@ -2584,7 +2586,10 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 {
 	//Check
 	if (src.fromSection->toNode->id != src.toSection->fromNode->id) {
-		throw std::runtime_error("Turning doesn't match with Sections and Nodes.");
+		//throw std::runtime_error("Turning doesn't match with Sections and Nodes.");
+		std::cout << "Turning mismatch with Sections and Nodes|"
+				<< " From " << src.fromSection->roadName << " (" << src.fromSection->fromNode->id << "," << src.fromSection->toNode->id << ")|"
+				<< " To " << src.toSection->roadName << " (" << src.toSection->fromNode->id << "," << src.toSection->toNode->id << ")." << std::endl;
 	}
 
 	//Skip Turnings which meet at UniNodes; these will be handled elsewhere.
@@ -3113,21 +3118,19 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 						segmtIt!=segmentsAtNode.end(); segmtIt++) {
 					sim_mob::Link* lnk = (*segmtIt)->getLink();
 					std::vector<sim_mob::SegmentStats*> upSegStatsList;
-					std::vector<sim_mob::RoadSegment*> downSegs;
 					if (lnk->getStart() == (*i))
 					{
 						//lnk is downstream to the multinode and doesn't belong to this conflux
-						downSegs = lnk->getSegments();
+						std::vector<sim_mob::RoadSegment*>& downSegs = lnk->getSegments();
 						conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
-						continue;
+						if(lnk->getStart() != lnk->getEnd()) { continue; } // some links can start and end at the same section
 					}
 					//else
 					//lnk *ends* at the multinode of this conflux.
 					//lnk is upstream to the multinode and belongs to this conflux
 					std::vector<sim_mob::RoadSegment*>& upSegs = lnk->getSegments();
 					//set conflux pointer to the segments and create SegmentStats for the segment
-					for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin();
-							segIt != upSegs.end(); segIt++)
+					for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin(); segIt != upSegs.end(); segIt++)
 					{
 						sim_mob::RoadSegment* rdSeg = *segIt;
 						double rdSegmentLength = rdSeg->getLaneZeroLength();

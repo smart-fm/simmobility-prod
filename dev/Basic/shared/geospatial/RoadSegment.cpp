@@ -170,9 +170,7 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
     	totalWidth += (*it)->getWidth();
     }
 
-    if (width == 0) {
-    	width = totalWidth;
-    }
+    if (width == 0) { width = totalWidth; }
 
 	//First, rebuild the Lane polylines; these will never be specified in advance.
 	bool edgesExist = !laneEdgePolylines_cached.empty();

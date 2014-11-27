@@ -58,15 +58,16 @@ RoadSegment* findSegment(const set<RoadSegment*>& segments, const Node* const st
 }
 
 
-bool buildLinkList(const set<RoadSegment*>& segments, vector<RoadSegment*>& res, set<RoadSegment*>& usedSegments,
+bool buildLinkList(set<RoadSegment*> segments, vector<RoadSegment*>& res, set<RoadSegment*>& usedSegments,
 		const Node* start, const Node* end)
 {
 	const Node* prev = nullptr;
-	for (const Node* fwd=start; fwd!=end;) {
+	const Node* fwd = start;
+	while(!segments.empty())
+	{
 		//Retrieve the next segment
 		RoadSegment* nextSeg = findSegment(segments, fwd, prev);
 		if (!nextSeg) {
-			fwd->getID();
 			Print()<< "Could not find a segment enclosed by nodes " << fwd->getID() << " and " << prev->getID() << std::endl;
 			return false;
 		}
@@ -75,11 +76,9 @@ bool buildLinkList(const set<RoadSegment*>& segments, vector<RoadSegment*>& res,
 		res.push_back(nextSeg);
 		usedSegments.insert(nextSeg);
 		prev = fwd;
-		if (fwd!=nextSeg->getEnd()) {
-			fwd = nextSeg->getEnd();
-		} else {
-			fwd = nextSeg->getStart();
-		}
+		if (fwd!=nextSeg->getEnd()) { fwd = nextSeg->getEnd(); }
+		else { fwd = nextSeg->getStart(); }
+		segments.erase(nextSeg);
 	}
 	return true;
 }

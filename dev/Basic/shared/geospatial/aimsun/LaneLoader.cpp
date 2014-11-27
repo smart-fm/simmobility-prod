@@ -594,13 +594,13 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 			originOffsets.second = sim_mob::dist(&medianEndpoints.second, endNode);
 		}
 
-		//TEMP: For now, our "median" point is somewhat in error, so we manually scale it back to 20m
-		if (originOffsets.first) {
-			originOffsets.first = 20 *100;
-		}
-		if (originOffsets.second) {
-			originOffsets.second = 20 *100;
-		}
+//		//TEMP: For now, our "median" point is somewhat in error, so we manually scale it back to 20m
+//		if (originOffsets.first) {
+//			originOffsets.first = 20 *100;
+//		}
+//		if (originOffsets.second) {
+//			originOffsets.second = 20 *100;
+//		}
 
 		//For each laneID, scale the originPt and go from there
 		if (currSect) {
@@ -664,11 +664,7 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLanes(const sim_mob::RoadNetwork& 
 
 	vector<LinkHelperStruct> lhs = buildLinkHelperStruct(nodes, sections);
 	for (vector<LinkHelperStruct>::iterator it=lhs.begin(); it!=lhs.end(); it++) {
-		//try {
 			LaneLoader::GenerateLinkLaneZero(rn, it->start, it->end, it->sections);
-		//} catch (std::exception& ex) {
-		//	std::cout <<"ERROR_2904" <<std::endl;
-		//}
 	}
 }
 
@@ -753,7 +749,7 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 
 	if(!candidates.first.empty() && !candidates.second.empty())
 	{
-		ComputeMedianEndpoints(rn.drivingSide==DRIVES_ON_LEFT, start, end, candidates, maxCandidates, linkSections); //Start, end
+		medianEndpoints = ComputeMedianEndpoints(rn.drivingSide==DRIVES_ON_LEFT, start, end, candidates, maxCandidates, linkSections); //Start, end
 	}
 
 

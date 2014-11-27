@@ -19,7 +19,6 @@ AwakeningDao::~AwakeningDao(){}
 
 void AwakeningDao::fromRow(Row& result, Awakening& outObj)
 {
-	PrintOut("Awakening dao 1" << std::endl);
     outObj.id	= result.get<BigSerial>( "id", INVALID_ID);
     outObj.class1	= result.get<double>( "class1", .0);
     outObj.class2	= result.get<double>( "class2", .0);
@@ -28,8 +27,6 @@ void AwakeningDao::fromRow(Row& result, Awakening& outObj)
     outObj.awaken_class1	= result.get<double>( "awaken_class1", .0);
     outObj.awaken_class2	= result.get<double>( "awaken_class2", .0);
     outObj.awaken_class3	= result.get<double>( "awaken_class3", .0);
-
-    PrintOut("Awakening 2 " << std::endl);
 }
 
 void AwakeningDao::toRow(Awakening& data, Parameters& outParams, bool update) {}

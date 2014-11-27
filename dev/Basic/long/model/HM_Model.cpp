@@ -15,6 +15,7 @@
 #include "database/dao/HouseholdDao.hpp"
 #include "database/dao/UnitDao.hpp"
 #include "database/dao/IndividualDao.hpp"
+#include "database/dao/AwakeningDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -218,6 +219,10 @@ void HM_Model::startImpl()
 		//load individuals
 		loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
 		PrintOut("Initial Individuals: " << individuals.size() << std::endl);
+
+		//loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
+
+
 
 		if (numUnits != -1 && numUnits < units.size())
 		{

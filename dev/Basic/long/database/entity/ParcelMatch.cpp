@@ -9,9 +9,9 @@
 
 using namespace sim_mob::long_term;
 
-ParcelMatch::ParcelMatch(BigSerial fmParcelId, BigSerial slaParcelId,int matchCode,std::tm matchDate):
-		fmParcelId(fmParcelId),slaParcelId(slaParcelId),matchCode(matchCode),matchDate(matchDate){
-}
+ParcelMatch::ParcelMatch(BigSerial fmParcelId, std::string slaParcelId,int matchCode,std::tm matchDate)
+						:fmParcelId(fmParcelId),slaParcelId(slaParcelId),matchCode(matchCode),matchDate(matchDate)
+{}
 
 ParcelMatch::~ParcelMatch() {}
 
@@ -20,16 +20,16 @@ BigSerial ParcelMatch::getFmParcelId() const
     return fmParcelId;
 }
 
-BigSerial ParcelMatch::getSlaParcelId(BigSerial parcelId) const
+std::string ParcelMatch::getSlaParcelId(BigSerial fmparcelId) const
 {
-	if(parcelId==this->fmParcelId)
+	if(fmparcelId == this->fmParcelId )
 	{
 		return slaParcelId;
 	}
     return 0;
 }
 
-BigSerial ParcelMatch::getSlaParcelId() const
+std::string ParcelMatch::getSlaParcelId() const
 {
     return slaParcelId;
 }

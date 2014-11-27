@@ -18,10 +18,7 @@ namespace sim_mob
         class ParcelMatch
         {
         public:
-            ParcelMatch(BigSerial fmParcelId = INVALID_ID,
-            		    BigSerial slaParcelId = INVALID_ID,
-            		    int matchCode = 0,
-            		    std::tm matchDate = std::tm());
+            ParcelMatch(BigSerial fmParcelId = INVALID_ID, std::string slaParcelId = EMPTY_STR,  int matchCode = 0, std::tm matchDate = std::tm());
 
             virtual ~ParcelMatch();
 
@@ -29,8 +26,8 @@ namespace sim_mob
              * Getters and Setters
              */
             BigSerial getFmParcelId() const;
-            BigSerial getSlaParcelId(BigSerial parcelId) const;
-            BigSerial getSlaParcelId() const;
+            std::string getSlaParcelId(BigSerial fmparcelId) const;
+            std::string getSlaParcelId() const;
             int	getMatchCode() const;
             std::tm	getMatchDate() const;
 
@@ -43,7 +40,7 @@ namespace sim_mob
 
         private:
             BigSerial fmParcelId;
-            BigSerial slaParcelId;
+            std::string slaParcelId;
             int	matchCode;
             std::tm matchDate;
          };

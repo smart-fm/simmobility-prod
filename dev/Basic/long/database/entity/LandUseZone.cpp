@@ -14,7 +14,7 @@
 
 using namespace sim_mob::long_term;
 
-LandUseZone::LandUseZone(BigSerial id, BigSerial typeId, double gpr): id(id), typeId(typeId), gpr(gpr) {}
+LandUseZone::LandUseZone(BigSerial id, BigSerial typeId, std::string gpr): id(id), typeId(typeId), gpr(gpr) {}
 
 LandUseZone::~LandUseZone() {}
 
@@ -28,7 +28,7 @@ BigSerial LandUseZone::getTypeId() const
     return typeId;
 }
 
-double LandUseZone::getGPR() const
+std::string LandUseZone::getGPR() const
 {
     return gpr;
 }

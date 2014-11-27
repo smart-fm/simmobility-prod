@@ -14,7 +14,7 @@
 
 using namespace sim_mob::long_term;
 
-Parcel::Parcel(BigSerial id, BigSerial taz_id, float lot_size, float	gpr, std::string land_use, std::string owner_name,  int	owner_category, std::tm last_transaction_date,
+Parcel::Parcel(BigSerial id, BigSerial taz_id, float lot_size, std::string gpr, std::string land_use, std::string owner_name,  int	owner_category, std::tm last_transaction_date,
 	   float last_transaction_type_total, float psm_per_gps, int lease_type, std::tm lease_start_date, float centroid_x, float centroid_y, std::tm award_date,
        bool	award_status, std::string	use_restriction, std::string development_type_allowed, std::string	development_type_code, int	successful_tender_id,
        float	successful_tender_price, std::tm tender_closing_date, int lease )
@@ -43,7 +43,7 @@ float Parcel::getLotSize() const
 	return lot_size;
 }
 
-float Parcel::getGpr() const
+std::string Parcel::getGpr() const
 {
 	return gpr;
 }

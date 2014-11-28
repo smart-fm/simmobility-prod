@@ -191,6 +191,22 @@ void sim_mob::medium::DriverMovement::frame_tick() {
 		advance(params);
 		setParentData(params);
 	}
+	std::stringstream logout;
+	logout << "(\"Driver\""
+			<<","<<getParent()->getId()
+			<<","<<params.now.frame()
+			<<",{"
+			<<"\"RoadSegment\":\""<< (getParent()->getCurrSegStats()->getRoadSegment()->getId())
+			<<"\",\"Lane\":\""<<((getParent()->getCurrLane())? getParent()->getCurrLane()->getLaneID():0)
+			<<"\",\"Segment\":\""<<(getParent()->getCurrSegStats()->getRoadSegment()->getStartEnd())
+			<<"\",\"DistanceToEndSeg\":\""<<getParent()->distanceToEndOfSegment;
+	if (this->getParent()->isQueuing) {
+			logout << "\",\"queuing\":\"" << "true";
+	} else {
+			logout << "\",\"queuing\":\"" << "false";
+	}
+	logout << "\"})" << std::endl;
+	Print() << logout.str();
 }
 
 void sim_mob::medium::DriverMovement::frame_tick_output() {
@@ -216,7 +232,6 @@ void sim_mob::medium::DriverMovement::frame_tick_output() {
 			logout << "\",\"queuing\":\"" << "false";
 	}
 	logout << "\"})" << std::endl;
-
 	LogOut(logout.str());
 }
 

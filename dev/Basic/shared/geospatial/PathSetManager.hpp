@@ -478,6 +478,7 @@ public:
 	bool isMinRightTurn;
 	bool isMaxHighWayUsage;
 	bool isShortestPath;
+	long long index;
 
 	bool isNeedSave2DB;
 	std::string id;   //id: seg1id_seg2id_seg3id

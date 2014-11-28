@@ -460,12 +460,9 @@ private:
 class SinglePath
 {
 public:
-	SinglePath() : purpose(work),utility(0.0),pathSize(0.0),travelCost(0.0),
-	signalNumber(0.0),rightTurnNumber(0.0),length(0.0),travleTime(0.0),highWayDistance(0.0),
-	isMinTravelTime(0),isMinDistance(0),isMinSignal(0),isMinRightTurn(0),isMaxHighWayUsage(0),
-	isShortestPath(0), excludeSeg(nullptr),
-	shortestWayPointpath(std::vector<WayPoint>()),isNeedSave2DB(false){}
+	SinglePath();
 	SinglePath(const SinglePath &source);
+//	SinglePath(SinglePath *source);
 	void init(std::vector<WayPoint>& wpPools);
 	void clear();
 	std::vector<WayPoint> shortestWayPointpath;
@@ -492,7 +489,9 @@ public:
 	double travleTime;
 	sim_mob::TRIP_PURPOSE purpose;
 
-	SinglePath(SinglePath *source);
+	long index;
+
+
 	~SinglePath();
 
 	 bool operator() (const SinglePath* lhs, const SinglePath* rhs) const

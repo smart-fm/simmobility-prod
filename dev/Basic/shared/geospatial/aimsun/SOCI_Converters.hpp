@@ -117,7 +117,7 @@ template<> struct type_conversion<sim_mob::SinglePath>
 		res.isMinRightTurn = (vals.get<int>("MIN_RIGHT_TURN",0) ? true : false);
 		res.isMaxHighWayUsage = (vals.get<int>("MAX_HIGH_WAY_USAGE",0) ? true : false);
 		res.isShortestPath = (vals.get<int>("SHORTEST_PATH",0) ? true : false);
-		res.index = vals.get<long>("pid",0);
+		res.index = vals.get<long long>("pid",0);
     }
     static void to_base(const sim_mob::SinglePath& src, soci::values& vals, soci::indicator& ind)
     {

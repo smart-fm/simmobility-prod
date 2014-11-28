@@ -61,9 +61,9 @@ sim_mob::PathSetParam* sim_mob::PathSetParam::getInstance()
 
 void sim_mob::PathSetParam::getDataFromDB()
 {
-	logger << "[TT TABLE NAME : " << ConfigManager::GetInstance().FullConfig().getTravelTimeTableName() << "]\n";
-	std::cout << "[TT TABLE NAME : " << ConfigManager::GetInstance().FullConfig().getTravelTimeTableName() << "]\n";
-	setTravleTimeTableName(ConfigManager::GetInstance().FullConfig().getTravelTimeTableName());
+	logger << "[RTT TABLE NAME : " << ConfigManager::GetInstance().FullConfig().getRTTT() << "]\n";
+	std::cout << "[RTT TABLE NAME : " << ConfigManager::GetInstance().FullConfig().getRTTT() << "]\n";
+	setRTTT(ConfigManager::GetInstance().FullConfig().getRTTT());
 
 		sim_mob::aimsun::Loader::LoadERPData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 				ERP_SurchargePool,	ERP_Gantry_ZonePool,ERP_SectionPool);
@@ -74,7 +74,7 @@ void sim_mob::PathSetParam::getDataFromDB()
 		logger << segmentDefaultTravelTimePool.size() << " records for Link_default_travel_time found\n";
 
 		bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(*(PathSetManager::getSession()),
-				pathSetTravelTimeRealTimeTableName,	segmentRealTimeTravelTimePool);
+				RTTT,	segmentRealTimeTravelTimePool);
 		logger << segmentRealTimeTravelTimePool.size() << " records for Link_realtime_travel_time found\n";
 		if(!res) // no realtime travel time table
 		{
@@ -97,12 +97,12 @@ void sim_mob::PathSetParam::storeSinglePath(soci::session& sql,std::set<sim_mob:
 bool sim_mob::PathSetParam::createTravelTimeRealtimeTable()
 {
 	bool res=false;
-	std::string createTableStr = pathSetTravelTimeRealTimeTableName + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
+	std::string createTableStr = RTTT + " ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )";
 	res = sim_mob::aimsun::Loader::createTable(*(PathSetManager::getSession()),createTableStr);
 	return res;
 }
 
-void sim_mob::PathSetParam::setTravleTimeTableName(const std::string& value)
+void sim_mob::PathSetParam::setRTTT(const std::string& value)
 {
 	if(!value.size())
 	{
@@ -110,8 +110,8 @@ void sim_mob::PathSetParam::setTravleTimeTableName(const std::string& value)
 				"It is either missing in the XML configuration file,\n"
 				"or you are trying to access the file name before reading the Configuration file");
 	}
-	pathSetTravelTimeRealTimeTableName = value;
-	logger << "setTravleTimeTableName: " << pathSetTravelTimeRealTimeTableName << "\n";
+	RTTT = value;
+	logger << "setRTTT: " << RTTT << "\n";
 }
 
 double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::string id,sim_mob::DailyTime startTime,sim_mob::DailyTime endTime)
@@ -358,8 +358,8 @@ uint32_t sim_mob::PathSetParam::getSize()
 //		const roadnetwork;
 	sum += sizeof(sim_mob::RoadNetwork&);
 
-//		std::string pathSetTravelTimeRealTimeTableName;
-	sum += pathSetTravelTimeRealTimeTableName.length();
+//		std::string RTTT;
+	sum += RTTT.length();
 	return sum;
 }
 
@@ -377,7 +377,7 @@ sim_mob::RoadSegment* sim_mob::PathSetParam::getRoadSegmentByAimsunId(const std:
 sim_mob::PathSetParam::PathSetParam() :
 		roadNetwork(ConfigManager::GetInstance().FullConfig().getNetwork()),
 		multiNodesPool(ConfigManager::GetInstance().FullConfig().getNetwork().getNodes()), uniNodesPool(ConfigManager::GetInstance().FullConfig().getNetwork().getUniNodes()),
-		pathSetTravelTimeRealTimeTableName("")
+		RTTT("")
 {
 	initParameters();
 	for (std::vector<sim_mob::Link *>::const_iterator it =	ConfigManager::GetInstance().FullConfig().getNetwork().getLinks().begin(), it_end( ConfigManager::GetInstance().FullConfig().getNetwork().getLinks().end()); it != it_end; it++) {
@@ -445,7 +445,7 @@ uint32_t sim_mob::PathSetManager::getSize(){
 	//todo statics added separately
 //	sum += csvFileName.length(); // std::string csvFileName;
 	sum += sizeof(std::ofstream); // std::ofstream csvFile;
-	sum += pathSetParam->pathSetTravelTimeRealTimeTableName.length(); // std::string pathSetTravelTimeRealTimeTableName;
+	sum += pathSetParam->RTTT.length(); // std::string RTTT;
 	sum += sizeof(sim_mob::K_ShortestPathImpl *); // sim_mob::K_ShortestPathImpl *kshortestImpl;
 	sum += sizeof(double); // double bTTVOT;
 	sum += sizeof(double); // double bCommonFactor;
@@ -571,14 +571,14 @@ bool sim_mob::PathSetManager::copyTravelTimeDataFromTmp2RealtimeTable()
 //	sim_mob::Logger::log("real_time_travel_time");
 	bool res=false;
 	//2.truncate/empty out the realtime travel time table
-	res = sim_mob::aimsun::Loader::truncateTable(*getSession(),	pathSetParam->pathSetTravelTimeRealTimeTableName);
+	res = sim_mob::aimsun::Loader::truncateTable(*getSession(),	pathSetParam->RTTT);
 	if(!res)
 	{
 		return false;
 	}
 	//3.write into DB table
 	sim_mob::Logger::log("real_time_travel_time").flush();
-	sim_mob::aimsun::Loader::insertCSV2Table(*getSession(),	pathSetParam->pathSetTravelTimeRealTimeTableName, boost::filesystem::canonical("real_time_travel_time.txt").string());
+	sim_mob::aimsun::Loader::insertCSV2Table(*getSession(),	pathSetParam->RTTT, boost::filesystem::canonical("real_time_travel_time.txt").string());
 	return res;
 }
 

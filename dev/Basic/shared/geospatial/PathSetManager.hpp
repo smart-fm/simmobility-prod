@@ -53,7 +53,7 @@ public:
 //	void storePathSet(soci::session& sql,std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& psPool,const std::string pathSetTableName);
 
 	///	set the table name used to store temporary travel time information
-	void setTravleTimeTableName(const std::string& value);
+	void setRTTT(const std::string& value);
 
 	/// create the table used to store realtime travel time information
 	bool createTravelTimeRealtimeTable();
@@ -125,8 +125,10 @@ public:
 	///	simmobility's road network
 	const sim_mob::RoadNetwork& roadNetwork;
 
-	/// table store travel time ,used to calculate pathset size
-	std::string pathSetTravelTimeRealTimeTableName;
+	/// Real Time Travel Time Table Name
+	std::string RTTT;
+	/// Default Travel Time Table Name
+	std::string DTT;
 
 };
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -489,7 +491,7 @@ public:
 	double travleTime;
 	sim_mob::TRIP_PURPOSE purpose;
 
-	long index;
+	long long index;
 
 
 	~SinglePath();

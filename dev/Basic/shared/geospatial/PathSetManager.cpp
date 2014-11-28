@@ -826,7 +826,7 @@ void sim_mob::printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node
 	}
 	out << "\n";
 
-	logger << out.str();
+	std::cout << out.str();
 }
 
 namespace
@@ -1687,70 +1687,72 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 }
 
 
-//std::map<int,sim_mob::OneTimeFlag> utilityLogger;
+std::map<long long,sim_mob::OneTimeFlag> utilityLogger;
 double sim_mob::PathSetManager::getPartialUtility(sim_mob::SinglePath* sp)
 {
-	double utility=0;
+	double pUtility = 0;
 	if(!sp)
 	{
-		return utility;
+		return pUtility;
 	}
-	// calculate utility
+	// calculate pUtility
 	//1.0
 	//Obtain the travel time tt of the path.
 	//Obtain value of time for the agent A: bTTlowVOT/bTTmedVOT/bTThiVOT.
-//	utility += sp->travleTime * pathSetParam->bTTVOT;
+//	pUtility += sp->travleTime * pathSetParam->bTTVOT;
 	//2.0
 	//Obtain the path size PS of the path.
-	if(sp->pathSize <= 0.0)
+	if(sp->pathSize > 0.0)
 	{
-		throw std::runtime_error("getUtility: invalid pathsize :");
+		std::stringstream out("");
+		out << "getUtility: invalid pathsize :" << sp->pathSize ;
+		throw std::runtime_error(out.str());
 	}
-	utility += sp->pathSize * pathSetParam->bCommonFactor;
+	pUtility += sp->pathSize * pathSetParam->bCommonFactor;
 	//3.0
 	//Obtain the travel distance l and the highway distance w of the path.
-	utility += sp->length * pathSetParam->bLength + sp->highWayDistance * pathSetParam->bHighway;
+	pUtility += sp->length * pathSetParam->bLength + sp->highWayDistance * pathSetParam->bHighway;
 	//4.0
 	//Obtain the travel cost c of the path.
-//	utility += sp->travelCost * pathSetParam->bCost;
+//	pUtility += sp->travelCost * pathSetParam->bCost;
 	//5.0
 	//Obtain the number of signalized intersections s of the path.
-	utility += sp->signalNumber * pathSetParam->bSigInter;
+	pUtility += sp->signalNumber * pathSetParam->bSigInter;
 	//6.0
 	//Obtain the number of right turns f of the path.
-	utility += sp->rightTurnNumber * pathSetParam->bLeftTurns;
+	pUtility += sp->rightTurnNumber * pathSetParam->bLeftTurns;
 	//7.0
 	//min travel time param
 	if(sp->isMinTravelTime == 1)
 	{
-		utility += pathSetParam->minTravelTimeParam;
+		pUtility += pathSetParam->minTravelTimeParam;
 	}
 	//8.0
 	//min distance param
 	if(sp->isMinDistance == 1)
 	{
-		utility += pathSetParam->minDistanceParam;
+		pUtility += pathSetParam->minDistanceParam;
 	}
 	//9.0
 	//min signal param
 	if(sp->isMinSignal == 1)
 	{
-		utility += pathSetParam->minSignalParam;
+		pUtility += pathSetParam->minSignalParam;
 	}
 	//10.0
 	//min highway param
 	if(sp->isMaxHighWayUsage == 1)
 	{
-		utility += pathSetParam->maxHighwayParam;
+		pUtility += pathSetParam->maxHighwayParam;
 	}
 	//Obtain the trip purpose.
 	if(sp->purpose == sim_mob::work)
 	{
-		utility += sp->purpose * pathSetParam->bWork;
+		pUtility += sp->purpose * pathSetParam->bWork;
 	}
 	else if(sp->purpose == sim_mob::leisure)
 	{
-		utility += sp->purpose * pathSetParam->bLeisure;
+		pUtility += sp->purpose * pathSetParam->bLeisure;
 	}
 
 //	std::stringstream out("");
@@ -1768,28 +1770,26 @@ double sim_mob::PathSetManager::getPartialUtility(sim_mob::SinglePath* sp)
 //			<< "pathSetParam->minSignalParam : " << pathSetParam->minSignalParam  << " " <<  (sp->isMinSignal == 1) <<  " " <<"\n"
 //			<< "pathSetParam->maxHighwayParam  : " << pathSetParam->maxHighwayParam  << " " << (sp->isMaxHighWayUsage == 1)  <<  " " <<"\n"
 //			<< "sp->purpose  * bWork/bLeisure  : " << sp->purpose  << " " <<   (sp->purpose == sim_mob::work ? pathSetParam->bWork : pathSetParam->bLeisure)  <<  " " << sp->purpose * (sp->purpose == sim_mob::work ? pathSetParam->bWork : pathSetParam->bLeisure) << "\n"
-//			<< "Utility : " << utility << "\n";
+//			<< "Utility : " << pUtility << "\n";
 
-//	if(utilityLogger[sp->index].check())
-//	{
-//		std::stringstream out("");
-//		out << "utility_csv_logger_" << sp->pathset_id << ".csv";
-//		sim_mob::Logger::log(out.str()) << sp->pathset_id << sp->index << sp->travleTime << " " << pathSetParam->bTTVOT <<  " " << sp->travleTime * pathSetParam->bTTVOT
-//				<< sp->pathSize << pathSetParam->bCommonFactor <<  sp->pathSize * pathSetParam->bCommonFactor
-//				<< sp->length << pathSetParam->bLength   <<  sp->length * pathSetParam->bLength
-//				<< sp->highWayDistance  <<  pathSetParam->bHighway << sp->highWayDistance * pathSetParam->bHighway
-//				<< sp->travelCost <<   pathSetParam->bCost  << sp->travelCost * pathSetParam->bCost
-//				<< sp->signalNumber  <<   pathSetParam->bSigInter << sp->signalNumber * pathSetParam->bSigInter
-//				<< sp->rightTurnNumber << pathSetParam->bLeftTurns << sp->rightTurnNumber * pathSetParam->bLeftTurns
-//				<< pathSetParam->minTravelTimeParam <<  (sp->isMinTravelTime == 1) << pathSetParam->minTravelTimeParam *  (sp->isMinTravelTime == 1 ? 1 : 0)
-//				<< pathSetParam->minDistanceParam << (sp->isMinDistance == 1) << pathSetParam->minDistanceParam * (sp->isMinDistance == 1 ? 1 : 0)
-//				<< pathSetParam->minSignalParam  << (sp->isMinSignal == 1) << pathSetParam->minSignalParam * (sp->isMinSignal == 1 ? 1 : 0)
-//				<< pathSetParam->maxHighwayParam  << (sp->isMaxHighWayUsage == 1)  << pathSetParam->maxHighwayParam * (sp->isMaxHighWayUsage == 1 ? 1 : 0)
-//				<< sp->purpose  << (sp->purpose == sim_mob::work ? pathSetParam->bWork : pathSetParam->bLeisure) << sp->purpose  * (sp->purpose == sim_mob::work ? pathSetParam->bWork : pathSetParam->bLeisure)
-//				<< utility << "\n";
-//	}
+	if(utilityLogger[sp->index].check())
+	{
+		sp->partialUtilityDbg << sp->pathSetId << "," << "," << sp->index << sp->travleTime << "," << pathSetParam->bTTVOT <<  ", " << sp->travleTime * pathSetParam->bTTVOT
+				<< sp->pathSize << "," << pathSetParam->bCommonFactor << "," <<  sp->pathSize * pathSetParam->bCommonFactor
+				<< sp->length << "," << pathSetParam->bLength << ","   <<  sp->length * pathSetParam->bLength
+				<< sp->highWayDistance << ","  <<  pathSetParam->bHighway << "," << sp->highWayDistance * pathSetParam->bHighway
+				<< sp->travelCost << "," <<   pathSetParam->bCost << ","  << sp->travelCost * pathSetParam->bCost
+				<< sp->signalNumber << ","  <<   pathSetParam->bSigInter << "," << sp->signalNumber * pathSetParam->bSigInter
+				<< sp->rightTurnNumber << "," << pathSetParam->bLeftTurns << "," << sp->rightTurnNumber * pathSetParam->bLeftTurns
+				<< pathSetParam->minTravelTimeParam << "," <<  (sp->isMinTravelTime == 1) << pathSetParam->minTravelTimeParam *  (sp->isMinTravelTime == 1 ? 1 : 0)
+				<< pathSetParam->minDistanceParam << "," << (sp->isMinDistance == 1) << "," << pathSetParam->minDistanceParam * (sp->isMinDistance == 1 ? 1 : 0)
+				<< pathSetParam->minSignalParam  << "," << (sp->isMinSignal == 1) << "," << pathSetParam->minSignalParam * (sp->isMinSignal == 1 ? 1 : 0)
+				<< pathSetParam->maxHighwayParam  << (sp->isMaxHighWayUsage == 1)  << pathSetParam->maxHighwayParam * (sp->isMaxHighWayUsage == 1 ? 1 : 0)
+				<< sp->purpose << ","  << (sp->purpose == sim_mob::work ? pathSetParam->bWork : pathSetParam->bLeisure) << "," << sp->purpose  * (sp->purpose == sim_mob::work ? pathSetParam->bWork : pathSetParam->bLeisure)
+				 << "," << pUtility ;
+	}
 
-	return utility;
+	return pUtility;
 
 }
 
@@ -1812,6 +1812,10 @@ double sim_mob::PathSetManager::getUtility(sim_mob::SinglePath* sp)
 	utility += sp->travleTime * pathSetParam->bTTVOT;
 	//obtain travel cost part of utility
 	utility += sp->travelCost * pathSetParam->bCost;
+	std::stringstream out("");
+	out << "utility_csv_logger_" << sp->pathSetId << ".csv";
+	sim_mob::Logger::log(out.str()) << sp->partialUtilityDbg.str() << "," << sp->travleTime << "," << pathSetParam->bTTVOT << "," << sp->travleTime * pathSetParam->bTTVOT
+			<< sp->travelCost << "," <<  pathSetParam->bCost << "," <<  sp->travelCost * pathSetParam->bCost << "," << utility << "\n";
 	return utility;
 }
 
@@ -2096,11 +2100,11 @@ void sim_mob::findPathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUseCach
 	}
 	double minL = 0;
 	// Step 1: the length of each path in the path choice set
-	if(ps->oriPath)
-	{
-		minL = ps->oriPath->length;
-	}
-	else
+//	if(ps->oriPath)
+//	{
+//		minL = ps->oriPath->length;
+//	}
+//	else
 	{
 		sim_mob::SinglePath *sp = findShortestPath(ps->pathChoices);
 		if(sp)
@@ -2112,13 +2116,15 @@ void sim_mob::findPathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUseCach
 			throw std::runtime_error("No Path Found for Length extraction");
 		}
 	}
-
+	std::cout << "min path:" << minL << std::endl;
 
 	int dbg_ind = -1;
 	bool uniquePath;
 	//pathsize
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
+		std::cout << "..................................................\n";
+		std::cout << "Analyzing path " << sp->id << std::endl;
 		dbg_ind ++;
 		uniquePath = true; //this variable checks if a path has No common segments with ther rest of the pathset
 		//Set size = 0.
@@ -2136,31 +2142,50 @@ void sim_mob::findPathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUseCach
 		for(std::vector<WayPoint>::iterator it1=sp->path.begin(); it1!=sp->path.end(); ++it1)
 		{
 			const sim_mob::RoadSegment* seg = it1->roadSegment_;
-			double l=seg->length;
+			//std::cout << "Target Path : " ;
+			//printWPpath(sp->path);
+			//std::cout << "target segment : " << seg->getId() << std::endl;
+			double l=seg->length/100.0;
 			//Set sum = 0.
 			double sum=0;
 			//For each path j in the path choice set PathSet(O, D):
+			std::cout << "sum: ";
 			BOOST_FOREACH(sim_mob::SinglePath* spj, ps->pathChoices)
 			{
 				std::vector<WayPoint>::iterator itt2;
 				for(itt2 = spj->path.begin(); itt2 != spj->path.end() && itt2->roadSegment_ != seg; ++itt2);
-				if(itt2!=spj->path.end())
+				if(itt2 != spj->path.end())
 				{
 					//found a match
+					double temp = minL/(spj->length);
+					if(temp > 1)
+					{
+						std::stringstream out("");
+						out << "minL/(spj->length) " << minL << "/" << spj->length << " > 1";
+						throw runtime_error(out.str());
+					}
 					sum += minL/(spj->length);
+					//uniquness: if any part of the path is common with any other path, it is not a unique path
+					if(sp->id != spj->id)
+					{
+						uniquePath = false;
+					}
+					//printWPpath(spj->path);
+					std::cout << sum << " ";
 				}
-				//uniquness
-				if(itt2!=spj->path.end() && sp->id !=spj->id)
+				else
 				{
-					uniquePath = false;
+					std::cout << " O ";
 				}
 
 			} // for j
 			size += l/sp->length/sum; //
+			std::cout << "\nupdate size by l/sp->length/sum : " << l << " " << sp->length << " " << sum << "=" << size << std::endl;
 		}
 		//is this a uniqu path ?
 		if(uniquePath)
 		{
+			std::cout << "Unique path\n";
 			sp->pathSize = 0;
 		}
 		else
@@ -2168,12 +2193,18 @@ void sim_mob::findPathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUseCach
 			//calculate path size
 			sp->pathSize = log(size);
 		}
+		std::cout << "size: " << size << "  sp->pathSize : " << sp->pathSize << "\n";
+		if(sp->pathSize > 0.0)
+		{
+			throw std::runtime_error("sp->pathSize(log(size)) is > 0 ");
+		}
 		//debug
 		if(sp->pathSetId == "112768,93896")
 		{
 			logger << "sp->pathSize : " << sp->pathSetId << sp->pathSize << "\n";
 		}
 	}// end for
+	std::cout << "-----------------------------------\n";
 }
 
 

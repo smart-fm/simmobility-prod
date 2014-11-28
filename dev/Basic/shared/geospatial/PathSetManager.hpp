@@ -452,6 +452,7 @@ public:
 
 	/// time independent part of utility(used for optimization purposes)
 	double partialUtility;
+	std::stringstream partialUtilityDbg;
 	double utility;
 	double pathSize;
 
@@ -539,15 +540,18 @@ inline sim_mob::SinglePath* findShortestPath(std::set<sim_mob::SinglePath*, sim_
 		return nullptr;
 	}
 	sim_mob::SinglePath* res = *(pathChoices.begin());
-	double min = 0;
-	double tmp = 0;
+	double min = 99999999.0;
+	double tmp = 0.0;
 	BOOST_FOREACH(sim_mob::SinglePath*sp, pathChoices)
 	{
-		if ((min - (tmp = generateSinglePathLength(sp->path))) > std::numeric_limits<double>::epsilon())
+		double tmp = generateSinglePathLength(sp->path);
+		if ((tmp*1000000 - min*1000000  ) < 0.0)
 		{
 			min = tmp;
 			res = sp;
 		}
+		std::cout << min << " " << tmp << " " << (min*1000000 - tmp*1000000) << std::endl;
+		std::cout << "path length " << tmp << std::endl;
 	}
 	return res;
 }

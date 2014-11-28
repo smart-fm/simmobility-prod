@@ -503,10 +503,13 @@
         </housingModel>
     </longTermParams>
     
+    <CBD enabled="false"/> 
+             
     <pathset enabled="true">
-    	<pathset_database database="fm_remote_path_choice"  credentials="fm_remote_path_choice" />
-    	<tables pathset_table="PathSet_SH_V" singlepath_table="SinglePath_SH_V" />
-    </pathset>  
+    	<pathset_database database="fm_local_path_choice"  credentials="fm_local_path_choice" />
+    	<tables singlepath_table="single_path" realtime_traveltime="travel_time" default_traveltime = "link_default_travel_time_corrected_he_v2"/>
+    	<function value="get_path_set" />
+    </pathset>
     
 </config>
 

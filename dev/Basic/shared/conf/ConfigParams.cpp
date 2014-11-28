@@ -370,9 +370,15 @@ const DailyTime& sim_mob::ConfigParams::simStartTime() const
 {
 	return system.simulation.simStartTime;
 }
-const std::string& sim_mob::ConfigParams::getTravelTimeTableName() const
+
+const std::string& sim_mob::ConfigParams::getRTTT() const
 {
-	return system.simulation.travelTimeTableName;
+	return pathset.RTTT_Conf;
+}
+
+const std::string& sim_mob::ConfigParams::getDTT() const
+{
+	return pathset.DTT_Conf;
 }
 
 std::string sim_mob::ConfigParams::busline_control_type() const
@@ -526,7 +532,7 @@ bool sim_mob::ConfigParams::PathSetMode() const {
 	return pathset.enabled;
 }
 
-const PathSetParams & sim_mob::ConfigParams::pathSet() const{
+const PathSetConf & sim_mob::ConfigParams::pathSet() const{
 	return pathset;
 }
 

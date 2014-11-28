@@ -567,12 +567,13 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 
 	xercesc::DOMElement* tableNode = GetSingleElementByName(node, "tables");
 	if(!tableNode){
-		throw std::runtime_error("Pathset data base table specification not found");
+		throw std::runtime_error("Pathset Tables specification not found");
 	}
 	else
 	{
 		cfg.pathset.singlePathTableName = ParseString(GetNamedAttributeValue(tableNode, "singlepath_table"), "");
-		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(tableNode, "function"), "");
+		cfg.pathset.RTTT_Conf  = ParseString(GetNamedAttributeValue(tableNode, "realtime_traveltime"), "");
+		cfg.pathset.DTT_Conf  = ParseString(GetNamedAttributeValue(tableNode, "default_traveltime"), "");
 	}
 	//function
 
@@ -582,12 +583,39 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 	}
 	else
 	{
-		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(functionNode, "value"));
+		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(functionNode, "value"), "");
 	}
-	/////////
-	DOMElement* tt = GetSingleElementByName(node, "pathset_traveltime_save_table",ConfigManager::GetInstance().FullConfig().PathSetMode());
-	if (tt) {
-		cfg.system.simulation.travelTimeTableName  = ParseString(GetNamedAttributeValue(tt, "value"));
+
+//	//sanity check
+	std::stringstream out("Missing ");
+	if(cfg.pathset.database == "")
+	{
+		out << "single path's data base, ";
+	}
+	if(cfg.pathset.credentials == "")
+	{
+		out << "single path's data base credentials, ";
+	}
+	if(cfg.pathset.singlePathTableName == "")
+	{
+		out << "single path's table name, ";
+	}
+	if(cfg.pathset.RTTT_Conf == "")
+	{
+		out << "single path's realtime TT table name, ";
+	}
+	if(cfg.pathset.DTT_Conf == "")
+	{
+		out << "single path's default TT table name, ";
+	}
+	if(cfg.pathset.dbFunction  == "")
+	{
+		out << "single path stored procedure, ";
+	}
+	if(out.str().size() > std::string("Missing ").size())
+	{
+		out << "Missing " << out.str();
+		throw std::runtime_error(out.str());
 	}
 }
 

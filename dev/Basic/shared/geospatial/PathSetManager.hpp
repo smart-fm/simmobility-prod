@@ -50,7 +50,7 @@ public:
 //	void storePathSet(soci::session& sql,std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& psPool,const std::string pathSetTableName);
 
 	///	set the table name used to store temporary travel time information
-	void setTravleTimeTableName(const std::string& value);
+	void setRTTT(const std::string& value);
 
 	/// create the table used to store realtime travel time information
 	bool createTravelTimeRealtimeTable();
@@ -122,8 +122,10 @@ public:
 	///	simmobility's road network
 	const sim_mob::RoadNetwork& roadNetwork;
 
-	/// table store travel time ,used to calculate pathset size
-	std::string pathSetTravelTimeRealTimeTableName;
+	/// Real Time Travel Time Table Name
+	std::string RTTT;
+	/// Default Travel Time Table Name
+	std::string DTT;
 
 };
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -436,15 +438,6 @@ private:
 class SinglePath
 {
 public:
-	SinglePath() : purpose(work),utility(0.0),pathSize(0.0),travelCost(0.0),partialUtility(0.0),
-	signalNumber(0.0),rightTurnNumber(0.0),length(0.0),travleTime(0.0),highWayDistance(0.0),
-	isMinTravelTime(0),isMinDistance(0),isMinSignal(0),isMinRightTurn(0),isMaxHighWayUsage(0),
-	isShortestPath(0), excludeSeg(nullptr),
-	path(std::vector<WayPoint>()),isNeedSave2DB(false){}
-	SinglePath(const SinglePath &source);
-	///	extract the segment waypoint from series og node-segments waypoints
-	void init(std::vector<WayPoint>& wpPools);
-	void clear();
 	/// path representation
 	std::vector<WayPoint> path;
 	const sim_mob::RoadSegment* excludeSeg; // can be null
@@ -475,8 +468,14 @@ public:
 	bool isMaxHighWayUsage;
 	bool isShortestPath;
 
-	SinglePath(SinglePath *source);
+	long long index;
+
+	SinglePath(const SinglePath &source);
+	///	extract the segment waypoint from series og node-segments waypoints
+	SinglePath();
 	~SinglePath();
+	void init(std::vector<WayPoint>& wpPools);
+	void clear();
 
 	 bool operator() (const SinglePath* lhs, const SinglePath* rhs) const
 	 {

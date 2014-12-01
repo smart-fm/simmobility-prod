@@ -2124,11 +2124,15 @@ void sim_mob::findPathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUseCach
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
 		std::cout << "..................................................\n";
-		std::cout << "Analyzing path " << sp->id << std::endl;
+		std::cout << "Analyzing path: " << sp->id << std::endl;
+		std::cout << "Path length: " << sp->length << std::endl;
 		dbg_ind ++;
-		uniquePath = true; //this variable checks if a path has No common segments with ther rest of the pathset
+		uniquePath = true; //this variable checks if a path has No common segments with the rest of the pathset
 		//Set size = 0.
-		double size=0;
+		double size=0.0;
+
+		double pathLengthChecker=0.0;
+
 		if(!sp)
 		{
 			throw std::runtime_error ("unexpected null singlepath");
@@ -2144,12 +2148,15 @@ void sim_mob::findPathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUseCach
 			const sim_mob::RoadSegment* seg = it1->roadSegment_;
 			//std::cout << "Target Path : " ;
 			//printWPpath(sp->path);
-			//std::cout << "target segment : " << seg->getId() << std::endl;
+			std::cout << "target segment : " << seg->getId() << std::endl;
 			double l=seg->length/100.0;
+
+			pathLengthChecker += l;
 			//Set sum = 0.
-			double sum=0;
+			//double sum=0.0;
+			double sum=0.0;
 			//For each path j in the path choice set PathSet(O, D):
-			std::cout << "sum: ";
+			//std::cout << "sum: ";
 			BOOST_FOREACH(sim_mob::SinglePath* spj, ps->pathChoices)
 			{
 				std::vector<WayPoint>::iterator itt2;
@@ -2161,17 +2168,20 @@ void sim_mob::findPathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUseCach
 					if(temp > 1)
 					{
 						std::stringstream out("");
-						out << "minL/(spj->length) " << minL << "/" << spj->length << " > 1";
+						out << "minL/(spj->length) = " << minL << "/" << spj->length << " > 1";
 						throw runtime_error(out.str());
 					}
 					sum += minL/(spj->length);
+					std::cout << "\nupdate sum by minL/(spj->length) : " << minL << " / " << spj->length << " = " << minL/(spj->length) << std::endl;
+
 					//uniquness: if any part of the path is common with any other path, it is not a unique path
 					if(sp->id != spj->id)
 					{
 						uniquePath = false;
+						std::cout << "Path i is not a unique path because we found an overlap with path j" << std::endl;
 					}
 					//printWPpath(spj->path);
-					std::cout << sum << " ";
+					std::cout << "New sum = " << sum << " ";
 				}
 				else
 				{
@@ -2180,9 +2190,10 @@ void sim_mob::findPathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUseCach
 
 			} // for j
 			size += l/sp->length/sum; //
-			std::cout << "\nupdate size by l/sp->length/sum : " << l << " " << sp->length << " " << sum << "=" << size << std::endl;
+			std::cout << "\nupdate size by l/sp->length/sum : " << l << " / " << sp->length << " / " << sum << "=>" << l/sp->length/sum << std::endl;
+			std::cout << "New size = " << size << std::endl;
 		}
-		//is this a uniqu path ?
+		//is this a unique path ?
 		if(uniquePath)
 		{
 			std::cout << "Unique path\n";
@@ -2194,6 +2205,9 @@ void sim_mob::findPathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUseCach
 			sp->pathSize = log(size);
 		}
 		std::cout << "size: " << size << "  sp->pathSize : " << sp->pathSize << "\n";
+
+		std::cout << "pathLengthChecker = " << pathLengthChecker << " path length = " << sp->length << std::endl;
+
 		if(sp->pathSize > 0.0)
 		{
 			throw std::runtime_error("sp->pathSize(log(size)) is > 0 ");

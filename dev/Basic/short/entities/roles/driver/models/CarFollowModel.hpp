@@ -229,6 +229,13 @@ private:
 	 */
 	double calcAdjacentRate(sim_mob::DriverUpdateParams& p);
 
+	/**
+	 *  @brief calculates the acceleration for stop point
+	 *  \param p driver's parameters
+	 *  \return acceleration rate
+	 */
+	double calcStopPointRate(sim_mob::DriverUpdateParams& p);
+
 	/** \brief return the acc to a target speed within a specific distance
 	 *  \param p vehicle state value
 	 *  \param s distance (meter)

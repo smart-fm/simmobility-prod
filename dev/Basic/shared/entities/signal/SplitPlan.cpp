@@ -198,17 +198,45 @@ void sim_mob::SplitPlan::setDefaultSplitPlan(int approaches) {
 		NOF_Plans = 1;
 	}
 	int ii = 5, jj = 0;
-	double defaultChoiceSet_1[5][10] = { { 100 }, { 100 }, { 100 }, { 100 }, {
-			100 } };
-	double defaultChoiceSet_2[5][10] = { { 50, 50 }, { 30, 70 }, { 75, 25 }, {
-			60, 40 }, { 40, 60 } };
-	double defaultChoiceSet_3[5][10] = { { 33, 33, 34 }, { 40, 20, 40 }, { 25,
-			50, 25 }, { 25, 25, 50 }, { 50, 25, 25 } };
-	double defaultChoiceSet_4[5][10] = { { 25, 25, 25, 25 }, { 20, 35, 20, 25 },
-			{ 35, 35, 20, 10 }, { 35, 30, 10, 25 }, { 20, 35, 25, 20 } };
-	double defaultChoiceSet_5[5][10] = { { 20, 20, 20, 20, 20 }, { 15, 15, 25,
-			25, 20 }, { 30, 30, 20, 10, 10 }, { 25, 25, 20, 15, 15 }, { 10, 15,
-			20, 25, 30 } };
+	double defaultChoiceSet_1[5][10] = { { 100 }, { 100 }, { 100 }, { 100 }, {100 } };
+
+	double defaultChoiceSet_2[5][10] = { { 50, 50 },
+										 { 30, 70 },
+										 { 75, 25 },
+										 { 60, 40 },
+										 { 40, 60 } };
+
+	double defaultChoiceSet_3[5][10] = { { 33, 33, 34 },
+										 { 40, 20, 40 },
+										 { 25, 50, 25 },
+										 { 25, 25, 50 },
+										 { 50, 25, 25 } };
+
+	double defaultChoiceSet_4[5][10] = { { 25, 25, 25, 25 },
+										 { 20, 35, 20, 25 },
+										 { 35, 35, 20, 10 },
+										 { 35, 30, 10, 25 },
+										 { 20, 35, 25, 20 } };
+
+	double defaultChoiceSet_5[5][10] = { { 20, 20, 20, 20, 20 },
+										 { 15, 15, 25, 25, 20 },
+										 { 30, 30, 20, 10, 10 },
+										 { 25, 25, 20, 15, 15 },
+										 { 10, 15, 20, 25, 30 } };
+
+	double defaultChoiceSet_6[5][10] = { { 16, 16, 17, 17, 17, 17 },
+										 { 10, 15, 30, 20, 15, 10 },
+										 { 30, 20, 15, 15, 10, 10 },
+										 { 20, 30, 20, 10, 10, 10 },
+										 { 15, 15, 20, 20, 15, 15 } };
+
+	double defaultChoiceSet_7[5][10] = { { 14, 14, 14, 14, 14, 15, 15 },
+										 { 30, 15, 15, 10, 10, 10, 10 },
+										 { 15, 30, 10, 15, 10, 10, 10 },
+										 { 15, 20, 20, 15, 10, 10, 10 },
+										 { 10, 10, 10, 20, 20, 15, 15 } };
+
+
 	choiceSet.resize(NOF_Plans, vector<double>(approaches));
 	switch (approaches) {
 	case 1:
@@ -226,7 +254,12 @@ void sim_mob::SplitPlan::setDefaultSplitPlan(int approaches) {
 	case 5:
 		fill(defaultChoiceSet_5, 5);
 		break;
-
+	case 6:
+		fill(defaultChoiceSet_6, 6);
+		break;
+	case 7:
+		fill(defaultChoiceSet_7, 7);
+		break;
 	}
 
 	currSplitPlanID = 0;

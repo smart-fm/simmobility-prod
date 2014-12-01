@@ -24,6 +24,7 @@
 #include "workers/Worker.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "message/MessageBus.hpp"
+#include "entities/amodController/AMODController.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -65,6 +66,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 	res->fromLocationType = TripChainItem::getLocationType("node");
 	res->toLocation = WayPoint(ag.destNode);
 	res->toLocationType = res->fromLocationType;
+	res->travelMode = mode;
 
 	//SubTrip generatedSubTrip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(),
 	//candidate.origin, "node", candidate.dest, "node", "Car", true, "");
@@ -95,7 +97,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
 	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), remainingTimeThisTick(0.0),
 	requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
-	age(0), boardingTimeSecs(0), alightingTimeSecs(0), client_id(-1), resetParamsRequired(false), nextLinkRequired(nullptr), currSegStats(nullptr)
+	age(0), boardingTimeSecs(0), alightingTimeSecs(0), client_id(-1), resetParamsRequired(false), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),amodSegmLength(0.0)
 {
 }
 
@@ -103,7 +105,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegStats(nullptr), canMoveToNextSegment(NONE),
 	  databaseID(tc.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
 	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tc), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
-	  client_id(-1), nextLinkRequired(nullptr), currSegStats(nullptr)
+	  client_id(-1),amodPath( std::vector<WayPoint>() ), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),amodSegmLength(0.0)
 {
 	//TODO: Check with MAX what to do with the below commented lines
 //	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
@@ -119,7 +121,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();
 	//TODO: Check if short term is okay with this approach of checking agent source
-	if(getAgentSrc() == "XML_TripChain")
+	if(getAgentSrc() == "XML_TripChain" || getAgentSrc() == "AMOD_TripChain")
 	{
 		setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 	}
@@ -142,9 +144,10 @@ void sim_mob::Person::initTripChain(){
 		}
 	}
 
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_BUSTRIP) {
+	/*if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_BUSTRIP) {
 		std::cout << "Person " << this << "  is going to ride a bus\n";
-	}
+	}*/
+
 	setNextPathPlanned(false);
 	first_update_tick = true;
 	tripchainInitialized = true;
@@ -232,9 +235,9 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		int destNodeid;
 		try {
 			originNodeId = boost::lexical_cast<int>( oriNodeIt->second );
-			std::cout<<"originNodeId: "<<originNodeId<<std::endl;
+			//std::cout<<"originNodeId: "<<originNodeId<<std::endl;
 			destNodeid = boost::lexical_cast<int>( destNodeIt->second );
-			std::cout<<"destNodeid: "<<destNodeid<<std::endl;
+			//std::cout<<"destNodeid: "<<destNodeid<<std::endl;
 		} catch( boost::bad_lexical_cast const& ) {
 			Warn() << "Error: input string was not valid" << std::endl;
 		}
@@ -302,6 +305,26 @@ void Person::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>
 		currRole->rerouteWithBlacklist(blacklisted);
 	}
 }
+void sim_mob::Person::handleAMODEvent(sim_mob::event::EventId id,
+            sim_mob::event::Context ctxId,
+            sim_mob::event::EventPublisher* sender,
+            const AMOD::AMODEventArgs& args)
+{
+	if(id == event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH)
+	{
+		AMOD::AMODEventPublisher* pub = (AMOD::AMODEventPublisher*) sender;
+		const AMOD::AMODRerouteEventArgs& rrArgs = MSG_CAST(AMOD::AMODRerouteEventArgs, args);
+		std::cout<<"person <"<<amodId<<"> get reroute event <"<< rrArgs.reRoutePath.size() <<"> from <"<<pub->id<<">"<<std::endl;
+
+		//Driver *driver = (Driver*)currRole;
+		//driver->rerouteWithPath(rrArgs.reRoutePath);
+		//role gets chance to handle event
+		if(currRole){
+			currRole->onParentEvent(id, ctxId, sender, args);
+		}
+	}
+}
+
 
 
 bool sim_mob::Person::frame_init(timeslice now)
@@ -341,7 +364,21 @@ bool sim_mob::Person::frame_init(timeslice now)
 	}
 	return true;
 }
+void sim_mob::Person::setPath(std::vector<WayPoint>& path)
+{
+	if (path.size() == 0) {
+		std::cout << "Warning! Path size is zero!" << std::endl;
+	}
 
+	amodPath = path;
+}
+
+void sim_mob::Person::invalidateAMODVehicle(void) {
+	std::cout << "Invalidating: " << amodId << std::endl;
+	std::cout << "An error has occured with this vehicle." << std::endl;
+	//sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
+	//a->handleVHError(this);
+};
 void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
 {
 	Agent::onEvent(eventId, ctxId, sender, args);
@@ -358,11 +395,24 @@ void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ct
 	 }
  }
 
+ void sim_mob::Person::handleAMODArrival() {
+		sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
+
+		//ask the AMODController to handle the arrival
+		a->handleVHArrive(this);
+ }
+
+ void sim_mob::Person::handleAMODPickup() {
+		sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
+
+		//ask the AMODController to handle the arrival
+		a->handleVHPickup(this);
+ }
 
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {
 	//DEBUG
-	Print() << "person in [" << this->xPos << "," << this->yPos << "]" << std::endl;
+	//Print() << "person in [" << this->xPos << "," << this->yPos << "]" << std::endl;
 	currTick = now;
 	//TODO: Here is where it gets risky.
 	if (resetParamsRequired) {
@@ -989,7 +1039,8 @@ void sim_mob::Person::aggregateSubTripMetrics()
 	TravelMetric newTripMetric;
 	if(subTripTravelMetrics.begin() == subTripTravelMetrics.end())
 	{
-		throw std::runtime_error("subTrip level TravelMetrics is missing");
+		//PrintOut("\nsubTrip level TravelMetrics is missing");
+		return;
 	}
 	std::vector<TravelMetric>::iterator item(subTripTravelMetrics.begin());
 	newTripMetric.startTime = item->startTime;//first item
@@ -1038,6 +1089,11 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric & value){
 		 std::vector<SubTrip>::iterator currSubTrip
 		 ) const
  {
+	 if(!subtripMetrics.started && !subtripMetrics.finalized)
+	 {
+		 return;
+	 }
+
 	 //sanity check
 	 if((*currSubTrip).fromLocation != subtripMetrics.origin || (*currSubTrip).toLocation != subtripMetrics.destination)
 	 {

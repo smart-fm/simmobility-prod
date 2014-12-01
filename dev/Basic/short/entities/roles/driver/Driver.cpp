@@ -211,6 +211,23 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 	return res;
 }
 
+
+void sim_mob::Driver::onParentEvent(event::EventId eventId,
+		sim_mob::event::Context ctxId,
+		event::EventPublisher* sender,
+		const event::EventArgs& args)
+{
+	if(eventId == event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH)
+	{
+		AMOD::AMODEventPublisher* pub = (AMOD::AMODEventPublisher*) sender;
+		const AMOD::AMODRerouteEventArgs& rrArgs = MSG_CAST(AMOD::AMODRerouteEventArgs, args);
+		std::cout<<"driver get reroute event <"<< rrArgs.reRoutePath.size() <<"> from <"<<pub->id<<">"<<std::endl;
+
+		rerouteWithPath(rrArgs.reRoutePath);
+	}
+}
+
+
 std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
 {
 	vector<BufferedBase*> res;
@@ -244,24 +261,31 @@ double sim_mob::Driver::gapDistance(const Driver* front)
 	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
 	if (front) {			/* vehicle ahead */
 		DriverMovement* frontMov = dynamic_cast<DriverMovement*>(front->Movement());
-//	    if (lane_->segment() == front->segment())
-		if(mov->fwdDriverMovement.getCurrSegment() == frontMov->fwdDriverMovement.getCurrSegment())
-		{				/* same segment */
-//			headway = distance_ - front->distance_ - front->length();
-			headway = mov->fwdDriverMovement.getDisToCurrSegEnd() - frontMov->fwdDriverMovement.getDisToCurrSegEnd() - front->getVehicleLengthM();
-		}
-		else {				/* different segment */
-//			headway = distance_ + (front->lane_->length() -
-//									   front->distance_ -
-//									   front->length());
-			headway = mov->fwdDriverMovement.getDisToCurrSegEnd() + frontMov->fwdDriverMovement.getCurrDistAlongPolylineCM() - front->getVehicleLengthM();
-			  }
-	} else			/* no vehicle ahead. */
-		  {
-			headway = Math::FLT_INF;
-		  }
 
-	 return headway;
+		if (frontMov->fwdDriverMovement.isDoneWithEntireRoute()) {
+			/* vehicle ahead has already arrived at the destination */
+			headway = Math::FLT_INF;
+		} else {
+
+			//	    if (lane_->segment() == front->segment())
+			if(mov->fwdDriverMovement.getCurrSegment() == frontMov->fwdDriverMovement.getCurrSegment())
+			{				/* same segment */
+				//			headway = distance_ - front->distance_ - front->length();
+				headway = mov->fwdDriverMovement.getDisToCurrSegEnd() - frontMov->fwdDriverMovement.getDisToCurrSegEnd() - front->getVehicleLengthM();
+			}
+			else {				/* different segment */
+				//			headway = distance_ + (front->lane_->length() -
+				//									   front->distance_ -
+				//									   front->length());
+				headway = mov->fwdDriverMovement.getDisToCurrSegEnd() + frontMov->fwdDriverMovement.getCurrDistAlongPolylineCM() - front->getVehicleLengthM();
+			}
+		}
+	} else			/* no vehicle ahead. */
+	{
+		headway = Math::FLT_INF;
+	}
+
+	return headway;
 }
 bool sim_mob::Driver::isBus()
 {
@@ -272,7 +296,6 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	UpdateParams::reset(now);
 
 	//Set to the previous known buffered values
-	//currLane = owner.currLane_.get();
 	if(owner.currLane_.get()) {
 		currLane = owner.currLane_.get();
 	}
@@ -364,6 +387,7 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	nvRightBack2 = NearestVehicle();
 }
 
+
 void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
 {
 	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
@@ -371,7 +395,6 @@ void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>
 		mov->rerouteWithBlacklist(blacklisted);
 	}
 }
-
 void Driver::setCurrPosition(DPoint currPosition)
 {
 	currPos = currPosition;
@@ -390,4 +413,12 @@ void Driver::resetReacTime(double t)
 	perceivedDistToFwdCar->set_delay(t);
 	perceivedDistToTrafficSignal->set_delay(t);
 	perceivedTrafficColor->set_delay(t);
+}
+
+void Driver::rerouteWithPath(const std::vector<sim_mob::WayPoint>& path)
+{
+	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
+	if (mov) {
+		mov->rerouteWithPath(path);
+	}
 }

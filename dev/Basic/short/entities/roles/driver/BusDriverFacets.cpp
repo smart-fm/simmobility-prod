@@ -20,6 +20,7 @@
 #include "entities/roles/driver/models/LaneChangeModel.hpp"
 #include "entities/UpdateParams.hpp"
 #include "logging/Log.hpp"
+#include "geospatial/PathSetManager.hpp"
 
 namespace {
 	// default bus length cm to be displayed on visualizer
@@ -176,7 +177,32 @@ void sim_mob::BusDriverMovement::frame_init() {
 		}
 		//Unique to BusDrivers: reset your route
 		waitAtStopMS = 0.0;
+
+		//Set initial speed of bus to 0
+		parentBusDriver->getParams().initSpeed = 0;
 	}
+
+	// put busStops to StopPointPool
+	for(int i=0;i<busStops.size();++i){
+		const BusStop* bs = busStops[i];
+		std::string segAimsunId = bs->getParentSegment()->originalDB_ID.getLogItem();
+		std::string segid = Utils::getNumberFromAimsunId(segAimsunId);
+		double dd = sim_mob::BusStop::EstimateStopPoint(bs->xPos, bs->yPos, bs->getParentSegment()) /100.0;
+		double dis = bs->distance;//sim_mob::BusStop::EstimateStopPoint(bs->xPos, bs->yPos, bs->getParentSegment()) /100.0;
+		double fd = dd;
+		double segl = bs->getParentSegment()->getLengthOfSegment() /100.0;
+		if(fd > (segl -10) ){
+			fd = segl -10;
+		}
+		if(fd<0){
+			fd = segl/2;
+		}
+		std::cout<<"id: "<<segid<<" dis:"<<dis<<" dd:"<<dd<<" len:"<<bs->getParentSegment()->getLengthOfSegment() /100.0<<" fd:"<<fd<<std::endl;
+		double dwelltime = 10;
+		StopPoint sp(segid,fd,dwelltime);
+		parentBusDriver->getParams().insertStopPoint(sp);
+	}
+
 }
 
 std::vector<const BusStop*> sim_mob::BusDriverMovement::findBusStopInPath(const std::vector<const RoadSegment*>& path) const {
@@ -195,6 +221,7 @@ std::vector<const BusStop*> sim_mob::BusDriverMovement::findBusStopInPath(const 
 		for (ob_it = obstacles.begin(); ob_it != obstacles.end(); ++ob_it) {
 			RoadItem* ri = const_cast<RoadItem*>(ob_it->second);
 			BusStop *bs = dynamic_cast<BusStop*>(ri);
+			bs->distance = ob_it->first /100.0;
 			if (bs) {
 				res.push_back(bs);
 			}
@@ -416,6 +443,7 @@ void sim_mob::BusDriverMovement::frame_tick_output() {
 			<<"\",\"DwellTime_ijk\":\""<<(bus?parentBusDriver->DwellTime_ijk.get():0)
 			<<"\",\"buslineID\":\""<<(bus?bus->getBusLineID():0)
 			<<addLine.str()
+			<<"\",\"info\":\""<<p.debugInfo
 			<<"\"})"<<std::endl);
 	}
 }

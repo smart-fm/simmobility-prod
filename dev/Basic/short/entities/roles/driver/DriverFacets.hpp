@@ -24,6 +24,7 @@
 #include "util/OneTimeFlag.hpp"
 #include "IncidentPerformer.hpp"
 #include "FmodSchedulesPerformer.hpp"
+#include "entities/amodController/AMODController.hpp"
 #include "entities/roles/driver/models/CarFollowModel.hpp"
 
 namespace sim_mob {
@@ -124,6 +125,12 @@ public:
       */
 	const sim_mob::RoadItem* getRoadItemByDistance(sim_mob::RoadItemType type,double &dis, double perceptionDis=20000,bool isInSameLink=true);
 	/**
+	 *  @brief get distance to nearest forward stop point in the link
+	 *  @param perceptionDis perception distance
+	 *  @return -1 not find bus, > 0 find and distance to stop point
+	 */
+	double getDisToStopPoint(double perceptionDis=20000);
+	/**
 	 *  /brief get lanes connect to segment at look ahead distance
 	 *  /param distance look ahead distance from current position
 	 *  /param lanePool store found lanes
@@ -168,6 +175,7 @@ public:
 
 	///Reroutes around a given blacklisted set of RoadSegments. See Role for documentation.
 	void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
+	void rerouteWithPath(const std::vector<sim_mob::WayPoint>& path);
 
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
@@ -175,6 +183,10 @@ protected:
 	 *  /brief do lane change and car follow
 	 */
 	void calcVehicleStates(DriverUpdateParams& p);
+	/**
+	 *  @brief calculate distance to stop point
+	 */
+	void calcDistanceToSP(DriverUpdateParams& p);
 	/*
 	 *  /brief Calculate new location and speed after an iteration based on its
 	 * 	       current location, speed and acceleration.

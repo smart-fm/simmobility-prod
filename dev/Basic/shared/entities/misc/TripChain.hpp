@@ -75,6 +75,7 @@ public:
 	sim_mob::DailyTime startTime;
 	sim_mob::DailyTime endTime;
 	int requestTime;
+	std::string travelMode;
 
 	//Get/set personID. Please make sure not to set the personID to an Integer!
 	std::string getPersonID() const;

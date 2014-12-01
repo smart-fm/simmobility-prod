@@ -607,82 +607,94 @@ sim_mob::MITSIM_LC_Model::MITSIM_LC_Model(DriverUpdateParams& p)
 void sim_mob::MITSIM_LC_Model::initParam(DriverUpdateParams& p)
 {
 	std::string str;
+	bool isAMOD = false;
+
+	if(p.driver->getParent()->amodId != "-1")
+	{
+		isAMOD = true;
+	}
+
+	ParameterManager *parameterMgr = ParameterManager::Instance(isAMOD);
+
 	// MLC_PARAMETERS
-	ParameterManager::Instance()->param(modelName,"MLC_PARAMETERS",str,string("1320.0  5280.0 0.5 1.0  1.0"));
+	parameterMgr->param(modelName,"MLC_PARAMETERS",str,string("1320.0  5280.0 0.5 1.0  1.0"));
 	makeMCLParam(str);
 	// LC_GAP_MODELS
 	std::vector< std::string > strArray;
-	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_0",str,string("1.00,   0.0,   0.000,  0.508,  0.000,  0.000,  -0.420, 0.000,   0.488"));
+	parameterMgr->param(modelName,"LC_GAP_MODELS_0",str,string("1.00,   0.0,   0.000,  0.508,  0.000,  0.000,  -0.420, 0.000,   0.488"));
 	strArray.push_back(str);
-	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_1",str,string("1.00, 0.0, 0.000, 2.020, 0.000, 0.000, 0.153, 0.188, 0.526"));
+	parameterMgr->param(modelName,"LC_GAP_MODELS_1",str,string("1.00, 0.0, 0.000, 2.020, 0.000, 0.000, 0.153, 0.188, 0.526"));
 	strArray.push_back(str);
-	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_2",str,string("1.00, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859"));
+	parameterMgr->param(modelName,"LC_GAP_MODELS_2",str,string("1.00, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859"));
 	strArray.push_back(str);
-	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_3",str,string("1.00, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"));
+	parameterMgr->param(modelName,"LC_GAP_MODELS_3",str,string("1.00, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"));
 	strArray.push_back(str);
-	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_4",str,string("0.60, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859"));
+	parameterMgr->param(modelName,"LC_GAP_MODELS_4",str,string("0.60, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859"));
 	strArray.push_back(str);
-	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_5",str,string("0.60, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"));
+	parameterMgr->param(modelName,"LC_GAP_MODELS_5",str,string("0.60, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"));
 	strArray.push_back(str);
-	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_6",str,string("0.20, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859"));
+	parameterMgr->param(modelName,"LC_GAP_MODELS_6",str,string("0.20, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859"));
 	strArray.push_back(str);
-	ParameterManager::Instance()->param(modelName,"LC_GAP_MODELS_7",str,string("0.20, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"));
+	parameterMgr->param(modelName,"LC_GAP_MODELS_7",str,string("0.20, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073"));
 	strArray.push_back(str);
 	makeCtriticalGapParam(p,strArray);
 	// GAP_PARAM
 	strArray.clear();
-	ParameterManager::Instance()->param(modelName,"GAP_PARAM_0",str,string("-1.23, -0.482, 0.224, -0.0179, 2.10, 0.239"));
+	parameterMgr->param(modelName,"GAP_PARAM_0",str,string("-1.23, -0.482, 0.224, -0.0179, 2.10, 0.239"));
 	strArray.push_back(str);
-	ParameterManager::Instance()->param(modelName,"GAP_PARAM_1",str,string("0.00,   0.00,  0.224, -0.0179, 2.10, 0.000"));
+	parameterMgr->param(modelName,"GAP_PARAM_1",str,string("0.00,   0.00,  0.224, -0.0179, 2.10, 0.000"));
 	strArray.push_back(str);
-	ParameterManager::Instance()->param(modelName,"GAP_PARAM_2",str,string("-0.772, -0.482, 0.224, -0.0179, 2.10, 0.675"));
+	parameterMgr->param(modelName,"GAP_PARAM_2",str,string("-0.772, -0.482, 0.224, -0.0179, 2.10, 0.675"));
 	strArray.push_back(str);
 	makeTargetGapPram(strArray);
 	// min speed
-	ParameterManager::Instance()->param(modelName,"min_speed",minSpeed,0.1);
+	parameterMgr->param(modelName,"min_speed",minSpeed,0.1);
 
 	// driver look ahead distancd
 	lookAheadDistance = mlcDistance();
 
 	// lane Utility Params
-	ParameterManager::Instance()->param(modelName,"lane_utility_model",str,
+	parameterMgr->param(modelName,"lane_utility_model",str,
 			string("3.9443 -0.3213  -1.1683  -1.1683 0.0 0.0633 -1.0 0.0058 -0.2664 -0.0088 -3.3754 10 19 -2.3400 -4.5084 -2.8257 -1.2597 -0.7239 -0.3269"));
 	makeLanetilityParams(str);
 
 	// critical gap param
-	ParameterManager::Instance()->param(modelName,"critical_gaps_param",str,
+	parameterMgr->param(modelName,"critical_gaps_param",str,
 				string("0.5 -0.231  -2.700  1.112	  0.5   0.000 0.2  0.742   6.0"));
 	makeCriticalGapParams(str);
 
 	// nosing param
-	ParameterManager::Instance()->param(modelName,"nosing_param",str,
+	parameterMgr->param(modelName,"nosing_param",str,
 				string("1.0 0.5  0.6  0.1	  0.2   1.0 300.0  180.0   600.0 40.0"));
 	makeNosingParams(p,str);
 
-	ParameterManager::Instance()->param(modelName,"MLC_Yielding_Probabilities",str,
+	parameterMgr->param(modelName,"MLC_Yielding_Probabilities",str,
 					string("0.13 0.71  0.13  0.03"));
 	makelcYieldingProb(str);
 
 	// kazi nosing param
-	ParameterManager::Instance()->param(modelName,"kazi_nosing_param",str,
+	parameterMgr->param(modelName,"kazi_nosing_param",str,
 					string("-3.159  0.313  -0.027  2.050  0.028  0.6"));
 	makekaziNosingParams(str);
 
 	//CF_CRITICAL_TIMER_RATIO
-	ParameterManager::Instance()->param(modelName,"CF_CRITICAL_TIMER_RATIO",CF_CRITICAL_TIMER_RATIO,0.5);
+	parameterMgr->param(modelName,"CF_CRITICAL_TIMER_RATIO",CF_CRITICAL_TIMER_RATIO,0.5);
 
 	//LC Yielding Model
-	ParameterManager::Instance()->param(modelName,"LC_Yielding_Model",str,string("0.80 1.0"));
+	parameterMgr->param(modelName,"LC_Yielding_Model",str,string("0.80 1.0"));
 
 	//minTimeInLaneSameDir
-	ParameterManager::Instance()->param(modelName,"LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir",minTimeInLaneSameDir,2.0);
+	parameterMgr->param(modelName,"LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir",minTimeInLaneSameDir,2.0);
 	//minTimeInLaneDiffDir
-	ParameterManager::Instance()->param(modelName,"LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir",minTimeInLaneDiffDir,2.0);
+	parameterMgr->param(modelName,"LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir",minTimeInLaneDiffDir,2.0);
 
 	//Target Gap Model
-	ParameterManager::Instance()->param(modelName,"Target_Gap_Model",str,
+	parameterMgr->param(modelName,"Target_Gap_Model",str,
 						string("-0.837   0.913  0.816  -1.218  -2.393  -1.662"));
 	sim_mob::Utils::convertStringToArray(str,p.targetGapParams);
+
+	//CF_CRITICAL_TIMER_RATIO
+	parameterMgr->param(modelName,"check_stop_point_distance",p.stopPointPerDis,100.0);
 }
 void sim_mob::MITSIM_LC_Model::makeMCLParam(std::string& str)
 {
@@ -782,6 +794,10 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkForLookAheadLC(DriverUpdateParam
 		return change;
 	}
 
+	if(p.disToSP > -10){
+		// if has stop point ahead, no DLC
+		return change;
+	}
 	if(p.parentId == 59 && p.now.frame()>1448)
 	{
 		int i=0;
@@ -2067,7 +2083,7 @@ int sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
 
 	p.unsetFlag(FLAG_ESCAPE | FLAG_AVOID);
 	p.unsetStatus(STATUS_MANDATORY);
-	p.dis2stop = DEFAULT_DIS_TO_STOP;//?
+	//p.dis2stop = DEFAULT_DIS_TO_STOP;//?
 	// set default target lanes
 	p.targetLanes.clear();
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
@@ -2100,6 +2116,25 @@ int sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
 	if(res == -1) needMLC = true;
 	if(res == 1) needDLC = true;
 	p.addTargetLanes(laneConnectorTargetLanes);
+
+	// 1.3 check stop point,like bus stop
+	set<const Lane*> laneConnectStopPoint;
+	res = isLaneConnectToStopPoint(p,laneConnectStopPoint);
+	if(res == -1) needMLC = true;
+	if(res == 1) needDLC = true;
+	if(laneConnectStopPoint.size()>0){
+		// stop point lane maybe not in laneConnectorTargetLanes,so just assige to targetLanes
+		p.targetLanes = laneConnectStopPoint;
+	}
+	if(p.stopPointState == DriverUpdateParams::APPROACHING_STOP_POINT ||
+			p.stopPointState == DriverUpdateParams::CLOSE_STOP_POINT||
+			p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT||
+			p.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT){
+		if(res==0){
+			//means already in most left lane
+			needMLC = false;
+		}
+	}
 
 	// 2.0 set flag
 	if (needMLC) {
@@ -2235,7 +2270,9 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 	double dis = driverMvt->fwdDriverMovement.getAllRestRoadSegmentsLengthCM()
 					- driverMvt->fwdDriverMovement.getCurrDistAlongRoadSegmentCM()
 					- driverMvt->parentDriver->vehicle->getLengthCm() / 2 - 200;
-	p.dis2stop = dis/100.0;
+	if(p.dis2stop>dis/100.0){
+		p.dis2stop = dis/100.0;
+	}
 	const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (driverMvt->fwdDriverMovement.getCurrSegment()->getEnd());
 	if(currEndNode)
 	{
@@ -2297,7 +2334,7 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 					//if can different DEBUG or RELEASE mode, that will be perfect, but now comment it out, so that does nor affect performance.
 					//I remember the message is not critical
 					WarnOut("drive on pedestrian lane");
-					double d = driverMvt->fwdDriverMovement.getDisToCurrSegEndM();
+					double d = driverMvt->fwdDriverMovement.getDisToCurrSegEndM()/100.0;
 					if(d<p.dis2stop)
 						p.dis2stop = d;
 					return -1;
@@ -2335,6 +2372,68 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 		res = 0;
 	}
 	return res;
+}
+int sim_mob::MITSIM_LC_Model::isLaneConnectToStopPoint(DriverUpdateParams& p,set<const Lane*>& targetLanes){
+	//TODO
+
+	if(p.parentId == 664 && p.now.frame()>751){
+			int i=0;
+		}
+	// check state machine
+	int res = 0;
+	// 1.0 find nearest forward stop point
+	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	// get dis to stop point of current link
+	double distance = p.disToSP;//= driverMvt->getDisToStopPoint(p.stopPointPerDis);
+	if(distance>-10 || p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT){// in case car stop just bit ahead of the stop point
+		if(p.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT){
+			return res;
+		}
+//		// has stop point ahead
+//		if(p.stopPointState == DriverUpdateParams::NO_FOUND_STOP_POINT){
+//			p.stopPointState = DriverUpdateParams::APPROACHING_STOP_POINT;
+//		}
+//		if(distance >= 10 && distance <= 50){ // 10m-50m
+//			//
+//			p.stopPointState = DriverUpdateParams::CLOSE_STOP_POINT;
+//		}
+//		if(p.stopPointState == DriverUpdateParams::CLOSE_STOP_POINT && abs(distance) < 10){ // 0m-10m
+//			//
+//			std::cout<<p.now.frame()<<" JUST_ARRIVE_STOP_POINT"<<std::endl;
+//			p.stopPointState = DriverUpdateParams::JUST_ARRIVE_STOP_POINT;
+//		}
+		// only most left lane is target lane
+		const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
+		// get target lane index
+		int tl = lanes.size() - 1;
+		if(lanes.back()->is_pedestrian_lane()){
+			tl = lanes.size() - 2;
+		}
+		// current lane not target lane, insert
+		if(p.currLaneIndex != tl){
+			targetLanes.insert(lanes.at(tl));
+//			p.dis2stop = distance;
+			res = -1;
+		}
+		return res;
+//		if(lanes.back()->is_pedestrian_lane()){
+//			if(p.currLane != lanes.at(lanes.size()-2)){
+//				targetLanes.insert(lanes.at(lanes.size()-2));
+//				res = -1;
+//			}// end of currLane
+//		}
+//		else{
+//			if(p.currLane != lanes.at(lanes.size()-2)){
+//				targetLanes.insert(lanes.at(lanes.size()-2));
+//				res = -1;
+//			}// end of currLane
+//			targetLanes.insert(lanes.back());
+//		}
+	}//end of dis
+
+//	p.stopPointState = DriverUpdateParams::NO_FOUND_STOP_POINT;
+	return res;
+
 }
 LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdateParams& p)
 {

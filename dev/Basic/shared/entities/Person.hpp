@@ -16,6 +16,13 @@
 #include "util/LangHelpers.hpp"
 #include "util/Profiler.hpp"
 #include <boost/foreach.hpp>
+#include "entities/amodController/AMODEvent.hpp"
+
+#include "entities/vehicle/VehicleBase.hpp"
+
+#include "../short/entities/vehicle/Vehicle.hpp"
+
+
 namespace sim_mob
 {
 
@@ -26,6 +33,8 @@ class PartitionManager;
 class PackageUtils;
 class UnPackageUtils;
 class UpdateParams;
+class AMODController;
+class Vehicle;
 
 /// simple structure used to collect travel time information
 struct TravelMetric
@@ -66,6 +75,11 @@ public:
 
 	//Person objects are spatial in nature
 	virtual bool isNonspatial() { return false; }
+
+	void handleAMODEvent(sim_mob::event::EventId id,
+            sim_mob::event::Context ctxId,
+            sim_mob::event::EventPublisher* sender,
+            const AMOD::AMODEventArgs& args);
 
 	///Reroute to the destination with the given set of blacklisted RoadSegments.
 	///If the Agent cannot complete this new route, it will fall back onto the old route.
@@ -131,6 +145,7 @@ public:
 	///Set this person's trip chain
 	void setTripChain(const std::vector<TripChainItem*>& tripChain) {
 		this->tripChain = tripChain;
+		initTripChain();
 	}
 
 	/*	const sim_mob::Link* getCurrLink() const;
@@ -215,6 +230,40 @@ public:
 
     std::stringstream debugMsgs;
     int client_id;
+
+    // amod
+    std::string amodId;
+	void setPath(std::vector<WayPoint>& path);
+	std::vector<WayPoint> amodPath;
+	//const RoadSegment *amodPickUpSegment;
+	std::string amodPickUpSegmentStr;
+	double amodSegmLength;
+	//WayPoint amodPickUpSegment;
+	std::string amdoTripId;
+	sim_mob::Vehicle* amodVehicle;
+	std::string parkingNode;
+//    std::list<sim_mob::FMOD_Schedule> schedules;
+
+    AMOD::AMODEventPublisher eventPub;
+
+    void handleAMODArrival();
+    void handleAMODPickup();
+
+    enum Status {
+    	IN_CAR_PARK = 0,
+    	ON_THE_ROAD,
+    	REPLACED
+    };
+
+    Status currStatus;
+    void invalidateAMODVehicle(void);
+
+    int stuckCount;
+    double prevx;
+    double prevy;
+    void clearTripChain() {
+		this->tripChain.clear();
+	}
 
 	const sim_mob::Lane* getCurrLane() const
 	{

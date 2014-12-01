@@ -18,9 +18,15 @@ namespace sim_mob {
 
 using namespace std;
 
+enum InstanceType
+{
+  ParameterMgrInstance_Normal = 0,
+  ParameterMgrInstance_AMOD = 1
+};
+
 class ParameterManager {
 public:
-	static ParameterManager* Instance();
+	static ParameterManager* Instance(bool isAMOD_InstanceReqested);
 	virtual ~ParameterManager();
 
 public:
@@ -148,7 +154,7 @@ public:
 	  bool getParam(const std::string& modelName, const std::string& key, ParamData& v) const;
 
 private:
-	  ParameterManager();
+	  ParameterManager(bool);
 	  typedef std::map< string, ParamData> ParameterNameValueMap;
 	  typedef std::map< string, ParamData>::iterator ParameterNameValueMapIterator;
 	  typedef std::map< string, ParamData>::const_iterator ParameterNameValueMapConIterator;
@@ -162,7 +168,7 @@ private:
 	   *  \sub map value is XmlRpcValue
 	   */
 	  std::map< string,ParameterNameValueMap > parameterPool;
-	  static ParameterManager *instance;
+	  static std::map<InstanceType, ParameterManager *> instances;
 };
 
 }// namespace sim_mob

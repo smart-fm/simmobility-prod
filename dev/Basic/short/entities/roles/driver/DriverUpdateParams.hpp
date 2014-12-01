@@ -54,6 +54,17 @@ struct NearestPedestrian {
 	double distance;
 };
 
+struct StopPoint{
+	StopPoint(){}
+	StopPoint(std::string& segId,double& dis,double& dwellT):id(-1),segmentId(segId),distance(dis),isPassed(false),dwellTime(dwellT){}
+	StopPoint(const StopPoint& source):id(source.id),segmentId(source.segmentId),distance(source.distance),dwellTime(source.dwellTime),isPassed(source.isPassed){}
+	int id;
+	std::string segmentId;
+	double distance;
+	double dwellTime;//10 sec
+	bool isPassed;
+};
+
 
 ///Simple struct to hold parameters which only exist for a single update tick.
 /// \author Wang Xinyuan
@@ -66,7 +77,7 @@ public:
 	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen) ,nextLaneIndex(0),isTargetLane(true),
 			status(0),flags(0),yieldTime(0,0),lcTimeTag(200),speedOnSign(0),newFwdAcc(0),cftimer(0.0),newLatVelM(0.0),utilityLeft(0),
 			utilityCurrent(0),utilityRight(0),perceivedDistToTrafficSignal(500),
-			disAlongPolyline(0),dorigPosx(0),dorigPosy(0),movementVectx(0),movementVecty(0),headway(999),currLane(NULL){}
+			disAlongPolyline(0),dorigPosx(0),dorigPosy(0),movementVectx(0),movementVecty(0),headway(999),currLane(NULL),stopPointPerDis(100),stopPointState(NO_FOUND_STOP_POINT),startStopTime(0),disToSP(999){}
 
 	virtual void reset(timeslice now, const Driver& owner);
 
@@ -305,6 +316,28 @@ public:
 
 //	//perform incident response
 //	IncidentPerformer incidentPerformer;
+
+	/// key=segment aimsun id, value= stoppoint vector, one segment may has more than one stoppoint
+	std::map<std::string,std::vector<StopPoint> > stopPointPool;
+	/**
+	 *  @brief insert stop point
+	 *  @param sp stop point
+	 */
+	void insertStopPoint(StopPoint& sp);
+	/// perception distance to stop point
+	double stopPointPerDis;
+	enum STOP_POINT_STATE{
+		APPROACHING_STOP_POINT  = 1,
+		CLOSE_STOP_POINT		= 2,
+		JUST_ARRIVE_STOP_POINT 	= 3,
+		WAITING_AT_STOP_POINT 	= 4,
+		LEAVING_STOP_POINT 		= 5,
+		NO_FOUND_STOP_POINT		= 6
+	};
+	STOP_POINT_STATE stopPointState;
+	double disToSP;
+	StopPoint currentStopPoint;
+	double startStopTime;
 public:
 #ifndef SIMMOB_DISABLE_MPI
 	static void pack(PackageUtils& package, const DriverUpdateParams* params);

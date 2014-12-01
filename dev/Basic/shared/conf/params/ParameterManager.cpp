@@ -13,23 +13,68 @@
 
 namespace sim_mob {
 
-ParameterManager * ParameterManager::instance = NULL;
-ParameterManager *ParameterManager::Instance()
+std::map<InstanceType, ParameterManager *> ParameterManager::instances;
+
+ParameterManager *ParameterManager::Instance(bool isAMOD_InstanceRequested)
 {
-	if(!instance)
+	ParameterManager *instance = NULL;
+	InstanceType instanceType;
+	map<InstanceType, ParameterManager *>::iterator itInstances;
+
+	//Set the required instance type
+	if(isAMOD_InstanceRequested)
 	{
-		instance = new ParameterManager();
+		instanceType = ParameterMgrInstance_AMOD;
 	}
+	else
+	{
+		instanceType = ParameterMgrInstance_Normal;
+	}
+
+	//Check if the required instance is already in our map
+	itInstances = instances.find(instanceType);
+
+	//If the required instance does not exist, we need to add it to out map
+	if(itInstances == instances.end())
+	{
+		//Create new instance
+		instance = new ParameterManager(isAMOD_InstanceRequested);
+
+		//Add it to the map
+		instances.insert(make_pair(instanceType, instance));
+	}
+	else
+	{
+		instance = itInstances->second;
+	}
+
 	return instance;
 }
-ParameterManager::ParameterManager() {
-	// TODO Auto-generated constructor stub
-	ParseParamFile ppfile("data/driver_behavior_model/driver_param.xml",this);
+ParameterManager::ParameterManager(bool isAMOD_InstanceRequeseted)
+{
+	if(isAMOD_InstanceRequeseted)
+	{
+		ParseParamFile ppfile("data/driver_behavior_model/amod_driver_param.xml",this);
+	}
+	else
+	{
+		ParseParamFile ppfile("data/driver_behavior_model/driver_param.xml",this);
+	}
 }
 
-ParameterManager::~ParameterManager() {
-	// TODO Auto-generated destructor stub
+ParameterManager::~ParameterManager()
+{
+	//Delete the parameter manager objects
+
+	map<InstanceType, ParameterManager *>::iterator itInstances = instances.begin();
+
+	while(itInstances != instances.end())
+	{
+		delete itInstances->second;
+		itInstances++;
+	}
 }
+
 void ParameterManager::setParam(const std::string& modelName, const std::string& key, const ParamData& v)
 {
 	std::cout<<modelName<<" "<<key<<std::endl;

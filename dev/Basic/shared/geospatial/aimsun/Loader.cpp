@@ -866,8 +866,10 @@ void DatabaseLoader::LoadLanes(const std::string& storedProc)
 
 /*
  * this function caters the section level not lane level
- * (Turning contains four columns four columns pertaining to lanes)
- * vahid
+ * Turning contains 2 pairs (std::pair<int, int>) fromLane and toLane.
+ * These respectively specify the range of lanes in the fromSection each of which is connected to every lane in range of lanes in toSection.
+ * E.g: if fromLane is <0,1> and toLane<0,2>, then each of the lanes 0 and 1 in fromSection is connected to all of lanes 0,1,2 of toSection.
+ * That is, the lane connections are 0-0, 0-1, 0-2, 1-0, 1-1, 1-2
  */
 void DatabaseLoader::LoadTurnings(const std::string& storedProc)
 {
@@ -891,9 +893,6 @@ void DatabaseLoader::LoadTurnings(const std::string& storedProc)
 		it->toSection = &sections_[it->TMP_ToSection];
 		turnings_[it->id] = *it;
 	}
-
-	//Print skipped turnings all at once.
-//	sim_mob::PrintArray(skippedTurningIDs, std::cout, "Turnings skipped: ", "[", "]", ", ", 4);
 }
 
 void DatabaseLoader::LoadPolylines(const std::string& storedProc)
@@ -918,7 +917,6 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 		//Note: Make sure not to resize the Section map after referencing its elements.
 		it->section = &sections_[it->TMP_SectionId];
 		polylines_.insert(std::make_pair(it->section->id, *it));
-		//polylines_[it->id] = *it;
 	}
 }
 
@@ -1287,11 +1285,21 @@ void ComputePolypointDistance(Polyline& pt)
 {
 	//Our method is (fairly) simple.
 	//First, compute the distance from the point to the polyline at a perpendicular angle.
+	//
+	// If the line passes through two points, (x1,y1) and (x2,y2),
+	// and if we write Dx for (x2-x1) and Dy for (y2-y1),
+	// the perpendicular distance from (x0,y0) to the line is given by:
+	//
+	// d = (Dy*x0 - Dx*y0 - x1y2 + x2y1) / (sqrt(Dx^2 + Dy^2))
+	//
+	// (x1,y1) is fromNode of section
+	// (x2,y2) is toNode of section
+	// (x0,y0) is the poly point pt
 	double dx2x1 = pt.section->toNode->xPos - pt.section->fromNode->xPos;
 	double dy2y1 = pt.section->toNode->yPos - pt.section->fromNode->yPos;
-	double dx1x0 = pt.section->fromNode->xPos - pt.xPos;
-	double dy1y0 = pt.section->fromNode->yPos - pt.yPos;
-	double numerator = dx2x1*dy1y0 - dx1x0*dy2y1;
+	double x1y2 = pt.section->fromNode->xPos * pt.section->toNode->yPos;
+	double x2y1 = pt.section->toNode->xPos * pt.section->fromNode->yPos;
+	double numerator = dy2y1*pt.xPos - dx2x1*pt.yPos - x1y2 + x2y1;
 	double denominator = sqrt(dx2x1*dx2x1 + dy2y1*dy2y1);
 	double perpenDist = numerator/denominator;
 	if (perpenDist<0.0) {
@@ -1300,6 +1308,8 @@ void ComputePolypointDistance(Polyline& pt)
 		perpenDist *= -1;
 	}
 
+	double dx1x0 = pt.section->fromNode->xPos - pt.xPos;
+	double dy1y0 = pt.section->fromNode->yPos - pt.yPos;
 	//Second, compute the distance from the source point to the polypoint
 	double realDist = sqrt(dx1x0*dx1x0 + dy1y0*dy1y0);
 
@@ -2661,9 +2671,6 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 	for (std::vector<Polyline*>::iterator it=src.polylineEntries.begin(); it!=src.polylineEntries.end(); it++) {
 		//TODO: This might not trace the median, and the start/end points are definitely not included.
 		sim_mob::Point2D pt((*it)->xPos, (*it)->yPos);
-		if(src.generatedSegment->originalDB_ID.getLogItem().find("34402") != std::string::npos){
-			int i=0;
-		}
 		src.generatedSegment->polyline.push_back(pt);
 	}
 

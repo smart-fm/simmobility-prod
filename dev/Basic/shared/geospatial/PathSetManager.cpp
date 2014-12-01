@@ -86,7 +86,7 @@ void sim_mob::PathSetParam::getDataFromDB()
 }
 void sim_mob::PathSetParam::storeSinglePath(soci::session& sql,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string singlePathTableName)
 {
-	sim_mob::aimsun::Loader::SaveOneSinglePathDataST(sql,spPool,singlePathTableName);
+	sim_mob::aimsun::Loader::storeSinglePath(sql,spPool,singlePathTableName);
 }
 
 bool sim_mob::PathSetParam::createTravelTimeRealtimeTable()
@@ -1048,7 +1048,7 @@ bool sim_mob::PathSetManager::getBestPath(
 	ps_->subTrip = st;
 	ps_->id = fromToID;
 	ps_->scenario = scenarioName;
-	hasPath = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(*getSession(),fromToID,ps_->pathChoices, dbFunction,outDbg,blckLstSegs);
+	hasPath = sim_mob::aimsun::Loader::loadSinglePathFromDB(*getSession(),fromToID,ps_->pathChoices, dbFunction,outDbg,blckLstSegs);
 	logger  <<  fromToID << " : " << (hasPath == PSM_HASPATH ? "" : "Don't " ) << "have SinglePaths in DB \n" ;
 	switch (hasPath) {
 	case PSM_HASPATH: {
@@ -1387,9 +1387,9 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 		pathSetID = "'"+pathSetID+"'";
 		boost::shared_ptr<PathSet> ps_;
 #if 1
-		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithId(
+		bool hasPSinDB /*= sim_mob::aimsun::Loader::LoadOnePathSetDBwithId(
 						ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-						ps_,pathSetID);
+						ps_,pathSetID)*/;
 #else
 		bool hasPSinDB = sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(
 						*getSession(),
@@ -1410,7 +1410,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 #if 0
 				bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithId2(
 #else
-				bool hasSPinDB = sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(
+				bool hasSPinDB = sim_mob::aimsun::Loader::loadSinglePathFromDB(
 						*getSession(),
 #endif
 						pathSetID,

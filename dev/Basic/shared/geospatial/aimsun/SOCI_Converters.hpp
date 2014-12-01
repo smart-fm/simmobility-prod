@@ -64,84 +64,46 @@ template<> struct type_conversion<sim_mob::aimsun::Node>
         ind = i_ok;
     }
 };
-template<> struct type_conversion<sim_mob::PathSet>
-{
-    typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::PathSet &res)
-    {
-    	res.id = vals.get<std::string>("ID", "");
-//    	res.fromNodeId = vals.get<std::string>("FROM_NODE_ID", "");
-//    	res.toNodeId = vals.get<std::string>("TO_NODE_ID", "");
-//    	res.person_id = vals.get<string>("PERSON_ID", "");
-//    	res.trip_id = vals.get<string>("TRIP_ID", "");
-//    	res.singlepath_id = vals.get<std::string>("SINGLEPATH_ID", "");
-    	res.scenario = vals.get<std::string>("SCENARIO", "");
-    	res.hasPath = (vals.get<int>("HAS_PATH", 0) > 0 ? true : false);
-    }
-    static void to_base(const sim_mob::PathSet& src, soci::values& vals, soci::indicator& ind)
-    {
-    	vals.set("ID", src.id);//   'origin,destination'
-        vals.set("FROM_NODE_ID", src.id.substr(0,src.id.find(",")));//origin
-        vals.set("TO_NODE_ID", src.id.substr(src.id.find(",")+1, src.id.size() - src.id.find(",")));//destination
-//        vals.set("PERSON_ID", src.person_id);
-//        vals.set("TRIP_ID", src.trip_id);
-//        vals.set("SINGLEPATH_ID", src.singlepath_id);
-        vals.set("SCENARIO", src.scenario);
-        vals.set("HAS_PATH", (src.hasPath > 0 ? 1 : 0));
-        ind = i_ok;
-    }
-};
+
 template<> struct type_conversion<sim_mob::SinglePath>
 {
     typedef values base_type;
     static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::SinglePath &res)
     {
-    	res.id = vals.get<std::string>("ID", "");
-//    	res.exclude_seg_id = vals.get<string>("EXCLUDE_SEG_ID", "");
-    	res.pathSetId = vals.get<std::string>("PATHSET_ID", "");
-//    	res.waypointset = vals.get<std::string>("WAYPOINTSET", "");
-//    	res.fromNodeId = vals.get<std::string>("FROM_NODE_ID", "");
-//    	res.toNodeId = vals.get<std::string>("TO_NODE_ID", "");
-    	res.partialUtility = vals.get<double>("UTILITY", 0);
-//    	res.pathSize = vals.get<double>("PATHSIZE", 0);
-//    	res.travelCost = vals.get<double>("TRAVEL_COST", 0);
-    	res.signalNumber = vals.get<int>("SIGNAL_NUMBER", 0);
-    	res.rightTurnNumber = vals.get<int>("RIGHT_TURN_NUMBER", 0);
-    	res.scenario = vals.get<std::string>("SCENARIO", "");
-    	res.length = vals.get<double>("LENGTH",0);
-//    	res.travle_time = vals.get<double>("TRAVEL_TIME",0);if reading from database, please dont bring travel time so that we can calculate it base on other parameters(like path start time)-vahid
-    	res.highWayDistance = vals.get<double>("HIGHWAY_DIS",0);
-		res.isMinTravelTime = (vals.get<int>("MIN_TRAVEL_TIME",0) ? true : false);
-		res.isMinDistance = (vals.get<int>("MIN_DISTANCE",0) ? true : false);
-		res.isMinSignal = (vals.get<int>("MIN_SIGNAL",0) ? true : false);
-		res.isMinRightTurn = (vals.get<int>("MIN_RIGHT_TURN",0) ? true : false);
-		res.isMaxHighWayUsage = (vals.get<int>("MAX_HIGH_WAY_USAGE",0) ? true : false);
-		res.isShortestPath = (vals.get<int>("SHORTEST_PATH",0) ? true : false);
-		//res.index = vals.get<long long>("pid",0);
+    	res.id = vals.get<std::string>("id", "");
+    	res.pathSetId = vals.get<std::string>("pathset_id", "");
+    	res.partialUtility = vals.get<double>("partial_utility", 0.0);
+    	res.pathSize = vals.get<double>("pathsize", 0.0);
+    	res.signalNumber = vals.get<int>("singnal_number", 0);
+    	res.rightTurnNumber = vals.get<int>("right_turn_number", 0);
+    	res.scenario = vals.get<std::string>("scenario", "");
+    	res.length = vals.get<double>("length",0.0);
+    	res.highWayDistance = vals.get<double>("highway_distance",0.0);
+		res.isMinDistance = vals.get<bool>("min_distance",false);
+		res.isMinSignal = vals.get<bool>("min_signal",false);
+		res.isMinRightTurn = vals.get<bool>("min_right_turn",false);
+		res.isMaxHighWayUsage = vals.get<bool>("max_highway_usage",false);
+		res.isShortestPath = vals.get<bool>("shortest_path",false);
+		res.valid_path = vals.get<bool>("valid_path",false);
+		res.index = vals.get<long long>("pid",0);
     }
     static void to_base(const sim_mob::SinglePath& src, soci::values& vals, soci::indicator& ind)
     {
-    	vals.set("ID", src.id);
-//        vals.set("EXCLUDE_SEG_ID", src.exclude_seg_id);
-        vals.set("PATHSET_ID", src.pathSetId);
-//        vals.set("WAYPOINTSET", src.waypointset);
-//        vals.set("FROM_NODE_ID", src.fromNodeId);
-//        vals.set("TO_NODE_ID", src.toNodeId);
-        vals.set("UTILITY", src.partialUtility);
-        vals.set("PATHSIZE", src.pathSize);
-        vals.set("TRAVEL_COST", src.travelCost);
-        vals.set("SIGNAL_NUMBER", src.signalNumber);
-        vals.set("RIGHT_TURN_NUMBER", src.rightTurnNumber);
-        vals.set("SCENARIO", src.scenario);
-        vals.set("LENGTH", src.length);
-        vals.set("TRAVEL_TIME", src.travleTime);
-        vals.set("HIGHWAY_DIS", src.highWayDistance);
-        vals.set("MIN_TRAVEL_TIME", (src.isMinTravelTime ? 1 : 0));
-        vals.set("MIN_DISTANCE", (src.isMinDistance ? 1 : 0));
-        vals.set("MIN_SIGNAL", (src.isMinSignal ? 1 : 0));
-        vals.set("MIN_RIGHT_TURN", (src.isMinRightTurn ? 1 : 0));
-        vals.set("MAX_HIGH_WAY_USAGE", (src.isMaxHighWayUsage ? 1 : 0));
-        vals.set("SHORTEST_PATH", (src.isShortestPath ? 1 : 0));
+    	vals.set("id", src.id);
+        vals.set("pathset_id", src.pathSetId);
+        vals.set("partial_utility", src.partialUtility);
+        vals.set("pathsize", src.pathSize);
+        vals.set("signal_number", src.signalNumber);
+        vals.set("right_turn_number", src.rightTurnNumber);
+        vals.set("scenario", src.scenario);
+        vals.set("length", src.length);
+        vals.set("highway_distance", src.highWayDistance);
+        vals.set("min_distance", (src.isMinDistance ? 1 : 0));
+        vals.set("min_signal", (src.isMinSignal ? 1 : 0));
+        vals.set("min_right_turn", (src.isMinRightTurn ? 1 : 0));
+        vals.set("max_highway_usage", (src.isMaxHighWayUsage ? 1 : 0));
+        vals.set("shortest_path", (src.isShortestPath ? 1 : 0));
+        vals.set("valid_path", (src.valid_path ? 1 : 0));
         ind = i_ok;
     }
 };

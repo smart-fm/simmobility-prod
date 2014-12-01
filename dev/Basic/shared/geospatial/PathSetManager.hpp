@@ -232,9 +232,9 @@ public:
 
 	bool isUseCacheMode() { return false;/*isUseCache;*/ }//todo: take care of this later
 	///	calculate part of utility which is not time dependent
-	double getPartialUtility(sim_mob::SinglePath* sp);
+	double generatePartialUtility(sim_mob::SinglePath* sp);
 	///	calculate utility
-	double getUtility(sim_mob::SinglePath* sp);
+	double generateUtility(sim_mob::SinglePath* sp);
 	std::vector<WayPoint> generateBestPathChoice2(const sim_mob::SubTrip* st);
 	/**
 	 * update pathset paramenters before selecting the best path
@@ -535,17 +535,26 @@ public:
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///// find the shortest path by analyzing the length of segments
-inline sim_mob::SinglePath* findShortestPath(std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices)
+inline sim_mob::SinglePath* findShortestPath(std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::RoadSegment *rs)
 {
 	if(pathChoices.begin() == pathChoices.end())
 	{
 		return nullptr;
 	}
-	sim_mob::SinglePath* res = *(pathChoices.begin());
+	sim_mob::SinglePath* res = nullptr;
 	double min = 99999999.0;
 	double tmp = 0.0;
 	BOOST_FOREACH(sim_mob::SinglePath*sp, pathChoices)
 	{
+		//search for target segment id
+		//note, be carefull you may be searching for id 123 and search a string id like ",1234"
+		std::stringstream begin(""),out("");
+		begin << rs->getId() << ","; //only for the begining of sp->id
+		out << "," << rs->getId() << ","; //for the rest of the string
+		if(! (sp->id.find(out.str()) || sp->id.substr(0,begin.str().size()) == begin.str()) )
+		{
+			continue;
+		}
 		double tmp = generateSinglePathLength(sp->path);
 		if ((tmp*1000000 - min*1000000  ) < 0.0)
 		{
@@ -654,7 +663,7 @@ inline double generateSinglePathLength(std::vector<WayPoint*>& wp) // unit is me
 }
 
 ///	Generate pathsize of paths
-void findPathSize(boost::shared_ptr<sim_mob::PathSet> &ps,bool isUseCache=true);
+void generatePathSize(boost::shared_ptr<sim_mob::PathSet> &ps,bool isUseCache=true);
 
 inline size_t getLaneIndex2(const Lane* l){
 	if (l) {

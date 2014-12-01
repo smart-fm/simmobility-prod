@@ -73,26 +73,26 @@ template<> struct type_conversion<sim_mob::SinglePath>
     	res.id = vals.get<std::string>("id", "");
     	res.pathSetId = vals.get<std::string>("pathset_id", "");
     	res.partialUtility = vals.get<double>("partial_utility", 0.0);
-    	res.pathSize = vals.get<double>("pathsize", 0.0);
-    	res.signalNumber = vals.get<int>("singnal_number", 0);
+    	res.pathSize = vals.get<double>("path_size", 0.0);
+    	res.signalNumber = vals.get<int>("signal_number", 0);
     	res.rightTurnNumber = vals.get<int>("right_turn_number", 0);
     	res.scenario = vals.get<std::string>("scenario", "");
     	res.length = vals.get<double>("length",0.0);
     	res.highWayDistance = vals.get<double>("highway_distance",0.0);
-		res.isMinDistance = vals.get<bool>("min_distance",false);
-		res.isMinSignal = vals.get<bool>("min_signal",false);
-		res.isMinRightTurn = vals.get<bool>("min_right_turn",false);
-		res.isMaxHighWayUsage = vals.get<bool>("max_highway_usage",false);
-		res.isShortestPath = vals.get<bool>("shortest_path",false);
-		res.valid_path = vals.get<bool>("valid_path",false);
-		res.index = vals.get<long long>("pid",0);
+		res.isMinDistance = vals.get<int>("min_distance",0);
+		res.isMinSignal = vals.get<int>("min_signal",0);
+		res.isMinRightTurn = vals.get<int>("min_right_turn",0);
+		res.isMaxHighWayUsage = vals.get<int>("max_highway_usage",0);
+		res.valid_path = vals.get<int>("valid_path",0);
+		res.isShortestPath = vals.get<int>("shortest_path",0);
+		res.index = vals.get<long long>("ppid",0);
     }
     static void to_base(const sim_mob::SinglePath& src, soci::values& vals, soci::indicator& ind)
     {
     	vals.set("id", src.id);
         vals.set("pathset_id", src.pathSetId);
         vals.set("partial_utility", src.partialUtility);
-        vals.set("pathsize", src.pathSize);
+        vals.set("path_size", src.pathSize);
         vals.set("signal_number", src.signalNumber);
         vals.set("right_turn_number", src.rightTurnNumber);
         vals.set("scenario", src.scenario);
@@ -102,8 +102,9 @@ template<> struct type_conversion<sim_mob::SinglePath>
         vals.set("min_signal", (src.isMinSignal ? 1 : 0));
         vals.set("min_right_turn", (src.isMinRightTurn ? 1 : 0));
         vals.set("max_highway_usage", (src.isMaxHighWayUsage ? 1 : 0));
-        vals.set("shortest_path", (src.isShortestPath ? 1 : 0));
         vals.set("valid_path", (src.valid_path ? 1 : 0));
+        vals.set("shortest_path", (src.isShortestPath ? 1 : 0));
+        vals.set("ppid", src.index);
         ind = i_ok;
     }
 };

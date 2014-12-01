@@ -57,6 +57,34 @@ public:
 		this->moving = moving;
 	}
 
+	virtual std::vector<const sim_mob::RoadSegment*>::iterator getPathIterator()
+	{
+		std::vector<const sim_mob::RoadSegment *>::iterator emptyIterator;
+		return emptyIterator;
+	}
+
+	virtual std::vector<const sim_mob::RoadSegment*>::iterator getPathIteratorEnd()
+	{
+		std::vector<const sim_mob::RoadSegment *>::iterator emptyIterator;
+		return emptyIterator;
+	}
+
+	virtual sim_mob::RoadSegment * getCurrSegment()
+	{
+		sim_mob::RoadSegment *nullRoadSeg = nullptr;
+		return nullRoadSeg;
+	}
+
+	virtual double getAcceleration() const
+	{
+		return 0;
+	}
+
+	virtual double getVelocity() const
+	{
+		return 0;
+	}
+
 protected:
 	/**length of the vehicle in cm*/
 	const double lengthCM;

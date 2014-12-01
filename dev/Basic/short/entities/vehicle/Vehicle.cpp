@@ -47,7 +47,7 @@ const DPoint& sim_mob::Vehicle::getPositionInIntersection()
 	return posInIntersection;
 }
 
-const RoadSegment* sim_mob::Vehicle::getCurrSegment() const {
+RoadSegment* sim_mob::Vehicle::getCurrSegment() {
 	return fwdMovement.getCurrSegment();
 }
 void sim_mob::Vehicle::resetPath(vector<WayPoint> wp_path) {

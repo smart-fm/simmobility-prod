@@ -136,37 +136,25 @@ vector<LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& nodes, map<int, S
 		sim_mob::Link* parent = it->second.generatedSegment->getLink();
 		map<std::pair<sim_mob::Node*, sim_mob::Node*>, LinkHelperStruct>::iterator helpIt = res.find(std::make_pair(parent->getStart(), parent->getEnd()));
 		if (helpIt==res.end()) {
+			//Add it.
+			res[std::make_pair(parent->getStart(), parent->getEnd())];
+
 			//Try again
-			helpIt = res.find(std::make_pair(parent->getEnd(), parent->getStart()));
-			if (helpIt==res.end()) {
-				//Add it.
-				res[std::make_pair(parent->getStart(), parent->getEnd())];
+			helpIt = res.find(std::make_pair(parent->getStart(), parent->getEnd()));
 
-				//Try again
-				helpIt = res.find(std::make_pair(parent->getStart(), parent->getEnd()));
-
-				//Sanity check.
-				if (helpIt==res.end()) { throw std::runtime_error("Unexpected Insert failed in LaneLoader."); }
-			}
+			//Sanity check.
+			if (helpIt==res.end()) { throw std::runtime_error("Unexpected Insert failed in LaneLoader."); }
 		}
 
 		//Always add the section
 		helpIt->second.sections.insert(&(it->second));
 
 		//Conditionally add the start/end
-		if (!helpIt->second.start) {
-			if (it->second.fromNode->generatedNode == parent->getStart()) {
+		if (!helpIt->second.start && it->second.fromNode->generatedNode == parent->getStart()) {
 				helpIt->second.start = it->second.fromNode;
-			} else if (it->second.toNode->generatedNode == parent->getStart()) {
-				helpIt->second.start = it->second.toNode;
-			}
 		}
-		if (!helpIt->second.end) {
-			if (it->second.fromNode->generatedNode == parent->getEnd()) {
-				helpIt->second.end = it->second.fromNode;
-			} else if (it->second.toNode->generatedNode == parent->getEnd()) {
-				helpIt->second.end = it->second.toNode;
-			}
+		if (!helpIt->second.end && it->second.toNode->generatedNode == parent->getEnd()) {
+			helpIt->second.end = it->second.toNode;
 		}
 	}
 
@@ -199,7 +187,6 @@ vector<LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& nodes, map<int, S
 		msg <<"Final counts: " <<errorCount.first <<"," <<errorCount.second <<" of a total: " <<res.size();
 		throw std::runtime_error(msg.str().c_str());
 	}
-
 
 	return actRes;
 }
@@ -661,7 +648,6 @@ void sim_mob::aimsun::LaneLoader::DecorateLanes(map<int, Section>& sections, vec
 //Driver function for GenerateLinkLaneZero
 void sim_mob::aimsun::LaneLoader::GenerateLinkLanes(const sim_mob::RoadNetwork& rn, std::map<int, sim_mob::aimsun::Node>& nodes, std::map<int, sim_mob::aimsun::Section>& sections)
 {
-
 	vector<LinkHelperStruct> lhs = buildLinkHelperStruct(nodes, sections);
 	for (vector<LinkHelperStruct>::iterator it=lhs.begin(); it!=lhs.end(); it++) {
 			LaneLoader::GenerateLinkLaneZero(rn, it->start, it->end, it->sections);

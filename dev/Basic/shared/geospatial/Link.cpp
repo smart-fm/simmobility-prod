@@ -91,16 +91,12 @@ bool buildLinkList(set<RoadSegment*> segments, vector<RoadSegment*>& res, set<Ro
 void sim_mob::Link::initializeLinkSegments(const std::set<sim_mob::RoadSegment*>& newSegs)
 {
 	//We build in two directions; forward and backwards. We also maintain a list of which
-	// road segments are used, to catch cases where RoadSegments are skipped.
+	//road segments are used, to catch cases where RoadSegments are skipped.
 	set<RoadSegment*> usedSegments;
 	bool res1 = buildLinkList(newSegs, this->segs, usedSegments, start, end);
-	//bool res2 = buildLinkList(segments, revSegments, usedSegments, end, start);
 	if(start->getID() == end->getID()) {
-//		if(newSegs.size() == 0){
-			Print() << "Start and ending nodes are same . starting node is : " << start->getID() << " ending node is : "<< end->getID()
-		<< " usedSegments.size()="  << usedSegments.size() << " of " << newSegs.size() << std::endl;
-//			throw std::runtime_error( "Start and ending nodes are same .");
-//		}
+		Print() << "Start and ending nodes are same . starting node is : " << start->getID() << " ending node is : "<< end->getID()
+				<< " usedSegments.size()="  << usedSegments.size() << " of " << newSegs.size() << std::endl;
 	}
 	//Ensure we have at least ONE path (for one-way Links)
 	if (!res1) {

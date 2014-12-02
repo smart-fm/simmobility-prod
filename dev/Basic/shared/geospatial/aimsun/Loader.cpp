@@ -2413,11 +2413,6 @@ void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& sr
 
 	//TODO: Actual connector alignment (requires map checking)
 	sim_mob::UniNode::buildConnectorsFromAlignedLanes(newNode, std::make_pair(0, 0), std::make_pair(0, 0));
-////	if(newNode->getID() == 92370)
-//	{
-//		std::cout << "UniNode " <<   newNode->getID() << " has " << newNode->getConnectors().size() << " Connectors\n";
-//	}
-
 	//This UniNode can later be accessed by the RoadSegment itself.
 }
 
@@ -2472,8 +2467,6 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			//convertSegId.clear();
 			//convertSegId.str(std::string());
 			currSec->generatedSegment = createNewRoadSegment(ln,linkSegments.size(),currSec->id);
-		} else {
-//			std::cout << "Bypassing\n";
 		}
 
 		//Save this segment if either end points are multinodes

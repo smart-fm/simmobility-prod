@@ -34,29 +34,11 @@ namespace {
  */
 void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 {
-	//Quality control
-	size_t oldSize = laneLine.size();
-	
-	//Sort by row number from DB
-	std::map<int, std::vector<Lane*> > mapLaneLines;
-	for(std::vector<Lane*>::const_iterator it = laneLine.begin(); it != laneLine.end(); ++it)
-	{
-		mapLaneLines[(*it)->rowNo].push_back(*it);
-	}
-
-	vector<Lane*> res;
-	for(std::map<int, std::vector<Lane*> >::const_iterator it = mapLaneLines.begin(); it !=mapLaneLines.end(); ++it)
-	{
-		for (std::vector<Lane*>::const_iterator it2=it->second.begin(); it2!=it->second.end(); it2++) {
-			res.push_back(*it2);
-		}
-	}
-
 	//Pick the first point.
 	double currDist = 0.0;
 	bool flipLater = false;
-	vector<Lane*>::iterator currLane = res.end();
-	for (vector<Lane*>::iterator it=res.begin(); it!=res.end(); it++) {
+	vector<Lane*>::iterator currLane = laneLine.end();
+	for (vector<Lane*>::iterator it=laneLine.begin(); it!=laneLine.end(); it++) {
 		double distFwd = sim_mob::dist(*it, nodes.first);
 		double distRev = sim_mob::dist(*it, nodes.second);
 		double newDist = std::min(distFwd, distRev);
@@ -67,20 +49,14 @@ void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 		}
 	}
 
-	//Check
-	laneLine.clear();
-	if (oldSize != res.size()) {
-		sim_mob::Warn() <<"ERROR: Couldn't sort Lanes array, zeroing out. " << oldSize <<"," <<res.size() <<std::endl;
-	}
-
-
 	//Finally, if the "end" is closer to the start node than the "start", reverse the vector as you insert it
 	if (flipLater) {
-		for (vector<Lane*>::reverse_iterator it=res.rbegin(); it!=res.rend(); it++) {
+		//make a copy and reverse
+		vector<Lane*> laneLineCopy = laneLine;
+		laneLine.clear();
+		for (vector<Lane*>::reverse_iterator it=laneLineCopy.rbegin(); it!=laneLineCopy.rend(); it++) {
 			laneLine.push_back(*it);
 		}
-	} else {
-		laneLine.insert(laneLine.begin(), res.begin(), res.end());
 	}
 }
 
@@ -151,7 +127,7 @@ vector<LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& nodes, map<int, S
 
 		//Conditionally add the start/end
 		if (!helpIt->second.start && it->second.fromNode->generatedNode == parent->getStart()) {
-				helpIt->second.start = it->second.fromNode;
+			helpIt->second.start = it->second.fromNode;
 		}
 		if (!helpIt->second.end && it->second.toNode->generatedNode == parent->getEnd()) {
 			helpIt->second.end = it->second.toNode;
@@ -567,28 +543,6 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 			originPt.flipMirror();
 		}
 
-		//Calculate "offsets" for the origin. This occurs if either the start or end is a MultiNode start/end.
-		//The offset is the distance from the node's center to the median point.
-		pair<double, double> originOffsets(0.0, 0.0);
-		if (currSect->fromNode==startNode) {
-			originOffsets.first = sim_mob::dist(&medianEndpoints.first, startNode);
-		} else if (currSect->fromNode==endNode) {
-			originOffsets.first = sim_mob::dist(&medianEndpoints.first, startNode);
-		}
-		if (currSect->toNode==startNode) {
-			originOffsets.second = sim_mob::dist(&medianEndpoints.second, endNode);
-		} else if (currSect->toNode==endNode) {
-			originOffsets.second = sim_mob::dist(&medianEndpoints.second, endNode);
-		}
-
-//		//TEMP: For now, our "median" point is somewhat in error, so we manually scale it back to 20m
-//		if (originOffsets.first) {
-//			originOffsets.first = 20 *100;
-//		}
-//		if (originOffsets.second) {
-//			originOffsets.second = 20 *100;
-//		}
-
 		//For each laneID, scale the originPt and go from there
 		if (currSect) {
 			for (size_t laneID=0; laneID<=(size_t)currSect->numLanes; laneID++) {
@@ -599,17 +553,6 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 
 				//Create a vector in the direction of the ending point.
 				DynamicVector laneVect(originPt.getX(), originPt.getY(), originPt.getX()+magX, originPt.getY()+magY);
-
-				//Scale the starting point.
-				double remMag = magSect;
-				if (originOffsets.first>0.0) {
-					laneVect.scaleVectTo(originOffsets.first).translateVect();
-					remMag -= originOffsets.first;
-				}
-				if (originOffsets.second>0.0) {
-					remMag -= originOffsets.second;
-				}
-				laneVect.scaleVectTo(remMag);
 
 				//Add the starting point, ending point
 				sim_mob::Point2D startPt((int)laneVect.getX(), (int)laneVect.getY());
@@ -691,22 +634,10 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 	//        indicates missing data.
 	pair< size_t, size_t > maxCandidates(1, 1); //start, end (natural +1 each)
 	for (set<Section*>::const_iterator it=linkSections.begin(); it!=linkSections.end(); it++) {
-		//Sanity check
-		//if (((*it)->toNode==start) || ((*it)->fromNode==end)) {
-		//	throw std::runtime_error("Links are one-way; shouldn't have reverse Segments.");
-		//}
-
-		//"from" or "to" the start?
 		if ((*it)->fromNode==start) {
 			maxCandidates.first += (*it)->numLanes;
-		} else if ((*it)->toNode==start) {
-			maxCandidates.first += (*it)->numLanes;
 		}
-
-		//"from" or "to" the end?
-		if ((*it)->fromNode==end) {
-			maxCandidates.second += (*it)->numLanes;
-		} else if ((*it)->toNode==end) {
+		if ((*it)->toNode==end) {
 			maxCandidates.second += (*it)->numLanes;
 		}
 	}

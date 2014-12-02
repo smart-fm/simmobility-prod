@@ -108,6 +108,11 @@ public:
 		return bus_RouteInfo;
 	}
 
+	virtual const std::string getMode() const
+	{
+		return "Bus";
+	}
+
 	bool setBusRouteInfo(std::vector<const RoadSegment*> roadSegment_vec, std::vector<const BusStop*> busStop_vec);
 	void addBusStopScheduledTimes(const BusStop_ScheduledTimes& aBusStopScheduledTime);
 	void addBusStopRealTimes(Shared<BusStop_RealTimes>* aBusStopRealTime);

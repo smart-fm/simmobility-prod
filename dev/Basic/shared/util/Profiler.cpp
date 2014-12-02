@@ -12,8 +12,7 @@ using namespace boost::posix_time;
  *     Basic Logger Implementation
  * **********************************
  */
-boost::shared_ptr<sim_mob::Logger> sim_mob::Logger::log_;
-
+boost::shared_mutex sim_mob::Logger::instanceMutex;
 std::map <boost::thread::id, int> sim_mob::BasicLogger::threads= std::map <boost::thread::id, int>();//for debugging only
 int sim_mob::BasicLogger::flushCnt = 0;
 unsigned long int sim_mob::BasicLogger::ii = 0;
@@ -37,7 +36,7 @@ sim_mob::Profiler::Profiler(const Profiler &t):
 
 
 sim_mob::Profiler::Profiler(const std::string id, bool begin_):id(id){
-
+	boost::shared_mutex instanceMutex;
 	started = 0;
 	total = 0;
 	if(begin_)
@@ -48,7 +47,7 @@ sim_mob::Profiler::Profiler(const std::string id, bool begin_):id(id){
 }
 
 //uint64_t sim_mob::Profiler::tick(bool addToTotal){
-boost::chrono::microseconds sim_mob::Profiler::tick(bool addToTotal){
+	boost::chrono::microseconds sim_mob::Profiler::tick(bool addToTotal){
 	boost::chrono::system_clock::time_point thisTick = getTime();
 	boost::chrono::microseconds elapsed = boost::chrono::duration_cast<boost::chrono::microseconds>(thisTick - lastTick);
 	if(addToTotal){
@@ -110,8 +109,8 @@ sim_mob::BasicLogger::~BasicLogger(){
 		}
 	}
 
+	flush();
 	if (logFile.is_open()) {
-		flushLog();
 		logFile.close();
 	}
 	for (outIt it(out.begin()); it != out.end();safe_delete_item(it->second), it++);
@@ -146,7 +145,8 @@ std::stringstream * sim_mob::BasicLogger::getOut(bool renew){
 		res = it->second;
 		if (renew)
 		{
-			it->second = new std::stringstream();
+			res = it->second = new std::stringstream();			
+			//std::cout << "renewing out= " << it->second << "  " << res << std::endl;
 		}
 	}
 	return res;
@@ -179,17 +179,15 @@ void  sim_mob::BasicLogger::initLogFile(const std::string& path)
 //	}
 }
 
-void sim_mob::BasicLogger::flushLog()
+void sim_mob::BasicLogger::flushLog(std::stringstream &out)
 {
 	if ((logFile.is_open() && logFile.good()))
 	{
-		std::stringstream *out = getOut();
 		{
 			boost::unique_lock<boost::mutex> lock(flushMutex);
-			logFile << out->str();
+			logFile << out.str();
 			logFile.flush();
-			flushCnt++;
-			out->str(std::string());
+			out.str(std::string());
 		}
 	}
 	else
@@ -227,7 +225,6 @@ void sim_mob::QueuedLogger::flushToFile()
         		buffer->str();
         		logFile << buffer->str();
         		logFile.flush();
-        		flushCnt++;
         		safe_delete_item(buffer);
         	}
         }
@@ -238,7 +235,6 @@ void sim_mob::QueuedLogger::flushToFile()
     	if(buffer){
     		logFile << buffer->str();
     		logFile.flush();
-    		flushCnt++;
     		safe_delete_item(buffer);
     	}
     }
@@ -251,14 +247,25 @@ void sim_mob::QueuedLogger::flushLog()
 }
 
 
+void sim_mob::BasicLogger::flush()
+{
+	if (logFile.is_open()) {
+		outIt it = out.begin();
+		for(; it!= out.end(); it++)
+		{
+			flushLog(*(it->second));
+		}
+	}
+}
+
 /* ****************************************
  *     Default Logger wrap Implementation
  * ****************************************
  */
 sim_mob::Logger::~Logger()
 {
-	std::pair<std::string, boost::shared_ptr<sim_mob::BasicLogger> > item;
-	BOOST_FOREACH(item,repo)
+	typedef std::map<std::string, boost::shared_ptr<sim_mob::BasicLogger> >::value_type Pair;
+	BOOST_FOREACH(Pair&item,repo)
 	{
 		item.second.reset();
 	}

@@ -24,8 +24,16 @@ void sim_mob::ActivityPerformerBehavior::frame_tick_output() {
 	throw std::runtime_error("ActivityPerformerBehavior::frame_tick_output() is not implemented yet");
 }
 
+sim_mob::ActivityPerformerMovement::~ActivityPerformerMovement()
+{
+	/*if(travelTimeMetric.started)
+	{
+		finalizeTravelTimeMetric();
+	}*/
+}
 void sim_mob::ActivityPerformerMovement::frame_init() {
 	parentActivity->initializeRemainingTime();
+	//startTravelTimeMetric();
 }
 
 void sim_mob::ActivityPerformerMovement::frame_tick() {
@@ -51,3 +59,14 @@ sim_mob::ActivityPerformerMovement::ActivityPerformerMovement(sim_mob::Person* p
 	MovementFacet(parentAgent), parentActivity(parentRole) {
 }
 
+sim_mob::TravelMetric& sim_mob::ActivityPerformerMovement::startTravelTimeMetric()
+{
+	//travelTimeMetric.started = true;
+	return  travelTimeMetric;
+}
+sim_mob::TravelMetric& sim_mob::ActivityPerformerMovement::finalizeTravelTimeMetric()
+{
+	//getParent()->serializeCBD_Activity(travelTimeMetric);
+	//travelTimeMetric.finalized = true;
+	return  travelTimeMetric;
+}

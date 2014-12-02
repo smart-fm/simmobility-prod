@@ -122,7 +122,10 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 case ACCEPTED:// Bid accepted 
                 {
                     getParent()->addUnitId(msg.getBid().getUnitId());
+
                     setActive(false);
+                    getParent()->getModel()->decrementBidders();
+
                     biddingEntry.invalidate();
                     Statistics::increment(Statistics::N_ACCEPTED_BIDS);
                     break;

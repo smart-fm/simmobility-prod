@@ -35,12 +35,16 @@ private:
 class ActivityPerformerMovement : public sim_mob::MovementFacet {
 public:
 	explicit ActivityPerformerMovement(sim_mob::Person* parentAgent = nullptr, sim_mob::ActivityPerformer* parentRole = nullptr, std::string roleName = std::string());
-	virtual ~ActivityPerformerMovement() {}
+	virtual ~ActivityPerformerMovement() ;//{}
 
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
 	virtual void frame_tick_output();
+	/// mark startTimeand origin
+	virtual TravelMetric& startTravelTimeMetric();
+	///	mark the destination and end time and travel time
+	virtual TravelMetric& finalizeTravelTimeMetric();
 
 private:
 

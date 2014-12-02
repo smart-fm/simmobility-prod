@@ -36,15 +36,13 @@ class LinkTravelTime;
 class PathSet;
 class SinglePath;
 class CBD_Pair;
-
-
 template<> struct type_conversion<sim_mob::CBD_Pair>
 {
     typedef values base_type;
     static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::CBD_Pair &res)
     {
-    	res.in = vals.get<int>("in", 0);
-    	res.in = vals.get<int>("out", 0);
+    	res.from_section = vals.get<int>("from_section", 0);
+    	res.to_section = vals.get<int>("to_section", 0);
     }
 };
 template<> struct type_conversion<sim_mob::aimsun::Node>
@@ -72,24 +70,24 @@ template<> struct type_conversion<sim_mob::PathSet>
     static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::PathSet &res)
     {
     	res.id = vals.get<std::string>("ID", "");
-    	res.fromNodeId = vals.get<std::string>("FROM_NODE_ID", "");
-    	res.toNodeId = vals.get<std::string>("TO_NODE_ID", "");
+//    	res.fromNodeId = vals.get<std::string>("FROM_NODE_ID", "");
+//    	res.toNodeId = vals.get<std::string>("TO_NODE_ID", "");
 //    	res.person_id = vals.get<string>("PERSON_ID", "");
 //    	res.trip_id = vals.get<string>("TRIP_ID", "");
     	res.singlepath_id = vals.get<std::string>("SINGLEPATH_ID", "");
     	res.scenario = vals.get<std::string>("SCENARIO", "");
-    	res.hasPath = vals.get<int>("HAS_PATH", 0);
+    	res.hasPath = (vals.get<int>("HAS_PATH", 0) > 0 ? true : false);
     }
     static void to_base(const sim_mob::PathSet& src, soci::values& vals, soci::indicator& ind)
     {
-    	vals.set("ID", src.id);
-        vals.set("FROM_NODE_ID", src.fromNodeId);
-        vals.set("TO_NODE_ID", src.toNodeId);
+    	vals.set("ID", src.id);//   'origin,destination'
+        vals.set("FROM_NODE_ID", src.id.substr(0,src.id.find(",")));//origin
+        vals.set("TO_NODE_ID", src.id.substr(src.id.find(",")+1, src.id.size() - src.id.find(",")));//destination
 //        vals.set("PERSON_ID", src.person_id);
 //        vals.set("TRIP_ID", src.trip_id);
         vals.set("SINGLEPATH_ID", src.singlepath_id);
         vals.set("SCENARIO", src.scenario);
-        vals.set("HAS_PATH", src.hasPath);
+        vals.set("HAS_PATH", (src.hasPath > 0 ? 1 : 0));
         ind = i_ok;
     }
 };
@@ -104,11 +102,11 @@ template<> struct type_conversion<sim_mob::SinglePath>
 //    	res.waypointset = vals.get<std::string>("WAYPOINTSET", "");
 //    	res.fromNodeId = vals.get<std::string>("FROM_NODE_ID", "");
 //    	res.toNodeId = vals.get<std::string>("TO_NODE_ID", "");
-    	res.utility = vals.get<double>("UTILITY", 0);
-    	res.pathSize = vals.get<double>("PATHSIZE", 0);
-    	res.travelCost = vals.get<double>("TRAVEL_COST", 0);
-    	res.signal_number = vals.get<int>("SIGNAL_NUMBER", 0);
-    	res.right_turn_number = vals.get<int>("RIGHT_TURN_NUMBER", 0);
+//    	res.utility = vals.get<double>("UTILITY", 0);
+//    	res.pathSize = vals.get<double>("PATHSIZE", 0);
+//    	res.travelCost = vals.get<double>("TRAVEL_COST", 0);
+    	res.signalNumber = vals.get<int>("SIGNAL_NUMBER", 0);
+    	res.rightTurnNumber = vals.get<int>("RIGHT_TURN_NUMBER", 0);
     	res.scenario = vals.get<std::string>("SCENARIO", "");
     	res.length = vals.get<double>("LENGTH",0);
 //    	res.travle_time = vals.get<double>("TRAVEL_TIME",0);if reading from database, please dont bring travel time so that we can calculate it base on other parameters(like path start time)-vahid
@@ -131,8 +129,8 @@ template<> struct type_conversion<sim_mob::SinglePath>
         vals.set("UTILITY", src.utility);
         vals.set("PATHSIZE", src.pathSize);
         vals.set("TRAVEL_COST", src.travelCost);
-        vals.set("SIGNAL_NUMBER", src.signal_number);
-        vals.set("RIGHT_TURN_NUMBER", src.right_turn_number);
+        vals.set("SIGNAL_NUMBER", src.signalNumber);
+        vals.set("RIGHT_TURN_NUMBER", src.rightTurnNumber);
         vals.set("SCENARIO", src.scenario);
         vals.set("LENGTH", src.length);
         vals.set("TRAVEL_TIME", src.travleTime);

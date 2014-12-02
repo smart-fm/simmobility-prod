@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "geospatial/RoadSegment.hpp"
+
 namespace sim_mob {
 /**
  * Passenger car units.
@@ -57,19 +59,19 @@ public:
 		this->moving = moving;
 	}
 
-	virtual std::vector<const sim_mob::RoadSegment*>::iterator getPathIterator()
+	virtual std::vector<const sim_mob::RoadSegment *>::iterator getPathIterator()
 	{
 		std::vector<const sim_mob::RoadSegment *>::iterator emptyIterator;
 		return emptyIterator;
 	}
 
-	virtual std::vector<const sim_mob::RoadSegment*>::iterator getPathIteratorEnd()
+	virtual std::vector<const sim_mob::RoadSegment *>::iterator getPathIteratorEnd()
 	{
 		std::vector<const sim_mob::RoadSegment *>::iterator emptyIterator;
 		return emptyIterator;
 	}
 
-	virtual sim_mob::RoadSegment * getCurrSegment()
+	virtual sim_mob::RoadSegment * getCurrSegment() const
 	{
 		sim_mob::RoadSegment *nullRoadSeg = nullptr;
 		return nullRoadSeg;

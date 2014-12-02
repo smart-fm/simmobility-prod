@@ -58,7 +58,7 @@ public:
 	LANE_CHANGE_SIDE getTurningDirection() const;
 
 	//More stuff; some might be optional.
-	sim_mob::RoadSegment* getCurrSegment();
+	sim_mob::RoadSegment* getCurrSegment() const;
 	const sim_mob::RoadSegment* getNextSegment(bool inSameLink=true) const;
 	const sim_mob::RoadSegment* getSecondSegmentAhead();
 	const sim_mob::RoadSegment* getPrevSegment(bool inSameLink=true) const;

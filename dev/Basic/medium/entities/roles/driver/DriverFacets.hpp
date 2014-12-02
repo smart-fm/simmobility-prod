@@ -90,8 +90,9 @@ public:
 	MesoPathMover & getMesoPathMover() {
 		return pathMover;
 	}
+protected:
 	/// mark startTimeand origin. Called at every frame_init
-	TravelMetric & startTravelTimeMetric();
+	virtual TravelMetric& startTravelTimeMetric();
 	/**
 	 * mark the destination and end time and travel time.
 	 * upon every change in the role, this method is called
@@ -99,9 +100,7 @@ public:
 	 * role's period.
 	 */
 	//
-	TravelMetric & finalizeTravelTimeMetric();
-
-protected:
+	virtual TravelMetric& finalizeTravelTimeMetric();
 
 	/**
 	 * Pointer to the parent Driver role.
@@ -152,6 +151,12 @@ protected:
 	 */
 	virtual bool moveToNextSegment(DriverUpdateParams& params);
 
+	/**
+	 * Handle the event where a segment in the path has been traversed
+	 * @param  completedRS the completed Road Segment
+	 * @param  nextRS the Road Segment to be visited next
+	 */
+	void onSegmentCompleted(const sim_mob::RoadSegment* completedRS, const sim_mob::RoadSegment* nextRS);
 	/**
 	 * checks whether the driver can move into the next segment in path
 	 *

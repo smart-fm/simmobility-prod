@@ -68,10 +68,10 @@ public:
 	virtual void frame_tick_output();
 
 	// mark startTimeand origin
-	virtual TravelMetric & startTravelTimeMetric() {}
+	virtual TravelMetric & startTravelTimeMetric();
 
 	//	mark the destination and end time and travel time
-	virtual TravelMetric & finalizeTravelTimeMetric() {}
+	virtual TravelMetric & finalizeTravelTimeMetric();
 
 	Driver* getParentDriver() const {
 		return parentDriver;

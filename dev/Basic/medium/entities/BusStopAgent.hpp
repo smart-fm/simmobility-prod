@@ -76,6 +76,11 @@ public:
 	static void registerBusStopAgent(BusStopAgent* busstopAgent);
 
 	/**
+	 * remove all bus stops agent.
+	 */
+	static void removeAllBusStopAgents();
+
+	/**
 	 * checks whether the bus stop can accommodate a vehicle of a given length
 	 * @param length length of the vehicle
 	 * @returns true if vehicle can be accommodated; false otherwise
@@ -95,6 +100,12 @@ public:
 	 * @return true if busDriver was removed correctly; false otherwise.
 	 */
 	bool handleBusDeparture(BusDriver* busDriver);
+
+	/**
+	 * store waiting time
+	 * @param waitingActivity is pointer to the waiting people
+	 */
+	void storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingActivity);
 
 protected:
 	//Virtual overrides

@@ -5,8 +5,9 @@
 #include "MesoPathMover.hpp"
 
 #include <algorithm>
+#include <sstream>
 #include "geospatial/RoadSegment.hpp"
-#include "util/Profiler.hpp"
+#include "logging/Log.hpp"
 
 void sim_mob::medium::MesoPathMover::setPath(const std::vector<const sim_mob::SegmentStats*>& segStatPath)
 {
@@ -154,7 +155,17 @@ void sim_mob::medium::MesoPathMover::moveFwdInSegStats(double fwdDisplacement)
 	distToSegmentEnd = std::max(distToSegmentEnd, 0.0);
 }
 
-
+void sim_mob::medium::MesoPathMover::printPath()
+{
+	std::stringstream pathStream;
+	pathStream << "SegmentStats path: ";
+	for(Path::iterator i=path.begin(); i!=path.end(); i++)
+	{
+		pathStream << (*i)->getRoadSegment()->getSegmentAimsunId() << "-" << (*i)->getStatsNumberInSegment() << "|";
+	}
+	pathStream << std::endl;
+	Print() << pathStream.str();
+}
 void sim_mob::medium::MesoPathMover::printPath(const Path &path, const Node *node){
 	std::ostringstream out("");
 	unsigned int id = 0;

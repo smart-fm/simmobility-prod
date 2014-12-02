@@ -8,6 +8,7 @@
 
 #include "util/LangHelpers.hpp"
 #include "entities/UpdateParams.hpp"
+#include "entities/misc/TripChain.hpp"
 #include "logging/Log.hpp"
 #include "logging/NullableOutputStream.hpp"
 #include "message/Message.hpp"
@@ -122,10 +123,16 @@ public:
 	 */
 	virtual void HandleMessage(messaging::Message::MessageType type,
 			const messaging::Message& message){}
-	// mark startTimeand origin
-	virtual TravelMetric & startTravelTimeMetric() = 0;
-	//	mark the destination and end time and travel time
-	virtual TravelMetric & finalizeTravelTimeMetric() = 0;
+	
+	///	mark startTimeand origin
+	virtual TravelMetric& startTravelTimeMetric() = 0;
+	///	mark the destination and end time and travel time
+	virtual TravelMetric& finalizeTravelTimeMetric() = 0;
+	//needed if the role are reused rather than deleted!
+	virtual void resetTravelTimeMetric()
+	{
+		travelTimeMetric.reset();
+	}
 
 
 public:
@@ -133,7 +140,7 @@ public:
 protected:
 
 	///	placeholder for various movement measurements
-	 boost::shared_ptr<TravelMetric> travelTimeMetric;
+	 TravelMetric travelTimeMetric;
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI

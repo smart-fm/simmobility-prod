@@ -212,7 +212,8 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessPassengersNode(GetSingleElementByName(rootNode, "passengers"));
 	ProcessSignalsNode(GetSingleElementByName(rootNode, "signals"));
 	ProcessBusControllersNode(GetSingleElementByName(rootNode, "buscontrollers"));
-	ProcessPathSetNodeNode(GetSingleElementByName(rootNode, "pathset"));
+	ProcessPathSetNode(GetSingleElementByName(rootNode, "pathset"));
+	ProcessCBD_Node(GetSingleElementByName(rootNode, "CBD"));
 }
 
 
@@ -566,45 +567,61 @@ void sim_mob::ParseConfigFile::ProcessBusControllersNode(xercesc::DOMElement* no
 	ProcessFutureAgentList(node, "buscontroller", cfg.busControllerTemplates, false, false, true, false);
 }
 
-void sim_mob::ParseConfigFile::ProcessPathSetNodeNode(xercesc::DOMElement* node){
+void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 
 	if (!node) {
-
-		cfg.pathset.setDefaultEnabled();
+		std::cerr << "Pathset Configuration Not Found\n" ;
 		return;
 	}
-	cfg.pathset.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+	if(!(cfg.pathset.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false")))
+	{
+		return;
+	}
 
 	xercesc::DOMElement* dbNode = GetSingleElementByName(node, "pathset_database");
 	if(!dbNode){
-		cfg.pathset.setDefaultDB();
+		throw std::runtime_error("Path Set Data Base Credentials not found\n");
 	}
 	else
 	{
-		cfg.pathset.database = ParseString(GetNamedAttributeValue(dbNode, "database"), "fm_remote_path_choice");
-		cfg.pathset.credentials = ParseString(GetNamedAttributeValue(dbNode, "credentials"), "fm_remote_path_choice");
+		cfg.pathset.database = ParseString(GetNamedAttributeValue(dbNode, "database"), "");
+		cfg.pathset.credentials = ParseString(GetNamedAttributeValue(dbNode, "credentials"), "");
 	}
 
 	xercesc::DOMElement* tableNode = GetSingleElementByName(node, "tables");
 	if(!tableNode){
-		cfg.pathset.setDefaultTables();
+		throw std::runtime_error("Pathset data base table specification not found");
 	}
 	else
 	{
-		cfg.pathset.pathSetTableName = ParseString(GetNamedAttributeValue(tableNode, "pathset_table"), "PathSet");
-		cfg.pathset.singlePathTableName = ParseString(GetNamedAttributeValue(tableNode, "singlepath_table"), "SinglePath");
-		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(tableNode, "function"), "get_path_set");
+		cfg.pathset.singlePathTableName = ParseString(GetNamedAttributeValue(tableNode, "singlepath_table"), "");
+		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(tableNode, "function"), "");
 	}
 	//function
 
 	xercesc::DOMElement* functionNode = GetSingleElementByName(node, "function");
 	if(!functionNode){
-		cfg.pathset.setDefaultFunction();
+		throw std::runtime_error("Pathset Stored Procedure Not Found\n");
 	}
 	else
 	{
-		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(functionNode, "value"), "get_path_set");
+		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(functionNode, "value"));
 	}
+	/////////
+	DOMElement* tt = GetSingleElementByName(node, "pathset_traveltime_save_table",ConfigManager::GetInstance().FullConfig().PathSetMode());
+	if (tt) {
+		cfg.system.simulation.travelTimeTableName  = ParseString(GetNamedAttributeValue(tt, "value"));
+	}
+}
+
+void sim_mob::ParseConfigFile::ProcessCBD_Node(xercesc::DOMElement* node){
+
+	if (!node) {
+
+		cfg.cbd = false;
+		return;
+	}
+	cfg.cbd = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)
@@ -624,29 +641,6 @@ void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* 
 	cfg.system.simulation.reactTimeDistribution2.stdev = ProcessValueInteger(GetSingleElementByName(node, "reacTime_standardDev2"));
 
 	cfg.system.simulation.simStartTime = ProcessValueDailyTime(GetSingleElementByName(node, "start_time", true));
-	//save travel time table name
-	if( ConfigManager::GetInstance().FullConfig().PathSetMode() )
-	{
-		DOMElement* rn = GetSingleElementByName(node, "pathset_traveltime_save_table",true);
-		if (rn) {
-		cfg.system.simulation.travelTimeTmpTableName  =
-				ParseString(GetNamedAttributeValue(rn, "value"),"aa");
-		}
-		else
-		{
-			cfg.system.simulation.travelTimeTmpTableName = "no_name";
-		}
-//				ParseString(GetNamedAttributeValue(node, "database"), "");
-//		TiXmlElement* node_table_name = handle.FirstChild("pathset_travletime_save_table").ToElement();
-//		const char* node_table_name_char = node_table_name ? node_table_name->Attribute("value") : nullptr;
-//		if(node_table_name_char==nullptr)
-//		{
-//			throw std::runtime_error("pls add pathset_travletime_save_table to config file");
-//		}
-//		std::string node_table_name_str = std::string(node_table_name_char);
-//		ConfigParams::GetInstance().travelTimeTmpTableName = node_table_name_str;
-//		PathSetManager::getInstance()->setTravleTimeTmpTableName(node_table_name_str);
-	}
 	//Now we're getting back to real properties.
 	ProcessSystemAuraManagerImplNode(GetSingleElementByName(node, "aura_manager_impl"));
 	ProcessSystemWorkgroupAssignmentNode(GetSingleElementByName(node, "workgroup_assignment"));

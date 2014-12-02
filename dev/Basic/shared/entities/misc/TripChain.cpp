@@ -94,7 +94,7 @@ sim_mob::SubTrip::SubTrip(std::string entId, std::string type, unsigned int seqN
 		DailyTime start, DailyTime end, Node* from,
 		std::string fromLocType, Node* to, std::string toLocType, std::string mode,
 		bool isPrimary, std::string ptLineId) : Trip(entId, type, seqNumber, requestTime, start, end, "", from, fromLocType, to, toLocType),
-		mode(mode) , isPrimaryMode(isPrimary), ptLineId(ptLineId), schedule(nullptr)
+		mode(mode) , isPrimaryMode(isPrimary), ptLineId(ptLineId), schedule(nullptr),cbdTraverseType(sim_mob::TravelMetric::CBD_NONE)
 {
 }
 
@@ -178,6 +178,10 @@ const std::string sim_mob::Trip::getMode() const
 {
 	if(subTrips.empty()) { return ""; }
 	return subTrips.front().getMode();
+}
+
+const std::string sim_mob::SubTrip::getBusLineID() const {
+	return ptLineId;
 }
 
 bool sim_mob::operator==(const SubTrip& s1, const SubTrip& s2)

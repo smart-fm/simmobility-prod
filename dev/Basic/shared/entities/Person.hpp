@@ -34,17 +34,8 @@ class PackageUtils;
 class UnPackageUtils;
 class UpdateParams;
 class AMODController;
+class OD_Trip;
 class Vehicle;
-
-/// simple structure used to collect travel time information
-struct TravelMetric
-{
-	WayPoint origin,destination;
-	DailyTime startTime,endTime;
-	uint32_t travelTime;
-	bool started,finalized,valid;
-	TravelMetric():started(false),finalized(false),valid(false){}
-};
 
 /**
  * Basic Person class.
@@ -118,7 +109,10 @@ public:
      * insert a waiting activity before bus travel
      * @param tripChain is the reference to current trip chain
      */
-    void insertWaitingActivityToTrip(std::vector<TripChainItem*>& tripChain);
+    void insertWaitingActivityToTrip();
+    void convertODsToTrips();
+    void makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips,
+    		std::vector<const sim_mob::OD_Trip*>& matchedTrips);
 
     // update nextTripChainItem, used only for NextRole
 	bool updateNextTripChainItem();
@@ -127,15 +121,8 @@ public:
     ///Check if any role changing is required.
     /// "nextValidTimeMS" is the next valid time tick, which may be the same at this time tick.
     Entity::UpdateStatus checkTripChain();
-    bool changeRoleRequired(sim_mob::Role & currRole,sim_mob::SubTrip &currSubTrip)const;//todo depricate later
-    bool changeRoleRequired_Trip /*sim_mob::Trip &trip*/
-	() const;
-	bool changeRoleRequired_Activity /*sim_mob::Activity &activity*/
-	() const;
-	bool changeRoleRequired(sim_mob::TripChainItem& tripChinItem) const;
 	//update origin and destination node based on the trip, subtrip or activity given
-	bool updateOD(sim_mob::TripChainItem* tc, const sim_mob::SubTrip* subtrip =
-			0);
+	bool updateOD(sim_mob::TripChainItem* tc, const sim_mob::SubTrip* subtrip = 0);
 
 	///get this person's trip chain
 	const std::vector<TripChainItem*>& getTripChain() const {
@@ -145,7 +132,6 @@ public:
 	///Set this person's trip chain
 	void setTripChain(const std::vector<TripChainItem*>& tripChain) {
 		this->tripChain = tripChain;
-		initTripChain();
 	}
 
 	/*	const sim_mob::Link* getCurrLink() const;
@@ -332,34 +318,44 @@ public:
 	  * \param currTripChainItem current TripChainItem
 	  * \param currSubTrip current SubTrip for which subtripMetrics is collected
 	  */
-	 void serializeSubTripTravelTimeMetrics(
-			 const TravelMetric & subtripMetrics,
+	 void serializeSubTripChainItemTravelTimeMetrics(
+			 const TravelMetric subtripMetrics,
 			 std::vector<TripChainItem*>::iterator currTripChainItem,
 			 std::vector<SubTrip>::iterator currSubTrip
 			 ) const;
+
+	 /**
+	  * This is called by movement facet's destructor of non-activity role
+	  */
+	 void serializeCBD_SubTrip(const TravelMetric &metric);
+
+	 /**
+	  * This is called by  movement facet's destructor activity role
+	  */
+	 void serializeCBD_Activity(const TravelMetric &metric);
 private:
-	 /**
-	  * serialize person's tripchain item
-	  */
-	void serializeTripChainItem(std::vector<TripChainItem*>::iterator currTripChainItem);
+//	 /**
+//	  * serialize person's tripchain item
+//	  */
+//	void serializeTripChainItem(std::vector<TripChainItem*>::iterator currTripChainItem);
+//
+//	 /**
+//	  * During Serialization of person's tripchain, this routine is called if the given
+//	  * tripchain item is a trip
+//	  */
+//	 std::string serializeTrip(std::vector<TripChainItem*>::iterator item);
+//
+//
+//	 /**
+//	  * During Serialization of person's tripchain, this routine is called if the given
+//	  * tripchain item is an activity
+//	  */
+//	 std::string serializeActivity(std::vector<TripChainItem*>::iterator item);
 
 	 /**
-	  * During Serialization of person's tripchain, this routine is called if the given
-	  * tripchain item is a trip
+	  * prints the trip chain item types of each item in tripChain
 	  */
-	 std::string serializeTrip(std::vector<TripChainItem*>::iterator item);
-
-
-	 /**
-	  * During Serialization of person's tripchain, this routine is called if the given
-	  * tripchain item is an activity
-	  */
-	 std::string serializeActivity(std::vector<TripChainItem*>::iterator item);
-
-
-
-
-
+	 void printTripChainItemTypes() const;
 protected:
 	virtual bool frame_init(timeslice now);
 	virtual Entity::UpdateStatus frame_tick(timeslice now);

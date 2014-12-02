@@ -168,8 +168,9 @@ public:
 	 * removes the person from the lane
 	 * @param person the person to be removed
 	 * @param wasQueuing the queuing status of person to manage queue count
+	 * @return true if removal was successful; false otherwise.
 	 */
-	void removePerson(sim_mob::Person* person, bool wasQueuing);
+	bool removePerson(sim_mob::Person* person, bool wasQueuing);
 
 	/**
 	 * removes the person at the front in laneAgents list
@@ -451,8 +452,9 @@ public:
 	 * @param lane the lane to remove the person from
 	 * @param person the person to remove
 	 * @param wasQueuing the queuing status of person at the start of the tick
+	 * @return true if removal was successful; false otherwise
 	 */
-	void removeAgent(const sim_mob::Lane* lane, sim_mob::Person* person, bool wasQueuing);
+	bool removeAgent(const sim_mob::Lane* lane, sim_mob::Person* person, bool wasQueuing);
 
 	/**
 	 * removes person in the front from lane
@@ -484,9 +486,9 @@ public:
 
 	/**
 	 * get a list of all persons in the segment stats
-	 * @return list of all persons in the segment stats
+	 * @param out list for all persons in the segment stats
 	 */
-	std::deque<Person*> getPersons();
+	void getPersons(std::deque<Person*>& outList);
 
 	/**
 	 * updates the driving time to reach end of link of all persons in segment stats
@@ -660,7 +662,7 @@ public:
 	 * @param frameNumber the timeslice of current frame
 	 * @return the statistics of this segment stats in string format
 	 */
-	std::string reportSegmentStats(timeslice frameNumber);
+	std::string reportSegmentStats(uint32_t frameNumber);
 
 	/**
 	 * computes the density of the moving part of the segment
@@ -668,6 +670,13 @@ public:
 	 * @param vehicleLanes boolean flag indicating whether we want the density from vehicle lanes
 	 */
 	double getDensity(bool vehicleLanes);
+
+	/**
+	 * computes the density of the total segment-stats
+	 * the density value computed here is meant to be used for outputs
+	 * @param vehicleLanes boolean flag indicating whether we want the density from vehicle lanes
+	 */
+	double getTotalDensity(bool vehicleLanes);
 
 	/**
 	 * computes the number of persons that can to leave this segment stats in

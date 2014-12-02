@@ -34,6 +34,14 @@ using namespace sim_mob;
 
 std::map<unsigned long, const RoadSegment*> sim_mob::RoadSegment::allSegments;//map<segment id, segment pointer>
 
+sim_mob::RoadSegment::RoadSegment(sim_mob::Link* parent, unsigned long id) :
+	Pavement(),
+	maxSpeed(0), capacity(0), busstop(nullptr), lanesLeftOfDivider(0), parentLink(parent),segmentID(id),
+	parentConflux(nullptr), laneZeroLength(-1.0),type(LINK_TYPE_DEFAULT),CBD(false)
+{
+	allSegments[segmentID] = this;
+}
+
 const unsigned long sim_mob::RoadSegment::getId()const
 {
 	return segmentID;

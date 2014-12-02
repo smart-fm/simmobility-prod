@@ -107,11 +107,26 @@ double HM_Model::TazStats::getHH_AvgIncome() const
 	return hhTotalIncome / static_cast<double>((hhNum == 0) ? 1 : hhNum);
 }
 
-HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup) {}
+HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0) {}
 
 HM_Model::~HM_Model()
 {
 	stopImpl(); //for now
+}
+
+void HM_Model::incrementBidders()
+{
+	numberOfBidders++;
+}
+
+void HM_Model::decrementBidders()
+{
+	numberOfBidders--;
+}
+
+int HM_Model::getNumberOfBidders()
+{
+	return numberOfBidders;
 }
 
 Individual* HM_Model::getIndividualById(BigSerial id) const

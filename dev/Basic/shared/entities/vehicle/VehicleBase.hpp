@@ -61,30 +61,27 @@ public:
 
 	virtual std::vector<const sim_mob::RoadSegment *>::iterator getPathIterator()
 	{
-		std::vector<const sim_mob::RoadSegment *>::iterator emptyIterator;
-		return emptyIterator;
+		throw std::runtime_error("VehicleBase::getPathIterator is not implemented");
 	}
 
 	virtual std::vector<const sim_mob::RoadSegment *>::iterator getPathIteratorEnd()
 	{
-		std::vector<const sim_mob::RoadSegment *>::iterator emptyIterator;
-		return emptyIterator;
+		throw std::runtime_error("VehicleBase::getPathIteratorEnd is not implemented");
 	}
 
-	virtual sim_mob::RoadSegment * getCurrSegment() const
+	virtual const sim_mob::RoadSegment * getCurrSegment() const
 	{
-		sim_mob::RoadSegment *nullRoadSeg = nullptr;
-		return nullRoadSeg;
+		throw std::runtime_error("VehicleBase::getCurrSegment is not implemented");
 	}
 
 	virtual double getAcceleration() const
 	{
-		return 0;
+		throw std::runtime_error("VehicleBase::getAcceleration is not implemented");
 	}
 
 	virtual double getVelocity() const
 	{
-		return 0;
+		throw std::runtime_error("VehicleBase::getVelocity is not implemented");
 	}
 
 protected:

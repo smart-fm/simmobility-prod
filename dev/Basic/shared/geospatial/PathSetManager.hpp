@@ -561,8 +561,8 @@ inline sim_mob::SinglePath* findShortestPath(std::set<sim_mob::SinglePath*, sim_
 			min = tmp;
 			res = sp;
 		}
-		std::cout << min << " " << tmp << " " << (min*1000000 - tmp*1000000) << std::endl;
-		std::cout << "path length " << tmp << std::endl;
+		//std::cout << min << " " << tmp << " " << (min*1000000 - tmp*1000000) << std::endl;
+		//std::cout << "path length " << tmp << std::endl;
 	}
 	return res;
 }

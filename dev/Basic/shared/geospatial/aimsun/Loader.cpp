@@ -293,8 +293,8 @@ bool DatabaseLoader::InsertSinglePath2DB(soci::session& sql,std::set<sim_mob::Si
 	{
 		if(sp->isNeedSave2DB)
 		{
-			sql << "insert into " << singlePathTableName << "(id,pathset_id,partial_utility,path_size,signal_number,right_turn_number,scenario,length,highway_distance, min_distance,min_signal,min_right_turn,max_highway_usage, shortest_path, valid_path) "
-					" values(:id,:pathset_id,:partial_utility,:path_size,:signal_number,:right_turn_number,:scenario,:length,:highway_distance, :min_distance,:min_signal,:min_right_turn,:max_highway_usage, :shortest_path, :valid_path)", soci::use(*sp);
+			sql << "insert into " << singlePathTableName << "(id,pathset_id,partial_utility,path_size,signal_number,right_turn_number,scenario,length,highway_distance, min_distance,min_signal,min_right_turn,max_highway_usage, valid_path, shortest_path) "
+					" values(:id,:pathset_id,:partial_utility,:path_size,:signal_number,:right_turn_number,:scenario,:length,:highway_distance, :min_distance,:min_signal,:min_right_turn,:max_highway_usage, :valid_path, :shortest_path)", soci::use(*sp);
 			pathsetLogger << "insert into " << singlePathTableName << "\n";
 		}
 	}
@@ -318,7 +318,6 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 	//	process result
 	int i = 0;
 	for (soci::rowset<sim_mob::SinglePath>::const_iterator it = rs.begin();	it != rs.end(); ++it) {
-		///////////////////
 		bool proceed = true;
 		std::vector<sim_mob::WayPoint> path = std::vector<sim_mob::WayPoint>();
 		//use id to build shortestWayPointpath
@@ -364,6 +363,7 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 		}
 		if(!proceed)
 		{
+			pathsetLogger << "[PATHH: continue]\n";
 			continue;
 		}
 		//create path object
@@ -373,19 +373,13 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 		{
 			throw std::runtime_error("Empty Path");
 		}
-		spPool.insert(s);
+		bool temp = spPool.insert(s).second;
 		i++;
 	}
 
-	if((pathset_id == "111502,79350" || pathset_id == "93122,114990" || pathset_id == "112768,93896")  && ontimeFlog[pathset_id].check())
-	{
-		pathsetLogger << "[" << pathset_id << " : PATHSET_SIZE : " << i << "  " << spPool.size() << "]\n";
-	}
-
-
 	if (i == 0) {
 		pathsetLogger << "DatabaseLoader::loadSinglePathFromDB: " << pathset_id << "no data in db\n" ;
-		std::cout << "DatabaseLoader::loadSinglePathFromDB: " << pathset_id << " no data in db  excludedRS:"  << excludedRS.size() << std::endl;
+		//std::cout << "DatabaseLoader::loadSinglePathFromDB: " << pathset_id << " no data in db  excludedRS:"  << excludedRS.size() << std::endl;
 		return sim_mob::PSM_NOGOODPATH;
 	}
 	return sim_mob::PSM_HASPATH;

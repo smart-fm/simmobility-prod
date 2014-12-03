@@ -309,15 +309,11 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 {
 	//prepare statement
 	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare	<< "select * from " + functionName + "(:pathset_id_in)", soci::use(pathset_id));
-//	//temp optimization todo remove hardcode
-	if(rs.begin() == rs.end())
-	{
-		std::cout << "[" << pathset_id << "] [QUERY NO PATH]" <<  std::endl;
-		return sim_mob::PSM_NOTFOUND;
-	}
 	//	process result
-	int i = 0;
+	int cnt = 0;
+	bool emptyCheck = true;
 	for (soci::rowset<sim_mob::SinglePath>::const_iterator it = rs.begin();	it != rs.end(); ++it) {
+		emptyCheck = false;
 		bool proceed = true;
 		std::vector<sim_mob::WayPoint> path = std::vector<sim_mob::WayPoint>();
 		//use id to build shortestWayPointpath
@@ -339,7 +335,6 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 						std::string str = "SinglePath: seg not find " + id;
 						throw std::runtime_error(str);
 					}
-	//				if(excludedRS.find(seg) != excludedRS.end())
 					if(seg->CBD && excludedRS.find(seg) != excludedRS.end())//hack(seg->CBD)!!
 					{
 						proceed = false;
@@ -374,12 +369,16 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 			throw std::runtime_error("Empty Path");
 		}
 		bool temp = spPool.insert(s).second;
-		i++;
+		cnt++;
+	}
+	//due to limitations of soci, we could not use if(rs.begin() == rs.end()).. if(rs.empty) .. or if(rs.size() == 0)
+	if(emptyCheck)
+	{
+		return sim_mob::PSM_NOTFOUND;
 	}
 
-	if (i == 0) {
+	if (cnt == 0) {
 		pathsetLogger << "DatabaseLoader::loadSinglePathFromDB: " << pathset_id << "no data in db\n" ;
-		//std::cout << "DatabaseLoader::loadSinglePathFromDB: " << pathset_id << " no data in db  excludedRS:"  << excludedRS.size() << std::endl;
 		return sim_mob::PSM_NOGOODPATH;
 	}
 	return sim_mob::PSM_HASPATH;

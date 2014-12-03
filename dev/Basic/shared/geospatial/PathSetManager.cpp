@@ -203,7 +203,7 @@ double sim_mob::PathSetParam::getTravelTimeBySegId(const std::string &id,sim_mob
 			if( l.startTime_DT.isBeforeEqual(startTime) && l.endTime_DT.isAfter(startTime) )
 			{
 				res = l.travelTime;
-				logger << "[REALTT]\n";
+				logger << id << "  " << startTime.getRepr_()  << "[REALTT]\n";
 				return res;
 			}
 		}
@@ -223,7 +223,7 @@ double sim_mob::PathSetParam::getTravelTimeBySegId(const std::string &id,sim_mob
 			if( l.startTime_DT.isBeforeEqual(startTime) && l.endTime_DT.isAfter(startTime) )
 			{
 				res = l.travelTime;
-				logger << "[DEFTT]\n";
+				logger << id << "  " << startTime.getRepr_() << " [DEFTT]\n";
 				return res;
 			}
 		}
@@ -423,9 +423,6 @@ uint32_t sim_mob::PathSetManager::getSize(){
 	for(std::map<std::string ,std::vector<WayPoint> >::iterator it = fromto_bestPath.begin(); it != fromto_bestPath.end(); sum += it->first.length(), it++);
 	for(std::set<std::string>::iterator it = tempNoPath.begin(); it != tempNoPath.end(); sum += (*it).length(), it++); // std::set<std::string> tempNoPath;
 	sum += sizeof(SGPER); // SGPER pathSegments;
-	//todo statics added separately
-//	sum += csvFileName.length(); // std::string csvFileName;
-	sum += sizeof(std::ofstream); // std::ofstream csvFile;
 	sum += pathSetParam->RTTT.length(); // std::string RTTT;
 	sum += sizeof(sim_mob::K_ShortestPathImpl *); // sim_mob::K_ShortestPathImpl *kshortestImpl;
 	sum += sizeof(double); // double bTTVOT;
@@ -456,7 +453,6 @@ sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()),
 	pathSetParam = PathSetParam::getInstance();
 	std::string dbStr(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
 //	// 1.2 get all segs
-	init();
 	cnnRepo[boost::this_thread::get_id()].reset(new soci::session(soci::postgresql,dbStr));
 }
 
@@ -468,21 +464,10 @@ sim_mob::PathSetManager::~PathSetManager()
 {
 }
 
-void sim_mob::PathSetManager::init()
-{
-	//setCSVFileName();
-	initParameters();
-}
-
 namespace {
 int pathsCnt = 0;
 int spCnt = 0;
 }
-
-//void sim_mob::PathSetManager::clearCachedPathSet()
-//{
-//	cachedPathSet.clear();
-//}
 
 bool sim_mob::PathSetManager::pathInBlackList(const std::vector<WayPoint> path, const std::set<const sim_mob::RoadSegment*> & blkLst)
 {
@@ -573,6 +558,12 @@ void sim_mob::PathSetManager::insertFromTo_BestPath_Pool(std::string& id ,vector
 	fromto_bestPath.insert(std::make_pair(id,values));
 }
 
+const std::pair <SGPER::const_iterator,SGPER::const_iterator > sim_mob::PathSetManager::getODbySegment(const sim_mob::RoadSegment* segment) const{
+       logger << "pathSegments cache size =" <<  pathSegments.size() << "\n";
+       const std::pair <SGPER::const_iterator,SGPER::const_iterator > range = pathSegments.equal_range(segment);
+       return range;
+}
+
 //todo: replacing bool and std::vector<WayPoint>& can save a copy
 bool sim_mob::PathSetManager::getCachedBestPath(std::string id, std::vector<WayPoint> &value)
 {
@@ -583,18 +574,6 @@ bool sim_mob::PathSetManager::getCachedBestPath(std::string id, std::vector<WayP
 	}
 	value = (*it).second;
 	return true;
-}
-
-//void sim_mob::PathSetManager::cacheODbySegment(const sim_mob::Person* per, const sim_mob::SubTrip * subTrip, std::vector<WayPoint> & wps){
-//	BOOST_FOREACH(WayPoint &wp, wps){
-//		pathSegments.insert(std::make_pair(wp.roadSegment_, per));
-//	}
-//}
-
-const std::pair <SGPER::const_iterator,SGPER::const_iterator > sim_mob::PathSetManager::getODbySegment(const sim_mob::RoadSegment* segment) const{
-	logger << "pathSegments cache size =" <<  pathSegments.size() << "\n";
-	const std::pair <SGPER::const_iterator,SGPER::const_iterator > range = pathSegments.equal_range(segment);
-	return range;
 }
 
 void sim_mob::PathSetManager::inserIncidentList(const sim_mob::RoadSegment* rs) {
@@ -832,6 +811,8 @@ namespace
 {
 sim_mob::BasicLogger & cbdLogger = sim_mob::Logger::log("CBD");
 }
+
+
 vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip)
 {
 	// get person id and current subtrip id
@@ -1913,24 +1894,6 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 	logger << "NO BEST PATH. select to shortest path\n" ;
 	ps->bestPath = &(ps->oriPath->path);
 	return true;
-}
-void sim_mob::PathSetManager::initParameters()
-{
-//	bTTVOT = pathSetParam->bTTVOT;//-0.0108879;
-//	bCommonFactor = pathSetParam->bCommonFactor;
-//	bLength = pathSetParam->bLength;//0.0;
-//	bHighway = pathSetParam->bHighway;//0.0;
-//	bCost = pathSetParam->bCost;
-//	bSigInter = pathSetParam->bSigInter;//0.0;
-//	bLeftTurns = pathSetParam->bLeftTurns;
-//	bWork = pathSetParam->bWork;
-//	bLeisure = pathSetParam->bLeisure;
-//	highway_bias = pathSetParam->highway_bias;
-//
-//	minTravelTimeParam = pathSetParam->minTravelTimeParam;
-//	minDistanceParam = pathSetParam->minDistanceParam;
-//	minSignalParam = pathSetParam->minSignalParam;
-//	maxHighwayParam = pathSetParam->maxHighwayParam;
 }
 
 sim_mob::SinglePath *  sim_mob::PathSetManager::findShortestDrivingPath(

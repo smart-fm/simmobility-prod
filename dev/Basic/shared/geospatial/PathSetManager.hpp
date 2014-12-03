@@ -40,6 +40,8 @@ private:
 public:
 	static PathSetParam *getInstance();
 
+	void initParameters();
+
 	/// Retrieve 'ERP' and 'link travel time' information from Database
 	void getDataFromDB();
 
@@ -69,8 +71,6 @@ public:
 
 	double getHighwayBias() { return highway_bias; }
 
-	///	initialize pathset parameters with some fixed values
-	void initParameters();
 	///	return the current rough size of the class
 	uint32_t getSize();
 	///	pathset parameters
@@ -283,8 +283,6 @@ public:
 			const std::set<const sim_mob::RoadSegment *> & partialExclusion = std::set<const sim_mob::RoadSegment *>(),
 			const std::set<const sim_mob::RoadSegment*> &blckLstSegs = std::set<const sim_mob::RoadSegment *>());
 
-	void initParameters();
-
 	/// one of the main PathSetManager interfaces used to return a path for the current OD of the given person.
 	std::vector<WayPoint> getPath(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip);
 
@@ -295,18 +293,11 @@ public:
 
 	bool copyTravelTimeDataFromTmp2RealtimeTable();
 
-	void init();
-
-//	///clears various cache containers(unused for now)
-//	void clearCachedPathSet();
-
 	void setScenarioName(std::string& name){ scenarioName = name; }
 
 	void insertFromTo_BestPath_Pool(std::string& id ,std::vector<WayPoint>& value);
 
 	bool getCachedBestPath(std::string id, std::vector<WayPoint> & value);
-
-//	void cacheODbySegment(const sim_mob::Person*,const SubTrip *,std::vector<WayPoint> &);
 
 	const std::pair<SGPER::const_iterator,SGPER::const_iterator > getODbySegment(const sim_mob::RoadSegment* segment) const;
 
@@ -420,12 +411,6 @@ private:
 
 	///a cache to help answer this question: a given road segment is within which path(s)
 	SGPER pathSegments;
-
-	///	file name used to store realtime data
-	std::string csvFileName;
-
-	///	file stream used to store realtime data
-	std::ofstream csvFile;
 
 	///	link to shortest path implementation
 	sim_mob::K_ShortestPathImpl *kshortestImpl;
@@ -551,7 +536,7 @@ inline sim_mob::SinglePath* findShortestPath(std::set<sim_mob::SinglePath*, sim_
 		std::stringstream begin(""),out("");
 		begin << rs->getId() << ","; //only for the begining of sp->id
 		out << "," << rs->getId() << ","; //for the rest of the string
-		if(! (sp->id.find(out.str()) || sp->id.substr(0,begin.str().size()) == begin.str()) )
+		if(! (sp->id.find(out.str()) !=  std::string::npos || sp->id.substr(0,begin.str().size()) == begin.str()) )
 		{
 			continue;
 		}
@@ -697,6 +682,7 @@ inline double calculateHighWayDistance(sim_mob::SinglePath *sp)
 	}
 	return res/100.0; //meter
 }
+
 static unsigned int seed = 0;
 inline float gen_random_float(float min, float max)
 {

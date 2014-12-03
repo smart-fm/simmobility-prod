@@ -676,39 +676,27 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 	bool wasQueuing = beforeUpdate.isQueuing;
 	sim_mob::Role::type personRoleType = sim_mob::Role::RL_UNKNOWN;
 	if(person->getRole()) { personRoleType = person->getRole()->roleType; }
-	if (personRoleType == sim_mob::Role::RL_ACTIVITY)
+	switch(personRoleType)
+	{
+	case sim_mob::Role::RL_ACTIVITY:
 	{
 		PersonList::iterator pIt = std::find(activityPerformers.begin(), activityPerformers.end(), person);
 		if(pIt!=activityPerformers.end()){
 			activityPerformers.erase(pIt);
 		}
+		break;
 	}
-	else if (personRoleType == sim_mob::Role::RL_PEDESTRIAN)
+	case sim_mob::Role::RL_PEDESTRIAN:
 	{
 		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
 		if (pIt != pedestrianList.end())
 		{
 			pedestrianList.erase(pIt);
 		}
-		if (person->getNextLinkRequired())
-		{
-			return;
-		}
+		if (person->getNextLinkRequired()) { return; }
+		break;
 	}
-	else if (prevLane)
-	{
-		bool removed = prevSegStats->removeAgent(prevLane, person, wasQueuing);
-		//removed can be false only in the case of BusDrivers at the moment.
-		//This is because a BusDriver could have been dequeued from prevLane in the previous tick and be added to his
-		//last bus stop. When he has finished serving the stop, the BusDriver is done. He will be killed here. However,
-		//since he was already dequeued, we can't find him in prevLane now.
-		//It is an error only if removed is false and the role is not BusDriver.
-		if(!removed && personRoleType != sim_mob::Role::RL_BUSDRIVER)
-		{
-			throw std::runtime_error("Conflux::killAgent(): Attempt to remove non-existent person in Lane");
-		}
-	} 
-	else if(person->getRole()->roleType == sim_mob::Role::RL_DRIVER)
+	case sim_mob::Role::RL_DRIVER:
 	{
 		//It is possible that a driver is getting removed silently because
 		//a path could not be established for his current sub trip.
@@ -717,8 +705,26 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 		//TODO: There might be other weird scenarios like this, to be taken care of.
 		PersonList::iterator pIt = std::find(activityPerformers.begin(), activityPerformers.end(), person);
 		if(pIt!=activityPerformers.end()) { activityPerformers.erase(pIt); } //Check if he was indeed an activity performer and erase him
+		break;
 	}
-	
+	default: //applies for any vehicle in a lane
+	{
+		if (prevLane)
+		{
+			bool removed = prevSegStats->removeAgent(prevLane, person, wasQueuing);
+			//removed can be false only in the case of BusDrivers at the moment.
+			//This is because a BusDriver could have been dequeued from prevLane in the previous tick and be added to his
+			//last bus stop. When he has finished serving the stop, the BusDriver is done. He will be killed here. However,
+			//since he was already dequeued, we can't find him in prevLane now.
+			//It is an error only if removed is false and the role is not BusDriver.
+			if(!removed && personRoleType != sim_mob::Role::RL_BUSDRIVER)
+			{
+				throw std::runtime_error("Conflux::killAgent(): Attempt to remove non-existent person in Lane");
+			}
+		}
+		break;
+	}
+	}
 	parentWorker->remEntity(person);
 	parentWorker->scheduleForRemoval(person);
 }

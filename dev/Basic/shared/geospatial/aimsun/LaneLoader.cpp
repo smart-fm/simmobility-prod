@@ -50,14 +50,7 @@ void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 	}
 
 	//Finally, if the "end" is closer to the start node than the "start", reverse the vector as you insert it
-	if (flipLater) {
-		//make a copy and reverse
-		vector<Lane*> laneLineCopy = laneLine;
-		laneLine.clear();
-		for (vector<Lane*>::reverse_iterator it=laneLineCopy.rbegin(); it!=laneLineCopy.rend(); it++) {
-			laneLine.push_back(*it);
-		}
-	}
+	if (flipLater) { std::reverse(laneLine.begin(), laneLine.end()); }
 }
 
 

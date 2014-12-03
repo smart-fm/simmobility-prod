@@ -100,7 +100,7 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_PROJECTS = APPLY_SCHEMA(MAIN_SCHEMA, "getProjects()");
         const std::string DB_FUNC_GET_PARCEL_MATCHES = APPLY_SCHEMA(MAIN_SCHEMA, "getParcelMatches()");
         const std::string DB_FUNC_GET_SLA_PARCELS = APPLY_SCHEMA(MAIN_SCHEMA, "getSlaParcels()");
-        const std::string DB_FUNC_GET_AWAKENING = APPLY_SCHEMA( MAIN_SCHEMA, "getAwakening()");
+        const std::string DB_FUNC_GET_AWAKENING = APPLY_SCHEMA( MAIN_SCHEMA, "getHouseholdAwakeningProbability()");
 
 
         const std::string DB_FUNC_DEL_INDIVIDUAL_BY_ID  = APPLY_SCHEMA(MAIN_SCHEMA, "deleteIndividualById(:id)");
@@ -266,7 +266,7 @@ namespace sim_mob {
         const std::string DB_GETALL_PROJECTS = "SELECT * FROM "+ DB_FUNC_GET_PROJECTS + LIMIT;
         const std::string DB_GETALL_PARCEL_MATCHES = "SELECT * FROM "+ DB_FUNC_GET_PARCEL_MATCHES + LIMIT;
         const std::string DB_GETALL_SLA_PARCELS = "SELECT * FROM "+ DB_FUNC_GET_SLA_PARCELS+ LIMIT;
-        const std::string DB_GETALL_AWAKENING = "SEELCT * FROM" + DB_FUNC_GET_AWAKENING + LIMIT;
+        const std::string DB_GETALL_AWAKENING = "SELECT * FROM " + DB_FUNC_GET_AWAKENING + LIMIT;
 
         /**
          * GET BY ID

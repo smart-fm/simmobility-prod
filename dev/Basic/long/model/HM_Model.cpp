@@ -220,7 +220,8 @@ void HM_Model::startImpl()
 		loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
 		PrintOut("Initial Individuals: " << individuals.size() << std::endl);
 
-		//loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
+		loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
+		PrintOut("Awakening probability: " << awakening.size() << std::endl );
 
 
 

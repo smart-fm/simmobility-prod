@@ -216,7 +216,6 @@ void sim_mob::medium::DriverMovement::frame_tick_output() {
 			logout << "\",\"queuing\":\"" << "false";
 	}
 	logout << "\"})" << std::endl;
-
 	LogOut(logout.str());
 }
 

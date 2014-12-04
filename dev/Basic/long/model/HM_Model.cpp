@@ -108,7 +108,7 @@ double HM_Model::TazStats::getHH_AvgIncome() const
 	return hhTotalIncome / static_cast<double>((hhNum == 0) ? 1 : hhNum);
 }
 
-HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup) {}
+HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup), initialHHAwakeningCounter(0) {}
 
 HM_Model::~HM_Model()
 {
@@ -132,6 +132,18 @@ Household* HM_Model::getHouseholdById(BigSerial id) const
 	HouseholdMap::const_iterator itr = householdsById.find(id);
 
 	if (itr != householdsById.end())
+	{
+		return (*itr).second;
+	}
+
+	return nullptr;
+}
+
+Awakening* HM_Model::getAwakeningById( BigSerial id) const
+{
+	AwakeningMap::const_iterator itr = awakeningById.find(id);
+
+	if( itr != awakeningById.end())
 	{
 		return (*itr).second;
 	}
@@ -176,6 +188,17 @@ HousingMarket* HM_Model::getMarket()
 {
 	return &market;
 }
+
+void HM_Model::incrementAwakeningCounter()
+{
+	initialHHAwakeningCounter++;
+}
+
+int HM_Model::getAwakeningCounter() const
+{
+	return initialHHAwakeningCounter;
+}
+
 
 const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 {

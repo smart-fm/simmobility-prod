@@ -74,9 +74,12 @@ namespace sim_mob
 
             Household* getHouseholdById( BigSerial id) const;
             Individual* getIndividualById( BigSerial id) const;
+            Awakening* getAwakeningById( BigSerial id) const;
 
             void hdbEligibilityTest(int );
             void unitsFiltering();
+            void incrementAwakeningCounter();
+            int getAwakeningCounter() const;
 
             HousingMarket* getMarket();
 
@@ -103,6 +106,9 @@ namespace sim_mob
             AwakeningMap awakeningById;
 
             HouseholdStatistics household_stats;
+
+            int	initialHHAwakeningCounter;
+
         };
     }
 }

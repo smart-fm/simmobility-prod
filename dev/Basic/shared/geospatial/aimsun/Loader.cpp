@@ -120,7 +120,7 @@ public:
 	static bool CreateTable(soci::session& sql,std::string& tableName);
 	bool InsertData2TravelTimeTmpTable(std::string& tableName,sim_mob::LinkTravelTime& data);
 	static bool InsertCSV2Table(soci::session& sql,std::string& tableName,const std::string& csvFileName);
-	static bool InsertCSV2TableST(soci::session& sql,std::string& tableName,std::string& csvFileName);
+	static bool upsertTravelTime(soci::session& sql,const std::string& csvFileName);
 	static bool TruncateTable(soci::session& sql,std::string& tableName);
 	static bool ExcuString(soci::session& sql,std::string& str);
 	// save path set data
@@ -443,6 +443,11 @@ bool DatabaseLoader::InsertData2TravelTimeTmpTable(std::string& tableName,
 	}
 	return true;
 }
+bool DatabaseLoader::upsertTravelTime(soci::session& sql,const std::string& csvFileName)
+{
+	sql << "upsert_realtime(" + csvFileName + ");";
+	return true;
+}
 bool DatabaseLoader::InsertCSV2Table(soci::session& sql,std::string& tableName,const std::string& csvFileName)
 {
 	try {
@@ -456,19 +461,7 @@ bool DatabaseLoader::InsertCSV2Table(soci::session& sql,std::string& tableName,c
 		}
 		return true;
 }
-bool DatabaseLoader::InsertCSV2TableST(soci::session& sql,std::string& tableName,std::string& csvFileName)
-{
-	try {
-		sql << ("COPY " + tableName + " FROM '" + csvFileName + "' WITH DELIMITER AS ';'");
-		sql.commit();
-		}
-		catch (soci::soci_error const & err)
-		{
-			std::cout<<"InsertCSV2Table: "<<err.what()<<std::endl;
-			return false;
-		}
-		return true;
-}
+
 bool DatabaseLoader::TruncateTable(soci::session& sql,std::string& tableName)
 {
 	try {
@@ -2553,16 +2546,16 @@ bool sim_mob::aimsun::Loader::insertData2TravelTimeTmpTable(const std::string& c
 	bool res = loader.InsertData2TravelTimeTmpTable(tableName,data);
 	return res;
 }
+bool sim_mob::aimsun::Loader::upsertTravelTime(soci::session& sql, const std::string& csvFileName)
+{
+	bool res = DatabaseLoader::upsertTravelTime(sql,csvFileName);
+}
 bool sim_mob::aimsun::Loader::insertCSV2Table(soci::session& sql, std::string& tableName, const std::string& csvFileName)
 {
 	bool res = DatabaseLoader::InsertCSV2Table(sql,tableName,csvFileName);
 	return res;
 }
-bool sim_mob::aimsun::Loader::insertCSV2TableST(soci::session& sql,	std::string& tableName,	std::string& csvFileName)
-{
-	bool res = DatabaseLoader::InsertCSV2TableST(sql,tableName,csvFileName);
-	return res;
-}
+
 bool sim_mob::aimsun::Loader::truncateTable(soci::session& sql,	std::string& tableName)
 {
 	bool res= DatabaseLoader::TruncateTable(sql, tableName);

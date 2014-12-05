@@ -84,8 +84,8 @@ public:
 			std::map<std::string,sim_mob::ERP_Section*>& erp_section_pool);
 	static bool createTable(soci::session& sql,std::string& table_name);
 	static bool insertData2TravelTimeTmpTable(const std::string& connectionStr,	std::string& table_name, sim_mob::LinkTravelTime& data);
+	static bool upsertTravelTime(soci::session& sql,const std::string& csvFileName);
 	static bool insertCSV2Table(soci::session& sql, std::string& table_name,const std::string& csvFileName);
-	static bool insertCSV2TableST(soci::session& sql, std::string& table_name, std::string& csvFileName);
 	static bool truncateTable(soci::session& sql, std::string& table_name);
 	static bool excuString(soci::session& sql,std::string& str);
 	static void LoadDefaultTravelTimeData(soci::session& sql, std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& link_default_travel_time_pool);

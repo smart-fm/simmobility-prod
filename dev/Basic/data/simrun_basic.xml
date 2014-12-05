@@ -509,6 +509,7 @@
     	<pathset_database database="fm_local_path_choice"  credentials="fm_local_path_choice" />
     	<tables singlepath_table="path" realtime_traveltime="travel_time" default_traveltime = "link_default_travel_time_corrected_he_v2"/>
     	<function value="get_path_set" />
+    	<travel_time_interval value = "600" > <!--seconds -->
     </pathset>
     
 </config>

@@ -172,14 +172,61 @@ class LinkTravelTime
 public:
 	LinkTravelTime() {};
 	LinkTravelTime(const LinkTravelTime& src);
-	int linkId;
+	/**
+	 * Common Information
+	 */
+	unsigned long linkId;
+	///	travel time in seconds
+	double travelTime;
+	/**
+	 * Filled during data Retrieval From DB and information usage
+	 */
 	std::string startTime;
 	std::string endTime;
 	sim_mob::DailyTime startTime_DT;
 	sim_mob::DailyTime endTime_DT;
-	double travelTime;
 	OpaqueProperty<int> originalSectionDB_ID;
+	/*
+	 * filled during data generation
+	 */
+	///	time of recording the realtime travel time
+	sim_mob::DailyTime recordTime_DT;
+};
 
+/**
+ * ProcessTT is a small helper class to process Real Time Travel Time
+ * PathSetManager receives Real Time Travel Time and delegates
+ * the processing task to this class.
+ * This class aggregates the data received within different
+ * time ranges and writes them to a file.
+ */
+class ProcessTT
+{
+	int interval;
+	typedef std::map<int,std::pair<double,int> > TT;//travel times : <segment id, pair<total travel times, number of travel times> >
+	typedef std::pair<std::string,std::string> TR;//time range : pair<range begin, range end>
+	std::map<TR,TT > RTTT_Map; //real time travel times : map<'time range' , travel times> .
+	std::map<TR,TT >::iterator currRTTT; //< current upper limit of the time range, <segment id, travel time> >
+	/**
+	 * returns the container for accumulating/aggregating
+	 * the current travel time recordings
+	 * \param recordTime time of recording this travel time
+	 * \return the iterator for the current entry where the current recordings should be sent to
+	 */
+	std::map<TR,TT >::iterator & getCurrRTTT(const DailyTime & recordTime);
+	/**
+	 * overload of its public version, this method
+	 * Writes the aggregated data into the file
+	 */
+	bool insertTravelTime2TmpTable(std::map<TR,TT >::iterator it);
+public:
+	ProcessTT();
+	~ProcessTT();
+	/*
+	 * Aggregates Travel Time data
+	 * and periodically writes them into a temporary file
+	 */
+	bool insertTravelTime2TmpTable(sim_mob::LinkTravelTime& data);
 };
 
 enum TRIP_PURPOSE
@@ -411,6 +458,9 @@ private:
 
 	///a cache to help answer this question: a given road segment is within which path(s)
 	SGPER pathSegments;
+
+	///	process the realtime travel time submitted to pathset manager
+	ProcessTT processTT;
 
 	///	link to shortest path implementation
 	sim_mob::K_ShortestPathImpl *kshortestImpl;

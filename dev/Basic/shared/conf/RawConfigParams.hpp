@@ -64,11 +64,11 @@ struct PathSetConf
 	bool enabled;
 	std::string database;
 	std::string credentials;
-	std::string pathSetTableName;
 	std::string singlePathTableName;
 	std::string RTTT_Conf;//realtime travel time table name
 	std::string DTT_Conf;//default travel time table name
 	std::string dbFunction;
+	int interval; //travel time recording iterval
 };
 
 ///represent the incident data section of the config file

@@ -576,7 +576,6 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 		cfg.pathset.DTT_Conf  = ParseString(GetNamedAttributeValue(tableNode, "default_traveltime"), "");
 	}
 	//function
-
 	xercesc::DOMElement* functionNode = GetSingleElementByName(node, "function");
 	if(!functionNode){
 		throw std::runtime_error("Pathset Stored Procedure Not Found\n");
@@ -584,6 +583,16 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 	else
 	{
 		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(functionNode, "value"), "");
+	}
+
+	//interval
+	xercesc::DOMElement* interval = GetSingleElementByName(node, "travel_time_interval");
+	if(!functionNode){
+		throw std::runtime_error("pathset travel_time_interval Not Found\n");
+	}
+	else
+	{
+		cfg.pathset.interval = ParseInteger(GetNamedAttributeValue(interval, "value"), 600);
 	}
 
 //	//sanity check

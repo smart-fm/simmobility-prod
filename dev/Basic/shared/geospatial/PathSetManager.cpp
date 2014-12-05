@@ -524,28 +524,30 @@ bool sim_mob::PathSetManager::generateAllPathSetWithTripChain2()
 
 bool sim_mob::PathSetManager::insertTravelTime2TmpTable(sim_mob::LinkTravelTime& data)
 {
-	bool res=false;
-	if(ConfigManager::GetInstance().FullConfig().PathSetMode()){
-		sim_mob::Logger::log("real_time_travel_time") << data.linkId << ";" << data.startTime << ";" << data.endTime << ";" << data.travelTime << "\n";
-	}
-	return res;
+	return processTT.insertTravelTime2TmpTable(data);
 }
+
+//bool sim_mob::PathSetManager::copyTravelTimeDataFromTmp2RealtimeTable()
+//{
+//	//1. prepare the csv file to be copied into DB
+////	sim_mob::Logger::log("real_time_travel_time");
+//	bool res=false;
+//	//2.truncate/empty out the realtime travel time table
+//	res = sim_mob::aimsun::Loader::truncateTable(*getSession(),	pathSetParam->RTTT);
+//	if(!res)
+//	{
+//		return false;
+//	}
+//	//3.write into DB table
+//	sim_mob::Logger::log("real_time_travel_time").flush();
+//	sim_mob::aimsun::Loader::insertCSV2Table(*getSession(),	pathSetParam->RTTT, boost::filesystem::canonical("real_time_travel_time.txt").string());
+//	return res;
+//}
 
 bool sim_mob::PathSetManager::copyTravelTimeDataFromTmp2RealtimeTable()
 {
-	//1. prepare the csv file to be copied into DB
-//	sim_mob::Logger::log("real_time_travel_time");
-	bool res=false;
-	//2.truncate/empty out the realtime travel time table
-	res = sim_mob::aimsun::Loader::truncateTable(*getSession(),	pathSetParam->RTTT);
-	if(!res)
-	{
-		return false;
-	}
-	//3.write into DB table
 	sim_mob::Logger::log("real_time_travel_time").flush();
-	sim_mob::aimsun::Loader::insertCSV2Table(*getSession(),	pathSetParam->RTTT, boost::filesystem::canonical("real_time_travel_time.txt").string());
-	return res;
+	return sim_mob::aimsun::Loader::upsertTravelTime(*getSession(), boost::filesystem::canonical("real_time_travel_time.txt").string());
 }
 
 void sim_mob::PathSetManager::insertFromTo_BestPath_Pool(std::string& id ,vector<WayPoint>& values)
@@ -2426,4 +2428,77 @@ bool sim_mob::SinglePath::includesRoadSegment(const std::set<const sim_mob::Road
 		}
 	}
 	return false;
+}
+
+ProcessTT::ProcessTT():interval(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval * 1000)
+,currRTTT(RTTT_Map.end()){}
+
+std::map<ProcessTT::TR,ProcessTT::TT >::iterator & ProcessTT::getCurrRTTT(const DailyTime & recordTime)
+{
+	/*
+	 * check to see if recordTime is within the current time range or it has gone past the current range.
+	 * if it lies within the current range, just return the current range.
+	 * else(the latter case), just create a new time range and set currRTTT to it.
+	 */
+	DailyTime currUpperLimit(currRTTT->first.second);
+	if(RTTT_Map.empty() || recordTime.isEqual(currUpperLimit))
+	{
+		/*
+		 * create a key which is nothing but two string representations of DailyTime objects
+		 * these DailyTime objects denote start and end of the range
+		 */
+		DailyTime simStart = ConfigManager::GetInstance().FullConfig().simStartTime();
+		DailyTime keyBegin(recordTime.getValue() - (recordTime.getValue() % simStart.getValue()));
+		DailyTime keyEnd(keyBegin.getValue() + interval);
+		TR key;
+		key.first = keyBegin.toString();
+		key.second = keyEnd.toString();
+		//now insert this key into the RTTT_Map. the value of this key is empty(default) as nothing has been received for this time range yet.
+		currRTTT = RTTT_Map.insert(std::make_pair(key, TT())).first;
+	}
+	return currRTTT;
+}
+
+bool ProcessTT::insertTravelTime2TmpTable(std::map<TR,TT >::iterator prevRTTT)
+{
+	const std::pair<std::string,std::string> & timeRange = prevRTTT->first;
+	TT & travelTimes = prevRTTT->second;
+	typedef TT::value_type TTPs;//travel time pairs
+	BOOST_FOREACH(TTPs &pair, travelTimes)
+	{
+		int segmentId = pair.first;
+		double totalTT_ForThisSeg = pair.second.first;
+		int totalTT_Submissions = pair.second.second;
+		double travelTime = totalTT_ForThisSeg / totalTT_Submissions;
+		//now simply write it to the file
+		sim_mob::Logger::log("real_time_travel_time") << segmentId << ";" << timeRange.first << ";" << timeRange.second << ";" << travelTime << "\n";
+	}
+
+}
+
+bool ProcessTT::insertTravelTime2TmpTable(sim_mob::LinkTravelTime& data)
+{
+	bool res=false;
+	std::map<TR,TT>::iterator prevRTTT = currRTTT;
+	currRTTT = getCurrRTTT(data.recordTime_DT);
+	//strep-1 : Add into currRTTT
+	TT & currTravelTimes = currRTTT->second;
+	std::pair<double,int> &segTT_Info = currTravelTimes[data.linkId];//specific segment
+	segTT_Info.first += data.travelTime;//ad to total travel times collected for this segment
+	segTT_Info.second ++;//increment number of submissions
+
+	//step-2: If a new time range has reached, write the previous range to the file
+	//since the data structure is a bit complex, we break it to several variables
+	if(prevRTTT != currRTTT)
+	{
+		insertTravelTime2TmpTable(prevRTTT);
+	}
+	return res;
+}
+
+ProcessTT::~ProcessTT()
+{
+	//the aggregated travel time for the last time range
+	//was never wriiten. do it now:
+	insertTravelTime2TmpTable(currRTTT);
 }

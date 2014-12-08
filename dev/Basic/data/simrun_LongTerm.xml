@@ -146,7 +146,7 @@
     		<timeInterval value="30"/>
     	</developerModel>
         <housingModel enabled="true"> 
-            <timeOnMarket value="30"/>
+            <timeOnMarket value="60"/>
             <timeInterval value="7"/>
             <numberOfHouseholds value="-1"/>
 	        <numberOfUnits	value="-1"/>

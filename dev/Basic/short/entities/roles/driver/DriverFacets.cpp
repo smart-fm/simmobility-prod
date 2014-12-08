@@ -161,6 +161,10 @@ sim_mob::DriverMovement::~DriverMovement() {
 	safe_delete_item(lcModel);
 	safe_delete_item(cfModel);
 	safe_delete_item(intModel);
+	//	usually the metrics for the last subtrip is not manually finalized
+	if(!travelTimeMetric.finalized){
+		//finalizeTravelTimeMetric();
+	}
 }
 
 void sim_mob::DriverMovement::frame_init() {
@@ -492,6 +496,41 @@ void sim_mob::DriverMovement::frame_tick_output() {
 //	{
 //		std::cout<<parentDriver->vehicle->getVelocity()<<std::endl;
 //	}
+}
+
+// mark startTimeand origin
+TravelMetric& sim_mob::DriverMovement::startTravelTimeMetric(){
+	travelTimeMetric.startTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+	const Node* startNode = (*(fwdDriverMovement.fullPath.begin()))->getStart();
+	if(!startNode)
+	{
+		throw std::runtime_error("Unknown Origin Node");
+	}
+	travelTimeMetric.origin = WayPoint(startNode);
+	travelTimeMetric.started = true;
+	return  travelTimeMetric;
+}
+
+//	mark the destination and end time and travel time
+TravelMetric& sim_mob::DriverMovement::finalizeTravelTimeMetric(){
+	if(!travelTimeMetric.started)
+	{
+		return  travelTimeMetric;
+	}
+	const sim_mob::RoadSegment * currRS = (fwdDriverMovement.currSegmentIt == fwdDriverMovement.fullPath.end() ?
+			(*(fwdDriverMovement.fullPath.rbegin())) : (*(fwdDriverMovement.currSegmentIt)));
+	if(!currRS)
+	{
+		throw std::runtime_error("Unknown Current Segment");
+	}
+	const Node* endNode = currRS->getEnd();
+	travelTimeMetric.destination = WayPoint(endNode);
+	travelTimeMetric.endTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+	travelTimeMetric.travelTime = (travelTimeMetric.endTime - travelTimeMetric.startTime).getValue();
+	travelTimeMetric.finalized = true;
+	//getParent()->addSubtripTravelMetrics(*travelTimeMetric);
+
+	return  travelTimeMetric;
 }
 
 bool sim_mob::DriverMovement::update_sensors(timeslice now) {

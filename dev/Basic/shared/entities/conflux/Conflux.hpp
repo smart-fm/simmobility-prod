@@ -96,10 +96,11 @@ private:
 	 */
     struct PersonProps {
     public:
-    	const sim_mob::Role* role;
     	const sim_mob::RoadSegment* segment;
     	const sim_mob::Lane* lane;
     	bool isQueuing;
+    	bool isMoving;
+    	unsigned int roleType;
     	sim_mob::SegmentStats* segStats;
 
     	PersonProps(const sim_mob::Person* person);
@@ -252,13 +253,9 @@ private:
 	 * removes the agent from the conflux and marks it for removal by the worker.
 	 * The person gets removed from the simulation at the end of the current tick.
 	 * @param ag the person to be removed
-	 * @param prevRdSeg the segment where the person started in the current tick
-	 * @param prevLane the lane from which the person started in the current tick
-	 * @param wasQueuing flag indicating whether the person was queuing at the start of the tick
-	 * @param wasActivityPerformer flag indicating whether the person was performing an activity at the start of the tick
+	 * @param beforeUpdate person properties before update
 	 */
-	void killAgent(sim_mob::Person* person, sim_mob::SegmentStats* prevSegStats,
-			const sim_mob::Lane* prevLane, bool wasQueuing);
+	void killAgent(sim_mob::Person* person, PersonProps& beforeUpdate);
 
 	/**
 bool sim_mob::insertIncidentS(const std::string fileName){
@@ -300,11 +297,12 @@ bool sim_mob::insertIncidentS(const std::string fileName){
 	void resetPersonRemTimes();
 
 	/**
-	 * handles book keeping for the conflux based on changes in roles of person
+	 * handles house keeping for the conflux based on state change of person after his update
 	 * @param beforeUpdate person properties before update
 	 * @param afterUpdate person properties after update
+	 * @param person the person being handled
 	 */
-	void handleRoles(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person);
+	void housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person);
 
 protected:
 	/**
@@ -411,10 +409,10 @@ public:
 	{
 	public:
 		double linkTravelTime_;
-		unsigned int agentCount_;
+		unsigned int agCnt;
 
 		LinkTravelTimes(double linkTravelTime, unsigned int agentCount)
-		: linkTravelTime_(linkTravelTime), agentCount_(agentCount) {}
+		: linkTravelTime_(linkTravelTime), agCnt(agentCount) {}
 	};
 
 	std::map<const Link*, LinkTravelTimes> LinkTravelTimesMap;
@@ -423,22 +421,22 @@ public:
 	void reportLinkTravelTimes(timeslice frameNumber);
 
 	//=======road segment travel time computation for current frame tick =================
-	struct rdSegTravelTimes
+	struct RdSegTravelTimes
 	{
 	public:
-		double rdSegTravelTime_;
-		unsigned int agentCount_;
+		double travelTimeSum;
+		unsigned int agCnt;
 
-		rdSegTravelTimes(double rdSegTravelTime, unsigned int agentCount)
-		: rdSegTravelTime_(rdSegTravelTime), agentCount_(agentCount) {}
+		RdSegTravelTimes(double rdSegTravelTime, unsigned int agentCount)
+		: travelTimeSum(rdSegTravelTime), agCnt(agentCount) {}
 	};
 
-	std::map<const RoadSegment*, rdSegTravelTimes> RdSegTravelTimesMap;
-	void setRdSegTravelTimes(Person* ag, double rdSegExitTime);
-	void resetRdSegTravelTimes(timeslice frameNumber);
+	std::map<const RoadSegment*, RdSegTravelTimes> rdSegTravelTimesMap;
+	void addRdSegTravelTimes(Person* ag, double rdSegExitTime);
+	void resetRdSegTravelTimes();
 	void reportRdSegTravelTimes(timeslice frameNumber);
 	bool insertTravelTime2TmpTable(timeslice frameNumber,
-			std::map<const RoadSegment*, sim_mob::Conflux::rdSegTravelTimes>& rdSegTravelTimesMap);
+			std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>& rdSegTravelTimesMap);
 	//================ end of road segment travel time computation ========================
 
 	/**

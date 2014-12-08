@@ -370,9 +370,9 @@ const DailyTime& sim_mob::ConfigParams::simStartTime() const
 {
 	return system.simulation.simStartTime;
 }
-const std::string& sim_mob::ConfigParams::getTravelTimeTmpTableName() const
+const std::string& sim_mob::ConfigParams::getTravelTimeTableName() const
 {
-	return system.simulation.travelTimeTmpTableName;
+	return system.simulation.travelTimeTableName;
 }
 
 std::string sim_mob::ConfigParams::busline_control_type() const
@@ -450,6 +450,12 @@ std::vector<sim_mob::BusSchedule*>& sim_mob::ConfigParams::getBusSchedule()
 	return busschedule;
 }
 
+std::vector<sim_mob::OD_Trip>& sim_mob::ConfigParams::getODsTripsMap()
+{
+	return ODsTripsMap;
+}
+
+
 std::vector<sim_mob::PT_trip*>& sim_mob::ConfigParams::getPT_trip()
 {
 	return pt_trip;
@@ -522,6 +528,10 @@ bool sim_mob::ConfigParams::PathSetMode() const {
 
 const PathSetParams & sim_mob::ConfigParams::pathSet() const{
 	return pathset;
+}
+
+bool sim_mob::ConfigParams::CBD() const{
+	return cbd;
 }
 
 const std::set<sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxes() const

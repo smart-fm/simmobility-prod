@@ -8,6 +8,7 @@
 
 #include "conf/settings/DisableMPI.h"
 #include "util/OpaqueProperty.hpp"
+#include "util/Profiler.hpp"
 #include "geospatial/Pavement.hpp"
 
 
@@ -54,6 +55,8 @@ class LaneLoader;
  */
 class RoadSegment : public sim_mob::Pavement {
 public:
+//	/is this segment part of CBD?
+	mutable bool CBD;
 	static std::map<unsigned long, const RoadSegment*> allSegments;
 	//TODO: Some of these are only used by the geo* classes; need to re-think.
 	void setParentLink(sim_mob::Link* parent);
@@ -66,15 +69,9 @@ public:
 	std::string getStartEnd() const;
 
 public:
-	explicit RoadSegment(sim_mob::Link* parent=nullptr, unsigned long id=-1) :
-		Pavement(),
-		maxSpeed(0), capacity(0), busstop(nullptr), lanesLeftOfDivider(0), parentLink(parent),segmentID(id),
-		parentConflux(nullptr), laneZeroLength(-1.0),type(LINK_TYPE_DEFAULT)
-	{
-		allSegments[segmentID] = this;
-	}
+	explicit RoadSegment(sim_mob::Link* parent=nullptr, unsigned long id=-1);
 
-	const unsigned long  getId()const ;
+	const unsigned long getId()const ;
 	const unsigned int getLanesLeftOfDivider() const { return lanesLeftOfDivider; }
 
 	/**

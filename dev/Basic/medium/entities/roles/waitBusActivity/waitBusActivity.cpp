@@ -21,12 +21,12 @@ sim_mob::medium::WaitBusActivity::WaitBusActivity(Person* parent,
 		sim_mob::medium::WaitBusActivityMovement* movement,
 		std::string roleName, Role::type roleType) :
 		sim_mob::Role(behavior, movement, parent, roleName, roleType),
-		waitingTime(0), stop(nullptr), boardBus(false)
+		waitingTime(0), stop(nullptr), boardBus(false), failedBoardingTimes(0)
 {}
 
 Role* sim_mob::medium::WaitBusActivity::clone(Person* parent) const {
 	WaitBusActivityBehavior* behavior = new WaitBusActivityBehavior(parent);
-	WaitBusActivityMovement* movement = nullptr/*new WaitBusActivityMovement(parent)*/;
+	WaitBusActivityMovement* movement = new WaitBusActivityMovement(parent);
 	WaitBusActivity* waitBusActivity = new WaitBusActivity(parent,
 			parent->getMutexStrategy(), behavior, movement);
 	behavior->setParentWaitBusActivity(waitBusActivity);
@@ -38,8 +38,18 @@ void sim_mob::medium::WaitBusActivity::increaseWaitingTime(unsigned int incremen
 	waitingTime += incrementMs;
 }
 
+void sim_mob::medium::WaitBusActivity::make_frame_tick_params(timeslice now)
+{
+	getParams().reset(now);
+}
+
 void sim_mob::medium::WaitBusActivity::setStop(sim_mob::BusStop* busStop) {
 	stop = busStop;
+}
+
+void sim_mob::medium::WaitBusActivity::increaseFailedBoardingTimes()
+{
+	failedBoardingTimes++;
 }
 
 void sim_mob::medium::WaitBusActivity::makeBoardingDecision(BusDriver* driver) {
@@ -47,6 +57,13 @@ void sim_mob::medium::WaitBusActivity::makeBoardingDecision(BusDriver* driver) {
 			driver->getBusStopsVector();
 	if (!stopsVec) {
 		setBoardBus(false);
+		return;
+	}
+
+	const std::string busLineID = driver->getBusLineID();
+	sim_mob::SubTrip& subTrip = *(getParent()->currSubTrip);
+	if(busLineID==subTrip.getBusLineID()){
+		setBoardBus(true);
 		return;
 	}
 

@@ -11,6 +11,7 @@
 #include "geospatial/streetdir/WayPoint.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
+#include "util/OneTimeFlag.hpp"
 
 #include "conf/settings/DisableMPI.h"
 
@@ -18,7 +19,7 @@
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #endif
-
+#include <boost/shared_ptr.hpp>
 namespace geo
 {
 //Forward Declaration
@@ -33,6 +34,56 @@ class SubTrip;
 class Person;
 
 
+/// simple structure used to collect travel time information
+struct TravelMetric
+{
+	WayPoint origin,destination;
+	DailyTime startTime,endTime;
+	double travelTime;
+	bool started,finalized,valid;
+	TravelMetric():started(false),finalized(false),
+			valid(false),cbdTraverseType(CBD_NONE),
+			travelTime(0),cbdTravelTime(0),
+			cbdOrigin(WayPoint()),cbdDestination(WayPoint()),
+			origin(WayPoint()),destination(WayPoint()),
+			startTime(DailyTime()),endTime(DailyTime()),cbdStartTime(DailyTime()),cbdEndTime(DailyTime()){
+
+	}
+	//CBD information
+	enum CDB_TraverseType
+	{
+		CBD_ENTER,
+		CBD_EXIT,
+		CBD_PASS,
+		CBD_NONE,
+	};
+	CDB_TraverseType cbdTraverseType;
+	WayPoint cbdOrigin,cbdDestination;
+	DailyTime cbdStartTime,cbdEndTime;
+	OneTimeFlag cbdEntered,cbdExitted;
+	double cbdTravelTime;
+	static double getTimeDiffHours(const DailyTime &end, const DailyTime &start)
+	{
+		double  t = (double((end - start).getValue()) /1000) / 3600;
+		return t;
+	}
+	void reset()
+	{
+		started=false;
+		finalized=false;
+		valid=false;
+		cbdTraverseType=CBD_NONE;
+		travelTime=0;cbdTravelTime=0;
+		cbdOrigin=WayPoint();
+		cbdDestination=WayPoint();
+		origin=WayPoint();
+		destination=WayPoint();
+		startTime=DailyTime();
+		endTime=DailyTime();
+		cbdStartTime=DailyTime();
+		cbdEndTime=DailyTime();
+	}
+};
 
 /**
  * Base class for elements in a trip chain.
@@ -195,8 +246,10 @@ public:
 	std::string ptLineId; //Public transit (bus or train) line identifier.
 
 	FMODSchedule* schedule;
+	mutable sim_mob::TravelMetric::CDB_TraverseType cbdTraverseType;
+	const std::string getMode() const ;
+	const std::string getBusLineID() const;
 
-	virtual const std::string getMode() const;
 };
 
 /**

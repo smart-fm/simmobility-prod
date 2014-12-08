@@ -183,6 +183,7 @@ public:
 
 	std::vector<sim_mob::PT_bus_routes>& getPT_bus_routes();
 	std::vector<sim_mob::PT_bus_stops>& getPT_bus_stops();
+	std::vector<sim_mob::OD_Trip>& getODsTripsMap();
 
 	//Temporary: Santhosh
 	std::map<int, std::vector<int> > scheduledTImes;//store the actual scheduledAT and DT.assumed dwell time as 6 sec for all stops.
@@ -206,7 +207,8 @@ public:
 	std::set<sim_mob::SegmentStats*>& getSegmentStatsWithBusStops();
 	bool PathSetMode() const;
 	const PathSetParams & pathSet() const;
-
+	bool CBD() const;
+	
 
 private:
 	ConfigParams();
@@ -230,6 +232,7 @@ private:
 	std::vector<sim_mob::PT_bus_dispatch_freq> pt_busdispatch_freq;
 	std::vector<sim_mob::PT_bus_routes> pt_bus_routes;
 	std::vector<sim_mob::PT_bus_stops> pt_bus_stops;
+	std::vector<sim_mob::OD_Trip> ODsTripsMap;
 	// Temporary: Yao Jin
 
 	std::map<std::string, std::vector<const sim_mob::RoadSegment*> > routeID_roadSegments; // map<routeID, vector<RoadSegment*>>
@@ -324,7 +327,7 @@ public:
 
 	DailyTime& simStartTime();
 	const DailyTime& simStartTime() const;
-	const std::string& getTravelTimeTmpTableName() const;
+	const std::string& getTravelTimeTableName() const;
 
 	//This one's slightly tricky, as it's in generic_props
 	std::string busline_control_type() const;

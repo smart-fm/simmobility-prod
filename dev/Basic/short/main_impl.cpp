@@ -235,14 +235,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 //		psMgr->setTravleTimeTmpTableName(ConfigParams::GetInstance().travelTimeTmpTableName);
 //		psMgr->createTravelTimeTmpTable(psMgr->getTravleTimeTmpTableName());
 //		psMgr->getDataFromDB();
-		if(psMgr->isUseCacheMode())
-		{
-			psMgr->generateAllPathSetWithTripChain2();
-		}
-//		psMgr->saveDataToDB();
-		t = time(0);   // get time now
-		now = localtime( & t );
-		std::cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
 	}
 
 	//Initialize the control manager and wait for an IDLE state (interactive mode only).

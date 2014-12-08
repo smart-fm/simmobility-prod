@@ -72,8 +72,9 @@ namespace sim_mob
             const TazStats* getTazStats(BigSerial tazId) const;
             const TazStats* getTazStatsByUnitId(BigSerial unitId) const;
 
+
             Household* getHouseholdById( BigSerial id) const;
-            Individual* getIndividualById( BigSerial id) const;
+			Individual* getIndividualById( BigSerial id) const;
             Awakening* getAwakeningById( BigSerial id) const;
 
             void hdbEligibilityTest(int );
@@ -82,6 +83,10 @@ namespace sim_mob
             int getAwakeningCounter() const;
 
             HousingMarket* getMarket();
+
+            void incrementBidders();
+            void decrementBidders();
+            int	 getNumberOfBidders();
 
 
         protected:
@@ -108,6 +113,7 @@ namespace sim_mob
             HouseholdStatistics household_stats;
 
             int	initialHHAwakeningCounter;
+            int numberOfBidders;
 
         };
     }

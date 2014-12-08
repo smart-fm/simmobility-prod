@@ -25,7 +25,7 @@ class BusDriver;
  * \author Seth N. Hetu
  * \author zhang huai peng
  */
-class WaitBusActivity: public sim_mob::Role {
+class WaitBusActivity: public sim_mob::Role, public UpdateWrapper<UpdateParams> {
 public:
 
 	explicit WaitBusActivity(Person* parent, MutexStrategy mtxStrat,
@@ -39,7 +39,7 @@ public:
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
-	virtual void make_frame_tick_params(timeslice now) {}
+	virtual void make_frame_tick_params(timeslice now);
 
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
@@ -60,6 +60,11 @@ public:
 	void makeBoardingDecision(BusDriver* driver);
 
 	/**
+	 * increase failed boarding times
+	 */
+	void increaseFailedBoardingTimes();
+
+	/**
 	 * message handler which provide a chance to handle message transfered from parent agent.
 	 * @param type of the message.
 	 * @param message data received.
@@ -75,6 +80,22 @@ public:
 		this->boardBus = boardBus;
 	}
 
+	void setWaitingTime(unsigned int time){
+		waitingTime = time;
+	}
+
+	const unsigned int getWaitingTime() const {
+		return waitingTime;
+	}
+
+	void setFailedBoardingTimes(unsigned int times){
+		failedBoardingTimes = times;
+	}
+
+	const unsigned int getFailedBoardingTimes() const {
+		return failedBoardingTimes;
+	}
+
 private:
 	friend class WaitBusActivityBehavior;
 	friend class WaitBusActivityMovement;
@@ -85,6 +106,8 @@ private:
 	BusStop* stop;
 	/**flag to indicate whether the waiting person has decided to board or not*/
 	bool boardBus;
+	/**failed boarding times*/
+	unsigned int failedBoardingTimes;
 };
 }
 }

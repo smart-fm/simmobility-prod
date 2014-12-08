@@ -15,10 +15,10 @@
 #include "event/LT_EventArgs.hpp"
 
 
-namespace sim_mob {
-
-    namespace long_term {
-        
+namespace sim_mob
+{
+    namespace long_term
+    {
         class HM_Model;
         class HouseholdBidderRole;
         class HouseholdSellerRole;
@@ -28,10 +28,10 @@ namespace sim_mob {
          * - Sell units.
          * - Bid units. 
          */
-        class HouseholdAgent : public LT_Agent {
+        class HouseholdAgent : public LT_Agent
+        {
         public:
-            HouseholdAgent(BigSerial id, HM_Model* model, const Household* hh, 
-                    HousingMarket* market, bool marketSeller = false);
+            HouseholdAgent(BigSerial id, HM_Model* model, const Household* hh, HousingMarket* market, bool marketSeller = false);
             virtual ~HouseholdAgent();
             
             //not-thread safe
@@ -57,8 +57,7 @@ namespace sim_mob {
              */
             void onWorkerEnter();
             void onWorkerExit();
-            virtual void HandleMessage(messaging::Message::MessageType type, 
-                    const messaging::Message& message);
+            virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
         private:
             /**
              * Method called to find some unit and bid it.
@@ -70,8 +69,7 @@ namespace sim_mob {
             /**
              * Events callbacks.
              */
-            virtual void onEvent(event::EventId eventId, event::Context ctxId, 
-                    event::EventPublisher* sender, const event::EventArgs& args);
+            virtual void onEvent(event::EventId eventId, event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
             
             /**
              * Processes the given event.
@@ -79,8 +77,7 @@ namespace sim_mob {
              * @param ctxId
              * @param args
              */
-            void processEvent(event::EventId eventId, event::Context ctxId,
-                              const event::EventArgs& args);
+            void processEvent(event::EventId eventId, event::Context ctxId, const event::EventArgs& args);
             
             /**
              * Processes external event.

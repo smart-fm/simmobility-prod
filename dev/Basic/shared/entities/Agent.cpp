@@ -338,7 +338,7 @@ void sim_mob::Agent::setCurrLink(const sim_mob::Link* link) {
 
 void sim_mob::Agent::initLinkTravelStats(const Link* link, double entryTime) {
 	currLinkTravelStats.link_ = link;
-	currLinkTravelStats.linkEntryTime_ = entryTime;
+	currLinkTravelStats.entryTime = entryTime;
 }
 
 void sim_mob::Agent::addToLinkTravelStatsMap(linkTravelStats ts, double exitTime){
@@ -385,13 +385,13 @@ void sim_mob::Agent::HandleMessage(messaging::Message::MessageType type, const m
 
 }
 
-void sim_mob::Agent::initRdSegTravelStats(const RoadSegment* rdSeg, double entryTime) {
-	currRdSegTravelStats.rdSeg_ = rdSeg;
-	currRdSegTravelStats.rdSegEntryTime_ = entryTime;
+void sim_mob::Agent::initCurrRdSegTravelStat(const RoadSegment* rdSeg, double entryTime) {
+	currRdSegTravelStats.rs = rdSeg;
+	currRdSegTravelStats.entryTime = entryTime;
 }
 
-void sim_mob::Agent::addToRdSegTravelStatsMap(rdSegTravelStats ts, double exitTime){
-	std::map<double, rdSegTravelStats>& travelMap = rdSegTravelStatsMap.getRW();
+void sim_mob::Agent::addRdSegTravelStat(double exitTime , RdSegTravelStat ts){
+	std::map<double, RdSegTravelStat>& travelMap = rdSegTravelStatsMap.getRW();
 	travelMap.insert(std::make_pair(exitTime, ts));
 }
 

@@ -64,7 +64,10 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processUpdateIntervalElement(GetSingleElementByName(node, "update_interval", true));
 	processDwellTimeElement(GetSingleElementByName(node, "dwell_time_parameters", true));
 	processWalkSpeedElement(GetSingleElementByName(node, "pedestrian_walk_speed", true));
+	processStatisticsOutputNode(GetSingleElementByName(node, "statistics_output_paramemters", true));
+	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
 }
+
 
 void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 {
@@ -135,12 +138,12 @@ void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)
 	std::string value = ParseString(GetNamedAttributeValue(child, "value"), "");
 	std::vector<std::string> valArray;
 	boost::split(valArray, value, boost::is_any_of(", "), boost::token_compress_on);
-	std::vector<int>& dwellTimeParams = mtCfg.getDwellTimeParams();
+	std::vector<float>& dwellTimeParams = mtCfg.getDwellTimeParams();
 	for (std::vector<std::string>::const_iterator it = valArray.begin(); it != valArray.end(); it++)
 	{
 		try
 		{
-			int val = boost::lexical_cast<int>(*it);
+			float val = boost::lexical_cast<float>(*it);
 			dwellTimeParams.push_back(val);
 		} catch (...)
 		{
@@ -149,9 +152,43 @@ void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)
 	}
 }
 
+
+void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* node)
+{
+	DOMElement* child = GetSingleElementByName(node, "journey_time_csv_file_output");
+	if (child == nullptr)
+	{
+		throw std::runtime_error("load statistics output parameters errors in MT_Config");
+	}
+	std::string value = ParseString(GetNamedAttributeValue(child, "value"), "");
+	mtCfg.setFilenameOfJourneyTimeStats(value);
+
+	child = GetSingleElementByName(node, "waiting_time_csv_file_output");
+	if (child == nullptr)
+	{
+		throw std::runtime_error("load statistics output parameters errors in MT_Config");
+	}
+	value = ParseString(GetNamedAttributeValue(child, "value"), "");
+	mtCfg.setFilenameOfWaitingTimeStats(value);
+
+	child = GetSingleElementByName(node, "waiting_amount_csv_file_output");
+	if (child == nullptr)
+	{
+		throw std::runtime_error("load statistics output parameters errors in MT_Config");
+	}
+	value = ParseString(GetNamedAttributeValue(child, "value"), "");
+	mtCfg.setFilenameOfWaitingAmountStats(value);
+}
+
+
 void ParseMidTermConfigFile::processWalkSpeedElement(xercesc::DOMElement* node)
 {
 	mtCfg.setPedestrianWalkSpeed(ParseFloat(GetNamedAttributeValue(node, "value", true), nullptr));
+}
+
+void ParseMidTermConfigFile::processBusCapactiyElement(xercesc::DOMElement* node)
+{
+	mtCfg.setBusCapacity(ParseUnsignedInt(GetNamedAttributeValue(node, "value", true), nullptr));
 }
 
 void ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)

@@ -65,14 +65,14 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel& mo
             const Parcel* parcel = model.getParcelById(parcelId);
             if (parcel)
             {
-            	BigSerial slaParcelId = model.getSlaParcelIdByFmParcelId(parcel->getId());
+            	std::string slaParcelId = model.getSlaParcelIdByFmParcelId(parcel->getId());
             	SlaParcel *slaParcel = model.getSlaParcelById(slaParcelId);
                 const LandUseZone* zone = model.getZoneById(slaParcel->getLandUseZoneId());
                 DeveloperModel::DevelopmentTypeTemplateList::const_iterator it;
 
                 for (it = devTemplates.begin(); it != devTemplates.end(); it++)
                 {
-                    if ((*it)->getDensity() <= parcel->getGpr())
+                    if ((*it)->getDensity() <= std::atof(parcel->getGpr().c_str()))
                     {
                         PotentialProject project((*it), parcel, zone);
                         createProjectUnits(project, unitTemplates);

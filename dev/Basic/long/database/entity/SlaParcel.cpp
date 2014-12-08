@@ -8,22 +8,21 @@
 
 using namespace sim_mob::long_term;
 
-SlaParcel::SlaParcel(BigSerial slaId,
-	    BigSerial tazId,
-	    BigSerial landUseZoneId,
-	    double area,
-	    double length,
-	    double minX,
-	    double minY,
-	    double maxX,
-	    double maxY):
-		slaId(slaId),tazId(tazId),landUseZoneId(landUseZoneId),area(area),length(length),minX(minX)
-			,minY(minY), maxX(maxX), maxY(maxY) {
-}
+SlaParcel::SlaParcel(std::string slaId,
+					BigSerial tazId,
+					BigSerial landUseZoneId,
+					double area,
+					double length,
+					double minX,
+					double minY,
+					double maxX,
+					double maxY):
+					slaId(slaId),tazId(tazId),landUseZoneId(landUseZoneId),area(area),length(length),minX(minX),minY(minY), maxX(maxX), maxY(maxY)
+{}
 
 SlaParcel::~SlaParcel() {}
 
-BigSerial SlaParcel::getSlalId() const
+std::string SlaParcel::getSlalId() const
 {
     return slaId;
 }

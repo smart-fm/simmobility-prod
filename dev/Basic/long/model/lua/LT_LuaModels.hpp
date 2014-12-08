@@ -64,8 +64,7 @@ namespace sim_mob {
              *        to calculate.
              * @param outValues vector that will hold returned expectations.
              */
-            void calulateUnitExpectations(const Unit& unit, int timeOnMarket,
-                    std::vector<ExpectationEntry>& outValues) const;
+            void calulateUnitExpectations(const Unit& unit, int timeOnMarket, std::vector<ExpectationEntry>& outValues) const;
 
             /**
              * Calculates the hedonic price for the given unit.
@@ -96,8 +95,7 @@ namespace sim_mob {
              * @return value of the willingness to pay of the given household 
              *         or sim_mob::long_term::INVALID_DOUBLE
              */
-            double calulateWP(const Household& hh, const Unit& unit, 
-                const HM_Model::TazStats& stats) const;
+            double calulateWP(const Household& hh, const Unit& unit, const HM_Model::TazStats& stats) const;
 
         private:
 
@@ -110,7 +108,8 @@ namespace sim_mob {
         /**
          * Represents the Lua model to the Developer model.
          */
-        class DeveloperLuaModel : public lua::LuaModel {
+        class DeveloperLuaModel : public lua::LuaModel
+        {
         public:
             DeveloperLuaModel();
             virtual ~DeveloperLuaModel();
@@ -126,8 +125,7 @@ namespace sim_mob {
              * @param postcode amenities.
              * @return value of the future revenue or long_term::INVALID_DOUBLE
              */
-            double calulateUnitRevenue (const PotentialUnit& unit, 
-                const PostcodeAmenities& amenities) const;
+            double calulateUnitRevenue (const PotentialUnit& unit,  const PostcodeAmenities& amenities) const;
             
         private:
 

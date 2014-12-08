@@ -39,7 +39,7 @@ namespace sim_mob {
             typedef boost::unordered_map<BigSerial,LandUseZone*> LandUseZoneMap;
             typedef boost::unordered_map<BigSerial,ParcelMatch*> ParcelMatchMap;
             typedef boost::unordered_map<BigSerial,Project*> ProjectMap;
-            typedef boost::unordered_map<BigSerial,SlaParcel*> SlaParcelMap;
+            typedef boost::unordered_map<std::string,SlaParcel*> SlaParcelMap;
 
         public:
             DeveloperModel(WorkGroup& workGroup);
@@ -63,7 +63,7 @@ namespace sim_mob {
              */
             unsigned int getTimeInterval() const;
             Parcel* getParcelById(BigSerial id) const;
-            SlaParcel* getSlaParcelById(BigSerial id) const;
+            SlaParcel* getSlaParcelById(std::string id) const;
             const LandUseZone* getZoneById(BigSerial id) const;
             const DevelopmentTypeTemplateList& getDevelopmentTypeTemplates() const;
             const TemplateUnitTypeList& getTemplateUnitType() const;
@@ -71,7 +71,7 @@ namespace sim_mob {
             /*
              * returns the sla parcel id of a parcel, given the fm parcel id
              */
-            BigSerial getSlaParcelIdByFmParcelId(BigSerial fmParcelId) const;
+            std::string getSlaParcelIdByFmParcelId(BigSerial fmParcelId) const;
 
             /*
              * check whether a given parcel is already associated with a project

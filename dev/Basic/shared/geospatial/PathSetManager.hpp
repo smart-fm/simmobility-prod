@@ -202,11 +202,11 @@ public:
  */
 class ProcessTT
 {
-	int interval;
+	const int interval;
 	typedef std::map<int,std::pair<double,int> > TT;//travel times : <segment id, pair<total travel times, number of travel times> >
-	typedef std::pair<std::string,std::string> TR;//time range : pair<range begin, range end>
-	std::map<TR,TT > RTTT_Map; //real time travel times : map<'time range' , travel times> .
-	std::map<TR,TT >::iterator currRTTT; //< current upper limit of the time range, <segment id, travel time> >
+	typedef unsigned int TR;//time range : from (TR - interval) to TR
+	std::map<TR,TT> RTTT_Map; //real time travel times : map<'time range' , travel times> .
+	std::map<TR,TT>::iterator currRTTT; //< current upper limit of the time range, <segment id, travel time> >
 	/**
 	 * returns the container for accumulating/aggregating
 	 * the current travel time recordings
@@ -220,6 +220,7 @@ class ProcessTT
 	 */
 	bool insertTravelTime2TmpTable(std::map<TR,TT >::iterator it);
 public:
+	static int dbg_ProcessTT_cnt;
 	ProcessTT();
 	~ProcessTT();
 	/*

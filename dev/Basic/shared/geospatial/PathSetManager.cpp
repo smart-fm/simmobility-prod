@@ -547,7 +547,7 @@ bool sim_mob::PathSetManager::insertTravelTime2TmpTable(sim_mob::LinkTravelTime&
 bool sim_mob::PathSetManager::copyTravelTimeDataFromTmp2RealtimeTable()
 {
 	sim_mob::Logger::log("real_time_travel_time").flush();
-	return sim_mob::aimsun::Loader::upsertTravelTime(*getSession(), boost::filesystem::canonical("real_time_travel_time.txt").string());
+	return sim_mob::aimsun::Loader::upsertTravelTime(*getSession(), boost::filesystem::canonical("real_time_travel_time.txt").string(), sim_mob::PathSetParam::getInstance()->RTTT);
 }
 
 void sim_mob::PathSetManager::insertFromTo_BestPath_Pool(std::string& id ,vector<WayPoint>& values)
@@ -806,7 +806,7 @@ void sim_mob::printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node
 	}
 	out << "\n";
 
-	std::cout << out.str();
+	logger << out.str();
 }
 
 namespace
@@ -2429,7 +2429,7 @@ bool sim_mob::SinglePath::includesRoadSegment(const std::set<const sim_mob::Road
 	}
 	return false;
 }
-
+int ProcessTT::dbg_ProcessTT_cnt = 0;
 ProcessTT::ProcessTT():interval(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval * 1000)
 ,currRTTT(RTTT_Map.end()){}
 
@@ -2440,28 +2440,27 @@ std::map<ProcessTT::TR,ProcessTT::TT >::iterator & ProcessTT::getCurrRTTT(const 
 	 * if it lies within the current range, just return the current range.
 	 * else(the latter case), just create a new time range and set currRTTT to it.
 	 */
-	DailyTime currUpperLimit(currRTTT->first.second);
-	if(RTTT_Map.empty() || recordTime.isEqual(currUpperLimit))
+
+	/*
+	 * create a key which is nothing but two string representations of DailyTime objects
+	 * these DailyTime objects denote start and end of the range
+	 */
+	const DailyTime & simStart = ConfigManager::GetInstance().FullConfig().simStartTime();
+	TR keyBegin(recordTime.getValue() - (recordTime.getValue() % interval));//lower bound of the range
+	TR key(keyBegin + interval);											//upper bound of the range
+	currRTTT = RTTT_Map.find(key);
+	//new Key?
+	if(RTTT_Map.end() == currRTTT)
 	{
-		/*
-		 * create a key which is nothing but two string representations of DailyTime objects
-		 * these DailyTime objects denote start and end of the range
-		 */
-		DailyTime simStart = ConfigManager::GetInstance().FullConfig().simStartTime();
-		DailyTime keyBegin(recordTime.getValue() - (recordTime.getValue() % simStart.getValue()));
-		DailyTime keyEnd(keyBegin.getValue() + interval);
-		TR key;
-		key.first = keyBegin.toString();
-		key.second = keyEnd.toString();
 		//now insert this key into the RTTT_Map. the value of this key is empty(default) as nothing has been received for this time range yet.
 		currRTTT = RTTT_Map.insert(std::make_pair(key, TT())).first;
 	}
 	return currRTTT;
 }
 
-bool ProcessTT::insertTravelTime2TmpTable(std::map<TR,TT >::iterator prevRTTT)
+bool ProcessTT::insertTravelTime2TmpTable(std::map<TR,TT>::iterator prevRTTT)
 {
-	const std::pair<std::string,std::string> & timeRange = prevRTTT->first;
+	const TR & timeRange = prevRTTT->first;
 	TT & travelTimes = prevRTTT->second;
 	typedef TT::value_type TTPs;//travel time pairs
 	BOOST_FOREACH(TTPs &pair, travelTimes)
@@ -2471,9 +2470,9 @@ bool ProcessTT::insertTravelTime2TmpTable(std::map<TR,TT >::iterator prevRTTT)
 		int totalTT_Submissions = pair.second.second;
 		double travelTime = totalTT_ForThisSeg / totalTT_Submissions;
 		//now simply write it to the file
-		sim_mob::Logger::log("real_time_travel_time") << segmentId << ";" << timeRange.first << ";" << timeRange.second << ";" << travelTime << "\n";
+		dbg_ProcessTT_cnt++;
+		sim_mob::Logger::log("real_time_travel_time") << segmentId << ";" << DailyTime(timeRange - interval).getRepr_() << ";" << DailyTime(timeRange).getRepr_() << ";" << travelTime << "\n";
 	}
-
 }
 
 bool ProcessTT::insertTravelTime2TmpTable(sim_mob::LinkTravelTime& data)
@@ -2489,7 +2488,7 @@ bool ProcessTT::insertTravelTime2TmpTable(sim_mob::LinkTravelTime& data)
 
 	//step-2: If a new time range has reached, write the previous range to the file
 	//since the data structure is a bit complex, we break it to several variables
-	if(prevRTTT != currRTTT)
+	if(prevRTTT != currRTTT && prevRTTT != RTTT_Map.end() )
 	{
 		insertTravelTime2TmpTable(prevRTTT);
 	}

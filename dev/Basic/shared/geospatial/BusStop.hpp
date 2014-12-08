@@ -72,6 +72,7 @@ public:
 	///Is the pedestrian waiting area sheltered? Currently does not affect anything.
 	bool has_shelter;
 
+	//Distance to the bus-stop (in Meters)
 	double distance;
 
 	//The position bus shall stop in segment from start node

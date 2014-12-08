@@ -2083,7 +2083,6 @@ int sim_mob::MITSIM_LC_Model::checkIfLookAheadEvents(DriverUpdateParams& p)
 
 	p.unsetFlag(FLAG_ESCAPE | FLAG_AVOID);
 	p.unsetStatus(STATUS_MANDATORY);
-	//p.dis2stop = DEFAULT_DIS_TO_STOP;//?
 	// set default target lanes
 	p.targetLanes.clear();
 	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
@@ -2389,19 +2388,7 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToStopPoint(DriverUpdateParams& p,set
 		if(p.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT){
 			return res;
 		}
-//		// has stop point ahead
-//		if(p.stopPointState == DriverUpdateParams::NO_FOUND_STOP_POINT){
-//			p.stopPointState = DriverUpdateParams::APPROACHING_STOP_POINT;
-//		}
-//		if(distance >= 10 && distance <= 50){ // 10m-50m
-//			//
-//			p.stopPointState = DriverUpdateParams::CLOSE_STOP_POINT;
-//		}
-//		if(p.stopPointState == DriverUpdateParams::CLOSE_STOP_POINT && abs(distance) < 10){ // 0m-10m
-//			//
-//			std::cout<<p.now.frame()<<" JUST_ARRIVE_STOP_POINT"<<std::endl;
-//			p.stopPointState = DriverUpdateParams::JUST_ARRIVE_STOP_POINT;
-//		}
+
 		// only most left lane is target lane
 		const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
 		// get target lane index
@@ -2412,26 +2399,11 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToStopPoint(DriverUpdateParams& p,set
 		// current lane not target lane, insert
 		if(p.currLaneIndex != tl){
 			targetLanes.insert(lanes.at(tl));
-//			p.dis2stop = distance;
 			res = -1;
 		}
 		return res;
-//		if(lanes.back()->is_pedestrian_lane()){
-//			if(p.currLane != lanes.at(lanes.size()-2)){
-//				targetLanes.insert(lanes.at(lanes.size()-2));
-//				res = -1;
-//			}// end of currLane
-//		}
-//		else{
-//			if(p.currLane != lanes.at(lanes.size()-2)){
-//				targetLanes.insert(lanes.at(lanes.size()-2));
-//				res = -1;
-//			}// end of currLane
-//			targetLanes.insert(lanes.back());
-//		}
 	}//end of dis
 
-//	p.stopPointState = DriverUpdateParams::NO_FOUND_STOP_POINT;
 	return res;
 
 }

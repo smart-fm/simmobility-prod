@@ -158,7 +158,6 @@ void sim_mob::DriverMovement::init() {
 }
 sim_mob::DriverMovement::~DriverMovement() {
 	//Our movement models.
-	parent->amodVehicle = NULL;
 	safe_delete_item(lcModel);
 	safe_delete_item(cfModel);
 	safe_delete_item(intModel);
@@ -184,9 +183,7 @@ void sim_mob::DriverMovement::frame_init() {
 	if (parentDriver->vehicle && fwdDriverMovement.isPathSet()) {
 		setOrigin(parentDriver->getParams());
 	} else {
-		Warn()
-						<< "ERROR: Vehicle[short] could not be created for driver; no route!"
-						<< std::endl;
+		Warn()	<< "ERROR: Vehicle[short] could not be created for driver; no route!" << std::endl;
 	}
 }
 
@@ -1832,9 +1829,6 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		parentDriver->goal.node = getParent()->destNode.node_;
 		parentDriver->goal.point = parentDriver->goal.node->location;
 
-
-
-
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 		vector<WayPoint> path;
 
@@ -1941,9 +1935,6 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		if (allocateVehicle) {
 			res = new Vehicle(VehicleBase::CAR, length, width);
 			initPath(path, startLaneId);
-			if (parent->amodId != "-1") {
-				parent->amodVehicle = res;
-			}
 		}
 
 		if (subTrip->schedule && res) {

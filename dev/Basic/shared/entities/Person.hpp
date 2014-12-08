@@ -7,6 +7,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <boost/foreach.hpp>
 
 #include "conf/settings/DisableMPI.h"
 #include "entities/Agent.hpp"
@@ -15,12 +16,8 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Profiler.hpp"
-#include <boost/foreach.hpp>
 #include "entities/amodController/AMODEvent.hpp"
-
 #include "entities/vehicle/VehicleBase.hpp"
-
-#include "../short/entities/vehicle/Vehicle.hpp"
 
 
 namespace sim_mob
@@ -35,7 +32,6 @@ class UnPackageUtils;
 class UpdateParams;
 class AMODController;
 class OD_Trip;
-class Vehicle;
 
 /**
  * Basic Person class.
@@ -217,18 +213,14 @@ public:
     std::stringstream debugMsgs;
     int client_id;
 
-    // amod
-    std::string amodId;
+	// amod
+	std::string amodId;
 	void setPath(std::vector<WayPoint>& path);
 	std::vector<WayPoint> amodPath;
-	//const RoadSegment *amodPickUpSegment;
 	std::string amodPickUpSegmentStr;
 	double amodSegmLength;
-	//WayPoint amodPickUpSegment;
 	std::string amdoTripId;
-	sim_mob::Vehicle* amodVehicle;
 	std::string parkingNode;
-//    std::list<sim_mob::FMOD_Schedule> schedules;
 
     AMOD::AMODEventPublisher eventPub;
 
@@ -242,14 +234,10 @@ public:
     };
 
     Status currStatus;
-    void invalidateAMODVehicle(void);
 
     int stuckCount;
     double prevx;
     double prevy;
-    void clearTripChain() {
-		this->tripChain.clear();
-	}
 
 	const sim_mob::Lane* getCurrLane() const
 	{
@@ -334,23 +322,23 @@ public:
 	  */
 	 void serializeCBD_Activity(const TravelMetric &metric);
 private:
-//	 /**
-//	  * serialize person's tripchain item
-//	  */
-//	void serializeTripChainItem(std::vector<TripChainItem*>::iterator currTripChainItem);
-//
-//	 /**
-//	  * During Serialization of person's tripchain, this routine is called if the given
-//	  * tripchain item is a trip
-//	  */
-//	 std::string serializeTrip(std::vector<TripChainItem*>::iterator item);
-//
-//
-//	 /**
-//	  * During Serialization of person's tripchain, this routine is called if the given
-//	  * tripchain item is an activity
-//	  */
-//	 std::string serializeActivity(std::vector<TripChainItem*>::iterator item);
+	 /**
+	  * serialize person's tripchain item
+	  */
+	 //void serializeTripChainItem(std::vector<TripChainItem*>::iterator currTripChainItem);
+
+	 /**
+	  * During Serialization of person's tripchain, this routine is called if the given
+	  * tripchain item is a trip
+	  */
+	 //std::string serializeTrip(std::vector<TripChainItem*>::iterator item);
+
+
+	 /**
+	  * During Serialization of person's tripchain, this routine is called if the given
+	  * tripchain item is an activity
+	  */
+	 //std::string serializeActivity(std::vector<TripChainItem*>::iterator item);
 
 	 /**
 	  * prints the trip chain item types of each item in tripChain

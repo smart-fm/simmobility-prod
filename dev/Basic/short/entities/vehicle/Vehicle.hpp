@@ -21,7 +21,7 @@
 #include "entities/vehicle/VehicleBase.hpp"
 #include "entities/models/Constants.h"
 #include "geospatial/Lane.hpp"
-#include "geospatial/GeneralPathMover.hpp"
+#include "entities/roles/driver/GeneralPathMover.hpp"
 #include "geospatial/streetdir/WayPoint.hpp"
 #include "util/MovementVector.hpp"
 #include "util/DynamicVector.hpp"

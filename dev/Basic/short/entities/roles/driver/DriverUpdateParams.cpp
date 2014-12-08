@@ -39,17 +39,6 @@ void DriverUpdateParams::setStatusDoingLC(LANE_CHANGE_SIDE& lcs)
 void DriverUpdateParams::buildDebugInfo()
 {
 	std::stringstream s;
-	//	double ct=cftimer;
-	//	if(abs(cftimer)<0.001)
-	//		ct=0;
-
-	//
-	//	size_t currLaneIdx = currLaneIndex;
-	//	if(currLaneIdx<0.1) currLaneIdx = 0;
-	//
-
-
-
 
 #if 0
 		//debug car jump;
@@ -87,26 +76,25 @@ void DriverUpdateParams::buildDebugInfo()
 #endif
 
 #if 0
-		//debug lane changing
+	//debug lane changing
 	//
-	////	s<<ct
-	//			s<<":"<<newFwdAccChar
+	//	s<<ct
+	/*	s<<":"<<newFwdAccChar
+		<<":"<<accSelect
+		<<":acc"<<newFwdAccChar
+		<<":"<<sp
+		<<":"<<lc;
+		<<":"<<ds;*/
 
-//						<<":"<<accSelect
-//						<<":acc"<<newFwdAccChar
-//				<<":"<<sp
-//				<<":"<<lc;
-	//			<<":"<<ds;
 
-
-	//	// utility
+		// utility
 		char ul[20] = "\0";
 		sprintf(ul,"ul%3.2f",utilityLeft);
 		char ur[20] = "\0";
 		sprintf(ur,"ur%3.2f",utilityRight);
 		char uc[20] = "\0";
 		sprintf(uc,"uc%3.2f",utilityCurrent);
-	//
+
 		char rnd_[20] = "\0";
 		sprintf(rnd_,"rd%3.2f",rnd);
 
@@ -127,25 +115,23 @@ void DriverUpdateParams::buildDebugInfo()
 		s<<"            "<<parentId;
 		s<<":"<<accSelect;
 		s<<lastAcc;
-//		s<<":"<<ul;
-//		s<<":"<<uc;
-//		s<<":"<<ur;
-//		s<<":"<<rnd_;
-//		s<<":"<<lcd;
-//		s<<":"<<lc;
-//		s<<":"<<sp;
-//		s<<"=="<<lcDebugStr.str();
+		/*s<<":"<<ul;
+		s<<":"<<uc;
+		s<<":"<<ur;
+		s<<":"<<rnd_;
+		s<<":"<<lcd;
+		s<<":"<<lc;
+		s<<":"<<sp;
+		s<<"=="<<lcDebugStr.str();*/
 		s<<"++"<<cfDebugStr;
 
-//		int rightFwdcarid=-1;
-//		if(this->nvRightFwd.exists())
-//		{
-//			Driver* driver_ = const_cast<Driver*>(nvRightFwd.driver);
-//			rightFwdcarid = driver_->getParent()->getId();
-//		}
-//		s<<":rfwd"<<rightFwdcarid;
-
-
+		/*int rightFwdcarid=-1;
+		if(this->nvRightFwd.exists())
+		{
+			Driver* driver_ = const_cast<Driver*>(nvRightFwd.driver);
+			rightFwdcarid = driver_->getParent()->getId();
+		}
+		s<<":rfwd"<<rightFwdcarid;*/
 #endif
 
 	// debug aura mgr

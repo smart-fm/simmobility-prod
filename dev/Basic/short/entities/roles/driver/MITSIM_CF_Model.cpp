@@ -257,12 +257,6 @@ void sim_mob::MITSIM_CF_Model::initParam(sim_mob::DriverUpdateParams& p) {
 	parameterMgr->param(modelName, "visibility_distance",
 			visibilityDistance, 10.0);
 
-	// merge model
-	//	parameterMgr->param(modelName,
-	//				"Merging_Model", str,
-	//				string("10 20 8 0.2"));
-	//	sim_mob::Utils::convertStringToArray(str,accAddon);
-
 	//FF Acc Params
 	parameterMgr->param(modelName,
 					"FF_Acc_Params_b2", p.FFAccParamsBeta,

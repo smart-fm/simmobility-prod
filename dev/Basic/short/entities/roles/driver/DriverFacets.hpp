@@ -88,7 +88,6 @@ public:
 		return cfModel;
 	}
 
-
 public:
 	Driver* parentDriver;
 

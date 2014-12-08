@@ -56,7 +56,6 @@ void sim_mob::Vehicle::resetPath(vector<WayPoint> wp_path) {
 	for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
 		if (it->type_ == WayPoint::ROAD_SEGMENT) {
 			path.push_back(it->roadSegment_);
-//			std::cout<<it->roadSegment_->getStart()->location.getX()<<std::endl;
 		}
 	}
 

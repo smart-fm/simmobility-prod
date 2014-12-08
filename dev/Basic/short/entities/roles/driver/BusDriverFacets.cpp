@@ -71,32 +71,41 @@ Vehicle* sim_mob::BusDriverMovement::initializePath_bus(bool allocateVehicle) {
 	if(getParent()) {
 		if (!getParent()->getNextPathPlanned()) {
 			std::vector<const RoadSegment*> path;
-			//Person* person = dynamic_cast<Person*>(parentAgent);
 			int vehicle_id = 0;
 			int laneID = -1;
-//			if (parentAgent) {
-				const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem));
-				if (!bustrip){
-					WarnOut("bustrip is null");
+			const BusTrip* bustrip =
+					dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem));
+			if (!bustrip)
+			{
+				WarnOut("bustrip is null");
+			}
+			if (bustrip
+					&& (*(getParent()->currTripChainItem))->itemType
+							== TripChainItem::IT_BUSTRIP)
+			{
+				path = bustrip->getBusRouteInfo().getRoadSegments();
+				std::cout << "BusTrip path size = " << path.size() << std::endl;
+				vehicle_id = bustrip->getVehicleID();
+				if (path.size() > 0)
+				{
+					laneID = path.at(0)->getLanes().size() - 2;
 				}
-				if (bustrip&& (*(getParent()->currTripChainItem))->itemType== TripChainItem::IT_BUSTRIP) {
-					path = bustrip->getBusRouteInfo().getRoadSegments();
-					std::cout << "BusTrip path size = " << path.size() << std::endl;
-					vehicle_id = bustrip->getVehicleID();
-					if (path.size() > 0) {
-						laneID = path.at(0)->getLanes().size() - 2;
-					}
-				} else {
-					if ((*(getParent()->currTripChainItem))->itemType== TripChainItem::IT_TRIP)
-						std::cout << TripChainItem::IT_TRIP << " IT_TRIP\n";
-					if ((*(getParent()->currTripChainItem))->itemType== TripChainItem::IT_ACTIVITY)
-						std::cout << "IT_ACTIVITY\n";
-					if ((*(getParent()->currTripChainItem))->itemType== TripChainItem::IT_BUSTRIP)
-				       std::cout << "IT_BUSTRIP\n";
-					std::cout<< "BusTrip path not initialized coz it is not a bustrip, (*(getParent()->currTripChainItem))->itemType = "<< (*(getParent()->currTripChainItem))->itemType<< std::endl;
-				}
-
-//			}
+			}
+			else
+			{
+				if ((*(getParent()->currTripChainItem))->itemType
+						== TripChainItem::IT_TRIP)
+					std::cout << TripChainItem::IT_TRIP << " IT_TRIP\n";
+				if ((*(getParent()->currTripChainItem))->itemType
+						== TripChainItem::IT_ACTIVITY)
+					std::cout << "IT_ACTIVITY\n";
+				if ((*(getParent()->currTripChainItem))->itemType
+						== TripChainItem::IT_BUSTRIP)
+					std::cout << "IT_BUSTRIP\n";
+				Print() << "BusTrip path not initialized coz it is not a bustrip, (*(getParent()->currTripChainItem))->itemType = "
+						<< (*(getParent()->currTripChainItem))->itemType
+						<< std::endl;
+			}
 
 			//TODO: Start in lane 0?
 			int startlaneID = 1;
@@ -129,7 +138,7 @@ void sim_mob::BusDriverMovement::frame_init() {
 	//      very different for Cars and Buses, but until we un-tangle the code
 	//      we'll need to rely on hacks like this.
 	Vehicle* newVeh = nullptr;
-	//Person* person = dynamic_cast<Person*>(parent);
+
 	if (getParent()) {
 		if (getParent()->getAgentSrc() == "BusController") {
 			newVeh = initializePath_bus(true); // no need any node information
@@ -188,7 +197,7 @@ void sim_mob::BusDriverMovement::frame_init() {
 		std::string segAimsunId = bs->getParentSegment()->originalDB_ID.getLogItem();
 		std::string segid = Utils::getNumberFromAimsunId(segAimsunId);
 		double dd = sim_mob::BusStop::EstimateStopPoint(bs->xPos, bs->yPos, bs->getParentSegment()) /100.0;
-		double dis = bs->distance;//sim_mob::BusStop::EstimateStopPoint(bs->xPos, bs->yPos, bs->getParentSegment()) /100.0;
+		double dis = bs->distance;
 		double fd = dd;
 		double segl = bs->getParentSegment()->getLengthOfSegment() /100.0;
 		if(fd > (segl -10) ){
@@ -197,7 +206,7 @@ void sim_mob::BusDriverMovement::frame_init() {
 		if(fd<0){
 			fd = segl/2;
 		}
-		std::cout<<"id: "<<segid<<" dis:"<<dis<<" dd:"<<dd<<" len:"<<bs->getParentSegment()->getLengthOfSegment() /100.0<<" fd:"<<fd<<std::endl;
+		Print()<<"id: "<<segid<<" dis:"<<dis<<" dd:"<<dd<<" len:"<<bs->getParentSegment()->getLengthOfSegment() /100.0<<" fd:"<<fd<<std::endl;
 		double dwelltime = 10;
 		StopPoint sp(segid,fd,dwelltime);
 		parentBusDriver->getParams().insertStopPoint(sp);
@@ -242,8 +251,6 @@ double sim_mob::BusDriverMovement::busAccelerating(DriverUpdateParams& p) {
 	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, p.maxLaneSpeed);
 
 	return newFwdAcc;
-	//Update our chosen acceleration; update our position on the link.
-	//vehicle->setAcceleration(newFwdAcc * 100);
 }
 
 bool sim_mob::BusDriverMovement::isBusFarawayBusStop() {
@@ -367,22 +374,16 @@ double sim_mob::BusDriverMovement::getDistanceToBusStopOfSegment(const RoadSegme
 								parentBusDriver->getPositionY(),
 								rs->getStart()->location.getX(),
 								rs->getStart()->location.getY());
-//						distance = stopPoint
-//								- vehicle->getDistanceMovedInSegment();
+
 						// Buses not stopping near the busstop at few places.
 						// one easy way to fix it
 						double actualDistance = sim_mob::BusStop::EstimateStopPoint(bs->xPos, bs->yPos, rs);
 
-						//std::cout<<parentBusDriver->vehicle->getDistanceMovedInSegment()<<" "<<BusDistfromStart.getMagnitude()<<std::endl;
-
 						distance = actualDistance
 								- BusDistfromStart.getMagnitude();
 
-
 						break;
-
 					}
-
 				} else {
 					DynamicVector busToSegmentStartDistance(currentX, currentY,
 							rs->getStart()->location.getX(),

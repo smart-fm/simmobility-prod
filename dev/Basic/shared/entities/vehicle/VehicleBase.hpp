@@ -59,7 +59,7 @@ public:
 		this->moving = moving;
 	}
 
-	virtual std::vector<const sim_mob::RoadSegment *>::iterator getPathIterator()
+	/*virtual std::vector<const sim_mob::RoadSegment *>::iterator getPathIterator()
 	{
 		throw std::runtime_error("VehicleBase::getPathIterator is not implemented");
 	}
@@ -82,7 +82,7 @@ public:
 	virtual double getVelocity() const
 	{
 		throw std::runtime_error("VehicleBase::getVelocity is not implemented");
-	}
+	}*/
 
 protected:
 	/**length of the vehicle in cm*/

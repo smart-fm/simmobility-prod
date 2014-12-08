@@ -113,9 +113,6 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 		convertODsToTrips();
 		insertWaitingActivityToTrip();
 	}
-//	else if(!ConfigManager::GetInstance().FullConfig().RunningMidDemand()){
-//		simplyModifyTripChain(tc);
-//	}
 
 	if(!tripChain.empty()) { initTripChain(); }
 }
@@ -145,10 +142,6 @@ void sim_mob::Person::initTripChain(){
 				throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
 		}
 	}
-
-	/*if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_BUSTRIP) {
-		std::cout << "Person " << this << "  is going to ride a bus\n";
-	}*/
 
 	setNextPathPlanned(false);
 	first_update_tick = true;
@@ -237,9 +230,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		int destNodeid;
 		try {
 			originNodeId = boost::lexical_cast<int>( oriNodeIt->second );
-			//std::cout<<"originNodeId: "<<originNodeId<<std::endl;
 			destNodeid = boost::lexical_cast<int>( destNodeIt->second );
-			//std::cout<<"destNodeid: "<<destNodeid<<std::endl;
 		} catch( boost::bad_lexical_cast const& ) {
 			Warn() << "Error: input string was not valid" << std::endl;
 		}
@@ -292,11 +283,6 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 			this->initTripChain();
 		}
 	}
-	//One more check: If they have a special string, save it now
-	/*it = configProps.find("special");
-	if (it != configProps.end()) {
-		this->specialStr = it->second;
-	}*/
 }
 
 
@@ -316,10 +302,7 @@ void sim_mob::Person::handleAMODEvent(sim_mob::event::EventId id,
 	{
 		AMOD::AMODEventPublisher* pub = (AMOD::AMODEventPublisher*) sender;
 		const AMOD::AMODRerouteEventArgs& rrArgs = MSG_CAST(AMOD::AMODRerouteEventArgs, args);
-		std::cout<<"person <"<<amodId<<"> get reroute event <"<< rrArgs.reRoutePath.size() <<"> from <"<<pub->id<<">"<<std::endl;
 
-		//Driver *driver = (Driver*)currRole;
-		//driver->rerouteWithPath(rrArgs.reRoutePath);
 		//role gets chance to handle event
 		if(currRole){
 			currRole->onParentEvent(id, ctxId, sender, args);
@@ -369,18 +352,12 @@ bool sim_mob::Person::frame_init(timeslice now)
 void sim_mob::Person::setPath(std::vector<WayPoint>& path)
 {
 	if (path.size() == 0) {
-		std::cout << "Warning! Path size is zero!" << std::endl;
+		Print() << "Warning! Path size is zero!" << std::endl;
 	}
 
 	amodPath = path;
 }
 
-void sim_mob::Person::invalidateAMODVehicle(void) {
-	std::cout << "Invalidating: " << amodId << std::endl;
-	std::cout << "An error has occured with this vehicle." << std::endl;
-	//sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
-	//a->handleVHError(this);
-};
 void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
 {
 	Agent::onEvent(eventId, ctxId, sender, args);
@@ -766,11 +743,9 @@ void sim_mob::Person::convertODsToTrips() {
 	}
 
 	int index=0;
-//	std::cout << "********person : " << this->GetId() <<" start time:"<<this->startTime<< std::endl;
+
 	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end();
 			tripChainItem++) {
-
-		//std::cout << "trips : " << index << (*tripChainItem)->getMode() <<" start time:"<<(*tripChainItem)->startTime.toString()<< std::endl;
 
 		sim_mob::Trip* trip = dynamic_cast<sim_mob::Trip*>(*tripChainItem);
 		if(trip){
@@ -794,8 +769,6 @@ void sim_mob::Person::convertODsToTrips() {
 				else if(subChainItem->toLocation.type_ == WayPoint::BUS_STOP){
 					to = boost::lexical_cast<int>(subChainItem->toLocation.busStop_->getBusstopno_());
 				}
-
-//				std::cout << "first item : " << from << " second item:" <<to <<" mode:" <<subChainItem->mode << std::endl;
 			}
 		}
 	}
@@ -874,21 +847,6 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 
 				if(subChainItem1==subtrip.end() || subChainItem2==subtrip.end())
 					break;
-			}
-
-			if(newsubchain.size()>2)
-			{
-				std::vector<SubTrip>::iterator subChainItem;
-				/*subtrip.clear();
-				for(subChainItem = newsubchain.begin();subChainItem!=newsubchain.end(); subChainItem++)
-				{
-					subtrip.push_back(*subChainItem);
-				}*/
-
-				for(subChainItem = subtrip.begin();subChainItem!=subtrip.end(); subChainItem++)
-				{
-					//std::cout << "first item  " << subChainItem->fromLocation.getID() << " " <<subChainItem->toLocation.getID() <<" mode " <<subChainItem->mode << std::endl;
-				}
 			}
 		}
 	}
@@ -1432,9 +1390,6 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
 //		(activity->fromLocationType == TripChainItem::LT_NODE ? "Node" : "Stop") << "," <<
 //		activity->toLocation.node_->getID()<< ","   <<
 //		(activity->toLocationType == TripChainItem::LT_NODE ? "Node" : "Stop") << "," ;
-
-
-
  }
 
 

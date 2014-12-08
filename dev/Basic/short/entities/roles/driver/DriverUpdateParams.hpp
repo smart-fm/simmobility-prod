@@ -132,6 +132,7 @@ public:
 	//Nearest vehicles' distances are initialized to threshold values.
 	bool isAlreadyStart;
 	bool isBeforIntersecton;
+
 	// used to check vh opposite intersection
 	NearestVehicle nvFwdNextLink;
 	NearestVehicle nvFwd;
@@ -198,9 +199,11 @@ public:
 	 *  /return state
 	 */
 	unsigned int getStatus() { return status; }
+
 	unsigned int getStatus(unsigned int mask) {
 		return (status & mask);
 	}
+
 	/**
 	 *  /brief remove the status from the vh
 	 *  /return state
@@ -241,7 +244,6 @@ public:
 	vector<double> nosingParams;
 	double lcMaxNosingTime;
 
-//	double targetSpeed; // duplicated with desiredSpeed
 	double maxLaneSpeed;
 
 	/// fwd acc from car follow model m/s^2
@@ -311,33 +313,34 @@ public:
 
 	std::string cfDebugStr;
 	std::stringstream  lcDebugStr;
-//	std::string lcDebugStrTwo;
-//	std::string lcDebugThree;
 
-//	//perform incident response
-//	IncidentPerformer incidentPerformer;
-
-	/// key=segment aimsun id, value= stoppoint vector, one segment may has more than one stoppoint
+	// key=segment aimsun id, value= stoppoint vector, one segment may has more than one stoppoint
 	std::map<std::string,std::vector<StopPoint> > stopPointPool;
+
 	/**
 	 *  @brief insert stop point
 	 *  @param sp stop point
 	 */
 	void insertStopPoint(StopPoint& sp);
-	/// perception distance to stop point
+
+	// perception distance to stop point
 	double stopPointPerDis;
-	enum STOP_POINT_STATE{
-		APPROACHING_STOP_POINT  = 1,
-		CLOSE_STOP_POINT		= 2,
-		JUST_ARRIVE_STOP_POINT 	= 3,
-		WAITING_AT_STOP_POINT 	= 4,
-		LEAVING_STOP_POINT 		= 5,
-		NO_FOUND_STOP_POINT		= 6
+
+	enum STOP_POINT_STATE
+	{
+		APPROACHING_STOP_POINT = 1,
+		CLOSE_STOP_POINT = 2,
+		JUST_ARRIVE_STOP_POINT = 3,
+		WAITING_AT_STOP_POINT = 4,
+		LEAVING_STOP_POINT = 5,
+		NO_FOUND_STOP_POINT = 6
 	};
+
 	STOP_POINT_STATE stopPointState;
 	double disToSP;
 	StopPoint currentStopPoint;
 	double startStopTime;
+
 public:
 #ifndef SIMMOB_DISABLE_MPI
 	static void pack(PackageUtils& package, const DriverUpdateParams* params);

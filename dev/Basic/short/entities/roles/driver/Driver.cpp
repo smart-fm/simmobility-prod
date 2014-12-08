@@ -109,33 +109,6 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
 	,stop_event_nodeid(mtxStrat, -1), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false)
 {
-//	//This is something of a quick fix; if there is no parent, then that means the
-//	//  reaction times haven't been initialized yet and will crash. ~Seth
-//	if (parent) {
-//		ReactionTimeDist* r1 = ConfigManager::GetInstance().FullConfig().reactDist1;
-//		ReactionTimeDist* r2 = ConfigManager::GetInstance().FullConfig().reactDist2;
-//		if (r1 && r2) {
-//			reacTime = r1->getReactionTime() + r2->getReactionTime();
-//			//reacTime = 0;
-//		} else {
-//			throw std::runtime_error("Reaction time distributions have not been initialized yet.");
-//		}
-//	}
-
-
-//	if(movement)
-//	{
-//		reacTime = movement->cfModel->nextPerceptionSize * 100; // seconds to ms
-//	}
-//
-//	perceivedFwdVel = new FixedDelayed<double>(reacTime,true);
-//	perceivedFwdAcc = new FixedDelayed<double>(reacTime,true);
-//	perceivedVelOfFwdCar = new FixedDelayed<double>(reacTime,true);
-//	perceivedAccOfFwdCar = new FixedDelayed<double>(reacTime,true);
-//	perceivedDistToFwdCar = new FixedDelayed<double>(reacTime,true);
-//	perceivedDistToTrafficSignal = new FixedDelayed<double>(reacTime,true);
-//	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
-
 	// record start time
 	startTime = getParams().now.ms()/MILLISECS_CONVERT_UNIT;
 	isAleadyStarted = false;
@@ -171,9 +144,6 @@ Role* sim_mob::Driver::clone(Person* parent) const
 	movement->init();
 	return driver;
 }
-
-
-
 
 
 void sim_mob::Driver::make_frame_tick_params(timeslice now){
@@ -267,16 +237,14 @@ double sim_mob::Driver::gapDistance(const Driver* front)
 			headway = Math::FLT_INF;
 		} else {
 
-			//	    if (lane_->segment() == front->segment())
+			//if our segment is the same as that of the driver ahead
 			if(mov->fwdDriverMovement.getCurrSegment() == frontMov->fwdDriverMovement.getCurrSegment())
-			{				/* same segment */
-				//			headway = distance_ - front->distance_ - front->length();
+			{
 				headway = mov->fwdDriverMovement.getDisToCurrSegEnd() - frontMov->fwdDriverMovement.getDisToCurrSegEnd() - front->getVehicleLengthM();
 			}
-			else {				/* different segment */
-				//			headway = distance_ + (front->lane_->length() -
-				//									   front->distance_ -
-				//									   front->length());
+			else
+			{
+				/* different segment */
 				headway = mov->fwdDriverMovement.getDisToCurrSegEnd() + frontMov->fwdDriverMovement.getCurrDistAlongPolylineCM() - front->getVehicleLengthM();
 			}
 		}
@@ -317,18 +285,11 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	perceivedLatVelocity = 0;
 
 	trafficColor = sim_mob::Green;
-//	perceivedTrafficColor = sim_mob::Green;
-
-//	trafficSignalStopDistance = Driver::maxVisibleDis;
 	elapsedSeconds = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
 
 	perceivedFwdVelocityOfFwdCar = 0;
 	perceivedLatVelocityOfFwdCar = 0;
 	perceivedAccelerationOfFwdCar = 0;
-//	perceivedDistToFwdCar = Driver::maxVisibleDis; // no need reset
-//	perceivedDistToTrafficSignal = Driver::maxVisibleDis;
-
-//	perceivedTrafficColor  = sim_mob::Green;
 
 	//Lateral velocity of lane changing.
 	laneChangingVelocity = 100;

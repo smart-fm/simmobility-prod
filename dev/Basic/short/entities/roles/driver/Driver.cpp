@@ -122,7 +122,7 @@ void sim_mob::Driver::initReactionTime()
 	DriverMovement* movement = (DriverMovement* ) movementFacet;
 	if(movement)
 	{
-		reacTime = movement->cfModel->nextPerceptionSize * 1000; // seconds to ms
+		reacTime = movement->getCarFollowModel()->nextPerceptionSize * 1000; // seconds to ms
 	}
 
 	perceivedFwdVel = new FixedDelayed<double>(reacTime,true);
@@ -134,6 +134,7 @@ void sim_mob::Driver::initReactionTime()
 	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
 
 }
+
 Role* sim_mob::Driver::clone(Person* parent) const
 {
 	DriverBehavior* behavior = new DriverBehavior(parent);
@@ -145,18 +146,23 @@ Role* sim_mob::Driver::clone(Person* parent) const
 	return driver;
 }
 
-
 void sim_mob::Driver::make_frame_tick_params(timeslice now){
 	getParams().reset(now, *this);
 }
 
-
-///Note that Driver's destructor is only for reclaiming memory.
-///  If you want to remove its registered properties from the Worker (which you should do!) then
-///  this should occur elsewhere.
+// Note that Driver's destructor is only for reclaiming memory.
+// If you want to remove its registered properties from the Worker (which you should do!) then
+// this should occur elsewhere.
 sim_mob::Driver::~Driver() {
-//	//Our vehicle
+	//Our vehicle
 	safe_delete_item(vehicle);
+	safe_delete_item(perceivedFwdVel);
+	safe_delete_item(perceivedFwdAcc);
+	safe_delete_item(perceivedVelOfFwdCar);
+	safe_delete_item(perceivedAccOfFwdCar);
+	safe_delete_item(perceivedDistToFwdCar);
+	safe_delete_item(perceivedDistToTrafficSignal);
+	safe_delete_item(perceivedTrafficColor);
 }
 
 vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
@@ -181,7 +187,6 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 	return res;
 }
 
-
 void sim_mob::Driver::onParentEvent(event::EventId eventId,
 		sim_mob::event::Context ctxId,
 		event::EventPublisher* sender,
@@ -196,7 +201,6 @@ void sim_mob::Driver::onParentEvent(event::EventId eventId,
 		rerouteWithPath(rrArgs.reRoutePath);
 	}
 }
-
 
 std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
 {
@@ -221,7 +225,7 @@ void sim_mob::Driver::handleUpdateRequest(MovementFacet* mFacet){
 
 const double sim_mob::Driver::getFwdVelocityM() const
 {
-	double d= fwdVelocity.get() / 100.0;
+	double d = fwdVelocity.get() / 100.0;
 	return d;
 }
 
@@ -229,13 +233,20 @@ double sim_mob::Driver::gapDistance(const Driver* front)
 {
 	double headway;
 	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
-	if (front) {			/* vehicle ahead */
-		DriverMovement* frontMov = dynamic_cast<DriverMovement*>(front->Movement());
 
-		if (frontMov->fwdDriverMovement.isDoneWithEntireRoute()) {
+	if (front)
+	{
+		/* vehicle ahead */
+		DriverMovement* frontMov =
+				dynamic_cast<DriverMovement*>(front->Movement());
+
+		if (frontMov->fwdDriverMovement.isDoneWithEntireRoute())
+		{
 			/* vehicle ahead has already arrived at the destination */
 			headway = Math::FLT_INF;
-		} else {
+		}
+		else
+		{
 
 			//if our segment is the same as that of the driver ahead
 			if(mov->fwdDriverMovement.getCurrSegment() == frontMov->fwdDriverMovement.getCurrSegment())
@@ -248,17 +259,20 @@ double sim_mob::Driver::gapDistance(const Driver* front)
 				headway = mov->fwdDriverMovement.getDisToCurrSegEnd() + frontMov->fwdDriverMovement.getCurrDistAlongPolylineCM() - front->getVehicleLengthM();
 			}
 		}
-	} else			/* no vehicle ahead. */
+	}
+	else /* no vehicle ahead. */
 	{
 		headway = Math::FLT_INF;
 	}
 
 	return headway;
 }
+
 bool sim_mob::Driver::isBus()
 {
 	return getVehicle()->getVehicleType() == VehicleBase::BUS;
 }
+
 void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 {
 	UpdateParams::reset(now);
@@ -278,15 +292,13 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	leftLane2 = nullptr;
 	rightLane2 = nullptr;
 
-	//Reset; these will be set before they are used; the values here represent either defaul
+	//Reset; these will be set before they are used; the values here represent either default
 	//       values or are unimportant.
 	currSpeed = 0;
 	perceivedFwdVelocity = 0;
 	perceivedLatVelocity = 0;
-
 	trafficColor = sim_mob::Green;
 	elapsedSeconds = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
-
 	perceivedFwdVelocityOfFwdCar = 0;
 	perceivedLatVelocityOfFwdCar = 0;
 	perceivedAccelerationOfFwdCar = 0;

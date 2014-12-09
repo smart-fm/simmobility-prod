@@ -58,11 +58,6 @@ public:
         return instance_;
     }
 
- /*   static AuraManager &
-    instance2()
-    {
-    	return instance2_;
-    }*/
 
     /**
      * Called every frame, this method builds a spatial index of the positions of all agents.
@@ -74,8 +69,6 @@ public:
      *       save them anywhere.
      */
     void update(const std::set<sim_mob::Agent*>& removedAgentPointers);
-
-
 
 
     /**
@@ -93,7 +86,7 @@ public:
     agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, const sim_mob::Agent* refAgent) const;
 
     //only avaiable for Sim-Tree
-  /*  std::vector<Agent const *>
+    /*std::vector<Agent const *>
     advanced_agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, TreeItem* item) const;*/
 
     /**
@@ -137,11 +130,9 @@ public:
     init(AuraManagerImplementation implType);
 
     /**
-     * Print statistics collected on internal operationss.
-     * Useful only if \c keepStats is \c true when \c init() was called.
+     * Destroy the object implementing the AuraManager
      */
-    //void
-    //printStatistics() const;
+    void destory();
 
 	/**
 	 * register new agents to AuraManager each time step
@@ -152,27 +143,10 @@ private:
 	AuraManager() : impl_(nullptr), /*stats_(0),*/ time_step(0)
 	{}
 
-    /*Map to store the vehicle counts of each road segment. */
-    //boost::unordered_map<const RoadSegment*, sim_mob::SegmentStats*> agentsOnSegments_global;
-
     static AuraManager instance_;
-    //static AuraManager instance2_;
-
-    //different impl
-    //AuraManagerImplementation local_implType;
 
     //Current implementation being used (via inheritance).
     TreeImpl* impl_;
-
-    //xuyan:choose between
-    /*RStarAuraManager* pimpl_rstar;
-    RDUAuraManager* pimpl_du;
-	SimAuraManager* pimpl_sim;*/
-
-    // Using the pimple design pattern.  Impl is defined in the source file.
-    /*class Impl;
-    Impl* pimpl_;
-    friend class Impl;  // allow access to stats_.*/
 
     //Current time step.
     int time_step;

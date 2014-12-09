@@ -10,30 +10,36 @@
 #include "geospatial/PathSetManager.hpp"
 
 using namespace sim_mob;
-
+boost::shared_ptr<K_ShortestPathImpl> sim_mob::K_ShortestPathImpl::instance(new K_ShortestPathImpl());
 sim_mob::K_ShortestPathImpl::K_ShortestPathImpl()
 {
 	init();
-
 }
 sim_mob::K_ShortestPathImpl::~K_ShortestPathImpl() {
 	// TODO Auto-generated destructor stub
+}
+boost::shared_ptr<K_ShortestPathImpl> sim_mob::K_ShortestPathImpl::getInstance()
+{
+	return instance;
 }
 void sim_mob::K_ShortestPathImpl::init()
 {
 	k=3;
 	stdir = &StreetDirectory::instance();
 }
-std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, const sim_mob::Node *to,
-		boost::shared_ptr<sim_mob::PathSet> ps_,
-		std::set<std::string>& wp_spPool)
+
+int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, const sim_mob::Node *to, std::vector< std::vector<sim_mob::WayPoint> > &res)
 {
-	std::vector< std::vector<sim_mob::WayPoint> > pathFound;
-	std::vector<const RoadSegment*> bl;
+	std::vector< std::vector<sim_mob::WayPoint> > &pathFound = res;//just renaming the variable
+	std::vector<const RoadSegment*> bl;//black list
 	std::vector<sim_mob::WayPoint> p = stdir->SearchShortestDrivingPath(
 			stdir->DrivingVertex(*from),
 			stdir->DrivingVertex(*to),
 			bl);
+	if(p.empty())
+	{
+		return 0;
+	}
 	pathFound.push_back(p);
 	storeSegments(p);
 	std::vector<sim_mob::WayPoint> rootPath;
@@ -133,30 +139,7 @@ std::vector< std::vector<sim_mob::WayPoint> > sim_mob::K_ShortestPathImpl::getKS
 			break;
 		}
 	} // end while
-
-	//
-	for(int i=0;i<pathFound.size();++i)
-	{
-		std::vector<sim_mob::WayPoint> path_ = pathFound[i];
-		std::string id = sim_mob::makeWaypointsetString(path_);
-		std::set<std::string>::iterator it_id =  wp_spPool.find(id);
-		if(it_id==wp_spPool.end())
-		{
-			sim_mob::SinglePath *s = new sim_mob::SinglePath();
-			// fill data
-			s->isNeedSave2DB = true;
-			s->init(path_);
-			sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(s);
-			s->length = sim_mob::generateSinglePathLength(s->path);
-
-			s->id = id;
-			s->scenario = ps_->scenario;
-			s->pathSize=0;
-
-			wp_spPool.insert(id);
-		}
-	}
-	return pathFound;
+	return pathFound.size();
 }
 void sim_mob::K_ShortestPathImpl::storeSegments(std::vector<sim_mob::WayPoint> path)
 {
@@ -167,14 +150,4 @@ void sim_mob::K_ShortestPathImpl::storeSegments(std::vector<sim_mob::WayPoint> p
 			A_Segments.insert(std::make_pair(roadSeg->originalDB_ID.getLogItem(),roadSeg));
 		}
 	}
-}
-bool sim_mob::K_ShortestPathImpl::segmentInPaths(const sim_mob::RoadSegment* seg)
-{
-	std::map< std::string,const sim_mob::RoadSegment* >::iterator it = A_Segments.find(seg->originalDB_ID.getLogItem());
-	if(it != A_Segments.end())
-	{
-		//find it
-		return true;
-	}
-	return false;
 }

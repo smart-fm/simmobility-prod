@@ -14,6 +14,7 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/PathSet/PathSetThreadPool.h"
+#include "geospatial/streetdir/KShortestPathImpl.hpp"
 #include "util/threadpool/Threadpool.hpp"
 #include "workers/Worker.hpp"
 #include "message/MessageBus.hpp"
@@ -1142,14 +1143,15 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	logger << "generateAllPathChoices" << std::endl;
 	/**
 	 * step-1: find the shortest path. if not found: create an entry in the "PathSet" table and return(without adding any entry into SinglePath table)
-	 * step-2: cancelled for now! from the Singlepath's waypoints collection, compute the "travel cost" and "travel time"
+	 * step-2: K-SHORTEST PATH
 	 * step-3: SHORTEST DISTANCE LINK ELIMINATION
 	 * step-4: shortest travel time link elimination
 	 * step-5: TRAVEL TIME HIGHWAY BIAS
 	 * step-6: Random Pertubation
 	 * step-7: Some caching/bookkeeping
 	 */
-	std::set<std::string> duplicateChecker;
+	std::set<std::string> duplicateChecker;//for extra optimization only(creating singlepath and discarding it later can be expensive)
+	std::string fromToID(getFromToString(ps->fromNode, ps->toNode));
 	sim_mob::SinglePath *s = findShortestDrivingPath(ps->fromNode,ps->toNode,duplicateChecker/*,excludedSegs*/);
 	if(!s)
 	{
@@ -1162,18 +1164,37 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 		}
 		return false;
 	}
-	//	// 1.31 check path pool
-		// 1.4 create PathSet object
+	s->pathSetId = fromToID;
+	//some additional settings
 	ps->hasPath = true;
 	ps->isNeedSave2DB = true;
 	ps->oriPath = s;
-	std::string fromToID(getFromToString(ps->fromNode, ps->toNode));
 	ps->id = fromToID;
-	s->pathSetId = ps->id;
-	//this is done in onPathSetRetrieval so no need to repeat for now
-//	s->travelCost = sim_mob::getTravelCost2(s,ps->subTrip->startTime);
-//	s->travleTime = getTravelTime(s,ps->subTrip->startTime);
 
+	//K-SHORTEST PATH
+	//TODO:CONSIDER MERING THE PREVIOUS OPERATION(findShortestDrivingPath) IN THE FOLLOWING OPERATION
+	std::vector< std::vector<sim_mob::WayPoint> > ksp;
+	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> kspTemp;
+	int kspn = sim_mob::K_ShortestPathImpl::getInstance()->getKShortestPaths(ps->fromNode,ps->toNode,ksp);
+	std::cout << "[" << fromToID << "][K-SHORTEST :" << kspn << "]\n";
+	for(int i=0;i<ksp.size();++i)
+	{
+		std::vector<sim_mob::WayPoint> path_ = ksp[i];
+		std::string id = sim_mob::makeWaypointsetString(path_);
+		std::set<std::string>::iterator it_id =  duplicateChecker.find(id);
+		if(it_id == duplicateChecker.end())
+		{
+			sim_mob::SinglePath *s = new sim_mob::SinglePath();
+			// fill data
+			s->isNeedSave2DB = true;
+			s->init(path_);
+			s->id = id;
+			s->scenario = ps->scenario;
+			s->pathSize=0;
+			duplicateChecker.insert(id);
+			kspTemp.insert(s);
+		}
+	}
 	// SHORTEST DISTANCE LINK ELIMINATION
 	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
 	sim_mob::Link *l = NULL;
@@ -1327,6 +1348,12 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 		throw std::runtime_error(str);
 	}
 	ps->addOrDeleteSinglePath(ps->oriPath);
+	//b. record k-shortest paths
+	BOOST_FOREACH(sim_mob::SinglePath* sp, kspTemp)
+	{
+		ps->addOrDeleteSinglePath(sp);
+	}
+	//c. record the rest of the paths (link eliminations and random perturbation)
 	BOOST_FOREACH(PathSetWorkerThread* p, workPool){
 		if(p->hasPath){
 			if(p->s->isShortestPath){
@@ -1344,7 +1371,8 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	workPool.clear();
 	return true;
 }
-//todo ps_->pathChoices.insert(s) prone to memory leak
+
+//todo this method has already been reimplemented. delete this buggy function if you learnt how to use its sub functions
 vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob::SubTrip* st)
 {
 	vector<WayPoint> res;
@@ -1476,7 +1504,8 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 				generateTravelTimeSinglePathes(fromNode,toNode,duplicateChecker,ps_);
 
 				// generate k-shortest paths
-				std::vector< std::vector<sim_mob::WayPoint> > kshortestPaths = kshortestImpl->getKShortestPaths(fromNode,toNode,ps_,duplicateChecker);
+				std::vector< std::vector<sim_mob::WayPoint> > kshortestPaths;
+				sim_mob::K_ShortestPathImpl::getInstance()->getKShortestPaths(ps_->fromNode,ps_->toNode,kshortestPaths);
 //				ps_->fromNodeId = fromNode->originalDB_ID.getLogItem();
 //				ps_->toNodeId = toNode->originalDB_ID.getLogItem();
 
@@ -1943,9 +1972,6 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::findShortestDrivingPath(
 		// fill data
 		s->isNeedSave2DB = true;
 		s->init(wp);
-		sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(s);
-		s->highWayDistance = calculateHighWayDistance(s);
-		s->length = sim_mob::generateSinglePathLength(s->path);
 		s->id = id;
 		s->scenario = scenarioName;
 		s->isShortestPath = true;
@@ -1993,8 +2019,6 @@ sim_mob::SinglePath* sim_mob::PathSetManager::generateShortestTravelTimePath(con
 			// fill data
 			s->isNeedSave2DB = true;
 			s->init(wp);
-			sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(s);
-			s->length = sim_mob::generateSinglePathLength(s->path);
 			s->id = id;
 			s->scenario = scenarioName;
 			s->pathSize=0;
@@ -2215,8 +2239,15 @@ struct segFilter{
 }
 void sim_mob::SinglePath::init(std::vector<WayPoint>& wpPools)
 {
+	//step-1 fill in the path
 	typedef boost::filter_iterator<segFilter,std::vector<WayPoint>::iterator> FilterIterator;
 	std::copy(FilterIterator(wpPools.begin(), wpPools.end()),FilterIterator(wpPools.end(), wpPools.end()),std::back_inserter(this->path));
+	//step-2 right/left turn
+	sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(this);
+	//step-3 highway distance
+	highWayDistance = sim_mob::calculateHighWayDistance(this);
+	//step-4 length
+	length = sim_mob::generateSinglePathLength(path);
 }
 
 void sim_mob::SinglePath::clear()

@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "geospatial/streetdir/KShortestPathImpl.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -463,9 +462,6 @@ private:
 	///	process the realtime travel time submitted to pathset manager
 	ProcessTT processTT;
 
-	///	link to shortest path implementation
-	sim_mob::K_ShortestPathImpl *kshortestImpl;
-
 };
 /*****************************************************
  ******************* Single Path *********************
@@ -570,6 +566,20 @@ public:
 	PathSet(boost::shared_ptr<sim_mob::PathSet> &ps);
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+inline double generateSinglePathLength(std::vector<WayPoint>& wp) // unit is meter
+{
+	double res=0;
+	for(int i=0;i<wp.size();++i)
+	{
+		WayPoint& w = wp[i];
+		if (w.type_ == WayPoint::ROAD_SEGMENT) {
+			const sim_mob::RoadSegment* seg = w.roadSegment_;
+			res += seg->length;
+		}
+	}
+	return res/100.0; //meter
+}
+
 ///// find the shortest path by analyzing the length of segments
 inline sim_mob::SinglePath* findShortestPath(std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::RoadSegment *rs)
 {
@@ -682,20 +692,6 @@ inline std::string makeWaypointsetString(std::vector<WayPoint>& wp)
 		sim_mob::Logger::log("path_set")<<"warning: empty output makeWaypointsetString id"<<std::endl;
 	}
 	return str;
-}
-
-inline double generateSinglePathLength(std::vector<WayPoint*>& wp) // unit is meter
-{
-	double res=0;
-	for(int i=0;i<wp.size();++i)
-	{
-		WayPoint* w = wp[i];
-		if (w->type_ == WayPoint::ROAD_SEGMENT) {
-			const sim_mob::RoadSegment* seg = w->roadSegment_;
-			res += seg->length;
-		}
-	}
-	return res/100.0; //meter
 }
 
 ///	Generate pathsize of paths

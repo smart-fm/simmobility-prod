@@ -38,8 +38,8 @@ class FMODSchedule;
  **/
 class Vehicle : public sim_mob::VehicleBase {
 public:
-	Vehicle(const VehicleType vehType, double lengthCM, double widthCM); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
-	Vehicle(const VehicleType vehType, int vehicleId, double lengthCM, double widthCM); //Test
+	Vehicle(const VehicleType vehType, double lengthCM, double widthCM);
+	Vehicle(const VehicleType vehType, int vehicleId, double lengthCM, double widthCM);
 	Vehicle(const Vehicle& copy); ///<Copy constructor
 
 	//Enable polymorphism
@@ -88,6 +88,16 @@ public:
 	void setPositionInSegmentCM(double newDistToEndCM);
 	//unit cm, this is based on lane zero's polypoints
 
+	FMODSchedule * getFMODSchedule()
+	{
+		return schedule;
+	}
+
+	void setFMOD_Schedule(FMODSchedule *fmodSchedule)
+	{
+		schedule = fmodSchedule;
+	}
+
 #ifndef SIMMOB_DISABLE_MPI
 public:
 	///Serialization
@@ -96,14 +106,11 @@ public:
 	static Vehicle* unpack(UnPackageUtils& unpackage);
 #endif
 
-public:
-//	const double lengthCM;  ///<length(CM) of the vehicle
-//	const double widthCM;   ///<width(CM) of the vehicle
-	bool isQueuing; 	 ///<for mid-term use
+private:
+
 	FMODSchedule* schedule;
 	double stoppedtimecounter;
 
-public:
 	//Trying a slightly more dynamic moving model.
 	int vehicleId;
 	GeneralPathMover fwdMovement;
@@ -120,6 +127,7 @@ public:
 	//NOTE: The error state is a temporary sanity check to help me debug this class. There are certainly
 	//      better ways to handle this (e.g., non-default constructor).
 	bool errorState;
+
 	void throw_if_error() const {
 		if (errorState) {
 			throw std::runtime_error("Error: can't perform certain actions on an uninitialized vehicle.");

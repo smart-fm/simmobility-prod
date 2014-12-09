@@ -386,123 +386,7 @@ void HM_Model::startImpl()
 
 		if (tempHH != nullptr)
 			tempHH->setIndividual(individuals[n]->getId());
-
-		//Let's set the age
-		BigSerial ageCategory = individuals[n]->getAgeCategoryId();
-
-		std::tm thisAge;
-		thisAge.tm_mday = 1;
-		thisAge.tm_mon  = 0;
-
-		time_t now = time(0);
-		tm ltm = *(localtime(&now));
-		const int yearOffset = ltm.tm_year;
-
-		switch( ageCategory)
-		{
-		//
-		//The numbers that are seen in the case switch below is the midpoint of the age group.
-		//Hopefully this is temporary. chetan (3 Oct 2014)
-		//
-		case 0:
-			//0-4 yrs old"
-			thisAge.tm_year = yearOffset - 2;
-			break;
-		case 1:
-			//5-9yrs old"
-			thisAge.tm_year = yearOffset - 7;
-			break;
-
-		case 2:
-			//10-14 yrs old"
-			thisAge.tm_year = yearOffset - 12;
-			break;
-
-		case 3:
-			//15-19 yrs old"
-			thisAge.tm_year = yearOffset - 17;
-			break;
-
-		case 4:
-			//20-24 yrs old"
-			thisAge.tm_year = yearOffset - 22;
-			break;
-
-		case 5:
-			//25-29 yrs old"
-			thisAge.tm_year = yearOffset - 27;
-			break;
-
-		case 6:
-			//30-34 yrs old"
-			thisAge.tm_year = yearOffset - 32;
-			break;
-
-		case 7:
-			//35-39  yrs old"
-			thisAge.tm_year = yearOffset - 37;
-			break;
-
-		case 8:
-			//40-44 yrs old"
-			thisAge.tm_year = yearOffset - 42;
-			break;
-
-		case 9:
-			//45-49  yrs old"
-			thisAge.tm_year = yearOffset - 47;
-			break;
-
-		case 10:
-			//50-54 yrs old"
-			thisAge.tm_year = yearOffset - 52;
-			break;
-
-		case 11:
-			//55-59  yrs old"
-			thisAge.tm_year = yearOffset - 57;
-			break;
-
-		case 12:
-			//60-64 yrs old"
-			thisAge.tm_year = yearOffset - 62;
-			break;
-
-		case 13:
-			//65-69 yrs old"
-			thisAge.tm_year = yearOffset - 67;
-			break;
-
-		case 14:
-			//70-74  yrs old"
-			thisAge.tm_year = yearOffset - 72;
-			break;
-
-		case 15:
-			//75-79 yrs old"
-			thisAge.tm_year = yearOffset - 77;
-			break;
-
-		case 16:
-			//80-84 yrs old"
-			thisAge.tm_year = yearOffset - 82;
-			break;
-
-		case 17:
-			//85+"
-			thisAge.tm_year = yearOffset - 87;
-			break;
-
-		case 18:
-			//Not Available"
-			break;
-
-		}
-
-		individuals[n]->setDateOfBirth( thisAge );
 	}
-
-
 
 	for (int n = 0; n < households.size(); n++)
 	{
@@ -586,6 +470,8 @@ void HM_Model::hdbEligibilityTest(int index)
 {
 	int familyType = 0;
 
+	household_stats.ResetLocal();
+
 	for (int n = 0; n < households[index]->getIndividuals().size(); n++)
 	{
 		const Individual* hhIndividual = getIndividualById(	households[index]->getIndividuals()[n]);
@@ -599,8 +485,6 @@ void HM_Model::hdbEligibilityTest(int index)
 		boost::gregorian::date date2(ltm.tm_year + 1900, ltm.tm_mon + 1, ltm.tm_mday);
 
 		int years = (date2 - date1).days() / YEAR;
-
-		household_stats.ResetLocal();
 
 		if (years < MINOR)
 		{
@@ -662,41 +546,6 @@ void HM_Model::hdbEligibilityTest(int index)
 		}
 	}
 
-	if((household_stats.maleAdultYoung > 0 && household_stats.femaleAdultYoung > 0	&& (household_stats.maleChild > 0 || household_stats.femaleChild > 0)) ||
-	   (household_stats.maleAdultMiddleAged > 0 && household_stats.femaleAdultMiddleAged > 0  && (household_stats.maleChild > 0 || household_stats.femaleChild > 0 || household_stats.maleAdultYoung > 0 || household_stats.femaleAdultYoung > 0)))
-	{
-		familyType = Household::COUPLEANDCHILD;
-		household_stats.coupleAndChild++;
-	}
-
-	if((household_stats.maleAdultYoung > 0 || household_stats.femaleAdultYoung > 0) &&
-	  ((household_stats.maleAdultMiddleAged > 0 || household_stats.femaleAdultMiddleAged > 0) || (household_stats.maleAdultElderly > 0 || household_stats.femaleAdultElderly > 0)))
-	{
-		familyType = Household::SIBLINGSANDPARENTS;
-		household_stats.siblingsAndParents++;
-	}
-
-	if(((household_stats.maleAdultYoung == 1 || household_stats.femaleAdultYoung == 1)		&& (household_stats.maleChild > 0 || household_stats.femaleChild > 0))			||
-	   ((household_stats.maleAdultMiddleAged == 1 || household_stats.femaleAdultMiddleAged == 1)	&& ((household_stats.maleChild > 0 || household_stats.femaleChild > 0)	||
-	    (household_stats.maleAdultYoung > 0 || household_stats.femaleAdultYoung > 0))))
-	{
-		familyType = Household::SINGLEPARENT;
-		household_stats.singleParent++;
-	}
-
-	if (household_stats.maleAdultYoung == 1 && household_stats.femaleAdultYoung == 1)
-	{
-		familyType = Household::ENGAGEDCOUPLE;
-		household_stats.engagedCouple++;
-	}
-
-	if ((household_stats.maleAdultYoung > 1 || household_stats.femaleAdultYoung > 1) ||
-		(household_stats.maleAdultMiddleAged > 1 || household_stats.femaleAdultMiddleAged > 1))
-	{
-		familyType = Household::ORPHANSIBLINGS;
-		household_stats.orphanSiblings++;
-	}
-
 	if (((household_stats.maleAdultYoung == 1 	   && household_stats.femaleAdultYoung == 1)		&& ((household_stats.maleAdultMiddleAged > 0 || household_stats.femaleAdultMiddleAged > 0) || (household_stats.maleAdultElderly > 0 || household_stats.femaleAdultElderly > 0))) ||
 		((household_stats.maleAdultMiddleAged == 1 && household_stats.femaleAdultMiddleAged == 1)	&& (household_stats.maleAdultElderly > 0 	 || household_stats.femaleAdultElderly > 0))   ||
 		((household_stats.maleAdultYoung == 1 	   && household_stats.femaleAdultYoung == 1)		&& ((household_stats.maleChild > 0 || household_stats.femaleChild > 0) || (household_stats.maleAdultMiddleAged > 0 || household_stats.femaleAdultMiddleAged > 0) || (household_stats.maleAdultElderly > 0 || household_stats.femaleAdultElderly > 0))) ||
@@ -705,6 +554,42 @@ void HM_Model::hdbEligibilityTest(int index)
 		familyType = Household::MULTIGENERATION;
 		household_stats.multigeneration++;
 	}
+	else
+	if((household_stats.maleAdultYoung > 0 && household_stats.femaleAdultYoung > 0	&& (household_stats.maleChild > 0 || household_stats.femaleChild > 0)) ||
+	   (household_stats.maleAdultMiddleAged > 0 && household_stats.femaleAdultMiddleAged > 0  && (household_stats.maleChild > 0 || household_stats.femaleChild > 0 || household_stats.maleAdultYoung > 0 || household_stats.femaleAdultYoung > 0)))
+	{
+		familyType = Household::COUPLEANDCHILD;
+		household_stats.coupleAndChild++;
+	}
+	else
+	if((household_stats.maleAdultYoung > 0 || household_stats.femaleAdultYoung > 0) &&
+	  ((household_stats.maleAdultMiddleAged > 0 || household_stats.femaleAdultMiddleAged > 0) || (household_stats.maleAdultElderly > 0 || household_stats.femaleAdultElderly > 0)))
+	{
+		familyType = Household::SIBLINGSANDPARENTS;
+		household_stats.siblingsAndParents++;
+	}
+	else
+	if (household_stats.maleAdultYoung == 1 && household_stats.femaleAdultYoung == 1)
+	{
+		familyType = Household::ENGAGEDCOUPLE;
+		household_stats.engagedCouple++;
+	}
+	else
+	if ((household_stats.maleAdultYoung > 1 || household_stats.femaleAdultYoung > 1) ||
+		(household_stats.maleAdultMiddleAged > 1 || household_stats.femaleAdultMiddleAged > 1))
+	{
+		familyType = Household::ORPHANSIBLINGS;
+		household_stats.orphanSiblings++;
+	}
+	else
+	if(((household_stats.maleAdultYoung == 1 || household_stats.femaleAdultYoung == 1)		&& (household_stats.maleChild > 0 || household_stats.femaleChild > 0))			||
+	   ((household_stats.maleAdultMiddleAged == 1 || household_stats.femaleAdultMiddleAged == 1)	&& ((household_stats.maleChild > 0 || household_stats.femaleChild > 0)	||
+	    (household_stats.maleAdultYoung > 0 || household_stats.femaleAdultYoung > 0))))
+	{
+		familyType = Household::SINGLEPARENT;
+		household_stats.singleParent++;
+	}
+
 
 	households[index]->setFamilyType(familyType);
 

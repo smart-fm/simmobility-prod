@@ -8,23 +8,20 @@
  *  Created on: Mar 13, 2014
  *      Author: Max
  */
-
-#ifndef AMODController_HPP_
-#define AMODController_HPP_
+#pragma once
 
 #include <boost/regex.hpp>
-#include <map>
-
-#include "entities/Agent.hpp"
-#include "event/EventPublisher.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
-#include "event/args/EventArgs.hpp"
-#include "AMODEvent.hpp"
-#include "entities/conflux/Conflux.hpp"
-#include "geospatial/PathSetManager.hpp"
-#include "entities/Person.hpp"
-#include <string>
 #include <fstream>
+#include <map>
+#include <string>
+#include "AMODEvent.hpp"
+#include "entities/Agent.hpp"
+#include "entities/conflux/Conflux.hpp"
+#include "entities/Person.hpp"
+#include "event/args/EventArgs.hpp"
+#include "event/EventPublisher.hpp"
+#include "geospatial/PathSetManager.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 
 namespace sim_mob {
 class Person;
@@ -65,6 +62,7 @@ public:
 	 * @return a pointer to AMODController .
 	 */
 	static AMODController* instance();
+	static void deleteInstance();
 	static bool instanceExists();
 	static void registerController(int id, const MutexStrategy& mtxStrat);
 	/// pu new amod vh to car park
@@ -97,6 +95,7 @@ public:
 	double calculateTravelTime(std::vector < sim_mob::WayPoint > &wPs );
 
 	void precomputeAllPairsShortestPaths(void);
+	bool hasShortestPath(std::string origNodeID, std::string destNodeID);
 	std::vector < WayPoint > getShortestPath(std::string origNodeID, std::string destNodeID);
 	std::vector <WayPoint> getShortestPathWBlacklist(std::string origNodeID, std::string destNodeID, std::vector<const sim_mob::RoadSegment*> blacklist);
 
@@ -127,7 +126,7 @@ public:
 
 	int test;
 
-	Node* getNodeFrmPool(const std::string& nodeId);
+	const Node* getNodeFrmPool(const std::string& nodeId);
 
 	void handleAMODEvent(sim_mob::event::EventId id,
 			sim_mob::event::Context ctxId,
@@ -188,8 +187,8 @@ private:
 	static AMODController* pInstance;
 
 public:
-	std::map<std::string,sim_mob::RoadSegment*> segPool; // store all segs ,key= aimsun id ,value = seg
-	std::map<std::string,sim_mob::Node*> nodePool; // store all nodes ,key= aimsun id ,value = node
+	std::map<std::string,const sim_mob::RoadSegment*> segPool; // store all segs ,key= aimsun id ,value = seg
+	std::map<std::string,const sim_mob::Node*> nodePool; // store all nodes ,key= aimsun id ,value = node
 	AMODEventPublisher eventPub;
 
 	StreetDirectory* stdir;
@@ -241,4 +240,4 @@ inline std::string getNumberFromAimsunId(std::string &aimsunid)
 }
 } /* namespace AMOD */
 } /* namespace sim_mob */
-#endif /* AMODController_HPP_ */
+

@@ -191,8 +191,8 @@ public:
 
 	Trip(std::string entId = "", std::string type="Trip", unsigned int seqNumber=0, int requestTime=-1,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(),
-			std::string tripId = "", Node* from=nullptr, std::string fromLocType="node",
-			Node* to=nullptr, std::string toLocType="node");
+			std::string tripId = "", const Node* from=nullptr, std::string fromLocType="node",
+			const Node* to=nullptr, std::string toLocType="node");
 	virtual ~Trip();
 
 	void addSubTrip(const sim_mob::SubTrip& aSubTrip);
@@ -237,8 +237,8 @@ public:
 class SubTrip: public sim_mob::Trip {
 public:
 	SubTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,int requestTime=-1,
-			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
-			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
+			DailyTime start=DailyTime(), DailyTime end=DailyTime(), const Node* from=nullptr,
+			std::string fromLocType="node", const Node* to=nullptr, std::string toLocType="node",
 			std::string mode="", bool isPrimary=true, std::string ptLineId="");
 	virtual ~SubTrip();
 

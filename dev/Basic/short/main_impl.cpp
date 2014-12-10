@@ -490,6 +490,10 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 	cout << "Simulation complete; closing worker threads." << endl;
 
+	//Delete the AMOD controller instance
+	sim_mob::AMOD::AMODController::deleteInstance();
+
+	//Delete the auramanger implementation instance
 	AuraManager::instance().destory();
 
 	//Delete our profiler, if it exists.

@@ -57,26 +57,34 @@ RoadSegment* findSegment(const set<RoadSegment*>& segments, const Node* const st
 }
 
 
-bool buildLinkList(const set<RoadSegment*>& segments, vector<RoadSegment*>& res, set<RoadSegment*>& usedSegments,
-		const Node* start, const Node* end)
+bool buildLinkList(set<RoadSegment*> segments, vector<RoadSegment*>& res,
+		set<RoadSegment*>& usedSegments, const Node* start, const Node* end)
 {
 	const Node* prev = nullptr;
-	for (const Node* fwd=start; fwd!=end;) {
+	const Node* fwd = start;
+	while (!segments.empty())
+	{
 		//Retrieve the next segment
 		RoadSegment* nextSeg = findSegment(segments, fwd, prev);
-		if (!nextSeg) {
+		if (!nextSeg)
+		{
+			Print() << "Could not find a segment enclosed by nodes ";
+					//<< fwd->getID() << " and " << prev->getID() << std::endl;
 			return false;
 		}
-
 		//Add it, track it, increment
 		res.push_back(nextSeg);
 		usedSegments.insert(nextSeg);
 		prev = fwd;
-		if (fwd!=nextSeg->getEnd()) {
+		if (fwd != nextSeg->getEnd())
+		{
 			fwd = nextSeg->getEnd();
-		} else {
+		}
+		else
+		{
 			fwd = nextSeg->getStart();
 		}
+		segments.erase(nextSeg);
 	}
 	return true;
 }
@@ -92,7 +100,6 @@ void sim_mob::Link::initializeLinkSegments(const std::set<sim_mob::RoadSegment*>
 	// road segments are used, to catch cases where RoadSegments are skipped.
 	set<RoadSegment*> usedSegments;
 	bool res1 = buildLinkList(newSegs, this->segs, usedSegments, start, end);
-	//bool res2 = buildLinkList(segments, revSegments, usedSegments, end, start);
 
 	//Ensure we have at least ONE path (for one-way Links)
 	if (!res1) {

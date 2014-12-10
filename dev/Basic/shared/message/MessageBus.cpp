@@ -141,7 +141,7 @@ namespace {
         : eventPublisher(nullptr),
         input(ComparePriority()),
         output(ComparePriority()),
-        TimebasedOutput(CompareTriggeredTime()),
+        timebasedOutput(CompareTriggeredTime()),
         main(false),
         receivedMessages(0),
         processedMessages(0),
@@ -168,7 +168,7 @@ namespace {
         bool main;
         MessageQueue input;
         MessageQueue output;
-        TimebasedMessageQueue TimebasedOutput;
+        TimebasedMessageQueue timebasedOutput;
         //event publisher for each thread context.
         EventPublisher* eventPublisher;
         // statistics
@@ -427,6 +427,35 @@ void MessageBus::DistributeMessages() {
     ThreadDispatchMessages();
 }
 
+void dispatch(const MessageEntry& entry, ThreadContext* &context,ThreadContext* &mainContext)
+{
+	if (entry.event) {
+		context->eventMessages++;
+		//if it is an event then we need to distribute the event for all
+		//publishers in the system.
+		ContextList::iterator lstItr1 = threadContexts.begin();
+		while (lstItr1 != threadContexts.end()) {
+			ThreadContext* ctx = (*lstItr1);
+			//main context will receive the original message
+			//for other the message entry is cloned.
+			MessageEntry newEntry(entry);
+			newEntry.destination = dynamic_cast<MessageHandler*> (ctx->eventPublisher);
+			ctx->input.push(newEntry);
+			lstItr1++;
+		}
+	} else {               // it is a regular/single message
+		context->receivedMessages++;
+		if (entry.processOnMainThread) {
+			mainContext->input.push(entry);
+		} else {
+			ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->GetContext());
+			if (destinationContext) {
+				destinationContext->input.push(entry);
+			}
+		}
+	}
+};
+
 void MessageBus::DispatchMessages() {
     CheckMainThread();
     ThreadContext* mainContext = GetThreadContext();
@@ -435,46 +464,17 @@ void MessageBus::DispatchMessages() {
 		ContextList::iterator lstItr = threadContexts.begin();
 		while (lstItr != threadContexts.end()) {
 			ThreadContext* context = (*lstItr);
-			void (*dispatch)(const MessageEntry& entry, ThreadContext* &context,
-					ThreadContext* &mainContext) =
-					[](const MessageEntry& entry, ThreadContext* &context, ThreadContext* &mainContext) -> void {
-						if (entry.event) {
-							context->eventMessages++;
-							//if it is an event then we need to distribute the event for all
-							//publishers in the system.
-							ContextList::iterator lstItr1 = threadContexts.begin();
-							while (lstItr1 != threadContexts.end()) {
-								ThreadContext* ctx = (*lstItr1);
-								//main context will receive the original message
-								//for other the message entry is cloned.
-								MessageEntry newEntry(entry);
-								newEntry.destination = dynamic_cast<MessageHandler*> (ctx->eventPublisher);
-								ctx->input.push(newEntry);
-								lstItr1++;
-							}
-						} else {               // it is a regular/single message
-							context->receivedMessages++;
-							if (entry.processOnMainThread) {
-								mainContext->input.push(entry);
-							} else {
-								ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->context);
-								if (destinationContext) {
-									destinationContext->input.push(entry);
-								}
-							}
-						}
-					};
 			while (!context->output.empty()) {
 				const MessageEntry& entry = context->output.top();
 				dispatch(entry, context, mainContext);
 				// internal messages go to the input queue of the main context.
 				context->output.pop();
 			}
-			while (!context->TimebasedOutput.empty()) {
-				const MessageEntry& entry = context->TimebasedOutput.top();
+			while (!context->timebasedOutput.empty()) {
+				const MessageEntry& entry = context->timebasedOutput.top();
 				if (entry.triggeredTime <= currentTime) {
 					dispatch(entry, context, mainContext);
-					context->TimebasedOutput.pop();
+					context->timebasedOutput.pop();
 				} else {
 					break;
 				}
@@ -524,7 +524,7 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
 				context->output.push(entry);
 			} else {
 				entry.triggeredTime = currentTime + triggeredTime;
-				context->TimebasedOutput.push(entry);
+				context->timebasedOutput.push(entry);
 			}
         }
     }

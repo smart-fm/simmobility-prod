@@ -266,7 +266,7 @@ namespace sim_mob {
             static MessageBus& GetInstance();
 
             /**
-             * record current simulation time
+             * record current simulation time, unit is millisecond
              */
             static unsigned int currentTime;
 

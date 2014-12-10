@@ -232,14 +232,6 @@
 				<useDefaultCommand>false</useDefaultCommand>
 				<runAllBuilders>false</runAllBuilders>
 			</target>
-			<target name="-std=c++11" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>-std=c++11</buildCommand>
-				<buildArguments>-C ${ProjDirPath}/Debug VERBOSE=1 -j6</buildArguments>
-				<buildTarget/>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>false</useDefaultCommand>
-				<runAllBuilders>true</runAllBuilders>
-			</target>
 		</buildTargets>
 	</storageModule>
 </cproject>

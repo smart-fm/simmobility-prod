@@ -39,6 +39,10 @@ namespace sim_mob {
              */
             unsigned int GetId() const;
 
+            void* GetContext() const{
+            	return context;
+            }
+
         private:
             friend class MessageBus;
             unsigned int id;

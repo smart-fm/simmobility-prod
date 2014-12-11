@@ -56,6 +56,11 @@ public:
 	 * \return number of paths found
 	 */
 	int getKShortestPaths(const sim_mob::Node *from, const sim_mob::Node *to, std::vector< std::vector<sim_mob::WayPoint> > &res);
+
+	/**
+	 * Same as the original version, naming conventions follows the Huang HE's documented algorithm.
+	 */
+	int getKShortestPaths_2(const sim_mob::Node *from, const sim_mob::Node *to, std::vector< std::vector<sim_mob::WayPoint> > &res);
 	void setK(int value) { k = value; }
 	int getK() { return k; }
 private:
@@ -69,6 +74,13 @@ private:
 	 * initialization
 	 */
 	void init();
+	/**
+	 * Obtain the end segments of a given node, as per requirement of Yen's shortest path
+	 * (mentioned in He's Algorithm)
+	 * \param SpurNode input
+	 * \paream endSegments output
+	 */
+	void getEndSegments(const Node *SpurNode,std::vector<const RoadSegment*> &endSegments);
 	/**
 	 * store intermediary result into A_Segments(get segments list of the path)
 	 */

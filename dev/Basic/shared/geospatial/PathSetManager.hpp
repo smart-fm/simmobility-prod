@@ -19,6 +19,8 @@
 #include "util/Cache.hpp"
 #include "util/Utils.hpp"
 
+#include <boost/iterator/filter_iterator.hpp>
+
 namespace sim_mob
 {
 namespace batched {
@@ -26,7 +28,7 @@ class ThreadPool;
 }
 
 ///	Debug Method to print WayPoint based paths
-void printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node* startingNode = 0);
+std::string printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node* startingNode = 0);
 
 /**
  * This class is used to store, retrieve, cache different parameters used in the pathset generation
@@ -566,6 +568,19 @@ public:
 	PathSet(boost::shared_ptr<sim_mob::PathSet> &ps);
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///given a path of alternative nodes and segments, keep segments, loose the nodes
+struct segFilter{
+		bool operator()(const WayPoint value){
+			return value.type_ == WayPoint::ROAD_SEGMENT;
+		}
+};
+
+inline void filterOutNodes(std::vector<WayPoint>& input, std::vector<WayPoint>& output)
+{
+	typedef boost::filter_iterator<segFilter,std::vector<WayPoint>::iterator> FilterIterator;
+	std::copy(FilterIterator(input.begin(), input.end()),FilterIterator(input.end(), input.end()),std::back_inserter(output));
+}
+
 inline double generateSinglePathLength(std::vector<WayPoint>& wp) // unit is meter
 {
 	double res=0;

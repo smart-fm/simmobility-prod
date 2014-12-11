@@ -797,17 +797,25 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 //	return true;
 //}
 
-void sim_mob::printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node* startingNode ){
+std::string sim_mob::printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node* startingNode ){
 	std::ostringstream out("wp path--");
 	if(startingNode){
 		out << startingNode->getID() << ":";
 	}
 	BOOST_FOREACH(WayPoint wp, wps){
-		out << wp.roadSegment_->getSegmentAimsunId() << ",";
+		if(wp.type_ == sim_mob::WayPoint::ROAD_SEGMENT)
+		{
+			out << wp.roadSegment_->getSegmentAimsunId() << ",";
+		}
+		else if(wp.type_ == sim_mob::WayPoint::NODE)
+		{
+			out << wp.node_->getID() << ",";
+		}
 	}
 	out << "\n";
 
 	logger << out.str();
+	return out.str();
 }
 
 namespace
@@ -1176,6 +1184,10 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	std::vector< std::vector<sim_mob::WayPoint> > ksp;
 	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> kspTemp;
 	int kspn = sim_mob::K_ShortestPathImpl::getInstance()->getKShortestPaths(ps->fromNode,ps->toNode,ksp);
+
+	std::stringstream kspLog("");
+	kspLog << "ksp-" << fromToID ;
+	sim_mob::BasicLogger & kspLogger = sim_mob::Logger::log(kspLog.str());
 	std::cout << "[" << fromToID << "][K-SHORTEST :" << kspn << "]\n";
 	for(int i=0;i<ksp.size();++i)
 	{
@@ -1187,8 +1199,9 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 			sim_mob::SinglePath *s = new sim_mob::SinglePath();
 			// fill data
 			s->isNeedSave2DB = true;
-			s->init(path_);
 			s->id = id;
+			std::cout << "[KSP:" << i << "] " << s->id << "\n";
+			s->init(path_);
 			s->scenario = ps->scenario;
 			s->pathSize=0;
 			duplicateChecker.insert(id);
@@ -2230,18 +2243,16 @@ double sim_mob::PathSetManager::getTravelTime(sim_mob::SinglePath *sp,sim_mob::D
 	return ts;
 }
 
-namespace{
-struct segFilter{
-		bool operator()(const WayPoint value){
-			return value.type_ == WayPoint::ROAD_SEGMENT;
-		}
-	};
-}
 void sim_mob::SinglePath::init(std::vector<WayPoint>& wpPools)
 {
 	//step-1 fill in the path
-	typedef boost::filter_iterator<segFilter,std::vector<WayPoint>::iterator> FilterIterator;
-	std::copy(FilterIterator(wpPools.begin(), wpPools.end()),FilterIterator(wpPools.end(), wpPools.end()),std::back_inserter(this->path));
+	filterOutNodes(wpPools, this->path);
+	if(this->path.empty())
+	{
+	   std::string err = "empty path for OD:" + this->pathSetId + "--"  + this->id;
+	   throw std::runtime_error(err);
+	}
+
 	//step-2 right/left turn
 	sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(this);
 	//step-3 highway distance

@@ -27,6 +27,6 @@ sim_mob::SimulationParams::SimulationParams() :
 {}
 
 
-sim_mob::LongTermParams::LongTermParams(): enabled(false), workers(0), days(0), tickStep(0), maxIterations(0) {}
+sim_mob::LongTermParams::LongTermParams(): enabled(false), workers(0), days(0), tickStep(0), maxIterations(0), dayOneAwakening(0) {}
 sim_mob::LongTermParams::DeveloperModel::DeveloperModel(): enabled(false), timeInterval(0) {}
 sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInterval(0), timeOnMarket(0), numberOfHouseholds(0), numberOfUnits(0), numberOfVacantUnits(0) {}

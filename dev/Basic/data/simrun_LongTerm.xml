@@ -142,6 +142,7 @@
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>
+	<dayOneAwakening value="10000"/>
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
     	</developerModel>

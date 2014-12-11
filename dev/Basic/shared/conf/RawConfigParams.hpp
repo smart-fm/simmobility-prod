@@ -41,6 +41,7 @@ struct LongTermParams{
 	unsigned int days;
 	unsigned int tickStep;
 	unsigned int maxIterations;
+	unsigned int dayOneAwakening;
 
 	struct DeveloperModel{
 		DeveloperModel();

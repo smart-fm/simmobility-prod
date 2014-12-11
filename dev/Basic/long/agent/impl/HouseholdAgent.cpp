@@ -17,6 +17,8 @@
 #include "role/impl/HouseholdSellerRole.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "core/DataManager.hpp"
+#include "conf/ConfigParams.hpp"
+#include "conf/ConfigManager.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -92,7 +94,12 @@ bool HouseholdAgent::onFrameInit(timeslice now)
 
 void HouseholdAgent::awakenHousehold()
 {
-	if( model->getAwakeningCounter() > 10000 )
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+
+	int xsrt = config.ltParams.dayOneAwakening;
+
+	if( model->getAwakeningCounter() > config.ltParams.dayOneAwakening)
 		return;
 
 	if(household == nullptr)
@@ -149,12 +156,10 @@ void HouseholdAgent::awakenHousehold()
 
 Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 {
-
 	if( now.frame() == 1 )
 	{
 		awakenHousehold();
 	}
-
 
     if (bidder && bidder->isActive())
     {

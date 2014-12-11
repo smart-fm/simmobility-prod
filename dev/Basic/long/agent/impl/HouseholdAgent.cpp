@@ -96,9 +96,6 @@ void HouseholdAgent::awakenHousehold()
 {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-
-	int xsrt = config.ltParams.dayOneAwakening;
-
 	if( model->getAwakeningCounter() > config.ltParams.dayOneAwakening)
 		return;
 

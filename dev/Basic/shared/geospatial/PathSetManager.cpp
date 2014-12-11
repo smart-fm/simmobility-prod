@@ -121,9 +121,9 @@ double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::strin
 	{
 		//logger << "using realtime travel time \n";
 		std::vector<sim_mob::LinkTravelTime> &e = (*it).second;
-		for(int i = 0;i < e.size();++i)
+		for(std::vector<sim_mob::LinkTravelTime>::iterator itL(e.begin());itL != e.end();++itL)
 		{
-			sim_mob::LinkTravelTime& l = e[i];
+			sim_mob::LinkTravelTime& l = (*itL);
 			if( l.startTime_DT.isAfterEqual(startTime) && l.endTime_DT.isBeforeEqual(endTime) )
 			{
 				totalTravelTime += l.travelTime;
@@ -142,11 +142,11 @@ double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::strin
 	{
 //		logger << "using default travel time \n";
 		std::vector<sim_mob::LinkTravelTime> &e = (*it).second;
-		for(int i=0;i<e.size();++i)
+		for(std::vector<sim_mob::LinkTravelTime>::iterator itL(e.begin());itL != e.end();++itL)
 		{
-			sim_mob::LinkTravelTime& l = e[i];
-				totalTravelTime += l.travelTime;
-				count++;
+			sim_mob::LinkTravelTime& l = (*itL);
+			totalTravelTime += l.travelTime;
+			count++;
 		}
 		if(count != 0)
 		{
@@ -163,18 +163,18 @@ double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::strin
 
 double sim_mob::PathSetParam::getDefaultTravelTimeBySegId(std::string id)
 {
-	double res=0.0;
-	double totalTravelTime=0.0;
-	int count=0;
+	double res = 0.0;
+	double totalTravelTime = 0.0;
+	int count = 0;
 	std::map<std::string,std::vector<sim_mob::LinkTravelTime> >::iterator it = segmentDefaultTravelTimePool.find(id);
 	if(it!=segmentDefaultTravelTimePool.end())
 	{
 		std::vector<sim_mob::LinkTravelTime> &e = (*it).second;
-		for(int i=0;i<e.size();++i)
+		for(std::vector<sim_mob::LinkTravelTime>::iterator itL(e.begin());itL != e.end();++itL)
 		{
-			sim_mob::LinkTravelTime& l = e[i];
-				totalTravelTime += l.travelTime;
-				count++;
+			sim_mob::LinkTravelTime& l = (*itL);
+			totalTravelTime += l.travelTime;
+			count++;
 		}
 		if(count != 0)
 		{
@@ -197,9 +197,9 @@ double sim_mob::PathSetParam::getTravelTimeBySegId(const std::string &id,sim_mob
 	if(it!=segmentRealTimeTravelTimePool.end())
 	{
 		std::vector<sim_mob::LinkTravelTime> &e = (*it).second;
-		for(int i=0;i<e.size();++i)
+		for(std::vector<sim_mob::LinkTravelTime>::iterator itL(e.begin());itL != e.end();++itL)
 		{
-			sim_mob::LinkTravelTime& l = e[i];
+			sim_mob::LinkTravelTime& l = (*itL);
 			if( l.startTime_DT.isBeforeEqual(startTime) && l.endTime_DT.isAfter(startTime) )
 			{
 				res = l.travelTime;
@@ -217,9 +217,9 @@ double sim_mob::PathSetParam::getTravelTimeBySegId(const std::string &id,sim_mob
 	if(it!=segmentDefaultTravelTimePool.end())
 	{
 		std::vector<sim_mob::LinkTravelTime> &e = (*it).second;
-		for(int i=0;i<e.size();++i)
+		for(std::vector<sim_mob::LinkTravelTime>::iterator itL(e.begin());itL != e.end();++itL)
 		{
-			sim_mob::LinkTravelTime& l = e[i];
+			sim_mob::LinkTravelTime& l = *itL;
 			if( l.startTime_DT.isBeforeEqual(startTime) && l.endTime_DT.isAfter(startTime) )
 			{
 				res = l.travelTime;
@@ -419,8 +419,8 @@ uint32_t sim_mob::PathSetManager::getSize(){
 //	}
 	sum += scenarioName.length(); // std::string scenarioName;
 	// std::map<std::string ,std::vector<WayPoint> > fromto_bestPath;
-	sum += sizeof(WayPoint) * fromto_bestPath.size();
-	for(std::map<std::string ,std::vector<WayPoint> >::iterator it = fromto_bestPath.begin(); it != fromto_bestPath.end(); sum += it->first.length(), it++);
+//	sum += sizeof(WayPoint) * fromto_bestPath.size();
+//	for(std::map<std::string ,std::vector<WayPoint> >::iterator it = fromto_bestPath.begin(); it != fromto_bestPath.end(); sum += it->first.length(), it++);
 	for(std::set<std::string>::iterator it = tempNoPath.begin(); it != tempNoPath.end(); sum += (*it).length(), it++); // std::set<std::string> tempNoPath;
 	sum += sizeof(SGPER); // SGPER pathSegments;
 	sum += pathSetParam->RTTT.length(); // std::string RTTT;
@@ -550,32 +550,10 @@ bool sim_mob::PathSetManager::copyTravelTimeDataFromTmp2RealtimeTable()
 	return sim_mob::aimsun::Loader::upsertTravelTime(*getSession(), boost::filesystem::canonical("real_time_travel_time.txt").string(), sim_mob::PathSetParam::getInstance()->RTTT);
 }
 
-void sim_mob::PathSetManager::insertFromTo_BestPath_Pool(std::string& id ,vector<WayPoint>& values)
-{
-	if(fromto_bestPath.size()>10000)
-	{
-		std::map<std::string ,std::vector<WayPoint> >::iterator it = fromto_bestPath.begin();
-		fromto_bestPath.erase(it);
-	}
-	fromto_bestPath.insert(std::make_pair(id,values));
-}
-
 const std::pair <SGPER::const_iterator,SGPER::const_iterator > sim_mob::PathSetManager::getODbySegment(const sim_mob::RoadSegment* segment) const{
        logger << "pathSegments cache size =" <<  pathSegments.size() << "\n";
        const std::pair <SGPER::const_iterator,SGPER::const_iterator > range = pathSegments.equal_range(segment);
        return range;
-}
-
-//todo: replacing bool and std::vector<WayPoint>& can save a copy
-bool sim_mob::PathSetManager::getCachedBestPath(std::string id, std::vector<WayPoint> &value)
-{
-	std::map<std::string ,std::vector<WayPoint> >::iterator it = fromto_bestPath.find(id);
-	if(it == fromto_bestPath.end())
-	{
-		return false;
-	}
-	value = (*it).second;
-	return true;
 }
 
 void sim_mob::PathSetManager::inserIncidentList(const sim_mob::RoadSegment* rs) {
@@ -671,7 +649,7 @@ bool sim_mob::PathSetManager::findCachedPathSet_LRU(std::string  key, boost::sha
 void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>&ps)
 {
 
-	double minTravelTime=99999999.0;
+	double minTravelTime= std::numeric_limits<double>::max();
 	// find MIN_TRAVEL_TIME
 	// record which is min
 	sim_mob::SinglePath *minSP = *(ps->pathChoices.begin());
@@ -704,7 +682,7 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 		minSP->isMinTravelTime = 1;
 	}
 	// find MIN_DISTANCE
-	double minDistance=99999999.0;
+	double minDistance = std::numeric_limits<double>::max();
 	minSP = *(ps->pathChoices.begin()); // record which is min
 	if(ps->oriPath ){
 		minDistance = ps->oriPath->length;
@@ -721,7 +699,7 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 	minSP->isMinDistance = 1;
 
 	// find MIN_SIGNAL
-	int minSignal=99999999;
+	int minSignal = std::numeric_limits<int>::max();
 	minSP = *(ps->pathChoices.begin()); // record which is min
 	if(ps->oriPath){
 		minSignal = ps->oriPath->signalNumber;
@@ -738,7 +716,7 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 	minSP->isMinSignal = 1;
 
 	// find MIN_RIGHT_TURN
-	int minRightTurn=99999999;
+	int minRightTurn = std::numeric_limits<int>::max();
 	minSP = *(ps->pathChoices.begin()); // record which is min
 	if(ps->oriPath){
 		minRightTurn = ps->oriPath->rightTurnNumber;
@@ -1183,10 +1161,9 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	StreetDirectory::VertexDesc to = impl->DrivingVertex(*ps->toNode);
 	StreetDirectory::Vertex* fromV = &from.source;
 	StreetDirectory::Vertex* toV = &to.sink;
-	//TODO: remove comment later
-	for(int i=0;i<ps->oriPath->path.size();++i)
+	for(std::vector<sim_mob::WayPoint>::iterator it(ps->oriPath->path.begin()); it != ps->oriPath->path.end() ;++it)
 	{
-		WayPoint *w = &(ps->oriPath->path[i]);
+		WayPoint *w = &(*it);
 		if (w->type_ == WayPoint::ROAD_SEGMENT && l != w->roadSegment_->getLink()) {
 			const sim_mob::RoadSegment* seg = w->roadSegment_;
 			PathSetWorkerThread * work = new PathSetWorkerThread();
@@ -1201,7 +1178,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 			work->excludeSeg.insert(seg);
 			work->ps = ps;
 			std::stringstream out("");
-			out << "sdle," << i << "," << ps->fromNode->getID() << "," << ps->toNode->getID() ;
+			out << "sdle," << fromToID ;
 			work->dbgStr = out.str();
 			threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
 			workPool.push_back(work);
@@ -1361,7 +1338,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 	std::string pathSetID=fromToID;
 	//check cache to save a trouble if the path already exists
 	vector<WayPoint> cachedResult;
-	if(getCachedBestPath(fromToID,cachedResult))
+	//if(getCachedBestPath(fromToID,cachedResult))
 	{
 		return cachedResult;
 	}
@@ -1415,7 +1392,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 								}
 							}
 							ps_->pathChoices.clear();
-							insertFromTo_BestPath_Pool(fromToID,res);
+							//insertFromTo_BestPath_Pool(fromToID,res);
 							return res;
 						}
 						else
@@ -2065,35 +2042,12 @@ void sim_mob::generatePathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUse
 	}
 	double minL = 0;
 	// Step 1: the length of each path in the path choice set
-//	if(ps->oriPath)
-//	{
-//		minL = ps->oriPath->length;
-//	}
-//	else
-//	{
-//		sim_mob::SinglePath *sp = findShortestPath(ps->pathChoices);
-//		if(sp)
-//		{
-//			minL = sp->length;
-//		}
-//		else
-//		{
-//			throw std::runtime_error("No Path Found for Length extraction");
-//		}
-//	}
-//	std::cout << "min path:" << minL << std::endl;
 
-	int dbg_ind = -1;
 	bool uniquePath;
 	//pathsize
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
-//		std::cout << "..................................................\n";
-//		std::cout << "Analyzing path: " << sp->id << std::endl;
-//		std::cout << "Path length: " << sp->length << std::endl;
-		dbg_ind ++;
 		uniquePath = true; //this variable checks if a path has No common segments with the rest of the pathset
-		//Set size = 0.
 		double size=0.0;
 
 		double pathLengthChecker=0.0;
@@ -2107,7 +2061,6 @@ void sim_mob::generatePathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUse
 			throw std::runtime_error ("unexpected empty shortestWayPointpath in singlepath");
 		}
 		// For each link a in the path:
-//		for(std::set<const RoadSegment*>::iterator it1 = sp->shortestSegPath.begin();it1 != sp->shortestSegPath.end(); it1++)
 		for(std::vector<WayPoint>::iterator it1=sp->path.begin(); it1!=sp->path.end(); ++it1)
 		{
 			const sim_mob::RoadSegment* seg = it1->roadSegment_;
@@ -2131,37 +2084,18 @@ void sim_mob::generatePathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUse
 				for(itt2 = spj->path.begin(); itt2 != spj->path.end() && itt2->roadSegment_ != seg; ++itt2);
 				if(itt2 != spj->path.end())
 				{
-					//found a match
-					//sum += minL/(spj->length);
-
 					sum += minL/(spj->length);
-					//std::cout << "\nupdate sum by minL/(spj->length) : " << minL << " / " << spj->length << " = " << minL/(spj->length) << std::endl;
-
-					// Using formula from Ramming's thesis: Li/Lj
-					//sum += sp->length/spj->length;
-					//uniquness: if any part of the path is common with any other path, it is not a unique path
 					if(sp->id != spj->id)
 					{
 						uniquePath = false;
-//						std::cout << "Path i is not a unique path because we found an overlap with path j" << std::endl;
 					}
-					//printWPpath(spj->path);
-//					std::cout << "New sum = " << sum << " ";
 				}
-				else
-				{
-					//std::cout << " O ";
-				}
-
 			} // for j
 			size += l/sp->length/sum; //
-//			std::cout << "\nupdate size by l/sp->length/sum : " << l << " / " << sp->length << " / " << sum << "=>" << l/sp->length/sum << std::endl;
-//			std::cout << "New size = " << size << std::endl;
 		}
 		//is this a unique path ?
 		if(uniquePath)
 		{
-//			std::cout << "Unique path\n";
 			sp->pathSize = 0;
 		}
 		else
@@ -2169,16 +2103,7 @@ void sim_mob::generatePathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUse
 			//calculate path size
 			sp->pathSize = log(size);
 		}
-//		std::cout << "size: " << size << "  sp->pathSize : " << sp->pathSize << "\n";
-
-//		std::cout << "pathLengthChecker = " << pathLengthChecker << " path length = " << sp->length << std::endl;
-		//todo temporarily disabling the sanity check
-//		if(sp->pathSize > 0.0 || (sp->pathSize == 0.0 && !uniquePath))
-//		{
-//			throw std::runtime_error("sp->pathSize(log(size)) is > 0 ");
-//		}
 	}// end for
-	std::cout << "-----------------------------------\n";
 }
 
 

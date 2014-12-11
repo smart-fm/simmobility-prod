@@ -596,7 +596,7 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 	}
 
 //	//sanity check
-	std::stringstream out("Missing ");
+	std::stringstream out("");
 	if(cfg.pathset.database == "")
 	{
 		out << "single path's data base, ";
@@ -621,10 +621,10 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 	{
 		out << "single path stored procedure, ";
 	}
-	if(out.str().size() > std::string("Missing ").size())
+	if(out.str().size())
 	{
-		out << "Missing " << out.str();
-		throw std::runtime_error(out.str());
+		std::string err = std::string("Missing:") + out.str();
+		throw std::runtime_error(err);
 	}
 }
 

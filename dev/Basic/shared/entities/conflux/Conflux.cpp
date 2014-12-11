@@ -1269,7 +1269,7 @@ bool sim_mob::Conflux::insertTravelTime2TmpTable(timeslice frameNumber, std::map
 	std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>::const_iterator it = rdSegTravelTimesMap.begin();
 	for (; it != rdSegTravelTimesMap.end(); it++){
 		LinkTravelTime tt;
-		DailyTime simStart = ConfigManager::GetInstance().FullConfig().simStartTime();
+		const DailyTime &simStart = ConfigManager::GetInstance().FullConfig().simStartTime();
 		tt.linkId = (*it).first->getId();
 		tt.recordTime_DT = simStart + sim_mob::DailyTime(frameNumber.ms());
 		tt.travelTime = (*it).second.travelTimeSum/(*it).second.agCnt;

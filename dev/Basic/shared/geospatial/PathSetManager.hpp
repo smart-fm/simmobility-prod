@@ -343,10 +343,6 @@ public:
 
 	void setScenarioName(std::string& name){ scenarioName = name; }
 
-	void insertFromTo_BestPath_Pool(std::string& id ,std::vector<WayPoint>& value);
-
-	bool getCachedBestPath(std::string id, std::vector<WayPoint> & value);
-
 	const std::pair<SGPER::const_iterator,SGPER::const_iterator > getODbySegment(const sim_mob::RoadSegment* segment) const;
 
 	///	handle messages sent to pathset manager using message bus
@@ -450,9 +446,6 @@ private:
 	sim_mob::LRU_Cache<std::string, boost::shared_ptr<PathSet> > cacheLRU;
 	///	contains arbitrary description usually to indicating which configuration file the generated data has originated from
 	std::string scenarioName;
-
-	/// cache the best chosen path
-	std::map<std::string ,std::vector<WayPoint> > fromto_bestPath;
 
 	///	used to avoid entering duplicate "HAS_PATH=-1" pathset entries into PathSet. It will be removed once the cache and/or proper DB functions are in place
 	std::set<std::string> tempNoPath;
@@ -578,7 +571,7 @@ inline sim_mob::SinglePath* findShortestPath(std::set<sim_mob::SinglePath*, sim_
 		return nullptr;
 	}
 	sim_mob::SinglePath* res = nullptr;
-	double min = 99999999.0;
+	double min = std::numeric_limits<double>::max();
 	double tmp = 0.0;
 	BOOST_FOREACH(sim_mob::SinglePath*sp, pathChoices)
 	{
@@ -592,13 +585,11 @@ inline sim_mob::SinglePath* findShortestPath(std::set<sim_mob::SinglePath*, sim_
 			continue;
 		}
 		double tmp = generateSinglePathLength(sp->path);
-		if ((tmp*1000000 - min*1000000  ) < 0.0)
+		if ((tmp*1000000 - min*1000000  ) < 0.0) //easy way to check doubles
 		{
 			min = tmp;
 			res = sp;
 		}
-		//std::cout << min << " " << tmp << " " << (min*1000000 - tmp*1000000) << std::endl;
-		//std::cout << "path length " << tmp << std::endl;
 	}
 	return res;
 }
@@ -611,7 +602,7 @@ inline double getTravelCost2(sim_mob::SinglePath *sp,const sim_mob::DailyTime &t
 //	sim_mob::Logger::log("path_set").prof("getTravelCost2").tick();
 	double res=0.0;
 	double ts=0.0;
-	if(!sp || sp->path.begin() == sp->path.end()) {
+	if(!sp || !sp->path.empty()) {
 		sim_mob::Logger::log("path_set") << "gTC: sp is empty" << std::endl;
 		out << "\ngTC: sp is empty " << sp << "\n";
 	}

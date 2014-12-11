@@ -126,7 +126,8 @@ struct WayPoint
     explicit WayPoint(const Point2D& ignored) : type_(NONSPATIAL), node_(nullptr),directionReverse(false) {}
     /** \endcond ignoreStreetDirectoryInnards -- End of block to be ignored by doxygen.  */
 
-    bool operator==(const WayPoint & rhs){
+    bool operator==(const WayPoint & rhs) const
+    {
     	return (type_ == rhs.type_ &&
     			lane_  == rhs.lane_ &&
     			roadSegment_ == rhs.roadSegment_ &&
@@ -136,11 +137,13 @@ struct WayPoint
     			directionReverse == rhs.directionReverse);
     }
 
-    bool operator!=(const WayPoint & rhs){
+    bool operator!=(const WayPoint & rhs) const
+    {
     	return !(*this == rhs);
     }
 
-    WayPoint &  operator=(const WayPoint & rhs){
+    WayPoint &  operator=(const WayPoint & rhs)
+    {
     	type_ = rhs.type_;
     	switch (type_)
     	{

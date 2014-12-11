@@ -902,6 +902,9 @@ void sim_mob::PathSetManager::onGeneratePathSet(boost::shared_ptr<PathSet> &ps)
 	{
 		sp->partialUtility = generatePartialUtility(sp);
 	}
+	//store in into the database
+	logger << "[STORE PATH: " << ps->id << "]\n";
+	pathSetParam->storeSinglePath(*getSession(), ps->pathChoices,singlePathTableName);
 }
 //Operations:
 //step-0: Initial preparations
@@ -1039,13 +1042,9 @@ bool sim_mob::PathSetManager::getBestPath(
 		ps_->id = fromToID;
 		ps_->scenario = scenarioName;
 		ps_->subTrip = st;
-
-		bool r = generateAllPathChoices(ps_, blckLstSegs);
-		if (r)
-		{
-			onGeneratePathSet(ps_);
-		}
-		else
+		std::set<OD> recursiveOrigins;
+		bool r = generateAllPathChoices(ps_, recursiveOrigins, blckLstSegs);
+		if (!r)
 		{
 			logger << "[PATHSET GENERATION FAILURE : " << fromToID << "]\n";
 			tempNoPath.insert(fromToID);
@@ -1072,12 +1071,11 @@ bool sim_mob::PathSetManager::getBestPath(
 				cachePathSet(ps_);
 				logger << ps_->id	<< "WARNING not cached, apparently, already in cache. this is NOT and expected behavior!!\n";
 			}
-			//store in into the database
-			logger << "[STORE PATH: " << fromToID << "]\n";
-			pathSetParam->storeSinglePath(*getSession(), ps_->pathChoices,singlePathTableName);
 			logger << "[RETURN PATH OF SIZE : " << res.size() << " : " << fromToID << "]\n";
 			return true;
-		} else {
+		}
+		else
+		{
 			logger << "[NO PATH RETURNED EVEN AFTER GENERATING A PATHSET : " << fromToID << "]\n";
 			return false;
 		}
@@ -1094,18 +1092,21 @@ bool sim_mob::PathSetManager::getBestPath(
 	return false;
 }
 
-bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, const std::set<const sim_mob::RoadSegment*> & excludedSegs)
+bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs)
 {
 	logger << "generateAllPathChoices" << std::endl;
 	/**
 	 * step-1: find the shortest path. if not found: create an entry in the "PathSet" table and return(without adding any entry into SinglePath table)
-	 * step-2: cancelled for now! from the Singlepath's waypoints collection, compute the "travel cost" and "travel time"
-	 * step-3: SHORTEST DISTANCE LINK ELIMINATION
-	 * step-4: shortest travel time link elimination
-	 * step-5: TRAVEL TIME HIGHWAY BIAS
-	 * step-6: Random Pertubation
-	 * step-7: Some caching/bookkeeping
+	 * step-2: SHORTEST DISTANCE LINK ELIMINATION
+	 * step-3: shortest travel time link elimination
+	 * step-4: TRAVEL TIME HIGHWAY BIAS
+	 * step-5: Random Pertubation
+	 * step-6: Some caching/bookkeeping
+	 * step-7: What to do after generation (store path set...)
+	 * step-8: RECURSION!!!
 	 */
+
+	//step-1: find the shortest path.
 	std::set<std::string> duplicateChecker;
 	sim_mob::SinglePath *s = findShortestDrivingPath(ps->fromNode,ps->toNode,duplicateChecker/*,excludedSegs*/);
 	if(!s)
@@ -1119,19 +1120,14 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 		}
 		return false;
 	}
-	//	// 1.31 check path pool
-		// 1.4 create PathSet object
 	ps->hasPath = true;
 	ps->isNeedSave2DB = true;
 	ps->oriPath = s;
 	std::string fromToID(getFromToString(ps->fromNode, ps->toNode));
 	ps->id = fromToID;
 	s->pathSetId = ps->id;
-	//this is done in onPathSetRetrieval so no need to repeat for now
-//	s->travelCost = sim_mob::getTravelCost2(s,ps->subTrip->startTime);
-//	s->travleTime = getTravelTime(s,ps->subTrip->startTime);
 
-	// SHORTEST DISTANCE LINK ELIMINATION
+	//step-2: SHORTEST DISTANCE LINK ELIMINATION
 	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
 	sim_mob::Link *l = NULL;
 	std::vector<PathSetWorkerThread*> workPool;
@@ -1167,7 +1163,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	logger  << "waiting for SHORTEST DISTANCE LINK ELIMINATION" << "\n";
 	threadpool_->wait();
 
-	// SHORTEST TRAVEL TIME LINK ELIMINATION
+	//step-3: SHORTEST TRAVEL TIME LINK ELIMINATION
 	l=NULL;
 
 	//keep this line uncommented
@@ -1292,14 +1288,69 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 			ps->addOrDeleteSinglePath(p->s);
 		}
 	}
-
 	//cleanupworkPool
 	for(std::vector<PathSetWorkerThread*>::iterator wrkPoolIt=workPool.begin(); wrkPoolIt!=workPool.end(); wrkPoolIt++) {
 		safe_delete_item(*wrkPoolIt);
 	}
 	workPool.clear();
+	//step-7
+	onGeneratePathSet(ps);
+	//step -8 :
+	boost::shared_ptr<sim_mob::PathSet> recursionPs;
+	/*
+	 * a) iterate through each path to first find ALL the multinodes to destination to make a set.
+	 * c) then iterate through this set to choose each of them as a new Origin(Destination is same).
+	 * call generateAllPathChoices on the new OD pair
+	 */
+	//a)
+	std::set<Node*> newOrigins = std::set<Node*>();
+	BOOST_FOREACH(sim_mob::SinglePath *sp, ps->pathChoices)
+	{
+		if(sp->path.size() <=1)
+		{
+			continue;
+		}
+		sim_mob::MultiNode * linkEnd = nullptr;
+		//skip the origin and destination node(first and last one)
+		std::vector<WayPoint>::iterator it(++sp->path.begin());
+		std::vector<WayPoint>::iterator itEnd(--sp->path.end());
+		for(; it != itEnd; it++)
+		{
+
+			if(it == sp->path.begin() || it->roadSegment_->getEnd() == ps->toNode)
+			{
+				continue;
+			}
+			//skip uninodes
+			sim_mob::MultiNode * newFrom = it->roadSegment_->getLink()->getEnd();
+			// All segments of the link have the same link end node. Skip if already chosen
+			if(linkEnd == newFrom)
+			{
+				continue;
+			}
+			else
+			{
+				linkEnd = newFrom;
+			}
+			//check if the new OD you want to process is not already scheduled for processing by previous iterations(todo: or even by other threads!)
+			if(recursiveODs.insert(OD(newFrom,ps->toNode)).second == false)
+			{
+				continue;
+			}
+			//Now we have a new qualified Origin. note it down for further processing
+			newOrigins.insert(newFrom);
+		}
+	}
+	//b)
+	BOOST_FOREACH(sim_mob::Node *from, newOrigins)
+	{
+		boost::shared_ptr<sim_mob::PathSet> recursionPs(new sim_mob::PathSet(from,ps->toNode));
+		recursionPs->scenario = ps->scenario;
+		generateAllPathChoices(recursionPs, recursiveODs);
+	}
 	return true;
 }
+
 //todo ps_->pathChoices.insert(s) prone to memory leak
 vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob::SubTrip* st)
 {

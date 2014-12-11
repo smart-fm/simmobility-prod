@@ -26,6 +26,40 @@ namespace batched {
 class ThreadPool;
 }
 
+/**
+ * A structure to stor Origin and Destination in one pair
+ * additional operator overload for assignment and comparisons
+ */
+struct OD
+{
+	OD(const sim_mob::WayPoint &origin, const sim_mob::WayPoint &destination):
+		origin(origin), destination(destination){}
+	OD(const sim_mob::Node * origin, const sim_mob::Node * destination):
+		origin(sim_mob::WayPoint(origin)), destination(sim_mob::WayPoint(destination)){}
+	sim_mob::WayPoint origin;
+	sim_mob::WayPoint destination;
+	bool operator==(const OD & rhs) const
+	{
+		return (origin == rhs.origin && destination == rhs.destination);
+	}
+
+	OD & operator=(const OD & rhs)
+	{
+		origin = rhs.origin;
+		destination = rhs.destination;
+		return *this;
+	}
+	bool operator<(const OD & rhs) const
+	{
+		// just an almost dummy operator< to preserve uniquness
+		if(origin != rhs.origin)
+		{
+			return &origin < &rhs.origin;
+		}
+		return &destination < &rhs.destination;
+	}
+};
+
 ///	Debug Method to print WayPoint based paths
 void printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node* startingNode = 0);
 
@@ -318,7 +352,7 @@ public:
 	 * \param excludedSegs input list segments to be excluded from the target set
 	 * \param isUseCache is using the cache allowed
 	 */
-	bool generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>());
+	bool generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>());
 
 	///	generate travel time required to complete a path represented by different singlepath objects
 	void generateTravelTimeSinglePathes(const sim_mob::Node *fromNode, const sim_mob::Node *toNode, std::set<std::string>& duplicateChecker,boost::shared_ptr<sim_mob::PathSet> &ps_);
@@ -734,5 +768,6 @@ inline float gen_random_float(float min, float max)
     boost::variate_generator<boost::mt19937&, boost::uniform_real<float> > gen(rng, u);
     return gen();
 }
+
 
 }//namespace

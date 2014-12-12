@@ -121,7 +121,8 @@ public:
     void testSecondVh();
 	void testVh();
 	void testTravelTimePath();
-	void assignVhs(std::vector<std::string>& origin, std::vector<std::string>& destination);
+
+	//Assign vehicle
 	void assignVhsFast(std::vector<std::string>& tripID, std::vector<std::string>& origin, std::vector<std::string>& destination, int currTime);
 
 	int test;

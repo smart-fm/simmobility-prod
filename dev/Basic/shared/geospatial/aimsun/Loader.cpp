@@ -1105,15 +1105,11 @@ void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<
 	{
 		sim_mob::PT_bus_routes pt_bus_routesTemp = *iter;
 		pt_bus_routes.push_back(pt_bus_routesTemp);
-//		std::cout << pt_bus_routesTemp.route_id << " " << atoi(pt_bus_routesTemp.link_id.c_str()) << " " << pt_bus_routesTemp.link_sequence_no << std::endl;
 		sim_mob::RoadSegment *seg = sections_[atoi(pt_bus_routesTemp.link_id.c_str())].generatedSegment;
 		if(seg) {
 			routeID_roadSegments[iter->route_id].push_back(seg);
-//			std::cout << "iter->route_id: " << iter->route_id << "    Section to segment map  " << seg->getId() ;
-//			std::cout << "current routeID_roadSegments[iter->route_id].size(): " << routeID_roadSegments[iter->route_id].size() << "" << std::endl;
 		}
 	}
-//	std::cout << "routeID_roadSegments.size(): " << routeID_roadSegments.size() << "" << std::endl;
 }
 
 void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<sim_mob::PT_bus_stops>& pt_bus_stops, std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops)
@@ -2055,16 +2051,20 @@ DatabaseLoader::createPlans(sim_mob::Signal_SCATS & signal)
 
 		//now that we have the number of phases, we can continue initializing our split plan.
 		int nof_phases = signal.getNOF_Phases();
-//		std::cout << " Signal(" << sid << ") : Number of Phases : " << nof_phases << std::endl;
+
 		if(nof_phases > 0)
-			if((nof_phases > 5)||(nof_phases < 1))
-				std::cout << sid << " ignored due to lack of default choice set" << nof_phases ;
+		{
+			if(nof_phases > 7)
+				sim_mob::Print() << sid << " ignored due to lack of default choice set" << nof_phases ;
 			else
 			{
-				plan.setDefaultSplitPlan(nof_phases);//i hope the nof phases is within the range of 2-5
+				plan.setDefaultSplitPlan(nof_phases);
 			}
+		}
 		else
-			std::cout << sid << " ignored due to no phases" << nof_phases <<  std::endl;
+		{
+			sim_mob::Print() << sid << " ignored due to no phases" << nof_phases <<  std::endl;
+		}
 }
 
 

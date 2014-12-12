@@ -52,8 +52,6 @@ sim_mob::ConfigParams::~ConfigParams()
 	clear_delete_map(busStopNo_busStops);
 	clear_delete_map(multinode_confluxes);
 	clear_delete_map_with_vector(tripchains);
-	clear_delete_map_with_vector(routeID_roadSegments);
-	clear_delete_map_with_vector(routeID_busStops);
 }
 
 

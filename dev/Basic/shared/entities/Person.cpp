@@ -69,9 +69,6 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 	res->toLocationType = res->fromLocationType;
 	res->travelMode = mode;
 
-	//SubTrip generatedSubTrip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(),
-	//candidate.origin, "node", candidate.dest, "node", "Car", true, "");
-
 	//Make and assign a single sub-trip
 	sim_mob::SubTrip subTrip;
 	subTrip.setPersonID(-1);
@@ -130,6 +127,7 @@ void sim_mob::Person::initTripChain(){
 	}
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM)
 	{
+		vector<SubTrip>::iterator subTripEnd = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW()).end();
 		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW()).begin();
 		// if the first tripchain item is passenger, create waitBusActivityRole
 		if(currSubTrip->mode == "BusTravel") {
@@ -826,13 +824,6 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 					subTrip.isPrimaryMode = true;
 					subTrip.ptLineId = "";
 
-					//subtrip.insert(subChainItem2, subTrip);
-
-					//if(destination.type_==WayPoint::BUS_STOP )
-					//	subChainItem2++;
-					//else if(source.type_==WayPoint::BUS_STOP)
-					//	subChainItem2->fromLocation = source;
-
 					if(destination.type_==WayPoint::BUS_STOP )
 						subChainItem1->toLocation = destination;
 					else if(source.type_==WayPoint::BUS_STOP)
@@ -862,6 +853,7 @@ bool sim_mob::Person::insertTripBeforeCurrentTrip(Trip* newone)
 	}
 	return ret;
 }
+
 bool sim_mob::Person::insertSubTripBeforeCurrentSubTrip(SubTrip* newone)
 {
 	bool ret = false;
@@ -1003,6 +995,7 @@ bool sim_mob::Person::advanceCurrentSubTrip()
 	if (currSubTrip == trip->getSubTrips().end()) /*just a routine check*/ {
 		return false;
 	}
+
 	//get metric
 	/*TravelMetric currRoleMetrics;
 	if(currRole != nullptr)
@@ -1011,7 +1004,7 @@ bool sim_mob::Person::advanceCurrentSubTrip()
 		//serializeSubTripChainItemTravelTimeMetrics(*currRoleMetrics,currTripChainItem,currSubTrip);
 	}*/
 
-	currSubTrip++;
+	++currSubTrip;
 
 	if (currSubTrip == trip->getSubTrips().end()) {
 		return false;
@@ -1025,13 +1018,15 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 	if(currTripChainItem == tripChain.end()) /*just a harmless basic check*/ {
 		return false;
 	}
+
 	// current role (activity or sub-trip level role)[for now: only subtrip] is about to change, time to collect its movement metrics(even activity performer)
-	if(currRole != nullptr)
+	/*if(currRole != nullptr)
 	{
 		TravelMetric currRoleMetrics = currRole->Movement()->finalizeTravelTimeMetric();
 		currRole->Movement()->resetTravelTimeMetric();//sorry for manual reset, just a precaution for now
 		serializeSubTripChainItemTravelTimeMetrics(currRoleMetrics,currTripChainItem,currSubTrip);
-	}
+	}*/
+
 	//first check if you just need to advance the subtrip
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM )
 	{

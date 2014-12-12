@@ -520,11 +520,11 @@ int run_simmob_interactive_loop(){
 			retVal = performMain(configFileName,resLogFiles, "XML_OutPut.xml") ? 0 : 1;
 			ctrlMgr->setSimState(STOP);
 			ConfigManager::GetInstanceRW().reset();
-			std::cout<<"scenario finished"<<std::cout;
+			Print() << "scenario finished" << std::endl;
 		}
 		if(ctrlMgr->getSimState() == QUIT)
 		{
-			std::cout<<"Thank you for using SIMMOB. Have a good day!"<<std::endl;
+			Print() <<"Thank you for using SIMMOB. Have a good day!" <<std::endl;
 			break;
 		}
 	}

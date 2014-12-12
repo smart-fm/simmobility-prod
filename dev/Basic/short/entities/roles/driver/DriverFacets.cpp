@@ -147,7 +147,7 @@ void sim_mob::DriverMovement::init() {
 				<< std::endl;
 	}
 	DriverUpdateParams& p2 = parentDriver->getParams();
-	p2.parentId = getParent()->getId();
+	p2.parentId = parent->getId();
 
 	//Initialize our models. These should be swapable later.
 	lcModel = new MITSIM_LC_Model(p2);
@@ -231,10 +231,10 @@ void sim_mob::DriverMovement::frame_tick() {
 
 	//Are we done already?
 	if (fwdDriverMovement.isDoneWithEntireRoute()) {
-		if (getParent()->amodId != "-1") {
-			getParent()->handleAMODArrival(); //handle AMOD arrival (if necessary)
+		if (parent->amodId != "-1") {
+			//parent->handleAMODArrival(); //handle AMOD arrival (if necessary)
 		}
-		getParent()->setToBeRemoved();
+		parent->setToBeRemoved();
 		return;
 	}
 
@@ -507,14 +507,14 @@ void sim_mob::DriverMovement::frame_tick_output() {
 				<< (this->getParent()->isFake ? "true" : "false");
 	}
 
-	int simid = getParent()->getId();
+	int simid = parent->getId();
 	std::stringstream res;
 	res<<simid;
 	std::string id = res.str();
 
-	if(getParent()->amodId != "-1")
+	if(parent->amodId != "-1")
 	{
-		id = getParent()->amdoTripId;
+		id = parent->amdoTripId;
 		p.debugInfo = p.debugInfo+"<AMOD>";
 	}
 	else
@@ -523,9 +523,7 @@ void sim_mob::DriverMovement::frame_tick_output() {
 
 		//Check if the trip mode is taxi, if so append <Taxi> to debug info,
 		//otherwise it means it is a private vehicle
-		vector<TripChainItem *>::iterator *currentTrip = &(getParent()->currTripChainItem);
-
-		if((*(*currentTrip))->travelMode.compare("Taxi") == 0)
+		if(parent->currTripChainItem->travelMode.compare("Taxi") == 0)
 		{
 			p.debugInfo = p.debugInfo+"<Taxi>";
 		}
@@ -579,7 +577,7 @@ TravelMetric& sim_mob::DriverMovement::finalizeTravelTimeMetric()
 	travelTimeMetric.endTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 	travelTimeMetric.travelTime = (travelTimeMetric.endTime - travelTimeMetric.startTime).getValue();
 	travelTimeMetric.finalized = true;
-	//getParent()->addSubtripTravelMetrics(*travelTimeMetric);
+	//parent->addSubtripTravelMetrics(*travelTimeMetric);
 
 	return  travelTimeMetric;
 }
@@ -792,8 +790,8 @@ void sim_mob::DriverMovement::calcDistanceToSP(DriverUpdateParams& p) {
 	double distance = driverMvt->getDisToStopPoint(p.stopPointPerDis);
 
 	if (abs(distance) < 50) {
-		if (getParent()->amodId != "-1") {
-			getParent()->handleAMODPickup(); //handle AMOD arrival (if necessary)
+		if (parent->amodId != "-1") {
+			parent->handleAMODPickup(); //handle AMOD arrival (if necessary)
 		}
 	}
 
@@ -939,12 +937,12 @@ double sim_mob::DriverMovement::getDistanceToSegmentEnd() const {
 }
 
 void sim_mob::DriverMovement::setParentBufferedData() {
-	getParent()->xPos.set(parentDriver->getCurrPosition().x);
-	getParent()->yPos.set(parentDriver->getCurrPosition().y);
+	parent->xPos.set(parentDriver->getCurrPosition().x);
+	parent->yPos.set(parentDriver->getCurrPosition().y);
 
 	//TODO: Need to see how the parent agent uses its velocity vector.
-	getParent()->fwdVel.set(parentDriver->vehicle->getVelocity());
-	getParent()->latVel.set(parentDriver->vehicle->getLatVelocity());
+	parent->fwdVel.set(parentDriver->vehicle->getVelocity());
+	parent->latVel.set(parentDriver->vehicle->getLatVelocity());
 }
 
 //Call once
@@ -1649,24 +1647,23 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 	Vehicle* res = nullptr;
 
 	//Only initialize if the next path has not been planned for yet.
-	if (!getParent()->getNextPathPlanned()) {
+	if (!parent->getNextPathPlanned()) {
 		//Save local copies of the parent's origin/destination nodes.
-		parentDriver->origin.node = getParent()->originNode.node_;
+		parentDriver->origin.node = parent->originNode.node_;
 		parentDriver->origin.point = parentDriver->origin.node->location;
-		parentDriver->goal.node = getParent()->destNode.node_;
+		parentDriver->goal.node = parent->destNode.node_;
 		parentDriver->goal.point = parentDriver->goal.node->location;
 
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 		vector<WayPoint> path;
 
-		Person* parentP = dynamic_cast<Person*>(parent);
-		sim_mob::SubTrip* subTrip = (&(*(parentP->currSubTrip)));
+		sim_mob::SubTrip* subTrip = (&(*(parent->currSubTrip)));
 
-		if(!parentP->amodPath.empty())
+		if(!parent->amodPath.empty())
 		{
 			path = parent->amodPath;
 			// set the stop point and dwell time
-			std::string stopSegmentStr = parentDriver->getParent()->amodPickUpSegmentStr; //how to pass rs from amodController to here
+			std::string stopSegmentStr = parent->amodPickUpSegmentStr; //how to pass rs from amodController to here
 
 			if(stopSegmentStr == "-1")
 			{
@@ -1675,7 +1672,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 
 			std::string segm = Utils::getNumberFromAimsunId(stopSegmentStr);
 			double dwelltime = 5; //in sec
-			double segl = parentDriver->getParent()->amodSegmLength /100.0; //length of the segment in m
+			double segl = parent->amodSegmLength /100.0; //length of the segment in m
 			double fd2 = (segl - segl/5); //distance where the vh will stop counting from the begining of the segment
 
 			//double fd = fd_rand(rng);
@@ -1725,7 +1722,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		}
 
 		//RoadRunner may need to know of our path, but it can't be send inevitably.
-		if (getParent()->getRegionSupportStruct().isEnabled()) {
+		if (parent->getRegionSupportStruct().isEnabled()) {
 			rrPathToSend.clear();
 			for (std::vector<WayPoint>::const_iterator it = path.begin();
 					it != path.end(); it++) {
@@ -1738,16 +1735,16 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 		//TODO: Start in lane 0?
 		int startLaneId = 0;
 
-		if (parentP->laneID != -1) {
+		if (parent->laneID != -1) {
 			// path[1] is currently the starting segment from the shortest driving path algorithm
 			if (path[1].type_ == WayPoint::ROAD_SEGMENT) {
 				if (parent->laneID >= 0
 						&& parent->laneID
 						< path[1].roadSegment_->getLanes().size()) {
-					startLaneId = parentP->laneID; //need to check if lane valid
+					startLaneId = parent->laneID; //need to check if lane valid
 				}
 			}
-			parentP->laneID = -1;
+			parent->laneID = -1;
 		}
 
 		// Bus should be at least 1200 to be displayed on Visualizer
@@ -1770,7 +1767,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 	}
 
 	//to indicate that the path to next activity is already planned
-	getParent()->setNextPathPlanned(true);
+	parent->setNextPathPlanned(true);
 	return res;
 }
 void sim_mob::DriverMovement::rerouteWithPath(const std::vector<sim_mob::WayPoint>& path)
@@ -2364,7 +2361,7 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 			Point2D(parentDriver->vehicle->getX(), parentDriver->vehicle->getY()), *params.currLane, dis, parentDriver->distanceBehind);
 	//sim_mob::PerformanceProfile::instance().markEndQuery(this->parent->run_on_thread_id);
 #else
-	PROFILE_LOG_QUERY_START(getParent()->currWorkerProvider, getParent(),
+	PROFILE_LOG_QUERY_START(parent->currWorkerProvider, parent,
 			params.now);
 
 	//NOTE: Let the AuraManager handle dispatching to the "advanced" function.
@@ -2383,7 +2380,7 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 				<< parentDriver->getCurrPosition().y << std::endl;
 	}
 
-	PROFILE_LOG_QUERY_END(getParent()->currWorkerProvider, getParent(),
+	PROFILE_LOG_QUERY_END(parent->currWorkerProvider, parent,
 			params.now);
 #endif
 	//Update each nearby Pedestrian/Driver
@@ -2572,7 +2569,7 @@ void sim_mob::DriverMovement::updateLateralMovement(DriverUpdateParams& p)
 
 			std::stringstream msg;
 			msg << "Error: Car has moved onto sidewalk. Agent ID: "
-					<< getParent()->getId();
+					<< parent->getId();
 			throw std::runtime_error(msg.str().c_str());
 		}
 
@@ -2607,7 +2604,7 @@ void sim_mob::DriverMovement::syncInfoLateralMove(DriverUpdateParams& p)
 			p.currLane = p.leftLane;
 	} else {
 		std::stringstream msg;
-		msg << "syncInfoLateralMove (" << getParent()->getId()
+		msg << "syncInfoLateralMove (" << parent->getId()
 			<< ") is attempting to change lane when no lc decision made";
 		throw std::runtime_error(msg.str().c_str());
 	}

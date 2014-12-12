@@ -76,7 +76,7 @@ double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p,
     double gap = b[0] + b[1] * rem_dist_impact +
             b[2] * dv + b[3] * dvNegative + b[4] * dvPositive;
 
-    boost::normal_distribution<> nrand(0, b[5]);
+    boost::normal_distribution<> nrand(0, b[4]);
     boost::variate_generator< boost::mt19937, boost::normal_distribution<> >
             normal(p.gen, nrand);
     double u = gap + normal();

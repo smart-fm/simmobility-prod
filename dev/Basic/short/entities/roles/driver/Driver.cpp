@@ -161,8 +161,6 @@ sim_mob::Driver::~Driver() {
 	safe_delete_item(perceivedVelOfFwdCar);
 	safe_delete_item(perceivedAccOfFwdCar);
 	safe_delete_item(perceivedDistToFwdCar);
-	safe_delete_item(perceivedDistToTrafficSignal);
-	safe_delete_item(perceivedTrafficColor);
 }
 
 vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {

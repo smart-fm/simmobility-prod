@@ -930,7 +930,7 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p) {
 }
 
 double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p) {
-	float acc;
+	float acc = 0;
 	p.lcDebugStr<<";---CYR";
 	if (p.flag(FLAG_YIELDING)) {
 		p.lcDebugStr<<";DING";

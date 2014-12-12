@@ -14,7 +14,8 @@
 #include "entities/conflux/SegmentStats.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/LangHelpers.hpp"
-
+#include "util/Profiler.hpp"
+#include <boost/foreach.hpp>
 namespace sim_mob
 {
 
@@ -25,8 +26,7 @@ class PartitionManager;
 class PackageUtils;
 class UnPackageUtils;
 class UpdateParams;
-
-
+class OD_Trip;
 
 /**
  * Basic Person class.
@@ -39,6 +39,7 @@ class UpdateParams;
  * \author Harish Loganathan
  * \author zhang huai peng
  * \author Yao Jin
+ * \author Vahid Saber
  *
  * A person may perform one of several roles which
  *  change over time. For example: Drivers, Pedestrians, and Passengers are
@@ -49,7 +50,7 @@ public:
 	bool tripchainInitialized;
 	///The "src" variable is used to help flag how this person was created.
 	explicit Person(const std::string& src, const MutexStrategy& mtxStrat, int id=-1, std::string databaseID = "");
-	explicit Person(const std::string& src, const MutexStrategy& mtxStrat, std::vector<sim_mob::TripChainItem*> tc);
+	explicit Person(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc);
 	virtual ~Person();
 	void initTripChain();
 
@@ -94,7 +95,10 @@ public:
      * insert a waiting activity before bus travel
      * @param tripChain is the reference to current trip chain
      */
-    void insertWaitingActivityToTrip(std::vector<TripChainItem*>& tripChain);
+    void insertWaitingActivityToTrip();
+    void convertODsToTrips();
+    void makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips,
+    		std::vector<const sim_mob::OD_Trip*>& matchedTrips);
 
     // update nextTripChainItem, used only for NextRole
 	bool updateNextTripChainItem();
@@ -103,18 +107,11 @@ public:
     ///Check if any role changing is required.
     /// "nextValidTimeMS" is the next valid time tick, which may be the same at this time tick.
     Entity::UpdateStatus checkTripChain();
-    bool changeRoleRequired(sim_mob::Role & currRole,sim_mob::SubTrip &currSubTrip)const;//todo depricate later
-    bool changeRoleRequired_Trip /*sim_mob::Trip &trip*/
-	() const;
-	bool changeRoleRequired_Activity /*sim_mob::Activity &activity*/
-	() const;
-	bool changeRoleRequired(sim_mob::TripChainItem& tripChinItem) const;
 	//update origin and destination node based on the trip, subtrip or activity given
-	bool updateOD(sim_mob::TripChainItem* tc, const sim_mob::SubTrip* subtrip =
-			0);
+	bool updateOD(sim_mob::TripChainItem* tc, const sim_mob::SubTrip* subtrip = 0);
 
 	///get this person's trip chain
-	std::vector<TripChainItem*>& getTripChain() {
+	const std::vector<TripChainItem*>& getTripChain() const {
 		return tripChain;
 	}
 
@@ -237,8 +234,80 @@ public:
 	}
 
 	void advanceToNextRole();
+	///	container to store all the metrics of the trips (subtrip actually)
+	 /*
+	  * The implementation inserts information at subtrip resolution while preday will require Trip-level metrics.
+	  *  So whenever all subtrips of a trip are done (subTripTravelMetrics) and it is time to change the tripchainitem
+	  *  (in Pesron class) an aggregate function will create a new entry in tripTravelMetrics from subTripTravelMetrics
+	  *  items. subTripTravelMetrics items are cleared then.
+	  */
+	 std::vector<TravelMetric> tripTravelMetrics;
 
+	 /**
+	  * subtrip level travel metrics
+	  */
+	 std::vector<TravelMetric> subTripTravelMetrics;
 
+	/**
+	 * get the measurements stored in subTripTravelMetrics and add them up into a new entry in tripTravelMetrics.
+	 * call this method whenever a subtrip is done.
+	 */
+	void aggregateSubTripMetrics();
+
+	/**
+	 * add the given TravelMetric to subTripTravelMetrics container
+	 */
+	void addSubtripTravelMetrics(TravelMetric & value);
+
+	/**
+	 * Serializer for Trip level travel time
+	 */
+	 void serializeTripTravelTimeMetrics();
+
+	 /**
+	  * A version of serializer for subtrip level travel time.
+	  * \param subtripMetrics input metrics
+	  * \param currTripChainItem current TripChainItem
+	  * \param currSubTrip current SubTrip for which subtripMetrics is collected
+	  */
+	 void serializeSubTripChainItemTravelTimeMetrics(
+			 const TravelMetric subtripMetrics,
+			 std::vector<TripChainItem*>::iterator currTripChainItem,
+			 std::vector<SubTrip>::iterator currSubTrip
+			 ) const;
+
+	 /**
+	  * This is called by movement facet's destructor of non-activity role
+	  */
+	 void serializeCBD_SubTrip(const TravelMetric &metric);
+
+	 /**
+	  * This is called by  movement facet's destructor activity role
+	  */
+	 void serializeCBD_Activity(const TravelMetric &metric);
+private:
+//	 /**
+//	  * serialize person's tripchain item
+//	  */
+//	void serializeTripChainItem(std::vector<TripChainItem*>::iterator currTripChainItem);
+//
+//	 /**
+//	  * During Serialization of person's tripchain, this routine is called if the given
+//	  * tripchain item is a trip
+//	  */
+//	 std::string serializeTrip(std::vector<TripChainItem*>::iterator item);
+//
+//
+//	 /**
+//	  * During Serialization of person's tripchain, this routine is called if the given
+//	  * tripchain item is an activity
+//	  */
+//	 std::string serializeActivity(std::vector<TripChainItem*>::iterator item);
+
+	 /**
+	  * prints the trip chain item types of each item in tripChain
+	  */
+	 void printTripChainItemTypes() const;
 protected:
 	virtual bool frame_init(timeslice now);
 	virtual Entity::UpdateStatus frame_tick(timeslice now);

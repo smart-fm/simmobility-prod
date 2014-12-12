@@ -8,6 +8,7 @@
 #include "PedestrianFacets.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "geospatial/BusStop.hpp"
 
 namespace sim_mob {
 namespace medium {
@@ -33,6 +34,16 @@ void PedestrianMovement::setParentPedestrian(
 	this->parentPedestrian = parentPedestrian;
 }
 
+
+TravelMetric& PedestrianMovement::startTravelTimeMetric()
+{
+	return  travelTimeMetric;
+}
+
+TravelMetric& PedestrianMovement::finalizeTravelTimeMetric()
+{
+	return  travelTimeMetric;
+}
 void PedestrianBehavior::setParentPedestrian(
 		sim_mob::medium::Pedestrian* parentPedestrian) {
 	this->parentPedestrian = parentPedestrian;
@@ -42,8 +53,33 @@ void PedestrianMovement::frame_init() {
 	std::vector<const RoadSegment*> roadSegs;
 	initializePath(roadSegs);
 
+	sim_mob::SubTrip& subTrip = *(getParent()->currSubTrip);
+	const RoadSegment* segStart = nullptr;
+	const RoadSegment* segEnd = nullptr;
+	double actualDistanceStart = 0.0;
+	double actualDistanceEnd = 0.0;
+
+	if (subTrip.fromLocation.type_ == WayPoint::BUS_STOP) {
+		segStart = subTrip.fromLocation.busStop_->getParentSegment();
+		const Node* node = segStart->getEnd();
+		const BusStop* stop = subTrip.fromLocation.busStop_;
+		DynamicVector EstimateDist(stop->xPos, stop->yPos, node->location.getX(),
+				node->location.getY());
+		actualDistanceStart = EstimateDist.getMagnitude();
+	}
+
+	if (subTrip.toLocation.type_ == WayPoint::BUS_STOP) {
+		segEnd = subTrip.toLocation.busStop_->getParentSegment();
+		const Node* node = segEnd->getStart();
+		const BusStop* stop = subTrip.toLocation.busStop_;
+		DynamicVector EstimateDist(stop->xPos, stop->yPos, node->location.getX(),
+				node->location.getY());
+		actualDistanceEnd = EstimateDist.getMagnitude();
+	}
+
 	Link* currentLink = nullptr;
 	double distanceInLink = 0.0;
+	double curDistance = 0.0;
 	std::vector<const RoadSegment*>::const_iterator it = roadSegs.begin();
 	if (it != roadSegs.end()) {
 		currentLink = (*it)->getLink();
@@ -51,14 +87,20 @@ void PedestrianMovement::frame_init() {
 
 	for (; it != roadSegs.end(); it++) {
 		const RoadSegment* rdSeg = *it;
-		if (rdSeg->getLink() == currentLink) {
-			distanceInLink += rdSeg->getLaneZeroLength();
+		curDistance = rdSeg->getLaneZeroLength();
+		if (rdSeg == segStart) {
+			curDistance = actualDistanceStart;
+		} else if (rdSeg == segEnd) {
+			curDistance = actualDistanceEnd;
 		}
-		else {
+
+		if (rdSeg->getLink() == currentLink) {
+			distanceInLink += curDistance;
+		} else {
 			double remainingTime = distanceInLink / walkSpeed;
 			trajectory.push_back((std::make_pair(currentLink, remainingTime)));
 			currentLink = rdSeg->getLink();
-			distanceInLink = rdSeg->getLaneZeroLength();
+			distanceInLink = curDistance;
 		}
 	}
 
@@ -83,7 +125,7 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 	if (subTrip.fromLocation.type_ == WayPoint::NODE) {
 		source = streetDirectory.DrivingVertex(*subTrip.fromLocation.node_);
 	} else if (subTrip.fromLocation.type_ == WayPoint::BUS_STOP) {
-		const Node* node = subTrip.fromLocation.busStop_->getParentSegment()->getEnd();
+		const Node* node = subTrip.fromLocation.busStop_->getParentSegment()->getStart();
 		source = streetDirectory.DrivingVertex(*node);
 	}
 
@@ -115,13 +157,13 @@ void PedestrianMovement::frame_tick() {
 			Link* nextLink = trajectory.front().first;
 			remainingTimeToComplete = trajectory.front().second - lastRemainingTime;
 			trajectory.erase(trajectory.begin());
-			lastRemainingTime = 0;
 			getParent()->setNextLinkRequired(nextLink);
 		}
 	}
 	else {
 		remainingTimeToComplete -= tickSec;
 	}
+	getParent()->setRemainingTimeThisTick(0);
 }
 
 void PedestrianMovement::frame_tick_output() {}

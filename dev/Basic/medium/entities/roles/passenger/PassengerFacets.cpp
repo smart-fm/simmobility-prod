@@ -62,6 +62,24 @@ void PassengerMovement::frame_tick_output() {
 
 }
 
+
+TravelMetric & PassengerMovement::startTravelTimeMetric()
+{
+//	travelTimeMetric.startTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+//	const Node* startNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getEnd();
+//	travelTimeMetric.origin = WayPoint(startNode);
+//	travelTimeMetric.started = true;
+	return travelTimeMetric;
 }
 
+TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
+{
+//	const Node* endNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getEnd();
+//	travelTimeMetric.destination = WayPoint(endNode);
+//	travelTimeMetric.endTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+//	travelTimeMetric.travelTime = (travelTimeMetric.endTime - travelTimeMetric.startTime).getValue();
+//	travelTimeMetric.finalized = true;
+	return travelTimeMetric;
+}
+}//medium
 } /* namespace sim_mob */

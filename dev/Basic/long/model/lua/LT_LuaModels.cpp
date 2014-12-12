@@ -28,7 +28,8 @@ namespace {
      * @param id of the postcode.
      * @return Postcode pointer or nullptr if post code does not exist.
      */
-    inline const Postcode* getPostcode(const BigSerial id) {
+    inline const Postcode* getPostcode(const BigSerial id)
+    {
         return DataManagerSingleton::getInstance().getPostcodeById(id);
     }
 
@@ -37,7 +38,8 @@ namespace {
      * @param id of the postcode.
      * @return PostcodeAmenities pointer or nullptr if post code does not exist.
      */
-    inline const PostcodeAmenities* getAmenities(const BigSerial id) {
+    inline const PostcodeAmenities* getAmenities(const BigSerial id)
+    {
         return DataManagerSingleton::getInstance().getAmenitiesById(id);
     }
 
@@ -46,7 +48,8 @@ namespace {
      * @param id of the building.
      * @return Building pointer or nullptr if post code does not exist.
      */
-    inline const Building* getBuilding(const BigSerial id) {
+    inline const Building* getBuilding(const BigSerial id)
+    {
         return DataManagerSingleton::getInstance().getBuildingById(id);
     }
     
@@ -130,8 +133,7 @@ ExternalEventsModel::ExternalEventsModel() : lua::LuaModel() {}
 
 ExternalEventsModel::ExternalEventsModel(const ExternalEventsModel& orig): lua::LuaModel(orig) {}
 
-ExternalEventsModel::~ExternalEventsModel() {
-}
+ExternalEventsModel::~ExternalEventsModel() {}
 
 void ExternalEventsModel::getExternalEvents(int day, vector<ExternalEvent>& outValues) const
 {
@@ -155,6 +157,7 @@ void ExternalEventsModel::mapClasses()
         .addProperty("day", &ExternalEvent::getDay, &ExternalEvent::setDay)
         .addProperty("type", &ExternalEvent::getType, &ExternalEvent::setType)
         .addProperty("householdId", &ExternalEvent::getHouseholdId, &ExternalEvent::setHouseholdId)
+        .addProperty("developerId", &ExternalEvent::getDeveloperId, &ExternalEvent::setDeveloperId)
     .endClass();
 }
 
@@ -168,7 +171,8 @@ HM_LuaModel::HM_LuaModel(const HM_LuaModel& orig) : lua::LuaModel(orig) {}
 
 HM_LuaModel::~HM_LuaModel() {}
 
-void HM_LuaModel::mapClasses() {
+void HM_LuaModel::mapClasses()
+{
     getGlobalNamespace(state.get())
             .beginClass <HM_Model::TazStats> ("TazStats")
             .addProperty("hhNum", &HM_Model::TazStats::getHH_Num)
@@ -212,8 +216,30 @@ void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, v
 {
     const BigSerial pcId = unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calulateUnitExpectations");
-    LuaRef retVal = funcRef(&unit, timeOnMarket, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
 
+/*
+    const Building *building = getBuilding(unit.getBuildingId());
+    const Postcode *postcode = getPostcode(pcId);
+    const PostcodeAmenities *amenities = getAmenities(pcId);
+
+    if(!building)
+    	PrintOut("Building is null" << std::endl );
+
+    if(!postcode)
+    	PrintOut("Postcode is null" << std::endl );
+
+    if(!amenities)
+    	PrintOut("Amenities is null for pcId " << pcId << std::dec << std::endl );
+
+
+    if( !funcRef.isFunction() )
+    	return;
+
+
+    LuaRef retVal = funcRef(&unit, timeOnMarket, building, postcode, amenities);
+*/
+	LuaRef retVal = funcRef(&unit, timeOnMarket, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
+    
     if (retVal.isTable())
     {
         // Reverse the expectations (HM requirement).
@@ -236,12 +262,16 @@ double HM_LuaModel::calculateHedonicPrice(const Unit& unit) const
     return INVALID_DOUBLE;
 }
 
-double HM_LuaModel::calculateSpeculation(const HousingMarket::Entry& entry, int unitBids) const {
+double HM_LuaModel::calculateSpeculation(const HousingMarket::Entry& entry, int unitBids) const
+{
     LuaRef funcRef = getGlobal(state.get(), "calculateSpeculation");
     LuaRef retVal = funcRef(&entry, unitBids);
-    if (retVal.isNumber()) {
+
+    if (retVal.isNumber())
+    {
         return retVal.cast<double>();
     }
+
     return INVALID_DOUBLE;
 }
 
@@ -261,13 +291,12 @@ double HM_LuaModel::calulateWP(const Household& hh, const Unit& unit, const HM_M
  *                         Developer LUA
  ******************************************************************************/
 
-DeveloperLuaModel::DeveloperLuaModel() : lua::LuaModel() {
-}
+DeveloperLuaModel::DeveloperLuaModel() : lua::LuaModel() {}
 
-DeveloperLuaModel::~DeveloperLuaModel() {
-}
+DeveloperLuaModel::~DeveloperLuaModel() {}
 
-void DeveloperLuaModel::mapClasses() {
+void DeveloperLuaModel::mapClasses()
+{
     getGlobalNamespace(state.get())
             .beginClass <PotentialUnit> ("PotentialUnit")
             .addProperty("floorArea", &PotentialUnit::getFloorArea)
@@ -277,12 +306,15 @@ void DeveloperLuaModel::mapClasses() {
     mapCommonClasses(state.get());
 }
 
-double DeveloperLuaModel::calulateUnitRevenue(const PotentialUnit& unit,
-        const PostcodeAmenities& amenities) const {
+double DeveloperLuaModel::calulateUnitRevenue(const PotentialUnit& unit, const PostcodeAmenities& amenities) const
+{
     LuaRef funcRef = getGlobal(state.get(), "calculateUnitRevenue");
     LuaRef retVal = funcRef(&unit, &amenities);
-    if (retVal.isNumber()) {
+
+    if (retVal.isNumber())
+    {
         return retVal.cast<double>();
     }
+
     return INVALID_DOUBLE;
 }

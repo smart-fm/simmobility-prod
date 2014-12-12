@@ -11,6 +11,7 @@
 #include "geospatial/streetdir/WayPoint.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
+#include "util/OneTimeFlag.hpp"
 
 #include "conf/settings/DisableMPI.h"
 
@@ -18,7 +19,7 @@
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #endif
-
+#include <boost/shared_ptr.hpp>
 namespace geo
 {
 //Forward Declaration
@@ -33,6 +34,56 @@ class SubTrip;
 class Person;
 
 
+/// simple structure used to collect travel time information
+struct TravelMetric
+{
+	WayPoint origin,destination;
+	DailyTime startTime,endTime;
+	double travelTime;
+	bool started,finalized,valid;
+	TravelMetric():started(false),finalized(false),
+			valid(false),cbdTraverseType(CBD_NONE),
+			travelTime(0),cbdTravelTime(0),
+			cbdOrigin(WayPoint()),cbdDestination(WayPoint()),
+			origin(WayPoint()),destination(WayPoint()),
+			startTime(DailyTime()),endTime(DailyTime()),cbdStartTime(DailyTime()),cbdEndTime(DailyTime()){
+
+	}
+	//CBD information
+	enum CDB_TraverseType
+	{
+		CBD_ENTER,
+		CBD_EXIT,
+		CBD_PASS,
+		CBD_NONE,
+	};
+	CDB_TraverseType cbdTraverseType;
+	WayPoint cbdOrigin,cbdDestination;
+	DailyTime cbdStartTime,cbdEndTime;
+	OneTimeFlag cbdEntered,cbdExitted;
+	double cbdTravelTime;
+	static double getTimeDiffHours(const DailyTime &end, const DailyTime &start)
+	{
+		double  t = (double((end - start).getValue()) /1000) / 3600;
+		return t;
+	}
+	void reset()
+	{
+		started=false;
+		finalized=false;
+		valid=false;
+		cbdTraverseType=CBD_NONE;
+		travelTime=0;cbdTravelTime=0;
+		cbdOrigin=WayPoint();
+		cbdDestination=WayPoint();
+		origin=WayPoint();
+		destination=WayPoint();
+		startTime=DailyTime();
+		endTime=DailyTime();
+		cbdStartTime=DailyTime();
+		cbdEndTime=DailyTime();
+	}
+};
 
 /**
  * Base class for elements in a trip chain.
@@ -85,14 +136,14 @@ public:
 	TripChainItem(std::string entId= "", std::string type="Trip",
 				DailyTime start=DailyTime(), DailyTime end=DailyTime(),
 				unsigned int seqNumber=0, int requestTime=-1);
-	virtual ~TripChainItem() {}
+	virtual ~TripChainItem();
 
 	static LocationType getLocationType(std::string locType);
 	static ItemType getItemType(std::string itemType);
 
 	//initialization within person's constructor with respect to tripchain
 	virtual bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *) { return false; }
-	virtual  const std::string getMode(const sim_mob::SubTrip *subTrip) const { return "<ERROR>"; };//can't make it pure virtual coz the class will turn to abstract and we will face problem in XML reader
+	virtual const std::string getMode() const; //can't make it pure virtual coz the class will turn to abstract and we will face problem in XML reader
 
 	//Helper: Convert a location type string to an object of that type.
 	//TODO: This SHOULD NOT be different for the database and for XML.
@@ -115,8 +166,9 @@ public:
 	bool isMandatory;
 
 	Activity(std::string locType="node");
+	virtual ~Activity();
 	bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *);
-	 const std::string getMode(const sim_mob::SubTrip *subTrip) const  { return "Activity";}
+	virtual const std::string getMode() const;
 };
 
 /**
@@ -140,7 +192,7 @@ public:
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(),
 			std::string tripId = "", Node* from=nullptr, std::string fromLocType="node",
 			Node* to=nullptr, std::string toLocType="node");
-	virtual ~Trip() {}
+	virtual ~Trip();
 
 	void addSubTrip(const sim_mob::SubTrip& aSubTrip);
 
@@ -150,7 +202,12 @@ public:
 
 	void setSubTrips(const std::vector<sim_mob::SubTrip>& subTrips);
 	bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *);
-	const std::string getMode(const sim_mob::SubTrip *subTrip) const;
+
+	/**
+	 * get mode of first subtrip of trip
+	 * @return mode of first sub-trip of trip, if it exists; empty string otherwise
+	 */
+	virtual const std::string getMode() const;
 
 private:
 	std::vector<sim_mob::SubTrip> subTrips;
@@ -178,20 +235,21 @@ public:
  */
 class SubTrip: public sim_mob::Trip {
 public:
-	virtual ~SubTrip() {}
+	SubTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,int requestTime=-1,
+			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
+			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
+			std::string mode="", bool isPrimary=true, std::string ptLineId="");
+	virtual ~SubTrip();
 
-	//sim_mob::Trip* parentTrip;
 	std::string mode;
 	bool isPrimaryMode;
 	std::string ptLineId; //Public transit (bus or train) line identifier.
 
 	FMODSchedule* schedule;
-
-	SubTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,int requestTime=-1,
-			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
-			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
-			/*Trip* parent=nullptr,*/ std::string mode="", bool isPrimary=true, std::string ptLineId="");
+	mutable sim_mob::TravelMetric::CDB_TraverseType cbdTraverseType;
 	const std::string getMode() const ;
+	const std::string getBusLineID() const;
+
 };
 
 /**

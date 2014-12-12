@@ -61,7 +61,7 @@ class Node {
 		//For Now, I will keep working in this way until we find a better solution-vahid
 friend class ::geo::Node_t_pimpl;
 public:
-
+	mutable bool CBD;
 	unsigned int nodeId;//read from DB
 	SimNodeType type;
 public:
@@ -91,7 +91,7 @@ public:
 
 
 //protected:
-    explicit Node(int x=0, int y=0, unsigned int nodeId_=0) : nodeId(nodeId_), location(x, y),type(DEFAULT_NODE) {}
+    explicit Node(int x=0, int y=0, unsigned int nodeId_=0) : nodeId(nodeId_), location(x, y),type(DEFAULT_NODE),CBD(false) {}
 
 //private:
 //    sim_mob::Link* linkLoc;

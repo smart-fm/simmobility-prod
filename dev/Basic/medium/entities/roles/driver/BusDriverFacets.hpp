@@ -63,8 +63,9 @@ public:
 
 	/**
 	 * print bus route information
+	 * @param personId id of bus driver
 	 */
-	void printBusRoute();
+	void printBusRoute(unsigned int personId);
 
 private:
 	/**

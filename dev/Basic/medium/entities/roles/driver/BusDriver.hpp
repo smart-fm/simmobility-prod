@@ -14,7 +14,6 @@
  *
  *  Created on: May 6, 2013
  *      Author: zhang huai peng
- *      		melani
  */
 
 namespace sim_mob {
@@ -59,6 +58,21 @@ public:
 	bool addPassenger(sim_mob::medium::Passenger* passenger);
 
 	/**
+	 * store the arrival time at bus stop
+	 *
+	 * @param current is current time represented in string
+	 * @param stop is which currently bus driver arrive at
+	 *
+	 */
+	void storeArrivalTime(const std::string& current, const std::string& waitTime, const sim_mob::BusStop* stop);
+
+	/**
+	 * change whether bus is full already
+	 *  @return boolean value, if bus is full, return true, otherwise false
+	 */
+	bool checkIsFull();
+
+	/**
 	 * predict arrival at next bus stop in next frame tick
 	 * @param preArrivalTime is predicted arrival time at next bus stop
 	 * @param bus stop agent is the agent which wrap next bus stop
@@ -71,6 +85,8 @@ public:
 	double getWaitingTimeAtBusStop() {
 		return waitingTimeAtbusStop;
 	}
+
+	const std::string getBusLineID() const;
 
 private:
 	/**passengers list*/
@@ -106,8 +122,9 @@ private:
 	/**
 	 * triggers boarding and alighting at a bus stop
 	 * @param busStopAgent agent managing the stop which is currently served
+	 * @param current is current time represented in string
 	 */
-	void openBusDoors(sim_mob::medium::BusStopAgent* busStopAgent);
+	void openBusDoors(const std::string& current, sim_mob::medium::BusStopAgent* busStopAgent);
 
 	/**
 	 * triggers bus departure from a bus stop

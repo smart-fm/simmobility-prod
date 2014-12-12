@@ -404,6 +404,8 @@ public:
      */
     const sim_mob::RoadSegment* getRoadSegment(const unsigned int id);
 
+    ShortestPathImpl* getDistanceImpl() { return spImpl_; }
+	ShortestPathImpl* getTravelTimeImpl() { return sttpImpl_; }
 	/**
 	 * find one BusStopAgent by BusStop
 	 * @param busStop is a pointer to a given bus stop

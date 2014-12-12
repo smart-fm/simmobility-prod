@@ -7,8 +7,8 @@
 #include <vector>
 
 #include "conf/settings/DisableMPI.h"
-
 #include "util/OpaqueProperty.hpp"
+#include "util/Profiler.hpp"
 #include "geospatial/Pavement.hpp"
 
 
@@ -55,27 +55,23 @@ class LaneLoader;
  */
 class RoadSegment : public sim_mob::Pavement {
 public:
-	///Create a RoadSegment as part of a given Link.
-	//explicit RoadSegment(sim_mob::Link* paren=nullptr);
-
-
-
+//	/is this segment part of CBD?
+	mutable bool CBD;
+	static std::map<unsigned long, const RoadSegment*> allSegments;
 	//TODO: Some of these are only used by the geo* classes; need to re-think.
 	void setParentLink(sim_mob::Link* parent);
-	void setID(unsigned long id) { this->segmentID = id; }
+	void setID(unsigned long id) {
+		this->segmentID = id;
+	}
 	//void setLanes(const std::vector<sim_mob::Lane*>& ln) { this->lanes = ln; }
 	void setStart(sim_mob::Node* st) { this->start = st; }
 	void setEnd(sim_mob::Node* en) { this->end = en; }
 	std::string getStartEnd() const;
 
 public:
-	explicit RoadSegment(sim_mob::Link* parent=nullptr, unsigned long id=-1) :
-		Pavement(),
-		maxSpeed(0), capacity(0), busstop(nullptr), lanesLeftOfDivider(0), parentLink(parent),segmentID(id),
-		parentConflux(nullptr), laneZeroLength(-1.0),type(LINK_TYPE_DEFAULT)
-	{}
+	explicit RoadSegment(sim_mob::Link* parent=nullptr, unsigned long id=-1);
 
-	const unsigned long  getSegmentID()const ;
+	const unsigned long getId()const ;
 	const unsigned int getLanesLeftOfDivider() const { return lanesLeftOfDivider; }
 
 	/**
@@ -86,7 +82,6 @@ public:
 	 * @return simmobility lane idx id
 	 */
 	unsigned int getAdjustedLaneId(unsigned int laneId);
-
 	/**
 	 * get aimsun id fro current road segment
 	 */

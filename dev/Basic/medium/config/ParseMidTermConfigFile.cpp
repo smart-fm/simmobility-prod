@@ -14,6 +14,13 @@
 namespace
 {
 const int DEFAULT_NUM_THREADS_DEMAND = 2; // default number of threads for demand
+const unsigned NUM_SECONDS_IN_AN_HOUR = 3600;
+
+unsigned int ProcessTimegranUnits(xercesc::DOMElement* node)
+{
+	return ParseTimegranAsSecond(GetNamedAttributeValue(node, "value"), GetNamedAttributeValue(node, "units"), NUM_SECONDS_IN_AN_HOUR);
+}
+
 }
 namespace sim_mob
 {
@@ -52,9 +59,15 @@ void ParseMidTermConfigFile::processMidTermRunMode(xercesc::DOMElement* node)
 
 void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 {
+	//processProcMapNode(GetSingleElementByName(node, "proc_map", true));
+	//processActivityLoadIntervalElement(GetSingleElementByName(node, "activity_load_interval", true));
+	processUpdateIntervalElement(GetSingleElementByName(node, "update_interval", true));
 	processDwellTimeElement(GetSingleElementByName(node, "dwell_time_parameters", true));
 	processWalkSpeedElement(GetSingleElementByName(node, "pedestrian_walk_speed", true));
+	processStatisticsOutputNode(GetSingleElementByName(node, "statistics_output_paramemters", true));
+	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
 }
+
 
 void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 {
@@ -64,7 +77,7 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 
 	childNode = GetSingleElementByName(node, "threads", true);
 	mtCfg.setNumPredayThreads(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true), DEFAULT_NUM_THREADS_DEMAND));
-	childNode = GetSingleElementByName(node, "output_tripchains", true);
+	childNode = GetSingleElementByName(node, "output_schedule", true);
 	mtCfg.setOutputTripchains(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
 	childNode = GetSingleElementByName(node, "output_predictions", true);
 	mtCfg.setOutputPredictions(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
@@ -74,6 +87,45 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 	processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 	processMongoCollectionsNode(GetSingleElementByName(node, "mongo_collections", true));
 	processCalibrationNode(GetSingleElementByName(node, "calibration", true));
+}
+
+void ParseMidTermConfigFile::processProcMapNode(xercesc::DOMElement* node)
+{
+	StoredProcedureMap spMap(ParseString(GetNamedAttributeValue(node, "id")));
+	spMap.dbFormat = ParseString(GetNamedAttributeValue(node, "format"), "");
+
+	//Loop through and save child attributes.
+	for (DOMElement* mapItem=node->getFirstElementChild(); mapItem; mapItem=mapItem->getNextElementSibling()) {
+		if (TranscodeString(mapItem->getNodeName())!="mapping") {
+			Warn() <<"Invalid proc_map child node.\n";
+			continue;
+		}
+
+		std::string key = ParseString(GetNamedAttributeValue(mapItem, "name"), "");
+		std::string val = ParseString(GetNamedAttributeValue(mapItem, "procedure"), "");
+		if (key.empty() || val.empty()) {
+			Warn() <<"Invalid mapping; missing \"name\" or \"procedure\".\n";
+			continue;
+		}
+
+		spMap.procedureMappings[key] = val;
+	}
+	mtCfg.setStoredProcedureMap(spMap);
+	configParams.constructs.procedureMaps[spMap.getId()] = spMap;
+}
+
+void ParseMidTermConfigFile::processActivityLoadIntervalElement(xercesc::DOMElement* node)
+{
+	unsigned interval = ProcessTimegranUnits(node);
+	mtCfg.setActivityScheduleLoadInterval(interval);
+	configParams.system.genericProps["activity_load_interval"] = boost::lexical_cast<std::string>(interval);
+}
+
+void ParseMidTermConfigFile::processUpdateIntervalElement(xercesc::DOMElement* node)
+{
+	unsigned interval = ProcessTimegranUnits(node)/((unsigned)configParams.baseGranSecond());
+	mtCfg.setSupplyUpdateInterval(interval);
+	configParams.system.genericProps["update_interval"] = boost::lexical_cast<std::string>(interval);
 }
 
 void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)
@@ -86,12 +138,12 @@ void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)
 	std::string value = ParseString(GetNamedAttributeValue(child, "value"), "");
 	std::vector<std::string> valArray;
 	boost::split(valArray, value, boost::is_any_of(", "), boost::token_compress_on);
-	std::vector<int>& dwellTimeParams = mtCfg.getDwellTimeParams();
+	std::vector<float>& dwellTimeParams = mtCfg.getDwellTimeParams();
 	for (std::vector<std::string>::const_iterator it = valArray.begin(); it != valArray.end(); it++)
 	{
 		try
 		{
-			int val = boost::lexical_cast<int>(*it);
+			float val = boost::lexical_cast<float>(*it);
 			dwellTimeParams.push_back(val);
 		} catch (...)
 		{
@@ -100,9 +152,43 @@ void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)
 	}
 }
 
+
+void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* node)
+{
+	DOMElement* child = GetSingleElementByName(node, "journey_time_csv_file_output");
+	if (child == nullptr)
+	{
+		throw std::runtime_error("load statistics output parameters errors in MT_Config");
+	}
+	std::string value = ParseString(GetNamedAttributeValue(child, "value"), "");
+	mtCfg.setFilenameOfJourneyTimeStats(value);
+
+	child = GetSingleElementByName(node, "waiting_time_csv_file_output");
+	if (child == nullptr)
+	{
+		throw std::runtime_error("load statistics output parameters errors in MT_Config");
+	}
+	value = ParseString(GetNamedAttributeValue(child, "value"), "");
+	mtCfg.setFilenameOfWaitingTimeStats(value);
+
+	child = GetSingleElementByName(node, "waiting_amount_csv_file_output");
+	if (child == nullptr)
+	{
+		throw std::runtime_error("load statistics output parameters errors in MT_Config");
+	}
+	value = ParseString(GetNamedAttributeValue(child, "value"), "");
+	mtCfg.setFilenameOfWaitingAmountStats(value);
+}
+
+
 void ParseMidTermConfigFile::processWalkSpeedElement(xercesc::DOMElement* node)
 {
 	mtCfg.setPedestrianWalkSpeed(ParseFloat(GetNamedAttributeValue(node, "value", true), nullptr));
+}
+
+void ParseMidTermConfigFile::processBusCapactiyElement(xercesc::DOMElement* node)
+{
+	mtCfg.setBusCapacity(ParseUnsignedInt(GetNamedAttributeValue(node, "value", true), nullptr));
 }
 
 void ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)

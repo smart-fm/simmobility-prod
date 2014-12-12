@@ -59,6 +59,19 @@ struct LongTermParams{
 	} housingModel;
 };
 
+struct PathSetParams
+{
+	bool enabled;
+	std::string database;
+	std::string credentials;
+	std::string pathSetTableName;
+	std::string singlePathTableName;
+	std::string dbFunction;
+	void setDefaultEnabled(bool value = false){
+		enabled = value;
+	}
+};
+
 ///represent the incident data section of the config file
 struct IncidentParams {
 	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
@@ -165,7 +178,7 @@ public:
 	unsigned int totalWarmupMS;    ///<Total time (in milliseconds) considered "warmup".
 
 	DailyTime simStartTime; ///<When the simulation begins(based on configuration)
-	std::string travelTimeTmpTableName;
+	std::string travelTimeTableName;
 	AuraManager::AuraManagerImplementation auraManagerImplementation; ///<What type of Aura Manager we're using.
 
 	WorkGroup::ASSIGNMENT_STRATEGY workGroupAssigmentStrategy;  ///<Defautl assignment strategy for Workgroups.
@@ -288,6 +301,9 @@ public:
 	///Settings for Long Term Parameters
 	LongTermParams ltParams;
 
+	///Settings used for generation/retrieval of paths
+	PathSetParams pathset;
+	bool cbd;
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;
 

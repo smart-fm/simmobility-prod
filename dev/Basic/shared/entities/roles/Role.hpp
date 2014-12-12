@@ -65,13 +65,14 @@ public:
 	//todo: use this to register roles
 	enum type
 	{
+		RL_UNKNOWN=0,
 		RL_DRIVER,
+		RL_BIKER,
 		RL_PEDESTRIAN,
 		RL_BUSDRIVER,
 		RL_ACTIVITY,
 		RL_PASSENGER,
-		RL_WAITBUSACTITITY,
-		RL_UNKNOWN
+		RL_WAITBUSACTITITY
 	};
 
 	//todo: use this to identify the type of request
@@ -212,10 +213,6 @@ protected:
 	}
 
 	int dynamic_seed;
-
-	//Random number generator
-	//TODO: We need a policy on who can get a generator and why.
-	//boost::mt19937 gen;
 
 public:
 #ifndef SIMMOB_DISABLE_MPI

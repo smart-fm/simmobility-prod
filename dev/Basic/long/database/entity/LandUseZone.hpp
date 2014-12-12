@@ -21,7 +21,7 @@ namespace sim_mob {
         public:
             LandUseZone(BigSerial id = INVALID_ID,
                         BigSerial typeId = INVALID_ID,
-                        double gpr = 0);
+                        std::string gpr = EMPTY_STR);
 
             virtual ~LandUseZone();
 
@@ -30,19 +30,18 @@ namespace sim_mob {
              */
             BigSerial getId() const;
             BigSerial getTypeId() const;
-            double getGPR() const;
+            std::string getGPR() const;
 
             /**
              * Operator to print the LandUseZone data.  
              */
-            friend std::ostream& operator<<(std::ostream& strm,
-                    const LandUseZone& data);
+            friend std::ostream& operator<<(std::ostream& strm, const LandUseZone& data);
         private:
             friend class LandUseZoneDao;
         private:
             BigSerial id;
             BigSerial typeId;
-            double gpr;
+            std::string gpr;
         };
     }
 }

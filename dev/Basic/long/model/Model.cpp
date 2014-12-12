@@ -19,10 +19,13 @@ using namespace sim_mob::event;
 using std::vector;
 using std::string;
 
-namespace {
-    void deleteAgents(vector<Agent*>& agents) {
-        while (!agents.empty()) {
-            Agent* ag = agents.back();
+namespace
+{
+    void deleteAgents(vector<Agent_LT*>& agents)
+    {
+        while (!agents.empty())
+        {
+            Agent_LT* ag = agents.back();
             agents.pop_back();
             safe_delete_item(ag);
         }
@@ -33,22 +36,27 @@ namespace {
     const std::string MODEL_NAME = "Model Name";
 }
 
-Model::Model(const std::string& name, WorkGroup& workGroup)
-: name(name), workGroup(workGroup), running(false) {
+Model::Model(const std::string& name, WorkGroup& workGroup): name(name), workGroup(workGroup), running(false)
+{
     addMetadata(MODEL_NAME, name);
     addMetadata(START_TIME, "0");
     addMetadata(STOP_TIME, "0");
 }
 
-Model::~Model() {
-    if (running){
+Model::~Model()
+{
+    if (running)
+    {
         stop();
     }
+
     deleteAgents(agents);
 }
 
-void Model::start() {
-    if (!running) {
+void Model::start()
+{
+    if (!running)
+    {
         startWatch.start();
         startImpl();
         startWatch.stop();
@@ -58,8 +66,10 @@ void Model::start() {
     }
 }
 
-void Model::stop() {
-    if (running) {
+void Model::stop()
+{
+    if (running)
+    {
         running = false;
         stopWatch.start();
         stopImpl();
@@ -69,22 +79,27 @@ void Model::stop() {
     }
 }
 
-bool Model::isRunning()const {
+bool Model::isRunning()const
+{
     return running;
 }
 
-double Model::getStartTime() const {
+double Model::getStartTime() const
+{
     return startWatch.getTime();
 }
 
-double Model::getStopTime() const {
+double Model::getStopTime() const
+{
     return stopWatch.getTime();
 }
 
-const string& Model::getName() const {
+const string& Model::getName() const
+{
     return name;
 }
 
-const Model::Metadata& Model::getMetadata() const{
+const Model::Metadata& Model::getMetadata() const
+{
     return metadata;
 }

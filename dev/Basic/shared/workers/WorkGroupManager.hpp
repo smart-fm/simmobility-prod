@@ -9,6 +9,7 @@
 #include <set>
 #include <string>
 
+#include "entities/PersonLoader.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/FlexiBarrier.hpp"
 #include "util/StateSwitcher.hpp"
@@ -57,7 +58,8 @@ public:
 	 * \param auraMgr The aura manager. Will be updated during the AuraManager barrier wait if it exists.
 	 * \param partitionMgr The partition manager. Will be updated during the AuraManager barrier wait (but *before*) the AuraMaanger if it exists.
 	 */
-	sim_mob::WorkGroup* newWorkGroup(unsigned int numWorkers, unsigned int numSimTicks=0, unsigned int tickStep=1, sim_mob::AuraManager* auraMgr=nullptr, sim_mob::PartitionManager* partitionMgr=nullptr);
+	sim_mob::WorkGroup* newWorkGroup(unsigned int numWorkers, unsigned int numSimTicks=0, unsigned int tickStep=1,
+			sim_mob::AuraManager* auraMgr=nullptr, sim_mob::PartitionManager* partitionMgr=nullptr, sim_mob::PeriodicPersonLoader* periodicLoader=nullptr);
 
 	///Initialize all WorkGroups. Before this function is called, WorkGroups cannot have Workers added to them. After this function is
 	///  called, no new WorkGroups may be added.

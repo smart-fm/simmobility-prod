@@ -60,7 +60,8 @@ std::list<std::string> sim_mob::WorkGroupManager::retrieveOutFileNames() const
 }
 
 
-WorkGroup* sim_mob::WorkGroupManager::newWorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr)
+WorkGroup* sim_mob::WorkGroupManager::newWorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep,
+		AuraManager* auraMgr, PartitionManager* partitionMgr, sim_mob::PeriodicPersonLoader* periodicLoader)
 {
 	//Sanity check
 	bool pass = (currState.test(INIT)||currState.test(CREATE)) && currState.set(CREATE);
@@ -69,7 +70,7 @@ WorkGroup* sim_mob::WorkGroupManager::newWorkGroup(unsigned int numWorkers, unsi
 	}
 
 	//Most of this involves passing paramters on to the WorkGroup itself, and then bookkeeping via static data.
-	WorkGroup* res = new WorkGroup(registeredWorkGroups.size(), numWorkers, numSimTicks, tickStep, auraMgr, partitionMgr);
+	WorkGroup* res = new WorkGroup(registeredWorkGroups.size(), numWorkers, numSimTicks, tickStep, auraMgr, partitionMgr, periodicLoader);
 	currBarrierCount += numWorkers;
 	if (auraMgr || partitionMgr || ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
 		auraBarrierNeeded = true;
@@ -160,7 +161,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_FrameTick()
 	if (frameTickBarr) {
 		frameTickBarr->wait();
 	}
-        sim_mob::messaging::MessageBus::DistributeMessages();
+    sim_mob::messaging::MessageBus::DistributeMessages();
 }
 
 void sim_mob::WorkGroupManager::waitAllGroups_FlipBuffers(std::set<Agent*>* removedEntities)

@@ -11,42 +11,24 @@ Authors - Siyu Li, Harish Loganathan, Olga Petrik
 --Note: the betas that not estimated are fixed to zero.
 
 -- ARR_1_sin2pi:
-local beta_ARR_1_1 = 2.20 
+local beta_ARR_1_1 = -5.26
 -- ARR_1_cos2pi:
-local beta_ARR_1_3 = -10.3 
+local beta_ARR_1_3 = 9.70
 -- ARR_1_sin4pi:
-local beta_ARR_1_2 = -0.655 
+local beta_ARR_1_2 = 1.47
 -- ARR 1_cos4pi:
-local beta_ARR_1_4 = 0.735 
+local beta_ARR_1_4 = 4.96
+ 
 
-local beta_ARR_2_1 = 10.1 
-local beta_ARR_2_3 = 3.28
-local beta_ARR_2_2 = 2.50 
-local beta_ARR_2_4 = -3.32 
+local beta_DEP_1_1 = -25.7
+local beta_DEP_1_3 = -16.5
+local beta_DEP_1_2 = -7.52
+local beta_DEP_1_4 = 9.62
 
-local beta_ARR_3_1 = -0.0927 
-local beta_ARR_3_3 = 1.35 
-local beta_ARR_3_2 = 0.684
-local beta_ARR_3_4 = 1.10 
 
-local beta_DEP_1_1 = -7.97 
-local beta_DEP_1_3 = 10.2 
-local beta_DEP_1_2 = 0.851 
-local beta_DEP_1_4 = 5.57 
-
-local beta_DEP_2_1 = -5.03 
-local beta_DEP_2_3 = -5.19 
-local beta_DEP_2_2 = -2.34 
-local beta_DEP_2_4 = -3.39 
-
-local beta_DEP_3_1 = -14.1 
-local beta_DEP_3_3 = -7.69 
-local beta_DEP_3_2 = -4.51 
-local beta_DEP_3_4 = 3.06 
-
-local beta_DUR_1 = -0.718
-local beta_DUR_2 = -0.342
-local beta_DUR_3 = 0.0207
+local beta_DUR_1 = 1.89
+local beta_DUR_2 = -0.159
+local beta_DUR_3 = 0.0099
 
 local pi = math.pi
 local pow = math.pow
@@ -84,21 +66,6 @@ local function sdep_1(t)
 	return beta_DEP_1_1 * sin(2*pi*t/24) + beta_DEP_1_3 * cos(2*pi*t/24)+beta_DEP_1_2 * sin(4*pi*t/24) + beta_DEP_1_4 * cos(4*pi*t/24)
 end
 
-local function sarr_2(t)
-	return beta_ARR_2_1 * sin(2*pi*t/24) + beta_ARR_2_3 * cos(2*pi*t/24)+beta_ARR_2_2 * sin(4*pi*t/24) + beta_ARR_2_4 * cos(4*pi*t/24)
-end
-
-local function sdep_2(t)
-	return beta_DEP_2_1 * sin(2*pi*t/24) + beta_DEP_2_3 * cos(2*pi*t/24)+beta_DEP_2_2 * sin(4*pi*t/24) + beta_DEP_2_4 * cos(4*pi*t/24)
-end
-
-local function sarr_3(t)
-	return beta_ARR_3_1 * sin(2*pi*t/24) + beta_ARR_3_3 * cos(2*pi*t/24)+beta_ARR_3_2 * sin(4*pi*t/24) + beta_ARR_3_4 * cos(4*pi*t/24)
-end
-
-local function sdep_3(t)
-	return beta_DEP_3_1 * sin(2*pi*t/24) + beta_DEP_3_3 * cos(2*pi*t/24)+beta_DEP_3_2 * sin(4*pi*t/24) + beta_DEP_3_4 * cos(4*pi*t/24)
-end
 
 local utility = {}
 local function computeUtilities(params,dbparams)
@@ -132,7 +99,7 @@ local function computeUtilities(params,dbparams)
 		else
 			dep_am, dep_pm, dep_op = 0, 0, 1
 		end
-		utility[i] = sarr_1(arr) + sdep_1(dep) + (activity_type==1 and 1 or 0) * (sarr_2(arr) + sdep_2(dep)) + female_dummy * (sarr_3(arr) + sdep_3(dep)) + beta_DUR_1 * dur + beta_DUR_2 * pow(dur,2) + beta_DUR_3 * pow(dur,3)
+		utility[i] = sarr_1(arr) + sdep_1(dep) + beta_DUR_1 * dur + beta_DUR_2 * pow(dur,2) + beta_DUR_3 * pow(dur,3)
 	end
 end
 

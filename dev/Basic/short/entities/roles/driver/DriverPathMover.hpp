@@ -110,7 +110,7 @@ public:
 	double getAllRestRoadSegmentsLengthCM() const;
 
 	//Retrieve our X/Y position based ONLY on forward movement (e.g., nothing with Lanes)
-	sim_mob::DPoint getPosition() const;
+	sim_mob::DPoint getPosition();
 
 	//We might be able to fold Lane movement in here later. For now, it has to be called externally.
 	void shiftToNewPolyline(bool moveLeft);
@@ -159,6 +159,8 @@ public:
 	std::vector<sim_mob::Point2D> laneZeroPolypointsList;
 	std::vector<sim_mob::Point2D>::iterator currPolypoint;
 	std::vector<sim_mob::Point2D>::iterator nextPolypoint;
+
+	DynamicVector movementVect;
 
 	//Unfortuante duplication, but necessary to avoid aliasing
 	std::vector<sim_mob::Point2D>::const_iterator currLaneZeroPolypoint;

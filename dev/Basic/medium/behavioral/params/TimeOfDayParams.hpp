@@ -23,10 +23,10 @@ namespace medium {
  */
 class TourTimeOfDayParams {
 public:
-	TourTimeOfDayParams(std::vector<double>& travelTimesFirstHalfTour, std::vector<double>& travelTimesSecondHalfTour)
-	: numTimeWindows(48), costHT1_AM(0), costHT1_PM(0), costHT1_OP(0), costHT2_AM(0), costHT2_PM(0), costHT2_OP(0),
-	  travelTimesFirstHalfTour(travelTimesFirstHalfTour), travelTimesSecondHalfTour(travelTimesSecondHalfTour)
+	TourTimeOfDayParams()
+	: costHT1_AM(0), costHT1_PM(0), costHT1_OP(0), costHT2_AM(0), costHT2_PM(0), costHT2_OP(0), cbdOrgZone(false), cbdDestZone(false)
 	{}
+
 	virtual ~TourTimeOfDayParams() {}
 
 	/**
@@ -55,28 +55,72 @@ public:
 		return travelTimesSecondHalfTour[index-1];
 	}
 
-	int getCostHt1Am() const {
+	double getCostHt1Am() const {
 		return costHT1_AM;
 	}
 
-	int getCostHt1Op() const {
+	void setCostHt1Am(double costHt1Am) {
+		costHT1_AM = costHt1Am;
+	}
+
+	double getCostHt1Op() const {
 		return costHT1_OP;
 	}
 
-	int getCostHt1Pm() const {
+	void setCostHt1Op(double costHt1Op) {
+		costHT1_OP = costHt1Op;
+	}
+
+	double getCostHt1Pm() const {
 		return costHT1_PM;
 	}
 
-	int getCostHt2Am() const {
+	void setCostHt1Pm(double costHt1Pm) {
+		costHT1_PM = costHt1Pm;
+	}
+
+	double getCostHt2Am() const {
 		return costHT2_AM;
 	}
 
-	int getCostHt2Op() const {
+	void setCostHt2Am(double costHt2Am) {
+		costHT2_AM = costHt2Am;
+	}
+
+	double getCostHt2Op() const {
 		return costHT2_OP;
 	}
 
-	int getCostHt2Pm() const {
+	void setCostHt2Op(double costHt2Op) {
+		costHT2_OP = costHt2Op;
+	}
+
+	double getCostHt2Pm() const {
 		return costHT2_PM;
+	}
+
+	void setCostHt2Pm(double costHt2Pm) {
+		costHT2_PM = costHt2Pm;
+	}
+
+	bool isCbdDestZone() const
+	{
+		return cbdDestZone;
+	}
+
+	void setCbdDestZone(bool cbdDestZone)
+	{
+		this->cbdDestZone = cbdDestZone;
+	}
+
+	bool isCbdOrgZone() const
+	{
+		return cbdOrgZone;
+	}
+
+	void setCbdOrgZone(bool cbdOrgZone)
+	{
+		this->cbdOrgZone = cbdOrgZone;
 	}
 
 	/**
@@ -92,13 +136,14 @@ public:
 	std::vector<double> travelTimesSecondHalfTour;
 
 private:
-	int numTimeWindows;
-	int costHT1_AM;
-	int costHT1_PM;
-	int costHT1_OP;
-	int costHT2_AM;
-	int costHT2_PM;
-	int costHT2_OP;
+	double costHT1_AM;
+	double costHT1_PM;
+	double costHT1_OP;
+	double costHT2_AM;
+	double costHT2_PM;
+	double costHT2_OP;
+	bool cbdOrgZone;
+	bool cbdDestZone;
 
 };
 
@@ -110,9 +155,10 @@ private:
  */
 class StopTimeOfDayParams {
 public:
-	StopTimeOfDayParams(int stopType, int firstBound)
-	: stopType(stopType), firstBound(firstBound), numTimeWindows(48), todHigh(0.0), todLow(0.0) {
-		for(int i=1; i<=48; i++) {
+	StopTimeOfDayParams(int stopType, bool firstBound)
+	: stopType(stopType), firstBound(firstBound), numTimeWindows(48), todHigh(0.0), todLow(0.0), cbdOrgZone(false), cbdDestZone(false)
+	{
+		for(unsigned i=1; i<=numTimeWindows; i++) {
 			availability.push_back(true);
 		}
 	}
@@ -160,8 +206,8 @@ public:
 	 * \note -1 is an invalid value for travel time and the caller must check for this value.
 	 */
 	double getTravelTime(unsigned index){
-		if(index < numTimeWindows) {
-			return travelTimes[index];
+		if(index <= numTimeWindows  && index > 0) {
+			return travelTimes[index-1];
 		}
 		return -1;
 	}
@@ -173,8 +219,8 @@ public:
 	 * \note -1 is an invalid value for travel time and the caller must check for this value.
 	 */
 	double getTravelCost(unsigned index){
-		if(index < numTimeWindows) {
-			return travelCost[index];
+		if(index <= numTimeWindows  && index > 0) {
+			return travelCost[index-1];
 		}
 		return -1;
 	}
@@ -183,9 +229,10 @@ public:
 	 * Sets the availabilities of all time windows before low tod and after high tod to false
 	 */
 	void updateAvailabilities() {
-		for(int i=0; i<availability.size(); i++) {
-			int wndw = i+1;
-			if(wndw <= todLow || wndw >= todHigh) {
+		size_t wndw = 0;
+		for(size_t i=0; i<numTimeWindows; i++) {
+			wndw = i+1;
+			if(wndw < todLow || wndw > todHigh) {
 				availability[i] = false;
 			}
 		}
@@ -195,10 +242,30 @@ public:
 	 * Function to get the availability of an alternative
 	 */
 	int getAvailability(unsigned index){
-		if(index < numTimeWindows && index > 0) {
+		if(index <= numTimeWindows && index > 0) {
 			return availability[index-1];
 		}
 		return 0; // anything else is unavailable
+	}
+
+	bool isCbdDestZone() const
+	{
+		return cbdDestZone;
+	}
+
+	void setCbdDestZone(bool cbdDestZone)
+	{
+		this->cbdDestZone = cbdDestZone;
+	}
+
+	bool isCbdOrgZone() const
+	{
+		return cbdOrgZone;
+	}
+
+	void setCbdOrgZone(bool cbdOrgZone)
+	{
+		this->cbdOrgZone = cbdOrgZone;
 	}
 
 	/**
@@ -215,10 +282,12 @@ public:
 
 private:
 	int stopType;
-	int firstBound;
+	bool firstBound;
 	double todHigh; // upper limit for time of day for this stop
 	double todLow; // lower limit for time of day for this stop
-	int numTimeWindows;
+	unsigned numTimeWindows;
+	bool cbdOrgZone;
+	bool cbdDestZone;
 };
 } // end namespace medium
 } // end namespace sim_mob

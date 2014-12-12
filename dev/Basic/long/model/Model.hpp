@@ -11,22 +11,31 @@
 #include <vector>
 #include <string>
 #include "workers/WorkGroup.hpp"
-#include "entities/Agent.hpp"
+#include "entities/Agent_LT.hpp"
 #include "util/Utils.hpp"
 
-namespace sim_mob {
-    namespace long_term {
-
+namespace sim_mob
+{
+    namespace long_term
+    {
         /**
          * Represents a generic model that runs within a given workgroup.
          */
-        class Model {
+        class Model
+        {
         public:
 
-            struct MetadataEntry {
+            struct MetadataEntry
+            {
             public:
-                std::string getKey() const {return key;}
-                std::string getValue() const {return value;}
+                std::string getKey() const
+                {
+                	return key;
+                }
+                std::string getValue() const
+                {
+                	return value;
+                }
                 
             private:
                 friend class Model;
@@ -111,27 +120,31 @@ namespace sim_mob {
              * @param value of the variable.
              */
             template<typename T>
-            void addMetadata(const std::string& varName, const T& value) {
+            void addMetadata(const std::string& varName, const T& value)
+            {
                 MetadataMap::iterator itMap = metadataMapping.find(varName);
-                if (itMap != metadataMapping.end()){
-                    for (Metadata::iterator it = metadata.begin();
-                            it != metadata.end(); it++) {
-                        if (it->key == varName){
+                if (itMap != metadataMapping.end())
+                {
+                    for (Metadata::iterator it = metadata.begin(); it != metadata.end(); it++)
+                    {
+                        if (it->key == varName)
+                        {
                             it->value = Utils::toStr(value);
                         }
                     }
-                } else {
+                }
+                else
+                {
                     MetadataEntry entry;
                     entry.key = varName;
                     entry.value = Utils::toStr(value);
                     metadata.push_back(entry);
-                    metadataMapping.insert(std::make_pair(entry.getKey(), 
-                            entry.getValue()));
+                    metadataMapping.insert(std::make_pair(entry.getKey(), entry.getValue()));
                 }
             }
         protected:
             WorkGroup& workGroup;
-            std::vector<Agent*> agents;
+            std::vector<Agent_LT*> agents;
         
         private:
             typedef std::map<std::string, std::string> MetadataMap;

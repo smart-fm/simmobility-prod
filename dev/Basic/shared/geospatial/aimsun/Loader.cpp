@@ -13,13 +13,14 @@
 #include <vector>
 
 //NOTE: CMake should put the correct -I flags in for SOCI; be aware that some distros hide it though.
-#include <soci.h>
-#include <soci-postgresql.h>
-#include <boost/multi_index_container.hpp>
+//#include <soci.h>
+//#include <soci-postgresql.h>
+#include <boost/foreach.hpp>
 #include "boost/algorithm/string.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/settings/DisableMPI.h"
+#include "entities/PersonLoader.hpp"//
 #include "entities/AuraManager.hpp"
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/misc/BusTrip.hpp"
@@ -41,6 +42,7 @@
 #include "geospatial/aimsun/CrossingLoader.hpp"
 #include "geospatial/aimsun/LaneLoader.hpp"
 #include "geospatial/aimsun/SOCI_Converters.hpp"
+#include "geospatial/PathSetManager.hpp"
 
 #include "logging/Log.hpp"
 #include "metrics/Length.hpp"
@@ -86,8 +88,9 @@ using std::map;
 using std::pair;
 using std::multimap;
 
-
-
+namespace{
+sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("path_set");
+}
 namespace {
 const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
 const double BUS_LENGTH = 3 * sim_mob::PASSENGER_CAR_UNIT;
@@ -97,42 +100,47 @@ public:
 	explicit DatabaseLoader(string const & connectionString);
 
 	void LoadBasicAimsunObjects(map<string, string> const & storedProcedures);
+
+	/**
+	 * data to be loaded if we are running short-term
+	 * @param storedProcs get db procedure name
+	 */
+	void LoadObjectsForShortTerm(map<string, string> const & storedProcs);
 	/**
 	 *  /brief load segment type, node type
 	 *  /param storedProcs get db procedure name
 	 *  /param rn road network object
 	 */
 	void loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
-//	// load path set data
-//	void LoadSinglePathDB(std::map<std::string,sim_mob::SinglePath*>& pool,
-//			std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool);
-//	bool LoadSinglePathDBwithId(std::map<std::string,sim_mob::SinglePath*>& pool,
-//			std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,std::string& pathset_id);
-////	void LoadPathPoolDB(std::vector<sim_mob::PathPoolDB>& pool);
-//	void LoadPathSetDB(std::map<std::string,sim_mob::PathSet* >& pool);
-//	bool LoadPathSetDBwithId(std::map<std::string,sim_mob::PathSet* >& pool,std::string& pathset_id);
 	void LoadERP_Surcharge(std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >& pool);
-	void LoadERP_Section(std::map<std::string,sim_mob::ERP_Section*>& erp_section_pool);
-	void LoadERP_Gantry_Zone(std::map<std::string,sim_mob::ERP_Gantry_Zone*>& erp_gantry_zone_pool);
-	void Loadlink_default_travel_time(std::map<std::string,std::vector<sim_mob::Link_travel_time*> >& pool);
-	bool Loadlink_realtime_travel_time(std::string& table_name,
-			std::map<std::string,std::vector<sim_mob::Link_travel_time*> >& pool);
-	bool CreateTable(std::string& table_name);
-	bool InsertData2TravelTimeTmpTable(std::string& table_name,sim_mob::Link_travel_time& data);
-	bool InsertCSV2Table(std::string& table_name,std::string& csvFileName);
-	bool TruncateTable(std::string& table_name);
-	bool ExcuString(std::string& str);
+	void LoadERP_Section(std::map<std::string,sim_mob::ERP_Section*>& ERP_SectionPool);
+	void LoadERP_Gantry_Zone(std::map<std::string,sim_mob::ERP_Gantry_Zone*>& ERP_GantryZonePool);
+	static void loadLinkDefaultTravelTime(soci::session& sql,std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& pool);
+	static bool loadLinkRealTimeTravelTime(soci::session& sql,std::string& tableName,	std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& pool);
+	static bool CreateTable(soci::session& sql,std::string& tableName);
+	bool InsertData2TravelTimeTmpTable(std::string& tableName,sim_mob::LinkTravelTime& data);
+	static bool InsertCSV2Table(soci::session& sql,std::string& tableName,const std::string& csvFileName);
+	static bool InsertCSV2TableST(soci::session& sql,std::string& tableName,std::string& csvFileName);
+	static bool TruncateTable(soci::session& sql,std::string& tableName);
+	static bool ExcuString(soci::session& sql,std::string& str);
 	// save path set data
-	void InsertSinglePath2DB(std::map<std::string,sim_mob::SinglePath*>& pathPool);
+	void InsertSinglePath2DB(std::vector<sim_mob::SinglePath*>& spPool);//(std::map<std::string,sim_mob::SinglePath*>& pathPool);
+	static bool InsertSinglePath2DBST(soci::session& sql,std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool,const std::string singlePathTableName);
 	bool LoadSinglePathDBwithId2(
 				std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 				std::string& pathset_id,
-				std::vector<sim_mob::SinglePath*>& spPool);
+				std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool);
+	static sim_mob::HasPath LoadSinglePathDBwithIdST(soci::session& sql,
+					std::string& pathset_id,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool
+					,const std::string functionName,std::stringstream *outDbg=nullptr,
+					const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
 	bool LoadPathSetDBwithId(
-			std::map<std::string,sim_mob::PathSet* >& pool,
+			std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pool,
 			std::string& pathset_id);
-	bool LoadOnePathSetDBwithId(std::string& pathset_id,sim_mob::PathSet& ps);
-	void InsertPathSet2DB(std::map<std::string,sim_mob::PathSet* >& pathSetPool);
+	bool LoadOnePathSetDBwithId(std::string& pathset_id,boost::shared_ptr<sim_mob::PathSet> & ps);
+	static bool LoadOnePathSetDBwithIdST(soci::session& sql,std::string& pathset_id,boost::shared_ptr<sim_mob::PathSet>  &ps, const std::string tableName);
+	static void InsertPathSet2DB(soci::session& sql,std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pathSetPool,const std::string pathSetTableName);
+	static bool InsertPathSet2DBST(soci::session& sql,std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pathSetPool,const std::string pathSetTableName);
 
 #ifndef SIMMOB_DISABLE_MPI
 	void TransferBoundaryRoadSegment();
@@ -151,8 +159,14 @@ public:
 	const map<std::string, vector<const sim_mob::BusStop*> >& getRoute_BusStops() const { return route_BusStops; }
 	const map<std::string, vector<const sim_mob::RoadSegment*> >& getRoute_RoadSegments() const { return route_RoadSegments; }
 
+	static void getCBD_Border(const string & cnn,
+			std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > &in,
+			std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > & out);
+	static void getCBD_Segments(const string & cnn,std::set<const sim_mob::RoadSegment*> & zoneSegments);
+
 private:
 	soci::session sql_;
+
 
 	map<int, Node> nodes_;
 	map<int, Section> sections_;
@@ -195,6 +209,7 @@ public:
 	void LoadPTBusRoutes(const std::string& storedProc, std::vector<sim_mob::PT_bus_routes>& pt_bus_routes, std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments);
 	void LoadPTBusStops(const std::string& storedProc, std::vector<sim_mob::PT_bus_stops>& pt_bus_stops, std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops);
 	void LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule);
+	void LoadOD_Trips(const std::string& storedProc, std::vector<sim_mob::OD_Trip>& OD_Trips);
 
 private:
 	void LoadBusStop(const std::string& storedProc);
@@ -222,22 +237,99 @@ bool polyline_sorter (const Polyline* const p1, const Polyline* const p2)
 {
 	return p1->distanceFromSrc < p2->distanceFromSrc;
 }
-void DatabaseLoader::InsertSinglePath2DB(std::map<std::string,sim_mob::SinglePath*>& pathPool)
+
+void DatabaseLoader::getCBD_Border(const string & cnn,
+		std::set<std::pair<const sim_mob::RoadSegment*,const sim_mob::RoadSegment*> > &in,
+		std::set<std::pair<const sim_mob::RoadSegment*,const sim_mob::RoadSegment*> > & out) {
+	soci::session sql(soci::postgresql, cnn);
+	soci::rowset<sim_mob::CBD_Pair> rsIn = sql.prepare << std::string("select * from ") + "get_banned_in_turning()";
+
+	for (soci::rowset<sim_mob::CBD_Pair>::iterator it = rsIn.begin();it != rsIn.end(); it++) {
+		std::map<unsigned long, const sim_mob::RoadSegment*>::iterator itFromSeg(sim_mob::RoadSegment::allSegments.find(it->from_section));
+		std::map<unsigned long, const sim_mob::RoadSegment*>::iterator itToSeg(sim_mob::RoadSegment::allSegments.find(it->to_section));
+		if (itFromSeg != sim_mob::RoadSegment::allSegments.end()
+				&& itToSeg != sim_mob::RoadSegment::allSegments.end()) {
+
+			in.insert(std::make_pair(itFromSeg->second, itToSeg->second));
+
+		} else {
+			std::stringstream str("");
+			str << "Section ids " << it->from_section << "," << it->to_section
+					<< " has no candidate Road Segment among "
+					<< sim_mob::RoadSegment::allSegments.size()
+					<< " segments\n";
+			throw std::runtime_error(str.str());
+		}
+	}
+	//for simplicity, we repeated code for Out segments
+	soci::rowset<sim_mob::CBD_Pair> rsOut = sql.prepare << std::string("select * from ") + "get_banned_out_turning()";
+
+	for (soci::rowset<sim_mob::CBD_Pair>::iterator it = rsOut.begin();	it != rsOut.end(); it++) {
+		std::map<unsigned long, const sim_mob::RoadSegment*>::iterator itFromSeg(sim_mob::RoadSegment::allSegments.find(it->from_section));
+		std::map<unsigned long, const sim_mob::RoadSegment*>::iterator itToSeg(sim_mob::RoadSegment::allSegments.find(it->to_section));
+
+		if (itFromSeg != sim_mob::RoadSegment::allSegments.end()
+				&& itToSeg != sim_mob::RoadSegment::allSegments.end()) {
+
+			out.insert(std::make_pair(itFromSeg->second, itToSeg->second));
+
+		} else {
+
+			std::stringstream str("");
+			str << "Section ids " << it->from_section << "," << it->to_section
+					<< " has no candidate Road Segment among "
+					<< sim_mob::RoadSegment::allSegments.size()
+					<< " segments\n";
+			throw std::runtime_error(str.str());
+		}
+	}
+
+}
+
+void DatabaseLoader::getCBD_Segments(const string & cnn, std::set<const sim_mob::RoadSegment*> & zoneSegments)
 {
-	for(std::map<std::string,sim_mob::SinglePath*>::iterator it=pathPool.begin();it!=pathPool.end();++it)
-	{
-		sim_mob::SinglePath* sp = (*it).second;
-		if(sp->isNeedSave2DB)
+	soci::session sql(soci::postgresql, cnn);
+	soci::rowset<int> rs = sql.prepare << std::string("select * from ") + "get_ban_section_CBD_aimsun()";
+	for (soci::rowset<int>::iterator it = rs.begin();	it != rs.end(); it++) {
+		std::map<unsigned long, const sim_mob::RoadSegment*>::iterator itSeg(sim_mob::RoadSegment::allSegments.find(*it));
+		if(itSeg != sim_mob::RoadSegment::allSegments.end())
 		{
-			sql_<<"insert into \"SinglePath\"(\"ID\", \"PATHSET_ID\",\"UTILITY\",\"PATHSIZE\",\"TRAVEL_COST\",\"SIGNAL_NUMBER\",\"RIGHT_TURN_NUMBER\",\"SCENARIO\",\"LENGTH\",\"TRAVEL_TIME\") "
-					"values(:ID, :PATHSET_ID,:UTILITY,:PATHSIZE,:TRAVEL_COST,:SIGNAL_NUMBER,:RIGHT_TURN_NUMBER,:SCENARIO,:LENGTH,:TRAVEL_TIME)", soci::use(*sp);
+			itSeg->second->CBD = true;
+			zoneSegments.insert(itSeg->second);
 		}
 	}
 }
+
+void DatabaseLoader::InsertSinglePath2DB(std::vector<sim_mob::SinglePath*>& spPool)
+{
+//	for(std::map<std::string,sim_mob::SinglePath*>::iterator it=pathPool.begin();it!=pathPool.end();++it)
+	for(int i=0;i<spPool.size();++i)
+	{
+		sim_mob::SinglePath* sp = spPool[i];//(*it).second;
+		if(sp->isNeedSave2DB)
+		{
+			sql_<<"insert into \"SinglePath\"(\"ID\", \"PATHSET_ID\",\"UTILITY\",\"PATHSIZE\",\"TRAVEL_COST\",\"SIGNAL_NUMBER\",\"RIGHT_TURN_NUMBER\",\"SCENARIO\",\"LENGTH\",\"TRAVEL_TIME\",\"HIGHWAY_DIS\",\"MIN_TRAVEL_TIME\",\"MIN_DISTANCE\",\"MIN_SIGNAL\",\"MIN_RIGHT_TURN\",\"MAX_HIGH_WAY_USAGE\") "
+					"values(:ID, :PATHSET_ID,:UTILITY,:PATHSIZE,:TRAVEL_COST,:SIGNAL_NUMBER,:RIGHT_TURN_NUMBER,:SCENARIO,:LENGTH,:TRAVEL_TIME,:HIGHWAY_DIS,:MIN_TRAVEL_TIME,:MIN_DISTANCE,:MIN_SIGNAL,:MIN_RIGHT_TURN,:MAX_HIGH_WAY_USAGE)", soci::use(*sp);
+		}
+	}
+}
+bool DatabaseLoader::InsertSinglePath2DBST(soci::session& sql,std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool,const std::string singlePathTableName)
+{
+	BOOST_FOREACH(sim_mob::SinglePath* sp, spPool)
+	{
+		if(sp->isNeedSave2DB)
+		{
+			sql << "insert into \"" << singlePathTableName << "\"(\"ID\", \"PATHSET_ID\",\"UTILITY\",\"PATHSIZE\",\"TRAVEL_COST\",\"SIGNAL_NUMBER\",\"RIGHT_TURN_NUMBER\",\"SCENARIO\",\"LENGTH\",\"TRAVEL_TIME\",\"HIGHWAY_DIS\",\"MIN_TRAVEL_TIME\",\"MIN_DISTANCE\",\"MIN_SIGNAL\",\"MIN_RIGHT_TURN\",\"MAX_HIGH_WAY_USAGE\",\"SHORTEST_PATH\") "
+					"values(:ID, :PATHSET_ID,:UTILITY,:PATHSIZE,:TRAVEL_COST,:SIGNAL_NUMBER,:RIGHT_TURN_NUMBER,:SCENARIO,:LENGTH,:TRAVEL_TIME,:HIGHWAY_DIS,:MIN_TRAVEL_TIME,:MIN_DISTANCE,:MIN_SIGNAL,:MIN_RIGHT_TURN,:MAX_HIGH_WAY_USAGE,:SHORTEST_PATH)", soci::use(*sp);
+			pathsetLogger << "insert into " << singlePathTableName << "\n";
+		}
+	}
+}
+
 bool DatabaseLoader::LoadSinglePathDBwithId2(
 				std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 				std::string& pathset_id,
-				std::vector<sim_mob::SinglePath*>& spPool)
+				std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool)
 {
 	//Our SQL statement
 	//	std::cout<<"LoadSinglePathDBwithId: "<<pathset_id<<std::endl;
@@ -251,28 +343,119 @@ bool DatabaseLoader::LoadSinglePathDBwithId2(
 	//		std::cout<<"LSPDBwithId: waypointset size "<<s->id.size()<<std::endl;
 			waypoint_singlepathPool.insert(std::make_pair(s->id,s));
 			//
-			spPool.push_back(s);
+			spPool.insert(s);
 	//		SinglePathDBPool.push_back(&*it);
 	//		std::cout<<"LoadSinglePathDB:  "<<i<<std::endl;
 			i++;
 		}
 		if (i==0)
 		{
-			std::cout<<"LSPDBwithId: "<<pathset_id<< "no data in db"<<std::endl;
+			pathsetLogger  << "LSPDBwithId: "<<pathset_id<< "no data in db"<<std::endl;
 			return false;
 		}
 		return true;
 }
+std::map<std::string, sim_mob::OneTimeFlag> ontimeFlog;
+sim_mob::HasPath DatabaseLoader::LoadSinglePathDBwithIdST(soci::session& sql,
+		std::string& pathset_id,
+		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,
+		const std::string functionName,std::stringstream *outDbg,
+		const std::set<const sim_mob::RoadSegment *> & excludedRS)
+{
+	//prepare statement
+	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare	<< "select * from " + functionName + "(:pathset_id_in)", soci::use(pathset_id));
+//	//temp optimization todo remove hardcode
+	if(rs.begin() == rs.end())
+	{
+		std::cout << "[" << pathset_id << "] [QUERY NO PATH]" <<  std::endl;
+		return sim_mob::PSM_NOTFOUND;
+	}
+	//	process result
+	int i = 0;
+	for (soci::rowset<sim_mob::SinglePath>::const_iterator it = rs.begin();	it != rs.end(); ++it) {
+		///////////////////
+		bool proceed = true;
+		std::vector<sim_mob::WayPoint> path = std::vector<sim_mob::WayPoint>();
+		//use id to build shortestWayPointpath
+		std::vector<std::string> segIds = std::vector<std::string>();
+		boost::split(segIds,it->id,boost::is_any_of(","));
+		// no path is correct
+		for(int ii = 0 ; ii < segIds.size(); ++ii)
+		{
+			unsigned long id = 0;
+			try
+			{
+				id = boost::lexical_cast<unsigned long> (segIds.at(ii));
+				if(id > 0)
+				{
+					std::map<unsigned long, const sim_mob::RoadSegment*>::iterator it = sim_mob::RoadSegment::allSegments.find(id);
+					const sim_mob::RoadSegment* seg = (it == sim_mob::RoadSegment::allSegments.end() ? nullptr : it->second);
+					if(!seg)
+					{
+						std::string str = "SinglePath: seg not find " + id;
+						throw std::runtime_error(str);
+					}
+	//				if(excludedRS.find(seg) != excludedRS.end())
+					if(seg->CBD && excludedRS.find(seg) != excludedRS.end())//hack(seg->CBD)!!
+					{
+						proceed = false;
+						break;
+					}
+					path.push_back(sim_mob::WayPoint(seg));//copy better than this twist
+				}
+				else
+				{
+					std::string str = "SinglePath: seg not find " + id;
+					throw std::runtime_error(str);
+				}
+			}
+			catch(std::exception &e)
+			{
+				if(ii  < (segIds.size()-1))//last comma
+				{
+					throw std::runtime_error(e.what());
+				}
+			}
+		}
+		if(!proceed)
+		{
+			continue;
+		}
+		//create path object
+		sim_mob::SinglePath *s = new sim_mob::SinglePath(*it);
+		s->shortestWayPointpath = boost::move(path);
+		if(s->shortestWayPointpath.empty())
+		{
+			throw std::runtime_error("Empty Path");
+		}
+		spPool.insert(s);
+		i++;
+	}
+
+	if((pathset_id == "111502,79350" || pathset_id == "93122,114990" || pathset_id == "112768,93896")  && ontimeFlog[pathset_id].check())
+	{
+		pathsetLogger << "[" << pathset_id << " : PATHSET_SIZE : " << i << "  " << spPool.size() << "]\n";
+	}
+
+
+	if (i == 0) {
+		pathsetLogger << "DatabaseLoader::LoadSinglePathDBwithIdST: " << pathset_id << "no data in db\n" ;
+		std::cout << "DatabaseLoader::LoadSinglePathDBwithIdST: " << pathset_id << " no data in db  excludedRS:"  << excludedRS.size() << std::endl;
+		return sim_mob::PSM_NOGOODPATH;
+	}
+	return sim_mob::PSM_HASPATH;
+}
 bool DatabaseLoader::LoadPathSetDBwithId(
-		std::map<std::string,sim_mob::PathSet* >& pool,
+		std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pool,
 		std::string& pathset_id)
 {
 	//Our SQL statement
-	soci::rowset<sim_mob::PathSet> rs = (sql_.prepare <<"select * from \"PathSet\" where \"ID\" = " + pathset_id);
+	std::string query = "select * from \"PathSet\" where \"ID\" = " + pathset_id;
+	soci::rowset<sim_mob::PathSet> rs = (sql_.prepare << query/*"select * from \"PathSet\" where \"ID\" = " + pathset_id*/);
 	int i=0;
 	for (soci::rowset<sim_mob::PathSet>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//
-		sim_mob::PathSet* ps = new sim_mob::PathSet(*it);
+		boost::shared_ptr<sim_mob::PathSet> ps(new sim_mob::PathSet(*it));
 		pool.insert(std::make_pair(ps->id,ps));
 		//
 //		PathSetDBPool.push_back(&*it);
@@ -281,7 +464,7 @@ bool DatabaseLoader::LoadPathSetDBwithId(
 	}
 	if(i==0)
 	{
-		std::cout<<"LPSetDBwithId: "<<pathset_id<<" no data in db"<<std::endl;
+		pathsetLogger  <<"LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
 		return false;
 	}
 	else
@@ -289,20 +472,21 @@ bool DatabaseLoader::LoadPathSetDBwithId(
 		return true;
 	}
 }
-bool DatabaseLoader::LoadOnePathSetDBwithId(std::string& pathset_id,sim_mob::PathSet& ps)
+bool DatabaseLoader::LoadOnePathSetDBwithId(std::string& pathset_id,boost::shared_ptr<sim_mob::PathSet> & ps)
 {
 	//Our SQL statement
-	soci::rowset<sim_mob::PathSet> rs = (sql_.prepare <<"select * from \"PathSet\" where \"ID\" = " + pathset_id);
+	std::string query = "select * from \"PathSet\" where \"ID\" = " + pathset_id;
+	soci::rowset<sim_mob::PathSet> rs = (sql_.prepare << query/*"select * from \"PathSet\" where \"ID\" = " + pathset_id*/);
 	int i=0;
 	for (soci::rowset<sim_mob::PathSet>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//
-		ps = sim_mob::PathSet(*it);
+		ps.reset(new  sim_mob::PathSet(*it));
 		i=1;
 		break;
 	}
 	if(i==0)
 	{
-		std::cout<<"LPSetDBwithId: "<<pathset_id<<" no data in db"<<std::endl;
+		pathsetLogger  << "LPSetDBwithId: ["<<query<<"] no data in db"<<std::endl;
 		return false;
 	}
 	else
@@ -310,102 +494,109 @@ bool DatabaseLoader::LoadOnePathSetDBwithId(std::string& pathset_id,sim_mob::Pat
 		return true;
 	}
 }
-void DatabaseLoader::InsertPathSet2DB(std::map<std::string,sim_mob::PathSet* >& pathSetPool)
+bool DatabaseLoader::LoadOnePathSetDBwithIdST(soci::session& sql,std::string& pathset_id,boost::shared_ptr<sim_mob::PathSet>  &ps, const std::string tableName)
 {
-	for(std::map<std::string,sim_mob::PathSet* >::iterator it=pathSetPool.begin();it!=pathSetPool.end();++it)
+	//Our SQL statement
+	std::string query = "select * from \"" + tableName + "\" where \"ID\" = " + pathset_id;
+	soci::rowset<sim_mob::PathSet> rs = (sql.prepare << query/*"select * from \"" + tableName + "\" where \"ID\" = " + pathset_id*/);
+	int i=0;
+	for (soci::rowset<sim_mob::PathSet>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+		//
+		ps.reset(new sim_mob::PathSet(*it));
+		i=1;
+		break;
+	}
+	if(i==0)
 	{
-		sim_mob::PathSet *ps = (*it).second;
+		pathsetLogger  << "LPSetDBwithId: ["<< query <<"] no data in db"<<std::endl;
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+void DatabaseLoader::InsertPathSet2DB(soci::session& sql,std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pathSetPool,const std::string pathSetTableName)
+{
+	for(std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >::iterator it=pathSetPool.begin();it!=pathSetPool.end();++it)
+	{
+		boost::shared_ptr<sim_mob::PathSet> &ps = (*it).second;
+		if(!ps){
+			std::cout << "ps is null" << std::endl;
+			return;
+		}
 		if(ps->isNeedSave2DB)
 		{
-			sql_<<"insert into \"PathSet\"(\"ID\", \"FROM_NODE_ID\", \"TO_NODE_ID\",\"SINGLEPATH_ID\",\"SCENARIO\",\"HAS_PATH\") "
-								   "values(:ID, :FROM_NODE_ID, :TO_NODE_ID,:SINGLEPATH_ID,:SCENARIO,:HAS_PATH)", soci::use(*ps);
+			sql.prepare << "set_path_set_1(:ID, :FROM_NODE_ID, :TO_NODE_ID,:SINGLEPATH_ID,:SCENARIO,:HAS_PATH)",soci::use(*ps);
 		}
+	}
+}
+bool DatabaseLoader::InsertPathSet2DBST(soci::session& sql,std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pathSetPool,const std::string pathSetTableName)
+{
+	for(std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >::iterator it=pathSetPool.begin();it!=pathSetPool.end();++it)
+	{
+		boost::shared_ptr<sim_mob::PathSet> &ps = (*it).second;
+		if(ps->isNeedSave2DB)
+		{
+			std::ostringstream out("");
+
+			out << "insert into \""<< pathSetTableName << "\"(\"ID\", \"FROM_NODE_ID\", \"TO_NODE_ID\",\"SINGLEPATH_ID\",\"SCENARIO\",\"HAS_PATH\") "
+					   "values(:ID, :FROM_NODE_ID, :TO_NODE_ID,:SINGLEPATH_ID,:SCENARIO,:HAS_PATH)";
+			sql<< out.str(), soci::use(*ps);
+			out.str("");
+		}
+	}
+	return true;
+}
+
+void DatabaseLoader::loadLinkDefaultTravelTime(soci::session& sql,std::map<std::string,	std::vector<sim_mob::LinkTravelTime> >& pool)
+{
+	soci::rowset<sim_mob::LinkTravelTime> rs = (sql.prepare <<"select \"link_id\",to_char(\"start_time\",'HH24:MI:SS') AS start_time,to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\" from \"link_default_travel_time_corrected_he_v2\" ");
+	for (soci::rowset<sim_mob::LinkTravelTime>::const_iterator itRS=rs.begin(); itRS!=rs.end(); ++itRS)  {
+		itRS->originalSectionDB_ID.setProps("aimsun-id",itRS->linkId);
+		pool[itRS->originalSectionDB_ID.getLogItem()].push_back(*itRS);
+	}
+}
+bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql,std::string& tableName,	std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& pool)
+{
+	try {
+			soci::rowset<sim_mob::LinkTravelTime> rs = (sql.prepare <<"select \"link_id\",to_char(\"start_time\",'HH24:MI:SS') AS start_time,to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\" from " + tableName);
+			int i = 0;
+			for (soci::rowset<sim_mob::LinkTravelTime>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+				i++;
+				it->originalSectionDB_ID.setProps("aimsun-id",it->linkId);
+				pool[it->originalSectionDB_ID.getLogItem()].push_back(*it);
+			}
+			return true;
+	}
+	catch (soci::soci_error const & err)
+	{
+		std::cout << "[ERROR LOADING REALTIME TRAVEL TIME]: " << err.what() << std::endl;
+		return false;
 	}
 }
 
-//void DatabaseLoader::LoadPathPoolDB(std::vector<sim_mob::PathPoolDB>& pool)
-//{
-//	//Our SQL statement
-//	soci::rowset<sim_mob::PathPoolDB> rs = (sql_.prepare <<"select * from \"PathPoolDB\" ");
-//	for (soci::rowset<sim_mob::PathPoolDB>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-//		pool.push_back(*it);
-//	}
-//}
-void DatabaseLoader::Loadlink_default_travel_time(std::map<std::string,
-		std::vector<sim_mob::Link_travel_time*> >& pool)
-{
-	soci::rowset<sim_mob::Link_travel_time> rs = (sql_.prepare <<"select \"link_id\",to_char(\"start_time\",'HH24:MI:SS') AS start_time,to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\" from \"link_default_travel_time\" ");
-	for (soci::rowset<sim_mob::Link_travel_time>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-		sim_mob::Link_travel_time *s = new sim_mob::Link_travel_time(*it);
-//		std::cout<<"Link_travel_time: "<<s->start_time<<std::endl;
-		std::map<std::string,std::vector<sim_mob::Link_travel_time*> >::iterator itt = pool.find(s->originalSectionDB_ID.getLogItem());
-		if(itt!=pool.end())
-		{
-			std::vector<sim_mob::Link_travel_time*> e = (*itt).second;
-			e.push_back(s);
-			pool[s->originalSectionDB_ID.getLogItem()] = e;
-//			insert(std::make_pair(s->originalSectionDB_ID.getLogItem(),s));
-		}
-		else
-		{
-			std::vector<sim_mob::Link_travel_time*> e;
-			e.push_back(s);
-			pool[s->originalSectionDB_ID.getLogItem()] = e;
-		}
-	}
-}
-bool DatabaseLoader::Loadlink_realtime_travel_time(std::string& table_name,
-		std::map<std::string,std::vector<sim_mob::Link_travel_time*> >& pool)
-{
-	try {
-		soci::rowset<sim_mob::Link_travel_time> rs = (sql_.prepare <<"select \"link_id\",to_char(\"start_time\",'HH24:MI:SS') AS start_time,to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\" from " + table_name);
-		for (soci::rowset<sim_mob::Link_travel_time>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-			sim_mob::Link_travel_time *s = new sim_mob::Link_travel_time(*it);
-	//		std::cout<<"Link_travel_time: "<<s->start_time<<std::endl;
-			std::map<std::string,std::vector<sim_mob::Link_travel_time*> >::iterator itt = pool.find(s->originalSectionDB_ID.getLogItem());
-			if(itt!=pool.end())
-			{
-				std::vector<sim_mob::Link_travel_time*> e = (*itt).second;
-				e.push_back(s);
-				pool[s->originalSectionDB_ID.getLogItem()] = e;
-	//			insert(std::make_pair(s->originalSectionDB_ID.getLogItem(),s));
-			}
-			else
-			{
-				std::vector<sim_mob::Link_travel_time*> e;
-				e.push_back(s);
-				pool[s->originalSectionDB_ID.getLogItem()] = e;
-			}
-		}
-		return true;
-	}
-	catch (soci::soci_error const & err)
-	{
-		std::cout<<"Loadlink_realtime_travel_time: "<<err.what()<<std::endl;
-		return false;
-	}
-}
-bool DatabaseLoader::CreateTable(std::string& table_name)
+bool DatabaseLoader::CreateTable(soci::session& sql,std::string& tableName)
 {
 	try {
 //		sql_  << ("CREATE TABLE \"max_12345\" ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )");
-//		sql_  << ("CREATE TABLE "+table_name+" ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )");
-		sql_  << ("CREATE TABLE "+table_name);
-		sql_.commit();
+//		sql_  << ("CREATE TABLE "+tableName+" ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )");
+		sql  << ("CREATE TABLE "+tableName);
+		sql.commit();
 	}
 	catch (soci::soci_error const & err)
 	{
-		std::cout<<"CreateTable: "<<err.what()<<std::endl;
+		std::cout<< "CreateTable: " << err.what() << std::endl;
 		return false;
 	}
-	std::cout<<"CreateTable: create table "<<table_name<<" ok"<<std::endl;
+	std::cout << "CreateTable: create table " << tableName << " ok"<< std::endl;
 	return true;
 }
-bool DatabaseLoader::InsertData2TravelTimeTmpTable(std::string& table_name,
-		sim_mob::Link_travel_time& data)
+bool DatabaseLoader::InsertData2TravelTimeTmpTable(std::string& tableName,
+		sim_mob::LinkTravelTime& data)
 {
 	try {
-		sql_<<"insert into "+ table_name +" (\"link_id\", \"start_time\",\"end_time\",\"travel_time\") "
+		sql_<<"insert into "+ tableName +" (\"link_id\", \"start_time\",\"end_time\",\"travel_time\") "
 							"values(:link_id, :start_time,:end_time,:travel_time)", soci::use(data);
 		sql_.commit();
 	}
@@ -416,11 +607,24 @@ bool DatabaseLoader::InsertData2TravelTimeTmpTable(std::string& table_name,
 	}
 	return true;
 }
-bool DatabaseLoader::InsertCSV2Table(std::string& table_name,std::string& csvFileName)
+bool DatabaseLoader::InsertCSV2Table(soci::session& sql,std::string& tableName,const std::string& csvFileName)
 {
 	try {
-		sql_ << ("COPY " + table_name + " FROM '" + csvFileName + "' WITH DELIMITER AS ';'");
-		sql_.commit();
+		sql << ("COPY " + tableName + " FROM '" + csvFileName + "' WITH DELIMITER AS ';'");
+		sql.commit();
+		}
+		catch (soci::soci_error const & err)
+		{
+			std::cout << "InsertCSV2Table: " << err.what() <<std::endl;
+			return false;
+		}
+		return true;
+}
+bool DatabaseLoader::InsertCSV2TableST(soci::session& sql,std::string& tableName,std::string& csvFileName)
+{
+	try {
+		sql << ("COPY " + tableName + " FROM '" + csvFileName + "' WITH DELIMITER AS ';'");
+		sql.commit();
 		}
 		catch (soci::soci_error const & err)
 		{
@@ -429,11 +633,11 @@ bool DatabaseLoader::InsertCSV2Table(std::string& table_name,std::string& csvFil
 		}
 		return true;
 }
-bool DatabaseLoader::TruncateTable(std::string& table_name)
+bool DatabaseLoader::TruncateTable(soci::session& sql,std::string& tableName)
 {
 	try {
-		sql_<<"TRUNCATE TABLE "+ table_name;
-		sql_.commit();
+		sql << "TRUNCATE TABLE "+ tableName;
+		sql.commit();
 	}
 	catch (soci::soci_error const & err)
 	{
@@ -442,15 +646,15 @@ bool DatabaseLoader::TruncateTable(std::string& table_name)
 	}
 	return true;
 }
-bool DatabaseLoader::ExcuString(std::string& str)
+bool DatabaseLoader::ExcuString(soci::session& sql,std::string& str)
 {
 	try {
-		sql_<<str;
-		sql_.commit();
+		sql << str;
+		sql.commit();
 	}
 	catch (soci::soci_error const & err)
 	{
-		std::cout<<"ExcuString: "<<err.what()<<std::endl;
+		std::cout << "ExcuString: " << err.what() << std::endl;
 		return false;
 	}
 	return true;
@@ -461,41 +665,41 @@ void DatabaseLoader::LoadERP_Surcharge(std::map<std::string,std::vector<sim_mob:
 	soci::rowset<sim_mob::ERP_Surcharge> rs = (sql_.prepare <<"select trim(both ' ' from \"Gantry_No\") AS Gantry_No,to_char(\"Start_Time\",'HH24:MI:SS') AS Start_Time,to_char(\"End _Time\",'HH24:MI:SS') AS End_Time,\"Rate\",\"Vehicle_Type_Id\",\"Vehicle_Type_Desc\",\"Day\" from \"ERP_Surcharge\" ");
 	for (soci::rowset<sim_mob::ERP_Surcharge>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		sim_mob::ERP_Surcharge *s = new sim_mob::ERP_Surcharge(*it);
-//		std::cout<<"LoadERP_Surcharge: "<<s.Start_Time<<std::endl;
-		std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::iterator itt = pool.find(s->Gantry_No);
+//		std::cout<<"LoadERP_Surcharge: "<<s.startTime<<std::endl;
+		std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::iterator itt = pool.find(s->gantryNo);
 		if(itt!=pool.end())
 		{
 			std::vector<sim_mob::ERP_Surcharge*> e = (*itt).second;
 			e.push_back(s);
-			pool[s->Gantry_No] = e;
+			pool[s->gantryNo] = e;
 		}
 		else
 		{
 			std::vector<sim_mob::ERP_Surcharge*> e;
 			e.push_back(s);
-			pool[s->Gantry_No] = e;
+			pool[s->gantryNo] = e;
 		}
 	}
 }
-void DatabaseLoader::LoadERP_Section(std::map<std::string,sim_mob::ERP_Section*>& erp_section_pool)
+void DatabaseLoader::LoadERP_Section(std::map<std::string,sim_mob::ERP_Section*>& ERP_SectionPool)
 {
 	soci::rowset<sim_mob::ERP_Section> rs = (sql_.prepare <<"select * from \"ERP_Section\" ");
 	for (soci::rowset<sim_mob::ERP_Section>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		sim_mob::ERP_Section *s = new sim_mob::ERP_Section(*it);
-//		erp_section_pool.insert(std::make_pair(s->ERP_Gantry_No,s));
-		erp_section_pool.insert(std::make_pair(s->originalSectionDB_ID.getLogItem(),s));
+//		ERP_SectionPool.insert(std::make_pair(s->ERP_Gantry_No,s));
+		ERP_SectionPool.insert(std::make_pair(s->originalSectionDB_ID.getLogItem(),s));
 //		std::cout<<"LoadERP_Section: "<<s->originalSectionDB_ID.getLogItem()<<std::endl;
 //		std::cout<<"LoadERP_Section: "<<s->ERP_Gantry_No<<" "<<s->section_id<<std::endl;
 	}
 }
-void DatabaseLoader::LoadERP_Gantry_Zone(std::map<std::string,sim_mob::ERP_Gantry_Zone*>& erp_gantry_zone_pool)
+void DatabaseLoader::LoadERP_Gantry_Zone(std::map<std::string,sim_mob::ERP_Gantry_Zone*>& ERP_GantryZonePool)
 {
 	soci::rowset<sim_mob::ERP_Gantry_Zone> rs = (sql_.prepare <<"select * from \"ERP_Gantry_Zone\" ");
 	for (soci::rowset<sim_mob::ERP_Gantry_Zone>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		sim_mob::ERP_Gantry_Zone *s = new sim_mob::ERP_Gantry_Zone(*it);
-		erp_gantry_zone_pool.insert(std::make_pair(s->Gantry_no,s));
+		ERP_GantryZonePool.insert(std::make_pair(s->gantryNo,s));
 	}
-//		std::cout<<"LoadERP_Section: "<<s->Gantry_no<<" "<<s->Zone_Id<<std::endl;
+//		std::cout<<"LoadERP_Section: "<<s->gantryNo<<" "<<s->zoneId<<std::endl;
 }
 
 void DatabaseLoader::LoadNodes(const std::string& storedProc)
@@ -662,8 +866,10 @@ void DatabaseLoader::LoadLanes(const std::string& storedProc)
 
 /*
  * this function caters the section level not lane level
- * (Turning contains four columns four columns pertaining to lanes)
- * vahid
+ * Turning contains 2 pairs (std::pair<int, int>) fromLane and toLane.
+ * These respectively specify the range of lanes in the fromSection each of which is connected to every lane in range of lanes in toSection.
+ * E.g: if fromLane is <0,1> and toLane<0,2>, then each of the lanes 0 and 1 in fromSection is connected to all of lanes 0,1,2 of toSection.
+ * That is, the lane connections are 0-0, 0-1, 0-2, 1-0, 1-1, 1-2
  */
 void DatabaseLoader::LoadTurnings(const std::string& storedProc)
 {
@@ -687,9 +893,6 @@ void DatabaseLoader::LoadTurnings(const std::string& storedProc)
 		it->toSection = &sections_[it->TMP_ToSection];
 		turnings_[it->id] = *it;
 	}
-
-	//Print skipped turnings all at once.
-//	sim_mob::PrintArray(skippedTurningIDs, std::cout, "Turnings skipped: ", "[", "]", ", ", 4);
 }
 
 void DatabaseLoader::LoadPolylines(const std::string& storedProc)
@@ -702,7 +905,9 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 	for (soci::rowset<Polyline>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check nodes
 		if(sections_.count(it->TMP_SectionId)==0) {
-			throw std::runtime_error("Invalid polyline section reference.");
+			//throw std::runtime_error("Invalid polyline section reference.");
+			std::cout << "Invalid polyline section reference." << it->TMP_SectionId << std::endl;
+			continue;
 		}
 
 		//Convert meters to cm
@@ -712,7 +917,6 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 		//Note: Make sure not to resize the Section map after referencing its elements.
 		it->section = &sections_[it->TMP_SectionId];
 		polylines_.insert(std::make_pair(it->section->id, *it));
-		//polylines_[it->id] = *it;
 	}
 }
 
@@ -760,8 +964,8 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 		if(it->itemType == sim_mob::TripChainItem::IT_TRIP) {
 			// check stops
 			if(it->tripfromLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP && it->triptoLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP) {
-				tripchains_.push_back(*it);
-				std::cout << "from stop: " << it->tmp_fromLocationNodeID << " to stop: " << it->tmp_toLocationNodeID << std::endl;
+				tripchains_.push_back(*it);continue;
+//				std::cout << "from stop: " << it->tmp_fromLocationNodeID << " to stop: " << it->tmp_toLocationNodeID << std::endl;
 			}
 			//check nodes
 			if (it->fromLocationType == sim_mob::TripChainItem::LT_NODE) {
@@ -849,11 +1053,11 @@ void DatabaseLoader::LoadBusStopSG(const std::string& storedProc)
 	{
 		BusStopSG busstop = *iter;
 //		         Convert from meters to centimeters.
-		busstop.bus_stop_no.erase(remove_if(busstop.bus_stop_no.begin(), busstop.bus_stop_no.end(), isspace),
+		busstop.bus_stop_no.erase(remove_if(busstop.bus_stop_no.begin(), busstop.bus_stop_no.end(), ::isspace),
 				busstop.bus_stop_no.end());
-		busstop.stop_lat.erase(remove_if(busstop.stop_lat.begin(), busstop.stop_lat.end(), isspace),
+		busstop.stop_lat.erase(remove_if(busstop.stop_lat.begin(), busstop.stop_lat.end(), ::isspace),
 				busstop.stop_lat.end());
-		busstop.stop_lon.erase(remove_if(busstop.stop_lon.begin(), busstop.stop_lon.end(), isspace),
+		busstop.stop_lon.erase(remove_if(busstop.stop_lon.begin(), busstop.stop_lon.end(), ::isspace),
 				busstop.stop_lon.end());
 
 		        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat) * 100;
@@ -881,12 +1085,11 @@ void DatabaseLoader::LoadPTBusDispatchFreq(const std::string& storedProc, std::v
 	{
 		//sim_mob::PT_bus_dispatch_freq* pt_bus_freqTemp = new sim_mob::PT_bus_dispatch_freq(*iter);
 		sim_mob::PT_bus_dispatch_freq pt_bus_freqTemp = *iter;
-		pt_bus_freqTemp.route_id.erase(remove_if(pt_bus_freqTemp.route_id.begin(), pt_bus_freqTemp.route_id.end(), isspace),
+		pt_bus_freqTemp.route_id.erase(remove_if(pt_bus_freqTemp.route_id.begin(), pt_bus_freqTemp.route_id.end(), ::isspace),
 				pt_bus_freqTemp.route_id.end());
-		pt_bus_freqTemp.frequency_id.erase(remove_if(pt_bus_freqTemp.frequency_id.begin(), pt_bus_freqTemp.frequency_id.end(), isspace),
+		pt_bus_freqTemp.frequency_id.erase(remove_if(pt_bus_freqTemp.frequency_id.begin(), pt_bus_freqTemp.frequency_id.end(), ::isspace),
 				pt_bus_freqTemp.frequency_id.end());
 		pt_bus_dispatch_freq.push_back(pt_bus_freqTemp);
-		std::cout << pt_bus_freqTemp.frequency_id << " " << pt_bus_freqTemp.route_id << " " << pt_bus_freqTemp.headway_sec << " " << pt_bus_freqTemp.start_time.toString() << std::endl;
 	}
 }
 
@@ -906,7 +1109,7 @@ void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<
 		sim_mob::RoadSegment *seg = sections_[atoi(pt_bus_routesTemp.link_id.c_str())].generatedSegment;
 		if(seg) {
 			routeID_roadSegments[iter->route_id].push_back(seg);
-//			std::cout << "iter->route_id: " << iter->route_id << "    Section to segment map  " << seg->getSegmentID() ;
+//			std::cout << "iter->route_id: " << iter->route_id << "    Section to segment map  " << seg->getId() ;
 //			std::cout << "current routeID_roadSegments[iter->route_id].size(): " << routeID_roadSegments[iter->route_id].size() << "" << std::endl;
 		}
 	}
@@ -951,8 +1154,19 @@ void DatabaseLoader::LoadBusSchedule(const std::string& storedProc, std::vector<
     }
 }
 
-
-
+void DatabaseLoader::LoadOD_Trips(const std::string& storedProc, std::vector<sim_mob::OD_Trip>& OD_Trips)
+{
+    if (storedProc.empty()) {
+    	sim_mob::Warn() << "WARNING: An empty 'od_trips' stored-procedure was specified in the config file; "
+               << "will not lookup the database to create any signal found in there" << std::endl;
+        return;
+    }
+    soci::rowset<sim_mob::OD_Trip> rows = (sql_.prepare <<"select * from " + storedProc);
+    for (soci::rowset<sim_mob::OD_Trip>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
+    {
+    	OD_Trips.push_back(sim_mob::OD_Trip(*iter));
+    }
+}
 
 std::string getStoredProcedure(map<string, string> const & storedProcs, string const & procedureName, bool mandatory=true)
 {
@@ -1028,21 +1242,13 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 }
 #endif
 
-void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedProcs)
+void DatabaseLoader::LoadObjectsForShortTerm(map<string, string> const & storedProcs)
 {
-	LoadNodes(getStoredProcedure(storedProcs, "node"));
-	LoadSections(getStoredProcedure(storedProcs, "section"));
 	LoadCrossings(getStoredProcedure(storedProcs, "crossing"));
 	LoadLanes(getStoredProcedure(storedProcs, "lane"));
-	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
-	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain", false));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal", false));
-	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
-	LoadBusStopSG(getStoredProcedure(storedProcs, "busstopSG", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
-
-
 
 	//add by xuyan
 	//load in boundary segments (not finished!)
@@ -1054,6 +1260,17 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 #endif
 
 }
+
+void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedProcs)
+{
+	LoadNodes(getStoredProcedure(storedProcs, "node"));
+	LoadSections(getStoredProcedure(storedProcs, "section"));
+	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
+	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
+	LoadBusStopSG(getStoredProcedure(storedProcs, "busstopSG", false));
+	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
+}
+
 void DatabaseLoader::loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)
 {
 	loadSegmentTypeTable(getStoredProcedure(storedProcs, "segment_type"),rn.segmentTypeMap);
@@ -1068,11 +1285,21 @@ void ComputePolypointDistance(Polyline& pt)
 {
 	//Our method is (fairly) simple.
 	//First, compute the distance from the point to the polyline at a perpendicular angle.
+	//
+	// If the line passes through two points, (x1,y1) and (x2,y2),
+	// and if we write Dx for (x2-x1) and Dy for (y2-y1),
+	// the perpendicular distance from (x0,y0) to the line is given by:
+	//
+	// d = (Dy*x0 - Dx*y0 - x1y2 + x2y1) / (sqrt(Dx^2 + Dy^2))
+	//
+	// (x1,y1) is fromNode of section
+	// (x2,y2) is toNode of section
+	// (x0,y0) is the poly point pt
 	double dx2x1 = pt.section->toNode->xPos - pt.section->fromNode->xPos;
 	double dy2y1 = pt.section->toNode->yPos - pt.section->fromNode->yPos;
-	double dx1x0 = pt.section->fromNode->xPos - pt.xPos;
-	double dy1y0 = pt.section->fromNode->yPos - pt.yPos;
-	double numerator = dx2x1*dy1y0 - dx1x0*dy2y1;
+	double x1y2 = pt.section->fromNode->xPos * pt.section->toNode->yPos;
+	double x2y1 = pt.section->toNode->xPos * pt.section->fromNode->yPos;
+	double numerator = dy2y1*pt.xPos - dx2x1*pt.yPos - x1y2 + x2y1;
 	double denominator = sqrt(dx2x1*dx2x1 + dy2y1*dy2y1);
 	double perpenDist = numerator/denominator;
 	if (perpenDist<0.0) {
@@ -1081,6 +1308,8 @@ void ComputePolypointDistance(Polyline& pt)
 		perpenDist *= -1;
 	}
 
+	double dx1x0 = pt.section->fromNode->xPos - pt.xPos;
+	double dy1y0 = pt.section->fromNode->yPos - pt.yPos;
 	//Second, compute the distance from the source point to the polypoint
 	double realDist = sqrt(dx1x0*dx1x0 + dy1y0*dy1y0);
 
@@ -1662,10 +1891,6 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 
 		// set node type
 		std::string idStr = boost::lexical_cast<string>(it->first);
-		if(idStr.find("101320") != std::string::npos)
-		{
-			std::cout<<"find node 101320"<<std::endl;
-		}
 		sim_mob::SimNodeType nt = (sim_mob::SimNodeType)res.getNodeType(idStr);
 		it->second.generatedNode->type = nt;
 	}
@@ -2188,17 +2413,13 @@ void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& sr
 
 	//TODO: Actual connector alignment (requires map checking)
 	sim_mob::UniNode::buildConnectorsFromAlignedLanes(newNode, std::make_pair(0, 0), std::make_pair(0, 0));
-////	if(newNode->getID() == 92370)
-//	{
-//		std::cout << "UniNode " <<   newNode->getID() << " has " << newNode->getConnectors().size() << " Connectors\n";
-//	}
-
 	//This UniNode can later be accessed by the RoadSegment itself.
 }
 
-sim_mob::RoadSegment * createNewRoadSegment(sim_mob::Link* ln, size_t numExistingSegsInLink, unsigned long id)
+sim_mob::RoadSegment * createNewRoadSegment(sim_mob::Link* ln, size_t numExistingSegsInLink, int id)
 {
-	return new sim_mob::RoadSegment(ln, ln->getLinkId()*100 +numExistingSegsInLink);
+//	return new sim_mob::RoadSegment(ln, ln->getLinkId()*100 +numExistingSegsInLink);
+	return new sim_mob::RoadSegment(ln, id);
 }
 
 
@@ -2218,7 +2439,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	//      group RoadSegments into Links, but at least this works for our test network.
 	Section* currSec = &src;  //Which section are we currently processing?
 	sim_mob::Link* ln = new sim_mob::Link(1000001 + res.links.size());//max ten million links
-	src.generatedSegment = createNewRoadSegment(ln,linkSegments.size(),src.id);
+	src.generatedSegment = createNewRoadSegment(ln,linkSegments.size(),currSec->id);
 	ln->roadName = currSec->roadName;
 	ln->start = currSec->fromNode->generatedNode;
 
@@ -2245,9 +2466,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		if (!currSec->generatedSegment) {
 			//convertSegId.clear();
 			//convertSegId.str(std::string());
-			currSec->generatedSegment = createNewRoadSegment(ln,linkSegments.size(),src.id);
-		} else {
-//			std::cout << "Bypassing\n";
+			currSec->generatedSegment = createNewRoadSegment(ln,linkSegments.size(),currSec->id);
 		}
 
 		//Save this segment if either end points are multinodes
@@ -2335,22 +2554,22 @@ struct MyLaneConectorSorter {
 
 	  const sim_mob::Lane* a = (c->getLaneFrom());
 	  const unsigned int  aa = a->getRoadSegment()->getLink()->getLinkId();
-	  const unsigned long  aaa = a->getRoadSegment()->getSegmentID();
+	  const unsigned long  aaa = a->getRoadSegment()->getId();
 	  const unsigned int  aaaa = a->getLaneID() ;
 
 	  const sim_mob::Lane* b = (d->getLaneFrom());
 	  const unsigned int  bb = b->getRoadSegment()->getLink()->getLinkId();
-	  const unsigned long  bbb = b->getRoadSegment()->getSegmentID();
+	  const unsigned long  bbb = b->getRoadSegment()->getId();
 	  const unsigned int  bbbb = b->getLaneID() ;
 	  ///////////////////////////////////////////////////////
 	  const sim_mob::Lane* a1 = (c->getLaneTo());
 	  const unsigned int  aa1 = a1->getRoadSegment()->getLink()->getLinkId();
-	  const unsigned long  aaa1 = a1->getRoadSegment()->getSegmentID();
+	  const unsigned long  aaa1 = a1->getRoadSegment()->getId();
 	  const unsigned int  aaaa1 = a1->getLaneID() ;
 
 	  const sim_mob::Lane* b1 = (d->getLaneTo());
 	  const unsigned int  bb1 = b1->getRoadSegment()->getLink()->getLinkId();
-	  const unsigned long  bbb1 = b1->getRoadSegment()->getSegmentID();
+	  const unsigned long  bbb1 = b1->getRoadSegment()->getId();
 	  const unsigned int  bbbb1 = b1->getLaneID() ;
 
 	  if(!(a && b))
@@ -2370,7 +2589,10 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 {
 	//Check
 	if (src.fromSection->toNode->id != src.toSection->fromNode->id) {
-		throw std::runtime_error("Turning doesn't match with Sections and Nodes.");
+		//throw std::runtime_error("Turning doesn't match with Sections and Nodes.");
+		std::cout << "Turning mismatch with Sections and Nodes|"
+				<< " From " << src.fromSection->roadName << " (" << src.fromSection->fromNode->id << "," << src.fromSection->toNode->id << ")|"
+				<< " To " << src.toSection->roadName << " (" << src.toSection->fromNode->id << "," << src.toSection->toNode->id << ")." << std::endl;
 	}
 
 	//Skip Turnings which meet at UniNodes; these will be handled elsewhere.
@@ -2463,100 +2685,91 @@ std::map<std::string, std::vector<sim_mob::TripChainItem*> > sim_mob::aimsun::Lo
 	return res;
 }
 
-void sim_mob::aimsun::Loader::LoadERPData(const std::string& connectionStr,
-		std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > &erp_surcharge_pool,
-		std::map<std::string,sim_mob::ERP_Gantry_Zone*>& erp_gantry_zone_pool,
-		std::map<std::string,sim_mob::ERP_Section*>& erp_section_pool)
+void sim_mob::aimsun::Loader::getCBD_Border(
+		std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > &in,
+		std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > & out)
 {
-	DatabaseLoader loader(connectionStr);
-	loader.LoadERP_Surcharge(erp_surcharge_pool);
-	loader.LoadERP_Section(erp_section_pool);
-	loader.LoadERP_Gantry_Zone(erp_gantry_zone_pool);
+	std::string cnn(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
+	DatabaseLoader::getCBD_Border(cnn, in, out);
 }
-bool sim_mob::aimsun::Loader::createTable(const std::string& connectionStr,
-		std::string& table_name)
+
+
+void sim_mob::aimsun::Loader::getCBD_Segments(std::set<const sim_mob::RoadSegment*> & zoneSegments)
+{
+	std::string cnn(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
+	DatabaseLoader::getCBD_Segments(cnn, zoneSegments);
+}
+
+void sim_mob::aimsun::Loader::LoadERPData(const std::string& connectionStr,
+		std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > &ERP_SurchargePool,
+		std::map<std::string,sim_mob::ERP_Gantry_Zone*>& ERP_GantryZonePool,
+		std::map<std::string,sim_mob::ERP_Section*>& ERP_SectionPool)
 {
 	DatabaseLoader loader(connectionStr);
-	bool res = loader.CreateTable(table_name);
-	return res;
+	loader.LoadERP_Surcharge(ERP_SurchargePool);
+	loader.LoadERP_Section(ERP_SectionPool);
+	loader.LoadERP_Gantry_Zone(ERP_GantryZonePool);
+}
+bool sim_mob::aimsun::Loader::createTable(soci::session& sql, std::string& tableName)
+{
+	return DatabaseLoader::CreateTable(sql, tableName);
 }
 bool sim_mob::aimsun::Loader::insertData2TravelTimeTmpTable(const std::string& connectionStr,
-		std::string& table_name,
-		sim_mob::Link_travel_time& data)
+		std::string& tableName,
+		sim_mob::LinkTravelTime& data)
 {
 	DatabaseLoader loader(connectionStr);
-	bool res = loader.InsertData2TravelTimeTmpTable(table_name,data);
+	bool res = loader.InsertData2TravelTimeTmpTable(tableName,data);
 	return res;
 }
-bool sim_mob::aimsun::Loader::insertCSV2Table(const std::string& connectionStr,
-		std::string& table_name,
-		std::string& csvFileName)
+bool sim_mob::aimsun::Loader::insertCSV2Table(soci::session& sql, std::string& tableName, const std::string& csvFileName)
 {
-	DatabaseLoader loader(connectionStr);
-	bool res = loader.InsertCSV2Table(table_name,csvFileName);
+	bool res = DatabaseLoader::InsertCSV2Table(sql,tableName,csvFileName);
 	return res;
 }
-bool sim_mob::aimsun::Loader::truncateTable(const std::string& connectionStr,
-			std::string& table_name)
+bool sim_mob::aimsun::Loader::insertCSV2TableST(soci::session& sql,	std::string& tableName,	std::string& csvFileName)
 {
-	DatabaseLoader loader(connectionStr);
-	bool res=loader.TruncateTable(table_name);
+	bool res = DatabaseLoader::InsertCSV2TableST(sql,tableName,csvFileName);
 	return res;
 }
-bool sim_mob::aimsun::Loader::excuString(const std::string& connectionStr,
-					std::string& str)
+bool sim_mob::aimsun::Loader::truncateTable(soci::session& sql,	std::string& tableName)
 {
-	DatabaseLoader loader(connectionStr);
-	bool res=loader.ExcuString(str);
+	bool res= DatabaseLoader::TruncateTable(sql, tableName);
 	return res;
 }
-void sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(const std::string& connectionStr,
-		std::map<std::string,std::vector<sim_mob::Link_travel_time*> >& link_default_travel_time_pool)
+bool sim_mob::aimsun::Loader::excuString(soci::session& sql,std::string& str)
 {
-	DatabaseLoader loader(connectionStr);
-	loader.Loadlink_default_travel_time(link_default_travel_time_pool);
-}
-bool sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(const std::string& connectionStr,
-		std::string &table_name,
-		std::map<std::string,std::vector<sim_mob::Link_travel_time*> >& link_realtime_travel_time_pool)
-{
-	DatabaseLoader loader(connectionStr);
-	bool res = loader.Loadlink_realtime_travel_time(table_name,link_realtime_travel_time_pool);
+	bool res= DatabaseLoader::ExcuString(sql,str);
 	return res;
 }
-//void sim_mob::aimsun::Loader::initLoader(const std::string& connectionStr)
-//{
-//	std::cout << "initLoader" << std::endl;
-//	mysocisql_ = soci::session(soci::postgresql, connectionStr);
-//}
-void sim_mob::aimsun::Loader::LoadPathSetData(const std::string& connectionStr,
-		std::map<std::string,sim_mob::SinglePath*>& pathPool,
-		std::map<std::string,SinglePath*> &waypoint_singlepathPool,
-		std::map<std::string,sim_mob::PathSet* >& pathSetPool)
+void sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(soci::session& sql,	std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& linkDefaultTravelTimePool)
 {
-//	std::cout << "Attempting to connect to database (pathset)" << std::endl;
-//	if(!myloader)
-//		myloader = new DatabaseLoader2(connectionStr);
-//	//Connection string will look something like this:
-//	//"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
-////	DatabaseLoader loader(connectionStr);
-//	myloader->LoadSinglePathDB(pathPool,waypoint_singlepathPool);
-////	std::cout<<"LoadSinglePathDB: "<<waypoint_singlepathPool.size()<<std::endl;
-//	myloader->LoadPathSetDB(pathSetPool);
-////	loader.LoadPathPoolDBDB(PathPoolDBPool);
-//	std::cout << ">load pathset Success." << std::endl;
+	DatabaseLoader::loadLinkDefaultTravelTime(sql, linkDefaultTravelTimePool);
 }
+bool sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(soci::session& sql, std::string &tableName, std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& linkRealtimeTravelTimePool)
+{
+	return DatabaseLoader::loadLinkRealTimeTravelTime(sql,tableName,linkRealtimeTravelTimePool);
+}
+
 bool sim_mob::aimsun::Loader::LoadSinglePathDBwithId2(const std::string& connectionStr,
 			std::map<std::string,sim_mob::SinglePath*>& waypoint_singlepathPool,
 			std::string& pathset_id,
-			std::vector<sim_mob::SinglePath*>& spPool)
+			std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool)
 {
 	DatabaseLoader loader(connectionStr);
 	bool res = loader.LoadSinglePathDBwithId2(waypoint_singlepathPool,pathset_id,spPool);
 	return res;
 }
+sim_mob::HasPath sim_mob::aimsun::Loader::LoadSinglePathDBwithIdST(soci::session& sql,
+			std::string& pathset_id,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool
+			,const std::string functionName,std::stringstream *outDbg,
+			const std::set<const sim_mob::RoadSegment *> & excludedRS)
+{
+	return DatabaseLoader::LoadSinglePathDBwithIdST(sql,pathset_id,spPool,functionName,outDbg,excludedRS);
+}
+
 bool sim_mob::aimsun::Loader::LoadPathSetDBwithId(const std::string& connectionStr,
-		std::map<std::string,sim_mob::PathSet* >& pool,
+		std::map<std::string,boost::shared_ptr<sim_mob::PathSet> > & pool,
 		std::string& pathset_id)
 {
 	DatabaseLoader loader(connectionStr);
@@ -2564,61 +2777,37 @@ bool sim_mob::aimsun::Loader::LoadPathSetDBwithId(const std::string& connectionS
 	return res;
 }
 bool sim_mob::aimsun::Loader::LoadOnePathSetDBwithId(const std::string& connectionStr,
-		sim_mob::PathSet& ps,
+		boost::shared_ptr<sim_mob::PathSet>  &ps,
 				std::string& pathset_id)
 {
 	DatabaseLoader loader(connectionStr);
 	bool res = loader.LoadOnePathSetDBwithId(pathset_id,ps);
 	return res;
 }
-bool sim_mob::aimsun::Loader::LoadPathSetDataWithId(const std::string& connectionStr,
-		std::map<std::string,sim_mob::SinglePath*>& pathPool,
-		std::map<std::string,SinglePath*> &waypoint_singlepathPool,
-		std::map<std::string,sim_mob::PathSet* >& pathSetPool,std::string& pathset_id)
+bool sim_mob::aimsun::Loader::LoadOnePathSetDBwithIdST(soci::session& sql,const std::string& connectionStr,
+		boost::shared_ptr<sim_mob::PathSet>  &ps,
+				std::string& pathset_id, const std::string tableName)
 {
-	return false;
-//	bool res=false;
-//	std::cout << "LoadPathSetDataWithId: loading " <<pathset_id<<" data from db"<< std::endl;
-//	//Connection string will look something like this:
-//	//"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
-//	if(!myloader)
-//			myloader = new DatabaseLoader2(connectionStr);
-////	DatabaseLoader loader(connectionStr);
-//	myloader->LoadSinglePathDBwithId(pathPool,waypoint_singlepathPool,pathset_id);
-////	std::cout<<"LoadSinglePathDB: "<<waypoint_singlepathPool.size()<<std::endl;
-//	res = myloader->LoadPathSetDBwithId(pathSetPool,pathset_id);
-////	loader.LoadPathPoolDBDB(PathPoolDBPool);
-////	std::cout << ">load pathset Success." << std::endl;
-//
-//	return res;
+	bool res = DatabaseLoader::LoadOnePathSetDBwithIdST(sql,pathset_id,ps,tableName);
+	return res;
 }
-void sim_mob::aimsun::Loader::SavePathSetData(const std::string& connectionStr,
-		std::map<std::string,sim_mob::SinglePath*>& pathPool,
-		std::map<std::string,sim_mob::PathSet* >& pathSetPool)
+
+bool sim_mob::aimsun::Loader::SaveOneSinglePathDataST(soci::session& sql,
+		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& pathPool,const std::string singlePathTableName)
 {
-	std::cout << "Attempting to connect to database (pathset)" << std::endl;
-	//Connection string will look something like this:
-	//"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
-	DatabaseLoader loader(connectionStr);
-//	for(std::map<std::string,sim_mob::SinglePath*>::iterator it=pathPool.begin();it!=pathPool.end();++it)
-//	{
-//		sim_mob::SinglePath* sp = (*it).second;
-//		sim_mob::SinglePathDB *data = sp->dbData;
-//	}
-	loader.InsertSinglePath2DB(pathPool);
-	loader.InsertPathSet2DB(pathSetPool);
+	bool res = DatabaseLoader::InsertSinglePath2DBST(sql,pathPool,singlePathTableName);
+	return res;
 }
-void sim_mob::aimsun::Loader::SaveOneSinglePathData(const std::string& connectionStr,
-		std::map<std::string,sim_mob::SinglePath*>& pathPool)
+void sim_mob::aimsun::Loader::SaveOnePathSetData(soci::session& sql,
+		std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pathSetPool,const std::string pathSetTableName)
 {
-	DatabaseLoader loader(connectionStr);
-	loader.InsertSinglePath2DB(pathPool);
+	DatabaseLoader::InsertPathSet2DB(sql,pathSetPool,pathSetTableName);
 }
-void sim_mob::aimsun::Loader::SaveOnePathSetData(const std::string& connectionStr,
-		std::map<std::string,sim_mob::PathSet* >& pathSetPool)
+bool sim_mob::aimsun::Loader::SaveOnePathSetDataST(soci::session& sql,
+				std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& pathSetPool,const std::string pathSetTableName)
 {
-	DatabaseLoader loader(connectionStr);
-	loader.InsertPathSet2DB(pathSetPool);
+	bool res = DatabaseLoader::InsertPathSet2DBST(sql,pathSetPool,pathSetTableName);
+	return res;
 }
 void sim_mob::aimsun::Loader::loadSegNodeType(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn)
 {
@@ -2626,6 +2815,7 @@ void sim_mob::aimsun::Loader::loadSegNodeType(const std::string& connectionStr, 
 	// load segment type data, node type data
 	loader.loadObjectType(storedProcs,rn);
 }
+
 void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
 {
 	std::cout << "Attempting to connect to database (generic)" << std::endl;
@@ -2641,8 +2831,14 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	//Step One: Load
 	loader.LoadBasicAimsunObjects(storedProcs);
 
-	// load segment type data, node type data
-	loader.loadObjectType(storedProcs,rn);
+	if(!config.RunningMidSupply()) //TODO: add config for flag indicating short-term
+	{
+		// load data required for short-term
+		loader.LoadObjectsForShortTerm(storedProcs);
+
+		// load segment type data, node type data
+		loader.loadObjectType(storedProcs,rn);
+	}
 
 	//Step 1.1: Load "new style" objects, which don't require any post-processing.
 	loader.LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false), config.getBusSchedule());
@@ -2707,7 +2903,7 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), config.getPT_bus_dispatch_freq());
 	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), config.getPT_bus_routes(), config.getRoadSegments_Map());
 	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), config.getPT_bus_stops(), config.getBusStops_Map());
-
+	loader.LoadOD_Trips(getStoredProcedure(storedProcs, "od_trips", false), config.getODsTripsMap());
 
 }
 
@@ -2922,21 +3118,19 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 						segmtIt!=segmentsAtNode.end(); segmtIt++) {
 					sim_mob::Link* lnk = (*segmtIt)->getLink();
 					std::vector<sim_mob::SegmentStats*> upSegStatsList;
-					std::vector<sim_mob::RoadSegment*> downSegs;
 					if (lnk->getStart() == (*i))
 					{
 						//lnk is downstream to the multinode and doesn't belong to this conflux
-						downSegs = lnk->getSegments();
+						std::vector<sim_mob::RoadSegment*>& downSegs = lnk->getSegments();
 						conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
-						continue;
+						if(lnk->getStart() != lnk->getEnd()) { continue; } // some links can start and end at the same section
 					}
 					//else
 					//lnk *ends* at the multinode of this conflux.
 					//lnk is upstream to the multinode and belongs to this conflux
 					std::vector<sim_mob::RoadSegment*>& upSegs = lnk->getSegments();
 					//set conflux pointer to the segments and create SegmentStats for the segment
-					for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin();
-							segIt != upSegs.end(); segIt++)
+					for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin(); segIt != upSegs.end(); segIt++)
 					{
 						sim_mob::RoadSegment* rdSeg = *segIt;
 						double rdSegmentLength = rdSeg->getLaneZeroLength();

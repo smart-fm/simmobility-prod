@@ -16,10 +16,10 @@
 #include "database/entity/Household.hpp"
 #include "database/entity/Unit.hpp"
 
-namespace sim_mob {
-
-    namespace long_term {
-
+namespace sim_mob
+{
+    namespace long_term
+    {
         class HouseholdAgent;
         class HM_Model;
         class HousingMarket;
@@ -30,7 +30,8 @@ namespace sim_mob {
          * the maximum bid *of the time unit* (in this case is DAY) 
          * that satisfies the seller's asking price.
          */
-        class HouseholdSellerRole : public LT_AgentRole<HouseholdAgent> {
+        class HouseholdSellerRole : public LT_AgentRole<HouseholdAgent>
+        {
         public:
             HouseholdSellerRole(HouseholdAgent* parent);
             virtual ~HouseholdSellerRole();
@@ -79,7 +80,8 @@ namespace sim_mob {
         private:
             typedef std::vector<ExpectationEntry> ExpectationList;
 
-            struct SellingUnitInfo {
+            struct SellingUnitInfo
+            {
                 SellingUnitInfo();
                 ExpectationList expectations;
                 unsigned int startedDay; //day when the unit was added on market.
@@ -87,6 +89,7 @@ namespace sim_mob {
                 unsigned int interval; //interval to re-evaluate the expectation.
                 unsigned int numExpectations; //ceil(daysOnMarket/interval) to re-evaluate the expectation.
             };
+
             typedef boost::unordered_map<BigSerial, SellingUnitInfo> UnitsInfoMap;
             typedef boost::unordered_map<BigSerial, Bid> Bids;
             

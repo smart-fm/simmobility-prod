@@ -15,10 +15,10 @@
 #include "database/entity/Household.hpp"
 #include "core/HousingMarket.hpp"
 
-namespace sim_mob {
-
-    namespace long_term {
-
+namespace sim_mob
+{
+    namespace long_term
+    {
         class HouseholdAgent;
         class HM_Model;
 
@@ -32,15 +32,17 @@ namespace sim_mob {
          * The bidder can only do one bid each day and It sticks to the unit until
          * gets rejected or reaches the a zero surplus.
          */
-        class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent> {
+        class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent>
+        {
         private:
 
             /**
              * Simple struct to store the current unit which the bidder is trying to buy.
              */
-            class CurrentBiddingEntry {
+            class CurrentBiddingEntry
+            {
             public:
-                CurrentBiddingEntry(const BigSerial unitId = INVALID_ID, const double wp = 0);
+                CurrentBiddingEntry(const BigSerial unitId = INVALID_ID, const double wp = 0, double lastSurplus = 0 );
                 ~CurrentBiddingEntry();
 
                 /**
@@ -77,8 +79,7 @@ namespace sim_mob {
             /**
              * Inherited from LT_Role
              */
-            virtual void HandleMessage(messaging::Message::MessageType type,
-                    const messaging::Message& message);
+            virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
         private:
             friend class HouseholdAgent;

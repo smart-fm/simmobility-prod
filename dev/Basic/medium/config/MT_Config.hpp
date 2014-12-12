@@ -11,6 +11,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include "conf/Constructs.hpp"
 #include "util/ProtectedCopyable.hpp"
 
 namespace sim_mob
@@ -166,6 +167,8 @@ public:
 		this->tolerance = tolerance;
 	}
 
+
+
 	const std::string& getObservedStatisticsFile() const
 	{
 		return observedStatisticsFile;
@@ -208,7 +211,7 @@ public:
 	static MT_Config& getInstance();
 
 	double getPedestrianWalkSpeed() const;
-	std::vector<int>& getDwellTimeParams();
+	std::vector<float>& getDwellTimeParams();
 	void setPedestrianWalkSpeed(double pedestrianWalkSpeed);
 	unsigned getNumPredayThreads() const;
 	void setNumPredayThreads(unsigned numPredayThreads);
@@ -242,6 +245,20 @@ public:
 	void setCalibrationOutputFile(const std::string& calibrationOutputFile);
 	unsigned getLogsumComputationFrequency() const;
 	void setLogsumComputationFrequency(unsigned logsumComputationFrequency);
+	const StoredProcedureMap& getStoredProcedure() const;
+	void setStoredProcedureMap(const StoredProcedureMap& storedProcedure);
+	unsigned getActivityScheduleLoadInterval() const;
+	void setActivityScheduleLoadInterval(unsigned activityScheduleLoadInterval);
+	unsigned getSupplyUpdateInterval() const;
+	void setSupplyUpdateInterval(unsigned supplyUpdateInterval);
+	const std::string& getFilenameOfJourneyTimeStats() const;
+	const std::string& getFilenameOfWaitingTimeStats() const;
+	void setFilenameOfJourneyTimeStats(const std::string& str);
+	void setFilenameOfWaitingTimeStats(const std::string& str);
+	const std::string& getFilenameOfWaitingAmountStats() const;
+	void setFilenameOfWaitingAmountStats(const std::string& str);
+	const unsigned int getBusCapacity() const;
+	void setBusCapacity(const unsigned int busCapcacity);
 
 private:
 	MT_Config();
@@ -250,7 +267,7 @@ private:
 	/**protection for changes after config is loaded*/
 	bool configSealed;
 	/**store parameters for dwelling time calculation*/
-	std::vector<int> dwellTimeParams;
+	std::vector<float> dwellTimeParams;
 	/**store parameters for pedestrian walking speed*/
 	double pedestrianWalkSpeed;
 
@@ -271,6 +288,15 @@ private:
 	/**container for mongo collections*/
 	MongoCollectionsMap mongoCollectionsMap;
 
+	/**the filename of storing journey statistics */
+	std::string filenameOfJourneyTimeStats;
+	/**the filename of storing waiting time statistics*/
+	std::string filenameOfWaitingTimeStats;
+	/**the filename of storing waiting amount statistics*/
+	std::string filenameOfWaitingAmountStats;
+	/**default capacity for bus*/
+	unsigned int busCapacity;
+
 	/**Preday calibration parameters*/
 	enum CalibrationMethodology { SPSA, WSPSA };
 	CalibrationMethodology calibrationMethodology;
@@ -278,6 +304,9 @@ private:
 	PredayCalibrationParams wspsaCalibrationParams;
 	std::string calibrationOutputFile;
 	unsigned logsumComputationFrequency;
+	StoredProcedureMap storedProcedure;
+	unsigned activityScheduleLoadInterval; //seconds
+	unsigned supplyUpdateInterval; //frames
 };
 }
 }

@@ -380,7 +380,7 @@ void sim_mob::BusDriverMovement::frame_tick() {
 
 void sim_mob::BusDriverMovement::frame_tick_output() {
 	DriverUpdateParams &p = parentBusDriver->getParams();
-	if (fwdDriverMovement.isDoneWithEntireRoute()) {
+	if (this->parentDriver->IsVehicleInLoadingQueue() || fwdDriverMovement.isDoneWithEntireRoute()) {
 		return;
 	}
 
@@ -409,8 +409,8 @@ void sim_mob::BusDriverMovement::frame_tick_output() {
 			<<"\"xPos\":\""<<static_cast<int>(parentBusDriver->getPositionX())
 			<<"\",\"yPos\":\""<<static_cast<int>(parentBusDriver->getPositionY())
 			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
-			<<"\",\"length\":\""<<static_cast<int>(3*bus->getLengthCm())
-			<<"\",\"width\":\""<<static_cast<int>(2*bus->getWidthCm())
+			<<"\",\"length\":\""<<static_cast<int>(bus->getLengthCm())
+			<<"\",\"width\":\""<<static_cast<int>(bus->getWidthCm())
 			<<"\",\"passengers\":\""<<passengerCount
 			<<"\",\"real_ArrivalTime\":\""<<(bus?parentBusDriver->real_ArrivalTime.get():0)
 			<<"\",\"DwellTime_ijk\":\""<<(bus?parentBusDriver->DwellTime_ijk.get():0)

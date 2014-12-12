@@ -14,13 +14,11 @@
 
 using namespace sim_mob::long_term;
 
-Bid::Bid(BigSerial unitId, BigSerial bidderId, LT_Agent* bidder, double value, 
-        timeslice& time, double willingnessToPay, double speculation)
-: unitId(unitId), bidderId(bidderId), value(value), time(time), bidder(bidder),
-willingnessToPay(willingnessToPay), speculation(speculation){
-}
+Bid::Bid(BigSerial unitId, BigSerial bidderId, LT_Agent* bidder, double value, timeslice& time, double willingnessToPay, double speculation)
+		:unitId(unitId), bidderId(bidderId), value(value), time(time), bidder(bidder), willingnessToPay(willingnessToPay), speculation(speculation){}
 
-Bid::Bid(const Bid& source) : time(source.time) {
+Bid::Bid(const Bid& source) : time(source.time)
+{
     this->unitId = source.unitId;
     this->bidderId = source.bidderId;
     this->value = source.value;
@@ -29,15 +27,12 @@ Bid::Bid(const Bid& source) : time(source.time) {
     this->willingnessToPay = source.willingnessToPay;
 }
 
-Bid::Bid()
-: unitId(INVALID_ID), bidderId(INVALID_ID), value(0.0), time(0,0), 
-        bidder(nullptr), willingnessToPay(0.0), speculation(0.0) {
-}
+Bid::Bid(): unitId(INVALID_ID), bidderId(INVALID_ID), value(0.0), time(0,0), bidder(nullptr), willingnessToPay(0.0), speculation(0.0) {}
 
-Bid::~Bid() {
-}
+Bid::~Bid() {}
 
-Bid& Bid::operator=(const Bid& source) {
+Bid& Bid::operator=(const Bid& source)
+{
     this->unitId = source.unitId;
     this->bidderId = source.bidderId;
     this->value = source.value;
@@ -48,23 +43,28 @@ Bid& Bid::operator=(const Bid& source) {
     return *this;
 }
 
-BigSerial Bid::getUnitId() const {
+BigSerial Bid::getUnitId() const
+{
     return unitId;
 }
 
-BigSerial Bid::getBidderId() const {
+BigSerial Bid::getBidderId() const
+{
     return bidderId;
 }
 
-double Bid::getValue() const {
+double Bid::getValue() const
+{
     return value;
 }
 
-const timeslice& Bid::getTime() const {
+const timeslice& Bid::getTime() const
+{
     return time;
 }
 
-LT_Agent* Bid::getBidder() const{
+LT_Agent* Bid::getBidder() const
+{
     return bidder;
 }
 
@@ -81,11 +81,11 @@ namespace sim_mob {
 
         std::ostream& operator<<(std::ostream& strm, const Bid& data) {
             return strm << "{"
-                    << "\"unitId\":\"" << data.unitId << "\","
-                    << "\"bidderId\":\"" << data.bidderId << "\","
-                    << "\"value\":\"" << data.value << "\","
-                    << "\"day\":\"" << data.time.ms() << "\""
-                    << "}";
+						<< "\"unitId\":\"" << data.unitId << "\","
+						<< "\"bidderId\":\"" << data.bidderId << "\","
+						<< "\"value\":\"" << data.value << "\","
+						<< "\"day\":\"" << data.time.ms() << "\""
+						<< "}";
         }
     }
 }

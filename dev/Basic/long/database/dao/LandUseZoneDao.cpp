@@ -24,7 +24,7 @@ void LandUseZoneDao::fromRow(Row& result, LandUseZone& outObj)
 {
     outObj.id = result.get<BigSerial>(DB_FIELD_ID, INVALID_ID);
     outObj.typeId = result.get<BigSerial>(DB_FIELD_TYPE_ID, INVALID_ID);
-    outObj.gpr = result.get<double>(DB_FIELD_GPR, INVALID_DOUBLE);
+    outObj.gpr = result.get<std::string>(DB_FIELD_GPR, EMPTY_STR);
 }
 
 void LandUseZoneDao::toRow(LandUseZone& data, Parameters& outParams, bool update) {}

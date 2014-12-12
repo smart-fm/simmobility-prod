@@ -11,7 +11,7 @@
 #pragma once
 #include "Common.hpp"
 #include "entities/UpdateParams.hpp"
-#include "entities/Agent.hpp"
+#include "entities/Agent_LT.hpp"
 
 namespace sim_mob {
 
@@ -26,7 +26,7 @@ namespace sim_mob {
          * - etc...
          * It will depend of the context.
          */
-        class LT_Agent : public sim_mob::Agent{
+        class LT_Agent : public sim_mob::Agent_LT{
         public:
             LT_Agent(int id);
             virtual ~LT_Agent();
@@ -58,6 +58,16 @@ namespace sim_mob {
              * @param now time.
              */
             virtual void onFrameOutput(timeslice now) = 0;
+
+
+            sim_mob::Entity::UpdateStatus update(timeslice now);
+            virtual void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>&);
+            void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+            const sim_mob::Link* getCurrLink() const;
+            void setCurrLink(const sim_mob::Link* link);
+            void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
+            void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+
 
             /**
              * Inherited from Agent.

@@ -6,7 +6,7 @@
 
 #include "entities/Person.hpp"
 #include "workers/Worker.hpp"
-
+unsigned int sim_mob::Facet::msgHandlerId = FACET_MSG_HDLR_ID;
 sim_mob::NullableOutputStream sim_mob::Facet::Log()
 {
 	return NullableOutputStream(parent->currWorkerProvider->getLogFile());
@@ -20,4 +20,8 @@ sim_mob::Person* sim_mob::Facet::getParent()
 void sim_mob::Facet::setParent(sim_mob::Person* parent)
 {
 	this->parent = parent;
+}
+sim_mob::MovementFacet::MovementFacet(sim_mob::Person* parentAgent) : Facet(parentAgent) { }
+sim_mob::MovementFacet::~MovementFacet(){
+
 }

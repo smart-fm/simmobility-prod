@@ -34,29 +34,11 @@ namespace {
  */
 void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 {
-	//Quality control
-	size_t oldSize = laneLine.size();
-	
-	//Sort by row number from DB
-	std::map<int, std::vector<Lane*> > mapLaneLines;
-	for(std::vector<Lane*>::const_iterator it = laneLine.begin(); it != laneLine.end(); ++it)
-	{
-		mapLaneLines[(*it)->rowNo].push_back(*it);
-	}
-
-	vector<Lane*> res;
-	for(std::map<int, std::vector<Lane*> >::const_iterator it = mapLaneLines.begin(); it !=mapLaneLines.end(); ++it)
-	{
-		for (std::vector<Lane*>::const_iterator it2=it->second.begin(); it2!=it->second.end(); it2++) {
-			res.push_back(*it2);
-		}
-	}
-
 	//Pick the first point.
 	double currDist = 0.0;
 	bool flipLater = false;
-	vector<Lane*>::iterator currLane = res.end();
-	for (vector<Lane*>::iterator it=res.begin(); it!=res.end(); it++) {
+	vector<Lane*>::iterator currLane = laneLine.end();
+	for (vector<Lane*>::iterator it=laneLine.begin(); it!=laneLine.end(); it++) {
 		double distFwd = sim_mob::dist(*it, nodes.first);
 		double distRev = sim_mob::dist(*it, nodes.second);
 		double newDist = std::min(distFwd, distRev);
@@ -67,21 +49,8 @@ void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 		}
 	}
 
-	//Check
-	laneLine.clear();
-	if (oldSize != res.size()) {
-		sim_mob::Warn() <<"ERROR: Couldn't sort Lanes array, zeroing out. " << oldSize <<"," <<res.size() <<std::endl;
-	}
-
-
 	//Finally, if the "end" is closer to the start node than the "start", reverse the vector as you insert it
-	if (flipLater) {
-		for (vector<Lane*>::reverse_iterator it=res.rbegin(); it!=res.rend(); it++) {
-			laneLine.push_back(*it);
-		}
-	} else {
-		laneLine.insert(laneLine.begin(), res.begin(), res.end());
-	}
+	if (flipLater) { std::reverse(laneLine.begin(), laneLine.end()); }
 }
 
 
@@ -136,37 +105,25 @@ vector<LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& nodes, map<int, S
 		sim_mob::Link* parent = it->second.generatedSegment->getLink();
 		map<std::pair<sim_mob::Node*, sim_mob::Node*>, LinkHelperStruct>::iterator helpIt = res.find(std::make_pair(parent->getStart(), parent->getEnd()));
 		if (helpIt==res.end()) {
+			//Add it.
+			res[std::make_pair(parent->getStart(), parent->getEnd())];
+
 			//Try again
-			helpIt = res.find(std::make_pair(parent->getEnd(), parent->getStart()));
-			if (helpIt==res.end()) {
-				//Add it.
-				res[std::make_pair(parent->getStart(), parent->getEnd())];
+			helpIt = res.find(std::make_pair(parent->getStart(), parent->getEnd()));
 
-				//Try again
-				helpIt = res.find(std::make_pair(parent->getStart(), parent->getEnd()));
-
-				//Sanity check.
-				if (helpIt==res.end()) { throw std::runtime_error("Unexpected Insert failed in LaneLoader."); }
-			}
+			//Sanity check.
+			if (helpIt==res.end()) { throw std::runtime_error("Unexpected Insert failed in LaneLoader."); }
 		}
 
 		//Always add the section
 		helpIt->second.sections.insert(&(it->second));
 
 		//Conditionally add the start/end
-		if (!helpIt->second.start) {
-			if (it->second.fromNode->generatedNode == parent->getStart()) {
-				helpIt->second.start = it->second.fromNode;
-			} else if (it->second.toNode->generatedNode == parent->getStart()) {
-				helpIt->second.start = it->second.toNode;
-			}
+		if (!helpIt->second.start && it->second.fromNode->generatedNode == parent->getStart()) {
+			helpIt->second.start = it->second.fromNode;
 		}
-		if (!helpIt->second.end) {
-			if (it->second.fromNode->generatedNode == parent->getEnd()) {
-				helpIt->second.end = it->second.fromNode;
-			} else if (it->second.toNode->generatedNode == parent->getEnd()) {
-				helpIt->second.end = it->second.toNode;
-			}
+		if (!helpIt->second.end && it->second.toNode->generatedNode == parent->getEnd()) {
+			helpIt->second.end = it->second.toNode;
 		}
 	}
 
@@ -199,7 +156,6 @@ vector<LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& nodes, map<int, S
 		msg <<"Final counts: " <<errorCount.first <<"," <<errorCount.second <<" of a total: " <<res.size();
 		throw std::runtime_error(msg.str().c_str());
 	}
-
 
 	return actRes;
 }
@@ -580,28 +536,6 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 			originPt.flipMirror();
 		}
 
-		//Calculate "offsets" for the origin. This occurs if either the start or end is a MultiNode start/end.
-		//The offset is the distance from the node's center to the median point.
-		pair<double, double> originOffsets(0.0, 0.0);
-		if (currSect->fromNode==startNode) {
-			originOffsets.first = sim_mob::dist(&medianEndpoints.first, startNode);
-		} else if (currSect->fromNode==endNode) {
-			originOffsets.first = sim_mob::dist(&medianEndpoints.first, startNode);
-		}
-		if (currSect->toNode==startNode) {
-			originOffsets.second = sim_mob::dist(&medianEndpoints.second, endNode);
-		} else if (currSect->toNode==endNode) {
-			originOffsets.second = sim_mob::dist(&medianEndpoints.second, endNode);
-		}
-
-		//TEMP: For now, our "median" point is somewhat in error, so we manually scale it back to 20m
-		if (originOffsets.first) {
-			originOffsets.first = 20 *100;
-		}
-		if (originOffsets.second) {
-			originOffsets.second = 20 *100;
-		}
-
 		//For each laneID, scale the originPt and go from there
 		if (currSect) {
 			for (size_t laneID=0; laneID<=(size_t)currSect->numLanes; laneID++) {
@@ -612,17 +546,6 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 
 				//Create a vector in the direction of the ending point.
 				DynamicVector laneVect(originPt.getX(), originPt.getY(), originPt.getX()+magX, originPt.getY()+magY);
-
-				//Scale the starting point.
-				double remMag = magSect;
-				if (originOffsets.first>0.0) {
-					laneVect.scaleVectTo(originOffsets.first).translateVect();
-					remMag -= originOffsets.first;
-				}
-				if (originOffsets.second>0.0) {
-					remMag -= originOffsets.second;
-				}
-				laneVect.scaleVectTo(remMag);
 
 				//Add the starting point, ending point
 				sim_mob::Point2D startPt((int)laneVect.getX(), (int)laneVect.getY());
@@ -661,14 +584,9 @@ void sim_mob::aimsun::LaneLoader::DecorateLanes(map<int, Section>& sections, vec
 //Driver function for GenerateLinkLaneZero
 void sim_mob::aimsun::LaneLoader::GenerateLinkLanes(const sim_mob::RoadNetwork& rn, std::map<int, sim_mob::aimsun::Node>& nodes, std::map<int, sim_mob::aimsun::Section>& sections)
 {
-
 	vector<LinkHelperStruct> lhs = buildLinkHelperStruct(nodes, sections);
 	for (vector<LinkHelperStruct>::iterator it=lhs.begin(); it!=lhs.end(); it++) {
-		//try {
 			LaneLoader::GenerateLinkLaneZero(rn, it->start, it->end, it->sections);
-		//} catch (std::exception& ex) {
-		//	std::cout <<"ERROR_2904" <<std::endl;
-		//}
 	}
 }
 
@@ -709,22 +627,10 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 	//        indicates missing data.
 	pair< size_t, size_t > maxCandidates(1, 1); //start, end (natural +1 each)
 	for (set<Section*>::const_iterator it=linkSections.begin(); it!=linkSections.end(); it++) {
-		//Sanity check
-		//if (((*it)->toNode==start) || ((*it)->fromNode==end)) {
-		//	throw std::runtime_error("Links are one-way; shouldn't have reverse Segments.");
-		//}
-
-		//"from" or "to" the start?
 		if ((*it)->fromNode==start) {
 			maxCandidates.first += (*it)->numLanes;
-		} else if ((*it)->toNode==start) {
-			maxCandidates.first += (*it)->numLanes;
 		}
-
-		//"from" or "to" the end?
-		if ((*it)->fromNode==end) {
-			maxCandidates.second += (*it)->numLanes;
-		} else if ((*it)->toNode==end) {
+		if ((*it)->toNode==end) {
 			maxCandidates.second += (*it)->numLanes;
 		}
 	}
@@ -753,7 +659,7 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 
 	if(!candidates.first.empty() && !candidates.second.empty())
 	{
-		ComputeMedianEndpoints(rn.drivingSide==DRIVES_ON_LEFT, start, end, candidates, maxCandidates, linkSections); //Start, end
+		medianEndpoints = ComputeMedianEndpoints(rn.drivingSide==DRIVES_ON_LEFT, start, end, candidates, maxCandidates, linkSections); //Start, end
 	}
 
 
@@ -801,11 +707,10 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 
 		//Avoid looping forever
 		if (maxLoops-- == 0) {
-			//std::cout <<"ERROR_2903" <<std::endl; break;
 			//throw std::runtime_error("Error: Network contains RoadSegment loop."); // Loops are present in the entire Singapore network. So Commenting this line. ~Harish
 			sim_mob::Warn() << "Error: Network contains RoadSegment loop. " << std::endl;
-			if(currSectPair.first) std::cout << "currSectPair.first: " << currSectPair.first->id << " " << currSectPair.first->roadName << std::endl;
-			if(currSectPair.second) std::cout << "currSectPair.second: " << currSectPair.second->id << " " << currSectPair.second->roadName << std::endl;
+//			if(currSectPair.first) std::cout << "currSectPair.first: " << currSectPair.first->id << " " << currSectPair.first->roadName << std::endl;
+//			if(currSectPair.second) std::cout << "currSectPair.second: " << currSectPair.second->id << " " << currSectPair.second->roadName << std::endl;
 			break;
 
 		}

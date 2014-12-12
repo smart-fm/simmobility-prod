@@ -4,7 +4,8 @@
 
 #pragma once
 #include <vector>
-#include <boost/unordered_map.hpp>
+#include <bitset>
+#include <stdint.h>
 #include "behavioral/PredayClasses.hpp"
 
 namespace sim_mob {
@@ -313,7 +314,7 @@ public:
 	/**
 	 * get the availability for a time window for tour
 	 */
-	int getTimeWindowAvailability(int timeWnd) const;
+	int getTimeWindowAvailability(size_t timeWnd) const;
 
 	/**
 	 * overload function to set availability of times in timeWnd to 0
@@ -327,6 +328,26 @@ public:
 	 * prints the fields of this object
 	 */
 	void print();
+
+	double getDpsLogsum() const
+	{
+		return dpsLogsum;
+	}
+
+	void setDpsLogsum(double dpsLogsum)
+	{
+		this->dpsLogsum = dpsLogsum;
+	}
+
+	double getDptLogsum() const
+	{
+		return dptLogsum;
+	}
+
+	void setDptLogsum(double dptLogsum)
+	{
+		this->dptLogsum = dptLogsum;
+	}
 
 private:
 	std::string personId;
@@ -359,11 +380,13 @@ private:
 	double eduLogSum;
 	double shopLogSum;
 	double otherLogSum;
+	double dptLogsum;
+	double dpsLogsum;
 
 	/**
-	 * Time windows currently available for the person.
+	 * Time windows availability for the person.
 	 */
-    boost::unordered_map<int, sim_mob::medium::TimeWindowAvailability> timeWindowAvailability;
+    std::vector<sim_mob::medium::TimeWindowAvailability> timeWindowAvailability;
 };
 
 /**
@@ -492,7 +515,7 @@ public:
 	/**
 	 * get the availability for a time window for sub-tour
 	 */
-	int getTimeWindowAvailability(int timeWnd) const;
+	int getTimeWindowAvailability(size_t timeWnd) const;
 
 	/**
 	 * make time windows between startTime and endTime unavailable
@@ -501,6 +524,32 @@ public:
 	 * @param endTime end time
 	 */
 	void blockTime(double startTime, double endTime);
+
+	/**
+	 * check if all time windows are unavailable
+	 * @return true if all time windows are unavailable; false otherwise
+	 */
+	bool allWindowsUnavailable();
+
+	bool isCbdDestZone() const
+	{
+		return cbdDestZone;
+	}
+
+	void setCbdDestZone(bool cbdDestZone)
+	{
+		this->cbdDestZone = cbdDestZone;
+	}
+
+	bool isCbdOrgZone() const
+	{
+		return cbdOrgZone;
+	}
+
+	void setCbdOrgZone(bool cbdOrgZone)
+	{
+		this->cbdOrgZone = cbdOrgZone;
+	}
 
 private:
 	/**mode choice for parent tour*/
@@ -514,7 +563,12 @@ private:
 	/**sub tour type*/
 	StopType subTourPurpose;
 	/** Time windows available for sub-tour.*/
-    boost::unordered_map<int, sim_mob::medium::TimeWindowAvailability> timeWindowAvailability;
+	std::vector<sim_mob::medium::TimeWindowAvailability> timeWindowAvailability;
+    /** bitset of availablilities for fast checking*/
+    std::bitset<1176> availabilityBit;
+
+	bool cbdOrgZone;
+	bool cbdDestZone;
 };
 
 } //end namespace medium

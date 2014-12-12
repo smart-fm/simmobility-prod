@@ -15,6 +15,7 @@
 #include "RoadSegment.hpp"
 #include "Lane.hpp"
 #include "util/GeomHelpers.hpp"
+#include "geospatial/Node.hpp"
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
@@ -57,14 +58,17 @@ RoadSegment* findSegment(const set<RoadSegment*>& segments, const Node* const st
 }
 
 
-bool buildLinkList(const set<RoadSegment*>& segments, vector<RoadSegment*>& res, set<RoadSegment*>& usedSegments,
+bool buildLinkList(set<RoadSegment*> segments, vector<RoadSegment*>& res, set<RoadSegment*>& usedSegments,
 		const Node* start, const Node* end)
 {
 	const Node* prev = nullptr;
-	for (const Node* fwd=start; fwd!=end;) {
+	const Node* fwd = start;
+	while(!segments.empty())
+	{
 		//Retrieve the next segment
 		RoadSegment* nextSeg = findSegment(segments, fwd, prev);
 		if (!nextSeg) {
+			Print()<< "Could not find a segment enclosed by nodes " << fwd->getID() << " and " << prev->getID() << std::endl;
 			return false;
 		}
 
@@ -72,11 +76,9 @@ bool buildLinkList(const set<RoadSegment*>& segments, vector<RoadSegment*>& res,
 		res.push_back(nextSeg);
 		usedSegments.insert(nextSeg);
 		prev = fwd;
-		if (fwd!=nextSeg->getEnd()) {
-			fwd = nextSeg->getEnd();
-		} else {
-			fwd = nextSeg->getStart();
-		}
+		if (fwd!=nextSeg->getEnd()) { fwd = nextSeg->getEnd(); }
+		else { fwd = nextSeg->getStart(); }
+		segments.erase(nextSeg);
 	}
 	return true;
 }
@@ -89,11 +91,13 @@ bool buildLinkList(const set<RoadSegment*>& segments, vector<RoadSegment*>& res,
 void sim_mob::Link::initializeLinkSegments(const std::set<sim_mob::RoadSegment*>& newSegs)
 {
 	//We build in two directions; forward and backwards. We also maintain a list of which
-	// road segments are used, to catch cases where RoadSegments are skipped.
+	//road segments are used, to catch cases where RoadSegments are skipped.
 	set<RoadSegment*> usedSegments;
 	bool res1 = buildLinkList(newSegs, this->segs, usedSegments, start, end);
-	//bool res2 = buildLinkList(segments, revSegments, usedSegments, end, start);
-
+	if(start->getID() == end->getID()) {
+		Print() << "Start and ending nodes are same . starting node is : " << start->getID() << " ending node is : "<< end->getID()
+				<< " usedSegments.size()="  << usedSegments.size() << " of " << newSegs.size() << std::endl;
+	}
 	//Ensure we have at least ONE path (for one-way Links)
 	if (!res1) {
 		throw std::runtime_error("Incomplete link; missing RoadSegment.");
@@ -103,7 +107,7 @@ void sim_mob::Link::initializeLinkSegments(const std::set<sim_mob::RoadSegment*>
 	if (usedSegments.size() < newSegs.size()) {
 		std::stringstream msg;
 		msg <<"Link constructed without the use of all its segments: " <<usedSegments.size() <<" of " <<newSegs.size()
-			<<"  segments are: ";
+			<< "\nstarting node is : " << start->getID() << " \nending node is : "<< end->getID() << "  \nsegments are: ";
 		for (std::set<sim_mob::RoadSegment*>::const_iterator it=newSegs.begin(); it!=newSegs.end(); it++) {
 			msg <<(*it)->originalDB_ID.getLogItem() <<"  ";
 		}
@@ -169,7 +173,10 @@ const std::set<sim_mob::RoadSegment*> & sim_mob::Link::getUniqueSegments()
 
 void sim_mob::Link::extendPolylinesBetweenRoadSegments()
 {
+	// disabled by Max
+#if 0
 	extendPolylinesBetweenRoadSegments(segs);
+#endif
 	//extendPolylinesBetweenRoadSegments(revSegments);
 }
 
@@ -185,6 +192,12 @@ void sim_mob::Link::extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>
 		RoadSegment* seg1 = segments.at(i);
 		RoadSegment* seg2 = segments.at(i+1);
 		size_t j=0;
+		if(seg1->originalDB_ID.getLogItem().find("3440") != std::string::npos){
+			int i=0;
+		}
+		if(seg2->originalDB_ID.getLogItem().find("3440") != std::string::npos){
+			int i=0;
+		}
 		for(;j<seg1->getLanes().size();j++)
 		{
 			seg1->getLanes()[j]->getPolyline();

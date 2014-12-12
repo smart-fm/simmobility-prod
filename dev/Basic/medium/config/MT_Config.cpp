@@ -27,7 +27,9 @@ PredayCalibrationParams::PredayCalibrationParams() :
 
 MT_Config::MT_Config() :
 		pedestrianWalkSpeed(0), numPredayThreads(0), configSealed(false), outputTripchains(false),
-consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA), logsumComputationFrequency(0)
+		consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA),
+		logsumComputationFrequency(0), supplyUpdateInterval(0), activityScheduleLoadInterval(0), busCapacity(0),
+		outputPredictions(false)
 {}
 
 MT_Config::~MT_Config()
@@ -57,12 +59,51 @@ void MT_Config::setPredayRunMode(const std::string runMode)
 	}
 }
 
+unsigned MT_Config::getActivityScheduleLoadInterval() const
+{
+	return activityScheduleLoadInterval;
+}
+
+void MT_Config::setActivityScheduleLoadInterval(unsigned activityScheduleLoadInterval)
+{
+	if(!configSealed)
+	{
+		this->activityScheduleLoadInterval = activityScheduleLoadInterval;
+	}
+}
+
+unsigned MT_Config::getSupplyUpdateInterval() const
+{
+	return supplyUpdateInterval;
+}
+
+void MT_Config::setSupplyUpdateInterval(unsigned supplyUpdateInterval)
+{
+	if(!configSealed)
+	{
+		this->supplyUpdateInterval = supplyUpdateInterval;
+	}
+}
+
+const StoredProcedureMap& MT_Config::getStoredProcedure() const
+{
+	return storedProcedure;
+}
+
+void MT_Config::setStoredProcedureMap(const StoredProcedureMap& storedProcedure)
+{
+	if(!configSealed)
+	{
+		this->storedProcedure = storedProcedure;
+	}
+}
+
 double MT_Config::getPedestrianWalkSpeed() const
 {
 	return pedestrianWalkSpeed;
 }
 
-std::vector<int>& MT_Config::getDwellTimeParams()
+std::vector<float>& MT_Config::getDwellTimeParams()
 {
 	return dwellTimeParams;
 }
@@ -252,6 +293,52 @@ void MT_Config::setLogsumComputationFrequency(unsigned logsumComputationFrequenc
 	if(!configSealed)
 	{
 		this->logsumComputationFrequency = logsumComputationFrequency;
+	}
+}
+
+const std::string& MT_Config::getFilenameOfJourneyTimeStats() const {
+	return filenameOfJourneyTimeStats;
+}
+
+const std::string& MT_Config::getFilenameOfWaitingTimeStats() const {
+	return filenameOfWaitingTimeStats;
+}
+
+void MT_Config::setFilenameOfJourneyTimeStats(const std::string& str) {
+	if(!configSealed)
+	{
+		filenameOfJourneyTimeStats = str;
+	}
+}
+
+void MT_Config::setFilenameOfWaitingTimeStats(const std::string& str) {
+	if(!configSealed)
+	{
+		filenameOfWaitingTimeStats = str;
+	}
+}
+
+const std::string& MT_Config::getFilenameOfWaitingAmountStats() const {
+	return filenameOfWaitingAmountStats;
+}
+
+void MT_Config::setFilenameOfWaitingAmountStats(const std::string& str) {
+	if(!configSealed)
+	{
+		filenameOfWaitingAmountStats = str;
+	}
+}
+
+const unsigned int MT_Config::getBusCapacity() const
+{
+	return busCapacity;
+}
+
+void MT_Config::setBusCapacity(const unsigned int busCapacity)
+{
+	if(!configSealed)
+	{
+		this->busCapacity = busCapacity;
 	}
 }
 

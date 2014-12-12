@@ -4,6 +4,7 @@
 
 #include "BusDriverFacets.hpp"
 
+#include <sstream>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/BusStopAgent.hpp"
@@ -35,6 +36,13 @@ void initSegStatsPath(const vector<const sim_mob::RoadSegment*>& rsPath, vector<
  */
 inline double converToSeconds(uint32_t timeInMs) {
 	return (timeInMs/1000.0);
+}
+
+/**
+ * converts time from  seconds to milli-seconds
+ */
+inline unsigned int converToMilliseconds(double timeInMs) {
+	return (timeInMs*1000.0);
 }
 
 /**
@@ -87,41 +95,49 @@ void BusDriverMovement::frame_tick() {
 		if (parentBusDriver->waitingTimeAtbusStop > params.secondsInTick) {
 			params.elapsedSeconds = params.secondsInTick;
 			parentBusDriver->waitingTimeAtbusStop -= params.secondsInTick;
+			pathMover.setPositionInSegment(0);
 		}
 		else {
-			params.elapsedSeconds = parentBusDriver->waitingTimeAtbusStop;
+			params.elapsedSeconds = params.elapsedSeconds + parentBusDriver->waitingTimeAtbusStop;
 			parentBusDriver->waitingTimeAtbusStop = 0.0;
 			//the bus has expired its waiting time
 			//send bus departure message
 			const BusStop* stop = routeTracker.getNextStop();
 			BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(stop);
+			const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
 			parentBusDriver->closeBusDoors(stopAg);
 			routeTracker.updateNextStop();
+			DriverMovement::moveToNextSegment(params);
 		}
 	}
-	if(params.elapsedSeconds < params.secondsInTick) {
+	if(params.elapsedSeconds < params.secondsInTick)
+	{
 		DriverMovement::frame_tick();
+	}
+	else
+	{
+		setParentData(params);
 	}
 	std::stringstream logout;
 	sim_mob::Person* person = getParent();
-	if(person->getCurrSegStats()) {
-		logout << "(BusDriver"
-				<<","<<person->getId()
-				<<","<<parentBusDriver->getParams().now.frame()
-				<<",{"
-				<<"RoadSegment:"<< (person->getCurrSegStats()->getRoadSegment()->getSegmentAimsunId())
-				<<",StatsNum:"<<person->getCurrSegStats()->getStatsNumberInSegment()
-				<<",Lane:"<<(person->getCurrLane()->getLaneID())
-				<<",DistanceToEndSeg:"<<person->distanceToEndOfSegment;
+	unsigned int segId = (person->getCurrSegStats()? person->getCurrSegStats()->getRoadSegment()->getSegmentAimsunId() : 0 );
+	uint16_t statsNum = (person->getCurrSegStats()? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
+	logout << "(BusDriver"
+			<<","<<person->getId()
+			<<","<<parentBusDriver->getParams().now.frame()
+			<<",{"
+			<<"RoadSegment:"<< segId
+			<<",StatsNum:"<< statsNum
+			<<",Lane:"<<(person->getCurrLane()? person->getCurrLane()->getLaneID() : 0)
+			<<",DistanceToEndSeg:"<<person->distanceToEndOfSegment;
 
-		if(parentBusDriver->getResource()->isMoving()) { logout << ",ServingStop:" << "false"; }
-		else { logout << ",ServingStop:" << "true"; }
+	if(parentBusDriver->getResource()->isMoving()) { logout << ",ServingStop:" << "false"; }
+	else { logout << ",ServingStop:" << "true"; }
 
-		if (person->isQueuing) { logout << ",queuing:" << "true"; }
-		else { logout << ",queuing:" << "false";}
-		logout << "})" << std::endl;
-		Print()<<logout.str();
-	}
+	if (person->isQueuing) { logout << ",queuing:" << "true"; }
+	else { logout << ",queuing:" << "false";}
+	logout << "})" << std::endl;
+	Print()<<logout.str();
 }
 
 void sim_mob::medium::BusDriverMovement::frame_tick_output() {
@@ -139,7 +155,7 @@ void sim_mob::medium::BusDriverMovement::frame_tick_output() {
 			<<","<<person->getId()
 			<<","<<parentBusDriver->getParams().now.frame()
 			<<",{"
-			<<"\"RoadSegment\":\""<< (person->getCurrSegStats()->getRoadSegment()->getSegmentID())
+			<<"\"RoadSegment\":\""<< (person->getCurrSegStats()->getRoadSegment()->getId())
 			<<"\",\"Lane\":\""<<(person->getCurrLane()->getLaneID())
 			<<"\",\"UpNode\":\""<<(person->getCurrSegStats()->getRoadSegment()->getStart()->getID())
 			<<"\",\"DistanceToEndSeg\":\""<<person->distanceToEndOfSegment;
@@ -178,8 +194,6 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 		}
 		else if ((*(person->currTripChainItem))->itemType == TripChainItem::IT_BUSTRIP) {
 			routeTracker = BusRouteTracker(bustrip->getBusRouteInfo()); //Calls the constructor and the assignment operator overload defined in this class. Copy-constructor is not called.
-			Print()<< "BusTrip path size = " << routeTracker.getRoadSegments().size() << std::endl;
-			Print()<< "BusTrip stop list size: " << routeTracker.getBusStops().size() << std::endl;
 		} else {
 			Print() << "BusTrip path not initialized because it is not a bustrip, (*(person->currTripChainItem))->itemType = "
 					<< (*(person->currTripChainItem))->itemType << std::endl;
@@ -199,8 +213,8 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 		person->setCurrSegStats(firstSegStat);
 		person->setCurrLane(firstSegStat->laneInfinity);
 		person->distanceToEndOfSegment = firstSegStat->getLength();
-
-		routeTracker.printBusRoute();
+		routeTracker.printBusRoute(person->getId());
+		pathMover.printPath();
 	}
 
 	//to indicate that the path to next activity is already planned
@@ -238,7 +252,10 @@ const sim_mob::Lane* BusDriverMovement::getBestTargetLane(
 			if (!((*lnIt)->is_pedestrian_lane()))
 			{
 				const Lane* lane = *lnIt;
-				if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats)) { continue; }
+				if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment()))
+				{
+					continue;
+				}
 				total = nextSegStats->getLaneTotalVehicleLength(lane);
 				que = nextSegStats->getLaneQueueLength(lane);
 				if (minLength > total)
@@ -313,7 +330,22 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				{
 					removeFromQueue();
 				}
-				parentBusDriver->openBusDoors(stopAg);
+				DailyTime startTm = ConfigManager::GetInstance().FullConfig().simStartTime();
+				DailyTime current(params.now.ms()+converToMilliseconds(params.elapsedSeconds)+startTm.getValue());
+				parentBusDriver->openBusDoors(current.toString(), stopAg);
+				double remainingTime = params.secondsInTick - params.elapsedSeconds;
+				if(parentBusDriver->waitingTimeAtbusStop > remainingTime) {
+					parentBusDriver->waitingTimeAtbusStop -= remainingTime;
+					params.elapsedSeconds = params.secondsInTick;
+				}
+				else {
+					params.elapsedSeconds += parentBusDriver->waitingTimeAtbusStop;
+					parentBusDriver->waitingTimeAtbusStop = 0;
+					parentBusDriver->closeBusDoors(stopAg);
+					routeTracker.updateNextStop();
+					// There is remaining time, try to move to next segment
+					return DriverMovement::moveToNextSegment(params);
+				}
 			}
 			else
 			{
@@ -377,23 +409,26 @@ void BusRouteTracker::updateNextStop()
 	nextStopIt++;
 }
 
-void BusRouteTracker::printBusRoute(){
+void BusRouteTracker::printBusRoute(unsigned int personId)
+{
 	const vector<const sim_mob::RoadSegment*>& rsPath = getRoadSegments();
-	Print()<< "bus line: "<< this->busRouteId << std::endl;
-	Print()<< "segments in bus trip: "<< rsPath.size() << " segments - "<< std::endl;
+	std::stringstream printStrm;
+	printStrm << "personId: " << personId << "|bus line: "<< this->busRouteId << std::endl;
+	printStrm << "segments in bus trip: "<< rsPath.size() << "\nsegments: ";
 	for (vector<const sim_mob::RoadSegment*>::const_iterator it = rsPath.begin(); it != rsPath.end(); it++)
 	{
 		const sim_mob::RoadSegment* rdSeg = *it;
-		Print() << rdSeg->getSegmentAimsunId() << "|";
+		printStrm << rdSeg->getSegmentAimsunId() << "|";
 	}
-	Print() << std::endl;
+	printStrm << std::endl;
 	const vector<const sim_mob::BusStop*>& stops = this->getBusStops();
-	Print()<< "stops in bus trip: "<< stops.size() << " stops - "<< std::endl;
+	printStrm << "stops in bus trip: "<< stops.size() << "\nstops: ";
 	for (vector<const sim_mob::BusStop*>::const_iterator it = stops.begin(); it != stops.end(); it++)
 	{
-		Print()<< (*it)->busstopno_ << "|";
+		printStrm << (*it)->busstopno_ << "|";
 	}
-	Print() << std::endl;
+	printStrm << std::endl;
+	Print() << printStrm.str();
 }
 }
 }

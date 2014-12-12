@@ -15,6 +15,9 @@
 #include "database/entity/LandUseZone.hpp"
 #include "database/entity/DevelopmentTypeTemplate.hpp"
 #include "database/entity/TemplateUnitType.hpp"
+#include "database/entity/Project.hpp"
+#include "database/entity/ParcelMatch.hpp"
+#include "database/entity/SlaParcel.hpp"
 
 namespace sim_mob {
     namespace long_term {
@@ -28,39 +31,101 @@ namespace sim_mob {
             typedef std::vector<LandUseZone*> LandUseZonesList;
             typedef std::vector<DevelopmentTypeTemplate*> DevelopmentTypeTemplateList;
             typedef std::vector<TemplateUnitType*> TemplateUnitTypeList;
+            typedef std::vector<Project*> ProjectList;
+            typedef std::vector<ParcelMatch*> ParcelMatchList;
+            typedef std::vector<SlaParcel*> SlaParcelList;
             //maps
             typedef boost::unordered_map<BigSerial,Parcel*> ParcelMap;
             typedef boost::unordered_map<BigSerial,LandUseZone*> LandUseZoneMap;
+            typedef boost::unordered_map<BigSerial,ParcelMatch*> ParcelMatchMap;
+            typedef boost::unordered_map<BigSerial,Project*> ProjectMap;
+            typedef boost::unordered_map<std::string,SlaParcel*> SlaParcelMap;
+
         public:
             DeveloperModel(WorkGroup& workGroup);
             DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel );
             virtual ~DeveloperModel();
             
+            /*
+             * create developer agents for each parcel in the given ParcelList
+             */
+            void createDeveloperAgents(ParcelList initParcelList);
+
+            /*
+             * process the initial parcel list e to create sub parcel lists as follow:
+             * 1. parcelsWithProjectsList 2. developmentCandidateParcelList 3. nonEligibleParcelList
+             *
+             */
+            void processParcels();
+
             /**
              * Getters 
              */
             unsigned int getTimeInterval() const;
-            const Parcel* getParcelById(BigSerial id) const;
+            Parcel* getParcelById(BigSerial id) const;
+            SlaParcel* getSlaParcelById(std::string id) const;
             const LandUseZone* getZoneById(BigSerial id) const;
             const DevelopmentTypeTemplateList& getDevelopmentTypeTemplates() const;
             const TemplateUnitTypeList& getTemplateUnitType() const;
-            
+
+            /*
+             * returns the sla parcel id of a parcel, given the fm parcel id
+             */
+            std::string getSlaParcelIdByFmParcelId(BigSerial fmParcelId) const;
+
+            /*
+             * check whether a given parcel is already associated with a project
+             */
+            bool isParcelWithExistingProject(const Parcel *parcel) const;
+
+            void setParcelMatchMap(ParcelMatchMap parcelMatchMap);
+            ParcelList getDevelopmentCandidateParcels(bool isInitial);
+
+            /*
+             * set the iterators of development candidate parcels, at each time tick (day)
+             */
+            void setIterators(ParcelList::iterator &first,ParcelList::iterator &last,bool isInitial);
+
+            /*
+             * set the boolean parameter to indicate whether there are remaining parcels in the pool
+             */
+            void setIsParcelsRemain(bool parcelStatus);
+
+            void setDays(int days);
+
+            void reLoadZonesOnRuleChangeEvent();
+
         protected:
             /**
              * Inherited from Model.
              */
             void startImpl();
             void stopImpl();
+
         private:
             DeveloperList developers;
             TemplateList templates;
-            ParcelList parcels;
+            ParcelList initParcelList;
+            ParcelList parcelsWithProjectsList;
+            ParcelList developmentCandidateParcelList;
+            ParcelList nonEligibleParcelList;
+            ProjectList existingProjects;
             LandUseZonesList zones;
             DevelopmentTypeTemplateList developmentTypeTemplates;
             TemplateUnitTypeList templateUnitTypes;
             ParcelMap parcelsById;
             LandUseZoneMap zonesById;
             unsigned int timeInterval;
+            ParcelMatchList parcelMatches;
+            ParcelMatchMap parcelMatchesMap;
+            ProjectMap existingProjectMap;
+            std::vector<BigSerial> existingProjectParcelIds;
+            SlaParcelList slaParcels;
+            SlaParcelMap slaParcelById;
+            int dailyParcelCount;
+            bool isParcelRemain;
+            int numSimulationDays;
+
         };
     }
 }

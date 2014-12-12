@@ -4,9 +4,11 @@ EventType = {
     LOST_JOB = 1, 
     NEW_JOB_LOCATION = 2, 
     NEW_CHILD = 3,
-    NEW_SCHOOL_LOCATION = 4}
+    NEW_SCHOOL_LOCATION = 4,
+    ZONING_RULE_CHANGE = 5, 
+}
     
-function addEvent (day, type, householdId)
+function addHouseHoldEvent (day, type, householdId)
     event = ExternalEvent()
     event.day = day;
     event.householdId = householdId;
@@ -17,6 +19,17 @@ function addEvent (day, type, householdId)
     table.insert(events[day], event);
 end
 
+--function addDeveloperModelEvent(day, type, developerId)
+--    event = ExternalEvent();
+--    event.day = day;
+--    event.developerId = developerId
+--    event.type = type;
+--   if events[day] == nil then
+--        events[day] = {}
+--    end
+--    table.insert(events[day], event);
+--end
+    
 --addEvent(67, EventType.NEW_JOB, 1)
 --addEvent(67, EventType.NEW_JOB_LOCATION, 2)
 --addEvent(300, EventType.NEW_CHILD, 3)
@@ -37,15 +50,24 @@ function getExternalEvents (day)
     --if events[day] ~= nil then
     --    return events[day];
     --end
-    if day == 1 then     
-        for i= 1, 10000 do
+    if day ~= 1 then
+  	for i= 1, 100 do
            local household = math.random(1,1146054)
            if excluded[household] == nil then
-              addEvent(day, EventType.NEW_SCHOOL_LOCATION, household)
+              addHouseHoldEvent(day, EventType.NEW_SCHOOL_LOCATION, household)
               excluded[household]={}
            end
            --addEvent(1, EventType.NEW_SCHOOL_LOCATION, i)
-        end
-    end 
+        end   
+   end 
+
+   --local developer = 2
+   -- addDeveloperModelEvent(day,EventType.ZONING_RULE_CHANGE,developer)
+
     return events[day]
 end
+
+
+
+
+

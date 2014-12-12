@@ -14,8 +14,10 @@
 #include <boost/function.hpp>
 #include <ostream>
 #include <sstream>
+#include <string>
 #include <vector>
-#include "behavioral/PredaySystem.hpp"
+#include "PredaySystem.hpp"
+#include "PredayClasses.hpp"
 #include "CalibrationStatistics.hpp"
 #include "config/MT_Config.hpp"
 #include "params/PersonParams.hpp"
@@ -117,6 +119,13 @@ public:
 	void loadPersons(db::BackendType dbType);
 
 	/**
+	 * Gets person ids of each person in the population data
+	 *
+	 * @param dbType type of backend where the population data is available
+	 */
+	void loadPersonIds(db::BackendType dbType);
+
+	/**
 	 * Gets details of all mtz zones
 	 *
 	 * @param dbType type of backend where the zone data is available
@@ -138,6 +147,13 @@ public:
 	void loadCosts(db::BackendType dbType);
 
 	/**
+	 * loads the un-available origin destination pairs
+	 *
+	 * @param dbType type of backend where the cost data is available
+	 */
+	void loadUnavailableODs(db::BackendType dbType);
+
+	/**
 	 * Distributes persons to different threads and starts the threads which process the persons
 	 */
 	void dispatchPersons();
@@ -152,6 +168,8 @@ private:
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
 	typedef boost::unordered_map<int, std::vector<ZoneNodeParams*> > ZoneNodeMap;
+	typedef std::vector<std::string> PersonIdList;
+
 	typedef void (PredayManager::*threadedFnPtr)(const PersonList::iterator&, const PersonList::iterator&, size_t);
 
 	/**
@@ -164,7 +182,19 @@ private:
 	 * @param last personList iterator corresponding to the person after the
 	 * 				last person to be processed
 	 */
-	void processPersons(const PersonList::iterator& first, const PersonList::iterator& last, const std::string& tripChainLog);
+	void processPersons(const PersonList::iterator& first, const PersonList::iterator& last, const std::string& scheduleLog);
+
+	/**
+	 * Threaded function loop for simulation.
+	 * Loops through all elements in personList within the specified range and
+	 * invokes the Preday system of models for each of them.
+	 *
+	 * @param first personIdList iterator corresponding to the first person to be
+	 * 				processed
+	 * @param last personIdList iterator corresponding to the person after the
+	 * 				last person to be processed
+	 */
+	void processPersonsById(const PersonIdList::iterator& first, const PersonIdList::iterator& last, const std::string& scheduleLog);
 
 	/**
 	 * Distributes persons to different threads and starts the threads which process the persons for calibration
@@ -195,6 +225,18 @@ private:
 	 * 				last person to be processed
 	 */
 	void computeLogsums(const PersonList::iterator& first, const PersonList::iterator& last);
+
+	/**
+	 * Threaded logsum computation
+	 * Loops through all elements in personIdList within the specified range and
+	 * invokes logsum computations for each of them.
+	 *
+	 * @param first personIdList iterator corresponding to the first person to be
+	 * 				processed
+	 * @param last personIdList iterator corresponding to the person after the
+	 * 				last person to be processed
+	 */
+	void computeLogsumsById(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt);
 
 	/**
 	 * Threaded logsum computation for calibration
@@ -263,6 +305,8 @@ private:
 
 	PersonList personList;
 
+	PersonIdList personIdList;
+
     /**
      * map of zone_id -> ZoneParams
      * \note this map has 1092 elements
@@ -278,6 +322,9 @@ private:
     CostMap amCostMap;
     CostMap pmCostMap;
     CostMap opCostMap;
+
+    /** for each origin, has a list of unavailable destinations */
+    std::vector<OD_Pair> unavailableODs;
 
     /**
      * list of values computed for objective function

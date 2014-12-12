@@ -10,6 +10,7 @@
 #include "entities/signal/Signal.hpp"
 #include "boost/thread/shared_mutex.hpp"
 
+
 namespace sim_mob {
 class MultiNode;
 class Person;
@@ -17,7 +18,6 @@ class RoadSegment;
 class Role;
 class SegmentStats;
 class Worker;
-
 
 namespace aimsun
 {
@@ -27,6 +27,7 @@ class Loader;
 
 enum {
 	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000,
+	MSG_INSERT_INCIDENT = 5000001,
 	MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP = 5000001
 };
 
@@ -38,6 +39,17 @@ public:
 	PedestrianTransferRequestMessage(Person* inPerson):pedestrian(inPerson){;}
 	virtual ~PedestrianTransferRequestMessage() {}
 	Person* pedestrian;
+};
+
+/**
+ * Subclasses message, This is to allow it to function as an message callback parameter.
+ */
+class InsertIncidentMessage : public messaging::Message {
+public:
+	InsertIncidentMessage(const std::vector<sim_mob::SegmentStats*>& stats, double newFlowRate);
+	virtual ~InsertIncidentMessage();
+	const std::vector<sim_mob::SegmentStats*>& stats;
+	double newFlowRate;
 };
 
 /**
@@ -84,10 +96,11 @@ private:
 	 */
     struct PersonProps {
     public:
-    	const sim_mob::Role* role;
     	const sim_mob::RoadSegment* segment;
     	const sim_mob::Lane* lane;
     	bool isQueuing;
+    	bool isMoving;
+    	unsigned int roleType;
     	sim_mob::SegmentStats* segStats;
 
     	PersonProps(const sim_mob::Person* person);
@@ -240,15 +253,39 @@ private:
 	 * removes the agent from the conflux and marks it for removal by the worker.
 	 * The person gets removed from the simulation at the end of the current tick.
 	 * @param ag the person to be removed
-	 * @param prevRdSeg the segment where the person started in the current tick
-	 * @param prevLane the lane from which the person started in the current tick
-	 * @param wasQueuing flag indicating whether the person was queuing at the start of the tick
-	 * @param wasActivityPerformer flag indicating whether the person was performing an activity at the start of the tick
+	 * @param beforeUpdate person properties before update
 	 */
-	void killAgent(sim_mob::Person* person, sim_mob::SegmentStats* prevSegStats,
-			const sim_mob::Lane* prevLane, bool wasQueuing);
+	void killAgent(sim_mob::Person* person, PersonProps& beforeUpdate);
 
 	/**
+bool sim_mob::insertIncidentS(const std::string fileName){
+
+	ifstream in(fileName.c_str());
+	if (!in.is_open()){
+		ostringstream out("");
+		out << "File " << fileName << " not found";
+		throw runtime_error(out.str());
+		//return false;
+	}
+	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::instance();
+	typedef tokenizer< escaped_list_separator<char> > Tokenizer;
+	vector< string > record;
+	string line;
+
+	while (getline(in,line))
+	{
+		Tokenizer record(line);
+		unsigned int sectionId = lexical_cast<unsigned int>(*(record.begin()));//first element
+		double newFlowRate = lexical_cast<double>(*(record.end()));//second element
+		const sim_mob::RoadSegment* rs = stDir.getRoadSegment(sectionId);
+		const std::vector<sim_mob::SegmentStats*>& stats = rs->getParentConflux()->findSegStats(rs);
+		sim_mob::SegmentStats* ss;
+		BOOST_FOREACH(ss,stats){
+			sim_mob::Conflux::insertIncident(ss,newFlowRate);
+		}
+	}
+	return true;
+}
 	 * Resets the remainingTime of persons who remain in
 	 * lane infinities and virtual queues across ticks
 	 * Note: This may include
@@ -260,11 +297,12 @@ private:
 	void resetPersonRemTimes();
 
 	/**
-	 * handles book keeping for the conflux based on changes in roles of person
+	 * handles house keeping for the conflux based on state change of person after his update
 	 * @param beforeUpdate person properties before update
 	 * @param afterUpdate person properties after update
+	 * @param person the person being handled
 	 */
-	void handleRoles(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person);
+	void housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person);
 
 protected:
 	/**
@@ -367,38 +405,38 @@ public:
 	std::stringstream debugMsgs;
 
 	//=======link travel time computation for current frame tick =================
-	struct linkTravelTimes
+	struct LinkTravelTimes
 	{
 	public:
 		double linkTravelTime_;
-		unsigned int agentCount_;
+		unsigned int agCnt;
 
-		linkTravelTimes(double linkTravelTime, unsigned int agentCount)
-		: linkTravelTime_(linkTravelTime), agentCount_(agentCount) {}
+		LinkTravelTimes(double linkTravelTime, unsigned int agentCount)
+		: linkTravelTime_(linkTravelTime), agCnt(agentCount) {}
 	};
 
-	std::map<const Link*, linkTravelTimes> LinkTravelTimesMap;
+	std::map<const Link*, LinkTravelTimes> LinkTravelTimesMap;
 	void setLinkTravelTimes(Person* ag, double linkExitTime);
 	void resetLinkTravelTimes(timeslice frameNumber);
 	void reportLinkTravelTimes(timeslice frameNumber);
 
 	//=======road segment travel time computation for current frame tick =================
-	struct rdSegTravelTimes
+	struct RdSegTravelTimes
 	{
 	public:
-		double rdSegTravelTime_;
-		unsigned int agentCount_;
+		double travelTimeSum;
+		unsigned int agCnt;
 
-		rdSegTravelTimes(double rdSegTravelTime, unsigned int agentCount)
-		: rdSegTravelTime_(rdSegTravelTime), agentCount_(agentCount) {}
+		RdSegTravelTimes(double rdSegTravelTime, unsigned int agentCount)
+		: travelTimeSum(rdSegTravelTime), agCnt(agentCount) {}
 	};
 
-	std::map<const RoadSegment*, rdSegTravelTimes> RdSegTravelTimesMap;
-	void setRdSegTravelTimes(Person* ag, double rdSegExitTime);
-	void resetRdSegTravelTimes(timeslice frameNumber);
+	std::map<const RoadSegment*, RdSegTravelTimes> rdSegTravelTimesMap;
+	void addRdSegTravelTimes(Person* ag, double rdSegExitTime);
+	void resetRdSegTravelTimes();
 	void reportRdSegTravelTimes(timeslice frameNumber);
 	bool insertTravelTime2TmpTable(timeslice frameNumber,
-			std::map<const RoadSegment*, sim_mob::Conflux::rdSegTravelTimes>& rdSegTravelTimesMap);
+			std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>& rdSegTravelTimesMap);
 	//================ end of road segment travel time computation ========================
 
 	/**
@@ -462,6 +500,22 @@ public:
 	 */
 	static const sim_mob::RoadSegment* constructPath(Person* person);
 
+	/**
+	 * Inserts an Incident by updating the flow rate for all lanes of a road segment to a new value.
+	 *
+	 * @param rdSeg roadSegment to insert incident
+	 * @param newFlowRate new flow rate to be updated
+	 */
+	static void insertIncident(sim_mob::SegmentStats* segStats, const double & newFlowRate);
+	///Same as above. Just, single road segment can have 'multiple' SegmentStats
+	static void insertIncident(const std::vector<sim_mob::SegmentStats*>  &segStats, const double & newFlowRate);
+
+	/**
+	 * Removes a previously inserted incident by restoring the flow rate of each lane of a road segment to normal values
+	 *
+	 * @param segStats road segment stats to remove incident
+	 */
+	static void removeIncident(sim_mob::SegmentStats* segStats);
 
 	bool isBoundary; //A conflux that receives person from at least one conflux that belongs to another worker
 	bool isMultipleReceiver; //A conflux that receives persons from confluxes that belong to multiple other workers

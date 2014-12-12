@@ -61,6 +61,8 @@ protected:
  * \author Harish Loganathan
  */
 class DriverMovement: public sim_mob::MovementFacet {
+	//debug
+	unsigned int sectionId;
 public:
 	explicit DriverMovement(sim_mob::Person* parentAgent = nullptr);
 	virtual ~DriverMovement();
@@ -81,8 +83,25 @@ public:
 		this->parentDriver = parentDriver;
 	}
 
+	const MesoPathMover & getMesoPathMover() const{
+		return pathMover;
+	}
 
+	MesoPathMover & getMesoPathMover() {
+		return pathMover;
+	}
 protected:
+	/// mark startTimeand origin. Called at every frame_init
+	virtual TravelMetric& startTravelTimeMetric();
+	/**
+	 * mark the destination and end time and travel time.
+	 * upon every change in the role, this method is called
+	 * to collect the metrics collected during the previous
+	 * role's period.
+	 */
+	//
+	virtual TravelMetric& finalizeTravelTimeMetric();
+
 	/**
 	 * Pointer to the parent Driver role.
 	 */
@@ -132,6 +151,12 @@ protected:
 	 */
 	virtual bool moveToNextSegment(DriverUpdateParams& params);
 
+	/**
+	 * Handle the event where a segment in the path has been traversed
+	 * @param  completedRS the completed Road Segment
+	 * @param  nextRS the Road Segment to be visited next
+	 */
+	void onSegmentCompleted(const sim_mob::RoadSegment* completedRS, const sim_mob::RoadSegment* nextRS);
 	/**
 	 * checks whether the driver can move into the next segment in path
 	 *
@@ -233,13 +258,22 @@ protected:
 	double getInitialQueueLength(const Lane* lane);
 
 	/**
-	 * checks if lane is connected to the next segment stats
+	 * checks if lane is connected to the next segment
 	 *
 	 * @param lane current lane
-	 * @param nextSegStats next segment stats
+	 * @param nxtRdSeg next road segment
 	 * @return true if lane is connected to nextSegStats; false otherwise
 	 */
-	bool isConnectedToNextSeg(const Lane* lane, const SegmentStats* nextSegStats);
+	bool isConnectedToNextSeg(const Lane* lane, const sim_mob::RoadSegment *nxtRdSeg) const;
+
+	/**
+	 * checks if 'any' lane is connected to the next segment
+	 *
+	 * @param srcRdSeg Road Segment
+	 * @param nxtRdSeg next road segment
+	 * @return true if lane is connected to next Segment; false otherwise
+	 */
+	bool isConnectedToNextSeg(const sim_mob::RoadSegment *srcRdSeg, const sim_mob::RoadSegment *nxtRdSeg) const;
 
 	/**
 	 * add driver to queue
@@ -264,22 +298,6 @@ protected:
 			const sim_mob::SegmentStats* nextSegStats,
 			const sim_mob::SegmentStats* nextToNextSegStats);
 
-	//Note: insert and remove incident functions should probably be in Confluxes. To be updated when actual incident functionality is implemented.
-	/**
-	 * Inserts an Incident by updating the flow rate for all lanes of a road segment to a new value.
-	 *
-	 * @param rdSeg roadSegment to insert incident
-	 * @param newFlowRate new flow rate to be updated
-	 */
-	void insertIncident(sim_mob::SegmentStats* segStats, double newFlowRate);
-
-	/**
-	 * Removes a previously inserted incident by restoring the flow rate of each lane of a road segment to normal values
-	 *
-	 * @param segStats road segment stats to remove incident
-	 */
-	void removeIncident(sim_mob::SegmentStats* segStats);
-
 	/**
 	 * Updates travel time for this driver for the link which he has just exited from.
 	 *
@@ -297,6 +315,36 @@ protected:
 	 */
 	void updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat,
 			double segmentExitTimeSec);
+	/**
+	 * get number of intersections between the agent's location and incident location
+	 * \param in list of stats in the incident roadsegemnt
+	 * \param intersections out list of intersections suggested as re-routing points
+	 * \param remaining lists of segstats from the original path which are remaining to reach to each of the suggested re-routing point
+	 * return the number of intersections
+	 */
+	int findReroutingPoints(const std::vector<sim_mob::SegmentStats*>& stats,std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > & remaining) const;
+	bool wantReRoute(){return true;};//placeholder
+	/**
+	 * Changes the Travel Path based on the incident information
+	 * \param in msg incident information(roadsegment and flow rate)
+	 * \param newFlowRate new flow rate supplied to lanes
+	 */
+	void reroute(const InsertIncidentMessage &msg);
+	///tries to remove the uturn if any
+	bool UTurnFree(std::vector<WayPoint> & oldPath, std::vector<const sim_mob::SegmentStats*> & newPath, sim_mob::SubTrip & subTrip, std::set<const sim_mob::RoadSegment*> & excludeRS);
+	///checks to see if it is possible to join an old path to a new one
+	///it even tries to create a second new path  it the check fails once
+	bool canJoinPaths(std::vector<WayPoint> & oldPath, std::vector<const sim_mob::SegmentStats*> & newPath, sim_mob::SubTrip & subTrip, std::set<const sim_mob::RoadSegment*> & excludeRS);
+	//checks if there is a uturn
+	bool hasUTurn(std::vector<WayPoint> & oldPath, std::vector<const sim_mob::SegmentStats*> & newPath);
+	/**
+	 * message handler which provide a chance to handle message transfered from parent agent.
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void HandleMessage(messaging::Message::MessageType type,
+			const messaging::Message& message);
+
 };
 
 } /* namespace medium */

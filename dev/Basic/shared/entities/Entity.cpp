@@ -32,7 +32,7 @@ sim_mob::Entity::~Entity()
 		//      a destructor is iffy at best.
 		Print() <<"Error: Deleting an Entity which is still being managed by a Worker|"<< this->getId() <<std::endl;
 		Warn() <<"Error: Deleting an Entity which is still being managed by a Worker." <<std::endl;
-		abort();
+//		abort();
 	}
 }
 

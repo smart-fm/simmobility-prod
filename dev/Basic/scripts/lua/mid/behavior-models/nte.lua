@@ -21,8 +21,8 @@ local beta_nationalservice_edu_2 = 0
 local beta_voluntary_edu_2 = 0
 local beta_domestic_edu_2 = 0
 local beta_otherworker_edu_2 = 0
-local beta_student16_edu_2 = 0.605
-local beta_student515_edu_2 = 2.490
+local beta_student16_edu_2 = 0.382
+local beta_student515_edu_2 = 1.74
 local beta_child4_edu_2 = 0
 
 --Adult age group
@@ -50,8 +50,8 @@ local beta_income_edu_2 = 0
 local beta_workathome_edu_2 = 0
 local beta_caravail_edu_2 = 0
 local beta_motoravail_edu_2 = 0
-local beta_logsum_edu_2= 0.246
-local beta_cons_edu_2=-6.330
+local beta_logsum_edu_2= 0
+local beta_cons_edu_2=-6.32
 
 
 --choiceset
@@ -76,6 +76,7 @@ local function computeUtilities(params)
 	local income_id = params.income_id
 	local income_mid = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
 	local work_at_home_dummy = params. work_at_home_dummy
+	local car_own = params.car_own
 	local car_own_normal = params.car_own_normal
 	local car_own_offpeak = params.car_own_offpeak
 	local motor_own = params.motor_own
@@ -141,10 +142,10 @@ local function computeUtilities(params)
 	local maleage4,maleage515,malenone,femalenone,femaleage4,femaleage515 = 0,0,0,0,0,0
 	if female_dummy == 0 and HH_with_under_4 == 1 then maleage4 = 1 end
 	if female_dummy == 0 and HH_with_under_4 == 0 and HH_with_under_15 == 1 then maleage515 = 1 end
-	if female_dummy == 0 and onlyadults == 1 then malenone = 1 end
+	if female_dummy == 0 and only_adults == 1 then malenone = 1 end
 	if female_dummy == 1 and HH_with_under_4 == 1 then femaleage4 = 1 end
 	if female_dummy == 1 and HH_with_under_4 == 0 and HH_with_under_15 == 1 then femaleage515 = 1 end
-	if female_dummy == 1 and onlyadults == 1 then femalenone = 1 end
+	if female_dummy == 1 and only_adults == 1 then femalenone = 1 end
 	
 	-- income related variables
 	local income,missingincome = 0,0
@@ -154,8 +155,8 @@ local function computeUtilities(params)
 	-- other variables
 	local workathome,caravail,motoravail = 0,0,0
 	if work_at_home_dummy == 1 then workathome = 1 end
-	if car_own_normal == 1 or car_own_offpeak == 1 then caravail = 1 end
-	if motor_own == 1 then motoravail = 1 end
+	if car_own_normal >= 1 or car_own_offpeak >= 1 then caravail = 1 end
+	if motor_own >= 1 then motoravail = 1 end
 	
 	utility[1] = 0
 	utility[2] = beta_cons_edu_2+beta_parttime_edu_2*parttime+beta_selfemployed_edu_2*selfemployed+beta_universitystudent_edu_2*universitystudent+beta_homemaker_edu_2*homemaker+beta_retired_edu_2*retired+beta_unemployed_edu_2*unemployed+beta_nationalservice_edu_2*nationalservice+beta_voluntary_edu_2*voluntary+beta_domestic_edu_2*domestic+beta_otherworker_edu_2*otherworker+beta_student16_edu_2*student16+beta_student515_edu_2*student515+beta_child4_edu_2*child4+beta_age2025_edu_2*age2025+beta_age2635_edu_2*age2635+beta_age5165_edu_2*age5165+beta_maleage4_edu_2*maleage4+beta_maleage515_edu_2*maleage515+beta_femalenone_edu_2*femalenone+beta_femaleage4_edu_2*femaleage4+beta_femaleage515_edu_2*femaleage515+beta_onlyadults_edu_2*onlyadults+beta_onlyworkers_edu_2*onlyworkers+beta_income_edu_2*income+beta_workathome_edu_2*workathome+beta_caravail_edu_2*caravail+beta_motoravail_edu_2*motoravail+beta_logsum_edu_2*edulogsum

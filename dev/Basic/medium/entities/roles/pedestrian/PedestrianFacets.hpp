@@ -56,11 +56,13 @@ public:
 	 */
 	void setParentPedestrian(sim_mob::medium::Pedestrian* parentPedestrian);
 
+	TravelMetric & startTravelTimeMetric();
+	TravelMetric & finalizeTravelTimeMetric();
 protected:
 
 	/**
 	 * initialize the path at the beginning
-	 * @param path include a list of road segments
+	 * @param path include aPathSetParams list of road segments
 	 * */
 	void initializePath(std::vector<const RoadSegment*>& path);
 

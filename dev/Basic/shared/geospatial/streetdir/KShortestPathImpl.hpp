@@ -6,7 +6,7 @@
 #include "A_StarShortestPathImpl.hpp"
 #include "AStarShortestTravelTimePathImpl.hpp"
 #include "StreetDirectory.hpp"
-#include "geospatial/PathSetManager.hpp"
+//#include "geospatial/PathSetManager.hpp"
 
 #include <map>
 #include <vector>
@@ -16,7 +16,20 @@ namespace sim_mob {
 
 class PathSet;
 class SinglePath;
-inline double generateSinglePathLength(std::vector<WayPoint>& wp);
+
+inline double generateSinglePathLength(std::vector<WayPoint>& wp)
+{
+	double res=0;
+	for(int i=0;i<wp.size();++i)
+	{
+		WayPoint* w = &wp[i];
+		if (w->type_ == WayPoint::ROAD_SEGMENT) {
+			const sim_mob::RoadSegment* seg = w->roadSegment_;
+			res += seg->length;
+		}
+	}
+	return res/100.0; //meter
+}
 struct PathLength
 {
 	double length;
@@ -39,8 +52,8 @@ public:
 
 public:
 	std::vector< std::vector<WayPoint> > getKShortestPaths(const sim_mob::Node *from, const sim_mob::Node *to,
-			sim_mob::PathSet& ps_,
-			std::map<std::string,SinglePath*>& wp_spPool);
+			boost::shared_ptr<sim_mob::PathSet> ps_,
+			std::set<std::string>& wp_spPool);
 	void setK(int value) { k = value; }
 	int getK() { return k; }
 private:

@@ -156,15 +156,13 @@ namespace {
 }
 
 HouseholdSellerRole::SellingUnitInfo::SellingUnitInfo() :startedDay(0), interval(0), daysOnMarket(0), numExpectations(0)
-{
-}
+{}
 
 HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent): LT_AgentRole(parent), currentTime(0, 0), hasUnitsToSale(true), selling(false)
+{}
+
+HouseholdSellerRole::~HouseholdSellerRole()
 {
-
-}
-
-HouseholdSellerRole::~HouseholdSellerRole() {
     sellingUnitsMap.clear();
 }
 
@@ -213,6 +211,7 @@ void HouseholdSellerRole::update(timeslice now)
             if(getCurrentExpectation(unit->getId(), firstExpectation))
             {
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice));
+                PrintOut("Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
             }
 
             selling = true;
@@ -308,9 +307,26 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 
         if (unitEntry && unit)
         {
+			 UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
+
+			 if(it != sellingUnitsMap.end())
+			 {
+				 SellingUnitInfo& info = it->second;
+
+				 if( currentTime.ms() - info.startedDay > info.daysOnMarket )
+				 {
+					 PrintOut("Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
+					 market->removeEntry(unitId);
+					 continue;
+				 }
+			 }
+
+			//expectations start on last element to the first.
             ExpectationEntry entry;
             if (getCurrentExpectation(unitId, entry) && entry.askingPrice != unitEntry->getAskingPrice())
             {
+            	PrintOut("Updating asking price for unit " << unitId << "from  $" << unitEntry->getAskingPrice() << " to $" << entry.askingPrice << std::endl );
+
                 HousingMarket::Entry updatedEntry(*unitEntry);
                 updatedEntry.setAskingPrice(entry.askingPrice);
                 market->updateEntry(updatedEntry);
@@ -329,6 +345,10 @@ void HouseholdSellerRole::notifyWinnerBidders()
         ExpectationEntry entry;
         getCurrentExpectation(maxBidOfDay.getUnitId(), entry);
         replyBid(*getParent(), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getUnitId()));
+
+        //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );
+        PrintOut("Seller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf." << std::endl );
+
         market->removeEntry(maxBidOfDay.getUnitId());
         getParent()->removeUnitId(maxBidOfDay.getUnitId());
         sellingUnitsMap.erase(maxBidOfDay.getUnitId());

@@ -48,10 +48,10 @@ local beta_income_shopping_2 = 0
 
 --Others
 local beta_workathome_shopping_2 = 0
-local beta_caravail_shopping_2 = 0.993
-local beta_motoravail_shopping_2 = 0.164
-local beta_logsum_shopping_2= 0.427
-local beta_cons_shopping_2=-8.7
+local beta_caravail_shopping_2 = 1.32
+local beta_motoravail_shopping_2 = -0.361
+local beta_logsum_shopping_2= 0.135
+local beta_cons_shopping_2=-5.85
 
 
 --choiceset
@@ -75,7 +75,8 @@ local function computeUtilities(params)
 	local female_dummy = params.female_dummy
 	local income_id = params.income_id
 	local income_mid = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
-	local work_at_home_dummy = params. work_at_home_dummy
+	local work_at_home_dummy = params.work_at_home_dummy
+	local car_own = params.car_own
 	local car_own_normal = params.car_own_normal
 	local car_own_offpeak = params.car_own_offpeak
 	local motor_own = params.motor_own
@@ -141,10 +142,10 @@ local function computeUtilities(params)
 	local maleage4,maleage515,malenone,femalenone,femaleage4,femaleage515 = 0,0,0,0,0,0
 	if female_dummy == 0 and HH_with_under_4 == 1 then maleage4 = 1 end
 	if female_dummy == 0 and HH_with_under_4 == 0 and HH_with_under_15 == 1 then maleage515 = 1 end
-	if female_dummy == 0 and onlyadults == 1 then malenone = 1 end
+	if female_dummy == 0 and only_adults == 1 then malenone = 1 end
 	if female_dummy == 1 and HH_with_under_4 == 1 then femaleage4 = 1 end
 	if female_dummy == 1 and HH_with_under_4 == 0 and HH_with_under_15 == 1 then femaleage515 = 1 end
-	if female_dummy == 1 and onlyadults == 1 then femalenone = 1 end
+	if female_dummy == 1 and only_adults == 1 then femalenone = 1 end
 	
 	-- income related variables
 	local income,missingincome = 0,0
@@ -154,8 +155,8 @@ local function computeUtilities(params)
 	-- other variables
 	local workathome,caravail,motoravail = 0,0,0
 	if work_at_home_dummy == 1 then workathome = 1 end
-	if car_own_normal == 1 or car_own_offpeak == 1 then caravail = 1 end
-	if motor_own == 1 then motoravail = 1 end
+	if car_own_normal >= 1 or car_own_offpeak >= 1 then caravail = 1 end
+	if motor_own >= 1 then motoravail = 1 end
 	
 	utility[1] = 0
 	utility[2] = beta_cons_shopping_2+beta_parttime_shopping_2*parttime+beta_selfemployed_shopping_2*selfemployed+beta_universitystudent_shopping_2*universitystudent+beta_homemaker_shopping_2*homemaker+beta_retired_shopping_2*retired+beta_unemployed_shopping_2*unemployed+beta_nationalservice_shopping_2*nationalservice+beta_voluntary_shopping_2*voluntary+beta_domestic_shopping_2*domestic+beta_otherworker_shopping_2*otherworker+beta_student16_shopping_2*student16+beta_student515_shopping_2*student515+beta_child4_shopping_2*child4+beta_age2025_shopping_2*age2025+beta_age2635_shopping_2*age2635+beta_age5165_shopping_2*age5165+beta_maleage4_shopping_2*maleage4+beta_maleage515_shopping_2*maleage515+beta_femalenone_shopping_2*femalenone+beta_femaleage4_shopping_2*femaleage4+beta_femaleage515_shopping_2*femaleage515+beta_onlyadults_shopping_2*onlyadults+beta_onlyworkers_shopping_2*onlyworkers+beta_income_shopping_2*income+beta_workathome_shopping_2*workathome+beta_caravail_shopping_2*caravail+beta_motoravail_shopping_2*motoravail+beta_logsum_shopping_2*shoplogsum

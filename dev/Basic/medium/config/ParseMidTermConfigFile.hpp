@@ -51,10 +51,35 @@ private:
 	void processPredayNode(xercesc::DOMElement* node);
 
 	/**
+	 * processes the stored procedure mappings under supply node
+	 * @param node node corresponding to the procedure mappings for supply in xml file
+	 */
+	void processProcMapNode(xercesc::DOMElement* node);
+
+	/**
+	 * processes the activity load interval node
+	 * @param node node specifying the value and unit for activity load interval
+	 */
+	void processActivityLoadIntervalElement(xercesc::DOMElement* node);
+
+	/**
+	 * processes update interval node
+	 * @param node node corresponding to update interval element
+	 */
+	void processUpdateIntervalElement(xercesc::DOMElement* node);
+
+	/**
 	 * processes dwell time element included in xml file.
 	 * @param node node corresponding to the dwell time element inside xml file
 	 */
 	void processDwellTimeElement(xercesc::DOMElement* node);
+
+	/**
+	 * processes default capacity bust included in xml file.
+	 * @param node node corresponding to the bus capacity element inside xml file
+	 */
+	void processBusCapactiyElement(xercesc::DOMElement* node);
+
 
 	/**
 	 * processes pedestrian walk speed included in xml file.
@@ -75,10 +100,17 @@ private:
 	void processMongoCollectionsNode(xercesc::DOMElement* node);
 
 	/**
+	 * processes statistics output file element in config xml
+	 * @param node node corresponding to statistics output file element inside xml file
+	 */
+	void processStatisticsOutputNode(xercesc::DOMElement* node);
+
+	/**
 	 * processes calibration element in config xml
 	 * @param node node corresponding to calibration element inside xml file
 	 */
 	void processCalibrationNode(xercesc::DOMElement* node);
+
 
 	/**The config we are currently loading*/
 	MT_Config& mtCfg;

@@ -156,7 +156,17 @@ sim_mob::Person::~Person() {
 	//serializeTripTravelTimeMetrics();
 }
 
+void sim_mob::Person::setTripChain(const vector<TripChainItem *>& tripChain)
+{
+	//delete the previous tripchain
+	clear_delete_vector(this->tripChain);
 
+	this->tripChain = tripChain;
+
+	//Initialize the trip chain - as the references to current trip chain and the
+	//current sub trip need to be updated
+	initTripChain();
+}
 
 void sim_mob::Person::load(const map<string, string>& configProps)
 {

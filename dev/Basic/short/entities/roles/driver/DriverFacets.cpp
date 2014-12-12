@@ -232,7 +232,7 @@ void sim_mob::DriverMovement::frame_tick() {
 	//Are we done already?
 	if (fwdDriverMovement.isDoneWithEntireRoute()) {
 		if (parent->amodId != "-1") {
-			//parent->handleAMODArrival(); //handle AMOD arrival (if necessary)
+			parent->handleAMODArrival(); //handle AMOD arrival (if necessary)
 		}
 		parent->setToBeRemoved();
 		return;
@@ -752,10 +752,10 @@ void sim_mob::DriverMovement::intersectionDriving(DriverUpdateParams& p) {
 	if (intModel->isDone()) {
 		parentDriver->vehicle->setPositionInIntersection(0, 0);
 		p.currLane = fwdDriverMovement.leaveIntersection();
-		//		if (lastIndex != -1) {
-		//			p.currLane = fwdDriverMovement.getCurrSegment()->getLane(lastIndex);
-		//			lastIndex = -1;
-		//		}
+		if (lastIndex != -1) {
+			p.currLane = fwdDriverMovement.getCurrSegment()->getLane(lastIndex);
+			lastIndex = -1;
+		}
 		justLeftIntersection(p);
 	}
 }
@@ -897,6 +897,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 double sim_mob::DriverMovement::move(DriverUpdateParams& p) {
 	double newLatVel = 0.0; // m/s
 	LANE_CHANGE_SIDE lcs;
+	
 	if (p.getStatus(STATUS_LC_RIGHT)) {
 		lcs = LCS_RIGHT;
 	} else if (p.getStatus(STATUS_LC_LEFT)) {
@@ -1257,6 +1258,7 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 
 		currentSegIt = fwdDriverMovement.currSegmentIt;
 		currentSegIt++; // current's next segment
+		
 		size_t landIdx = i;
 
 		for (; currentSegIt != currentSegItEnd; ++currentSegIt) {
@@ -1271,6 +1273,7 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 			}
 
 			const RoadSegment* rs = *currentSegIt;
+			
 			x += rs->getLengthOfSegment() / 100.0;
 			if (!rs) {
 				break;
@@ -1353,6 +1356,7 @@ bool sim_mob::DriverMovement::laneConnectToSegment(sim_mob::Lane* lane,
 			for (std::set<LaneConnector*>::const_iterator it = lcs.begin();it != lcs.end(); it++) {
 				const Lane *fromLane = (*it)->getLaneFrom();
 				const RoadSegment *toSeg = (*it)->getLaneTo()->getRoadSegment();
+				
 				if ((*it)->getLaneTo()->getRoadSegment() == rs
 						&& (*it)->getLaneFrom() == lane) {
 					// current lane connect to next link
@@ -1937,9 +1941,6 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 	double res = 0.0;
 	//try {
 	res = fwdDriverMovement.advance(fwdDistance);
-	if(fwdDriverMovement.isDoneWithEntireRoute()){
-		return res;
-	}
 	if (!(fwdDriverMovement.isInIntersection())) {
 		double d = fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
 		double c = 0;
@@ -2429,6 +2430,7 @@ void sim_mob::DriverMovement::perceivedDataProcess(NearestVehicle & nv,
 
 			return;
 		}
+		
 		parentDriver->perceivedDistToFwdCar->delay(nv.distance);
 		parentDriver->perceivedVelOfFwdCar->delay(nv.driver->fwdVelocity.get());
 		parentDriver->perceivedAccOfFwdCar->delay(nv.driver->fwdAccel.get());
@@ -2639,6 +2641,7 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 		sim_mob::TrafficColor color;
 
 		if (hasNextSegment(false)) {
+		
 			const Lane *nextLinkLane = hasNextSegment(false)->getLane(0);
 			color = trafficSignal->getDriverLight(*p.currLane,
 					*nextLinkLane);

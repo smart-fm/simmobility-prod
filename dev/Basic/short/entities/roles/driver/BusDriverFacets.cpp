@@ -200,12 +200,14 @@ void sim_mob::BusDriverMovement::frame_init() {
 		double dis = bs->distance;
 		double fd = dd;
 		double segl = bs->getParentSegment()->getLengthOfSegment() /100.0;
+
 		if(fd > (segl -10) ){
 			fd = segl -10;
 		}
 		if(fd<0){
 			fd = segl/2;
 		}
+
 		Print()<<"id: "<<segid<<" dis:"<<dis<<" dd:"<<dd<<" len:"<<bs->getParentSegment()->getLengthOfSegment() /100.0<<" fd:"<<fd<<std::endl;
 		double dwelltime = 10;
 		StopPoint sp(segid,fd,dwelltime);

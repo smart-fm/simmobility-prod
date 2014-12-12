@@ -19,7 +19,6 @@
 #include "entities/amodController/AMODEvent.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
 
-
 namespace sim_mob
 {
 
@@ -32,6 +31,7 @@ class UnPackageUtils;
 class UpdateParams;
 class AMODController;
 class OD_Trip;
+
 
 /**
  * Basic Person class.
@@ -128,6 +128,7 @@ public:
 	///Set this person's trip chain
 	void setTripChain(const std::vector<TripChainItem*>& tripChain) {
 		this->tripChain = tripChain;
+		initTripChain();
 	}
 
 	/*	const sim_mob::Link* getCurrLink() const;
@@ -221,7 +222,6 @@ public:
 	double amodSegmLength;
 	std::string amdoTripId;
 	std::string parkingNode;
-
     AMOD::AMODEventPublisher eventPub;
 
     void handleAMODArrival();

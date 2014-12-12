@@ -238,6 +238,7 @@ void sim_mob::SplitPlan::setDefaultSplitPlan(int approaches) {
 
 
 	choiceSet.resize(NOF_Plans, vector<double>(approaches));
+
 	switch (approaches) {
 	case 1:
 		fill(defaultChoiceSet_1, 1);

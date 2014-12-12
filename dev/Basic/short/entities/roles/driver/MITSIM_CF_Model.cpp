@@ -485,6 +485,10 @@ double sim_mob::MITSIM_CF_Model::headwayBuffer() {
 
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		double targetSpeed, double maxLaneSpeed) {
+	p.cfDebugStr="";
+	if(p.parentId == 1895 && p.now.frame()>888){
+		int i=0;
+	}
 
 	calcStateBasedVariables(p);
 	p.desiredSpeed = calcDesiredSpeed(p);
@@ -577,6 +581,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		acc = aSP;
 		p.accSelect = "aSP";
 	}
+
 	//if (acc > aZ1)
 	//acc = aZ1;
 	//if (acc > aZ2)

@@ -86,7 +86,6 @@ void DriverUpdateParams::buildDebugInfo()
 		<<":"<<lc;
 		<<":"<<ds;*/
 
-
 		// utility
 		char ul[20] = "\0";
 		sprintf(ul,"ul%3.2f",utilityLeft);
@@ -115,6 +114,7 @@ void DriverUpdateParams::buildDebugInfo()
 		s<<"            "<<parentId;
 		s<<":"<<accSelect;
 		s<<lastAcc;
+
 		/*s<<":"<<ul;
 		s<<":"<<uc;
 		s<<":"<<ur;
@@ -236,8 +236,8 @@ void DriverUpdateParams::buildDebugInfo()
 	////			<<":"<<perceivedDistToTrafficSignal/100.0;
 		debugInfo = s.str();
 
-	//	std::cout<<debugInfo<<std::endl;
 }
+
 void DriverUpdateParams::addTargetLanes(set<const Lane*> tl)
 {
 	set<const Lane*> newTargetLanes;
@@ -256,6 +256,7 @@ void DriverUpdateParams::addTargetLanes(set<const Lane*> tl)
 
 	targetLanes = newTargetLanes;
 }
+
 void DriverUpdateParams::unsetStatus(unsigned int s)
 {
 	status &= ~s;
@@ -266,11 +267,13 @@ const RoadSegment* DriverUpdateParams::nextLink()
 	DriverMovement *driverMvt = (DriverMovement*)driver->Movement();
 	return driverMvt->fwdDriverMovement.getNextSegment(false);
 }
+
 bool DriverUpdateParams::willYield(unsigned int reason)
 {
 	//TODO willYield
 	return true;
 }
+
 double DriverUpdateParams::lcMinGap(int type)
 {
 	std::vector<double> b = LC_GAP_MODELS[type];

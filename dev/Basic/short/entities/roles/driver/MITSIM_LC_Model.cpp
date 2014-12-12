@@ -2050,6 +2050,7 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 	double dis = driverMvt->fwdDriverMovement.getAllRestRoadSegmentsLengthCM()
 					- driverMvt->fwdDriverMovement.getCurrDistAlongRoadSegmentCM()
 					- driverMvt->getParentDriver()->vehicle->getLengthCm() / 2 - 200;
+
 	if(p.dis2stop>dis/100.0){
 		p.dis2stop = dis/100.0;
 	}
@@ -2169,7 +2170,6 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToStopPoint(DriverUpdateParams& p,set
 		if(p.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT){
 			return res;
 		}
-
 		// only most left lane is target lane
 		const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
 		// get target lane index

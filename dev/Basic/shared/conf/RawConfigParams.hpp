@@ -33,7 +33,8 @@ struct FMOD_ControllerParams {
 	unsigned int blockingTimeSec;
 };
 
-struct AMOD_ControllerParams {
+struct AMOD_ControllerParams
+{
 	AMOD_ControllerParams() : enabled(false) {}
 
 	bool enabled;

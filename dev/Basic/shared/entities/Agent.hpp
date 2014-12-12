@@ -76,7 +76,7 @@ class Agent : public sim_mob::Entity {
 public:
 	static int createdAgents;
 	static int diedAgents;
-
+	bool errorFlag;
 	///Construct an Agent with an immutable ID.
 	///Note that, if -1, the Agent's ID will be assigned automatically. This is the preferred
 	///  way of dealing with agent ids. In the case of explicit ID assignment (anything >=0),
@@ -138,7 +138,7 @@ public:
 	bool isToBeRemoved();
 	void setToBeRemoved();
 	void clearToBeRemoved(); ///<Temporary function.
-	
+
 	/* *
 	 * I'm keeping getters and setters for current lane, segment and link in Agent class to be able to determine the
 	 * location of the agent without having to dynamic_cast to Person and get the role.

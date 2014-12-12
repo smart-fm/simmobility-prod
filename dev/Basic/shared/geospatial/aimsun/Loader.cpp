@@ -1496,6 +1496,7 @@ sim_mob::Activity* MakeActivity(const TripChainItem& tcItem) {
 	res->locationType = tcItem.locationType;
 	res->startTime = tcItem.startTime;
 	res->endTime = tcItem.endTime;
+	res->travelMode = tcItem.mode;
 	return res;
 }
 
@@ -1520,6 +1521,7 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	}
 	tripToSave->fromLocationType = tcItem.fromLocationType;
 	tripToSave->startTime = tcItem.startTime;
+	tripToSave->travelMode = tcItem.mode;
 	return tripToSave;
 }
 
@@ -1688,6 +1690,7 @@ sim_mob::SubTrip MakeSubTrip(const TripChainItem& tcItem) {
 	aSubTripInTrip.isPrimaryMode = tcItem.isPrimaryMode;
 	aSubTripInTrip.ptLineId = tcItem.ptLineId;
 	aSubTripInTrip.startTime = tcItem.startTime;
+	aSubTripInTrip.mode = tcItem.mode;
 	return aSubTripInTrip;
 }
 
@@ -2596,23 +2599,34 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 	//Essentially, just expand each turning into a set of LaneConnectors.
 	//TODO: This becomes slightly more complex at RoadSegmentNodes, since these
 	//      only feature one primary connector per Segment pair.
-	for (int fromLaneID=src.fromLane.first; fromLaneID<=src.fromLane.second; fromLaneID++) {
-		for (int toLaneID=src.toLane.first; toLaneID<=src.toLane.second; toLaneID++) {
-			//Bounds check: temp
-			/*if (fromLaneID>=src.fromSection->generatedSegment->lanes.size() ||
-				toLaneID >= src.toSection->generatedSegment->lanes.size()) {
-				std::cout <<"SKIPPING LANE\n";
-				continue;
-			}*/
+	for (int fromLaneID=src.fromLane.first, offset = 0; fromLaneID<=src.fromLane.second; fromLaneID++, offset++) {
 
+		/*Fixing many to one lane connections (commenting the loop, for roll back purposes)
+		 * ~Neeraj
+		for (int toLaneID=src.toLane.first; toLaneID<=src.toLane.second; toLaneID++) {
+		*/
+
+		//Bounds check: temp
+		/*if (fromLaneID>=src.fromSection->generatedSegment->lanes.size() ||
+			toLaneID >= src.toSection->generatedSegment->lanes.size()) {
+			std::cout <<"SKIPPING LANE\n";
+			continue;
+		}*/
+
+		//In order to make one to one lane connections, we simply let the for-loop traverse through the
+		//range of fromLaneIDs, the offset takes care of incrementing the toLaneIDs
+		int toLaneID = src.toLane.first + offset;
+
+		if(toLaneID <= src.toLane.second)
+		{
 			//Process
 			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector();
 			int adjustedFromLaneId  = src.fromSection->generatedSegment->getAdjustedLaneId(fromLaneID);
 			int adjustedToLaneId  = src.toSection->generatedSegment->getAdjustedLaneId(toLaneID);
 			lc->laneFrom = src.fromSection->generatedSegment->lanes.at(adjustedFromLaneId);
 			lc->laneTo = src.toSection->generatedSegment->lanes.at(adjustedToLaneId);
-//			lc->laneFrom = src.fromSection->generatedSegment->lanes.at(fromLaneID);
-//			lc->laneTo = src.toSection->generatedSegment->lanes.at(toLaneID);
+			//lc->laneFrom = src.fromSection->generatedSegment->lanes.at(fromLaneID);
+			//lc->laneTo = src.toSection->generatedSegment->lanes.at(toLaneID);
 
 			//just a check to avoid connecting pedestrian and non pedestrian lanes
 			int i = 0;
@@ -2636,6 +2650,11 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 			map<const RoadSegment*, set<LaneConnector*> >& connectors = dynamic_cast<MultiNode*>(src.fromSection->toNode->generatedNode)->connectors;
 			connectors[key].insert(lc);
 		}
+
+		/*Fixing many to one lane connections (commenting the loop, for roll back purposes)
+		 * ~Neeraj
+		}
+		*/
 	}
 
 }

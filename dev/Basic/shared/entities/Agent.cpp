@@ -124,6 +124,7 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 		profile = new ProfileBuilder();
 		//profile->logAgentCreated(*this);
 	}*/
+	errorFlag = false;
 }
 
 sim_mob::Agent::~Agent() {

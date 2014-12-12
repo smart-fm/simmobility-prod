@@ -264,7 +264,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 			}
 
 			//Otherwise, make a trip chain for this Person.
-			this->originNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true) );
+			this->originNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true));
 			this->destNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destIt->second), true) );
 
 			Trip* singleTrip = MakePseudoTrip(*this, mode);
@@ -363,7 +363,6 @@ void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ct
 		currRole->onParentEvent(eventId, ctxId, sender, args);
 	}
 }
-
 
  void sim_mob::Person::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
  {

@@ -133,6 +133,10 @@ void sim_mob::DriverPathMover::setPath(const vector<const RoadSegment*>& path, i
 
 	inIntersection = false;
 
+	if((*currSegmentIt)->originalDB_ID.getLogItem().find("34394") != std::string::npos){
+					int i=0;
+				}
+
 	distMovedInCurrSegmentCM = 0;
 	distOfThisSegmentCM = CalcSegmentLaneZeroDistCM(currSegmentIt, fullPath.end());
 	distOfRestSegmentsCM = CalcRestSegmentsLaneZeroDistCM(currSegmentIt, fullPath.end());
@@ -652,7 +656,11 @@ double sim_mob::DriverPathMover::advanceToNextPolyline(bool isFwd)
 double sim_mob::DriverPathMover::advanceToNextRoadSegment()
 {
 	//An error if we're already at the end of this road segment
-	throwIf(currSegmentIt == fullPath.end(), DriverPathMover::ErrorRoadSegmentAtEnd);
+//	throwIf(currSegmentIt == fullPath.end(), DriverPathMover::ErrorRoadSegmentAtEnd);
+	if(currSegmentIt == fullPath.end()){
+		distAlongPolylineCM=0;
+		return 0;
+	}
 	//distMovedInSegment = distAlongPolyline;
 
 	//If we are approaching a new Segment, the Intersection driving model takes precedence.
@@ -679,7 +687,7 @@ double sim_mob::DriverPathMover::advanceToNextRoadSegment()
 				{
 					DebugStream << "Now in Intersection. Distance from Node center: " << centimeterToMeter(dist((*currSegmentIt)->getEnd()->location, myPos)) << endl;
 				}
-				inIntersection = true;
+				inIntersection = true; distAlongPolylineCM=0;
 				return distAlongPolylineCM;
 			}
 		}
@@ -967,7 +975,8 @@ void sim_mob::DriverPathMover::moveToNewPolyline(int newLaneID)
 	//Invalid ID?
 	if (newLaneID < 0 || newLaneID >= static_cast<int> ((*currSegmentIt)->getLanes().size()))
 	{
-		throw std::runtime_error("Switching to an invalid lane ID.");
+		newLaneID = currLaneID;
+		//throw std::runtime_error("Switching to an invalid lane ID.");
 	}
 
 	//Save our progress

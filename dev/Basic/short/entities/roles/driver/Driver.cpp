@@ -133,6 +133,9 @@ void sim_mob::Driver::initReactionTime()
 	perceivedDistToTrafficSignal = new FixedDelayed<double>(reacTime,true);
 	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
 
+	// record start time
+	startTime = getParams().now.ms()/1000.0;
+	isAleadyStarted = false;
 }
 
 Role* sim_mob::Driver::clone(Person* parent) const

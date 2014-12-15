@@ -30,12 +30,25 @@ class ThreadPool;
  * A structure to stor Origin and Destination in one pair
  * additional operator overload for assignment and comparisons
  */
-struct OD
+class OD
 {
+private:
+	std::string key;
+public:
 	OD(const sim_mob::WayPoint &origin, const sim_mob::WayPoint &destination):
-		origin(origin), destination(destination){}
+		origin(origin), destination(destination)
+	{
+		std::stringstream str("");
+		str << origin.node_->getID() << "," << destination.node_->getID();
+		key = str.str();
+	}
 	OD(const sim_mob::Node * origin, const sim_mob::Node * destination):
-		origin(sim_mob::WayPoint(origin)), destination(sim_mob::WayPoint(destination)){}
+		origin(sim_mob::WayPoint(origin)), destination(sim_mob::WayPoint(destination))
+	{
+		std::stringstream str("");
+		str << origin->getID() << "," << destination->getID();
+		key = str.str();
+	}
 	sim_mob::WayPoint origin;
 	sim_mob::WayPoint destination;
 	bool operator==(const OD & rhs) const
@@ -52,11 +65,7 @@ struct OD
 	bool operator<(const OD & rhs) const
 	{
 		// just an almost dummy operator< to preserve uniquness
-		if(origin != rhs.origin)
-		{
-			return &origin < &rhs.origin;
-		}
-		return &destination < &rhs.destination;
+		return key < rhs.key;
 	}
 };
 
@@ -352,7 +361,7 @@ public:
 	 * \param excludedSegs input list segments to be excluded from the target set
 	 * \param isUseCache is using the cache allowed
 	 */
-	bool generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>());
+	bool generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, int dbg_level, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>());
 
 	///	generate travel time required to complete a path represented by different singlepath objects
 	void generateTravelTimeSinglePathes(const sim_mob::Node *fromNode, const sim_mob::Node *toNode, std::set<std::string>& duplicateChecker,boost::shared_ptr<sim_mob::PathSet> &ps_);

@@ -1043,7 +1043,8 @@ bool sim_mob::PathSetManager::getBestPath(
 		ps_->scenario = scenarioName;
 		ps_->subTrip = st;
 		std::set<OD> recursiveOrigins;
-		bool r = generateAllPathChoices(ps_, recursiveOrigins, blckLstSegs);
+		int dbg_level = 0;
+		bool r = generateAllPathChoices(ps_,dbg_level, recursiveOrigins, blckLstSegs);
 		if (!r)
 		{
 			logger << "[PATHSET GENERATION FAILURE : " << fromToID << "]\n";
@@ -1092,8 +1093,10 @@ bool sim_mob::PathSetManager::getBestPath(
 	return false;
 }
 
-bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs)
+bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps,int dbg_level, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs)
 {
+	std::string fromToID(getFromToString(ps->fromNode, ps->toNode));
+	//std::cout << "[" <<  fromToID << "][LEVEL:" << dbg_level << "\n";
 	logger << "generateAllPathChoices" << std::endl;
 	/**
 	 * step-1: find the shortest path. if not found: create an entry in the "PathSet" table and return(without adding any entry into SinglePath table)
@@ -1123,7 +1126,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	ps->hasPath = true;
 	ps->isNeedSave2DB = true;
 	ps->oriPath = s;
-	std::string fromToID(getFromToString(ps->fromNode, ps->toNode));
+
 	ps->id = fromToID;
 	s->pathSetId = ps->id;
 
@@ -1294,6 +1297,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	}
 	workPool.clear();
 	//step-7
+	std::cout << "LEVEL-" << dbg_level << "," << ps->fromNode->getID() << "," << ps->toNode->getID() << "," << ps->pathChoices.size() << "\n";
 	onGeneratePathSet(ps);
 	//step -8 :
 	boost::shared_ptr<sim_mob::PathSet> recursionPs;
@@ -1310,19 +1314,16 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 		{
 			continue;
 		}
-		sim_mob::MultiNode * linkEnd = nullptr;
+		sim_mob::Node * linkEnd = nullptr;
 		//skip the origin and destination node(first and last one)
-		std::vector<WayPoint>::iterator it(++sp->path.begin());
-		std::vector<WayPoint>::iterator itEnd(--sp->path.end());
+		std::vector<WayPoint>::iterator it = sp->path.begin();
+		it++;
+		std::vector<WayPoint>::iterator itEnd = sp->path.end();
+		itEnd--;
 		for(; it != itEnd; it++)
 		{
-
-			if(it == sp->path.begin() || it->roadSegment_->getEnd() == ps->toNode)
-			{
-				continue;
-			}
 			//skip uninodes
-			sim_mob::MultiNode * newFrom = it->roadSegment_->getLink()->getEnd();
+			sim_mob::Node * newFrom = it->roadSegment_->getLink()->getEnd();
 			// All segments of the link have the same link end node. Skip if already chosen
 			if(linkEnd == newFrom)
 			{
@@ -1342,11 +1343,25 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 		}
 	}
 	//b)
+//	std::cout << "New Set of Origins: ------------------------------------\n";
+//	BOOST_FOREACH(sim_mob::Node *from, newOrigins)
+//	{
+//		std::cout << from->getID() << ",";
+//	}
+//	std::cout << "\n--------------------------------\n";
+//	std::cout << "Global Set of origins:\n";
+//	BOOST_FOREACH(OD od, recursiveODs)
+//	{
+//		std::cout << od.origin.node_->getID() << ",";
+//	}
+//	std::cout << "\n--------------------------------\n";
+//	dbg_level++;
 	BOOST_FOREACH(sim_mob::Node *from, newOrigins)
 	{
+		//std::cout << "[NEXT LEVEL : " << dbg_level << "][" << from->getID() << "," << ps->toNode->getID() << "]\n";
 		boost::shared_ptr<sim_mob::PathSet> recursionPs(new sim_mob::PathSet(from,ps->toNode));
 		recursionPs->scenario = ps->scenario;
-		generateAllPathChoices(recursionPs, recursiveODs);
+		generateAllPathChoices(recursionPs,dbg_level,recursiveODs);
 	}
 	return true;
 }

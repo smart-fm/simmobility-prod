@@ -481,7 +481,6 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 
 void sim_mob::PeriodicPersonLoader::addOrStashPerson(Person* p)
 {
-	Print() << "person: " << p->getId() << " | start_time: " << p->getStartTime() << std::endl;
 	//Only agents with a start time of zero should start immediately in the all_agents list.
 	if (p->getStartTime()==0)
 	{

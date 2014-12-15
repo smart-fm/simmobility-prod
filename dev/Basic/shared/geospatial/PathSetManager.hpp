@@ -581,12 +581,12 @@ inline void filterOutNodes(std::vector<WayPoint>& input, std::vector<WayPoint>& 
 	std::copy(FilterIterator(input.begin(), input.end()),FilterIterator(input.end(), input.end()),std::back_inserter(output));
 }
 
-inline double generateSinglePathLength(std::vector<WayPoint>& wp) // unit is meter
+inline double generateSinglePathLength(const std::vector<WayPoint>& wp)// unit is meter
 {
 	double res=0;
 	for(int i=0;i<wp.size();++i)
 	{
-		WayPoint& w = wp[i];
+		const WayPoint& w = wp[i];
 		if (w.type_ == WayPoint::ROAD_SEGMENT) {
 			const sim_mob::RoadSegment* seg = w.roadSegment_;
 			res += seg->length;

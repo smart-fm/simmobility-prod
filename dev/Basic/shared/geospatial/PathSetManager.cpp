@@ -1200,12 +1200,12 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 			// fill data
 			s->isNeedSave2DB = true;
 			s->id = id;
-			std::cout << "[KSP:" << i << "] " << s->id << "\n";
 			s->init(path_);
 			s->scenario = ps->scenario;
 			s->pathSize=0;
 			duplicateChecker.insert(id);
 			kspTemp.insert(s);
+			std::cout << "[KSP:" << i << "] " << s->id << "[length: " << sim_mob::generateSinglePathLength(s->path) << "]\n";
 		}
 	}
 	// SHORTEST DISTANCE LINK ELIMINATION

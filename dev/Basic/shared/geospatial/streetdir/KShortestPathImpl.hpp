@@ -84,7 +84,14 @@ private:
 	/**
 	 * store intermediary result into A_Segments(get segments list of the path)
 	 */
-	void storeSegments(std::vector<sim_mob::WayPoint> path); //
+	void storeSegments(std::vector<sim_mob::WayPoint> path);
+	/**
+	 * Validates the intermediary results
+	 * \param RootPath root path of the k-shortest path
+	 * \param spurPath spur path of the k-shortest path
+	 * \return true if all the validations are valid, false otherwise
+	 */
+	bool validatePath(const std::vector<sim_mob::WayPoint> &RootPath, const std::vector<sim_mob::WayPoint>&SpurPath);
 };
 
 } //end namespace sim_mob

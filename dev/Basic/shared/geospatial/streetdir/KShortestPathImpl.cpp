@@ -8,6 +8,7 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/PathSetManager.hpp"
+#include "entities/roles/RoleFacets.hpp"
 #include<vector>
 
 using namespace sim_mob;
@@ -193,17 +194,25 @@ public:
 	void sort()
 	{
 		std::sort(keys.begin(), keys.end(),comp());
-	}
-	bool get(std::vector<sim_mob::WayPoint> &output)
-	{
-		if(!empty() && size())
+		//debug
+		std::cout << "sorted B in this iteration : ";
+		std::vector<Pair>::iterator it(keys.begin()),itEnd(keys.end());
+		for(;it != itEnd; it++)
 		{
-			output = *(keys.begin()->second);
-			return true;
+			std::cout << (*it).first << ",";
 		}
-		return false;
+		std::cout << "\n";
+		//debug...
 	}
-	bool eraseBegin()
+	const std::vector<sim_mob::WayPoint>& get()
+	{
+		if(empty() || !size())
+		{
+			throw std::runtime_error("Empty K-Shortest Path intermediary Collections, Check before Fetch");
+		}
+		return *(keys.begin()->second);
+	}
+	void eraseBegin()
 	{
 		paths.erase(keys.begin()->second);
 		keys.erase(keys.begin());
@@ -243,7 +252,7 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 	int K = 1; //k = 2
 	while(true)
 	{
-		std::cout << K << "\n";
+		std::cout << "K=" << K << "\n";
 		//		Set path list C = A.
 		std::vector< std::vector<sim_mob::WayPoint> > C = A;
 		//		Set RootPath = [].
@@ -254,6 +263,7 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 			//	nextRootPathLink = A,k-1 [i]
 			sim_mob::WayPoint nextRootPathLink = A[K-1][i];
 			const sim_mob::Node *SpurNode = nextRootPathLink.roadSegment_->getStart();
+			//std::cout << "[spurnode:segment]:[" << SpurNode->getID() << "," << nextRootPathLink.roadSegment_->getId() << "]\n";
 			//	Find links whose EndNode = SpurNode, and block them.
 			getEndSegments(SpurNode,bl);//find and store in the blacklist
 			//	For each path Cj in path list C:
@@ -266,31 +276,34 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 			std::vector<sim_mob::WayPoint> SpurPath,temp;
 			temp = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*SpurNode),stdir->DrivingVertex(*to),bl);
 			sim_mob::filterOutNodes(temp,SpurPath);
-			//	Set TotalPath = RootPath + SpurPath.
 			std::vector<sim_mob::WayPoint> TotalPath = std::vector<sim_mob::WayPoint>();
-			TotalPath.insert(TotalPath.end(), RootPath.begin(),RootPath.end());
-			TotalPath.insert(TotalPath.end(), SpurPath.begin(), SpurPath.end());
-			//debug
-			std::cout << "[OD: " << from->getID() << "," << to->getID() << "]Preparing an intermediate K-path : RootPath:"
-					<< RootPath.size() << " + SpurPath[" << SpurNode->getID() <<
-					"," << to->getID() << "]: " << SpurPath.size() << "  bl:" << bl.size() << " :\n" << printWPpath(RootPath) << "<-+->" << printWPpath(SpurPath);
-			if(TotalPath.empty() || TotalPath.begin()->roadSegment_->getStart() != from ||  TotalPath.rbegin()->roadSegment_->getEnd() != to)
+			if(validatePath(RootPath, SpurPath))
 			{
-				std::cout << " Invalid Path for " << from->getID() << "," << to->getID()  <<
-						" TotalPath OD nodes: (" << (TotalPath.size() ? TotalPath.begin()->roadSegment_->getStart()->getID() : 0 )
-						<< "," << (TotalPath.size() ? TotalPath.rbegin()->roadSegment_->getEnd() : 0 )
-						<< ") with SpurNode:" << SpurNode->getID() << "and blacklist:\n";
-				for(int i = 0; i < bl.size(); i++)
-				{
-					std::cout << bl[i]->getId() << ",";
-				}
-				std::cout << "\n";
-				break;
+				//	Set TotalPath = RootPath + SpurPath.
+				TotalPath.insert(TotalPath.end(), RootPath.begin(),RootPath.end());
+				TotalPath.insert(TotalPath.end(), SpurPath.begin(), SpurPath.end());
+				//std::cout << K << "[OD: " << from->getID() << "," << to->getID() << "] Inserting Qualified path PATH :\n RootPath:\n" ;
+				//printWPpath(RootPath);
+				//std::cout << "\nSpurPath[" << SpurNode->getID() << "]:\n";
+				//printWPpath(SpurPath);
+				//std::cout << std::endl;
+				//	Add TotalPath to path list B.
+				B.insert(sim_mob::generateSinglePathLength(TotalPath),TotalPath);
+
 			}
-			std::cout << "\n";
-			//debug...
-			//	Add TotalPath to path list B.
-			B.insert(sim_mob::generateSinglePathLength(TotalPath),TotalPath);
+			else
+			{
+				//debug
+//				std::cout<< "Path from spurNode to destination[" << SpurNode->getID() << "," << to->getID() << "] not found\n";
+//				if(TotalPath.empty() || TotalPath.begin()->roadSegment_->getStart() != from ||  TotalPath.rbegin()->roadSegment_->getEnd() != to)
+//				{
+//					std::cout << "loop skipped " << TotalPath.size() << "=" << RootPath.size() << "+" << SpurPath.size() << "  ";
+//					std::cout << (TotalPath.size() ? TotalPath.begin()->roadSegment_->getStart()->getID() : 0) << "/" <<  from->getID() << " ";
+//					std::cout << (TotalPath.size() ? TotalPath.rbegin()->roadSegment_->getEnd()->getID() : 0) << "/" <<  to->getID() << " ";
+//					std::cout << std::endl;
+//				}
+				//debug...
+			}
 			//	For each path Cj in path list C:
 			for(int j = 0; j < C.size(); j++)
 			{
@@ -315,8 +328,10 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 		//	Sort path list B by path weight.
 		B.sort();
 		//	Add B[0] to path list A, and delete it from path list B.
-		std::vector<sim_mob::WayPoint> B0;
-		B.get(B0);
+		const std::vector<sim_mob::WayPoint> & B0 = B.get();
+		//debug
+		std::cout << K << ": Choosing path : " << printWPpath(B0) << " : " << sim_mob::generateSinglePathLength(B0) << "\n";
+		//debug...
 		A.push_back(B0);
 		B.eraseBegin();
 		//	Restore blocked links.
@@ -340,19 +355,21 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 
 void sim_mob::K_ShortestPathImpl::getEndSegments(const Node *SpurNode,std::vector<const RoadSegment*>& endSegments)
 {
-	std::cout << "getEndSegments for node " << SpurNode->getID() << std::endl;
+	//std::cout << "getEndSegments for node " << SpurNode->getID() << std::endl;
 	//get ALL the segments, regardless of spurnode
 	const sim_mob::UniNode * uNode = dynamic_cast<const sim_mob::UniNode*>(SpurNode);
 	if(uNode)
 	{
-		endSegments = uNode->getRoadSegments();
+		const std::vector<const RoadSegment*>& src = uNode->getRoadSegments();
+		std::copy(src.begin(), src.end(),std::back_inserter(endSegments));
 	}
 	else
 	{
 		const sim_mob::MultiNode * mNode = dynamic_cast <const sim_mob::MultiNode*>(SpurNode);
-		std::copy(mNode->getRoadSegments().begin(), mNode->getRoadSegments().end(),std::back_inserter(endSegments));
+		const std::set<sim_mob::RoadSegment*>& src = mNode->getRoadSegments();
+		std::copy(src.begin(), src.end(),std::back_inserter(endSegments));
 	}
-	//filter out the start nodes
+	//filter out the segments for whom SpurNode is a start node
 	for (std::vector<const RoadSegment*>::iterator it(endSegments.begin()) ; it != endSegments.end(); ) {
 	  if ((*it)->getEnd() !=  SpurNode){
 	    it = endSegments.erase(it);
@@ -370,4 +387,20 @@ void sim_mob::K_ShortestPathImpl::storeSegments(std::vector<sim_mob::WayPoint> p
 			A_Segments.insert(std::make_pair(roadSeg->originalDB_ID.getLogItem(),roadSeg));
 		}
 	}
+}
+
+bool sim_mob::K_ShortestPathImpl::validatePath(const std::vector<sim_mob::WayPoint> &RootPath, const std::vector<sim_mob::WayPoint>&SpurPath)
+{
+	if(SpurPath.empty())
+	{
+		return false;
+	}
+	if(!RootPath.empty())
+	{
+		if(!sim_mob::MovementFacet::isConnectedToNextSeg(RootPath.rbegin()->roadSegment_, SpurPath.begin()->roadSegment_))
+		{
+			return false;
+		}
+	}
+	return true;
 }

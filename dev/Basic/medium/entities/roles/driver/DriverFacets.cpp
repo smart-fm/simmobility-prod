@@ -837,46 +837,6 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
 	}
 }
 
-
-bool DriverMovement::isConnectedToNextSeg(const Lane* lane, const sim_mob::RoadSegment *nxtRdSeg) const{
-	if(!nxtRdSeg) {
-		throw std::runtime_error("DriverMovement::isConnectedToNextSeg() - Road Segment is not available!");
-	}
-
-	if (nxtRdSeg->getLink() != lane->getRoadSegment()->getLink()){
-		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (lane->getRoadSegment()->getEnd());
-		if (currEndNode) {
-			const set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(lane->getRoadSegment());
-			for (set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
-				if ((*it)->getLaneTo()->getRoadSegment() == nxtRdSeg && (*it)->getLaneFrom() == lane) {
-					return true;
-				}
-			}
-		}
-	}
-	else{
-		//if (lane->getRoadSegment()->getLink() == nxtRdSeg->getLink()) we are
-		//crossing a uni-node. At uninodes, we assume all lanes of the current
-		//segment are connected to all lanes of the next segment
-		return true;
-	}
-
-	return false;
-}
-
-bool DriverMovement::isConnectedToNextSeg(const sim_mob::RoadSegment *srcRdSeg, const sim_mob::RoadSegment *nxtRdSeg) const{
-	if(!nxtRdSeg || !srcRdSeg) {
-		throw std::runtime_error("DriverMovement::getConnectionsToNextSeg() - one or both of the Road Segments are not available!");
-	}
-	BOOST_FOREACH(const sim_mob::Lane *ln, srcRdSeg->getLanes() ){
-		if(isConnectedToNextSeg(ln,nxtRdSeg)){
-			return true;
-		}
-	}
-
-	return false;
-}
-
 void DriverMovement::addToQueue() {
 	/* 1. set position to queue length in front
 	 * 2. set isQueuing = true
@@ -954,7 +914,7 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(
 	}
 
 	if(!minLane) {
-		Print() << "\nCurrent Path" << pathMover.getPath().size() << std::endl;
+		Print() << "\nCurrent Path " << pathMover.getPath().size() << std::endl;
 		MesoPathMover::printPath(pathMover.getPath());
 
 		std::ostringstream out("");

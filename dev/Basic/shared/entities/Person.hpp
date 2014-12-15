@@ -217,6 +217,8 @@ public:
 	std::vector<WayPoint> amodPath;
 	std::string amodPickUpSegmentStr;
 	double amodSegmLength;
+	double amodSegmLength2;
+	std::string amodDropOffSegmentStr;
 	std::string amdoTripId;
 	std::string parkingNode;
     AMOD::AMODEventPublisher eventPub;

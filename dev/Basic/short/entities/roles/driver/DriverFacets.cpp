@@ -1668,11 +1668,23 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 			std::string segm = Utils::getNumberFromAimsunId(stopSegmentStr);
 			double dwelltime = 5; //in sec
 			double segl = parent->amodSegmLength /100.0; //length of the segment in m
-			double fd2 = (segl - segl/5); //distance where the vh will stop counting from the begining of the segment
+			double fd = (segl - segl/5); //distance where the vh will stop counting from the begining of the segment
 
 			//double fd = fd_rand(rng);
-			StopPoint stopPoint(segm,fd2,dwelltime);
+			StopPoint stopPoint(segm,fd,dwelltime);
 			parentDriver->getParams().insertStopPoint(stopPoint);
+
+			// set the stop point and dwell time for dropping off the passenger
+			std::string dropOffSegmentStr = parentDriver->getParent()->amodDropOffSegmentStr; //how to pass rs from amodController to here
+			if(dropOffSegmentStr == "-1")
+			{
+				cout<<"\nStop Segment is Null!\n";
+			}
+			std::string segm2 = Utils::getNumberFromAimsunId(dropOffSegmentStr);
+			double segld = parentDriver->getParent()->amodSegmLength2 /100.0; //length of the segment in m
+			double fd2 = (segld - segld/5); //distance where the vh will stop counting from the begining of the segment
+			StopPoint stopPoint2(segm2,fd2,dwelltime);
+			parentDriver->getParams().insertStopPoint(stopPoint2);
 		}
 		else
 		{

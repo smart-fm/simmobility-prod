@@ -69,6 +69,7 @@ bool buildLinkList(set<RoadSegment*> segments, vector<RoadSegment*>& res,
 		if (!nextSeg)
 		{
 			Print() << "Could not find a segment enclosed by nodes ";
+					//<< fwd->getID() << " and " << prev->getID() << std::endl;
 			return false;
 		}
 		//Add it, track it, increment

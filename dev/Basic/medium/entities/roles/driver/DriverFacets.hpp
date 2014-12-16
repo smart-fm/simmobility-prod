@@ -258,24 +258,6 @@ protected:
 	double getInitialQueueLength(const Lane* lane);
 
 	/**
-	 * checks if lane is connected to the next segment
-	 *
-	 * @param lane current lane
-	 * @param nxtRdSeg next road segment
-	 * @return true if lane is connected to nextSegStats; false otherwise
-	 */
-	bool isConnectedToNextSeg(const Lane* lane, const sim_mob::RoadSegment *nxtRdSeg) const;
-
-	/**
-	 * checks if 'any' lane is connected to the next segment
-	 *
-	 * @param srcRdSeg Road Segment
-	 * @param nxtRdSeg next road segment
-	 * @return true if lane is connected to next Segment; false otherwise
-	 */
-	bool isConnectedToNextSeg(const sim_mob::RoadSegment *srcRdSeg, const sim_mob::RoadSegment *nxtRdSeg) const;
-
-	/**
 	 * add driver to queue
 	 *
 	 * @param lane lane in which the driver is added to queue

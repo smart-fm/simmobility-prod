@@ -7,6 +7,10 @@
 
 #include <stdlib.h>
 #include "PathSetThreadPool.h"
+#include "geospatial/streetdir/AStarShortestTravelTimePathImpl.hpp"
+#include "geospatial/streetdir/A_StarShortestPathImpl.hpp"
+#include <boost/graph/filtered_graph.hpp>
+#include <boost/graph/astar_search.hpp>
 
 using namespace std;
 
@@ -38,10 +42,6 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 			blacklistV.insert(lookIt->second.begin(), lookIt->second.end());
 		}
 	}
-	//NOTE: choiceSet[] is an interesting optimization, but we don't need to save cycles (and we definitely need to save memory).
-	//      The within-day choice set model should have this kind of optimization; for us, we will simply search each time.
-	//TODO: Perhaps caching the most recent X searches might be a good idea, though. ~Seth.
-
 	vector<WayPoint> wps;
 	if (blacklistV.empty()) {
 		std::list<StreetDirectory::Vertex> partialRes;
@@ -159,16 +159,10 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		s->isNeedSave2DB = true;
 		hasPath = true;
 		s->init(wps);
-		sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(s);
-		s->highWayDistance = sim_mob::calculateHighWayDistance(s);
 		s->pathSetId = ps->id;
-		s->length = sim_mob::generateSinglePathLength(s->path);
 		s->id = id;
 		s->scenario = ps->scenario;
 		s->pathSize = 0;
-		//this is done in onPathSetRetrieval so no need to repeat for now
-//		s->travelCost = sim_mob::getTravelCost2(s,ps->subTrip->startTime);
-//		s->travleTime = sim_mob::PathSetManager::getInstance()->getTravelTime(s,ps->subTrip->startTime);
 	}
 }
 

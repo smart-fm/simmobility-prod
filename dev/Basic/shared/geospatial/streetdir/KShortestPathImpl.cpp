@@ -7,7 +7,7 @@
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
-#include "geospatial/PathSetManager.hpp"
+#include "path/PathSetManager.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include<vector>
 
@@ -282,27 +282,9 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 				//	Set TotalPath = RootPath + SpurPath.
 				TotalPath.insert(TotalPath.end(), RootPath.begin(),RootPath.end());
 				TotalPath.insert(TotalPath.end(), SpurPath.begin(), SpurPath.end());
-				//std::cout << K << "[OD: " << from->getID() << "," << to->getID() << "] Inserting Qualified path PATH :\n RootPath:\n" ;
-				//printWPpath(RootPath);
-				//std::cout << "\nSpurPath[" << SpurNode->getID() << "]:\n";
-				//printWPpath(SpurPath);
-				//std::cout << std::endl;
 				//	Add TotalPath to path list B.
 				B.insert(sim_mob::generateSinglePathLength(TotalPath),TotalPath);
 
-			}
-			else
-			{
-				//debug
-//				std::cout<< "Path from spurNode to destination[" << SpurNode->getID() << "," << to->getID() << "] not found\n";
-//				if(TotalPath.empty() || TotalPath.begin()->roadSegment_->getStart() != from ||  TotalPath.rbegin()->roadSegment_->getEnd() != to)
-//				{
-//					std::cout << "loop skipped " << TotalPath.size() << "=" << RootPath.size() << "+" << SpurPath.size() << "  ";
-//					std::cout << (TotalPath.size() ? TotalPath.begin()->roadSegment_->getStart()->getID() : 0) << "/" <<  from->getID() << " ";
-//					std::cout << (TotalPath.size() ? TotalPath.rbegin()->roadSegment_->getEnd()->getID() : 0) << "/" <<  to->getID() << " ";
-//					std::cout << std::endl;
-//				}
-				//debug...
 			}
 			//	For each path Cj in path list C:
 			for(int j = 0; j < C.size(); j++)
@@ -329,9 +311,6 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 		B.sort();
 		//	Add B[0] to path list A, and delete it from path list B.
 		const std::vector<sim_mob::WayPoint> & B0 = B.get();
-		//debug
-		std::cout << K << ": Choosing path : " << printWPpath(B0) << " : " << sim_mob::generateSinglePathLength(B0) << "\n";
-		//debug...
 		A.push_back(B0);
 		B.eraseBegin();
 		//	Restore blocked links.
@@ -355,7 +334,6 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 
 void sim_mob::K_ShortestPathImpl::getEndSegments(const Node *SpurNode,std::vector<const RoadSegment*>& endSegments)
 {
-	//std::cout << "getEndSegments for node " << SpurNode->getID() << std::endl;
 	//get ALL the segments, regardless of spurnode
 	const sim_mob::UniNode * uNode = dynamic_cast<const sim_mob::UniNode*>(SpurNode);
 	if(uNode)

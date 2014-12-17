@@ -24,7 +24,7 @@
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/Link.hpp"
-#include "geospatial/PathSetManager.hpp"
+#include "path/PathSetManager.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
 #include "partitions/PartitionManager.hpp"

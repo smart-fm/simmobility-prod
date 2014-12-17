@@ -23,7 +23,7 @@
 #include "entities/conflux/Conflux.hpp"
 #include "entities/Person.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
-#include "geospatial/PathSetManager.hpp"
+#include "path/PathSetManager.hpp"
 #include "network/ControlManager.hpp"
 #include "logging/Log.hpp"
 #include "workers/WorkGroup.hpp"

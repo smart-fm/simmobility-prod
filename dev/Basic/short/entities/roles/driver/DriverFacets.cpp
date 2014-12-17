@@ -23,7 +23,7 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
-#include "geospatial/PathSetManager.hpp"
+#include "path/PathSetManager.hpp"
 #include "geospatial/RoadRunnerRegion.hpp"
 #include "network/CommunicationDataManager.hpp"
 #include "IncidentPerformer.hpp"

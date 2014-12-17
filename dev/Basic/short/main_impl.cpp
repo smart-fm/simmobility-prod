@@ -71,7 +71,7 @@
 #include "geospatial/Roundabout.hpp"
 #include "geospatial/Intersection.hpp"
 #include "geospatial/Route.hpp"
-#include "geospatial/PathSetManager.hpp"
+#include "path/PathSetManager.hpp"
 #include "perception/FixedDelayed.hpp"
 #include "buffering/Buffered.hpp"
 #include "buffering/Locked.hpp"

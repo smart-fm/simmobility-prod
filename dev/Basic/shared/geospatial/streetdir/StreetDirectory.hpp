@@ -12,7 +12,7 @@
 #include <boost/utility.hpp>
 
 #include "geospatial/Point2D.hpp"
-#include "geospatial/streetdir/WayPoint.hpp"
+#include "geospatial/WayPoint.hpp"
 #include "metrics/Length.hpp"
 #include "util/LangHelpers.hpp"
 

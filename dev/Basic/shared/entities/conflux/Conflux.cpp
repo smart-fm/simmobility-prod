@@ -27,7 +27,7 @@
 #include "entities/vehicle/VehicleBase.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/MultiNode.hpp"
-#include "geospatial/PathSetManager.hpp"
+#include "path/PathSetManager.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "event/SystemEvents.hpp"

@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "geo10-pimpl.hpp"
-#include "geospatial/streetdir/WayPoint.hpp"
+#include "geospatial/WayPoint.hpp"
 #include "entities/misc/TripChain.hpp"
 
 using namespace sim_mob::xml;

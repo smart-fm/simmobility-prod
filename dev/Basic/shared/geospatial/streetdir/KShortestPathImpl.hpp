@@ -13,19 +13,6 @@ namespace sim_mob {
 class PathSet;
 class SinglePath;
 
-//inline double generateSinglePathLength(std::vector<WayPoint>& wp)
-//{
-//	double res=0;
-//	for(int i=0;i<wp.size();++i)
-//	{
-//		WayPoint* w = &wp[i];
-//		if (w->type_ == WayPoint::ROAD_SEGMENT) {
-//			const sim_mob::RoadSegment* seg = w->roadSegment_;
-//			res += seg->length;
-//		}
-//	}
-//	return res/100.0; //meter
-//}
 struct PathLength
 {
 	double length;
@@ -54,11 +41,13 @@ public:
 	 * \param to Destination
 	 * \param res generated paths
 	 * \return number of paths found
+	 * Note: naming conventions follows the Huang HE's documented algorithm.
 	 */
 	int getKShortestPaths(const sim_mob::Node *from, const sim_mob::Node *to, std::vector< std::vector<sim_mob::WayPoint> > &res);
 
 	/**
-	 * Same as the original version, naming conventions follows the Huang HE's documented algorithm.
+	 * Original(old) version,
+	 * todo: delete this method when enough test on the new method is performed
 	 */
 	int getKShortestPaths_2(const sim_mob::Node *from, const sim_mob::Node *to, std::vector< std::vector<sim_mob::WayPoint> > &res);
 	void setK(int value) { k = value; }
@@ -66,7 +55,7 @@ public:
 private:
 	int k;
 	/**
-	 * store all segments in A, key=id, value=roadsegment
+	 * store all segments in A, key=id, value=road segment
 	 */
 	std::map< std::string,const sim_mob::RoadSegment* > A_Segments;
 	StreetDirectory* stdir;

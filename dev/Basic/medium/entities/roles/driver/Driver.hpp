@@ -10,7 +10,7 @@
 #include "conf/settings/DisableMPI.h"
 #include "entities/roles/Role.hpp"
 #include "entities/Vehicle.hpp"
-#include "geospatial/streetdir/WayPoint.hpp"
+#include "geospatial/WayPoint.hpp"
 #include "util/DynamicVector.hpp"
 #include "DriverUpdateParams.hpp"
 #include "DriverFacets.hpp"

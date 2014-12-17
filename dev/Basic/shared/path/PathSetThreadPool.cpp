@@ -6,7 +6,7 @@
  */
 
 #include <stdlib.h>
-#include "PathSetThreadPool.h"
+#include "PathSetThreadPool.hpp"
 #include "geospatial/streetdir/AStarShortestTravelTimePathImpl.hpp"
 #include "geospatial/streetdir/A_StarShortestPathImpl.hpp"
 #include <boost/graph/filtered_graph.hpp>

@@ -13,7 +13,7 @@
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
-#include "geospatial/PathSet/PathSetThreadPool.h"
+#include "path/PathSetThreadPool.hpp"
 #include "geospatial/streetdir/KShortestPathImpl.hpp"
 #include "util/threadpool/Threadpool.hpp"
 #include "workers/Worker.hpp"
@@ -653,10 +653,6 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 	// find MIN_DISTANCE
 	double minDistance = std::numeric_limits<double>::max();
 	SinglePath * minSP = *(ps->pathChoices.begin()); // record which is min
-	if(ps->oriPath ){
-		minDistance = ps->oriPath->length;
-		minSP = ps->oriPath;
-	}
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
 		if(sp->length < minDistance)
@@ -670,10 +666,6 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 	// find MIN_SIGNAL
 	int minSignal = std::numeric_limits<int>::max();
 	minSP = *(ps->pathChoices.begin()); // record which is min
-	if(ps->oriPath){
-		minSignal = ps->oriPath->signalNumber;
-		minSP = ps->oriPath;
-	}
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
 		if(sp->signalNumber < minSignal)
@@ -687,10 +679,6 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 	// find MIN_RIGHT_TURN
 	int minRightTurn = std::numeric_limits<int>::max();
 	minSP = *(ps->pathChoices.begin()); // record which is min
-//	if(ps->oriPath){
-//		minRightTurn = ps->oriPath->rightTurnNumber;
-//		minSP = ps->oriPath;
-//	}
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
 		if(sp->rightTurnNumber < minRightTurn)
@@ -704,10 +692,6 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 	// find MAX_HIGH_WAY_USAGE
 	double maxHighWayUsage=0.0;
 	minSP = *(ps->pathChoices.begin()); // record which is min
-	if(ps->oriPath){
-		maxHighWayUsage = ps->oriPath->highWayDistance / ps->oriPath->length;
-		minSP = ps->oriPath;
-	}
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
 		if(maxHighWayUsage < sp->highWayDistance / sp->length)
@@ -777,7 +761,6 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::Person* per,con
 	str << subTrip.fromLocation.node_->getID() << "," << subTrip.toLocation.node_->getID();
 	std::string fromToID(str.str());
 	//todo. change the subtrip signature from pointer to referencer
-	logger << "+++++++++++++++++++++++++" << "\n";
 	vector<WayPoint> res = vector<WayPoint>();
 	//CBD area logic
 	bool from = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.fromLocation);
@@ -819,11 +802,6 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::Person* per,con
 	{
 		logger << "[" << fromToID << "]" <<  " : was assigned path of size " << res.size()  << "\n";
 		str << "[PATH : " << res.size()  << "]\n";
-		//expensive due to call to getSegmentAimsunId()
-		if(fromToID == "111502,79350" || fromToID == "93122,114990" || fromToID == "112768,93896")
-		{
-			printWPpath(res);
-		}
 	}
 	else{
 		logger << "[" << fromToID << "]" << " : NO PATH" << "\n";
@@ -846,14 +824,9 @@ unsigned short purgeBlacklist(sim_mob::PathSet &ps)
 		{
 			if(itWp->roadSegment_->CBD)
 			{
-//				logger << itWp->roadSegment_->getId() << " is in CBD" << std::endl;
 				erase = true;
 				break;
 			}
-//			else
-//			{
-//				logger << itWp->roadSegment_->getId() << " NOT in CBD" << std::endl;
-//			}
 		}
 		if(erase)
 		{
@@ -876,7 +849,6 @@ unsigned short purgeBlacklist(sim_mob::PathSet &ps)
 void sim_mob::PathSetManager::onPathSetRetrieval(boost::shared_ptr<PathSet> &ps, bool travelTime)
 {
 	//step-1 time dependent calculations
-	//logger << "onPathSetRetrieval:\nGenerating Travel Time and Travel Cost for " << ps->pathChoices.size() << " paths\n" ;
 	int i = 0;
 	double minTravelTime= std::numeric_limits<double>::max();
 	sim_mob::SinglePath *minSP = *(ps->pathChoices.begin());
@@ -1029,8 +1001,6 @@ bool sim_mob::PathSetManager::getBestPath(
 			if (isUseCache) {
 				cachePathSet(ps_);
 			}
-			//test
-//			clearSinglePaths(ps_);
 			logger << "returning a path " << res.size() << "\n";
 			return true;
 		} else {
@@ -1052,8 +1022,7 @@ bool sim_mob::PathSetManager::getBestPath(
 		ps_->scenario = scenarioName;
 		ps_->subTrip = st;
 		std::set<OD> recursiveOrigins;
-		int dbg_level = 0;
-		bool r = generateAllPathChoices(ps_,dbg_level, recursiveOrigins, blckLstSegs);
+		bool r = generateAllPathChoices(ps_, recursiveOrigins, blckLstSegs);
 		if (!r)
 		{
 			logger << "[PATHSET GENERATION FAILURE : " << fromToID << "]\n";
@@ -1102,7 +1071,7 @@ bool sim_mob::PathSetManager::getBestPath(
 	return false;
 }
 
-bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps,int dbg_level, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs)
+bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs)
 {
 	std::string fromToID(getFromToString(ps->fromNode, ps->toNode));
 	//std::cout << "[" <<  fromToID << "][LEVEL:" << dbg_level << "\n";
@@ -1138,7 +1107,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	ps->id = fromToID;
 
 	//K-SHORTEST PATH
-	//TODO:CONSIDER MERING THE PREVIOUS OPERATION(findShortestDrivingPath) IN THE FOLLOWING OPERATION
+	//TODO:CONSIDER MERGING THE PREVIOUS OPERATION(findShortestDrivingPath) IN THE FOLLOWING OPERATION
 	std::vector< std::vector<sim_mob::WayPoint> > ksp;
 	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> kspTemp;
 	int kspn = sim_mob::K_ShortestPathImpl::getInstance()->getKShortestPaths(ps->fromNode,ps->toNode,ksp);
@@ -1146,7 +1115,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	std::stringstream kspLog("");
 	kspLog << "ksp-" << fromToID ;
 	sim_mob::BasicLogger & kspLogger = sim_mob::Logger::log(kspLog.str());
-	std::cout << "[" << fromToID << "][K-SHORTEST :" << kspn << "]\n";
+	std::cout << "[" << fromToID << "][K-SHORTEST-PATH]\n";
 	for(int i=0;i<ksp.size();++i)
 	{
 		std::vector<sim_mob::WayPoint> path_ = ksp[i];
@@ -1167,7 +1136,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 		}
 	}
 	// SHORTEST DISTANCE LINK ELIMINATION
-	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
+	//declare the profiler  but don't start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
 	sim_mob::Link *l = NULL;
 	std::vector<PathSetWorkerThread*> workPool;
 	A_StarShortestPathImpl * impl = (A_StarShortestPathImpl*)stdir.getDistanceImpl();
@@ -1221,8 +1190,6 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 			if (w->type_ == WayPoint::ROAD_SEGMENT && l != w->roadSegment_->getLink()) {
 				const sim_mob::RoadSegment* seg = w->roadSegment_;
 				PathSetWorkerThread *work = new PathSetWorkerThread();
-				//introducing the profiling time accumulator
-				//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
 				work->graph = &sttpImpl->drivingMap_Default;
 				work->segmentLookup = &sttpImpl->drivingSegmentLookup_Default_;
 				work->fromVertex = fromV;
@@ -1339,7 +1306,6 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	}
 	workPool.clear();
 	//step-7
-	std::cout << "LEVEL-" << dbg_level << "," << ps->fromNode->getID() << "," << ps->toNode->getID() << "," << ps->pathChoices.size() << "\n";
 	onGeneratePathSet(ps);
 	//step -8 :
 	boost::shared_ptr<sim_mob::PathSet> recursionPs;
@@ -1385,25 +1351,12 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 		}
 	}
 	//b)
-//	std::cout << "New Set of Origins: ------------------------------------\n";
-//	BOOST_FOREACH(sim_mob::Node *from, newOrigins)
-//	{
-//		std::cout << from->getID() << ",";
-//	}
-//	std::cout << "\n--------------------------------\n";
-//	std::cout << "Global Set of origins:\n";
-//	BOOST_FOREACH(OD od, recursiveODs)
-//	{
-//		std::cout << od.origin.node_->getID() << ",";
-//	}
-//	std::cout << "\n--------------------------------\n";
-//	dbg_level++;
 	BOOST_FOREACH(sim_mob::Node *from, newOrigins)
 	{
 		//std::cout << "[NEXT LEVEL : " << dbg_level << "][" << from->getID() << "," << ps->toNode->getID() << "]\n";
 		boost::shared_ptr<sim_mob::PathSet> recursionPs(new sim_mob::PathSet(from,ps->toNode));
 		recursionPs->scenario = ps->scenario;
-		generateAllPathChoices(recursionPs,dbg_level,recursiveODs);
+		generateAllPathChoices(recursionPs,recursiveODs);
 	}
 	return true;
 }

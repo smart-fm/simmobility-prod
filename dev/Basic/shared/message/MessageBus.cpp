@@ -85,7 +85,7 @@ namespace {
         MessageEntry()
         : destination(nullptr), internal(false), event(false),
         priority(MessageBus::MB_MIN_MSG_PRIORITY), processOnMainThread(false),
-        triggeredTime(0){
+        triggerTime(0){
         }
 
         MessageEntry(const MessageEntry& source) {
@@ -96,7 +96,7 @@ namespace {
             this->priority = source.priority;
             this->event = source.event;
             this->processOnMainThread = source.processOnMainThread;
-            this->triggeredTime = source.triggeredTime;
+            this->triggerTime = source.triggerTime;
         }
 
         MessageHandler* destination;
@@ -106,7 +106,7 @@ namespace {
         int priority;
         bool event;
         bool processOnMainThread;
-        unsigned int triggeredTime;
+        unsigned int triggerTime;
     } *MessageEntryPtr;
 
     struct ComparePriority {
@@ -119,7 +119,7 @@ namespace {
     struct CompareTriggeredTime {
 
     	bool operator()(const MessageEntry& t1, const MessageEntry& t2) const {
-            return (t1.triggeredTime < t2.triggeredTime);
+            return (t1.triggerTime < t2.triggerTime);
         }
     };
 
@@ -141,7 +141,7 @@ namespace {
         : eventPublisher(nullptr),
         input(ComparePriority()),
         output(ComparePriority()),
-        timebasedOutput(CompareTriggeredTime()),
+        futureEventList(CompareTriggeredTime()),
         main(false),
         receivedMessages(0),
         processedMessages(0),
@@ -168,7 +168,7 @@ namespace {
         bool main;
         MessageQueue input;
         MessageQueue output;
-        TimebasedMessageQueue timebasedOutput;
+        TimebasedMessageQueue futureEventList;
         //event publisher for each thread context.
         EventPublisher* eventPublisher;
         // statistics
@@ -470,11 +470,11 @@ void MessageBus::DispatchMessages() {
 				// internal messages go to the input queue of the main context.
 				context->output.pop();
 			}
-			while (!context->timebasedOutput.empty()) {
-				const MessageEntry& entry = context->timebasedOutput.top();
-				if (entry.triggeredTime <= currentTime) {
+			while (!context->futureEventList.empty()) {
+				const MessageEntry& entry = context->futureEventList.top();
+				if (entry.triggerTime <= currentTime) {
 					dispatch(entry, context, mainContext);
-					context->timebasedOutput.pop();
+					context->futureEventList.pop();
 				} else {
 					break;
 				}
@@ -523,8 +523,8 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
 			if (triggeredTime == 0) {
 				context->output.push(entry);
 			} else {
-				entry.triggeredTime = currentTime + triggeredTime;
-				context->timebasedOutput.push(entry);
+				entry.triggerTime = currentTime + triggeredTime;
+				context->futureEventList.push(entry);
 			}
         }
     }

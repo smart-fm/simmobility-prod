@@ -704,10 +704,15 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 		//if the person's previous trip chain item is an Activity.
 		//TODO: There might be other weird scenarios like this, to be taken care of.
 		PersonList::iterator pIt = std::find(activityPerformers.begin(), activityPerformers.end(), person);
-		if(pIt!=activityPerformers.end()) { activityPerformers.erase(pIt); } //Check if he was indeed an activity performer and erase him
+		if(pIt!=activityPerformers.end()) {	activityPerformers.erase(pIt); } //Check if he was indeed an activity performer and erase him
+		else if (prevLane)
+		{
+			bool removed = prevSegStats->removeAgent(prevLane, person, wasQueuing);
+			if(!removed) { throw std::runtime_error("Conflux::killAgent(): Attempt to remove non-existent person in Lane");	}
+		}
 		break;
 	}
-	default: //applies for any vehicle in a lane
+	default: //applies for any other vehicle in a lane (Biker, Busdriver etc.)
 	{
 		if (prevLane)
 		{

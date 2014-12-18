@@ -138,6 +138,11 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* person, const sim_mob::RoadSegm
 		assignPersonToBusStopAgent(person);
 		break;
 	}
+	case Role::RL_TRAINPASSENGER:
+	{
+		mrt.push_back(person);
+		break;
+	}
 	}
 }
 
@@ -828,9 +833,9 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 	switch(type) {
 	case MSG_PEDESTRIAN_TRANSFER_REQUEST:
 	{
-		const PedestrianTransferRequestMessage& msg = MSG_CAST(PedestrianTransferRequestMessage, message);
-		msg.pedestrian->currWorkerProvider = parentWorker;
-		pedestrianList.push_back(msg.pedestrian);
+		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
+		msg.person->currWorkerProvider = parentWorker;
+		pedestrianList.push_back(msg.person);
 		break;
 	}
 	case MSG_INSERT_INCIDENT:
@@ -839,7 +844,15 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 		const InsertIncidentMessage & msg = MSG_CAST(InsertIncidentMessage, message);
 		//change the flow rate of the segment
 		sim_mob::Conflux::insertIncident(msg.stats,msg.newFlowRate);
-		//tell
+		break;
+	}
+	case MSG_MRT_PASSENGER_TELEPORTATION:
+	{
+		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
+		msg.person->currWorkerProvider = parentWorker;
+		mrt.push_back(msg.person);
+		//TODO: compute time to be expired and subscribe for timed event
+		break;
 	}
 	default:
 		break;
@@ -931,7 +944,7 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 		if(person->getNextLinkRequired()){
 			Conflux* nextConflux = person->getNextLinkRequired()->getSegments().front()->getParentConflux();
 			messaging::MessageBus::PostMessage(nextConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST,
-					messaging::MessageBus::MessagePtr(new PedestrianTransferRequestMessage(person)));
+					messaging::MessageBus::MessagePtr(new PersonMessage(person)));
 			PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
 			if(pIt!=pedestrianList.end()){
 				pedestrianList.erase(pIt);
@@ -952,12 +965,6 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 				if(nxtConflux->hasSpaceInVirtualQueue(nxtSegment->getLink())) {
 					person->setCurrSegStats(person->requestedNextSegStats);
 					person->setCurrLane(nullptr); // so that the updateAgent function will add this agent to the virtual queue
-//					Print() << "Conflux: " << this->multiNode->getID()
-//							<< "|Person: " << person->getId()
-//							<< " setting currLane to NULL to add to VQ"
-//							<< "|requestedNextSeg: " << nxtSegment->getSegmentAimsunId()
-//							<< "|statsNum: " << person->requestedNextSegStats->getStatsNumberInSegment()
-//							<< std::endl;
 					person->requestedNextSegStats = nullptr;
 					break; //break off from loop
 				}
@@ -1339,14 +1346,14 @@ unsigned int sim_mob::Conflux::getNumRemainingInLaneInfinity() {
 	return count;
 }
 
-const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
-	const sim_mob::RoadSegment* rdSeg = nullptr;
+/**TODO: use public transit route choice to replace subtrips for PT trip; return appropriate conflux*/
+sim_mob::Conflux* sim_mob::Conflux::findStartingConflux(Person* p, const sim_mob::RoadSegment* rdSeg) {
+	sim_mob::Conflux* conflux = nullptr;
 	const std::vector<sim_mob::TripChainItem*> & agTripChain = p->getTripChain();
 	sim_mob::TripChainItem *tci;
-	BOOST_FOREACH(tci,agTripChain){
-		if(tci->itemType == sim_mob::TripChainItem::IT_TRIP){
-			break;
-		}
+	BOOST_FOREACH(tci,agTripChain)
+	{
+		if(tci->itemType == sim_mob::TripChainItem::IT_TRIP) { break; }
 	}
 	//sanity check
 	sim_mob::Trip *firstTrip = dynamic_cast<sim_mob::Trip*>(tci);
@@ -1360,7 +1367,7 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 	if(firstTrip)
 	{
 		std::string mode = firstTrip->getMode();
-		pathSetRole = (mode == "Car" || mode == "Taxi" || mode == "Motorcycle") ;
+		pathSetRole = (mode == "Car" || mode == "Taxi" || mode == "Motorcycle" || mode == "MRT") ;
 	}
 	if (firstTrip && ConfigManager::GetInstance().FullConfig().PathSetMode() && pathSetRole) {
 		path = PathSetManager::getInstance()->getPath(p,firstTrip->getSubTrips().front());
@@ -1418,6 +1425,12 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstTrip)->getSubTrips().front();
 			const BusStop* stop = firstSubTrip.fromLocation.busStop_;
 			rdSeg = stop->getParentSegment();
+			conflux = rdSeg->getParentConflux();
+		}
+		else if( role == "trainPassenger" )
+		{
+			//trainPassenger cannot be handled without route choice models because we do not have any other way to get a default route
+			throw std::runtime_error("trainPassenger cannot be handled without route choice models");
 		}
 	}
 
@@ -1430,11 +1443,12 @@ const sim_mob::RoadSegment* sim_mob::Conflux::constructPath(Person* p) {
 		for (std::vector<WayPoint>::iterator it = path.begin(); it != path.end(); it++) {
 			if (it->type_ == WayPoint::ROAD_SEGMENT) {
 					rdSeg = it->roadSegment_;
+					conflux = rdSeg->getParentConflux();
 					break;
 			}
 		}
 	}
-	return rdSeg;
+	return conflux;
 }
 
 

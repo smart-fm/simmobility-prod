@@ -27,18 +27,20 @@ class Loader;
 
 enum {
 	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000,
-	MSG_INSERT_INCIDENT = 5000001,
-	MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP = 5000001
+	MSG_INSERT_INCIDENT,
+	MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP,
+	MSG_MRT_PASSENGER_TELEPORTATION,
+	MSG_WAKE_UP
 };
 
 /**
  * Subclasses both messages, This is to allow it to function as an message callback parameter.
  */
-class PedestrianTransferRequestMessage : public messaging::Message {
+class PersonMessage : public messaging::Message {
 public:
-	PedestrianTransferRequestMessage(Person* inPerson):pedestrian(inPerson){;}
-	virtual ~PedestrianTransferRequestMessage() {}
-	Person* pedestrian;
+	PersonMessage(Person* inPerson):person(inPerson){;}
+	virtual ~PersonMessage() {}
+	Person* person;
 };
 
 /**
@@ -176,8 +178,11 @@ private:
 	/**list of persons performing activities within the vicinity of this conflux*/
 	PersonList activityPerformers;
 
-	/*list of persons with pedestrian role performing walking activities*/
+	/**list of persons with pedestrian role performing walking activities*/
 	PersonList pedestrianList;
+
+	/**list of persons currently on MRT train bound to some node in this conflux*/
+	PersonList mrt;
 
 	/**
 	 * function to call persons' updates if the MultiNode is signalized
@@ -492,13 +497,14 @@ public:
 	void findBoundaryConfluxes();
 
 	/**
-	 * given a person p with a trip chain, create path for his first trip and
-	 * return his starting segment.
+	 * given a person with a trip chain, create path for his first trip and
+	 * return his starting conflux.
 	 *
-	 * @param person person for whom the starting segment is needed
-	 * @return constant pointer to the starting segment of the person's constructed path
+	 * @param person person for whom the starting conflux is needed
+	 * @param rdSeg output parameter - constant pointer to starting road segment.
+	 * @return constant pointer to the starting conflux of the person's constructed path
 	 */
-	static const sim_mob::RoadSegment* constructPath(Person* person);
+	static sim_mob::Conflux* findStartingConflux(Person* person, const sim_mob::RoadSegment* rdSeg);
 
 	/**
 	 * Inserts an Incident by updating the flow rate for all lanes of a road segment to a new value.

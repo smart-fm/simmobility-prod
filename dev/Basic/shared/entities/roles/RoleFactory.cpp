@@ -61,6 +61,7 @@ string sim_mob::RoleFactory::GetRoleName(const std::string mode)
 	if(mode=="WaitingBusActivity") { return "waitBusActivity"; }
 	if(mode=="Motorcycle") { return "biker"; }
 	if(mode=="Activity") { return "activityRole"; }
+	if(mode=="MRT") { return "trainPassenger"; }
 	throw std::runtime_error("unknown SubTrip mode: " + mode);
 }
 

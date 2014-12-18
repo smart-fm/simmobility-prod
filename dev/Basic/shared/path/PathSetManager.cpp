@@ -1115,7 +1115,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	std::stringstream kspLog("");
 	kspLog << "ksp-" << fromToID ;
 	sim_mob::BasicLogger & kspLogger = sim_mob::Logger::log(kspLog.str());
-	std::cout << "[" << fromToID << "][K-SHORTEST-PATH]\n";
+	kspLog << "[" << fromToID << "][K-SHORTEST-PATH]\n";
 	for(int i=0;i<ksp.size();++i)
 	{
 		std::vector<sim_mob::WayPoint> path_ = ksp[i];
@@ -1132,7 +1132,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 			s->pathSize=0;
 			duplicateChecker.insert(id);
 			kspTemp.insert(s);
-			std::cout << "[KSP:" << i << "] " << s->id << "[length: " << sim_mob::generateSinglePathLength(s->path) << "]\n";
+			kspLog << "[KSP:" << i << "] " << s->id << "[length: " << sim_mob::generateSinglePathLength(s->path) << "]\n";
 		}
 	}
 	// SHORTEST DISTANCE LINK ELIMINATION
@@ -1353,7 +1353,6 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 //	//b)
 //	BOOST_FOREACH(sim_mob::Node *from, newOrigins)
 //	{
-//		//std::cout << "[NEXT LEVEL : " << dbg_level << "][" << from->getID() << "," << ps->toNode->getID() << "]\n";
 //		boost::shared_ptr<sim_mob::PathSet> recursionPs(new sim_mob::PathSet(from,ps->toNode));
 //		recursionPs->scenario = ps->scenario;
 //		generateAllPathChoices(recursionPs,recursiveODs);

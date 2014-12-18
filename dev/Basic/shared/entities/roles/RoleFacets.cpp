@@ -31,7 +31,7 @@ sim_mob::MovementFacet::~MovementFacet(){
 bool sim_mob::MovementFacet::isConnectedToNextSeg(const Lane* lane, const sim_mob::RoadSegment *nxtRdSeg)
 {
 	if(!nxtRdSeg) {
-		throw std::runtime_error("DriverMovement::isConnectedToNextSeg() - Road Segment is not available!");
+		throw std::runtime_error("Destination Road Segment is not available!");
 	}
 
 	if (nxtRdSeg->getLink() != lane->getRoadSegment()->getLink()){

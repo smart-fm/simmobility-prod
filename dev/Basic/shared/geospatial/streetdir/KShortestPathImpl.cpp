@@ -195,13 +195,13 @@ public:
 	{
 		std::sort(keys.begin(), keys.end(),comp());
 		//debug
-		std::cout << "sorted B in this iteration : ";
-		std::vector<Pair>::iterator it(keys.begin()),itEnd(keys.end());
-		for(;it != itEnd; it++)
-		{
-			std::cout << (*it).first << ",";
-		}
-		std::cout << "\n";
+//		std::cout << "sorted B in this iteration : ";
+//		std::vector<Pair>::iterator it(keys.begin()),itEnd(keys.end());
+//		for(;it != itEnd; it++)
+//		{
+//			std::cout << (*it).first << ",";
+//		}
+//		std::cout << "\n";
 		//debug...
 	}
 	const std::vector<sim_mob::WayPoint>& get()

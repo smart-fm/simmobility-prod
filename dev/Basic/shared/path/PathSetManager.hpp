@@ -57,6 +57,11 @@ public:
 		return (origin == rhs.origin && destination == rhs.destination);
 	}
 
+	bool operator!=(const OD & rhs) const
+	{
+		return !(*this == rhs);
+	}
+
 	OD & operator=(const OD & rhs)
 	{
 		origin = rhs.origin;

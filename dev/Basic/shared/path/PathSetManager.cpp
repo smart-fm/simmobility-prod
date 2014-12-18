@@ -1307,57 +1307,57 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	workPool.clear();
 	//step-7
 	onGeneratePathSet(ps);
-	//step -8 :
-	boost::shared_ptr<sim_mob::PathSet> recursionPs;
-	/*
-	 * a) iterate through each path to first find ALL the multinodes to destination to make a set.
-	 * c) then iterate through this set to choose each of them as a new Origin(Destination is same).
-	 * call generateAllPathChoices on the new OD pair
-	 */
-	//a)
-	std::set<Node*> newOrigins = std::set<Node*>();
-	BOOST_FOREACH(sim_mob::SinglePath *sp, ps->pathChoices)
-	{
-		if(sp->path.size() <=1)
-		{
-			continue;
-		}
-		sim_mob::Node * linkEnd = nullptr;
-		//skip the origin and destination node(first and last one)
-		std::vector<WayPoint>::iterator it = sp->path.begin();
-		it++;
-		std::vector<WayPoint>::iterator itEnd = sp->path.end();
-		itEnd--;
-		for(; it != itEnd; it++)
-		{
-			//skip uninodes
-			sim_mob::Node * newFrom = it->roadSegment_->getLink()->getEnd();
-			// All segments of the link have the same link end node. Skip if already chosen
-			if(linkEnd == newFrom)
-			{
-				continue;
-			}
-			else
-			{
-				linkEnd = newFrom;
-			}
-			//check if the new OD you want to process is not already scheduled for processing by previous iterations(todo: or even by other threads!)
-			if(recursiveODs.insert(OD(newFrom,ps->toNode)).second == false)
-			{
-				continue;
-			}
-			//Now we have a new qualified Origin. note it down for further processing
-			newOrigins.insert(newFrom);
-		}
-	}
-	//b)
-	BOOST_FOREACH(sim_mob::Node *from, newOrigins)
-	{
-		//std::cout << "[NEXT LEVEL : " << dbg_level << "][" << from->getID() << "," << ps->toNode->getID() << "]\n";
-		boost::shared_ptr<sim_mob::PathSet> recursionPs(new sim_mob::PathSet(from,ps->toNode));
-		recursionPs->scenario = ps->scenario;
-		generateAllPathChoices(recursionPs,recursiveODs);
-	}
+//	//step -8 :
+//	boost::shared_ptr<sim_mob::PathSet> recursionPs;
+//	/*
+//	 * a) iterate through each path to first find ALL the multinodes to destination to make a set.
+//	 * c) then iterate through this set to choose each of them as a new Origin(Destination is same).
+//	 * call generateAllPathChoices on the new OD pair
+//	 */
+//	//a)
+//	std::set<Node*> newOrigins = std::set<Node*>();
+//	BOOST_FOREACH(sim_mob::SinglePath *sp, ps->pathChoices)
+//	{
+//		if(sp->path.size() <=1)
+//		{
+//			continue;
+//		}
+//		sim_mob::Node * linkEnd = nullptr;
+//		//skip the origin and destination node(first and last one)
+//		std::vector<WayPoint>::iterator it = sp->path.begin();
+//		it++;
+//		std::vector<WayPoint>::iterator itEnd = sp->path.end();
+//		itEnd--;
+//		for(; it != itEnd; it++)
+//		{
+//			//skip uninodes
+//			sim_mob::Node * newFrom = it->roadSegment_->getLink()->getEnd();
+//			// All segments of the link have the same link end node. Skip if already chosen
+//			if(linkEnd == newFrom)
+//			{
+//				continue;
+//			}
+//			else
+//			{
+//				linkEnd = newFrom;
+//			}
+//			//check if the new OD you want to process is not already scheduled for processing by previous iterations(todo: or even by other threads!)
+//			if(recursiveODs.insert(OD(newFrom,ps->toNode)).second == false)
+//			{
+//				continue;
+//			}
+//			//Now we have a new qualified Origin. note it down for further processing
+//			newOrigins.insert(newFrom);
+//		}
+//	}
+//	//b)
+//	BOOST_FOREACH(sim_mob::Node *from, newOrigins)
+//	{
+//		//std::cout << "[NEXT LEVEL : " << dbg_level << "][" << from->getID() << "," << ps->toNode->getID() << "]\n";
+//		boost::shared_ptr<sim_mob::PathSet> recursionPs(new sim_mob::PathSet(from,ps->toNode));
+//		recursionPs->scenario = ps->scenario;
+//		generateAllPathChoices(recursionPs,recursiveODs);
+//	}
 	return true;
 }
 

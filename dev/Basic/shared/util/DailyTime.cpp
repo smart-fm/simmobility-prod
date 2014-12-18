@@ -74,6 +74,7 @@ uint32_t sim_mob::DailyTime::ParseStringRepr(std::string timeRepr)
 	size_t numColon = 0;
 	size_t numDigits = 0;
 	bool hasComma = false;
+	std::string err = timeRepr;
 	for (std::string::iterator it=timeRepr.begin(); it!=timeRepr.end(); it++) {
 		if (*it==',' || *it=='.') {
 			hasComma = true;
@@ -84,18 +85,22 @@ uint32_t sim_mob::DailyTime::ParseStringRepr(std::string timeRepr)
 				numDigits++;
 			}
 		} else if (*it!=' ' && *it!='\t'){
-			throw std::runtime_error("Invalid format: unexpected non-whitespace character.");
+			err = "Invalid format: unexpected non-whitespace character:" + err;
+			throw std::runtime_error(err);
 		}
 	}
 	if (numDigits%2==1) {
-		throw std::runtime_error("Invalid format: non-even digit count.");
+		err = "Invalid format: non-even digit count:" + err;
+		throw std::runtime_error(err);
 	}
 	if (numColon==1) {
 		if (hasComma) {
-			throw std::runtime_error("Invalid format: missing hour component.");
+			err = "Invalid format: missing hour component:" + err;
+			throw std::runtime_error(err);
 		}
 	} else if (numColon!=2) {
-		throw std::runtime_error("Invalid format: invalid component count.");
+		err = "Invalid format: invalid component count:" + err;
+		throw std::runtime_error(err);
 	}
 
 	//Parse

@@ -6,7 +6,7 @@
 
 #include "entities/roles/pedestrian/PedestrianPathMover.hpp"
 #include "geospatial/BusStop.hpp"
-#include "geospatial/streetdir/WayPoint.hpp"
+#include "geospatial/WayPoint.hpp"
 
 
 using boost::unordered_map;

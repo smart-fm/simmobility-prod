@@ -27,7 +27,7 @@
 #include "entities/vehicle/VehicleBase.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/MultiNode.hpp"
-#include "geospatial/PathSetManager.hpp"
+#include "path/PathSetManager.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "event/SystemEvents.hpp"
@@ -704,10 +704,15 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 		//if the person's previous trip chain item is an Activity.
 		//TODO: There might be other weird scenarios like this, to be taken care of.
 		PersonList::iterator pIt = std::find(activityPerformers.begin(), activityPerformers.end(), person);
-		if(pIt!=activityPerformers.end()) { activityPerformers.erase(pIt); } //Check if he was indeed an activity performer and erase him
+		if(pIt!=activityPerformers.end()) {	activityPerformers.erase(pIt); } //Check if he was indeed an activity performer and erase him
+		else if (prevLane)
+		{
+			bool removed = prevSegStats->removeAgent(prevLane, person, wasQueuing);
+			if(!removed) { throw std::runtime_error("Conflux::killAgent(): Attempt to remove non-existent person in Lane");	}
+		}
 		break;
 	}
-	default: //applies for any vehicle in a lane
+	default: //applies for any other vehicle in a lane (Biker, Busdriver etc.)
 	{
 		if (prevLane)
 		{
@@ -1260,39 +1265,23 @@ void sim_mob::Conflux::reportRdSegTravelTimes(timeslice frameNumber) {
 				<<"\"})"<<std::endl);
 		}
 	}
-	insertTravelTime2TmpTable(frameNumber, rdSegTravelTimesMap);
+	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+		insertTravelTime2TmpTable(frameNumber, rdSegTravelTimesMap);
+	}
 }
 
 bool sim_mob::Conflux::insertTravelTime2TmpTable(timeslice frameNumber, std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>& rdSegTravelTimesMap)
 {
 	bool res=false;
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		//sim_mob::Link_travel_time& data
-		std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>::const_iterator it = rdSegTravelTimesMap.begin();
-		for (; it != rdSegTravelTimesMap.end(); it++){
-			LinkTravelTime tt;
-			DailyTime simStart = ConfigManager::GetInstance().FullConfig().simStartTime();
-			std::string aimsunId = (*it).first->originalDB_ID.getLogItem();
-			std::string segId = sim_mob::Utils::getNumberFromAimsunId(aimsunId);
-			try {
-				tt.linkId = boost::lexical_cast<int>(segId);
-			} catch( boost::bad_lexical_cast const& ) {
-				Print() << "Error: seg_id string was not valid" << std::endl;
-				tt.linkId = -1;
-			}
-//this three lines mean the sement traversal started at current tick and ended in the current tick(or something like that)
-			tt.startTime = (simStart + sim_mob::DailyTime(frameNumber.ms())).toString();
-			double frameLength = ConfigManager::GetInstance().FullConfig().baseGranMS();
-			tt.endTime = (simStart + sim_mob::DailyTime(frameNumber.ms() + frameLength)).toString();
-			tt.travelTime = (*it).second.travelTimeSum/(*it).second.agCnt;
-			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-				PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
-			}
-			else
-			{
-				Warn() << "Unused Travel Time Measurement\n";
-			}
-		}
+	//sim_mob::Link_travel_time& data
+	std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>::const_iterator it = rdSegTravelTimesMap.begin();
+	for (; it != rdSegTravelTimesMap.end(); it++){
+		LinkTravelTime tt;
+		const DailyTime &simStart = ConfigManager::GetInstance().FullConfig().simStartTime();
+		tt.linkId = (*it).first->getId();
+		tt.recordTime_DT = simStart + sim_mob::DailyTime(frameNumber.ms());
+		tt.travelTime = (*it).second.travelTimeSum/(*it).second.agCnt;
+		PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
 	}
 	return res;
 }

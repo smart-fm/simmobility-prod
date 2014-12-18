@@ -122,7 +122,7 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 				{
 					Conflux* conflux = parentSegmentStats->getRoadSegment()->getParentConflux();
 					messaging::MessageBus::PostMessage(conflux, MSG_PEDESTRIAN_TRANSFER_REQUEST,
-							messaging::MessageBus::MessagePtr(new PedestrianTransferRequestMessage(person)));
+							messaging::MessageBus::MessagePtr(new PersonMessage(person)));
 					ret = true;
 				}
 				else if (role->roleType == Role::RL_PASSENGER && val.status == UpdateStatus::RS_DONE)

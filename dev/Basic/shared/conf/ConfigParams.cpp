@@ -543,3 +543,8 @@ std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& sim_mob::ConfigParams::g
 {
 	return multinode_confluxes;
 }
+
+const std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxNodes() const
+{
+	return multinode_confluxes;
+}

@@ -249,7 +249,12 @@ vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::s
 		// compute shortest path
 		std::vector<const sim_mob::RoadSegment*> blacklist;
 
-		std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*origNode), stdir->DrivingVertex(*destNode),blacklist);
+		//std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*origNode), stdir->DrivingVertex(*destNode),blacklist);
+		std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingTimePath(
+					stdir->DrivingTimeVertex(*origNode,sim_mob::Default),
+					stdir->DrivingTimeVertex(*destNode,sim_mob::Default),
+					blacklist,
+					sim_mob::Default);
 		for (int i=0; i<wp2.size(); i++) {
 
 			if (wp2[i].type_ == WayPoint::ROAD_SEGMENT ) {
@@ -273,7 +278,12 @@ vector <WayPoint> AMODController::getShortestPathWBlacklist(std::string origNode
 		return wp;
 	}
 	// compute shortest path
-	std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*origNode), stdir->DrivingVertex(*destNode), blacklist);
+	// std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*origNode), stdir->DrivingVertex(*destNode), blacklist);
+	std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingTimePath(
+						stdir->DrivingTimeVertex(*origNode,sim_mob::Default),
+						stdir->DrivingTimeVertex(*destNode,sim_mob::Default),
+						blacklist,
+						sim_mob::Default);
 	for (int i=0; i<wp2.size(); i++) {
 		if (wp2[i].type_ == WayPoint::ROAD_SEGMENT ) {
 			wp.push_back(wp2[i]);
@@ -1153,7 +1163,7 @@ void AMODController::findNearestCarParkToNode(std::string& originNode, const Roa
 			// distance of the path
 			WayPoint iterWP;
 			double tripDistance;
-			std::cout << "Length of segments: ";
+			//std::cout << "Length of segments: ";
 			for (int j = 0; j< wp_temp.size(); j++){
 				iterWP = wp_temp[j];
 				const RoadSegment *rs = iterWP.roadSegment_;
@@ -1612,7 +1622,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			double tripDistance = 0;
 			WayPoint iterWP;
 			const RoadSegment *iterwp;
-			Print() << "Length of segments: ";
+			//Print() << "Length of segments: ";
 			for (int j = 0; j< mergedWP.size(); j++){
 				iterWP = mergedWP[j];
 				const RoadSegment *rs = iterWP.roadSegment_;

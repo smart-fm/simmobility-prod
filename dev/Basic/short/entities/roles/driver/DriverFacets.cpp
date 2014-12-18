@@ -1662,7 +1662,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 
 			if(stopSegmentStr == "-1")
 			{
-				cout<<"\nStop Segment is Null!\n";
+				// cout<<"\nStop Segment is Null!\n";
 			}
 
 			std::string segm = Utils::getNumberFromAimsunId(stopSegmentStr);
@@ -1678,7 +1678,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 			std::string dropOffSegmentStr = parentDriver->getParent()->amodDropOffSegmentStr; //how to pass rs from amodController to here
 			if(dropOffSegmentStr == "-1")
 			{
-				cout<<"\nStop Segment is Null!\n";
+				// cout<<"\nStop Segment is Null!\n";
 			}
 			std::string segm2 = Utils::getNumberFromAimsunId(dropOffSegmentStr);
 			double segld = parentDriver->getParent()->amodSegmLength2 /100.0; //length of the segment in m

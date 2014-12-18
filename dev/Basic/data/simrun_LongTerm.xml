@@ -142,12 +142,14 @@
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>
-	<dayOneAwakening value="10000"/>
+	<dayOneAwakening value="10000"/>	
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
     	</developerModel>
         <housingModel enabled="true"> 
-            <timeOnMarket value="60"/>
+	        <DayOneAwakenedProbability value="0.375"/>
+	        <timeOffMarket value="150"/>
+            <timeOnMarket value="90"/>
             <timeInterval value="7"/>
             <numberOfHouseholds value="-1"/>
 	        <numberOfUnits	value="-1"/>

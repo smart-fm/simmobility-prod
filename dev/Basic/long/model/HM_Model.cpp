@@ -278,17 +278,17 @@ void HM_Model::startImpl()
 	unitsFiltering();
 
 	workGroup.assignAWorker(&market);
-	unsigned int numberOfFakeSellers = workGroup.getNumberOfWorkers();
+	unsigned int numberOffreelanceHousingAgents = workGroup.getNumberOfWorkers();
 
 	//create fake seller agents to sell vacant units.
-	std::vector<HouseholdAgent*> fakeSellers;
-	for (int i = 0; i < numberOfFakeSellers; i++)
+	std::vector<HouseholdAgent*> freelanceAgents;
+	for (int i = 0; i < numberOffreelanceHousingAgents; i++)
 	{
-		HouseholdAgent* fakeSeller = new HouseholdAgent((FAKE_IDS_START + i),this, nullptr, &market, true);
-		AgentsLookupSingleton::getInstance().addHousehold(fakeSeller);
-		agents.push_back(fakeSeller);
-		workGroup.assignAWorker(fakeSeller);
-		fakeSellers.push_back(fakeSeller);
+		HouseholdAgent* freelanceAgent = new HouseholdAgent((FAKE_IDS_START + i),this, nullptr, &market, true);
+		AgentsLookupSingleton::getInstance().addHousehold(freelanceAgent);
+		agents.push_back(freelanceAgent);
+		workGroup.assignAWorker(freelanceAgent);
+		freelanceAgents.push_back(freelanceAgent);
 	}
 
 	boost::unordered_map<BigSerial, BigSerial> assignedUnits;
@@ -357,15 +357,24 @@ void HM_Model::startImpl()
 	}
 
 	unsigned int vacancies = 0;
-	//assign vacancies to fake seller
+	//assign empty units to freelance housing agents
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
+		(*it)->setbiddingMarketEntryDay( 0 );
+
 		//this unit is a vacancy
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
 		{
 			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY )
 			{
-				fakeSellers[vacancies % numberOfFakeSellers]->addUnitId((*it)->getId());
+				float awakeningProbability = (float)rand() / RAND_MAX;
+
+				if(awakeningProbability < config.ltParams.housingModel.awakenedProbability )
+					(*it)->setbiddingMarketEntryDay( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )));
+				else
+					(*it)->setbiddingMarketEntryDay( config.ltParams.housingModel.timeOnMarket + int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOffMarket)));
+
+				freelanceAgents[vacancies % numberOffreelanceHousingAgents]->addUnitId((*it)->getId());
 				vacancies++;
 			}
 		}
@@ -376,7 +385,7 @@ void HM_Model::startImpl()
 	addMetadata("Initial Units", units.size());
 	addMetadata("Initial Households", households.size());
 	addMetadata("Initial Vacancies", vacancies);
-	addMetadata("Fake Sellers", numberOfFakeSellers);
+	addMetadata("Freelance housing agents", numberOffreelanceHousingAgents);
 
 	for (int n = 0; n < individuals.size(); n++)
 	{

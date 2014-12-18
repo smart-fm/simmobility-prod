@@ -5,6 +5,7 @@
 /*
  * File:   HouseholdAgent.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * 		   Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  * 
  * Created on May 16, 2013, 6:36 PM
  */
@@ -29,11 +30,12 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller)
-: LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), bidder (nullptr), seller(nullptr)
+HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller, int day)
+: LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), bidder (nullptr), seller(nullptr), day(day)
 {
     seller = new HouseholdSellerRole(this);
     seller->setActive(marketSeller);
+
     if (!marketSeller)
     {
         bidder = new HouseholdBidderRole(this);
@@ -96,6 +98,7 @@ void HouseholdAgent::awakenHousehold()
 {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
+	//We will awaken a specific number of households on day 1 as dictated by the long term XML file.
 	if( model->getAwakeningCounter() > config.ltParams.dayOneAwakening)
 		return;
 
@@ -107,6 +110,8 @@ void HouseholdAgent::awakenHousehold()
 	if( awakening == nullptr || bidder == nullptr || seller == nullptr )
 		return;
 
+	//These 6 variables are the 3 classes that we believe households fall into.
+	//And the 3 probabilities that we believe these 3 classes will have of awakening.
 	float class1 = awakening->getClass1();
 	float class2 = awakening->getClass2();
 	float class3 = awakening->getClass3();
@@ -130,31 +135,35 @@ void HouseholdAgent::awakenHousehold()
 
 	if( lifestyle == 1 && r2 < awaken_class1)
 	{
-		bidder->setActive(true);
 		seller->setActive(true);
-
+		bidder->setActive(true);
+		model->incrementBidders();
 		model->incrementAwakeningCounter();
 	}
 	else
 	if( lifestyle == 2 && r2 < awaken_class2)
 	{
-		bidder->setActive(true);
 		seller->setActive(true);
+		bidder->setActive(true);
+		model->incrementBidders();
 		model->incrementAwakeningCounter();
 	}
 	else
 	if( lifestyle == 3 && r2 < awaken_class3)
 	{
-		bidder->setActive(true);
 		seller->setActive(true);
+		bidder->setActive(true);
+		model->incrementBidders();
 		model->incrementAwakeningCounter();
 	}
 }
 
 Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 {
+	day = now.frame();
+
 	if( now.frame() == 1 )
-	{
+	{		
 		awakenHousehold();
 	}
 
@@ -222,8 +231,21 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
         {
             if (seller)
             {
+            	if( seller->isActive() == false )
+            	{
+            		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+					{
+						BigSerial unitId = *itr;
+						Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+						unit->setbiddingMarketEntryDay(day);
+					}
+            	}
+
+            	//PrintOut("Active seller " << seller->getParent()->GetId() << std::endl);
                 seller->setActive(true);
             }
+
             if (bidder)
             {
                 bidder->setActive(true);

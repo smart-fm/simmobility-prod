@@ -54,6 +54,8 @@ struct LongTermParams{
 		bool enabled;
 		unsigned int timeInterval;
 		unsigned int timeOnMarket;
+		unsigned int timeOffMarket;
+		float awakenedProbability;
 		int numberOfUnits;
 		int numberOfHouseholds;
 		int numberOfVacantUnits;

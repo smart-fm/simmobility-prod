@@ -79,6 +79,9 @@ int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulat
 
 void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 {
+	time_t timeInSeconds = std::time(0);
+	srand(timeInSeconds);
+
     //Initiate configuration instance
     LT_ConfigSingleton::getInstance();
     PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);

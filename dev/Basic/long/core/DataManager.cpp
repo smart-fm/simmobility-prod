@@ -20,23 +20,26 @@ using namespace sim_mob::db;
 namespace {
 
     template <typename T, typename M, typename K>
-    inline const T* getById(const M& map, const K& key) {
+    inline const T* getById(const M& map, const K& key)
+    {
         typename M::const_iterator itr = map.find(key);
-        if (itr != map.end()) {
+        if (itr != map.end())
+        {
             return (*itr).second;
         }
         return nullptr;
     }
 }
 
-DataManager::DataManager() : readyToLoad(true) {
-}
+DataManager::DataManager() : readyToLoad(true) {}
 
-DataManager::~DataManager() {
+DataManager::~DataManager()
+{
     reset();
 }
 
-void DataManager::reset() {
+void DataManager::reset()
+{
     amenitiesById.clear();
     amenitiesByCode.clear();
     postcodesById.clear();
@@ -48,9 +51,11 @@ void DataManager::reset() {
     readyToLoad = true;
 }
 
-void DataManager::load() {
+void DataManager::load()
+{
     //first resets old data if necessary.
-    if (!readyToLoad) {
+    if (!readyToLoad)
+    {
         reset();
     }
 
@@ -59,10 +64,14 @@ void DataManager::load() {
     // Connect to database and load data.
     DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
     conn.connect();
-    if (conn.isConnected()) {
+    if (conn.isConnected())
+    {
         loadData<BuildingDao>(conn, buildings, buildingsById, &Building::getFmBuildingId);
+        PrintOut("Loaded " << buildings.size() << " buildings." << std::endl);
         loadData<PostcodeDao>(conn, postcodes, postcodesById, &Postcode::getAddressId);
+        PrintOut("Loaded " << postcodes.size() << " postcodes." << std::endl );
         loadData<PostcodeAmenitiesDao>(conn, amenities, amenitiesByCode, &PostcodeAmenities::getPostcode);
+        PrintOut("Loaded " << amenities.size() << " amenities." << std::endl);
 
         // (Special case) Index all postcodes.
         for (PostcodeList::iterator it = postcodes.begin(); it != postcodes.end(); it++)
@@ -70,6 +79,7 @@ void DataManager::load() {
             postcodesByCode.insert(std::make_pair((*it)->getSlaPostcode(), *it));
         }
 
+        int amenitiesByIdCount = 0;
         //Index all amenities. 
         for (PostcodeAmenitiesList::iterator it = amenities.begin(); it != amenities.end(); it++)
         {
@@ -78,8 +88,11 @@ void DataManager::load() {
             if (pc)
             {
                 amenitiesById.insert(std::make_pair(pc->getAddressId(), *it));
+                amenitiesByIdCount++;
             }
         }
+
+        PrintOut("amenitiesById pairs " << amenitiesByIdCount << std::endl);
     }
     readyToLoad = false;
 }

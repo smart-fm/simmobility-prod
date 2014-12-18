@@ -15,6 +15,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/tss.hpp>
 #include <boost/unordered/unordered_map.hpp>
+#include <boost/function.hpp>
 #include <queue>
 #include <list>
 #include <iostream>
@@ -39,6 +40,7 @@ using boost::upgrade_to_unique_lock;
 
 const unsigned int MessageBus::MB_MIN_MSG_PRIORITY = 5;
 const unsigned int MessageBus::MB_MSG_START = 1000000;
+unsigned int MessageBus::currentTime = 0;
 
 namespace {
     const unsigned int MB_MSGI_START = 1000;
@@ -83,19 +85,19 @@ namespace {
         MessageEntry()
         : destination(nullptr), internal(false), event(false),
         priority(MessageBus::MB_MIN_MSG_PRIORITY), processOnMainThread(false),
-        countdownTicks(0){
+        triggeredTime(0){
         }
 
-		MessageEntry(const MessageEntry& source) {
-			this->destination = source.destination;
-			this->message = source.message;
-			this->type = source.type;
-			this->internal = source.internal;
-			this->priority = source.priority;
-			this->event = source.event;
-			this->processOnMainThread = source.processOnMainThread;
-			this->countdownTicks = source.countdownTicks;
-		}
+        MessageEntry(const MessageEntry& source) {
+            this->destination = source.destination;
+            this->message = source.message;
+            this->type = source.type;
+            this->internal = source.internal;
+            this->priority = source.priority;
+            this->event = source.event;
+            this->processOnMainThread = source.processOnMainThread;
+            this->triggeredTime = source.triggeredTime;
+        }
 
         MessageHandler* destination;
         MessageBus::MessagePtr message;
@@ -104,7 +106,7 @@ namespace {
         int priority;
         bool event;
         bool processOnMainThread;
-        unsigned int countdownTicks;
+        unsigned int triggeredTime;
     } *MessageEntryPtr;
 
     struct ComparePriority {
@@ -114,7 +116,16 @@ namespace {
         }
     };
 
+    struct CompareTriggeredTime {
+
+    	bool operator()(const MessageEntry& t1, const MessageEntry& t2) const {
+            return (t1.triggeredTime < t2.triggeredTime);
+        }
+    };
+
     typedef priority_queue<MessageEntry, std::deque<MessageEntry>, ComparePriority> MessageQueue;
+
+    typedef priority_queue<MessageEntry, std::deque<MessageEntry>, CompareTriggeredTime> TimebasedMessageQueue;
 
     /**
      * Represents a thread context.
@@ -130,6 +141,7 @@ namespace {
         : eventPublisher(nullptr),
         input(ComparePriority()),
         output(ComparePriority()),
+        timebasedOutput(CompareTriggeredTime()),
         main(false),
         receivedMessages(0),
         processedMessages(0),
@@ -156,6 +168,7 @@ namespace {
         bool main;
         MessageQueue input;
         MessageQueue output;
+        TimebasedMessageQueue timebasedOutput;
         //event publisher for each thread context.
         EventPublisher* eventPublisher;
         // statistics
@@ -414,56 +427,60 @@ void MessageBus::DistributeMessages() {
     ThreadDispatchMessages();
 }
 
+void dispatch(const MessageEntry& entry, ThreadContext* &context,ThreadContext* &mainContext)
+{
+	if (entry.event) {
+		context->eventMessages++;
+		//if it is an event then we need to distribute the event for all
+		//publishers in the system.
+		ContextList::iterator lstItr1 = threadContexts.begin();
+		while (lstItr1 != threadContexts.end()) {
+			ThreadContext* ctx = (*lstItr1);
+			//main context will receive the original message
+			//for other the message entry is cloned.
+			MessageEntry newEntry(entry);
+			newEntry.destination = dynamic_cast<MessageHandler*> (ctx->eventPublisher);
+			ctx->input.push(newEntry);
+			lstItr1++;
+		}
+	} else {               // it is a regular/single message
+		context->receivedMessages++;
+		if (entry.processOnMainThread) {
+			mainContext->input.push(entry);
+		} else {
+			ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->GetContext());
+			if (destinationContext) {
+				destinationContext->input.push(entry);
+			}
+		}
+	}
+};
+
 void MessageBus::DispatchMessages() {
     CheckMainThread();
     ThreadContext* mainContext = GetThreadContext();
-    if (mainContext) {
-        ContextList::iterator lstItr = threadContexts.begin();
-        while (lstItr != threadContexts.end()) {
-            ThreadContext* context = (*lstItr);
-            MessageQueue output;
-            while (!context->output.empty()) {
-                const MessageEntry& entry = context->output.top();
-                if(entry.countdownTicks>0){
-                	MessageEntry rescheduleEntry(entry);
-                	rescheduleEntry.countdownTicks--;
-                 	output.push(rescheduleEntry);
-                	context->output.pop();
-                	continue;
-                }
-                if (entry.event) {
-                    context->eventMessages++;
-                    //if it is an event then we need to distribute the event for all
-                    //publishers in the system.
-                    ContextList::iterator lstItr1 = threadContexts.begin();
-                    while (lstItr1 != threadContexts.end()) {
-                        ThreadContext* ctx = (*lstItr1);
-                        //main context will receive the original message 
-                        //for other the message entry is cloned.
-                        MessageEntry newEntry(entry);
-                        newEntry.destination = dynamic_cast<MessageHandler*> (ctx->eventPublisher);
-                        ctx->input.push(newEntry);
-                        lstItr1++;
-                    }
-                } else {// it is a regular/single message
-                    context->receivedMessages++;
-                    if (entry.processOnMainThread) {
-                        mainContext->input.push(entry);
-                    } else {
-                        ThreadContext* destinationContext = static_cast<ThreadContext*> (entry.destination->context);
-                        if (destinationContext) {
-                            destinationContext->input.push(entry);
-                        }
-                    }
-                }
-                // internal messages go to the input queue of the main context.
-                context->output.pop();
-            }
-            if(!output.empty()){
-            	context->output = output;
-            }
-            lstItr++;
-        }
+	if (mainContext) {
+		currentTime++;
+		ContextList::iterator lstItr = threadContexts.begin();
+		while (lstItr != threadContexts.end()) {
+			ThreadContext* context = (*lstItr);
+			while (!context->output.empty()) {
+				const MessageEntry& entry = context->output.top();
+				dispatch(entry, context, mainContext);
+				// internal messages go to the input queue of the main context.
+				context->output.pop();
+			}
+			while (!context->timebasedOutput.empty()) {
+				const MessageEntry& entry = context->timebasedOutput.top();
+				if (entry.triggeredTime <= currentTime) {
+					dispatch(entry, context, mainContext);
+					context->timebasedOutput.pop();
+				} else {
+					break;
+				}
+			}
+			lstItr++;
+		}
     }
 }
 
@@ -487,9 +504,8 @@ void MessageBus::ThreadDispatchMessages() {
     }
 }
 
-void MessageBus::PostMessage(MessageHandler* destination,
-		Message::MessageType type, MessageBus::MessagePtr message,
-		bool processOnMainThread, unsigned int countdownTicks) {
+void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType type, 
+                             MessageBus::MessagePtr message, bool processOnMainThread, unsigned int triggeredTime) {
     CheckThreadContext();
     ThreadContext* context = GetThreadContext();
     if (context) {
@@ -504,8 +520,12 @@ void MessageBus::PostMessage(MessageHandler* destination,
             entry.internal = (internalMsg != nullptr);
             entry.event = (eventMsg != nullptr);
             entry.processOnMainThread = processOnMainThread;
-            entry.countdownTicks = countdownTicks;
-            context->output.push(entry);
+			if (triggeredTime == 0) {
+				context->output.push(entry);
+			} else {
+				entry.triggeredTime = currentTime + triggeredTime;
+				context->timebasedOutput.push(entry);
+			}
         }
     }
 }

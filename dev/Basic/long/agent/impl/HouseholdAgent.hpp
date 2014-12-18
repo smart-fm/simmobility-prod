@@ -42,6 +42,7 @@ namespace sim_mob
             HM_Model* getModel() const;
             HousingMarket* getMarket() const;
             const Household* getHousehold() const;
+            void awakenHousehold();
         
         protected:
             /**

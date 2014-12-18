@@ -23,9 +23,9 @@ ParcelDao::~ParcelDao() {}
 void ParcelDao::fromRow(Row& result, Parcel& outObj)
 {
     outObj.id = result.get<BigSerial>( "fm_parcel_id", INVALID_ID );
-    outObj.taz_id = result.get<BigSerial>("taz_id", INVALID_ID);
+    outObj.taz_id = 0.0;//result.get<BigSerial>("taz_id", INVALID_ID);
     outObj.lot_size = result.get<double>( "lot_size", .0 );
-    outObj.gpr = result.get<double>("gpr", .0 );
+    outObj.gpr = result.get<std::string>("gpr", EMPTY_STR );
     outObj.land_use = result.get<std::string>( "land_use", EMPTY_STR );
     outObj.owner_name = result.get<std::string>( "owner_name", EMPTY_STR );
     outObj.owner_category = result.get<int>( "owner_category", 0 );

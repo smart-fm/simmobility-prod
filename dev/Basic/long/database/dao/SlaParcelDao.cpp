@@ -16,8 +16,9 @@ SlaParcelDao::SlaParcelDao(DB_Connection& connection): SqlAbstractDao<SlaParcel>
 SlaParcelDao::~SlaParcelDao() {
 }
 
-void SlaParcelDao::fromRow(Row& result, SlaParcel& outObj) {
-	outObj.slaId = result.get<BigSerial>("sla_id", INVALID_ID);
+void SlaParcelDao::fromRow(Row& result, SlaParcel& outObj)
+{
+	outObj.slaId = result.get<std::string>("sla_id", EMPTY_STR);
 	outObj.tazId = result.get<BigSerial>("taz_id", INVALID_ID);
 	outObj.landUseZoneId = result.get<BigSerial>("land_use_zone_id",INVALID_ID);
 	outObj.area = result.get<double>("area", .0);

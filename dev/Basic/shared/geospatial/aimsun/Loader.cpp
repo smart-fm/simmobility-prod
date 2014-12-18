@@ -695,8 +695,10 @@ void DatabaseLoader::LoadLanes(const std::string& storedProc)
 
 /*
  * this function caters the section level not lane level
- * (Turning contains four columns four columns pertaining to lanes)
- * vahid
+ * Turning contains 2 pairs (std::pair<int, int>) fromLane and toLane.
+ * These respectively specify the range of lanes in the fromSection each of which is connected to every lane in range of lanes in toSection.
+ * E.g: if fromLane is <0,1> and toLane<0,2>, then each of the lanes 0 and 1 in fromSection is connected to all of lanes 0,1,2 of toSection.
+ * That is, the lane connections are 0-0, 0-1, 0-2, 1-0, 1-1, 1-2
  */
 void DatabaseLoader::LoadTurnings(const std::string& storedProc)
 {
@@ -720,9 +722,6 @@ void DatabaseLoader::LoadTurnings(const std::string& storedProc)
 		it->toSection = &sections_[it->TMP_ToSection];
 		turnings_[it->id] = *it;
 	}
-
-	//Print skipped turnings all at once.
-//	sim_mob::PrintArray(skippedTurningIDs, std::cout, "Turnings skipped: ", "[", "]", ", ", 4);
 }
 
 void DatabaseLoader::LoadPolylines(const std::string& storedProc)
@@ -735,7 +734,9 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 	for (soci::rowset<Polyline>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check nodes
 		if(sections_.count(it->TMP_SectionId)==0) {
-			throw std::runtime_error("Invalid polyline section reference.");
+			//throw std::runtime_error("Invalid polyline section reference.");
+			std::cout << "Invalid polyline section reference." << it->TMP_SectionId << std::endl;
+			continue;
 		}
 
 		//Convert meters to cm
@@ -745,7 +746,6 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 		//Note: Make sure not to resize the Section map after referencing its elements.
 		it->section = &sections_[it->TMP_SectionId];
 		polylines_.insert(std::make_pair(it->section->id, *it));
-		//polylines_[it->id] = *it;
 	}
 }
 
@@ -1075,7 +1075,6 @@ void DatabaseLoader::LoadObjectsForShortTerm(map<string, string> const & storedP
 {
 	LoadCrossings(getStoredProcedure(storedProcs, "crossing"));
 	LoadLanes(getStoredProcedure(storedProcs, "lane"));
-	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain", false));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
@@ -1098,6 +1097,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
 	LoadBusStopSG(getStoredProcedure(storedProcs, "busstopSG", false));
+	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 }
 
 void DatabaseLoader::loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)
@@ -1114,11 +1114,21 @@ void ComputePolypointDistance(Polyline& pt)
 {
 	//Our method is (fairly) simple.
 	//First, compute the distance from the point to the polyline at a perpendicular angle.
+	//
+	// If the line passes through two points, (x1,y1) and (x2,y2),
+	// and if we write Dx for (x2-x1) and Dy for (y2-y1),
+	// the perpendicular distance from (x0,y0) to the line is given by:
+	//
+	// d = (Dy*x0 - Dx*y0 - x1y2 + x2y1) / (sqrt(Dx^2 + Dy^2))
+	//
+	// (x1,y1) is fromNode of section
+	// (x2,y2) is toNode of section
+	// (x0,y0) is the poly point pt
 	double dx2x1 = pt.section->toNode->xPos - pt.section->fromNode->xPos;
 	double dy2y1 = pt.section->toNode->yPos - pt.section->fromNode->yPos;
-	double dx1x0 = pt.section->fromNode->xPos - pt.xPos;
-	double dy1y0 = pt.section->fromNode->yPos - pt.yPos;
-	double numerator = dx2x1*dy1y0 - dx1x0*dy2y1;
+	double x1y2 = pt.section->fromNode->xPos * pt.section->toNode->yPos;
+	double x2y1 = pt.section->toNode->xPos * pt.section->fromNode->yPos;
+	double numerator = dy2y1*pt.xPos - dx2x1*pt.yPos - x1y2 + x2y1;
 	double denominator = sqrt(dx2x1*dx2x1 + dy2y1*dy2y1);
 	double perpenDist = numerator/denominator;
 	if (perpenDist<0.0) {
@@ -1127,6 +1137,8 @@ void ComputePolypointDistance(Polyline& pt)
 		perpenDist *= -1;
 	}
 
+	double dx1x0 = pt.section->fromNode->xPos - pt.xPos;
+	double dy1y0 = pt.section->fromNode->yPos - pt.yPos;
 	//Second, compute the distance from the source point to the polypoint
 	double realDist = sqrt(dx1x0*dx1x0 + dy1y0*dy1y0);
 
@@ -2230,11 +2242,6 @@ void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& sr
 
 	//TODO: Actual connector alignment (requires map checking)
 	sim_mob::UniNode::buildConnectorsFromAlignedLanes(newNode, std::make_pair(0, 0), std::make_pair(0, 0));
-////	if(newNode->getID() == 92370)
-//	{
-//		std::cout << "UniNode " <<   newNode->getID() << " has " << newNode->getConnectors().size() << " Connectors\n";
-//	}
-
 	//This UniNode can later be accessed by the RoadSegment itself.
 }
 
@@ -2289,8 +2296,6 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			//convertSegId.clear();
 			//convertSegId.str(std::string());
 			currSec->generatedSegment = createNewRoadSegment(ln,linkSegments.size(),currSec->id);
-		} else {
-//			std::cout << "Bypassing\n";
 		}
 
 		//Save this segment if either end points are multinodes
@@ -2413,7 +2418,10 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 {
 	//Check
 	if (src.fromSection->toNode->id != src.toSection->fromNode->id) {
-		throw std::runtime_error("Turning doesn't match with Sections and Nodes.");
+		//throw std::runtime_error("Turning doesn't match with Sections and Nodes.");
+		std::cout << "Turning mismatch with Sections and Nodes|"
+				<< " From " << src.fromSection->roadName << " (" << src.fromSection->fromNode->id << "," << src.fromSection->toNode->id << ")|"
+				<< " To " << src.toSection->roadName << " (" << src.toSection->fromNode->id << "," << src.toSection->toNode->id << ")." << std::endl;
 	}
 
 	//Skip Turnings which meet at UniNodes; these will be handled elsewhere.
@@ -2485,9 +2493,6 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 	for (std::vector<Polyline*>::iterator it=src.polylineEntries.begin(); it!=src.polylineEntries.end(); it++) {
 		//TODO: This might not trace the median, and the start/end points are definitely not included.
 		sim_mob::Point2D pt((*it)->xPos, (*it)->yPos);
-		if(src.generatedSegment->originalDB_ID.getLogItem().find("34402") != std::string::npos){
-			int i=0;
-		}
 		src.generatedSegment->polyline.push_back(pt);
 	}
 
@@ -2899,21 +2904,19 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 						segmtIt!=segmentsAtNode.end(); segmtIt++) {
 					sim_mob::Link* lnk = (*segmtIt)->getLink();
 					std::vector<sim_mob::SegmentStats*> upSegStatsList;
-					std::vector<sim_mob::RoadSegment*> downSegs;
 					if (lnk->getStart() == (*i))
 					{
 						//lnk is downstream to the multinode and doesn't belong to this conflux
-						downSegs = lnk->getSegments();
+						std::vector<sim_mob::RoadSegment*>& downSegs = lnk->getSegments();
 						conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
-						continue;
+						if(lnk->getStart() != lnk->getEnd()) { continue; } // some links can start and end at the same section
 					}
 					//else
 					//lnk *ends* at the multinode of this conflux.
 					//lnk is upstream to the multinode and belongs to this conflux
 					std::vector<sim_mob::RoadSegment*>& upSegs = lnk->getSegments();
 					//set conflux pointer to the segments and create SegmentStats for the segment
-					for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin();
-							segIt != upSegs.end(); segIt++)
+					for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin(); segIt != upSegs.end(); segIt++)
 					{
 						sim_mob::RoadSegment* rdSeg = *segIt;
 						double rdSegmentLength = rdSeg->getLaneZeroLength();

@@ -60,7 +60,7 @@ void ModelTest::testGetSlaParcelIdByFmParcelId()
 	for (size_t i = 0; i < parcelMatches.size(); i++)
 	{
 		BigSerial fmParcelId = parcelMatches.at(i)->getFmParcelId();
-		BigSerial slaParcelId = parcelMatches.at(i)->getSlaParcelId();
+		std::string slaParcelId = parcelMatches.at(i)->getSlaParcelId();
 		CPPUNIT_ASSERT_EQUAL(slaParcelId, developerModel->getSlaParcelIdByFmParcelId(fmParcelId));
 	}
 }

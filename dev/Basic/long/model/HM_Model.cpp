@@ -356,11 +356,14 @@ void HM_Model::startImpl()
 		}
 	}
 
-	unsigned int vacancies = 0;
+	int vacancies = 0;
+	int onMarket  = 0;
+	int offMarket = 0;
 	//assign empty units to freelance housing agents
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
 		(*it)->setbiddingMarketEntryDay( 0 );
+		(*it)->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 
 		//this unit is a vacancy
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
@@ -370,9 +373,16 @@ void HM_Model::startImpl()
 				float awakeningProbability = (float)rand() / RAND_MAX;
 
 				if(awakeningProbability < config.ltParams.housingModel.awakenedProbability )
-					(*it)->setbiddingMarketEntryDay( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )));
+				{
+					(*it)->setbiddingMarketEntryDay( 0 );
+					(*it)->setTimeOnMarket( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
+					onMarket++;
+				}
 				else
+				{
 					(*it)->setbiddingMarketEntryDay( config.ltParams.housingModel.timeOnMarket + int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOffMarket)));
+					offMarket++;
+				}
 
 				freelanceAgents[vacancies % numberOffreelanceHousingAgents]->addUnitId((*it)->getId());
 				vacancies++;
@@ -380,7 +390,8 @@ void HM_Model::startImpl()
 		}
 	}
 
-	PrintOut("Initial Vacancies: " << vacancies << std::endl);
+	PrintOut("Initial Vacancies: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
+
 
 	addMetadata("Initial Units", units.size());
 	addMetadata("Initial Households", households.size());

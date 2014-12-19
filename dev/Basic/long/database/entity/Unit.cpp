@@ -137,6 +137,17 @@ void Unit::setbiddingMarketEntryDay( int day )
 	biddingMarketEntryDay = day;
 }
 
+int  Unit::getTimeOnMarket() const
+{
+	return timeOnMarket;
+}
+
+void Unit::setTimeOnMarket(int day )
+{
+	timeOnMarket = day;
+}
+
+
 namespace sim_mob
 {
     namespace long_term

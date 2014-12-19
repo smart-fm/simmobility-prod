@@ -217,11 +217,12 @@ void HouseholdSellerRole::update(timeslice now)
         	//this only applies to empty units. These units are given a random dayOnMarket value
         	//so that not all empty units flood the market on day 1. There's a timeOnMarket and timeOffMarket
         	//variable that is fed to simmobility through the long term XML file.
-    		if( std::max(0, int(currentTime.ms() - unit->getbiddingMarketEntryDay())) % marketLifespan > timeOnMarket )
+            //PrintOut("Day: " << std::dec << currentTime.ms() << " bidEntryDay: " << unit->getbiddingMarketEntryDay() << " lifespan: "  << marketLifespan << " timeOnMarket: " << timeOnMarket );
+            if(!((int)currentTime.ms() >= unit->getbiddingMarketEntryDay() && currentTime.ms() < timeOnMarket +  unit->getbiddingMarketEntryDay()))
     		{
-    			//PrintOut("Lets continue. Day: " << currentTime.ms() << " bidEntryDay: " << unit->getbiddingMarketEntryDay() << " lifespan: "  << marketLifespan << " timeOnMarket: " << timeOnMarket << std::endl);
     			continue;
     		}
+
 
             BigSerial tazId = model->getUnitTazId(unitId);
             calculateUnitExpectations(*unit);
@@ -335,7 +336,7 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 				 SellingUnitInfo& info = it->second;
 
 
-				 if( std::max(0, int(currentTime.ms() - unit->getbiddingMarketEntryDay())) % marketLifespan > timeOnMarket )
+				 if(!((int)currentTime.ms() >= unit->getbiddingMarketEntryDay() && currentTime.ms() < timeOnMarket +  unit->getbiddingMarketEntryDay()))
 				 {
 					 //PrintOut("Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
 					 market->removeEntry(unitId);

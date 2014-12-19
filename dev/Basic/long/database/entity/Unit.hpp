@@ -61,6 +61,8 @@ namespace sim_mob
 
             int  getbiddingMarketEntryDay() const;
             void setbiddingMarketEntryDay( int day );
+            int  getTimeOnMarket() const;
+            void setTimeOnMarket(int day );
 
             /**
              * Operator to print the Unit data.  
@@ -89,6 +91,7 @@ namespace sim_mob
 
             //This variable denotes the day the unit went on sale.
             int biddingMarketEntryDay;
+            int timeOnMarket;
         };
     }
 }

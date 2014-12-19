@@ -34,7 +34,7 @@ enum {
 };
 
 /**
- * Subclasses both messages, This is to allow it to function as an message callback parameter.
+ * Message to wrap a Person
  */
 class PersonMessage : public messaging::Message {
 public:
@@ -309,6 +309,13 @@ bool sim_mob::insertIncidentS(const std::string fileName){
 	 */
 	void housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person);
 
+	/**
+	 * Gets the person to switch to the next trip chain item
+	 * @param person the person to switch
+	 * @return Entity::UpdateStatus update status
+	 */
+	Entity::UpdateStatus switchTripChainItem(Person* person);
+
 protected:
 	/**
 	 * Function to initialize the conflux before its first update.
@@ -502,9 +509,16 @@ public:
 	 *
 	 * @param person person for whom the starting conflux is needed
 	 * @param rdSeg output parameter - constant pointer to starting road segment.
-	 * @return constant pointer to the starting conflux of the person's constructed path
+	 * @return pointer to the starting conflux of the person's constructed path
 	 */
-	static sim_mob::Conflux* findStartingConflux(Person* person, const sim_mob::RoadSegment* rdSeg);
+	static sim_mob::Conflux* findStartingConflux(Person* person);
+
+	/**
+	 * given a person with a path, finds the starting road segment for the person
+	 * @param person person for whom the starting segment is needed
+	 * @return constant pointer to starting segment of person's path
+	 */
+	static const sim_mob::RoadSegment* findStartingRoadSegment(Person* person);
 
 	/**
 	 * Inserts an Incident by updating the flow rate for all lanes of a road segment to a new value.

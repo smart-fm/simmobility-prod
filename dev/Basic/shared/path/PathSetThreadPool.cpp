@@ -161,7 +161,7 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		s->init(wps);
 		s->pathSetId = ps->id;
 		s->id = id;
-		s->scenario = ps->scenario;
+		s->scenario = ps->scenario + dbgStr;
 		s->pathSize = 0;
 	}
 }

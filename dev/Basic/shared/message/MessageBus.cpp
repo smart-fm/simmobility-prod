@@ -505,7 +505,7 @@ void MessageBus::ThreadDispatchMessages() {
 }
 
 void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType type, 
-                             MessageBus::MessagePtr message, bool processOnMainThread, unsigned int triggeredTime) {
+                             MessageBus::MessagePtr message, bool processOnMainThread, unsigned int timeOffset) {
     CheckThreadContext();
     ThreadContext* context = GetThreadContext();
     if (context) {
@@ -520,10 +520,10 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
             entry.internal = (internalMsg != nullptr);
             entry.event = (eventMsg != nullptr);
             entry.processOnMainThread = processOnMainThread;
-			if (triggeredTime == 0) {
+			if (timeOffset == 0) {
 				context->output.push(entry);
 			} else {
-				entry.triggerTime = currentTime + triggeredTime;
+				entry.triggerTime = currentTime + timeOffset;
 				context->futureEventList.push(entry);
 			}
         }

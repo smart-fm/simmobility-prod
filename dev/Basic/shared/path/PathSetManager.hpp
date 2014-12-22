@@ -259,8 +259,8 @@ class ProcessTT
 	/**
 	 * returns the container for accumulating/aggregating
 	 * the current travel time recordings
-	 * \param recordTime time of recording this travel time
-	 * \return the iterator for the current entry where the current recordings should be sent to
+	 * @param recordTime time of recording this travel time
+	 * @return the iterator for the current entry where the current recordings should be sent to
 	 */
 	std::map<TR,TT >::iterator & getCurrRTTT(const DailyTime & recordTime);
 	/**
@@ -335,19 +335,19 @@ public:
 	std::vector<WayPoint> generateBestPathChoice2(const sim_mob::SubTrip* st);
 	/**
 	 * update pathset paramenters before selecting the best path
-	 * \param travelTime decides if travel time retrieval should be included or not.(setPathSetTags can get TT during pathset generation)
+	 * @param travelTime decides if travel time retrieval should be included or not.(setPathSetTags can get TT during pathset generation)
 	 */
 	void onPathSetRetrieval(boost::shared_ptr<PathSet> &ps, bool travelTime = true);
 	///	post pathset generation processes
 	void onGeneratePathSet(boost::shared_ptr<PathSet> &ps);
 	/**
 	 * find/generate set of path choices for a given suntrip, and then return the best of them
-	 * \param st input subtrip
-	 * \param res output path generated
-	 * \param partialExcludedSegs segments temporarily having different attributes
-	 * \param blckLstSegs segments off the road network. This
-	 * \param tempBlckLstSegs segments temporarily off the road network
-	 * \param isUseCache is using the cache allowed
+	 * @param st input subtrip
+	 * @param res output path generated
+	 * @param partialExcludedSegs segments temporarily having different attributes
+	 * @param blckLstSegs segments off the road network. This
+	 * @param tempBlckLstSegs segments temporarily off the road network
+	 * @param isUseCache is using the cache allowed
 	 * Note: PathsetManager object already has containers for partially excluded and blacklisted segments. They will be
 	 * the default containers throughout the simulation. but partialExcludedSegs and blckLstSegs arguments are combined
 	 * with their counterparts in PathSetmanager only during the scope of this method to serve temporary purposes.
@@ -361,11 +361,11 @@ public:
 
 	/**
 	 * generate all the paths for a person given its subtrip(OD)
-	 * \param per input agent applying to get the path
-	 * \param st input subtrip
-	 * \param res output path generated
-	 * \param excludedSegs input list segments to be excluded from the target set
-	 * \param isUseCache is using the cache allowed
+	 * @param per input agent applying to get the path
+	 * @param st input subtrip
+	 * @param res output path generated
+	 * @param excludedSegs input list segments to be excluded from the target set
+	 * @param isUseCache is using the cache allowed
 	 */
 	bool generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>());
 
@@ -408,8 +408,8 @@ public:
 	bool cachePathSet(boost::shared_ptr<sim_mob::PathSet> &ps);
 	/**
 	 * searches for a pathset in the cache.
-	 * \param key indicates the input key
-	 * \param value the result of the search
+	 * @param key indicates the input key
+	 * @param value the result of the search
 	 * returns true/false to indicate if the search has been successful
 	 */
 	bool findCachedPathSet(std::string key, boost::shared_ptr<sim_mob::PathSet> &value);
@@ -421,8 +421,8 @@ public:
 //	bool cachePathSet_orig(boost::shared_ptr<sim_mob::PathSet> &ps);
 	/**
 	 * searches for a pathset in the cache.
-	 * \param key indicates the input key
-	 * \param value the result of the search
+	 * @param key indicates the input key
+	 * @param value the result of the search
 	 * returns true/false to indicate if the search has been successful
 	 */
 //	bool findCachedPathSet_orig(std::string key, boost::shared_ptr<sim_mob::PathSet> &value);
@@ -431,8 +431,8 @@ public:
 	bool cachePathSet_LRU(boost::shared_ptr<sim_mob::PathSet> &ps);
 	/**
 	 * searches for a pathset in the cache.
-	 * \param key indicates the input key
-	 * \param value the result of the search
+	 * @param key indicates the input key
+	 * @param value the result of the search
 	 * returns true/false to indicate if the search has been successful
 	 */
 	bool findCachedPathSet_LRU(std::string key, boost::shared_ptr<sim_mob::PathSet> &value);
@@ -515,7 +515,10 @@ class SinglePath
 public:
 	/// path representation
 	std::vector<WayPoint> path;
-	const sim_mob::RoadSegment* excludeSeg; // can be null
+	///	link representation of path
+	std::vector<sim_mob::Link*> linkPath;
+	///	segment collection of the path
+	std::set<const sim_mob::RoadSegment*> segSet;
 
 	bool isNeedSave2DB;
 	std::string scenario;
@@ -534,7 +537,7 @@ public:
 	double highWayDistance;
 	int signalNumber;
 	int rightTurnNumber;
-	double length;
+	double length; //length in meter
 	sim_mob::TRIP_PURPOSE purpose;
 
 	bool isMinTravelTime;
@@ -622,22 +625,75 @@ inline void filterOutNodes(std::vector<WayPoint>& input, std::vector<WayPoint>& 
 	std::copy(FilterIterator(input.begin(), input.end()),FilterIterator(input.end(), input.end()),std::back_inserter(output));
 }
 
+/**
+ * Returns path length in meter
+ * @param collection of road segments wrapped in waypoint
+ * @return total length of the path in meter
+ */
 inline double generateSinglePathLength(const std::vector<WayPoint>& wp)// unit is meter
 {
-	double res=0;
-	for(int i=0;i<wp.size();++i)
+	double res = 0.0;
+	for(std::vector<WayPoint>::const_iterator it = wp.begin(); it != wp.end(); it++)
 	{
-		const WayPoint& w = wp[i];
-		if (w.type_ == WayPoint::ROAD_SEGMENT) {
-			const sim_mob::RoadSegment* seg = w.roadSegment_;
-			res += seg->length;
-		}
+		const sim_mob::RoadSegment* seg = it->roadSegment_;
+		res += seg->length;
 	}
 	return res/100.0; //meter
 }
 
-///// find the shortest path by analyzing the length of segments
-inline sim_mob::SinglePath* findShortestPath(std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::RoadSegment *rs)
+/**
+ * TODO: remove after completely testing the new versions
+ * find the shortest path by analyzing the length of segments
+ * @param pathChoices given path set
+ * @param rs consider only the paths having the given road segment
+ * @return the singlepath object containing the shortest path
+ */
+//inline sim_mob::SinglePath* findShortestPath(std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::RoadSegment *rs)
+//{
+//	if(pathChoices.begin() == pathChoices.end())
+//	{
+//		return nullptr;
+//	}
+//	sim_mob::SinglePath* res = nullptr;
+//	double min = std::numeric_limits<double>::max();
+//	double tmp = 0.0;
+//	BOOST_FOREACH(sim_mob::SinglePath*sp, pathChoices)
+//	{
+//		//search for target segment id
+//		//note, be carefull you may be searching for id 123 and search a string id like ",1234"
+//		std::stringstream begin(""),out("");
+//		begin << rs->getId() << ","; //only for the begining of sp->id
+//		out << "," << rs->getId() << ","; //for the rest of the string
+//		if(! (sp->id.find(out.str()) !=  std::string::npos || sp->id.substr(0,begin.str().size()) == begin.str()) )
+//		{
+//			continue;
+//		}
+//		if(sp->length <= 0.0)
+//		{
+//			throw std::runtime_error("Invalid path length");//todo remove this after enough testing
+//		}
+//		//double tmp = generateSinglePathLength(sp->path);
+//		if ((sp->length*1000000 - min*1000000  ) < 0.0) //easy way to check doubles
+//		{
+//			//min = tmp;
+//			min = sp->length;
+//			res = sp;
+//		}
+//	}
+//	return res;
+//}
+
+/**
+ * In the path set find the shortest path which includes the given segment.
+ * The method uses linkPath container which covers all the links that the
+ * path visits.
+ * Note: A path visiting a link doesnt mean the enire link is within the path.
+ * fist and last link might have segments that are not in the path.
+ * @param pathChoices given path set
+ * @param rs consider only the paths having the given road segment
+ * @return the singlepath object containing the shortest path
+ */
+inline sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::Link *ln)
 {
 	if(pathChoices.begin() == pathChoices.end())
 	{
@@ -648,23 +704,38 @@ inline sim_mob::SinglePath* findShortestPath(std::set<sim_mob::SinglePath*, sim_
 	double tmp = 0.0;
 	BOOST_FOREACH(sim_mob::SinglePath*sp, pathChoices)
 	{
-		//search for target segment id
-		//note, be carefull you may be searching for id 123 and search a string id like ",1234"
-		std::stringstream begin(""),out("");
-		begin << rs->getId() << ","; //only for the begining of sp->id
-		out << "," << rs->getId() << ","; //for the rest of the string
-		if(! (sp->id.find(out.str()) !=  std::string::npos || sp->id.substr(0,begin.str().size()) == begin.str()) )
+
+		if(sp->linkPath.empty())
+		{
+			throw std::runtime_error("linkPath of singlepath object is Empty");
+		}
+		//filter paths not including the target link
+		if(std::find(sp->linkPath.begin(),sp->linkPath.end(),ln) == sp->linkPath.end())
 		{
 			continue;
 		}
-		double tmp = generateSinglePathLength(sp->path);
-		if ((tmp*1000000 - min*1000000  ) < 0.0) //easy way to check doubles
+		if(sp->length <= 0.0)
 		{
-			min = tmp;
+			throw std::runtime_error("Invalid path length");//todo remove this after enough testing
+		}
+		//double tmp = generateSinglePathLength(sp->path);
+		if ((sp->length*1000000 - min*1000000  ) < 0.0) //easy way to check doubles
+		{
+			//min = tmp;
+			min = sp->length;
 			res = sp;
 		}
 	}
 	return res;
+}
+
+/**
+ * Overload
+ */
+inline sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::RoadSegment *rs)
+{
+	const sim_mob::Link *ln = rs->getLink();
+	return findShortestPath_LinkBased(pathChoices,ln);
 }
 
 inline double getTravelCost2(sim_mob::SinglePath *sp,const sim_mob::DailyTime &tripStartTime_)
@@ -748,8 +819,11 @@ inline std::string makeWaypointsetString(std::vector<WayPoint>& wp)
 	return str;
 }
 
-///	Generate pathsize of paths
-void generatePathSize(boost::shared_ptr<sim_mob::PathSet> &ps,bool isUseCache=true);
+/**
+ * Generate pathsize of paths. PathSize values are stored in the corresponding SinglePath object
+ * @param ps the given pathset
+ */
+void generatePathSize(boost::shared_ptr<sim_mob::PathSet> &ps);
 
 inline size_t getLaneIndex2(const Lane* l){
 	if (l) {

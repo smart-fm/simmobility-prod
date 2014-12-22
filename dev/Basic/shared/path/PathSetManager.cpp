@@ -1134,7 +1134,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 			s->pathSize=0;
 			duplicateChecker.insert(id);
 			kspTemp.insert(s);
-			kspLog << "[KSP:" << i << "] " << s->id << "[length: " << sim_mob::generateSinglePathLength(s->path) << "]\n";
+			kspLog << "[KSP:" << i << "] " << s->id << "[length: " << s->length << "]\n";
 		}
 	}
 
@@ -2103,7 +2103,7 @@ void sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::Single
 	sp->signalNumber=signalNumber;
 }
 
-void sim_mob::generatePathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUseCache)
+void sim_mob::generatePathSize(boost::shared_ptr<sim_mob::PathSet>&ps)
 {
 	//sanity check
 	if(ps->pathChoices.empty())
@@ -2122,13 +2122,13 @@ void sim_mob::generatePathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUse
 
 		if(sp->path.empty())
 		{
-			throw std::runtime_error ("unexpected empty shortestWayPointpath in singlepath");
+			throw std::runtime_error ("unexpected empty path in singlepath object");
 		}
 		// For each link a in the path:
 		for(std::vector<WayPoint>::iterator it1=sp->path.begin(); it1!=sp->path.end(); ++it1)
 		{
 			const sim_mob::RoadSegment* seg = it1->roadSegment_;
-			sim_mob::SinglePath* minSp = findShortestPath(ps->pathChoices, seg);
+			sim_mob::SinglePath* minSp = findShortestPath_LinkBased(ps->pathChoices, seg);
 			if(minSp == nullptr)
 			{
 				std::stringstream out("");
@@ -2141,9 +2141,12 @@ void sim_mob::generatePathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUse
 			//For each path j in the path choice set PathSet(O, D):
 			BOOST_FOREACH(sim_mob::SinglePath* spj, ps->pathChoices)
 			{
-				std::vector<WayPoint>::iterator itt2;
-				for(itt2 = spj->path.begin(); itt2 != spj->path.end() && itt2->roadSegment_ != seg; ++itt2);
-				if(itt2 != spj->path.end())
+				if(spj->segSet.empty())
+				{
+					throw std::runtime_error("segSet of singlepath object is Empty");
+				}
+				std::set<const sim_mob::RoadSegment*>::iterator itt2 = std::find(spj->segSet.begin(), spj->segSet.end(), seg);
+				if(itt2 != spj->segSet.end())
 				{
 					sum += minL/(spj->length);
 					if(sp->id != spj->id)
@@ -2166,7 +2169,6 @@ void sim_mob::generatePathSize(boost::shared_ptr<sim_mob::PathSet>&ps,bool isUse
 		}
 	}// end for
 }
-
 
 double sim_mob::PathSetManager::getTravelTime(sim_mob::SinglePath *sp,sim_mob::DailyTime startTime)
 {
@@ -2200,6 +2202,26 @@ void sim_mob::SinglePath::init(std::vector<WayPoint>& wpPools)
 	{
 	   std::string err = "empty path for OD:" + this->pathSetId + "--"  + this->id;
 	   throw std::runtime_error(err);
+	}
+	//step-1.5 fill in the linkPath
+	{
+		sim_mob::Link* currLink = nullptr;
+		for(std::vector<WayPoint>::iterator it = path.begin(); it != path.end(); it++)
+		{
+			sim_mob::Link* link = it->roadSegment_->getLink();
+			if(currLink != link)
+			{
+				linkPath.push_back(link);
+				currLink = link;
+			}
+		}
+	}
+	//step-1.6 fill in the segSet
+	{
+		for(std::vector<WayPoint>::iterator it = path.begin(); it != path.end(); it++)
+		{
+			segSet.insert(it->roadSegment_);
+		}
 	}
 
 	//step-2 right/left turn
@@ -2382,7 +2404,7 @@ sim_mob::LinkTravelTime::LinkTravelTime(const LinkTravelTime& src)
 sim_mob::SinglePath::SinglePath() : purpose(work),utility(0.0),pathSize(0.0),travelCost(0.0),
 signalNumber(0.0),rightTurnNumber(0.0),length(0.0),travleTime(0.0),highWayDistance(0.0),valid_path(true),
 isMinTravelTime(0),isMinDistance(0),isMinSignal(0),isMinRightTurn(0),isMaxHighWayUsage(0),
-isShortestPath(0), excludeSeg(nullptr),index(-1),path(std::vector<WayPoint>()),isNeedSave2DB(false){
+isShortestPath(0), index(-1),path(std::vector<WayPoint>()),isNeedSave2DB(false){
 }
 
 sim_mob::SinglePath::SinglePath(const SinglePath& source) :

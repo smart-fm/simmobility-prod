@@ -121,14 +121,17 @@ void sim_mob::Link::initializeLinkSegments(const std::set<sim_mob::RoadSegment*>
 
 
 
-int sim_mob::Link::getLength() const
+centimeter_t sim_mob::Link::getLength() const
 {
-	vector<RoadSegment*> segments = getSegments();
-	int totalLen = 0;
-	for (vector<RoadSegment*>::iterator it=segments.begin(); it!=segments.end(); it++) {
-		totalLen += (*it)->length;
+	if(lengthCal.check())
+	{
+		vector<RoadSegment*> segments = getSegments();
+		length = 0;
+		for (vector<RoadSegment*>::iterator it=segments.begin(); it!=segments.end(); it++) {
+			length += (*it)->length;
+		}
 	}
-	return totalLen;
+	return length;
 }
 
 const unsigned int & sim_mob::Link::getLinkId() const

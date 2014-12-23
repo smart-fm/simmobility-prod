@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <set>
+#include "conf/ConfigParams.hpp"
 
 #include <boost/noncopyable.hpp>
-#include "conf/ConfigParams.hpp"
+#include <set>
 
 namespace sim_mob {
 

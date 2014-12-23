@@ -68,6 +68,7 @@ struct LongTermParams{
 
 struct PathSetParams
 {
+	PathSetParams():enabled(false), database(""), credentials(""), pathSetTableName(""), singlePathTableName(""), dbFunction("") {}
 	bool enabled;
 	std::string database;
 	std::string credentials;
@@ -312,7 +313,9 @@ public:
 
 	///Settings used for generation/retrieval of paths
 	PathSetParams pathset;
+
 	bool cbd;
+
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;
 

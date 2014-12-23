@@ -7,8 +7,8 @@
 
 #include "ParameterManager.hpp"
 
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 
 
 namespace sim_mob {
@@ -71,7 +71,7 @@ ParameterManager::~ParameterManager()
 	while(itInstances != instances.end())
 	{
 		delete itInstances->second;
-		itInstances++;
+		++itInstances;
 	}
 }
 
@@ -89,26 +89,16 @@ void ParameterManager::setParam(const std::string& modelName, const std::string&
 	else
 	{
 		ParameterNameValueMap nvMap = it->second;
-//		std::cout<<"nvMap size bf: "<<nvMap.size()<<std::endl;
 		ParameterNameValueMapIterator itt = nvMap.find(key);
 		if(itt!=nvMap.end())
 		{
 			std::string s= "param already exit: "+key;
 			throw std::runtime_error(s);
 		}
-		//
-//		for(itt=nvMap.begin();itt!=nvMap.end();++itt)
-//		{
-//			std::cout<<"key: "<<itt->first<<std::endl;
-//		}
+		
 		nvMap.insert(std::make_pair(key,v));
 
-//		std::cout<<"nvMap size: "<<nvMap.size()<<std::endl;
 		parameterPool[modelName]=nvMap;
-//		//
-//		ParameterPoolIterator ittt = parameterPool.find(modelName);
-//		ParameterNameValueMap nvMapt = ittt->second;
-//		std::cout<<"nvMapt size: "<<nvMapt.size()<<std::endl;
 	}
 
 }

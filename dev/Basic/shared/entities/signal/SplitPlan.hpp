@@ -6,10 +6,10 @@
 
 #include <map>
 #include <vector>
-#include "defaults.hpp"
-#include "Phase.hpp"
-#include "Cycle.hpp"
 
+#include "Cycle.hpp"
+#include "Phase.hpp"
+#include "defaults.hpp"
 
 namespace geo
 {
@@ -101,8 +101,6 @@ public:
 	double getCycleLength() const ;
 	void setCycleLength(std::size_t);
 
-
-
 	/*offset related methods*/
 	std::size_t getOffset() const;
 	void setOffset(std::size_t);
@@ -117,12 +115,10 @@ public:
 	double fmin_ID(std::vector<double> maxproDS);
 	std::size_t getMaxVote();
 	void fill(double defaultChoiceSet[5][10], int approaches);
-	//std::string createStringRepresentation(std::string newLine);
 	void setParentSignal(sim_mob::Signal_SCATS * signal) { parentSignal = signal;}
 	sim_mob::Signal_SCATS * getParentSignal() { return parentSignal;}
 	void printColors(double printColors);
 	double fmax(std::vector<double> &DS);
-//	std::string  outputTrafficLights(std::string newLine, int phaseId = -1)const;
 
 	/*friends*/
 	friend class Signal_SCATS;

@@ -4,15 +4,15 @@
 
 #pragma once
 
-#include<cstdio>
+#include <cstdio>
+#include <map>
+#include <string>
+#include <vector>
 
 #include "Color.hpp"
 #include "geospatial/MultiNode.hpp"
-#include <vector>
-#include <string>
-#include <map>
-#include "util/LangHelpers.hpp"
 #include "logging/Log.hpp"
+#include "util/LangHelpers.hpp"
 
 namespace sim_mob {
 namespace xml {
@@ -105,8 +105,9 @@ public:
 	typedef crossings_map::iterator crossings_map_iterator;
 	typedef crossings_map::const_iterator crossings_map_const_iterator;
 
-	Phase(){}
-	Phase(std::string name_, sim_mob::SplitPlan *parent = nullptr):name(name_),parentPlan(parent){}
+	Phase():parentSignal(NULL), percentage(0), phaseOffset(0), phaseLength(0), parentPlan(NULL){}
+	Phase(std::string name_, sim_mob::SplitPlan *parent = nullptr):name(name_), parentPlan(parent),
+			parentSignal(NULL), percentage(0), phaseOffset(0), phaseLength(0){}
 
 	void setPercentage(double p)
 	{
@@ -121,33 +122,40 @@ public:
 	{
 		return phaseOffset ;
 	}
+
 	links_map & getlinksMap()const{
 		return linksMap;
 	}
+
 	links_map_equal_range LinkFrom_Range(sim_mob::Link *LinkFrom)
 	{
 		return linksMap.equal_range(LinkFrom);
 	}
+
 	links_map_iterator LinkFrom_begin() const
 	{
 		return linksMap.begin();
 	}
+
 	links_map_iterator LinkFrom_end() const
 	{
 		return linksMap.end();
 	}
+
 	links_map_equal_range getLinkTos(sim_mob::Link  *const LinkFrom)const//dont worry about constantization!! :) links_map_equal_range is using a constant iterator
 	{
 		return linksMap.equal_range(LinkFrom);
 	}
+
 	void addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink &ll, sim_mob::MultiNode *node)const ;
 	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *, ColorSequence);
 	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *);
+
 	//add crossing to any link of this node which is not involved in this phase
 	void addDefaultCrossings(sim_mob::LinkAndCrossingC const & ,sim_mob::MultiNode *node)const;
 	const links_map & getLinkMaps() const { return linksMap;}//apparently not needed, getLinkTos is good enough for getdriverlight()...except for the xmlwrite :)
 	const crossings_map & getCrossingMaps() const;
-//	links_map_equal_range  getLinkTos(sim_mob::Link *LinkFrom) ;
+
 	void updatePhaseParams(double phaseOffset_, double percentage_);
 	/* Used in computing DS for split plan selection
 	 * the argument is the output
@@ -165,19 +173,16 @@ public:
 	void printPhaseColors(double currCycleTimer) const;
 	const std::string & getName() const;
 	std::string outputPhaseTrafficLight(std::string newLine) const;
-	 sim_mob::RoadSegment * findRoadSegment(sim_mob::Link *, sim_mob::MultiNode *) const;
-	 void setParent(sim_mob::Signal*);
-	 Signal * getParent()const;
+	sim_mob::RoadSegment * findRoadSegment(sim_mob::Link *, sim_mob::MultiNode *) const;
+	void setParent(sim_mob::Signal*);
+	Signal * getParent()const;
 
 	std::string name; //we can assign a name to a phase for ease of identification
 private:
 	Signal * parentSignal;
-	unsigned int TMP_PhaseID;
-	std::size_t startPecentage;
 	mutable std::size_t percentage;
 	mutable double phaseOffset; //the amount of time from cycle start until this phase start
 	double phaseLength;
-	double total_g;
 
 	//The links that will get a green light at this phase
 	mutable sim_mob::links_map linksMap;

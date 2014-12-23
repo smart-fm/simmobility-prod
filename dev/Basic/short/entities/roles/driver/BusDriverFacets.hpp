@@ -10,11 +10,12 @@
  */
 
 #pragma once
+
+#include "BusDriver.hpp" 
 #include "conf/settings/DisableMPI.h"
+#include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/vehicle/Bus.hpp"
-#include "entities/roles/passenger/Passenger.hpp"
-#include "BusDriver.hpp"
 
 
 namespace sim_mob {
@@ -148,8 +149,6 @@ private:
 	bool firstBusStop;
 
 	bool lastBusStop;
-
-	bool passengerCountOldDisplayFlag;
 
 	size_t noPassengersBoarding;
 

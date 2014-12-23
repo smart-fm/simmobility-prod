@@ -7,12 +7,11 @@
 
 #pragma once
 
-//#include "XmlRpcValue.h"
-#include "ParseParamFile.hpp"
-#include "ParamData.hpp"
-
-#include <string>
 #include <map>
+#include <string>
+
+#include "ParamData.hpp"
+#include "ParseParamFile.hpp"
 
 namespace sim_mob {
 

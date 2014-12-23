@@ -10,22 +10,24 @@
  */
 
 #pragma once
+
 #include "conf/settings/DisableMPI.h"
-#include "entities/roles/RoleFacets.hpp"
-#include "entities/roles/Role.hpp"
-#include "DriverUpdateParams.hpp"
-#include "entities/vehicle/Vehicle.hpp"
 #include "Driver.hpp"
 #include "DriverPathMover.hpp"
-#include "entities/roles/pedestrian/Pedestrian.hpp"
-#include "geospatial/RoadItem.hpp"
-#include "entities/IncidentStatus.hpp"
-#include "geospatial/Incident.hpp"
-#include "util/OneTimeFlag.hpp"
-#include "IncidentPerformer.hpp"
-#include "FmodSchedulesPerformer.hpp"
+#include "DriverUpdateParams.hpp"
 #include "entities/amodController/AMODController.hpp"
+#include "entities/IncidentStatus.hpp"
 #include "entities/roles/driver/models/CarFollowModel.hpp"
+#include "entities/roles/pedestrian/Pedestrian.hpp"
+#include "entities/roles/Role.hpp"
+#include "entities/roles/RoleFacets.hpp"
+#include "entities/vehicle/Vehicle.hpp"
+#include "FmodSchedulesPerformer.hpp"
+#include "geospatial/Incident.hpp"
+#include "geospatial/RoadItem.hpp"
+#include "IncidentPerformer.hpp"
+#include "util/OneTimeFlag.hpp"
+
 
 namespace sim_mob
 {
@@ -54,6 +56,7 @@ public:
 		{
 			throw std::runtime_error("parentDriver cannot be NULL");
 		}
+		safe_delete_item(this->parentDriver);
 		this->parentDriver = parentDriver;
 	}
 
@@ -93,6 +96,7 @@ public:
 		{
 			throw std::runtime_error("parentDriver cannot be NULL");
 		}
+		safe_delete_item(this->parentDriver);
 		this->parentDriver = parentDriver;
 	}
 

@@ -4,20 +4,20 @@
 
 #pragma once
 
+#include <boost/foreach.hpp>
 #include <map>
 #include <string>
 #include <vector>
-#include <boost/foreach.hpp>
 
 #include "conf/settings/DisableMPI.h"
 #include "entities/Agent.hpp"
+#include "entities/amodController/AMODEvent.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/conflux/SegmentStats.hpp"
+#include "entities/vehicle/VehicleBase.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Profiler.hpp"
-#include "entities/amodController/AMODEvent.hpp"
-#include "entities/vehicle/VehicleBase.hpp"
 
 namespace sim_mob
 {
@@ -234,10 +234,6 @@ public:
 
     Status currStatus;
 
-    int stuckCount;
-    double prevx;
-    double prevy;
-
 	const sim_mob::Lane* getCurrLane() const
 	{
 		return currLane;
@@ -306,7 +302,7 @@ public:
 	  * \param currSubTrip current SubTrip for which subtripMetrics is collected
 	  */
 	 void serializeSubTripChainItemTravelTimeMetrics(
-			 const TravelMetric subtripMetrics,
+			 const TravelMetric& subtripMetrics,
 			 std::vector<TripChainItem*>::iterator currTripChainItem,
 			 std::vector<SubTrip>::iterator currSubTrip
 			 ) const;

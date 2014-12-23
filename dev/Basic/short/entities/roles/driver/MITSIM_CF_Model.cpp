@@ -9,16 +9,17 @@
  *      Author: wangxy & Li Zhemin
  */
 
-#include <boost/random.hpp>
-#include <boost/nondet_random.hpp>
-#include <limits>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include "entities/vehicle/Vehicle.hpp"
+#include <boost/nondet_random.hpp>
+#include <boost/random.hpp>
+#include <limits>
+
+#include "Driver.hpp"
 #include "entities/roles/driver/models/CarFollowModel.hpp"
+#include "entities/vehicle/Vehicle.hpp"
 #include "util/Math.hpp"
 #include "util/Utils.hpp"
-#include "Driver.hpp"
 
 using std::numeric_limits;
 using namespace sim_mob;
@@ -486,19 +487,16 @@ double sim_mob::MITSIM_CF_Model::headwayBuffer() {
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		double targetSpeed, double maxLaneSpeed) {
 	p.cfDebugStr="";
-	if(p.parentId == 1895 && p.now.frame()>888){
-		int i=0;
-	}
 
 	calcStateBasedVariables(p);
 	p.desiredSpeed = calcDesiredSpeed(p);
 
 	double acc = p.maxAcceleration; p.accSelect = "max";
-	double aB = calcMergingRate(p);
+	//double aB = calcMergingRate(p);
 	double aC = calcSignalRate(p); // near signal or incidents
 	double aD = calcYieldingRate(p); // when yielding
 	//double aE = waitExitLaneRate(p); //
-	double aF = waitAllowedLaneRate(p);
+	//double aF = waitAllowedLaneRate(p);
 	//double  aG = calcLaneDropRate(p);	// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
 	//double aH1 = calcAdjacentRate(p); // to reach adjacent gap
 	//double aH2 = calcBackwardRate(p); // to reach backward gap
@@ -763,7 +761,7 @@ double sim_mob::MITSIM_CF_Model::calcMergingRate(
 	double acc = p.maxAcceleration;
 	// TS_Vehicles from freeways and on ramps have different
 	// priority.  Seperate procedures are applied. (MITSIM TS_CFModels.cc)
-	DriverMovement *driverMvt = (DriverMovement*) p.driver->Movement();
+	DriverMovement *driverMvt = dynamic_cast<DriverMovement*>(p.driver->Movement());
 
 	if (driverMvt->fwdDriverMovement.getCurrSegment()->type
 			== sim_mob::LINK_TYPE_FREEWAY) // current on freeway
@@ -836,9 +834,6 @@ bool sim_mob::MITSIM_CF_Model::isGapAcceptable(sim_mob::DriverUpdateParams& p,
 		dt = 0;
 	}
 
-	// Max distance traveled by vehicle m in time dt
-
-	float dism = speedM * dt + 0.5 * accm * dt * dt;
 	float gap_mn = vh.distance / 100.0;
 
 	// Speed at the predicted position
@@ -1112,7 +1107,7 @@ double sim_mob::MITSIM_CF_Model::calcCreateGapRate(DriverUpdateParams& p,
 double sim_mob::MITSIM_CF_Model::waitExitLaneRate(DriverUpdateParams& p) {
 
 	// dis2stop is distance to fwd vh or distance to end node
-	DriverMovement *driverMvt = (DriverMovement*)p.driver->Movement();
+	DriverMovement *driverMvt = dynamic_cast<DriverMovement*>(p.driver->Movement());
 	double dx = driverMvt->fwdDriverMovement.getDistToLinkEndM() - 5.0;
 
 	if(!p.getStatus(STATUS_CURRENT_LANE_OK) && dx < p.distanceToNormalStop)
@@ -1279,9 +1274,7 @@ double sim_mob::MITSIM_CF_Model::calcAdjacentRate(DriverUpdateParams& p) {
 }
 
 double sim_mob::MITSIM_CF_Model::calcStopPointRate(sim_mob::DriverUpdateParams& p){
-	if(p.parentId == 664 && p.now.frame()>751){
-		int i=0;
-	}
+	
 	std::stringstream debugStr;
 	debugStr<<";SSPP"<<p.disToSP<<";"<<p.stopPointState<<";";
 	double acc=p.maxAcceleration;
@@ -1441,14 +1434,6 @@ double sim_mob::MITSIM_CF_Model::accOfCarFollowing(DriverUpdateParams& p) {
 
 	double res = CF_parameters[i].alpha * pow(v, CF_parameters[i].beta)
 			/ pow(p.nvFwd.distance / 100, CF_parameters[i].gama);
-
-	double t0 = pow(p.nvFwd.distance / 100, CF_parameters[i].gama);
-
-	double t1 = pow(v, CF_parameters[i].beta);
-
-	double tt = pow(dv, CF_parameters[i].lambda);
-
-	double t2 = pow(density, CF_parameters[i].rho);
 
 	res *= pow(dv, CF_parameters[i].lambda)
 			* pow(density, CF_parameters[i].rho);

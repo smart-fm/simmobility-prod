@@ -88,7 +88,7 @@ std::string sim_mob::ConfigParams::getDatabaseConnectionString(bool maskPassword
 	if (credIt==constructs.credentials.end()) {
 		Print() << "trying to find " << credKey << " among:" << std::endl;
 		std::map<std::string, Credential>::const_iterator it;
-		for( it = constructs.credentials.begin(); it != constructs.credentials.end() ; it++)
+		for( it = constructs.credentials.begin(); it != constructs.credentials.end() ; ++it)
 		{
 			Print() << it->first << std::endl;
 		}

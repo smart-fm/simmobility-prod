@@ -3,8 +3,10 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "SplitPlan.hpp"
+
 #include <cstdio>
 #include <sstream>
+
 #include "Signal.hpp"
 
 using std::vector;
@@ -62,14 +64,15 @@ std::size_t sim_mob::SplitPlan::Vote(std::vector<double> maxproDS) {
 	 */
 	return getMaxVote();
 }
+
 ///calculate the projected DS and max Projected DS for each split plan (for internal use only, refer to section 4.3 table-4)
 void sim_mob::SplitPlan::calMaxProDS(std::vector<double> &maxproDS,
 		std::vector<double> DS) {
-	double maax = 0.0;
+
 	vector<double> proDS(parentSignal->getNOF_Phases(), 0);
 	for (int i = 0; i < NOF_Plans; i++) //traversing the columns of Phase::choiceSet matrix
-			{
-		maax = 0.0;
+	{
+		double maax = 0.0;
 		for (int j = 0; j < parentSignal->getNOF_Phases(); j++) {
 			//calculate the projected DS for this plan
 			proDS[j] = DS[j] * choiceSet[currSplitPlanID][j] / choiceSet[i][j];
@@ -86,7 +89,6 @@ std::size_t sim_mob::SplitPlan::findNextPlanIndex(std::vector<double> DS) {
 
 	std::vector<double> maxproDS(NOF_Plans, 0); // max projected DS of each SplitPlan
 
-	int i, j;
 	//step 1:Calculate the Max projected DS for each approach (and find the maximum projected DS)
 	calMaxProDS(maxproDS, DS);
 	//step2 2 & 3 in one function to save your brain.
@@ -120,11 +122,11 @@ std::size_t sim_mob::SplitPlan::getMaxVote() {
 	int PlanId_w_MaxVote = -1;
 	int SplitPlanID;
 	int max_vote_value = -1;
-	int vote_sum = 0;
+	
 	for (SplitPlanID = 0; SplitPlanID < NOF_Plans; SplitPlanID++)//column iterator(plans)
-			{
+	{
 		//calculating sum of votes in each column
-		vote_sum = 0;
+		int vote_sum = 0;
 		for (int i = 0; i < votes.size(); i++)	//row iterator(cycles)
 			vote_sum += votes[i][SplitPlanID];
 		if (max_vote_value < vote_sum) {
@@ -144,10 +146,12 @@ std::vector<double> sim_mob::SplitPlan::CurrSplitPlan() {
 	}
 	return choiceSet[currSplitPlanID];
 }
+
 ///	returns number of split plans available
 std::size_t sim_mob::SplitPlan::nofPlans() {
 	return NOF_Plans;
 }
+
 //find the max DS
 double sim_mob::SplitPlan::fmax(std::vector<double> &DS) {
 	double max = DS[0];
@@ -158,6 +162,7 @@ double sim_mob::SplitPlan::fmax(std::vector<double> &DS) {
 	}
 	return max;
 }
+
 void sim_mob::SplitPlan::Update(std::vector<double> &DS) {
 	double DS_all = fmax(DS);
 	cycle_.Update(DS_all);
@@ -181,6 +186,7 @@ sim_mob::SplitPlan::SplitPlan(double cycleLength_, double offset_,/*int signalTi
 	NOF_Plans = 0;
 	cycle_.setCurrCL(cycleLength_);
 }
+
 //fill the choice set with default ones based on the number of intersection's approaches
 void sim_mob::SplitPlan::fill(double defaultChoiceSet[5][10], int approaches) {
 	for (int i = 0; i < NOF_Plans; i++)
@@ -197,7 +203,7 @@ void sim_mob::SplitPlan::setDefaultSplitPlan(int approaches) {
 	if (signalTimingMode == 0) {	//fixed plan
 		NOF_Plans = 1;
 	}
-	int ii = 5, jj = 0;
+	
 	double defaultChoiceSet_1[5][10] = { { 100 }, { 100 }, { 100 }, { 100 }, {100 } };
 
 	double defaultChoiceSet_2[5][10] = { { 50, 50 },

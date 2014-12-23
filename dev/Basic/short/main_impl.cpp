@@ -17,42 +17,31 @@
  * \author LIM Fung Chai
  * \author Xu Yan
  */
-#include <vector>
-#include <string>
-#include <sys/time.h>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/thread.hpp>
+#include <string>
+#include <sys/time.h>
+#include <vector>
 
 //main.cpp (top-level) files can generally get away with including GenConfig.h
 #include "GenConfig.h"
 
-#include "workers/Worker.hpp"
-#include "workers/WorkGroup.hpp"
-#include "workers/WorkGroupManager.hpp"
+#include "buffering/Buffered.hpp"
 #include "buffering/BufferedDataManager.hpp"
-#include "geospatial/aimsun/Loader.hpp"
-#include "geospatial/RoadNetwork.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/UniNode.hpp"
-#include "geospatial/LaneConnector.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Lane.hpp"
-#include "util/DailyTime.hpp"
-#include "util/StateSwitcher.hpp"
-
+#include "buffering/Locked.hpp"
+#include "buffering/Shared.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "conf/ParseConfigFile.hpp"
 #include "conf/ExpandAndValidateConfigFile.hpp"
-
-#include "entities/signal/Signal.hpp"
-#include "entities/commsim/broker/Broker.hpp"
+#include "conf/ParseConfigFile.hpp"
 #include "entities/AuraManager.hpp"
-#include "entities/TrafficWatch.hpp"
-#include "entities/Person.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/commsim/broker/Broker.hpp"
+#include "entities/fmodController/FMOD_Controller.hpp"
 #include "entities/LoopDetectorEntity.hpp"
+#include "entities/Person.hpp"
+#include "entities/profile/ProfileBuilder.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
@@ -63,31 +52,38 @@
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/pedestrian/Pedestrian2.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
-#include "entities/profile/ProfileBuilder.hpp"
-#include "entities/fmodController/FMOD_Controller.hpp"
+#include "entities/signal/Signal.hpp"
+#include "entities/TrafficWatch.hpp"
+#include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/BusStop.hpp"
-#include "geospatial/Roundabout.hpp"
 #include "geospatial/Intersection.hpp"
-#include "geospatial/Route.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/LaneConnector.hpp"
+#include "geospatial/MultiNode.hpp"
 #include "geospatial/PathSetManager.hpp"
-#include "perception/FixedDelayed.hpp"
-#include "buffering/Buffered.hpp"
-#include "buffering/Locked.hpp"
-#include "buffering/Shared.hpp"
+#include "geospatial/RoadNetwork.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "geospatial/Roundabout.hpp"
+#include "geospatial/Route.hpp"
+#include "geospatial/UniNode.hpp"
+#include "logging/Log.hpp"
 #include "network/CommunicationManager.hpp"
 #include "network/ControlManager.hpp"
-#include "logging/Log.hpp"
-#include "util/Utils.hpp"
-
 #include "partitions/PartitionManager.hpp"
 #include "partitions/ShortTermBoundaryProcessor.hpp"
-#include "partitions/ParitionDebugOutput.hpp"
+#include "partitions/ParitionDebugOutput.hpp" 
+#include "perception/FixedDelayed.hpp"
+#include "util/DailyTime.hpp"
+#include "util/StateSwitcher.hpp"
+#include "util/Utils.hpp"
+#include "workers/Worker.hpp"
+#include "workers/WorkGroup.hpp"
+#include "workers/WorkGroupManager.hpp"
 
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
 #include <iostream>
 
-using std::cout;
 using std::endl;
 using std::vector;
 using std::string;
@@ -120,10 +116,8 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
  *
  * This function is separate from main() to allow for easy scoping of WorkGroup objects.
  */
-
-
 bool performMain(const std::string& configFileName, std::list<std::string>& resLogFiles, const std::string& XML_OutPutFileName) {
-	cout <<"Starting SimMobility, version1 " <<SIMMOB_VERSION <<endl;
+	Print() <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
 
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
@@ -169,7 +163,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 
 	//Load our user config file
-	std::cout << "Expanding our user config file." << std::endl;
+	Print() << "Expanding user configuration file..." << std::endl;
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
 	
     //Some random stuff with signals??
@@ -186,19 +180,16 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
     	}
     }
 
-	std::cout << "User config file loaded." << std::endl;
-
-	std::cout << "performMain: trip chain pool size " << 
-				ConfigManager::GetInstance().FullConfig().getTripChains().size()<<std::endl;
+	Print() << "User configuration file loaded." << std::endl;
 
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		// init path set manager
 		time_t t = time(0);   // get time now
 		struct tm * now = localtime( & t );
-		std::cout<<"begin time:"<<std::endl;
-		std::cout<<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
+		Print() <<"Begin time:"<<std::endl;
+		Print() <<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
 		PathSetManager* psMgr = PathSetManager::getInstance();
-		std::string name=configFileName;
+		std::string name = configFileName;
 		psMgr->setScenarioName(name);
 		//psMgr->setTravleTimeTmpTableName(ConfigParams::GetInstance().travelTimeTmpTableName);
 		//psMgr->createTravelTimeTmpTable(psMgr->getTravleTimeTmpTableName());
@@ -208,7 +199,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//Initialize the control manager and wait for an IDLE state (interactive mode only).
 	sim_mob::ControlManager* ctrlMgr = nullptr;
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
-		std::cout<<"load scenario ok, simulation state is IDLE"<<std::endl;
+		Print() << "Scenario loaded...\nSimulation state is IDLE"<<std::endl;
 		ctrlMgr = ConfigManager::GetInstance().FullConfig().getControlMgr();
 		ctrlMgr->setSimState(IDLE);
 		while(ctrlMgr->getSimState() == IDLE) {
@@ -268,21 +259,18 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		communicationWorkers->assignAWorker(broker);
 	}
 
-
 	//Anything in all_agents is starting on time 0, and should be added now.
-	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
+	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it) {
 		personWorkers->assignAWorker(*it);
 	}
 
 	//Assign all BusStopAgents
-	std::cout << "BusStopAgent::all_BusstopAgents_.size(): " << BusStopAgent::AllBusStopAgentsCount() << std::endl;
 	BusStopAgent::AssignAllBusStopAgents(*personWorkers);
 
 	//Assign all signals too
-	for (vector<Signal*>::iterator it = Signal::all_signals_.begin(); it != Signal::all_signals_.end(); it++) {
+	for (vector<Signal*>::iterator it = Signal::all_signals_.begin(); it != Signal::all_signals_.end(); ++it) {
 		signalStatusWorkers->assignAWorker(*it);
 	}
-
 
 	if(sim_mob::FMOD::FMOD_Controller::instanceExists()){
 		personWorkers->assignAWorker( sim_mob::FMOD::FMOD_Controller::instance() );
@@ -292,11 +280,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		personWorkers->assignAWorker( sim_mob::AMOD::AMODController::instance() );
 	}
 
-	//..and Assign communication agent(currently a singleton
-
-
-	cout << "Initial Agents dispatched or pushed to pending." << endl;
-
+	Print() << "Initial agents dispatched or pushed to pending." << endl;
 
 	//
 	//  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
@@ -312,7 +296,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.setEntityWorkGroup(personWorkers, signalStatusWorkers);
 
-		std::cout << "partition_solution_id in main function:" << partitionImpl.partition_config->partition_solution_id << std::endl;
+		Print() << "partition_solution_id in main function:" << partitionImpl.partition_config->partition_solution_id << std::endl;
 	}
 
 	/////////////////////////////////////////////////////////////////
@@ -330,7 +314,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	int loop_start_offset = ProfileBuilder::diff_ms(loop_start_time, start_time);
 
 	ParitionDebugOutput debug;
-
 
 	StateSwitcher<int> numTicksShown(0); //Only goes up to 10
 	StateSwitcher<int> lastTickPercent(0); //So we have some idea how much time is left.
@@ -379,8 +362,8 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 				PrintOut(msg.str());
 			} else {
 				//We don't need to lock this output if general output is disabled, since Agents won't
-				//  perform any output (and hence there will be no contention)
-				std::cout <<currTickPercent <<"0%" << ",agents:" << Agent::all_agents.size() <<std::endl;
+				//perform any output (and hence there will be no contention)
+				Print() <<currTickPercent <<"0%" << ",agents:" << Agent::all_agents.size() <<std::endl;
 			}
 		}
 
@@ -398,39 +381,36 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		}
 	}
 
-
 	timeval loop_end_time;
 	gettimeofday(&loop_end_time, nullptr);
 	int loop_time = ProfileBuilder::diff_ms(loop_end_time, loop_start_time);
-	std::ostringstream out("");
-	out << "loop_time:" << std::dec << loop_time  <<std::endl;
-	std::cout << out.str();
+	Print() << "loop_time:" << std::dec << loop_time  << std::endl;
+
 	//Finalize partition manager
 	if (!config.MPI_Disabled() && config.using_MPI) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.stopMPIEnvironment();
 	}
 
-	std::cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
-
-	cout << "Max Agents at any given time: " <<maxAgents <<std::endl;
-	cout << "Starting Agents: " << numStartAgents;
-	cout << ",     Pending: ";
+	Print() <<"Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
+	Print() << "Max Agents at any given time: " <<maxAgents <<std::endl;
+	Print() << "Starting Agents: " << numStartAgents;
+	Print() << ",     Pending: ";
 	//if (NoDynamicDispatch) {
-		cout <<"<Disabled>";
+		Print() <<"<Disabled>";
 	//} else {
-		cout <<numPendingAgents;
+		Print() <<numPendingAgents;
 	//}
-	cout << endl;
+	Print() << endl;
 
 	if (Agent::all_agents.empty()) {
-		cout << "All Agents have left the simulation.\n";
+		Print() << "All Agents have left the simulation.\n";
 	} else {
 		size_t numPerson = 0;
 		size_t numDriver = 0;
 		size_t numPedestrian = 0;
 		size_t numPassenger = 0;
-		for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
+		for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it) {
 			Person* p = dynamic_cast<Person*> (*it);
 			if (p) {
 				numPerson++;
@@ -442,22 +422,22 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 				}
 				if (p->getRole() && dynamic_cast<Passenger*> (p->getRole())) {
 					numPassenger++;
-								}
+				}
 			}
 		}
-		cout << "Remaining Agents: " << numPerson << " (Person)   "
+		Print() << "Remaining Agents: " << numPerson << " (Person)   "
 				<< (Agent::all_agents.size() - numPerson) << " (Other)" << endl;
-		cout << "   Person Agents: " << numDriver << " (Driver)   "
+		Print() << "   Person Agents: " << numDriver << " (Driver)   "
 				<< numPedestrian << " (Pedestrian)   " << numPassenger << " (Passenger) " << (numPerson
 				- numDriver - numPedestrian) << " (Other)" << endl;
 	}
 
 	if (ConfigManager::GetInstance().FullConfig().numAgentsSkipped>0) {
-		cout <<"Agents SKIPPED due to invalid route assignment: " <<ConfigManager::GetInstance().FullConfig().numAgentsSkipped <<endl;
+		Print() <<"Agents SKIPPED due to invalid route assignment: " <<ConfigManager::GetInstance().FullConfig().numAgentsSkipped <<endl;
 	}
 
 	if (!Agent::pending_agents.empty()) {
-		cout << "WARNING! There are still " << Agent::pending_agents.size()
+		Print() << "WARNING! There are still " << Agent::pending_agents.size()
 				<< " Agents waiting to be scheduled; next start time is: "
 				<< Agent::pending_agents.top()->getStartTime() << " ms\n";
 	}
@@ -488,7 +468,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		clear_delete_vector(Agent::all_agents);
 	}
 
-	cout << "Simulation complete; closing worker threads." << endl;
+	Print() << "Simulation complete; closing worker threads." << endl;
 
 	//Delete the AMOD controller instance
 	sim_mob::AMOD::AMODController::deleteInstance();
@@ -540,13 +520,12 @@ int main_impl(int ARGC, char* ARGV[])
 	//Note: Don't change this here; change it by supplying an argument on the
 	//      command line, or through Eclipse's "Run Configurations" dialog.
 	std::string configFileName = "data/config.xml";
-	std::string XML_OutPutFileName = "private/SimMobilityInput.xml";
 	if (args.size() > 1) {
 		configFileName = args[1];
 	} else {
-		cout << "No config file specified; using the default config file." << endl;
+		Print() << "No config file specified; using the default config file." << endl;
 	}
-	cout << "Using config file: " << configFileName << endl;
+	Print() << "Using config file: " << configFileName << endl;
 
 	std::string outputFileName = "out.txt";
 	if(args.size() > 2)
@@ -627,7 +606,7 @@ int main_impl(int ARGC, char* ARGV[])
 	//Delete the config manager instance
 	ConfigManager::DeleteConfigMgrInstance();
 
-	cout << "Done" << endl;
+	Print() << "Done" << endl;
 	return returnVal;
 }
 

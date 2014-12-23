@@ -4,14 +4,14 @@
 
 #include "BusStopAgent.hpp"
 
-#include "entities/Person.hpp"
-#include "entities/AuraManager.hpp"
-#include "geospatial/BusStop.hpp"
-#include "workers/WorkGroup.hpp"
-#include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
-#include "entities/roles/waitBusActivityRole/WaitBusActivityRoleFacets.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "entities/AuraManager.hpp"
+#include "entities/Person.hpp"
+#include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
+#include "entities/roles/waitBusActivityRole/WaitBusActivityRoleFacets.hpp"
+#include "geospatial/BusStop.hpp"
+#include "workers/WorkGroup.hpp"
 
 using std::vector;
 using namespace sim_mob;
@@ -28,7 +28,7 @@ size_t sim_mob::BusStopAgent::AllBusStopAgentsCount()
 void sim_mob::BusStopAgent::AssignAllBusStopAgents(sim_mob::WorkGroup& wg)
 {
 	for (BusStopAgentsMap::iterator it=allBusstopAgents.begin();
-			it!=allBusstopAgents.end(); it++) {
+			it!=allBusstopAgents.end(); ++it) {
 		wg.assignAWorker(it->second);
 	}
 }
@@ -47,7 +47,7 @@ bool sim_mob::BusStopAgent::HasBusStopAgents()
 
 void sim_mob::BusStopAgent::createBusStopAgents(const std::set<BusStop*>& stopsList, const MutexStrategy& mtxStrat) {
 	for(std::set<BusStop*>::const_iterator stopIt=stopsList.begin();
-			stopIt!=stopsList.end(); stopIt++) {
+			stopIt!=stopsList.end(); ++stopIt) {
 		RegisterNewBusStopAgent(**stopIt, mtxStrat);
 	}
 }
@@ -62,7 +62,7 @@ void sim_mob::BusStopAgent::PlaceAllBusStopAgents(std::vector<sim_mob::Entity*>&
 	std::cout << "all_BusStopAgents size: " << allBusstopAgents.size() << std::endl;
 	//Push every BusStopAgent on the list into the agents array as an active agent
 	for (BusStopAgentsMap::iterator it=allBusstopAgents.begin();
-			it!=allBusstopAgents.end(); it++) {
+			it!=allBusstopAgents.end(); ++it) {
 		agents_list.push_back(it->second);
 	}
 }
@@ -232,7 +232,7 @@ Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 {
 	if(now.ms() % busStopUpdateFrequencyMS == 0) {// every 5000ms check AuraManager
 		vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((busstop_.xPos - 3500),(busstop_.yPos - 3500)),Point2D((busstop_.xPos + 3500),(busstop_.yPos + 3500)), this);
-		for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
+		for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); ++it)
 		{
 			//Retrieve only agents with WaitBusActivityRoles.
 		 	const Person* person = dynamic_cast<const Person *>(*it);

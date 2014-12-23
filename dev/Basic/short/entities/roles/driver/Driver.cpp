@@ -8,37 +8,33 @@
  *  Created on: 2011-7-5
  *      Author: wangxy & Li Zhemin
  */
-
-#include "util/ReactionTimeDistributions.hpp"
+ 
 #include "Driver.hpp"
 #include "DriverFacets.hpp"
-
-#include "entities/roles/pedestrian/Pedestrian.hpp"
-#include "entities/roles/driver/BusDriver.hpp"
-#include "entities/Person.hpp"
-
+#include "buffering/BufferedDataManager.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "logging/Log.hpp"
-
 #include "entities/AuraManager.hpp"
+#include "entities/Person.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"
-#include "buffering/BufferedDataManager.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/UniNode.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/LaneConnector.hpp"
+#include "entities/roles/driver/BusDriver.hpp"
+#include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "geospatial/Crossing.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/LaneConnector.hpp"
+#include "geospatial/Link.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/Node.hpp"
 #include "geospatial/Point2D.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "geospatial/UniNode.hpp"
+#include "logging/Log.hpp"
+#include "partitions/PartitionManager.hpp"
+#include "util/DebugFlags.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/GeomHelpers.hpp"
-#include "util/DebugFlags.hpp"
-
-#include "partitions/PartitionManager.hpp"
+#include "util/ReactionTimeDistributions.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -109,17 +105,13 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
 	,stop_event_nodeid(mtxStrat, -1), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false)
 {
-	// record start time
-	startTime = getParams().now.ms()/MILLISECS_CONVERT_UNIT;
-	isAleadyStarted = false;
 	currDistAlongRoadSegment = 0;
-
 	getParams().driver = this;
 }
 
 void sim_mob::Driver::initReactionTime()
 {
-	DriverMovement* movement = (DriverMovement* ) movementFacet;
+	DriverMovement* movement = dynamic_cast<DriverMovement*>(movementFacet);
 	if(movement)
 	{
 		reacTime = movement->getCarFollowModel()->nextPerceptionSize * 1000; // seconds to ms
@@ -132,10 +124,6 @@ void sim_mob::Driver::initReactionTime()
 	perceivedDistToFwdCar = new FixedDelayed<double>(reacTime,true);
 	perceivedDistToTrafficSignal = new FixedDelayed<double>(reacTime,true);
 	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
-
-	// record start time
-	startTime = getParams().now.ms()/1000.0;
-	isAleadyStarted = false;
 }
 
 Role* sim_mob::Driver::clone(Person* parent) const
@@ -361,7 +349,6 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	nvRightBack2 = NearestVehicle();
 }
 
-
 void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
 {
 	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
@@ -378,6 +365,7 @@ const DPoint& Driver::getCurrPosition() const
 {
 	return currPos;
 }
+
 void Driver::resetReacTime(double t)
 {
 	perceivedFwdVel->set_delay(t);

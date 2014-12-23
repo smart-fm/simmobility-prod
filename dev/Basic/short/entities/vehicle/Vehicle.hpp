@@ -49,9 +49,7 @@ public:
 	double getVelocity() const;      ///<Retrieve forward velocity.
 	double getLatVelocity() const;   ///<Retrieve lateral velocity.
 	double getAcceleration() const;  ///<Retrieve forward acceleration.
-	bool isDone() const; ///<Are we fully done with our path?
-	bool hasPath() const; ///<Do we have a path to move on?
-
+	
 	void resetPath(std::vector<sim_mob::WayPoint> wp_path);
 
 	//Special
@@ -79,14 +77,8 @@ public:
 	void setCurrPosition(DPoint currPosition);
 	const DPoint& getCurrPosition() const;
 
-	void actualMoveToNextSegmentAndUpdateDir_med();		//~melani for mid-term
 	void moveLat(double amt);            ///<Move this car laterally. NOTE: This will _add_ the amt to the current value.
 	void resetLateralMovement();         ///<Put this car back in the center of the current lane.
-
-	/*needed by mid-term*/
-	double getPositionInSegmentCM();
-	void setPositionInSegmentCM(double newDistToEndCM);
-	//unit cm, this is based on lane zero's polypoints
 
 	FMODSchedule * getFMODSchedule()
 	{
@@ -109,7 +101,6 @@ public:
 private:
 
 	FMODSchedule* schedule;
-	double stoppedtimecounter;
 
 	//Trying a slightly more dynamic moving model.
 	int vehicleId;

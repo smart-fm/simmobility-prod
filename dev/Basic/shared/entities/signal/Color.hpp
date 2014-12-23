@@ -4,10 +4,11 @@
 
 #pragma once
 
-#include<vector>
-#include"defaults.hpp"
 #include <boost/assign/list_of.hpp>
 #include <map>
+#include <vector>
+
+#include "defaults.hpp"
 
 namespace sim_mob
 {

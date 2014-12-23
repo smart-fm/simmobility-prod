@@ -4,25 +4,23 @@
 
 #pragma once
 
-#include <vector>
 #include <math.h>
 #include <set>
+#include <vector>
 
-#include "conf/settings/DisableMPI.h"
-
-#include "entities/roles/Role.hpp"
 #include "buffering/Shared.hpp"
-#include "perception/FixedDelayed.hpp"
+#include "conf/settings/DisableMPI.h"
+#include "entities/roles/Role.hpp"
 #include "entities/vehicle/Vehicle.hpp"
-#include "util/DynamicVector.hpp"
-
 #include "entities/roles/driver/models/CarFollowModel.hpp"
 #include "entities/roles/driver/models/LaneChangeModel.hpp"
 #include "entities/roles/driver/models/IntersectionDrivingModel.hpp"
-#include "DriverUpdateParams.hpp"
-#include "DriverFacets.hpp"
+#include "perception/FixedDelayed.hpp"
+#include "util/DynamicVector.hpp"
 #include "util/Math.hpp"
 
+#include "DriverUpdateParams.hpp"
+#include "DriverFacets.hpp"
 
 namespace sim_mob
 {
@@ -77,6 +75,9 @@ private:
 	//Indicates whether the position of the vehicle has been found.
 	bool isVehiclePositionDefined;
 
+	//Pointer to the vehicle this driver is controlling.
+	Vehicle* vehicle;
+
 	friend class DriverBehavior;
 	friend class DriverMovement;
 
@@ -98,15 +99,10 @@ public:
 	Shared<double> fwdAccel;
 	Shared<LANE_CHANGE_SIDE> turningDirection;
 
-	bool isAleadyStarted;
-	double startTime;
 	double currDistAlongRoadSegment;
 
 	// me is doing yielding, and yieldVehicle is doing nosing
 	Driver* yieldVehicle;
-
-	//Pointer to the vehicle this driver is controlling.
-	Vehicle* vehicle;
 
 	// driver path-mover split purpose, we save the currPos in the Driver
 	DPoint currPos;
@@ -125,7 +121,6 @@ public:
 	NodePoint origin;
 	NodePoint goal;
 
-
 	//for fmod request
 	Shared<std::string> stop_event_time;
 	Shared<int> stop_event_type;
@@ -136,6 +131,7 @@ public:
 
 	//Constructor and public member functions
 	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior = nullptr, sim_mob::DriverMovement* movement = nullptr, Role::type roleType_ = RL_DRIVER, std::string roleName_ = "driver");
+	
 	virtual ~Driver();
 
 	void initReactionTime();
@@ -157,10 +153,18 @@ public:
 	{
 		return vehicle;
 	}
+	
+	void setVehicle(Vehicle *vehicle)
+	{
+		safe_delete_item(this->vehicle);
+		this->vehicle = vehicle;
+	}
+
 	const double getVehicleLengthCM() const
 	{
 		return vehicle->getLengthCm();
 	}
+	
 	const double getVehicleLengthM() const
 	{
 		return getVehicleLengthCM() / 100.0;
@@ -175,11 +179,6 @@ public:
 	Vehicle* getVehicle()
 	{
 		return vehicle;
-	}
-
-	Agent* getDriverParent(const Driver *self)
-	{
-		return self->parent;
 	}
 
 	const double getFwdVelocityM() const;
@@ -199,11 +198,16 @@ public:
 
 	//Virtual implementations
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+	
 	virtual void make_frame_tick_params(timeslice now);
+
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
+	
 	virtual std::vector<sim_mob::BufferedBase*> getDriverInternalParams();
+	
 	//handle parent event from other agents
 	virtual void onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+	
 	///Reroute around a blacklisted set of RoadSegments. See Role's comments for more information.
 	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
 

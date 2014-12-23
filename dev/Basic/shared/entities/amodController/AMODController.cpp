@@ -1108,8 +1108,7 @@ void AMODController::findNearestCarPark(std::string& destinationNode, const Road
 
 			// distance of the path
 			WayPoint iterWP;
-			double tripDistance;
-//			std::cout << "Length of segments: ";
+			double tripDistance = 0;
 			for (int j = 0; j< wp_temp.size(); j++){
 				iterWP = wp_temp[j];
 				const RoadSegment *rs = iterWP.roadSegment_;
@@ -1152,7 +1151,7 @@ void AMODController::findNearestCarParkToNode(std::string& originNode, const Roa
 
 			// distance of the path
 			WayPoint iterWP;
-			double tripDistance;
+			double tripDistance = 0;
 			std::cout << "Length of segments: ";
 			for (int j = 0; j< wp_temp.size(); j++){
 				iterWP = wp_temp[j];
@@ -1350,7 +1349,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 		string dropOffSegmentStr;
 		while (true) {
 			if (nFreeCars <= 0) break; //check if the number of free cars is non-zero
-			if (serviceBuffer.size() == 0) break;
+			if (serviceBuffer.empty()) break;
 			if (itr == serviceBuffer.end()) break;
 
 			std::string originNodeId = itr->origin;
@@ -1595,9 +1594,6 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			atrip.arrivalTime = -1;
 			atrip.tripError = false;
 			atrip.finalSegment = mergedWP[mergedWP.size()-1].roadSegment_->getId();
-			vhAssigned->stuckCount = 0;
-			vhAssigned->prevx = 0;
-			vhAssigned->prevy = 0;
 
 			if (carParkNodeDeparture == originNode) {
 				atrip.pickedUp = true;

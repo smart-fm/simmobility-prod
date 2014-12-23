@@ -4,16 +4,15 @@
 
 #include "ParseConfigFile.hpp"
 
-#include <sstream>
-#include <boost/lexical_cast.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
-
+#include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
+#include <sstream>
 #include <xercesc/dom/DOM.hpp>
 
-#include "conf/RawConfigParams.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "conf/RawConfigParams.hpp"
 #include "geospatial/Point2D.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/XmlParseHelper.hpp"
@@ -315,7 +314,7 @@ void sim_mob::ParseConfigFile::ProcessPersonCharacteristicsNode(xercesc::DOMElem
 
 	std::map<int, PersonCharacteristics> personCharacteristics =  cfg.personCharacteristicsParams.personCharacteristics;
 	// calculate lowest age and highest age in the ranges
-	for(std::map<int, PersonCharacteristics>::const_iterator iter=personCharacteristics.begin();iter != personCharacteristics.end();iter++) {
+	for(std::map<int, PersonCharacteristics>::const_iterator iter=personCharacteristics.begin();iter != personCharacteristics.end(); ++iter) {
 		if(cfg.personCharacteristicsParams.lowestAge > iter->second.lowerAge) {
 			cfg.personCharacteristicsParams.lowestAge = iter->second.lowerAge;
 		}
@@ -709,7 +708,7 @@ void sim_mob::ParseConfigFile::ProcessSystemXmlSchemaFilesNode(xercesc::DOMEleme
 	DOMElement* rn = GetSingleElementByName(node, "road_network");
 	if (rn) {
 		std::vector<DOMElement*> options = GetElementsByName(rn, "option");
-		for (std::vector<DOMElement*>::const_iterator it=options.begin(); it!=options.end(); it++) {
+		for (std::vector<DOMElement*>::const_iterator it=options.begin(); it!=options.end(); ++it) {
 			std::string path = ParseString(GetNamedAttributeValue(*it, "value"), "");
 			if (!path.empty()) {
 				//See if the file exists.
@@ -737,7 +736,7 @@ void sim_mob::ParseConfigFile::ProcessSystemGenericPropsNode(xercesc::DOMElement
 	}
 
 	std::vector<DOMElement*> properties = GetElementsByName(node, "property");
-	for (std::vector<DOMElement*>::const_iterator it=properties.begin(); it!=properties.end(); it++) {
+	for (std::vector<DOMElement*>::const_iterator it=properties.begin(); it!=properties.end(); ++it) {
 		std::string key = ParseString(GetNamedAttributeValue(*it, "key"), "");
 		std::string val = ParseString(GetNamedAttributeValue(*it, "value"), "");
 		if (!(key.empty() && val.empty())) {
@@ -785,7 +784,7 @@ void sim_mob::ParseConfigFile::ProcessSystemLoadAgentsOrderNode(xercesc::DOMElem
 	boost::split(valArray, value, boost::is_any_of(", "), boost::token_compress_on);
 
 	//Now, turn into an enum array.
-	for (std::vector<std::string>::const_iterator it=valArray.begin(); it!=valArray.end(); it++) {
+	for (std::vector<std::string>::const_iterator it=valArray.begin(); it!=valArray.end(); ++it) {
 		SimulationParams::LoadAgentsOrderOption opt(SimulationParams::LoadAg_Database);
 		if ((*it) == "database") {
 			opt = SimulationParams::LoadAg_Database;

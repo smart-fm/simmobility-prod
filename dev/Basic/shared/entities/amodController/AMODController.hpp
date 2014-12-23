@@ -256,7 +256,7 @@ inline std::string getNumberFromAimsunId(std::string &aimsunid)
 	}
 	else
 	{
-		Warn()<<"aimsun id not correct "+aimsunid << std::endl;
+		// Warn()<<"aimsun id not correct "+aimsunid << std::endl;
 	}
 
 	return number;

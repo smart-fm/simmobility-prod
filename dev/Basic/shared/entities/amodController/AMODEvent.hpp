@@ -10,7 +10,7 @@
 #include "event/args/EventArgs.hpp"
 #include "event/EventPublisher.hpp"
 #include "geospatial/Node.hpp"
-#include "geospatial/streetdir/WayPoint.hpp"
+#include "geospatial/WayPoint.hpp"
 #include <vector>
 namespace sim_mob {
 

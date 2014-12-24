@@ -26,12 +26,12 @@
 #include "entities/roles/Role.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
 #include "geospatial/Link.hpp"
-#include "geospatial/PathSetManager.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/UniNode.hpp"
 #include "logging/Log.hpp"
 #include "metrics/Frame.hpp"
+#include "path/PathSetManager.hpp"
 #include "workers/Worker.hpp"
 
 using namespace std;

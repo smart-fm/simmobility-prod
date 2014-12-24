@@ -20,8 +20,8 @@
 #include "entities/Person.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventPublisher.hpp"
-#include "geospatial/PathSetManager.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "path/PathSetManager.hpp"
 
 namespace sim_mob {
 class Person;

@@ -18,8 +18,8 @@
 #include "entities/UpdateParams.hpp"
 #include "entities/roles/driver/models/LaneChangeModel.hpp"
 #include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
-#include "geospatial/PathSetManager.hpp"
 #include "logging/Log.hpp"
+#include "path/PathSetManager.hpp"
 
 namespace {
 	// default bus length cm to be displayed on visualizer

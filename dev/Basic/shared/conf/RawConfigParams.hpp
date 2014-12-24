@@ -68,7 +68,7 @@ struct LongTermParams{
 
 struct PathSetConf
 {
-	PathSetParams():enabled(false), database(""), credentials(""), pathSetTableName(""), singlePathTableName(""), dbFunction("") {}
+	PathSetConf():enabled(false), database(""), credentials(""), singlePathTableName(""), RTTT_Conf(""), DTT_Conf(""), dbFunction("") {}
 	bool enabled;
 	std::string database;
 	std::string credentials;

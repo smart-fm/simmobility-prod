@@ -15,6 +15,7 @@
 #include "database/dao/HouseholdDao.hpp"
 #include "database/dao/UnitDao.hpp"
 #include "database/dao/IndividualDao.hpp"
+#include "database/dao/AwakeningDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -107,7 +108,7 @@ double HM_Model::TazStats::getHH_AvgIncome() const
 	return hhTotalIncome / static_cast<double>((hhNum == 0) ? 1 : hhNum);
 }
 
-HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0) {}
+HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0) {}
 
 HM_Model::~HM_Model()
 {
@@ -153,6 +154,18 @@ Household* HM_Model::getHouseholdById(BigSerial id) const
 	return nullptr;
 }
 
+Awakening* HM_Model::getAwakeningById( BigSerial id) const
+{
+	AwakeningMap::const_iterator itr = awakeningById.find(id);
+
+	if( itr != awakeningById.end())
+	{
+		return (*itr).second;
+	}
+
+	return nullptr;
+}
+
 const Unit* HM_Model::getUnitById(BigSerial id) const
 {
 	UnitMap::const_iterator itr = unitsById.find(id);
@@ -190,6 +203,17 @@ HousingMarket* HM_Model::getMarket()
 {
 	return &market;
 }
+
+void HM_Model::incrementAwakeningCounter()
+{
+	initialHHAwakeningCounter++;
+}
+
+int HM_Model::getAwakeningCounter() const
+{
+	return initialHHAwakeningCounter;
+}
+
 
 const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 {
@@ -233,6 +257,11 @@ void HM_Model::startImpl()
 		//load individuals
 		loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
 		PrintOut("Initial Individuals: " << individuals.size() << std::endl);
+
+		loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
+		PrintOut("Awakening probability: " << awakening.size() << std::endl );
+
+
 
 		if (numUnits != -1 && numUnits < units.size())
 		{

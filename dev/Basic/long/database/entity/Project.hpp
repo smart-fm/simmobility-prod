@@ -9,14 +9,17 @@
 #include <ctime>
 #include "Types.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
-    namespace long_term {
+    namespace long_term
+    {
 
     /*
      * Project plain object
      */
-    	class Project{
+    	class Project
+    	{
     	public:
     		Project(BigSerial projectId = INVALID_ID,
     		    				BigSerial parcelId = INVALID_ID,
@@ -29,13 +32,13 @@ namespace sim_mob {
     		    				double demolitionCost = .0f,
     		    				double totalCost = .0f,
     		    				double area = .0f,
-    		    				double grossRatio = .0f,
+    		    				std::string grossRatio = EMPTY_STR,
     		    				double grossArea = .0f)	;
     		virtual ~Project();
 
 
-	double getArea();
-	void setArea(double area);
+	double getLotSize();
+	void setLotSize(double LotSize);
 	std::tm getCompletionDate();
 	void setCompletionDate(std::tm completionDate);
 	double getConstructionCost();
@@ -48,7 +51,7 @@ namespace sim_mob {
 	void setDeveloperId(BigSerial developerId);
 	double getGrossArea();
 	void setGrossArea(double grossArea);
-	double getGrossRatio();
+	std::string getGrossRatio();
 	void setGrossRatio(double grossRatio);
 	BigSerial getParcelId();
 	void setParcelId(BigSerial parcelId);
@@ -63,9 +66,10 @@ namespace sim_mob {
 	/* Operator to print the Parcel Match data.*/
 	friend std::ostream& operator<<(std::ostream& strm, const Project& data);
 
-    	private:
-    	            friend class ProjectDao;
-    	private:
+
+
+    private:
+	friend class ProjectDao;
     		BigSerial projectId;
     		BigSerial parcelId;
     		BigSerial developerId;
@@ -76,9 +80,9 @@ namespace sim_mob {
     		double constructionCost;
     		double demolitionCost;
     		double totalCost;
-    		double area;
-    		double grossRatio;
+    		std::string grossRatio;
     		double grossArea;
+    		double lotSize;
 
     	};
 

@@ -180,7 +180,7 @@ public:
 	std::set<sim_mob::SegmentStats*>& getSegmentStatsWithBusStops();
 
 	bool PathSetMode() const;
-	const PathSetParams & pathSet() const;
+	const PathSetConf & pathSet() const;
 
 	bool CBD() const;
 	
@@ -301,7 +301,10 @@ public:
 
 	DailyTime& simStartTime();
 	const DailyTime& simStartTime() const;
-	const std::string& getTravelTimeTableName() const;
+	///	get realtime travel time table name for route choice model
+	const std::string& getRTTT() const;
+	///	get default travel time table name for route choice model
+	const std::string& getDTT() const;
 
 	//This one's slightly tricky, as it's in generic_props
 	std::string busline_control_type() const;

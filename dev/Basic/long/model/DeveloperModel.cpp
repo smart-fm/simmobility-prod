@@ -134,9 +134,12 @@ Parcel* DeveloperModel::getParcelById(BigSerial id) const {
     return nullptr;
 }
 
-SlaParcel* DeveloperModel::getSlaParcelById(BigSerial id) const {
+SlaParcel* DeveloperModel::getSlaParcelById(std::string id) const
+{
     SlaParcelMap::const_iterator itr = slaParcelById.find(id);
-    if (itr != slaParcelById.end()) {
+
+    if (itr != slaParcelById.end())
+    {
         return itr->second;
     }
     return nullptr;
@@ -158,10 +161,13 @@ const DeveloperModel::TemplateUnitTypeList& DeveloperModel::getTemplateUnitType(
     return templateUnitTypes;
 }
 
-BigSerial DeveloperModel::getSlaParcelIdByFmParcelId(BigSerial fmParcelId) const {
+std::string DeveloperModel::getSlaParcelIdByFmParcelId(BigSerial fmParcelId) const
+{
 
 	ParcelMatchMap::const_iterator itr = parcelMatchesMap.find(fmParcelId);
-	if(itr != parcelMatchesMap.end()){
+
+	if(itr != parcelMatchesMap.end())
+	{
 		return itr->second->getSlaParcelId(fmParcelId);
 	}
 	return 0;
@@ -216,12 +222,12 @@ void DeveloperModel::processParcels()
 	            		}
 	            		else
 	            		{
-	            			BigSerial slaParcelId = getSlaParcelIdByFmParcelId(parcel->getId());
+	            			std::string slaParcelId = getSlaParcelIdByFmParcelId(parcel->getId());
 	            			SlaParcel *slaParcel = getSlaParcelById(slaParcelId);
 	            			const LandUseZone* zone = getZoneById(slaParcel->getLandUseZoneId());
 
 //TODO:: consider the use_restriction field of parcel as well in the future
-	            			if (parcel->getGpr() <= zone->getGPR())
+	            			if (std::atof(parcel->getGpr().c_str()) <= std::atof(zone->getGPR().c_str()))
 	            			{
 
 	            				developmentCandidateParcelList.push_back(parcel);

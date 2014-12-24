@@ -21,7 +21,7 @@
 #include "geospatial/Link.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/Node.hpp"
-#include "geospatial/PathSetManager.hpp"
+#include "path/PathSetManager.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadRunnerRegion.hpp"
 #include "geospatial/RoadSegment.hpp"

@@ -442,9 +442,7 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	double end = nextLoadStart + DEFAULT_LOAD_INTERVAL;
 	query << "select * from " << storedProcName << "(" << nextLoadStart << "," << end << ")";
 	std::string sql_str = query.str();
-	std::cout << "loadActivitySchedules Query[" << sql_str << "]" << std::endl;
 	soci::rowset<soci::row> rs = (sql_.prepare << sql_str);
-	std::cout << "loadActivitySchedules Query returned" << std::endl;
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	unsigned actCtr = 0;
 	map<string, vector<TripChainItem*> > tripchains;
@@ -481,7 +479,6 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 
 void sim_mob::PeriodicPersonLoader::addOrStashPerson(Person* p)
 {
-	Print() << "person: " << p->getId() << " | start_time: " << p->getStartTime() << std::endl;
 	//Only agents with a start time of zero should start immediately in the all_agents list.
 	if (p->getStartTime()==0)
 	{

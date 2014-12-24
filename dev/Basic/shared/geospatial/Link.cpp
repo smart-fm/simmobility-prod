@@ -57,8 +57,8 @@ RoadSegment* findSegment(const set<RoadSegment*>& segments, const Node* const st
 }
 
 
-bool buildLinkList(set<RoadSegment*> segments, vector<RoadSegment*>& res,
-		set<RoadSegment*>& usedSegments, const Node* start, const Node* end)
+bool buildLinkList(const set<RoadSegment*>& segments, vector<RoadSegment*>& res, set<RoadSegment*>& usedSegments,
+		const Node* start, const Node* end)
 {
 	const Node* prev = nullptr;
 	const Node* fwd = start;
@@ -69,7 +69,6 @@ bool buildLinkList(set<RoadSegment*> segments, vector<RoadSegment*>& res,
 		if (!nextSeg)
 		{
 			Print() << "Could not find a segment enclosed by nodes ";
-					//<< fwd->getID() << " and " << prev->getID() << std::endl;
 			return false;
 		}
 		//Add it, track it, increment
@@ -97,7 +96,7 @@ bool buildLinkList(set<RoadSegment*> segments, vector<RoadSegment*>& res,
 void sim_mob::Link::initializeLinkSegments(const std::set<sim_mob::RoadSegment*>& newSegs)
 {
 	//We build in two directions; forward and backwards. We also maintain a list of which
-	// road segments are used, to catch cases where RoadSegments are skipped.
+	//road segments are used, to catch cases where RoadSegments are skipped.
 	set<RoadSegment*> usedSegments;
 	bool res1 = buildLinkList(newSegs, this->segs, usedSegments, start, end);
 

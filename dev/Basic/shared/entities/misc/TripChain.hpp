@@ -8,7 +8,7 @@
 #include <string>
 #include <string>
 
-#include "geospatial/streetdir/WayPoint.hpp"
+#include "geospatial/WayPoint.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
 #include "util/OneTimeFlag.hpp"

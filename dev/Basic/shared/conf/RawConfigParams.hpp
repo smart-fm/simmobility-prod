@@ -66,18 +66,17 @@ struct LongTermParams{
 	} housingModel;
 };
 
-struct PathSetParams
+struct PathSetConf
 {
 	PathSetParams():enabled(false), database(""), credentials(""), pathSetTableName(""), singlePathTableName(""), dbFunction("") {}
 	bool enabled;
 	std::string database;
 	std::string credentials;
-	std::string pathSetTableName;
 	std::string singlePathTableName;
+	std::string RTTT_Conf;//realtime travel time table name
+	std::string DTT_Conf;//default travel time table name
 	std::string dbFunction;
-	void setDefaultEnabled(bool value = false){
-		enabled = value;
-	}
+	int interval; //travel time recording iterval
 };
 
 ///represent the incident data section of the config file
@@ -186,7 +185,7 @@ public:
 	unsigned int totalWarmupMS;    ///<Total time (in milliseconds) considered "warmup".
 
 	DailyTime simStartTime; ///<When the simulation begins(based on configuration)
-	std::string travelTimeTableName;
+
 	AuraManager::AuraManagerImplementation auraManagerImplementation; ///<What type of Aura Manager we're using.
 
 	WorkGroup::ASSIGNMENT_STRATEGY workGroupAssigmentStrategy;  ///<Defautl assignment strategy for Workgroups.
@@ -312,7 +311,7 @@ public:
 	LongTermParams ltParams;
 
 	///Settings used for generation/retrieval of paths
-	PathSetParams pathset;
+	PathSetConf pathset;
 
 	bool cbd;
 

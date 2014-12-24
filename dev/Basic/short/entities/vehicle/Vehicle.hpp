@@ -22,7 +22,7 @@
 #include "entities/models/Constants.h"
 #include "geospatial/Lane.hpp"
 #include "entities/roles/driver/GeneralPathMover.hpp"
-#include "geospatial/streetdir/WayPoint.hpp"
+#include "geospatial/WayPoint.hpp"
 #include "util/MovementVector.hpp"
 #include "util/DynamicVector.hpp"
 

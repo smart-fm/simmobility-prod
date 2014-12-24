@@ -90,8 +90,72 @@ bool HouseholdAgent::onFrameInit(timeslice now)
     return true;
 }
 
+void HouseholdAgent::awakenHousehold()
+{
+	if( model->getAwakeningCounter() > 10000 )
+		return;
+
+	if(household == nullptr)
+		return;
+
+	Awakening *awakening = model->getAwakeningById( household->getId() );
+
+	if( awakening == nullptr || bidder == nullptr || seller == nullptr )
+		return;
+
+	float class1 = awakening->getClass1();
+	float class2 = awakening->getClass2();
+	float class3 = awakening->getClass3();
+	float awaken_class1 = awakening->getAwakenClass1();
+	float awaken_class2 = awakening->getAwakenClass2();
+	float awaken_class3 = awakening->getAwakenClass3();
+
+	float r1 = (float)rand() / RAND_MAX;
+	int lifestyle = 1;
+
+	if( r1 > class1 && r1 <= class1 + class2 )
+	{
+		lifestyle = 2;
+	}
+	else if( r1 > class1 + class2 )
+	{
+		lifestyle = 3;
+	}
+
+	float r2 = (float)rand() / RAND_MAX;
+
+	if( lifestyle == 1 && r2 < awaken_class1)
+	{
+		bidder->setActive(true);
+		seller->setActive(true);
+
+		model->incrementAwakeningCounter();
+	}
+	else
+	if( lifestyle == 2 && r2 < awaken_class2)
+	{
+		bidder->setActive(true);
+		seller->setActive(true);
+		model->incrementAwakeningCounter();
+	}
+	else
+	if( lifestyle == 3 && r2 < awaken_class3)
+	{
+		bidder->setActive(true);
+		seller->setActive(true);
+		model->incrementAwakeningCounter();
+	}
+}
+
 Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 {
+
+	if( now.frame() == 1 )
+	{
+		awakenHousehold();
+	}
+
+
     if (bidder && bidder->isActive())
     {
         bidder->update(now);

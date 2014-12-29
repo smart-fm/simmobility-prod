@@ -108,7 +108,9 @@ sim_mob::BasicLogger::~BasicLogger(){
 			*this << it->first << ": [totalTime AddUp : " << it->second.getAddUpTime().count() << "],[total accumulator : " << it->second.getAddUp() << "]  total object lifetime : " <<  lifeTime.count() << "\n";
 		}
 	}
-
+	if(id == "real_time_travel_time"){
+		std::cout << "~BasicLogger() " << id << std::endl;
+	}
 	flush();
 	if (logFile.is_open()) {
 		logFile.close();
@@ -121,23 +123,14 @@ std::stringstream * sim_mob::BasicLogger::getOut(bool renew){
 	std::stringstream *res = nullptr;
 	outIt it;
 	boost::thread::id id = boost::this_thread::get_id();
-//	//debugging only
-//	{
-//		std::map <boost::thread::id, int>::iterator it_thr = threads.find(id);
-//		if(it_thr != threads.end())
-//		{
-//			threads.at(id) ++;
-//			ii++;
-//		}
-//		else
-//		{
-//			std::cerr << "WARNING : thread[" << id << "] not registered\n";
-//		}
-//	}
 	if((it = out.find(id)) == out.end()){
 		boost::upgrade_to_unique_lock<boost::shared_mutex> lock2(lock);
 		res = new std::stringstream();
 		out.insert(std::make_pair(id, res));
+		if(this->id == std::string("realtime_travel_time"))
+		{
+			std::cout << "realtime_travel_time buffer new size = " << out.size() << std::endl;
+		}
 	}
 	else
 	{
@@ -146,7 +139,6 @@ std::stringstream * sim_mob::BasicLogger::getOut(bool renew){
 		if (renew)
 		{
 			res = it->second = new std::stringstream();			
-			//std::cout << "renewing out= " << it->second << "  " << res << std::endl;
 		}
 	}
 	return res;
@@ -181,14 +173,17 @@ void  sim_mob::BasicLogger::initLogFile(const std::string& path)
 
 void sim_mob::BasicLogger::flushLog(std::stringstream &out)
 {
+	if(id == "real_time_travel_time"){
+		std::cout << "sim_mob::BasicLogger::flushLog" << std::endl;
+	}
 	if ((logFile.is_open() && logFile.good()))
 	{
 		{
 			boost::unique_lock<boost::mutex> lock(flushMutex);
 			logFile << out.str();
 			logFile.flush();
-			out.str(std::string());
 		}
+			out.str(std::string());
 	}
 	else
 	{
@@ -249,12 +244,23 @@ void sim_mob::QueuedLogger::flushLog()
 
 void sim_mob::BasicLogger::flush()
 {
+	if(id == "real_time_travel_time"){
+		std::cout << "flush()  " << id << std::endl;
+	}
 	if (logFile.is_open()) {
 		outIt it = out.begin();
+		if(it== out.end())
+		{
+			std::cout << "flush()  missing buffer   " << id << std::endl;
+		}
 		for(; it!= out.end(); it++)
 		{
 			flushLog(*(it->second));
 		}
+	}
+	else
+	{
+		std::cout << "flush()  logFile not open   " << id << std::endl;
 	}
 }
 
@@ -275,11 +281,11 @@ sim_mob::BasicLogger & sim_mob::Logger::operator()(const std::string &key)
 {
 	std::map<std::string, boost::shared_ptr<sim_mob::BasicLogger> >::iterator it = repo.find(key);
 	if(it == repo.end()){
-		std::cout << "creating a new Logger for " << key << std::endl;
 		boost::shared_ptr<sim_mob::BasicLogger> t(new sim_mob::LogEngine(key));
-		std::map<const std::string, boost::shared_ptr<sim_mob::BasicLogger> > repo_;
-		repo_.insert(std::make_pair(key,t));
 		repo.insert(std::make_pair(key,t));
+		if(key == "real_time_travel_time"){
+			std::cout << "creating "  << repo.size() << "th Logger for " << key << std::endl;
+		}
 		return *t;
 	}
 	return *it->second;

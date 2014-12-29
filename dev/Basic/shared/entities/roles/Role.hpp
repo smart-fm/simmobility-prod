@@ -18,6 +18,7 @@
 #include "logging/Log.hpp"
 #include "DriverRequestParams.hpp"
 #include "RoleFacets.hpp"
+#include <boost/assign/list_of.hpp> // for 'map_list_of()'
 
 namespace sim_mob {
 
@@ -73,7 +74,22 @@ public:
 		RL_ACTIVITY,
 		RL_PASSENGER,
 		RL_WAITBUSACTITITY
+		//add an entry to roleMap too
 	};
+
+	const std::map<type, std::string> roleMap;
+	std::map<type, std::string> getRoleMap(){
+		 return boost::assign::map_list_of
+					(RL_UNKNOWN,"RL_UNKNOWN")
+					(RL_DRIVER,"RL_DRIVER")
+					(RL_BIKER,"RL_BIKER")
+					(RL_PEDESTRIAN,"RL_PEDESTRIAN")
+					(RL_BUSDRIVER,"RL_BUSDRIVER")
+					(RL_ACTIVITY,"RL_ACTIVITY")
+					(RL_PASSENGER,"RL_PASSENGER")
+					(RL_WAITBUSACTITITY,"RL_WAITBUSACTITITY");
+	}
+
 
 	//todo: use this to identify the type of request
 	enum request
@@ -93,7 +109,7 @@ public:
 			Role::type roleType_ = RL_UNKNOWN) :
 		parent(parent), currResource(nullptr), name(roleName),
 		roleType(roleType_), behaviorFacet(nullptr), movementFacet(nullptr),
-		dynamic_seed(0)
+		dynamic_seed(0),roleMap(getRoleMap())
 	{
 		//todo consider putting a runtime error for empty or zero length rolename
 	}
@@ -105,7 +121,7 @@ public:
 			Role::type roleType_ = RL_UNKNOWN) :
 		parent(parent), currResource(nullptr),name(roleName),
 		roleType(roleType_), behaviorFacet(behavior), movementFacet(movement),
-		dynamic_seed(0)
+		dynamic_seed(0),roleMap(getRoleMap())
 	{
 		//todo consider putting a runtime error for empty or zero length rolename
 	}

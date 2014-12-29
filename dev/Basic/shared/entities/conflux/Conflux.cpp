@@ -1228,63 +1228,57 @@ void sim_mob::Conflux::topCMergeDifferentLinksInConflux(std::deque<sim_mob::Pers
 		}
 	}
 }
-
-void sim_mob::Conflux::addRdSegTravelTimes(Person* person, double rdSegExitTime) {
-
-	std::map<double, Person::RdSegTravelStat>::const_iterator itTS;
-	itTS = person->getRdSegTravelStatsMap().find(rdSegExitTime);
-	if (itTS != person->getRdSegTravelStatsMap().end()){
-		//(exit time) - (entry time)
-		double travelTime = (itTS->first) - (itTS->second).entryTime;
-		std::map<const RoadSegment*, RdSegTravelTimes>::iterator itTT = rdSegTravelTimesMap.find((itTS->second).rs);
-		if (itTT != rdSegTravelTimesMap.end())
-		{
-			itTT->second.agCnt ++;
-			itTT->second.travelTimeSum +=  travelTime;
-		}
-		else{
-			RdSegTravelTimes tTimes(travelTime, 1);
-			rdSegTravelTimesMap.insert(std::make_pair(person->getCurrSegStats()->getRoadSegment(), tTimes));
-		}
-	}
-}
-
-void sim_mob::Conflux::resetRdSegTravelTimes() {
-	rdSegTravelTimesMap.clear();
-}
-
-void sim_mob::Conflux::reportRdSegTravelTimes(timeslice frameNumber) {
-	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
-		std::map<const RoadSegment*, RdSegTravelTimes>::const_iterator it = rdSegTravelTimesMap.begin();
-		for( ; it != rdSegTravelTimesMap.end(); ++it ) {
-			LogOut("(\"rdSegTravelTime\""
-				<<","<<frameNumber.frame()
-				<<","<<it->first
-				<<",{"
-				<<"\"travelTime\":\""<< (it->second.travelTimeSum)/(it->second.agCnt)
-				<<"\"})"<<std::endl);
-		}
-	}
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		insertTravelTime2TmpTable(frameNumber, rdSegTravelTimesMap);
-	}
-}
-
-bool sim_mob::Conflux::insertTravelTime2TmpTable(timeslice frameNumber, std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>& rdSegTravelTimesMap)
-{
-	bool res=false;
-	//sim_mob::Link_travel_time& data
-	std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>::const_iterator it = rdSegTravelTimesMap.begin();
-	for (; it != rdSegTravelTimesMap.end(); it++){
-		LinkTravelTime tt;
-		const DailyTime &simStart = ConfigManager::GetInstance().FullConfig().simStartTime();
-		tt.linkId = (*it).first->getId();
-		tt.recordTime_DT = simStart + sim_mob::DailyTime(frameNumber.ms());
-		tt.travelTime = (*it).second.travelTimeSum/(*it).second.agCnt;
-		PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
-	}
-	return res;
-}
+//
+//void sim_mob::Conflux::addRdSegTravelTimes(Agent::RdSegTravelStat & stats, Person* person) {
+//
+//	ProcessTT::TR &timeRange = ProcessTT::getTR(stats.entryTime);
+//	std::map<ProcessTT::TR,ProcessTT::TT>::iterator itTT = rdSegTravelTimesMap.find(timeRange);
+//	ProcessTT::TT & travelTimeInfo = (itTT == rdSegTravelTimesMap.end() ? rdSegTravelTimesMap[timeRange] : itTT->second);
+//	//initialization just in case
+//	if(itTT == rdSegTravelTimesMap.end()){
+//		travelTimeInfo[stats.rs].first = 0.0;
+//		travelTimeInfo[stats.rs].second = 0;
+//	}
+//	travelTimeInfo[stats.rs].first += stats.travelTime; //add to total travel time
+//	rdSegTravelTimesMap[timeRange][stats.rs].second ++; //increment the total contribution
+//}
+//
+//void sim_mob::Conflux::resetRdSegTravelTimes() {
+//	rdSegTravelTimesMap.clear();
+//}
+//
+//void sim_mob::Conflux::reportRdSegTravelTimes(timeslice frameNumber) {
+//	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
+//		std::map<const RoadSegment*, RdSegTravelTimes>::const_iterator it = rdSegTravelTimesMap.begin();
+//		for( ; it != rdSegTravelTimesMap.end(); ++it ) {
+//			LogOut("(\"rdSegTravelTime\""
+//				<<","<<frameNumber.frame()
+//				<<","<<it->first
+//				<<",{"
+//				<<"\"travelTime\":\""<< (it->second.travelTimeSum)/(it->second.agCnt)
+//				<<"\"})"<<std::endl);
+//		}
+//	}
+////	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+////		insertTravelTime2TmpTable(frameNumber, rdSegTravelTimesMap);
+////	}
+//}
+//
+//bool sim_mob::Conflux::insertTravelTime2TmpTable(timeslice frameNumber, std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>& rdSegTravelTimesMap)
+//{
+////	bool res=false;
+////	//sim_mob::Link_travel_time& data
+////	std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>::const_iterator it = rdSegTravelTimesMap.begin();
+////	for (; it != rdSegTravelTimesMap.end(); it++){
+////		LinkTravelTime tt;
+////		const DailyTime &simStart = ConfigManager::GetInstance().FullConfig().simStartTime();
+////		tt.linkId = (*it).first->getId();
+////		tt.recordTime_DT = simStart + sim_mob::DailyTime(frameNumber.ms());
+////		tt.travelTime = (*it).second.travelTimeSum/(*it).second.agCnt;
+////		PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
+////	}
+////	return res;
+//}
 
 void sim_mob::Conflux::findBoundaryConfluxes() {
 
@@ -1450,3 +1444,5 @@ void sim_mob::Conflux::removeIncident(sim_mob::SegmentStats* segStats) {
 
 sim_mob::InsertIncidentMessage::InsertIncidentMessage(const std::vector<sim_mob::SegmentStats*>& stats, double newFlowRate):stats(stats), newFlowRate(newFlowRate){;}
 sim_mob::InsertIncidentMessage::~InsertIncidentMessage() {}
+
+

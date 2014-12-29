@@ -265,10 +265,10 @@ void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
 			(*it)->updateAndReportSupplyStats(currTime);
 			(*it)->reportLinkTravelTimes(currTime);
 			(*it)->resetLinkTravelTimes(currTime);
-			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-				(*it)->reportRdSegTravelTimes(currTime);
-				(*it)->resetRdSegTravelTimes();
-			}
+//			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+//				(*it)->reportRdSegTravelTimes(currTime);
+//				(*it)->resetRdSegTravelTimes();
+//			}
 			(*it)->resetSegmentFlows();
 			//vqCount += (*it)->resetOutputBounds();
 		}

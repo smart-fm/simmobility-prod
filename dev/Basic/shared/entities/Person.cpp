@@ -1284,7 +1284,7 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
 			 TravelMetric::getTimeDiffHours(subtripMetrics.endTime, subtripMetrics.startTime)  << ","
 			 "0,0" << "," << //placeholder for paublic transit's waiting time and walk time
 			 restrictedRegion.str() << "\n";
-	 csv << res.str();
+//	 csv << res.str();
 	 std::cout << res.str();
  }
 

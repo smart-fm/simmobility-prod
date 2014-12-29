@@ -91,7 +91,7 @@ public:
 	static void LoadDefaultTravelTimeData(soci::session& sql, std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& link_default_travel_time_pool);
 	static bool LoadRealTimeTravelTimeData(soci::session& sql,std::string& table_name, std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& link_realtime_travel_time_pool);
 	static bool storeSinglePath(soci::session& sql,
-					std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& pathPool,const std::string singlePathTableName);
+					std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& pathPool,const std::string pathSetTableName);
 	///For partial network loading.
 	static std::map<std::string, std::vector<sim_mob::TripChainItem*> > LoadTripChainsFromNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs);
 	/// get CBD's border information

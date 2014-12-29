@@ -227,6 +227,7 @@ public:
 	static std::map <boost::thread::id, int> threads;
 	static unsigned long int ii;
 	static int flushCnt;
+	int dbgOutCnt(){ return out.size();}
 };
 
 /**********************************

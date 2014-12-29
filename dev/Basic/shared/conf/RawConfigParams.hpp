@@ -64,7 +64,7 @@ struct PathSetConf
 	bool enabled;
 	std::string database;
 	std::string credentials;
-	std::string singlePathTableName;
+	std::string pathSetTableName;
 	std::string RTTT_Conf;//realtime travel time table name
 	std::string DTT_Conf;//default travel time table name
 	std::string dbFunction;

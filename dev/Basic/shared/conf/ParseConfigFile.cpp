@@ -571,7 +571,7 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 	}
 	else
 	{
-		cfg.pathset.singlePathTableName = ParseString(GetNamedAttributeValue(tableNode, "singlepath_table"), "");
+		cfg.pathset.pathSetTableName = ParseString(GetNamedAttributeValue(tableNode, "singlepath_table"), "");
 		cfg.pathset.RTTT_Conf  = ParseString(GetNamedAttributeValue(tableNode, "realtime_traveltime"), "");
 		cfg.pathset.DTT_Conf  = ParseString(GetNamedAttributeValue(tableNode, "default_traveltime"), "");
 	}
@@ -605,7 +605,7 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 	{
 		out << "single path's data base credentials, ";
 	}
-	if(cfg.pathset.singlePathTableName == "")
+	if(cfg.pathset.pathSetTableName == "")
 	{
 		out << "single path's table name, ";
 	}

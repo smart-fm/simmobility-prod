@@ -75,6 +75,79 @@ public:
 	}
 };
 
+/**
+ * ProcessTT is a small helper class to process Real Time Travel Time at RoadSegment Level.
+ * PathSetManager receives Real Time Travel Time and delegates
+ * the processing task to this class.
+ * This class aggregates the data received within different
+ * time ranges and writes them to a file.
+ */
+class ProcessTT
+{
+	const int interval;
+	/**
+	 * travel times : map<travel_mode , map<road segment, pair<total travel times, number of travel times> >
+	 */
+
+	struct TimeAndCount
+	{
+		//total travel time
+		double totalTravelTime;
+		//number of travel times
+		int travelTimeCnt;
+		TimeAndCount():totalTravelTime(0.0),travelTimeCnt(0){}
+	};
+	typedef std::map<std::string , std::map<const sim_mob::RoadSegment*,TimeAndCount > >  TT;
+	/**
+	 * time interval : from (TI) to (TI + interval)
+	 */
+	typedef unsigned int TI;
+
+	/**
+	 *	container to stor road segment travel times at different time intervals
+	 */
+	std::map<TI,TT> rdSegTravelTimesMap;
+
+	/**
+	 * Logger responsible for dumping travel time collections
+	 * into a temporary file
+	 */
+//	sim_mob::BasicLogger & csv;
+	/**
+	 * returns the container for accumulating/aggregating
+	 * the current travel time recordings
+	 * @param recordTime time of recording this travel time
+	 * @return the iterator for the current entry where the current recordings should be sent to
+	 */
+	std::map<TI,TT >::iterator & getCurrRTTT(const DailyTime & time);
+
+	/**
+	 * get corresponding TI (Time interval) give a time of day
+	 * @param recordTime a time within the day (usually segment entry time)
+	 * @return Time interval corresponding the give time
+	 */
+	ProcessTT::TI getTR(const double & time);
+
+public:
+	static int dbg_ProcessTT_cnt;
+	ProcessTT();
+	~ProcessTT();
+	/*
+	 * Aggregates Travel Time data
+	 */
+	void addTravelTime(const Agent::RdSegTravelStat & stats, const Person* person);
+
+	/**
+	 * Writes the aggregated data into the file
+	 */
+	void insertTravelTime2TmpTable(const std::string fileName);
+
+	/**
+	 * Write the temporary file into Database
+	 */
+	bool copyTravelTimeDataFromTmp2RealtimeTable();
+};
+
 ///	Debug Method to print WayPoint based paths
 std::string printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node* startingNode = 0);
 
@@ -95,7 +168,7 @@ public:
 	void getDataFromDB();
 
 	///	insert an entry into singlepath table in the database
-	void storeSinglePath(soci::session& sql,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string singlePathTableName);
+	void storeSinglePath(soci::session& sql,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string pathSetTableName);
 
 	///	insert an entry into pathset table in the database
 //	void storePathSet(soci::session& sql,std::map<std::string,boost::shared_ptr<sim_mob::PathSet> >& psPool,const std::string pathSetTableName);
@@ -235,48 +308,6 @@ public:
 	sim_mob::DailyTime startTime_DT;
 	sim_mob::DailyTime endTime_DT;
 	OpaqueProperty<int> originalSectionDB_ID;
-	/*
-	 * filled during data generation
-	 */
-	///	time of recording the realtime travel time
-	sim_mob::DailyTime recordTime_DT;
-};
-
-/**
- * ProcessTT is a small helper class to process Real Time Travel Time
- * PathSetManager receives Real Time Travel Time and delegates
- * the processing task to this class.
- * This class aggregates the data received within different
- * time ranges and writes them to a file.
- */
-class ProcessTT
-{
-	const int interval;
-	typedef std::map<int,std::pair<double,int> > TT;//travel times : <segment id, pair<total travel times, number of travel times> >
-	typedef unsigned int TR;//time range : from (TR - interval) to TR
-	std::map<TR,TT> RTTT_Map; //real time travel times : map<'time range' , travel times> .
-	std::map<TR,TT>::iterator currRTTT; //< current upper limit of the time range, <segment id, travel time> >
-	/**
-	 * returns the container for accumulating/aggregating
-	 * the current travel time recordings
-	 * @param recordTime time of recording this travel time
-	 * @return the iterator for the current entry where the current recordings should be sent to
-	 */
-	std::map<TR,TT >::iterator & getCurrRTTT(const DailyTime & recordTime);
-	/**
-	 * overload of its public version, this method
-	 * Writes the aggregated data into the file
-	 */
-	bool insertTravelTime2TmpTable(std::map<TR,TT >::iterator it);
-public:
-	static int dbg_ProcessTT_cnt;
-	ProcessTT();
-	~ProcessTT();
-	/*
-	 * Aggregates Travel Time data
-	 * and periodically writes them into a temporary file
-	 */
-	bool insertTravelTime2TmpTable(sim_mob::LinkTravelTime& data);
 };
 
 enum TRIP_PURPOSE
@@ -385,10 +416,8 @@ public:
 
 	///	calculate travel time of a path
 	static double getTravelTime(sim_mob::SinglePath *sp,sim_mob::DailyTime startTime);
-
-	bool insertTravelTime2TmpTable(sim_mob::LinkTravelTime& data);
-
-	bool copyTravelTimeDataFromTmp2RealtimeTable();
+	///	record the travel time reported by agents
+	void addRdSegTravelTimes(const Agent::RdSegTravelStat & stats, const Person* person);
 
 	void setScenarioName(std::string& name){ scenarioName = name; }
 
@@ -400,12 +429,22 @@ public:
 	///insert into incident list
 	void inserIncidentList(const sim_mob::RoadSegment*);
 
-	///	get the database session used for this thread
+	/**
+	 * get the database session used for this thread
+	 */
 	static const boost::shared_ptr<soci::session> & getSession();
+
+	/**
+	 * get the thread specific container of travel time records
+	 */
+	void copyTravelTimeDataFromTmp2RealtimeTable();
+
 	///basically delete all the dynamically allocated memories, in addition to some more cleanups
 	void clearSinglePaths(boost::shared_ptr<sim_mob::PathSet> &ps);
+
 	///cache the generated pathset. returns true upon successful insertion
 	bool cachePathSet(boost::shared_ptr<sim_mob::PathSet> &ps);
+
 	/**
 	 * searches for a pathset in the cache.
 	 * @param key indicates the input key
@@ -476,13 +515,16 @@ private:
 //	const std::string &pathSetTableName;
 
 	///	stores the name of database's singlepath table//todo:doublecheck the usability
-	const std::string &singlePathTableName;
+	const std::string &pathSetTableName;
 
 	///	stores the name of database's function operating on the pathset and singlepath tables
 	const std::string &dbFunction;
 
 	///every thread which invokes db related parts of pathset manages, should have its own connection to the database
 	static std::map<boost::thread::id, boost::shared_ptr<soci::session > > cnnRepo;
+
+	///	Travel time processing
+	ProcessTT processTT;
 
 	///	static sim_mob::Logger profiler;
 	static boost::shared_ptr<sim_mob::batched::ThreadPool> threadpool_;
@@ -501,9 +543,22 @@ private:
 
 	///a cache to help answer this question: a given road segment is within which path(s)
 	SGPER pathSegments;
+/////////////////////////////travel time todo cleanup
+	//=======road segment travel time computation for current frame tick =================
+	struct RdSegTravelTimes
+	{
+	public:
+		double travelTimeSum;
+		unsigned int agCnt;
 
-	///	process the realtime travel time submitted to pathset manager
-	ProcessTT processTT;
+		RdSegTravelTimes(double rdSegTravelTime, unsigned int agentCount)
+		: travelTimeSum(rdSegTravelTime), agCnt(agentCount) {}
+	};
+
+	void resetRdSegTravelTimes();
+	void reportRdSegTravelTimes(timeslice frameNumber);
+	bool insertTravelTime2TmpTable(timeslice frameNumber,
+			std::map<const RoadSegment*, RdSegTravelTimes>& rdSegTravelTimesMap);
 
 };
 /*****************************************************
@@ -867,6 +922,8 @@ inline float gen_random_float(float min, float max)
     boost::variate_generator<boost::mt19937&, boost::uniform_real<float> > gen(rng, u);
     return gen();
 }
+
+
 
 
 }//namespace

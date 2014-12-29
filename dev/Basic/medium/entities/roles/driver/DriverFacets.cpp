@@ -828,6 +828,8 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
 		setLastAccept(currLane, actualT, currSegStats);
 		setParentData(params);
 		getParent()->canMoveToNextSegment = Person::NONE;
+		// segment travel time related line(s)
+		getParent()->startCurrRdSegTravelStat(currSegStats->getRoadSegment(), actualT);
 	}
 	else
 	{
@@ -942,12 +944,14 @@ void DriverMovement::updateLinkTravelTimes(const sim_mob::SegmentStats* prevSegS
 void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat, double segEnterExitTime){
 	//if prevSeg is already in travelStats, update it's rdSegTT and add to rdSegTravelStatsMap
 	const RoadSegment* prevSeg= prevSegStat->getRoadSegment();
-	if(prevSeg == getParent()->getRdSegTravelStats().rs){
-		getParent()->addRdSegTravelStat(segEnterExitTime, getParent()->getRdSegTravelStats()); //in seconds
-		prevSeg->getParentConflux()->addRdSegTravelTimes(getParent(), segEnterExitTime);
+	if(prevSeg == getParent()->getCurrRdSegTravelStats().rs){
+		const std::string & role = getParent()->getRole()->roleMap.at(getParent()->getRole()->roleType);
+		sim_mob::Agent::RdSegTravelStat & currStats = getParent()->finalizeCurrRdSegTravelStat(prevSeg,segEnterExitTime, role);
+		PathSetManager::getInstance()->addRdSegTravelTimes(currStats,getParent());
 	}
 	//creating a new entry in agent's travelStats for the new road segment, with entry time
-	getParent()->initCurrRdSegTravelStat(pathMover.getCurrSegStats()->getRoadSegment(), segEnterExitTime);
+	getParent()->getCurrRdSegTravelStats().reset();
+	getParent()->startCurrRdSegTravelStat(pathMover.getCurrSegStats()->getRoadSegment(), segEnterExitTime);
 }
 TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
 {//return  travelTimeMetric;

@@ -124,7 +124,7 @@ public:
 	static bool TruncateTable(soci::session& sql,std::string& tableName);
 	static bool ExcuString(soci::session& sql,std::string& str);
 	// save path set data
-	static bool InsertSinglePath2DB(soci::session& sql,std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool,const std::string singlePathTableName);
+	static bool InsertSinglePath2DB(soci::session& sql,std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool,const std::string pathSetTableName);
 	static sim_mob::HasPath loadSinglePathFromDB(soci::session& sql,
 					std::string& pathset_id,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool
 					,const std::string functionName,std::stringstream *outDbg=nullptr,
@@ -287,15 +287,15 @@ void DatabaseLoader::getCBD_Segments(const string & cnn, std::set<const sim_mob:
 	}
 }
 
-bool DatabaseLoader::InsertSinglePath2DB(soci::session& sql,std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool,const std::string singlePathTableName)
+bool DatabaseLoader::InsertSinglePath2DB(soci::session& sql,std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool,const std::string pathSetTableName)
 {
 	BOOST_FOREACH(sim_mob::SinglePath* sp, spPool)
 	{
 		if(sp->isNeedSave2DB)
 		{
-			sql << "insert into " << singlePathTableName << "(id,pathset_id,partial_utility,path_size,signal_number,right_turn_number,scenario,length,highway_distance, min_distance,min_signal,min_right_turn,max_highway_usage, valid_path, shortest_path) "
+			sql << "insert into " << pathSetTableName << "(id,pathset_id,partial_utility,path_size,signal_number,right_turn_number,scenario,length,highway_distance, min_distance,min_signal,min_right_turn,max_highway_usage, valid_path, shortest_path) "
 					" values(:id,:pathset_id,:partial_utility,:path_size,:signal_number,:right_turn_number,:scenario,:length,:highway_distance, :min_distance,:min_signal,:min_right_turn,:max_highway_usage, :valid_path, :shortest_path)", soci::use(*sp);
-			pathsetLogger << "insert into " << singlePathTableName << "\n";
+			pathsetLogger << "insert into " << pathSetTableName << "\n";
 		}
 	}
 }
@@ -396,11 +396,11 @@ void DatabaseLoader::loadLinkDefaultTravelTime(soci::session& sql,std::map<std::
 bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql,std::string& tableName,	std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& pool)
 {
 	try {
-			soci::rowset<sim_mob::LinkTravelTime> rs = (sql.prepare <<"select \"link_id\",to_char(\"start_time\",'HH24:MI:SS') AS start_time,to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\" from " + tableName);
+			soci::rowset<sim_mob::LinkTravelTime> rs = (sql.prepare <<"select link_id,to_char(start_time,'HH24:MI:SS') AS start_time,to_char(end_time,'HH24:MI:SS') AS end_time,travel_time, travel_mod from " + tableName);
 			int i = 0;
 			for (soci::rowset<sim_mob::LinkTravelTime>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 				i++;
-				it->originalSectionDB_ID.setProps("aimsun-id",it->linkId);
+//				it->originalSectionDB_ID.setProps("aimsun-id",it->linkId);
 				pool[it->originalSectionDB_ID.getLogItem()].push_back(*it);
 			}
 			return true;
@@ -445,6 +445,7 @@ bool DatabaseLoader::InsertData2TravelTimeTmpTable(std::string& tableName,
 }
 bool DatabaseLoader::upsertTravelTime(soci::session& sql,const std::string& csvFileName, const std::string& tableName)
 {
+	std::cout << "select * from upsert_realtime('" << csvFileName << "','" << tableName << "');\n";
 	sql << "select * from upsert_realtime('" + csvFileName + "','" + tableName + "');";
 	return true;
 }
@@ -2589,9 +2590,9 @@ sim_mob::HasPath sim_mob::aimsun::Loader::loadSinglePathFromDB(soci::session& sq
 }
 
 bool sim_mob::aimsun::Loader::storeSinglePath(soci::session& sql,
-		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& pathPool,const std::string singlePathTableName)
+		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& pathPool,const std::string pathSetTableName)
 {
-	bool res = DatabaseLoader::InsertSinglePath2DB(sql,pathPool,singlePathTableName);
+	bool res = DatabaseLoader::InsertSinglePath2DB(sql,pathPool,pathSetTableName);
 	return res;
 }
 

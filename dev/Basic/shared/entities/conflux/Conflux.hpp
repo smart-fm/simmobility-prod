@@ -420,23 +420,6 @@ public:
 	void resetLinkTravelTimes(timeslice frameNumber);
 	void reportLinkTravelTimes(timeslice frameNumber);
 
-	//=======road segment travel time computation for current frame tick =================
-	struct RdSegTravelTimes
-	{
-	public:
-		double travelTimeSum;
-		unsigned int agCnt;
-
-		RdSegTravelTimes(double rdSegTravelTime, unsigned int agentCount)
-		: travelTimeSum(rdSegTravelTime), agCnt(agentCount) {}
-	};
-
-	std::map<const RoadSegment*, RdSegTravelTimes> rdSegTravelTimesMap;
-	void addRdSegTravelTimes(Person* ag, double rdSegExitTime);
-	void resetRdSegTravelTimes();
-	void reportRdSegTravelTimes(timeslice frameNumber);
-	bool insertTravelTime2TmpTable(timeslice frameNumber,
-			std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>& rdSegTravelTimesMap);
 	//================ end of road segment travel time computation ========================
 
 	/**
@@ -483,6 +466,8 @@ public:
 	 * get number of persons in lane infinities of this conflux
 	 */
 	unsigned int getNumRemainingInLaneInfinity();
+
+//	void reportRdSegTravelTimes(timeslice frameNumber);
 
 	/**
 	 * determines if this conflux is connected to any conflux that belongs to

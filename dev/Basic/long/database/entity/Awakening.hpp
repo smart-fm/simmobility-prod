@@ -51,9 +51,9 @@ namespace sim_mob
 			float	class2;
 			float	class3;
 
-			float	awaken_class1;
-			float	awaken_class2;
-			float	awaken_class3;
+			float	awakenClass1;
+			float	awakenClass2;
+			float	awakenClass3;
 		};
 	}
 }

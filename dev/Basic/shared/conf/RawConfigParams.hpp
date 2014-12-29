@@ -41,6 +41,7 @@ struct LongTermParams{
 	unsigned int days;
 	unsigned int tickStep;
 	unsigned int maxIterations;
+	unsigned int dayOneAwakening;
 
 	struct DeveloperModel{
 		DeveloperModel();
@@ -53,6 +54,8 @@ struct LongTermParams{
 		bool enabled;
 		unsigned int timeInterval;
 		unsigned int timeOnMarket;
+		unsigned int timeOffMarket;
+		float awakenedProbability;
 		int numberOfUnits;
 		int numberOfHouseholds;
 		int numberOfVacantUnits;

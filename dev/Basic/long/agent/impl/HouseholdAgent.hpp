@@ -31,7 +31,7 @@ namespace sim_mob
         class HouseholdAgent : public LT_Agent
         {
         public:
-            HouseholdAgent(BigSerial id, HM_Model* model, const Household* hh, HousingMarket* market, bool marketSeller = false);
+            HouseholdAgent(BigSerial id, HM_Model* model, const Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0);
             virtual ~HouseholdAgent();
             
             //not-thread safe
@@ -94,6 +94,7 @@ namespace sim_mob
             HouseholdBidderRole* bidder;
             HouseholdSellerRole* seller;
             bool marketSeller; //tells if the agent is only a fake market seller
+            int day;
         };
     }
 }

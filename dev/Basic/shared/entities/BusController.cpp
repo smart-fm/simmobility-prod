@@ -127,6 +127,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Enti
 			if(tripIt->startTime.isAfterEqual(ConfigManager::GetInstance().FullConfig().simStartTime())) {// in case sometimes BusTrip startTime is smaller than simStartTime to skip some BusTrips
 				Person* currAg = new Person("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
 				currAg->setPersonCharacteristics();
+				currAg->setStartTime(tripIt->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 
 				vector<TripChainItem*> currAgTripChain;
 				currAgTripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));// one person for one busTrip, currently not considering Activity for BusDriver
@@ -254,6 +255,17 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 					stops = itStop->second;
 					break;
 				}
+			}
+
+			if(busstop_busline_registered){
+
+				/*if(curr->route_id.find("10_1")==string::npos){
+					continue;
+				}*/
+
+				//std::cout << "busline:" << busline->getBusLineID() << " stop size:"<<stops.size()<<std::endl;
+				//std::cout << "busline:" << busline->getBusLineID() << " segments size:"<<segments.size()<<std::endl;
+
 			}
 
 			//Our algorithm expects empty vectors in some cases.

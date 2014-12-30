@@ -113,10 +113,10 @@ public:
 	 */
 	void loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
 	void LoadERP_Surcharge(std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >& pool);
-	void LoadERP_Section(std::map<std::string,sim_mob::ERP_Section*>& ERP_SectionPool);
+	void LoadERP_Section(std::map<int,sim_mob::ERP_Section*>& ERP_SectionPool);
 	void LoadERP_Gantry_Zone(std::map<std::string,sim_mob::ERP_Gantry_Zone*>& ERP_GantryZonePool);
-	static void loadLinkDefaultTravelTime(soci::session& sql,std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& pool);
-	static bool loadLinkRealTimeTravelTime(soci::session& sql,std::string& tableName,	std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& pool);
+	static void loadLinkDefaultTravelTime(soci::session& sql,std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >& pool);
+	static bool loadLinkRealTimeTravelTime(soci::session& sql,std::string& tableName,	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >& pool);
 	static bool CreateTable(soci::session& sql,std::string& tableName);
 	bool InsertData2TravelTimeTmpTable(std::string& tableName,sim_mob::LinkTravelTime& data);
 	static bool InsertCSV2Table(soci::session& sql,std::string& tableName,const std::string& csvFileName);
@@ -384,24 +384,22 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 	return sim_mob::PSM_HASPATH;
 }
 
-void DatabaseLoader::loadLinkDefaultTravelTime(soci::session& sql,std::map<std::string,	std::vector<sim_mob::LinkTravelTime> >& pool)
+void DatabaseLoader::loadLinkDefaultTravelTime(soci::session& sql,std::map<unsigned long,	std::vector<sim_mob::LinkTravelTime> >& pool)
 {
-	soci::rowset<sim_mob::LinkTravelTime> rs = (sql.prepare <<"select \"link_id\",to_char(\"start_time\",'HH24:MI:SS') AS start_time,to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\" from \"link_default_travel_time_corrected_he_v2\" ");
+	//todo: I know hardcoding a table query is not good, but until I find an optimal solution to pass table name as argument to the posgres function, I keep the old implementation as is-vahid
+	soci::rowset<sim_mob::LinkTravelTime> rs = (sql.prepare <<"select \"link_id\",to_char(\"start_time\",'HH24:MI:SS') AS start_time,to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\", travel_mode from \"link_default_travel_time_corrected_he_v2\" ");
 	for (soci::rowset<sim_mob::LinkTravelTime>::const_iterator itRS=rs.begin(); itRS!=rs.end(); ++itRS)  {
-		itRS->originalSectionDB_ID.setProps("aimsun-id",itRS->linkId);
-		pool[itRS->originalSectionDB_ID.getLogItem()].push_back(*itRS);
+		pool[itRS->linkId].push_back(*itRS);
 	}
 }
 
-bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql,std::string& tableName,	std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& pool)
+bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql,std::string& tableName,	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >& pool)
 {
+	//todo: I know hardcoding a table query is not good, but until I find an optimal solution to pass table name as argument to the posgres function, I keep the old implementation as is-vahid
 	try {
-			soci::rowset<sim_mob::LinkTravelTime> rs = (sql.prepare <<"select link_id,to_char(start_time,'HH24:MI:SS') AS start_time,to_char(end_time,'HH24:MI:SS') AS end_time,travel_time, travel_mod from " + tableName);
-			int i = 0;
+			soci::rowset<sim_mob::LinkTravelTime> rs = (sql.prepare <<"select link_id,to_char(start_time,'HH24:MI:SS') AS start_time,to_char(end_time,'HH24:MI:SS') AS end_time,travel_time, travel_mode from " + tableName);
 			for (soci::rowset<sim_mob::LinkTravelTime>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-				i++;
-//				it->originalSectionDB_ID.setProps("aimsun-id",it->linkId);
-				pool[it->originalSectionDB_ID.getLogItem()].push_back(*it);
+				pool[it->linkId].push_back(*it);
 			}
 			return true;
 	}
@@ -415,8 +413,6 @@ bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql,std::string& 
 bool DatabaseLoader::CreateTable(soci::session& sql,std::string& tableName)
 {
 	try {
-//		sql_  << ("CREATE TABLE \"max_12345\" ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )");
-//		sql_  << ("CREATE TABLE "+tableName+" ( \"link_id\" integer NOT NULL,\"start_time\" time without time zone NOT NULL,\"end_time\" time without time zone NOT NULL,\"travel_time\" double precision )");
 		sql  << ("CREATE TABLE "+tableName);
 		sql.commit();
 	}
@@ -511,15 +507,12 @@ void DatabaseLoader::LoadERP_Surcharge(std::map<std::string,std::vector<sim_mob:
 		}
 	}
 }
-void DatabaseLoader::LoadERP_Section(std::map<std::string,sim_mob::ERP_Section*>& ERP_SectionPool)
+void DatabaseLoader::LoadERP_Section(std::map<int,sim_mob::ERP_Section*>& ERP_SectionPool)
 {
 	soci::rowset<sim_mob::ERP_Section> rs = (sql_.prepare <<"select * from \"ERP_Section\" ");
 	for (soci::rowset<sim_mob::ERP_Section>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		sim_mob::ERP_Section *s = new sim_mob::ERP_Section(*it);
-//		ERP_SectionPool.insert(std::make_pair(s->ERP_Gantry_No,s));
-		ERP_SectionPool.insert(std::make_pair(s->originalSectionDB_ID.getLogItem(),s));
-//		std::cout<<"LoadERP_Section: "<<s->originalSectionDB_ID.getLogItem()<<std::endl;
-//		std::cout<<"LoadERP_Section: "<<s->ERP_Gantry_No<<" "<<s->section_id<<std::endl;
+		ERP_SectionPool.insert(std::make_pair(s->section_id,s));
 	}
 }
 void DatabaseLoader::LoadERP_Gantry_Zone(std::map<std::string,sim_mob::ERP_Gantry_Zone*>& ERP_GantryZonePool)
@@ -529,7 +522,6 @@ void DatabaseLoader::LoadERP_Gantry_Zone(std::map<std::string,sim_mob::ERP_Gantr
 		sim_mob::ERP_Gantry_Zone *s = new sim_mob::ERP_Gantry_Zone(*it);
 		ERP_GantryZonePool.insert(std::make_pair(s->gantryNo,s));
 	}
-//		std::cout<<"LoadERP_Section: "<<s->gantryNo<<" "<<s->zoneId<<std::endl;
 }
 
 void DatabaseLoader::LoadNodes(const std::string& storedProc)
@@ -2533,7 +2525,7 @@ void sim_mob::aimsun::Loader::getCBD_Segments(std::set<const sim_mob::RoadSegmen
 void sim_mob::aimsun::Loader::LoadERPData(const std::string& connectionStr,
 		std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > &ERP_SurchargePool,
 		std::map<std::string,sim_mob::ERP_Gantry_Zone*>& ERP_GantryZonePool,
-		std::map<std::string,sim_mob::ERP_Section*>& ERP_SectionPool)
+		std::map<int,sim_mob::ERP_Section*>& ERP_SectionPool)
 {
 	DatabaseLoader loader(connectionStr);
 	loader.LoadERP_Surcharge(ERP_SurchargePool);
@@ -2572,11 +2564,11 @@ bool sim_mob::aimsun::Loader::excuString(soci::session& sql,std::string& str)
 	bool res= DatabaseLoader::ExcuString(sql,str);
 	return res;
 }
-void sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(soci::session& sql,	std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& linkDefaultTravelTimePool)
+void sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(soci::session& sql,	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >& linkDefaultTravelTimePool)
 {
 	DatabaseLoader::loadLinkDefaultTravelTime(sql, linkDefaultTravelTimePool);
 }
-bool sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(soci::session& sql, std::string &tableName, std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& linkRealtimeTravelTimePool)
+bool sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(soci::session& sql, std::string &tableName, std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >& linkRealtimeTravelTimePool)
 {
 	return DatabaseLoader::loadLinkRealTimeTravelTime(sql,tableName,linkRealtimeTravelTimePool);
 }

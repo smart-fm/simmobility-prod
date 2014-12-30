@@ -66,14 +66,14 @@ void sim_mob::PathSetParam::getDataFromDB()
 	std::cout << "[RTT TABLE NAME : " << RTTT << "]\n";
 	sim_mob::aimsun::Loader::LoadERPData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 			ERP_SurchargePool,	ERP_Gantry_ZonePool,ERP_SectionPool);
-	logger << "[ERP RETRIEVED " <<	ERP_SurchargePool.size() << " "  << ERP_Gantry_ZonePool.size() << " " << ERP_SectionPool.size() << "]\n";
+	std::cout << "[ERP RETRIEVED " <<	ERP_SurchargePool.size() << " "  << ERP_Gantry_ZonePool.size() << " " << ERP_SectionPool.size() << "]\n";
 
 	sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(*(PathSetManager::getSession()), segmentDefaultTravelTimePool);
-	logger << segmentDefaultTravelTimePool.size() << " records for Link_default_travel_time found\n";
+	std::cout << segmentDefaultTravelTimePool.size() << " records for Link_default_travel_time found\n";
 
 	bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(*(PathSetManager::getSession()),
 			RTTT,	segmentRealTimeTravelTimePool);
-	logger << segmentRealTimeTravelTimePool.size() << " records for Link_realtime_travel_time found\n";
+	std::cout << segmentRealTimeTravelTimePool.size() << " records for Link_realtime_travel_time found\n";
 	if(!res) // no realtime travel time table
 	{
 		//create
@@ -82,6 +82,7 @@ void sim_mob::PathSetParam::getDataFromDB()
 			throw std::runtime_error("can not create travel time table");
 		}
 	}
+//	getchar();
 }
 void sim_mob::PathSetParam::storeSinglePath(soci::session& sql,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string pathSetTableName)
 {
@@ -121,13 +122,13 @@ void sim_mob::PathSetParam::setRTTT(const std::string& value)
 	logger << "[REALTIME TABLE NAME : " << RTTT << "]\n";
 }
 
-double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::string id,sim_mob::DailyTime startTime,sim_mob::DailyTime endTime)
+double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(unsigned long id,sim_mob::DailyTime startTime,sim_mob::DailyTime endTime)
 {
 	//1. check realtime table
 	double res=0.0;
 	double totalTravelTime=0.0;
 	int count=0;
-	std::map<std::string,std::vector<sim_mob::LinkTravelTime> >::iterator it =
+	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >::iterator it =
 			segmentRealTimeTravelTimePool.find(id);
 	if(it!=segmentRealTimeTravelTimePool.end())
 	{
@@ -173,12 +174,12 @@ double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(std::strin
 	return res;
 }
 
-double sim_mob::PathSetParam::getDefaultTravelTimeBySegId(std::string id)
+double sim_mob::PathSetParam::getDefaultTravelTimeBySegId(unsigned long id)
 {
 	double res = 0.0;
 	double totalTravelTime = 0.0;
 	int count = 0;
-	std::map<std::string,std::vector<sim_mob::LinkTravelTime> >::iterator it = segmentDefaultTravelTimePool.find(id);
+	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >::iterator it = segmentDefaultTravelTimePool.find(id);
 	if(it!=segmentDefaultTravelTimePool.end())
 	{
 		std::vector<sim_mob::LinkTravelTime> &e = (*it).second;
@@ -200,11 +201,11 @@ double sim_mob::PathSetParam::getDefaultTravelTimeBySegId(std::string id)
 	}
 	return res;
 }
-double sim_mob::PathSetParam::getTravelTimeBySegId(const std::string &id,sim_mob::DailyTime startTime)
+double sim_mob::PathSetParam::getTravelTimeBySegId(const unsigned long &id,sim_mob::DailyTime startTime)
 {
 	//1. check realtime table
 	double res=0.0;
-	std::map<std::string,std::vector<sim_mob::LinkTravelTime> >::iterator it;
+	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >::iterator it;
 	it = segmentRealTimeTravelTimePool.find(id);
 	if(it!=segmentRealTimeTravelTimePool.end())
 	{
@@ -242,7 +243,7 @@ double sim_mob::PathSetParam::getTravelTimeBySegId(const std::string &id,sim_mob
 	}
 	else
 	{
-		logger <<  "[NOTT] " + id + "\n";
+		logger <<  "[NOTT] " << id << "\n";
 	}
 	return res;
 }
@@ -335,27 +336,27 @@ uint32_t sim_mob::PathSetParam::getSize()
 	sum += sizeof(sim_mob::ERP_Gantry_Zone*) * ERP_Gantry_ZonePool.size();
 
 //		std::map<std::string,sim_mob::ERP_Section*> ERP_Section_pool;
-	typedef std::map<std::string,sim_mob::ERP_Section*>::value_type  ERPSP;
+	typedef std::map<int,sim_mob::ERP_Section*>::value_type  ERPSP;
 	BOOST_FOREACH(ERPSP&ERP_Section_pair,ERP_SectionPool)
 	{
-		sum += ERP_Section_pair.first.length();
+		sum += sizeof(int);
 	}
 	sum += sizeof(sim_mob::ERP_Section*) * ERP_SectionPool.size();
 
 //		std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > segmentDefaultTravelTimePool;
-	typedef std::map<std::string,std::vector<sim_mob::LinkTravelTime> >::value_type LDTTPP;
+	typedef std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >::value_type LDTTPP;
 	BOOST_FOREACH(LDTTPP & ldttpp,segmentDefaultTravelTimePool)
 	{
-		sum += ldttpp.first.length();
+		sum += sizeof(unsigned long);
 		sum += sizeof(sim_mob::LinkTravelTime) * ldttpp.second.size();
 	}
 
 
 //		std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > segmentRealTimeTravelTimePool;
-	typedef std::map<std::string,std::vector<sim_mob::LinkTravelTime> >::value_type LRTTPP;
+	typedef std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >::value_type LRTTPP;
 	BOOST_FOREACH(LRTTPP &lrttp,segmentRealTimeTravelTimePool)
 	{
-		sum += lrttp.first.length();
+		sum += sizeof(unsigned long);
 		sum += sizeof(sim_mob::LinkTravelTime) * lrttp.second.size();
 	}
 
@@ -377,8 +378,8 @@ sim_mob::PathSetParam::PathSetParam() :
 		for (std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++) {
 			if (!(*seg_it)->originalDB_ID.getLogItem().empty()) {
 				string aimsun_id = (*seg_it)->originalDB_ID.getLogItem();
-				string seg_id = Utils::getNumberFromAimsunId(aimsun_id);
-				segPool.insert(std::make_pair(seg_id, *seg_it));
+				string segId = Utils::getNumberFromAimsunId(aimsun_id);
+				segPool.insert(std::make_pair(segId, *seg_it));
 			}
 		}
 	}
@@ -2176,8 +2177,8 @@ double sim_mob::PathSetManager::getTravelTime(sim_mob::SinglePath *sp,sim_mob::D
 	{
 		out << i << " " ;
 		if(sp->path[i].type_ == WayPoint::ROAD_SEGMENT){
-			std::string seg_id = sp->path[i].roadSegment_->originalDB_ID.getLogItem();
-			double t = sim_mob::PathSetParam::getInstance()->getTravelTimeBySegId(seg_id,startTime);
+			unsigned long segId = sp->path[i].roadSegment_->getId();
+			double t = sim_mob::PathSetParam::getInstance()->getTravelTimeBySegId(segId,startTime);
 			ts += t;
 			startTime = startTime + sim_mob::DailyTime(t*1000);
 			out << t << " " << ts << startTime.getRepr_() ;
@@ -2379,10 +2380,9 @@ void sim_mob::PathSet::addOrDeleteSinglePath(sim_mob::SinglePath* s)
 }
 
 sim_mob::ERP_Section::ERP_Section(ERP_Section &src)
-	: section_id(src.section_id),ERP_Gantry_No(src.ERP_Gantry_No),
-	  ERP_GantryNoStr(boost::lexical_cast<std::string>(src.ERP_Gantry_No))
+	: section_id(src.section_id),ERP_Gantry_No(src.ERP_Gantry_No)
 {
-	originalSectionDB_ID.setProps("aimsun-id",src.section_id);
+	ERP_Gantry_No_str = boost::lexical_cast<std::string>(src.ERP_Gantry_No);
 }
 
 sim_mob::LinkTravelTime::LinkTravelTime(const LinkTravelTime& src)
@@ -2390,7 +2390,12 @@ sim_mob::LinkTravelTime::LinkTravelTime(const LinkTravelTime& src)
 			startTime(src.startTime),endTime(src.endTime),travelTime(src.travelTime),
 			startTime_DT(sim_mob::DailyTime(src.startTime)),endTime_DT(sim_mob::DailyTime(src.endTime))
 {
-	originalSectionDB_ID.setProps("aimsun-id",src.linkId);
+}
+sim_mob::LinkTravelTime::LinkTravelTime()
+	: linkId(0),
+			startTime(""),endTime(""),travelTime(0.0),
+			startTime_DT(0),endTime_DT(0)
+{
 }
 
 sim_mob::SinglePath::SinglePath() : purpose(work),utility(0.0),pathSize(0.0),travelCost(0.0),
@@ -2446,7 +2451,7 @@ void sim_mob::PathSetManager::addRdSegTravelTimes(const Agent::RdSegTravelStat &
 
 void sim_mob::ProcessTT::addTravelTime(const Agent::RdSegTravelStat & stats, const Person* person) {
 
-	ProcessTT::TI timeRange = ProcessTT::getTR(stats.entryTime);
+	TT::TI timeRange = ProcessTT::getTR(stats.entryTime);
 	rdSegTravelTimesMap[timeRange][stats.travelMode][stats.rs].totalTravelTime += stats.travelTime; //add to total travel time
 	rdSegTravelTimesMap[timeRange][stats.travelMode][stats.rs].travelTimeCnt += 1; //increment the total contribution
 }
@@ -2454,7 +2459,7 @@ void sim_mob::ProcessTT::addTravelTime(const Agent::RdSegTravelStat & stats, con
 int ProcessTT::dbg_ProcessTT_cnt = 0;
 ProcessTT::ProcessTT():interval(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval* 1000 /*milliseconds*/){}
 
-ProcessTT::TI ProcessTT::getTR(const double & time)
+sim_mob::TT::TI ProcessTT::getTR(const double & time)
 {
 	return time* 1000 / interval ;/*milliseconds*/
 }
@@ -2462,35 +2467,37 @@ ProcessTT::TI ProcessTT::getTR(const double & time)
 void sim_mob::ProcessTT::insertTravelTime2TmpTable(const std::string fileName)
 {
 	//	easy reading down the line
-	typedef TT::value_type TravelModes;//travel mode collections
-	typedef std::map<TI,TT>::value_type TRPs;//time range pairs
-	typedef std::map<const sim_mob::RoadSegment*,TimeAndCount >::value_type RSs;
+	typedef sim_mob::TT::MSTC::value_type TravelModes;//travel mode collections
+	typedef sim_mob::TravelTime::value_type TRPs;//time range pairs
+	typedef std::map<const sim_mob::RoadSegment*,sim_mob::TT::TimeAndCount >::value_type STC;//SegmentTimeCount
 	//	destination file
 	sim_mob::BasicLogger & TTLogger  = sim_mob::Logger::log(fileName);
+	//simulation start time
+	const uint32_t & simStartTime = sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime().getValue();
 	//time range
 	BOOST_FOREACH(TRPs &TT_Pair, rdSegTravelTimesMap)
 	{
-		const TI & timeInterval = TT_Pair.first;
-		TT & travelModes = TT_Pair.second;
+		const TT::TI & timeInterval = TT_Pair.first;
+		TT::MSTC & travelModes = TT_Pair.second;
 		//travel mode
 		BOOST_FOREACH(TravelModes &travelMode, travelModes)
 		{
 			const std::string & travelModeStr = travelMode.first;
-			std::map<const sim_mob::RoadSegment*,TimeAndCount > & travelTimes = travelMode.second;
+			std::map<const sim_mob::RoadSegment*,TT::TimeAndCount > & travelTimes = travelMode.second;
 			//road segment
-			BOOST_FOREACH(RSs &RS_Pair, travelTimes)
+			BOOST_FOREACH(STC &RS_Pair, travelTimes)
 			{
 
 				//easy reading
 				const unsigned long &segmentId = RS_Pair.first->getId();
-				TimeAndCount & timeAndCount = RS_Pair.second;
+				TT::TimeAndCount & timeAndCount = RS_Pair.second;
 				double &totalTT_ForThisSeg = timeAndCount.totalTravelTime;
 				int &totalTT_Submissions = timeAndCount.travelTimeCnt;
 				// calculate the average travel time
 				double travelTime = totalTT_ForThisSeg / totalTT_Submissions;
 				//now simply write it to the file
 				dbg_ProcessTT_cnt++;
-				TTLogger << segmentId << ";" << DailyTime(timeInterval* interval).getRepr_() << ";" << DailyTime((timeInterval + 1) * interval - 1).getRepr_() << ";" << travelTime << ";"  << travelModeStr <<  "\n";
+				TTLogger << segmentId << ";" << DailyTime(simStartTime + timeInterval* interval).getRepr_() << ";" << DailyTime(simStartTime + (timeInterval + 1) * interval - 1).getRepr_() << ";" << travelTime << ";"  << travelModeStr <<  "\n";
 			}
 		}
 	}

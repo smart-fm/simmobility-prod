@@ -75,6 +75,21 @@ public:
 	}
 };
 
+namespace TT
+{
+	struct TimeAndCount
+	{
+		//total travel time
+		double totalTravelTime;
+		//number of travel times
+		int travelTimeCnt;
+		TimeAndCount():totalTravelTime(0.0),travelTimeCnt(0){}
+	};
+	typedef unsigned int TI;
+	typedef std::map<std::string , std::map<const sim_mob::RoadSegment*,TimeAndCount > >  MSTC;//MSTC:ModeSegmentTimeCount
+	typedef std::map<TI,MSTC> TravelTime_t;
+}
+typedef sim_mob::TT::TravelTime_t TravelTime;
 /**
  * ProcessTT is a small helper class to process Real Time Travel Time at RoadSegment Level.
  * PathSetManager receives Real Time Travel Time and delegates
@@ -89,24 +104,16 @@ class ProcessTT
 	 * travel times : map<travel_mode , map<road segment, pair<total travel times, number of travel times> >
 	 */
 
-	struct TimeAndCount
-	{
-		//total travel time
-		double totalTravelTime;
-		//number of travel times
-		int travelTimeCnt;
-		TimeAndCount():totalTravelTime(0.0),travelTimeCnt(0){}
-	};
-	typedef std::map<std::string , std::map<const sim_mob::RoadSegment*,TimeAndCount > >  TT;
+
 	/**
 	 * time interval : from (TI) to (TI + interval)
 	 */
-	typedef unsigned int TI;
+
 
 	/**
 	 *	container to stor road segment travel times at different time intervals
 	 */
-	std::map<TI,TT> rdSegTravelTimesMap;
+	sim_mob::TravelTime rdSegTravelTimesMap;
 
 	/**
 	 * Logger responsible for dumping travel time collections
@@ -119,14 +126,14 @@ class ProcessTT
 	 * @param recordTime time of recording this travel time
 	 * @return the iterator for the current entry where the current recordings should be sent to
 	 */
-	std::map<TI,TT >::iterator & getCurrRTTT(const DailyTime & time);
+	sim_mob::TravelTime::iterator & getCurrRTTT(const DailyTime & time);
 
 	/**
 	 * get corresponding TI (Time interval) give a time of day
 	 * @param recordTime a time within the day (usually segment entry time)
 	 * @return Time interval corresponding the give time
 	 */
-	ProcessTT::TI getTR(const double & time);
+	sim_mob::TT::TI getTR(const double & time);
 
 public:
 	static int dbg_ProcessTT_cnt;
@@ -180,13 +187,13 @@ public:
 	bool createTravelTimeRealtimeTable();
 
 	///	get the average travel time of a segment within a time range from 'real time' or 'default' source
-	double getAverageTravelTimeBySegIdStartEndTime(std::string id,sim_mob::DailyTime startTime,sim_mob::DailyTime endTime);
+	double getAverageTravelTimeBySegIdStartEndTime(unsigned long id,sim_mob::DailyTime startTime,sim_mob::DailyTime endTime);
 
 	///	get the travel time of a segment from 'default' source
-	double getDefaultTravelTimeBySegId(std::string id);
+	double getDefaultTravelTimeBySegId(unsigned long id);
 
 	///	get travel time of a segment in a specific time from 'real time' or 'default' source
-	double getTravelTimeBySegId(const std::string &id,sim_mob::DailyTime startTime);
+	double getTravelTimeBySegId(const unsigned long &id,sim_mob::DailyTime startTime);
 
 	///	return cached node given its id
 	sim_mob::Node* getCachedNode(std::string id);
@@ -233,13 +240,13 @@ public:
 	std::map<std::string,sim_mob::ERP_Gantry_Zone*> ERP_Gantry_ZonePool;
 
 	///	ERP section <aim-sun id , ERP_Section>
-	std::map<std::string,sim_mob::ERP_Section*> ERP_SectionPool;
+	std::map<int,sim_mob::ERP_Section*> ERP_SectionPool;
 
 	///	information of "Segment" default travel time <segment aim-sun id ,Link_default_travel_time with diff time stamp>
-	std::map<std::string,std::vector<sim_mob::LinkTravelTime> > segmentDefaultTravelTimePool;
+	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> > segmentDefaultTravelTimePool;
 
 	///	information of "Segment" reatravel time <segment aim-sun id ,Link_default_travel_time with diff time stamp>
-	std::map<std::string,std::vector<sim_mob::LinkTravelTime> > segmentRealTimeTravelTimePool;
+	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> > segmentRealTimeTravelTimePool;
 
 	///	simmobility's road network
 	const sim_mob::RoadNetwork& roadNetwork;
@@ -267,8 +274,7 @@ public:
 	ERP_Section(ERP_Section &src);
 	int section_id;
 	int ERP_Gantry_No;
-	std::string ERP_GantryNoStr;
-	OpaqueProperty<int> originalSectionDB_ID;  // seg aim-sun id ,rs->originalDB_ID.setProps("aimsun-id", currSec->id);
+	std::string ERP_Gantry_No_str;
 };
 
 class ERP_Surcharge
@@ -292,7 +298,7 @@ public:
 class LinkTravelTime
 {
 public:
-	LinkTravelTime() {};
+	LinkTravelTime();
 	LinkTravelTime(const LinkTravelTime& src);
 	/**
 	 * Common Information
@@ -300,6 +306,7 @@ public:
 	unsigned long linkId;
 	///	travel time in seconds
 	double travelTime;
+	std::string travelMode;
 	/**
 	 * Filled during data Retrieval From DB and information usage
 	 */
@@ -307,7 +314,6 @@ public:
 	std::string endTime;
 	sim_mob::DailyTime startTime_DT;
 	sim_mob::DailyTime endTime_DT;
-	OpaqueProperty<int> originalSectionDB_ID;
 };
 
 enum TRIP_PURPOSE
@@ -809,10 +815,10 @@ inline double getTravelCost2(sim_mob::SinglePath *sp,const sim_mob::DailyTime &t
 //	sim_mob::DailyTime trip_startTime = sp->pathSet->subTrip->startTime;
 	for(std::vector<WayPoint>::iterator it1 = sp->path.begin(); it1 != sp->path.end(); it1++,i++)
 	{
-		std::string seg_id = (it1)->roadSegment_->originalDB_ID.getLogItem();
-		std::map<std::string,sim_mob::ERP_Section*>::iterator it = sim_mob::PathSetParam::getInstance()->ERP_SectionPool.find(seg_id);
+		unsigned long segId = (it1)->roadSegment_->getId();
+		std::map<int,sim_mob::ERP_Section*>::iterator it = sim_mob::PathSetParam::getInstance()->ERP_SectionPool.find(segId);//todo type mismatch
 		//get travel time to this segment
-		double t = sim_mob::PathSetParam::getInstance()->getTravelTimeBySegId(seg_id,tripStartTime);
+		double t = sim_mob::PathSetParam::getInstance()->getTravelTimeBySegId(segId,tripStartTime);
 		ts += t;
 		tripStartTime = tripStartTime + sim_mob::DailyTime(t*1000);
 		out << "iteration : " << i << t << " " << ts << tripStartTime.getRepr_() << "|  " ;
@@ -820,7 +826,7 @@ inline double getTravelCost2(sim_mob::SinglePath *sp,const sim_mob::DailyTime &t
 		{
 			sim_mob::ERP_Section* erp_section = (*it).second;
 			std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::iterator itt =
-					sim_mob::PathSetParam::getInstance()->ERP_SurchargePool.find(erp_section->ERP_GantryNoStr);
+					sim_mob::PathSetParam::getInstance()->ERP_SurchargePool.find(erp_section->ERP_Gantry_No_str);
 			if(itt!=sim_mob::PathSetParam::getInstance()->ERP_SurchargePool.end())
 			{
 				std::vector<sim_mob::ERP_Surcharge*> erp_surcharges = (*itt).second;
@@ -836,12 +842,12 @@ inline double getTravelCost2(sim_mob::SinglePath *sp,const sim_mob::DailyTime &t
 			}
 			else
 			{
-				out << " |No ERP_SurchargePool data for " << erp_section->ERP_GantryNoStr;
+				out << " |No ERP_SurchargePool data for " << erp_section->ERP_Gantry_No;
 			}
 		}
 		else
 		{
-			out << " |No ERP_SectionPool data for section " << seg_id;
+			out << " |No ERP_SectionPool data for section " << segId;
 		}
 		out << "\n";
 	}

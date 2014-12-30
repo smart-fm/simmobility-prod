@@ -81,15 +81,15 @@ public:
 	static void LoadERPData(const std::string& connectionStr,
 			std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > &erp_surcharge_pool,
 			std::map<std::string,sim_mob::ERP_Gantry_Zone*>& erp_gantry_zone_pool,
-			std::map<std::string,sim_mob::ERP_Section*>& erp_section_pool);
+			std::map<int,sim_mob::ERP_Section*>& erp_section_pool);
 	static bool createTable(soci::session& sql,std::string& table_name);
 	static bool insertData2TravelTimeTmpTable(const std::string& connectionStr,	std::string& table_name, sim_mob::LinkTravelTime& data);
 	static bool upsertTravelTime(soci::session& sql,const std::string& csvFileName, const std::string& tableName);
 	static bool insertCSV2Table(soci::session& sql, std::string& table_name,const std::string& csvFileName);
 	static bool truncateTable(soci::session& sql, std::string& table_name);
 	static bool excuString(soci::session& sql,std::string& str);
-	static void LoadDefaultTravelTimeData(soci::session& sql, std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& link_default_travel_time_pool);
-	static bool LoadRealTimeTravelTimeData(soci::session& sql,std::string& table_name, std::map<std::string,std::vector<sim_mob::LinkTravelTime> >& link_realtime_travel_time_pool);
+	static void LoadDefaultTravelTimeData(soci::session& sql, std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >& link_default_travel_time_pool);
+	static bool LoadRealTimeTravelTimeData(soci::session& sql,std::string& table_name, std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >& link_realtime_travel_time_pool);
 	static bool storeSinglePath(soci::session& sql,
 					std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& pathPool,const std::string pathSetTableName);
 	///For partial network loading.

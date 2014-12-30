@@ -706,7 +706,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 	    double key=999.0;
 	    std::string startTime_str = "06:00:00";
 	    std::string endTime_str = "10:00:00";
-	    std::string seg_id = rs->originalDB_ID.getLogItem();
+	    unsigned long seg_id = rs->getId();
 	    if(tr == sim_mob::MorningPeak)
 	    {
 	    	startTime_str = "06:00:00";

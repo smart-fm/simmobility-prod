@@ -68,7 +68,7 @@ struct PathSetConf
 	std::string RTTT_Conf;//realtime travel time table name
 	std::string DTT_Conf;//default travel time table name
 	std::string dbFunction;
-	int interval; //travel time recording iterval
+	int interval; //travel time recording iterval(in seconds)
 };
 
 ///represent the incident data section of the config file

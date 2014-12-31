@@ -18,7 +18,6 @@
 #include "logging/Log.hpp"
 #include "DriverRequestParams.hpp"
 #include "RoleFacets.hpp"
-#include <boost/assign/list_of.hpp> // for 'map_list_of()'
 
 namespace sim_mob {
 
@@ -77,20 +76,6 @@ public:
 		//add an entry to roleMap too
 	};
 
-	const std::map<type, std::string> roleMap;
-	std::map<type, std::string> getRoleMap(){
-		 return boost::assign::map_list_of
-					(RL_UNKNOWN,"RL_UNKNOWN")
-					(RL_DRIVER,"RL_DRIVER")
-					(RL_BIKER,"RL_BIKER")
-					(RL_PEDESTRIAN,"RL_PEDESTRIAN")
-					(RL_BUSDRIVER,"RL_BUSDRIVER")
-					(RL_ACTIVITY,"RL_ACTIVITY")
-					(RL_PASSENGER,"RL_PASSENGER")
-					(RL_WAITBUSACTITITY,"RL_WAITBUSACTITITY");
-	}
-
-
 	//todo: use this to identify the type of request
 	enum request
 	{
@@ -107,9 +92,9 @@ public:
 	explicit Role(sim_mob::Person* parent = nullptr,
 			std::string roleName = std::string(),
 			Role::type roleType_ = RL_UNKNOWN) :
-		parent(parent), currResource(nullptr), name(roleName),
+		parent(parent), currResource(nullptr), name(roleName),mode(mode),
 		roleType(roleType_), behaviorFacet(nullptr), movementFacet(nullptr),
-		dynamic_seed(0),roleMap(getRoleMap())
+		dynamic_seed(0)
 	{
 		//todo consider putting a runtime error for empty or zero length rolename
 	}
@@ -121,7 +106,7 @@ public:
 			Role::type roleType_ = RL_UNKNOWN) :
 		parent(parent), currResource(nullptr),name(roleName),
 		roleType(roleType_), behaviorFacet(behavior), movementFacet(movement),
-		dynamic_seed(0),roleMap(getRoleMap())
+		dynamic_seed(0)
 	{
 		//todo consider putting a runtime error for empty or zero length rolename
 	}
@@ -131,6 +116,21 @@ public:
 		safe_delete_item(behaviorFacet);
 		safe_delete_item(movementFacet);
 		safe_delete_item(currResource);
+	}
+
+	const std::string getMode()
+	{
+		switch (roleType)
+		{
+		case RL_UNKNOWN: return "NA";
+		case RL_DRIVER: return "Car";
+		case RL_BIKER: return "Motorcycle";
+		case RL_PEDESTRIAN: return "Walk";
+		case RL_BUSDRIVER: return "Bus";
+		case RL_ACTIVITY: return "Activity";
+		case RL_PASSENGER: return "BusTravel";
+		case RL_WAITBUSACTITITY: return "WaitingBusActivity";
+		}
 	}
 
 	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
@@ -221,6 +221,8 @@ protected:
 
 	BehaviorFacet* behaviorFacet;
 	MovementFacet* movementFacet;
+	/// the mode string of the role (for output purposes)
+	const std::string mode;
 
 	//add by xuyan
 protected:

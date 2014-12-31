@@ -713,7 +713,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 	    	endTime_str = "10:00:00";
 	    	sim_mob::DailyTime startTime(startTime_str);
 			sim_mob::DailyTime endTime(endTime_str);
-			key = sim_mob::PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(seg_id,startTime,endTime);
+			key = sim_mob::PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime,endTime);
 	    }
 	    else if(tr == sim_mob::EveningPeak)
 	    {
@@ -721,7 +721,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			endTime_str = "20:00:00";
 			sim_mob::DailyTime startTime(startTime_str);
 			sim_mob::DailyTime endTime(endTime_str);
-			key = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(seg_id,startTime,endTime);
+			key = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime,endTime);
 	    }
 	    else if(tr == sim_mob::OffPeak)
 	    {
@@ -729,19 +729,19 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			endTime_str = "06:00:00";
 			sim_mob::DailyTime startTime1(startTime_str);
 			sim_mob::DailyTime endTime1(endTime_str);
-			double key1 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(seg_id,startTime1,endTime1);
+			double key1 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime1,endTime1);
 			//
 			startTime_str = "10:00:00";
 			endTime_str = "17:00:00";
 			sim_mob::DailyTime startTime2(startTime_str);
 			sim_mob::DailyTime endTime2(endTime_str);
-			double key2 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(seg_id,startTime2,endTime2);
+			double key2 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime2,endTime2);
 			//
 			startTime_str = "20:00:00";
 			endTime_str = "24:00:00";
 			sim_mob::DailyTime startTime3(startTime_str);
 			sim_mob::DailyTime endTime3(endTime_str);
-			double key3 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(seg_id,startTime3,endTime3);
+			double key3 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime3,endTime3);
 			//
 			key = (key1+key2+key3)/3.0;
 	    }
@@ -763,7 +763,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			endTime_str = "10:00:00";
 			sim_mob::DailyTime startTime(startTime_str);
 			sim_mob::DailyTime endTime(endTime_str);
-			double key_ = sim_mob::PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(seg_id,startTime,endTime);
+			double key_ = sim_mob::PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime,endTime);
 	    	if(rs->maxSpeed > 60.0)
 			{
 				key = highway_bias * key_;
@@ -775,7 +775,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			endTime_str = "20:00:00";
 			sim_mob::DailyTime startTime(startTime_str);
 			sim_mob::DailyTime endTime(endTime_str);
-			key = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(seg_id,startTime,endTime);
+			key = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime,endTime);
 			if(rs->maxSpeed > 60.0)
 			{
 				key = highway_bias * key;
@@ -787,19 +787,19 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			endTime_str = "06:00:00";
 			sim_mob::DailyTime startTime1(startTime_str);
 			sim_mob::DailyTime endTime1(endTime_str);
-			double key1 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(seg_id,startTime1,endTime1);
+			double key1 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime1,endTime1);
 			//
 			startTime_str = "10:00:00";
 			endTime_str = "17:00:00";
 			sim_mob::DailyTime startTime2(startTime_str);
 			sim_mob::DailyTime endTime2(endTime_str);
-			double key2 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(seg_id,startTime2,endTime2);
+			double key2 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime2,endTime2);
 			//
 			startTime_str = "20:00:00";
 			endTime_str = "24:00:00";
 			sim_mob::DailyTime startTime3(startTime_str);
 			sim_mob::DailyTime endTime3(endTime_str);
-			double key3 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(seg_id,startTime3,endTime3);
+			double key3 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime3,endTime3);
 			//
 			key = (key1+key2+key3)/3.0;
 			if(rs->maxSpeed > 60.0)

@@ -15,6 +15,8 @@
 #include "soci.h"
 #include "soci-postgresql.h"
 
+#include "path/Common.hpp"
+
 namespace sim_mob
 {
 
@@ -88,8 +90,8 @@ public:
 	static bool insertCSV2Table(soci::session& sql, std::string& table_name,const std::string& csvFileName);
 	static bool truncateTable(soci::session& sql, std::string& table_name);
 	static bool excuString(soci::session& sql,std::string& str);
-	static void LoadDefaultTravelTimeData(soci::session& sql, std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >& link_default_travel_time_pool);
-	static bool LoadRealTimeTravelTimeData(soci::session& sql,std::string& table_name, std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >& link_realtime_travel_time_pool);
+	static void LoadDefaultTravelTimeData(soci::session& sql, std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >& pool);
+	static bool LoadRealTimeTravelTimeData(soci::session& sql,std::string& table_name,int interval, sim_mob::AverageTravelTime& pool);
 	static bool storeSinglePath(soci::session& sql,
 					std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& pathPool,const std::string pathSetTableName);
 	///For partial network loading.

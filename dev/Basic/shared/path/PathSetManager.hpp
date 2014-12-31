@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "Common.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -75,21 +76,6 @@ public:
 	}
 };
 
-namespace TT
-{
-	struct TimeAndCount
-	{
-		//total travel time
-		double totalTravelTime;
-		//number of travel times
-		int travelTimeCnt;
-		TimeAndCount():totalTravelTime(0.0),travelTimeCnt(0){}
-	};
-	typedef unsigned int TI;
-	typedef std::map<std::string , std::map<const sim_mob::RoadSegment*,TimeAndCount > >  MSTC;//MSTC:ModeSegmentTimeCount
-	typedef std::map<TI,MSTC> TravelTime_t;
-}
-typedef sim_mob::TT::TravelTime_t TravelTime;
 /**
  * ProcessTT is a small helper class to process Real Time Travel Time at RoadSegment Level.
  * PathSetManager receives Real Time Travel Time and delegates
@@ -99,17 +85,8 @@ typedef sim_mob::TT::TravelTime_t TravelTime;
  */
 class ProcessTT
 {
-	const int interval;
-	/**
-	 * travel times : map<travel_mode , map<road segment, pair<total travel times, number of travel times> >
-	 */
-
-
-	/**
-	 * time interval : from (TI) to (TI + interval)
-	 */
-
-
+	const int intervalMS;
+	const sim_mob::DailyTime simStartTime;
 	/**
 	 *	container to stor road segment travel times at different time intervals
 	 */
@@ -127,13 +104,6 @@ class ProcessTT
 	 * @return the iterator for the current entry where the current recordings should be sent to
 	 */
 	sim_mob::TravelTime::iterator & getCurrRTTT(const DailyTime & time);
-
-	/**
-	 * get corresponding TI (Time interval) give a time of day
-	 * @param recordTime a time within the day (usually segment entry time)
-	 * @return Time interval corresponding the give time
-	 */
-	sim_mob::TT::TI getTR(const double & time);
 
 public:
 	static int dbg_ProcessTT_cnt;
@@ -153,6 +123,15 @@ public:
 	 * Write the temporary file into Database
 	 */
 	bool copyTravelTimeDataFromTmp2RealtimeTable();
+
+	/**
+	 * get corresponding TI (Time interval) give a time of day
+	 * @param time a time within the day (usually segment entry time)
+	 * @param interval travel time intreval specified for this simulation
+	 * @return Time interval corresponding the give time
+	 * Note: for uniformity purposes this methods works with milliseconds values
+	 */
+	static sim_mob::TT::TI getTI(const double timeMS, const int intervalMS);
 };
 
 ///	Debug Method to print WayPoint based paths
@@ -187,13 +166,15 @@ public:
 	bool createTravelTimeRealtimeTable();
 
 	///	get the average travel time of a segment within a time range from 'real time' or 'default' source
-	double getAverageTravelTimeBySegIdStartEndTime(unsigned long id,sim_mob::DailyTime startTime,sim_mob::DailyTime endTime);
+	//todo: merge it with getTravelTimeBySegId, they look similar
+	double getAverageTravelTimeBySegIdStartEndTime(const sim_mob::RoadSegment* rs,sim_mob::DailyTime startTime,sim_mob::DailyTime endTime);
 
 	///	get the travel time of a segment from 'default' source
 	double getDefaultTravelTimeBySegId(unsigned long id);
 
 	///	get travel time of a segment in a specific time from 'real time' or 'default' source
-	double getTravelTimeBySegId(const unsigned long &id,sim_mob::DailyTime startTime);
+	//todo: merge it with getAverageTravelTimeBySegIdStartEndTime, they look similar
+	double getTravelTimeBySegId(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime);
 
 	///	return cached node given its id
 	sim_mob::Node* getCachedNode(std::string id);
@@ -245,8 +226,12 @@ public:
 	///	information of "Segment" default travel time <segment aim-sun id ,Link_default_travel_time with diff time stamp>
 	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> > segmentDefaultTravelTimePool;
 
-	///	information of "Segment" reatravel time <segment aim-sun id ,Link_default_travel_time with diff time stamp>
-	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> > segmentRealTimeTravelTimePool;
+	///	a structure to keep history of previous average travel time records from previous simulations
+	///	[time interval][travel mode][road segment][average travel time]
+	AverageTravelTime historicalAvgTravelTime;
+
+	///	current real time collection/retrieval interval (in milliseconds)
+	const int intervalMS;
 
 	///	simmobility's road network
 	const sim_mob::RoadNetwork& roadNetwork;
@@ -307,6 +292,7 @@ public:
 	///	travel time in seconds
 	double travelTime;
 	std::string travelMode;
+	int interval;
 	/**
 	 * Filled during data Retrieval From DB and information usage
 	 */
@@ -421,7 +407,7 @@ public:
 	std::vector<WayPoint> getPath(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip);
 
 	///	calculate travel time of a path
-	static double getTravelTime(sim_mob::SinglePath *sp,sim_mob::DailyTime startTime);
+	static double getTravelTime(sim_mob::SinglePath *sp,const std::string & travelMode, const sim_mob::DailyTime & startTime_);
 	///	record the travel time reported by agents
 	void addRdSegTravelTimes(const Agent::RdSegTravelStat & stats, const Person* person);
 
@@ -799,17 +785,13 @@ inline sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::S
 	return findShortestPath_LinkBased(pathChoices,ln);
 }
 
-inline double getTravelCost2(sim_mob::SinglePath *sp,const sim_mob::DailyTime &tripStartTime_)
+inline double getTravelCost2(sim_mob::SinglePath *sp,const std::string & travelMode, const sim_mob::DailyTime & startTime_)
 {
-	//debug
-	std::stringstream out("");
-	sim_mob::DailyTime tripStartTime(tripStartTime_);
-//	sim_mob::Logger::log("path_set").prof("getTravelCost2").tick();
+	sim_mob::DailyTime tripStartTime(startTime_);
 	double res=0.0;
 	double ts=0.0;
 	if(!sp || !sp->path.empty()) {
 		sim_mob::Logger::log("path_set") << "gTC: sp is empty" << std::endl;
-		out << "\ngTC: sp is empty " << sp << "\n";
 	}
 	int i = 0;
 //	sim_mob::DailyTime trip_startTime = sp->pathSet->subTrip->startTime;
@@ -818,10 +800,9 @@ inline double getTravelCost2(sim_mob::SinglePath *sp,const sim_mob::DailyTime &t
 		unsigned long segId = (it1)->roadSegment_->getId();
 		std::map<int,sim_mob::ERP_Section*>::iterator it = sim_mob::PathSetParam::getInstance()->ERP_SectionPool.find(segId);//todo type mismatch
 		//get travel time to this segment
-		double t = sim_mob::PathSetParam::getInstance()->getTravelTimeBySegId(segId,tripStartTime);
+		double t = sim_mob::PathSetParam::getInstance()->getTravelTimeBySegId((it1)->roadSegment_,travelMode, tripStartTime);
 		ts += t;
 		tripStartTime = tripStartTime + sim_mob::DailyTime(t*1000);
-		out << "iteration : " << i << t << " " << ts << tripStartTime.getRepr_() << "|  " ;
 		if(it!=sim_mob::PathSetParam::getInstance()->ERP_SectionPool.end())
 		{
 			sim_mob::ERP_Section* erp_section = (*it).second;
@@ -842,16 +823,12 @@ inline double getTravelCost2(sim_mob::SinglePath *sp,const sim_mob::DailyTime &t
 			}
 			else
 			{
-				out << " |No ERP_SurchargePool data for " << erp_section->ERP_Gantry_No;
 			}
 		}
 		else
 		{
-			out << " |No ERP_SectionPool data for section " << segId;
 		}
-		out << "\n";
 	}
-		//std::cout << out.str() << " |res:" << res << std::endl;
 	return res;
 }
 

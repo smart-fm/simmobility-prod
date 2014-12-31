@@ -474,6 +474,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 		pathMover.advanceInPath();
 		pathMover.setPositionInSegment(nextSegStats->getLength());
 
+		//todo: consider supplying milliseconds to be consistent with short-term
 		double linkExitTimeSec =  params.elapsedSeconds + (converToSeconds(params.now.ms()));
 		//set Link Travel time for previous link
 		const SegmentStats* prevSegStats = pathMover.getPrevSegStats(false);
@@ -945,8 +946,8 @@ void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSeg
 	//if prevSeg is already in travelStats, update it's rdSegTT and add to rdSegTravelStatsMap
 	const RoadSegment* prevSeg= prevSegStat->getRoadSegment();
 	if(prevSeg == getParent()->getCurrRdSegTravelStats().rs){
-		const std::string & role = getParent()->getRole()->roleMap.at(getParent()->getRole()->roleType);
-		sim_mob::Agent::RdSegTravelStat & currStats = getParent()->finalizeCurrRdSegTravelStat(prevSeg,segEnterExitTime, role);
+		const std::string & travelMode = getParent()->getRole()->getMode();
+		sim_mob::Agent::RdSegTravelStat & currStats = getParent()->finalizeCurrRdSegTravelStat(prevSeg,segEnterExitTime, travelMode);
 		PathSetManager::getInstance()->addRdSegTravelTimes(currStats,getParent());
 	}
 	//creating a new entry in agent's travelStats for the new road segment, with entry time

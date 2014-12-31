@@ -390,13 +390,13 @@ sim_mob::Agent::RdSegTravelStat & sim_mob::Agent::startCurrRdSegTravelStat(const
 	return currRdSegTravelStats;
 }
 
-sim_mob::Agent::RdSegTravelStat & sim_mob::Agent::finalizeCurrRdSegTravelStat(const RoadSegment* rdSeg,double exitTime, const std::string &travel_mode)
+sim_mob::Agent::RdSegTravelStat & sim_mob::Agent::finalizeCurrRdSegTravelStat(const RoadSegment* rdSeg,double exitTime, const std::string &travelMode)
 {
 	if(rdSeg != currRdSegTravelStats.rs)
 	{
 		throw std::runtime_error("roadsegment mismatch while finalizing travel time stats");
 	}
-	currRdSegTravelStats.finalize(rdSeg,exitTime, travel_mode);
+	currRdSegTravelStats.finalize(rdSeg,exitTime, travelMode);
 	return currRdSegTravelStats;
 }
 

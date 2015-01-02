@@ -88,6 +88,13 @@ namespace sim_mob
             void decrementBidders();
             int	 getNumberOfBidders();
 
+            void incrementLifestyle1HHs();
+            void incrementLifestyle2HHs();
+            void incrementLifestyle3HHs();
+            int getLifestyle1HHs() const;
+            int getLifestyle2HHs() const;
+            int getLifestyle3HHs() const;
+
 
         protected:
             /**
@@ -114,6 +121,9 @@ namespace sim_mob
 
             int	initialHHAwakeningCounter;
             int numberOfBidders;
+            int numLifestyle1HHs;
+            int numLifestyle2HHs;
+            int numLifestyle3HHs;
 
         };
     }

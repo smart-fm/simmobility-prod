@@ -139,6 +139,8 @@ void HouseholdAgent::awakenHousehold()
 		bidder->setActive(true);
 		model->incrementBidders();
 		model->incrementAwakeningCounter();
+
+		model->incrementLifestyle1HHs();
 	}
 	else
 	if( lifestyle == 2 && r2 < awaken_class2)
@@ -147,6 +149,8 @@ void HouseholdAgent::awakenHousehold()
 		bidder->setActive(true);
 		model->incrementBidders();
 		model->incrementAwakeningCounter();
+
+		model->incrementLifestyle2HHs();
 	}
 	else
 	if( lifestyle == 3 && r2 < awaken_class3)
@@ -155,6 +159,8 @@ void HouseholdAgent::awakenHousehold()
 		bidder->setActive(true);
 		model->incrementBidders();
 		model->incrementAwakeningCounter();
+
+		model->incrementLifestyle3HHs();
 	}
 }
 

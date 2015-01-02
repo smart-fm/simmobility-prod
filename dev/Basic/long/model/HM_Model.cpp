@@ -108,7 +108,7 @@ double HM_Model::TazStats::getHH_AvgIncome() const
 	return hhTotalIncome / static_cast<double>((hhNum == 0) ? 1 : hhNum);
 }
 
-HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0) {}
+HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0) {}
 
 HM_Model::~HM_Model()
 {
@@ -212,6 +212,36 @@ void HM_Model::incrementAwakeningCounter()
 int HM_Model::getAwakeningCounter() const
 {
 	return initialHHAwakeningCounter;
+}
+
+void HM_Model::incrementLifestyle1HHs()
+{
+	numLifestyle1HHs++;
+}
+
+void HM_Model::incrementLifestyle2HHs()
+{
+	numLifestyle2HHs++;
+}
+
+void HM_Model::incrementLifestyle3HHs()
+{
+	numLifestyle3HHs++;
+}
+
+int HM_Model::getLifestyle1HHs() const
+{
+	return numLifestyle1HHs;
+}
+
+int HM_Model::getLifestyle2HHs() const
+{
+	return numLifestyle2HHs;
+}
+
+int HM_Model::getLifestyle3HHs() const
+{
+	return numLifestyle3HHs;
 }
 
 

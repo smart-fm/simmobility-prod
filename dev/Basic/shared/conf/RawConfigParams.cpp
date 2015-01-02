@@ -6,7 +6,7 @@
 
 using namespace sim_mob;
 
-sim_mob::RawConfigParams::RawConfigParams()
+sim_mob::RawConfigParams::RawConfigParams() : cbd(false)
 {}
 
 sim_mob::EntityTemplate::EntityTemplate() : startTimeMs(0), laneIndex(0),originNode(-1),destNode(-1),initSegId(-1),initDis(-1),initSpeed(0),angentId(-1)

@@ -12,7 +12,7 @@ TrafficColor ColorSequence::computeColor(double Duration)
 
 	short sum = 0;
 	std::vector< std::pair<TrafficColor,int> >::iterator it = ColorDuration.begin();
-	for(; it != ColorDuration.end(); it++)
+	for(; it != ColorDuration.end(); ++it)
 	{
 		sum += (*it).second;
 		if(Duration < sum )
@@ -60,7 +60,7 @@ void ColorSequence::clear()
 void ColorSequence::changeColorDuration(std::size_t color,int duration)
 {
 	std::vector< std::pair<TrafficColor,int> >::iterator it=ColorDuration.begin();
-	for(it=ColorDuration.begin(); it!=ColorDuration.end(); it++)
+	for(it=ColorDuration.begin(); it!=ColorDuration.end(); ++it)
 		if((*it).first == color)
 		{
 			(*it).second = duration;

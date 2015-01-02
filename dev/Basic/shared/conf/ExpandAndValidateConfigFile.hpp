@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <set>
+#include "conf/ConfigParams.hpp"
 
 #include <boost/noncopyable.hpp>
-#include "conf/ConfigParams.hpp"
+#include <set>
 
 namespace sim_mob {
 
@@ -49,6 +49,7 @@ private:
 	void LoadNetworkFromDatabase();
 	void WarnMidroadSidewalks();
 	void LoadFMOD_Controller();
+	void LoadAMOD_Controller();
 	void LoadAgentsInOrder(ConfigParams::AgentConstraints& constraints);
 	void GenerateAgentsFromTripChain(ConfigParams::AgentConstraints& constraints);
 	void GenerateXMLAgents(const std::vector<EntityTemplate>& xmlItems, const std::string& roleName, ConfigParams::AgentConstraints& constraints);

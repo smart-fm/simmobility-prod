@@ -223,8 +223,8 @@ bool sim_mob::PassengerMovement::PassengerAlightBus(Driver* driver)
 	BusDriver* busdriver = dynamic_cast<BusDriver*>( driver );
 	if(busdriver) {
 		Bus* bus = dynamic_cast<Bus*>(busdriver->getVehicle());
-		int xpos_approachingbusstop=busdriver->xpos_approachingbusstop;
-		int ypos_approachingbusstop=busdriver->ypos_approachingbusstop;
+		int xpos_approachingbusstop=busdriver->get_xPosApproachingBusStop();
+		int ypos_approachingbusstop=busdriver->get_yPosApproachingBusStop();
 		 if (xpos_approachingbusstop-getDestPosition().getX()==0 && ypos_approachingbusstop-getDestPosition().getY()==0)
 		 {
 			 //alight-delete passenger agent from list
@@ -259,7 +259,7 @@ bool sim_mob::PassengerMovement::isBusBoarded()
 
 void sim_mob::PassengerMovement::findWaitingTime(Bus* bus)
 {
-	waitingTime=(bus->TimeOfBusreachingBusstop)-(timeOfReachingBusStop);
+	waitingTime=(bus->getTimeOfReachingBusStop())-(timeOfReachingBusStop);
 }
 
 BusStop* sim_mob::PassengerMovement::setBusStopXY(const Node* node)//to find the nearest busstop to a node

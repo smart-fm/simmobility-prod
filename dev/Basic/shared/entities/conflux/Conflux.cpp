@@ -77,21 +77,22 @@ sim_mob::Conflux::PersonProps::PersonProps(const sim_mob::Person* person) {
 	sim_mob::Role* role = person->getRole();
 	isMoving = true;
 	roleType = 0;
-	if(role ){
-		if(role->getResource()){
-			isMoving = role->getResource()->isMoving();
-		}
+	if(role)
+	{
+		if(role->getResource()){ isMoving = role->getResource()->isMoving(); }
 		roleType = role->roleType;
 	}
 
 	lane = person->getCurrLane();
 	isQueuing = person->isQueuing;
 	const sim_mob::SegmentStats* currSegStats = person->getCurrSegStats();
-	if(currSegStats) {
+	if(currSegStats)
+	{
 		segment = currSegStats->getRoadSegment();
 		segStats = segment->getParentConflux()->findSegStats(segment, currSegStats->getStatsNumberInSegment()); //person->getCurrSegStats() cannot be used as it returns a const pointer
 	}
-	else {
+	else
+	{
 		segment = nullptr;
 		segStats = nullptr;
 	}
@@ -117,7 +118,7 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* person, const sim_mob::RoadSegm
 		 * we will always add the Person to the corresponding segment stats in "lane infinity".
 		 */
 		SegmentStatsMap::iterator it = segmentAgents.find(rdSeg);
-		if(it!=segmentAgents.end()){
+		if(it!=segmentAgents.end()) {
 			SegmentStatsList& statsList = it->second;
 			sim_mob::SegmentStats* rdSegStats = statsList.front(); // we will start the person at the first segment stats of the segment
 			person->setCurrSegStats(rdSegStats);
@@ -251,7 +252,7 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 		std::deque<Person*>::iterator pIt = std::find(activityPerformers.begin(), activityPerformers.end(), person);
 		if(pIt!=activityPerformers.end()) { activityPerformers.erase(pIt); }
 
-		//if the person has switched to any role which is tracked in special lists in the conflux, put the person in that list
+		//if the person has switched to Pedestrian role, put the person in that list
 		if (afterUpdate.roleType == sim_mob::Role::RL_PEDESTRIAN)
 		{
 			pedestrianList.push_back(person);
@@ -265,7 +266,7 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 	{
 	case sim_mob::Role::RL_WAITBUSACTITITY:
 	{
-		return;
+		return; //would have already been handled
 	}
 	case sim_mob::Role::RL_ACTIVITY:
 	{	//activity role specific handling
@@ -285,7 +286,7 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 			}
 			else if (beforeUpdate.lane)
 			{
-				// the person currently in an activity, was in a Trip
+				// the person is currently in an activity, was on a Trip
 				// before this tick and was not in a virtual queue (because beforeUpdate.lane is not null)
 				// Remove this person from the network and add him to the activity performers list.
 				beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
@@ -301,7 +302,7 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 	}
 	case sim_mob::Role::RL_BUSDRIVER:
 	{
-		if (beforeUpdate.isMoving && !afterUpdate.isMoving)
+		if(beforeUpdate.isMoving && !afterUpdate.isMoving)
 		{
 			//if the vehicle stopped moving during the latest update (which
 			//indicates that the bus has started serving a stop) we remove the bus from

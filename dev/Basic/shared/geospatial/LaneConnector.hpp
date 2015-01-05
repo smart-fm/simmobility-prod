@@ -5,6 +5,7 @@
 #pragma once
 
 #include "util/LangHelpers.hpp"
+#include "geospatial/Lane.hpp"
 
 //namespace geo {
 //class connector_t_pimpl;
@@ -43,11 +44,26 @@ public:
 		return laneTo;
 	}
 
+	/** Return the polyline of the lane connector  */
+	std::vector<sim_mob::Point2D>& getPolyline() {
+		if (polylinePoints.empty()) {
+			// get from lane last polyline point and
+			// to lane's first polyline point
+			polylinePoints.push_back(laneFrom->getPolyline().back());
+			polylinePoints.push_back(laneTo->getPolyline().front());
+		}
+
+		return polylinePoints;
+	}
+
 private:
 	//NOTE: These items used to be const, but it's easier to declare them private and just
 	//      return a const item.
 	sim_mob::Lane* laneFrom;
 	sim_mob::Lane* laneTo;
+
+	/// lane connector polyline points
+	std::vector<Point2D> polylinePoints;
 
 
 friend class sim_mob::aimsun::Loader;

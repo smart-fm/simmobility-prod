@@ -180,15 +180,85 @@ UNIT_TYPE_COEFFICIENTS = readOnlyTable
 --[[****************************************************************************
     FUNCTIONS
 ******************************************************************************]]
+function getBuildingTypeFromUnitType(unitTypeId)
+    if unitTypeId >= 1 and unitTypeId <= 6 then return 1
+    elseif unitTypeId >= 7 and unitTypeId <= 11 then return 2
+    elseif unitTypeId >= 12 and unitTypeId <= 16 then return 3
+    elseif unitTypeId >= 17 and unitTypeId <= 21 then return 4
+    elseif unitTypeId >= 22 and unitTypeId <= 26 then return 5
+    elseif unitTypeId >= 27 and unitTypeId <= 31 then return 6
+    elseif unitTypeId >= 32 and unitTypeId <= 36 then return 7
+    elseif unitTypeId >= 37 and unitTypeId <= 41 then return 8
+    elseif unitTypeId >= 42 and unitTypeId <= 47 then return 9
+    elseif unitTypeId >= 48 and unitTypeId <= 52 then return 10
+    elseif unitTypeId == 53  then return 11
+    elseif unitTypeId == 54 then return 12
+    elseif unitTypeId == 55 then return 13
+    elseif unitTypeId == 56  then return 14
+    elseif unitTypeId == 57 then return 15
+    elseif unitTypeId == 58 then return 16
+    elseif unitTypeId == 59  then return 17
+    elseif unitTypeId == 60 then return 18
+    elseif unitTypeId == 61  then return 19
+    elseif unitTypeId == 62 then return 20
+    elseif unitTypeId == 63 then return 21
+    elseif unitTypeId == 64 then return 22
+    elseif unitTypeId == 65 then return 23
+    elseif unitTypeId == 66 then return 24
+    else return 0
+    end	   	
+end
+
+
+function calculateUnitRevenueApartment(amenities,unit)
+	local revenue = 0
+	revenue = UNIT_TYPE_COEFFICIENTS[4][0] + UNIT_TYPE_COEFFICIENTS[4][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[4][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[4][3] * amenities.distanceToCBD + UNIT_TYPE_COEFFICIENTS[4][4] * amenities.distanceToJob + UNIT_TYPE_COEFFICIENTS[4][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[4][6]* amenities.distanceToMall + UNIT_TYPE_COEFFICIENTS[4][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[4][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[4][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[4][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[4][11]* amenities.bus_400m
+	return revenue;
+end
+
+function calculateUnitRevenueCondo(amenities,unit)
+	local revenue = 0
+	revenue = UNIT_TYPE_COEFFICIENTS[6][0] + UNIT_TYPE_COEFFICIENTS[6][1]* math.log(unit.floorArea) + 		UNIT_TYPE_COEFFICIENTS	[6][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[6][3] * amenities.distanceToCBD + 	UNIT_TYPE_COEFFICIENTS[6][4] * amenities.distanceToJob + UNIT_TYPE_COEFFICIENTS[6][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[6][6]* amenities.distanceToMall + UNIT_TYPE_COEFFICIENTS[6][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[6][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[6][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[6][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[6][11]* amenities.bus_400m
+	return revenue;
+end
+
+function calculateUnitRevenueSemiDetatched(amenities,unit)
+	local revenue = 0
+	revenue = UNIT_TYPE_COEFFICIENTS[2][0] + UNIT_TYPE_COEFFICIENTS[2][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[2][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[2][3] * amenities.distanceToCBD + UNIT_TYPE_COEFFICIENTS[2][4] * amenities.distanceToJob + UNIT_TYPE_COEFFICIENTS[2][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[2][6]* amenities.distanceToMall + UNIT_TYPE_COEFFICIENTS[2][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[2][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[2][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[2][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[2][11]* amenities.bus_400m
+	return revenue;
+end
+
+function calculateUnitRevenueDetatched(amenities,unit)
+	local revenue = 0
+	revenue = UNIT_TYPE_COEFFICIENTS[3][0] + UNIT_TYPE_COEFFICIENTS[3][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[3][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[3][3] * amenities.distanceToCBD + UNIT_TYPE_COEFFICIENTS[3][4] * amenities.distanceToJob + UNIT_TYPE_COEFFICIENTS[3][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[3][6]* amenities.distanceToMall + UNIT_TYPE_COEFFICIENTS[3][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[3][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[3][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[3][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[3][11]* amenities.bus_400m
+	return revenue;
+end
+
+function calculateUnitRevenueExecutiveCondo(amenities,unit)
+	local revenue = 0
+	revenue = UNIT_TYPE_COEFFICIENTS[5][0] + UNIT_TYPE_COEFFICIENTS[5][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[5][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[5][3] * amenities.distanceToCBD + UNIT_TYPE_COEFFICIENTS[5][4] * amenities.distanceToJob + UNIT_TYPE_COEFFICIENTS[5][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[5][6]* amenities.distanceToMall + UNIT_TYPE_COEFFICIENTS[5][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[5][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[5][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[5][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[5][11]* amenities.bus_400m
+	return revenue;
+end
+
+function calculateUnitRevenueTerrace(amenities,unit)
+	local revenue = 0
+	revenue = UNIT_TYPE_COEFFICIENTS[1][0] + UNIT_TYPE_COEFFICIENTS[1][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[1][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[1][3] * amenities.distanceToCBD + UNIT_TYPE_COEFFICIENTS[1][4] * amenities.distanceToJob + UNIT_TYPE_COEFFICIENTS[1][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[1][6]* amenities.distanceToMall + UNIT_TYPE_COEFFICIENTS[1][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[1][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[1][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[1][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[1][11]* amenities.bus_400m
+	return revenue;
+end
 
 --[[
     Calculates the revenue for the given future unit.
 ]]
-function calculateUnitRevenue(unit, amenities)
-    print(string.format("UnitType: %d, FloorArea: %f, Freehold: %s", unit.unitTypeId, unit.floorArea, unit.freehold))
-    --print( .. unit.unitTypeId .. " FloorArea: " .. unit.floorArea .. " Freehold: ".. unit.freehold )
-    return 0;
+function calculateUnitRevenue(unit,amenities)
+    local revenuePerUnit = 0
+    local buildingTypeId = getBuildingTypeFromUnitType(unit.unitTypeId)
+    if(buildingTypeId == 2)then revenuePerUnit = calculateUnitRevenueApartment(amenities,unit)
+    elseif (buildingTypeId == 3)then revenuePerUnit = calculateUnitRevenueCondo(amenities,unit)
+    elseif (buildingTypeId == 5)then revenuePerUnit = calculateUnitRevenueSemiDetatched(amenities,unit)
+    elseif (buildingTypeId == 6)then revenuePerUnit = calculateUnitRevenueDetatched(amenities,unit)
+    elseif (buildingTypeId == 7)then revenuePerUnit = calculateUnitRevenueExecutiveCondo(amenities,unit)
+    elseif (buildingTypeId == 4)then revenuePerUnit = calculateUnitRevenueTerrace(amenities,unit);
+    end
+    return revenuePerUnit;
 end
-
---print(UNIT_TYPE_COEFFICIENTS[6][11])
 

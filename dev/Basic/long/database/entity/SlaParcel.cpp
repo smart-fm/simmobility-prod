@@ -8,7 +8,7 @@
 
 using namespace sim_mob::long_term;
 
-SlaParcel::SlaParcel(BigSerial slaId,
+SlaParcel::SlaParcel(std::string slaId,
 	    BigSerial tazId,
 	    BigSerial landUseZoneId,
 	    double area,
@@ -23,7 +23,7 @@ SlaParcel::SlaParcel(BigSerial slaId,
 
 SlaParcel::~SlaParcel() {}
 
-BigSerial SlaParcel::getSlalId() const
+std::string SlaParcel::getSlalId() const
 {
     return slaId;
 }

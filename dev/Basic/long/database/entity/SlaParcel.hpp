@@ -18,7 +18,7 @@ namespace sim_mob
         class SlaParcel
         {
         public:
-        	SlaParcel(BigSerial slaId = INVALID_ID,
+        	SlaParcel(std::string slaId = EMPTY_STR,
             		    BigSerial tazId = INVALID_ID,
             		    BigSerial landUseZoneId = INVALID_ID,
             		    double area = 0,
@@ -33,7 +33,7 @@ namespace sim_mob
             /**
              * Getters and Setters
              */
-            BigSerial getSlalId() const;
+            std::string getSlalId() const;
             BigSerial getTazId() const;
             BigSerial getLandUseZoneId() const;
             double getArea() const;
@@ -51,7 +51,7 @@ namespace sim_mob
             friend class SlaParcelDao;
 
         private:
-            BigSerial slaId;
+            std::string slaId;
             BigSerial tazId;
             BigSerial landUseZoneId;
             double area;

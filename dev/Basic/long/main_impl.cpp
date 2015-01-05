@@ -48,8 +48,6 @@ timeval start_time;
 //SIMOBILITY TEST PARAMS
 const int DATA_SIZE = 30;
 const std::string MODEL_LINE_FORMAT = "### %-30s : %-20s";
-//options
-const std::string OPTION_TESTS = "--tests";
 
 int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulationTime) {
     PrintOut("#################### LONG-TERM SIMULATION ####################" << endl);
@@ -148,6 +146,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         if( enableDeveloperModel )
         	 //initiate developer model; to be referred later at each time tick (day)
         	 developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel);
+        	 //developerModel->housingModel = hmModel;
         	 developerModel->setDays(days);
         	 models.push_back(developerModel);
 
@@ -165,24 +164,19 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles) {
         //we add a new line break to format the output in a
         //reasonable way. 20 was found to be adequate.
         const int LINE_BREAK = 20;
-        bool isParcelRemain = true;
+
         for (unsigned int currTick = 0; currTick < days; currTick++)
       {
             PrintOut( currTick << " " );
             wgMgr.waitAllGroups();
 
             DeveloperModel::ParcelList parcels;
+            DeveloperModel::DeveloperList developerAgents;
+            bool isParcelRemain = developerModel->getIsParcelRemain();
             if(isParcelRemain)
             {
-            	parcels = developerModel->getDevelopmentCandidateParcels(false);
-            }
-            if(parcels.size()!=0)
-            {
-            	developerModel->createDeveloperAgents(parcels);
-            }
-            else
-            {
-            	isParcelRemain = false;
+            	developerAgents = developerModel->getDeveloperAgents(false);
+            	developerModel->wakeUpDeveloperAgents(developerAgents);
             }
 
             if( currTick % LINE_BREAK == LINE_BREAK - 1 )
@@ -231,24 +225,14 @@ int main_impl(int ARGC, char* ARGV[]) {
     const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 
     Print::Init("<stdout>");
-    bool runTests = false;
-    //process arguments.
-    std::vector<std::string>::iterator it;
-    for (it = args.begin(); it != args.end(); it++){
-        if (it->compare(OPTION_TESTS) == 0){
-            runTests = true;
-            continue;
-        }
-    }
     
-    if (!runTests) {
-        //get start time of the simulation.
-        std::list<std::string> resLogFiles;
-        const unsigned int maxIterations = config.ltParams.maxIterations;
-        for (int i = 0; i < maxIterations; i++) {
-            PrintOut("Simulation #:  " << (i + 1) << endl);
-            performMain((i + 1), resLogFiles);
-        }
+    //get start time of the simulation.
+    std::list<std::string> resLogFiles;
+    const unsigned int maxIterations = config.ltParams.maxIterations;
+    for (int i = 0; i < maxIterations; i++) {
+    	PrintOut("Simulation #:  " << (i + 1) << endl);
+        performMain((i + 1), resLogFiles);
+
 
         //Concatenate output files?
         /*if (!resLogFiles.empty()) {
@@ -256,9 +240,6 @@ int main_impl(int ARGC, char* ARGV[]) {
             Utils::printAndDeleteLogFiles(resLogFiles);
         }*/
         ConfigManager::GetInstanceRW().reset();
-    } else {
-    /*    unit_tests::DaoTests tests;
-        tests.testAll(); */
     }
     
     return 0;

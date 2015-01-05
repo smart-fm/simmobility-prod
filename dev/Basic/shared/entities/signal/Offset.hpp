@@ -11,7 +11,7 @@ namespace sim_mob {
 class Offset {
 public:
 	/*--------Offset----------*/
-	Offset(){}
+	Offset():currOffset(0), nextOffset(0) {}
 	void setnextOffset(double nextCL);
 	double getcurrOffset()const {return currOffset;}
 	double getnextOffset();

@@ -4,18 +4,21 @@
 
 #pragma once
 
+#include <boost/foreach.hpp>
 #include <map>
 #include <string>
 #include <vector>
 
 #include "conf/settings/DisableMPI.h"
 #include "entities/Agent.hpp"
+#include "entities/amodController/AMODEvent.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/conflux/SegmentStats.hpp"
+#include "entities/vehicle/VehicleBase.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Profiler.hpp"
-#include <boost/foreach.hpp>
+
 namespace sim_mob
 {
 
@@ -26,7 +29,9 @@ class PartitionManager;
 class PackageUtils;
 class UnPackageUtils;
 class UpdateParams;
+class AMODController;
 class OD_Trip;
+
 
 /**
  * Basic Person class.
@@ -57,6 +62,11 @@ public:
 
 	//Person objects are spatial in nature
 	virtual bool isNonspatial() { return false; }
+
+	void handleAMODEvent(sim_mob::event::EventId id,
+            sim_mob::event::Context ctxId,
+            sim_mob::event::EventPublisher* sender,
+            const AMOD::AMODEventArgs& args);
 
 	///Reroute to the destination with the given set of blacklisted RoadSegments.
 	///If the Agent cannot complete this new route, it will fall back onto the old route.
@@ -116,9 +126,7 @@ public:
 	}
 
 	///Set this person's trip chain
-	void setTripChain(const std::vector<TripChainItem*>& tripChain) {
-		this->tripChain = tripChain;
-	}
+	void setTripChain(const std::vector<TripChainItem *>& tripChain);
 
 	/*	const sim_mob::Link* getCurrLink() const;
 	 void setCurrLink(sim_mob::Link* link);*/
@@ -203,6 +211,29 @@ public:
     std::stringstream debugMsgs;
     int client_id;
 
+	// amod
+	std::string amodId;
+	void setPath(std::vector<WayPoint>& path);
+	std::vector<WayPoint> amodPath;
+	std::string amodPickUpSegmentStr;
+	double amodSegmLength;
+	double amodSegmLength2;
+	std::string amodDropOffSegmentStr;
+	std::string amdoTripId;
+	std::string parkingNode;
+    AMOD::AMODEventPublisher eventPub;
+
+    void handleAMODArrival();
+    void handleAMODPickup();
+
+    enum Status {
+    	IN_CAR_PARK = 0,
+    	ON_THE_ROAD,
+    	REPLACED
+    };
+
+    Status currStatus;
+
 	const sim_mob::Lane* getCurrLane() const
 	{
 		return currLane;
@@ -271,7 +302,7 @@ public:
 	  * \param currSubTrip current SubTrip for which subtripMetrics is collected
 	  */
 	 void serializeSubTripChainItemTravelTimeMetrics(
-			 const TravelMetric subtripMetrics,
+			 const TravelMetric& subtripMetrics,
 			 std::vector<TripChainItem*>::iterator currTripChainItem,
 			 std::vector<SubTrip>::iterator currSubTrip
 			 ) const;
@@ -286,23 +317,23 @@ public:
 	  */
 	 void serializeCBD_Activity(const TravelMetric &metric);
 private:
-//	 /**
-//	  * serialize person's tripchain item
-//	  */
-//	void serializeTripChainItem(std::vector<TripChainItem*>::iterator currTripChainItem);
-//
-//	 /**
-//	  * During Serialization of person's tripchain, this routine is called if the given
-//	  * tripchain item is a trip
-//	  */
-//	 std::string serializeTrip(std::vector<TripChainItem*>::iterator item);
-//
-//
-//	 /**
-//	  * During Serialization of person's tripchain, this routine is called if the given
-//	  * tripchain item is an activity
-//	  */
-//	 std::string serializeActivity(std::vector<TripChainItem*>::iterator item);
+	 /**
+	  * serialize person's tripchain item
+	  */
+	 //void serializeTripChainItem(std::vector<TripChainItem*>::iterator currTripChainItem);
+
+	 /**
+	  * During Serialization of person's tripchain, this routine is called if the given
+	  * tripchain item is a trip
+	  */
+	 //std::string serializeTrip(std::vector<TripChainItem*>::iterator item);
+
+
+	 /**
+	  * During Serialization of person's tripchain, this routine is called if the given
+	  * tripchain item is an activity
+	  */
+	 //std::string serializeActivity(std::vector<TripChainItem*>::iterator item);
 
 	 /**
 	  * prints the trip chain item types of each item in tripChain

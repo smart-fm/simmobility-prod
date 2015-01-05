@@ -18,14 +18,15 @@
 #include <vector>
 #include <stdexcept>
 #include <sstream>
-#include "entities/Agent.hpp"
-#include "metrics/Length.hpp"
-#include "entities/Sensor.hpp"
-#include "SplitPlan.hpp"
-#include "Phase.hpp"
+
 #include "Cycle.hpp"
 #include "Offset.hpp"
+#include "Phase.hpp"
+#include "SplitPlan.hpp"
 #include "defaults.hpp"
+#include "entities/Agent.hpp"
+#include "entities/Sensor.hpp"
+#include "metrics/Length.hpp"
 
 //For forward declarations (for friend functions)
 //#include "geospatial/xmlWriter/xmlWriter.hpp"
@@ -116,8 +117,7 @@ public:
 
 	void addSignalSite(centimeter_t xpos, centimeter_t ypos,
 			std::string const & typeCode, double bearing);
-//    void findIncomingLanes();
-//    void findSignalLinks();
+
 	void findSignalLinksAndCrossings();
 
 	/**
@@ -156,7 +156,7 @@ public:
 
 	/*--------Miscellaneous----------*/
 
-	int fmin_ID(const std::vector<double> maxproDS);
+	int fmin_ID(const std::vector<double>& maxproDS);
 	///	Return the loggable representation of this Signal.
 	std::string toString() const;
 	unsigned int getSignalId();

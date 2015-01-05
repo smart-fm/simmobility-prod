@@ -15,13 +15,13 @@ using namespace sim_mob;
 ConfigManager* sim_mob::ConfigManager::instance(nullptr);
 
 sim_mob::ConfigManager::ConfigManager() : config(nullptr)
-{}
+{
+}
 
 sim_mob::ConfigManager::~ConfigManager()
 {
 	safe_delete_item(config);
 }
-
 
 const ConfigManager& sim_mob::ConfigManager::GetInstance()
 {
@@ -36,6 +36,11 @@ ConfigManager& sim_mob::ConfigManager::GetInstanceRW()
 	return *instance;
 }
 
+void sim_mob::ConfigManager::DeleteConfigMgrInstance()
+{
+	safe_delete_item(instance);
+}
+
 ConfigParams& sim_mob::ConfigManager::get_config() const
 {
 	if (!config) {
@@ -43,6 +48,7 @@ ConfigParams& sim_mob::ConfigManager::get_config() const
 	}
 	return *config;
 }
+
 ConfigParams& sim_mob::ConfigManager::get_config_rw()
 {
 	if (!config) {

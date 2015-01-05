@@ -124,6 +124,7 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 		profile = new ProfileBuilder();
 		//profile->logAgentCreated(*this);
 	}*/
+	errorFlag = false;
 }
 
 sim_mob::Agent::~Agent() {
@@ -335,7 +336,18 @@ const sim_mob::Link* sim_mob::Agent::getCurrLink() const {
 void sim_mob::Agent::setCurrLink(const sim_mob::Link* link) {
 	currLink = link;
 }
-
+const sim_mob::Lane* sim_mob::Agent::getCurrLane() const {
+	return currLane;
+}
+void sim_mob::Agent::setCurrLane(const sim_mob::Lane* lane) {
+	currLane = lane;
+}
+const sim_mob::RoadSegment* sim_mob::Agent::getCurrSegment() const {
+	return currSegment;
+}
+void sim_mob::Agent::setCurrSegment(const sim_mob::RoadSegment* rdSeg) {
+	currSegment = rdSeg;
+}
 void sim_mob::Agent::initLinkTravelStats(const Link* link, double entryTime) {
 	currLinkTravelStats.link_ = link;
 	currLinkTravelStats.entryTime = entryTime;

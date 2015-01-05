@@ -4,12 +4,13 @@
 
 #pragma once
 
-#include "util/DynamicVector.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Crossing.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include <vector>
 #include <boost/unordered_map.hpp>
+#include <vector>
+
+#include "geospatial/Crossing.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "util/DynamicVector.hpp"
 
 namespace sim_mob
 {

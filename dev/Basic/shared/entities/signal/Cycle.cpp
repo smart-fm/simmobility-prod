@@ -4,9 +4,8 @@
 
 #include "Cycle.hpp"
 
-#include "Offset.hpp"
-
 #include <cmath>
+#include "Offset.hpp"
 
 
 //For convenience, redeclare some of the public static constants in Offset.

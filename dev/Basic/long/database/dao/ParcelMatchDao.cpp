@@ -18,7 +18,7 @@ ParcelMatchDao::~ParcelMatchDao() {}
 void ParcelMatchDao::fromRow(Row& result, ParcelMatch& outObj)
 {
     outObj.fmParcelId = result.get<BigSerial>( "fm_parcel_id", INVALID_ID );
-    outObj.slaParcelId = result.get<BigSerial>("sla_parcel_id", INVALID_ID);
+    outObj.slaParcelId = result.get<std::string>("sla_parcel_id", EMPTY_STR);
     outObj.matchCode = result.get<int>( "match_code", 0 );
     outObj.matchDate = result.get<std::tm>("match_date", std::tm());
 

@@ -13,6 +13,7 @@
 #include "event/EventListener.hpp"
 #include "database/entity/Bid.hpp"
 #include "database/entity/ExternalEvent.hpp"
+#include "database/entity/Unit.hpp"
 #include "Types.hpp"
 
 namespace sim_mob {
@@ -21,8 +22,9 @@ namespace sim_mob {
 
         class HM_ActionEventArgs : public sim_mob::event::EventArgs {
         public:
-            HM_ActionEventArgs(BigSerial unitId);
+            HM_ActionEventArgs(BigSerial unitId,BigSerial buildingId,std::tm buildingFutureDemolitionDate);
             HM_ActionEventArgs(const HM_ActionEventArgs& orig);
+            HM_ActionEventArgs(Unit &unit);
             virtual ~HM_ActionEventArgs();
 
             /**
@@ -30,8 +32,17 @@ namespace sim_mob {
              * @return 
              */
             BigSerial getUnitId()const;
+            /**
+            * Gets the building affected by the action.
+            * @return
+            */
+            BigSerial getBuildingId()const;
+            std::tm getFutureDemolitionDate() const;
+
         private:
             BigSerial unitId;
+            BigSerial buildingId;
+            std::tm buildingFutureDemolitionDate;
         };
         
         class ExternalEventArgs : public sim_mob::event::EventArgs {

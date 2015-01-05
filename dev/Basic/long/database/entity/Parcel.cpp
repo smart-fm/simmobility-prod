@@ -14,15 +14,17 @@
 
 using namespace sim_mob::long_term;
 
-Parcel::Parcel(BigSerial id, BigSerial taz_id, float lot_size, float	gpr, std::string land_use, std::string owner_name,  int	owner_category, std::tm last_transaction_date,
+Parcel::Parcel(BigSerial id,float lot_size, std::string gpr,std::string owner_name,  int	owner_category, std::tm last_transaction_date,
 	   float last_transaction_type_total, float psm_per_gps, int lease_type, std::tm lease_start_date, float centroid_x, float centroid_y, std::tm award_date,
-       bool	award_status, std::string	use_restriction, std::string development_type_allowed, std::string	development_type_code, int	successful_tender_id,
-       float	successful_tender_price, std::tm tender_closing_date, int lease )
-	   : id(id), taz_id(taz_id), lot_size(lot_size), gpr(gpr), land_use(land_use), owner_name(owner_name), owner_category(owner_category),
+       bool	award_status, std::string use_restriction, int	successful_tender_id,
+       float successful_tender_price, std::tm tender_closing_date,int lease,float actual_gpr,float allowed_gpr, int land_use_type_id,int development_type_code,int status,
+       std::string developmentAllowed, std::tm nextAvailableDate)
+	   : id(id),lot_size(lot_size), owner_name(owner_name), owner_category(owner_category),
 	     last_transaction_date(last_transaction_date), last_transaction_type_total(last_transaction_type_total), psm_per_gps(psm_per_gps),
 	     lease_type(lease_type), lease_start_date(lease_start_date), centroid_x(centroid_x), centroid_y(centroid_y), award_date(award_date),
-	     award_status(award_status), use_restriction(use_restriction), development_type_allowed(development_type_allowed), development_type_code(development_type_code),
-	     successful_tender_id(successful_tender_id), successful_tender_price(successful_tender_price), tender_closing_date(tender_closing_date), lease(lease)
+	     award_status(award_status), use_restriction(use_restriction),successful_tender_id(successful_tender_id), successful_tender_price(successful_tender_price),
+	     tender_closing_date(tender_closing_date), lease(lease),gpr(gpr),land_use_type_id(land_use_type_id),development_type_code(development_type_code),status(status),
+	     developmentAllowed(developmentAllowed),nextAvailableDate(nextAvailableDate)
 {
 }
 
@@ -33,29 +35,31 @@ BigSerial Parcel::getId() const
     return id;
 }
 
-BigSerial Parcel::getTazId() const
-{
-    return taz_id;
-}
-
 float Parcel::getLotSize() const
 {
 	return lot_size;
 }
 
-float Parcel::getGpr() const
+std::string Parcel::getGpr() const
 {
 	return gpr;
 }
 
-std::string Parcel::getLandUse() const
+int Parcel::getLandUseTypeId() const
 {
-	return land_use;
+	return land_use_type_id;
 }
 
 std::string Parcel::getOwnerName() const
 {
-	return owner_name;
+//	if(owner_name.empty())
+//	{
+//		return "";
+//	}
+//	else
+//	{
+		return owner_name;
+	//}
 }
 
 int	Parcel::getOwnerCategory() const
@@ -98,27 +102,29 @@ float Parcel::getCentroidY() const
 	return centroid_y;
 }
 
-std::tm	Parcel::getawardDate() const
+std::tm	Parcel::getAwardDate() const
 {
 	return award_date;
 }
 
-bool Parcel::getawardStatus() const
+bool Parcel::getAwardStatus() const
 {
 	return award_status;
 }
 
 std::string	Parcel::getUseRestriction() const
 {
-	return use_restriction;
+//	if(use_restriction.empty())
+//		{
+//			return "";
+//		}
+//	else
+//		{
+			return use_restriction;
+	//	}
 }
 
-std::string	Parcel::getDevelopmentTypeAllowed() const
-{
-	return development_type_allowed;
-}
-
-std::string	Parcel::getDevelopmentTypeCode() const
+int	Parcel::getDevelopmentTypeCode() const
 {
 	return development_type_code;
 }
@@ -143,6 +149,36 @@ int	Parcel::getLease() const
 	return lease;
 }
 
+int	Parcel::getStatus() const
+{
+	return status;
+}
+
+void Parcel::setStatus(int status)
+{
+	this->status = status;
+}
+
+std::string Parcel::getDevelopmentAllowed() const
+{
+	return developmentAllowed;
+}
+
+void Parcel::setDevelopmentAllowed(std::string developmentAllowed)
+{
+	this->developmentAllowed = developmentAllowed;
+}
+
+std::tm Parcel::getNextAvailableDate() const
+{
+	return nextAvailableDate;
+}
+
+void Parcel::setNextAvailableDate(std::tm nextAvailableDate)
+{
+	this->nextAvailableDate = nextAvailableDate;
+}
+
 
 namespace sim_mob {
     namespace long_term {
@@ -150,10 +186,9 @@ namespace sim_mob {
         std::ostream& operator<<(std::ostream& strm, const Parcel& data) {
             return strm << "{"
 						<< "\"id\":\"" << data.id << "\","
-						<< "\"taz_id\":\"" << data.taz_id << "\","
 						<< "\"lot_size\":\"" << data.lot_size << "\","
-						<< "\"gpr\":\"" << data.gpr << "\","
-						<< "\"land_use\":\"" << data.land_use << "\","
+						<< "\"actual_gpr\":\"" << data.gpr << "\","
+						<< "\"land_use_type_id\":\"" << data.land_use_type_id << "\","
 						<< "\"owner_name\":\"" << data.owner_name << "\","
 						<< "\"owner_category\":\"" << data.owner_category << "\","
 						<< "\"last_transaction_date\":\"" << data.last_transaction_date.tm_year << data.last_transaction_date.tm_mon << data.last_transaction_date.tm_mday << "\","
@@ -166,12 +201,14 @@ namespace sim_mob {
 						<< "\"award_date\":\"" << data.award_date.tm_year << data.award_date.tm_year << data.award_date.tm_mon << data.award_date.tm_mday << "\","
 						<< "\"award_status\":\"" << data.award_status << "\","
 						<< "\"use_restriction\":\"" << data.use_restriction << "\","
-						<< "\"development_type_allowed\":\"" << data.development_type_allowed << "\","
-						<< "\"development_type_code\":\"" << data.development_type_allowed << "\","
+						<< "\"development_type_code\":\"" << data.development_type_code << "\","
 						<< "\"successful_tender_id\":\"" << data.successful_tender_id << "\","
 						<< "\"successful_tender_price\":\"" << data.successful_tender_price << "\","
 						<< "\"tender_closing_date\":\"" << data.tender_closing_date.tm_year << data.tender_closing_date.tm_mday << "\","
-						<< "\"lease\":\"" << data.lease << "\""
+						<< "\"lease\":\"" << data.lease << "\","
+						<< "\"status\":\"" << data.status << "\","
+						<< "\"development_allowed\":\"" << data.developmentAllowed << "\","
+						<< "\"next_available_date\":\"" << data.nextAvailableDate.tm_year << data.nextAvailableDate.tm_mon << data.nextAvailableDate.tm_mday << "\""
 						<< "}";
 
         }

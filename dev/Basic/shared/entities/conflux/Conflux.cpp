@@ -160,60 +160,32 @@ bool sim_mob::Conflux::frame_init(timeslice now)
 }
 
 UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
-	if(!isInitialized()) {
+	if(!isInitialized())
+	{
 		frame_init(frameNumber);
 		setInitialized(true);
 	}
 
-
 	currFrame = frameNumber;
 	resetPositionOfLastUpdatedAgentOnLanes();
-	//reset the remaining times of persons in lane infinity and VQ if required.
-	resetPersonRemTimes();
-
-	if (sim_mob::StreetDirectory::instance().signalAt(*multiNode) != nullptr) {
-		updateUnsignalized(); //TODO: Update Signalized must be implemented and called here
-	}
-	else {
-		updateUnsignalized();
-	}
-
-	UpdateStatus retVal(UpdateStatus::RS_CONTINUE); //always return continue. Confluxes never die.
+	resetPersonRemTimes(); //reset the remaining times of persons in lane infinity and VQ if required.
+	processAgents(); //process all agents in this conflux for this tick
 	setLastUpdatedFrame(frameNumber.frame());
+	UpdateStatus retVal(UpdateStatus::RS_CONTINUE); //always return continue. Confluxes never die.
 	return retVal;
 }
 
-void sim_mob::Conflux::updateSignalized() {
-	throw std::runtime_error("Conflux::updateSignalized() not implemented yet.");
-}
-
-void sim_mob::Conflux::updateUnsignalized()
+void sim_mob::Conflux::processAgents()
 {
-	//merge vehicles on conflux
-	PersonList orderedPersonsInLanes;
-	getAllPersonsUsingTopCMerge(orderedPersonsInLanes);
-
-	PersonList::iterator personIt = orderedPersonsInLanes.begin();
-	for (; personIt != orderedPersonsInLanes.end(); personIt++)
+	PersonList orderedPersons;
+	getAllPersonsUsingTopCMerge(orderedPersons); //merge on-road agents of this conflux into a single list
+	orderedPersons.insert(orderedPersons.end(), activityPerformers.begin(), activityPerformers.end()); // append activity performers
+	orderedPersons.insert(orderedPersons.end(), pedestrianList.begin(), pedestrianList.end()); // append pedestrians
+	for (PersonList::iterator personIt = orderedPersons.begin(); personIt != orderedPersons.end(); personIt++) //iterate and update all persons
 	{
 		updateAgent(*personIt);
 	}
-
-	// We may have to erase persons in activityPerformers & pedestrianList in
-	// updateAgent(). Therefore we need to iterate on a copy.
-	PersonList activityPerformersCopy = activityPerformers;
-	for (PersonList::iterator i = activityPerformersCopy.begin(); i != activityPerformersCopy.end(); i++)
-	{
-		updateAgent(*i);
-	}
-
-	PersonList pedestrianListCopy = pedestrianList;
-	for (PersonList::iterator i = pedestrianListCopy.begin(); i != pedestrianListCopy.end(); i++)
-	{
-		updateAgent(*i);
-	}
-
-	updateBusStopAgents();
+	updateBusStopAgents(); //finally update bus stop agents in this conflux
 }
 
 void sim_mob::Conflux::updateAgent(sim_mob::Person* person)

@@ -180,18 +180,9 @@ private:
 	PersonList pedestrianList;
 
 	/**
-	 * function to call persons' updates if the MultiNode is signalized
-	 * \note this function is not implemented. Multinodes with signals are given
-	 * the same treatment as those without signals.
+	 * updates agents in this conflux
 	 */
-	void updateSignalized();
-
-	/**
-	 * function to call persons' updates if the MultiNode is not signalized
-	 * \note this function is currently used for all multinodes irrespective of
-	 * whether they have signals or not.
-	 */
-	void updateUnsignalized();
+	void processAgents();
 
 	/**
 	 * moves the person and does housekeeping for the conflux

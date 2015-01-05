@@ -94,7 +94,8 @@ private:
 	/**
 	 * helper to capture the status of a person before and after update
 	 */
-    struct PersonProps {
+    struct PersonProps
+    {
     public:
     	const sim_mob::RoadSegment* segment;
     	const sim_mob::Lane* lane;
@@ -102,8 +103,9 @@ private:
     	bool isMoving;
     	unsigned int roleType;
     	sim_mob::SegmentStats* segStats;
+    	const sim_mob::Conflux* conflux;
 
-    	PersonProps(const sim_mob::Person* person);
+    	PersonProps(const sim_mob::Person* person, const sim_mob::Conflux* conflux);
     };
 
 	/**
@@ -294,6 +296,13 @@ bool sim_mob::insertIncidentS(const std::string fileName){
 	 * @param person the person being handled
 	 */
 	void housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person);
+
+	/**
+	 * gets the context of the agents right if the agent has moved out of this conflux
+	 * @param beforeUpdate person properties before update
+	 * @param afterUpdate person properties after update
+	 */
+	void updateAgentContext(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person) const;
 
 protected:
 	/**

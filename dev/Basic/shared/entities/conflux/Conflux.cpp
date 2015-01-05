@@ -38,15 +38,16 @@
 #include "util/Utils.hpp"
 #include "workers/Worker.hpp"
 
-using namespace sim_mob;
-using namespace std;
 using namespace boost;
+using namespace sim_mob;
+using namespace sim_mob::messaging;
+using namespace std;
+
 typedef Entity::UpdateStatus UpdateStatus;
 
 namespace{
-sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("path_set");
-}
-namespace{
+	sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("path_set");
+
     const double INFINITESIMAL_DOUBLE = 0.000001;
     const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
 }
@@ -73,7 +74,8 @@ sim_mob::Conflux::~Conflux()
 	pedestrianList.clear();
 }
 
-sim_mob::Conflux::PersonProps::PersonProps(const sim_mob::Person* person) {
+sim_mob::Conflux::PersonProps::PersonProps(const sim_mob::Person* person, const sim_mob::Conflux* cnflx)
+{
 	sim_mob::Role* role = person->getRole();
 	isMoving = true;
 	roleType = 0;
@@ -89,11 +91,13 @@ sim_mob::Conflux::PersonProps::PersonProps(const sim_mob::Person* person) {
 	if(currSegStats)
 	{
 		segment = currSegStats->getRoadSegment();
+		conflux = segment->getParentConflux();
 		segStats = segment->getParentConflux()->findSegStats(segment, currSegStats->getStatsNumberInSegment()); //person->getCurrSegStats() cannot be used as it returns a const pointer
 	}
 	else
 	{
 		segment = nullptr;
+		conflux = cnflx;
 		segStats = nullptr;
 	}
 }
@@ -199,7 +203,7 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person)
 	person->currWorkerProvider = parentWorker;
 
 	//capture person info before update
-	PersonProps beforeUpdate(person);
+	PersonProps beforeUpdate(person, this);
 
 	//let the person move
 	UpdateStatus res = movePerson(currFrame, person);
@@ -208,10 +212,13 @@ void sim_mob::Conflux::updateAgent(sim_mob::Person* person)
 	if (res.status == UpdateStatus::RS_DONE) { killAgent(person, beforeUpdate); return;	}
 
 	//capture person info after update
-	PersonProps afterUpdate(person);
+	PersonProps afterUpdate(person, this);
 
 	//perform house keeping
 	housekeep(beforeUpdate, afterUpdate, person);
+
+	//update person's handler registration with MessageBus, if required
+	updateAgentContext(beforeUpdate, afterUpdate, person);
 }
 
 void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person)
@@ -386,6 +393,15 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 	{
 		//if the person did not end up in a VQ and his lane is not lane infinity of segAfterUpdate
 		afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(person->distanceToEndOfSegment, afterUpdate.lane);
+	}
+}
+
+void sim_mob::Conflux::updateAgentContext(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person) const
+{
+	if(beforeUpdate.conflux && afterUpdate.conflux && beforeUpdate.conflux != afterUpdate.conflux)
+	{
+		Print() << "ReRegistering agent from " << person->GetContext() << " to " << afterUpdate.conflux->GetContext() << std::endl;
+		MessageBus::ReRegisterHandler(person, afterUpdate.conflux->GetContext());
 	}
 }
 
@@ -1422,4 +1438,6 @@ void sim_mob::Conflux::removeIncident(sim_mob::SegmentStats* segStats) {
 }
 
 sim_mob::InsertIncidentMessage::InsertIncidentMessage(const std::vector<sim_mob::SegmentStats*>& stats, double newFlowRate):stats(stats), newFlowRate(newFlowRate){;}
-sim_mob::InsertIncidentMessage::~InsertIncidentMessage() {}
+sim_mob::InsertIncidentMessage::~InsertIncidentMessage()
+{
+}

@@ -71,7 +71,6 @@ namespace {
         	.addProperty("physicalFromDate", &Unit::getPhysicalFromDate)
         	.addProperty("saleStatus", &Unit::getSaleStatus)
         	.addProperty("physicalStatus", &Unit::getPhysicalStatus)
-
             .endClass();
     getGlobalNamespace(state)
             .beginClass <Postcode> ("Postcode")
@@ -101,8 +100,26 @@ namespace {
             .addProperty("mrt_400m", &PostcodeAmenities::hasMRT_400m)
             .addProperty("express_200m", &PostcodeAmenities::hasExpress_200m)
             .addProperty("bus_200m", &PostcodeAmenities::hasBus_200m)
-            .addProperty("bus_400m", &PostcodeAmenities::hasBus_400m)
+            .addProperty("bus_400m", &PostcodeAmenities::getDistanceToJob)
             .addProperty("pms_1km", &PostcodeAmenities::hasPms_1km)
+            .endClass();
+    getGlobalNamespace(state)
+            .beginClass <ParcelAmenities> ("ParcelAmenities")
+            .addProperty("fmParcelId", &ParcelAmenities::getFmParcelId)
+            .addProperty("nearestMRT", &ParcelAmenities::getNearestMRT)
+            .addProperty("distanceToMRT", &ParcelAmenities::getDistanceToMRT)
+            .addProperty("distanceToBus", &ParcelAmenities::getDistanceToBus)
+            .addProperty("distanceToExpress", &ParcelAmenities::getDistanceToExpress)
+            .addProperty("distanceToPMS30", &ParcelAmenities::getDistanceToPMS30)
+            .addProperty("distanceToCBD", &ParcelAmenities::getDistanceToCBD)
+            .addProperty("distanceToMall", &ParcelAmenities::getDistanceToMall)
+            .addProperty("distanceToJob", &ParcelAmenities::getDistanceToJob)
+            .addProperty("mrt_200m", &ParcelAmenities::hasMRT_200m)
+            .addProperty("mrt_400m", &ParcelAmenities::hasMRT_400m)
+            .addProperty("express_200m", &ParcelAmenities::hasExpress_200m)
+            .addProperty("bus_200m", &ParcelAmenities::hasBus_200m)
+            .addProperty("bus_400m", &ParcelAmenities::getDistanceToJob)
+            .addProperty("pms_1km", &ParcelAmenities::hasPms_1km)
             .endClass();
     getGlobalNamespace(state)
             .beginClass <Building> ("Building")
@@ -278,8 +295,7 @@ void DeveloperLuaModel::mapClasses() {
     mapCommonClasses(state.get());
 }
 
-double DeveloperLuaModel::calulateUnitRevenue(const PotentialUnit& unit,
-        const PostcodeAmenities& amenities) const {
+double DeveloperLuaModel::calulateUnitRevenue(const PotentialUnit& unit,const ParcelAmenities& amenities) const {
     LuaRef funcRef = getGlobal(state.get(), "calculateUnitRevenue");
     LuaRef retVal = funcRef(&unit, &amenities);
     if (retVal.isNumber()) {

@@ -13,7 +13,7 @@
 #include "database/entity/Unit.hpp"
 #include "database/entity/Household.hpp"
 #include "database/entity/ExternalEvent.hpp"
-#include "database/entity/PostcodeAmenities.hpp"
+#include "database/entity/ParcelAmenities.hpp"
 #include "database/entity/PotentialProject.hpp"
 #include "core/HousingMarket.hpp"
 #include "model/HM_Model.hpp"
@@ -123,11 +123,10 @@ namespace sim_mob {
              * or it can be the nearest postcode of the parcel.
              *  
              * @param unit to calculate the the future revenue.
-             * @param postcode amenities.
+             * @param parcel amenities.
              * @return value of the future revenue or long_term::INVALID_DOUBLE
              */
-            double calulateUnitRevenue (const PotentialUnit& unit, 
-                const PostcodeAmenities& amenities) const;
+            double calulateUnitRevenue (const PotentialUnit& unit,const ParcelAmenities& amenities) const;
             
         private:
 

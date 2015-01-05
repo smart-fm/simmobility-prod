@@ -22,18 +22,27 @@ BuildingDao::~BuildingDao() {}
 
 void BuildingDao::fromRow(Row& result, Building& outObj)
 {
-    outObj.fm_building_id 		= result.get<BigSerial>(	"fm_building_id", 		INVALID_ID);
-    outObj.fm_project_id 		= result.get<BigSerial>(	"fm_project_id", 		INVALID_ID);
-    outObj.fm_parcel_id 		= result.get<BigSerial>(	"fm_parcel_id", 		INVALID_ID);
-    outObj.storeys_above_ground = result.get<int>(			"storeys_above_ground", INVALID_ID);
-    outObj.storeys_below_ground = result.get<int>(			"storeys_below_ground", 0);
-    outObj.from_date 			= result.get<std::tm>(		"from_date" );
-    outObj.to_date 				= result.get<std::tm>(		"to_date"   );
-    outObj.building_status 		= result.get<std::string>(	"building_status", 		"");
-    outObj.gross_sq_m_res 		= result.get<double>(		"gross_sq_m_res", 		0.0);
-    outObj.gross_sq_m_office 	= result.get<double>(		"gross_sq_m_office", 	0.0);
-    outObj.gross_sq_m_retail 	= result.get<double>(		"gross_sq_m_retail", 	0.0);
-    outObj.gross_sq_m_other 	= result.get<double>(		"gross_sq_m_other", 	0.0);
+    outObj.fmBuildingId 		= result.get<BigSerial>("fm_building_id",INVALID_ID);
+    outObj.fmProjectId 		= result.get<BigSerial>("fm_project_id",INVALID_ID);
+    outObj.fmParcelId 		= result.get<BigSerial>("fm_parcel_id",INVALID_ID);
+    outObj.storeysAboveGround = result.get<int>("storeys_above_ground",INVALID_ID);
+    outObj.storeysBelowGround = result.get<int>("storeys_below_ground",INVALID_ID);
+    outObj.fromDate 			= result.get<std::tm>(		"from_date" );
+    outObj.toDate 				= result.get<std::tm>(		"to_date"   );
+    outObj.buildingStatus 		= result.get<std::string>(	"building_status", 		"");
+    outObj.grossSqMRes 		= result.get<double>(		"gross_sq_m_res", 		0.0);
+    outObj.grossSqMOffice 	= result.get<double>(		"gross_sq_m_office", 	0.0);
+    outObj.grossSqMRetail 	= result.get<double>(		"gross_sq_m_retail", 	0.0);
+    outObj.grossSqMOther	= result.get<double>(		"gross_sq_m_other", 	0.0);
 }
 
 void BuildingDao::toRow(Building& data, Parameters& outParams, bool update) {}
+
+std::vector<Building*> BuildingDao::getBuildingsOfParcel()
+{
+
+	const std::string queryStr = DB_GETALL_EMPTY_PARCELS;
+	std::vector<Building*> buildingList;
+	getByQuery(queryStr,buildingList);
+	return buildingList;
+}

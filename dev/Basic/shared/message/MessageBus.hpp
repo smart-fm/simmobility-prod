@@ -84,6 +84,17 @@ namespace sim_mob {
             static void UnRegisterHandler(MessageHandler* handler);
 
             /**
+             * updates the thread context to the given context
+             * note: this function is for convenience in cases where agents are managed by other agents.
+             * note: the new context can be obtained from the managing entity.
+             * note: it is the caller's responsibility to ensure that the correct context is passed
+             * @param handler MessageHandler to update
+             * @param newContext the new context to register the handler into
+             * @throws runtime_exception if the current thread context is not registered
+             */
+            static void ReRegisterHandler(MessageHandler* handler, void* newContext);
+
+            /**
              * MessageBus distributes all messages for all registered threads.
              * Collects all messages from output queues of all thread contexts and
              * copies them to the output queue of the main message handler.

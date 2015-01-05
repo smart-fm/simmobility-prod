@@ -33,13 +33,6 @@ int TemplateUnitType::getProportion() const {
     return proportion;
 }
 
-//double TemplateUnitType::getTypicalArea() const {
-//    return typicalArea;
-//}
-//
-//double TemplateUnitType::getConstructionCostPerUnit() const {
-//	return constructionCostPerUnit;
-//}
 namespace sim_mob {
     namespace long_term {
 

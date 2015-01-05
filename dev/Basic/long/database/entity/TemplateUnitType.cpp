@@ -14,11 +14,8 @@
 
 using namespace sim_mob::long_term;
 
-TemplateUnitType::TemplateUnitType(
-        BigSerial templateId,
-        BigSerial unitTypeId,
-        int proportion)
-: templateId(templateId), unitTypeId(unitTypeId), proportion(proportion) {
+TemplateUnitType::TemplateUnitType(BigSerial templateId,BigSerial unitTypeId,int proportion)
+: templateId(templateId), unitTypeId(unitTypeId), proportion(proportion){
 }
 
 TemplateUnitType::~TemplateUnitType() {
@@ -36,6 +33,13 @@ int TemplateUnitType::getProportion() const {
     return proportion;
 }
 
+//double TemplateUnitType::getTypicalArea() const {
+//    return typicalArea;
+//}
+//
+//double TemplateUnitType::getConstructionCostPerUnit() const {
+//	return constructionCostPerUnit;
+//}
 namespace sim_mob {
     namespace long_term {
 

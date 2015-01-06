@@ -102,6 +102,7 @@ namespace sim_mob
              */
             void startImpl();
             void stopImpl();
+            void update(int day);
 
         private:
             // Data
@@ -113,6 +114,7 @@ namespace sim_mob
             StatsMap stats;
             IndividualList individuals;
             IndividualMap individualsById;
+            boost::unordered_map<BigSerial, BigSerial> assignedUnits;
 
             AwakeningList awakening;
             AwakeningMap awakeningById;

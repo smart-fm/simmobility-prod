@@ -321,8 +321,6 @@ void HM_Model::startImpl()
 		freelanceAgents.push_back(freelanceAgent);
 	}
 
-	boost::unordered_map<BigSerial, BigSerial> assignedUnits;
-
 	int homelessHousehold = 0;
 
 	// Assign households to the units.
@@ -393,7 +391,8 @@ void HM_Model::startImpl()
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
 		(*it)->setbiddingMarketEntryDay( 0 );
-		(*it)->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
+		(*it)->setTimeOnMarket((float)rand() / RAND_MAX *  config.ltParams.housingModel.timeOnMarket);
+		(*it)->setTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
 
 		//this unit is a vacancy
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
@@ -404,13 +403,15 @@ void HM_Model::startImpl()
 
 				if(awakeningProbability < config.ltParams.housingModel.awakenedProbability )
 				{
-					(*it)->setbiddingMarketEntryDay( 0 );
+
+					(*it)->setbiddingMarketEntryDay( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 					(*it)->setTimeOnMarket( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
+
 					onMarket++;
 				}
 				else
 				{
-					(*it)->setbiddingMarketEntryDay( config.ltParams.housingModel.timeOnMarket + int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOffMarket)));
+					(*it)->setbiddingMarketEntryDay( (float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket + config.ltParams.housingModel.timeOffMarket));
 					offMarket++;
 				}
 
@@ -515,6 +516,27 @@ void HM_Model::unitsFiltering()
 	PrintOut( "[Postfilter] Total number of Condos: " << numOfCondo - targetNumOfCondo << std::endl );
 	PrintOut( "Total units " << units.size() << std::endl );
 }
+
+void HM_Model::update(int day)
+{
+	//PrintOut("HM_Model update" << std::endl);
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
+	{
+		//this unit is a vacancy
+		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
+		{
+			//If a unit is off the market and unoccupied, we should put it back on the market after its timeOffMarket value is exceeded.
+			if( (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket() > day )
+			{
+				(*it)->setbiddingMarketEntryDay(day + 1);
+				(*it)->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+			}
+		}
+	}
+}
+
 
 void HM_Model::hdbEligibilityTest(int index)
 {

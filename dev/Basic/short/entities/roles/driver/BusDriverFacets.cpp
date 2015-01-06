@@ -13,13 +13,13 @@
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-
-#include "entities/Person.hpp"
 #include "entities/BusStopAgent.hpp"
-#include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
-#include "entities/roles/driver/models/LaneChangeModel.hpp"
+#include "entities/Person.hpp"
 #include "entities/UpdateParams.hpp"
+#include "entities/roles/driver/models/LaneChangeModel.hpp"
+#include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
 #include "logging/Log.hpp"
+#include "path/PathSetManager.hpp"
 
 namespace {
 	// default bus length cm to be displayed on visualizer
@@ -51,7 +51,7 @@ void BusDriverBehavior::frame_tick_output() {
 
 sim_mob::BusDriverMovement::BusDriverMovement(sim_mob::Person* parentAgent):
 	DriverMovement(parentAgent), parentBusDriver(nullptr), lastTickDistanceToBusStop(-1), demoPassengerIncrease(false),
-	dwellTimeRecord(0), firstBusStop(true), lastBusStop(false), passengerCountOldDisplayFlag(false),
+	dwellTimeRecord(0), firstBusStop(true), lastBusStop(false),
 	noPassengersBoarding(0), noPassengersAlighting(0), allowBoardingAlightingFlag(false), firstBoardingAlightingMS(0),
 	lastBoardingAlightingMS(0), boardingmsOffset(0), alightingmsOffset(0),
 	busStopHoldingTimeSec(2), busStopWaitBoardingAlightingSec(2), waitAtStopMS(-1), busStopWaitTime(2)
@@ -70,32 +70,41 @@ Vehicle* sim_mob::BusDriverMovement::initializePath_bus(bool allocateVehicle) {
 	if(getParent()) {
 		if (!getParent()->getNextPathPlanned()) {
 			std::vector<const RoadSegment*> path;
-			//Person* person = dynamic_cast<Person*>(parentAgent);
 			int vehicle_id = 0;
 			int laneID = -1;
-//			if (parentAgent) {
-				const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem));
-				if (!bustrip){
-					WarnOut("bustrip is null");
+			const BusTrip* bustrip =
+					dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem));
+			if (!bustrip)
+			{
+				WarnOut("bustrip is null");
+			}
+			if (bustrip
+					&& (*(getParent()->currTripChainItem))->itemType
+							== TripChainItem::IT_BUSTRIP)
+			{
+				path = bustrip->getBusRouteInfo().getRoadSegments();
+				std::cout << "BusTrip path size = " << path.size() << std::endl;
+				vehicle_id = bustrip->getVehicleID();
+				if (path.size() > 0)
+				{
+					laneID = path.at(0)->getLanes().size() - 2;
 				}
-				if (bustrip&& (*(getParent()->currTripChainItem))->itemType== TripChainItem::IT_BUSTRIP) {
-					path = bustrip->getBusRouteInfo().getRoadSegments();
-					std::cout << "BusTrip path size = " << path.size() << std::endl;
-					vehicle_id = bustrip->getVehicleID();
-					if (path.size() > 0) {
-						laneID = path.at(0)->getLanes().size() - 2;
-					}
-				} else {
-					if ((*(getParent()->currTripChainItem))->itemType== TripChainItem::IT_TRIP)
-						std::cout << TripChainItem::IT_TRIP << " IT_TRIP\n";
-					if ((*(getParent()->currTripChainItem))->itemType== TripChainItem::IT_ACTIVITY)
-						std::cout << "IT_ACTIVITY\n";
-					if ((*(getParent()->currTripChainItem))->itemType== TripChainItem::IT_BUSTRIP)
-				       std::cout << "IT_BUSTRIP\n";
-					std::cout<< "BusTrip path not initialized coz it is not a bustrip, (*(getParent()->currTripChainItem))->itemType = "<< (*(getParent()->currTripChainItem))->itemType<< std::endl;
-				}
-
-//			}
+			}
+			else
+			{
+				if ((*(getParent()->currTripChainItem))->itemType
+						== TripChainItem::IT_TRIP)
+					std::cout << TripChainItem::IT_TRIP << " IT_TRIP\n";
+				if ((*(getParent()->currTripChainItem))->itemType
+						== TripChainItem::IT_ACTIVITY)
+					std::cout << "IT_ACTIVITY\n";
+				if ((*(getParent()->currTripChainItem))->itemType
+						== TripChainItem::IT_BUSTRIP)
+					std::cout << "IT_BUSTRIP\n";
+				Print() << "BusTrip path not initialized coz it is not a bustrip, (*(getParent()->currTripChainItem))->itemType = "
+						<< (*(getParent()->currTripChainItem))->itemType
+						<< std::endl;
+			}
 
 			//TODO: Start in lane 0?
 			int startlaneID = 1;
@@ -128,7 +137,7 @@ void sim_mob::BusDriverMovement::frame_init() {
 	//      very different for Cars and Buses, but until we un-tangle the code
 	//      we'll need to rely on hacks like this.
 	Vehicle* newVeh = nullptr;
-	//Person* person = dynamic_cast<Person*>(parent);
+
 	if (getParent()) {
 		if (getParent()->getAgentSrc() == "BusController") {
 			newVeh = initializePath_bus(true); // no need any node information
@@ -148,7 +157,8 @@ void sim_mob::BusDriverMovement::frame_init() {
 			throw std::runtime_error("BusDriver created without an appropriate BusTrip item.");
 		}
 
-		parentBusDriver->vehicle = new Bus(nullRoute, newVeh,bustrip_change->getBusline()->getBusLineID());
+		Vehicle *bus = new Bus(nullRoute, newVeh,bustrip_change->getBusline()->getBusLineID());
+		parentBusDriver->setVehicle(bus);
 		delete newVeh;
 
 		//This code is used by Driver to set a few properties of the Vehicle/Bus.
@@ -176,14 +186,41 @@ void sim_mob::BusDriverMovement::frame_init() {
 		}
 		//Unique to BusDrivers: reset your route
 		waitAtStopMS = 0.0;
+
+		//Set initial speed of bus to 0
+		parentBusDriver->getParams().initSpeed = 0;
 	}
+
+	// put busStops to StopPointPool
+	for(int i=0;i<busStops.size();++i){
+		const BusStop* bs = busStops[i];
+		std::string segAimsunId = bs->getParentSegment()->originalDB_ID.getLogItem();
+		std::string segid = Utils::getNumberFromAimsunId(segAimsunId);
+		double dd = sim_mob::BusStop::EstimateStopPoint(bs->xPos, bs->yPos, bs->getParentSegment()) /100.0;
+		double dis = bs->distance;
+		double fd = dd;
+		double segl = bs->getParentSegment()->getLengthOfSegment() /100.0;
+
+		if(fd > (segl -10) ){
+			fd = segl -10;
+		}
+		if(fd<0){
+			fd = segl/2;
+		}
+
+		Print()<<"id: "<<segid<<" dis:"<<dis<<" dd:"<<dd<<" len:"<<bs->getParentSegment()->getLengthOfSegment() /100.0<<" fd:"<<fd<<std::endl;
+		double dwelltime = 10;
+		StopPoint sp(segid,fd,dwelltime);
+		parentBusDriver->getParams().insertStopPoint(sp);
+	}
+
 }
 
 std::vector<const BusStop*> sim_mob::BusDriverMovement::findBusStopInPath(const std::vector<const RoadSegment*>& path) const {
 	//NOTE: Use typedefs instead of defines.
 	typedef std::vector<const BusStop*> BusStopVector;
 	BusStopVector res;
-	int busStopAmount = 0;
+
 	std::vector<const RoadSegment*>::const_iterator it;
 	for (it = path.begin(); it != path.end(); ++it) {
 		// get obstacles in road segment
@@ -196,6 +233,7 @@ std::vector<const BusStop*> sim_mob::BusDriverMovement::findBusStopInPath(const 
 			RoadItem* ri = const_cast<RoadItem*>(ob_it->second);
 			BusStop *bs = dynamic_cast<BusStop*>(ri);
 			if (bs) {
+				bs->distance = ob_it->first /100.0;
 				res.push_back(bs);
 			}
 		}
@@ -209,14 +247,12 @@ double sim_mob::BusDriverMovement::busAccelerating(DriverUpdateParams& p) {
 
 	//Convert back to m/s
 	//TODO: Is this always m/s? We should rename the variable then...
-	p.currSpeed = parentBusDriver->vehicle->getVelocity() / 100;
+	p.currSpeed = parentBusDriver->getVehicle()->getVelocity() / 100;
 
 	//Call our model
 	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, p.maxLaneSpeed);
 
 	return newFwdAcc;
-	//Update our chosen acceleration; update our position on the link.
-	//vehicle->setAcceleration(newFwdAcc * 100);
 }
 
 bool sim_mob::BusDriverMovement::isBusFarawayBusStop() {
@@ -301,7 +337,7 @@ double sim_mob::BusDriverMovement::getDistanceToBusStopOfSegment(const RoadSegme
 	double currentY = parentBusDriver->getPositionY();
 	const std::map<centimeter_t, const RoadItem*> & obstacles = rs->obstacles;
 	for (std::map<centimeter_t, const RoadItem*>::const_iterator o_it =
-			obstacles.begin(); o_it != obstacles.end(); o_it++) {
+			obstacles.begin(); o_it != obstacles.end(); ++o_it) {
 		RoadItem* ri = const_cast<RoadItem*>(o_it->second);
 		BusStop *bs = dynamic_cast<BusStop *>(ri);
 		int stopPoint = o_it->first;
@@ -340,22 +376,16 @@ double sim_mob::BusDriverMovement::getDistanceToBusStopOfSegment(const RoadSegme
 								parentBusDriver->getPositionY(),
 								rs->getStart()->location.getX(),
 								rs->getStart()->location.getY());
-//						distance = stopPoint
-//								- vehicle->getDistanceMovedInSegment();
+
 						// Buses not stopping near the busstop at few places.
 						// one easy way to fix it
 						double actualDistance = sim_mob::BusStop::EstimateStopPoint(bs->xPos, bs->yPos, rs);
 
-						//std::cout<<parentBusDriver->vehicle->getDistanceMovedInSegment()<<" "<<BusDistfromStart.getMagnitude()<<std::endl;
-
 						distance = actualDistance
 								- BusDistfromStart.getMagnitude();
 
-
 						break;
-
 					}
-
 				} else {
 					DynamicVector busToSegmentStartDistance(currentX, currentY,
 							rs->getStart()->location.getX(),
@@ -380,7 +410,7 @@ void sim_mob::BusDriverMovement::frame_tick() {
 
 void sim_mob::BusDriverMovement::frame_tick_output() {
 	DriverUpdateParams &p = parentBusDriver->getParams();
-	if (this->parentDriver->IsVehicleInLoadingQueue() || fwdDriverMovement.isDoneWithEntireRoute()) {
+	if (this->getParentDriver()->IsVehicleInLoadingQueue() || fwdDriverMovement.isDoneWithEntireRoute()) {
 		return;
 	}
 
@@ -395,10 +425,10 @@ void sim_mob::BusDriverMovement::frame_tick_output() {
 			addLine <<"\",\"fake\":\"" <<(this->getParent()->isFake?"true":"false");
 		}
 
-		Bus* bus = dynamic_cast<Bus*>(parentBusDriver->vehicle);
+		Bus* bus = dynamic_cast<Bus*>(parentBusDriver->getVehicle());
 		int passengerCount = 0;
 		if (bus) {
-			passengerCount = passengerCountOldDisplayFlag ? bus->getPassengerCountOld() : bus->getPassengerCount();
+			passengerCount = bus->getPassengerCount();
 		}
 
 		LogOut(
@@ -416,6 +446,7 @@ void sim_mob::BusDriverMovement::frame_tick_output() {
 			<<"\",\"DwellTime_ijk\":\""<<(bus?parentBusDriver->DwellTime_ijk.get():0)
 			<<"\",\"buslineID\":\""<<(bus?bus->getBusLineID():0)
 			<<addLine.str()
+			<<"\",\"info\":\""<<p.debugInfo
 			<<"\"})"<<std::endl);
 	}
 }
@@ -444,7 +475,7 @@ void sim_mob::BusDriverMovement::AlightingPassengers(Bus* bus)//for alighting pa
 					}
 					else
 					{
-						itr++;
+						++itr;
 						i++;
 					}
 				}
@@ -459,7 +490,7 @@ void sim_mob::BusDriverMovement::BoardingPassengers_Choice(Bus* bus)
 {
 	const Agent* parentAgent = (parentBusDriver?parentBusDriver->getParent():nullptr);
  	std::vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((parentBusDriver->lastVisited_BusStop.get()->xPos - 3500),(parentBusDriver->lastVisited_BusStop.get()->yPos - 3500)),Point2D((parentBusDriver->lastVisited_BusStop.get()->xPos + 3500),(parentBusDriver->lastVisited_BusStop.get()->yPos + 3500)), parentAgent); //  nearbyAgents(Point2D(lastVisited_BusStop.get()->xPos, lastVisited_BusStop.get()->yPos), *params.currLane,3500,3500);
- 	for (std::vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); it++)
+ 	for (std::vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); ++it)
  	{
  		//Retrieve only Passenger agents.
  		const Person* person = dynamic_cast<const Person *>(*it);
@@ -509,7 +540,6 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 	uint32_t lastBoardingMS = 0;
 	uint32_t lastAlightingMS = 0;
 	const uint32_t baseGranMS = ConfigManager::GetInstance().FullConfig().baseGranMS();// baseGran MS perFrame
-	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 	const Busline* busline = nullptr;
 	BusStopAgent* busstopAgent = BusStopAgent::findBusStopAgentByBusStopNo(parentBusDriver->lastVisited_BusStop.get()->getBusstopno_());
 	std::vector<sim_mob::WaitBusActivityRole*>& boarding_waitBusActivities = busstopAgent->getBoarding_WaitBusActivities();// get the boarding queue of persons for all Buslines
@@ -687,8 +717,7 @@ void sim_mob::BusDriverMovement::StartBoardingAlighting(Bus* bus)
 	// begin alighting and boarding
 	uint32_t curr_ms = parentBusDriver->getParams().now.ms();
 	int i = 0;
-	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
-	const Busline* busline = nullptr;
+	
 	BusStopAgent* busstopAgent = BusStopAgent::findBusStopAgentByBusStopNo(parentBusDriver->lastVisited_BusStop.get()->getBusstopno_());
 	std::vector<sim_mob::WaitBusActivityRole*>& boarding_waitBusActivities = busstopAgent->getBoarding_WaitBusActivities();// get the boarding queue of persons for all Buslines
 

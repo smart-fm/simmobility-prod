@@ -48,8 +48,8 @@ sim_mob::Activity::Activity(string locType) : TripChainItem(), description(""), 
 sim_mob::Activity::~Activity() {}
 
 sim_mob::Trip::Trip(std::string entId, std::string type, unsigned int seqNumber, int requestTime,
-		DailyTime start, DailyTime end, std::string tripId, Node* from,
-		std::string fromLocType, Node* to, std::string toLocType) :
+		DailyTime start, DailyTime end, std::string tripId, const Node* from,
+		std::string fromLocType, const Node* to, std::string toLocType) :
 		TripChainItem(entId, type, start, end, seqNumber,requestTime), tripID(tripId), fromLocation(
 				from), fromLocationType(getLocationType(fromLocType)), toLocation(to), toLocationType(getLocationType(toLocType))
 {
@@ -91,10 +91,10 @@ void sim_mob::Trip::setSubTrips(const std::vector<sim_mob::SubTrip>& subTrips)
 
 
 sim_mob::SubTrip::SubTrip(std::string entId, std::string type, unsigned int seqNumber,int requestTime,
-		DailyTime start, DailyTime end, Node* from,
-		std::string fromLocType, Node* to, std::string toLocType, std::string mode,
+		DailyTime start, DailyTime end, const Node* from,
+		std::string fromLocType, const Node* to, std::string toLocType, std::string mode,
 		bool isPrimary, std::string ptLineId) : Trip(entId, type, seqNumber, requestTime, start, end, "", from, fromLocType, to, toLocType),
-		mode(mode) , isPrimaryMode(isPrimary), ptLineId(ptLineId), schedule(nullptr)
+		mode(mode) , isPrimaryMode(isPrimary), ptLineId(ptLineId), schedule(nullptr),cbdTraverseType(sim_mob::TravelMetric::CBD_NONE)
 {
 }
 
@@ -178,6 +178,10 @@ const std::string sim_mob::Trip::getMode() const
 {
 	if(subTrips.empty()) { return ""; }
 	return subTrips.front().getMode();
+}
+
+const std::string sim_mob::SubTrip::getBusLineID() const {
+	return ptLineId;
 }
 
 bool sim_mob::operator==(const SubTrip& s1, const SubTrip& s2)

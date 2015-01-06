@@ -442,7 +442,7 @@ MessageList FMOD_Controller::collectLinkTravelTime()
 		const std::map<double, linkTravelStats>& travelStatsMap = (*it)->linkTravelStatsMap.get();
 		for(std::map<double, linkTravelStats>::const_iterator itTravel=travelStatsMap.begin(); itTravel!=travelStatsMap.end(); itTravel++ ){
 
-			double travelTime = (itTravel->first) - (itTravel->second).linkEntryTime_;
+			double travelTime = (itTravel->first) - (itTravel->second).entryTime;
 			std::map<const Link*, travelTimes>::iterator itTT = LinkTravelTimesMap.find((itTravel->second).link_);
 
 			if (itTT != LinkTravelTimesMap.end())
@@ -547,57 +547,57 @@ MessageList FMOD_Controller::handleConfirmMessage(const std::string& msg)
 
 void FMOD_Controller::handleScheduleMessage(const std::string& msg)
 {
-	MsgSchedule msgRequest;
-	msgRequest.createMessage( msg );
-
-	FMODSchedule* schedule = new FMODSchedule();
-	sim_mob::Node* startNode=nullptr;
-	sim_mob::Node* endNode=nullptr;
-	for(std::vector<MsgSchedule::Route>::iterator it=msgRequest.routes.begin(); it!=msgRequest.routes.end(); it++){
-		const StreetDirectory& stdir = StreetDirectory::instance();
-		int id = boost::lexical_cast<int>( (*it).id );
-		sim_mob::Node* node = const_cast<sim_mob::Node*>(stdir.getNode(id));
-		if(node){
-			schedule->routes.push_back(node);
-			if(startNode==nullptr){
-				startNode = node;
-			}
-			endNode = node;
-		}
-	}
-
-	DailyTime start(0);
-	for(std::vector<MsgSchedule::Stop>::iterator it=msgRequest.stopSchdules.begin(); it!=msgRequest.stopSchdules.end(); it++){
-		FMODSchedule::STOP stop;
-		stop.stopId = boost::lexical_cast<int>( (*it).stopId );
-		stop.scheduleId = boost::lexical_cast<int>( msgRequest.scheduleId );
-		stop.dwellTime = 0;
-		for(std::vector<std::string>::iterator itP=(*it).alightingPassengers.begin(); itP!=(*it).alightingPassengers.end(); itP++){
-			stop.alightingPassengers.push_back( boost::lexical_cast<int>( (*itP) ) );
-		}
-		for(std::vector<std::string>::iterator itP=(*it).boardingPassengers.begin(); itP!=(*it).boardingPassengers.end(); itP++){
-			stop.boardingPassengers.push_back( boost::lexical_cast<int>( (*itP) ) );
-		}
-		schedule->stopSchdules.push_back(stop);
-		if(start.getValue()==0){
-			start = DailyTime( (*it).arrivalTime );
-		}
-	}
-
-	sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", startNode, "node", endNode, "node");
-	SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), startNode, "node", endNode, "node", "Car");
-	((Trip*)tc)->addSubTrip(subTrip);
-
-	std::vector<sim_mob::TripChainItem*>  tcs;
-	tcs.push_back(tc);
-
-	if( parkingCoord.remove(msgRequest.vehicleId) ){
-		sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
-		person->client_id = msgRequest.vehicleId ;
-		person->parentEntity = this;
-		allDrivers.push_back(person);
-		parkingCoord.enterTo(person->originNode.node_, person);
-	}
+//	MsgSchedule msgRequest;
+//	msgRequest.createMessage( msg );
+//
+//	FMODSchedule* schedule = new FMODSchedule();
+//	sim_mob::Node* startNode=nullptr;
+//	sim_mob::Node* endNode=nullptr;
+//	for(std::vector<MsgSchedule::Route>::iterator it=msgRequest.routes.begin(); it!=msgRequest.routes.end(); it++){
+//		const StreetDirectory& stdir = StreetDirectory::instance();
+//		int id = boost::lexical_cast<int>( (*it).id );
+//		sim_mob::Node* node = const_cast<sim_mob::Node*>(stdir.getNode(id));
+//		if(node){
+//			schedule->routes.push_back(node);
+//			if(startNode==nullptr){
+//				startNode = node;
+//			}
+//			endNode = node;
+//		}
+//	}
+//
+//	DailyTime start(0);
+//	for(std::vector<MsgSchedule::Stop>::iterator it=msgRequest.stopSchdules.begin(); it!=msgRequest.stopSchdules.end(); it++){
+//		FMODSchedule::STOP stop;
+//		stop.stopId = boost::lexical_cast<int>( (*it).stopId );
+//		stop.scheduleId = boost::lexical_cast<int>( msgRequest.scheduleId );
+//		stop.dwellTime = 0;
+//		for(std::vector<std::string>::iterator itP=(*it).alightingPassengers.begin(); itP!=(*it).alightingPassengers.end(); itP++){
+//			stop.alightingPassengers.push_back( boost::lexical_cast<int>( (*itP) ) );
+//		}
+//		for(std::vector<std::string>::iterator itP=(*it).boardingPassengers.begin(); itP!=(*it).boardingPassengers.end(); itP++){
+//			stop.boardingPassengers.push_back( boost::lexical_cast<int>( (*itP) ) );
+//		}
+//		schedule->stopSchdules.push_back(stop);
+//		if(start.getValue()==0){
+//			start = DailyTime( (*it).arrivalTime );
+//		}
+//	}
+//
+//	sim_mob::TripChainItem* tc = new sim_mob::Trip("-1", "Trip", 0, -1, start, DailyTime(), "", startNode, "node", endNode, "node");
+//	SubTrip subTrip("-1", "Trip", 0, -1, start, DailyTime(), startNode, "node", endNode, "node", "Car");
+//	((Trip*)tc)->addSubTrip(subTrip);
+//
+//	std::vector<sim_mob::TripChainItem*>  tcs;
+//	tcs.push_back(tc);
+//
+//	if( parkingCoord.remove(msgRequest.vehicleId) ){
+//		sim_mob::Person* person = new sim_mob::Person("FMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
+//		person->client_id = msgRequest.vehicleId ;
+//		person->parentEntity = this;
+//		allDrivers.push_back(person);
+//		parkingCoord.enterTo(person->originNode.node_, person);
+//	}
 
 }
 

@@ -8,6 +8,7 @@
 
 #include "util/LangHelpers.hpp"
 #include "entities/UpdateParams.hpp"
+#include "entities/misc/TripChain.hpp"
 #include "logging/Log.hpp"
 #include "logging/NullableOutputStream.hpp"
 #include "message/Message.hpp"
@@ -122,10 +123,33 @@ public:
 	 */
 	virtual void HandleMessage(messaging::Message::MessageType type,
 			const messaging::Message& message){}
-	// mark startTimeand origin
-	virtual TravelMetric & startTravelTimeMetric() = 0;
-	//	mark the destination and end time and travel time
-	virtual TravelMetric & finalizeTravelTimeMetric() = 0;
+	
+	///	mark startTimeand origin
+	virtual TravelMetric& startTravelTimeMetric() = 0;
+	///	mark the destination and end time and travel time
+	virtual TravelMetric& finalizeTravelTimeMetric() = 0;
+	//needed if the role are reused rather than deleted!
+	virtual void resetTravelTimeMetric()
+	{
+		travelTimeMetric.reset();
+	}
+	/**
+	 * checks if lane is connected to the next segment
+	 *
+	 * @param lane current lane
+	 * @param nxtRdSeg next road segment
+	 * @return true if lane is connected to nextSegStats; false otherwise
+	 */
+	static bool isConnectedToNextSeg(const Lane* lane, const sim_mob::RoadSegment *nxtRdSeg);
+
+	/**
+	 * checks if 'any' lane is connected to the next segment
+	 *
+	 * @param srcRdSeg Road Segment
+	 * @param nxtRdSeg next road segment
+	 * @return true if lane is connected to next Segment; false otherwise
+	 */
+	static bool isConnectedToNextSeg(const sim_mob::RoadSegment *srcRdSeg, const sim_mob::RoadSegment *nxtRdSeg);
 
 
 public:
@@ -133,7 +157,7 @@ public:
 protected:
 
 	///	placeholder for various movement measurements
-	 boost::shared_ptr<TravelMetric> travelTimeMetric;
+	 TravelMetric travelTimeMetric;
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI

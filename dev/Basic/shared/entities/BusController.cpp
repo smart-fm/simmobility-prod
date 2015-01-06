@@ -116,7 +116,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Enti
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	const map<string, Busline*>& buslines = pt_schedule.getBusLines();
 	if(0 == buslines.size()) {
-		throw std::runtime_error("Error: No busline in the PT_Schedule, please check the setPTSchedule.");
+		throw std::runtime_error("Error:  No busline in the PT_Schedule, please check the setPTSchedule.");
 	}
 
 	for(map<string, Busline*>::const_iterator buslinesIt = buslines.begin();buslinesIt!=buslines.end();buslinesIt++) {
@@ -133,7 +133,6 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Enti
 				currAgTripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));// one person for one busTrip, currently not considering Activity for BusDriver
 				currAg->setTripChain(currAgTripChain);
 				currAg->initTripChain();
-				Print()<<"Person created (assignBusTripChain): "<<currAg->getId()<<" | startTime: "<<tripIt->startTime.getRepr_()<<" | buslineId: "<<busline->getBusLineID()<<std::endl;
 
 				// scheduled for dispatch
 				addOrStashBuses(currAg, active_agents);
@@ -173,7 +172,6 @@ void sim_mob::BusController::dynamicalGenerateAgent(unsigned int preTicks, unsig
 					currAgTripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));// one person for one busTrip, currently not considering Activity for BusDriver
 					currAg->setTripChain(currAgTripChain);
 					currAg->initTripChain();
-					Print()<<"Person created (assignBusTripChain): "<<currAg->getId()<<" | startTime: "<<currAg->getStartTime()<<std::endl;
 
 					// scheduled for dispatch
 					active_agents.push_back(currAg);
@@ -203,11 +201,6 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 
 		//If we're on a new BusLine, register it with the scheduler.
 		if(!busline || (curr->route_id != busline->getBusLineID())) {
-//			if(curr->route_id == "857_1") {
-//				busline = new sim_mob::Busline(curr->route_id,"headway_based");
-//			} else {
-//				busline = new sim_mob::Busline(curr->route_id,config.busline_control_type());
-//			}
 			busline = new sim_mob::Busline(curr->route_id,config.busline_control_type());
 
 			pt_schedule.registerBusLine(curr->route_id, busline);
@@ -270,10 +263,10 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 			  {
 				 BusStop* busStop=const_cast<BusStop*>(stops[k]);
 				 busStop->BusLines.push_back(busline);
-				// std:cout<<"busline"<<busline->getBusLineID()<<std::endl;
 			  }
 		     busstop_busline_registered = false;
 			}
+
 			if(bustrip.setBusRouteInfo(segments, stops)) {
 				busline->addBusTrip(bustrip);
 			}

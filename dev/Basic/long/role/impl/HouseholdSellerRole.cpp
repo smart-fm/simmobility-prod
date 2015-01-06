@@ -5,6 +5,7 @@
 /* 
  * File:   HouseholdSellerRole.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * 		   Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  * 
  * Created on May 16, 2013, 5:13 PM
  */
@@ -28,7 +29,8 @@ using std::vector;
 using std::endl;
 using sim_mob::Math;
 
-namespace {
+namespace
+{
     //bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, target_price
     const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
     //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, speculation, asking_price, floor_area, type_id, target_price, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
@@ -156,15 +158,18 @@ namespace {
 }
 
 HouseholdSellerRole::SellingUnitInfo::SellingUnitInfo() :startedDay(0), interval(0), daysOnMarket(0), numExpectations(0)
-{
-}
+{}
 
 HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent): LT_AgentRole(parent), currentTime(0, 0), hasUnitsToSale(true), selling(false)
 {
-
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	timeOnMarket   = config.ltParams.housingModel.timeOnMarket;
+	timeOffMarket  = config.ltParams.housingModel.timeOffMarket;
+	marketLifespan = timeOnMarket + timeOffMarket;
 }
 
-HouseholdSellerRole::~HouseholdSellerRole() {
+HouseholdSellerRole::~HouseholdSellerRole()
+{
     sellingUnitsMap.clear();
 }
 
@@ -177,6 +182,7 @@ void HouseholdSellerRole::update(timeslice now)
 
     if (selling)
     {
+    	//Has more than one day passed since we've been on the market?
         if (now.ms() > lastTime.ms())
         {
             // reset daily counters
@@ -199,11 +205,28 @@ void HouseholdSellerRole::update(timeslice now)
         //get values from parent.
         const Unit* unit = nullptr;
 
+        //if( unitIds.size() == 0 )
+        //	PrintOut("Seller " << this->getParent()->GetId() << "doesn't seem to have any unit to sell" << std::endl);
+
         for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
         {
             //Decides to put the house on market.
             BigSerial unitId = *itr;
             unit = model->getUnitById(unitId);
+
+        	//this only applies to empty units. These units are given a random dayOnMarket value
+        	//so that not all empty units flood the market on day 1. There's a timeOnMarket and timeOffMarket
+        	//variable that is fed to simmobility through the long term XML file.
+            //PrintOut("Day: " << std::dec << currentTime.ms() << " bidEntryDay: " << unit->getbiddingMarketEntryDay() << " lifespan: "  << marketLifespan << " timeOnMarket: " << timeOnMarket );
+
+            int unitTimeOnMarket = unit->getTimeOnMarket();
+
+            if(!((int)currentTime.ms() >= unit->getbiddingMarketEntryDay() && currentTime.ms() < unitTimeOnMarket +  unit->getbiddingMarketEntryDay()))
+    		{
+    			continue;
+    		}
+
+
             BigSerial tazId = model->getUnitTazId(unitId);
             calculateUnitExpectations(*unit);
 
@@ -213,6 +236,7 @@ void HouseholdSellerRole::update(timeslice now)
             if(getCurrentExpectation(unit->getId(), firstExpectation))
             {
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice));
+                //PrintOut("Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
             }
 
             selling = true;
@@ -308,9 +332,28 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 
         if (unitEntry && unit)
         {
+			 UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
+
+			 if(it != sellingUnitsMap.end())
+			 {
+				 SellingUnitInfo& info = it->second;
+
+				 int unitTimeOnMarket = unit->getTimeOnMarket();
+
+				 if(!((int)currentTime.ms() >= unit->getbiddingMarketEntryDay() && currentTime.ms() < unitTimeOnMarket +  unit->getbiddingMarketEntryDay()))
+				 {
+					 //PrintOut("Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
+					 market->removeEntry(unitId);
+					 continue;
+				 }
+			 }
+
+			//expectations start on last element to the first.
             ExpectationEntry entry;
             if (getCurrentExpectation(unitId, entry) && entry.askingPrice != unitEntry->getAskingPrice())
             {
+            	//PrintOut("Updating asking price for unit " << unitId << "from  $" << unitEntry->getAskingPrice() << " to $" << entry.askingPrice << std::endl );
+
                 HousingMarket::Entry updatedEntry(*unitEntry);
                 updatedEntry.setAskingPrice(entry.askingPrice);
                 market->updateEntry(updatedEntry);
@@ -329,6 +372,10 @@ void HouseholdSellerRole::notifyWinnerBidders()
         ExpectationEntry entry;
         getCurrentExpectation(maxBidOfDay.getUnitId(), entry);
         replyBid(*getParent(), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getUnitId()));
+
+        //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );
+        //PrintOut("Seller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf." << std::endl );
+
         market->removeEntry(maxBidOfDay.getUnitId());
         getParent()->removeUnitId(maxBidOfDay.getUnitId());
         sellingUnitsMap.erase(maxBidOfDay.getUnitId());
@@ -393,3 +440,4 @@ bool HouseholdSellerRole::getCurrentExpectation(const BigSerial& unitId, Expecta
     }
     return false;
 }
+

@@ -75,6 +75,13 @@ private:
 	void processDwellTimeElement(xercesc::DOMElement* node);
 
 	/**
+	 * processes default capacity bust included in xml file.
+	 * @param node node corresponding to the bus capacity element inside xml file
+	 */
+	void processBusCapactiyElement(xercesc::DOMElement* node);
+
+
+	/**
 	 * processes pedestrian walk speed included in xml file.
 	 * @param node node corresponding to pedestrian walk speed element inside xml file
 	 */
@@ -93,10 +100,17 @@ private:
 	void processMongoCollectionsNode(xercesc::DOMElement* node);
 
 	/**
+	 * processes statistics output file element in config xml
+	 * @param node node corresponding to statistics output file element inside xml file
+	 */
+	void processStatisticsOutputNode(xercesc::DOMElement* node);
+
+	/**
 	 * processes calibration element in config xml
 	 * @param node node corresponding to calibration element inside xml file
 	 */
 	void processCalibrationNode(xercesc::DOMElement* node);
+
 
 	/**The config we are currently loading*/
 	MT_Config& mtCfg;

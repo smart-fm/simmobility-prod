@@ -15,6 +15,17 @@ using namespace sim_mob;
 using std::map;
 using std::string;
 
+sim_mob::RoleFactory::~RoleFactory()
+{
+	std::map<std::string, const sim_mob::Role *>::iterator itPrototypes = prototypes.begin();
+	while(itPrototypes != prototypes.end())
+	{
+		safe_delete_item(itPrototypes->second);
+		itPrototypes++;
+	}
+	prototypes.clear();
+}
+
 void sim_mob::RoleFactory::registerRole(const std::string& name, const Role* prototype)
 {
 	if (prototypes.count(name)>0) {

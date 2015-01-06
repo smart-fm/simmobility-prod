@@ -18,8 +18,8 @@ SlaParcel::SlaParcel(std::string slaId,
 	    double maxX,
 	    double maxY):
 		slaId(slaId),tazId(tazId),landUseZoneId(landUseZoneId),area(area),length(length),minX(minX)
-			,minY(minY), maxX(maxX), maxY(maxY) {
-}
+			,minY(minY), maxX(maxX), maxY(maxY) {}
+
 
 SlaParcel::~SlaParcel() {}
 

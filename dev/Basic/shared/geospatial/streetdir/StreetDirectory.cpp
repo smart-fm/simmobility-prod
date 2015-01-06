@@ -11,7 +11,7 @@
 #include <boost/unordered_map.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include "geospatial/RoadRunnerRegion.hpp"
-#include "geospatial/PathSetManager.hpp"
+#include "path/PathSetManager.hpp"
 
 #include <cmath>
 

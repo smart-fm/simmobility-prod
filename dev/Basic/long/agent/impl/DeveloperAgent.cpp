@@ -186,6 +186,7 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel& mo
                 for (it = devTemplates.begin(); it != devTemplates.end(); it++)
                 {
                 	if ((*it)->getLandUsTypeId() == parcel->getLandUseTypeId())
+
                     {
                         PotentialProject project((*it), parcel);
                         addUnitTemplates(project, unitTemplates);

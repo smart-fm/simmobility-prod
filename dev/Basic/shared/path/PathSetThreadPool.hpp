@@ -1,5 +1,5 @@
 /*
- * PathSetThreadPool.h
+ * PathSetThreadPool.hpp
  *
  *  Created on: Feb 18, 2014
  *      Author: redheli
@@ -10,7 +10,7 @@
 #include <semaphore.h>
 #include <iostream>
 #include <vector>
-#include "geospatial/PathSetManager.hpp"
+#include "path/PathSetManager.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 
 using namespace std;

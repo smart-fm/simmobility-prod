@@ -34,6 +34,14 @@ using namespace sim_mob;
 
 std::map<unsigned long, const RoadSegment*> sim_mob::RoadSegment::allSegments;//map<segment id, segment pointer>
 
+sim_mob::RoadSegment::RoadSegment(sim_mob::Link* parent, unsigned long id) :
+	Pavement(),
+	maxSpeed(0), capacity(0), busstop(nullptr), lanesLeftOfDivider(0), parentLink(parent),segmentID(id),
+	parentConflux(nullptr), laneZeroLength(-1.0),type(LINK_TYPE_DEFAULT),CBD(false)
+{
+	allSegments[segmentID] = this;
+}
+
 const unsigned long sim_mob::RoadSegment::getId()const
 {
 	return segmentID;
@@ -117,7 +125,11 @@ unsigned int sim_mob::RoadSegment::getSegmentAimsunId() const{
 
 	return originId;
 }
-
+std::string sim_mob::RoadSegment::getSegmentAimsunIdStr() const{
+	std::string aimsunId = originalDB_ID.getLogItem();
+	std::string segId = sim_mob::Utils::getNumberFromAimsunId(aimsunId);
+	return segId;
+}
 void sim_mob::RoadSegment::specifyEdgePolylines(const vector< vector<Point2D> >& calcdPolylines)
 {
 	//Save the edge polylines.
@@ -162,9 +174,7 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
     	totalWidth += (*it)->getWidth();
     }
 
-    if (width == 0) {
-    	width = totalWidth;
-    }
+    if (width == 0) { width = totalWidth; }
 
 	//First, rebuild the Lane polylines; these will never be specified in advance.
 	bool edgesExist = !laneEdgePolylines_cached.empty();

@@ -43,16 +43,19 @@ private:
 	//void ProcessGeometryNode(xercesc::DOMElement* node);
 	void ProcessConstructsNode(xercesc::DOMElement* node);
 	void ProcessFMOD_Node(xercesc::DOMElement* node);
+	void ProcessAMOD_Node(xercesc::DOMElement* node);
 	void ProcessIncidentsNode(xercesc::DOMElement* node);
 	void ProcessBusStopScheduledTimesNode(xercesc::DOMElement* node);
 	void ProcessPersonCharacteristicsNode(xercesc::DOMElement* node);
 	void ProcessDriversNode(xercesc::DOMElement* node);
+	void ProcessTaxiDriversNode(xercesc::DOMElement* node);
 	void ProcessPedestriansNode(xercesc::DOMElement* node);
 	void ProcessBusDriversNode(xercesc::DOMElement* node);
 	void ProcessPassengersNode(xercesc::DOMElement* node);
 	void ProcessSignalsNode(xercesc::DOMElement* node);
 	void ProcessBusControllersNode(xercesc::DOMElement* node);
-	void ProcessPathSetNodeNode(xercesc::DOMElement* node);
+	void ProcessPathSetNode(xercesc::DOMElement* node);
+	void ProcessCBD_Node(xercesc::DOMElement* node);
 	void ProcessLongTermParamsNode(xercesc::DOMElement* node);
 
 	//Descend through Constructs

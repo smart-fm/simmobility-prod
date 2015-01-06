@@ -26,7 +26,6 @@ using boost::unordered_map;
 
 namespace
 {
-
     const int INTERNAL_MESSAGE_PRIORITY = 5;
 
     class HM_AddEntryMsg : public Message
@@ -82,11 +81,9 @@ namespace
 }
 
 HousingMarket::Entry::Entry(LT_Agent* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice)
-							  : owner(owner), unitId(unitId), askingPrice(askingPrice), hedonicPrice(hedonicPrice), postcodeId(postcodeId), tazId(tazId) {}
+						  : owner(owner), unitId(unitId), askingPrice(askingPrice), hedonicPrice(hedonicPrice), postcodeId(postcodeId), tazId(tazId) {}
 
-HousingMarket::Entry::~Entry()
-{
-}
+HousingMarket::Entry::~Entry(){}
 
 BigSerial HousingMarket::Entry::getUnitId() const
 {
@@ -183,6 +180,11 @@ void HousingMarket::getAvailableEntries(ConstEntryList& outList)
 {
     copy(entriesById, outList);
 }
+
+size_t HousingMarket::getEntrySize()
+{
+	return entriesById.size();
+}
             
 const HousingMarket::Entry* HousingMarket::getEntryById(const BigSerial& unitId)
 {
@@ -207,8 +209,8 @@ void HousingMarket::HandleMessage(Message::MessageType type, const Message& mess
             const HM_AddEntryMsg& msg = MSG_CAST(HM_AddEntryMsg, message);
             BigSerial unitId = msg.entry.getUnitId();
             Entry* entry = getEntry(entriesById, unitId);
-            if (entry)
 
+            if (entry)
             {
                 entry->setAskingPrice(msg.entry.getAskingPrice());
                 entry->setHedonicPrice(msg.entry.getHedonicPrice());
@@ -229,7 +231,7 @@ void HousingMarket::HandleMessage(Message::MessageType type, const Message& mess
                 entriesByTazId.find(tazId)->second.insert( std::make_pair(unitId, newEntry));
                 //notify subscribers. FOR NOW we are not using this.
                 //MessageBus::PublishEvent(LTEID_HM_UNIT_ADDED, this,
-                  //      MessageBus::EventArgsPtr(new HM_ActionEventArgs(unitId)));
+                //MessageBus::EventArgsPtr(new HM_ActionEventArgs(unitId)));
             }
             break;
         }
@@ -251,7 +253,7 @@ void HousingMarket::HandleMessage(Message::MessageType type, const Message& mess
                 safe_delete_item(entry);
                 //notify subscribers. FOR NOW we are not using this.
                 //MessageBus::PublishEvent(LTEID_HM_UNIT_REMOVED, this,
-                //    MessageBus::EventArgsPtr(new HM_ActionEventArgs(msg.unitId)));
+                //MessageBus::EventArgsPtr(new HM_ActionEventArgs(msg.unitId)));
             }
             break;
         }

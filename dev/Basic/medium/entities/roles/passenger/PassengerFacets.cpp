@@ -69,7 +69,7 @@ TravelMetric & PassengerMovement::startTravelTimeMetric()
 //	const Node* startNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getEnd();
 //	travelTimeMetric.origin = WayPoint(startNode);
 //	travelTimeMetric.started = true;
-	return *travelTimeMetric;
+	return travelTimeMetric;
 }
 
 TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
@@ -79,11 +79,7 @@ TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
 //	travelTimeMetric.endTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 //	travelTimeMetric.travelTime = (travelTimeMetric.endTime - travelTimeMetric.startTime).getValue();
 //	travelTimeMetric.finalized = true;
-	return *travelTimeMetric;
+	return travelTimeMetric;
 }
-
-
-}//namespace medium
-
-
+}//medium
 } /* namespace sim_mob */

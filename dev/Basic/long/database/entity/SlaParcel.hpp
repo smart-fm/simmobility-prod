@@ -18,7 +18,7 @@ namespace sim_mob
         class SlaParcel
         {
         public:
-        	SlaParcel(std::string slaId = EMPTY_STR,
+        	SlaParcel(	std::string slaId = EMPTY_STR,
             		    BigSerial tazId = INVALID_ID,
             		    BigSerial landUseZoneId = INVALID_ID,
             		    double area = 0,

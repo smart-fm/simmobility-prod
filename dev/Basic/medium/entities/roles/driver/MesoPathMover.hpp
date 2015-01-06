@@ -95,6 +95,11 @@ public:
 	 */
 	void moveFwdInSegStats(double fwdDisplacement);
 
+	/**
+	 * prints the seg stats path. useful for debugging
+	 */
+	void printPath();
+
 protected:
 	//Note: Be careful if you want to change the container type of Path.
 	//The functions in this class assume that Path is a container with random

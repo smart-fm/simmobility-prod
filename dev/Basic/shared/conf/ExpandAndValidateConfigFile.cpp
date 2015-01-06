@@ -4,35 +4,36 @@
 
 #include "ExpandAndValidateConfigFile.hpp"
 
-#include <sstream>
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string.hpp>
-#include "conf/settings/DisableMPI.h"
+#include <sstream>
+
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/PrintNetwork.hpp"
-#include "entities/Entity.hpp"
+#include "conf/settings/DisableMPI.h"
 #include "entities/Agent.hpp"
-#include "entities/Person.hpp"
 #include "entities/BusController.hpp"
+#include "entities/Entity.hpp"
+#include "entities/Person.hpp"
+#include "entities/amodController/AMODController.hpp"
 #include "entities/fmodController/FMOD_Controller.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/UniNode.hpp"
-#include "geospatial/aimsun/Loader.hpp"
+#include "geospatial/Incident.hpp"
 #include "geospatial/Link.hpp"
+#include "geospatial/Node.hpp"
+#include "geospatial/RoadItem.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/RoadSegment.hpp"
-#include "geospatial/RoadItem.hpp"
-#include "geospatial/Incident.hpp"
+#include "geospatial/UniNode.hpp"
+#include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/xmlLoader/geo10.hpp"
 #include "geospatial/xmlWriter/boostXmlWriter.hpp"
-//#include "geospatial/xmlWriter/xmlWriter.hpp"
 #include "partitions/PartitionManager.hpp"
+#include "util/Profiler.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/Utils.hpp"
-#include "util/Profiler.hpp"
 #include "workers/WorkGroup.hpp"
 
 using namespace sim_mob;
@@ -55,7 +56,7 @@ void InformLoadOrder(const std::vector<SimulationParams::LoadAgentsOrderOption>&
 	if (order.empty()) {
 		std::cout <<"<N/A>";
 	} else {
-		for (std::vector<SimulationParams::LoadAgentsOrderOption>::const_iterator it=order.begin(); it!=order.end(); it++) {
+		for (std::vector<SimulationParams::LoadAgentsOrderOption>::const_iterator it=order.begin(); it!=order.end(); ++it) {
 			if ((*it)==SimulationParams::LoadAg_Drivers) {
 				std::cout <<"drivers";
 			} else if ((*it)==SimulationParams::LoadAg_Database) {
@@ -105,7 +106,6 @@ sim_mob::ExpandAndValidateConfigFile::ExpandAndValidateConfigFile(ConfigParams& 
 void generateOD(
 		const std::string input = "/home/vahid/Downloads/OD_oldmap_new.txt", const std::string output = "/home/vahid/Downloads/ODs.xml", bool stopOnError = false, bool exitAtEnd = true) {
 	//find location of ODs and generate xml dirver ODs
-	int cnt = 0;
 	std::ifstream in;
 	std::ofstream out;
 	in.open(input.c_str()); //home/vahid/Downloads/ODs_oldmap.txt
@@ -190,6 +190,10 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//TODO: This should be moved into its own class; we should NOT be doing loading in ExpandAndValidate()
 	//      (it is here now to maintain compatibility with the old order or loading things).
 	LoadNetworkFromDatabase();
+	if(sim_mob::ConfigManager::GetInstance().FullConfig().CBD())
+	{
+		sim_mob::RestrictedRegion::getInstance().populate();
+	}
 
 	//TEMP: Test network output via boost.
 	//todo: enable/disble through cinfig
@@ -226,12 +230,14 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     constraints.startingAutoAgentID = cfg.system.simulation.startingAutoAgentID;
 
     //Start all "BusController" entities.
-    for (std::vector<EntityTemplate>::const_iterator it=cfg.busControllerTemplates.begin(); it!=cfg.busControllerTemplates.end(); it++) {
+    for (std::vector<EntityTemplate>::const_iterator it=cfg.busControllerTemplates.begin(); it!=cfg.busControllerTemplates.end(); ++it) {
     	sim_mob::BusController::RegisterNewBusController(it->startTimeMs, cfg.mutexStategy());
 	}
 
     //Start all "FMOD" entities.
     LoadFMOD_Controller();
+
+    LoadAMOD_Controller();
 
 	//combine incident information to road network
 	verifyIncidents();
@@ -261,7 +267,7 @@ void sim_mob::ExpandAndValidateConfigFile::verifyIncidents()
 	std::vector<IncidentParams>& incidents = cfg.getIncidents();
 	const unsigned int baseGranMS = cfg.system.simulation.simStartTime.getValue();
 
-	for(std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt!=incidents.end(); incIt++){
+	for(std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt!=incidents.end(); ++incIt){
 
 		const RoadSegment* roadSeg = StreetDirectory::instance().getRoadSegment((*incIt).segmentId);
 
@@ -281,7 +287,7 @@ void sim_mob::ExpandAndValidateConfigFile::verifyIncidents()
 			item->visibilityDistance = (*incIt).visibilityDistance;
 
 			const std::vector<sim_mob::Lane*>& lanes = roadSeg->getLanes();
-			for(std::vector<IncidentParams::LaneParams>::iterator laneIt=incIt->laneParams.begin(); laneIt!=incIt->laneParams.end(); laneIt++){
+			for(std::vector<IncidentParams::LaneParams>::iterator laneIt=incIt->laneParams.begin(); laneIt!=incIt->laneParams.end(); ++laneIt){
 				Incident::LaneItem lane;
 				lane.laneId = laneIt->laneId;
 				lane.speedLimit = laneIt->speedLimit;
@@ -383,11 +389,11 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetworkFromDatabase()
 void sim_mob::ExpandAndValidateConfigFile::WarnMidroadSidewalks()
 {
 	const std::vector<Link*>& links = cfg.getNetwork().getLinks();
-	for(std::vector<Link*>::const_iterator linkIt=links.begin(); linkIt!=links.end(); linkIt++) {
+	for(std::vector<Link*>::const_iterator linkIt=links.begin(); linkIt!=links.end(); ++linkIt) {
 		const std::set<RoadSegment*>& segs = (*linkIt)->getUniqueSegments();
-		for (std::set<RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); segIt++) {
+		for (std::set<RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); ++segIt) {
 			const std::vector<Lane*>& lanes = (*segIt)->getLanes();
-			for (std::vector<Lane*>::const_iterator laneIt=lanes.begin(); laneIt!=lanes.end(); laneIt++) {
+			for (std::vector<Lane*>::const_iterator laneIt=lanes.begin(); laneIt!=lanes.end(); ++laneIt) {
 				//Check it.
 				if((*laneIt)->is_pedestrian_lane() &&
 					((*laneIt) != (*segIt)->getLanes().front()) &&
@@ -404,18 +410,25 @@ void sim_mob::ExpandAndValidateConfigFile::LoadFMOD_Controller()
 {
 	if (cfg.fmod.enabled) {
 		sim_mob::FMOD::FMOD_Controller::registerController(-1, cfg.mutexStategy());
-		sim_mob::FMOD::FMOD_Controller::instance()->settings(cfg.fmod.ipAddress, cfg.fmod.port, cfg.fmod.updateTimeMS, cfg.fmod.mapfile, cfg.fmod.blockingTimeSec);
+		//sim_mob::FMOD::FMOD_Controller::instance()->settings(cfg.fmod.ipAddress, cfg.fmod.port, cfg.fmod.updateTravelMS, cfg.fmod.updatePosMS, cfg.fmod.mapfile, cfg.fmod.blockingTimeSec);
 		sim_mob::FMOD::FMOD_Controller::instance()->connectFmodService();
 	}
 }
 
+void sim_mob::ExpandAndValidateConfigFile::LoadAMOD_Controller()
+{
+	if (cfg.amod.enabled) 
+	{
+		sim_mob::AMOD::AMODController::registerController(-1, cfg.mutexStategy());
+	}
+}
 
 
 void sim_mob::ExpandAndValidateConfigFile::LoadAgentsInOrder(ConfigParams::AgentConstraints& constraints)
 {
 	typedef std::vector<SimulationParams::LoadAgentsOrderOption> LoadOrder;
 	const LoadOrder& order = cfg.system.simulation.loadAgentsOrder;
-	for (LoadOrder::const_iterator it = order.begin(); it!=order.end(); it++) {
+	for (LoadOrder::const_iterator it = order.begin(); it!=order.end(); ++it) {
 		switch (*it) {
 			case SimulationParams::LoadAg_Database: //fall-through
 			case SimulationParams::LoadAg_XmlTripChains:
@@ -430,6 +443,7 @@ void sim_mob::ExpandAndValidateConfigFile::LoadAgentsInOrder(ConfigParams::Agent
 				break;
 			case SimulationParams::LoadAg_Drivers:
 				GenerateXMLAgents(cfg.driverTemplates, "driver", constraints);
+				GenerateXMLAgents(cfg.taxiDriverTemplates, "taxidriver", constraints);
 				GenerateXMLAgents(cfg.busDriverTemplates, "busdriver", constraints);
 				std::cout <<"Loaded Driver Agents (from config file).\n";
 				break;
@@ -456,7 +470,7 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateAgentsFromTripChain(ConfigPar
 	const TripChainMap& tcs = cfg.getTripChains();
 
 	//The current agent we are working on.
-	for (TripChainMap::const_iterator it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
+	for (TripChainMap::const_iterator it_map=tcs.begin(); it_map!=tcs.end(); ++it_map) {
 		TripChainItem* tc = it_map->second.front();
 		if( tc->itemType != TripChainItem::IT_FMODSIM){
 			Person* person = new sim_mob::Person("XML_TripChain", cfg.mutexStategy(), it_map->second);
@@ -493,7 +507,7 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		throw std::runtime_error(msg.str().c_str());
 	}
 	//Loop through all agents of this type.
-	for (std::vector<EntityTemplate>::const_iterator it=xmlItems.begin(); it!=xmlItems.end(); it++) {
+	for (std::vector<EntityTemplate>::const_iterator it=xmlItems.begin(); it!=xmlItems.end(); ++it) {
 		//Keep track of the properties we have found.
 		//TODO: Currently, this is only used for the "#mode" flag, and for forwarding the "originPos" and "destPos"
 		std::map<std::string, std::string> props;
@@ -566,12 +580,29 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		//
 		//TODO: We should just be able to save "driver" and "pedestrian", but we are
 		//      using different vocabulary for modes and roles. We need to change this.
-		props["#mode"] = (roleName=="driver"?"Car":(roleName=="pedestrian"?"Walk":"Unknown"));
-		if (roleName == "busdriver") {
+		if(roleName == "driver")
+		{
+			props["#mode"] = "Car";
+		}
+		else if(roleName == "taxidriver")
+		{
+			props["#mode"] = "Taxi";
+		}
+		else if(roleName == "pedestrian")
+		{
+			props["#mode"] = "Walk";
+		}
+		else if (roleName == "busdriver")
+		{
 			props["#mode"] = "Bus";
 		}
-		if (roleName == "passenger") {
+		else if (roleName == "passenger")
+		{
 			props["#mode"] = "BusTravel";
+		}
+		else
+		{
+			props["#mode"] = "Unknown";
 		}
 
 		//Create the Person agent with that given ID (or an auto-generated one)
@@ -591,7 +622,7 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLSignals()
 	StreetDirectory& streetDirectory = StreetDirectory::instance();
 
 	//Loop through all agents of this type
-	for (std::vector<EntityTemplate>::const_iterator it=cfg.signalTemplates.begin(); it!=cfg.signalTemplates.end(); it++) {
+	for (std::vector<EntityTemplate>::const_iterator it=cfg.signalTemplates.begin(); it!=cfg.signalTemplates.end(); ++it) {
 		//Find the nearest Node for this Signal.
 		Node* road_node = cfg.getNetwork().locateNode(it->originPos, true);
 		if (!road_node) {

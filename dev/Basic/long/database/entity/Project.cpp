@@ -20,8 +20,8 @@ Project::Project(BigSerial projectId,BigSerial parcelIid,BigSerial developerId,
 
 }
 
-Project::~Project() {
-}
+Project::~Project() {}
+
 
 double Project::getFmLotSize(){
 	return fmLotSize;
@@ -137,10 +137,12 @@ void Project::setCurrTick(int currentTick) {
 	this->currTick = currentTick;
 }
 
-namespace sim_mob {
-    namespace long_term {
-
-        std::ostream& operator<<(std::ostream& strm, const Project& data) {
+namespace sim_mob
+{
+    namespace long_term
+    {
+        std::ostream& operator<<(std::ostream& strm, const Project& data)
+        {
             return strm << "{"
 						<< "\"fm_project_id\":\"" << data.projectId << "\","
 						<< "\"fm_parcel_id\":\"" << data.parcelId << "\","
@@ -155,8 +157,8 @@ namespace sim_mob {
 						<< "\"gross_ratio\":\"" << data.grossRatio << "\","
 						<< "\"gross_area\":\"" << data.grossArea << "\","
 						<< "}";
-        	}
-        }
+       }
     }
+}
 
 

@@ -116,7 +116,7 @@ namespace sim_mob {
              * on a thread safe way. Attention if the value is true this message 
              * will be processed before the context thread messages. 
              */
-            static void PostMessage(MessageHandler* target, Message::MessageType type, MessagePtr message, bool processOnMainThread = false);
+            static void PostMessage(MessageHandler* target, Message::MessageType type, MessagePtr message, bool processOnMainThread = false, unsigned int triggeredTime=0);
 
             /**
              * An instantaneous message is a message which is meant to be received
@@ -264,6 +264,12 @@ namespace sim_mob {
              * @return MessageBus instance.
              */
             static MessageBus& GetInstance();
+
+            /**
+             * record current simulation time, unit is millisecond
+             */
+            static unsigned int currentTime;
+
         };
         
         /**

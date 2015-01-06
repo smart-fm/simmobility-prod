@@ -16,10 +16,10 @@ ProjectDao::ProjectDao(DB_Connection& connection)
 DB_INSERT_PROJECT, DB_UPDATE_PROJECT, DB_DELETE_PROJECT,
 DB_GETALL_PROJECTS, EMPTY_STR) {}
 
-ProjectDao::~ProjectDao() {
-}
+ProjectDao::~ProjectDao() {}
 
-void ProjectDao::fromRow(Row& result, Project& outObj) {
+void ProjectDao::fromRow(Row& result, Project& outObj)
+{
 	 outObj.projectId = result.get<BigSerial>( "fm_project_id", INVALID_ID);
 	 outObj.parcelId = result.get<BigSerial>("fm_parcel_id", INVALID_ID);
 	 outObj.developerId = result.get<BigSerial>( "developer_id", INVALID_ID);

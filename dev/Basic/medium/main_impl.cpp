@@ -34,13 +34,14 @@
 #include "entities/BusStopAgent.hpp"
 #include "entities/PersonLoader.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
+#include "entities/PT_Statistics.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/Lane.hpp"
-#include "geospatial/PathSetManager.hpp"
+#include "path/PathSetManager.hpp"
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "util/DailyTime.hpp"
@@ -165,6 +166,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
 
+	messaging::MessageBus::RegisterHandler(PT_Statistics::GetInstance());
+
 	//Load persons for 0th tick
 	periodicPersonLoader.loadActivitySchedules();
 
@@ -260,6 +263,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		BusController::CollectAndProcessAllRequests();
 	}
 
+	BusStopAgent::removeAllBusStopAgents();
+
 	//Finalize partition manager
 #ifndef SIMMOB_DISABLE_MPI
 	if (config.using_MPI)
@@ -314,6 +319,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			<< (numPerson - numDriver - numPedestrian) << " (Other)"
 			<< endl;
 	}
+
+	PT_Statistics::GetInstance()->PrintStatistics();
 
 	if (ConfigManager::GetInstance().FullConfig().numAgentsSkipped>0)
 	{

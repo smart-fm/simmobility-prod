@@ -4,11 +4,10 @@
 
 #pragma once
 
-#include <vector>
 #include <sstream>
+#include <vector>
 
 #include "conf/settings/DisableMPI.h"
-
 #include "geospatial/Point2D.hpp"
 #include "metrics/Length.hpp"
 #include "util/DynamicVector.hpp"
@@ -61,6 +60,7 @@ public:
 	//Returns any "overflow" distance if we are in an intersection, 0 otherwise.
 	double advance(double fwdDistance);
 	double advance(const RoadSegment* currSegment, std::vector<const RoadSegment*> path, std::vector<bool> areFwds, double fwdDistance);
+
 	///Are we completely done?
 	bool isDoneWithEntireRoute() const;
 
@@ -116,40 +116,14 @@ public:
 	void shiftToNewPolyline(bool moveLeft);
 	void moveToNewPolyline(int newLaneID);
 
-#ifndef SIMMOB_DISABLE_MPI
-public:
-	///Serialization
-	static void pack(PackageUtils& package, GeneralPathMover* one_mover);
-
-	static void unpack(UnPackageUtils& unpackage, GeneralPathMover* one_motor);
-#endif
-
-	/* needed by mid-term */
-	double getPositionInSegmentCM();
-	void setPositionInSegmentCM(double newDistToEndCM);
-	void setStartPositionInSegmentCM();
-	double getNextSegmentLengthCM();
-	void advance_med(double fwdDistance);
-	void actualMoveToNextSegmentAndUpdateDir_med();
 	double currPolylineLengthCM() const;
 
-private:
-	//Helper functions
-	double advanceToNextPolyline(bool isFwd);
-	double advanceToNextRoadSegment();
-	const Lane* actualMoveToNextSegmentAndUpdateDir();
-	void generateNewPolylineArray(const RoadSegment* currSegment, std::vector<const RoadSegment*> path, std::vector<bool> areFwds);
-	void generateNewPolylineArray();
-	void calcNewLaneDistancesCM();
-	static double CalcSegmentLaneZeroDistCM(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);
-	static double CalcRestSegmentsLaneZeroDistCM(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);
-	static std::string centimeterToMeter(centimeter_t dist); //Helper to format cm as m for debug output.
+	double getDisToCurrSegEnd();
+	double getDisToCurrSegEndM()
+	{
+		return getDisToCurrSegEnd() / 100.0;
+	}
 
-	//General throw function. There is probably a better way to do this.
-	void throwIf(bool conditional, const std::string& msg) const;
-
-
-public:
 	//List of RoadSegments we're moving to in order.
 	std::vector<const sim_mob::RoadSegment*> fullPath;
 	std::vector<const sim_mob::RoadSegment*>::iterator currSegmentIt;
@@ -201,14 +175,37 @@ public:
 	//Debug, the debug message also will be transformed and reset PC
 	mutable std::stringstream DebugStream;
 
-	struct PathWithDirection{
+	struct PathWithDirection
+	{
 		std::vector<const RoadSegment*> path;
 		std::vector<bool> areFwds;
 	} pathWithDirection;
 
-	double getDisToCurrSegEnd();
-	double getDisToCurrSegEndM() { return getDisToCurrSegEnd()/100.0; }
+
+#ifndef SIMMOB_DISABLE_MPI
+public:
+	///Serialization
+	static void pack(PackageUtils& package, GeneralPathMover* one_mover);
+
+	static void unpack(UnPackageUtils& unpackage, GeneralPathMover* one_motor);
+#endif
+
 private:
+
+	//Helper functions
+	double advanceToNextPolyline(bool isFwd);
+	double advanceToNextRoadSegment();
+	const Lane* actualMoveToNextSegmentAndUpdateDir();
+	void generateNewPolylineArray(const RoadSegment* currSegment, std::vector<const RoadSegment*> path, std::vector<bool> areFwds);
+	void generateNewPolylineArray();
+	void calcNewLaneDistancesCM();
+	static double CalcSegmentLaneZeroDistCM(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);
+	static double CalcRestSegmentsLaneZeroDistCM(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);
+	static std::string centimeterToMeter(centimeter_t dist); //Helper to format cm as m for debug output.
+
+	//General throw function. There is probably a better way to do this.
+	void throwIf(bool conditional, const std::string& msg) const;
+
 	//Error messages for throw_if.
 	//NOTE: We are keeping these as const-static because the simulation runtime keeps re-creating them
 	//      on each call to throwIf().

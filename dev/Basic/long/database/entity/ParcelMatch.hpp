@@ -18,10 +18,7 @@ namespace sim_mob
         class ParcelMatch
         {
         public:
-            ParcelMatch(BigSerial fmParcelId = INVALID_ID,
-            		std::string slaParcelId = EMPTY_STR,
-            		    int matchCode = 0,
-            		    std::tm matchDate = std::tm());
+        	ParcelMatch(BigSerial fmParcelId = INVALID_ID, std::string slaParcelId = EMPTY_STR,  int matchCode = 0, std::tm matchDate = std::tm());
 
             virtual ~ParcelMatch();
 

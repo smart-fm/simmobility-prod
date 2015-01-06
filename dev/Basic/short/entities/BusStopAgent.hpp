@@ -4,13 +4,12 @@
 
 #pragma once
 
-#include "conf/settings/DisableMPI.h"
-
-#include <vector>
-#include <set>
 #include <boost/unordered_map.hpp>
+#include <set>
+#include <vector>
 
 #include "buffering/Shared.hpp"
+#include "conf/settings/DisableMPI.h"
 #include "entities/Agent.hpp"
 
 namespace sim_mob

@@ -65,14 +65,14 @@ public:
 	//todo: use this to register roles
 	enum type
 	{
+		RL_UNKNOWN=0,
 		RL_DRIVER,
 		RL_BIKER,
 		RL_PEDESTRIAN,
 		RL_BUSDRIVER,
 		RL_ACTIVITY,
 		RL_PASSENGER,
-		RL_WAITBUSACTITITY,
-		RL_UNKNOWN
+		RL_WAITBUSACTITITY
 	};
 
 	//todo: use this to identify the type of request
@@ -116,6 +116,8 @@ public:
 		safe_delete_item(movementFacet);
 		safe_delete_item(currResource);
 	}
+
+	//virtual void onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args){}
 
 	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
 	virtual Role* clone(Person* parent) const = 0;

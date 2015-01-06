@@ -124,6 +124,7 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 		profile = new ProfileBuilder();
 		//profile->logAgentCreated(*this);
 	}*/
+	errorFlag = false;
 }
 
 sim_mob::Agent::~Agent() {
@@ -335,10 +336,21 @@ const sim_mob::Link* sim_mob::Agent::getCurrLink() const {
 void sim_mob::Agent::setCurrLink(const sim_mob::Link* link) {
 	currLink = link;
 }
-
+const sim_mob::Lane* sim_mob::Agent::getCurrLane() const {
+	return currLane;
+}
+void sim_mob::Agent::setCurrLane(const sim_mob::Lane* lane) {
+	currLane = lane;
+}
+const sim_mob::RoadSegment* sim_mob::Agent::getCurrSegment() const {
+	return currSegment;
+}
+void sim_mob::Agent::setCurrSegment(const sim_mob::RoadSegment* rdSeg) {
+	currSegment = rdSeg;
+}
 void sim_mob::Agent::initLinkTravelStats(const Link* link, double entryTime) {
 	currLinkTravelStats.link_ = link;
-	currLinkTravelStats.linkEntryTime_ = entryTime;
+	currLinkTravelStats.entryTime = entryTime;
 }
 
 void sim_mob::Agent::addToLinkTravelStatsMap(linkTravelStats ts, double exitTime){
@@ -385,13 +397,13 @@ void sim_mob::Agent::HandleMessage(messaging::Message::MessageType type, const m
 
 }
 
-void sim_mob::Agent::initRdSegTravelStats(const RoadSegment* rdSeg, double entryTime) {
-	currRdSegTravelStats.rdSeg_ = rdSeg;
-	currRdSegTravelStats.rdSegEntryTime_ = entryTime;
+void sim_mob::Agent::initCurrRdSegTravelStat(const RoadSegment* rdSeg, double entryTime) {
+	currRdSegTravelStats.rs = rdSeg;
+	currRdSegTravelStats.entryTime = entryTime;
 }
 
-void sim_mob::Agent::addToRdSegTravelStatsMap(rdSegTravelStats ts, double exitTime){
-	std::map<double, rdSegTravelStats>& travelMap = rdSegTravelStatsMap.getRW();
+void sim_mob::Agent::addRdSegTravelStat(double exitTime , RdSegTravelStat ts){
+	std::map<double, RdSegTravelStat>& travelMap = rdSegTravelStatsMap.getRW();
 	travelMap.insert(std::make_pair(exitTime, ts));
 }
 

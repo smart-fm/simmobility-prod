@@ -52,14 +52,7 @@ int Parcel::getLandUseTypeId() const
 
 std::string Parcel::getOwnerName() const
 {
-//	if(owner_name.empty())
-//	{
-//		return "";
-//	}
-//	else
-//	{
 		return owner_name;
-	//}
 }
 
 int	Parcel::getOwnerCategory() const
@@ -114,14 +107,7 @@ bool Parcel::getAwardStatus() const
 
 std::string	Parcel::getUseRestriction() const
 {
-//	if(use_restriction.empty())
-//		{
-//			return "";
-//		}
-//	else
-//		{
 			return use_restriction;
-	//	}
 }
 
 int	Parcel::getDevelopmentTypeCode() const

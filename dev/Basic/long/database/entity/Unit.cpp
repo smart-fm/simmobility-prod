@@ -15,10 +15,10 @@ using namespace sim_mob;
 using namespace sim_mob::long_term;
 
 Unit::Unit( BigSerial id, BigSerial building_id, BigSerial sla_address_id, int unit_type, int storey_range, std::string unit_status, double floor_area, int storey,
-			double rent, std::tm sale_from_date, std::tm physical_from_date, int sale_status, int physical_status)
+			double rent, std::tm sale_from_date, std::tm physical_from_date, int sale_status, int physical_status, int biddingMarketEntryDay)
 		   : id(id), building_id(building_id), sla_address_id(sla_address_id), unit_type(unit_type), storey_range(storey_range), unit_status(unit_status),
 		     floor_area(floor_area), storey(storey), rent(rent), sale_from_date(sale_from_date), physical_from_date(physical_from_date), sale_status(sale_status),
-		     physical_status(physical_status) {}
+		     physical_status(physical_status), biddingMarketEntryDay(biddingMarketEntryDay){}
 
 
 Unit::Unit(const Unit& source)
@@ -36,6 +36,7 @@ Unit::Unit(const Unit& source)
     this->physical_from_date  = source.physical_from_date;
     this->sale_status  = source.sale_status;
     this->physical_status  = source.physical_status;
+    this->biddingMarketEntryDay = source.biddingMarketEntryDay;
 
 }
 
@@ -56,6 +57,7 @@ Unit& Unit::operator=(const Unit& source)
     this->physical_from_date  = source.physical_from_date;
     this->sale_status  = source.sale_status;
     this->physical_status  = source.physical_status;
+    this->biddingMarketEntryDay = source.biddingMarketEntryDay;
 
     return *this;
 }
@@ -176,6 +178,27 @@ void Unit::setUnitType(int unitType) {
 	this->unit_type = unitType;
 }
 
+int Unit::getbiddingMarketEntryDay() const
+{
+	return biddingMarketEntryDay;
+}
+
+void Unit::setbiddingMarketEntryDay( int day )
+{
+	biddingMarketEntryDay = day;
+}
+
+int  Unit::getTimeOnMarket() const
+{
+	return timeOnMarket;
+}
+
+void Unit::setTimeOnMarket(int day )
+{
+	timeOnMarket = day;
+}
+
+
 namespace sim_mob
 {
     namespace long_term
@@ -195,7 +218,8 @@ namespace sim_mob
 						<< "\"sale_from_date \":\"" << data.sale_from_date.tm_year << data.sale_from_date.tm_mon << data.sale_from_date.tm_wday << "\","
 						<< "\"physical_from_date \":\"" << data.physical_from_date.tm_year << data.physical_from_date.tm_mon << data.physical_from_date.tm_wday << "\","
 						<< "\"sale_status \":\"" << data.sale_status << "\","
-						<< "\"physical_status \":\"" << data.physical_status << "\""
+						<< "\"physical_status \":\"" << data.physical_status << "\","
+						<< "\"biddingMarketEntryDay\":\"" << data.biddingMarketEntryDay << "\""
 						<< "}";
         }
     }

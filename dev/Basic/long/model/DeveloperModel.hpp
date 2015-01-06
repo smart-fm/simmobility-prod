@@ -73,14 +73,13 @@ namespace sim_mob {
              */
             unsigned int getTimeInterval() const;
             Parcel* getParcelById(BigSerial id) const;
-            SlaParcel* getSlaParcelById(BigSerial id) const;
+            SlaParcel* getSlaParcelById(std::string id) const;
             const LandUseZone* getZoneById(BigSerial id) const;
             const DevelopmentTypeTemplateList& getDevelopmentTypeTemplates() const;
             const TemplateUnitTypeList& getTemplateUnitType() const;
             const UnitType* getUnitTypeById(BigSerial id) const;
             const ParcelAmenities* getAmenitiesById(BigSerial fmParcelId) const;
             float getBuildingSpaceByParcelId(BigSerial id) const;
-
             ParcelList getDevelopmentCandidateParcels(bool isInitial);
 
             DeveloperList getDeveloperAgents(bool isInitial);

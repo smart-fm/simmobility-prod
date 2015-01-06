@@ -6,7 +6,11 @@
  */
 
 #include <stdlib.h>
-#include "PathSetThreadPool.h"
+#include "PathSetThreadPool.hpp"
+#include "geospatial/streetdir/AStarShortestTravelTimePathImpl.hpp"
+#include "geospatial/streetdir/A_StarShortestPathImpl.hpp"
+#include <boost/graph/filtered_graph.hpp>
+#include <boost/graph/astar_search.hpp>
 
 using namespace std;
 
@@ -14,16 +18,12 @@ namespace{
 sim_mob::BasicLogger & logger = sim_mob::Logger::log("path_set");
 }
 
-sim_mob::PathSetWorkerThread::PathSetWorkerThread()
+sim_mob::PathSetWorkerThread::PathSetWorkerThread():s(nullptr)
 {
-	s = new sim_mob::SinglePath();
 	hasPath = false;
 	dbgStr = "";
 }
-sim_mob::PathSetWorkerThread::~PathSetWorkerThread()
-{
-	if(s) delete s; s=NULL;
-}
+sim_mob::PathSetWorkerThread::~PathSetWorkerThread() { }
 
 //1.Create Blacklist
 //2.clear the shortestWayPointpath
@@ -42,15 +42,7 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 			blacklistV.insert(lookIt->second.begin(), lookIt->second.end());
 		}
 	}
-	//NOTE: choiceSet[] is an interesting optimization, but we don't need to save cycles (and we definitely need to save memory).
-	//      The within-day choice set model should have this kind of optimization; for us, we will simply search each time.
-	//TODO: Perhaps caching the most recent X searches might be a good idea, though. ~Seth.
-
 	vector<WayPoint> wps;
-	if (!s) {
-		std::cout << "in thread new failed " << std::endl;
-	}
-	s->shortestWayPointpath.clear();
 	if (blacklistV.empty()) {
 		std::list<StreetDirectory::Vertex> partialRes;
 		//Use A* to search for a path
@@ -95,12 +87,10 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 			}
 		}
 	} else {
+		//logger << "Blacklist NOT empty" << blacklistV.size() << std::endl;
 		//Filter it.
-		sim_mob::A_StarShortestPathImpl::blacklist_edge_constraint filter(
-				blacklistV);
-		boost::filtered_graph<StreetDirectory::Graph,
-				sim_mob::A_StarShortestPathImpl::blacklist_edge_constraint> filtered(
-				*graph, filter);
+		sim_mob::A_StarShortestPathImpl::blacklist_edge_constraint filter(blacklistV);
+		boost::filtered_graph<StreetDirectory::Graph,sim_mob::A_StarShortestPathImpl::blacklist_edge_constraint> filtered(*graph, filter);
 		////////////////////////////////////////
 		// TODO: This code is copied (since filtered_graph is not the same as adjacency_list) from searchShortestPath.
 		////////////////////////////////////////
@@ -114,21 +104,19 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		//...which is available under the terms of the Boost Software License, 1.0
 		try {
 			boost::astar_search(filtered, *fromVertex,
-					sim_mob::A_StarShortestPathImpl::distance_heuristic_filtered(
-							&filtered, *toVertex),
-					boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(
-							sim_mob::A_StarShortestPathImpl::astar_goal_visitor(*toVertex)));
+					sim_mob::A_StarShortestPathImpl::distance_heuristic_filtered(&filtered, *toVertex),
+					boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(sim_mob::A_StarShortestPathImpl::astar_goal_visitor(*toVertex)));
 		} catch (sim_mob::A_StarShortestPathImpl::found_goal& goal) {
 			//Build backwards.
 			for (StreetDirectory::Vertex v = *toVertex;; v = p[v]) {
 				partialRes.push_front(v);
-				if (p[v] == v) {
+				if (p[v] == v)
+				{
 					break;
 				}
 			}
 			//Now build forwards.
-			std::list<StreetDirectory::Vertex>::const_iterator prev =
-					partialRes.end();
+			std::list<StreetDirectory::Vertex>::const_iterator prev = partialRes.end();
 			for (std::list<StreetDirectory::Vertex>::const_iterator it =
 					partialRes.begin(); it != partialRes.end(); it++) {
 				//Add this edge.
@@ -137,13 +125,12 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 					std::pair<StreetDirectory::Edge, bool> edge = boost::edge(
 							*prev, *it, filtered);
 					if (!edge.second) {
-						Warn()
-								<< "ERROR: Boost can't find an edge that it should know about."
-								<< std::endl;
+//						Warn()
+						std::cout
+								<< "ERROR: Boost can't find an edge that it should know about." << std::endl;
 					}
 					//Retrieve, add this edge's WayPoint.
-					WayPoint w = boost::get(boost::edge_name, filtered,
-							edge.first);
+					WayPoint w = boost::get(boost::edge_name, filtered,edge.first);
 					wps.push_back(w);
 				}
 
@@ -152,7 +139,7 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 			}
 		}				//catch
 
-	}				//else
+	}				//else Blacklist
 
 
 
@@ -167,22 +154,15 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		else{
 			logger << "Path generated through:" << dbgStr <<  ":" << id << "\n" ;
 		}
+		s = new sim_mob::SinglePath();
 		// fill data
-		s->pathSet = ps;
 		s->isNeedSave2DB = true;
 		hasPath = true;
 		s->init(wps);
-		sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(s);
-		s->highWayDistance = sim_mob::calculateHighWayDistance(s);
-		s->fromNode = fromNode;
-		s->toNode = toNode;
-		s->pathset_id = ps->id;
-		s->length = sim_mob::generateSinglePathLength(s->shortestWayPointpath);
+		s->pathSetId = ps->id;
 		s->id = id;
 		s->scenario = ps->scenario;
 		s->pathSize = 0;
-		s->travelCost = sim_mob::getTravelCost2(s);
-		s->travleTime = s->pathSet->psMgr->getTravelTime(s);
 	}
 }
 

@@ -4,15 +4,14 @@
 
 #include "Vehicle.hpp"
 
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Node.hpp"
-
 #include "logging/Log.hpp"
+#include "geospatial/Node.hpp"
+#include "geospatial/RoadSegment.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
-#include "partitions/UnPackageUtils.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
+#include "partitions/UnPackageUtils.hpp"
 #endif
 
 using namespace sim_mob;
@@ -51,8 +50,34 @@ const RoadSegment* sim_mob::Vehicle::getCurrSegment() const {
 	return fwdMovement.getCurrSegment();
 }
 
+void sim_mob::Vehicle::resetPath(vector<WayPoint> wp_path) {
+	//Construct a list of RoadSegments.
+	vector<const RoadSegment*> path;
+	for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); ++it) {
+		if (it->type_ == WayPoint::ROAD_SEGMENT) {
+			path.push_back(it->roadSegment_);
+		}
+	}
+
+	//Assume this is sufficient; we will specifically test for error cases later.
+	errorState = false;
+
+	//reset
+	fwdMovement.resetPath(path);
+}
+
 const RoadSegment* sim_mob::Vehicle::getNextSegment(bool inSameLink) const {
 	return fwdMovement.getNextSegment(inSameLink);
+}
+
+std::vector<const sim_mob::RoadSegment*>::iterator sim_mob::Vehicle::getPathIterator()
+{
+	return fwdMovement.currSegmentIt;
+}
+
+std::vector<const sim_mob::RoadSegment*>::iterator sim_mob::Vehicle::getPathIteratorEnd()
+{
+	return fwdMovement.fullPath.end();
 }
 
 const sim_mob::RoadSegment* sim_mob::Vehicle::getSecondSegmentAhead() {
@@ -72,18 +97,6 @@ const RoadSegment* sim_mob::Vehicle::getPrevSegment(bool inSameLink) const {
 
 const Lane* sim_mob::Vehicle::getCurrLane() const {
 	return fwdMovement.getCurrLane();
-}
-
-bool sim_mob::Vehicle::hasPath() const {
-	return fwdMovement.isPathSet();
-}
-
-double sim_mob::Vehicle::getPositionInSegmentCM(){
-	return fwdMovement.getPositionInSegmentCM();
-}
-
-void sim_mob::Vehicle::setPositionInSegmentCM(double newDistToEndCM){
-	fwdMovement.setPositionInSegmentCM(newDistToEndCM);
 }
 
 double sim_mob::Vehicle::getVelocity() const {
@@ -117,27 +130,17 @@ void sim_mob::Vehicle::setLatVelocity(double value) {
 
 void sim_mob::Vehicle::setAcceleration(double value) {
 	throw_if_error();
-	if(value > 1000){
-		int i = 0;
-	}
 	fwdAccel = value;
 }
 
-void sim_mob::Vehicle::setCurrPosition(DPoint currPosition)
-{
+void sim_mob::Vehicle::setCurrPosition(DPoint currPosition) {
 	throw_if_error();
 	currPos = currPosition;
 }
 
-const DPoint& sim_mob::Vehicle::getCurrPosition() const
-{
+const DPoint& sim_mob::Vehicle::getCurrPosition() const {
 	throw_if_error();
 	return currPos;
-}
-
-void sim_mob::Vehicle::actualMoveToNextSegmentAndUpdateDir_med() {
-	throw_if_error();
-	fwdMovement.actualMoveToNextSegmentAndUpdateDir_med();
 }
 
 void sim_mob::Vehicle::moveLat(double amt) {
@@ -145,8 +148,7 @@ void sim_mob::Vehicle::moveLat(double amt) {
 	latMovement += amt;
 }
 
-void sim_mob::Vehicle::setTurningDirection(LANE_CHANGE_SIDE direction)
-{
+void sim_mob::Vehicle::setTurningDirection(LANE_CHANGE_SIDE direction) {
 	throw_if_error();
 	turningDirection = direction;
 }
@@ -159,12 +161,6 @@ void sim_mob::Vehicle::resetLateralMovement() {
 double sim_mob::Vehicle::getLateralMovement() const {
 	throw_if_error();
 	return latMovement;
-}
-
-bool sim_mob::Vehicle::isDone() const {
-	throw_if_error();
-	bool done = (fwdMovement.isDoneWithEntireRoute());
-	return done;
 }
 
 #ifndef SIMMOB_DISABLE_MPI

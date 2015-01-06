@@ -48,6 +48,11 @@ AuraManager::init(AuraManagerImplementation implType)
 	}
 }
 
+void AuraManager::destory()
+{
+	delete impl_;
+}
+
 /* virtual */ void
 AuraManager::update(const std::set<sim_mob::Agent*>& removedAgentPointers)
 {

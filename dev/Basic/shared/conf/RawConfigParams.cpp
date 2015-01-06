@@ -6,7 +6,7 @@
 
 using namespace sim_mob;
 
-sim_mob::RawConfigParams::RawConfigParams()
+sim_mob::RawConfigParams::RawConfigParams() : cbd(false)
 {}
 
 sim_mob::EntityTemplate::EntityTemplate() : startTimeMs(0), laneIndex(0),originNode(-1),destNode(-1),initSegId(-1),initDis(-1),initSpeed(0),angentId(-1)
@@ -27,6 +27,6 @@ sim_mob::SimulationParams::SimulationParams() :
 {}
 
 
-sim_mob::LongTermParams::LongTermParams(): enabled(false), workers(0), days(0), tickStep(0), maxIterations(0) {}
+sim_mob::LongTermParams::LongTermParams(): enabled(false), workers(0), days(0), tickStep(0), maxIterations(0), dayOneAwakening(0){}
 sim_mob::LongTermParams::DeveloperModel::DeveloperModel(): enabled(false), timeInterval(0) {}
-sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInterval(0), timeOnMarket(0), numberOfHouseholds(0), numberOfUnits(0), numberOfVacantUnits(0) {}
+sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInterval(0), timeOnMarket(0), timeOffMarket(0), awakenedProbability(0), numberOfHouseholds(0), numberOfUnits(0), numberOfVacantUnits(0) {}

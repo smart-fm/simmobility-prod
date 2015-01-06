@@ -33,6 +33,13 @@ struct FMOD_ControllerParams {
 	unsigned int blockingTimeSec;
 };
 
+struct AMOD_ControllerParams
+{
+	AMOD_ControllerParams() : enabled(false) {}
+
+	bool enabled;
+};
+
 //Represents the long-term developer model of the config file
 struct LongTermParams{
 	LongTermParams();
@@ -41,6 +48,7 @@ struct LongTermParams{
 	unsigned int days;
 	unsigned int tickStep;
 	unsigned int maxIterations;
+	unsigned int dayOneAwakening;
 
 	struct DeveloperModel{
 		DeveloperModel();
@@ -53,41 +61,25 @@ struct LongTermParams{
 		bool enabled;
 		unsigned int timeInterval;
 		unsigned int timeOnMarket;
+		unsigned int timeOffMarket;
+		float awakenedProbability;
 		int numberOfUnits;
 		int numberOfHouseholds;
 		int numberOfVacantUnits;
 	} housingModel;
 };
 
-struct PathSetParams
+struct PathSetConf
 {
+	PathSetConf():enabled(false), database(""), credentials(""), singlePathTableName(""), RTTT_Conf(""), DTT_Conf(""), dbFunction("") {}
 	bool enabled;
 	std::string database;
 	std::string credentials;
-	std::string pathSetTableName;
 	std::string singlePathTableName;
+	std::string RTTT_Conf;//realtime travel time table name
+	std::string DTT_Conf;//default travel time table name
 	std::string dbFunction;
-	void setDefaultEnabled(bool value = false){
-		enabled = value;
-	}
-	void setDefaultDB(std::string db = "fm_remote_path_choice", std::string choice = "fm_remote_path_choice"){
-		database = db;
-		credentials = choice;
-	}
-	void setDefaultTables(std::string pathset = "PathSet", std::string singlePath = "SinglePath"){
-		pathSetTableName = pathset;
-		singlePathTableName = singlePath;
-	}
-	void setDefaultFunction(std::string fn="get_path_set")
-	{
-		dbFunction = fn;
-	}
-	void setDefault(){
-		setDefaultEnabled();
-		setDefaultDB();
-		setDefaultTables();
-		setDefaultFunction();
-	}
+	int interval; //travel time recording iterval
 };
 
 ///represent the incident data section of the config file
@@ -196,7 +188,7 @@ public:
 	unsigned int totalWarmupMS;    ///<Total time (in milliseconds) considered "warmup".
 
 	DailyTime simStartTime; ///<When the simulation begins(based on configuration)
-	std::string travelTimeTmpTableName;
+
 	AuraManager::AuraManagerImplementation auraManagerImplementation; ///<What type of Aura Manager we're using.
 
 	WorkGroup::ASSIGNMENT_STRATEGY workGroupAssigmentStrategy;  ///<Defautl assignment strategy for Workgroups.
@@ -316,11 +308,15 @@ public:
 	///Settings for the FMOD controller.
 	FMOD_ControllerParams fmod;
 
+	AMOD_ControllerParams amod;
+
 	///Settings for Long Term Parameters
 	LongTermParams ltParams;
 
 	///Settings used for generation/retrieval of paths
-	PathSetParams pathset;
+	PathSetConf pathset;
+
+	bool cbd;
 
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;
@@ -334,6 +330,7 @@ public:
 	//@{
 	///Templates for creating entities of various types.
 	std::vector<EntityTemplate> driverTemplates;
+	std::vector<EntityTemplate> taxiDriverTemplates;
 	std::vector<EntityTemplate> pedestrianTemplates;
 	std::vector<EntityTemplate> busDriverTemplates;
 	std::vector<EntityTemplate> signalTemplates;

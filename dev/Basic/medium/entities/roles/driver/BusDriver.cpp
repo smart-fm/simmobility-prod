@@ -14,8 +14,10 @@
 #include "entities/Person.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "message/MT_Message.hpp"
+#include "entities/PT_Statistics.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "util/DwellTimeCalc.hpp"
+#include "util/Utils.hpp"
 #include "config/MT_Config.hpp"
 
 using namespace sim_mob;
@@ -31,6 +33,13 @@ namespace
 //number of dwell time parameter expected.
 //TODO: remove this constant and restructure the dwell time parameters elegantly
 const unsigned int NUM_PARAMS_DWELLTIME = 5;
+
+/**
+ * converts time from  seconds to milli-seconds
+ */
+inline unsigned int converToMilliseconds(double timeInMs) {
+	return (timeInMs*1000.0);
+}
 }
 
 sim_mob::medium::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat,
@@ -84,6 +93,15 @@ sim_mob::DriverRequestParams sim_mob::medium::BusDriver::getDriverRequestParams(
 	return res;
 }
 
+bool  sim_mob::medium::BusDriver::checkIsFull()
+{
+	if (passengerList.size() < MT_Config::getInstance().getBusCapacity()) {
+		return false;
+	} else {
+		return true;
+	}
+}
+
 unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent){
 	unsigned int numAlighting = 0;
 	std::list<sim_mob::medium::Passenger*>::iterator itPassenger = passengerList.begin();
@@ -107,6 +125,27 @@ unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusSto
 	return numAlighting;
 }
 
+void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, const std::string& waitTime, const sim_mob::BusStop* stop)
+{
+	sim_mob::Person* person = parent;
+	if (!person) {
+		return;
+	}
+
+	const BusTrip* busTrip =
+			dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+	if (busTrip) {
+		const Busline* busLine = busTrip->getBusline();
+		std::string stopNo = stop->getBusstopno_();
+		std::string tripId = busTrip->tripID;
+		std::string busLineId = busLine->getBusLineID();
+		unsigned int sequenceNo = busTrip->getBusTripRun_SequenceNum();
+
+		messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(), STORE_BUS_ARRIVAL,
+				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(stopNo, busLineId, tripId, current, waitTime, sequenceNo)));
+	}
+}
+
 void sim_mob::medium::BusDriver::predictArrivalAtBusStop(double preArrivalTime,
 		sim_mob::medium::BusStopAgent* busStopAgent) {
 	sim_mob::Person* person = dynamic_cast<Person*>(parent);
@@ -127,7 +166,24 @@ void sim_mob::medium::BusDriver::predictArrivalAtBusStop(double preArrivalTime,
 	}
 }
 
-void sim_mob::medium::BusDriver::openBusDoors(sim_mob::medium::BusStopAgent* busStopAgent) {
+const std::string sim_mob::medium::BusDriver::getBusLineID() const
+{
+	if (!parent) {
+		return std::string();
+	}
+
+	const BusTrip* busTrip =
+			dynamic_cast<const BusTrip*>(*(parent->currTripChainItem));
+	if (busTrip) {
+		return busTrip->getBusline()->getBusLineID();
+	}
+	else {
+		return std::string();
+	}
+}
+
+
+void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mob::medium::BusStopAgent* busStopAgent) {
 	if(!busStopAgent)
 	{
 		throw std::runtime_error("openBusDoors(): NusStopAgent is NULL");
@@ -150,20 +206,21 @@ void sim_mob::medium::BusDriver::openBusDoors(sim_mob::medium::BusStopAgent* bus
 	unsigned int numBoarding = busStopAgent->getBoardingNum(this);
 
 	unsigned int totalNumber = numAlighting + numBoarding;
-	if(totalNumber==0){
-		waitingTimeAtbusStop = 0.0;
+
+	int boardNum = std::max(numAlighting, numBoarding);
+	if(boardNum==0){
+		waitingTimeAtbusStop=0.0;
 	}
-	else {
-		const std::vector<int>& dwellTimeParams =
-				MT_Config::getInstance().getDwellTimeParams();
-		if (dwellTimeParams.size() == NUM_PARAMS_DWELLTIME) {
-			waitingTimeAtbusStop = sim_mob::calculateDwellTime(totalNumber,
-					dwellTimeParams[0], dwellTimeParams[1], dwellTimeParams[2],
-					dwellTimeParams[3], dwellTimeParams[4]);
-		} else {
-			waitingTimeAtbusStop = sim_mob::calculateDwellTime(totalNumber);
-		}
+	else{
+		const std::vector<float>& dwellTimeParams = MT_Config::getInstance().getDwellTimeParams();
+		const float fixedTime = Utils::generateFloat(dwellTimeParams[0],dwellTimeParams[1]);
+		const float individualTime = Utils::generateFloat(dwellTimeParams[2], dwellTimeParams[3]);
+		waitingTimeAtbusStop = fixedTime+boardNum*individualTime;
 	}
+
+	DailyTime dwellTime( converToMilliseconds(waitingTimeAtbusStop) );
+	storeArrivalTime(current, dwellTime.toString(), busStopAgent->getBusStop());
+
 
 	if (requestMode.get() == Role::REQUEST_DECISION_TIME) {
 		requestMode.set(Role::REQUEST_NONE);

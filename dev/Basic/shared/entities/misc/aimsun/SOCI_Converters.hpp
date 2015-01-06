@@ -32,17 +32,17 @@ template<> struct type_conversion<sim_mob::aimsun::TripChainItem>
     	if(res.itemType == sim_mob::TripChainItem::IT_TRIP) {
     		res.tripID = vals.get<std::string>("trip_id", "");
     		res.tmp_tripfromLocationNodeID = vals.get<int>("trip_from_location_id",0);
-    		res.tripfromLocationType = sim_mob::TripChainItem::getLocationType(vals.get<std::string>("trip_from_location_type",""));
+    		res.tripfromLocationType = sim_mob::TripChainItem::LT_NODE; //sim_mob::TripChainItem::getLocationType(vals.get<std::string>("trip_from_location_type",""));
     		res.tmp_triptoLocationNodeID = vals.get<int>("trip_to_location_id",0);
-    		res.triptoLocationType = sim_mob::TripChainItem::getLocationType(vals.get<std::string>("trip_to_location_type",""));
+    		res.triptoLocationType = sim_mob::TripChainItem::LT_NODE; //sim_mob::TripChainItem::getLocationType(vals.get<std::string>("trip_to_location_type",""));
     		res.tmp_subTripID = vals.get<std::string>("sub_trip_id","");
     		res.tmp_fromLocationNodeID = vals.get<int>("from_location_id",0);
-    		res.fromLocationType = sim_mob::TripChainItem::getLocationType(vals.get<std::string>("from_location_type",""));
+    		res.fromLocationType =  sim_mob::TripChainItem::LT_NODE; //sim_mob::TripChainItem::getLocationType(vals.get<std::string>("from_location_type",""));
     		res.tmp_toLocationNodeID = vals.get<int>("to_location_id",0);
-    		res.toLocationType = sim_mob::TripChainItem::getLocationType(vals.get<std::string>("to_location_type",""));
+    		res.toLocationType = sim_mob::TripChainItem::LT_NODE; //sim_mob::TripChainItem::getLocationType(vals.get<std::string>("to_location_type",""));
     		res.mode = vals.get<std::string>("mode","");
     		res.isPrimaryMode = vals.get<int>("primary_mode", 0);
-    		res.ptLineId = vals.get<std::string>("public_transit_line_id","");
+    		res.ptLineId = vals.get<std::string>("pt_line_id","");
     		res.tmp_startTime = vals.get<std::string>("start_time","");
     	}
     	else if(res.itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
@@ -188,6 +188,41 @@ struct type_conversion<sim_mob::PT_bus_stops>
         indicator = i_ok;
     }
 };
+#include "boost/algorithm/string.hpp"
 
+template<>
+struct type_conversion<sim_mob::OD_Trip>
+{
+    typedef values base_type;
 
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::OD_Trip& od_trip)
+    {
+    	od_trip.startStop = values.get<std::string>("start_stop", "");
+    	od_trip.endStop = values.get<std::string>("end_stop", "");
+    	od_trip.type = values.get<std::string>("r_type", "");
+    	od_trip.serviceLines = values.get<std::string>("r_service_lines", "");
+    	od_trip.originNode = values.get<std::string>("origin_node", "");
+    	od_trip.destNode = values.get<std::string>("dest_node", "");
+    	od_trip.OD_Id = values.get<int>("od_id", 0);
+       	od_trip.legId = values.get<int>("leg_id", 0);
+		boost::trim_right(od_trip.originNode);
+		boost::trim_right(od_trip.destNode);
+
+    }
+
+    static void
+    to_base(sim_mob::OD_Trip const & od_trip, soci::values & values, soci::indicator & indicator)
+    {
+    	values.set("start_stop", od_trip.startStop);
+       	values.set("end_stop", od_trip.endStop);
+       	values.set("r_type", od_trip.type);
+       	values.set("r_service_lines", od_trip.serviceLines);
+       	values.set("origin_node", od_trip.originNode);
+       	values.set("dest_node", od_trip.destNode);
+       	values.set("od_id", od_trip.OD_Id);
+       	values.set("leg_id", od_trip.legId);
+        indicator = i_ok;
+    }
+};
 }

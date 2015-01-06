@@ -9,14 +9,17 @@
 #include <ctime>
 #include "Types.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
-    namespace long_term {
+    namespace long_term
+    {
 
     /*
      * Project plain object
      */
-    	class Project{
+    	class Project
+    	{
     	public:
     		Project(BigSerial projectId = INVALID_ID,
     		    				BigSerial parcelId = INVALID_ID,
@@ -67,9 +70,10 @@ namespace sim_mob {
 	/* Operator to print the Parcel Match data.*/
 	friend std::ostream& operator<<(std::ostream& strm, const Project& data);
 
-    	private:
-    	            friend class ProjectDao;
-    	private:
+
+
+    private:
+	friend class ProjectDao;
     		BigSerial projectId;
     		BigSerial parcelId;
     		BigSerial developerId;

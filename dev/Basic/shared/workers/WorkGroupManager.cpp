@@ -153,6 +153,9 @@ void sim_mob::WorkGroupManager::waitAllGroups_FrameTick()
 	//Sanity check
 	if (!currState.test(STARTED)) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
 
+	//Distribute messages before allowing workers to process agents.
+	sim_mob::messaging::MessageBus::DistributeMessages();
+
 	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
 		(*it)->waitFrameTick(singleThreaded);
 	}
@@ -161,7 +164,6 @@ void sim_mob::WorkGroupManager::waitAllGroups_FrameTick()
 	if (frameTickBarr) {
 		frameTickBarr->wait();
 	}
-    sim_mob::messaging::MessageBus::DistributeMessages();
 }
 
 void sim_mob::WorkGroupManager::waitAllGroups_FlipBuffers(std::set<Agent*>* removedEntities)

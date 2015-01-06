@@ -132,7 +132,6 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Enti
 				currAgTripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));// one person for one busTrip, currently not considering Activity for BusDriver
 				currAg->setTripChain(currAgTripChain);
 				currAg->initTripChain();
-				//Print()<<"Person created (assignBusTripChain): "<<currAg->getId()<<" | startTime: "<<tripIt->startTime.getRepr_()<<" | buslineId: "<<busline->getBusLineID()<<std::endl;
 
 				// scheduled for dispatch
 				addOrStashBuses(currAg, active_agents);
@@ -172,7 +171,6 @@ void sim_mob::BusController::dynamicalGenerateAgent(unsigned int preTicks, unsig
 					currAgTripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));// one person for one busTrip, currently not considering Activity for BusDriver
 					currAg->setTripChain(currAgTripChain);
 					currAg->initTripChain();
-					Print()<<"Person created (assignBusTripChain): "<<currAg->getId()<<" | startTime: "<<currAg->getStartTime()<<std::endl;
 
 					// scheduled for dispatch
 					active_agents.push_back(currAg);
@@ -264,7 +262,6 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 			  {
 				 BusStop* busStop=const_cast<BusStop*>(stops[k]);
 				 busStop->BusLines.push_back(busline);
-				// std:cout<<"busline"<<busline->getBusLineID()<<std::endl;
 			  }
 		     busstop_busline_registered = false;
 			}

@@ -51,30 +51,40 @@ void sim_mob::PrintNetwork::LogIncidents() const
 	out << "{\"Incident\" : ";
 	for(std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt!=incidents.end(); incIt++){
 		out << "{";
-		out << "\"id\":\"" << (*incIt).incidentId << "\",";
-		out << "\"visibility\":\"" << (*incIt).visibilityDistance << "\",";
-		out << "\"segment_aimsun_id\":\"" << (*incIt).segmentId << "\",";
-		out << "\"position\":\"" << (*incIt).position << "\",";
-		out << "\"severity\":\"" << (*incIt).severity << "\",";
-		out << "\"cap_factor\":\"" << (*incIt).capFactor << "\",";
-		out << "\"start_time\":\"" << ((*incIt).startTime-baseGranMS)/baseFrameTick  << "\",";
-		out << "\"duration\":\"" << (*incIt).duration/baseFrameTick << "\",";
-		out << "\"length\":\"" << (*incIt).length << "\",";
-		out << "\"compliance\":\"" << (*incIt).compliance << "\",";
+		out << "\"id\":\"" << incIt->incidentId << "\",";
+		out << "\"visibility\":\"" << incIt->visibilityDistance << "\",";
+		out << "\"segment_aimsun_id\":\"" << incIt->segmentId << "\",";
+		out << "\"position\":\"" << incIt->position << "\",";
+		out << "\"severity\":\"" << incIt->severity << "\",";
+		out << "\"cap_factor\":\"" << incIt->capFactor << "\",";
+		out << "\"start_time\":\"" << (incIt->startTime-baseGranMS)/baseFrameTick  << "\",";
+		out << "\"duration\":\"" << incIt->duration/baseFrameTick << "\",";
+		out << "\"length\":\"" << incIt->length << "\",";
+		out << "\"compliance\":\"" << incIt->compliance << "\",";
 
-		for(std::vector<IncidentParams::LaneParams>::iterator laneIt=(*incIt).laneParams.begin(); laneIt!=(*incIt).laneParams.end(); laneIt++){
-			if((*laneIt).speedLimit==0){
-				out << "\"lane\":\"" << (*laneIt).laneId << "\",";
+		for(std::vector<IncidentParams::LaneParams>::iterator laneIt=incIt->laneParams.begin(); laneIt!=incIt->laneParams.end(); laneIt++){
+			if(laneIt->speedLimit==0){
 				out << "\"speed_limit\":\"" << (*laneIt).speedLimit << "\",";
-				out << "\"xLaneStartPos\":\"" << static_cast<int>((*laneIt).xLaneStartPos) << "\",";
-				out << "\"yLaneStartPos\":\"" << static_cast<int>((*laneIt).yLaneStartPos) << "\",";
-				out << "\"xLaneEndPos\":\"" << static_cast<int>((*laneIt).xLaneEndPos) << "\",";
-				out << "\"yLaneEndPos\":\"" << static_cast<int>((*laneIt).yLaneEndPos) << "\"";
+				out << "\"xLaneStartPos\":\"" << static_cast<int>(laneIt->xLaneStartPos) << "\",";
+				out << "\"yLaneStartPos\":\"" << static_cast<int>(laneIt->yLaneStartPos) << "\",";
+				out << "\"xLaneEndPos\":\"" << static_cast<int>(laneIt->xLaneEndPos) << "\",";
+				out << "\"yLaneEndPos\":\"" << static_cast<int>(laneIt->yLaneEndPos) << "\"";
 				break;
 			}
 		}
 
-		out << "\"accessibility\":\"" << (*incIt).accessibility << "\"}";
+		std::ostringstream oss;
+		for(std::vector<IncidentParams::LaneParams>::iterator laneIt=incIt->laneParams.begin(); laneIt!=incIt->laneParams.end(); laneIt++){
+			if(laneIt->speedLimit==0){
+				if(oss.str().size()>0){
+					oss << " ";
+				}
+				oss << laneIt->laneId;
+			}
+		}
+
+		out << "\"lane\":\"" << oss.str() << "\",";
+		out << "\"accessibility\":\"" << incIt->accessibility << "\"}";
 	}
 	out <<"}" <<std::endl;
 }
@@ -175,6 +185,7 @@ void sim_mob::PrintNetwork::LogLegacyUniNodeProps(set<const RoadSegment*>& cache
 		out <<"(\"uni-node\", 0, " <<*it <<", {";
 		out <<"\"xPos\":\"" <<(*it)->location.getX() <<"\",";
 		out <<"\"yPos\":\"" <<(*it)->location.getY() <<"\",";
+		out <<"\"node-type\":\"" <<(*it)->type <<"\",";
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
 			out <<(*it)->originalDB_ID.getLogItem();
 		}
@@ -200,6 +211,7 @@ void sim_mob::PrintNetwork::LogLegacyMultiNodeProps(set<const RoadSegment*>& cac
 		out <<"(\"multi-node\", 0, " <<node <<", {";
 		out <<"\"xPos\":\"" <<node->location.getX() <<"\",";
 		out <<"\"yPos\":\"" <<node->location.getY() <<"\",";
+		out <<"\"node-type\":\"" <<node->type <<"\",";
 		if (!node->originalDB_ID.getLogItem().empty()) {
 			out <<node->originalDB_ID.getLogItem();
 		}
@@ -259,9 +271,11 @@ void sim_mob::PrintNetwork::LogLegacySegment(const RoadSegment* const rs, set<co
 	out <<"\"lanes\":\"" <<rs->getLanes().size() <<"\",";
 	out <<"\"from-node\":\"" <<rs->getStart() <<"\",";
 	out <<"\"to-node\":\"" <<rs->getEnd() <<"\",";
+	out<<"\"segment-type\":\"" <<rs->type<<"\",";
 	if (!rs->originalDB_ID.getLogItem().empty()) {
 		out <<rs->originalDB_ID.getLogItem();
 	}
+
 	out <<"})";
 	PrintToFileAndGui(out);
 

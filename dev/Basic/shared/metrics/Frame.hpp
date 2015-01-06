@@ -39,6 +39,7 @@ public:
 
 private:
 	uint32_t frame_;
-	uint32_t ms_;
+	uint32_t ms_
+	;
 };
 

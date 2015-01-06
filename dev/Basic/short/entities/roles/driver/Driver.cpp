@@ -8,37 +8,33 @@
  *  Created on: 2011-7-5
  *      Author: wangxy & Li Zhemin
  */
-
-#include "util/ReactionTimeDistributions.hpp"
+ 
 #include "Driver.hpp"
 #include "DriverFacets.hpp"
-
-#include "entities/roles/pedestrian/Pedestrian.hpp"
-#include "entities/roles/driver/BusDriver.hpp"
-#include "entities/Person.hpp"
-
+#include "buffering/BufferedDataManager.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "logging/Log.hpp"
-
 #include "entities/AuraManager.hpp"
+#include "entities/Person.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"
-#include "buffering/BufferedDataManager.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/UniNode.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/LaneConnector.hpp"
+#include "entities/roles/driver/BusDriver.hpp"
+#include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "geospatial/Crossing.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/LaneConnector.hpp"
+#include "geospatial/Link.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/Node.hpp"
 #include "geospatial/Point2D.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "geospatial/UniNode.hpp"
+#include "logging/Log.hpp"
+#include "partitions/PartitionManager.hpp"
+#include "util/DebugFlags.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/GeomHelpers.hpp"
-#include "util/DebugFlags.hpp"
-
-#include "partitions/PartitionManager.hpp"
+#include "util/ReactionTimeDistributions.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -109,47 +105,16 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
 	,stop_event_nodeid(mtxStrat, -1), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false)
 {
-//	//This is something of a quick fix; if there is no parent, then that means the
-//	//  reaction times haven't been initialized yet and will crash. ~Seth
-//	if (parent) {
-//		ReactionTimeDist* r1 = ConfigManager::GetInstance().FullConfig().reactDist1;
-//		ReactionTimeDist* r2 = ConfigManager::GetInstance().FullConfig().reactDist2;
-//		if (r1 && r2) {
-//			reacTime = r1->getReactionTime() + r2->getReactionTime();
-//			//reacTime = 0;
-//		} else {
-//			throw std::runtime_error("Reaction time distributions have not been initialized yet.");
-//		}
-//	}
-
-
-//	if(movement)
-//	{
-//		reacTime = movement->cfModel->nextPerceptionSize * 100; // seconds to ms
-//	}
-//
-//	perceivedFwdVel = new FixedDelayed<double>(reacTime,true);
-//	perceivedFwdAcc = new FixedDelayed<double>(reacTime,true);
-//	perceivedVelOfFwdCar = new FixedDelayed<double>(reacTime,true);
-//	perceivedAccOfFwdCar = new FixedDelayed<double>(reacTime,true);
-//	perceivedDistToFwdCar = new FixedDelayed<double>(reacTime,true);
-//	perceivedDistToTrafficSignal = new FixedDelayed<double>(reacTime,true);
-//	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
-
-	// record start time
-	startTime = getParams().now.ms()/MILLISECS_CONVERT_UNIT;
-	isAleadyStarted = false;
 	currDistAlongRoadSegment = 0;
-
 	getParams().driver = this;
 }
 
 void sim_mob::Driver::initReactionTime()
 {
-	DriverMovement* movement = (DriverMovement* ) movementFacet;
+	DriverMovement* movement = dynamic_cast<DriverMovement*>(movementFacet);
 	if(movement)
 	{
-		reacTime = movement->cfModel->nextPerceptionSize * 1000; // seconds to ms
+		reacTime = movement->getCarFollowModel()->nextPerceptionSize * 1000; // seconds to ms
 	}
 
 	perceivedFwdVel = new FixedDelayed<double>(reacTime,true);
@@ -159,8 +124,8 @@ void sim_mob::Driver::initReactionTime()
 	perceivedDistToFwdCar = new FixedDelayed<double>(reacTime,true);
 	perceivedDistToTrafficSignal = new FixedDelayed<double>(reacTime,true);
 	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
-
 }
+
 Role* sim_mob::Driver::clone(Person* parent) const
 {
 	DriverBehavior* behavior = new DriverBehavior(parent);
@@ -172,21 +137,21 @@ Role* sim_mob::Driver::clone(Person* parent) const
 	return driver;
 }
 
-
-
-
-
 void sim_mob::Driver::make_frame_tick_params(timeslice now){
 	getParams().reset(now, *this);
 }
 
-
-///Note that Driver's destructor is only for reclaiming memory.
-///  If you want to remove its registered properties from the Worker (which you should do!) then
-///  this should occur elsewhere.
+// Note that Driver's destructor is only for reclaiming memory.
+// If you want to remove its registered properties from the Worker (which you should do!) then
+// this should occur elsewhere.
 sim_mob::Driver::~Driver() {
-//	//Our vehicle
+	//Our vehicle
 	safe_delete_item(vehicle);
+	/*safe_delete_item(perceivedFwdVel);
+	safe_delete_item(perceivedFwdAcc);
+	safe_delete_item(perceivedVelOfFwdCar);
+	safe_delete_item(perceivedAccOfFwdCar);
+	safe_delete_item(perceivedDistToFwdCar);*/
 }
 
 vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
@@ -209,6 +174,21 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 	res.push_back(&(stop_event_lastAlightingPassengers));
 
 	return res;
+}
+
+void sim_mob::Driver::onParentEvent(event::EventId eventId,
+		sim_mob::event::Context ctxId,
+		event::EventPublisher* sender,
+		const event::EventArgs& args)
+{
+	if(eventId == event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH)
+	{
+		AMOD::AMODEventPublisher* pub = (AMOD::AMODEventPublisher*) sender;
+		const AMOD::AMODRerouteEventArgs& rrArgs = MSG_CAST(AMOD::AMODRerouteEventArgs, args);
+		std::cout<<"driver get reroute event <"<< rrArgs.reRoutePath.size() <<"> from <"<<pub->id<<">"<<std::endl;
+
+		rerouteWithPath(rrArgs.reRoutePath);
+	}
 }
 
 std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
@@ -234,7 +214,7 @@ void sim_mob::Driver::handleUpdateRequest(MovementFacet* mFacet){
 
 const double sim_mob::Driver::getFwdVelocityM() const
 {
-	double d= fwdVelocity.get() / 100.0;
+	double d = fwdVelocity.get() / 100.0;
 	return d;
 }
 
@@ -242,37 +222,51 @@ double sim_mob::Driver::gapDistance(const Driver* front)
 {
 	double headway;
 	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
-	if (front) {			/* vehicle ahead */
-		DriverMovement* frontMov = dynamic_cast<DriverMovement*>(front->Movement());
-//	    if (lane_->segment() == front->segment())
-		if(mov->fwdDriverMovement.getCurrSegment() == frontMov->fwdDriverMovement.getCurrSegment())
-		{				/* same segment */
-//			headway = distance_ - front->distance_ - front->length();
-			headway = mov->fwdDriverMovement.getDisToCurrSegEnd() - frontMov->fwdDriverMovement.getDisToCurrSegEnd() - front->getVehicleLengthM();
-		}
-		else {				/* different segment */
-//			headway = distance_ + (front->lane_->length() -
-//									   front->distance_ -
-//									   front->length());
-			headway = mov->fwdDriverMovement.getDisToCurrSegEnd() + frontMov->fwdDriverMovement.getCurrDistAlongPolylineCM() - front->getVehicleLengthM();
-			  }
-	} else			/* no vehicle ahead. */
-		  {
-			headway = Math::FLT_INF;
-		  }
 
-	 return headway;
+	if (front)
+	{
+		/* vehicle ahead */
+		DriverMovement* frontMov =
+				dynamic_cast<DriverMovement*>(front->Movement());
+
+		if (frontMov->fwdDriverMovement.isDoneWithEntireRoute())
+		{
+			/* vehicle ahead has already arrived at the destination */
+			headway = Math::FLT_INF;
+		}
+		else
+		{
+
+			//if our segment is the same as that of the driver ahead
+			if(mov->fwdDriverMovement.getCurrSegment() == frontMov->fwdDriverMovement.getCurrSegment())
+			{
+				headway = mov->fwdDriverMovement.getDisToCurrSegEnd() - frontMov->fwdDriverMovement.getDisToCurrSegEnd() - front->getVehicleLengthM();
+			}
+			else
+			{
+				/* different segment */
+				headway = mov->fwdDriverMovement.getDisToCurrSegEnd() + frontMov->fwdDriverMovement.getCurrDistAlongPolylineCM() - front->getVehicleLengthM();
+			}
+		}
+	}
+	else /* no vehicle ahead. */
+	{
+		headway = Math::FLT_INF;
+	}
+
+	return headway;
 }
+
 bool sim_mob::Driver::isBus()
 {
 	return getVehicle()->getVehicleType() == VehicleBase::BUS;
 }
+
 void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 {
 	UpdateParams::reset(now);
 
 	//Set to the previous known buffered values
-	//currLane = owner.currLane_.get();
 	if(owner.currLane_.get()) {
 		currLane = owner.currLane_.get();
 	}
@@ -287,25 +281,16 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	leftLane2 = nullptr;
 	rightLane2 = nullptr;
 
-	//Reset; these will be set before they are used; the values here represent either defaul
+	//Reset; these will be set before they are used; the values here represent either default
 	//       values or are unimportant.
 	currSpeed = 0;
 	perceivedFwdVelocity = 0;
 	perceivedLatVelocity = 0;
-
 	trafficColor = sim_mob::Green;
-//	perceivedTrafficColor = sim_mob::Green;
-
-//	trafficSignalStopDistance = Driver::maxVisibleDis;
 	elapsedSeconds = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
-
 	perceivedFwdVelocityOfFwdCar = 0;
 	perceivedLatVelocityOfFwdCar = 0;
 	perceivedAccelerationOfFwdCar = 0;
-//	perceivedDistToFwdCar = Driver::maxVisibleDis; // no need reset
-//	perceivedDistToTrafficSignal = Driver::maxVisibleDis;
-
-//	perceivedTrafficColor  = sim_mob::Green;
 
 	//Lateral velocity of lane changing.
 	laneChangingVelocity = 100;
@@ -371,7 +356,6 @@ void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>
 		mov->rerouteWithBlacklist(blacklisted);
 	}
 }
-
 void Driver::setCurrPosition(DPoint currPosition)
 {
 	currPos = currPosition;
@@ -381,6 +365,7 @@ const DPoint& Driver::getCurrPosition() const
 {
 	return currPos;
 }
+
 void Driver::resetReacTime(double t)
 {
 	perceivedFwdVel->set_delay(t);
@@ -390,4 +375,12 @@ void Driver::resetReacTime(double t)
 	perceivedDistToFwdCar->set_delay(t);
 	perceivedDistToTrafficSignal->set_delay(t);
 	perceivedTrafficColor->set_delay(t);
+}
+
+void Driver::rerouteWithPath(const std::vector<sim_mob::WayPoint>& path)
+{
+	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
+	if (mov) {
+		mov->rerouteWithPath(path);
+	}
 }

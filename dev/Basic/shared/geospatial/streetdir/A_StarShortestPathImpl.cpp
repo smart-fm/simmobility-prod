@@ -1384,7 +1384,7 @@ std::vector<WayPoint> sim_mob::A_StarShortestPathImpl::searchShortestPathWithBla
 			prev = it;
 		}
 	}
-	std::cout << "astar_search done" << std::endl;
+	//std::cout << "blacklisted astar_search done " << blacklist.size() << std::endl;
 	/////////////////////////////
 	// END COPIED CODE
 	/////////////////////////////

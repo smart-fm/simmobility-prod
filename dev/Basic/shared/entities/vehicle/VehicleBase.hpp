@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "geospatial/RoadSegment.hpp"
+
 namespace sim_mob {
 /**
  * Passenger car units.
@@ -56,6 +58,31 @@ public:
 	void setMoving(bool moving) {
 		this->moving = moving;
 	}
+
+	/*virtual std::vector<const sim_mob::RoadSegment *>::iterator getPathIterator()
+	{
+		throw std::runtime_error("VehicleBase::getPathIterator is not implemented");
+	}
+
+	virtual std::vector<const sim_mob::RoadSegment *>::iterator getPathIteratorEnd()
+	{
+		throw std::runtime_error("VehicleBase::getPathIteratorEnd is not implemented");
+	}
+
+	virtual const sim_mob::RoadSegment * getCurrSegment() const
+	{
+		throw std::runtime_error("VehicleBase::getCurrSegment is not implemented");
+	}
+
+	virtual double getAcceleration() const
+	{
+		throw std::runtime_error("VehicleBase::getAcceleration is not implemented");
+	}
+
+	virtual double getVelocity() const
+	{
+		throw std::runtime_error("VehicleBase::getVelocity is not implemented");
+	}*/
 
 protected:
 	/**length of the vehicle in cm*/

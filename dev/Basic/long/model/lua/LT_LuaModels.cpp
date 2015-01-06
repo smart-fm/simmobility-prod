@@ -217,27 +217,6 @@ void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, v
     const BigSerial pcId = unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calulateUnitExpectations");
 
-/*
-    const Building *building = getBuilding(unit.getBuildingId());
-    const Postcode *postcode = getPostcode(pcId);
-    const PostcodeAmenities *amenities = getAmenities(pcId);
-
-    if(!building)
-    	PrintOut("Building is null" << std::endl );
-
-    if(!postcode)
-    	PrintOut("Postcode is null" << std::endl );
-
-    if(!amenities)
-    	PrintOut("Amenities is null for pcId " << pcId << std::dec << std::endl );
-
-
-    if( !funcRef.isFunction() )
-    	return;
-
-
-    LuaRef retVal = funcRef(&unit, timeOnMarket, building, postcode, amenities);
-*/
 	LuaRef retVal = funcRef(&unit, timeOnMarket, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
     
     if (retVal.isTable())

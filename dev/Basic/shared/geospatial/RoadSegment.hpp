@@ -87,6 +87,8 @@ public:
 	 */
 	unsigned int getSegmentAimsunId() const;
 
+	std::string getSegmentAimsunIdStr() const;
+
 	bool operator== (const RoadSegment* rhs) const
 	{
 		   return (rhs->getStart()==this->getStart())&&(rhs->getEnd()==this->getEnd());

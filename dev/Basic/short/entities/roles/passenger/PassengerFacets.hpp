@@ -17,6 +17,7 @@
 namespace sim_mob {
 
 class Passenger;
+class Bus;
 class BusDriver;
 
 class PassengerBehavior: public sim_mob::BehaviorFacet {

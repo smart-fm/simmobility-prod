@@ -88,15 +88,11 @@ const set<LaneConnector*>& sim_mob::MultiNode::getOutgoingLanes(const RoadSegmen
 		msg <<"   from node: " <<(from->getStart()==this?from->getEnd()->originalDB_ID.getLogItem():from->getStart()->originalDB_ID.getLogItem());
 		msg <<"\nExisting connectors:";
 		for (map<const RoadSegment*, set<LaneConnector*> >::const_iterator it=connectors.begin(); it!=connectors.end(); it++) {
-//			msg <<"\n" <<it->first->getStart()->originalDB_ID.getLogItem() <<" => " <<it->first->getEnd()->originalDB_ID.getLogItem();
 			msg <<"\n" <<it->first->originalDB_ID.getLogItem() ;
-
-			const RoadSegment* rs = it->first;
 		}
-		//throw std::runtime_error(msg.str().c_str());
+
 		msg<<std::endl;
 		sim_mob::Warn() << msg.str();
-//		const set<LaneConnector*> lnull;
 		return EMPTY_LANE_CONNECTOR;
 	}
 

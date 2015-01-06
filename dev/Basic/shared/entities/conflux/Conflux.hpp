@@ -96,7 +96,8 @@ private:
 	/**
 	 * helper to capture the status of a person before and after update
 	 */
-    struct PersonProps {
+    struct PersonProps
+    {
     public:
     	const sim_mob::RoadSegment* segment;
     	const sim_mob::Lane* lane;
@@ -104,8 +105,9 @@ private:
     	bool isMoving;
     	unsigned int roleType;
     	sim_mob::SegmentStats* segStats;
+    	const sim_mob::Conflux* conflux;
 
-    	PersonProps(const sim_mob::Person* person);
+    	PersonProps(const sim_mob::Person* person, const sim_mob::Conflux* conflux);
     };
 
 	/**
@@ -185,18 +187,9 @@ private:
 	PersonList mrt;
 
 	/**
-	 * function to call persons' updates if the MultiNode is signalized
-	 * \note this function is not implemented. Multinodes with signals are given
-	 * the same treatment as those without signals.
+	 * updates agents in this conflux
 	 */
-	void updateSignalized();
-
-	/**
-	 * function to call persons' updates if the MultiNode is not signalized
-	 * \note this function is currently used for all multinodes irrespective of
-	 * whether they have signals or not.
-	 */
-	void updateUnsignalized();
+	void processAgents();
 
 	/**
 	 * moves the person and does housekeeping for the conflux
@@ -315,6 +308,13 @@ bool sim_mob::insertIncidentS(const std::string fileName){
 	 * @return Entity::UpdateStatus update status
 	 */
 	Entity::UpdateStatus switchTripChainItem(Person* person);
+	
+	/**
+	 * gets the context of the agents right if the agent has moved out of this conflux
+	 * @param beforeUpdate person properties before update
+	 * @param afterUpdate person properties after update
+	 */
+	void updateAgentContext(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person) const;
 
 protected:
 	/**

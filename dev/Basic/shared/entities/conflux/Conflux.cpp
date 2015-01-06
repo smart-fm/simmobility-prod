@@ -400,6 +400,9 @@ void sim_mob::Conflux::updateAgentContext(PersonProps& beforeUpdate, PersonProps
 {
 	if(beforeUpdate.conflux && afterUpdate.conflux && beforeUpdate.conflux != afterUpdate.conflux)
 	{
+		int rand = Utils::generateInt(0,100);
+		messaging::MessageBus::PostMessage(person, 5000009, messaging::MessageBus::MessagePtr(new TestMessage(rand)), false);
+		Print() << "Posted " << rand << " to person " << person->getId() << std::endl;
 		Print() << "ReRegistering agent from " << person->GetContext() << " to " << afterUpdate.conflux->GetContext() << std::endl;
 		MessageBus::ReRegisterHandler(person, afterUpdate.conflux->GetContext());
 	}
@@ -774,6 +777,8 @@ void sim_mob::Conflux::setLinkTravelTimes(Person* person, double linkExitTime) {
 }
 
 bool sim_mob::Conflux::callMovementFrameInit(timeslice now, Person* person) {
+	//register the person as a message handler
+	messaging::MessageBus::RegisterHandler(person);
 	//Agents may be created with a null Role and a valid trip chain
 	if (!person->getRole()) {
 		//TODO: This UpdateStatus has a "prevParams" and "currParams" that should

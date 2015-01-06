@@ -374,6 +374,11 @@ void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ct
 
  void sim_mob::Person::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
  {
+	 if(type == 5000009)
+	 {
+		 Print() << "Received " << MSG_CAST(TestMessage, message).random << " by person " << getId() << std::endl;
+		 return;
+	 }
 	 if(currRole){
 		 currRole->HandleParentMessage(type, message);
 	 }

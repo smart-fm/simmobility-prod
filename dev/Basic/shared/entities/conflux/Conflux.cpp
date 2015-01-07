@@ -853,7 +853,7 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 		msg.person->currWorkerProvider = parentWorker;
 		mrt.push_back(msg.person);
 		//TODO: compute time to be expired and send message to self
-		messaging::MessageBus::PostMessage(this, MSG_WAKE_UP, messaging::MessageBus::MessagePtr(msg), false, 0); //last parameter (0) must be updated with actual time
+		messaging::MessageBus::PostMessage(this, MSG_WAKE_UP, messaging::MessageBus::MessagePtr(new PersonMessage(msg.person)), false, 0); //last parameter (0) must be updated with actual time
 		break;
 	}
 	case MSG_WAKE_UP:

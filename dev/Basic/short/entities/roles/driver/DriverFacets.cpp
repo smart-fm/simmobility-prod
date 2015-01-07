@@ -474,10 +474,11 @@ bool sim_mob::DriverMovement::findEmptySpaceAhead()
 
 	//If is any driver approaching from behind (also means that we've found space on the road), 
 	//reduce the reaction time
-	/*if(driverApproachingFromRear.first != nullptr)
+	if(driverApproachingFromRear.first != nullptr)
 	{
-		driverApproachingFromRear.first->getParams().cftimer = driverApproachingFromRear.first->getParams().cftimer * CF_CRITICAL_TIMER_RATIO;
-	}*/
+		float alert = CF_CRITICAL_TIMER_RATIO * cfModel->updateStepSize[0];
+		driverApproachingFromRear.first->getParams().cftimer = std::min<double>(alert, driverApproachingFromRear.first->getParams().cftimer);
+	}
 
 	return isSpaceFound;
 }

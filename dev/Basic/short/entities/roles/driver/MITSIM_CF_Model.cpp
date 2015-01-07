@@ -597,11 +597,12 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		{
 			Driver* bvd = const_cast<Driver*>(p.nvBack.driver);
 			DriverUpdateParams& bvp = bvd->getParams();
-			if( p.nvBack.distance < visibility() &&
-					!(bvd->isBus() && bvp.getStatus(STATUS_STOPPED))) {
-						  float alert = CF_CRITICAL_TIMER_RATIO * updateStepSize[0];
-						  bvp.cftimer = std::min<double>(alert,bvp.cftimer);
-						}
+			if ( p.nvBack.distance < visibility() &&
+				!(bvd->isBus() && bvp.getStatus(STATUS_STOPPED)))
+			{
+				float alert = CF_CRITICAL_TIMER_RATIO * updateStepSize[0];
+				bvp.cftimer = std::min<double>(alert, bvp.cftimer);
+			}
 		}
 	}
 

@@ -87,7 +87,7 @@ void PT_Statistics::HandleMessage(Message::MessageType type,
 
 		break;
 	}
-	case STRORE_WAITING_AMOUNT: {
+	case STORE_WAITING_AMOUNT: {
 		const WaitingAmountMessage& msg = MSG_CAST(WaitingAmountMessage,
 				message);
 

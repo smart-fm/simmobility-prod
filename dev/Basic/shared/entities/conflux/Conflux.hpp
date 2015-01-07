@@ -236,7 +236,7 @@ private:
 	 * @param person person to tick
 	 * @return update status
 	 */
-	Entity::UpdateStatus callMovementFameTick(timeslice now, Person* person);
+	Entity::UpdateStatus callMovementFrameTick(timeslice now, Person* person);
 
 	/**
 	 * calls frame_tick of the movement facet for the person's role

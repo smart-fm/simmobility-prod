@@ -423,6 +423,18 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 	}
 }
 
+void sim_mob::Conflux::updateAgentContext(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person) const
+{
+	if(beforeUpdate.conflux && afterUpdate.conflux && beforeUpdate.conflux != afterUpdate.conflux)
+	{
+		int rand = Utils::generateInt(0,100);
+		messaging::MessageBus::PostMessage(person, 5000009, messaging::MessageBus::MessagePtr(new TestMessage(rand)), false);
+		Print() << "Posted " << rand << " to person " << person->getId()  << " in frame " << currFrame.frame() << std::endl;
+		Print() << "ReRegistering agent from " << person->GetContext() << " to " << afterUpdate.conflux->GetContext() << " in frame " << currFrame.frame() << std::endl;
+		MessageBus::ReRegisterHandler(person, afterUpdate.conflux->GetContext());
+	}
+}
+
 void sim_mob::Conflux::processVirtualQueues() {
 	int counter = 0;
 	{
@@ -902,9 +914,11 @@ Entity::UpdateStatus sim_mob::Conflux::switchTripChainItem(Person* person)
 }
 
 
-Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Person* person) {
+Entity::UpdateStatus sim_mob::Conflux::callMovementFrameTick(timeslice now, Person* person)
+{
 	Role* personRole = person->getRole();
-	if (person->isResetParamsRequired()) {
+	if (person->isResetParamsRequired())
+	{
 		personRole->make_frame_tick_params(now);
 		person->setResetParamsRequired(false);
 	}
@@ -933,7 +947,6 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 	 * If the driver has reached the end of the current subtrip, the loop updates the current trip chain item of the person and change roles by calling person->checkTripChain().
 	 * We also set the current segment, set the lane as lane infinity and call the movement facet of the person's role again.
 	 */
-	unsigned i=0;
 	while(person->remainingTimeThisTick > 0.0)
 	{
 		if (!person->isToBeRemoved()) { personRole->Movement()->frame_tick(); }
@@ -943,48 +956,83 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFameTick(timeslice now, Perso
 			retVal = switchTripChainItem(person);
 			if (retVal.status == UpdateStatus::RS_DONE) { return retVal; }
 			personRole = person->getRole();
+			if(personRole && retVal.status==UpdateStatus::RS_CONTINUE && personRole->roleType==Role::RL_WAITBUSACTITITY)
+			{
+				assignPersonToBusStopAgent(person);
+				PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
+				if(pIt!=pedestrianList.end()){ pedestrianList.erase(pIt); }
+				return retVal;
+			}
+
+			//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
+			person->setStartTime(now.ms());
+
+			if(person->currTripChainItem != person->tripChain.end())
+			{
+				if((*person->currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY)
+				{
+					//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
+					//since start time of the activity is usually later than what is configured initially,
+					//we have to make adjustments so that it waits for exact amount of time
+					sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(personRole);
+					ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
+					ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
+					if (callMovementFrameInit(now, person)){ person->setInitialized(true); }
+					else { return UpdateStatus::Done; }
+				}
+				else if((*person->currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+				{
+					if (callMovementFrameInit(now, person)) { person->setInitialized(true); }
+					else { return UpdateStatus::Done; }
+				}
+			}
 		}
 
-		if(person->getNextLinkRequired()){
+		if(person->getNextLinkRequired())
+		{
 			Conflux* nextConflux = person->getNextLinkRequired()->getSegments().front()->getParentConflux();
 			messaging::MessageBus::PostMessage(nextConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST,
 					messaging::MessageBus::MessagePtr(new PersonMessage(person)));
 			PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
-			if(pIt!=pedestrianList.end()){
+			if(pIt!=pedestrianList.end())
+			{
 				pedestrianList.erase(pIt);
 				person->currWorkerProvider = nullptr;
 			}
 			return UpdateStatus::Continue;
 		}
 
-		if(person->requestedNextSegStats){
+		if(person->requestedNextSegStats)
+		{
 			const sim_mob::RoadSegment* nxtSegment = person->requestedNextSegStats->getRoadSegment();
 			Conflux* nxtConflux = nxtSegment->getParentConflux();
 
 			// grant permission. But check whether the subsequent frame_tick can be called now.
 			person->canMoveToNextSegment = Person::GRANTED;
 			long currentFrame = now.frame(); //frame will not be outside the range of long data type
-			if(currentFrame > nxtConflux->getLastUpdatedFrame()) {
+			if(currentFrame > nxtConflux->getLastUpdatedFrame())
+			{
 				// nxtConflux is not processed for the current tick yet
-				if(nxtConflux->hasSpaceInVirtualQueue(nxtSegment->getLink())) {
+				if(nxtConflux->hasSpaceInVirtualQueue(nxtSegment->getLink()))
+				{
 					person->setCurrSegStats(person->requestedNextSegStats);
 					person->setCurrLane(nullptr); // so that the updateAgent function will add this agent to the virtual queue
 					person->requestedNextSegStats = nullptr;
 					break; //break off from loop
 				}
-				else {
+				else
+				{
 					person->canMoveToNextSegment = Person::DENIED;
 					person->requestedNextSegStats = nullptr;
 				}
 			}
-			else if(now.frame() == nxtConflux->getLastUpdatedFrame()) {
+			else if(now.frame() == nxtConflux->getLastUpdatedFrame())
+			{
 				// nxtConflux is processed for the current tick. Can move to the next link.
-				// handled by setting person->canMoveToNextSegment = GRANTED
+				// already handled by setting person->canMoveToNextSegment = GRANTED
 				person->requestedNextSegStats = nullptr;
 			}
-			else {
-				throw std::runtime_error("lastUpdatedFrame of confluxes are managed incorrectly");
-			}
+			else { throw std::runtime_error("lastUpdatedFrame of confluxes are managed incorrectly"); }
 		}
 	}
 	return retVal;
@@ -1089,7 +1137,7 @@ UpdateStatus sim_mob::Conflux::movePerson(timeslice now, Person* person)
 	}
 
 	//Perform the main update tick
-	UpdateStatus retVal = callMovementFameTick(now, person);
+	UpdateStatus retVal = callMovementFrameTick(now, person);
 
 	//This persons next movement will be in the next tick
 	if (retVal.status != UpdateStatus::RS_DONE && person->remainingTimeThisTick<=0) {

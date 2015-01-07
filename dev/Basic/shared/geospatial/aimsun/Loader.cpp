@@ -934,15 +934,11 @@ void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<
 	{
 		sim_mob::PT_bus_routes pt_bus_routesTemp = *iter;
 		pt_bus_routes.push_back(pt_bus_routesTemp);
-//		std::cout << pt_bus_routesTemp.route_id << " " << atoi(pt_bus_routesTemp.link_id.c_str()) << " " << pt_bus_routesTemp.link_sequence_no << std::endl;
 		sim_mob::RoadSegment *seg = sections_[atoi(pt_bus_routesTemp.link_id.c_str())].generatedSegment;
 		if(seg) {
 			routeID_roadSegments[iter->route_id].push_back(seg);
-//			std::cout << "iter->route_id: " << iter->route_id << "    Section to segment map  " << seg->getId() ;
-//			std::cout << "current routeID_roadSegments[iter->route_id].size(): " << routeID_roadSegments[iter->route_id].size() << "" << std::endl;
 		}
 	}
-//	std::cout << "routeID_roadSegments.size(): " << routeID_roadSegments.size() << "" << std::endl;
 }
 
 void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<sim_mob::PT_bus_stops>& pt_bus_stops, std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops)
@@ -1341,6 +1337,7 @@ sim_mob::Activity* MakeActivity(const TripChainItem& tcItem) {
 	res->locationType = tcItem.locationType;
 	res->startTime = tcItem.startTime;
 	res->endTime = tcItem.endTime;
+	res->travelMode = tcItem.mode;
 	return res;
 }
 
@@ -1365,6 +1362,7 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	}
 	tripToSave->fromLocationType = tcItem.fromLocationType;
 	tripToSave->startTime = tcItem.startTime;
+	tripToSave->travelMode = tcItem.mode;
 	return tripToSave;
 }
 
@@ -1533,6 +1531,7 @@ sim_mob::SubTrip MakeSubTrip(const TripChainItem& tcItem) {
 	aSubTripInTrip.isPrimaryMode = tcItem.isPrimaryMode;
 	aSubTripInTrip.ptLineId = tcItem.ptLineId;
 	aSubTripInTrip.startTime = tcItem.startTime;
+	aSubTripInTrip.mode = tcItem.mode;
 	return aSubTripInTrip;
 }
 
@@ -1896,16 +1895,20 @@ DatabaseLoader::createPlans(sim_mob::Signal_SCATS & signal)
 
 		//now that we have the number of phases, we can continue initializing our split plan.
 		int nof_phases = signal.getNOF_Phases();
-//		std::cout << " Signal(" << sid << ") : Number of Phases : " << nof_phases << std::endl;
+
 		if(nof_phases > 0)
-			if((nof_phases > 5)||(nof_phases < 1))
-				std::cout << sid << " ignored due to lack of default choice set" << nof_phases ;
+		{
+			if(nof_phases > 7)
+				sim_mob::Print() << sid << " ignored due to lack of default choice set" << nof_phases ;
 			else
 			{
-				plan.setDefaultSplitPlan(nof_phases);//i hope the nof phases is within the range of 2-5
+				plan.setDefaultSplitPlan(nof_phases);
 			}
+		}
 		else
-			std::cout << sid << " ignored due to no phases" << nof_phases <<  std::endl;
+		{
+			sim_mob::Print() << sid << " ignored due to no phases" << nof_phases <<  std::endl;
+		}
 }
 
 
@@ -2433,23 +2436,34 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 	//Essentially, just expand each turning into a set of LaneConnectors.
 	//TODO: This becomes slightly more complex at RoadSegmentNodes, since these
 	//      only feature one primary connector per Segment pair.
-	for (int fromLaneID=src.fromLane.first; fromLaneID<=src.fromLane.second; fromLaneID++) {
-		for (int toLaneID=src.toLane.first; toLaneID<=src.toLane.second; toLaneID++) {
-			//Bounds check: temp
-			/*if (fromLaneID>=src.fromSection->generatedSegment->lanes.size() ||
-				toLaneID >= src.toSection->generatedSegment->lanes.size()) {
-				std::cout <<"SKIPPING LANE\n";
-				continue;
-			}*/
+	for (int fromLaneID=src.fromLane.first, offset = 0; fromLaneID<=src.fromLane.second; fromLaneID++, offset++) {
 
+		/*Fixing many to one lane connections (commenting the loop, for roll back purposes)
+		 * ~Neeraj
+		for (int toLaneID=src.toLane.first; toLaneID<=src.toLane.second; toLaneID++) {
+		*/
+
+		//Bounds check: temp
+		/*if (fromLaneID>=src.fromSection->generatedSegment->lanes.size() ||
+			toLaneID >= src.toSection->generatedSegment->lanes.size()) {
+			std::cout <<"SKIPPING LANE\n";
+			continue;
+		}*/
+
+		//In order to make one to one lane connections, we simply let the for-loop traverse through the
+		//range of fromLaneIDs, the offset takes care of incrementing the toLaneIDs
+		int toLaneID = src.toLane.first + offset;
+
+		if(toLaneID <= src.toLane.second)
+		{
 			//Process
 			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector();
 			int adjustedFromLaneId  = src.fromSection->generatedSegment->getAdjustedLaneId(fromLaneID);
 			int adjustedToLaneId  = src.toSection->generatedSegment->getAdjustedLaneId(toLaneID);
 			lc->laneFrom = src.fromSection->generatedSegment->lanes.at(adjustedFromLaneId);
 			lc->laneTo = src.toSection->generatedSegment->lanes.at(adjustedToLaneId);
-//			lc->laneFrom = src.fromSection->generatedSegment->lanes.at(fromLaneID);
-//			lc->laneTo = src.toSection->generatedSegment->lanes.at(toLaneID);
+			//lc->laneFrom = src.fromSection->generatedSegment->lanes.at(fromLaneID);
+			//lc->laneTo = src.toSection->generatedSegment->lanes.at(toLaneID);
 
 			//just a check to avoid connecting pedestrian and non pedestrian lanes
 			int i = 0;
@@ -2473,6 +2487,11 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 			map<const RoadSegment*, set<LaneConnector*> >& connectors = dynamic_cast<MultiNode*>(src.fromSection->toNode->generatedNode)->connectors;
 			connectors[key].insert(lc);
 		}
+
+		/*Fixing many to one lane connections (commenting the loop, for roll back purposes)
+		 * ~Neeraj
+		}
+		*/
 	}
 
 }

@@ -21,7 +21,7 @@
 #include "entities/vehicle/VehicleBase.hpp"
 #include "entities/models/Constants.h"
 #include "geospatial/Lane.hpp"
-#include "geospatial/GeneralPathMover.hpp"
+#include "entities/roles/driver/GeneralPathMover.hpp"
 #include "geospatial/WayPoint.hpp"
 #include "util/MovementVector.hpp"
 #include "util/DynamicVector.hpp"
@@ -38,8 +38,8 @@ class FMODSchedule;
  **/
 class Vehicle : public sim_mob::VehicleBase {
 public:
-	Vehicle(const VehicleType vehType, double lengthCM, double widthCM); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
-	Vehicle(const VehicleType vehType, int vehicleId, double lengthCM, double widthCM); //Test
+	Vehicle(const VehicleType vehType, double lengthCM, double widthCM);
+	Vehicle(const VehicleType vehType, int vehicleId, double lengthCM, double widthCM);
 	Vehicle(const Vehicle& copy); ///<Copy constructor
 
 	//Enable polymorphism
@@ -49,10 +49,8 @@ public:
 	double getVelocity() const;      ///<Retrieve forward velocity.
 	double getLatVelocity() const;   ///<Retrieve lateral velocity.
 	double getAcceleration() const;  ///<Retrieve forward acceleration.
-	bool isDone() const; ///<Are we fully done with our path?
-	bool hasPath() const; ///<Do we have a path to move on?
-
-
+	
+	void resetPath(std::vector<sim_mob::WayPoint> wp_path);
 
 	//Special
 	LANE_CHANGE_SIDE getTurningDirection() const;
@@ -63,6 +61,10 @@ public:
 	const sim_mob::RoadSegment* getSecondSegmentAhead();
 	const sim_mob::RoadSegment* getPrevSegment(bool inSameLink=true) const;
 	const sim_mob::RoadSegment* hasNextSegment(bool inSameLink) const;
+
+	std::vector<const sim_mob::RoadSegment*>::iterator getPathIterator();
+	std::vector<const sim_mob::RoadSegment*>::iterator getPathIteratorEnd();
+
 	const sim_mob::Lane* getCurrLane() const;
 	void setPositionInIntersection(double x, double y);
 	const DPoint& getPositionInIntersection();
@@ -75,14 +77,18 @@ public:
 	void setCurrPosition(DPoint currPosition);
 	const DPoint& getCurrPosition() const;
 
-	void actualMoveToNextSegmentAndUpdateDir_med();		//~melani for mid-term
 	void moveLat(double amt);            ///<Move this car laterally. NOTE: This will _add_ the amt to the current value.
 	void resetLateralMovement();         ///<Put this car back in the center of the current lane.
 
-	/*needed by mid-term*/
-	double getPositionInSegmentCM();
-	void setPositionInSegmentCM(double newDistToEndCM);
-	//unit cm, this is based on lane zero's polypoints
+	FMODSchedule * getFMODSchedule()
+	{
+		return schedule;
+	}
+
+	void setFMOD_Schedule(FMODSchedule *fmodSchedule)
+	{
+		schedule = fmodSchedule;
+	}
 
 #ifndef SIMMOB_DISABLE_MPI
 public:
@@ -92,14 +98,10 @@ public:
 	static Vehicle* unpack(UnPackageUtils& unpackage);
 #endif
 
-public:
-//	const double lengthCM;  ///<length(CM) of the vehicle
-//	const double widthCM;   ///<width(CM) of the vehicle
-	bool isQueuing; 	 ///<for mid-term use
-	FMODSchedule* schedule;
-	double stoppedtimecounter;
-
 private:
+
+	FMODSchedule* schedule;
+
 	//Trying a slightly more dynamic moving model.
 	int vehicleId;
 	GeneralPathMover fwdMovement;
@@ -116,6 +118,7 @@ private:
 	//NOTE: The error state is a temporary sanity check to help me debug this class. There are certainly
 	//      better ways to handle this (e.g., non-default constructor).
 	bool errorState;
+
 	void throw_if_error() const {
 		if (errorState) {
 			throw std::runtime_error("Error: can't perform certain actions on an uninitialized vehicle.");

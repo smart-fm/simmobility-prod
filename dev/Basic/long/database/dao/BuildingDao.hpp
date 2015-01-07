@@ -42,6 +42,12 @@ namespace sim_mob
              * @param update tells if operation is an Update or Insert.
              */
             void toRow(Building& data, db::Parameters& outParams, bool update);
+
+        public:
+            /*
+            * Get the parcels with no buildings as a vector
+            */
+            std::vector<Building*> getBuildingsOfParcel();
         };
     }
 }

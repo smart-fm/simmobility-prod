@@ -31,14 +31,15 @@ namespace sim_mob
     		    				double constructionCost = .0f,
     		    				double demolitionCost = .0f,
     		    				double totalCost = .0f,
-    		    				double area = .0f,
+    		    				double fmLotSize = .0f,
     		    				std::string grossRatio = EMPTY_STR,
-    		    				double grossArea = .0f)	;
+    		    				double grossArea = .0f,
+    		    				int currTick = 0)	;
     		virtual ~Project();
 
 
-	double getLotSize();
-	void setLotSize(double LotSize);
+	double getFmLotSize();
+	void setFmLotSize(double fmLotSize);
 	std::tm getCompletionDate();
 	void setCompletionDate(std::tm completionDate);
 	double getConstructionCost();
@@ -52,16 +53,19 @@ namespace sim_mob
 	double getGrossArea();
 	void setGrossArea(double grossArea);
 	std::string getGrossRatio();
-	void setGrossRatio(double grossRatio);
+	void setGrossRatio(std::string grossRatio);
 	BigSerial getParcelId();
 	void setParcelId(BigSerial parcelId);
 	BigSerial getProjectId();
 	void setProjectId(BigSerial projectId);
 	std::string getProjectName();
+	void setProjectName(std::string projectName);
 	BigSerial getTemplateId();
 	void setTemplateId(BigSerial templateId);
 	double getTotalCost();
 	void setTotalCost(double totalCost);
+	int getCurrTick();
+	void setCurrTick(int currentTick);
 
 	/* Operator to print the Parcel Match data.*/
 	friend std::ostream& operator<<(std::ostream& strm, const Project& data);
@@ -80,9 +84,10 @@ namespace sim_mob
     		double constructionCost;
     		double demolitionCost;
     		double totalCost;
+    		double fmLotSize;
     		std::string grossRatio;
     		double grossArea;
-    		double lotSize;
+    		int currTick;
 
     	};
 

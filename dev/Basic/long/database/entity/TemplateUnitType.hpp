@@ -31,7 +31,6 @@ namespace sim_mob {
             BigSerial getUnitTypeId() const;
             BigSerial getTemplateId() const;
             int getProportion() const;
-
             /**
              * Operator to print the TemplateUnitType data.  
              */

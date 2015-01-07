@@ -26,6 +26,7 @@ void TemplateUnitTypeDao::fromRow(Row& result, TemplateUnitType& outObj)
     outObj.templateId = result.get<BigSerial>(DB_FIELD_TEMPLATE_ID, INVALID_ID);
     outObj.unitTypeId = result.get<BigSerial>(DB_FIELD_UNIT_TYPE_ID, INVALID_ID);
     outObj.proportion = result.get<int>(DB_FIELD_PROPORTION, 0);
+
 }
 
 void TemplateUnitTypeDao::toRow(TemplateUnitType& data, Parameters& outParams, bool update) {}

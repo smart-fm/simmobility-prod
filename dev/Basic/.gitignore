@@ -6,4 +6,7 @@ out*.txt
 callgrind.out*
 profile_trace.txt
 warn.log
+.tags*
+Debug*/
+Release*/
 /dev/visualizer/Traffic_Signal_Animation_Combined/bin/*

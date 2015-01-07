@@ -363,13 +363,12 @@ void sim_mob::Signal_SCATS::findSignalLinksAndCrossings() {
 }
 
 //find the minimum among the max projected DS
-int sim_mob::Signal_SCATS::fmin_ID(const std::vector<double> maxproDS) {
+int sim_mob::Signal_SCATS::fmin_ID(const std::vector<double>& maxproDS) {
 	int min = 0;
 	for (int i = 1; i < maxproDS.size(); i++) {
 		if (maxproDS[i] < maxproDS[min]) {
 			min = i;
 		}
-		//else{}
 	}
 	return min;
 }
@@ -377,7 +376,7 @@ int sim_mob::Signal_SCATS::fmin_ID(const std::vector<double> maxproDS) {
 //This function will calculate the DS at the end of each phase considering only the max DS of lane in the LinkFrom(s)
 //LinkFrom(s) are the links from which vehicles enter the intersection during the corresponding phase
 double sim_mob::Signal_SCATS::computePhaseDS(int phaseId) {
-	double lane_DS = 0, maxPhaseDS = 0, maxDS = 0;
+	double lane_DS = 0, maxPhaseDS = 0;
 	sim_mob::Phase p_it = getPhases()[phaseId];
 
 	double total_g = p_it.computeTotalG(); //todo: I guess we can avoid calling this function EVERY time by adding an extra container at split plan level.(mapped to choiceSet container)
@@ -386,7 +385,7 @@ double sim_mob::Signal_SCATS::computePhaseDS(int phaseId) {
 		std::set<sim_mob::RoadSegment*> segments =
 				(*linkIterator).first->getUniqueSegments(); //optimization: use either fwd or bed segments
 		std::set<sim_mob::RoadSegment*>::iterator seg_it = segments.begin();
-		for (; seg_it != segments.end(); seg_it++) { //Loop3===>road segment
+		for (; seg_it != segments.end(); ++seg_it) { //Loop3===>road segment
 			//discard the segments that don't end here(coz those who don't end here, don't cross the intersection neither)
 			//sim_mob::Link is bi-directionl so we use RoadSegment's start and end to imply direction
 			if ((*seg_it)->getEnd() != &getNode())

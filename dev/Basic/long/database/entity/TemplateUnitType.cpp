@@ -14,11 +14,8 @@
 
 using namespace sim_mob::long_term;
 
-TemplateUnitType::TemplateUnitType(
-        BigSerial templateId,
-        BigSerial unitTypeId,
-        int proportion)
-: templateId(templateId), unitTypeId(unitTypeId), proportion(proportion) {
+TemplateUnitType::TemplateUnitType(BigSerial templateId,BigSerial unitTypeId,int proportion)
+: templateId(templateId), unitTypeId(unitTypeId), proportion(proportion){
 }
 
 TemplateUnitType::~TemplateUnitType() {

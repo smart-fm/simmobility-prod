@@ -17,7 +17,7 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/UniNode.hpp"
 #include "util/OutputUtil.hpp"
-#include "geospatial/PathSetManager.hpp"
+#include "path/PathSetManager.hpp"
 #include <boost/random.hpp>
 #include <boost/nondet_random.hpp>
 #include "boost/generator_iterator.hpp"
@@ -209,7 +209,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::initDrivingNetworkNew(const vect
     		procAddDrivingLaneConnectors(drivingMap_Random_pool[i], dynamic_cast<const MultiNode*>(it->first), nodeLookup_Random_pool[i]);
 		}
     }
-
+#if 0
     //Now add BusStops (this mutates the network slightly, by segmenting Edges where a BusStop is located).
     for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
 //    	procAddDrivingBusStops(drivingMap_, (*iter)->getSegments(), nodeLookup, drivingBusStopLookup_, drivingSegmentLookup_);
@@ -228,7 +228,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::initDrivingNetworkNew(const vect
     		procAddDrivingBusStops(drivingMap_Random_pool[i], (*iter)->getSegments(), nodeLookup_Random_pool[i], drivingBusStopLookup_Random_pool[i], drivingSegmentLookup_Random_pool[i]);
 		}
 }
-
+#endif
     //Finally, add our "master" node vertices
 //    procAddStartNodesAndEdges(drivingMap_, nodeLookup, drivingNodeLookup_);
     procAddStartNodesAndEdges(drivingMap_MorningPeak, nodeLookup_MorningPeak, drivingNodeLookup_MorningPeak_);

@@ -23,7 +23,7 @@
 #include "entities/conflux/Conflux.hpp"
 #include "entities/Person.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
-#include "geospatial/PathSetManager.hpp"
+#include "path/PathSetManager.hpp"
 #include "network/ControlManager.hpp"
 #include "logging/Log.hpp"
 #include "workers/WorkGroup.hpp"
@@ -374,9 +374,6 @@ void sim_mob::Worker::perform_buff_flip()
 
 void sim_mob::Worker::threaded_function_loop()
 {
-	if(flg.check()){
-		std::cout << "This worker[" << this << "] wraps this thread[" << boost::this_thread::get_id() << "]" << std::endl;
-	}
 	// Register thread on MessageBus.
 	messaging::MessageBus::RegisterThread();
     

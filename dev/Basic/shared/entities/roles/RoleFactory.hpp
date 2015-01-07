@@ -32,6 +32,9 @@ class SubTrip;
  */
 class RoleFactory {
 public:
+
+	~RoleFactory();
+
 	///Register a Role, and a prototype we can clone to create members of this Role.
 	void registerRole(const std::string& name, const sim_mob::Role* prototype);
 	void registerRole(const sim_mob::Role* prototype);

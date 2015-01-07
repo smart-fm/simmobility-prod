@@ -248,7 +248,7 @@ void SegmentStats::getPersons(std::deque<sim_mob::Person*>& segAgents)
 
 void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 {
-	//And let's not forget the bus drivers serving stops in this segment stats
+	//let's not forget the bus drivers serving stops in this segment stats
 	//Bus drivers go in the front of the list, because bus stops are (virtually)
 	//located at the end of the segment
 	for (BusStopList::const_reverse_iterator stopIt = busStops.rbegin(); stopIt != busStops.rend(); stopIt++)

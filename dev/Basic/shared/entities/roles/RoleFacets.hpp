@@ -133,6 +133,23 @@ public:
 	{
 		travelTimeMetric.reset();
 	}
+	/**
+	 * checks if lane is connected to the next segment
+	 *
+	 * @param lane current lane
+	 * @param nxtRdSeg next road segment
+	 * @return true if lane is connected to nextSegStats; false otherwise
+	 */
+	static bool isConnectedToNextSeg(const Lane* lane, const sim_mob::RoadSegment *nxtRdSeg);
+
+	/**
+	 * checks if 'any' lane is connected to the next segment
+	 *
+	 * @param srcRdSeg Road Segment
+	 * @param nxtRdSeg next road segment
+	 * @return true if lane is connected to next Segment; false otherwise
+	 */
+	static bool isConnectedToNextSeg(const sim_mob::RoadSegment *srcRdSeg, const sim_mob::RoadSegment *nxtRdSeg);
 
 
 public:

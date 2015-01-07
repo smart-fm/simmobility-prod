@@ -9,16 +9,18 @@
  * Created on Aug 15, l2013, 9:30 PM
  */
 #include "MessageBus.hpp"
-#include "event/EventPublisher.hpp"
-#include "util/LangHelpers.hpp"
+
+#include <algorithm>
 #include <boost/format.hpp>
+#include <boost/function.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/tss.hpp>
 #include <boost/unordered/unordered_map.hpp>
-#include <boost/function.hpp>
-#include <queue>
-#include <list>
 #include <iostream>
+#include <list>
+#include <queue>
+#include "event/EventPublisher.hpp"
+#include "util/LangHelpers.hpp"
 #include "logging/Log.hpp"
 
 using namespace sim_mob::messaging;
@@ -420,6 +422,19 @@ void MessageBus::UnRegisterHandler(MessageHandler* handler) {
     }
 }
 
+void MessageBus::ReRegisterHandler(MessageHandler* handler, void* newContext)
+{
+	CheckThreadContext();
+	if (handler)
+	{
+	    if(std::find(threadContexts.begin(), threadContexts.end(), newContext) == threadContexts.end())
+	    {
+	    	throw runtime_error("MessageBus - invalid thread context passed for re-registration");
+	    }
+	    handler->context = newContext;
+	}
+}
+
 void MessageBus::DistributeMessages() {
     CheckMainThread();
     DispatchMessages();
@@ -740,4 +755,3 @@ namespace {
         PrintOut(endl);
     }
 }
-

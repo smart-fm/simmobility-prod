@@ -21,7 +21,7 @@ namespace FMOD
 
 FMOD_Client::FMOD_Client(boost::asio::io_service& ioService):socket_(ioService) {
 	// TODO Auto-generated constructor stub
-
+	ReceivedBuf.assign(0);
 }
 
 FMOD_Client::~FMOD_Client() {
@@ -87,7 +87,9 @@ void FMOD_Client::handleWrite(const boost::system::error_code& error, size_t byt
 void FMOD_Client::handleRead(const boost::system::error_code& error, size_t bytesTransferred)
 {
 	if( error == 0 ){
-		msgReceiveQueue.pushMessage(ReceivedBuf.data());
+		msgReceiveQueue.pushMessage(ReceivedBuf.data(), true);
+		std::cout<<bytesTransferred<<" ReceivedBuf: <"<<ReceivedBuf.data()<<">"<<std::endl;
+		ReceivedBuf.assign(0);
 		receiveData();
 	}
 	else{
@@ -150,10 +152,19 @@ bool FMOD_Client::receiveData()
 	boost::system::error_code err;
 	try
 	{
-		boost::asio::async_read(socket_, boost::asio::buffer(ReceivedBuf),
-							  boost::bind(&FMOD_Client::handleRead,shared_from_this(),
-							  boost::asio::placeholders::error,
-							  boost::asio::placeholders::bytes_transferred));
+//		boost::asio::async_read(socket_, boost::asio::buffer(ReceivedBuf),
+//				boost::asio::transfer_at_least(20),
+//							  boost::bind(&FMOD_Client::handleRead,shared_from_this(),
+//							  boost::asio::placeholders::error,
+//							  boost::asio::placeholders::bytes_transferred));
+
+//		size_t len = boost::asio::read(socket_,boost::asio::buffer(buf,HeadLen),boost::asio::transfer_at_least(HeadLen));
+
+		socket_.async_read_some(boost::asio::buffer(ReceivedBuf),
+								boost::bind(&FMOD_Client::handleRead,shared_from_this(),
+								boost::asio::placeholders::error,
+								boost::asio::placeholders::bytes_transferred)) ;
+
 		 if(err) {
 			 std::cerr<<"start: receive error "<<err.message()<<std::endl;
 			 return false;

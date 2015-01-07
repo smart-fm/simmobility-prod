@@ -79,6 +79,9 @@ int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulat
 
 void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 {
+	time_t timeInSeconds = std::time(0);
+	srand(timeInSeconds);
+
     //Initiate configuration instance
     LT_ConfigSingleton::getInstance();
     PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
@@ -173,7 +176,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         for (unsigned int currTick = 0; currTick < days; currTick++)
         {
             PrintOut("Day " << currTick << std::endl );
-            PrintOut("The housing market has " << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize() << " units and \t" << (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " bidders on the market" << std::endl );
+            PrintOut("The housing market has " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize() << " units and \t" << (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " bidders on the market" << std::endl );
 
             wgMgr.waitAllGroups();
 

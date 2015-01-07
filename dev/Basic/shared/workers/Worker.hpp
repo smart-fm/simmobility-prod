@@ -12,7 +12,6 @@
 #include "metrics/Frame.hpp"
 #include "event/EventPublisher.hpp"
 #include "event/SystemEvents.hpp"
-#include "util/OneTimeFlag.hpp"
 #include "event/args/EventArgs.hpp"
 //#include "event/EventListener.hpp"
 #include "soci.h"
@@ -89,8 +88,6 @@ public:
  * \author Xu Yan
  */
 class Worker : public WorkerProvider {
-	//debug
-	sim_mob::OneTimeFlag flg;
 private:
 	friend class WorkGroup;
 	static UpdatePublisher  updatePublisher;

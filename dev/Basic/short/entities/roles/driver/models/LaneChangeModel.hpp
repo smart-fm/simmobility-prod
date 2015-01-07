@@ -193,6 +193,13 @@ public:
 	 */
 	int isLaneConnectToNextLink(DriverUpdateParams& p,set<const Lane*>& targetLanes);
 
+	/**
+	 *  @brief if has stop point forward, do mandatory lane change to road side left/right base on config
+	 *   0 = nothing serious
+	 * 	 -1 = requires a mandatory lane change
+	 */
+	int isLaneConnectToStopPoint(DriverUpdateParams& p,set<const Lane*>& targetLanes);
+
 	// TODO: add incident code
 	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p);
 	double lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance);

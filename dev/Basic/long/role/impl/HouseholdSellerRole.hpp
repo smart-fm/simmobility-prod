@@ -100,6 +100,10 @@ namespace sim_mob
             UnitsInfoMap sellingUnitsMap;
             volatile bool selling;
             CounterMap dailyBids;
+
+            int timeOnMarket;
+            int timeOffMarket;
+            int marketLifespan;
         };
     }
 }

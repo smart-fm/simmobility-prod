@@ -25,6 +25,7 @@
 #include "workers/Worker.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "message/MessageBus.hpp"
+#include "entities/amodController/AMODController.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -66,9 +67,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 	res->fromLocationType = TripChainItem::getLocationType("node");
 	res->toLocation = WayPoint(ag.destNode);
 	res->toLocationType = res->fromLocationType;
-
-	//SubTrip generatedSubTrip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(),
-	//candidate.origin, "node", candidate.dest, "node", "Car", true, "");
+	res->travelMode = mode;
 
 	//Make and assign a single sub-trip
 	sim_mob::SubTrip subTrip;
@@ -96,7 +95,8 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
 	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), remainingTimeThisTick(0.0),
 	requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
-	age(0), boardingTimeSecs(0), alightingTimeSecs(0), client_id(-1), resetParamsRequired(false), nextLinkRequired(nullptr), currSegStats(nullptr)
+	age(0), boardingTimeSecs(0), alightingTimeSecs(0), client_id(-1), resetParamsRequired(false), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),amodSegmLength(0.0),
+	initSegId(0), initDis(0), initSpeed(0), amodSegmLength2(0), currStatus(IN_CAR_PARK), first_update_tick(true), currLane(NULL)
 {
 }
 
@@ -104,16 +104,13 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegStats(nullptr), canMoveToNextSegment(NONE),
 	  databaseID(tc.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
 	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tc), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
-	  client_id(-1), nextLinkRequired(nullptr), currSegStats(nullptr)
+	  client_id(-1),amodPath( std::vector<WayPoint>() ), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),amodSegmLength(0.0)
 {
 	//TODO: Check with MAX what to do with the below commented lines
 	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
 		convertODsToTrips();
 		insertWaitingActivityToTrip();
 	}
-//	else if(!ConfigManager::GetInstance().FullConfig().RunningMidDemand()){
-//		simplyModifyTripChain(tc);
-//	}
 
 	if(!tripChain.empty()) { initTripChain(); }
 }
@@ -121,7 +118,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();
 	//TODO: Check if short term is okay with this approach of checking agent source
-	if(getAgentSrc() == "XML_TripChain" || getAgentSrc() == "DAS_TripChain")
+	if(getAgentSrc() == "XML_TripChain" || getAgentSrc() == "DAS_TripChain" || getAgentSrc() == "AMOD_TripChain" || agentSrc == "BusController")
 	{
 		setStartTime((*currTripChainItem)->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 	}
@@ -131,6 +128,7 @@ void sim_mob::Person::initTripChain(){
 	}
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM)
 	{
+		vector<SubTrip>::iterator subTripEnd = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW()).end();
 		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW()).begin();
 		// if the first tripchain item is passenger, create waitBusActivityRole
 		if(currSubTrip->mode == "BusTravel") {
@@ -144,9 +142,6 @@ void sim_mob::Person::initTripChain(){
 		}
 	}
 
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_BUSTRIP) {
-		std::cout << "Person " << this << "  is going to ride a bus\n";
-	}
 	setNextPathPlanned(false);
 	first_update_tick = true;
 	tripchainInitialized = true;
@@ -162,7 +157,17 @@ sim_mob::Person::~Person() {
 	//serializeTripTravelTimeMetrics();
 }
 
+void sim_mob::Person::setTripChain(const vector<TripChainItem *>& tripChain)
+{
+	//delete the previous tripchain
+	clear_delete_vector(this->tripChain);
 
+	this->tripChain = tripChain;
+
+	//Initialize the trip chain - as the references to current trip chain and the
+	//current sub trip need to be updated
+	initTripChain();
+}
 
 void sim_mob::Person::load(const map<string, string>& configProps)
 {
@@ -234,9 +239,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		int destNodeid;
 		try {
 			originNodeId = boost::lexical_cast<int>( oriNodeIt->second );
-			std::cout<<"originNodeId: "<<originNodeId<<std::endl;
 			destNodeid = boost::lexical_cast<int>( destNodeIt->second );
-			std::cout<<"destNodeid: "<<destNodeid<<std::endl;
 		} catch( boost::bad_lexical_cast const& ) {
 			Warn() << "Error: input string was not valid" << std::endl;
 		}
@@ -272,7 +275,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 			}
 
 			//Otherwise, make a trip chain for this Person.
-			this->originNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true) );
+			this->originNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true));
 			this->destNode = WayPoint( ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destIt->second), true) );
 
 			Trip* singleTrip = MakePseudoTrip(*this, mode);
@@ -289,11 +292,6 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 			this->initTripChain();
 		}
 	}
-	//One more check: If they have a special string, save it now
-	/*it = configProps.find("special");
-	if (it != configProps.end()) {
-		this->specialStr = it->second;
-	}*/
 }
 
 
@@ -304,6 +302,20 @@ void Person::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>
 		currRole->rerouteWithBlacklist(blacklisted);
 	}
 }
+void sim_mob::Person::handleAMODEvent(sim_mob::event::EventId id,
+            sim_mob::event::Context ctxId,
+            sim_mob::event::EventPublisher* sender,
+            const AMOD::AMODEventArgs& args)
+{
+	if(id == event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH)
+	{
+		//role gets chance to handle event
+		if(currRole){
+			currRole->onParentEvent(id, ctxId, sender, args);
+		}
+	}
+}
+
 
 
 bool sim_mob::Person::frame_init(timeslice now)
@@ -343,6 +355,14 @@ bool sim_mob::Person::frame_init(timeslice now)
 	}
 	return true;
 }
+void sim_mob::Person::setPath(std::vector<WayPoint>& path)
+{
+	if (path.size() == 0) {
+		Print() << "Warning! Path size is zero!" << std::endl;
+	}
+
+	amodPath = path;
+}
 
 void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
 {
@@ -352,14 +372,31 @@ void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ct
 	}
 }
 
-
  void sim_mob::Person::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
  {
+	 if(type == 5000009)
+	 {
+		 Print() << "Received " << MSG_CAST(TestMessage, message).random << " by person " << getId() << std::endl;
+		 return;
+	 }
 	 if(currRole){
 		 currRole->HandleParentMessage(type, message);
 	 }
  }
 
+ void sim_mob::Person::handleAMODArrival() {
+		sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
+
+		//ask the AMODController to handle the arrival
+		a->handleVHArrive(this);
+ }
+
+ void sim_mob::Person::handleAMODPickup() {
+		sim_mob::AMOD::AMODController *a = sim_mob::AMOD::AMODController::instance();
+
+		//ask the AMODController to handle the arrival
+		a->handleVHPickup(this);
+ }
 
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {
@@ -533,7 +570,7 @@ std::vector<sim_mob::SubTrip>::iterator sim_mob::Person::resetCurrSubTrip()
 void sim_mob::Person::insertWaitingActivityToTrip() {
 	std::vector<TripChainItem*>::iterator tripChainItem;
 	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end();
-			tripChainItem++) {
+			++tripChainItem) {
 		if ((*tripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) {
 			std::vector<SubTrip>::iterator itSubTrip[2];
 			std::vector<sim_mob::SubTrip>& subTrips =
@@ -645,7 +682,7 @@ void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			else {
 				Print()<<"bus trips include some bus stops which can not be found"<<std::endl;
 			}
-			it++;
+			++it;
 		}
 	}
 }
@@ -655,7 +692,7 @@ void sim_mob::Person::convertODsToTrips() {
 	std::vector<TripChainItem*>::iterator tripChainItem;
 	bool brokenBusTravel = false;
 	std::vector<TripChainItem*>::iterator brokenBusTravelItem;
-	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end(); tripChainItem++)
+	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end(); ++tripChainItem)
 	{
 		if(brokenBusTravel) { break; }
 		if ((*tripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
@@ -674,7 +711,7 @@ void sim_mob::Person::convertODsToTrips() {
 							<<" destination Id:"<<itSubTrip->toLocation.node_->getID() <<std::endl;
 
 					std::vector<const OD_Trip*> result;
-					for(std::vector<sim_mob::OD_Trip>::iterator i=OD_Trips.begin(); i!=OD_Trips.end(); i++)
+					for(std::vector<sim_mob::OD_Trip>::iterator i=OD_Trips.begin(); i!=OD_Trips.end(); ++i)
 					{
 						std::string originId=boost::lexical_cast<std::string>(itSubTrip->fromLocation.node_->getID());
 						std::string destId=boost::lexical_cast<std::string>(itSubTrip->toLocation.node_->getID());
@@ -691,10 +728,10 @@ void sim_mob::Person::convertODsToTrips() {
 						brokenBusTravelItem = tripChainItem;
 						break;
 					}
-					for(std::vector<const OD_Trip*>::iterator i = result.begin(); i!=result.end(); i++) { delete *i; }
+					for(std::vector<const OD_Trip*>::iterator i = result.begin(); i!=result.end(); ++i) { delete *i; }
 					result.clear();
 				}
-				itSubTrip++;
+				++itSubTrip;
 			}
 
 			if (!newSubTrips.empty())
@@ -714,47 +751,12 @@ void sim_mob::Person::convertODsToTrips() {
 			tripChainItem = tripChain.erase(tripChainItem);
 		}
 	}
-
-	int index=0;
-//	std::cout << "********person : " << this->GetId() <<" start time:"<<this->startTime<< std::endl;
-	for (tripChainItem = tripChain.begin(); tripChainItem != tripChain.end();
-			tripChainItem++) {
-
-		//std::cout << "trips : " << index << (*tripChainItem)->getMode() <<" start time:"<<(*tripChainItem)->startTime.toString()<< std::endl;
-
-		sim_mob::Trip* trip = dynamic_cast<sim_mob::Trip*>(*tripChainItem);
-		if(trip){
-			std::vector<sim_mob::SubTrip>& subTrips = trip->getSubTripsRW();
-
-			std::vector<SubTrip>::iterator subChainItem = subTrips.begin();
-
-			for(subChainItem = subTrips.begin();subChainItem!=subTrips.end(); subChainItem++)
-			{
-				int from=0, to = 0;
-				if(subChainItem->fromLocation.type_ == WayPoint::NODE){
-					from = subChainItem->fromLocation.node_->getID();
-				}
-				else if(subChainItem->fromLocation.type_ == WayPoint::BUS_STOP){
-					from = boost::lexical_cast<int>(subChainItem->fromLocation.busStop_->getBusstopno_());
-				}
-
-				if(subChainItem->toLocation.type_ == WayPoint::NODE){
-					to = subChainItem->toLocation.node_->getID();
-				}
-				else if(subChainItem->toLocation.type_ == WayPoint::BUS_STOP){
-					to = boost::lexical_cast<int>(subChainItem->toLocation.busStop_->getBusstopno_());
-				}
-
-//				std::cout << "first item : " << from << " second item:" <<to <<" mode:" <<subChainItem->mode << std::endl;
-			}
-		}
-	}
 }
 
 void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripChain)
 {
 	std::vector<TripChainItem*>::iterator tripChainItem;
-	for(tripChainItem = tripChain.begin(); tripChainItem != tripChain.end(); tripChainItem++ )
+	for(tripChainItem = tripChain.begin(); tripChainItem != tripChain.end(); ++tripChainItem)
 	{
 		if((*tripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP )
 		{
@@ -762,7 +764,7 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 			std::vector<sim_mob::SubTrip>& subtrip = (dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
 
 			subChainItem2 = subChainItem1 = subtrip.begin();
-			subChainItem2++;
+			++subChainItem2;
 			vector<SubTrip> newsubchain;
 			newsubchain.push_back(*subChainItem1);
 			while(subChainItem1!=subtrip.end() && subChainItem2!=subtrip.end() )
@@ -803,13 +805,6 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 					subTrip.isPrimaryMode = true;
 					subTrip.ptLineId = "";
 
-					//subtrip.insert(subChainItem2, subTrip);
-
-					//if(destination.type_==WayPoint::BUS_STOP )
-					//	subChainItem2++;
-					//else if(source.type_==WayPoint::BUS_STOP)
-					//	subChainItem2->fromLocation = source;
-
 					if(destination.type_==WayPoint::BUS_STOP )
 						subChainItem1->toLocation = destination;
 					else if(source.type_==WayPoint::BUS_STOP)
@@ -820,25 +815,10 @@ void sim_mob::Person::simplyModifyTripChain(std::vector<TripChainItem*>& tripCha
 
 				newsubchain.push_back(*subChainItem2);
 				subChainItem1 = subChainItem2;
-				subChainItem2++;
+				++subChainItem2;
 
 				if(subChainItem1==subtrip.end() || subChainItem2==subtrip.end())
 					break;
-			}
-
-			if(newsubchain.size()>2)
-			{
-				std::vector<SubTrip>::iterator subChainItem;
-				/*subtrip.clear();
-				for(subChainItem = newsubchain.begin();subChainItem!=newsubchain.end(); subChainItem++)
-				{
-					subtrip.push_back(*subChainItem);
-				}*/
-
-				for(subChainItem = subtrip.begin();subChainItem!=subtrip.end(); subChainItem++)
-				{
-					//std::cout << "first item  " << subChainItem->fromLocation.getID() << " " <<subChainItem->toLocation.getID() <<" mode " <<subChainItem->mode << std::endl;
-				}
 			}
 		}
 	}
@@ -854,6 +834,7 @@ bool sim_mob::Person::insertTripBeforeCurrentTrip(Trip* newone)
 	}
 	return ret;
 }
+
 bool sim_mob::Person::insertSubTripBeforeCurrentSubTrip(SubTrip* newone)
 {
 	bool ret = false;
@@ -876,8 +857,8 @@ bool sim_mob::Person::insertATripChainItem(TripChainItem* before, TripChainItem*
 		if(before2)
 		{
 			std::vector<sim_mob::SubTrip>& subtrip = (dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW();
-			std::vector<SubTrip>::iterator itfinder2 = currSubTrip++;
-			itfinder2 = std::find(currSubTrip, subtrip.end(), *before2);
+			++currSubTrip;
+			std::vector<SubTrip>::iterator itfinder2 = std::find(currSubTrip, subtrip.end(), *before2);
 			if( itfinder2 != subtrip.end())
 			{
 				sim_mob::SubTrip* newone2 = dynamic_cast<sim_mob::SubTrip*> (newone);
@@ -913,7 +894,7 @@ bool sim_mob::Person::deleteATripChainItem(TripChainItem* del)
 	else if((dynamic_cast<SubTrip*>(del)))
 	{
 		std::vector<TripChainItem*>::iterator itfinder = currTripChainItem;
-		for(itfinder++; itfinder!=tripChain.end(); itfinder++)
+		for(++itfinder; itfinder!=tripChain.end(); ++itfinder)
 		{
 			std::vector<sim_mob::SubTrip>& subtrip = (dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW();
 			SubTrip temp = *(dynamic_cast<SubTrip*>(del));
@@ -995,6 +976,7 @@ bool sim_mob::Person::advanceCurrentSubTrip()
 	if (currSubTrip == trip->getSubTrips().end()) /*just a routine check*/ {
 		return false;
 	}
+
 	//get metric
 	/*TravelMetric currRoleMetrics;
 	if(currRole != nullptr)
@@ -1003,7 +985,7 @@ bool sim_mob::Person::advanceCurrentSubTrip()
 		//serializeSubTripChainItemTravelTimeMetrics(*currRoleMetrics,currTripChainItem,currSubTrip);
 	}*/
 
-	currSubTrip++;
+	++currSubTrip;
 
 	if (currSubTrip == trip->getSubTrips().end()) {
 		return false;
@@ -1013,22 +995,23 @@ bool sim_mob::Person::advanceCurrentSubTrip()
 
 bool sim_mob::Person::advanceCurrentTripChainItem()
 {
-	bool res = false;
 	if(currTripChainItem == tripChain.end()) /*just a harmless basic check*/ {
 		return false;
 	}
+
 	// current role (activity or sub-trip level role)[for now: only subtrip] is about to change, time to collect its movement metrics(even activity performer)
-	if(currRole != nullptr)
+	/*if(currRole != nullptr)
 	{
 		TravelMetric currRoleMetrics = currRole->Movement()->finalizeTravelTimeMetric();
 		currRole->Movement()->resetTravelTimeMetric();//sorry for manual reset, just a precaution for now
 		serializeSubTripChainItemTravelTimeMetrics(currRoleMetrics,currTripChainItem,currSubTrip);
-	}
+	}*/
+
 	//first check if you just need to advance the subtrip
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM )
 	{
 		//don't advance to next tripchainItem immediately, check the subtrip first
-		res = advanceCurrentSubTrip();
+		bool res = advanceCurrentSubTrip();
 		//	subtrip advanced successfully, no need to advance currTripChainItem
 		if(res) {
 			return res;
@@ -1044,7 +1027,7 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 	//serializeTripChainItem(currTripChainItem);
 
 	//	do the increment
-	currTripChainItem++;
+	++currTripChainItem;
 
 
 	if (currTripChainItem == tripChain.end())  {
@@ -1068,7 +1051,7 @@ void sim_mob::Person::buildSubscriptionList(vector<BufferedBase*>& subsList) {
 	//Now, add our own properties.
 	if (this->getRole()) {
 		vector<BufferedBase*> roleParams = this->getRole()->getSubscriptionParams();
-		for (vector<BufferedBase*>::iterator it = roleParams.begin(); it != roleParams.end(); it++) {
+		for (vector<BufferedBase*>::iterator it = roleParams.begin(); it != roleParams.end(); ++it) {
 			subsList.push_back(*it);
 		}
 	}
@@ -1136,7 +1119,7 @@ void sim_mob::Person::setPersonCharacteristics()
 	boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varAlightingTime(gen, AlightingTime);
 	alightingTimeSecs = varAlightingTime();
 
-	for(std::map<int, PersonCharacteristics>::const_iterator iter=personCharacteristics.begin();iter != personCharacteristics.end();iter++) {
+	for(std::map<int, PersonCharacteristics>::const_iterator iter=personCharacteristics.begin();iter != personCharacteristics.end(); ++iter) {
 		if(age >= iter->second.lowerAge && age < iter->second.upperAge) {
 			boost::uniform_int<> BoardingTime(iter->second.lowerSecs, iter->second.upperSecs);
 			boost::variate_generator < boost::mt19937, boost::uniform_int<int> > varBoardingTime(gen, BoardingTime);
@@ -1162,7 +1145,7 @@ void sim_mob::Person::aggregateSubTripMetrics()
 	std::vector<TravelMetric>::iterator item(subTripTravelMetrics.begin());
 	newTripMetric.startTime = item->startTime;//first item
 	newTripMetric.origin = item->origin;
-	for(;item !=subTripTravelMetrics.end(); item++)
+	for(;item !=subTripTravelMetrics.end(); ++item)
 	{
 		newTripMetric.travelTime += item->travelTime;
 	}
@@ -1209,7 +1192,7 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
   * \param currSubTrip current SubTrip for which subtripMetrics is collected
   */
  void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(
-		 const TravelMetric subtripMetrics,
+		 const TravelMetric& subtripMetrics,
 		 std::vector<TripChainItem*>::iterator currTripChainItem,
 		 std::vector<SubTrip>::iterator currSubTrip
 		 ) const
@@ -1382,9 +1365,6 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
 //		(activity->fromLocationType == TripChainItem::LT_NODE ? "Node" : "Stop") << "," <<
 //		activity->toLocation.node_->getID()<< ","   <<
 //		(activity->toLocationType == TripChainItem::LT_NODE ? "Node" : "Stop") << "," ;
-
-
-
  }
 
 
@@ -1406,7 +1386,7 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
 void sim_mob::Person::printTripChainItemTypes() const{
 	std::stringstream ss;
 	ss << "Person: " << id << "|TripChain: ";
-	for(std::vector<TripChainItem*>::const_iterator tci=tripChain.begin(); tci!=tripChain.end(); tci++)
+	for(std::vector<TripChainItem*>::const_iterator tci=tripChain.begin(); tci!=tripChain.end(); ++tci)
 	{
 		const TripChainItem* tcItem = *tci;
 		switch(tcItem->itemType)
@@ -1416,7 +1396,7 @@ void sim_mob::Person::printTripChainItemTypes() const{
 			ss << "|" << tcItem->getMode() << "-trip->";
 			const Trip* trip = dynamic_cast<const Trip*>(tcItem);
 			const std::vector<sim_mob::SubTrip>& subTrips = trip->getSubTrips();
-			for(std::vector<SubTrip>::const_iterator sti=subTrips.begin(); sti!=subTrips.end(); sti++)
+			for(std::vector<SubTrip>::const_iterator sti=subTrips.begin(); sti!=subTrips.end(); ++sti)
 			{
 				ss << "~" << (*sti).getMode() << "-subtrip";
 			}

@@ -25,7 +25,7 @@
 #include "geospatial/Point2D.hpp"
 #include "entities/signal/Signal.hpp"
 #include "geospatial/Crossing.hpp"
-#include "geospatial/GeneralPathMover.hpp"
+#include "entities/roles/driver/GeneralPathMover.hpp"
 #include "entities/UpdateParams.hpp"
 #include "geospatial/RoadSegment.hpp"
 using std::vector;

@@ -102,6 +102,8 @@ namespace sim_mob {
              */
             void processExistingProjects();
 
+            std::tm getDate(int day);
+
         private:
             DeveloperModel* model;
             Parcel *parcel;

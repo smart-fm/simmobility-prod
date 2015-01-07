@@ -178,6 +178,19 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             PrintOut("Day " << currTick << std::endl );
             PrintOut("The housing market has " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize() << " units and \t" << (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " bidders on the market" << std::endl );
 
+            //start all models.
+		    for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)
+		    {
+		 	   (*it)->update(currTick);
+		    }
+
+            if( currTick == 1 )
+            {
+				PrintOut("Lifestyle1:" << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle1HHs() <<
+						 "Lifestyle2:" << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle2HHs() <<
+						 "Lifestyle3:" << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle3HHs() << std::endl );
+            }
+
             wgMgr.waitAllGroups();
 
             DeveloperModel::ParcelList parcels;

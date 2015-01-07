@@ -88,6 +88,13 @@ namespace sim_mob
             void decrementBidders();
             int	 getNumberOfBidders();
 
+            void incrementLifestyle1HHs();
+            void incrementLifestyle2HHs();
+            void incrementLifestyle3HHs();
+            int getLifestyle1HHs() const;
+            int getLifestyle2HHs() const;
+            int getLifestyle3HHs() const;
+
 
         protected:
             /**
@@ -95,6 +102,7 @@ namespace sim_mob
              */
             void startImpl();
             void stopImpl();
+            void update(int day);
 
         private:
             // Data
@@ -106,6 +114,7 @@ namespace sim_mob
             StatsMap stats;
             IndividualList individuals;
             IndividualMap individualsById;
+            boost::unordered_map<BigSerial, BigSerial> assignedUnits;
 
             AwakeningList awakening;
             AwakeningMap awakeningById;
@@ -114,6 +123,9 @@ namespace sim_mob
 
             int	initialHHAwakeningCounter;
             int numberOfBidders;
+            int numLifestyle1HHs;
+            int numLifestyle2HHs;
+            int numLifestyle3HHs;
 
         };
     }

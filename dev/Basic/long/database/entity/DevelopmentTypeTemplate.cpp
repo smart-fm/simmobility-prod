@@ -17,9 +17,9 @@ using namespace sim_mob::long_term;
 DevelopmentTypeTemplate::DevelopmentTypeTemplate(
         BigSerial developmentTypeId,
         BigSerial templateId,
-        double density)
+        int landuseTypeId)
 : developmentTypeId(developmentTypeId), templateId(templateId),
-density(density) {
+landUseTypeId(landUseTypeId) {
 }
 
 DevelopmentTypeTemplate::~DevelopmentTypeTemplate() {
@@ -33,8 +33,8 @@ BigSerial DevelopmentTypeTemplate::getTemplateId() const {
     return templateId;
 }
 
-double DevelopmentTypeTemplate::getDensity() const {
-    return density;
+int DevelopmentTypeTemplate::getLandUsTypeId() const {
+    return landUseTypeId;
 }
 
 namespace sim_mob {
@@ -44,7 +44,7 @@ namespace sim_mob {
             return strm << "{"
                     << "\"developmentTypeId\":\"" << data.developmentTypeId << "\","
                     << "\"templateId\":\"" << data.templateId << "\","
-                    << "\"density\":\"" << data.density << "\""
+                    << "\"landUseTypeId\":\"" << data.landUseTypeId << "\""
                     << "}";
         }
     }

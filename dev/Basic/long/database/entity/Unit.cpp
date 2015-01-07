@@ -126,6 +126,57 @@ int Unit::getPhysicalStatus() const
 	return physical_status;
 }
 
+void Unit::setBuildingId(BigSerial buildingId) {
+	this->building_id = buildingId;
+}
+
+void Unit::setFloorArea(double floorArea) {
+	this->floor_area = floorArea;
+}
+
+void Unit::setId(BigSerial id) {
+	this->id = id;
+}
+
+void Unit::setPhysicalFromDate(const std::tm& physicalFromDate) {
+	this->physical_from_date = physicalFromDate;
+}
+
+void Unit::setPhysicalStatus(int physicalStatus) {
+	this->physical_status = physicalStatus;
+}
+
+void Unit::setRent(double rent) {
+	this->rent = rent;
+}
+
+void Unit::setSaleFromDate(const std::tm& saleFromDate) {
+	this->sale_from_date = saleFromDate;
+}
+
+void Unit::setSaleStatus(int saleStatus) {
+	this->sale_status = saleStatus;
+}
+
+void Unit::setSlaAddressId(BigSerial slaAddressId) {
+	this->sla_address_id = slaAddressId;
+}
+
+void Unit::setStorey(int storey) {
+	this->storey = storey;
+}
+
+void Unit::setStoreyRange(int storeyRange) {
+	this->storey_range = storeyRange;
+}
+
+void Unit::setUnitStatus(const std::string& unitStatus) {
+	this->unit_status = unitStatus;
+}
+
+void Unit::setUnitType(int unitType) {
+	this->unit_type = unitType;
+}
 
 int Unit::getbiddingMarketEntryDay() const
 {

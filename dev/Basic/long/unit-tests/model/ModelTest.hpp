@@ -20,14 +20,11 @@ class ModelTest : public CppUnit::TestFixture{
 
 public:
 	void setUp();
-	void testGetSlaParcelIdByFmParcelId();
 
 private:
 	DeveloperModel *developerModel;
-	DeveloperModel::ParcelMatchList parcelMatches;
 
 	CPPUNIT_TEST_SUITE(ModelTest);
-		CPPUNIT_TEST(testGetSlaParcelIdByFmParcelId);
 	CPPUNIT_TEST_SUITE_END();
 
 };

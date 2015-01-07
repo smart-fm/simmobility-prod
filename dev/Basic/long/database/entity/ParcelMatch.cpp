@@ -9,24 +9,15 @@
 
 using namespace sim_mob::long_term;
 
-ParcelMatch::ParcelMatch(BigSerial fmParcelId, std::string slaParcelId,int matchCode,std::tm matchDate)
-						:fmParcelId(fmParcelId),slaParcelId(slaParcelId),matchCode(matchCode),matchDate(matchDate)
-{}
+ParcelMatch::ParcelMatch(BigSerial fmParcelId, std::string slaParcelId,int matchCode,std::tm matchDate):
+		fmParcelId(fmParcelId),slaParcelId(slaParcelId),matchCode(matchCode),matchDate(matchDate){
+}
 
 ParcelMatch::~ParcelMatch() {}
 
 BigSerial ParcelMatch::getFmParcelId() const
 {
     return fmParcelId;
-}
-
-std::string ParcelMatch::getSlaParcelId(BigSerial fmparcelId) const
-{
-	if(fmparcelId == this->fmParcelId )
-	{
-		return slaParcelId;
-	}
-    return 0;
 }
 
 std::string ParcelMatch::getSlaParcelId() const

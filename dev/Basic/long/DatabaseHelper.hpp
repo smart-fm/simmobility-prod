@@ -49,6 +49,8 @@ namespace sim_mob {
         const std::string DB_TABLE_SLA_PARCEL = APPLY_SCHEMA(MAIN_SCHEMA, "sla_parcel");
         const std::string DB_TABLE_INDIVIDUAL = APPLY_SCHEMA(MAIN_SCHEMA, "individual");
         const std::string DB_TABLE_RESIDENTIAL_STATUS = APPLY_SCHEMA( MAIN_SCHEMA, "residential_status");
+        const std::string DB_TABLE_UNIT_TYPE = APPLY_SCHEMA( MAIN_SCHEMA, "unit_type");
+        const std::string DB_TABLE_PARCEL_AMENITIES = APPLY_SCHEMA( MAIN_SCHEMA, "parcel_amenities");
         const std::string DB_TABLE_AWAKENING = APPLY_SCHEMA(MAIN_SCHEMA, "awakening");
 
         /**
@@ -111,6 +113,14 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_RESIDENTIAL_STATUS_BY_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getResidentialStatusById(:id)");
         const std::string DB_FUNC_GET_RESIDENTIAL_STATUS 	   = APPLY_SCHEMA( MAIN_SCHEMA, "getResidentialStatus()");
         const std::string DB_FUNC_GET_AWAKENING_BY_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getAwakeningById(:id)");
+
+        const std::string DB_FUNC_GET_UNIT_TYPES 	   = APPLY_SCHEMA( MAIN_SCHEMA, "getUnitTypes()");
+        const std::string DB_FUNC_GET_EMPTY_PARCELS = APPLY_SCHEMA( MAIN_SCHEMA, "getEmptyParcels()");
+        const std::string DB_FUNC_GET_TOTAL_BUILDING_SPACE = APPLY_SCHEMA( MAIN_SCHEMA, "getTotalBuildingSpacePerParcel()");
+        //const std::string DB_FUNC_GET_BUILDINGS_OF_PARCEL = APPLY_SCHEMA( MAIN_SCHEMA, "getBuildingsOfParcel(_parcelId BIGINT)");
+        const std::string DB_FUNC_GET_PARCEL_AMENITIES 	   = APPLY_SCHEMA( MAIN_SCHEMA, "getParcelAmenities()");
+
+
 
         /**
          * Fields
@@ -182,11 +192,13 @@ namespace sim_mob {
         const std::string DB_FIELD_MIN_Y = "min_y";
         const std::string DB_FIELD_MAX_Y = "max_y";
         const std::string DB_FIELD_GPR = "gpr";
-        const std::string DB_FIELD_DENSITY = "density";
+        const std::string DB_FIELD_LAND_USE_ID = "land_use_type_id";
         const std::string DB_FIELD_DEVELOPMENT_TYPE_ID = "development_type_id";
         const std::string DB_FIELD_TEMPLATE_ID = "template_id";
         const std::string DB_FIELD_UNIT_TYPE_ID = "unit_type_id";
         const std::string DB_FIELD_PROPORTION = "proportion";
+        const std::string DB_FIELD_TYPICAL_AREA = "typical_area";
+        const std::string DB_FIELD_CONSTRUCTION_COST_PER_UNIT = "construction_cost_per_unit";
 
 
         /**
@@ -266,6 +278,10 @@ namespace sim_mob {
         const std::string DB_GETALL_PROJECTS = "SELECT * FROM "+ DB_FUNC_GET_PROJECTS + LIMIT;
         const std::string DB_GETALL_PARCEL_MATCHES = "SELECT * FROM "+ DB_FUNC_GET_PARCEL_MATCHES + LIMIT;
         const std::string DB_GETALL_SLA_PARCELS = "SELECT * FROM "+ DB_FUNC_GET_SLA_PARCELS+ LIMIT;
+        const std::string DB_GETALL_UNIT_TYPES = "SELECT * FROM "+ DB_FUNC_GET_UNIT_TYPES+ LIMIT;
+        const std::string DB_GETALL_EMPTY_PARCELS = "SELECT * FROM "+ DB_FUNC_GET_EMPTY_PARCELS + LIMIT;
+        const std::string DB_GETALL_TOTAL_BUILDING_SPACE = "SELECT * FROM "+ DB_FUNC_GET_TOTAL_BUILDING_SPACE + LIMIT;
+        const std::string DB_GETALL_PARCEL_AMENITIES = "SELECT * FROM "+ DB_FUNC_GET_PARCEL_AMENITIES + LIMIT;
         const std::string DB_GETALL_AWAKENING = "SELECT * FROM " + DB_FUNC_GET_AWAKENING + LIMIT;
 
         /**

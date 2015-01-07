@@ -12,139 +12,129 @@ using namespace sim_mob::long_term;
 Project::Project(BigSerial projectId,BigSerial parcelIid,BigSerial developerId,
 	   BigSerial templateId,std::string projectName,std::tm constructionDate,
        std::tm completionDate,double constructionCost,double demolitionCost,double totalCost,
-       double lotSize,std::string grossRatio,double grossArea):
+       double fmLotSize,std::string grossRatio,double grossArea,int currTick):
 	   projectId(projectId),parcelId(parcelIid),developerId(developerId),templateId(templateId),
 	   projectName(projectName),constructionDate(constructionDate),completionDate(completionDate),
 	   constructionCost(constructionCost),demolitionCost(demolitionCost),totalCost(totalCost),
-	   lotSize(lotSize),grossRatio(grossRatio),grossArea(grossArea){
+	   fmLotSize(fmLotSize),grossRatio(grossRatio),grossArea(grossArea),currTick(currTick){
 
 }
 
 Project::~Project() {}
 
-double sim_mob::long_term::Project::getLotSize()
-{
-	return lotSize;
+
+double Project::getFmLotSize(){
+	return fmLotSize;
 }
 
-void sim_mob::long_term::Project::setLotSize(double LotSize)
-{
-	this->lotSize = LotSize;
+void Project::setFmLotSize(double fmLotSize) {
+	this->fmLotSize = fmLotSize;
 }
 
-std::tm sim_mob::long_term::Project::getCompletionDate()
-{
+std::tm Project::getCompletionDate() {
 	return completionDate;
 }
 
-void sim_mob::long_term::Project::setCompletionDate(std::tm completionDate)
-{
+void Project::setCompletionDate(
+		std::tm completionDate) {
 	this->completionDate = completionDate;
 }
 
-double sim_mob::long_term::Project::getConstructionCost()
-{
+double Project::getConstructionCost(){
 	return constructionCost;
 }
 
-void sim_mob::long_term::Project::setConstructionCost(double constructionCost)
-{
+void Project::setConstructionCost(double constructionCost) {
 	this->constructionCost = constructionCost;
 }
 
-std::tm sim_mob::long_term::Project::getConstructionDate()
-{
+std::tm Project::getConstructionDate(){
 	return constructionDate;
 }
 
-void sim_mob::long_term::Project::setConstructionDate(std::tm constructionDate)
-{
+void Project::setConstructionDate(std::tm constructionDate) {
 	this->constructionDate = constructionDate;
 }
 
-double sim_mob::long_term::Project::getDemolitionCost()
-{
+double Project::getDemolitionCost(){
 	return demolitionCost;
 }
 
-void sim_mob::long_term::Project::setDemolitionCost(double demolitionCost)
-{
+void Project::setDemolitionCost(
+		double demolitionCost) {
 	this->demolitionCost = demolitionCost;
 }
 
-BigSerial sim_mob::long_term::Project::getDeveloperId()
-{
+BigSerial Project::getDeveloperId(){
 	return this->developerId;
 }
 
-void sim_mob::long_term::Project::setDeveloperId(BigSerial developerId)
-{
+void Project::setDeveloperId(BigSerial developerId) {
 	this->developerId = developerId;
 }
 
-double sim_mob::long_term::Project::getGrossArea()
-{
+double Project::getGrossArea(){
 	return grossArea;
 }
 
-void sim_mob::long_term::Project::setGrossArea(double grossArea)
-{
+void Project::setGrossArea(double grossArea) {
 	this->grossArea = grossArea;
 }
 
-std::string sim_mob::long_term::Project::getGrossRatio()
-{
+std::string Project::getGrossRatio(){
 	return grossRatio;
 }
 
-void sim_mob::long_term::Project::setGrossRatio(double grossRatio)
-{
+void Project::setGrossRatio(std::string grossRatio) {
 	this->grossRatio = grossRatio;
 }
 
-BigSerial sim_mob::long_term::Project::getParcelId()
-{
+BigSerial Project::getParcelId(){
 	return parcelId;
 }
 
-void sim_mob::long_term::Project::setParcelId(BigSerial parcelId)
-{
+void Project::setParcelId(BigSerial parcelId) {
 	this->parcelId = parcelId;
 }
 
-BigSerial sim_mob::long_term::Project::getProjectId()
-{
+BigSerial Project::getProjectId(){
 	return projectId;
 }
 
-void sim_mob::long_term::Project::setProjectId(BigSerial projectId)
-{
+void Project::setProjectId(BigSerial projectId) {
 	this->projectId = projectId;
 }
 
-std::string sim_mob::long_term::Project::getProjectName()
-{
+std::string Project::getProjectName(){
 	return projectName;
 }
 
-BigSerial sim_mob::long_term::Project::getTemplateId()
-{
+void Project::setProjectName(std::string projectName){
+	this->projectName = projectName;
+}
+
+BigSerial Project::getTemplateId(){
 	return templateId;
 }
 
-void sim_mob::long_term::Project::setTemplateId(BigSerial templateId)
-{
+void Project::setTemplateId(BigSerial templateId) {
 	this->templateId = templateId;
 }
 
-double sim_mob::long_term::Project::getTotalCost()
-{
+double Project::getTotalCost() {
 	return totalCost;
 }
 
-void sim_mob::long_term::Project::setTotalCost(double totalCost)
-{
+void Project::setTotalCost(double totalCost) {
 	this->totalCost = totalCost;
+}
+
+int Project::getCurrTick() {
+	return currTick;
+}
+
+void Project::setCurrTick(int currentTick) {
+	this->currTick = currentTick;
 }
 
 namespace sim_mob
@@ -163,7 +153,7 @@ namespace sim_mob
 						<< "\"construction_cost\":\"" << data.constructionCost << "\","
 						<< "\"demolition_cost\":\"" << data.demolitionCost << "\","
 						<< "\"total_cost\":\"" << data.totalCost << "\","
-						<< "\"LotSize\":\"" << data.lotSize << "\","
+						<< "\"fmLotSize\":\"" << data.fmLotSize << "\","
 						<< "\"gross_ratio\":\"" << data.grossRatio << "\","
 						<< "\"gross_area\":\"" << data.grossArea << "\","
 						<< "}";

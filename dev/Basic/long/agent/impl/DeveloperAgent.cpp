@@ -86,13 +86,19 @@ inline void writeProjectDataToFile(Project *project) {
 
 }
 
+inline void formatDate(int &month, int &year)
+{
+		month = month - 12;
+		year = year + 1;
+}
+
 //assign default numeric values to character varying gpr values.
 inline float getGpr(const Parcel *parcel)
 {
 		return atof(parcel->getGpr().c_str());
 }
 
-inline void calculateProjectProfit(PotentialProject& project,const DeveloperModel& model)
+inline void calculateProjectProfit(PotentialProject& project,const DeveloperModel* model)
 {
 	const std::vector<PotentialUnit>& units = project.getUnits();
 	std::vector<PotentialUnit>::const_iterator unitsItr;
@@ -100,12 +106,12 @@ inline void calculateProjectProfit(PotentialProject& project,const DeveloperMode
 	double totalRevenue = 0;
 	double totalConstructionCost = 0;
 
-	for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++) {const ParcelAmenities *amenities = model.getAmenitiesById(project.getParcel()->getId());
+	for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++) {const ParcelAmenities *amenities = model->getAmenitiesById(project.getParcel()->getId());
 		const DeveloperLuaModel& luaModel = LuaProvider::getDeveloperModel();
 		double reveuePerUnitType = luaModel.calulateUnitRevenue((*unitsItr),*amenities);
 		double totalRevenuePerUnitType = reveuePerUnitType* (*unitsItr).getNumUnits();
 		totalRevenue = totalRevenue + totalRevenuePerUnitType;
-		double constructionCostPerUnitType = model.getUnitTypeById((*unitsItr).getUnitTypeId())->getConstructionCostPerUnit()* (*unitsItr).getNumUnits();
+		double constructionCostPerUnitType = model->getUnitTypeById((*unitsItr).getUnitTypeId())->getConstructionCostPerUnit()* (*unitsItr).getNumUnits();
 		totalConstructionCost = totalConstructionCost+ constructionCostPerUnitType;
 
 	}
@@ -115,7 +121,7 @@ inline void calculateProjectProfit(PotentialProject& project,const DeveloperMode
 	project.setConstructionCost(totalConstructionCost);
 
 }
-inline void createPotentialUnits(PotentialProject& project,const DeveloperModel& model)
+inline void createPotentialUnits(PotentialProject& project,const DeveloperModel* model)
     {
 	DeveloperModel::TemplateUnitTypeList::const_iterator itr;
 	double weightedAverage = 0;
@@ -123,7 +129,7 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel&
 	        	{
 	        		if((*itr)->getProportion()>0)
 	        		{
-	        			weightedAverage = weightedAverage + (model.getUnitTypeById((*itr)->getUnitTypeId())->getTypicalArea()*((*itr)->getProportion()/100));
+	        			weightedAverage = weightedAverage + (model->getUnitTypeById((*itr)->getUnitTypeId())->getTypicalArea()*((*itr)->getProportion()/100));
 	        		}
 	            }
 
@@ -137,8 +143,8 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel&
 	        for (itr = project.templateUnitTypes.begin(); itr != project.templateUnitTypes.end(); itr++)
 	            {
 	        		int numUnitsPerType = totalUnits * ((*itr)->getProportion()/100);
-	        		grossArea = grossArea + numUnitsPerType *  model.getUnitTypeById((*itr)->getUnitTypeId())->getTypicalArea();
-	        		project.addUnit(PotentialUnit((*itr)->getUnitTypeId(),numUnitsPerType,model.getUnitTypeById((*itr)->getUnitTypeId())->getTypicalArea(),0));
+	        		grossArea = grossArea + numUnitsPerType *  model->getUnitTypeById((*itr)->getUnitTypeId())->getTypicalArea();
+	        		project.addUnit(PotentialUnit((*itr)->getUnitTypeId(),numUnitsPerType,model->getUnitTypeById((*itr)->getUnitTypeId())->getTypicalArea(),0));
 	            }
 	        project.setGrossArea(grossArea);
 
@@ -169,15 +175,15 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel&
      * @param model Developer model.
      * @param outProjects (out parameter) list to receive all projects;
      */
-inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel& model, PotentialProject& outProject)
+inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* model, PotentialProject& outProject)
     {
-        const DeveloperModel::DevelopmentTypeTemplateList& devTemplates = model.getDevelopmentTypeTemplates();
-        const DeveloperModel::TemplateUnitTypeList& unitTemplates = model.getTemplateUnitType();
+        const DeveloperModel::DevelopmentTypeTemplateList& devTemplates = model->getDevelopmentTypeTemplates();
+        const DeveloperModel::TemplateUnitTypeList& unitTemplates = model->getTemplateUnitType();
         /**
          *  Iterates over all development type templates and
          *  get all potential projects which have a density <= GPR.
          */
-            const Parcel* parcel = model.getParcelById(parcelId);
+            const Parcel* parcel = model->getParcelById(parcelId);
             if (parcel)
             {
             	std::vector<PotentialProject> projects;
@@ -244,7 +250,7 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     	if(this->parcel->getStatus()== 0)
     	{
     		PotentialProject project;
-    		createPotentialProjects(this->id, *model,project);
+    		createPotentialProjects(this->id,model,project);
     		if(project.getUnits().size()>0)
     		{
     			BigSerial projectId = model->getProjectIdForDeveloperAgent();
@@ -268,14 +274,14 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
 
 void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial projectId)
 {
+	std::tm currentDate = getDate(model->getCurrentTick());
 	Parcel &parcel = *this->parcel;
-	parcel.setStatus(1);
+	parcel.setStatus(1); //set the status to 1 from 0 to indicate that the parcel is already associated with an ongoing project.
 	parcel.setDevelopmentAllowed("development not currently allowed because of endogenous constraints");
-	std::tm date = std::tm();
-	date.tm_year = 2009;
-	date.tm_mon = 01;
-	date.tm_mday = 01;
-	parcel.setNextAvailableDate(date);
+	std::tm nextAvailableDate = currentDate;
+	//next available date of the parcel for the consideration of a new development is assumed to be one year after.
+	nextAvailableDate.tm_year = nextAvailableDate.tm_year+1;
+	parcel.setNextAvailableDate(nextAvailableDate);
 
 	//check whether the parcel is empty; if not send a message to HM model with building id and future demolition date about the units that are going to be demolished.
 	if (!(model->isEmptyParcel(parcel.getId()))) {
@@ -284,12 +290,16 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 
 		for (itr = buildings.begin(); itr != buildings.end(); itr++) {
 			BigSerial unitId = INVALID_ID;
-			//set the future demolition date of the building to one year ahead.
-			std::tm futureDemolitionDate = std::tm();
-			futureDemolitionDate.tm_year = 2009;
-			futureDemolitionDate.tm_mon = 01;
-			futureDemolitionDate.tm_mday = 01;
-
+			std::tm futureDemolitionDate = currentDate;
+			//set the future demolition date of the building to 3 months ahead.
+			int futureDemolitionMonth = futureDemolitionDate.tm_mon + 3;
+			int futureDemolitionYear = futureDemolitionDate.tm_year;
+			if(futureDemolitionMonth > 12)
+			{
+				formatDate(futureDemolitionMonth,futureDemolitionYear);
+			}
+			futureDemolitionDate.tm_mon = futureDemolitionMonth;
+			futureDemolitionDate.tm_year = futureDemolitionYear;
 			if ((*itr)->getFmParcelId() == parcel.getId()) {
 				BigSerial buildingId = (*itr)->getFmBuildingId();
 				//This is currently commented out until a new agent class is written to receive the message.
@@ -302,24 +312,19 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	}
 
 	//create a new building
-	Building newBuilding;
 	BigSerial buildingId = model->getBuildingIdForDeveloperAgent();
-	newBuilding.setFmBuildingId(buildingId);
-	newBuilding.setFmParcelId(parcel.getId());
-	newBuilding.setFmProjectId(projectId);
-	std::tm fromDate = std::tm();
-	fromDate.tm_year = 2008;
-	fromDate.tm_mon = 01;
-	fromDate.tm_mday = 01;
-	newBuilding.setFromDate(fromDate);
-	std::tm toDate = std::tm();
-	toDate.tm_year = 2009;
-	toDate.tm_mon = 01;
-	toDate.tm_mday = 01;
-	newBuilding.setToDate(toDate);
-	newBuilding.setBuildingStatus("Uncompleted without prerequisites");
-	newBuilding.setGrossSqMRes(project.getGrosArea());
-	newBuildings.push_back(newBuilding);
+	//building construction start date; assumed to be the first day of the project created.
+	//building construction finish date ; assumed to be 6 months after
+	std::tm toDate = currentDate;
+	int compltetionMonth = toDate.tm_mon +6 ;
+	int completionYear = toDate.tm_year ;
+	if (compltetionMonth>12)
+	{
+		formatDate(compltetionMonth,completionYear);
+	}
+	toDate.tm_mon = compltetionMonth;
+	toDate.tm_year = completionYear;
+	newBuildings.push_back(Building(model->getBuildingIdForDeveloperAgent(),projectId,parcel.getId(),0,0,currentDate,toDate,"Uncompleted without prerequisites",project.getGrosArea(),0,0,0));
 
 	//create new units and add all the units to the newly created building.
 	std::vector<PotentialUnit> units = project.getUnits();
@@ -339,14 +344,9 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 void DeveloperAgent::createProject(PotentialProject &project, BigSerial projectId)
 {
 
-	std::tm constructionDate = std::tm();
-	constructionDate.tm_year = 2008;
-	constructionDate.tm_mon = 01;
-	constructionDate.tm_mday = 01;
-	std::tm completionDate = std::tm();
-	completionDate.tm_year = 2009;
-	completionDate.tm_mon = 01;
-	completionDate.tm_mday = 01;
+	std::tm constructionDate = getDate(model->getCurrentTick());
+	std::tm completionDate = constructionDate;
+	completionDate.tm_year = completionDate.tm_year + 1;
 	double constructionCost = project.getConstructionCost();
 	double demolitionCost = 0; //demolition cost is not calculated by the model yet.
 	double totalCost = constructionCost + demolitionCost;
@@ -378,51 +378,45 @@ void DeveloperAgent::processExistingProjects()
 	int projectDuration = this->fmProject->getCurrTick();
 	std::vector<Building>::iterator itr;
 	std::vector<Unit>::iterator unitsItr;
+	const int secondMonth = 59;
+	const int fourthMonth = 119;
+	const int sixthMonth = 179;
 	switch(projectDuration)
 	{
-	//59th day of the simulation
-	case (59):
+	case (secondMonth):
 
 		for(itr = this->newBuildings.begin(); itr != this->newBuildings.end(); itr++)
 		{
 			(*itr).setBuildingStatus("Uncompleted With Prerequisites");
-			PrintOut("building status"<<(*itr).getBuildingStatus());
 		}
 
 		for(unitsItr = this->newUnits.begin(); unitsItr != this->newUnits.end(); unitsItr++)
 		{
 			(*unitsItr).setUnitStatus("Under construction");
-			PrintOut("unit status"<<(*unitsItr).getUnitStatus());
 		}
 		break;
-	//119th day of the simulation
-	case (119):
+	case (fourthMonth):
 
 		for(itr = this->newBuildings.begin(); itr != this->newBuildings.end(); itr++)
 		{
 			(*itr).setBuildingStatus("Not Launched");
-			PrintOut("building status"<<(*itr).getBuildingStatus());
 		}
 
 		for(unitsItr = this->newUnits.begin(); unitsItr != this->newUnits.end(); unitsItr++)
 		{
 			(*unitsItr).setUnitStatus("Construction completed");
-			PrintOut("unit status"<<(*unitsItr).getUnitStatus());
 		}
 		break;
-	//179th day of the simulation
-	case(179):
+	case(sixthMonth):
 
 		for(itr = this->newBuildings.begin(); itr != this->newBuildings.end(); itr++)
 		{
 			(*itr).setBuildingStatus("Launched but Unsold");
-			PrintOut("building status"<<(*itr).getBuildingStatus());
 		}
 		for(unitsItr = this->newUnits.begin(); unitsItr != this->newUnits.end(); unitsItr++)
 		{
 			(*unitsItr).setSaleStatus(LAUNCHED_BUT_UNSOLD);
 			(*unitsItr).setPhysicalStatus(READY_FOR_OCCUPANCY_AND_VACANT);
-			PrintOut("unit sale status"<<(*unitsItr).getSaleStatus());
 			//This is currently commented out until a new agent class is written to receive the message.
 			//MessageBus::PublishEvent(LTEID_HM_UNIT_ADDED,MessageBus::EventArgsPtr(new HM_ActionEventArgs((*unitsItr))));
 		}
@@ -430,6 +424,17 @@ void DeveloperAgent::processExistingProjects()
 
 	}
 
+}
+
+std::tm DeveloperAgent::getDate(int day)
+{
+	int month = (day/30); //divide by 30 to get the month
+	int dayMonth = (day%30); // get the remainder of divide by 30 to roughly calculate the day of the month
+	std::tm currentDate = std::tm();
+	currentDate.tm_mday = dayMonth;
+	currentDate.tm_mon = month;
+	currentDate.tm_year = 2008;
+	return currentDate;
 }
 
 void DeveloperAgent::onFrameOutput(timeslice now) {

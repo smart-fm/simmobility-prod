@@ -409,8 +409,8 @@ void sim_mob::Conflux::updateAgentContext(PersonProps& beforeUpdate, PersonProps
 	{
 		int rand = Utils::generateInt(0,100);
 		messaging::MessageBus::PostMessage(person, 5000009, messaging::MessageBus::MessagePtr(new TestMessage(rand)), false);
-		Print() << "Posted " << rand << " to person " << person->getId()  << " in frame " << currFrame.frame() << std::endl;
-		Print() << "ReRegistering agent from " << person->GetContext() << " to " << afterUpdate.conflux->GetContext() << " in frame " << currFrame.frame() << std::endl;
+		Print() << "~~Posted " << rand << " to person " << person->getId()  << " in frame " << currFrame.frame() << std::endl;
+		Print() << "~~ReRegistering agent from " << person->GetContext() << " to " << afterUpdate.conflux->GetContext() << " in frame " << currFrame.frame() << std::endl;
 		MessageBus::ReRegisterHandler(person, afterUpdate.conflux->GetContext());
 	}
 }

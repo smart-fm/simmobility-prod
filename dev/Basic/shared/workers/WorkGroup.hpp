@@ -194,7 +194,7 @@ private:
 	//Barriers for each locking stage
 	sim_mob::FlexiBarrier* frame_tick_barr;
 	sim_mob::FlexiBarrier* buff_flip_barr;
-	sim_mob::FlexiBarrier* aura_mgr_barr;
+	sim_mob::FlexiBarrier* msg_bus_barr;
 
 	//An optional barrier phase unique to each WorkGroup. If the timeStep is >1, then
 	// one additional locking barrier is required to prevent Workers from rushing ahead

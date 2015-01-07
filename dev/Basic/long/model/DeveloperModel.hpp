@@ -155,17 +155,6 @@ namespace sim_mob {
              * @return current tick
              */
             int getCurrentTick();
-            /*
-             * add new projects by developer agent
-             * @param project newly created by developer agent
-             */
-            void addNewProject(Project *project);
-            /*
-             * get the newly created projects
-             * @return
-             */
-            ProjectList getNewProjects();
-            int getCount();
 
         protected:
             /**
@@ -174,8 +163,6 @@ namespace sim_mob {
             void startImpl();
             void stopImpl();
 
-        //public:
-            //HM_Model *housingModel;
         private:
             DeveloperList developers;
             TemplateList templates;
@@ -207,6 +194,7 @@ namespace sim_mob {
             BigSerial unitId;
             AmenitiesList amenities;
             AmenitiesMap amenitiesById;
+            int currentTick;
         };
     }
 }

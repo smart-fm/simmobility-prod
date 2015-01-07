@@ -179,6 +179,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
             wgMgr.waitAllGroups();
 
+            developerModel->setCurrentTick(currTick);
             DeveloperModel::ParcelList parcels;
             DeveloperModel::DeveloperList developerAgents;
             bool isParcelRemain = developerModel->getIsParcelRemain();

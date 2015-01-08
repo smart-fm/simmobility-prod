@@ -13,29 +13,29 @@
 
 using namespace sim_mob::long_term;
 
-Building::Building( BigSerial fm_building_id, BigSerial fm_project_id, BigSerial fm_parcel_id, int storeys_above_ground, int storeys_below_ground,
-					std::tm from_date, std::tm to_date, std::string building_status, float	gross_sq_m_res, float gross_sq_m_office,
-					float gross_sq_m_retail, float gross_sq_m_other ) :
-					fm_building_id(fm_building_id), fm_project_id(fm_project_id), fm_parcel_id(fm_parcel_id), storeys_above_ground(storeys_above_ground),
-					storeys_below_ground(storeys_below_ground), from_date(from_date), to_date(to_date), building_status(building_status),gross_sq_m_res(gross_sq_m_res),
-					gross_sq_m_office(gross_sq_m_office), gross_sq_m_retail(gross_sq_m_retail), gross_sq_m_other(gross_sq_m_other){}
+Building::Building( BigSerial fmBuildingId, BigSerial fmProjectId, BigSerial fmParcelId, int storeysAboveGround, int storeysBelowGround,
+					std::tm fromDate, std::tm toDate, std::string buildingStatus, float	grossSqMRes, float grossSqMOffice,
+					float grossSqMRetail, float grossSqMOther) :
+					fmBuildingId(fmBuildingId), fmProjectId(fmProjectId), fmParcelId(fmParcelId), storeysAboveGround(storeysAboveGround),
+					storeysBelowGround(storeysBelowGround), fromDate(fromDate), toDate(toDate), buildingStatus(buildingStatus),grossSqMRes(grossSqMRes),
+					grossSqMOffice(grossSqMOffice), grossSqMRetail(grossSqMRetail), grossSqMOther(grossSqMOther){}
 
 Building::~Building() {}
 
 Building& Building::operator=(const Building& source)
 {
-	this->fm_building_id 		= source.fm_building_id;
-	this->fm_project_id 		= source.fm_project_id;
-	this->fm_parcel_id 			= source.fm_parcel_id;
-	this->storeys_above_ground	= source.storeys_above_ground;
-	this->storeys_below_ground  = source.storeys_below_ground;
-	this->from_date				= source.from_date;
-	this->to_date				= source.to_date;
-	this->building_status		= source.building_status;
-	this->gross_sq_m_res		= source.gross_sq_m_res;
-	this->gross_sq_m_office		= source.gross_sq_m_office;
-	this->gross_sq_m_retail		= source.gross_sq_m_retail;
-	this->gross_sq_m_other		= source.gross_sq_m_other;
+	this->fmBuildingId 			= source.fmBuildingId;
+	this->fmProjectId			= source.fmProjectId;
+	this->fmParcelId 			= source.fmParcelId;
+	this->storeysAboveGround	= source.storeysAboveGround;
+	this->storeysBelowGround  	= source.storeysBelowGround;
+	this->fromDate				= source.fromDate;
+	this->toDate				= source.toDate;
+	this->buildingStatus		= source.buildingStatus;
+	this->grossSqMRes			= source.grossSqMRes;
+	this->grossSqMOffice		= source.grossSqMOffice;
+	this->grossSqMRetail		= source.grossSqMRetail;
+	this->grossSqMOther			= source.grossSqMOther;
 
     return *this;
 }
@@ -43,65 +43,112 @@ Building& Building::operator=(const Building& source)
 
 BigSerial Building::getFmBuildingId() const
 {
-	return fm_building_id;
+	return fmBuildingId;
 }
 
 BigSerial Building::getFmProjectId() const
 {
-	return fm_project_id;
+	return fmProjectId;
 }
 
 BigSerial Building::getFmParcelId() const
 {
-	return fm_parcel_id;
+	return fmParcelId;
 }
 
 int	Building::getStoreysAboveGround() const
 {
-	return storeys_above_ground;
+	return storeysAboveGround;
 }
 
 int Building::getStoreysBelowGround() const
 {
-	return storeys_below_ground;
+	return storeysBelowGround;
 }
 
 std::tm Building::getFromDate() const
 {
-	return from_date;
+	return fromDate;
 }
 
 std::tm Building::getToDate() const
 {
-	return to_date;
+	return toDate;
 }
 
 std::string Building::getBuildingStatus() const
 {
-	return building_status;
+	return buildingStatus;
 }
 
 
 float Building::getGrossSqmRes() const
 {
-	return gross_sq_m_res;
+	return grossSqMRes;
 }
 
 float Building::getGrossSqmOffice() const
 {
-	return gross_sq_m_office;
+	return grossSqMOffice;
 }
 
 float Building::getGrossSqmRetail() const
 {
-	return gross_sq_m_retail;
+	return grossSqMRetail;
 }
 
 float Building::getGrossSqmOther() const
 {
-	return gross_sq_m_other;
+	return grossSqMOther;
 }
 
+void Building::setBuildingStatus(const std::string& buildingStatus) {
+	this->buildingStatus = buildingStatus;
+}
+
+void Building::setFmBuildingId(BigSerial fmBuildingId) {
+	this->fmBuildingId = fmBuildingId;
+}
+
+void Building::setFmParcelId(BigSerial fmParcelId) {
+	this->fmParcelId = fmParcelId;
+}
+
+void Building::setFmProjectId(BigSerial fmProjectId) {
+	this->fmProjectId = fmProjectId;
+}
+
+void Building::setFromDate(const std::tm& fromDate) {
+	this->fromDate = fromDate;
+}
+
+void Building::setGrossSqMOffice(float grossSqMOffice) {
+	this->grossSqMOffice = grossSqMOffice;
+}
+
+void Building::setGrossSqMOther(float grossSqMOther) {
+	this->grossSqMOther = grossSqMOther;
+}
+
+void Building::setGrossSqMRes(float grossSqMRes) {
+	this->grossSqMRes = grossSqMRes;
+}
+
+void Building::setGrossSqMRetail(float grossSqMRetail) {
+	this->grossSqMRetail = grossSqMRetail;
+}
+
+void Building::setStoreysAboveGround(int storeysAboveGround) {
+	this->storeysAboveGround = storeysAboveGround;
+}
+
+void Building::setStoreysBelowGround(int storeysBelowGround) {
+	this->storeysBelowGround = storeysBelowGround;
+}
+
+void Building::setToDate(const std::tm& toDate) {
+	this->toDate = toDate;
+}
 
 namespace sim_mob
 {
@@ -110,18 +157,18 @@ namespace sim_mob
         std::ostream& operator<<(std::ostream& strm, const Building& data)
         {
             return strm << "{"
-						<< "\"fm_building_id \":\"" << data.fm_building_id 	<< "\","
-						<< "\"fm_project_id \":\"" 	<< data.fm_project_id 	<< "\","
-						<< "\"fm_parcel_id \":\"" 	<< data.fm_parcel_id 	<< "\","
-						<< "\"storeys_above_ground \":\"" << data.storeys_above_ground << "\","
-						<< "\"storeys_below_ground \":\"" << data.storeys_below_ground << "\","
-						<< "\"from_date \":\"" 	<< data.from_date.tm_year  	<< data.from_date.tm_wday 	<< data.from_date.tm_mon << "\","
-						<< "\"to_date \":\"" 	<< data.to_date.tm_year 	<< data.to_date.tm_mon 		<< data.to_date.tm_wday  << "\","
-						<< "\"building_status \":\"" << data.building_status 	<< "\","
-						<< "\"gross_sq_m_res \":\"" 	<< data.gross_sq_m_res 	<< "\","
-						<< "\"gross_sq_m_office \":\"" 	<< data.gross_sq_m_office 	<< "\","
-						<< "\"gross_sq_m_retail \":\"" 	<< data.gross_sq_m_retail 	<< "\","
-						<< "\"gross_sq_m_other \":\"" 	<< data.gross_sq_m_other 	<< "\""
+						<< "\"fm_building_id \":\"" << data.fmBuildingId 	<< "\","
+						<< "\"fm_project_id \":\"" 	<< data.fmProjectId 	<< "\","
+						<< "\"fm_parcel_id \":\"" 	<< data.fmParcelId 	<< "\","
+						<< "\"storeys_above_ground \":\"" << data.storeysAboveGround << "\","
+						<< "\"storeys_below_ground \":\"" << data.storeysBelowGround << "\","
+						<< "\"from_date \":\"" 	<< data.fromDate.tm_year  	<< data.fromDate.tm_wday 	<< data.fromDate.tm_mon << "\","
+						<< "\"to_date \":\"" 	<< data.toDate.tm_year 	<< data.toDate.tm_mon 		<< data.toDate.tm_wday  << "\","
+						<< "\"building_status \":\"" << data.buildingStatus 	<< "\","
+						<< "\"gross_sq_m_res \":\"" 	<< data.grossSqMRes 	<< "\","
+						<< "\"gross_sq_m_office \":\"" 	<< data.grossSqMOffice 	<< "\","
+						<< "\"gross_sq_m_retail \":\"" 	<< data.grossSqMRetail 	<< "\","
+						<< "\"gross_sq_m_other \":\"" 	<< data.grossSqMOther 	<< "\""
 						<< "}";
         }
     }

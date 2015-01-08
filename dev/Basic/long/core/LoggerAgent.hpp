@@ -34,7 +34,10 @@ namespace sim_mob {
             enum LogFile{
                 BIDS,
                 EXPECTATIONS,
-                STDOUT
+                STDOUT,
+                PARCELS,
+                UNITS,
+                PROJECTS
             };
             LoggerAgent();
             virtual ~LoggerAgent();

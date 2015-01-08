@@ -139,6 +139,8 @@ void HouseholdAgent::awakenHousehold()
 		bidder->setActive(true);
 		model->incrementBidders();
 		model->incrementAwakeningCounter();
+
+		model->incrementLifestyle1HHs();
 	}
 	else
 	if( lifestyle == 2 && r2 < awaken_class2)
@@ -147,6 +149,8 @@ void HouseholdAgent::awakenHousehold()
 		bidder->setActive(true);
 		model->incrementBidders();
 		model->incrementAwakeningCounter();
+
+		model->incrementLifestyle2HHs();
 	}
 	else
 	if( lifestyle == 3 && r2 < awaken_class3)
@@ -155,6 +159,8 @@ void HouseholdAgent::awakenHousehold()
 		bidder->setActive(true);
 		model->incrementBidders();
 		model->incrementAwakeningCounter();
+
+		model->incrementLifestyle3HHs();
 	}
 }
 
@@ -193,14 +199,20 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
         case LTEID_HM_UNIT_ADDED:
         {
             const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
-            PrintOut("Unit added " << hmArgs.getUnitId() << endl);
+            //PrintOut("Unit added " << hmArgs.getUnitId() << endl);
             break;
         }
         case LTEID_HM_UNIT_REMOVED:
         {
             const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
-            PrintOut("Unit removed " << hmArgs.getUnitId() << endl);
+            //PrintOut("Unit removed " << hmArgs.getUnitId() << endl);
             break;
+        }
+        case LTEID_HM_BUILDING_REMOVED:
+        {
+             const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
+            // PrintOut("Building removed " << hmArgs.getBuildingId() << endl);
+             break;
         }
         case LTEID_EXT_LOST_JOB:
         case LTEID_EXT_NEW_CHILD:
@@ -272,8 +284,9 @@ void HouseholdAgent::onWorkerEnter()
         MessageBus::SubscribeEvent(LTEID_EXT_LOST_JOB, this, this);
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this, this);
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
-        //MessageBus::SubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
-        //MessageBus::SubscribeEvent(LTEID_HM_UNIT_REMOVED, market, this);
+        MessageBus::SubscribeEvent(LTEID_HM_UNIT_ADDED, this);
+        MessageBus::SubscribeEvent(LTEID_HM_UNIT_REMOVED, this);
+        MessageBus::SubscribeEvent(LTEID_HM_BUILDING_REMOVED, this);
     }
 }
 
@@ -286,8 +299,9 @@ void HouseholdAgent::onWorkerExit()
         MessageBus::UnSubscribeEvent(LTEID_EXT_LOST_JOB, this, this);
         MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this, this);
         MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
-        //MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
-        //MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_REMOVED, market, this);
+        MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
+        MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_REMOVED, this);
+        MessageBus::UnSubscribeEvent(LTEID_HM_BUILDING_REMOVED, this);
     }
 }
 

@@ -30,9 +30,9 @@ void ProjectDao::fromRow(Row& result, Project& outObj)
 	 outObj.constructionCost = result.get<double>( "construction_cost", .0 );
 	 outObj.demolitionCost = result.get<double>( "demolition_cost", .0 );
 	 outObj.totalCost = result.get<double>( "total_cost", .0);
-	 outObj.lotSize = result.get<double>( "area", .0 );
+	 outObj.fmLotSize = result.get<double>( "fm_lot_size", .0 );
 	 outObj.grossRatio = result.get<std::string>( "gross_ratio", EMPTY_STR );
-	 outObj.grossArea = result.get<double>( "gross_area", .0 );
+	 outObj.grossArea = result.get<double>("gross_area",.0);
 }
 
 void ProjectDao::toRow(Project& data, Parameters& outParams, bool update) {

@@ -21,7 +21,7 @@ namespace sim_mob {
         public:
             DevelopmentTypeTemplate(BigSerial developmentTypeId = INVALID_ID,
                     BigSerial templateId = INVALID_ID,
-                    double density = 0);
+                    int landUseTypeId = 0);
 
             virtual ~DevelopmentTypeTemplate();
 
@@ -30,7 +30,7 @@ namespace sim_mob {
              */
             BigSerial getDevelopmentTypeId() const;
             BigSerial getTemplateId() const;
-            double getDensity() const;
+            int getLandUsTypeId() const;
 
             /**
              * Operator to print the DevelopmentTypeTemplate data.  
@@ -42,7 +42,7 @@ namespace sim_mob {
         private:
             BigSerial developmentTypeId;
             BigSerial templateId;
-            double density;
+            int landUseTypeId;
         };
     }
 }

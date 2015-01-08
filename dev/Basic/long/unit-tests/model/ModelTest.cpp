@@ -37,33 +37,11 @@ void ModelTest::setUp()
 	    const unsigned int timeIntervalDevModel = 30;
 		WorkGroup* devWorkers = wgMgr.newWorkGroup(2, days, tickStep);
 		developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel );
-
-		DeveloperModel::ParcelMatchMap parcelMatchesMap;
-
-		DeveloperModel::ProjectList existingProjects;
-
-
 		DB_Config config(LT_DB_CONFIG_FILE);
 		config.load();
 		DB_Connection conn(sim_mob::db::POSTGRES, config);
 		conn.connect();
-		if (conn.isConnected())
-		{
-			loadData<ParcelMatchDao>(conn,parcelMatches,parcelMatchesMap, &ParcelMatch::getFmParcelId);
-			developerModel->setParcelMatchMap(parcelMatchesMap);
-		}
 
 }
-
-void ModelTest::testGetSlaParcelIdByFmParcelId()
-{
-	for (size_t i = 0; i < parcelMatches.size(); i++)
-	{
-		BigSerial fmParcelId = parcelMatches.at(i)->getFmParcelId();
-		std::string slaParcelId = parcelMatches.at(i)->getSlaParcelId();
-		CPPUNIT_ASSERT_EQUAL(slaParcelId, developerModel->getSlaParcelIdByFmParcelId(fmParcelId));
-	}
-}
-
 
 

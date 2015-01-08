@@ -26,7 +26,7 @@ void DevelopmentTypeTemplateDao::fromRow(Row& result, DevelopmentTypeTemplate& o
 {
     outObj.developmentTypeId = result.get<BigSerial>(DB_FIELD_DEVELOPMENT_TYPE_ID, INVALID_ID);
     outObj.templateId = result.get<BigSerial>(DB_FIELD_TEMPLATE_ID, INVALID_ID);
-    outObj.density = result.get<double>(DB_FIELD_DENSITY, 0);
+    outObj.landUseTypeId = result.get<int>(DB_FIELD_LAND_USE_ID, 0);
 }
 
 void DevelopmentTypeTemplateDao::toRow(DevelopmentTypeTemplate& data, Parameters& outParams, bool update) {}

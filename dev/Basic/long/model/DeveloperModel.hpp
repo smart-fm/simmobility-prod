@@ -3,6 +3,7 @@
  * 
  * File:   HM_Model.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ *       : Gishara Premarathne <gishara@smart.mit.edu>
  *
  * Created on March 11, 2014, 3:08 PM
  */
@@ -18,6 +19,12 @@
 #include "database/entity/Project.hpp"
 #include "database/entity/ParcelMatch.hpp"
 #include "database/entity/SlaParcel.hpp"
+#include "database/entity/UnitType.hpp"
+#include "database/entity/Building.hpp"
+#include "database/entity/TotalBuildingSpace.hpp"
+#include "database/entity/ParcelAmenities.hpp"
+#include "agent/impl/DeveloperAgent.hpp"
+#include "model/HM_Model.hpp"
 
 namespace sim_mob {
     namespace long_term {
@@ -25,21 +32,22 @@ namespace sim_mob {
         class DeveloperModel : public Model {
         public:
 
-            typedef std::vector<Developer*> DeveloperList;
+            typedef std::vector<DeveloperAgent*> DeveloperList;
             typedef std::vector<Template*> TemplateList;
             typedef std::vector<Parcel*> ParcelList;
             typedef std::vector<LandUseZone*> LandUseZonesList;
             typedef std::vector<DevelopmentTypeTemplate*> DevelopmentTypeTemplateList;
             typedef std::vector<TemplateUnitType*> TemplateUnitTypeList;
+            typedef std::vector<UnitType*> UnitTypeList;
+            typedef std::vector<Building*> BuildingList;
+            typedef std::vector<TotalBuildingSpace*> BuildingSpaceList;
             typedef std::vector<Project*> ProjectList;
-            typedef std::vector<ParcelMatch*> ParcelMatchList;
-            typedef std::vector<SlaParcel*> SlaParcelList;
+            typedef std::vector<ParcelAmenities*> AmenitiesList;
             //maps
             typedef boost::unordered_map<BigSerial,Parcel*> ParcelMap;
-            typedef boost::unordered_map<BigSerial,LandUseZone*> LandUseZoneMap;
-            typedef boost::unordered_map<BigSerial,ParcelMatch*> ParcelMatchMap;
-            typedef boost::unordered_map<BigSerial,Project*> ProjectMap;
-            typedef boost::unordered_map<std::string,SlaParcel*> SlaParcelMap;
+            typedef boost::unordered_map<BigSerial,UnitType*> UnitTypeMap;
+            typedef boost::unordered_map<BigSerial,TotalBuildingSpace*> TotalBuildingSpaceMap;
+            typedef boost::unordered_map<BigSerial,ParcelAmenities*> AmenitiesMap;
 
         public:
             DeveloperModel(WorkGroup& workGroup);
@@ -50,6 +58,8 @@ namespace sim_mob {
              * create developer agents for each parcel in the given ParcelList
              */
             void createDeveloperAgents(ParcelList initParcelList);
+
+            void wakeUpDeveloperAgents(DeveloperList devAgentList);
 
             /*
              * process the initial parcel list e to create sub parcel lists as follow:
@@ -67,33 +77,84 @@ namespace sim_mob {
             const LandUseZone* getZoneById(BigSerial id) const;
             const DevelopmentTypeTemplateList& getDevelopmentTypeTemplates() const;
             const TemplateUnitTypeList& getTemplateUnitType() const;
-
-            /*
-             * returns the sla parcel id of a parcel, given the fm parcel id
-             */
-            std::string getSlaParcelIdByFmParcelId(BigSerial fmParcelId) const;
-
-            /*
-             * check whether a given parcel is already associated with a project
-             */
-            bool isParcelWithExistingProject(const Parcel *parcel) const;
-
-            void setParcelMatchMap(ParcelMatchMap parcelMatchMap);
+            const UnitType* getUnitTypeById(BigSerial id) const;
+            const ParcelAmenities* getAmenitiesById(BigSerial fmParcelId) const;
+            float getBuildingSpaceByParcelId(BigSerial id) const;
             ParcelList getDevelopmentCandidateParcels(bool isInitial);
 
+            DeveloperList getDeveloperAgents(bool isInitial);
             /*
              * set the iterators of development candidate parcels, at each time tick (day)
              */
             void setIterators(ParcelList::iterator &first,ParcelList::iterator &last,bool isInitial);
 
+            void setDevAgentListIterator(DeveloperList::iterator &first,DeveloperList::iterator &last,bool isInitial);
             /*
              * set the boolean parameter to indicate whether there are remaining parcels in the pool
              */
             void setIsParcelsRemain(bool parcelStatus);
 
+            bool getIsParcelRemain();
+
+            void setIsDevAgentsRemain(bool parcelStatus);
+
+            /*
+             * @param days number of days the simulation runs
+             */
             void setDays(int days);
 
+            /*
+             * reload the zones from the db if a zoning rule change event occurs
+             */
             void reLoadZonesOnRuleChangeEvent();
+
+            //calculate the actual gpr of a given parcel
+            //float getActualGpr(Parcel &parcel);
+
+            //get the allowed gpr of zoning.
+            float getAllowedGpr(Parcel &parcel);
+
+            /**
+            * check whether a given parcel is empty or not
+            * @param id of the given parcel
+            */
+            const bool isEmptyParcel(BigSerial id) const;
+            /*
+             * increment the id of the last project in db
+             * @return next projectId
+             */
+            BigSerial getProjectIdForDeveloperAgent();
+            /*
+             * increment the id of the last building in db
+             * @return next buildingId.
+             */
+            BigSerial getBuildingIdForDeveloperAgent();
+            /*
+             * increment the id of the last building in db
+             * @return next unitId.
+             */
+            BigSerial getUnitIdForDeveloperAgent();
+
+            void setUnitId(BigSerial unitId);
+            /*
+             * @return the loaded building list
+             */
+            BuildingList getBuildings();
+            /*
+             * add the building id's of the demolished buildings to preserve and add to new buildings later
+             * @param building Id of the demolished building
+             */
+            void addNewBuildingId(BigSerial buildingId);
+            /*
+             * set the current tick of the simulation from main
+             * @param current tick
+             */
+            void setCurrentTick(int currTick);
+            /*
+             * get the current tick of the simulation
+             * @return current tick
+             */
+            int getCurrentTick();
 
         protected:
             /**
@@ -109,23 +170,31 @@ namespace sim_mob {
             ParcelList parcelsWithProjectsList;
             ParcelList developmentCandidateParcelList;
             ParcelList nonEligibleParcelList;
-            ProjectList existingProjects;
-            LandUseZonesList zones;
+            ParcelList emptyParcels;
+            BuildingList buildings;
             DevelopmentTypeTemplateList developmentTypeTemplates;
             TemplateUnitTypeList templateUnitTypes;
+            BuildingSpaceList buildingSpaces;
+            ProjectList projects;
             ParcelMap parcelsById;
-            LandUseZoneMap zonesById;
+            ParcelMap emptyParcelsById;
             unsigned int timeInterval;
-            ParcelMatchList parcelMatches;
-            ParcelMatchMap parcelMatchesMap;
-            ProjectMap existingProjectMap;
-            std::vector<BigSerial> existingProjectParcelIds;
-            SlaParcelList slaParcels;
-            SlaParcelMap slaParcelById;
+            std::vector<BigSerial> existingProjectIds;
+            std::vector<BigSerial> newBuildingIdList;
+            UnitTypeList unitTypes;
+            UnitTypeMap unitTypeById;
+            TotalBuildingSpaceMap buildingSpacesByParcelId;
             int dailyParcelCount;
+            int dailyAgentCount;
             bool isParcelRemain;
+            bool isDevAgentsRemain;
             int numSimulationDays;
-
+            BigSerial projectId;
+            BigSerial buildingId;
+            BigSerial unitId;
+            AmenitiesList amenities;
+            AmenitiesMap amenitiesById;
+            int currentTick;
         };
     }
 }

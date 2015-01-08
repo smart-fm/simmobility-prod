@@ -12,7 +12,7 @@
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-PotentialUnit::PotentialUnit(BigSerial unitTypeId, double floorArea, bool freehold): unitTypeId(unitTypeId), floorArea(floorArea), freehold(freehold) {
+PotentialUnit::PotentialUnit(BigSerial unitTypeId,int numUnits,double floorArea,int freehold): unitTypeId(unitTypeId),numUnits(numUnits),floorArea(floorArea),freehold(freehold) {
 
 }
 
@@ -27,12 +27,28 @@ double PotentialUnit::getFloorArea() const {
     return floorArea;
 }
 
-bool PotentialUnit::isFreehold() const {
+int PotentialUnit::isFreehold() const {
     return freehold;
 }
 
-PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel, const LandUseZone* zone)
-								  : devTemplate(devTemplate), parcel(parcel), zone(zone), cost(0), revenue(0) {}
+int PotentialUnit::getNumUnits() const {
+	return numUnits;
+}
+
+void PotentialUnit::setNumUnits(int units){
+	this->numUnits = units;
+}
+
+int PotentialUnit::getNumUnits(){
+	return numUnits;
+}
+
+void PotentialUnit::setUnitTypeId(int typeId){
+	this->unitTypeId = typeId;
+}
+
+PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel,double constructionCost, double grossArea)
+								  : devTemplate(devTemplate), parcel(parcel), profit(0) , constructionCost(constructionCost),grossArea(grossArea) {}
 
 PotentialProject::~PotentialProject() {
 }
@@ -40,6 +56,19 @@ PotentialProject::~PotentialProject() {
 void PotentialProject::addUnit(const PotentialUnit& unit) {
     units.push_back(unit);
 }
+
+void PotentialProject::addTemplateUnitType(TemplateUnitType* templateUnitType) {
+
+	//PrintOut("BEFORE ADDING"<<templateUnitTypes.size());
+	templateUnitTypes.push_back(templateUnitType);
+	//PrintOut("AFTER ADDING"<<templateUnitTypes.size());
+}
+
+void PotentialProject::addUnits(int unitType,int numUnits) {
+
+	this->unitMap.insert(std::make_pair(unitType, numUnits));
+}
+
 
 const DevelopmentTypeTemplate* PotentialProject::getDevTemplate() const {
     return devTemplate;
@@ -49,30 +78,33 @@ const Parcel* PotentialProject::getParcel() const {
     return parcel;
 }
 
-const LandUseZone* PotentialProject::getZone() const {
-    return zone;
-}
-
 const std::vector<PotentialUnit>& PotentialProject::getUnits() const {
     return units;
 }
 
-double PotentialProject::getCost() const {
-    return cost;
+double PotentialProject::getProfit() const {
+    return profit;
 }
 
-double PotentialProject::getRevenue() const {
-    return revenue;
+void PotentialProject::setProfit(const double profit) {
+    this->profit = profit;
 }
 
-void PotentialProject::setCost(const double cost) {
-    this->cost = cost;
+double PotentialProject::getConstructionCost() const {
+    return constructionCost;
 }
 
-void PotentialProject::setRevenue(const double revenue) {
-    this->revenue = revenue;
+void PotentialProject::setConstructionCost(const double constructionCost) {
+    this->constructionCost = constructionCost;
 }
 
+double PotentialProject::getGrosArea() const {
+    return grossArea;
+}
+
+void PotentialProject::setGrossArea(const double grossArea) {
+    this->grossArea = grossArea;
+}
 
 namespace sim_mob
 {
@@ -103,11 +135,9 @@ namespace sim_mob
             return strm << "{"
                     << "\"templateId\":\"" << data.getDevTemplate()->getTemplateId() << "\","
                     << "\"parcelId\":\"" << data.getParcel()->getId() << "\","
-                    << "\"zoneId\":\"" << data.getZone()->getId() << "\","
-                    << "\"gpr\":\"" << data.getZone()->getGPR() << "\","
-                    << "\"density\":\"" << data.getDevTemplate()->getDensity() << "\","
-                    << "\"cost\":\"" << data.getCost() << "\","
-                    << "\"revenue\":\"" << data.getRevenue() << "\","
+                    << "\"gpr\":\"" << data.getParcel()->getGpr() << "\","
+                    << "\"landUseTypeId\":\"" << data.getDevTemplate()->getLandUsTypeId() << "\","
+                    << "\"profit\":\"" << data.getProfit() << "\","
                     << "\"units\":\"" << unitsStr.str() << "\""
                     << "}";
         }

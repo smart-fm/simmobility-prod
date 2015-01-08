@@ -414,7 +414,7 @@ void MessageBus::UnRegisterHandler(MessageHandler* handler) {
     CheckThreadContext();
     if (handler && handler->context) {
         ThreadContext* context = GetThreadContext();
-        if (context == handler->context) {
+        if (context == handler->context || context->main) {
             handler->context = nullptr;
         } else {
             throw runtime_error("MessageBus - To unregister the handler it is necessary to use the registered thread context.");

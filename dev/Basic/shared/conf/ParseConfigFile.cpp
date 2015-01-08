@@ -450,6 +450,11 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	//The longtermParams tag has an attribute
 	cfg.ltParams.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 
+	if (!cfg.ltParams.enabled)
+	{
+		return;
+	}
+
 	//Now set the rest.
 	cfg.ltParams.days 				 = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "days"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.maxIterations 		 = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "maxIterations"), "value"), static_cast<unsigned int>(0));

@@ -242,21 +242,21 @@ void DeveloperModel::processParcels()
 				else
 				{
 
-				float actualGpr = getBuildingSpaceByParcelId(parcel->getId())/parcel->getLotSize();
+					float actualGpr = getBuildingSpaceByParcelId(parcel->getId())/parcel->getLotSize();
 //TODO:: consider the use_restriction field of parcel as well in the future
-				if ( actualGpr >= 0 && actualGpr < getAllowedGpr(*parcel))
-				{
-					developmentCandidateParcelList.push_back(parcel);
-				}
-				else
-				{
-					nonEligibleParcelList.push_back(parcel);
-				}
+					if ( actualGpr >= 0 && actualGpr < getAllowedGpr(*parcel))
+					{
+						developmentCandidateParcelList.push_back(parcel);
+					}
+					else
+					{
+						nonEligibleParcelList.push_back(parcel);
+					}
 
 				}
 
-				}
 			}
+		}
 
 	}
 }

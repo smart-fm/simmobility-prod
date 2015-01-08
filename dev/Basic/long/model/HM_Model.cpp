@@ -270,19 +270,13 @@ void HM_Model::startImpl()
 
 	if (conn.isConnected())
 	{
-		//Simmobility Test Params
-		const int numHouseholds = config.ltParams.housingModel.numberOfHouseholds;
-		const int numUnits = config.ltParams.housingModel.numberOfUnits;
-
 		//Load households
 		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
-		int displayHouseholds =	numHouseholds == -1 ? households.size() : numHouseholds;
-		PrintOut("Number of households: " << households.size() << ". Households used: " << displayHouseholds << std::endl);
+		PrintOut("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
 
 		//Load units
 		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
-		int displayUnits = numUnits == -1 ? units.size() : numUnits;
-		PrintOut("Number of units: " << units.size() << ". Units Used: " << displayUnits << std::endl);
+		PrintOut("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
 
 		//load individuals
 		loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
@@ -290,18 +284,6 @@ void HM_Model::startImpl()
 
 		loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
 		PrintOut("Awakening probability: " << awakening.size() << std::endl );
-
-
-
-		if (numUnits != -1 && numUnits < units.size())
-		{
-			units.resize(numUnits);
-		}
-
-		if (numHouseholds != -1 && numHouseholds < households.size())
-		{
-			households.resize(numHouseholds);
-		}
 	}
 
 
@@ -363,27 +345,9 @@ void HM_Model::startImpl()
 
 	PrintOut( "There are " << homelessHousehold << " homeless households" << std::endl);
 
-	const int NUM_VACANT_UNITS = config.ltParams.housingModel.numberOfVacantUnits;
-
-	//Delete vacant units set by config file.
-	//n: variable n will increment by 1 for every vacant unit
-	//m: variable m will keep the index of the last retrieved vacant unit to speed up the process.
-	for (int n = 0, m = 0; n < NUM_VACANT_UNITS;)
-	{
-		for (UnitList::const_iterator it = units.begin() + m; it != units.end(); it++)
-		{
-			//this unit is a vacancy
-			if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
-			{
-				units.erase(units.begin() + m);
-				n++;
-				break;
-			}
-
-			m++;
-		}
-	}
-
+	///////////////////////////////////////////
+	//Vacant Unit activation model
+	//////////////////////////////////////////
 	int vacancies = 0;
 	int onMarket  = 0;
 	int offMarket = 0;
@@ -401,7 +365,7 @@ void HM_Model::startImpl()
 			{
 				float awakeningProbability = (float)rand() / RAND_MAX;
 
-				if(awakeningProbability < config.ltParams.housingModel.awakenedProbability )
+				if(awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
 
 					(*it)->setbiddingMarketEntryDay( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
@@ -421,7 +385,7 @@ void HM_Model::startImpl()
 		}
 	}
 
-	PrintOut("Initial Vacancies: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
+	PrintOut("Initial Vacant units: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
 
 
 	addMetadata("Initial Units", units.size());

@@ -148,10 +148,8 @@
         <housingModel enabled="true"> 
             <timeOnMarket value="30"/>
             <timeInterval value="7"/>
-	    <DayOneAwakenedProbability value="0.375"/>
-            <numberOfHouseholds value="-1"/>
-	    <numberOfUnits	value="-1"/>
-	    <numberOfVacantUnits value="-1"/> 
+	    <InitialHouseholdsOnMarket value="10000"/>
+	    <vacantUnitActivationProbability value="0.375"/>
         </housingModel>
     </longTermParams>
   

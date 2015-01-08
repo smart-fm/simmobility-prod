@@ -125,7 +125,6 @@ void sim_mob::WorkGroupManager::startAllWorkGroups()
 void sim_mob::WorkGroupManager::waitAllGroups()
 {
 	//Collect entities.
-	//TODO: We don't need to do this if there is no AuraManager (just pass null).
 	std::set<Agent*> removedEntities;
 
 	//Call each function in turn.
@@ -136,7 +135,7 @@ void sim_mob::WorkGroupManager::waitAllGroups()
 	waitAllGroups_MacroTimeTick();
 
 	//Delete all collected entities:
-	while (removedEntities.begin() != removedEntities.end()) {
+	while (!removedEntities.empty()) {
 		Agent* ag = *removedEntities.begin();
 		removedEntities.erase(removedEntities.begin());
 		delete ag;
@@ -185,7 +184,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_MacroTimeTick()
 	//NOTE: There is no need for a "wait()" here, since macro barriers are used internally.
 }
 
-void sim_mob::WorkGroupManager::waitAllGroups_DistributeMessages(const std::set<Agent*>& removedEntities)
+void sim_mob::WorkGroupManager::waitAllGroups_DistributeMessages(std::set<Agent*>& removedEntities)
 {
 	//Sanity check
 	if (!currState.test(STARTED)) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
@@ -197,7 +196,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_DistributeMessages(const std::set<
 
 	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
 		if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
-			(*it)->processVirtualQueues();
+			(*it)->processVirtualQueues(removedEntities);
 			(*it)->outputSupplyStats();
 		}
 

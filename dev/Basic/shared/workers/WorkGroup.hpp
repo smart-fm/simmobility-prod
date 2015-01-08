@@ -86,7 +86,7 @@ public:
 	void assignAWorker(Entity* ag);
 	void assignConfluxToWorkers();
 	void putAgentOnConflux(Person* ag);
-	void processVirtualQueues();
+	void processVirtualQueues(std::set<Agent*>& removedEntities);
 	void outputSupplyStats();
 	/*
 	 * This function will check for

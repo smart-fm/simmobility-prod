@@ -504,7 +504,6 @@ void MessageBus::ThreadDispatchMessages() {
     //gets main collector;
     ThreadContext* context = GetThreadContext();
     if (context) {
-    	Print() << "~~thread dispatching "  << context->input.size() << " messages" << "|main: " << context->main << std::endl;
         while (!context->input.empty()) {
             const MessageEntry& entry = context->input.top();
             if (entry.destination && entry.message.get()) {

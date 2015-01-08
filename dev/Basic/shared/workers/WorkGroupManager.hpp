@@ -74,7 +74,7 @@ public:
 	//Call the various wait* functions individually.
 	void waitAllGroups_FrameTick();     ///< Wait on barriers: 1. You should use WaitAllGroups unless you really need fine-grained control.
 	void waitAllGroups_FlipBuffers(std::set<Agent*>* removedEntities);   ///< Wait on barriers: 2. You should use WaitAllGroups unless you really need fine-grained control.
-	void waitAllGroups_DistributeMessages(const std::set<Agent*>& removedEntities);   ///< Wait on barriers: 3. You should use WaitAllGroups unless you really need fine-grained control.
+	void waitAllGroups_DistributeMessages(std::set<Agent*>& removedEntities);   ///< Wait on barriers: 3. You should use WaitAllGroups unless you really need fine-grained control.
 	void waitAllGroups_MacroTimeTick(); ///< Wait on barriers: 4. You should use WaitAllGroups unless you really need fine-grained control.
 
 	// providing read only access to public for RegisteredWorkGroups. AuraManager requires this. - Harish

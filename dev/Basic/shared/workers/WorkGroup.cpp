@@ -377,8 +377,6 @@ void sim_mob::WorkGroup::waitFlipBuffers(bool singleThreaded, std::set<sim_mob::
 		stageEntities();
 		//Remove any Agents staged for removal.
 		collectRemovedEntities(removedAgents);
-		//buff_flip_barr->contribute(); //No.
-
 	} else {
 		//Tick on behalf of all your workers.
 		if (buff_flip_barr) {
@@ -540,14 +538,12 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 	}
 }
 
-void sim_mob::WorkGroup::processVirtualQueues() {
+void sim_mob::WorkGroup::processVirtualQueues(std::set<Agent*>& removedEntities) {
 	for(vector<Worker*>::iterator wrkr = workers.begin(); wrkr != workers.end(); wrkr++) {
 		(*wrkr)->processVirtualQueues();
 		(*wrkr)->removePendingEntities();
-
-		//TODO: It is not clear if any "collected" entities should be saved when processing virtual queues.
-		//      At the moment, it seems unnecessary, since Confluxes and the AuraManager are never used together.
-		collectRemovedEntities(nullptr);
+		//we must collect removed entities and procrastinate their deletion till they have handled all messages destined for them
+		collectRemovedEntities(&removedEntities);
 	}
 }
 

@@ -243,8 +243,8 @@ void sim_mob::Worker::removePendingEntities()
 			throw std::runtime_error("Attempting to remove an entity from a WorkGroup that doesn't allow it.");
 		}
 		entityRemovalList->push_back(*it);
-                messaging::MessageBus::UnRegisterHandler((*it));
-                (*it)->onWorkerExit();
+		messaging::MessageBus::UnRegisterHandler((*it));
+		(*it)->onWorkerExit();
 	}
 	toBeRemoved.clear();
 }

@@ -146,7 +146,8 @@
     		<timeInterval value="30"/>
     	</developerModel>
         <housingModel enabled="true"> 
-            <timeOnMarket value="30"/>
+            <timeOnMarket value="90"/>
+            <timeOffMarket value="150"/>
             <timeInterval value="7"/>
 	    <InitialHouseholdsOnMarket value="10000"/>
 	    <vacantUnitActivationProbability value="0.375"/>

@@ -355,7 +355,7 @@ void HM_Model::startImpl()
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
 		(*it)->setbiddingMarketEntryDay( 0 );
-		(*it)->setTimeOnMarket((float)rand() / RAND_MAX *  config.ltParams.housingModel.timeOnMarket);
+		(*it)->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 		(*it)->setTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
 
 		//this unit is a vacancy
@@ -368,14 +368,15 @@ void HM_Model::startImpl()
 				if(awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
 
-					(*it)->setbiddingMarketEntryDay( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
-					(*it)->setTimeOnMarket( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
+					//(*it)->setbiddingMarketEntryDay( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
+					(*it)->setbiddingMarketEntryDay( 0 );
+					//(*it)->setTimeOnMarket( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 
 					onMarket++;
 				}
 				else
 				{
-					(*it)->setbiddingMarketEntryDay( (float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket + config.ltParams.housingModel.timeOffMarket));
+					(*it)->setbiddingMarketEntryDay(0);//( (float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket + config.ltParams.housingModel.timeOffMarket));
 					offMarket++;
 				}
 

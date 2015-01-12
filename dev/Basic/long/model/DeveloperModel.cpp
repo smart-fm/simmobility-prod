@@ -156,7 +156,12 @@ const UnitType* DeveloperModel::getUnitTypeById(BigSerial id) const {
 
 const ParcelAmenities* DeveloperModel::getAmenitiesById(BigSerial fmParcelId) const {
 
-    return amenities.at(0);
+    AmenitiesMap::const_iterator itr = amenitiesById.find(fmParcelId);
+        if (itr != amenitiesById.end())
+        {
+            return itr->second;
+        }
+        return nullptr;
 }
 
 float DeveloperModel::getBuildingSpaceByParcelId(BigSerial id) const {

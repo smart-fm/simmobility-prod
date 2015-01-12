@@ -106,13 +106,17 @@ inline void calculateProjectProfit(PotentialProject& project,const DeveloperMode
 	double totalRevenue = 0;
 	double totalConstructionCost = 0;
 
-	for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++) {const ParcelAmenities *amenities = model->getAmenitiesById(project.getParcel()->getId());
-		const DeveloperLuaModel& luaModel = LuaProvider::getDeveloperModel();
-		double reveuePerUnitType = luaModel.calulateUnitRevenue((*unitsItr),*amenities);
-		double totalRevenuePerUnitType = reveuePerUnitType* (*unitsItr).getNumUnits();
-		totalRevenue = totalRevenue + totalRevenuePerUnitType;
-		double constructionCostPerUnitType = model->getUnitTypeById((*unitsItr).getUnitTypeId())->getConstructionCostPerUnit()* (*unitsItr).getNumUnits();
-		totalConstructionCost = totalConstructionCost+ constructionCostPerUnitType;
+	for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++) {
+		const ParcelAmenities *amenities = model->getAmenitiesById(project.getParcel()->getId());
+		if(amenities != nullptr)
+		{
+			const DeveloperLuaModel& luaModel = LuaProvider::getDeveloperModel();
+			double reveuePerUnitType = luaModel.calulateUnitRevenue((*unitsItr),*amenities);
+			double totalRevenuePerUnitType = reveuePerUnitType* (*unitsItr).getNumUnits();
+			totalRevenue = totalRevenue + totalRevenuePerUnitType;
+			double constructionCostPerUnitType = model->getUnitTypeById((*unitsItr).getUnitTypeId())->getConstructionCostPerUnit()* (*unitsItr).getNumUnits();
+			totalConstructionCost = totalConstructionCost+ constructionCostPerUnitType;
+		}
 
 	}
 
@@ -303,7 +307,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 			if ((*itr)->getFmParcelId() == parcel.getId()) {
 				BigSerial buildingId = (*itr)->getFmBuildingId();
 				//This is currently commented out until a new agent class is written to receive the message.
-				MessageBus::PublishEvent(LTEID_HM_BUILDING_REMOVED,MessageBus::EventArgsPtr(new HM_ActionEventArgs(unitId,buildingId,futureDemolitionDate)));
+				//MessageBus::PublishEvent(LTEID_HM_BUILDING_REMOVED,MessageBus::EventArgsPtr(new HM_ActionEventArgs(unitId,buildingId,futureDemolitionDate)));
 				//TODO- add demolished building id's to each agent and use it within the agent
 
 			}
@@ -367,6 +371,7 @@ void DeveloperAgent::createProject(PotentialProject &project, BigSerial projectI
 	fmProject->setFmLotSize(fmLotSize);
 	fmProject->setGrossArea(grossArea);
 	fmProject->setGrossRatio(grossRatio);
+	fmProject->setTemplateId(project.getDevTemplate()->getTemplateId());
 	//set the project's tick to 0 at the beginning.
 	fmProject->setCurrTick(0);
 	writeProjectDataToFile(fmProject);
@@ -376,7 +381,7 @@ void DeveloperAgent::createProject(PotentialProject &project, BigSerial projectI
 void DeveloperAgent::processExistingProjects()
 {
 	int projectDuration = this->fmProject->getCurrTick();
-	std::vector<Building>::iterator itr;
+	std::vector<Building>::iterator buildingsItr;
 	std::vector<Unit>::iterator unitsItr;
 	const int secondMonth = 59;
 	const int fourthMonth = 119;
@@ -385,9 +390,9 @@ void DeveloperAgent::processExistingProjects()
 	{
 	case (secondMonth):
 
-		for(itr = this->newBuildings.begin(); itr != this->newBuildings.end(); itr++)
+		for(buildingsItr = this->newBuildings.begin(); buildingsItr != this->newBuildings.end(); buildingsItr++)
 		{
-			(*itr).setBuildingStatus("Uncompleted With Prerequisites");
+			(*buildingsItr).setBuildingStatus("Uncompleted With Prerequisites");
 		}
 
 		for(unitsItr = this->newUnits.begin(); unitsItr != this->newUnits.end(); unitsItr++)
@@ -397,9 +402,9 @@ void DeveloperAgent::processExistingProjects()
 		break;
 	case (fourthMonth):
 
-		for(itr = this->newBuildings.begin(); itr != this->newBuildings.end(); itr++)
+		for(buildingsItr = this->newBuildings.begin(); buildingsItr != this->newBuildings.end(); buildingsItr++)
 		{
-			(*itr).setBuildingStatus("Not Launched");
+			(*buildingsItr).setBuildingStatus("Not Launched");
 		}
 
 		for(unitsItr = this->newUnits.begin(); unitsItr != this->newUnits.end(); unitsItr++)
@@ -409,9 +414,11 @@ void DeveloperAgent::processExistingProjects()
 		break;
 	case(sixthMonth):
 
-		for(itr = this->newBuildings.begin(); itr != this->newBuildings.end(); itr++)
+		for(buildingsItr = this->newBuildings.begin(); buildingsItr != this->newBuildings.end(); buildingsItr++)
 		{
-			(*itr).setBuildingStatus("Launched but Unsold");
+			(*buildingsItr).setBuildingStatus("Launched but Unsold");
+			//This is currently commented out until a new agent class is written to receive the message.
+			//MessageBus::PublishEvent(LTEID_BUILDING_ADDED,MessageBus::EventArgsPtr(new HM_ActionEventArgs((*unitsItr))));
 		}
 		for(unitsItr = this->newUnits.begin(); unitsItr != this->newUnits.end(); unitsItr++)
 		{

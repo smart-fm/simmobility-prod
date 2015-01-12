@@ -199,7 +199,8 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
         case LTEID_HM_UNIT_ADDED:
         {
             const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
-            //PrintOut("Unit added " << hmArgs.getUnitId() << endl);
+            const Unit *unit = hmArgs.getUnit();
+            //PrintOut("Unit added " << unit->getId() << endl);
             break;
         }
         case LTEID_HM_UNIT_REMOVED:

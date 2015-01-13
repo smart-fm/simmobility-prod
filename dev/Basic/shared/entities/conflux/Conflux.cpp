@@ -74,6 +74,12 @@ sim_mob::Conflux::~Conflux()
 	pedestrianList.clear();
 }
 
+void sim_mob::Conflux::initialize(const timeslice& now)
+{
+	frame_init(now);
+	setInitialized(true);
+}
+
 sim_mob::Conflux::PersonProps::PersonProps(const sim_mob::Person* person, const sim_mob::Conflux* cnflx)
 {
 	sim_mob::Role* role = person->getRole();

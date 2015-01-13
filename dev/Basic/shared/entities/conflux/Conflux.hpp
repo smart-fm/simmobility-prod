@@ -373,6 +373,12 @@ public:
 		this->parentWorker = parentWorker;
 	}
 
+	/**
+	 * initializes the conflux
+	 * @param now timeslice when initialize is called
+	 */
+	void initialize(const timeslice& now);
+
 	bool hasSpaceInVirtualQueue(sim_mob::Link* lnk);
 	void pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p);
 

@@ -103,12 +103,12 @@ void DeveloperModel::startImpl() {
 	createDeveloperAgents(developmentCandidateParcelList);
 	wakeUpDeveloperAgents(getDeveloperAgents(true));
 
-	PrintOut("Time Interval " << timeInterval << std::endl);
-	PrintOut("Initial Developers " << developers.size() << std::endl);
-	PrintOut("Initial Templates " << templates.size() << std::endl);
-	PrintOut("Initial Parcels " << initParcelList.size() << std::endl);
-	PrintOut("Initial DevelopmentTypeTemplates " << developmentTypeTemplates.size() << std::endl);
-	PrintOut("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
+	PrintOutV("Time Interval " << timeInterval << std::endl);
+	PrintOutV("Initial Developers " << developers.size() << std::endl);
+	PrintOutV("Initial Templates " << templates.size() << std::endl);
+	PrintOutV("Initial Parcels " << initParcelList.size() << std::endl);
+	PrintOutV("Initial DevelopmentTypeTemplates " << developmentTypeTemplates.size() << std::endl);
+	PrintOutV("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
 
 	addMetadata("Time Interval", timeInterval);
 	addMetadata("Initial Developers", developers.size());

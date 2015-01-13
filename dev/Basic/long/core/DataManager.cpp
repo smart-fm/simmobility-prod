@@ -67,11 +67,11 @@ void DataManager::load()
     if (conn.isConnected())
     {
         loadData<BuildingDao>(conn, buildings, buildingsById, &Building::getFmBuildingId);
-        PrintOut("Loaded " << buildings.size() << " buildings." << std::endl);
+        PrintOutV("Loaded " << buildings.size() << " buildings." << std::endl);
         loadData<PostcodeDao>(conn, postcodes, postcodesById, &Postcode::getAddressId);
-        PrintOut("Loaded " << postcodes.size() << " postcodes." << std::endl );
+        PrintOutV("Loaded " << postcodes.size() << " postcodes." << std::endl );
         loadData<PostcodeAmenitiesDao>(conn, amenities, amenitiesByCode, &PostcodeAmenities::getPostcode);
-        PrintOut("Loaded " << amenities.size() << " amenities." << std::endl);
+        PrintOutV("Loaded " << amenities.size() << " amenities." << std::endl);
 
         // (Special case) Index all postcodes.
         for (PostcodeList::iterator it = postcodes.begin(); it != postcodes.end(); it++)
@@ -92,7 +92,7 @@ void DataManager::load()
             }
         }
 
-        PrintOut("amenitiesById pairs " << amenitiesByIdCount << std::endl);
+        PrintOutV("amenitiesById pairs " << amenitiesByIdCount << std::endl);
     }
     readyToLoad = false;
 }

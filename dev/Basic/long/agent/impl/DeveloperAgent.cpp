@@ -46,15 +46,15 @@ const std::string LOG_PROJECT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %1
  * @param parcel to be written.
  *
  */
-inline void writeParcelDataToFile(const Parcel *parcel) {
+inline void writeParcelDataToFile(Parcel &parcel) {
 
-	boost::format fmtr = boost::format(LOG_PARCEL) % parcel->getId()
-			% parcel->getLotSize() % parcel->getGpr() % parcel->getLandUseTypeId()
-			% parcel->getOwnerName() % parcel->getOwnerCategory()
-			% parcel->getLastTransactionDate().tm_year % parcel->getLastTransationTypeTotal() % parcel->getPsmPerGps() % parcel->getLeaseType()
-			% parcel->getLeaseStartDate().tm_year % parcel->getCentroidX() % parcel->getCentroidY() % parcel->getAwardDate().tm_year % parcel->getAwardStatus()
-			% parcel->getUseRestriction()%parcel->getDevelopmentTypeCode()% parcel->getSuccessfulTenderId() % parcel->getSuccessfulTenderPrice()
-			% parcel->getTenderClosingDate().tm_year%parcel->getTenderClosingDate().tm_mon% parcel->getLease() % parcel->getStatus() % parcel->getDevelopmentAllowed() % parcel->getNextAvailableDate().tm_year;
+	boost::format fmtr = boost::format(LOG_PARCEL) % parcel.getId()
+			% parcel.getLotSize() % parcel.getGpr() % parcel.getLandUseTypeId()
+			% parcel.getOwnerName() % parcel.getOwnerCategory()
+			% parcel.getLastTransactionDate().tm_year % parcel.getLastTransationTypeTotal() % parcel.getPsmPerGps() % parcel.getLeaseType()
+			% parcel.getLeaseStartDate().tm_year % parcel.getCentroidX() % parcel.getCentroidY() % parcel.getAwardDate().tm_year % parcel.getAwardStatus()
+			% parcel.getUseRestriction()%parcel.getDevelopmentTypeCode()% parcel.getSuccessfulTenderId() % parcel.getSuccessfulTenderPrice()
+			% parcel.getTenderClosingDate().tm_year%parcel.getTenderClosingDate().tm_mon% parcel.getLease() % parcel.getStatus() % parcel.getDevelopmentAllowed() % parcel.getNextAvailableDate().tm_year;
 
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PARCELS,fmtr.str());
 
@@ -286,7 +286,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	//next available date of the parcel for the consideration of a new development is assumed to be one year after.
 	nextAvailableDate.tm_year = nextAvailableDate.tm_year+1;
 	parcel.setNextAvailableDate(nextAvailableDate);
-
+	writeParcelDataToFile(parcel);
 	//check whether the parcel is empty; if not send a message to HM model with building id and future demolition date about the units that are going to be demolished.
 	if (!(model->isEmptyParcel(parcel.getId()))) {
 		DeveloperModel::BuildingList buildings = model->getBuildings();

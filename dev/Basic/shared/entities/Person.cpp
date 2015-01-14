@@ -108,13 +108,26 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 {
 	//TODO: Check with MAX what to do with the below commented lines
 	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
+		if(getAgentSrc() == "DAS_TripChain"){
+			int i = 0;
+		}
 		convertODsToTrips();
 		insertWaitingActivityToTrip();
 	}
 
 	if(!tripChain.empty()) { initTripChain(); }
-}
 
+	if(getAgentSrc() == "DAS_TripChain"){
+		for(vector<TripChainItem*>::iterator it=tripChain.begin();it!=tripChain.end();it++){
+			Print()<<"|"<<(*it)->getMode();
+			if((*it)->itemType == sim_mob::TripChainItem::IT_TRIP){
+				Trip* trip = dynamic_cast<Trip*>(*it);
+				Print()<<"FromLocation"<<trip->fromLocation.node_->getID()<<"ToLocation"<<trip->toLocation.node_->getID();
+			}
+
+		}
+	}
+}
 void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();
 	//TODO: Check if short term is okay with this approach of checking agent source

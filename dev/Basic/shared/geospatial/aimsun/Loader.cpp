@@ -384,11 +384,11 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 	return sim_mob::PSM_HASPATH;
 }
 
-void DatabaseLoader::loadLinkDefaultTravelTime(soci::session& sql,std::map<unsigned long,	std::vector<sim_mob::LinkTravelTime> >& pool)
+void DatabaseLoader::loadLinkDefaultTravelTime(soci::session& sql,std::map<unsigned long, std::vector<sim_mob::LinkTravelTime> >& pool)
 {
 	//todo: I know hardcoding a table query is not good, but until I find an optimal solution to pass table name as argument to the posgres function, I keep the old implementation as is-vahid
 	soci::rowset<sim_mob::LinkTravelTime> rs = (sql.prepare <<"select \"link_id\",to_char(\"start_time\",'HH24:MI:SS') AS start_time,to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\", travel_mode from \"link_default_travel_time_corrected_he_v2\" ");
-	for (soci::rowset<sim_mob::LinkTravelTime>::const_iterator itRS=rs.begin(); itRS!=rs.end(); ++itRS)  {
+	for (soci::rowset<sim_mob::LinkTravelTime>::const_iterator itRS = rs.begin(); itRS!=rs.end(); ++itRS)  {
 		pool[itRS->linkId].push_back(*itRS);
 	}
 }
@@ -411,12 +411,12 @@ bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql,std::string& 
 			unsigned int timeInterval;
 			soci::rowset<sim_mob::LinkTravelTime> rs = (sql.prepare << query);
 			for (soci::rowset<sim_mob::LinkTravelTime>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-				//optimization-1 : many records are in the same interval, no need to calculate again
-				if((timeIt = timeIntervalCache.find(it->startTime)) != timeIntervalCache.end())
-				{
-					timeInterval = timeIt->second;
-				}
-				else
+//				//optimization-1 : many records are in the same interval, no need to calculate again
+//				if((timeIt = timeIntervalCache.find(it->startTime)) != timeIntervalCache.end())
+//				{
+//					timeInterval = timeIt->second;
+//				}
+//				else
 				{
 					timeInterval = timeIntervalCache[it->startTime] = sim_mob::ProcessTT::getTimeInterval(sim_mob::DailyTime(it->startTime).getValue(), intervalMS);
 				}
@@ -431,7 +431,6 @@ bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql,std::string& 
 					rs = sim_mob::RoadSegment::allSegments[it->linkId];
 					rsCache[it->linkId] = rs;
 				}
-				std::cout << "startTime:" << it->startTime << " / " <<  intervalSec << "  =  " << timeInterval << std::endl;
 				//the main job is just one line:
 				pool[timeInterval][it->travelMode][rs] = it->travelTime;
 			}
@@ -525,7 +524,6 @@ void DatabaseLoader::LoadERP_Surcharge(std::map<std::string,std::vector<sim_mob:
 	soci::rowset<sim_mob::ERP_Surcharge> rs = (sql_.prepare <<"select trim(both ' ' from \"Gantry_No\") AS Gantry_No,to_char(\"Start_Time\",'HH24:MI:SS') AS Start_Time,to_char(\"End _Time\",'HH24:MI:SS') AS End_Time,\"Rate\",\"Vehicle_Type_Id\",\"Vehicle_Type_Desc\",\"Day\" from \"ERP_Surcharge\" ");
 	for (soci::rowset<sim_mob::ERP_Surcharge>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		sim_mob::ERP_Surcharge *s = new sim_mob::ERP_Surcharge(*it);
-//		std::cout<<"LoadERP_Surcharge: "<<s.startTime<<std::endl;
 		std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::iterator itt = pool.find(s->gantryNo);
 		if(itt!=pool.end())
 		{
@@ -821,7 +819,6 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 			// check stops
 			if(it->tripfromLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP && it->triptoLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP) {
 				tripchains_.push_back(*it);continue;
-//				std::cout << "from stop: " << it->tmp_fromLocationNodeID << " to stop: " << it->tmp_toLocationNodeID << std::endl;
 			}
 			//check nodes
 			if (it->fromLocationType == sim_mob::TripChainItem::LT_NODE) {
@@ -1887,7 +1884,6 @@ DatabaseLoader::createSignals()
     	ppp = phases_.equal_range(node->getID()); //I repeate: Assumption is that node id and signal id are same
     	if(ppp.first == ppp.second)
     	{
-//    		std::cout << "There is no phase associated with this signal candidate("<< node->getID() <<"), bypassing\n";
     		continue;
     	}
     	bool isNew = false;
@@ -1923,7 +1919,6 @@ DatabaseLoader::createPlans(sim_mob::Signal_SCATS & signal)
 
 		//now that we have the number of phases, we can continue initializing our split plan.
 		int nof_phases = signal.getNOF_Phases();
-//		std::cout << " Signal(" << sid << ") : Number of Phases : " << nof_phases << std::endl;
 		if(nof_phases > 0)
 			if((nof_phases > 5)||(nof_phases < 1))
 				std::cout << sid << " ignored due to lack of default choice set" << nof_phases ;

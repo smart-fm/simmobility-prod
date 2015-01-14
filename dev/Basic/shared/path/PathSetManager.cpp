@@ -6,6 +6,7 @@
  */
 
 #include "PathSetManager.hpp"
+#include "Path.hpp"
 #include "entities/PersonLoader.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
@@ -17,6 +18,8 @@
 #include "geospatial/streetdir/KShortestPathImpl.hpp"
 #include "util/threadpool/Threadpool.hpp"
 #include "workers/Worker.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "message/MessageBus.hpp"
 #include <cmath>
 #include <boost/algorithm/string.hpp>
@@ -34,6 +37,10 @@ using namespace sim_mob;
 namespace{
 sim_mob::BasicLogger & logger = sim_mob::Logger::log("path_set");
 }
+double getPathTravelCost(sim_mob::SinglePath *sp,const std::string & travelMode, const sim_mob::DailyTime & startTime_);
+sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::RoadSegment *rs);
+sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::Link *ln);
+
 
 std::string getFromToString(const sim_mob::Node* fromNode,const sim_mob::Node* toNode ){
 	std::stringstream out("");
@@ -44,387 +51,10 @@ std::string getFromToString(const sim_mob::Node* fromNode,const sim_mob::Node* t
 }
 
 PathSetManager *sim_mob::PathSetManager::instance_;
-
-PathSetParam *sim_mob::PathSetParam::instance_ = NULL;
-
 std::map<boost::thread::id, boost::shared_ptr<soci::session> > sim_mob::PathSetManager::cnnRepo;
 boost::shared_ptr<sim_mob::batched::ThreadPool> sim_mob::PathSetManager::threadpool_(new sim_mob::batched::ThreadPool(10));
 
-sim_mob::PathSetParam* sim_mob::PathSetParam::getInstance()
-{
-	if(!instance_)
-	{
-		instance_ = new PathSetParam();
-	}
-	return instance_;
-}
 
-void sim_mob::PathSetParam::getDataFromDB()
-{
-	setRTTT(ConfigManager::GetInstance().FullConfig().getRTTT());
-	logger << "[RTT TABLE NAME : " << RTTT << "]\n";
-	std::cout << "[RTT TABLE NAME : " << RTTT << "]\n";
-	sim_mob::aimsun::Loader::LoadERPData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-			ERP_SurchargePool,	ERP_Gantry_ZonePool,ERP_SectionPool);
-	std::cout << "[ERP RETRIEVED " <<	ERP_SurchargePool.size() << " "  << ERP_Gantry_ZonePool.size() << " " << ERP_SectionPool.size() << "]\n";
-
-	sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(*(PathSetManager::getSession()), segmentDefaultTravelTimePool);
-	std::cout << segmentDefaultTravelTimePool.size() << " records for Link_default_travel_time found\n";
-
-	bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(*(PathSetManager::getSession()),
-			RTTT, sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval, historicalAvgTravelTime);
-	std::cout << historicalAvgTravelTime.size() << " records for Link_realtime_travel_time found " << historicalAvgTravelTime.begin()->first << "  " << historicalAvgTravelTime.end()->first << "\n";
-	if(!res) // no realtime travel time table
-	{
-		//create
-		if(!createTravelTimeRealtimeTable() )
-		{
-			throw std::runtime_error("can not create travel time table");
-		}
-	}
-//	getchar();
-}
-void sim_mob::PathSetParam::storeSinglePath(soci::session& sql,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string pathSetTableName)
-{
-	sim_mob::aimsun::Loader::storeSinglePath(sql,spPool,pathSetTableName);
-}
-
-bool sim_mob::PathSetParam::createTravelTimeRealtimeTable()
-{
-	bool res=false;
-	std::string createTableStr = "create table " + RTTT +
-			"("
-			"link_id integer NOT NULL,"
-			"start_time time without time zone NOT NULL,"
-			"end_time time without time zone NOT NULL,"
-			"travel_time double precision NOT NULL,"
-	        "interval_time integer NOT NULL,"
-			"travel_mode character varying NOT NULL,"
-			"history integer NOT NULL DEFAULT 1"
-			")"
-			"WITH ("
-			"  OIDS=FALSE"
-			");"
-			"ALTER TABLE " + RTTT +
-			"  OWNER TO postgres;";
-	res = sim_mob::aimsun::Loader::excuString(*(PathSetManager::getSession()),createTableStr);
-	return res;
-}
-
-void sim_mob::PathSetParam::setRTTT(const std::string& value)
-{
-	if(!value.size())
-	{
-		throw std::runtime_error("Missing Travel Time Table Name.\n "
-				"It is either missing in the XML configuration file,\n"
-				"or you are trying to access the file name before reading the Configuration file");
-	}
-	RTTT = value;
-	logger << "[REALTIME TABLE NAME : " << RTTT << "]\n";
-}
-
-double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(const sim_mob::RoadSegment* rs,sim_mob::DailyTime startTime,sim_mob::DailyTime endTime)
-{
-	const std::string travelMode = "Car";//todo: remove the hack
-	//1. check realtime table
-	double res=0.0;
-	double totalTravelTime=0.0;
-	int count=0;
-	sim_mob::DailyTime dailyTime(startTime);
-	TT::TI endTimeRange = ProcessTT::getTimeInterval(endTime.getValue(), intervalMS);
-	while(dailyTime.isBeforeEqual(endTime))
-	{
-		totalTravelTime += getTravelTimeBySegId(rs,travelMode, dailyTime);
-		dailyTime = sim_mob::DailyTime(dailyTime.getValue() + intervalMS) ;
-	}
-	return totalTravelTime;
-//	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >::iterator it =
-//			historicalAvgTravelTime.find(rs);
-//	if(it!=historicalAvgTravelTime.end())
-//	{
-//		//logger << "using realtime travel time \n";
-//		std::vector<sim_mob::LinkTravelTime> &e = (*it).second;
-//		for(std::vector<sim_mob::LinkTravelTime>::iterator itL(e.begin());itL != e.end();++itL)
-//		{
-//			sim_mob::LinkTravelTime& l = (*itL);
-//			if( l.startTime_DT.isAfterEqual(startTime) && l.endTime_DT.isBeforeEqual(endTime) )
-//			{
-//				totalTravelTime += l.travelTime;
-//				count++;
-//			}
-//		}
-//		if(count!=0)
-//		{
-//			res = totalTravelTime/count;
-//			return res;
-//		}
-//	}
-//	unsigned long id = rs->getId();
-//	//2. if no , check default
-//	it = segmentDefaultTravelTimePool.find(id);
-//	if(it!=segmentDefaultTravelTimePool.end())
-//	{
-////		logger << "using default travel time \n";
-//		std::vector<sim_mob::LinkTravelTime> &e = (*it).second;
-//		for(std::vector<sim_mob::LinkTravelTime>::iterator itL(e.begin());itL != e.end();++itL)
-//		{
-//			sim_mob::LinkTravelTime& l = (*itL);
-//			totalTravelTime += l.travelTime;
-//			count++;
-//		}
-//		if(count != 0)
-//		{
-//			res = totalTravelTime/count;
-//		}
-//		return res;
-//	}
-//	else
-//	{
-//		logger << "[NO TT FOR SEGMENT : " << id << "]\n";
-//	}
-//	return res;
-}
-
-double sim_mob::PathSetParam::getDefaultTravelTimeBySegId(unsigned long id)
-{
-	double res = 0.0;
-	double totalTravelTime = 0.0;
-	int count = 0;
-	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >::iterator it = segmentDefaultTravelTimePool.find(id);
-	if(it!=segmentDefaultTravelTimePool.end())
-	{
-		std::vector<sim_mob::LinkTravelTime> &e = (*it).second;
-		for(std::vector<sim_mob::LinkTravelTime>::iterator itL(e.begin());itL != e.end();++itL)
-		{
-			sim_mob::LinkTravelTime& l = (*itL);
-			totalTravelTime += l.travelTime;
-			count++;
-		}
-		if(count != 0)
-		{
-			res = totalTravelTime/count;
-		}
-		return res;
-	}
-	else
-	{
-		logger << "[NO DTT FOR : " <<  id << "]\n";
-	}
-	return res;
-}
-
-double sim_mob::PathSetParam::getTravelTimeBySegId(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime)
-{
-	std::ostringstream out("");
-	//1. check realtime table
-	double res = 0.0;
-	TT::TI timeInterval = ProcessTT::getTimeInterval(startTime.getValue(),intervalMS);
-	AverageTravelTime::iterator itRange = historicalAvgTravelTime.find(timeInterval);
-	if(itRange != historicalAvgTravelTime.end())
-	{
-		sim_mob::TT::MST & mst = itRange->second;
-		sim_mob::TT::MST::iterator itMode = mst.find(travelMode);
-		if(itMode != mst.end())
-		{
-			std::map<const sim_mob::RoadSegment*,double >::iterator itRS = itMode->second.find(rs);
-			if(itRS != itMode->second.end())
-			{
-				logger << startTime.getRepr_() << " [REALTT] " <<  "  " << out.str() << "\n";
-				return itRS->second;
-			}
-			else
-			{
-				out << "couldn't find road segment " << rs->getId();
-			}
-		}
-		else
-		{
-			out << "couldn't find travel mode: " << travelMode;
-		}
-	}
-	else
-	{
-		out << "couldn't find timeInterval " << timeInterval  << " [" << startTime.getRepr_() << " ### " <<  startTime.getValue() << "] minus ["
-				<< sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime().getRepr_() << " ### " << sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime().getValue() << "] = " <<
-				(startTime - sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime()).getRepr_() << " ### " <<
-				(startTime - sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime()).getValue() << "]"
-				 << " / [intervalMS:"<< intervalMS << "] =>" << timeInterval << "\n";
-		//logger << "[NO REALTT] " << id << "\n";
-	}
-	//2. if no , check default
-	const unsigned long &id = rs->getId();
-	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >::iterator it = segmentDefaultTravelTimePool.find(id);
-	if(it!=segmentDefaultTravelTimePool.end())
-	{
-		std::vector<sim_mob::LinkTravelTime> &e = (*it).second;
-		for(std::vector<sim_mob::LinkTravelTime>::iterator itL(e.begin());itL != e.end();++itL)
-		{
-			sim_mob::LinkTravelTime& l = *itL;
-			if( l.startTime_DT.isBeforeEqual(startTime) && l.endTime_DT.isAfter(startTime) )
-			{
-				res = l.travelTime;
-				logger << id << "  " << startTime.getRepr_() << " [DEFTT] " <<  "  " << out.str() << "\n";
-				return res;
-			}
-		}
-	}
-	else
-	{
-		logger <<  "[NOTT] " << id << "\n";
-	}
-	return res;
-}
-
-sim_mob::Node* sim_mob::PathSetParam::getCachedNode(std::string id)
-{
-	std::map<std::string,sim_mob::Node*>::iterator it = nodePool.find(id);
-	if(it != nodePool.end())
-	{
-		sim_mob::Node* node = (*it).second;
-		return node;
-	}
-	return NULL;
-}
-void sim_mob::PathSetParam::initParameters()
-{
-	bTTVOT = -0.01373;//-0.0108879;
-	bCommonFactor = 1.0;
-	bLength = -0.001025;//0.0; //negative sign proposed by milan
-	bHighway = 0.00052;//0.0;
-	bCost = 0.0;
-	bSigInter = -0.13;//0.0;
-	bLeftTurns = 0.0;
-	bWork = 0.0;
-	bLeisure = 0.0;
-	highway_bias = 0.5;
-
-	minTravelTimeParam = 0.879;
-	minDistanceParam = 0.325;
-	minSignalParam = 0.256;
-	maxHighwayParam = 0.422;
-}
-
-uint32_t sim_mob::PathSetParam::getSize()
-{
-	uint32_t sum = 0;
-	sum += sizeof(double); //double bTTVOT;
-	sum += sizeof(double); //double bCommonFactor;
-	sum += sizeof(double); //double bLength;
-	sum += sizeof(double); //double bHighway;
-	sum += sizeof(double); //double bCost;
-	sum += sizeof(double); //double bSigInter;
-	sum += sizeof(double); //double bLeftTurns;
-	sum += sizeof(double); //double bWork;
-	sum += sizeof(double); //double bLeisure;
-	sum += sizeof(double); //double highway_bias;
-	sum += sizeof(double); //double minTravelTimeParam;
-	sum += sizeof(double); //double minDistanceParam;
-	sum += sizeof(double); //double minSignalParam;
-	sum += sizeof(double); //double maxHighwayParam;
-
-	//std::map<std::string,sim_mob::RoadSegment*> segPool;
-	typedef std::map<std::string,sim_mob::RoadSegment*>::value_type SPP;
-	BOOST_FOREACH(SPP& segPool_pair,segPool)
-	{
-		sum += segPool_pair.first.length();
-	}
-	sum += sizeof(sim_mob::RoadSegment*) * segPool.size();
-
-//		std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*> wpPool;//unused for now
-	//std::map<std::string,sim_mob::Node*> nodePool;
-	typedef std::map<std::string,sim_mob::Node*>::value_type NPP;
-	logger << "nodePool.size() " << nodePool.size() << "\n";
-	BOOST_FOREACH(NPP& nodePool_pair,nodePool)
-	{
-		sum += nodePool_pair.first.length();
-	}
-	sum += sizeof(sim_mob::Node*) * nodePool.size();
-
-//		const std::vector<sim_mob::MultiNode*>  &multiNodesPool;
-	sum += sizeof(sim_mob::MultiNode*) * multiNodesPool.size();
-
-//		const std::set<sim_mob::UniNode*> & uniNodesPool;
-	sum += sizeof(sim_mob::UniNode*) * uniNodesPool.size();
-
-//		std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > ERP_SurchargePool;
-	typedef std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::value_type ERPSCP;
-	BOOST_FOREACH(ERPSCP & ERP_Surcharge_pool_pair,ERP_SurchargePool)
-	{
-		sum += ERP_Surcharge_pool_pair.first.length();
-		sum += sizeof(sim_mob::ERP_Surcharge*) * ERP_Surcharge_pool_pair.second.size();
-	}
-
-//		std::map<std::string,sim_mob::ERP_Gantry_Zone*> ERP_Gantry_ZonePool;
-	typedef std::map<std::string,sim_mob::ERP_Gantry_Zone*>::value_type ERPGZP;
-	BOOST_FOREACH(ERPGZP & ERP_Gantry_Zone_pool_pair,ERP_Gantry_ZonePool)
-	{
-		sum += ERP_Gantry_Zone_pool_pair.first.length();
-	}
-	sum += sizeof(sim_mob::ERP_Gantry_Zone*) * ERP_Gantry_ZonePool.size();
-
-//		std::map<std::string,sim_mob::ERP_Section*> ERP_Section_pool;
-	typedef std::map<int,sim_mob::ERP_Section*>::value_type  ERPSP;
-	BOOST_FOREACH(ERPSP&ERP_Section_pair,ERP_SectionPool)
-	{
-		sum += sizeof(int);
-	}
-	sum += sizeof(sim_mob::ERP_Section*) * ERP_SectionPool.size();
-
-//		std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > segmentDefaultTravelTimePool;
-	typedef std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >::value_type LDTTPP;
-	BOOST_FOREACH(LDTTPP & ldttpp,segmentDefaultTravelTimePool)
-	{
-		sum += sizeof(unsigned long);
-		sum += sizeof(sim_mob::LinkTravelTime) * ldttpp.second.size();
-	}
-	//todo historical avg travel time
-//		const roadnetwork;
-	sum += sizeof(sim_mob::RoadNetwork&);
-
-//		std::string RTTT;
-	sum += RTTT.length();
-	return sum;
-}
-
-sim_mob::PathSetParam::PathSetParam() :
-		roadNetwork(ConfigManager::GetInstance().FullConfig().getNetwork()),
-		multiNodesPool(ConfigManager::GetInstance().FullConfig().getNetwork().getNodes()), uniNodesPool(ConfigManager::GetInstance().FullConfig().getNetwork().getUniNodes()),
-		RTTT(""),intervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval* 1000 /*milliseconds*/)
-{
-	initParameters();
-	for (std::vector<sim_mob::Link *>::const_iterator it =	ConfigManager::GetInstance().FullConfig().getNetwork().getLinks().begin(), it_end( ConfigManager::GetInstance().FullConfig().getNetwork().getLinks().end()); it != it_end; it++) {
-		for (std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++) {
-			if (!(*seg_it)->originalDB_ID.getLogItem().empty()) {
-				string aimsun_id = (*seg_it)->originalDB_ID.getLogItem();
-				string segId = Utils::getNumberFromAimsunId(aimsun_id);
-				segPool.insert(std::make_pair(segId, *seg_it));
-			}
-		}
-	}
-	//we are still in constructor , so const refs like roadNetwork and multiNodesPool are not ready yet.
-	BOOST_FOREACH(sim_mob::Node* n, ConfigManager::GetInstance().FullConfig().getNetwork().getNodes()){
-		if (!n->originalDB_ID.getLogItem().empty()) {
-			std::string t = n->originalDB_ID.getLogItem();
-			std::string id = sim_mob::Utils::getNumberFromAimsunId(t);
-			nodePool.insert(std::make_pair(id , n));
-		}
-	}
-
-	BOOST_FOREACH(sim_mob::UniNode* n, ConfigManager::GetInstance().FullConfig().getNetwork().getUniNodes()){
-		if (!n->originalDB_ID.getLogItem().empty()) {
-			std::string t = n->originalDB_ID.getLogItem();
-			std::string id = sim_mob::Utils::getNumberFromAimsunId(t);
-			nodePool.insert(std::make_pair(id, n));
-		}
-	}
-
-	logger << "PathSetParam: nodes amount " <<
-			ConfigManager::GetInstance().FullConfig().getNetwork().getNodes().size() +
-			ConfigManager::GetInstance().FullConfig().getNetwork().getNodes().size() << "\n";
-	logger << "PathSetParam: segments amount "	<<
-			segPool.size() << "\n";
-	getDataFromDB();
-}
 uint32_t sim_mob::PathSetManager::getSize(){
 	uint32_t sum = 0;
 	//first get the pathset param here
@@ -474,10 +104,14 @@ uint32_t sim_mob::PathSetManager::getSize(){
 	return sum;
 }
 
+unsigned int sim_mob::PathSetManager::curIntervalMS = 0;
+unsigned int sim_mob::PathSetManager::intervalMS = 0;
+
 sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()),
 //		pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName),
 		pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName),
 		dbFunction(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().dbFunction),cacheLRU(2500),
+		processTT(intervalMS, curIntervalMS),
 		blacklistSegments((sim_mob::ConfigManager::GetInstance().FullConfig().CBD() ?
 				RestrictedRegion::getInstance().getZoneSegments(): std::set<const sim_mob::RoadSegment*>()))//todo placeholder
 {
@@ -494,6 +128,17 @@ void HandleMessage(messaging::Message::MessageType type, const messaging::Messag
 sim_mob::PathSetManager::~PathSetManager()
 {
 }
+
+
+//void sim_mob::PathSetManager::initTimeInterval()
+//{
+//	ProcessTT::initTimeInterval();
+//}
+//
+//void sim_mob::PathSetManager::updateCurrTimeInterval()
+//{
+//	ProcessTT::updateCurrTimeInterval();
+//}
 
 namespace {
 int pathsCnt = 0;
@@ -774,11 +419,6 @@ std::string sim_mob::printWPpath(const std::vector<WayPoint> &wps , const sim_mo
 	return out.str();
 }
 
-namespace
-{
-sim_mob::BasicLogger & cbdLogger = sim_mob::Logger::log("CBD");
-}
-
 
 vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip)
 {
@@ -880,8 +520,8 @@ void sim_mob::PathSetManager::onPathSetRetrieval(boost::shared_ptr<PathSet> &ps,
 	sim_mob::SinglePath *minSP = *(ps->pathChoices.begin());
 	BOOST_FOREACH(SinglePath *sp, ps->pathChoices)
 	{
-		sp->travleTime = getTravelTime(sp,ps->subTrip->mode,ps->subTrip->startTime);
-		sp->travelCost = getTravelCost2(sp,ps->subTrip->mode,ps->subTrip->startTime );
+		sp->travleTime = getPathTravelTime(sp,ps->subTrip->mode,ps->subTrip->startTime);
+		sp->travelCost = getPathTravelCost(sp,ps->subTrip->mode,ps->subTrip->startTime );
 		//MIN_TRAVEL_TIME
 		if(sp->travleTime < minTravelTime)
 		{
@@ -1540,8 +1180,8 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 			ps_->oriPath = s;
 			ps_->id = fromToID;
 			s->pathSetId = ps_->id;
-			s->travelCost = getTravelCost2(s,ps_->subTrip->mode, ps_->subTrip->startTime);
-			s->travleTime = getTravelTime(s,ps_->subTrip->mode,ps_->subTrip->startTime);
+			s->travelCost = getPathTravelCost(s,ps_->subTrip->mode, ps_->subTrip->startTime);
+			s->travleTime = getPathTravelTime(s,ps_->subTrip->mode,ps_->subTrip->startTime);
 			ps_->pathChoices.insert(s);
 				// 2. exclude each seg in shortest path, then generate new shortest path
 			generatePathesByLinkElimination(s->path,duplicateChecker,ps_,fromNode,toNode);
@@ -1604,8 +1244,8 @@ void sim_mob::PathSetManager::generatePathesByLinkElimination(std::vector<WayPoi
 			{
 				continue;
 			}
-			sinPath->travelCost = getTravelCost2(sinPath,ps_->subTrip->startTime);
-			sinPath->travleTime = getTravelTime(sinPath,ps_->subTrip->startTime);
+			sinPath->travelCost = getPathTravelCost(sinPath,ps_->subTrip->startTime);
+			sinPath->travleTime = getPathTravelTime(sinPath,ps_->subTrip->startTime);
 			sinPath->pathSetId = ps_->id;
 			ps_->pathChoices.insert(sinPath);
 		}
@@ -1630,8 +1270,8 @@ void sim_mob::PathSetManager::generatePathesByTravelTimeLinkElimination(std::vec
 			{
 				continue;
 			}
-			sinPath->travelCost = getTravelCost2(sinPath,ps_->subTrip->startTime);
-			sinPath->travleTime = getTravelTime(sinPath,ps_->subTrip->startTime);
+			sinPath->travelCost = getPathTravelCost(sinPath,ps_->subTrip->startTime);
+			sinPath->travleTime = getPathTravelTime(sinPath,ps_->subTrip->startTime);
 			sinPath->pathSetId = ps_->id;
 //			storePath(sinPath);
 			ps_->pathChoices.insert(sinPath);
@@ -1647,8 +1287,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	SinglePath *sinPath_morningPeak = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::MorningPeak);
 	if(sinPath_morningPeak)
 	{
-		sinPath_morningPeak->travelCost = getTravelCost2(sinPath_morningPeak,ps_->subTrip->startTime);
-		sinPath_morningPeak->travleTime = getTravelTime(sinPath_morningPeak,ps_->subTrip->startTime);
+		sinPath_morningPeak->travelCost = getPathTravelCost(sinPath_morningPeak,ps_->subTrip->startTime);
+		sinPath_morningPeak->travleTime = getPathTravelTime(sinPath_morningPeak,ps_->subTrip->startTime);
 		sinPath_morningPeak->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath_morningPeak);
 		generatePathesByTravelTimeLinkElimination(sinPath_morningPeak->path,duplicateChecker,ps_,fromNode,toNode,sim_mob::MorningPeak);
@@ -1656,8 +1296,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	SinglePath *sinPath_eveningPeak = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::EveningPeak);
 	if(sinPath_eveningPeak)
 	{
-		sinPath_eveningPeak->travelCost = getTravelCost2(sinPath_eveningPeak,ps_->subTrip->startTime);
-		sinPath_eveningPeak->travleTime = getTravelTime(sinPath_eveningPeak,ps_->subTrip->startTime);
+		sinPath_eveningPeak->travelCost = getPathTravelCost(sinPath_eveningPeak,ps_->subTrip->startTime);
+		sinPath_eveningPeak->travleTime = getPathTravelTime(sinPath_eveningPeak,ps_->subTrip->startTime);
 		sinPath_eveningPeak->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath_eveningPeak);
 		generatePathesByTravelTimeLinkElimination(sinPath_eveningPeak->path,duplicateChecker,ps_,fromNode,toNode,sim_mob::EveningPeak);
@@ -1665,8 +1305,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	SinglePath *sinPath_offPeak = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::OffPeak);
 	if(sinPath_offPeak)
 	{
-		sinPath_offPeak->travelCost = getTravelCost2(sinPath_offPeak,ps_->subTrip->startTime);
-		sinPath_offPeak->travleTime = getTravelTime(sinPath_offPeak,ps_->subTrip->startTime);
+		sinPath_offPeak->travelCost = getPathTravelCost(sinPath_offPeak,ps_->subTrip->startTime);
+		sinPath_offPeak->travleTime = getPathTravelTime(sinPath_offPeak,ps_->subTrip->startTime);
 		sinPath_offPeak->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath_offPeak);
 		generatePathesByTravelTimeLinkElimination(sinPath_offPeak->path,duplicateChecker,ps_,fromNode,toNode,sim_mob::OffPeak);
@@ -1674,8 +1314,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	SinglePath *sinPath_default = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::Default);
 	if(sinPath_default)
 	{
-		sinPath_default->travelCost = getTravelCost2(sinPath_default,ps_->subTrip->startTime);
-		sinPath_default->travleTime = getTravelTime(sinPath_default,ps_->subTrip->startTime);
+		sinPath_default->travelCost = getPathTravelCost(sinPath_default,ps_->subTrip->startTime);
+		sinPath_default->travleTime = getPathTravelTime(sinPath_default,ps_->subTrip->startTime);
 		sinPath_default->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath_default);
 		generatePathesByTravelTimeLinkElimination(sinPath_default->path,duplicateChecker,ps_,fromNode,toNode,sim_mob::Default);
@@ -1684,8 +1324,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	SinglePath *sinPath = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::HighwayBias_Distance);
 	if(sinPath)
 	{
-		sinPath->travelCost = getTravelCost2(sinPath,ps_->subTrip->startTime);
-		sinPath->travleTime = getTravelTime(sinPath,ps_->subTrip->startTime);
+		sinPath->travelCost = getPathTravelCost(sinPath,ps_->subTrip->startTime);
+		sinPath->travleTime = getPathTravelTime(sinPath,ps_->subTrip->startTime);
 		sinPath->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath);
 		generatePathesByTravelTimeLinkElimination(sinPath->path,duplicateChecker,ps_,fromNode,toNode,sim_mob::HighwayBias_Distance);
@@ -1693,8 +1333,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	sinPath = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::HighwayBias_MorningPeak);
 	if(sinPath)
 	{
-		sinPath->travelCost = getTravelCost2(sinPath,ps_->subTrip->startTime);
-		sinPath->travleTime = getTravelTime(sinPath,ps_->subTrip->startTime);
+		sinPath->travelCost = getPathTravelCost(sinPath,ps_->subTrip->startTime);
+		sinPath->travleTime = getPathTravelTime(sinPath,ps_->subTrip->startTime);
 		sinPath->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath);
 		generatePathesByTravelTimeLinkElimination(sinPath->path,duplicateChecker,ps_,fromNode,toNode,sim_mob::HighwayBias_MorningPeak);
@@ -1702,8 +1342,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	sinPath = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::HighwayBias_EveningPeak);
 	if(sinPath)
 	{
-		sinPath->travelCost = getTravelCost2(sinPath,ps_->subTrip->startTime);
-		sinPath->travleTime = getTravelTime(sinPath,ps_->subTrip->startTime);
+		sinPath->travelCost = getPathTravelCost(sinPath,ps_->subTrip->startTime);
+		sinPath->travleTime = getPathTravelTime(sinPath,ps_->subTrip->startTime);
 		sinPath->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath);
 		generatePathesByTravelTimeLinkElimination(sinPath->path,duplicateChecker,ps_,fromNode,toNode,sim_mob::HighwayBias_MorningPeak);
@@ -1711,8 +1351,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	sinPath = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::HighwayBias_OffPeak);
 	if(sinPath)
 	{
-		sinPath->travelCost = getTravelCost2(sinPath,ps_->subTrip->startTime);
-		sinPath->travleTime = getTravelTime(sinPath,ps_->subTrip->startTime);
+		sinPath->travelCost = getPathTravelCost(sinPath,ps_->subTrip->startTime);
+		sinPath->travleTime = getPathTravelTime(sinPath,ps_->subTrip->startTime);
 		sinPath->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath);
 		generatePathesByTravelTimeLinkElimination(sinPath->path,duplicateChecker,ps_,fromNode,toNode,sim_mob::HighwayBias_MorningPeak);
@@ -1720,8 +1360,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	sinPath = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::HighwayBias_Default);
 	if(sinPath)
 	{
-		sinPath->travelCost = getTravelCost2(sinPath,ps_->subTrip->startTime);
-		sinPath->travleTime = getTravelTime(sinPath,ps_->subTrip->startTime);
+		sinPath->travelCost = getPathTravelCost(sinPath,ps_->subTrip->startTime);
+		sinPath->travleTime = getPathTravelTime(sinPath,ps_->subTrip->startTime);
 		sinPath->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath);
 		//
@@ -1734,8 +1374,8 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 		sinPath = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,sim_mob::Random,rs,i);
 		if(sinPath)
 		{
-			sinPath->travelCost = getTravelCost2(sinPath,ps_->subTrip->startTime);
-			sinPath->travleTime = getTravelTime(sinPath,ps_->subTrip->startTime);
+			sinPath->travelCost = getPathTravelCost(sinPath,ps_->subTrip->startTime);
+			sinPath->travleTime = getPathTravelTime(sinPath,ps_->subTrip->startTime);
 			sinPath->pathSetId = ps_->id;
 			ps_->pathChoices.insert(sinPath);
 		}
@@ -1744,27 +1384,14 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 #endif
 
 std::map<long long,sim_mob::OneTimeFlag> utilityLogger;
-double sim_mob::PathSetManager::generatePartialUtility(sim_mob::SinglePath* sp)
+
+double sim_mob::PathSetManager::generatePartialUtility(const sim_mob::SinglePath* sp) const
 {
 	double pUtility = 0;
 	if(!sp)
 	{
 		return pUtility;
 	}
-	// calculate pUtility
-	//1.0
-	//Obtain the travel time tt of the path.
-	//Obtain value of time for the agent A: bTTlowVOT/bTTmedVOT/bTThiVOT.
-//	pUtility += sp->travleTime * pathSetParam->bTTVOT;
-	//2.0
-	//Obtain the path size PS of the path.
-	//todo uncomment sanity check later
-//	if(sp->pathSize > 0.0)
-//	{
-//		std::stringstream out("");
-//		out << "generateUtility: invalid pathsize :" << sp->pathSize ;
-//		throw std::runtime_error(out.str());
-//	}
 	pUtility += sp->pathSize * pathSetParam->bCommonFactor;
 	//3.0
 	//Obtain the travel distance l and the highway distance w of the path.
@@ -1778,12 +1405,6 @@ double sim_mob::PathSetManager::generatePartialUtility(sim_mob::SinglePath* sp)
 	//6.0
 	//Obtain the number of right turns f of the path.
 	pUtility += sp->rightTurnNumber * pathSetParam->bLeftTurns;
-//	//7.0
-//	//min travel time param
-//	if(sp->isMinTravelTime == 1)
-//	{
-//		pUtility += pathSetParam->minTravelTimeParam;
-//	}
 	//8.0
 	//min distance param
 	if(sp->isMinDistance == 1)
@@ -1812,23 +1433,6 @@ double sim_mob::PathSetManager::generatePartialUtility(sim_mob::SinglePath* sp)
 		pUtility += sp->purpose * pathSetParam->bLeisure;
 	}
 
-//	std::stringstream out("");
-//	out << "utility_logger_" << sp->pathset_id;
-//	sim_mob::Logger::log(out.str()) << "-------------------------------------------------------------------------------------------\n" <<
-//			sp->pathset_id << " : UTILITY CALCULATION for pathset :" << sp->index << "\n"
-//			<< "travleTime * pathSetParam->bTTVOT : " << sp->travleTime << " " << pathSetParam->bTTVOT <<  " " << sp->travleTime * pathSetParam->bTTVOT << "\n"
-//			<< "sp->pathSize * pathSetParam->bCommonFactor : " << sp->pathSize << " " <<  pathSetParam->bCommonFactor <<  " " << sp->pathSize * pathSetParam->bCommonFactor<<"\n"
-//			<< "sp->length * pathSetParam->bLength + sp->highWayDistance * pathSetParam->bHighway : " << sp->length << " " <<  pathSetParam->bLength  << " " <<  sp->highWayDistance  << " " <<  pathSetParam->bHighway <<  " " <<sp->length * pathSetParam->bLength + sp->highWayDistance * pathSetParam->bHighway << "\n"
-//			<< "sp->travelCost * pathSetParam->bCost : " << sp->travelCost  << " " <<   pathSetParam->bCost  <<  " " <<sp->travelCost * pathSetParam->bCost << "\n"
-//			<< "sp->signalNumber * pathSetParam->bSigInter : "  << sp->signalNumber  << " " <<   pathSetParam->bSigInter <<  " " << sp->signalNumber * pathSetParam->bSigInter << "\n"
-//			<< "sp->rightTurnNumber * pathSetParam->bLeftTurns : " << sp->rightTurnNumber << " " << pathSetParam->bLeftTurns <<  " " << sp->rightTurnNumber * pathSetParam->bLeftTurns << "\n"
-//			<< "pathSetParam->minTravelTimeParam : " << pathSetParam->minTravelTimeParam << " " <<  (sp->isMinTravelTime == 1) <<  " " <<"\n"
-//			<< "pathSetParam->minDistanceParam : " <<  pathSetParam->minDistanceParam << " " <<   (sp->isMinDistance == 1) <<  " " <<"\n"
-//			<< "pathSetParam->minSignalParam : " << pathSetParam->minSignalParam  << " " <<  (sp->isMinSignal == 1) <<  " " <<"\n"
-//			<< "pathSetParam->maxHighwayParam  : " << pathSetParam->maxHighwayParam  << " " << (sp->isMaxHighWayUsage == 1)  <<  " " <<"\n"
-//			<< "sp->purpose  * bWork/bLeisure  : " << sp->purpose  << " " <<   (sp->purpose == sim_mob::work ? pathSetParam->bWork : pathSetParam->bLeisure)  <<  " " << sp->purpose * (sp->purpose == sim_mob::work ? pathSetParam->bWork : pathSetParam->bLeisure) << "\n"
-//			<< "Utility : " << pUtility << "\n";
-
 	if(utilityLogger[sp->index].check())
 	{
 		sp->partialUtilityDbg << sp->pathSetId << "," << "," << sp->index << sp->travleTime << "," << pathSetParam->bTTVOT <<  ", " << sp->travleTime * pathSetParam->bTTVOT
@@ -1850,7 +1454,7 @@ double sim_mob::PathSetManager::generatePartialUtility(sim_mob::SinglePath* sp)
 
 }
 
-double sim_mob::PathSetManager::generateUtility(sim_mob::SinglePath* sp)
+double sim_mob::PathSetManager::generateUtility(const sim_mob::SinglePath* sp) const
 {
 	double utility=0;
 	if(!sp)
@@ -1870,9 +1474,6 @@ double sim_mob::PathSetManager::generateUtility(sim_mob::SinglePath* sp)
 	//obtain travel cost part of utility
 	utility += sp->travelCost * pathSetParam->bCost;
 	std::stringstream out("");
-//	out << "utility_csv_logger_" << sp->pathSetId << ".csv";
-//	sim_mob::Logger::log(out.str()) << sp->partialUtilityDbg.str() << "," << sp->travleTime << "," << pathSetParam->bTTVOT << "," << sp->travleTime * pathSetParam->bTTVOT
-//			<< sp->travelCost << "," <<  pathSetParam->bCost << "," <<  sp->travelCost * pathSetParam->bCost << "," << utility << "\n";
 	return utility;
 }
 
@@ -1919,8 +1520,8 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 			sp->utility = generateUtility(sp);
 		}
 		//this is done in onPathSetRetrieval so no need to repeat for now
-//		sp->travleTime = getTravelTime(sp,ps->subTrip->startTime);
-//		sp->travelCost = getTravelCost2(sp,ps->subTrip->startTime);
+//		sp->travleTime = getPathTravelTime(sp,ps->subTrip->startTime);
+//		sp->travelCost = getPathTravelCost(sp,ps->subTrip->startTime);
 		utilityDbg << "[" << sp->utility << "," << exp(sp->utility) << "]";
 		ps->logsum += exp(sp->utility);
 		iteration++;
@@ -2075,55 +1676,6 @@ sim_mob::SinglePath* sim_mob::PathSetManager::generateShortestTravelTimePath(con
 
 		return s;
 }
-void sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::SinglePath *sp)
-{
-	if(sp->path.size()<2)
-	{
-		sp->rightTurnNumber=0;
-		sp->signalNumber=0;
-		return ;
-	}
-	int res=0;
-	int signalNumber=0;
-	std::vector<WayPoint>::iterator itt=sp->path.begin();
-	++itt;
-	for(std::vector<WayPoint>::iterator it=sp->path.begin();it!=sp->path.end();++it)
-	{
-		const RoadSegment* currentSeg = it->roadSegment_;
-		const RoadSegment* targetSeg = NULL;
-		if(itt!=sp->path.end())
-		{
-
-			targetSeg = itt->roadSegment_;
-		}
-		else // already last segment
-		{
-			break;
-		}
-
-		if(currentSeg->getEnd() == currentSeg->getLink()->getEnd()) // intersection
-		{
-			signalNumber++;
-			// get lane connector
-			const std::set<sim_mob::LaneConnector*>& lcs = dynamic_cast<const MultiNode*> (currentSeg->getEnd())->getOutgoingLanes(currentSeg);
-			for (std::set<LaneConnector*>::const_iterator it2 = lcs.begin(); it2 != lcs.end(); it2++) {
-				if((*it2)->getLaneTo()->getRoadSegment() == targetSeg)
-				{
-					int laneIndex = sim_mob::getLaneIndex2((*it2)->getLaneFrom());
-					if(laneIndex<2)//most left lane
-					{
-						res++;
-						break;
-					}
-				}//end if targetSeg
-			}// end for lcs
-//			}// end if lcs
-		}//end currEndNode
-		++itt;
-	}//end for
-	sp->rightTurnNumber=res;
-	sp->signalNumber=signalNumber;
-}
 
 void sim_mob::generatePathSize(boost::shared_ptr<sim_mob::PathSet>&ps)
 {
@@ -2192,7 +1744,7 @@ void sim_mob::generatePathSize(boost::shared_ptr<sim_mob::PathSet>&ps)
 	}// end for
 }
 
-double sim_mob::PathSetManager::getTravelTime(sim_mob::SinglePath *sp,const std::string & travelMode, const sim_mob::DailyTime & startTime_)
+double sim_mob::PathSetManager::getPathTravelTime(sim_mob::SinglePath *sp,const std::string & travelMode, const sim_mob::DailyTime & startTime_)
 {
 	sim_mob::DailyTime startTime = startTime_;
 	std::stringstream out("");
@@ -2203,7 +1755,7 @@ double sim_mob::PathSetManager::getTravelTime(sim_mob::SinglePath *sp,const std:
 		out << i << " " ;
 		if(sp->path[i].type_ == WayPoint::ROAD_SEGMENT){
 //			unsigned long segId = sp->path[i].roadSegment_->getId();
-			double t = sim_mob::PathSetParam::getInstance()->getTravelTimeBySegId(sp->path[i].roadSegment_,travelMode, startTime);
+			double t = sim_mob::PathSetParam::getInstance()->getSegTT(sp->path[i].roadSegment_,travelMode, startTime);
 			ts += t;
 			startTime = startTime + sim_mob::DailyTime(t*1000);
 			out << t << " " << ts << startTime.getRepr_() ;
@@ -2217,327 +1769,128 @@ double sim_mob::PathSetManager::getTravelTime(sim_mob::SinglePath *sp,const std:
 	return ts;
 }
 
-void sim_mob::SinglePath::init(std::vector<WayPoint>& wpPools)
-{
-	//step-1 fill in the path
-	filterOutNodes(wpPools, this->path);
-	if(this->path.empty())
-	{
-	   std::string err = "empty path for OD:" + this->pathSetId + "--"  + this->id;
-	   throw std::runtime_error(err);
-	}
-	//step-1.5 fill in the linkPath
-	{
-		sim_mob::Link* currLink = nullptr;
-		for(std::vector<WayPoint>::iterator it = path.begin(); it != path.end(); it++)
-		{
-			sim_mob::Link* link = it->roadSegment_->getLink();
-			if(currLink != link)
-			{
-				linkPath.push_back(link);
-				currLink = link;
-			}
-		}
-	}
-	//step-1.6 fill in the segSet
-	{
-		for(std::vector<WayPoint>::iterator it = path.begin(); it != path.end(); it++)
-		{
-			segSet.insert(it->roadSegment_);
-		}
-	}
 
-	//step-2 right/left turn
-	sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(this);
-	//step-3 highway distance
-	highWayDistance = sim_mob::calculateHighWayDistance(this);
-	//step-4 length
-	length = sim_mob::generateSinglePathLength(path);
-}
-
-void sim_mob::SinglePath::clear()
-{
-	path.clear();
-//	shortestSegPath.clear();
-	id="";
-	pathSetId="";
-	utility = 0.0;
-	pathSize = 0.0;
-	travelCost=0.0;
-	signalNumber=0.0;
-	rightTurnNumber=0.0;
-	length=0.0;
-	travleTime=0.0;
-	highWayDistance=0.0;
-	isMinTravelTime=0;
-	isMinDistance=0;
-	isMinSignal=0;
-	isMinRightTurn=0;
-	isMaxHighWayUsage=0;
-}
-uint32_t sim_mob::SinglePath::getSize(){
-
-	uint32_t sum = 0;
-	sum += sizeof(WayPoint) * path.size(); // std::vector<WayPoint> shortestWayPointpath;
-//	sum += sizeof(const RoadSegment*) * shortestSegPath.size(); // std::set<const RoadSegment*> shortestSegPath;
-	sum += sizeof(boost::shared_ptr<sim_mob::PathSet>); // boost::shared_ptr<sim_mob::PathSet>pathSet; // parent
-	sum += sizeof(const sim_mob::RoadSegment*); // const sim_mob::RoadSegment* excludeSeg; // can be null
-	sum += sizeof(const sim_mob::Node *); // const sim_mob::Node *fromNode;
-	sum += sizeof(const sim_mob::Node *); // const sim_mob::Node *toNode;
-
-	sum += sizeof(double); // double highWayDistance;
-	sum += sizeof(bool); // bool isMinTravelTime;
-	sum += sizeof(bool); // bool isMinDistance;
-	sum += sizeof(bool); // bool isMinSignal;
-	sum += sizeof(bool); // bool isMinRightTurn;
-	sum += sizeof(bool); // bool isMaxHighWayUsage;
-	sum += sizeof(bool); // bool isShortestPath;
-
-	sum += sizeof(bool); // bool isNeedSave2DB;
-	sum += id.length(); // std::string id;   //id: seg1id_seg2id_seg3id
-	sum += pathSetId.length(); // std::string pathset_id;
-	sum += sizeof(double); // double utility;
-	sum += sizeof(double); // double pathsize;
-	sum += sizeof(double); // double travel_cost;
-	sum += sizeof(int); // int signalNumber;
-	sum += sizeof(int); // int rightTurnNumber;
-	sum += scenario.length(); // std::string scenario;
-	sum += sizeof(double); // double length;
-	sum += sizeof(double); // double travle_time;
-	sum += sizeof(sim_mob::TRIP_PURPOSE); // sim_mob::TRIP_PURPOSE purpose;
-	logger << "SinglePath size bytes:" << sum << "\n" ;
-	return sum;
-}
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-sim_mob::PathSet::~PathSet()
-{
-	fromNode = NULL;
-	toNode = NULL;
-	subTrip = NULL;
-	//logger << "[DELET PATHSET " << id << "] [" << pathChoices.size() << "  SINGLEPATH]" << std::endl;
-	BOOST_FOREACH(sim_mob::SinglePath*sp,pathChoices)
-	{
-		safe_delete_item(sp);
-	}
-}
-
-uint32_t sim_mob::PathSet::getSize(){
-	uint32_t sum = 0;
-		sum += sizeof(bool);// isInit;
-		sum += sizeof(bool);//bool hasBestChoice;
-		sum += sizeof(WayPoint) * (bestPath ? bestPath->size() : 0);//std::vector<WayPoint> bestWayPointpath;  //best choice
-		sum += sizeof(const sim_mob::Node *);//const sim_mob::Node *fromNode;
-		sum += sizeof(const sim_mob::Node *);//const sim_mob::Node *toNode;
-		sum += sizeof(SinglePath*);//SinglePath* oriPath;  // shortest path with all segments
-		//std::map<std::string,sim_mob::SinglePath*> SinglePathPool;//unused so far
-//		typedef std::map<std::string,sim_mob::SinglePath*>::value_type tt;
-//		BOOST_FOREACH(tt & pair_,SinglePathPool)
-//		{
-//			sum += pair_.first.length();
-//			sum += sizeof(pair_.second);
-//		}
-		//std::set<sim_mob::SinglePath*, sim_mob::SinglePath> pathChoices;
-		sim_mob::SinglePath* sp;
-		BOOST_FOREACH(sp,pathChoices)
-		{
-			uint32_t t = sp->getSize();
-			sum += t;//real singlepath size
-		}
-		sum += sizeof(bool);//bool isNeedSave2DB;
-		sum += sizeof(double);//double logsum;
-		sum += sizeof(const sim_mob::SubTrip*);//const sim_mob::SubTrip* subTrip;
-		sum += id.length();//std::string id;
-//		sum += fromNodeId.length();//std::string fromNodeId;
-//		sum += toNodeId.length();//std::string toNodeId;
-		sum += excludedPaths.length();//std::string excludedPaths;
-		sum += scenario.length();//std::string scenario;
-		sum += sizeof(int);//int hasPath;
-		sum += sizeof(PathSetManager *);//PathSetManager *psMgr;
-		logger << "pathset_cached_bytes :" << sum << "\n" ;
-		return sum;
-}
-
-bool sim_mob::PathSet::includesRoadSegment(const std::set<const sim_mob::RoadSegment*> & segs)
-{
-	BOOST_FOREACH(sim_mob::SinglePath *sp, pathChoices)
-	{
-		BOOST_FOREACH(sim_mob::WayPoint &wp, sp->path)
-		{
-			BOOST_FOREACH(const sim_mob::RoadSegment* seg, segs)
-			{
-				if(wp.roadSegment_ == seg)
-				{
-					return true;
-				}
-			}
-		}
-	}
-	return false;
-}
-
-
-void sim_mob::PathSet::excludeRoadSegment(const std::set<const sim_mob::RoadSegment*> & segs)
-{
-	std::set<sim_mob::SinglePath*>::iterator it(pathChoices.begin());
-	for(; it != pathChoices.end();)
-	{
-		if((*it)->includesRoadSegment(segs))
-		{
-			pathChoices.erase(it++);
-		}
-		else
-		{
-			++it;
-		}
-	}
-}
-
-void sim_mob::PathSet::addOrDeleteSinglePath(sim_mob::SinglePath* s)
-{
-	if(!s)
-	{
-		return;
-	}
-	if(!pathChoices.insert(s).second)
-	{
-		safe_delete_item(s);
-	}
-}
-
-sim_mob::ERP_Section::ERP_Section(ERP_Section &src)
-	: section_id(src.section_id),ERP_Gantry_No(src.ERP_Gantry_No)
-{
-	ERP_Gantry_No_str = boost::lexical_cast<std::string>(src.ERP_Gantry_No);
-}
-
-sim_mob::LinkTravelTime::LinkTravelTime(const LinkTravelTime& src)
-	: linkId(src.linkId),
-			startTime(src.startTime),endTime(src.endTime),travelTime(src.travelTime),interval(src.interval)
-			,startTime_DT(sim_mob::DailyTime(src.startTime)),endTime_DT(sim_mob::DailyTime(src.endTime))
-{
-}
-sim_mob::LinkTravelTime::LinkTravelTime()
-	: linkId(0),
-			startTime(""),endTime(""),travelTime(0.0),
-			startTime_DT(0),endTime_DT(0)
-{
-}
-
-sim_mob::SinglePath::SinglePath() : purpose(work),utility(0.0),pathSize(0.0),travelCost(0.0),
-signalNumber(0.0),rightTurnNumber(0.0),length(0.0),travleTime(0.0),highWayDistance(0.0),valid_path(true),
-isMinTravelTime(0),isMinDistance(0),isMinSignal(0),isMinRightTurn(0),isMaxHighWayUsage(0),
-isShortestPath(0), index(-1),path(std::vector<WayPoint>()),isNeedSave2DB(false){
-}
-
-sim_mob::SinglePath::SinglePath(const SinglePath& source) :
-		id(source.id),
-		utility(source.utility),pathSize(source.pathSize),
-		travelCost(source.travelCost),valid_path(source.valid_path),
-		signalNumber(source.signalNumber),
-		rightTurnNumber(source.rightTurnNumber),
-		length(source.length),travleTime(source.travleTime),
-		pathSetId(source.pathSetId),highWayDistance(source.highWayDistance),
-		isMinTravelTime(source.isMinTravelTime),isMinDistance(source.isMinDistance),isMinSignal(source.isMinSignal),
-		isMinRightTurn(source.isMinRightTurn),isMaxHighWayUsage(source.isMaxHighWayUsage),isShortestPath(source.isShortestPath)
-{
-	isNeedSave2DB=false;
-
-	purpose = sim_mob::work;
-}
-
-sim_mob::SinglePath::~SinglePath(){
-	clear();
-}
-
-bool sim_mob::SinglePath::includesRoadSegment(const std::set<const sim_mob::RoadSegment*> & segs, bool dbg, std::stringstream *out){
-	if(!this->path.size())
-	{
-		int i = 0;
-	}
-	BOOST_FOREACH(sim_mob::WayPoint &wp, this->path){
-		BOOST_FOREACH(const sim_mob::RoadSegment* seg, segs){
-			if(dbg){
-				*out << "checking " << wp.roadSegment_->getId() << " against " <<  seg->getId() << "\n";
-			}
-			std::stringstream hack1(""),hack2("");
-			hack1 << wp.roadSegment_->getId();
-			hack2 << seg->getId();
-			if(hack1.str() == hack2.str() ){
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-void sim_mob::PathSetManager::addRdSegTravelTimes(const Agent::RdSegTravelStat & stats) {
+void sim_mob::PathSetManager::addSegTT(const Agent::RdSegTravelStat & stats) {
 	processTT.addTravelTime(stats);
 }
 
-void sim_mob::ProcessTT::addTravelTime(const Agent::RdSegTravelStat & stats) {
-	TT::TI timeInterval = ProcessTT::getTimeInterval(stats.entryTime * 1000, intervalMS);//milliseconds
-	rdSegTravelTimesMap[timeInterval][stats.travelMode][stats.rs].totalTravelTime += stats.travelTime; //add to total travel time
-	rdSegTravelTimesMap[timeInterval][stats.travelMode][stats.rs].travelTimeCnt += 1; //increment the total contribution
+double sim_mob::PathSetManager::getInSimulationSegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime)
+{
+	return processTT.getTT(travelMode,rs);
 }
 
-int ProcessTT::dbg_ProcessTT_cnt = 0;
-ProcessTT::ProcessTT():intervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval* 1000 /*milliseconds*/){}
-
-sim_mob::TT::TI ProcessTT::getTimeInterval(const unsigned long time, const unsigned int interval)
+void sim_mob::PathSetManager::initTimeInterval()
 {
-	return time / interval ;/*milliseconds*/
+	intervalMS = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval* 1000 /*milliseconds*/;
+	uint32_t startTm = ConfigManager::GetInstance().FullConfig().simStartTime().getValue();
+	curIntervalMS = ProcessTT::getTimeInterval(startTm, intervalMS);
 }
 
-void sim_mob::ProcessTT::insertTravelTime2TmpTable(const std::string fileName)
+void sim_mob::PathSetManager::updateCurrTimeInterval()
 {
-	//	easy reading down the line
-	typedef sim_mob::TT::MSTC::value_type TravelModes;//travel mode collections
-	typedef sim_mob::TravelTime::value_type TRPs;//time range pairs
-	typedef std::map<const sim_mob::RoadSegment*,sim_mob::TT::TimeAndCount >::value_type STC;//SegmentTimeCount
-	//	destination file
-	sim_mob::BasicLogger & TTLogger  = sim_mob::Logger::log(fileName);
-	// config interval(in seconds)
-	int intervalSec = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval;
-	//time range
-	BOOST_FOREACH(TRPs &TT_Pair, rdSegTravelTimesMap)
+	curIntervalMS += intervalMS;
+}
+
+
+/**
+ * In the path set find the shortest path which includes the given segment.
+ * The method uses linkPath container which covers all the links that the
+ * path visits.
+ * Note: A path visiting a link doesnt mean the enire link is within the path.
+ * fist and last link might have segments that are not in the path.
+ * @param pathChoices given path set
+ * @param rs consider only the paths having the given road segment
+ * @return the singlepath object containing the shortest path
+ */
+sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::Link *ln)
+{
+	if(pathChoices.begin() == pathChoices.end())
 	{
-		const TT::TI & timeInterval = TT_Pair.first;
-		TT::MSTC & travelModes = TT_Pair.second;
-		//travel mode
-		BOOST_FOREACH(TravelModes &travelMode, travelModes)
-		{
-			const std::string & travelModeStr = travelMode.first;
-			std::map<const sim_mob::RoadSegment*,TT::TimeAndCount > & travelTimes = travelMode.second;
-			//road segment
-			BOOST_FOREACH(STC &RS_Pair, travelTimes)
-			{
+		return nullptr;
+	}
+	sim_mob::SinglePath* res = nullptr;
+	double min = std::numeric_limits<double>::max();
+	double tmp = 0.0;
+	BOOST_FOREACH(sim_mob::SinglePath*sp, pathChoices)
+	{
 
-				//easy reading
-				const unsigned long &segmentId = RS_Pair.first->getId();
-				TT::TimeAndCount & timeAndCount = RS_Pair.second;
-				double &totalTT_ForThisSeg = timeAndCount.totalTravelTime;
-				int &totalTT_Submissions = timeAndCount.travelTimeCnt;
-				// calculate the average travel time
-				double travelTime = totalTT_ForThisSeg / totalTT_Submissions;
-				//now simply write it to the file
-				dbg_ProcessTT_cnt++;
-				TTLogger << segmentId << ";" << DailyTime(timeInterval* intervalMS).getRepr_() << ";" << DailyTime((timeInterval + 1) * intervalMS - 1).getRepr_() << ";" << travelTime << ";"  << intervalSec << ";"  << travelModeStr <<  "\n";
-			}
+		if(sp->linkPath.empty())
+		{
+			throw std::runtime_error("linkPath of singlepath object is Empty");
+		}
+		//filter paths not including the target link
+		if(std::find(sp->linkPath.begin(),sp->linkPath.end(),ln) == sp->linkPath.end())
+		{
+			continue;
+		}
+		if(sp->length <= 0.0)
+		{
+			throw std::runtime_error("Invalid path length");//todo remove this after enough testing
+		}
+		//double tmp = generateSinglePathLength(sp->path);
+		if ((sp->length*1000000 - min*1000000  ) < 0.0) //easy way to check doubles
+		{
+			//min = tmp;
+			min = sp->length;
+			res = sp;
 		}
 	}
+	return res;
 }
 
-bool sim_mob::ProcessTT::storeRTT2DB()
+/**
+ * Overload
+ */
+sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::RoadSegment *rs)
 {
-	typedef std::map<boost::thread::id, boost::shared_ptr<ProcessTT> >::value_type TTs;
-	std::string tempFileName = sim_mob::PathSetParam::getInstance()->RTTT;
-	insertTravelTime2TmpTable(tempFileName);
-	sim_mob::Logger::log(tempFileName).flush();
-	tempFileName += ".txt";
-	return sim_mob::aimsun::Loader::upsertTravelTime(*sim_mob::PathSetManager::getInstance()->getSession(), boost::filesystem::canonical(tempFileName).string(), sim_mob::PathSetParam::getInstance()->RTTT);
+	const sim_mob::Link *ln = rs->getLink();
+	return findShortestPath_LinkBased(pathChoices,ln);
 }
 
-ProcessTT::~ProcessTT()
+double getPathTravelCost(sim_mob::SinglePath *sp,const std::string & travelMode, const sim_mob::DailyTime & startTime_)
 {
-	Print() << "dbg_ProcessTT_cnt " << dbg_ProcessTT_cnt << std::endl;
+	sim_mob::DailyTime tripStartTime(startTime_);
+	double res=0.0;
+	double ts=0.0;
+	if(!sp || !sp->path.empty()) {
+		sim_mob::Logger::log("path_set") << "gTC: sp is empty" << std::endl;
+	}
+	int i = 0;
+//	sim_mob::DailyTime trip_startTime = sp->pathSet->subTrip->startTime;
+	for(std::vector<WayPoint>::iterator it1 = sp->path.begin(); it1 != sp->path.end(); it1++,i++)
+	{
+		unsigned long segId = (it1)->roadSegment_->getId();
+		std::map<int,sim_mob::ERP_Section*>::iterator it = sim_mob::PathSetParam::getInstance()->ERP_SectionPool.find(segId);//todo type mismatch
+		//get travel time to this segment
+		double t = sim_mob::PathSetParam::getInstance()->getSegTT((it1)->roadSegment_,travelMode, tripStartTime);
+		ts += t;
+		tripStartTime = tripStartTime + sim_mob::DailyTime(t*1000);
+		if(it!=sim_mob::PathSetParam::getInstance()->ERP_SectionPool.end())
+		{
+			sim_mob::ERP_Section* erp_section = (*it).second;
+			std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::iterator itt =
+					sim_mob::PathSetParam::getInstance()->ERP_SurchargePool.find(erp_section->ERP_Gantry_No_str);
+			if(itt!=sim_mob::PathSetParam::getInstance()->ERP_SurchargePool.end())
+			{
+				std::vector<sim_mob::ERP_Surcharge*> erp_surcharges = (*itt).second;
+				for(int i=0;i<erp_surcharges.size();++i)
+				{
+					sim_mob::ERP_Surcharge* s = erp_surcharges[i];
+					if( s->startTime_DT.isBeforeEqual(tripStartTime) && s->endTime_DT.isAfter(tripStartTime) &&
+							s->vehicleTypeId == 1 && s->day == "Weekdays")
+					{
+						res += s->rate;
+					}
+				}
+			}
+			else
+			{
+			}
+		}
+		else
+		{
+		}
+	}
+	return res;
 }
+

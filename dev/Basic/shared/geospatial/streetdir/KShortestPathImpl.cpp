@@ -8,6 +8,7 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "path/PathSetManager.hpp"
+#include "path/Path.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include<vector>
 
@@ -234,8 +235,8 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 	//			Apply any shortest path algorithm (e.g., Dijkstra's) to find the shortest path from O to D,	given link weights W and network graph G.
 	std::vector<sim_mob::WayPoint> temp = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*from),stdir->DrivingVertex(*to),bl);
 	std::vector<sim_mob::WayPoint> A0;//actually A1 (in the pseudo code)
-	sim_mob::filterOutNodes(temp,A0);
-	std::cout << "shortest path with nodes : " << printWPpath(temp) << "\n\n";
+	sim_mob::SinglePath::filterOutNodes(temp,A0);
+	std::cout << "shortest path with nodes : " << sim_mob::printWPpath(temp) << "\n\n";
 	std::cout << "shortest path segments : " << printWPpath(A0) << "\n\n";
 	//sanity check
 	if(A0.empty())
@@ -275,7 +276,7 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 			//Find shortest path from SpurNode to D, and store it as SpurPath.
 			std::vector<sim_mob::WayPoint> SpurPath,temp;
 			temp = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*SpurNode),stdir->DrivingVertex(*to),bl);
-			sim_mob::filterOutNodes(temp,SpurPath);
+			sim_mob::SinglePath::filterOutNodes(temp,SpurPath);
 			std::vector<sim_mob::WayPoint> TotalPath = std::vector<sim_mob::WayPoint>();
 			if(validatePath(RootPath, SpurPath))
 			{

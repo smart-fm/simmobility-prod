@@ -949,7 +949,7 @@ void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSeg
 	if(prevSeg == parent->getCurrRdSegTravelStats().rs){
 		const std::string & travelMode = parent->getRole()->getMode();
 		sim_mob::Agent::RdSegTravelStat & currStats = parent->finalizeCurrRdSegTravelStat(prevSeg,segEnterExitTime, travelMode);
-		PathSetManager::getInstance()->addRdSegTravelTimes(currStats);
+		PathSetManager::getInstance()->addSegTT(currStats);
 	}
 	//creating a new entry in agent's travelStats for the new road segment, with entry time
 	parent->getCurrRdSegTravelStats().reset();

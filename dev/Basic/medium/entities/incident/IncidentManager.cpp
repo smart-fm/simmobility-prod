@@ -6,6 +6,7 @@
 #include <entities/roles/driver/DriverFacets.hpp>
 #include <entities/conflux/Conflux.hpp>
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "conf/ConfigParams.hpp"
 #include "path/PathSetManager.hpp"
 #include "message/MessageBus.hpp"
 #include "conf/ConfigManager.hpp"

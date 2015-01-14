@@ -191,34 +191,12 @@ void sim_mob::RestrictedRegion::populate()
 	{
 		zoneNodes.erase(boost::lexical_cast<std::string>(item.first->getEnd()->getID()));
 	}
-	//debug
-	sim_mob::BasicLogger & enterCbdLogger = sim_mob::Logger::log("Enter-CBD.csv");
-	BOOST_FOREACH(SegPair item, in)
-	{
-		enterCbdLogger << item.first->getId() << "," << item.second->getId() << ",\n";
-	}
-	sim_mob::BasicLogger & exitCbdLogger = sim_mob::Logger::log("Exit-CBD.csv");
-	BOOST_FOREACH(SegPair item, out)
-	{
-		exitCbdLogger << item.first->getId() << "," << item.second->getId() << ",\n";
-	}
-	sim_mob::BasicLogger & cbdSegLogger = sim_mob::Logger::log("CBD-Segments.csv");
-	BOOST_FOREACH(const sim_mob::RoadSegment*rs,zoneSegments)
-	{
-		cbdSegLogger << rs->getId() << ",";
-	}
 
-	sim_mob::BasicLogger & cbdNodeLogger = sim_mob::Logger::log("CBD-Nodes.csv");
 	typedef std::map<std::string, const Node*>::value_type Pair;
-	BOOST_FOREACH(Pair node,zoneNodes)
-	{
-		cbdNodeLogger << node.first << ",";
-	}
-
-	cout << "CBD Entering border Sections size: " << in.size() << "\n";
-	cout << "CBD Exitting border Sections size: " << out.size() << "\n";
-	cout << "Total segments in CBD Area: " << zoneSegments.size() << "\n";
-	cout << "Total nodes in CBD Area: " << zoneNodes.size() << "\n";
+//	cout << "CBD Entering border Sections size: " << in.size() << "\n";
+//	cout << "CBD Exitting border Sections size: " << out.size() << "\n";
+//	cout << "Total segments in CBD Area: " << zoneSegments.size() << "\n";
+//	cout << "Total nodes in CBD Area: " << zoneNodes.size() << "\n";
 	/********************************************************
 	 * ********** String representations & Tagging **********
 	 * ******************************************************/

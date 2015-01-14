@@ -192,6 +192,7 @@ public:
 	{
 		const RoadSegment* rs;
 		double entryTime;
+		unsigned int entryTimeInterval;
 		double travelTime;
 		std::string travelMode;
 		bool started;
@@ -199,7 +200,7 @@ public:
 		std::string dbg;
 		sim_mob::Agent * ag;
 		RdSegTravelStat(const RoadSegment* rdSeg, std::string travelMode = "")
-		: rs(rdSeg), entryTime(0.0), travelTime(0.0),started(false),finalized(false), travelMode(travelMode), ag(nullptr)
+		: rs(rdSeg), entryTime(0.0), travelTime(0.0),started(false),finalized(false), travelMode(travelMode), ag(nullptr),entryTimeInterval(0)
 		{}
 
 		/**

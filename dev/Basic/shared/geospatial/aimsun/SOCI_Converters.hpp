@@ -20,7 +20,8 @@
 #include "BusStop.hpp"
 #include "./Signal.hpp"
 #include "Phase.hpp"
-#include "path/PathSetManager.hpp"
+#include "path/Path.hpp"
+#include "path/PathSetParam.hpp"
 #include "entities/PersonLoader.hpp"
 
 //using namespace sim_mob::aimsun;

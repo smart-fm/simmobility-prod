@@ -899,14 +899,13 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 	    double key=999.0;
 	    std::string startTime_str = "06:00:00";
 	    std::string endTime_str = "10:00:00";
-	    unsigned long seg_id = rs->getId();
 	    if(tr == sim_mob::MorningPeak)
 	    {
 	    	startTime_str = "06:00:00";
 	    	endTime_str = "10:00:00";
 	    	sim_mob::DailyTime startTime(startTime_str);
 			sim_mob::DailyTime endTime(endTime_str);
-			key = sim_mob::PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime,endTime);
+			key = sim_mob::PathSetParam::getInstance()->getSegRangeTT(rs,"Car", startTime,endTime);
 	    }
 	    else if(tr == sim_mob::EveningPeak)
 	    {
@@ -914,7 +913,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			endTime_str = "20:00:00";
 			sim_mob::DailyTime startTime(startTime_str);
 			sim_mob::DailyTime endTime(endTime_str);
-			key = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime,endTime);
+			key = PathSetParam::getInstance()->getSegRangeTT(rs,"Car",startTime,endTime);
 	    }
 	    else if(tr == sim_mob::OffPeak)
 	    {
@@ -922,25 +921,25 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			endTime_str = "06:00:00";
 			sim_mob::DailyTime startTime1(startTime_str);
 			sim_mob::DailyTime endTime1(endTime_str);
-			double key1 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime1,endTime1);
+			double key1 = PathSetParam::getInstance()->getSegRangeTT(rs,"Car",startTime1,endTime1);
 			//
 			startTime_str = "10:00:00";
 			endTime_str = "17:00:00";
 			sim_mob::DailyTime startTime2(startTime_str);
 			sim_mob::DailyTime endTime2(endTime_str);
-			double key2 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime2,endTime2);
+			double key2 = PathSetParam::getInstance()->getSegRangeTT(rs,"Car",startTime2,endTime2);
 			//
 			startTime_str = "20:00:00";
 			endTime_str = "24:00:00";
 			sim_mob::DailyTime startTime3(startTime_str);
 			sim_mob::DailyTime endTime3(endTime_str);
-			double key3 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime3,endTime3);
+			double key3 = PathSetParam::getInstance()->getSegRangeTT(rs,"Car",startTime3,endTime3);
 			//
 			key = (key1+key2+key3)/3.0;
 	    }
 	    else if(tr == sim_mob::Default)
 	    {
-	    	key = PathSetParam::getInstance()->getDefaultTravelTimeBySegId(seg_id);
+	    	key = PathSetParam::getInstance()->getDefSegTT(rs);
 	    }
 	    else if(tr == sim_mob::HighwayBias_Distance)
 	    {
@@ -956,7 +955,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			endTime_str = "10:00:00";
 			sim_mob::DailyTime startTime(startTime_str);
 			sim_mob::DailyTime endTime(endTime_str);
-			double key_ = sim_mob::PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime,endTime);
+			double key_ = sim_mob::PathSetParam::getInstance()->getSegRangeTT(rs,"Car",startTime,endTime);
 	    	if(rs->maxSpeed > 60.0)
 			{
 				key = highway_bias * key_;
@@ -968,7 +967,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			endTime_str = "20:00:00";
 			sim_mob::DailyTime startTime(startTime_str);
 			sim_mob::DailyTime endTime(endTime_str);
-			key = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime,endTime);
+			key = PathSetParam::getInstance()->getSegRangeTT(rs,"Car",startTime,endTime);
 			if(rs->maxSpeed > 60.0)
 			{
 				key = highway_bias * key;
@@ -980,19 +979,19 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			endTime_str = "06:00:00";
 			sim_mob::DailyTime startTime1(startTime_str);
 			sim_mob::DailyTime endTime1(endTime_str);
-			double key1 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime1,endTime1);
+			double key1 = PathSetParam::getInstance()->getSegRangeTT(rs,"Car",startTime1,endTime1);
 			//
 			startTime_str = "10:00:00";
 			endTime_str = "17:00:00";
 			sim_mob::DailyTime startTime2(startTime_str);
 			sim_mob::DailyTime endTime2(endTime_str);
-			double key2 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime2,endTime2);
+			double key2 = PathSetParam::getInstance()->getSegRangeTT(rs,"Car",startTime2,endTime2);
 			//
 			startTime_str = "20:00:00";
 			endTime_str = "24:00:00";
 			sim_mob::DailyTime startTime3(startTime_str);
 			sim_mob::DailyTime endTime3(endTime_str);
-			double key3 = PathSetParam::getInstance()->getAverageTravelTimeBySegIdStartEndTime(rs,startTime3,endTime3);
+			double key3 = PathSetParam::getInstance()->getSegRangeTT(rs,"Car",startTime3,endTime3);
 			//
 			key = (key1+key2+key3)/3.0;
 			if(rs->maxSpeed > 60.0)
@@ -1002,7 +1001,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 		}
 		else if(tr == sim_mob::HighwayBias_Default)
 		{
-			key = PathSetParam::getInstance()->getDefaultTravelTimeBySegId(seg_id);
+			key = PathSetParam::getInstance()->getDefSegTT(rs);
 			if(rs->maxSpeed > 60.0)
 			{
 				key = highway_bias * key;
@@ -1018,7 +1017,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 						dice(rng, one_to_ten);
 			double random_number = dice();
 //			std::cout<<random_number<<"   "<<r<<std::endl;
-			key = random_number * PathSetParam::getInstance()->getDefaultTravelTimeBySegId(seg_id);
+			key = random_number * PathSetParam::getInstance()->getDefSegTT(rs);
 		}
 
 	    boost::put(boost::edge_weight, graph, edge, key);

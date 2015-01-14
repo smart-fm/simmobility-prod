@@ -12,6 +12,7 @@
 #include "workers/WorkGroup.hpp"
 #include "message/MessageBus.hpp"
 #include "entities/Agent.hpp"
+#include "path/PathSetManager.hpp"
 
 using std::vector;
 
@@ -209,8 +210,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_AuraManager(const std::set<Agent*>
 
 		(*it)->waitAuraManager(removedEntities);
 	}
-	//pathset manager update some tick based values
-
+	PathSetManager::updateCurrTimeInterval();
 	//Here is where we actually block, ensuring a tick-wide synchronization.
 	if (auraMgrBarr) {
 		auraMgrBarr->wait();

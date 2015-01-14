@@ -74,6 +74,7 @@ void BusStopAgent::registerWaitingPerson(sim_mob::medium::WaitBusActivity* waiti
 		Person* person = (*it)->getParent();
 		count++;
 		Print()<<"prabhu"<<count<<"\n";
+		++it;
 	}
 }
 

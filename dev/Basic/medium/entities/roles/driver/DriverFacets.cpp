@@ -982,7 +982,6 @@ TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
 
 TravelMetric& sim_mob::medium::DriverMovement::finalizeTravelTimeMetric()
 {//return  travelTimeMetric;
-	std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getRepr_());
 //	dbgMsg << finalizeTravelTimeMetric
 	//debug
 	if(!pathMover.getPath().size())

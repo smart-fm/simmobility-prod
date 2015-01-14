@@ -401,7 +401,6 @@ bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql,std::string& 
 			"to_char(end_time,'HH24:MI:SS') AS end_time,travel_time, travel_mode from "
 			+ tableName +
 			" where interval_time = " + boost::lexical_cast<std::string>(intervalSec);
-	const sim_mob::DailyTime & simStartTime = sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime();
 	//	local cache for optimization purposes
 	std::map<std::string, unsigned int> timeIntervalCache;
 	std::map<std::string, unsigned int>::iterator timeIt;
@@ -419,7 +418,7 @@ bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql,std::string& 
 				}
 				else
 				{
-					timeInterval = timeIntervalCache[it->startTime] = sim_mob::ProcessTT::getTimeInterval((sim_mob::DailyTime(it->startTime) - simStartTime).getValue(), intervalMS);
+					timeInterval = timeIntervalCache[it->startTime] = sim_mob::ProcessTT::getTimeInterval(sim_mob::DailyTime(it->startTime).getValue(), intervalMS);
 				}
 //				optimization-2
 				const sim_mob::RoadSegment* rs;

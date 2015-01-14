@@ -218,7 +218,7 @@ double sim_mob::PathSetParam::getTravelTimeBySegId(const sim_mob::RoadSegment* r
 	std::ostringstream out("");
 	//1. check realtime table
 	double res = 0.0;
-	TT::TI timeInterval = ProcessTT::getTimeInterval((startTime - sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime()).getValue(),intervalMS);
+	TT::TI timeInterval = ProcessTT::getTimeInterval(startTime.getValue(),intervalMS);
 	AverageTravelTime::iterator itRange = historicalAvgTravelTime.find(timeInterval);
 	if(itRange != historicalAvgTravelTime.end())
 	{
@@ -2496,8 +2496,6 @@ void sim_mob::ProcessTT::insertTravelTime2TmpTable(const std::string fileName)
 	typedef std::map<const sim_mob::RoadSegment*,sim_mob::TT::TimeAndCount >::value_type STC;//SegmentTimeCount
 	//	destination file
 	sim_mob::BasicLogger & TTLogger  = sim_mob::Logger::log(fileName);
-	//simulation start time
-	const uint32_t & simStartTime = sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime().getValue();
 	// config interval(in seconds)
 	int intervalSec = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval;
 	//time range
@@ -2523,7 +2521,7 @@ void sim_mob::ProcessTT::insertTravelTime2TmpTable(const std::string fileName)
 				double travelTime = totalTT_ForThisSeg / totalTT_Submissions;
 				//now simply write it to the file
 				dbg_ProcessTT_cnt++;
-				TTLogger << segmentId << ";" << DailyTime(simStartTime + timeInterval* intervalMS).getRepr_() << ";" << DailyTime(simStartTime + (timeInterval + 1) * intervalMS - 1).getRepr_() << ";" << travelTime << ";"  << intervalSec << ";"  << travelModeStr <<  "\n";
+				TTLogger << segmentId << ";" << DailyTime(timeInterval* intervalMS).getRepr_() << ";" << DailyTime((timeInterval + 1) * intervalMS - 1).getRepr_() << ";" << travelTime << ";"  << intervalSec << ";"  << travelModeStr <<  "\n";
 			}
 		}
 	}

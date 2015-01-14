@@ -23,9 +23,10 @@ namespace sim_mob {
 
         class HM_ActionEventArgs : public sim_mob::event::EventArgs {
         public:
-            HM_ActionEventArgs(BigSerial unitId,BigSerial buildingId,std::tm buildingFutureDemolitionDate,Unit *unit);
+            HM_ActionEventArgs(BigSerial unitId,BigSerial buildingId,std::tm buildingFutureDemolitionDate);
             HM_ActionEventArgs(const HM_ActionEventArgs& orig);
             HM_ActionEventArgs(Unit &unit);
+            HM_ActionEventArgs(Building &building);
             virtual ~HM_ActionEventArgs();
 
             /**
@@ -40,13 +41,14 @@ namespace sim_mob {
             BigSerial getBuildingId()const;
             std::tm getFutureDemolitionDate() const;
             Unit  *getUnit() const;
+            Building  *getBuilding() const;
 
         private:
             BigSerial unitId;
             BigSerial buildingId;
             std::tm buildingFutureDemolitionDate;
             Unit *unit;
-            Building building;
+            Building *building;
         };
         
         class ExternalEventArgs : public sim_mob::event::EventArgs {

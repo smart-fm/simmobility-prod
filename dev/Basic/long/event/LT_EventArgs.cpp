@@ -14,16 +14,20 @@
 using namespace sim_mob::long_term;
 using sim_mob::event::EventArgs;
 
-HM_ActionEventArgs::HM_ActionEventArgs(BigSerial unitId,BigSerial buildingId, std::tm futureDemolitionDate, Unit *unit)
-: unitId(unitId),buildingId(buildingId),buildingFutureDemolitionDate(buildingFutureDemolitionDate) ,unit(unit){
+HM_ActionEventArgs::HM_ActionEventArgs(BigSerial unitId,BigSerial buildingId, std::tm futureDemolitionDate)
+: unitId(unitId),buildingId(buildingId),buildingFutureDemolitionDate(buildingFutureDemolitionDate) ,unit(nullptr),building(nullptr){
 }
 
 HM_ActionEventArgs::HM_ActionEventArgs(const HM_ActionEventArgs& source)
-: unitId(source.unitId),buildingId(source.buildingId), buildingFutureDemolitionDate(source.buildingFutureDemolitionDate){
+: unitId(source.unitId),buildingId(source.buildingId), buildingFutureDemolitionDate(source.buildingFutureDemolitionDate),unit(unit),building(building){
 }
 
 HM_ActionEventArgs::HM_ActionEventArgs(Unit &unit)
-: unitId(unit.getId()),buildingId(unit.getBuildingId()), buildingFutureDemolitionDate(std::tm()), unit(&unit){
+: unitId(unit.getId()),buildingId(unit.getBuildingId()), buildingFutureDemolitionDate(std::tm()), unit(&unit),building(nullptr){
+}
+
+HM_ActionEventArgs::HM_ActionEventArgs(Building &building)
+: unitId(0),buildingId(building.getFmBuildingId()), buildingFutureDemolitionDate(std::tm()), unit(nullptr),building(&building){
 }
 
 HM_ActionEventArgs::~HM_ActionEventArgs() {
@@ -44,6 +48,11 @@ std::tm HM_ActionEventArgs::getFutureDemolitionDate() const {
 Unit *HM_ActionEventArgs::getUnit() const
 {
 	return unit;
+}
+
+Building  *HM_ActionEventArgs::getBuilding() const
+{
+	return building;
 }
 /******************************************************************************
  *                              ExternalEventArgs   

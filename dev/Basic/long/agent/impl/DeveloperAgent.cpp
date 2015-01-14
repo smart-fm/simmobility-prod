@@ -328,7 +328,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	}
 	toDate.tm_mon = compltetionMonth;
 	toDate.tm_year = completionYear;
-	newBuildings.push_back(Building(model->getBuildingIdForDeveloperAgent(),projectId,parcel.getId(),0,0,currentDate,toDate,"Uncompleted without prerequisites",project.getGrosArea(),0,0,0));
+	newBuildings.push_back(Building(buildingId,projectId,parcel.getId(),0,0,currentDate,toDate,"Uncompleted without prerequisites",project.getGrosArea(),0,0,0));
 
 	//create new units and add all the units to the newly created building.
 	std::vector<PotentialUnit> units = project.getUnits();
@@ -418,7 +418,7 @@ void DeveloperAgent::processExistingProjects()
 		{
 			(*buildingsItr).setBuildingStatus("Launched but Unsold");
 			//This is currently commented out until a new agent class is written to receive the message.
-			//MessageBus::PublishEvent(LTEID_BUILDING_ADDED,MessageBus::EventArgsPtr(new HM_ActionEventArgs((*unitsItr))));
+			//MessageBus::PublishEvent(LTEID_HM_BUILDING_ADDED,MessageBus::EventArgsPtr(new HM_ActionEventArgs((*buildingsItr))));
 		}
 		for(unitsItr = this->newUnits.begin(); unitsItr != this->newUnits.end(); unitsItr++)
 		{

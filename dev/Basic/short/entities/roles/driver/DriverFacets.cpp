@@ -606,12 +606,36 @@ bool sim_mob::DriverMovement::update_sensors(timeslice now) {
 	// position before/behind you. Save nearest fwd pedestrian too.
 
 	//Manage traffic signal behavior if we are close to the end of the link.
-	//TODO: This might be slightly inaccurate if a vehicle leaves an intersection
-	// on a particularly short road segment. For now, though, I'm just organizing these
-	// functions with structure in mind, and it won't affect our current network.
-	params.isApproachingToIntersection = false;
-	if( !fwdDriverMovement.isInIntersection( )) {
-		params.isApproachingToIntersection = true;
+	params.isApproachingIntersection = false;
+	if(!fwdDriverMovement.isInIntersection()) 
+	{
+		//Detect if a vehicle is approaching an intersection. We do this by comparing the 
+		//distance to the end of the road segment and the braking distance (vehicle stopping distance))
+	
+		//Get the distance to the end of the road segment (metre)
+		double distToIntersection = fwdDriverMovement.getDistToLinkEndM();
+		
+		//Convert speed from cm/s to m/s
+		double speed = parentDriver->vehicle->getVelocity() / 100;
+		
+		//Calculate the braking distance (metre)
+		//Total braking distance = Perception-reaction distance + Braking distance 
+		
+		//Perception-reaction distance is the distance covered when the driver has not yet reacted
+		//It is the product of the vehicle speed and the perception-reaction delay (an approx value of 1.5s is good enough)
+		double prcptn_reactnDist = speed * 1.5; 
+		
+		//Braking distance is the distance covered after application of the brakes
+		//It is given by (v^2)/(2ug), 
+		//where v = speed (m/s), u = coefficient of friction (0.7), g = acceleration due to gravity (9.8 m/s^2)
+		double brakingDist = (speed * speed) / (2 * 0.7 * 9.8);
+		
+		double totalBrakingDist = prcptn_reactnDist + brakingDist;
+		
+		if (distToIntersection < totalBrakingDist)
+		{
+			params.isApproachingIntersection = true;
+		}
 		setTrafficSignalParams(params);
 	}
 
@@ -660,8 +684,6 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 
 	if (!fwdDriverMovement.isInIntersection() && !fwdDriverMovement.isDoneWithEntireRoute()) {
 		params.cftimer -= params.elapsedSeconds;
-		// params.overflowIntoIntersection = linkDriving(params);
-		// params.overflowIntoIntersection = linkDrivingNew(params);
 		if (params.cftimer < params.elapsedSeconds) {
 			// make lc decision and check if can do lc
 			calcVehicleStates(params);
@@ -669,6 +691,7 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 
 		// perform lc ,if status is STATUS_LC_CHANGING
 		params.overflowIntoIntersection = move(params);
+		
 		//Did our last move forward bring us into an intersection?
 		if (fwdDriverMovement.isInIntersection()) {
 			params.justMovedIntoIntersection = true;
@@ -1866,8 +1889,8 @@ void sim_mob::DriverMovement::setOrigin(DriverUpdateParams& p) {
 	p.currLaneIndex = getLaneIndex(p.currLane);
 	targetLaneIndex = p.currLaneIndex;
 
-	//Vehicles start at rest
-	parentDriver->vehicle->setVelocity(p.initSpeed*100);
+	//Vehicles start at rest (or may be given initial speed in cofig file)
+	parentDriver->vehicle->setVelocity(p.initSpeed*100); //Convert m/s to cm/s
 	parentDriver->vehicle->setLatVelocity(0);
 	parentDriver->vehicle->setAcceleration(0);
 
@@ -2022,6 +2045,10 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 	}
 	const RoadSegment* otherRoadSegment = other_lane->getRoadSegment();
 
+	//we need the length of the link while calculating the lane level density
+	//as we will be considering the vehicles on a particular lane of a link.
+	double lengthInM = Utils::cmToMeter((double)fwdDriverMovement.getCurrLink()->getLength());
+
 	if (fwdDriverMovement.isInIntersection()
 			|| other_driver->isInIntersection.get())
 		return false;
@@ -2040,6 +2067,9 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 
 		//Set different variables depending on where the car is.
 		if (other_lane == params.currLane) { //the vehicle is on the current lane
+
+			//Increment the lane level density as the other car is in the same lane
+			params.density = params.density + (1.0f / lengthInM);
 
 			check_and_set_min_car_dist((fwd ? params.nvFwd : params.nvBack),
 					distance, parentDriver->vehicle, other_driver);
@@ -2106,6 +2136,11 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 
 			//Set different variables depending on where the car is.
 			if (other_lane == nextLane) { //The vehicle is on the current lane
+
+				//Increment the lane level density as the other car is in the same lane
+				//as we want to get into
+				params.density = params.density + (1.0f / lengthInM);
+
 				check_and_set_min_car_dist(params.nvFwd, distance,
 						parentDriver->vehicle, other_driver);
 			} else if (other_lane == nextLeftLane) { //the vehicle is on the left lane
@@ -2613,13 +2648,11 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 
 	if (!trafficSignal) {
 		p.trafficColor = sim_mob::Green;
-
 		parentDriver->perceivedTrafficColor->delay(p.trafficColor);
 	} else {
 		sim_mob::TrafficColor color;
 
 		if (hasNextSegment(false)) {
-		
 			const Lane *nextLinkLane = hasNextSegment(false)->getLane(0);
 			color = trafficSignal->getDriverLight(*p.currLane,
 					*nextLinkLane);
@@ -2633,6 +2666,7 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) {
 			 */
 			color = sim_mob::Green;
 		}
+		
 		switch (color) {
 		case sim_mob::Red:
 			p.trafficColor = color;

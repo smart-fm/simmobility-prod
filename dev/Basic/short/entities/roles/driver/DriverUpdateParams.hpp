@@ -81,7 +81,7 @@ public:
         currLaneIndex(0), leftLane(NULL), rightLane(NULL), leftLane2(NULL), rightLane2(NULL), currSpeed(0), desiredSpeed(0), currLaneOffset(0),
         currLaneLength(0), trafficSignalStopDistance(0), elapsedSeconds(0), perceivedFwdVelocity(0), perceivedLatVelocity(0), perceivedFwdVelocityOfFwdCar(0),
         perceivedLatVelocityOfFwdCar(0), perceivedAccelerationOfFwdCar(0), perceivedDistToFwdCar(0), isMLC(false), isBeforIntersecton(false),
-        laneChangingVelocity(0), isCrossingAhead(false), isApproachingToIntersection(false), crossingFwdDistance(0), space(0), a_lead(0),
+        laneChangingVelocity(0), isCrossingAhead(false), isApproachingIntersection(false), crossingFwdDistance(0), space(0), a_lead(0),
         v_lead(0), space_star(0), distanceToNormalStop(0), dis2stop(0), isWaiting(false), justChangedToNewSegment(false),
         justMovedIntoIntersection(false), overflowIntoIntersection(0), driver(NULL), lastAcc(0), emergHeadway(999), aZ(0),
         density(0), initSegId(0), initDis(0), initSpeed(0), parentId(0), FFAccParamsBeta(0), nextStepSize(0), maxAcceleration(0), normalDeceleration(0),
@@ -243,7 +243,10 @@ public:
 	double laneChangingVelocity;
 
 	bool isCrossingAhead;
-	bool isApproachingToIntersection;
+        
+        //Indicates whether a vehicle is approaching an unsignalised intersection
+	bool isApproachingIntersection;
+        
 	int crossingFwdDistance;
 
 	//Related to our car following model.

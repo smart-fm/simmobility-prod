@@ -197,8 +197,9 @@ public:
 		bool started;
 		bool finalized;
 		std::string dbg;
+		sim_mob::Agent * ag;
 		RdSegTravelStat(const RoadSegment* rdSeg, std::string travelMode = "")
-		: rs(rdSeg), entryTime(0.0), travelTime(0.0),started(false),finalized(false), travelMode(travelMode)
+		: rs(rdSeg), entryTime(0.0), travelTime(0.0),started(false),finalized(false), travelMode(travelMode), ag(nullptr)
 		{}
 
 		/**
@@ -206,7 +207,7 @@ public:
 		 * @param rdSeg RoadSegment
 		 * @rdSegEntryTime RoadSegment Entry time
 		 */
-		void start(const RoadSegment* rdSeg, double &rdSegEntryTime)
+		void start(sim_mob::Agent * ag_, const RoadSegment* rdSeg, double &rdSegEntryTime)
 		{
 			if(started)
 			{
@@ -214,6 +215,7 @@ public:
 			}
 			rs = rdSeg;
 			entryTime = rdSegEntryTime;
+			ag = ag_;
 			started = true;
 		}
 

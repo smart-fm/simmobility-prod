@@ -419,7 +419,7 @@ bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql,std::string& 
 				}
 				else
 				{
-					timeInterval = timeIntervalCache[it->startTime] = sim_mob::ProcessTT::getTI((sim_mob::DailyTime(it->startTime) - simStartTime).getValue(), intervalMS);
+					timeInterval = timeIntervalCache[it->startTime] = sim_mob::ProcessTT::getTimeInterval((sim_mob::DailyTime(it->startTime) - simStartTime).getValue(), intervalMS);
 				}
 //				optimization-2
 				const sim_mob::RoadSegment* rs;

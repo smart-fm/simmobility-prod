@@ -75,7 +75,7 @@ public:
 		return key < rhs.key;
 	}
 };
-
+class PathSetManager;
 /**
  * ProcessTT is a small helper class to process Real Time Travel Time at RoadSegment Level.
  * PathSetManager receives Real Time Travel Time and delegates
@@ -85,34 +85,47 @@ public:
  */
 class ProcessTT
 {
-	const int intervalMS;
+	///	indicates the current time interval of the simulation
 	const sim_mob::DailyTime simStartTime;
+
+	/**
+	 * time interval value used for processing data.
+	 * This value is based on its counterpart in pathset manager.
+	 */
+
+	const unsigned int intervalMS;
+	/**
+	 * current time interval, with respect to simulation time
+	 * this is used to avoid continuous calculation of the current
+	 * time interval.
+	 * Note: Updating this happens once in one of the barriers, currently
+	 * Aura Manager barrier(void sim_mob::WorkGroupManager::waitAllGroups_AuraManager())
+	 */
+
+	unsigned int curInterval;
 	/**
 	 *	container to stor road segment travel times at different time intervals
 	 */
+
 	sim_mob::TravelTime rdSegTravelTimesMap;
 
 	/**
-	 * Logger responsible for dumping travel time collections
-	 * into a temporary file
+	 * an iterator pointing to part of travel time container that maintains
+	 * the latest processed travel time information.
+	 * this is naturally the time interval before the current time interval.
 	 */
-//	sim_mob::BasicLogger & csv;
-	/**
-	 * returns the container for accumulating/aggregating
-	 * the current travel time recordings
-	 * @param recordTime time of recording this travel time
-	 * @return the iterator for the current entry where the current recordings should be sent to
-	 */
-	sim_mob::TravelTime::iterator & getCurrRTTT(const DailyTime & time);
+	sim_mob::TravelTime::iterator latestTT;
 
 public:
 	static int dbg_ProcessTT_cnt;
 	ProcessTT();
 	~ProcessTT();
 	/*
-	 * Aggregates Travel Time data
+	 * accumulates Travel Time data
+	 * @param stats travel time record
+	 * @person the recording person
 	 */
-	void addTravelTime(const Agent::RdSegTravelStat & stats, const Person* person);
+	void addTravelTime(const Agent::RdSegTravelStat & stats);
 
 	/**
 	 * Writes the aggregated data into the file
@@ -120,9 +133,9 @@ public:
 	void insertTravelTime2TmpTable(const std::string fileName);
 
 	/**
-	 * Write the temporary file into Database
+	 * save Realtime Travel Time into Database
 	 */
-	bool copyTravelTimeDataFromTmp2RealtimeTable();
+	bool storeRTT2DB();
 
 	/**
 	 * get corresponding TI (Time interval) give a time of day
@@ -131,7 +144,8 @@ public:
 	 * @return Time interval corresponding the give time
 	 * Note: for uniformity purposes this methods works with milliseconds values
 	 */
-	static sim_mob::TT::TI getTI(const double timeMS, const int intervalMS);
+	static sim_mob::TT::TI getTimeInterval(const unsigned long timeMS, const unsigned int intervalMS);
+	friend class sim_mob::PathSetManager;
 };
 
 ///	Debug Method to print WayPoint based paths
@@ -409,7 +423,7 @@ public:
 	///	calculate travel time of a path
 	static double getTravelTime(sim_mob::SinglePath *sp,const std::string & travelMode, const sim_mob::DailyTime & startTime_);
 	///	record the travel time reported by agents
-	void addRdSegTravelTimes(const Agent::RdSegTravelStat & stats, const Person* person);
+	void addRdSegTravelTimes(const Agent::RdSegTravelStat & stats);
 
 	void setScenarioName(std::string& name){ scenarioName = name; }
 
@@ -427,9 +441,9 @@ public:
 	static const boost::shared_ptr<soci::session> & getSession();
 
 	/**
-	 * get the thread specific container of travel time records
+	 * store the realtime travel time into permanent storage
 	 */
-	void copyTravelTimeDataFromTmp2RealtimeTable();
+	void storeRTT();
 
 	///basically delete all the dynamically allocated memories, in addition to some more cleanups
 	void clearSinglePaths(boost::shared_ptr<sim_mob::PathSet> &ps);
@@ -444,6 +458,7 @@ public:
 	 * returns true/false to indicate if the search has been successful
 	 */
 	bool findCachedPathSet(std::string key, boost::shared_ptr<sim_mob::PathSet> &value);
+
 	//either this or the above method will remain todo
 	bool findCachedPathSet(std::string key,
 			boost::shared_ptr<sim_mob::PathSet> &value,

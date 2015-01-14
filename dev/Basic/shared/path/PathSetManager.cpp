@@ -131,7 +131,7 @@ double sim_mob::PathSetParam::getAverageTravelTimeBySegIdStartEndTime(const sim_
 	double totalTravelTime=0.0;
 	int count=0;
 	sim_mob::DailyTime dailyTime(startTime);
-	TT::TI endTimeRange = ProcessTT::getTI(endTime.getValue(), intervalMS);
+	TT::TI endTimeRange = ProcessTT::getTimeInterval(endTime.getValue(), intervalMS);
 	while(dailyTime.isBeforeEqual(endTime))
 	{
 		totalTravelTime += getTravelTimeBySegId(rs,travelMode, dailyTime);
@@ -218,7 +218,7 @@ double sim_mob::PathSetParam::getTravelTimeBySegId(const sim_mob::RoadSegment* r
 	std::ostringstream out("");
 	//1. check realtime table
 	double res = 0.0;
-	TT::TI timeInterval = ProcessTT::getTI((startTime - sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime()).getValue(),intervalMS);
+	TT::TI timeInterval = ProcessTT::getTimeInterval((startTime - sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime()).getValue(),intervalMS);
 	AverageTravelTime::iterator itRange = historicalAvgTravelTime.find(timeInterval);
 	if(itRange != historicalAvgTravelTime.end())
 	{
@@ -555,7 +555,7 @@ bool sim_mob::PathSetManager::generateAllPathSetWithTripChain2()
 }
 #endif
 
-//bool sim_mob::PathSetManager::copyTravelTimeDataFromTmp2RealtimeTable()
+//bool sim_mob::PathSetManager::storeRTT2DB()
 //{
 //	//1. prepare the csv file to be copied into DB
 ////	sim_mob::Logger::log("real_time_travel_time");
@@ -594,9 +594,9 @@ const boost::shared_ptr<soci::session> & sim_mob::PathSetManager::getSession(){
 	return it->second;
 }
 
-void sim_mob::PathSetManager::copyTravelTimeDataFromTmp2RealtimeTable()
+void sim_mob::PathSetManager::storeRTT()
 {
-	processTT.copyTravelTimeDataFromTmp2RealtimeTable();
+	processTT.storeRTT2DB();
 }
 
 void sim_mob::PathSetManager::clearSinglePaths(boost::shared_ptr<sim_mob::PathSet>&ps){
@@ -2470,18 +2470,12 @@ bool sim_mob::SinglePath::includesRoadSegment(const std::set<const sim_mob::Road
 	return false;
 }
 
-void sim_mob::PathSetManager::addRdSegTravelTimes(const Agent::RdSegTravelStat & stats, const Person* person) {
-	processTT.addTravelTime(stats,person);
+void sim_mob::PathSetManager::addRdSegTravelTimes(const Agent::RdSegTravelStat & stats) {
+	processTT.addTravelTime(stats);
 }
 
-void sim_mob::ProcessTT::addTravelTime(const Agent::RdSegTravelStat & stats, const Person* person) {
-	//debug
-	if(stats.entryTime > 900)
-	{
-		int i = 0;
-	}
-
-	TT::TI timeInterval = ProcessTT::getTI(stats.entryTime * 1000, intervalMS);//milliseconds
+void sim_mob::ProcessTT::addTravelTime(const Agent::RdSegTravelStat & stats) {
+	TT::TI timeInterval = ProcessTT::getTimeInterval(stats.entryTime * 1000, intervalMS);//milliseconds
 	rdSegTravelTimesMap[timeInterval][stats.travelMode][stats.rs].totalTravelTime += stats.travelTime; //add to total travel time
 	rdSegTravelTimesMap[timeInterval][stats.travelMode][stats.rs].travelTimeCnt += 1; //increment the total contribution
 }
@@ -2489,7 +2483,7 @@ void sim_mob::ProcessTT::addTravelTime(const Agent::RdSegTravelStat & stats, con
 int ProcessTT::dbg_ProcessTT_cnt = 0;
 ProcessTT::ProcessTT():intervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval* 1000 /*milliseconds*/){}
 
-sim_mob::TT::TI ProcessTT::getTI(const double time, const int interval)
+sim_mob::TT::TI ProcessTT::getTimeInterval(const unsigned long time, const unsigned int interval)
 {
 	return time / interval ;/*milliseconds*/
 }
@@ -2535,7 +2529,7 @@ void sim_mob::ProcessTT::insertTravelTime2TmpTable(const std::string fileName)
 	}
 }
 
-bool sim_mob::ProcessTT::copyTravelTimeDataFromTmp2RealtimeTable()
+bool sim_mob::ProcessTT::storeRTT2DB()
 {
 	typedef std::map<boost::thread::id, boost::shared_ptr<ProcessTT> >::value_type TTs;
 	std::string tempFileName = sim_mob::PathSetParam::getInstance()->RTTT;

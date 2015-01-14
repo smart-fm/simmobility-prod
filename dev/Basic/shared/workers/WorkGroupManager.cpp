@@ -209,6 +209,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_AuraManager(const std::set<Agent*>
 
 		(*it)->waitAuraManager(removedEntities);
 	}
+	//pathset manager update some tick based values
 
 	//Here is where we actually block, ensuring a tick-wide synchronization.
 	if (auraMgrBarr) {

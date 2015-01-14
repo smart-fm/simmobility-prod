@@ -276,7 +276,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 	//finalize
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		PathSetManager::getInstance()->copyTravelTimeDataFromTmp2RealtimeTable();
+		PathSetManager::getInstance()->storeRTT();
 	}
 	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;
 	cout << "Max Agents at any given time: " <<maxAgents <<endl;

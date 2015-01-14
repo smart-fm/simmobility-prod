@@ -386,7 +386,7 @@ void sim_mob::Agent::HandleMessage(messaging::Message::MessageType type, const m
 }
 
 sim_mob::Agent::RdSegTravelStat & sim_mob::Agent::startCurrRdSegTravelStat(const RoadSegment* rdSeg, double entryTime) {
-	currRdSegTravelStats.start(rdSeg,entryTime);
+	currRdSegTravelStats.start(this, rdSeg,entryTime);
 	return currRdSegTravelStats;
 }
 

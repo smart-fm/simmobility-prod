@@ -29,6 +29,7 @@
 #include "database/dao/BuildingDao.hpp"
 #include "database/dao/TotalBuildingSpaceDao.hpp"
 #include "database/dao/ParcelAmenitiesDao.hpp"
+#include "database/dao/MacroEconomicsDao.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -87,15 +88,13 @@ void DeveloperModel::startImpl() {
 		}
 		//load projects
 		loadData<ProjectDao>(conn,projects);
-		//projectId = projects.at(projects.size()-2)->getProjectId();
-		//buildingId = buildings.at(buildings.size()-1)->getFmBuildingId();
-		//unitId = housingModel->getunitId();
 
 		for (ProjectList::iterator it = projects.begin(); it != projects.end(); it++) {
 			existingProjectIds.push_back((*it)->getProjectId());
 		}
-		//PrintOut("Project Id**********"<<projectId);
+
 		loadData<ParcelAmenitiesDao>(conn,amenities,amenitiesById,&ParcelAmenities::getFmParcelId);
+		loadData<MacroEconomicsDao>(conn,macroEconomics,macroEconomicsById,&MacroEconomics::getExFactorId);
 
 	}
 
@@ -162,6 +161,16 @@ const ParcelAmenities* DeveloperModel::getAmenitiesById(BigSerial fmParcelId) co
             return itr->second;
         }
         return nullptr;
+}
+
+const MacroEconomics* DeveloperModel::getMacroEconById(BigSerial id) const {
+
+	MacroEconomicsMap::const_iterator itr = macroEconomicsById.find(id);
+		if (itr != macroEconomicsById.end())
+	    {
+			return itr->second;
+	    }
+	    return nullptr;
 }
 
 float DeveloperModel::getBuildingSpaceByParcelId(BigSerial id) const {

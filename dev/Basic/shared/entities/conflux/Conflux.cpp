@@ -790,8 +790,9 @@ void sim_mob::Conflux::setLinkTravelTimes(Person* person, double linkExitTime) {
 }
 
 bool sim_mob::Conflux::callMovementFrameInit(timeslice now, Person* person) {
-	//register the person as a message handler
-	messaging::MessageBus::RegisterHandler(person);
+	//register the person as a message handler if required
+	if(!person->GetContext()) { messaging::MessageBus::RegisterHandler(person); }
+
 	//Agents may be created with a null Role and a valid trip chain
 	if (!person->getRole()) {
 		//TODO: This UpdateStatus has a "prevParams" and "currParams" that should

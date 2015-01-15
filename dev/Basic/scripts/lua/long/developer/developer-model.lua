@@ -176,7 +176,17 @@ UNIT_TYPE_COEFFICIENTS = readOnlyTable
         }, 
 }
 
-
+UNIT_HPIVALUES = readOnlyTable 
+{
+    [1]=
+        {   -- condo; Please note that the below values are for testing only
+            [0]  = 11.540,  -- HPI ^ t
+            [1]  = 0.477,   -- HPI ^ (t-4)
+            [2]  = 0.091,   -- HPI ^ (t-5)
+            [3]  = 0.003,   -- HPI ^ (t-6)
+            [4]  = 0.0006,   -- HPI ^ (t-7)
+        }, 
+}
 --[[****************************************************************************
     FUNCTIONS
 ******************************************************************************]]
@@ -219,7 +229,10 @@ end
 function calculateUnitRevenueCondo(amenities,unit)
 	local revenue = 0
 	revenue = UNIT_TYPE_COEFFICIENTS[6][0] + UNIT_TYPE_COEFFICIENTS[6][1]* math.log(unit.floorArea) + 		UNIT_TYPE_COEFFICIENTS	[6][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[6][3] * (amenities.distanceToCBD/1000) + 	UNIT_TYPE_COEFFICIENTS[6][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[6][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[6][6]* (amenities.distanceToMall/1000) + UNIT_TYPE_COEFFICIENTS[6][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[6][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[6][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[6][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[6][11]* amenities.bus_400m
-	return revenue;
+local HPI = 0.029 + 1.799 * UNIT_HPIVALUES[1][1] - 0.911 * UNIT_HPIVALUES [1][2] - 0.465 * UNIT_HPIVALUES [1][3] +
+UNIT_HPIVALUES [1][4]
+        local profit = math.exp(revenue + HPI)
+	return profit;
 end
 
 function calculateUnitRevenueSemiDetatched(amenities,unit)
@@ -237,7 +250,7 @@ end
 function calculateUnitRevenueExecutiveCondo(amenities,unit)
 	local revenue = 0
 	revenue = UNIT_TYPE_COEFFICIENTS[5][0] + UNIT_TYPE_COEFFICIENTS[5][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[5][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[5][3] * (amenities.distanceToCBD/1000) + UNIT_TYPE_COEFFICIENTS[5][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[5][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[5][6]* (amenities.distanceToMall/1000) + UNIT_TYPE_COEFFICIENTS[5][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[5][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[5][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[5][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[5][11]* amenities.bus_400m
-	return revenue;
+        return revenue;
 end
 
 function calculateUnitRevenueTerrace(amenities,unit)

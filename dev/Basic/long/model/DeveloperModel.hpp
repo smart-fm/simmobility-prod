@@ -23,6 +23,7 @@
 #include "database/entity/Building.hpp"
 #include "database/entity/TotalBuildingSpace.hpp"
 #include "database/entity/ParcelAmenities.hpp"
+#include "database/entity/MacroEconomics.hpp"
 #include "agent/impl/DeveloperAgent.hpp"
 #include "model/HM_Model.hpp"
 
@@ -43,11 +44,13 @@ namespace sim_mob {
             typedef std::vector<TotalBuildingSpace*> BuildingSpaceList;
             typedef std::vector<Project*> ProjectList;
             typedef std::vector<ParcelAmenities*> AmenitiesList;
+            typedef std::vector<MacroEconomics*> MacroEconomicsList;
             //maps
             typedef boost::unordered_map<BigSerial,Parcel*> ParcelMap;
             typedef boost::unordered_map<BigSerial,UnitType*> UnitTypeMap;
             typedef boost::unordered_map<BigSerial,TotalBuildingSpace*> TotalBuildingSpaceMap;
             typedef boost::unordered_map<BigSerial,ParcelAmenities*> AmenitiesMap;
+            typedef boost::unordered_map<BigSerial,MacroEconomics*> MacroEconomicsMap;
 
         public:
             DeveloperModel(WorkGroup& workGroup);
@@ -79,6 +82,7 @@ namespace sim_mob {
             const TemplateUnitTypeList& getTemplateUnitType() const;
             const UnitType* getUnitTypeById(BigSerial id) const;
             const ParcelAmenities* getAmenitiesById(BigSerial fmParcelId) const;
+            const MacroEconomics* getMacroEconById(BigSerial id) const;
             float getBuildingSpaceByParcelId(BigSerial id) const;
             ParcelList getDevelopmentCandidateParcels(bool isInitial);
 
@@ -195,6 +199,8 @@ namespace sim_mob {
             AmenitiesList amenities;
             AmenitiesMap amenitiesById;
             int currentTick;
+            MacroEconomicsList macroEconomics;
+            MacroEconomicsMap macroEconomicsById;
         };
     }
 }

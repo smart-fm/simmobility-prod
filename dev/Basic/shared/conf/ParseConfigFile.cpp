@@ -460,8 +460,6 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	cfg.ltParams.maxIterations 		 = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "maxIterations"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.tickStep 			 = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "tickStep"), "value"), static_cast<unsigned int>(0));
 	cfg.ltParams.workers 			 = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "workers"), "value"), static_cast<unsigned int>(0));
-	cfg.ltParams.dayOneAwakening 	 = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "dayOneAwakening"), "value"), static_cast<unsigned int>(0));
-
 
 	LongTermParams::DeveloperModel developerModel;
 	developerModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "developerModel"), "enabled"), false );
@@ -474,10 +472,8 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	housingModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeInterval"), "value"), static_cast<unsigned int>(0));
 	housingModel.timeOnMarket = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeOnMarket"), "value"), static_cast<unsigned int>(0));
 	housingModel.timeOffMarket = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeOffMarket"), "value"), static_cast<unsigned int>(0));
-	housingModel.awakenedProbability = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(node, "DayOneAwakenedProbability"), "value"));
-	housingModel.numberOfHouseholds = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "numberOfHouseholds"), "value"), static_cast<unsigned int>(0));
-	housingModel.numberOfUnits = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "numberOfUnits"), "value"), static_cast<unsigned int>(0));
-	housingModel.numberOfVacantUnits = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "numberOfVacantUnits"), "value"), static_cast<unsigned int>(0));
+	housingModel.vacantUnitActivationProbability = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(node, "vacantUnitActivationProbability"), "value"));
+	housingModel.initialHouseholdsOnMarket = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "InitialHouseholdsOnMarket"), "value"), static_cast<int>(0));
 	cfg.ltParams.housingModel = housingModel;
 }
 

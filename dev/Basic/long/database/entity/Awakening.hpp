@@ -18,7 +18,7 @@ namespace sim_mob
 		{
 		public:
 
-			Awakening(BigSerial id = INVALID_ID, float class1 =0, float class2 =0, float class3 =0, float awaken_class1 =0, float awaken_class2 =0, float awaken_class3 =0);
+			Awakening(BigSerial id = INVALID_ID, float class1 =0, float class2 =0, float class3 =0, float awakenClass1 =0, float awakenClass2 =0, float awakenClass3 =0);
 
 			BigSerial getId() const;
 

@@ -99,7 +99,8 @@ void HouseholdAgent::awakenHousehold()
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
 	//We will awaken a specific number of households on day 1 as dictated by the long term XML file.
-	if( model->getAwakeningCounter() > config.ltParams.dayOneAwakening)
+
+	if( model->getAwakeningCounter() > config.ltParams.housingModel.initialHouseholdsOnMarket)
 		return;
 
 	if(household == nullptr)
@@ -168,7 +169,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 {
 	day = now.frame();
 
-	if( now.frame() == 1 )
+	if( now.frame() == 0 )
 	{		
 		awakenHousehold();
 	}

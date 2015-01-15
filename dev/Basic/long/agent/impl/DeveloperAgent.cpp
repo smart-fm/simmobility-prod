@@ -46,15 +46,15 @@ const std::string LOG_PROJECT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %1
  * @param parcel to be written.
  *
  */
-inline void writeParcelDataToFile(const Parcel *parcel) {
+inline void writeParcelDataToFile(Parcel &parcel) {
 
-	boost::format fmtr = boost::format(LOG_PARCEL) % parcel->getId()
-			% parcel->getLotSize() % parcel->getGpr() % parcel->getLandUseTypeId()
-			% parcel->getOwnerName() % parcel->getOwnerCategory()
-			% parcel->getLastTransactionDate().tm_year % parcel->getLastTransationTypeTotal() % parcel->getPsmPerGps() % parcel->getLeaseType()
-			% parcel->getLeaseStartDate().tm_year % parcel->getCentroidX() % parcel->getCentroidY() % parcel->getAwardDate().tm_year % parcel->getAwardStatus()
-			% parcel->getUseRestriction()%parcel->getDevelopmentTypeCode()% parcel->getSuccessfulTenderId() % parcel->getSuccessfulTenderPrice()
-			% parcel->getTenderClosingDate().tm_year%parcel->getTenderClosingDate().tm_mon% parcel->getLease() % parcel->getStatus() % parcel->getDevelopmentAllowed() % parcel->getNextAvailableDate().tm_year;
+	boost::format fmtr = boost::format(LOG_PARCEL) % parcel.getId()
+			% parcel.getLotSize() % parcel.getGpr() % parcel.getLandUseTypeId()
+			% parcel.getOwnerName() % parcel.getOwnerCategory()
+			% parcel.getLastTransactionDate().tm_year % parcel.getLastTransationTypeTotal() % parcel.getPsmPerGps() % parcel.getLeaseType()
+			% parcel.getLeaseStartDate().tm_year % parcel.getCentroidX() % parcel.getCentroidY() % parcel.getAwardDate().tm_year % parcel.getAwardStatus()
+			% parcel.getUseRestriction()%parcel.getDevelopmentTypeCode()% parcel.getSuccessfulTenderId() % parcel.getSuccessfulTenderPrice()
+			% parcel.getTenderClosingDate().tm_year%parcel.getTenderClosingDate().tm_mon% parcel.getLease() % parcel.getStatus() % parcel.getDevelopmentAllowed() % parcel.getNextAvailableDate().tm_year;
 
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PARCELS,fmtr.str());
 
@@ -106,13 +106,17 @@ inline void calculateProjectProfit(PotentialProject& project,const DeveloperMode
 	double totalRevenue = 0;
 	double totalConstructionCost = 0;
 
-	for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++) {const ParcelAmenities *amenities = model->getAmenitiesById(project.getParcel()->getId());
-		const DeveloperLuaModel& luaModel = LuaProvider::getDeveloperModel();
-		double reveuePerUnitType = luaModel.calulateUnitRevenue((*unitsItr),*amenities);
-		double totalRevenuePerUnitType = reveuePerUnitType* (*unitsItr).getNumUnits();
-		totalRevenue = totalRevenue + totalRevenuePerUnitType;
-		double constructionCostPerUnitType = model->getUnitTypeById((*unitsItr).getUnitTypeId())->getConstructionCostPerUnit()* (*unitsItr).getNumUnits();
-		totalConstructionCost = totalConstructionCost+ constructionCostPerUnitType;
+	for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++) {
+		const ParcelAmenities *amenities = model->getAmenitiesById(project.getParcel()->getId());
+		if(amenities != nullptr)
+		{
+			const DeveloperLuaModel& luaModel = LuaProvider::getDeveloperModel();
+			double reveuePerUnitType = luaModel.calulateUnitRevenue((*unitsItr),*amenities);
+			double totalRevenuePerUnitType = reveuePerUnitType* (*unitsItr).getNumUnits();
+			totalRevenue = totalRevenue + totalRevenuePerUnitType;
+			double constructionCostPerUnitType = model->getUnitTypeById((*unitsItr).getUnitTypeId())->getConstructionCostPerUnit()* (*unitsItr).getNumUnits();
+			totalConstructionCost = totalConstructionCost+ constructionCostPerUnitType;
+		}
 
 	}
 
@@ -282,7 +286,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	//next available date of the parcel for the consideration of a new development is assumed to be one year after.
 	nextAvailableDate.tm_year = nextAvailableDate.tm_year+1;
 	parcel.setNextAvailableDate(nextAvailableDate);
-
+	writeParcelDataToFile(parcel);
 	//check whether the parcel is empty; if not send a message to HM model with building id and future demolition date about the units that are going to be demolished.
 	if (!(model->isEmptyParcel(parcel.getId()))) {
 		DeveloperModel::BuildingList buildings = model->getBuildings();
@@ -303,7 +307,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 			if ((*itr)->getFmParcelId() == parcel.getId()) {
 				BigSerial buildingId = (*itr)->getFmBuildingId();
 				//This is currently commented out until a new agent class is written to receive the message.
-				MessageBus::PublishEvent(LTEID_HM_BUILDING_REMOVED,MessageBus::EventArgsPtr(new HM_ActionEventArgs(unitId,buildingId,futureDemolitionDate)));
+				//MessageBus::PublishEvent(LTEID_HM_BUILDING_REMOVED,MessageBus::EventArgsPtr(new HM_ActionEventArgs(unitId,buildingId,futureDemolitionDate)));
 				//TODO- add demolished building id's to each agent and use it within the agent
 
 			}
@@ -324,7 +328,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	}
 	toDate.tm_mon = compltetionMonth;
 	toDate.tm_year = completionYear;
-	newBuildings.push_back(Building(model->getBuildingIdForDeveloperAgent(),projectId,parcel.getId(),0,0,currentDate,toDate,"Uncompleted without prerequisites",project.getGrosArea(),0,0,0));
+	newBuildings.push_back(Building(buildingId,projectId,parcel.getId(),0,0,currentDate,toDate,"Uncompleted without prerequisites",project.getGrosArea(),0,0,0));
 
 	//create new units and add all the units to the newly created building.
 	std::vector<PotentialUnit> units = project.getUnits();
@@ -367,6 +371,7 @@ void DeveloperAgent::createProject(PotentialProject &project, BigSerial projectI
 	fmProject->setFmLotSize(fmLotSize);
 	fmProject->setGrossArea(grossArea);
 	fmProject->setGrossRatio(grossRatio);
+	fmProject->setTemplateId(project.getDevTemplate()->getTemplateId());
 	//set the project's tick to 0 at the beginning.
 	fmProject->setCurrTick(0);
 	writeProjectDataToFile(fmProject);
@@ -376,7 +381,7 @@ void DeveloperAgent::createProject(PotentialProject &project, BigSerial projectI
 void DeveloperAgent::processExistingProjects()
 {
 	int projectDuration = this->fmProject->getCurrTick();
-	std::vector<Building>::iterator itr;
+	std::vector<Building>::iterator buildingsItr;
 	std::vector<Unit>::iterator unitsItr;
 	const int secondMonth = 59;
 	const int fourthMonth = 119;
@@ -385,9 +390,9 @@ void DeveloperAgent::processExistingProjects()
 	{
 	case (secondMonth):
 
-		for(itr = this->newBuildings.begin(); itr != this->newBuildings.end(); itr++)
+		for(buildingsItr = this->newBuildings.begin(); buildingsItr != this->newBuildings.end(); buildingsItr++)
 		{
-			(*itr).setBuildingStatus("Uncompleted With Prerequisites");
+			(*buildingsItr).setBuildingStatus("Uncompleted With Prerequisites");
 		}
 
 		for(unitsItr = this->newUnits.begin(); unitsItr != this->newUnits.end(); unitsItr++)
@@ -397,9 +402,9 @@ void DeveloperAgent::processExistingProjects()
 		break;
 	case (fourthMonth):
 
-		for(itr = this->newBuildings.begin(); itr != this->newBuildings.end(); itr++)
+		for(buildingsItr = this->newBuildings.begin(); buildingsItr != this->newBuildings.end(); buildingsItr++)
 		{
-			(*itr).setBuildingStatus("Not Launched");
+			(*buildingsItr).setBuildingStatus("Not Launched");
 		}
 
 		for(unitsItr = this->newUnits.begin(); unitsItr != this->newUnits.end(); unitsItr++)
@@ -409,9 +414,11 @@ void DeveloperAgent::processExistingProjects()
 		break;
 	case(sixthMonth):
 
-		for(itr = this->newBuildings.begin(); itr != this->newBuildings.end(); itr++)
+		for(buildingsItr = this->newBuildings.begin(); buildingsItr != this->newBuildings.end(); buildingsItr++)
 		{
-			(*itr).setBuildingStatus("Launched but Unsold");
+			(*buildingsItr).setBuildingStatus("Launched but Unsold");
+			//This is currently commented out until a new agent class is written to receive the message.
+			//MessageBus::PublishEvent(LTEID_HM_BUILDING_ADDED,MessageBus::EventArgsPtr(new HM_ActionEventArgs((*buildingsItr))));
 		}
 		for(unitsItr = this->newUnits.begin(); unitsItr != this->newUnits.end(); unitsItr++)
 		{

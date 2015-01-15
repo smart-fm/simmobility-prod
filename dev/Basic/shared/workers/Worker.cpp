@@ -607,12 +607,12 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 				conflux = *it;
 				if(!conflux->isInitialized()) { conflux->initialize(currTime); }
 				vqCount += conflux->resetOutputBounds();
-				total += conflux->countPersons();
+				total += conflux->countPersons(); //total = numInLanes+numInLaneInf. VQ is not included here
 				infCount += conflux->getNumRemainingInLaneInfinity();
 			}
 			if(managedConfluxes.size() > 0)
 			{
-				Print() << "Worker::update_entities Time: "<< currTime.ms()/1000 << "s \tnumInLanes: "<< (total - infCount - vqCount) << "\tnumInLaneInf: "<< infCount << "\tvqCount: " << vqCount << std::endl;
+				Print() << "Worker::update_entities Time: "<< currTime.ms()/1000 << "s \tnumInLanes: "<< (total - infCount) << "\tnumInLaneInf: "<< infCount << "\tvqCount: " << vqCount << std::endl;
 			}
 		}
 		else

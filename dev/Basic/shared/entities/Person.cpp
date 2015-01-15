@@ -116,17 +116,6 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 	}
 
 	if(!tripChain.empty()) { initTripChain(); }
-
-	if(getAgentSrc() == "DAS_TripChain"){
-		for(vector<TripChainItem*>::iterator it=tripChain.begin();it!=tripChain.end();it++){
-			Print()<<"|"<<(*it)->getMode();
-			if((*it)->itemType == sim_mob::TripChainItem::IT_TRIP){
-				Trip* trip = dynamic_cast<Trip*>(*it);
-				Print()<<"FromLocation"<<trip->fromLocation.node_->getID()<<"ToLocation"<<trip->toLocation.node_->getID();
-			}
-
-		}
-	}
 }
 void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();

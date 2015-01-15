@@ -66,16 +66,8 @@ void BusStopAgent::onEvent(event::EventId eventId, event::Context ctxId, event::
 
 void BusStopAgent::registerWaitingPerson(sim_mob::medium::WaitBusActivity* waitingPerson)
 {
+	Print()<<"Entered registerWaitingPerson";
 	waitingPersons.push_back(waitingPerson);
-	int count = 0;
-	std::list<sim_mob::medium::WaitBusActivity*>::iterator it = waitingPersons.begin();
-	while (it != waitingPersons.end())
-	{
-		Person* person = (*it)->getParent();
-		count++;
-		Print()<<"prabhu"<<count<<"\n";
-		++it;
-	}
 }
 
 void BusStopAgent::removeWaitingPerson(sim_mob::medium::WaitBusActivity* waitingPerson)

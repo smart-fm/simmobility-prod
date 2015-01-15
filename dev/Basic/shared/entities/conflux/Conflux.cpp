@@ -77,6 +77,15 @@ sim_mob::Conflux::~Conflux()
 void sim_mob::Conflux::initialize(const timeslice& now)
 {
 	frame_init(now);
+	//Register handlers for the bus stop agents
+	for (UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin(); upStrmSegMapIt != upstreamSegStatsMap.end(); upStrmSegMapIt++)
+	{
+		for (std::vector<sim_mob::SegmentStats*>::const_iterator segStatsIt = upStrmSegMapIt->second.begin(); segStatsIt != upStrmSegMapIt->second.end();
+				segStatsIt++)
+		{
+			(*segStatsIt)->registerBusStopAgents();
+		}
+	}
 	setInitialized(true);
 }
 
@@ -735,6 +744,9 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 		break;
 	}
 	}
+
+	Print() << "Killing person: " << person->getId() << "|Role: " << person->getRole()->roleType
+			<< "|context: " << person->GetContext() << "|conflux context: " << GetContext() << std::endl;
 	parentWorker->remEntity(person);
 	parentWorker->scheduleForRemoval(person);
 }
@@ -843,6 +855,7 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 	{
 		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
 		msg.person->currWorkerProvider = parentWorker;
+		messaging::MessageBus::ReRegisterHandler(msg.person, GetContext());
 		pedestrianList.push_back(msg.person);
 		break;
 	}
@@ -858,6 +871,7 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 	{
 		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
 		msg.person->currWorkerProvider = parentWorker;
+		messaging::MessageBus::ReRegisterHandler(msg.person, GetContext());
 		mrt.push_back(msg.person);
 		//TODO: compute time to be expired and send message to self
 		messaging::MessageBus::PostMessage(this, MSG_WAKE_UP, messaging::MessageBus::MessagePtr(new PersonMessage(msg.person)), false, 0); //last parameter (0) must be updated with actual time

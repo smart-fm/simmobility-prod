@@ -66,7 +66,7 @@ void BusStopAgent::onEvent(event::EventId eventId, event::Context ctxId, event::
 
 void BusStopAgent::registerWaitingPerson(sim_mob::medium::WaitBusActivity* waitingPerson)
 {
-	Print()<<"Entered registerWaitingPerson";
+	messaging::MessageBus::ReRegisterHandler(waitingPerson->getParent(), GetContext());
 	waitingPersons.push_back(waitingPerson);
 }
 
@@ -92,7 +92,7 @@ const sim_mob::BusStop* BusStopAgent::getBusStop() const
 
 bool BusStopAgent::frame_init(timeslice now)
 {
-	messaging::MessageBus::RegisterHandler(this);
+	if(!GetContext()) { messaging::MessageBus::RegisterHandler(this); }
 	return true;
 }
 
@@ -128,7 +128,7 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 				}
 				else if (role->roleType == Role::RL_PASSENGER && val.status == UpdateStatus::RS_DONE)
 				{
-					ret = true;
+					throw std::runtime_error("The next role of the person who just alighted at a bus stop cannot be PASSENGER");
 				}
 			}
 		}

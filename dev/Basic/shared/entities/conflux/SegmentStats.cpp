@@ -1069,6 +1069,14 @@ void SegmentStats::printBusStops() const
 	Print() << printStream.str() << std::endl;
 }
 
+void sim_mob::SegmentStats::registerBusStopAgents()
+{
+	for (AgentList::iterator stopIt = busStopAgents.begin(); stopIt != busStopAgents.end(); stopIt++)
+	{
+		messaging::MessageBus::RegisterHandler(*stopIt);
+	}
+}
+
 void LaneStats::printAgents(bool copy) const
 {
 	std::stringstream debugMsgs;

@@ -686,6 +686,11 @@ public:
 	unsigned int computeExpectedOutputPerTick();
 
 	/**
+	 * performs message handler registrations for bus stops in this seg stats
+	 */
+	void registerBusStopAgents();
+
+	/**
 	 * prints all agents in this segment
 	 */
 	void printAgents() const;

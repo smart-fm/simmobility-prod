@@ -1766,7 +1766,7 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 	size_t numTours = tours.size();
 	if (numTours == 0) { return; }
 	std::string personId = personParams.getPersonId();
-	long hhFactor = 8; //(long)std::ceil(personParams.getHouseholdFactor());
+	long hhFactor = (long)std::ceil(personParams.getHouseholdFactor());
 	for(long k=1; k<=hhFactor; k++)
 	{
 		int homeNode = 0;

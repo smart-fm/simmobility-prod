@@ -249,7 +249,8 @@ void DeveloperModel::processParcels()
 			}
 			else
 			{
-				if(parcel->getDevelopmentAllowed().compare("development is allowed")!=0)
+				const double minLotSize = 100;
+				if((parcel->getDevelopmentAllowed().compare("development is allowed")!=0)||(parcel->getLotSize()< minLotSize))
 				{
 					nonEligibleParcelList.push_back(parcel);
 				}

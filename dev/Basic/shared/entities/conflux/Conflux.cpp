@@ -422,10 +422,6 @@ void sim_mob::Conflux::updateAgentContext(PersonProps& beforeUpdate, PersonProps
 {
 	if(beforeUpdate.conflux && afterUpdate.conflux && beforeUpdate.conflux != afterUpdate.conflux)
 	{
-		int rand = Utils::generateInt(0,100);
-		messaging::MessageBus::PostMessage(person, 5000009, messaging::MessageBus::MessagePtr(new TestMessage(rand)), false);
-		Print() << "~~Posted " << rand << " to person " << person->getId()  << " in frame " << currFrame.frame() << std::endl;
-		Print() << "~~ReRegistering agent from " << person->GetContext() << " to " << afterUpdate.conflux->GetContext() << " in frame " << currFrame.frame() << std::endl;
 		MessageBus::ReRegisterHandler(person, afterUpdate.conflux->GetContext());
 	}
 }
@@ -745,8 +741,6 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 	}
 	}
 
-	Print() << "Killing person: " << person->getId() << "|Role: " << person->getRole()->roleType
-			<< "|context: " << person->GetContext() << "|conflux context: " << GetContext() << std::endl;
 	parentWorker->remEntity(person);
 	parentWorker->scheduleForRemoval(person);
 }

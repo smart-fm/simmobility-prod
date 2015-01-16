@@ -116,31 +116,6 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 	}
 
 	if(!tripChain.empty()) { initTripChain(); }
-
-	if(getAgentSrc() == "DAS_TripChain")
-	{
-		std::stringstream ss;
-		ss << "DAS TripChain|";
-		for(std::vector<sim_mob::TripChainItem*>::iterator i=tripChain.begin(); i!=tripChain.end(); i++)
-		{
-			sim_mob::TripChainItem* tci = *i;
-			if(tci->itemType == sim_mob::TripChainItem::IT_TRIP)
-			{
-				sim_mob::Trip* trip = dynamic_cast<sim_mob::Trip*>(tci);
-				std::vector<sim_mob::SubTrip>& subtrips = trip->getSubTripsRW();
-				for(std::vector<sim_mob::SubTrip>::const_iterator j=subtrips.begin(); j!=subtrips.end(); j++)
-				{
-					ss << (*j).getMode() <<" SubTrip|";
-				}
-			}
-			else
-			{
-				ss << tci->getMode() << "|";
-			}
-		}
-		ss << std::endl;
-		Print() << ss.str();
-	}
 }
 void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();
@@ -401,11 +376,6 @@ void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ct
 
  void sim_mob::Person::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
  {
-	 if(type == 5000009)
-	 {
-		 Print() << "~~Received " << MSG_CAST(TestMessage, message).random << " by person " << getId() << std::endl;
-		 return;
-	 }
 	 if(currRole){
 		 currRole->HandleParentMessage(type, message);
 	 }

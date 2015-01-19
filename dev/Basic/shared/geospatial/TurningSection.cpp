@@ -2,11 +2,13 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-using namespace sim_mob;
+
 
 #include "TurningSection.hpp"
 
-TurningSection::TurningSection():
+using namespace sim_mob;
+
+sim_mob::TurningSection::TurningSection():
 	laneFrom(nullptr),laneTo(nullptr){
 
 }

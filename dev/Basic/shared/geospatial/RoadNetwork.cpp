@@ -46,12 +46,47 @@ void sim_mob::RoadNetwork::storeTurningSection(sim_mob::TurningSection& ts) {
 	// TODO
 	std::cout<<"storeTurningSection: id "<<ts.dbId<<std::endl;
 	sim_mob::TurningSection *t = new sim_mob::TurningSection(ts);
-	turningSectionMap.insert(std::make_pair(t->sectionId,t));
 	// get from segment
+	sim_mob::RoadSegment* fromSeg = getSegById(t->from_road_section);
+	if(!fromSeg) {
+		throw std::runtime_error("storeTurningSection: not found from section");
+	}
+	sim_mob::RoadSegment* toSeg = getSegById(t->to_road_section);
+	if(!toSeg) {
+		throw std::runtime_error("storeTurningSection: not found to section");
+	}
+	t->fromSeg = fromSeg; t->toSeg = toSeg;
+	// store
+	turningSectionMap.insert(std::make_pair(t->sectionId,t));
+	turningSectionByFromSeg.insert(std::make_pair(t->from_road_section,t));
+	turningSectionByToSeg.insert(std::make_pair(t->to_road_section,t));
 }
 void sim_mob::RoadNetwork::storeTurningConflict(sim_mob::TurningConflict& tc) {
 	//TODO
 	std::cout<<"storeTurningConflict: id "<<tc.dbId<<std::endl;
+	sim_mob::TurningConflict * t = new sim_mob::TurningConflict(tc);
+	// get turnings
+	sim_mob::TurningSection* ft = turningSectionMap[tc.first_turning];
+	sim_mob::TurningSection* st = turningSectionMap[tc.second_turning];
+
+	ft->confilicts.push_back(st);
+	ft->turningConflicts.push_back(t);
+
+	st->confilicts.push_back(ft);
+	ft->turningConflicts.push_back(t);
+
+	t->firstTurning = ft;
+	t->secondTurning = st;
+	// store
+	turningConflictMap.insert(std::make_pair(tc.conflictId,t));
+}
+sim_mob::RoadSegment* sim_mob::RoadNetwork::getSegById(std::string aimsunId) {
+	sim_mob::RoadSegment* res = nullptr;
+	std::map<std::string,sim_mob::RoadSegment*>::iterator it = segPool.find(aimsunId);
+	if(it != segPool.end()){
+		res = it->second;
+	}
+	return res;
 }
 void sim_mob::RoadNetwork::makeSegPool() {
 	for (std::vector<sim_mob::Link *>::const_iterator it =	links.begin(), it_end( links.end()); it != it_end; it++) {

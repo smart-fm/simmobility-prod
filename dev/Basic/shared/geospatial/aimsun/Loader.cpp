@@ -592,7 +592,7 @@ void DatabaseLoader::loadTurningConflictTable(const std::string& storedProc,sim_
 		}
 		catch (soci::soci_error const & err)
 		{
-			std::cout<<"loadTurningSectionTable: "<<err.what()<<std::endl;
+			std::cout<<"loadTurningConflictTable: "<<err.what()<<std::endl;
 		}
 }
 void DatabaseLoader::loadNodeTypeTable(const std::string& storedProc,std::map<string,int>& nodeTypeMap)

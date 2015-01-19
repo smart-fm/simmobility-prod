@@ -130,13 +130,14 @@ public:
 	/// store TurningSections
 	std::map<std::string,sim_mob::TurningSection* > turningSectionMap; // id, turning
 	std::map<std::string,sim_mob::TurningSection* > turningSectionByFromSeg; // key= from aimsun id, value=turning
-	std::map<std::string,sim_mob::TurningSection* > turningSectionBYtoSeg; // key= to aimsun seg id, value=turning
+	std::map<std::string,sim_mob::TurningSection* > turningSectionByToSeg; // key= to aimsun seg id, value=turning
+	std::map<std::string,sim_mob::TurningConflict* > turningConflictMap; // id, conflict
 	void storeTurningSection( sim_mob::TurningSection& ts);
 	void storeTurningConflict( sim_mob::TurningConflict& tc);
 	void makeSegPool();
 	///	store all segs <aimsun id ,seg>
 	std::map<std::string,sim_mob::RoadSegment*> segPool;
-
+	sim_mob::RoadSegment* getSegById(std::string aimsunId);
 	/**
 	 * /brief get segment type by aimsun id
 	 * /param id segment aimsun id

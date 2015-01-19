@@ -5,9 +5,11 @@
 #pragma once
 
 #include "geospatial/Lane.hpp"
+#include "TurningConflict.hpp"
 
 namespace sim_mob
 {
+class TurningConflict;
 
   class TurningSection
   {
@@ -30,6 +32,9 @@ namespace sim_mob
     std::string sectionId;
     // TODO phases
 
+    sim_mob::RoadSegment* fromSeg;
+    sim_mob::RoadSegment* toSeg;
+
     /// polyline points
     std::vector<Point2D> polylinePoints;
 
@@ -40,6 +45,7 @@ namespace sim_mob
     std::vector<TurningSection*>& getConflictTurnings();
   public:
     std::vector<TurningSection*> confilicts;
+    std::vector<TurningConflict* > turningConflicts;
   } ;
 
 };// end namespace

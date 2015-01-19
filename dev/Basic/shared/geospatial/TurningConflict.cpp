@@ -2,6 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+#include <sstream>
 #include <geospatial/TurningConflict.hpp>
 
 sim_mob::TurningConflict::TurningConflict() :
@@ -18,6 +19,8 @@ sim_mob::TurningConflict::TurningConflict(const TurningConflict& tc) :
 		first_cd(tc.first_cd),second_cd(tc.second_cd),
 		firstTurning(tc.firstTurning),secondTurning(tc.secondTurning)
 {
-
+		std::stringstream out("");
+		out<<tc.dbId;
+		conflictId = out.str();
 
 }

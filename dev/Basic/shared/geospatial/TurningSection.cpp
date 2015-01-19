@@ -14,6 +14,7 @@ sim_mob::TurningSection::TurningSection():
 				to_road_section(""),
 				from_lane_index(-1),
 				to_lane_index(-1),
+				fromSeg(nullptr),toSeg(nullptr),
 	laneFrom(nullptr),laneTo(nullptr){
 
 }
@@ -25,6 +26,7 @@ sim_mob::TurningSection::TurningSection(const TurningSection & ts):
 		to_road_section(ts.to_road_section),
 		from_lane_index(ts.from_lane_index),
 		to_lane_index(ts.to_lane_index),
+		fromSeg(nullptr),toSeg(nullptr),
 		sectionId(ts.sectionId),laneFrom(nullptr),laneTo(nullptr){
 	std::stringstream out("");
 	out<<ts.dbId;

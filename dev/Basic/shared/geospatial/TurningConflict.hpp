@@ -10,6 +10,7 @@
 namespace sim_mob
 {
 
+class TurningSection;
 
 class TurningConflict {
 public:
@@ -23,6 +24,7 @@ public:
 	double second_cd;
 
 public:
+	std::string conflictId;
 	TurningSection *firstTurning;
 	TurningSection *secondTurning;
 };

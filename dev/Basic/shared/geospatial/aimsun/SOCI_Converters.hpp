@@ -488,8 +488,8 @@ template<> struct type_conversion<sim_mob::TurningConflict>
     	res.dbId = vals.get<int>("id", -1);
     	res.first_turning = vals.get<std::string>("first_turning", "");
     	res.second_turning = vals.get<std::string>("second_turning", "");
-    	res.first_cd = vals.get<double>("to_xpos", -1.0);
-    	res.second_cd = vals.get<double>("to_ypos", -1.0);
+    	res.first_cd = vals.get<double>("first_cd", -1.0);
+    	res.second_cd = vals.get<double>("second_cd", -1.0);
     }
     static void to_base(const sim_mob::TurningConflict& src, soci::values& vals, soci::indicator& ind)
     {

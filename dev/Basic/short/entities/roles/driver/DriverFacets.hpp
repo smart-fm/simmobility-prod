@@ -303,6 +303,9 @@ private:
 	//loading queue wants to start its journey
 	bool findEmptySpaceAhead();
 
+        //This method helps defines the driver behaviour when approaching an unsignalised intersection
+        void approachIntersection();
+
 	Driver* parentDriver;
 
 	//The current traffic signal in our Segment. May be null.

@@ -484,8 +484,7 @@ double sim_mob::MITSIM_CF_Model::headwayBuffer() {
 }
 
 
-double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
-		double targetSpeed, double maxLaneSpeed) {
+double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p) {
 	p.cfDebugStr="";
 
 	calcStateBasedVariables(p);
@@ -529,11 +528,14 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		}
 	}
 
-	// if (intersection){
-	// double aI = approachInter(p); // when approaching intersection to achieve the turn speed
-	// if(acc > aI) acc = aI;
-	// }
-	// FUNCTION approachInter MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
+	if (p.slowDownForIntersection)
+	{
+		double aI = approachInterectionRate(p);
+		if (acc > aI) 
+		{
+			acc = aI;
+		}
+	}
 
 	//double aZ1 = carFollowingRate(p, p.nvFwd);
 	//double aZ2 = carFollowingRate(p, p.nvFwdNextLink);
@@ -617,6 +619,17 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	}
 
 	return acc;
+}
+
+/*
+ Calculates the acceleration for a vehicle approaching an intersection (unsignalised)
+ */
+double MITSIM_CF_Model::approachInterectionRate(sim_mob::DriverUpdateParams& p)
+{
+	//v^2 = u^2 + 2as [Kinematic equation]
+	//where v = final velocity, u = current velocity, a = acceleration, s = displacement
+	//As v = 0 (we want to stop), a = -u^2 / 2s
+	return (-1 * (p.currSpeed * p.currSpeed)) / (2 * p.distanceToIntersection);
 }
 
 /*

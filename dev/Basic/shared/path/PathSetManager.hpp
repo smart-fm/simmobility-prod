@@ -9,7 +9,7 @@
 #pragma once
 
 #include "PathSetParam.hpp"
-#include "ProcessTime.hpp"
+#include "TravelTimeManager.hpp"
 #include "geospatial/Link.hpp"
 #include "entities/Person.hpp"
 #include "util/Cache.hpp"
@@ -299,7 +299,7 @@ private:
 	static std::map<boost::thread::id, boost::shared_ptr<soci::session > > cnnRepo;
 
 	///	Travel time processing
-	ProcessTT processTT;
+	TravelTimeManager processTT;
 
 	///	static sim_mob::Logger profiler;
 	static boost::shared_ptr<sim_mob::batched::ThreadPool> threadpool_;

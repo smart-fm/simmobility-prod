@@ -91,7 +91,7 @@ double sim_mob::PathSetParam::getSegRangeTT(const sim_mob::RoadSegment* rs,const
 	double totalTravelTime=0.0;
 	int count = 0;
 	sim_mob::DailyTime dailyTime(startTime);
-	TT::TI endTimeRange = ProcessTT::getTimeInterval(endTime.getValue(), intervalMS);
+	TT::TI endTimeRange = TravelTimeManager::getTimeInterval(endTime.getValue(), intervalMS);
 	while(dailyTime.isBeforeEqual(endTime))
 	{
 		double tt = getSegTT(rs,travelMode, dailyTime);
@@ -176,7 +176,7 @@ double sim_mob::PathSetParam::getHistorySegTT(const sim_mob::RoadSegment* rs, co
 	std::ostringstream dbg("");
 	//1. check realtime table
 	double res = 0.0;
-	TT::TI timeInterval = ProcessTT::getTimeInterval(startTime.getValue(),intervalMS);
+	TT::TI timeInterval = TravelTimeManager::getTimeInterval(startTime.getValue(),intervalMS);
 	AverageTravelTime::iterator itRange = segHistoryTT.find(timeInterval);
 	if(itRange != segHistoryTT.end())
 	{

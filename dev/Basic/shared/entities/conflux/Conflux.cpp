@@ -1231,9 +1231,9 @@ void sim_mob::Conflux::topCMergeDifferentLinksInConflux(std::deque<sim_mob::Pers
 //
 //void sim_mob::Conflux::addSegTT(Agent::RdSegTravelStat & stats, Person* person) {
 //
-//	ProcessTT::TR &timeRange = ProcessTT::getTimeInterval(stats.entryTime);
-//	std::map<ProcessTT::TR,ProcessTT::TT>::iterator itTT = rdSegTravelTimesMap.find(timeRange);
-//	ProcessTT::TT & travelTimeInfo = (itTT == rdSegTravelTimesMap.end() ? rdSegTravelTimesMap[timeRange] : itTT->second);
+//	TravelTimeManager::TR &timeRange = TravelTimeManager::getTimeInterval(stats.entryTime);
+//	std::map<TravelTimeManager::TR,TravelTimeManager::TT>::iterator itTT = rdSegTravelTimesMap.find(timeRange);
+//	TravelTimeManager::TT & travelTimeInfo = (itTT == rdSegTravelTimesMap.end() ? rdSegTravelTimesMap[timeRange] : itTT->second);
 //	//initialization just in case
 //	if(itTT == rdSegTravelTimesMap.end()){
 //		travelTimeInfo[stats.rs].first = 0.0;

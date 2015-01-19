@@ -1,32 +1,32 @@
-#include "ProcessTime.hpp"
+#include "TravelTimeManager.hpp"
 #include "PathSetManager.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "boost/filesystem.hpp"
 
-int sim_mob::ProcessTT::dbg_ProcessTT_cnt = 0;
-sim_mob::ProcessTT::ProcessTT(unsigned int &intervalMS, unsigned int &curIntervalMS):intervalMS(intervalMS), curIntervalMS(curIntervalMS)
+int sim_mob::TravelTimeManager::dbg_ProcessTT_cnt = 0;
+sim_mob::TravelTimeManager::TravelTimeManager(unsigned int &intervalMS, unsigned int &curIntervalMS):intervalMS(intervalMS), curIntervalMS(curIntervalMS)
 {
 	enRouteTT.reset(new sim_mob::LastTT(*this));
 }
 
-void sim_mob::ProcessTT::addTravelTime(const Agent::RdSegTravelStat & stats) {
-	TT::TI timeInterval = ProcessTT::getTimeInterval(stats.entryTime * 1000, intervalMS);//milliseconds
+void sim_mob::TravelTimeManager::addTravelTime(const Agent::RdSegTravelStat & stats) {
+	TT::TI timeInterval = TravelTimeManager::getTimeInterval(stats.entryTime * 1000, intervalMS);//milliseconds
 	rdSegTravelTimesMap[timeInterval][stats.travelMode][stats.rs].totalTravelTime += stats.travelTime; //add to total travel time
 	rdSegTravelTimesMap[timeInterval][stats.travelMode][stats.rs].travelTimeCnt += 1; //increment the total contribution
 }
 
-sim_mob::TT::TI sim_mob::ProcessTT::getTimeInterval(const unsigned long time, const unsigned int interval)
+sim_mob::TT::TI sim_mob::TravelTimeManager::getTimeInterval(const unsigned long time, const unsigned int interval)
 {
 	return time / interval ;/*milliseconds*/
 }
 
-double sim_mob::ProcessTT::getTT(const std::string mode, const sim_mob::RoadSegment *rs) const
+double sim_mob::TravelTimeManager::getInSimulationSegTT(const std::string mode, const sim_mob::RoadSegment *rs) const
 {
-	return enRouteTT->getTT(mode,rs);
+	return enRouteTT->getInSimulationSegTT(mode,rs);
 }
 
-double sim_mob::LastTT::getTT(const std::string mode, const sim_mob::RoadSegment *rs) const
+double sim_mob::LastTT::getInSimulationSegTT(const std::string mode, const sim_mob::RoadSegment *rs) const
 {
 	//[time interval][travel mode][road segment][average travel time]
 	 //<-----TI-----><-------------------MRTC----------------------->
@@ -83,7 +83,7 @@ double sim_mob::LastTT::getTT(const std::string mode, const sim_mob::RoadSegment
 //	// the reverse iterator on a std::map, guarantees the highest time interval value
 //	TT::TITC::const_reverse_iterator itTI = itMode->second.rbegin();
 //	//bypass the current interval
-//	if(itTI->first == ProcessTT::curIntervalMS)
+//	if(itTI->first == TravelTimeManager::curIntervalMS)
 //	{
 //		itTI++;
 //	}
@@ -96,7 +96,7 @@ double sim_mob::LastTT::getTT(const std::string mode, const sim_mob::RoadSegment
 //	return tc.totalTravelTime / tc.travelTimeCnt;
 }
 
-void sim_mob::ProcessTT::insertTravelTime2TmpTable(const std::string fileName)
+void sim_mob::TravelTimeManager::insertTravelTime2TmpTable(const std::string fileName)
 {
 //	//whateever declaration needed for the following 3-tire nested loop:
 //	typedef sim_mob::TravelTime::value_type SegPairs;//time range pairs
@@ -165,9 +165,9 @@ void sim_mob::ProcessTT::insertTravelTime2TmpTable(const std::string fileName)
 	}
 }
 
-bool sim_mob::ProcessTT::storeRTT2DB()
+bool sim_mob::TravelTimeManager::storeRTT2DB()
 {
-	typedef std::map<boost::thread::id, boost::shared_ptr<ProcessTT> >::value_type TTs;
+	typedef std::map<boost::thread::id, boost::shared_ptr<TravelTimeManager> >::value_type TTs;
 	std::string tempFileName = sim_mob::PathSetParam::getInstance()->RTTT;
 	insertTravelTime2TmpTable(tempFileName);
 	sim_mob::Logger::log(tempFileName).flush();
@@ -175,7 +175,7 @@ bool sim_mob::ProcessTT::storeRTT2DB()
 	return sim_mob::aimsun::Loader::upsertTravelTime(*sim_mob::PathSetManager::getInstance()->getSession(), boost::filesystem::canonical(tempFileName).string(), sim_mob::PathSetParam::getInstance()->RTTT);
 }
 
-sim_mob::ProcessTT::~ProcessTT()
+sim_mob::TravelTimeManager::~TravelTimeManager()
 {
 	Print() << "dbg_ProcessTT_cnt " << dbg_ProcessTT_cnt << std::endl;
 }

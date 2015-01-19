@@ -6,13 +6,13 @@ namespace sim_mob
 {
 class PathSetManager;
 /**
- * ProcessTT is a small helper class to process Real Time Travel Time at RoadSegment Level.
+ * TravelTimeManager is a small helper class to process Real Time Travel Time at RoadSegment Level.
  * PathSetManager receives Real Time Travel Time and delegates
  * the processing task to this class.
  * This class aggregates the data received within different
  * time ranges and writes them to a file.
  */
-class ProcessTT
+class TravelTimeManager
 {
 	/**
 	 *	container to stor road segment travel times at different time intervals
@@ -38,8 +38,8 @@ public:
 	static int dbg_ProcessTT_cnt;
 	static void initTimeInterval();
 	static void updateCurrTimeInterval();
-	ProcessTT(unsigned int &intervalMS, unsigned int &curIntervalMS);
-	~ProcessTT();
+	TravelTimeManager(unsigned int &intervalMS, unsigned int &curIntervalMS);
+	~TravelTimeManager();
 	/*
 	 * accumulates Travel Time data
 	 * @param stats travel time record
@@ -65,7 +65,7 @@ public:
 	 * Note: for uniformity purposes this methods works with milliseconds values
 	 */
 	static sim_mob::TT::TI getTimeInterval(const unsigned long timeMS, const unsigned int intervalMS);
-	double getTT(const std::string mode,const  sim_mob::RoadSegment *rs) const;
+	double getInSimulationSegTT(const std::string mode,const  sim_mob::RoadSegment *rs) const;
 	friend class sim_mob::PathSetManager;
 
 	/**
@@ -74,15 +74,15 @@ public:
 	class EnRouteTT
 	 {
 	 protected:
-//	 	ProcessTT &parent;
+//	 	TravelTimeManager &parent;
 	 	sim_mob::TravelTime &rdSegTravelTimesMap;
 	 public:
-	 	EnRouteTT(ProcessTT &parent):/*parent(parent),*/rdSegTravelTimesMap(parent.rdSegTravelTimesMap){}
+	 	EnRouteTT(TravelTimeManager &parent):/*parent(parent),*/rdSegTravelTimesMap(parent.rdSegTravelTimesMap){}
 	 	/**
 	 	 * get the desired travel time based on the implementation
 	 	 * @param rs the roadsegment for which TT is retrieved
 	 	 */
-	 	virtual double getTT(const std::string mode, const sim_mob::RoadSegment *rs)const  = 0;
+	 	virtual double getInSimulationSegTT(const std::string mode, const sim_mob::RoadSegment *rs)const  = 0;
 	 	/**
 	 	 * do the implementation-specific internal updates based on the information given
 	 	 * @param mode travel mode
@@ -100,17 +100,17 @@ public:
 };
 
 
-class LastTT : public ProcessTT::EnRouteTT
+class LastTT : public TravelTimeManager::EnRouteTT
 {
-	friend class sim_mob::ProcessTT;
+	friend class sim_mob::TravelTimeManager;
 private:
 public:
-	LastTT(ProcessTT &parent):EnRouteTT(parent){}
+	LastTT(TravelTimeManager &parent):EnRouteTT(parent){}
 	/**
 	 * get the travel time from latest time interval having a record
 	 * for this read segment
 	 */
-	double getTT(const std::string mode, const sim_mob::RoadSegment *rs) const;
+	double getInSimulationSegTT(const std::string mode, const sim_mob::RoadSegment *rs) const;
 	virtual ~LastTT(){}
 };
 }//namespace

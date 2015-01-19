@@ -132,12 +132,12 @@ sim_mob::PathSetManager::~PathSetManager()
 
 //void sim_mob::PathSetManager::initTimeInterval()
 //{
-//	ProcessTT::initTimeInterval();
+//	TravelTimeManager::initTimeInterval();
 //}
 //
 //void sim_mob::PathSetManager::updateCurrTimeInterval()
 //{
-//	ProcessTT::updateCurrTimeInterval();
+//	TravelTimeManager::updateCurrTimeInterval();
 //}
 
 namespace {
@@ -1776,14 +1776,14 @@ void sim_mob::PathSetManager::addSegTT(const Agent::RdSegTravelStat & stats) {
 
 double sim_mob::PathSetManager::getInSimulationSegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime)
 {
-	return processTT.getTT(travelMode,rs);
+	return processTT.getInSimulationSegTT(travelMode,rs);
 }
 
 void sim_mob::PathSetManager::initTimeInterval()
 {
 	intervalMS = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval* 1000 /*milliseconds*/;
 	uint32_t startTm = ConfigManager::GetInstance().FullConfig().simStartTime().getValue();
-	curIntervalMS = ProcessTT::getTimeInterval(startTm, intervalMS);
+	curIntervalMS = TravelTimeManager::getTimeInterval(startTm, intervalMS);
 }
 
 void sim_mob::PathSetManager::updateCurrTimeInterval()

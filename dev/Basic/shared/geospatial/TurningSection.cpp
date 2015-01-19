@@ -6,7 +6,9 @@
 
 using namespace sim_mob;
 
-TurningSection::TurningSection():
+using namespace sim_mob;
+
+sim_mob::TurningSection::TurningSection():
 	laneFrom(nullptr),laneTo(nullptr){
 
 }

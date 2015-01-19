@@ -23,6 +23,7 @@ class Point2D;
 class Link;
 class Lane;
 class LaneConnector;
+class TurningSection;
 class RoadSegment;
 class RoadNetwork;
 
@@ -77,6 +78,8 @@ protected:
 	//      In addition, the multimap wouldn't be able to handle a uniqueness qualifier (which
 	//      is why we use "set").
 	std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > connectors;
+
+	std::map<const sim_mob::RoadSegment*, std::set<sim_mob::TurningSection*> > turnings;
 
 	///Bookkeeping: which RoadSegments meet at this Node?
 	std::set<sim_mob::RoadSegment*> roadSegmentsAt;

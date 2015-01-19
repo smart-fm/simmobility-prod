@@ -99,6 +99,7 @@ public:
 	sim_mob::Node* locateNode(double xPos, double yPos, bool includeUniNodes=false, int maxDistCM=1e8) const;
 
 	sim_mob::Node* getNodeById(int aimsunId);
+	sim_mob::MultiNode* getMultiNodeById(std::string aimsunId);
 	std::map<int,sim_mob::Node*> nodeMap;
 
 	//Temporary; added for the XML loader
@@ -132,8 +133,9 @@ public:
 	std::map<std::string,sim_mob::TurningSection* > turningSectionByFromSeg; // key= from aimsun id, value=turning
 	std::map<std::string,sim_mob::TurningSection* > turningSectionByToSeg; // key= to aimsun seg id, value=turning
 	std::map<std::string,sim_mob::TurningConflict* > turningConflictMap; // id, conflict
-	void storeTurningSection( sim_mob::TurningSection& ts);
-	void storeTurningConflict( sim_mob::TurningConflict& tc);
+	void storeTurningSection( sim_mob::TurningSection* t);
+	void storeTurningConflict( sim_mob::TurningConflict* t);
+	sim_mob::TurningSection* findTurningById(std::string id);
 	void makeSegPool();
 	///	store all segs <aimsun id ,seg>
 	std::map<std::string,sim_mob::RoadSegment*> segPool;

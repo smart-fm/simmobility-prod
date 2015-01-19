@@ -31,6 +31,16 @@ sim_mob::TurningSection::TurningSection(const TurningSection & ts):
 	std::stringstream out("");
 	out<<ts.dbId;
 	sectionId = out.str();
+
+	std::stringstream trimmer;
+	trimmer << from_road_section;
+	from_road_section.clear();
+	trimmer >> from_road_section;
+
+	trimmer.clear();
+	trimmer << to_road_section;
+	to_road_section.clear();
+	trimmer >> to_road_section;
 }
 
 std::vector<TurningSection*>& sim_mob::TurningSection::getConflictTurnings() {

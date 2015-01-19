@@ -574,7 +574,8 @@ void DatabaseLoader::loadTurningSectionTable(const std::string& storedProc,sim_m
 	{
 		soci::rowset<sim_mob::TurningSection> ts = (sql_.prepare <<"select * from " + storedProc);
 		for (soci::rowset<sim_mob::TurningSection>::const_iterator it=ts.begin(); it!=ts.end(); ++it)  {
-			rn.storeTurningSection(*it);
+			sim_mob::TurningSection *t = new sim_mob::TurningSection(*it);
+			rn.storeTurningSection(t);
 		}
 	}
 	catch (soci::soci_error const & err)
@@ -587,7 +588,8 @@ void DatabaseLoader::loadTurningConflictTable(const std::string& storedProc,sim_
 		{
 			soci::rowset<sim_mob::TurningConflict> ts = (sql_.prepare <<"select * from " + storedProc);
 			for (soci::rowset<sim_mob::TurningConflict>::const_iterator it=ts.begin(); it!=ts.end(); ++it)  {
-				rn.storeTurningConflict(*it);
+				sim_mob::TurningConflict * t = new sim_mob::TurningConflict(*it);
+				rn.storeTurningConflict(t);
 			}
 		}
 		catch (soci::soci_error const & err)

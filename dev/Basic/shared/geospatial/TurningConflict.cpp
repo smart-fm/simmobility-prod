@@ -23,4 +23,14 @@ sim_mob::TurningConflict::TurningConflict(const TurningConflict& tc) :
 		out<<tc.dbId;
 		conflictId = out.str();
 
+		std::stringstream trimmer;
+		trimmer << first_turning;
+		first_turning.clear();
+		trimmer >> first_turning;
+
+		trimmer.clear();
+		trimmer << second_turning;
+		second_turning.clear();
+		trimmer >> second_turning;
+
 }

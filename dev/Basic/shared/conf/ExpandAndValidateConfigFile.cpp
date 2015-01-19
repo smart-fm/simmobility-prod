@@ -377,11 +377,6 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetworkFromDatabase()
 				cfg.getDatabaseProcMappings().procedureMappings,
 				cfg.getNetworkRW());
 
-		// load turnings and turning conflicts
-		sim_mob::aimsun::Loader::loadTurnings(cfg.getDatabaseConnectionString(false),
-						cfg.getDatabaseProcMappings().procedureMappings,
-						cfg.getNetworkRW());
-
 //		DatabaseLoader loader(cfg.getDatabaseConnectionString(false));
 //		loader.loadObjectType(cfg.getDatabaseProcMappings().procedureMappings,cfg.getNetworkRW());
 		if (!sim_mob::xml::InitAndLoadXML(cfg.networkXmlInputFile(), cfg.getNetworkRW(), cfg.getTripChains())) {

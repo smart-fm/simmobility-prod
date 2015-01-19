@@ -12,8 +12,10 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "geospatial/Link.hpp"
 #include "util/GeomHelpers.hpp"
 #include "logging/Log.hpp"
+#include "util/Utils.hpp"
 
 using std::set;
 using std::pair;
@@ -40,8 +42,27 @@ sim_mob::RoadNetwork::~RoadNetwork()
 }
 
 
-void sim_mob::RoadNetwork::storeTurningSection(sim_mob::TurningSection* ts) {
-
+void sim_mob::RoadNetwork::storeTurningSection(sim_mob::TurningSection& ts) {
+	// TODO
+	std::cout<<"storeTurningSection: id "<<ts.dbId<<std::endl;
+	sim_mob::TurningSection *t = new sim_mob::TurningSection(ts);
+	turningSectionMap.insert(std::make_pair(t->sectionId,t));
+	// get from segment
+}
+void sim_mob::RoadNetwork::storeTurningConflict(sim_mob::TurningConflict& tc) {
+	//TODO
+	std::cout<<"storeTurningConflict: id "<<tc.dbId<<std::endl;
+}
+void sim_mob::RoadNetwork::makeSegPool() {
+	for (std::vector<sim_mob::Link *>::const_iterator it =	links.begin(), it_end( links.end()); it != it_end; it++) {
+			for (std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++) {
+				if (!(*seg_it)->originalDB_ID.getLogItem().empty()) {
+					std::string aimsun_id = (*seg_it)->originalDB_ID.getLogItem();
+					std::string seg_id = Utils::getNumberFromAimsunId(aimsun_id);
+					segPool.insert(std::make_pair(seg_id, *seg_it));
+				}
+			}
+	}
 }
 void sim_mob::RoadNetwork::ForceGenerateAllLaneEdgePolylines(sim_mob::RoadNetwork& rn)
 {

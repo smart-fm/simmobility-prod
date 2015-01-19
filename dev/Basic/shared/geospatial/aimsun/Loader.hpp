@@ -33,6 +33,8 @@ class ERP_Gantry_Zone;
 class ERP_Section;
 class ERP_Surcharge;
 class LinkTravelTime;
+class TurningSection;
+class TurningConflict;
 
 
 enum HasPath
@@ -71,7 +73,8 @@ public:
 	//  (e.g., Node ID reference that doesn't exist).
 	static void LoadNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof);
     static void loadSegNodeType(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn);
-	static bool LoadPathSetDataWithId(const std::string& connectionStr,
+    static void loadSimmobTurnings(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn);
+    static bool LoadPathSetDataWithId(const std::string& connectionStr,
 			std::map<std::string,sim_mob::SinglePath*>& pathPool,
 			std::map<std::string,SinglePath*> &waypoint_singlepathPool,
 			std::map<std::string,boost::shared_ptr<sim_mob::PathSet> > & pathSetPool,std::string& pathset_id);

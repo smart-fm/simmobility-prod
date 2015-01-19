@@ -8,6 +8,8 @@
 #include <set>
 #include <climits>
 #include "geospatial/RoadRunnerRegion.hpp"
+#include "TurningSection.hpp"
+#include "TurningConflict.hpp"
 
 namespace sim_mob
 {
@@ -20,6 +22,8 @@ class Point2D;
 class Link;
 class Conflux;
 class CoordinateTransform;
+class TurningSection;
+class TurningConflict;
 
 namespace aimsun
 {
@@ -127,7 +131,12 @@ public:
 	std::map<std::string,sim_mob::TurningSection* > turningSectionMap; // id, turning
 	std::map<std::string,sim_mob::TurningSection* > turningSectionByFromSeg; // key= from aimsun id, value=turning
 	std::map<std::string,sim_mob::TurningSection* > turningSectionBYtoSeg; // key= to aimsun seg id, value=turning
-	void storeTurningSection(sim_mob::TurningSection* ts);
+	void storeTurningSection( sim_mob::TurningSection& ts);
+	void storeTurningConflict( sim_mob::TurningConflict& tc);
+	void makeSegPool();
+	///	store all segs <aimsun id ,seg>
+	std::map<std::string,sim_mob::RoadSegment*> segPool;
+
 	/**
 	 * /brief get segment type by aimsun id
 	 * /param id segment aimsun id

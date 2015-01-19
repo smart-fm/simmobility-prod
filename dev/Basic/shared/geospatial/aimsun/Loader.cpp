@@ -42,6 +42,8 @@
 #include "geospatial/aimsun/CrossingLoader.hpp"
 #include "geospatial/aimsun/LaneLoader.hpp"
 #include "geospatial/aimsun/SOCI_Converters.hpp"
+#include "geospatial/TurningSection.hpp"
+#include "geospatial/TurningConflict.hpp"
 #include "path/PathSetManager.hpp"
 
 #include "logging/Log.hpp"
@@ -188,6 +190,8 @@ private:
 	void loadSegmentTypeTable(const std::string& storedProc,std::map<string,int>& segTypeMap);
 	void loadNodeTypeTable(const std::string& storedProc,std::map<string,int>& nodeTypeMap);
 
+	void loadTurningSectionTable(const std::string& storedProc,sim_mob::RoadNetwork& rn);
+	void loadTurningConflictTable(const std::string& storedProc,sim_mob::RoadNetwork& rn);
 public:
 	void LoadTripchains(const std::string& storedProc);
 
@@ -564,6 +568,32 @@ void DatabaseLoader::loadSegmentTypeTable(const std::string& storedProc,std::map
 	{
 		std::cout<<"loadSegmentTypeTable: "<<err.what()<<std::endl;
 	}
+}
+void DatabaseLoader::loadTurningSectionTable(const std::string& storedProc,sim_mob::RoadNetwork& rn) {
+	try
+	{
+		soci::rowset<sim_mob::TurningSection> ts = (sql_.prepare <<"select * from " + storedProc);
+		for (soci::rowset<sim_mob::TurningSection>::const_iterator it=ts.begin(); it!=ts.end(); ++it)  {
+			rn.storeTurningSection(*it);
+		}
+	}
+	catch (soci::soci_error const & err)
+	{
+		std::cout<<"loadTurningSectionTable: "<<err.what()<<std::endl;
+	}
+}
+void DatabaseLoader::loadTurningConflictTable(const std::string& storedProc,sim_mob::RoadNetwork& rn) {
+	try
+		{
+			soci::rowset<sim_mob::TurningConflict> ts = (sql_.prepare <<"select * from " + storedProc);
+			for (soci::rowset<sim_mob::TurningConflict>::const_iterator it=ts.begin(); it!=ts.end(); ++it)  {
+				rn.storeTurningConflict(*it);
+			}
+		}
+		catch (soci::soci_error const & err)
+		{
+			std::cout<<"loadTurningSectionTable: "<<err.what()<<std::endl;
+		}
 }
 void DatabaseLoader::loadNodeTypeTable(const std::string& storedProc,std::map<string,int>& nodeTypeMap)
 {
@@ -1104,8 +1134,8 @@ void DatabaseLoader::loadObjectType(map<string, string> const & storedProcs,sim_
 }
 void DatabaseLoader::loadTurningSection(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)
 {
-	loadTurningSectionTable(getStoredProcedure(storedProcs, "turning_section"),rn.segmentTypeMap);
-	loadTurningConflictTable(getStoredProcedure(storedProcs, "turning_conflict"),rn.nodeTypeMap);
+	loadTurningSectionTable(getStoredProcedure(storedProcs, "turning_section"), rn);
+	loadTurningConflictTable(getStoredProcedure(storedProcs, "turning_conflict"), rn);
 }
 
 //Compute the distance from the source node of the polyline to a
@@ -2602,7 +2632,12 @@ void sim_mob::aimsun::Loader::loadSegNodeType(const std::string& connectionStr, 
 	// load segment type data, node type data
 	loader.loadObjectType(storedProcs,rn);
 }
-
+void sim_mob::aimsun::Loader::loadSimmobTurnings(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn)
+{
+	DatabaseLoader loader(connectionStr);
+	// load segment type data, node type data
+	loader.loadTurningSection(storedProcs,rn);
+}
 void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
 {
 	std::cout << "Attempting to connect to database (generic)" << std::endl;
@@ -2692,6 +2727,11 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), config.getPT_bus_stops(), config.getBusStops_Map());
 	loader.LoadOD_Trips(getStoredProcedure(storedProcs, "od_trips", false), config.getODsTripsMap());
 
+	rn.makeSegPool();
+	// load turnings and turning conflicts
+	loadSimmobTurnings(connectionStr,
+			storedProcs,
+					rn);
 }
 
 void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdSeg, std::list<sim_mob::SegmentStats*>& splitSegmentStats) {

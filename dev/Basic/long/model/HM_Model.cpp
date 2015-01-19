@@ -272,18 +272,18 @@ void HM_Model::startImpl()
 	{
 		//Load households
 		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
-		PrintOut("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
+		PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
 
 		//Load units
 		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
-		PrintOut("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
+		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
 
 		//load individuals
 		loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
-		PrintOut("Initial Individuals: " << individuals.size() << std::endl);
+		PrintOutV("Initial Individuals: " << individuals.size() << std::endl);
 
 		loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
-		PrintOut("Awakening probability: " << awakening.size() << std::endl );
+		PrintOutV("Awakening probability: " << awakening.size() << std::endl );
 	}
 
 
@@ -343,7 +343,7 @@ void HM_Model::startImpl()
 		workGroup.assignAWorker(hhAgent);
 	}
 
-	PrintOut( "There are " << homelessHousehold << " homeless households" << std::endl);
+	PrintOutV( "There are " << homelessHousehold << " homeless households" << std::endl);
 
 	///////////////////////////////////////////
 	//Vacant Unit activation model
@@ -386,7 +386,7 @@ void HM_Model::startImpl()
 		}
 	}
 
-	PrintOut("Initial Vacant units: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
+	PrintOutV("Initial Vacant units: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
 
 
 	addMetadata("Initial Units", units.size());
@@ -409,18 +409,18 @@ void HM_Model::startImpl()
 		hdbEligibilityTest(n);
 	}
 
-	PrintOut("The synthetic population contains " << household_stats.adultSingaporean_global << " adult Singaporeans." << std::endl);
-	PrintOut("Minors. Male: " << household_stats.maleChild_global << " Female: " << household_stats.femaleChild_global << std::endl);
-	PrintOut("Young adults. Male: " << household_stats.maleAdultYoung_global << " Female: " << household_stats.femaleAdultYoung_global << std::endl);
-	PrintOut("Middle-age adults. Male: " << household_stats.maleAdultMiddleAged_global << " Female: " << household_stats.femaleAdultMiddleAged_global << std::endl);
-	PrintOut("Elderly adults. Male: " << household_stats.maleAdultElderly_global << " Female: " << household_stats.femaleAdultElderly_global << std::endl);
-	PrintOut("Household type Enumeration" << std::endl);
-	PrintOut("Couple and child " << household_stats.coupleAndChild << std::endl);
-	PrintOut("Siblings and parents " << household_stats.siblingsAndParents << std::endl );
-	PrintOut("Single parent " << household_stats.singleParent << std::endl );
-	PrintOut("Engaged couple " << household_stats.engagedCouple << std::endl );
-	PrintOut("Orphaned siblings " << household_stats.orphanSiblings << std::endl );
-	PrintOut("Multigenerational " << household_stats.multigeneration << std::endl );
+	PrintOutV("The synthetic population contains " << household_stats.adultSingaporean_global << " adult Singaporeans." << std::endl);
+	PrintOutV("Minors. Male: " << household_stats.maleChild_global << " Female: " << household_stats.femaleChild_global << std::endl);
+	PrintOutV("Young adults. Male: " << household_stats.maleAdultYoung_global << " Female: " << household_stats.femaleAdultYoung_global << std::endl);
+	PrintOutV("Middle-age adults. Male: " << household_stats.maleAdultMiddleAged_global << " Female: " << household_stats.femaleAdultMiddleAged_global << std::endl);
+	PrintOutV("Elderly adults. Male: " << household_stats.maleAdultElderly_global << " Female: " << household_stats.femaleAdultElderly_global << std::endl);
+	PrintOutV("Household type Enumeration" << std::endl);
+	PrintOutV("Couple and child " << household_stats.coupleAndChild << std::endl);
+	PrintOutV("Siblings and parents " << household_stats.siblingsAndParents << std::endl );
+	PrintOutV("Single parent " << household_stats.singleParent << std::endl );
+	PrintOutV("Engaged couple " << household_stats.engagedCouple << std::endl );
+	PrintOutV("Orphaned siblings " << household_stats.orphanSiblings << std::endl );
+	PrintOutV("Multigenerational " << household_stats.multigeneration << std::endl );
 
 }
 
@@ -450,9 +450,9 @@ void HM_Model::unitsFiltering()
 	int targetNumOfHDB   = 0.05 * numOfHDB;
 	int targetNumOfCondo = 0.10 * numOfCondo;
 
-	PrintOut( "[Prefilter] Total number of HDB: " << numOfHDB  << std::endl );
-	PrintOut( "[Prefilter] Total number of Condos: " << numOfCondo << std::endl );
-	PrintOut( "Total units " << units.size() << std::endl );
+	PrintOutV( "[Prefilter] Total number of HDB: " << numOfHDB  << std::endl );
+	PrintOutV( "[Prefilter] Total number of Condos: " << numOfCondo << std::endl );
+	PrintOutV( "Total units " << units.size() << std::endl );
 
 	srand(time(0));
 	for( int n = 0;  n < targetNumOfHDB; )
@@ -477,9 +477,9 @@ void HM_Model::unitsFiltering()
 		}
 	}
 
-	PrintOut( "[Postfilter] Total number of HDB: " << numOfHDB - targetNumOfHDB  << std::endl );
-	PrintOut( "[Postfilter] Total number of Condos: " << numOfCondo - targetNumOfCondo << std::endl );
-	PrintOut( "Total units " << units.size() << std::endl );
+	PrintOutV( "[Postfilter] Total number of HDB: " << numOfHDB - targetNumOfHDB  << std::endl );
+	PrintOutV( "[Postfilter] Total number of Condos: " << numOfCondo - targetNumOfCondo << std::endl );
+	PrintOutV( "Total units " << units.size() << std::endl );
 }
 
 void HM_Model::update(int day)

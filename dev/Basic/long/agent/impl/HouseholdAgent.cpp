@@ -139,6 +139,18 @@ void HouseholdAgent::awakenHousehold()
 		seller->setActive(true);
 		bidder->setActive(true);
 		model->incrementBidders();
+
+		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+		{
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+			BigSerial unitId = *itr;
+			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+			unit->setbiddingMarketEntryDay(day);
+			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+		}
+
 		model->incrementAwakeningCounter();
 
 		model->incrementLifestyle1HHs();
@@ -149,6 +161,18 @@ void HouseholdAgent::awakenHousehold()
 		seller->setActive(true);
 		bidder->setActive(true);
 		model->incrementBidders();
+
+		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+		{
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+			BigSerial unitId = *itr;
+			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+			unit->setbiddingMarketEntryDay(day);
+			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+		}
+
 		model->incrementAwakeningCounter();
 
 		model->incrementLifestyle2HHs();
@@ -159,6 +183,18 @@ void HouseholdAgent::awakenHousehold()
 		seller->setActive(true);
 		bidder->setActive(true);
 		model->incrementBidders();
+
+		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+		{
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+			BigSerial unitId = *itr;
+			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+			unit->setbiddingMarketEntryDay(day);
+			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+		}
+
 		model->incrementAwakeningCounter();
 
 		model->incrementLifestyle3HHs();

@@ -122,6 +122,12 @@ public:
 	///to store simmobility segment type table data, key = segment aimsun id,value=type
 	///segment type 1:freeway 2:ramp 3:urban road
 	std::map<std::string,int> segmentTypeMap;
+
+	/// store TurningSections
+	std::map<std::string,sim_mob::TurningSection* > turningSectionMap; // id, turning
+	std::map<std::string,sim_mob::TurningSection* > turningSectionByFromSeg; // key= from aimsun id, value=turning
+	std::map<std::string,sim_mob::TurningSection* > turningSectionBYtoSeg; // key= to aimsun seg id, value=turning
+	void storeTurningSection(sim_mob::TurningSection* ts);
 	/**
 	 * /brief get segment type by aimsun id
 	 * /param id segment aimsun id

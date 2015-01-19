@@ -40,7 +40,9 @@ sim_mob::RoadNetwork::~RoadNetwork()
 }
 
 
+void sim_mob::RoadNetwork::storeTurningSection(sim_mob::TurningSection* ts) {
 
+}
 void sim_mob::RoadNetwork::ForceGenerateAllLaneEdgePolylines(sim_mob::RoadNetwork& rn)
 {
 	//Set of road segments, sorted by ID.

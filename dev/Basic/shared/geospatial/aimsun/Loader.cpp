@@ -112,6 +112,7 @@ public:
 	 *  /param rn road network object
 	 */
 	void loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
+	void loadTurningSection(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
 	void LoadERP_Surcharge(std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >& pool);
 	void LoadERP_Section(std::map<std::string,sim_mob::ERP_Section*>& ERP_SectionPool);
 	void LoadERP_Gantry_Zone(std::map<std::string,sim_mob::ERP_Gantry_Zone*>& ERP_GantryZonePool);
@@ -1101,7 +1102,11 @@ void DatabaseLoader::loadObjectType(map<string, string> const & storedProcs,sim_
 	loadSegmentTypeTable(getStoredProcedure(storedProcs, "segment_type"),rn.segmentTypeMap);
 	loadNodeTypeTable(getStoredProcedure(storedProcs, "node_type"),rn.nodeTypeMap);
 }
-
+void DatabaseLoader::loadTurningSection(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)
+{
+	loadTurningSectionTable(getStoredProcedure(storedProcs, "turning_section"),rn.segmentTypeMap);
+	loadTurningConflictTable(getStoredProcedure(storedProcs, "turning_conflict"),rn.nodeTypeMap);
+}
 
 //Compute the distance from the source node of the polyline to a
 // point on the line from the source to the destination nodes which

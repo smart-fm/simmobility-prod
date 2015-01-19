@@ -75,5 +75,30 @@ public:
 #endif
 };
 
+  /*
+   * MITSIMLab version of the intersection driving model
+   */
+  class MITSIM_IntDriving_Model : public IntersectionDrivingModel
+  {
+  private:
 
+    DynamicVector intTrajectory;
+    
+    double totalMovement;
+
+  public:
+    
+    MITSIM_IntDriving_Model();
+    
+    virtual ~MITSIM_IntDriving_Model();
+    
+    virtual DPoint continueDriving (double amount);
+
+    virtual double getCurrentAngle ();
+    
+    virtual bool isDone ();
+ 
+    virtual void startDriving (const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset);
+};
+  
 }

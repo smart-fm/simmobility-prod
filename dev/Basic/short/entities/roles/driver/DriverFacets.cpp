@@ -26,6 +26,7 @@
 #include "geospatial/RoadRunnerRegion.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/TurningSection.hpp"
 #include "geospatial/UniNode.hpp"
 #include "IncidentPerformer.hpp"
 #include "network/CommunicationDataManager.hpp"
@@ -163,7 +164,7 @@ void sim_mob::DriverMovement::init() {
 	//Initialize our models. These should be swapable later.
 	lcModel = new MITSIM_LC_Model(p2);
 	cfModel = new MITSIM_CF_Model(p2);
-	intModel = new SimpleIntDrivingModel();
+	intModel = new MITSIM_IntDriving_Model();
 
 	parentDriver->initReactionTime();
 }
@@ -607,19 +608,19 @@ bool sim_mob::DriverMovement::update_sensors(timeslice now) {
 
 	//Manage traffic signal behavior if we are close to the end of the link.
 	params.isApproachingIntersection = false;
+	
 	if(!fwdDriverMovement.isInIntersection()) 
 	{
 		//Detect if a vehicle is approaching an intersection. We do this by comparing the 
 		//distance to the end of the road segment and the braking distance (vehicle stopping distance))
 	
-		//Get the distance to the end of the road segment (metre)
+		//The distance to the end of the road segment (metre)
 		double distToIntersection = fwdDriverMovement.getDistToLinkEndM();
 		
-		//Convert speed from cm/s to m/s
+		//Speed of the vehicle (converted from cm/s to m/s)
 		double speed = parentDriver->vehicle->getVelocity() / 100;
 		
-		//Calculate the braking distance (metre)
-		//Total braking distance = Perception-reaction distance + Braking distance 
+		//Calculate the total braking distance (metre)
 		
 		//Perception-reaction distance is the distance covered when the driver has not yet reacted
 		//It is the product of the vehicle speed and the perception-reaction delay (an approx value of 1.5s is good enough)
@@ -630,12 +631,14 @@ bool sim_mob::DriverMovement::update_sensors(timeslice now) {
 		//where v = speed (m/s), u = coefficient of friction (0.7), g = acceleration due to gravity (9.8 m/s^2)
 		double brakingDist = (speed * speed) / (2 * 0.7 * 9.8);
 		
+		//Total braking distance = Perception-reaction distance + Braking distance 
 		double totalBrakingDist = prcptn_reactnDist + brakingDist;
 		
 		if (distToIntersection < totalBrakingDist)
 		{
 			params.isApproachingIntersection = true;
 		}
+		
 		setTrafficSignalParams(params);
 	}
 
@@ -650,7 +653,9 @@ bool sim_mob::DriverMovement::update_sensors(timeslice now) {
 }
 
 bool sim_mob::DriverMovement::update_movement(timeslice now) {
+	
 	DriverUpdateParams& params = parentDriver->getParams();
+	
 	//If reach the goal, get back to the origin
 	if (fwdDriverMovement.isDoneWithEntireRoute()) {
 		//Output
@@ -671,18 +676,25 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 	params.TEMP_lastKnownPolypoint = DPoint(getCurrPolylineVector2().getEndX(),
 			getCurrPolylineVector2().getEndY());
 
-	//First, handle driving behavior inside an intersection.
-	if (fwdDriverMovement.isInIntersection()) {
+	//Check if this is the leading vehicle in a lane & is approaching an unsignalised intersection.
+	if (!params.nvFwd.driver && params.isApproachingIntersection && !trafficSignal)
+	{
+		approachIntersection();
+	}
+	
+	//Handle driving within an intersection
+	if (fwdDriverMovement.isInIntersection())
+	{
 		parentDriver->perceivedDistToTrafficSignal->clear();
 		parentDriver->perceivedTrafficColor->clear();
 		intersectionDriving(params);
 	}
-
-	//Next, handle driving on links.
+	
+	// Next, handle driving on links.
 	// Note that a vehicle may leave an intersection during intersectionDriving(), so the conditional check is necessary.
 	// Note that there is no need to chain this back to intersectionDriving.
-
-	if (!fwdDriverMovement.isInIntersection() && !fwdDriverMovement.isDoneWithEntireRoute()) {
+	if (!fwdDriverMovement.isInIntersection() && !fwdDriverMovement.isDoneWithEntireRoute()) 
+	{
 		params.cftimer -= params.elapsedSeconds;
 		if (params.cftimer < params.elapsedSeconds) {
 			// make lc decision and check if can do lc
@@ -768,6 +780,100 @@ bool sim_mob::DriverMovement::update_post_movement(timeslice now) {
 	}
 
 	return true;
+}
+
+/*
+ This method helps define the driver behaviour when approaching an unsignalised intersection
+ It looks for conflict drivers, in order to help decide the approach speed
+*/
+void sim_mob::DriverMovement::approachIntersection()
+{
+	//The multi-node which houses the turning must be the end node of current segment and the start node
+	//of the next segment. If the two nodes are not the same, means we're in a different segment (we're close to
+	//the intersection, but a short segment is likely ahead of us)
+	
+	//The current RoadSegment the vehicle is on
+	const RoadSegment *currSegment = fwdDriverMovement.getCurrSegment();
+
+	//The RoadSegment the vehicle will move to after the intersection
+	const RoadSegment *nextSegment = fwdDriverMovement.getNextSegment(false);
+
+	//The turning section that will be used by the vehicle to move from the current segment to the next segment
+	TurningSection *turningSection = NULL;
+
+	if (currSegment->getEnd() == nextSegment->getStart())
+	{
+		const Lane *currentLane = fwdDriverMovement.getCurrLane();
+		const MultiNode *node = dynamic_cast<const MultiNode *> (currSegment->getEnd());
+
+		//Get the turning section that will be used by the vehicle
+		//turningSection = node->getTurningSections(currentLane, nextLaneInNextLink);
+	}
+
+	//Check if we have a turning section. Absence of a turning section indicates that either 
+	//we have not yet entered the required from lane or that we're close to the intersection,
+	//but there's a short segment ahead of us - so, we can only defer processing till later
+	if (turningSection)
+	{
+		//The time required to reach the intersection
+		double timeToIntersection = fwdDriverMovement.getDistToLinkEndM() / (parentDriver->getVehicle()->getVelocity() / 100);
+
+		//Iterator for looping through every conflict turning section of the current vehicle's turning section
+		vector<TurningSection *>::iterator itConflictSections = turningSection->confilicts.begin();
+		while (itConflictSections != turningSection->confilicts.end())
+		{
+			//The conflict lane on the conflict turning section
+			const Lane *conflictLane = (*itConflictSections)->laneFrom;
+
+			//The list of agents on the conflict lane (before a distance of parentDriver->distanceBehind 
+			//from the end of the lane)
+			vector<const Agent *> conflictZoneAgents;
+
+			//Get the vehicles on the turning section
+			conflictZoneAgents = AuraManager::instance().nearbyAgents(conflictLane->getPolyline(false).back(), *conflictLane, 0,
+																	parentDriver->distanceBehind, NULL);
+
+			//The first vehicle on the turning section
+			const Driver *leadDriver = NULL;
+			DriverMovement *driverMovement = NULL;
+			double distance = DBL_MAX;
+
+			//Get the lead vehicle on this lane
+			for (vector<const Agent *>::iterator it = conflictZoneAgents.begin(); it != conflictZoneAgents.end(); ++it)
+			{
+				const Person *person = dynamic_cast<const Person *> (*it);
+				if (person)
+				{
+					const Driver *driver = dynamic_cast<const Driver *> (person->getRole());
+					if (driver)
+					{
+						driverMovement = dynamic_cast<DriverMovement *> (driver->Movement());
+						if (distance > driverMovement->fwdDriverMovement.getDistToLinkEndM())
+						{
+							leadDriver = driver;
+						}
+					}
+				}
+			}
+
+			if (leadDriver)
+			{
+				//Time required for conflict vehicle to reach the intersection
+				double timeReqdByConflictVehicle =
+						driverMovement->fwdDriverMovement.getDistToLinkEndM() / (leadDriver->getVehicle()->getVelocity() / 100);
+
+				//If the time required for the other car is less, we yield
+				if (timeReqdByConflictVehicle < timeToIntersection)
+				{
+					parentDriver->getParams().slowDownForIntersection = true;
+					parentDriver->getParams().distanceToIntersection = driverMovement->fwdDriverMovement.getDistToLinkEndM();
+					break;
+				}
+			}
+
+			++itConflictSections;
+		}
+	}
 }
 
 //responsible for vehicle behaviour inside intersection
@@ -891,6 +997,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 	}
 
 	calcDistanceToSP(p);
+	
 	// make lc decision
 	LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
 
@@ -912,8 +1019,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 					/ METER_TO_CENTIMETER_CONVERT_UNIT;
 
 	//Call our model
-	p.newFwdAcc = cfModel->makeAcceleratingDecision(p, p.desiredSpeed,
-			p.maxLaneSpeed);
+	p.newFwdAcc = cfModel->makeAcceleratingDecision(p);
 }
 
 double sim_mob::DriverMovement::move(DriverUpdateParams& p) {
@@ -2459,7 +2565,7 @@ NearestVehicle & sim_mob::DriverMovement::nearestVehicle(DriverUpdateParams& p) 
 	double leftDis = 5000;
 	double rightDis = 5000;
 	double currentDis = 5000;
-	p.isBeforIntersecton = false;
+
 	if (p.nvLeftFwd.exists()) {
 		leftDis = p.nvLeftFwd.distance;
 	}
@@ -2471,7 +2577,6 @@ NearestVehicle & sim_mob::DriverMovement::nearestVehicle(DriverUpdateParams& p) 
 		currentDis = p.nvFwd.distance;
 	} else if (p.nvFwdNextLink.exists() && p.turningDirection == LCS_SAME) {
 		currentDis = p.nvFwdNextLink.distance;
-		p.isBeforIntersecton = true;
 		return p.nvFwdNextLink;
 	} else if (p.nvLeadFreeway.exists()) // vh on freeway
 	{

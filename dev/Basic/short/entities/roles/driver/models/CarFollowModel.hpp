@@ -38,7 +38,7 @@ public:
 	//Allow propagation of delete
 	virtual ~CarFollowModel() {}
 
-	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed) = 0;  ///<Decide acceleration
+	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p) = 0;  ///<Decide acceleration
 public:
 	string modelName;
 //	double maxAcceleration;
@@ -138,7 +138,7 @@ public:
 		* to 0. After each evaluation, we set the countdown clock cfTimer
 		* back to nextStepSize().
 	 **/
-	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);
+	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p);
 
 private:
 	double carFollowingRate(sim_mob::DriverUpdateParams& p,NearestVehicle& nv);
@@ -235,6 +235,9 @@ private:
 	 *  \return acceleration rate
 	 */
 	double calcStopPointRate(sim_mob::DriverUpdateParams& p);
+        
+        //Calculates the acceleration while approaching an intersection
+        double approachInterectionRate(sim_mob::DriverUpdateParams& p);
 
 	/** \brief return the acc to a target speed within a specific distance
 	 *  \param p vehicle state value

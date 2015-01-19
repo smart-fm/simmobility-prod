@@ -9,20 +9,21 @@
 namespace sim_mob
 {
 
-class TurningSection {
-public:
-	TurningSection();
+  class TurningSection
+  {
+  public:
+    TurningSection();
 
-public:
-	std::string sectiongId;
-	// phases
-	std::vector<TurningSection*> confilicts;
+  public:
+    std::string sectiongId;
+    // phases
+    std::vector<TurningSection*> confilicts;
 
-	/// polyline points
-	std::vector<Point2D> polylinePoints;
+    /// polyline points
+    std::vector<Point2D> polylinePoints;
 
-	sim_mob::Lane* laneFrom;
-		sim_mob::Lane* laneTo;
-};
+    sim_mob::Lane* laneFrom;
+    sim_mob::Lane* laneTo;
+  } ;
 
 };// end namespace

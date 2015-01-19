@@ -13,12 +13,12 @@ DriverUpdateParams::DriverUpdateParams()
     movementVectx(0), movementVecty(0), headway(999), currLane(NULL), stopPointPerDis(100), stopPointState(NO_FOUND_STOP_POINT), startStopTime(0), disToSP(999),
     currLaneIndex(0), leftLane(NULL), rightLane(NULL), leftLane2(NULL), rightLane2(NULL), currSpeed(0), desiredSpeed(0), currLaneOffset(0),
 	currLaneLength(0), trafficSignalStopDistance(0), elapsedSeconds(0), perceivedFwdVelocity(0), perceivedLatVelocity(0), perceivedFwdVelocityOfFwdCar(0),
-	perceivedLatVelocityOfFwdCar(0), perceivedAccelerationOfFwdCar(0), perceivedDistToFwdCar(0), isMLC(false), isBeforIntersecton(false),
+	perceivedLatVelocityOfFwdCar(0), perceivedAccelerationOfFwdCar(0), perceivedDistToFwdCar(0), isMLC(false), slowDownForIntersection(false),
 	laneChangingVelocity(0), isCrossingAhead(false), isApproachingIntersection(false), crossingFwdDistance(0), space(0), a_lead(0),
 	v_lead(0), space_star(0), distanceToNormalStop(0), dis2stop(0), isWaiting(false), nextLaneIndex(0), justChangedToNewSegment(false),
 	justMovedIntoIntersection(false), overflowIntoIntersection(0), driver(NULL), isTargetLane(false), lastAcc(0), emergHeadway(999), aZ(0),
 	density(0), initSegId(0), initDis(0), initSpeed(0), parentId(0), FFAccParamsBeta(0), nextStepSize(0), maxAcceleration(0), normalDeceleration(0),
-	lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0)
+	lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), distanceToIntersection(999)
 {
 }
 

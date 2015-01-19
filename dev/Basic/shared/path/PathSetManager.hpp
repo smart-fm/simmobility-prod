@@ -91,9 +91,9 @@ public:
 	/**
 	 * update pathset paramenters before selecting the best path
 	 * @param ps the input pathset
-	 * @param travelTime decides if travel time retrieval should be included or not.(setPathSetTags can get TT during pathset generation)
+	 * @param enRoute decides if travel time retrieval should included in simulation travel time or not
 	 */
-	void onPathSetRetrieval(boost::shared_ptr<PathSet> &ps, bool travelTime = true);
+	void onPathSetRetrieval(boost::shared_ptr<PathSet> &ps, bool enRoute = false);
 
 	/**
 	 * post pathset generation processes
@@ -138,26 +138,28 @@ public:
 	void generatePathesByTravelTimeLinkElimination(std::vector<WayPoint>& path, std::set<std::string>& duplicateChecker, boost::shared_ptr<sim_mob::PathSet> &ps_,const sim_mob::Node* fromNode,const sim_mob::Node* toNode,	sim_mob::TimeRange tr);
 
 	bool getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet> &ps,
-			const std::set<const sim_mob::RoadSegment *> & partialExclusion = std::set<const sim_mob::RoadSegment *>(),
-			const std::set<const sim_mob::RoadSegment*> &blckLstSegs = std::set<const sim_mob::RoadSegment *>());
+			const std::set<const sim_mob::RoadSegment *> & partialExclusion,
+			const std::set<const sim_mob::RoadSegment*> &blckLstSegs);
 
 	/**
 	 * The main entry point to the pathset manager,
 	 * returns a path for the requested subtrip
 	 * @param per the requesting person (todo:for logging purpose only)
 	 * @subTrip the subtrip information containing OD, start time etc
+	 * @enRoute indication of whether this request was made in the beginning of the trip or enRoute
 	 * @return a sequence of road segments wrapped in way point structure
 	 */
-	std::vector<WayPoint> getPath(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip);
+	std::vector<WayPoint> getPath(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip, bool enRoute = false);
 
 	/**
 	 * 	calculates the travel time of a path
 	 * 	@param sp the given path
 	 * 	@param travelMode mode of travelling through the path
 	 * 	@startTime when to start the path
+	 *  @enRoute decided whether in simulation travel time should be searched or not
 	 * 	@return path's travel time
 	 */
-	static double getPathTravelTime(sim_mob::SinglePath *sp,const std::string & travelMode, const sim_mob::DailyTime & startTime);
+	double getPathTravelTime(sim_mob::SinglePath *sp,const std::string & travelMode, const sim_mob::DailyTime & startTime, bool enRoute = false);
 
 	/**
 	 * record the travel time reported by agents

@@ -770,7 +770,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	//K-SHORTEST PATH
 	//TODO:CONSIDER MERGING THE PREVIOUS OPERATION(findShortestDrivingPath) IN THE FOLLOWING OPERATION
 	std::vector< std::vector<sim_mob::WayPoint> > ksp;
-	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> kspTemp;
+	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> KSP_Storage;//main storage for k-shortest path
 	int kspn = sim_mob::K_ShortestPathImpl::getInstance()->getKShortestPaths(ps->fromNode,ps->toNode,ksp);
 
 	logger << "[" << fromToID << "][K-SHORTEST-PATH]\n";
@@ -785,11 +785,12 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 			// fill data
 			s->isNeedSave2DB = true;
 			s->id = id;
+			s->pathSetId = fromToID;
 			s->init(path_);
 			s->scenario = ps->scenario + "KSP";
 			s->pathSize=0;
 			duplicateChecker.insert(id);
-			kspTemp.insert(s);
+			KSP_Storage.insert(s);
 			logger << "[KSP:" << i << "] " << s->id << "[length: " << s->length << "]\n";
 		}
 	}
@@ -975,7 +976,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	}
 	ps->addOrDeleteSinglePath(ps->oriPath);
 	//b. record k-shortest paths
-	BOOST_FOREACH(sim_mob::SinglePath* sp, kspTemp)
+	BOOST_FOREACH(sim_mob::SinglePath* sp, KSP_Storage)
 	{
 		ps->addOrDeleteSinglePath(sp);
 	}
@@ -996,7 +997,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	workPool.clear();
 	//step-7
 	onGeneratePathSet(ps);
-#if 0
+//#if 0
 	//step -8 :
 	boost::shared_ptr<sim_mob::PathSet> recursionPs;
 	/*
@@ -1047,7 +1048,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 		recursionPs->scenario = ps->scenario;
 		generateAllPathChoices(recursionPs,recursiveODs);
 	}
-#endif
+//#endif
 
 	return true;
 }

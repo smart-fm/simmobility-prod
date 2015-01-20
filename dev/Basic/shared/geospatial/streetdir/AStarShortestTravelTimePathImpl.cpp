@@ -396,7 +396,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::initDrivingNetworkNew(const vect
 	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddStartNodesAndEdges,this,
 			boost::ref(drivingMap_NormalTime),
 			boost::ref(nodeLookup_NormalTime),
-			boost::ref(drivingNodeLookup_EveningPeak_)));
+			boost::ref(drivingNodeLookup_NormalTime_)));
 
 	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddStartNodesAndEdges,this,
 			boost::ref(drivingMap_Default),

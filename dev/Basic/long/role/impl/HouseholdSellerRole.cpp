@@ -198,7 +198,7 @@ void HouseholdSellerRole::update(timeslice now)
 
     if (hasUnitsToSale)
     {
-        const HM_Model* model = getParent()->getModel();
+        HM_Model* model = getParent()->getModel();
         HousingMarket* market = getParent()->getMarket();
         const vector<BigSerial>& unitIds = getParent()->getUnitIds();
 
@@ -217,13 +217,12 @@ void HouseholdSellerRole::update(timeslice now)
         	//this only applies to empty units. These units are given a random dayOnMarket value
         	//so that not all empty units flood the market on day 1. There's a timeOnMarket and timeOffMarket
         	//variable that is fed to simmobility through the long term XML file.
-            //PrintOut("Day: " << std::dec << currentTime.ms() << " bidEntryDay: " << unit->getbiddingMarketEntryDay() << " lifespan: "  << marketLifespan << " timeOnMarket: " << timeOnMarket );
+            int day = currentTime.ms();
+            //PrintOut("Day: " << std::dec << day << " Seller: " << this->getParent()->GetId() << " bidEntryDay: " << unit->getbiddingMarketEntryDay() << " timeOnMarket: "  << unit->getTimeOnMarket() << std::endl );
 
-            int unitTimeOnMarket = unit->getTimeOnMarket();
-
-            if(!((int)currentTime.ms() >= unit->getbiddingMarketEntryDay() && currentTime.ms() < unitTimeOnMarket +  unit->getbiddingMarketEntryDay()))
+            //if( !( day >= unit->getbiddingMarketEntryDay() && day < unit->getTimeOnMarket() +  unit->getbiddingMarketEntryDay() ) )
     		{
-    			continue;
+    		//	continue;
     		}
 
 
@@ -338,9 +337,7 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 			 {
 				 SellingUnitInfo& info = it->second;
 
-				 int unitTimeOnMarket = unit->getTimeOnMarket();
-
-				 if(!((int)currentTime.ms() >= unit->getbiddingMarketEntryDay() && currentTime.ms() < unitTimeOnMarket +  unit->getbiddingMarketEntryDay()))
+				 if((int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket() )
 				 {
 					 //PrintOut("Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
 					 market->removeEntry(unitId);
@@ -395,7 +392,8 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
     SellingUnitInfo info;
     info.startedDay = currentTime.ms();
     info.interval = timeInterval;
-    info.daysOnMarket = timeOnMarket;
+    info.daysOnMarket = unit.getTimeOnMarket();
+
     info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
     luaModel.calulateUnitExpectations(unit, info.numExpectations, info.expectations);
 

@@ -270,38 +270,20 @@ void HM_Model::startImpl()
 
 	if (conn.isConnected())
 	{
-		//Simmobility Test Params
-		const int numHouseholds = config.ltParams.housingModel.numberOfHouseholds;
-		const int numUnits = config.ltParams.housingModel.numberOfUnits;
-
 		//Load households
 		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
-		int displayHouseholds =	numHouseholds == -1 ? households.size() : numHouseholds;
-		PrintOut("Number of households: " << households.size() << ". Households used: " << displayHouseholds << std::endl);
+		PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
 
 		//Load units
 		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
-		int displayUnits = numUnits == -1 ? units.size() : numUnits;
-		PrintOut("Number of units: " << units.size() << ". Units Used: " << displayUnits << std::endl);
+		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
 
 		//load individuals
 		loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
-		PrintOut("Initial Individuals: " << individuals.size() << std::endl);
+		PrintOutV("Initial Individuals: " << individuals.size() << std::endl);
 
 		loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
-		PrintOut("Awakening probability: " << awakening.size() << std::endl );
-
-
-
-		if (numUnits != -1 && numUnits < units.size())
-		{
-			units.resize(numUnits);
-		}
-
-		if (numHouseholds != -1 && numHouseholds < households.size())
-		{
-			households.resize(numHouseholds);
-		}
+		PrintOutV("Awakening probability: " << awakening.size() << std::endl );
 	}
 
 
@@ -361,29 +343,11 @@ void HM_Model::startImpl()
 		workGroup.assignAWorker(hhAgent);
 	}
 
-	PrintOut( "There are " << homelessHousehold << " homeless households" << std::endl);
+	PrintOutV( "There are " << homelessHousehold << " homeless households" << std::endl);
 
-	const int NUM_VACANT_UNITS = config.ltParams.housingModel.numberOfVacantUnits;
-
-	//Delete vacant units set by config file.
-	//n: variable n will increment by 1 for every vacant unit
-	//m: variable m will keep the index of the last retrieved vacant unit to speed up the process.
-	for (int n = 0, m = 0; n < NUM_VACANT_UNITS;)
-	{
-		for (UnitList::const_iterator it = units.begin() + m; it != units.end(); it++)
-		{
-			//this unit is a vacancy
-			if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
-			{
-				units.erase(units.begin() + m);
-				n++;
-				break;
-			}
-
-			m++;
-		}
-	}
-
+	///////////////////////////////////////////
+	//Vacant Unit activation model
+	//////////////////////////////////////////
 	int vacancies = 0;
 	int onMarket  = 0;
 	int offMarket = 0;
@@ -391,7 +355,7 @@ void HM_Model::startImpl()
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
 		(*it)->setbiddingMarketEntryDay( 0 );
-		(*it)->setTimeOnMarket((float)rand() / RAND_MAX *  config.ltParams.housingModel.timeOnMarket);
+		(*it)->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 		(*it)->setTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
 
 		//this unit is a vacancy
@@ -401,17 +365,18 @@ void HM_Model::startImpl()
 			{
 				float awakeningProbability = (float)rand() / RAND_MAX;
 
-				if(awakeningProbability < config.ltParams.housingModel.awakenedProbability )
+				if(awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
 
-					(*it)->setbiddingMarketEntryDay( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
-					(*it)->setTimeOnMarket( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
+					//(*it)->setbiddingMarketEntryDay( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
+					(*it)->setbiddingMarketEntryDay( 0 );
+					//(*it)->setTimeOnMarket( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 
 					onMarket++;
 				}
 				else
 				{
-					(*it)->setbiddingMarketEntryDay( (float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket + config.ltParams.housingModel.timeOffMarket));
+					(*it)->setbiddingMarketEntryDay(0);//( (float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket + config.ltParams.housingModel.timeOffMarket));
 					offMarket++;
 				}
 
@@ -421,7 +386,7 @@ void HM_Model::startImpl()
 		}
 	}
 
-	PrintOut("Initial Vacancies: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
+	PrintOutV("Initial Vacant units: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
 
 
 	addMetadata("Initial Units", units.size());
@@ -444,18 +409,18 @@ void HM_Model::startImpl()
 		hdbEligibilityTest(n);
 	}
 
-	PrintOut("The synthetic population contains " << household_stats.adultSingaporean_global << " adult Singaporeans." << std::endl);
-	PrintOut("Minors. Male: " << household_stats.maleChild_global << " Female: " << household_stats.femaleChild_global << std::endl);
-	PrintOut("Young adults. Male: " << household_stats.maleAdultYoung_global << " Female: " << household_stats.femaleAdultYoung_global << std::endl);
-	PrintOut("Middle-age adults. Male: " << household_stats.maleAdultMiddleAged_global << " Female: " << household_stats.femaleAdultMiddleAged_global << std::endl);
-	PrintOut("Elderly adults. Male: " << household_stats.maleAdultElderly_global << " Female: " << household_stats.femaleAdultElderly_global << std::endl);
-	PrintOut("Household type Enumeration" << std::endl);
-	PrintOut("Couple and child " << household_stats.coupleAndChild << std::endl);
-	PrintOut("Siblings and parents " << household_stats.siblingsAndParents << std::endl );
-	PrintOut("Single parent " << household_stats.singleParent << std::endl );
-	PrintOut("Engaged couple " << household_stats.engagedCouple << std::endl );
-	PrintOut("Orphaned siblings " << household_stats.orphanSiblings << std::endl );
-	PrintOut("Multigenerational " << household_stats.multigeneration << std::endl );
+	PrintOutV("The synthetic population contains " << household_stats.adultSingaporean_global << " adult Singaporeans." << std::endl);
+	PrintOutV("Minors. Male: " << household_stats.maleChild_global << " Female: " << household_stats.femaleChild_global << std::endl);
+	PrintOutV("Young adults. Male: " << household_stats.maleAdultYoung_global << " Female: " << household_stats.femaleAdultYoung_global << std::endl);
+	PrintOutV("Middle-age adults. Male: " << household_stats.maleAdultMiddleAged_global << " Female: " << household_stats.femaleAdultMiddleAged_global << std::endl);
+	PrintOutV("Elderly adults. Male: " << household_stats.maleAdultElderly_global << " Female: " << household_stats.femaleAdultElderly_global << std::endl);
+	PrintOutV("Household type Enumeration" << std::endl);
+	PrintOutV("Couple and child " << household_stats.coupleAndChild << std::endl);
+	PrintOutV("Siblings and parents " << household_stats.siblingsAndParents << std::endl );
+	PrintOutV("Single parent " << household_stats.singleParent << std::endl );
+	PrintOutV("Engaged couple " << household_stats.engagedCouple << std::endl );
+	PrintOutV("Orphaned siblings " << household_stats.orphanSiblings << std::endl );
+	PrintOutV("Multigenerational " << household_stats.multigeneration << std::endl );
 
 }
 
@@ -485,9 +450,9 @@ void HM_Model::unitsFiltering()
 	int targetNumOfHDB   = 0.05 * numOfHDB;
 	int targetNumOfCondo = 0.10 * numOfCondo;
 
-	PrintOut( "[Prefilter] Total number of HDB: " << numOfHDB  << std::endl );
-	PrintOut( "[Prefilter] Total number of Condos: " << numOfCondo << std::endl );
-	PrintOut( "Total units " << units.size() << std::endl );
+	PrintOutV( "[Prefilter] Total number of HDB: " << numOfHDB  << std::endl );
+	PrintOutV( "[Prefilter] Total number of Condos: " << numOfCondo << std::endl );
+	PrintOutV( "Total units " << units.size() << std::endl );
 
 	srand(time(0));
 	for( int n = 0;  n < targetNumOfHDB; )
@@ -512,9 +477,9 @@ void HM_Model::unitsFiltering()
 		}
 	}
 
-	PrintOut( "[Postfilter] Total number of HDB: " << numOfHDB - targetNumOfHDB  << std::endl );
-	PrintOut( "[Postfilter] Total number of Condos: " << numOfCondo - targetNumOfCondo << std::endl );
-	PrintOut( "Total units " << units.size() << std::endl );
+	PrintOutV( "[Postfilter] Total number of HDB: " << numOfHDB - targetNumOfHDB  << std::endl );
+	PrintOutV( "[Postfilter] Total number of Condos: " << numOfCondo - targetNumOfCondo << std::endl );
+	PrintOutV( "Total units " << units.size() << std::endl );
 }
 
 void HM_Model::update(int day)

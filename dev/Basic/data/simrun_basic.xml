@@ -486,7 +486,7 @@
     </signals> -->
               
     <!-- Long Term Configurations parameters -->
-    <longTermParams enabled ="true">
+    <longTermParams enabled ="false">
     	<days value="365"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
@@ -503,7 +503,7 @@
         </housingModel>
     </longTermParams>
     
-    <pathset enabled="true">
+    <pathset enabled="false">
     	<pathset_database database="fm_remote_path_choice"  credentials="fm_remote_path_choice" />
     	<tables pathset_table="PathSet_SH_V" singlepath_table="SinglePath_SH_V" />
     </pathset>  

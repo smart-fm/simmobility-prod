@@ -41,7 +41,7 @@ const int ID_TO_GET = 1;
 template <typename T, typename K>
 void TestDaoGetAll(unsigned int ids = 1)
 {
-    PrintOut("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
+    PrintOutV("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
     DB_Config config(LT_DB_CONFIG_FILE);
     config.load();
     DB_Connection conn(sim_mob::db::POSTGRES, config);
@@ -58,7 +58,7 @@ void TestDaoGetAll(unsigned int ids = 1)
 template <typename T, typename K>
 void TestGetById(unsigned int ids = 1)
 {
-    PrintOut("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
+    PrintOutV("----------------------------- TESTING: " << typeid (T).name() << "----------------------------- " << endl);
     DB_Config config(LT_DB_CONFIG_FILE);
     config.load();
     DB_Connection conn(sim_mob::db::POSTGRES, config);
@@ -76,7 +76,7 @@ void TestGetById(unsigned int ids = 1)
         CPPUNIT_ASSERT_MESSAGE("No values loaded", loadVals);
         if(loadVals)
         {
-        	PrintOut("Get by id: " << valueById << endl);
+        	PrintOutV("Get by id: " << valueById << endl);
         }
 
     }

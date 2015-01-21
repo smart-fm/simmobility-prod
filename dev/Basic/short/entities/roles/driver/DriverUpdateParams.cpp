@@ -315,5 +315,25 @@ void DriverUpdateParams::insertStopPoint(StopPoint& sp){
 		stopPointPool.insert(std::make_pair(sp.segmentId,v));
 	}
 }
+void DriverUpdateParams::insertConflictTurningDriver(TurningConflict* tc,double distance,const Driver* driver) {
+	NearestVehicle v;
+	v.distance = distance;
+	v.driver = driver;
+	// find turning conflict
+	std::map<TurningConflict*,std::list<NearestVehicle> >::iterator it = conflictVehicles.find(tc);
+	if(it != conflictVehicles.end()) {
+		std::list<NearestVehicle>& l = it->second;
+		l.push_back(v);
+		// sort list
+		compare_NearestVehicle f;
+		l.sort(f);
+	}
+	else {
+		std::list<NearestVehicle> l;
+		l.push_back(v);
+		conflictVehicles.insert(std::make_pair(tc,l));
+	}
+
+}
 
 }

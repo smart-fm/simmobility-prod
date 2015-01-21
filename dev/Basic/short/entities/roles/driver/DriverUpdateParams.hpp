@@ -14,6 +14,7 @@
 #include "entities/signal/Signal.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "geospatial/TurningConflict.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/LangHelpers.hpp"
 
@@ -34,11 +35,17 @@ class UnPackageUtils;
 //Struct for holding data about the "nearest" vehicle.
 struct NearestVehicle {
 	NearestVehicle() : driver(nullptr), distance(50000) {}
-
+	NearestVehicle(const NearestVehicle& src) : driver(src.driver), distance(src.distance) {}
 	//TODO: This is probably not needed. We should really set "distance" to DOUBLE_MAX.
 	bool exists() const { return distance < 5000; }
 	const Driver* driver;
 	double distance;
+};
+struct compare_NearestVehicle{
+	bool operator() (const  NearestVehicle& first,const  NearestVehicle& second)
+	{
+	  return ( first.distance > second.distance );
+	}
 };
 
 //Similar, but for pedestrians
@@ -233,6 +240,9 @@ public:
 	NearestVehicle nvRightFwd2;
 	NearestVehicle nvRightBack2;
 	
+	std::map<TurningConflict*,std::list<NearestVehicle> > conflictVehicles;
+	void insertConflictTurningDriver(TurningConflict* tc,double distance,const Driver* driver);
+
 	// used to check vh when do acceleration merging
 	NearestVehicle nvLeadFreeway; // lead vh on freeway segment,used when subject vh on ramp
 	NearestVehicle nvLagFreeway;// lag vh on freeway,used when subject vh on ramp

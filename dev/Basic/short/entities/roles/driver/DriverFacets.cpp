@@ -2157,8 +2157,18 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 		// 1.0 find other vh current turning
 		const TurningSection* otherTurning = other_driver->currTurning_.get();
 		// 1.1 get turning conflict
+		if(!fwdDriverMovement.currTurning) {
+			return true;
+		}
 		TurningConflict* tc = fwdDriverMovement.currTurning->getTurningConflict(otherTurning);
-		// 2.0 get other vh move distance on turning section
+		if(tc) {
+			// 2.0 get other vh move distance on turning section
+			double moveDis = other_driver->moveDisOnTurning_;
+			double dis = moveDis - (otherTurning == tc->firstTurning ? tc->first_cd : tc->second_cd);
+			std::cout<<"updateNearbyAgent: id "<<params.parentId<<" move dis: "<<other_driver->moveDisOnTurning_<<std::endl;
+			// 2.1 add other vh to params
+			params.insertConflictTurningDriver(tc,dis,other_driver);
+		}
 
 		return true;
 	}

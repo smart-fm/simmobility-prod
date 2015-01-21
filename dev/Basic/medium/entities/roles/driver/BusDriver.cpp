@@ -140,9 +140,10 @@ void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, co
 		std::string tripId = busTrip->tripID;
 		std::string busLineId = busLine->getBusLineID();
 		unsigned int sequenceNo = busTrip->getBusTripRun_SequenceNum();
+		double pctOccupancy = (((double)passengerList.size())/MT_Config::getInstance().getBusCapacity()) * 100.0;
 
 		messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(), STORE_BUS_ARRIVAL,
-				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(stopNo, busLineId, tripId, current, waitTime, sequenceNo)));
+				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(stopNo, busLineId, tripId, current, waitTime, sequenceNo,pctOccupancy)));
 	}
 }
 

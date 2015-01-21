@@ -49,10 +49,9 @@ class BusArrivalTimeMessage: public messaging::Message {
 public:
 	BusArrivalTimeMessage(const std::string& stopNo, const std::string& line,
 			const std::string& trip, const std::string& arrival,
-			const std::string& dwellTime, unsigned int sequence) :
-			busStopNo(stopNo), busLine(line), busTrip(trip), arrivalTime(
-					arrival), dwellTime(dwellTime), sequenceNo(sequence) {
-	}
+			const std::string& dwellTime, unsigned int sequence, double pctOccupancy) :
+			busStopNo(stopNo), busLine(line), busTrip(trip), arrivalTime(arrival),
+			dwellTime(dwellTime), sequenceNo(sequence), pctOccupancy(pctOccupancy) {}
 	virtual ~BusArrivalTimeMessage() {
 	}
 	std::string busStopNo;
@@ -61,6 +60,7 @@ public:
 	std::string arrivalTime;
 	std::string dwellTime;
 	unsigned int sequenceNo;
+	double pctOccupancy; //percentage
 };
 
 class WaitingAmountMessage: public messaging::Message {

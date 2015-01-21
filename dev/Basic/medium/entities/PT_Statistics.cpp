@@ -63,7 +63,7 @@ void PT_Statistics::HandleMessage(Message::MessageType type,
 
 		if (stat) {
 			stat->setArrivalTime(msg.busLine, msg.busTrip, msg.sequenceNo,
-					msg.arrivalTime, msg.dwellTime);
+					msg.arrivalTime, msg.dwellTime, msg.pctOccupancy);
 		}
 
 		break;
@@ -268,13 +268,14 @@ void PT_Statistics::StoreStatistics() {
 
 void JourneyTimeStats::setArrivalTime(const std::string& busLine,
 		const std::string& tripId, unsigned int sequenceNo,
-		const std::string& arrivalTime, const std::string& dwellTime) {
+		const std::string& arrivalTime, const std::string& dwellTime, double pctOccupancy) {
 	BusArrivalTime stat;
 	stat.busLine = busLine;
 	stat.tripId = tripId;
 	stat.sequenceNo = sequenceNo;
 	stat.arrivalTime = arrivalTime;
 	stat.dwellTime = dwellTime;
+	stat.pctOccupancy = pctOccupancy;
 	busArrivalTimeList.push_back(stat);
 }
 

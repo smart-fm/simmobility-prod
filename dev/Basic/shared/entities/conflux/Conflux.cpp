@@ -364,7 +364,8 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 						<< "\n Person " << person->getId()
 						<< "|Frame: " << currFrame.frame()
 						<< "|Conflux: " << this->multiNode->getID()
-						<< "|segBeforeUpdate: " << beforeUpdate.segment->getStartEnd() << "|segAfterUpdate: " << afterUpdate.segment->getStartEnd();
+						<< "|segBeforeUpdate: " << beforeUpdate.segment->getSegmentAimsunId()
+						<< "|segAfterUpdate: " << afterUpdate.segment->getSegmentAimsunId();
 				throw std::runtime_error(debugMsgs.str());
 			}
 			else
@@ -1030,7 +1031,7 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFrameTick(timeslice now, Pers
 					person->requestedNextSegStats = nullptr;
 				}
 			}
-			else if(now.frame() == nxtConflux->getLastUpdatedFrame())
+			else if(currentFrame == nxtConflux->getLastUpdatedFrame())
 			{
 				// nxtConflux is processed for the current tick. Can move to the next link.
 				// already handled by setting person->canMoveToNextSegment = GRANTED

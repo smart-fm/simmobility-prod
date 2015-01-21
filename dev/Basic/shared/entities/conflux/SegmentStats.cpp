@@ -1142,13 +1142,13 @@ sim_mob::Person* SegmentStats::dequeue(const sim_mob::Person* person, const sim_
 	{
 		printAgents();
 		debugMsgs << "Error: Person " << person->getId() << " was not found in lane " << lane->getLaneID() << std::endl;
+		throw std::runtime_error(debugMsgs.str());
 	}
 	return dequeuedPerson;
 }
 
 sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate)
 {
-	VehicleBase* vehicle = person->getRole()->getResource();
 	if (laneAgents.size() == 0)
 	{
 		std::stringstream debugMsgs;
@@ -1174,6 +1174,7 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 	{
 		p = laneAgents.front();
 		laneAgents.pop_front();
+		VehicleBase* vehicle = person->getRole()->getResource();
 		if (vehicle)
 		{
 			numPersons--; // record removal

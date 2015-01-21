@@ -772,6 +772,7 @@ bool sim_mob::DriverMovement::update_post_movement(timeslice now) {
 		//Calculate a trajectory and init movement on that intersection.
 		calculateIntersectionTrajectory(params.TEMP_lastKnownPolypoint,
 				params.overflowIntoIntersection);
+		//TODO intersection model calculate acc
 		intersectionVelocityUpdate();
 
 		//Fix: We need to perform this calculation at least once or we won't have a heading within the intersection.
@@ -885,6 +886,9 @@ void sim_mob::DriverMovement::intersectionDriving(DriverUpdateParams& p) {
 	}
 
 	//First, update movement along the vector.
+	// TODO calculate intersection acc and set vehicle vel
+//	double newAcc = intModel->makeAcc(p);
+//	parentDriver->vehicle->setVelocity(newAcc* p.elapsedSeconds);
 	DPoint res = intModel->continueDriving(
 			parentDriver->vehicle->getVelocity() * p.elapsedSeconds);
 	parentDriver->vehicle->setPositionInIntersection(res.x, res.y);

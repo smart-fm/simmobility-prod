@@ -44,8 +44,10 @@ class TurningConflict;
   public:
     std::vector<TurningSection*>& getConflictTurnings();
   public:
-    std::vector<TurningSection*> confilicts;
+    std::vector<TurningSection*> conflicts;
     std::vector<TurningConflict* > turningConflicts;
+  public:
+    TurningConflict* getTurningConflict(const TurningSection* ts);
   } ;
 
 };// end namespace

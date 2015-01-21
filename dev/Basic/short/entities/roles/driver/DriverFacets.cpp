@@ -826,8 +826,8 @@ void sim_mob::DriverMovement::approachIntersection()
 		double timeToIntersection = fwdDriverMovement.getDistToLinkEndM() / (parentDriver->getVehicle()->getVelocity() / 100);
 
 		//Iterator for looping through every conflict turning section of the current vehicle's turning section
-		vector<TurningSection *>::iterator itConflictSections = turningSection->confilicts.begin();
-		while (itConflictSections != turningSection->confilicts.end())
+		vector<TurningSection *>::iterator itConflictSections = turningSection->conflicts.begin();
+		while (itConflictSections != turningSection->conflicts.end())
 		{
 			//The conflict lane on the conflict turning section
 			const Lane *conflictLane = (*itConflictSections)->laneFrom;
@@ -2154,6 +2154,8 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 			|| other_driver->isInIntersection.get()) {
 		// handle vh in intersection
 		// 1.0 find other vh current
+		const TurningSection* otherTurning = other_driver->currTurning_.get();
+		fwdDriverMovement.currTurning;
 
 		return true;
 	}

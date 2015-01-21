@@ -9,6 +9,7 @@
 
 #include "conf/settings/DisableMPI.h"
 #include "geospatial/Point2D.hpp"
+#include "geospatial/TurningSection.hpp"
 #include "metrics/Length.hpp"
 #include "util/DynamicVector.hpp"
 
@@ -163,6 +164,8 @@ public:
 
 	//Intersection driving is different.
 	bool inIntersection;
+
+	TurningSection* currTurning;
 
 	//We might be moving backwards on a Link.
 	//TODO: This is still relevant (even with 1-way Links) since Pedestrians can move backwards on a Link.

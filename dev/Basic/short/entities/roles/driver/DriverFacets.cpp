@@ -351,6 +351,12 @@ void sim_mob::DriverMovement::frame_tick() {
 	}
 
 	parentDriver->isInIntersection.set(fwdDriverMovement.isInIntersection());
+	if(fwdDriverMovement.isInIntersection()) {
+		parentDriver->currTurning_.set(fwdDriverMovement.currTurning);
+	}
+	else {
+		parentDriver->currTurning_.set(nullptr);
+	}
 	parentDriver->latMovement.set(parentDriver->vehicle->getLateralMovement());
 	parentDriver->fwdVelocity.set(parentDriver->vehicle->getVelocity());
 	parentDriver->latVelocity.set(parentDriver->vehicle->getLatVelocity());
@@ -2143,9 +2149,13 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 	DriverUpdateParams& params = parentDriver->getParams();
 	//Only update if passed a valid pointer which is not a pointer back to you, and
 	//the driver is not actually in an intersection at the moment.
-	if (!(other_driver && this->parentDriver != other_driver
-			&& !other_driver->isInIntersection.get())) {
-		return false;
+	if(!other_driver) {return false;}
+	if ( this->parentDriver == other_driver
+			|| other_driver->isInIntersection.get()) {
+		// handle vh in intersection
+		// 1.0 find other vh current
+
+		return true;
 	}
 
 	//Retrieve the other driver's lane, road segment, and lane offset.
@@ -2159,9 +2169,9 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 	//as we will be considering the vehicles on a particular lane of a link.
 	double lengthInM = Utils::cmToMeter((double)fwdDriverMovement.getCurrLink()->getLength());
 
-	if (fwdDriverMovement.isInIntersection()
-			|| other_driver->isInIntersection.get())
-		return false;
+//	if (fwdDriverMovement.isInIntersection()
+//			|| other_driver->isInIntersection.get())
+//		return false;
 
 	double other_offset = other_driver->currDistAlongRoadSegment;
 

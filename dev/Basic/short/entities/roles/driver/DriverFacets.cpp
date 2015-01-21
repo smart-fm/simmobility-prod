@@ -625,7 +625,7 @@ bool sim_mob::DriverMovement::update_sensors(timeslice now) {
 		
 		//Visibility of the intersection (metre). This should be retrieved from the corresponding conflict 
 		//section once it has been added there
-		const double visibilityDistance = 100;
+		const double visibilityDistance = 50;
 		
 		if (distToIntersection < visibilityDistance)
 		{
@@ -802,6 +802,8 @@ void sim_mob::DriverMovement::approachIntersection()
 
 		//Get the turning section that will be used by the vehicle
 		turningSection = node->getTurningSection(currentLane, nextLaneInNextLink);
+		
+		fwdDriverMovement.currTurning = turningSection;
 	}
 
 	//Check if we have a turning section. Absence of a turning section indicates that either 
@@ -888,10 +890,11 @@ void sim_mob::DriverMovement::intersectionDriving(DriverUpdateParams& p) {
 		return;
 	}
 
-	//First, update movement along the vector.
-	// TODO calculate intersection acc and set vehicle vel
-//	double newAcc = intModel->makeAcc(p);
-//	parentDriver->vehicle->setVelocity(newAcc* p.elapsedSeconds);
+	//calculate intersection acc and set vehicle vel
+	parentDriver->vehicle->setAcceleration(p.newFwdAcc);
+	parentDriver->vehicle->setVelocity(parentDriver->vehicle->getVelocity() + (p.newFwdAcc * p.elapsedSeconds));
+	
+	//update movement along the vector.
 	DPoint res = intModel->continueDriving(
 			parentDriver->vehicle->getVelocity() * p.elapsedSeconds);
 	parentDriver->vehicle->setPositionInIntersection(res.x, res.y);
@@ -2613,9 +2616,12 @@ NearestVehicle & sim_mob::DriverMovement::nearestVehicle(DriverUpdateParams& p) 
 	return p.nvFwd;
 }
 
-void sim_mob::DriverMovement::intersectionVelocityUpdate() {
-	double inter_speed = DEFAULT_INTERSECTION_SPEED_CM_PER_SEC; //10m/s
-	parentDriver->vehicle->setAcceleration(0);
+void sim_mob::DriverMovement::intersectionVelocityUpdate() 
+{
+	DriverUpdateParams& params = parentDriver->getParams();
+	double inter_speed = parentDriver->vehicle->getVelocity() + (params.newFwdAcc * params.elapsedSeconds);
+	
+	parentDriver->vehicle->setAcceleration(params.newFwdAcc);
 
 	//Set velocity for intersection movement.
 	parentDriver->vehicle->setVelocity(inter_speed);

@@ -21,6 +21,7 @@
 
 #include "DriverUpdateParams.hpp"
 #include "DriverFacets.hpp"
+#include "geospatial/TurningSection.hpp"
 
 namespace sim_mob
 {
@@ -91,6 +92,7 @@ public:
 	//need to store these values in the double buffer, because it is needed by other drivers.
 	Shared<const Lane*> currLane_;
 	Shared<bool> isInIntersection;
+	Shared<TurningSection*> currTurning_;
 	Shared<double> currLaneOffset_;
 	Shared<double> currLaneLength_;
 	Shared<double> latMovement;

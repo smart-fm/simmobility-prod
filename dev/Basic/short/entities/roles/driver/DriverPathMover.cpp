@@ -47,14 +47,15 @@ const std::string sim_mob::DriverPathMover::ErrorGeneralPathDone("Entire path is
 
 sim_mob::DriverPathMover::DriverPathMover() :
 	distAlongPolylineCM(0), /*currPolylineLengthCM(0),*/
-	distMovedInCurrSegmentCM(0), distOfThisSegmentCM(0), distOfRestSegmentsCM(0), inIntersection(false), isMovingForwardsInLink(false), currLaneID(0), distToEndSegmentCM(0.0)
+	distMovedInCurrSegmentCM(0), distOfThisSegmentCM(0), distOfRestSegmentsCM(0), inIntersection(false), isMovingForwardsInLink(false), currLaneID(0), distToEndSegmentCM(0.0),
+	currTurning(nullptr)
 {
 }
 
 sim_mob::DriverPathMover::DriverPathMover(const DriverPathMover& copyFrom) :
 	fullPath(copyFrom.fullPath), polypointsList(copyFrom.polypointsList), distAlongPolylineCM(copyFrom.distAlongPolylineCM), distMovedInCurrSegmentCM(copyFrom.distMovedInCurrSegmentCM),
 			distOfThisSegmentCM(copyFrom.distOfThisSegmentCM), distOfRestSegmentsCM(copyFrom.distOfRestSegmentsCM), inIntersection(copyFrom.inIntersection),
-			isMovingForwardsInLink(copyFrom.isMovingForwardsInLink), currLaneID(copyFrom.currLaneID)
+			isMovingForwardsInLink(copyFrom.isMovingForwardsInLink), currLaneID(copyFrom.currLaneID),currTurning(copyFrom.currTurning)
 
 {
 	//We don't really care about the debug stream, but we should probably inform the user

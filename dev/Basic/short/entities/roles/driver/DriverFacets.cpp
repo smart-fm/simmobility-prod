@@ -353,6 +353,7 @@ void sim_mob::DriverMovement::frame_tick() {
 	parentDriver->isInIntersection.set(fwdDriverMovement.isInIntersection());
 	if(fwdDriverMovement.isInIntersection()) {
 		parentDriver->currTurning_.set(fwdDriverMovement.currTurning);
+		parentDriver->moveDisOnTurning_.set(intModel->getMoveDistance());
 	}
 	else {
 		parentDriver->currTurning_.set(nullptr);
@@ -2153,9 +2154,11 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 	if ( this->parentDriver == other_driver
 			|| other_driver->isInIntersection.get()) {
 		// handle vh in intersection
-		// 1.0 find other vh current
+		// 1.0 find other vh current turning
 		const TurningSection* otherTurning = other_driver->currTurning_.get();
-		fwdDriverMovement.currTurning;
+		// 1.1 get turning conflict
+		TurningConflict* tc = fwdDriverMovement.currTurning->getTurningConflict(otherTurning);
+		// 2.0 get other vh move distance on turning section
 
 		return true;
 	}

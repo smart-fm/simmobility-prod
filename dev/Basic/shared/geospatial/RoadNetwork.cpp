@@ -65,6 +65,15 @@ void sim_mob::RoadNetwork::storeTurningSection(sim_mob::TurningSection* t) {
 		throw std::runtime_error("storeTurningSection: not found to section");
 	}
 	t->fromSeg = fromSeg; t->toSeg = toSeg;
+	
+	//Get the from and to lanes
+	const Lane *from = fromSeg->getLane(t->from_lane_index);
+	const Lane *to = toSeg->getLane(t->to_lane_index);
+	
+	//Assign them to the turning section object
+	t->laneFrom = from;
+	t->laneTo = to;
+	
 	// store
 	std::cout<<"storeTurningSection: section id <"<<t->sectionId<<">"<<std::endl;
 	turningSectionMap.insert(std::make_pair(t->sectionId,t));
@@ -74,6 +83,9 @@ void sim_mob::RoadNetwork::storeTurningSection(sim_mob::TurningSection* t) {
 //	std::cout<<"storeTurningSection: ttt <"<<ttt<<">"<<std::endl;
 	turningSectionByFromSeg.insert(std::make_pair(t->from_road_section,t));
 	turningSectionByToSeg.insert(std::make_pair(t->to_road_section,t));
+	
+	//Update the map of lane vs turnings
+	mn->updateMapLaneVsTurning(from, to, t);
 }
 sim_mob::TurningSection* sim_mob::RoadNetwork::findTurningById(std::string id) {
 	sim_mob::TurningSection* res = nullptr;

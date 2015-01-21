@@ -9,6 +9,7 @@
 #include <set>
 
 #include "geospatial/Node.hpp"
+#include "TurningSection.hpp"
 /*namespace geo {
 class intersection_t_pimpl;
 class GeoSpatial_t_pimpl;
@@ -70,6 +71,13 @@ public:
 	void addRoadSegmentAt(sim_mob::RoadSegment* rs) { roadSegmentsAt.insert(rs); }
 
 	void setTurnings(const sim_mob::RoadSegment* key, std::set<sim_mob::TurningSection*>& val);
+ 
+    //Inserts the turning section to the map mapFromToLanesVsTurning
+    void updateMapLaneVsTurning(const Lane *fromLane, const Lane *toLane, sim_mob::TurningSection *turning);
+        
+    //Finds and returns the TurningSection object that connects the given 'from' and 'to' lanes
+    TurningSection* getTurningSection(const Lane *currentLane, const Lane *nextLane) const;
+
 protected:
 	///Mapping from RoadSegment* -> set<LaneConnector*> representing lane connectors.
 	///Currently allows one to make quick requests upon arriving at a Node of which
@@ -81,6 +89,9 @@ protected:
 	std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > connectors;
 
 	std::map<const sim_mob::RoadSegment*, std::set<sim_mob::TurningSection*> > turnings;
+        
+    //This is a map of TurningSection with key as the pair of the from lane and to lane
+    std::map<std::pair<const sim_mob::Lane *, const sim_mob::Lane *>, sim_mob::TurningSection *> mapFromToLanesVsTurning;
 
 	///Bookkeeping: which RoadSegments meet at this Node?
 	std::set<sim_mob::RoadSegment*> roadSegmentsAt;

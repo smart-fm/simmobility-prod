@@ -38,8 +38,8 @@ class TurningConflict;
     /// polyline points
     std::vector<Point2D> polylinePoints;
 
-    sim_mob::Lane* laneFrom;
-    sim_mob::Lane* laneTo;
+    const sim_mob::Lane* laneFrom;
+    const sim_mob::Lane* laneTo;
 
   public:
     std::vector<TurningSection*>& getConflictTurnings();

@@ -130,6 +130,29 @@ void sim_mob::MultiNode::setTurnings(const sim_mob::RoadSegment* key, std::set<s
 		this->turnings[key] = val;
 	}
 }
+
+void sim_mob::MultiNode::updateMapLaneVsTurning(const Lane* fromLane, const Lane* toLane, sim_mob::TurningSection *turning)
+{
+	mapFromToLanesVsTurning.insert(std::make_pair(std::make_pair(fromLane, toLane), turning));
+}
+
+TurningSection* sim_mob::MultiNode::getTurningSection(const Lane* currentLane, const Lane* nextLane) const
+{
+	std::map<std::pair<const sim_mob::Lane *, const sim_mob::Lane *>, sim_mob::TurningSection *>::const_iterator it;
+	
+	//Find the turning corresponding to the current and next lanes
+	it = mapFromToLanesVsTurning.find(std::make_pair(currentLane, nextLane));
+	
+	if(it != mapFromToLanesVsTurning.end())
+	{
+		*it->second;
+	}
+	else
+	{
+		throw std::runtime_error("TurningSection from the given from and to lanes not found");
+	}
+}
+
 pair< vector< pair<RoadSegment*, bool> >, vector< pair<RoadSegment*, bool> > >
 	sim_mob::MultiNode::getPedestrianPaths(const Node* const nodeBefore, const Node* const nodeAfter) const
 {

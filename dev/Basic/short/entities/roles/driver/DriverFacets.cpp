@@ -612,29 +612,16 @@ bool sim_mob::DriverMovement::update_sensors(timeslice now) {
 	if(!fwdDriverMovement.isInIntersection()) 
 	{
 		//Detect if a vehicle is approaching an intersection. We do this by comparing the 
-		//distance to the end of the road segment and the braking distance (vehicle stopping distance))
+		//distance to the end of the road segment and the visibility distance
 	
 		//The distance to the end of the road segment (metre)
 		double distToIntersection = fwdDriverMovement.getDistToLinkEndM();
 		
-		//Speed of the vehicle (converted from cm/s to m/s)
-		double speed = parentDriver->vehicle->getVelocity() / 100;
+		//Visibility of the intersection (metre). This should be retrieved from the corresponding conflict 
+		//section once it has been added there
+		const double visibilityDistance = 100;
 		
-		//Calculate the total braking distance (metre)
-		
-		//Perception-reaction distance is the distance covered when the driver has not yet reacted
-		//It is the product of the vehicle speed and the perception-reaction delay (an approx value of 1.5s is good enough)
-		double prcptn_reactnDist = speed * 1.5; 
-		
-		//Braking distance is the distance covered after application of the brakes
-		//It is given by (v^2)/(2ug), 
-		//where v = speed (m/s), u = coefficient of friction (0.7), g = acceleration due to gravity (9.8 m/s^2)
-		double brakingDist = (speed * speed) / (2 * 0.7 * 9.8);
-		
-		//Total braking distance = Perception-reaction distance + Braking distance 
-		double totalBrakingDist = prcptn_reactnDist + brakingDist;
-		
-		if (distToIntersection < totalBrakingDist)
+		if (distToIntersection < visibilityDistance)
 		{
 			params.isApproachingIntersection = true;
 		}
@@ -807,7 +794,7 @@ void sim_mob::DriverMovement::approachIntersection()
 		const MultiNode *node = dynamic_cast<const MultiNode *> (currSegment->getEnd());
 
 		//Get the turning section that will be used by the vehicle
-		//turningSection = node->getTurningSections(currentLane, nextLaneInNextLink);
+		turningSection = node->getTurningSection(currentLane, nextLaneInNextLink);
 	}
 
 	//Check if we have a turning section. Absence of a turning section indicates that either 
@@ -816,8 +803,13 @@ void sim_mob::DriverMovement::approachIntersection()
 	if (turningSection)
 	{
 		//The time required to reach the intersection
-		double timeToIntersection = fwdDriverMovement.getDistToLinkEndM() / (parentDriver->getVehicle()->getVelocity() / 100);
-
+		double timeToIntersection = DBL_MAX;
+		
+		if(parentDriver->getVehicle()->getVelocity() > 0)
+		{
+			timeToIntersection = fwdDriverMovement.getDistToLinkEndM() / (parentDriver->getVehicle()->getVelocity() / 100);
+		}
+		
 		//Iterator for looping through every conflict turning section of the current vehicle's turning section
 		vector<TurningSection *>::iterator itConflictSections = turningSection->confilicts.begin();
 		while (itConflictSections != turningSection->confilicts.end())
@@ -859,11 +851,16 @@ void sim_mob::DriverMovement::approachIntersection()
 			if (leadDriver)
 			{
 				//Time required for conflict vehicle to reach the intersection
-				double timeReqdByConflictVehicle =
-						driverMovement->fwdDriverMovement.getDistToLinkEndM() / (leadDriver->getVehicle()->getVelocity() / 100);
-
+				double timeReqdByConflictVehicle = DBL_MAX;
+				
+				if(leadDriver->getVehicle()->getVelocity())
+				{
+					timeReqdByConflictVehicle =
+							driverMovement->fwdDriverMovement.getDistToLinkEndM() / (leadDriver->getVehicle()->getVelocity() / 100);
+				}
+				
 				//If the time required for the other car is less, we yield
-				if (timeReqdByConflictVehicle < timeToIntersection)
+				if (timeReqdByConflictVehicle <= timeToIntersection)
 				{
 					parentDriver->getParams().slowDownForIntersection = true;
 					parentDriver->getParams().distanceToIntersection = driverMovement->fwdDriverMovement.getDistToLinkEndM();

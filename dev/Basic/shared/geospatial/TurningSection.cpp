@@ -44,7 +44,18 @@ sim_mob::TurningSection::TurningSection(const TurningSection & ts):
 }
 
 std::vector<TurningSection*>& sim_mob::TurningSection::getConflictTurnings() {
-	// TODO
+	return conflicts;
 }
-
+TurningConflict* sim_mob::TurningSection::getTurningConflict(const TurningSection* ts) {
+	TurningConflict* res = nullptr;
+	std::cout<<"getTurningConflict: size "<<turningConflicts.size()<<std::endl;
+	for(int i=0;i<turningConflicts.size();++i) {
+		TurningConflict* tc = turningConflicts[i];
+		if(ts == tc->firstTurning || ts == tc->secondTurning) {
+			res = tc;
+			break;
+		}
+	}// end of for
+	return res;
+}
 

@@ -353,6 +353,7 @@ void sim_mob::DriverMovement::frame_tick() {
 	parentDriver->isInIntersection.set(fwdDriverMovement.isInIntersection());
 	if(fwdDriverMovement.isInIntersection()) {
 		parentDriver->currTurning_.set(fwdDriverMovement.currTurning);
+		parentDriver->moveDisOnTurning_.set(intModel->getMoveDistance());
 	}
 	else {
 		parentDriver->currTurning_.set(nullptr);
@@ -820,8 +821,8 @@ void sim_mob::DriverMovement::approachIntersection()
 		}
 		
 		//Iterator for looping through every conflict turning section of the current vehicle's turning section
-		vector<TurningSection *>::iterator itConflictSections = turningSection->confilicts.begin();
-		while (itConflictSections != turningSection->confilicts.end())
+		vector<TurningSection *>::iterator itConflictSections = turningSection->conflicts.begin();
+		while (itConflictSections != turningSection->conflicts.end())
 		{
 			//The conflict lane on the conflict turning section
 			const Lane *conflictLane = (*itConflictSections)->laneFrom;
@@ -2153,7 +2154,21 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 	if ( this->parentDriver == other_driver
 			|| other_driver->isInIntersection.get()) {
 		// handle vh in intersection
-		// 1.0 find other vh current
+		// 1.0 find other vh current turning
+		const TurningSection* otherTurning = other_driver->currTurning_.get();
+		// 1.1 get turning conflict
+		if(!fwdDriverMovement.currTurning) {
+			return true;
+		}
+		TurningConflict* tc = fwdDriverMovement.currTurning->getTurningConflict(otherTurning);
+		if(tc) {
+			// 2.0 get other vh move distance on turning section
+			double moveDis = other_driver->moveDisOnTurning_;
+			double dis = moveDis - (otherTurning == tc->firstTurning ? tc->first_cd : tc->second_cd);
+			std::cout<<"updateNearbyAgent: id "<<params.parentId<<" move dis: "<<other_driver->moveDisOnTurning_<<std::endl;
+			// 2.1 add other vh to params
+			params.insertConflictTurningDriver(tc,dis,other_driver);
+		}
 
 		return true;
 	}

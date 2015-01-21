@@ -103,7 +103,7 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	Role(behavior, movement, parent, roleName_, roleType_), currLane_(mtxStrat, nullptr),currTurning_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
 	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),/*params(parent->getGenerator()),*/
 	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
-	,stop_event_nodeid(mtxStrat, -1), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false)
+	,stop_event_nodeid(mtxStrat, -1), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false), moveDisOnTurning_(mtxStrat, 0)
 {
 	currDistAlongRoadSegment = 0;
 	getParams().driver = this;
@@ -159,6 +159,7 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 	res.push_back(&(currLane_));
 	res.push_back(&(currTurning_));
 	res.push_back(&(currLaneOffset_));
+	res.push_back(&(moveDisOnTurning_));
 	res.push_back(&(currLaneLength_));
 	res.push_back(&(isInIntersection));
 	res.push_back(&(latMovement));

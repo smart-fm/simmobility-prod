@@ -111,10 +111,10 @@ void sim_mob::RoadNetwork::storeTurningConflict(sim_mob::TurningConflict* t) {
 //	std::cout<<"storeTurningConflict: ft turning <"<<ft->dbId<<">"<<std::endl;
 //	std::cout<<"storeTurningConflict: st turning <"<<st->dbId<<">"<<std::endl;
 
-	ft->confilicts.push_back(st);
+	ft->conflicts.push_back(st);
 	ft->turningConflicts.push_back(t);
 
-	st->confilicts.push_back(ft);
+	st->conflicts.push_back(ft);
 	ft->turningConflicts.push_back(t);
 
 	t->firstTurning = ft;

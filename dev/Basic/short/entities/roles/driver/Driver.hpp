@@ -93,6 +93,7 @@ public:
 	Shared<const Lane*> currLane_;
 	Shared<bool> isInIntersection;
 	Shared<TurningSection*> currTurning_;
+	Shared<double> moveDisOnTurning_;
 	Shared<double> currLaneOffset_;
 	Shared<double> currLaneLength_;
 	Shared<double> latMovement;

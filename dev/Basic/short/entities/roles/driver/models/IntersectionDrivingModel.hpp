@@ -33,6 +33,10 @@ public:
 	virtual DPoint continueDriving(double amount) = 0;
 	virtual bool isDone() = 0;
 	virtual double getCurrentAngle() = 0;
+
+  public:
+
+    virtual double getMoveDistance() = 0;
 };
 
 /**
@@ -88,6 +92,8 @@ public:
 
   public:
     
+    double getMoveDistance() {return totalMovement;}
+
     MITSIM_IntDriving_Model();
     
     virtual ~MITSIM_IntDriving_Model();

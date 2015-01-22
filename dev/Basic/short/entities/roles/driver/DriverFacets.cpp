@@ -803,92 +803,96 @@ void sim_mob::DriverMovement::approachIntersection()
 	const RoadSegment *nextSegment = fwdDriverMovement.getNextSegment(false);
 	if(!nextSegment) return;
 
-	//The turning section that will be used by the vehicle to move from the current segment to the next segment
-	TurningSection *turningSection = NULL;
-
-	if (currSegment->getEnd() == nextSegment->getStart())
+	//No next segment, that means we're at the end of our path
+	if(nextSegment)
 	{
-		const Lane *currentLane = fwdDriverMovement.getCurrLane();
-		const MultiNode *node = dynamic_cast<const MultiNode *> (currSegment->getEnd());
+		//The turning section that will be used by the vehicle to move from the current segment to the next segment
+		TurningSection *turningSection = NULL;
 
-		//Get the turning section that will be used by the vehicle
-		turningSection = node->getTurningSection(currentLane, nextLaneInNextLink);
-		
-		fwdDriverMovement.currTurning = turningSection;
-	}
-
-	//Check if we have a turning section. Absence of a turning section indicates that either 
-	//we have not yet entered the required from lane or that we're close to the intersection,
-	//but there's a short segment ahead of us - so, we can only defer processing till later
-	if (turningSection)
-	{
-		//The time required to reach the intersection
-		double timeToIntersection = DBL_MAX;
-		
-		if(parentDriver->getVehicle()->getVelocity() > 0)
+		if (currSegment->getEnd() == nextSegment->getStart())
 		{
-			timeToIntersection = fwdDriverMovement.getDistToLinkEndM() / (parentDriver->getVehicle()->getVelocity() / 100);
+			const Lane *currentLane = fwdDriverMovement.getCurrLane();
+			const MultiNode *node = dynamic_cast<const MultiNode *> (currSegment->getEnd());
+
+			//Get the turning section that will be used by the vehicle
+			turningSection = node->getTurningSection(currentLane, nextLaneInNextLink);
+
+			fwdDriverMovement.currTurning = turningSection;
 		}
-		
-		//Iterator for looping through every conflict turning section of the current vehicle's turning section
-		vector<TurningSection *>::iterator itConflictSections = turningSection->conflicts.begin();
-		while (itConflictSections != turningSection->conflicts.end())
+
+		//Check if we have a turning section. Absence of a turning section indicates that either 
+		//we have not yet entered the required from lane or that we're close to the intersection,
+		//but there's a short segment ahead of us - so, we can only defer processing till later
+		if (turningSection)
 		{
-			//The conflict lane on the conflict turning section
-			const Lane *conflictLane = (*itConflictSections)->laneFrom;
+			//The time required to reach the intersection
+			double timeToIntersection = DBL_MAX;
 
-			//The list of agents on the conflict lane (before a distance of parentDriver->distanceBehind 
-			//from the end of the lane)
-			vector<const Agent *> conflictZoneAgents;
-
-			//Get the vehicles on the turning section
-			conflictZoneAgents = AuraManager::instance().nearbyAgents(conflictLane->getPolyline(false).back(), *conflictLane, 0,
-																	parentDriver->distanceBehind, NULL);
-
-			//The first vehicle on the turning section
-			const Driver *leadDriver = NULL;
-			DriverMovement *driverMovement = NULL;
-			double distance = DBL_MAX;
-
-			//Get the lead vehicle on this lane
-			for (vector<const Agent *>::iterator it = conflictZoneAgents.begin(); it != conflictZoneAgents.end(); ++it)
+			if (parentDriver->getVehicle()->getVelocity() > 0)
 			{
-				const Person *person = dynamic_cast<const Person *> (*it);
-				if (person)
+				timeToIntersection = fwdDriverMovement.getDistToLinkEndM() / (parentDriver->getVehicle()->getVelocity() / 100);
+			}
+
+			//Iterator for looping through every conflict turning section of the current vehicle's turning section
+			vector<TurningSection *>::iterator itConflictSections = turningSection->conflicts.begin();
+			while (itConflictSections != turningSection->conflicts.end())
+			{
+				//The conflict lane on the conflict turning section
+				const Lane *conflictLane = (*itConflictSections)->laneFrom;
+
+				//The list of agents on the conflict lane (before a distance of parentDriver->distanceBehind 
+				//from the end of the lane)
+				vector<const Agent *> conflictZoneAgents;
+
+				//Get the vehicles on the turning section
+				conflictZoneAgents = AuraManager::instance().nearbyAgents(conflictLane->getPolyline(false).back(), *conflictLane, 0,
+																		  parentDriver->distanceBehind, NULL);
+
+				//The first vehicle on the turning section
+				const Driver *leadDriver = NULL;
+				DriverMovement *driverMovement = NULL;
+				double distance = DBL_MAX;
+
+				//Get the lead vehicle on this lane
+				for (vector<const Agent *>::iterator it = conflictZoneAgents.begin(); it != conflictZoneAgents.end(); ++it)
 				{
-					const Driver *driver = dynamic_cast<const Driver *> (person->getRole());
-					if (driver)
+					const Person *person = dynamic_cast<const Person *> (*it);
+					if (person)
 					{
-						driverMovement = dynamic_cast<DriverMovement *> (driver->Movement());
-						if (distance > driverMovement->fwdDriverMovement.getDistToLinkEndM())
+						const Driver *driver = dynamic_cast<const Driver *> (person->getRole());
+						if (driver)
 						{
-							leadDriver = driver;
+							driverMovement = dynamic_cast<DriverMovement *> (driver->Movement());
+							if (distance > driverMovement->fwdDriverMovement.getDistToLinkEndM())
+							{
+								leadDriver = driver;
+							}
 						}
 					}
 				}
-			}
 
-			if (leadDriver)
-			{
-				//Time required for conflict vehicle to reach the intersection
-				double timeReqdByConflictVehicle = DBL_MAX;
-				
-				if(leadDriver->getVehicle()->getVelocity())
+				if (leadDriver)
 				{
-					timeReqdByConflictVehicle =
-							driverMovement->fwdDriverMovement.getDistToLinkEndM() / (leadDriver->getVehicle()->getVelocity() / 100);
-				}
-				
-				//If the time required for the other car is less, we yield
-				if (timeReqdByConflictVehicle <= timeToIntersection)
-				{
-					parentDriver->getParams().slowDownForIntersection = true;
-					parentDriver->getParams().distanceToIntersection = driverMovement->fwdDriverMovement.getDistToLinkEndM();
-					break;
-				}
-			}
+					//Time required for conflict vehicle to reach the intersection
+					double timeReqdByConflictVehicle = DBL_MAX;
 
-			++itConflictSections;
+					if (leadDriver->getVehicle()->getVelocity())
+					{
+						timeReqdByConflictVehicle =
+								driverMovement->fwdDriverMovement.getDistToLinkEndM() / (leadDriver->getVehicle()->getVelocity() / 100);
+					}
+
+					//If the time required for the other car is less, we yield
+					if (timeReqdByConflictVehicle <= timeToIntersection)
+					{
+						parentDriver->getParams().slowDownForIntersection = true;
+						parentDriver->getParams().distanceToIntersection = driverMovement->fwdDriverMovement.getDistToLinkEndM();
+						break;
+					}
+				}
+
+				++itConflictSections;
+			}
 		}
 	}
 }
@@ -900,15 +904,15 @@ void sim_mob::DriverMovement::intersectionDriving(DriverUpdateParams& p) {
 	if (!nextLaneInNextLink) {
 		return;
 	}
-
-	//calculate intersection acc and set vehicle vel
-	parentDriver->vehicle->setAcceleration(p.newFwdAcc);
-	parentDriver->vehicle->setVelocity(parentDriver->vehicle->getVelocity() + (p.newFwdAcc * p.elapsedSeconds));
 	
 	//update movement along the vector.
 	DPoint res = intModel->continueDriving(
 			parentDriver->vehicle->getVelocity() * p.elapsedSeconds);
 	parentDriver->vehicle->setPositionInIntersection(res.x, res.y);
+	
+	//calculate intersection acc and set vehicle vel
+	//parentDriver->vehicle->setAcceleration(p.newFwdAcc);
+	//parentDriver->vehicle->setVelocity(parentDriver->vehicle->getVelocity() + (p.newFwdAcc * p.elapsedSeconds));
 
 	//Next, detect if we've just left the intersection. Otherwise, perform regular intersection driving.
 	if (intModel->isDone()) {
@@ -2652,11 +2656,11 @@ NearestVehicle & sim_mob::DriverMovement::nearestVehicle(DriverUpdateParams& p) 
 void sim_mob::DriverMovement::intersectionVelocityUpdate() 
 {
 	DriverUpdateParams& params = parentDriver->getParams();
-	double inter_speed = parentDriver->vehicle->getVelocity() + (params.newFwdAcc * params.elapsedSeconds);
+	double inter_speed = parentDriver->vehicle->getVelocity() + (params.newFwdAcc * params.elapsedSeconds * 100);
 	
 	parentDriver->vehicle->setAcceleration(params.newFwdAcc);
 
-	//Set velocity for intersection movement.
+	//Set velocity for intersection movement
 	parentDriver->vehicle->setVelocity(inter_speed);
 }
 

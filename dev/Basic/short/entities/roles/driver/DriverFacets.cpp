@@ -443,14 +443,14 @@ bool sim_mob::DriverMovement::findEmptySpaceAhead()
 							//As the gap is positive, there is a vehicle in front of us. We should have enough distance
 							//so as to avoid crashing into it
 							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *>(cfModel);
-							requiredGapInCM = (2 * parentDriver->vehicle->getLengthCm()) + (mitsim_cf_model->hBufferUpper * (driverUpdateParams.initSpeed / 100));
+							requiredGapInCM = (2 * parentDriver->vehicle->getLengthCm()) + (mitsim_cf_model->hBufferUpper * (driverUpdateParams.initSpeed * 100));
 						}
 						else
 						{
 							//As the gap is negative, there is a vehicle coming in from behind. We shouldn't appear right
 							//in front of it, so consider it's speed to calculate required gap
 							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *>(nearbyDriverMovement->cfModel);
-							requiredGapInCM = (2 * nearbyDriver->vehicle->getLengthCm())+ (mitsim_cf_model->hBufferUpper)* (nearbyDriversParams.currSpeed / 100);
+							requiredGapInCM = (2 * nearbyDriver->vehicle->getLengthCm())+ (mitsim_cf_model->hBufferUpper)* (nearbyDriversParams.currSpeed * 100);
 
 							//In case a driver is approaching from the rear, we need to reduce the reaction time, so that he/she
 							//is aware of the presence of the car apprearing in front.
@@ -617,22 +617,6 @@ bool sim_mob::DriverMovement::update_sensors(timeslice now) {
 	
 	if(!fwdDriverMovement.isInIntersection()) 
 	{
-		//Detect if a vehicle is approaching an intersection. We do this by comparing the 
-		//distance to the end of the road segment and the visibility distance
-	
-		//The distance to the end of the road segment (metre)
-		double distToIntersection = fwdDriverMovement.getDistToLinkEndM();
-		
-		//Visibility of the intersection (metre). This should be retrieved from the corresponding conflict 
-		//section once it has been added there
-		const double visibilityDistance = 50;
-		
-		if (distToIntersection < visibilityDistance)
-		{
-			//params.isApproachingIntersection = true;
-			std::cout<<"update_sensors: isApproachingIntersection true"<<std::endl;
-		}
-		
 		setTrafficSignalParams(params);
 	}
 
@@ -759,7 +743,21 @@ bool sim_mob::DriverMovement::update_post_movement(timeslice now) {
 	if (!(fwdDriverMovement.isInIntersection()) && !(hasNextSegment(true))
 			&& hasNextSegment(false)) {
 		chooseNextLaneForNextLink(params);
-		params.isApproachingIntersection = true;
+		
+		//Detect if a vehicle is approaching an intersection. We do this by comparing the 
+		//distance to the end of the road segment and the visibility distance
+	
+		//The distance to the end of the road segment (metre)
+		double distToIntersection = fwdDriverMovement.getDistToLinkEndM();
+		
+		//Visibility of the intersection (metre). This should be retrieved from the corresponding conflict 
+		//section once it has been added there
+		const double visibilityDistance = 50;
+		
+		if (distToIntersection < visibilityDistance)
+		{
+			params.isApproachingIntersection = true;
+		}
 	}
 
 	//Have we just entered into an intersection?
@@ -768,6 +766,7 @@ bool sim_mob::DriverMovement::update_post_movement(timeslice now) {
 		//Calculate a trajectory and init movement on that intersection.
 		calculateIntersectionTrajectory(params.TEMP_lastKnownPolypoint,
 				params.overflowIntoIntersection);
+		
 		//TODO intersection model calculate acc
 		intersectionVelocityUpdate();
 
@@ -785,10 +784,12 @@ bool sim_mob::DriverMovement::update_post_movement(timeslice now) {
 */
 void sim_mob::DriverMovement::approachIntersection()
 {
+	DriverUpdateParams& params = parentDriver->getParams();
+	
 	//The multi-node which houses the turning must be the end node of current segment and the start node
 	//of the next segment. If the two nodes are not the same, means we're in a different segment (we're close to
 	//the intersection, but a short segment is likely ahead of us)
-	DriverUpdateParams& params = parentDriver->getParams();
+	
 	//The current RoadSegment the vehicle is on
 	const RoadSegment *currSegment = fwdDriverMovement.getCurrSegment();
 
@@ -820,10 +821,11 @@ void sim_mob::DriverMovement::approachIntersection()
 		{
 			//The time required to reach the intersection
 			double timeToIntersection = DBL_MAX;
+			params.currSpeed = parentDriver->getVehicle()->getVelocity() / 100;
 
 			if (parentDriver->getVehicle()->getVelocity() > 0)
 			{
-				timeToIntersection = fwdDriverMovement.getDistToLinkEndM() / (parentDriver->getVehicle()->getVelocity() / 100);
+				timeToIntersection = fwdDriverMovement.getDistToLinkEndM() / params.currSpeed;
 			}
 
 			//Iterator for looping through every conflict turning section of the current vehicle's turning section
@@ -868,18 +870,19 @@ void sim_mob::DriverMovement::approachIntersection()
 				{
 					//Time required for conflict vehicle to reach the intersection
 					double timeReqdByConflictVehicle = DBL_MAX;
+					double speed = leadDriver->getVehicle()->getVelocity() / 100;
 
-					if (leadDriver->getVehicle()->getVelocity())
+					if (speed > 0)
 					{
 						timeReqdByConflictVehicle =
-								driverMovement->fwdDriverMovement.getDistToLinkEndM() / (leadDriver->getVehicle()->getVelocity() / 100);
+								driverMovement->fwdDriverMovement.getDistToLinkEndM() / speed;
 					}
 
 					//If the time required for the other car is less, we yield
 					if (timeReqdByConflictVehicle <= timeToIntersection)
 					{
-						parentDriver->getParams().slowDownForIntersection = true;
-						parentDriver->getParams().distanceToIntersection = driverMovement->fwdDriverMovement.getDistToLinkEndM();
+						params.slowDownForIntersection = true;
+						params.distanceToIntersection = driverMovement->fwdDriverMovement.getDistToLinkEndM();
 						break;
 					}
 				}
@@ -2062,8 +2065,6 @@ sim_mob::DynamicVector sim_mob::DriverMovement::getCurrPolylineVector2() const {
 
 double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p) {
 	//Determine how far forward we've moved.
-	//TODO: I've disabled the acceleration component because it doesn't really make sense.
-	// Please re-enable if you think this is expected behavior. ~Seth
 	double fwdDistance = parentDriver->vehicle->getVelocity() * p.elapsedSeconds
 			+ 0.5 * parentDriver->vehicle->getAcceleration() * p.elapsedSeconds
 			* p.elapsedSeconds;

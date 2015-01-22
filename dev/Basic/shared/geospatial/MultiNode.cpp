@@ -182,7 +182,6 @@ TurningSection* sim_mob::MultiNode::getTurningSection(const Lane* currentLane, c
 		//time being
 		//throw std::runtime_error("TurningSection from the given from lane not found");
 	}
-	return res;
 }
 
 pair< vector< pair<RoadSegment*, bool> >, vector< pair<RoadSegment*, bool> > >

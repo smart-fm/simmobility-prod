@@ -795,7 +795,7 @@ void sim_mob::DriverMovement::approachIntersection()
 	//The multi-node which houses the turning must be the end node of current segment and the start node
 	//of the next segment. If the two nodes are not the same, means we're in a different segment (we're close to
 	//the intersection, but a short segment is likely ahead of us)
-	
+	DriverUpdateParams& params = parentDriver->getParams();
 	//The current RoadSegment the vehicle is on
 	const RoadSegment *currSegment = fwdDriverMovement.getCurrSegment();
 
@@ -2172,6 +2172,10 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 			&& other_driver->isInIntersection.get()) {
 		// handle vh in intersection
 		// 1.0 find other vh current turning
+		Driver *od = const_cast<Driver *>(other_driver);
+		DriverMovement *driverMvt = dynamic_cast<DriverMovement*>(od->Movement());
+		TurningSection* ttt = driverMvt->fwdDriverMovement.currTurning;
+		DriverUpdateParams &odp = od->getParams();
 		const TurningSection* otherTurning = other_driver->currTurning_.get();
 		// 1.1 get turning conflict
 		if(!fwdDriverMovement.currTurning) {
@@ -2180,9 +2184,9 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 		TurningConflict* tc = fwdDriverMovement.currTurning->getTurningConflict(otherTurning);
 		if(tc) {
 			// 2.0 get other vh move distance on turning section
-			double moveDis = other_driver->moveDisOnTurning_;
+			double moveDis = other_driver->moveDisOnTurning_ / 100.0;
 			double dis = moveDis - (otherTurning == tc->firstTurning ? tc->first_cd : tc->second_cd);
-			std::cout<<"updateNearbyAgent: id "<<params.parentId<<" move dis: "<<other_driver->moveDisOnTurning_<<std::endl;
+			std::cout<<"updateNearbyAgent: id "<<params.parentId<<" move dis: "<<dis<<std::endl;
 			// 2.1 add other vh to params
 			params.insertConflictTurningDriver(tc,dis,other_driver);
 		}

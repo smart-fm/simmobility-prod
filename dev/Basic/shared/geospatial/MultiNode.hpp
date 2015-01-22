@@ -73,7 +73,7 @@ public:
 	void setTurnings(const sim_mob::RoadSegment* key, std::set<sim_mob::TurningSection*>& val);
  
     //Inserts the turning section to the map mapFromToLanesVsTurning
-    void updateMapLaneVsTurning(const Lane *fromLane, const Lane *toLane, sim_mob::TurningSection *turning);
+    void updateMapLaneVsTurning(const Lane *fromLane, const Lane *toLane, TurningSection *turning);
         
     //Finds and returns the TurningSection object that connects the given 'from' and 'to' lanes
     TurningSection* getTurningSection(const Lane *currentLane, const Lane *nextLane) const;
@@ -90,8 +90,8 @@ protected:
 
 	std::map<const sim_mob::RoadSegment*, std::set<sim_mob::TurningSection*> > turnings;
         
-    //This is a map of TurningSection with key as the pair of the from lane and to lane
-    std::map<std::pair<const sim_mob::Lane *, const sim_mob::Lane *>, sim_mob::TurningSection *> mapFromToLanesVsTurning;
+    //This is a 2-level map of TurningSection with key as the the from lane and to lane
+    std::map<const Lane *, std::map<const Lane *, TurningSection *> > mapFromToLanesVsTurning;
 
 	///Bookkeeping: which RoadSegments meet at this Node?
 	std::set<sim_mob::RoadSegment*> roadSegmentsAt;

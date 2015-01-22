@@ -138,6 +138,7 @@ void sim_mob::MultiNode::updateMapLaneVsTurning(const Lane* fromLane, const Lane
 
 TurningSection* sim_mob::MultiNode::getTurningSection(const Lane* currentLane, const Lane* nextLane) const
 {
+	TurningSection* res = nullptr;
 	std::map<std::pair<const sim_mob::Lane *, const sim_mob::Lane *>, sim_mob::TurningSection *>::const_iterator it;
 	
 	//Find the turning corresponding to the current and next lanes
@@ -145,12 +146,13 @@ TurningSection* sim_mob::MultiNode::getTurningSection(const Lane* currentLane, c
 	
 	if(it != mapFromToLanesVsTurning.end())
 	{
-		*it->second;
+		res = it->second;
 	}
 	else
 	{
 		throw std::runtime_error("TurningSection from the given from and to lanes not found");
 	}
+	return res;
 }
 
 pair< vector< pair<RoadSegment*, bool> >, vector< pair<RoadSegment*, bool> > >

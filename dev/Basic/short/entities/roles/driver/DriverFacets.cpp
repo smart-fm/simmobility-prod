@@ -614,7 +614,7 @@ bool sim_mob::DriverMovement::update_sensors(timeslice now) {
 	// position before/behind you. Save nearest fwd pedestrian too.
 
 	//Manage traffic signal behavior if we are close to the end of the link.
-	params.isApproachingIntersection = false;
+//	params.isApproachingIntersection = false;
 	
 	if(!fwdDriverMovement.isInIntersection()) 
 	{
@@ -627,10 +627,13 @@ bool sim_mob::DriverMovement::update_sensors(timeslice now) {
 		//Visibility of the intersection (metre). This should be retrieved from the corresponding conflict 
 		//section once it has been added there
 		const double visibilityDistance = 50;
-		
+		if(params.now.frame()>50 && params.parentId == 1){
+				int a=1;
+			}
 		if (distToIntersection < visibilityDistance)
 		{
-			params.isApproachingIntersection = true;
+//			params.isApproachingIntersection = true;
+			std::cout<<"update_sensors: isApproachingIntersection true"<<std::endl;
 		}
 		
 		setTrafficSignalParams(params);
@@ -670,6 +673,10 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 	params.TEMP_lastKnownPolypoint = DPoint(getCurrPolylineVector2().getEndX(),
 			getCurrPolylineVector2().getEndY());
 
+	if(params.now.frame()>64 && params.parentId == 1){
+		std::cout<<"find it"<<std::endl;
+		int a=1;
+	}
 	//Check if this is the leading vehicle in a lane & is approaching an unsignalised intersection.
 	if (!params.nvFwd.driver && params.isApproachingIntersection && !trafficSignal)
 	{
@@ -755,9 +762,11 @@ bool sim_mob::DriverMovement::update_post_movement(timeslice now) {
 		}
 	}
 
+	params.isApproachingIntersection = false;
 	if (!(fwdDriverMovement.isInIntersection()) && !(hasNextSegment(true))
 			&& hasNextSegment(false)) {
 		chooseNextLaneForNextLink(params);
+		params.isApproachingIntersection = true;
 	}
 
 	//Have we just entered into an intersection?
@@ -792,6 +801,7 @@ void sim_mob::DriverMovement::approachIntersection()
 
 	//The RoadSegment the vehicle will move to after the intersection
 	const RoadSegment *nextSegment = fwdDriverMovement.getNextSegment(false);
+	if(!nextSegment) return;
 
 	//The turning section that will be used by the vehicle to move from the current segment to the next segment
 	TurningSection *turningSection = NULL;
@@ -2151,8 +2161,11 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 	//Only update if passed a valid pointer which is not a pointer back to you, and
 	//the driver is not actually in an intersection at the moment.
 	if(!other_driver) {return false;}
-	if ( this->parentDriver == other_driver
-			|| other_driver->isInIntersection.get()) {
+	if(params.parentId == 1 && params.now.frame()>70){
+		int b=1;
+	}
+	if ( this->parentDriver != other_driver
+			&& other_driver->isInIntersection.get()) {
 		// handle vh in intersection
 		// 1.0 find other vh current turning
 		const TurningSection* otherTurning = other_driver->currTurning_.get();
@@ -2503,6 +2516,11 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 
 	PROFILE_LOG_QUERY_START(parent->currWorkerProvider, parent,
 			params.now);
+
+	if(params.now.frame()>50 && params.parentId == 1){
+			std::cout<<"find it"<<std::endl;
+			int a=1;
+		}
 
 	//NOTE: Let the AuraManager handle dispatching to the "advanced" function.
 	vector<const Agent*> nearby_agents;

@@ -856,6 +856,12 @@ double sim_mob::DriverPathMover::getDistToLinkEndM()
 	std::vector<const sim_mob::RoadSegment*>::iterator end =fullPath.end();
 	for (vector<const RoadSegment*>::const_iterator it = start; it != end; ++it)
 	{
+		//Break if the next Segment isn't in this link.
+		if ((it + 1 == end) || ((*it)->getLink() != (*(currSegmentIt))->getLink()))
+		{
+			break;
+		}
+
 		//Add all polylines in this Segment
 		const vector<Point2D>& polyLine = const_cast<RoadSegment*> (*it)->getLanes()[0]->getPolyline();
 		for (vector<Point2D>::const_iterator it2 = polyLine.begin(); (it2 + 1) != polyLine.end(); ++it2)
@@ -863,11 +869,7 @@ double sim_mob::DriverPathMover::getDistToLinkEndM()
 			res += dist(it2->getX(), it2->getY(), (it2 + 1)->getX(), (it2 + 1)->getY()) / 100.0;
 		}
 
-		//Break if the next Segment isn't in this link.
-		if ((it + 1 == end) || ((*it)->getLink() != (*(it + 1))->getLink()))
-		{
-			break;
-		}
+
 	}
 
 	return res;

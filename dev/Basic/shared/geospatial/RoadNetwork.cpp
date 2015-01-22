@@ -115,7 +115,7 @@ void sim_mob::RoadNetwork::storeTurningConflict(sim_mob::TurningConflict* t) {
 	ft->turningConflicts.push_back(t);
 
 	st->conflicts.push_back(ft);
-	ft->turningConflicts.push_back(t);
+	st->turningConflicts.push_back(t);
 
 	t->firstTurning = ft;
 	t->secondTurning = st;

@@ -119,6 +119,9 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 bool performMain(const std::string& configFileName, std::list<std::string>& resLogFiles, const std::string& XML_OutPutFileName) {
 	Print() <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
 
+	//Parse the config file (this *does not* create anything, it just reads it.).
+	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
+	
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
 	//      OutputEnabled is always set to the correct value, regardless of whether ConfigParams()
@@ -531,12 +534,6 @@ int main_impl(int ARGC, char* ARGV[])
 	if(args.size() > 2)
 	{
 		outputFileName = args[2];
-	}
-
-	//Parse the config file (this *does not* create anything, it just reads it.).
-	if (! ConfigManager::GetInstance().CMakeConfig().InteractiveMode())
-	{
-		ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
 	}
 
 	//Currently needs the #ifdef because of the way threads initialize.

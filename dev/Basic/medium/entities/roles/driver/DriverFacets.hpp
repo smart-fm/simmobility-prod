@@ -61,8 +61,6 @@ protected:
  * \author Harish Loganathan
  */
 class DriverMovement: public sim_mob::MovementFacet {
-	//debug
-	unsigned int sectionId;
 public:
 	explicit DriverMovement(sim_mob::Person* parentAgent = nullptr);
 	virtual ~DriverMovement();

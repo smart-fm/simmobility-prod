@@ -334,6 +334,14 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 				afterUpdate.segStats->addAgent(afterUpdate.lane, person);
 				return;
 			}
+			else
+			{
+				//the bus driver moved out of a stop and got added into a VQ.
+				//we need to add the bus driver to the virtual queue here
+				person->distanceToEndOfSegment = afterUpdate.segStats->getLength();
+				afterUpdate.segment->getParentConflux()->pushBackOntoVirtualQueue(afterUpdate.segment->getLink(), person);
+				return;
+			}
 		}
 		else if (!beforeUpdate.isMoving && !afterUpdate.isMoving && beforeUpdate.segStats != afterUpdate.segStats)
 		{
@@ -1468,11 +1476,11 @@ sim_mob::Conflux* sim_mob::Conflux::findStartingConflux(Person* p)
 			const BusStop* stop = firstSubTrip.fromLocation.busStop_;
 			conflux = stop->getParentSegment()->getParentConflux();
 		}
-		else if( role == "trainPassenger" )
-		{
-			//trainPassenger cannot be handled without route choice models because we do not have any other way to get a default route
-			throw std::runtime_error("trainPassenger cannot be handled without route choice models");
-		}
+//		else if( role == "trainPassenger" )
+//		{
+//			//trainPassenger cannot be handled without route choice models because we do not have any other way to get a default route
+//			throw std::runtime_error("trainPassenger cannot be handled without route choice models");
+//		}
 	}
 
 	if(!path.empty())

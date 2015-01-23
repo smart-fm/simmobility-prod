@@ -967,15 +967,6 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFrameTick(timeslice now, Pers
 			retVal = switchTripChainItem(person);
 			if (retVal.status == UpdateStatus::RS_DONE) { return retVal; }
 			personRole = person->getRole();
-			/*
-			if(personRole && retVal.status==UpdateStatus::RS_CONTINUE && personRole->roleType==Role::RL_WAITBUSACTITITY)
-			{
-				assignPersonToBusStopAgent(person);
-				PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
-				if(pIt!=pedestrianList.end()){ pedestrianList.erase(pIt); }
-				return retVal;
-			}
-			*/
 
 			//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
 			person->setStartTime(now.ms());

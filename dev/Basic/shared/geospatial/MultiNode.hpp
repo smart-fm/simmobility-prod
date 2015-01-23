@@ -70,7 +70,7 @@ public:
 	void setConnectorAt2(const sim_mob::RoadSegment* key, std::set<sim_mob::LaneConnector*>& val);
 	void addRoadSegmentAt(sim_mob::RoadSegment* rs) { roadSegmentsAt.insert(rs); }
 
-	void setTurnings(const sim_mob::RoadSegment* key, std::set<sim_mob::TurningSection*>& val);
+	void setTurnings(const sim_mob::RoadSegment *key, TurningSection *val);
  
     //Inserts the turning section to the map mapFromToLanesVsTurning
     void updateMapLaneVsTurning(const Lane *fromLane, const Lane *toLane, TurningSection *turning);

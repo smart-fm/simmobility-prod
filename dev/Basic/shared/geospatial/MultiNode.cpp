@@ -115,19 +115,19 @@ void sim_mob::MultiNode::setConnectorAt2(const sim_mob::RoadSegment* key, std::s
 	}
 }
 
-void sim_mob::MultiNode::setTurnings(const sim_mob::RoadSegment* key, std::set<sim_mob::TurningSection*>& val)
+void sim_mob::MultiNode::setTurnings(const sim_mob::RoadSegment *key, TurningSection *val)
 {
 	std::map<const sim_mob::RoadSegment*, std::set<sim_mob::TurningSection*> >::iterator it_find = turnings.find(key);
 	if(it_find != turnings.end())
 	{
 		// has this seg
-		std::set<sim_mob::TurningSection*> ts = it_find->second;
-		ts.insert(val.begin(),val.end());
-		turnings[key] = ts;
+		it_find->second.insert(val);
 	}
 	else
 	{
-		this->turnings[key] = val;
+		std::set<sim_mob::TurningSection*> setOfTurningSetion;
+		setOfTurningSetion.insert(val);
+		this->turnings[key] = setOfTurningSetion;
 	}
 }
 

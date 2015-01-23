@@ -754,7 +754,7 @@ bool sim_mob::DriverMovement::update_post_movement(timeslice now) {
 		//section once it has been added there
 		const double visibilityDistance = 50;
 		
-		if (distToIntersection < visibilityDistance)
+		if (distToIntersection < visibilityDistance && !trafficSignal && !params.nvFwd.driver)
 		{
 			params.isApproachingIntersection = true;
 		}
@@ -795,7 +795,6 @@ void sim_mob::DriverMovement::approachIntersection()
 
 	//The RoadSegment the vehicle will move to after the intersection
 	const RoadSegment *nextSegment = fwdDriverMovement.getNextSegment(false);
-	if(!nextSegment) return;
 
 	//No next segment, that means we're at the end of our path
 	if(nextSegment)
@@ -2159,9 +2158,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 	//Only update if passed a valid pointer which is not a pointer back to you, and
 	//the driver is not actually in an intersection at the moment.
 	if(!other_driver) {return false;}
-	if(params.parentId == 1 && params.now.frame()>70){
-		int b=1;
-	}
+	
 	if ( this->parentDriver != other_driver
 			&& other_driver->isInIntersection.get()) {
 		// handle vh in intersection
@@ -2171,18 +2168,19 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 		TurningSection* ttt = driverMvt->fwdDriverMovement.currTurning;
 		DriverUpdateParams &odp = od->getParams();
 		const TurningSection* otherTurning = other_driver->currTurning_.get();
+		
 		// 1.1 get turning conflict
 		if(!fwdDriverMovement.currTurning) {
 			return true;
 		}
-		TurningConflict* tc = fwdDriverMovement.currTurning->getTurningConflict(otherTurning);
-		if(tc) {
+		TurningConflict* conflict = fwdDriverMovement.currTurning->getTurningConflict(otherTurning);
+		if(conflict) {
 			// 2.0 get other vh move distance on turning section
 			double moveDis = other_driver->moveDisOnTurning_ / 100.0;
-			double dis = moveDis - (otherTurning == tc->firstTurning ? tc->first_cd : tc->second_cd);
-			std::cout<<"updateNearbyAgent: id "<<params.parentId<<" move dis: "<<dis<<std::endl;
+			double dis = moveDis - (otherTurning == conflict->firstTurning ? conflict->first_cd : conflict->second_cd);
+			
 			// 2.1 add other vh to params
-			params.insertConflictTurningDriver(tc,dis,other_driver);
+			params.insertConflictTurningDriver(conflict, dis, other_driver);
 		}
 
 		return true;
@@ -2198,10 +2196,6 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 	//we need the length of the link while calculating the lane level density
 	//as we will be considering the vehicles on a particular lane of a link.
 	double lengthInM = Utils::cmToMeter((double)fwdDriverMovement.getCurrLink()->getLength());
-
-//	if (fwdDriverMovement.isInIntersection()
-//			|| other_driver->isInIntersection.get())
-//		return false;
 
 	double other_offset = other_driver->currDistAlongRoadSegment;
 

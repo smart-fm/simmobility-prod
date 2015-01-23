@@ -108,9 +108,6 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 {
 	//TODO: Check with MAX what to do with the below commented lines
 	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
-		if(getAgentSrc() == "DAS_TripChain"){
-			int i = 0;
-		}
 		convertODsToTrips();
 		insertWaitingActivityToTrip();
 	}

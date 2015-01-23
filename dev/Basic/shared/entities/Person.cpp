@@ -114,7 +114,6 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 
 	if(!tripChain.empty()) { initTripChain(); }
 }
-
 void sim_mob::Person::initTripChain(){
 	currTripChainItem = tripChain.begin();
 	//TODO: Check if short term is okay with this approach of checking agent source
@@ -1016,9 +1015,9 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 
 	//if you are here, TripchainItem has to be incremented
 	//Trip is about the change, it is a good time to collect the Metrics
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP){
-		//aggregateSubTripM	etrics();
-	}
+//	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP){
+//		aggregateSubTripMetrics();
+//	}
 
 	//serializeTripChainItem(currTripChainItem);
 

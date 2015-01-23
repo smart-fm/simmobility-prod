@@ -127,7 +127,6 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Enti
 			if(tripIt->startTime.isAfterEqual(ConfigManager::GetInstance().FullConfig().simStartTime())) {// in case sometimes BusTrip startTime is smaller than simStartTime to skip some BusTrips
 				Person* currAg = new Person("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
 				currAg->setPersonCharacteristics();
-				currAg->setStartTime(tripIt->startTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime()));
 
 				vector<TripChainItem*> currAgTripChain;
 				currAgTripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));// one person for one busTrip, currently not considering Activity for BusDriver

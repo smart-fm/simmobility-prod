@@ -39,7 +39,7 @@ sim_mob::WorkGroup::WorkGroup(unsigned int wgNum, unsigned int numWorkers, unsig
 		AuraManager* auraMgr, PartitionManager* partitionMgr, PeriodicPersonLoader* periodicLoader) :
 	wgNum(wgNum), numWorkers(numWorkers), numSimTicks(numSimTicks), tickStep(tickStep), auraMgr(auraMgr), partitionMgr(partitionMgr),
 	tickOffset(0), started(false), currTimeTick(0), nextTimeTick(0), loader(nullptr), nextWorkerID(0),
-	frame_tick_barr(nullptr), buff_flip_barr(nullptr), aura_mgr_barr(nullptr), macro_tick_barr(nullptr),
+	frame_tick_barr(nullptr), buff_flip_barr(nullptr), msg_bus_barr(nullptr), macro_tick_barr(nullptr),
 	profile(nullptr), numAgentsWithNoPath(0), periodicPersonLoader(periodicLoader)
 {
 	if (ConfigManager::GetInstance().CMakeConfig().ProfileAuraMgrUpdates()) {
@@ -116,7 +116,7 @@ void sim_mob::WorkGroup::initializeBarriers(FlexiBarrier* frame_tick, FlexiBarri
 	//Shared barriers
 	this->frame_tick_barr = frame_tick;
 	this->buff_flip_barr = buff_flip;
-	this->aura_mgr_barr = aura_mgr;
+	this->msg_bus_barr = aura_mgr;
 
 	//Now's a good time to create our macro barrier too.
 	if (tickStep>1) {
@@ -159,7 +159,7 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 		std::vector<Entity*>* entWorker = &entToBeRemovedPerWorker.at(i);
 		std::vector<Entity*>* entBredPerWorker = &entToBeBredPerWorker.at(i);
 
-		workers.push_back(new Worker(this, logFile, frame_tick_barr, buff_flip_barr, aura_mgr_barr, macro_tick_barr, entWorker, entBredPerWorker, numSimTicks, tickStep));
+		workers.push_back(new Worker(this, logFile, frame_tick_barr, buff_flip_barr, msg_bus_barr, macro_tick_barr, entWorker, entBredPerWorker, numSimTicks, tickStep));
 	}
 }
 
@@ -377,8 +377,6 @@ void sim_mob::WorkGroup::waitFlipBuffers(bool singleThreaded, std::set<sim_mob::
 		stageEntities();
 		//Remove any Agents staged for removal.
 		collectRemovedEntities(removedAgents);
-		//buff_flip_barr->contribute(); //No.
-
 	} else {
 		//Tick on behalf of all your workers.
 		if (buff_flip_barr) {
@@ -415,8 +413,8 @@ void sim_mob::WorkGroup::waitAuraManager(const std::set<sim_mob::Agent*>& remove
 		//aura_mgr_barr->contribute();  //No.
 	} else {
 		//Tick on behalf of all your workers.
-		if (aura_mgr_barr) {
-			aura_mgr_barr->contribute(workers.size());
+		if (msg_bus_barr) {
+			msg_bus_barr->contribute(workers.size());
 		}
 	}
 }
@@ -540,14 +538,12 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 	}
 }
 
-void sim_mob::WorkGroup::processVirtualQueues() {
+void sim_mob::WorkGroup::processVirtualQueues(std::set<Agent*>& removedEntities) {
 	for(vector<Worker*>::iterator wrkr = workers.begin(); wrkr != workers.end(); wrkr++) {
 		(*wrkr)->processVirtualQueues();
 		(*wrkr)->removePendingEntities();
-
-		//TODO: It is not clear if any "collected" entities should be saved when processing virtual queues.
-		//      At the moment, it seems unnecessary, since Confluxes and the AuraManager are never used together.
-		collectRemovedEntities(nullptr);
+		//we must collect removed entities and procrastinate their deletion till they have handled all messages destined for them
+		collectRemovedEntities(&removedEntities);
 	}
 }
 
@@ -616,8 +612,9 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 void sim_mob::WorkGroup::putAgentOnConflux(Person* person) {
 	if(person)
 	{
-		const sim_mob::RoadSegment* rdSeg = sim_mob::Conflux::constructPath(person);
-		if(rdSeg) { rdSeg->getParentConflux()->addAgent(person,rdSeg); }
+		sim_mob::Conflux* conflux = sim_mob::Conflux::findStartingConflux(person);
+		const sim_mob::RoadSegment* rdSeg = sim_mob::Conflux::findStartingRoadSegment(person);
+		if(conflux) { conflux->addAgent(person,rdSeg); }
 		else { numAgentsWithNoPath = numAgentsWithNoPath + 1; }
 	}
 }

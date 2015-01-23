@@ -326,7 +326,7 @@ void unit_tests::WorkerUnitTests::test_OddGranularities()
 		//Call each function in turn.
 		wgm.waitAllGroups_FrameTick();
 		wgm.waitAllGroups_FlipBuffers(&leak_memory);
-		wgm.waitAllGroups_AuraManager(leak_memory);
+		wgm.waitAllGroups_DistributeMessages(leak_memory);
 		wgm.waitAllGroups_MacroTimeTick();
 	}
 
@@ -485,7 +485,7 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 	CountAssert(errorCount, ag1->value.get()==0); //0+0 == 0
 	CountAssert(errorCount, ag2->value.get()==0); //0+0 == 0
 	CountAssert(errorCount, ag3->value.get()==0); //0+0 == 0
-	wgm.waitAllGroups_AuraManager(leak_memory);
+	wgm.waitAllGroups_DistributeMessages(leak_memory);
 	wgm.waitAllGroups_MacroTimeTick();
 
 	//////////////////////////////////////////
@@ -499,7 +499,7 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 	CountAssert(errorCount, ag1->value.get()==1); //0+1 == 1
 	CountAssert(errorCount, ag2->value.get()==0); //Doesn't tick
 	CountAssert(errorCount, ag3->value.get()==0); //Doesn't tick
-	wgm.waitAllGroups_AuraManager(leak_memory);
+	wgm.waitAllGroups_DistributeMessages(leak_memory);
 	wgm.waitAllGroups_MacroTimeTick();
 
 	//////////////////////////////////////////
@@ -513,7 +513,7 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 	CountAssert(errorCount, ag1->value.get()==3); //1+2 == 3
 	CountAssert(errorCount, ag2->value.get()==2); //0+2 == 2
 	CountAssert(errorCount, ag3->value.get()==0); //Doesn't tick
-	wgm.waitAllGroups_AuraManager(leak_memory);
+	wgm.waitAllGroups_DistributeMessages(leak_memory);
 	wgm.waitAllGroups_MacroTimeTick();
 
 	//////////////////////////////////////////
@@ -527,7 +527,7 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 	CountAssert(errorCount, ag1->value.get()==6); //3+3 == 6
 	CountAssert(errorCount, ag2->value.get()==2); //Doesn't tick
 	CountAssert(errorCount, ag3->value.get()==3); //0+3 == 3
-	wgm.waitAllGroups_AuraManager(leak_memory);
+	wgm.waitAllGroups_DistributeMessages(leak_memory);
 	wgm.waitAllGroups_MacroTimeTick();
 
 	//////////////////////////////////////////
@@ -541,7 +541,7 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 	CountAssert(errorCount, ag1->value.get()==10); //6+4 == 10
 	CountAssert(errorCount, ag2->value.get()==6);  //2+4 == 6
 	CountAssert(errorCount, ag3->value.get()==3);  //Doesn't tick
-	wgm.waitAllGroups_AuraManager(leak_memory);
+	wgm.waitAllGroups_DistributeMessages(leak_memory);
 	wgm.waitAllGroups_MacroTimeTick();
 
 	//Error check

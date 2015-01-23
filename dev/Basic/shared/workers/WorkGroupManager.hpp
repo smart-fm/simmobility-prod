@@ -33,7 +33,7 @@ class Agent;
 class WorkGroupManager {
 public:
 	WorkGroupManager() :
-		currBarrierCount(1), auraBarrierNeeded(false), frameTickBarr(nullptr), buffFlipBarr(nullptr), auraMgrBarr(nullptr),
+		currBarrierCount(1), frameTickBarr(nullptr), buffFlipBarr(nullptr), msgBusBarr(nullptr),
 		singleThreaded(false), currState(INIT)
 	{}
 
@@ -74,7 +74,7 @@ public:
 	//Call the various wait* functions individually.
 	void waitAllGroups_FrameTick();     ///< Wait on barriers: 1. You should use WaitAllGroups unless you really need fine-grained control.
 	void waitAllGroups_FlipBuffers(std::set<Agent*>* removedEntities);   ///< Wait on barriers: 2. You should use WaitAllGroups unless you really need fine-grained control.
-	void waitAllGroups_AuraManager(const std::set<Agent*>& removedEntities);   ///< Wait on barriers: 3. You should use WaitAllGroups unless you really need fine-grained control.
+	void waitAllGroups_DistributeMessages(std::set<Agent*>& removedEntities);   ///< Wait on barriers: 3. You should use WaitAllGroups unless you really need fine-grained control.
 	void waitAllGroups_MacroTimeTick(); ///< Wait on barriers: 4. You should use WaitAllGroups unless you really need fine-grained control.
 
 	// providing read only access to public for RegisteredWorkGroups. AuraManager requires this. - Harish
@@ -101,9 +101,6 @@ private:
 	//  Note: Compared to previous implementations, each WorkGroup does NOT add 1 to the barrier count.
 	unsigned int currBarrierCount;
 
-	//True if we need an AuraManager barrier at all.
-	bool auraBarrierNeeded;
-
 	//Are we operating in "single-threaded" mode? Default is false.
 	bool singleThreaded;
 
@@ -111,7 +108,7 @@ private:
 	//Only the aura manager barrier may be null. If any other barrier is null, it means we haven't called Init() yet.
 	sim_mob::FlexiBarrier* frameTickBarr;
 	sim_mob::FlexiBarrier* buffFlipBarr;
-	sim_mob::FlexiBarrier* auraMgrBarr;
+	sim_mob::FlexiBarrier* msgBusBarr;
 
 };
 

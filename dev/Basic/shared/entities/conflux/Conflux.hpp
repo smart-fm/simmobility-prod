@@ -27,18 +27,20 @@ class Loader;
 
 enum {
 	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000,
-	MSG_INSERT_INCIDENT = 5000001,
-	MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP = 5000001
+	MSG_INSERT_INCIDENT,
+	MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP,
+	MSG_MRT_PASSENGER_TELEPORTATION,
+	MSG_WAKE_UP
 };
 
 /**
- * Subclasses both messages, This is to allow it to function as an message callback parameter.
+ * Message to wrap a Person
  */
-class PedestrianTransferRequestMessage : public messaging::Message {
+class PersonMessage : public messaging::Message {
 public:
-	PedestrianTransferRequestMessage(Person* inPerson):pedestrian(inPerson){;}
-	virtual ~PedestrianTransferRequestMessage() {}
-	Person* pedestrian;
+	PersonMessage(Person* inPerson):person(inPerson){;}
+	virtual ~PersonMessage() {}
+	Person* person;
 };
 
 /**
@@ -94,7 +96,8 @@ private:
 	/**
 	 * helper to capture the status of a person before and after update
 	 */
-    struct PersonProps {
+    struct PersonProps
+    {
     public:
     	const sim_mob::RoadSegment* segment;
     	const sim_mob::Lane* lane;
@@ -102,8 +105,9 @@ private:
     	bool isMoving;
     	unsigned int roleType;
     	sim_mob::SegmentStats* segStats;
+    	const sim_mob::Conflux* conflux;
 
-    	PersonProps(const sim_mob::Person* person);
+    	PersonProps(const sim_mob::Person* person, const sim_mob::Conflux* conflux);
     };
 
 	/**
@@ -176,22 +180,16 @@ private:
 	/**list of persons performing activities within the vicinity of this conflux*/
 	PersonList activityPerformers;
 
-	/*list of persons with pedestrian role performing walking activities*/
+	/**list of persons with pedestrian role performing walking activities*/
 	PersonList pedestrianList;
 
-	/**
-	 * function to call persons' updates if the MultiNode is signalized
-	 * \note this function is not implemented. Multinodes with signals are given
-	 * the same treatment as those without signals.
-	 */
-	void updateSignalized();
+	/**list of persons currently on MRT train bound to some node in this conflux*/
+	PersonList mrt;
 
 	/**
-	 * function to call persons' updates if the MultiNode is not signalized
-	 * \note this function is currently used for all multinodes irrespective of
-	 * whether they have signals or not.
+	 * updates agents in this conflux
 	 */
-	void updateUnsignalized();
+	void processAgents();
 
 	/**
 	 * moves the person and does housekeeping for the conflux
@@ -231,7 +229,7 @@ private:
 	 * @param person person to tick
 	 * @return update status
 	 */
-	Entity::UpdateStatus callMovementFameTick(timeslice now, Person* person);
+	Entity::UpdateStatus callMovementFrameTick(timeslice now, Person* person);
 
 	/**
 	 * calls frame_tick of the movement facet for the person's role
@@ -304,6 +302,20 @@ bool sim_mob::insertIncidentS(const std::string fileName){
 	 */
 	void housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person);
 
+	/**
+	 * Gets the person to switch to the next trip chain item
+	 * @param person the person to switch
+	 * @return Entity::UpdateStatus update status
+	 */
+	Entity::UpdateStatus switchTripChainItem(Person* person);
+	
+	/**
+	 * gets the context of the agents right if the agent has moved out of this conflux
+	 * @param beforeUpdate person properties before update
+	 * @param afterUpdate person properties after update
+	 */
+	void updateAgentContext(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person) const;
+
 protected:
 	/**
 	 * Function to initialize the conflux before its first update.
@@ -360,6 +372,12 @@ public:
 	void setParentWorker(sim_mob::Worker* parentWorker) {
 		this->parentWorker = parentWorker;
 	}
+
+	/**
+	 * initializes the conflux
+	 * @param now timeslice when initialize is called
+	 */
+	void initialize(const timeslice& now);
 
 	bool hasSpaceInVirtualQueue(sim_mob::Link* lnk);
 	void pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p);
@@ -492,13 +510,21 @@ public:
 	void findBoundaryConfluxes();
 
 	/**
-	 * given a person p with a trip chain, create path for his first trip and
-	 * return his starting segment.
+	 * given a person with a trip chain, create path for his first trip and
+	 * return his starting conflux.
 	 *
-	 * @param person person for whom the starting segment is needed
-	 * @return constant pointer to the starting segment of the person's constructed path
+	 * @param person person for whom the starting conflux is needed
+	 * @param rdSeg output parameter - constant pointer to starting road segment.
+	 * @return pointer to the starting conflux of the person's constructed path
 	 */
-	static const sim_mob::RoadSegment* constructPath(Person* person);
+	static sim_mob::Conflux* findStartingConflux(Person* person);
+
+	/**
+	 * given a person with a path, finds the starting road segment for the person
+	 * @param person person for whom the starting segment is needed
+	 * @return constant pointer to starting segment of person's path
+	 */
+	static const sim_mob::RoadSegment* findStartingRoadSegment(Person* person);
 
 	/**
 	 * Inserts an Incident by updating the flow rate for all lanes of a road segment to a new value.

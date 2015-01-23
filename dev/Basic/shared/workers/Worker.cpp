@@ -215,10 +215,6 @@ int sim_mob::Worker::getAgentSize(bool includeToBeAdded)
 
 void sim_mob::Worker::addPendingEntities()
 {
-	/*if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-		return;
-	}*/
-	int i = 0;
 	for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
 		//Migrate its Buffered properties.
 		migrateIn(**it);
@@ -243,8 +239,8 @@ void sim_mob::Worker::removePendingEntities()
 			throw std::runtime_error("Attempting to remove an entity from a WorkGroup that doesn't allow it.");
 		}
 		entityRemovalList->push_back(*it);
-                messaging::MessageBus::UnRegisterHandler((*it));
-                (*it)->onWorkerExit();
+		messaging::MessageBus::UnRegisterHandler((*it));
+		(*it)->onWorkerExit();
 	}
 	toBeRemoved.clear();
 }
@@ -598,24 +594,34 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 void sim_mob::Worker::update_entities(timeslice currTime)
 {
 	//Confluxes require an additional set of updates.
-	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
-		if(ConfigManager::GetInstance().FullConfig().OutputEnabled()) {
+	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply())
+	{
+		Conflux* conflux = nullptr;
+		if(ConfigManager::GetInstance().FullConfig().OutputEnabled())
+		{
 			unsigned int total = 0;
 			unsigned int infCount = 0;
 			unsigned int vqCount = 0;
-			for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
-				vqCount += (*it)->resetOutputBounds();
-				total += (*it)->countPersons();
-				infCount += (*it)->getNumRemainingInLaneInfinity();
+			for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+			{
+				conflux = *it;
+				if(!conflux->isInitialized()) { conflux->initialize(currTime); }
+				vqCount += conflux->resetOutputBounds();
+				total += conflux->countPersons(); //total = numInLanes+numInLaneInf. VQ is not included here
+				infCount += conflux->getNumRemainingInLaneInfinity();
 			}
-			if(managedConfluxes.size() > 0) {
-				Print() << "Worker::update_entities Time: "<< currTime.ms()/1000
-					<< "s \tnumInLanes: "<< (total - infCount - vqCount) << "\tnumInLaneInf: "<< infCount << "\tvqCount: " << vqCount << std::endl;
+			if(managedConfluxes.size() > 0)
+			{
+				Print() << "Worker::update_entities Time: "<< currTime.ms()/1000 << "s \tnumInLanes: "<< (total - infCount) << "\tnumInLaneInf: "<< infCount << "\tvqCount: " << vqCount << std::endl;
 			}
 		}
-		else {
-			for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
-				(*it)->resetOutputBounds();
+		else
+		{
+			for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+			{
+				conflux = *it;
+				if(!conflux->isInitialized()) { conflux->initialize(currTime); }
+				conflux->resetOutputBounds();
 			}
 		}
 

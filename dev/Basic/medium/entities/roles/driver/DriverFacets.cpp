@@ -120,9 +120,6 @@ sim_mob::medium::DriverMovement::~DriverMovement() {
 
 void sim_mob::medium::DriverMovement::frame_init() {
 	bool pathInitialized = initializePath();
-//	//debug
-//	pathMover.printPath(pathMover.getPath());
-//	//debug
 	if (pathInitialized) {
 		//initialize some travel metrics for this subTrip
 		startTravelTimeMetric();
@@ -135,21 +132,11 @@ void sim_mob::medium::DriverMovement::frame_init() {
 	else{
 		getParent()->setToBeRemoved();
 	}
-	//debug
-	if(!pathMover.getPath().size())
-	{
-		std::cout << getParent()->getId() << " Has No Path\n";
-	}
 }
 
 void sim_mob::medium::DriverMovement::frame_tick() {
 	sim_mob::medium::DriverUpdateParams& params = parentDriver->getParams();
-	//Print() << "Person: " << getParent()->getId() << "|d.frame_tick" << std::endl;
 	const sim_mob::SegmentStats* currSegStats = pathMover.getCurrSegStats();
-	//debug
-	if(sectionId != currSegStats->getRoadSegment()->getSegmentAimsunId()){
-		sectionId = currSegStats->getRoadSegment()->getSegmentAimsunId();
-	}
 	if(!currSegStats) {
 		//if currSegstats is NULL, either the driver did not find a path to his
 		//destination or his path is completed. Either way, we remove this

@@ -34,7 +34,7 @@ WorkGroupManager::~WorkGroupManager() {
     //Finally, delete all barriers.
     safe_delete_item(frameTickBarr);
     safe_delete_item(buffFlipBarr);
-    safe_delete_item(auraMgrBarr);
+    safe_delete_item(msgBusBarr);
 
     try {
         // UnRegisters the main thread for message bus.
@@ -72,9 +72,6 @@ WorkGroup* sim_mob::WorkGroupManager::newWorkGroup(unsigned int numWorkers, unsi
 	//Most of this involves passing paramters on to the WorkGroup itself, and then bookkeeping via static data.
 	WorkGroup* res = new WorkGroup(registeredWorkGroups.size(), numWorkers, numSimTicks, tickStep, auraMgr, partitionMgr, periodicLoader);
 	currBarrierCount += numWorkers;
-	if (auraMgr || partitionMgr || ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
-		auraBarrierNeeded = true;
-	}
 
 	registeredWorkGroups.push_back(res);
 	return res;
@@ -103,13 +100,11 @@ void sim_mob::WorkGroupManager::initAllGroups()
 		//Create a barrier for each of the three shared phases (aura manager optional)
 		frameTickBarr = new FlexiBarrier(currBarrierCount);
 		buffFlipBarr = new FlexiBarrier(currBarrierCount);
-		if (auraBarrierNeeded) {
-			auraMgrBarr = new FlexiBarrier(currBarrierCount);
-		}
+		msgBusBarr = new FlexiBarrier(currBarrierCount);
 
 		//Initialize each WorkGroup with these new barriers.
 		for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
-			(*it)->initializeBarriers(frameTickBarr, buffFlipBarr, auraMgrBarr);
+			(*it)->initializeBarriers(frameTickBarr, buffFlipBarr, msgBusBarr);
 		}
 	}
 }
@@ -130,18 +125,17 @@ void sim_mob::WorkGroupManager::startAllWorkGroups()
 void sim_mob::WorkGroupManager::waitAllGroups()
 {
 	//Collect entities.
-	//TODO: We don't need to do this if there is no AuraManager (just pass null).
 	std::set<Agent*> removedEntities;
 
 	//Call each function in turn.
 	//NOTE: Each sub-function tests the current state.
 	waitAllGroups_FrameTick();
 	waitAllGroups_FlipBuffers(&removedEntities);
-	waitAllGroups_AuraManager(removedEntities);
+	waitAllGroups_DistributeMessages(removedEntities);
 	waitAllGroups_MacroTimeTick();
 
 	//Delete all collected entities:
-	while (removedEntities.begin() != removedEntities.end()) {
+	while (!removedEntities.empty()) {
 		Agent* ag = *removedEntities.begin();
 		removedEntities.erase(removedEntities.begin());
 		delete ag;
@@ -161,7 +155,6 @@ void sim_mob::WorkGroupManager::waitAllGroups_FrameTick()
 	if (frameTickBarr) {
 		frameTickBarr->wait();
 	}
-    sim_mob::messaging::MessageBus::DistributeMessages();
 }
 
 void sim_mob::WorkGroupManager::waitAllGroups_FlipBuffers(std::set<Agent*>* removedEntities)
@@ -191,28 +184,31 @@ void sim_mob::WorkGroupManager::waitAllGroups_MacroTimeTick()
 	//NOTE: There is no need for a "wait()" here, since macro barriers are used internally.
 }
 
-void sim_mob::WorkGroupManager::waitAllGroups_AuraManager(const std::set<Agent*>& removedEntities)
+void sim_mob::WorkGroupManager::waitAllGroups_DistributeMessages(std::set<Agent*>& removedEntities)
 {
 	//Sanity check
 	if (!currState.test(STARTED)) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
 
 	//We don't need this if there's no Aura Manager.
-	if (!auraMgrBarr) {
+	if (!msgBusBarr) {
 		return;
 	}
 
 	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
 		if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
-			(*it)->processVirtualQueues();
+			(*it)->processVirtualQueues(removedEntities);
 			(*it)->outputSupplyStats();
 		}
 
 		(*it)->waitAuraManager(removedEntities);
 	}
 
+	//Now is a good time to distribute messages since all agents have finished processing for this tick
+	sim_mob::messaging::MessageBus::DistributeMessages();
+
 	//Here is where we actually block, ensuring a tick-wide synchronization.
-	if (auraMgrBarr) {
-		auraMgrBarr->wait();
+	if (msgBusBarr) {
+		msgBusBarr->wait();
 	}
 }
 

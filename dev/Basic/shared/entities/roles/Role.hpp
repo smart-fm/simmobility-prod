@@ -72,7 +72,8 @@ public:
 		RL_BUSDRIVER,
 		RL_ACTIVITY,
 		RL_PASSENGER,
-		RL_WAITBUSACTITITY
+		RL_WAITBUSACTITITY,
+		RL_TRAINPASSENGER
 	};
 
 	//todo: use this to identify the type of request

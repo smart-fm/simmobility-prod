@@ -370,13 +370,13 @@ void HM_Model::startImpl()
 
 					//(*it)->setbiddingMarketEntryDay( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 					(*it)->setbiddingMarketEntryDay( 0 );
-					//(*it)->setTimeOnMarket( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
+					(*it)->setTimeOnMarket( 1 + int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 
 					onMarket++;
 				}
 				else
 				{
-					(*it)->setbiddingMarketEntryDay(0);//( (float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket + config.ltParams.housingModel.timeOffMarket));
+					(*it)->setbiddingMarketEntryDay( (float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket + config.ltParams.housingModel.timeOffMarket));
 					offMarket++;
 				}
 
@@ -493,8 +493,9 @@ void HM_Model::update(int day)
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
 		{
 			//If a unit is off the market and unoccupied, we should put it back on the market after its timeOffMarket value is exceeded.
-			if( (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket() > day )
+			if( (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket() < day )
 			{
+				//PrintOutV("A unit is being re-awakened" << std::endl);
 				(*it)->setbiddingMarketEntryDay(day + 1);
 				(*it)->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
 			}

@@ -106,7 +106,6 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tc), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
 	  client_id(-1),amodPath( std::vector<WayPoint>() ), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),amodSegmLength(0.0)
 {
-	//TODO: Check with MAX what to do with the below commented lines
 	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
 		convertODsToTrips();
 		insertWaitingActivityToTrip();

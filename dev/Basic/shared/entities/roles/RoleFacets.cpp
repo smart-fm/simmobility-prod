@@ -22,11 +22,8 @@ void sim_mob::Facet::setParent(sim_mob::Person* parent)
 {
 	this->parent = parent;
 }
-sim_mob::MovementFacet::MovementFacet(sim_mob::Person* parentAgent) : Facet(parentAgent) { }
-sim_mob::MovementFacet::~MovementFacet(){
-
-}
-
+sim_mob::MovementFacet::MovementFacet(sim_mob::Person* parentAgent) : Facet(parentAgent) {}
+sim_mob::MovementFacet::~MovementFacet() {}
 
 bool sim_mob::MovementFacet::isConnectedToNextSeg(const Lane* lane, const sim_mob::RoadSegment *nxtRdSeg)
 {

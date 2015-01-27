@@ -105,9 +105,7 @@ sim_mob::medium::Driver* sim_mob::medium::DriverBehavior::getParentDriver() {
 sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	MovementFacet(parentAgent), parentDriver(nullptr), currLane(nullptr),
 	laneInNextSegment(nullptr), isQueuing(false)
-{
-	messaging::MessageBus::RegisterHandler(this);
-	}
+{}
 
 
 sim_mob::medium::DriverMovement::~DriverMovement() {
@@ -1252,8 +1250,8 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 	getMesoPathMover().setPath(it->second);
 }
 
-void DriverMovement::HandleMessage(messaging::Message::MessageType type,
-		const messaging::Message& message){
+void DriverMovement::handleMessage(messaging::Message::MessageType type, const messaging::Message& message)
+{
 	switch (type){
 	case MSG_INSERT_INCIDENT:{
 		const InsertIncidentMessage &msg = MSG_CAST(InsertIncidentMessage,message);

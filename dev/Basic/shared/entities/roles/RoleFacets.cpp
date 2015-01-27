@@ -22,6 +22,10 @@ void sim_mob::Facet::setParent(sim_mob::Person* parent)
 {
 	this->parent = parent;
 }
+
+void sim_mob::Facet::handleMessage(messaging::Message::MessageType type, const messaging::Message& message)
+{}
+
 sim_mob::MovementFacet::MovementFacet(sim_mob::Person* parentAgent) : Facet(parentAgent) {}
 sim_mob::MovementFacet::~MovementFacet() {}
 

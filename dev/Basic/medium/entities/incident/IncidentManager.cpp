@@ -34,10 +34,9 @@ void sim_mob::IncidentManager::setSourceFile(const std::string inputFile_){
 void sim_mob::IncidentManager::readFromFile(std::string inputFile){
 	std::ifstream in(inputFile.c_str());
 	if (!in.is_open()){
-		std::ostringstream out("");
-		out << "Incident File " << inputFile << " not found";
+//		std::ostringstream out("");
+//		out << "Incident File " << inputFile << " not found";
 //		throw std::runtime_error(out.str());
-		//debug
 		return;
 	}
 	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::instance();
@@ -82,18 +81,12 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 		std::vector <const sim_mob::Person*> persons;
 		identifyAffectedDrivers(rs,persons);
 		logger << " INCIDENT  segment:"<< rs->getSegmentAimsunId() << " affected:" << persons.size() << "\n" ;
-//		/**
-//		 * DEBUG
-//		 */
-//		return;//dont inform any driver, let them go into incident section
-//		/**
-//		 * DEBUG...
-//		 */
+
 		//find affected Drivers (only active agents for now)
 		//inform the drivers about the incident
 		BOOST_FOREACH(const sim_mob::Person * person, persons) {
 			//send the same type of message
-			messaging::MessageBus::PostMessage(const_cast<sim_mob::MovementFacet*>(person->getRole()->Movement()), MSG_INSERT_INCIDENT,
+			messaging::MessageBus::PostMessage(const_cast<sim_mob::Person*>(person), MSG_INSERT_INCIDENT,
 								messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, incident->second.get<1>())));
 		}
 

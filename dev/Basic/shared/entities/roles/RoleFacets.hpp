@@ -63,6 +63,13 @@ public:
 	///Generate output for this frame's tick for this Agent.
 	virtual void frame_tick_output() = 0;
 
+	/**
+	 * message handler which provide a chance to handle message transfered from parent agent.
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void handleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+
 protected:
 	///Access the Logger.
 	///Note that the non-standard capitalization of this function is left in for compatibility with its previous usage as a class.
@@ -108,21 +115,14 @@ public:
  *
  * \author Harish Loganathan
  */
-class MovementFacet : public Facet, public messaging::MessageHandler {
+class MovementFacet : public Facet {
 public:
-	explicit MovementFacet(sim_mob::Person* parentAgent=nullptr);// : Facet(parentAgent), MessageHandler(msgHandlerId ++) { }
-	virtual ~MovementFacet(); //{}
+	explicit MovementFacet(sim_mob::Person* parentAgent=nullptr);
+	virtual ~MovementFacet();
 	virtual void init() {}
 
 	virtual bool updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Driver* other_driver) { return false; };
 	virtual void updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Pedestrian* pedestrian) {};
-	/**
-	 * message handler which provide a chance to handle message transfered from parent agent.
-	 * @param type of the message.
-	 * @param message data received.
-	 */
-	virtual void HandleMessage(messaging::Message::MessageType type,
-			const messaging::Message& message){}
 	
 	///	mark startTimeand origin
 	virtual TravelMetric& startTravelTimeMetric() = 0;

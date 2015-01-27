@@ -99,5 +99,14 @@ void sim_mob::medium::DriverUpdateParams::reset(timeslice now)
 	elapsedSeconds = 0.0;
 }
 
-
-
+void sim_mob::medium::Driver::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message)
+{
+	switch (type)
+	{
+	case MSG_INSERT_INCIDENT:
+	{
+		Movement()->handleMessage(type, message);
+		break;
+	}
+	}
+}

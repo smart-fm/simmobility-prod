@@ -2513,11 +2513,6 @@ void sim_mob::DriverMovement::updateNearbyAgents() {
 	PROFILE_LOG_QUERY_START(parent->currWorkerProvider, parent,
 			params.now);
 
-	if(params.now.frame()>50 && params.parentId == 1){
-			std::cout<<"find it"<<std::endl;
-			int a=1;
-		}
-
 	//NOTE: Let the AuraManager handle dispatching to the "advanced" function.
 	vector<const Agent*> nearby_agents;
 	if (parentDriver->getCurrPosition().x > 0

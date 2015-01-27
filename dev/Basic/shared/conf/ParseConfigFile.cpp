@@ -4,16 +4,15 @@
 
 #include "ParseConfigFile.hpp"
 
-#include <sstream>
-#include <boost/lexical_cast.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
-
+#include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
+#include <sstream>
 #include <xercesc/dom/DOM.hpp>
 
-#include "conf/RawConfigParams.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "conf/RawConfigParams.hpp"
 #include "geospatial/Point2D.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/XmlParseHelper.hpp"
@@ -196,6 +195,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessSystemNode(GetSingleElementByName(rootNode,"system", true));
 	//ProcessGeometryNode(GetSingleElementByName(rootNode, "geometry", true));
 	ProcessFMOD_Node(GetSingleElementByName(rootNode, "fmodcontroller"));
+	ProcessAMOD_Node(GetSingleElementByName(rootNode, "amodcontroller"));
 	ProcessIncidentsNode(GetSingleElementByName(rootNode, "incidentsData"));
 	ProcessConstructsNode(GetSingleElementByName(rootNode,"constructs"));
 	ProcessBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes"));
@@ -206,6 +206,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 
 	ProcessPedestriansNode(GetSingleElementByName(rootNode, "pedestrians"));
 	ProcessDriversNode(GetSingleElementByName(rootNode, "drivers"));
+	ProcessTaxiDriversNode(GetSingleElementByName(rootNode, "taxidrivers"));
 	ProcessBusDriversNode(GetSingleElementByName(rootNode, "busdrivers"));
 	ProcessPassengersNode(GetSingleElementByName(rootNode, "passengers"));
 	ProcessSignalsNode(GetSingleElementByName(rootNode, "signals"));
@@ -313,7 +314,7 @@ void sim_mob::ParseConfigFile::ProcessPersonCharacteristicsNode(xercesc::DOMElem
 
 	std::map<int, PersonCharacteristics> personCharacteristics =  cfg.personCharacteristicsParams.personCharacteristics;
 	// calculate lowest age and highest age in the ranges
-	for(std::map<int, PersonCharacteristics>::const_iterator iter=personCharacteristics.begin();iter != personCharacteristics.end();iter++) {
+	for(std::map<int, PersonCharacteristics>::const_iterator iter=personCharacteristics.begin();iter != personCharacteristics.end(); ++iter) {
 		if(cfg.personCharacteristicsParams.lowestAge > iter->second.lowerAge) {
 			cfg.personCharacteristicsParams.lowestAge = iter->second.lowerAge;
 		}
@@ -449,11 +450,16 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	//The longtermParams tag has an attribute
 	cfg.ltParams.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 
+	if (!cfg.ltParams.enabled)
+	{
+		return;
+	}
+
 	//Now set the rest.
-	cfg.ltParams.days = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "days"), "value"), static_cast<unsigned int>(0));
-	cfg.ltParams.maxIterations = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "maxIterations"), "value"), static_cast<unsigned int>(0));
-	cfg.ltParams.tickStep = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "tickStep"), "value"), static_cast<unsigned int>(0));
-	cfg.ltParams.workers = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "workers"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.days 				 = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "days"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.maxIterations 		 = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "maxIterations"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.tickStep 			 = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "tickStep"), "value"), static_cast<unsigned int>(0));
+	cfg.ltParams.workers 			 = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "workers"), "value"), static_cast<unsigned int>(0));
 
 	LongTermParams::DeveloperModel developerModel;
 	developerModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "developerModel"), "enabled"), false );
@@ -465,9 +471,9 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	housingModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "housingModel"), "enabled"), false);
 	housingModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeInterval"), "value"), static_cast<unsigned int>(0));
 	housingModel.timeOnMarket = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeOnMarket"), "value"), static_cast<unsigned int>(0));
-	housingModel.numberOfHouseholds = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "numberOfHouseholds"), "value"), static_cast<unsigned int>(0));
-	housingModel.numberOfUnits = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "numberOfUnits"), "value"), static_cast<unsigned int>(0));
-	housingModel.numberOfVacantUnits = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "numberOfVacantUnits"), "value"), static_cast<unsigned int>(0));
+	housingModel.timeOffMarket = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeOffMarket"), "value"), static_cast<unsigned int>(0));
+	housingModel.vacantUnitActivationProbability = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(node, "vacantUnitActivationProbability"), "value"));
+	housingModel.initialHouseholdsOnMarket = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "InitialHouseholdsOnMarket"), "value"), static_cast<int>(0));
 	cfg.ltParams.housingModel = housingModel;
 }
 
@@ -484,11 +490,22 @@ void sim_mob::ParseConfigFile::ProcessFMOD_Node(xercesc::DOMElement* node)
 	//Now set the rest.
 	cfg.fmod.ipAddress = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "ip_address"), "value"), "");
 	cfg.fmod.port = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "port"), "value"), static_cast<unsigned int>(0));
-	cfg.fmod.updateTimeMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "update_time_ms"), "value"), static_cast<unsigned int>(0));
+	//cfg.fmod.updateTravelMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "interval_travel_MS"), "value"), static_cast<unsigned int>(0));
+	//cfg.fmod.updatePosMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "interval_pos_MS"), "value"), static_cast<unsigned int>(0));
 	cfg.fmod.mapfile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "map_file"), "value"), "");
-	cfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blocking_time_sec"), "value"), static_cast<unsigned int>(0));
+	cfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blocking_time_Sec"), "value"), static_cast<unsigned int>(0));
 }
 
+void sim_mob::ParseConfigFile::ProcessAMOD_Node(xercesc::DOMElement* node)
+{
+	if (!node) 
+	{
+		return;
+	}
+
+	//Read the attribute value indicating whether AMOD is enabled or disabled
+	cfg.amod.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+}
 
 void sim_mob::ParseConfigFile::ProcessDriversNode(xercesc::DOMElement* node)
 {
@@ -497,6 +514,16 @@ void sim_mob::ParseConfigFile::ProcessDriversNode(xercesc::DOMElement* node)
 	}
 
 	ProcessFutureAgentList(node, "driver", cfg.driverTemplates);
+}
+
+void sim_mob::ParseConfigFile::ProcessTaxiDriversNode(xercesc::DOMElement* node)
+{
+	if(!node)
+	{
+		return;
+	}
+
+	ProcessFutureAgentList(node, "taxidriver", cfg.taxiDriverTemplates);
 }
 
 void sim_mob::ParseConfigFile::ProcessPedestriansNode(xercesc::DOMElement* node)
@@ -723,7 +750,7 @@ void sim_mob::ParseConfigFile::ProcessSystemXmlSchemaFilesNode(xercesc::DOMEleme
 	DOMElement* rn = GetSingleElementByName(node, "road_network");
 	if (rn) {
 		std::vector<DOMElement*> options = GetElementsByName(rn, "option");
-		for (std::vector<DOMElement*>::const_iterator it=options.begin(); it!=options.end(); it++) {
+		for (std::vector<DOMElement*>::const_iterator it=options.begin(); it!=options.end(); ++it) {
 			std::string path = ParseString(GetNamedAttributeValue(*it, "value"), "");
 			if (!path.empty()) {
 				//See if the file exists.
@@ -751,7 +778,7 @@ void sim_mob::ParseConfigFile::ProcessSystemGenericPropsNode(xercesc::DOMElement
 	}
 
 	std::vector<DOMElement*> properties = GetElementsByName(node, "property");
-	for (std::vector<DOMElement*>::const_iterator it=properties.begin(); it!=properties.end(); it++) {
+	for (std::vector<DOMElement*>::const_iterator it=properties.begin(); it!=properties.end(); ++it) {
 		std::string key = ParseString(GetNamedAttributeValue(*it, "key"), "");
 		std::string val = ParseString(GetNamedAttributeValue(*it, "value"), "");
 		if (!(key.empty() && val.empty())) {
@@ -799,7 +826,7 @@ void sim_mob::ParseConfigFile::ProcessSystemLoadAgentsOrderNode(xercesc::DOMElem
 	boost::split(valArray, value, boost::is_any_of(", "), boost::token_compress_on);
 
 	//Now, turn into an enum array.
-	for (std::vector<std::string>::const_iterator it=valArray.begin(); it!=valArray.end(); it++) {
+	for (std::vector<std::string>::const_iterator it=valArray.begin(); it!=valArray.end(); ++it) {
 		SimulationParams::LoadAgentsOrderOption opt(SimulationParams::LoadAg_Database);
 		if ((*it) == "database") {
 			opt = SimulationParams::LoadAg_Database;

@@ -15,6 +15,17 @@ using namespace sim_mob;
 using std::map;
 using std::string;
 
+sim_mob::RoleFactory::~RoleFactory()
+{
+	std::map<std::string, const sim_mob::Role *>::iterator itPrototypes = prototypes.begin();
+	while(itPrototypes != prototypes.end())
+	{
+		safe_delete_item(itPrototypes->second);
+		itPrototypes++;
+	}
+	prototypes.clear();
+}
+
 void sim_mob::RoleFactory::registerRole(const std::string& name, const Role* prototype)
 {
 	if (prototypes.count(name)>0) {
@@ -57,10 +68,11 @@ string sim_mob::RoleFactory::GetRoleName(const std::string mode)
 	if(mode=="Car" || mode=="Taxi") { return "driver"; }
 	if(mode=="Walk") { return "pedestrian"; }
 	if(mode=="Bus") { return "busdriver"; }
-	if(mode=="BusTravel") { return "passenger"; }
+	if(mode=="BusTravel" || mode=="MRT") { return "passenger"; }
 	if(mode=="WaitingBusActivity") { return "waitBusActivity"; }
 	if(mode=="Motorcycle") { return "biker"; }
 	if(mode=="Activity") { return "activityRole"; }
+	//if(mode=="MRT") { return "trainPassenger"; }
 	throw std::runtime_error("unknown SubTrip mode: " + mode);
 }
 

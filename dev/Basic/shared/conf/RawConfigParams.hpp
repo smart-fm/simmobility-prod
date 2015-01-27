@@ -33,6 +33,13 @@ struct FMOD_ControllerParams {
 	unsigned int blockingTimeSec;
 };
 
+struct AMOD_ControllerParams
+{
+	AMOD_ControllerParams() : enabled(false) {}
+
+	bool enabled;
+};
+
 //Represents the long-term developer model of the config file
 struct LongTermParams{
 	LongTermParams();
@@ -53,14 +60,15 @@ struct LongTermParams{
 		bool enabled;
 		unsigned int timeInterval;
 		unsigned int timeOnMarket;
-		int numberOfUnits;
-		int numberOfHouseholds;
-		int numberOfVacantUnits;
+		unsigned int timeOffMarket;
+		float vacantUnitActivationProbability;
+		int initialHouseholdsOnMarket;
 	} housingModel;
 };
 
 struct PathSetConf
 {
+	PathSetConf():enabled(false), database(""), credentials(""), singlePathTableName(""), RTTT_Conf(""), DTT_Conf(""), dbFunction("") {}
 	bool enabled;
 	std::string database;
 	std::string credentials;
@@ -297,12 +305,16 @@ public:
 	///Settings for the FMOD controller.
 	FMOD_ControllerParams fmod;
 
+	AMOD_ControllerParams amod;
+
 	///Settings for Long Term Parameters
 	LongTermParams ltParams;
 
 	///Settings used for generation/retrieval of paths
 	PathSetConf pathset;
+
 	bool cbd;
+
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;
 
@@ -315,6 +327,7 @@ public:
 	//@{
 	///Templates for creating entities of various types.
 	std::vector<EntityTemplate> driverTemplates;
+	std::vector<EntityTemplate> taxiDriverTemplates;
 	std::vector<EntityTemplate> pedestrianTemplates;
 	std::vector<EntityTemplate> busDriverTemplates;
 	std::vector<EntityTemplate> signalTemplates;

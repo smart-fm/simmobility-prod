@@ -30,7 +30,7 @@ FmodSchedulesPerformer::~FmodSchedulesPerformer() {
 bool FmodSchedulesPerformer::performFmodSchedule(Driver* parentDriver, DriverUpdateParams& p)
 {
 	bool ret = false;
-	FMODSchedule* schedule = parentDriver->getVehicle()->schedule;
+	FMODSchedule* schedule = parentDriver->getVehicle()->getFMODSchedule();
 
 	if (schedule) {
 		const RoadSegment* currSegment = parentDriver->getVehicle()->getCurrSegment();

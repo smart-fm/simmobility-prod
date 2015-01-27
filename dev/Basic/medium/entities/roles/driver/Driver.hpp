@@ -69,6 +69,7 @@ public:
 	//Virtual overrides
 	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
+	virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 	//to be moved to a DriverUpdateParam later
 	const Lane* currLane;

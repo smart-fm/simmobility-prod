@@ -47,18 +47,16 @@ timeval start_time;
 //SIMOBILITY TEST PARAMS
 const int DATA_SIZE = 30;
 const std::string MODEL_LINE_FORMAT = "### %-30s : %-20s";
-//options
-const std::string OPTION_TESTS = "--tests";
 
 int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulationTime)
 {
-    PrintOut("#################### LONG-TERM SIMULATION ####################" << endl);
+    PrintOutV("#################### LONG-TERM SIMULATION ####################" << endl);
     //Simulation Statistics
-    PrintOut("#Simulation Number  : " << simulationNumber << endl);
-    PrintOut("#Simulation Time (s): " << simulationTime.getTime() << endl);
+    PrintOutV("#Simulation Number  : " << simulationNumber << endl);
+    PrintOutV("#Simulation Time (s): " << simulationTime.getTime() << endl);
     //Models Statistics
     PrintOut(endl);
-    PrintOut("#Models:" << endl);
+    PrintOutV("#Models:" << endl);
 
     for (vector<Model*>::iterator itr = models.begin(); itr != models.end(); itr++)
     {
@@ -73,16 +71,19 @@ int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulat
         }
         PrintOut(endl);
     }
-    PrintOut("##############################################################" << endl);
+    PrintOutV("##############################################################" << endl);
     return 0;
 }
 
 void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 {
+	time_t timeInSeconds = std::time(0);
+	srand(timeInSeconds);
+
     //Initiate configuration instance
     LT_ConfigSingleton::getInstance();
-    PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
-    
+    PrintOutV( "Starting SimMobility, version " << SIMMOB_VERSION << endl);
+
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
     //Simmobility Test Params
@@ -151,6 +152,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         if( enableDeveloperModel )
         	 //initiate developer model; to be referred later at each time tick (day)
         	 developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel);
+        	 //developerModel->housingModel = hmModel;
         	 developerModel->setDays(days);
         	 models.push_back(developerModel);
 
@@ -163,32 +165,40 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         //Start work groups and all threads.
         wgMgr.startAllWorkGroups();
 
-        PrintOut("Started all workgroups." << endl);
-        PrintOut("Day of Simulation: " << std::endl);
+        PrintOutV("Started all workgroups." << endl);
+        PrintOutV("Day of Simulation: " << std::endl);
 
         //we add a new line break to format the output in a
         //reasonable way. 20 was found to be adequate.
         const int LINE_BREAK = 20;
-        bool isParcelRemain = true;
+
         for (unsigned int currTick = 0; currTick < days; currTick++)
         {
-            PrintOut("Day " << currTick << std::endl );
-            PrintOut("The housing market has " << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize() << " units and \t" << (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " bidders on the market" << std::endl );
+            if( currTick == 0 )
+            {
+				PrintOutV(" Lifestyle1: " << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle1HHs() <<
+						  " Lifestyle2: " << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle2HHs() <<
+						  " Lifestyle3: " << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle3HHs() << std::endl );
+            }
+
+            PrintOutV("Day " << currTick << " The housing market has " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize() << " units and \t" << (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " bidders on the market" << std::endl );
+
+            //start all models.
+		    for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)
+		    {
+		 	   (*it)->update(currTick);
+		    }
 
             wgMgr.waitAllGroups();
 
+            developerModel->setCurrentTick(currTick);
             DeveloperModel::ParcelList parcels;
+            DeveloperModel::DeveloperList developerAgents;
+            bool isParcelRemain = developerModel->getIsParcelRemain();
             if(isParcelRemain)
             {
-            	parcels = developerModel->getDevelopmentCandidateParcels(false);
-            }
-            if(parcels.size()!=0)
-            {
-            	developerModel->createDeveloperAgents(parcels);
-            }
-            else
-            {
-            	isParcelRemain = false;
+            	developerAgents = developerModel->getDeveloperAgents(false);
+            	developerModel->wakeUpDeveloperAgents(developerAgents);
             }
         }
         PrintOut( endl );
@@ -238,18 +248,6 @@ int main_impl(int ARGC, char* ARGV[])
     const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 
     Print::Init("<stdout>");
-    bool runTests = false;
-    //process arguments.
-    std::vector<std::string>::iterator it;
-    for (it = args.begin(); it != args.end(); it++)
-    {
-        if (it->compare(OPTION_TESTS) == 0)
-        {
-            runTests = true;
-            continue;
-        }
-    }
-    
 	time_t  start_clock   = time(0);
 	clock_t start_process = clock();
 
@@ -258,7 +256,7 @@ int main_impl(int ARGC, char* ARGV[])
 	const unsigned int maxIterations = config.ltParams.maxIterations;
 	for (int i = 0; i < maxIterations; i++)
 	{
-		PrintOut("Simulation #:  " << std::dec << (i + 1) << endl);
+		PrintOutV("Simulation #:  " << std::dec << (i + 1) << endl);
 		performMain((i + 1), resLogFiles);
 	}
 

@@ -34,6 +34,8 @@ namespace sim_mob {
             // housing market action (unit was ADDED, REMOVED or UPDATED )
             LTEID_HM_UNIT_ADDED,
             LTEID_HM_UNIT_REMOVED,
+            LTEID_HM_BUILDING_ADDED,
+            LTEID_HM_BUILDING_REMOVED,
             
             // External Events
             LTEID_EXT_NEW_JOB,
@@ -83,22 +85,11 @@ namespace sim_mob {
         /**
          * Configs
          */
-        ///*
         const std::string LT_CONFIG_FILE = "../data/long/lt-config.ini";
         const std::string LT_DB_CONFIG_FILE = "../private/lt-db.ini";
         const std::string HM_LUA_DIR = "../scripts/lua/long/housing-market";
         const std::string EX_EV_LUA_DIR = "../scripts/lua/long/external-events";
         const std::string DEV_LUA_DIR = "../scripts/lua/long/developer";
-        //*/
-
-        /*
-        const std::string LT_CONFIG_FILE = "data/long/lt-config.ini";
-        const std::string LT_DB_CONFIG_FILE = "private/lt-db.ini";
-        const std::string HM_LUA_DIR = "scripts/lua/long/housing-market";
-        const std::string EX_EV_LUA_DIR = "scripts/lua/long/external-events";
-        const std::string DEV_LUA_DIR = "scripts/lua/long/developer";
-        */
-
     }
 }
 

@@ -404,6 +404,25 @@ private:
 /**
  * Exactly the same as LogOut(), but for Print statements.
  */
+
+
+
+//This PrintOut will append the date, time,filename and line number in front of the log message.
+#define PrintOutV( strm ) \
+    do \
+    { \
+        sim_mob::Print() << "[" << __DATE__ << " " << __TIME__  << "][" << std::string(__FILE__).substr(std::string(__FILE__).find_last_of("//") + 1, std::string(__FILE__).length()) << ":" << __LINE__ << "] " << strm; \
+    } \
+    while (0)
+
+//This printOut will append the filename and line number in front of the log message
+#define PrintOutF( strm ) \
+    do \
+    { \
+        sim_mob::Print() << "[" << std::string(__FILE__).substr(std::string(__FILE__).find_last_of("//") + 1, std::string(__FILE__).length()) << ":" << __LINE__ << "] " << strm; \
+    } \
+    while (0)
+
 #define PrintOut( strm ) \
     do \
     { \

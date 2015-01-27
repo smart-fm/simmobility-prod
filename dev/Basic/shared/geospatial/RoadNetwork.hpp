@@ -6,7 +6,7 @@
 
 #include <vector>
 #include <set>
-
+#include <climits>
 #include "geospatial/RoadRunnerRegion.hpp"
 
 namespace sim_mob
@@ -91,8 +91,8 @@ public:
 	///Find the closest Node.
 	///If includeUniNodes is false, then only Intersections and Roundabouts are searched.
 	///If no node is found within maxDistCM, the match fails and nullptr is returned.
-	sim_mob::Node* locateNode(const sim_mob::Point2D& position, bool includeUniNodes=false, int maxDistCM=100) const;
-	sim_mob::Node* locateNode(double xPos, double yPos, bool includeUniNodes=false, int maxDistCM=100) const;
+	sim_mob::Node* locateNode(const sim_mob::Point2D& position, bool includeUniNodes=false, int maxDistCM=1e8) const;
+	sim_mob::Node* locateNode(double xPos, double yPos, bool includeUniNodes=false, int maxDistCM=1e8) const;
 
 	sim_mob::Node* getNodeById(int aimsunId);
 	std::map<int,sim_mob::Node*> nodeMap;

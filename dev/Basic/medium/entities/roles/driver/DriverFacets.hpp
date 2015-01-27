@@ -61,8 +61,6 @@ protected:
  * \author Harish Loganathan
  */
 class DriverMovement: public sim_mob::MovementFacet {
-	//debug
-	unsigned int sectionId;
 public:
 	explicit DriverMovement(sim_mob::Person* parentAgent = nullptr);
 	virtual ~DriverMovement();
@@ -90,6 +88,17 @@ public:
 	MesoPathMover & getMesoPathMover() {
 		return pathMover;
 	}
+
+	bool canOverrideLaneConnectors() const
+	{
+		return laneConnectorOverride;
+	}
+
+	void setLaneConnectorOverride(bool laneConnectorOverride)
+	{
+		this->laneConnectorOverride = laneConnectorOverride;
+	}
+
 protected:
 	/// mark startTimeand origin. Called at every frame_init
 	virtual TravelMetric& startTravelTimeMetric();
@@ -109,8 +118,8 @@ protected:
 
 	MesoPathMover pathMover;
 	const Lane* currLane;
-	const Lane* laneInNextSegment;
 	bool isQueuing;
+	bool laneConnectorOverride;
 
 	mutable std::stringstream DebugStream;
 
@@ -319,13 +328,13 @@ protected:
 	bool canJoinPaths(std::vector<WayPoint> & oldPath, std::vector<const sim_mob::SegmentStats*> & newPath, sim_mob::SubTrip & subTrip, std::set<const sim_mob::RoadSegment*> & excludeRS);
 	//checks if there is a uturn
 	bool hasUTurn(std::vector<WayPoint> & oldPath, std::vector<const sim_mob::SegmentStats*> & newPath);
+
 	/**
 	 * message handler which provide a chance to handle message transfered from parent agent.
 	 * @param type of the message.
 	 * @param message data received.
 	 */
-	virtual void HandleMessage(messaging::Message::MessageType type,
-			const messaging::Message& message);
+	virtual void handleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 };
 

@@ -5,9 +5,8 @@
 #include "ActivityFacets.hpp"
 #include "logging/Log.hpp"
 
-sim_mob::ActivityPerformerBehavior::ActivityPerformerBehavior(sim_mob::Person* parentAgent, sim_mob::ActivityPerformer* parentRole, std::string roleName) :
-	BehaviorFacet(parentAgent),
-	parentActivity(parentRole)
+sim_mob::ActivityPerformerBehavior::ActivityPerformerBehavior(sim_mob::Person* parentAgent) :
+	BehaviorFacet(parentAgent), parentActivity(nullptr)
 {}
 
 
@@ -55,8 +54,8 @@ void sim_mob::ActivityPerformerMovement::frame_tick_output() {
 			<<"\"})"<<std::endl);
 }
 
-sim_mob::ActivityPerformerMovement::ActivityPerformerMovement(sim_mob::Person* parentAgent, sim_mob::ActivityPerformer* parentRole, std::string roleName):
-	MovementFacet(parentAgent), parentActivity(parentRole) {
+sim_mob::ActivityPerformerMovement::ActivityPerformerMovement(sim_mob::Person* parentAgent):
+	MovementFacet(parentAgent), parentActivity(nullptr) {
 }
 
 sim_mob::TravelMetric& sim_mob::ActivityPerformerMovement::startTravelTimeMetric()

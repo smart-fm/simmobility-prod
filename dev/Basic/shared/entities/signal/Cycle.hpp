@@ -18,6 +18,9 @@ private:
 	double prevRL1,prevRL2;
 
 public:
+
+	Cycle(): prevCL(0), currCL(0), nextCL(0), prevRL1(0), prevRL2(0) {}
+
 	//get the parameters in SCATS
 	double getprevCL();
 	double getcurrCL();

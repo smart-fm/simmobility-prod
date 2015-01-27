@@ -454,7 +454,7 @@ void sim_mob::Broker::unRegisterEntity(sim_mob::Agent* agent)
 void sim_mob::Broker::cloudConnect(boost::shared_ptr<ConnectionHandler> handler, const std::string& host, int port)
 {
 	//Give this connection a unique Id, "host:port"
-	std::string cloudId = host + ":" + boost::lexical_cast<std::string>(port);
+	std::string cloudId ;//= host + ":" + boost::lexical_cast<std::string>(port);
 
 	//We only need 1 connection to the cloud, but for efficiency's sake we open 1 connection per Android connectionHandler.
 	boost::shared_ptr<CloudHandler> cloud = getCloudHandler(cloudId, handler);

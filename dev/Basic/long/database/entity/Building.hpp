@@ -22,9 +22,9 @@ namespace sim_mob
         class Building
         {
         public:
-        	Building( BigSerial fm_building_id = INVALID_ID, BigSerial fm_project_id = INVALID_ID, BigSerial fm_parcel_id = INVALID_ID, int storeys_above_ground = 0,
-        			  int storeys_below_ground = 0, std::tm from_date = std::tm(), std::tm to_date = std::tm(), std::string building_status = EMPTY_STR,
-        			  float	gross_sq_m_res = 0, float gross_sq_m_office = 0, float gross_sq_m_retail = 0, float gross_sq_m_other = 0 );
+        	Building( BigSerial fmBuildingId = INVALID_ID, BigSerial fmProjectId = INVALID_ID, BigSerial fmParcelId = INVALID_ID, int storeysAboveGround = 0,
+        			  int storeysBelowGround = 0, std::tm fromDate = std::tm(), std::tm toDate = std::tm(), std::string buildingStatus = EMPTY_STR,
+        			  float	grossSqMRes = 0, float grossSqMOffice = 0, float grossSqMRetail = 0, float grossSqMOther = 0);
 
             virtual ~Building();
 
@@ -99,7 +99,24 @@ namespace sim_mob
              * @return gross_sq_m_other.
              */
             float	getGrossSqmOther() const;
-                
+
+
+            /*
+             * setters
+             */
+            void setBuildingStatus(const std::string& buildingStatus);
+            void setFmBuildingId(BigSerial fmBuildingId);
+            void setFmParcelId(BigSerial fmParcelId);
+            void setFmProjectId(BigSerial fmProjectId);
+            void setFromDate(const std::tm& fromDate);
+            void setGrossSqMOffice(float grossSqMOffice);
+            void setGrossSqMOther(float grossSqMOther);
+            void setGrossSqMRes(float grossSqMRes);
+            void setGrossSqMRetail(float grossSqMRetail);
+            void setStoreysAboveGround(int storeysAboveGround);
+            void setStoreysBelowGround(int storeysBelowGround);
+            void setToDate(const std::tm& toDate);
+
             /**
              * Assign operator.
              * @param source to assign.
@@ -115,18 +132,19 @@ namespace sim_mob
         private:
             friend class BuildingDao;
 
-            BigSerial fm_building_id;
-            BigSerial fm_project_id;
-            BigSerial fm_parcel_id;
-            int storeys_above_ground;
-            int	storeys_below_ground;
-            std::tm from_date;
-            std::tm to_date;
-            std::string building_status;
-            float	gross_sq_m_res;
-            float	gross_sq_m_office;
-            float	gross_sq_m_retail;
-            float	gross_sq_m_other;
+            BigSerial fmBuildingId;
+            BigSerial fmProjectId;
+            BigSerial fmParcelId;
+            int storeysAboveGround;
+            int	storeysBelowGround;
+            std::tm fromDate;
+            std::tm toDate;
+            std::string buildingStatus;
+            float	grossSqMRes;
+            float	grossSqMOffice;
+            float	grossSqMRetail;
+            float	grossSqMOther;
+
         };
     }
 }

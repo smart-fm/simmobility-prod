@@ -97,6 +97,8 @@ namespace sim_mob
              */
             const Metadata& getMetadata() const;
             
+            virtual void update(int day);
+
         protected:
             /**
              * Abstract method to be implemented by Model specializations.
@@ -113,6 +115,8 @@ namespace sim_mob
              * Agents are deleted automatically in the destructor.
              */
             virtual void stopImpl() = 0;
+
+
         
             /**
              * Adds metadata to the model to be printed in the end of the simulation.

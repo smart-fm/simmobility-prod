@@ -41,6 +41,14 @@ class UnPackageUtils;
 class RoadSegment;
 class RoadRunnerRegion;
 
+class TestMessage : public messaging::Message
+{
+public:
+	TestMessage(int random) : random(random) {}
+	virtual ~TestMessage() {}
+	int random;
+};
+
 //It is not a good design, now. Need to verify.
 //The class is used in Sim-Tree for Bottom-Up Query
 struct TreeItem;
@@ -76,7 +84,7 @@ class Agent : public sim_mob::Entity {
 public:
 	static int createdAgents;
 	static int diedAgents;
-
+	bool errorFlag;
 	///Construct an Agent with an immutable ID.
 	///Note that, if -1, the Agent's ID will be assigned automatically. This is the preferred
 	///  way of dealing with agent ids. In the case of explicit ID assignment (anything >=0),
@@ -139,8 +147,18 @@ public:
 	void setToBeRemoved();
 	void clearToBeRemoved(); ///<Temporary function.
 
+	/* *
+	 * I'm keeping getters and setters for current lane, segment and link in Agent class to be able to determine the
+	 * location of the agent without having to dynamic_cast to Person and get the role.
+	 * If these are irrelevant for some sub-class of agent (E.g. Signal), the sub class can just ignore these.
+	 * ~ Harish
+	 */
 	virtual const sim_mob::Link* getCurrLink() const;
 	virtual	void setCurrLink(const sim_mob::Link* link);
+	virtual const sim_mob::RoadSegment* getCurrSegment() const;
+	virtual	void setCurrSegment(const sim_mob::RoadSegment* rdSeg);
+	virtual const sim_mob::Lane* getCurrLane() const;
+	virtual	void setCurrLane(const sim_mob::Lane* lane);
 
 	/**
 	 * Inherited from EventListener.
@@ -393,6 +411,8 @@ protected:
 	//      number stream. We can probably raise this to the Worker level if we require it.
 	boost::mt19937 gen;
 	const sim_mob::Link* currLink;
+	const sim_mob::Lane* currLane;
+	const sim_mob::RoadSegment* currSegment;
 
 public:
 	int getOwnRandomNumber();

@@ -571,7 +571,8 @@ void sim_mob::medium::PredayManager::loadPersons(BackendType dbType) {
 	switch(dbType) {
 	case POSTGRES:
 	{
-		Database database = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_local_lt");
+		const std::string& dbId = ConfigManager::GetInstance().FullConfig().system.networkDatabase.database;
+		Database database = ConfigManager::GetInstance().FullConfig().constructs.databases.at(dbId);
 		std::string cred_id = ConfigManager::GetInstance().FullConfig().system.networkDatabase.credentials;
 		Credential credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
 		std::string username = credentials.getUsername();

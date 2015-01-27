@@ -486,7 +486,7 @@
     </signals> -->
               
     <!-- Long Term Configurations parameters -->
-    <longTermParams enabled ="true">
+    <longTermParams enabled ="false">
     	<days value="365"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
@@ -503,14 +503,10 @@
         </housingModel>
     </longTermParams>
     
-    <CBD enabled="false"/> 
-             
-    <pathset enabled="true">
-    	<pathset_database database="fm_local_path_choice"  credentials="fm_local_path_choice" /> <!-- route choice database information -->
-    	<tables singlepath_table="path" realtime_traveltime="realtime_travel_time" default_traveltime = "link_default_travel_time_corrected_he_v2"/> <!--different database tables used i route-choice -->
-    	<function value="get_path_set" /> <!--database stored procedure to access path information -->
-    	<travel_time_interval value = "600" > <!--config parameter for travel time collection (in seconds) -->
-    </pathset>
+    <pathset enabled="false">
+    	<pathset_database database="fm_remote_path_choice"  credentials="fm_remote_path_choice" />
+    	<tables pathset_table="PathSet_SH_V" singlepath_table="SinglePath_SH_V" />
+    </pathset>  
     
 </config>
 

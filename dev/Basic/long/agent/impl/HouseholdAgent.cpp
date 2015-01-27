@@ -5,6 +5,7 @@
 /*
  * File:   HouseholdAgent.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * 		   Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  * 
  * Created on May 16, 2013, 6:36 PM
  */
@@ -17,6 +18,8 @@
 #include "role/impl/HouseholdSellerRole.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "core/DataManager.hpp"
+#include "conf/ConfigParams.hpp"
+#include "conf/ConfigManager.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -27,11 +30,12 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller)
-: LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), bidder (nullptr), seller(nullptr)
+HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller, int day)
+: LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), bidder (nullptr), seller(nullptr), day(day)
 {
     seller = new HouseholdSellerRole(this);
     seller->setActive(marketSeller);
+
     if (!marketSeller)
     {
         bidder = new HouseholdBidderRole(this);
@@ -92,7 +96,11 @@ bool HouseholdAgent::onFrameInit(timeslice now)
 
 void HouseholdAgent::awakenHousehold()
 {
-	if( model->getAwakeningCounter() > 10000 )
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+	//We will awaken a specific number of households on day 1 as dictated by the long term XML file.
+
+	if( model->getAwakeningCounter() > config.ltParams.housingModel.initialHouseholdsOnMarket)
 		return;
 
 	if(household == nullptr)
@@ -103,6 +111,8 @@ void HouseholdAgent::awakenHousehold()
 	if( awakening == nullptr || bidder == nullptr || seller == nullptr )
 		return;
 
+	//These 6 variables are the 3 classes that we believe households fall into.
+	//And the 3 probabilities that we believe these 3 classes will have of awakening.
 	float class1 = awakening->getClass1();
 	float class2 = awakening->getClass2();
 	float class3 = awakening->getClass3();
@@ -126,35 +136,82 @@ void HouseholdAgent::awakenHousehold()
 
 	if( lifestyle == 1 && r2 < awaken_class1)
 	{
-		bidder->setActive(true);
 		seller->setActive(true);
+		bidder->setActive(true);
+		model->incrementBidders();
+
+		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+		{
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+			BigSerial unitId = *itr;
+			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+			unit->setbiddingMarketEntryDay(day);
+			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+			//PrintOutV("Awakening Model lifestyle 1. day: " << day << " unit: " << unit->getId() << std::endl);
+		}
 
 		model->incrementAwakeningCounter();
+
+		model->incrementLifestyle1HHs();
 	}
 	else
 	if( lifestyle == 2 && r2 < awaken_class2)
 	{
-		bidder->setActive(true);
 		seller->setActive(true);
+		bidder->setActive(true);
+		model->incrementBidders();
+
+		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+		{
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+			BigSerial unitId = *itr;
+			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+			unit->setbiddingMarketEntryDay(day);
+			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+			//PrintOutV("Awakening Model lifestyle 2. day: " << day << " unit: " << unit->getId() << std::endl);
+		}
+
 		model->incrementAwakeningCounter();
+
+		model->incrementLifestyle2HHs();
 	}
 	else
 	if( lifestyle == 3 && r2 < awaken_class3)
 	{
-		bidder->setActive(true);
 		seller->setActive(true);
+		bidder->setActive(true);
+		model->incrementBidders();
+
+		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+		{
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+			BigSerial unitId = *itr;
+			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+			unit->setbiddingMarketEntryDay(day);
+			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+			//PrintOutV("Awakening Model lifestyle 3. day: " << day << " unit: " << unit->getId() << std::endl);
+		}
+
 		model->incrementAwakeningCounter();
+
+		model->incrementLifestyle3HHs();
 	}
 }
 
 Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 {
+	day = now.frame();
 
-	if( now.frame() == 1 )
-	{
+	if( now.frame() == 0 )
+	{		
 		awakenHousehold();
 	}
-
 
     if (bidder && bidder->isActive())
     {
@@ -182,14 +239,28 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
         case LTEID_HM_UNIT_ADDED:
         {
             const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
-            PrintOut("Unit added " << hmArgs.getUnitId() << endl);
+            const Unit *unit = hmArgs.getUnit();
+            //PrintOut("Unit added " << unit->getId() << endl);
             break;
         }
         case LTEID_HM_UNIT_REMOVED:
         {
             const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
-            PrintOut("Unit removed " << hmArgs.getUnitId() << endl);
+            //PrintOut("Unit removed " << hmArgs.getUnitId() << endl);
             break;
+        }
+        case LTEID_HM_BUILDING_ADDED:
+        {
+            const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
+            const Building *building = hmArgs.getBuilding();
+            //PrintOut("Building added " << hmArgs.getBuildingId() << endl);
+            break;
+        }
+        case LTEID_HM_BUILDING_REMOVED:
+        {
+             const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
+            // PrintOut("Building removed " << hmArgs.getBuildingId() << endl);
+             break;
         }
         case LTEID_EXT_LOST_JOB:
         case LTEID_EXT_NEW_CHILD:
@@ -220,8 +291,25 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
         {
             if (seller)
             {
+            	if( seller->isActive() == false )
+            	{
+            		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+					{
+            			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+
+						BigSerial unitId = *itr;
+						Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+						unit->setbiddingMarketEntryDay(day + 1);
+						unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+					}
+            	}
+
+            	//PrintOut("Active seller " << seller->getParent()->GetId() << std::endl);
                 seller->setActive(true);
             }
+
             if (bidder)
             {
                 bidder->setActive(true);
@@ -244,8 +332,10 @@ void HouseholdAgent::onWorkerEnter()
         MessageBus::SubscribeEvent(LTEID_EXT_LOST_JOB, this, this);
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this, this);
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
-        //MessageBus::SubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
-        //MessageBus::SubscribeEvent(LTEID_HM_UNIT_REMOVED, market, this);
+        MessageBus::SubscribeEvent(LTEID_HM_UNIT_ADDED, this);
+        MessageBus::SubscribeEvent(LTEID_HM_UNIT_REMOVED, this);
+        MessageBus::SubscribeEvent(LTEID_HM_BUILDING_ADDED, this);
+        MessageBus::SubscribeEvent(LTEID_HM_BUILDING_REMOVED, this);
     }
 }
 
@@ -258,8 +348,10 @@ void HouseholdAgent::onWorkerExit()
         MessageBus::UnSubscribeEvent(LTEID_EXT_LOST_JOB, this, this);
         MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this, this);
         MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
-        //MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
-        //MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_REMOVED, market, this);
+        MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
+        MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_REMOVED, this);
+        MessageBus::UnSubscribeEvent(LTEID_HM_BUILDING_ADDED, this);
+        MessageBus::UnSubscribeEvent(LTEID_HM_BUILDING_REMOVED, this);
     }
 }
 

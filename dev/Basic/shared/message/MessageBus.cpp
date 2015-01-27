@@ -9,16 +9,18 @@
  * Created on Aug 15, l2013, 9:30 PM
  */
 #include "MessageBus.hpp"
-#include "event/EventPublisher.hpp"
-#include "util/LangHelpers.hpp"
+
+#include <algorithm>
 #include <boost/format.hpp>
+#include <boost/function.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/tss.hpp>
 #include <boost/unordered/unordered_map.hpp>
-#include <boost/function.hpp>
-#include <queue>
-#include <list>
 #include <iostream>
+#include <list>
+#include <queue>
+#include "event/EventPublisher.hpp"
+#include "util/LangHelpers.hpp"
 #include "logging/Log.hpp"
 
 using namespace sim_mob::messaging;
@@ -85,7 +87,7 @@ namespace {
         MessageEntry()
         : destination(nullptr), internal(false), event(false),
         priority(MessageBus::MB_MIN_MSG_PRIORITY), processOnMainThread(false),
-        triggeredTime(0){
+        triggerTime(0){
         }
 
         MessageEntry(const MessageEntry& source) {
@@ -96,7 +98,7 @@ namespace {
             this->priority = source.priority;
             this->event = source.event;
             this->processOnMainThread = source.processOnMainThread;
-            this->triggeredTime = source.triggeredTime;
+            this->triggerTime = source.triggerTime;
         }
 
         MessageHandler* destination;
@@ -106,7 +108,7 @@ namespace {
         int priority;
         bool event;
         bool processOnMainThread;
-        unsigned int triggeredTime;
+        unsigned int triggerTime;
     } *MessageEntryPtr;
 
     struct ComparePriority {
@@ -119,7 +121,7 @@ namespace {
     struct CompareTriggeredTime {
 
     	bool operator()(const MessageEntry& t1, const MessageEntry& t2) const {
-            return (t1.triggeredTime < t2.triggeredTime);
+            return (t1.triggerTime < t2.triggerTime);
         }
     };
 
@@ -141,7 +143,7 @@ namespace {
         : eventPublisher(nullptr),
         input(ComparePriority()),
         output(ComparePriority()),
-        timebasedOutput(CompareTriggeredTime()),
+        futureEventList(CompareTriggeredTime()),
         main(false),
         receivedMessages(0),
         processedMessages(0),
@@ -168,7 +170,7 @@ namespace {
         bool main;
         MessageQueue input;
         MessageQueue output;
-        TimebasedMessageQueue timebasedOutput;
+        TimebasedMessageQueue futureEventList;
         //event publisher for each thread context.
         EventPublisher* eventPublisher;
         // statistics
@@ -412,12 +414,25 @@ void MessageBus::UnRegisterHandler(MessageHandler* handler) {
     CheckThreadContext();
     if (handler && handler->context) {
         ThreadContext* context = GetThreadContext();
-        if (context == handler->context) {
+        if (context == handler->context || context->main) {
             handler->context = nullptr;
         } else {
             throw runtime_error("MessageBus - To unregister the handler it is necessary to use the registered thread context.");
         }
     }
+}
+
+void MessageBus::ReRegisterHandler(MessageHandler* handler, void* newContext)
+{
+	CheckThreadContext();
+	if (handler)
+	{
+	    if(std::find(threadContexts.begin(), threadContexts.end(), newContext) == threadContexts.end())
+	    {
+	    	throw runtime_error("MessageBus - invalid thread context passed for re-registration");
+	    }
+	    handler->context = newContext;
+	}
 }
 
 void MessageBus::DistributeMessages() {
@@ -470,11 +485,11 @@ void MessageBus::DispatchMessages() {
 				// internal messages go to the input queue of the main context.
 				context->output.pop();
 			}
-			while (!context->timebasedOutput.empty()) {
-				const MessageEntry& entry = context->timebasedOutput.top();
-				if (entry.triggeredTime <= currentTime) {
+			while (!context->futureEventList.empty()) {
+				const MessageEntry& entry = context->futureEventList.top();
+				if (entry.triggerTime <= currentTime) {
 					dispatch(entry, context, mainContext);
-					context->timebasedOutput.pop();
+					context->futureEventList.pop();
 				} else {
 					break;
 				}
@@ -505,7 +520,7 @@ void MessageBus::ThreadDispatchMessages() {
 }
 
 void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType type, 
-                             MessageBus::MessagePtr message, bool processOnMainThread, unsigned int triggeredTime) {
+                             MessageBus::MessagePtr message, bool processOnMainThread, unsigned int timeOffset) {
     CheckThreadContext();
     ThreadContext* context = GetThreadContext();
     if (context) {
@@ -520,11 +535,11 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
             entry.internal = (internalMsg != nullptr);
             entry.event = (eventMsg != nullptr);
             entry.processOnMainThread = processOnMainThread;
-			if (triggeredTime == 0) {
+			if (timeOffset == 0) {
 				context->output.push(entry);
 			} else {
-				entry.triggeredTime = currentTime + triggeredTime;
-				context->timebasedOutput.push(entry);
+				entry.triggerTime = currentTime + timeOffset;
+				context->futureEventList.push(entry);
 			}
         }
     }
@@ -740,4 +755,3 @@ namespace {
         PrintOut(endl);
     }
 }
-

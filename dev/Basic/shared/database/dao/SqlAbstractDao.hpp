@@ -190,6 +190,15 @@ public:
 				getter);
 	}
 
+	/*
+	* execute a given query
+	* @param query to be executed query
+	* @param outList gives the result of the query
+	*/
+	virtual bool getByQuery(std::string query,std::vector<T*>& outList) {
+			return getByValues(query, EMPTY_PARAMS, outList);
+	}
+
 protected:
 	// Protected types
 

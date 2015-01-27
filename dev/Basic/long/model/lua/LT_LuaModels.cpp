@@ -74,7 +74,6 @@ namespace {
         	.addProperty("physicalFromDate", &Unit::getPhysicalFromDate)
         	.addProperty("saleStatus", &Unit::getSaleStatus)
         	.addProperty("physicalStatus", &Unit::getPhysicalStatus)
-
             .endClass();
     getGlobalNamespace(state)
             .beginClass <Postcode> ("Postcode")
@@ -106,6 +105,24 @@ namespace {
             .addProperty("bus_200m", &PostcodeAmenities::hasBus_200m)
             .addProperty("bus_400m", &PostcodeAmenities::hasBus_400m)
             .addProperty("pms_1km", &PostcodeAmenities::hasPms_1km)
+            .endClass();
+    getGlobalNamespace(state)
+            .beginClass <ParcelAmenities> ("ParcelAmenities")
+            .addProperty("fmParcelId", &ParcelAmenities::getFmParcelId)
+            .addProperty("nearestMRT", &ParcelAmenities::getNearestMRT)
+            .addProperty("distanceToMRT", &ParcelAmenities::getDistanceToMRT)
+            .addProperty("distanceToBus", &ParcelAmenities::getDistanceToBus)
+            .addProperty("distanceToExpress", &ParcelAmenities::getDistanceToExpress)
+            .addProperty("distanceToPMS30", &ParcelAmenities::getDistanceToPMS30)
+            .addProperty("distanceToCBD", &ParcelAmenities::getDistanceToCBD)
+            .addProperty("distanceToMall", &ParcelAmenities::getDistanceToMall)
+            .addProperty("distanceToJob", &ParcelAmenities::getDistanceToJob)
+            .addProperty("mrt_200m", &ParcelAmenities::hasMRT_200m)
+            .addProperty("mrt_400m", &ParcelAmenities::hasMRT_400m)
+            .addProperty("express_200m", &ParcelAmenities::hasExpress_200m)
+            .addProperty("bus_200m", &ParcelAmenities::hasBus_200m)
+            .addProperty("bus_400m", &ParcelAmenities::hasBus_400m)
+            .addProperty("pms_1km", &ParcelAmenities::hasPms_1km)
             .endClass();
     getGlobalNamespace(state)
             .beginClass <Building> ("Building")
@@ -217,29 +234,8 @@ void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, v
     const BigSerial pcId = unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calulateUnitExpectations");
 
-/*
-    const Building *building = getBuilding(unit.getBuildingId());
-    const Postcode *postcode = getPostcode(pcId);
-    const PostcodeAmenities *amenities = getAmenities(pcId);
-
-    if(!building)
-    	PrintOut("Building is null" << std::endl );
-
-    if(!postcode)
-    	PrintOut("Postcode is null" << std::endl );
-
-    if(!amenities)
-    	PrintOut("Amenities is null for pcId " << pcId << std::dec << std::endl );
-
-
-    if( !funcRef.isFunction() )
-    	return;
-
-
-    LuaRef retVal = funcRef(&unit, timeOnMarket, building, postcode, amenities);
-*/
 	LuaRef retVal = funcRef(&unit, timeOnMarket, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
-    
+
     if (retVal.isTable())
     {
         // Reverse the expectations (HM requirement).
@@ -248,6 +244,17 @@ void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, v
             ExpectationEntry entry = retVal[i].cast<ExpectationEntry>();
             outValues.push_back(entry);
         }
+    }
+
+    if( retVal.length() == 0 )
+    {
+    	const Building* build = getBuilding(unit.getBuildingId());
+    	const Postcode* postcode = getPostcode(pcId);
+    	const PostcodeAmenities* amen = getAmenities(pcId);
+    	std::string buildingName = amen == NULL? "<empty>": amen->getBuildingName();
+
+    	PrintOutV("[ERROR] Unit Expectations is empty for unit " << unit.getId() << " from building ID: "  << build->getFmBuildingId() << " at addressId: " << postcode->getAddressId() << " with building name: " << buildingName << std::endl );
+
     }
 }
 
@@ -306,8 +313,8 @@ void DeveloperLuaModel::mapClasses()
     mapCommonClasses(state.get());
 }
 
-double DeveloperLuaModel::calulateUnitRevenue(const PotentialUnit& unit, const PostcodeAmenities& amenities) const
-{
+double DeveloperLuaModel::calulateUnitRevenue(const PotentialUnit& unit,const ParcelAmenities& amenities) const {
+
     LuaRef funcRef = getGlobal(state.get(), "calculateUnitRevenue");
     LuaRef retVal = funcRef(&unit, &amenities);
 

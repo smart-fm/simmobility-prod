@@ -111,43 +111,15 @@ public:
 	//Number of agents skipped in loading
 	unsigned int numAgentsSkipped;
 
-	//Does not appear to be used any more. ~Seth
-	//std::map<int, std::vector<int> > scheduledTimes;//store the actual scheduledAT and DT.assumed dwell time as 6 sec for all stops.
-
 	bool using_MPI;
 	bool is_run_on_many_computers;
 	bool is_simulation_repeatable;
 
-	//These no longer appear to be set-able.
-	//int signalTimingMode;
-	//int signalAlgorithm;
-
-	//std::vector<SubTrip> subTrips;//todo, check anyone using this? -vahid
-
 public:
-	///Retrieve a read-only version of the singleton. Use this function often.
-	//static const ConfigParams& GetInstance();
-
-	///Retrieve a writable version of the singleton. Use this function sparingly.
-	//static ConfigParams& GetInstanceRW();
-
-	///Reset this instance of the static ConfigParams instance.
-	///WARNING: This should *only* be used by the interactive loop of Sim Mobility.
-	//void reset();
 
 	///Retrieve/build the connection string.
 	std::string getDatabaseConnectionString(bool maskPassword=true) const;
 	StoredProcedureMap getDatabaseProcMappings() const;
-
-
-	/**
-	 * Load the defualt user config file; initialize all vectors. This function must be called
-	 * once before GetInstance() will return meaningful data.
-	 *
-	 * \param active_agents Vector to hold all agents that will be active during time tick zero.
-	 * \param pending_agents Priority queue to hold all agents that will become active after time tick zero.
-	 */
-	//static void InitUserConf(const std::string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof, const sim_mob::Config::BuiltInModels& builtInModels);
 
 	/**
 	 * Retrieve a reference to the current RoadNetwork.
@@ -186,7 +158,7 @@ public:
 	std::vector<sim_mob::OD_Trip>& getODsTripsMap();
 
 	//Temporary: Santhosh
-	std::map<int, std::vector<int> > scheduledTImes;//store the actual scheduledAT and DT.assumed dwell time as 6 sec for all stops.
+	//std::map<int, std::vector<int> > scheduledTImes;//store the actual scheduledAT and DT.assumed dwell time as 6 sec for all stops.
 
 	//NOTE: Technically we use the "sealed" property to indicate data structures that cannot change later.
 	//      From that point, there's no need for a "RW" function. For now, this is a necessary workaround, but
@@ -204,12 +176,14 @@ public:
 	const std::set<sim_mob::Conflux*>& getConfluxes() const;
 
 	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes();
+	const std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes() const;
 	std::set<sim_mob::SegmentStats*>& getSegmentStatsWithBusStops();
+
 	bool PathSetMode() const;
 	const PathSetConf & pathSet() const;
+
 	bool CBD() const;
 	
-
 private:
 	ConfigParams();
 

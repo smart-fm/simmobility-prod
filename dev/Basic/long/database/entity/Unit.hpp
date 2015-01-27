@@ -31,7 +31,7 @@ namespace sim_mob
         public:
             Unit( BigSerial id = INVALID_ID, BigSerial buildingId = INVALID_ID, BigSerial sla_address_id = INVALID_ID, int unit_type = INVALID_ID,
             	  int story_range = 0, std::string unit_status = EMPTY_STR, double floor_area = .0f, int storey = 0, double rent = .0f, std::tm sale_from_date = std::tm(),
-            	  std::tm physical_from_date = std::tm(), int sale_status = 0, int physical_status = 0);
+            	  std::tm physical_from_date = std::tm(), int sale_status = 0, int physical_status = 0, int biddingMarketEntryDay = 0, int timeOnMarket = 0, int timeOffMarket = 0);
             Unit( const Unit& source );
             virtual ~Unit();
 
@@ -59,10 +59,35 @@ namespace sim_mob
             int getSaleStatus() const;
             int getPhysicalStatus() const;
             
+            /*
+             * setters
+             */
+            void setBuildingId(BigSerial buildingId);
+            void setFloorArea(double floorArea);
+            void setId(BigSerial id);
+            void setPhysicalFromDate(const std::tm& physicalFromDate);
+            void setPhysicalStatus(int physicalStatus);
+            void setRent(double rent);
+            void setSaleFromDate(const std::tm& saleFromDate);
+            void setSaleStatus(int saleStatus);
+            void setSlaAddressId(BigSerial slaAddressId);
+            void setStorey(int storey);
+            void setStoreyRange(int storeyRange);
+            void setUnitStatus(const std::string& unitStatus);
+            void setUnitType(int unitType);
+
+            int  getbiddingMarketEntryDay() const;
+            void setbiddingMarketEntryDay( int day );
+            int  getTimeOnMarket() const;
+            void setTimeOnMarket(int day );
+            int  getTimeOffMarket() const;
+            void setTimeOffMarket(int day);
+
             /**
              * Operator to print the Unit data.  
              */
             friend std::ostream& operator<<(std::ostream& strm, const Unit& data );
+
         private:
             friend class UnitDao;
             
@@ -83,6 +108,11 @@ namespace sim_mob
             std::tm physical_from_date;
             int sale_status;
             int physical_status;
+
+            //This variable denotes the day the unit went on sale.
+            int biddingMarketEntryDay;
+            int timeOnMarket;
+            int timeOffMarket;
         };
     }
 }

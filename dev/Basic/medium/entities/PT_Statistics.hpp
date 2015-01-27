@@ -48,13 +48,14 @@ struct BusArrivalTime {
 	unsigned int sequenceNo;
 	std::string arrivalTime;
 	std::string dwellTime;
+	double pctOccupancy;
 	bool operator<(const BusArrivalTime& rhs) const;
 };
 
 class JourneyTimeStats {
 public:
 	void setArrivalTime(const std::string& busLine, const std::string& tripId,
-			unsigned int sequenceNo, const std::string& arrivalTime, const std::string& dwellTime);
+			unsigned int sequenceNo, const std::string& arrivalTime, const std::string& dwellTime, double pctOccupancy);
 
 	const std::vector<BusArrivalTime>& getArrivalTime() const{
 		return busArrivalTimeList;

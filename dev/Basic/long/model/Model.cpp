@@ -66,6 +66,11 @@ void Model::start()
     }
 }
 
+void Model::update(int day)
+{
+	//PrintOut("model update" << std::endl);
+}
+
 void Model::stop()
 {
     if (running)

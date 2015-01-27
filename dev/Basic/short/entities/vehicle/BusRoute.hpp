@@ -12,12 +12,11 @@
 
 #include <vector>
 
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Point2D.hpp"
-#include "util/LangHelpers.hpp"
-#include "util/GeomHelpers.hpp"
 #include "geospatial/BusStop.hpp"
-
+#include "geospatial/Point2D.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "util/GeomHelpers.hpp"
+#include "util/LangHelpers.hpp"
 
 namespace sim_mob {
 
@@ -31,7 +30,7 @@ class UnPackageUtils;
  */
 class DemoBusStop {
 public:
-	//DemoBusStop(RoadSegment *rs){};
+
 	const sim_mob::RoadSegment* seg;
 	double distance;
 	double percent;
@@ -41,35 +40,6 @@ public:
 	bool operator== (const DemoBusStop& a) const
 	{
 	    return (a.seg==seg)&&(a.percent==percent);
-	}
-
-
-	///Is there a bus stop on the current road segment?
-	bool isBusStopOnCurrSegment(const RoadSegment* curr) const {
-		typedef std::map<centimeter_t, const RoadItem*>::const_iterator  ObstacleIterator;
-
-		//Scan the obstacles list; return true if any RoadItem on it is a BusStop.
-		for(ObstacleIterator o_it = curr->obstacles.begin(); o_it != curr->obstacles.end() ; o_it++) {
-			if(dynamic_cast<const BusStop*>(o_it->second)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	///Have we reached this bus stop?
-	bool atOrPastBusStop(const RoadSegment* curr, const double distTraveledOnSegmentZeroLane) const {
-		const std::vector<Point2D>& poly = const_cast<RoadSegment*>(seg)->getLaneEdgePolyline(0);
-		double totalDist = 0.0;
-		for (std::vector<Point2D>::const_iterator it=poly.begin(); it!=poly.end(); it++) {
-			if (it!=poly.begin()) {
-				totalDist += sim_mob::dist(*it, *(it-1));
-			}
-		}
-
-		std::cout<<"atOrPastBusStop: isBusStopOnCurrSegment <"<<isBusStopOnCurrSegment(curr)<<">"
-				 <<" percent<"<<percent<<">"<<std::endl;
-		return isBusStopOnCurrSegment(curr) && percent>0;
 	}
 };
 
@@ -89,11 +59,13 @@ public:
 	void reset() {
 		currStop = stops.begin();
 	}
+
 	void advance() {
 		if (currStop!=stops.end()) {
-			currStop++;
+			++currStop;
 		}
 	}
+
 	const DemoBusStop* getCurrentStop() const {
 		if (currStop!=stops.end()) {
 			return &(*currStop);
@@ -105,7 +77,6 @@ public:
 	{
 		return stops;
 	}
-
 
 private:
 	std::vector<DemoBusStop> stops;

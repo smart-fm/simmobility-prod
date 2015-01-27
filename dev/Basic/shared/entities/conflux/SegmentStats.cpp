@@ -248,7 +248,7 @@ void SegmentStats::getPersons(std::deque<sim_mob::Person*>& segAgents)
 
 void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 {
-	//And let's not forget the bus drivers serving stops in this segment stats
+	//let's not forget the bus drivers serving stops in this segment stats
 	//Bus drivers go in the front of the list, because bus stops are (virtually)
 	//located at the end of the segment
 	for (BusStopList::const_reverse_iterator stopIt = busStops.rbegin(); stopIt != busStops.rend(); stopIt++)
@@ -1069,6 +1069,14 @@ void SegmentStats::printBusStops() const
 	Print() << printStream.str() << std::endl;
 }
 
+void sim_mob::SegmentStats::registerBusStopAgents()
+{
+	for (AgentList::iterator stopIt = busStopAgents.begin(); stopIt != busStopAgents.end(); stopIt++)
+	{
+		messaging::MessageBus::RegisterHandler(*stopIt);
+	}
+}
+
 void LaneStats::printAgents(bool copy) const
 {
 	std::stringstream debugMsgs;
@@ -1134,13 +1142,13 @@ sim_mob::Person* SegmentStats::dequeue(const sim_mob::Person* person, const sim_
 	{
 		printAgents();
 		debugMsgs << "Error: Person " << person->getId() << " was not found in lane " << lane->getLaneID() << std::endl;
+		throw std::runtime_error(debugMsgs.str());
 	}
 	return dequeuedPerson;
 }
 
 sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate)
 {
-	VehicleBase* vehicle = person->getRole()->getResource();
 	if (laneAgents.size() == 0)
 	{
 		std::stringstream debugMsgs;
@@ -1166,6 +1174,7 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 	{
 		p = laneAgents.front();
 		laneAgents.pop_front();
+		VehicleBase* vehicle = person->getRole()->getResource();
 		if (vehicle)
 		{
 			numPersons--; // record removal

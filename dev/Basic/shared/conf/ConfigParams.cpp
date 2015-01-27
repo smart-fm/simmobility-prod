@@ -37,6 +37,7 @@ sim_mob::ConfigParams::ConfigParams() : RawConfigParams(),
 
 sim_mob::ConfigParams::~ConfigParams()
 {
+	//Delete all pointers
 	safe_delete_item(reactDist1);
 	safe_delete_item(reactDist2);
 	safe_delete_item(passengerDist_busstop);
@@ -44,37 +45,14 @@ sim_mob::ConfigParams::~ConfigParams()
 	safe_delete_item(commDataMgr);
 	safe_delete_item(controlMgr);
 
-	//These might leak??
-	//std::vector<sim_mob::BusSchedule*> busschedule;
-	//std::vector<sim_mob::PT_trip*> pt_trip;
-	//routeID_roadSegments
-	//routeID_busStops
+	clear_delete_vector(busschedule);
+	clear_delete_vector(pt_trip);
+	clear_delete_vector(confluxes);
+	clear_delete_vector(segmentStatsWithBusStops);
+	clear_delete_map(busStopNo_busStops);
+	clear_delete_map(multinode_confluxes);
+	clear_delete_map_with_vector(tripchains);
 }
-
-
-
-/*void sim_mob::ConfigParams::reset()
-{
-	//TODO: This *should* work fine, but check the comment below.
-	instance = sim_mob::ConfigParams();
-
-	//TODO: This is the old code for reset(); I prefer the above code, as it is more generic, but I
-	//      have not tested that it works.  ~Seth
-	//sealedNetwork=false;
-	//roleFact.clear();
-}*/
-
-
-/*const ConfigParams& sim_mob::ConfigParams::GetInstance()
-{
-	return ConfigParams::instance;
-}
-
-
-ConfigParams& sim_mob::ConfigParams::GetInstanceRW()
-{
-	return ConfigParams::instance;
-}*/
 
 
 const sim_mob::RoleFactory& sim_mob::ConfigParams::getRoleFactory() const
@@ -95,14 +73,6 @@ sim_mob::Factory<sim_mob::Broker>& sim_mob::ConfigParams::getBrokerFactoryRW()
 }
 
 
-/*void sim_mob::ConfigParams::InitUserConf(const std::string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof, const Config::BuiltInModels& builtInModels)
-{
-	//Load using our new config syntax.
-	ParseConfigFile parse(configPath, ConfigParams::GetInstanceRW());
-	ExpandAndValidateConfigFile expand(ConfigParams::GetInstanceRW(), active_agents, pending_agents);
-}*/
-
-
 std::string sim_mob::ConfigParams::getDatabaseConnectionString(bool maskPassword) const
 {
 	//The database.
@@ -118,7 +88,7 @@ std::string sim_mob::ConfigParams::getDatabaseConnectionString(bool maskPassword
 	if (credIt==constructs.credentials.end()) {
 		Print() << "trying to find " << credKey << " among:" << std::endl;
 		std::map<std::string, Credential>::const_iterator it;
-		for( it = constructs.credentials.begin(); it != constructs.credentials.end() ; it++)
+		for( it = constructs.credentials.begin(); it != constructs.credentials.end() ; ++it)
 		{
 			Print() << it->first << std::endl;
 		}
@@ -546,6 +516,11 @@ const std::set<sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxes() const
 }
 
 std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxNodes()
+{
+	return multinode_confluxes;
+}
+
+const std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxNodes() const
 {
 	return multinode_confluxes;
 }

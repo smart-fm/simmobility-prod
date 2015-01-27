@@ -108,7 +108,7 @@ double HM_Model::TazStats::getHH_AvgIncome() const
 	return hhTotalIncome / static_cast<double>((hhNum == 0) ? 1 : hhNum);
 }
 
-HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0) {}
+HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0) {}
 
 HM_Model::~HM_Model()
 {
@@ -214,6 +214,36 @@ int HM_Model::getAwakeningCounter() const
 	return initialHHAwakeningCounter;
 }
 
+void HM_Model::incrementLifestyle1HHs()
+{
+	numLifestyle1HHs++;
+}
+
+void HM_Model::incrementLifestyle2HHs()
+{
+	numLifestyle2HHs++;
+}
+
+void HM_Model::incrementLifestyle3HHs()
+{
+	numLifestyle3HHs++;
+}
+
+int HM_Model::getLifestyle1HHs() const
+{
+	return numLifestyle1HHs;
+}
+
+int HM_Model::getLifestyle2HHs() const
+{
+	return numLifestyle2HHs;
+}
+
+int HM_Model::getLifestyle3HHs() const
+{
+	return numLifestyle3HHs;
+}
+
 
 const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 {
@@ -240,58 +270,38 @@ void HM_Model::startImpl()
 
 	if (conn.isConnected())
 	{
-		//Simmobility Test Params
-		const int numHouseholds = config.ltParams.housingModel.numberOfHouseholds;
-		const int numUnits = config.ltParams.housingModel.numberOfUnits;
-
 		//Load households
 		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
-		int displayHouseholds =	numHouseholds == -1 ? households.size() : numHouseholds;
-		PrintOut("Number of households: " << households.size() << ". Households used: " << displayHouseholds << std::endl);
+		PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
 
 		//Load units
 		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
-		int displayUnits = numUnits == -1 ? units.size() : numUnits;
-		PrintOut("Number of units: " << units.size() << ". Units Used: " << displayUnits << std::endl);
+		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
 
 		//load individuals
 		loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
-		PrintOut("Initial Individuals: " << individuals.size() << std::endl);
+		PrintOutV("Initial Individuals: " << individuals.size() << std::endl);
 
 		loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
-		PrintOut("Awakening probability: " << awakening.size() << std::endl );
-
-
-
-		if (numUnits != -1 && numUnits < units.size())
-		{
-			units.resize(numUnits);
-		}
-
-		if (numHouseholds != -1 && numHouseholds < households.size())
-		{
-			households.resize(numHouseholds);
-		}
+		PrintOutV("Awakening probability: " << awakening.size() << std::endl );
 	}
 
 
 	unitsFiltering();
 
 	workGroup.assignAWorker(&market);
-	unsigned int numberOfFakeSellers = workGroup.getNumberOfWorkers();
+	unsigned int numberOffreelanceHousingAgents = workGroup.getNumberOfWorkers();
 
 	//create fake seller agents to sell vacant units.
-	std::vector<HouseholdAgent*> fakeSellers;
-	for (int i = 0; i < numberOfFakeSellers; i++)
+	std::vector<HouseholdAgent*> freelanceAgents;
+	for (int i = 0; i < numberOffreelanceHousingAgents; i++)
 	{
-		HouseholdAgent* fakeSeller = new HouseholdAgent((FAKE_IDS_START + i),this, nullptr, &market, true);
-		AgentsLookupSingleton::getInstance().addHousehold(fakeSeller);
-		agents.push_back(fakeSeller);
-		workGroup.assignAWorker(fakeSeller);
-		fakeSellers.push_back(fakeSeller);
+		HouseholdAgent* freelanceAgent = new HouseholdAgent((FAKE_IDS_START + i),this, nullptr, &market, true);
+		AgentsLookupSingleton::getInstance().addHousehold(freelanceAgent);
+		agents.push_back(freelanceAgent);
+		workGroup.assignAWorker(freelanceAgent);
+		freelanceAgents.push_back(freelanceAgent);
 	}
-
-	boost::unordered_map<BigSerial, BigSerial> assignedUnits;
 
 	int homelessHousehold = 0;
 
@@ -333,50 +343,56 @@ void HM_Model::startImpl()
 		workGroup.assignAWorker(hhAgent);
 	}
 
-	PrintOut( "There are " << homelessHousehold << " homeless households" << std::endl);
+	PrintOutV( "There are " << homelessHousehold << " homeless households" << std::endl);
 
-	const int NUM_VACANT_UNITS = config.ltParams.housingModel.numberOfVacantUnits;
-
-	//Delete vacant units set by config file.
-	//n: variable n will increment by 1 for every vacant unit
-	//m: variable m will keep the index of the last retrieved vacant unit to speed up the process.
-	for (int n = 0, m = 0; n < NUM_VACANT_UNITS;)
-	{
-		for (UnitList::const_iterator it = units.begin() + m; it != units.end(); it++)
-		{
-			//this unit is a vacancy
-			if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
-			{
-				units.erase(units.begin() + m);
-				n++;
-				break;
-			}
-
-			m++;
-		}
-	}
-
-	unsigned int vacancies = 0;
-	//assign vacancies to fake seller
+	///////////////////////////////////////////
+	//Vacant Unit activation model
+	//////////////////////////////////////////
+	int vacancies = 0;
+	int onMarket  = 0;
+	int offMarket = 0;
+	//assign empty units to freelance housing agents
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
+		(*it)->setbiddingMarketEntryDay( 0 );
+		(*it)->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
+		(*it)->setTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
+
 		//this unit is a vacancy
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
 		{
 			if( (*it)->getUnitType() != NON_RESIDENTIAL_PROPERTY )
 			{
-				fakeSellers[vacancies % numberOfFakeSellers]->addUnitId((*it)->getId());
+				float awakeningProbability = (float)rand() / RAND_MAX;
+
+				if(awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
+				{
+
+					//(*it)->setbiddingMarketEntryDay( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
+					(*it)->setbiddingMarketEntryDay( 0 );
+					(*it)->setTimeOnMarket( 1 + int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
+
+					onMarket++;
+				}
+				else
+				{
+					(*it)->setbiddingMarketEntryDay( (float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket + config.ltParams.housingModel.timeOffMarket));
+					offMarket++;
+				}
+
+				freelanceAgents[vacancies % numberOffreelanceHousingAgents]->addUnitId((*it)->getId());
 				vacancies++;
 			}
 		}
 	}
 
-	PrintOut("Initial Vacancies: " << vacancies << std::endl);
+	PrintOutV("Initial Vacant units: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
+
 
 	addMetadata("Initial Units", units.size());
 	addMetadata("Initial Households", households.size());
 	addMetadata("Initial Vacancies", vacancies);
-	addMetadata("Fake Sellers", numberOfFakeSellers);
+	addMetadata("Freelance housing agents", numberOffreelanceHousingAgents);
 
 	for (int n = 0; n < individuals.size(); n++)
 	{
@@ -386,141 +402,25 @@ void HM_Model::startImpl()
 
 		if (tempHH != nullptr)
 			tempHH->setIndividual(individuals[n]->getId());
-
-		//Let's set the age
-		BigSerial ageCategory = individuals[n]->getAgeCategoryId();
-
-		std::tm thisAge;
-		thisAge.tm_mday = 1;
-		thisAge.tm_mon  = 0;
-
-		time_t now = time(0);
-		tm ltm = *(localtime(&now));
-		const int yearOffset = ltm.tm_year;
-
-		switch( ageCategory)
-		{
-		//
-		//The numbers that are seen in the case switch below is the midpoint of the age group.
-		//Hopefully this is temporary. chetan (3 Oct 2014)
-		//
-		case 0:
-			//0-4 yrs old"
-			thisAge.tm_year = yearOffset - 2;
-			break;
-		case 1:
-			//5-9yrs old"
-			thisAge.tm_year = yearOffset - 7;
-			break;
-
-		case 2:
-			//10-14 yrs old"
-			thisAge.tm_year = yearOffset - 12;
-			break;
-
-		case 3:
-			//15-19 yrs old"
-			thisAge.tm_year = yearOffset - 17;
-			break;
-
-		case 4:
-			//20-24 yrs old"
-			thisAge.tm_year = yearOffset - 22;
-			break;
-
-		case 5:
-			//25-29 yrs old"
-			thisAge.tm_year = yearOffset - 27;
-			break;
-
-		case 6:
-			//30-34 yrs old"
-			thisAge.tm_year = yearOffset - 32;
-			break;
-
-		case 7:
-			//35-39  yrs old"
-			thisAge.tm_year = yearOffset - 37;
-			break;
-
-		case 8:
-			//40-44 yrs old"
-			thisAge.tm_year = yearOffset - 42;
-			break;
-
-		case 9:
-			//45-49  yrs old"
-			thisAge.tm_year = yearOffset - 47;
-			break;
-
-		case 10:
-			//50-54 yrs old"
-			thisAge.tm_year = yearOffset - 52;
-			break;
-
-		case 11:
-			//55-59  yrs old"
-			thisAge.tm_year = yearOffset - 57;
-			break;
-
-		case 12:
-			//60-64 yrs old"
-			thisAge.tm_year = yearOffset - 62;
-			break;
-
-		case 13:
-			//65-69 yrs old"
-			thisAge.tm_year = yearOffset - 67;
-			break;
-
-		case 14:
-			//70-74  yrs old"
-			thisAge.tm_year = yearOffset - 72;
-			break;
-
-		case 15:
-			//75-79 yrs old"
-			thisAge.tm_year = yearOffset - 77;
-			break;
-
-		case 16:
-			//80-84 yrs old"
-			thisAge.tm_year = yearOffset - 82;
-			break;
-
-		case 17:
-			//85+"
-			thisAge.tm_year = yearOffset - 87;
-			break;
-
-		case 18:
-			//Not Available"
-			break;
-
-		}
-
-		individuals[n]->setDateOfBirth( thisAge );
 	}
-
-
 
 	for (int n = 0; n < households.size(); n++)
 	{
 		hdbEligibilityTest(n);
 	}
 
-	PrintOut("The synthetic population contains " << household_stats.adultSingaporean_global << " adult Singaporeans." << std::endl);
-	PrintOut("Minors. Male: " << household_stats.maleChild_global << " Female: " << household_stats.femaleChild_global << std::endl);
-	PrintOut("Young adults. Male: " << household_stats.maleAdultYoung_global << " Female: " << household_stats.femaleAdultYoung_global << std::endl);
-	PrintOut("Middle-age adults. Male: " << household_stats.maleAdultMiddleAged_global << " Female: " << household_stats.femaleAdultMiddleAged_global << std::endl);
-	PrintOut("Elderly adults. Male: " << household_stats.maleAdultElderly_global << " Female: " << household_stats.femaleAdultElderly_global << std::endl);
-	PrintOut("Household type Enumeration" << std::endl);
-	PrintOut("Couple and child " << household_stats.coupleAndChild << std::endl);
-	PrintOut("Siblings and parents " << household_stats.siblingsAndParents << std::endl );
-	PrintOut("Single parent " << household_stats.singleParent << std::endl );
-	PrintOut("Engaged couple " << household_stats.engagedCouple << std::endl );
-	PrintOut("Orphaned siblings " << household_stats.orphanSiblings << std::endl );
-	PrintOut("Multigenerational " << household_stats.multigeneration << std::endl );
+	PrintOutV("The synthetic population contains " << household_stats.adultSingaporean_global << " adult Singaporeans." << std::endl);
+	PrintOutV("Minors. Male: " << household_stats.maleChild_global << " Female: " << household_stats.femaleChild_global << std::endl);
+	PrintOutV("Young adults. Male: " << household_stats.maleAdultYoung_global << " Female: " << household_stats.femaleAdultYoung_global << std::endl);
+	PrintOutV("Middle-age adults. Male: " << household_stats.maleAdultMiddleAged_global << " Female: " << household_stats.femaleAdultMiddleAged_global << std::endl);
+	PrintOutV("Elderly adults. Male: " << household_stats.maleAdultElderly_global << " Female: " << household_stats.femaleAdultElderly_global << std::endl);
+	PrintOutV("Household type Enumeration" << std::endl);
+	PrintOutV("Couple and child " << household_stats.coupleAndChild << std::endl);
+	PrintOutV("Siblings and parents " << household_stats.siblingsAndParents << std::endl );
+	PrintOutV("Single parent " << household_stats.singleParent << std::endl );
+	PrintOutV("Engaged couple " << household_stats.engagedCouple << std::endl );
+	PrintOutV("Orphaned siblings " << household_stats.orphanSiblings << std::endl );
+	PrintOutV("Multigenerational " << household_stats.multigeneration << std::endl );
 
 }
 
@@ -550,9 +450,9 @@ void HM_Model::unitsFiltering()
 	int targetNumOfHDB   = 0.05 * numOfHDB;
 	int targetNumOfCondo = 0.10 * numOfCondo;
 
-	PrintOut( "[Prefilter] Total number of HDB: " << numOfHDB  << std::endl );
-	PrintOut( "[Prefilter] Total number of Condos: " << numOfCondo << std::endl );
-	PrintOut( "Total units " << units.size() << std::endl );
+	PrintOutV( "[Prefilter] Total number of HDB: " << numOfHDB  << std::endl );
+	PrintOutV( "[Prefilter] Total number of Condos: " << numOfCondo << std::endl );
+	PrintOutV( "Total units " << units.size() << std::endl );
 
 	srand(time(0));
 	for( int n = 0;  n < targetNumOfHDB; )
@@ -577,14 +477,38 @@ void HM_Model::unitsFiltering()
 		}
 	}
 
-	PrintOut( "[Postfilter] Total number of HDB: " << numOfHDB - targetNumOfHDB  << std::endl );
-	PrintOut( "[Postfilter] Total number of Condos: " << numOfCondo - targetNumOfCondo << std::endl );
-	PrintOut( "Total units " << units.size() << std::endl );
+	PrintOutV( "[Postfilter] Total number of HDB: " << numOfHDB - targetNumOfHDB  << std::endl );
+	PrintOutV( "[Postfilter] Total number of Condos: " << numOfCondo - targetNumOfCondo << std::endl );
+	PrintOutV( "Total units " << units.size() << std::endl );
 }
+
+void HM_Model::update(int day)
+{
+	//PrintOut("HM_Model update" << std::endl);
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+	for(UnitList::const_iterator it = units.begin(); it != units.end(); it++)
+	{
+		//this unit is a vacancy
+		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
+		{
+			//If a unit is off the market and unoccupied, we should put it back on the market after its timeOffMarket value is exceeded.
+			if( (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket() < day )
+			{
+				//PrintOutV("A unit is being re-awakened" << std::endl);
+				(*it)->setbiddingMarketEntryDay(day + 1);
+				(*it)->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+			}
+		}
+	}
+}
+
 
 void HM_Model::hdbEligibilityTest(int index)
 {
 	int familyType = 0;
+
+	household_stats.ResetLocal();
 
 	for (int n = 0; n < households[index]->getIndividuals().size(); n++)
 	{
@@ -599,8 +523,6 @@ void HM_Model::hdbEligibilityTest(int index)
 		boost::gregorian::date date2(ltm.tm_year + 1900, ltm.tm_mon + 1, ltm.tm_mday);
 
 		int years = (date2 - date1).days() / YEAR;
-
-		household_stats.ResetLocal();
 
 		if (years < MINOR)
 		{
@@ -662,41 +584,6 @@ void HM_Model::hdbEligibilityTest(int index)
 		}
 	}
 
-	if((household_stats.maleAdultYoung > 0 && household_stats.femaleAdultYoung > 0	&& (household_stats.maleChild > 0 || household_stats.femaleChild > 0)) ||
-	   (household_stats.maleAdultMiddleAged > 0 && household_stats.femaleAdultMiddleAged > 0  && (household_stats.maleChild > 0 || household_stats.femaleChild > 0 || household_stats.maleAdultYoung > 0 || household_stats.femaleAdultYoung > 0)))
-	{
-		familyType = Household::COUPLEANDCHILD;
-		household_stats.coupleAndChild++;
-	}
-
-	if((household_stats.maleAdultYoung > 0 || household_stats.femaleAdultYoung > 0) &&
-	  ((household_stats.maleAdultMiddleAged > 0 || household_stats.femaleAdultMiddleAged > 0) || (household_stats.maleAdultElderly > 0 || household_stats.femaleAdultElderly > 0)))
-	{
-		familyType = Household::SIBLINGSANDPARENTS;
-		household_stats.siblingsAndParents++;
-	}
-
-	if(((household_stats.maleAdultYoung == 1 || household_stats.femaleAdultYoung == 1)		&& (household_stats.maleChild > 0 || household_stats.femaleChild > 0))			||
-	   ((household_stats.maleAdultMiddleAged == 1 || household_stats.femaleAdultMiddleAged == 1)	&& ((household_stats.maleChild > 0 || household_stats.femaleChild > 0)	||
-	    (household_stats.maleAdultYoung > 0 || household_stats.femaleAdultYoung > 0))))
-	{
-		familyType = Household::SINGLEPARENT;
-		household_stats.singleParent++;
-	}
-
-	if (household_stats.maleAdultYoung == 1 && household_stats.femaleAdultYoung == 1)
-	{
-		familyType = Household::ENGAGEDCOUPLE;
-		household_stats.engagedCouple++;
-	}
-
-	if ((household_stats.maleAdultYoung > 1 || household_stats.femaleAdultYoung > 1) ||
-		(household_stats.maleAdultMiddleAged > 1 || household_stats.femaleAdultMiddleAged > 1))
-	{
-		familyType = Household::ORPHANSIBLINGS;
-		household_stats.orphanSiblings++;
-	}
-
 	if (((household_stats.maleAdultYoung == 1 	   && household_stats.femaleAdultYoung == 1)		&& ((household_stats.maleAdultMiddleAged > 0 || household_stats.femaleAdultMiddleAged > 0) || (household_stats.maleAdultElderly > 0 || household_stats.femaleAdultElderly > 0))) ||
 		((household_stats.maleAdultMiddleAged == 1 && household_stats.femaleAdultMiddleAged == 1)	&& (household_stats.maleAdultElderly > 0 	 || household_stats.femaleAdultElderly > 0))   ||
 		((household_stats.maleAdultYoung == 1 	   && household_stats.femaleAdultYoung == 1)		&& ((household_stats.maleChild > 0 || household_stats.femaleChild > 0) || (household_stats.maleAdultMiddleAged > 0 || household_stats.femaleAdultMiddleAged > 0) || (household_stats.maleAdultElderly > 0 || household_stats.femaleAdultElderly > 0))) ||
@@ -705,6 +592,42 @@ void HM_Model::hdbEligibilityTest(int index)
 		familyType = Household::MULTIGENERATION;
 		household_stats.multigeneration++;
 	}
+	else
+	if((household_stats.maleAdultYoung > 0 && household_stats.femaleAdultYoung > 0	&& (household_stats.maleChild > 0 || household_stats.femaleChild > 0)) ||
+	   (household_stats.maleAdultMiddleAged > 0 && household_stats.femaleAdultMiddleAged > 0  && (household_stats.maleChild > 0 || household_stats.femaleChild > 0 || household_stats.maleAdultYoung > 0 || household_stats.femaleAdultYoung > 0)))
+	{
+		familyType = Household::COUPLEANDCHILD;
+		household_stats.coupleAndChild++;
+	}
+	else
+	if((household_stats.maleAdultYoung > 0 || household_stats.femaleAdultYoung > 0) &&
+	  ((household_stats.maleAdultMiddleAged > 0 || household_stats.femaleAdultMiddleAged > 0) || (household_stats.maleAdultElderly > 0 || household_stats.femaleAdultElderly > 0)))
+	{
+		familyType = Household::SIBLINGSANDPARENTS;
+		household_stats.siblingsAndParents++;
+	}
+	else
+	if (household_stats.maleAdultYoung == 1 && household_stats.femaleAdultYoung == 1)
+	{
+		familyType = Household::ENGAGEDCOUPLE;
+		household_stats.engagedCouple++;
+	}
+	else
+	if ((household_stats.maleAdultYoung > 1 || household_stats.femaleAdultYoung > 1) ||
+		(household_stats.maleAdultMiddleAged > 1 || household_stats.femaleAdultMiddleAged > 1))
+	{
+		familyType = Household::ORPHANSIBLINGS;
+		household_stats.orphanSiblings++;
+	}
+	else
+	if(((household_stats.maleAdultYoung == 1 || household_stats.femaleAdultYoung == 1)		&& (household_stats.maleChild > 0 || household_stats.femaleChild > 0))			||
+	   ((household_stats.maleAdultMiddleAged == 1 || household_stats.femaleAdultMiddleAged == 1)	&& ((household_stats.maleChild > 0 || household_stats.femaleChild > 0)	||
+	    (household_stats.maleAdultYoung > 0 || household_stats.femaleAdultYoung > 0))))
+	{
+		familyType = Household::SINGLEPARENT;
+		household_stats.singleParent++;
+	}
+
 
 	households[index]->setFamilyType(familyType);
 

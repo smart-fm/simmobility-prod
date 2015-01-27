@@ -149,6 +149,7 @@ void HouseholdAgent::awakenHousehold()
 
 			unit->setbiddingMarketEntryDay(day);
 			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+			//PrintOutV("Awakening Model lifestyle 1. day: " << day << " unit: " << unit->getId() << std::endl);
 		}
 
 		model->incrementAwakeningCounter();
@@ -171,6 +172,7 @@ void HouseholdAgent::awakenHousehold()
 
 			unit->setbiddingMarketEntryDay(day);
 			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+			//PrintOutV("Awakening Model lifestyle 2. day: " << day << " unit: " << unit->getId() << std::endl);
 		}
 
 		model->incrementAwakeningCounter();
@@ -193,6 +195,7 @@ void HouseholdAgent::awakenHousehold()
 
 			unit->setbiddingMarketEntryDay(day);
 			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+			//PrintOutV("Awakening Model lifestyle 3. day: " << day << " unit: " << unit->getId() << std::endl);
 		}
 
 		model->incrementAwakeningCounter();

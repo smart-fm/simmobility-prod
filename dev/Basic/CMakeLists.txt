@@ -43,7 +43,7 @@ set (Basic_VERSION_MINOR 1)
 
 #Flags for each configuration type
 SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
-SET(CMAKE_CXX_FLAGS_DEBUG  "-O2 -g")
+SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
 
 
 #Function that turns on Unity builds. From:

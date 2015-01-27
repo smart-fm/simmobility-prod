@@ -196,7 +196,7 @@ void HouseholdSellerRole::update(timeslice now)
         adjustNotSoldUnits();
     }
 
-    if (hasUnitsToSale)
+
     {
         HM_Model* model = getParent()->getModel();
         HousingMarket* market = getParent()->getMarket();
@@ -220,10 +220,18 @@ void HouseholdSellerRole::update(timeslice now)
             int day = currentTime.ms();
             //PrintOut("Day: " << std::dec << day << " Seller: " << this->getParent()->GetId() << " bidEntryDay: " << unit->getbiddingMarketEntryDay() << " timeOnMarket: "  << unit->getTimeOnMarket() << std::endl );
 
-            //if( !( day >= unit->getbiddingMarketEntryDay() && day < unit->getTimeOnMarket() +  unit->getbiddingMarketEntryDay() ) )
-    		{
-    		//	continue;
-    		}
+
+            UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
+            if(it != sellingUnitsMap.end())
+            {
+            	continue;
+            }
+
+            if( day != unit->getbiddingMarketEntryDay() )
+            {
+            	//PrintOutV("Skipping. day: " << day << " entryDay: " << unit->getbiddingMarketEntryDay() << " unit: " << unit->getId() << std::endl);
+            	continue;
+            }
 
 
             BigSerial tazId = model->getUnitTazId(unitId);
@@ -235,13 +243,12 @@ void HouseholdSellerRole::update(timeslice now)
             if(getCurrentExpectation(unit->getId(), firstExpectation))
             {
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice));
-                //PrintOut("Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
+                //PrintOutV("Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
             }
 
             selling = true;
         }
 
-        hasUnitsToSale = false;
     }
 }
 
@@ -339,7 +346,7 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 
 				 if((int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket() )
 				 {
-					 //PrintOut("Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
+					 //PrintOutV("Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
 					 market->removeEntry(unitId);
 					 continue;
 				 }

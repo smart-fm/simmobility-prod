@@ -8,6 +8,7 @@
  */
 #pragma once
 #include <vector>
+#include "Common.hpp"
 #include "Types.hpp"
 #include "lua/LuaModel.hpp"
 #include "database/entity/Unit.hpp"

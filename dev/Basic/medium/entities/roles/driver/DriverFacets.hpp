@@ -88,6 +88,17 @@ public:
 	MesoPathMover & getMesoPathMover() {
 		return pathMover;
 	}
+
+	bool canOverrideLaneConnectors() const
+	{
+		return laneConnectorOverride;
+	}
+
+	void setLaneConnectorOverride(bool laneConnectorOverride)
+	{
+		this->laneConnectorOverride = laneConnectorOverride;
+	}
+
 protected:
 	/// mark startTimeand origin. Called at every frame_init
 	virtual TravelMetric& startTravelTimeMetric();
@@ -107,8 +118,8 @@ protected:
 
 	MesoPathMover pathMover;
 	const Lane* currLane;
-	const Lane* laneInNextSegment;
 	bool isQueuing;
+	bool laneConnectorOverride;
 
 	mutable std::stringstream DebugStream;
 

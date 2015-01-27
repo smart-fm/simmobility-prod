@@ -31,41 +31,52 @@ sim_mob::MovementFacet::~MovementFacet() {}
 
 bool sim_mob::MovementFacet::isConnectedToNextSeg(const Lane* lane, const sim_mob::RoadSegment *nxtRdSeg)
 {
-	if(!nxtRdSeg) {
-		throw std::runtime_error("Destination Road Segment is not available!");
-	}
-
-	if (nxtRdSeg->getLink() != lane->getRoadSegment()->getLink()){
-		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (lane->getRoadSegment()->getEnd());
-		if (currEndNode) {
-			const std::set<sim_mob::LaneConnector*>& lcs = currEndNode->getOutgoingLanes(lane->getRoadSegment());
-			for (std::set<sim_mob::LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
-				if ((*it)->getLaneTo()->getRoadSegment() == nxtRdSeg && (*it)->getLaneFrom() == lane) {
-					return true;
-				}
+	if(!nxtRdSeg) { throw std::runtime_error("isConnectedToNextSeg() - destination road segment is null"); }
+	if(!lane) { throw std::runtime_error("isConnectedToNextSeg() - null lane is passed"); }
+	const sim_mob::RoadSegment* currSeg = lane->getRoadSegment();
+	if (nxtRdSeg->getLink() != currSeg->getLink())
+	{
+		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (currSeg->getEnd());
+		if (currEndNode)
+		{
+			const std::set<sim_mob::LaneConnector*>& lcs = currEndNode->getOutgoingLanes(currSeg);
+			for (std::set<sim_mob::LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++)
+			{
+				if ((*it)->getLaneTo()->getRoadSegment() == nxtRdSeg && (*it)->getLaneFrom() == lane) { return true; }
 			}
 		}
 	}
-	else{
+	else
+	{
 		//if (lane->getRoadSegment()->getLink() == nxtRdSeg->getLink()) we are
 		//crossing a uni-node. At uninodes, we assume all lanes of the current
 		//segment are connected to all lanes of the next segment
 		return true;
 	}
-
 	return false;
 }
 
 bool sim_mob::MovementFacet::isConnectedToNextSeg(const sim_mob::RoadSegment *srcRdSeg, const sim_mob::RoadSegment *nxtRdSeg)
 {
-	if(!nxtRdSeg || !srcRdSeg) {
-		throw std::runtime_error("DriverMovement::getConnectionsToNextSeg() - one or both of the Road Segments are not available!");
-	}
-	BOOST_FOREACH(const sim_mob::Lane *ln, srcRdSeg->getLanes() ){
-		if(isConnectedToNextSeg(ln,nxtRdSeg)){
-			return true;
+	if(!nxtRdSeg || !srcRdSeg) { throw std::runtime_error("DriverMovement::getConnectionsToNextSeg() - one or both of the Road Segments are not available!"); }
+	if (nxtRdSeg->getLink() != srcRdSeg->getLink())
+	{
+		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (srcRdSeg->getEnd());
+		if (currEndNode)
+		{
+			const std::set<sim_mob::LaneConnector*>& lcs = currEndNode->getOutgoingLanes(srcRdSeg);
+			for (std::set<sim_mob::LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++)
+			{
+				if ((*it)->getLaneTo()->getRoadSegment() == nxtRdSeg) { return true; }
+			}
 		}
 	}
-
+	else
+	{
+		//if (lane->getRoadSegment()->getLink() == nxtRdSeg->getLink()) we are
+		//crossing a uni-node. At uninodes, we assume all lanes of the current
+		//segment are connected to all lanes of the next segment
+		return true;
+	}
 	return false;
 }

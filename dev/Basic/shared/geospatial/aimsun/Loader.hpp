@@ -78,7 +78,8 @@ public:
 			std::map<std::string,SinglePath*> &waypoint_singlepathPool,
 			std::map<std::string,boost::shared_ptr<sim_mob::PathSet> > & pathSetPool,std::string& pathset_id);
 	static sim_mob::HasPath loadSinglePathFromDB(soci::session& sql,std::string& pathset_id,
-			std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string functionName,std::stringstream *outDbg=0,
+			std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string functionName,
+//			std::stringstream *outDbg=0,
 			const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
 	static void LoadERPData(const std::string& connectionStr,
 			std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > &erp_surcharge_pool,

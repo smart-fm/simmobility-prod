@@ -111,6 +111,16 @@ protected:
 	//
 	virtual TravelMetric& finalizeTravelTimeMetric();
 
+
+	/**
+	 * Process CBD information where a segment in the path has been traversed
+	 * @param  completedRS the completed Road Segment
+	 * @param  nextRS the next Road Segment to be visited next(if any)
+	 * @return Travel Metrics member object
+	 */
+
+	virtual TravelMetric& processCBD_TravelMetrics(const sim_mob::RoadSegment* completedRS, const sim_mob::RoadSegment* nextRS);
+
 	/**
 	 * Pointer to the parent Driver role.
 	 */
@@ -163,9 +173,18 @@ protected:
 	/**
 	 * Handle the event where a segment in the path has been traversed
 	 * @param  completedRS the completed Road Segment
-	 * @param  nextRS the Road Segment to be visited next
+	 * @param  nextRS the next Road Segment to be visited next(if any)
 	 */
-	void onSegmentCompleted(const sim_mob::RoadSegment* completedRS, const sim_mob::RoadSegment* nextRS);
+	virtual void onSegmentCompleted(const sim_mob::RoadSegment* completedRS, const sim_mob::RoadSegment* nextRS);
+
+	/**
+	 * Handle the event where a Link in the path has been traversed
+	 * @param  completedLink the completed link
+	 * @param  nextLink the next link to be visited next(if any)
+	 */
+
+	virtual void onLinkCompleted(const sim_mob::Link * completedLink, const sim_mob::Link * nextLink);
+
 	/**
 	 * checks whether the driver can move into the next segment in path
 	 *
@@ -246,6 +265,19 @@ protected:
 	void updateFlow(const sim_mob::SegmentStats* segStats, double startPos, double endPos);
 
 	/**
+	 * accepts a list of WayPoint-s and returns a list of SegmentStats* corresponding
+	 * to RoadSegment* in the list of WayPoint.
+	 */
+	void initSegStatsPath(std::vector<sim_mob::WayPoint>& input,
+			std::vector<const sim_mob::SegmentStats*>& output);
+	/**
+	 * overload of the above
+	 */
+	void initSegStatsPath(const std::vector<const sim_mob::RoadSegment*>& input,
+			std::vector<const sim_mob::SegmentStats*>& output);
+
+
+	/**
 	 * constructs the path for this driver if required.
 	 * converts the path into a list of SementStats*.
 	 * sets the path in the path mover.
@@ -314,18 +346,30 @@ protected:
 	 * return the number of intersections
 	 */
 	int findReroutingPoints(const std::vector<sim_mob::SegmentStats*>& stats,std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > & remaining) const;
+
 	bool wantReRoute(){return true;};//placeholder
+
+	/**
+	 * Changes the Travel Path
+	 * @param currSegment current segment where the agent is
+	 * @param nextSegment the next segment along the current path
+	 */
+	void reroute(const sim_mob::RoadSegment* currSegment, const sim_mob::RoadSegment* nextSegment);
+
 	/**
 	 * Changes the Travel Path based on the incident information
 	 * \param in msg incident information(roadsegment and flow rate)
 	 * \param newFlowRate new flow rate supplied to lanes
 	 */
 	void reroute(const InsertIncidentMessage &msg);
+
 	///tries to remove the uturn if any
 	bool UTurnFree(std::vector<WayPoint> & oldPath, std::vector<const sim_mob::SegmentStats*> & newPath, sim_mob::SubTrip & subTrip, std::set<const sim_mob::RoadSegment*> & excludeRS);
+
 	///checks to see if it is possible to join an old path to a new one
 	///it even tries to create a second new path  it the check fails once
 	bool canJoinPaths(std::vector<WayPoint> & oldPath, std::vector<const sim_mob::SegmentStats*> & newPath, sim_mob::SubTrip & subTrip, std::set<const sim_mob::RoadSegment*> & excludeRS);
+
 	//checks if there is a uturn
 	bool hasUTurn(std::vector<WayPoint> & oldPath, std::vector<const sim_mob::SegmentStats*> & newPath);
 
@@ -335,6 +379,7 @@ protected:
 	 * @param message data received.
 	 */
 	virtual void handleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+	friend class MesoReroute;
 
 };
 

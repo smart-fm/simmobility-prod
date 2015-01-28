@@ -1405,7 +1405,7 @@ sim_mob::Conflux* sim_mob::Conflux::findStartingConflux(Person* p)
 		pathSetRole = (mode == "Car" || mode == "Taxi" || mode == "Motorcycle" || mode == "MRT") ;
 	}
 	if (firstTrip && ConfigManager::GetInstance().FullConfig().PathSetMode() && pathSetRole) {
-		path = PathSetManager::getInstance()->getPath(p,firstTrip->getSubTrips().front());
+		path = PathSetManager::getInstance()->getPath(firstTrip->getSubTrips().front(), false,nullptr);
 	}
 	else{
 		const sim_mob::TripChainItem* firstItem = agTripChain.front();

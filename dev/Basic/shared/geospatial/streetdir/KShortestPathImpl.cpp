@@ -165,7 +165,8 @@ class BType
 	struct comp{
 		bool operator()(const Pair& lhs,const Pair& rhs) const
 		{
-			return lhs.first*1000000 <= rhs.first*1000000;
+//			return true;
+			return lhs.first/**1000000*/ < rhs.first/**1000000*/;
 		}
 	};
 	std::list<std::vector<sim_mob::WayPoint> > paths;
@@ -177,6 +178,7 @@ public:
 	void insert(double length, std::vector<sim_mob::WayPoint> & path)
 	{
 		pathIt it = paths.insert(paths.end(),path);
+		std::cout << "inserting " << length << " and vector size(" << path.size() << ")  " << std::endl;
 		keys.push_back(std::make_pair(length, it));
 	}
 	bool empty()
@@ -194,15 +196,25 @@ public:
 	}
 	void sort()
 	{
+
+		//debug
+		std::cout << keys.size() << "keys before sort : ";
+		std::vector<Pair>::iterator it1(keys.begin()),itEnd1(keys.end());
+		for(;it1 != itEnd1; it1++)
+		{
+			std::cout << (*it1).first << ",";
+		}
+		std::cout << "\n";
+		//debug..
 		std::sort(keys.begin(), keys.end(),comp());
 		//debug
-//		std::cout << "sorted B in this iteration : ";
-//		std::vector<Pair>::iterator it(keys.begin()),itEnd(keys.end());
-//		for(;it != itEnd; it++)
-//		{
-//			std::cout << (*it).first << ",";
-//		}
-//		std::cout << "\n";
+		std::cout << keys.size() << " keys sorted : ";
+		std::vector<Pair>::iterator it(keys.begin()),itEnd(keys.end());
+		for(;it != itEnd; it++)
+		{
+			std::cout << (*it).first << ",";
+		}
+		std::cout << "\n";
 		//debug...
 	}
 	const std::vector<sim_mob::WayPoint>& get()
@@ -211,12 +223,31 @@ public:
 		{
 			throw std::runtime_error("Empty K-Shortest Path intermediary Collections, Check before Fetch");
 		}
+		int i = 0;
+		std::cout << "getting B.begin:" << keys.size() << std::endl;
+		BOOST_FOREACH(Pair &pair, keys)
+		{
+			std::cout << i++ << std::endl;
+			std::cout << pair.first << std::endl;
+//			std::cout << pair.second->size() << std::endl;
+		}
+		std::cout << "getting B.begin first:" <<  (keys.begin()->first) << std::endl;
+		std::cout << "getting B.begin second of size:" <<  (keys.begin()->second)->size() << std::endl;
 		return *(keys.begin()->second);
 	}
 	void eraseBegin()
 	{
 		paths.erase(keys.begin()->second);
 		keys.erase(keys.begin());
+
+		//debug
+		std::cout << "keys after erase begin : ";
+		std::vector<Pair>::iterator it(keys.begin()),itEnd(keys.end());
+		for(;it != itEnd; it++)
+		{
+			std::cout << (*it).first << ",";
+		}
+		std::cout << "\n";
 	}
 
 };
@@ -225,10 +256,10 @@ public:
  */
 int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, const sim_mob::Node *to, std::vector< std::vector<sim_mob::WayPoint> > &res)
 {
-	std::stringstream log("");
-	log << "ksp-" << from->getID() << "," << to->getID() ;
-	sim_mob::BasicLogger & logger = sim_mob::Logger::log(log.str());
-	std::cout << from->getID() << "," << to->getID() << "\n";
+//	std::stringstream log("");
+//	log << "ksp-" << from->getID() << "," << to->getID() ;
+//	sim_mob::BasicLogger & logger = sim_mob::Logger::log(log.str());
+	//logger << from->getID() << "," << to->getID() << "\n";
 	std::vector< std::vector<sim_mob::WayPoint> > &A = res;//just renaming the variable
 	std::vector<const RoadSegment*> bl;//black list
 	//	STEP 1: find path A1
@@ -236,8 +267,8 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 	std::vector<sim_mob::WayPoint> temp = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*from),stdir->DrivingVertex(*to),bl);
 	std::vector<sim_mob::WayPoint> A0;//actually A1 (in the pseudo code)
 	sim_mob::SinglePath::filterOutNodes(temp,A0);
-	std::cout << "shortest path with nodes : " << sim_mob::printWPpath(temp) << "\n\n";
-	std::cout << "shortest path segments : " << printWPpath(A0) << "\n\n";
+	//logger << "shortest path with nodes : " << sim_mob::printWPpath(temp) << "\n\n";
+	//logger << "shortest path segments : " << printWPpath(A0) << "\n\n";
 	//sanity check
 	if(A0.empty())
 	{
@@ -253,7 +284,7 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 	int K = 1; //k = 2
 	while(true)
 	{
-		std::cout << "K=" << K << "\n";
+		//logger << "K=" << K << "\n";
 		//		Set path list C = A.
 		std::vector< std::vector<sim_mob::WayPoint> > C = A;
 		//		Set RootPath = [].
@@ -264,7 +295,7 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 			//	nextRootPathLink = A,k-1 [i]
 			sim_mob::WayPoint nextRootPathLink = A[K-1][i];
 			const sim_mob::Node *SpurNode = nextRootPathLink.roadSegment_->getStart();
-			//std::cout << "[spurnode:segment]:[" << SpurNode->getID() << "," << nextRootPathLink.roadSegment_->getId() << "]\n";
+			////logger << "[spurnode:segment]:[" << SpurNode->getID() << "," << nextRootPathLink.roadSegment_->getId() << "]\n";
 			//	Find links whose EndNode = SpurNode, and block them.
 			getEndSegments(SpurNode,bl);//find and store in the blacklist
 			//	For each path Cj in path list C:
@@ -312,6 +343,9 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 		B.sort();
 		//	Add B[0] to path list A, and delete it from path list B.
 		const std::vector<sim_mob::WayPoint> & B0 = B.get();
+
+		//logger << "got B0:" << std::endl;
+		//logger << "B0.size():" << B0.size() << " \npushing" << std::endl;
 		A.push_back(B0);
 		B.eraseBegin();
 		//	Restore blocked links.

@@ -7,6 +7,16 @@
 namespace sim_mob
 {
 class RoadSegment;
+
+struct RdSegTravelTimes
+{
+public:
+	double travelTimeSum;
+	unsigned int agCnt;
+
+	RdSegTravelTimes(double rdSegTravelTime, unsigned int agentCount)
+	: travelTimeSum(rdSegTravelTime), agCnt(agentCount) {}
+};
 namespace TT
 {
 	struct TimeAndCount

@@ -8,6 +8,7 @@
 
 namespace sim_mob {
 namespace medium {
+class MesoReroute;
 class MesoPathMover {
 public:
 	MesoPathMover() : distToSegmentEnd(0) {}
@@ -20,7 +21,7 @@ public:
 	}
 
 	/**
-	 * sets path
+	 * sets path and resets the current iterator
 	 * @param path the path to be set
 	 */
 	void setPath(const std::vector<const sim_mob::SegmentStats*>& path);
@@ -116,6 +117,15 @@ public:
 	//debug
 	///print path by aimsun section id
 	static void printPath(const MesoPathMover::Path &path, const Node *node = 0);
+private:
+	/**
+	 * gets the SegmentStats iterator
+	 * @return currSegStatIt
+	 */
+	Path::iterator getCurrSegStatsIt(){
+		return currSegStatIt;
+	}
+	friend MesoReroute;
 };
 }
 }

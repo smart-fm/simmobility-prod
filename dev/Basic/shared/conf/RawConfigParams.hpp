@@ -68,7 +68,8 @@ struct LongTermParams{
 
 struct PathSetConf
 {
-	PathSetConf():enabled(false), database(""), credentials(""), singlePathTableName(""), RTTT_Conf(""), DTT_Conf(""), dbFunction("") {}
+	PathSetConf():enabled(false), database(""), credentials("")/*, singlePathTableName("")*/, RTTT_Conf(""), DTT_Conf(""), dbFunction(""), interval(0),
+	recPS(false),reroute(false), cbd(false){}
 	bool enabled;
 	std::string database;
 	std::string credentials;
@@ -77,6 +78,12 @@ struct PathSetConf
 	std::string DTT_Conf;//default travel time table name
 	std::string dbFunction;
 	int interval; //travel time recording iterval(in seconds)
+	///	recursive pathset Generation
+	bool recPS;
+	///	 enable rerouting?
+	bool reroute;
+	///	CBD enabled?
+	bool cbd;
 };
 
 ///represent the incident data section of the config file

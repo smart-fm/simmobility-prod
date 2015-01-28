@@ -3,6 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "DriverFacets.hpp"
+#include "MesoReroute.hpp"
 #include <cmath>
 #include <ostream>
 #include <algorithm>
@@ -51,23 +52,6 @@ sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("path_set");
 
 namespace {
 /**
- * accepts a list of WayPoint-s and returns a list of SegmentStats* corresponding
- * to RoadSegment* in the list of WayPoint.
- */
-void initSegStatsPath(vector<sim_mob::WayPoint>& wpPath,
-		vector<const sim_mob::SegmentStats*>& ssPath) {
-	for (vector<sim_mob::WayPoint>::iterator it = wpPath.begin();
-			it != wpPath.end(); it++) {
-		if (it->type_ == WayPoint::ROAD_SEGMENT) {
-			const sim_mob::RoadSegment* rdSeg = it->roadSegment_;
-			const vector<sim_mob::SegmentStats*>& statsInSegment =
-					rdSeg->getParentConflux()->findSegStats(rdSeg);
-			ssPath.insert(ssPath.end(), statsInSegment.begin(), statsInSegment.end());
-		}
-	}
-}
-
-/**
  * converts time from milli-seconds to seconds
  */
 inline double converToSeconds(uint32_t timeInMs) {
@@ -105,7 +89,9 @@ sim_mob::medium::Driver* sim_mob::medium::DriverBehavior::getParentDriver() {
 sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	MovementFacet(parentAgent), parentDriver(nullptr), currLane(nullptr),
 	isQueuing(false), laneConnectorOverride(false)
-{}
+{
+	rerouter.reset(new MesoReroute(*this));
+}
 
 
 sim_mob::medium::DriverMovement::~DriverMovement() {
@@ -204,6 +190,30 @@ void sim_mob::medium::DriverMovement::frame_tick_output() {
 	LogOut(logout.str());
 }
 
+void sim_mob::medium::DriverMovement::initSegStatsPath(vector<sim_mob::WayPoint>& wpPath,
+		vector<const sim_mob::SegmentStats*>& ssPath) {
+	for (vector<sim_mob::WayPoint>::iterator it = wpPath.begin();
+			it != wpPath.end(); it++) {
+		if (it->type_ == WayPoint::ROAD_SEGMENT) {
+			const sim_mob::RoadSegment* rdSeg = it->roadSegment_;
+			const vector<sim_mob::SegmentStats*>& statsInSegment =
+					rdSeg->getParentConflux()->findSegStats(rdSeg);
+			ssPath.insert(ssPath.end(), statsInSegment.begin(), statsInSegment.end());
+		}
+	}
+}
+
+
+void sim_mob::medium::DriverMovement::initSegStatsPath(const std::vector<const sim_mob::RoadSegment*>& rsPath, std::vector<const sim_mob::SegmentStats*>& ssPath)
+{
+	for (vector<const sim_mob::RoadSegment*>::const_iterator it = rsPath.begin(); it != rsPath.end(); it++)
+	{
+		const sim_mob::RoadSegment* rdSeg = *it;
+		const vector<sim_mob::SegmentStats*>& statsInSegment = rdSeg->getParentConflux()->findSegStats(rdSeg);
+		ssPath.insert(ssPath.end(), statsInSegment.begin(), statsInSegment.end());
+	}
+}
+
 bool sim_mob::medium::DriverMovement::initializePath() {
 	//Only initialize if the next path has not been planned for yet.
 	sim_mob::Person* person = getParent();
@@ -228,7 +238,7 @@ bool sim_mob::medium::DriverMovement::initializePath() {
 		if(wp_path.empty()){
 			// if use path set
 			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-				wp_path = PathSetManager::getInstance()->getPath(person,*(person->currSubTrip));
+				wp_path = PathSetManager::getInstance()->getPath(*(person->currSubTrip), false, nullptr);
 			}
 			else
 			{
@@ -307,12 +317,17 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 	//currently the best place to call a handler indicating 'Done' with segment.
 	const sim_mob::RoadSegment *curRs = (*(pathMover.getCurrSegStats())).getRoadSegment();
 	//Although the name of the method suggests segment change, it is actually segStat change. so we check again!
+	const sim_mob::RoadSegment *nxtRs = (nxtSegStat ? nxtSegStat->getRoadSegment() : nullptr);
 
-	if(curRs && nxtSegStat && curRs != nxtSegStat->getRoadSegment())
+	if(curRs && nxtSegStat && curRs != nxtRs)
 	{
-		const sim_mob::RoadSegment *nxtRs = (nxtSegStat ? nxtSegStat->getRoadSegment() : nullptr);
 		onSegmentCompleted(curRs,nxtRs);
 	}
+//	//did you just complete a link?
+//	if(curRs && curRs->getEnd() == curRs->getLink()->getEnd())
+//	{
+//		onLinkCompleted(curRs->getLink(),(nxtRs ? nxtRs->getLink() : nullptr));
+//	}
 
 
 	if (!nxtSegStat) {
@@ -383,55 +398,27 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 	return res;
 }
 
-
+/*
+ * List of the operations performed in this method
+ * 1- CBD Travel Metrics collections
+ * 2- Rerouting
+ */
 void DriverMovement::onSegmentCompleted(const sim_mob::RoadSegment* completedRS, const sim_mob::RoadSegment* nextRS)
 {
-	//search for CBD enter exit
-	//-get subtrip, where CBD indication is placed
-	TravelMetric::CDB_TraverseType type = travelTimeMetric.cbdTraverseType;
-	//std::cout << "onSegmentCompleted\n";
-	if(nextRS && !pathMover.isPathCompleted() && (type == TravelMetric::CBD_ENTER || type == TravelMetric::CBD_EXIT))
+	//1. CBD
+	processCBD_TravelMetrics(completedRS, nextRS);
+
+	//2. Rerouting
+	if(ConfigManager::GetInstance().FullConfig().pathSet().reroute)
 	{
-		std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getRepr_());
-		sim_mob::RestrictedRegion &cbd = sim_mob::RestrictedRegion::getInstance();
-		std::stringstream out("");
-		switch(type)
-		{
-		case TravelMetric::CBD_ENTER:{
-			//search if you are about to enter CBD (we assume the trip started outside cbd and  is going to end inside cbd)
-			if(cbd.isEnteringRestrictedZone(completedRS,nextRS) && travelTimeMetric.cbdEntered.check())
-			{
-				out << getParent()->getId() << "onSegmentCompleted Enter CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
-				travelTimeMetric.cbdOrigin = sim_mob::WayPoint(completedRS->getEnd());
-				travelTimeMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
-
-//				cbdSELogger <<  now << (*(getParent()->currSubTrip)).fromLocation.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : ENTER SEGMENT : origin[" <<
-//						travelTimeMetric.cbdOrigin.node_->getID() << "], start time[" << travelTimeMetric.cbdStartTime.getRepr_() << "]\n";
-				//travelTimeMetric.cbdEndTime is the end time of the trip, so it will be populated when the subtrip is finalized
-				//cbd travel time also when subtrip in finalized
-			}
-			break;
-		}
-		case TravelMetric::CBD_EXIT:{
-			//search if you are about to exit CBD(we assume the trip started inside cbd and is going to end outside cbd)
-			if(cbd.isExittingRestrictedZone(completedRS,nextRS) && travelTimeMetric.cbdExitted.check())
-			{
-				out << getParent()->getId() << "onSegmentCompleted exit CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
-//				travelTimeMetric.cbdOrigin = travelTimeMetric.origin;//(*(pathMover.getPath().begin()))->getRoadSegment()->getStart();
-				travelTimeMetric.cbdDestination = sim_mob::WayPoint(completedRS->getEnd());
-//				travelTimeMetric.cbdStartTime = travelTimeMetric.startTime;//is the start time of trip
-				travelTimeMetric.cbdEndTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
-				travelTimeMetric.cbdTravelTime = sim_mob::TravelMetric::getTimeDiffHours(travelTimeMetric.cbdEndTime , travelTimeMetric.cbdStartTime);
-
-//				cbdSELogger << getParent()->GetId() << " , " << now << " , " << (*(getParent()->currSubTrip)).fromLocation.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : EXIT SEGMENT : destination[" <<
-//						travelTimeMetric.cbdDestination.node_->getID() << "], end time[" << travelTimeMetric.cbdEndTime.getRepr_() << "] TT[" << "," <<
-//						travelTimeMetric.cbdTravelTime << "\n";
-			}
-			break;
-		}
-		};
-		std::cout << out.str() ;
+		reroute(completedRS, nextRS);
 	}
+
+}
+
+void DriverMovement::onLinkCompleted(const sim_mob::Link * completedLink, const sim_mob::Link * nextLink)
+{
+
 }
 
 void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdateParams& params) {
@@ -1005,6 +992,47 @@ TravelMetric& sim_mob::medium::DriverMovement::finalizeTravelTimeMetric()
 	//getParent()->addSubtripTravelMetrics(*travelTimeMetric);
 	return  travelTimeMetric;
 }
+
+
+TravelMetric& DriverMovement::processCBD_TravelMetrics(const sim_mob::RoadSegment* completedRS, const sim_mob::RoadSegment* nextRS)
+{
+	//search for CBD enter exit
+	//-get subtrip, where CBD indication is placed
+	TravelMetric::CDB_TraverseType type = travelTimeMetric.cbdTraverseType;
+	//std::cout << "onSegmentCompleted\n";
+	if(nextRS && !pathMover.isPathCompleted() && (type == TravelMetric::CBD_ENTER || type == TravelMetric::CBD_EXIT))
+	{
+		std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getRepr_());
+		sim_mob::RestrictedRegion &cbd = sim_mob::RestrictedRegion::getInstance();
+		std::stringstream out("");
+		switch(type)
+		{
+		case TravelMetric::CBD_ENTER:{
+			//search if you are about to enter CBD (we assume the trip started outside cbd and  is going to end inside cbd)
+			if(cbd.isEnteringRestrictedZone(completedRS,nextRS) && travelTimeMetric.cbdEntered.check())
+			{
+				out << getParent()->getId() << "onSegmentCompleted Enter CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
+				travelTimeMetric.cbdOrigin = sim_mob::WayPoint(completedRS->getEnd());
+				travelTimeMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+			}
+			break;
+		}
+		case TravelMetric::CBD_EXIT:{
+			//search if you are about to exit CBD(we assume the trip started inside cbd and is going to end outside cbd)
+			if(cbd.isExittingRestrictedZone(completedRS,nextRS) && travelTimeMetric.cbdExitted.check())
+			{
+				out << getParent()->getId() << "onSegmentCompleted exit CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
+				travelTimeMetric.cbdDestination = sim_mob::WayPoint(completedRS->getEnd());
+				travelTimeMetric.cbdEndTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+				travelTimeMetric.cbdTravelTime = sim_mob::TravelMetric::getTimeDiffHours(travelTimeMetric.cbdEndTime , travelTimeMetric.cbdStartTime);
+			}
+			break;
+		}
+		};
+		std::cout << out.str() ;
+	}
+}
+
 int DriverMovement::findReroutingPoints(const std::vector<sim_mob::SegmentStats*>& stats,
 		std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >& remaining) const{
 
@@ -1083,7 +1111,7 @@ bool DriverMovement::UTurnFree(std::vector<WayPoint> & newPath, std::vector<cons
 	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
 	//if no path, return false, if path found, return true
 	std::stringstream outDbg("");
-	sim_mob::PathSetManager::getInstance()->getBestPath(newPath,&subTrip, &outDbg, excludeRS);
+	sim_mob::PathSetManager::getInstance()->getBestPath(newPath,&subTrip, /*&outDbg,*/ excludeRS,false,false,false,nullptr);
 	//try again
 	if(!newPath.size()){
 		pathsetLogger<< "No other path can avoid a Uturn, suggest to discard \n" ;
@@ -1118,7 +1146,7 @@ bool DriverMovement::canJoinPaths(std::vector<WayPoint> & newPath, std::vector<c
 	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
 	//if no path, return false, if path found, return true
 	std::stringstream outDbg("");
-	sim_mob::PathSetManager::getInstance()->getBestPath(newPath,&subTrip, &outDbg, excludeRS);
+	sim_mob::PathSetManager::getInstance()->getBestPath(newPath,&subTrip, /*&outDbg,*/ excludeRS,false,false,false,nullptr);
 	to = newPath.begin()->roadSegment_;
 	bool res = isConnectedToNextSeg(from,to);
 	return res;
@@ -1130,6 +1158,11 @@ int roll_die(int l,int r) {
     boost::uniform_int<> dist(l,r);
     boost::variate_generator<boost::mt19937&, boost::uniform_int<> > die(myOwngen, dist);
     return die();
+}
+
+void DriverMovement::reroute(const sim_mob::RoadSegment* currSegment, const sim_mob::RoadSegment* nextSegment)
+{
+	rerouter->reroute();
 }
 
 //step-1: can I rerout? if yes, what are my points of rerout?
@@ -1161,9 +1194,10 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 	BOOST_FOREACH(DetourOption detourNode, deTourOptions)
 	{
 		// change the origin
+		//todo and the start time !!!-vahid
 		subTrip.fromLocation.node_ = detourNode.first;
 		//	record the new paths using the updated subtrip. (including no paths)
-		sim_mob::PathSetManager::getInstance()->getBestPath(newPaths[detourNode.first], &subTrip);//partially excluded sections must be already added
+		sim_mob::PathSetManager::getInstance()->getBestPath(newPaths[detourNode.first], &subTrip,std::set<const sim_mob::RoadSegment*>(), false,false,false,nullptr);//partially excluded sections must be already added
 	}
 
 	/*step-4: prepend the old path to the new path

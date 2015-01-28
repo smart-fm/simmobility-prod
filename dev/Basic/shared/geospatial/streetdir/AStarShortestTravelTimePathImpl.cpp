@@ -164,7 +164,8 @@ void sim_mob::A_StarShortestTravelTimePathImpl::initDrivingNetworkNew(const vect
 	//    			boost::ref(nodeLookup_EveningPeak)));
 
 	//    	procAddDrivingNodes(drivingMap_Random, (*iter)->getSegments(), nodeLookup_Random);
-
+	sim_mob::Profiler profiler("driving-network");
+	profiler.tick();
     for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
     	procAddDrivingNodes(drivingMap_MorningPeak,	(*iter)->getSegments(), nodeLookup_MorningPeak);
     }
@@ -179,6 +180,8 @@ void sim_mob::A_StarShortestTravelTimePathImpl::initDrivingNetworkNew(const vect
 		drivingMap_Random_pool[i] = drivingMap_MorningPeak;
 		nodeLookup_Random_pool[i] = nodeLookup_MorningPeak;
 	}
+
+	std::cout << "procAddDrivingNodes : " << profiler.tick().count() << " " << nodeLookup_EveningPeak.size() << "\n";
 
     sim_mob::batched::ThreadPool threadPool(5);
     //Proceed through our Links, adding each RoadSegment path. Split vertices as required.
@@ -249,7 +252,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::initDrivingNetworkNew(const vect
 		}
         threadPool.wait();
     }
-
+    std::cout << "procAddDrivingLinks : " << profiler.tick().count() << "\n";
     //Now add all Intersection edges (lane connectors)
     for (map<const Node*, VertexLookup>::const_iterator it=nodeLookup_MorningPeak.begin(); it!=nodeLookup_MorningPeak.end(); it++) {
 //    	procAddDrivingLaneConnectors(drivingMap_, dynamic_cast<const MultiNode*>(it->first), nodeLookup);
@@ -378,6 +381,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::initDrivingNetworkNew(const vect
 		}
         threadPool.wait();
     }
+    std::cout << "procAddDrivingBusStops : " << profiler.tick().count() << "\n";
 
     //Finally, add our "master" node vertices
 //    procAddStartNodesAndEdges(drivingMap_, nodeLookup, drivingNodeLookup_);
@@ -436,6 +440,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::initDrivingNetworkNew(const vect
     			boost::ref(drivingNodeLookup_Random_pool[i])));
 	}
 	threadPool.wait();
+    std::cout << "procAddStartNodesAndEdges : " << profiler.tick().count() << "\n";
 	std::cout << "A_StarShortestTravelTimePathImpl::initDrivingNetworkNew Done" << std::endl;
 }
 

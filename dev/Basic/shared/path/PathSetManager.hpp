@@ -93,7 +93,7 @@ public:
 	 * @param ps the input pathset
 	 * @param enRoute decides if travel time retrieval should included in simulation travel time or not
 	 */
-	void onPathSetRetrieval(boost::shared_ptr<PathSet> &ps, bool enRoute = false);
+	void onPathSetRetrieval(boost::shared_ptr<PathSet> &ps, bool enRoute);
 
 	/**
 	 * post pathset generation processes
@@ -108,17 +108,18 @@ public:
 	 * @param partialExcludedSegs segments temporarily having different attributes
 	 * @param blckLstSegs segments off the road network. This
 	 * @param tempBlckLstSegs segments temporarily off the road network
-	 * @param isUseCache is using the cache allowed
+	 * @param enRoute is this method called for an enroute path request
+	 * @param approache if this is an entoute, from which segment is it permitted to enter the rerouting point to start a new path
 	 * Note: PathsetManager object already has containers for partially excluded and blacklisted segments. They will be
 	 * the default containers throughout the simulation. but partialExcludedSegs and blckLstSegs arguments are combined
 	 * with their counterparts in PathSetmanager only during the scope of this method to serve temporary purposes.
 	 */
 	 bool getBestPath(std::vector<sim_mob::WayPoint>& res,
-			 const sim_mob::SubTrip* st,std::stringstream *outDbg=nullptr,
-			 const std::set<const sim_mob::RoadSegment*> tempBlckLstSegs=std::set<const sim_mob::RoadSegment*>(),
-			 bool usePartialExclusion = false,
-			 bool useBlackList = false,
-			 bool isUseCache = true);
+			 const sim_mob::SubTrip* st,/*std::stringstream *outDbg=nullptr,*/
+			 const std::set<const sim_mob::RoadSegment*> tempBlckLstSegs/*=std::set<const sim_mob::RoadSegment*>()*/,
+			 bool usePartialExclusion ,
+			 bool useBlackList ,
+			 bool enRoute ,const sim_mob::RoadSegment* approache);
 
 	/**
 	 * generate all the paths for a person given its subtrip(OD)
@@ -128,7 +129,7 @@ public:
 	 * @param excludedSegs input list segments to be excluded from the target set
 	 * @param isUseCache is using the cache allowed
 	 */
-	bool generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs=std::set<const sim_mob::RoadSegment*>());
+	bool generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs);
 
 	///	generate travel time required to complete a path represented by different singlepath objects
 	void generateTravelTimeSinglePathes(const sim_mob::Node *fromNode, const sim_mob::Node *toNode, std::set<std::string>& duplicateChecker,boost::shared_ptr<sim_mob::PathSet> &ps_);
@@ -139,7 +140,7 @@ public:
 
 	bool getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet> &ps,
 			const std::set<const sim_mob::RoadSegment *> & partialExclusion,
-			const std::set<const sim_mob::RoadSegment*> &blckLstSegs);
+			const std::set<const sim_mob::RoadSegment*> &blckLstSegs, bool enRoute, const sim_mob::RoadSegment* rs);
 
 	/**
 	 * The main entry point to the pathset manager,
@@ -149,7 +150,7 @@ public:
 	 * @enRoute indication of whether this request was made in the beginning of the trip or enRoute
 	 * @return a sequence of road segments wrapped in way point structure
 	 */
-	std::vector<WayPoint> getPath(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip, bool enRoute = false);
+	std::vector<WayPoint> getPath(const sim_mob::SubTrip &subTrip, bool enRoute , const sim_mob::RoadSegment* approach);
 
 	/**
 	 * 	calculates the travel time of a path
@@ -320,17 +321,6 @@ private:
 
 	///a cache to help answer this question: a given road segment is within which path(s)
 	SGPER pathSegments;
-/////////////////////////////travel time todo cleanup
-	//=======road segment travel time computation for current frame tick =================
-	struct RdSegTravelTimes
-	{
-	public:
-		double travelTimeSum;
-		unsigned int agCnt;
-
-		RdSegTravelTimes(double rdSegTravelTime, unsigned int agentCount)
-		: travelTimeSum(rdSegTravelTime), agCnt(agentCount) {}
-	};
 
 	void resetRdSegTravelTimes();
 	void reportRdSegTravelTimes(timeslice frameNumber);

@@ -13,6 +13,7 @@
 #include "logging/NullableOutputStream.hpp"
 #include "message/Message.hpp"
 #include "message/MessageHandler.hpp"
+#include "path/Reroute.hpp"
 
 namespace sim_mob {
 
@@ -158,6 +159,8 @@ protected:
 
 	///	placeholder for various movement measurements
 	 TravelMetric travelTimeMetric;
+	 /// rerouting member in charge
+	 boost::shared_ptr<sim_mob::Reroute> rerouter;
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI

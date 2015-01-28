@@ -230,6 +230,7 @@ public:
 	std::vector<Node*> routes;
 	std::vector<const Person*> insidePassengers;
 };
+
 /**
  * \author Harish
  * \author zhang huai peng

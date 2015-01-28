@@ -118,7 +118,6 @@ public:
 		safe_delete_item(currResource);
 	}
 
-<<<<<<< HEAD
 	const std::string getMode()
 	{
 		switch (roleType)
@@ -133,9 +132,6 @@ public:
 		case RL_WAITBUSACTITITY: return "WaitingBusActivity";
 		}
 	}
-=======
-	//virtual void onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args){}
->>>>>>> master
 
 	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
 	virtual Role* clone(Person* parent) const = 0;

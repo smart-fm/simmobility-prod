@@ -622,6 +622,39 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 		cfg.pathset.interval = ParseInteger(GetNamedAttributeValue(interval, "value"), 600);
 	}
 
+	//recirsive pathset generation
+	xercesc::DOMElement* recPS = GetSingleElementByName(node, "recursive_pathset_generation ");
+	if(!functionNode){
+		std::cerr << "recursive_pathset_generation Not Found, setting to false\n";
+		cfg.pathset.recPS = false;
+	}
+	else
+	{
+		cfg.pathset.recPS = ParseInteger(GetNamedAttributeValue(recPS, "value"), false);
+	}
+
+	//reroute
+	xercesc::DOMElement* reroute = GetSingleElementByName(node, "recursive_pathset_generation ");
+	if(!functionNode){
+		std::cerr << "reroute_enabled Not Found, setting to false\n";
+		cfg.pathset.reroute = false;
+	}
+	else
+	{
+		cfg.pathset.reroute = ParseInteger(GetNamedAttributeValue(reroute, "value"), false);
+	}
+
+	//CBD //todo: usage still unclear
+	xercesc::DOMElement* cbd = GetSingleElementByName(node, "recursive_pathset_generation ");
+	if(!functionNode){
+		std::cerr << "reroute_enabled Not Found, setting to false\n";
+		cfg.pathset.cbd = false;
+	}
+	else
+	{
+		cfg.pathset.cbd = ParseInteger(GetNamedAttributeValue(cbd, "value"), false);
+	}
+
 //	//sanity check
 	std::stringstream out("");
 	if(cfg.pathset.database == "")

@@ -197,9 +197,10 @@ public:
 	}
 
 	/**
-	 * returns a profiler based on id,
-	 * if not found, a new profiler will be : generated, started and returned
-	 * timer: should start timer or prefer to start it manually
+	 * Gets a profiler give its id.If is is not found, a new profiler will be generated, started and returned.
+	 * @param id give id of the profiler.
+	 * @timer decides whether to start the profiler's timer or prefer to start it manually using .tick()?
+	 * @return Profiler object based on id,
 	 */
 	sim_mob::Profiler & prof(const std::string id, bool timer = true);
 

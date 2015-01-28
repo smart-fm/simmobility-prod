@@ -8,6 +8,8 @@
 #include "PathSetManager.hpp"
 #include "Path.hpp"
 #include "entities/PersonLoader.hpp"
+#include "entities/roles/RoleFacets.hpp"
+#include "entities/incident/IncidentManager.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/Node.hpp"
@@ -420,8 +422,9 @@ std::string sim_mob::printWPpath(const std::vector<WayPoint> &wps , const sim_mo
 }
 
 
-vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::Person* per,const sim_mob::SubTrip &subTrip, bool enRoute)
+vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::SubTrip &subTrip, bool enRoute, const sim_mob::RoadSegment* approach)
 {
+	sim_mob::BasicLogger & logger = sim_mob::Logger::log("path_out");
 	// get person id and current subtrip id
 	std::stringstream str("");
 	str << subTrip.fromLocation.node_->getID() << "," << subTrip.toLocation.node_->getID();
@@ -438,10 +441,10 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::Person* per,con
 			subTrip.cbdTraverseType = TravelMetric::CBD_PASS;
 			str << "[BLCKLST]";
 			std::stringstream outDbg("");
-			getBestPath(res, &subTrip, &outDbg,
-					std::set<const sim_mob::RoadSegment*>(), false, true,enRoute);//use/enforce blacklist
+			getBestPath(res, &subTrip, //&outDbg,
+					std::set<const sim_mob::RoadSegment*>(), false, true,enRoute, approach);//use/enforce blacklist
 			if (sim_mob::RestrictedRegion::getInstance().isInRestrictedSegmentZone(res)) {
-				logger << "[" << fromToID << "]" << " [PERSON: "	<< per->getId() << "] " << "[PATH : " << res.size() << "]" << std::endl;
+				logger << "[" << fromToID << "]" << "[PATH : " << res.size() << "]" << std::endl;
 				printWPpath(res);
 				logger << outDbg.str() << std::endl;
 				throw std::runtime_error("\npath inside cbd ");
@@ -455,22 +458,19 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::Person* per,con
 			} else {
 				str << "[BOTH INSIDE CBD]";
 			}
-			getBestPath(res, &subTrip);
+			getBestPath(res, &subTrip, std::set<const sim_mob::RoadSegment*>(), false, false,enRoute, approach);
 		}
 	} else {
-		getBestPath(res, &subTrip);
+		getBestPath(res, &subTrip,std::set<const sim_mob::RoadSegment*>(), false, false,enRoute, approach);
 	}
 
 	//subscribe person
-	logger << fromToID  << ": Path chosen for person[" << per->getId() << "]"  << "\n";
-	str <<  " [PERSON: " << per->getId() << "]"  ;
+	logger << "[SELECTED PATH FOR : " << fromToID  << "]:\n";
 	if(!res.empty())
 	{
-		logger << "[" << fromToID << "]" <<  " : was assigned path of size " << res.size()  << "\n";
-		str << "[PATH : " << res.size()  << "]\n";
+		str << printWPpath(res);
 	}
 	else{
-		logger << "[" << fromToID << "]" << " : NO PATH" << "\n";
 		str << "[NO PATH]" << "\n";
 	}
 	logger << str.str();
@@ -561,11 +561,12 @@ void sim_mob::PathSetManager::onGeneratePathSet(boost::shared_ptr<PathSet> &ps)
 //step-5: Choose the best path using utility function
 bool sim_mob::PathSetManager::getBestPath(
 		std::vector<sim_mob::WayPoint> &res,
-		const sim_mob::SubTrip* st,std::stringstream *outDbg,
+		const sim_mob::SubTrip* st,
+//		std::stringstream *outDbg,
 		std::set<const sim_mob::RoadSegment*> tempBlckLstSegs,
 		 bool usePartialExclusion,
 		 bool useBlackList,
-		bool enRoute)
+		bool enRoute,const sim_mob::RoadSegment* approach)
 {
 	res.clear();
 //	if(st->mode == "Car" || st->mode == "Taxi" || st->mode == "Motorcycle") //only driver need path set
@@ -604,7 +605,6 @@ bool sim_mob::PathSetManager::getBestPath(
 	boost::shared_ptr<sim_mob::PathSet> ps_;
 
 	//Step-1 Check Cache
-	sim_mob::Logger::log("ODs") << "[" << fromToID << "]" <<  "\n";
 	/*
 	 * supply only the temporary blacklist, because with the current implementation,
 	 * cache should never be filled with paths containing permanent black listed segments
@@ -615,7 +615,7 @@ bool sim_mob::PathSetManager::getBestPath(
 		logger <<  fromToID  << " : Cache Hit\n";
 		onPathSetRetrieval(ps_,enRoute);
 		//no need to supply permanent blacklist
-		bool r = getBestPathChoiceFromPathSet(ps_,partial,emptyBlkLst);
+		bool r = getBestPathChoiceFromPathSet(ps_,partial,emptyBlkLst,enRoute, approach);
 		logger <<  fromToID << " : getBestPathChoiceFromPathSet returned best path of size : " << ps_->bestPath->size() << "\n";
 		if(r)
 		{
@@ -638,7 +638,7 @@ bool sim_mob::PathSetManager::getBestPath(
 	ps_->subTrip = st;
 	ps_->id = fromToID;
 	ps_->scenario = scenarioName;
-	hasPath = sim_mob::aimsun::Loader::loadSinglePathFromDB(*getSession(),fromToID,ps_->pathChoices, dbFunction,outDbg,blckLstSegs);
+	hasPath = sim_mob::aimsun::Loader::loadSinglePathFromDB(*getSession(),fromToID,ps_->pathChoices, dbFunction/*,outDbg*/,blckLstSegs);
 	logger  <<  fromToID << " : " << (hasPath == PSM_HASPATH ? "" : "Don't " ) << "have SinglePaths in DB \n" ;
 	switch (hasPath) {
 	case PSM_HASPATH: {
@@ -658,8 +658,8 @@ bool sim_mob::PathSetManager::getBestPath(
 		}
 		//	no need of processing and storing blacklisted paths
 		short psCnt = ps_->pathChoices.size();
-		onPathSetRetrieval(ps_);
-		r = getBestPathChoiceFromPathSet(ps_, partial,emptyBlkLst);
+		onPathSetRetrieval(ps_,enRoute);
+		r = getBestPathChoiceFromPathSet(ps_, partial,emptyBlkLst,enRoute, approach);
 		logger << "[" << fromToID << "]" <<  " :  number of paths before blcklist: " << psCnt << " after blacklist:" << ps_->pathChoices.size() << "\n";
 		if (r) {
 			res = *(ps_->bestPath);
@@ -705,7 +705,7 @@ bool sim_mob::PathSetManager::getBestPath(
 		}
 		logger << "[PATHSET GENERATED : " << fromToID << "]\n" ;
 		onPathSetRetrieval(ps_, enRoute);
-		r = getBestPathChoiceFromPathSet(ps_, partial,emptyBlkLst);
+		r = getBestPathChoiceFromPathSet(ps_, partial,emptyBlkLst,enRoute,approach);
 		if (r) {
 			res = *(ps_->bestPath);
 			//cache
@@ -735,6 +735,7 @@ bool sim_mob::PathSetManager::getBestPath(
 bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs)
 {
 	std::string fromToID(getFromToString(ps->fromNode, ps->toNode));
+	std::cout << "Generate " << fromToID << std::endl;
 	logger << "generateAllPathChoices" << std::endl;
 	/**
 	 * step-1: find the shortest path. if not found: create an entry in the "PathSet" table and return(without adding any entry into SinglePath table)
@@ -746,6 +747,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	 * step-7: Some caching/bookkeeping
 	 * step-8: RECURSION!!!
 	 */
+	std::cout << "[SHORTEST PATH] " << fromToID << std::endl;
 	std::set<std::string> duplicateChecker;//for extra optimization only(creating singlepath and discarding it later can be expensive)
 	sim_mob::SinglePath *s = findShortestDrivingPath(ps->fromNode,ps->toNode,duplicateChecker/*,excludedSegs*/);
 	if(!s)
@@ -767,6 +769,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	ps->oriPath = s;
 	ps->id = fromToID;
 
+	std::cout << "[" << fromToID << "][K-SHORTEST PATH] " << fromToID << std::endl;
 	//K-SHORTEST PATH
 	//TODO:CONSIDER MERGING THE PREVIOUS OPERATION(findShortestDrivingPath) IN THE FOLLOWING OPERATION
 	std::vector< std::vector<sim_mob::WayPoint> > ksp;
@@ -797,7 +800,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 
 	std::set<const RoadSegment*> blackList = std::set<const RoadSegment*>();
 	sim_mob::Link *curLink = NULL;
-
+	std::cout << "[" << fromToID << "][SHORTEST DISTANCE LINK ELIMINATION]\n";
 	logger << "[" << fromToID << "][SHORTEST DISTANCE LINK ELIMINATION]\n";
 	// SHORTEST DISTANCE LINK ELIMINATION
 	//declare the profiler  but don't start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
@@ -842,6 +845,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	}
 
 	threadpool_->wait();
+	std::cout << "[" << fromToID << "][SHORTEST TRAVEL TIME LINK ELIMINATION]\n";
 	logger << "[" << fromToID << "][SHORTEST TRAVEL TIME LINK ELIMINATION]\n";
 	//step-3: SHORTEST TRAVEL TIME LINK ELIMINATION
 	blackList.clear();
@@ -890,6 +894,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	threadpool_->wait();
 
 	logger << "[" << fromToID << "][SHORTEST TRAVEL TIME LINK ELIMINATION HIGHWAY BIAS]\n";
+	std::cout << "[" << fromToID << "][SHORTEST TRAVEL TIME LINK ELIMINATION HIGHWAY BIAS]\n";
 	// TRAVEL TIME HIGHWAY BIAS
 	//declare the profiler  but dont start profiling. it will just accumulate the elapsed time of the profilers who are associated with the workers
 	blackList.clear();
@@ -937,6 +942,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	}//if sinPathTravelTimeDefault
 	logger  << "waiting for TRAVEL TIME HIGHWAY BIAS" << "\n";
 	threadpool_->wait();
+	std::cout << "[" << fromToID << "][RANDOM]\n";
 
 	// generate random path
 	for(int i=0;i<20;++i)//todo flexible number
@@ -974,6 +980,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 		std::string str = "path set " + ps->id + " is supposed to be the shortest path but it is not!\n" ;
 		throw std::runtime_error(str);
 	}
+	std::cout << "[" << fromToID << "][RECORD]\n";
 	ps->addOrDeleteSinglePath(ps->oriPath);
 	//b. record k-shortest paths
 	BOOST_FOREACH(sim_mob::SinglePath* sp, KSP_Storage)
@@ -996,8 +1003,14 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	}
 	workPool.clear();
 	//step-7
+	std::cout << "[" << fromToID << "][PROCESS]\n";
 	onGeneratePathSet(ps);
-//#if 0
+	if(!ConfigManager::GetInstance().FullConfig().pathSet().recPS)
+	{
+		//end the method here, no need to proceed to recursive pathset generation
+		return true;
+	}
+	std::cout << "[" << fromToID << "][RECURSE]\n";
 	//step -8 :
 	boost::shared_ptr<sim_mob::PathSet> recursionPs;
 	/*
@@ -1046,9 +1059,8 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	{
 		boost::shared_ptr<sim_mob::PathSet> recursionPs(new sim_mob::PathSet(from,ps->toNode));
 		recursionPs->scenario = ps->scenario;
-		generateAllPathChoices(recursionPs,recursiveODs);
+		generateAllPathChoices(recursionPs,recursiveODs,excludedSegs);
 	}
-//#endif
 
 	return true;
 }
@@ -1476,7 +1488,8 @@ double sim_mob::PathSetManager::generateUtility(const sim_mob::SinglePath* sp) c
 
 bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet> &ps,
 		const std::set<const sim_mob::RoadSegment *> & partialExclusion ,
-		const std::set<const sim_mob::RoadSegment*> &blckLstSegs)
+		const std::set<const sim_mob::RoadSegment*> &blckLstSegs , bool enRoute,
+		const sim_mob::RoadSegment* approach)
 {
 	std::stringstream out("");
 	out << "path_selection_logger" << ps->id << ".csv";
@@ -1497,6 +1510,12 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 		{
 			continue;//do the same thing while measuring the probability in the loop below
 		}
+
+		if(enRoute && approach && !sim_mob::MovementFacet::isConnectedToNextSeg(approach, sp->path.begin()->roadSegment_))
+		{
+			continue;//you can't choose this path for rerouting
+		}
+
 		if(sp->path.empty())
 		{
 			std::string str = iteration + " Singlepath empty";
@@ -1753,17 +1772,26 @@ double sim_mob::PathSetManager::getPathTravelTime(sim_mob::SinglePath *sp,const 
 //		if(sp->path[i].type_ == WayPoint::ROAD_SEGMENT){
 ////			unsigned long segId = sp->path[i].roadSegment_->getId();
 		double t = 0.0;
-		if(enRoute)
+		const sim_mob::RoadSegment * rs = sp->path[i].roadSegment_;
+		const sim_mob::IncidentManager * inc = IncidentManager::getInstance();
+		if(inc->getCurrIncidents().find(rs) != inc->getCurrIncidents().end())
 		{
-			t = getInSimulationSegTT(sp->path[i].roadSegment_,travelMode, startTime);
+			return std::numeric_limits<double>::max();
 		}
-		if(!enRoute || t == 0.0)
+		else
 		{
-			t = sim_mob::PathSetParam::getInstance()->getSegTT(sp->path[i].roadSegment_,travelMode, startTime);
+			if(enRoute)
+			{
+				t = getInSimulationSegTT(rs,travelMode, startTime);
+			}
+			if(!enRoute || t == 0.0)
+			{
+				t = sim_mob::PathSetParam::getInstance()->getSegTT(rs,travelMode, startTime);
+			}
 		}
 		if(t == 0.0)
 		{
-			Warn() << "No Travel Time for segment " << sp->path[i].roadSegment_->getId() << " Found, setting it to zero!\n";
+			Warn() << "No Travel Time for segment " << rs->getId() << " Found, setting it to zero!\n";
 		}
 		ts += t;
 		startTime = startTime + sim_mob::DailyTime(t*1000);

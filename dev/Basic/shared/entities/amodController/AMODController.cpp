@@ -887,79 +887,79 @@ bool AMODController::setPath2Vh(Person* vh,std::vector<WayPoint>& path)
 {
 	vh->setPath(path);
 }
-
-void AMODController::setRdSegTravelTimes(Person* ag, double rdSegExitTime) {
-
-	std::map<double, Person::RdSegTravelStat>::const_iterator it =
-			ag->getRdSegTravelStatsMap().find(rdSegExitTime);
-
-	ofstream out_TT;
-	out_TT.open("out_TT.txt", fstream::out | fstream::app);
-
-	if (it != ag->getRdSegTravelStatsMap().end()){
-		double travelTime = (it->first) - (it->second).entryTime;
-		std::map<const RoadSegment*, Conflux::RdSegTravelTimes>::iterator itTT = RdSegTravelTimesMap.find((it->second).rs);
-		if (itTT != RdSegTravelTimesMap.end())
-		{
-			itTT->second.agCnt = itTT->second.agCnt + 1;
-			itTT->second.travelTimeSum = itTT->second.travelTimeSum + travelTime;
-		}
-		else{
-			Conflux::RdSegTravelTimes tTimes(travelTime, 1);
-			RdSegTravelTimesMap.insert(std::make_pair(ag->getCurrSegment(), tTimes));
-		}
-
-		WayPoint w = ag->amodPath.back();
-		const RoadSegment *rs = w.roadSegment_;
-		std::string segmentID = rs->originalDB_ID.getLogItem();
-
-		Print() << "Segment ID: "<< segmentID << " ,Segment travel time: " << rdSegExitTime << std::endl;
-
-		if (out_TT.is_open()) {
-			out_TT << "Segment ID: " << segmentID << "Segment travel time: " << rdSegExitTime << std::endl;
-		}
-		else{
-			Print() << "Unable to open file\n";
-		}
-	}
-	if (out_TT.is_open()) out_TT.close();
-}
-
-void AMODController::updateTravelTimeGraph()
-{
-	const unsigned int msPerFrame = ConfigManager::GetInstance().FullConfig().baseGranMS();
-	timeslice currTime = timeslice(currTick.frame(), currTick.frame()*msPerFrame);
-	insertTravelTime2TmpTable(currTime, RdSegTravelTimesMap);
-}
-
-bool AMODController::insertTravelTime2TmpTable(timeslice frameNumber, std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>& rdSegTravelTimesMap)
-{
-	bool res=false;
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		//sim_mob::Link_travel_time& data
-		std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>::const_iterator it = rdSegTravelTimesMap.begin();
-		for (; it != rdSegTravelTimesMap.end(); it++){
-			LinkTravelTime tt;
-			DailyTime simStart = ConfigManager::GetInstance().FullConfig().simStartTime();
-			std::string aimsun_id = (*it).first->originalDB_ID.getLogItem();
-			std::string seg_id = getNumberFromAimsunId(aimsun_id);
-			try {
-				tt.linkId = boost::lexical_cast<int>(seg_id);
-			} catch( boost::bad_lexical_cast const& ) {
-				Print() << "Error: seg_id string was not valid" << std::endl;
-				tt.linkId = -1;
-			}
-
-			tt.startTime = (simStart + sim_mob::DailyTime(frameNumber.ms())).toString();
-			double frameLength = ConfigManager::GetInstance().FullConfig().baseGranMS();
-			tt.endTime = (simStart + sim_mob::DailyTime(frameNumber.ms() + frameLength)).toString();
-			tt.travelTime = (*it).second.travelTimeSum/(*it).second.agCnt;
-
-			PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
-		}
-	}
-	return res;
-}
+//TODO: use uniform method for storing and retrieving travel times
+//void AMODController::setRdSegTravelTimes(Person* ag, double rdSegExitTime) {
+//
+//	std::map<double, Person::RdSegTravelStat>::const_iterator it =
+//			ag->getRdSegTravelStatsMap().find(rdSegExitTime);
+//
+//	ofstream out_TT;
+//	out_TT.open("out_TT.txt", fstream::out | fstream::app);
+//
+//	if (it != ag->getRdSegTravelStatsMap().end()){
+//		double travelTime = (it->first) - (it->second).entryTime;
+//		std::map<const RoadSegment*, Conflux::RdSegTravelTimes>::iterator itTT = RdSegTravelTimesMap.find((it->second).rs);
+//		if (itTT != RdSegTravelTimesMap.end())
+//		{
+//			itTT->second.agCnt = itTT->second.agCnt + 1;
+//			itTT->second.travelTimeSum = itTT->second.travelTimeSum + travelTime;
+//		}
+//		else{
+//			Conflux::RdSegTravelTimes tTimes(travelTime, 1);
+//			RdSegTravelTimesMap.insert(std::make_pair(ag->getCurrSegment(), tTimes));
+//		}
+//
+//		WayPoint w = ag->amodPath.back();
+//		const RoadSegment *rs = w.roadSegment_;
+//		std::string segmentID = rs->originalDB_ID.getLogItem();
+//
+//		Print() << "Segment ID: "<< segmentID << " ,Segment travel time: " << rdSegExitTime << std::endl;
+//
+//		if (out_TT.is_open()) {
+//			out_TT << "Segment ID: " << segmentID << "Segment travel time: " << rdSegExitTime << std::endl;
+//		}
+//		else{
+//			Print() << "Unable to open file\n";
+//		}
+//	}
+//	if (out_TT.is_open()) out_TT.close();
+//}
+//
+//void AMODController::updateTravelTimeGraph()
+//{
+//	const unsigned int msPerFrame = ConfigManager::GetInstance().FullConfig().baseGranMS();
+//	timeslice currTime = timeslice(currTick.frame(), currTick.frame()*msPerFrame);
+//	insertTravelTime2TmpTable(currTime, RdSegTravelTimesMap);
+//}
+//
+//bool AMODController::insertTravelTime2TmpTable(timeslice frameNumber, std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>& rdSegTravelTimesMap)
+//{
+//	bool res=false;
+//	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+//		//sim_mob::Link_travel_time& data
+//		std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>::const_iterator it = rdSegTravelTimesMap.begin();
+//		for (; it != rdSegTravelTimesMap.end(); it++){
+//			LinkTravelTime tt;
+//			DailyTime simStart = ConfigManager::GetInstance().FullConfig().simStartTime();
+//			std::string aimsun_id = (*it).first->originalDB_ID.getLogItem();
+//			std::string seg_id = getNumberFromAimsunId(aimsun_id);
+//			try {
+//				tt.linkId = boost::lexical_cast<int>(seg_id);
+//			} catch( boost::bad_lexical_cast const& ) {
+//				Print() << "Error: seg_id string was not valid" << std::endl;
+//				tt.linkId = -1;
+//			}
+//
+//			tt.startTime = (simStart + sim_mob::DailyTime(frameNumber.ms())).toString();
+//			double frameLength = ConfigManager::GetInstance().FullConfig().baseGranMS();
+//			tt.endTime = (simStart + sim_mob::DailyTime(frameNumber.ms() + frameLength)).toString();
+//			tt.travelTime = (*it).second.travelTimeSum/(*it).second.agCnt;
+//
+//			PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);
+//		}
+//	}
+//	return res;
+//}
 
 void AMODController::testTravelTimePath()
 {

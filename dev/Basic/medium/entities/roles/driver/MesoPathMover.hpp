@@ -115,8 +115,8 @@ protected:
 	double distToSegmentEnd;
 public:
 	//debug
-	///print path by aimsun section id
-	static void printPath(const MesoPathMover::Path &path, const Node *node = 0);
+	///return string of path by aimsun section id
+	static std::string printPath(const MesoPathMover::Path &path, const Node *node = 0);
 private:
 	/**
 	 * gets the SegmentStats iterator

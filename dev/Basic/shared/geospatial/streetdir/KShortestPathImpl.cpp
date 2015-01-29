@@ -178,7 +178,7 @@ public:
 	void insert(double length, std::vector<sim_mob::WayPoint> & path)
 	{
 		pathIt it = paths.insert(paths.end(),path);
-		std::cout << "inserting " << length << " and vector size(" << path.size() << ")  " << std::endl;
+//		std::cout << "inserting " << length << " and vector size(" << path.size() << ")  " << std::endl;
 		keys.push_back(std::make_pair(length, it));
 	}
 	bool empty()
@@ -197,25 +197,25 @@ public:
 	void sort()
 	{
 
-		//debug
-		std::cout << keys.size() << "keys before sort : ";
-		std::vector<Pair>::iterator it1(keys.begin()),itEnd1(keys.end());
-		for(;it1 != itEnd1; it1++)
-		{
-			std::cout << (*it1).first << ",";
-		}
-		std::cout << "\n";
-		//debug..
+//		//debug
+//		std::cout << keys.size() << "keys before sort : ";
+//		std::vector<Pair>::iterator it1(keys.begin()),itEnd1(keys.end());
+//		for(;it1 != itEnd1; it1++)
+//		{
+//			std::cout << (*it1).first << ",";
+//		}
+//		std::cout << "\n";
+//		//debug..
 		std::sort(keys.begin(), keys.end(),comp());
-		//debug
-		std::cout << keys.size() << " keys sorted : ";
-		std::vector<Pair>::iterator it(keys.begin()),itEnd(keys.end());
-		for(;it != itEnd; it++)
-		{
-			std::cout << (*it).first << ",";
-		}
-		std::cout << "\n";
-		//debug...
+//		//debug
+//		std::cout << keys.size() << " keys sorted : ";
+//		std::vector<Pair>::iterator it(keys.begin()),itEnd(keys.end());
+//		for(;it != itEnd; it++)
+//		{
+//			std::cout << (*it).first << ",";
+//		}
+//		std::cout << "\n";
+//		//debug...
 	}
 	const std::vector<sim_mob::WayPoint>& get()
 	{
@@ -223,31 +223,30 @@ public:
 		{
 			throw std::runtime_error("Empty K-Shortest Path intermediary Collections, Check before Fetch");
 		}
-		int i = 0;
-		std::cout << "getting B.begin:" << keys.size() << std::endl;
-		BOOST_FOREACH(Pair &pair, keys)
-		{
-			std::cout << i++ << std::endl;
-			std::cout << pair.first << std::endl;
-//			std::cout << pair.second->size() << std::endl;
-		}
-		std::cout << "getting B.begin first:" <<  (keys.begin()->first) << std::endl;
-		std::cout << "getting B.begin second of size:" <<  (keys.begin()->second)->size() << std::endl;
+//		int i = 0;
+//		std::cout << "getting B.begin:" << keys.size() << std::endl;
+//		BOOST_FOREACH(Pair &pair, keys)
+//		{
+//			std::cout << i++ << std::endl;
+//			std::cout << pair.first << std::endl;
+////			std::cout << pair.second->size() << std::endl;
+//		}
+//		std::cout << "getting B.begin first:" <<  (keys.begin()->first) << std::endl;
+//		std::cout << "getting B.begin second of size:" <<  (keys.begin()->second)->size() << std::endl;
 		return *(keys.begin()->second);
 	}
 	void eraseBegin()
 	{
 		paths.erase(keys.begin()->second);
 		keys.erase(keys.begin());
-
-		//debug
-		std::cout << "keys after erase begin : ";
-		std::vector<Pair>::iterator it(keys.begin()),itEnd(keys.end());
-		for(;it != itEnd; it++)
-		{
-			std::cout << (*it).first << ",";
-		}
-		std::cout << "\n";
+//		//debug
+//		std::cout << "keys after erase begin : ";
+//		std::vector<Pair>::iterator it(keys.begin()),itEnd(keys.end());
+//		for(;it != itEnd; it++)
+//		{
+//			std::cout << (*it).first << ",";
+//		}
+//		std::cout << "\n";
 	}
 
 };

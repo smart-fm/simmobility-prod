@@ -354,7 +354,7 @@ protected:
 	 * @param currSegment current segment where the agent is
 	 * @param nextSegment the next segment along the current path
 	 */
-	void reroute(const sim_mob::RoadSegment* currSegment, const sim_mob::RoadSegment* nextSegment);
+	void reroute();
 
 	/**
 	 * Changes the Travel Path based on the incident information

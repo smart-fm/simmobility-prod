@@ -1,6 +1,7 @@
 #pragma once
 
 #include "path/Reroute.hpp"
+#include <set>
 
 namespace sim_mob
 {
@@ -21,8 +22,11 @@ class DriverMovement;
 		///	current Segment where the Agent is or has just completed
 		const sim_mob::RoadSegment* currSegment;
 
-		///	 the next segment along the user's path
-		const sim_mob::RoadSegment* nextSegment;
+		///	a container to help avoid circular rerouting
+		std::set<const sim_mob::RoadSegment*> traversed;
+
+//		///	 the next segment along the user's path
+//		const sim_mob::RoadSegment* nextSegment;
 
 	public:
 		/**

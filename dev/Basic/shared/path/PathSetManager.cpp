@@ -436,31 +436,38 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::SubTrip &subTri
 	bool to = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.toLocation);
 	str.str("");
 	str << "[" << fromToID << "]";
-	if (sim_mob::ConfigManager::GetInstance().FullConfig().CBD()) {
-		if (to == false && from == false) {
+	if (sim_mob::ConfigManager::GetInstance().FullConfig().CBD())
+	{
+		// case-1: Both O and D are outside CBD
+		if (to == false && from == false)
+		{
 			subTrip.cbdTraverseType = TravelMetric::CBD_PASS;
 			str << "[BLCKLST]";
 			std::stringstream outDbg("");
-			getBestPath(res, &subTrip, //&outDbg,
-					std::set<const sim_mob::RoadSegment*>(), false, true,enRoute, approach);//use/enforce blacklist
-			if (sim_mob::RestrictedRegion::getInstance().isInRestrictedSegmentZone(res)) {
-				logger << "[" << fromToID << "]" << "[PATH : " << res.size() << "]" << std::endl;
-				printWPpath(res);
-				logger << outDbg.str() << std::endl;
+			getBestPath(res, &subTrip, std::set<const sim_mob::RoadSegment*>(), false, true,enRoute, approach);//use/enforce blacklist
+			if (sim_mob::RestrictedRegion::getInstance().isInRestrictedSegmentZone(res))
+			{
 				throw std::runtime_error("\npath inside cbd ");
 			}
-		} else {
-
-			if (!(to && from)) {
-				subTrip.cbdTraverseType =
-						(from ? TravelMetric::CBD_EXIT : TravelMetric::CBD_ENTER);
+		}
+		else
+		{
+			// case-2:  Either O or D is outside CBD and the other one is inside CBD
+			if (!(to && from))
+			{
+				subTrip.cbdTraverseType = from ? TravelMetric::CBD_EXIT : TravelMetric::CBD_ENTER;
 				str << (from ? " [EXIT CBD]" : "[ENTER CBD]");
-			} else {
+			}
+			else
+			{
+				//case-3: Both are inside CBD
 				str << "[BOTH INSIDE CBD]";
 			}
 			getBestPath(res, &subTrip, std::set<const sim_mob::RoadSegment*>(), false, false,enRoute, approach);
 		}
-	} else {
+	}
+	else
+	{
 		getBestPath(res, &subTrip,std::set<const sim_mob::RoadSegment*>(), false, false,enRoute, approach);
 	}
 
@@ -479,7 +486,7 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::SubTrip &subTri
 
 ///	discard those entries which have segments whith their CBD flag set to true
 ///	return the final number of path choices
-unsigned short purgeBlacklist(sim_mob::PathSet &ps)
+unsigned short purgeCbdPaths(sim_mob::PathSet &ps)
 {
 	std::set<sim_mob::SinglePath*>::iterator it = ps.pathChoices.begin();
 	for(;it != ps.pathChoices.end();)
@@ -562,7 +569,6 @@ void sim_mob::PathSetManager::onGeneratePathSet(boost::shared_ptr<PathSet> &ps)
 bool sim_mob::PathSetManager::getBestPath(
 		std::vector<sim_mob::WayPoint> &res,
 		const sim_mob::SubTrip* st,
-//		std::stringstream *outDbg,
 		std::set<const sim_mob::RoadSegment*> tempBlckLstSegs,
 		 bool usePartialExclusion,
 		 bool useBlackList,
@@ -613,6 +619,7 @@ bool sim_mob::PathSetManager::getBestPath(
 	if(findCachedPathSet(fromToID,ps_,(useBlackList && tempBlckLstSegs.size() ? tempBlckLstSegs : std::set<const sim_mob::RoadSegment*>())))
 	{
 		logger <<  fromToID  << " : Cache Hit\n";
+		ps_->subTrip = st;//at least for the travel start time, subtrip is needed
 		onPathSetRetrieval(ps_,enRoute);
 		//no need to supply permanent blacklist
 		bool r = getBestPathChoiceFromPathSet(ps_,partial,emptyBlkLst,enRoute, approach);
@@ -638,7 +645,7 @@ bool sim_mob::PathSetManager::getBestPath(
 	ps_->subTrip = st;
 	ps_->id = fromToID;
 	ps_->scenario = scenarioName;
-	hasPath = sim_mob::aimsun::Loader::loadSinglePathFromDB(*getSession(),fromToID,ps_->pathChoices, dbFunction/*,outDbg*/,blckLstSegs);
+	hasPath = sim_mob::aimsun::Loader::loadSinglePathFromDB(*getSession(),fromToID,ps_->pathChoices, dbFunction,blckLstSegs);
 	logger  <<  fromToID << " : " << (hasPath == PSM_HASPATH ? "" : "Don't " ) << "have SinglePaths in DB \n" ;
 	switch (hasPath) {
 	case PSM_HASPATH: {
@@ -696,7 +703,7 @@ bool sim_mob::PathSetManager::getBestPath(
 		//this hack conforms to the CBD property added to segment and node
 		if(useBlackList)
 		{
-			if(!purgeBlacklist(*ps_))
+			if(!purgeCbdPaths(*ps_))
 			{
 				logger << "[ALL PATHS IN CBD" << fromToID << "]\n" ;
 				tempNoPath.insert(fromToID);
@@ -1511,10 +1518,10 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 			continue;//do the same thing while measuring the probability in the loop below
 		}
 
-		if(enRoute && approach && !sim_mob::MovementFacet::isConnectedToNextSeg(approach, sp->path.begin()->roadSegment_))
-		{
-			continue;//you can't choose this path for rerouting
-		}
+//		if(enRoute && approach && !sim_mob::MovementFacet::isConnectedToNextSeg(approach, sp->path.begin()->roadSegment_))
+//		{
+//			continue;//you can't choose this path for rerouting
+//		}
 
 		if(sp->path.empty())
 		{
@@ -1764,13 +1771,13 @@ double sim_mob::PathSetManager::getPathTravelTime(sim_mob::SinglePath *sp,const 
 {
 	sim_mob::DailyTime startTime = startTime_;
 	std::stringstream out("");
+	out << "\nstart time : " ;
+	std::string temp = startTime.getRepr_();
+	out << temp;
 	out << "\n";
 	double ts=0.0;
 	for(int i=0;i<sp->path.size();++i)
 	{
-		out << i << " " ;
-//		if(sp->path[i].type_ == WayPoint::ROAD_SEGMENT){
-////			unsigned long segId = sp->path[i].roadSegment_->getId();
 		double t = 0.0;
 		const sim_mob::RoadSegment * rs = sp->path[i].roadSegment_;
 		const sim_mob::IncidentManager * inc = IncidentManager::getInstance();
@@ -1791,15 +1798,25 @@ double sim_mob::PathSetManager::getPathTravelTime(sim_mob::SinglePath *sp,const 
 		}
 		if(t == 0.0)
 		{
-			Warn() << "No Travel Time for segment " << rs->getId() << " Found, setting it to zero!\n";
+			Print() << "No Travel Time [iteration:" << i << "] [SEGMENT: " << rs->getId() << "] [START TIME : " << startTime.getRepr_() << "]\n";
+			if(out.str().size())
+			{
+				Print() << "previous records : " << out.str() << std::endl;
+				out.str("");
+			}
+		}
+		else
+		{
+			out << "[iteration:" << i << "] [SEGMENT: " << sp->path[i].roadSegment_->getId() << "] [START TIME : " << startTime.getRepr_() << "]";
 		}
 		ts += t;
 		startTime = startTime + sim_mob::DailyTime(t*1000);
-		out << t << " " << ts << startTime.getRepr_() ;
 //		}
 	}
 	if (ts <=0.0)
 	{
+		std::stringstream out("");
+		out << "No travel time for path " << sp->id ;
 		throw std::runtime_error(out.str());
 	}
 	//logger << "Retrurn TT = " << ts << out.str() << "\n" ;

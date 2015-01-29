@@ -151,7 +151,7 @@ double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs, const 
 	std::ostringstream dbg("");
 	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >::iterator it = segDefTT.find(rs->getId());
 
-	if(it!=segDefTT.end())
+	if(it ==segDefTT.end())
 	{
 		logger <<  "[NOTT] " << rs->getId() << "\n";
 		return 0.0;

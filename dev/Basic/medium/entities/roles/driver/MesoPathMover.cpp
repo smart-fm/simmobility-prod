@@ -166,7 +166,7 @@ void sim_mob::medium::MesoPathMover::printPath()
 	pathStream << std::endl;
 	Print() << pathStream.str();
 }
-void sim_mob::medium::MesoPathMover::printPath(const Path &path, const Node *node){
+std::string sim_mob::medium::MesoPathMover::printPath(const Path &path, const Node *node){
 	std::ostringstream out("");
 	unsigned int id = 0;
 	if(node){
@@ -178,6 +178,11 @@ void sim_mob::medium::MesoPathMover::printPath(const Path &path, const Node *nod
 			out << id << "," ;
 		}
 	}
-	sim_mob::Logger::log("path_set") << out.str() << std::endl;
-	std::cout << out.str() << std::endl;
+	if(out.str().size())
+	{
+		out << "\n";
+	}
+//	sim_mob::Logger::log("path_set") << out.str() << std::endl;
+//	std::cout << out.str() << std::endl;
+	return out.str();
 }

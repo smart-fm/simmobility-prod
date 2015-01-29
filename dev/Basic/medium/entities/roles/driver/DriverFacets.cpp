@@ -259,6 +259,13 @@ bool sim_mob::medium::DriverMovement::initializePath() {
 		}
 		pathMover.setPath(path);
 		const sim_mob::SegmentStats* firstSegStat = path.front();
+		if(ConfigManager::GetInstance().FullConfig().pathSet().reroute)
+		{//logging
+			std::stringstream fileName("");
+			fileName << "reroute-" << getParent()->getId() << this;
+			sim_mob::BasicLogger &logger = sim_mob::Logger::log(fileName.str());
+			logger << "NewPath:\n" << pathMover.printPath(path, firstSegStat->getRoadSegment()->getStart());
+		}
 		person->setCurrSegStats(firstSegStat);
 		person->setCurrLane(firstSegStat->laneInfinity);
 		person->distanceToEndOfSegment = firstSegStat->getLength();
@@ -323,11 +330,16 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 	{
 		onSegmentCompleted(curRs,nxtRs);
 	}
-//	//did you just complete a link?
-//	if(curRs && curRs->getEnd() == curRs->getLink()->getEnd())
-//	{
-//		onLinkCompleted(curRs->getLink(),(nxtRs ? nxtRs->getLink() : nullptr));
-//	}
+
+	if(isNewLinkNext)
+	{
+		onLinkCompleted(curRs->getLink(),(nxtRs ? nxtRs->getLink() : nullptr));
+	}
+
+	//reset these local variables in case path has been changed in onLinkCompleted
+	isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
+	currSegStat = pathMover.getCurrSegStats();
+	nxtSegStat = pathMover.getNextSegStats(!isNewLinkNext);
 
 
 	if (!nxtSegStat) {
@@ -407,18 +419,15 @@ void DriverMovement::onSegmentCompleted(const sim_mob::RoadSegment* completedRS,
 {
 	//1. CBD
 	processCBD_TravelMetrics(completedRS, nextRS);
-
-	//2. Rerouting
-	if(ConfigManager::GetInstance().FullConfig().pathSet().reroute)
-	{
-		reroute(completedRS, nextRS);
-	}
-
 }
 
 void DriverMovement::onLinkCompleted(const sim_mob::Link * completedLink, const sim_mob::Link * nextLink)
 {
-
+	//2. Rerouting
+	if(ConfigManager::GetInstance().FullConfig().pathSet().reroute)
+	{
+		reroute();
+	}
 }
 
 void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdateParams& params) {
@@ -888,7 +897,7 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextS
 	if(!minLane)
 	{
 		Print() << "\nCurrent Path " << pathMover.getPath().size() << std::endl;
-		MesoPathMover::printPath(pathMover.getPath());
+		Print() << MesoPathMover::printPath(pathMover.getPath());
 
 		std::ostringstream out("");
 		out << "best target lane was not set!" << "\nCurrent Segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getSegmentAimsunId() <<
@@ -1073,7 +1082,7 @@ int DriverMovement::findReroutingPoints(const std::vector<sim_mob::SegmentStats*
 	typedef std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >::value_type TempType;
 	BOOST_FOREACH(TempType &item,  remaining){
 		pathsetLogger << "Remaining path to detour point : ";
-		MesoPathMover::printPath(item.second, item.first);
+		pathsetLogger << MesoPathMover::printPath(item.second, item.first);
 	}
 	pathsetLogger << "\n-------------------------------------------" << std::endl;
 	pathsetLogger << "There are " << remaining.size() << " candidate point of reroute for Person(excluding no path):" << std::endl;
@@ -1160,7 +1169,7 @@ int roll_die(int l,int r) {
     return die();
 }
 
-void DriverMovement::reroute(const sim_mob::RoadSegment* currSegment, const sim_mob::RoadSegment* nextSegment)
+void DriverMovement::reroute()
 {
 	rerouter->reroute();
 }
@@ -1247,8 +1256,8 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 			if(target == detourNode.second)
 			{
 				pathsetLogger << "Discarding an already been created path:\n";
-				MesoPathMover::printPath(detourNode.second);
-				MesoPathMover::printPath(target);
+				pathsetLogger << MesoPathMover::printPath(detourNode.second);
+				pathsetLogger << MesoPathMover::printPath(target);
 				deTourOptions.erase(newPath.first);
 			}
 //			//if they have a different size, they are definitely different,so leave this entry alone
@@ -1281,9 +1290,9 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 	//debug
 	pathsetLogger << "----------------------------------\n"
 			"Original path:" << std::endl;
-	getMesoPathMover().printPath(getMesoPathMover().getPath());
+	pathsetLogger << getMesoPathMover().printPath(getMesoPathMover().getPath());
 	pathsetLogger << "Detour option chosen[" << dbgIndx << "] : " << it->first->getID() << std::endl;
-	getMesoPathMover().printPath(it->second);
+	pathsetLogger << getMesoPathMover().printPath(it->second);
 	pathsetLogger << "----------------------------------" << std::endl;
 	//debug...
 	getMesoPathMover().setPath(it->second);

@@ -614,7 +614,7 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 
 	//interval
 	xercesc::DOMElement* interval = GetSingleElementByName(node, "travel_time_interval");
-	if(!functionNode){
+	if(!interval){
 		throw std::runtime_error("pathset travel_time_interval Not Found\n");
 	}
 	else
@@ -623,36 +623,36 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 	}
 
 	//recirsive pathset generation
-	xercesc::DOMElement* recPS = GetSingleElementByName(node, "recursive_pathset_generation ");
-	if(!functionNode){
+	xercesc::DOMElement* recPS = GetSingleElementByName(node, "recursive_pathset_generation");
+	if(!recPS){
 		std::cerr << "recursive_pathset_generation Not Found, setting to false\n";
 		cfg.pathset.recPS = false;
 	}
 	else
 	{
-		cfg.pathset.recPS = ParseInteger(GetNamedAttributeValue(recPS, "value"), false);
+		cfg.pathset.recPS = ParseBoolean(GetNamedAttributeValue(recPS, "value"), false);
 	}
 
 	//reroute
-	xercesc::DOMElement* reroute = GetSingleElementByName(node, "recursive_pathset_generation ");
-	if(!functionNode){
+	xercesc::DOMElement* reroute = GetSingleElementByName(node, "reroute_enabled");
+	if(!reroute){
 		std::cerr << "reroute_enabled Not Found, setting to false\n";
 		cfg.pathset.reroute = false;
 	}
 	else
 	{
-		cfg.pathset.reroute = ParseInteger(GetNamedAttributeValue(reroute, "value"), false);
+		cfg.pathset.reroute = ParseBoolean(GetNamedAttributeValue(reroute, "value"), false);
 	}
 
 	//CBD //todo: usage still unclear
-	xercesc::DOMElement* cbd = GetSingleElementByName(node, "recursive_pathset_generation ");
-	if(!functionNode){
+	xercesc::DOMElement* cbd = GetSingleElementByName(node, "CBD_enabled");
+	if(!cbd){
 		std::cerr << "reroute_enabled Not Found, setting to false\n";
 		cfg.pathset.cbd = false;
 	}
 	else
 	{
-		cfg.pathset.cbd = ParseInteger(GetNamedAttributeValue(cbd, "value"), false);
+		cfg.pathset.cbd = ParseBoolean(GetNamedAttributeValue(cbd, "value"), false);
 	}
 
 //	//sanity check

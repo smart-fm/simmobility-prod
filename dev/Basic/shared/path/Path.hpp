@@ -96,9 +96,8 @@ public:
 class PathSet
 {
 public:
-	PathSet():hasPath(false) {};
-	PathSet(const sim_mob::Node *fn,const sim_mob::Node *tn) : fromNode(fn),toNode(tn),logsum(0),hasPath(false) {}
-//	PathSet(const boost::shared_ptr<sim_mob::PathSet> &ps);
+	PathSet():fromNode(nullptr),toNode(nullptr),logsum(0),hasPath(false),bestPath(nullptr),oriPath(nullptr),subTrip(nullptr),isNeedSave2DB(false),id("")  {}
+	PathSet(const sim_mob::Node *fn,const sim_mob::Node *tn) : fromNode(fn),toNode(tn),logsum(0),hasPath(false),bestPath(nullptr),oriPath(nullptr),subTrip(nullptr),isNeedSave2DB(false),id("") {}
 	~PathSet();
 	///	returns the rough size of object in Bytes
 	uint32_t getSize();
@@ -113,8 +112,6 @@ public:
 	 */
 	void excludeRoadSegment(const std::set<const sim_mob::RoadSegment*> & segs);
 	void addOrDeleteSinglePath(sim_mob::SinglePath* s);
-	bool isInit;
-	bool hasBestChoice;
 	std::vector<WayPoint> *bestPath;  //best choice
 	const sim_mob::Node *fromNode;
 	const sim_mob::Node *toNode;
@@ -123,7 +120,8 @@ public:
 	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> pathChoices;
 	bool isNeedSave2DB;
 	double logsum;
-	const sim_mob::SubTrip* subTrip; // pathset use info of subtrip to generate all things
+	// pathset use info of subtrip to get start, end, travel start time...
+	const sim_mob::SubTrip* subTrip;
 	std::string id;
 	std::string excludedPaths;
 	std::string scenario;

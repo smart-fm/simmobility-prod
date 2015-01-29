@@ -292,7 +292,9 @@ void HM_Model::startImpl()
 	workGroup.assignAWorker(&market);
 	unsigned int numberOffreelanceHousingAgents = workGroup.getNumberOfWorkers();
 
-	//create fake seller agents to sell vacant units.
+	//
+	//Create freelance seller agents to sell vacant units.
+	//
 	std::vector<HouseholdAgent*> freelanceAgents;
 	for (int i = 0; i < numberOffreelanceHousingAgents; i++)
 	{

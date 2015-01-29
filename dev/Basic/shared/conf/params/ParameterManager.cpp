@@ -77,7 +77,6 @@ ParameterManager::~ParameterManager()
 
 void ParameterManager::setParam(const std::string& modelName, const std::string& key, const ParamData& v)
 {
-	std::cout<<modelName<<" "<<key<<std::endl;
 	ParameterPoolIterator it = parameterPool.find(modelName);
 	if(it==parameterPool.end())
 	{

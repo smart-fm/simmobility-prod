@@ -107,10 +107,10 @@ void sim_mob::RoadNetwork::storeTurningConflict(sim_mob::TurningConflict* confli
 	sim_mob::TurningSection* firstTurning = turningSectionMap[conflict->first_turning];
 	sim_mob::TurningSection* secondTurning = turningSectionMap[conflict->second_turning];
 
-	firstTurning->conflicts.push_back(secondTurning);
+	firstTurning->conflictingTurningSections.push_back(secondTurning);
 	firstTurning->turningConflicts.push_back(conflict);
 
-	secondTurning->conflicts.push_back(firstTurning);
+	secondTurning->conflictingTurningSections.push_back(firstTurning);
 	secondTurning->turningConflicts.push_back(conflict);
 
 	conflict->firstTurning = firstTurning;

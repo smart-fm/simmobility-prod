@@ -43,12 +43,13 @@ sim_mob::TurningSection::TurningSection(const TurningSection & ts):
 	trimmer >> to_road_section;
 }
 
-std::vector<TurningSection*>& sim_mob::TurningSection::getConflictTurnings() {
-	return conflicts;
+std::vector<TurningSection*>& sim_mob::TurningSection::getConflictTurningSections() {
+	return conflictingTurningSections;
 }
+
 TurningConflict* sim_mob::TurningSection::getTurningConflict(const TurningSection* ts) {
 	TurningConflict* res = nullptr;
-	std::cout<<"getTurningConflict: size "<<turningConflicts.size()<<std::endl;
+	//std::cout<<"getTurningConflict: size "<<turningConflicts.size()<<std::endl;
 	for(int i=0;i<turningConflicts.size();++i) {
 		TurningConflict* tc = turningConflicts[i];
 		if(ts == tc->firstTurning || ts == tc->secondTurning) {

@@ -22,8 +22,7 @@ public:
 	std::string second_turning;
 	double first_cd;
 	double second_cd;
-
-public:
+        
 	std::string conflictId;
 	TurningSection *firstTurning;
 	TurningSection *secondTurning;

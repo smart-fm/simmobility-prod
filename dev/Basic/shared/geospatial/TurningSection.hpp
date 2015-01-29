@@ -13,9 +13,6 @@ class TurningConflict;
 
   class TurningSection
   {
-  public:
-    TurningSection();
-    TurningSection(const TurningSection & ts);
 
   public:
     int dbId;
@@ -28,7 +25,6 @@ class TurningConflict;
     int from_lane_index;
     int to_lane_index;
 
-  public:
     std::string sectionId;
     // TODO phases
 
@@ -40,13 +36,16 @@ class TurningConflict;
 
     const sim_mob::Lane* laneFrom;
     const sim_mob::Lane* laneTo;
+    
+    std::vector<TurningSection*> conflictingTurningSections;
+    std::vector<TurningConflict* > turningConflicts;
 
   public:
-    std::vector<TurningSection*>& getConflictTurnings();
-  public:
-    std::vector<TurningSection*> conflicts;
-    std::vector<TurningConflict* > turningConflicts;
-  public:
+    TurningSection();
+    TurningSection(const TurningSection & ts);
+    
+    std::vector<TurningSection*>& getConflictTurningSections();
+  
     TurningConflict* getTurningConflict(const TurningSection* ts);
   } ;
 

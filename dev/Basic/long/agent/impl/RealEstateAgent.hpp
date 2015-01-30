@@ -20,7 +20,7 @@ namespace sim_mob
     namespace long_term
     {
         class HM_Model;
-        class HouseholdSellerRole;
+        class RealEstateSellerRole;
 
         /**
          * Represents an Long-Term realestate agent.
@@ -91,7 +91,7 @@ namespace sim_mob
             const Household* household;
             IdVector unitIds;
             IdVector preferableZones;
-            HouseholdSellerRole* seller;
+            RealEstateSellerRole* seller;
             bool marketSeller; //tells if the agent is only a fake market seller
             int day;
         };

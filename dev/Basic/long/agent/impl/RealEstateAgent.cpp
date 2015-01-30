@@ -12,8 +12,7 @@
 #include "RealEstateAgent.hpp"
 #include "message/MessageBus.hpp"
 #include "model/HM_Model.hpp"
-#include "role/impl/HouseholdBidderRole.hpp"
-#include "role/impl/HouseholdSellerRole.hpp"
+#include "role/impl/RealEstateSellerRole.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "core/DataManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -31,7 +30,7 @@ using std::endl;
 RealEstateAgent::RealEstateAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller, int day)
 : LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), seller(nullptr), day(day)
 {
-    seller = new HouseholdSellerRole(this);
+    seller = new RealEstateSellerRole(this);
     seller->setActive(marketSeller);
 }
 

@@ -40,34 +40,48 @@ AgentsLookup::~AgentsLookup()
 
 void AgentsLookup::reset()
 {
-    householdsById.clear();
+    householdAgentsById.clear();
 }
 
-void AgentsLookup::addHousehold(const HouseholdAgent* agent)
+void AgentsLookup::addHouseholdAgent(const HouseholdAgent* agent)
 {
-    if (agent && !getById<HouseholdAgent>(householdsById, agent->GetId()))
+    if (agent && !getById<HouseholdAgent>(householdAgentsById, agent->GetId()))
     {
-        householdsById.insert(std::make_pair(agent->GetId(), agent));
+        householdAgentsById.insert(std::make_pair(agent->GetId(), agent));
     }
 }
 
-void AgentsLookup::addDeveloper(const DeveloperAgent* agent)
+void AgentsLookup::addDeveloperAgent(const DeveloperAgent* agent)
 {
-    if (agent && !getById<DeveloperAgent>(developersById, agent->GetId()))
+    if (agent && !getById<DeveloperAgent>(developerAgentsById, agent->GetId()))
     {
-        developersById.insert(std::make_pair(agent->GetId(), agent));
+        developerAgentsById.insert(std::make_pair(agent->GetId(), agent));
     }
 }
 
-const HouseholdAgent* AgentsLookup::getHouseholdById(const BigSerial id) const
+void AgentsLookup::addRealEstateAgent(const RealEstateAgent* agent)
 {
-    return getById<HouseholdAgent>(householdsById, id);
+    if (agent && !getById<RealEstateAgent>(realEstateAgentsById, agent->GetId()))
+    {
+        realEstateAgentsById.insert(std::make_pair(agent->GetId(), agent));
+    }
 }
 
-const DeveloperAgent* AgentsLookup::getDeveloperById(const BigSerial id) const
+const HouseholdAgent* AgentsLookup::getHouseholdAgentById(const BigSerial id) const
 {
-    return getById<DeveloperAgent>(developersById, id);
+    return getById<HouseholdAgent>(householdAgentsById, id);
 }
+
+const DeveloperAgent* AgentsLookup::getDeveloperAgentById(const BigSerial id) const
+{
+    return getById<DeveloperAgent>(developerAgentsById, id);
+}
+
+const RealEstateAgent* AgentsLookup::getRealEstateAgentById(const BigSerial id) const
+{
+    return getById<RealEstateAgent>(realEstateAgentsById, id);
+}
+
 
 LoggerAgent& AgentsLookup::getLogger()
 {

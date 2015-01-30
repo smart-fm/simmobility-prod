@@ -94,6 +94,13 @@ public:
 	void computeDayPatternLogsums(PersonParams& personParams) const;
 
 	/**
+	 * Computes logsums from day pattern binary model. These logsums will be passed to long-term
+	 *
+	 * @param personParams object containing person and household related variables. logsums will be updated in this object
+	 */
+	void computeDayPatternBinaryLogsums(PersonParams& personParams) const;
+
+	/**
 	 * Predicts the time window for a tour
 	 *
 	 * @param personParams object containing person and household related variables

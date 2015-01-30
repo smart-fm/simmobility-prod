@@ -349,6 +349,16 @@ public:
 		this->dptLogsum = dptLogsum;
 	}
 
+	double getDpbLogsum() const
+	{
+		return dpbLogsum;
+	}
+
+	void setDpbLogsum(double dpbLogsum)
+	{
+		this->dpbLogsum = dpbLogsum;
+	}
+
 private:
 	std::string personId;
 	int personTypeId;
@@ -382,6 +392,7 @@ private:
 	double otherLogSum;
 	double dptLogsum;
 	double dpsLogsum;
+	double dpbLogsum;
 
 	/**
 	 * Time windows availability for the person.

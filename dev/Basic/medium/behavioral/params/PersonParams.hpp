@@ -23,6 +23,16 @@ public:
 	PersonParams();
 	virtual ~PersonParams();
 
+	const std::string& getHhId() const
+	{
+		return hhId;
+	}
+
+	void setHhId(const std::string& hhId)
+	{
+		this->hhId = hhId;
+	}
+
 	int getAgeId() const {
 		return ageId;
 	}
@@ -361,6 +371,7 @@ public:
 
 private:
 	std::string personId;
+	std::string hhId;
 	int personTypeId;
 	int ageId;
 	int isUniversityStudent;

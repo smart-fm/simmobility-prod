@@ -456,27 +456,27 @@ template<> struct type_conversion<sim_mob::TurningSection>
     typedef values base_type;
     static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::TurningSection &res)
     {
-    	res.dbId = vals.get<int>("id", -1);
-    	res.from_xpos = vals.get<double>("from_xpos", -1.0);
-    	res.from_ypos = vals.get<double>("from_ypos", -1.0);
-    	res.to_xpos = vals.get<double>("to_xpos", -1.0);
-    	res.to_ypos = vals.get<double>("to_ypos", -1.0);
-    	res.from_road_section = vals.get<std::string>("from_road_section", "");
-    	res.to_road_section = vals.get<std::string>("to_road_section", "");
-    	res.from_lane_index = vals.get<int>("from_lane_index", -1);
-    	res.to_lane_index = vals.get<int>("to_lane_index", -1);
+    	res.setDbId(vals.get<int>("id", -1));
+    	res.setFrom_xpos(vals.get<double>("from_xpos", -1.0));
+    	res.setFrom_ypos(vals.get<double>("from_ypos", -1.0));
+    	res.setTo_xpos(vals.get<double>("to_xpos", -1.0));
+    	res.setTo_ypos(vals.get<double>("to_ypos", -1.0));
+    	res.setFrom_road_section(vals.get<std::string>("from_road_section", ""));
+    	res.setTo_road_section(vals.get<std::string>("to_road_section", ""));
+    	res.setFrom_lane_index(vals.get<int>("from_lane_index", -1));
+    	res.setTo_lane_index(vals.get<int>("to_lane_index", -1));
     }
     static void to_base(const sim_mob::TurningSection& src, soci::values& vals, soci::indicator& ind)
     {
-    	vals.set("id", src.dbId);
-    	vals.set("from_xpos", src.from_xpos);
-    	vals.set("from_ypos", src.from_ypos);
-    	vals.set("to_xpos", src.to_xpos);
-    	vals.set("to_ypos", src.to_ypos);
-    	vals.set("from_road_section", src.from_road_section);
-    	vals.set("to_road_section", src.to_road_section);
-    	vals.set("from_lane_index", src.from_lane_index);
-    	vals.set("to_lane_index", src.to_lane_index);
+    	vals.set("id", src.getDbId());
+    	vals.set("from_xpos", src.getFrom_xpos());
+    	vals.set("from_ypos", src.getFrom_ypos());
+    	vals.set("to_xpos", src.getTo_xpos());
+    	vals.set("to_ypos", src.getTo_ypos());
+    	vals.set("from_road_section", src.getFrom_road_section());
+    	vals.set("to_road_section", src.getTo_road_section());
+    	vals.set("from_lane_index", src.getFrom_lane_index());
+    	vals.set("to_lane_index", src.getTo_lane_index());
         ind = i_ok;
     }
 };
@@ -485,19 +485,19 @@ template<> struct type_conversion<sim_mob::TurningConflict>
     typedef values base_type;
     static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::TurningConflict &res)
     {
-    	res.dbId = vals.get<int>("id", -1);
-    	res.first_turning = vals.get<std::string>("first_turning", "");
-    	res.second_turning = vals.get<std::string>("second_turning", "");
-    	res.first_cd = vals.get<double>("first_cd", -1.0);
-    	res.second_cd = vals.get<double>("second_cd", -1.0);
+    	res.setDbId(vals.get<int>("id", -1));
+    	res.setFirst_turning(vals.get<std::string>("first_turning", ""));
+    	res.setSecond_turning(vals.get<std::string>("second_turning", ""));
+    	res.setFirst_cd(vals.get<double>("first_cd", -1.0));
+    	res.setSecond_cd(vals.get<double>("second_cd", -1.0));
     }
     static void to_base(const sim_mob::TurningConflict& src, soci::values& vals, soci::indicator& ind)
     {
-    	vals.set("id", src.dbId);
-    	vals.set("first_turning", src.first_turning);
-    	vals.set("second_turning", src.second_turning);
-    	vals.set("first_cd", src.first_cd);
-    	vals.set("second_cd", src.second_cd);
+    	vals.set("id", src.getDbId());
+    	vals.set("first_turning", src.getFirst_turning());
+    	vals.set("second_turning", src.getSecond_turning());
+    	vals.set("first_cd", src.getFirst_cd());
+    	vals.set("second_cd", src.getSecond_cd());
         ind = i_ok;
     }
 };

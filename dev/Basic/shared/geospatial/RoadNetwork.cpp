@@ -44,7 +44,7 @@ sim_mob::RoadNetwork::~RoadNetwork()
 void sim_mob::RoadNetwork::storeTurningSection(sim_mob::TurningSection* turningSection) {
 
 	// get from segment
-	sim_mob::RoadSegment* fromSeg = getSegById(turningSection->from_road_section);
+	sim_mob::RoadSegment* fromSeg = getSegById(turningSection->getFrom_road_section());
 	
 	if(!fromSeg) 
 	{
@@ -64,28 +64,29 @@ void sim_mob::RoadNetwork::storeTurningSection(sim_mob::TurningSection* turningS
 	//Add turnings to multinode
 	multinode->setTurnings(fromSeg, turningSection);
 	
-	sim_mob::RoadSegment* toSeg = getSegById(turningSection->to_road_section);
+	sim_mob::RoadSegment* toSeg = getSegById(turningSection->getTo_road_section());
 	
 	if(!toSeg) 
 	{
 		throw std::runtime_error("storeTurningSection: not found to section");
 	}
 	
-	turningSection->fromSeg = fromSeg; turningSection->toSeg = toSeg;
+	turningSection->setFromSeg(fromSeg); 
+	turningSection->setToSeg(toSeg);
 	
 	//Get the from and to lanes
-	const Lane *from = fromSeg->getLane(turningSection->from_lane_index);
-	const Lane *to = toSeg->getLane(turningSection->to_lane_index);
+	const Lane *from = fromSeg->getLane(turningSection->getFrom_lane_index());
+	const Lane *to = toSeg->getLane(turningSection->getTo_lane_index());
 	
 	//Assign them to the turning section object
-	turningSection->laneFrom = from;
-	turningSection->laneTo = to;
+	turningSection->setLaneFrom(from);
+	turningSection->setLaneTo(to);
 	
 	// store
-	turningSectionMap.insert(std::make_pair(turningSection->sectionId,turningSection));
+	turningSectionMap.insert(std::make_pair(turningSection->getSectionId(),turningSection));
 	
-	turningSectionByFromSeg.insert(std::make_pair(turningSection->from_road_section,turningSection));
-	turningSectionByToSeg.insert(std::make_pair(turningSection->to_road_section,turningSection));
+	turningSectionByFromSeg.insert(std::make_pair(turningSection->getFrom_road_section(),turningSection));
+	turningSectionByToSeg.insert(std::make_pair(turningSection->getTo_road_section(),turningSection));
 	
 	//Update the map of lane vs turnings
 	multinode->updateMapLaneVsTurning(from, to, turningSection);
@@ -104,20 +105,20 @@ sim_mob::TurningSection* sim_mob::RoadNetwork::findTurningById(std::string id) {
 void sim_mob::RoadNetwork::storeTurningConflict(sim_mob::TurningConflict* conflict) {
 	
 	// get turnings
-	sim_mob::TurningSection* firstTurning = turningSectionMap[conflict->first_turning];
-	sim_mob::TurningSection* secondTurning = turningSectionMap[conflict->second_turning];
+	sim_mob::TurningSection* firstTurning = turningSectionMap[conflict->getFirst_turning()];
+	sim_mob::TurningSection* secondTurning = turningSectionMap[conflict->getSecond_turning()];
 
-	firstTurning->conflictingTurningSections.push_back(secondTurning);
-	firstTurning->turningConflicts.push_back(conflict);
+	firstTurning->addConflictingTurningSections(secondTurning);
+	firstTurning->addTurningConflict(conflict);
 
-	secondTurning->conflictingTurningSections.push_back(firstTurning);
-	secondTurning->turningConflicts.push_back(conflict);
+	secondTurning->addConflictingTurningSections(firstTurning);
+	secondTurning->addTurningConflict(conflict);
 
-	conflict->firstTurning = firstTurning;
-	conflict->secondTurning = secondTurning;
+	conflict->setFirstTurning(firstTurning);
+	conflict->setSecondTurning(secondTurning);
 	
 	// store
-	turningConflictMap.insert(std::make_pair(conflict->conflictId,conflict));
+	turningConflictMap.insert(std::make_pair(conflict->getConflictId(),conflict));
 }
 
 sim_mob::RoadSegment* sim_mob::RoadNetwork::getSegById(std::string aimsunId) {

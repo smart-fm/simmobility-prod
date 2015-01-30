@@ -326,6 +326,7 @@ void DriverUpdateParams::insertConflictTurningDriver(TurningConflict* conflict, 
 	if(it != conflictVehicles.end()) {
 		std::list<NearestVehicle>& nearestVehicles = it->second;
 		nearestVehicles.push_back(nearestVehicle);
+
 		// sort list
 		compare_NearestVehicle f;
 		nearestVehicles.sort(f);

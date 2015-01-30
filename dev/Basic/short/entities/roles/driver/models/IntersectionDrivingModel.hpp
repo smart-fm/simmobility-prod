@@ -29,14 +29,21 @@ public:
 	//Allow propagation of delete
 	virtual ~IntersectionDrivingModel() {}
 
+    //Builds a straight line trajectory form the end point of the entry lane into the intersection
+    //to the start point of the exit lane out of the intersection
 	virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) = 0;
-	virtual DPoint continueDriving(double amount) = 0;
-	virtual bool isDone() = 0;
-	virtual double getCurrentAngle() = 0;
 
-  public:
+    //Moves the vehicle by given amount along the trajectory
+    virtual DPoint continueDriving(double amount) = 0;
 
+    //Returns the current angle of the vehicle according to the position in the trajectory
+    virtual double getCurrentAngle() = 0;
+
+    //Returns the distance covered within the intersection
     virtual double getMoveDistance() = 0;
+
+    //Checks whether we've completed driving in the intersection
+    virtual bool isDone() = 0;
 };
 
 /**
@@ -86,25 +93,33 @@ public:
   {
   private:
 
+    //Trajectory of the vehicle in the intersection
     DynamicVector intTrajectory;
     
+    //Distance covered within the intersection
     double totalMovement;
 
   public:
     
-    double getMoveDistance() {return totalMovement;}
-
     MITSIM_IntDriving_Model();
     
     virtual ~MITSIM_IntDriving_Model();
     
+    //Builds a straight line trajectory form the end point of the entry lane into the intersection
+    //to the start point of the exit lane out of the intersection
+    virtual void startDriving (const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset);
+    
+    //Moves the vehicle by given amount along the trajectory
     virtual DPoint continueDriving (double amount);
 
+    //Returns the current angle of the vehicle according to the position in the trajectory
     virtual double getCurrentAngle ();
     
-    virtual bool isDone ();
- 
-    virtual void startDriving (const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset);
+    //Returns the distance covered within the intersection
+    double getMoveDistance() {return totalMovement;}
+    
+    //Checks whether we've completed driving in the intersection
+    virtual bool isDone ();    
 };
   
 }

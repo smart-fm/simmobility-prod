@@ -228,8 +228,8 @@ public:
 	void setSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams);
 	const PredayCalibrationParams& getWSPSA_CalibrationParams() const;
 	void setWSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams);
-	bool isOutputTripchains() const;
-	void setOutputTripchains(bool outputTripchains);
+	bool isFileOutputEnabled() const;
+	void setFileOutputEnabled(bool outputTripchains);
 	bool isOutputPredictions() const;
 	void setOutputPredictions(bool outputPredictions);
 	bool isConsoleOutput() const;
@@ -237,6 +237,7 @@ public:
 	bool runningPredaySimulation() const;
 	bool runningPredayCalibration() const;
 	bool runningPredayLogsumComputation() const;
+	bool runningPredayLogsumComputationForLT() const;
 	void setPredayRunMode(const std::string runMode);
 	bool runningSPSA() const;
 	bool runningWSPSA() const;
@@ -272,13 +273,20 @@ private:
 	double pedestrianWalkSpeed;
 
 	/**control variable for running preday simulation/logsum computation*/
-	enum PredayRunMode { NONE, SIMULATION, CALIBRATION, LOGSUM_COMPUTATION };
+	enum PredayRunMode
+	{
+		NONE,
+		SIMULATION,
+		CALIBRATION,
+		LOGSUM_COMPUTATION,
+		LOGSUM_COMPUTATION_LT
+	};
 	PredayRunMode predayRunMode;
 
 	/**num of threads to run for preday*/
 	unsigned numPredayThreads;
-	/**flag to indicate whether tripchains need to be output to postgresql db*/
-	bool outputTripchains;
+	/**flag to indicate whether output files need to be enabled*/
+	bool fileOutputEnabled;
 	/**flag to indicate whether tours and stops need to be output in mongodb*/
 	bool outputPredictions;
 	/**flag to indicate whether console output is required*/

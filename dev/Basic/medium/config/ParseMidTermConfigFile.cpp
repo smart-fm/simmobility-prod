@@ -77,8 +77,12 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 
 	childNode = GetSingleElementByName(node, "threads", true);
 	mtCfg.setNumPredayThreads(ParseUnsignedInt(GetNamedAttributeValue(childNode, "value", true), DEFAULT_NUM_THREADS_DEMAND));
-	childNode = GetSingleElementByName(node, "output_schedule", true);
-	mtCfg.setOutputTripchains(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
+	if(mtCfg.runningPredaySimulation())
+	{
+		childNode = GetSingleElementByName(node, "output_activity_schedule", true);
+		mtCfg.setFileOutputEnabled(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
+	}
+	else if(mtCfg.runningPredayLogsumComputationForLT()) { mtCfg.setFileOutputEnabled(true); }
 	childNode = GetSingleElementByName(node, "output_predictions", true);
 	mtCfg.setOutputPredictions(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
 	childNode = GetSingleElementByName(node, "console_output", true);

@@ -275,27 +275,6 @@ public:
 	 std::vector<TravelMetric> tripTravelMetrics;
 
 	 /**
-	  * subtrip level travel metrics
-	  */
-	 std::vector<TravelMetric> subTripTravelMetrics;
-
-	/**
-	 * get the measurements stored in subTripTravelMetrics and add them up into a new entry in tripTravelMetrics.
-	 * call this method whenever a subtrip is done.
-	 */
-	void aggregateSubTripMetrics();
-
-	/**
-	 * add the given TravelMetric to subTripTravelMetrics container
-	 */
-	void addSubtripTravelMetrics(TravelMetric & value);
-
-	/**
-	 * Serializer for Trip level travel time
-	 */
-	 void serializeTripTravelTimeMetrics();
-
-	 /**
 	  * A version of serializer for subtrip level travel time.
 	  * \param subtripMetrics input metrics
 	  * \param currTripChainItem current TripChainItem
@@ -307,33 +286,44 @@ public:
 			 std::vector<SubTrip>::iterator currSubTrip
 			 ) const;
 
+
+	 /**
+	  * subtrip level travel metrics
+	  * NOTE: Currently Unused
+	  */
+	 std::vector<TravelMetric> subTripTravelMetrics;
+
+	/**
+	 * get the measurements stored in subTripTravelMetrics and add them up into a new entry in tripTravelMetrics.
+	 * call this method whenever a subtrip is done.
+	  * NOTE: Currently Unused
+	 */
+	void aggregateSubTripMetrics();
+
+	/**
+	 * add the given TravelMetric to subTripTravelMetrics container
+	  * NOTE: Currently Unused
+	 */
+	void addSubtripTravelMetrics(TravelMetric & value);
+
+	/**
+	 * Serializer for Trip level travel time
+	  * NOTE: Currently Unused
+	 */
+	 void serializeTripTravelTimeMetrics();
+
 	 /**
 	  * This is called by movement facet's destructor of non-activity role
+	  * NOTE: Currently Unused
 	  */
 	 void serializeCBD_SubTrip(const TravelMetric &metric);
 
 	 /**
 	  * This is called by  movement facet's destructor activity role
+	  * NOTE: Currently Unused
 	  */
 	 void serializeCBD_Activity(const TravelMetric &metric);
 private:
-	 /**
-	  * serialize person's tripchain item
-	  */
-	 //void serializeTripChainItem(std::vector<TripChainItem*>::iterator currTripChainItem);
-
-	 /**
-	  * During Serialization of person's tripchain, this routine is called if the given
-	  * tripchain item is a trip
-	  */
-	 //std::string serializeTrip(std::vector<TripChainItem*>::iterator item);
-
-
-	 /**
-	  * During Serialization of person's tripchain, this routine is called if the given
-	  * tripchain item is an activity
-	  */
-	 //std::string serializeActivity(std::vector<TripChainItem*>::iterator item);
 
 	 /**
 	  * prints the trip chain item types of each item in tripChain

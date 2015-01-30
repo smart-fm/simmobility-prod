@@ -37,12 +37,12 @@ void PedestrianMovement::setParentPedestrian(
 
 TravelMetric& PedestrianMovement::startTravelTimeMetric()
 {
-	return  travelTimeMetric;
+	return  travelMetric;
 }
 
 TravelMetric& PedestrianMovement::finalizeTravelTimeMetric()
 {
-	return  travelTimeMetric;
+	return  travelMetric;
 }
 void PedestrianBehavior::setParentPedestrian(
 		sim_mob::medium::Pedestrian* parentPedestrian) {

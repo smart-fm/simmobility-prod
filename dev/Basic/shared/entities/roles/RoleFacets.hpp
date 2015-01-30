@@ -132,7 +132,7 @@ public:
 	//needed if the role are reused rather than deleted!
 	virtual void resetTravelTimeMetric()
 	{
-		travelTimeMetric.reset();
+		travelMetric.reset();
 	}
 	/**
 	 * checks if lane is connected to the next segment
@@ -158,9 +158,12 @@ public:
 protected:
 
 	///	placeholder for various movement measurements
-	 TravelMetric travelTimeMetric;
+	 TravelMetric travelMetric;
 	 /// rerouting member in charge
 	 boost::shared_ptr<sim_mob::Reroute> rerouter;
+
+	 ///	list of segments this role has traversed
+	 std::vector<const sim_mob::RoadSegment*> traversed;
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI

@@ -71,12 +71,12 @@ void WaitBusActivityMovement::frame_tick_output(){
 }
 TravelMetric & medium::WaitBusActivityMovement::startTravelTimeMetric()
 {
-	return travelTimeMetric;
+	return travelMetric;
 }
 
 TravelMetric & medium::WaitBusActivityMovement::finalizeTravelTimeMetric()
 {
-	return travelTimeMetric;
+	return travelMetric;
 }
 
 } /* namespace sim_mob */

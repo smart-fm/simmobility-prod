@@ -511,6 +511,7 @@
     	<travel_time_interval value="600" />
     	<recursive_pathset_generation value="false" />
     	<reroute_enabled value="true" />
+    	<subtrip_travel_metrics_output enabled="true" file="subtrip_level_travel_metrics_for_preday.csv" />
     	<!--to be implemented 
     	<path_generators>																	
     		<k-shortest level="2" />														

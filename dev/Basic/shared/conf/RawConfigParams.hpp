@@ -69,7 +69,7 @@ struct LongTermParams{
 struct PathSetConf
 {
 	PathSetConf():enabled(false), database(""), credentials("")/*, singlePathTableName("")*/, RTTT_Conf(""), DTT_Conf(""), dbFunction(""), interval(0),
-	recPS(false),reroute(false), cbd(false){}
+	recPS(false),reroute(false), cbd(false), subTripOP(""){}
 	bool enabled;
 	std::string database;
 	std::string credentials;
@@ -84,6 +84,8 @@ struct PathSetConf
 	bool reroute;
 	///	CBD enabled?
 	bool cbd;
+	/// subtrip level travel metrics output file(for preday use)
+	std::string subTripOP;
 };
 
 ///represent the incident data section of the config file

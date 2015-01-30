@@ -655,6 +655,26 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 		cfg.pathset.cbd = ParseBoolean(GetNamedAttributeValue(cbd, "value"), false);
 	}
 
+
+	//subtrip output for preday
+	xercesc::DOMElement* predayOP = GetSingleElementByName(node, "subtrip_travel_metrics_output");
+	if(predayOP)
+	{
+		const XMLCh* enabledSwitch = GetNamedAttributeValue(reroute, "enabled");
+		if(!enabledSwitch)
+		{
+			throw std::runtime_error("mandatory subtrip_travel_metrics_output \"enabled\" switch is missing");
+		}
+		if(ParseBoolean(enabledSwitch))
+		{
+			cfg.pathset.subTripOP = ParseString(GetNamedAttributeValue(predayOP, "file"), "");
+			if(!cfg.pathset.subTripOP.size())
+			{
+				throw std::runtime_error("mandatory subtrip_travel_metrics_output filename is missing");
+			}
+		}
+	}
+
 //	//sanity check
 	std::stringstream out("");
 	if(cfg.pathset.database == "")

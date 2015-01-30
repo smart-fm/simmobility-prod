@@ -1551,6 +1551,23 @@ void sim_mob::medium::PredaySystem::computeLogsums()
 			<<std::endl;
 }
 
+void sim_mob::medium::PredaySystem::computeLogsumsForLT(std::stringstream& outStream)
+{
+	computeLogsums();
+	PredayLuaProvider::getPredayModel().computeDayPatternBinaryLogsums(personParams);
+	outStream << personParams.getPersonId()
+			<< "," << personParams.getHomeLocation()
+			<< "," << personParams.getHhId()
+			<< "," << personParams.getWorkLogSum()
+			<< "," << personParams.getEduLogSum()
+			<< "," << personParams.getShopLogSum()
+			<< "," << personParams.getOtherLogSum()
+			<< "," << personParams.getDptLogsum()
+			<< "," << personParams.getDpsLogsum()
+			<< "," << personParams.getDpbLogsum()
+			<< "\n";
+}
+
 void sim_mob::medium::PredaySystem::outputPredictionsToMongo() {
 	insertDayPattern();
 	int tourNum=0;
@@ -1918,6 +1935,7 @@ void sim_mob::medium::PredaySystem::outputTripChainsToStream(const ZoneNodeMap& 
 void sim_mob::medium::PredaySystem::printLogs()
 {
 	Print() << logStream.str();
+	logStream.str(std::string());
 }
 
 void sim_mob::medium::PredaySystem::updateStatistics(CalibrationStatistics& statsCollector) const

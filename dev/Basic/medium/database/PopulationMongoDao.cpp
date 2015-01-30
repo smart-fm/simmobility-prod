@@ -24,6 +24,7 @@ sim_mob::medium::PopulationMongoDao::~PopulationMongoDao()
 
 void PopulationMongoDao::fromRow(mongo::BSONObj document, PersonParams& outParam) {
   	outParam.setPersonId(document.getField(MONGO_FIELD_ID).String());
+  	outParam.setHhId(document.getField(MONGO_FIELD_HOUSEHOLD_ID).String());
    	outParam.setIncomeId(document.getField(MONGO_FIELD_INCOME_ID).Int());
    	outParam.setMissingIncome(document.getField(MONGO_FIELD_MISSING_INCOME).Int());
    	outParam.setPersonTypeId(document.getField(MONGO_FIELD_PERSON_TYPE_ID).Int());

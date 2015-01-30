@@ -104,10 +104,8 @@ sim_mob::medium::Driver* sim_mob::medium::DriverBehavior::getParentDriver() {
 
 sim_mob::medium::DriverMovement::DriverMovement(sim_mob::Person* parentAgent):
 	MovementFacet(parentAgent), parentDriver(nullptr), currLane(nullptr),
-	laneInNextSegment(nullptr), isQueuing(false)
-{
-	messaging::MessageBus::RegisterHandler(this);
-	}
+	isQueuing(false), laneConnectorOverride(false)
+{}
 
 
 sim_mob::medium::DriverMovement::~DriverMovement() {
@@ -335,7 +333,7 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 	}
 
 	const sim_mob::SegmentStats* nextToNextSegStat = pathMover.getSecondSegStatsAhead();
-	laneInNextSegment = getBestTargetLane(nxtSegStat, nextToNextSegStat);
+	const Lane* laneInNextSegment = getBestTargetLane(nxtSegStat, nextToNextSegStat);
 
 	//this will space out the drivers on the same lane, by seperating them by the time taken for the previous car to move a car's length
 	//Commenting out the delay from accept rate as per Yang Lu's suggestion (we only use this delay in setOrigin)
@@ -443,7 +441,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 	const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
 	const sim_mob::SegmentStats* nextSegStats = pathMover.getNextSegStats(false);
 	const sim_mob::SegmentStats* nextToNextSegStats = pathMover.getSecondSegStatsAhead();
-	laneInNextSegment = getBestTargetLane(nextSegStats, nextToNextSegStats);
+	const Lane* laneInNextSegment = getBestTargetLane(nextSegStats, nextToNextSegStats);
 
 	//this will space out the drivers on the same lane, by seperating them by the time taken for the previous car to move a car's length
 	//Commenting out the delay from accept rate as per Yang Lu's suggestion (we use this delay only in setOrigin)
@@ -788,7 +786,7 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
 		nextSegStats = pathMover.getNextSegStats(false);
 	}
 
-	laneInNextSegment = getBestTargetLane(currSegStats, nextSegStats);
+	const Lane* laneInNextSegment = getBestTargetLane(currSegStats, nextSegStats);
 
 	//this will space out the drivers on the same lane, by seperating them by the time taken for the previous car to move a car's length
 	double departTime = getLastAccept(laneInNextSegment, currSegStats) + getAcceptRate(laneInNextSegment, currSegStats); //in seconds
@@ -859,9 +857,7 @@ void DriverMovement::removeFromQueue() {
 	}
 }
 
-const sim_mob::Lane* DriverMovement::getBestTargetLane(
-		const SegmentStats* nextSegStats,
-		const SegmentStats* nextToNextSegStats)
+const sim_mob::Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats)
 {
 	if(!nextSegStats) { return nullptr; }
 	const sim_mob::Lane* minLane = nullptr;
@@ -876,7 +872,7 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(
 		const Lane* lane = *lnIt;
 		if (!lane->is_pedestrian_lane() && !lane->is_whole_day_bus_lane())
 		{
-			if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())) {	continue; }
+			if(!laneConnectorOverride && nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())) { continue; }
 			total = nextSegStats->getLaneTotalVehicleLength(lane);
 			que = nextSegStats->getLaneQueueLength(lane);
 			if (minLength > total)
@@ -899,7 +895,8 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(
 		}
 	}
 
-	if(!minLane) {
+	if(!minLane)
+	{
 		Print() << "\nCurrent Path " << pathMover.getPath().size() << std::endl;
 		MesoPathMover::printPath(pathMover.getPath());
 
@@ -907,7 +904,8 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(
 		out << "best target lane was not set!" << "\nCurrent Segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getSegmentAimsunId() <<
 				" =>" << nextSegStats->getRoadSegment()->getSegmentAimsunId() <<
 				" =>" <<  nextToNextSegStats->getRoadSegment()->getSegmentAimsunId()  << std::endl;
-		throw std::runtime_error(out.str()); }
+		throw std::runtime_error(out.str());
+	}
 	return minLane;
 }
 
@@ -1252,8 +1250,8 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 	getMesoPathMover().setPath(it->second);
 }
 
-void DriverMovement::HandleMessage(messaging::Message::MessageType type,
-		const messaging::Message& message){
+void DriverMovement::handleMessage(messaging::Message::MessageType type, const messaging::Message& message)
+{
 	switch (type){
 	case MSG_INSERT_INCIDENT:{
 		const InsertIncidentMessage &msg = MSG_CAST(InsertIncidentMessage,message);

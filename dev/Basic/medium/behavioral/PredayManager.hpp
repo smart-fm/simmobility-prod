@@ -239,6 +239,18 @@ private:
 	void computeLogsumsById(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt);
 
 	/**
+	 * Threaded logsum computation for LT
+	 * Loops through all elements in personIdList within the specified range and
+	 * invokes logsum computations for each of them.
+	 *
+	 * @param first personIdList iterator corresponding to the first person to be
+	 * 				processed
+	 * @param last personIdList iterator corresponding to the person after the
+	 * 				last person to be processed
+	 */
+	void computeLogsumsByIdForLT(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& logsumOutputFileName);
+
+	/**
 	 * Threaded logsum computation for calibration
 	 * Loops through all elements in personList within the specified range and
 	 * invokes logsum computations for each of them.

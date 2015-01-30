@@ -320,7 +320,13 @@ public:
 			const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
 			const std::map<std::string, db::MongoDao*>& mongoDao,
 			const std::vector<OD_Pair>& unavailableODs);
+
 	virtual ~PredaySystem();
+
+	PersonParams& getPersonParams()
+	{
+		return personParams;
+	}
 
 	/**
 	 * Invokes behavior models in a sequence as defined in the system of models
@@ -333,10 +339,17 @@ public:
 	void outputPredictionsToMongo();
 
 	/**
-	 * Invokes tour mode-destination models for computing logsums
+	 * Invokes logsum computation for preday
 	 * Updates the logsums in personParams
 	 */
 	void computeLogsums();
+
+	/**
+	 * Invokes logsum computation for long term
+	 * Updates the logsums in personParams
+	 * @param outStream stringstream to write computed logsums
+	 */
+	void computeLogsumsForLT(std::stringstream& outStream);
 
 	/**
 	 * Writes the logsums to mongo

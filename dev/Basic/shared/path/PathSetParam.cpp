@@ -202,6 +202,7 @@ double sim_mob::PathSetParam::getSegTT(const sim_mob::RoadSegment* rs, const std
 	double res = 0.0;
 	if((res = getHistorySegTT(rs, travelMode, startTime)) > 0.0)
 	{
+		logger <<  "[RTTT] " << rs->getId() << "\n";
 		return res;
 	}
 //	else

@@ -660,7 +660,7 @@ void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
 	xercesc::DOMElement* predayOP = GetSingleElementByName(node, "subtrip_travel_metrics_output");
 	if(predayOP)
 	{
-		const XMLCh* enabledSwitch = GetNamedAttributeValue(reroute, "enabled");
+		const XMLCh* enabledSwitch = GetNamedAttributeValue(predayOP, "enabled");
 		if(!enabledSwitch)
 		{
 			throw std::runtime_error("mandatory subtrip_travel_metrics_output \"enabled\" switch is missing");

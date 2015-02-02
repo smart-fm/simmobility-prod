@@ -45,11 +45,6 @@ public:
 	 */
 	int getKShortestPaths(const sim_mob::Node *from, const sim_mob::Node *to, std::vector< std::vector<sim_mob::WayPoint> > &res);
 
-	/**
-	 * Original(old) version,
-	 * todo: delete this method when enough test on the new method is performed
-	 */
-	int getKShortestPaths_2(const sim_mob::Node *from, const sim_mob::Node *to, std::vector< std::vector<sim_mob::WayPoint> > &res);
 	void setK(int value) { k = value; }
 	int getK() { return k; }
 private:
@@ -69,7 +64,7 @@ private:
 	 * \param SpurNode input
 	 * \paream endSegments output
 	 */
-	void getEndSegments(const Node *SpurNode,std::vector<const RoadSegment*> &endSegments);
+	void getEndSegments(const Node *SpurNode,std::set<const RoadSegment*> &endSegments);
 	/**
 	 * store intermediary result into A_Segments(get segments list of the path)
 	 */

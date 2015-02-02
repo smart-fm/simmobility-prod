@@ -14,7 +14,7 @@ namespace{
 sim_mob::BasicLogger & logger = sim_mob::Logger::log("path_set");
 }
 
-sim_mob::SinglePath::SinglePath() : purpose(work),utility(0.0),pathSize(0.0),travelCost(0.0),
+sim_mob::SinglePath::SinglePath() : purpose(work),utility(0.0),pathSize(0.0),travelCost(0.0),partialUtility(0.0),
 signalNumber(0.0),rightTurnNumber(0.0),length(0.0),travleTime(0.0),highWayDistance(0.0),valid_path(true),
 isMinTravelTime(0),isMinDistance(0),isMinSignal(0),isMinRightTurn(0),isMaxHighWayUsage(0),
 isShortestPath(0), index(-1),path(std::vector<sim_mob::WayPoint>()),isNeedSave2DB(false){
@@ -29,7 +29,8 @@ sim_mob::SinglePath::SinglePath(const SinglePath& source) :
 		length(source.length),travleTime(source.travleTime),
 		pathSetId(source.pathSetId),highWayDistance(source.highWayDistance),
 		isMinTravelTime(source.isMinTravelTime),isMinDistance(source.isMinDistance),isMinSignal(source.isMinSignal),
-		isMinRightTurn(source.isMinRightTurn),isMaxHighWayUsage(source.isMaxHighWayUsage),isShortestPath(source.isShortestPath)
+		isMinRightTurn(source.isMinRightTurn),isMaxHighWayUsage(source.isMaxHighWayUsage),isShortestPath(source.isShortestPath),
+		partialUtility(source.partialUtility), index(source.index), scenario(source.scenario)
 {
 	isNeedSave2DB=false;
 

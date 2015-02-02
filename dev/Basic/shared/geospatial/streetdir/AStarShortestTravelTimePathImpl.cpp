@@ -24,6 +24,8 @@
 #include "util/threadpool/Threadpool.hpp"
 #include <boost/bind.hpp>
 #include <boost/ref.hpp>
+#include "conf/ConfigParams.hpp"
+#include "conf/ConfigManager.hpp"
 
 using std::map;
 using std::set;
@@ -36,13 +38,11 @@ using namespace sim_mob;
 boost::shared_mutex sim_mob::A_StarShortestTravelTimePathImpl::GraphSearchMutex_;
 
 
-sim_mob::A_StarShortestTravelTimePathImpl::A_StarShortestTravelTimePathImpl(const RoadNetwork& network,double h) : highway_bias(h)
+sim_mob::A_StarShortestTravelTimePathImpl::A_StarShortestTravelTimePathImpl(const RoadNetwork& network,double h) : highwayBias(h)
 {
-//	PathSetManager* psMgr = PathSetManager::getInstance();//do not remove
-	PathSetParam* psMgr = PathSetParam::getInstance();//do not remove
 	// init random graph pool
-	int random_pool_size = 20;
-	for(int i=0;i<random_pool_size;++i)
+	int randomCount = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().perturbationIteration;
+	for(int i=0;i < randomCount;++i)
 	{
 		StreetDirectory::Graph g;
 		drivingMap_Random_pool.push_back(g);
@@ -168,7 +168,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::initDrivingNetworkNew(const vect
     	procAddDrivingNodes(drivingMap_HighwayBias_NormalTime, (*iter)->getSegments(), nodeLookup_HighwayBias_NormalTime);
     	procAddDrivingNodes(drivingMap_HighwayBias_Default, (*iter)->getSegments(), nodeLookup_HighwayBias_Default);
 //    	procAddDrivingNodes(drivingMap_Random, (*iter)->getSegments(), nodeLookup_Random);
-    	for(int i=0; i<drivingMap_Random_pool.size(); ++i)
+    	for(int i=0; i < drivingMap_Random_pool.size(); ++i)
     	{
     		procAddDrivingNodes(drivingMap_Random_pool[i], (*iter)->getSegments(), nodeLookup_Random_pool[i]);
     	}
@@ -187,7 +187,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::initDrivingNetworkNew(const vect
     	procAddDrivingLinks(drivingMap_HighwayBias_NormalTime, (*iter)->getSegments(), nodeLookup_HighwayBias_NormalTime, drivingSegmentLookup_HighwayBias_NormalTime_,sim_mob::HighwayBias_OffPeak);
     	procAddDrivingLinks(drivingMap_HighwayBias_Default, (*iter)->getSegments(), nodeLookup_HighwayBias_Default, drivingSegmentLookup_HighwayBias_Default_,sim_mob::HighwayBias_Default);
 //    	procAddDrivingLinks(drivingMap_Random, (*iter)->getSegments(), nodeLookup_Random, drivingSegmentLookup_Random_,sim_mob::Random);
-    	for(int i=0; i<drivingMap_Random_pool.size(); ++i)
+    	for(int i=0; i < drivingMap_Random_pool.size(); ++i)
 		{
     		procAddDrivingLinks(drivingMap_Random_pool[i], (*iter)->getSegments(), nodeLookup_Random_pool[i], drivingSegmentLookup_Random_pool[i],sim_mob::Random);
 		}
@@ -206,7 +206,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::initDrivingNetworkNew(const vect
     	procAddDrivingLaneConnectors(drivingMap_HighwayBias_NormalTime, dynamic_cast<const MultiNode*>(it->first), nodeLookup_HighwayBias_NormalTime);
     	procAddDrivingLaneConnectors(drivingMap_HighwayBias_Default, dynamic_cast<const MultiNode*>(it->first), nodeLookup_HighwayBias_Default);
 //    	procAddDrivingLaneConnectors(drivingMap_Random, dynamic_cast<const MultiNode*>(it->first), nodeLookup_Random);
-    	for(int i=0; i<drivingMap_Random_pool.size(); ++i)
+    	for(int i=0; i < drivingMap_Random_pool.size(); ++i)
 		{
     		procAddDrivingLaneConnectors(drivingMap_Random_pool[i], dynamic_cast<const MultiNode*>(it->first), nodeLookup_Random_pool[i]);
 		}
@@ -225,7 +225,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::initDrivingNetworkNew(const vect
     	procAddDrivingBusStops(drivingMap_HighwayBias_NormalTime, (*iter)->getSegments(), nodeLookup_HighwayBias_NormalTime, drivingBusStopLookup_HighwayBias_NormalTime_, drivingSegmentLookup_HighwayBias_NormalTime_);
     	procAddDrivingBusStops(drivingMap_HighwayBias_Default, (*iter)->getSegments(), nodeLookup_HighwayBias_Default, drivingBusStopLookup_HighwayBias_Default_, drivingSegmentLookup_HighwayBias_Default_);
 //    	procAddDrivingBusStops(drivingMap_Random, (*iter)->getSegments(), nodeLookup_Random, drivingBusStopLookup_Random_, drivingSegmentLookup_Random_);
-    	for(int i=0; i<drivingMap_Random_pool.size(); ++i)
+    	for(int i=0; i < drivingMap_Random_pool.size(); ++i)
 		{
     		procAddDrivingBusStops(drivingMap_Random_pool[i], (*iter)->getSegments(), nodeLookup_Random_pool[i], drivingBusStopLookup_Random_pool[i], drivingSegmentLookup_Random_pool[i]);
 		}
@@ -243,7 +243,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::initDrivingNetworkNew(const vect
     procAddStartNodesAndEdges(drivingMap_HighwayBias_NormalTime, nodeLookup_HighwayBias_NormalTime, drivingNodeLookup_HighwayBias_NormalTime_);
     procAddStartNodesAndEdges(drivingMap_HighwayBias_Default, nodeLookup_HighwayBias_Default, drivingNodeLookup_HighwayBias_Default_);
 //    procAddStartNodesAndEdges(drivingMap_Random, nodeLookup_Random, drivingNodeLookup_Random_);
-    for(int i=0; i<drivingMap_Random_pool.size(); ++i)
+    for(int i=0; i < drivingMap_Random_pool.size(); ++i)
 	{
     	procAddStartNodesAndEdges(drivingMap_Random_pool[i], nodeLookup_Random_pool[i], drivingNodeLookup_Random_pool[i]);
 	}
@@ -1049,7 +1049,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 	    	key = rs->length;
 	    	if(rs->maxSpeed > 60.0)
 	    	{
-	    		key = highway_bias * key;
+	    		key = highwayBias * key;
 	    	}
 	    }
 	    else if(tr == sim_mob::HighwayBias_MorningPeak)
@@ -1061,7 +1061,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			double key_ = sim_mob::PathSetParam::getInstance()->getSegRangeTT(rs,"Car",startTime,endTime);
 	    	if(rs->maxSpeed > 60.0)
 			{
-				key = highway_bias * key_;
+				key = highwayBias * key_;
 			}
 	    }
 	    else if(tr == sim_mob::HighwayBias_EveningPeak)
@@ -1073,7 +1073,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			key = PathSetParam::getInstance()->getSegRangeTT(rs,"Car",startTime,endTime);
 			if(rs->maxSpeed > 60.0)
 			{
-				key = highway_bias * key;
+				key = highwayBias * key;
 			}
 		}
 		else if(tr == sim_mob::HighwayBias_OffPeak)
@@ -1099,7 +1099,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			key = (key1+key2+key3)/3.0;
 			if(rs->maxSpeed > 60.0)
 			{
-				key = highway_bias * key;
+				key = highwayBias * key;
 			}
 		}
 		else if(tr == sim_mob::HighwayBias_Default)
@@ -1107,7 +1107,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			key = PathSetParam::getInstance()->getDefSegTT(rs);
 			if(rs->maxSpeed > 60.0)
 			{
-				key = highway_bias * key;
+				key = highwayBias * key;
 			}
 		}
 		else if(tr == sim_mob::Random)
@@ -1115,9 +1115,10 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			boost::random_device seed_gen;
 			long int r = seed_gen();
 		  boost::mt19937  rng(r);
-		  boost::uniform_int<> one_to_ten( 1.0, 1000.0 );
+		  const std::pair<int,int> &range = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().perturbationRange;
+		  boost::uniform_int<> uniformInt( range.first, range.second );
 		  boost::variate_generator< boost::mt19937, boost::uniform_int<> >
-						dice(rng, one_to_ten);
+						dice(rng, uniformInt);
 			double random_number = dice();
 //			std::cout<<random_number<<"   "<<r<<std::endl;
 			key = random_number * PathSetParam::getInstance()->getDefSegTT(rs);

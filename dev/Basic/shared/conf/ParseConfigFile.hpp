@@ -54,8 +54,8 @@ private:
 	void ProcessPassengersNode(xercesc::DOMElement* node);
 	void ProcessSignalsNode(xercesc::DOMElement* node);
 	void ProcessBusControllersNode(xercesc::DOMElement* node);
-	void ProcessPathSetNode(xercesc::DOMElement* node);
 	void ProcessCBD_Node(xercesc::DOMElement* node);
+	void processPathSetFileName(xercesc::DOMElement* node);
 	void ProcessLongTermParamsNode(xercesc::DOMElement* node);
 
 	//Descend through Constructs

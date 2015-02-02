@@ -97,7 +97,7 @@ uint32_t sim_mob::PathSetManager::getSize(){
 	sum += sizeof(double); // double bLeftTurns;
 	sum += sizeof(double); // sum += sizeof(); // double bWork;
 	sum += sizeof(double); // double bLeisure;
-	sum += sizeof(double); // double highway_bias;
+	sum += sizeof(double); // double highwayBias;
 	sum += sizeof(double); // double minTravelTimeParam;
 	sum += sizeof(double); // double minDistanceParam;
 	sum += sizeof(double); // double minSignalParam;
@@ -946,7 +946,8 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	std::cout << "[" << fromToID << "][RANDOM]\n";
 
 	// generate random path
-	for(int i=0;i<20;++i)//todo flexible number
+	int randCnt = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().perturbationIteration;
+	for(int i=0;i < randCnt ; ++i)
 	{
 		from = sttpImpl->DrivingVertexRandom(*ps->fromNode,i);
 		to = sttpImpl->DrivingVertexRandom(*ps->toNode,i);

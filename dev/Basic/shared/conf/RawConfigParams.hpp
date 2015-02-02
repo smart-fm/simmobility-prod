@@ -69,7 +69,7 @@ struct LongTermParams{
 struct PathSetConf
 {
 	PathSetConf():enabled(false), database(""), credentials("")/*, singlePathTableName("")*/, RTTT_Conf(""), DTT_Conf(""), dbFunction(""), interval(0),
-	recPS(false),reroute(false), cbd(false), subTripOP(""){}
+	recPS(false),reroute(false), cbd(false), subTripOP(""), perturbationRange(std::pair<int,int>(0,0)), kspLevel(0), perturbationIteration(0){}
 	bool enabled;
 	std::string database;
 	std::string credentials;
@@ -86,6 +86,53 @@ struct PathSetConf
 	bool cbd;
 	/// subtrip level travel metrics output file(for preday use)
 	std::string subTripOP;
+	///	number of iterations in random perturbation
+	int perturbationIteration;
+	///	range of uniform distribution in random perturbation
+	std::pair<int,int> perturbationRange;
+	///k-shortest path level
+	int kspLevel;
+	/// Link Elimination types
+	std::vector<std::string> LE;
+
+	/// Utility parameters
+	struct UtilityParams
+	{
+
+		double bTTVOT;
+		double bCommonFactor;
+		double bLength;
+		double bHighway;
+		double bCost;
+		double bSigInter;
+		double bLeftTurns;
+		double bWork;
+		double bLeisure;
+		double highwayBias;
+		double minTravelTimeParam;
+		double minDistanceParam;
+		double minSignalParam;
+		double maxHighwayParam;
+		UtilityParams()
+		{
+			bTTVOT = -0.01373;//-0.0108879;
+			bCommonFactor = 1.0;
+			bLength = -0.001025;//0.0; //negative sign proposed by milan
+			bHighway = 0.00052;//0.0;
+			bCost = 0.0;
+			bSigInter = -0.13;//0.0;
+			bLeftTurns = 0.0;
+			bWork = 0.0;
+			bLeisure = 0.0;
+			highwayBias = 0.5;
+			minTravelTimeParam = 0.879;
+			minDistanceParam = 0.325;
+			minSignalParam = 0.256;
+			maxHighwayParam = 0.422;
+		}
+	};
+	/// Utility Parameters
+	UtilityParams params;
 };
 
 ///represent the incident data section of the config file
@@ -299,6 +346,9 @@ struct EntityTemplate {
  * \author Seth N. Hetu
  */
 class RawConfigParams : public sim_mob::CMakeConfigParams {
+protected:
+	///Settings used for generation/retrieval of paths
+	PathSetConf pathset;
 public:
 	RawConfigParams();
 
@@ -319,9 +369,10 @@ public:
 	///Settings for Long Term Parameters
 	LongTermParams ltParams;
 
-	///Settings used for generation/retrieval of paths
-	PathSetConf pathset;
+	///pathset configuration file
+	std::string pathsetFile;
 
+	///	is CBD area restriction enforced
 	bool cbd;
 
 	///setting for the incidents

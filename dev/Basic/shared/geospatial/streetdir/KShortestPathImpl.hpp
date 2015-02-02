@@ -13,21 +13,6 @@ namespace sim_mob {
 class PathSet;
 class SinglePath;
 
-struct PathLength
-{
-	double length;
-	std::vector<WayPoint> path;
-
-};
-struct PathLengthComparator
-{
-bool operator()(const PathLength& first, const PathLength& second) const {
-	if(first.length < second.length) {
-		return true;
-	}
-	return false;
-}
-};
 class K_ShortestPathImpl {
 public:
 	K_ShortestPathImpl();

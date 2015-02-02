@@ -503,22 +503,5 @@
         </housingModel>
     </longTermParams>
     <CBD enabled="false"/> 
-             
-    <pathset enabled="true">
-    	<pathset_database database="fm_local_path_choice"  credentials="fm_local_path_choice" /> <!--unused for now-->
-    	<tables singlepath_table="path_fake" realtime_traveltime="realtime_travel_time" default_traveltime = "link_default_travel_time_corrected_he_v2"/>
-    	<function value="get_path_set_fake" />
-    	<travel_time_interval value="600" />
-    	<recursive_pathset_generation value="false" />
-    	<reroute_enabled value="true" />
-    	<subtrip_travel_metrics_output enabled="true" file="subtrip_level_travel_metrics_for_preday.csv" />
-    	<!--to be implemented 
-    	<path_generators>																	
-    		<k-shortest level="2" />														
-    		<link-elimination types="default,highway" />									
-    		<random-perturbation modes="time" iteration="20" random_range="1,1000" />		
-    	<path_generators/>																	-->    	
-    </pathset>
-    
 </config>
 

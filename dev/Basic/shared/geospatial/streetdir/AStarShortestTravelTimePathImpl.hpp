@@ -114,7 +114,7 @@ private:
 //	std::map<const sim_mob::Node*, VertexLookup> nodeLookup_Random;
 	std::vector< std::map<const sim_mob::Node*, VertexLookup> > nodeLookup_Random_pool;
 
-	double highway_bias;
+	double highwayBias;
 
 public:
 //    StreetDirectory::Graph drivingMap_; // A map for drivers, containing road-segments as edges.

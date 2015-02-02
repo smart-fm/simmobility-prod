@@ -93,7 +93,7 @@ public:
 //	///	return cached node given its id
 //	sim_mob::Node* getCachedNode(std::string id);
 
-	double getHighwayBias() { return highway_bias; }
+	double getHighwayBias() { return highwayBias; }
 
 	///	return the current rough size of the class todo:obsolete
 	uint32_t getSize();
@@ -107,7 +107,7 @@ public:
 	double bLeftTurns;
 	double bWork;
 	double bLeisure;
-	double highway_bias;
+	double highwayBias;
 	double minTravelTimeParam;
 	double minDistanceParam;
 	double minSignalParam;

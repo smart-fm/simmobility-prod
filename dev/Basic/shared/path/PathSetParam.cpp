@@ -222,34 +222,23 @@ double sim_mob::PathSetParam::getSegTT(const sim_mob::RoadSegment* rs, const std
 	return res;
 }
 
-//sim_mob::Node* sim_mob::PathSetParam::getCachedNode(std::string id)
-//{
-//	std::map<std::string,sim_mob::Node*>::iterator it = nodePool.find(id);
-//	if(it != nodePool.end())
-//	{
-//		sim_mob::Node* node = (*it).second;
-//		return node;
-//	}
-//	return NULL;
-//}
-
 void sim_mob::PathSetParam::initParameters()
 {
-	bTTVOT = -0.01373;//-0.0108879;
-	bCommonFactor = 1.0;
-	bLength = -0.001025;//0.0; //negative sign proposed by milan
-	bHighway = 0.00052;//0.0;
-	bCost = 0.0;
-	bSigInter = -0.13;//0.0;
-	bLeftTurns = 0.0;
-	bWork = 0.0;
-	bLeisure = 0.0;
-	highway_bias = 0.5;
-
-	minTravelTimeParam = 0.879;
-	minDistanceParam = 0.325;
-	minSignalParam = 0.256;
-	maxHighwayParam = 0.422;
+	const PathSetConf & pathset = sim_mob::ConfigManager::GetInstance().PathSetConfig();
+	bTTVOT = pathset.params.bTTVOT ;//-0.01373;//-0.0108879;
+	bCommonFactor =pathset.params.bCommonFactor ;// 1.0;
+	bLength = pathset.params.bLength ;//-0.001025;//0.0; //negative sign proposed by milan
+	bHighway =pathset.params.bHighway ;// 0.00052;//0.0;
+	bCost = pathset.params.bCost ;//0.0;
+	bSigInter = pathset.params.bSigInter ;//-0.13;//0.0;
+	bLeftTurns = pathset.params.bLeftTurns ;//0.0;
+	bWork = pathset.params.bWork ;//0.0;
+	bLeisure = pathset.params.bLeisure ;//0.0;
+	highwayBias = pathset.params.highwayBias ;//0.5;
+	minTravelTimeParam = pathset.params.minTravelTimeParam ;//0.879;
+	minDistanceParam = pathset.params.minDistanceParam ;//0.325;
+	minSignalParam = pathset.params.minSignalParam ;//0.256;
+	maxHighwayParam = pathset.params.maxHighwayParam ;//0.422;
 }
 
 //todo:obsolete
@@ -265,7 +254,7 @@ uint32_t sim_mob::PathSetParam::getSize()
 	sum += sizeof(double); //double bLeftTurns;
 	sum += sizeof(double); //double bWork;
 	sum += sizeof(double); //double bLeisure;
-	sum += sizeof(double); //double highway_bias;
+	sum += sizeof(double); //double highwayBias;
 	sum += sizeof(double); //double minTravelTimeParam;
 	sum += sizeof(double); //double minDistanceParam;
 	sum += sizeof(double); //double minSignalParam;

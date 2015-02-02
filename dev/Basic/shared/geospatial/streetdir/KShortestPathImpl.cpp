@@ -10,6 +10,8 @@
 #include "path/PathSetManager.hpp"
 #include "path/Path.hpp"
 #include "entities/roles/RoleFacets.hpp"
+#include "conf/ConfigParams.hpp"
+#include "conf/ConfigManager.hpp"
 #include<vector>
 
 using namespace sim_mob;
@@ -27,7 +29,7 @@ boost::shared_ptr<K_ShortestPathImpl> sim_mob::K_ShortestPathImpl::getInstance()
 }
 void sim_mob::K_ShortestPathImpl::init()
 {
-	k=3;
+	k = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().kspLevel;
 	stdir = &StreetDirectory::instance();
 }
 
@@ -39,8 +41,7 @@ class BType
 	struct comp{
 		bool operator()(const Pair& lhs,const Pair& rhs) const
 		{
-//			return true;
-			return lhs.first/**1000000*/ < rhs.first/**1000000*/;
+			return lhs.first < rhs.first;
 		}
 	};
 	std::list<std::vector<sim_mob::WayPoint> > paths;
@@ -70,15 +71,6 @@ public:
 	void sort()
 	{
 		std::sort(keys.begin(), keys.end(),comp());
-//		//debug
-//		std::cout << keys.size() << " keys sorted : ";
-//		std::vector<Pair>::iterator it(keys.begin()),itEnd(keys.end());
-//		for(;it != itEnd; it++)
-//		{
-//			std::cout << (*it).first << ",";
-//		}
-//		std::cout << "\n";
-//		//debug...
 	}
 	const std::vector<sim_mob::WayPoint>& get()
 	{
@@ -106,14 +98,10 @@ namespace
 	}
 }
 /**
- * This method attempt followes He's pseudocode. For comfort of future readers, the namings are exactly same as the document
+ * This method attempt follows He's pseudocode. For comfort of future readers, the namings are exactly same as the document
  */
 int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, const sim_mob::Node *to, std::vector< std::vector<sim_mob::WayPoint> > &res)
 {
-//	std::stringstream log("");
-//	log << "ksp-" << from->getID() << "," << to->getID() ;
-//	sim_mob::BasicLogger & logger = sim_mob::Logger::log(log.str());
-	//logger << from->getID() << "," << to->getID() << "\n";
 	std::vector< std::vector<sim_mob::WayPoint> > &A = res;//just renaming the variable
 	std::vector<const RoadSegment*> bl = std::vector<const RoadSegment*>();//black list
 	std::set<const RoadSegment*> BL;
@@ -122,8 +110,6 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 	std::vector<sim_mob::WayPoint> temp = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*from),stdir->DrivingVertex(*to),bl);
 	std::vector<sim_mob::WayPoint> A0;//actually A1 (in the pseudo code)
 	sim_mob::SinglePath::filterOutNodes(temp,A0);
-	//logger << "shortest path with nodes : " << sim_mob::printWPpath(temp) << "\n\n";
-	//logger << "shortest path segments : " << printWPpath(A0) << "\n\n";
 	//sanity check
 	if(A0.empty())
 	{
@@ -139,7 +125,6 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 	int K = 1; //k = 2
 	while(true)
 	{
-		//logger << "K=" << K << "\n";
 		//		Set path list C = A.
 		std::vector< std::vector<sim_mob::WayPoint> > C = A;
 		//		Set RootPath = [].
@@ -150,7 +135,6 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 			//	nextRootPathLink = A,k-1 [i]
 			sim_mob::WayPoint nextRootPathLink = A[K-1][i];
 			const sim_mob::Node *SpurNode = nextRootPathLink.roadSegment_->getStart();
-			////logger << "[spurnode:segment]:[" << SpurNode->getID() << "," << nextRootPathLink.roadSegment_->getId() << "]\n";
 			//	Find links whose EndNode = SpurNode, and block them.
 			getEndSegments(SpurNode,BL);//find and store in the blacklist
 			//	For each path Cj in path list C:
@@ -199,8 +183,6 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 		//	Add B[0] to path list A, and delete it from path list B.
 		const std::vector<sim_mob::WayPoint> & B0 = B.get();
 
-		//logger << "got B0:" << std::endl;
-		//logger << "B0.size():" << B0.size() << " \npushing" << std::endl;
 		A.push_back(B0);
 		B.eraseBegin();
 		//	Restore blocked links.

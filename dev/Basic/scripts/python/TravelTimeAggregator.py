@@ -3,82 +3,6 @@ import argparse
 import datetime
 import csv
 
-inputCsv = None
-
-#connect to local mongodb
-client = MongoClient('localhost', 27017)
-db = client.mydb
-nodeMTZ = db.node_mtz
-zone = db.Zone
-amCosts = db.LearnedAMCosts
-pmCosts = db.LearnedPMCosts
-opCosts = db.LearnedOPCosts
-ttCar = db.learned_tcost_car
-ttBus = db.learned_tcost_bus
-
-zoneId = {} # dictionary of <zone_code> : <zone_id>
-zoneCode = {} #dictionary of <zone_id> : <zone_code>
-
-NUM_ZONES = zone.count() #meant to be constant
-
-for z in range(1,1093):
-	zoneDoc = zone.find_one({"zone_id" : z})
-	zoneId[int(zoneDoc["zone_code"])] = z
-	zoneCode[z] = int(zoneDoc["zone_code"])
- 
-##2-dimensional list structures for each OD zone pair
-#to hold cumulative car in-vehicle travel time, in hours
-amCarIvt = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-pmCarIvt = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-opCarIvt = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-
-#to hold number of agents who travelled in car between each OD zone pair
-amCarIvtCount = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-pmCarIvtCount = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-opCarIvtCount = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-
-#to hold cumulative public transit in-vehicle travel time, in hours
-amPubIvt = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-pmPubIvt = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-opPubIvt = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-
-#to hold public transit in-vehicle travel count
-amPubIvtCount = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-pmPubIvtCount = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-opPubIvtCount = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-
-#to hold cumulative public transit waiting time, in hours
-amPubWtt = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-pmPubWtt = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-opPubWtt = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-
-#to hold number of people who waited at public transit stops
-amPubWttCount = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-pmPubWttCount = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-opPubWttCount = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-
-#to hold cumulative public transit walk transfer times, in hours
-amPubWalkt = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-pmPubWalkt = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-opPubWalkt = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-
-#to hold number of people who had walk transfers
-amPubWalktCount = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-pmPubWalktCount = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-opPubWalktCount = [[0]*NUM_ZONES for i in range(NUM_ZONES)]
-
-#3d tt structures for each tod for each od pair to hold time dependent travel times
-ttArrivalCar = [[[0]*48]*NUM_ZONES for i in range(NUM_ZONES)]
-ttDepartureCar = [[[0]*48]*NUM_ZONES for i in range(NUM_ZONES)]
-ttArrivalBus = [[[0]*48]*NUM_ZONES for i in range(NUM_ZONES)]
-ttDepartureBus = [[[0]*48]*NUM_ZONES for i in range(NUM_ZONES)]
-
-#3d tt structures for each tod for each od pair to hold time dependent travel counts
-ttArrivalCarCount = [[[0]*48]*NUM_ZONES for i in range(NUM_ZONES)]
-ttDepartureCarCount = [[[0]*48]*NUM_ZONES for i in range(NUM_ZONES)]
-ttArrivalBusCount = [[[0]*48]*NUM_ZONES for i in range(NUM_ZONES)]
-ttDepartureBusCount = [[[0]*48]*NUM_ZONES for i in range(NUM_ZONES)]
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ helper functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #identify whether time is in AM peak period
 #AM Peak : 7:30:00 - 9:29:00 AM
@@ -132,266 +56,364 @@ def getWindowIdx(time):
 	if minute > 59 or minute < 0: raise RuntimeError('invalid time - ' + time)
 	totalMins = ((hour*60) + minute) - 180 #day starts at 3:00 AM
 	return (totalMins/30)+1 
-	
-#fetch zone from node
-def getZone(node):
-	return int(nodeMTZ.find_one({"_id" : node})["MTZ_1092"])
 
-##functions to add items into the data structures defined above
-def addAMCarIvt(origin, destination, value):
-	orgZid = zoneId[origin] - 1
-	desZid = zoneId[destination] - 1
-	amCarIvt[orgZid][desZid] = amCarIvt[orgZid][desZid] + value
-	amCarIvtCount[orgZid][desZid] = amCarIvtCount[orgZid][desZid] + 1
-
-def addAMPubIvt(origin, destination, value):
-	orgZid = zoneId[origin] - 1
-	desZid = zoneId[destination] - 1
-	amPubIvt[orgZid][desZid] = amPubIvt[orgZid][desZid] + value
-	amPubIvtCount[orgZid][desZid] = amPubIvtCount[orgZid][desZid] + 1
-
-def addAMPubWtt(origin, destination, value):
-	orgZid = zoneId[origin] - 1
-	desZid = zoneId[destination] - 1
-	amPubWtt[orgZid][desZid] = amPubWtt[orgZid][desZid] + value
-	amPubWttCount[orgZid][desZid] = amPubWttCount[orgZid][desZid] + 1
-
-def addAMPubWalkt(origin, destination, value):
-	orgZid = zoneId[origin] - 1
-	desZid = zoneId[destination] - 1
-	amPubWalkt[orgZid][desZid] = amPubWalkt[orgZid][desZid] + value
-	amPubWalktCount[orgZid][desZid] = amPubWalktCount[orgZid][desZid] + 1
-
-def addPMCarIvt(origin, destination, value):
-	orgZid = zoneId[origin] - 1
-	desZid = zoneId[destination] - 1
-	pmCarIvt[orgZid][desZid] = pmCarIvt[orgZid][desZid] + value
-	pmCarIvtCount[orgZid][desZid] = pmCarIvtCount[orgZid][desZid] + 1
-
-def addPMPubIvt(origin, destination, value):
-	orgZid = zoneId[origin] - 1
-	desZid = zoneId[destination] - 1
-	pmPubIvt[orgZid][desZid] = pmPubIvt[orgZid][desZid] + value
-	pmPubIvtCount[orgZid][desZid] = pmPubIvtCount[orgZid][desZid] + 1
-
-def addPMPubWtt(origin, destination, value):
-	orgZid = zoneId[origin] - 1
-	desZid = zoneId[destination] - 1
-	pmPubWtt[orgZid][desZid] = pmPubWtt[orgZid][desZid] + value
-	pmPubWttCount[orgZid][desZid] = pmPubWttCount[orgZid][desZid] + 1
-
-def addPMPubWalkt(origin, destination, value):
-	orgZid = zoneId[origin] - 1
-	desZid = zoneId[destination] - 1
-	pmPubWalkt[orgZid][desZid] = pmPubWalkt[orgZid][desZid] + value
-	pmPubWalktCount[orgZid][desZid] = pmPubWalktCount[orgZid][desZid] + 1
-
-def addOPCarIvt(origin, destination, value):
-	orgZid = zoneId[origin] - 1
-	desZid = zoneId[destination] - 1
-	opCarIvt[orgZid][desZid] = opCarIvt[orgZid][desZid] + value
-	opCarIvtCount[orgZid][desZid] = opCarIvtCount[orgZid][desZid] + 1
-
-def addOPPubIvt(origin, destination, value):
-	orgZid = zoneId[origin] - 1
-	desZid = zoneId[destination] - 1
-	opPubIvt[orgZid][desZid] = opPubIvt[orgZid][desZid] + value
-	opPubIvtCount[orgZid][desZid] = opPubIvtCount[orgZid][desZid] + 1
-
-def addOPPubWtt(origin, destination, value):
-	orgZid = zoneId[origin] - 1
-	desZid = zoneId[destination] - 1
-	opPubWtt[orgZid][desZid] = opPubWtt[orgZid][desZid] + value
-	opPubWttCount[orgZid][desZid] = opPubWttCount[orgZid][desZid] + 1
-
-def addOPPubWalkt(origin, destination, value):
-	orgZid = zoneId[origin] - 1
-	desZid = zoneId[destination] - 1
-	opPubWalkt[orgZid][desZid] = opPubWalkt[orgZid][desZid] + value
-	opPubWalktCount[orgZid][desZid] = opPubWalktCount[orgZid][desZid] + 1
-
-def addTTCar(origin, destination, departure, arrival, value):
-	orgZid = zoneId[origin] - 1
-	desZid = zoneId[destination] - 1
-	arrIdx = getWindowIdx(arrival)
-	depIdx = getWindowIdx(departure)
-	ttArrivalCar[orgZid][desZid][arrIdx] = ttArrivalCar[orgZid][desZid][arrIdx] + value
-	ttArrivalCarCount[orgZid][desZid][arrIdx] = ttArrivalCarCount[orgZid][desZid][arrIdx] + 1
-	ttDepartureCar[orgZid][desZid][depIdx] = ttDepartureCar[orgZid][desZid][depIdx] + value
-	ttDepartureCarCount[orgZid][desZid][depIdx] = ttDepartureCarCount[orgZid][desZid][depIdx] + 1
-	print 'OD:[',origin,destination,'] arr:',arrIdx,' ttArrivalCar:',ttArrivalCar[orgZid][desZid][arrIdx],' ttArrivalCarCount:',ttArrivalCarCount[orgZid][desZid][arrIdx],' dep:',depIdx,' ttDepartureCar:',ttDepartureCar[orgZid][desZid][depIdx],' ttDepartureCarCount:',ttDepartureCarCount[orgZid][desZid][depIdx]
-
-def addTTBus(origin, destination, departure, arrival, value):
-	orgZid = zoneId[origin] - 1
-	desZid = zoneId[destination] - 1
-	arrIdx = getWindowIdx(arrival)
-	depIdx = getWindowIdx(departure)
-	ttArrivalBus[orgZid][desZid][arrIdx] = ttArrivalBus[orgZid][desZid][arrIdx] + value
-	ttArrivalBusCount[orgZid][desZid][arrIdx] = ttArrivalBusCount[orgZid][desZid][arrIdx] + 1
-	ttDepartureBus[orgZid][desZid][depIdx] = ttDepartureBus[orgZid][desZid][depIdx] + value
-	ttDepartureBusCount[orgZid][desZid][depIdx] = ttDepartureBusCount[orgZid][desZid][depIdx] + 1
-
-	
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-
-#process input csv
-def processInput():
-	#process each row of input csv
-	for row in inputCsv:
-		orgZ = getZone(int(row["origin"]))
-		desZ = getZone(int(row["destination"]))
-		tripStartTime = str(row["start_time"])
-		tripEndTime = str(row["end_time"])
-		mode = str(row["mode"])
-		travelTime = float(row["travel_time"])
-		if mode == "Car" or mode == "Motorcycle" or mode == "Taxi":
-			if isAM(tripStartTime): 
-				addAMCarIvt(orgZ, desZ, travelTime)
-			elif isPM(tripStartTime): 
-				addPMCarIvt(orgZ, desZ, travelTime)
-			else : 
-				addOPCarIvt(orgZ, desZ, travelTime)
-			addTTCar(orgZ, desZ, tripStartTime, tripEndTime, travelTime)
-			
-		elif mode == "Bus":
-			if isAM(tripStartTime):
-				addAMPubIvt(orgZ, desZ, travelTime)
-				addAMPubWtt(orgZ, desZ, float(row["pt_wtt"]))
-				addAMPubWalkt(orgZ, desZ, float(row["pt_walkt"]))
-			elif isPM(tripStartTime): 
-				addPMPubIvt(orgZ, desZ, travelTime)
-				addPMPubWtt(orgZ, desZ, float(row["pt_wtt"]))
-				addPMPubWalkt(orgZ, desZ, float(row["pt_walkt"]))
-			else: 
-				addOPPubIvt(orgZ, desZ, travelTime)
-				addOPPubWtt(orgZ, desZ, float(row["pt_wtt"]))
-				addOPPubWalkt(orgZ, desZ, float(row["pt_walkt"]))
-			addTTBus(orgZ, desZ, tripStartTime, tripEndTime, travelTime)
-
-def computeMeans():
-	for i in range(NUM_ZONES):
-		for j in range(NUM_ZONES):
-			amCarIvt[i][j] = (float(amCarIvt[i][j])/amCarIvtCount[i][j]) if amCarIvtCount[i][j] > 0 else 0
-			pmCarIvt[i][j] = (float(pmCarIvt[i][j])/pmCarIvtCount[i][j]) if pmCarIvtCount[i][j] > 0 else 0
-			opCarIvt[i][j] = (float(opCarIvt[i][j])/opCarIvtCount[i][j]) if opCarIvtCount[i][j] > 0 else 0
-			
-			amPubIvt[i][j] = (float(amPubIvt[i][j])/amPubIvtCount[i][j]) if amPubIvtCount[i][j] > 0 else 0
-			pmPubIvt[i][j] = (float(pmPubIvt[i][j])/pmPubIvtCount[i][j]) if pmPubIvtCount[i][j] > 0 else 0
-			opPubIvt[i][j] = (float(opPubIvt[i][j])/opPubIvtCount[i][j]) if opPubIvtCount[i][j] > 0 else 0	
-			
-			amPubWtt[i][j] = (float(amPubWtt[i][j])/amPubWttCount[i][j]) if amPubWttCount[i][j] > 0 else 0
-			pmPubWtt[i][j] = (float(pmPubWtt[i][j])/pmPubWttCount[i][j]) if pmPubWttCount[i][j] > 0 else 0
-			opPubWtt[i][j] = (float(opPubWtt[i][j])/opPubWttCount[i][j]) if opPubWttCount[i][j] > 0 else 0
-			
-			amPubWalkt[i][j] = (float(amPubWalkt[i][j])/amPubWalktCount[i][j]) if amPubWalktCount[i][j] > 0 else 0
-			pmPubWalkt[i][j] = (float(pmPubWalkt[i][j])/pmPubWalktCount[i][j]) if pmPubWalktCount[i][j] > 0 else 0
-			opPubWalkt[i][j] = (float(opPubWalkt[i][j])/opPubWalktCount[i][j]) if opPubWalktCount[i][j] > 0 else 0
-
-			for k in range(48):
-				ttArrivalCar[i][j][k] = (float(ttArrivalCar[i][j][k])/ttArrivalCarCount[i][j][k]) if ttArrivalCarCount[i][j][k] > 0 else 0
-				ttDepartureCar[i][j][k] = (float(ttDepartureCar[i][j][k])/ttDepartureCarCount[i][j][k]) if ttDepartureCarCount[i][j][k] > 0 else 0
-				ttArrivalBus[i][j][k] = (float(ttArrivalBus[i][j][k])/ttArrivalBusCount[i][j][k]) if ttArrivalBusCount[i][j][k] > 0 else 0
-				ttDepartureBus[i][j][k] = (float(ttDepartureBus[i][j][k])/ttDepartureBusCount[i][j][k]) if ttDepartureBusCount[i][j][k] > 0 else 0
-
-def updateMongo():
-	for i in range(NUM_ZONES):
-		orgZ = zoneCode[i+1]
-		for j in range(NUM_ZONES):
-			desZ = zoneCode[j+1]
-			if orgZ == desZ: continue
-			query = { "origin" : orgZ, "destin" : desZ }
-			# AM updates
-			updates = {}
-			newCarIvt = amCarIvt[i][j]
-			newPubIvt = amPubIvt[i][j]
-			newPubWtt = amPubWtt[i][j]
-			newPubWalkt = amPubWalkt[i][j]
-			if (newCarIvt+newPubIvt+newPubWtt+newPubWalkt) > 0: 
-				amDoc = amCosts.find_one(query)
-				if newCarIvt > 0: updates["car_ivt"] = (newCarIvt + toFloat(amDoc["car_ivt"]))/2
-				if newPubIvt > 0: updates["pub_ivt"] = (newPubIvt + toFloat(amDoc["pub_ivt"]))/2
-				if newPubWtt > 0: updates["pub_wtt"] = (newPubWtt + toFloat(amDoc["pub_wtt"]))/2
-				if newPubWalkt > 0: updates["pub_walkt"] = (newPubWalkt + toFloat(amDoc["pub_walkt"]))/2
-				print 'OD:[',orgZ,desZ,'] updating AMCosts newCarIvt:',newCarIvt,' newPubIvt:',newPubIvt,' newPubWtt:',newPubWtt,' newPubWalkt:',newPubWalkt
-				amCosts.update(query, {"$set" : updates }, upsert=False, multi=False)
-
-			# PM updates
-			updates = {}
-			newCarIvt = pmCarIvt[i][j]
-			newPubIvt = pmPubIvt[i][j]
-			newPubWtt = pmPubWtt[i][j]
-			newPubWalkt = pmPubWalkt[i][j]
-			if (newCarIvt+newPubIvt+newPubWtt+newPubWalkt) > 0: 
-				pmDoc = pmCosts.find_one(query)
-				if newCarIvt > 0: updates["car_ivt"] = (newCarIvt + toFloat(pmDoc["car_ivt"]))/2
-				if newPubIvt > 0: updates["pub_ivt"] = (newPubIvt + toFloat(pmDoc["pub_ivt"]))/2
-				if newPubWtt > 0: updates["pub_wtt"] = (newPubWtt + toFloat(pmDoc["pub_wtt"]))/2
-				if newPubWalkt > 0: updates["pub_walkt"] = (newPubWalkt + toFloat(pmDoc["pub_walkt"]))/2
-				print 'OD:[',orgZ,desZ,'] updating PMCosts newCarIvt:',newCarIvt,' newPubIvt:',newPubIvt,' newPubWtt:',newPubWtt,' newPubWalkt:',newPubWalkt
-				pmCosts.update(query, {"$set" : updates }, upsert=False, multi=False)
-
-			# OP updates
-			updates = {}
-			newCarIvt = opCarIvt[i][j]
-			newPubIvt = opPubIvt[i][j]
-			newPubWtt = opPubWtt[i][j]
-			newPubWalkt = opPubWalkt[i][j]
-			if (newCarIvt+newPubIvt+newPubWtt+newPubWalkt) > 0: 
-				opDoc = opCosts.find_one(query)
-				if newCarIvt > 0: updates["car_ivt"] = (newCarIvt + toFloat(opDoc["car_ivt"]))/2
-				if newPubIvt > 0: updates["pub_ivt"] = (newPubIvt + toFloat(opDoc["pub_ivt"]))/2
-				if newPubWtt > 0: updates["pub_wtt"] = (newPubWtt + toFloat(opDoc["pub_wtt"]))/2
-				if newPubWalkt > 0: updates["pub_walkt"] = (newPubWalkt + toFloat(opDoc["pub_walkt"]))/2
-				print 'OD:[',orgZ,desZ,'] updating OPCosts newCarIvt:',newCarIvt,' newPubIvt:',newPubIvt,' newPubWtt:',newPubWtt,' newPubWalkt:',newPubWalkt
-				opCosts.update(query, {"$set" : updates }, upsert=False, multi=False)
-			
-			#time dependent tt updates
-			query = { "origin" : orgZ, "destination" : desZ }
-			updates = {}
-			ttCarDoc = ttCar.find_one(query)
-			for k in range(48):
-				newTT = ttArrivalCar[i][j][k]
-				if newTT > 0: updates["TT_car_arrival_"+str(k+1)] = (newTT + toFloat(ttCarDoc["TT_car_arrival_"+str(k+1)]))/2
-				newTT = ttDepartureCar[i][j][k]
-				if newTT > 0: updates["TT_car_departure_"+str(k+1)] = (newTT + toFloat(ttCarDoc["TT_car_departure_"+str(k+1)]))/2
-			if updates: 
-				print 'OD:[',orgZ,desZ,'] car ',updates
-				ttCar.update(query, {"$set" : updates }, upsert=False , multi=False)
-
-			updates = {}
-			ttBusDoc = ttBus.find_one(query)
-			for k in range(48):
-				newTT = ttArrivalBus[i][j][k]
-				if newTT > 0: updates["TT_bus_arrival_"+str(k+1)] = (newTT + toFloat(ttBusDoc["TT_bus_arrival_"+str(k+1)]))/2
-				newTT = ttDepartureBus[i][j][k]
-				if newTT > 0: updates["TT_bus_departure_"+str(k+1)] = (newTT + toFloat(ttBusDoc["TT_bus_departure_"+str(k+1)]))/2
-			if updates: 
-				print 'OD:[',orgZ,desZ,'] bus ',updates
-				ttBus.update(query, {"$set" : updates }, upsert=False , multi=False)
-
-if __name__ == "__main__":
-	s = datetime.datetime.now()
-	parser = argparse.ArgumentParser()
-	parser.add_argument("csv_name", default="tt.csv", help="travel times experienced by persons in withinday")
-	args = parser.parse_args()
-
-	#1.
-	print "1. loading CSV"
-	inputCsv = csv.DictReader(open(str(args.csv_name)))
-	#2.
-	print "2. processing input"
-	processInput()
-	#3.
-	print "3. computing means"
-	computeMeans()
-	#4.
-	print "4. updating mongodb"
-	updateMongo()
-	
-	print "Done. Exiting Main"
-
-	e = datetime.datetime.now()
-	print 'Running Time: ' + str((e-s).total_seconds()) + 's'
-
-			
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~TT_Aggregator class~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+class TT_Aggregator:
+	def __init__(self, csv_name):
+		self.inputCsv = csv.DictReader(open(str(args.csv_name)))
 		
+		#connect to local mongodb
+		self.client = MongoClient('localhost', 27017)
+		self.db = self.client.mydb
+		
+		self.nodeMTZ = self.db.node_mtz
+		self.zone = self.db.Zone
+		self.amCosts = self.db.LearnedAMCosts
+		self.pmCosts = self.db.LearnedPMCosts
+		self.opCosts = self.db.LearnedOPCosts
+		self.ttCar = self.db.learned_tcost_car
+		self.ttBus = self.db.learned_tcost_bus
+		
+		self.zoneId = {} # dictionary of <zone_code> : <zone_id>
+		self.zoneCode = {} #dictionary of <zone_id> : <zone_code>
+		self.NUM_ZONES = self.zone.count() #meant to be constant
+		
+		for z in range(1,1093):
+			zoneDoc = self.zone.find_one({"zone_id" : z})
+			self.zoneId[int(zoneDoc["zone_code"])] = z
+			self.zoneCode[z] = int(zoneDoc["zone_code"])
+		
+		##2-dimensional list structures for each OD zone pair
+		#to hold cumulative car in-vehicle travel time, in hours
+		self.amCarIvt = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.pmCarIvt = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.opCarIvt = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		
+		#to hold number of agents who travelled in car between each OD zone pair
+		self.amCarIvtCount = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.pmCarIvtCount = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.opCarIvtCount = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		
+		#to hold cumulative public transit in-vehicle travel time, in hours
+		self.amPubIvt = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.pmPubIvt = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.opPubIvt = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		
+		#to hold public transit in-vehicle travel count
+		self.amPubIvtCount = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.pmPubIvtCount = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.opPubIvtCount = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		
+		#to hold cumulative public transit waiting time, in hours
+		self.amPubWtt = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.pmPubWtt = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.opPubWtt = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		
+		#to hold number of people who waited at public transit stops
+		self.amPubWttCount = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.pmPubWttCount = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.opPubWttCount = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		
+		#to hold cumulative public transit walk transfer times, in hours
+		self.amPubWalkt = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.pmPubWalkt = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.opPubWalkt = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		
+		#to hold number of people who had walk transfers
+		self.amPubWalktCount = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.pmPubWalktCount = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.opPubWalktCount = [[0 for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		
+		#3d tt structures for each tod for each od pair to hold time dependent travel times
+		self.ttArrivalCar = [[[0 for k in xrange(48)] for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.ttDepartureCar = [[[0 for k in xrange(48)] for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.ttArrivalBus = [[[0 for k in xrange(48)] for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.ttDepartureBus = [[[0 for k in xrange(48)] for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		
+		#3d tt structures for each tod for each od pair to hold time dependent travel counts
+		self.ttArrivalCarCount = [[[0 for k in xrange(48)] for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.ttDepartureCarCount = [[[0 for k in xrange(48)] for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.ttArrivalBusCount = [[[0 for k in xrange(48)] for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+		self.ttDepartureBusCount = [[[0 for k in xrange(48)] for j in xrange(self.NUM_ZONES)] for i in xrange(self.NUM_ZONES)]
+	
+	#fetch zone from node
+	def getZone(self, node):
+		return int(self.nodeMTZ.find_one({"_id" : node})["MTZ_1092"])
+	
+	##functions to add items into the data structures defined above
+	def addAMCarIvt(self, origin, destination, value):
+		orgZid = self.zoneId[origin] - 1
+		desZid = self.zoneId[destination] - 1
+		self.amCarIvt[orgZid][desZid] = self.amCarIvt[orgZid][desZid] + value
+		self.amCarIvtCount[orgZid][desZid] = self.amCarIvtCount[orgZid][desZid] + 1
+		return
+	
+	def addAMPubIvt(self, origin, destination, value):
+		orgZid = self.zoneId[origin] - 1
+		desZid = self.zoneId[destination] - 1
+		self.amPubIvt[orgZid][desZid] = self.amPubIvt[orgZid][desZid] + value
+		self.amPubIvtCount[orgZid][desZid] = self.amPubIvtCount[orgZid][desZid] + 1
+		return
+	
+	def addAMPubWtt(self, origin, destination, value):
+		orgZid = self.zoneId[origin] - 1
+		desZid = self.zoneId[destination] - 1
+		self.amPubWtt[orgZid][desZid] = self.amPubWtt[orgZid][desZid] + value
+		self.amPubWttCount[orgZid][desZid] = self.amPubWttCount[orgZid][desZid] + 1
+		return
+	
+	def addAMPubWalkt(self, origin, destination, value):
+		orgZid = self.zoneId[origin] - 1
+		desZid = self.zoneId[destination] - 1
+		self.amPubWalkt[orgZid][desZid] = self.amPubWalkt[orgZid][desZid] + value
+		self.amPubWalktCount[orgZid][desZid] = self.amPubWalktCount[orgZid][desZid] + 1
+		return
+	
+	def addPMCarIvt(self, origin, destination, value):
+		orgZid = self.zoneId[origin] - 1
+		desZid = self.zoneId[destination] - 1
+		self.pmCarIvt[orgZid][desZid] = self.pmCarIvt[orgZid][desZid] + value
+		self.pmCarIvtCount[orgZid][desZid] = self.pmCarIvtCount[orgZid][desZid] + 1
+		return
+	
+	def addPMPubIvt(self, origin, destination, value):
+		orgZid = self.zoneId[origin] - 1
+		desZid = self.zoneId[destination] - 1
+		self.pmPubIvt[orgZid][desZid] = self.pmPubIvt[orgZid][desZid] + value
+		self.pmPubIvtCount[orgZid][desZid] = self.pmPubIvtCount[orgZid][desZid] + 1
+		return
+	
+	def addPMPubWtt(self, origin, destination, value):
+		orgZid = self.zoneId[origin] - 1
+		desZid = self.zoneId[destination] - 1
+		self.pmPubWtt[orgZid][desZid] = self.pmPubWtt[orgZid][desZid] + value
+		self.pmPubWttCount[orgZid][desZid] = self.pmPubWttCount[orgZid][desZid] + 1
+		return
+	
+	def addPMPubWalkt(self, origin, destination, value):
+		orgZid = self.zoneId[origin] - 1
+		desZid = self.zoneId[destination] - 1
+		self.pmPubWalkt[orgZid][desZid] = self.pmPubWalkt[orgZid][desZid] + value
+		self.pmPubWalktCount[orgZid][desZid] = self.pmPubWalktCount[orgZid][desZid] + 1
+		return
+	
+	def addOPCarIvt(self, origin, destination, value):
+		orgZid = self.zoneId[origin] - 1
+		desZid = self.zoneId[destination] - 1
+		self.opCarIvt[orgZid][desZid] = self.opCarIvt[orgZid][desZid] + value
+		self.opCarIvtCount[orgZid][desZid] = self.opCarIvtCount[orgZid][desZid] + 1
+		return
+	
+	def addOPPubIvt(self, origin, destination, value):
+		orgZid = self.zoneId[origin] - 1
+		desZid = self.zoneId[destination] - 1
+		self.opPubIvt[orgZid][desZid] = self.opPubIvt[orgZid][desZid] + value
+		self.opPubIvtCount[orgZid][desZid] = self.opPubIvtCount[orgZid][desZid] + 1
+		return
+	
+	def addOPPubWtt(self, origin, destination, value):
+		orgZid = self.zoneId[origin] - 1
+		desZid = self.zoneId[destination] - 1
+		self.opPubWtt[orgZid][desZid] = self.opPubWtt[orgZid][desZid] + value
+		self.opPubWttCount[orgZid][desZid] = self.opPubWttCount[orgZid][desZid] + 1
+		return
+	
+	def addOPPubWalkt(self, origin, destination, value):
+		orgZid = self.zoneId[origin] - 1
+		desZid = self.zoneId[destination] - 1
+		self.opPubWalkt[orgZid][desZid] = self.opPubWalkt[orgZid][desZid] + value
+		self.opPubWalktCount[orgZid][desZid] = self.opPubWalktCount[orgZid][desZid] + 1
+		return
+	
+	def addTTCar(self, origin, destination, departure, arrival, value):
+		orgZid = self.zoneId[origin] - 1
+		desZid = self.zoneId[destination] - 1
+		arrIdx = getWindowIdx(arrival) - 1
+		depIdx = getWindowIdx(departure) - 1
+		self.ttArrivalCar[orgZid][desZid][arrIdx] = self.ttArrivalCar[orgZid][desZid][arrIdx] + value
+		self.ttArrivalCarCount[orgZid][desZid][arrIdx] = self.ttArrivalCarCount[orgZid][desZid][arrIdx] + 1
+		self.ttDepartureCar[orgZid][desZid][depIdx] = self.ttDepartureCar[orgZid][desZid][depIdx] + value
+		self.ttDepartureCarCount[orgZid][desZid][depIdx] = self.ttDepartureCarCount[orgZid][desZid][depIdx] + 1
+		return
+	
+	def addTTBus(self, origin, destination, departure, arrival, value):
+		orgZid = self.zoneId[origin] - 1
+		desZid = self.zoneId[destination] - 1
+		arrIdx = getWindowIdx(arrival) - 1
+		depIdx = getWindowIdx(departure) - 1
+		self.ttArrivalBus[orgZid][desZid][arrIdx] = self.ttArrivalBus[orgZid][desZid][arrIdx] + value
+		self.ttArrivalBusCount[orgZid][desZid][arrIdx] = self.ttArrivalBusCount[orgZid][desZid][arrIdx] + 1
+		self.ttDepartureBus[orgZid][desZid][depIdx] = self.ttDepartureBus[orgZid][desZid][depIdx] + value
+		self.ttDepartureBusCount[orgZid][desZid][depIdx] = self.ttDepartureBusCount[orgZid][desZid][depIdx] + 1
+		return
+	
+	#process input csv
+	def processInput(self):
+		#process each row of input csv
+		for row in self.inputCsv:
+			orgZ = self.getZone(int(row["origin"]))
+			desZ = self.getZone(int(row["destination"]))
+			tripStartTime = str(row["start_time"])
+			tripEndTime = str(row["end_time"])
+			mode = str(row["mode"])
+			travelTime = float(row["travel_time"])
+			if mode == "Car" or mode == "Motorcycle" or mode == "Taxi":
+				if isAM(tripStartTime):
+					self.addAMCarIvt(orgZ, desZ, travelTime)
+				elif isPM(tripStartTime):
+					self.addPMCarIvt(orgZ, desZ, travelTime)
+				else:
+					self.addOPCarIvt(orgZ, desZ, travelTime)
+				self.addTTCar(orgZ, desZ, tripStartTime, tripEndTime, travelTime)
+			elif mode == "Bus":
+				if isAM(tripStartTime):
+					self.addAMPubIvt(orgZ, desZ, travelTime)
+					self.addAMPubWtt(orgZ, desZ, float(row["pt_wtt"]))
+					self.addAMPubWalkt(orgZ, desZ, float(row["pt_walkt"]))
+				elif isPM(tripStartTime):
+					self.addPMPubIvt(orgZ, desZ, travelTime)
+					self.addPMPubWtt(orgZ, desZ, float(row["pt_wtt"]))
+					self.addPMPubWalkt(orgZ, desZ, float(row["pt_walkt"]))
+				else:
+					self.addOPPubIvt(orgZ, desZ, travelTime)
+					self.addOPPubWtt(orgZ, desZ, float(row["pt_wtt"]))
+					self.addOPPubWalkt(orgZ, desZ, float(row["pt_walkt"]))
+				self.addTTBus(orgZ, desZ, tripStartTime, tripEndTime, travelTime)
+		return
+	
+	def computeMeans(self):
+		for i in range(self.NUM_ZONES):
+			for j in range(self.NUM_ZONES):
+				self.amCarIvt[i][j] = (float(self.amCarIvt[i][j])/self.amCarIvtCount[i][j]) if self.amCarIvtCount[i][j] > 0 else 0
+				self.pmCarIvt[i][j] = (float(self.pmCarIvt[i][j])/self.pmCarIvtCount[i][j]) if self.pmCarIvtCount[i][j] > 0 else 0
+				self.opCarIvt[i][j] = (float(self.opCarIvt[i][j])/self.opCarIvtCount[i][j]) if self.opCarIvtCount[i][j] > 0 else 0
+			
+				self.amPubIvt[i][j] = (float(self.amPubIvt[i][j])/self.amPubIvtCount[i][j]) if self.amPubIvtCount[i][j] > 0 else 0
+				self.pmPubIvt[i][j] = (float(self.pmPubIvt[i][j])/self.pmPubIvtCount[i][j]) if self.pmPubIvtCount[i][j] > 0 else 0
+				self.opPubIvt[i][j] = (float(self.opPubIvt[i][j])/self.opPubIvtCount[i][j]) if self.opPubIvtCount[i][j] > 0 else 0
+			
+				self.amPubWtt[i][j] = (float(self.amPubWtt[i][j])/self.amPubWttCount[i][j]) if self.amPubWttCount[i][j] > 0 else 0
+				self.pmPubWtt[i][j] = (float(self.pmPubWtt[i][j])/self.pmPubWttCount[i][j]) if self.pmPubWttCount[i][j] > 0 else 0
+				self.opPubWtt[i][j] = (float(self.opPubWtt[i][j])/self.opPubWttCount[i][j]) if self.opPubWttCount[i][j] > 0 else 0
+			
+				self.amPubWalkt[i][j] = (float(self.amPubWalkt[i][j])/self.amPubWalktCount[i][j]) if self.amPubWalktCount[i][j] > 0 else 0
+				self.pmPubWalkt[i][j] = (float(self.pmPubWalkt[i][j])/self.pmPubWalktCount[i][j]) if self.pmPubWalktCount[i][j] > 0 else 0
+				self.opPubWalkt[i][j] = (float(self.opPubWalkt[i][j])/self.opPubWalktCount[i][j]) if self.opPubWalktCount[i][j] > 0 else 0
+			
+				for k in range(48):
+					self.ttArrivalCar[i][j][k] = (float(self.ttDepartureCar[i][j][k])/self.ttArrivalCarCount[i][j][k]) if self.ttArrivalCarCount[i][j][k] > 0 else 0
+					self.ttDepartureCar[i][j][k] = (float(self.ttDepartureCar[i][j][k])/self.ttDepartureCarCount[i][j][k]) if self.ttDepartureCarCount[i][j][k] > 0 else 0
+					self.ttArrivalBus[i][j][k] = (float(self.ttArrivalBus[i][j][k])/self.ttArrivalBusCount[i][j][k]) if self.ttArrivalBusCount[i][j][k] > 0 else 0
+					self.ttDepartureBus[i][j][k] = (float(self.ttDepartureBus[i][j][k])/self.ttDepartureBusCount[i][j][k]) if self.ttDepartureBusCount[i][j][k] > 0 else 0
+		return
+
+	def updateMongo(self):
+		for i in range(self.NUM_ZONES):
+			orgZ = self.zoneCode[i+1]
+			for j in range(self.NUM_ZONES):
+				desZ = self.zoneCode[j+1]
+				if orgZ == desZ: continue
+				query = { "origin" : orgZ, "destin" : desZ }
+				
+				# AM updates
+				updates = {}
+				newCarIvt = amCarIvt[i][j]
+				newPubIvt = amPubIvt[i][j]
+				newPubWtt = amPubWtt[i][j]
+				newPubWalkt = amPubWalkt[i][j]
+				if (newCarIvt+newPubIvt+newPubWtt+newPubWalkt) > 0: 
+					amDoc = amCosts.find_one(query)
+					if newCarIvt > 0: updates["car_ivt"] = (newCarIvt + toFloat(amDoc["car_ivt"]))/2
+					if newPubIvt > 0: updates["pub_ivt"] = (newPubIvt + toFloat(amDoc["pub_ivt"]))/2
+					if newPubWtt > 0: updates["pub_wtt"] = (newPubWtt + toFloat(amDoc["pub_wtt"]))/2
+					if newPubWalkt > 0: updates["pub_walkt"] = (newPubWalkt + toFloat(amDoc["pub_walkt"]))/2
+					print 'OD:[',orgZ,desZ,'] updating AMCosts newCarIvt:',newCarIvt,' newPubIvt:',newPubIvt,' newPubWtt:',newPubWtt,' newPubWalkt:',newPubWalkt
+					amCosts.update(query, {"$set" : updates }, upsert=False, multi=False)
+				
+				# PM updates
+				updates = {}
+				newCarIvt = pmCarIvt[i][j]
+				newPubIvt = pmPubIvt[i][j]
+				newPubWtt = pmPubWtt[i][j]
+				newPubWalkt = pmPubWalkt[i][j]
+				if (newCarIvt+newPubIvt+newPubWtt+newPubWalkt) > 0: 
+					pmDoc = pmCosts.find_one(query)
+					if newCarIvt > 0: updates["car_ivt"] = (newCarIvt + toFloat(pmDoc["car_ivt"]))/2
+					if newPubIvt > 0: updates["pub_ivt"] = (newPubIvt + toFloat(pmDoc["pub_ivt"]))/2
+					if newPubWtt > 0: updates["pub_wtt"] = (newPubWtt + toFloat(pmDoc["pub_wtt"]))/2
+					if newPubWalkt > 0: updates["pub_walkt"] = (newPubWalkt + toFloat(pmDoc["pub_walkt"]))/2
+					print 'OD:[',orgZ,desZ,'] updating PMCosts newCarIvt:',newCarIvt,' newPubIvt:',newPubIvt,' newPubWtt:',newPubWtt,' newPubWalkt:',newPubWalkt
+					pmCosts.update(query, {"$set" : updates }, upsert=False, multi=False)
+				
+				# OP updates
+				updates = {}
+				newCarIvt = opCarIvt[i][j]
+				newPubIvt = opPubIvt[i][j]
+				newPubWtt = opPubWtt[i][j]
+				newPubWalkt = opPubWalkt[i][j]
+				if (newCarIvt+newPubIvt+newPubWtt+newPubWalkt) > 0: 
+					opDoc = opCosts.find_one(query)
+					if newCarIvt > 0: updates["car_ivt"] = (newCarIvt + toFloat(opDoc["car_ivt"]))/2
+					if newPubIvt > 0: updates["pub_ivt"] = (newPubIvt + toFloat(opDoc["pub_ivt"]))/2
+					if newPubWtt > 0: updates["pub_wtt"] = (newPubWtt + toFloat(opDoc["pub_wtt"]))/2
+					if newPubWalkt > 0: updates["pub_walkt"] = (newPubWalkt + toFloat(opDoc["pub_walkt"]))/2
+					print 'OD:[',orgZ,desZ,'] updating OPCosts newCarIvt:',newCarIvt,' newPubIvt:',newPubIvt,' newPubWtt:',newPubWtt,' newPubWalkt:',newPubWalkt
+					opCosts.update(query, {"$set" : updates }, upsert=False, multi=False)
+				
+				#time dependent tt updates
+				query = { "origin" : orgZ, "destination" : desZ }
+				updates = {}
+				for k in range(48):
+					newTTCarArr = ttArrivalCar[i][j][k]
+					newTTCarDep = ttDepartureCar[i][j][k]
+					if (newTTCarArr+newTTCarDep) > 0:
+						ttCarDoc = ttCar.find_one(query)
+						if newTTCarArr > 0: updates["TT_car_arrival_"+str(k+1)] = (newTTCarArr + toFloat(ttCarDoc["TT_car_arrival_"+str(k+1)]))/2
+						if newTTCarDep > 0: updates["TT_car_departure_"+str(k+1)] = (newTTCarDep + toFloat(ttCarDoc["TT_car_departure_"+str(k+1)]))/2
+					if orgZ == 506130 and desZ == 519060:
+						print 'newTTCarArr:',newTTCarArr,' newTTCarDep:',newTTCarDep,' k:',k,' updates:',updates
+				if updates: 
+					print 'OD:[',orgZ,desZ,'] car ',updates
+					ttCar.update(query, {"$set" : updates }, upsert=False , multi=False)
+				
+				updates = {}
+				ttBusDoc = ttBus.find_one(query)
+				for k in range(48):
+					newTTBusArr = ttArrivalBus[i][j][k]
+					newTTBusDep = ttDepartureBus[i][j][k]
+					if (newTTBusArr+newTTBusDep) > 0:
+						ttBusDoc = ttBus.find_one(query)
+						if newTTBusArr > 0: updates["TT_bus_arrival_"+str(k+1)] = (newTTBusArr + toFloat(ttBusDoc["TT_bus_arrival_"+str(k+1)]))/2
+						if newTTBusDep > 0: updates["TT_bus_departure_"+str(k+1)] = (newTTBusDep + toFloat(ttBusDoc["TT_bus_departure_"+str(k+1)]))/2
+					if orgZ == 506130 and desZ == 519060:
+						print 'newTTBusArr:',newTTBusArr,' newTTBusDep:',newTTBusDep,' k:',k,' updates:',updates
+				if updates: 
+					print 'OD:[',orgZ,desZ,'] bus ',updates
+					ttBus.update(query, {"$set" : updates }, upsert=False , multi=False)
+		return
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+s = datetime.datetime.now()
+parser = argparse.ArgumentParser()
+parser.add_argument("csv_name", default="tt.csv", help="travel times experienced by persons in withinday")
+args = parser.parse_args()
+
+#1.
+print "1. initializing and loading CSV"
+aggregator = TT_Aggregator(str(args.csv_name))
+#2.
+print "2. processing input"
+aggregator.processInput()
+#3.
+print "3. computing means"
+aggregator.computeMeans()
+
+#4.
+print "4. updating mongodb"
+aggregator.updateMongo()
+
+print "Done. Exiting Main"
+
+e = datetime.datetime.now()
+print 'Running Time: ' + str((e-s).total_seconds()) + 's'
+

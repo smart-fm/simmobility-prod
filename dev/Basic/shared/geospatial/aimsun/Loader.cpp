@@ -115,6 +115,7 @@ public:
 	 */
 	void loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
 	void loadTurningSection(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
+	void storeTurningPoints(sim_mob::RoadNetwork& rn);
 	void LoadERP_Surcharge(std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >& pool);
 	void LoadERP_Section(std::map<std::string,sim_mob::ERP_Section*>& ERP_SectionPool);
 	void LoadERP_Gantry_Zone(std::map<std::string,sim_mob::ERP_Gantry_Zone*>& ERP_GantryZonePool);
@@ -581,6 +582,25 @@ void DatabaseLoader::loadTurningSectionTable(const std::string& storedProc,sim_m
 	catch (soci::soci_error const & err)
 	{
 		std::cout<<"loadTurningSectionTable: "<<err.what()<<std::endl;
+	}
+}
+void DatabaseLoader::storeTurningPoints(sim_mob::RoadNetwork& rn) {
+	try {
+		std::string tableName = "TurningSection";
+
+		std::map<std::string,sim_mob::TurningSection* >::iterator it; ;
+		for(it=rn.turningSectionMap.begin();it!=rn.turningSectionMap.end();++it) {
+			sim_mob::TurningSection* ts = it->second;
+
+			sql_<<"update \""+ tableName +"\" set from_xpos=:from_xpos ,from_ypos=:from_ypos,to_xpos=:to_xpos,to_ypos=:to_ypos"
+					" where id=:id"
+								, soci::use(*ts);
+			sql_.commit();
+		}
+	}
+	catch (soci::soci_error const & err)
+	{
+		std::cout<<"storeTurningPoints: "<<err.what()<<std::endl;
 	}
 }
 void DatabaseLoader::loadTurningConflictTable(const std::string& storedProc,sim_mob::RoadNetwork& rn) {
@@ -2640,6 +2660,11 @@ void sim_mob::aimsun::Loader::loadSimmobTurnings(const std::string& connectionSt
 	// load segment type data, node type data
 	loader.loadTurningSection(storedProcs,rn);
 }
+void sim_mob::aimsun::Loader::storeTurningPoints(const std::string& connectionStr,  sim_mob::RoadNetwork& rn) {
+	DatabaseLoader loader(connectionStr);
+		// load segment type data, node type data
+	loader.storeTurningPoints(rn);
+}
 void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
 {
 	std::cout << "Attempting to connect to database (generic)" << std::endl;
@@ -2734,6 +2759,9 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	loadSimmobTurnings(connectionStr,
 			storedProcs,
 					rn);
+	// store turning start, to polyline points to db
+	storeTurningPoints(connectionStr,
+						rn);
 }
 
 void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdSeg, std::list<sim_mob::SegmentStats*>& splitSegmentStats) {

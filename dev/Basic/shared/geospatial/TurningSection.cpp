@@ -78,6 +78,24 @@ void TurningSection::setLaneFrom(const sim_mob::Lane* laneFrom)
 	this->laneFrom = laneFrom;
 }
 
+void TurningSection::makePolylinePoint()
+{
+	if(!laneFrom || !laneTo) {
+		throw std::runtime_error("no from/to lane");
+	}
+	// get last point of "from lane" polyline
+	Point2D pfrom = laneFrom->polyline_.back();
+	// get first point of to lane polyline
+	from_xpos = pfrom.getX() / 100.0;
+	from_ypos = pfrom.getY() / 100.0;
+
+	// get first point of "to lane" polyline
+	Point2D pto = laneTo->polyline_.front();
+	// get first point of to lane polyline
+	to_xpos = pto.getX() / 100.0;
+	to_ypos = pto.getY() / 100.0;
+}
+
 const sim_mob::Lane* TurningSection::getLaneFrom() const
 {
 	return laneFrom;

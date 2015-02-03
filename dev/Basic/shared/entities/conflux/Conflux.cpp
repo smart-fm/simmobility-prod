@@ -809,7 +809,8 @@ bool sim_mob::Conflux::callMovementFrameInit(timeslice now, Person* person) {
 	if(!person->GetContext()) { messaging::MessageBus::RegisterHandler(person); }
 
 	//Agents may be created with a null Role and a valid trip chain
-	if (!person->getRole()) {
+	if (!person->getRole())
+	{
 		//TODO: This UpdateStatus has a "prevParams" and "currParams" that should
 		//      (one would expect) be dealt with. Where does this happen?
 		UpdateStatus res =	person->checkTripChain();
@@ -818,12 +819,11 @@ bool sim_mob::Conflux::callMovementFrameInit(timeslice now, Person* person) {
 		person->setStartTime(now.ms());
 
 		//Nothing left to do?
-		if (res.status == UpdateStatus::RS_DONE) {
-			return false;
-		}
+		if (res.status == UpdateStatus::RS_DONE) { return false; }
 	}
 	//Failsafe: no Role at all?
-	if (!person->getRole()) {
+	if (!person->getRole())
+	{
 		debugMsgs << "Person " << this->getId() <<  " has no Role.";
 		throw std::runtime_error(debugMsgs.str());
 	}
@@ -834,15 +834,14 @@ bool sim_mob::Conflux::callMovementFrameInit(timeslice now, Person* person) {
 	person->getRole()->make_frame_tick_params(now);
 
 	//Now that the Role has been fully constructed, initialize it.
-	if(person->getRole()) {
+	if(person->getRole())
+	{
 		person->getRole()->Movement()->frame_init();
 
-		if(person->getRole()->roleType == sim_mob::Role::RL_DRIVER && person->getCurrPath().empty()){
-			return false;
-		}
+		if(person->getRole()->roleType == sim_mob::Role::RL_DRIVER && person->getCurrPath().empty()){ return false; }
 	}
 
-	person->clearCurrPath();	//this will be set again for the next sub-trip
+	person->clearCurrPath(); //this will be set again for the next sub-trip
 	return true;
 }
 

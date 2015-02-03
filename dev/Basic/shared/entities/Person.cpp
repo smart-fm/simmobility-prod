@@ -396,16 +396,15 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {
 	currTick = now;
 	//TODO: Here is where it gets risky.
-	if (resetParamsRequired) {
+	if (resetParamsRequired)
+	{
 		currRole->make_frame_tick_params(now);
 		resetParamsRequired = false;
 	}
 
 	Entity::UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 
-	if (!isToBeRemoved()) {
-		currRole->Movement()->frame_tick();
-	}
+	if (!isToBeRemoved()) { currRole->Movement()->frame_tick(); }
 
 	//If we're "done", try checking to see if we have any more items in our Trip Chain.
 	// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
@@ -415,27 +414,32 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 	//      will bring us outside the bounds of our try {} catch {} statement. We might move this
 	//      statement into the worker class, but I don't want to change too many things
 	//      about Agent/Person at once. ~Seth
-	if (isToBeRemoved()) {
+	if (isToBeRemoved())
+	{
 		retVal = checkTripChain();
 
 		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
 		setStartTime(now.ms()+ConfigManager::GetInstance().FullConfig().baseGranMS());
 
-		//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
-		//since start time of the activity is usually later than what is configured initially,
-		//we have to make adjustments so that it waits for exact amount of time
-		if(currTripChainItem != tripChain.end()) {
-			if((*currTripChainItem)) {// if currTripChain not end and has value, call frame_init and switching roles
-				if(!isInitialized()) {
+		if(currTripChainItem != tripChain.end())
+		{
+			sim_mob::TripChainItem* tcItem =  *currTripChainItem;
+			if(tcItem) // if currTripChain not end and has value, call frame_init and switching roles
+			{
+				if(tcItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY)
+				{
+					//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
+					//since start time of the activity is usually later than what is configured initially,
+					//we have to make adjustments so that the person waits for exact amount of time
+					sim_mob::ActivityPerformer* ap = dynamic_cast<sim_mob::ActivityPerformer*>(currRole);
+					ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
+					ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + (tcItem->endTime.getValue() - tcItem->startTime.getValue())));
+				}
+				if(!isInitialized())
+				{
 					currRole->Movement()->frame_init();
 					setInitialized(true);// set to be false so later no need to frame_init later
 				}
-			}
-			if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
-				sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(currRole);
-				ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
-				ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + ((*currTripChainItem)->endTime.getValue() - (*currTripChainItem)->startTime.getValue())));
-				ap->initializeRemainingTime();
 			}
 		}
 	}

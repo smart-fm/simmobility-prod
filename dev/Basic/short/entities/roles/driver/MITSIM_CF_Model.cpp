@@ -630,7 +630,7 @@ double MITSIM_CF_Model::approachInterectionRate(sim_mob::DriverUpdateParams& p)
 	//v^2 = u^2 + 2as [Kinematic equation]
 	//where v = final velocity, u = current velocity, a = acceleration, s = displacement
 	//As v = 0 (we want to stop), a = -u^2 / 2s
-	return ((-1 * (p.currSpeed * p.currSpeed)) / (2 * p.distanceToIntersection));
+	return brakeToStop(p, p.distanceToIntersection);
 }
 
 /*

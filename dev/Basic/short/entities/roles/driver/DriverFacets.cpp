@@ -811,8 +811,6 @@ void sim_mob::DriverMovement::approachIntersection()
 
 			//Get the turning section that will be used by the vehicle
 			turningSection = node->getTurningSection(currentLane, nextLaneInNextLink);
-
-			fwdDriverMovement.currTurning = turningSection;
 		}
 
 		//Check if we have a turning section. Absence of a turning section indicates that either 
@@ -820,13 +818,15 @@ void sim_mob::DriverMovement::approachIntersection()
 		//but there's a short segment ahead of us - so, we can only defer processing till later
 		if (turningSection)
 		{
+			fwdDriverMovement.currTurning = turningSection;
+			
 			//The time required to reach the intersection
 			double timeToIntersection = DBL_MAX;
 			params.currSpeed = parentDriver->getVehicle()->getVelocity() / 100;
 
 			if (params.currSpeed > 0)
 			{
-				timeToIntersection = fwdDriverMovement.getDistToLinkEndM() / params.currSpeed;
+				timeToIntersection = fwdDriverMovement.getDisToCurrSegEndM() / params.currSpeed;
 			}
 
 			//Conflicting turnings
@@ -863,7 +863,7 @@ void sim_mob::DriverMovement::approachIntersection()
 						if (driver)
 						{
 							driverMovement = dynamic_cast<DriverMovement *> (driver->Movement());
-							if (distance > driverMovement->fwdDriverMovement.getDistToLinkEndM())
+							if (distance > driverMovement->fwdDriverMovement.getDisToCurrSegEndM())
 							{
 								leadDriver = driver;
 							}
@@ -880,14 +880,14 @@ void sim_mob::DriverMovement::approachIntersection()
 					if (speed > 0)
 					{
 						timeReqdByConflictVehicle =
-								driverMovement->fwdDriverMovement.getDistToLinkEndM() / speed;
+								driverMovement->fwdDriverMovement.getDisToCurrSegEndM() / speed;
 					}
 
 					//If the time required for the other car is less, we yield
 					if (timeReqdByConflictVehicle <= timeToIntersection)
 					{
 						params.slowDownForIntersection = true;
-						params.distanceToIntersection = driverMovement->fwdDriverMovement.getDistToLinkEndM();
+						params.distanceToIntersection = fwdDriverMovement.getDisToCurrSegEndM();
 						break;
 					}
 				}
@@ -906,13 +906,44 @@ void sim_mob::DriverMovement::intersectionDriving(DriverUpdateParams& p) {
 		return;
 	}
 	
-	//update movement along the vector.
-	DPoint res = intModel->continueDriving(parentDriver->vehicle->getVelocity() * p.elapsedSeconds);
-	parentDriver->vehicle->setPositionInIntersection(res.x, res.y);
+	//Sense the speed and acceleration of the car in front
+	if (parentDriver->perceivedVelOfFwdCar->can_sense()
+			&& parentDriver->perceivedAccOfFwdCar->can_sense()
+			&& parentDriver->perceivedDistToFwdCar->can_sense())
+	{
+		p.perceivedFwdVelocityOfFwdCar =
+				parentDriver->perceivedVelOfFwdCar->sense();
+		p.perceivedAccelerationOfFwdCar =
+				parentDriver->perceivedAccOfFwdCar->sense();
+		p.perceivedDistToFwdCar =
+				parentDriver->perceivedDistToFwdCar->sense();
+	}
+	else
+	{
+		NearestVehicle & nv = p.nvFwd;
+		p.perceivedFwdVelocityOfFwdCar =
+				nv.driver ? nv.driver->fwdVelocity.get() : 0;
+		p.perceivedLatVelocityOfFwdCar =
+				nv.driver ? nv.driver->latVelocity.get() : 0;
+		p.perceivedAccelerationOfFwdCar =
+				nv.driver ? nv.driver->fwdAccel.get() : 0;
+		p.perceivedDistToFwdCar = nv.distance;
+	}
 	
-	//calculate intersection acc and set vehicle vel
-	//parentDriver->vehicle->setAcceleration(p.newFwdAcc);
-	//parentDriver->vehicle->setVelocity(parentDriver->vehicle->getVelocity() + (p.newFwdAcc * p.elapsedSeconds));
+	//Convert to m/s
+	p.currSpeed = parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT_UNIT;
+
+	//Call the car follow model
+	p.newFwdAcc = cfModel->makeAcceleratingDecision(p);
+	
+	//Calculate the distance travelled
+	//s = ut + (1/2)at^2
+	double distanceTravelled = (parentDriver->vehicle->getVelocity() * p.elapsedSeconds) +
+			(0.5 * p.newFwdAcc * p.elapsedSeconds * p.elapsedSeconds);
+	
+	//update movement along the vector.
+	DPoint res = intModel->continueDriving(distanceTravelled);
+	parentDriver->vehicle->setPositionInIntersection(res.x, res.y);
 
 	//Next, detect if we've just left the intersection. Otherwise, perform regular intersection driving.
 	if (intModel->isDone()) {
@@ -2174,14 +2205,23 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other,
 		if(!fwdDriverMovement.currTurning) {
 			return true;
 		}
+		
 		TurningConflict* conflict = fwdDriverMovement.currTurning->getTurningConflict(otherTurning);
-		if(conflict) {
+		if(conflict) 
+		{
 			// 2.0 get other vh move distance on turning section
 			double moveDis = other_driver->moveDisOnTurning_ / 100.0;
 			double dis = moveDis - (otherTurning == conflict->getFirstTurning() ? conflict->getFirst_cd() : conflict->getSecond_cd());
 			
 			// 2.1 add other vh to params
 			params.insertConflictTurningDriver(conflict, dis, other_driver);
+		}
+		else if(fwdDriverMovement.currTurning == otherTurning)
+		{
+			//If the vehicles are on the same turning, then one is following the other
+			double distance = parentDriver->moveDisOnTurning_ - other_driver->moveDisOnTurning_;
+			bool isForward = distance > 0;
+			check_and_set_min_car_dist(isForward ? params.nvFwd : params.nvBack, distance, parentDriver->vehicle, other_driver);
 		}
 
 		return true;
@@ -2644,9 +2684,12 @@ NearestVehicle & sim_mob::DriverMovement::nearestVehicle(DriverUpdateParams& p) 
 void sim_mob::DriverMovement::intersectionVelocityUpdate() 
 {
 	DriverUpdateParams& params = parentDriver->getParams();
-	double inter_speed = parentDriver->vehicle->getVelocity() + (params.newFwdAcc * params.elapsedSeconds * 100);
 	
+	//Update the acceleration
 	parentDriver->vehicle->setAcceleration(params.newFwdAcc);
+	
+	//Calculate the new speed
+	double inter_speed = parentDriver->vehicle->getVelocity() + (params.newFwdAcc * params.elapsedSeconds * 100);
 
 	//Set velocity for intersection movement
 	parentDriver->vehicle->setVelocity(inter_speed);

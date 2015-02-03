@@ -317,79 +317,71 @@ class TT_Aggregator:
 				
 				# AM updates
 				updates = {}
-				newCarIvt = amCarIvt[i][j]
-				newPubIvt = amPubIvt[i][j]
-				newPubWtt = amPubWtt[i][j]
-				newPubWalkt = amPubWalkt[i][j]
+				newCarIvt = self.amCarIvt[i][j]
+				newPubIvt = self.amPubIvt[i][j]
+				newPubWtt = self.amPubWtt[i][j]
+				newPubWalkt = self.amPubWalkt[i][j]
 				if (newCarIvt+newPubIvt+newPubWtt+newPubWalkt) > 0: 
-					amDoc = amCosts.find_one(query)
+					amDoc = self.amCosts.find_one(query)
 					if newCarIvt > 0: updates["car_ivt"] = (newCarIvt + toFloat(amDoc["car_ivt"]))/2
 					if newPubIvt > 0: updates["pub_ivt"] = (newPubIvt + toFloat(amDoc["pub_ivt"]))/2
 					if newPubWtt > 0: updates["pub_wtt"] = (newPubWtt + toFloat(amDoc["pub_wtt"]))/2
 					if newPubWalkt > 0: updates["pub_walkt"] = (newPubWalkt + toFloat(amDoc["pub_walkt"]))/2
-					print 'OD:[',orgZ,desZ,'] updating AMCosts newCarIvt:',newCarIvt,' newPubIvt:',newPubIvt,' newPubWtt:',newPubWtt,' newPubWalkt:',newPubWalkt
-					amCosts.update(query, {"$set" : updates }, upsert=False, multi=False)
+					self.amCosts.update(query, {"$set" : updates }, upsert=False, multi=False)
 				
 				# PM updates
 				updates = {}
-				newCarIvt = pmCarIvt[i][j]
-				newPubIvt = pmPubIvt[i][j]
-				newPubWtt = pmPubWtt[i][j]
-				newPubWalkt = pmPubWalkt[i][j]
+				newCarIvt = self.pmCarIvt[i][j]
+				newPubIvt = self.pmPubIvt[i][j]
+				newPubWtt = self.pmPubWtt[i][j]
+				newPubWalkt = self.pmPubWalkt[i][j]
 				if (newCarIvt+newPubIvt+newPubWtt+newPubWalkt) > 0: 
-					pmDoc = pmCosts.find_one(query)
+					pmDoc = self.pmCosts.find_one(query)
 					if newCarIvt > 0: updates["car_ivt"] = (newCarIvt + toFloat(pmDoc["car_ivt"]))/2
 					if newPubIvt > 0: updates["pub_ivt"] = (newPubIvt + toFloat(pmDoc["pub_ivt"]))/2
 					if newPubWtt > 0: updates["pub_wtt"] = (newPubWtt + toFloat(pmDoc["pub_wtt"]))/2
 					if newPubWalkt > 0: updates["pub_walkt"] = (newPubWalkt + toFloat(pmDoc["pub_walkt"]))/2
-					print 'OD:[',orgZ,desZ,'] updating PMCosts newCarIvt:',newCarIvt,' newPubIvt:',newPubIvt,' newPubWtt:',newPubWtt,' newPubWalkt:',newPubWalkt
-					pmCosts.update(query, {"$set" : updates }, upsert=False, multi=False)
+					self.pmCosts.update(query, {"$set" : updates }, upsert=False, multi=False)
 				
 				# OP updates
 				updates = {}
-				newCarIvt = opCarIvt[i][j]
-				newPubIvt = opPubIvt[i][j]
-				newPubWtt = opPubWtt[i][j]
-				newPubWalkt = opPubWalkt[i][j]
+				newCarIvt = self.opCarIvt[i][j]
+				newPubIvt = self.opPubIvt[i][j]
+				newPubWtt = self.opPubWtt[i][j]
+				newPubWalkt = self.opPubWalkt[i][j]
 				if (newCarIvt+newPubIvt+newPubWtt+newPubWalkt) > 0: 
-					opDoc = opCosts.find_one(query)
+					opDoc = self.opCosts.find_one(query)
 					if newCarIvt > 0: updates["car_ivt"] = (newCarIvt + toFloat(opDoc["car_ivt"]))/2
 					if newPubIvt > 0: updates["pub_ivt"] = (newPubIvt + toFloat(opDoc["pub_ivt"]))/2
 					if newPubWtt > 0: updates["pub_wtt"] = (newPubWtt + toFloat(opDoc["pub_wtt"]))/2
 					if newPubWalkt > 0: updates["pub_walkt"] = (newPubWalkt + toFloat(opDoc["pub_walkt"]))/2
-					print 'OD:[',orgZ,desZ,'] updating OPCosts newCarIvt:',newCarIvt,' newPubIvt:',newPubIvt,' newPubWtt:',newPubWtt,' newPubWalkt:',newPubWalkt
-					opCosts.update(query, {"$set" : updates }, upsert=False, multi=False)
+					self.opCosts.update(query, {"$set" : updates }, upsert=False, multi=False)
 				
 				#time dependent tt updates
 				query = { "origin" : orgZ, "destination" : desZ }
 				updates = {}
 				for k in range(48):
-					newTTCarArr = ttArrivalCar[i][j][k]
-					newTTCarDep = ttDepartureCar[i][j][k]
+					newTTCarArr = self.ttArrivalCar[i][j][k]
+					newTTCarDep = self.ttDepartureCar[i][j][k]
 					if (newTTCarArr+newTTCarDep) > 0:
-						ttCarDoc = ttCar.find_one(query)
+						ttCarDoc = self.ttCar.find_one(query)
 						if newTTCarArr > 0: updates["TT_car_arrival_"+str(k+1)] = (newTTCarArr + toFloat(ttCarDoc["TT_car_arrival_"+str(k+1)]))/2
 						if newTTCarDep > 0: updates["TT_car_departure_"+str(k+1)] = (newTTCarDep + toFloat(ttCarDoc["TT_car_departure_"+str(k+1)]))/2
-					if orgZ == 506130 and desZ == 519060:
-						print 'newTTCarArr:',newTTCarArr,' newTTCarDep:',newTTCarDep,' k:',k,' updates:',updates
 				if updates: 
 					print 'OD:[',orgZ,desZ,'] car ',updates
-					ttCar.update(query, {"$set" : updates }, upsert=False , multi=False)
+					self.ttCar.update(query, {"$set" : updates }, upsert=False , multi=False)
 				
 				updates = {}
-				ttBusDoc = ttBus.find_one(query)
 				for k in range(48):
-					newTTBusArr = ttArrivalBus[i][j][k]
-					newTTBusDep = ttDepartureBus[i][j][k]
+					newTTBusArr = self.ttArrivalBus[i][j][k]
+					newTTBusDep = self.ttDepartureBus[i][j][k]
 					if (newTTBusArr+newTTBusDep) > 0:
-						ttBusDoc = ttBus.find_one(query)
+						ttBusDoc = self.ttBus.find_one(query)
 						if newTTBusArr > 0: updates["TT_bus_arrival_"+str(k+1)] = (newTTBusArr + toFloat(ttBusDoc["TT_bus_arrival_"+str(k+1)]))/2
 						if newTTBusDep > 0: updates["TT_bus_departure_"+str(k+1)] = (newTTBusDep + toFloat(ttBusDoc["TT_bus_departure_"+str(k+1)]))/2
-					if orgZ == 506130 and desZ == 519060:
-						print 'newTTBusArr:',newTTBusArr,' newTTBusDep:',newTTBusDep,' k:',k,' updates:',updates
 				if updates: 
 					print 'OD:[',orgZ,desZ,'] bus ',updates
-					ttBus.update(query, {"$set" : updates }, upsert=False , multi=False)
+					self.ttBus.update(query, {"$set" : updates }, upsert=False , multi=False)
 		return
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#

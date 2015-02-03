@@ -115,44 +115,73 @@ void sim_mob::MultiNode::setConnectorAt2(const sim_mob::RoadSegment* key, std::s
 	}
 }
 
-void sim_mob::MultiNode::setTurnings(const sim_mob::RoadSegment* key, std::set<sim_mob::TurningSection*>& val)
+void sim_mob::MultiNode::setTurnings(const sim_mob::RoadSegment *key, TurningSection *val)
 {
 	std::map<const sim_mob::RoadSegment*, std::set<sim_mob::TurningSection*> >::iterator it_find = turnings.find(key);
 	if(it_find != turnings.end())
 	{
 		// has this seg
-		std::set<sim_mob::TurningSection*> ts = it_find->second;
-		ts.insert(val.begin(),val.end());
-		turnings[key] = ts;
+		it_find->second.insert(val);
 	}
 	else
 	{
-		this->turnings[key] = val;
+		std::set<sim_mob::TurningSection*> setOfTurningSetion;
+		setOfTurningSetion.insert(val);
+		this->turnings[key] = setOfTurningSetion;
 	}
 }
 
-void sim_mob::MultiNode::updateMapLaneVsTurning(const Lane* fromLane, const Lane* toLane, sim_mob::TurningSection *turning)
+void sim_mob::MultiNode::updateMapLaneVsTurning(const Lane* fromLane, const Lane* toLane, TurningSection *turning)
 {
-	mapFromToLanesVsTurning.insert(std::make_pair(std::make_pair(fromLane, toLane), turning));
+	//Look for an entry for the fromLane
+	std::map<const Lane *, std::map<const Lane *, TurningSection *> >::iterator it = mapFromToLanesVsTurning.find(fromLane);
+	
+	//If we already have an entry, insert the pair of toLane and turning into the secondary map
+	if(it != mapFromToLanesVsTurning.end())
+	{
+		it->second.insert(std::make_pair(toLane, turning));
+	}
+	else
+	{
+		//Create the second level map and insert the entry
+		std::map<const Lane *, TurningSection *> innerMap;
+		innerMap.insert(std::make_pair(toLane, turning));
+		
+		//Now add it to the first level map
+		mapFromToLanesVsTurning.insert(std::make_pair(fromLane, innerMap));
+	}
 }
 
 TurningSection* sim_mob::MultiNode::getTurningSection(const Lane* currentLane, const Lane* nextLane) const
 {
-	TurningSection* res = nullptr;
-	std::map<std::pair<const sim_mob::Lane *, const sim_mob::Lane *>, sim_mob::TurningSection *>::const_iterator it;
+	//Find the entry for the currentLane
+	std::map<const Lane *, std::map<const Lane *, TurningSection *> >::const_iterator itLevel1 = mapFromToLanesVsTurning.find(currentLane);
 	
-	//Find the turning corresponding to the current and next lanes
-	it = mapFromToLanesVsTurning.find(std::make_pair(currentLane, nextLane));
-	
-	if(it != mapFromToLanesVsTurning.end())
+	//Entry not found for the currentLane in the first level (shouldn't happen!)
+	if(itLevel1 != mapFromToLanesVsTurning.end())
 	{
-		res = it->second;
+		//Now search in second level
+		std::map<const Lane *, TurningSection *>::const_iterator itLevel2 = itLevel1->second.find(nextLane);
+		
+		if(itLevel2 != itLevel1->second.end())
+		{
+			return itLevel2->second;
+		}
+		else
+		{
+			return NULL;
+			//At the moment we don't have turning sections for all lane combinations, so returning NULL for the
+			//time being
+			//throw std::runtime_error("TurningSection from the given to lane not found");
+		}
 	}
 	else
 	{
-		throw std::runtime_error("TurningSection from the given from and to lanes not found");
+		return NULL;
+		//At the moment we don't have turning sections for all lane combinations, so returning NULL for the
+		//time being
+		//throw std::runtime_error("TurningSection from the given from lane not found");
 	}
-	return res;
 }
 
 pair< vector< pair<RoadSegment*, bool> >, vector< pair<RoadSegment*, bool> > >

@@ -25,7 +25,6 @@ ParseParamFile::ParseParamFile(const std::string& paramFileName,ParameterManager
 	:paramMgr(paramMgr),fileName(paramFileName)
 	{
 
-	cout<<"ParseParamFile: "<<paramFileName<<endl;
 	//Xerces initialization.
 	try {
 		XMLPlatformUtils::Initialize();
@@ -65,7 +64,7 @@ ParseParamFile::ParseParamFile(const std::string& paramFileName,ParameterManager
 		{
 		   throw std::runtime_error("model Name is empty");
 		}
-		cout<<"modelName: "<<modelName;
+		
 		parseElement(rootNode);
 	}
 	else
@@ -76,7 +75,6 @@ ParseParamFile::ParseParamFile(const std::string& paramFileName,ParameterManager
 }
 void ParseParamFile::parseElement(DOMElement* e)
 {
-//	cout<<"parseElement: "<<TranscodeString(e->getTagName())<<endl;
 	if( XMLString::equals(e->getTagName(), XMLString::transcode("param") ) )
 	{
 	   // Read attributes of element "param".
@@ -87,7 +85,7 @@ void ParseParamFile::parseElement(DOMElement* e)
 	   {
 		   throw std::runtime_error("name is empty");
 	   }
-	   cout<<"name: "<<name;
+	   
 	   const XMLCh* xmlchValue
 			 = e->getAttribute(XMLString::transcode("value"));
 	   string value = XMLString::transcode(xmlchValue);
@@ -95,7 +93,7 @@ void ParseParamFile::parseElement(DOMElement* e)
 	   {
 		   throw std::runtime_error("value is empty");
 	   }
-	   cout<<"  value: "<<value<<endl;
+	   
 	   // save to parameter manager
 	   ParamData v(value);
 	   v.setParaFileName(fileName);
@@ -108,7 +106,7 @@ void ParseParamFile::parseElement(DOMElement* e)
 	for( XMLSize_t xx = 0; xx < nodeCount; ++xx )
 	{
 		DOMNode* currentNode = children->item(xx);
-//		cout<<"parseElement: currentNode "<<TranscodeString(currentNode->getNodeName())<<endl;
+
 		if( currentNode->getNodeType() &&  // true is not NULL
 		 currentNode->getNodeType() == DOMNode::ELEMENT_NODE ) // is element
 		{
@@ -119,6 +117,7 @@ void ParseParamFile::parseElement(DOMElement* e)
 		}
 	}
 }
+
 ParseParamFile::~ParseParamFile() {
 	// TODO Auto-generated destructor stub
 }

@@ -9,7 +9,7 @@ using namespace sim_mob;
 
 MITSIM_IntDriving_Model::MITSIM_IntDriving_Model()
 {
-	
+	totalMovement = 0;
 }
 
 MITSIM_IntDriving_Model::~MITSIM_IntDriving_Model()

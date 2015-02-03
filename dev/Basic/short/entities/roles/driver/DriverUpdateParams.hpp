@@ -253,14 +253,14 @@ public:
 
 	bool isCrossingAhead;
 
-        //Indicates whether a vehicle is approaching an unsignalised intersection
-        bool isApproachingIntersection;
+	//Indicates whether a vehicle is approaching an unsignalised intersection
+	bool isApproachingIntersection;
 
-        //Indicates whether we need to slow down at the unsignalised intersection (as other vehicles are going through)
-        bool slowDownForIntersection;
-        
-        //Indicates the distance to the approaching unisgnalised intersection
-        double distanceToIntersection;
+	//Indicates whether we need to slow down at the unsignalised intersection (as other vehicles are going through)
+	bool slowDownForIntersection;
+
+	//Indicates the distance to the approaching unisgnalised intersection
+	double distanceToIntersection;
     
 	int crossingFwdDistance;
 

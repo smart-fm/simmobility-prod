@@ -20,6 +20,9 @@ public:
 
 	void initParameters();
 
+	/// Retrieve 'ERP' and 'link travel time' information
+	void populate();
+
 	/// Retrieve 'ERP' and 'link travel time' information from Database
 	void getDataFromDB();
 
@@ -118,9 +121,6 @@ public:
 
 	///	<seg , value>
 	std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*> wpPool;
-
-	///	store all nodes <id ,node>
-	std::map<std::string,sim_mob::Node*> nodePool;
 
 	///	store all multi nodes in the map
 	const std::vector<sim_mob::MultiNode*>  &multiNodesPool;

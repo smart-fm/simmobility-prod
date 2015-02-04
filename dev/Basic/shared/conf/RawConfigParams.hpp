@@ -66,74 +66,6 @@ struct LongTermParams{
 	} housingModel;
 };
 
-struct PathSetConf
-{
-	PathSetConf():enabled(false), database(""), credentials("")/*, singlePathTableName("")*/, RTTT_Conf(""), DTT_Conf(""), dbFunction(""), interval(0),
-	recPS(false),reroute(false), cbd(false), subTripOP(""), perturbationRange(std::pair<int,int>(0,0)), kspLevel(0), perturbationIteration(0){}
-	bool enabled;
-	std::string database;
-	std::string credentials;
-	std::string pathSetTableName;
-	std::string RTTT_Conf;//realtime travel time table name
-	std::string DTT_Conf;//default travel time table name
-	std::string dbFunction;
-	int interval; //travel time recording iterval(in seconds)
-	///	recursive pathset Generation
-	bool recPS;
-	///	 enable rerouting?
-	bool reroute;
-	///	CBD enabled?
-	bool cbd;
-	/// subtrip level travel metrics output file(for preday use)
-	std::string subTripOP;
-	///	number of iterations in random perturbation
-	int perturbationIteration;
-	///	range of uniform distribution in random perturbation
-	std::pair<int,int> perturbationRange;
-	///k-shortest path level
-	int kspLevel;
-	/// Link Elimination types
-	std::vector<std::string> LE;
-
-	/// Utility parameters
-	struct UtilityParams
-	{
-
-		double bTTVOT;
-		double bCommonFactor;
-		double bLength;
-		double bHighway;
-		double bCost;
-		double bSigInter;
-		double bLeftTurns;
-		double bWork;
-		double bLeisure;
-		double highwayBias;
-		double minTravelTimeParam;
-		double minDistanceParam;
-		double minSignalParam;
-		double maxHighwayParam;
-		UtilityParams()
-		{
-			bTTVOT = -0.01373;//-0.0108879;
-			bCommonFactor = 1.0;
-			bLength = -0.001025;//0.0; //negative sign proposed by milan
-			bHighway = 0.00052;//0.0;
-			bCost = 0.0;
-			bSigInter = -0.13;//0.0;
-			bLeftTurns = 0.0;
-			bWork = 0.0;
-			bLeisure = 0.0;
-			highwayBias = 0.5;
-			minTravelTimeParam = 0.879;
-			minDistanceParam = 0.325;
-			minSignalParam = 0.256;
-			maxHighwayParam = 0.422;
-		}
-	};
-	/// Utility Parameters
-	UtilityParams params;
-};
 
 ///represent the incident data section of the config file
 struct IncidentParams {
@@ -211,6 +143,74 @@ public:
 	std::map<std::string, Credential> credentials;
 };
 
+
+struct PathSetConf
+{
+	PathSetConf():enabled(false), RTTT_Conf(""), DTT_Conf(""), dbFunction(""), interval(0),
+	recPS(false),reroute(false), cbd(false), subTripOP(""), perturbationRange(std::pair<int,int>(0,0)), kspLevel(0), perturbationIteration(0){}
+	bool enabled;
+	sim_mob::DatabaseDetails networkDatabase; //If loading from the database, how do we connect?// todo: unused for now
+	std::string pathSetTableName;
+	std::string RTTT_Conf;//realtime travel time table name
+	std::string DTT_Conf;//default travel time table name
+	std::string dbFunction;
+	int interval; //travel time recording iterval(in seconds)
+	///	recursive pathset Generation
+	bool recPS;
+	///	 enable rerouting?
+	bool reroute;
+	///	CBD enabled?
+	bool cbd;
+	/// subtrip level travel metrics output file(for preday use)
+	std::string subTripOP;
+	///	number of iterations in random perturbation
+	int perturbationIteration;
+	///	range of uniform distribution in random perturbation
+	std::pair<int,int> perturbationRange;
+	///k-shortest path level
+	int kspLevel;
+	/// Link Elimination types
+	std::vector<std::string> LE;
+
+	/// Utility parameters
+	struct UtilityParams
+	{
+
+		double bTTVOT;
+		double bCommonFactor;
+		double bLength;
+		double bHighway;
+		double bCost;
+		double bSigInter;
+		double bLeftTurns;
+		double bWork;
+		double bLeisure;
+		double highwayBias;
+		double minTravelTimeParam;
+		double minDistanceParam;
+		double minSignalParam;
+		double maxHighwayParam;
+		UtilityParams()
+		{
+			bTTVOT = -0.01373;//-0.0108879;
+			bCommonFactor = 1.0;
+			bLength = -0.001025;//0.0; //negative sign proposed by milan
+			bHighway = 0.00052;//0.0;
+			bCost = 0.0;
+			bSigInter = -0.13;//0.0;
+			bLeftTurns = 0.0;
+			bWork = 0.0;
+			bLeisure = 0.0;
+			highwayBias = 0.5;
+			minTravelTimeParam = 0.879;
+			minDistanceParam = 0.325;
+			minSignalParam = 0.256;
+			maxHighwayParam = 0.422;
+		}
+	};
+	/// Utility Parameters
+	UtilityParams params;
+};
 
 ///Represents the "Simulation" section of the config file.
 class SimulationParams {

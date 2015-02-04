@@ -640,12 +640,12 @@ bool sim_mob::Worker::beginManagingConflux(Conflux* cf)
 	return managedConfluxes.insert(cf).second;
 }
 
-sim_mob::PathSetManager *sim_mob::Worker::getPathSetMgr()
-{
-	if(!pathSetMgr)
-	{
-		pathSetMgr = new PathSetManager();
-	}
-
-	return pathSetMgr;
-}
+//sim_mob::PathSetManager *sim_mob::Worker::getPathSetMgr()
+//{
+//	if(!pathSetMgr)
+//	{
+//		pathSetMgr = new PathSetManager();
+//	}
+//
+//	return pathSetMgr;
+//}

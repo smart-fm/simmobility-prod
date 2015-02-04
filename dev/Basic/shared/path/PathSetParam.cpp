@@ -20,6 +20,11 @@ sim_mob::PathSetParam* sim_mob::PathSetParam::getInstance()
 	return instance_;
 }
 
+void sim_mob::PathSetParam::populate()
+{
+	getDataFromDB();
+}
+
 void sim_mob::PathSetParam::getDataFromDB()
 {
 	setRTTT(ConfigManager::GetInstance().FullConfig().getRTTT());
@@ -33,7 +38,7 @@ void sim_mob::PathSetParam::getDataFromDB()
 	std::cout << segDefTT.size() << " records for Link_default_travel_time found\n";
 
 	bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(*(PathSetManager::getSession()),
-			RTTT, sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval, segHistoryTT);
+			sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval, segHistoryTT);
 	std::cout << segHistoryTT.size() << " records for Link_realtime_travel_time found " << segHistoryTT.begin()->first << "  " << segHistoryTT.end()->first << "\n";
 	if(!res) // no realtime travel time table
 	{
@@ -262,21 +267,6 @@ uint32_t sim_mob::PathSetParam::getSize()
 
 	//std::map<std::string,sim_mob::RoadSegment*> segPool;
 	typedef std::map<std::string,sim_mob::RoadSegment*>::value_type SPP;
-//	BOOST_FOREACH(SPP& segPool_pair,segPool)
-//	{
-//		sum += segPool_pair.first.length();
-//	}
-//	sum += sizeof(sim_mob::RoadSegment*) * segPool.size();
-
-//		std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*> wpPool;//unused for now
-	//std::map<std::string,sim_mob::Node*> nodePool;
-	typedef std::map<std::string,sim_mob::Node*>::value_type NPP;
-	logger << "nodePool.size() " << nodePool.size() << "\n";
-	BOOST_FOREACH(NPP& nodePool_pair,nodePool)
-	{
-		sum += nodePool_pair.first.length();
-	}
-	sum += sizeof(sim_mob::Node*) * nodePool.size();
 
 //		const std::vector<sim_mob::MultiNode*>  &multiNodesPool;
 	sum += sizeof(sim_mob::MultiNode*) * multiNodesPool.size();
@@ -330,38 +320,7 @@ sim_mob::PathSetParam::PathSetParam() :
 		RTTT(""),intervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval* 1000 /*milliseconds*/)
 {
 	initParameters();
-//	for (std::vector<sim_mob::Link *>::const_iterator it =	ConfigManager::GetInstance().FullConfig().getNetwork().getLinks().begin(), it_end( ConfigManager::GetInstance().FullConfig().getNetwork().getLinks().end()); it != it_end; it++) {
-//		for (std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++) {
-//			if (!(*seg_it)->originalDB_ID.getLogItem().empty()) {
-//				string aimsun_id = (*seg_it)->originalDB_ID.getLogItem();
-//				string segId = Utils::getNumberFromAimsunId(aimsun_id);
-//				segPool.insert(std::make_pair(segId, *seg_it));
-//			}
-//		}
-//	}
-	//we are still in constructor , so const refs like roadNetwork and multiNodesPool are not ready yet.
-	BOOST_FOREACH(sim_mob::Node* n, ConfigManager::GetInstance().FullConfig().getNetwork().getNodes()){
-		if (!n->originalDB_ID.getLogItem().empty()) {
-			std::string t = n->originalDB_ID.getLogItem();
-			std::string id = sim_mob::Utils::getNumberFromAimsunId(t);
-			nodePool.insert(std::make_pair(id , n));
-		}
-	}
-
-	BOOST_FOREACH(sim_mob::UniNode* n, ConfigManager::GetInstance().FullConfig().getNetwork().getUniNodes()){
-		if (!n->originalDB_ID.getLogItem().empty()) {
-			std::string t = n->originalDB_ID.getLogItem();
-			std::string id = sim_mob::Utils::getNumberFromAimsunId(t);
-			nodePool.insert(std::make_pair(id, n));
-		}
-	}
-
-	logger << "PathSetParam: nodes amount " <<
-			ConfigManager::GetInstance().FullConfig().getNetwork().getNodes().size() +
-			ConfigManager::GetInstance().FullConfig().getNetwork().getNodes().size() << "\n";
-//	logger << "PathSetParam: segments amount "	<<
-//			segPool.size() << "\n";
-	getDataFromDB();
+	populate();
 }
 
 sim_mob::ERP_Section::ERP_Section(ERP_Section &src)

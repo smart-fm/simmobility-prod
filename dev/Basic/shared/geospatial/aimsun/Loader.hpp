@@ -92,7 +92,7 @@ public:
 	static bool truncateTable(soci::session& sql, std::string& table_name);
 	static bool excuString(soci::session& sql,std::string& str);
 	static void LoadDefaultTravelTimeData(soci::session& sql, std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >& pool);
-	static bool LoadRealTimeTravelTimeData(soci::session& sql,std::string& table_name,int interval, sim_mob::AverageTravelTime& pool);
+	static bool LoadRealTimeTravelTimeData(soci::session& sql,int interval, sim_mob::AverageTravelTime& pool);
 	static bool storeSinglePath(soci::session& sql,
 					std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& pathPool,const std::string pathSetTableName);
 	///For partial network loading.

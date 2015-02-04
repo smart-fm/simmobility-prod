@@ -70,7 +70,6 @@ public:
 
 	virtual ProfileBuilder* getProfileBuilder() const = 0;
 
-	virtual sim_mob::PathSetManager* getPathSetMgr() = 0;
 };
 
 
@@ -130,8 +129,8 @@ public:
 
 	virtual std::ostream* getLogFile() const;
 
-	/// return current worker's path set manager
-	virtual sim_mob::PathSetManager *getPathSetMgr();
+//	/// return current worker's path set manager
+//	virtual sim_mob::PathSetManager *getPathSetMgr();
 
 	virtual ProfileBuilder* getProfileBuilder() const;
 

@@ -116,7 +116,7 @@ public:
 	void LoadERP_Section(std::map<int,sim_mob::ERP_Section*>& ERP_SectionPool);
 	void LoadERP_Gantry_Zone(std::map<std::string,sim_mob::ERP_Gantry_Zone*>& ERP_GantryZonePool);
 	static void loadLinkDefaultTravelTime(soci::session& sql,std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >& pool);
-	static bool loadLinkRealTimeTravelTime(soci::session& sql,std::string& tableName,int interval, sim_mob::AverageTravelTime& pool);
+	static bool loadLinkRealTimeTravelTime(soci::session& sql,int interval, sim_mob::AverageTravelTime& pool);
 	static bool CreateTable(soci::session& sql,std::string& tableName);
 	bool InsertData2TravelTimeTmpTable(std::string& tableName,sim_mob::LinkTravelTime& data);
 	static bool InsertCSV2Table(soci::session& sql,std::string& tableName,const std::string& csvFileName);
@@ -388,41 +388,36 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 
 void DatabaseLoader::loadLinkDefaultTravelTime(soci::session& sql,std::map<unsigned long, std::vector<sim_mob::LinkTravelTime> >& pool)
 {
-	//todo: I know hardcoding a table query is not good, but until I find an optimal solution to pass table name as argument to the posgres function, I keep the old implementation as is-vahid
-	soci::rowset<sim_mob::LinkTravelTime> rs = (sql.prepare <<"select \"link_id\",to_char(\"start_time\",'HH24:MI:SS') AS start_time,to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\", travel_mode from \"link_default_travel_time_corrected_he_v2\" ");
+	const std::string &tableName = sim_mob::ConfigManager::GetInstance().PathSetConfig().DTT_Conf;
+	std::string query = "select \"link_id\",to_char(\"start_time\",'HH24:MI:SS') AS start_time,"
+			"to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\", travel_mode from " + tableName;
+
+	soci::rowset<sim_mob::LinkTravelTime> rs = sql.prepare << query;
+
 	for (soci::rowset<sim_mob::LinkTravelTime>::const_iterator itRS = rs.begin(); itRS!=rs.end(); ++itRS)  {
 		pool[itRS->linkId].push_back(*itRS);
 	}
 }
 
-bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql,std::string& tableName, int intervalSec, sim_mob::AverageTravelTime& pool)
+bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql, int intervalSec, sim_mob::AverageTravelTime& pool)
 {
 	int intervalMS = intervalSec * 1000;
-	//todo: I know hardcoding a table query is not good, but until I find an optimal solution to pass table name as argument to the posgres function, I keep the old implementation as is-vahid
+	const std::string &tableName = sim_mob::ConfigManager::GetInstance().PathSetConfig().RTTT_Conf;
 	std::string query = "select link_id,to_char(start_time,'HH24:MI:SS') AS start_time,"
 			"to_char(end_time,'HH24:MI:SS') AS end_time,travel_time, travel_mode from "
-			+ tableName +
-			" where interval_time = " + boost::lexical_cast<std::string>(intervalSec);
+			+ tableName + " where interval_time = " + boost::lexical_cast<std::string>(intervalSec);
+
 	//	local cache for optimization purposes
-	std::map<std::string, unsigned int> timeIntervalCache;
-	std::map<std::string, unsigned int>::iterator timeIt;
 	std::map<unsigned long, const sim_mob::RoadSegment*> rsCache;
 	std::map<unsigned long, const sim_mob::RoadSegment*>::iterator rsIt;
+
 	//main loop
 	try {
 			unsigned int timeInterval;
 			soci::rowset<sim_mob::LinkTravelTime> rs = (sql.prepare << query);
 			for (soci::rowset<sim_mob::LinkTravelTime>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-//				//optimization-1 : many records are in the same interval, no need to calculate again
-//				if((timeIt = timeIntervalCache.find(it->startTime)) != timeIntervalCache.end())
-//				{
-//					timeInterval = timeIt->second;
-//				}
-//				else
-				{
-					timeInterval = timeIntervalCache[it->startTime] = sim_mob::TravelTimeManager::getTimeInterval(sim_mob::DailyTime(it->startTime).getValue(), intervalMS);
-				}
-//				optimization-2
+				timeInterval = sim_mob::TravelTimeManager::getTimeInterval(sim_mob::DailyTime(it->startTime).getValue(), intervalMS);
+				//	optimization
 				const sim_mob::RoadSegment* rs;
 				if((rsIt = rsCache.find(it->linkId)) != rsCache.end())
 				{
@@ -430,8 +425,7 @@ bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql,std::string& 
 				}
 				else
 				{
-					rs = sim_mob::RoadSegment::allSegments[it->linkId];
-					rsCache[it->linkId] = rs;
+					rs = rsCache[it->linkId] = sim_mob::RoadSegment::allSegments[it->linkId];
 				}
 				//the main job is just one line:
 				pool[timeInterval][it->travelMode][rs] = it->travelTime;
@@ -2595,9 +2589,9 @@ void sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(soci::session& sql,	std:
 {
 	DatabaseLoader::loadLinkDefaultTravelTime(sql, linkDefaultTravelTimePool);
 }
-bool sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(soci::session& sql, std::string &tableName, int interval,sim_mob::AverageTravelTime& linkRealtimeTravelTimePool)
+bool sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(soci::session& sql, int interval,sim_mob::AverageTravelTime& linkRealtimeTravelTimePool)
 {
-	return DatabaseLoader::loadLinkRealTimeTravelTime(sql,tableName, interval, linkRealtimeTravelTimePool);
+	return DatabaseLoader::loadLinkRealTimeTravelTime(sql, interval, linkRealtimeTravelTimePool);
 }
 
 sim_mob::HasPath sim_mob::aimsun::Loader::loadSinglePathFromDB(soci::session& sql,

@@ -31,7 +31,8 @@ using namespace sim_mob::event;
 using namespace sim_mob::messaging;
 using boost::format;
 
-namespace {
+namespace
+{
 
     /**
      * Send given bid to given owner.
@@ -85,9 +86,24 @@ void HouseholdBidderRole::CurrentBiddingEntry::invalidate()
     wp = 0;
 }
                 
-HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): LT_AgentRole(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false){}
+HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false){}
 
 HouseholdBidderRole::~HouseholdBidderRole(){}
+
+HouseholdAgent* HouseholdBidderRole::getParent()
+{
+	return parent;
+}
+
+bool HouseholdBidderRole::isActive() const
+{
+    return active;
+}
+
+void HouseholdBidderRole::setActive(bool activeArg)
+{
+    active = activeArg;
+}
 
 void HouseholdBidderRole::update(timeslice now)
 {

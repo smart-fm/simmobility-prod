@@ -199,7 +199,7 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList)
 			if (devCandidateParcelList[i])
 			{
 				DeveloperAgent* devAgent = new DeveloperAgent(devCandidateParcelList[i], this);
-				AgentsLookupSingleton::getInstance().addDeveloper(devAgent);
+				AgentsLookupSingleton::getInstance().addDeveloperAgent(devAgent);
 				agents.push_back(devAgent);
 				developers.push_back(devAgent);
 				workGroup.assignAWorker(devAgent);

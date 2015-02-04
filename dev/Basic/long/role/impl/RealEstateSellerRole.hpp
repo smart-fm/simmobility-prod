@@ -3,10 +3,10 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 /* 
- * File:   HouseholdSellerRole.hpp
- * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * File:   RealEstateSellerRole.hpp
+ * Author: Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  *
- * Created on May 16, 2013, 5:13 PM
+ * Created on Jan 30, 2015, 5:13 PM
  */
 #pragma once
 
@@ -19,21 +19,21 @@ namespace sim_mob
 {
     namespace long_term
     {
-        class HouseholdAgent;
+        class RealEstateAgent;
         class HM_Model;
         class HousingMarket;
         /**
-         * Household Seller role.
+         * RealEstate Seller role.
          *
          * Seller will receive N bids each day and it will choose 
          * the maximum bid *of the time unit* (in this case is DAY) 
          * that satisfies the seller's asking price.
          */
-        class HouseholdSellerRole
+        class RealEstateSellerRole
         {
         public:
-            HouseholdSellerRole(LT_Agent* parent);
-            virtual ~HouseholdSellerRole();
+            RealEstateSellerRole(LT_Agent* parent);
+            virtual ~RealEstateSellerRole();
 
             bool isActive() const;
             void setActive(bool active);
@@ -52,7 +52,7 @@ namespace sim_mob
             virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
         private:
-            friend class HouseholdAgent;
+            friend class RealEstateAgent;
             /**
              * Notify the bidders that have their bid were accepted.
              */

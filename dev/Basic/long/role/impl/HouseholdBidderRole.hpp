@@ -10,7 +10,6 @@
  */
 #pragma once
 #include <boost/unordered_map.hpp>
-#include "role/LT_Role.hpp"
 #include "event/LT_EventArgs.hpp"
 #include "database/entity/Household.hpp"
 #include "core/HousingMarket.hpp"
@@ -32,7 +31,7 @@ namespace sim_mob
          * The bidder can only do one bid each day and It sticks to the unit until
          * gets rejected or reaches the a zero surplus.
          */
-        class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent>
+        class HouseholdBidderRole
         {
         private:
 
@@ -69,6 +68,10 @@ namespace sim_mob
             HouseholdBidderRole(HouseholdAgent* parent);
             virtual ~HouseholdBidderRole();
 
+            bool isActive() const;
+            void setActive(bool active);
+            HouseholdAgent* getParent();
+
             /**
              * Inherited from LT_Role
              * @param currTime
@@ -100,11 +103,13 @@ namespace sim_mob
              */
             bool pickEntryToBid();
 
-        private:
             volatile bool waitingForResponse;
             timeslice lastTime;
             bool bidOnCurrentDay;
             CurrentBiddingEntry biddingEntry;
+
+            HouseholdAgent *parent;
+            bool active;
         };
     }
 }

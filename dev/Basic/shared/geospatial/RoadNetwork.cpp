@@ -82,6 +82,9 @@ void sim_mob::RoadNetwork::storeTurningSection(sim_mob::TurningSection* turningS
 	turningSection->setLaneFrom(from);
 	turningSection->setLaneTo(to);
 	
+	// get turning start,end polyline point
+	turningSection->makePolylinePoint();
+
 	// store
 	turningSectionMap.insert(std::make_pair(turningSection->getSectionId(),turningSection));
 	

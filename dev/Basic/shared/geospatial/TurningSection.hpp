@@ -100,6 +100,9 @@ class TurningConflict;
     //Setter for laneFrom
     void setLaneFrom(const sim_mob::Lane* laneFrom);
     
+    /// use from,to lane to get start,end polyline points
+    void makePolylinePoint();
+
     //Getter for laneFrom
     const sim_mob::Lane* getLaneFrom() const;
     

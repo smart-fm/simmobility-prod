@@ -25,6 +25,7 @@ class Driver;
 class Pedestrian;
 class Agent;
 struct TravelMetric;
+class Conflux;
 ///used to initialize message handler id of all facets
 #define FACET_MSG_HDLR_ID 1000
 /**
@@ -151,7 +152,11 @@ public:
 	 */
 	static bool isConnectedToNextSeg(const sim_mob::RoadSegment *srcRdSeg, const sim_mob::RoadSegment *nxtRdSeg);
 
-
+	/**
+	 * return the starting conflux of movement facet.
+	 * This function is currently useful only for mid-term since confluxes are not used in short-term yet.
+	 */
+	virtual Conflux* getStartingConflux() const;
 public:
 	friend class sim_mob::PartitionManager;
 protected:

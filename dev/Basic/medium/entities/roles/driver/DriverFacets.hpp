@@ -69,6 +69,7 @@ public:
 	virtual void frame_init();
 	virtual void frame_tick();
 	virtual void frame_tick_output();
+	virtual sim_mob::Conflux* getStartingConflux() const;
 
 	sim_mob::medium::Driver* getParentDriver() const {
 		return parentDriver;

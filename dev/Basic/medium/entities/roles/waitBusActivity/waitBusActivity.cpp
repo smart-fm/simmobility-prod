@@ -43,10 +43,6 @@ void sim_mob::medium::WaitBusActivity::make_frame_tick_params(timeslice now)
 	getParams().reset(now);
 }
 
-void sim_mob::medium::WaitBusActivity::setStop(sim_mob::BusStop* busStop) {
-	stop = busStop;
-}
-
 void sim_mob::medium::WaitBusActivity::increaseFailedBoardingTimes()
 {
 	failedBoardingTimes++;

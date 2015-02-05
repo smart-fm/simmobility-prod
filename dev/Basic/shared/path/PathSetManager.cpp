@@ -694,8 +694,8 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	{
 		std::vector<sim_mob::WayPoint> path_ = ksp[i];
 		std::string id = sim_mob::makeWaypointsetString(path_);
-		std::set<std::string>::iterator it_id =  duplicateChecker.find(id);
-		if(it_id == duplicateChecker.end())
+//		std::set<std::string>::iterator it_id =  duplicateChecker.find(id);
+//		if(it_id == duplicateChecker.end())
 		{
 			std::stringstream out("");
 			out << ps->scenario << "KSP-" << i;
@@ -705,9 +705,9 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 			s->id = id;
 			s->pathSetId = fromToID;
 			s->init(path_);
-			s->scenario = ps->scenario + "KSP";
+			s->scenario = ps->scenario + out.str();
 			s->pathSize=0;
-			duplicateChecker.insert(id);
+//			duplicateChecker.insert(id);
 			KSP_Storage.insert(s);
 			logger << "[KSP:" << i << "] " << s->id << "[length: " << s->length << "]\n";
 		}
@@ -804,7 +804,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 				blackList.clear();
 				work->ps = ps;
 				std::stringstream out("");
-				out << "STTLE-" << cnt ;
+				out << "STTLE-" << cnt++ ;
 				work->dbgStr = out.str();
 				threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
 				workPool.push_back(work);
@@ -859,7 +859,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 				blackList.clear();
 				work->ps = ps;
 				std::stringstream out("");
-				out << "STTH-" << cnt;
+				out << "STTH-" << cnt++;
 				work->dbgStr = out.str();
 				threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
 				workPool.push_back(work);
@@ -879,7 +879,6 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	cnt = 0;
 	for(int i=0;i < randCnt ; ++i)
 	{
-		cnt++;
 		from = sttpImpl->DrivingVertexRandom(*ps->fromNode,i);
 		to = sttpImpl->DrivingVertexRandom(*ps->toNode,i);
 		fromV = &from.source;
@@ -895,7 +894,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 		work->toNode = ps->toNode;
 		work->ps = ps;
 		std::stringstream out("");
-		out << "TTRP-" << i  ;
+		out << "TTRP-" << cnt++;  ;
 		work->dbgStr = out.str();
 		logger << work->dbgStr;
 		threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
@@ -1580,7 +1579,7 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::findShortestDrivingPath(
 	// 1.31 check path pool
 	std::set<std::string>::iterator it =  duplicatePath.find(id);
 	// no stored path found, generate new one
-	if(it==duplicatePath.end())
+	if(it == duplicatePath.end())
 	{
 		s = new SinglePath();
 		// fill data
@@ -1589,7 +1588,7 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::findShortestDrivingPath(
 		s->id = id;
 		s->scenario = scenarioName;
 		s->isShortestPath = true;
-		duplicatePath.insert(id);
+//		duplicatePath.insert(id);
 	}
 	else{
 		logger<<"gSPByFTNodes3:duplicate pathset discarded\n";
@@ -1636,7 +1635,7 @@ sim_mob::SinglePath* sim_mob::PathSetManager::generateShortestTravelTimePath(con
 			s->id = id;
 			s->scenario = scenarioName;
 			s->pathSize=0;
-			duplicateChecker.insert(id);
+//			duplicateChecker.insert(id);
 		}
 		else{
 			logger<<"generateShortestTravelTimePath:duplicate pathset discarded\n";

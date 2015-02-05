@@ -15,7 +15,7 @@
 #include<vector>
 
 using namespace sim_mob;
-boost::shared_ptr<K_ShortestPathImpl> sim_mob::K_ShortestPathImpl::instance(new K_ShortestPathImpl());
+boost::shared_ptr<K_ShortestPathImpl> sim_mob::K_ShortestPathImpl::instance;
 sim_mob::K_ShortestPathImpl::K_ShortestPathImpl()
 {
 	init();
@@ -25,6 +25,10 @@ sim_mob::K_ShortestPathImpl::~K_ShortestPathImpl() {
 }
 boost::shared_ptr<K_ShortestPathImpl> sim_mob::K_ShortestPathImpl::getInstance()
 {
+	if(!instance)
+	{
+		instance.reset(new K_ShortestPathImpl());
+	}
 	return instance;
 }
 void sim_mob::K_ShortestPathImpl::init()

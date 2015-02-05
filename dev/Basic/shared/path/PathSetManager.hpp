@@ -288,7 +288,7 @@ private:
 	const std::string &pathSetTableName;
 
 	///	stores the name of database's function operating on the pathset and singlepath tables
-	const std::string &dbFunction;
+	const std::string &psRetrieval;
 
 	///every thread which invokes db related parts of pathset manages, should have its own connection to the database
 	static std::map<boost::thread::id, boost::shared_ptr<soci::session > > cnnRepo;

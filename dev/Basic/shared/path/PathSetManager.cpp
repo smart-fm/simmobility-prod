@@ -66,7 +66,7 @@ unsigned int sim_mob::PathSetManager::intervalMS = 0;
 
 sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()),
 		pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName),isUseCache(true),
-		dbFunction(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().dbFunction),cacheLRU(2500),
+		psRetrieval(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrieval),cacheLRU(2500),
 		processTT(intervalMS, curIntervalMS),
 		blacklistSegments((sim_mob::ConfigManager::GetInstance().FullConfig().CBD() ?
 				RestrictedRegion::getInstance().getZoneSegments(): std::set<const sim_mob::RoadSegment*>()))//todo placeholder
@@ -553,7 +553,7 @@ bool sim_mob::PathSetManager::getBestPath(
 	ps_->subTrip = st;
 	ps_->id = fromToID;
 	ps_->scenario = scenarioName;
-	hasPath = sim_mob::aimsun::Loader::loadSinglePathFromDB(*getSession(),fromToID,ps_->pathChoices, dbFunction,blckLstSegs);
+	hasPath = sim_mob::aimsun::Loader::loadSinglePathFromDB(*getSession(),fromToID,ps_->pathChoices, psRetrieval,blckLstSegs);
 	logger  <<  fromToID << " : " << (hasPath == PSM_HASPATH ? "" : "Don't " ) << "have SinglePaths in DB \n" ;
 	switch (hasPath) {
 	case PSM_HASPATH: {
@@ -1055,7 +1055,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 						*getSession(),
 #endif
 						pathSetID,
-						ps_->pathChoices,dbFunction);
+						ps_->pathChoices,psRetrieval);
 				if(hasSPinDB)
 				{
 					std::map<std::string,sim_mob::SinglePath*>::iterator it ;//= id_sp.find(ps_->singlepath_id);

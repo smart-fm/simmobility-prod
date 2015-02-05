@@ -120,7 +120,7 @@ public:
 	static bool CreateTable(soci::session& sql,std::string& tableName);
 	bool InsertData2TravelTimeTmpTable(std::string& tableName,sim_mob::LinkTravelTime& data);
 	static bool InsertCSV2Table(soci::session& sql,std::string& tableName,const std::string& csvFileName);
-	static bool upsertTravelTime(soci::session& sql,const std::string& csvFileName, const std::string& tableName);
+	static bool upsertTravelTime(soci::session& sql,const std::string& csvFileName, const std::string& tableName, double alpha);
 	static bool TruncateTable(soci::session& sql,std::string& tableName);
 	static bool ExcuString(soci::session& sql,std::string& str);
 	// save path set data
@@ -468,10 +468,13 @@ bool DatabaseLoader::InsertData2TravelTimeTmpTable(std::string& tableName,
 	}
 	return true;
 }
-bool DatabaseLoader::upsertTravelTime(soci::session& sql,const std::string& csvFileName, const std::string& tableName)
+bool DatabaseLoader::upsertTravelTime(soci::session& sql,const std::string& csvFileName, const std::string& tableName, double alpha)
 {
-	std::cout << "select * from upsert_realtime('" << csvFileName << "','" << tableName << "');\n";
-	sql << "select * from upsert_realtime('" + csvFileName + "','" + tableName + "');";
+	std::stringstream query("");
+	query << "select * from " <<  sim_mob::ConfigManager::GetInstance().PathSetConfig().upsert  <<
+			"('" << csvFileName << "','" << tableName << "'," << alpha << ");";
+	std::cout << query.str() << "\n";
+	sql << query.str();
 	return true;
 }
 bool DatabaseLoader::InsertCSV2Table(soci::session& sql,std::string& tableName,const std::string& csvFileName)
@@ -2565,9 +2568,9 @@ bool sim_mob::aimsun::Loader::insertData2TravelTimeTmpTable(const std::string& c
 	bool res = loader.InsertData2TravelTimeTmpTable(tableName,data);
 	return res;
 }
-bool sim_mob::aimsun::Loader::upsertTravelTime(soci::session& sql, const std::string& csvFileName, const std::string& tableName)
+bool sim_mob::aimsun::Loader::upsertTravelTime(soci::session& sql, const std::string& csvFileName, const std::string& tableName, double alpha)
 {
-	bool res = DatabaseLoader::upsertTravelTime(sql,csvFileName, tableName);
+	bool res = DatabaseLoader::upsertTravelTime(sql,csvFileName, tableName, alpha);
 }
 bool sim_mob::aimsun::Loader::insertCSV2Table(soci::session& sql, std::string& tableName, const std::string& csvFileName)
 {

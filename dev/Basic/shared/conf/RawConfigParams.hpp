@@ -146,15 +146,17 @@ public:
 
 struct PathSetConf
 {
-	PathSetConf():enabled(false), RTTT_Conf(""), DTT_Conf(""), dbFunction(""), interval(0),
+	PathSetConf():enabled(false), RTTT_Conf(""), DTT_Conf(""), psRetrieval(""), interval(0),
 	recPS(false),reroute(false), cbd(false), subTripOP(""), perturbationRange(std::pair<int,int>(0,0)), kspLevel(0), perturbationIteration(0){}
 	bool enabled;
 	sim_mob::DatabaseDetails networkDatabase; //If loading from the database, how do we connect?// todo: unused for now
 	std::string pathSetTableName;
 	std::string RTTT_Conf;//realtime travel time table name
 	std::string DTT_Conf;//default travel time table name
-	std::string dbFunction;
+	std::string psRetrieval;// pathset retrieval stored procedure name
+	std::string upsert;//	historical travel time updation
 	int interval; //travel time recording iterval(in seconds)
+	double alpha; //travel time updation coefficient
 	///	recursive pathset Generation
 	bool recPS;
 	///	 enable rerouting?

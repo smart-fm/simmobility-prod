@@ -175,7 +175,7 @@ bool sim_mob::TravelTimeManager::storeRTT2DB()
 	insertTravelTime2TmpTable(tempFileName);
 	sim_mob::Logger::log(tempFileName).flush();
 	tempFileName += ".txt";
-	return sim_mob::aimsun::Loader::upsertTravelTime(*sim_mob::PathSetManager::getInstance()->getSession(), boost::filesystem::canonical(tempFileName).string(), sim_mob::PathSetParam::getInstance()->RTTT);
+	return sim_mob::aimsun::Loader::upsertTravelTime(*sim_mob::PathSetManager::getInstance()->getSession(), boost::filesystem::canonical(tempFileName).string(), sim_mob::PathSetParam::getInstance()->RTTT, sim_mob::ConfigManager::GetInstance().PathSetConfig().alpha);
 }
 
 sim_mob::TravelTimeManager::~TravelTimeManager()

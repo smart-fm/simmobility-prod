@@ -115,7 +115,7 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 	//CBD //todo: usage still unclear
 	xercesc::DOMElement* cbd = GetSingleElementByName(node, "CBD_enabled");
 	if(!cbd){
-		std::cerr << "reroute_enabled Not Found, setting to false\n";
+		std::cerr << "CBD_enabled Not Found, setting to false\n";
 		cfg.cbd = false;
 	}
 	else

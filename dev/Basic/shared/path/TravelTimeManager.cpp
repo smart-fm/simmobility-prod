@@ -161,8 +161,12 @@ void sim_mob::TravelTimeManager::insertTravelTime2TmpTable(const std::string fil
 				int &totalTT_Submissions = timeAndCount.travelTimeCnt;
 				// calculate the average travel time
 				double travelTime = totalTT_ForThisSeg / totalTT_Submissions;
+				//start and end time:
+				const DailyTime &simStartTime = sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime();
+				DailyTime startTime(simStartTime.getValue() +  (timeInterval* intervalMS) );
+				DailyTime endTime(simStartTime.getValue() + ((timeInterval + 1) * intervalMS - 1) );
 				//now simply write it to the file
-				TTLogger << segmentId << ";" << DailyTime(timeInterval* intervalMS).getRepr_() << ";" << DailyTime((timeInterval + 1) * intervalMS - 1).getRepr_() << ";" << travelTime << ";"  << intervalSec << ";"  << travelModeStr <<  "\n";
+				TTLogger << segmentId << ";" << startTime.getRepr_() << ";" << endTime.getRepr_() << ";" << travelTime << ";"  << intervalSec << ";"  << travelModeStr <<  "\n";
 			}
 		}
 	}

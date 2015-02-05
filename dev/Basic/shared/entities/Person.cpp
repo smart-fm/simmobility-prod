@@ -96,7 +96,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, i
 	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), remainingTimeThisTick(0.0),
 	requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
 	age(0), boardingTimeSecs(0), alightingTimeSecs(0), client_id(-1), resetParamsRequired(false), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),amodSegmLength(0.0),
-	initSegId(0), initDis(0), initSpeed(0), amodSegmLength2(0), currStatus(IN_CAR_PARK), first_update_tick(true), currLane(NULL)
+	initSegId(0), initDis(0), initSpeed(0), amodSegmLength2(0), currStatus(IN_CAR_PARK), firstTick(true), currLane(NULL)
 {
 }
 
@@ -104,7 +104,8 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegStats(nullptr), canMoveToNextSegment(NONE),
 	  databaseID(tc.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
 	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tc), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
-	  client_id(-1),amodPath( std::vector<WayPoint>() ), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),amodSegmLength(0.0)
+	  client_id(-1),amodPath( std::vector<WayPoint>() ), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),
+	  amodSegmLength(0.0)
 {
 	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
 		convertODsToTrips();
@@ -142,7 +143,7 @@ void sim_mob::Person::initTripChain(){
 	}
 
 	setNextPathPlanned(false);
-	first_update_tick = true;
+	firstTick = true;
 	tripchainInitialized = true;
 }
 
@@ -510,18 +511,17 @@ bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 
 UpdateStatus sim_mob::Person::checkTripChain() {
 	//some normal checks
-	if(tripChain.size() < 1) {
+	if(tripChain.empty()) {
 		return UpdateStatus::Done;
 	}
 
 	//advance the trip, subtrip or activity....
-	if(!first_update_tick) {
+	if(!firstTick) {
 		if(!(advanceCurrentTripChainItem())) {
 			return UpdateStatus::Done;
 		}
 	}
-
-	first_update_tick = false;
+	firstTick = false;
 
 	//must be set to false whenever tripchainitem changes. And it has to happen before a probable creation of (or changing to) a new role
 	setNextPathPlanned(false);
@@ -552,7 +552,6 @@ UpdateStatus sim_mob::Person::checkTripChain() {
 	//Null out our trip chain, remove the "removed" flag, and return
 	clearToBeRemoved();
 	return UpdateStatus(UpdateStatus::RS_CONTINUE, prevParams, currParams);
-
 }
 
 //sets the current subtrip to the first subtrip of the provided trip(provided trip is usually the current tripChianItem)

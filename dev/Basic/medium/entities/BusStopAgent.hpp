@@ -107,6 +107,11 @@ public:
 	 */
 	void storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingActivity);
 
+	const SegmentStats* getParentSegmentStats() const
+	{
+		return parentSegmentStats;
+	}
+
 protected:
 	//Virtual overrides
 	virtual bool frame_init(timeslice now); ;
@@ -115,8 +120,7 @@ protected:
 	virtual bool isNonspatial(){
 		return false;
 	}
-	virtual void load(const std::map<std::string, std::string>& configProps) {
-	}
+	virtual void load(const std::map<std::string, std::string>& configProps) {}
 
 	//Inherited from Agent.
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId,

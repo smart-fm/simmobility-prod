@@ -25,16 +25,6 @@ class ThreadPool;
 ///	Debug Method to print WayPoint based paths
 std::string printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node* startingNode = 0);
 
-
-
-template<typename T>
-std::string toString(const T& value)
-{
-    std::ostringstream oss;
-    oss << value;
-    return oss.str();
-}
-
 /// Roadsegment-Person
 typedef std::multimap<const sim_mob::RoadSegment*, const sim_mob::Person* > SGPER ;// Roadsegment-Person  :)
 
@@ -47,9 +37,12 @@ class PathSetManager {
 public:
 	static PathSetManager* getInstance()
 	{
-		if(!instance_)
 		{
-			instance_ = new PathSetManager();
+			boost::unique_lock<boost::mutex> lock(instanceMutex);
+			if(!instance_)
+			{
+				instance_ = new PathSetManager();
+			}
 		}
 		return instance_;
 	}
@@ -239,8 +232,6 @@ public:
 	///	set some tags as a result of comparing attributes among paths in a pathset
 	void setPathSetTags(boost::shared_ptr<sim_mob::PathSet>&ps);
 
-	///	returns the raugh size of object in Bytes
-	uint32_t getSize();
 	static void initTimeInterval();
 	static void updateCurrTimeInterval();
 
@@ -264,6 +255,7 @@ public:
 
 private:
 	static PathSetManager *instance_;
+	static boost::mutex instanceMutex;
 
 	///	link to street directory
 	StreetDirectory& stdir;
@@ -300,6 +292,7 @@ private:
 
 	///every thread which invokes db related parts of pathset manages, should have its own connection to the database
 	static std::map<boost::thread::id, boost::shared_ptr<soci::session > > cnnRepo;
+	static boost::shared_mutex cnnRepoMutex;
 
 	///	Travel time processing
 	TravelTimeManager processTT;
@@ -307,17 +300,59 @@ private:
 	///	static sim_mob::Logger profiler;
 	static boost::shared_ptr<sim_mob::batched::ThreadPool> threadpool_;
 
-	boost::shared_mutex cachedPathSetMutex;
-
-//	std::map<std::string, boost::shared_ptr<sim_mob::PathSet> > cachedPathSet;//same as pathSetPool, used in a separate scenario //todo later use only one of the caches, cancel the other one
-
 	///	Yet another cache
 	sim_mob::LRU_Cache<std::string, boost::shared_ptr<PathSet> > cacheLRU;
+	/**
+	 * structure to help avoiding simultaneous pathset generation by multiple threads for identical OD
+	 */
+	struct SimpleCollector
+	{
+	private:
+		boost::mutex mutex_;
+		std::set<std::string> collection;
+	public:
+		bool tryCheck(const std::string &od)
+		{
+			boost::unique_lock<boost::mutex> lock(mutex_);
+			if(collection.find(od) != collection.end())
+			{
+				return false;
+			}
+			collection.insert(od);
+			return true;
+		}
+
+		bool insert(const std::string &od)
+		{
+			boost::unique_lock<boost::mutex> lock(mutex_);
+			return collection.insert(od).second;
+		}
+
+		void erase(const std::string &od)
+		{
+			boost::unique_lock<boost::mutex> lock(mutex_);
+			collection.erase(od);
+		}
+
+		bool find(const std::string &od)
+		{
+			boost::unique_lock<boost::mutex> lock(mutex_);
+			return collection.find(od) != collection.end();
+		}
+
+	};
+
+	/**
+	 * simple structure to help avoiding simultaneous operations for pathset retrieval/Generation
+	 * Any attempt to generate a path set for any OD is recorded here and will not be attempted again
+	 */
+	SimpleCollector pathRetrievalAttempt;
+
 	///	contains arbitrary description usually to indicating which configuration file the generated data has originated from
 	std::string scenarioName;
 
 	///	used to avoid entering duplicate "HAS_PATH=-1" pathset entries into PathSet. It will be removed once the cache and/or proper DB functions are in place
-	std::set<std::string> tempNoPath;
+	SimpleCollector tempNoPath;
 
 	///a cache to help answer this question: a given road segment is within which path(s)
 	SGPER pathSegments;

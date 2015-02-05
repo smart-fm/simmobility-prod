@@ -14,17 +14,17 @@ class PathSetManager;
  */
 class TravelTimeManager
 {
+public:
 	/**
 	 *	container to stor road segment travel times at different time intervals
 	 */
+	sim_mob::TravelTime ttMap;
+	boost::mutex ttMapMutex;
 
-	sim_mob::TravelTime rdSegTravelTimesMap;
-public:
 	/**
 	 * time interval value used for processing data.
 	 * This value is based on its counterpart in pathset manager.
 	 */
-
 	unsigned int &intervalMS;
 
 	/**
@@ -35,11 +35,11 @@ public:
 	* Aura Manager barrier(void sim_mob::WorkGroupManager::waitAllGroups_AuraManager())
 	*/
 	unsigned int &curIntervalMS;
-	static int dbg_ProcessTT_cnt;
-	static void initTimeInterval();
-	static void updateCurrTimeInterval();
+
 	TravelTimeManager(unsigned int &intervalMS, unsigned int &curIntervalMS);
+
 	~TravelTimeManager();
+
 	/*
 	 * accumulates Travel Time data
 	 * @param stats travel time record
@@ -65,7 +65,15 @@ public:
 	 * Note: for uniformity purposes this methods works with milliseconds values
 	 */
 	static sim_mob::TT::TI getTimeInterval(const unsigned long timeMS, const unsigned int intervalMS);
+
+	/**
+	 * returns the travel time experienced by other drivers in the current simulation
+	 * @param mode mode of travel requested
+	 * @param rs target road segment
+	 * @return the travel time
+	 */
 	double getInSimulationSegTT(const std::string mode,const  sim_mob::RoadSegment *rs) const;
+
 	friend class sim_mob::PathSetManager;
 
 	/**
@@ -74,10 +82,10 @@ public:
 	class EnRouteTT
 	 {
 	 protected:
-//	 	TravelTimeManager &parent;
-	 	sim_mob::TravelTime &rdSegTravelTimesMap;
+	 	TravelTimeManager &parent;
+//	 	sim_mob::TravelTime &ttMap;
 	 public:
-	 	EnRouteTT(TravelTimeManager &parent):/*parent(parent),*/rdSegTravelTimesMap(parent.rdSegTravelTimesMap){}
+	 	EnRouteTT(TravelTimeManager &parent):parent(parent)/*ttMap(parent.ttMap)*/{}
 	 	/**
 	 	 * get the desired travel time based on the implementation
 	 	 * @param rs the roadsegment for which TT is retrieved

@@ -23,6 +23,6 @@ sim_mob::batched::ThreadPool::ThreadPool(size_t nThreads) :sim_mob::ThreadPool(n
 void sim_mob::batched::ThreadPool::wait(){
 	boost::unique_lock<boost::mutex> lock(mutex_);
 	while(nTasks){
-		cond.wait(lock);
+		cond.timed_wait(lock,boost::get_system_time()+ boost::posix_time::milliseconds(100));
 	}
 }

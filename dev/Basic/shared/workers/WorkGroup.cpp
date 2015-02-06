@@ -40,7 +40,7 @@ sim_mob::WorkGroup::WorkGroup(unsigned int wgNum, unsigned int numWorkers, unsig
 	wgNum(wgNum), numWorkers(numWorkers), numSimTicks(numSimTicks), tickStep(tickStep), auraMgr(auraMgr), partitionMgr(partitionMgr),
 	tickOffset(0), started(false), currTimeTick(0), nextTimeTick(0), loader(nullptr), nextWorkerID(0),
 	frame_tick_barr(nullptr), buff_flip_barr(nullptr), msg_bus_barr(nullptr), macro_tick_barr(nullptr),
-	profile(nullptr), numAgentsWithNoPath(0), periodicPersonLoader(periodicLoader)
+	profile(nullptr), numDiscardedAgents(0), periodicPersonLoader(periodicLoader)
 {
 	if (ConfigManager::GetInstance().CMakeConfig().ProfileAuraMgrUpdates()) {
 		profile = new ProfileBuilder();
@@ -612,10 +612,10 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 void sim_mob::WorkGroup::putAgentOnConflux(Person* person) {
 	if(person)
 	{
-		sim_mob::Conflux* conflux = sim_mob::Conflux::findStartingConflux(person);
-		const sim_mob::RoadSegment* rdSeg = sim_mob::Conflux::findStartingRoadSegment(person);
-		if(conflux) { conflux->addAgent(person,rdSeg); }
-		else { numAgentsWithNoPath = numAgentsWithNoPath + 1; }
+		unsigned int nextTickMS = nextTimeTick*ConfigManager::GetInstance().FullConfig().baseGranMS();
+		sim_mob::Conflux* conflux = sim_mob::Conflux::findStartingConflux(person, nextTickMS);
+		if(conflux)	{ conflux->addAgent(person); }
+		else { numDiscardedAgents = numDiscardedAgents + 1; }
 	}
 }
 

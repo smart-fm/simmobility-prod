@@ -49,6 +49,7 @@ public:
 	virtual void frame_init();
 	virtual void frame_tick();
 	virtual void frame_tick_output();
+	virtual sim_mob::Conflux* getStartingConflux() const;
 
 	TravelMetric & startTravelTimeMetric();
 	TravelMetric & finalizeTravelTimeMetric();

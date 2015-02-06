@@ -117,28 +117,23 @@ sim_mob::Conflux::PersonProps::PersonProps(const sim_mob::Person* person, const 
 	}
 }
 
-void sim_mob::Conflux::addAgent(sim_mob::Person* person, const sim_mob::RoadSegment* rdSeg) {
-
+void sim_mob::Conflux::addAgent(sim_mob::Person* person)
+{
+	const sim_mob::RoadSegment* rdSeg = person->getCurrSegStats()->getRoadSegment();
 	Role* role = person->getRole();
-	if(!role){
-		UpdateStatus res = person->checkTripChain();
-		if(res.status==UpdateStatus::RS_DONE){
-			return;
-		}
-		role = person->getRole();
-	}
+	if(!role) { return; }
 
-	switch(role->roleType){
-	case Role::RL_DRIVER:
+	switch(role->roleType)
+	{
+	case Role::RL_DRIVER: //fall through
 	case Role::RL_BUSDRIVER:
+	case Role::RL_BIKER:
 	{
 		if(!rdSeg) { throw std::runtime_error("Starting road segment cannot be NULL for drivers"); }
-		/*
-		 * Persons start at a node (for now).
-		 * we will always add the Person to the corresponding segment stats in "lane infinity".
-		 */
+		// we will always add the Person to the corresponding segment stats in "lane infinity".
 		SegmentStatsMap::iterator it = segmentAgents.find(rdSeg);
-		if(it!=segmentAgents.end()) {
+		if(it!=segmentAgents.end())
+		{
 			SegmentStatsList& statsList = it->second;
 			sim_mob::SegmentStats* rdSegStats = statsList.front(); // we will start the person at the first segment stats of the segment
 			person->setCurrSegStats(rdSegStats);
@@ -163,6 +158,17 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* person, const sim_mob::RoadSegm
 	{
 		mrt.push_back(person);
 		//TODO: subscribe for time based event
+		break;
+	}
+	case Role::RL_ACTIVITY:
+	{
+		activityPerformers.push_back(person);
+		//TODO: subscribe for time based event
+		break;
+	}
+	case Role::RL_PASSENGER:
+	{
+		throw std::runtime_error("person cannot start as a passenger");
 		break;
 	}
 	}
@@ -809,7 +815,8 @@ bool sim_mob::Conflux::callMovementFrameInit(timeslice now, Person* person) {
 	if(!person->GetContext()) { messaging::MessageBus::RegisterHandler(person); }
 
 	//Agents may be created with a null Role and a valid trip chain
-	if (!person->getRole()) {
+	if (!person->getRole())
+	{
 		//TODO: This UpdateStatus has a "prevParams" and "currParams" that should
 		//      (one would expect) be dealt with. Where does this happen?
 		UpdateStatus res =	person->checkTripChain();
@@ -818,12 +825,11 @@ bool sim_mob::Conflux::callMovementFrameInit(timeslice now, Person* person) {
 		person->setStartTime(now.ms());
 
 		//Nothing left to do?
-		if (res.status == UpdateStatus::RS_DONE) {
-			return false;
-		}
+		if (res.status == UpdateStatus::RS_DONE) { return false; }
 	}
 	//Failsafe: no Role at all?
-	if (!person->getRole()) {
+	if (!person->getRole())
+	{
 		debugMsgs << "Person " << this->getId() <<  " has no Role.";
 		throw std::runtime_error(debugMsgs.str());
 	}
@@ -834,15 +840,12 @@ bool sim_mob::Conflux::callMovementFrameInit(timeslice now, Person* person) {
 	person->getRole()->make_frame_tick_params(now);
 
 	//Now that the Role has been fully constructed, initialize it.
-	if(person->getRole()) {
+	if(person->getRole())
+	{
 		person->getRole()->Movement()->frame_init();
-
-		if(person->getRole()->roleType == sim_mob::Role::RL_DRIVER && person->getCurrPath().empty()){
-			return false;
-		}
+		if(person->isToBeRemoved()) { return false; } //if agent initialization fails, person is set to be removed
 	}
 
-	person->clearCurrPath();	//this will be set again for the next sub-trip
 	return true;
 }
 
@@ -967,29 +970,6 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFrameTick(timeslice now, Pers
 			retVal = switchTripChainItem(person);
 			if (retVal.status == UpdateStatus::RS_DONE) { return retVal; }
 			personRole = person->getRole();
-
-			//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
-			person->setStartTime(now.ms());
-
-			if(person->currTripChainItem != person->tripChain.end())
-			{
-				if((*person->currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY)
-				{
-					//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
-					//since start time of the activity is usually later than what is configured initially,
-					//we have to make adjustments so that it waits for exact amount of time
-					sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(personRole);
-					ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
-					ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
-					if (callMovementFrameInit(now, person)){ person->setInitialized(true); }
-					else { return UpdateStatus::Done; }
-				}
-				else if((*person->currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
-				{
-					if (callMovementFrameInit(now, person)) { person->setInitialized(true); }
-					else { return UpdateStatus::Done; }
-				}
-			}
 		}
 
 		if(person->getNextLinkRequired())
@@ -1387,129 +1367,31 @@ unsigned int sim_mob::Conflux::getNumRemainingInLaneInfinity() {
 }
 
 /**TODO: use public transit route choice to replace subtrips for PT trip; return appropriate conflux*/
-sim_mob::Conflux* sim_mob::Conflux::findStartingConflux(Person* p)
+sim_mob::Conflux* sim_mob::Conflux::findStartingConflux(Person* person, unsigned int now)
 {
-	sim_mob::Conflux* conflux = nullptr;
-	const std::vector<sim_mob::TripChainItem*> & agTripChain = p->getTripChain();
-	sim_mob::TripChainItem *tci;
-	BOOST_FOREACH(tci,agTripChain)
+	UpdateStatus res = person->checkTripChain();
+	if (res.status == UpdateStatus::RS_DONE) { return nullptr; } //person without trip chain will be thrown out of the simulation
+	person->setStartTime(now);
+
+	Role* personRole = person->getRole();
+	if(!personRole) { return nullptr; }
+	if((*person->currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY)
 	{
-		if(tci->itemType == sim_mob::TripChainItem::IT_TRIP) { break; }
-	}
-	//sanity check
-	sim_mob::Trip *firstTrip = dynamic_cast<sim_mob::Trip*>(tci);
-	if(!firstTrip){ return nullptr; }
-
-	std::vector<WayPoint> path;
-	
-	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
-
-	bool pathSetRole = false;
-	if(firstTrip)
-	{
-		std::string mode = firstTrip->getMode();
-		pathSetRole = (mode == "Car" || mode == "Taxi" || mode == "Motorcycle" || mode == "MRT") ;
-	}
-	if (firstTrip && ConfigManager::GetInstance().FullConfig().PathSetMode() && pathSetRole) {
-		path = PathSetManager::getInstance()->getPath(p,firstTrip->getSubTrips().front());
-	}
-	else{
-		const sim_mob::TripChainItem* firstItem = agTripChain.front();
-
-		std::string role = rf.GetRoleName(firstItem->getMode()); //getMode is a virtual function. see its documentation
-		StreetDirectory& streetDirectory = StreetDirectory::instance();
-
-		if (role=="driver" || role=="biker")
-		{
-			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstItem)->getSubTrips().front();
-			path = streetDirectory.SearchShortestDrivingPath(streetDirectory.DrivingVertex(*firstSubTrip.fromLocation.node_), streetDirectory.DrivingVertex(*firstSubTrip.toLocation.node_));
-		}
-		else if (role == "pedestrian")
-		{
-			StreetDirectory::VertexDesc source, destination;
-			const sim_mob::SubTrip firstSubTrip = firstTrip->getSubTrips().front();
-			if (firstSubTrip.fromLocation.type_ == WayPoint::NODE)
-			{
-				source = streetDirectory.DrivingVertex(*firstSubTrip.fromLocation.node_);
-			}
-			else if (firstSubTrip.fromLocation.type_ == WayPoint::BUS_STOP)
-			{
-				const Node* node = firstSubTrip.fromLocation.busStop_->getParentSegment()->getEnd();
-				source = streetDirectory.DrivingVertex(*node);
-			}
-
-			if (firstSubTrip.toLocation.type_ == WayPoint::NODE)
-			{
-				destination = streetDirectory.DrivingVertex(*firstSubTrip.toLocation.node_);
-			}
-			else if (firstSubTrip.toLocation.type_ == WayPoint::BUS_STOP)
-			{
-				const Node* node = firstSubTrip.toLocation.busStop_->getParentSegment()->getEnd();
-				destination = streetDirectory.DrivingVertex(*node);
-			}
-			path = streetDirectory.SearchShortestDrivingPath(source, destination);
-		}
-		else if (role == "busdriver")
-		{
-			//throw std::runtime_error("Not implemented. BusTrip is not in master branch yet");
-			const BusTrip* bustrip =dynamic_cast<const BusTrip*>(*(p->currTripChainItem));
-			std::vector<const RoadSegment*> pathRoadSeg = bustrip->getBusRouteInfo().getRoadSegments();
-			std::cout << "BusTrip path size = " << pathRoadSeg.size() << std::endl;
-			std::vector<const RoadSegment*>::iterator itor;
-			for(itor=pathRoadSeg.begin(); itor!=pathRoadSeg.end(); itor++)
-			{
-				path.push_back(WayPoint(*itor));
-			}
-		}
-		else if( role == "waitBusActivity" )
-		{
-			const sim_mob::SubTrip firstSubTrip = dynamic_cast<const sim_mob::Trip*>(firstTrip)->getSubTrips().front();
-			const BusStop* stop = firstSubTrip.fromLocation.busStop_;
-			conflux = stop->getParentSegment()->getParentConflux();
-		}
-//		else if( role == "trainPassenger" )
-//		{
-//			//trainPassenger cannot be handled without route choice models because we do not have any other way to get a default route
-//			throw std::runtime_error("trainPassenger cannot be handled without route choice models");
-//		}
+		//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
+		//since start time of the activity is usually later than what is configured initially,
+		//we have to make adjustments so that it waits for exact amount of time
+		sim_mob::ActivityPerformer* ap = dynamic_cast<sim_mob::ActivityPerformer*>(personRole);
+		ap->setActivityStartTime(sim_mob::DailyTime(now + ConfigManager::GetInstance().FullConfig().baseGranMS()));
+		ap->setActivityEndTime(sim_mob::DailyTime(now + ConfigManager::GetInstance().FullConfig().baseGranMS() + ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
 	}
 
-	if(!path.empty())
-	{
-		/* Drivers generated through xml input file, gives path as: O-Node, segment-list, D-node.
-		 * BusDriver code, and pathSet code, generates only segment-list. Therefore we traverse through
-		 * the path until we find the first road segment.
-		 */
-		p->setCurrPath(path);
-		for (std::vector<WayPoint>::iterator it = path.begin(); it != path.end(); it++)
-		{
-			if (it->type_ == WayPoint::ROAD_SEGMENT)
-			{
-					conflux = it->roadSegment_->getParentConflux();
-					break;
-			}
-		}
-	}
-	return conflux;
+	//Now that the Role has been fully constructed, initialize it.
+	personRole->Movement()->frame_init();
+	if(person->isToBeRemoved()) { return nullptr; } //if agent initialization fails, person is set to be removed
+	person->setInitialized(true);
+
+	return personRole->Movement()->getStartingConflux();
 }
-
-const sim_mob::RoadSegment* sim_mob::Conflux::findStartingRoadSegment(Person* person)
-{
-	const std::vector<WayPoint>& path = person->getCurrPath();
-	if(!path.empty())
-	{
-		/* Drivers generated through xml input file, gives path as: O-Node, segment-list, D-node.
-		 * BusDriver code, and pathSet code, generates only segment-list. Therefore we traverse through
-		 * the path until we find the first road segment.
-		 */
-		for (std::vector<WayPoint>::const_iterator it = path.begin(); it != path.end(); it++)
-		{
-			if (it->type_ == WayPoint::ROAD_SEGMENT) { return it->roadSegment_;	}
-		}
-	}
-	return nullptr;
-}
-
 
 void sim_mob::Conflux::insertIncident(sim_mob::SegmentStats* segStats, const double & newFlowRate) {
 	const std::vector<Lane*>& lanes = segStats->getRoadSegment()->getLanes();

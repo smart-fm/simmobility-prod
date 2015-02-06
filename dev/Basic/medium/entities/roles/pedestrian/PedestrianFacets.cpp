@@ -72,8 +72,7 @@ void PedestrianMovement::frame_init() {
 		segEnd = subTrip.toLocation.busStop_->getParentSegment();
 		const Node* node = segEnd->getStart();
 		const BusStop* stop = subTrip.toLocation.busStop_;
-		DynamicVector EstimateDist(stop->xPos, stop->yPos, node->location.getX(),
-				node->location.getY());
+		DynamicVector EstimateDist(stop->xPos, stop->yPos, node->location.getX(), node->location.getY());
 		actualDistanceEnd = EstimateDist.getMagnitude();
 	}
 
@@ -149,7 +148,7 @@ void PedestrianMovement::frame_tick() {
 	double tickSec = ConfigManager::GetInstance().FullConfig().baseGranSecond();
 	if (remainingTimeToComplete <= tickSec) {
 		double lastRemainingTime = tickSec - remainingTimeToComplete;
-		if (trajectory.size() == 0) {
+		if (trajectory.empty()) {
 			getParent()->setNextLinkRequired(nullptr);
 			getParent()->setToBeRemoved();
 		}
@@ -168,6 +167,12 @@ void PedestrianMovement::frame_tick() {
 
 void PedestrianMovement::frame_tick_output() {}
 
+sim_mob::Conflux* PedestrianMovement::getStartingConflux() const
+{
+	if(trajectory.empty()) { return nullptr; }
+	return trajectory.front().first->getSegments().front()->getParentConflux();
 }
 
+} /* namespace medium */
 } /* namespace sim_mob */
+

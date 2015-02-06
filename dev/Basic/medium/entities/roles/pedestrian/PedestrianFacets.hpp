@@ -9,9 +9,9 @@
 
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/Person.hpp"
+#include "geospatial/Link.hpp"
 
 namespace sim_mob {
-
 namespace medium {
 
 class Pedestrian;
@@ -49,6 +49,7 @@ public:
 	virtual void frame_init();
 	virtual void frame_tick();
 	virtual void frame_tick_output();
+	virtual sim_mob::Conflux* getStartingConflux() const;
 
 	/**
 	 * set parent reference to pedestrian.
@@ -66,7 +67,6 @@ protected:
 	 * */
 	void initializePath(std::vector<const RoadSegment*>& path);
 
-protected:
 	/**parent pedestrian*/
 	sim_mob::medium::Pedestrian* parentPedestrian;
 	/**record the current remaining time to the destination*/

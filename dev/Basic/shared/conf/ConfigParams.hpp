@@ -177,6 +177,7 @@ public:
 
 	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes();
 	const std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes() const;
+	sim_mob::Conflux* getConfluxForNode(const sim_mob::MultiNode* multinode) const;
 	std::set<sim_mob::SegmentStats*>& getSegmentStatsWithBusStops();
 
 	bool PathSetMode() const;

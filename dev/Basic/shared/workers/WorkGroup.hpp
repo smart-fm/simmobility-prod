@@ -100,7 +100,7 @@ public:
 	void findBoundaryConfluxes();
 
 	unsigned int getNumAgentsWithNoPath() {
-		return numAgentsWithNoPath;
+		return numDiscardedAgents;
 	}
         
         unsigned int getNumberOfWorkers() const;
@@ -204,8 +204,8 @@ private:
 	//Profile
 	sim_mob::ProfileBuilder* profile;
 
-	//Number of agents who have no path and hence discarded from the simulation.
-	unsigned int numAgentsWithNoPath;
+	//Number of agents who have been discarded from the simulation.
+	unsigned int numDiscardedAgents;
 
 	PeriodicPersonLoader* periodicPersonLoader;
 };

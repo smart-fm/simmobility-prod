@@ -167,6 +167,13 @@ public:
 		return laneZeroLength;
 	}
 
+	/// returns length of a segment
+	const double getLength() const{
+		//NOTE:there are multiple accessors and member variables used to return the road segment length in different ways
+		//this method was just added for uniform length invokation
+		return getLaneZeroLength();
+	}
+
 	double getCapacity() const {
 		return capacity;
 	}

@@ -618,7 +618,7 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingLinks(StreetDirectory::Graph
 	    bool ok;
 	    boost::tie(edge, ok) = boost::add_edge(fromVertex, toVertex, graph);
 	    boost::put(boost::edge_name, graph, edge, WayPoint(rs));
-	    boost::put(boost::edge_weight, graph, edge, rs->length);
+	    boost::put(boost::edge_weight, graph, edge, rs->getLength());
 
 	    //Save this in our lookup.
 	    resSegLookup[rs].insert(edge);
@@ -961,7 +961,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingLinks(StreetDirectory::Graph
 			bool ok;
 			boost::tie(edge, ok) = boost::add_edge(fromVertex, toVertex, graph);
 			boost::put(boost::edge_name, graph, edge, WayPoint(rs->getLanes().at(laneID)));
-			boost::put(boost::edge_weight, graph, edge, rs->length);
+			boost::put(boost::edge_weight, graph, edge, rs->getLength());
 			}
 
 			//Create the reverse edge
@@ -972,7 +972,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingLinks(StreetDirectory::Graph
 			revWP.directionReverse = true;
 			boost::tie(edge, ok) = boost::add_edge(toVertex, fromVertex, graph);
 			boost::put(boost::edge_name, graph, edge, revWP);
-			boost::put(boost::edge_weight, graph, edge, rs->length);
+			boost::put(boost::edge_weight, graph, edge, rs->getLength());
 			}
 		}
 	}
@@ -1164,7 +1164,7 @@ void sim_mob::A_StarShortestPathImpl::updateEdgeProperty()
 			avgSpeed = 100*rs->maxSpeed/3.6;
 		if(avgSpeed<=0)
 			avgSpeed = 10;
-		travelTime = rs->length / avgSpeed;
+		travelTime = rs->getLength() / avgSpeed;
 		boost::put(boost::edge_weight, drivingMap_, e, travelTime);
 	}
 }

@@ -1046,7 +1046,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 	    }
 	    else if(tr == sim_mob::HighwayBias_Distance)
 	    {
-	    	key = rs->length;
+	    	key = rs->getLength();
 	    	if(rs->maxSpeed > 60.0)
 	    	{
 	    		key = highwayBias * key;
@@ -1467,7 +1467,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddWalkingLinks(StreetDirect
 			bool ok;
 			boost::tie(edge, ok) = boost::add_edge(fromVertex, toVertex, graph);
 			boost::put(boost::edge_name, graph, edge, WayPoint(rs->getLanes().at(laneID)));
-			boost::put(boost::edge_weight, graph, edge, rs->length);
+			boost::put(boost::edge_weight, graph, edge, rs->getLength());
 			}
 
 			//Create the reverse edge
@@ -1478,7 +1478,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddWalkingLinks(StreetDirect
 			revWP.directionReverse = true;
 			boost::tie(edge, ok) = boost::add_edge(toVertex, fromVertex, graph);
 			boost::put(boost::edge_name, graph, edge, revWP);
-			boost::put(boost::edge_weight, graph, edge, rs->length);
+			boost::put(boost::edge_weight, graph, edge, rs->getLength());
 			}
 		}
 	}

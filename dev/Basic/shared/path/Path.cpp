@@ -269,13 +269,10 @@ double sim_mob::calculateHighWayDistance(sim_mob::SinglePath *sp)
 	if(!sp) return 0.0;
 	for(int i=0;i<sp->path.size();++i)
 	{
-		sim_mob::WayPoint& w = sp->path[i];
-		if (w.type_ == sim_mob::WayPoint::ROAD_SEGMENT) {
-			const sim_mob::RoadSegment* seg = w.roadSegment_;
-			if(seg->maxSpeed >= 60)
-			{
-				res += seg->length;
-			}
+		const sim_mob::RoadSegment* seg = sp->path[i].roadSegment_;
+		if(seg->maxSpeed >= 60)
+		{
+			res += seg->getLength();
 		}
 	}
 	return res/100.0; //meter
@@ -355,7 +352,7 @@ double sim_mob::generateSinglePathLength(const std::vector<sim_mob::WayPoint>& w
 	for(std::vector<sim_mob::WayPoint>::const_iterator it = wp.begin(); it != wp.end(); it++)
 	{
 		const sim_mob::RoadSegment* seg = it->roadSegment_;
-		res += seg->length;
+		res += seg->getLength();
 	}
 	return res/100.0; //meter
 }

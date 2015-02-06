@@ -1677,7 +1677,7 @@ void sim_mob::generatePathSize(boost::shared_ptr<sim_mob::PathSet>&ps)
 				throw std::runtime_error(out.str());
 			}
 			minL = minSp->length;
-			double l = seg->length / 100.0;
+			double l = seg->getLength() / 100.0;
 			double sum = 0.0;
 			//For each path j in the path choice set PathSet(O, D):
 			BOOST_FOREACH(sim_mob::SinglePath* spj, ps->pathChoices)

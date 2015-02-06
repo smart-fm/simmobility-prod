@@ -48,12 +48,24 @@ void sim_mob::medium::MesoReroute::postReroute()
 
 bool sim_mob::medium::MesoReroute::doReroute()
 {
-	std::cout << "[" << this << "] Current Path: " <<  sim_mob::medium::MesoPathMover::printPath(dm.pathMover.getPath());
+	std::cout << "[" << this << "] Remaining Path: " ;
+	const sim_mob::RoadSegment* curSeg = nullptr;
+	for(sim_mob::medium::MesoPathMover::Path::const_iterator it = dm.pathMover.getCurrSegStatsIt(); it != dm.pathMover.getPath().end(); it++)
+	{
+		if(curSeg != (*it)->getRoadSegment())
+		{
+			curSeg = (*it)->getRoadSegment();
+			std::cout << curSeg->getId() << ",";
+		}
+	}
+	std::cout << std::endl;
+
 	 //STEP-1 you need a subtrip(with some fields updated) for pathset manager to work;
 	 sim_mob::SubTrip subTrip(*(dm.getParent()->currSubTrip));
 	 subTrip.startTime = DailyTime(dm.getParentDriver()->getParams().now.ms()) + sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime();
 	 subTrip.fromLocation = sim_mob::WayPoint(currSegment->getEnd());
 	 subTrip.toLocation = sim_mob::WayPoint((*(dm.pathMover.getPath().rbegin()))->getRoadSegment()->getEnd());
+
 	 //STEP-2: find a new path
 	 std::vector<WayPoint> newWP_Path = sim_mob::PathSetManager::getInstance()->getPath(subTrip, true, currSegment);//new waypoint path
 

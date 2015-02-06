@@ -1,5 +1,4 @@
 #include "Path.hpp"
-#include <boost/foreach.hpp>
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/MultiNode.hpp"
@@ -7,7 +6,9 @@
 #include "geospatial/Lane.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "util/Utils.hpp"
+#include "entities/misc/TripChain.hpp"
 #include <boost/iterator/filter_iterator.hpp>
+#include <boost/foreach.hpp>
 
 
 namespace{
@@ -169,8 +170,8 @@ uint32_t sim_mob::SinglePath::getSize(){
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 sim_mob::PathSet::~PathSet()
 {
-	fromNode = NULL;
-	toNode = NULL;
+	/*fromNode = NULL;
+	toNode = NULL;*/
 	subTrip = NULL;
 	//logger << "[DELET PATHSET " << id << "] [" << pathChoices.size() << "  SINGLEPATH]" << std::endl;
 	BOOST_FOREACH(sim_mob::SinglePath*sp,pathChoices)
@@ -255,6 +256,11 @@ void sim_mob::PathSet::addOrDeleteSinglePath(sim_mob::SinglePath* s)
 	if(!s)
 	{
 		return;
+	}
+	if(s->path.begin()->roadSegment_->getStart()->getID() != subTrip->fromLocation.node_->getID())
+	{
+		std::cerr << s->scenario << " path begins with " << s->path.begin()->roadSegment_->getStart()->getID() << " while pathset begins with " << subTrip->fromLocation.node_->getID() << std::endl;
+		throw std::runtime_error("Mismatch");
 	}
 	if(!pathChoices.insert(s).second)
 	{

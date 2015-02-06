@@ -88,7 +88,7 @@ typedef sim_mob::TT::TravelTimeStore AverageTravelTime;
 
 
 /**
- * A structure to stor Origin and Destination in one pair
+ * A structure to store Origin and Destination in one pair
  * additional operator overload for assignment and comparisons
  */
 class OD

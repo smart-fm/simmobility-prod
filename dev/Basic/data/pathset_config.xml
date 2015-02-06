@@ -6,7 +6,7 @@
 	<functions pathset="get_path_set_fake" travel_time="upsert_realtime" />
 	<travel_time_update interval="600" alpha="0.5" />
 	<recursive_pathset_generation value="false" />
-	<reroute_enabled value="false" />
+	<reroute_enabled value="true" />
 	<subtrip_travel_metrics_output enabled="true" file="subtrip_level_travel_metrics_for_preday.csv" />    	
 	<utility_parameters>
 		<bTTVOT value="-0.01373"/>

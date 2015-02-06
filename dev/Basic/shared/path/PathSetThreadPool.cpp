@@ -127,7 +127,6 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 					std::pair<StreetDirectory::Edge, bool> edge = boost::edge(
 							*prev, *it, filtered);
 					if (!edge.second) {
-//						Warn()
 						std::cout
 								<< "ERROR: Boost can't find an edge that it should know about." << std::endl;
 					}
@@ -151,20 +150,28 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		// make sp id
 		std::string id = sim_mob::makeWaypointsetString(wps);
 		if(!id.size()){
+			hasPath = false;
 			logger << "Error: Empty choice!!! yet valid=>" << dbgStr <<  "\n";
 		}
 		else{
 			logger << "Path generated through:" << dbgStr <<  ":" << id << "\n" ;
+			s = new sim_mob::SinglePath();
+			// fill data
+			s->isNeedSave2DB = true;
+			hasPath = true;
+			s->init(wps);
+			s->pathSetId = ps->id;
+			s->id = id;
+			s->scenario = ps->scenario + dbgStr;
+			s->pathSize = 0;
+			if(this->s->path.begin()->roadSegment_->getStart()->getID() != this->ps->subTrip->fromLocation.node_->getID())
+			{
+				safe_delete_item(s);
+				hasPath = false;
+				//	todo I havent yet figured out what this bug is, but it happens, mainly for random perturbation(time), discarding for now-vahid
+				//TODO	std::cout <<ps->scenario << dbgStr << " Mismatch : " << this->s->path.begin()->roadSegment_->getStart()->getID() << "   " <<  this->ps->subTrip->fromLocation.node_->getID() <<  "  " << *fromVertex << "," << *toVertex << std::endl;
+			}
 		}
-		s = new sim_mob::SinglePath();
-		// fill data
-		s->isNeedSave2DB = true;
-		hasPath = true;
-		s->init(wps);
-		s->pathSetId = ps->id;
-		s->id = id;
-		s->scenario = ps->scenario + dbgStr;
-		s->pathSize = 0;
 	}
 }
 

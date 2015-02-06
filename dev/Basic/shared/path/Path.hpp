@@ -96,8 +96,8 @@ public:
 class PathSet
 {
 public:
-	PathSet():fromNode(nullptr),toNode(nullptr),logsum(0),hasPath(false),bestPath(nullptr),oriPath(nullptr),subTrip(nullptr),isNeedSave2DB(false),id("")  {}
-	PathSet(const sim_mob::Node *fn,const sim_mob::Node *tn) : fromNode(fn),toNode(tn),logsum(0),hasPath(false),bestPath(nullptr),oriPath(nullptr),subTrip(nullptr),isNeedSave2DB(false),id("") {}
+	PathSet():/*fromNode(nullptr),toNode(nullptr),*/logsum(0),hasPath(false),bestPath(nullptr),oriPath(nullptr),subTrip(nullptr),isNeedSave2DB(false),id("")  {pathChoices.clear();}
+	PathSet(const sim_mob::Node *fn,const sim_mob::Node *tn) : /*fromNode(fn),toNode(tn),*/logsum(0),hasPath(false),bestPath(nullptr),oriPath(nullptr),subTrip(nullptr),isNeedSave2DB(false),id("") {pathChoices.clear();}
 	~PathSet();
 	///	returns the rough size of object in Bytes
 	uint32_t getSize();
@@ -113,8 +113,8 @@ public:
 	void excludeRoadSegment(const std::set<const sim_mob::RoadSegment*> & segs);
 	void addOrDeleteSinglePath(sim_mob::SinglePath* s);
 	std::vector<WayPoint> *bestPath;  //best choice
-	const sim_mob::Node *fromNode;
-	const sim_mob::Node *toNode;
+//	const sim_mob::Node *fromNode;
+//	const sim_mob::Node *toNode;
 	SinglePath* oriPath;  // shortest path with all segments
 	//std::map<std::string,sim_mob::SinglePath*> SinglePathPool;
 	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> pathChoices;

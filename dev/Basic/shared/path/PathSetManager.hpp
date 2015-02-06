@@ -20,7 +20,7 @@ namespace sim_mob
 namespace batched {
 class ThreadPool;
 }
-
+class PathSetWorkerThread;
 
 ///	Debug Method to print WayPoint based paths
 std::string printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node* startingNode = 0);
@@ -59,10 +59,9 @@ public:
 
 	///	generate a path based on shortest travel time
 	sim_mob::SinglePath* generateShortestTravelTimePath(const sim_mob::Node *fromNode, const sim_mob::Node *toNode,
-			std::set<std::string>& duplicateChecker, sim_mob::TimeRange tr = sim_mob::MorningPeak,
+//			std::set<std::string>& duplicateChecker,
+			sim_mob::TimeRange tr = sim_mob::MorningPeak,
 			const sim_mob::RoadSegment* excludedSegs=NULL, int random_graph_idx=0);
-
-	bool isUseCacheMode() { return false;/*isUseCache;*/ }//todo: take care of this later
 
 	/**
 	 * calculate those part of the utility function that are always fixed(like path length)
@@ -70,6 +69,14 @@ public:
 	 * @param sp the input path
 	 */
 	double generatePartialUtility(const sim_mob::SinglePath* sp) const;
+
+	/**
+	 * Generates a log file to validate the computation of partial utility
+	 * @param sp the given singlepath
+	 * @param pUtility the already computed utility
+	 * @return the generated string
+	 */
+	std::string logPartialUtility(const sim_mob::SinglePath* sp, double pUtility) const;
 
 	/**
 	 * calculates utility of the given path those part of the utility function that are always fixed(like path length)
@@ -114,6 +121,19 @@ public:
 			 bool useBlackList ,
 			 bool enRoute ,const sim_mob::RoadSegment* approache);
 
+	 /**
+	  * generate K-shortest path
+	  * @param pathset general information
+	  * @param KSP_Storage output
+	  * @return the number of paths generated
+	  */
+	 int genK_ShortestPath(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &KSP_Storage);
+	 int genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &SDLE_Storage);
+	 int genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &STTLE_Storage);
+	 int genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &STTHBLE_Storage);
+	 int genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &RandPertStorage);
+
+
 	/**
 	 * generate all the paths for a person given its subtrip(OD)
 	 * @param per input agent applying to get the path
@@ -123,6 +143,8 @@ public:
 	 * @param isUseCache is using the cache allowed
 	 */
 	bool generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs);
+
+	 void bulkPathSetGenerator();
 
 	///	generate travel time required to complete a path represented by different singlepath objects
 	void generateTravelTimeSinglePathes(const sim_mob::Node *fromNode, const sim_mob::Node *toNode, std::set<std::string>& duplicateChecker,boost::shared_ptr<sim_mob::PathSet> &ps_);

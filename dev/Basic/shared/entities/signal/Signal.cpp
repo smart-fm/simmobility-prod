@@ -25,6 +25,7 @@
 #include "conf/ConfigParams.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "logging/Log.hpp"
+#include "util/Profiler.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -187,7 +188,7 @@ sim_mob::Signal_SCATS::printColors(double currCycleTimer)
 
 /*Signal Constructor*/
 sim_mob::Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int id, signalType type_)
-  :  Signal(node,mtxStrat,id), loopDetectorAgent(nullptr)
+  :  Signal(node,mtxStrat,id), loopDetectorAgent(nullptr), curVehicleCounter(node)
 	/*, node_(node)*/
 {
 	setSignalType(type_);
@@ -707,6 +708,67 @@ std::vector<std::pair<sim_mob::Phase, double> > sim_mob::Signal_SCATS::predictSi
 		}
 	}
 	return phaseTimes;*/
+}
+
+sim_mob::VehicleCounter::VehicleCounter(const Node &node):
+	nodeId(node.getID()), simStartTime(sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime()),frequency(600000),
+	logger(sim_mob::Logger::log(std::string("vehicle_counter.csv")))
+{
+
+
+}
+
+void sim_mob::VehicleCounter::init(const sim_mob::Signal &signal)
+{
+	LinkAndCrossingC const &LAC = signal.getLinkAndCrossing();
+	Node const & node = signal.getNode();
+	LinkAndCrossingC::iterator iter = LAC.begin();
+	for (; iter != LAC.end(); ++iter) {
+		const Link* link = iter->link;
+		if (link->getEnd() == &node) {
+			std::vector<RoadSegment *> const & roads =	link->getSegments();
+			for(std::vector<RoadSegment *>::const_iterator it = roads.begin(); it != roads.end(); it++)
+			{
+				const std::vector<sim_mob::Lane*>& lanes = (*it)->getLanes();
+				for(std::vector<sim_mob::Lane*>::const_iterator itL =  lanes.begin(); itL !=  lanes.end(); itL++)
+				{
+					counter[*itL] = 0;
+				}
+			}
+		}
+	}
+}
+
+void sim_mob::VehicleCounter::resetCounter()
+{
+	std::map<const sim_mob::Lane*, int> ::iterator it(counter.begin());
+	for(; it != counter.end(); it++)
+	{
+		it->second = 0;
+	}
+}
+
+void sim_mob::VehicleCounter::serialize()
+{
+	std::map<const sim_mob::Lane*, int> ::iterator it(counter.begin());
+	for(; it != counter.end(); it++)
+	{
+		logger << nodeId << "," << it->first->getRoadSegment()->getId() << ","  << it->first->getLaneID() << ","  << it->second << "\n";
+	}
+}
+
+void sim_mob::VehicleCounter::add(const sim_mob::Lane* lane, int count)
+{
+	counter[lane] += count;
+}
+
+void sim_mob::VehicleCounter::check(const timeslice &tick)
+{
+	if(tick.ms() != 0 && tick.ms()%frequency == 0)
+	{
+		serialize();
+		resetCounter();
+	}
 }
 
 

@@ -32,6 +32,7 @@
 //#include "geospatial/xmlWriter/xmlWriter.hpp"
 
 namespace sim_mob {
+
 namespace xml {
 class Signal_t_pimpl;
 }
@@ -40,11 +41,33 @@ class Node;
 class Lane;
 class Crossing;
 class Link;
+class BasicLogger;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
 class UnPackageUtils;
 #endif
+
+struct VehicleCounter
+{
+	const unsigned int nodeId;
+	const DailyTime & simStartTime;
+	const int frequency;//Accumulation Period length in milliseconds seconds: eg return total count of vehicle in every "600,000" milliseconds
+	std::map<const sim_mob::Lane*, int> counter;
+	sim_mob::BasicLogger & logger;
+
+	VehicleCounter(const Node &node);
+
+	void init(const sim_mob::Signal &signal);
+
+	void resetCounter();
+
+	void serialize();
+
+	void add(const sim_mob::Lane* lane, int count);
+
+	void check(const timeslice &tick);
+};
 
 enum signalType {
 	SIG_BASIC = 3, SIG_SCATS = 4, SIG_BACKPRESSURE = 5
@@ -265,6 +288,8 @@ public:
 	virtual void packProxy(PackageUtils& packageUtil) {};
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil) {};
 #endif
+public:
+	VehicleCounter curVehicleCounter;
 };
 
 }//namespace sim_mob

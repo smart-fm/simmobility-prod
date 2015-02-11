@@ -479,8 +479,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
         {
             MutexStrategy const & mutexStrategy = ConfigManager::GetInstance().FullConfig().mutexStategy();
             Shared<CountAndTimePair> * pair = new Shared<CountAndTimePair>(mutexStrategy);
-            entity.data.insert(std::make_pair(lane, pair));
-            iter = entity.data.find(lane);
+            iter = entity.data.insert(std::make_pair(lane, pair)).first;
         }
         Shared<CountAndTimePair> * pair = iter->second;
 

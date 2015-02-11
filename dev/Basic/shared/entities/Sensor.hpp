@@ -36,7 +36,15 @@ public:
      * @param lane constant reference to lane to get count from
      * @returns constant reference to CountAndTimePair
      */
-    CountAndTimePair const & getCountAndTimePair(Lane const & lane) const;
+    CountAndTimePair const& getCountAndTimePair(Lane const& lane) const;
+    
+    /**
+     * Returns the entire map of Lane vs CountAndTimePair
+     */
+    const std::map<Lane const *, Shared<CountAndTimePair> *>& getData() const
+    {
+      return data;
+    }
 
     /**
      * reset the sensor

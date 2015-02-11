@@ -173,11 +173,11 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
     	Signal* signal = all_signals.at(i);
     	Signal_SCATS* signalScats = dynamic_cast<Signal_SCATS*>(signal);
     	if(signalScats) {
-    		signalScats->curVehicleCounter.init(*signal);
     		LoopDetectorEntity* loopDetector = new LoopDetectorEntity(mtx);
     		signalScats->setLoopDetector(loopDetector);
-    		loopDetector->init(*signal);
+    		loopDetector->init(*signal);			
     		Agent::all_agents.insert(loopDetector);
+			signalScats->curVehicleCounter.init(signalScats);
     	}
     }
 

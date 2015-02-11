@@ -50,21 +50,24 @@ class UnPackageUtils;
 
 struct VehicleCounter
 {
-	const unsigned int nodeId;
+    const sim_mob::Signal_SCATS* signal;
+	unsigned int nodeId;
 	const DailyTime & simStartTime;
 	const int frequency;//Accumulation Period length in milliseconds seconds: eg return total count of vehicle in every "600,000" milliseconds
 	std::map<const sim_mob::Lane*, int> counter;
 	sim_mob::BasicLogger & logger;
+    timeslice curTimeSlice;
 
-	VehicleCounter(const Node &node);
+	VehicleCounter();
+    ~VehicleCounter();
 
-	void init(const sim_mob::Signal &signal);
+	void init(const Signal_SCATS* signal);
 
 	void resetCounter();
 
-	void serialize();
+	void serialize(const uint32_t& time);
 
-	void add(const sim_mob::Lane* lane, int count);
+	void update(const timeslice& curTimeSlice_);
 
 	void check(const timeslice &tick);
 };
@@ -173,7 +176,7 @@ public:
 
 	/*--------Degree of Saturation----------*/
 	double computeDS();
-	double computePhaseDS(int phaseId);
+	double computePhaseDS(int phaseId, const timeslice& now);
 	double LaneDS(const Sensor::CountAndTimePair& ctPair,
 			double total_g);
 

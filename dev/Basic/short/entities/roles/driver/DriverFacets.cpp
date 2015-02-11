@@ -188,7 +188,9 @@ void sim_mob::DriverMovement::frame_init() {
 	Vehicle* newVeh = initializePath(true);
 	if (newVeh) {
 		safe_delete_item(parentDriver->vehicle);
+		parent->getRole()->setResource(nullptr);
 		parentDriver->vehicle = newVeh;
+		parent->getRole()->setResource(newVeh);
 	}
 
 	//Set some properties about the current path, such as the current polyline, etc.

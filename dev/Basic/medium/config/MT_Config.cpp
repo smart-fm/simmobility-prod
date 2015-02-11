@@ -348,5 +348,20 @@ void MT_Config::setBusCapacity(const unsigned int busCapacity)
 	}
 }
 
+db::BackendType MT_Config::getPopulationSource() const
+{
+	return populationSource;
+}
+
+void MT_Config::setPopulationSource(const std::string& src)
+{
+	if(!configSealed)
+	{
+		std::string dataSourceStr = boost::to_upper_copy(src);
+		if(dataSourceStr == "PGSQL") { populationSource = db::POSTGRES; }
+		else { populationSource = db::MONGO_DB; } //default setting
+	}
+}
+
 }
 }

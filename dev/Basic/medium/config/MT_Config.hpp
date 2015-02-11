@@ -13,6 +13,7 @@
 #include <vector>
 #include "conf/Constructs.hpp"
 #include "util/ProtectedCopyable.hpp"
+#include "database/DB_Connection.hpp"
 
 namespace sim_mob
 {
@@ -260,6 +261,8 @@ public:
 	void setFilenameOfWaitingAmountStats(const std::string& str);
 	const unsigned int getBusCapacity() const;
 	void setBusCapacity(const unsigned int busCapcacity);
+	db::BackendType getPopulationSource() const;
+	void setPopulationSource(const std::string& src);
 
 private:
 	MT_Config();
@@ -304,6 +307,9 @@ private:
 	std::string filenameOfWaitingAmountStats;
 	/**default capacity for bus*/
 	unsigned int busCapacity;
+	unsigned supplyUpdateInterval; //frames
+	unsigned activityScheduleLoadInterval; //seconds
+	db::BackendType populationSource;
 
 	/**Preday calibration parameters*/
 	enum CalibrationMethodology { SPSA, WSPSA };
@@ -313,8 +319,6 @@ private:
 	std::string calibrationOutputFile;
 	unsigned logsumComputationFrequency;
 	StoredProcedureMap storedProcedure;
-	unsigned activityScheduleLoadInterval; //seconds
-	unsigned supplyUpdateInterval; //frames
 };
 }
 }

@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
-
 <config>
         <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
         <!-- Admissible values are "preday", "withinday" and "supply". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.--> 
-        <mid_term_run_mode value="withinday"/>
+        <mid_term_run_mode value="preday"/>
         
         <!-- config specific to supply simulator -->                    
         <supply>
@@ -47,6 +46,8 @@
                 <output_predictions enabled="true"/>
                 <!-- prints person ids and tour details in console for each person if enabled -->
                 <console_output enabled="true"/>
+                <!-- data source for population. Admissible values are 'pgsql' and 'mongodb' which points to LT database or local MongoDB respectively. Value 'mongodb' is default. -->
+                <population source="pgsql"/>
                 
                 <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
                         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
@@ -76,7 +77,7 @@
                 
                 <!-- Names of MongoDB database and collections -->
                 <mongo_collections db_name="preday">
-                        <mongo_collection name="population" collection="hits08_population_36k_ft_school"/>
+                        <mongo_collection name="population" collection="hits08_population_36k_ft_school"/> <!-- this setting is irrelevant if population source is 'pgsql' above -->
                         <mongo_collection name="tcost_bus" collection="tcost_bus"/>
                         <mongo_collection name="tcost_car" collection="tcost_car"/>
                         <mongo_collection name="AMCosts" collection="AMCosts"/>

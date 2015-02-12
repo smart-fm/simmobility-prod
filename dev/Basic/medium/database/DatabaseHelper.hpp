@@ -14,105 +14,91 @@
 namespace sim_mob {
 namespace medium {
 	#define APPLY_SCHEMA(schema, field) std::string(schema)+std::string(field)
+	#define APPLY_BRACKETS(arg) std::string("(")+std::string(arg)+std::string(")")
 
 	/**
 	 * Useful string constants
 	 */
 	const std::string EMPTY_STRING = "";
-    const std::string LIMIT_10 = " limit 10";
-    const std::string LIMIT = LIMIT_10;
 
     /**
-     * Schemas for long-term population database
+     * Schemas
      */
     const std::string MAIN_SCHEMA = "main.";
+    const std::string PUBLIC_SCHEMA = "public.";
 
     /**
      * Tables
      */
-    const std::string DB_TABLE_PREDAY_FLAT_TRIPCHAINS = "preday_trip_chains_flat";
+    const std::string DB_TABLE_INCOME_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "income_category");
+    const std::string DB_TABLE_VEHICLE_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "vehicle_category");
+    const std::string DB_TABLE_LOGSUMS = APPLY_SCHEMA(PUBLIC_SCHEMA, "preday_logsum");
 
 	/**
-	 * Views for long-term population database
+	 * Stored procedures for long-term population database
 	 */
-	const std::string DB_VIEW_PREDAY_PERSON = APPLY_SCHEMA(MAIN_SCHEMA, "preday_person");
+	const std::string DB_SP_GET_INDIVIDUAL_IDS = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualids");
+	const std::string DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualbyidforpreday");
+	const std::string DB_SP_GET_ADDRESS_TAZ = APPLY_SCHEMA(MAIN_SCHEMA, "getaddresstaz");
 
 	/**
 	 * Fields for long-term population database
 	 */
 	const std::string DB_FIELD_ID = "id";
-	const std::string DB_FIELD_HOUSEHOLD_ID = "household_id";
-	const std::string DB_FIELD_INCOME = "income";
-	const std::string DB_FIELD_EMP_STATUS_ID = "employment_status_id";
+	const std::string DB_FIELD_PERSON_TYPE_ID = "person_type_id";
+	const std::string DB_FIELD_GENDER_ID = "gender_id";
+	const std::string DB_FIELD_STUDENT_TYPE_ID = "education_type_id";
+	const std::string DB_FIELD_VEHICLE_CATEGORY_ID = "vehicle_category_id";
 	const std::string DB_FIELD_AGE_CATEGORY_ID = "age_category_id";
+	const std::string DB_FIELD_INCOME = "income";
 	const std::string DB_FIELD_WORK_AT_HOME = "work_at_home";
-	const std::string DB_FIELD_DRIVER_LICENCE = "driver_license";
-	const std::string DB_FIELD_UNIV_STUDENT = "university_student";
-	const std::string DB_FIELD_FEMALE = "female";
-	const std::string DB_FIELD_HOME_PCODE = "home_postcode";
-	const std::string DB_FIELD_HOME_MTZ = "home_mtz";
-	const std::string DB_FIELD_WORK_PCODE = "work_postcode";
-	const std::string DB_FIELD_WORK_MTZ = "work_mtz";
-	const std::string DB_FIELD_HH_ONLY_ADULTS = "hh_only_adults";
-	const std::string DB_FIELD_HH_ONLY_WORKERS = "hh_only_workers";
-	const std::string DB_FIELD_HH_NUM_UNDER_4 = "hh_num_under4";
-	const std::string DB_FIELD_HH_NUM_UNDER_15 = "hh_num_under15";
-	const std::string DB_FIELD_CAR_OWN_NORMAL = "car_own_normal";
-	const std::string DB_FIELD_CAR_OWN_OFFPEAK = "car_own_offpeak";
-	const std::string DB_FIELD_MOTOR_OWN = "motor_own";
+	const std::string DB_FIELD_CAR_LICENSE = "car_license";
+	const std::string DB_FIELD_MOTOR_LICENSE = "motor_license";
+	const std::string DB_FIELD_VANBUS_LICENSE = "vanbus_license";
+	const std::string DB_FIELD_WORK_TIME_FLEX = "time_restriction";
+	const std::string DB_FIELD_IS_STUDENT = "is_student";
+	const std::string DB_FIELD_HAS_FIXED_WORK_PLACE = "fixed_workplace";
+	const std::string DB_FIELD_ACTIVITY_ADDRESS_ID = "activity_address_id";
+	const std::string DB_FIELD_HOUSEHOLD_ID = "hhid";
+	const std::string DB_FIELD_HOME_ADDRESS_ID = "home_address_id";
+	const std::string DB_FIELD_HH_SIZE = "size";
+	const std::string DB_FIELD_HH_CHILDREN_UNDER_4 = "child_under4";
+	const std::string DB_FIELD_HH_CHILDREN_UNDER_15 = "child_under15";
+	const std::string DB_FIELD_HH_ADULTS = "adult";
+	const std::string DB_FIELD_HH_WORKERS = "workers";
 
 	/**
-	 * Fields for flat trip chain table (preday_trip_chains_flat)
+	 * Logsum fields
 	 */
-	const std::string DB_FIELD_PERSON_ID = "person_id";
-	const std::string DB_FIELD_TC_SEQ_NO = "tc_seq_no";
-	const std::string DB_FIELD_TC_ITEM_TYPE = "tc_item_type";
-	const std::string DB_FIELD_TRIP_ID = "trip_id";
-	const std::string DB_FIELD_TRIP_ORIGIN = "trip_origin";
-	const std::string DB_FIELD_TRIP_DESTINATION = "trip_destination";
-	const std::string DB_FIELD_SUBTRIP_ID = "subtrip_id";
-	const std::string DB_FIELD_SUBTRIP_ORIGIN = "subtrip_origin";
-	const std::string DB_FIELD_SUBTRIP_DESTINATION = "subtrip_destination";
-	const std::string DB_FIELD_SUBTRIP_MODE = "subtrip_mode";
-	const std::string DB_FIELD_IS_PRIMARY_MODE = "is_primary_mode";
-	const std::string DB_FIELD_START_TIME = "start_time";
-	const std::string DB_FIELD_ACTIVITY_ID = "activity_id";
-	const std::string DB_FIELD_ACTIVITY_TYPE = "activity_type";
-	const std::string DB_FIELD_IS_PRIMARY_ACTIVITY = "is_primary_activity";
-	const std::string DB_FIELD_ACTIVITY_LOCATION = "activity_location";
-	const std::string DB_FIELD_ACTIVITY_START_TIME = "activity_start_time";
-	const std::string DB_FIELD_ACTIVITY_END_TIME = "activity_end_time";
+	const std::string DB_FIELD_WORK_LOGSUM = "worklogsum";
+	const std::string DB_FIELD_EDU_LOGSUM = "edulogsum";
+	const std::string DB_FIELD_SHOP_LOGSUM = "shoplogsum";
+	const std::string DB_FIELD_OTHER_LOGSUM = "otherlogsum";
+	const std::string DB_FIELD_DPT_LOGSUM = "dptlogsum";
+	const std::string DB_FIELD_DPS_LOGSUM = "dpslogsum";
 
-	/**
-	 * INSERT trip chain item
-	 */
-	const std::string DB_INSERT_TRIP_CHAIN_ITEM = "INSERT INTO "
-            + DB_TABLE_PREDAY_FLAT_TRIPCHAINS + " ("
-            + DB_FIELD_PERSON_ID + ", "
-            + DB_FIELD_TC_SEQ_NO + ", "
-            + DB_FIELD_TC_ITEM_TYPE + ", "
-            + DB_FIELD_TRIP_ID + ", "
-            + DB_FIELD_TRIP_ORIGIN + ", "
-            + DB_FIELD_TRIP_DESTINATION + ", "
-            + DB_FIELD_SUBTRIP_ID + ", "
-            + DB_FIELD_SUBTRIP_ORIGIN + ", "
-            + DB_FIELD_SUBTRIP_DESTINATION + ", "
-            + DB_FIELD_SUBTRIP_MODE + ", "
-            + DB_FIELD_IS_PRIMARY_MODE + ", "
-            + DB_FIELD_START_TIME + ", "
-            + DB_FIELD_ACTIVITY_ID + ", "
-            + DB_FIELD_ACTIVITY_TYPE + ", "
-            + DB_FIELD_IS_PRIMARY_ACTIVITY + ", "
-            + DB_FIELD_ACTIVITY_LOCATION + ", "
-            + DB_FIELD_ACTIVITY_START_TIME + ", "
-            + DB_FIELD_ACTIVITY_END_TIME
-            + ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10,"
-            		   +":v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18)";
+	const std::string DB_FIELD_INCOME_CATEGORY_LOWER_LIMIT = "low_limit";
+	const std::string DB_FIELD_VEHICLE_CATEGORY_NAME = "name";
 
-    /**
-     * GET ALL for long-term population database
-     */
-	const std::string DB_GETALL_PREDAY_PERSON = "SELECT * FROM " + DB_VIEW_PREDAY_PERSON + LIMIT;
+	const std::string SEARCH_STRING_CAR_OWN_NORMAL = "car (normal time)";
+	const std::string SEARCH_STRING_CAR_OWN_OFF_PEAK = "car (off peak time)";
+	const std::string SEARCH_STRING_MOTORCYCLE = "motorcycle";
+
+    /** get all individual ids from long-term population database */
+	const std::string DB_GET_ALL_PERSON_IDS = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_IDS + APPLY_BRACKETS();
+
+	/** load a specific individual by id */
+	const std::string DB_GET_PERSON_BY_ID = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY; //argument to be passed
+
+	/** load address taz mapping from LT database */
+	const std::string DB_GET_ADDRESS_TAZ = "SELECT * FROM " + DB_SP_GET_ADDRESS_TAZ + APPLY_BRACKETS();
+
+	/** load income categories */
+	const std::string DB_GET_INCOME_CATEGORIES = "SELECT * FROM " + DB_TABLE_INCOME_CATEGORIES;
+
+	/** load vehicle categories */
+	const std::string DB_GET_VEHICLE_CATEGORIES = "SELECT * FROM " + DB_TABLE_VEHICLE_CATEGORIES;
+
 
 	/**
 	 * Fields for mongoDB population data

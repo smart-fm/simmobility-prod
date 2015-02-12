@@ -12,6 +12,13 @@ using namespace std;
 using namespace sim_mob;
 using namespace medium;
 
+namespace
+{
+const int NUM_VALID_INCOME_CATEGORIES = 12;
+}
+double sim_mob::medium::PersonParams::incomeCategoryLowerLimits[] = {};
+std::map<int, std::bitset<4> > sim_mob::medium::PersonParams::vehicleCategoryLookup = std::map<int, std::bitset<4> >();
+
 sim_mob::medium::PersonParams::PersonParams()
 : personId(""), hhId(""), personTypeId(-1), ageId(-1), isUniversityStudent(-1), studentTypeId(-1), isFemale(-1),
   incomeId(-1), worksAtHome(-1), carOwnNormal(-1), carOwnOffpeak(-1), motorOwn(-1), hasFixedWorkTiming(-1), homeLocation(-1),
@@ -58,6 +65,24 @@ void sim_mob::medium::PersonParams::blockTime(double startTime, double endTime) 
 
 int PersonParams::getTimeWindowAvailability(size_t timeWnd) const {
 	return timeWindowAvailability[timeWnd-1].getAvailability();
+}
+
+void sim_mob::medium::PersonParams::setIncomeIdFromIncome(double income)
+{
+	int i = 0;
+	while(i < NUM_VALID_INCOME_CATEGORIES && income >= incomeCategoryLowerLimits[i]) { i++; }
+	setIncomeId((i>0) ? (i-1) : i);
+}
+
+void sim_mob::medium::PersonParams::setVehicleOwnershipFromVehicleCategoryId(int vehicleCategoryId)
+{
+	std::map<int, std::bitset<4> >::const_iterator it = vehicleCategoryLookup.find(vehicleCategoryId);
+	if(it == vehicleCategoryLookup.end()) { throw std::runtime_error("Invalid vehicle category"); }
+	const std::bitset<4>& vehOwnershipBits = it->second;
+	setCarOwn(vehOwnershipBits[0]);
+	setCarOwnNormal(vehOwnershipBits[1]);
+	setCarOwnOffpeak(vehOwnershipBits[2]);
+	setMotorOwn(vehOwnershipBits[3]);
 }
 
 void sim_mob::medium::PersonParams::print()

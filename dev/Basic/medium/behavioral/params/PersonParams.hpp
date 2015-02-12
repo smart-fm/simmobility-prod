@@ -93,49 +93,6 @@ public:
 		this->incomeId = income_id;
 	}
 
-	void setIncomeIdFromIncome(double income) {
-		if(income == 0.0) {
-			incomeId = 12;
-		}
-		if(income < 1000.0) {
-			incomeId = 1;
-		}
-		else if(income < 1500.0) {
-			incomeId = 2;
-		}
-		else if(income < 2000.0) {
-			incomeId = 3;
-		}
-		else if(income < 2500.0) {
-			incomeId = 4;
-		}
-		else if(income < 3000.0) {
-			incomeId = 5;
-		}
-		else if(income < 4000.0) {
-			incomeId = 6;
-		}
-		else if(income < 5000.0) {
-			incomeId = 7;
-		}
-		else if(income < 6000.0) {
-			incomeId = 8;
-		}
-		else if(income < 7000.0) {
-			incomeId = 9;
-		}
-		else if(income < 8000.0) {
-			incomeId = 10;
-		}
-		else if(income >= 8000) {
-			incomeId = 11;
-		}
-		else {
-			// not sure what value of income should be mapped to ids 13 and 14.
-			incomeId = 13;
-		}
-	}
-
 	int getIsFemale() const {
 		return isFemale;
 	}
@@ -190,10 +147,6 @@ public:
 
 	void setStopType(int stopType) {
 		this->stopType = stopType;
-	}
-
-	int isStudent() const {
-		return (personTypeId == 4);
 	}
 
 	int isWorker() const {
@@ -369,6 +322,138 @@ public:
 		this->dpbLogsum = dpbLogsum;
 	}
 
+	int getCarLicense() const
+	{
+		return carLicense;
+	}
+
+	void setCarLicense(int carLicense)
+	{
+		this->carLicense = carLicense;
+	}
+
+	int getHhSize() const
+	{
+		return hhSize;
+	}
+
+	void setHH_Size(int hhSize)
+	{
+		this->hhSize = hhSize;
+	}
+
+	int getMotorLicense() const
+	{
+		return motorLicense;
+	}
+
+	void setMotorLicense(int motorLicence)
+	{
+		this->motorLicense = motorLicence;
+	}
+
+	int getVanbusLicense() const
+	{
+		return vanbusLicense;
+	}
+
+	void setVanbusLicense(int vanbusLicense)
+	{
+		this->vanbusLicense = vanbusLicense;
+	}
+
+	int getGenderId() const
+	{
+		return genderId;
+	}
+
+	void setGenderId(int genderId)
+	{
+		this->genderId = genderId;
+	}
+
+	long getHomeAddressId() const
+	{
+		return homeAddressId;
+	}
+
+	void setHomeAddressId(long homeAddressId)
+	{
+		this->homeAddressId = homeAddressId;
+	}
+
+	long getActivityAddressId() const
+	{
+		return activityAddressId;
+	}
+
+	void setActivityAddressId(long activityAddressId)
+	{
+		this->activityAddressId = activityAddressId;
+	}
+
+	int getHH_NumAdults() const
+	{
+		return hhNumAdults;
+	}
+
+	void setHH_NumAdults(int hhNumAdults)
+	{
+		this->hhNumAdults = hhNumAdults;
+	}
+
+	int getHH_NumUnder15() const
+	{
+		return hhNumUnder15;
+	}
+
+	void setHH_NumUnder15(int hhNumUnder15)
+	{
+		this->hhNumUnder15 = hhNumUnder15;
+	}
+
+	int getHH_NumWorkers() const
+	{
+		return hhNumWorkers;
+	}
+
+	void setHH_NumWorkers(int hhNumWorkers)
+	{
+		this->hhNumWorkers = hhNumWorkers;
+	}
+
+	bool hasWorkplace() const
+	{
+		return fixedWorkplace;
+	}
+
+	void setHasWorkplace(bool hasFixedWorkplace)
+	{
+		this->fixedWorkplace = hasFixedWorkplace;
+	}
+
+	int isStudent() const {
+		return student;
+	}
+
+	void setIsStudent(bool isStudent)
+	{
+		this->student = student;
+	}
+
+	static double* getIncomeCategoryLowerLimits()
+	{
+		return incomeCategoryLowerLimits;
+	}
+
+	static std::map<int, std::bitset<4> >& getVehicleCategoryLookup()
+	{
+		return vehicleCategoryLookup;
+	}
+
+	void setIncomeIdFromIncome(double income);
+	void setVehicleOwnershipFromVehicleCategoryId(int vehicleCategoryId);
+
 private:
 	std::string personId;
 	std::string hhId;
@@ -376,6 +461,7 @@ private:
 	int ageId;
 	int isUniversityStudent;
 	int studentTypeId;
+	int genderId;
 	int isFemale;
 	int incomeId;
 	int missingIncome;
@@ -386,17 +472,30 @@ private:
 	int motorOwn;
 	int hasFixedWorkTiming;
 	int homeLocation;
+	long homeAddressId;
 	int fixedWorkLocation;
 	int fixedSchoolLocation;
+	long activityAddressId;
 	int stopType;
 	int drivingLicence;
+	bool carLicense;
+	bool motorLicense;
+	bool vanbusLicense;
+	bool fixedWorkplace;
+	bool student;
 
+	//household related
+	int hhSize;
+	int hhNumAdults;
+	int hhNumWorkers;
+	int hhNumUnder4;
+	int hhNumUnder15;
 	int hhOnlyAdults;
 	int hhOnlyWorkers;
-	int hhNumUnder4;
 	int hasUnder15;
 	double householdFactor;
 
+	//logsums
 	double workLogSum;
 	double eduLogSum;
 	double shopLogSum;
@@ -409,6 +508,18 @@ private:
 	 * Time windows availability for the person.
 	 */
     std::vector<sim_mob::medium::TimeWindowAvailability> timeWindowAvailability;
+
+    /**
+     * income category lookup containing lower limits of each category.
+     * income category id for a specific income is the index of the greatest element lower than the income in this array
+     * index 0 corresponds no income.
+     */
+    static double incomeCategoryLowerLimits[12];
+
+    /**
+     * vehicle category map of id->bitset<4> (4 bits representing 0-carOwn, 1-carOwnNormal, 2-carOwnOffPeak and 3-motorOwn bit for the id)
+     */
+    static std::map<int, std::bitset<4> > vehicleCategoryLookup;
 };
 
 /**

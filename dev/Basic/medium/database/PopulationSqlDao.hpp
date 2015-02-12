@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include <map>
+#include <bitset>
 #include "database/dao/SqlAbstractDao.hpp"
 #include "database/DB_Connection.hpp"
 #include "behavioral/params/PersonParams.hpp"
@@ -24,6 +26,24 @@ class PopulationSqlDao : public db::SqlAbstractDao<PersonParams*> {
 public:
 	PopulationSqlDao(db::DB_Connection& connection);
 	virtual ~PopulationSqlDao();
+
+	/**
+	 * fetches all individual ids from LT population
+	 * @param outList output list of ids
+	 */
+	void getAllIds(std::vector<long>& outList);
+
+	/**
+	 * fetches the lookup table for income categories
+	 * @param outArray output parameter for storing income lower limits
+	 */
+	void getIncomeCategories(double outArray[]);
+
+	/**
+	 * fetches lookup table for vehicle categories
+	 * @param outMap output parameter for storing ehicle category ids and values
+	 */
+	void getVehicleCategories(std::map<int, std::bitset<4> >& outMap);
 
 private:
     /**
@@ -42,8 +62,6 @@ private:
      * @param update tells if operation is an Update or Insert.
      */
     void toRow(PersonParams& data, db::Parameters& outParams, bool update);
-
-
 };
 } // end namespace medium
 } // end namespace sim_mib

@@ -35,7 +35,6 @@
 #include "database/DB_Config.hpp"
 #include "database/PopulationSqlDao.hpp"
 #include "database/PopulationMongoDao.hpp"
-#include "database/TripChainSqlDao.hpp"
 #include "database/ZoneCostMongoDao.hpp"
 #include "logging/NullableOutputStream.hpp"
 #include "logging/Log.hpp"
@@ -611,6 +610,8 @@ void sim_mob::medium::PredayManager::loadPersons(BackendType dbType) {
 		conn.connect();
 		if (conn.isConnected()) {
 			PopulationSqlDao populationDao(conn);
+			populationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
+			populationDao.getVehicleCategories(PersonParams::getVehicleCategoryLookup());
 			populationDao.getAll(personList);
 		}
 		break;
@@ -634,6 +635,28 @@ void sim_mob::medium::PredayManager::loadPersons(BackendType dbType) {
 
 void sim_mob::medium::PredayManager::loadPersonIds(BackendType dbType) {
 	switch(dbType) {
+	case POSTGRES:
+	{
+		const std::string& dbId = ConfigManager::GetInstance().FullConfig().system.networkDatabase.database;
+		Database database = ConfigManager::GetInstance().FullConfig().constructs.databases.at(dbId);
+		std::string cred_id = ConfigManager::GetInstance().FullConfig().system.networkDatabase.credentials;
+		Credential credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
+		std::string username = credentials.getUsername();
+		std::string password = credentials.getPassword(false);
+		DB_Config dbConfig(database.host, database.port, database.dbName, username, password);
+
+		// Connect to database and load data.
+		DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+		conn.connect();
+		if (conn.isConnected())
+		{
+			PopulationSqlDao populationDao(conn);
+			populationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
+			populationDao.getVehicleCategories(PersonParams::getVehicleCategoryLookup());
+			populationDao.getAllIds(ltPersonIdList);
+		}
+		break;
+	}
 	case MONGO_DB:
 	{
 		std::string populationCollectionName = mtConfig.getMongoCollectionsMap().getCollectionName("population");

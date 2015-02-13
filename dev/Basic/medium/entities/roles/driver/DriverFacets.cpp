@@ -47,7 +47,7 @@ using std::map;
 using std::string;
 
 namespace{
-sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("path_set");
+sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("pathset.log");
 }
 
 namespace {
@@ -1136,7 +1136,7 @@ bool DriverMovement::UTurnFree(std::vector<WayPoint> & newPath, std::vector<cons
 	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
 	//if no path, return false, if path found, return true
 	std::stringstream outDbg("");
-	sim_mob::PathSetManager::getInstance()->getBestPath(newPath,&subTrip, /*&outDbg,*/ excludeRS,false,false,false,nullptr);
+	sim_mob::PathSetManager::getInstance()->getBestPath(newPath,subTrip, true,  excludeRS,false,false,false,nullptr);
 	//try again
 	if(!newPath.size()){
 		pathsetLogger<< "No other path can avoid a Uturn, suggest to discard \n" ;
@@ -1171,7 +1171,7 @@ bool DriverMovement::canJoinPaths(std::vector<WayPoint> & newPath, std::vector<c
 	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
 	//if no path, return false, if path found, return true
 	std::stringstream outDbg("");
-	sim_mob::PathSetManager::getInstance()->getBestPath(newPath,&subTrip, /*&outDbg,*/ excludeRS,false,false,false,nullptr);
+	sim_mob::PathSetManager::getInstance()->getBestPath(newPath,subTrip, true, excludeRS,false,false,false,nullptr);
 	to = newPath.begin()->roadSegment_;
 	bool res = isConnectedToNextSeg(from,to);
 	return res;
@@ -1222,7 +1222,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 		//todo and the start time !!!-vahid
 		subTrip.fromLocation.node_ = detourNode.first;
 		//	record the new paths using the updated subtrip. (including no paths)
-		sim_mob::PathSetManager::getInstance()->getBestPath(newPaths[detourNode.first], &subTrip,std::set<const sim_mob::RoadSegment*>(), false,false,false,nullptr);//partially excluded sections must be already added
+		sim_mob::PathSetManager::getInstance()->getBestPath(newPaths[detourNode.first], subTrip,true, std::set<const sim_mob::RoadSegment*>(), false,false,false,nullptr);//partially excluded sections must be already added
 	}
 
 	/*step-4: prepend the old path to the new path

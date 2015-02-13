@@ -90,6 +90,39 @@ public:
 
 };
 
+
+
+class BasicLogger;
+/// Sentry class objects are created at each line and are destryped upon when the statement ends(";")
+/// this will allow grouping of multiple << operators without worrying about multithreading issues.
+class Sentry
+{
+	std::stringstream &out;
+	BasicLogger &basicLogger;
+	/// is this object created by copy constructor?
+	bool copy;
+	public:
+	Sentry(BasicLogger & basicLogger_,std::stringstream *out_);
+	Sentry(const Sentry& t);
+
+	//This is the type of std::cout
+	typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
+	//This is the function signature of std::endl and some other manipulators
+	typedef CoutType& (*StandardEndLine)(CoutType&);
+
+	///	operator overload for std::endl
+	Sentry &operator<<(StandardEndLine manip);
+
+	///	operator overload
+	template <typename T>
+	Sentry & operator<< (const T& val)
+	{
+		out << val;
+		return *this;
+	}
+	~Sentry();
+};
+
 /**********************************
  ******* Basic Logging Engine******
  *********************************/
@@ -114,42 +147,6 @@ private:
 	///	one buffer is assigned to each thread writing to the file
 	std::map<boost::thread::id, std::stringstream*> out;
 
-	/// Sentry class objects are created at each line and are destryped upon when the statement ends(";")
-	/// this will allow grouping of multiple << operators without worrying about multithreading issues.
-	class Sentry
-		{
-			std::stringstream &out;
-			BasicLogger &basicLogger;
-			public:
-			Sentry(BasicLogger & basicLogger_,std::stringstream *out_):out(*out_),basicLogger(basicLogger_){};
-			Sentry(const Sentry& t):basicLogger(t.basicLogger), out(t.out){}
-
-			//This is the type of std::cout
-			typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
-			//This is the function signature of std::endl and some other manipulators
-			typedef CoutType& (*StandardEndLine)(CoutType&);
-			///	operator overload for std::endl
-			Sentry& operator<<(StandardEndLine manip) {
-				manip(out);
-				return *this;
-			}
-			template <typename T>
-			///	operator overload
-			Sentry & operator<< (const T& val)
-			{
-				out << val;
-				return *this;
-			}
-
-			~Sentry()
-			{
-				// by some googling this estimated hardcode value promises less cycles to write to a file
-				if(out.tellp() > 512000/*500KB*/)
-				{
-					basicLogger.flushLog(out);
-				}
-			}
-		};
 
 protected:
 
@@ -229,6 +226,7 @@ public:
 	static unsigned long int ii;
 	static int flushCnt;
 	int dbgOutCnt(){ return out.size();}
+	friend class Sentry;
 };
 
 /**********************************

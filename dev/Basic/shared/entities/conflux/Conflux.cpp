@@ -46,7 +46,7 @@ using namespace std;
 typedef Entity::UpdateStatus UpdateStatus;
 
 namespace{
-	sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("path_set");
+	sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("pathset.log");
 
     const double INFINITESIMAL_DOUBLE = 0.000001;
     const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.

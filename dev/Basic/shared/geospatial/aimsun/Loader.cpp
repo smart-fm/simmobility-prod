@@ -89,7 +89,7 @@ using std::pair;
 using std::multimap;
 
 namespace{
-sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("path_set");
+sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("pathset.log");
 }
 namespace {
 const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
@@ -2609,7 +2609,26 @@ sim_mob::HasPath sim_mob::aimsun::Loader::loadSinglePathFromDB(soci::session& sq
 bool sim_mob::aimsun::Loader::storeSinglePath(soci::session& sql,
 		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& pathPool,const std::string pathSetTableName)
 {
-	bool res = DatabaseLoader::InsertSinglePath2DB(sql,pathPool,pathSetTableName);
+	bool res = false;
+	if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+	{
+		sim_mob::BasicLogger & pathsetCSV = sim_mob::Logger::log(ConfigManager::GetInstance().PathSetConfig().bulkFile);
+		BOOST_FOREACH(sim_mob::SinglePath* sp, pathPool)
+		{
+			if(sp->isNeedSave2DB)
+			{
+				pathsetCSV << ("\"" + sp->id + "\"") << "," << ("\"" + sp->pathSetId + "\"") <<
+						"," << sp->partialUtility << "," << sp->pathSize << "," << sp->signalNumber
+						 << "," << sp->rightTurnNumber << "," <<  ("\"" + sp->scenario  + "\"") << "," << sp->length << "," << sp->highWayDistance
+						 << "," << sp->isMinDistance << "," << sp->isMinSignal << "," << sp->isMinRightTurn << "," << sp->isMaxHighWayUsage
+						 << "," << sp->valid_path << "," << sp->isShortestPath << "\n";
+			}
+		}
+	}
+	else
+	{
+		res = DatabaseLoader::InsertSinglePath2DB(sql,pathPool,pathSetTableName);
+	}
 	return res;
 }
 

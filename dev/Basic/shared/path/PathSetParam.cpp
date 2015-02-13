@@ -6,7 +6,7 @@
 #include <boost/thread.hpp>
 
 namespace{
-sim_mob::BasicLogger & logger = sim_mob::Logger::log("path_set");
+sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
 }
 
 sim_mob::PathSetParam *sim_mob::PathSetParam::instance_ = NULL;
@@ -168,7 +168,7 @@ double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs, const 
 		sim_mob::LinkTravelTime& l = *itL;
 		if( l.startTime_DT.isBeforeEqual(startTime) && l.endTime_DT.isAfter(startTime) )
 		{
-			logger << rs->getId() << "  " << startTime.getRepr_() << " [DEFTT] " <<  "  " << dbg.str() << "\n";
+//			logger << rs->getId() << "  " << startTime.getRepr_() << " [DEFTT] " <<  "  " << dbg.str() << "\n";
 			return l.travelTime;
 		}
 	}
@@ -192,7 +192,7 @@ double sim_mob::PathSetParam::getHistorySegTT(const sim_mob::RoadSegment* rs, co
 			std::map<const sim_mob::RoadSegment*,double >::iterator itRS = itMode->second.find(rs);
 			if(itRS != itMode->second.end())
 			{
-				logger << startTime.getRepr_() << " [REALTT] " <<  "  " << dbg.str() << "\n";
+//				logger << startTime.getRepr_() << " [REALTT] " <<  "  " << dbg.str() << "\n";
 				return itRS->second;
 			}
 		}
@@ -207,7 +207,7 @@ double sim_mob::PathSetParam::getSegTT(const sim_mob::RoadSegment* rs, const std
 	double res = 0.0;
 	if((res = getHistorySegTT(rs, travelMode, startTime)) > 0.0)
 	{
-		logger <<  "[RTTT] " << rs->getId() << "\n";
+//		logger <<  "[RTTT] " << rs->getId() << "\n";
 		return res;
 	}
 //	else

@@ -17,7 +17,7 @@
 using namespace std;
 
 namespace{
-sim_mob::BasicLogger & logger = sim_mob::Logger::log("path_set");
+sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
 }
 
 sim_mob::PathSetWorkerThread::PathSetWorkerThread():s(nullptr)
@@ -127,8 +127,7 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 					std::pair<StreetDirectory::Edge, bool> edge = boost::edge(
 							*prev, *it, filtered);
 					if (!edge.second) {
-						std::cout
-								<< "ERROR: Boost can't find an edge that it should know about." << std::endl;
+						std::cerr << "ERROR: Boost can't find an edge that it should know about." << std::endl;
 					}
 					//Retrieve, add this edge's WayPoint.
 					WayPoint w = boost::get(boost::edge_name, filtered,edge.first);
@@ -164,12 +163,12 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 			s->id = id;
 			s->scenario = ps->scenario + dbgStr;
 			s->pathSize = 0;
-			if(this->s->path.begin()->roadSegment_->getStart()->getID() != this->ps->subTrip->fromLocation.node_->getID())
+			if(this->s->path.begin()->roadSegment_->getStart()->getID() != this->ps->subTrip.fromLocation.node_->getID())
 			{
 				safe_delete_item(s);
 				hasPath = false;
 				//	todo I havent yet figured out what this bug is, but it happens, mainly for random perturbation(time), discarding for now-vahid
-				//TODO	std::cout <<ps->scenario << dbgStr << " Mismatch : " << this->s->path.begin()->roadSegment_->getStart()->getID() << "   " <<  this->ps->subTrip->fromLocation.node_->getID() <<  "  " << *fromVertex << "," << *toVertex << std::endl;
+				//TODO	std::cout <<ps->scenario << dbgStr << " Mismatch : " << this->s->path.begin()->roadSegment_->getStart()->getID() << "   " <<  this->ps->subTrip.fromLocation.node_->getID() <<  "  " << *fromVertex << "," << *toVertex << std::endl;
 			}
 		}
 	}

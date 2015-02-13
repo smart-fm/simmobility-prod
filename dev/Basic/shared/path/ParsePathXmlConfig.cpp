@@ -43,9 +43,34 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 		std::cerr << "Pathset Configuration Not Found\n" ;
 		return;
 	}
+
 	if(!(cfg.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false")))
 	{
 		return;
+	}
+
+	if((cfg.mode = ParseString(GetNamedAttributeValue(node, "mode"), "")) == "")
+	{
+		throw  std::runtime_error ("No pathset mode specified, \"normal\" and \"generation\" modes are supported supported\n");
+		//todo remove hardcoding and add a container, if required
+		if(cfg.mode != "normal" && cfg.mode != "generation")
+		{
+			std::cerr << "currently, only \"normal\" and \"generation\" is supported as pathset mode, resetting to \"normal\" mode\n";
+			cfg.mode = "normal";
+		}
+	}
+
+	//bulk pathset generation
+	if(cfg.mode == "generation")
+	{
+		xercesc::DOMElement* bulk = GetSingleElementByName(node, "bulk_generation_output_file_name");
+		if(!bulk){
+			throw std::runtime_error("pathset is in \"generation\" mode but bulk_generation_output_file_name is not found in pathset xml config\n");
+		}
+		else
+		{
+			cfg.bulkFile = ParseString(GetNamedAttributeValue(bulk, "value"), "");
+		}
 	}
 
 	xercesc::DOMElement* dbNode = GetSingleElementByName(node, "pathset_database");

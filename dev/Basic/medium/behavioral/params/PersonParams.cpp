@@ -22,10 +22,11 @@ std::map<long, int> sim_mob::medium::PersonParams::addressTazLookup = std::map<l
 
 sim_mob::medium::PersonParams::PersonParams()
 : personId(""), hhId(""), personTypeId(-1), ageId(-1), isUniversityStudent(-1), studentTypeId(-1), isFemale(-1),
-  incomeId(-1), worksAtHome(-1), carOwnNormal(-1), carOwnOffpeak(-1), motorOwn(-1), hasFixedWorkTiming(-1), homeLocation(-1),
-fixedWorkLocation(-1), fixedSchoolLocation(-1), stopType(-1), drivingLicence(-1),
-hhOnlyAdults(-1), hhOnlyWorkers(-1), hhNumUnder4(-1), hasUnder15(-1),
-workLogSum(-1), eduLogSum(-1), shopLogSum(-1), otherLogSum(-1), dptLogsum(-1), dpsLogsum(-1), dpbLogsum(-1)
+  incomeId(-1), worksAtHome(-1), carOwn(-1), carOwnNormal(-1), carOwnOffpeak(-1), motorOwn(-1), hasFixedWorkTiming(-1), homeLocation(-1),
+  fixedWorkLocation(-1), fixedSchoolLocation(-1), stopType(-1), drivingLicence(-1), hhOnlyAdults(-1), hhOnlyWorkers(-1), hhNumUnder4(-1),
+  hasUnder15(-1), workLogSum(0), eduLogSum(0), shopLogSum(0), otherLogSum(0), dptLogsum(0), dpsLogsum(0), dpbLogsum(0), genderId(-1),
+  missingIncome(-1), homeAddressId(-1), activityAddressId(-1), carLicense(false), motorLicense(false), vanbusLicense(false), fixedWorkplace(false),
+  student(false), hhSize(-1), hhNumAdults(-1), hhNumWorkers(-1), hhNumUnder15(-1), householdFactor(-1)
 {
 	initTimeWindows();
 }
@@ -72,7 +73,7 @@ void sim_mob::medium::PersonParams::setIncomeIdFromIncome(double income)
 {
 	int i = 0;
 	while(i < NUM_VALID_INCOME_CATEGORIES && income >= incomeCategoryLowerLimits[i]) { i++; }
-	setIncomeId((i>0) ? (i-1) : i);
+	setIncomeId((i>0) ? (i-1) : NUM_VALID_INCOME_CATEGORIES); //lua models expect 12 to be the id for no income
 }
 
 void sim_mob::medium::PersonParams::setVehicleOwnershipFromCategoryId(int vehicleCategoryId)
@@ -180,6 +181,7 @@ void sim_mob::medium::PersonParams::fixUpForLtPerson()
 {
 	setMissingIncome(0);
 	setHomeLocation(getTAZCodeForAddressId(homeAddressId));
+	Print() << "Person: " << personId << "|Home TAZ " << homeLocation << std::endl;
 	if(fixedWorkplace) { setFixedWorkLocation(getTAZCodeForAddressId(activityAddressId)); }
 	else if(student) { setFixedSchoolLocation(getTAZCodeForAddressId(activityAddressId)); }
 	setHasDrivingLicence(getCarLicense()||getVanbusLicense());

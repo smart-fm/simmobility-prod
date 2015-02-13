@@ -41,7 +41,7 @@ public:
 	 * @param id individual id
 	 * @param outParam output parameter to load individual data
 	 */
-	void getPersonById(long long id, PersonParams& outParam);
+	void getOneById(long long id, PersonParams& outParam);
 
 	/**
 	 * fetches the lookup table for income categories

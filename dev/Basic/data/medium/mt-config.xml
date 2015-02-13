@@ -37,18 +37,24 @@
         <!-- config specific to preday simulator -->
         <preday>
                 <!-- Control variable to run simulation, calibration or logsum computation. Admissible values are "simulation", "calibration", "logsum" and "lt_logsum" -->
-                <run_mode value="lt_logsum"/>
+                <run_mode value="logsum"/>
                 <!-- Number of threads to create for processing the population in-->
                 <!-- the preday demand simulator -->
-                <threads value="6"/>
+                <threads value="1"/>
                 <!-- outputs the preday predictions as activity schedule in CSV format if enabled with simulation run_mode -->
                 <output_activity_schedule enabled="true"/>
                 <!-- outputs the preday's predicted tours and stops to mongodb if enabled -->
                 <output_predictions enabled="true"/>
                 <!-- prints person ids and tour details in console for each person if enabled -->
                 <console_output enabled="true"/>
-                <!-- data source for population. Admissible values are 'pgsql' and 'mongodb' which points to LT database or local MongoDB respectively. Value 'mongodb' is default. -->
-                <population source="pgsql"/>
+                
+                <!-- Data source for population and logsums. 
+                     Admissible values for source are 'pgsql' and 'mongodb' which points to LT database or local MongoDB respectively. 
+                     Value 'mongodb' is default for source. 
+                     Database and credentials attributes are required only for pgsql source.
+                     Valid ids from the list constructs list have to be specified -->
+                <population source="pgsql" database="fm_remote_lt" credential="lt_cred"/>
+                <logsum source="pgsql" database="fm_local" credential="harish_cred"/>
                 
                 <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
                         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->

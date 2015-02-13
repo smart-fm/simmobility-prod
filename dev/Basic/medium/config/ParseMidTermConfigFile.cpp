@@ -91,6 +91,17 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 
 	childNode = GetSingleElementByName(node, "population", true);
 	mtCfg.setPopulationSource(ParseString(GetNamedAttributeValue(childNode, "source", false), EMPTY_STRING));
+	if(mtCfg.getPopulationSource() == db::POSTGRES)
+	{
+		std::string database = ParseString(GetNamedAttributeValue(childNode, "database", false), EMPTY_STRING);
+		std::string credential = ParseString(GetNamedAttributeValue(childNode, "credential", false), EMPTY_STRING);
+		mtCfg.setPopulationDb(database, credential);
+
+		childNode = GetSingleElementByName(node, "logsum", true);
+		database = ParseString(GetNamedAttributeValue(childNode, "database", false), EMPTY_STRING);
+		credential = ParseString(GetNamedAttributeValue(childNode, "credential", false), EMPTY_STRING);
+		mtCfg.setLogsumDb(database, credential);
+	}
 
 	processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 	processMongoCollectionsNode(GetSingleElementByName(node, "mongo_collections", true));

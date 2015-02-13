@@ -13,6 +13,7 @@
 
 #include <boost/lexical_cast.hpp>
 #include "DatabaseHelper.hpp"
+#include "logging/Log.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::db;
@@ -33,18 +34,18 @@ void PopulationSqlDao::fromRow(Row& result, PersonParams& outObj)
 {
 	outObj.setPersonId(boost::lexical_cast<std::string>(result.get<BigInt>(DB_FIELD_ID)));
 	outObj.setPersonTypeId(result.get<BigInt>(DB_FIELD_PERSON_TYPE_ID));
-	outObj.setGenderId(result.get<int>(DB_FIELD_GENDER_ID));
-	outObj.setStudentTypeId(result.get<int>(DB_FIELD_STUDENT_TYPE_ID));
-	outObj.setVehicleOwnershipFromCategoryId(result.get<int>(DB_FIELD_VEHICLE_CATEGORY_ID));
+	outObj.setGenderId(result.get<BigInt>(DB_FIELD_GENDER_ID));
+	outObj.setStudentTypeId(result.get<BigInt>(DB_FIELD_STUDENT_TYPE_ID));
+	outObj.setVehicleOwnershipFromCategoryId(result.get<BigInt>(DB_FIELD_VEHICLE_CATEGORY_ID));
 	outObj.setAgeId(result.get<BigInt>(DB_FIELD_AGE_CATEGORY_ID));
 	outObj.setIncomeIdFromIncome(result.get<double>(DB_FIELD_INCOME));
 	outObj.setWorksAtHome(result.get<int>(DB_FIELD_WORK_AT_HOME));
-	outObj.setCarLicense(result.get<bool>(DB_FIELD_CAR_LICENSE));
-	outObj.setMotorLicense(result.get<bool>(DB_FIELD_MOTOR_LICENSE));
-	outObj.setVanbusLicense(result.get<bool>(DB_FIELD_VANBUS_LICENSE));
+	outObj.setCarLicense(result.get<int>(DB_FIELD_CAR_LICENSE));
+	outObj.setMotorLicense(result.get<int>(DB_FIELD_MOTOR_LICENSE));
+	outObj.setVanbusLicense(result.get<int>(DB_FIELD_VANBUS_LICENSE));
 	outObj.setHasFixedWorkTiming(result.get<int>(DB_FIELD_WORK_TIME_FLEX));
-	outObj.setHasWorkplace(result.get<bool>(DB_FIELD_HAS_FIXED_WORK_PLACE));
-	outObj.setIsStudent(result.get<bool>(DB_FIELD_IS_STUDENT));
+	outObj.setHasWorkplace(result.get<int>(DB_FIELD_HAS_FIXED_WORK_PLACE));
+	outObj.setIsStudent(result.get<int>(DB_FIELD_IS_STUDENT));
 	outObj.setActivityAddressId(result.get<BigInt>(DB_FIELD_ACTIVITY_ADDRESS_ID));
 
 	//household related
@@ -63,7 +64,7 @@ void PopulationSqlDao::fromRow(Row& result, PersonParams& outObj)
 void PopulationSqlDao::toRow(PersonParams& data, Parameters& outParams, bool update) {
 }
 
-void sim_mob::medium::PopulationSqlDao::getPersonById(long long id, PersonParams& outParam)
+void sim_mob::medium::PopulationSqlDao::getOneById(long long id, PersonParams& outParam)
 {
 	db::Parameters params;
 	params.push_back(id);
@@ -81,6 +82,7 @@ void sim_mob::medium::PopulationSqlDao::getAllIds(std::vector<long>& outList)
 		{
 			outList.push_back((*it).get<BigInt>(DB_FIELD_ID));
 		}
+		Print() << "Person Ids loaded from LT database: " << outList.size() << std::endl;
 	}
 }
 
@@ -90,7 +92,7 @@ void sim_mob::medium::PopulationSqlDao::getAddressTAZs(std::map<long, int>& addr
 	{
 		addressTazMap.clear();
 		Statement query(connection.getSession<soci::session>());
-		prepareStatement(DB_GET_ALL_PERSON_IDS, db::EMPTY_PARAMS, query);
+		prepareStatement(DB_GET_ADDRESS_TAZ, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
 		{
@@ -112,7 +114,7 @@ void PopulationSqlDao::getIncomeCategories(double incomeLowerLimits[])
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
 		{
 			uLimit = (*it).get<double>(DB_FIELD_INCOME_CATEGORY_LOWER_LIMIT);
-			if(uLimit > 0) { incomeLowerLimits[(*it).get<int>(DB_FIELD_ID)] = uLimit; }
+			if(uLimit > 0) { incomeLowerLimits[(*it).get<BigInt>(DB_FIELD_ID)] = uLimit; }
 		}
 	}
 }

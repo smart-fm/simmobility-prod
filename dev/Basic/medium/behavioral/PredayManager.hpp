@@ -147,9 +147,14 @@ public:
 	void loadUnavailableODs(db::BackendType dbType);
 
 	/**
-	 * Distributes persons to different threads and starts the threads which process the persons
+	 * Distributes mongodb persons to different threads and starts the threads which process the persons
 	 */
-	void dispatchPersons();
+	void dispatchMongodbPersons();
+
+	/**
+	 * Distributes long-term persons to different threads and starts the threads which process the persons
+	 */
+	void dispatchLT_Persons();
 
 	/**
 	 * preday calibration function
@@ -171,15 +176,15 @@ private:
 	 * Loops through all elements in personList within the specified range and
 	 * invokes the Preday system of models for each of them.
 	 *
-	 * @param first personList iterator corresponding to the first person to be
+	 * @param first personIdList iterator corresponding to the first person to be
 	 * 				processed
-	 * @param last personList iterator corresponding to the person after the
+	 * @param last personIdList iterator corresponding to the person after the
 	 * 				last person to be processed
 	 */
-	void processPersons(const PersonList::iterator& first, const PersonList::iterator& last, const std::string& scheduleLog);
+	void processPersons(const PersonIdList::iterator& first, const PersonIdList::iterator& last, const std::string& scheduleLog);
 
 	/**
-	 * Threaded function loop for simulation.
+	 * Threaded function loop for simulation of LT population
 	 * Loops through all elements in personList within the specified range and
 	 * invokes the Preday system of models for each of them.
 	 *
@@ -188,7 +193,7 @@ private:
 	 * @param last personIdList iterator corresponding to the person after the
 	 * 				last person to be processed
 	 */
-	void processPersonsById(const PersonIdList::iterator& first, const PersonIdList::iterator& last, const std::string& scheduleLog);
+	void processPersonsForLT_Population(const LT_PersonIdList::iterator& first, const LT_PersonIdList::iterator& last, const std::string& scheduleLog);
 
 	/**
 	 * Distributes persons to different threads and starts the threads which process the persons for calibration
@@ -210,18 +215,6 @@ private:
 
 	/**
 	 * Threaded logsum computation
-	 * Loops through all elements in personList within the specified range and
-	 * invokes logsum computations for each of them.
-	 *
-	 * @param first personList iterator corresponding to the first person to be
-	 * 				processed
-	 * @param last personList iterator corresponding to the person after the
-	 * 				last person to be processed
-	 */
-	void computeLogsums(const PersonList::iterator& first, const PersonList::iterator& last);
-
-	/**
-	 * Threaded logsum computation
 	 * Loops through all elements in personIdList within the specified range and
 	 * invokes logsum computations for each of them.
 	 *
@@ -230,10 +223,10 @@ private:
 	 * @param last personIdList iterator corresponding to the person after the
 	 * 				last person to be processed
 	 */
-	void computeLogsumsById(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt);
+	void computeLogsums(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt);
 
 	/**
-	 * Threaded logsum computation for LT
+	 * Threaded logsum computation for LT population
 	 * Loops through all elements in personIdList within the specified range and
 	 * invokes logsum computations for each of them.
 	 *
@@ -242,7 +235,35 @@ private:
 	 * @param last personIdList iterator corresponding to the person after the
 	 * 				last person to be processed
 	 */
-	void computeLogsumsByIdForLT(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& logsumOutputFileName);
+	void computeLogsumsForLT_Population(const LT_PersonIdList::iterator& firstPersonIdIt, const LT_PersonIdList::iterator& oneAfterLastPersonIdIt);
+
+	/**
+	 * Threaded logsum computation for LT feedback.
+	 * Loops through all elements in personIdList within the specified range and
+	 * invokes logsum computations for each of them.
+	 *
+	 * @param first personIdList iterator corresponding to the first person to be
+	 * 				processed
+	 * @param last personIdList iterator corresponding to the person after the
+	 * 				last person to be processed
+	 *
+	 * \NOTE: This function must be removed when we are able to fully feedback LT population's logsums
+	 */
+	void computeLT_FeedbackLogsums(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& logsumOutputFileName);
+
+	/**
+	 * Threaded logsum computation for LT feedback.
+	 * Loops through all elements in personIdList within the specified range and
+	 * invokes logsum computations for each of them.
+	 *
+	 * @param first personIdList iterator corresponding to the first person to be
+	 * 				processed
+	 * @param last personIdList iterator corresponding to the person after the
+	 * 				last person to be processed
+	 *
+	 * \NOTE: This function must be removed when we are able to fully feedback LT population's logsums
+	 */
+	void computeLT_PopulationFeedbackLogsums(const LT_PersonIdList::iterator& firstPersonIdIt, const LT_PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& logsumOutputFileName);
 
 	/**
 	 * Threaded logsum computation for calibration

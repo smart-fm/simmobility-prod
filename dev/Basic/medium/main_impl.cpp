@@ -388,7 +388,8 @@ bool performMainDemand()
 	else
 	{
 		Print() << "Preday mode: " << (mtConfig.runningPredaySimulation()? "simulation":"logsum computation")  << std::endl;
-		predayManager.dispatchPersons();
+		if(populationSource == db::POSTGRES) { predayManager.dispatchLT_Persons(); }
+		else { predayManager.dispatchMongodbPersons(); }
 	}
 	return true;
 }

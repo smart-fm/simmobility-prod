@@ -403,6 +403,7 @@ double sim_mob::Signal_SCATS::computePhaseDS(int phaseId, const timeslice& now) 
 	}
 
 	Phase_Density[phaseId] = maxPhaseDS;
+	curVehicleCounter.update();
 	loopDetectorAgent->reset();
 	return Phase_Density[phaseId];
 }
@@ -532,12 +533,18 @@ std::size_t sim_mob::Signal_SCATS::computeCurrPhase(double currCycleTimer)
 Entity::UpdateStatus sim_mob::Signal_SCATS::frame_tick(timeslice now)
 {
 	// some book keeping	
-	curVehicleCounter.update(now);	
+	curVehicleCounter.check(now);
 
-	if(!isIntersection_) return UpdateStatus::Continue;
+	if(!isIntersection_)
+	{
+		return UpdateStatus::Continue;
+	}
+	
 	isNewCycle = false;
+	
 	//1- update current cycle timer( Signal_SCATS::currCycleTimer)
 	isNewCycle = updateCurrCycleTimer();
+	
 	//if the phase has changed, here we dont update currPhaseID to a new value coz we still need some info(like DS) obtained during the last phase
 	//3-Update Current Phase
 	int temp_PhaseId = computeCurrPhase(currCycleTimer);
@@ -724,10 +731,11 @@ void sim_mob::VehicleCounter::init(const Signal_SCATS* signal)
 	this->signal = signal;
 	nodeId = signal->getNode().getID();
 	
-	const std::map<const Lane *, Shared<Sensor::CountAndTimePair> *>& countAndTimePairs = signal->getLoopDetector()->getData();
+	const std::map<const Lane *, Shared<Sensor::CountAndTimePair> *>& countAndTimePairs =
+			signal->getLoopDetector()->getCountAndTimePairMap();
 	std::map<const Lane *, Shared<Sensor::CountAndTimePair> *>::const_iterator it(countAndTimePairs.begin());
 	
-	for(;it != countAndTimePairs.end(); ++it)
+	for(; it != countAndTimePairs.end(); ++it)
 	{
 		counter[it->first] = 0;
 	}
@@ -752,7 +760,7 @@ void sim_mob::VehicleCounter::serialize(const uint32_t& time)
 	}
 }
 
-void sim_mob::VehicleCounter::update(const timeslice& curTimeSlice_)
+void sim_mob::VehicleCounter::update()
 {
 	std::map<const sim_mob::Lane*, int> ::iterator it(counter.begin());
 	const Sensor* loopDetector = signal->getLoopDetector();
@@ -764,16 +772,16 @@ void sim_mob::VehicleCounter::update(const timeslice& curTimeSlice_)
 		int& count = it->second;
 		count = count + ctPair.vehicleCount;
 	}
-	
-	check(curTimeSlice_);
 }
 
 void sim_mob::VehicleCounter::check(const timeslice& curTimeSlice_)
 {
 	curTimeSlice = curTimeSlice_;
 	const uint32_t& time = curTimeSlice_.ms();
+	
 	if( time != 0 && time % frequency == 0)
 	{
+		update();
 		serialize(time);
 		resetCounter();
 	}

@@ -41,7 +41,7 @@ public:
     /**
      * Returns the entire map of Lane vs CountAndTimePair
      */
-    const std::map<Lane const *, Shared<CountAndTimePair> *>& getData() const
+    const std::map<Lane const *, Shared<CountAndTimePair> *>& getCountAndTimePairMap() const
     {
       return data;
     }

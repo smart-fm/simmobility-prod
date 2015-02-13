@@ -391,16 +391,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
             if (! roads.empty()) {
                 createLoopDetectors(roads, entity);
             } else {
-            	std::cout << "Missed the first chance to create loop detector\n";
-            }
-        } else {
-            // <link> is receding away from <node>.  The loop-detectors should be at the end
-            // of the last segment in the non-forward direction, if any.
-            std::vector<RoadSegment *> const & roads = link->getSegments();
-            if (! roads.empty()) {
-                createLoopDetectors(roads, entity);
-            } else {
-            	std::cout << "Missed the second chance to create loop detector\n";
+            	Print() << "No RoadSegments in the link " << link->getLinkId() << ". Loop Detectors not created.\n";
             }
         }
     }
@@ -485,7 +476,6 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
 
         LoopDetector* detector = new LoopDetector(lane, innerLength_, outerLength_, *pair);
         loopDetectors_.insert(std::make_pair(lane, detector));
-//        std::cout << "loop detecto created for lane " << lane << std::endl;
 
         if (isNotInitialized(monitorArea_))
         {
@@ -528,7 +518,7 @@ LoopDetectorEntity::Impl::check(timeslice now)
             }
         }
     }
-
+	
     // Pass the vehicles list to the loop detectors.
     std::map<Lane const *, LoopDetector *>::const_iterator iter;
     for (iter = loopDetectors_.begin(); iter != loopDetectors_.end(); ++iter)

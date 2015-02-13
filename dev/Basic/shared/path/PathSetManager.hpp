@@ -115,7 +115,7 @@ public:
 	 * with their counterparts in PathSetmanager only during the scope of this method to serve temporary purposes.
 	 */
 	 bool getBestPath(std::vector<sim_mob::WayPoint>& res,
-			 const sim_mob::SubTrip* st,/*std::stringstream *outDbg=nullptr,*/
+			 const sim_mob::SubTrip& st,bool useCache,
 			 const std::set<const sim_mob::RoadSegment*> tempBlckLstSegs/*=std::set<const sim_mob::RoadSegment*>()*/,
 			 bool usePartialExclusion ,
 			 bool useBlackList ,
@@ -142,7 +142,7 @@ public:
 	 * @param excludedSegs input list segments to be excluded from the target set
 	 * @param isUseCache is using the cache allowed
 	 */
-	bool generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs);
+	bool generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD,OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs);
 
 	 void bulkPathSetGenerator();
 

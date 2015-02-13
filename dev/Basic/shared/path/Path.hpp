@@ -1,5 +1,6 @@
 #pragma once
 #include "geospatial/WayPoint.hpp"
+#include "entities/misc/TripChain.hpp"
 #include <sstream>
 #include <stdint.h>
 #include <boost/shared_ptr.hpp>
@@ -96,8 +97,7 @@ public:
 class PathSet
 {
 public:
-	PathSet():/*fromNode(nullptr),toNode(nullptr),*/logsum(0),hasPath(false),bestPath(nullptr),oriPath(nullptr),subTrip(nullptr),isNeedSave2DB(false),id("")  {pathChoices.clear();}
-	PathSet(const sim_mob::Node *fn,const sim_mob::Node *tn) : /*fromNode(fn),toNode(tn),*/logsum(0),hasPath(false),bestPath(nullptr),oriPath(nullptr),subTrip(nullptr),isNeedSave2DB(false),id("") {pathChoices.clear();}
+	PathSet():  logsum(0),hasPath(false),bestPath(nullptr),oriPath(nullptr),isNeedSave2DB(false),id("")  {pathChoices.clear();}
 	~PathSet();
 	///	returns the rough size of object in Bytes
 	uint32_t getSize();
@@ -121,7 +121,7 @@ public:
 	bool isNeedSave2DB;
 	double logsum;
 	// pathset use info of subtrip to get start, end, travel start time...
-	const sim_mob::SubTrip* subTrip;
+	sim_mob::SubTrip subTrip;
 	std::string id;
 	std::string excludedPaths;
 	std::string scenario;

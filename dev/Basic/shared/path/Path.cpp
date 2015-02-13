@@ -6,13 +6,12 @@
 #include "geospatial/Lane.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "util/Utils.hpp"
-#include "entities/misc/TripChain.hpp"
 #include <boost/iterator/filter_iterator.hpp>
 #include <boost/foreach.hpp>
 
 
 namespace{
-sim_mob::BasicLogger & logger = sim_mob::Logger::log("path_set");
+sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
 }
 
 sim_mob::SinglePath::SinglePath() : purpose(work),utility(0.0),pathSize(0.0),travelCost(0.0),partialUtility(0.0),
@@ -170,9 +169,6 @@ uint32_t sim_mob::SinglePath::getSize(){
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 sim_mob::PathSet::~PathSet()
 {
-	/*fromNode = NULL;
-	toNode = NULL;*/
-	subTrip = NULL;
 	//logger << "[DELET PATHSET " << id << "] [" << pathChoices.size() << "  SINGLEPATH]" << std::endl;
 	BOOST_FOREACH(sim_mob::SinglePath*sp,pathChoices)
 	{
@@ -257,9 +253,9 @@ void sim_mob::PathSet::addOrDeleteSinglePath(sim_mob::SinglePath* s)
 	{
 		return;
 	}
-	if(s->path.begin()->roadSegment_->getStart()->getID() != subTrip->fromLocation.node_->getID())
+	if(s->path.begin()->roadSegment_->getStart()->getID() != subTrip.fromLocation.node_->getID())
 	{
-		std::cerr << s->scenario << " path begins with " << s->path.begin()->roadSegment_->getStart()->getID() << " while pathset begins with " << subTrip->fromLocation.node_->getID() << std::endl;
+		std::cerr << s->scenario << " path begins with " << s->path.begin()->roadSegment_->getStart()->getID() << " while pathset begins with " << subTrip.fromLocation.node_->getID() << std::endl;
 		throw std::runtime_error("Mismatch");
 	}
 	if(!pathChoices.insert(s).second)
@@ -369,7 +365,7 @@ std::string sim_mob::makeWaypointsetString(std::vector<sim_mob::WayPoint>& wp)
 	std::string str;
 	if(wp.size()==0)
 	{
-		sim_mob::Logger::log("path_set")<<"warning: empty input for makeWaypointsetString"<<std::endl;
+		sim_mob::Logger::log("pathset.log")<<"warning: empty input for makeWaypointsetString"<<std::endl;
 	}
 
 	for(std::vector<sim_mob::WayPoint>::iterator it = wp.begin(); it != wp.end(); it++)
@@ -384,7 +380,7 @@ std::string sim_mob::makeWaypointsetString(std::vector<sim_mob::WayPoint>& wp)
 	if(str.size()<1)
 	{
 		// when same f,t node, it happened
-		sim_mob::Logger::log("path_set")<<"warning: empty output makeWaypointsetString id"<<std::endl;
+		sim_mob::Logger::log("pathset.log")<<"warning: empty output makeWaypointsetString id"<<std::endl;
 	}
 	return str;
 }

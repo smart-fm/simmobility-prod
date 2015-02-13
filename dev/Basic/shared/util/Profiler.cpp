@@ -89,6 +89,26 @@ boost::chrono::system_clock::time_point sim_mob::Profiler::getTime()
 }
 
 
+sim_mob::Sentry::Sentry(BasicLogger & basicLogger_,std::stringstream *out_):out(*out_),basicLogger(basicLogger_),copy(false){};
+sim_mob::Sentry::Sentry(const Sentry& t):basicLogger(t.basicLogger), out(t.out),copy(true){}
+
+sim_mob::Sentry& sim_mob::Sentry::operator<<(StandardEndLine manip)
+{
+	manip(out);
+	return *this;
+}
+
+
+sim_mob::Sentry::~Sentry()
+{
+	//if the buffer size has reached its limit, dump it to the file otherwise leave it to accumulate.
+	// by some googling this estimated hard-code value promises less cycles to write to a file
+	if(out.tellp() > 512000/*500KB*/ && copy)
+	{
+		basicLogger.flushLog(out);
+	}
+}
+
 sim_mob::BasicLogger::BasicLogger(std::string id_){
 	id = id_;
 	//simple check to see if the id can be used like a file name with a 3 letter extension, else append .txt
@@ -173,9 +193,6 @@ void  sim_mob::BasicLogger::initLogFile(const std::string& path)
 
 void sim_mob::BasicLogger::flushLog(std::stringstream &out)
 {
-	if(id == "real_time_travel_time"){
-		std::cout << "sim_mob::BasicLogger::flushLog" << std::endl;
-	}
 	if ((logFile.is_open() && logFile.good()))
 	{
 		{

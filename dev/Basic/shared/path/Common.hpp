@@ -96,6 +96,7 @@ class OD
 private:
 	std::string key;
 public:
+	OD(){}
 	OD(const sim_mob::WayPoint &origin, const sim_mob::WayPoint &destination):
 		origin(origin), destination(destination)
 	{
@@ -132,5 +133,9 @@ public:
 	{
 		// just an almost dummy operator< to preserve uniquness
 		return key < rhs.key;
+	}
+	bool operator()(const OD & rhs, const OD & lhs)
+	{
+		return rhs < lhs;
 	}
 };

@@ -13,7 +13,7 @@
 #include <boost/tokenizer.hpp>
 
 namespace{
-sim_mob::BasicLogger & logger = sim_mob::Logger::log("path_set");
+sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
 }
 
 sim_mob::IncidentManager * sim_mob::IncidentManager::instance = 0;

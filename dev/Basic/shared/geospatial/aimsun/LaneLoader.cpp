@@ -579,6 +579,28 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 			originPt.flipMirror();
 		}
 
+		//Calculate "offsets" for the origin. This occurs if either the start or end is a MultiNode start/end.
+		//The offset is the distance from the node's center to the median point.
+		pair<double, double> originOffsets(0.0, 0.0);
+		if (currSect->fromNode==startNode) {
+			originOffsets.first = sim_mob::dist(&medianEndpoints.first, startNode);
+		} else if (currSect->fromNode==endNode) {
+			originOffsets.first = sim_mob::dist(&medianEndpoints.first, startNode);
+		}
+		if (currSect->toNode==startNode) {
+			originOffsets.second = sim_mob::dist(&medianEndpoints.second, endNode);
+		} else if (currSect->toNode==endNode) {
+			originOffsets.second = sim_mob::dist(&medianEndpoints.second, endNode);
+		}
+
+		//TEMP: For now, our "median" point is somewhat in error, so we manually scale it back to 20m
+		if (originOffsets.first) {
+			originOffsets.first = 20 *100;
+		}
+		if (originOffsets.second) {
+			originOffsets.second = 20 *100;
+		}
+
 		//For each laneID, scale the originPt and go from there
 		if (currSect) {
 			for (size_t laneID=0; laneID<=(size_t)currSect->numLanes; laneID++) {
@@ -589,6 +611,17 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 
 				//Create a vector in the direction of the ending point.
 				DynamicVector laneVect(originPt.getX(), originPt.getY(), originPt.getX()+magX, originPt.getY()+magY);
+
+				//Scale the starting point.
+				double remMag = magSect;
+				if (originOffsets.first>0.0) {
+					laneVect.scaleVectTo(originOffsets.first).translateVect();
+					remMag -= originOffsets.first;
+				}
+				if (originOffsets.second>0.0) {
+					remMag -= originOffsets.second;
+				}
+				laneVect.scaleVectTo(remMag);
 
 				//Add the starting point, ending point
 				sim_mob::Point2D startPt((int)laneVect.getX(), (int)laneVect.getY());

@@ -112,13 +112,6 @@ public:
 	virtual ~PredayManager();
 
 	/**
-	 * Gets person data from the database and stores corresponding PersonParam pointers in personList.
-	 *
-	 * @param dbType type of backend where the population data is available
-	 */
-	void loadPersons(db::BackendType dbType);
-
-	/**
 	 * Gets person ids of each person in the population data
 	 *
 	 * @param dbType type of backend where the population data is available

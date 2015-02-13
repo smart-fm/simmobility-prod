@@ -18,6 +18,7 @@ const int NUM_VALID_INCOME_CATEGORIES = 12;
 }
 double sim_mob::medium::PersonParams::incomeCategoryLowerLimits[] = {};
 std::map<int, std::bitset<4> > sim_mob::medium::PersonParams::vehicleCategoryLookup = std::map<int, std::bitset<4> >();
+std::map<long, int> sim_mob::medium::PersonParams::addressTazLookup = std::map<long,int>();
 
 sim_mob::medium::PersonParams::PersonParams()
 : personId(""), hhId(""), personTypeId(-1), ageId(-1), isUniversityStudent(-1), studentTypeId(-1), isFemale(-1),
@@ -74,7 +75,7 @@ void sim_mob::medium::PersonParams::setIncomeIdFromIncome(double income)
 	setIncomeId((i>0) ? (i-1) : i);
 }
 
-void sim_mob::medium::PersonParams::setVehicleOwnershipFromVehicleCategoryId(int vehicleCategoryId)
+void sim_mob::medium::PersonParams::setVehicleOwnershipFromCategoryId(int vehicleCategoryId)
 {
 	std::map<int, std::bitset<4> >::const_iterator it = vehicleCategoryLookup.find(vehicleCategoryId);
 	if(it == vehicleCategoryLookup.end()) { throw std::runtime_error("Invalid vehicle category"); }
@@ -173,4 +174,25 @@ sim_mob::medium::SubTourParams::~SubTourParams()
 bool sim_mob::medium::SubTourParams::allWindowsUnavailable()
 {
 	return availabilityBit.none();
+}
+
+void sim_mob::medium::PersonParams::fixUpForLtPerson()
+{
+	setMissingIncome(0);
+	setHomeLocation(getTAZCodeForAddressId(homeAddressId));
+	if(fixedWorkplace) { setFixedWorkLocation(getTAZCodeForAddressId(activityAddressId)); }
+	else if(student) { setFixedSchoolLocation(getTAZCodeForAddressId(activityAddressId)); }
+	setHasDrivingLicence(getCarLicense()||getVanbusLicense());
+	setIsUniversityStudent(studentTypeId == 4);
+	setIsFemale(genderId == 2);
+	setHH_OnlyAdults(hhNumAdults == hhSize);
+	setHH_OnlyWorkers(hhNumWorkers == hhSize);
+	setHH_HasUnder15(hhNumUnder15 > 0);
+}
+
+int sim_mob::medium::PersonParams::getTAZCodeForAddressId(long addressId)
+{
+	std::map<long, int>::const_iterator addressIdIt = addressTazLookup.find(getHomeAddressId());
+	if(addressIdIt == addressTazLookup.end()) { throw std::runtime_error("invalid address id");	}
+	return addressIdIt->second;
 }

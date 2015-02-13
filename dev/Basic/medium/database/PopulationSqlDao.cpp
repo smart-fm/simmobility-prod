@@ -23,18 +23,19 @@ typedef long long BigInt;
 }
 
 PopulationSqlDao::PopulationSqlDao(DB_Connection& connection)
-: SqlAbstractDao<PersonParams*>(connection, DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY, "", "", "", DB_GET_ALL_PERSON_IDS, DB_GET_PERSON_BY_ID)
+: SqlAbstractDao<PersonParams>(connection, "", "", "", "", "", DB_GET_PERSON_BY_ID)
 {}
 
 PopulationSqlDao::~PopulationSqlDao()
 {}
 
-void PopulationSqlDao::fromRow(Row& result, PersonParams& outObj) {
+void PopulationSqlDao::fromRow(Row& result, PersonParams& outObj)
+{
 	outObj.setPersonId(boost::lexical_cast<std::string>(result.get<BigInt>(DB_FIELD_ID)));
 	outObj.setPersonTypeId(result.get<BigInt>(DB_FIELD_PERSON_TYPE_ID));
 	outObj.setGenderId(result.get<int>(DB_FIELD_GENDER_ID));
 	outObj.setStudentTypeId(result.get<int>(DB_FIELD_STUDENT_TYPE_ID));
-	outObj.setVehicleOwnershipFromVehicleCategoryId(result.get<int>(DB_FIELD_VEHICLE_CATEGORY_ID));
+	outObj.setVehicleOwnershipFromCategoryId(result.get<int>(DB_FIELD_VEHICLE_CATEGORY_ID));
 	outObj.setAgeId(result.get<BigInt>(DB_FIELD_AGE_CATEGORY_ID));
 	outObj.setIncomeIdFromIncome(result.get<double>(DB_FIELD_INCOME));
 	outObj.setWorksAtHome(result.get<int>(DB_FIELD_WORK_AT_HOME));
@@ -54,9 +55,19 @@ void PopulationSqlDao::fromRow(Row& result, PersonParams& outObj) {
 	outObj.setHH_NumUnder15(result.get<int>(DB_FIELD_HH_CHILDREN_UNDER_15));
 	outObj.setHH_NumAdults(result.get<int>(DB_FIELD_HH_ADULTS));
 	outObj.setHH_NumWorkers(result.get<int>(DB_FIELD_HH_WORKERS));
+
+	//fix up inferred params
+	outObj.fixUpForLtPerson();
 }
 
 void PopulationSqlDao::toRow(PersonParams& data, Parameters& outParams, bool update) {
+}
+
+void sim_mob::medium::PopulationSqlDao::getPersonById(long long id, PersonParams& outParam)
+{
+	db::Parameters params;
+	params.push_back(id);
+	getById(params, outParam);
 }
 
 void sim_mob::medium::PopulationSqlDao::getAllIds(std::vector<long>& outList)
@@ -69,6 +80,21 @@ void sim_mob::medium::PopulationSqlDao::getAllIds(std::vector<long>& outList)
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
 		{
 			outList.push_back((*it).get<BigInt>(DB_FIELD_ID));
+		}
+	}
+}
+
+void sim_mob::medium::PopulationSqlDao::getAddressTAZs(std::map<long, int>& addressTazMap)
+{
+	if(isConnected())
+	{
+		addressTazMap.clear();
+		Statement query(connection.getSession<soci::session>());
+		prepareStatement(DB_GET_ALL_PERSON_IDS, db::EMPTY_PARAMS, query);
+		ResultSet rs(query);
+		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
+		{
+			addressTazMap[(*it).get<BigInt>(DB_FIELD_ADDRESS_ID)] = (*it).get<int>(DB_FIELD_TAZ_CODE);
 		}
 	}
 }
@@ -95,6 +121,7 @@ void PopulationSqlDao::getVehicleCategories(std::map<int, std::bitset<4> >& vehi
 {
 	if (isConnected())
 	{
+		vehicleCategories.clear();
 		Statement query(connection.getSession<soci::session>());
 		prepareStatement(DB_GET_VEHICLE_CATEGORIES, db::EMPTY_PARAMS, query);
 		ResultSet rs(query);
@@ -108,4 +135,41 @@ void PopulationSqlDao::getVehicleCategories(std::map<int, std::bitset<4> >& vehi
 			vehicleCategories[(*it).get<BigInt>(DB_FIELD_ID)] = vehOwnershipBits;
 		}
 	}
+}
+
+sim_mob::medium::LogsumSqlDao::LogsumSqlDao(db::DB_Connection& connection)
+: SqlAbstractDao<PersonParams>(connection, DB_TABLE_LOGSUMS, DB_INSERT_LOGSUMS, "", "", "", DB_GET_LOGSUMS_BY_ID)
+{
+}
+
+sim_mob::medium::LogsumSqlDao::~LogsumSqlDao()
+{
+}
+
+void sim_mob::medium::LogsumSqlDao::fromRow(db::Row& result, PersonParams& outObj)
+{
+	outObj.setWorkLogSum(result.get<double>(DB_FIELD_WORK_LOGSUM));
+	outObj.setEduLogSum(result.get<double>(DB_FIELD_EDUCATION_LOGSUM));
+	outObj.setShopLogSum(result.get<double>(DB_FIELD_SHOP_LOGSUM));
+	outObj.setOtherLogSum(result.get<double>(DB_FIELD_OTHER_LOGSUM));
+	outObj.setDptLogsum(result.get<double>(DB_FIELD_DPT_LOGSUM));
+	outObj.setDpsLogsum(result.get<double>(DB_FIELD_DPS_LOGSUM));
+}
+
+void sim_mob::medium::LogsumSqlDao::toRow(PersonParams& data, db::Parameters& outParams, bool update)
+{
+	outParams.push_back(data.getPersonId());
+	outParams.push_back(data.getWorkLogSum());
+	outParams.push_back(data.getEduLogSum());
+	outParams.push_back(data.getShopLogSum());
+	outParams.push_back(data.getOtherLogSum());
+	outParams.push_back(data.getDptLogsum());
+	outParams.push_back(data.getDpsLogsum());
+}
+
+void sim_mob::medium::LogsumSqlDao::getLogsumById(long long id, PersonParams& outObj)
+{
+	db::Parameters params;
+	params.push_back(id);
+	getById(params, outObj);
 }

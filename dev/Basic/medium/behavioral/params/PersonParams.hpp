@@ -322,12 +322,12 @@ public:
 		this->dpbLogsum = dpbLogsum;
 	}
 
-	int getCarLicense() const
+	bool getCarLicense() const
 	{
 		return carLicense;
 	}
 
-	void setCarLicense(int carLicense)
+	void setCarLicense(bool carLicense)
 	{
 		this->carLicense = carLicense;
 	}
@@ -342,22 +342,22 @@ public:
 		this->hhSize = hhSize;
 	}
 
-	int getMotorLicense() const
+	bool getMotorLicense() const
 	{
 		return motorLicense;
 	}
 
-	void setMotorLicense(int motorLicence)
+	void setMotorLicense(bool motorLicence)
 	{
 		this->motorLicense = motorLicence;
 	}
 
-	int getVanbusLicense() const
+	bool getVanbusLicense() const
 	{
 		return vanbusLicense;
 	}
 
-	void setVanbusLicense(int vanbusLicense)
+	void setVanbusLicense(bool vanbusLicense)
 	{
 		this->vanbusLicense = vanbusLicense;
 	}
@@ -451,8 +451,20 @@ public:
 		return vehicleCategoryLookup;
 	}
 
+	static std::map<long, int>& getAddressTazLookup()
+	{
+		return addressTazLookup;
+	}
+
+	int getTAZCodeForAddressId(long addressId);
+
 	void setIncomeIdFromIncome(double income);
-	void setVehicleOwnershipFromVehicleCategoryId(int vehicleCategoryId);
+	void setVehicleOwnershipFromCategoryId(int vehicleCategoryId);
+
+	/**
+	 * function to infer params used in preday system of models from params read from LT population
+	 */
+	void fixUpForLtPerson();
 
 private:
 	std::string personId;
@@ -520,6 +532,11 @@ private:
      * vehicle category map of id->bitset<4> (4 bits representing 0-carOwn, 1-carOwnNormal, 2-carOwnOffPeak and 3-motorOwn bit for the id)
      */
     static std::map<int, std::bitset<4> > vehicleCategoryLookup;
+
+    /**
+     * address to taz map
+     */
+    static std::map<long, int> addressTazLookup;
 };
 
 /**

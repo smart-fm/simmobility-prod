@@ -14,7 +14,6 @@
 namespace sim_mob {
 namespace medium {
 	#define APPLY_SCHEMA(schema, field) std::string(schema)+std::string(field)
-	#define APPLY_BRACKETS(arg) std::string("(")+std::string(arg)+std::string(")")
 
 	/**
 	 * Useful string constants
@@ -37,9 +36,10 @@ namespace medium {
 	/**
 	 * Stored procedures for long-term population database
 	 */
-	const std::string DB_SP_GET_INDIVIDUAL_IDS = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualids");
-	const std::string DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualbyidforpreday");
-	const std::string DB_SP_GET_ADDRESS_TAZ = APPLY_SCHEMA(MAIN_SCHEMA, "getaddresstaz");
+	const std::string DB_SP_GET_INDIVIDUAL_IDS = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualids()");
+	const std::string DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY = APPLY_SCHEMA(MAIN_SCHEMA, "getindividualbyidforpreday(:_id)");
+	const std::string DB_SP_GET_ADDRESS_TAZ = APPLY_SCHEMA(MAIN_SCHEMA, "getaddresstaz()");
+	const std::string DB_SP_GET_LOGSUMS_BY_ID = APPLY_SCHEMA(PUBLIC_SCHEMA, "get_logums_for_person(:_id)");
 
 	/**
 	 * Fields for long-term population database
@@ -70,28 +70,30 @@ namespace medium {
 	/**
 	 * Logsum fields
 	 */
-	const std::string DB_FIELD_WORK_LOGSUM = "worklogsum";
-	const std::string DB_FIELD_EDU_LOGSUM = "edulogsum";
-	const std::string DB_FIELD_SHOP_LOGSUM = "shoplogsum";
-	const std::string DB_FIELD_OTHER_LOGSUM = "otherlogsum";
-	const std::string DB_FIELD_DPT_LOGSUM = "dptlogsum";
-	const std::string DB_FIELD_DPS_LOGSUM = "dpslogsum";
+	const std::string DB_FIELD_WORK_LOGSUM = "work";
+	const std::string DB_FIELD_EDUCATION_LOGSUM = "education";
+	const std::string DB_FIELD_SHOP_LOGSUM = "shopping";
+	const std::string DB_FIELD_OTHER_LOGSUM = "other";
+	const std::string DB_FIELD_DPT_LOGSUM = "day_pattern_tour";
+	const std::string DB_FIELD_DPS_LOGSUM = "day_pattern_stop";
 
 	const std::string DB_FIELD_INCOME_CATEGORY_LOWER_LIMIT = "low_limit";
 	const std::string DB_FIELD_VEHICLE_CATEGORY_NAME = "name";
+	const std::string DB_FIELD_ADDRESS_ID = "address_id";
+	const std::string DB_FIELD_TAZ_CODE = "taz_code";
 
 	const std::string SEARCH_STRING_CAR_OWN_NORMAL = "car (normal time)";
 	const std::string SEARCH_STRING_CAR_OWN_OFF_PEAK = "car (off peak time)";
 	const std::string SEARCH_STRING_MOTORCYCLE = "motorcycle";
 
     /** get all individual ids from long-term population database */
-	const std::string DB_GET_ALL_PERSON_IDS = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_IDS + APPLY_BRACKETS();
+	const std::string DB_GET_ALL_PERSON_IDS = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_IDS;
 
 	/** load a specific individual by id */
 	const std::string DB_GET_PERSON_BY_ID = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY; //argument to be passed
 
 	/** load address taz mapping from LT database */
-	const std::string DB_GET_ADDRESS_TAZ = "SELECT * FROM " + DB_SP_GET_ADDRESS_TAZ + APPLY_BRACKETS();
+	const std::string DB_GET_ADDRESS_TAZ = "SELECT * FROM " + DB_SP_GET_ADDRESS_TAZ;
 
 	/** load income categories */
 	const std::string DB_GET_INCOME_CATEGORIES = "SELECT * FROM " + DB_TABLE_INCOME_CATEGORIES;
@@ -99,6 +101,11 @@ namespace medium {
 	/** load vehicle categories */
 	const std::string DB_GET_VEHICLE_CATEGORIES = "SELECT * FROM " + DB_TABLE_VEHICLE_CATEGORIES;
 
+	/** load logsums by id */
+	const std::string DB_GET_LOGSUMS_BY_ID = "SELECT * FROM " + DB_SP_GET_LOGSUMS_BY_ID; // argument to be passed
+
+	/** insert logsums */
+	const std::string DB_INSERT_LOGSUMS = "INSERT INTO " + DB_TABLE_LOGSUMS + " VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)";
 
 	/**
 	 * Fields for mongoDB population data

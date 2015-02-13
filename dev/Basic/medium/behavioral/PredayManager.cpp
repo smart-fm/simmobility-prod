@@ -593,46 +593,6 @@ sim_mob::medium::PredayManager::~PredayManager() {
 	zoneNodeMap.clear();
 }
 
-void sim_mob::medium::PredayManager::loadPersons(BackendType dbType) {
-	switch(dbType) {
-	case POSTGRES:
-	{
-		const std::string& dbId = ConfigManager::GetInstance().FullConfig().system.networkDatabase.database;
-		Database database = ConfigManager::GetInstance().FullConfig().constructs.databases.at(dbId);
-		std::string cred_id = ConfigManager::GetInstance().FullConfig().system.networkDatabase.credentials;
-		Credential credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
-		std::string username = credentials.getUsername();
-		std::string password = credentials.getPassword(false);
-		DB_Config dbConfig(database.host, database.port, database.dbName, username, password);
-
-		// Connect to database and load data.
-		DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
-		conn.connect();
-		if (conn.isConnected()) {
-			PopulationSqlDao populationDao(conn);
-			populationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
-			populationDao.getVehicleCategories(PersonParams::getVehicleCategoryLookup());
-			populationDao.getAll(personList);
-		}
-		break;
-	}
-	case MONGO_DB:
-	{
-		std::string populationCollectionName = mtConfig.getMongoCollectionsMap().getCollectionName("population");
-		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
-		std::string emptyString;
-		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
-		PopulationMongoDao populationDao(dbConfig, db.dbName, populationCollectionName);
-		populationDao.getAll(personList);
-		break;
-	}
-	default:
-	{
-		throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
-	}
-	}
-}
-
 void sim_mob::medium::PredayManager::loadPersonIds(BackendType dbType) {
 	switch(dbType) {
 	case POSTGRES:
@@ -653,6 +613,7 @@ void sim_mob::medium::PredayManager::loadPersonIds(BackendType dbType) {
 			PopulationSqlDao populationDao(conn);
 			populationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
 			populationDao.getVehicleCategories(PersonParams::getVehicleCategoryLookup());
+			populationDao.getAddressTAZs(PersonParams::getAddressTazLookup());
 			populationDao.getAllIds(ltPersonIdList);
 		}
 		break;

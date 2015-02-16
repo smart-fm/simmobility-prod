@@ -388,8 +388,6 @@ void HM_Model::startImpl()
 
 				if(awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
-
-					//(*it)->setbiddingMarketEntryDay( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 					(*it)->setbiddingMarketEntryDay( 0 );
 					(*it)->setTimeOnMarket( 1 + int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 

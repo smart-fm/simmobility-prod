@@ -5,6 +5,7 @@
 /* 
  * File:   HouseholdBidderRole.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * 		   Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  * 
  * Created on May 16, 2013, 5:13 PM
  */
@@ -23,6 +24,9 @@
 
 #include "core/AgentsLookup.hpp"
 #include "core/DataManager.hpp"
+
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 using std::list;
 using std::endl;
@@ -249,9 +253,18 @@ bool HouseholdBidderRole::pickEntryToBid()
     const HousingMarket::Entry* maxEntry = nullptr;
     double maxWP = 0; // holds the wp of the entry with maximum surplus.
 
-    // choose the unit to bid with max surplus.
-    for (HousingMarket::ConstEntryList::const_iterator itr = entries.begin(); itr != entries.end(); itr++)
+
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+    float housingMarketSearchPercentage = config.ltParams.housingModel.housingMarketSearchPercentage;
+
+    // Choose the unit to bid with max surplus. However, we are not iterating through the whole list of available units.
+    // We choose from a subset of units set by the housingMarketSearchPercentage parameter in the long term XML file.
+    // This is done to replicate the real life scenario where a household will only visit a certain percentage of vacant units before settling on one.
+    for(int n = 0; n < entries.size() * housingMarketSearchPercentage; n++)
     {
+    	int offset = (float)rand() / RAND_MAX * entries.size();
+
+    	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
         const HousingMarket::Entry* entry = *itr;
 
         if(entry->getOwner() != getParent())

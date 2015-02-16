@@ -52,14 +52,14 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		vector<StreetDirectory::Vertex> p(boost::num_vertices(*graph)); //Output variable
 		vector<double> d(boost::num_vertices(*graph));  //Output variable
 		try {
-			boost::astar_search(*graph, *fromVertex,
+			boost::astar_search(*graph, fromVertex,
 					sim_mob::A_StarShortestTravelTimePathImpl::distance_heuristic_graph(
-							graph, *toVertex),
+							graph, toVertex),
 					boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(
-							sim_mob::A_StarShortestTravelTimePathImpl::astar_goal_visitor(*toVertex)));
+							sim_mob::A_StarShortestTravelTimePathImpl::astar_goal_visitor(toVertex)));
 		} catch (sim_mob::A_StarShortestTravelTimePathImpl::found_goal& goal) {
 			//Build backwards.
-			for (StreetDirectory::Vertex v = *toVertex;; v = p[v]) {
+			for (StreetDirectory::Vertex v = toVertex;; v = p[v]) {
 				partialRes.push_front(v);
 				if (p[v] == v) {
 					break;
@@ -105,12 +105,12 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		//Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
 		//...which is available under the terms of the Boost Software License, 1.0
 		try {
-			boost::astar_search(filtered, *fromVertex,
-					sim_mob::A_StarShortestPathImpl::distance_heuristic_filtered(&filtered, *toVertex),
-					boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(sim_mob::A_StarShortestPathImpl::astar_goal_visitor(*toVertex)));
+			boost::astar_search(filtered, fromVertex,
+					sim_mob::A_StarShortestPathImpl::distance_heuristic_filtered(&filtered, toVertex),
+					boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(sim_mob::A_StarShortestPathImpl::astar_goal_visitor(toVertex)));
 		} catch (sim_mob::A_StarShortestPathImpl::found_goal& goal) {
 			//Build backwards.
-			for (StreetDirectory::Vertex v = *toVertex;; v = p[v]) {
+			for (StreetDirectory::Vertex v = toVertex;; v = p[v]) {
 				partialRes.push_front(v);
 				if (p[v] == v)
 				{
@@ -168,7 +168,7 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 				safe_delete_item(s);
 				hasPath = false;
 				//	todo I havent yet figured out what this bug is, but it happens, mainly for random perturbation(time), discarding for now-vahid
-				//TODO	std::cout <<ps->scenario << dbgStr << " Mismatch : " << this->s->path.begin()->roadSegment_->getStart()->getID() << "   " <<  this->ps->subTrip.fromLocation.node_->getID() <<  "  " << *fromVertex << "," << *toVertex << std::endl;
+				//TODO	std::cout <<ps->scenario << dbgStr << " Mismatch : " << this->s->path.begin()->roadSegment_->getStart()->getID() << "   " <<  this->ps->subTrip.fromLocation.node_->getID() <<  "  " << fromVertex << "," << toVertex << std::endl;
 			}
 		}
 	}

@@ -681,7 +681,10 @@ void sim_mob::PathSetManager::bulkPathSetGenerator()
 		const std::vector<sim_mob::SubTrip>& subTrips = trip->getSubTrips();
 		BOOST_FOREACH(const SubTrip& subTrip, subTrips)
 		{
-			std::vector<sim_mob::WayPoint> res = std::vector<sim_mob::WayPoint>();
+			if(!recursiveOrigins.insert(OD(subTrip.fromLocation.node_, subTrip.toLocation.node_)).second)
+			{
+				continue;
+			}
 			std::set<const RoadSegment*> blrs;
 			boost::shared_ptr<sim_mob::PathSet> ps_(new PathSet());
 			ps_->id = getFromToString(subTrip.fromLocation.node_, subTrip.toLocation.node_);
@@ -690,7 +693,6 @@ void sim_mob::PathSetManager::bulkPathSetGenerator()
 			bool r = generateAllPathChoices(ps_, recursiveOrigins, blrs);
 		}
 	}
-
 }
 
 int sim_mob::PathSetManager::genK_ShortestPath(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &KSP_Storage)
@@ -734,8 +736,8 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 	A_StarShortestPathImpl * impl = (A_StarShortestPathImpl*)stdir.getDistanceImpl();
 	StreetDirectory::VertexDesc from = impl->DrivingVertex(*ps->subTrip.fromLocation.node_);
 	StreetDirectory::VertexDesc to = impl->DrivingVertex(*ps->subTrip.toLocation.node_);
-	StreetDirectory::Vertex* fromV = &from.source;
-	StreetDirectory::Vertex* toV = &to.sink;
+//	StreetDirectory::Vertex* fromV = &from.source;
+//	StreetDirectory::Vertex* toV = &to.sink;
 	if(ps->oriPath && !ps->oriPath->path.empty())
 	{
 		curLink = ps->oriPath->path.begin()->roadSegment_->getLink();
@@ -756,8 +758,8 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 			//the above declared profiler will become a profiling time accumulator of ALL workers in this loop
 			work->graph = &impl->drivingMap_;
 			work->segmentLookup = &impl->drivingSegmentLookup_;
-			work->fromVertex = fromV;
-			work->toVertex = toV;
+			work->fromVertex = from.source;
+			work->toVertex = to.sink;
 			work->fromNode = ps->subTrip.fromLocation.node_;
 			work->toNode =  ps->subTrip.toLocation.node_;
 			work->excludeSeg = blackList;
@@ -774,19 +776,6 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 	{
 		std::cerr  << "Nothing supplied to threadpool-SDLE" << std::endl;
 	}
-
-	threadpool_->wait();
-	BOOST_FOREACH(PathSetWorkerThread*work, SDLE_Storage)
-	{
-		if(work->hasPath)
-		{
-			if(work->s->path.begin()->roadSegment_->getStart()->getID() != work->ps->subTrip.fromLocation.node_->getID())
-			{
-				std::cerr << work->s->scenario << " path begins with " << work->s->path.begin()->roadSegment_->getStart()->getID() << " while pathset begins with " << work->ps->subTrip.fromLocation.node_->getID() << std::endl;
-				throw std::runtime_error("Mismatch");
-			}
-		}
-	}
 }
 
 int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &STTLE_Storage)
@@ -799,8 +788,8 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir.getTravelTimeImpl();
 	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexNormalTime(*ps->subTrip.fromLocation.node_);
 	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexNormalTime(*ps->subTrip.toLocation.node_);
-	StreetDirectory::Vertex* fromV = &from.source;
-	StreetDirectory::Vertex* toV = &to.sink;
+//	StreetDirectory::Vertex* fromV = &from.source;
+//	StreetDirectory::Vertex* toV = &to.sink;
 	SinglePath *pathTT = generateShortestTravelTimePath(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_,sim_mob::Default);
 	int cnt = 0;
 	if(pathTT)
@@ -822,8 +811,8 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 				PathSetWorkerThread *work = new PathSetWorkerThread();
 				work->graph = &sttpImpl->drivingMap_Default;
 				work->segmentLookup = &sttpImpl->drivingSegmentLookup_Default_;
-				work->fromVertex = fromV;
-				work->toVertex = toV;
+				work->fromVertex = from.source;
+				work->toVertex = to.sink;
 				work->fromNode = ps->subTrip.fromLocation.node_;
 				work->toNode = ps->subTrip.toLocation.node_;
 				work->excludeSeg = blackList;
@@ -842,18 +831,18 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 		std::cerr  << "Nothing supplied to threadpool-STTLE" << std::endl;
 	}
 
-	threadpool_->wait();
-	BOOST_FOREACH(PathSetWorkerThread*work, STTLE_Storage)
-	{
-		if(work->hasPath)
-		{
-			if(work->s->path.begin()->roadSegment_->getStart()->getID() != work->ps->subTrip.fromLocation.node_->getID())
-			{
-				std::cerr << work->s->scenario << " path begins with " << work->s->path.begin()->roadSegment_->getStart()->getID() << " while pathset begins with " << work->ps->subTrip.fromLocation.node_->getID() << std::endl;
-				throw std::runtime_error("Mismatch");
-			}
-		}
-	}
+//	threadpool_->wait();
+//	BOOST_FOREACH(PathSetWorkerThread*work, STTLE_Storage)
+//	{
+//		if(work->hasPath)
+//		{
+//			if(work->s->path.begin()->roadSegment_->getStart()->getID() != work->ps->subTrip.fromLocation.node_->getID())
+//			{
+//				std::cerr << work->s->scenario << " path begins with " << work->s->path.begin()->roadSegment_->getStart()->getID() << " while pathset begins with " << work->ps->subTrip.fromLocation.node_->getID() << std::endl;
+//				throw std::runtime_error("Mismatch");
+//			}
+//		}
+//	}
 }
 
 int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &STTHBLE_Storage)
@@ -866,8 +855,8 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir.getTravelTimeImpl();
 	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->subTrip.fromLocation.node_);
 	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->subTrip.toLocation.node_);
-	StreetDirectory::Vertex* fromV = &from.source;
-	StreetDirectory::Vertex* toV = &to.sink;
+//	StreetDirectory::Vertex* fromV = &from.source;
+//	StreetDirectory::Vertex* toV = &to.sink;
 	int cnt  =0;
 	if(sinPathHightwayBias)
 	{
@@ -890,8 +879,8 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 				//introducing the profiling time accumulator
 				work->graph = &sttpImpl->drivingMap_HighwayBias_Distance;
 				work->segmentLookup = &sttpImpl->drivingSegmentLookup_HighwayBias_Distance_;
-				work->fromVertex = fromV;
-				work->toVertex = toV;
+				work->fromVertex = from.source;
+				work->toVertex = to.sink;
 				work->fromNode = ps->subTrip.fromLocation.node_;
 				work->toNode = ps->subTrip.toLocation.node_;
 				work->excludeSeg = blackList;
@@ -910,18 +899,18 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 	{
 		std::cerr << "Nothing supplied to threadpool-STTH" << std::endl;
 	}
-	threadpool_->wait();
-	BOOST_FOREACH(PathSetWorkerThread*work, STTHBLE_Storage)
-	{
-		if(work->hasPath)
-		{
-			if(work->s->path.begin()->roadSegment_->getStart()->getID() != work->ps->subTrip.fromLocation.node_->getID())
-			{
-				std::cerr << work->s->scenario << " path begins with " << work->s->path.begin()->roadSegment_->getStart()->getID() << " while pathset begins with " << work->ps->subTrip.fromLocation.node_->getID() << std::endl;
-				throw std::runtime_error("Mismatch");
-		}
-		}
-	}
+//	threadpool_->wait();
+//	BOOST_FOREACH(PathSetWorkerThread*work, STTHBLE_Storage)
+//	{
+//		if(work->hasPath)
+//		{
+//			if(work->s->path.begin()->roadSegment_->getStart()->getID() != work->ps->subTrip.fromLocation.node_->getID())
+//			{
+//				std::cerr << work->s->scenario << " path begins with " << work->s->path.begin()->roadSegment_->getStart()->getID() << " while pathset begins with " << work->ps->subTrip.fromLocation.node_->getID() << std::endl;
+//				throw std::runtime_error("Mismatch");
+//		}
+//		}
+//	}
 }
 
 
@@ -940,15 +929,15 @@ int sim_mob::PathSetManager::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps
 			std::cout << "Invalid VertexDesc\n";
 			continue;
 		}
-		StreetDirectory::Vertex* fromV = &from.source;
-		StreetDirectory::Vertex* toV = &to.sink;
+//		StreetDirectory::Vertex* fromV = &from.source;
+//		StreetDirectory::Vertex* toV = &to.sink;
 		PathSetWorkerThread *work = new PathSetWorkerThread();
 		//introducing the profiling time accumulator
 		//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
 		work->graph = &sttpImpl->drivingMap_Random_pool[i];
 		work->segmentLookup = &sttpImpl->drivingSegmentLookup_Random_pool[i];
-		work->fromVertex = fromV;
-		work->toVertex = toV;
+		work->fromVertex = from.source;
+		work->toVertex = to.sink;
 		work->fromNode = ps->subTrip.fromLocation.node_;
 		work->toNode = ps->subTrip.toLocation.node_;
 		work->ps = ps;
@@ -964,18 +953,18 @@ int sim_mob::PathSetManager::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps
 	{
 		std::cerr << "Nothing supplied to threadpool-TTRP" << std::endl;
 	}
-	threadpool_->wait();
-	BOOST_FOREACH(PathSetWorkerThread*work, RandPertStorage)
-	{
-		if(work->hasPath)
-		{
-			if(work->s->path.begin()->roadSegment_->getStart()->getID() != work->ps->subTrip.fromLocation.node_->getID())
-			{
-				std::cerr << work->s->scenario << " path begins with " << work->s->path.begin()->roadSegment_->getStart()->getID() << " while pathset begins with " << work->ps->subTrip.fromLocation.node_->getID() << std::endl;
-				throw std::runtime_error("Mismatch");
-			}
-		}
-	}
+//	threadpool_->wait();
+//	BOOST_FOREACH(PathSetWorkerThread*work, RandPertStorage)
+//	{
+//		if(work->hasPath)
+//		{
+//			if(work->s->path.begin()->roadSegment_->getStart()->getID() != work->ps->subTrip.fromLocation.node_->getID())
+//			{
+//				std::cerr << work->s->scenario << " path begins with " << work->s->path.begin()->roadSegment_->getStart()->getID() << " while pathset begins with " << work->ps->subTrip.fromLocation.node_->getID() << std::endl;
+//				throw std::runtime_error("Mismatch");
+//			}
+//		}
+//	}
 }
 
 
@@ -1018,7 +1007,8 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	//K-SHORTEST PATH
 	Print() << "[" << fromToID << "][K-SHORTEST PATH] " << fromToID << std::endl;
 	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> KSP_Storage;//main storage for k-shortest path
-	genK_ShortestPath(ps, KSP_Storage);
+	threadpool_->enqueue(boost::bind(&PathSetManager::genK_ShortestPath, this, ps, KSP_Storage));
+//	genK_ShortestPath(ps, KSP_Storage);
 
 	std::vector<std::vector<PathSetWorkerThread*> > mainStorage = std::vector<std::vector<PathSetWorkerThread*> >();
 	// SHORTEST DISTANCE LINK ELIMINATION
@@ -1040,6 +1030,8 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	Print() << "[" << fromToID << "][RANDOM]\n";
 	std::vector<PathSetWorkerThread*> randPertStorage;
 	genRandPert(ps,randPertStorage);
+
+	threadpool_->wait();
 
 
 	//record

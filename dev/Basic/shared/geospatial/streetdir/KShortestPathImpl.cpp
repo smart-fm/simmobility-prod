@@ -59,8 +59,8 @@ public:
 	bool insert(double length, std::vector<sim_mob::WayPoint> & path)
 	{
 		{
-			//this block is a modificatioj to Ye's algorithm to discard the duplicates in the candidate paths' list
-			//todo: optimiza this duplicate search
+			//this block is a modification to Yen's algorithm to discard the duplicates in the candidate paths' list
+			//todo: optimize this duplicate search
 			pathIt it = std::find(paths.begin(), paths.end(), path);
 			if(it != paths.end())
 			{

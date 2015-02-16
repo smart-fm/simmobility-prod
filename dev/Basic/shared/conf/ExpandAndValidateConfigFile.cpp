@@ -220,11 +220,15 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 
 	if(ConfigManager::GetInstance().FullConfig().pathSet().mode == "generation")
 	{
+		std::cout << "bulk profiler start: " << std::endl;
+		sim_mob::Profiler t("bulk profiler start", true);
 		//	This mode can be executed in the main function also but we need the street directory to be initialized first
 		//	to be least intrusive to the rest of the code, we take a safe approach and run this mode from here, although a lot of
 		//	unnecessary code will be executed.
 		sim_mob::PathSetManager::getInstance()->bulkPathSetGenerator();
-		Print() << "Bulk Generation Done\n";
+		std::cout << "bulk profiler end: " << std::endl;
+		boost::chrono::microseconds k = t.tick();
+		Print() << "Bulk Generation Done " << k.count() << std::endl;
 		exit(1);
 	}
 

@@ -50,33 +50,50 @@ class BType
 	};
 	std::list<std::vector<sim_mob::WayPoint> > paths;
 	std::vector<Pair> keys;
+
 public:
 	BType(){
 		clear();
 	}
-	void insert(double length, std::vector<sim_mob::WayPoint> & path)
+
+	bool insert(double length, std::vector<sim_mob::WayPoint> & path)
 	{
+		{
+			//this block is a modificatioj to Ye's algorithm to discard the duplicates in the candidate paths' list
+			//todo: optimiza this duplicate search
+			pathIt it = std::find(paths.begin(), paths.end(), path);
+			if(it != paths.end())
+			{
+				return false;
+			}
+		}
 		pathIt it = paths.insert(paths.end(),path);
 		keys.push_back(std::make_pair(length, it));
+		return true;
 	}
+
 	bool empty()
 	{
 		return keys.empty();
 	}
+
 	int size()
 	{
 		return keys.size();
 	}
+
 	void clear()
 	{
 		paths.clear();
 		keys.clear();
 	}
+
 	void sort()
 	{
 		std::sort(keys.begin(), keys.end(),comp());
 	}
-	const std::vector<sim_mob::WayPoint>& get()
+
+	const std::vector<sim_mob::WayPoint>& getBegin()
 	{
 		if(empty() || !size())
 		{
@@ -84,6 +101,7 @@ public:
 		}
 		return *(keys.begin()->second);
 	}
+
 	void eraseBegin()
 	{
 		paths.erase(keys.begin()->second);
@@ -141,25 +159,27 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 			const sim_mob::Node *SpurNode = nextRootPathLink.roadSegment_->getStart();
 			//	Find links whose EndNode = SpurNode, and block them.
 			getEndSegments(SpurNode,BL);//find and store in the blacklist
-			//	For each path Cj in path list C:
-			for(int j = 0; j < C.size(); j++)
+			if(nextRootPathLink.roadSegment_->getStart() == nextRootPathLink.roadSegment_->getLink()->getStart())//this line('if' condition only, not the if block) is an optimization to HE's pseudo code to bypass uninodes
 			{
-				//Block link Cj[i].
-				BL.insert(C[j][i].roadSegment_);
-			}
-			//Find shortest path from SpurNode to D, and store it as SpurPath.
-			std::vector<sim_mob::WayPoint> SpurPath,temp;
-			temp = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*SpurNode),stdir->DrivingVertex(*to),BL_VECTOR(BL));
-			sim_mob::SinglePath::filterOutNodes(temp,SpurPath);
-			std::vector<sim_mob::WayPoint> TotalPath = std::vector<sim_mob::WayPoint>();
-			if(validatePath(RootPath, SpurPath))
-			{
-				//	Set TotalPath = RootPath + SpurPath.
-				TotalPath.insert(TotalPath.end(), RootPath.begin(),RootPath.end());
-				TotalPath.insert(TotalPath.end(), SpurPath.begin(), SpurPath.end());
-				//	Add TotalPath to path list B.
-				B.insert(sim_mob::generateSinglePathLength(TotalPath),TotalPath);
-
+				//	For each path Cj in path list C:
+				for(int j = 0; j < C.size(); j++)
+				{
+					//Block link Cj[i].
+					BL.insert(C[j][i].roadSegment_);
+				}
+				//Find shortest path from SpurNode to D, and store it as SpurPath.
+				std::vector<sim_mob::WayPoint> SpurPath,temp;
+				temp = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*SpurNode),stdir->DrivingVertex(*to),BL_VECTOR(BL));
+				sim_mob::SinglePath::filterOutNodes(temp,SpurPath);
+				std::vector<sim_mob::WayPoint> TotalPath = std::vector<sim_mob::WayPoint>();
+				if(validatePath(RootPath, SpurPath))
+				{
+					//	Set TotalPath = RootPath + SpurPath.
+					TotalPath.insert(TotalPath.end(), RootPath.begin(),RootPath.end());
+					TotalPath.insert(TotalPath.end(), SpurPath.begin(), SpurPath.end());
+					//	Add TotalPath to path list B.
+					B.insert(sim_mob::generateSinglePathLength(TotalPath),TotalPath);
+				}
 			}
 			//	For each path Cj in path list C:
 			for(int j = 0; j < C.size(); j++)
@@ -185,7 +205,7 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 		//	Sort path list B by path weight.
 		B.sort();
 		//	Add B[0] to path list A, and delete it from path list B.
-		const std::vector<sim_mob::WayPoint> & B0 = B.get();
+		const std::vector<sim_mob::WayPoint> & B0 = B.getBegin();
 
 		A.push_back(B0);
 		B.eraseBegin();
@@ -205,6 +225,7 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 		}
 	}//while
 	//	The final path list A contains the K shortest paths (if possible) from O to D.
+	std::cout << "Created " << A.size() << " K shortest paths\n";
 	return A.size();
 }
 

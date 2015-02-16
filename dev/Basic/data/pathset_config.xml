@@ -5,9 +5,9 @@
 	<pathset_database database="fm_local_path_choice"  credentials="fm_local_path_choice" /> <!--unused for now-->
 	<tables singlepath_table="path_fake" realtime_traveltime="realtime_travel_time" default_traveltime = "link_default_travel_time_corrected_he_v2"/>
 	<functions pathset="get_path_set_fake" travel_time="upsert_realtime" />
-	<travel_time_update interval="600" alpha="0.5" />
+	<travel_time_update interval="300" alpha="0.5" />
 	<recursive_pathset_generation value="true" />
-	<reroute_enabled value="true" />
+	<reroute_enabled value="false" />
 	<subtrip_travel_metrics_output enabled="true" file="subtrip_level_travel_metrics_for_preday.csv" />    	
 	<utility_parameters>
 		<bTTVOT value="-0.01373"/>

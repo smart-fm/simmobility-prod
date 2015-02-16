@@ -708,7 +708,7 @@ int sim_mob::PathSetManager::genK_ShortestPath(boost::shared_ptr<sim_mob::PathSe
 //		if(it_id == duplicateChecker.end())
 		{
 			std::stringstream out("");
-			out << ps->scenario << "KSP-" << i;
+			out << ps->scenario << "KSHP-" << i;
 			sim_mob::SinglePath *s = new sim_mob::SinglePath();
 			// fill data
 			s->isNeedSave2DB = true;
@@ -1020,8 +1020,7 @@ bool sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::
 	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> KSP_Storage;//main storage for k-shortest path
 	genK_ShortestPath(ps, KSP_Storage);
 
-	std::vector<std::vector<PathSetWorkerThread*> > mainStorage;
-
+	std::vector<std::vector<PathSetWorkerThread*> > mainStorage = std::vector<std::vector<PathSetWorkerThread*> >();
 	// SHORTEST DISTANCE LINK ELIMINATION
 	Print() << "[" << fromToID << "][SHORTEST DISTANCE LINK ELIMINATION]\n";
 	std::vector<PathSetWorkerThread*> SDLE_Storage;

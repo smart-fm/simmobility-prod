@@ -307,7 +307,7 @@ void HM_Model::startImpl()
 
 
 	//
-	//Create real-estate agents. Their tasks are to sell units from the developper model.
+	//Create real-estate agents. Their tasks are to sell units from the developer model.
 	//
 	std::vector<RealEstateAgent*> realEstateAgents;
 	for( int i = 0; i < numWorkers ; i++ )

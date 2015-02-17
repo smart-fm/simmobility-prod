@@ -152,6 +152,7 @@
 	    <InitialHouseholdsOnMarket value="10000"/>
 	    <vacantUnitActivationProbability value="0.375"/>
 	    <housingMarketSearchPercentage value="0.15"/>
+	    <housingMoveInDaysInterval value="30"/>
         </housingModel>
     </longTermParams>
   

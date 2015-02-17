@@ -64,6 +64,7 @@ struct LongTermParams{
 		float vacantUnitActivationProbability;
 		int initialHouseholdsOnMarket;
 		float housingMarketSearchPercentage;
+		float housingMoveInDaysInterval;
 	} housingModel;
 };
 

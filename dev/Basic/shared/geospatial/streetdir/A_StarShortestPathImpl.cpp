@@ -161,9 +161,9 @@ void sim_mob::A_StarShortestPathImpl::initDrivingNetworkNew(const vector<Link*>&
     }
 
     //Now add BusStops (this mutates the network slightly, by segmenting Edges where a BusStop is located).
-//    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-//    	procAddDrivingBusStops(drivingMap_, (*iter)->getSegments(), nodeLookup, drivingBusStopLookup_, drivingSegmentLookup_);
-//    }
+    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
+    	procAddDrivingBusStops(drivingMap_, (*iter)->getSegments(), nodeLookup, drivingBusStopLookup_, drivingSegmentLookup_);
+    }
 
     //Finally, add our "master" node vertices
     procAddStartNodesAndEdges(drivingMap_, nodeLookup, drivingNodeLookup_);
@@ -278,7 +278,6 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingNodes(StreetDirectory::Graph
 	}
 }
 
-
 void sim_mob::A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Graph& graph, const vector<RoadSegment*>& roadway, const map<const Node*, VertexLookup>& nodeLookup, std::map<const BusStop*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> >& resLookup, std::map<const RoadSegment*, std::set<StreetDirectory::Edge> >& resSegLookup)
 {
 	//Skip empty roadways
@@ -309,49 +308,18 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Gr
 				boost::get(boost::vertex_name, graph, fromVertex),
 				boost::get(boost::vertex_name, graph, toVertex)
 			);
-			Point2D newSegPt;
 
-			//For now, this is optional.
-			try {
-				newSegPt = normal_intersect(bstopPoint, roadSegVec);
-			} catch (std::exception& ex) {
-				Warn() <<"Normal intersection could not be found for bus stop: " <<bstop->id <<std::endl
-				       <<ex.what() <<std::endl;
-				continue;
-			}
-
-			//Note that, in terms of "segmenting", we can either *actually* split the segment, or we can add
-			//  a second, segmented version of the Road Segment on top of the original. This is helpful in terms
-			//  of allowing us to "add on" additional data without requiring a collation function, but it means
-			//  that we will need master nodes for Bus Stops (to prevent U-turns). (Actually, preventing U-turns will
-			//  likely necessitate a master node anyway). In addition, this might make the network confusing to view.
-			//We choose to "add a layer" to the network, since modifying the data directly makes it harder to
-			//  find the same Segment later (we'd need a "lookup" structure for segments, which becomes difficult to maintain).
-
-			//This node has no associated "lookup" or "original" values, since it's artificial.
 			StreetDirectory::Vertex midV = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
-			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), midV, newSegPt);
-
-			//Add the BusStop vertex. This node is unique per BusStop per SEGMENT, since it allows a loopback.
-			//For  now, it makes no sense to put a path to the Bus Stop on the reverse segment (cars need to park on
-			// the correct side of the road), but for path finding we might want to consider it later.
-			StreetDirectory::Vertex busSrcV = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
-			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), busSrcV, bstopPoint);
-
-			StreetDirectory::Vertex busSinkV = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
-			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), busSinkV, bstopPoint);
+			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), midV, bstopPoint);
 
 			//Add the Bus vertex to a lookup
 			if (resLookup.count(bstop)>0) {
 				throw std::runtime_error("Duplicate Bus Stop in lookup.");
 			}
-			resLookup[bstop] = std::make_pair(busSrcV, busSinkV);
+			resLookup[bstop] = std::make_pair(midV, midV);
 
 			//Add the new route. (from->mid->bus; bus->mid->to)
 			StreetDirectory::Edge e1 = AddSimpleEdge(graph, fromVertex, midV, WayPoint(rs));
-			AddSimpleEdge(graph, midV, busSinkV, WayPoint(bstop));
-
-			AddSimpleEdge(graph, busSrcV, midV, WayPoint(bstop));
 			StreetDirectory::Edge e2 = AddSimpleEdge(graph, midV, toVertex, WayPoint(rs));
 
 			//Save them in our lookup.

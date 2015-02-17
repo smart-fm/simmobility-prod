@@ -12,6 +12,8 @@
 #include "entities/roles/Role.hpp"
 #include "entities/misc/BusTrip.hpp"
 #include "geospatial/BusStop.hpp"
+#include "geospatial/Link.hpp"
+#include "geospatial/aimsun/Loader.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/LangHelpers.hpp"
@@ -188,6 +190,151 @@ void sim_mob::BusController::dynamicalGenerateAgent(unsigned int preTicks, unsig
 	}
 }
 
+struct RouteInfo{
+	std::string line;
+	unsigned int id;
+	unsigned int index;
+	std::string start;
+	std::string end;
+	unsigned int startPosX;
+	unsigned int startPosY;
+	unsigned int endPosX;
+	unsigned int endPosY;
+};
+struct StopInfo{
+	std::string line;
+	unsigned int id;
+	unsigned int posX;
+	unsigned int posY;
+	int index;
+};
+
+static int amount = 0;
+static int amountFailed =0;
+static std::deque<RouteInfo> allRoutes;
+static std::deque<StopInfo> allStops;
+
+void searchBusRoutes(const vector<const BusStop*>& stops,
+		const std::string& busline) {
+	//calculate bus route
+	const BusStop* start = nullptr;
+	const BusStop* end = nullptr;
+	const BusStop* nextEnd = nullptr;
+	bool firstFound = true;
+	if (stops.size() > 0) {
+		start = nullptr;
+		end = nullptr;
+		nextEnd = nullptr;
+		std::deque<RouteInfo> routeIDs;
+		std::deque<StopInfo> stopIDs;
+		for (int k = 0; k < stops.size(); k++) {
+			firstFound = false;
+			const BusStop* busStop = stops[k];
+			if (k == 0) {
+				start = busStop;
+				StopInfo stopInfo;
+				stopInfo.id = boost::lexical_cast<unsigned int>(
+						start->getBusstopno_());
+				stopInfo.line = busline;
+				stopInfo.posX = start->xPos;
+				stopInfo.posY = start->yPos;
+				stopIDs.push_back(stopInfo);
+			} else {
+				end = busStop;
+
+				const RoadSegment* beginRoad = nullptr;
+				const RoadSegment* endRoad = nullptr;
+				const StreetDirectory& stdir = StreetDirectory::instance();
+				StreetDirectory::VertexDesc startDes = stdir.DrivingVertex(
+						*start);
+				StreetDirectory::VertexDesc endDes = stdir.DrivingVertex(*end);
+				vector<WayPoint> path;
+				if (start->getParentSegment() == end->getParentSegment()) {
+					path.push_back(WayPoint(start->getParentSegment()));
+				} else {
+					path = stdir.SearchShortestDrivingPath(startDes, endDes);
+				}
+
+				int sectionNum = 0;
+				for (std::vector<WayPoint>::const_iterator it = path.begin();
+						it != path.end(); it++) {
+					if (it->type_ == WayPoint::ROAD_SEGMENT) {
+						unsigned int id =
+								(*it).roadSegment_->getSegmentAimsunId();
+						if (routeIDs.size() == 0 || routeIDs.back().id != id) {
+							RouteInfo route;
+							route.id = id;
+							route.start = start->getBusstopno_();
+							route.end = end->getBusstopno_();
+							route.startPosX = start->xPos;
+							route.startPosY = start->yPos;
+							route.endPosX = end->xPos;
+							route.endPosY = end->yPos;
+							routeIDs.push_back(route);
+						}
+						sectionNum++;
+						firstFound = true;
+					}
+				}
+
+				if (!firstFound) {
+					std::cout << "can not find bus route in busline:" << busline
+							<< " start stop:" << start->getBusstopno_()
+							<< "  end stop:" << end->getBusstopno_()
+							<< " failed : " << amountFailed << std::endl;
+					routeIDs.clear();
+					stopIDs.clear();
+					amountFailed++;
+					break;
+				} else {
+					StopInfo stopInfo;
+					stopInfo.id = boost::lexical_cast<unsigned int>(
+							end->getBusstopno_());
+					stopInfo.line = busline;
+					stopInfo.posX = end->xPos;
+					stopInfo.posY = end->yPos;
+					stopIDs.push_back(stopInfo);
+				}
+
+				start = end;
+			}
+		}
+
+		if (routeIDs.size() > 0 && stopIDs.size() > 0) {
+			int index = 0;
+			for (std::deque<RouteInfo>::const_iterator it = routeIDs.begin();
+					it != routeIDs.end(); it++) {
+				RouteInfo routeInfo;
+				routeInfo.line = busline;
+				routeInfo.id = it->id;
+				routeInfo.start = it->start;
+				routeInfo.end = it->end;
+				routeInfo.startPosX = it->startPosX;
+				routeInfo.startPosY = it->startPosY;
+				routeInfo.endPosX = it->endPosX;
+				routeInfo.endPosY = it->endPosY;
+				routeInfo.index = index;
+				allRoutes.push_back(routeInfo);
+				index++;
+			}
+
+			index = 0;
+			for (std::deque<StopInfo>::const_iterator it = stopIDs.begin();
+					it != stopIDs.end(); it++) {
+				StopInfo stopInfo;
+				stopInfo.line = it->line;
+				stopInfo.id = it->id;
+				stopInfo.index = index;
+				stopInfo.posX = it->posX;
+				stopInfo.posY = it->posY;
+				allStops.push_back(stopInfo);
+				index++;
+			}
+			amount++;
+		}
+	}
+}
+
 void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatch_freq>& busdispatch_freq)
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
@@ -198,6 +345,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 	bool busstop_busline_registered=false;
 	// record the last dispatching time
 	DailyTime lastBusDispatchTime;
+
 	for (vector<sim_mob::PT_bus_dispatch_freq>::const_iterator curr=busdispatch_freq.begin(); curr!=busdispatch_freq.end(); curr++) {
 		vector<sim_mob::PT_bus_dispatch_freq>::const_iterator next = curr+1;
 
@@ -258,14 +406,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 			}
 
 			if(busstop_busline_registered){
-
-				/*if(curr->route_id.find("10_1")==string::npos){
-					continue;
-				}*/
-
-				//std::cout << "busline:" << busline->getBusLineID() << " stop size:"<<stops.size()<<std::endl;
-				//std::cout << "busline:" << busline->getBusLineID() << " segments size:"<<segments.size()<<std::endl;
-
+				searchBusRoutes(stops, curr->route_id);
 			}
 
 			//Our algorithm expects empty vectors in some cases.
@@ -280,7 +421,6 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 			  }
 		     busstop_busline_registered = false;
 			}
-
 			if(bustrip.setBusRouteInfo(segments, stops)) {
 				busline->addBusTrip(bustrip);
 			}
@@ -288,6 +428,31 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 		}
 	}
 
+	std::cout << "***************************total generated bus lines is " << amount << std::endl;
+	std::cout << "---------------------------total failed bus lines is " << amountFailed << std::endl;
+	std::ofstream outputRoutes("routes.csv");
+	for (std::deque<RouteInfo>::const_iterator it =
+			allRoutes.begin(); it != allRoutes.end(); it++) {
+		if (outputRoutes.is_open()){
+			outputRoutes << it->line << ","
+					<< it->index << ","
+					<< it->id
+					<< std::endl;
+		}
+	}
+	outputRoutes.close();
+
+	std::ofstream outputStop("stops.csv");
+	for (std::deque<StopInfo>::const_iterator it =
+			allStops.begin(); it != allStops.end(); it++) {
+		if (outputStop.is_open()){
+			outputStop << it->line << ","
+					<< it->id << ","
+					<< it->index
+					<< std::endl;
+		}
+	}
+	outputStop.close();
 }
 
 

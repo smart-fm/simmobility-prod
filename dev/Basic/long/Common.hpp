@@ -33,9 +33,8 @@ namespace sim_mob {
             // Events for HousingMarket
             // housing market action (unit was ADDED, REMOVED or UPDATED )
             LTEID_HM_UNIT_ADDED,
-            LTEID_HM_UNIT_REMOVED,
             LTEID_HM_BUILDING_ADDED,
-            LTEID_HM_BUILDING_REMOVED,
+            LTEID_HM_UNIT_READY_FOR_SALE,
             
             // External Events
             LTEID_EXT_NEW_JOB,
@@ -44,6 +43,56 @@ namespace sim_mob {
             LTEID_EXT_NEW_CHILD,
             LTEID_EXT_NEW_SCHOOL_LOCATION,
             LTEID_EXT_ZONING_RULE_CHANGE,
+
+            //developer agent events
+            LTEID_DEV_UNIT_ADDED,
+            LTEID_DEV_BUILDING_ADDED,
+            LTEID_DEV_PROJECT_ADDED,
+
+            //developer model status changes events for developer agent
+            //units
+            LT_STATUS_ID_DEV_UNIT_NOT_LAUNCHED,
+            LT_STATUS_ID_DEV_UNIT_LAUNCHED_BUT_UNSOLD,
+            LT_STATUS_ID_DEV_UNIT_LAUNCHED_AND_SOLD,
+            LT_STATUS_ID_DEV_UNIT_NOT_READY_FOR_OCCUPANCY,
+            LT_STATUS_ID_DEV_UNIT_READY_FOR_OCCUPANCY_AND_VACANT,
+            LT_STATUS_ID_DEV_UNIT_READY_FOR_OCCUPANCY_AND_OCCUPIED,
+            LT_STATUS_ID_DEV_UNIT_PLANNED,
+            LT_STATUS_ID_DEV_UNIT_UNDER_CONSTRUCTION,
+            LT_STATUS_ID_DEV_UNIT_CONSTRUCTION_COMPLETED,
+            LT_STATUS_ID_DEV_UNIT_DEMOLISHED,
+            //building status changes
+            LT_STATUS_ID_DEV_BUILDING_UNCOMPLETED_WITHOUT_PREREQUISITES,
+            LT_STATUS_ID_DEV_BUILDING_UNCOMPLETED_WITH_PREREQUISITES,
+            LT_STATUS_ID_DEV_BUILDING_NOT_LAUNCHED,
+            LT_STATUS_ID_DEV_BUILDING_LAUNCHED_BUT_UNSOLD,
+            LT_STATUS_ID_DEV_BUILDING_LAUNCHED_AND_SOLD,
+            LT_STATUS_ID_DEV_COMPLETED_WITH_PREREQUISITES,
+            LT_STATUS_ID_DEV_BUILDING_DEMOLISHED,
+
+            //developer model status changes events for housing market
+            //units
+            LT_STATUS_ID_HM_UNIT_NOT_LAUNCHED,
+            LT_STATUS_ID_HM_UNIT_LAUNCHED_BUT_UNSOLD,
+            LT_STATUS_ID_HM_UNIT_ST_LAUNCHED_AND_SOLD,
+            LT_STATUS_ID_HM_UNIT_NOT_READY_FOR_OCCUPANCY,
+            LT_STATUS_ID_HM_UNIT_READY_FOR_OCCUPANCY_AND_VACANT,
+            LT_STATUS_ID_HM_UNIT_READY_FOR_OCCUPANCY_AND_OCCUPIED,
+            LT_STATUS_ID_HM_UNIT_PLANNED,
+            LT_STATUS_ID_HM_UNIT_UNDER_CONSTRUCTION,
+            LT_STATUS_ID_HM_UNIT_CONSTRUCTION_COMPLETED,
+            LT_STATUS_ID_HM_UNIT_DEMOLISHED,
+            //building status changes
+            LT_STATUS_ID_HM_BUILDING_UNCOMPLETED_WITHOUT_PREREQUISITES,
+            LT_STATUS_ID_HM_BUILDING_UNCOMPLETED_WITH_PREREQUISITES,
+            LT_STATUS_ID_HM_BUILDING_NOT_LAUNCHED,
+            LT_STATUS_ID_HM_BUILDING_LAUNCHED_BUT_UNSOLD,
+            LT_STATUS_ID_HM_BUILDING_LAUNCHED_AND_SOLD,
+            LT_STATUS_ID_HM_COMPLETED_WITH_PREREQUISITES,
+            LT_STATUS_ID_HM_BUILDING_DEMOLISHED,
+
+
+
         };
 
         /**

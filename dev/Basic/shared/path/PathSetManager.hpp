@@ -141,8 +141,9 @@ public:
 	 * @param res output path generated
 	 * @param excludedSegs input list segments to be excluded from the target set
 	 * @param isUseCache is using the cache allowed
+	 * @return number of paths generated
 	 */
-	bool generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD,OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs);
+	int generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD,OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs);
 
 	 void bulkPathSetGenerator();
 

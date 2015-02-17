@@ -81,7 +81,9 @@ public:
 	 *tick(true);
 	 *elapsed_time = getAddUp();
 	 */
-	boost::chrono::microseconds tick(bool addToTotal = false);
+
+	std::pair <boost::chrono::microseconds,
+	boost::chrono::microseconds> tick(bool addToTotal = false);
 	///	return the total(accumulated) time
 	boost::chrono::microseconds getAddUpTime();
 	///	acumulate some arbitrary number(Type uint32_t)

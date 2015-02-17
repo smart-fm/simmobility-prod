@@ -79,10 +79,19 @@ void sim_mob::SinglePath::init(std::vector<sim_mob::WayPoint>& wpPools)
 {
 	//step-1 fill in the path
 	filterOutNodes(wpPools, this->path);
+	//sanity check
 	if(this->path.empty())
 	{
-	   std::string err = "empty path for OD:" + this->pathSetId + "--"  + this->id;
-	   throw std::runtime_error(err);
+	   std::stringstream err("");
+	   err << "empty path [OD:" << this->pathSetId << "][PATH:"  << this->id << "][Graph Oputpout type chain:\n";
+		if(wpPools.size())
+		{
+			for(std::vector<sim_mob::WayPoint>::iterator it = wpPools.begin(); it != wpPools.end(); it++)
+			{
+				err << "[" << it->type_ << "," << it->node_ << "],";
+			}
+		}
+	   std::cerr << "[" << this->pathSetId << "] ERROR,IGNORED PATH:\n" << err.str() << std::endl;
 	}
 	//step-1.5 fill in the linkPath
 	{
@@ -247,11 +256,11 @@ void sim_mob::PathSet::excludeRoadSegment(const std::set<const sim_mob::RoadSegm
 	}
 }
 
-void sim_mob::PathSet::addOrDeleteSinglePath(sim_mob::SinglePath* s)
+short sim_mob::PathSet::addOrDeleteSinglePath(sim_mob::SinglePath* s)
 {
 	if(!s)
 	{
-		return;
+		return 0;
 	}
 	if(s->path.begin()->roadSegment_->getStart()->getID() != subTrip.fromLocation.node_->getID())
 	{
@@ -262,6 +271,7 @@ void sim_mob::PathSet::addOrDeleteSinglePath(sim_mob::SinglePath* s)
 	{
 		safe_delete_item(s);
 	}
+	return 1;
 }
 
 

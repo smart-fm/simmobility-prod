@@ -36,17 +36,6 @@ namespace TT
 	/*******************************************************************************
 	 * ************* In Simulation Travel Time Collection **************************
 	 *******************************************************************************/
-//	///	the heart of the final container holding accumulated travel time
-//	typedef std::map<TI,TimeAndCount > TITC;
-//
-//	/// part of the data structure used in travel time collection mechanism
-//	typedef std::map<std::string , TITC >  MTITC;//MTITC=> M:mode, TI:Time Interval, T:time, C:count
-//
-//	///	final container for collecting in simulation data:
-//	///	map[time interval][travel mode][road segment][pair(total-time , number-of-records)]
-//	typedef std::map<const sim_mob::RoadSegment*,MTITC> TravelTimeCollector;
-
-
 	///	the heart of the final container holding accumulated travel time
 	typedef std::map<const sim_mob::RoadSegment*,TimeAndCount > RSTC;
 
@@ -56,8 +45,6 @@ namespace TT
 	///	final container for collecting in simulation data:
 	///	map[time interval][travel mode][road segment][pair(total-time , number-of-records)]
 	typedef std::map<TI,MRTC> TravelTimeCollector;
-
-
 
 	/*******************************************************************************
 	 * ********** Average Travel Time Collection from previous Simulations *********

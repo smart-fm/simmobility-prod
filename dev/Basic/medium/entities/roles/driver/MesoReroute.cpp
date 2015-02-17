@@ -22,12 +22,12 @@ bool sim_mob::medium::MesoReroute::shouldReroute()
 	//	the current segment is a good candidate if it is the last segment
 	if(currSegment->getEnd() != currSegment->getLink()->getEnd())
 	{
-		 {
-			 std::stringstream fileName("");
-			 fileName << "reroute-" << dm.getParent()->getId() << &dm;
-			 sim_mob::BasicLogger &logger = sim_mob::Logger::log(fileName.str());
-			 logger << "No rerouting from " << currSegment->getEnd()->getID() << "\n";
-		 }
+//		 {
+//			 std::stringstream fileName("");
+//			 fileName << "reroute-" << dm.getParent()->getId() << &dm;
+//			 sim_mob::BasicLogger &logger = sim_mob::Logger::log(fileName.str());
+//			 logger << "No rerouting from " << currSegment->getEnd()->getID() << "\n";
+//		 }
 		//not the last segment
 		return false;
 	}
@@ -78,26 +78,26 @@ bool sim_mob::medium::MesoReroute::doReroute()
 		 traversed.insert((*(itPath))->getRoadSegment());
 	 }
 	 traversed.insert((*(itSS))->getRoadSegment());
-	 //debug
-	 	 std::stringstream fileName("");
-	 	 fileName << "reroute-" << dm.getParent()->getId() << &dm;
-	 	 sim_mob::BasicLogger &logger = sim_mob::Logger::log(fileName.str());
-	 //debug ..
+//	 //debug
+//	 	 std::stringstream fileName("");
+//	 	 fileName << "reroute-" << dm.getParent()->getId() << &dm;
+//	 	 sim_mob::BasicLogger &logger = sim_mob::Logger::log(fileName.str());
+//	 //debug ..
 	 //now check:
 	 for(std::vector<WayPoint>::iterator it = newWP_Path.begin(); it != newWP_Path.end(); it++)
 	 {
 		 if(traversed.find(it->roadSegment_) != traversed.end())
 		 {
-			 //debug
-			 logger.prof("discard").addUp(1);
-			 //debug ..
+//			 //debug
+//			 logger.prof("discard").addUp(1);
+//			 //debug ..
 			 return false;
 		 }
 	 }
-	 //debug
-	 logger << "Current Path: " << sim_mob::medium::MesoPathMover::printPath(dm.pathMover.getPath());
-	 logger << "Rerouting Point: " <<  currSegment->getEnd()->getID() << "\n";
-	 //debug...
+//	 //debug
+//	 logger << "Current Path: " << sim_mob::medium::MesoPathMover::printPath(dm.pathMover.getPath());
+//	 logger << "Rerouting Point: " <<  currSegment->getEnd()->getID() << "\n";
+//	 //debug...
 	 std::vector<const sim_mob::SegmentStats*> newSS_Path;
 	 //STEP-4:	prepend part of the path remaining to the rerouting point
 	while((*itSS)->getRoadSegment() == currSegment)
@@ -108,10 +108,10 @@ bool sim_mob::medium::MesoReroute::doReroute()
 	//	STEP:5 now append the new path
 	dm.initSegStatsPath(newWP_Path, newSS_Path);
 	dm.pathMover.setPath(newSS_Path);
-	//debug
-	logger << "New Path: " <<  sim_mob::medium::MesoPathMover::printPath(newSS_Path);
-	std::cout << "[" << this << "] New Path: " <<  sim_mob::medium::MesoPathMover::printPath(newSS_Path);
-	//debug...
+//	//debug
+//	logger << "New Path: " <<  sim_mob::medium::MesoPathMover::printPath(newSS_Path);
+//	std::cout << "[" << this << "] New Path: " <<  sim_mob::medium::MesoPathMover::printPath(newSS_Path);
+//	//debug...
 
 }
 

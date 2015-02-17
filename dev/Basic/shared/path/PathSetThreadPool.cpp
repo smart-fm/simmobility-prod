@@ -158,8 +158,8 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 			// fill data
 			s->isNeedSave2DB = true;
 			hasPath = true;
-			s->init(wps);
 			s->pathSetId = ps->id;
+			s->init(wps);
 			s->id = id;
 			s->scenario = ps->scenario + dbgStr;
 			s->pathSize = 0;

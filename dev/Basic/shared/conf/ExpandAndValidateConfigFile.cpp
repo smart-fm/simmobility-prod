@@ -227,7 +227,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 		//	unnecessary code will be executed.
 		sim_mob::PathSetManager::getInstance()->bulkPathSetGenerator();
 		std::cout << "bulk profiler end: " << std::endl;
-		boost::chrono::microseconds k = t.tick();
+		boost::chrono::microseconds k = t.tick().first;
 		Print() << "Bulk Generation Done " << k.count() << std::endl;
 		exit(1);
 	}

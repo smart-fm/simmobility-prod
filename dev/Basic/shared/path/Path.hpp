@@ -111,10 +111,8 @@ public:
 	 * eliminate those SinglePaths which have a section in the given set
 	 */
 	void excludeRoadSegment(const std::set<const sim_mob::RoadSegment*> & segs);
-	void addOrDeleteSinglePath(sim_mob::SinglePath* s);
+	short addOrDeleteSinglePath(sim_mob::SinglePath* s);
 	std::vector<WayPoint> *bestPath;  //best choice
-//	const sim_mob::Node *fromNode;
-//	const sim_mob::Node *toNode;
 	SinglePath* oriPath;  // shortest path with all segments
 	//std::map<std::string,sim_mob::SinglePath*> SinglePathPool;
 	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> pathChoices;

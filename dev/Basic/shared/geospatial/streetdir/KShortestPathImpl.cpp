@@ -225,7 +225,7 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 		}
 	}//while
 	//	The final path list A contains the K shortest paths (if possible) from O to D.
-	std::cout << "Created " << A.size() << " K shortest paths\n";
+	//std::cout << "Created " << A.size() << " K shortest paths\n";
 	return A.size();
 }
 

@@ -13,7 +13,6 @@
 #include "HouseholdAgent.hpp"
 #include "message/MessageBus.hpp"
 #include "model/HM_Model.hpp"
-#include "role/LT_Role.hpp"
 #include "role/impl/HouseholdBidderRole.hpp"
 #include "role/impl/HouseholdSellerRole.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
@@ -208,7 +207,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 {
 	day = now.frame();
 
-	if( now.frame() == 0 )
+	if( day == 0 )
 	{		
 		awakenHousehold();
 	}
@@ -229,7 +228,7 @@ void HouseholdAgent::onFrameOutput(timeslice now) {}
 
 void HouseholdAgent::onEvent(EventId eventId, Context ctxId, EventPublisher*, const EventArgs& args)
 {
-        processEvent(eventId, ctxId, args);
+	processEvent(eventId, ctxId, args);
 }
 
 void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArgs& args)

@@ -38,7 +38,7 @@ public:
 
 	/**
 	 * gets the SegmentStats* pointed by currSegStatIt in the path
-	 * @return contant pointer to SegmentStats corresponding to currSegStatIt
+	 * @return constant pointer to SegmentStats corresponding to currSegStatIt
 	 * 		or nullptr if currSegStatIt points to the end of the path
 	 */
 	const sim_mob::SegmentStats* getCurrSegStats() const;

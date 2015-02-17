@@ -27,8 +27,9 @@ void BusStopAgent::registerBusStopAgent(BusStopAgent* busstopAgent)
 
 BusStopAgent* BusStopAgent::findBusStopAgentByBusStop(const BusStop* busstop)
 {
-	try { return allBusstopAgents.at(busstop); }
-	catch (const std::out_of_range& oor) { return nullptr; }
+	BusStopAgentsMap::const_iterator stpAgIt = allBusstopAgents.find(busstop);
+	if(stpAgIt == allBusstopAgents.end()) { return nullptr; }
+	return stpAgIt->second;
 }
 
 void BusStopAgent::removeAllBusStopAgents()

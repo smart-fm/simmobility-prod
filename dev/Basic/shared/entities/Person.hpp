@@ -183,18 +183,6 @@ public:
 		this->remainingTimeThisTick = remainingTimeThisTick;
 	}
 
-	const std::vector<WayPoint>& getCurrPath() const {
-		return currPath;
-	}
-
-	void setCurrPath(const std::vector<WayPoint>& currPath) {
-		this->currPath = currPath;
-	}
-
-	void clearCurrPath() {
-		this->currPath.clear();
-	}
-
     const sim_mob::SegmentStats* requestedNextSegStats;  //Used by confluxes and movement facet of roles to move this person in the medium term
 
     enum Permission //to be renamed later
@@ -363,13 +351,10 @@ private:
     std::vector<TripChainItem*> tripChain;
 
     //to mark the first call to update function
-    bool first_update_tick;
+    bool firstTick;
 
     //Used by confluxes to move the person for his tick duration across link and sub-trip boundaries
     double remainingTimeThisTick;
-
-    friend class PartitionManager;
-    friend class BoundaryProcessor;
 
     std::string databaseID;
     // person's age
@@ -378,13 +363,14 @@ private:
     double boardingTimeSecs;
     // person's alighting time secs
     double alightingTimeSecs;
-    std::vector<WayPoint> currPath;
 
     // current lane and segment are needed for confluxes to track this person
 	const sim_mob::Lane* currLane;
 	const sim_mob::SegmentStats* currSegStats;
-
 	const sim_mob::Link* nextLinkRequired;
+
+    friend class PartitionManager;
+    friend class BoundaryProcessor;
 
 public:
 	virtual void pack(PackageUtils& packageUtil) CHECK_MPI_THROW;

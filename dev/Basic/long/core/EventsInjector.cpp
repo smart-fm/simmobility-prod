@@ -75,21 +75,31 @@ Entity::UpdateStatus EventsInjector::update(timeslice now)
     vector<ExternalEvent>::iterator it = events.begin();
 
     AgentsLookup& lookup = AgentsLookupSingleton::getInstance();
-    const HouseholdAgent* agent = nullptr;
-    const DeveloperAgent* devAgent = nullptr;
+    const HouseholdAgent* householdAgent = nullptr;
+    const DeveloperAgent* developerAgent = nullptr;
+    const RealEstateAgent* realEstateAgent = nullptr;
     for (it; it != events.end(); ++it)
     {
-    	devAgent = lookup.getDeveloperById(it->getDeveloperId());
-    	if(devAgent)
+    	developerAgent = lookup.getDeveloperAgentById(it->getDeveloperId());
+    	if(developerAgent)
     	{
-    		MessageBus::PublishEvent(toEventId(it->getType()), const_cast<DeveloperAgent*>(devAgent), MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
+    		MessageBus::PublishEvent(toEventId(it->getType()), const_cast<DeveloperAgent*>(developerAgent), MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
     	}
     	else
     	{
-			agent = lookup.getHouseholdById(it->getHouseholdId());
-			if (agent)
+			householdAgent = lookup.getHouseholdAgentById(it->getHouseholdId());
+			if (householdAgent)
 			{
-				MessageBus::PublishEvent(toEventId(it->getType()), const_cast<HouseholdAgent*>(agent), MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
+				MessageBus::PublishEvent(toEventId(it->getType()), const_cast<HouseholdAgent*>(householdAgent), MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
+			}
+			else
+			{
+				realEstateAgent = lookup.getRealEstateAgentById(it->getHouseholdId());
+				if (realEstateAgent)
+				{
+					MessageBus::PublishEvent(toEventId(it->getType()), const_cast<RealEstateAgent*>(realEstateAgent), MessageBus::EventArgsPtr(new ExternalEventArgs(*it)));
+				}
+
 			}
     	}
     }

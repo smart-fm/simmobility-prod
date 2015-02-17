@@ -4,6 +4,9 @@
 
 #include "ActivityFacets.hpp"
 #include "logging/Log.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 sim_mob::ActivityPerformerBehavior::ActivityPerformerBehavior(sim_mob::Person* parentAgent) :
 	BehaviorFacet(parentAgent), parentActivity(nullptr)
@@ -68,4 +71,14 @@ sim_mob::TravelMetric& sim_mob::ActivityPerformerMovement::finalizeTravelTimeMet
 	//getParent()->serializeCBD_Activity(travelMetric);
 	//travelMetric.finalized = true;
 	return  travelMetric;
+}
+
+sim_mob::Conflux* sim_mob::ActivityPerformerMovement::getStartingConflux() const
+{
+	const sim_mob::MultiNode* activityLocation = dynamic_cast<sim_mob::MultiNode*>(parentActivity->getLocation());
+	if(activityLocation) //activity locations must ideally be multinodes
+	{
+		return ConfigManager::GetInstanceRW().FullConfig().getConfluxForNode(activityLocation);
+	}
+	return nullptr;
 }

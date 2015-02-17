@@ -41,10 +41,12 @@ sim_mob::medium::BikerMovement::~BikerMovement() {}
 void sim_mob::medium::BikerMovement::frame_init()
 {
 	bool pathInitialized = initializePath();
-	if (pathInitialized) {
+	if (pathInitialized)
+	{
 		Vehicle* newVeh = new Vehicle(Vehicle::BIKE, BIKE_LENGTH);
 		VehicleBase* oldBus = parentBiker->getResource();
 		safe_delete_item(oldBus);
 		parentBiker->setResource(newVeh);
 	}
+	else { getParent()->setToBeRemoved(); }
 }

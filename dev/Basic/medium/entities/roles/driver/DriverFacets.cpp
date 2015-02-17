@@ -113,9 +113,7 @@ void sim_mob::medium::DriverMovement::frame_init() {
 		safe_delete_item(oldVehicle);
 		parentDriver->setResource(newVehicle);
 	}
-	else{
-		getParent()->setToBeRemoved();
-	}
+	else{ getParent()->setToBeRemoved(); }
 }
 
 void sim_mob::medium::DriverMovement::frame_tick() {
@@ -234,29 +232,26 @@ bool sim_mob::medium::DriverMovement::initializePath() {
 		}
 
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
-		vector<WayPoint> wp_path = person->getCurrPath();
-		if(wp_path.empty()){
-			// if use path set
-			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-				wp_path = PathSetManager::getInstance()->getPath(*(person->currSubTrip), false, nullptr);
-			}
-			else
-			{
-				const StreetDirectory& stdir = StreetDirectory::instance();
-				wp_path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
-			}
-			person->setCurrPath(wp_path);
+		vector<WayPoint> wp_path;
+		if (ConfigManager::GetInstance().FullConfig().PathSetMode()) // if use path set
+		{
+			wp_path = PathSetManager::getInstance()->getPath(*(person->currSubTrip), false, nullptr);
 		}
+		else
+		{
+			const StreetDirectory& stdir = StreetDirectory::instance();
+			wp_path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
+		}
+
 		//For now, empty paths aren't supported.
 		if (wp_path.empty()) {
 			Print()<<"Can't DriverMovement::initializePath(); path is empty for driver "  << person->GetId() << std::endl;
 			return false;
 		}
+
 		std::vector<const sim_mob::SegmentStats*> path;
 		initSegStatsPath(wp_path, path);
-		if(path.empty()) {
-			return false;
-		}
+		if(path.empty()) { return false; }
 		pathMover.setPath(path);
 		const sim_mob::SegmentStats* firstSegStat = path.front();
 		if(ConfigManager::GetInstance().FullConfig().pathSet().reroute)
@@ -1312,6 +1307,12 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 	pathsetLogger << "----------------------------------" << std::endl;
 	//debug...
 	getMesoPathMover().setPath(it->second);
+}
+
+sim_mob::Conflux* DriverMovement::getStartingConflux() const
+{
+	const sim_mob::SegmentStats* firstSegStats = pathMover.getCurrSegStats(); //first segstats of the remaining path.
+	return firstSegStats->getRoadSegment()->getParentConflux();
 }
 
 void DriverMovement::handleMessage(messaging::Message::MessageType type, const messaging::Message& message)

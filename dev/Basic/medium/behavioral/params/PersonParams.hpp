@@ -23,6 +23,16 @@ public:
 	PersonParams();
 	virtual ~PersonParams();
 
+	const std::string& getHhId() const
+	{
+		return hhId;
+	}
+
+	void setHhId(const std::string& hhId)
+	{
+		this->hhId = hhId;
+	}
+
 	int getAgeId() const {
 		return ageId;
 	}
@@ -349,8 +359,19 @@ public:
 		this->dptLogsum = dptLogsum;
 	}
 
+	double getDpbLogsum() const
+	{
+		return dpbLogsum;
+	}
+
+	void setDpbLogsum(double dpbLogsum)
+	{
+		this->dpbLogsum = dpbLogsum;
+	}
+
 private:
 	std::string personId;
+	std::string hhId;
 	int personTypeId;
 	int ageId;
 	int isUniversityStudent;
@@ -382,6 +403,7 @@ private:
 	double otherLogSum;
 	double dptLogsum;
 	double dpsLogsum;
+	double dpbLogsum;
 
 	/**
 	 * Time windows availability for the person.

@@ -26,7 +26,7 @@ PredayCalibrationParams::PredayCalibrationParams() :
 {}
 
 MT_Config::MT_Config() :
-		pedestrianWalkSpeed(0), numPredayThreads(0), configSealed(false), outputTripchains(false),
+		pedestrianWalkSpeed(0), numPredayThreads(0), configSealed(false), fileOutputEnabled(false),
 		consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA),
 		logsumComputationFrequency(0), supplyUpdateInterval(0), activityScheduleLoadInterval(0), busCapacity(0),
 		outputPredictions(false)
@@ -55,6 +55,7 @@ void MT_Config::setPredayRunMode(const std::string runMode)
 		if(runMode == "simulation") { predayRunMode = MT_Config::SIMULATION; }
 		else if(runMode == "logsum") { predayRunMode = MT_Config::LOGSUM_COMPUTATION; }
 		else if(runMode == "calibration") { predayRunMode = MT_Config::CALIBRATION; }
+		else if(runMode == "lt_logsum") { predayRunMode = MT_Config::LOGSUM_COMPUTATION_LT; }
 		else { throw std::runtime_error("Inadmissible value for preday run_mode"); }
 	}
 }
@@ -184,16 +185,16 @@ const PredayCalibrationParams& MT_Config::getWSPSA_CalibrationParams() const
 	return wspsaCalibrationParams;
 }
 
-bool MT_Config::isOutputTripchains() const
+bool MT_Config::isFileOutputEnabled() const
 {
-	return outputTripchains;
+	return fileOutputEnabled;
 }
 
-void MT_Config::setOutputTripchains(bool outputTripchains)
+void MT_Config::setFileOutputEnabled(bool outputTripchains)
 {
 	if(!configSealed)
 	{
-		this->outputTripchains = outputTripchains;
+		this->fileOutputEnabled = outputTripchains;
 	}
 }
 
@@ -236,6 +237,11 @@ bool MT_Config::runningPredayCalibration() const
 bool MT_Config::runningPredayLogsumComputation() const
 {
 	return (predayRunMode == MT_Config::LOGSUM_COMPUTATION);
+}
+
+bool MT_Config::runningPredayLogsumComputationForLT() const
+{
+	return (predayRunMode == MT_Config::LOGSUM_COMPUTATION_LT);
 }
 
 bool MT_Config::runningSPSA() const

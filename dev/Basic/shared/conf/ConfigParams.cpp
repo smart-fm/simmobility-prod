@@ -524,3 +524,10 @@ const std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& sim_mob::ConfigPar
 {
 	return multinode_confluxes;
 }
+
+sim_mob::Conflux* sim_mob::ConfigParams::getConfluxForNode(const sim_mob::MultiNode* multinode) const
+{
+	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>::const_iterator cfxIt = multinode_confluxes.find(multinode);
+	if(cfxIt == multinode_confluxes.end()) { return nullptr; }
+	return cfxIt->second;
+}

@@ -46,9 +46,10 @@ sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePa
 
 std::string getFromToString(const sim_mob::Node* fromNode,const sim_mob::Node* toNode ){
 	std::stringstream out("");
-	std::string idStrTo = toNode->originalDB_ID.getLogItem();
-	std::string idStrFrom = fromNode->originalDB_ID.getLogItem();
-	out << Utils::getNumberFromAimsunId(idStrFrom) << "," << Utils::getNumberFromAimsunId(idStrTo);
+//	std::string idStrTo = toNode->originalDB_ID.getLogItem();
+//	std::string idStrFrom = fromNode->originalDB_ID.getLogItem();
+//	out << Utils::getNumberFromAimsunId(idStrFrom) << "," << Utils::getNumberFromAimsunId(idStrTo);
+	out << fromNode->getID()  << "," << toNode->getID();
 	return out.str();
 }
 
@@ -603,7 +604,7 @@ bool sim_mob::PathSetManager::getBestPath(
 		ps_->id = fromToID;
 		ps_->scenario = scenarioName;
 		ps_->subTrip = st;
-		std::set<OD,OD> recursiveOrigins;
+		std::set<OD> recursiveOrigins;
 		bool r = generateAllPathChoices(ps_, recursiveOrigins, blckLstSegs);
 		if (!r)
 		{
@@ -676,13 +677,17 @@ void sim_mob::PathSetManager::bulkPathSetGenerator()
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
 		cnt++;
-		tripchains.insert(sim_mob::PeriodicPersonLoader::makeTrip(*it,0));//todo, sequence number is NOT needed for now. But if needed later, make proper modifications
+		Trip* trip = sim_mob::PeriodicPersonLoader::makeTrip(*it,0);
+		if(!tripchains.insert(trip))//todo, sequence number is NOT needed for now. But if needed later, make proper modifications
+		{
+			safe_delete_item(trip);
+		}
 	}
 	Print() << "TRIPCHAINS: " << cnt << "][DISTINICT :" <<  tripchains.size() << "]" << std::endl;
 
 	sim_mob::Profiler t("bulk generator details", true);
 	int total = 0;
-	std::set<OD,OD> recursiveOrigins;
+	std::set<OD> recursiveOrigins;
 	BOOST_FOREACH(Trip* trip, tripchains)
 	{
 		const std::vector<sim_mob::SubTrip>& subTrips = trip->getSubTrips();
@@ -981,7 +986,7 @@ int sim_mob::PathSetManager::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps
 
 
 
-int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD,OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs)
+int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs)
 {
 	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_));
 	logger << "generateAllPathChoices" << std::endl;
@@ -995,7 +1000,6 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 	 * step-7: Some caching/bookkeeping
 	 * step-8: RECURSION!!!
 	 */
-	//Print() << "[SHORTEST PATH] " << fromToID << std::endl;
 	std::set<std::string> duplicateChecker;//for extra optimization only(creating singlepath and discarding it later can be expensive)
 	sim_mob::SinglePath *s = findShortestDrivingPath(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_,duplicateChecker/*,excludedSegs*/);
 	if(!s)

@@ -147,7 +147,7 @@ public:
 struct PathSetConf
 {
 	PathSetConf():enabled(false), RTTT_Conf(""), DTT_Conf(""), psRetrieval(""), interval(0),
-	recPS(false),reroute(false), cbd(false), subTripOP(""), perturbationRange(std::pair<int,int>(0,0)), kspLevel(0), perturbationIteration(0){}
+	recPS(false),reroute(false), cbd(false), subTripOP(""), perturbationRange(std::pair<unsigned short,unsigned short>(0,0)), kspLevel(0), perturbationIteration(0){}
 	bool enabled;
 	std::string mode;//pathset operation mode "normal" , "generation"(for bulk pathset generation)
 	std::string bulkFile; //in case of using pathset manager in "generation" mode, the results will be outputted to this file
@@ -170,7 +170,7 @@ struct PathSetConf
 	///	number of iterations in random perturbation
 	int perturbationIteration;
 	///	range of uniform distribution in random perturbation
-	std::pair<int,int> perturbationRange;
+	std::pair<unsigned short,unsigned short> perturbationRange;
 	///k-shortest path level
 	int kspLevel;
 	/// Link Elimination types

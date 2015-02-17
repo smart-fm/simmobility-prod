@@ -121,8 +121,4 @@ public:
 		// just an almost dummy operator< to preserve uniquness
 		return key < rhs.key;
 	}
-	bool operator()(const OD & rhs, const OD & lhs)
-	{
-		return rhs < lhs;
-	}
 };

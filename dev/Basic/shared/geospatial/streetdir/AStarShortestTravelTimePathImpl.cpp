@@ -38,7 +38,7 @@ using namespace sim_mob;
 boost::shared_mutex sim_mob::A_StarShortestTravelTimePathImpl::GraphSearchMutex_;
 
 
-sim_mob::A_StarShortestTravelTimePathImpl::A_StarShortestTravelTimePathImpl(const RoadNetwork& network,double h) : highwayBias(h)
+sim_mob::A_StarShortestTravelTimePathImpl::A_StarShortestTravelTimePathImpl(const RoadNetwork& network,double highwayBias) : highwayBias(highwayBias)
 {
 	// init random graph pool
 	int randomCount = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().perturbationIteration;

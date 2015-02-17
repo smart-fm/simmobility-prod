@@ -143,9 +143,16 @@ public:
 	 * @param isUseCache is using the cache allowed
 	 * @return number of paths generated
 	 */
-	int generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD,OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs);
+	int generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs);
 
-	 void bulkPathSetGenerator();
+	/**
+	 *	offline pathset generation method.
+	 *	This method collects the distinct demands from database,
+	 *	creates a set of distinct demands and supplies them one by one to generateAllPathChoices.
+	 *	it creates recursive paths if proper settings are configured.
+	 *	The out put will be a csv file ready to be inserted into database.
+	 */
+	void bulkPathSetGenerator();
 
 	///	generate travel time required to complete a path represented by different singlepath objects
 	void generateTravelTimeSinglePathes(const sim_mob::Node *fromNode, const sim_mob::Node *toNode, std::set<std::string>& duplicateChecker,boost::shared_ptr<sim_mob::PathSet> &ps_);

@@ -73,7 +73,7 @@ void sim_mob::medium::PersonParams::setIncomeIdFromIncome(double income)
 {
 	int i = 0;
 	while(i < NUM_VALID_INCOME_CATEGORIES && income >= incomeCategoryLowerLimits[i]) { i++; }
-	setIncomeId((i>0) ? (i-1) : NUM_VALID_INCOME_CATEGORIES); //lua models expect 12 to be the id for no income
+	setIncomeId((i>0) ? i : NUM_VALID_INCOME_CATEGORIES); //lua models expect 12 to be the id for no income
 }
 
 void sim_mob::medium::PersonParams::setVehicleOwnershipFromCategoryId(int vehicleCategoryId)

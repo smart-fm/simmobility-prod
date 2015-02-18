@@ -67,7 +67,8 @@ void PopulationSqlDao::toRow(PersonParams& data, Parameters& outParams, bool upd
 void sim_mob::medium::PopulationSqlDao::getOneById(long long id, PersonParams& outParam)
 {
 	db::Parameters params;
-	params.push_back(id);
+	db::Parameter idParam(id);
+	params.push_back(idParam);
 	getById(params, outParam);
 }
 

@@ -153,7 +153,7 @@ public:
 	VehicleBase* getResource() const { return currResource; }
 	void setResource(VehicleBase* currResource) { this->currResource = currResource; }
 
-	Person* getParent() {
+	Person* getParent() const {
 		return parent;
 	}
 

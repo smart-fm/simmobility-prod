@@ -1490,7 +1490,9 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 						//add drop off location
 						WayPoint lastWP = mergedWP[mergedWP.size()-1];
 						const RoadSegment *lastWPrs = lastWP.roadSegment_;
-						pickUpSegmentStr = lastWPrs->originalDB_ID.getLogItem();
+						std::stringstream segmentId("");
+						segmentId << lastWPrs->getId();
+						pickUpSegmentStr = segmentId.str();
 						StopPointRS = lastWPrs; //this is the segment where picking up f the passenger will occur
 //
 //						std::cout << "origin->destination: WPs after merging:" << std::endl;

@@ -866,7 +866,13 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 				parentDriver->perceivedDistToTrafficSignal->sense();
 	}
 
-	calcDistanceToSP(p);
+	//Currently on AMOD and Buses have stop points, so at the moment calls to check for stop point
+	//for private cars and taxis will be a burden.
+	if (parent->amodId != "-1" || parentDriver->isBus())
+	{
+		calcDistanceToSP(p);
+	}
+	
 	// make lc decision
 	LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
 
@@ -1154,9 +1160,10 @@ double sim_mob::DriverMovement::getDisToStopPoint(double perceptionDis){
 		}
 
 		// get segment aimsun id
-		std::string id = rs->originalDB_ID.getLogItem();
-		id = Utils::getNumberFromAimsunId(id);
-
+		std::stringstream segmentID("");
+		segmentID << rs->getId();
+		std::string id = segmentID.str();
+		
 		// get move distance in current seg
 		// get param
 		DriverUpdateParams& p = parentDriver->getParams();
@@ -1555,71 +1562,9 @@ void sim_mob::DriverMovement::calculateIntersectionTrajectory(DPoint movingFrom,
 		Warn() << "WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory." << std::endl;
 		return;
 	}
-
-	//Get the entry point.
-	int id = getLaneIndex(fwdDriverMovement.getCurrLane());
-	int startOldLane = -1;
-
-	for (vector<Lane*>::const_iterator it =
-			fwdDriverMovement.getCurrSegment()->getLanes().begin();
-			it != fwdDriverMovement.getCurrSegment()->getLanes().end(); ++it) {
-		if ((*it)->is_pedestrian_lane() || (*it)->is_bicycle_lane()) {
-
-		} else {
-			startOldLane = getLaneIndex((*it));
-			break;
-		}
-	}
-
-	int total = nextLaneInNextLink->getRoadSegment()->getLanes().size() - 1;
-	int offset = fwdDriverMovement.getCurrSegment()->getLanes().size() - 1 - id;
-	set<int> laneIDS;
-	bool first = true;
-	int StartnewLane = -1;
-	int last = 1;
+	
 	Point2D entry = nextLaneInNextLink->getPolyline().at(0);
-
-	for (vector<Lane*>::const_iterator it =
-			nextLaneInNextLink->getRoadSegment()->getLanes().begin();
-			it != nextLaneInNextLink->getRoadSegment()->getLanes().end();
-			++it) {
-		if ((*it)->is_pedestrian_lane() || (*it)->is_bicycle_lane()) {
-
-		} else {
-			if (first) {
-				first = false;
-				StartnewLane = getLaneIndex((*it));
-			}
-
-			laneIDS.insert(getLaneIndex((*it)));
-			last = getLaneIndex((*it));
-		}
-	}
-
-	if ((startOldLane != -1) && StartnewLane != -1)
-		id = id + (StartnewLane - startOldLane);
-
-	if (laneIDS.find(id) != laneIDS.end()) {
-		entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(id)->getPolyline().at(0);
-		lastIndex = id;
-	} else {
-		int findID = total - offset;
-		if (findID > 0) {
-			if (laneIDS.find(findID) != laneIDS.end()) {
-				entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(
-						findID)->getPolyline().at(0);
-				lastIndex = findID;
-			} else {
-				entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(
-						last)->getPolyline().at(0);
-				lastIndex = last;
-			}
-		} else {
-			lastIndex = *(laneIDS.begin());
-			entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(
-					*(laneIDS.begin()))->getPolyline().at(0);
-		}
-	}
+	
 	//Compute a movement trajectory.
 	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
 }
@@ -1657,13 +1602,12 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 				// cout<<"\nStop Segment is Null!\n";
 			}
 
-			std::string segm = Utils::getNumberFromAimsunId(stopSegmentStr);
 			double dwelltime = 5; //in sec
 			double segl = parent->amodSegmLength /100.0; //length of the segment in m
 			double fd = (segl - segl/5); //distance where the vh will stop counting from the begining of the segment
 
 			//double fd = fd_rand(rng);
-			StopPoint stopPoint(segm,fd,dwelltime);
+			StopPoint stopPoint(stopSegmentStr,fd,dwelltime);
 			parentDriver->getParams().insertStopPoint(stopPoint);
 
 			// set the stop point and dwell time for dropping off the passenger
@@ -1672,10 +1616,10 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 			{
 				// cout<<"\nStop Segment is Null!\n";
 			}
-			std::string segm2 = Utils::getNumberFromAimsunId(dropOffSegmentStr);
+	
 			double segld = parentDriver->getParent()->amodSegmLength2 /100.0; //length of the segment in m
 			double fd2 = (segld - segld/5); //distance where the vh will stop counting from the begining of the segment
-			StopPoint stopPoint2(segm2,fd2,dwelltime);
+			StopPoint stopPoint2(dropOffSegmentStr,fd2,dwelltime);
 			parentDriver->getParams().insertStopPoint(stopPoint2);
 		}
 		else

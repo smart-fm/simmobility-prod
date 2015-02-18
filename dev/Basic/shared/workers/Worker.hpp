@@ -232,7 +232,7 @@ private:
 	//int thread_id;
 	//static int auto_matical_thread_id;
 public:
-	soci::session sql;
+	
 	/// each worker has its own path set manager
 	sim_mob::PathSetManager *pathSetMgr;
 };

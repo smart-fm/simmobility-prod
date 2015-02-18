@@ -211,6 +211,7 @@ private:
 
     //Internal printing code.
     void printGraph(const std::string& graphType, const StreetDirectory::Graph& graph) const;
+    void printGraph(const StreetDirectory::Graph& graph) const;
 
     //Helper functions
     static StreetDirectory::Edge AddSimpleEdge(StreetDirectory::Graph& graph, StreetDirectory::Vertex& fromV, StreetDirectory::Vertex& toV, sim_mob::WayPoint wp);

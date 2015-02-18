@@ -212,24 +212,24 @@ void sim_mob::A_StarShortestTravelTimePathImpl::initDrivingNetworkNew(const vect
 		}
     }
 
-    //Now add BusStops (this mutates the network slightly, by segmenting Edges where a BusStop is located).
-    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-//    	procAddDrivingBusStops(drivingMap_, (*iter)->getSegments(), nodeLookup, drivingBusStopLookup_, drivingSegmentLookup_);
-    	procAddDrivingBusStops(drivingMap_MorningPeak, (*iter)->getSegments(), nodeLookup_MorningPeak, drivingBusStopLookup_MorningPeak_, drivingSegmentLookup_MorningPeak_);
-    	procAddDrivingBusStops(drivingMap_EveningPeak, (*iter)->getSegments(), nodeLookup_EveningPeak, drivingBusStopLookup_EveningPeak_, drivingSegmentLookup_EveningPeak_);
-    	procAddDrivingBusStops(drivingMap_NormalTime, (*iter)->getSegments(), nodeLookup_NormalTime, drivingBusStopLookup_NormalTime_, drivingSegmentLookup_NormalTime_);
-    	procAddDrivingBusStops(drivingMap_Default, (*iter)->getSegments(), nodeLookup_Default, drivingBusStopLookup_Default_, drivingSegmentLookup_Default_);
-    	procAddDrivingBusStops(drivingMap_HighwayBias_Distance, (*iter)->getSegments(), nodeLookup_HighwayBias_Distance, drivingBusStopLookup_HighwayBias_Distance_, drivingSegmentLookup_HighwayBias_Distance_);
-    	procAddDrivingBusStops(drivingMap_HighwayBias_MorningPeak, (*iter)->getSegments(), nodeLookup_HighwayBias_MorningPeak, drivingBusStopLookup_HighwayBias_MorningPeak_, drivingSegmentLookup_HighwayBias_MorningPeak_);
-    	procAddDrivingBusStops(drivingMap_HighwayBias_EveningPeak, (*iter)->getSegments(), nodeLookup_HighwayBias_EveningPeak, drivingBusStopLookup_HighwayBias_EveningPeak_, drivingSegmentLookup_HighwayBias_EveningPeak_);
-    	procAddDrivingBusStops(drivingMap_HighwayBias_NormalTime, (*iter)->getSegments(), nodeLookup_HighwayBias_NormalTime, drivingBusStopLookup_HighwayBias_NormalTime_, drivingSegmentLookup_HighwayBias_NormalTime_);
-    	procAddDrivingBusStops(drivingMap_HighwayBias_Default, (*iter)->getSegments(), nodeLookup_HighwayBias_Default, drivingBusStopLookup_HighwayBias_Default_, drivingSegmentLookup_HighwayBias_Default_);
-//    	procAddDrivingBusStops(drivingMap_Random, (*iter)->getSegments(), nodeLookup_Random, drivingBusStopLookup_Random_, drivingSegmentLookup_Random_);
-    	for(int i=0; i < drivingMap_Random_pool.size(); ++i)
-		{
-    		procAddDrivingBusStops(drivingMap_Random_pool[i], (*iter)->getSegments(), nodeLookup_Random_pool[i], drivingBusStopLookup_Random_pool[i], drivingSegmentLookup_Random_pool[i]);
-		}
-}
+//    //Now add BusStops (this mutates the network slightly, by segmenting Edges where a BusStop is located).
+//    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
+////    	procAddDrivingBusStops(drivingMap_, (*iter)->getSegments(), nodeLookup, drivingBusStopLookup_, drivingSegmentLookup_);
+//    	procAddDrivingBusStops(drivingMap_MorningPeak, (*iter)->getSegments(), nodeLookup_MorningPeak, drivingBusStopLookup_MorningPeak_, drivingSegmentLookup_MorningPeak_);
+//    	procAddDrivingBusStops(drivingMap_EveningPeak, (*iter)->getSegments(), nodeLookup_EveningPeak, drivingBusStopLookup_EveningPeak_, drivingSegmentLookup_EveningPeak_);
+//    	procAddDrivingBusStops(drivingMap_NormalTime, (*iter)->getSegments(), nodeLookup_NormalTime, drivingBusStopLookup_NormalTime_, drivingSegmentLookup_NormalTime_);
+//    	procAddDrivingBusStops(drivingMap_Default, (*iter)->getSegments(), nodeLookup_Default, drivingBusStopLookup_Default_, drivingSegmentLookup_Default_);
+//    	procAddDrivingBusStops(drivingMap_HighwayBias_Distance, (*iter)->getSegments(), nodeLookup_HighwayBias_Distance, drivingBusStopLookup_HighwayBias_Distance_, drivingSegmentLookup_HighwayBias_Distance_);
+//    	procAddDrivingBusStops(drivingMap_HighwayBias_MorningPeak, (*iter)->getSegments(), nodeLookup_HighwayBias_MorningPeak, drivingBusStopLookup_HighwayBias_MorningPeak_, drivingSegmentLookup_HighwayBias_MorningPeak_);
+//    	procAddDrivingBusStops(drivingMap_HighwayBias_EveningPeak, (*iter)->getSegments(), nodeLookup_HighwayBias_EveningPeak, drivingBusStopLookup_HighwayBias_EveningPeak_, drivingSegmentLookup_HighwayBias_EveningPeak_);
+//    	procAddDrivingBusStops(drivingMap_HighwayBias_NormalTime, (*iter)->getSegments(), nodeLookup_HighwayBias_NormalTime, drivingBusStopLookup_HighwayBias_NormalTime_, drivingSegmentLookup_HighwayBias_NormalTime_);
+//    	procAddDrivingBusStops(drivingMap_HighwayBias_Default, (*iter)->getSegments(), nodeLookup_HighwayBias_Default, drivingBusStopLookup_HighwayBias_Default_, drivingSegmentLookup_HighwayBias_Default_);
+////    	procAddDrivingBusStops(drivingMap_Random, (*iter)->getSegments(), nodeLookup_Random, drivingBusStopLookup_Random_, drivingSegmentLookup_Random_);
+//    	for(int i=0; i < drivingMap_Random_pool.size(); ++i)
+//		{
+//    		procAddDrivingBusStops(drivingMap_Random_pool[i], (*iter)->getSegments(), nodeLookup_Random_pool[i], drivingBusStopLookup_Random_pool[i], drivingSegmentLookup_Random_pool[i]);
+//		}
+//    }
 
     //Finally, add our "master" node vertices
 //    procAddStartNodesAndEdges(drivingMap_, nodeLookup, drivingNodeLookup_);
@@ -247,343 +247,8 @@ void sim_mob::A_StarShortestTravelTimePathImpl::initDrivingNetworkNew(const vect
 	{
     	procAddStartNodesAndEdges(drivingMap_Random_pool[i], nodeLookup_Random_pool[i], drivingNodeLookup_Random_pool[i]);
 	}
+//    printGraph(drivingMap_HighwayBias_Distance);
 }
-
-//
-//void sim_mob::A_StarShortestTravelTimePathImpl::initDrivingNetworkNew(const vector<Link*>& links)
-//{
-////	//Various lookup structures
-////	map<const Node*, VertexLookup> nodeLookup;
-//	std::cout << "A_StarShortestTravelTimePathImpl::initDrivingNetworkNew" << std::endl;
-//
-//	//Add our initial set of vertices. Iterate through Links to ensure no un-used Node are added.
-//	//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingNodes,this,
-//	//    			boost::ref(drivingMap_EveningPeak),
-//	//    			boost::ref((*iter)->getSegments()),
-//	//    			boost::ref(nodeLookup_EveningPeak)));
-//
-//	//    	procAddDrivingNodes(drivingMap_Random, (*iter)->getSegments(), nodeLookup_Random);
-//	sim_mob::Profiler profiler("driving-network");
-//	profiler.tick();
-//    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-//    	procAddDrivingNodes(drivingMap_MorningPeak,	(*iter)->getSegments(), nodeLookup_MorningPeak);
-//    }
-//    drivingMap_EveningPeak = drivingMap_NormalTime = drivingMap_Default = drivingMap_HighwayBias_Distance = drivingMap_HighwayBias_MorningPeak
-//    		= drivingMap_HighwayBias_EveningPeak = drivingMap_HighwayBias_NormalTime = drivingMap_HighwayBias_Default = drivingMap_MorningPeak ;
-//
-//    nodeLookup_EveningPeak = nodeLookup_NormalTime = nodeLookup_Default = nodeLookup_HighwayBias_Distance = nodeLookup_HighwayBias_MorningPeak
-//    		= nodeLookup_HighwayBias_EveningPeak = nodeLookup_HighwayBias_NormalTime = nodeLookup_HighwayBias_Default = nodeLookup_MorningPeak;
-//
-//	for(int i=0; i<drivingMap_Random_pool.size(); ++i)
-//	{
-//		drivingMap_Random_pool[i] = drivingMap_MorningPeak;
-//		nodeLookup_Random_pool[i] = nodeLookup_MorningPeak;
-//	}
-//
-//	std::cout << "procAddDrivingNodes : " << profiler.tick().count() << " " << nodeLookup_EveningPeak.size() << "\n";
-//
-//    sim_mob::batched::ThreadPool threadPool(5);
-//    //Proceed through our Links, adding each RoadSegment path. Split vertices as required.
-//    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-////    	procAddDrivingLinks(drivingMap_, (*iter)->getSegments(), nodeLookup, drivingSegmentLookup_);
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLinks,this,
-//    			boost::ref(drivingMap_MorningPeak),
-//    			boost::ref((*iter)->getSegments()),
-//    			boost::ref(nodeLookup_MorningPeak),
-//    			boost::ref(drivingSegmentLookup_MorningPeak_),sim_mob::MorningPeak));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLinks,this,
-//    			boost::ref(drivingMap_EveningPeak),
-//    			boost::ref((*iter)->getSegments()),
-//    			boost::ref(nodeLookup_EveningPeak),
-//    			boost::ref(drivingSegmentLookup_EveningPeak_),sim_mob::EveningPeak));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLinks,this,
-//    			boost::ref(drivingMap_NormalTime),
-//    			boost::ref((*iter)->getSegments()),
-//    			boost::ref(nodeLookup_NormalTime),
-//    			boost::ref(drivingSegmentLookup_NormalTime_),sim_mob::OffPeak));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLinks,this,
-//    			boost::ref(drivingMap_Default),
-//    			boost::ref((*iter)->getSegments()),
-//    			boost::ref(nodeLookup_Default),
-//    			boost::ref(drivingSegmentLookup_Default_),sim_mob::Default));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLinks,this,
-//    			boost::ref(drivingMap_HighwayBias_Distance),
-//    			boost::ref((*iter)->getSegments()),
-//    			boost::ref(nodeLookup_HighwayBias_Distance),
-//    			boost::ref(drivingSegmentLookup_HighwayBias_Distance_),sim_mob::HighwayBias_Distance));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLinks,this,
-//    			boost::ref(drivingMap_HighwayBias_MorningPeak),
-//    			boost::ref((*iter)->getSegments()),
-//    			boost::ref(nodeLookup_HighwayBias_MorningPeak),
-//    			boost::ref(drivingSegmentLookup_HighwayBias_MorningPeak_),sim_mob::HighwayBias_MorningPeak));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLinks,this,
-//    			boost::ref(drivingMap_HighwayBias_EveningPeak),
-//    			boost::ref((*iter)->getSegments()),
-//    			boost::ref(nodeLookup_HighwayBias_EveningPeak),
-//    			boost::ref(drivingSegmentLookup_HighwayBias_EveningPeak_),sim_mob::HighwayBias_EveningPeak));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLinks,this,
-//    			boost::ref(drivingMap_HighwayBias_NormalTime),
-//    			boost::ref((*iter)->getSegments()),
-//    			boost::ref(nodeLookup_HighwayBias_NormalTime),
-//    			boost::ref(drivingSegmentLookup_HighwayBias_NormalTime_),sim_mob::HighwayBias_OffPeak));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLinks,this,
-//    			boost::ref(drivingMap_HighwayBias_Default),
-//    			boost::ref((*iter)->getSegments()),
-//    			boost::ref(nodeLookup_HighwayBias_Default),
-//    			boost::ref(drivingSegmentLookup_HighwayBias_Default_),sim_mob::HighwayBias_Default));
-//
-////    	procAddDrivingLinks(drivingMap_Random, (*iter)->getSegments(), nodeLookup_Random, drivingSegmentLookup_Random_,sim_mob::Random);
-//    	for(int i=0; i<drivingMap_Random_pool.size(); ++i)
-//		{
-//        	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLinks,this,
-//        			boost::ref(drivingMap_Random_pool[i]),
-//        			boost::ref((*iter)->getSegments()),
-//        			boost::ref(nodeLookup_Random_pool[i]),
-//        			boost::ref(drivingSegmentLookup_Random_pool[i]),sim_mob::Random));
-//		}
-//        threadPool.wait();
-//    }
-//    std::cout << "procAddDrivingLinks : " << profiler.tick().count() << "\n";
-//    //Now add all Intersection edges (lane connectors)
-//    for (map<const Node*, VertexLookup>::const_iterator it=nodeLookup_MorningPeak.begin(); it!=nodeLookup_MorningPeak.end(); it++) {
-////    	procAddDrivingLaneConnectors(drivingMap_, dynamic_cast<const MultiNode*>(it->first), nodeLookup);
-//    	const MultiNode* mNode = dynamic_cast<const MultiNode*>(it->first);
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLaneConnectors,this,
-//    			boost::ref(drivingMap_MorningPeak),
-//    			mNode,
-//    			boost::ref(nodeLookup_MorningPeak)));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLaneConnectors,this,
-//    			boost::ref(drivingMap_EveningPeak),
-//    			mNode,
-//    			boost::ref(nodeLookup_EveningPeak)));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLaneConnectors,this,
-//    			boost::ref(drivingMap_NormalTime),
-//    			mNode,
-//    			boost::ref(nodeLookup_NormalTime)));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLaneConnectors,this,
-//    			boost::ref(drivingMap_Default),
-//    			mNode,
-//    			boost::ref(nodeLookup_Default)));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLaneConnectors,this,
-//    			boost::ref(drivingMap_HighwayBias_Distance),
-//    			mNode,
-//    			boost::ref(nodeLookup_HighwayBias_Distance)));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLaneConnectors,this,
-//    			boost::ref(drivingMap_HighwayBias_MorningPeak),
-//    			mNode,
-//    			boost::ref(nodeLookup_HighwayBias_MorningPeak)));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLaneConnectors,this,
-//    			boost::ref(drivingMap_HighwayBias_EveningPeak),
-//    			mNode,
-//    			boost::ref(nodeLookup_HighwayBias_EveningPeak)));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLaneConnectors,this,
-//    			boost::ref(drivingMap_HighwayBias_NormalTime),
-//    			mNode,
-//    			boost::ref(nodeLookup_HighwayBias_NormalTime)));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLaneConnectors,this,
-//    			boost::ref(drivingMap_HighwayBias_Default),
-//    			mNode,
-//    			boost::ref(nodeLookup_HighwayBias_Default)));
-//
-////    	procAddDrivingLaneConnectors(drivingMap_Random, mNode, nodeLookup_Random, drivingSegmentLookup_Random_);
-//    	for(int i=0; i<drivingMap_Random_pool.size(); ++i)
-//		{
-//        	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingLaneConnectors,this,
-//        			boost::ref(drivingMap_Random_pool[i]),
-//        			mNode,
-//        			boost::ref(nodeLookup_Random_pool[i])));
-//		}
-//        threadPool.wait();
-//    }
-//    //Now add BusStops (this mutates the network slightly, by segmenting Edges where a BusStop is located).
-//    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingBusStops,this,
-//    			boost::ref(drivingMap_MorningPeak),
-//    			(*iter)->getSegments(),
-//    			boost::ref(nodeLookup_MorningPeak),
-//    			boost::ref(drivingBusStopLookup_MorningPeak_), boost::ref(drivingSegmentLookup_MorningPeak_)));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingBusStops,this,
-//    			boost::ref(drivingMap_EveningPeak),
-//    			(*iter)->getSegments(),
-//    			boost::ref(nodeLookup_EveningPeak),
-//    			boost::ref(drivingBusStopLookup_EveningPeak_), boost::ref(drivingSegmentLookup_EveningPeak_)));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingBusStops,this,
-//    			boost::ref(drivingMap_NormalTime),
-//    			(*iter)->getSegments(),
-//    			boost::ref(nodeLookup_NormalTime),
-//    			boost::ref(drivingBusStopLookup_NormalTime_), boost::ref(drivingSegmentLookup_NormalTime_)));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingBusStops,this,
-//    			boost::ref(drivingMap_Default),
-//    			(*iter)->getSegments(),
-//    			boost::ref(nodeLookup_Default),
-//    			boost::ref(drivingBusStopLookup_Default_), boost::ref(drivingSegmentLookup_Default_)));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingBusStops,this,
-//    			boost::ref(drivingMap_HighwayBias_Distance),
-//    			(*iter)->getSegments(),
-//    			boost::ref(nodeLookup_HighwayBias_Distance),
-//    			boost::ref(drivingBusStopLookup_HighwayBias_Distance_), boost::ref(drivingSegmentLookup_HighwayBias_Distance_)));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingBusStops,this,
-//    			boost::ref(drivingMap_HighwayBias_MorningPeak),
-//    			(*iter)->getSegments(),
-//    			boost::ref(nodeLookup_HighwayBias_MorningPeak),
-//    			boost::ref(drivingBusStopLookup_HighwayBias_MorningPeak_), boost::ref(drivingSegmentLookup_HighwayBias_MorningPeak_)));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingBusStops,this,
-//    			boost::ref(drivingMap_HighwayBias_EveningPeak),
-//    			(*iter)->getSegments(),
-//    			boost::ref(nodeLookup_HighwayBias_EveningPeak),
-//    			boost::ref(drivingBusStopLookup_HighwayBias_EveningPeak_), boost::ref(drivingSegmentLookup_HighwayBias_EveningPeak_)));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingBusStops,this,
-//    			boost::ref(drivingMap_HighwayBias_NormalTime),
-//    			(*iter)->getSegments(),
-//    			boost::ref(nodeLookup_HighwayBias_NormalTime),
-//    			boost::ref(drivingBusStopLookup_HighwayBias_NormalTime_), boost::ref(drivingSegmentLookup_HighwayBias_NormalTime_)));
-//
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingBusStops,this,
-//    			boost::ref(drivingMap_HighwayBias_Default),
-//    			(*iter)->getSegments(),
-//    			boost::ref(nodeLookup_HighwayBias_Default),
-//    			boost::ref(drivingBusStopLookup_HighwayBias_Default_), boost::ref(drivingSegmentLookup_HighwayBias_Default_)));
-//
-////    	procAddDrivingBusStops(drivingMap_Random, (*iter)->getSegments(), nodeLookup_Random, drivingSegmentLookup_Random_);
-//    	for(int i=0; i<drivingMap_Random_pool.size(); ++i)
-//		{
-//        	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddDrivingBusStops,this,
-//        			boost::ref(drivingMap_Random_pool[i]),
-//        			(*iter)->getSegments(),
-//        			boost::ref(nodeLookup_Random_pool[i]),
-//        			boost::ref(drivingBusStopLookup_Random_pool[i]), boost::ref(drivingSegmentLookup_Random_pool[i])));
-//		}
-//        threadPool.wait();
-//    }
-//    std::cout << "procAddDrivingBusStops : " << profiler.tick().count() << "\n";
-//
-//    //Finally, add our "master" node vertices
-////    procAddStartNodesAndEdges(drivingMap_, nodeLookup, drivingNodeLookup_);
-//
-//	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddStartNodesAndEdges,this,
-//			boost::ref(drivingMap_MorningPeak),
-//			boost::ref(nodeLookup_MorningPeak),
-//			boost::ref(drivingNodeLookup_MorningPeak_)));
-//
-//	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddStartNodesAndEdges,this,
-//			boost::ref(drivingMap_EveningPeak),
-//			boost::ref(nodeLookup_EveningPeak),
-//			boost::ref(drivingNodeLookup_EveningPeak_)));
-//
-//	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddStartNodesAndEdges,this,
-//			boost::ref(drivingMap_NormalTime),
-//			boost::ref(nodeLookup_NormalTime),
-//			boost::ref(drivingNodeLookup_NormalTime_)));
-//
-//	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddStartNodesAndEdges,this,
-//			boost::ref(drivingMap_Default),
-//			boost::ref(nodeLookup_Default),
-//			boost::ref(drivingNodeLookup_Default_)));
-//
-//	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddStartNodesAndEdges,this,
-//			boost::ref(drivingMap_HighwayBias_Distance),
-//			boost::ref(nodeLookup_HighwayBias_Distance),
-//			boost::ref(drivingNodeLookup_HighwayBias_Distance_)));
-//
-//	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddStartNodesAndEdges,this,
-//			boost::ref(drivingMap_HighwayBias_MorningPeak),
-//			boost::ref(nodeLookup_HighwayBias_MorningPeak),
-//			boost::ref(drivingNodeLookup_HighwayBias_MorningPeak_)));
-//
-//	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddStartNodesAndEdges,this,
-//			boost::ref(drivingMap_HighwayBias_EveningPeak),
-//			boost::ref(nodeLookup_HighwayBias_EveningPeak),
-//			boost::ref(drivingNodeLookup_HighwayBias_EveningPeak_)));
-//
-//	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddStartNodesAndEdges,this,
-//			boost::ref(drivingMap_HighwayBias_NormalTime),
-//			boost::ref(nodeLookup_HighwayBias_NormalTime),
-//			boost::ref(drivingNodeLookup_HighwayBias_NormalTime_)));
-//
-//	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddStartNodesAndEdges,this,
-//			boost::ref(drivingMap_HighwayBias_Default),
-//			boost::ref(nodeLookup_HighwayBias_Default),
-//			boost::ref(drivingNodeLookup_HighwayBias_Default_)));
-//
-////    	procAddStartNodesAndEdges(drivingMap_Random, (*iter)->getSegments(), nodeLookup_Random, drivingSegmentLookup_Random_);
-//	for(int i=0; i<drivingMap_Random_pool.size(); ++i)
-//	{
-//    	threadPool.enqueue(boost::bind(&A_StarShortestTravelTimePathImpl::procAddStartNodesAndEdges,this,
-//    			boost::ref(drivingMap_Random_pool[i]),
-//    			boost::ref(nodeLookup_Random_pool[i]),
-//    			boost::ref(drivingNodeLookup_Random_pool[i])));
-//	}
-//	threadPool.wait();
-//    std::cout << "procAddStartNodesAndEdges : " << profiler.tick().count() << "\n";
-//	std::cout << "A_StarShortestTravelTimePathImpl::initDrivingNetworkNew Done" << std::endl;
-//}
-
-//void sim_mob::A_StarShortestTravelTimePathImpl::initWalkingNetworkNew(const vector<Link*>& links)
-//{
-//	//Various lookup structures
-//	map<const Node*, VertexLookup> nodeLookup;
-//
-//	{
-//	//Building MultiNodes requires one additional step.
-//	map<const Node*, VertexLookup> unresolvedNodes;
-//
-//	//Add our initial set of vertices. Iterate through Links to ensure no un-used Node are added.
-//    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-//    	procAddWalkingNodes(walkingMap_, (*iter)->getSegments(), nodeLookup, unresolvedNodes);
-//    }
-//
-//    //Resolve MultiNodes here:
-//    procResolveWalkingMultiNodes(walkingMap_, unresolvedNodes, nodeLookup);
-//	}
-//
-//    //Proceed through our Links, adding each RoadSegment path. Split vertices as required.
-//    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-//    	procAddWalkingLinks(walkingMap_, (*iter)->getSegments(), nodeLookup);
-//    }
-//
-//    //Now add all Crossings
-//    {
-//    set<const Crossing*> completedCrossings;
-//    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-//    	procAddWalkingCrossings(walkingMap_, (*iter)->getSegments(), nodeLookup, completedCrossings);
-//    }
-//    }
-//
-//    //Now add BusStops (this mutates the network slightly, by segmenting Edges where a BusStop is located).
-//    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-//    	procAddWalkingBusStops(walkingMap_, (*iter)->getSegments(), nodeLookup, walkingBusStopLookup_);
-//    }
-//
-//    //Finally, add our "master" node vertices
-//    procAddStartNodesAndEdges(walkingMap_, nodeLookup, walkingNodeLookup_);
-//}
-
-
 
 void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingNodes(StreetDirectory::Graph& graph,
 		const vector<RoadSegment*>& roadway,
@@ -1117,10 +782,8 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 		  boost::mt19937  rng(r);
 		  const std::pair<int,int> &range = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().perturbationRange;
 		  boost::uniform_int<> uniformInt( range.first, range.second );
-		  boost::variate_generator< boost::mt19937, boost::uniform_int<> >
-						dice(rng, uniformInt);
+		  boost::variate_generator< boost::mt19937, boost::uniform_int<> >	dice(rng, uniformInt);
 			double random_number = dice();
-//			std::cout<<random_number<<"   "<<r<<std::endl;
 			key = random_number * PathSetParam::getInstance()->getDefSegTT(rs);
 		}
 
@@ -2475,6 +2138,23 @@ void sim_mob::A_StarShortestTravelTimePathImpl::printGraph(const std::string& gr
 //    		<<"\"})"<<std::endl);
 //    }
 //    }
+
+		{
+			BasicLogger &log = Logger::log("graph-TT.txt");
+			StreetDirectory::Graph::edge_iterator iter, end;
+			unsigned int id = 0;
+			for (boost::tie(iter, end) = boost::edges(graph); iter != end; ++iter)
+			{
+				StreetDirectory::Edge ed = *iter;
+				WayPoint wp = boost::get(boost::edge_name, graph,*iter);
+				log << ed ;
+				if(wp->type_ == WayPoint::ROAD_SEGMENT )
+				{
+					log << "  " << wp.roadSegment_->getId();
+				}
+				log << "\n";
+			}
+		}
 }
 
 

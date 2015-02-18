@@ -371,27 +371,27 @@ double sim_mob::generateSinglePathLength(const std::vector<sim_mob::WayPoint>& w
 }
 
 
-std::string sim_mob::makeWaypointsetString(std::vector<sim_mob::WayPoint>& wp)
+std::string sim_mob::makeWaypointsetString(const std::vector<sim_mob::WayPoint>& wp)
 {
-	std::string str;
+	std::stringstream str("");
 	if(wp.size()==0)
 	{
-		sim_mob::Logger::log("pathset.log")<<"warning: empty input for makeWaypointsetString"<<std::endl;
+		sim_mob::Logger::log("pathset.log") << "warning: empty input for makeWaypointsetString" << std::endl;
 	}
 
-	for(std::vector<sim_mob::WayPoint>::iterator it = wp.begin(); it != wp.end(); it++)
+	for(std::vector<sim_mob::WayPoint>::const_iterator it = wp.begin(); it != wp.end(); it++)
 	{
 		if (it->type_ == WayPoint::ROAD_SEGMENT)
 		{
-			std::string tmp = it->roadSegment_->originalDB_ID.getLogItem();
-			str += sim_mob::Utils::getNumberFromAimsunId(tmp) + ",";
+			str << it->roadSegment_->getId() << ",";
 		} // if ROAD_SEGMENT
 	}
 
-	if(str.size()<1)
+	if(str.str().size()<1)
 	{
 		// when same f,t node, it happened
-		sim_mob::Logger::log("pathset.log")<<"warning: empty output makeWaypointsetString id"<<std::endl;
+		sim_mob::Logger::log("pathset.log") << "warning: empty output makeWaypointsetString id" << std::endl;
 	}
-	return str;
+
+	return str.str();
 }

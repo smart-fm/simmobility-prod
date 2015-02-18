@@ -28,7 +28,7 @@ size_t getLaneIndex2(const sim_mob::Lane* l);
 void calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::SinglePath *sp);
 double calculateHighWayDistance(sim_mob::SinglePath *sp);
 double generateSinglePathLength(const std::vector<sim_mob::WayPoint>& wp);
-std::string makeWaypointsetString(std::vector<WayPoint>& wp);
+std::string makeWaypointsetString(const std::vector<WayPoint>& wp);
 
 class SinglePath
 {

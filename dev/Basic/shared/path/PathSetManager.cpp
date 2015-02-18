@@ -605,7 +605,8 @@ struct TripComp
 {
 	bool operator()(const Trip* lhs, const Trip* rhs)
 	{
-		return lhs->fromLocation.node_ < rhs->fromLocation.node_;
+		return getFromToString(lhs->fromLocation.node_ , lhs->toLocation.node_) <
+				getFromToString(rhs->fromLocation.node_ , rhs->toLocation.node_);
 	}
 };
 }
@@ -697,13 +698,14 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 	{
 		curLink = ps->oriPath->path.begin()->roadSegment_->getLink();
 	}
+	blackList.insert(ps->oriPath->path.begin()->roadSegment_);
 	int cnt = 0;
 	for(std::vector<sim_mob::WayPoint>::iterator it=ps->oriPath->path.begin();	it != ps->oriPath->path.end() ;++it)
 	{
 		const sim_mob::RoadSegment* currSeg = it->roadSegment_;
 		if(currSeg->getLink() == curLink)
 		{
-			blackList.insert(currSeg);
+//			blackList.insert(currSeg);
 		}
 		else
 		{
@@ -719,6 +721,7 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 			work->toNode =  ps->subTrip.toLocation.node_;
 			work->excludeSeg = blackList;
 			blackList.clear();
+			blackList.insert(currSeg);//used in the next iteration
 			work->ps = ps;
 			std::stringstream out("");
 			out << "SDLE-" << ++cnt;
@@ -751,12 +754,13 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 		{
 			curLink = pathTT->path.begin()->roadSegment_->getLink();
 		}
+		blackList.insert(pathTT->path.begin()->roadSegment_);
 		for(std::vector<sim_mob::WayPoint>::iterator it(pathTT->path.begin()); it != pathTT->path.end() ;++it)
 		{
 			const sim_mob::RoadSegment* currSeg = it->roadSegment_;
 			if(currSeg->getLink() == curLink)
 			{
-				blackList.insert(currSeg);
+				//blackList.insert(currSeg);
 			}
 			else
 			{
@@ -770,6 +774,7 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 				work->toNode = ps->subTrip.toLocation.node_;
 				work->excludeSeg = blackList;
 				blackList.clear();
+				blackList.insert(currSeg);//used in the next iteration
 				work->ps = ps;
 				std::stringstream out("");
 				out << "STTLE-" << cnt++ ;
@@ -803,12 +808,13 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 		{
 			curLink = sinPathHightwayBias->path.begin()->roadSegment_->getLink();
 		}
+		blackList.insert(sinPathHightwayBias->path.begin()->roadSegment_);
 		for(std::vector<sim_mob::WayPoint>::iterator it(sinPathHightwayBias->path.begin()); it != sinPathHightwayBias->path.end() ;++it)
 		{
 			const sim_mob::RoadSegment* currSeg = it->roadSegment_;
 			if(currSeg->getLink() == curLink)
 			{
-				blackList.insert(currSeg);
+//				blackList.insert(currSeg);
 			}
 			else
 			{
@@ -824,6 +830,7 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 				work->toNode = ps->subTrip.toLocation.node_;
 				work->excludeSeg = blackList;
 				blackList.clear();
+				blackList.insert(currSeg);//used in the next iteration
 				work->ps = ps;
 				std::stringstream out("");
 				out << "STTH-" << cnt++;
@@ -922,11 +929,11 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 	ps->oriPath = s;
 	ps->id = fromToID;
 
-//	//K-SHORTEST PATH
-//	//Print() << "[" << fromToID << "][K-SHORTEST PATH] " << fromToID << std::endl;
-//	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> KSP_Storage;//main storage for k-shortest path
-//	threadpool_->enqueue(boost::bind(&PathSetManager::genK_ShortestPath, this, ps, KSP_Storage));
-////	genK_ShortestPath(ps, KSP_Storage);
+	//K-SHORTEST PATH
+	//Print() << "[" << fromToID << "][K-SHORTEST PATH] " << fromToID << std::endl;
+	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> KSP_Storage;//main storage for k-shortest path
+	threadpool_->enqueue(boost::bind(&PathSetManager::genK_ShortestPath, this, ps, KSP_Storage));
+//	genK_ShortestPath(ps, KSP_Storage);
 
 	std::vector<std::vector<PathSetWorkerThread*> > mainStorage = std::vector<std::vector<PathSetWorkerThread*> >();
 	// SHORTEST DISTANCE LINK ELIMINATION
@@ -970,10 +977,10 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 	//Print() << "[" << fromToID << "][RECORD]\n";
 	total += ps->addOrDeleteSinglePath(ps->oriPath);
 //	//b. record k-shortest paths
-//	BOOST_FOREACH(sim_mob::SinglePath* sp, KSP_Storage)
-//	{
-//		ps->addOrDeleteSinglePath(sp);
-//	}
+	BOOST_FOREACH(sim_mob::SinglePath* sp, KSP_Storage)
+	{
+		ps->addOrDeleteSinglePath(sp);
+	}
 
 	//c. record the rest of the paths (link eliminations and random perturbation)
 	BOOST_FOREACH(std::vector<PathSetWorkerThread*> &workPool, mainStorage)

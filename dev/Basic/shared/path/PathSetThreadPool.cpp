@@ -44,8 +44,14 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 			blacklistV.insert(lookIt->second.begin(), lookIt->second.end());
 		}
 	}
+	//used for error checking and validation
+	unsigned long dbgPrev = 0;
+	std::pair<StreetDirectory::Edge, bool> dbgPrevEdge;
+	//output container
 	vector<WayPoint> wps;
-	if (blacklistV.empty()) {
+
+	if (blacklistV.empty())
+	{
 		std::list<StreetDirectory::Vertex> partialRes;
 		//Use A* to search for a path
 		//Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
@@ -57,38 +63,57 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 							graph, toVertex),
 					boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(
 							sim_mob::A_StarShortestTravelTimePathImpl::astar_goal_visitor(toVertex)));
-		} catch (sim_mob::A_StarShortestTravelTimePathImpl::found_goal& goal) {
+		}
+		catch (sim_mob::A_StarShortestTravelTimePathImpl::found_goal& goal)
+		{
 			//Build backwards.
-			for (StreetDirectory::Vertex v = toVertex;; v = p[v]) {
+			for (StreetDirectory::Vertex v = toVertex;; v = p[v])
+			{
 				partialRes.push_front(v);
-				if (p[v] == v) {
+				if (p[v] == v)
+				{
 					break;
 				}
 			}
 			//Now build forwards.
-			std::list<StreetDirectory::Vertex>::const_iterator prev =
-					partialRes.end();
-			for (std::list<StreetDirectory::Vertex>::const_iterator it =
-					partialRes.begin(); it != partialRes.end(); it++) {
+			std::list<StreetDirectory::Vertex>::const_iterator prev = partialRes.end();
+			for (std::list<StreetDirectory::Vertex>::const_iterator it = partialRes.begin(); it != partialRes.end(); it++)
+			{
 				//Add this edge.
-				if (prev != partialRes.end()) {
+				if (prev != partialRes.end())
+				{
 					//This shouldn't fail.
-					std::pair<StreetDirectory::Edge, bool> edge = boost::edge(
-							*prev, *it, *graph);
+					std::pair<StreetDirectory::Edge, bool> edge = boost::edge(*prev, *it, *graph);
 					if (!edge.second) {
 						Warn()
 								<< "ERROR: Boost can't find an edge that it should know about."
 								<< std::endl;
 					}
 					//Retrieve, add this edge's WayPoint.
-//					WayPoint w = boost::get(boost::edge_name, *graph,edge.first);
-					wps.push_back(boost::get(boost::edge_name, *graph,edge.first));
+					WayPoint wp = boost::get(boost::edge_name, *graph,edge.first);
+					//todo this problem occurs during "highway bias distance" generation. dont know why, discarding the repeated segment
+					if (wp.type_ == WayPoint::ROAD_SEGMENT && wp.roadSegment_->getId() == dbgPrev)
+					{
+							logger << dbgStr
+									<< " 1ERROR-exeThis:: repeating segment found in path from "
+									<< " seg: " << dbgPrev << " edge: " <<  edge.first << "  prev edge:" <<
+									dbgPrevEdge.first << "   " << edge.second << "  " << dbgPrevEdge.second << "  " <<
+									WayPoint(boost::get(boost::edge_name, *graph,dbgPrevEdge.first)).roadSegment_->getId() << "\n";
+						dbgPrev = wps.rbegin()->roadSegment_->getId();
+						dbgPrevEdge = edge;
+					}
+					else
+					{
+						wps.push_back(wp);
+					}
 				}
 				//Save for later.
 				prev = it;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		//logger << "Blacklist NOT empty" << blacklistV.size() << std::endl;
 		//Filter it.
 		sim_mob::A_StarShortestPathImpl::blacklist_edge_constraint filter(blacklistV);
@@ -108,9 +133,12 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 			boost::astar_search(filtered, fromVertex,
 					sim_mob::A_StarShortestPathImpl::distance_heuristic_filtered(&filtered, toVertex),
 					boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(sim_mob::A_StarShortestPathImpl::astar_goal_visitor(toVertex)));
-		} catch (sim_mob::A_StarShortestPathImpl::found_goal& goal) {
+		}
+		catch (sim_mob::A_StarShortestPathImpl::found_goal& goal)
+		{
 			//Build backwards.
-			for (StreetDirectory::Vertex v = toVertex;; v = p[v]) {
+			for (StreetDirectory::Vertex v = toVertex;; v = p[v])
+			{
 				partialRes.push_front(v);
 				if (p[v] == v)
 				{
@@ -119,19 +147,33 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 			}
 			//Now build forwards.
 			std::list<StreetDirectory::Vertex>::const_iterator prev = partialRes.end();
-			for (std::list<StreetDirectory::Vertex>::const_iterator it =
-					partialRes.begin(); it != partialRes.end(); it++) {
+			for (std::list<StreetDirectory::Vertex>::const_iterator it = partialRes.begin(); it != partialRes.end(); it++)
+			{
 				//Add this edge.
-				if (prev != partialRes.end()) {
+				if (prev != partialRes.end())
+				{
 					//This shouldn't fail.
-					std::pair<StreetDirectory::Edge, bool> edge = boost::edge(
-							*prev, *it, filtered);
+					std::pair<StreetDirectory::Edge, bool> edge = boost::edge(*prev, *it, filtered);
 					if (!edge.second) {
 						std::cerr << "ERROR: Boost can't find an edge that it should know about." << std::endl;
 					}
 					//Retrieve, add this edge's WayPoint.
-					WayPoint w = boost::get(boost::edge_name, filtered,edge.first);
-					wps.push_back(w);
+					WayPoint wp = boost::get(boost::edge_name, filtered,edge.first);
+					//todo this problem occurs during "highway bias distance" generation. dont know why, discarding the repeated segment
+					if (wp.type_ == WayPoint::ROAD_SEGMENT && wp.roadSegment_->getId() == dbgPrev)
+					{
+							logger << dbgStr
+									<< " 1ERROR-exeThis:: repeating segment found in path from "
+									<< " seg: " << dbgPrev << " edge: " <<  edge.first << "  prev edge:" <<
+									dbgPrevEdge.first << "   " << edge.second << "  " << dbgPrevEdge.second << "  " <<
+									WayPoint(boost::get(boost::edge_name, *graph,dbgPrevEdge.first)).roadSegment_->getId() << "\n";
+						dbgPrev = wps.rbegin()->roadSegment_->getId();
+						dbgPrevEdge = edge;
+					}
+					else
+					{
+						wps.push_back(wp);
+					}
 				}
 
 				//Save for later.
@@ -140,7 +182,6 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 		}				//catch
 
 	}				//else Blacklist
-
 
 
 	if (wps.empty()) {
@@ -159,16 +200,19 @@ void sim_mob::PathSetWorkerThread::executeThis() {
 			s->isNeedSave2DB = true;
 			hasPath = true;
 			s->pathSetId = ps->id;
+			s->scenario = ps->scenario + dbgStr;
 			s->init(wps);
 			s->id = id;
-			s->scenario = ps->scenario + dbgStr;
 			s->pathSize = 0;
 			if(this->s->path.begin()->roadSegment_->getStart()->getID() != this->ps->subTrip.fromLocation.node_->getID())
 			{
 				safe_delete_item(s);
 				hasPath = false;
-				//	todo I havent yet figured out what this bug is, but it happens, mainly for random perturbation(time), discarding for now-vahid
-				//TODO	std::cout <<ps->scenario << dbgStr << " Mismatch : " << this->s->path.begin()->roadSegment_->getStart()->getID() << "   " <<  this->ps->subTrip.fromLocation.node_->getID() <<  "  " << fromVertex << "," << toVertex << std::endl;
+				/**
+				 * todo I havent yet figured out what this bug is, but it happens, mainly for random perturbation(time), discarding for now-vahid
+				 * it may not be an issue after solving some multithreaded generation issue
+				 */
+				 logger << ps->scenario << dbgStr << " generation Mismatch : " << this->s->path.begin()->roadSegment_->getStart()->getID() << "   " <<  this->ps->subTrip.fromLocation.node_->getID() <<  "  " << fromVertex << "," << toVertex << std::endl;
 			}
 		}
 	}

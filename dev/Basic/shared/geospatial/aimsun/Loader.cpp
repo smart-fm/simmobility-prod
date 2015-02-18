@@ -390,7 +390,7 @@ void DatabaseLoader::loadLinkDefaultTravelTime(soci::session& sql,std::map<unsig
 {
 	const std::string &tableName = sim_mob::ConfigManager::GetInstance().PathSetConfig().DTT_Conf;
 	std::string query = "select \"link_id\",to_char(\"start_time\",'HH24:MI:SS') AS start_time,"
-			"to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\", travel_mode from " + tableName;
+			"to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\", travel_mode from \"" + tableName + "\"";
 
 	soci::rowset<sim_mob::LinkTravelTime> rs = sql.prepare << query;
 
@@ -404,8 +404,8 @@ bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql, int interval
 	int intervalMS = intervalSec * 1000;
 	const std::string &tableName = sim_mob::ConfigManager::GetInstance().PathSetConfig().RTTT_Conf;
 	std::string query = "select link_id,to_char(start_time,'HH24:MI:SS') AS start_time,"
-			"to_char(end_time,'HH24:MI:SS') AS end_time,travel_time, travel_mode from "
-			+ tableName + " where interval_time = " + boost::lexical_cast<std::string>(intervalSec);
+			"to_char(end_time,'HH24:MI:SS') AS end_time,travel_time, travel_mode from \""
+			+ tableName + "\" where interval_time = " + boost::lexical_cast<std::string>(intervalSec);
 
 	//	local cache for optimization purposes
 	std::map<unsigned long, const sim_mob::RoadSegment*> rsCache;

@@ -96,7 +96,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, i
 	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), remainingTimeThisTick(0.0),
 	requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
 	age(0), boardingTimeSecs(0), alightingTimeSecs(0), client_id(-1), resetParamsRequired(false), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),amodSegmLength(0.0),
-	initSegId(0), initDis(0), initSpeed(0), amodSegmLength2(0), currStatus(IN_CAR_PARK), first_update_tick(true), currLane(NULL)
+	initSegId(0), initDis(0), initSpeed(0), amodSegmLength2(0), currStatus(IN_CAR_PARK), firstTick(true), currLane(NULL)
 {
 }
 
@@ -104,7 +104,8 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegStats(nullptr), canMoveToNextSegment(NONE),
 	  databaseID(tc.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
 	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tc), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
-	  client_id(-1),amodPath( std::vector<WayPoint>() ), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),amodSegmLength(0.0)
+	  client_id(-1),amodPath( std::vector<WayPoint>() ), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),
+	  amodSegmLength(0.0)
 {
 	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
 		convertODsToTrips();
@@ -142,7 +143,7 @@ void sim_mob::Person::initTripChain(){
 	}
 
 	setNextPathPlanned(false);
-	first_update_tick = true;
+	firstTick = true;
 	tripchainInitialized = true;
 }
 
@@ -396,16 +397,15 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {
 	currTick = now;
 	//TODO: Here is where it gets risky.
-	if (resetParamsRequired) {
+	if (resetParamsRequired)
+	{
 		currRole->make_frame_tick_params(now);
 		resetParamsRequired = false;
 	}
 
 	Entity::UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 
-	if (!isToBeRemoved()) {
-		currRole->Movement()->frame_tick();
-	}
+	if (!isToBeRemoved()) { currRole->Movement()->frame_tick(); }
 
 	//If we're "done", try checking to see if we have any more items in our Trip Chain.
 	// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
@@ -415,27 +415,32 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 	//      will bring us outside the bounds of our try {} catch {} statement. We might move this
 	//      statement into the worker class, but I don't want to change too many things
 	//      about Agent/Person at once. ~Seth
-	if (isToBeRemoved()) {
+	if (isToBeRemoved())
+	{
 		retVal = checkTripChain();
 
 		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
 		setStartTime(now.ms()+ConfigManager::GetInstance().FullConfig().baseGranMS());
 
-		//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
-		//since start time of the activity is usually later than what is configured initially,
-		//we have to make adjustments so that it waits for exact amount of time
-		if(currTripChainItem != tripChain.end()) {
-			if((*currTripChainItem)) {// if currTripChain not end and has value, call frame_init and switching roles
-				if(!isInitialized()) {
+		if(currTripChainItem != tripChain.end())
+		{
+			sim_mob::TripChainItem* tcItem =  *currTripChainItem;
+			if(tcItem) // if currTripChain not end and has value, call frame_init and switching roles
+			{
+				if(tcItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY)
+				{
+					//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
+					//since start time of the activity is usually later than what is configured initially,
+					//we have to make adjustments so that the person waits for exact amount of time
+					sim_mob::ActivityPerformer* ap = dynamic_cast<sim_mob::ActivityPerformer*>(currRole);
+					ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
+					ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + (tcItem->endTime.getValue() - tcItem->startTime.getValue())));
+				}
+				if(!isInitialized())
+				{
 					currRole->Movement()->frame_init();
 					setInitialized(true);// set to be false so later no need to frame_init later
 				}
-			}
-			if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
-				sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(currRole);
-				ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
-				ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + ((*currTripChainItem)->endTime.getValue() - (*currTripChainItem)->startTime.getValue())));
-				ap->initializeRemainingTime();
 			}
 		}
 	}
@@ -506,18 +511,17 @@ bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 
 UpdateStatus sim_mob::Person::checkTripChain() {
 	//some normal checks
-	if(tripChain.size() < 1) {
+	if(tripChain.empty()) {
 		return UpdateStatus::Done;
 	}
 
 	//advance the trip, subtrip or activity....
-	if(!first_update_tick) {
+	if(!firstTick) {
 		if(!(advanceCurrentTripChainItem())) {
 			return UpdateStatus::Done;
 		}
 	}
-
-	first_update_tick = false;
+	firstTick = false;
 
 	//must be set to false whenever tripchainitem changes. And it has to happen before a probable creation of (or changing to) a new role
 	setNextPathPlanned(false);
@@ -548,7 +552,6 @@ UpdateStatus sim_mob::Person::checkTripChain() {
 	//Null out our trip chain, remove the "removed" flag, and return
 	clearToBeRemoved();
 	return UpdateStatus(UpdateStatus::RS_CONTINUE, prevParams, currParams);
-
 }
 
 //sets the current subtrip to the first subtrip of the provided trip(provided trip is usually the current tripChianItem)

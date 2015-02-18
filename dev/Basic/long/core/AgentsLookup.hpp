@@ -12,6 +12,7 @@
 #include "util/SingletonHolder.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "agent/impl/DeveloperAgent.hpp"
+#include "agent/impl/RealEstateAgent.hpp"
 #include "LoggerAgent.hpp"
 #include "EventsInjector.hpp"
 
@@ -25,8 +26,9 @@ namespace sim_mob {
          */
         class AgentsLookup {
         public:
-            typedef boost::unordered_map<BigSerial, const HouseholdAgent*> HouseholdMap;
-            typedef boost::unordered_map<BigSerial, const DeveloperAgent*> DeveloperMap;
+        	typedef boost::unordered_map<BigSerial, const RealEstateAgent*> RealEstateAgentMap;
+            typedef boost::unordered_map<BigSerial, const HouseholdAgent*> HouseholdAgentMap;
+            typedef boost::unordered_map<BigSerial, const DeveloperAgent*> DeveloperAgentMap;
 
         public:
             virtual ~AgentsLookup();
@@ -35,13 +37,19 @@ namespace sim_mob {
              * Adds new household agent for lookup.
              * @param agent pointer to add.
              */
-            void addHousehold(const HouseholdAgent* agent);
+            void addHouseholdAgent(const HouseholdAgent* agent);
             
             /**
              * Adds new developer agent for lookup.
              * @param agent pointer to add.
              */
-            void addDeveloper(const DeveloperAgent* agent);
+            void addDeveloperAgent(const DeveloperAgent* agent);
+
+            /**
+			 * Adds new real estate agent for lookup.
+			 * @param agent pointer to add.
+			 */
+            void addRealEstateAgent(const RealEstateAgent* agent);
             
             /**
              * Gets logger agent.
@@ -61,15 +69,17 @@ namespace sim_mob {
             /**
              * Getters 
              */
-            const HouseholdAgent* getHouseholdById(const BigSerial id) const;
-            const DeveloperAgent* getDeveloperById(const BigSerial id) const;
+            const HouseholdAgent* getHouseholdAgentById(const BigSerial id) const;
+            const DeveloperAgent* getDeveloperAgentById(const BigSerial id) const;
+            const RealEstateAgent* getRealEstateAgentById(const BigSerial id) const;
         private:
             template<typename T> friend class AgentsLookupLifeCycle;
             AgentsLookup();
 
         private:
-            HouseholdMap householdsById;
-            DeveloperMap developersById;
+            HouseholdAgentMap householdAgentsById;
+            DeveloperAgentMap developerAgentsById;
+            RealEstateAgentMap realEstateAgentsById;
             LoggerAgent logger;
             EventsInjector injector;
         };

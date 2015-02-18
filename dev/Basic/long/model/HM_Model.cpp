@@ -290,22 +290,43 @@ void HM_Model::startImpl()
 	unitsFiltering();
 
 	workGroup.assignAWorker(&market);
-	unsigned int numberOffreelanceHousingAgents = workGroup.getNumberOfWorkers();
+	int numWorkers = workGroup.getNumberOfWorkers();
 
-	//create fake seller agents to sell vacant units.
+	//
+	//Create freelance seller agents to sell vacant units.
+	//
 	std::vector<HouseholdAgent*> freelanceAgents;
-	for (int i = 0; i < numberOffreelanceHousingAgents; i++)
+	for (int i = 0; i < numWorkers ; i++)
 	{
 		HouseholdAgent* freelanceAgent = new HouseholdAgent((FAKE_IDS_START + i),this, nullptr, &market, true);
-		AgentsLookupSingleton::getInstance().addHousehold(freelanceAgent);
+		AgentsLookupSingleton::getInstance().addHouseholdAgent(freelanceAgent);
 		agents.push_back(freelanceAgent);
 		workGroup.assignAWorker(freelanceAgent);
 		freelanceAgents.push_back(freelanceAgent);
 	}
 
+
+	//
+	//Create real-estate agents. Their tasks are to sell units from the developper model.
+	//
+	std::vector<RealEstateAgent*> realEstateAgents;
+	for( int i = 0; i < numWorkers ; i++ )
+	{
+		RealEstateAgent* realEstateAgent = new RealEstateAgent((FAKE_IDS_START + numWorkers + i), this, nullptr, &market, true);
+		AgentsLookupSingleton::getInstance().addRealEstateAgent(realEstateAgent);
+		agents.push_back(realEstateAgent);
+		workGroup.assignAWorker(realEstateAgent);
+		realEstateAgents.push_back(realEstateAgent);
+	}
+
+
+
 	int homelessHousehold = 0;
 
-	// Assign households to the units.
+	//
+	// 1. Create Household Agents.
+	// 2. Assign households to the units.
+	//
 	for (HouseholdList::const_iterator it = households.begin();	it != households.end(); it++)
 	{
 		const Household* household = *it;
@@ -338,7 +359,7 @@ void HM_Model::startImpl()
 			 " AVG: "   << tazStats->getHH_AvgIncome() << std::endl);*/
 		}
 
-		AgentsLookupSingleton::getInstance().addHousehold(hhAgent);
+		AgentsLookupSingleton::getInstance().addHouseholdAgent(hhAgent);
 		agents.push_back(hhAgent);
 		workGroup.assignAWorker(hhAgent);
 	}
@@ -380,7 +401,7 @@ void HM_Model::startImpl()
 					offMarket++;
 				}
 
-				freelanceAgents[vacancies % numberOffreelanceHousingAgents]->addUnitId((*it)->getId());
+				freelanceAgents[vacancies % numWorkers]->addUnitId((*it)->getId());
 				vacancies++;
 			}
 		}
@@ -392,7 +413,7 @@ void HM_Model::startImpl()
 	addMetadata("Initial Units", units.size());
 	addMetadata("Initial Households", households.size());
 	addMetadata("Initial Vacancies", vacancies);
-	addMetadata("Freelance housing agents", numberOffreelanceHousingAgents);
+	addMetadata("Freelance housing agents", numWorkers);
 
 	for (int n = 0; n < individuals.size(); n++)
 	{

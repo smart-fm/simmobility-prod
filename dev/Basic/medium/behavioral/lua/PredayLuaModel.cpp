@@ -235,6 +235,13 @@ void sim_mob::medium::PredayLuaModel::computeDayPatternLogsums(PersonParams& per
 	personParams.setDpsLogsum(dpsLogsum.cast<double>());
 }
 
+void sim_mob::medium::PredayLuaModel::computeDayPatternBinaryLogsums(PersonParams& personParams) const
+{
+	LuaRef computeLogsumDPB = getGlobal(state.get(), "compute_logsum_dpb");
+	LuaRef dpbLogsum = computeLogsumDPB(personParams);
+	personParams.setDpbLogsum(dpbLogsum.cast<double>());
+}
+
 void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern) const {
 	LuaRef chooseDPB = getGlobal(state.get(), "choose_dpb");
 	LuaRef retValB = chooseDPB(&personParams);
@@ -454,3 +461,4 @@ int sim_mob::medium::PredayLuaModel::predictSubTourTimeOfDay(PersonParams& perso
 	LuaRef retVal = chooseSTTD(&personParams, &subTourParams);
 	return retVal.cast<int>();
 }
+

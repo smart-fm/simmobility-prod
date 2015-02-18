@@ -388,7 +388,7 @@ public:
 	 * @param ag person to be added
 	 * @param rdSeg starting road segment of ag
 	 */
-	void addAgent(sim_mob::Person* ag, const sim_mob::RoadSegment* rdSeg);
+	void addAgent(sim_mob::Person* ag);
 
 	/**
 	 * Searches upstream segments to get the segmentStats for the requested road segment
@@ -500,17 +500,10 @@ public:
 	 * return his starting conflux.
 	 *
 	 * @param person person for whom the starting conflux is needed
-	 * @param rdSeg output parameter - constant pointer to starting road segment.
+	 * @param currentTime the current time (in ms) in which the function is called
 	 * @return pointer to the starting conflux of the person's constructed path
 	 */
-	static sim_mob::Conflux* findStartingConflux(Person* person);
-
-	/**
-	 * given a person with a path, finds the starting road segment for the person
-	 * @param person person for whom the starting segment is needed
-	 * @return constant pointer to starting segment of person's path
-	 */
-	static const sim_mob::RoadSegment* findStartingRoadSegment(Person* person);
+	static sim_mob::Conflux* findStartingConflux(Person* person, unsigned int currentTime);
 
 	/**
 	 * Inserts an Incident by updating the flow rate for all lanes of a road segment to a new value.

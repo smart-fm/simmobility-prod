@@ -449,7 +449,7 @@ void aggregateStatistics(const std::vector<CalibrationStatistics>& calStatsVect,
 }
 
 /**
- * operatoer overload to simplify logging to file
+ * operator overload to simplify logging to file
  * @param os the lhs of the operator
  * @param calVar the rhs of the operator
  * @return a reference to os after adding calVar to it
@@ -460,6 +460,11 @@ std::ostream& operator <<(std::ostream& os, const CalibrationVariable& calVar)
 	return os;
 }
 
+/**
+ * Pretty printer for calibration variable list
+ * @param calVarList vector of variables to print
+ * @param simType type of simulation
+ */
 void printParameters(const std::vector<CalibrationVariable>& calVarList, const std::string& simType)
 {
 	std::stringstream ss;
@@ -472,28 +477,50 @@ void printParameters(const std::vector<CalibrationVariable>& calVarList, const s
 	Print() << ss.str();
 }
 
+/**
+ * flush stream contents to file
+ * @param logHandle handle to output file
+ * @param strm stringstream to flush
+ */
 void outputToFile(std::ofstream& logHandle, std::stringstream& strm)
 {
 	NullableOutputStream(&logHandle) << strm.str() << std::flush;
 	strm.str(std::string());
 }
 
-void mergeTripChainFiles(const std::list<std::string>& tcFileNames)
+/**
+ * constructs unique file name strings by appending serial numbers to prefix
+ * @param numFiles number of file names to generate
+ * @param prefix prefix string to use in file
+ * @param outFileNamesList out list to populate with generated file names
+ */
+void constructFileNames(size_t numFiles, const std::string& prefix, std::list<std::string>& outFileNamesList)
+{
+	std::stringstream fileName;
+	for(unsigned i=1; i<=numFiles; i++)
+	{
+		fileName << prefix << i << ".log";
+		outFileNamesList.push_back(fileName.str());
+		fileName.str(std::string());
+	}
+}
+
+void mergeCSV_Files(const std::list<std::string>& fileNameList, const std::string& fileName)
 {
 	//This can take some time.
 	StopWatch sw;
 	sw.start();
-	std::cout <<"Merging trip chain files, this can take several minutes...\n";
+	std::cout <<"Merging files, this can take several minutes...\n";
 
 	//One-by-one.
-	std::ofstream out("activity_schedule.csv", std::ios::trunc|std::ios::binary);
+	std::ofstream out(fileName.c_str(), std::ios::trunc|std::ios::binary);
 	if (!out.good()) { throw std::runtime_error("Error: Can't write to file."); }
-	for (std::list<std::string>::const_iterator it=tcFileNames.begin(); it!=tcFileNames.end(); it++) {
+	for (std::list<std::string>::const_iterator it=fileNameList.begin(); it!=fileNameList.end(); it++) {
 		Print() <<"  Merging: " << *it <<std::endl;
 		std::ifstream src(it->c_str(), std::ios::binary);
 		if (src.fail()) { throw std::runtime_error("Error: Can't read from file."); }
 
-		//If it's good, this part's easy.
+		//If src is good, this part's easy.
 		out << src.rdbuf();
 		src.close();
 	}
@@ -769,29 +796,24 @@ void sim_mob::medium::PredayManager::loadUnavailableODs(db::BackendType dbType)
 	}
 }
 
-void sim_mob::medium::PredayManager::dispatchPersons() {
+void sim_mob::medium::PredayManager::dispatchPersons()
+{
 	boost::thread_group threadGroup;
 	unsigned numWorkers = mtConfig.getNumPredayThreads();
 	std::list<std::string> logFileNames;
-	{ // construct log file names for writing trip chains
-		std::stringstream fileName;
-		for(unsigned i=1; i<=numWorkers; i++)
-		{
-			fileName << "activity_schedule" << i << ".log";
-			logFileNames.push_back(fileName.str());
-			fileName.str(std::string());
-		}
-	}
+	std::string logFileNamePrefix;
+	if(mtConfig.runningPredaySimulation()) { logFileNamePrefix = "activity_schedule"; }
+	else if(mtConfig.runningPredayLogsumComputationForLT()) { logFileNamePrefix = "lt_logsums"; }
+	constructFileNames(numWorkers, logFileNamePrefix, logFileNames);
 
-	if(numWorkers == 1) { // if single threaded execution was requested
-		if(mtConfig.runningPredaySimulation()) {
-			processPersonsById(personIdList.begin(), personIdList.end(), logFileNames.front());
-		}
-		else if(mtConfig.runningPredayLogsumComputation()) {
-			computeLogsumsById(personIdList.begin(), personIdList.end());
-		}
+	if(numWorkers == 1)
+	{ // if single threaded execution was requested
+		if(mtConfig.runningPredaySimulation()) { processPersonsById(personIdList.begin(), personIdList.end(), logFileNames.front()); }
+		else if(mtConfig.runningPredayLogsumComputation()) { computeLogsumsById(personIdList.begin(), personIdList.end()); }
+		else if(mtConfig.runningPredayLogsumComputationForLT()) { computeLogsumsByIdForLT(personIdList.begin(), personIdList.end(), logFileNames.front()); }
 	}
-	else {
+	else
+	{
 		PersonIdList::size_type numPersons = personIdList.size();
 		PersonIdList::size_type numPersonsPerThread = numPersons / numWorkers;
 		Print() << "numPersons:" << numPersons << "|numWorkers:" << numWorkers
@@ -809,13 +831,21 @@ void sim_mob::medium::PredayManager::dispatchPersons() {
 		PersonIdList::iterator first = personIdList.begin();
 		PersonIdList::iterator last = personIdList.begin()+numPersonsPerThread;
 		std::list<std::string>::const_iterator fileNameIt = logFileNames.begin();
-		for(int i = 1; i<=numWorkers; i++) {
-			if(mtConfig.runningPredaySimulation()) {
+		for(int i = 1; i<=numWorkers; i++)
+		{
+			if(mtConfig.runningPredaySimulation())
+			{
 				threadGroup.create_thread( boost::bind(&PredayManager::processPersonsById, this, first, last, (*fileNameIt)) );
 				fileNameIt++;
 			}
-			else if(mtConfig.runningPredayLogsumComputation()) {
+			else if(mtConfig.runningPredayLogsumComputation())
+			{
 				threadGroup.create_thread( boost::bind(&PredayManager::computeLogsumsById, this, first, last) );
+			}
+			else if(mtConfig.runningPredayLogsumComputationForLT())
+			{
+				threadGroup.create_thread( boost::bind(&PredayManager::computeLogsumsByIdForLT, this, first, last, (*fileNameIt)) );
+				fileNameIt++;
 			}
 
 			first = last;
@@ -830,8 +860,8 @@ void sim_mob::medium::PredayManager::dispatchPersons() {
 		threadGroup.join_all();
 	}
 
-	// merge tripchains from each thread into 1 file.
-	if(mtConfig.isOutputTripchains()) { mergeTripChainFiles(logFileNames); }
+	// merge log files from each thread into 1 file.
+	if(mtConfig.isFileOutputEnabled()) { mergeCSV_Files(logFileNames, logFileNamePrefix); }
 }
 
 void sim_mob::medium::PredayManager::distributeAndProcessForCalibration(threadedFnPtr fnPtr)
@@ -1155,7 +1185,7 @@ void sim_mob::medium::PredayManager::computeWeightedGradient(const std::vector<s
 
 void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, const std::string& activityScheduleLog)
 {
-	bool outputTripchains = mtConfig.isOutputTripchains();
+	bool outputTripchains = mtConfig.isFileOutputEnabled();
 	bool outputPredictions = mtConfig.isOutputPredictions();
 	bool consoleOutput = mtConfig.isConsoleOutput();
 
@@ -1196,7 +1226,7 @@ void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& 
 
 void sim_mob::medium::PredayManager::processPersonsById(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& activityScheduleLog)
 {
-	bool outputTripchains = mtConfig.isOutputTripchains();
+	bool outputTripchains = mtConfig.isFileOutputEnabled();
 	bool outputPredictions = mtConfig.isOutputPredictions();
 	bool consoleOutput = mtConfig.isConsoleOutput();
 
@@ -1329,6 +1359,48 @@ void sim_mob::medium::PredayManager::computeLogsumsById(const PersonIdList::iter
 		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
 		predaySystem.computeLogsums();
 		predaySystem.updateLogsumsToMongo();
+		if(consoleOutput) { predaySystem.printLogs(); }
+	}
+
+	// destroy Dao objects
+	for(std::map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
+		safe_delete_item(i->second);
+	}
+	mongoDao.clear();
+}
+
+void sim_mob::medium::PredayManager::computeLogsumsByIdForLT(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& logsumOutputFileName)
+{
+	std::map<std::string, db::MongoDao*> mongoDao;
+	bool consoleOutput = mtConfig.isConsoleOutput();
+	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
+	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+	std::string emptyString;
+	db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+
+	// construct MongoDao-s for this thread
+	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
+	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
+		mongoDao[i->first] = new db::MongoDao(dbConfig, db.dbName, i->second);
+	}
+
+	// construct population dao specially
+	std::string populationCollectionName = mongoColl.getCollectionName("population");
+	PopulationMongoDao populationDao(dbConfig, db.dbName, populationCollectionName);
+
+	/* initialize log file for this thread and log header line*/
+    std::ofstream logsumOutputFile(logsumOutputFileName.c_str(), std::ios::trunc|std::ios::out);
+    std::stringstream logsumStream;
+    outputToFile(logsumOutputFile, logsumStream);
+
+	// loop through all persons within the range and plan their day
+    PersonParams personParams;
+	PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
+	for(PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++)
+	{
+		populationDao.getOneById(*i, personParams);
+		predaySystem.computeLogsumsForLT(logsumStream);
+		outputToFile(logsumOutputFile, logsumStream);
 		if(consoleOutput) { predaySystem.printLogs(); }
 	}
 

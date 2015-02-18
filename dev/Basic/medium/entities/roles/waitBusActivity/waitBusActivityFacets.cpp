@@ -6,10 +6,12 @@
  */
 
 #include "waitBusActivityFacets.hpp"
-#include "waitBusActivity.hpp"
+
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "entities/BusStopAgent.hpp"
 #include "geospatial/BusStop.hpp"
+#include "waitBusActivity.hpp"
 
 namespace sim_mob {
 
@@ -68,6 +70,13 @@ void WaitBusActivityMovement::frame_tick_output(){
 
 }
 
+sim_mob::Conflux* WaitBusActivityMovement::getStartingConflux() const
+{
+	const BusStopAgent* stopAg = sim_mob::medium::BusStopAgent::findBusStopAgentByBusStop(parentWaitBusActivity->getStop());
+	if(stopAg) { return stopAg->getParentSegmentStats()->getRoadSegment()->getParentConflux(); }
+	return nullptr;
+}
+
 }
 TravelMetric & medium::WaitBusActivityMovement::startTravelTimeMetric()
 {
@@ -80,3 +89,5 @@ TravelMetric & medium::WaitBusActivityMovement::finalizeTravelTimeMetric()
 }
 
 } /* namespace sim_mob */
+
+

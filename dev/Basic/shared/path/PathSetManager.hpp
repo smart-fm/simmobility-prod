@@ -25,12 +25,10 @@ class PathSetWorkerThread;
 ///	Debug Method to print WayPoint based paths
 std::string printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node* startingNode = 0);
 
-/// Roadsegment-Person
-typedef std::multimap<const sim_mob::RoadSegment*, const sim_mob::Person* > SGPER ;// Roadsegment-Person  :)
-
-/*****************************************************
- * ****** Path Set Manager ***************************
- * ***************************************************
+/**
+ * Path set manager class
+ *
+ * \author Vahid
  */
 class PathSetManager {
 
@@ -204,8 +202,6 @@ public:
 
 	void setScenarioName(std::string& name){ scenarioName = name; }
 
-	const std::pair<SGPER::const_iterator,SGPER::const_iterator > getODbySegment(const sim_mob::RoadSegment* segment) const;
-
 	///	handle messages sent to pathset manager using message bus
 	void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
@@ -235,20 +231,6 @@ public:
 	 * returns true/false to indicate if the search has been successful
 	 */
 	bool findCachedPathSet(std::string key, boost::shared_ptr<sim_mob::PathSet> &value);
-
-	//either this or the above method will remain todo
-	bool findCachedPathSet(std::string key,
-			boost::shared_ptr<sim_mob::PathSet> &value,
-			const std::set<const sim_mob::RoadSegment*> & blcklist);
-//	///cache the generated pathset. returns true upon successful insertion
-//	bool cachePathSet_orig(boost::shared_ptr<sim_mob::PathSet> &ps);
-	/**
-	 * searches for a pathset in the cache.
-	 * @param key indicates the input key
-	 * @param value the result of the search
-	 * returns true/false to indicate if the search has been successful
-	 */
-//	bool findCachedPathSet_orig(std::string key, boost::shared_ptr<sim_mob::PathSet> &value);
 
 	///cache the generated pathset. returns true upon successful insertion
 	bool cachePathSet_LRU(boost::shared_ptr<sim_mob::PathSet> &ps);
@@ -302,7 +284,7 @@ private:
 	std::set<const sim_mob::RoadSegment*> partialExclusions;
 	///	list of segments that must be considered off the network throughout simulation
 	///	in all operations of this class. The list must be already ready and supplied to
-	/// PathsetManager's instance upon creation og PathSetManager's instance.
+	/// PathsetManager's instance upon creation of PathSetManager's instance.
 	/// if any additional/temporary blacklist emerged during simulation, they can be supplied
 	///	to getPath() with proper switches. The management of such blacklists is not in the scope
 	///	of PathSetManager
@@ -310,9 +292,6 @@ private:
 
 	///	protect access to incidents list
 	boost::shared_mutex mutexExclusion;
-
-//	///	stores the name of database's pathset table
-//	const std::string &pathSetTableName;
 
 	///	stores the name of database's singlepath table//todo:doublecheck the usability
 	const std::string &pathSetTableName;
@@ -383,58 +362,7 @@ private:
 
 	///	used to avoid entering duplicate "HAS_PATH=-1" pathset entries into PathSet. It will be removed once the cache and/or proper DB functions are in place
 	SimpleCollector tempNoPath;
-
-	///a cache to help answer this question: a given road segment is within which path(s)
-	SGPER pathSegments;
-
-	void resetRdSegTravelTimes();
-	void reportRdSegTravelTimes(timeslice frameNumber);
-	bool insertTravelTime2TmpTable(timeslice frameNumber,
-			std::map<const RoadSegment*, RdSegTravelTimes>& rdSegTravelTimesMap);
-
 };
-
-/**
- * TODO: remove after completely testing the new versions
- * find the shortest path by analyzing the length of segments
- * @param pathChoices given path set
- * @param rs consider only the paths having the given road segment
- * @return the singlepath object containing the shortest path
- */
-//inline sim_mob::SinglePath* findShortestPath(std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::RoadSegment *rs)
-//{
-//	if(pathChoices.begin() == pathChoices.end())
-//	{
-//		return nullptr;
-//	}
-//	sim_mob::SinglePath* res = nullptr;
-//	double min = std::numeric_limits<double>::max();
-//	double tmp = 0.0;
-//	BOOST_FOREACH(sim_mob::SinglePath*sp, pathChoices)
-//	{
-//		//search for target segment id
-//		//note, be carefull you may be searching for id 123 and search a string id like ",1234"
-//		std::stringstream begin(""),out("");
-//		begin << rs->getId() << ","; //only for the begining of sp->id
-//		out << "," << rs->getId() << ","; //for the rest of the string
-//		if(! (sp->id.find(out.str()) !=  std::string::npos || sp->id.substr(0,begin.str().size()) == begin.str()) )
-//		{
-//			continue;
-//		}
-//		if(sp->length <= 0.0)
-//		{
-//			throw std::runtime_error("Invalid path length");//todo remove this after enough testing
-//		}
-//		//double tmp = generateSinglePathLength(sp->path);
-//		if ((sp->length*1000000 - min*1000000  ) < 0.0) //easy way to check doubles
-//		{
-//			//min = tmp;
-//			min = sp->length;
-//			res = sp;
-//		}
-//	}
-//	return res;
-//}
 
 /**
  * Generate pathsize of paths. PathSize values are stored in the corresponding SinglePath object
@@ -444,7 +372,7 @@ void generatePathSize(boost::shared_ptr<sim_mob::PathSet> &ps);
 
 
 static unsigned int seed = 0;
-inline float gen_random_float(float min, float max)
+inline float genRandomFloat(float min, float max)
 {
     boost::mt19937 rng;
     rng.seed(static_cast<unsigned int>(std::time(0) + (++seed)));
@@ -452,8 +380,5 @@ inline float gen_random_float(float min, float max)
     boost::variate_generator<boost::mt19937&, boost::uniform_real<float> > gen(rng, u);
     return gen();
 }
-
-
-
 
 }//namespace

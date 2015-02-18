@@ -1757,15 +1757,10 @@ void sim_mob::generatePathSize(boost::shared_ptr<sim_mob::PathSet>&ps)
 double sim_mob::PathSetManager::getPathTravelTime(sim_mob::SinglePath *sp,const std::string & travelMode, const sim_mob::DailyTime & startTime_, bool enRoute)
 {
 	sim_mob::DailyTime startTime = startTime_;
-	std::stringstream out("");
-	out << "\nstart time : " ;
-	std::string temp = startTime.getRepr_();
-	out << temp;
-	out << "\n";
-	double ts=0.0;
+	double timeSum = 0.0;
 	for(int i=0;i<sp->path.size();++i)
 	{
-		double t = 0.0;
+		double time = 0.0;
 		const sim_mob::RoadSegment * rs = sp->path[i].roadSegment_;
 		const sim_mob::IncidentManager * inc = IncidentManager::getInstance();
 		if(inc->getCurrIncidents().find(rs) != inc->getCurrIncidents().end())
@@ -1776,36 +1771,27 @@ double sim_mob::PathSetManager::getPathTravelTime(sim_mob::SinglePath *sp,const 
 		{
 			if(enRoute)
 			{
-				t = getInSimulationSegTT(rs,travelMode, startTime);
+				time = getInSimulationSegTT(rs,travelMode, startTime);
 			}
-			if(!enRoute || t == 0.0)
+			if(!enRoute || time == 0.0)
 			{
-				t = sim_mob::PathSetParam::getInstance()->getSegTT(rs,travelMode, startTime);
+				time = sim_mob::PathSetParam::getInstance()->getSegTT(rs,travelMode, startTime);
 			}
 		}
-		if(t == 0.0)
+		if(time == 0.0)
 		{
 			Print() << "No Travel Time [iteration:" << i << "] [SEGMENT: " << rs->getId() << "] [START TIME : " << startTime.getRepr_() << "]\n";
-			if(out.str().size())
-			{
-				Print() << "previous records : " << out.str() << std::endl;
-				out.str("");
-			}
 		}
-		else
-		{
-			out << "[iteration:" << i << "] [SEGMENT: " << sp->path[i].roadSegment_->getId() << "] [START TIME : " << startTime.getRepr_() << "]";
-		}
-		ts += t;
-		startTime = startTime + sim_mob::DailyTime(t*1000);
+		timeSum  += time;
+		startTime = startTime + sim_mob::DailyTime(time*1000);
 	}
-	if (ts <=0.0)
+	if (timeSum  <=0.0)
 	{
 		std::stringstream out("");
 		out << "No travel time for path " << sp->id ;
 		throw std::runtime_error(out.str());
 	}
-	return ts;
+	return timeSum ;
 }
 
 

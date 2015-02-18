@@ -254,13 +254,6 @@ bool sim_mob::medium::DriverMovement::initializePath() {
 		if(path.empty()) { return false; }
 		pathMover.setPath(path);
 		const sim_mob::SegmentStats* firstSegStat = path.front();
-		if(ConfigManager::GetInstance().FullConfig().pathSet().reroute)
-//		{//logging
-//			std::stringstream fileName("");
-//			fileName << "reroute-" << getParent()->getId() << this;
-//			sim_mob::BasicLogger &logger = sim_mob::Logger::log(fileName.str());
-//			logger << "NewPath:\n" << pathMover.printPath(path, firstSegStat->getRoadSegment()->getStart());
-//		}
 		person->setCurrSegStats(firstSegStat);
 		person->setCurrLane(firstSegStat->laneInfinity);
 		person->distanceToEndOfSegment = firstSegStat->getLength();

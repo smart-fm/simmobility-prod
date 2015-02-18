@@ -678,7 +678,7 @@ void sim_mob::PathSetManager::bulkPathSetGenerator()
 	{
 		cnt++;
 		Trip* trip = sim_mob::PeriodicPersonLoader::makeTrip(*it,0);
-		if(!tripchains.insert(trip))//todo, sequence number is NOT needed for now. But if needed later, make proper modifications
+		if(!trip || !tripchains.insert(trip).second)//todo, sequence number is NOT needed for now. But if needed later, make proper modifications
 		{
 			safe_delete_item(trip);
 		}
@@ -702,10 +702,10 @@ void sim_mob::PathSetManager::bulkPathSetGenerator()
 			ps_->id = getFromToString(subTrip.fromLocation.node_, subTrip.toLocation.node_);
 			ps_->scenario = scenarioName;
 			ps_->subTrip = subTrip;
-			Print() << "[" << ps_->id << "] GROUP START" << std::endl;// group: group of recursive ODs
+			Print() << "[" << ps_->id << "] [GROUP STARTED]..." ;// group: group of recursive ODs
 			int r = 0;
 			total += r = generateAllPathChoices(ps_, recursiveOrigins, blrs);
-			Print() << "["  << ps_->id << "] GROUP COMPLETE [PATHS GENERATED: " << r << " ,  TIME :" << t.tick().second.count() << "  Microseconds]"
+			Print() << "[GROUP COMPLETED [PATHS GENERATED: " << r << " ,  TIME :" << t.tick().second.count() << "  Microseconds]"
 					<< "[TOTAL PATHS: " << total << " ,  TIME : " << t.tick().first.count() << "  Microseconds]" << std::endl;
 		}
 	}
@@ -790,7 +790,7 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 	}
 	if(!cnt)
 	{
-		std::cerr  << "[" << fromToID << "]Nothing supplied to threadpool-SDLE" << std::endl;
+		logger  << "[" << fromToID << "]Nothing supplied to threadpool-SDLE" << std::endl;
 	}
 }
 
@@ -844,7 +844,7 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 	}//if sinPathTravelTimeDefault
 	if(!cnt)
 	{
-		std::cerr  << "[" << fromToID << "]Nothing supplied to threadpool-STTLE" << std::endl;
+		logger  << "[" << fromToID << "]Nothing supplied to threadpool-STTLE" << std::endl;
 	}
 
 //	threadpool_->wait();
@@ -913,7 +913,7 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 	logger  << "waiting for TRAVEL TIME HIGHWAY BIAS" << "\n";
 	if(!cnt)
 	{
-		std::cerr  << "[" << fromToID << "]Nothing supplied to threadpool-STTH" << std::endl;
+		logger  << "[" << fromToID << "]Nothing supplied to threadpool-STTH" << std::endl;
 	}
 //	threadpool_->wait();
 //	BOOST_FOREACH(PathSetWorkerThread*work, STTHBLE_Storage)
@@ -968,7 +968,7 @@ int sim_mob::PathSetManager::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps
 	}
 	if(!cnt)
 	{
-		std::cerr  << "[" << fromToID << "]Nothing supplied to threadpool-TTRP" << std::endl;
+		logger  << "[" << fromToID << "]Nothing supplied to threadpool-TTRP" << std::endl;
 	}
 //	threadpool_->wait();
 //	BOOST_FOREACH(PathSetWorkerThread*work, RandPertStorage)
@@ -988,6 +988,12 @@ int sim_mob::PathSetManager::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps
 
 int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs)
 {
+	//small sanity check
+	if(!ps || ps->subTrip.fromLocation.node_ == ps->subTrip.toLocation.node_ || !ps->subTrip.fromLocation.node_ || !ps->subTrip.toLocation.node_)
+	{
+		return 0;
+	}
+
 	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_));
 	logger << "generateAllPathChoices" << std::endl;
 	/**

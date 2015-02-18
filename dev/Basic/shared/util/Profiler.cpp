@@ -50,13 +50,15 @@ sim_mob::Profiler::Profiler(const std::string id, bool begin_):id(id){
 	std::pair <boost::chrono::microseconds,
 	boost::chrono::microseconds> sim_mob::Profiler::tick(bool addToTotal){
 	boost::chrono::system_clock::time_point thisTick = getTime();
-	boost::chrono::microseconds elapsed = boost::chrono::duration_cast<boost::chrono::microseconds>(thisTick - lastTick);
 	boost::chrono::microseconds elapsedStart = boost::chrono::duration_cast<boost::chrono::microseconds>(thisTick - start);
+	boost::chrono::microseconds elapsedLastTick = boost::chrono::duration_cast<boost::chrono::microseconds>(thisTick - lastTick);
+	std::pair <boost::chrono::microseconds, boost::chrono::microseconds> res = std::make_pair(elapsedStart,elapsedLastTick);
+
 	if(addToTotal){
-		addUpTime(elapsed);
+		addUpTime(elapsedLastTick);
 	}
 	lastTick = thisTick;
-	return std::make_pair(elapsedStart,elapsed);
+	return res;
 }
 
 //todo in end, provide output to accumulated total also

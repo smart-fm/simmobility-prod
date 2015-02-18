@@ -258,7 +258,7 @@ void sim_mob::PathSet::excludeRoadSegment(const std::set<const sim_mob::RoadSegm
 
 short sim_mob::PathSet::addOrDeleteSinglePath(sim_mob::SinglePath* s)
 {
-	if(!s)
+	if(!s && s->path.empty())
 	{
 		return 0;
 	}
@@ -270,6 +270,7 @@ short sim_mob::PathSet::addOrDeleteSinglePath(sim_mob::SinglePath* s)
 	if(!pathChoices.insert(s).second)
 	{
 		safe_delete_item(s);
+		return 0;
 	}
 	return 1;
 }

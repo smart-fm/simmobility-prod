@@ -474,6 +474,12 @@ sim_mob::Trip* sim_mob::PeriodicPersonLoader::makeTrip(const soci::row& r, unsig
 	tripToSave->toLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(5)));
 	tripToSave->toLocationType = sim_mob::TripChainItem::LT_NODE;
 	tripToSave->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(11), true, tripToSave->getPersonID()));
+	//just a sanity check
+	if(tripToSave->fromLocation == tripToSave->toLocation)
+	{
+		safe_delete_item(tripToSave);
+		return nullptr;
+	}
 	makeSubTrip(r, tripToSave);
 	return tripToSave;
 }

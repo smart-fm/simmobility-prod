@@ -1565,9 +1565,13 @@ void sim_mob::medium::PredayManager::computeLT_FeedbackLogsums(const PersonIdLis
 	for(PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++)
 	{
 		populationDao.getOneById(*i, personParams);
-		predaySystem.computeLogsumsForLT(logsumStream);
-		outputToFile(logsumOutputFile, logsumStream);
-		if(consoleOutput) { predaySystem.printLogs(); }
+		for(ZoneMap::const_iterator znIt=zoneMap.begin(); znIt!=zoneMap.end(); znIt++)
+		{
+			personParams.setHomeLocation(znIt->second->getZoneCode());
+			predaySystem.computeLogsumsForLT(logsumStream);
+			outputToFile(logsumOutputFile, logsumStream);
+			if(consoleOutput) { predaySystem.printLogs(); }
+		}
 	}
 
 	// destroy Dao objects

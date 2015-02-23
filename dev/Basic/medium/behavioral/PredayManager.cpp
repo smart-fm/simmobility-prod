@@ -1336,6 +1336,7 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 	for(LT_PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++) {
 		PersonParams personParams;
 		populationDao.getOneById(*i, personParams);
+		if(personParams.getPersonId().empty()) { continue; } // some persons are not complete in the database
 		logsumSqlDao.getLogsumById(*i, personParams);
 		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
 		predaySystem.planDay();
@@ -1437,7 +1438,8 @@ void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_Per
 
 	// construct MongoDao-s for this thread
 	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
-	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
+	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++)
+	{
 		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
 
@@ -1468,9 +1470,11 @@ void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_Per
 	LogsumSqlDao logsumSqlDao(logsumConn);
 
 	// loop through all persons within the range and plan their day
-	for(LT_PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++) {
+	for(LT_PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++)
+	{
 		PersonParams personParams;
 		populationDao.getOneById(*i, personParams);
+		if(personParams.getPersonId().empty()) { continue; } // some persons are not complete in the database
 		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
 		predaySystem.computeLogsums();
 		logsumSqlDao.insert(personParams);
@@ -1478,7 +1482,8 @@ void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_Per
 	}
 
 	// destroy Dao objects
-	for(std::map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
+	for(std::map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++)
+	{
 		safe_delete_item(i->second);
 	}
 	mongoDao.clear();
@@ -1523,6 +1528,7 @@ void sim_mob::medium::PredayManager::computeLT_PopulationFeedbackLogsums(const L
 	for(LT_PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++)
 	{
 		populationDao.getOneById(*i, personParams);
+		if(personParams.getPersonId().empty()) { continue; } // some persons are not complete in the database
 		predaySystem.computeLogsumsForLT(logsumStream);
 		outputToFile(logsumOutputFile, logsumStream);
 		if(consoleOutput) { predaySystem.printLogs(); }

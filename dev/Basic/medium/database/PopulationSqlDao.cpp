@@ -57,7 +57,7 @@ void PopulationSqlDao::fromRow(Row& result, PersonParams& outObj)
 	outObj.setHH_NumAdults(result.get<int>(DB_FIELD_HH_ADULTS));
 	outObj.setHH_NumWorkers(result.get<int>(DB_FIELD_HH_WORKERS));
 
-	//fix up inferred params
+	//infer params
 	outObj.fixUpForLtPerson();
 }
 

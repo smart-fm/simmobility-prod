@@ -219,10 +219,10 @@ function getBuildingTypeFromUnitType(unitTypeId)
     end	   	
 end
 
-
+--exp value is calculated for amenties only: This should be changed as per "calculateUnitRevenueCondo(amenities,unit)" function once HPI values are received.
 function calculateUnitRevenueApartment(amenities,unit)
 	local revenue = 0
-	revenue = UNIT_TYPE_COEFFICIENTS[4][0] + UNIT_TYPE_COEFFICIENTS[4][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[4][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[4][3] * (amenities.distanceToCBD/1000) + UNIT_TYPE_COEFFICIENTS[4][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[4][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[4][6]* (amenities.distanceToMall/1000) + UNIT_TYPE_COEFFICIENTS[4][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[4][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[4][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[4][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[4][11]* amenities.bus_400m
+	revenue = math.exp(UNIT_TYPE_COEFFICIENTS[4][0] + UNIT_TYPE_COEFFICIENTS[4][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[4][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[4][3] * (amenities.distanceToCBD/1000) + UNIT_TYPE_COEFFICIENTS[4][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[4][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[4][6]* (amenities.distanceToMall/1000) + UNIT_TYPE_COEFFICIENTS[4][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[4][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[4][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[4][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[4][11]* amenities.bus_400m)
 	return revenue;
 end
 
@@ -237,25 +237,26 @@ end
 
 function calculateUnitRevenueSemiDetatched(amenities,unit)
 	local revenue = 0
-	revenue = UNIT_TYPE_COEFFICIENTS[2][0] + UNIT_TYPE_COEFFICIENTS[2][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[2][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[2][3] * (amenities.distanceToCBD/1000) + UNIT_TYPE_COEFFICIENTS[2][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[2][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[2][6]* (amenities.distanceToMall/1000) + UNIT_TYPE_COEFFICIENTS[2][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[2][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[2][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[2][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[2][11]* amenities.bus_400m
+	revenue = math.exp(UNIT_TYPE_COEFFICIENTS[2][0] + UNIT_TYPE_COEFFICIENTS[2][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[2][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[2][3] * (amenities.distanceToCBD/1000) + UNIT_TYPE_COEFFICIENTS[2][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[2][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[2][6]* (amenities.distanceToMall/1000) + UNIT_TYPE_COEFFICIENTS[2][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[2][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[2][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[2][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[2][11]* amenities.bus_400m)
+--print("semi detatched revenue" , revenue);
 	return revenue;
 end
 
 function calculateUnitRevenueDetatched(amenities,unit)
 	local revenue = 0
-	revenue = UNIT_TYPE_COEFFICIENTS[3][0] + UNIT_TYPE_COEFFICIENTS[3][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[3][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[3][3] * (amenities.distanceToCBD /1000) + UNIT_TYPE_COEFFICIENTS[3][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[3][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[3][6]* (amenities.distanceToMall /1000) + UNIT_TYPE_COEFFICIENTS[3][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[3][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[3][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[3][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[3][11]* amenities.bus_400m
+	revenue = math.exp(UNIT_TYPE_COEFFICIENTS[3][0] + UNIT_TYPE_COEFFICIENTS[3][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[3][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[3][3] * (amenities.distanceToCBD /1000) + UNIT_TYPE_COEFFICIENTS[3][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[3][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[3][6]* (amenities.distanceToMall /1000) + UNIT_TYPE_COEFFICIENTS[3][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[3][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[3][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[3][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[3][11]* amenities.bus_400m)
 	return revenue;
 end
 
 function calculateUnitRevenueExecutiveCondo(amenities,unit)
 	local revenue = 0
-	revenue = UNIT_TYPE_COEFFICIENTS[5][0] + UNIT_TYPE_COEFFICIENTS[5][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[5][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[5][3] * (amenities.distanceToCBD/1000) + UNIT_TYPE_COEFFICIENTS[5][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[5][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[5][6]* (amenities.distanceToMall/1000) + UNIT_TYPE_COEFFICIENTS[5][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[5][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[5][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[5][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[5][11]* amenities.bus_400m
+	revenue = math.exp(UNIT_TYPE_COEFFICIENTS[5][0] + UNIT_TYPE_COEFFICIENTS[5][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[5][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[5][3] * (amenities.distanceToCBD/1000) + UNIT_TYPE_COEFFICIENTS[5][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[5][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[5][6]* (amenities.distanceToMall/1000) + UNIT_TYPE_COEFFICIENTS[5][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[5][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[5][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[5][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[5][11]* amenities.bus_400m)
         return revenue;
 end
 
 function calculateUnitRevenueTerrace(amenities,unit)
 	local revenue = 0
-	revenue = UNIT_TYPE_COEFFICIENTS[1][0] + UNIT_TYPE_COEFFICIENTS[1][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[1][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[1][3] * (amenities.distanceToCBD/1000)+ UNIT_TYPE_COEFFICIENTS[1][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[1][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[1][6]* (amenities.distanceToMall/1000) + UNIT_TYPE_COEFFICIENTS[1][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[1][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[1][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[1][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[1][11]* amenities.bus_400m
+	revenue = math.exp(UNIT_TYPE_COEFFICIENTS[1][0] + UNIT_TYPE_COEFFICIENTS[1][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[1][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[1][3] * (amenities.distanceToCBD/1000)+ UNIT_TYPE_COEFFICIENTS[1][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[1][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[1][6]* (amenities.distanceToMall/1000) + UNIT_TYPE_COEFFICIENTS[1][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[1][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[1][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[1][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[1][11]* amenities.bus_400m)
 	return revenue;
 end
 

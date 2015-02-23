@@ -754,7 +754,7 @@ bool sim_mob::DriverMovement::update_post_movement(timeslice now) {
 		
 		//Visibility of the intersection (metre). This should be retrieved from the corresponding conflict 
 		//section once it has been added there
-		const double visibilityDistance = 50;
+		const double visibilityDistance = 100;
 		
 		if (distToIntersection < visibilityDistance && !trafficSignal)
 		{
@@ -860,7 +860,7 @@ void sim_mob::DriverMovement::approachIntersection()
 					if (person)
 					{
 						const Driver *driver = dynamic_cast<const Driver *> (person->getRole());
-						if (driver)
+						if (driver && driver != parentDriver)
 						{
 							driverMovement = dynamic_cast<DriverMovement *> (driver->Movement());
 							if (distance > driverMovement->fwdDriverMovement.getDisToCurrSegEndM())
@@ -884,7 +884,7 @@ void sim_mob::DriverMovement::approachIntersection()
 					}
 
 					//If the time required for the other car is less, we yield
-					if (timeReqdByConflictVehicle <= timeToIntersection)
+					if (timeReqdByConflictVehicle < timeToIntersection)
 					{
 						params.slowDownForIntersection = true;
 						params.distanceToIntersection = fwdDriverMovement.getDisToCurrSegEndM();
@@ -893,7 +893,7 @@ void sim_mob::DriverMovement::approachIntersection()
 				}
 
 				++itConflictSections;
-			}
+			}			
 		}
 	}
 }
@@ -933,16 +933,30 @@ void sim_mob::DriverMovement::intersectionDriving(DriverUpdateParams& p) {
 	//Convert to m/s
 	p.currSpeed = parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT_UNIT;
 
-	//Call the car follow model
-	p.newFwdAcc = cfModel->makeAcceleratingDecision(p);
+	p.cftimer -= p.elapsedSeconds;
+	if (p.cftimer < p.elapsedSeconds)
+	{
+		double cfAcc = 0, intAcc = 9999;
+		
+		//Call the car follow model
+		cfAcc = cfModel->makeAcceleratingDecision(p);
+		
+		if (fwdDriverMovement.currTurning)
+		{
+			//Call the intersection driving model
+			intAcc = intModel->makeAcceleratingDecision(p, fwdDriverMovement.currTurning);
+		}
+		
+		//Select the lower of the two accelerations
+		p.newFwdAcc = (cfAcc < intAcc) ? cfAcc : intAcc;
+	}
 	
 	//Calculate the distance travelled
 	//s = ut + (1/2)at^2
-	double distanceTravelled = (parentDriver->vehicle->getVelocity() * p.elapsedSeconds) +
-			(0.5 * p.newFwdAcc * p.elapsedSeconds * p.elapsedSeconds);
+	double distanceTravelled = (p.currSpeed * p.elapsedSeconds) + (0.5 * p.newFwdAcc * p.elapsedSeconds * p.elapsedSeconds);
 	
 	//update movement along the vector.
-	DPoint res = intModel->continueDriving(distanceTravelled);
+	DPoint res = intModel->continueDriving(distanceTravelled * METER_TO_CENTIMETER_CONVERT_UNIT);
 	parentDriver->vehicle->setPositionInIntersection(res.x, res.y);
 
 	//Next, detect if we've just left the intersection. Otherwise, perform regular intersection driving.
@@ -1741,71 +1755,9 @@ void sim_mob::DriverMovement::calculateIntersectionTrajectory(DPoint movingFrom,
 		Warn() << "WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory." << std::endl;
 		return;
 	}
-
-	//Get the entry point.
-	int id = getLaneIndex(fwdDriverMovement.getCurrLane());
-	int startOldLane = -1;
-
-	for (vector<Lane*>::const_iterator it =
-			fwdDriverMovement.getCurrSegment()->getLanes().begin();
-			it != fwdDriverMovement.getCurrSegment()->getLanes().end(); ++it) {
-		if ((*it)->is_pedestrian_lane() || (*it)->is_bicycle_lane()) {
-
-		} else {
-			startOldLane = getLaneIndex((*it));
-			break;
-		}
-	}
-
-	int total = nextLaneInNextLink->getRoadSegment()->getLanes().size() - 1;
-	int offset = fwdDriverMovement.getCurrSegment()->getLanes().size() - 1 - id;
-	set<int> laneIDS;
-	bool first = true;
-	int StartnewLane = -1;
-	int last = 1;
+	
 	Point2D entry = nextLaneInNextLink->getPolyline().at(0);
-
-	for (vector<Lane*>::const_iterator it =
-			nextLaneInNextLink->getRoadSegment()->getLanes().begin();
-			it != nextLaneInNextLink->getRoadSegment()->getLanes().end();
-			++it) {
-		if ((*it)->is_pedestrian_lane() || (*it)->is_bicycle_lane()) {
-
-		} else {
-			if (first) {
-				first = false;
-				StartnewLane = getLaneIndex((*it));
-			}
-
-			laneIDS.insert(getLaneIndex((*it)));
-			last = getLaneIndex((*it));
-		}
-	}
-
-	if ((startOldLane != -1) && StartnewLane != -1)
-		id = id + (StartnewLane - startOldLane);
-
-	if (laneIDS.find(id) != laneIDS.end()) {
-		entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(id)->getPolyline().at(0);
-		lastIndex = id;
-	} else {
-		int findID = total - offset;
-		if (findID > 0) {
-			if (laneIDS.find(findID) != laneIDS.end()) {
-				entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(
-						findID)->getPolyline().at(0);
-				lastIndex = findID;
-			} else {
-				entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(
-						last)->getPolyline().at(0);
-				lastIndex = last;
-			}
-		} else {
-			lastIndex = *(laneIDS.begin());
-			entry = nextLaneInNextLink->getRoadSegment()->getLanes().at(
-					*(laneIDS.begin()))->getPolyline().at(0);
-		}
-	}
+	
 	//Compute a movement trajectory.
 	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
 }
@@ -2686,10 +2638,10 @@ void sim_mob::DriverMovement::intersectionVelocityUpdate()
 	DriverUpdateParams& params = parentDriver->getParams();
 	
 	//Update the acceleration
-	parentDriver->vehicle->setAcceleration(params.newFwdAcc);
+	parentDriver->vehicle->setAcceleration(params.newFwdAcc * METER_TO_CENTIMETER_CONVERT_UNIT);
 	
 	//Calculate the new speed
-	double inter_speed = parentDriver->vehicle->getVelocity() + (params.newFwdAcc * params.elapsedSeconds * 100);
+	double inter_speed = parentDriver->vehicle->getVelocity() + (params.newFwdAcc * params.elapsedSeconds);
 
 	//Set velocity for intersection movement
 	parentDriver->vehicle->setVelocity(inter_speed);

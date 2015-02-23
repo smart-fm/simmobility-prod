@@ -259,7 +259,7 @@ public:
 	//Indicates whether we need to slow down at the unsignalised intersection (as other vehicles are going through)
 	bool slowDownForIntersection;
 
-	//Indicates the distance to the approaching unisgnalised intersection
+	//Indicates the distance to the approaching unsignalised intersection
 	double distanceToIntersection;
     
 	int crossingFwdDistance;

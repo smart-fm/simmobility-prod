@@ -5,8 +5,10 @@
 
 #pragma once
 
-#include "conf/settings/DisableMPI.h"
+#include <vector>
 
+#include "conf/settings/DisableMPI.h"
+#include "geospatial/TurningSection.hpp"
 #include "util/DynamicVector.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -15,6 +17,9 @@
 #endif
 
 namespace sim_mob {
+  
+  class TurningSection;
+  class DriverUpdateParams;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -35,6 +40,10 @@ public:
 
     //Moves the vehicle by given amount along the trajectory
     virtual DPoint continueDriving(double amount) = 0;
+    
+    //Depending on the conflicting vehicles, calculates the acceleration that allows the vehicle to 
+    //pass through without colliding with the other vehicles
+    virtual double makeAcceleratingDecision(DriverUpdateParams& params, TurningSection *currTurning) = 0;
 
     //Returns the current angle of the vehicle according to the position in the trajectory
     virtual double getCurrentAngle() = 0;
@@ -98,6 +107,9 @@ public:
     
     //Distance covered within the intersection
     double totalMovement;
+    
+    //Calculates the deceleration needed for the vehicle to come to a stop within a given distance
+    double brakeToStop(double distance, DriverUpdateParams& params);
 
   public:
     
@@ -111,6 +123,10 @@ public:
     
     //Moves the vehicle by given amount along the trajectory
     virtual DPoint continueDriving (double amount);
+    
+    //Depending on the conflicting vehicles, calculates the acceleration that allows the vehicle to 
+    //pass through without colliding with the other vehicles
+    virtual double makeAcceleratingDecision(DriverUpdateParams& params, TurningSection *currTurning);
 
     //Returns the current angle of the vehicle according to the position in the trajectory
     virtual double getCurrentAngle ();

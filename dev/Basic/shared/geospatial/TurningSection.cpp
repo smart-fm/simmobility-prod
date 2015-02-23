@@ -7,6 +7,30 @@
 
 using namespace sim_mob;
 
+namespace sim_mob
+{
+	struct TComparator
+	{
+		TurningSection* turningSection;
+
+		TComparator(TurningSection* turning)
+		{
+			turningSection = turning;
+		}
+
+		bool operator()(const TurningConflict* conflict1, const TurningConflict* conflict2)
+		{
+			//Distance to conflict point for the current turning
+			double dstConflict1 = (conflict1->getFirstTurning() == turningSection) ? conflict1->getFirst_cd() : conflict1->getFirst_cd();
+
+			//Distance to conflict point for the current turning
+			double dstConflict2 = (conflict2->getFirstTurning() == turningSection) ? conflict2->getFirst_cd() : conflict2->getSecond_cd();
+
+			return (dstConflict1 < dstConflict2);
+		}
+	} ;
+};
+
 sim_mob::TurningSection::TurningSection():
 		dbId(-1),from_xpos(-1),from_ypos(-1),
 				to_xpos(-1),to_ypos(-1),
@@ -46,6 +70,12 @@ sim_mob::TurningSection::TurningSection(const TurningSection & ts):
 void TurningSection::addTurningConflict(TurningConflict* turningConflict)
 {
 	this->turningConflicts.push_back(turningConflict);
+	
+	//Comparator struct for the sort function
+	TComparator tComparator(this);
+	
+	//Sort the conflicts - the nearest conflict to the Turning comes first
+	std::sort(this->turningConflicts.begin(), this->turningConflicts.end(), tComparator);
 }
 
 std::vector<TurningConflict*>& TurningSection::getTurningConflicts()

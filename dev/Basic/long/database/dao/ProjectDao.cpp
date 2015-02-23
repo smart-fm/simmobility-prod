@@ -33,6 +33,8 @@ void ProjectDao::fromRow(Row& result, Project& outObj)
 	 outObj.fmLotSize = result.get<double>( "fm_lot_size", .0 );
 	 outObj.grossRatio = result.get<std::string>( "gross_ratio", EMPTY_STR );
 	 outObj.grossArea = result.get<double>("gross_area",.0);
+	 outObj.plannedDate = result.get<std::tm>("planned_date",std::tm());
+	 outObj.projectStatus = result.get<std::string>("project_status",EMPTY_STR);
 }
 
 void ProjectDao::toRow(Project& data, Parameters& outParams, bool update) {

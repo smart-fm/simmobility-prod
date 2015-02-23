@@ -38,14 +38,14 @@ void ParcelDao::fromRow(Row& result, Parcel& outObj)
     outObj.centroid_y = result.get<double>( "centroid_y", .0);
     outObj.award_date = result.get<std::tm>( "award_date", std::tm() );
     outObj.award_status = result.get<int>( "award_status", false );
-    outObj.use_restriction = result.get<std::string>( "use_restriction", EMPTY_STR );
+    outObj.use_restriction = result.get<int>( "use_restriction", 0 );
     outObj.development_type_code = result.get<int>( "development_type_code", 0 );
     outObj.successful_tender_id = result.get<int>( "successful_tender_id", 0 );
     outObj.successful_tender_price = result.get<double>( "successful_tender_price", INVALID_ID);
     outObj.tender_closing_date = result.get<std::tm>( "tender_closing_date", std::tm() );
     outObj.lease = result.get<int>( "lease", 0 );
-    outObj.status = result.get<int>("status",0);
-    outObj.developmentAllowed = result.get<std::string>("development_allowed",EMPTY_STR);
+    outObj.status = result.get<int>("development_status",0);
+    outObj.developmentAllowed = result.get<int>("development_allowed",0);
     outObj.nextAvailableDate = result.get<std::tm>("next_available_date", std::tm());
 }
 

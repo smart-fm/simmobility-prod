@@ -9,21 +9,21 @@
 
 using namespace sim_mob::long_term;
 
-Project::Project(BigSerial projectId,BigSerial parcelIid,BigSerial developerId,
+Project::Project(BigSerial projectId,BigSerial parcelId,BigSerial developerId,
 	   BigSerial templateId,std::string projectName,std::tm constructionDate,
        std::tm completionDate,double constructionCost,double demolitionCost,double totalCost,
-       double fmLotSize,std::string grossRatio,double grossArea,int currTick):
-	   projectId(projectId),parcelId(parcelIid),developerId(developerId),templateId(templateId),
+       double fmLotSize,std::string grossRatio,double grossArea,int currTick,std::tm plannedDate, std::string projectStatus):
+	   projectId(projectId),parcelId(parcelId),developerId(developerId),templateId(templateId),
 	   projectName(projectName),constructionDate(constructionDate),completionDate(completionDate),
 	   constructionCost(constructionCost),demolitionCost(demolitionCost),totalCost(totalCost),
-	   fmLotSize(fmLotSize),grossRatio(grossRatio),grossArea(grossArea),currTick(currTick){
+	   fmLotSize(fmLotSize),grossRatio(grossRatio),grossArea(grossArea),currTick(currTick),plannedDate(plannedDate),projectStatus(projectStatus){
 
 }
 
 Project::~Project() {}
 
 
-double Project::getFmLotSize(){
+double Project::getFmLotSize() const{
 	return fmLotSize;
 }
 
@@ -31,7 +31,7 @@ void Project::setFmLotSize(double fmLotSize) {
 	this->fmLotSize = fmLotSize;
 }
 
-std::tm Project::getCompletionDate() {
+std::tm Project::getCompletionDate() const{
 	return completionDate;
 }
 
@@ -40,7 +40,7 @@ void Project::setCompletionDate(
 	this->completionDate = completionDate;
 }
 
-double Project::getConstructionCost(){
+double Project::getConstructionCost() const{
 	return constructionCost;
 }
 
@@ -48,7 +48,7 @@ void Project::setConstructionCost(double constructionCost) {
 	this->constructionCost = constructionCost;
 }
 
-std::tm Project::getConstructionDate(){
+std::tm Project::getConstructionDate() const{
 	return constructionDate;
 }
 
@@ -56,7 +56,7 @@ void Project::setConstructionDate(std::tm constructionDate) {
 	this->constructionDate = constructionDate;
 }
 
-double Project::getDemolitionCost(){
+double Project::getDemolitionCost() const{
 	return demolitionCost;
 }
 
@@ -65,7 +65,7 @@ void Project::setDemolitionCost(
 	this->demolitionCost = demolitionCost;
 }
 
-BigSerial Project::getDeveloperId(){
+BigSerial Project::getDeveloperId() const{
 	return this->developerId;
 }
 
@@ -73,7 +73,7 @@ void Project::setDeveloperId(BigSerial developerId) {
 	this->developerId = developerId;
 }
 
-double Project::getGrossArea(){
+double Project::getGrossArea() const{
 	return grossArea;
 }
 
@@ -81,7 +81,7 @@ void Project::setGrossArea(double grossArea) {
 	this->grossArea = grossArea;
 }
 
-std::string Project::getGrossRatio(){
+std::string Project::getGrossRatio() const{
 	return grossRatio;
 }
 
@@ -89,7 +89,7 @@ void Project::setGrossRatio(std::string grossRatio) {
 	this->grossRatio = grossRatio;
 }
 
-BigSerial Project::getParcelId(){
+BigSerial Project::getParcelId() const{
 	return parcelId;
 }
 
@@ -97,7 +97,7 @@ void Project::setParcelId(BigSerial parcelId) {
 	this->parcelId = parcelId;
 }
 
-BigSerial Project::getProjectId(){
+BigSerial Project::getProjectId() const{
 	return projectId;
 }
 
@@ -105,7 +105,7 @@ void Project::setProjectId(BigSerial projectId) {
 	this->projectId = projectId;
 }
 
-std::string Project::getProjectName(){
+std::string Project::getProjectName() const{
 	return projectName;
 }
 
@@ -113,7 +113,7 @@ void Project::setProjectName(std::string projectName){
 	this->projectName = projectName;
 }
 
-BigSerial Project::getTemplateId(){
+BigSerial Project::getTemplateId() const{
 	return templateId;
 }
 
@@ -121,7 +121,7 @@ void Project::setTemplateId(BigSerial templateId) {
 	this->templateId = templateId;
 }
 
-double Project::getTotalCost() {
+double Project::getTotalCost() const{
 	return totalCost;
 }
 
@@ -129,7 +129,7 @@ void Project::setTotalCost(double totalCost) {
 	this->totalCost = totalCost;
 }
 
-int Project::getCurrTick() {
+int Project::getCurrTick() const{
 	return currTick;
 }
 
@@ -137,6 +137,14 @@ void Project::setCurrTick(int currentTick) {
 	this->currTick = currentTick;
 }
 
+std::tm Project::getPlannedDate() const{
+	return this->plannedDate;
+}
+
+void Project::setPlannedDate(std::tm lastPlannedDate)
+{
+	this->plannedDate = lastPlannedDate;
+}
 namespace sim_mob
 {
     namespace long_term
@@ -156,6 +164,9 @@ namespace sim_mob
 						<< "\"fmLotSize\":\"" << data.fmLotSize << "\","
 						<< "\"gross_ratio\":\"" << data.grossRatio << "\","
 						<< "\"gross_area\":\"" << data.grossArea << "\","
+						<< "\"planned_date\":\"" << data.plannedDate.tm_year << "\","
+						<< "\"project_status\":\"" << data.projectStatus << "\","
+						<< "\"plannedDate\":\"" << data.plannedDate.tm_year << "\","
 						<< "}";
        }
     }

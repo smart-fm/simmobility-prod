@@ -43,18 +43,22 @@ sim_mob::Profiler::Profiler(const std::string id, bool begin_):id(id){
 	{
 		start = lastTick = boost::chrono::system_clock::now();
 	}
-	printTime(start);
+//	printTime(start);
 }
 
 //uint64_t sim_mob::Profiler::tick(bool addToTotal){
-	boost::chrono::microseconds sim_mob::Profiler::tick(bool addToTotal){
+	std::pair <boost::chrono::microseconds,
+	boost::chrono::microseconds> sim_mob::Profiler::tick(bool addToTotal){
 	boost::chrono::system_clock::time_point thisTick = getTime();
-	boost::chrono::microseconds elapsed = boost::chrono::duration_cast<boost::chrono::microseconds>(thisTick - lastTick);
+	boost::chrono::microseconds elapsedStart = boost::chrono::duration_cast<boost::chrono::microseconds>(thisTick - start);
+	boost::chrono::microseconds elapsedLastTick = boost::chrono::duration_cast<boost::chrono::microseconds>(thisTick - lastTick);
+	std::pair <boost::chrono::microseconds, boost::chrono::microseconds> res = std::make_pair(elapsedStart,elapsedLastTick);
+
 	if(addToTotal){
-		addUpTime(elapsed);
+		addUpTime(elapsedLastTick);
 	}
 	lastTick = thisTick;
-	return elapsed;
+	return res;
 }
 
 //todo in end, provide output to accumulated total also
@@ -89,6 +93,26 @@ boost::chrono::system_clock::time_point sim_mob::Profiler::getTime()
 }
 
 
+sim_mob::Sentry::Sentry(BasicLogger & basicLogger_,std::stringstream *out_):out(*out_),basicLogger(basicLogger_),copy(false){};
+sim_mob::Sentry::Sentry(const Sentry& t):basicLogger(t.basicLogger), out(t.out),copy(true){}
+
+sim_mob::Sentry& sim_mob::Sentry::operator<<(StandardEndLine manip)
+{
+	manip(out);
+	return *this;
+}
+
+
+sim_mob::Sentry::~Sentry()
+{
+	//if the buffer size has reached its limit, dump it to the file otherwise leave it to accumulate.
+	// by some googling this estimated hard-code value promises less cycles to write to a file
+	if(out.tellp() > 512000/*500KB*/ && copy)
+	{
+		basicLogger.flushLog(out);
+	}
+}
+
 sim_mob::BasicLogger::BasicLogger(std::string id_){
 	id = id_;
 	//simple check to see if the id can be used like a file name with a 3 letter extension, else append .txt
@@ -108,7 +132,9 @@ sim_mob::BasicLogger::~BasicLogger(){
 			*this << it->first << ": [totalTime AddUp : " << it->second.getAddUpTime().count() << "],[total accumulator : " << it->second.getAddUp() << "]  total object lifetime : " <<  lifeTime.count() << "\n";
 		}
 	}
-
+	if(id == "real_time_travel_time"){
+		std::cout << "~BasicLogger() " << id << std::endl;
+	}
 	flush();
 	if (logFile.is_open()) {
 		logFile.close();
@@ -121,23 +147,14 @@ std::stringstream * sim_mob::BasicLogger::getOut(bool renew){
 	std::stringstream *res = nullptr;
 	outIt it;
 	boost::thread::id id = boost::this_thread::get_id();
-//	//debugging only
-//	{
-//		std::map <boost::thread::id, int>::iterator it_thr = threads.find(id);
-//		if(it_thr != threads.end())
-//		{
-//			threads.at(id) ++;
-//			ii++;
-//		}
-//		else
-//		{
-//			std::cerr << "WARNING : thread[" << id << "] not registered\n";
-//		}
-//	}
 	if((it = out.find(id)) == out.end()){
 		boost::upgrade_to_unique_lock<boost::shared_mutex> lock2(lock);
 		res = new std::stringstream();
 		out.insert(std::make_pair(id, res));
+		if(this->id == std::string("realtime_travel_time"))
+		{
+			std::cout << "realtime_travel_time buffer new size = " << out.size() << std::endl;
+		}
 	}
 	else
 	{
@@ -146,7 +163,6 @@ std::stringstream * sim_mob::BasicLogger::getOut(bool renew){
 		if (renew)
 		{
 			res = it->second = new std::stringstream();			
-			//std::cout << "renewing out= " << it->second << "  " << res << std::endl;
 		}
 	}
 	return res;
@@ -187,8 +203,8 @@ void sim_mob::BasicLogger::flushLog(std::stringstream &out)
 			boost::unique_lock<boost::mutex> lock(flushMutex);
 			logFile << out.str();
 			logFile.flush();
-			out.str(std::string());
 		}
+			out.str(std::string());
 	}
 	else
 	{
@@ -249,12 +265,23 @@ void sim_mob::QueuedLogger::flushLog()
 
 void sim_mob::BasicLogger::flush()
 {
+	if(id == "real_time_travel_time"){
+		std::cout << "flush()  " << id << std::endl;
+	}
 	if (logFile.is_open()) {
 		outIt it = out.begin();
+		if(it== out.end())
+		{
+			std::cout << "flush()  missing buffer   " << id << std::endl;
+		}
 		for(; it!= out.end(); it++)
 		{
 			flushLog(*(it->second));
 		}
+	}
+	else
+	{
+		std::cout << "flush()  logFile not open   " << id << std::endl;
 	}
 }
 
@@ -275,11 +302,11 @@ sim_mob::BasicLogger & sim_mob::Logger::operator()(const std::string &key)
 {
 	std::map<std::string, boost::shared_ptr<sim_mob::BasicLogger> >::iterator it = repo.find(key);
 	if(it == repo.end()){
-		//std::cout << "creating a new Logger for " << key << std::endl;
 		boost::shared_ptr<sim_mob::BasicLogger> t(new sim_mob::LogEngine(key));
-		std::map<const std::string, boost::shared_ptr<sim_mob::BasicLogger> > repo_;
-		repo_.insert(std::make_pair(key,t));
 		repo.insert(std::make_pair(key,t));
+		if(key == "real_time_travel_time"){
+			std::cout << "creating "  << repo.size() << "th Logger for " << key << std::endl;
+		}
 		return *t;
 	}
 	return *it->second;

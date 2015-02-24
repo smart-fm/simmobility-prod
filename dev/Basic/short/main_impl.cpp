@@ -191,9 +191,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		PathSetManager* psMgr = PathSetManager::getInstance();
 		std::string name = configFileName;
 		psMgr->setScenarioName(name);
-		//psMgr->setTravleTimeTmpTableName(ConfigParams::GetInstance().travelTimeTmpTableName);
-		//psMgr->createTravelTimeTmpTable(psMgr->getTravleTimeTmpTableName());
-		//psMgr->getDataFromDB();
 	}
 
 	//Initialize the control manager and wait for an IDLE state (interactive mode only).

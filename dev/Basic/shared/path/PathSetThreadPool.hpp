@@ -26,8 +26,8 @@ public:
 
 public:
 	StreetDirectory::Graph* graph;
-	StreetDirectory::Vertex* fromVertex;
-	StreetDirectory::Vertex* toVertex;
+	StreetDirectory::Vertex fromVertex;
+	StreetDirectory::Vertex toVertex;
 	const sim_mob::Node *fromNode;
 	const sim_mob::Node *toNode;
 	std::set<const RoadSegment*> excludeSeg;

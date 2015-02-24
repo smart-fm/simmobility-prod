@@ -39,7 +39,7 @@
             <database id="fm_local" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
-                <dbname value="SimMobility_DB"/>
+                <dbname value="SimMobility_DB_Path_Choice"/>
             </database>
 
             <database id="fm_local_lt" dbtype="postgres">
@@ -197,7 +197,7 @@
                 <mapping name="node" procedure="get_node_sg()"/>
                 <mapping name="section" procedure="get_section_sg()"/>
                 <mapping name="turning" procedure="get_lane_connector_bugis()"/>
-                <mapping name="day_activity_schedule" procedure="get_persons_between"/>
+                <mapping name="day_activity_schedule" procedure="get_test_persons_between"/>
             </proc_map>
         </db_proc_groups>
     
@@ -259,7 +259,6 @@
             <total_warmup       value="10"     units="seconds" />
             
             <start_time         value="08:30:00"/>           
-            <pathset_traveltime_save_table value="pathset"/>
             
             <!-- Implementation to use for the Aura Manager. -->
             <!-- Values include: simtree, rdu, rstar (default) -->
@@ -336,7 +335,7 @@
     
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
         <!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
-        <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/>
+        <network_database database="fm_local" credentials="fm_local" proc_map="HITS"/>
         <!-- <network_database database="fm_local" credentials="harish_cred" proc_map="bugis_large"/> -->
         <!--<network_database database="fm_remote" credentials="fm_remote" proc_map="bugis_large"/>-->
         
@@ -502,11 +501,7 @@
 	        <numberOfVacantUnits value="-1"/> 
         </housingModel>
     </longTermParams>
-    
-    <pathset enabled="false">
-    	<pathset_database database="fm_remote_path_choice"  credentials="fm_remote_path_choice" />
-    	<tables pathset_table="PathSet_SH_V" singlepath_table="SinglePath_SH_V" />
-    </pathset>  
-    
+    <CBD enabled="false"/> 
+    <path-set-config-file value="data/pathset_config.xml" />
 </config>
 

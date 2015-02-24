@@ -114,7 +114,7 @@ private:
 //	std::map<const sim_mob::Node*, VertexLookup> nodeLookup_Random;
 	std::vector< std::map<const sim_mob::Node*, VertexLookup> > nodeLookup_Random_pool;
 
-	double highway_bias;
+	double highwayBias;
 
 public:
 //    StreetDirectory::Graph drivingMap_; // A map for drivers, containing road-segments as edges.
@@ -211,6 +211,7 @@ private:
 
     //Internal printing code.
     void printGraph(const std::string& graphType, const StreetDirectory::Graph& graph) const;
+    void printGraph(const StreetDirectory::Graph& graph) const;
 
     //Helper functions
     static StreetDirectory::Edge AddSimpleEdge(StreetDirectory::Graph& graph, StreetDirectory::Vertex& fromV, StreetDirectory::Vertex& toV, sim_mob::WayPoint wp);

@@ -16,6 +16,7 @@
 #include "geospatial/Point2D.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/XmlParseHelper.hpp"
+#include "path/ParsePathXmlConfig.hpp"
 
 namespace {
 SystemParams::NetworkSource ParseNetSourceEnum(const XMLCh* srcX, SystemParams::NetworkSource* defValue) {
@@ -175,6 +176,8 @@ const double MILLISECONDS_IN_SECOND = 1000.0;
 sim_mob::ParseConfigFile::ParseConfigFile(const std::string& configFileName, RawConfigParams& result) : cfg(result), ParseConfigXmlBase(configFileName)
 {
 	parseXmlAndProcess();
+	//Take care of pathset manager confifuration in here
+	ParsePathXmlConfig(sim_mob::ConfigManager::GetInstance().FullConfig().pathsetFile, sim_mob::ConfigManager::GetInstanceRW().PathSetConfig());
 }
 
 void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
@@ -211,8 +214,8 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessPassengersNode(GetSingleElementByName(rootNode, "passengers"));
 	ProcessSignalsNode(GetSingleElementByName(rootNode, "signals"));
 	ProcessBusControllersNode(GetSingleElementByName(rootNode, "buscontrollers"));
-	ProcessPathSetNode(GetSingleElementByName(rootNode, "pathset"));
 	ProcessCBD_Node(GetSingleElementByName(rootNode, "CBD"));
+	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
 }
 
 
@@ -571,90 +574,6 @@ void sim_mob::ParseConfigFile::ProcessBusControllersNode(xercesc::DOMElement* no
 	ProcessFutureAgentList(node, "buscontroller", cfg.busControllerTemplates, false, false, true, false);
 }
 
-void sim_mob::ParseConfigFile::ProcessPathSetNode(xercesc::DOMElement* node){
-
-	if (!node) {
-		std::cerr << "Pathset Configuration Not Found\n" ;
-		return;
-	}
-	if(!(cfg.pathset.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false")))
-	{
-		return;
-	}
-
-	xercesc::DOMElement* dbNode = GetSingleElementByName(node, "pathset_database");
-	if(!dbNode){
-		throw std::runtime_error("Path Set Data Base Credentials not found\n");
-	}
-	else
-	{
-		cfg.pathset.database = ParseString(GetNamedAttributeValue(dbNode, "database"), "");
-		cfg.pathset.credentials = ParseString(GetNamedAttributeValue(dbNode, "credentials"), "");
-	}
-
-	xercesc::DOMElement* tableNode = GetSingleElementByName(node, "tables");
-	if(!tableNode){
-		throw std::runtime_error("Pathset Tables specification not found");
-	}
-	else
-	{
-		cfg.pathset.singlePathTableName = ParseString(GetNamedAttributeValue(tableNode, "singlepath_table"), "");
-		cfg.pathset.RTTT_Conf  = ParseString(GetNamedAttributeValue(tableNode, "realtime_traveltime"), "");
-		cfg.pathset.DTT_Conf  = ParseString(GetNamedAttributeValue(tableNode, "default_traveltime"), "");
-	}
-	//function
-	xercesc::DOMElement* functionNode = GetSingleElementByName(node, "function");
-	if(!functionNode){
-		throw std::runtime_error("Pathset Stored Procedure Not Found\n");
-	}
-	else
-	{
-		cfg.pathset.dbFunction = ParseString(GetNamedAttributeValue(functionNode, "value"), "");
-	}
-
-	//interval
-	xercesc::DOMElement* interval = GetSingleElementByName(node, "travel_time_interval");
-	if(!functionNode){
-		throw std::runtime_error("pathset travel_time_interval Not Found\n");
-	}
-	else
-	{
-		cfg.pathset.interval = ParseInteger(GetNamedAttributeValue(interval, "value"), 600);
-	}
-
-//	//sanity check
-	std::stringstream out("");
-	if(cfg.pathset.database == "")
-	{
-		out << "single path's data base, ";
-	}
-	if(cfg.pathset.credentials == "")
-	{
-		out << "single path's data base credentials, ";
-	}
-	if(cfg.pathset.singlePathTableName == "")
-	{
-		out << "single path's table name, ";
-	}
-	if(cfg.pathset.RTTT_Conf == "")
-	{
-		out << "single path's realtime TT table name, ";
-	}
-	if(cfg.pathset.DTT_Conf == "")
-	{
-		out << "single path's default TT table name, ";
-	}
-	if(cfg.pathset.dbFunction  == "")
-	{
-		out << "single path stored procedure, ";
-	}
-	if(out.str().size())
-	{
-		std::string err = std::string("Missing:") + out.str();
-		throw std::runtime_error(err);
-	}
-}
-
 void sim_mob::ParseConfigFile::ProcessCBD_Node(xercesc::DOMElement* node){
 
 	if (!node) {
@@ -663,6 +582,16 @@ void sim_mob::ParseConfigFile::ProcessCBD_Node(xercesc::DOMElement* node){
 		return;
 	}
 	cfg.cbd = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+}
+
+void sim_mob::ParseConfigFile::processPathSetFileName(xercesc::DOMElement* node){
+
+	if (!node) {
+
+		cfg.cbd = false;
+		return;
+	}
+	cfg.pathsetFile = ParseString(GetNamedAttributeValue(node, "value"));
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)

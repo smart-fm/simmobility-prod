@@ -81,13 +81,48 @@ public:
 	 *tick(true);
 	 *elapsed_time = getAddUp();
 	 */
-	boost::chrono::microseconds tick(bool addToTotal = false);
+
+	std::pair <boost::chrono::microseconds,
+	boost::chrono::microseconds> tick(bool addToTotal = false);
 	///	return the total(accumulated) time
 	boost::chrono::microseconds getAddUpTime();
 	///	acumulate some arbitrary number(Type uint32_t)
 	uint32_t addUp(uint32_t value);
 	uint32_t getAddUp();
 
+};
+
+
+
+class BasicLogger;
+/// Sentry class objects are created at each line and are destryped upon when the statement ends(";")
+/// this will allow grouping of multiple << operators without worrying about multithreading issues.
+class Sentry
+{
+	std::stringstream &out;
+	BasicLogger &basicLogger;
+	/// is this object created by copy constructor?
+	bool copy;
+	public:
+	Sentry(BasicLogger & basicLogger_,std::stringstream *out_);
+	Sentry(const Sentry& t);
+
+	//This is the type of std::cout
+	typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
+	//This is the function signature of std::endl and some other manipulators
+	typedef CoutType& (*StandardEndLine)(CoutType&);
+
+	///	operator overload for std::endl
+	Sentry &operator<<(StandardEndLine manip);
+
+	///	operator overload
+	template <typename T>
+	Sentry & operator<< (const T& val)
+	{
+		out << val;
+		return *this;
+	}
+	~Sentry();
 };
 
 /**********************************
@@ -114,42 +149,6 @@ private:
 	///	one buffer is assigned to each thread writing to the file
 	std::map<boost::thread::id, std::stringstream*> out;
 
-	/// Sentry class objects are created at each line and are destryped upon when the statement ends(";")
-	/// this will allow grouping of multiple << operators without worrying about multithreading issues.
-	class Sentry
-		{
-			std::stringstream &out;
-			BasicLogger &basicLogger;
-			public:
-			Sentry(BasicLogger & basicLogger_,std::stringstream *out_):out(*out_),basicLogger(basicLogger_){};
-			Sentry(const Sentry& t):basicLogger(t.basicLogger), out(t.out){}
-
-			//This is the type of std::cout
-			typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
-			//This is the function signature of std::endl and some other manipulators
-			typedef CoutType& (*StandardEndLine)(CoutType&);
-			///	operator overload for std::endl
-			Sentry& operator<<(StandardEndLine manip) {
-				manip(out);
-				return *this;
-			}
-			template <typename T>
-			///	operator overload
-			Sentry & operator<< (const T& val)
-			{
-				out << val;
-				return *this;
-			}
-
-			~Sentry()
-			{
-				// by some googling this estimated hardcode value promises less cycles to write to a file
-				if(out.tellp() > 512000/*500KB*/)
-				{
-					basicLogger.flushLog(out);
-				}
-			}
-		};
 
 protected:
 
@@ -197,9 +196,10 @@ public:
 	}
 
 	/**
-	 * returns a profiler based on id,
-	 * if not found, a new profiler will be : generated, started and returned
-	 * timer: should start timer or prefer to start it manually
+	 * Gets a profiler give its id.If is is not found, a new profiler will be generated, started and returned.
+	 * @param id give id of the profiler.
+	 * @timer decides whether to start the profiler's timer or prefer to start it manually using .tick()?
+	 * @return Profiler object based on id,
 	 */
 	sim_mob::Profiler & prof(const std::string id, bool timer = true);
 
@@ -227,6 +227,8 @@ public:
 	static std::map <boost::thread::id, int> threads;
 	static unsigned long int ii;
 	static int flushCnt;
+	int dbgOutCnt(){ return out.size();}
+	friend class Sentry;
 };
 
 /**********************************

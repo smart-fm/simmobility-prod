@@ -28,7 +28,7 @@ void sim_mob::ActivityPerformerBehavior::frame_tick_output() {
 
 sim_mob::ActivityPerformerMovement::~ActivityPerformerMovement()
 {
-	/*if(travelTimeMetric.started)
+	/*if(travelMetric.started)
 	{
 		finalizeTravelTimeMetric();
 	}*/
@@ -63,14 +63,14 @@ sim_mob::ActivityPerformerMovement::ActivityPerformerMovement(sim_mob::Person* p
 
 sim_mob::TravelMetric& sim_mob::ActivityPerformerMovement::startTravelTimeMetric()
 {
-	//travelTimeMetric.started = true;
-	return  travelTimeMetric;
+	//travelMetric.started = true;
+	return  travelMetric;
 }
 sim_mob::TravelMetric& sim_mob::ActivityPerformerMovement::finalizeTravelTimeMetric()
 {
-	//getParent()->serializeCBD_Activity(travelTimeMetric);
-	//travelTimeMetric.finalized = true;
-	return  travelTimeMetric;
+	//getParent()->serializeCBD_Activity(travelMetric);
+	//travelMetric.finalized = true;
+	return  travelMetric;
 }
 
 sim_mob::Conflux* sim_mob::ActivityPerformerMovement::getStartingConflux() const

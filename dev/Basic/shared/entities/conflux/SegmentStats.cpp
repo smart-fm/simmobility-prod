@@ -148,7 +148,7 @@ bool SegmentStats::removeAgent(const sim_mob::Lane* lane, sim_mob::Person* p, bo
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::removeAgent lane not found in segment stats");
 	}
 	bool removed = laneIt->second->removePerson(p, wasQueuing);
 	if(removed) { numPersons--; } //record removal from segment
@@ -160,7 +160,9 @@ void SegmentStats::updateQueueStatus(const sim_mob::Lane* lane, sim_mob::Person*
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		std::stringstream out("");
+		out << "SegmentStats::updateQueueStatus lane not found in segment stats. Segment[" << roadSegment->getId() << "] index" << statsNumberInSegment ;
+		throw std::runtime_error(out.str());
 	}
 	laneIt->second->updateQueueStatus(p);
 }
@@ -170,7 +172,7 @@ std::deque<sim_mob::Person*>& SegmentStats::getPersons(const sim_mob::Lane* lane
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::getPersons lane not found in segment stats");
 	}
 	return laneIt->second->laneAgents;
 }
@@ -333,7 +335,7 @@ std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const sim
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::getLaneAgentCounts lane not found in segment stats");
 	}
 	return std::make_pair(laneIt->second->getQueuingAgentsCount(), laneIt->second->getMovingAgentsCount());
 }
@@ -343,7 +345,7 @@ double SegmentStats::getLaneQueueLength(const sim_mob::Lane* lane) const
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::getLaneQueueLength lane not found in segment stats");
 	}
 	return laneIt->second->getQueueLength();
 }
@@ -353,7 +355,7 @@ double SegmentStats::getLaneMovingLength(const sim_mob::Lane* lane) const
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::getLaneMovingLength lane not found in segment stats");
 	}
 	return laneIt->second->getMovingLength();
 }
@@ -363,7 +365,7 @@ double SegmentStats::getLaneTotalVehicleLength(const sim_mob::Lane* lane) const
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::getLaneTotalVehicleLength lane not found in segment stats");
 	}
 	return laneIt->second->getTotalVehicleLength();
 }
@@ -373,7 +375,7 @@ unsigned int SegmentStats::numAgentsInLane(const sim_mob::Lane* lane) const
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::numAgentsInLane lane not found in segment stats");
 	}
 	return laneIt->second->getNumPersons();
 }
@@ -797,7 +799,7 @@ sim_mob::LaneParams* sim_mob::SegmentStats::getLaneParams(const Lane* lane) cons
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::getLaneParams lane not found in segment stats");
 	}
 	return laneIt->second->laneParams;
 }
@@ -841,7 +843,7 @@ void sim_mob::SegmentStats::restoreLaneParams(const Lane* lane)
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::restoreLaneParams lane not found in segment stats");
 	}
 	LaneStats* laneStats = laneIt->second;
 	laneStats->updateOutputFlowRate(getLaneParams(lane)->origOutputFlowRate);
@@ -856,7 +858,7 @@ void sim_mob::SegmentStats::updateLaneParams(const Lane* lane, double newOutputF
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::updateLaneParams lane not found in segment stats");
 	}
 	LaneStats* laneStats = laneIt->second;
 	laneStats->updateOutputFlowRate(newOutputFlowRate);
@@ -940,7 +942,7 @@ double SegmentStats::getPositionOfLastUpdatedAgentInLane(const Lane* lane) const
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::getPositionOfLastUpdatedAgentInLane lane not found in segment stats");
 	}
 	return laneIt->second->getPositionOfLastUpdatedAgent();
 }
@@ -950,7 +952,7 @@ void SegmentStats::setPositionOfLastUpdatedAgentInLane(double positionOfLastUpda
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::setPositionOfLastUpdatedAgentInLane lane not found in segment stats");
 	}
 	laneIt->second->setPositionOfLastUpdatedAgent(positionOfLastUpdatedAgentInLane);
 }
@@ -960,7 +962,7 @@ unsigned int sim_mob::SegmentStats::getInitialQueueLength(const Lane* lane) cons
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::getInitialQueueLength lane not found in segment stats");
 	}
 	return laneIt->second->getInitialQueueLength();
 }

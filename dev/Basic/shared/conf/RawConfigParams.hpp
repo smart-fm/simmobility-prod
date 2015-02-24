@@ -150,6 +150,7 @@ struct PathSetConf
 	recPS(false),reroute(false), cbd(false), subTripOP(""), perturbationRange(std::pair<unsigned short,unsigned short>(0,0)), kspLevel(0), perturbationIteration(0){}
 	bool enabled;
 	std::string mode;//pathset operation mode "normal" , "generation"(for bulk pathset generation)
+	int threadPoolSize;
 	std::string bulkFile; //in case of using pathset manager in "generation" mode, the results will be outputted to this file
 	sim_mob::DatabaseDetails networkDatabase; //If loading from the database, how do we connect?// todo: unused for now
 	std::string pathSetTableName;

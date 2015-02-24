@@ -43,7 +43,7 @@ sim_mob::Profiler::Profiler(const std::string id, bool begin_):id(id){
 	{
 		start = lastTick = boost::chrono::system_clock::now();
 	}
-	printTime(start);
+//	printTime(start);
 }
 
 //uint64_t sim_mob::Profiler::tick(bool addToTotal){

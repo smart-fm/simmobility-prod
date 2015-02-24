@@ -56,7 +56,7 @@ boost::mutex sim_mob::PathSetManager::instanceMutex;
 std::map<boost::thread::id, boost::shared_ptr<soci::session> > sim_mob::PathSetManager::cnnRepo;
 boost::shared_mutex sim_mob::PathSetManager::cnnRepoMutex;
 
-boost::shared_ptr<sim_mob::batched::ThreadPool> sim_mob::PathSetManager::threadpool_(new sim_mob::batched::ThreadPool(10));
+boost::shared_ptr<sim_mob::batched::ThreadPool> sim_mob::PathSetManager::threadpool_;
 
 
 unsigned int sim_mob::PathSetManager::curIntervalMS = 0;
@@ -73,6 +73,10 @@ sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()),
 	std::string dbStr(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
 //	// 1.2 get all segs
 	cnnRepo[boost::this_thread::get_id()].reset(new soci::session(soci::postgresql,dbStr));
+	if(!threadpool_)
+	{
+		threadpool_.reset(new sim_mob::batched::ThreadPool(sim_mob::ConfigManager::GetInstance().PathSetConfig().threadPoolSize));
+	}
 }
 
 void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message){
@@ -599,17 +603,19 @@ bool sim_mob::PathSetManager::getBestPath(
 	logger << "[FINALLY NO RESULT :  " << fromToID << "]\n";
 	return false;
 }
+
 namespace
 {
-struct TripComp
-{
-	bool operator()(const Trip* lhs, const Trip* rhs)
+	struct TripComp
 	{
-		return getFromToString(lhs->fromLocation.node_ , lhs->toLocation.node_) <
-				getFromToString(rhs->fromLocation.node_ , rhs->toLocation.node_);
-	}
-};
+		bool operator()(const Trip* lhs, const Trip* rhs)
+		{
+			return getFromToString(lhs->fromLocation.node_ , lhs->toLocation.node_) <
+					getFromToString(rhs->fromLocation.node_ , rhs->toLocation.node_);
+		}
+	};
 }
+
 void sim_mob::PathSetManager::bulkPathSetGenerator()
 {
 	std::string storedProcName = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["day_activity_schedule"];
@@ -633,8 +639,9 @@ void sim_mob::PathSetManager::bulkPathSetGenerator()
 	Print() << "TRIPCHAINS: " << cnt << "][DISTINICT :" <<  tripchains.size() << "]" << std::endl;
 
 	sim_mob::Profiler t("bulk generator details", true);
-	int total = 0;
+	int total = 0, iterCnt1 = 0, iterCnt2 = 0;
 	std::set<OD> recursiveOrigins;
+	std::set<const RoadSegment*> tempBlackList;
 	BOOST_FOREACH(Trip* trip, tripchains)
 	{
 		const std::vector<sim_mob::SubTrip>& subTrips = trip->getSubTrips();
@@ -644,18 +651,25 @@ void sim_mob::PathSetManager::bulkPathSetGenerator()
 			{
 				continue;
 			}
-			std::set<const RoadSegment*> blrs;
+
 			boost::shared_ptr<sim_mob::PathSet> ps_(new PathSet());
 			ps_->id = getFromToString(subTrip.fromLocation.node_, subTrip.toLocation.node_);
 			ps_->scenario = scenarioName;
 			ps_->subTrip = subTrip;
-			Print() << "[" << ps_->id << "] [GROUP STARTED]..." ;// group: group of recursive ODs
 			int r = 0;
-			total += r = generateAllPathChoices(ps_, recursiveOrigins, blrs);
-			Print() << "[GROUP COMPLETED [PATHS GENERATED: " << r << " ,  TIME :" << t.tick().second.count() << "  Microseconds]"
-					<< "[TOTAL PATHS: " << total << " ,  TIME : " << t.tick().first.count() << "  Microseconds]" << std::endl;
+			threadpool_->enqueue(boost::bind(&sim_mob::PathSetManager::generateAllPathChoices, this,ps_, boost::ref(recursiveOrigins), boost::ref(tempBlackList)));
+//			iterCnt1 ++;
+//			iterCnt2 ++;
+//			if(iterCnt1 == sim_mob::ConfigManager::GetInstance().PathSetConfig().threadPoolSize * 5)
+//			{
+//				threadpool_->wait();
+//				iterCnt1 = 0;
+//				std::pair <boost::chrono::microseconds,	boost::chrono::microseconds> tick = t.tick();
+//				Print() << "[TOTAL PATHSET GROUPS COMPLETED : " << iterCnt2<< " ,  TIME : " << tick.first.count()/ 60000000 << "  Minutes]"  << std::endl;
+//			}
 		}
 	}
+	threadpool_->wait();
 }
 
 int sim_mob::PathSetManager::genK_ShortestPath(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &KSP_Storage)
@@ -726,7 +740,22 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 			std::stringstream out("");
 			out << "SDLE-" << ++cnt;
 			work->dbgStr = out.str();
-			threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
+
+			if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+			{
+				/*
+				 * NOTE:
+				 * when pathset runs in "normal" mode, during pathset generation for requested ODs, each method
+				 * of pathset generation(link elimination, random perturbation, etc)  will use threadpool for its operation.
+				 * Whereas in "generation" mode,  each pathset generation task(as a whole) is assigned to a dedicated thread in threadpool.
+				 */
+				work->executeThis();
+			}
+			else
+			{
+				threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
+			}
+
 			SDLE_Storage.push_back(work);
 		} //ROAD_SEGMENT
 	}
@@ -779,7 +808,20 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 				std::stringstream out("");
 				out << "STTLE-" << cnt++ ;
 				work->dbgStr = out.str();
-				threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
+				if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+				{
+					/*
+					 * NOTE:
+					 * when pathset runs in "normal" mode, during pathset generation for requested ODs, each method
+					 * of pathset generation(link elimination, random perturbation, etc)  will use threadpool for its operation.
+					 * Whereas in "generation" mode,  each pathset generation task(as a whole) is assigned to a dedicated thread in threadpool.
+					 */
+					work->executeThis();
+				}
+				else
+				{
+					threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
+				}
 				STTLE_Storage.push_back(work);
 			} //ROAD_SEGMENT
 		}//for
@@ -788,7 +830,6 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 	{
 		logger  << "[" << fromToID << "]Nothing supplied to threadpool-STTLE" << std::endl;
 	}
-
 }
 
 int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &STTHBLE_Storage)
@@ -797,7 +838,7 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 	std::set<const RoadSegment*> blackList = std::set<const RoadSegment*>();
 	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_));
 	logger << "[" << fromToID << "][SHORTEST TRAVEL TIME LINK ELIMINATION HIGHWAY BIAS]\n";
-	SinglePath *sinPathHightwayBias = generateShortestTravelTimePath(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_,sim_mob::HighwayBias_Distance);
+	SinglePath *sinPathHightwayBias = generateShortestTravelTimePath(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_,sim_mob::HighwayBias_Default);
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir.getTravelTimeImpl();
 	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->subTrip.fromLocation.node_);
 	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->subTrip.toLocation.node_);
@@ -835,11 +876,27 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 				std::stringstream out("");
 				out << "STTH-" << cnt++;
 				work->dbgStr = out.str();
-				threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
+
+				if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+				{
+					/*
+					 * NOTE:
+					 * when pathset runs in "normal" mode, during pathset generation for requested ODs, each method
+					 * of pathset generation(link elimination, random perturbation, etc)  will use threadpool for its operation.
+					 * Whereas in "generation" mode,  each pathset generation task(as a whole) is assigned to a dedicated thread in threadpool.
+					 */
+					work->executeThis();
+				}
+				else
+				{
+					threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
+				}
+
 				STTHBLE_Storage.push_back(work);
 			} //ROAD_SEGMENT
 		}//for
 	}//if sinPathTravelTimeDefault
+
 	logger  << "waiting for TRAVEL TIME HIGHWAY BIAS" << "\n";
 	if(!cnt)
 	{
@@ -879,7 +936,21 @@ int sim_mob::PathSetManager::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps
 		work->dbgStr = out.str();
 		logger << work->dbgStr;
 		RandPertStorage.push_back(work);
-		threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
+
+		if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+		{
+			/*
+			 * NOTE:
+			 * when pathset runs in "normal" mode, during pathset generation for requested ODs, each method
+			 * of pathset generation(link elimination, random perturbation, etc)  will use threadpool for its operation.
+			 * Whereas in "generation" mode,  each pathset generation task(as a whole) is assigned to a dedicated thread in threadpool.
+			 */
+			work->executeThis();
+		}
+		else
+		{
+			threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
+		}
 	}
 	if(!cnt)
 	{
@@ -887,10 +958,9 @@ int sim_mob::PathSetManager::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps
 	}
 }
 
-
-
-int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs)
+int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs)
 {
+	Profiler gen("generateAllPathChoices", true);
 	//small sanity check
 	if(!ps || ps->subTrip.fromLocation.node_ == ps->subTrip.toLocation.node_ || !ps->subTrip.fromLocation.node_ || !ps->subTrip.toLocation.node_)
 	{
@@ -898,6 +968,7 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 	}
 
 	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_));
+//	Print() << "[" << fromToID << "] [PATHSET GENERATION STARTED]..." ;
 	logger << "generateAllPathChoices" << std::endl;
 	/**
 	 * step-1: find the shortest path. if not found: create an entry in the "PathSet" table and return(without adding any entry into SinglePath table)
@@ -932,32 +1003,45 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 	//K-SHORTEST PATH
 	//Print() << "[" << fromToID << "][K-SHORTEST PATH] " << fromToID << std::endl;
 	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> KSP_Storage;//main storage for k-shortest path
-	threadpool_->enqueue(boost::bind(&PathSetManager::genK_ShortestPath, this, ps, KSP_Storage));
-//	genK_ShortestPath(ps, KSP_Storage);
+	if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+	{
+		genK_ShortestPath(ps, KSP_Storage);
+	}
+	else
+	{
+		threadpool_->enqueue(boost::bind(&PathSetManager::genK_ShortestPath, this, ps, boost::ref(KSP_Storage)));
+	}
 
 	std::vector<std::vector<PathSetWorkerThread*> > mainStorage = std::vector<std::vector<PathSetWorkerThread*> >();
 	// SHORTEST DISTANCE LINK ELIMINATION
-	//Print() << "[" << fromToID << "][SHORTEST DISTANCE LINK ELIMINATION]\n";
 	std::vector<PathSetWorkerThread*> SDLE_Storage;
 	genSDLE(ps, SDLE_Storage);
 
 	//step-3: SHORTEST TRAVEL TIME LINK ELIMINATION
-	//Print() << "[" << fromToID << "][SHORTEST TRAVEL TIME LINK ELIMINATION]\n";
 	std::vector<PathSetWorkerThread*> STTLE_Storage;
 	genSTTLE(ps,STTLE_Storage);
 
 	// TRAVEL TIME HIGHWAY BIAS
-	//Print() << "[" << fromToID << "][SHORTEST TRAVEL TIME LINK ELIMINATION HIGHWAY BIAS]\n";
 	std::vector<PathSetWorkerThread*> STTHBLE_Storage;
 	genSTTHBLE(ps,STTHBLE_Storage);
 
-
-	//Print() << "[" << fromToID << "][RANDOM]\n";
+	//	RANDOM;
 	std::vector<PathSetWorkerThread*> randPertStorage;
 	genRandPert(ps,randPertStorage);
 
-	threadpool_->wait();
-
+	if(!(ConfigManager::GetInstance().PathSetConfig().mode == "generation"))
+	{
+		/*
+		 * NOTE:
+		 * when pathset runs in "normal" mode, at the time of generating a pathset for requested ODs, each method
+		 * of pathset generation(link elimination, random perturbation, etc)  will use threadpool for its operation.
+		 * Whereas in "generation" mode,  each pathset generation task(as a whole) is assigned to a dedicated thread in threadpool.
+		 * (check the corresponding pathset generation class member methods like genSTTHBLE, genRandPert etc)
+		 * Therefore, the following wait is not necessary in case of "generation" mode because "one" thread will take care of all types of
+		 * path generations.
+		 */
+		threadpool_->wait();
+	}
 
 	//record
 	mainStorage.push_back(SDLE_Storage);
@@ -973,6 +1057,7 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 		std::string str = "path set " + ps->id + " is supposed to be the shortest path but it is not!\n" ;
 		throw std::runtime_error(str);
 	}
+
 	int total = 0;
 	//Print() << "[" << fromToID << "][RECORD]\n";
 	total += ps->addOrDeleteSinglePath(ps->oriPath);
@@ -1003,7 +1088,8 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 	//step-7 PROCESS
 	//Print() << "[" << fromToID << "][PROCESS]\n";
 	onGeneratePathSet(ps);
-
+	std::pair <boost::chrono::microseconds,	boost::chrono::microseconds> tick = gen.tick();
+	Print() << "[" << fromToID << " PATHSET SIZE: " << ps->pathChoices.size() << " , TIME:" << tick.first.count()/1000000 << " seconds]\n";
 	if(!ConfigManager::GetInstance().FullConfig().pathSet().recPS)
 	{
 		//end the method here, no need to proceed to recursive pathset generation
@@ -1066,6 +1152,8 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 
 	return total;
 }
+
+
 
 #if 0
 //todo this method has already been reimplemented. delete this buggy function if you learnt how to use its sub functions

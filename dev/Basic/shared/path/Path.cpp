@@ -267,7 +267,13 @@ short sim_mob::PathSet::addOrDeleteSinglePath(sim_mob::SinglePath* s)
 		std::cerr << s->scenario << " path begins with " << s->path.begin()->roadSegment_->getStart()->getID() << " while pathset begins with " << subTrip.fromLocation.node_->getID() << std::endl;
 		throw std::runtime_error("Mismatch");
 	}
-	if(!pathChoices.insert(s).second)
+
+	bool res = false;
+	{
+		boost::unique_lock<boost::shared_mutex> lock(pathChoicesMutex);
+		res = pathChoices.insert(s).second;
+	}
+	if(!res)
 	{
 		safe_delete_item(s);
 		return 0;

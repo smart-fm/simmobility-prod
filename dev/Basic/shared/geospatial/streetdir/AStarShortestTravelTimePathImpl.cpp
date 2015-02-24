@@ -2091,70 +2091,20 @@ void sim_mob::A_StarShortestTravelTimePathImpl::printDrivingGraph(std::ostream&)
 
 void sim_mob::A_StarShortestTravelTimePathImpl::printGraph(const std::string& graphType, const StreetDirectory::Graph& graph) const
 {
-//	//Print an identifier
-//	LogOut("(\"sd-graph\""
-//		<<","<<0
-//		<<","<<&graph
-//		<<",{"
-//		<<"\"type\":\""<<graphType
-//		<<"\"})"<<std::endl);
-//
-//	//Print each vertex
-//	//NOTE: Vertices appear to just be integers in boost's adjacency lists.
-//	//      Not sure if we can rely on this (we can use property maps if necessary).
-//	{
-//    StreetDirectory::Graph::vertex_iterator iter, end;
-//    for (boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter) {
-//    	StreetDirectory::Vertex v = *iter;
-//    	const Point2D pt = boost::get(boost::vertex_name, graph, v);
-//    	LogOut("(\"sd-vertex\""
-//    		<<","<<0
-//    		<<","<<v
-//    		<<",{"
-//    		<<"\"parent\":\""<<&graph
-//    		<<"\",\"xPos\":\""<<pt.getX()
-//    		<<"\",\"yPos\":\""<<pt.getY()
-//    		<<"\"})"<<std::endl);
-//    }
-//	}
-//
-//    //Print each edge
-//	//NOTE: Edges are currently identified by their "from/to" nodes (as a pair), so we'll just make up a
-//	//      suitable ID for them (it doesn't actually matter).
-//    {
-//    	StreetDirectory::Graph::edge_iterator iter, end;
-//    unsigned int id=0;
-//    for (boost::tie(iter, end) = boost::edges(graph); iter != end; ++iter) {
-//    	StreetDirectory::Edge ed = *iter;
-//    	StreetDirectory::Vertex srcV = boost::source(ed, graph);
-//    	StreetDirectory::Vertex destV = boost::target(ed, graph);
-//    	LogOut("(\"sd-edge\""
-//    		<<","<<0
-//    		<<","<<id++
-//    		<<",{"
-//    		<<"\"parent\":\""<<&graph
-//    		<<"\",\"fromVertex\":\""<<srcV
-//    		<<"\",\"toVertex\":\""<<destV
-//    		<<"\"})"<<std::endl);
-//    }
-//    }
-
+	BasicLogger &log = Logger::log("graph-TT.txt");
+	StreetDirectory::Graph::edge_iterator iter, end;
+	unsigned int id = 0;
+	for (boost::tie(iter, end) = boost::edges(graph); iter != end; ++iter)
+	{
+		StreetDirectory::Edge ed = *iter;
+		WayPoint wp = boost::get(boost::edge_name, graph,*iter);
+		log << ed ;
+		if(wp.type_ == WayPoint::ROAD_SEGMENT )
 		{
-			BasicLogger &log = Logger::log("graph-TT.txt");
-			StreetDirectory::Graph::edge_iterator iter, end;
-			unsigned int id = 0;
-			for (boost::tie(iter, end) = boost::edges(graph); iter != end; ++iter)
-			{
-				StreetDirectory::Edge ed = *iter;
-				WayPoint wp = boost::get(boost::edge_name, graph,*iter);
-				log << ed ;
-				if(wp->type_ == WayPoint::ROAD_SEGMENT )
-				{
-					log << "  " << wp.roadSegment_->getId();
-				}
-				log << "\n";
-			}
+			log << "  " << wp.roadSegment_->getId();
 		}
+		log << "\n";
+	}
 }
 
 

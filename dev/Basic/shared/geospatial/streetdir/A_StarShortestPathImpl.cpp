@@ -1327,8 +1327,9 @@ std::vector<WayPoint> sim_mob::A_StarShortestPathImpl::searchShortestPathWithBla
 {
 	//Lock for upgradable access, then upgrade to exclusive access.
 	//NOTE: Locking is probably not necessary, but for now I'd rather just be extra-safe.
-	boost::upgrade_lock<boost::shared_mutex> lock(GraphSearchMutex_);
-	boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+//	boost::upgrade_lock<boost::shared_mutex> lock(GraphSearchMutex_);
+//	boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+	boost::shared_lock<boost::shared_mutex> lock(GraphSearchMutex_);//-vahid
 
 	//Filter it.
 	blacklist_edge_constraint filter(blacklist);

@@ -73,6 +73,16 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 		}
 	}
 
+	//pathset generation threadpool size
+	xercesc::DOMElement* poolSize = GetSingleElementByName(node, "thread_pool");
+	if(!poolSize){
+		std::cerr << "Pathset generation thread pool size not specified, defaulting to 5\n";
+	}
+	else
+	{
+		cfg.threadPoolSize = ParseInteger(GetNamedAttributeValue(poolSize, "size"), 5);
+	}
+
 	xercesc::DOMElement* dbNode = GetSingleElementByName(node, "pathset_database");
 	if(!dbNode){
 		throw std::runtime_error("Path Set Data Base Credentials not found\n");

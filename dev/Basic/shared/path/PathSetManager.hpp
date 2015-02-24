@@ -124,13 +124,14 @@ public:
 	  * @param pathset general information
 	  * @param KSP_Storage output
 	  * @return the number of paths generated
+	  *TODO: a more generic approach is required to cover any number of pathset generation types;
+	  *TODO: because having a separate method and call-back for every type of pathset generation is not scalable
 	  */
 	 int genK_ShortestPath(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &KSP_Storage);
 	 int genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &SDLE_Storage);
 	 int genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &STTLE_Storage);
 	 int genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &STTHBLE_Storage);
 	 int genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &RandPertStorage);
-
 
 	/**
 	 * generate all the paths for a person given its subtrip(OD)
@@ -141,7 +142,7 @@ public:
 	 * @param isUseCache is using the cache allowed
 	 * @return number of paths generated
 	 */
-	int generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs);
+	int generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs);
 
 	/**
 	 *	offline pathset generation method.

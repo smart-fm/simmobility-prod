@@ -4,6 +4,7 @@
 #include <sstream>
 #include <stdint.h>
 #include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
 
 namespace sim_mob
 {
@@ -114,8 +115,8 @@ public:
 	short addOrDeleteSinglePath(sim_mob::SinglePath* s);
 	std::vector<WayPoint> *bestPath;  //best choice
 	SinglePath* oriPath;  // shortest path with all segments
-	//std::map<std::string,sim_mob::SinglePath*> SinglePathPool;
 	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> pathChoices;
+	boost::shared_mutex pathChoicesMutex;
 	bool isNeedSave2DB;
 	double logsum;
 	// pathset use info of subtrip to get start, end, travel start time...
@@ -124,7 +125,7 @@ public:
 	std::string excludedPaths;
 	std::string scenario;
 	bool hasPath;
-
 	PathSet(boost::shared_ptr<sim_mob::PathSet> &ps);
 };
+
 }//namespace

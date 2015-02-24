@@ -10,20 +10,20 @@ private:
 	int road_index;
 	std::String road_edge_id;
 	std::String r_service_lines;
-	float link_travel_time;
+	double link_travel_time;
 	std::String edge_id;
-	float wait_time;
-	float walk_time;
-	float transit_time;
-	float transfer_penalty;
-	float day_transit_time;
-	float dist;
+	double wait_time;
+	double walk_time;
+	double transit_time;
+	double transfer_penalty;
+	double day_transit_time;
+	double dist;
 };
 
 class pt_network_vertices{
 public:
-	pt_network_edges();
-	virtual ~pt_network_edges();
+	pt_network_vertices();
+	virtual ~pt_network_vertices();
 
 private:
 	std::String stop_id;
@@ -32,5 +32,6 @@ private:
 	double stop_latitude;
 	double stop_longitude;
 	std::String ezlink_name;
-
+	std::String stop_type;
+	std::String stop_desc;
 };

@@ -216,6 +216,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessBusControllersNode(GetSingleElementByName(rootNode, "buscontrollers"));
 	ProcessCBD_Node(GetSingleElementByName(rootNode, "CBD"));
 	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
+	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update"));
 }
 
 
@@ -592,6 +593,18 @@ void sim_mob::ParseConfigFile::processPathSetFileName(xercesc::DOMElement* node)
 		return;
 	}
 	cfg.pathsetFile = ParseString(GetNamedAttributeValue(node, "value"));
+}
+
+void sim_mob::ParseConfigFile::processTT_Update(xercesc::DOMElement* node){
+	if(!node)
+	{
+		throw std::runtime_error("pathset travel_time_interval not found\n");
+	}
+	else
+	{
+		sim_mob::ConfigManager::GetInstanceRW().PathSetConfig().interval = ParseInteger(GetNamedAttributeValue(node, "interval"), 600);
+		sim_mob::ConfigManager::GetInstanceRW().PathSetConfig().alpha = ParseFloat(GetNamedAttributeValue(node, "alpha"), 0.5);
+	}
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)

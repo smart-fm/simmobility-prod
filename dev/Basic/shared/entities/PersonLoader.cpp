@@ -373,7 +373,9 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 		std::vector<TripChainItem*>& personTripChain = tripchains[personId];
 		//add trip and activity
 		unsigned int seqNo = personTripChain.size(); //seqNo of last trip chain item
-		personTripChain.push_back(makeTrip(r, ++seqNo));
+		sim_mob::Trip* constructedTrip = makeTrip(r, ++seqNo);
+		if(constructedTrip) { personTripChain.push_back(constructedTrip); }
+		else { continue; }
 		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }
 		actCtr++;
 	}
@@ -383,6 +385,7 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	//add or stash new persons
 	for(map<string, vector<TripChainItem*> >::iterator i=tripchains.begin(); i!=tripchains.end(); i++)
 	{
+		if(i->second.empty()) { return; }
 		Person* person = new Person("DAS_TripChain", cfg.mutexStategy(), i->second);
 		if(!person->getTripChain().empty()) { addOrStashPerson(person); }
 		else { delete person; }

@@ -13,11 +13,9 @@
 
 #include "database/dao/SqlAbstractDao.hpp"
 #include "database/DB_Connection.hpp"
-#include "behavioral/params/PersonParams.hpp"
+#include "entities/params/PersonParams.hpp"
 
-/**
- * Data access object for Population tables
- */
+
 class Pt_VerticesSqlDao : public db::SqlAbstractDao<Pt_network_vertices*> {
 public:
 	Pt_VerticesSqlDao(db::DB_Connection& connection);

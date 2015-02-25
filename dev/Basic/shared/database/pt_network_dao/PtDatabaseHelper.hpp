@@ -3,39 +3,31 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 /*
- * DatabaseHelper.hpp
+ * PtDatabaseHelper.hpp
  *
  *  Created on: Feb 24, 2015
  *      Author: Prabhuraj
  */
-
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #pragma once
 
 namespace sim_mob {
-namespace medium {
-	#define APPLY_SCHEMA(schema, field) std::string(schema)+std::string(field)
 
-	/**
-	 * Useful string constants
-	 */
-	const std::string EMPTY_STRING = "";
-    const std::string LIMIT_10 = " limit 10";
-    const std::string LIMIT = LIMIT_10;
+	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 
     /**
-     * Schemas for long-term population database
+     * Stored procedures
      */
-    const std::string MAIN_SCHEMA = "main.";
+    const std::string DB_STORED_PROC_PT_VERTICES = cfg.getDatabaseProcMappings().procedureMappings["pt_vertices"];
+    const std::string DB_STORED_PROC_PT_EDGES = cfg.getDatabaseProcMappings().procedureMappings["pt_edges"];
 
-    /**
-     * Tables
+
+    /** Get all vertices and edges macros
+     *
      */
-    const std::string DB_TABLE_PREDAY_FLAT_TRIPCHAINS = "preday_trip_chains_flat";
-
-	/**
-	 * Views for long-term population database
-	 */
-	const std::string DB_VIEW_PREDAY_PERSON = APPLY_SCHEMA(MAIN_SCHEMA, "preday_person");
+    const std::string DB_GETALL_PT_VERTICES = "SELECT * FROM " + DB_STORED_PROC_PT_VERTICES;
+    const std::string DB_GETALL_PT_EDGES = "SELECT * FROM " + DB_STORED_PROC_PT_EDGES;
 
 	/**
 	 * Fields for public transit vertices database
@@ -69,5 +61,4 @@ namespace medium {
 	const std::string DB_FIELD_PT_EDGES_DAY_TRANSIT_TIME = "day_transit_time";
 	const std::string DB_FIELD_PT_EDGES_DIST = "dist";
 
-} // end namespace medium
 } // end namespace sim_mob

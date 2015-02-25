@@ -97,6 +97,12 @@ namespace sim_mob
             bool bidUnit(timeslice now);
 
             /**
+             *  After a bid has been successful, there is a waiting time for a household to take ownership of a unit.
+             *  Once the count down, in days, is complete, the function is called.
+             */
+            void TakeUnitOwnership();
+
+            /**
              * Picks a new market entry to bid.
              * Attention this function updates the value on biddingEntry variable.
              * @return true if a unit was picked false otherwise;
@@ -110,6 +116,9 @@ namespace sim_mob
 
             HouseholdAgent *parent;
             bool active;
+
+        	BigSerial unitIdToBeOwned;
+        	int moveInWaitingTimeInDays;
         };
     }
 }

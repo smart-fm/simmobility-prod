@@ -5,6 +5,7 @@
 /* 
  * File:   HouseholdBidderRole.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * 		   Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  * 
  * Created on May 16, 2013, 5:13 PM
  */
@@ -23,6 +24,9 @@
 
 #include "core/AgentsLookup.hpp"
 #include "core/DataManager.hpp"
+
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 using std::list;
 using std::endl;
@@ -85,8 +89,8 @@ void HouseholdBidderRole::CurrentBiddingEntry::invalidate()
     tries = 0;
     wp = 0;
 }
-                
-HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false){}
+
+HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0), moveInWaitingTimeInDays(0){}
 
 HouseholdBidderRole::~HouseholdBidderRole(){}
 
@@ -107,6 +111,23 @@ void HouseholdBidderRole::setActive(bool activeArg)
 
 void HouseholdBidderRole::update(timeslice now)
 {
+
+	//This bidder has a successful bid already.
+	//It's now waiting to move in its new unit.
+	//The bidder role will do nothing else during this period (hence the return at the end of the if function).
+	if( moveInWaitingTimeInDays > 0 )
+	{
+		//Just before we set the bidderRole to inactive, we do the unit ownership switch.
+		if( moveInWaitingTimeInDays == 1 )
+		{
+			TakeUnitOwnership();
+		}
+
+		moveInWaitingTimeInDays--;
+
+		return;
+	}
+
     //can bid another house if it is not waiting for any 
     //response and if it not the same day
     if (!waitingForResponse && lastTime.ms() < now.ms())
@@ -126,6 +147,18 @@ void HouseholdBidderRole::update(timeslice now)
     lastTime = now;
 }
 
+void HouseholdBidderRole::TakeUnitOwnership()
+{
+	getParent()->addUnitId( unitIdToBeOwned );
+
+    setActive(false);
+    getParent()->getModel()->decrementBidders();
+
+    biddingEntry.invalidate();
+    Statistics::increment(Statistics::N_ACCEPTED_BIDS);
+}
+
+
 void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message& message)
 {
     switch (type)
@@ -137,13 +170,11 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
             {
                 case ACCEPTED:// Bid accepted 
                 {
-                    getParent()->addUnitId(msg.getBid().getUnitId());
+                	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-                    setActive(false);
-                    getParent()->getModel()->decrementBidders();
+                	moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
+                	unitIdToBeOwned = msg.getBid().getUnitId();
 
-                    biddingEntry.invalidate();
-                    Statistics::increment(Statistics::N_ACCEPTED_BIDS);
                     break;
                 }
                 case NOT_ACCEPTED:
@@ -249,9 +280,18 @@ bool HouseholdBidderRole::pickEntryToBid()
     const HousingMarket::Entry* maxEntry = nullptr;
     double maxWP = 0; // holds the wp of the entry with maximum surplus.
 
-    // choose the unit to bid with max surplus.
-    for (HousingMarket::ConstEntryList::const_iterator itr = entries.begin(); itr != entries.end(); itr++)
+
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+    float housingMarketSearchPercentage = config.ltParams.housingModel.housingMarketSearchPercentage;
+
+    // Choose the unit to bid with max surplus. However, we are not iterating through the whole list of available units.
+    // We choose from a subset of units set by the housingMarketSearchPercentage parameter in the long term XML file.
+    // This is done to replicate the real life scenario where a household will only visit a certain percentage of vacant units before settling on one.
+    for(int n = 0; n < entries.size() * housingMarketSearchPercentage; n++)
     {
+    	int offset = (float)rand() / RAND_MAX * entries.size();
+
+    	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
         const HousingMarket::Entry* entry = *itr;
 
         if(entry->getOwner() != getParent())

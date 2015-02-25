@@ -212,6 +212,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessBusControllersNode(GetSingleElementByName(rootNode, "buscontrollers"));
 	ProcessPathSetNode(GetSingleElementByName(rootNode, "pathset"));
 	ProcessCBD_Node(GetSingleElementByName(rootNode, "CBD"));
+	processGeneratedRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
 }
 
 
@@ -600,6 +601,16 @@ void sim_mob::ParseConfigFile::ProcessCBD_Node(xercesc::DOMElement* node){
 	}
 	cfg.cbd = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
 }
+
+void sim_mob::ParseConfigFile::processGeneratedRoutesNode(xercesc::DOMElement* node){
+	if (!node) {
+
+		cfg.generateBusRoutes = false;
+		return;
+	}
+	cfg.generateBusRoutes = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+}
+
 
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)
 {

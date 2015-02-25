@@ -209,18 +209,14 @@ struct StopInfo{
 	int index;
 };
 
-static int amount = 0;
-static int amountFailed =0;
-static std::deque<RouteInfo> allRoutes;
-static std::deque<StopInfo> allStops;
+bool searchBusRoutes(const vector<const BusStop*>& stops,
+		const std::string& busLine, std::deque<RouteInfo>& allRoutes,
+		std::deque<StopInfo>& allStops) {
 
-void searchBusRoutes(const vector<const BusStop*>& stops,
-		const std::string& busline) {
-	//calculate bus route
 	const BusStop* start = nullptr;
 	const BusStop* end = nullptr;
 	const BusStop* nextEnd = nullptr;
-	bool firstFound = true;
+	bool isFound = true;
 	if (stops.size() > 0) {
 		start = nullptr;
 		end = nullptr;
@@ -228,22 +224,19 @@ void searchBusRoutes(const vector<const BusStop*>& stops,
 		std::deque<RouteInfo> routeIDs;
 		std::deque<StopInfo> stopIDs;
 		for (int k = 0; k < stops.size(); k++) {
-			firstFound = false;
+			isFound = false;
 			const BusStop* busStop = stops[k];
 			if (k == 0) {
 				start = busStop;
 				StopInfo stopInfo;
 				stopInfo.id = boost::lexical_cast<unsigned int>(
 						start->getBusstopno_());
-				stopInfo.line = busline;
+				stopInfo.line = busLine;
 				stopInfo.posX = start->xPos;
 				stopInfo.posY = start->yPos;
 				stopIDs.push_back(stopInfo);
 			} else {
 				end = busStop;
-
-				const RoadSegment* beginRoad = nullptr;
-				const RoadSegment* endRoad = nullptr;
 				const StreetDirectory& stdir = StreetDirectory::instance();
 				StreetDirectory::VertexDesc startDes = stdir.DrivingVertex(
 						*start);
@@ -255,7 +248,6 @@ void searchBusRoutes(const vector<const BusStop*>& stops,
 					path = stdir.SearchShortestDrivingPath(startDes, endDes);
 				}
 
-				int sectionNum = 0;
 				for (std::vector<WayPoint>::const_iterator it = path.begin();
 						it != path.end(); it++) {
 					if (it->type_ == WayPoint::ROAD_SEGMENT) {
@@ -272,25 +264,23 @@ void searchBusRoutes(const vector<const BusStop*>& stops,
 							route.endPosY = end->yPos;
 							routeIDs.push_back(route);
 						}
-						sectionNum++;
-						firstFound = true;
+						isFound = true;
 					}
 				}
 
-				if (!firstFound) {
-					std::cout << "can not find bus route in busline:" << busline
+				if (!isFound) {
+					std::cout << "can not find bus route in bus line:" << busLine
 							<< " start stop:" << start->getBusstopno_()
 							<< "  end stop:" << end->getBusstopno_()
-							<< " failed : " << amountFailed << std::endl;
+							<< std::endl;
 					routeIDs.clear();
 					stopIDs.clear();
-					amountFailed++;
 					break;
 				} else {
 					StopInfo stopInfo;
 					stopInfo.id = boost::lexical_cast<unsigned int>(
 							end->getBusstopno_());
-					stopInfo.line = busline;
+					stopInfo.line = busLine;
 					stopInfo.posX = end->xPos;
 					stopInfo.posY = end->yPos;
 					stopIDs.push_back(stopInfo);
@@ -305,7 +295,7 @@ void searchBusRoutes(const vector<const BusStop*>& stops,
 			for (std::deque<RouteInfo>::const_iterator it = routeIDs.begin();
 					it != routeIDs.end(); it++) {
 				RouteInfo routeInfo;
-				routeInfo.line = busline;
+				routeInfo.line = busLine;
 				routeInfo.id = it->id;
 				routeInfo.start = it->start;
 				routeInfo.end = it->end;
@@ -330,9 +320,10 @@ void searchBusRoutes(const vector<const BusStop*>& stops,
 				allStops.push_back(stopInfo);
 				index++;
 			}
-			amount++;
 		}
 	}
+
+	return isFound;
 }
 
 void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatch_freq>& busdispatch_freq)
@@ -345,6 +336,10 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 	bool busstop_busline_registered=false;
 	// record the last dispatching time
 	DailyTime lastBusDispatchTime;
+	int amount = 0;
+	int amountFailed =0;
+	std::deque<RouteInfo> allRoutes;
+	std::deque<StopInfo> allStops;
 
 	for (vector<sim_mob::PT_bus_dispatch_freq>::const_iterator curr=busdispatch_freq.begin(); curr!=busdispatch_freq.end(); curr++) {
 		vector<sim_mob::PT_bus_dispatch_freq>::const_iterator next = curr+1;
@@ -405,8 +400,14 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 				}
 			}
 
-			if(busstop_busline_registered){
-				searchBusRoutes(stops, curr->route_id);
+			if (busstop_busline_registered
+					&& sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes()) {
+				if (searchBusRoutes(stops, curr->route_id, allRoutes,
+						allStops)) {
+					amount++;
+				} else {
+					amountFailed++;
+				}
 			}
 
 			//Our algorithm expects empty vectors in some cases.
@@ -428,31 +429,33 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 		}
 	}
 
-	std::cout << "***************************total generated bus lines is " << amount << std::endl;
-	std::cout << "---------------------------total failed bus lines is " << amountFailed << std::endl;
-	std::ofstream outputRoutes("routes.csv");
-	for (std::deque<RouteInfo>::const_iterator it =
-			allRoutes.begin(); it != allRoutes.end(); it++) {
-		if (outputRoutes.is_open()){
-			outputRoutes << it->line << ","
-					<< it->index << ","
-					<< it->id
-					<< std::endl;
+	if(sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes()){
+		std::cout << "***************************total generated bus lines is " << amount << std::endl;
+		std::cout << "---------------------------total failed bus lines is " << amountFailed << std::endl;
+		std::ofstream outputRoutes("routes.csv");
+		for (std::deque<RouteInfo>::const_iterator it =
+				allRoutes.begin(); it != allRoutes.end(); it++) {
+			if (outputRoutes.is_open()){
+				outputRoutes << it->line << ","
+						<< it->index << ","
+						<< it->id
+						<< std::endl;
+			}
 		}
-	}
-	outputRoutes.close();
+		outputRoutes.close();
 
-	std::ofstream outputStop("stops.csv");
-	for (std::deque<StopInfo>::const_iterator it =
-			allStops.begin(); it != allStops.end(); it++) {
-		if (outputStop.is_open()){
-			outputStop << it->line << ","
-					<< it->id << ","
-					<< it->index
-					<< std::endl;
+		std::ofstream outputStop("stops.csv");
+		for (std::deque<StopInfo>::const_iterator it =
+				allStops.begin(); it != allStops.end(); it++) {
+			if (outputStop.is_open()){
+				outputStop << it->line << ","
+						<< it->id << ","
+						<< it->index
+						<< std::endl;
+			}
 		}
+		outputStop.close();
 	}
-	outputStop.close();
 }
 
 

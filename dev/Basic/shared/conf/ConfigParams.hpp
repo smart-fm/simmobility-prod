@@ -208,6 +208,7 @@ public:
 	bool PathSetMode() const;
 	const PathSetParams & pathSet() const;
 	bool CBD() const;
+	bool isGenerateBusRoutes() const;
 	
 
 private:

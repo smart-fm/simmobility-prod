@@ -304,6 +304,7 @@ public:
 	///Settings used for generation/retrieval of paths
 	PathSetParams pathset;
 	bool cbd;
+	bool generateBusRoutes;
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;
 

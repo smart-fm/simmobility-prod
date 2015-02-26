@@ -34,38 +34,42 @@ namespace sim_mob
     		    				double fmLotSize = .0f,
     		    				std::string grossRatio = EMPTY_STR,
     		    				double grossArea = .0f,
-    		    				int currTick = 0)	;
+    		    				int currTick = 0,
+    		    				std::tm plannedDate = std::tm(),
+    		    				std::string projectStatus = EMPTY_STR)	;
     		virtual ~Project();
 
 
-	double getFmLotSize();
+	double getFmLotSize() const;
 	void setFmLotSize(double fmLotSize);
-	std::tm getCompletionDate();
+	std::tm getCompletionDate() const;
 	void setCompletionDate(std::tm completionDate);
-	double getConstructionCost();
+	double getConstructionCost() const;
 	void setConstructionCost(double constructionCost);
-	std::tm getConstructionDate();
+	std::tm getConstructionDate() const;
 	void setConstructionDate(std::tm constructionDate);
-	double getDemolitionCost();
+	double getDemolitionCost() const;
 	void setDemolitionCost(double demolitionCost);
-	BigSerial getDeveloperId();
+	BigSerial getDeveloperId() const;
 	void setDeveloperId(BigSerial developerId);
-	double getGrossArea();
+	double getGrossArea() const;
 	void setGrossArea(double grossArea);
-	std::string getGrossRatio();
+	std::string getGrossRatio() const;
 	void setGrossRatio(std::string grossRatio);
-	BigSerial getParcelId();
+	BigSerial getParcelId() const;
 	void setParcelId(BigSerial parcelId);
-	BigSerial getProjectId();
+	BigSerial getProjectId() const;
 	void setProjectId(BigSerial projectId);
-	std::string getProjectName();
+	std::string getProjectName() const;
 	void setProjectName(std::string projectName);
-	BigSerial getTemplateId();
+	BigSerial getTemplateId() const;
 	void setTemplateId(BigSerial templateId);
-	double getTotalCost();
+	double getTotalCost() const;
 	void setTotalCost(double totalCost);
-	int getCurrTick();
+	int getCurrTick() const;
 	void setCurrTick(int currentTick);
+	std::tm getPlannedDate() const;
+	void setPlannedDate(std::tm lastPlannedDate);
 
 	/* Operator to print the Parcel Match data.*/
 	friend std::ostream& operator<<(std::ostream& strm, const Project& data);
@@ -88,6 +92,8 @@ namespace sim_mob
     		std::string grossRatio;
     		double grossArea;
     		int currTick;
+    		std::tm plannedDate;
+    		std::string projectStatus;
 
     	};
 

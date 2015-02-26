@@ -18,7 +18,7 @@ Parcel::Parcel(BigSerial id,float lot_size, std::string gpr,std::string owner_na
 	   float last_transaction_type_total, float psm_per_gps, int lease_type, std::tm lease_start_date, float centroid_x, float centroid_y, std::tm award_date,
        bool	award_status, std::string use_restriction, int	successful_tender_id,
        float successful_tender_price, std::tm tender_closing_date,int lease,float actual_gpr,float allowed_gpr, int land_use_type_id,int development_type_code,int status,
-       std::string developmentAllowed, std::tm nextAvailableDate)
+       int developmentAllowed, std::tm nextAvailableDate)
 	   : id(id),lot_size(lot_size), owner_name(owner_name), owner_category(owner_category),
 	     last_transaction_date(last_transaction_date), last_transaction_type_total(last_transaction_type_total), psm_per_gps(psm_per_gps),
 	     lease_type(lease_type), lease_start_date(lease_start_date), centroid_x(centroid_x), centroid_y(centroid_y), award_date(award_date),
@@ -145,12 +145,12 @@ void Parcel::setStatus(int status)
 	this->status = status;
 }
 
-std::string Parcel::getDevelopmentAllowed() const
+int Parcel::getDevelopmentAllowed() const
 {
 	return developmentAllowed;
 }
 
-void Parcel::setDevelopmentAllowed(std::string developmentAllowed)
+void Parcel::setDevelopmentAllowed(int developmentAllowed)
 {
 	this->developmentAllowed = developmentAllowed;
 }

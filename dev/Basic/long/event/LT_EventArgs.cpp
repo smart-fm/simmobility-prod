@@ -14,8 +14,8 @@
 using namespace sim_mob::long_term;
 using sim_mob::event::EventArgs;
 
-HM_ActionEventArgs::HM_ActionEventArgs(BigSerial unitId,BigSerial buildingId, std::tm futureDemolitionDate)
-: unitId(unitId),buildingId(buildingId),buildingFutureDemolitionDate(buildingFutureDemolitionDate) ,unit(nullptr),building(nullptr){
+HM_ActionEventArgs::HM_ActionEventArgs(BigSerial buildingId, std::tm futureDemolitionDate)
+: unitId(INVALID_ID),buildingId(buildingId),buildingFutureDemolitionDate(buildingFutureDemolitionDate) ,unit(nullptr),building(nullptr){
 }
 
 HM_ActionEventArgs::HM_ActionEventArgs(const HM_ActionEventArgs& source)
@@ -28,6 +28,11 @@ HM_ActionEventArgs::HM_ActionEventArgs(Unit &unit)
 
 HM_ActionEventArgs::HM_ActionEventArgs(Building &building)
 : unitId(0),buildingId(building.getFmBuildingId()), buildingFutureDemolitionDate(std::tm()), unit(nullptr),building(&building){
+}
+
+HM_ActionEventArgs::HM_ActionEventArgs(BigSerial unitId)
+:unitId(unitId),buildingId(INVALID_ID), buildingFutureDemolitionDate(std::tm()), unit(nullptr),building(nullptr){
+
 }
 
 HM_ActionEventArgs::~HM_ActionEventArgs() {

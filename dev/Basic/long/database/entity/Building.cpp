@@ -14,11 +14,11 @@
 using namespace sim_mob::long_term;
 
 Building::Building( BigSerial fmBuildingId, BigSerial fmProjectId, BigSerial fmParcelId, int storeysAboveGround, int storeysBelowGround,
-					std::tm fromDate, std::tm toDate, std::string buildingStatus, float	grossSqMRes, float grossSqMOffice,
-					float grossSqMRetail, float grossSqMOther) :
+					std::tm fromDate, std::tm toDate, int buildingStatus, float	grossSqMRes, float grossSqMOffice,
+					float grossSqMRetail, float grossSqMOther, std::tm lastChangedDate) :
 					fmBuildingId(fmBuildingId), fmProjectId(fmProjectId), fmParcelId(fmParcelId), storeysAboveGround(storeysAboveGround),
 					storeysBelowGround(storeysBelowGround), fromDate(fromDate), toDate(toDate), buildingStatus(buildingStatus),grossSqMRes(grossSqMRes),
-					grossSqMOffice(grossSqMOffice), grossSqMRetail(grossSqMRetail), grossSqMOther(grossSqMOther){}
+					grossSqMOffice(grossSqMOffice), grossSqMRetail(grossSqMRetail), grossSqMOther(grossSqMOther),lastChangedDate(lastChangedDate){}
 
 Building::~Building() {}
 
@@ -36,6 +36,7 @@ Building& Building::operator=(const Building& source)
 	this->grossSqMOffice		= source.grossSqMOffice;
 	this->grossSqMRetail		= source.grossSqMRetail;
 	this->grossSqMOther			= source.grossSqMOther;
+	this->lastChangedDate       = source.lastChangedDate;
 
     return *this;
 }
@@ -76,7 +77,7 @@ std::tm Building::getToDate() const
 	return toDate;
 }
 
-std::string Building::getBuildingStatus() const
+int Building::getBuildingStatus() const
 {
 	return buildingStatus;
 }
@@ -102,7 +103,11 @@ float Building::getGrossSqmOther() const
 	return grossSqMOther;
 }
 
-void Building::setBuildingStatus(const std::string& buildingStatus) {
+std::tm Building::getLastChangedDate() const
+{
+	return lastChangedDate;
+}
+void Building::setBuildingStatus(int buildingStatus) {
 	this->buildingStatus = buildingStatus;
 }
 
@@ -169,6 +174,7 @@ namespace sim_mob
 						<< "\"gross_sq_m_office \":\"" 	<< data.grossSqMOffice 	<< "\","
 						<< "\"gross_sq_m_retail \":\"" 	<< data.grossSqMRetail 	<< "\","
 						<< "\"gross_sq_m_other \":\"" 	<< data.grossSqMOther 	<< "\""
+						<< "\"last_changed_date \":\"" 	<< data.lastChangedDate.tm_year  	<< data.lastChangedDate.tm_wday 	<< data.lastChangedDate.tm_mon << "\","
 						<< "}";
         }
     }

@@ -114,17 +114,6 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 		cfg.upsert = ParseString(GetNamedAttributeValue(functionNode, "travel_time"), "");
 	}
 
-	//interval
-	xercesc::DOMElement* interval = GetSingleElementByName(node, "travel_time_update");
-	if(!interval){
-		throw std::runtime_error("pathset travel_time_interval Not Found\n");
-	}
-	else
-	{
-		cfg.interval = ParseInteger(GetNamedAttributeValue(interval, "interval"), 600);
-		cfg.alpha = ParseFloat(GetNamedAttributeValue(interval, "alpha"), 0.5);
-	}
-
 	//recirsive pathset generation
 	xercesc::DOMElement* recPS = GetSingleElementByName(node, "recursive_pathset_generation");
 	if(!recPS){

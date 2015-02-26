@@ -30,8 +30,8 @@ namespace sim_mob
         {
         public:
             Unit( BigSerial id = INVALID_ID, BigSerial buildingId = INVALID_ID, BigSerial sla_address_id = INVALID_ID, int unit_type = INVALID_ID,
-            	  int story_range = 0, std::string unit_status = EMPTY_STR, double floor_area = .0f, int storey = 0, double rent = .0f, std::tm sale_from_date = std::tm(),
-            	  std::tm physical_from_date = std::tm(), int sale_status = 0, int physical_status = 0, int biddingMarketEntryDay = 0, int timeOnMarket = 0, int timeOffMarket = 0);
+            	  int story_range = 0, int unit_status = 0, double floor_area = .0f, int storey = 0, double rent = .0f, std::tm sale_from_date = std::tm(),
+            	  std::tm physical_from_date = std::tm(), int sale_status = 0, int physical_status = 0, std::tm lastChangedDate = std::tm(), int biddingMarketEntryDay = 0, int timeOnMarket = 0, int timeOffMarket = 0);
             Unit( const Unit& source );
             virtual ~Unit();
 
@@ -50,7 +50,7 @@ namespace sim_mob
             BigSerial getSlaAddressId() const;
             int getUnitType() const;
             int getStoreyRange() const;
-            std::string getUnitStatus() const;
+            int getUnitStatus() const;
             double getFloorArea() const;
             int getStorey() const;
             double getRent() const;
@@ -58,7 +58,7 @@ namespace sim_mob
             std::tm getPhysicalFromDate() const;
             int getSaleStatus() const;
             int getPhysicalStatus() const;
-            
+            std::tm getLastChangedDate() const;
             /*
              * setters
              */
@@ -73,8 +73,9 @@ namespace sim_mob
             void setSlaAddressId(BigSerial slaAddressId);
             void setStorey(int storey);
             void setStoreyRange(int storeyRange);
-            void setUnitStatus(const std::string& unitStatus);
+            void setUnitStatus(int unitStatus);
             void setUnitType(int unitType);
+            void setLastChangedDate(std::tm date);
 
             int  getbiddingMarketEntryDay() const;
             void setbiddingMarketEntryDay( int day );
@@ -100,7 +101,7 @@ namespace sim_mob
             BigSerial sla_address_id;
             int unit_type;
             int storey_range;
-            std::string unit_status;
+            int unit_status;
             double floor_area;
             int storey; 
             double rent;
@@ -108,6 +109,7 @@ namespace sim_mob
             std::tm physical_from_date;
             int sale_status;
             int physical_status;
+            std::tm lastChangedDate;
 
             //This variable denotes the day the unit went on sale.
             int biddingMarketEntryDay;

@@ -103,7 +103,9 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	Role(behavior, movement, parent, roleName_, roleType_), currLane_(mtxStrat, nullptr),currTurning_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
 	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),/*params(parent->getGenerator()),*/
 	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
-	,stop_event_nodeid(mtxStrat, -1), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false), moveDisOnTurning_(mtxStrat, 0)
+	,stop_event_nodeid(mtxStrat, -1), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false), moveDisOnTurning_(mtxStrat, 0),
+	perceivedAccOfFwdCar(nullptr), perceivedDistToFwdCar(nullptr), perceivedDistToTrafficSignal(nullptr), perceivedFwdAcc(nullptr),
+	perceivedFwdVel(nullptr), perceivedTrafficColor(nullptr), perceivedVelOfFwdCar(nullptr)
 {
 	currDistAlongRoadSegment = 0;
 	getParams().driver = this;
@@ -147,11 +149,11 @@ void sim_mob::Driver::make_frame_tick_params(timeslice now){
 sim_mob::Driver::~Driver() {
 	//Our vehicle
 	safe_delete_item(vehicle);
-	/*safe_delete_item(perceivedFwdVel);
+	safe_delete_item(perceivedFwdVel);
 	safe_delete_item(perceivedFwdAcc);
 	safe_delete_item(perceivedVelOfFwdCar);
 	safe_delete_item(perceivedAccOfFwdCar);
-	safe_delete_item(perceivedDistToFwdCar);*/
+	safe_delete_item(perceivedDistToFwdCar);
 }
 
 vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {

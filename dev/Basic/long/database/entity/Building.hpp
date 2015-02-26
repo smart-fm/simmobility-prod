@@ -23,8 +23,8 @@ namespace sim_mob
         {
         public:
         	Building( BigSerial fmBuildingId = INVALID_ID, BigSerial fmProjectId = INVALID_ID, BigSerial fmParcelId = INVALID_ID, int storeysAboveGround = 0,
-        			  int storeysBelowGround = 0, std::tm fromDate = std::tm(), std::tm toDate = std::tm(), std::string buildingStatus = EMPTY_STR,
-        			  float	grossSqMRes = 0, float grossSqMOffice = 0, float grossSqMRetail = 0, float grossSqMOther = 0);
+        			  int storeysBelowGround = 0, std::tm fromDate = std::tm(), std::tm toDate = std::tm(), int buildingStatus = 0,
+        			  float	grossSqMRes = 0, float grossSqMOffice = 0, float grossSqMRetail = 0, float grossSqMOther = 0,std::tm lastChangedDate = std::tm());
 
             virtual ~Building();
 
@@ -74,7 +74,7 @@ namespace sim_mob
              * Gets the building status.
              * @return building_status.
              */
-            std::string getBuildingStatus() const;
+            int getBuildingStatus() const;
 
             /**
              * Gets the area used for residential purposes.
@@ -100,11 +100,12 @@ namespace sim_mob
              */
             float	getGrossSqmOther() const;
 
+            std::tm getLastChangedDate() const;
 
             /*
              * setters
              */
-            void setBuildingStatus(const std::string& buildingStatus);
+            void setBuildingStatus(int buildingStatus);
             void setFmBuildingId(BigSerial fmBuildingId);
             void setFmParcelId(BigSerial fmParcelId);
             void setFmProjectId(BigSerial fmProjectId);
@@ -116,6 +117,7 @@ namespace sim_mob
             void setStoreysAboveGround(int storeysAboveGround);
             void setStoreysBelowGround(int storeysBelowGround);
             void setToDate(const std::tm& toDate);
+            void setLastChangedDate(const std::tm& lastChangedDate);
 
             /**
              * Assign operator.
@@ -139,11 +141,12 @@ namespace sim_mob
             int	storeysBelowGround;
             std::tm fromDate;
             std::tm toDate;
-            std::string buildingStatus;
+            int buildingStatus;
             float	grossSqMRes;
             float	grossSqMOffice;
             float	grossSqMRetail;
             float	grossSqMOther;
+            std::tm lastChangedDate;
 
         };
     }

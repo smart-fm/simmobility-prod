@@ -108,13 +108,14 @@ void DeveloperModel::startImpl() {
 	PrintOutV("Initial Parcels " << initParcelList.size() << std::endl);
 	PrintOutV("Initial DevelopmentTypeTemplates " << developmentTypeTemplates.size() << std::endl);
 	PrintOutV("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
+	PrintOutV("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
 
 	addMetadata("Time Interval", timeInterval);
 	addMetadata("Initial Developers", developers.size());
 	addMetadata("Initial Templates", templates.size());
 	addMetadata("Initial Parcels", initParcelList.size());
 	addMetadata("Initial DevelopmentTypeTemplates",developmentTypeTemplates.size());
-	addMetadata("Initial TemplateUnitTypes", templateUnitTypes.size());
+	PrintOutV("Initial Developer,Agents"<< developmentCandidateParcelList.size() << std::endl );
 }
 
 void DeveloperModel::stopImpl() {
@@ -250,7 +251,7 @@ void DeveloperModel::processParcels()
 			else
 			{
 				const double minLotSize = 100;
-				if((parcel->getDevelopmentAllowed().compare("development is allowed")!=0)||(parcel->getLotSize()< minLotSize))
+				if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize))
 				{
 					nonEligibleParcelList.push_back(parcel);
 				}
@@ -262,6 +263,7 @@ void DeveloperModel::processParcels()
 					if ( actualGpr >= 0 && actualGpr < getAllowedGpr(*parcel))
 					{
 						developmentCandidateParcelList.push_back(parcel);
+						devCandidateParcelsById.insert(std::make_pair(parcel->getId(), parcel));
 					}
 					else
 					{
@@ -270,6 +272,45 @@ void DeveloperModel::processParcels()
 
 				}
 
+			}
+		}
+
+	}
+}
+
+void DeveloperModel::processProjects()
+{
+
+	ProjectList::iterator projectsItr;
+	for(projectsItr = projects.begin(); projectsItr != this->projects.end(); projectsItr++)
+	{
+		//check whether the project's last planned date is older than 90 days; current date is assumed to be 01/01/2008.
+		if((*projectsItr)->getPlannedDate().tm_year<2007)
+		{
+
+		}
+		else if((*projectsItr)->getPlannedDate().tm_year==2007)
+		{
+			if((*projectsItr)->getPlannedDate().tm_mon<10)
+			{
+				//project is older than 90 days;add it to the development candidate parcel list,if the parcel is not yet added.
+				if(getParcelById((*projectsItr)->getParcelId()) != nullptr)
+				{
+					developmentCandidateParcelList.push_back(getParcelById((*projectsItr)->getParcelId()));
+				}
+
+			}
+			//project is 90 days old; add it to the candidate parcel list; if it is not yet added.
+			else if((*projectsItr)->getPlannedDate().tm_mon==10)
+			{
+				if((*projectsItr)->getPlannedDate().tm_mday==1)
+				{
+					if(getParcelById((*projectsItr)->getParcelId()) != nullptr)
+					{
+						developmentCandidateParcelList.push_back(getParcelById((*projectsItr)->getParcelId()));
+					}
+
+				}
 			}
 		}
 
@@ -445,6 +486,7 @@ void DeveloperModel::setUnitId(BigSerial unitId)
 {
 	this->unitId = unitId;
 }
+
 DeveloperModel::BuildingList DeveloperModel::getBuildings()
 {
 	return buildings;
@@ -463,4 +505,14 @@ void DeveloperModel::setCurrentTick(int currTick)
 int DeveloperModel::getCurrentTick()
 {
 	return this->currentTick;
+}
+
+void DeveloperModel::addProjects(boost::shared_ptr<Project> project)
+{
+	newProjects.push_back(project);
+}
+
+void DeveloperModel::addBuildings(boost::shared_ptr<Building> building)
+{
+	newBuildings.push_back(building);
 }

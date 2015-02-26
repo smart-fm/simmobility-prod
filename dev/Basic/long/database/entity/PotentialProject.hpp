@@ -48,7 +48,7 @@ namespace sim_mob {
          */
         class PotentialProject {
         public:
-            PotentialProject(const DevelopmentTypeTemplate* devTemplate = nullptr,const Parcel* parcel = nullptr,double constructionCost = 0,double grossArea = 0);
+            PotentialProject(const DevelopmentTypeTemplate* devTemplate = nullptr,const Parcel* parcel = nullptr,double constructionCost = 0,double grossArea = 0,double tempSelectProbability = 0,double investmentReturnRatio=0);
             virtual ~PotentialProject();
             
             struct ByProfit
@@ -79,11 +79,20 @@ namespace sim_mob {
             double getConstructionCost() const;
             double getRevenue() const;
             double getGrosArea() const;
+            double getInvestmentReturnRatio() const;
+            double getExpRatio() const;
+            double getTempSelectProbability() const;
+            double getDemolitionCost() const;
+
             //Setters
             void setProfit(const double profit);
             void setConstructionCost(double constructionCost);
             void setGrossArea(const double grossArea);
             friend std::ostream& operator<<(std::ostream& strm,const PotentialProject& data);
+            void setInvestmentReturnRatio(double inReturnRatio);
+            void setExpRatio(double exRatio);
+            void setTempSelectProbability(double probability);
+            void setDemolitionCost(double demCost);
 
             std::vector<TemplateUnitType*> templateUnitTypes;
         private:
@@ -95,7 +104,11 @@ namespace sim_mob {
             UnitMap unitMap;
             double profit;
             double constructionCost;
+            double demolitionCost;
             double grossArea;
+            double investmentReturnRatio;
+            double expRatio;
+            double tempSelectProbability;
 
         };
     }

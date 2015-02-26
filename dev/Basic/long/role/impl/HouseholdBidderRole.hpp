@@ -77,6 +77,13 @@ namespace sim_mob
              * @param currTime
              */
             virtual void update(timeslice currTime);
+
+            void setVehicleOwnershipOption();
+
+            double getExpOneCar(int unitTypeId);
+
+            double getExpTwoPlusCar(int unitTypeId);
+
         protected:
 
             /**
@@ -113,12 +120,25 @@ namespace sim_mob
             timeslice lastTime;
             bool bidOnCurrentDay;
             CurrentBiddingEntry biddingEntry;
-
             HouseholdAgent *parent;
             bool active;
 
         	BigSerial unitIdToBeOwned;
         	int moveInWaitingTimeInDays;
+
+            enum EthnicityId{
+            	CHINESE = 1, MALAY, INDIAN, OTHERS
+            };
+            enum coeffParamId{
+            	ASC_ONECAR = 1, ASC_TWO_PLUS_CAR, B_CHINESE_ONECAR, B_CHINESE_TWO_PLUS_CAR, B_HDB_ONECAR, B_HDB_TWO_PLUS_CAR,
+            	B_INC1_ONECAR, B_INC1_TWO_PLUS_CAR, B_INC2_ONECAR, B_INC2_TWO_PLUS_CAR, B_INC3_ONECAR, B_INC3_TWO_PLUS_CAR, B_INC4_ONECAR,
+            	B_INC4_TWO_PLUS_CAR, B_INC5_ONECAR, B_INC5_TWO_PLUS_CAR, B_INC6_ONECAR, B_INC6_TWO_PLUS_CAR, B_KIDS_ONECAR, B_KIDS_TWO_PLUS_CAR,
+            	B_LOG_HHSIZE_ONECAR, B_LOG_HHSIZE_TWO_PLUS_CAR, B_MC_ONECAR, B_MC_TWO_PLUS_CAR
+            };
+            enum vehicleOwnershipOption{
+            	NO_CAR = 1, ONE_CAR, TWO_PLUS_CAR
+            };
+
         };
     }
 }

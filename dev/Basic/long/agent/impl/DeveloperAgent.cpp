@@ -563,7 +563,11 @@ void DeveloperAgent::setUnitsForHM(std::vector<boost::shared_ptr<Unit> >::iterat
 {
 	const int totalUnits = newUnits.size();
 	const double monthlyUnitsFraction = 0.2;
-	const int monthlyUnits = totalUnits * monthlyUnitsFraction;
+	int monthlyUnits = totalUnits * monthlyUnitsFraction;
+	if(monthlyUnits <=0)
+	{
+		monthlyUnits = totalUnits;
+	}
 	first = newUnits.begin()+ monthlyUnitCount;
 	if(monthlyUnitCount < totalUnits)
 	{

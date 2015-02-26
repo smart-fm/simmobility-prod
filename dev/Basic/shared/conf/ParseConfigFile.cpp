@@ -173,25 +173,31 @@ const double MILLISECONDS_IN_SECOND = 1000.0;
 } //End un-named namespace
 
 
-sim_mob::ParseConfigFile::ParseConfigFile(const std::string& configFileName, RawConfigParams& result) : cfg(result), ParseConfigXmlBase(configFileName)
+sim_mob::ParseConfigFile::ParseConfigFile(const std::string& configFileName, RawConfigParams& result, bool longTerm) : cfg(result), ParseConfigXmlBase(configFileName), longTerm(longTerm)
 {
 	parseXmlAndProcess();
-	//Take care of pathset manager confifuration in here
-	ParsePathXmlConfig(sim_mob::ConfigManager::GetInstance().FullConfig().pathsetFile, sim_mob::ConfigManager::GetInstanceRW().PathSetConfig());
 }
 
 void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 {
 	//Verify that the root node is "config"
 	DOMElement* rootNode = parser.getDocument()->getDocumentElement();
-	if (TranscodeString(rootNode->getTagName()) != "config") {
+	if (TranscodeString(rootNode->getTagName()) != "config")
+	{
 		throw std::runtime_error("xml parse error: root node must be \"config\"");
 	}
 
 	//Make sure we don't have a geometry node.
 	DOMElement* geom = GetSingleElementByName(rootNode, "geometry");
-	if (geom) {
+	if (geom)
+	{
 		throw std::runtime_error("Config file contains a <geometry> node, which is no longer allowed. See the <constructs> node for documentation.");
+	}
+
+	if( longTerm )
+	{
+		ProcessLongTermParamsNode( GetSingleElementByName(rootNode, "longTermParams"));
+		return;
 	}
 
 	//Now just parse the document recursively.
@@ -203,7 +209,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessConstructsNode(GetSingleElementByName(rootNode,"constructs"));
 	ProcessBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes"));
 	ProcessPersonCharacteristicsNode(GetSingleElementByName(rootNode, "personCharacteristics"));
-	ProcessLongTermParamsNode( GetSingleElementByName(rootNode, "longTermParams"));
+
 
 	//Agents all follow a template.
 
@@ -217,8 +223,10 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessCBD_Node(GetSingleElementByName(rootNode, "CBD"));
 	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
 	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update"));
-}
 
+	//Take care of pathset manager confifuration in here
+	ParsePathXmlConfig(sim_mob::ConfigManager::GetInstance().FullConfig().pathsetFile, sim_mob::ConfigManager::GetInstanceRW().PathSetConfig());
+}
 
 void sim_mob::ParseConfigFile::ProcessSystemNode(DOMElement* node)
 {

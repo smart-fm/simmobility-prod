@@ -242,7 +242,8 @@ int main_impl(int ARGC, char* ARGV[])
     }
     const std::string configFileName = args[1];
     //Parse the config file (this *does not* create anything, it just reads it.).
-    ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
+    bool longTerm = true;
+    ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig(), longTerm );
 
     //Save a handle to the shared definition of the configuration.
     const ConfigParams& config = ConfigManager::GetInstance().FullConfig();

@@ -32,7 +32,7 @@ namespace sim_mob {
 class ParseConfigFile : public ParseConfigXmlBase, private boost::noncopyable {
 public:
 	///Parse a config file into RawConfigParams, performing all XML parsing and some trivial semantic processing.
-	ParseConfigFile(const std::string& configFileName, RawConfigParams& result);
+	ParseConfigFile(const std::string& configFileName, RawConfigParams& result, bool longTerm = false);
 
 private:
 	virtual void processXmlFile(xercesc::XercesDOMParser& parser);
@@ -103,6 +103,7 @@ private:
 private:
 	//The config file we are currently loading
 	RawConfigParams& cfg;
+	bool longTerm;
 };
 
 }

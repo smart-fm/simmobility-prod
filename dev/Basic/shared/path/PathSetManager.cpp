@@ -233,7 +233,7 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
-		if(minSP->signalNumber == sp->signalNumber)
+		if(minSignal == sp->signalNumber)
 		{
 			sp->isMinSignal = 1;
 		}
@@ -253,14 +253,14 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
-		if(sp->rightTurnNumber == minSP->rightTurnNumber)
+		if(sp->rightTurnNumber == minRightTurn)
 		{
 			sp->isMinRightTurn = 1;
 		}
 	}
 
 	// find MAX_HIGH_WAY_USAGE
-	double maxHighWayUsage=0.0;
+	double maxHighWayUsage = 0.0;
 	minSP = *(ps->pathChoices.begin()); // record which is min
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
@@ -273,7 +273,7 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
-		if(minSP->highWayDistance / minSP->length == sp->highWayDistance / sp->length)
+		if(maxHighWayUsage == sp->highWayDistance / sp->length)
 		{
 			sp->isMaxHighWayUsage = 1;
 		}
@@ -419,7 +419,7 @@ void sim_mob::PathSetManager::onPathSetRetrieval(boost::shared_ptr<PathSet> &ps,
 
 	BOOST_FOREACH(SinglePath *sp, ps->pathChoices)
 	{
-		if(minSP->travleTime == sp->travleTime)
+		if(minTravelTime == sp->travleTime)
 		{
 			sp->isMinTravelTime = 1;
 		}

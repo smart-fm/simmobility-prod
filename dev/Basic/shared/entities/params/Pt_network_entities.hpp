@@ -1,14 +1,28 @@
-class pt_network_edges{
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License";" as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
+
+/**
+ * Pt_network_entities.hpp
+ *
+ *  Created on: Feb 24, 2015
+ *  \author Prabhuraj
+ */
+#include <string>
+
+namespace sim_mob{
+
+class PT_NetworkEdges{
 public:
-	pt_network_edges();
-	virtual ~pt_network_edges();
+	PT_NetworkEdges();
+	virtual ~PT_NetworkEdges();
 
 	double getDayTransitTime() const {
-		return day_transit_time;
+		return dayTransitTime;
 	}
 
 	void setDayTransitTime(double dayTransitTime) {
-		day_transit_time = dayTransitTime;
+		this->dayTransitTime = dayTransitTime;
 	}
 
 	double getDist() const {
@@ -20,194 +34,195 @@ public:
 	}
 
 	int getEdgeId() const {
-		return edge_id;
+		return edgeId;
 	}
 
 	void setEdgeId(int edgeId) {
-		edge_id = edgeId;
+		this->edgeId = edgeId;
 	}
 
-	std::String getEndStop() const {
-		return end_stop;
+	const std::string& getEndStop() const {
+		return endStop;
 	}
 
-	void setEndStop(std::String endStop) {
-		end_stop = endStop;
+	void setEndStop(const std::string& endStop) {
+		this->endStop = endStop;
 	}
 
 	double getLinkTravelTime() const {
-		return link_travel_time;
+		return linkTravelTime;
 	}
 
 	void setLinkTravelTime(double linkTravelTime) {
-		link_travel_time = linkTravelTime;
+		this->linkTravelTime = linkTravelTime;
 	}
 
-	std::String getServiceLines() const {
-		return r_service_lines;
-	}
-
-	void setServiceLines(std::String serviceLines) {
-		r_service_lines = serviceLines;
-	}
-
-	std::String getR_Type() const {
-		return r_type;
-	}
-
-	void setR_Type(std::String type) {
-		r_type = type;
-	}
-
-	std::String getRoadEdgeId() const {
-		return road_edge_id;
-	}
-
-	void setRoadEdgeId(std::String roadEdgeId) {
-		road_edge_id = roadEdgeId;
-	}
-
-	int getRoadIndex() const {
+	const std::string& getRoadIndex() const {
 		return road_index;
 	}
 
-	void setRoadIndex(int roadIndex) {
+	void setRoadIndex(const std::string& roadIndex) {
 		road_index = roadIndex;
 	}
 
-	std::String getStartStop() const {
-		return start_stop;
+	const std::string& getRoadEdgeId() const {
+		return roadEdgeId;
 	}
 
-	void setStartStop(std::String startStop) {
-		start_stop = startStop;
+	void setRoadEdgeId(const std::string& roadEdgeId) {
+		this->roadEdgeId = roadEdgeId;
+	}
+
+	const std::string& getServiceLines() const {
+		return rServiceLines;
+	}
+
+	void setServiceLines(const std::string& serviceLines) {
+		rServiceLines = serviceLines;
+	}
+
+	const std::string& getR_Type() const {
+		return rType;
+	}
+
+	void setR_Type(const std::string& type) {
+		rType = type;
+	}
+
+	const std::string& getStartStop() const {
+		return startStop;
+	}
+
+	void setStartStop(const std::string& startStop) {
+		this->startStop = startStop;
 	}
 
 	double getTransferPenalty() const {
-		return transfer_penalty;
+		return transferPenalty;
 	}
 
 	void setTransferPenalty(double transferPenalty) {
-		transfer_penalty = transferPenalty;
+		this->transferPenalty = transferPenalty;
 	}
 
 	double getTransitTime() const {
-		return transit_time;
+		return transitTime;
 	}
 
 	void setTransitTime(double transitTime) {
-		transit_time = transitTime;
+		this->transitTime = transitTime;
 	}
 
 	double getWaitTime() const {
-		return wait_time;
+		return waitTime;
 	}
 
 	void setWaitTime(double waitTime) {
-		wait_time = waitTime;
+		this->waitTime = waitTime;
 	}
 
 	double getWalkTime() const {
-		return walk_time;
+		return walkTime;
 	}
 
 	void setWalkTime(double walkTime) {
-		walk_time = walkTime;
+		this->walkTime = walkTime;
 	}
 
 private:
-	std::String start_stop;  // Alphanumeric id
-	std::String end_stop;    // Alphanumeric id
- 	std::String r_type;      // Service Line type, can be "BUS","LRT","WALK"
-	int road_index;          // Index for road type 0 for BUS , 1 for LRT , 2 for Walk
-	std::String road_edge_id; // Strings of passing road segments Ex: 4/15/35/43
-	std::String r_service_lines;
-	double link_travel_time;
-	int  edge_id;
-	double wait_time;
-	double walk_time;
-	double transit_time;
-	double transfer_penalty;
-	double day_transit_time;
+	std::string startStop;  // Alphanumeric id
+	std::string endStop;    // Alphanumeric id
+ 	std::string rType;      // Service Line type, can be "BUS","LRT","WALK"
+	std::string road_index;          // Index for road type 0 for BUS , 1 for LRT , 2 for Walk
+	std::string roadEdgeId; // Strings of passing road segments Ex: 4/15/35/43
+	std::string rServiceLines;
+	double linkTravelTime;
+	int  edgeId;
+	double waitTime;
+	double walkTime;
+	double transitTime;
+	double transferPenalty;
+	double dayTransitTime;
 	double dist;
 };
 
-class Pt_network_vertices{
+class PT_NetworkVertices{
 public:
-	Pt_network_vertices();
-	virtual ~Pt_network_vertices();
+	PT_NetworkVertices();
+	virtual ~PT_NetworkVertices();
 
-	std::String getEzlinkName() const {
-		return ezlink_name;
+	const std::string& getEzlinkName() const {
+		return ezlinkName;
 	}
 
-	void setEzlinkName(std::String ezlinkName) {
-		ezlink_name = ezlinkName;
+	void setEzlinkName(const std::string& ezlinkName) {
+		this->ezlinkName = ezlinkName;
 	}
 
-	std::String getStopCode() const {
-		return stop_code;
+	const std::string& getStopCode() const {
+		return stopCode;
 	}
 
-	void setStopCode(std::String stopCode) {
-		stop_code = stopCode;
+	void setStopCode(const std::string& stopCode) {
+		this->stopCode = stopCode;
 	}
 
-	std::String getStopDesc() const {
-		return stop_desc;
+	const std::string& getStopDesc() const {
+		return stopDesc;
 	}
 
-	void setStopDesc(std::String stopDesc) {
-		stop_desc = stopDesc;
+	void setStopDesc(const std::string& stopDesc) {
+		this->stopDesc = stopDesc;
 	}
 
-	std::String getStopId() const {
-		return stop_id;
+	const std::string& getStopId() const {
+		return stopId;
 	}
 
-	void setStopId(std::String stopId) {
-		stop_id = stopId;
+	void setStopId(const std::string& stopId) {
+		this->stopId = stopId;
 	}
 
 	double getStopLatitude() const {
-		return stop_latitude;
+		return stopLatitude;
 	}
 
 	void setStopLatitude(double stopLatitude) {
-		stop_latitude = stopLatitude;
+		this->stopLatitude = stopLatitude;
 	}
 
 	double getStopLongitude() const {
-		return stop_longitude;
+		return stopLongitude;
 	}
 
 	void setStopLongitude(double stopLongitude) {
-		stop_longitude = stopLongitude;
+		this->stopLongitude = stopLongitude;
 	}
 
-	std::String getStopName() const {
-		return stop_name;
+	const std::string& getStopName() const {
+		return stopName;
 	}
 
-	void setStopName(std::String stopName) {
-		stop_name = stopName;
+	void setStopName(const std::string& stopName) {
+		this->stopName = stopName;
 	}
 
 	int getStopType() const {
-		return stop_type;
+		return stopType;
 	}
 
 	void setStopType(int stopType) {
-		stop_type = stopType;
+		this->stopType = stopType;
 	}
 
 private:
-	std::String stop_id;
-	std::String stop_code;
-	std::String stop_name;
-	double stop_latitude;
-	double stop_longitude;
-	std::String ezlink_name;
-	int stop_type;
-	std::String stop_desc;
+	std::string stopId;
+	std::string stopCode;
+	std::string stopName;
+	double stopLatitude;
+	double stopLongitude;
+	std::string ezlinkName;
+	int stopType;
+	std::string stopDesc;
 };
+}//End of namespace sim_mob

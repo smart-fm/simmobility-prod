@@ -235,32 +235,6 @@ void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArg
 {
     switch (eventId)
     {
-        case LTEID_HM_UNIT_ADDED:
-        {
-            const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
-            const Unit *unit = hmArgs.getUnit();
-            //PrintOut("Unit added " << unit->getId() << endl);
-            break;
-        }
-        case LTEID_HM_UNIT_REMOVED:
-        {
-            const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
-            //PrintOut("Unit removed " << hmArgs.getUnitId() << endl);
-            break;
-        }
-        case LTEID_HM_BUILDING_ADDED:
-        {
-            const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
-            const Building *building = hmArgs.getBuilding();
-            //PrintOut("Building added " << hmArgs.getBuildingId() << endl);
-            break;
-        }
-        case LTEID_HM_BUILDING_REMOVED:
-        {
-             const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
-            // PrintOut("Building removed " << hmArgs.getBuildingId() << endl);
-             break;
-        }
         case LTEID_EXT_LOST_JOB:
         case LTEID_EXT_NEW_CHILD:
         case LTEID_EXT_NEW_JOB:
@@ -331,10 +305,6 @@ void HouseholdAgent::onWorkerEnter()
         MessageBus::SubscribeEvent(LTEID_EXT_LOST_JOB, this, this);
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this, this);
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
-        MessageBus::SubscribeEvent(LTEID_HM_UNIT_ADDED, this);
-        MessageBus::SubscribeEvent(LTEID_HM_UNIT_REMOVED, this);
-        MessageBus::SubscribeEvent(LTEID_HM_BUILDING_ADDED, this);
-        MessageBus::SubscribeEvent(LTEID_HM_BUILDING_REMOVED, this);
     }
 }
 
@@ -347,10 +317,6 @@ void HouseholdAgent::onWorkerExit()
         MessageBus::UnSubscribeEvent(LTEID_EXT_LOST_JOB, this, this);
         MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this, this);
         MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
-        MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
-        MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_REMOVED, this);
-        MessageBus::UnSubscribeEvent(LTEID_HM_BUILDING_ADDED, this);
-        MessageBus::UnSubscribeEvent(LTEID_HM_BUILDING_REMOVED, this);
     }
 }
 

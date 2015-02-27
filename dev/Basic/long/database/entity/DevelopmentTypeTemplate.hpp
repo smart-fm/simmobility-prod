@@ -30,7 +30,7 @@ namespace sim_mob {
              */
             BigSerial getDevelopmentTypeId() const;
             BigSerial getTemplateId() const;
-            int getLandUsTypeId() const;
+            int getLandUseTypeId() const;
 
             /**
              * Operator to print the DevelopmentTypeTemplate data.  

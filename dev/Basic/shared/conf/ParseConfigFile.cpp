@@ -173,25 +173,31 @@ const double MILLISECONDS_IN_SECOND = 1000.0;
 } //End un-named namespace
 
 
-sim_mob::ParseConfigFile::ParseConfigFile(const std::string& configFileName, RawConfigParams& result) : cfg(result), ParseConfigXmlBase(configFileName)
+sim_mob::ParseConfigFile::ParseConfigFile(const std::string& configFileName, RawConfigParams& result, bool longTerm) : cfg(result), ParseConfigXmlBase(configFileName), longTerm(longTerm)
 {
 	parseXmlAndProcess();
-	//Take care of pathset manager confifuration in here
-	ParsePathXmlConfig(sim_mob::ConfigManager::GetInstance().FullConfig().pathsetFile, sim_mob::ConfigManager::GetInstanceRW().PathSetConfig());
 }
 
 void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 {
 	//Verify that the root node is "config"
 	DOMElement* rootNode = parser.getDocument()->getDocumentElement();
-	if (TranscodeString(rootNode->getTagName()) != "config") {
+	if (TranscodeString(rootNode->getTagName()) != "config")
+	{
 		throw std::runtime_error("xml parse error: root node must be \"config\"");
 	}
 
 	//Make sure we don't have a geometry node.
 	DOMElement* geom = GetSingleElementByName(rootNode, "geometry");
-	if (geom) {
+	if (geom)
+	{
 		throw std::runtime_error("Config file contains a <geometry> node, which is no longer allowed. See the <constructs> node for documentation.");
+	}
+
+	if( longTerm )
+	{
+		ProcessLongTermParamsNode( GetSingleElementByName(rootNode, "longTermParams"));
+		return;
 	}
 
 	//Now just parse the document recursively.
@@ -203,7 +209,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessConstructsNode(GetSingleElementByName(rootNode,"constructs"));
 	ProcessBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes"));
 	ProcessPersonCharacteristicsNode(GetSingleElementByName(rootNode, "personCharacteristics"));
-	ProcessLongTermParamsNode( GetSingleElementByName(rootNode, "longTermParams"));
+
 
 	//Agents all follow a template.
 
@@ -216,8 +222,11 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessBusControllersNode(GetSingleElementByName(rootNode, "buscontrollers"));
 	ProcessCBD_Node(GetSingleElementByName(rootNode, "CBD"));
 	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
-}
+	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update"));
 
+	//Take care of pathset manager confifuration in here
+	ParsePathXmlConfig(sim_mob::ConfigManager::GetInstance().FullConfig().pathsetFile, sim_mob::ConfigManager::GetInstanceRW().PathSetConfig());
+}
 
 void sim_mob::ParseConfigFile::ProcessSystemNode(DOMElement* node)
 {
@@ -477,6 +486,8 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	housingModel.timeOffMarket = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "timeOffMarket"), "value"), static_cast<unsigned int>(0));
 	housingModel.vacantUnitActivationProbability = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(node, "vacantUnitActivationProbability"), "value"));
 	housingModel.initialHouseholdsOnMarket = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "InitialHouseholdsOnMarket"), "value"), static_cast<int>(0));
+	housingModel.housingMarketSearchPercentage = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "housingMarketSearchPercentage"), "value"));
+	housingModel.housingMoveInDaysInterval = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "housingMoveInDaysInterval"), "value"));
 	cfg.ltParams.housingModel = housingModel;
 }
 
@@ -592,6 +603,18 @@ void sim_mob::ParseConfigFile::processPathSetFileName(xercesc::DOMElement* node)
 		return;
 	}
 	cfg.pathsetFile = ParseString(GetNamedAttributeValue(node, "value"));
+}
+
+void sim_mob::ParseConfigFile::processTT_Update(xercesc::DOMElement* node){
+	if(!node)
+	{
+		throw std::runtime_error("pathset travel_time_interval not found\n");
+	}
+	else
+	{
+		sim_mob::ConfigManager::GetInstanceRW().PathSetConfig().interval = ParseInteger(GetNamedAttributeValue(node, "interval"), 600);
+		sim_mob::ConfigManager::GetInstanceRW().PathSetConfig().alpha = ParseFloat(GetNamedAttributeValue(node, "alpha"), 0.5);
+	}
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)

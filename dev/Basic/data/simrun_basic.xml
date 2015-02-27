@@ -503,5 +503,6 @@
     </longTermParams>
     <CBD enabled="false"/> 
     <path-set-config-file value="data/pathset_config.xml" />
+    <travel_time_update interval="300" alpha="0.5" />
 </config>
 

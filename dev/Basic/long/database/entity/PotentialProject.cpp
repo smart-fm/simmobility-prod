@@ -47,8 +47,8 @@ void PotentialUnit::setUnitTypeId(int typeId){
 	this->unitTypeId = typeId;
 }
 
-PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel,double constructionCost, double grossArea)
-								  : devTemplate(devTemplate), parcel(parcel), profit(0) , constructionCost(constructionCost),grossArea(grossArea) {}
+PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel,double constructionCost, double grossArea,double tempSelectProbability,double investmentReturnRatio)
+								  : devTemplate(devTemplate), parcel(parcel), profit(0) , constructionCost(constructionCost),grossArea(grossArea),tempSelectProbability(tempSelectProbability),investmentReturnRatio(investmentReturnRatio) {}
 
 PotentialProject::~PotentialProject() {
 }
@@ -106,6 +106,45 @@ void PotentialProject::setGrossArea(const double grossArea) {
     this->grossArea = grossArea;
 }
 
+double PotentialProject::getInvestmentReturnRatio() const
+{
+	return this->investmentReturnRatio;
+}
+
+void PotentialProject::setInvestmentReturnRatio(double inReturnRatio)
+{
+	this->investmentReturnRatio = inReturnRatio;
+}
+
+double PotentialProject::getExpRatio() const
+{
+	return this->expRatio;
+}
+
+void PotentialProject::setExpRatio(double exRatio)
+{
+	this->expRatio = exRatio;
+}
+
+double PotentialProject::getTempSelectProbability() const
+{
+	return this->tempSelectProbability;
+}
+
+void PotentialProject::setTempSelectProbability(double probability)
+{
+	this->tempSelectProbability = probability;
+}
+
+double PotentialProject::getDemolitionCost() const
+{
+	return this->demolitionCost;
+}
+
+void PotentialProject::setDemolitionCost(double demCost)
+{
+	this->demolitionCost = demCost;
+}
 namespace sim_mob
 {
     namespace long_term
@@ -136,7 +175,7 @@ namespace sim_mob
                     << "\"templateId\":\"" << data.getDevTemplate()->getTemplateId() << "\","
                     << "\"parcelId\":\"" << data.getParcel()->getId() << "\","
                     << "\"gpr\":\"" << data.getParcel()->getGpr() << "\","
-                    << "\"landUseTypeId\":\"" << data.getDevTemplate()->getLandUsTypeId() << "\","
+                    << "\"landUseTypeId\":\"" << data.getDevTemplate()->getLandUseTypeId() << "\","
                     << "\"profit\":\"" << data.getProfit() << "\","
                     << "\"units\":\"" << unitsStr.str() << "\""
                     << "}";

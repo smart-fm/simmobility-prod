@@ -307,7 +307,7 @@ void HM_Model::startImpl()
 
 
 	//
-	//Create real-estate agents. Their tasks are to sell units from the developper model.
+	//Create real-estate agents. Their tasks are to sell units from the developer model.
 	//
 	std::vector<RealEstateAgent*> realEstateAgents;
 	for( int i = 0; i < numWorkers ; i++ )
@@ -388,8 +388,6 @@ void HM_Model::startImpl()
 
 				if(awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
-
-					//(*it)->setbiddingMarketEntryDay( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 					(*it)->setbiddingMarketEntryDay( 0 );
 					(*it)->setTimeOnMarket( 1 + int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 

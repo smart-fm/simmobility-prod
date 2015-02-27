@@ -31,6 +31,72 @@ using std::string;
 using std::map;
 using std::endl;
 using sim_mob::event::EventArgs;
+
+namespace
+{
+    const int INTERNAL_MESSAGE_PRIORITY = 5;
+
+    class DEV_InternalMsg : public Message
+    {
+    public:
+
+    	DEV_InternalMsg(Building &building) :unitId(INVALID_ID), unit(nullptr),building(&building),buildingId(building.getFmBuildingId()), buildingFutureDemolitionDate(std::tm())
+    	{
+    		priority = INTERNAL_MESSAGE_PRIORITY;
+    	}
+
+    	DEV_InternalMsg(Unit &unit) :unitId(unit.getId()), unit(&unit), building(nullptr),buildingId(unit.getBuildingId()), buildingFutureDemolitionDate(std::tm())
+    	{
+            priority = INTERNAL_MESSAGE_PRIORITY;
+        }
+
+    	DEV_InternalMsg(BigSerial unitId):unitId(unitId), unit(nullptr), building(nullptr),buildingId(INVALID_ID), buildingFutureDemolitionDate(std::tm())
+    	{
+
+    	}
+
+    	DEV_InternalMsg():unitId(INVALID_ID), unit(nullptr), building(nullptr),buildingId(INVALID_ID), buildingFutureDemolitionDate(std::tm())
+    	{
+
+    	}
+
+    	DEV_InternalMsg(BigSerial buildingId,std::tm buildingFutureDemolitionDate) :unitId(INVALID_ID), unit(nullptr),building(nullptr),buildingId(buildingId),buildingFutureDemolitionDate(buildingFutureDemolitionDate)
+    	{
+    	    priority = INTERNAL_MESSAGE_PRIORITY;
+    	}
+
+        virtual ~DEV_InternalMsg(){}
+        /**
+        * Gets the unit affected by the action.
+        * @return
+        */
+        BigSerial getUnitId()const{
+        	return unitId;
+        }
+
+        Unit  *getUnit() const{
+        	return unit;
+        }
+
+        Building  *getBuilding() const{
+            return building;
+        }
+
+        BigSerial getBuildingId()const{
+        	return buildingId;
+        }
+
+        std::tm getFutureDemolitionDate() const{
+        	return buildingFutureDemolitionDate;
+        }
+
+        BigSerial unitId;
+        Unit *unit;
+        Building *building;
+        BigSerial buildingId;
+        std::tm buildingFutureDemolitionDate;
+    };
+}
 namespace {
 
 //id,lot_size, gpr, land_use_type_id, owner_name, owner_category, last_transaction_date, last_transaction_type_total, psm_per_gps, lease_type, lease_start_date, centroid_x, centroid_y,
@@ -77,7 +143,7 @@ inline void writeUnitDataToFile(int unitTypeId, int numUnits) {
  * @param project to be written.
  *
  */
-inline void writeProjectDataToFile(Project *project) {
+inline void writeProjectDataToFile(boost::shared_ptr<Project>project) {
 
 	boost::format fmtr = boost::format(LOG_PROJECT) % project->getProjectId() % project->getParcelId()%project->getDeveloperId()%project->getTemplateId()%project->getProjectName()
 			             %project->getConstructionDate().tm_year%project->getCompletionDate().tm_year%project->getConstructionCost()%project->getDemolitionCost()%project->getTotalCost()
@@ -105,24 +171,40 @@ inline void calculateProjectProfit(PotentialProject& project,const DeveloperMode
 
 	double totalRevenue = 0;
 	double totalConstructionCost = 0;
-
+	double demolitionCost = 0;
 	for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++) {
 		const ParcelAmenities *amenities = model->getAmenitiesById(project.getParcel()->getId());
 		if(amenities != nullptr)
 		{
 			const DeveloperLuaModel& luaModel = LuaProvider::getDeveloperModel();
-			double reveuePerUnitType = luaModel.calulateUnitRevenue((*unitsItr),*amenities);
-			double totalRevenuePerUnitType = reveuePerUnitType* (*unitsItr).getNumUnits();
+			double revenuePerUnitType = luaModel.calulateUnitRevenue((*unitsItr),*amenities);
+			double totalRevenuePerUnitType = revenuePerUnitType * (*unitsItr).getNumUnits();
 			totalRevenue = totalRevenue + totalRevenuePerUnitType;
 			double constructionCostPerUnitType = model->getUnitTypeById((*unitsItr).getUnitTypeId())->getConstructionCostPerUnit()* (*unitsItr).getNumUnits();
 			totalConstructionCost = totalConstructionCost+ constructionCostPerUnitType;
+			//if (!(model->isEmptyParcel(project.getParcel()->getId())))
+			//{
+				//TODO::set demolition cost
+				project.setDemolitionCost(demolitionCost);
+			//}
 		}
 
 	}
-
 	double profit = totalRevenue - totalConstructionCost;
 	project.setProfit(profit);
 	project.setConstructionCost(totalConstructionCost);
+	const double acquisitionCost = 200; // temporary: acquisition cost to be obtained later
+	double totalCost = totalConstructionCost + acquisitionCost;
+
+	double investmentReturnRatio = 0;
+	if((totalRevenue>0) && (totalCost>0))
+	{
+		investmentReturnRatio = (totalRevenue - totalCost)/ (totalCost);
+		//PrintOut("investmentReturnRatio"<<investmentReturnRatio<<std::endl);
+	}
+
+	project.setInvestmentReturnRatio(investmentReturnRatio);
+
 
 }
 inline void createPotentialUnits(PotentialProject& project,const DeveloperModel* model)
@@ -195,14 +277,18 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* mo
 
                 for (it = devTemplates.begin(); it != devTemplates.end(); it++)
                 {
-                	if ((*it)->getLandUsTypeId() == parcel->getLandUseTypeId())
+                	if ((*it)->getLandUseTypeId() == parcel->getLandUseTypeId())
 
                     {
                         PotentialProject project((*it), parcel);
                         addUnitTemplates(project, unitTemplates);
                         createPotentialUnits(project,model);
                         calculateProjectProfit(project,model);
-                        projects.push_back(project);
+                        const double threshold = 0.2; // temporary : to be determined later
+                        if(project.getInvestmentReturnRatio()> threshold)
+                        {
+                        	projects.push_back(project);
+                        }
                     }
                 }
 
@@ -218,10 +304,43 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* mo
                 			profitableProjects.push_back((*it));
                 		//}
                 	}
+                	//calculate the probability of being selected for each project
+                	double totalExpRatio = 0;
+                	for (it = profitableProjects.begin(); it != profitableProjects.end(); it++)
+                	{
+                		double expRatio = exp((*it).getInvestmentReturnRatio());
+                		totalExpRatio = totalExpRatio + expRatio;
+                	}
+
+                	for (it = profitableProjects.begin(); it != profitableProjects.end(); it++)
+                	{
+                		const double probability = (*it).getExpRatio() / totalExpRatio;
+                		(*it).setTempSelectProbability(probability);
+                	}
+                	/*generate a random number between 0-1
+                	 * time(0) is passed as an input to constructor in order to randomize the result
+                	 */
+                	boost::mt19937 randomNumbergenerator( time( 0 ) );
+                	boost::random::uniform_real_distribution< > uniformDistribution( 0.0, 1.0 );
+                	boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >generateRandomNumbers( randomNumbergenerator, uniformDistribution );
+                	const double randomNum = generateRandomNumbers( );
+                	double pTemp = 0.0;
+
                 	if(profitableProjects.size()>0)
                 	{
-                		PotentialProject mostProfitableProject = *(std::max_element(profitableProjects.begin(),profitableProjects.end(),PotentialProject::ByProfit()));
-                		outProject = mostProfitableProject;
+                		for (it = profitableProjects.begin(); it != profitableProjects.end(); it++)
+                		{
+                			if( pTemp < randomNum < ((*it).getTempSelectProbability() + pTemp))
+                			{
+                				outProject = (*it);
+                				break;
+                			}
+                			else
+                			{
+                				pTemp = pTemp + (*it).getTempSelectProbability();
+                			}
+
+                		}
 
                 	}
                 }
@@ -231,7 +350,7 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* mo
 }
 
 DeveloperAgent::DeveloperAgent(Parcel* parcel, DeveloperModel* model)
-: LT_Agent((parcel) ? parcel->getId() : INVALID_ID), model(model),parcel(parcel),active(false),fmProject(nullptr){
+: LT_Agent((parcel) ? parcel->getId() : INVALID_ID), model(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true){
 }
 
 DeveloperAgent::~DeveloperAgent() {
@@ -281,7 +400,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	std::tm currentDate = getDate(model->getCurrentTick());
 	Parcel &parcel = *this->parcel;
 	parcel.setStatus(1); //set the status to 1 from 0 to indicate that the parcel is already associated with an ongoing project.
-	parcel.setDevelopmentAllowed("development not currently allowed because of endogenous constraints");
+	parcel.setDevelopmentAllowed(3);// 3 = "development not currently allowed because of endogenous constraints"
 	std::tm nextAvailableDate = currentDate;
 	//next available date of the parcel for the consideration of a new development is assumed to be one year after.
 	nextAvailableDate.tm_year = nextAvailableDate.tm_year+1;
@@ -293,7 +412,6 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 		DeveloperModel::BuildingList::iterator itr;
 
 		for (itr = buildings.begin(); itr != buildings.end(); itr++) {
-			BigSerial unitId = INVALID_ID;
 			std::tm futureDemolitionDate = currentDate;
 			//set the future demolition date of the building to 3 months ahead.
 			int futureDemolitionMonth = futureDemolitionDate.tm_mon + 3;
@@ -306,8 +424,8 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 			futureDemolitionDate.tm_year = futureDemolitionYear;
 			if ((*itr)->getFmParcelId() == parcel.getId()) {
 				BigSerial buildingId = (*itr)->getFmBuildingId();
-				//This is currently commented out until a new agent class is written to receive the message.
-				//MessageBus::PublishEvent(LTEID_HM_BUILDING_REMOVED,MessageBus::EventArgsPtr(new HM_ActionEventArgs(unitId,buildingId,futureDemolitionDate)));
+				toBeDemolishedBuildingIds.push_back((*itr)->getFmBuildingId());
+				MessageBus::PostMessage(this, LT_STATUS_ID_DEV_BUILDING_DEMOLISHED, MessageBus::MessagePtr(new DEV_InternalMsg(buildingId,futureDemolitionDate)), true);
 				//TODO- add demolished building id's to each agent and use it within the agent
 
 			}
@@ -328,7 +446,9 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	}
 	toDate.tm_mon = compltetionMonth;
 	toDate.tm_year = completionYear;
-	newBuildings.push_back(Building(buildingId,projectId,parcel.getId(),0,0,currentDate,toDate,"Uncompleted without prerequisites",project.getGrosArea(),0,0,0));
+	boost::shared_ptr<Building>building(new Building(buildingId,projectId,parcel.getId(),0,0,currentDate,toDate,BUILDING_UNCOMPLETED_WITHOUT_PREREQUISITES,project.getGrosArea(),0,0,0));
+	newBuildings.push_back(building);
+	MessageBus::PostMessage(this, LTEID_DEV_BUILDING_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*building)), true);
 
 	//create new units and add all the units to the newly created building.
 	std::vector<PotentialUnit> units = project.getUnits();
@@ -338,7 +458,9 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 
 		for(size_t i=0; i< (*unitsItr).getNumUnits();i++)
 		{
-				newUnits.push_back(Unit(model->getUnitIdForDeveloperAgent(),buildingId,0,(*unitsItr).getUnitTypeId(),0,"Planned",(*unitsItr).getFloorArea(),0,0,toDate,std::tm(),NOT_LAUNCHED,NOT_READY_FOR_OCCUPANCY));
+			boost::shared_ptr<Unit>unit(new Unit(model->getUnitIdForDeveloperAgent(),buildingId,0,(*unitsItr).getUnitTypeId(),0,UNIT_PLANNED,(*unitsItr).getFloorArea(),0,0,toDate,std::tm(),UNIT_NOT_LAUNCHED,UNIT_NOT_READY_FOR_OCCUPANCY));
+			newUnits.push_back(unit);
+			MessageBus::PostMessage(this, LTEID_DEV_UNIT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*unit)), true);
 		}
 		writeUnitDataToFile((*unitsItr).getUnitTypeId(),(*unitsItr).getNumUnits());
 	}
@@ -357,82 +479,112 @@ void DeveloperAgent::createProject(PotentialProject &project, BigSerial projectI
 	double fmLotSize = parcel->getLotSize();
 	double grossArea = project.getGrosArea();
 	std::string grossRatio = boost::lexical_cast<std::string>(grossArea / fmLotSize);
-
-	Project *fmProject = new Project();
-	fmProject->setProjectId( projectId);
-	fmProject->setParcelId(parcel->getId());
-	fmProject->setDeveloperId(1);//set 1 as a default value temporarily
-	fmProject->setProjectName(std::string());// leave blank temporarily
-	fmProject->setConstructionDate(constructionDate);
-	fmProject->setCompletionDate(completionDate);
-	fmProject->setConstructionCost(constructionCost);
-	fmProject->setDemolitionCost(demolitionCost);
-	fmProject->setTotalCost(totalCost);
-	fmProject->setFmLotSize(fmLotSize);
-	fmProject->setGrossArea(grossArea);
-	fmProject->setGrossRatio(grossRatio);
-	fmProject->setTemplateId(project.getDevTemplate()->getTemplateId());
-	//set the project's tick to 0 at the beginning.
-	fmProject->setCurrTick(0);
+	boost::shared_ptr<Project>fmProject(new Project(projectId,parcel->getId(),0,project.getDevTemplate()->getTemplateId(),std::string(),constructionDate,completionDate,constructionCost,demolitionCost,totalCost,fmLotSize,grossRatio,grossArea,0,constructionDate,"active"));
 	writeProjectDataToFile(fmProject);
 	this->fmProject = fmProject;
+	MessageBus::PostMessage(this, LTEID_DEV_PROJECT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg()), true);
+
 }
 
 void DeveloperAgent::processExistingProjects()
 {
 	int projectDuration = this->fmProject->getCurrTick();
-	std::vector<Building>::iterator buildingsItr;
-	std::vector<Unit>::iterator unitsItr;
+	std::vector<boost::shared_ptr<Building> >::iterator buildingsItr;
+	std::vector<boost::shared_ptr<Unit> >::iterator unitsItr;
 	const int secondMonth = 59;
 	const int fourthMonth = 119;
 	const int sixthMonth = 179;
 	switch(projectDuration)
 	{
 	case (secondMonth):
-
+	{
 		for(buildingsItr = this->newBuildings.begin(); buildingsItr != this->newBuildings.end(); buildingsItr++)
 		{
-			(*buildingsItr).setBuildingStatus("Uncompleted With Prerequisites");
+			(*buildingsItr)->setBuildingStatus(BUILDING_UNCOMPLETED_WITH_PREREQUISITES);
+			MessageBus::PostMessage(this, LT_STATUS_ID_DEV_BUILDING_UNCOMPLETED_WITH_PREREQUISITES,MessageBus::MessagePtr(new DEV_InternalMsg((*buildingsItr)->getFmBuildingId(),std::tm())), true);
 		}
 
 		for(unitsItr = this->newUnits.begin(); unitsItr != this->newUnits.end(); unitsItr++)
 		{
-			(*unitsItr).setUnitStatus("Under construction");
+			(*unitsItr)->setUnitStatus(UNIT_UNDER_CONSTRUCTION);
+			MessageBus::PostMessage(this, LT_STATUS_ID_DEV_UNIT_UNDER_CONSTRUCTION,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
 		}
 		break;
+	}
 	case (fourthMonth):
-
+	{
 		for(buildingsItr = this->newBuildings.begin(); buildingsItr != this->newBuildings.end(); buildingsItr++)
 		{
-			(*buildingsItr).setBuildingStatus("Not Launched");
+			(*buildingsItr)->setBuildingStatus(BUILDING_NOT_LAUNCHED);
+			MessageBus::PostMessage(this, LT_STATUS_ID_DEV_BUILDING_NOT_LAUNCHED,MessageBus::MessagePtr(new DEV_InternalMsg((*buildingsItr)->getFmBuildingId(),std::tm())), true);
 		}
 
 		for(unitsItr = this->newUnits.begin(); unitsItr != this->newUnits.end(); unitsItr++)
 		{
-			(*unitsItr).setUnitStatus("Construction completed");
+			(*unitsItr)->setUnitStatus(UNIT_CONSTRUCTION_COMPLETED);
+			MessageBus::PostMessage(this, LT_STATUS_ID_DEV_UNIT_CONSTRUCTION_COMPLETED,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
 		}
 		break;
+	}
 	case(sixthMonth):
-
+	{
 		for(buildingsItr = this->newBuildings.begin(); buildingsItr != this->newBuildings.end(); buildingsItr++)
 		{
-			(*buildingsItr).setBuildingStatus("Launched but Unsold");
-			//This is currently commented out until a new agent class is written to receive the message.
-			//MessageBus::PublishEvent(LTEID_HM_BUILDING_ADDED,MessageBus::EventArgsPtr(new HM_ActionEventArgs((*buildingsItr))));
+			//building launched message will be sent when at least a single unit of the building is launched for sale.
+			(*buildingsItr)->setBuildingStatus(BUILDING_LAUNCHED_BUT_UNSOLD);
+			MessageBus::PostMessage(this, LT_STATUS_ID_DEV_BUILDING_LAUNCHED_BUT_UNSOLD,MessageBus::MessagePtr(new DEV_InternalMsg((*buildingsItr)->getFmBuildingId(),std::tm())), true);
 		}
-		for(unitsItr = this->newUnits.begin(); unitsItr != this->newUnits.end(); unitsItr++)
-		{
-			(*unitsItr).setSaleStatus(LAUNCHED_BUT_UNSOLD);
-			(*unitsItr).setPhysicalStatus(READY_FOR_OCCUPANCY_AND_VACANT);
-			//This is currently commented out until a new agent class is written to receive the message.
-			//MessageBus::PublishEvent(LTEID_HM_UNIT_ADDED,MessageBus::EventArgsPtr(new HM_ActionEventArgs((*unitsItr))));
-		}
+			if(unitsRemain)
+			{
+
+				std::vector<boost::shared_ptr<Unit> >::iterator first;
+				std::vector<boost::shared_ptr<Unit> >::iterator last;
+				setUnitsForHM(first,last);
+				std::vector<boost::shared_ptr<Unit> > unitsToSale(first,last);
+
+				for(unitsItr = unitsToSale.begin(); unitsItr != unitsToSale.end(); unitsItr++)
+				{
+					(*unitsItr)->setSaleStatus(UNIT_LAUNCHED_BUT_UNSOLD);
+					(*unitsItr)->setPhysicalStatus(UNIT_READY_FOR_OCCUPANCY_AND_VACANT);
+					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_UNIT_LAUNCHED_BUT_UNSOLD,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
+					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_UNIT_READY_FOR_OCCUPANCY_AND_VACANT,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
+
+				}
+
+			}
 		break;
+	}
 
 	}
 
 }
 
+void DeveloperAgent::setUnitsForHM(std::vector<boost::shared_ptr<Unit> >::iterator &first,std::vector<boost::shared_ptr<Unit> >::iterator &last)
+{
+	const int totalUnits = newUnits.size();
+	const double monthlyUnitsFraction = 0.2;
+	int monthlyUnits = totalUnits * monthlyUnitsFraction;
+	if(monthlyUnits <=0)
+	{
+		monthlyUnits = totalUnits;
+	}
+	first = newUnits.begin()+ monthlyUnitCount;
+	if(monthlyUnitCount < totalUnits)
+	{
+		monthlyUnitCount = monthlyUnitCount + monthlyUnits;
+	}
+
+	last = newUnits.begin()+ monthlyUnitCount;
+	if(monthlyUnitCount >= totalUnits)
+	{
+		setUnitsRemain(false);
+	}
+}
+
+void DeveloperAgent::setUnitsRemain (bool unitRemain)
+{
+	unitsRemain = unitRemain;
+}
 std::tm DeveloperAgent::getDate(int day)
 {
 	int month = (day/30); //divide by 30 to get the month
@@ -461,6 +613,7 @@ void DeveloperAgent::processEvent(EventId eventId, Context ctxId, const EventArg
 	        	model->processParcels();
 	            break;
 	        }
+
 	        default:break;
 	    };
 }
@@ -476,4 +629,73 @@ void DeveloperAgent::onWorkerExit() {
 }
 
 void DeveloperAgent::HandleMessage(Message::MessageType type, const Message& message) {
+	switch (type) {
+
+		        case LTEID_DEV_UNIT_ADDED:
+		        {
+		            const DEV_InternalMsg& devArgs = MSG_CAST(DEV_InternalMsg, message);
+		            MessageBus::PublishEvent(LTEID_HM_UNIT_ADDED,MessageBus::EventArgsPtr(new HM_ActionEventArgs((*devArgs.getUnit()))));
+		            break;
+		        }
+		        case LTEID_DEV_PROJECT_ADDED:
+		       	{
+		       	    model->addProjects(fmProject);
+		       	    break;
+		       	}
+		        case LT_STATUS_ID_DEV_UNIT_UNDER_CONSTRUCTION:
+		        {
+		        	const DEV_InternalMsg& devArgs = MSG_CAST(DEV_InternalMsg, message);
+		            MessageBus::PublishEvent(LT_STATUS_ID_HM_UNIT_UNDER_CONSTRUCTION,MessageBus::EventArgsPtr(new HM_ActionEventArgs((devArgs.getUnitId()))));
+		        	break;
+		        }
+		        case LT_STATUS_ID_DEV_UNIT_CONSTRUCTION_COMPLETED:
+		        {
+		        	const DEV_InternalMsg& devArgs = MSG_CAST(DEV_InternalMsg, message);
+		        	MessageBus::PublishEvent(LT_STATUS_ID_HM_UNIT_CONSTRUCTION_COMPLETED,MessageBus::EventArgsPtr(new HM_ActionEventArgs((devArgs.getUnitId()))));
+		        	break;
+		        }
+		        case LT_STATUS_ID_DEV_UNIT_LAUNCHED_BUT_UNSOLD:
+		        {
+		        	const DEV_InternalMsg& devArgs = MSG_CAST(DEV_InternalMsg, message);
+		        	MessageBus::PublishEvent(LT_STATUS_ID_HM_UNIT_LAUNCHED_BUT_UNSOLD,MessageBus::EventArgsPtr(new HM_ActionEventArgs((devArgs.getUnitId()))));
+		        	break;
+		        }
+		        case LT_STATUS_ID_DEV_UNIT_READY_FOR_OCCUPANCY_AND_VACANT:
+		        {
+		        	const DEV_InternalMsg& devArgs = MSG_CAST(DEV_InternalMsg, message);
+		        	MessageBus::PublishEvent(LT_STATUS_ID_HM_UNIT_READY_FOR_OCCUPANCY_AND_VACANT,MessageBus::EventArgsPtr(new HM_ActionEventArgs((devArgs.getUnitId()))));
+		        	break;
+		        }
+		        case LTEID_DEV_BUILDING_ADDED:
+		        {
+		        	const DEV_InternalMsg& devArgs = MSG_CAST(DEV_InternalMsg, message);
+		        	MessageBus::PublishEvent(LTEID_HM_BUILDING_ADDED,MessageBus::EventArgsPtr(new HM_ActionEventArgs((*devArgs.getBuilding()))));
+		        	break;
+		        }
+		        case LT_STATUS_ID_DEV_BUILDING_DEMOLISHED:
+		        {
+		        	const DEV_InternalMsg& devArgs = MSG_CAST(DEV_InternalMsg, message);
+		        	MessageBus::PublishEvent(LT_STATUS_ID_HM_BUILDING_DEMOLISHED,MessageBus::EventArgsPtr(new HM_ActionEventArgs((devArgs.getBuildingId()),(devArgs.getFutureDemolitionDate()))));
+		        	break;
+		        }
+		        case LT_STATUS_ID_DEV_BUILDING_UNCOMPLETED_WITH_PREREQUISITES:
+		        {
+		        	const DEV_InternalMsg& devArgs = MSG_CAST(DEV_InternalMsg, message);
+		        	MessageBus::PublishEvent(LT_STATUS_ID_HM_BUILDING_UNCOMPLETED_WITH_PREREQUISITES,MessageBus::EventArgsPtr(new HM_ActionEventArgs((devArgs.getBuildingId()),(std::tm()))));
+		        	break;
+		        }
+		        case LT_STATUS_ID_DEV_BUILDING_NOT_LAUNCHED:
+		        {
+		        	const DEV_InternalMsg& devArgs = MSG_CAST(DEV_InternalMsg, message);
+		        	MessageBus::PublishEvent(LT_STATUS_ID_HM_BUILDING_NOT_LAUNCHED,MessageBus::EventArgsPtr(new HM_ActionEventArgs((devArgs.getBuildingId()),(std::tm()))));
+		        	break;
+		        }
+		        case LT_STATUS_ID_DEV_BUILDING_LAUNCHED_BUT_UNSOLD:
+		        {
+		        	const DEV_InternalMsg& devArgs = MSG_CAST(DEV_InternalMsg, message);
+		        	MessageBus::PublishEvent(LT_STATUS_ID_HM_BUILDING_LAUNCHED_BUT_UNSOLD,MessageBus::EventArgsPtr(new HM_ActionEventArgs((devArgs.getBuildingId()),(std::tm()))));
+		        	break;
+		        }
+		        default:break;
+		    };
 }

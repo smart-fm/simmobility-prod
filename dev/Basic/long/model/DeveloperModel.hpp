@@ -71,6 +71,12 @@ namespace sim_mob {
              */
             void processParcels();
 
+            /*
+             * check whether a project is older than 90 days or more.
+             * if so, add it to the developmentCandidateParcelList if the parcel is not in the list yet.
+             */
+            void processProjects();
+
             /**
              * Getters 
              */
@@ -160,6 +166,10 @@ namespace sim_mob {
              */
             int getCurrentTick();
 
+            void addProjects(boost::shared_ptr<Project> project);
+
+            void addBuildings(boost::shared_ptr<Building> building);
+
         protected:
             /**
              * Inherited from Model.
@@ -176,12 +186,15 @@ namespace sim_mob {
             ParcelList nonEligibleParcelList;
             ParcelList emptyParcels;
             BuildingList buildings;
+            std::vector<boost::shared_ptr<Building> > newBuildings;
             DevelopmentTypeTemplateList developmentTypeTemplates;
             TemplateUnitTypeList templateUnitTypes;
             BuildingSpaceList buildingSpaces;
             ProjectList projects;
+            std::vector<boost::shared_ptr<Project> > newProjects;
             ParcelMap parcelsById;
             ParcelMap emptyParcelsById;
+            ParcelMap devCandidateParcelsById;
             unsigned int timeInterval;
             std::vector<BigSerial> existingProjectIds;
             std::vector<BigSerial> newBuildingIdList;

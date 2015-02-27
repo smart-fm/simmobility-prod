@@ -29,11 +29,12 @@ void BuildingDao::fromRow(Row& result, Building& outObj)
     outObj.storeysBelowGround = result.get<int>("storeys_below_ground",INVALID_ID);
     outObj.fromDate 			= result.get<std::tm>(		"from_date" );
     outObj.toDate 				= result.get<std::tm>(		"to_date"   );
-    outObj.buildingStatus 		= result.get<std::string>(	"building_status", 		"");
+    outObj.buildingStatus 		= result.get<int>(	"building_status", 		0);
     outObj.grossSqMRes 		= result.get<double>(		"gross_sq_m_res", 		0.0);
     outObj.grossSqMOffice 	= result.get<double>(		"gross_sq_m_office", 	0.0);
     outObj.grossSqMRetail 	= result.get<double>(		"gross_sq_m_retail", 	0.0);
     outObj.grossSqMOther	= result.get<double>(		"gross_sq_m_other", 	0.0);
+    outObj.lastChangedDate = result.get<std::tm>(       "last_changed_date", std::tm());
 }
 
 void BuildingDao::toRow(Building& data, Parameters& outParams, bool update) {}

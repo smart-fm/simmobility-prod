@@ -119,7 +119,6 @@ sim_mob::Conflux::PersonProps::PersonProps(const sim_mob::Person* person, const 
 
 void sim_mob::Conflux::addAgent(sim_mob::Person* person)
 {
-	const sim_mob::RoadSegment* rdSeg = person->getCurrSegStats()->getRoadSegment();
 	Role* role = person->getRole();
 	if(!role) { return; }
 
@@ -129,6 +128,7 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* person)
 	case Role::RL_BUSDRIVER:
 	case Role::RL_BIKER:
 	{
+		const sim_mob::RoadSegment* rdSeg = person->getCurrSegStats()->getRoadSegment();
 		if(!rdSeg) { throw std::runtime_error("Starting road segment cannot be NULL for drivers"); }
 		// we will always add the Person to the corresponding segment stats in "lane infinity".
 		SegmentStatsMap::iterator it = segmentAgents.find(rdSeg);

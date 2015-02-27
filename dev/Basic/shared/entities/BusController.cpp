@@ -213,9 +213,9 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 		const std::string& busLine, std::deque<RouteInfo>& allRoutes,
 		std::deque<StopInfo>& allStops) {
 
-	const BusStop* start = nullptr;
-	const BusStop* end = nullptr;
-	const BusStop* nextEnd = nullptr;
+	const BusStop* start;
+	const BusStop* end;
+	const BusStop* nextEnd;
 	bool isFound = true;
 	if (stops.size() > 0) {
 		start = nullptr;
@@ -291,7 +291,7 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 		}
 
 		if (routeIDs.size() > 0 && stopIDs.size() > 0) {
-			int index = 0;
+			unsigned int index = 0;
 			for (std::deque<RouteInfo>::const_iterator it = routeIDs.begin();
 					it != routeIDs.end(); it++) {
 				RouteInfo routeInfo;
@@ -430,8 +430,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 	}
 
 	if(sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes()){
-		std::cout << "***************************total generated bus lines is " << amount << std::endl;
-		std::cout << "---------------------------total failed bus lines is " << amountFailed << std::endl;
+
 		std::ofstream outputRoutes("routes.csv");
 		for (std::deque<RouteInfo>::const_iterator it =
 				allRoutes.begin(); it != allRoutes.end(); it++) {

@@ -20,7 +20,7 @@ namespace sim_mob
 /// main class responsible for generating paths based on the input configuration
 class PathSetWorkerThread{
 public:
-	virtual void executeThis();
+	virtual void run();
     PathSetWorkerThread();
     virtual ~PathSetWorkerThread();
 

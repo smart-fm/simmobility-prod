@@ -33,7 +33,7 @@ sim_mob::PathSetWorkerThread::~PathSetWorkerThread() { }
 //or
 //3.Populate a vector<WayPoint> without blacklist involvement
 //4.populate a singlepath instance
-void sim_mob::PathSetWorkerThread::executeThis() {
+void sim_mob::PathSetWorkerThread::run() {
 	//Convert the blacklist into a list of blocked Vertices.
 	std::set<StreetDirectory::Edge> blacklistV;
 	std::map<const RoadSegment*, std::set<StreetDirectory::Edge> >::const_iterator lookIt;

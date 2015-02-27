@@ -209,7 +209,15 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 			minSP = sp;
 		}
 	}
-	minSP->isMinDistance = 1;
+
+	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
+	{
+		if(sp->length == minSP->length)
+		{
+			sp->isMinDistance = 1;
+		}
+	}
+
 
 	// find MIN_SIGNAL
 	int minSignal = std::numeric_limits<int>::max();
@@ -222,7 +230,14 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 			minSP = sp;
 		}
 	}
-	minSP->isMinSignal = 1;
+
+	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
+	{
+		if(minSP->signalNumber == sp->signalNumber)
+		{
+			sp->isMinSignal = 1;
+		}
+	}
 
 	// find MIN_RIGHT_TURN
 	int minRightTurn = std::numeric_limits<int>::max();
@@ -235,7 +250,14 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 			minSP = sp;
 		}
 	}
-	minSP->isMinRightTurn = 1;
+
+	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
+	{
+		if(sp->rightTurnNumber == minSP->rightTurnNumber)
+		{
+			sp->isMinRightTurn = 1;
+		}
+	}
 
 	// find MAX_HIGH_WAY_USAGE
 	double maxHighWayUsage=0.0;
@@ -248,7 +270,14 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 			minSP = sp;
 		}
 	}
-	minSP->isMaxHighWayUsage = 1;
+
+	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
+	{
+		if(minSP->highWayDistance / minSP->length == sp->highWayDistance / sp->length)
+		{
+			sp->isMaxHighWayUsage = 1;
+		}
+	}
 
 }
 
@@ -387,9 +416,13 @@ void sim_mob::PathSetManager::onPathSetRetrieval(boost::shared_ptr<PathSet> &ps,
 			minSP = sp;
 		}
 	}
-	if(!ps->pathChoices.empty() && minSP)
+
+	BOOST_FOREACH(SinglePath *sp, ps->pathChoices)
 	{
-		minSP->isMinTravelTime = 1;
+		if(minSP->travleTime == sp->travleTime)
+		{
+			sp->isMinTravelTime = 1;
+		}
 	}
 
 	//step-2 utility calculation
@@ -491,7 +524,8 @@ bool sim_mob::PathSetManager::getBestPath(
 		logger <<  fromToID << " : Cache Miss " << "\n";
 	}
 
-	//	before proceeding further, check if someone else has already started this path.
+	//	before proceeding further, check if someone other thread has already started looking
+	// for a path for this OD.
 	//	if yes, back off and try after sometime
 	if(!pathRetrievalAttempt.tryCheck(fromToID))
 	{
@@ -749,11 +783,11 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 				 * of pathset generation(link elimination, random perturbation, etc)  will use threadpool for its operation.
 				 * Whereas in "generation" mode,  each pathset generation task(as a whole) is assigned to a dedicated thread in threadpool.
 				 */
-				work->executeThis();
+				work->run();
 			}
 			else
 			{
-				threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
+				threadpool_->enqueue(boost::bind(&PathSetWorkerThread::run,work));
 			}
 
 			SDLE_Storage.push_back(work);
@@ -816,11 +850,11 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 					 * of pathset generation(link elimination, random perturbation, etc)  will use threadpool for its operation.
 					 * Whereas in "generation" mode,  each pathset generation task(as a whole) is assigned to a dedicated thread in threadpool.
 					 */
-					work->executeThis();
+					work->run();
 				}
 				else
 				{
-					threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
+					threadpool_->enqueue(boost::bind(&PathSetWorkerThread::run,work));
 				}
 				STTLE_Storage.push_back(work);
 			} //ROAD_SEGMENT
@@ -885,11 +919,11 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 					 * of pathset generation(link elimination, random perturbation, etc)  will use threadpool for its operation.
 					 * Whereas in "generation" mode,  each pathset generation task(as a whole) is assigned to a dedicated thread in threadpool.
 					 */
-					work->executeThis();
+					work->run();
 				}
 				else
 				{
-					threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
+					threadpool_->enqueue(boost::bind(&PathSetWorkerThread::run,work));
 				}
 
 				STTHBLE_Storage.push_back(work);
@@ -945,11 +979,11 @@ int sim_mob::PathSetManager::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps
 			 * of pathset generation(link elimination, random perturbation, etc)  will use threadpool for its operation.
 			 * Whereas in "generation" mode,  each pathset generation task(as a whole) is assigned to a dedicated thread in threadpool.
 			 */
-			work->executeThis();
+			work->run();
 		}
 		else
 		{
-			threadpool_->enqueue(boost::bind(&PathSetWorkerThread::executeThis,work));
+			threadpool_->enqueue(boost::bind(&PathSetWorkerThread::run,work));
 		}
 	}
 	if(!cnt)

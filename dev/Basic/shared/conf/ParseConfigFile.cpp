@@ -223,6 +223,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessCBD_Node(GetSingleElementByName(rootNode, "CBD"));
 	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
 	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update"));
+	processGeneratedRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
 
 	//Take care of pathset manager confifuration in here
 	ParsePathXmlConfig(sim_mob::ConfigManager::GetInstance().FullConfig().pathsetFile, sim_mob::ConfigManager::GetInstanceRW().PathSetConfig());
@@ -616,6 +617,16 @@ void sim_mob::ParseConfigFile::processTT_Update(xercesc::DOMElement* node){
 		sim_mob::ConfigManager::GetInstanceRW().PathSetConfig().alpha = ParseFloat(GetNamedAttributeValue(node, "alpha"), 0.5);
 	}
 }
+
+void sim_mob::ParseConfigFile::processGeneratedRoutesNode(xercesc::DOMElement* node){
+	if (!node) {
+
+		cfg.generateBusRoutes = false;
+		return;
+	}
+	cfg.generateBusRoutes = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+}
+
 
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)
 {

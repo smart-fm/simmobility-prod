@@ -381,6 +381,7 @@ public:
 
 	///	is CBD area restriction enforced
 	bool cbd;
+	bool generateBusRoutes;
 
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;

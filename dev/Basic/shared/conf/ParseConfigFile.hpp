@@ -57,6 +57,7 @@ private:
 	void ProcessCBD_Node(xercesc::DOMElement* node);
 	void processPathSetFileName(xercesc::DOMElement* node);
 	void processTT_Update(xercesc::DOMElement* node);
+	void processGeneratedRoutesNode(xercesc::DOMElement* node);
 	void ProcessLongTermParamsNode(xercesc::DOMElement* node);
 
 	//Descend through Constructs

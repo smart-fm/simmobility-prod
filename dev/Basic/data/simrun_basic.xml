@@ -473,7 +473,7 @@
     <!-- With the above three procedures present and valid, enable buses with "<buscontroller time="0" />" in the <buscontrollers> -->
     <!-- To Disable Buses: user can simply comment the buscontroller in the <buscontrollers> -->
     <buscontrollers>
-        <!--buscontroller time="0" /-->    
+        <buscontroller time="0" />    
     </buscontrollers>
     
 <!--<signals> -->
@@ -502,6 +502,7 @@
         </housingModel>
     </longTermParams>
     <CBD enabled="false"/> 
+    <generateBusRoutes enabled="true" />
     <path-set-config-file value="data/pathset_config.xml" />
     <travel_time_update interval="300" alpha="0.5" />
 </config>

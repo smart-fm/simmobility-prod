@@ -41,7 +41,7 @@
 
             <plaintext-credential id="LT_cred">
                 <username value="postgres"/>
-                <password value="postgres"/>
+                <password value="welcome123"/>
             </plaintext-credential>
         </credentials>
     </constructs>
@@ -154,7 +154,9 @@
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>
         </housingModel>
+	<vehicleOwnershipModel enabled='true'>
+		<vehicleBuyingWaitingTimeInDays value= "60"/>
+	</vehicleOwnershipModel>
     </longTermParams>
-  
 </config>
 

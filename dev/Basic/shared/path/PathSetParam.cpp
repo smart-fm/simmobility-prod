@@ -114,7 +114,7 @@ double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs)const
 {
 	/*Note:
 	 * this method doesn't look at the intended time range.
-	 * Instead, it searches for all occurances of the given road segment in the
+	 * Instead, it searches for all occurrences of the given road segment in the
 	 * default travel time container, and returns an average.
 	 */
 	double res = 0.0;
@@ -125,8 +125,11 @@ double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs)const
 
 	if(it == segDefTT.end() || it->second.empty())
 	{
-		logger << "[NO DTT FOR : " <<  rs->getId() << "]\n";
-		return 0.0;
+		std::stringstream out("");
+		out <<  "[NO DTT FOR : " <<  rs->getId() << "]\n";
+		logger << out.str();
+		throw std::runtime_error(out.str());
+//		return 0.0;
 	}
 
 	const std::vector<sim_mob::LinkTravelTime> &e = (*it).second;

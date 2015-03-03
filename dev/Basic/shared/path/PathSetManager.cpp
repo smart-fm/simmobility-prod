@@ -197,88 +197,56 @@ bool sim_mob::PathSetManager::findCachedPathSet_LRU(std::string  key, boost::sha
 
 void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>&ps)
 {
-
-	// find MIN_DISTANCE
 	double minDistance = std::numeric_limits<double>::max();
-	SinglePath * minSP = *(ps->pathChoices.begin()); // record which is min
+	double maxHighWayUsage = std::numeric_limits<double>::min();
+	int minSignal = std::numeric_limits<int>::max();
+	int minRightTurn = std::numeric_limits<int>::max();
+
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
+		// find MIN_DISTANCE
 		if(sp->length < minDistance)
 		{
 			minDistance = sp->length;
-			minSP = sp;
 		}
-	}
-
-	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
-	{
-		if(sp->length == minSP->length)
-		{
-			sp->isMinDistance = 1;
-		}
-	}
-
-
-	// find MIN_SIGNAL
-	int minSignal = std::numeric_limits<int>::max();
-	minSP = *(ps->pathChoices.begin()); // record which is min
-	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
-	{
+		// min signal
 		if(sp->signalNumber < minSignal)
 		{
 			minSignal = sp->signalNumber;
-			minSP = sp;
 		}
-	}
-
-	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
-	{
-		if(minSignal == sp->signalNumber)
-		{
-			sp->isMinSignal = 1;
-		}
-	}
-
-	// find MIN_RIGHT_TURN
-	int minRightTurn = std::numeric_limits<int>::max();
-	minSP = *(ps->pathChoices.begin()); // record which is min
-	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
-	{
+		// find MIN_RIGHT_TURN
 		if(sp->rightTurnNumber < minRightTurn)
 		{
 			minRightTurn = sp->rightTurnNumber;
-			minSP = sp;
 		}
-	}
-
-	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
-	{
-		if(sp->rightTurnNumber == minRightTurn)
-		{
-			sp->isMinRightTurn = 1;
-		}
-	}
-
-	// find MAX_HIGH_WAY_USAGE
-	double maxHighWayUsage = 0.0;
-	minSP = *(ps->pathChoices.begin()); // record which is min
-	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
-	{
+		// find MAX_HIGH_WAY_USAGE
 		if(maxHighWayUsage < sp->highWayDistance / sp->length)
 		{
 			maxHighWayUsage = sp->highWayDistance / sp->length;
-			minSP = sp;
 		}
+
 	}
 
+	//set all minima maximas to true (more than one path may have same minima/maxima)
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
+		if(sp->length == minDistance)
+		{
+			sp->isMinDistance = true;
+		}
+		if(minSignal == sp->signalNumber)
+		{
+			sp->isMinSignal = true;
+		}
+		if(sp->rightTurnNumber == minRightTurn)
+		{
+			sp->isMinRightTurn = true;
+		}
 		if(maxHighWayUsage == sp->highWayDistance / sp->length)
 		{
 			sp->isMaxHighWayUsage = 1;
 		}
 	}
-
 }
 
 std::string sim_mob::printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node* startingNode ){
@@ -1562,7 +1530,8 @@ double sim_mob::PathSetManager::generatePartialUtility(const sim_mob::SinglePath
 	pUtility += sp->pathSize * pathSetParam->bCommonFactor;
 	//3.0
 	//Obtain the travel distance l and the highway distance w of the path.
-	pUtility += sp->length * pathSetParam->bLength + sp->highWayDistance * pathSetParam->bHighway;
+	pUtility += sp->length * pathSetParam->bLength ;
+	pUtility += sp->highWayDistance * pathSetParam->highwayBias;
 	//4.0
 	//Obtain the travel cost c of the path.
 //	pUtility += sp->travelCost * pathSetParam->bCost;
@@ -1588,7 +1557,7 @@ double sim_mob::PathSetManager::generatePartialUtility(const sim_mob::SinglePath
 	//min highway param
 	if(sp->isMaxHighWayUsage == 1)
 	{
-		pUtility += pathSetParam->maxHighwayParam;
+		pUtility += pathSetParam->maxHighwayParam * pathSetParam->bHighway;
 	}
 	//Obtain the trip purpose.
 	if(sp->purpose == sim_mob::work)

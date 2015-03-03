@@ -90,7 +90,7 @@ void HouseholdBidderRole::CurrentBiddingEntry::invalidate()
     wp = 0;
 }
 
-HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0), moveInWaitingTimeInDays(0){}
+HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0), moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0),vehicleOwnershipOption(NO_CAR){}
 
 HouseholdBidderRole::~HouseholdBidderRole(){}
 
@@ -127,6 +127,20 @@ void HouseholdBidderRole::update(timeslice now)
 
 		return;
 	}
+
+	//wait 60 days after move in to a new unit to reconsider the vehicle ownership option.
+	if( vehicleBuyingWaitingTimeInDays > 0 && moveInWaitingTimeInDays == 0)
+	{
+
+		if( vehicleBuyingWaitingTimeInDays == 1 )
+		{
+			setVehicleOwnershipOption();
+		}
+			vehicleBuyingWaitingTimeInDays--;
+			return;
+
+	}
+
 
     //can bid another house if it is not waiting for any 
     //response and if it not the same day
@@ -174,7 +188,7 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
 
                 	moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
                 	unitIdToBeOwned = msg.getBid().getUnitId();
-
+                	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
                     break;
                 }
                 case NOT_ACCEPTED:
@@ -328,10 +342,104 @@ bool HouseholdBidderRole::pickEntryToBid()
     return biddingEntry.isValid();
 }
 
+void HouseholdBidderRole::setVehicleOwnershipOption()
+{
+	const HM_Model* model = getParent()->getModel();
+	HM_Model::VehicleOwnershipCoeffList coefficients = model->getVehicleOwnershipCoeffs();
+
+	int unitTypeId = model->getUnitById(this->getParent()->getHousehold()->getUnitId())->getUnitType();
+	double expOneCar = getExpOneCar(unitTypeId);
+	double expTwoPlusCar = getExpTwoPlusCar(unitTypeId);
+
+	double probabilityOneCar = (expOneCar)/ (expOneCar+expTwoPlusCar);
+	double probabilityTwoPlusCar = (expTwoPlusCar)/ (expOneCar+expTwoPlusCar);
+
+	/*generate a random number between 0-1
+	* time(0) is passed as an input to constructor in order to randomize the result
+	*/
+	boost::mt19937 randomNumbergenerator( time( 0 ) );
+	boost::random::uniform_real_distribution< > uniformDistribution( 0.0, 1.0 );
+	boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >generateRandomNumbers( randomNumbergenerator, uniformDistribution );
+	const double randomNum = generateRandomNumbers( );
+	double pTemp = 0;
+	if(pTemp < randomNum < (probabilityOneCar + pTemp))
+	{
+		vehicleOwnershipOption = ONE_CAR;
+	}
+	else
+	{
+		pTemp = pTemp + probabilityOneCar;
+		if(pTemp < randomNum < (probabilityTwoPlusCar + pTemp))
+		{
+			vehicleOwnershipOption = TWO_PLUS_CAR;
+		}
+		else
+		{
+			vehicleOwnershipOption = NO_CAR;
+		}
+
+	}
+
+}
+
+double HouseholdBidderRole::getExpOneCar(int unitTypeId)
+{
+	double valueOneCar = 0;
+	const HM_Model* model = getParent()->getModel();
+	valueOneCar =  model->getVehicleOwnershipCoeffsById(ASC_ONECAR)->getCoefficientEstimate();
+
+	if(this->getParent()->getHousehold()->getEthnicityId() == CHINESE)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_CHINESE_ONECAR)->getCoefficientEstimate();
+	}
 
 
+	//finds out whether the household is an HDB or not
+	if( (unitTypeId>0) && (unitTypeId<=6))
+	{
+		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_HDB_ONECAR)->getCoefficientEstimate();
+	}
+
+	valueOneCar = valueOneCar + (this->getParent()->getHousehold()->getChildren() * model->getVehicleOwnershipCoeffsById(B_KIDS_ONECAR)->getCoefficientEstimate());
+	valueOneCar = valueOneCar + log(this->getParent()->getHousehold()->getSize()) * model->getVehicleOwnershipCoeffsById(B_LOG_HHSIZE_ONECAR)->getCoefficientEstimate();
+	valueOneCar = valueOneCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_MC_ONECAR)->getCoefficientEstimate();
+
+	double expOneCar = exp(valueOneCar);
+	return expOneCar;
+}
+
+double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId)
+{
+
+	double valueTwoPlusCar = 0;
+	const HM_Model* model = getParent()->getModel();
+	valueTwoPlusCar =  model->getVehicleOwnershipCoeffsById(ASC_TWO_PLUS_CAR)->getCoefficientEstimate();
+
+	if(this->getParent()->getHousehold()->getEthnicityId() == CHINESE)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_CHINESE_TWO_PLUS_CAR)->getCoefficientEstimate();
+	}
+
+	//finds out whether the household is an HDB or not
+	if( (unitTypeId>0) && (unitTypeId<=6))
+	{
+		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_HDB_TWO_PLUS_CAR)->getCoefficientEstimate();
+	}
 
 
+	valueTwoPlusCar = valueTwoPlusCar + (this->getParent()->getHousehold()->getChildren() * model->getVehicleOwnershipCoeffsById(B_KIDS_TWO_PLUS_CAR)->getCoefficientEstimate());
+	valueTwoPlusCar = valueTwoPlusCar + log(this->getParent()->getHousehold()->getSize()) * model->getVehicleOwnershipCoeffsById(B_LOG_HHSIZE_TWO_PLUS_CAR)->getCoefficientEstimate();
+	valueTwoPlusCar = valueTwoPlusCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_MC_TWO_PLUS_CAR)->getCoefficientEstimate();
 
+	double expTwoPlusCar = exp(valueTwoPlusCar);
+	return expTwoPlusCar;
+}
 
-
+bool HouseholdBidderRole::isMotorCycle(int vehicleCategoryId)
+{
+	if (vehicleCategoryId == 4 ||vehicleCategoryId == 8 || vehicleCategoryId == 11 || vehicleCategoryId == 13 || vehicleCategoryId == 14 || vehicleCategoryId == 17 || vehicleCategoryId == 19 || vehicleCategoryId == 21 || vehicleCategoryId == 22 || vehicleCategoryId == 24 || vehicleCategoryId == 25 || vehicleCategoryId == 26 || vehicleCategoryId == 27)
+	{
+		return true;
+	}
+	return false;
+}

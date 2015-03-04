@@ -39,7 +39,7 @@ sim_mob::TurningSection::TurningSection():
 				from_lane_index(-1),
 				to_lane_index(-1),
 				fromSeg(nullptr),toSeg(nullptr),
-	laneFrom(nullptr),laneTo(nullptr){
+	laneFrom(nullptr),laneTo(nullptr),turningSpeed(0){
 
 }
 
@@ -51,7 +51,7 @@ sim_mob::TurningSection::TurningSection(const TurningSection & ts):
 		from_lane_index(ts.from_lane_index),
 		to_lane_index(ts.to_lane_index),
 		fromSeg(nullptr),toSeg(nullptr),
-		sectionId(ts.sectionId),laneFrom(nullptr),laneTo(nullptr){
+		sectionId(ts.sectionId),laneFrom(nullptr),laneTo(nullptr),turningSpeed(ts.turningSpeed){
 	std::stringstream out("");
 	out<<ts.dbId;
 	sectionId = out.str();
@@ -281,5 +281,15 @@ TurningConflict* sim_mob::TurningSection::getTurningConflict(const TurningSectio
 	}// end of for
 	
 	return res;
+}
+
+void TurningSection::setTurningSpeed(int turningSpeed)
+{
+	this->turningSpeed = turningSpeed;
+}
+
+int TurningSection::getTurningSpeed() const
+{
+	return turningSpeed;
 }
 

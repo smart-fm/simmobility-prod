@@ -107,6 +107,8 @@ public:
 	// me is doing yielding, and yieldVehicle is doing nosing
 	Driver* yieldVehicle;
 
+    const Driver* yieldToInIntersection;
+
 	// driver path-mover split purpose, we save the currPos in the Driver
 	DPoint currPos;
 

@@ -528,20 +528,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p)
 		}
 	}
 
-	if (p.slowDownForIntersection)
-	{
-		p.slowDownForIntersection = false;
-		double aI = approachInterectionRate(p);
-		if (acc > aI) 
-		{
-			acc = aI;
-		}
-	}
-
-	//double aZ1 = carFollowingRate(p, p.nvFwd);
-	//double aZ2 = carFollowingRate(p, p.nvFwdNextLink);
 	double aZ = calcCarFollowingRate(p);
-	p.aZ = aZ;
 
 	// stop point acc
 	double aSP = calcStopPointRate(p);
@@ -567,32 +554,31 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p)
 	//if (acc > aH3)
 	//acc = aH3;
 	//if(acc > aG) acc = aG;
+	
 	if (acc > aC) {
 		acc = aC;
 		p.accSelect = "aC";
 	}
+	
 	//if (acc > aE)
 	//acc = aE;
+	
 	if (acc > aZ) {
 		acc = aZ;
 		p.accSelect = "aZ";
 	}
 
-	if (acc>aSP){
+	if (acc > aSP){
 		acc = aSP;
 		p.accSelect = "aSP";
 	}
 
-	//if (acc > aZ1)
-	//acc = aZ1;
-	//if (acc > aZ2)
-	//acc = aZ2;
-
 	// SEVERAL CONDITONS MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
 
+	p.acc = acc;
 	p.lastAcc = acc;
 
-	// if brake ,alerm follower
+	// if brake ,alarm follower
 	if (acc < -ACC_EPSILON) {
 
 		// I am braking, alert the vehicle behind if it is close
@@ -620,17 +606,6 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p)
 	}
 
 	return acc;
-}
-
-/*
- Calculates the acceleration for a vehicle approaching an intersection (unsignalised)
- */
-double MITSIM_CF_Model::approachInterectionRate(sim_mob::DriverUpdateParams& p)
-{
-	//v^2 = u^2 + 2as [Kinematic equation]
-	//where v = final velocity, u = current velocity, a = acceleration, s = displacement
-	//As v = 0 (we want to stop), a = -u^2 / 2s
-	return brakeToStop(p, p.distanceToIntersection);
 }
 
 /*

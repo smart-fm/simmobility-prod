@@ -13,12 +13,12 @@ DriverUpdateParams::DriverUpdateParams()
     movementVectx(0), movementVecty(0), headway(999), currLane(NULL), stopPointPerDis(100), stopPointState(NO_FOUND_STOP_POINT), startStopTime(0), disToSP(999),
     currLaneIndex(0), leftLane(NULL), rightLane(NULL), leftLane2(NULL), rightLane2(NULL), currSpeed(0), desiredSpeed(0), currLaneOffset(0),
 	currLaneLength(0), trafficSignalStopDistance(0), elapsedSeconds(0), perceivedFwdVelocity(0), perceivedLatVelocity(0), perceivedFwdVelocityOfFwdCar(0),
-	perceivedLatVelocityOfFwdCar(0), perceivedAccelerationOfFwdCar(0), perceivedDistToFwdCar(0), isMLC(false), slowDownForIntersection(false),
+	perceivedLatVelocityOfFwdCar(0), perceivedAccelerationOfFwdCar(0), perceivedDistToFwdCar(0), isMLC(false), 
 	laneChangingVelocity(0), isCrossingAhead(false), isApproachingIntersection(false), crossingFwdDistance(0), space(0), a_lead(0),
 	v_lead(0), space_star(0), distanceToNormalStop(0), dis2stop(0), isWaiting(false), nextLaneIndex(0), justChangedToNewSegment(false),
-	justMovedIntoIntersection(false), overflowIntoIntersection(0), driver(NULL), isTargetLane(false), lastAcc(0), emergHeadway(999), aZ(0),
+	justMovedIntoIntersection(false), overflowIntoIntersection(0), driver(NULL), isTargetLane(false), lastAcc(0), emergHeadway(999), acc(0),
 	density(0), initSegId(0), initDis(0), initSpeed(0), parentId(0), FFAccParamsBeta(0), nextStepSize(0), maxAcceleration(0), normalDeceleration(0),
-	lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), distanceToIntersection(999)
+	lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0)
 {
 }
 
@@ -151,114 +151,29 @@ void DriverUpdateParams::buildDebugInfo()
 	 }
 	 s<<":rfwd"<<rightFwdcarid;*/
 #endif
-
-	// debug aura mgr
-#if 1
-	s << "            " << parentId;
+	
+	s << "            " << parentId << ":" << accSelect << ":" << acc;
+	/*s << "MvmtDis:" << driver->moveDisOnTurning_.get();
 	int fwdcarid = -1;
+	char fwdnvdis[20] = "\0";
 	if (this->nvFwd.exists())
 	{
-		char fwdnvdis[20] = "\0";
 		Driver* fwd_driver_ = const_cast<Driver*>(nvFwd.driver);
 		fwdcarid = fwd_driver_->getParent()->getId();
-		sprintf(fwdnvdis, "fwdnvdis%03.1f", nvFwd.distance);
+		sprintf(fwdnvdis, "fwdnvdis:%03.1f", nvFwd.distance);
 	}
-	//
+
 	int backcarid = -1;
+	char backnvdis[20] = "\0";
 	if (this->nvBack.exists())
 	{
 		Driver* back_driver_ = const_cast<Driver*>(nvBack.driver);
 		backcarid = back_driver_->getParent()->getId();
+		sprintf(backnvdis, "backnvdis:%03.1f", nvBack.distance);
 	}
-	//
-	int leftFwdcarid = -1;
-	if (this->nvLeftFwd.exists())
-	{
-		Driver* driver_ = const_cast<Driver*>(nvLeftFwd.driver);
-		leftFwdcarid = driver_->getParent()->getId();
-	}
-	int leftBackcarid = -1;
-	if (this->nvLeftBack.exists())
-	{
-		Driver* driver_ = const_cast<Driver*>(nvLeftBack.driver);
-		leftBackcarid = driver_->getParent()->getId();
-	}
-	//
-	int rightFwdcarid = -1;
-	if (this->nvRightFwd.exists())
-	{
-		Driver* driver_ = const_cast<Driver*>(nvRightFwd.driver);
-		rightFwdcarid = driver_->getParent()->getId();
-	}
-	int rightBackcarid = -1;
-	if (this->nvRightBack.exists())
-	{
-		Driver* driver_ = const_cast<Driver*>(nvRightBack.driver);
-		rightBackcarid = driver_->getParent()->getId();
-	}
-
-	double dis = perceivedDistToFwdCar / 100.0;
-	char disChar[20] = "\0";
-	sprintf(disChar, "fwdis%03.1f", dis);
-
-	char az[20] = "\0";
-	sprintf(az, "az%03.1f", aZ);
-
-	char pfwdv[20] = "\0";
-	sprintf(pfwdv, "pfwdv%3.2f", perceivedFwdVelocity / 100.0);
-
-	if (headway > 100)
-	{
-		headway = 100;
-	}
-	if (headway < -100)
-	{
-		headway = 100;
-	}
-	char headwaystr[20] = "\0";
-	sprintf(headwaystr, "headway%03.1f", headway);
-
-	if (emergHeadway > 100)
-	{
-		emergHeadway = 100;
-	}
-	if (emergHeadway < -100)
-	{
-		emergHeadway = 100;
-	}
-	char emergHeadwaystr[20] = "\0";
-	sprintf(emergHeadwaystr, "emergHeadway%03.1f", emergHeadway);
-
-	s << ":fwd" << fwdcarid;
-	/*
-	s<<":"<<fwdnvdis;
-	s<<":"<<disChar;
-	s<<":"<<headwaystr;
-	s<<":"<<emergHeadwaystr;
-	s<<":"<<az;
-	s<<":"<<pfwdv;
-	s<<":"<<cfDebugStr;
-	*/
-	s << ":back" << backcarid;
-	s << ":lfwd" << leftFwdcarid;
-	s << ":lback" << leftBackcarid;
-	s << ":rfwd" << rightFwdcarid;
-	s << ":rback" << rightBackcarid;
-#endif
-
-	/*
-	<<":"<<ct
-	<<":"<<ul
-	<<":"<<uc
-	<<":"<<ur
-	<<":"<<rnd_;
-	<<":"<<accSelect
-	<<":"<<nvFwd.exists()
-	<<":"<<disChar
-	<<":"<<currLaneIndex;
-	<<":"<<perceivedTrafficColor
-	<<":"<<perceivedDistToTrafficSignal/100.0;
-	*/
+	s << ":fwd:" << fwdcarid << ":" <<fwdnvdis;
+	s << ":back:" << backcarid << ":" <<backnvdis;
+	s << ":speed:" << driver->getVehicle()->getVelocity() / 100;*/
 	debugInfo = s.str();
 }
 

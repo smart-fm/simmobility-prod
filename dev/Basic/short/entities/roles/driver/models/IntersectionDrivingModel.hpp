@@ -7,6 +7,7 @@
 
 #include <vector>
 
+#include "conf/params/ParameterManager.hpp"
 #include "conf/settings/DisableMPI.h"
 #include "geospatial/TurningSection.hpp"
 #include "util/DynamicVector.hpp"
@@ -29,9 +30,37 @@ class UnPackageUtils;
 /**
  * \author Seth N. Hetu
  */
-class IntersectionDrivingModel {
+class IntersectionDrivingModel 
+{
+protected:
+    
+    //Trajectory of the vehicle in the intersection
+    DynamicVector intTrajectory;
+
+    //Distance covered within the intersection
+    double totalMovement;
+
+    //Distance at which an intersection and vehicles approaching it from other links
+    //is visible to the driver
+    double intersectionVisbility;
+	
+    //The minimum value of the attentiveness factor within an intersection. The factor is a random value between the 
+    //given min and max
+	double intersectionAttentivenessFactorMin;
+	
+    //The maximum value of the attentiveness factor within an intersection. The factor is a random value between the 
+    //given min and max
+	double intersectionAttentivenessFactorMax;
+	
+    //The value of minimum gap
+	double minimumGap;
+	
+    //Contains the mean and std dev values for generating a random add-on to the critical gap
+	double criticalGapAddOn[2];
+  
 public:
-	//Allow propagation of delete
+	
+  //Allow propagation of delete
 	virtual ~IntersectionDrivingModel() {}
 
     //Builds a straight line trajectory form the end point of the entry lane into the intersection
@@ -46,13 +75,28 @@ public:
     virtual double makeAcceleratingDecision(DriverUpdateParams& params, TurningSection *currTurning) = 0;
 
     //Returns the current angle of the vehicle according to the position in the trajectory
-    virtual double getCurrentAngle() = 0;
+    double getCurrentAngle() { return intTrajectory.getAngle(); }
 
     //Returns the distance covered within the intersection
-    virtual double getMoveDistance() = 0;
+    double getMoveDistance() { return totalMovement; }
 
     //Checks whether we've completed driving in the intersection
-    virtual bool isDone() = 0;
+    bool isDone() { return totalMovement >= intTrajectory.getMagnitude(); }
+    
+    //Getter for the intersection visibility distance
+    int getIntersectionVisbility() const { return intersectionVisbility; }
+
+    //Getter for intersectionAttentivenessFactorMin
+    double getIntersectionAttentivenessFactorMin() const 
+    {
+    	return intersectionAttentivenessFactorMin;
+    }
+
+    //Getter for intersectionAttentivenessFactorMax
+    double getIntersectionAttentivenessFactorMax() const 
+    {
+    	return intersectionAttentivenessFactorMax;
+    }
 };
 
 /**
@@ -64,12 +108,10 @@ public:
  *
  * \author Seth N. Hetu
  */
-class SimpleIntDrivingModel : public IntersectionDrivingModel {
-private:
-	DynamicVector intTrajectory;
-	double totalMovement;
-
+class SimpleIntDrivingModel : public IntersectionDrivingModel 
+{
 public:
+  
 	virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) {
 		intTrajectory = DynamicVector(fromLanePt.x, fromLanePt.y, toLanePt.x, toLanePt.y);
 		totalMovement = startOffset;
@@ -82,10 +124,6 @@ public:
 		temp.scaleVectTo(totalMovement).translateVect();
 		return DPoint(temp.getX(), temp.getY());
 	}
-
-
-	virtual double getCurrentAngle() { return intTrajectory.getAngle(); }
-	virtual bool isDone() { return totalMovement >= intTrajectory.getMagnitude(); }
 
 	//add by xuyan
 #ifndef SIMMOB_DISABLE_MPI
@@ -101,19 +139,17 @@ public:
   class MITSIM_IntDriving_Model : public IntersectionDrivingModel
   {
   private:
-
-    //Trajectory of the vehicle in the intersection
-    DynamicVector intTrajectory;
     
-    //Distance covered within the intersection
-    double totalMovement;
+    //Reads and stores the parameters related to intersection driving from the driver parameter xml file
+    //(data/driver_param.xml)
+    void initParam(DriverUpdateParams& params);
     
     //Calculates the deceleration needed for the vehicle to come to a stop within a given distance
     double brakeToStop(double distance, DriverUpdateParams& params);
 
   public:
     
-    MITSIM_IntDriving_Model();
+    MITSIM_IntDriving_Model(DriverUpdateParams& params);
     
     virtual ~MITSIM_IntDriving_Model();
     
@@ -126,16 +162,7 @@ public:
     
     //Depending on the conflicting vehicles, calculates the acceleration that allows the vehicle to 
     //pass through without colliding with the other vehicles
-    virtual double makeAcceleratingDecision(DriverUpdateParams& params, TurningSection *currTurning);
-
-    //Returns the current angle of the vehicle according to the position in the trajectory
-    virtual double getCurrentAngle ();
-    
-    //Returns the distance covered within the intersection
-    double getMoveDistance() {return totalMovement;}
-    
-    //Checks whether we've completed driving in the intersection
-    virtual bool isDone ();    
+    virtual double makeAcceleratingDecision(DriverUpdateParams& params, TurningSection *currTurning);  
 };
   
 }

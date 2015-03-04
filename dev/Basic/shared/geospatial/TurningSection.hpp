@@ -73,6 +73,9 @@ class TurningConflict;
     
     //Contains all the conflicts that this turning has with the other turnings in the intersection
     std::vector<TurningConflict *> turningConflicts;
+    
+    //The defined max. speed for the turning
+    int turningSpeed;
 
   public:
     TurningSection();
@@ -186,6 +189,12 @@ class TurningConflict;
   
     //Returns the TurningConflict between the given turnings (the current one (this) and the parameter)
     TurningConflict* getTurningConflict(const TurningSection* ts);
+    
+    //Setter for turningSpeed
+    void setTurningSpeed(int turningSpeed);
+    
+    //Getter for turningSpeed
+    int getTurningSpeed() const;
   } ;
 
 };// end namespace

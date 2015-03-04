@@ -222,6 +222,10 @@
 	The visibility_distance parameter is used in the car follow model to reduce the follower reaction time 
 	when subject vehicle brakes (in meter) -->
 	<param name="visibility_distance" value="10"/>
+	
+<!--This is the distance at which an intersection and vehicles approaching it from other links become visible
+	to a driver.(in metres)-->
+	<param name="intersection_visibility" value="30"/>
 
 <!-- H. LANE CHANGE MODEL PARAMETERS -->
 
@@ -363,8 +367,19 @@
 	    0.13    # two
 	    0.03    # three "/>
 
-
-<!-- K. OTHERS -->
+<!-- K. INTERSECTION DRIVING PARAMETERS -->
+	<!--Intersection attentiveness factor-->
+	<param name="intersection_attentiveness_factor_min" value="0.1"/>
+	<param name="intersection_attentivneess_factor_max" value="0.3"/>
+	
+	<!--Minimum gap-->
+	<param name="minimum_gap" value="1.5"/>
+	
+	<!--Critical gap random addon
+											mean	std.dev-->
+	<param name="critical_gap_addon" value="0.0		0.5"/>
+	
+<!-- L. OTHERS -->
 	<!-- minimum speed to consider for a moving vehicle -->
 	<param name="min_speed" value="0.1"/>  <!-- m/s -->
 	<!-- minimum time required between lane changing decisions -->

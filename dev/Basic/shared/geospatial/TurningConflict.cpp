@@ -8,8 +8,8 @@
 using namespace sim_mob;
 
 sim_mob::TurningConflict::TurningConflict() :
-		dbId(-1),first_turning(""),second_turning(""),first_cd(-1),second_cd(-1),
-		firstTurning(nullptr),secondTurning(nullptr)
+		conflictId(""),dbId(-1),first_turning(""),second_turning(""),first_cd(-1),second_cd(-1),
+		firstTurning(nullptr),secondTurning(nullptr),criticalGap(0)
 {
 
 
@@ -18,7 +18,7 @@ sim_mob::TurningConflict::TurningConflict() :
 sim_mob::TurningConflict::TurningConflict(const TurningConflict& tc) :
 		dbId(tc.dbId),first_turning(tc.first_turning),second_turning(tc.second_turning),
 		first_cd(tc.first_cd),second_cd(tc.second_cd),
-		firstTurning(tc.firstTurning),secondTurning(tc.secondTurning)
+		firstTurning(tc.firstTurning),secondTurning(tc.secondTurning),criticalGap(tc.criticalGap)
 {
 		std::stringstream out("");
 		out<<tc.dbId;
@@ -114,4 +114,14 @@ void TurningConflict::setDbId(int dbId)
 int TurningConflict::getDbId() const
 {
 	return dbId;
+}
+
+void TurningConflict::setCriticalGap(double criticalGap)
+{
+	this->criticalGap = criticalGap;
+}
+
+double TurningConflict::getCriticalGap() const
+{
+	return criticalGap;
 }

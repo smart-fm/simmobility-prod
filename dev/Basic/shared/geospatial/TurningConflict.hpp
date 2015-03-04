@@ -16,6 +16,9 @@ class TurningSection;
   {
   private:
     
+    //Conflict id
+    std::string conflictId;
+    
     //Database id
     int dbId;
     
@@ -30,9 +33,6 @@ class TurningSection;
     
     //Distance of conflict point from the start of the second turning
     double second_cd;
-
-    //Conflict id
-    std::string conflictId;
     
     //The first turning section in the conflict 
     //Note:: First/second doesn't have any significance
@@ -41,6 +41,10 @@ class TurningSection;
     //The second turning section in the conflict
     //Note:: First/second doesn't have any significance
     TurningSection *secondTurning;
+
+    //Threshold value for accepting/rejecting the gap (and deciding whether to continue/slow down) between
+    //conflicting vehicles (in seconds)
+    double criticalGap;
 
   public:
     TurningConflict();
@@ -94,6 +98,12 @@ class TurningSection;
     
     //Getter for dbId
     int getDbId() const;
+    
+    //Setter for criticalGap
+    void setCriticalGap(double criticalGap);
+    
+    //Getter for criticalGap
+    double getCriticalGap() const;
   } ;
 
 };// end namespace

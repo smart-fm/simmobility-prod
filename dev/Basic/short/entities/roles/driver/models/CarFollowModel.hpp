@@ -235,9 +235,6 @@ private:
 	 *  \return acceleration rate
 	 */
 	double calcStopPointRate(sim_mob::DriverUpdateParams& p);
-        
-        //Calculates the acceleration while approaching an intersection
-        double approachInterectionRate(sim_mob::DriverUpdateParams& p);
 
 	/** \brief return the acc to a target speed within a specific distance
 	 *  \param p vehicle state value

@@ -244,6 +244,8 @@ private:
 
 	void check_and_set_min_car_dist2(NearestVehicle& res, double distance,
 			const Vehicle* veh, const Driver* other);
+        
+        void perceiveParameters(DriverUpdateParams& p);
 
 	//More update methods
 	bool update_sensors(timeslice now); ///<Called to update things we _sense_, like nearby vehicles.
@@ -303,8 +305,8 @@ private:
 	//loading queue wants to start its journey
 	bool findEmptySpaceAhead();
 
-        //This method helps defines the driver behaviour when approaching an unsignalised intersection
-        void approachIntersection();
+    //This method helps defines the driver behaviour when approaching an unsignalised intersection
+    double approachIntersection();
 
 	Driver* parentDriver;
 

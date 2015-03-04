@@ -95,7 +95,7 @@ public:
 	//need to store these values in the double buffer, because it is needed by other drivers.
 	Shared<const Lane*> currLane_;
 	Shared<bool> isInIntersection;
-	Shared<TurningSection*> currTurning_;
+	Shared<const TurningSection*> currTurning_;
 	Shared<double> moveDisOnTurning_;
 	Shared<double> currLaneOffset_;
 	Shared<double> currLaneLength_;

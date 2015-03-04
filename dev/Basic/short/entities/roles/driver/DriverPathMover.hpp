@@ -165,7 +165,7 @@ public:
 	//Intersection driving is different.
 	bool inIntersection;
 
-	TurningSection* currTurning;
+	const TurningSection* currTurning;
 
 	//We might be moving backwards on a Link.
 	//TODO: This is still relevant (even with 1-way Links) since Pedestrians can move backwards on a Link.

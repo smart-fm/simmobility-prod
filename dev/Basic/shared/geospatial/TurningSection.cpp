@@ -78,7 +78,7 @@ void TurningSection::addTurningConflict(TurningConflict* turningConflict)
 	std::sort(this->turningConflicts.begin(), this->turningConflicts.end(), tComparator);
 }
 
-std::vector<TurningConflict*>& TurningSection::getTurningConflicts()
+const std::vector<TurningConflict*>& TurningSection::getTurningConflicts() const
 {
 	return turningConflicts;
 }
@@ -262,7 +262,7 @@ int TurningSection::getDbId() const
 }
 
 //Returns the TurningConflict between the given turnings (the current one (this) and the parameter)
-TurningConflict* sim_mob::TurningSection::getTurningConflict(const TurningSection* turningSection) 
+TurningConflict* sim_mob::TurningSection::getTurningConflict(const TurningSection* turningSection) const
 {
 	TurningConflict* res = nullptr;
 	

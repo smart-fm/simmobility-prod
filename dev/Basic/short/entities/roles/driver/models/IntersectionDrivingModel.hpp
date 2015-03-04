@@ -60,19 +60,19 @@ protected:
   
 public:
 	
-  //Allow propagation of delete
-	virtual ~IntersectionDrivingModel() {}
+    //Allow propagation of delete
+    virtual ~IntersectionDrivingModel() {}
 
     //Builds a straight line trajectory form the end point of the entry lane into the intersection
     //to the start point of the exit lane out of the intersection
-	virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) = 0;
+    virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) = 0;
 
     //Moves the vehicle by given amount along the trajectory
     virtual DPoint continueDriving(double amount) = 0;
     
     //Depending on the conflicting vehicles, calculates the acceleration that allows the vehicle to 
     //pass through without colliding with the other vehicles
-    virtual double makeAcceleratingDecision(DriverUpdateParams& params, TurningSection *currTurning) = 0;
+    virtual double makeAcceleratingDecision(DriverUpdateParams& params, const TurningSection *currTurning) = 0;
 
     //Returns the current angle of the vehicle according to the position in the trajectory
     double getCurrentAngle() { return intTrajectory.getAngle(); }
@@ -112,57 +112,57 @@ class SimpleIntDrivingModel : public IntersectionDrivingModel
 {
 public:
   
-	virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) {
-		intTrajectory = DynamicVector(fromLanePt.x, fromLanePt.y, toLanePt.x, toLanePt.y);
-		totalMovement = startOffset;
-	}
+  virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) {
+          intTrajectory = DynamicVector(fromLanePt.x, fromLanePt.y, toLanePt.x, toLanePt.y);
+          totalMovement = startOffset;
+  }
 
 
-	virtual DPoint continueDriving(double amount) {
-		totalMovement += amount;
-		DynamicVector temp(intTrajectory);
-		temp.scaleVectTo(totalMovement).translateVect();
-		return DPoint(temp.getX(), temp.getY());
-	}
+  virtual DPoint continueDriving(double amount) {
+          totalMovement += amount;
+          DynamicVector temp(intTrajectory);
+          temp.scaleVectTo(totalMovement).translateVect();
+          return DPoint(temp.getX(), temp.getY());
+  }
 
-	//add by xuyan
+  //add by xuyan
 #ifndef SIMMOB_DISABLE_MPI
-	static void pack(PackageUtils& package, const SimpleIntDrivingModel* params);
+  static void pack(PackageUtils& package, const SimpleIntDrivingModel* params);
 
-	static void unpack(UnPackageUtils& unpackage, SimpleIntDrivingModel* params);
+  static void unpack(UnPackageUtils& unpackage, SimpleIntDrivingModel* params);
 #endif
 };
 
-  /*
-   * MITSIMLab version of the intersection driving model
-   */
-  class MITSIM_IntDriving_Model : public IntersectionDrivingModel
-  {
-  private:
-    
-    //Reads and stores the parameters related to intersection driving from the driver parameter xml file
-    //(data/driver_param.xml)
-    void initParam(DriverUpdateParams& params);
-    
-    //Calculates the deceleration needed for the vehicle to come to a stop within a given distance
-    double brakeToStop(double distance, DriverUpdateParams& params);
+/*
+ * MITSIMLab version of the intersection driving model
+ */
+class MITSIM_IntDriving_Model : public IntersectionDrivingModel
+{
+private:
 
-  public:
-    
-    MITSIM_IntDriving_Model(DriverUpdateParams& params);
-    
-    virtual ~MITSIM_IntDriving_Model();
-    
-    //Builds a straight line trajectory form the end point of the entry lane into the intersection
-    //to the start point of the exit lane out of the intersection
-    virtual void startDriving (const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset);
-    
-    //Moves the vehicle by given amount along the trajectory
-    virtual DPoint continueDriving (double amount);
-    
-    //Depending on the conflicting vehicles, calculates the acceleration that allows the vehicle to 
-    //pass through without colliding with the other vehicles
-    virtual double makeAcceleratingDecision(DriverUpdateParams& params, TurningSection *currTurning);  
+  //Reads and stores the parameters related to intersection driving from the driver parameter xml file
+  //(data/driver_param.xml)
+  void initParam(DriverUpdateParams& params);
+
+  //Calculates the deceleration needed for the vehicle to come to a stop within a given distance
+  double brakeToStop(double distance, DriverUpdateParams& params);
+
+public:
+
+  MITSIM_IntDriving_Model(DriverUpdateParams& params);
+
+  virtual ~MITSIM_IntDriving_Model();
+
+  //Builds a straight line trajectory form the end point of the entry lane into the intersection
+  //to the start point of the exit lane out of the intersection
+  virtual void startDriving (const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset);
+
+  //Moves the vehicle by given amount along the trajectory
+  virtual DPoint continueDriving (double amount);
+
+  //Depending on the conflicting vehicles, calculates the acceleration that allows the vehicle to 
+  //pass through without colliding with the other vehicles
+  virtual double makeAcceleratingDecision(DriverUpdateParams& params, const TurningSection *currTurning);  
 };
   
 }

@@ -86,7 +86,7 @@ class TurningConflict;
     void addTurningConflict(TurningConflict* turningConflict);
     
     //Returns the vector turningConflicts
-    std::vector<TurningConflict*>& getTurningConflicts();
+    const std::vector<TurningConflict*>& getTurningConflicts() const;
     
     //Inserts a TurningSection into the vector conflictingTurningSections
     void addConflictingTurningSections(TurningSection* conflictingTurningSection);
@@ -188,7 +188,7 @@ class TurningConflict;
     int getDbId() const;
   
     //Returns the TurningConflict between the given turnings (the current one (this) and the parameter)
-    TurningConflict* getTurningConflict(const TurningSection* ts);
+    TurningConflict* getTurningConflict(const TurningSection* ts) const;
     
     //Setter for turningSpeed
     void setTurningSpeed(int turningSpeed);

@@ -37,17 +37,17 @@ DPoint MITSIM_IntDriving_Model::continueDriving(double amount)
 	return DPoint (temp.getX (), temp.getY ());
 }
 
-double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& params, TurningSection* currTurning)
+double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& params, const TurningSection* currTurning)
 {
 	double acc = params.maxAcceleration;
 	const double vehicleLength = params.driver->getVehicleLengthM();
 
 	//Vector of conflicts for the current turning
-	vector<TurningConflict *> &conflicts = currTurning->getTurningConflicts();
+	const vector<TurningConflict *> &conflicts = currTurning->getTurningConflicts();
 
 	//Select the nearest conflict ahead of us (the vector is sorted according to the distance from the start of the turning,
 	//we may have crossed some)
-	for (vector<TurningConflict *>::iterator itConflicts = conflicts.begin(); itConflicts != conflicts.end(); ++itConflicts)
+	for (vector<TurningConflict *>::const_iterator itConflicts = conflicts.begin(); itConflicts != conflicts.end(); ++itConflicts)
 	{
 		//Get the distance to conflict point from start of turning
 		double distToConflict =

@@ -152,7 +152,7 @@ void sim_mob::MultiNode::updateMapLaneVsTurning(const Lane* fromLane, const Lane
 	}
 }
 
-TurningSection* sim_mob::MultiNode::getTurningSection(const Lane* currentLane, const Lane* nextLane) const
+const TurningSection* sim_mob::MultiNode::getTurningSection(const Lane* currentLane, const Lane* nextLane) const
 {
 	//Find the entry for the currentLane
 	std::map<const Lane *, std::map<const Lane *, TurningSection *> >::const_iterator itLevel1 = mapFromToLanesVsTurning.find(currentLane);
@@ -169,18 +169,28 @@ TurningSection* sim_mob::MultiNode::getTurningSection(const Lane* currentLane, c
 		}
 		else
 		{
-			return NULL;
-			//At the moment we don't have turning sections for all lane combinations, so returning NULL for the
-			//time being
-			//throw std::runtime_error("TurningSection from the given to lane not found");
+			throw std::runtime_error("TurningSection from the given to lane not found");
 		}
 	}
 	else
 	{
-		return NULL;
-		//At the moment we don't have turning sections for all lane combinations, so returning NULL for the
-		//time being
-		//throw std::runtime_error("TurningSection from the given from lane not found");
+		throw std::runtime_error("TurningSection from the given from lane not found");
+	}
+}
+
+const std::set<TurningSection*>& sim_mob::MultiNode::getTurnings(const RoadSegment *fromSeg) const
+{
+	//Find the set of turnings corresponding to the given road segment
+	std::map<const RoadSegment*, std::set<TurningSection*> >::const_iterator itTurnings = turnings.find(fromSeg);
+
+	//Return the set if found in the map
+	if (itTurnings != turnings.end())
+	{
+		return itTurnings->second;
+	} 
+	else
+	{
+		throw std::runtime_error("No turnings found from the given RoadSegment");
 	}
 }
 

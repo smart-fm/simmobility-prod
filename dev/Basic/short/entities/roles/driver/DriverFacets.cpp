@@ -792,7 +792,7 @@ double sim_mob::DriverMovement::approachIntersection()
 	if(nextSegment)
 	{
 		//The turning section that will be used by the vehicle to move from the current segment to the next segment
-		TurningSection *turningSection = NULL;
+		const TurningSection *turningSection = NULL;
 
 		if (currSegment->getEnd() == nextSegment->getStart())
 		{
@@ -976,7 +976,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 	calcDistanceToSP(p);
 	
 	// make lc decision
-	/*LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
+	LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
 
 	if (p.getStatus() & STATUS_CHANGING) {
 		p.lcDebugStr<<";CHING";
@@ -988,7 +988,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 			p.lcDebugStr<<";COG";
 			lcModel->chooseTargetGap(p);
 		}
-	} //end if STATUS_CHANGING*/
+	} //end if STATUS_CHANGING
 
 	//Convert back to m/s
 	//TODO: Is this always m/s? We should rename the variable then...
@@ -1649,60 +1649,54 @@ void sim_mob::DriverMovement::syncCurrLaneCachedInfo(DriverUpdateParams& p) {
 	p.desiredSpeed = targetSpeed;
 }
 
-//currently it just chooses the first lane from the targetLane
+//Chooses the next lane in the next link based on the current lane and the available turnings
 //Note that this also sets the target lane so that we (hopefully) merge before the intersection.
-void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p) {
-	p.nextLaneIndex = p.currLaneIndex;
-	//Retrieve the node we're on, and determine if this is in the forward direction.
-	const MultiNode* currEndNode =
-			dynamic_cast<const MultiNode*>(fwdDriverMovement.getCurrSegment()->getEnd());
-	const RoadSegment* nextSegment = fwdDriverMovement.getNextSegment(false);
+void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p) 
+{
+	//The current segment
+	const RoadSegment *currSeg = fwdDriverMovement.getCurrSegment();
 	
-	//Build up a list of target lanes.
+	//The next segment
+	const RoadSegment *nextSeg = fwdDriverMovement.getNextSegment(false);
+	
+	//The current lane
+	const Lane *currLane = fwdDriverMovement.getCurrLane();
+	
 	nextLaneInNextLink = nullptr;
-	vector<const Lane*> targetLanes;
-	if (currEndNode && nextSegment) {
-		const set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(
-				fwdDriverMovement.getCurrSegment());
-		for (set<LaneConnector*>::const_iterator it = lcs.begin();
-				it != lcs.end(); ++it) {
-			if ((*it)->getLaneTo()->getRoadSegment() == nextSegment
-					&& (*it)->getLaneFrom() == p.currLane) {
-				//It's a valid lane.
-				targetLanes.push_back((*it)->getLaneTo());
-
-				//find target lane with same index, use this lane
-				size_t laneIndex = getLaneIndex((*it)->getLaneTo());
-				if (laneIndex == p.currLaneIndex
-						&& !((*it)->getLaneTo()->is_pedestrian_lane())) {
-					nextLaneInNextLink = (*it)->getLaneTo();
-					targetLaneIndex = laneIndex;
+	
+	//Ensure they are connected by the same multi-node 
+	if(currSeg->getEnd() == nextSeg->getStart())
+	{
+		//Get the approaching multi-node
+		const MultiNode *currEndNode = dynamic_cast<const MultiNode *> (currSeg->getEnd());
+		
+		//Get the set of turnings from the current segment
+		const std::set<TurningSection *> turnings = currEndNode->getTurnings(currSeg);
+		
+		//Look for the turning that has the from RoadSegment as the current RoadSegment
+		for(std::set<TurningSection*>::const_iterator itTurnings = turnings.begin(); itTurnings != turnings.end(); ++itTurnings)
+		{
+			if(currSeg == (*itTurnings)->getFromSeg())
+			{
+				//Check if this turning has a from lane that is same as the current lane
+				if(currLane == (*itTurnings)->getLaneFrom())
+				{
+					targetLaneIndex = p.nextLaneIndex = (*itTurnings)->getTo_lane_index();
+					nextLaneInNextLink = (*itTurnings)->getLaneTo();
 					break;
 				}
 			}
 		}
-
-		//Still haven't found a lane?
-		if (!nextLaneInNextLink) {
-			//no lane with same index, use the first lane in the vector if possible.
-			if (targetLanes.size() > 0) {
-				nextLaneInNextLink = targetLanes.at(0);
-				if (nextLaneInNextLink->is_pedestrian_lane()
-						&& targetLanes.size() > 1)
-					nextLaneInNextLink = targetLanes.at(1);
-				targetLaneIndex = getLaneIndex(nextLaneInNextLink);
-			} else if (nextSegment) { //Fallback
-				size_t fallbackIndex = std::min(p.currLaneIndex,
-						nextSegment->getLanes().size() - 1);
-				nextLaneInNextLink = nextSegment->getLanes().at(fallbackIndex);
-				targetLaneIndex = fallbackIndex;
-			}
+		
+		//Check if the next lane was found
+		if(nextLaneInNextLink == nullptr)
+		{
+			throw std::runtime_error("Could not find the next lane in the next link");
 		}
-
-		//We should have generated a nextLaneInNextLink here.
-		if (!nextLaneInNextLink) {
-			throw std::runtime_error("Can't find nextLaneInNextLink.");
-		}
+	}
+	else
+	{
+		throw std::runtime_error("Road Segments not connected to the same Multi-node");
 	}
 }
 

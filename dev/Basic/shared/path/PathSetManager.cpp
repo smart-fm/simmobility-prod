@@ -661,15 +661,6 @@ void sim_mob::PathSetManager::bulkPathSetGenerator()
 			ps_->subTrip = subTrip;
 			int r = 0;
 			threadpool_->enqueue(boost::bind(&sim_mob::PathSetManager::generateAllPathChoices, this,ps_, boost::ref(recursiveOrigins), boost::ref(tempBlackList)));
-//			iterCnt1 ++;
-//			iterCnt2 ++;
-//			if(iterCnt1 == sim_mob::ConfigManager::GetInstance().PathSetConfig().threadPoolSize * 5)
-//			{
-//				threadpool_->wait();
-//				iterCnt1 = 0;
-//				std::pair <boost::chrono::microseconds,	boost::chrono::microseconds> tick = t.tick();
-//				Print() << "[TOTAL PATHSET GROUPS COMPLETED : " << iterCnt2<< " ,  TIME : " << tick.first.count()/ 60000000 << "  Minutes]"  << std::endl;
-//			}
 		}
 	}
 	threadpool_->wait();
@@ -1570,6 +1561,7 @@ double sim_mob::PathSetManager::generatePartialUtility(const sim_mob::SinglePath
 		pUtility += sp->purpose * pathSetParam->bLeisure;
 	}
 	//for debugging purpose
+	//comment logging if not needed
 	logPartialUtility(sp,pUtility);
 	return pUtility;
 }
@@ -1586,14 +1578,18 @@ double sim_mob::PathSetManager::generateUtility(const sim_mob::SinglePath* sp) c
 	{
 		throw std::runtime_error("generateUtility: invalid single path travleTime :");
 	}
-
-	utility = (sp->partialUtility > 0.0 ? sp->partialUtility : generatePartialUtility(sp)) ;
+	double partialUtility = (sp->partialUtility > 0.0 ? sp->partialUtility : generatePartialUtility(sp)) ;
+	utility = partialUtility;
+//	utility = (sp->partialUtility > 0.0 ? sp->partialUtility : generatePartialUtility(sp)) ; //commend this line and enable the above 2 lines for debugging purposes-vahid
 	// calculate utility
 	//Obtain value of time for the agent A: bTTlowVOT/bTTmedVOT/bTThiVOT.
 	utility += sp->travleTime * pathSetParam->bTTVOT;
 	//obtain travel cost part of utility
 	utility += sp->travelCost * pathSetParam->bCost;
-	std::stringstream out("");
+	//for debugging purpose
+	//comment logging if not needed
+	//OD,partialUtility,travleTime,travelCost,utility
+	sim_mob::Logger::log("final_utility.csv") << sp->pathSetId << "," << partialUtility << "," << sp->travleTime << "," << sp->travelCost << "," << utility << "\n";
 	return utility;
 }
 
@@ -1608,11 +1604,10 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 	//2. travle_time
 	//3. utility
 	//step 1.2 : accumulate the logsum
-	double maxTravelTime = std::numeric_limits<double>::max();
 	ps->logsum = 0.0;
 	std:ostringstream utilityDbg("");
-	utilityDbg << "***********\nPATH Selection for :" << ps->id << " : \n" ;
-	int iteration = 0;
+	utilityDbg << ps->id << "\nutility:\n";
+
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
 		if(blckLstSegs.size() && sp->includesRoadSegment(blckLstSegs))
@@ -1620,27 +1615,21 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 			continue;//do the same thing while measuring the probability in the loop below
 		}
 
-//		if(enRoute && approach && !sim_mob::MovementFacet::isConnectedToNextSeg(approach, sp->path.begin()->roadSegment_))
-//		{
-//			continue;//you can't choose this path for rerouting
-//		}
-
 		if(sp->path.empty())
 		{
-			std::string str = iteration + " Singlepath empty";
-			throw std::runtime_error (str);
+			throw std::runtime_error ("Empty Path");
 		}
 		//	state of the network changed
 		//debug
 		if(sp->travleTime <= 0.0 )
 		{
 			std::stringstream out("");
-			out << "getBestPathChoiceFromPathSet=>invalid single path travleTime :" << sp->travleTime;
+			out << sp->pathSetId << " getBestPathChoiceFromPathSet=>invalid single path travleTime :" << sp->travleTime;
 			throw std::runtime_error(out.str());
 		}
 		//debug..
 		if (partialExclusion.size() && sp->includesRoadSegment(partialExclusion) ) {
-			sp->travleTime = maxTravelTime;//some large value like infinity
+			sp->travleTime = std::numeric_limits<double>::max();//some large value like infinity
 			//	RE-calculate utility
 			sp->utility = generateUtility(sp);
 		}
@@ -1649,9 +1638,8 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 //		sp->travelCost = getPathTravelCost(sp,ps->subTrip.startTime);
 		utilityDbg << "[" << sp->utility << "," << exp(sp->utility) << "]";
 		ps->logsum += exp(sp->utility);
-		iteration++;
 	}
-
+	utilityDbg << "\n\nlogsum: " << ps->logsum;
 	// step 2: find the best waypoint path :
 	// calculate a probability using path's utility and pathset's logsum,
 	// compare the resultwith a  random number to decide whether pick the current path as the best path or not
@@ -1659,9 +1647,9 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 	double upperProb=0;
 	// 2.1 Draw a random number X between 0.0 and 1.0 for agent A.
 	double random = sim_mob::genRandomFloat(0,1);
+	utilityDbg << "\nrandom number:" << random << "\n";
 	// 2.2 For each path i in the path choice set PathSet(O, D):
 	int i = -1;
-	utilityDbg << "\nlogsum : " << ps->logsum << "\nX : " << random << "\n";
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
 		if(blckLstSegs.size() && sp->includesRoadSegment(blckLstSegs))
@@ -1672,29 +1660,30 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 		double prob = exp(sp->utility)/(ps->logsum);
 		utilityDbg << prob << " , " ;
 		upperProb += prob;
+		utilityDbg << sp->scenario << "," << sp->utility << "," << prob << "," << upperProb;
 		if (random <= upperProb)
 		{
 			// 2.3 agent A chooses path i from the path choice set.
 			ps->bestPath = &(sp->path);
-			sim_mob::Logger::log("path_out") << sp->pathSetId << "#" << sp->index << "#" << sp->scenario << "#" << sp->partialUtility << "#" << sp->utility << "\n";
 			logger << "[LOGIT][" << sp->pathSetId <<  "] [" << i << " out of " << ps->pathChoices.size()  << " paths chosen] [UTIL: " <<  sp->utility << "] [LOGSUM: " << ps->logsum << "][exp(sp->utility)/(ps->logsum) : " << prob << "][X:" << random << "]\n";
-			utilityDbg << "upperProb reached : " << upperProb << "\n";
-			utilityDbg << "***********\n";
+			utilityDbg << "\nselect: " << sp->pathSetId  << ":" << sp->scenario << "\n";
+			sim_mob::Logger::log("path_selection") << utilityDbg << "\n-------------------------------------------------------\n";
 			return true;
 		}
 	}
-	utilityDbg << "***********\n";
+	sim_mob::Logger::log("path_selection") << utilityDbg << "\n-------------------------------------------------------\n";
 
 	// path choice algorithm
 	if(!ps->oriPath)//return upon null oriPath only if the condition is normal(excludedSegs is empty)
 	{
 		logger<< "NO PATH , getBestPathChoiceFromPathSet, shortest path empty" << "\n";
+		sim_mob::Logger::log("path_selection") << utilityDbg << "\n-------------------------------------------------------\n";
 		return false;
 	}
 	//the last step resorts to selecting and returning shortest path(aka oripath).
 	logger << "NO BEST PATH. select to shortest path\n" ;
 	ps->bestPath = &(ps->oriPath->path);
-	sim_mob::Logger::log("path_out") << ps->oriPath->pathSetId << "#" << ps->oriPath->index << "#" << ps->oriPath->scenario << "#" << ps->oriPath->partialUtility << "#" << ps->oriPath->utility << "\n";
+	sim_mob::Logger::log("path_selection") << utilityDbg << "\n-------------------------------------------------------\n";
 	return true;
 }
 

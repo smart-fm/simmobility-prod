@@ -1489,7 +1489,7 @@ std::string sim_mob::PathSetManager::logPartialUtility(const sim_mob::SinglePath
 		sim_mob::Logger::log("partial_utility.txt") << "pathSetId#index#travleTime#bTTVOT#travleTime * bTTVOT#pathSize#bCommonFactor#pathSize*bCommonFactor#length#bLength#length*bLength#"
 				"highWayDistance#bHighway#highWayDistance*bHighway#travelCost#bCost#travelCost*bCost#signalNumber#bSigInter#signalNumber*bSigInter#rightTurnNumber#bLeftTurns#rightTurnNumber*bLeftTurns#"
 				"minTravelTimeParam#isMinTravelTime#minTravelTimeParam*isMinTravelTime#minDistanceParam#isMinDistance#minDistanceParam*isMinDistance#minSignalParam#isMinSignal#minSignalParam*isMinSignal#"
-				"maxHighwayParam#isMaxHighWayUsage#maxHighwayParam*isMaxHighWayUsage#purpose#b-value#purpose*b-value#partial utility" << "\n" ;
+				"maxHighwayParam#isMaxHighWayUsage#maxHighwayParam*isMaxHighWayUsage#purpose#b-value#purpose*b-value#partial-utility" << "\n" ;
 	}
 
 	if(utilityLogger[sp].check())
@@ -1523,7 +1523,7 @@ double sim_mob::PathSetManager::generatePartialUtility(const sim_mob::SinglePath
 	//3.0
 	//Obtain the travel distance l and the highway distance w of the path.
 	pUtility += sp->length * pathSetParam->bLength ;
-	pUtility += sp->highWayDistance * pathSetParam->highwayBias;
+	pUtility += sp->highWayDistance * pathSetParam->bHighway;
 	//4.0
 	//Obtain the travel cost c of the path.
 //	pUtility += sp->travelCost * pathSetParam->bCost;
@@ -1549,7 +1549,7 @@ double sim_mob::PathSetManager::generatePartialUtility(const sim_mob::SinglePath
 	//min highway param
 	if(sp->isMaxHighWayUsage == 1)
 	{
-		pUtility += pathSetParam->maxHighwayParam * pathSetParam->bHighway;
+		pUtility += pathSetParam->maxHighwayParam;
 	}
 	//Obtain the trip purpose.
 	if(sp->purpose == sim_mob::work)
@@ -1658,32 +1658,31 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 		}
 		i++;
 		double prob = exp(sp->utility)/(ps->logsum);
-		utilityDbg << prob << " , " ;
 		upperProb += prob;
-		utilityDbg << sp->scenario << "," << sp->utility << "," << prob << "," << upperProb;
+		utilityDbg << "[" << sp->scenario << "," << sp->utility << "," << prob << "," << upperProb << "]";
 		if (random <= upperProb)
 		{
 			// 2.3 agent A chooses path i from the path choice set.
 			ps->bestPath = &(sp->path);
 			logger << "[LOGIT][" << sp->pathSetId <<  "] [" << i << " out of " << ps->pathChoices.size()  << " paths chosen] [UTIL: " <<  sp->utility << "] [LOGSUM: " << ps->logsum << "][exp(sp->utility)/(ps->logsum) : " << prob << "][X:" << random << "]\n";
 			utilityDbg << "\nselect: " << sp->pathSetId  << ":" << sp->scenario << "\n";
-			sim_mob::Logger::log("path_selection") << utilityDbg << "\n-------------------------------------------------------\n";
+			sim_mob::Logger::log("path_selection") << utilityDbg.str() << "\n-------------------------------------------------------\n";
 			return true;
 		}
 	}
-	sim_mob::Logger::log("path_selection") << utilityDbg << "\n-------------------------------------------------------\n";
+	sim_mob::Logger::log("path_selection") << utilityDbg.str() << "\n-------------------------------------------------------\n";
 
 	// path choice algorithm
 	if(!ps->oriPath)//return upon null oriPath only if the condition is normal(excludedSegs is empty)
 	{
 		logger<< "NO PATH , getBestPathChoiceFromPathSet, shortest path empty" << "\n";
-		sim_mob::Logger::log("path_selection") << utilityDbg << "\n-------------------------------------------------------\n";
+		sim_mob::Logger::log("path_selection") << utilityDbg.str() << "\n-------------------------------------------------------\n";
 		return false;
 	}
 	//the last step resorts to selecting and returning shortest path(aka oripath).
 	logger << "NO BEST PATH. select to shortest path\n" ;
 	ps->bestPath = &(ps->oriPath->path);
-	sim_mob::Logger::log("path_selection") << utilityDbg << "\n-------------------------------------------------------\n";
+	sim_mob::Logger::log("path_selection") << utilityDbg.str() << "\n-------------------------------------------------------\n";
 	return true;
 }
 

@@ -37,3 +37,11 @@ void UnitDao::fromRow(Row& result, Unit& outObj)
 }
 
 void UnitDao::toRow(Unit& data, Parameters& outParams, bool update) {}
+
+BigSerial UnitDao::getMaxUnitId()
+{
+	const std::string queryStr = DB_FUNC_GETALL_UNIT_WITH_MAX_ID;
+	std::vector<Unit*> unitWithMaxId;
+	getByQuery(queryStr,unitWithMaxId);
+	return unitWithMaxId.at(0)->getId();
+}

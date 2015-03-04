@@ -24,6 +24,7 @@
 #include "database/entity/ParcelMatch.hpp"
 #include "database/entity/SlaParcel.hpp"
 #include "database/dao/SlaParcelDao.hpp"
+#include "database/dao/UnitDao.hpp"
 #include "database/entity/UnitType.hpp"
 #include "database/dao/UnitTypeDao.hpp"
 #include "database/dao/BuildingDao.hpp"
@@ -96,8 +97,13 @@ void DeveloperModel::startImpl() {
 		loadData<ParcelAmenitiesDao>(conn,amenities,amenitiesById,&ParcelAmenities::getFmParcelId);
 		loadData<MacroEconomicsDao>(conn,macroEconomics,macroEconomicsById,&MacroEconomics::getExFactorId);
 
+		UnitDao unitDao(conn);
+		unitId = unitDao.getMaxUnitId();
+
 	}
 
+	//get the highest building id, which is the one before the last building id as the last building id contain some random data.
+	buildingId = buildings.at(buildings.size()-2)->getFmBuildingId();
 	processParcels();
 	createDeveloperAgents(developmentCandidateParcelList);
 	wakeUpDeveloperAgents(getDeveloperAgents(true));
@@ -479,7 +485,8 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 
 BigSerial DeveloperModel::getUnitIdForDeveloperAgent()
 {
-	return ++unitId;
+	unitId++;
+	return 1400604 + unitId;
 }
 
 void DeveloperModel::setUnitId(BigSerial unitId)

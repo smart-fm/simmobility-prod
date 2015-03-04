@@ -165,7 +165,8 @@ const boost::shared_ptr<soci::session> & sim_mob::PathSetManager::getSession(){
 
 void sim_mob::PathSetManager::storeRTT()
 {
-	processTT.storeRTT2DB();
+	bool res = processTT.storeRTT2DB();
+	Print() << "Travel  Time Storage " << (res ? "Success" : "Failed") << std::endl;
 }
 
 void sim_mob::PathSetManager::clearSinglePaths(boost::shared_ptr<sim_mob::PathSet>&ps){
@@ -1601,8 +1602,6 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 		const std::set<const sim_mob::RoadSegment*> &blckLstSegs , bool enRoute,
 		const sim_mob::RoadSegment* approach)
 {
-	std::stringstream out("");
-	out << "path_selection_logger" << ps->id << ".csv";
 	bool computeUtility = false;
 	// step 1.1 : For each path i in the path choice:
 	//1. set PathSet(O, D)

@@ -789,7 +789,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			if(key <= 0)
 			{
 				std::stringstream out("");
-				out << "segment " << rs->getId() << " has travel time " << tt < "    random number:" << random_number;
+				out << "segment " << rs->getId() << " has travel time " << tt << "    random number:" << random_number;
 				throw std::runtime_error(out.str());
 			}
 		}

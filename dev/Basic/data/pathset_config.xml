@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
-<pathset enabled="false" mode="generation"> <!-- currently, "normal" and "generation" are supported modes --> 
+<pathset enabled="true" mode="normal"> <!-- currently, "normal" and "generation" are supported modes --> 
 	<bulk_generation_output_file_name value="pathset_bulk-new_3.csv" />
 	<thread_pool size="7"/>
 	<pathset_database database="fm_local_path_choice"  credentials="fm_local_path_choice" /> <!--unused for now-->

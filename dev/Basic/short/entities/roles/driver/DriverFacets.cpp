@@ -846,7 +846,7 @@ void sim_mob::DriverMovement::intersectionDriving(DriverUpdateParams& p)
 	p.currSpeed = parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT_UNIT;
 	
 	//Clear the pointer
-	parentDriver->yieldToInIntersection = nullptr;
+	parentDriver->setYieldingInIntersection(false);
 
 	p.cftimer -= p.elapsedSeconds;	
 	if (p.cftimer < p.elapsedSeconds)
@@ -863,7 +863,7 @@ void sim_mob::DriverMovement::intersectionDriving(DriverUpdateParams& p)
 		if(cfAcc < intAcc)
 		{
 			p.newFwdAcc = cfAcc;
-			parentDriver->yieldToInIntersection = nullptr;
+			parentDriver->setYieldingInIntersection(false);
 		}
 		else
 		{
@@ -995,7 +995,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 	p.currSpeed = parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT_UNIT;
 
 	double intApproachAcc = DBL_MAX, cfAcc = DBL_MAX;
-	parentDriver->yieldToInIntersection = nullptr;
+	parentDriver->setYieldingInIntersection(false);
 	
 	//Check if this vehicle is approaching an unsignalised intersection.
 	if (p.isApproachingIntersection)
@@ -1011,7 +1011,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 	if(cfAcc < intApproachAcc)
 	{
 		p.newFwdAcc = cfAcc;
-		parentDriver->yieldToInIntersection = nullptr;
+		parentDriver->setYieldingInIntersection(false);
 	}
 	else
 	{

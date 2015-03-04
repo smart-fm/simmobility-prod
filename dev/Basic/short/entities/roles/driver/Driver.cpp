@@ -105,7 +105,7 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
 	,stop_event_nodeid(mtxStrat, -1), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false), moveDisOnTurning_(mtxStrat, 0),
 	perceivedAccOfFwdCar(nullptr), perceivedDistToFwdCar(nullptr), perceivedDistToTrafficSignal(nullptr), perceivedFwdAcc(nullptr),
-	perceivedFwdVel(nullptr), perceivedTrafficColor(nullptr), perceivedVelOfFwdCar(nullptr), yieldToInIntersection(nullptr)
+	perceivedFwdVel(nullptr), perceivedTrafficColor(nullptr), perceivedVelOfFwdCar(nullptr), isYieldingInIntersection(false)
 {
 	currDistAlongRoadSegment = 0;
 	getParams().driver = this;
@@ -360,6 +360,17 @@ void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>
 		mov->rerouteWithBlacklist(blacklisted);
 	}
 }
+
+void Driver::setYieldingInIntersection(bool YieldingInIntersection)
+{
+	isYieldingInIntersection = YieldingInIntersection;
+}
+
+bool Driver::IsYieldingInIntersection() const
+{
+	return isYieldingInIntersection;
+}
+
 void Driver::setCurrPosition(DPoint currPosition)
 {
 	currPos = currPosition;

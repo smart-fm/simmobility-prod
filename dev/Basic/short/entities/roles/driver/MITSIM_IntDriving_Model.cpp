@@ -81,7 +81,7 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& par
 				{
 					//Check if the vehicle is yet to arrive at the conflict point and is not slowing down
 					if (itNearestVehicles->distance < 0
-						&& itNearestVehicles->driver->yieldToInIntersection == nullptr)
+						&& itNearestVehicles->driver->IsYieldingInIntersection() == false)
 					{
 						//Speed of the incoming vehicle (m/s))
 						double speed = itNearestVehicles->driver->getVehicle()->getVelocity() / 100;
@@ -108,7 +108,7 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& par
 							if (acc > brakingAcc)
 							{
 								acc = brakingAcc;
-								params.driver->yieldToInIntersection = itNearestVehicles->driver;
+								params.driver->setYieldingInIntersection(true);
 							}
 						}
 					}

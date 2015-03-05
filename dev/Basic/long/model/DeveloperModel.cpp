@@ -485,8 +485,7 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 
 BigSerial DeveloperModel::getUnitIdForDeveloperAgent()
 {
-	unitId++;
-	return 1400604 + unitId;
+	return unitId++;
 }
 
 void DeveloperModel::setUnitId(BigSerial unitId)

@@ -221,9 +221,6 @@ void HouseholdSellerRole::update(timeslice now)
         //get values from parent.
         const Unit* unit = nullptr;
 
-        //if( unitIds.size() == 0 )
-        //	PrintOut("Seller " << this->getParent()->GetId() << "doesn't seem to have any unit to sell" << std::endl);
-
         for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
         {
             //Decides to put the house on market.
@@ -372,7 +369,7 @@ void HouseholdSellerRole::adjustNotSoldUnits()
             ExpectationEntry entry;
             if (getCurrentExpectation(unitId, entry) && entry.askingPrice != unitEntry->getAskingPrice())
             {
-            	//PrintOut("Updating asking price for unit " << unitId << "from  $" << unitEntry->getAskingPrice() << " to $" << entry.askingPrice << std::endl );
+            	//PrintOutV("Updating asking price for unit " << unitId << "from  $" << unitEntry->getAskingPrice() << " to $" << entry.askingPrice << std::endl );
 
                 HousingMarket::Entry updatedEntry(*unitEntry);
                 updatedEntry.setAskingPrice(entry.askingPrice);
@@ -394,7 +391,7 @@ void HouseholdSellerRole::notifyWinnerBidders()
         replyBid(*dynamic_cast<HouseholdAgent*>(getParent()), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getUnitId()));
 
         //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );
-        //PrintOut("Seller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf." << std::endl );
+        //PrintOutV("Seller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf." << std::endl );
 
         market->removeEntry(maxBidOfDay.getUnitId());
         dynamic_cast<HouseholdAgent*>(getParent())->removeUnitId(maxBidOfDay.getUnitId());

@@ -158,7 +158,7 @@ namespace
 
 RealEstateSellerRole::SellingUnitInfo::SellingUnitInfo() :startedDay(0), interval(0), daysOnMarket(0), numExpectations(0){}
 
-RealEstateSellerRole::RealEstateSellerRole(LT_Agent* parent): parent(parent), currentTime(0, 0), hasUnitsToSale(true), selling(false), active(false)
+RealEstateSellerRole::RealEstateSellerRole(LT_Agent* parent): parent(parent), currentTime(0, 0), hasUnitsToSale(true), selling(false), active(true)
 {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	timeOnMarket   = config.ltParams.housingModel.timeOnMarket;
@@ -219,8 +219,7 @@ void RealEstateSellerRole::update(timeslice now)
         //get values from parent.
         const Unit* unit = nullptr;
 
-        //if( unitIds.size() == 0 )
-        //	PrintOut("Seller " << this->getParent()->GetId() << "doesn't seem to have any unit to sell" << std::endl);
+        //PrintOutV("size of unitsVec:" << unitIds.size() << std::endl );
 
         for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
         {
@@ -232,7 +231,7 @@ void RealEstateSellerRole::update(timeslice now)
         	//so that not all empty units flood the market on day 1. There's a timeOnMarket and timeOffMarket
         	//variable that is fed to simmobility through the long term XML file.
             int day = currentTime.ms();
-            //PrintOut("Day: " << std::dec << day << " Seller: " << this->getParent()->GetId() << " bidEntryDay: " << unit->getbiddingMarketEntryDay() << " timeOnMarket: "  << unit->getTimeOnMarket() << std::endl );
+            //PrintOutV("Day: " << std::dec << day << "RealEstate Agent. Seller: " << this->getParent()->getId() << "unit id: " << unit->getId() << " bidEntryDay: " << unit->getbiddingMarketEntryDay() << " timeOnMarket: "  << unit->getTimeOnMarket() << std::endl );
 
 
             UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
@@ -257,7 +256,7 @@ void RealEstateSellerRole::update(timeslice now)
             if(getCurrentExpectation(unit->getId(), firstExpectation))
             {
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice));
-                //PrintOutV("Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
+                PrintOutV("RealEstate Agent. Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
             }
 
             selling = true;
@@ -360,7 +359,7 @@ void RealEstateSellerRole::adjustNotSoldUnits()
 
 				 if((int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket() )
 				 {
-					 //PrintOutV("Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
+					 PrintOutV("RealEstate Agent. Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
 					 market->removeEntry(unitId);
 					 continue;
 				 }
@@ -370,7 +369,7 @@ void RealEstateSellerRole::adjustNotSoldUnits()
             ExpectationEntry entry;
             if (getCurrentExpectation(unitId, entry) && entry.askingPrice != unitEntry->getAskingPrice())
             {
-            	//PrintOut("Updating asking price for unit " << unitId << "from  $" << unitEntry->getAskingPrice() << " to $" << entry.askingPrice << std::endl );
+            	PrintOutV("RealEstate Agent. Updating asking price for unit " << unitId << "from  $" << unitEntry->getAskingPrice() << " to $" << entry.askingPrice << std::endl );
 
                 HousingMarket::Entry updatedEntry(*unitEntry);
                 updatedEntry.setAskingPrice(entry.askingPrice);
@@ -392,7 +391,7 @@ void RealEstateSellerRole::notifyWinnerBidders()
         replyBid(*dynamic_cast<RealEstateAgent*>(getParent()), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getUnitId()));
 
         //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );
-        //PrintOut("Seller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf." << std::endl );
+        PrintOutV("RealEstate Agent. Seller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf." << std::endl );
 
         market->removeEntry(maxBidOfDay.getUnitId());
         dynamic_cast<RealEstateAgent*>(getParent())->removeUnitId(maxBidOfDay.getUnitId());

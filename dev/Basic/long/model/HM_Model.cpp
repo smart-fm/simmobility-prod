@@ -255,6 +255,12 @@ const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 	return nullptr;
 }
 
+void HM_Model::addUnit(Unit* unit)
+{
+	units.push_back(unit);
+	unitsById.insert(std::pair<BigSerial,Unit*>(unit->getId(), unit));
+}
+
 
 void HM_Model::startImpl()
 {

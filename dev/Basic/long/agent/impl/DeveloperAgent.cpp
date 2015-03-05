@@ -131,9 +131,9 @@ inline void writeParcelDataToFile(Parcel &parcel) {
  * @param unit to be written.
  *
  */
-inline void writeUnitDataToFile(int unitTypeId, int numUnits) {
+inline void writeUnitDataToFile(int unitId, int numUnits) {
 
-	boost::format fmtr = boost::format(LOG_UNIT) % unitTypeId % numUnits;
+	boost::format fmtr = boost::format(LOG_UNIT) % unitId % numUnits;
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::UNITS,fmtr.str());
 
 }
@@ -458,11 +458,13 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 
 		for(size_t i=0; i< (*unitsItr).getNumUnits();i++)
 		{
-			boost::shared_ptr<Unit>unit(new Unit(model->getUnitIdForDeveloperAgent(),buildingId,0,(*unitsItr).getUnitTypeId(),0,UNIT_PLANNED,(*unitsItr).getFloorArea(),0,0,toDate,std::tm(),UNIT_NOT_LAUNCHED,UNIT_NOT_READY_FOR_OCCUPANCY));
+			BigSerial unitId = model->getUnitIdForDeveloperAgent();
+			boost::shared_ptr<Unit>unit(new Unit(unitId,buildingId,0,(*unitsItr).getUnitTypeId(),0,UNIT_PLANNED,(*unitsItr).getFloorArea(),0,0,toDate,std::tm(),UNIT_NOT_LAUNCHED,UNIT_NOT_READY_FOR_OCCUPANCY));
 			newUnits.push_back(unit);
 			MessageBus::PostMessage(this, LTEID_DEV_UNIT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*unit)), true);
+			writeUnitDataToFile(unitId,(*unitsItr).getNumUnits());
 		}
-		writeUnitDataToFile((*unitsItr).getUnitTypeId(),(*unitsItr).getNumUnits());
+
 	}
 
 }

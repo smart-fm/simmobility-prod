@@ -39,7 +39,7 @@ RealEstateAgent::~RealEstateAgent()
     safe_delete_item(seller);
 }
 
-void RealEstateAgent::addUnitId(const BigSerial& unitId)
+void RealEstateAgent::addNewUnit(const BigSerial& unitId)
 {
     unitIds.push_back(unitId);
     BigSerial tazId = model->getUnitTazId(unitId);
@@ -48,6 +48,9 @@ void RealEstateAgent::addUnitId(const BigSerial& unitId)
     {
         preferableZones.push_back(tazId);
     }
+
+    boost::unordered_map<BigSerial,Unit*>::const_iterator unit = unitsById.find(unitId);
+    model->addUnit( unit->second);
 }
 
 void RealEstateAgent::removeUnitId(const BigSerial& unitId)
@@ -88,13 +91,7 @@ void RealEstateAgent::addNewBuildings(Building *building)
 	}
 }
 
-void RealEstateAgent::addNewUnits(Unit *unit)
-{
-	if(unit != NULL)
-	{
-		units.push_back(unit);
-	}
-}
+
 
 void RealEstateAgent::changeToDateInToBeDemolishedBuildings(BigSerial buildingId,std::tm toDate)
 {
@@ -185,7 +182,13 @@ void RealEstateAgent::processEvent(EventId eventId, Context ctxId, const EventAr
         {
             const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
             Unit *unit = hmArgs.getUnit();
-            units.push_back(unit);
+
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+            unit->setTimeOffMarket(config.ltParams.housingModel.timeOnMarket);
+            unit->setTimeOnMarket(config.ltParams.housingModel.timeOffMarket);
+            unit->setbiddingMarketEntryDay(day + 180 + 1);
+
+           	units.push_back(unit);
             unitsById.insert(std::make_pair((unit)->getId(), unit));
             break;
         }
@@ -208,9 +211,9 @@ void RealEstateAgent::processEvent(EventId eventId, Context ctxId, const EventAr
         }
         case LT_STATUS_ID_HM_UNIT_LAUNCHED_BUT_UNSOLD:
         {
-        	const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
+         	const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
             BigSerial unitId = hmArgs.getUnitId();
-            addUnitId(unitId); // add unit id for sale
+            addNewUnit(unitId); // add unit id for sale
             changeUnitSaleStatus(hmArgs.getUnitId(),UNIT_LAUNCHED_BUT_UNSOLD);
             break;
         }
@@ -220,14 +223,16 @@ void RealEstateAgent::processEvent(EventId eventId, Context ctxId, const EventAr
         	changeUnitPhysicalStatus(hmArgs.getUnitId(),UNIT_READY_FOR_OCCUPANCY_AND_VACANT);
         	break;
         }
-		case LTEID_HM_BUILDING_ADDED: {
+		case LTEID_HM_BUILDING_ADDED:
+		{
 			const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
 			Building *building = hmArgs.getBuilding();
 			buildingsById.insert(std::make_pair(building->getFmBuildingId(), building));
 			addNewBuildings(building);
 			break;
 		}
-		case LT_STATUS_ID_HM_BUILDING_DEMOLISHED: {
+		case LT_STATUS_ID_HM_BUILDING_DEMOLISHED:
+		{
 			const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
 			BigSerial buildingId = hmArgs.getBuildingId();
 			std::tm futureDemolitionDate = hmArgs.getFutureDemolitionDate();
@@ -235,7 +240,8 @@ void RealEstateAgent::processEvent(EventId eventId, Context ctxId, const EventAr
 			changeBuildingStatus(hmArgs.getBuildingId(), BUILDING_DEMOLISHED);
 			break;
 		}
-		case LT_STATUS_ID_HM_BUILDING_UNCOMPLETED_WITH_PREREQUISITES: {
+		case LT_STATUS_ID_HM_BUILDING_UNCOMPLETED_WITH_PREREQUISITES:
+		{
 			const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
 			changeBuildingStatus(hmArgs.getBuildingId(),BUILDING_UNCOMPLETED_WITH_PREREQUISITES);
 			break;

@@ -485,7 +485,9 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 
 BigSerial DeveloperModel::getUnitIdForDeveloperAgent()
 {
-	return ++unitId;
+	boost::lock_guard<boost::recursive_mutex> lock(m_guard);
+	++unitId;
+	return 1400603 + unitId;
 }
 
 void DeveloperModel::setUnitId(BigSerial unitId)

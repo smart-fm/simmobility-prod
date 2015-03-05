@@ -44,11 +44,11 @@ namespace sim_mob
         		UNIT_NOT_READY_FOR_OCCUPANCY = 1, UNIT_READY_FOR_OCCUPANCY_AND_VACANT, UNIT_READY_FOR_OCCUPANCY_AND_OCCUPIED
         	};
         public:
-            RealEstateAgent(BigSerial id, HM_Model* model, const Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0);
+            RealEstateAgent(BigSerial id, HM_Model* model, const Household* hh, HousingMarket* market, bool marketSeller = true, int day = 0);
             virtual ~RealEstateAgent();
             
             //not-thread safe
-            void addUnitId (const BigSerial& unitId);
+            void addNewUnit (const BigSerial& unitId);
             void removeUnitId (const BigSerial& unitId);
             const IdVector& getUnitIds() const;
             const IdVector& getPreferableZones() const;
@@ -56,7 +56,7 @@ namespace sim_mob
             HousingMarket* getMarket() const;
             const Household* getHousehold() const;
             void addNewBuildings(Building *building);
-            void addNewUnits(Unit *unit);
+
             void changeToDateInToBeDemolishedBuildings(BigSerial buildingId,std::tm toDate);
             void changeBuildingStatus(BigSerial buildingId,BuildingStatus buildingStatus);
             void changeUnitStatus(BigSerial unitId,UnitStatus unitStatus);
@@ -110,16 +110,20 @@ namespace sim_mob
             HM_Model* model;
             HousingMarket* market;
             const Household* household;
-            IdVector unitIds;
-            IdVector preferableZones;
+
             RealEstateSellerRole* seller;
             bool marketSeller; //tells if the agent is only a fake market seller
             int day;
-            std::vector<Building*> buildings;
+
+
+            IdVector unitIds;
+            IdVector preferableZones;
+
             std::vector<Unit*> units;
-            boost::unordered_map<BigSerial,Building*> buildingsById;
             boost::unordered_map<BigSerial,Unit*> unitsById;
 
+            std::vector<Building*> buildings;
+            boost::unordered_map<BigSerial,Building*> buildingsById;
         };
     }
 }

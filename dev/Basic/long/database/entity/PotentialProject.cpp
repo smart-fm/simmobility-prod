@@ -16,6 +16,24 @@ PotentialUnit::PotentialUnit(BigSerial unitTypeId,int numUnits,double floorArea,
 
 }
 
+PotentialUnit::PotentialUnit( const PotentialUnit& source)
+{
+	this->unitTypeId = source.unitTypeId;
+	this->numUnits = source.numUnits;
+	this->floorArea = source.floorArea;
+	this->freehold = source.freehold;
+}
+
+PotentialUnit& PotentialUnit::operator=( const PotentialUnit& source)
+{
+	this->unitTypeId = source.unitTypeId;
+	this->numUnits = source.numUnits;
+	this->floorArea = source.floorArea;
+	this->freehold = source.freehold;
+
+	return *this;
+}
+
 PotentialUnit::~PotentialUnit() {
 }
 
@@ -47,8 +65,37 @@ void PotentialUnit::setUnitTypeId(int typeId){
 	this->unitTypeId = typeId;
 }
 
-PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel,double constructionCost, double grossArea,double tempSelectProbability,double investmentReturnRatio)
-								  : devTemplate(devTemplate), parcel(parcel), profit(0) , constructionCost(constructionCost),grossArea(grossArea),tempSelectProbability(tempSelectProbability),investmentReturnRatio(investmentReturnRatio) {}
+PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel,double constructionCost, double grossArea,double tempSelectProbability,double investmentReturnRatio, double demolitionCost, double expRatio)
+								  : devTemplate(devTemplate), parcel(parcel), profit(0) , constructionCost(constructionCost),grossArea(grossArea),tempSelectProbability(tempSelectProbability),
+								    investmentReturnRatio(investmentReturnRatio), demolitionCost(demolitionCost), expRatio(expRatio) {}
+
+PotentialProject::PotentialProject( const PotentialProject &source)
+{
+	this->devTemplate = source.devTemplate;
+	this->parcel = source.parcel;
+	this->profit = source.profit;
+	this->constructionCost = source.constructionCost;
+	this->grossArea = source.grossArea;
+	this->tempSelectProbability = source.tempSelectProbability;
+	this->investmentReturnRatio = source.investmentReturnRatio;
+	this->demolitionCost = source.demolitionCost;
+	this->expRatio = source.expRatio;
+}
+
+PotentialProject& PotentialProject::operator=(const PotentialProject& source)
+{
+	this->devTemplate = source.devTemplate;
+	this->parcel = source.parcel;
+	this->profit = source.profit;
+	this->constructionCost = source.constructionCost;
+	this->grossArea = source.grossArea;
+	this->tempSelectProbability = source.tempSelectProbability;
+	this->investmentReturnRatio = source.investmentReturnRatio;
+	this->demolitionCost = source.demolitionCost;
+	this->expRatio = source.expRatio;
+
+	return *this;
+}
 
 PotentialProject::~PotentialProject() {
 }

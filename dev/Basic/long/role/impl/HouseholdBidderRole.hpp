@@ -78,7 +78,7 @@ namespace sim_mob
              */
             virtual void update(timeslice currTime);
 
-            void setVehicleOwnershipOption();
+            void reconsiderVehicleOwnershipOption();
 
             double getExpOneCar(int unitTypeId);
 

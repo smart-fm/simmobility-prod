@@ -342,7 +342,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     return biddingEntry.isValid();
 }
 
-void HouseholdBidderRole::setVehicleOwnershipOption()
+void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 {
 	const HM_Model* model = getParent()->getModel();
 	HM_Model::VehicleOwnershipCoeffList coefficients = model->getVehicleOwnershipCoeffs();

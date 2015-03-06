@@ -478,17 +478,10 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 	}
 }
 
-enum UnitStatus{
-	UNIT_PLANNED, UNIT_UNDER_CONSTRUCTION, UNIT_CONSTRUCTION_COMPLETED, UNIT_DEMOLISHED
-};
-enum UnitSaleStatus {
-	UNIT_NOT_LAUNCHED = 1, UNIT_LAUNCHED_BUT_UNSOLD, UNIT_LAUNCHED_AND_SOLD};
-enum UnitPhysicalStatus {
-    UNIT_NOT_READY_FOR_OCCUPANCY = 1, UNIT_READY_FOR_OCCUPANCY_AND_VACANT, UNIT_READY_FOR_OCCUPANCY_AND_OCCUPIED};
-
-Unit* DeveloperModel::makeNewUnit( std::vector<PotentialUnit>::iterator unitsItr, std::tm toDate)
+Unit* DeveloperModel::makeNewUnit( std::vector<PotentialUnit>::iterator unitsItr, std::tm toDate, BigSerial newBuildingId)
 {
-	newUnits.push_back(new Unit(getUnitIdForDeveloperAgent(),buildingId,0,(*unitsItr).getUnitTypeId(),0,UNIT_PLANNED,(*unitsItr).getFloorArea(),0,0,toDate,std::tm(),UNIT_NOT_LAUNCHED,UNIT_NOT_READY_FOR_OCCUPANCY));
+	newUnits.push_back( new Unit( getUnitIdForDeveloperAgent(), newBuildingId, 0, (*unitsItr).getUnitTypeId(),0, DeveloperAgent::UNIT_PLANNED, (*unitsItr).getFloorArea(), 0, 0, toDate,std::tm(),
+			DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY ) );
 	return newUnits[newUnits.size() - 1];
 }
 

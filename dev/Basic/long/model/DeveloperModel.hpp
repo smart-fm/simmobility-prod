@@ -145,7 +145,7 @@ namespace sim_mob {
              */
             boost::recursive_mutex m_guard;
             BigSerial getUnitIdForDeveloperAgent();
-            Unit* 	  makeNewUnit(std::vector<PotentialUnit>::iterator unitsItr, std::tm toDate);
+            Unit* 	  makeNewUnit(std::vector<PotentialUnit>::iterator unitsItr, std::tm toDate, BigSerial newBuildingId);
 
             void setUnitId(BigSerial unitId);
             /*

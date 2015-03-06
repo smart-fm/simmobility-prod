@@ -41,7 +41,7 @@
 
             <plaintext-credential id="LT_cred">
                 <username value="postgres"/>
-                <password value="welcome123"/>
+                <password value="postgres"/>
             </plaintext-credential>
         </credentials>
     </constructs>

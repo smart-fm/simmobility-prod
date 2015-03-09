@@ -9,7 +9,7 @@ using namespace sim_mob;
 using namespace medium;
 
 ModeDestinationParams::ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, StopType purpose, int originCode)
-: zoneMap(zoneMap), amCostsMap(amCostsMap), pmCostsMap(pmCostsMap), purpose(purpose), origin(originCode), OPERATIONAL_COST(0.147), MAX_WALKING_DISTANCE(2),
+: zoneMap(zoneMap), amCostsMap(amCostsMap), pmCostsMap(pmCostsMap), purpose(purpose), origin(originCode), OPERATIONAL_COST(0.147), MAX_WALKING_DISTANCE(3),
   cbdOrgZone(false)
 {}
 
@@ -219,8 +219,8 @@ int TourModeDestinationParams::isAvailable_TMD(int choiceId) const {
 	}
 	// walk 7645 - 8736
 	if (choiceId <= 8 * numZones) {
-		return (amCostsMap.at(origin).at(destination)->getDistance() <= 2
-				&& pmCostsMap.at(destination).at(origin)->getDistance() <= 2);
+		return (amCostsMap.at(origin).at(destination)->getDistance() <= MAX_WALKING_DISTANCE
+				&& pmCostsMap.at(destination).at(origin)->getDistance() <= MAX_WALKING_DISTANCE	);
 	}
 	// taxi 8737 - 9828
 	if (choiceId <= 9 * numZones) {

@@ -42,9 +42,8 @@ using namespace mongo;
 
 namespace {
 	const double HIGH_TRAVEL_TIME = 999.0;
-	const double WALKABLE_DISTANCE = 3.0;
 	const double PEDESTRIAN_WALK_SPEED = 5.0; //kmph
-
+	const double WALKABLE_DISTANCE = 3.0; //km
 	const int AM_PEAK_LOW = 10;
 	const int AM_PEAK_HIGH = 13;
 	const int PM_PEAK_LOW = 30;

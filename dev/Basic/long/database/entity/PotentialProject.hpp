@@ -102,10 +102,11 @@ namespace sim_mob {
             void setDemolitionCost(double demCost);
 
             std::vector<TemplateUnitType*> templateUnitTypes;
+            std::vector<PotentialUnit> units;
         private:
             const DevelopmentTypeTemplate* devTemplate;
             const Parcel* parcel;
-            std::vector<PotentialUnit> units;
+
             std::vector<int> unitTypes;
             typedef boost::unordered_map<int,int> UnitMap;
             UnitMap unitMap;

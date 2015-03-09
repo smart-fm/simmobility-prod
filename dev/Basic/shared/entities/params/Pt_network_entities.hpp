@@ -8,6 +8,9 @@
  *  Created on: Feb 24, 2015
  *  \author Prabhuraj
  */
+
+#pragma once
+
 #include <string>
 
 namespace sim_mob{

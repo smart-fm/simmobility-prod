@@ -510,6 +510,10 @@ bool sim_mob::ConfigParams::CBD() const{
 	return cbd;
 }
 
+bool sim_mob::ConfigParams::public_transit_enabled() const{
+	return public_transit_enabled;
+}
+
 const std::set<sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxes() const
 {
 	return confluxes;

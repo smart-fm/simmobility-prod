@@ -382,6 +382,9 @@ public:
 	///	is CBD area restriction enforced
 	bool cbd;
 
+	// Is the public transit enabled or not
+	bool public_transit_enabled;
+
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;
 

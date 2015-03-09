@@ -266,7 +266,8 @@ void PredaySystem::predictTourMode(Tour& tour) {
 	tmParams.setEducationOp(znDesObj->getTotalEnrollment());
 	tmParams.setOriginArea(znOrgObj->getArea());
 	tmParams.setDestinationArea(znDesObj->getArea());
-	if(personParams.getHomeLocation() != tour.getTourDestination()) {
+	if(personParams.getHomeLocation() != tour.getTourDestination())
+	{
 		CostParams* amObj = amCostMap.at(personParams.getHomeLocation()).at(tour.getTourDestination());
 		CostParams* pmObj = pmCostMap.at(tour.getTourDestination()).at(personParams.getHomeLocation());
 		tmParams.setCostPublicFirst(amObj->getPubCost());
@@ -286,9 +287,10 @@ void PredaySystem::predictTourMode(Tour& tour) {
 		tmParams.setTtCarIvtFirst(amObj->getCarIvt());
 		tmParams.setTtCarIvtSecond(pmObj->getCarIvt());
 		tmParams.setAvgTransfer((amObj->getAvgTransfer() + pmObj->getAvgTransfer())/2);
-		switch(tmParams.getStopType()){
+		switch(tmParams.getStopType())
+		{
 		case WORK:
-			tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn());
+			tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
 			tmParams.setShare2Available(1);
 			tmParams.setShare3Available(1);
 			tmParams.setPublicBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
@@ -311,7 +313,8 @@ void PredaySystem::predictTourMode(Tour& tour) {
 			break;
 		}
 	}
-	else {
+	else
+	{
 		tmParams.setCostPublicFirst(0);
 		tmParams.setCostPublicSecond(0);
 		tmParams.setCostCarErpFirst(0);

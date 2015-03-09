@@ -510,7 +510,7 @@ bool sim_mob::ConfigParams::CBD() const{
 	return cbd;
 }
 
-bool sim_mob::ConfigParams::public_transit_enabled() const{
+bool sim_mob::ConfigParams::Public_transit_enabled() const{
 	return public_transit_enabled;
 }
 

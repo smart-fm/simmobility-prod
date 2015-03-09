@@ -19,7 +19,7 @@ namespace sim_mob{
 
 class PT_VerticesSqlDao : public db::SqlAbstractDao<PT_NetworkVertices> {
 public:
-	PT_VerticesSqlDao(db::DB_Connection& connection);
+	PT_VerticesSqlDao(db::DB_Connection& connection,std::string query);
 	virtual ~PT_VerticesSqlDao();
 
 private:
@@ -44,7 +44,7 @@ private:
 
 class Pt_EdgesSqlDao : public db::SqlAbstractDao<PT_NetworkEdges> {
 public:
-	Pt_EdgesSqlDao(db::DB_Connection& connection);
+	Pt_EdgesSqlDao(db::DB_Connection& connection,std::string query);
 	virtual ~Pt_EdgesSqlDao();
 
 private:

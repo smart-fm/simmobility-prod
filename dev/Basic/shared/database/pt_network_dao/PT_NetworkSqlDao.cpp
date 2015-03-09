@@ -21,9 +21,9 @@ using namespace sim_mob::db;
 
 
 
-PT_VerticesSqlDao::PT_VerticesSqlDao(DB_Connection& connection) :
+PT_VerticesSqlDao::PT_VerticesSqlDao(DB_Connection& connection,std::string query):
 		SqlAbstractDao<PT_NetworkVertices>(connection, "", "", "", "",
-		"SELECT * FROM " + ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_vertices"], "")
+		query, "")
 {
 	/*
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
@@ -49,9 +49,9 @@ void PT_VerticesSqlDao::fromRow(Row& result, PT_NetworkVertices& outObj) {
 void PT_VerticesSqlDao::toRow(PT_NetworkVertices& data, Parameters& outParams, bool update) {
 }
 
-Pt_EdgesSqlDao::Pt_EdgesSqlDao(DB_Connection& connection):
+Pt_EdgesSqlDao::Pt_EdgesSqlDao(DB_Connection& connection,std::string query):
 		SqlAbstractDao<PT_NetworkEdges>(connection, "", "", "", "",
-				"SELECT * FROM " + ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_edges"], "")
+				query, "")
 {
 	/*
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();

@@ -160,9 +160,16 @@ public:
   //Moves the vehicle by given amount along the trajectory
   virtual DPoint continueDriving (double amount);
 
+  void makePolypoints(const DPoint& fromLanePt, const DPoint& toLanePt);
+
   //Depending on the conflicting vehicles, calculates the acceleration that allows the vehicle to 
   //pass through without colliding with the other vehicles
   virtual double makeAcceleratingDecision(DriverUpdateParams& params, const TurningSection *currTurning);  
+
+private:
+  /// store polypoints of the turning path
+  std::vector<DPoint> polypoints;
+
 };
   
 }

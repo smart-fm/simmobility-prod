@@ -37,6 +37,12 @@ DPoint MITSIM_IntDriving_Model::continueDriving(double amount)
 	return DPoint (temp.getX (), temp.getY ());
 }
 
+void MITSIM_IntDriving_Model::makePolypoints(const DPoint& fromLanePt, const DPoint& toLanePt) {
+	// 1.0 calculate circle radius
+	// 2.0 calculate center point position
+	// 3.0 all points position on a circle
+	// filter base on from/to points x,y range
+}
 double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& params, const TurningSection* currTurning)
 {
 	double acc = params.maxAcceleration;

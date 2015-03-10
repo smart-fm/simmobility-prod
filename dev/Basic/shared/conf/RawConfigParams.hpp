@@ -215,6 +215,7 @@ struct PathSetConf
 			maxHighwayParam = 0.422;
 		}
 	};
+	double maxSegSpeed; //represents max_segment_speed attribute in xml, used in travel time based a_star heuristic function
 	/// Utility Parameters
 	UtilityParams params;
 };

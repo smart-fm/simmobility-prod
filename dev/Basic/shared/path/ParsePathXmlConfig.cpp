@@ -171,6 +171,11 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 	xercesc::DOMElement* gen = GetSingleElementByName(node, "path_generators");
 	if(gen)
 	{
+		cfg.maxSegSpeed = ParseFloat(GetNamedAttributeValue(gen, "max_segment_speed"),0.0);
+		if(cfg.maxSegSpeed <= 0.0)
+		{
+			throw std::runtime_error("Invalid or missing max_segment_speed attribute in the pathset configuration file");
+		}
 		//random perturbation
 		xercesc::DOMElement* random = GetSingleElementByName(gen, "random_perturbation");
 		if(random)

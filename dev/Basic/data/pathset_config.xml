@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
-<pathset enabled="false" mode="generation"> <!-- currently, "normal" and "generation" are supported modes --> 
+<pathset enabled="true" mode="normal"> <!-- currently, "normal" and "generation" are supported modes --> 
 	<bulk_generation_output_file_name value="pathset_bulk-new_3.csv" />
 	<thread_pool size="7"/>
 	<pathset_database database="fm_local_path_choice"  credentials="fm_local_path_choice" /> <!--unused for now-->
@@ -25,8 +25,8 @@
 		<minSignalParam value="0.256"/>
 		<maxHighwayParam value="0.422"/>
 	</utility_parameters>
-	<path_generators>																
-		<k_shortest level="3" />														
+	<path_generators max_segment_speed="27.78">	<!-- 27.78 = 100km/hr => 100/3.6 meter/seconds -->														
+		<k_shortest level="3" />
 		<link_elimination types="default,highway" />	<!-- unused for now. only default and highway are used in the code-->									
 		<random_perturbation modes="time" iteration="20" uniform_range="1,1000" /> <!-- for 'modes' attribute, only "time" is supported for now -->		
 	</path_generators>

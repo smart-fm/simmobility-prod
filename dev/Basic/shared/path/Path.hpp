@@ -98,7 +98,7 @@ public:
 class PathSet
 {
 public:
-	PathSet():  logsum(0),hasPath(false),bestPath(nullptr),oriPath(nullptr),isNeedSave2DB(false),id("")  {pathChoices.clear();}
+	PathSet():  logsum(0.0),hasPath(false),bestPath(nullptr),oriPath(nullptr),isNeedSave2DB(false),id("")  {pathChoices.clear();}
 	~PathSet();
 	///	returns the rough size of object in Bytes
 	uint32_t getSize();

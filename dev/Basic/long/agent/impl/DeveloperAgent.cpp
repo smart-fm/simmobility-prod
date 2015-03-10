@@ -468,7 +468,6 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 			newUnits.push_back(unit);
 			writeUnitDataToFile(unit->getId(),(*unitsItr).getNumUnits());
 			MessageBus::PostMessage(this, LTEID_DEV_UNIT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*unit)), true);
-			writeUnitDataToFile(unitId,(*unitsItr).getNumUnits());
 		}
 
 	}

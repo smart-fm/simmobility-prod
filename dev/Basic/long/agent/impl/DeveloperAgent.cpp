@@ -330,7 +330,7 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* mo
 
                 	if(projects.size()>0)
                 	{
-                		for (projectIt = projects.begin(); projectIt != projects.end(); it++)
+                		for (projectIt = projects.begin(); projectIt != projects.end(); projectIt++)
                 		{
                 			if( (pTemp < randomNum) && ( randomNum < ((*projectIt).getTempSelectProbability() + pTemp)))
                 			{

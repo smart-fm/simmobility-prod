@@ -81,11 +81,6 @@ PotentialProject::PotentialProject( const PotentialProject &source)
 	this->demolitionCost = source.demolitionCost;
 	this->expRatio = source.expRatio;
 	this->units = source.units;
-	for(int i=0; i< source.units.size();i++)
-	{
-		this->units[i] = source.units[i];
-	}
-
 }
 
 PotentialProject& PotentialProject::operator=(const PotentialProject& source)
@@ -100,10 +95,6 @@ PotentialProject& PotentialProject::operator=(const PotentialProject& source)
 	this->demolitionCost = source.demolitionCost;
 	this->expRatio = source.expRatio;
 	this->units = source.units;
-	for(int i=0; i< source.units.size();i++)
-	{
-		this->units[i] = source.units[i];
-	}
 
 	return *this;
 }

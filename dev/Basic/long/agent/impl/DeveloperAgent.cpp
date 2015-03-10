@@ -131,7 +131,7 @@ inline void writeParcelDataToFile(Parcel &parcel) {
  * @param unit to be written.
  *
  */
-inline void writeUnitDataToFile(int unitId, int numUnits) {
+inline void writeUnitDataToFile(BigSerial unitId, int numUnits) {
 
 	boost::format fmtr = boost::format(LOG_UNIT) % unitId % numUnits;
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::UNITS,fmtr.str());
@@ -459,8 +459,9 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 		for(size_t i=0; i< (*unitsItr).getNumUnits();i++)
 		{
 			BigSerial unitId = model->getUnitIdForDeveloperAgent();
-			boost::shared_ptr<Unit>unit(new Unit(unitId,buildingId,0,(*unitsItr).getUnitTypeId(),0,UNIT_PLANNED,(*unitsItr).getFloorArea(),0,0,toDate,std::tm(),UNIT_NOT_LAUNCHED,UNIT_NOT_READY_FOR_OCCUPANCY));
+			Unit *unit = new Unit(unitId,buildingId,0,(*unitsItr).getUnitTypeId(),0,UNIT_PLANNED,(*unitsItr).getFloorArea(),0,0,toDate,std::tm(),UNIT_NOT_LAUNCHED,UNIT_NOT_READY_FOR_OCCUPANCY);
 			newUnits.push_back(unit);
+			writeUnitDataToFile(unitId,(*unitsItr).getNumUnits());
 			MessageBus::PostMessage(this, LTEID_DEV_UNIT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*unit)), true);
 			writeUnitDataToFile(unitId,(*unitsItr).getNumUnits());
 		}
@@ -492,7 +493,8 @@ void DeveloperAgent::processExistingProjects()
 {
 	int projectDuration = this->fmProject->getCurrTick();
 	std::vector<boost::shared_ptr<Building> >::iterator buildingsItr;
-	std::vector<boost::shared_ptr<Unit> >::iterator unitsItr;
+	//std::vector<boost::shared_ptr<Unit> >::iterator unitsItr;
+	std::vector<Unit*>::iterator unitsItr;
 	const int secondMonth = 59;
 	const int fourthMonth = 119;
 	const int sixthMonth = 179;
@@ -539,10 +541,12 @@ void DeveloperAgent::processExistingProjects()
 			if(unitsRemain)
 			{
 
-				std::vector<boost::shared_ptr<Unit> >::iterator first;
-				std::vector<boost::shared_ptr<Unit> >::iterator last;
+				//std::vector<boost::shared_ptr<Unit> >::iterator first;
+				//std::vector<boost::shared_ptr<Unit> >::iterator last;
+				std::vector<Unit*>::iterator first;
+				std::vector<Unit*>::iterator last;
 				setUnitsForHM(first,last);
-				std::vector<boost::shared_ptr<Unit> > unitsToSale(first,last);
+				std::vector<Unit*> unitsToSale(first,last);
 
 				for(unitsItr = unitsToSale.begin(); unitsItr != unitsToSale.end(); unitsItr++)
 				{
@@ -561,7 +565,7 @@ void DeveloperAgent::processExistingProjects()
 
 }
 
-void DeveloperAgent::setUnitsForHM(std::vector<boost::shared_ptr<Unit> >::iterator &first,std::vector<boost::shared_ptr<Unit> >::iterator &last)
+void DeveloperAgent::setUnitsForHM(std::vector<Unit*>::iterator &first,std::vector<Unit*>::iterator &last)
 {
 	const int totalUnits = newUnits.size();
 	const double monthlyUnitsFraction = 0.2;

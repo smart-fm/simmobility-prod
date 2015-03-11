@@ -185,6 +185,8 @@ public:
 
 	bool CBD() const;
 	
+	bool PublicTransitEnabled() const;
+
 private:
 	ConfigParams();
 

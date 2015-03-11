@@ -68,20 +68,20 @@ public:
     virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) = 0;
 
     //Moves the vehicle by given amount along the trajectory
-    virtual DPoint continueDriving(double amount) = 0;
+    virtual DPoint continueDriving(double amount,DriverUpdateParams& p) = 0;
     
     //Depending on the conflicting vehicles, calculates the acceleration that allows the vehicle to 
     //pass through without colliding with the other vehicles
     virtual double makeAcceleratingDecision(DriverUpdateParams& params, const TurningSection *currTurning) = 0;
 
     //Returns the current angle of the vehicle according to the position in the trajectory
-    double getCurrentAngle() { return intTrajectory.getAngle(); }
+    virtual double getCurrentAngle() { return intTrajectory.getAngle(); }
 
     //Returns the distance covered within the intersection
     double getMoveDistance() { return totalMovement; }
 
     //Checks whether we've completed driving in the intersection
-    bool isDone() { return totalMovement >= intTrajectory.getMagnitude(); }
+    virtual bool isDone() { return totalMovement >= intTrajectory.getMagnitude(); }
     
     //Getter for the intersection visibility distance
     int getIntersectionVisbility() const { return intersectionVisbility; }
@@ -158,7 +158,11 @@ public:
   virtual void startDriving (const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset);
 
   //Moves the vehicle by given amount along the trajectory
-  virtual DPoint continueDriving (double amount);
+  virtual DPoint continueDriving (double amount,DriverUpdateParams& p);
+
+  virtual double getCurrentAngle();
+
+  virtual bool isDone();
 
   void makePolypoints(const DPoint& fromLanePt, const DPoint& toLanePt);
 
@@ -169,6 +173,15 @@ public:
 private:
   /// store polypoints of the turning path
   std::vector<DPoint> polypoints;
+  std::vector<DPoint>::iterator polypointIter;
+
+  DPoint currPosition;
+  DynamicVector currPolyline;
+
+  /// length of the turning
+  double length;
+
+  double polylineMovement;
 
 };
   

@@ -29,10 +29,17 @@ namespace sim_mob
  *
  * \author Seth N. Hetu
  */
-struct DPoint {
+class DPoint {
+public:
 	double x;
 	double y;
 	explicit DPoint(double x=0.0, double y=0.0) : x(x), y(y) {}
+
+	DPoint& operator=( const DPoint& other ) {
+		x = other.x;
+		y = other.y;
+		return *this;
+	}
 };
 
 } //namespace sim_mob

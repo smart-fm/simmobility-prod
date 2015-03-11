@@ -9,6 +9,8 @@
 #include "models/IntersectionDrivingModel.hpp"
 #include "Driver.hpp"
 
+#include <math.h>
+
 using namespace std;
 using namespace sim_mob;
 
@@ -25,23 +27,115 @@ MITSIM_IntDriving_Model::~MITSIM_IntDriving_Model()
 
 void MITSIM_IntDriving_Model::startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset)
 {
-	intTrajectory = DynamicVector (fromLanePt.x, fromLanePt.y, toLanePt.x, toLanePt.y);
+	makePolypoints(fromLanePt,toLanePt);
+	polypointIter = polypoints.begin();
+//	intTrajectory = DynamicVector (fromLanePt.x, fromLanePt.y, toLanePt.x, toLanePt.y);
+	DPoint p1 = (*polypointIter);
+	DPoint p2 = *(polypointIter+1);
+	currPolyline = DynamicVector ( (*polypointIter).x, (*polypointIter).y, (*(polypointIter+1)).x, (*(polypointIter+1)).y);
+	polypointIter++;
+	if(polypointIter == polypoints.end()) {
+		//polypoints only have one point? throw error
+		std::string str = "MITSIM_IntDriving_Model polypoints only have one point.";
+		throw std::runtime_error(str);
+	}
+	currPosition = fromLanePt;
 	totalMovement = startOffset;
+	polylineMovement = startOffset;
 }
 
-DPoint MITSIM_IntDriving_Model::continueDriving(double amount)
+DPoint MITSIM_IntDriving_Model::continueDriving(double amount,DriverUpdateParams& p)
 {
+	if(amount == 0){
+		return currPosition;
+	}
 	totalMovement += amount;
-	DynamicVector temp (intTrajectory);
-	temp.scaleVectTo (totalMovement).translateVect ();
-	return DPoint (temp.getX (), temp.getY ());
-}
+	// check "amout" exceed the rest length of the DynamicVector
+	DynamicVector tt(currPosition.x,currPosition.y,currPolyline.getEndX(),currPolyline.getEndY());
+	double restLen = tt.getMagnitude();
 
+	if (amount > restLen &&  polypointIter != polypoints.end() && polypointIter+1 != polypoints.end() ){
+		// move to next polyline, if has
+		polylineMovement = amount - restLen;
+		currPolyline = DynamicVector ( (*polypointIter).x, (*polypointIter).y, (*(polypointIter+1)).x, (*(polypointIter+1)).y);
+		polypointIter++;
+
+//		currPolyline.scaleVectTo (totalMovement).translateVect ();
+//		currPosition = DPoint (currPolyline.getX (), currPolyline.getY ());
+	}
+	else {
+		polylineMovement += amount;
+	}
+
+	std::cout<<std::endl;
+	std::cout<<"tick: "<<p.now.frame()<<" amount: "<<amount<<" restLen: "<<restLen<< " polylineMovement: "<<polylineMovement<< " totalMovement: "<<totalMovement<<std::endl;
+	std::cout<<std::setprecision(10)<<"currPolyline: "<<currPolyline.getX()<<" "<<currPolyline.getY()<<" "<<currPolyline.getEndX()<<" "<<currPolyline.getEndY()<<std::endl;
+	DynamicVector temp = currPolyline;
+	temp.scaleVectTo (polylineMovement).translateVect ();
+
+	currPosition = DPoint (temp.getX (), temp.getY ());
+
+	std::cout<<"currPosition: "<<currPosition.x<<" "<<currPosition.y<<std::endl;
+
+//	currPolyline = (currPosition.x,currPosition.y,currPolyline.getEndX(),currPolyline.getEndY());
+
+	return currPosition;
+}
+bool MITSIM_IntDriving_Model::isDone() {
+	return totalMovement >= length;
+}
+double MITSIM_IntDriving_Model::getCurrentAngle(){
+	return currPolyline.getAngle();
+}
 void MITSIM_IntDriving_Model::makePolypoints(const DPoint& fromLanePt, const DPoint& toLanePt) {
 	// 1.0 calculate circle radius
+	//http://rossum.sourceforge.net/papers/CalculationsForRobotics/CirclePath.htm
+
 	// 2.0 calculate center point position
 	// 3.0 all points position on a circle
 	// filter base on from/to points x,y range
+
+	//http://stackoverflow.com/questions/5300938/calculating-the-position-of-points-in-a-circle
+
+	// make dummy polypoints
+	double dy = -fromLanePt.y + toLanePt.y;
+	double dx = -fromLanePt.x + toLanePt.x;
+
+	double k = atan2(dy,dx);
+
+	double kk = -k+3.14/2.0;
+
+	double b = 500.0; // 10 meter
+
+	// middle point position
+	double xm,ym;
+	if(fromLanePt.x > toLanePt.x){
+		xm = toLanePt.x + abs(dx)/2.0;
+	}
+	else {
+		xm = fromLanePt.x + abs(dx)/2.0;
+	}
+
+	if(fromLanePt.y > toLanePt.y){
+		ym = toLanePt.y + abs(dy)/2.0;
+	}
+	else {
+		ym = fromLanePt.y + abs(dy)/2.0;
+	}
+
+	double xx = b* cos(kk) + xm;
+	double yy = b*sin(kk) + ym;
+
+	DPoint dp(xx,yy);
+
+	polypoints.push_back(fromLanePt);
+	polypoints.push_back(dp);
+	polypoints.push_back(toLanePt);
+
+	std::cout<<std::setprecision(10)<<"dp x: "<<dp.x<<" y: "<<dp.y<<std::endl;
+	//
+	length = sqrt( (fromLanePt.x-dp.x)*(fromLanePt.x-dp.x) + (fromLanePt.y-dp.y)*(fromLanePt.y-dp.y));
+	length += sqrt( (toLanePt.x-dp.x)*(toLanePt.x-dp.x) + (toLanePt.y-dp.y)*(toLanePt.y-dp.y));
 }
 double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& params, const TurningSection* currTurning)
 {

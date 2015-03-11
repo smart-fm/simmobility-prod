@@ -55,13 +55,25 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& par
 
 		//Calculate the distance to conflict point from current position
 		distToConflict = distToConflict - (params.driver->moveDisOnTurning_ / 100) - vehicleLength;
+		
+		//If the vehicle is approaching the intersection rather than already in it, add the distance to the end
+		//of the segment to the distance to conflict
+		if(params.isApproachingIntersection)
+		{
+			distToConflict += params.driver->distToIntersection_.get();
+		}
 
 		//If we're yet to reach the conflict, calculate the time required for us and the conflict driver
 		//else go to the next conflict
-		if (distToConflict > 0)
+		if (distToConflict > 0.0)
 		{
 			//Time taken to reach conflict by current driver
-			double timeToConflict = abs(distToConflict) / (params.currSpeed + Math::DOUBLE_EPSILON);
+			double timeToConflict = DBL_MAX;
+			
+			if(params.currSpeed > 0.0)
+			{
+				timeToConflict = abs(distToConflict) / params.currSpeed;
+			}			
 
 			//Time taken to reach conflict point by incoming driver
 			double timeToConflictOtherDriver = DBL_MAX;
@@ -79,28 +91,42 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& par
 				//point - distance less than 0 means yet to reach the conflict and greater than 0 means crossed the conflict point
 				while (itNearestVehicles != itConflictVehicles->second.end())
 				{
-					//Check if the vehicle is yet to arrive at the conflict point and is not slowing down
-					if (itNearestVehicles->distance < 0
-						&& itNearestVehicles->driver->IsYieldingInIntersection() == false)
+					//Check if the vehicle is yet to arrive at the conflict point
+					if (itNearestVehicles->distance <= itNearestVehicles->driver->getVehicleLengthM())
 					{
+						//If a driver is already yielding to us, scan the next conflict
+						if(itNearestVehicles->driver->getYieldingToInIntersection() == params.parentId)
+						{
+							break;
+						}
+						
 						//Speed of the incoming vehicle (m/s))
 						double speed = itNearestVehicles->driver->getVehicle()->getVelocity() / 100;
 
-						//Negate the distance while calculating the time
-						timeToConflictOtherDriver = abs(itNearestVehicles->distance) / (speed + Math::DOUBLE_EPSILON);
-
+						if(speed > 0.0)
+						{
+							//Negate the distance while calculating the time
+							timeToConflictOtherDriver = abs(itNearestVehicles->distance) / speed;
+						}						
+						
+						Driver *drv = const_cast<Driver *>(itNearestVehicles->driver);
+						DriverUpdateParams &paramsOtherDriver = drv->getParams();
+						
+						//The gap between the drivers
+						double gap = abs(timeToConflictOtherDriver - timeToConflict);						
+						
 						//Calculate the critical gap
 						//It is the max of: minimumGap and the difference between the 
 						//criticalGap for the turning conflict and a random value
 						double criticalGap = (*itConflicts)->getCriticalGap();
-						criticalGap = max(criticalGap + Utils::nRandom(criticalGapAddOn[0], criticalGapAddOn[1]), minimumGap) ;
-
-						double gap = timeToConflict - timeToConflictOtherDriver;
-
+						criticalGap += Utils::nRandom(criticalGapAddOn[0], criticalGapAddOn[1]);
+						criticalGap -= (params.impatienceTimer * impatienceFactor);
+						criticalGap = max(criticalGap, minimumGap);						
+						
 						//If the gap between current driver and the conflicting driver is less than the critical gap,
 						//reject the gap (slow down)
-						if (abs(gap) < criticalGap)
-						{
+						if (gap < criticalGap)
+						{							
 							//Calculate the deceleration required to stop before conflict
 							double brakingAcc = brakeToStop(distToConflict, params);
 
@@ -108,7 +134,20 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& par
 							if (acc > brakingAcc)
 							{
 								acc = brakingAcc;
-								params.driver->setYieldingInIntersection(true);
+								params.driver->setYieldingToInIntersection(paramsOtherDriver.parentId);
+							}							
+						}
+						//Check whether we're accepting the gap because the time couldn't be calculated 
+						//properly - if so crawl
+						else if(params.currSpeed <= 0.001)
+						{
+							//If we're stationary, crawl to conflict point
+							double crawlAcc = crawlingAcc(distToConflict, params);
+							
+							if(acc > crawlAcc)
+							{
+								acc = crawlAcc;
+								params.driver->setYieldingToInIntersection(paramsOtherDriver.parentId);
 							}
 						}
 					}
@@ -143,6 +182,7 @@ void MITSIM_IntDriving_Model::initParam(DriverUpdateParams& params)
 	parameterMgr->param(modelName, "intersection_attentiveness_factor_max", intersectionAttentivenessFactorMax, 3.0);
 	parameterMgr->param(modelName, "minimum_gap", minimumGap, 0.0);
 	parameterMgr->param(modelName, "critical_gap_addon", critical_gap_addon, string("0.0 2.5"));
+	parameterMgr->param(modelName, "impatience_factor", impatienceFactor, 0.2);
 
 	//Vector to store the tokenized parameters
 	std::vector<string> gapAddonParams;
@@ -180,10 +220,14 @@ double MITSIM_IntDriving_Model::brakeToStop(double distance, DriverUpdateParams&
 {
 	if (distance > sim_mob::Math::DOUBLE_EPSILON)
 	{
+		//v^2 = u^2 + 2as (Equation of motion)
+		//So, a = (v^2 - u^2) / 2s
+		//v = final velocity, u = initial velocity
+		//a = acceleration, s = displacement
 		double sqCurrVel = params.currSpeed * params.currSpeed;
 		double acc = -sqCurrVel / distance * 0.5;
 
-		if (acc <= params.normalDeceleration)
+		if (acc >= params.normalDeceleration)
 		{
 			return acc;
 		}
@@ -191,8 +235,8 @@ double MITSIM_IntDriving_Model::brakeToStop(double distance, DriverUpdateParams&
 		double dt = params.nextStepSize;
 		double vt = params.currSpeed * dt;
 		double a = dt * dt;
-		double b = 2.0 * vt - params.normalDeceleration * a;
-		double c = sqCurrVel + 2.0 * params.normalDeceleration * (distance - vt);
+		double b = 2.0 * vt + params.normalDeceleration * a;
+		double c = sqCurrVel - 2.0 * params.normalDeceleration * abs(distance - vt);
 		double d = b * b - 4.0 * a * c;
 
 		if (d < 0 || a <= 0.0)
@@ -201,9 +245,16 @@ double MITSIM_IntDriving_Model::brakeToStop(double distance, DriverUpdateParams&
 		}
 
 		return (sqrt(d) - b) / a * 0.5;
-	} else
+	} 
+	else
 	{
 		double dt = params.nextStepSize;
 		return (dt > 0.0) ? -(params.currSpeed) / dt : params.maxDeceleration;
 	}
+}
+
+double MITSIM_IntDriving_Model::crawlingAcc(double distance, DriverUpdateParams& params)
+{
+	//Acceleration to slowly crawl towards the conflict point
+	return 2 * ((distance / 2) - params.currSpeed * params.nextStepSize) / (params.nextStepSize * params.nextStepSize);
 }

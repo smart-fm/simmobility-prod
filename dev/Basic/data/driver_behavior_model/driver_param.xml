@@ -61,7 +61,7 @@
 	
 	where:
 	Spd: speed of the subject vehicle
-	Stimulus = <Desired Speed> - <Current Speed
+	Stimulus = <Desired Speed> - <Current Speed>
 
 	This model applies only if the current speed is greater than b[0].
 	Default values are:-->
@@ -74,7 +74,7 @@
 	<param name="FF_Acc_Params_b2" value="0.3091"/>
 	<param name="FF_Acc_Params_stddev" value="1.134"/-->
 
-	<param name="FF_Acc_Params_b0" value="3.0"/>
+	<param name="FF_Acc_Params_b0" value="10.0"/>
 	<param name="FF_Acc_Params_b2" value="0.3091"/>
 	<param name="FF_Acc_Params_stddev" value="1.15"/>
 
@@ -225,7 +225,7 @@
 	
 <!--This is the distance at which an intersection and vehicles approaching it from other links become visible
 	to a driver.(in metres)-->
-	<param name="intersection_visibility" value="30"/>
+	<param name="intersection_visibility" value="50"/>
 
 <!-- H. LANE CHANGE MODEL PARAMETERS -->
 
@@ -369,15 +369,18 @@
 
 <!-- K. INTERSECTION DRIVING PARAMETERS -->
 	<!--Intersection attentiveness factor-->
-	<param name="intersection_attentiveness_factor_min" value="0.1"/>
-	<param name="intersection_attentivneess_factor_max" value="0.3"/>
+	<param name="intersection_attentiveness_factor_min" value="0.3"/>
+	<param name="intersection_attentivneess_factor_max" value="0.6"/>
 	
 	<!--Minimum gap-->
-	<param name="minimum_gap" value="1.5"/>
+	<param name="minimum_gap" value="1.25"/>
 	
 	<!--Critical gap random addon
 											mean	std.dev-->
-	<param name="critical_gap_addon" value="0.0		0.5"/>
+	<param name="critical_gap_addon" value="1.0		0.5"/>
+	
+	<!--Impatience factor-->
+	<param name="impatience_factor" value="0.2"/>
 	
 <!-- L. OTHERS -->
 	<!-- minimum speed to consider for a moving vehicle -->

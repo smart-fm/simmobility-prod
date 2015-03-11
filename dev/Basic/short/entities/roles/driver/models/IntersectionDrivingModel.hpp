@@ -33,70 +33,93 @@ class UnPackageUtils;
 class IntersectionDrivingModel 
 {
 protected:
-    
-    //Trajectory of the vehicle in the intersection
-    DynamicVector intTrajectory;
 
-    //Distance covered within the intersection
-    double totalMovement;
+  //Trajectory of the vehicle in the intersection
+  DynamicVector intTrajectory;
 
-    //Distance at which an intersection and vehicles approaching it from other links
-    //is visible to the driver
-    double intersectionVisbility;
-	
-    //The minimum value of the attentiveness factor within an intersection. The factor is a random value between the 
-    //given min and max
-	double intersectionAttentivenessFactorMin;
-	
-    //The maximum value of the attentiveness factor within an intersection. The factor is a random value between the 
-    //given min and max
-	double intersectionAttentivenessFactorMax;
-	
-    //The value of minimum gap
-	double minimumGap;
-	
-    //Contains the mean and std dev values for generating a random add-on to the critical gap
-	double criticalGapAddOn[2];
-  
+  //Distance covered within the intersection
+  double totalMovement;
+
+  //Distance at which an intersection and vehicles approaching it from other links
+  //is visible to the driver
+  double intersectionVisbility;
+
+  //The minimum value of the attentiveness factor within an intersection. The factor is a random value between the 
+  //given min and max
+  double intersectionAttentivenessFactorMin;
+
+  //The maximum value of the attentiveness factor within an intersection. The factor is a random value between the 
+  //given min and max
+  double intersectionAttentivenessFactorMax;
+
+  //The value of minimum gap
+  double minimumGap;
+
+  //Contains the mean and std dev values for generating a random add-on to the critical gap
+  double criticalGapAddOn[2];
+
+  //The multiplier for the impatience timer. 
+  double impatienceFactor;
+
 public:
-	
-    //Allow propagation of delete
-    virtual ~IntersectionDrivingModel() {}
 
-    //Builds a straight line trajectory form the end point of the entry lane into the intersection
-    //to the start point of the exit lane out of the intersection
-    virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) = 0;
+  //Allow propagation of delete
+  virtual ~IntersectionDrivingModel() {}
 
-    //Moves the vehicle by given amount along the trajectory
-    virtual DPoint continueDriving(double amount) = 0;
-    
-    //Depending on the conflicting vehicles, calculates the acceleration that allows the vehicle to 
-    //pass through without colliding with the other vehicles
-    virtual double makeAcceleratingDecision(DriverUpdateParams& params, const TurningSection *currTurning) = 0;
+  //Builds a straight line trajectory form the end point of the entry lane into the intersection
+  //to the start point of the exit lane out of the intersection
+  virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) = 0;
 
-    //Returns the current angle of the vehicle according to the position in the trajectory
-    double getCurrentAngle() { return intTrajectory.getAngle(); }
+  //Moves the vehicle by given amount along the trajectory
+  virtual DPoint continueDriving(double amount) = 0;
 
-    //Returns the distance covered within the intersection
-    double getMoveDistance() { return totalMovement; }
+  //Depending on the conflicting vehicles, calculates the acceleration that allows the vehicle to 
+  //pass through without colliding with the other vehicles
+  virtual double makeAcceleratingDecision(DriverUpdateParams& params, const TurningSection *currTurning) = 0;
 
-    //Checks whether we've completed driving in the intersection
-    bool isDone() { return totalMovement >= intTrajectory.getMagnitude(); }
-    
-    //Getter for the intersection visibility distance
-    int getIntersectionVisbility() const { return intersectionVisbility; }
+  //Returns the current angle of the vehicle according to the position in the trajectory
+  double getCurrentAngle()
+  {
+    return intTrajectory.getAngle();
+  }
 
-    //Getter for intersectionAttentivenessFactorMin
-    double getIntersectionAttentivenessFactorMin() const 
-    {
-    	return intersectionAttentivenessFactorMin;
-    }
+  //Returns the distance covered within the intersection
 
-    //Getter for intersectionAttentivenessFactorMax
-    double getIntersectionAttentivenessFactorMax() const 
-    {
-    	return intersectionAttentivenessFactorMax;
-    }
+  double getMoveDistance()
+  {
+    return totalMovement;
+  }
+
+  //Checks whether we've completed driving in the intersection
+
+  bool isDone()
+  {
+    return totalMovement >= intTrajectory.getMagnitude();
+  }
+
+  //Getter for the intersection visibility distance
+  int getIntersectionVisbility() const 
+  { 
+    return intersectionVisbility; 
+  }
+
+  //Getter for intersectionAttentivenessFactorMin
+  double getIntersectionAttentivenessFactorMin() const 
+  {
+      return intersectionAttentivenessFactorMin;
+  }
+
+  //Getter for intersectionAttentivenessFactorMax
+  double getIntersectionAttentivenessFactorMax() const 
+  {
+      return intersectionAttentivenessFactorMax;
+  }
+  
+  //Getter for impatience factor
+  double getImpatienceFactor() const
+  {
+    return impatienceFactor;
+  }
 };
 
 /**
@@ -113,16 +136,16 @@ class SimpleIntDrivingModel : public IntersectionDrivingModel
 public:
   
   virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) {
-          intTrajectory = DynamicVector(fromLanePt.x, fromLanePt.y, toLanePt.x, toLanePt.y);
-          totalMovement = startOffset;
+    intTrajectory = DynamicVector(fromLanePt.x, fromLanePt.y, toLanePt.x, toLanePt.y);
+    totalMovement = startOffset;
   }
 
 
   virtual DPoint continueDriving(double amount) {
-          totalMovement += amount;
-          DynamicVector temp(intTrajectory);
-          temp.scaleVectTo(totalMovement).translateVect();
-          return DPoint(temp.getX(), temp.getY());
+    totalMovement += amount;
+    DynamicVector temp(intTrajectory);
+    temp.scaleVectTo(totalMovement).translateVect();
+    return DPoint(temp.getX(), temp.getY());
   }
 
   //add by xuyan
@@ -146,6 +169,9 @@ private:
 
   //Calculates the deceleration needed for the vehicle to come to a stop within a given distance
   double brakeToStop(double distance, DriverUpdateParams& params);
+  
+  //Calculate the acceleration needed to crawl
+  double crawlingAcc(double distance, DriverUpdateParams& params);
 
 public:
 

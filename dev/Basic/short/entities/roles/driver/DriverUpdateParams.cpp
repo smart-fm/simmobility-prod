@@ -13,12 +13,12 @@ DriverUpdateParams::DriverUpdateParams()
     movementVectx(0), movementVecty(0), headway(999), currLane(NULL), stopPointPerDis(100), stopPointState(NO_FOUND_STOP_POINT), startStopTime(0), disToSP(999),
     currLaneIndex(0), leftLane(NULL), rightLane(NULL), leftLane2(NULL), rightLane2(NULL), currSpeed(0), desiredSpeed(0), currLaneOffset(0),
 	currLaneLength(0), trafficSignalStopDistance(0), elapsedSeconds(0), perceivedFwdVelocity(0), perceivedLatVelocity(0), perceivedFwdVelocityOfFwdCar(0),
-	perceivedLatVelocityOfFwdCar(0), perceivedAccelerationOfFwdCar(0), perceivedDistToFwdCar(0), isMLC(false), 
+	perceivedLatVelocityOfFwdCar(0), perceivedAccelerationOfFwdCar(0), perceivedDistToFwdCar(0),
 	laneChangingVelocity(0), isCrossingAhead(false), isApproachingIntersection(false), crossingFwdDistance(0), space(0), a_lead(0),
-	v_lead(0), space_star(0), distanceToNormalStop(0), dis2stop(0), isWaiting(false), nextLaneIndex(0), justChangedToNewSegment(false),
-	justMovedIntoIntersection(false), overflowIntoIntersection(0), driver(NULL), isTargetLane(false), lastAcc(0), emergHeadway(999), acc(0),
+	v_lead(0), space_star(0), distanceToNormalStop(0), dis2stop(0), impatienceTimer(0.0), nextLaneIndex(0), justChangedToNewSegment(false),
+	justMovedIntoIntersection(false), overflowIntoIntersection(0), driver(NULL), isTargetLane(false), emergHeadway(999), acc(0),
 	density(0), initSegId(0), initDis(0), initSpeed(0), parentId(0), FFAccParamsBeta(0), nextStepSize(0), maxAcceleration(0), normalDeceleration(0),
-	lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0)
+	lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), impatienceTimerStart(0.0)
 {
 }
 
@@ -128,7 +128,6 @@ void DriverUpdateParams::buildDebugInfo()
 	}
 	s<<"            "<<parentId;
 	s<<":"<<accSelect;
-	s<<lastAcc;
 
 	/*
 	s<<":"<<ul;
@@ -152,9 +151,13 @@ void DriverUpdateParams::buildDebugInfo()
 	 s<<":rfwd"<<rightFwdcarid;*/
 #endif
 	
+#if 0
+	//Debug information for intersection driving
 	s << "            " << parentId << ":" << accSelect << ":" << acc;
-	/*s << "MvmtDis:" << driver->moveDisOnTurning_.get();
-	int fwdcarid = -1;
+	s << ":speed:" << currSpeed << ":distToCflt:" << distToCflt << ":timeToCflt:" << timeToCflt;
+	s << ":CfltVeh:" << conflictVeh << ":distToCflt:" << distToCfltOth << ":timeToCflt:" << timeToCfltOth;
+	s << ":gap:" << gap << ":critGap:" << critGap;
+	/*int fwdcarid = -1;
 	char fwdnvdis[20] = "\0";
 	if (this->nvFwd.exists())
 	{
@@ -172,8 +175,9 @@ void DriverUpdateParams::buildDebugInfo()
 		sprintf(backnvdis, "backnvdis:%03.1f", nvBack.distance);
 	}
 	s << ":fwd:" << fwdcarid << ":" <<fwdnvdis;
-	s << ":back:" << backcarid << ":" <<backnvdis;
-	s << ":speed:" << driver->getVehicle()->getVelocity() / 100;*/
+	s << ":back:" << backcarid << ":" <<backnvdis;*/
+#endif
+	
 	debugInfo = s.str();
 }
 

@@ -77,7 +77,7 @@ private:
 	bool isVehiclePositionDefined;
         
         //Indicates whether we are yielding to another driver at a conflict in the intersection
-        bool isYieldingInIntersection;
+        int yieldingToInIntersection;
 
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
@@ -97,6 +97,7 @@ public:
 	Shared<bool> isInIntersection;
 	Shared<const TurningSection*> currTurning_;
 	Shared<double> moveDisOnTurning_;
+        Shared<double> distToIntersection_;
 	Shared<double> currLaneOffset_;
 	Shared<double> currLaneLength_;
 	Shared<double> latMovement;
@@ -217,11 +218,11 @@ public:
 	///Reroute around a blacklisted set of RoadSegments. See Role's comments for more information.
 	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
         
-        //Setter for isYieldingInIntersection
-        void setYieldingInIntersection(bool YieldingInIntersection);
+        //Setter for yieldingToInIntersection
+        void setYieldingToInIntersection(int);
         
-        //Getter for isYieldingInIntersection
-        bool IsYieldingInIntersection() const;
+        //Getter for yieldingToInIntersection
+        int getYieldingToInIntersection() const;
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI

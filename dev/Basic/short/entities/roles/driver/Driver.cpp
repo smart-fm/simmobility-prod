@@ -104,8 +104,8 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),/*params(parent->getGenerator()),*/
 	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
 	,stop_event_nodeid(mtxStrat, -1), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false), moveDisOnTurning_(mtxStrat, 0),
-	perceivedAccOfFwdCar(nullptr), perceivedDistToFwdCar(nullptr), perceivedDistToTrafficSignal(nullptr), perceivedFwdAcc(nullptr),
-	perceivedFwdVel(nullptr), perceivedTrafficColor(nullptr), perceivedVelOfFwdCar(nullptr), isYieldingInIntersection(false)
+	distToIntersection_(mtxStrat, -1), perceivedAccOfFwdCar(nullptr), perceivedDistToFwdCar(nullptr), perceivedDistToTrafficSignal(nullptr), perceivedFwdAcc(nullptr),
+	perceivedFwdVel(nullptr), perceivedTrafficColor(nullptr), perceivedVelOfFwdCar(nullptr), yieldingToInIntersection(false)
 {
 	currDistAlongRoadSegment = 0;
 	getParams().driver = this;
@@ -162,6 +162,7 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 	res.push_back(&(currTurning_));
 	res.push_back(&(currLaneOffset_));
 	res.push_back(&(moveDisOnTurning_));
+	res.push_back(&(distToIntersection_));
 	res.push_back(&(currLaneLength_));
 	res.push_back(&(isInIntersection));
 	res.push_back(&(latMovement));
@@ -322,9 +323,6 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	//distance to where critical location where lane changing has to be made
 	dis2stop = 0;
 
-	//in MLC: is the vehicle waiting acceptable gap to change lane
-	isWaiting = false; //TODO: This might need to be saved between turns.
-
 	//Set to true if we have just moved to a new segment.
 	justChangedToNewSegment = false;
 
@@ -361,14 +359,14 @@ void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>
 	}
 }
 
-void Driver::setYieldingInIntersection(bool YieldingInIntersection)
+void Driver::setYieldingToInIntersection(int driverId)
 {
-	isYieldingInIntersection = YieldingInIntersection;
+	yieldingToInIntersection = driverId;
 }
 
-bool Driver::IsYieldingInIntersection() const
+int Driver::getYieldingToInIntersection() const
 {
-	return isYieldingInIntersection;
+	return yieldingToInIntersection;
 }
 
 void Driver::setCurrPosition(DPoint currPosition)

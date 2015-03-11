@@ -7,8 +7,6 @@
 #include "geospatial/Point2D.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/LangHelpers.hpp"
-#include "entities/params/Pt_network_entities.hpp"
-
 #include <map>
 #include <vector>
 #include <string>
@@ -20,6 +18,7 @@
 #include <boost/utility.hpp>
 #include <boost/thread.hpp>
 
+#include "../../entities/params/PT_NetworkEntities.hpp"
 #include "StreetDirectory.hpp"
 
 
@@ -36,7 +35,6 @@ public:
     StreetDirectory::PublicTransitGraph publictransitMap_;
 
 private:
-    //New functions
 
     void initPublicNetwork(std::vector<PT_NetworkEdges> ptEdgesList,std::vector<PT_NetworkVertices> ptVerticesList);
     void procAddPublicNetworkVertices(StreetDirectory::PublicTransitGraph& graph,PT_NetworkVertices ptVertex,std::map<const std::string,StreetDirectory::PT_Vertex> vertexmap);

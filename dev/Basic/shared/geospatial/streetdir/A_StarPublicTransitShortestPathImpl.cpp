@@ -4,23 +4,22 @@
 
 #pragma once
 
-#include "geospatial/Point2D.hpp"
-#include "util/GeomHelpers.hpp"
-#include "util/LangHelpers.hpp"
-
-#include <map>
-#include <vector>
-#include <string>
-#include <ostream>
+#include "A_StarPublicTransitShortestPathImpl.hpp"
 
 #include <boost/graph/filtered_graph.hpp>
 #include <boost/graph/astar_search.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/utility.hpp>
 #include <boost/thread.hpp>
+#include <map>
+#include <ostream>
+#include <string>
+#include <vector>
 
+#include "geospatial/Point2D.hpp"
+#include "util/GeomHelpers.hpp"
+#include "util/LangHelpers.hpp"
 #include "StreetDirectory.hpp"
-#include "A_StarPublicTransitShortestPathImpl.hpp"
 
 using std::map;
 

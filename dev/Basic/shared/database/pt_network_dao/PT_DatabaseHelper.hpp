@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 /*
- * PtDatabaseHelper.hpp
+ * PT_DatabaseHelper.hpp
  *
  *  Created on: Feb 24, 2015
  *      Author: Prabhuraj
@@ -14,22 +14,6 @@
 #include "conf/ConfigParams.hpp"
 
 namespace sim_mob {
-
-	//ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
-
-    /**
-     * Stored procedures
-     */
-    //const std::string DB_STORED_PROC_PT_VERTICES = cfg.getDatabaseProcMappings().procedureMappings["pt_vertices"];
-    //const std::string DB_STORED_PROC_PT_EDGES = cfg.getDatabaseProcMappings().procedureMappings["pt_edges"];
-
-
-    /** Get all vertices and edges macros
-     *
-     */
-    //const std::string DB_GETALL_PT_VERTICES = "SELECT * FROM " + DB_STORED_PROC_PT_VERTICES;
-    //const std::string DB_GETALL_PT_EDGES = "SELECT * FROM " + DB_STORED_PROC_PT_EDGES;
-
 	/**
 	 * Fields for public transit vertices database
 	 */
@@ -42,11 +26,9 @@ namespace sim_mob {
 	const std::string DB_FIELD_PT_VERTICES_EZLINK_NAME = "ezlink_name";
 	const std::string DB_FIELD_PT_VERTICES_STOP_TYPE = "stop_type";
 	const std::string DB_FIELD_PT_VERTICES_STOP_DESCRIPTION = "stop_desc";
-
 	/**
 	* Fields for public transit Edges database
 	*/
-
 	const std::string DB_FIELD_PT_EDGES_START_STOP = "start_stop";
 	const std::string DB_FIELD_PT_EDGES_END_STOP = "end_stop";
 	const std::string DB_FIELD_PT_EDGES_R_TYPE = "r_type";

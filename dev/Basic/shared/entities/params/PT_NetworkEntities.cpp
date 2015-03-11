@@ -2,15 +2,15 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-#include "Pt_network_entities.hpp"
+#include "PT_NetworkEntities.hpp"
 
 
 using namespace std;
 using namespace sim_mob;
 
 PT_NetworkEdges::PT_NetworkEdges():startStop(""),endStop(""),rType(""),road_index(""),roadEdgeId(""),
-rServiceLines(""),linkTravelTime(0),edgeId(0),waitTime(0),walkTime(0),transitTime(0),
-transferPenalty(0),dayTransitTime(0),dist(0)
+rServiceLines(""),linkTravelTimeSecs(0),edgeId(0),waitTimeSecs(0),walkTimeSecs(0),transitTimeSecs(0),
+transferPenaltySecs(0),dayTransitTimeSecs(0),distKMs(0)
 {}
 
 PT_NetworkEdges::~PT_NetworkEdges() {}

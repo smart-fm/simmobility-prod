@@ -11,9 +11,9 @@
 
 #pragma once
 
+#include "../../entities/params/PT_NetworkEntities.hpp"
 #include "database/dao/SqlAbstractDao.hpp"
 #include "database/DB_Connection.hpp"
-#include "entities/params/Pt_network_entities.hpp"
 
 namespace sim_mob{
 

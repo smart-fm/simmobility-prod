@@ -61,6 +61,8 @@ Unit& Unit::operator=(const Unit& source)
     this->physical_status  = source.physical_status;
     this->lastChangedDate = source.lastChangedDate;
     this->biddingMarketEntryDay = source.biddingMarketEntryDay;
+    this->timeOnMarket = source.timeOnMarket;
+    this->timeOffMarket = source.timeOffMarket;
 
     return *this;
 }
@@ -242,6 +244,8 @@ namespace sim_mob
 						<< "\"sale_status \":\"" << data.sale_status << "\","
 						<< "\"physical_status \":\"" << data.physical_status << "\","
 						<< "\"biddingMarketEntryDay\":\"" << data.biddingMarketEntryDay << "\""
+						<< "\"timeOnMarket\":\"" << data.timeOnMarket << "\""
+            			<< "\"timeOffMarket\":\"" << data.timeOffMarket << "\""
 						<< "\"lastChangedDate\":\"" << data.lastChangedDate.tm_year << data.lastChangedDate.tm_mon << data.lastChangedDate.tm_wday << "\","
 						<< "}";
         }

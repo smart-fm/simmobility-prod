@@ -200,7 +200,6 @@ inline void calculateProjectProfit(PotentialProject& project,const DeveloperMode
 	if((totalRevenue>0) && (totalCost>0))
 	{
 		investmentReturnRatio = (totalRevenue - totalCost)/ (totalCost);
-		//PrintOut("investmentReturnRatio"<<investmentReturnRatio<<std::endl);
 	}
 
 	project.setInvestmentReturnRatio(investmentReturnRatio);
@@ -232,6 +231,7 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
 	        		grossArea = grossArea + numUnitsPerType *  model->getUnitTypeById((*itr)->getUnitTypeId())->getTypicalArea();
 	        		project.addUnit(PotentialUnit((*itr)->getUnitTypeId(),numUnitsPerType,model->getUnitTypeById((*itr)->getUnitTypeId())->getTypicalArea(),0));
 	            }
+
 	        project.setGrossArea(grossArea);
 
     }
@@ -294,28 +294,30 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* mo
 
                 if(projects.size()>0)
                 {
-                	std::vector<PotentialProject> profitableProjects;
-                	std::vector<PotentialProject>::iterator it;
-                	for (it = projects.begin(); it != projects.end(); it++)
-                	{
-                		//TODO::uncomment when the profit function is completed.
-                		//if((*it).getProfit()>0)
-                		//{
-                			profitableProjects.push_back((*it));
-                		//}
-                	}
+                	//std::vector<PotentialProject&> profitableProjects;
+                	std::vector<PotentialProject>::iterator projectIt;
+//                	for (it = projects.begin(); it != projects.end(); it++)
+//                	{
+//                		//TODO::uncomment when the profit function is completed.
+//                		//if((*it).getProfit()>0)
+//                		//{
+//                			profitableProjects.push_back((*it));
+//
+//                		//}
+//                	}
                 	//calculate the probability of being selected for each project
                 	double totalExpRatio = 0;
-                	for (it = profitableProjects.begin(); it != profitableProjects.end(); it++)
+                	for (projectIt = projects.begin(); projectIt != projects.end(); projectIt++)
                 	{
-                		double expRatio = exp((*it).getInvestmentReturnRatio());
+                		double expRatio = exp((*projectIt).getInvestmentReturnRatio());
+                		(*projectIt).setExpRatio(expRatio);
                 		totalExpRatio = totalExpRatio + expRatio;
                 	}
 
-                	for (it = profitableProjects.begin(); it != profitableProjects.end(); it++)
+                	for (projectIt = projects.begin(); projectIt != projects.end(); projectIt++)
                 	{
-                		const double probability = (*it).getExpRatio() / totalExpRatio;
-                		(*it).setTempSelectProbability(probability);
+                		const double probability = (*projectIt).getExpRatio() / totalExpRatio;
+                		(*projectIt).setTempSelectProbability(probability);
                 	}
                 	/*generate a random number between 0-1
                 	 * time(0) is passed as an input to constructor in order to randomize the result
@@ -326,18 +328,18 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* mo
                 	const double randomNum = generateRandomNumbers( );
                 	double pTemp = 0.0;
 
-                	if(profitableProjects.size()>0)
+                	if(projects.size()>0)
                 	{
-                		for (it = profitableProjects.begin(); it != profitableProjects.end(); it++)
+                		for (projectIt = projects.begin(); projectIt != projects.end(); projectIt++)
                 		{
-                			if( pTemp < randomNum < ((*it).getTempSelectProbability() + pTemp))
+                			if( (pTemp < randomNum) && ( randomNum < ((*projectIt).getTempSelectProbability() + pTemp)))
                 			{
-                				outProject = (*it);
+                				outProject = (*projectIt);
                 				break;
                 			}
                 			else
                 			{
-                				pTemp = pTemp + (*it).getTempSelectProbability();
+                				pTemp = pTemp + (*projectIt).getTempSelectProbability();
                 			}
 
                 		}
@@ -463,7 +465,6 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 			newUnits.push_back(unit);
 			writeUnitDataToFile(unitId,(*unitsItr).getNumUnits());
 			MessageBus::PostMessage(this, LTEID_DEV_UNIT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*unit)), true);
-			writeUnitDataToFile(unitId,(*unitsItr).getNumUnits());
 		}
 
 	}
@@ -554,7 +555,6 @@ void DeveloperAgent::processExistingProjects()
 					(*unitsItr)->setPhysicalStatus(UNIT_READY_FOR_OCCUPANCY_AND_VACANT);
 					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_UNIT_LAUNCHED_BUT_UNSOLD,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
 					MessageBus::PostMessage(this, LT_STATUS_ID_DEV_UNIT_READY_FOR_OCCUPANCY_AND_VACANT,MessageBus::MessagePtr(new DEV_InternalMsg((*unitsItr)->getId())), true);
-
 				}
 
 			}
@@ -570,6 +570,7 @@ void DeveloperAgent::setUnitsForHM(std::vector<Unit*>::iterator &first,std::vect
 	const int totalUnits = newUnits.size();
 	const double monthlyUnitsFraction = 0.2;
 	int monthlyUnits = totalUnits * monthlyUnitsFraction;
+
 	if(monthlyUnits <=0)
 	{
 		monthlyUnits = totalUnits;

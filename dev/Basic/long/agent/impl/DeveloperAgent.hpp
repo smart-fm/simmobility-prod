@@ -66,7 +66,7 @@ namespace sim_mob {
             void onWorkerEnter();
             void onWorkerExit();
             virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
-        private:
+        public:
             enum UnitSaleStatus {
             	UNIT_NOT_LAUNCHED = 1, UNIT_LAUNCHED_BUT_UNSOLD, UNIT_LAUNCHED_AND_SOLD};
             enum UnitPhysicalStatus {

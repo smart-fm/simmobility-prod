@@ -316,7 +316,7 @@ void HM_Model::startImpl()
 	//Create real-estate agents. Their tasks are to sell units from the developer model.
 	//
 	std::vector<RealEstateAgent*> realEstateAgents;
-	for( int i = 0; i < numWorkers ; i++ )
+	for( int i = 0; i < 1 ; i++ )
 	{
 		RealEstateAgent* realEstateAgent = new RealEstateAgent((FAKE_IDS_START + numWorkers + i), this, nullptr, &market, true);
 		AgentsLookupSingleton::getInstance().addRealEstateAgent(realEstateAgent);

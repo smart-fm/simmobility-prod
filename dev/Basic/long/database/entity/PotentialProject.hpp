@@ -102,8 +102,10 @@ namespace sim_mob {
             void setDemolitionCost(double demCost);
 
             std::vector<TemplateUnitType*> templateUnitTypes;
-            std::vector<PotentialUnit> units;
+
         private:
+            std::vector<PotentialUnit> units;
+
             const DevelopmentTypeTemplate* devTemplate;
             const Parcel* parcel;
 

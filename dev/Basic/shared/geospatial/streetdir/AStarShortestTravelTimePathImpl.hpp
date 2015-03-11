@@ -272,8 +272,8 @@ public:
       double operator()(StreetDirectory::Vertex v) {
     	  const Point2D atPos = boost::get(boost::vertex_name, *m_graph, v);
     	  const Point2D goalPos = boost::get(boost::vertex_name, *m_graph, m_goal);
-
     	  return sim_mob::dist(atPos, goalPos)/ sim_mob::ConfigManager::GetInstance().PathSetConfig().maxSegSpeed;
+//   	  return 1.0;
       }
     private:
       const boost::filtered_graph<StreetDirectory::Graph, blacklist_edge_constraint>* m_graph;

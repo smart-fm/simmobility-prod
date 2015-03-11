@@ -210,16 +210,19 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 		{
 			minDistance = sp->length;
 		}
-		// min signal
+
+		// find MIN_SIGNAL
 		if(sp->signalNumber < minSignal)
 		{
 			minSignal = sp->signalNumber;
 		}
+
 		// find MIN_RIGHT_TURN
 		if(sp->rightTurnNumber < minRightTurn)
 		{
 			minRightTurn = sp->rightTurnNumber;
 		}
+
 		// find MAX_HIGH_WAY_USAGE
 		if(maxHighWayUsage < sp->highWayDistance / sp->length)
 		{
@@ -1009,15 +1012,15 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 	std::vector<std::vector<PathSetWorkerThread*> > mainStorage = std::vector<std::vector<PathSetWorkerThread*> >();
 	// SHORTEST DISTANCE LINK ELIMINATION
 	std::vector<PathSetWorkerThread*> SDLE_Storage;
-	genSDLE(ps, SDLE_Storage);
+//	genSDLE(ps, SDLE_Storage);
 
 	//step-3: SHORTEST TRAVEL TIME LINK ELIMINATION
 	std::vector<PathSetWorkerThread*> STTLE_Storage;
-	genSTTLE(ps,STTLE_Storage);
+//	genSTTLE(ps,STTLE_Storage);
 
 	// TRAVEL TIME HIGHWAY BIAS
 	std::vector<PathSetWorkerThread*> STTHBLE_Storage;
-	genSTTHBLE(ps,STTHBLE_Storage);
+//	genSTTHBLE(ps,STTHBLE_Storage);
 
 	//	RANDOM;
 	std::vector<PathSetWorkerThread*> randPertStorage;

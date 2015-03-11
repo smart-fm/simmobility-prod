@@ -21,7 +21,7 @@ namespace sim_mob
 		bool operator()(const TurningConflict* conflict1, const TurningConflict* conflict2)
 		{
 			//Distance to conflict point for the current turning
-			double dstConflict1 = (conflict1->getFirstTurning() == turningSection) ? conflict1->getFirst_cd() : conflict1->getFirst_cd();
+			double dstConflict1 = (conflict1->getFirstTurning() == turningSection) ? conflict1->getFirst_cd() : conflict1->getSecond_cd();
 
 			//Distance to conflict point for the current turning
 			double dstConflict2 = (conflict2->getFirstTurning() == turningSection) ? conflict2->getFirst_cd() : conflict2->getSecond_cd();
@@ -88,7 +88,7 @@ void TurningSection::addConflictingTurningSections(TurningSection* conflictingTu
 	this->conflictingTurningSections.push_back(conflictingTurningSection);
 }
 
-std::vector<TurningSection*>& TurningSection::getConflictingTurningSections()
+const std::vector<TurningSection*>& TurningSection::getConflictingTurningSections() const
 {
 	return conflictingTurningSections;
 }

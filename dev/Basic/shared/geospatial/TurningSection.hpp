@@ -92,7 +92,7 @@ class TurningConflict;
     void addConflictingTurningSections(TurningSection* conflictingTurningSection);
     
     //Returns the vector conflictingTurningSections
-    std::vector<TurningSection*>& getConflictingTurningSections();
+    const std::vector<TurningSection*>& getConflictingTurningSections() const;
     
     //Setter for laneTo
     void setLaneTo(const sim_mob::Lane* laneTo);

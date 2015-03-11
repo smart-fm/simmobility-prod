@@ -1559,6 +1559,7 @@ void sim_mob::medium::PredaySystem::computeLogsumsForLT(std::stringstream& outSt
 	PredayLuaProvider::getPredayModel().computeDayPatternBinaryLogsums(personParams);
 	outStream << personParams.getPersonId()
 			<< "," << personParams.getHomeLocation()
+			<< "," << personParams.getFixedWorkLocation()
 			<< "," << personParams.getHhId()
 			<< "," << personParams.getWorkLogSum()
 			<< "," << personParams.getEduLogSum()

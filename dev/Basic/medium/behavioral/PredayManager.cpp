@@ -1399,12 +1399,15 @@ void sim_mob::medium::PredayManager::computeLogsumsByIdForLT(const PersonIdList:
 	for(PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++)
 	{
 		populationDao.getOneById(*i, personParams);
-		for(ZoneMap::const_iterator znIt=zoneMap.begin(); znIt!=zoneMap.end(); znIt++)
+		if(personParams.getFixedWorkPlace())
 		{
-			personParams.setHomeLocation(znIt->second->getZoneCode());
-			predaySystem.computeLogsumsForLT(logsumStream);
-			outputToFile(logsumOutputFile, logsumStream);
-			if(consoleOutput) { predaySystem.printLogs(); }
+			for(ZoneMap::const_iterator znIt=zoneMap.begin(); znIt!=zoneMap.end(); znIt++)
+			{
+				personParams.setFixedWorkLocation(znIt->second->getZoneCode());
+				predaySystem.computeLogsumsForLT(logsumStream);
+				outputToFile(logsumOutputFile, logsumStream);
+				if(consoleOutput) { predaySystem.printLogs(); }
+			}
 		}
 	}
 

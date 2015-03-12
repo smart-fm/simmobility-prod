@@ -23,6 +23,7 @@
 
 
 
+
 using std::map;
 using std::set;
 using std::vector;
@@ -133,6 +134,8 @@ void sim_mob::PrintNetwork::LogNetworkLegacyFormat() const
 	for (set<LaneConnector*>::const_iterator it=cachedConnectors.begin(); it!=cachedConnectors.end(); it++) {
 		LogLegacyLaneConnectors(*it);
 	}
+	const std::map<std::string,sim_mob::TurningSection* > &turningSectionMap = cfg.getNetwork().getTurnings();
+
 
 	//Tell the GUI this is done.
 	if (cfg.InteractiveMode()) {
@@ -460,7 +463,25 @@ void sim_mob::PrintNetwork::LogLegacyLaneConnectors(const LaneConnector* const l
 
 	PrintToFileAndGui(out);
 }
-
+void sim_mob::PrintNetwork::LogTurnings(const std::map<std::string,sim_mob::TurningSection*> turnings) const
+{
+//	//Retrieve relevant information
+//	const RoadSegment* fromSeg = lc->getLaneFrom()->getRoadSegment();
+//	unsigned int fromLane = std::distance(fromSeg->getLanes().begin(), std::find(fromSeg->getLanes().begin(), fromSeg->getLanes().end(),lc->getLaneFrom()));
+//	const RoadSegment* toSeg = lc->getLaneTo()->getRoadSegment();
+//	unsigned int toLane = std::distance(toSeg->getLanes().begin(), std::find(toSeg->getLanes().begin(), toSeg->getLanes().end(),lc->getLaneTo()));
+//
+//	//Output
+//	std::stringstream out; //Shadow PrintNetwork::out to prevent accidental stream modification.
+//	out <<"(\"lane-connector\", 0, " <<lc <<", {";
+//	out <<"\"from-segment\":\"" <<fromSeg <<"\",";
+//	out <<"\"from-lane\":\"" <<fromLane <<"\",";
+//	out <<"\"to-segment\":\"" <<toSeg <<"\",";
+//	out <<"\"to-lane\":\"" <<toLane <<"\",";
+//	out <<"})";
+//
+//	PrintToFileAndGui(out);
+}
 void sim_mob::PrintNetwork::PrintToFileAndGui(const std::stringstream& str) const
 {
 	//Print to file.

@@ -18,6 +18,36 @@ def calculate_conflict_distance(turning,x,y) :
 # x,y cross point position
 # return False when not valid
 def validate_cross_point(t1,t2,x,y):
+    # check x coordinate in turning t1 from/to points x
+    if t1['from_xpos'] > t1['to_xpos'] :
+	if x > t1['from_xpos'] +1 or x < t1['to_xpos'] -1:
+	    return False;
+    else :
+        if x > t1['to_xpos'] +1 or x < t1['from_xpos'] -1:
+	    return False;
+    # check y coordinate in t1 y
+    if t1['from_ypos'] > t1['to_ypos'] :
+	if y > t1['from_ypos'] +1 or y < t1['to_ypos'] -1:
+	    return False;
+    else :
+	if y > t1['to_ypos'] +1 or y < t1['from_ypos'] -1:
+	    return False;
+
+   # check y coordinate in turning t2 from/to points y
+    if t2['from_ypos'] > t2['to_ypos'] :
+	if y > t2['from_ypos'] +1 or y < t2['to_ypos'] -1:
+	    return False;
+    else :
+        if y > t2['to_ypos'] +1 or y < t2['from_ypos'] -1:
+	    return False;
+    # check y coordinate in t2 y
+    if t2['from_ypos'] > t2['to_ypos'] :
+	if y > t2['from_ypos'] +1 or y < t2['to_ypos'] -1:
+	    return False;
+    else :
+	if y > t2['to_ypos'] +1 or y < t2['from_ypos'] -1:
+	    return False;
+
     # 1.0 calculate line t1 distance of from/to points
     t1_dx = t1['from_xpos'] - t1['to_xpos'];
     t1_dy = t1['from_ypos'] - t1['to_ypos'];
@@ -133,8 +163,9 @@ def generate_conflict(ts,all_turning_section) :
 	
 def main():
 	#Define our connection string
-	conn_string = "host='172.25.184.11' dbname='simmobility_db_2014' user='postgres' password='5M_S1mM0bility'"
- 
+	#conn_string = "host='172.25.184.11' dbname='simmobility_db_2014' user='postgres' password='5M_S1mM0bility'"
+ 	conn_string = "host='localhost' dbname='simmobility_db_2014' user='postgres' password='5M_S1mM0bility'"
+
 	# print the connection string we will use to connect
 	print "Connecting to database\n	->%s" % (conn_string)
 	
@@ -170,6 +201,8 @@ def main():
 	
 	print ('conflict:')
 	pprint.pprint(conflicts)
+
+	print 'conflict size: ',len(conflicts)
 	    
 	# store to db
 	for conflict in conflicts :

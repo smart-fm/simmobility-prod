@@ -224,6 +224,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
 	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update"));
 	processGeneratedRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
+	ProcessPublicTransit(GetSingleElementByName(rootNode, "public_transit"));
 
 	//Take care of pathset manager confifuration in here
 	ParsePathXmlConfig(sim_mob::ConfigManager::GetInstance().FullConfig().pathsetFile, sim_mob::ConfigManager::GetInstanceRW().PathSetConfig());
@@ -594,6 +595,27 @@ void sim_mob::ParseConfigFile::ProcessCBD_Node(xercesc::DOMElement* node){
 		return;
 	}
 	cfg.cbd = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+}
+void sim_mob::ParseConfigFile::ProcessPublicTransit(xercesc::DOMElement* node)
+{
+	if(!node)
+	{
+		cfg.publicTransitEnabled = false;
+	}
+	else
+	{
+		cfg.publicTransitEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+		if(cfg.publicTransitEnabled)
+		{
+			const std::string& key = cfg.system.networkDatabase.procedures;
+			std::map<std::string, StoredProcedureMap>::const_iterator procMapIt = cfg.constructs.procedureMaps.find(key);
+			if(procMapIt->second.procedureMappings.count("pt_vertices")==0 || procMapIt->second.procedureMappings.count("pt_edges")==0)
+			{
+				throw std::runtime_error("Public transit is enabled , but stored procedures not defined");
+			}
+		}
+	}
+
 }
 
 void sim_mob::ParseConfigFile::processPathSetFileName(xercesc::DOMElement* node){

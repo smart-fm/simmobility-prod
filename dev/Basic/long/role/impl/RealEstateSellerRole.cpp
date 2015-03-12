@@ -158,7 +158,7 @@ namespace
 
 RealEstateSellerRole::SellingUnitInfo::SellingUnitInfo() :startedDay(0), interval(0), daysOnMarket(0), numExpectations(0){}
 
-RealEstateSellerRole::RealEstateSellerRole(LT_Agent* parent): parent(parent), currentTime(0, 0), hasUnitsToSale(true), selling(false), active(false)
+RealEstateSellerRole::RealEstateSellerRole(LT_Agent* parent): parent(parent), currentTime(0, 0), hasUnitsToSale(true), selling(false), active(true)
 {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	timeOnMarket   = config.ltParams.housingModel.timeOnMarket;
@@ -219,8 +219,7 @@ void RealEstateSellerRole::update(timeslice now)
         //get values from parent.
         const Unit* unit = nullptr;
 
-        //if( unitIds.size() == 0 )
-        //	PrintOut("Seller " << this->getParent()->GetId() << "doesn't seem to have any unit to sell" << std::endl);
+        //PrintOutV("size of unitsVec:" << unitIds.size() << std::endl );
 
         for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
         {
@@ -232,7 +231,7 @@ void RealEstateSellerRole::update(timeslice now)
         	//so that not all empty units flood the market on day 1. There's a timeOnMarket and timeOffMarket
         	//variable that is fed to simmobility through the long term XML file.
             int day = currentTime.ms();
-            //PrintOut("Day: " << std::dec << day << " Seller: " << this->getParent()->GetId() << " bidEntryDay: " << unit->getbiddingMarketEntryDay() << " timeOnMarket: "  << unit->getTimeOnMarket() << std::endl );
+            //PrintOutV("Day: " << std::dec << day << "RealEstate Agent. Seller: " << this->getParent()->getId() << "unit id: " << unit->getId() << " bidEntryDay: " << unit->getbiddingMarketEntryDay() << " timeOnMarket: "  << unit->getTimeOnMarket() << std::endl );
 
 
             UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
@@ -257,7 +256,7 @@ void RealEstateSellerRole::update(timeslice now)
             if(getCurrentExpectation(unit->getId(), firstExpectation))
             {
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice));
-                //PrintOutV("Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
+                PrintOutV("RealEstate Agent. Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
             }
 
             selling = true;
@@ -360,7 +359,7 @@ void RealEstateSellerRole::adjustNotSoldUnits()
 
 				 if((int)currentTime.ms() > unit->getbiddingMarketEntryDay() + unit->getTimeOnMarket() )
 				 {
-					 //PrintOutV("Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
+					 PrintOutV("RealEstate Agent. Removing unit " << unitId << " from the market. start:" << info.startedDay << " currentDay: " << currentTime.ms() << " daysOnMarket: " << info.daysOnMarket << std::endl );
 					 market->removeEntry(unitId);
 					 continue;
 				 }
@@ -370,7 +369,7 @@ void RealEstateSellerRole::adjustNotSoldUnits()
             ExpectationEntry entry;
             if (getCurrentExpectation(unitId, entry) && entry.askingPrice != unitEntry->getAskingPrice())
             {
-            	//PrintOut("Updating asking price for unit " << unitId << "from  $" << unitEntry->getAskingPrice() << " to $" << entry.askingPrice << std::endl );
+            	PrintOutV("RealEstate Agent. Updating asking price for unit " << unitId << "from  $" << unitEntry->getAskingPrice() << " to $" << entry.askingPrice << std::endl );
 
                 HousingMarket::Entry updatedEntry(*unitEntry);
                 updatedEntry.setAskingPrice(entry.askingPrice);
@@ -392,7 +391,7 @@ void RealEstateSellerRole::notifyWinnerBidders()
         replyBid(*dynamic_cast<RealEstateAgent*>(getParent()), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getUnitId()));
 
         //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );
-        //PrintOut("Seller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf." << std::endl );
+        PrintOutV("RealEstate Agent. Seller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf." << std::endl );
 
         market->removeEntry(maxBidOfDay.getUnitId());
         dynamic_cast<RealEstateAgent*>(getParent())->removeUnitId(maxBidOfDay.getUnitId());
@@ -416,20 +415,48 @@ void RealEstateSellerRole::calculateUnitExpectations(const Unit& unit)
     info.daysOnMarket = unit.getTimeOnMarket();
 
     info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
-    luaModel.calulateUnitExpectations(unit, info.numExpectations, info.expectations);
+    //luaModel.calulateUnitExpectations(unit, info.numExpectations, info.expectations);
 
     //number of expectations should match 
-    if (info.expectations.size() == info.numExpectations)
+    //if (info.expectations.size() == info.numExpectations)
     {
+        //just revert the expectations order.
+        for (int i = 0; i < info.numExpectations; i++)
+        {
+            //int dayToApply = currentTime.ms() + (i * info.interval);
+            //printExpectation(currentTime, dayToApply, unit.getId(), *dynamic_cast<RealEstateAgent*>(getParent()), info.expectations[i]);
+
+        	double asking =0;
+        	double hedonic = 0;
+        	double target = 0;
+
+            /*if(i == 0){*/ asking= 476.172;hedonic = 171.483;target  = 453.928;/*}*/
+            if(i == 1){ asking= 434.626; hedonic =171.483;target =413.348;}
+            if(i == 2){ asking= 398.103; hedonic =171.483;target =377.728;}
+            if(i == 3){ asking= 365.898; hedonic =171.483;target =346.368;}
+            if(i == 4){ asking= 337.409; hedonic =171.483;target =318.674;}
+            if(i == 5){ asking= 312.13; hedonic =171.483;target =294.142;}
+            if(i == 6){ asking= 289.626; hedonic =171.483;target =272.343;}
+            if(i == 7){ asking= 269.53; hedonic =171.483;target =252.913;}
+            if(i == 8){ asking= 251.528; hedonic =171.483;target =235.54;}
+            if(i == 9){ asking= 235.353; hedonic =171.483;target =219.96;}
+            if(i == 10){ asking= 220.775; hedonic =171.483;target =205.946;}
+            if(i == 11){ asking= 207.598; hedonic =171.483;target =193.302;}
+            if(i == 12){ asking= 195.653; hedonic =171.483;target =181.863;}
+
+            ExpectationEntry expectation;
+
+            expectation.askingPrice = asking;
+            expectation.hedonicPrice = hedonic;
+            expectation.targetPrice = target;
+
+            info.expectations.push_back(expectation);
+
+        }
+
         sellingUnitsMap.erase(unit.getId());
         sellingUnitsMap.insert(std::make_pair(unit.getId(), info));
 
-        //just revert the expectations order.
-        for (int i = 0; i < info.expectations.size() ; i++)
-        {
-            int dayToApply = currentTime.ms() + (i * info.interval);
-            printExpectation(currentTime, dayToApply, unit.getId(), *dynamic_cast<RealEstateAgent*>(getParent()), info.expectations[i]);
-        }
     }
 }
 

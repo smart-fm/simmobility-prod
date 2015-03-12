@@ -215,6 +215,7 @@ struct PathSetConf
 			maxHighwayParam = 0.422;
 		}
 	};
+	double maxSegSpeed; //represents max_segment_speed attribute in xml, used in travel time based a_star heuristic function
 	/// Utility Parameters
 	UtilityParams params;
 };
@@ -382,6 +383,9 @@ public:
 	///	is CBD area restriction enforced
 	bool cbd;
 	bool generateBusRoutes;
+
+	// Public transit enabled if this flag set to true
+	bool publicTransitEnabled;
 
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;

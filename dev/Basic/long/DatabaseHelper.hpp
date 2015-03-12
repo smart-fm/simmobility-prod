@@ -106,7 +106,6 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_AWAKENING = APPLY_SCHEMA( MAIN_SCHEMA, "getHouseholdAwakeningProbability()");
         const std::string DB_FUNC_GET_MACRO_ECONOMICS = APPLY_SCHEMA( MAIN_SCHEMA, "getMacroEconomics()");
 
-
         const std::string DB_FUNC_DEL_INDIVIDUAL_BY_ID  = APPLY_SCHEMA(MAIN_SCHEMA, "deleteIndividualById(:id)");
         const std::string DB_FUNC_GET_INDIVIDUALS 		= APPLY_SCHEMA( MAIN_SCHEMA, "getIndividuals()");
         const std::string DB_FUNC_GET_INDIVIDUAL_BY_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getIndividualsById(:id)");
@@ -121,7 +120,7 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_TOTAL_BUILDING_SPACE = APPLY_SCHEMA( MAIN_SCHEMA, "getTotalBuildingSpacePerParcel()");
         //const std::string DB_FUNC_GET_BUILDINGS_OF_PARCEL = APPLY_SCHEMA( MAIN_SCHEMA, "getBuildingsOfParcel(_parcelId BIGINT)");
         const std::string DB_FUNC_GET_PARCEL_AMENITIES 	   = APPLY_SCHEMA( MAIN_SCHEMA, "getParcelAmenities()");
-
+        const std::string DB_FUNC_GET_UNIT_WITH_MAX_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getUnitWithMaxId()");
 
 
         /**
@@ -286,6 +285,8 @@ namespace sim_mob {
         const std::string DB_GETALL_PARCEL_AMENITIES = "SELECT * FROM "+ DB_FUNC_GET_PARCEL_AMENITIES + LIMIT;
         const std::string DB_GETALL_AWAKENING = "SELECT * FROM " + DB_FUNC_GET_AWAKENING + LIMIT;
         const std::string DB_GETALL_MACRO_ECONOMICS = "SELECT * FROM " + DB_FUNC_GET_MACRO_ECONOMICS + LIMIT;
+        const std::string DB_FUNC_GETALL_UNIT_WITH_MAX_ID = "SELECT * FROM " + DB_FUNC_GET_UNIT_WITH_MAX_ID + LIMIT;
+
 
         /**
          * GET BY ID

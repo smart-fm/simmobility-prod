@@ -143,7 +143,9 @@ namespace sim_mob {
              * increment the id of the last building in db
              * @return next unitId.
              */
+            boost::recursive_mutex m_guard;
             BigSerial getUnitIdForDeveloperAgent();
+            Unit* 	  makeNewUnit(std::vector<PotentialUnit>::iterator unitsItr, std::tm toDate, BigSerial newBuildingId);
 
             void setUnitId(BigSerial unitId);
             /*
@@ -214,6 +216,8 @@ namespace sim_mob {
             int currentTick;
             MacroEconomicsList macroEconomics;
             MacroEconomicsMap macroEconomicsById;
+
+            std::vector<Unit*> newUnits;
         };
     }
 }

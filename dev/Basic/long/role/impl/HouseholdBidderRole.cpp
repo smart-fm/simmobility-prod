@@ -221,7 +221,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
         if(pickEntryToBid())
         {
             entry = market->getEntryById(biddingEntry.getUnitId());
-            //PrintOut("Household " << household->getId() << " is picking a new unit " << biddingEntry.getUnitId() << "to bid on." << std::endl );
+            //PrintOutV("Household " << household->getId() << " is picking a new unit " << biddingEntry.getUnitId() << "to bid on." << std::endl );
         }   
     }
     
@@ -243,7 +243,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
                 if (entry->getOwner() && bidValue > 0.0f)
                 {
                 	//PrintOut("\033[1;36mHousehold " << std::dec << household->getId() << " submitted a bid on unit " << biddingEntry.getUnitId() << "\033[0m\n" );
-                	//PrintOut("Household " << std::dec << household->getId() << " submitted a bid of $" << bidValue << "[wp:$" << biddingEntry.getWP() << ",sp:$" << speculation  << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << "." << std::endl );
+                	//PrintOutV("Household " << std::dec << household->getId() << " submitted a bid of $" << bidValue << "[wp:$" << biddingEntry.getWP() << ",sp:$" << speculation  << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << "." << std::endl );
 
                     bid(entry->getOwner(), Bid(entry->getUnitId(), household->getId(), getParent(), bidValue, now, biddingEntry.getWP(), speculation));
                     return true;

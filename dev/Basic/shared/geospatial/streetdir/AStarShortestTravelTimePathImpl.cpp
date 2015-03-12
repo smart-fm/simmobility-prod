@@ -784,7 +784,14 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 		  boost::uniform_int<> uniformInt( range.first, range.second );
 		  boost::variate_generator< boost::mt19937, boost::uniform_int<> >	dice(rng, uniformInt);
 			double random_number = dice();
-			key = random_number * PathSetParam::getInstance()->getDefSegTT(rs);
+			double tt = PathSetParam::getInstance()->getDefSegTT(rs);
+			key = random_number * tt;
+			if(key <= 0)
+			{
+				std::stringstream out("");
+				out << "Invalid random perturbation key. segment " << rs->getId() << " has travel time " << tt << " and   random number:" << random_number;
+				throw std::runtime_error(out.str());
+			}
 		}
 
 	    boost::put(boost::edge_weight, graph, edge, key);

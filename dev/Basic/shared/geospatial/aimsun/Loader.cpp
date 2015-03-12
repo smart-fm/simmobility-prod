@@ -473,8 +473,14 @@ bool DatabaseLoader::upsertTravelTime(soci::session& sql,const std::string& csvF
 	std::stringstream query("");
 	query << "select * from " <<  sim_mob::ConfigManager::GetInstance().PathSetConfig().upsert  <<
 			"('" << csvFileName << "','" << tableName << "'," << alpha << ");";
-	std::cout << query.str() << "\n";
-	sql << query.str();
+	std::cout << "executing query : " << query.str() << "\n";
+	try
+	{
+		sql << query.str();
+	}
+	catch(std::exception &e){
+		std::cout << "Error upserting the query( " << query.str() << " ) :\n" << e.what() << "\n";
+	}
 	return true;
 }
 bool DatabaseLoader::InsertCSV2Table(soci::session& sql,std::string& tableName,const std::string& csvFileName)

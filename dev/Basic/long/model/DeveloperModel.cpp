@@ -24,6 +24,7 @@
 #include "database/entity/ParcelMatch.hpp"
 #include "database/entity/SlaParcel.hpp"
 #include "database/dao/SlaParcelDao.hpp"
+#include "database/dao/UnitDao.hpp"
 #include "database/entity/UnitType.hpp"
 #include "database/dao/UnitTypeDao.hpp"
 #include "database/dao/BuildingDao.hpp"
@@ -96,8 +97,13 @@ void DeveloperModel::startImpl() {
 		loadData<ParcelAmenitiesDao>(conn,amenities,amenitiesById,&ParcelAmenities::getFmParcelId);
 		loadData<MacroEconomicsDao>(conn,macroEconomics,macroEconomicsById,&MacroEconomics::getExFactorId);
 
+		UnitDao unitDao(conn);
+		unitId = unitDao.getMaxUnitId();
+
 	}
 
+	//get the highest building id, which is the one before the last building id as the last building id contain some random data.
+	buildingId = buildings.at(buildings.size()-2)->getFmBuildingId();
 	processParcels();
 	createDeveloperAgents(developmentCandidateParcelList);
 	wakeUpDeveloperAgents(getDeveloperAgents(true));
@@ -124,6 +130,7 @@ void DeveloperModel::stopImpl() {
 	emptyParcelsById.clear();
 	parcelsById.clear();
 
+	clear_delete_vector(newUnits);
 	clear_delete_vector(templates);
 	clear_delete_vector(developmentTypeTemplates);
 	clear_delete_vector(templateUnitTypes);
@@ -477,9 +484,19 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 	}
 }
 
+Unit* DeveloperModel::makeNewUnit( std::vector<PotentialUnit>::iterator unitsItr, std::tm toDate, BigSerial newBuildingId)
+{
+	newUnits.push_back( new Unit( getUnitIdForDeveloperAgent(), newBuildingId, 0, (*unitsItr).getUnitTypeId(),0, DeveloperAgent::UNIT_PLANNED, (*unitsItr).getFloorArea(), 0, 0, toDate,std::tm(),
+			DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY ) );
+	return newUnits[newUnits.size() - 1];
+}
+
 BigSerial DeveloperModel::getUnitIdForDeveloperAgent()
 {
-	return ++unitId;
+	boost::lock_guard<boost::recursive_mutex> lock(m_guard);
+	++unitId;
+
+	return unitId;
 }
 
 void DeveloperModel::setUnitId(BigSerial unitId)

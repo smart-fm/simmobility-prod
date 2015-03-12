@@ -150,11 +150,13 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         	 models.push_back(new HM_Model(*hmWorkers));
 
         if( enableDeveloperModel )
+        {
         	 //initiate developer model; to be referred later at each time tick (day)
         	 developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel);
         	 //developerModel->housingModel = hmModel;
         	 developerModel->setDays(days);
         	 models.push_back(developerModel);
+        }
 
         //start all models.
         for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)

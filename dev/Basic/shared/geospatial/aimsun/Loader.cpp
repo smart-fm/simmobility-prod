@@ -981,7 +981,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 		string str = pt_bus_stopsTemp.busstop_no;
 		boost::trim_right(str);
 		unsigned int no = boost::lexical_cast<unsigned int>(str);
-		sim_mob::BusStop* bs = sim_mob::BusStop::findBusStop(no);
+		sim_mob::BusStop* bs = sim_mob::BusStop::findBusStop(str);
 		if(bs) {
 			routeID_busStops[iter->route_id].push_back(bs);
 		}
@@ -2023,8 +2023,7 @@ void DatabaseLoader::createBusStopAgents()
 
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		unsigned int no = boost::lexical_cast<unsigned int>(busstop->busstopno_);
-		sim_mob::BusStop::RegisterNewBusStop(no, busstop);
+		sim_mob::BusStop::RegisterNewBusStop(busstop->busstopno_, busstop);
 	}
 
 	for(map<std::string,BusStopSG>::iterator it = bustopSG_.begin(); it != bustopSG_.end(); it++) {
@@ -2054,8 +2053,7 @@ void DatabaseLoader::createBusStopAgents()
 
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		unsigned int no = boost::lexical_cast<unsigned int>(busstop->busstopno_);
-		sim_mob::BusStop::RegisterNewBusStop(no, busstop);
+		sim_mob::BusStop::RegisterNewBusStop(busstop->busstopno_, busstop);
 	}
 }
 

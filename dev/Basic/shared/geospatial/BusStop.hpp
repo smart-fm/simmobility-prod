@@ -46,8 +46,8 @@ public:
 
 	///Adds a new bus stop to the Bus stop list
 	///@param busstop pointer to newly created bus stop
-	static void RegisterNewBusStop(unsigned int no, BusStop* busstop);
-	static BusStop* findBusStop(unsigned int no);
+	static void RegisterNewBusStop(const std::string& no, BusStop* busstop);
+	static BusStop* findBusStop(const std::string& no);
 
 	///set of all bus stops in the network
 	static BusStopSet allBusstops;

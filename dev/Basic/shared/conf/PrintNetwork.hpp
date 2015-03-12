@@ -59,7 +59,7 @@ private:
 	void LogLegacyCrossing(const sim_mob::Crossing* const cr) const;
 	void LogLegacyBusStop(const sim_mob::BusStop* const bs) const;
 	void LogLegacyLaneConnectors(const sim_mob::LaneConnector* const lc) const;
-	void LogTurnings(const std::map<std::string,sim_mob::TurningSection*> turnings) const;
+	void LogTurnings(const std::map<std::string,sim_mob::TurningSection*>& turnings) const;
 	void LogIncidents() const;
 
 	///Helper function: Print to the output file AND to the GUI, if Interactive mode is on.

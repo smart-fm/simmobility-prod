@@ -135,7 +135,7 @@ void sim_mob::PrintNetwork::LogNetworkLegacyFormat() const
 		LogLegacyLaneConnectors(*it);
 	}
 	const std::map<std::string,sim_mob::TurningSection* > &turningSectionMap = cfg.getNetwork().getTurnings();
-
+	LogTurnings(turningSectionMap);
 
 	//Tell the GUI this is done.
 	if (cfg.InteractiveMode()) {
@@ -463,24 +463,22 @@ void sim_mob::PrintNetwork::LogLegacyLaneConnectors(const LaneConnector* const l
 
 	PrintToFileAndGui(out);
 }
-void sim_mob::PrintNetwork::LogTurnings(const std::map<std::string,sim_mob::TurningSection*> turnings) const
+void sim_mob::PrintNetwork::LogTurnings(const std::map<std::string,sim_mob::TurningSection*>& turnings) const
 {
-//	//Retrieve relevant information
-//	const RoadSegment* fromSeg = lc->getLaneFrom()->getRoadSegment();
-//	unsigned int fromLane = std::distance(fromSeg->getLanes().begin(), std::find(fromSeg->getLanes().begin(), fromSeg->getLanes().end(),lc->getLaneFrom()));
-//	const RoadSegment* toSeg = lc->getLaneTo()->getRoadSegment();
-//	unsigned int toLane = std::distance(toSeg->getLanes().begin(), std::find(toSeg->getLanes().begin(), toSeg->getLanes().end(),lc->getLaneTo()));
-//
-//	//Output
-//	std::stringstream out; //Shadow PrintNetwork::out to prevent accidental stream modification.
-//	out <<"(\"lane-connector\", 0, " <<lc <<", {";
-//	out <<"\"from-segment\":\"" <<fromSeg <<"\",";
-//	out <<"\"from-lane\":\"" <<fromLane <<"\",";
-//	out <<"\"to-segment\":\"" <<toSeg <<"\",";
-//	out <<"\"to-lane\":\"" <<toLane <<"\",";
-//	out <<"})";
-//
-//	PrintToFileAndGui(out);
+	std::map<std::string,sim_mob::TurningSection*>::const_iterator it;
+	for(it=turnings.begin();it!=turnings.end();++it){
+		const sim_mob::TurningSection* ts = it->second;
+		std::stringstream out;
+		out <<"(\"turning-path\", 0, " <<ts <<", {";
+		out <<"\"id\":\"" <<ts->getDbId() <<"\",";
+		out <<"\"from_xpos\":\"" <<ts->getFrom_xpos() <<"\",";
+		out <<"\"from_ypos\":\"" <<ts->getFrom_ypos() <<"\",";
+		out <<"\"to_xpos\":\"" <<ts->getTo_xpos() <<"\",";
+		out <<"\"to_ypos\":\"" <<ts->getTo_ypos() <<"\",";
+		out <<"})";
+
+		PrintToFileAndGui(out);
+	}
 }
 void sim_mob::PrintNetwork::PrintToFileAndGui(const std::stringstream& str) const
 {

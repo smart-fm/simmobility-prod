@@ -91,7 +91,7 @@ namespace sim_mob
              * Events callbacks.
              */
             virtual void onEvent(event::EventId eventId, event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
-            
+
             /**
              * Processes the given event.
              * @param eventId

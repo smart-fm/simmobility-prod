@@ -37,7 +37,7 @@ class Busline;
 class BusStop : public sim_mob::RoadItem {
 	friend class ::geo::BusStop_t_pimpl;
 public:
-	typedef std::map<unsigned int, BusStop*> BusStopSet;
+	typedef std::map<std::string, BusStop*> BusStopSet;
 	///BusStops must be constructed with their stopPt, which must be the same
 	///  as the lane zero offset in their RoadSegment.
 	explicit BusStop() : RoadItem(), lane_location(0), busCapacityAsLength(0),

@@ -137,6 +137,9 @@ void sim_mob::PrintNetwork::LogNetworkLegacyFormat() const
 	const std::map<std::string,sim_mob::TurningSection* > &turningSectionMap = cfg.getNetwork().getTurnings();
 	LogTurnings(turningSectionMap);
 
+	const std::map<std::string,sim_mob::TurningConflict* > &conflicts = cfg.getNetwork().getConflicts();
+	LogConflicts(conflicts);
+
 	//Tell the GUI this is done.
 	if (cfg.InteractiveMode()) {
 		string end = "END";
@@ -471,10 +474,27 @@ void sim_mob::PrintNetwork::LogTurnings(const std::map<std::string,sim_mob::Turn
 		std::stringstream out;
 		out <<"(\"turning-path\", 0, " <<ts <<", {";
 		out <<"\"id\":\"" <<ts->getDbId() <<"\",";
-		out <<"\"from_xpos\":\"" <<ts->getFrom_xpos() <<"\",";
-		out <<"\"from_ypos\":\"" <<ts->getFrom_ypos() <<"\",";
-		out <<"\"to_xpos\":\"" <<ts->getTo_xpos() <<"\",";
-		out <<"\"to_ypos\":\"" <<ts->getTo_ypos() <<"\",";
+		out <<std::setprecision(10)<<"\"from_xpos\":\"" <<ts->getFrom_xpos() <<"\",";
+		out <<std::setprecision(8)<<"\"from_ypos\":\"" <<ts->getFrom_ypos() <<"\",";
+		out <<std::setprecision(8)<<"\"to_xpos\":\"" <<ts->getTo_xpos() <<"\",";
+		out <<std::setprecision(8)<<"\"to_ypos\":\"" <<ts->getTo_ypos() <<"\",";
+		out <<"})";
+
+		PrintToFileAndGui(out);
+	}
+}
+void sim_mob::PrintNetwork::LogConflicts(const std::map<std::string,sim_mob::TurningConflict* >& conflicts) const
+{
+	std::map<std::string,sim_mob::TurningConflict* >::const_iterator it;
+	for(it=conflicts.begin();it!=conflicts.end();++it){
+		const sim_mob::TurningConflict* cf = it->second;
+		std::stringstream out;
+		out <<"(\"turning-conflict\", 0, " <<cf <<", {";
+		out <<"\"id\":\"" <<cf->getDbId() <<"\",";
+		out <<"\"first-turning\":\"" <<cf->getFirstTurning()->getDbId() <<"\",";
+		out <<std::setprecision(8)<<"\"first-cd\":\"" <<cf->getFirst_cd() <<"\",";
+		out <<"\"second-turning\":\"" <<cf->getSecondTurning()->getDbId() <<"\",";
+		out <<std::setprecision(8)<<"\"second-cd\":\"" <<cf->getSecond_cd() <<"\",";
 		out <<"})";
 
 		PrintToFileAndGui(out);

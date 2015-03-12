@@ -134,6 +134,7 @@ public:
 	std::map<std::string,sim_mob::TurningSection* > turningSectionByFromSeg; // key= from aimsun id, value=turning
 	std::map<std::string,sim_mob::TurningSection* > turningSectionByToSeg; // key= to aimsun seg id, value=turning
 	std::map<std::string,sim_mob::TurningConflict* > turningConflictMap; // id, conflict
+	const std::map<std::string,sim_mob::TurningConflict* >& getConflicts() const { return turningConflictMap;}
 	void storeTurningSection( sim_mob::TurningSection* t);
 	void storeTurningConflict( sim_mob::TurningConflict* t);
 	sim_mob::TurningSection* findTurningById(std::string id);

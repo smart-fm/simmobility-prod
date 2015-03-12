@@ -42,10 +42,10 @@ namespace {
     const string MODEL_NAME = "Developer Model";
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0){ //In days (7 - weekly, 30 - Monthly)
+DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0),realEstateAgentIdIndex(0){ //In days (7 - weekly, 30 - Monthly)
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0){
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0),realEstateAgentIdIndex(0){
 }
 
 DeveloperModel::~DeveloperModel() {
@@ -99,6 +99,7 @@ void DeveloperModel::startImpl() {
 
 		UnitDao unitDao(conn);
 		unitId = unitDao.getMaxUnitId();
+		//realEstateAgentIds = housingMarketModel->
 
 	}
 
@@ -532,4 +533,25 @@ void DeveloperModel::addProjects(boost::shared_ptr<Project> project)
 void DeveloperModel::addBuildings(boost::shared_ptr<Building> building)
 {
 	newBuildings.push_back(building);
+}
+
+const RealEstateAgent* DeveloperModel::getRealEstateAgentForDeveloper()
+{
+
+	const RealEstateAgent* realEstateAgent = AgentsLookupSingleton::getInstance().getRealEstateAgentById(realEstateAgentIds[realEstateAgentIdIndex]);
+	if(realEstateAgentIdIndex >= (realEstateAgentIds.size() - 1))
+	{
+		realEstateAgentIdIndex = 0;
+	}
+	else
+	{
+		realEstateAgentIdIndex++;
+	}
+	return realEstateAgent;
+
+}
+
+void DeveloperModel::setRealEstateAgentIds(std::vector<BigSerial> realEstateAgentIdVec)
+{
+	this->realEstateAgentIds = realEstateAgentIdVec;
 }

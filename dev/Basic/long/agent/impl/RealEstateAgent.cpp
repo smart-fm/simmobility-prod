@@ -17,6 +17,7 @@
 #include "core/DataManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/ConfigManager.hpp"
+#include "message/LT_Message.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;

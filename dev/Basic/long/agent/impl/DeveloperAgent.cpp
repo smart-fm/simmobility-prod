@@ -18,7 +18,7 @@
 #include "model/DeveloperModel.hpp"
 #include "model/lua/LuaProvider.hpp"
 #include "message/MessageBus.hpp"
-#include "event/LT_EventArgs.hpp"
+#include "message/LT_Message.hpp"
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
 #include "RealEstateAgent.hpp"

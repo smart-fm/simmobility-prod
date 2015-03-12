@@ -13,7 +13,8 @@
 #include "agent/LT_Agent.hpp"
 #include "database/entity/Household.hpp"
 #include "event/LT_EventArgs.hpp"
-
+#include "database/entity/Unit.hpp"
+#include "database/entity/Building.hpp"
 
 namespace sim_mob
 {

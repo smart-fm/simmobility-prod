@@ -39,8 +39,8 @@ sim_mob::TurningSection::TurningSection():
 				from_lane_index(-1),
 				to_lane_index(-1),
 				fromSeg(nullptr),toSeg(nullptr),
-	laneFrom(nullptr),laneTo(nullptr),turningSpeed(0){
-
+	laneFrom(nullptr),laneTo(nullptr),turningSpeed(0),hasStopSign(false)
+{
 }
 
 sim_mob::TurningSection::TurningSection(const TurningSection & ts):
@@ -51,7 +51,10 @@ sim_mob::TurningSection::TurningSection(const TurningSection & ts):
 		from_lane_index(ts.from_lane_index),
 		to_lane_index(ts.to_lane_index),
 		fromSeg(nullptr),toSeg(nullptr),
-		sectionId(ts.sectionId),laneFrom(nullptr),laneTo(nullptr),turningSpeed(ts.turningSpeed){
+		sectionId(ts.sectionId),
+		laneFrom(nullptr),laneTo(nullptr),
+		turningSpeed(ts.turningSpeed), hasStopSign(ts.hasStopSign)
+{
 	std::stringstream out("");
 	out<<ts.dbId;
 	sectionId = out.str();
@@ -291,5 +294,15 @@ void TurningSection::setTurningSpeed(int turningSpeed)
 int TurningSection::getTurningSpeed() const
 {
 	return turningSpeed;
+}
+
+void TurningSection::setHasStopSign(bool hasStopSign)
+{
+	this->hasStopSign = hasStopSign;
+}
+
+bool TurningSection::turningHasStopSign() const
+{
+	return hasStopSign;
 }
 

@@ -76,6 +76,10 @@ class TurningConflict;
     
     //The defined max. speed for the turning
     int turningSpeed;
+    
+    //Indicates whether the turning has a stop sign. [This should be moved to the RoadSection/Link level
+    //in the new network]
+    bool hasStopSign;
 
   public:
     TurningSection();
@@ -195,6 +199,12 @@ class TurningConflict;
     
     //Getter for turningSpeed
     int getTurningSpeed() const;
+    
+    //Setter for hasStopSign
+    void setHasStopSign(bool hasStopSign);
+    
+    //Getter for hasStopSign
+    bool turningHasStopSign() const;
   } ;
 
 };// end namespace

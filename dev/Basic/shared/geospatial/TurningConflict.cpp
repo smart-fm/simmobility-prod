@@ -9,16 +9,15 @@ using namespace sim_mob;
 
 sim_mob::TurningConflict::TurningConflict() :
 		conflictId(""),dbId(-1),first_turning(""),second_turning(""),first_cd(-1),second_cd(-1),
-		firstTurning(nullptr),secondTurning(nullptr),criticalGap(0)
+		firstTurning(nullptr),secondTurning(nullptr),criticalGap(0),priority(0)
 {
-
-
 }
 
 sim_mob::TurningConflict::TurningConflict(const TurningConflict& tc) :
 		dbId(tc.dbId),first_turning(tc.first_turning),second_turning(tc.second_turning),
 		first_cd(tc.first_cd),second_cd(tc.second_cd),
-		firstTurning(tc.firstTurning),secondTurning(tc.secondTurning),criticalGap(tc.criticalGap)
+		firstTurning(tc.firstTurning),secondTurning(tc.secondTurning),
+		criticalGap(tc.criticalGap),priority(tc.priority)
 {
 		std::stringstream out("");
 		out<<tc.dbId;
@@ -124,4 +123,14 @@ void TurningConflict::setCriticalGap(double criticalGap)
 double TurningConflict::getCriticalGap() const
 {
 	return criticalGap;
+}
+
+void TurningConflict::setPriority(int priority)
+{
+	this->priority = priority;
+}
+
+int TurningConflict::getPriority() const
+{
+	return priority;
 }

@@ -45,6 +45,10 @@ class TurningSection;
     //Threshold value for accepting/rejecting the gap (and deciding whether to continue/slow down) between
     //conflicting vehicles (in seconds)
     double criticalGap;
+    
+    //Indicates which turning has a higher priority.
+    //0 - equal, 1 - first_turning has higher priority, 2 - second_turning has higher priority
+    int priority;
 
   public:
     TurningConflict();
@@ -104,6 +108,12 @@ class TurningSection;
     
     //Getter for criticalGap
     double getCriticalGap() const;
+    
+    //Setter for priority
+    void setPriority(int priority);
+    
+    //Getter for priority
+    int getPriority() const;
   } ;
 
 };// end namespace

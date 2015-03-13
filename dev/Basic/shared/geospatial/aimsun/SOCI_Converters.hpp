@@ -81,13 +81,13 @@ template<> struct type_conversion<sim_mob::SinglePath>
     	res.scenario = vals.get<std::string>("scenario", "");
     	res.length = vals.get<double>("length",0.0);
     	res.highWayDistance = vals.get<double>("highway_distance",0.0);
-		res.isMinDistance = vals.get<int>("min_distance",0);
-		res.isMinSignal = vals.get<int>("min_signal",0);
-		res.isMinRightTurn = vals.get<int>("min_right_turn",0);
-		res.isMaxHighWayUsage = vals.get<int>("max_highway_usage",0);
-		res.valid_path = vals.get<int>("valid_path",0);
-		res.isShortestPath = vals.get<int>("shortest_path",0);
-		res.index = vals.get<long long>("serial_id",0);
+        res.isMinDistance = vals.get<int>("min_distance", 0);
+        res.isMinSignal = vals.get<int>("min_signal", 0);
+        res.isMinRightTurn = vals.get<int>("min_right_turn", 0);
+        res.isMaxHighWayUsage = vals.get<int>("max_highway_usage", 0);
+        res.valid_path = vals.get<int>("valid_path", 0);
+        res.isShortestPath = vals.get<int>("shortest_path", 0);
+        res.index = vals.get<long long>("serial_id", 0);
     }
     static void to_base(const sim_mob::SinglePath& src, soci::values& vals, soci::indicator& ind)
     {
@@ -466,6 +466,7 @@ template<> struct type_conversion<sim_mob::TurningSection>
     	res.setFrom_lane_index(vals.get<int>("from_lane_index", -1));
     	res.setTo_lane_index(vals.get<int>("to_lane_index", -1));
         res.setTurningSpeed(vals.get<int>("turning_speed", 20));
+        res.setHasStopSign(vals.get<int>("has_stop_sign", 0));
     }
     static void to_base(const sim_mob::TurningSection& src, soci::values& vals, soci::indicator& ind)
     {
@@ -479,6 +480,7 @@ template<> struct type_conversion<sim_mob::TurningSection>
     	vals.set("from_lane_index", src.getFrom_lane_index());
     	vals.set("to_lane_index", src.getTo_lane_index());
         vals.set("turning_speed", src.getTurningSpeed());
+        vals.set("has_stop_sign", (src.turningHasStopSign() ? 1 : 0));
         ind = i_ok;
     }
 };
@@ -493,6 +495,7 @@ template<> struct type_conversion<sim_mob::TurningConflict>
     	res.setFirst_cd(vals.get<double>("first_cd", -1.0));
     	res.setSecond_cd(vals.get<double>("second_cd", -1.0));
         res.setCriticalGap(vals.get<double>("critical_gap", 1.5));
+        res.setPriority(vals.get<int>("priority", 0));
     }
     static void to_base(const sim_mob::TurningConflict& src, soci::values& vals, soci::indicator& ind)
     {
@@ -502,6 +505,7 @@ template<> struct type_conversion<sim_mob::TurningConflict>
     	vals.set("first_cd", src.getFirst_cd());
     	vals.set("second_cd", src.getSecond_cd());
         vals.set("critical_gap", src.getCriticalGap());
+        vals.set("priority", src.getPriority());
         ind = i_ok;
     }
 };

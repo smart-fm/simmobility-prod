@@ -50,8 +50,9 @@ void RealEstateAgent::addNewUnit(const BigSerial& unitId)
         preferableZones.push_back(tazId);
     }
 
-    boost::unordered_map<BigSerial,Unit*>::const_iterator unit = unitsById.find(unitId);
-    model->addUnit( unit->second);
+    boost::unordered_map<BigSerial,Unit*>::const_iterator unitItr = unitsById.find(unitId);
+
+    model->addUnit( unitItr->second);
 }
 
 void RealEstateAgent::removeUnitId(const BigSerial& unitId)

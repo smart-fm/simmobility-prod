@@ -177,6 +177,8 @@ namespace sim_mob {
 
             void setRealEstateAgentIds(std::vector<BigSerial> realEstateAgentIdVec);
 
+            void setHousingMarketModel(HM_Model *housingModel);
+
         protected:
             /**
              * Inherited from Model.
@@ -224,6 +226,7 @@ namespace sim_mob {
             std::vector<Unit*> newUnits;
             std::vector<BigSerial> realEstateAgentIds;
             BigSerial realEstateAgentIdIndex;
+            HM_Model *housingMarketModel;
         };
     }
 }

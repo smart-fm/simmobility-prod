@@ -21,7 +21,7 @@
 #include "message/LT_Message.hpp"
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
-#include "RealEstateAgent.hpp"
+
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -353,7 +353,8 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* mo
 }
 
 DeveloperAgent::DeveloperAgent(Parcel* parcel, DeveloperModel* model)
-: LT_Agent((parcel) ? parcel->getId() : INVALID_ID), model(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true){
+: LT_Agent((parcel) ? parcel->getId() : INVALID_ID), model(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr){
+
 }
 
 DeveloperAgent::~DeveloperAgent() {
@@ -366,6 +367,7 @@ void DeveloperAgent::assignParcel(BigSerial parcelId) {
 }
 
 bool DeveloperAgent::onFrameInit(timeslice now) {
+
     return true;
 }
 
@@ -461,9 +463,22 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 
 		for(size_t i=0; i< (*unitsItr).getNumUnits();i++)
 		{
-			//BigSerial unitId = model->getUnitIdForDeveloperAgent();
-			//Unit *unit = new Unit(unitId,buildingId,0,(*unitsItr).getUnitTypeId(),0,UNIT_PLANNED,(*unitsItr).getFloorArea(),0,0,toDate,std::tm(),UNIT_NOT_LAUNCHED,UNIT_NOT_READY_FOR_OCCUPANCY);
-			Unit *unit = model->makeNewUnit(unitsItr, toDate, buildingId);
+			//Unit *unit = model->makeNewUnit(unitsItr, toDate, buildingId);
+			Unit *unit = new Unit( model->getUnitIdForDeveloperAgent(), buildingId, 0, (*unitsItr).getUnitTypeId(),
+					  0,
+					  DeveloperAgent::UNIT_PLANNED,
+					  (*unitsItr).getFloorArea(),
+					  0,
+					  0,
+					  toDate,
+					  std::tm(),
+					  DeveloperAgent::UNIT_NOT_LAUNCHED,
+					  DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY,
+					  std::tm(),
+					  0,
+					  0,
+					  0);
+
 			newUnits.push_back(unit);
 			writeUnitDataToFile(unit->getId(),(*unitsItr).getNumUnits());
 			MessageBus::PostMessage(this, LTEID_DEV_UNIT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*unit)), true);
@@ -639,7 +654,7 @@ void DeveloperAgent::onWorkerExit() {
 
 void DeveloperAgent::HandleMessage(Message::MessageType type, const Message& message) {
 
-	RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(model->getRealEstateAgentForDeveloper());
+	//RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(model->getRealEstateAgentForDeveloper());
 	switch (type) {
 
 		        case LTEID_DEV_UNIT_ADDED:
@@ -720,4 +735,9 @@ void DeveloperAgent::HandleMessage(Message::MessageType type, const Message& mes
 		        }
 		        default:break;
 		    };
+}
+
+void DeveloperAgent::setRealEstateAgent(RealEstateAgent* realEstAgent)
+{
+	this->realEstateAgent = realEstAgent;
 }

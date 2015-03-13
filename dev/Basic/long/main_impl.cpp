@@ -155,9 +155,8 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         {
         	 //initiate developer model; to be referred later at each time tick (day)
         	 developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel);
-        	 //developerModel->housingModel = hmModel;
+        	 developerModel->setHousingMarketModel(housingMarketModel);
         	 developerModel->setDays(days);
-        	 developerModel->setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
         	 models.push_back(developerModel);
         }
 
@@ -166,7 +165,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         {
             (*it)->start();
         }
-        
+
         //Start work groups and all threads.
         wgMgr.startAllWorkGroups();
 

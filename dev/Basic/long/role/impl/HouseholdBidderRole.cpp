@@ -289,25 +289,26 @@ bool HouseholdBidderRole::pickEntryToBid()
     // This is done to replicate the real life scenario where a household will only visit a certain percentage of vacant units before settling on one.
     for(int n = 0; n < entries.size() * housingMarketSearchPercentage; n++)
     {
-    	int offset = (float)rand() / RAND_MAX * entries.size();
+    	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
 
     	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
         const HousingMarket::Entry* entry = *itr;
 
-        if(entry->getOwner() != getParent())
+
+        if(entry && entry->getOwner() != getParent())
         {
             const Unit* unit = model->getUnitById(entry->getUnitId());
             const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
 
             bool flatEligibility = true;
 
-            if( unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false)
+            if( unit && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false)
             	flatEligibility = false;
 
-            if( unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
+            if( unit && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
                 flatEligibility = false;
 
-            if( unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
+            if( unit && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
                 flatEligibility = false;
 
 

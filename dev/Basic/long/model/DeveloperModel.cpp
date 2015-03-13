@@ -486,22 +486,9 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 
 Unit* DeveloperModel::makeNewUnit( std::vector<PotentialUnit>::iterator unitsItr, std::tm toDate, BigSerial newBuildingId)
 {
-	newUnits.push_back( new Unit( getUnitIdForDeveloperAgent(), newBuildingId, 0, (*unitsItr).getUnitTypeId(),
-								  0,
-								  DeveloperAgent::UNIT_PLANNED,
-								  (*unitsItr).getFloorArea(),
-								  0,
-								  0,
-								  toDate,
-								  std::tm(),
-								  DeveloperAgent::UNIT_NOT_LAUNCHED,
-								  DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY,
-								  std::tm(),
-								  0,
-								  0,
-								  0) );
-
-
+	newUnits.push_back( new Unit( getUnitIdForDeveloperAgent(), newBuildingId, 0, (*unitsItr).getUnitTypeId(), 0, DeveloperAgent::UNIT_PLANNED,
+								  (*unitsItr).getFloorArea(), 0, 0, toDate, std::tm(), DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY,
+								  std::tm(), 0, 0, 0) );
 
 	return newUnits[newUnits.size() - 1];
 }

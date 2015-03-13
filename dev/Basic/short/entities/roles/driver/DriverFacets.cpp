@@ -2374,31 +2374,29 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 		}
 	}
 
-	if (otherRoadSegment->getLink() != fwdDriverMovement.getCurrLink()) { //We are in the different link.
-		if (!(fwdDriverMovement.isInIntersection())
-				&& fwdDriverMovement.getNextSegment(false)
-				== otherRoadSegment) { //Vehicle is on the next segment,which is in next link after intersection.
+	if (otherRoadSegment->getLink() != fwdDriverMovement.getCurrLink()) 
+	{ //We are in the different link.
+		if (fwdDriverMovement.getNextSegment(false) == otherRoadSegment) 
+		{
+			//Vehicle is on the next segment,which is in next link after intersection.
 			// 1. host vh's target lane is == other_driver's lane
-			//
-			size_t targetLaneIndex = params.nextLaneIndex;
-			size_t otherVhLaneIndex = getLaneIndex(other_lane);
-			if (targetLaneIndex == otherVhLaneIndex) {
-
-				if (params.nvFwd.driver == NULL) {
-					// std::cout<<"find this " <<other_driver->parent->getId()<<std::endl;
+			if(fwdDriverMovement.currTurning && fwdDriverMovement.currTurning->getLaneTo() == other_lane)
+			{
+				if (params.nvFwd.driver == NULL) 
+				{
 					// 2. other_driver's distance move in the segment, it is also the distance vh to intersection
-					double currSL =
-							fwdDriverMovement.getCurrentSegmentLengthCM();
-					double disMIS =
-							fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
+					double currSL = fwdDriverMovement.getCurrentSegmentLengthCM();
+					double disMIS =	fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
 					double otherdis = other_driver->currDistAlongRoadSegment;
 					double distance = currSL - disMIS + otherdis;
+					
 					// 3. compare the distance and set params.nvFwdNextLink
 					check_and_set_min_nextlink_car_dist(params.nvFwdNextLink,
 							distance, parentDriver->vehicle, other_driver);
 				}
 			}
 		}
+		
 		// for CF acceleration merge
 		// 1.0 check other driver's segment's end node
 		if (fwdDriverMovement.getCurrSegment()->getEnd()

@@ -154,16 +154,21 @@ void DriverUpdateParams::buildDebugInfo()
 #if 0
 	//Debug information for intersection driving
 	s << "            " << parentId << ":" << accSelect << ":" << acc;
-	s << ":speed:" << currSpeed << ":distToCflt:" << distToCflt << ":timeToCflt:" << timeToCflt;
-	s << ":CfltVeh:" << conflictVeh << ":distToCflt:" << distToCfltOth << ":timeToCflt:" << timeToCfltOth;
-	s << ":gap:" << gap << ":critGap:" << critGap;
-	/*int fwdcarid = -1;
+	s << ":speed:" << currSpeed;
+	
+	int fwdcarid = -1;
 	char fwdnvdis[20] = "\0";
 	if (this->nvFwd.exists())
 	{
 		Driver* fwd_driver_ = const_cast<Driver*>(nvFwd.driver);
 		fwdcarid = fwd_driver_->getParent()->getId();
 		sprintf(fwdnvdis, "fwdnvdis:%03.1f", nvFwd.distance);
+	}
+	else if(this->nvFwdNextLink.exists())
+	{
+		Driver* fwd_driver_ = const_cast<Driver*>(nvFwdNextLink.driver);
+		fwdcarid = fwd_driver_->getParent()->getId();
+		sprintf(fwdnvdis, "fwdnv_nxtlnkdis:%03.1f", nvFwdNextLink.distance);
 	}
 
 	int backcarid = -1;
@@ -175,7 +180,7 @@ void DriverUpdateParams::buildDebugInfo()
 		sprintf(backnvdis, "backnvdis:%03.1f", nvBack.distance);
 	}
 	s << ":fwd:" << fwdcarid << ":" <<fwdnvdis;
-	s << ":back:" << backcarid << ":" <<backnvdis;*/
+	s << ":back:" << backcarid << ":" <<backnvdis;
 	
 	debugInfo = s.str();
 #endif

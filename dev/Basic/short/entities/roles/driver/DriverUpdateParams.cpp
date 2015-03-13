@@ -176,9 +176,9 @@ void DriverUpdateParams::buildDebugInfo()
 	}
 	s << ":fwd:" << fwdcarid << ":" <<fwdnvdis;
 	s << ":back:" << backcarid << ":" <<backnvdis;*/
-#endif
 	
 	debugInfo = s.str();
+#endif
 }
 
 void DriverUpdateParams::addTargetLanes(set<const Lane*> tl)

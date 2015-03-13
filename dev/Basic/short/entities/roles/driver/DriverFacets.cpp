@@ -1694,10 +1694,10 @@ void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p)
 		//Get the set of turnings from the current segment
 		const std::set<TurningSection *> turnings = currEndNode->getTurnings(currSeg);
 		
-		//Look for the turning that has the from RoadSegment as the current RoadSegment
+		//Look for the turning that has the 'to' RoadSegment as the next RoadSegment
 		for(std::set<TurningSection*>::const_iterator itTurnings = turnings.begin(); itTurnings != turnings.end(); ++itTurnings)
 		{
-			if(currSeg == (*itTurnings)->getFromSeg())
+			if(nextSeg == (*itTurnings)->getToSeg())
 			{
 				//Check if this turning has a from lane that is same as the current lane
 				if(currLane == (*itTurnings)->getLaneFrom())

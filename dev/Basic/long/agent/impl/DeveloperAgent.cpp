@@ -463,7 +463,6 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 
 		for(size_t i=0; i< (*unitsItr).getNumUnits();i++)
 		{
-			//Unit *unit = model->makeNewUnit(unitsItr, toDate, buildingId);
 			Unit *unit = new Unit( model->getUnitIdForDeveloperAgent(), buildingId, 0, (*unitsItr).getUnitTypeId(),
 					  0,
 					  DeveloperAgent::UNIT_PLANNED,
@@ -478,7 +477,6 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 					  0,
 					  0,
 					  0);
-
 			newUnits.push_back(unit);
 			writeUnitDataToFile(unit->getId(),(*unitsItr).getNumUnits());
 			MessageBus::PostMessage(this, LTEID_DEV_UNIT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*unit)), true);

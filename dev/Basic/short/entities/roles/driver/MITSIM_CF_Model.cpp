@@ -51,7 +51,7 @@ double convertFrmMillisecondToSecond(double v) {
 double CalcHeadway(double space, double speed, double elapsedSeconds,
 		double maxAcceleration) {
 	if (speed == 0) {
-		return 2 * space * 100000;
+		return -1;
 	} else {
 		return 2 * space / (speed + speed + elapsedSeconds * maxAcceleration);
 	}
@@ -661,7 +661,6 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 
 		debugStr << emergSpace << ";";
 
-		// to fix bug: when subject vh speed=0 and space small, headway become large number
 		p.emergHeadway = -1;
 		if (emergSpace < 2.0)
 		{

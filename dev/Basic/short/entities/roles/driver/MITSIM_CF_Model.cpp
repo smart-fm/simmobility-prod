@@ -662,7 +662,7 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 		debugStr << emergSpace << ";";
 
 		p.emergHeadway = -1;
-		if (emergSpace < 2.0)
+		if (emergSpace <= p.driver->getVehicleLengthM())
 		{
 			double speed = p.perceivedFwdVelocity / 100;
 			double emergHeadway = CalcHeadway(emergSpace, speed,

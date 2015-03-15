@@ -1324,7 +1324,7 @@ double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p,
 		double vt = p.perceivedFwdVelocity / 100 * dt;
 		double a = dt * dt;
 		double b = 2.0 * vt + p.normalDeceleration * a;
-		double c = u2 - 2.0 * p.normalDeceleration * abs(dis - vt);
+		double c = u2 - 2.0 * p.normalDeceleration * dis - vt;
 		double d = b * b - 4.0 * a * c;
 
 		if (d < 0 || a <= 0.0)

@@ -18,7 +18,7 @@ DriverUpdateParams::DriverUpdateParams()
 	v_lead(0), space_star(0), distanceToNormalStop(0), dis2stop(0), impatienceTimer(0.0), nextLaneIndex(0), justChangedToNewSegment(false),
 	justMovedIntoIntersection(false), overflowIntoIntersection(0), driver(NULL), isTargetLane(false), emergHeadway(999), acc(0),
 	density(0), initSegId(0), initDis(0), initSpeed(0), parentId(0), FFAccParamsBeta(0), nextStepSize(0), maxAcceleration(0), normalDeceleration(0),
-	lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), impatienceTimerStart(0.0)
+	lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), impatienceTimerStart(0.0), hasStoppedForStopSign(false)
 {
 }
 
@@ -52,6 +52,9 @@ void DriverUpdateParams::setStatusDoingLC(LANE_CHANGE_SIDE& lcs)
 void DriverUpdateParams::buildDebugInfo()
 {
 	std::stringstream s;
+	
+	s << "            " << parentId << ":" << accSelect << ":" << acc;
+	s << ":speed:" << currSpeed;
 
 #if 0
 	//debug car jump;
@@ -152,10 +155,6 @@ void DriverUpdateParams::buildDebugInfo()
 #endif
 	
 #if 0
-	//Debug information for intersection driving
-	s << "            " << parentId << ":" << accSelect << ":" << acc;
-	s << ":speed:" << currSpeed;
-	
 	int fwdcarid = -1;
 	char fwdnvdis[20] = "\0";
 	if (this->nvFwd.exists())
@@ -181,9 +180,9 @@ void DriverUpdateParams::buildDebugInfo()
 	}
 	s << ":fwd:" << fwdcarid << ":" <<fwdnvdis;
 	s << ":back:" << backcarid << ":" <<backnvdis;
+#endif
 	
 	debugInfo = s.str();
-#endif
 }
 
 void DriverUpdateParams::addTargetLanes(set<const Lane*> tl)

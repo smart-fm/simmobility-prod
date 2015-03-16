@@ -1734,7 +1734,7 @@ void sim_mob::DriverMovement::calculateIntersectionTrajectory(DPoint movingFrom,
 	
 	//Compute a movement trajectory.
 
-	intModel->currTurning = fwdDriverMovement.currTurning;
+	intModel->setCurrTurning(fwdDriverMovement.currTurning);
 	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
 }
 

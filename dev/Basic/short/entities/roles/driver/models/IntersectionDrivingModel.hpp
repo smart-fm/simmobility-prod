@@ -60,6 +60,9 @@ protected:
 
   //The multiplier for the impatience timer. 
   double impatienceFactor;
+  
+  //The current turning
+  const TurningSection *currTurning;
 
 public:
 
@@ -71,27 +74,35 @@ public:
   virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) = 0;
 
   //Moves the vehicle by given amount along the trajectory
-    virtual DPoint continueDriving(double amount,DriverUpdateParams& p) = 0;
+  virtual DPoint continueDriving(double amount, DriverUpdateParams& p) = 0;
 
   //Depending on the conflicting vehicles, calculates the acceleration that allows the vehicle to 
   //pass through without colliding with the other vehicles
   virtual double makeAcceleratingDecision(DriverUpdateParams& params, const TurningSection *currTurning) = 0;
 
   //Returns the current angle of the vehicle according to the position in the trajectory
-    virtual double getCurrentAngle() { return intTrajectory.getAngle(); }
+  virtual double getCurrentAngle() 
+  { 
+    return intTrajectory.getAngle(); 
+  }
 
   //Returns the distance covered within the intersection
-
   double getMoveDistance()
   {
     return totalMovement;
   }
 
-    //Checks whether we've completed driving in the intersection
-    virtual bool isDone() { return totalMovement >= intTrajectory.getMagnitude(); }
-    
-    //Getter for the intersection visibility distance
-    int getIntersectionVisbility() const { return intersectionVisbility; }
+  //Checks whether we've completed driving in the intersection
+  virtual bool isDone()
+  {
+    return totalMovement >= intTrajectory.getMagnitude();
+  }
+
+  //Getter for the intersection visibility distance
+  int getIntersectionVisbility() const
+  {
+    return intersectionVisbility;
+  }
 
   //Getter for intersectionAttentivenessFactorMin
   double getIntersectionAttentivenessFactorMin() const 
@@ -105,10 +116,16 @@ public:
       return intersectionAttentivenessFactorMax;
   }
 
-    const TurningSection *	currTurning;
+  //Getter for the impatience factor
   double getImpatienceFactor() const
   {
     return impatienceFactor;
+  }
+
+  //Setter for the current turning
+  void setCurrTurning(const TurningSection* currTurning) 
+  {
+  	this->currTurning = currTurning;
   }
 };
 
@@ -187,19 +204,18 @@ public:
   virtual double makeAcceleratingDecision(DriverUpdateParams& params, const TurningSection *currTurning);  
 
 private:
-  /// store polypoints of the turning path
-
+  
+  //Stores the poly-points of the turning path
   std::vector<DPoint> polypoints;
   std::vector<DPoint>::iterator polypointIter;
 
   DPoint currPosition;
   DynamicVector currPolyline;
 
-  /// length of the turning
+  // length of the turning
   double length;
 
   double polylineMovement;
-
 };
   
 }

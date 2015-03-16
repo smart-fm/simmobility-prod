@@ -5,13 +5,14 @@
 #ifndef GEOSPATIAL_TURNINGPOLYLINE_H_
 #define GEOSPATIAL_TURNINGPOLYLINE_H_
 
-#include <geospatial/aimsun/Polyline.hpp>
+#include "geospatial/Polyline.h"
 
 namespace sim_mob {
 
-class TurningPolyline: public aimsun::Polyline {
+class TurningPolyline: public Polyline {
 public:
 	TurningPolyline();
+	TurningPolyline(const TurningPolyline& tp);
 	int turningId;
 	TurningSection *turning;
 	virtual ~TurningPolyline();

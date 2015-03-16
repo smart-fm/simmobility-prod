@@ -24,7 +24,7 @@ public:
 public:
 	int id;
 	double length;
-	PolylineType type;
+	int type;
 	std::string scenario;
 };
 

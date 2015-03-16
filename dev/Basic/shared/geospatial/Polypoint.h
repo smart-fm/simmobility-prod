@@ -13,6 +13,7 @@ namespace sim_mob {
 class Polypoint {
 public:
 	Polypoint();
+	Polypoint(const Polypoint& src);
 	virtual ~Polypoint();
 
 public:

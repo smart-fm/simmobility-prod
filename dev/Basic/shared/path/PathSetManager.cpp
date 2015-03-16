@@ -202,54 +202,34 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 	double maxHighWayUsage = std::numeric_limits<double>::min();
 	int minSignal = std::numeric_limits<int>::max();
 	int minRightTurn = std::numeric_limits<int>::max();
+	double minTravelTime = std::numeric_limits<int>::max();
 
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
 		// find MIN_DISTANCE
-		if(sp->length < minDistance)
-		{
-			minDistance = sp->length;
-		}
+		if(sp->length < minDistance) { minDistance = sp->length; }
 
 		// find MIN_SIGNAL
-		if(sp->signalNumber < minSignal)
-		{
-			minSignal = sp->signalNumber;
-		}
+		if(sp->signalNumber < minSignal) { minSignal = sp->signalNumber; }
 
 		// find MIN_RIGHT_TURN
-		if(sp->rightTurnNumber < minRightTurn)
-		{
-			minRightTurn = sp->rightTurnNumber;
-		}
+		if(sp->rightTurnNumber < minRightTurn) { minRightTurn = sp->rightTurnNumber; }
 
 		// find MAX_HIGH_WAY_USAGE
-		if(maxHighWayUsage < sp->highWayDistance / sp->length)
-		{
-			maxHighWayUsage = sp->highWayDistance / sp->length;
-		}
+		if(maxHighWayUsage < sp->highWayDistance / sp->length) { maxHighWayUsage = sp->highWayDistance / sp->length; }
 
+		//find MIN_TRAVEL_TIME
+		if(sp->travelTime < minTravelTime) { minTravelTime = sp->travelTime; }
 	}
 
 	//set all minima maximas to true (more than one path may have same minima/maxima)
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
-		if(sp->length == minDistance)
-		{
-			sp->isMinDistance = true;
-		}
-		if(minSignal == sp->signalNumber)
-		{
-			sp->isMinSignal = true;
-		}
-		if(sp->rightTurnNumber == minRightTurn)
-		{
-			sp->isMinRightTurn = true;
-		}
-		if(maxHighWayUsage == sp->highWayDistance / sp->length)
-		{
-			sp->isMaxHighWayUsage = 1;
-		}
+		sp->isMinDistance = (sp->length == minDistance);
+		sp->isMinSignal = (minSignal == sp->signalNumber);
+		sp->isMinRightTurn = (sp->rightTurnNumber == minRightTurn);
+		sp->isMaxHighWayUsage = (maxHighWayUsage == sp->highWayDistance / sp->length);
+		sp->isMinTravelTime = (minTravelTime == sp->travelTime);
 	}
 }
 
@@ -374,24 +354,23 @@ unsigned short purgeCbdPaths(sim_mob::PathSet &ps)
 void sim_mob::PathSetManager::onPathSetRetrieval(boost::shared_ptr<PathSet> &ps, bool enRoute)
 {
 	//step-1 time dependent calculations
-	int i = 0;
 	double minTravelTime= std::numeric_limits<double>::max();
 	sim_mob::SinglePath *minSP = *(ps->pathChoices.begin());
 	BOOST_FOREACH(SinglePath *sp, ps->pathChoices)
 	{
-		sp->travleTime = getPathTravelTime(sp,ps->subTrip.mode,ps->subTrip.startTime, enRoute);
+		sp->travelTime = getPathTravelTime(sp,ps->subTrip.mode,ps->subTrip.startTime, enRoute);
 		sp->travelCost = getPathTravelCost(sp,ps->subTrip.mode,ps->subTrip.startTime );
 		//MIN_TRAVEL_TIME
-		if(sp->travleTime < minTravelTime)
+		if(sp->travelTime < minTravelTime)
 		{
-			minTravelTime = sp->travleTime;
+			minTravelTime = sp->travelTime;
 			minSP = sp;
 		}
 	}
 
 	BOOST_FOREACH(SinglePath *sp, ps->pathChoices)
 	{
-		if(minTravelTime == sp->travleTime)
+		if(minTravelTime == sp->travelTime)
 		{
 			sp->isMinTravelTime = 1;
 		}
@@ -416,7 +395,7 @@ void sim_mob::PathSetManager::onGeneratePathSet(boost::shared_ptr<PathSet> &ps)
 	}
 	//store in into the database
 	logger << "[STORE PATH: " << ps->id << "]\n";
-	pathSetParam->storeSinglePath(*getSession(), ps->pathChoices,pathSetTableName);
+	pathSetParam->storeSinglePath(*getSession(), ps->pathChoices, pathSetTableName);
 }
 
 //Operations:
@@ -1012,15 +991,15 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 	std::vector<std::vector<PathSetWorkerThread*> > mainStorage = std::vector<std::vector<PathSetWorkerThread*> >();
 	// SHORTEST DISTANCE LINK ELIMINATION
 	std::vector<PathSetWorkerThread*> SDLE_Storage;
-//	genSDLE(ps, SDLE_Storage);
+	genSDLE(ps, SDLE_Storage);
 
 	//step-3: SHORTEST TRAVEL TIME LINK ELIMINATION
 	std::vector<PathSetWorkerThread*> STTLE_Storage;
-//	genSTTLE(ps,STTLE_Storage);
+	genSTTLE(ps,STTLE_Storage);
 
 	// TRAVEL TIME HIGHWAY BIAS
 	std::vector<PathSetWorkerThread*> STTHBLE_Storage;
-//	genSTTHBLE(ps,STTHBLE_Storage);
+	genSTTHBLE(ps,STTHBLE_Storage);
 
 	//	RANDOM;
 	std::vector<PathSetWorkerThread*> randPertStorage;
@@ -1277,7 +1256,7 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 			ps_->id = fromToID;
 			s->pathSetId = ps_->id;
 			s->travelCost = getPathTravelCost(s,ps_->subTrip.mode, ps_->subTrip.startTime);
-			s->travleTime = getPathTravelTime(s,ps_->subTrip.mode,ps_->subTrip.startTime);
+			s->travelTime = getPathTravelTime(s,ps_->subTrip.mode,ps_->subTrip.startTime);
 			ps_->pathChoices.insert(s);
 				// 2. exclude each seg in shortest path, then generate new shortest path
 			generatePathesByLinkElimination(s->path,duplicateChecker,ps_,fromNode,toNode);
@@ -1341,7 +1320,7 @@ void sim_mob::PathSetManager::generatePathesByLinkElimination(std::vector<WayPoi
 				continue;
 			}
 			sinPath->travelCost = getPathTravelCost(sinPath,ps_->subTrip.startTime);
-			sinPath->travleTime = getPathTravelTime(sinPath,ps_->subTrip.startTime);
+			sinPath->travelTime = getPathTravelTime(sinPath,ps_->subTrip.startTime);
 			sinPath->pathSetId = ps_->id;
 			ps_->pathChoices.insert(sinPath);
 		}
@@ -1367,7 +1346,7 @@ void sim_mob::PathSetManager::generatePathesByTravelTimeLinkElimination(std::vec
 				continue;
 			}
 			sinPath->travelCost = getPathTravelCost(sinPath,ps_->subTrip.startTime);
-			sinPath->travleTime = getPathTravelTime(sinPath,ps_->subTrip.startTime);
+			sinPath->travelTime = getPathTravelTime(sinPath,ps_->subTrip.startTime);
 			sinPath->pathSetId = ps_->id;
 //			storePath(sinPath);
 			ps_->pathChoices.insert(sinPath);
@@ -1384,7 +1363,7 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	if(sinPath_morningPeak)
 	{
 		sinPath_morningPeak->travelCost = getPathTravelCost(sinPath_morningPeak,ps_->subTrip.startTime);
-		sinPath_morningPeak->travleTime = getPathTravelTime(sinPath_morningPeak,ps_->subTrip.startTime);
+		sinPath_morningPeak->travelTime = getPathTravelTime(sinPath_morningPeak,ps_->subTrip.startTime);
 		sinPath_morningPeak->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath_morningPeak);
 		generatePathesByTravelTimeLinkElimination(sinPath_morningPeak->path,duplicateChecker,ps_,fromNode,toNode,sim_mob::MorningPeak);
@@ -1393,7 +1372,7 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	if(sinPath_eveningPeak)
 	{
 		sinPath_eveningPeak->travelCost = getPathTravelCost(sinPath_eveningPeak,ps_->subTrip.startTime);
-		sinPath_eveningPeak->travleTime = getPathTravelTime(sinPath_eveningPeak,ps_->subTrip.startTime);
+		sinPath_eveningPeak->travelTime = getPathTravelTime(sinPath_eveningPeak,ps_->subTrip.startTime);
 		sinPath_eveningPeak->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath_eveningPeak);
 		generatePathesByTravelTimeLinkElimination(sinPath_eveningPeak->path,duplicateChecker,ps_,fromNode,toNode,sim_mob::EveningPeak);
@@ -1402,7 +1381,7 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	if(sinPath_offPeak)
 	{
 		sinPath_offPeak->travelCost = getPathTravelCost(sinPath_offPeak,ps_->subTrip.startTime);
-		sinPath_offPeak->travleTime = getPathTravelTime(sinPath_offPeak,ps_->subTrip.startTime);
+		sinPath_offPeak->travelTime = getPathTravelTime(sinPath_offPeak,ps_->subTrip.startTime);
 		sinPath_offPeak->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath_offPeak);
 		generatePathesByTravelTimeLinkElimination(sinPath_offPeak->path,duplicateChecker,ps_,fromNode,toNode,sim_mob::OffPeak);
@@ -1411,7 +1390,7 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	if(sinPath_default)
 	{
 		sinPath_default->travelCost = getPathTravelCost(sinPath_default,ps_->subTrip.startTime);
-		sinPath_default->travleTime = getPathTravelTime(sinPath_default,ps_->subTrip.startTime);
+		sinPath_default->travelTime = getPathTravelTime(sinPath_default,ps_->subTrip.startTime);
 		sinPath_default->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath_default);
 		generatePathesByTravelTimeLinkElimination(sinPath_default->path,duplicateChecker,ps_,fromNode,toNode,sim_mob::Default);
@@ -1421,7 +1400,7 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	if(sinPath)
 	{
 		sinPath->travelCost = getPathTravelCost(sinPath,ps_->subTrip.startTime);
-		sinPath->travleTime = getPathTravelTime(sinPath,ps_->subTrip.startTime);
+		sinPath->travelTime = getPathTravelTime(sinPath,ps_->subTrip.startTime);
 		sinPath->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath);
 		generatePathesByTravelTimeLinkElimination(sinPath->path,duplicateChecker,ps_,fromNode,toNode,sim_mob::HighwayBias_Distance);
@@ -1430,7 +1409,7 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	if(sinPath)
 	{
 		sinPath->travelCost = getPathTravelCost(sinPath,ps_->subTrip.startTime);
-		sinPath->travleTime = getPathTravelTime(sinPath,ps_->subTrip.startTime);
+		sinPath->travelTime = getPathTravelTime(sinPath,ps_->subTrip.startTime);
 		sinPath->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath);
 		generatePathesByTravelTimeLinkElimination(sinPath->path,duplicateChecker,ps_,fromNode,toNode,sim_mob::HighwayBias_MorningPeak);
@@ -1439,7 +1418,7 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	if(sinPath)
 	{
 		sinPath->travelCost = getPathTravelCost(sinPath,ps_->subTrip.startTime);
-		sinPath->travleTime = getPathTravelTime(sinPath,ps_->subTrip.startTime);
+		sinPath->travelTime = getPathTravelTime(sinPath,ps_->subTrip.startTime);
 		sinPath->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath);
 		generatePathesByTravelTimeLinkElimination(sinPath->path,duplicateChecker,ps_,fromNode,toNode,sim_mob::HighwayBias_MorningPeak);
@@ -1448,7 +1427,7 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	if(sinPath)
 	{
 		sinPath->travelCost = getPathTravelCost(sinPath,ps_->subTrip.startTime);
-		sinPath->travleTime = getPathTravelTime(sinPath,ps_->subTrip.startTime);
+		sinPath->travelTime = getPathTravelTime(sinPath,ps_->subTrip.startTime);
 		sinPath->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath);
 		generatePathesByTravelTimeLinkElimination(sinPath->path,duplicateChecker,ps_,fromNode,toNode,sim_mob::HighwayBias_MorningPeak);
@@ -1457,7 +1436,7 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 	if(sinPath)
 	{
 		sinPath->travelCost = getPathTravelCost(sinPath,ps_->subTrip.startTime);
-		sinPath->travleTime = getPathTravelTime(sinPath,ps_->subTrip.startTime);
+		sinPath->travelTime = getPathTravelTime(sinPath,ps_->subTrip.startTime);
 		sinPath->pathSetId = ps_->id;
 		ps_->pathChoices.insert(sinPath);
 		//
@@ -1471,7 +1450,7 @@ void sim_mob::PathSetManager::generateTravelTimeSinglePathes(const sim_mob::Node
 		if(sinPath)
 		{
 			sinPath->travelCost = getPathTravelCost(sinPath,ps_->subTrip.startTime);
-			sinPath->travleTime = getPathTravelTime(sinPath,ps_->subTrip.startTime);
+			sinPath->travelTime = getPathTravelTime(sinPath,ps_->subTrip.startTime);
 			sinPath->pathSetId = ps_->id;
 			ps_->pathChoices.insert(sinPath);
 		}
@@ -1497,7 +1476,7 @@ std::string sim_mob::PathSetManager::logPartialUtility(const sim_mob::SinglePath
 
 	if(utilityLogger[sp].check())
 	{
-		sp->partialUtilityDbg << sp->pathSetId << "#" << sp->index << "#" << sp->travleTime << "#" << pathSetParam->bTTVOT <<  "#" << sp->travleTime * pathSetParam->bTTVOT << "#"
+		sp->partialUtilityDbg << sp->pathSetId << "#" << sp->index << "#" << sp->travelTime << "#" << pathSetParam->bTTVOT <<  "#" << sp->travelTime * pathSetParam->bTTVOT << "#"
 				<< sp->pathSize << "#" << pathSetParam->bCommonFactor << "#" <<  sp->pathSize * pathSetParam->bCommonFactor << "#"
 				<< sp->length << "#" << pathSetParam->bLength << "#"   <<  sp->length * pathSetParam->bLength << "#"
 				<< sp->highWayDistance << "#"  <<  pathSetParam->bHighway << "#" << sp->highWayDistance * pathSetParam->bHighway << "#"
@@ -1577,7 +1556,7 @@ double sim_mob::PathSetManager::generateUtility(const sim_mob::SinglePath* sp) c
 		return utility;
 	}
 
-	if(sp->travleTime <= 0.0)
+	if(sp->travelTime <= 0.0)
 	{
 		throw std::runtime_error("generateUtility: invalid single path travleTime :");
 	}
@@ -1586,13 +1565,13 @@ double sim_mob::PathSetManager::generateUtility(const sim_mob::SinglePath* sp) c
 //	utility = (sp->partialUtility > 0.0 ? sp->partialUtility : generatePartialUtility(sp)) ; //commend this line and enable the above 2 lines for debugging purposes-vahid
 	// calculate utility
 	//Obtain value of time for the agent A: bTTlowVOT/bTTmedVOT/bTThiVOT.
-	utility += sp->travleTime * pathSetParam->bTTVOT;
+	utility += sp->travelTime * pathSetParam->bTTVOT;
 	//obtain travel cost part of utility
 	utility += sp->travelCost * pathSetParam->bCost;
 	//for debugging purpose
 	//comment logging if not needed
 	//OD,partialUtility,travleTime,travelCost,utility
-	sim_mob::Logger::log("final_utility.csv") << sp->pathSetId << "," << partialUtility << "," << sp->travleTime << "," << sp->travelCost << "," << utility << "\n";
+	sim_mob::Logger::log("final_utility.csv") << sp->pathSetId << "," << partialUtility << "," << sp->travelTime << "," << sp->travelCost << "," << utility << "\n";
 	return utility;
 }
 
@@ -1624,15 +1603,15 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 		}
 		//	state of the network changed
 		//debug
-		if(sp->travleTime <= 0.0 )
+		if(sp->travelTime <= 0.0 )
 		{
 			std::stringstream out("");
-			out << sp->pathSetId << " getBestPathChoiceFromPathSet=>invalid single path travleTime :" << sp->travleTime;
+			out << sp->pathSetId << " getBestPathChoiceFromPathSet=>invalid single path travleTime :" << sp->travelTime;
 			throw std::runtime_error(out.str());
 		}
 		//debug..
 		if (partialExclusion.size() && sp->includesRoadSegment(partialExclusion) ) {
-			sp->travleTime = std::numeric_limits<double>::max();//some large value like infinity
+			sp->travelTime = std::numeric_limits<double>::max();//some large value like infinity
 			//	RE-calculate utility
 			sp->utility = generateUtility(sp);
 		}

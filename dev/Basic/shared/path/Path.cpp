@@ -1,21 +1,24 @@
 #include "Path.hpp"
+
+#include <boost/foreach.hpp>
+#include <boost/iterator/filter_iterator.hpp>
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/WayPoint.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/LaneConnector.hpp"
+#include "PathSetParam.hpp"
 #include "util/Utils.hpp"
-#include <boost/iterator/filter_iterator.hpp>
-#include <boost/foreach.hpp>
-
 
 namespace{
 sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
+
+const double HIGHWAY_SPEED = 60.0; //kmph
 }
 
 sim_mob::SinglePath::SinglePath() : purpose(work),utility(0.0),pathSize(0.0),travelCost(0.0),partialUtility(0.0),
-signalNumber(0.0),rightTurnNumber(0.0),length(0.0),travleTime(0.0),highWayDistance(0.0),valid_path(true),
+signalNumber(0.0),rightTurnNumber(0.0),length(0.0),travelTime(0.0),highWayDistance(0.0),valid_path(true),
 isMinTravelTime(0),isMinDistance(0),isMinSignal(0),isMinRightTurn(0),isMaxHighWayUsage(0),
 isShortestPath(0), index(-1),path(std::vector<sim_mob::WayPoint>()),isNeedSave2DB(false){
 }
@@ -26,7 +29,7 @@ sim_mob::SinglePath::SinglePath(const SinglePath& source) :
 		travelCost(source.travelCost),valid_path(source.valid_path),
 		signalNumber(source.signalNumber),
 		rightTurnNumber(source.rightTurnNumber),
-		length(source.length),travleTime(source.travleTime),
+		length(source.length),travelTime(source.travelTime),
 		pathSetId(source.pathSetId),highWayDistance(source.highWayDistance),
 		isMinTravelTime(source.isMinTravelTime),isMinDistance(source.isMinDistance),isMinSignal(source.isMinSignal),
 		isMinRightTurn(source.isMinRightTurn),isMaxHighWayUsage(source.isMaxHighWayUsage),isShortestPath(source.isShortestPath),
@@ -114,12 +117,14 @@ void sim_mob::SinglePath::init(std::vector<sim_mob::WayPoint>& wpPools)
 		}
 	}
 
-	//step-2 right/left turn
+	//right/left turn
 	sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(this);
-	//step-3 highway distance
+	//highway distance
 	highWayDistance = sim_mob::calculateHighWayDistance(this);
-	//step-4 length
+	//length
 	length = sim_mob::generateSinglePathLength(path);
+	//default travel time
+	travelTime = sim_mob::calculateSinglePathDefaultTT(path);
 }
 
 void sim_mob::SinglePath::clear()
@@ -134,7 +139,7 @@ void sim_mob::SinglePath::clear()
 	signalNumber=0.0;
 	rightTurnNumber=0.0;
 	length=0.0;
-	travleTime=0.0;
+	travelTime=0.0;
 	highWayDistance=0.0;
 	isMinTravelTime=0;
 	isMinDistance=0;
@@ -289,12 +294,12 @@ double sim_mob::calculateHighWayDistance(sim_mob::SinglePath *sp)
 	for(int i=0;i<sp->path.size();++i)
 	{
 		const sim_mob::RoadSegment* seg = sp->path[i].roadSegment_;
-		if(seg->maxSpeed >= 60)
+		if(seg->maxSpeed >= HIGHWAY_SPEED)
 		{
 			res += seg->getLength();
 		}
 	}
-	return res/100.0; //meter
+	return res/100.0; //cm -> meter
 }
 
 size_t sim_mob::getLaneIndex2(const sim_mob::Lane* l){
@@ -374,6 +379,17 @@ double sim_mob::generateSinglePathLength(const std::vector<sim_mob::WayPoint>& w
 		res += seg->getLength();
 	}
 	return res/100.0; //meter
+}
+
+double sim_mob::calculateSinglePathDefaultTT(const std::vector<sim_mob::WayPoint>& wp)
+{
+	double res = 0.0;
+	for(std::vector<sim_mob::WayPoint>::const_iterator it = wp.begin(); it != wp.end(); it++)
+	{
+		const sim_mob::RoadSegment* rs = it->roadSegment_;
+		res += sim_mob::PathSetParam::getInstance()->getDefSegTT(rs);
+	}
+	return res; //hours
 }
 
 

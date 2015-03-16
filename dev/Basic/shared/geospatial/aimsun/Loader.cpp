@@ -2621,11 +2621,23 @@ bool sim_mob::aimsun::Loader::storeSinglePath(soci::session& sql,
 		{
 			if(sp->isNeedSave2DB)
 			{
-				pathsetCSV << ("\"" + sp->id + "\"") << "," << ("\"" + sp->pathSetId + "\"") <<
-						"," << sp->partialUtility << "," << sp->pathSize << "," << sp->signalNumber
-						 << "," << sp->rightTurnNumber << "," <<  ("\"" + sp->scenario  + "\"") << "," << sp->length << "," << sp->highWayDistance
-						 << "," << sp->isMinDistance << "," << sp->isMinSignal << "," << sp->isMinRightTurn << "," << sp->isMaxHighWayUsage
-						 << "," << sp->valid_path << "," << sp->isShortestPath << "\n";
+				pathsetCSV << ("\"" + sp->id + "\"") << ","
+						<< ("\"" + sp->pathSetId + "\"") << ","
+						<< sp->partialUtility << ","
+						<< sp->pathSize << ","
+						<< sp->signalNumber << ","
+						<< sp->rightTurnNumber << ","
+						<< ("\"" + sp->scenario  + "\"") << ","
+						<< sp->length << ","
+						<< sp->highWayDistance << ","
+						<< sp->isMinDistance << ","
+						<< sp->isMinSignal << ","
+						<< sp->isMinRightTurn << ","
+						<< sp->isMaxHighWayUsage << ","
+						<< sp->valid_path << ","
+						<< sp->isShortestPath << ","
+						<< sp->travelTime << ","
+						<< sp->isMinTravelTime << "\n";
 			}
 		}
 	}

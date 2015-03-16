@@ -474,10 +474,14 @@ void sim_mob::PrintNetwork::LogTurnings(const std::map<std::string,sim_mob::Turn
 		std::stringstream out;
 		out <<"(\"turning-path\", 0, " <<ts <<", {";
 		out <<"\"id\":\"" <<ts->getDbId() <<"\",";
-		out <<std::setprecision(10)<<"\"from_xpos\":\"" <<ts->getFrom_xpos() <<"\",";
-		out <<std::setprecision(8)<<"\"from_ypos\":\"" <<ts->getFrom_ypos() <<"\",";
-		out <<std::setprecision(8)<<"\"to_xpos\":\"" <<ts->getTo_xpos() <<"\",";
-		out <<std::setprecision(8)<<"\"to_ypos\":\"" <<ts->getTo_ypos() <<"\",";
+		out <<std::setprecision(10)<<"\"from_xpos\":\"" <<ts->getFrom_xpos()*100.0 <<"\",";
+		out <<std::setprecision(8)<<"\"from_ypos\":\"" <<ts->getFrom_ypos()*100.0 <<"\",";
+		out <<std::setprecision(8)<<"\"to_xpos\":\"" <<ts->getTo_xpos()*100.0 <<"\",";
+		out <<std::setprecision(8)<<"\"to_ypos\":\"" <<ts->getTo_ypos() *100.0<<"\",";
+		out <<std::setprecision(8)<<"\"from_road_section\":\"" <<ts->getFrom_road_section() <<"\",";
+		out <<std::setprecision(8)<<"\"to_road_section\":\"" <<ts->getTo_road_section() <<"\",";
+		out <<std::setprecision(8)<<"\"from_lane_index\":\"" <<ts->getFrom_lane_index() <<"\",";
+		out <<std::setprecision(8)<<"\"to_lane_index\":\"" <<ts->getTo_lane_index() <<"\",";
 		out <<"})";
 
 		PrintToFileAndGui(out);

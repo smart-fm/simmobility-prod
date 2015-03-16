@@ -34,11 +34,11 @@ def validate_cross_point(t1,t2,x,y):
 	    return False;
 
    # check y coordinate in turning t2 from/to points y
-    if t2['from_ypos'] > t2['to_ypos'] :
-	if y > t2['from_ypos'] +1 or y < t2['to_ypos'] -1:
+    if t2['from_xpos'] > t2['to_xpos'] :
+	if x > t2['from_xpos'] +1 or x < t2['to_xpos'] -1:
 	    return False;
     else :
-        if y > t2['to_ypos'] +1 or y < t2['from_ypos'] -1:
+        if x > t2['to_xpos'] +1 or x < t2['from_xpos'] -1:
 	    return False;
     # check y coordinate in t2 y
     if t2['from_ypos'] > t2['to_ypos'] :

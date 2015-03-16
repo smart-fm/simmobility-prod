@@ -13,6 +13,8 @@
 #include "database/entity/Bid.hpp"
 #include "message/Message.hpp"
 #include "message/MessageHandler.hpp"
+#include "database/entity/Unit.hpp"
+#include "database/entity/Building.hpp"
 
 namespace sim_mob {
 
@@ -55,6 +57,39 @@ namespace sim_mob {
             Bid bid;
             BidResponse response;
         };
+
+        class HM_ActionMessage : public sim_mob::messaging::Message {
+        public:
+        	HM_ActionMessage(BigSerial buildingId,std::tm buildingFutureDemolitionDate);
+            HM_ActionMessage(const HM_ActionMessage& orig);
+            HM_ActionMessage(Unit &unit);
+            HM_ActionMessage(Building &building);
+            HM_ActionMessage(BigSerial unitId);
+            virtual ~HM_ActionMessage();
+
+            /**
+            * Gets the unit affected by the action.
+            * @return
+            */
+            BigSerial getUnitId()const;
+            /**
+            * Gets the building affected by the action.
+            * @return
+            */
+            BigSerial getBuildingId()const;
+            std::tm getFutureDemolitionDate() const;
+            Unit  *getUnit() const;
+            Building  *getBuilding() const;
+
+        private:
+            BigSerial unitId;
+            BigSerial buildingId;
+            std::tm buildingFutureDemolitionDate;
+            Unit *unit;
+            Building *building;
+       };
     }
+
+
 }
 

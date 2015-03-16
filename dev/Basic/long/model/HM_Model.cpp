@@ -261,6 +261,10 @@ void HM_Model::addUnit(Unit* unit)
 	unitsById.insert(std::pair<BigSerial,Unit*>(unit->getId(), unit));
 }
 
+std::vector<BigSerial> HM_Model::getRealEstateAgentIds()
+{
+	return this->realEstateAgentIds;
+}
 
 void HM_Model::startImpl()
 {
@@ -316,9 +320,11 @@ void HM_Model::startImpl()
 	//Create real-estate agents. Their tasks are to sell units from the developer model.
 	//
 	std::vector<RealEstateAgent*> realEstateAgents;
-	for( int i = 0; i < 1 ; i++ )
+	for( int i = 0; i < numWorkers ; i++ )
 	{
-		RealEstateAgent* realEstateAgent = new RealEstateAgent((FAKE_IDS_START + numWorkers + i), this, nullptr, &market, true);
+		BigSerial id = FAKE_IDS_START + numWorkers + i;
+		realEstateAgentIds.push_back(id);
+		RealEstateAgent* realEstateAgent = new RealEstateAgent(id, this, nullptr, &market, true);
 		AgentsLookupSingleton::getInstance().addRealEstateAgent(realEstateAgent);
 		agents.push_back(realEstateAgent);
 		workGroup.assignAWorker(realEstateAgent);

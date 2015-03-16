@@ -240,7 +240,7 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 	            BigSerial unitId = hmMessage.getUnitId();
 	            addNewUnit(unitId); // add unit id for sale
 	            changeUnitSaleStatus(hmMessage.getUnitId(),UNIT_LAUNCHED_BUT_UNSOLD);
-	            PrintOut("unit added to housing market");
+	            PrintOutV("unit added to housing market" << std::endl);
 	            break;
 	        }
 	        case LT_STATUS_ID_HM_UNIT_READY_FOR_OCCUPANCY_AND_VACANT:

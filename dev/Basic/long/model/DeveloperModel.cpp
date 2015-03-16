@@ -132,7 +132,6 @@ void DeveloperModel::stopImpl() {
 	emptyParcelsById.clear();
 	parcelsById.clear();
 
-	clear_delete_vector(newUnits);
 	clear_delete_vector(templates);
 	clear_delete_vector(developmentTypeTemplates);
 	clear_delete_vector(templateUnitTypes);
@@ -486,15 +485,6 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 	{
 		return ++buildingId;
 	}
-}
-
-Unit* DeveloperModel::makeNewUnit( std::vector<PotentialUnit>::iterator unitsItr, std::tm toDate, BigSerial newBuildingId)
-{
-	newUnits.push_back( new Unit( getUnitIdForDeveloperAgent(), newBuildingId, 0, (*unitsItr).getUnitTypeId(), 0, DeveloperAgent::UNIT_PLANNED,
-								  (*unitsItr).getFloorArea(), 0, 0, toDate, std::tm(), DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY,
-								  std::tm(), 0, 0, 0) );
-
-	return newUnits[newUnits.size() - 1];
 }
 
 BigSerial DeveloperModel::getUnitIdForDeveloperAgent()

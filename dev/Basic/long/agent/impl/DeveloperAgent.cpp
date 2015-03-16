@@ -463,20 +463,8 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 
 		for(size_t i=0; i< (*unitsItr).getNumUnits();i++)
 		{
-			Unit *unit = new Unit( model->getUnitIdForDeveloperAgent(), buildingId, 0, (*unitsItr).getUnitTypeId(),
-					  0,
-					  DeveloperAgent::UNIT_PLANNED,
-					  (*unitsItr).getFloorArea(),
-					  0,
-					  0,
-					  toDate,
-					  std::tm(),
-					  DeveloperAgent::UNIT_NOT_LAUNCHED,
-					  DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY,
-					  std::tm(),
-					  0,
-					  0,
-					  0);
+			Unit *unit = new Unit( model->getUnitIdForDeveloperAgent(), buildingId, 0, (*unitsItr).getUnitTypeId(), 0, DeveloperAgent::UNIT_PLANNED, (*unitsItr).getFloorArea(), 0, 0, toDate, std::tm(),
+					  DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY, std::tm(), 0, 0, 0);
 			newUnits.push_back(unit);
 			writeUnitDataToFile(unit->getId(),(*unitsItr).getNumUnits());
 			MessageBus::PostMessage(this, LTEID_DEV_UNIT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*unit)), true);
@@ -728,7 +716,7 @@ void DeveloperAgent::HandleMessage(Message::MessageType type, const Message& mes
 		        {
 		        	const DEV_InternalMsg& devArgs = MSG_CAST(DEV_InternalMsg, message);
 		        	//MessageBus::PublishEvent(LT_STATUS_ID_HM_BUILDING_LAUNCHED_BUT_UNSOLD,MessageBus::EventArgsPtr(new HM_ActionEventArgs((devArgs.getBuildingId()),(std::tm()))));
-		        	MessageBus::PostMessage(realEstateAgent, LT_STATUS_ID_DEV_BUILDING_LAUNCHED_BUT_UNSOLD, MessageBus::MessagePtr(new HM_ActionMessage((devArgs.getBuildingId()),(std::tm()))), true);
+		        	MessageBus::PostMessage(realEstateAgent, LT_STATUS_ID_HM_BUILDING_LAUNCHED_BUT_UNSOLD, MessageBus::MessagePtr(new HM_ActionMessage((devArgs.getBuildingId()),(std::tm()))), true);
 		        	break;
 		        }
 		        default:break;

@@ -217,7 +217,7 @@ void RealEstateSellerRole::update(timeslice now)
         const vector<BigSerial>& unitIds = dynamic_cast<RealEstateAgent*>(getParent())->getUnitIds();
 
         //get values from parent.
-        const Unit* unit = nullptr;
+        Unit* unit = nullptr;
 
         //PrintOutV("size of unitsVec:" << unitIds.size() << std::endl );
 
@@ -225,7 +225,7 @@ void RealEstateSellerRole::update(timeslice now)
         {
             //Decides to put the house on market.
             BigSerial unitId = *itr;
-            unit = model->getUnitById(unitId);
+            unit = const_cast<Unit*>(model->getUnitById(unitId));
 
         	//this only applies to empty units. These units are given a random dayOnMarket value
         	//so that not all empty units flood the market on day 1. There's a timeOnMarket and timeOffMarket
@@ -245,6 +245,9 @@ void RealEstateSellerRole::update(timeslice now)
             	//PrintOutV("Skipping. day: " << day << " entryDay: " << unit->getbiddingMarketEntryDay() << " unit: " << unit->getId() << std::endl);
             	continue;
             }
+
+            BigSerial rand_tazId = BigSerial((float)rand() / RAND_MAX * 110524);
+            unit->setSlaAddressId(rand_tazId);
 
 
             BigSerial tazId = model->getUnitTazId(unitId);
@@ -270,7 +273,6 @@ void RealEstateSellerRole::HandleMessage(Message::MessageType type, const Messag
     {
         case LTMID_BID:// Bid received 
         {
-        	PrintOutV("Agent " << getParent()->getId() << "got a bid." << std::endl);
             const BidMessage& msg = MSG_CAST(BidMessage, message);
             BigSerial unitId = msg.getBid().getUnitId();
             bool decision = false;
@@ -391,7 +393,7 @@ void RealEstateSellerRole::notifyWinnerBidders()
         replyBid(*dynamic_cast<RealEstateAgent*>(getParent()), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getUnitId()));
 
         //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );
-        PrintOutV("RealEstate Agent. Seller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf." << std::endl );
+        //PrintOutV("RealEstate Agent. Seller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf." << std::endl );
 
         market->removeEntry(maxBidOfDay.getUnitId());
         dynamic_cast<RealEstateAgent*>(getParent())->removeUnitId(maxBidOfDay.getUnitId());

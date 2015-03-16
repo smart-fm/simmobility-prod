@@ -325,10 +325,16 @@ function calculateWP (household, unit, tazStats, amenities)
     local b3 = -0.066
     local b4 = -0.050
     local hasCar = (CAR_CATEGORIES[household.vehicleCategoryId] and 1 or 0)
+    local distanceToCBD = 0;
+    
+    if(amenities ~= nil ) then
+		distanceToCBD = amenities.distanceToCBD;
+    end
+
     local x=  ((b1 * sqfToSqm(unit.floorArea) * Math.ln(household.size))                          --  b1 * Area_Per_Unit  *ln(HouseHold_Size) + 
            +(b2 * ((household.income / 1000) / household.size) * (tazStats.hhAvgIncome / 1000))   --  b2 * HouseHold_Income / HouseHold_Size * Zone_Average_Income +
-           +(b3 * (amenities.distanceToCBD) * hasCar)                                             --  b3 * Distance_to_CBD*(Dummie_if_car) +
-           +(b4 * (amenities.distanceToCBD) * (1-hasCar)))                                        --  b4 * Distance_to_CBD*(1-Dummie_if_car)
+           +(b3 * (distanceToCBD) * hasCar)                                             --  b3 * Distance_to_CBD*(Dummie_if_car) +
+           +(b4 * (distanceToCBD) * (1-hasCar)))                                        --  b4 * Distance_to_CBD*(1-Dummie_if_car)
     --print("WP: " .. x)
     --Area_Per_Unit, HouseHold_Size,HouseHold_Income,Distance_to_CBD, Zone_Average_Income, HasCar, WP
     --print ("HH_ID: " .. household.id .."," .. unit.floorArea..",".. household.size .. "," .. household.income .. ","..amenities.distanceToCBD .. ","..tazStats.hhAvgIncome .. ",".. hasCar .."," .. x)

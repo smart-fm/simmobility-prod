@@ -19,9 +19,13 @@ namespace sim_mob {
 class Polyline {
 public:
 	Polyline();
-
-	PolylineType type;
 	virtual ~Polyline();
+
+public:
+	int id;
+	double length;
+	PolylineType type;
+	std::string scenario;
 };
 
 } /* namespace sim_mob */

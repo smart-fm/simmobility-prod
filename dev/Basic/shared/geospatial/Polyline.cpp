@@ -8,7 +8,7 @@
 namespace sim_mob {
 
 Polyline::Polyline()
-:type(POLYLINE_TYPE_POLYPOINT)
+:type(POLYLINE_TYPE_POLYPOINT),id(-1)
 {
 	// TODO Auto-generated constructor stub
 

@@ -776,7 +776,7 @@ bool sim_mob::DriverMovement::update_post_movement(timeslice now) {
 											params.overflowIntoIntersection);
 
 			//Fix: We need to perform this calculation at least once or we won't have a heading within the intersection.
-			DPoint res = intModel->continueDriving(0);
+			DPoint res = intModel->continueDriving(0,params);
 			parentDriver->vehicle->setPositionInIntersection(res.x, res.y);
 		}
 	}
@@ -910,7 +910,7 @@ void sim_mob::DriverMovement::intersectionDriving(DriverUpdateParams& p)
 	}
 	
 	//update movement along the vector.
-	DPoint res = intModel->continueDriving(distanceTravelled * METER_TO_CENTIMETER_CONVERT_UNIT);
+	DPoint res = intModel->continueDriving(distanceTravelled * METER_TO_CENTIMETER_CONVERT_UNIT,p);
 	parentDriver->vehicle->setPositionInIntersection(res.x, res.y);
 
 	//Next, detect if we've just left the intersection. Otherwise, perform regular intersection driving.
@@ -1700,7 +1700,7 @@ void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p)
 			if(nextSeg == (*itTurnings)->getToSeg())
 			{
 				//Check if this turning has a from lane that is same as the current lane
-				if(currLane == (*itTurnings)->getLaneFrom())
+				if(currLane == (*itTurnings)->getLaneFrom() && nextSeg == (*itTurnings)->getToSeg())
 				{
 					targetLaneIndex = p.nextLaneIndex = (*itTurnings)->getTo_lane_index();
 					nextLaneInNextLink = (*itTurnings)->getLaneTo();
@@ -1712,7 +1712,7 @@ void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p)
 		//Check if the next lane was found
 		if(nextLaneInNextLink == nullptr)
 		{
-			throw std::runtime_error("Could not find the next lane in the next link");
+			//throw std::runtime_error("Could not find the next lane in the next link");
 		}
 	}
 	else
@@ -1733,6 +1733,8 @@ void sim_mob::DriverMovement::calculateIntersectionTrajectory(DPoint movingFrom,
 	Point2D entry = nextLaneInNextLink->getPolyline().at(0);
 	
 	//Compute a movement trajectory.
+
+	intModel->currTurning = fwdDriverMovement.currTurning;
 	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
 }
 

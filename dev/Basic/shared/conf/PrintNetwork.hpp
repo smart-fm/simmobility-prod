@@ -14,6 +14,9 @@
 #include <fstream>
 
 
+#include "geospatial/TurningSection.hpp"
+#include "geospatial/TurningConflict.hpp"
+
 namespace sim_mob {
 
 class ConfigParams;
@@ -47,7 +50,8 @@ private:
 	void LogLegacySimulationProps() const;
 	void LogLegacySignalProps() const;
 	void LogLegacyUniNodeProps(std::set<const sim_mob::RoadSegment*>& cachedSegments) const;
-	void LogLegacyMultiNodeProps(std::set<const sim_mob::RoadSegment*>& cachedSegments, std::set<sim_mob::LaneConnector*>& cachedConnectors) const;
+	void LogLegacyMultiNodeProps(std::set<const sim_mob::RoadSegment*>& cachedSegments,
+			std::set<sim_mob::LaneConnector*>& cachedConnectors) const;
 	void LogLegacyLinks() const;
 	void LogLegacySegment(const sim_mob::RoadSegment* const rs, std::set<const sim_mob::Crossing*>& cachedCrossings, std::set<const sim_mob::BusStop*>& cachedBusStops) const;
 	void LogLegacySegPolyline(const sim_mob::RoadSegment* const rs) const;
@@ -55,6 +59,8 @@ private:
 	void LogLegacyCrossing(const sim_mob::Crossing* const cr) const;
 	void LogLegacyBusStop(const sim_mob::BusStop* const bs) const;
 	void LogLegacyLaneConnectors(const sim_mob::LaneConnector* const lc) const;
+	void LogTurnings(const std::map<std::string,sim_mob::TurningSection*>& turnings) const;
+	void LogConflicts(const std::map<std::string,sim_mob::TurningConflict* >& conflicts) const;
 	void LogIncidents() const;
 
 	///Helper function: Print to the output file AND to the GUI, if Interactive mode is on.

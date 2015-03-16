@@ -94,7 +94,25 @@ void sim_mob::RoadNetwork::storeTurningSection(sim_mob::TurningSection* turningS
 	//Update the map of lane vs turnings
 	multinode->updateMapLaneVsTurning(from, to, turningSection);
 }
-
+void sim_mob::RoadNetwork::storeTurningPolyline(sim_mob::TurningPolyline* tp)
+{
+	// find turning section
+	std::stringstream out("");
+	out<<tp->turningId;
+	std::string turningIdStr = out.str();
+	std::map<std::string,sim_mob::TurningSection* >::iterator it = turningSectionMap.find(turningIdStr);
+	if(it!=turningSectionMap.end())
+	{
+		// find turning
+		sim_mob::TurningSection* ts = it->second;
+		ts->setPolyline(tp);
+		//
+		turningPolylineMap.insert(std::make_pair(tp->id,tp));
+	}
+	else{
+		throw std::runtime_error("storeTurningPolyline: No turning found");
+	}
+}
 sim_mob::TurningSection* sim_mob::RoadNetwork::findTurningById(std::string id) {
 	sim_mob::TurningSection* res = nullptr;
 	std::map<std::string,sim_mob::TurningSection* >::iterator it =

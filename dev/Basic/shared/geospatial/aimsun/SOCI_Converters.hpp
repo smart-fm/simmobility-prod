@@ -24,6 +24,8 @@
 #include "entities/PersonLoader.hpp"
 #include "geospatial/TurningSection.hpp"
 #include "geospatial/TurningConflict.hpp"
+#include "geospatial/TurningPolyline.h"
+#include "geospatial/Polypoint.h"
 
 //using namespace sim_mob::aimsun;
 //using std::string;
@@ -506,6 +508,52 @@ template<> struct type_conversion<sim_mob::TurningConflict>
     	vals.set("second_cd", src.getSecond_cd());
         vals.set("critical_gap", src.getCriticalGap());
         vals.set("priority", src.getPriority());
+        ind = i_ok;
+    }
+};
+template<> struct type_conversion<sim_mob::TurningPolyline>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::TurningPolyline &res)
+    {
+    	res.id = vals.get<int>("id", -1);
+    	res.turningId = vals.get<int>("turning", -1);
+    	res.type = vals.get<int>("type", -1);
+    	res.length = vals.get<double>("length", -1);
+    	res.scenario = vals.get<int>("type", -1);
+    }
+    static void to_base(const sim_mob::TurningPolyline& src, soci::values& vals, soci::indicator& ind)
+    {
+    	vals.set("id", src.id);
+    	vals.set("turning", src.turningId);
+    	vals.set("type", src.type);
+    	vals.set("length", src.length);
+    	vals.set("scenario", src.scenario);
+        ind = i_ok;
+    }
+};
+template<> struct type_conversion<sim_mob::Polypoint>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::Polypoint &res)
+    {
+    	res.id = vals.get<int>("id", -1);
+    	res.polylineId = vals.get<int>("polyline", -1);
+    	res.index = vals.get<int>("index", -1);
+    	res.x = vals.get<double>("x", 0.0);
+    	res.y = vals.get<double>("y", 0.0);
+    	res.z = vals.get<double>("z", 0.0);
+    	res.scenario = vals.get<std::string>("scenario", "");
+    }
+    static void to_base(const sim_mob::Polypoint& src, soci::values& vals, soci::indicator& ind)
+    {
+    	vals.set("id", src.id);
+    	vals.set("polyline", src.polylineId);
+    	vals.set("index", src.index);
+    	vals.set("x", src.x);
+    	vals.set("y", src.y);
+    	vals.set("z", src.z);
+    	vals.set("scenario", src.scenario);
         ind = i_ok;
     }
 };

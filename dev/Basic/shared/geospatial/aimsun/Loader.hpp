@@ -35,6 +35,8 @@ class ERP_Surcharge;
 class LinkTravelTime;
 class TurningSection;
 class TurningConflict;
+class TurningPolyline;
+class Polypoint;
 
 
 enum HasPath

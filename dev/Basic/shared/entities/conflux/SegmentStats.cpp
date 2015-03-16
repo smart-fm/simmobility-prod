@@ -25,6 +25,7 @@ const double LARGE_OUTPUT_FLOW_RATE = 1000.0;
 
 const double SINGLE_LANE_SEGMENT_CAPACITY = 1200.0; //veh/hr. suggested by Yang Lu on 11-Oct-2014
 const double DOUBLE_LANE_SEGMENT_CAPACITY = 3000.0; //veh/hr. suggested by Yang Lu on 11-Oct-2014
+const double UNIT_KMPH_IN_CMPS = 100000.0/3600.0; // 1km = 100000 cm; 1hr = 3600 s;
 
 /**
  * converts the unit of speed from Km/h to cm/s
@@ -33,7 +34,7 @@ const double DOUBLE_LANE_SEGMENT_CAPACITY = 3000.0; //veh/hr. suggested by Yang 
  */
 inline double convertKmphToCmps(double speedInKmph)
 {
-	return (speedInKmph / 3.6 * 100);
+	return (speedInKmph * UNIT_KMPH_IN_CMPS);
 }
 }
 

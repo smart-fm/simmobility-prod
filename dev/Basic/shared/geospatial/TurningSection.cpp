@@ -67,6 +67,18 @@ sim_mob::TurningSection::TurningSection(const TurningSection & ts):
 	trimmer >> to_road_section;
 }
 
+void TurningSection::setPolyline(TurningPolyline* src)
+{
+	polyline = src;
+	polylinePoints.clear();
+	for(int i=0;i<src->polypoints.size();++i){
+		Polypoint* pp = src->polypoints.at(i);
+		DPoint p;
+		p.x = pp->x;
+		p.y = pp->y;
+		polylinePoints.push_back(p);
+	}
+}
 void TurningSection::addTurningConflict(TurningConflict* turningConflict)
 {
 	this->turningConflicts.push_back(turningConflict);
@@ -131,12 +143,12 @@ const sim_mob::Lane* TurningSection::getLaneFrom() const
 	return laneFrom;
 }
 
-void TurningSection::setPolylinePoints(std::vector<Point2D> polylinePoints)
+void TurningSection::setPolylinePoints(std::vector<DPoint> polylinePoints)
 {
 	this->polylinePoints = polylinePoints;
 }
 
-std::vector<Point2D> TurningSection::getPolylinePoints() const
+std::vector<DPoint> TurningSection::getPolylinePoints() const
 {
 	return polylinePoints;
 }

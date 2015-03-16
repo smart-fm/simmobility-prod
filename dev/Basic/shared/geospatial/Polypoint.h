@@ -8,6 +8,8 @@
 #ifndef GEOSPATIAL_POLYPOINT_H_
 #define GEOSPATIAL_POLYPOINT_H_
 
+#include <string>
+
 namespace sim_mob {
 
 class Polypoint {

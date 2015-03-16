@@ -10,6 +10,7 @@
 #include "geospatial/RoadRunnerRegion.hpp"
 #include "TurningSection.hpp"
 #include "TurningConflict.hpp"
+#include "TurningPolyline.h"
 
 namespace sim_mob
 {
@@ -24,6 +25,7 @@ class Conflux;
 class CoordinateTransform;
 class TurningSection;
 class TurningConflict;
+class TurningPolyline;
 
 namespace aimsun
 {
@@ -136,6 +138,10 @@ public:
 	std::map<std::string,sim_mob::TurningConflict* > turningConflictMap; // id, conflict
 	const std::map<std::string,sim_mob::TurningConflict* >& getConflicts() const { return turningConflictMap;}
 	void storeTurningSection( sim_mob::TurningSection* t);
+
+	std::map<int,sim_mob::TurningPolyline* > turningPolylineMap; // polyline id, polyline
+	void storeTurningPolyline(sim_mob::TurningPolyline* tp);
+
 	void storeTurningConflict( sim_mob::TurningConflict* t);
 	sim_mob::TurningSection* findTurningById(std::string id);
 	void makeSegPool();

@@ -6,6 +6,8 @@
 #ifndef GEOSPATIAL_POLYLINE_H_
 #define GEOSPATIAL_POLYLINE_H_
 
+#include <string>
+
 enum PolylineType
 {
 	POLYLINE_TYPE_POLYPOINT = 0,
@@ -19,6 +21,7 @@ namespace sim_mob {
 class Polyline {
 public:
 	Polyline();
+	Polyline(const Polyline& src);
 	virtual ~Polyline();
 
 public:

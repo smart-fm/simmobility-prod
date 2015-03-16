@@ -11,8 +11,8 @@ TurningPolyline::TurningPolyline()
 	// TODO Auto-generated constructor stub
 
 }
-TurningPolyline::TurningPolyline(const TurningPolyline& tp)
-:id(tp.id),turning(tp.turning),type(tp.type),turningId(tp.turningId)
+TurningPolyline::TurningPolyline(const sim_mob::TurningPolyline& tp)
+:Polyline(tp),turning(tp.turning),turningId(tp.turningId)
 {
 
 }

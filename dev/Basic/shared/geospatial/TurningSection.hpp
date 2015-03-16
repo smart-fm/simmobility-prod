@@ -6,11 +6,14 @@
 
 #include "geospatial/Lane.hpp"
 #include "TurningConflict.hpp"
+#include "TurningPolyline.h"
+#include "util/DynamicVector.hpp"
 
 namespace sim_mob
 {
   
 class TurningConflict;
+class TurningPolyline;
 
   class TurningSection
   {
@@ -60,7 +63,7 @@ class TurningConflict;
     sim_mob::RoadSegment* toSeg;
 
     //Polyline points representing the geometry of the turning
-    std::vector<Point2D> polylinePoints;
+    std::vector<DPoint> polylinePoints;
 
     //The Lane object leading into the turning
     const sim_mob::Lane* laneFrom;
@@ -77,11 +80,15 @@ class TurningConflict;
     //The defined max. speed for the turning
     int turningSpeed;
 
+    TurningPolyline* polyline;
+
   public:
     TurningSection();
     
     TurningSection(const TurningSection & ts);
     
+    void setPolyline(TurningPolyline* src);
+
     //Inserts a turning conflict into the vector turningConflicts
     void addTurningConflict(TurningConflict* turningConflict);
     
@@ -110,10 +117,10 @@ class TurningConflict;
     const sim_mob::Lane* getLaneFrom() const;
     
     //Setter for polylinePoints
-    void setPolylinePoints(std::vector<Point2D> polylinePoints);
+    void setPolylinePoints(std::vector<DPoint> polylinePoints);
     
     //Getter for polylinePoints
-    std::vector<Point2D> getPolylinePoints() const;
+    std::vector<DPoint> getPolylinePoints() const;
     
     //Setter for toSeg
     void setToSeg(sim_mob::RoadSegment* toSeg);

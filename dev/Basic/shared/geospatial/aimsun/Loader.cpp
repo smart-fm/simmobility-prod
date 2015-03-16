@@ -44,6 +44,8 @@
 #include "geospatial/aimsun/SOCI_Converters.hpp"
 #include "geospatial/TurningSection.hpp"
 #include "geospatial/TurningConflict.hpp"
+#include "geospatial/TurningPolyline.h"
+#include "geospatial/Polypoint.h"
 #include "path/PathSetManager.hpp"
 
 #include "logging/Log.hpp"
@@ -115,6 +117,8 @@ public:
 	 */
 	void loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
 	void loadTurningSection(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
+	void loadTurningPolyline(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
+	void loadPolypoint(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
 	void storeTurningPoints(sim_mob::RoadNetwork& rn);
 	void LoadERP_Surcharge(std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >& pool);
 	void LoadERP_Section(std::map<std::string,sim_mob::ERP_Section*>& ERP_SectionPool);
@@ -193,6 +197,8 @@ private:
 
 	void loadTurningSectionTable(const std::string& storedProc,sim_mob::RoadNetwork& rn);
 	void loadTurningConflictTable(const std::string& storedProc,sim_mob::RoadNetwork& rn);
+	void loadTurningPolyline(const std::string& storedProc,sim_mob::RoadNetwork& rn);
+	void loadPolypointByPolyline(sim_mob::TurningPolyline *t);
 public:
 	void LoadTripchains(const std::string& storedProc);
 
@@ -582,6 +588,42 @@ void DatabaseLoader::loadTurningSectionTable(const std::string& storedProc,sim_m
 	catch (soci::soci_error const & err)
 	{
 		std::cout<<"loadTurningSectionTable: "<<err.what()<<std::endl;
+	}
+}
+void DatabaseLoader::loadTurningPolyline(const std::string& storedProc,sim_mob::RoadNetwork& rn) {
+	try
+	{
+		std::stringstream s;
+		s<<"select * from \"Turning_Polylines\" ";
+		soci::rowset<sim_mob::TurningPolyline> ts = (sql_.prepare <<s.str());
+		for (soci::rowset<sim_mob::TurningPolyline>::const_iterator it=ts.begin(); it!=ts.end(); ++it)  {
+			sim_mob::TurningPolyline *t = new sim_mob::TurningPolyline(*it);
+			// load polypoint
+			loadPolypointByPolyline(t);
+			rn.storeTurningPolyline(t);
+		}
+	}
+	catch (soci::soci_error const & err)
+	{
+		std::cout<<"loadTurningPolyline: "<<err.what()<<std::endl;
+	}
+}
+void DatabaseLoader::loadPolypointByPolyline(sim_mob::TurningPolyline *t) {
+	try
+	{
+		std::stringstream s;
+		s<<"select * from \"Polypoints\" where \"polyline\"= '"<<t->id<<"'"<<" order by index asc";
+		soci::rowset<sim_mob::Polypoint> ts = (sql_.prepare <<s.str() );
+		for (soci::rowset<sim_mob::Polypoint>::const_iterator it=ts.begin(); it!=ts.end(); ++it)  {
+			sim_mob::Polypoint *p = new sim_mob::Polypoint(*it);
+			p->x = p->x*100.0;
+			p->y = p->y*100.0;
+			t->polypoints.push_back(p);
+		}
+	}
+	catch (soci::soci_error const & err)
+	{
+		std::cout<<"loadTurningPolyline: "<<err.what()<<std::endl;
 	}
 }
 void DatabaseLoader::storeTurningPoints(sim_mob::RoadNetwork& rn) {
@@ -1158,8 +1200,16 @@ void DatabaseLoader::loadTurningSection(map<string, string> const & storedProcs,
 {
 	loadTurningSectionTable(getStoredProcedure(storedProcs, "turning_section"), rn);
 	loadTurningConflictTable(getStoredProcedure(storedProcs, "turning_conflict"), rn);
+	loadTurningPolyline(getStoredProcedure(storedProcs, "turning_polyline",false), rn);
 }
-
+void DatabaseLoader::loadTurningPolyline(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)
+{
+	loadTurningPolyline(getStoredProcedure(storedProcs, "turning_polyline",false), rn);
+}
+void DatabaseLoader::loadPolypoint(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)
+{
+//	loadPolypoint(getStoredProcedure(storedProcs, "polypoint"), rn);
+}
 //Compute the distance from the source node of the polyline to a
 // point on the line from the source to the destination nodes which
 // is normal to the Poly-point.

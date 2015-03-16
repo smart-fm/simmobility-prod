@@ -6,8 +6,13 @@
 #define GEOSPATIAL_TURNINGPOLYLINE_H_
 
 #include "geospatial/Polyline.h"
+#include "geospatial/Polypoint.h"
+#include "geospatial/TurningSection.hpp"
 
 namespace sim_mob {
+
+class TurningSection;
+class Polyline;
 
 class TurningPolyline: public Polyline {
 public:
@@ -15,6 +20,7 @@ public:
 	TurningPolyline(const TurningPolyline& tp);
 	int turningId;
 	TurningSection *turning;
+	std::vector<Polypoint*> polypoints;
 	virtual ~TurningPolyline();
 };
 

@@ -97,6 +97,8 @@ public:
     {
     	return intersectionAttentivenessFactorMax;
     }
+
+    const TurningSection *	currTurning;
 };
 
 /**
@@ -172,6 +174,7 @@ public:
 
 private:
   /// store polypoints of the turning path
+
   std::vector<DPoint> polypoints;
   std::vector<DPoint>::iterator polypointIter;
 

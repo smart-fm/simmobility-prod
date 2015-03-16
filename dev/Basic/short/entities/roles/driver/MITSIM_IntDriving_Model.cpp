@@ -27,7 +27,8 @@ MITSIM_IntDriving_Model::~MITSIM_IntDriving_Model()
 
 void MITSIM_IntDriving_Model::startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset)
 {
-	makePolypoints(fromLanePt,toLanePt);
+//	makePolypoints(fromLanePt,toLanePt);
+	polypoints = currTurning->getPolylinePoints();
 	polypointIter = polypoints.begin();
 //	intTrajectory = DynamicVector (fromLanePt.x, fromLanePt.y, toLanePt.x, toLanePt.y);
 	DPoint p1 = (*polypointIter);

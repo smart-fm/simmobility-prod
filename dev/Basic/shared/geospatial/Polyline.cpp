@@ -13,7 +13,11 @@ Polyline::Polyline()
 	// TODO Auto-generated constructor stub
 
 }
+Polyline::Polyline(const Polyline& src)
+:id(src.id),type(src.type),length(src.length),scenario(src.scenario)
+{
 
+}
 Polyline::~Polyline() {
 	// TODO Auto-generated destructor stub
 }

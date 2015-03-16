@@ -513,6 +513,7 @@ template<> struct type_conversion<sim_mob::TurningPolyline>
     static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::TurningPolyline &res)
     {
     	res.id = vals.get<int>("id", -1);
+    	res.turningId = vals.get<int>("turning", -1);
     	res.type = vals.get<int>("type", -1);
     	res.length = vals.get<double>("length", -1);
     	res.scenario = vals.get<int>("type", -1);
@@ -520,6 +521,7 @@ template<> struct type_conversion<sim_mob::TurningPolyline>
     static void to_base(const sim_mob::TurningPolyline& src, soci::values& vals, soci::indicator& ind)
     {
     	vals.set("id", src.id);
+    	vals.set("turning", src.turningId);
     	vals.set("type", src.type);
     	vals.set("length", src.length);
     	vals.set("scenario", src.scenario);
@@ -537,7 +539,7 @@ template<> struct type_conversion<sim_mob::Polypoint>
     	res.x = vals.get<double>("x", 0.0);
     	res.y = vals.get<double>("y", 0.0);
     	res.z = vals.get<double>("z", 0.0);
-    	res.scenario = vals.get<int>("type", -1);
+    	res.scenario = vals.get<std::string>("scenario", "");
     }
     static void to_base(const sim_mob::Polypoint& src, soci::values& vals, soci::indicator& ind)
     {

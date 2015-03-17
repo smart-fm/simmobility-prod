@@ -467,24 +467,18 @@ double SegmentStats::getDensity(bool hasVehicle)
 	return density;
 }
 
-//density will be computed in vehicles/km/seg for the moving part of the segment
+//density will be computed in vehicles/lane-km for the moving part of the segment
 double SegmentStats::getTotalDensity(bool hasVehicle)
 {
 	double density = 0.0;
 	double totalPCUs = getTotalVehicleLength() / PASSENGER_CAR_UNIT;
 	if (length > PASSENGER_CAR_UNIT)
 	{
-		/*Some lines in this if section are commented as per Yang Lu's suggestion */
-		//if (roadSegment->getLaneZeroLength() > 10*vehicle_length) {
-		density = totalPCUs / (length / 100000.0); //(cm to km)
-		//}
-		//else {
-		//	density = queueCount/(movingLength/100.0);
-		//}
+		density = totalPCUs/(numVehicleLanes * (length/100000.0));
 	}
 	else
 	{
-		density = 1 / (PASSENGER_CAR_UNIT / 100.0);
+		density = 1/(PASSENGER_CAR_UNIT/100.0);
 	}
 	return density;
 }
@@ -893,7 +887,7 @@ std::string sim_mob::SegmentStats::reportSegmentStats(uint32_t frameNumber)
 	std::stringstream msg("");
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
 	{
-		double density = (numMovingInSegment(true) + numQueuingInSegment(true)) / ((length / 100000.0) * numVehicleLanes); //veh/km/lane
+		double density = (numMovingInSegment(true) + numQueuingInSegment(true)) / ((length / 100000.0) * numVehicleLanes); //veh/lane-km
 
 	msg << "(\"segmentState\""
 		<< "," << frameNumber

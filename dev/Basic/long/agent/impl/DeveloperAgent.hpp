@@ -17,6 +17,7 @@
 #include "database/entity/Building.hpp"
 #include "database/entity/Unit.hpp"
 #include "database/entity/Project.hpp"
+#include "RealEstateAgent.hpp"
 
 namespace sim_mob {
 
@@ -116,6 +117,7 @@ namespace sim_mob {
 
             void setUnitsRemain (bool unitRemain);
             std::tm getDate(int day);
+            void setRealEstateAgent(RealEstateAgent* realEstAgent);
 
         private:
             DeveloperModel* model;
@@ -129,6 +131,7 @@ namespace sim_mob {
             int monthlyUnitCount;
             bool unitsRemain;
             std::vector<BigSerial> toBeDemolishedBuildingIds;
+            RealEstateAgent* realEstateAgent;
 
         };
     }

@@ -99,7 +99,7 @@ namespace sim_mob
             int getLifestyle3HHs() const;
 
             void addUnit(Unit* unit);
-
+            std::vector<BigSerial> getRealEstateAgentIds();
 
         protected:
             /**
@@ -136,6 +136,7 @@ namespace sim_mob
             int numLifestyle1HHs;
             int numLifestyle2HHs;
             int numLifestyle3HHs;
+            std::vector<BigSerial> realEstateAgentIds;
 
         };
     }

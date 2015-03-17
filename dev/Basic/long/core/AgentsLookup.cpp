@@ -41,6 +41,8 @@ AgentsLookup::~AgentsLookup()
 void AgentsLookup::reset()
 {
     householdAgentsById.clear();
+    developerAgentsById.clear();
+    realEstateAgentsById.clear();
 }
 
 void AgentsLookup::addHouseholdAgent(const HouseholdAgent* agent)

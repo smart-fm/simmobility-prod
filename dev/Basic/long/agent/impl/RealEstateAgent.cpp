@@ -197,10 +197,11 @@ void RealEstateAgent::onWorkerExit()
 void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& message)
 {
 
-//    if (seller && seller->isActive())
-//    {
-//        seller->HandleMessage(type, message);
-//    }
+   if (seller && seller->isActive())
+    {
+		seller->HandleMessage(type, message);
+    }
+
 	switch (type)
 	    {
 	        case LTEID_HM_UNIT_ADDED:
@@ -240,7 +241,7 @@ void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& me
 	            BigSerial unitId = hmMessage.getUnitId();
 	            addNewUnit(unitId); // add unit id for sale
 	            changeUnitSaleStatus(hmMessage.getUnitId(),UNIT_LAUNCHED_BUT_UNSOLD);
-	            PrintOutV("unit added to housing market" << std::endl);
+	            //PrintOutV("unit added to housing market" << std::endl);
 	            break;
 	        }
 	        case LT_STATUS_ID_HM_UNIT_READY_FOR_OCCUPANCY_AND_VACANT:

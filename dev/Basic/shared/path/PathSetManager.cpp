@@ -693,11 +693,7 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 	for(std::vector<sim_mob::WayPoint>::iterator it=ps->oriPath->path.begin();	it != ps->oriPath->path.end() ;++it)
 	{
 		const sim_mob::RoadSegment* currSeg = it->roadSegment_;
-		if(currSeg->getLink() == curLink)
-		{
-//			blackList.insert(currSeg);
-		}
-		else
+		if(currSeg->getLink() != curLink)
 		{
 			curLink = currSeg->getLink();
 			PathSetWorkerThread * work = new PathSetWorkerThread();
@@ -716,6 +712,7 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 			std::stringstream out("");
 			out << "SDLE-" << ++cnt;
 			work->dbgStr = out.str();
+			work->timeBased = false;
 
 			if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
 			{
@@ -763,11 +760,7 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 		for(std::vector<sim_mob::WayPoint>::iterator it(pathTT->path.begin()); it != pathTT->path.end() ;++it)
 		{
 			const sim_mob::RoadSegment* currSeg = it->roadSegment_;
-			if(currSeg->getLink() == curLink)
-			{
-				//blackList.insert(currSeg);
-			}
-			else
+			if(currSeg->getLink() != curLink)
 			{
 				curLink = currSeg->getLink();
 				PathSetWorkerThread *work = new PathSetWorkerThread();
@@ -784,6 +777,8 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 				std::stringstream out("");
 				out << "STTLE-" << cnt++ ;
 				work->dbgStr = out.str();
+				work->timeBased = true;
+
 				if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
 				{
 					/*
@@ -852,6 +847,7 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 				std::stringstream out("");
 				out << "STTH-" << cnt++;
 				work->dbgStr = out.str();
+				work->timeBased = true;
 
 				if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
 				{
@@ -912,6 +908,7 @@ int sim_mob::PathSetManager::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps
 		work->dbgStr = out.str();
 		logger << work->dbgStr;
 		RandPertStorage.push_back(work);
+		work->timeBased = true;
 
 		if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
 		{
@@ -981,17 +978,17 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> KSP_Storage;//main storage for k-shortest path
 	if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
 	{
-		genK_ShortestPath(ps, KSP_Storage);
+//		genK_ShortestPath(ps, KSP_Storage);
 	}
 	else
 	{
-		threadpool_->enqueue(boost::bind(&PathSetManager::genK_ShortestPath, this, ps, boost::ref(KSP_Storage)));
+//		threadpool_->enqueue(boost::bind(&PathSetManager::genK_ShortestPath, this, ps, boost::ref(KSP_Storage)));
 	}
 
 	std::vector<std::vector<PathSetWorkerThread*> > mainStorage = std::vector<std::vector<PathSetWorkerThread*> >();
 	// SHORTEST DISTANCE LINK ELIMINATION
 	std::vector<PathSetWorkerThread*> SDLE_Storage;
-	genSDLE(ps, SDLE_Storage);
+//	genSDLE(ps, SDLE_Storage);
 
 	//step-3: SHORTEST TRAVEL TIME LINK ELIMINATION
 	std::vector<PathSetWorkerThread*> STTLE_Storage;
@@ -999,11 +996,11 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 
 	// TRAVEL TIME HIGHWAY BIAS
 	std::vector<PathSetWorkerThread*> STTHBLE_Storage;
-	genSTTHBLE(ps,STTHBLE_Storage);
+//	genSTTHBLE(ps,STTHBLE_Storage);
 
 	//	RANDOM;
 	std::vector<PathSetWorkerThread*> randPertStorage;
-	genRandPert(ps,randPertStorage);
+//	genRandPert(ps,randPertStorage);
 
 	if(!(ConfigManager::GetInstance().PathSetConfig().mode == "generation"))
 	{

@@ -242,7 +242,6 @@ public:
     	  const Point2D goalPos = boost::get(boost::vertex_name, *m_graph, m_goal);
 
     	  return sim_mob::dist(atPos, goalPos)/ sim_mob::ConfigManager::GetInstance().PathSetConfig().maxSegSpeed;
-//    	  return 1.0;
       }
     private:
       const StreetDirectory::Graph* m_graph;

@@ -2157,8 +2157,6 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 				distance = -other_driver->distToIntersection_.get() - conflictDist;
 			}
 			
-			distance = distance + (other_driver->getVehicleLengthM()/2 + parentDriver->getVehicleLengthM()/2);
-			
 			// 2.1 Store the vehicle in the map of conflicting vehicles along with the distance from conflict point
 			params.insertConflictTurningDriver(conflict, distance, other_driver);
 		}

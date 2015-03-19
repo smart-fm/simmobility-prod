@@ -411,7 +411,9 @@ private:
 #define PrintOutV( strm ) \
     do \
     { \
-        sim_mob::Print() << "[" << __DATE__ << " " << __TIME__  << "][" << std::string(__FILE__).substr(std::string(__FILE__).find_last_of("//") + 1, std::string(__FILE__).length()) << ":" << __LINE__ << "] " << strm; \
+      time_t current_time = time(NULL);\
+      std::string timeString = std::string(ctime(&current_time));\
+      sim_mob::Print() << "[" << timeString.substr(0, timeString.size()-1) << "][" << std::string(__FILE__).substr(std::string(__FILE__).find_last_of("//") + 1, std::string(__FILE__).length()) << ":" << __LINE__ << "] " << strm;\
     } \
     while (0)
 

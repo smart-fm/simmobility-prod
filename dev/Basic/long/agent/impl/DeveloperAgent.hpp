@@ -17,6 +17,7 @@
 #include "database/entity/Building.hpp"
 #include "database/entity/Unit.hpp"
 #include "database/entity/Project.hpp"
+#include "RealEstateAgent.hpp"
 
 namespace sim_mob {
 
@@ -66,7 +67,7 @@ namespace sim_mob {
             void onWorkerEnter();
             void onWorkerExit();
             virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
-        private:
+        public:
             enum UnitSaleStatus {
             	UNIT_NOT_LAUNCHED = 1, UNIT_LAUNCHED_BUT_UNSOLD, UNIT_LAUNCHED_AND_SOLD};
             enum UnitPhysicalStatus {
@@ -112,10 +113,11 @@ namespace sim_mob {
              * set a 20% of new units at each month after 6th month of the simulation
              * to be sent to HM via real estate agent
              */
-            void setUnitsForHM(std::vector<boost::shared_ptr<Unit> >::iterator &first,std::vector<boost::shared_ptr<Unit> >::iterator &last);
+            void setUnitsForHM(std::vector<Unit*>::iterator &first,std::vector<Unit*>::iterator &last);
 
             void setUnitsRemain (bool unitRemain);
             std::tm getDate(int day);
+            void setRealEstateAgent(RealEstateAgent* realEstAgent);
 
         private:
             DeveloperModel* model;
@@ -123,11 +125,13 @@ namespace sim_mob {
             IdVector parcelsToProcess;
             bool active;
             std::vector<boost::shared_ptr<Building> > newBuildings;
-            std::vector<boost::shared_ptr<Unit> > newUnits;
+            //std::vector<boost::shared_ptr<Unit> > newUnits;
+            std::vector<Unit*> newUnits;
             boost::shared_ptr<Project> fmProject;
             int monthlyUnitCount;
             bool unitsRemain;
             std::vector<BigSerial> toBeDemolishedBuildingIds;
+            RealEstateAgent* realEstateAgent;
 
         };
     }

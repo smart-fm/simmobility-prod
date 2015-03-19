@@ -25,6 +25,7 @@
 #include "database/entity/ParcelAmenities.hpp"
 #include "database/entity/MacroEconomics.hpp"
 #include "agent/impl/DeveloperAgent.hpp"
+#include "agent/impl/RealEstateAgent.hpp"
 #include "model/HM_Model.hpp"
 
 namespace sim_mob {
@@ -143,6 +144,7 @@ namespace sim_mob {
              * increment the id of the last building in db
              * @return next unitId.
              */
+            boost::recursive_mutex m_guard;
             BigSerial getUnitIdForDeveloperAgent();
 
             void setUnitId(BigSerial unitId);
@@ -169,6 +171,12 @@ namespace sim_mob {
             void addProjects(boost::shared_ptr<Project> project);
 
             void addBuildings(boost::shared_ptr<Building> building);
+
+            const RealEstateAgent* getRealEstateAgentForDeveloper();
+
+            void setRealEstateAgentIds(std::vector<BigSerial> realEstateAgentIdVec);
+
+            void setHousingMarketModel(HM_Model *housingModel);
 
         protected:
             /**
@@ -214,6 +222,9 @@ namespace sim_mob {
             int currentTick;
             MacroEconomicsList macroEconomics;
             MacroEconomicsMap macroEconomicsById;
+            std::vector<BigSerial> realEstateAgentIds;
+            BigSerial realEstateAgentIdIndex;
+            HM_Model *housingMarketModel;
         };
     }
 }

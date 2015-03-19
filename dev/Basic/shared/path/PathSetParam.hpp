@@ -138,7 +138,7 @@ public:
 	std::map<int,sim_mob::ERP_Section*> ERP_SectionPool;
 
 	///	information of "Segment" default travel time <segment aim-sun id ,Link_default_travel_time with diff time stamp>
-	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> > segDefTT;
+	std::map<unsigned long, std::vector<sim_mob::LinkTravelTime> > segDefTT;
 
 	///	a structure to keep history of average travel time records from previous simulations
 	///	[time interval][travel mode][road segment][average travel time]

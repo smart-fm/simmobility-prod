@@ -26,6 +26,10 @@ namespace sim_mob {
         public:
             PotentialUnit(BigSerial unitTypeId = INVALID_ID,int numUnits = 0,double floorArea = 0, int freehold = 0);
             virtual ~PotentialUnit();
+
+            PotentialUnit( const PotentialUnit &source);
+            PotentialUnit& operator=(const PotentialUnit& source);
+
             //Getters
             BigSerial getUnitTypeId() const;
             double getFloorArea() const;
@@ -48,9 +52,12 @@ namespace sim_mob {
          */
         class PotentialProject {
         public:
-            PotentialProject(const DevelopmentTypeTemplate* devTemplate = nullptr,const Parcel* parcel = nullptr,double constructionCost = 0,double grossArea = 0,double tempSelectProbability = 0,double investmentReturnRatio=0);
+            PotentialProject(const DevelopmentTypeTemplate* devTemplate = nullptr,const Parcel* parcel = nullptr,double constructionCost = 0,double grossArea = 0,double tempSelectProbability = 0,double investmentReturnRatio=0,double demolitionCost = 0, double expRatio=0);
             virtual ~PotentialProject();
             
+            PotentialProject( const PotentialProject &source);
+            PotentialProject& operator=(const PotentialProject& source);
+
             struct ByProfit
                 {
                     bool operator ()( const PotentialProject &a, const PotentialProject &b ) const
@@ -95,10 +102,13 @@ namespace sim_mob {
             void setDemolitionCost(double demCost);
 
             std::vector<TemplateUnitType*> templateUnitTypes;
+
         private:
+            std::vector<PotentialUnit> units;
+
             const DevelopmentTypeTemplate* devTemplate;
             const Parcel* parcel;
-            std::vector<PotentialUnit> units;
+
             std::vector<int> unitTypes;
             typedef boost::unordered_map<int,int> UnitMap;
             UnitMap unitMap;

@@ -18,8 +18,6 @@ namespace sim_mob
 {
     namespace long_term
     {
-        class UnitHolder;
-
         /**
          * Represents a unit to buy/rent/hold.
          * It can be the following:
@@ -93,7 +91,6 @@ namespace sim_mob
             friend class UnitDao;
             
         private:
-            friend class UnitHolder;
 
             //from database.
             BigSerial id;

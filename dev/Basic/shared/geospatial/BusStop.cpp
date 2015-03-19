@@ -32,12 +32,12 @@ double sim_mob::BusStop::EstimateStopPoint(double xPos, double yPos, const sim_m
 	return res;
 }
 
-void sim_mob::BusStop::RegisterNewBusStop(unsigned int no, BusStop* busstop) {
+void sim_mob::BusStop::RegisterNewBusStop(const std::string& no, BusStop* busstop) {
 	if(!busstop) { return; }
 	allBusstops[no] = busstop;
 }
 
-BusStop* sim_mob::BusStop::findBusStop(unsigned int no)
+BusStop* sim_mob::BusStop::findBusStop(const std::string& no)
 {
 	BusStop* stop = nullptr;
 	try{

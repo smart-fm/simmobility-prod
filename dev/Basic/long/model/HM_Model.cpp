@@ -272,6 +272,16 @@ const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 	return nullptr;
 }
 
+void HM_Model::addUnit(Unit* unit)
+{
+	units.push_back(unit);
+	unitsById.insert(std::pair<BigSerial,Unit*>(unit->getId(), unit));
+}
+
+std::vector<BigSerial> HM_Model::getRealEstateAgentIds()
+{
+	return this->realEstateAgentIds;
+}
 
 void HM_Model::startImpl()
 {
@@ -331,7 +341,9 @@ void HM_Model::startImpl()
 	std::vector<RealEstateAgent*> realEstateAgents;
 	for( int i = 0; i < numWorkers ; i++ )
 	{
-		RealEstateAgent* realEstateAgent = new RealEstateAgent((FAKE_IDS_START + numWorkers + i), this, nullptr, &market, true);
+		BigSerial id = FAKE_IDS_START + numWorkers + i;
+		realEstateAgentIds.push_back(id);
+		RealEstateAgent* realEstateAgent = new RealEstateAgent(id, this, nullptr, &market, true);
 		AgentsLookupSingleton::getInstance().addRealEstateAgent(realEstateAgent);
 		agents.push_back(realEstateAgent);
 		workGroup.assignAWorker(realEstateAgent);

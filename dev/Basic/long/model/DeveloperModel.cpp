@@ -24,6 +24,7 @@
 #include "database/entity/ParcelMatch.hpp"
 #include "database/entity/SlaParcel.hpp"
 #include "database/dao/SlaParcelDao.hpp"
+#include "database/dao/UnitDao.hpp"
 #include "database/entity/UnitType.hpp"
 #include "database/dao/UnitTypeDao.hpp"
 #include "database/dao/BuildingDao.hpp"
@@ -41,10 +42,10 @@ namespace {
     const string MODEL_NAME = "Developer Model";
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0){ //In days (7 - weekly, 30 - Monthly)
+DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr){ //In days (7 - weekly, 30 - Monthly)
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0){
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr){
 }
 
 DeveloperModel::~DeveloperModel() {
@@ -96,8 +97,15 @@ void DeveloperModel::startImpl() {
 		loadData<ParcelAmenitiesDao>(conn,amenities,amenitiesById,&ParcelAmenities::getFmParcelId);
 		loadData<MacroEconomicsDao>(conn,macroEconomics,macroEconomicsById,&MacroEconomics::getExFactorId);
 
-	}
+		UnitDao unitDao(conn);
+		unitId = unitDao.getMaxUnitId();
+		//realEstateAgentIds = housingMarketModel->
 
+	}
+	setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
+
+	//get the highest building id, which is the one before the last building id as the last building id contain some random data.
+	buildingId = buildings.at(buildings.size()-2)->getFmBuildingId();
 	processParcels();
 	createDeveloperAgents(developmentCandidateParcelList);
 	wakeUpDeveloperAgents(getDeveloperAgents(true));
@@ -201,6 +209,8 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList)
 			{
 				DeveloperAgent* devAgent = new DeveloperAgent(devCandidateParcelList[i], this);
 				AgentsLookupSingleton::getInstance().addDeveloperAgent(devAgent);
+				RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
+				devAgent->setRealEstateAgent(realEstateAgent);
 				agents.push_back(devAgent);
 				developers.push_back(devAgent);
 				workGroup.assignAWorker(devAgent);
@@ -479,7 +489,10 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 
 BigSerial DeveloperModel::getUnitIdForDeveloperAgent()
 {
-	return ++unitId;
+	boost::lock_guard<boost::recursive_mutex> lock(m_guard);
+	++unitId;
+
+	return unitId;
 }
 
 void DeveloperModel::setUnitId(BigSerial unitId)
@@ -515,4 +528,31 @@ void DeveloperModel::addProjects(boost::shared_ptr<Project> project)
 void DeveloperModel::addBuildings(boost::shared_ptr<Building> building)
 {
 	newBuildings.push_back(building);
+}
+
+const RealEstateAgent* DeveloperModel::getRealEstateAgentForDeveloper()
+{
+
+	const RealEstateAgent* realEstateAgent = AgentsLookupSingleton::getInstance().getRealEstateAgentById(realEstateAgentIds[realEstateAgentIdIndex]);
+	if(realEstateAgentIdIndex >= (realEstateAgentIds.size() - 1))
+	{
+		realEstateAgentIdIndex = 0;
+	}
+	else
+	{
+		realEstateAgentIdIndex++;
+	}
+	return realEstateAgent;
+
+}
+
+void DeveloperModel::setRealEstateAgentIds(std::vector<BigSerial> realEstateAgentIdVec)
+{
+	this->realEstateAgentIds = realEstateAgentIdVec;
+}
+
+void DeveloperModel::setHousingMarketModel(HM_Model *housingModel)
+{
+
+	this->housingMarketModel = housingModel;
 }

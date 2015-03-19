@@ -124,6 +124,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         WorkGroup* hmWorkers;
         WorkGroup* devWorkers;
         DeveloperModel *developerModel = nullptr;
+        HM_Model *housingMarketModel = nullptr;
 
         if( enableHousingMarket )
         	hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep);
@@ -147,21 +148,24 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         eventsWorker->assignAWorker(&(agentsLookup.getEventsInjector()));
 
         if( enableHousingMarket )
-        	 models.push_back(new HM_Model(*hmWorkers));
+        	 housingMarketModel = new HM_Model(*hmWorkers);//initializing the housing market model
+        	 models.push_back(housingMarketModel);
 
         if( enableDeveloperModel )
+        {
         	 //initiate developer model; to be referred later at each time tick (day)
         	 developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel);
-        	 //developerModel->housingModel = hmModel;
+        	 developerModel->setHousingMarketModel(housingMarketModel);
         	 developerModel->setDays(days);
         	 models.push_back(developerModel);
+        }
 
         //start all models.
         for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)
         {
             (*it)->start();
         }
-        
+
         //Start work groups and all threads.
         wgMgr.startAllWorkGroups();
 

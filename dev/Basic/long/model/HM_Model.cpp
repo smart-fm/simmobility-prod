@@ -16,6 +16,7 @@
 #include "database/dao/UnitDao.hpp"
 #include "database/dao/IndividualDao.hpp"
 #include "database/dao/AwakeningDao.hpp"
+#include "database/dao/VehicleOwnershipCoefficientsDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -244,6 +245,22 @@ int HM_Model::getLifestyle3HHs() const
 	return numLifestyle3HHs;
 }
 
+HM_Model::VehicleOwnershipCoeffList HM_Model::getVehicleOwnershipCoeffs() const
+{
+	return this->vehicleOwnershipCoeffs;
+}
+
+VehicleOwnershipCoefficients* HM_Model::getVehicleOwnershipCoeffsById( BigSerial id) const
+{
+	VehicleOwnershipCoeffMap::const_iterator itr = vehicleOwnershipCoeffsById.find(id);
+
+		if (itr != vehicleOwnershipCoeffsById.end())
+		{
+			return (*itr).second;
+		}
+
+		return nullptr;
+}
 
 const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 {
@@ -294,6 +311,8 @@ void HM_Model::startImpl()
 
 		loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
 		PrintOutV("Awakening probability: " << awakening.size() << std::endl );
+
+		loadData<VehicleOwnershipCoefficientsDao>(conn,vehicleOwnershipCoeffs,vehicleOwnershipCoeffsById, &VehicleOwnershipCoefficients::getParameterId);
 	}
 
 

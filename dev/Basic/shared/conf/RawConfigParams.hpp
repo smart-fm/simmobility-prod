@@ -66,6 +66,12 @@ struct LongTermParams{
 		float housingMarketSearchPercentage;
 		float housingMoveInDaysInterval;
 	} housingModel;
+
+	struct VehicleOwnershipModel{
+		VehicleOwnershipModel();
+		bool enabled;
+		unsigned int vehicleBuyingWaitingTimeInDays;
+	}vehicleOwnershipModel;
 };
 
 

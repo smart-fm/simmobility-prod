@@ -154,7 +154,9 @@
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>
         </housingModel>
+	<vehicleOwnershipModel enabled='true'>
+		<vehicleBuyingWaitingTimeInDays value= "60"/>
+	</vehicleOwnershipModel>
     </longTermParams>
-  
 </config>
 

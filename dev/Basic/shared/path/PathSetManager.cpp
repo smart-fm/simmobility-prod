@@ -728,7 +728,7 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 
 				SDLE_Storage.push_back(work);
 			} //ROAD_SEGMENT
-		}
+		} //for
 	}
 	if(!cnt)
 	{
@@ -789,6 +789,11 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 				STTLE_Storage.push_back(work);
 			} //ROAD_SEGMENT
 		}//for
+		PathSetWorkerThread* work = new PathSetWorkerThread();
+		work->s = pathTT;
+		work->ps = ps;
+		work->dbgStr = "STTLE-SP";
+		STTLE_Storage.push_back(work); //store STT path as well
 	}//if sinPathTravelTimeDefault
 	if(!cnt)
 	{
@@ -804,8 +809,8 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 	logger << "[" << fromToID << "][SHORTEST TRAVEL TIME LINK ELIMINATION HIGHWAY BIAS]\n";
 	SinglePath *sinPathHighwayBias = generateShortestTravelTimePath(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_,sim_mob::HighwayBias_Default);
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir.getTravelTimeImpl();
-	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->subTrip.fromLocation.node_);
-	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->subTrip.toLocation.node_);
+	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexHighwayBiasDefault(*ps->subTrip.fromLocation.node_);
+	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexHighwayBiasDefault(*ps->subTrip.toLocation.node_);
 	int cnt = 0;
 	if(sinPathHighwayBias && !sinPathHighwayBias->path.empty())
 	{
@@ -815,11 +820,9 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 			if(currSeg->getLink() != curLink)
 			{
 				curLink = currSeg->getLink();
-				PathSetWorkerThread *work = new PathSetWorkerThread();
-				//the above declared profiler will become a profiling time accumulator of ALL workeres in this loop
-				//introducing the profiling time accumulator
-				work->graph = &sttpImpl->drivingMap_HighwayBias_Distance;
-				work->segmentLookup = &sttpImpl->drivingSegmentLookup_HighwayBias_Distance_;
+				PathSetWorkerThread* work = new PathSetWorkerThread();
+				work->graph = &sttpImpl->drivingMap_HighwayBias_Default;
+				work->segmentLookup = &sttpImpl->drivingSegmentLookup_HighwayBias_Default_;
 				work->fromVertex = from.source;
 				work->toVertex = to.sink;
 				work->fromNode = ps->subTrip.fromLocation.node_;
@@ -829,7 +832,7 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 				work->excludeSeg = blackList;
 				work->ps = ps;
 				std::stringstream out("");
-				out << "STTH-" << cnt++;
+				out << "STTHLE-" << cnt++;
 				work->dbgStr = out.str();
 				work->timeBased = true;
 
@@ -839,7 +842,7 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 					 * NOTE:
 					 * when pathset runs in "normal" mode, during pathset generation for requested ODs, each method
 					 * of pathset generation(link elimination, random perturbation, etc)  will use threadpool for its operation.
-					 * Whereas in "generation" mode,  each pathset generation task(as a whole) is assigned to a dedicated thread in threadpool.
+					 * Whereas in "generation" mode, each pathset generation task (as a whole) is assigned to a dedicated thread in threadpool.
 					 */
 					work->run();
 				}
@@ -850,7 +853,12 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 				STTHBLE_Storage.push_back(work);
 			} //ROAD_SEGMENT
 		}//for
-	}//if sinPathTravelTimeDefault
+		PathSetWorkerThread* work = new PathSetWorkerThread();
+		work->s = sinPathHighwayBias;
+		work->ps = ps;
+		work->dbgStr = "STTHLE-SP";
+		STTHBLE_Storage.push_back(work); //store STTHB path as well
+	} //if sinPathTravelTimeDefault
 
 	logger  << "waiting for TRAVEL TIME HIGHWAY BIAS" << "\n";
 	if(!cnt)
@@ -1702,40 +1710,38 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::findShortestDrivingPath(
 	return s;
 }
 
-sim_mob::SinglePath* sim_mob::PathSetManager::generateShortestTravelTimePath(const sim_mob::Node *fromNode,
-			   const sim_mob::Node *toNode,
-			   sim_mob::TimeRange tr,
-			   const sim_mob::RoadSegment* excludedSegs,int random_graph_idx)
+sim_mob::SinglePath* sim_mob::PathSetManager::generateShortestTravelTimePath(const sim_mob::Node *fromNode, const sim_mob::Node *toNode,
+		sim_mob::TimeRange tr, const sim_mob::RoadSegment* excludedSegs, int random_graph_idx)
 {
 	sim_mob::SinglePath *s=NULL;
-		std::vector<const sim_mob::RoadSegment*> blacklist;
-		if(excludedSegs)
-		{
-			blacklist.push_back(excludedSegs);
-		}
-		std::vector<WayPoint> wp = stdir.SearchShortestDrivingTimePath(stdir.DrivingTimeVertex(*fromNode,tr,random_graph_idx),
-				stdir.DrivingTimeVertex(*toNode,tr,random_graph_idx),
-				blacklist,
-				tr,
-				random_graph_idx);
-		if(wp.size()==0)
-		{
-			// no path
-			logger<<"generateShortestTravelTimePath: no path for nodes"<<fromNode->originalDB_ID.getLogItem()<<
-							toNode->originalDB_ID.getLogItem() << "\n";
-			return s;
-		}
-		// make sp id
-		std::string id = sim_mob::makeWaypointsetString(wp);
-
-		s = new SinglePath();
-		// fill data
-		s->isNeedSave2DB = true;
-		s->init(wp);
-		s->id = id;
-		s->scenario = scenarioName;
-		s->pathSize=0;
+	std::vector<const sim_mob::RoadSegment*> blacklist;
+	if(excludedSegs)
+	{
+		blacklist.push_back(excludedSegs);
+	}
+	std::vector<WayPoint> wp = stdir.SearchShortestDrivingTimePath(stdir.DrivingTimeVertex(*fromNode,tr,random_graph_idx),
+			stdir.DrivingTimeVertex(*toNode,tr,random_graph_idx),
+			blacklist,
+			tr,
+			random_graph_idx);
+	if(wp.size()==0)
+	{
+		// no path
+		logger<<"generateShortestTravelTimePath: no path for nodes"<<fromNode->originalDB_ID.getLogItem()<<
+				toNode->originalDB_ID.getLogItem() << "\n";
 		return s;
+	}
+	// make sp id
+	std::string id = sim_mob::makeWaypointsetString(wp);
+
+	s = new SinglePath();
+	// fill data
+	s->isNeedSave2DB = true;
+	s->init(wp);
+	s->id = id;
+	s->scenario = scenarioName;
+	s->pathSize=0;
+	return s;
 }
 
 void sim_mob::generatePathSize(boost::shared_ptr<sim_mob::PathSet>&ps)

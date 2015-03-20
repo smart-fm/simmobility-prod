@@ -677,16 +677,16 @@ int sim_mob::PathSetManager::genK_ShortestPath(boost::shared_ptr<sim_mob::PathSe
 
 int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &SDLE_Storage)
 {
-	sim_mob::Link *curLink = NULL;
+	sim_mob::Link *curLink = nullptr;
 	std::set<const RoadSegment*> blackList = std::set<const RoadSegment*>();
 	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node_, ps->subTrip.toLocation.node_));
 	logger << "[" << fromToID << "][SHORTEST DISTANCE LINK ELIMINATION]\n";
 	A_StarShortestPathImpl * impl = (A_StarShortestPathImpl*)stdir.getDistanceImpl();
 	StreetDirectory::VertexDesc from = impl->DrivingVertex(*ps->subTrip.fromLocation.node_);
 	StreetDirectory::VertexDesc to = impl->DrivingVertex(*ps->subTrip.toLocation.node_);
+	int cnt = 0;
 	if(ps->oriPath && !ps->oriPath->path.empty())
 	{
-		int cnt = 0;
 		for(std::vector<sim_mob::WayPoint>::iterator it=ps->oriPath->path.begin();	it != ps->oriPath->path.end() ;++it)
 		{
 			const sim_mob::RoadSegment* currSeg = it->roadSegment_;
@@ -703,7 +703,7 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 				work->fromNode = ps->subTrip.fromLocation.node_;
 				work->toNode =  ps->subTrip.toLocation.node_;
 				blackList.clear();
-				blackList.insert(currSeg);//used in the next iteration
+				blackList.insert(currSeg);
 				work->excludeSeg = blackList;
 				work->ps = ps;
 				std::stringstream out("");
@@ -729,11 +729,10 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 				SDLE_Storage.push_back(work);
 			} //ROAD_SEGMENT
 		}
-
-		if(!cnt)
-		{
-			logger  << "[" << fromToID << "]Nothing supplied to threadpool-SDLE" << std::endl;
-		}
+	}
+	if(!cnt)
+	{
+		logger  << "[" << fromToID << "]Nothing supplied to threadpool-SDLE" << std::endl;
 	}
 }
 
@@ -804,7 +803,7 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 
 int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &STTHBLE_Storage)
 {
-	sim_mob::Link *curLink = NULL;
+	sim_mob::Link *curLink = nullptr;
 	std::set<const RoadSegment*> blackList = std::set<const RoadSegment*>();
 	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_));
 	logger << "[" << fromToID << "][SHORTEST TRAVEL TIME LINK ELIMINATION HIGHWAY BIAS]\n";
@@ -813,21 +812,12 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->subTrip.fromLocation.node_);
 	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->subTrip.toLocation.node_);
 	int cnt = 0;
-	if(sinPathHightwayBias)
+	if(sinPathHightwayBias && !sinPathHightwayBias->path.empty())
 	{
-		if(!sinPathHightwayBias->path.empty())
-		{
-			curLink = sinPathHightwayBias->path.begin()->roadSegment_->getLink();
-		}
-		blackList.insert(sinPathHightwayBias->path.begin()->roadSegment_);
 		for(std::vector<sim_mob::WayPoint>::iterator it(sinPathHightwayBias->path.begin()); it != sinPathHightwayBias->path.end() ;++it)
 		{
 			const sim_mob::RoadSegment* currSeg = it->roadSegment_;
-			if(currSeg->getLink() == curLink)
-			{
-//				blackList.insert(currSeg);
-			}
-			else
+			if(currSeg->getLink() != curLink)
 			{
 				curLink = currSeg->getLink();
 				PathSetWorkerThread *work = new PathSetWorkerThread();
@@ -839,9 +829,9 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 				work->toVertex = to.sink;
 				work->fromNode = ps->subTrip.fromLocation.node_;
 				work->toNode = ps->subTrip.toLocation.node_;
-				work->excludeSeg = blackList;
 				blackList.clear();
-				blackList.insert(currSeg);//used in the next iteration
+				blackList.insert(currSeg);
+				work->excludeSeg = blackList;
 				work->ps = ps;
 				std::stringstream out("");
 				out << "STTH-" << cnt++;

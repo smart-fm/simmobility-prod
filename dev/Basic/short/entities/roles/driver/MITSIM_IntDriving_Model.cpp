@@ -217,7 +217,8 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& par
 			//Our turning has priority, or equal priority but other turning has
 			//stop sign, ignore the vehicles in this conflict
 			if (priority == 1 ||
-				(priority == 0 && (*itConflicts)->getSecondTurning()->turningHasStopSign()))
+				(priority == 0 && ! currTurning->turningHasStopSign()
+				 && (*itConflicts)->getSecondTurning()->turningHasStopSign()))
 			{
 				continue;
 			}
@@ -230,7 +231,8 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& par
 			//Our turning has priority, or equal priority but other turning has
 			//stop sign, ignore the vehicles in this conflict
 			if (priority == 2 ||
-				(priority == 0 && (*itConflicts)->getFirstTurning()->turningHasStopSign()))
+				(priority == 0 && ! currTurning->turningHasStopSign()
+				 && (*itConflicts)->getFirstTurning()->turningHasStopSign()))
 			{
 				continue;
 			}

@@ -626,28 +626,24 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddWalkingBusStops(StreetDir
 
 
 void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirectory::Graph& graph,
-		const vector<RoadSegment*>& roadway,
+		const vector<RoadSegment*>& roadSegs,
 		const map<const Node*, VertexLookup>& nodeLookup,
 		std::map<const RoadSegment*, std::set<StreetDirectory::Edge> >& resSegLookup,
 		sim_mob::TimeRange tr)
 {
 	//Skip empty roadways
-	if (roadway.empty()) {
-		return;
-	}
-
-
+	if (roadSegs.empty()) { return; }
 
 	//Here, we are simply assigning one Edge per RoadSegment in the Link. This is mildly complicated by the fact that a Node*
 	//  may be represented by multiple vertices; overall, though, it's a conceptually simple procedure.
-	for (vector<RoadSegment*>::const_iterator it=roadway.begin(); it!=roadway.end(); it++) {
+	for (vector<RoadSegment*>::const_iterator it=roadSegs.begin(); it!=roadSegs.end(); it++)
+	{
 		const RoadSegment* rs = *it;
 		map<const Node*, VertexLookup>::const_iterator from = nodeLookup.find(rs->getStart());
 		map<const Node*, VertexLookup>::const_iterator to = nodeLookup.find(rs->getEnd());
-		if (from==nodeLookup.end() || to==nodeLookup.end()) {
-			throw std::runtime_error("Road Segment's nodes are unknown by the vertex map.");
-		}
-		if (from->second.vertices.empty() || to->second.vertices.empty()) {
+		if (from==nodeLookup.end() || to==nodeLookup.end()) { throw std::runtime_error("Road Segment's nodes are unknown by the vertex map."); }
+		if (from->second.vertices.empty() || to->second.vertices.empty())
+		{
 			Warn() <<"Warning: Road Segment's nodes have no known mapped vertices (1)." <<std::endl;
 			continue;
 		}
@@ -658,20 +654,26 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 
 		//If there are multiple options, search for the right one.
 		//To accomplish this, just match our "before/after" tagged data. Note that before/after may be null.
-		if (from->second.vertices.size()>1) {
+		if (from->second.vertices.size()>1)
+		{
 			bool error=true;
-			for (std::vector<NodeDescriptor>::const_iterator it=from->second.vertices.begin(); it!=from->second.vertices.end(); it++) {
-				if (rs == it->after) {
+			for (std::vector<NodeDescriptor>::const_iterator it=from->second.vertices.begin(); it!=from->second.vertices.end(); it++)
+			{
+				if (rs == it->after)
+				{
 					fromVertex = it->v;
 					error = false;
 				}
 			}
 			if (error) { throw std::runtime_error("Unable to find Node with proper outgoing RoadSegment in \"from\" vertex map."); }
 		}
-		if (to->second.vertices.size()>1) {
+		if (to->second.vertices.size()>1)
+		{
 			bool error=true;
-			for (std::vector<NodeDescriptor>::const_iterator it=to->second.vertices.begin(); it!=to->second.vertices.end(); it++) {
-				if (rs == it->before) {
+			for (std::vector<NodeDescriptor>::const_iterator it=to->second.vertices.begin(); it!=to->second.vertices.end(); it++)
+			{
+				if (rs == it->before)
+				{
 					toVertex = it->v;
 					error = false;
 				}
@@ -714,28 +716,19 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 	    case sim_mob::HighwayBias_Distance:
 	    {
 	    	edgeWeight = rs->getLength();
-	    	if(rs->maxSpeed > MIN_HIGHWAY_SPEED)
-	    	{
-	    		edgeWeight = highwayBias * edgeWeight;
-	    	}
+	    	if(rs->maxSpeed < MIN_HIGHWAY_SPEED) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
 	    	break;
 	    }
 	    case sim_mob::HighwayBias_MorningPeak:
 	    {
-			double key_ = sim_mob::PathSetParam::getInstance()->getSegRangeTT(rs, "Car", morningPeakStartTime, morningPeakEndTime);
-	    	if(rs->maxSpeed > MIN_HIGHWAY_SPEED)
-			{
-				edgeWeight = highwayBias * key_;
-			}
+	    	edgeWeight = sim_mob::PathSetParam::getInstance()->getSegRangeTT(rs, "Car", morningPeakStartTime, morningPeakEndTime);
+	    	if(rs->maxSpeed < MIN_HIGHWAY_SPEED) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
 	    	break;
 	    }
 	    case sim_mob::HighwayBias_EveningPeak:
 		{
 			edgeWeight = PathSetParam::getInstance()->getSegRangeTT(rs, "Car", eveningPeakStartTime, eveningPeakEndTime);
-			if(rs->maxSpeed > MIN_HIGHWAY_SPEED)
-			{
-				edgeWeight = highwayBias * edgeWeight;
-			}
+			if(rs->maxSpeed < MIN_HIGHWAY_SPEED) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
 			break;
 		}
 	    case sim_mob::HighwayBias_OffPeak:
@@ -744,42 +737,34 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			double key2 = PathSetParam::getInstance()->getSegRangeTT(rs, "Car", morningPeakEndTime, eveningPeakStartTime); //Off-peak 2
 			double key3 = PathSetParam::getInstance()->getSegRangeTT(rs, "Car", eveningPeakEndTime, offPeak3EndTime); //Off-peak 3
 			edgeWeight = (key1+key2+key3)/3.0;
-			if(rs->maxSpeed > MIN_HIGHWAY_SPEED)
-			{
-				edgeWeight = highwayBias * edgeWeight;
-			}
+			if(rs->maxSpeed < MIN_HIGHWAY_SPEED) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
 			break;
 		}
 	    case sim_mob::HighwayBias_Default:
 		{
 			edgeWeight = PathSetParam::getInstance()->getDefSegTT(rs);
-			if(rs->maxSpeed > MIN_HIGHWAY_SPEED)
-			{
-				edgeWeight = highwayBias * edgeWeight;
-			}
+			if(rs->maxSpeed < MIN_HIGHWAY_SPEED) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
 			break;
 		}
 	    case sim_mob::Random:
 	    {
-	    	boost::random_device seed_gen;
-	    	long int r = seed_gen();
-	    	boost::mt19937  rng(r);
+	    	boost::random_device seedGen;
+	    	boost::mt19937 rng(seedGen());
 	    	const std::pair<int,int> &range = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().perturbationRange;
-	    	boost::uniform_int<> uniformInt( range.first, range.second );
-	    	boost::variate_generator< boost::mt19937, boost::uniform_int<> >	dice(rng, uniformInt);
-	    	double random_number = dice();
-	    	double tt = PathSetParam::getInstance()->getDefSegTT(rs);
-	    	edgeWeight = random_number * tt;
+	    	boost::uniform_int<> uniformInt(range.first, range.second);
+	    	boost::variate_generator< boost::mt19937, boost::uniform_int<> > rollDice(rng, uniformInt);
+	    	edgeWeight = rollDice() * PathSetParam::getInstance()->getDefSegTT(rs); //randomNo * defTT
 	    	if(edgeWeight <= 0)
 	    	{
 	    		std::stringstream out("");
-	    		out << "Invalid random perturbation key. segment " << rs->getId() << " has travel time " << tt << " and   random number:" << random_number;
+	    		out << "Invalid random perturbation key for segment " << rs->getId();
 	    		throw std::runtime_error(out.str());
 	    	}
 	    	break;
 	    }
 	    }
 
+	    //set edgeWeight
 	    boost::put(boost::edge_weight, graph, edge, edgeWeight);
 
 	    //Save this in our lookup.

@@ -47,9 +47,6 @@ void sim_mob::PathSetWorkerThread::run() {
 		if((lookIt = segmentLookup->find(*it)) != segmentLookup->end())
 		{
 			blacklistV.insert(lookIt->second.begin(), lookIt->second.end());
-			Print() << "blacklisting " << (*it)->getSegmentAimsunId() << ":";
-			std::copy(lookIt->second.begin(), lookIt->second.end(), std::ostream_iterator<StreetDirectory::Edge> (std::cout," "));
-			Print() << std::endl;
 		}
 	}
 	//used for error checking and validation

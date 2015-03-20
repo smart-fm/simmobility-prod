@@ -747,7 +747,6 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexDefault(*ps->subTrip.fromLocation.node_);
 	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexDefault(*ps->subTrip.toLocation.node_);
 	SinglePath *pathTT = generateShortestTravelTimePath(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_,sim_mob::Default);
-	Print() << "shortest path " << pathTT->id << std::endl;
 	int cnt = 0;
 	if(pathTT && !pathTT->path.empty())
 	{
@@ -782,10 +781,6 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 					 * Whereas in "generation" mode,  each pathset generation task(as a whole) is assigned to a dedicated thread in threadpool.
 					 */
 					work->run();
-					if(work && work->s)
-					{
-						Print() << "path obtained " << work->s->id << std::endl;
-					}
 				}
 				else
 				{

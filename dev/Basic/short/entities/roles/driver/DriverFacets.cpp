@@ -2183,7 +2183,26 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 			else if(parentDriver->isInIntersection.get())
 			{
 				//As we are in the intersection, but the other vehicle isn't, it is obviously in behind us
-				distance = other_driver->distToIntersection_.get() * 100 + other_driver->moveDisOnTurning_.get();
+				distance = other_driver->distToIntersection_.get() * 100 + parentDriver->moveDisOnTurning_.get();
+				check_and_set_min_car_dist(params.nvBack, distance, parentDriver->vehicle, other_driver);
+			}
+		}
+		//Both turnings originate at the same lane, but diverge
+		else if (fwdDriverMovement.currTurning->getLaneFrom() == otherTurning->getLaneFrom() &&
+				 fwdDriverMovement.currTurning->getLaneTo() != otherTurning->getLaneTo())
+		{
+			double distance = 0;
+			
+			//The other driver can be the front driver only for a few meters, say 5m
+			//till the turning has some common area
+			if(other_driver->isInIntersection.get() && other_driver->moveDisOnTurning_.get() <= 5000)
+			{
+				distance = fwdDriverMovement.getDisToCurrSegEnd() + other_driver->moveDisOnTurning_.get();
+				check_and_set_min_car_dist(params.nvFwd, distance, parentDriver->vehicle, other_driver);
+			}
+			else if(parentDriver->isInIntersection.get() && parentDriver->moveDisOnTurning_.get() <= 5000)
+			{
+				distance = other_driver->distToIntersection_.get() * 100 + parentDriver->moveDisOnTurning_.get();
 				check_and_set_min_car_dist(params.nvBack, distance, parentDriver->vehicle, other_driver);
 			}
 		}

@@ -53,7 +53,7 @@ public:
 	 * @param endTime end of the time range
 	 * @return travel time in seconds
 	 */
-	double getSegRangeTT(const sim_mob::RoadSegment* rs, const std::string travelMode, sim_mob::DailyTime startTime,sim_mob::DailyTime endTime);
+	double getSegRangeTT(const sim_mob::RoadSegment* rs, const std::string travelMode, const sim_mob::DailyTime& startTime, const sim_mob::DailyTime& endTime);
 
 	/**
 	 * gets the average 'default' travel time of a segment.

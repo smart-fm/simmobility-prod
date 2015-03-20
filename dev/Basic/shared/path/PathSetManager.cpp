@@ -802,14 +802,14 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 	std::set<const RoadSegment*> blackList = std::set<const RoadSegment*>();
 	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_));
 	logger << "[" << fromToID << "][SHORTEST TRAVEL TIME LINK ELIMINATION HIGHWAY BIAS]\n";
-	SinglePath *sinPathHightwayBias = generateShortestTravelTimePath(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_,sim_mob::HighwayBias_Default);
+	SinglePath *sinPathHighwayBias = generateShortestTravelTimePath(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_,sim_mob::HighwayBias_Default);
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir.getTravelTimeImpl();
 	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->subTrip.fromLocation.node_);
 	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexHighwayBiasDistance(*ps->subTrip.toLocation.node_);
 	int cnt = 0;
-	if(sinPathHightwayBias && !sinPathHightwayBias->path.empty())
+	if(sinPathHighwayBias && !sinPathHighwayBias->path.empty())
 	{
-		for(std::vector<sim_mob::WayPoint>::iterator it(sinPathHightwayBias->path.begin()); it != sinPathHightwayBias->path.end() ;++it)
+		for(std::vector<sim_mob::WayPoint>::iterator it(sinPathHighwayBias->path.begin()); it != sinPathHighwayBias->path.end() ;++it)
 		{
 			const sim_mob::RoadSegment* currSeg = it->roadSegment_;
 			if(currSeg->getLink() != curLink)
@@ -924,7 +924,6 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 	}
 
 	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_));
-//	Print() << "[" << fromToID << "] [PATHSET GENERATION STARTED]..." ;
 	logger << "generateAllPathChoices" << std::endl;
 	/**
 	 * step-1: find the shortest path. if not found: create an entry in the "PathSet" table and return(without adding any entry into SinglePath table)
@@ -957,21 +956,20 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 	ps->id = fromToID;
 
 	//K-SHORTEST PATH
-	//Print() << "[" << fromToID << "][K-SHORTEST PATH] " << fromToID << std::endl;
 	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> KSP_Storage;//main storage for k-shortest path
 	if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
 	{
-//		genK_ShortestPath(ps, KSP_Storage);
+		genK_ShortestPath(ps, KSP_Storage);
 	}
 	else
 	{
-//		threadpool_->enqueue(boost::bind(&PathSetManager::genK_ShortestPath, this, ps, boost::ref(KSP_Storage)));
+		threadpool_->enqueue(boost::bind(&PathSetManager::genK_ShortestPath, this, ps, boost::ref(KSP_Storage)));
 	}
 
 	std::vector<std::vector<PathSetWorkerThread*> > mainStorage = std::vector<std::vector<PathSetWorkerThread*> >();
 	// SHORTEST DISTANCE LINK ELIMINATION
 	std::vector<PathSetWorkerThread*> SDLE_Storage;
-//	genSDLE(ps, SDLE_Storage);
+	genSDLE(ps, SDLE_Storage);
 
 	//step-3: SHORTEST TRAVEL TIME LINK ELIMINATION
 	std::vector<PathSetWorkerThread*> STTLE_Storage;
@@ -979,11 +977,11 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 
 	// TRAVEL TIME HIGHWAY BIAS
 	std::vector<PathSetWorkerThread*> STTHBLE_Storage;
-//	genSTTHBLE(ps,STTHBLE_Storage);
+	genSTTHBLE(ps,STTHBLE_Storage);
 
 	//	RANDOM;
 	std::vector<PathSetWorkerThread*> randPertStorage;
-//	genRandPert(ps,randPertStorage);
+	genRandPert(ps,randPertStorage);
 
 	if(!(ConfigManager::GetInstance().PathSetConfig().mode == "generation"))
 	{

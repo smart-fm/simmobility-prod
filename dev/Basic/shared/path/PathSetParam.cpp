@@ -91,7 +91,7 @@ void sim_mob::PathSetParam::setRTTT(const std::string& value)
 	logger << "[REALTIME TABLE NAME : " << RTTT << "]\n";
 }
 
-double sim_mob::PathSetParam::getSegRangeTT(const sim_mob::RoadSegment* rs,const std::string travelMode, sim_mob::DailyTime startTime,sim_mob::DailyTime endTime)
+double sim_mob::PathSetParam::getSegRangeTT(const sim_mob::RoadSegment* rs, const std::string travelMode, const sim_mob::DailyTime& startTime, const sim_mob::DailyTime& endTime)
 {
 	//1. check realtime table
 	double res=0.0;

@@ -2037,43 +2037,59 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 	if(p.dis2stop>dis/100.0){
 		p.dis2stop = dis/100.0;
 	}
+	
 	const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (driverMvt->fwdDriverMovement.getCurrSegment()->getEnd());
+	
 	if(currEndNode)
 	{
 		// current segment's end node is multi node, so it is last segment of the link
 		// get next segment(in next link)
 		const RoadSegment* nextSegment = driverMvt->fwdDriverMovement.getNextSegment(false);
-		if(!nextSegment){
+		if(!nextSegment)
+		{
 			//seems current on last segment of the path
-			if(p.leftLane && !p.leftLane->is_pedestrian_lane()) {
+			if(p.leftLane && !p.leftLane->is_pedestrian_lane()) 
+			{
 				p.setStatus(STATUS_LEFT_SIDE_OK,STATUS_YES,str);
 			}
-			if(p.rightLane && !p.rightLane->is_pedestrian_lane()) {
+			if(p.rightLane && !p.rightLane->is_pedestrian_lane()) 
+			{
 				p.setStatus(STATUS_RIGHT_SIDE_OK,STATUS_YES,str);
 			}
-			if(p.currLane && !p.currLane->is_pedestrian_lane()) {
+			if(p.currLane && !p.currLane->is_pedestrian_lane()) 
+			{
 				p.setStatus(STATUS_CURRENT_LANE_OK,STATUS_YES,str);
 			}
 
 			const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
-			for(int i=0;i<lanes.size();++i) {
-				if(!lanes[i]->is_pedestrian_lane()) {
+			
+			for(int i=0;i<lanes.size();++i) 
+			{
+				if(!lanes[i]->is_pedestrian_lane()) 
+				{
 					targetLanes.insert(lanes[i]);
 				}
 			}// end of for
+			
 			res = 0; // no need lane change
 		}//end if(!nextSegment)
-		else {
-			// next segment on diff link
-			// get lane connector
-			const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(driverMvt->fwdDriverMovement.getCurrSegment());
+		else 
+		{
+			// Next segment is on a different link. We need to check if our lane is connected to the next road segment
+			
+			// Turnings from current RoadSegment
+			const std::set<TurningSection *>& turnings = currEndNode->getTurnings(driverMvt->fwdDriverMovement.getCurrSegment());
 
 			// unset status
-			p.setStatus(STATUS_LEFT_SIDE_OK,STATUS_NO,str); p.setStatus(STATUS_RIGHT_SIDE_OK,STATUS_NO,str);p.setStatus(STATUS_CURRENT_LANE_OK,STATUS_NO,str);
-			// check left,right lanes connect to next target segment
-			for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); ++it)
+			p.setStatus(STATUS_LEFT_SIDE_OK,STATUS_NO,str); 
+			p.setStatus(STATUS_RIGHT_SIDE_OK,STATUS_NO,str);
+			p.setStatus(STATUS_CURRENT_LANE_OK,STATUS_NO,str);
+			
+			// Check which lanes connect to next target segment
+			for (std::set<TurningSection *>::const_iterator it = turnings.begin(); it != turnings.end(); ++it)
 			{
-				if ( (*it)->getLaneTo()->getRoadSegment() == nextSegment ) // this lc connect to target segment
+				// The turning is connected to target segment
+				if ((*it)->getLaneTo()->getRoadSegment() == nextSegment)
 				{
 					int laneIdx = getLaneIndex((*it)->getLaneFrom());
 					if(laneIdx > p.currLaneIndex)
@@ -2084,51 +2100,64 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 					{
 						p.setStatus(STATUS_RIGHT_SIDE_OK,STATUS_YES,str);
 					}
-					else {
+					else 
+					{
 						p.setStatus(STATUS_CURRENT_LANE_OK,STATUS_YES,str);
 					}
 				}//end if
 			}//end for
 
-			if (!lcs.empty())
+			if (!turnings.empty())
 			{
-				if(p.currLane->is_pedestrian_lane()) {
+				if(p.currLane->is_pedestrian_lane()) 
+				{
 					//if can different DEBUG or RELEASE mode, that will be perfect, but now comment it out, so that does nor affect performance.
 					//I remember the message is not critical
 					WarnOut("drive on pedestrian lane");
 					double d = driverMvt->fwdDriverMovement.getDisToCurrSegEndM()/100.0;
 					if(d<p.dis2stop)
+					{
 						p.dis2stop = d;
+					}
 					return -1;
 				}				
 
-				for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); ++it) {
-					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment ) {
+				for (std::set<TurningSection *>::const_iterator it = turnings.begin(); it != turnings.end(); ++it) 
+				{
+					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment ) 
+					{
 						// add lane to targetLanes
 						const Lane* l = (*it)->getLaneFrom();
 						targetLanes.insert(l);
+						
 						if( (*it)->getLaneFrom() == p.currLane )
 						{
-							// current lane connect to next link
-							// no need lc
+							// current lane is connected to next link
+							// no need for lane change
 							res = 0;
 						}
 					}
 				}// end for
-			} // end of if (!lcs)
-			else {
-				throw std::runtime_error("isLaneConnectToNextLink: error, no lane connect in multi node");
+			} // end of if (!turning.empty())
+			else 
+			{
+				throw std::runtime_error("isLaneConnectToNextLink: Error, no Turning in Multi-node");
 			}
 		}// end of else
 	}//end if(currEndNode)
-	else {
+	else 
+	{
 		// not on last segment of the link
 		const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
-		for(int i=0;i<lanes.size();++i) {
-			if(!lanes[i]->is_pedestrian_lane()) {
+		
+		for(int i = 0; i < lanes.size() ; ++i) 
+		{
+			if(!lanes[i]->is_pedestrian_lane()) 
+			{
 				targetLanes.insert(lanes[i]);
 			}
 		}// end of for
+		
 		res = 0;
 	}
 	return res;
@@ -2316,59 +2345,75 @@ void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)
 	// check current lane has connector to next link
 	DriverMovement *driverMvt = dynamic_cast<DriverMovement*>(p.driver->Movement());
 	const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (driverMvt->fwdDriverMovement.getCurrSegment()->getEnd());
+	
 	if(currEndNode)
 	{
 		// check has next segment in path
 		const RoadSegment* nextSegment = driverMvt->fwdDriverMovement.getNextSegment(false);
-		if(!nextSegment){
+		
+		if(!nextSegment)
+		{
 			//seems on last segment of the path
-			if(p.leftLane && !p.leftLane->is_pedestrian_lane()) {
+			if(p.leftLane && !p.leftLane->is_pedestrian_lane()) 
+			{
 				p.setStatus(STATUS_LEFT_SIDE_OK,STATUS_YES,str);
 			}
-			if(p.rightLane && !p.rightLane->is_pedestrian_lane()) {
+			if(p.rightLane && !p.rightLane->is_pedestrian_lane()) 
+			{
 				p.setStatus(STATUS_RIGHT_SIDE_OK,STATUS_YES,str);
 			}
-			if(p.currLane && !p.currLane->is_pedestrian_lane()) {
+			if(p.currLane && !p.currLane->is_pedestrian_lane()) 
+			{
 				p.setStatus(STATUS_CURRENT_LANE_OK,STATUS_YES,str);
 			}
 		}
-		else {
-			// get lane connector
-			const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(driverMvt->fwdDriverMovement.getCurrSegment());
+		else 
+		{
+			// Turnings from the current segment
+			const std::set<TurningSection *>& turnings = currEndNode->getTurnings(driverMvt->fwdDriverMovement.getCurrSegment());
 
-			// check left,right lanes connect to next target segment
-			for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); ++it)
+			// Check if the turning is connected to the next segment
+			for (std::set<TurningSection *>::const_iterator it = turnings.begin(); it != turnings.end(); ++it)
 			{
-				if ( (*it)->getLaneTo()->getRoadSegment() == nextSegment ) // this lc connect to target segment
+				// This turning is connected to the target segment
+				if ((*it)->getLaneTo()->getRoadSegment() == nextSegment) 
 				{
 					int laneIdx = getLaneIndex((*it)->getLaneFrom());
+					
 					// lane index 0 start from most left lane of the segment
 					// so lower number in the left, higher number in the right
-					if(laneIdx > p.currLaneIndex) {
+					if(laneIdx > p.currLaneIndex) 
+					{
 						p.setStatus(STATUS_LEFT_SIDE_OK,STATUS_YES,str);
 					}
-					else if(laneIdx < p.currLaneIndex) {
+					else if(laneIdx < p.currLaneIndex) 
+					{
 						p.setStatus(STATUS_RIGHT_SIDE_OK,STATUS_YES,str);
 					}
-					else if(laneIdx == p.currLaneIndex) {
+					else if(laneIdx == p.currLaneIndex) 
+					{
 						p.setStatus(STATUS_CURRENT_LANE_OK,STATUS_YES,str);
 					}
 				}// end if = nextsegment
 			}//end for
 		}// end else
 	}// end if node
-	else {
+	else 
+	{
 		// segment's end node is uninode
 		// here just assume every lane can connect to next segment
 		// for lane drop, it will set the status in isThereLaneDrop()
 		// TODO use uninode lane connector
-		if(p.leftLane && !p.leftLane->is_pedestrian_lane()) {
+		if(p.leftLane && !p.leftLane->is_pedestrian_lane()) 
+		{
 			p.setStatus(STATUS_LEFT_SIDE_OK,STATUS_YES,str);
 		}
-		if(p.rightLane && !p.rightLane->is_pedestrian_lane()) {
+		if(p.rightLane && !p.rightLane->is_pedestrian_lane()) 
+		{
 			p.setStatus(STATUS_RIGHT_SIDE_OK,STATUS_YES,str);
 		}
-		if(p.currLane && !p.currLane->is_pedestrian_lane()) {
+		if(p.currLane && !p.currLane->is_pedestrian_lane()) 
+		{
 			p.setStatus(STATUS_CURRENT_LANE_OK,STATUS_YES,str);
 		}
 	}

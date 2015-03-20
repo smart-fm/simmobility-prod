@@ -996,7 +996,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 	calcDistanceToSP(p);
 	
 	// make lc decision
-	/*LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
+	LANE_CHANGE_SIDE lcs = lcModel->makeLaneChangingDecision(p);
 
 	if (p.getStatus() & STATUS_CHANGING) {
 		p.lcDebugStr<<";CHING";
@@ -1008,7 +1008,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p) {
 			p.lcDebugStr<<";COG";
 			lcModel->chooseTargetGap(p);
 		}
-	} //end if STATUS_CHANGING*/
+	} //end if STATUS_CHANGING
 
 	//Convert back to m/s
 	//TODO: Is this always m/s? We should rename the variable then...

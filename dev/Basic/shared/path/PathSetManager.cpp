@@ -686,77 +686,72 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 	StreetDirectory::VertexDesc to = impl->DrivingVertex(*ps->subTrip.toLocation.node_);
 	if(ps->oriPath && !ps->oriPath->path.empty())
 	{
-		curLink = ps->oriPath->path.begin()->roadSegment_->getLink();
-	}
-	blackList.insert(ps->oriPath->path.begin()->roadSegment_);
-	int cnt = 0;
-	for(std::vector<sim_mob::WayPoint>::iterator it=ps->oriPath->path.begin();	it != ps->oriPath->path.end() ;++it)
-	{
-		const sim_mob::RoadSegment* currSeg = it->roadSegment_;
-		if(currSeg->getLink() != curLink)
+		int cnt = 0;
+		for(std::vector<sim_mob::WayPoint>::iterator it=ps->oriPath->path.begin();	it != ps->oriPath->path.end() ;++it)
 		{
-			curLink = currSeg->getLink();
-			PathSetWorkerThread * work = new PathSetWorkerThread();
-			//introducing the profiling time accumulator
-			//the above declared profiler will become a profiling time accumulator of ALL workers in this loop
-			work->graph = &impl->drivingMap_;
-			work->segmentLookup = &impl->drivingSegmentLookup_;
-			work->fromVertex = from.source;
-			work->toVertex = to.sink;
-			work->fromNode = ps->subTrip.fromLocation.node_;
-			work->toNode =  ps->subTrip.toLocation.node_;
-			work->excludeSeg = blackList;
-			blackList.clear();
-			blackList.insert(currSeg);//used in the next iteration
-			work->ps = ps;
-			std::stringstream out("");
-			out << "SDLE-" << ++cnt;
-			work->dbgStr = out.str();
-			work->timeBased = false;
-
-			if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+			const sim_mob::RoadSegment* currSeg = it->roadSegment_;
+			if(currSeg->getLink() != curLink)
 			{
-				/*
-				 * NOTE:
-				 * when pathset runs in "normal" mode, during pathset generation for requested ODs, each method
-				 * of pathset generation(link elimination, random perturbation, etc)  will use threadpool for its operation.
-				 * Whereas in "generation" mode,  each pathset generation task(as a whole) is assigned to a dedicated thread in threadpool.
-				 */
-				work->run();
-			}
-			else
-			{
-				threadpool_->enqueue(boost::bind(&PathSetWorkerThread::run,work));
-			}
+				curLink = currSeg->getLink();
+				PathSetWorkerThread * work = new PathSetWorkerThread();
+				//introducing the profiling time accumulator
+				//the above declared profiler will become a profiling time accumulator of ALL workers in this loop
+				work->graph = &impl->drivingMap_;
+				work->segmentLookup = &impl->drivingSegmentLookup_;
+				work->fromVertex = from.source;
+				work->toVertex = to.sink;
+				work->fromNode = ps->subTrip.fromLocation.node_;
+				work->toNode =  ps->subTrip.toLocation.node_;
+				blackList.clear();
+				blackList.insert(currSeg);//used in the next iteration
+				work->excludeSeg = blackList;
+				work->ps = ps;
+				std::stringstream out("");
+				out << "SDLE-" << ++cnt;
+				work->dbgStr = out.str();
+				work->timeBased = false;
 
-			SDLE_Storage.push_back(work);
-		} //ROAD_SEGMENT
-	}
-	if(!cnt)
-	{
-		logger  << "[" << fromToID << "]Nothing supplied to threadpool-SDLE" << std::endl;
+				if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+				{
+					/*
+					 * NOTE:
+					 * when pathset runs in "normal" mode, during pathset generation for requested ODs, each method
+					 * of pathset generation(link elimination, random perturbation, etc)  will use threadpool for its operation.
+					 * Whereas in "generation" mode,  each pathset generation task(as a whole) is assigned to a dedicated thread in threadpool.
+					 */
+					work->run();
+				}
+				else
+				{
+					threadpool_->enqueue(boost::bind(&PathSetWorkerThread::run,work));
+				}
+
+				SDLE_Storage.push_back(work);
+			} //ROAD_SEGMENT
+		}
+
+		if(!cnt)
+		{
+			logger  << "[" << fromToID << "]Nothing supplied to threadpool-SDLE" << std::endl;
+		}
 	}
 }
 
 int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &STTLE_Storage)
 {
-	sim_mob::Link *curLink = NULL;
+	sim_mob::Link *curLink = nullptr;
 	std::set<const RoadSegment*> blackList = std::set<const RoadSegment*>();
 	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_));
 
 	logger << "[" << fromToID << "][SHORTEST TRAVEL TIME LINK ELIMINATION]\n";
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir.getTravelTimeImpl();
-	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexNormalTime(*ps->subTrip.fromLocation.node_);
-	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexNormalTime(*ps->subTrip.toLocation.node_);
+	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexDefault(*ps->subTrip.fromLocation.node_);
+	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexDefault(*ps->subTrip.toLocation.node_);
 	SinglePath *pathTT = generateShortestTravelTimePath(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_,sim_mob::Default);
+	Print() << "shortest path " << pathTT->id << std::endl;
 	int cnt = 0;
-	if(pathTT)
+	if(pathTT && !pathTT->path.empty())
 	{
-		if(!pathTT->path.empty())
-		{
-			curLink = pathTT->path.begin()->roadSegment_->getLink();
-		}
-		blackList.insert(pathTT->path.begin()->roadSegment_);
 		for(std::vector<sim_mob::WayPoint>::iterator it(pathTT->path.begin()); it != pathTT->path.end() ;++it)
 		{
 			const sim_mob::RoadSegment* currSeg = it->roadSegment_;
@@ -770,9 +765,9 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 				work->toVertex = to.sink;
 				work->fromNode = ps->subTrip.fromLocation.node_;
 				work->toNode = ps->subTrip.toLocation.node_;
-				work->excludeSeg = blackList;
 				blackList.clear();
-				blackList.insert(currSeg);//used in the next iteration
+				blackList.insert(currSeg);
+				work->excludeSeg = blackList;
 				work->ps = ps;
 				std::stringstream out("");
 				out << "STTLE-" << cnt++ ;
@@ -788,6 +783,10 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 					 * Whereas in "generation" mode,  each pathset generation task(as a whole) is assigned to a dedicated thread in threadpool.
 					 */
 					work->run();
+					if(work && work->s)
+					{
+						Print() << "path obtained " << work->s->id << std::endl;
+					}
 				}
 				else
 				{
@@ -863,7 +862,6 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 				{
 					threadpool_->enqueue(boost::bind(&PathSetWorkerThread::run,work));
 				}
-
 				STTHBLE_Storage.push_back(work);
 			} //ROAD_SEGMENT
 		}//for

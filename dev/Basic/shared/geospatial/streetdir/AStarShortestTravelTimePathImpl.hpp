@@ -233,27 +233,35 @@ private:
 public:
     //Distance heuristic for our A* search algorithm
     //Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
-    //...which is available under the terms of the Boost Software License, 1.0
-    class distance_heuristic_graph : public boost::astar_heuristic<StreetDirectory::Graph, double> {
-    public:
-    	distance_heuristic_graph(const StreetDirectory::Graph* graph, StreetDirectory::Vertex goal) : m_graph(graph), m_goal(goal) {}
-      double operator()(StreetDirectory::Vertex v) {
-    	  const Point2D atPos = boost::get(boost::vertex_name, *m_graph, v);
-    	  const Point2D goalPos = boost::get(boost::vertex_name, *m_graph, m_goal);
+    //which is available under the terms of the Boost Software License, 1.0
+    class distance_heuristic_graph : public boost::astar_heuristic<StreetDirectory::Graph, double>
+    {
+		public:
+			distance_heuristic_graph(const StreetDirectory::Graph* graph, StreetDirectory::Vertex goal)
+				: m_graph(graph), m_goal(goal), goalPos(boost::get(boost::vertex_name, *m_graph, m_goal)),
+				  maxSegSpeed(sim_mob::ConfigManager::GetInstance().PathSetConfig().maxSegSpeed) {}
 
-    	  return sim_mob::dist(atPos, goalPos)/ sim_mob::ConfigManager::GetInstance().PathSetConfig().maxSegSpeed;
-      }
-    private:
-      const StreetDirectory::Graph* m_graph;
-      StreetDirectory::Vertex m_goal;
+			double operator()(StreetDirectory::Vertex v)
+			{
+				const Point2D atPos = boost::get(boost::vertex_name, *m_graph, v);
+				return (sim_mob::dist(atPos, goalPos) / maxSegSpeed);
+			}
+
+		private:
+			const StreetDirectory::Graph* m_graph;
+			StreetDirectory::Vertex m_goal;
+			const Point2D goalPos;
+			const double maxSegSpeed;
     };
 
 
-    struct blacklist_edge_constraint {
+    struct blacklist_edge_constraint
+    {
     	blacklist_edge_constraint(const std::set<StreetDirectory::Edge>& blacklist=std::set<StreetDirectory::Edge>()) : blacklist(blacklist)
     	{}
 
-    	bool operator()(const StreetDirectory::Edge& e) const {
+    	bool operator()(const StreetDirectory::Edge& e) const
+    	{
     		//Include the edge if it's not in the blacklist.
     		return blacklist.find(e)==blacklist.end();
     	}
@@ -265,18 +273,24 @@ public:
 
     //NOTE: For some reason, template deduction doesn't seem to work if we use "distance_heuristic<filtered>".
     //      For now I'm just separating these into their own classes; it's easier than trying to fix cascading template error messages.
-    class distance_heuristic_filtered : public boost::astar_heuristic<boost::filtered_graph<StreetDirectory::Graph, blacklist_edge_constraint>, double> {
-    public:
-    	distance_heuristic_filtered(const boost::filtered_graph<StreetDirectory::Graph, blacklist_edge_constraint>* graph, StreetDirectory::Vertex goal) : m_graph(graph), m_goal(goal) {}
-      double operator()(StreetDirectory::Vertex v) {
-    	  const Point2D atPos = boost::get(boost::vertex_name, *m_graph, v);
-    	  const Point2D goalPos = boost::get(boost::vertex_name, *m_graph, m_goal);
-    	  return sim_mob::dist(atPos, goalPos)/ sim_mob::ConfigManager::GetInstance().PathSetConfig().maxSegSpeed;
-//   	  return 1.0;
-      }
-    private:
-      const boost::filtered_graph<StreetDirectory::Graph, blacklist_edge_constraint>* m_graph;
-      StreetDirectory::Vertex m_goal;
+    class distance_heuristic_filtered : public boost::astar_heuristic<boost::filtered_graph<StreetDirectory::Graph, blacklist_edge_constraint>, double>
+    {
+		public:
+			distance_heuristic_filtered(const boost::filtered_graph<StreetDirectory::Graph, blacklist_edge_constraint>* graph, StreetDirectory::Vertex goal)
+				: m_graph(graph), m_goal(goal), goalPos(boost::get(boost::vertex_name, *m_graph, m_goal)),
+				  maxSegSpeed(sim_mob::ConfigManager::GetInstance().PathSetConfig().maxSegSpeed) {}
+
+			double operator()(StreetDirectory::Vertex v)
+			{
+				const Point2D atPos = boost::get(boost::vertex_name, *m_graph, v);
+				return (sim_mob::dist(atPos, goalPos) / maxSegSpeed);
+			}
+
+		private:
+			const boost::filtered_graph<StreetDirectory::Graph, blacklist_edge_constraint>* m_graph;
+			StreetDirectory::Vertex m_goal;
+			const Point2D goalPos;
+			const double maxSegSpeed;
     };
 
     //Used to terminate our search (todo: is there a better way?)
@@ -284,18 +298,20 @@ public:
 
     //Goal visitor: terminates when a goal has been found.
     //Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
-    //...which is available under the terms of the Boost Software License, 1.0
-    class astar_goal_visitor : public boost::default_astar_visitor {
-    public:
-      astar_goal_visitor(StreetDirectory::Vertex goal) : m_goal(goal) {}
+    //which is available under the terms of the Boost Software License, 1.0
+    class astar_goal_visitor : public boost::default_astar_visitor
+    {
+		public:
+			astar_goal_visitor(StreetDirectory::Vertex goal) : m_goal(goal) {}
 
-      template <class Graph>
-      void examine_vertex(StreetDirectory::Vertex u, const Graph& g) {
-        if(u == m_goal)
-          throw found_goal();
-      }
-    private:
-      StreetDirectory::Vertex m_goal;
+			template <class Graph>
+			void examine_vertex(StreetDirectory::Vertex u, const Graph& g)
+			{
+				if(u == m_goal) { throw found_goal(); }
+			}
+
+		private:
+			StreetDirectory::Vertex m_goal;
     };
 };
 

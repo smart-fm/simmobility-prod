@@ -804,20 +804,21 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLaneConnectors(StreetDirectory::Graph& graph, const MultiNode* node, const map<const Node*, VertexLookup>& nodeLookup)
 {
 	//Skip nulled Nodes (may be UniNodes).
-	if (!node) {
-		return;
-	}
+	if (!node) { return; }
 
 	//We actually only care about RoadSegment->RoadSegment connections.
 	set< std::pair<RoadSegment*, RoadSegment*> > connectors;
-	for (map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator conIt=node->getConnectors().begin(); conIt!=node->getConnectors().end(); conIt++) {
-		for (set<sim_mob::LaneConnector*>::const_iterator it=conIt->second.begin(); it!=conIt->second.end(); it++) {
+	for (map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator conIt=node->getConnectors().begin(); conIt!=node->getConnectors().end(); conIt++)
+	{
+		for (set<sim_mob::LaneConnector*>::const_iterator it=conIt->second.begin(); it!=conIt->second.end(); it++)
+		{
 			connectors.insert(std::make_pair((*it)->getLaneFrom()->getRoadSegment(), (*it)->getLaneTo()->getRoadSegment()));
 		}
 	}
 
 	//Now, add each "RoadSegment" connector.
-	for (set< std::pair<RoadSegment*, RoadSegment*> >::iterator it=connectors.begin(); it!=connectors.end(); it++) {
+	for (set< std::pair<RoadSegment*, RoadSegment*> >::iterator it=connectors.begin(); it!=connectors.end(); it++)
+	{
 		//Sanity check:
 		if (it->first->getEnd()!=node || it->second->getStart()!=node) {
 			throw std::runtime_error("Node/Road Segment mismatch in Edge constructor.");
@@ -847,7 +848,6 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLaneConnectors(Str
 
 		//Ensure we have both
 		if (!fromVertex.second || !toVertex.second) {
-			//std::cout <<"ERROR_2906" <<std::endl; continue;
 			throw std::runtime_error("Lane connector has no associated vertex.");
 		}
 
@@ -856,17 +856,13 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLaneConnectors(Str
 	    bool ok;
 	    boost::tie(edge, ok) = boost::add_edge(fromVertex.first, toVertex.first, graph);
 
-	    //Calculate the edge length. Treat this as a Node WayPoint.
+	    //set the edge length.
 	    WayPoint revWP(node);
 	    revWP.directionReverse = true;
-	    DynamicVector lc(fromVertex.second, toVertex.second);
 	    boost::put(boost::edge_name, graph, edge, revWP);
-	    boost::put(boost::edge_weight, graph, edge, lc.getMagnitude());
+	    boost::put(boost::edge_weight, graph, edge, 0);
 	}
 }
-
-
-
 
 void sim_mob::A_StarShortestTravelTimePathImpl::procAddWalkingNodes(StreetDirectory::Graph& graph, const vector<RoadSegment*>& roadway, map<const Node*, VertexLookup>& nodeLookup, map<const Node*, VertexLookup>& tempNodes)
 {
@@ -1302,7 +1298,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddStartNodesAndEdges(Street
 			bool ok;
 			boost::tie(edge, ok) = boost::add_edge(source, it2->v, graph);
 			boost::put(boost::edge_name, graph, edge, WayPoint(it->first));
-			boost::put(boost::edge_weight, graph, edge, 1);
+			boost::put(boost::edge_weight, graph, edge, 0);
 			}
 			{
 			//From "other" to sink
@@ -1312,7 +1308,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddStartNodesAndEdges(Street
 			revWP.directionReverse = true;
 			boost::tie(edge, ok) = boost::add_edge(it2->v, sink, graph);
 			boost::put(boost::edge_name, graph, edge, revWP);
-			boost::put(boost::edge_weight, graph, edge, 1);
+			boost::put(boost::edge_weight, graph, edge, 0);
 			}
 		}
 	}

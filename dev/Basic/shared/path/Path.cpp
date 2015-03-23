@@ -14,7 +14,6 @@
 namespace{
 sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
 
-const double HIGHWAY_SPEED = 60.0; //kmph
 }
 
 sim_mob::SinglePath::SinglePath() : purpose(work),utility(0.0),pathSize(0.0),travelCost(0.0),partialUtility(0.0),
@@ -294,7 +293,7 @@ double sim_mob::calculateHighWayDistance(sim_mob::SinglePath *sp)
 	for(int i=0;i<sp->path.size();++i)
 	{
 		const sim_mob::RoadSegment* seg = sp->path[i].roadSegment_;
-		if(seg->maxSpeed >= HIGHWAY_SPEED)
+		if(seg->isHighway())
 		{
 			res += seg->getLength();
 		}

@@ -94,7 +94,7 @@ sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("pathset.log");
 namespace {
 const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
 const double BUS_LENGTH = 3 * sim_mob::PASSENGER_CAR_UNIT;
-const std::string HIGHWAY_SERVICE_CATEGORY_STRING = "A";
+const std::string HIGHWAY_SERVICE_CATEGORY_STRING = "A"; //Category A segments are highway segments
 
 class DatabaseLoader : private boost::noncopyable {
 public:

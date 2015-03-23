@@ -44,6 +44,7 @@
 #include "path/PathSetManager.hpp"
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
+#include "path/PT_PathSetManager.hpp"
 #include "util/DailyTime.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Utils.hpp"
@@ -52,6 +53,9 @@
 #include "workers/WorkGroupManager.hpp"
 #include "config/MT_Config.hpp"
 #include "config/ParseMidTermConfigFile.hpp"
+#include "entities/params/PT_NetworkEntities.hpp"
+#include "database/pt_network_dao/PT_NetworkSqlDao.hpp"
+#include "geospatial/streetdir/A_StarPublicTransitShortestPathImpl.hpp"
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -79,6 +83,64 @@ const std::string MT_CONFIG_FILE = "data/medium/mt-config.xml";
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
 
+
+void unit_test_function(){
+	sim_mob::Node* src_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(19569);
+	sim_mob::Node* dest_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(21231);
+	vector<PT_NetworkEdge> path = sim_mob::PT_PathSetManager::Instance().makePathset(src_node,dest_node);
+
+	for(vector<PT_NetworkEdge>::const_iterator it=path.begin();it!=path.end();it++){
+		cout<<it->getEdgeId()<<"-->";
+	}
+	/*
+	std::ofstream pt_networkwriter;
+	pt_networkwriter.open("pt_network.txt");
+	std::vector<PT_NetworkEdges> ptNetworkEdgesList;
+	std::vector<PT_NetworkVertices> ptNetworkVerticesList;
+	const std::string& dbId = ConfigManager::GetInstance().FullConfig().system.networkDatabase.database;
+	Database database = ConfigManager::GetInstance().FullConfig().constructs.databases.at(dbId);
+	std::string cred_id = ConfigManager::GetInstance().FullConfig().system.networkDatabase.credentials;
+	Credential credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
+	std::string username = credentials.getUsername();
+	std::string password = credentials.getPassword(false);
+	sim_mob::db::DB_Config dbConfig(database.host, database.port, database.dbName, username, password);
+
+
+	const std::string DB_STORED_PROC_PT_EDGES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_edges"];
+	const std::string DB_GETALL_PT_EDGES_QUERY = "SELECT * FROM " + DB_STORED_PROC_PT_EDGES;
+	const std::string DB_STORED_PROC_PT_VERTICES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_vertices"];
+	const std::string DB_GETALL_PT_VERTICES_QUERY = "SELECT * FROM " + DB_STORED_PROC_PT_VERTICES;
+
+	// Connect to database and load data.
+	sim_mob::db::DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+	conn.connect();
+	if (conn.isConnected()) {
+		PT_VerticesSqlDao pt_verticesDao(conn,DB_GETALL_PT_VERTICES_QUERY);
+		pt_verticesDao.getAll(ptNetworkVerticesList);
+
+		Pt_EdgesSqlDao pt_edgesDao(conn,DB_GETALL_PT_EDGES_QUERY);
+		pt_edgesDao.getAll(ptNetworkEdgesList);
+	}
+	pt_networkwriter<<"Printing the public transit Network Vertices";
+
+	for(std::vector<PT_NetworkVertices>::iterator it=ptNetworkVerticesList.begin();it!=ptNetworkVerticesList.end();++it){
+		pt_networkwriter<<(*it).getStopId()<<"  "<<(*it).getStopType()<<"  "<<(*it).getStopCode()<<"  "<<
+				(*it).getStopLatitude()<<"  "<<(*it).getStopLongitude()<<"  "<<
+				(*it).getStopDesc()<<"  "<<(*it).getStopName()<<"  "<<(*it).getEzlinkName()<<"\n";
+	}
+
+	pt_networkwriter<<"Printing the public transit Network Edges";
+
+	for(std::vector<PT_NetworkEdges>::iterator itedge=ptNetworkEdgesList.begin();itedge!=ptNetworkEdgesList.end();++itedge){
+		pt_networkwriter<<(*itedge).getStartStop()<<"  "<<(*itedge).getEndStop()<<"  "<<(*itedge).getType()<<"  "<<
+				(*itedge).getRoadIndex()<<"  "<<(*itedge).getRoadEdgeId()<<"  "<<
+				(*itedge).getServiceLines()<<"  "<<(*itedge).getLinkTravelTimeSecs()<<"  "<<(*itedge).getEdgeId()<<"\n";
+	}
+
+	A_StarPublicTransitShortestPathImpl* PT_Graph = new A_StarPublicTransitShortestPathImpl(ptNetworkEdgesList,ptNetworkVerticesList);
+	//StreetDirectory::PublicTransitGraph publictransitMap = PT_Graph->publictransitMap_;
+    */
+}
 /**
  * Main simulation loop for the supply simulator
  * @param configFileName name of the input config xml file
@@ -151,7 +213,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	{
 		partMgr = &PartitionManager::instance();
 	}
-
+	unit_test_function();
+	exit(1);
 	PeriodicPersonLoader periodicPersonLoader(Agent::all_agents, Agent::pending_agents);
 
 	{ //Begin scope: WorkGroups

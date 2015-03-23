@@ -37,8 +37,10 @@
 #include "entities/signal/Signal.hpp"
 #include "entities/Agent.hpp"
 #include "entities/TrafficWatch.hpp"
+#include "entities/params/PT_NetworkEntities.hpp"
 #include "A_StarShortestPathImpl.hpp"
 #include "AStarShortestTravelTimePathImpl.hpp"
+#include "A_StarPublicTransitShortestPathImpl.hpp"
 #include "GridStreetDirectoryImpl.hpp"
 
 
@@ -62,6 +64,13 @@ void sim_mob::StreetDirectory::init(const RoadNetwork& network, bool keepStats, 
     {
     	sttpImpl_ = new A_StarShortestTravelTimePathImpl(network,PathSetParam::getInstance()->getHighwayBias());
     }
+
+    //TODO: Check if the public transit configuration can be checked here
+    //TODO: Create an object for A_StarPublicTransitShortestPathImpl
+    //if(ConfigManager::GetInstance().config->publicTransitEnabled)
+    //{
+    	ptImpl_ = new A_StarPublicTransitShortestPathImpl(PT_Network::getInstance().PublicTransitEdges,PT_Network::getInstance().PublicTransitVertices);
+    //}
 
     //Save a cache of Nodes to Links
 	const std::vector<sim_mob::Link*>& links = network.getLinks();

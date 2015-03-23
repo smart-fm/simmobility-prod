@@ -15,6 +15,7 @@
 #include "geospatial/WayPoint.hpp"
 #include "metrics/Length.hpp"
 #include "util/LangHelpers.hpp"
+#include "entities/params/PT_NetworkEntities.hpp"
 
 
 namespace sim_mob
@@ -82,6 +83,20 @@ enum TimeRange{
 	HighwayBias_Default=8,
 	Random
 };
+enum PT_WeightLabels{
+	KshortestPath=0,
+	LabelingApproach1,
+	LabelingApproach2,
+	LabelingApproach3,
+	LabelingApproach4,
+	LabelingApproach5,
+	LabelingApproach6,
+	LabelingApproach7,
+	LabelingApproach8,
+	LabelingApproach9,
+	LabelingApproach10,
+	weightLabelscount
+};
 class StreetDirectory : private boost::noncopyable
 {
 public:
@@ -144,7 +159,7 @@ public:
      * The distance is needed for our A* search, and the WayPoint is used when returning the actual results.
      */
     typedef boost::property<boost::edge_weight_t, double,
-    		boost::property<boost::edge_name_t, WayPoint> > EdgeProperties;
+    		boost::property<boost::edge_name_t, WayPoint > > EdgeProperties;
 
 
     /**
@@ -185,11 +200,14 @@ public:
 	};
 
 	//Public transit graph
-
+	struct PT_EdgeProperties{
+		int edge_id;
+		double kShortestPathWeight;
+	};
     typedef boost::property<boost::vertex_name_t, std::string> PT_VertexProperties;
 
-    typedef boost::property<boost::edge_weight_t, double,
-        		boost::property<boost::edge_name_t, std::string> > PT_EdgeProperties;
+    //typedef boost::property<boost::edge_weight_t, double,
+      //  	boost::property<boost::edge_name_t, std::string> > PT_EdgeProperties;
 
     typedef boost::adjacency_list<boost::vecS,
                                       boost::vecS,
@@ -200,6 +218,8 @@ public:
     typedef PublicTransitGraph::vertex_descriptor PT_Vertex;
 
     typedef PublicTransitGraph::edge_descriptor PT_Edge;
+
+    typedef int PT_EdgeId;
 
     /**
      * Provides an implementation of the main StreetDirectory functionality. We define this as a public class
@@ -260,6 +280,15 @@ public:
         friend class StreetDirectory;
     };
 
+    class PublicTransitShortestPathImpl{
+    protected:
+    	// TODO: Define the functions which you defined in A_StarPublictransitShortestPathImpl
+    	virtual std::vector<StreetDirectory::PT_EdgeId> searchShortestPath(PT_NetworkVertex,PT_NetworkVertex,PT_WeightLabels)=0;
+
+    	virtual std::vector<StreetDirectory::PT_EdgeId> searchShortestPathWithBlacklist(PT_NetworkVertex,PT_NetworkVertex,PT_WeightLabels,const std::set<StreetDirectory::PT_Edge>&,double &)=0;
+    	//virtual int getKShortestPaths(StreetDirectory::PT_Vertex,StreetDirectory::PT_Vertex , std::vector< std::vector<StreetDirectory::PT_EdgeId> > &) const =0;
+    	friend class StreetDirectory;
+    };
 
 
     /**
@@ -422,8 +451,9 @@ public:
 
     ShortestPathImpl* getDistanceImpl() { return spImpl_; }
 	ShortestPathImpl* getTravelTimeImpl() { return sttpImpl_; }
-	/**
-	 * find one BusStopAgent by BusStop
+	PublicTransitShortestPathImpl* getPublicTransitShortestPathImpl(){return ptImpl_;}
+
+	 /* find one BusStopAgent by BusStop
 	 * @param busStop is a pointer to a given bus stop
 	 * return a pointer to bus stop agent if found, otherwise return null
 	 */
@@ -444,7 +474,7 @@ private:
 
 
 private:
-    StreetDirectory() : pimpl_(nullptr), spImpl_(nullptr), sttpImpl_(nullptr)/*, stats_(nullptr)*/
+    StreetDirectory() : pimpl_(nullptr), spImpl_(nullptr), sttpImpl_(nullptr),ptImpl_(nullptr)/*, stats_(nullptr)*/
     {}
 
     static StreetDirectory instance_;
@@ -459,6 +489,10 @@ private:
 
     // shortest travel time path
     ShortestPathImpl* sttpImpl_;
+
+    //Public Transit implementation
+
+    PublicTransitShortestPathImpl* ptImpl_;
 
     ///The current set of StreetDirectoryStats
     //Stats* stats_;

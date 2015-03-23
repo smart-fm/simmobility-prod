@@ -12,13 +12,14 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace sim_mob{
 
-class PT_NetworkEdges{
+class PT_NetworkEdge{
 public:
-	PT_NetworkEdges();
-	virtual ~PT_NetworkEdges();
+	PT_NetworkEdge();
+	virtual ~PT_NetworkEdge();
 
 	double getDayTransitTimeSecs() const {
 		return dayTransitTimeSecs;
@@ -155,10 +156,10 @@ private:
 	double distKMs;               // Estimated distance from travel time table in kilometers
 };
 
-class PT_NetworkVertices{
+class PT_NetworkVertex{
 public:
-	PT_NetworkVertices();
-	virtual ~PT_NetworkVertices();
+	PT_NetworkVertex();
+	virtual ~PT_NetworkVertex();
 
 	const std::string& getEzlinkName() const {
 		return ezlinkName;
@@ -236,5 +237,23 @@ private:
 							// 1 --- Bus stops
 							// 2 --- MRT/LRT Stations
 	std::string stopDesc;   // Description of stops . Usually street where the stop is located
+};
+class PT_Network{
+public:
+	//PT_Network();
+	//~PT_Network();
+
+	std::vector<PT_NetworkEdge> PublicTransitEdges;
+	std::vector<PT_NetworkVertex> PublicTransitVertices;
+
+	void init();
+	PT_NetworkVertex getVertexFromStopId(std::string stopId);
+
+	static PT_Network instance_;
+
+	static PT_Network& getInstance()
+	{
+		return instance_;
+	}
 };
 }//End of namespace sim_mob

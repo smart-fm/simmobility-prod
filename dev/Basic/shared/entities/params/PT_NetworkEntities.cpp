@@ -3,20 +3,68 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "PT_NetworkEntities.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/Constructs.hpp"
+#include "conf/ConfigParams.hpp"
+#include "conf/RawConfigParams.hpp"
+#include "database/DB_Connection.hpp"
+#include "database/pt_network_dao/PT_NetworkSqlDao.hpp"
 
 
 using namespace std;
 using namespace sim_mob;
+PT_Network sim_mob::PT_Network::instance_;
 
-PT_NetworkEdges::PT_NetworkEdges():startStop(""),endStop(""),rType(""),road_index(""),roadEdgeId(""),
+void PT_Network::init(){
+
+	const std::string& dbId = ConfigManager::GetInstance().FullConfig().system.networkDatabase.database;
+	Database database = ConfigManager::GetInstance().FullConfig().constructs.databases.at(dbId);
+	std::string cred_id = ConfigManager::GetInstance().FullConfig().system.networkDatabase.credentials;
+	Credential credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
+	std::string username = credentials.getUsername();
+	std::string password = credentials.getPassword(false);
+	sim_mob::db::DB_Config dbConfig(database.host, database.port, database.dbName, username, password);
+
+
+	const std::string DB_STORED_PROC_PT_EDGES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_edges"];
+	const std::string DB_GETALL_PT_EDGES_QUERY = "SELECT * FROM " + DB_STORED_PROC_PT_EDGES;
+	const std::string DB_STORED_PROC_PT_VERTICES = ConfigManager::GetInstanceRW().FullConfig().getDatabaseProcMappings().procedureMappings["pt_vertices"];
+	const std::string DB_GETALL_PT_VERTICES_QUERY = "SELECT * FROM " + DB_STORED_PROC_PT_VERTICES;
+
+	// Connect to database and load data.
+	sim_mob::db::DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+	conn.connect();
+	if (conn.isConnected()) {
+		PT_VerticesSqlDao pt_verticesDao(conn,DB_GETALL_PT_VERTICES_QUERY);
+		pt_verticesDao.getAll(PublicTransitVertices);
+
+		Pt_EdgesSqlDao pt_edgesDao(conn,DB_GETALL_PT_EDGES_QUERY);
+		pt_edgesDao.getAll(PublicTransitEdges);
+	}
+	cout<<"Public Transport Network Loaded ";
+}
+
+PT_NetworkVertex PT_Network::getVertexFromStopId(std::string stopId)
+{
+	PT_NetworkVertex ptVertex;
+	for(vector<PT_NetworkVertex>::const_iterator ptVertexIt=PublicTransitVertices.begin();ptVertexIt!=PublicTransitVertices.end();ptVertexIt++){
+		if(ptVertexIt->getStopId() == stopId)
+		{
+			ptVertex= *ptVertexIt;
+		}
+	}
+	return ptVertex;
+}
+
+PT_NetworkEdge::PT_NetworkEdge():startStop(""),endStop(""),rType(""),road_index(""),roadEdgeId(""),
 rServiceLines(""),linkTravelTimeSecs(0),edgeId(0),waitTimeSecs(0),walkTimeSecs(0),transitTimeSecs(0),
 transferPenaltySecs(0),dayTransitTimeSecs(0),distKMs(0)
 {}
 
-PT_NetworkEdges::~PT_NetworkEdges() {}
+PT_NetworkEdge::~PT_NetworkEdge() {}
 
-PT_NetworkVertices::PT_NetworkVertices():stopId(""),stopCode(""),stopName(""),stopLatitude(0),
+PT_NetworkVertex::PT_NetworkVertex():stopId(""),stopCode(""),stopName(""),stopLatitude(0),
 		stopLongitude(0),ezlinkName(""),stopType(0),stopDesc("")
 {}
 
-PT_NetworkVertices::~PT_NetworkVertices() {}
+PT_NetworkVertex::~PT_NetworkVertex() {}

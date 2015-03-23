@@ -73,9 +73,9 @@ void sim_mob::A_StarPublicTransitShortestPathImpl::procAddPublicNetworkEdgeweigh
 // Input - from node , to node , graph
 // output - List of egde id of the edges in the graph traversing the shortest path
 //TODO:Make it template so it can be used for any weight parameter given
-vector<int> sim_mob::A_StarPublicTransitShortestPathImpl::searchShortestPath(PT_NetworkVertex fromNode,PT_NetworkVertex toNode,PT_WeightLabels cost)
+vector<sim_mob::StreetDirectory::PT_EdgeId> sim_mob::A_StarPublicTransitShortestPathImpl::searchShortestPath(PT_NetworkVertex fromNode,PT_NetworkVertex toNode,PT_WeightLabels cost)
 {
-	    vector<int> res;
+	    vector<StreetDirectory::PT_EdgeId> res;
 	    StreetDirectory::PT_Vertex from = vertexMap[fromNode.getStopId()];
 	    StreetDirectory::PT_Vertex to = vertexMap[toNode.getStopId()];
 	    StreetDirectory::PublicTransitGraph& graph = publictransitMap_;
@@ -118,12 +118,12 @@ vector<int> sim_mob::A_StarPublicTransitShortestPathImpl::searchShortestPath(PT_
 					std::pair<StreetDirectory::PT_Edge, bool> edge = boost::edge(*prev, *it, graph);
 					if (!edge.second) {
 						Warn() <<"ERROR: Boost can't find an edge that it should know about." <<std::endl;
-						return vector<int>();
+						return vector<StreetDirectory::PT_EdgeId>();
 					}
 
 					//Retrieve, add this edge's WayPoint.
 					//WayPoint wp = boost::get(boost::edge_name, graph, edge.first);
-					int edge_id = get(&StreetDirectory::PT_EdgeProperties::edge_id, graph,edge.first);
+					StreetDirectory::PT_EdgeId edge_id = get(&StreetDirectory::PT_EdgeProperties::edge_id, graph,edge.first);
 					res.push_back(edge_id);
 				}
 				//Save for later.
@@ -132,7 +132,7 @@ vector<int> sim_mob::A_StarPublicTransitShortestPathImpl::searchShortestPath(PT_
 		}
 		return res;
 }
-vector<int> sim_mob::A_StarPublicTransitShortestPathImpl::searchShortestPathWithBlacklist(PT_NetworkVertex fromNode,PT_NetworkVertex toNode,PT_WeightLabels cost,const std::set<StreetDirectory::PT_Edge>& blacklist,double &path_cost)
+vector<sim_mob::StreetDirectory::PT_EdgeId> sim_mob::A_StarPublicTransitShortestPathImpl::searchShortestPathWithBlacklist(PT_NetworkVertex fromNode,PT_NetworkVertex toNode,PT_WeightLabels cost,const std::set<StreetDirectory::PT_Edge>& blacklist,double &path_cost)
 {
 	    StreetDirectory::PublicTransitGraph& graph = publictransitMap_;
 	    StreetDirectory::PT_Vertex from = vertexMap[fromNode.getStopId()];

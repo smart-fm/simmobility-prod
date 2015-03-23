@@ -26,6 +26,6 @@ vector<PT_NetworkEdge> PT_PathSetManager::makePathset(sim_mob::Node* from,sim_mo
 {
 	PT_NetworkVertex fromVertex= getVertexFromNode(from);
 	PT_NetworkVertex toVertex= getVertexFromNode(to);
-	//StreetDirectory::instance().getPublicTransitShortestPathImpl()->searchShortestPath(fromVertex,toVertex);
+	StreetDirectory::instance().getPublicTransitShortestPathImpl()->searchShortestPath(fromVertex,toVertex,KshortestPath);
 	return vector<PT_NetworkEdge>();
 }

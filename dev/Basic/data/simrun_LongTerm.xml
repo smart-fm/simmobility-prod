@@ -144,6 +144,7 @@
     	<tickStep value="1"/>
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
+		<InitialPostcode value = "1000000"/>
     	</developerModel>
         <housingModel enabled="true"> 
             <timeOnMarket value="90"/>

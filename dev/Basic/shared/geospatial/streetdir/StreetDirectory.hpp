@@ -281,7 +281,7 @@ public:
     };
 
     class PublicTransitShortestPathImpl{
-    protected:
+    public:
     	// TODO: Define the functions which you defined in A_StarPublictransitShortestPathImpl
     	virtual std::vector<StreetDirectory::PT_EdgeId> searchShortestPath(PT_NetworkVertex,PT_NetworkVertex,PT_WeightLabels)=0;
 

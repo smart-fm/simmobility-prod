@@ -132,9 +132,9 @@ inline void writeParcelDataToFile(Parcel &parcel) {
  * @param unit to be written.
  *
  */
-inline void writeUnitDataToFile(BigSerial unitId, int numUnits) {
+inline void writeUnitDataToFile(BigSerial unitId, int postcode) {
 
-	boost::format fmtr = boost::format(LOG_UNIT) % unitId % numUnits;
+	boost::format fmtr = boost::format(LOG_UNIT) % unitId % postcode;
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::UNITS,fmtr.str());
 
 }
@@ -353,7 +353,7 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* mo
 }
 
 DeveloperAgent::DeveloperAgent(Parcel* parcel, DeveloperModel* model)
-: LT_Agent((parcel) ? parcel->getId() : INVALID_ID), model(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr){
+: LT_Agent((parcel) ? parcel->getId() : INVALID_ID), model(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID){
 
 }
 
@@ -463,10 +463,10 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 
 		for(size_t i=0; i< (*unitsItr).getNumUnits();i++)
 		{
-			Unit *unit = new Unit( model->getUnitIdForDeveloperAgent(), buildingId, 0, (*unitsItr).getUnitTypeId(), 0, DeveloperAgent::UNIT_PLANNED, (*unitsItr).getFloorArea(), 0, 0, toDate, std::tm(),
+			Unit *unit = new Unit( model->getUnitIdForDeveloperAgent(), buildingId, postcode, (*unitsItr).getUnitTypeId(), 0, DeveloperAgent::UNIT_PLANNED, (*unitsItr).getFloorArea(), 0, 0, toDate, std::tm(),
 					  DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY, std::tm(), 0, 0, 0);
 			newUnits.push_back(unit);
-			writeUnitDataToFile(unit->getId(),(*unitsItr).getNumUnits());
+			writeUnitDataToFile(unit->getId(),postcode);
 			MessageBus::PostMessage(this, LTEID_DEV_UNIT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*unit)), true);
 		}
 
@@ -726,4 +726,9 @@ void DeveloperAgent::HandleMessage(Message::MessageType type, const Message& mes
 void DeveloperAgent::setRealEstateAgent(RealEstateAgent* realEstAgent)
 {
 	this->realEstateAgent = realEstAgent;
+}
+
+void DeveloperAgent::setPostcode(int postCode)
+{
+	this->postcode = postCode;
 }

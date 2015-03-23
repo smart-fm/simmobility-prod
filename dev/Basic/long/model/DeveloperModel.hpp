@@ -178,6 +178,11 @@ namespace sim_mob {
 
             void setHousingMarketModel(HM_Model *housingModel);
 
+            /*
+            * @return newly generated 7digit postcode for new units in each parcel.
+            */
+            int getPostcodeForDeveloperAgent();
+
         protected:
             /**
              * Inherited from Model.
@@ -225,6 +230,8 @@ namespace sim_mob {
             std::vector<BigSerial> realEstateAgentIds;
             BigSerial realEstateAgentIdIndex;
             HM_Model *housingMarketModel;
+            int initialPostcodeForDevAgent;
+            bool initPostcode;
         };
     }
 }

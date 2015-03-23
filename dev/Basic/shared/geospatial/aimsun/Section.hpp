@@ -42,8 +42,10 @@ public:
 	double length;
 	Node* fromNode;
 	Node* toNode;
+	std::string serviceCategory;
 
-	Section() : Base(), fromNode(nullptr), toNode(nullptr), generatedSegment(nullptr) {}
+	Section() : Base(), fromNode(nullptr), toNode(nullptr), generatedSegment(nullptr),
+			roadName(std::string()), serviceCategory(std::string()) {}
 
 	//Placeholders
 	int TMP_FromNodeID;

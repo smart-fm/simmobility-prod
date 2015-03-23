@@ -177,6 +177,11 @@ public:
 		this->defaultTravelTime = defaultTravelTime;
 	}
 
+	bool isHighway() const
+	{
+		return highway;
+	}
+
 	/*void initLaneGroups() const;
 	 void groupLanes(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt, const std::vector<sim_mob::RoadSegment*>& segments, sim_mob::Node* start, sim_mob::Node* end) const;
 	 void matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS) const;*/
@@ -209,6 +214,9 @@ private:
 
 	///mode and time independent default travel time for the segment (computed by laneZeroLength/maxSpeed)
 	double defaultTravelTime;
+
+	///flag to determine whether this segment is a part of highway or not
+	bool highway;
 
 	friend class sim_mob::aimsun::Loader;
 	friend class sim_mob::aimsun::LaneLoader;

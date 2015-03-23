@@ -55,20 +55,16 @@ class LaneLoader;
  */
 class RoadSegment : public sim_mob::Pavement {
 public:
-//	/is this segment part of CBD?
+	/**is this segment part of CBD?*/
 	mutable bool CBD;
 	static std::map<unsigned long, const RoadSegment*> allSegments;
 	//TODO: Some of these are only used by the geo* classes; need to re-think.
 	void setParentLink(sim_mob::Link* parent);
-	void setID(unsigned long id) {
-		this->segmentID = id;
-	}
-	//void setLanes(const std::vector<sim_mob::Lane*>& ln) { this->lanes = ln; }
+	void setID(unsigned long id) { this->segmentID = id; }
 	void setStart(sim_mob::Node* st) { this->start = st; }
 	void setEnd(sim_mob::Node* en) { this->end = en; }
 	std::string getStartEnd() const;
 
-public:
 	explicit RoadSegment(sim_mob::Link* parent=nullptr, unsigned long id=-1);
 
 	const unsigned long getId()const ;
@@ -82,8 +78,9 @@ public:
 	 * @return simmobility lane idx id
 	 */
 	unsigned int getAdjustedLaneId(unsigned int laneId);
+
 	/**
-	 * get aimsun id fro current road segment
+	 * get aimsun id from current road segment
 	 */
 	unsigned int getSegmentAimsunId() const;
 
@@ -91,8 +88,9 @@ public:
 
 	bool operator== (const RoadSegment* rhs) const
 	{
-		   return (rhs->getStart()==this->getStart())&&(rhs->getEnd()==this->getEnd());
+		return (rhs->getStart()==this->getStart())&&(rhs->getEnd()==this->getEnd());
 	}
+
 	///Return the Link this RoadSegment is part of.
 	sim_mob::Link* getLink() const { return parentLink; }
 
@@ -102,13 +100,12 @@ public:
 		return lanes;
 	}
 
-
 	size_t getLanesSize(bool isIncludePedestrianLane=false) const;
+
 	///Return the Lane at a given ID, or null if that Lane ID is out of bounds.
 	const sim_mob::Lane* getLane(int laneID) const;
 
-	sim_mob :: BusStop* getBusStop() {
-			return busstop; }
+	sim_mob::BusStop* getBusStop() { return busstop; }
 
 	///Retrieve whether this is a single or bidirectional Road Segment.
 	bool isSingleDirectional();
@@ -133,8 +130,7 @@ public:
 	static const RoadSegment* unpack(UnPackageUtils& unpackage);
 #endif
 
-public:
-	///Maximum speed of this road segment.
+	///Maximum speed of this road segment (as per the database) in kmph.
 	double maxSpeed;
 
 	///Maximum number of vehicles that can pass through this segment per hour
@@ -144,38 +140,41 @@ public:
 
 	///TODO This should be made private again.
 	mutable std::vector<std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
+
 	void setLanes(std::vector<sim_mob::Lane*>);
 
 	//TODO: Added for xmlLoader
 	void setLanesLeftOfDivider(unsigned int val) { lanesLeftOfDivider = val; }
 
-	sim_mob::Conflux* getParentConflux() const {
-		return parentConflux;
-	}
+	sim_mob::Conflux* getParentConflux() const { return parentConflux; }
+
+	void setParentConflux(sim_mob::Conflux* parentConflux) { this->parentConflux = parentConflux; }
 
 	const double getLengthOfSegment() const;
-
-	void setParentConflux(sim_mob::Conflux* parentConflux) {
-		this->parentConflux = parentConflux;
-	}
 
 	double computeLaneZeroLength() const;
 
 	void setCapacity(); //for now since the capacity is not loaded from the xml
 
-	const double getLaneZeroLength() const{
-		return laneZeroLength;
-	}
+	const double getLaneZeroLength() const { return laneZeroLength; }
 
 	/// returns length of a segment
 	const double getLength() const{
 		//NOTE:there are multiple accessors and member variables used to return the road segment length in different ways
-		//this method was just added for uniform length invokation
+		//this method was just added for uniform length invocation
 		return getLaneZeroLength();
 	}
 
-	double getCapacity() const {
-		return capacity;
+	double getCapacity() const { return capacity; }
+
+	double getDefaultTravelTime() const
+	{
+		return defaultTravelTime;
+	}
+
+	void setDefaultTravelTime(double defaultTravelTime)
+	{
+		this->defaultTravelTime = defaultTravelTime;
 	}
 
 	/*void initLaneGroups() const;
@@ -205,7 +204,11 @@ private:
 
 	unsigned long segmentID;
 
+	///length of lane 0 of the segment in cm. This length is used by mid-term as an approximation of segment's length.
 	double laneZeroLength;
+
+	///mode and time independent default travel time for the segment (computed by laneZeroLength/maxSpeed)
+	double defaultTravelTime;
 
 	friend class sim_mob::aimsun::Loader;
 	friend class sim_mob::aimsun::LaneLoader;

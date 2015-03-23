@@ -35,6 +35,7 @@ public:
 	SinglePath *s;
 	boost::shared_ptr<sim_mob::PathSet> ps;
 	bool hasPath;
+	bool timeBased;
 	///used by local profilers to report to the profiler in higher level.
 	std::string dbgStr;
 };

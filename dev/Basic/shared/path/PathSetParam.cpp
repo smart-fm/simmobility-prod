@@ -1,9 +1,11 @@
 #include "PathSetParam.hpp"
-#include "PathSetManager.hpp"
+
+#include <boost/thread.hpp>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "PathSetManager.hpp"
 #include "util/Profiler.hpp"
-#include <boost/thread.hpp>
+
 
 namespace{
 sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
@@ -89,7 +91,7 @@ void sim_mob::PathSetParam::setRTTT(const std::string& value)
 	logger << "[REALTIME TABLE NAME : " << RTTT << "]\n";
 }
 
-double sim_mob::PathSetParam::getSegRangeTT(const sim_mob::RoadSegment* rs,const std::string travelMode, sim_mob::DailyTime startTime,sim_mob::DailyTime endTime)
+double sim_mob::PathSetParam::getSegRangeTT(const sim_mob::RoadSegment* rs, const std::string travelMode, const sim_mob::DailyTime& startTime, const sim_mob::DailyTime& endTime)
 {
 	//1. check realtime table
 	double res=0.0;
@@ -110,41 +112,26 @@ double sim_mob::PathSetParam::getSegRangeTT(const sim_mob::RoadSegment* rs,const
 	return (count ? totalTravelTime / count : 0.0);
 }
 
-double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs)const
+double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs) const
 {
 	/*Note:
 	 * this method doesn't look at the intended time range.
 	 * Instead, it searches for all occurrences of the given road segment in the
 	 * default travel time container, and returns an average.
 	 */
-	double res = 0.0;
-	double totalTravelTime = 0.0;
-	int count = 0;
-	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >::const_iterator it;
-	it = segDefTT.find(rs->getId());
-
+	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >::const_iterator it = segDefTT.find(rs->getId());
 	if(it == segDefTT.end() || it->second.empty())
 	{
 		std::stringstream out("");
 		out <<  "[NO DTT FOR : " <<  rs->getId() << "]\n";
 		logger << out.str();
 		throw std::runtime_error(out.str());
-//		return 0.0;
 	}
 
-	const std::vector<sim_mob::LinkTravelTime> &e = (*it).second;
-	BOOST_FOREACH(const sim_mob::LinkTravelTime& l, e)
-	{
-		//discard the invalid values, if any
-		if(l.travelTime)
-		{
-			totalTravelTime += l.travelTime;
-			count++;
-		}
-	}
-
-	res = totalTravelTime / count;
-	return res;
+	const std::vector<sim_mob::LinkTravelTime>& e = (*it).second;
+	double totalTravelTime = 0.0;
+	BOOST_FOREACH(const sim_mob::LinkTravelTime& lnkTT, e) { totalTravelTime+= lnkTT.travelTime; }
+	return (totalTravelTime / e.size());
 }
 
 double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs, const sim_mob::DailyTime &startTime)
@@ -155,11 +142,9 @@ double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs, const 
 	 *	if found, it returns the first occurrence of travel time
 	 *	which includes the given time
 	 */
+	std::map<unsigned long, std::vector<sim_mob::LinkTravelTime> >::iterator it = segDefTT.find(rs->getId());
 
-	std::ostringstream dbg("");
-	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >::iterator it = segDefTT.find(rs->getId());
-
-	if(it ==segDefTT.end())
+	if(it == segDefTT.end())
 	{
 		logger <<  "[NOTT] " << rs->getId() << "\n";
 		return 0.0;
@@ -205,27 +190,12 @@ double sim_mob::PathSetParam::getHistorySegTT(const sim_mob::RoadSegment* rs, co
 
 double sim_mob::PathSetParam::getSegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime)
 {
-	std::ostringstream out("");
-	//1. check realtime table
-	double res = 0.0;
-	if((res = getHistorySegTT(rs, travelMode, startTime)) > 0.0)
+	//check realtime table
+	double res = getHistorySegTT(rs, travelMode, startTime);
+	if(res <= 0.0)
 	{
-//		logger <<  "[RTTT] " << rs->getId() << "\n";
-		return res;
-	}
-//	else
-//	{
-//		out << "couldn't find timeInterval " << timeInterval  << " [" << startTime.getRepr_() << " ### " <<  startTime.getValue() << "] minus ["
-//				<< sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime().getRepr_() << " ### " << sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime().getValue() << "] = " <<
-//				(startTime - sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime()).getRepr_() << " ### " <<
-//				(startTime - sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime()).getValue() << "]"
-//				 << " / [intervalMS:"<< intervalMS << "] =>" << timeInterval << "\n";
-//		//logger << "[NO REALTT] " << id << "\n";
-//	}
-	//2. if not , check default
-	if((res = getDefSegTT(rs, startTime)) > 0.0)
-	{
-		return res;
+		//check default if travel time is not found
+		res = getDefSegTT(rs, startTime);
 	}
 	return res;
 }

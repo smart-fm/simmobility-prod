@@ -42,10 +42,10 @@ namespace {
     const string MODEL_NAME = "Developer Model";
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0){ //In days (7 - weekly, 30 - Monthly)
+DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr){ //In days (7 - weekly, 30 - Monthly)
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0){
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr){
 }
 
 DeveloperModel::~DeveloperModel() {
@@ -99,8 +99,10 @@ void DeveloperModel::startImpl() {
 
 		UnitDao unitDao(conn);
 		unitId = unitDao.getMaxUnitId();
+		//realEstateAgentIds = housingMarketModel->
 
 	}
+	setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
 
 	//get the highest building id, which is the one before the last building id as the last building id contain some random data.
 	buildingId = buildings.at(buildings.size()-2)->getFmBuildingId();
@@ -130,7 +132,6 @@ void DeveloperModel::stopImpl() {
 	emptyParcelsById.clear();
 	parcelsById.clear();
 
-	clear_delete_vector(newUnits);
 	clear_delete_vector(templates);
 	clear_delete_vector(developmentTypeTemplates);
 	clear_delete_vector(templateUnitTypes);
@@ -208,6 +209,8 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList)
 			{
 				DeveloperAgent* devAgent = new DeveloperAgent(devCandidateParcelList[i], this);
 				AgentsLookupSingleton::getInstance().addDeveloperAgent(devAgent);
+				RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
+				devAgent->setRealEstateAgent(realEstateAgent);
 				agents.push_back(devAgent);
 				developers.push_back(devAgent);
 				workGroup.assignAWorker(devAgent);
@@ -484,13 +487,6 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 	}
 }
 
-Unit* DeveloperModel::makeNewUnit( std::vector<PotentialUnit>::iterator unitsItr, std::tm toDate, BigSerial newBuildingId)
-{
-	newUnits.push_back( new Unit( getUnitIdForDeveloperAgent(), newBuildingId, 0, (*unitsItr).getUnitTypeId(),0, DeveloperAgent::UNIT_PLANNED, (*unitsItr).getFloorArea(), 0, 0, toDate,std::tm(),
-			DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY ) );
-	return newUnits[newUnits.size() - 1];
-}
-
 BigSerial DeveloperModel::getUnitIdForDeveloperAgent()
 {
 	boost::lock_guard<boost::recursive_mutex> lock(m_guard);
@@ -532,4 +528,31 @@ void DeveloperModel::addProjects(boost::shared_ptr<Project> project)
 void DeveloperModel::addBuildings(boost::shared_ptr<Building> building)
 {
 	newBuildings.push_back(building);
+}
+
+const RealEstateAgent* DeveloperModel::getRealEstateAgentForDeveloper()
+{
+
+	const RealEstateAgent* realEstateAgent = AgentsLookupSingleton::getInstance().getRealEstateAgentById(realEstateAgentIds[realEstateAgentIdIndex]);
+	if(realEstateAgentIdIndex >= (realEstateAgentIds.size() - 1))
+	{
+		realEstateAgentIdIndex = 0;
+	}
+	else
+	{
+		realEstateAgentIdIndex++;
+	}
+	return realEstateAgent;
+
+}
+
+void DeveloperModel::setRealEstateAgentIds(std::vector<BigSerial> realEstateAgentIdVec)
+{
+	this->realEstateAgentIds = realEstateAgentIdVec;
+}
+
+void DeveloperModel::setHousingMarketModel(HM_Model *housingModel)
+{
+
+	this->housingMarketModel = housingModel;
 }

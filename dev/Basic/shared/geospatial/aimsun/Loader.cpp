@@ -2621,11 +2621,23 @@ bool sim_mob::aimsun::Loader::storeSinglePath(soci::session& sql,
 		{
 			if(sp->isNeedSave2DB)
 			{
-				pathsetCSV << ("\"" + sp->id + "\"") << "," << ("\"" + sp->pathSetId + "\"") <<
-						"," << sp->partialUtility << "," << sp->pathSize << "," << sp->signalNumber
-						 << "," << sp->rightTurnNumber << "," <<  ("\"" + sp->scenario  + "\"") << "," << sp->length << "," << sp->highWayDistance
-						 << "," << sp->isMinDistance << "," << sp->isMinSignal << "," << sp->isMinRightTurn << "," << sp->isMaxHighWayUsage
-						 << "," << sp->valid_path << "," << sp->isShortestPath << "\n";
+				pathsetCSV << ("\"" + sp->id + "\"") << ","
+						<< ("\"" + sp->pathSetId + "\"") << ","
+						<< sp->partialUtility << ","
+						<< sp->pathSize << ","
+						<< sp->signalNumber << ","
+						<< sp->rightTurnNumber << ","
+						<< ("\"" + sp->scenario  + "\"") << ","
+						<< sp->length << ","
+						<< sp->highWayDistance << ","
+						<< sp->isMinDistance << ","
+						<< sp->isMinSignal << ","
+						<< sp->isMinRightTurn << ","
+						<< sp->isMaxHighWayUsage << ","
+						<< sp->valid_path << ","
+						<< sp->isShortestPath << ","
+						<< sp->travelTime << ","
+						<< sp->isMinTravelTime << "\n";
 			}
 		}
 	}
@@ -2712,10 +2724,11 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	//TODO: Possibly re-enable later.
 	//if (prof) { prof->logGenericEnd("PostProc", "main-prof"); }
 
-	//added by Melani - to compute lane zero lengths of road segments
 	for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
 		it->second.generatedSegment->laneZeroLength = it->second.generatedSegment->computeLaneZeroLength();
+		it->second.generatedSegment->defaultTravelTime = it->second.generatedSegment->laneZeroLength/sim_mob::kmPerHourToCentimeterPerSecond(it->second.generatedSegment->maxSpeed);
 	}
+
 	//add by xuyan, load in boundary segments
 	//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)
 #ifndef SIMMOB_DISABLE_MPI

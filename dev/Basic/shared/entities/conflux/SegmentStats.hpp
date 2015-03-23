@@ -672,7 +672,7 @@ public:
 	double getDensity(bool vehicleLanes);
 
 	/**
-	 * computes the density of the total segment-stats
+	 * computes the density of the total segment-stats in vehicles/lane-km
 	 * the density value computed here is meant to be used for outputs
 	 * @param vehicleLanes boolean flag indicating whether we want the density from vehicle lanes
 	 */

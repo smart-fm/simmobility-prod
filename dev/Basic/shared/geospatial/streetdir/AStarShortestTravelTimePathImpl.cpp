@@ -695,19 +695,19 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 	    case sim_mob::HighwayBias_Distance:
 	    {
 	    	edgeWeight = rs->getLength();
-	    	if(rs->isHighway()) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
+	    	if(!rs->isHighway()) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
 	    	break;
 	    }
 	    case sim_mob::HighwayBias_MorningPeak:
 	    {
 	    	edgeWeight = sim_mob::PathSetParam::getInstance()->getSegRangeTT(rs, "Car", morningPeakStartTime, morningPeakEndTime);
-	    	if(rs->isHighway()) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
+	    	if(!rs->isHighway()) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
 	    	break;
 	    }
 	    case sim_mob::HighwayBias_EveningPeak:
 		{
 			edgeWeight = PathSetParam::getInstance()->getSegRangeTT(rs, "Car", eveningPeakStartTime, eveningPeakEndTime);
-			if(rs->isHighway()) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
+			if(!rs->isHighway()) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
 			break;
 		}
 	    case sim_mob::HighwayBias_OffPeak:
@@ -716,13 +716,13 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			double key2 = PathSetParam::getInstance()->getSegRangeTT(rs, "Car", morningPeakEndTime, eveningPeakStartTime); //Off-peak 2
 			double key3 = PathSetParam::getInstance()->getSegRangeTT(rs, "Car", eveningPeakEndTime, offPeak3EndTime); //Off-peak 3
 			edgeWeight = (key1+key2+key3)/3.0;
-			if(rs->isHighway()) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
+			if(!rs->isHighway()) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
 			break;
 		}
 	    case sim_mob::HighwayBias_Default:
 		{
 			edgeWeight = PathSetParam::getInstance()->getDefSegTT(rs);
-			if(rs->isHighway()) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
+			if(!rs->isHighway()) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
 			break;
 		}
 	    case sim_mob::Random:

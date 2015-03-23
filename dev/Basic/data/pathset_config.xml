@@ -26,7 +26,7 @@
 		<minSignalParam value="0.256"/>
 		<maxHighwayParam value="0.422"/>
 	</utility_parameters>
-	<path_generators max_segment_speed="2778"> <!--in cm/s--> <!-- 2778cm/s = 100km/hr -->												
+	<path_generators max_segment_speed="2639"> <!--in cm/s--> <!-- 2639cm/s = 95km/hr -->												
 		<k_shortest level="5" />														
 		<link_elimination types="default,highway" />	<!-- unused for now. only default and highway are used in the code-->									
 		<random_perturbation modes="time" iteration="50" uniform_range="1,100" /> <!-- for 'modes' attribute, only "time" is supported for now -->		

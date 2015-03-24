@@ -564,7 +564,7 @@ double MITSIM_IntDriving_Model::brakeToStop(double distance, DriverUpdateParams&
 		double sqCurrVel = params.currSpeed * params.currSpeed;
 		double acc = -sqCurrVel / distance * 0.5;
 
-		if (acc >= params.normalDeceleration)
+		if (acc <= params.normalDeceleration)
 		{
 			return acc;
 		}
@@ -572,8 +572,8 @@ double MITSIM_IntDriving_Model::brakeToStop(double distance, DriverUpdateParams&
 		double dt = params.nextStepSize;
 		double vt = params.currSpeed * dt;
 		double a = dt * dt;
-		double b = 2.0 * vt + params.normalDeceleration * a;
-		double c = sqCurrVel - 2.0 * params.normalDeceleration * distance - vt;
+		double b = 2.0 * vt - params.normalDeceleration * a;
+		double c = sqCurrVel + 2.0 * params.normalDeceleration * (distance - vt);
 		double d = b * b - 4.0 * a * c;
 
 		if (d < 0 || a <= 0.0)

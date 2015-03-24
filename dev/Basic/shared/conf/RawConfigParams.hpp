@@ -53,6 +53,7 @@ struct LongTermParams{
 		DeveloperModel();
 		bool enabled;
 		unsigned int timeInterval;
+		int initialPostcode;
 	} developerModel;
 
 	struct HousingModel{

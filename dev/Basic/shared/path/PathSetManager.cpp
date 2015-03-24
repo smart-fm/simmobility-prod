@@ -746,7 +746,8 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir.getTravelTimeImpl();
 	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexDefault(*ps->subTrip.fromLocation.node_);
 	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexDefault(*ps->subTrip.toLocation.node_);
-	SinglePath *pathTT = generateShortestTravelTimePath(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_,sim_mob::Default);
+	SinglePath* pathTT = generateShortestTravelTimePath(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_,sim_mob::Default);
+
 	int cnt = 0;
 	if(pathTT && !pathTT->path.empty())
 	{
@@ -789,10 +790,10 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 				STTLE_Storage.push_back(work);
 			} //ROAD_SEGMENT
 		}//for
+		pathTT->scenario = "STTLE-SP";
 		PathSetWorkerThread* work = new PathSetWorkerThread();
 		work->s = pathTT;
 		work->ps = ps;
-		work->dbgStr = "STTLE-SP";
 		STTLE_Storage.push_back(work); //store STT path as well
 	}//if sinPathTravelTimeDefault
 	if(!cnt)
@@ -853,10 +854,10 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 				STTHBLE_Storage.push_back(work);
 			} //ROAD_SEGMENT
 		}//for
+		sinPathHighwayBias->scenario = "STTHLE-SP";
 		PathSetWorkerThread* work = new PathSetWorkerThread();
 		work->s = sinPathHighwayBias;
 		work->ps = ps;
-		work->dbgStr = "STTHLE-SP";
 		STTHBLE_Storage.push_back(work); //store STTHB path as well
 	} //if sinPathTravelTimeDefault
 

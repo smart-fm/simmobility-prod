@@ -31,6 +31,8 @@
 #include "database/dao/TotalBuildingSpaceDao.hpp"
 #include "database/dao/ParcelAmenitiesDao.hpp"
 #include "database/dao/MacroEconomicsDao.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -42,10 +44,10 @@ namespace {
     const string MODEL_NAME = "Developer Model";
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr){ //In days (7 - weekly, 30 - Monthly)
+DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),initialPostcodeForDevAgent(0),initPostcode(false){ //In days (7 - weekly, 30 - Monthly)
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr){
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),initialPostcodeForDevAgent(0),initPostcode(false){
 }
 
 DeveloperModel::~DeveloperModel() {
@@ -99,10 +101,11 @@ void DeveloperModel::startImpl() {
 
 		UnitDao unitDao(conn);
 		unitId = unitDao.getMaxUnitId();
-		//realEstateAgentIds = housingMarketModel->
 
 	}
 	setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	initialPostcodeForDevAgent = config.ltParams.developerModel.initialPostcode;
 
 	//get the highest building id, which is the one before the last building id as the last building id contain some random data.
 	buildingId = buildings.at(buildings.size()-2)->getFmBuildingId();
@@ -211,6 +214,7 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList)
 				AgentsLookupSingleton::getInstance().addDeveloperAgent(devAgent);
 				RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
 				devAgent->setRealEstateAgent(realEstateAgent);
+				devAgent->setPostcode(getPostcodeForDeveloperAgent());
 				agents.push_back(devAgent);
 				developers.push_back(devAgent);
 				workGroup.assignAWorker(devAgent);
@@ -556,3 +560,19 @@ void DeveloperModel::setHousingMarketModel(HM_Model *housingModel)
 
 	this->housingMarketModel = housingModel;
 }
+
+
+int DeveloperModel::getPostcodeForDeveloperAgent()
+{
+	if(initPostcode)
+	{
+		initPostcode = false;
+		return initialPostcodeForDevAgent;
+	}
+	else
+	{
+		return ++initialPostcodeForDevAgent;
+	}
+
+}
+

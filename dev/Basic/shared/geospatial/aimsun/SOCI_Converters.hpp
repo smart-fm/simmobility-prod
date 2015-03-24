@@ -229,7 +229,7 @@ template<> struct type_conversion<sim_mob::aimsun::Section>
     	res.length = vals.get<double>("length", 0);
     	res.TMP_FromNodeID = vals.get<int>("fnode", 0);
     	res.TMP_ToNodeID = vals.get<int>("tnode", 0);
-    	res.serviceCategory = vals.get<std::string>("linkCategory", "");
+    	res.serviceCategory = vals.get<std::string>("category", "");
     }
     static void to_base(const sim_mob::aimsun::Section& src, soci::values& vals, soci::indicator& ind)
     {
@@ -241,7 +241,7 @@ template<> struct type_conversion<sim_mob::aimsun::Section>
         vals.set("length", src.length);
         vals.set("fnode", src.fromNode->id);
         vals.set("tnode", src.toNode->id);
-        vals.set("linkCategory", src.serviceCategory);
+        vals.set("category", src.serviceCategory);
         ind = i_ok;
     }
 };

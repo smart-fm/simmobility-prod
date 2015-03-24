@@ -24,8 +24,8 @@ namespace TT
 		///	total travel time
 		double totalTravelTime;
 
-		///	number of travel times
-		int travelTimeCnt;
+		///	total count of contributions to travel time
+		unsigned int travelTimeCnt;
 
 		TimeAndCount():totalTravelTime(0.0),travelTimeCnt(0){}
 	};

@@ -749,7 +749,7 @@ bool sim_mob::DriverMovement::update_post_movement(timeslice now) {
 		
 		//Visibility of the intersection (metre). This should be retrieved from the corresponding conflict 
 		//section once it has been added there
-		if (distToIntersection < intModel->getIntersectionVisbility() && !trafficSignal)
+		if (distToIntersection < intModel->getIntersectionVisbility())
 		{
 			params.isApproachingIntersection = true;
 			
@@ -835,8 +835,12 @@ double sim_mob::DriverMovement::approachIntersection()
 			//Store the current speed
 			params.currSpeed = parentDriver->getVehicle()->getVelocity() / 100;
 			
-			//Calculate the acceleration based on the vehicles in the intersection
-			accInt = intModel->makeAcceleratingDecision(params, turningSection);
+			//Scan for conflicts in intersection only in un-signalised intersections
+			if (!trafficSignal)
+			{
+				//Calculate the acceleration based on the vehicles in the intersection
+				accInt = intModel->makeAcceleratingDecision(params, turningSection);
+			}
 			
 			return accInt;
 		}
@@ -873,8 +877,12 @@ void sim_mob::DriverMovement::intersectionDriving(DriverUpdateParams& p)
 		//Clear the flag 
 		parentDriver->setYieldingToInIntersection(-1);
 		
-		//Call the intersection driving model
-		intAcc = intModel->makeAcceleratingDecision(p, fwdDriverMovement.currTurning);
+		//Scan for conflicts only in un-signalised intersections
+		if (!trafficSignal)
+		{
+			//Call the intersection driving model
+			intAcc = intModel->makeAcceleratingDecision(p, fwdDriverMovement.currTurning);
+		}
 		
 		//Call the car following model
 		cfAcc = cfModel->makeAcceleratingDecision(p);

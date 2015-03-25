@@ -751,6 +751,13 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 	int cnt = 0;
 	if(pathTT && !pathTT->path.empty())
 	{
+		pathTT->scenario = "STTLE-SP";
+		PathSetWorkerThread* work = new PathSetWorkerThread();
+		work->s = pathTT;
+		work->hasPath = true;
+		work->ps = ps;
+		STTLE_Storage.push_back(work); //store STT path as well
+
 		for(std::vector<sim_mob::WayPoint>::iterator it(pathTT->path.begin()); it != pathTT->path.end() ;++it)
 		{
 			const sim_mob::RoadSegment* currSeg = it->roadSegment_;
@@ -769,7 +776,7 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 				work->excludeSeg = blackList;
 				work->ps = ps;
 				std::stringstream out("");
-				out << "STTLE-" << cnt++ ;
+				out << "STTLE-" << ++cnt ;
 				work->dbgStr = out.str();
 				work->timeBased = true;
 
@@ -790,11 +797,6 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 				STTLE_Storage.push_back(work);
 			} //ROAD_SEGMENT
 		}//for
-		pathTT->scenario = "STTLE-SP";
-		PathSetWorkerThread* work = new PathSetWorkerThread();
-		work->s = pathTT;
-		work->ps = ps;
-		STTLE_Storage.push_back(work); //store STT path as well
 	}//if sinPathTravelTimeDefault
 	if(!cnt)
 	{
@@ -815,6 +817,13 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 	int cnt = 0;
 	if(sinPathHighwayBias && !sinPathHighwayBias->path.empty())
 	{
+		sinPathHighwayBias->scenario = "STTHLE-SP";
+		PathSetWorkerThread* work = new PathSetWorkerThread();
+		work->s = sinPathHighwayBias;
+		work->hasPath = true;
+		work->ps = ps;
+		STTHBLE_Storage.push_back(work); //store STTHB path as well
+
 		for(std::vector<sim_mob::WayPoint>::iterator it(sinPathHighwayBias->path.begin()); it != sinPathHighwayBias->path.end() ;++it)
 		{
 			const sim_mob::RoadSegment* currSeg = it->roadSegment_;
@@ -854,11 +863,6 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 				STTHBLE_Storage.push_back(work);
 			} //ROAD_SEGMENT
 		}//for
-		sinPathHighwayBias->scenario = "STTHLE-SP";
-		PathSetWorkerThread* work = new PathSetWorkerThread();
-		work->s = sinPathHighwayBias;
-		work->ps = ps;
-		STTHBLE_Storage.push_back(work); //store STTHB path as well
 	} //if sinPathTravelTimeDefault
 
 	logger  << "waiting for TRAVEL TIME HIGHWAY BIAS" << "\n";
@@ -982,6 +986,7 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 
 	//step-3: SHORTEST TRAVEL TIME LINK ELIMINATION
 	std::vector<PathSetWorkerThread*> STTLE_Storage;
+
 	genSTTLE(ps,STTLE_Storage);
 
 	// TRAVEL TIME HIGHWAY BIAS

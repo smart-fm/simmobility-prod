@@ -184,6 +184,22 @@ public:
 		VertexDesc(bool valid=false) : valid(valid), source(Vertex()), sink(Vertex()) {}
 	};
 
+	//Public transit graph
+
+    typedef boost::property<boost::vertex_name_t, std::string> PT_VertexProperties;
+
+    typedef boost::property<boost::edge_weight_t, double,
+        		boost::property<boost::edge_name_t, std::string> > PT_EdgeProperties;
+
+    typedef boost::adjacency_list<boost::vecS,
+                                      boost::vecS,
+                                      boost::directedS,
+                                      PT_VertexProperties,
+                                      PT_EdgeProperties> PublicTransitGraph;
+
+    typedef PublicTransitGraph::vertex_descriptor PT_Vertex;
+
+    typedef PublicTransitGraph::edge_descriptor PT_Edge;
 
     /**
      * Provides an implementation of the main StreetDirectory functionality. We define this as a public class

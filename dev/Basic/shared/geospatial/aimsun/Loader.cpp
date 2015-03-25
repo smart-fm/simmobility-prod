@@ -94,6 +94,7 @@ sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("pathset.log");
 namespace {
 const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
 const double BUS_LENGTH = 3 * sim_mob::PASSENGER_CAR_UNIT;
+const std::string HIGHWAY_SERVICE_CATEGORY_STRING = "A"; //Category A segments are highway segments
 
 class DatabaseLoader : private boost::noncopyable {
 public:
@@ -987,7 +988,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 		string str = pt_bus_stopsTemp.busstop_no;
 		boost::trim_right(str);
 		unsigned int no = boost::lexical_cast<unsigned int>(str);
-		sim_mob::BusStop* bs = sim_mob::BusStop::findBusStop(no);
+		sim_mob::BusStop* bs = sim_mob::BusStop::findBusStop(str);
 		if(bs) {
 			routeID_busStops[iter->route_id].push_back(bs);
 		}
@@ -2029,8 +2030,7 @@ void DatabaseLoader::createBusStopAgents()
 
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		unsigned int no = boost::lexical_cast<unsigned int>(busstop->busstopno_);
-		sim_mob::BusStop::RegisterNewBusStop(no, busstop);
+		sim_mob::BusStop::RegisterNewBusStop(busstop->busstopno_, busstop);
 	}
 
 	for(map<std::string,BusStopSG>::iterator it = bustopSG_.begin(); it != bustopSG_.end(); it++) {
@@ -2060,8 +2060,7 @@ void DatabaseLoader::createBusStopAgents()
 
 		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
 		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		unsigned int no = boost::lexical_cast<unsigned int>(busstop->busstopno_);
-		sim_mob::BusStop::RegisterNewBusStop(no, busstop);
+		sim_mob::BusStop::RegisterNewBusStop(busstop->busstopno_, busstop);
 	}
 }
 
@@ -2359,6 +2358,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			rs->lanes.push_back(new sim_mob::Lane(rs, laneID));
 		}
 		rs->width = 0;
+		rs->highway = (currSec->serviceCategory == HIGHWAY_SERVICE_CATEGORY_STRING);
 
 		//TODO: How do we determine if lanesLeftOfDivider should be 0 or lanes.size()
 		//      In other words, how do we apply driving direction?
@@ -2623,11 +2623,23 @@ bool sim_mob::aimsun::Loader::storeSinglePath(soci::session& sql,
 		{
 			if(sp->isNeedSave2DB)
 			{
-				pathsetCSV << ("\"" + sp->id + "\"") << "," << ("\"" + sp->pathSetId + "\"") <<
-						"," << sp->partialUtility << "," << sp->pathSize << "," << sp->signalNumber
-						 << "," << sp->rightTurnNumber << "," <<  ("\"" + sp->scenario  + "\"") << "," << sp->length << "," << sp->highWayDistance
-						 << "," << sp->isMinDistance << "," << sp->isMinSignal << "," << sp->isMinRightTurn << "," << sp->isMaxHighWayUsage
-						 << "," << sp->valid_path << "," << sp->isShortestPath << "\n";
+				pathsetCSV << ("\"" + sp->id + "\"") << ","
+						<< ("\"" + sp->pathSetId + "\"") << ","
+						<< sp->partialUtility << ","
+						<< sp->pathSize << ","
+						<< sp->signalNumber << ","
+						<< sp->rightTurnNumber << ","
+						<< ("\"" + sp->scenario  + "\"") << ","
+						<< sp->length << ","
+						<< sp->highWayDistance << ","
+						<< sp->isMinDistance << ","
+						<< sp->isMinSignal << ","
+						<< sp->isMinRightTurn << ","
+						<< sp->isMaxHighWayUsage << ","
+						<< sp->valid_path << ","
+						<< sp->isShortestPath << ","
+						<< sp->travelTime << ","
+						<< sp->isMinTravelTime << "\n";
 			}
 		}
 	}
@@ -2714,10 +2726,11 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	//TODO: Possibly re-enable later.
 	//if (prof) { prof->logGenericEnd("PostProc", "main-prof"); }
 
-	//added by Melani - to compute lane zero lengths of road segments
 	for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
 		it->second.generatedSegment->laneZeroLength = it->second.generatedSegment->computeLaneZeroLength();
+		it->second.generatedSegment->defaultTravelTime = it->second.generatedSegment->laneZeroLength/sim_mob::kmPerHourToCentimeterPerSecond(it->second.generatedSegment->maxSpeed);
 	}
+
 	//add by xuyan, load in boundary segments
 	//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)
 #ifndef SIMMOB_DISABLE_MPI

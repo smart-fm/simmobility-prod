@@ -618,7 +618,7 @@ void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			if (it == matchedTrips.begin()) {
 				source = curSubTrip->fromLocation;
 				unsigned int endNo = boost::lexical_cast<unsigned int>(sEnd);
-				sim_mob::BusStop* endBStop = sim_mob::BusStop::findBusStop(endNo);
+				sim_mob::BusStop* endBStop = sim_mob::BusStop::findBusStop(sEnd);
 				if (endBStop) {
 					dest = WayPoint(endBStop);
 				} else {
@@ -627,7 +627,7 @@ void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			} else if (it == matchedTrips.end() - 1) {
 				dest = curSubTrip->toLocation;
 				unsigned int startNo = boost::lexical_cast<unsigned int>(sSrc);
-				sim_mob::BusStop* startBStop = sim_mob::BusStop::findBusStop(startNo);
+				sim_mob::BusStop* startBStop = sim_mob::BusStop::findBusStop(sSrc);
 				if (startBStop) {
 					source = WayPoint(startBStop);
 				} else {
@@ -635,9 +635,9 @@ void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 				}
 			} else {
 				unsigned int startNo = boost::lexical_cast<unsigned int>(sSrc);
-				sim_mob::BusStop* startBStop = sim_mob::BusStop::findBusStop(startNo);
+				sim_mob::BusStop* startBStop = sim_mob::BusStop::findBusStop(sSrc);
 				unsigned int endNo = boost::lexical_cast<unsigned int>(sEnd);
-				sim_mob::BusStop* endBStop = sim_mob::BusStop::findBusStop(endNo);
+				sim_mob::BusStop* endBStop = sim_mob::BusStop::findBusStop(sEnd);
 				if (startBStop && endBStop) {
 					source = WayPoint(startBStop);
 					dest = WayPoint(endBStop);

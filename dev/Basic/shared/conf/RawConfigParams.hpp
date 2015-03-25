@@ -53,6 +53,7 @@ struct LongTermParams{
 		DeveloperModel();
 		bool enabled;
 		unsigned int timeInterval;
+		int initialPostcode;
 	} developerModel;
 
 	struct HousingModel{
@@ -66,6 +67,12 @@ struct LongTermParams{
 		float housingMarketSearchPercentage;
 		float housingMoveInDaysInterval;
 	} housingModel;
+
+	struct VehicleOwnershipModel{
+		VehicleOwnershipModel();
+		bool enabled;
+		unsigned int vehicleBuyingWaitingTimeInDays;
+	}vehicleOwnershipModel;
 };
 
 
@@ -382,6 +389,10 @@ public:
 
 	///	is CBD area restriction enforced
 	bool cbd;
+	bool generateBusRoutes;
+
+	// Public transit enabled if this flag set to true
+	bool publicTransitEnabled;
 
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;

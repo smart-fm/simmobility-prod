@@ -1,10 +1,11 @@
 #pragma once
-#include "geospatial/WayPoint.hpp"
-#include "entities/misc/TripChain.hpp"
+
 #include <sstream>
 #include <stdint.h>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
+#include "geospatial/WayPoint.hpp"
+#include "entities/misc/TripChain.hpp"
 
 namespace sim_mob
 {
@@ -29,6 +30,7 @@ size_t getLaneIndex2(const sim_mob::Lane* l);
 void calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::SinglePath *sp);
 double calculateHighWayDistance(sim_mob::SinglePath *sp);
 double generateSinglePathLength(const std::vector<sim_mob::WayPoint>& wp);
+double calculateSinglePathDefaultTT(const std::vector<sim_mob::WayPoint>& wp);
 std::string makeWaypointsetString(const std::vector<WayPoint>& wp);
 
 class SinglePath
@@ -47,7 +49,7 @@ public:
 	std::string pathSetId;
 
 	double travelCost;
-	double travleTime;
+	double travelTime;
 
 	/// time independent part of utility(used for optimization purposes)
 	double partialUtility;

@@ -53,7 +53,7 @@ public:
 	 * @param endTime end of the time range
 	 * @return travel time in seconds
 	 */
-	double getSegRangeTT(const sim_mob::RoadSegment* rs, const std::string travelMode, sim_mob::DailyTime startTime,sim_mob::DailyTime endTime);
+	double getSegRangeTT(const sim_mob::RoadSegment* rs, const std::string travelMode, const sim_mob::DailyTime& startTime, const sim_mob::DailyTime& endTime);
 
 	/**
 	 * gets the average 'default' travel time of a segment.
@@ -138,7 +138,7 @@ public:
 	std::map<int,sim_mob::ERP_Section*> ERP_SectionPool;
 
 	///	information of "Segment" default travel time <segment aim-sun id ,Link_default_travel_time with diff time stamp>
-	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> > segDefTT;
+	std::map<unsigned long, std::vector<sim_mob::LinkTravelTime> > segDefTT;
 
 	///	a structure to keep history of average travel time records from previous simulations
 	///	[time interval][travel mode][road segment][average travel time]

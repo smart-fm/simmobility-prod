@@ -54,6 +54,9 @@ struct LongTermParams{
 		bool enabled;
 		unsigned int timeInterval;
 		int initialPostcode;
+		int initialUnitId;
+		int initialBuildingId;
+		int initialProjectId;
 	} developerModel;
 
 	struct HousingModel{

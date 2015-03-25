@@ -1,6 +1,6 @@
 --[[
 Model - Mode choice for work tour to usual location
-Type - NL
+Type - MNL
 Authors - Siyu Li, Harish Loganathan
 ]]
 
@@ -12,15 +12,15 @@ Authors - Siyu Li, Harish Loganathan
 
 --!! see the documentation on the definition of AM,PM and OP table!!
 
-local beta_cons_bus = -2.08
-local beta_cons_mrt = -2.19
-local beta_cons_privatebus = -2.71
+local beta_cons_bus = -1.795
+local beta_cons_mrt = -1.731
+local beta_cons_privatebus = -2.921
 local beta_cons_drive1 = 0
-local beta_cons_share2 = -4.73
-local beta_cons_share3 = -5.85
-local beta_cons_motor = -8.51
-local beta_cons_walk = -2.23
-local beta_cons_taxi = -5.57
+local beta_cons_share2 = -4.51
+local beta_cons_share3 = -5.44
+local beta_cons_motor = -8.777
+local beta_cons_walk = -1.858
+local beta_cons_taxi = -4.732
 
 local beta1_1_tt = -0.344
 local beta1_2_tt = -0.472
@@ -105,9 +105,22 @@ local beta_attraction_2 = 0
 --choice set
 -- 1 for public bus; 2 for MRT/LRT; 3 for private bus; 4 for drive1;
 -- 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
-local choice = {}
-choice["PT"] = {1,2,3}
-choice["non-PT"] = {4,5,6,7,8,9}
+	--choiceset
+local choice = {
+		1,
+		2,
+		3,
+		4,
+		5,
+		6,
+		7,
+		8,
+		9
+}
+
+
+--choice["PT"] = {1,2,3}
+--choice["non-PT"] = {4,5,6,7,8,9}
 
 
 --utility
@@ -293,9 +306,9 @@ local function computeAvailabilities(params,dbparams)
 end
 
 --scale
-local scale = {}
-scale["PT"] = 3.42
-scale["non-PT"] = 1
+local scale = 1
+--scale["PT"] = 1
+--scale["non-PT"] = 1
 
 -- function to call from C++ preday simulator
 -- params and dbparams tables contain data passed from C++
@@ -303,6 +316,15 @@ scale["non-PT"] = 1
 function choose_tmw(params,dbparams)
 	computeUtilities(params,dbparams) 
 	computeAvailabilities(params,dbparams)
-	local probability = calculate_probability("nl", choice, utility, availability, scale)
+	local probability = calculate_probability("mnl", choice, utility, availability, scale)
 	return make_final_choice(probability)
+end
+
+-- function to call from C++ preday simulator for logsums computation
+-- params and dbparams tables contain data passed from C++
+-- to check variable bindings in params or dbparams, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
+function compute_logsum_tmw(params,dbparams)
+	computeUtilities(params,dbparams) 
+	computeAvailabilities(params,dbparams)
+	return compute_mnl_logsum(utility, availability)
 end

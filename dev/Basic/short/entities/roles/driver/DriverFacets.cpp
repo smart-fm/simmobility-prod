@@ -1717,11 +1717,10 @@ void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p)
 			}
 		}
 		
-		//Check if the next lane was found
-		if(nextLaneInNextLink == nullptr)
-		{
-			//throw std::runtime_error("Could not find the next lane in the next link");
-		}
+		/*It is possible that the nextLaneInNextLink is null at this point. The lane changing model will
+		 find the lane that a vehicle needs to change to in order to get a valid nextLaneInNextLink at a later
+		 stage.
+		*/
 	}
 	else
 	{

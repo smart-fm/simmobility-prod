@@ -169,12 +169,12 @@ const TurningSection* sim_mob::MultiNode::getTurningSection(const Lane* currentL
 		}
 		else
 		{
-			throw std::runtime_error("TurningSection from the given to lane not found");
+			return nullptr;
 		}
 	}
 	else
 	{
-		throw std::runtime_error("TurningSection from the given from lane not found");
+		return nullptr;
 	}
 }
 

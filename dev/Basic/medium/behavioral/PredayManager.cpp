@@ -1399,7 +1399,7 @@ void sim_mob::medium::PredayManager::computeLogsumsByIdForLT(const PersonIdList:
 	for(PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++)
 	{
 		populationDao.getOneById(*i, personParams);
-		if(personParams.getFixedWorkPlace())
+		if(personParams.hasFixedWorkPlace())
 		{
 			for(ZoneMap::const_iterator znIt=zoneMap.begin(); znIt!=zoneMap.end(); znIt++)
 			{

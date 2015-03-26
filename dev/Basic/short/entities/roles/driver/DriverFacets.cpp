@@ -174,7 +174,7 @@ sim_mob::DriverMovement::~DriverMovement() {
 	safe_delete_item(cfModel);
 	safe_delete_item(intModel);
 	//	usually the metrics for the last subtrip is not manually finalized
-	/*if(!travelTimeMetric.finalized){
+	/*if(!travelMetric.finalized){
 		finalizeTravelTimeMetric();
 	}*/
 }
@@ -560,23 +560,23 @@ void sim_mob::DriverMovement::frame_tick_output() {
 // mark startTimeand origin
 TravelMetric& sim_mob::DriverMovement::startTravelTimeMetric()
 {
-	travelTimeMetric.startTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+	travelMetric.startTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 	const Node* startNode = (*(fwdDriverMovement.fullPath.begin()))->getStart();
 	if(!startNode)
 	{
 		throw std::runtime_error("Unknown Origin Node");
 	}
-	travelTimeMetric.origin = WayPoint(startNode);
-	travelTimeMetric.started = true;
-	return  travelTimeMetric;
+	travelMetric.origin = WayPoint(startNode);
+	travelMetric.started = true;
+	return  travelMetric;
 }
 
 //	mark the destination and end time and travel time
 TravelMetric& sim_mob::DriverMovement::finalizeTravelTimeMetric()
 {
-	if(!travelTimeMetric.started)
+	if(!travelMetric.started)
 	{
-		return  travelTimeMetric;
+		return  travelMetric;
 	}
 	const sim_mob::RoadSegment * currRS = (fwdDriverMovement.currSegmentIt == fwdDriverMovement.fullPath.end() ?
 			(*(fwdDriverMovement.fullPath.rbegin())) : (*(fwdDriverMovement.currSegmentIt)));
@@ -585,13 +585,13 @@ TravelMetric& sim_mob::DriverMovement::finalizeTravelTimeMetric()
 		throw std::runtime_error("Unknown Current Segment");
 	}
 	const Node* endNode = currRS->getEnd();
-	travelTimeMetric.destination = WayPoint(endNode);
-	travelTimeMetric.endTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
-	travelTimeMetric.travelTime = (travelTimeMetric.endTime - travelTimeMetric.startTime).getValue();
-	travelTimeMetric.finalized = true;
-	//parent->addSubtripTravelMetrics(*travelTimeMetric);
+	travelMetric.destination = WayPoint(endNode);
+	travelMetric.endTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+	travelMetric.travelTime = (travelMetric.endTime - travelMetric.startTime).getValue();
+	travelMetric.finalized = true;
+	//parent->addSubtripTravelMetrics(*travelMetric);
 
-	return  travelTimeMetric;
+	return  travelMetric;
 }
 
 bool sim_mob::DriverMovement::update_sensors(timeslice now) {
@@ -677,34 +677,68 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 	}
 
 	//Has the segment changed?
-	if ((!(fwdDriverMovement.isDoneWithEntireRoute()))
-			&& ((fwdDriverMovement.isPathSet()))) {
-		params.justChangedToNewSegment = ((fwdDriverMovement.getCurrSegment()
-				!= prevSegment));
+	if ((!(fwdDriverMovement.isDoneWithEntireRoute())) && ((fwdDriverMovement.isPathSet())))
+	{
+		params.justChangedToNewSegment = ((fwdDriverMovement.getCurrSegment() != prevSegment));
 	}
 
-	//change segment happen, calculate link travel time
-	if (params.justChangedToNewSegment == true) {
-		const RoadSegment* prevSeg = fwdDriverMovement.getCurrSegment();
-		const Link* prevLink = prevSeg->getLink();
+	//The segment has changed, calculate link travel time and road segment travel time
+	if (params.justChangedToNewSegment == true)
+	{
+		//Agent* parentAgent = parent;
+		const Link* prevLink = prevSegment->getLink();
 		double actualTime = parentDriver->getParams().elapsedSeconds
-				+ (parentDriver->getParams().now.ms() / MILLISECS_CONVERT_UNIT);
-		//if prevLink is already in travelStats, update it's linkTT and add to travelStatsMap
-		Agent* parentAgent = parent;
-		if (prevLink == parentAgent->getLinkTravelStats().link_) {
-			parentAgent->addToLinkTravelStatsMap(
-					parentAgent->getLinkTravelStats(), actualTime); //in seconds
+					+ (parentDriver->getParams().now.ms() / MILLISECS_CONVERT_UNIT);
+		
+		//Check if the link has changed
+		if(prevLink != fwdDriverMovement.getCurrLink())
+		{
+			//if prevLink is already in travelStats, update it's linkTT and add to travelStatsMap
+			if (prevLink == parent->getLinkTravelStats().link_)
+			{
+				parent->addToLinkTravelStatsMap(parent->getLinkTravelStats(), actualTime); //in seconds
+			}
+
+			//creating a new entry in agent's travelStats for the new link, with entry time
+			parent->initLinkTravelStats(fwdDriverMovement.getCurrSegment()->getLink(), actualTime);
 		}
-		//creating a new entry in agent's travelStats for the new link, with entry time
-		parentAgent->initLinkTravelStats(
-				fwdDriverMovement.getCurrSegment()->getLink(), actualTime);
+		
+		//If previous segment is already in the travel stats, update the exit time
+		if(prevSegment == parent->getCurrRdSegTravelStats().rs)
+		{
+			const std::string &travelMode = parent->getRole()->getMode();
+			Agent::RdSegTravelStat &currStats = parent->finalizeCurrRdSegTravelStat(prevSegment, actualTime, travelMode);
+			PathSetManager::getInstance()->addSegTT(currStats);
+		}
+		
+		//creating a new entry in agent's travelStats for the new road segment, with entry time
+		parent->getCurrRdSegTravelStats().reset();
+		parent->startCurrRdSegTravelStat(fwdDriverMovement.getCurrSegment(), actualTime);
+	}
+	
+	//Finalise the travel times for the last link and segment
+	if (fwdDriverMovement.isDoneWithEntireRoute())
+	{
+		double actualTime = parentDriver->getParams().elapsedSeconds
+					+ (parentDriver->getParams().now.ms() / MILLISECS_CONVERT_UNIT);
+		
+		const std::string &travelMode = parent->getRole()->getMode();
+		Agent::RdSegTravelStat &currStats = parent->finalizeCurrRdSegTravelStat(prevSegment, actualTime, travelMode);
+		PathSetManager::getInstance()->addSegTT(currStats);
+		
+		//Update the link travel time only if the person completes the journey at the end of a link
+		const MultiNode* endNode = dynamic_cast<const MultiNode *>(prevSegment->getEnd());
+		if(endNode)
+		{
+			parent->addToLinkTravelStatsMap(parent->getLinkTravelStats(), actualTime);
+		}
 	}
 
-	if (!fwdDriverMovement.isDoneWithEntireRoute()) {
-		params.TEMP_lastKnownPolypoint = DPoint(
-				getCurrPolylineVector2().getEndX(),
-				getCurrPolylineVector2().getEndY());
+	if (!fwdDriverMovement.isDoneWithEntireRoute())
+	{
+		params.TEMP_lastKnownPolypoint = DPoint(getCurrPolylineVector2().getEndX(), getCurrPolylineVector2().getEndY());
 	}
+	
 	params.buildDebugInfo();
 	return true;
 }
@@ -1631,7 +1665,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle) {
 				// if use path set
 				if (ConfigManager::GetInstance().FullConfig().PathSetMode())
 				{
-					path = PathSetManager::getInstance()->getPath(parent, *(parent->currSubTrip));
+					path = PathSetManager::getInstance()->getPath(*(parent->currSubTrip), false, nullptr);
 				}
 				else
 				{

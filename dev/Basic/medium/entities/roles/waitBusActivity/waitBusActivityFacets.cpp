@@ -80,12 +80,12 @@ sim_mob::Conflux* WaitBusActivityMovement::getStartingConflux() const
 }
 TravelMetric & medium::WaitBusActivityMovement::startTravelTimeMetric()
 {
-	return travelTimeMetric;
+	return travelMetric;
 }
 
 TravelMetric & medium::WaitBusActivityMovement::finalizeTravelTimeMetric()
 {
-	return travelTimeMetric;
+	return travelMetric;
 }
 
 } /* namespace sim_mob */

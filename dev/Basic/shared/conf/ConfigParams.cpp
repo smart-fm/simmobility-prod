@@ -510,6 +510,14 @@ bool sim_mob::ConfigParams::CBD() const{
 	return cbd;
 }
 
+bool sim_mob::ConfigParams::isGenerateBusRoutes() const{
+	return generateBusRoutes;
+}
+
+bool sim_mob::ConfigParams::PublicTransitEnabled() const{
+	return publicTransitEnabled;
+}
+
 const std::set<sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxes() const
 {
 	return confluxes;

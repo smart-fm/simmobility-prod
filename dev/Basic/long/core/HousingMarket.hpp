@@ -63,7 +63,11 @@ namespace sim_mob
             {
             public:
                 Entry(LT_Agent* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice);
+                Entry( const Entry& source );
+
                 virtual ~Entry();
+
+                Entry&  operator=(const Entry& source);
 
                 BigSerial getUnitId() const;
                 BigSerial getPostcodeId() const;

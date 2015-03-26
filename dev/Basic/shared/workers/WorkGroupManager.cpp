@@ -12,6 +12,7 @@
 #include "workers/WorkGroup.hpp"
 #include "message/MessageBus.hpp"
 #include "entities/Agent.hpp"
+#include "path/PathSetManager.hpp"
 
 using std::vector;
 
@@ -202,6 +203,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_DistributeMessages(std::set<Agent*
 
 		(*it)->waitAuraManager(removedEntities);
 	}
+	PathSetManager::updateCurrTimeInterval();
 
 	//Now is a good time to distribute messages since all agents have finished processing for this tick
 	sim_mob::messaging::MessageBus::DistributeMessages();

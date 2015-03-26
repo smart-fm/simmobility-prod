@@ -9,9 +9,9 @@
 #include <string>
 
 #include "conf/settings/DisableMPI.h"
-
 #include "Traversable.hpp"
-
+#include "metrics/Length.hpp"
+#include "util/OneTimeFlag.hpp"
 
 namespace sim_mob
 {
@@ -38,6 +38,7 @@ class Signal;
  * A road or sidewalk. Generalized movement rules apply for agents inside a link,
  * which is itself composed of segments.
  * \author Seth N. Hetu
+#include "metrics/Length.hpp"
  * \author LIM Fung Chai
  * \author Xu Yan
  */
@@ -67,7 +68,7 @@ public:
 
 	///Return the length of this Link, which is the sum of all RoadSegments
 	/// in the forward (if isForward is true) direction.
-	int getLength() const;
+	centimeter_t getLength() const;
 	const unsigned int & getLinkId() const;
 	const std::string & getRoadName() const;
 
@@ -112,10 +113,12 @@ protected:
 //	std::vector<sim_mob::RoadSegment*> revSegments;
 	//when xml reader used, this container is filed with fwdSegments first and revSegments next-vahid
 	std::set<sim_mob::RoadSegment*> uniqueSegments;
-
+	mutable centimeter_t length;
 	//who is currently managing this link
 	//added by Jenny
 	sim_mob::Worker* currWorker;
+private:
+	mutable sim_mob::OneTimeFlag lengthCal;
 
 
 friend class sim_mob::aimsun::Loader;

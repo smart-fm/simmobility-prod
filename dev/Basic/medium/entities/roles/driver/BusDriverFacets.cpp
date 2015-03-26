@@ -21,15 +21,6 @@ using std::vector;
 using std::endl;
 
 namespace {
-void initSegStatsPath(const vector<const sim_mob::RoadSegment*>& rsPath, vector<const sim_mob::SegmentStats*>& ssPath)
-{
-	for (vector<const sim_mob::RoadSegment*>::const_iterator it = rsPath.begin(); it != rsPath.end(); it++)
-	{
-		const sim_mob::RoadSegment* rdSeg = *it;
-		const vector<sim_mob::SegmentStats*>& statsInSegment = rdSeg->getParentConflux()->findSegStats(rdSeg);
-		ssPath.insert(ssPath.end(), statsInSegment.begin(), statsInSegment.end());
-	}
-}
 
 /**
  * converts time from milli-seconds to seconds

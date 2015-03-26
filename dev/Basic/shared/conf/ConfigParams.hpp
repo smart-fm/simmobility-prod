@@ -184,7 +184,10 @@ public:
 	const PathSetConf & pathSet() const;
 
 	bool CBD() const;
+	bool isGenerateBusRoutes() const;
 	
+	bool PublicTransitEnabled() const;
+
 private:
 	ConfigParams();
 

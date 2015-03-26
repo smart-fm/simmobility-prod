@@ -214,11 +214,11 @@ public:
 	AMODEventPublisher eventPub;
 
 	StreetDirectory* stdir;
-	std::map<const RoadSegment*, Conflux::RdSegTravelTimes> RdSegTravelTimesMap;
+	std::map<const RoadSegment*, sim_mob::RdSegTravelTimes> RdSegTravelTimesMap;
 
 	void setRdSegTravelTimes(Person* ag, double rdSegExitTime);
 	void updateTravelTimeGraph();
-	bool insertTravelTime2TmpTable(timeslice frameNumber, std::map<const RoadSegment*, sim_mob::Conflux::RdSegTravelTimes>& rdSegTravelTimesMap);
+	bool insertTravelTime2TmpTable(timeslice frameNumber, std::map<const RoadSegment*, sim_mob::RdSegTravelTimes>& rdSegTravelTimesMap);
 
 	struct amod_passenger{
 		std::string &passengerId; std::string &originNode; std::string &destNode;

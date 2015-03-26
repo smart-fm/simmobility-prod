@@ -13,7 +13,8 @@
 #include "agent/LT_Agent.hpp"
 #include "database/entity/Household.hpp"
 #include "event/LT_EventArgs.hpp"
-
+#include "database/entity/Unit.hpp"
+#include "database/entity/Building.hpp"
 
 namespace sim_mob
 {
@@ -25,23 +26,44 @@ namespace sim_mob
         /**
          * Represents an Long-Term realestate agent.
          * An realestate agent has the following capabilities:
-         *    - sell the units built by the developper model
+         *    - sell the units built by the developer model
          */
 
         class RealEstateAgent : public LT_Agent
         {
+        private:
+        	enum BuildingStatus{
+        		BUILDING_UNCOMPLETED_WITHOUT_PREREQUISITES = 1, BUILDING_UNCOMPLETED_WITH_PREREQUISITES, BUILDING_NOT_LAUNCHED, BUILDING_LAUNCHED_BUT_UNSOLD, BUILDING_LAUNCHED_AND_SOLD, BUILDING_COMPLETED_WITH_PREREQUISITES, BUILDING_DEMOLISHED
+        	};
+        	enum UnitStatus{
+        	    UNIT_PLANNED = 1, UNIT_UNDER_CONSTRUCTION, UNIT_CONSTRUCTION_COMPLETED, UNIT_DEMOLISHED
+        	};
+        	enum UnitSaleStatus{
+        		UNIT_NOT_LAUNCHED = 1, UNIT_LAUNCHED_BUT_UNSOLD, UNIT_LAUNCHED_AND_SOLD
+        	};
+        	enum UnitPhysicalStatus{
+        		UNIT_NOT_READY_FOR_OCCUPANCY = 1, UNIT_READY_FOR_OCCUPANCY_AND_VACANT, UNIT_READY_FOR_OCCUPANCY_AND_OCCUPIED
+        	};
         public:
-            RealEstateAgent(BigSerial id, HM_Model* model, const Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0);
+            RealEstateAgent(BigSerial id, HM_Model* model, const Household* hh, HousingMarket* market, bool marketSeller = true, int day = 0);
             virtual ~RealEstateAgent();
             
             //not-thread safe
-            void addUnitId (const BigSerial& unitId);
+            void addNewUnit (const BigSerial& unitId);
             void removeUnitId (const BigSerial& unitId);
             const IdVector& getUnitIds() const;
             const IdVector& getPreferableZones() const;
             HM_Model* getModel() const;
             HousingMarket* getMarket() const;
             const Household* getHousehold() const;
+            void addNewBuildings(Building *building);
+
+            void changeToDateInToBeDemolishedBuildings(BigSerial buildingId,std::tm toDate);
+            void changeBuildingStatus(BigSerial buildingId,BuildingStatus buildingStatus);
+            void changeUnitStatus(BigSerial unitId,UnitStatus unitStatus);
+            void changeUnitSaleStatus(BigSerial unitId,UnitSaleStatus unitSaleStatus);
+            void changeUnitPhysicalStatus(BigSerial unitId,UnitPhysicalStatus unitPhysicalStatus);
+
         
         protected:
             /**
@@ -70,7 +92,7 @@ namespace sim_mob
              * Events callbacks.
              */
             virtual void onEvent(event::EventId eventId, event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
-            
+
             /**
              * Processes the given event.
              * @param eventId
@@ -89,11 +111,20 @@ namespace sim_mob
             HM_Model* model;
             HousingMarket* market;
             const Household* household;
-            IdVector unitIds;
-            IdVector preferableZones;
+
             RealEstateSellerRole* seller;
             bool marketSeller; //tells if the agent is only a fake market seller
             int day;
+
+
+            IdVector unitIds;
+            IdVector preferableZones;
+
+            std::vector<Unit*> units;
+            boost::unordered_map<BigSerial,Unit*> unitsById;
+
+            std::vector<Building*> buildings;
+            boost::unordered_map<BigSerial,Building*> buildingsById;
         };
     }
 }

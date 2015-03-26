@@ -261,10 +261,10 @@ void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
 			(*it)->updateAndReportSupplyStats(currTime);
 			(*it)->reportLinkTravelTimes(currTime);
 			(*it)->resetLinkTravelTimes(currTime);
-			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-				(*it)->reportRdSegTravelTimes(currTime);
-				(*it)->resetRdSegTravelTimes();
-			}
+//			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+//				(*it)->reportRdSegTravelTimes(currTime);
+//				(*it)->resetRdSegTravelTimes();
+//			}
 			(*it)->resetSegmentFlows();
 			//vqCount += (*it)->resetOutputBounds();
 		}
@@ -640,12 +640,12 @@ bool sim_mob::Worker::beginManagingConflux(Conflux* cf)
 	return managedConfluxes.insert(cf).second;
 }
 
-sim_mob::PathSetManager *sim_mob::Worker::getPathSetMgr()
-{
-	if(!pathSetMgr)
-	{
-		pathSetMgr = new PathSetManager();
-	}
-
-	return pathSetMgr;
-}
+//sim_mob::PathSetManager *sim_mob::Worker::getPathSetMgr()
+//{
+//	if(!pathSetMgr)
+//	{
+//		pathSetMgr = new PathSetManager();
+//	}
+//
+//	return pathSetMgr;
+//}

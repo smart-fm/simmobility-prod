@@ -24,12 +24,15 @@
 #include "database/entity/ParcelMatch.hpp"
 #include "database/entity/SlaParcel.hpp"
 #include "database/dao/SlaParcelDao.hpp"
+#include "database/dao/UnitDao.hpp"
 #include "database/entity/UnitType.hpp"
 #include "database/dao/UnitTypeDao.hpp"
 #include "database/dao/BuildingDao.hpp"
 #include "database/dao/TotalBuildingSpaceDao.hpp"
 #include "database/dao/ParcelAmenitiesDao.hpp"
 #include "database/dao/MacroEconomicsDao.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -41,10 +44,10 @@ namespace {
     const string MODEL_NAME = "Developer Model";
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0){ //In days (7 - weekly, 30 - Monthly)
+DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false),unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0){ //In days (7 - weekly, 30 - Monthly)
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0){
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false), unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0){
 }
 
 DeveloperModel::~DeveloperModel() {
@@ -96,8 +99,19 @@ void DeveloperModel::startImpl() {
 		loadData<ParcelAmenitiesDao>(conn,amenities,amenitiesById,&ParcelAmenities::getFmParcelId);
 		loadData<MacroEconomicsDao>(conn,macroEconomics,macroEconomicsById,&MacroEconomics::getExFactorId);
 
-	}
+		//UnitDao unitDao(conn);
+		//unitId = unitDao.getMaxUnitId();
 
+	}
+	setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	postcodeForDevAgent = config.ltParams.developerModel.initialPostcode;
+	unitIdForDevAgent = config.ltParams.developerModel.initialUnitId;
+	buildingIdForDevAgent = config.ltParams.developerModel.initialBuildingId;
+	projectIdForDevAgent = config.ltParams.developerModel.initialProjectId;
+
+	//get the highest building id, which is the one before the last building id as the last building id contain some random data.
+	//buildingId = buildings.at(buildings.size()-2)->getFmBuildingId();
 	processParcels();
 	createDeveloperAgents(developmentCandidateParcelList);
 	wakeUpDeveloperAgents(getDeveloperAgents(true));
@@ -108,13 +122,14 @@ void DeveloperModel::startImpl() {
 	PrintOutV("Initial Parcels " << initParcelList.size() << std::endl);
 	PrintOutV("Initial DevelopmentTypeTemplates " << developmentTypeTemplates.size() << std::endl);
 	PrintOutV("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
+	PrintOutV("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
 
 	addMetadata("Time Interval", timeInterval);
 	addMetadata("Initial Developers", developers.size());
 	addMetadata("Initial Templates", templates.size());
 	addMetadata("Initial Parcels", initParcelList.size());
 	addMetadata("Initial DevelopmentTypeTemplates",developmentTypeTemplates.size());
-	addMetadata("Initial TemplateUnitTypes", templateUnitTypes.size());
+	PrintOutV("Initial Developer,Agents"<< developmentCandidateParcelList.size() << std::endl );
 }
 
 void DeveloperModel::stopImpl() {
@@ -200,6 +215,9 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList)
 			{
 				DeveloperAgent* devAgent = new DeveloperAgent(devCandidateParcelList[i], this);
 				AgentsLookupSingleton::getInstance().addDeveloperAgent(devAgent);
+				RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
+				devAgent->setRealEstateAgent(realEstateAgent);
+				devAgent->setPostcode(getPostcodeForDeveloperAgent());
 				agents.push_back(devAgent);
 				developers.push_back(devAgent);
 				workGroup.assignAWorker(devAgent);
@@ -250,7 +268,7 @@ void DeveloperModel::processParcels()
 			else
 			{
 				const double minLotSize = 100;
-				if((parcel->getDevelopmentAllowed().compare("development is allowed")!=0)||(parcel->getLotSize()< minLotSize))
+				if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize))
 				{
 					nonEligibleParcelList.push_back(parcel);
 				}
@@ -262,6 +280,7 @@ void DeveloperModel::processParcels()
 					if ( actualGpr >= 0 && actualGpr < getAllowedGpr(*parcel))
 					{
 						developmentCandidateParcelList.push_back(parcel);
+						devCandidateParcelsById.insert(std::make_pair(parcel->getId(), parcel));
 					}
 					else
 					{
@@ -270,6 +289,45 @@ void DeveloperModel::processParcels()
 
 				}
 
+			}
+		}
+
+	}
+}
+
+void DeveloperModel::processProjects()
+{
+
+	ProjectList::iterator projectsItr;
+	for(projectsItr = projects.begin(); projectsItr != this->projects.end(); projectsItr++)
+	{
+		//check whether the project's last planned date is older than 90 days; current date is assumed to be 01/01/2008.
+		if((*projectsItr)->getPlannedDate().tm_year<2007)
+		{
+
+		}
+		else if((*projectsItr)->getPlannedDate().tm_year==2007)
+		{
+			if((*projectsItr)->getPlannedDate().tm_mon<10)
+			{
+				//project is older than 90 days;add it to the development candidate parcel list,if the parcel is not yet added.
+				if(getParcelById((*projectsItr)->getParcelId()) != nullptr)
+				{
+					developmentCandidateParcelList.push_back(getParcelById((*projectsItr)->getParcelId()));
+				}
+
+			}
+			//project is 90 days old; add it to the candidate parcel list; if it is not yet added.
+			else if((*projectsItr)->getPlannedDate().tm_mon==10)
+			{
+				if((*projectsItr)->getPlannedDate().tm_mday==1)
+				{
+					if(getParcelById((*projectsItr)->getParcelId()) != nullptr)
+					{
+						developmentCandidateParcelList.push_back(getParcelById((*projectsItr)->getParcelId()));
+					}
+
+				}
 			}
 		}
 
@@ -418,7 +476,7 @@ const bool DeveloperModel::isEmptyParcel(BigSerial id) const {
 
 BigSerial DeveloperModel::getProjectIdForDeveloperAgent()
 {
-	return ++projectId;
+	return ++projectIdForDevAgent;
 }
 
 BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
@@ -432,19 +490,25 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 	}
 	else
 	{
-		return ++buildingId;
+
+		return ++buildingIdForDevAgent;
+
 	}
+
 }
 
 BigSerial DeveloperModel::getUnitIdForDeveloperAgent()
 {
-	return ++unitId;
+	boost::lock_guard<boost::recursive_mutex> lock(m_guard);
+	return ++unitIdForDevAgent;
+
 }
 
 void DeveloperModel::setUnitId(BigSerial unitId)
 {
-	this->unitId = unitId;
+	this->unitIdForDevAgent = unitId;
 }
+
 DeveloperModel::BuildingList DeveloperModel::getBuildings()
 {
 	return buildings;
@@ -464,3 +528,56 @@ int DeveloperModel::getCurrentTick()
 {
 	return this->currentTick;
 }
+
+void DeveloperModel::addProjects(boost::shared_ptr<Project> project)
+{
+	newProjects.push_back(project);
+}
+
+void DeveloperModel::addBuildings(boost::shared_ptr<Building> building)
+{
+	newBuildings.push_back(building);
+}
+
+const RealEstateAgent* DeveloperModel::getRealEstateAgentForDeveloper()
+{
+
+	const RealEstateAgent* realEstateAgent = AgentsLookupSingleton::getInstance().getRealEstateAgentById(realEstateAgentIds[realEstateAgentIdIndex]);
+	if(realEstateAgentIdIndex >= (realEstateAgentIds.size() - 1))
+	{
+		realEstateAgentIdIndex = 0;
+	}
+	else
+	{
+		realEstateAgentIdIndex++;
+	}
+	return realEstateAgent;
+
+}
+
+void DeveloperModel::setRealEstateAgentIds(std::vector<BigSerial> realEstateAgentIdVec)
+{
+	this->realEstateAgentIds = realEstateAgentIdVec;
+}
+
+void DeveloperModel::setHousingMarketModel(HM_Model *housingModel)
+{
+
+	this->housingMarketModel = housingModel;
+}
+
+
+int DeveloperModel::getPostcodeForDeveloperAgent()
+{
+	if(initPostcode)
+	{
+		initPostcode = false;
+		return postcodeForDevAgent;
+	}
+	else
+	{
+		return ++postcodeForDevAgent;
+	}
+
+}
+

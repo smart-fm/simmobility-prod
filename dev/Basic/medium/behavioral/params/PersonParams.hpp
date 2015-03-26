@@ -65,8 +65,8 @@ public:
 		this->fixedWorkLocation = fixedWorkLocation;
 	}
 
-	int getFixedWorkPlace() const {
-		return (fixedWorkLocation == 0);
+	int hasFixedWorkPlace() const {
+		return (fixedWorkLocation != 0);
 	}
 
 	int getHasFixedWorkTiming() const {

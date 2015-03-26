@@ -618,7 +618,7 @@ void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			if (it == matchedTrips.begin()) {
 				source = curSubTrip->fromLocation;
 				unsigned int endNo = boost::lexical_cast<unsigned int>(sEnd);
-				sim_mob::BusStop* endBStop = sim_mob::BusStop::findBusStop(endNo);
+				sim_mob::BusStop* endBStop = sim_mob::BusStop::findBusStop(sEnd);
 				if (endBStop) {
 					dest = WayPoint(endBStop);
 				} else {
@@ -627,7 +627,7 @@ void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			} else if (it == matchedTrips.end() - 1) {
 				dest = curSubTrip->toLocation;
 				unsigned int startNo = boost::lexical_cast<unsigned int>(sSrc);
-				sim_mob::BusStop* startBStop = sim_mob::BusStop::findBusStop(startNo);
+				sim_mob::BusStop* startBStop = sim_mob::BusStop::findBusStop(sSrc);
 				if (startBStop) {
 					source = WayPoint(startBStop);
 				} else {
@@ -635,9 +635,9 @@ void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 				}
 			} else {
 				unsigned int startNo = boost::lexical_cast<unsigned int>(sSrc);
-				sim_mob::BusStop* startBStop = sim_mob::BusStop::findBusStop(startNo);
+				sim_mob::BusStop* startBStop = sim_mob::BusStop::findBusStop(sSrc);
 				unsigned int endNo = boost::lexical_cast<unsigned int>(sEnd);
-				sim_mob::BusStop* endBStop = sim_mob::BusStop::findBusStop(endNo);
+				sim_mob::BusStop* endBStop = sim_mob::BusStop::findBusStop(sEnd);
 				if (startBStop && endBStop) {
 					source = WayPoint(startBStop);
 					dest = WayPoint(endBStop);
@@ -997,12 +997,12 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 	}
 
 	// current role (activity or sub-trip level role)[for now: only subtrip] is about to change, time to collect its movement metrics(even activity performer)
-	/*if(currRole != nullptr)
+	if(currRole != nullptr)
 	{
 		TravelMetric currRoleMetrics = currRole->Movement()->finalizeTravelTimeMetric();
 		currRole->Movement()->resetTravelTimeMetric();//sorry for manual reset, just a precaution for now
 		serializeSubTripChainItemTravelTimeMetrics(currRoleMetrics,currTripChainItem,currSubTrip);
-	}*/
+	}
 
 	//first check if you just need to advance the subtrip
 	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM )
@@ -1128,59 +1128,52 @@ void sim_mob::Person::setPersonCharacteristics()
 		}
 	}
 }
+
+void sim_mob::Person::printTripChainItemTypes() const{
+	std::stringstream ss;
+	ss << "Person: " << id << "|TripChain: ";
+	for(std::vector<TripChainItem*>::const_iterator tci=tripChain.begin(); tci!=tripChain.end(); ++tci)
+	{
+		const TripChainItem* tcItem = *tci;
+		switch(tcItem->itemType)
+		{
+		case TripChainItem::IT_TRIP:
+		{
+			ss << "|" << tcItem->getMode() << "-trip->";
+			const Trip* trip = dynamic_cast<const Trip*>(tcItem);
+			const std::vector<sim_mob::SubTrip>& subTrips = trip->getSubTrips();
+			for(std::vector<SubTrip>::const_iterator sti=subTrips.begin(); sti!=subTrips.end(); ++sti)
+			{
+				ss << "~" << (*sti).getMode() << "-subtrip";
+			}
+			break;
+		}
+		case TripChainItem::IT_ACTIVITY:
+			ss << "|activity";
+			break;
+		case TripChainItem::IT_BUSTRIP:
+			ss << "|bus-trip";
+			break;
+		case TripChainItem::IT_FMODSIM:
+			ss << "|fmod-trip";
+			break;
+		case TripChainItem::IT_WAITBUSACTIVITY:
+			ss << "|waitbus-activity";
+			break;
+		}
+	}
+	ss << std::endl;
+	Print() << ss.str();
+}
 /********************************************************************
  * ************* Collection and presentation of metrics *************
  * ******************************************************************
  */
-void sim_mob::Person::aggregateSubTripMetrics()
-{
-	if(subTripTravelMetrics.begin() == subTripTravelMetrics.end())
-	{
-		return;
-	}
-	TravelMetric newTripMetric;
-	std::vector<TravelMetric>::iterator item(subTripTravelMetrics.begin());
-	newTripMetric.startTime = item->startTime;//first item
-	newTripMetric.origin = item->origin;
-	for(;item !=subTripTravelMetrics.end(); ++item)
-	{
-		newTripMetric.travelTime += item->travelTime;
-	}
-	newTripMetric.endTime = subTripTravelMetrics.rbegin()->endTime;
-	newTripMetric.destination = subTripTravelMetrics.rbegin()->destination;
-	subTripTravelMetrics.clear();
-	tripTravelMetrics.push_back(newTripMetric);
-}
-
-void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
-	 subTripTravelMetrics.push_back(value);
- }
-/**
- * Serializer for Trip level travel time
- */
- void sim_mob::Person::serializeTripTravelTimeMetrics()
- {
-	 if(tripTravelMetrics.empty())
-	 {
-		 return;
-	 }
-	 sim_mob::BasicLogger & csv = sim_mob::Logger::log("trip_level_travel_time.csv");
-	 BOOST_FOREACH(TravelMetric &item, tripTravelMetrics)
-	 {
-		 csv << this->getId() << "," <<
-				 item.origin.node_->getID() << ","
-				 << item.destination.node_->getID() << ","
-				 << item.startTime.getRepr_() << ","
-				 << item.endTime.getRepr_() << ","
-				 << (item.endTime - item.startTime).getRepr_()
-				 << "\n";
-	 }
-	 tripTravelMetrics.clear();
- }
 
  namespace
  {
- 	 sim_mob::BasicLogger & csv = sim_mob::Logger::log("subtrip_level_travel_metrics_for_preday.csv");
+ 	 sim_mob::BasicLogger & csv = sim_mob::Logger::log(ConfigManager::GetInstance().FullConfig().pathSet().subTripOP);
+ 	 sim_mob::OneTimeFlag titleSubPredayTT;
  }
  /**
   * A version of serializer for subtrip level travel time.
@@ -1194,6 +1187,10 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
 		 std::vector<SubTrip>::iterator currSubTrip
 		 ) const
  {
+	 if(titleSubPredayTT.check())
+	 {
+		 csv << "person_id,trip_id,subtrip_id,origin,destination,mode,start_time,end_time,travel_time,total_distance,ptt_wt,pt_walk,cbd_entry_node,cbd_exit_node,cbd_entry_time,cbd_exit_time,cbd_travel_time,non_cbd_travel_time,cbd_distance,non_cbd_distance\n";
+	 }
 	if(!(subtripMetrics.finalized && subtripMetrics.started))
 	{
 		return;
@@ -1214,9 +1211,6 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
 		 throw std::runtime_error (error.str());
 	 }
 
-	 // destination
-	// sim_mob::BasicLogger & csv = serializeSubTripChainItemTravelTimeMetrics_csv;
-
 	 // restricted area which is to be appended at the end of the csv line
 	 std::stringstream restrictedRegion("");
 	 if(st.cbdTraverseType == sim_mob::TravelMetric::CBD_ENTER
@@ -1230,43 +1224,59 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
 			  << " has null values " << (subtripMetrics.cbdOrigin.node_ != nullptr ? subtripMetrics.cbdOrigin.node_ : 0)
 			  << "," << (subtripMetrics.cbdDestination.node_ != nullptr ? subtripMetrics.cbdDestination.node_ : 0) << "\n";
 		 }
-		 else
+		 else //	valid scenario:
 		 {
-		 restrictedRegion <<
-				 subtripMetrics.cbdOrigin.node_->getID() << "," <<
-				 subtripMetrics.cbdDestination.node_->getID() << "," <<
-				 subtripMetrics.cbdStartTime.getRepr_() << ","  <<
-				 subtripMetrics.cbdEndTime.getRepr_() << ","  <<
-				 subtripMetrics.cbdTravelTime;
+			 restrictedRegion <<
+				 subtripMetrics.cbdOrigin.node_->getID() << "," <<											//	cbd_entry_node
+				 subtripMetrics.cbdDestination.node_->getID() << "," <<										//	cbd_exit_node
+				 subtripMetrics.cbdStartTime.getRepr_() << ","  <<											//	cbd_entry_time
+				 subtripMetrics.cbdEndTime.getRepr_() << ","  <<											//	cbd_exit_time
+				 subtripMetrics.cbdTravelTime << ","  <<													//	cbd_travel_time
+				 (subtripMetrics.travelTime - subtripMetrics.cbdTravelTime) << "," <<						//	non_cbd_travel_time
+			 	 subtripMetrics.cbdDistance << "," <<	 	 	 	 	 	 	 	 	 	 	 	 	 	//	cbd_distance
+			 	 (subtripMetrics.distance - subtripMetrics.cbdDistance) ;		 	 	 	 	 	 	 	//	non_cbd_distance
 		 }
 	 }
-	 else
+	 else// if Agent never entered or exitted CBD
 	 {
 		 restrictedRegion<<
-				 "0" << "," <<
-				 "0" << "," <<
-		 		 "00:00:00" << ","  <<
-				 "00:00:00" << ","  <<
-		 		 "0";
+				 "0" << "," <<																				//	cbd_entry_node
+				 "0" << "," <<																				//	cbd_exit_node
+		 		 "00:00:00" << ","  <<																		//	cbd_entry_time
+				 "00:00:00" << ","  <<																		//	cbd_exit_time
+		 		 "0" << ","  <<																				//	cbd_travel_time
+				 subtripMetrics.travelTime << "," <<														//	non_cbd_travel_time
+		 	 	 "0" << "," <<	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 					//	cbd_distance
+				 subtripMetrics.distance ;			 	 	 	 	 	 	 	 	 	 	 	 	 	 	//	non_cbd_distance
 	 }
 
 	 std::stringstream res("");
 	 // actual writing
 	 res <<
-			 this->getId() << "," <<
-			 (static_cast<Trip*>(*currTripChainItem))->tripID  << "," <<
-			 st.tripID  << "," <<
-			 st.fromLocation.node_->getID() << "," <<
-			 st.toLocation.node_->getID() << "," <<
-			 st.mode  << "," <<
-			 subtripMetrics.startTime.getRepr_()  << "," <<
-			 subtripMetrics.endTime.getRepr_()  << "," <<
-			 TravelMetric::getTimeDiffHours(subtripMetrics.endTime, subtripMetrics.startTime)  << ","
-			 "0,0" << "," << //placeholder for paublic transit's waiting time and walk time
-			 restrictedRegion.str() << "\n";
+			 this->getId() << "," <<																		//	person_id
+			 (static_cast<Trip*>(*currTripChainItem))->tripID  << "," <<									//	trip_id
+			 st.tripID  << "," <<																			//	subtrip_id
+			 st.fromLocation.node_->getID() << "," <<														//	origin
+			 st.toLocation.node_->getID() << "," <<															//	destination
+			 st.mode  << "," <<																				//	mode
+			 subtripMetrics.startTime.getRepr_()  << "," <<													//	start_time
+			 subtripMetrics.endTime.getRepr_()  << "," <<													//	end_time
+//			 TravelMetric::getTimeDiffHours(subtripMetrics.endTime, subtripMetrics.startTime)  << ","		//	travel_time### commented
+			 subtripMetrics.travelTime << "," <<															//	travel_time
+			 subtripMetrics.distance << "," <<	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	//	total_distance
+			 "0" << ","	<<	//placeholder for paublic transit's waiting time								//	ptt_wt
+			 "0" << "," << //placeholder for paublic transit's walk time									//	pt_walk
+			 restrictedRegion.str() << "\n";																/* MIXED CBD Information */
+
 	 csv << res.str();
 	 std::cout << res.str();
  }
+
+ /********************************************************************
+  * ************* Collection and presentation of metrics *************
+  * ****************         UNUSED     ******************************
+  * ******************************************************************
+  */
 
 /*
  * each entry line is divided into multiple groups of columns,
@@ -1344,75 +1354,68 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
 
  void sim_mob::Person::serializeCBD_Activity(const TravelMetric &metric)
  {
-//	//sanity checks
-//
-//	sim_mob::Activity * activity = dynamic_cast<Activity*>(*currTripChainItem);
-//	if (!activity)
-//	{
-//		throw std::runtime_error("Invalid Tripchain Item supplied, expected an Activity");
-//	}
-//
-//	std::stringstream tripStrm_1("");
-//	//step-1 trip ,part 1
-//	tripStrm_1 << this->getId() << "," <<
-//			activity->sequenceNumber << "," <<
-//		 "Activity" << "," <<
-//		 "0" << "," << //tripid
-//		 activity->fromLocation.node_->getID() << "," <<
-//		(activity->fromLocationType == TripChainItem::LT_NODE ? "Node" : "Stop") << "," <<
-//		activity->toLocation.node_->getID()<< ","   <<
-//		(activity->toLocationType == TripChainItem::LT_NODE ? "Node" : "Stop") << "," ;
+	//sanity checks
+
+	sim_mob::Activity * activity = dynamic_cast<Activity*>(*currTripChainItem);
+	if (!activity)
+	{
+		throw std::runtime_error("Invalid Tripchain Item supplied, expected an Activity");
+	}
+
+	std::stringstream tripStrm_1("");
+	//step-1 trip ,part 1
+	tripStrm_1 << this->getId() << "," <<
+			activity->sequenceNumber << "," <<
+		 "Activity" << "," <<
+		 "0" << "," /*<< //tripid
+		 activity->fromLocation.node_->getID() << "," <<
+		(activity->fromLocationType == TripChainItem::LT_NODE ? "Node" : "Stop") << "," <<
+		activity->toLocation.node_->getID()<< ","   <<
+		(activity->toLocationType == TripChainItem::LT_NODE ? "Node" : "Stop") << "," */;
  }
 
-
-
-// void sim_mob::Person::serializeTripChainItem(std::vector<TripChainItem*>::iterator currTripChainItem)
-// {
-//	 sim_mob::BasicLogger & csv = sim_mob::Logger::log("tripchain_info_for_short_term.csv");
-//	 if((*currTripChainItem)->itemType == TripChainItem::IT_TRIP)
-//	 {
-//		 csv << serializeTrip(currTripChainItem);
-//	 }
-//	 else
-//		 if((*currTripChainItem)->itemType == TripChainItem::IT_ACTIVITY)
-//		 {
-//			 csv << serializeActivity(currTripChainItem);
-//		 }
-//}
-
-void sim_mob::Person::printTripChainItemTypes() const{
-	std::stringstream ss;
-	ss << "Person: " << id << "|TripChain: ";
-	for(std::vector<TripChainItem*>::const_iterator tci=tripChain.begin(); tci!=tripChain.end(); ++tci)
+void sim_mob::Person::aggregateSubTripMetrics()
+{
+	if(subTripTravelMetrics.begin() == subTripTravelMetrics.end())
 	{
-		const TripChainItem* tcItem = *tci;
-		switch(tcItem->itemType)
-		{
-		case TripChainItem::IT_TRIP:
-		{
-			ss << "|" << tcItem->getMode() << "-trip->";
-			const Trip* trip = dynamic_cast<const Trip*>(tcItem);
-			const std::vector<sim_mob::SubTrip>& subTrips = trip->getSubTrips();
-			for(std::vector<SubTrip>::const_iterator sti=subTrips.begin(); sti!=subTrips.end(); ++sti)
-			{
-				ss << "~" << (*sti).getMode() << "-subtrip";
-			}
-			break;
-		}
-		case TripChainItem::IT_ACTIVITY:
-			ss << "|activity";
-			break;
-		case TripChainItem::IT_BUSTRIP:
-			ss << "|bus-trip";
-			break;
-		case TripChainItem::IT_FMODSIM:
-			ss << "|fmod-trip";
-			break;
-		case TripChainItem::IT_WAITBUSACTIVITY:
-			ss << "|waitbus-activity";
-			break;
-		}
+		return;
 	}
-	ss << std::endl;
-	Print() << ss.str();
+	TravelMetric newTripMetric;
+	std::vector<TravelMetric>::iterator item(subTripTravelMetrics.begin());
+	newTripMetric.startTime = item->startTime;//first item
+	newTripMetric.origin = item->origin;
+	for(;item !=subTripTravelMetrics.end(); ++item)
+	{
+		newTripMetric.travelTime += item->travelTime;
+	}
+	newTripMetric.endTime = subTripTravelMetrics.rbegin()->endTime;
+	newTripMetric.destination = subTripTravelMetrics.rbegin()->destination;
+	subTripTravelMetrics.clear();
+	tripTravelMetrics.push_back(newTripMetric);
 }
+
+void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
+	 subTripTravelMetrics.push_back(value);
+ }
+/**
+ * Serializer for Trip level travel time
+ */
+ void sim_mob::Person::serializeTripTravelTimeMetrics()
+ {
+	 if(tripTravelMetrics.empty())
+	 {
+		 return;
+	 }
+	 sim_mob::BasicLogger & csv = sim_mob::Logger::log("trip_level_travel_time.csv");
+	 BOOST_FOREACH(TravelMetric &item, tripTravelMetrics)
+	 {
+		 csv << this->getId() << "," <<
+				 item.origin.node_->getID() << ","
+				 << item.destination.node_->getID() << ","
+				 << item.startTime.getRepr_() << ","
+				 << item.endTime.getRepr_() << ","
+				 << (item.endTime - item.startTime).getRepr_()
+				 << "\n";
+	 }
+	 tripTravelMetrics.clear();
+ }

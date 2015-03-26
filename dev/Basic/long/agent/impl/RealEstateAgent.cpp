@@ -17,6 +17,7 @@
 #include "core/DataManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/ConfigManager.hpp"
+#include "message/LT_Message.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -39,7 +40,7 @@ RealEstateAgent::~RealEstateAgent()
     safe_delete_item(seller);
 }
 
-void RealEstateAgent::addUnitId(const BigSerial& unitId)
+void RealEstateAgent::addNewUnit(const BigSerial& unitId)
 {
     unitIds.push_back(unitId);
     BigSerial tazId = model->getUnitTazId(unitId);
@@ -48,6 +49,10 @@ void RealEstateAgent::addUnitId(const BigSerial& unitId)
     {
         preferableZones.push_back(tazId);
     }
+
+    boost::unordered_map<BigSerial,Unit*>::const_iterator unitItr = unitsById.find(unitId);
+
+    model->addUnit( unitItr->second);
 }
 
 void RealEstateAgent::removeUnitId(const BigSerial& unitId)
@@ -80,12 +85,80 @@ const Household* RealEstateAgent::getHousehold() const
     return household;
 }
 
+void RealEstateAgent::addNewBuildings(Building *building)
+{
+	if(building != NULL)
+	{
+		buildings.push_back(building);
+	}
+}
+
+
+
+void RealEstateAgent::changeToDateInToBeDemolishedBuildings(BigSerial buildingId,std::tm toDate)
+{
+	boost::unordered_map<BigSerial,Building*>::const_iterator itr = buildingsById.find(buildingId);
+	    if (itr != buildingsById.end())
+	    {
+	        itr->second->setToDate(toDate);
+	    }
+
+	    //change unit statuses to demolished
+	    std::vector<Unit*>::const_iterator unitsItr;
+	    for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++)
+	    {
+	    	if((*unitsItr)->getBuildingId() == buildingId)
+	    	{
+	    		changeUnitStatus((*unitsItr)->getId(),UNIT_DEMOLISHED);
+	    	}
+	    }
+
+}
+
+void RealEstateAgent::changeBuildingStatus(BigSerial buildingId,BuildingStatus buildingStatus)
+{
+
+	boost::unordered_map<BigSerial,Building*>::const_iterator itr = buildingsById.find(buildingId);
+	if (itr != buildingsById.end())
+	{
+		itr->second->setBuildingStatus(buildingStatus);
+	}
+}
+
+void RealEstateAgent::changeUnitStatus(BigSerial unitId,UnitStatus unitStatus)
+{
+
+	boost::unordered_map<BigSerial,Unit*>::const_iterator itr = unitsById.find(unitId);
+	if (itr != unitsById.end())
+	{
+		itr->second->setUnitStatus(unitStatus);
+	}
+}
+
+void RealEstateAgent::changeUnitSaleStatus(BigSerial unitId,UnitSaleStatus unitSaleStatus)
+{
+
+	boost::unordered_map<BigSerial,Unit*>::const_iterator itr = unitsById.find(unitId);
+	if (itr != unitsById.end())
+	{
+		itr->second->setSaleStatus(unitSaleStatus);
+	}
+}
+
+void RealEstateAgent::changeUnitPhysicalStatus(BigSerial unitId,UnitPhysicalStatus unitPhysicalStatus)
+{
+
+	boost::unordered_map<BigSerial,Unit*>::const_iterator itr = unitsById.find(unitId);
+	if (itr != unitsById.end())
+	{
+		itr->second->setPhysicalStatus(unitPhysicalStatus);
+	}
+}
+
 bool RealEstateAgent::onFrameInit(timeslice now)
 {
     return true;
 }
-
-
 
 Entity::UpdateStatus RealEstateAgent::onFrameTick(timeslice now)
 {
@@ -105,49 +178,7 @@ void RealEstateAgent::onEvent(EventId eventId, Context ctxId, EventPublisher*, c
 
 void RealEstateAgent::processEvent(EventId eventId, Context ctxId, const EventArgs& args)
 {
-    switch (eventId)
-    {
-        case LTEID_HM_UNIT_ADDED:
-        {
-            const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
-            const Unit *unit = hmArgs.getUnit();
-            //PrintOut("Unit added " << unit->getId() << endl);
-            break;
-        }
-        case LTEID_HM_UNIT_REMOVED:
-        {
-            const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
-            //PrintOut("Unit removed " << hmArgs.getUnitId() << endl);
-            break;
-        }
-        case LTEID_HM_BUILDING_ADDED:
-        {
-            const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
-            const Building *building = hmArgs.getBuilding();
-            //PrintOut("Building added " << hmArgs.getBuildingId() << endl);
-            break;
-        }
-        case LTEID_HM_BUILDING_REMOVED:
-        {
-             const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
-            // PrintOut("Building removed " << hmArgs.getBuildingId() << endl);
-             break;
-        }
-        case LTEID_EXT_LOST_JOB:
-        case LTEID_EXT_NEW_CHILD:
-        case LTEID_EXT_NEW_JOB:
-        case LTEID_EXT_NEW_JOB_LOCATION:
-        case LTEID_EXT_NEW_SCHOOL_LOCATION:  
-        {
-            const ExternalEventArgs& exArgs = MSG_CAST(ExternalEventArgs, args);
-            if (exArgs.getEvent().getHouseholdId() == getId())
-            {
-                processExternalEvent(exArgs);
-            }
-            break;
-        }
-        default:break;
-    };
+
 }
 
 void RealEstateAgent::processExternalEvent(const ExternalEventArgs& args){}
@@ -155,31 +186,105 @@ void RealEstateAgent::processExternalEvent(const ExternalEventArgs& args){}
 
 void RealEstateAgent::onWorkerEnter()
 {
-    if (!marketSeller)
-    {
-        MessageBus::SubscribeEvent(LTEID_HM_UNIT_ADDED, this);
-        MessageBus::SubscribeEvent(LTEID_HM_UNIT_REMOVED, this);
-        MessageBus::SubscribeEvent(LTEID_HM_BUILDING_ADDED, this);
-        MessageBus::SubscribeEvent(LTEID_HM_BUILDING_REMOVED, this);
-    }
+
 }
 
 void RealEstateAgent::onWorkerExit()
 {
-    if (!marketSeller)
-    {
-        MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
-        MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_REMOVED, this);
-        MessageBus::UnSubscribeEvent(LTEID_HM_BUILDING_ADDED, this);
-        MessageBus::UnSubscribeEvent(LTEID_HM_BUILDING_REMOVED, this);
-    }
+
 }
 
 void RealEstateAgent::HandleMessage(Message::MessageType type, const Message& message)
 {
 
-    if (seller && seller->isActive())
+   if (seller && seller->isActive())
     {
-        seller->HandleMessage(type, message);
+		seller->HandleMessage(type, message);
     }
+
+	switch (type)
+	    {
+	        case LTEID_HM_UNIT_ADDED:
+	        {
+	            const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
+	            Unit *unit = hmMessage.getUnit();
+
+				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	            unit->setTimeOffMarket(config.ltParams.housingModel.timeOnMarket);
+	            unit->setTimeOnMarket(config.ltParams.housingModel.timeOffMarket);
+	            unit->setbiddingMarketEntryDay(day + 180 + 1);
+
+	           	units.push_back(unit);
+	            unitsById.insert(std::make_pair((unit)->getId(), unit));
+	            break;
+	        }
+	        case LT_STATUS_ID_HM_UNIT_DEMOLISHED:
+	        {
+	            const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
+	            break;
+	        }
+	        case LT_STATUS_ID_HM_UNIT_UNDER_CONSTRUCTION:
+	        {
+	        	const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
+	            changeUnitStatus(hmMessage.getUnitId(),UNIT_UNDER_CONSTRUCTION);
+	            break;
+	        }
+	        case LT_STATUS_ID_HM_UNIT_CONSTRUCTION_COMPLETED:
+	        {
+	        	const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
+	        	changeUnitStatus(hmMessage.getUnitId(),UNIT_CONSTRUCTION_COMPLETED);
+	            break;
+	        }
+	        case LT_STATUS_ID_HM_UNIT_LAUNCHED_BUT_UNSOLD:
+	        {
+	         	const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
+	            BigSerial unitId = hmMessage.getUnitId();
+	            addNewUnit(unitId); // add unit id for sale
+	            changeUnitSaleStatus(hmMessage.getUnitId(),UNIT_LAUNCHED_BUT_UNSOLD);
+	            //PrintOutV("unit added to housing market" << std::endl);
+	            break;
+	        }
+	        case LT_STATUS_ID_HM_UNIT_READY_FOR_OCCUPANCY_AND_VACANT:
+	        {
+	        	const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
+	        	changeUnitPhysicalStatus(hmMessage.getUnitId(),UNIT_READY_FOR_OCCUPANCY_AND_VACANT);
+	        	break;
+	        }
+			case LTEID_HM_BUILDING_ADDED:
+			{
+				const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
+				Building *building = hmMessage.getBuilding();
+				buildingsById.insert(std::make_pair(building->getFmBuildingId(), building));
+				addNewBuildings(building);
+				break;
+			}
+			case LT_STATUS_ID_HM_BUILDING_DEMOLISHED:
+			{
+				const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
+				BigSerial buildingId = hmMessage.getBuildingId();
+				std::tm futureDemolitionDate = hmMessage.getFutureDemolitionDate();
+				changeToDateInToBeDemolishedBuildings(buildingId, futureDemolitionDate);
+				changeBuildingStatus(hmMessage.getBuildingId(), BUILDING_DEMOLISHED);
+				break;
+			}
+			case LT_STATUS_ID_HM_BUILDING_UNCOMPLETED_WITH_PREREQUISITES:
+			{
+				const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
+				changeBuildingStatus(hmMessage.getBuildingId(),BUILDING_UNCOMPLETED_WITH_PREREQUISITES);
+				break;
+			}
+			case LT_STATUS_ID_HM_BUILDING_NOT_LAUNCHED:
+			{
+				const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
+				changeBuildingStatus(hmMessage.getBuildingId(),BUILDING_NOT_LAUNCHED);
+				break;
+			}
+			case LT_STATUS_ID_HM_BUILDING_LAUNCHED_BUT_UNSOLD:
+			{
+				const HM_ActionMessage& hmMessage = MSG_CAST(HM_ActionMessage, message);
+				changeBuildingStatus(hmMessage.getBuildingId(),BUILDING_LAUNCHED_BUT_UNSOLD);
+				break;
+			}
+	        default:break;
+	    };
 }

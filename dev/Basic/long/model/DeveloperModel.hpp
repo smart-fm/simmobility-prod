@@ -232,9 +232,6 @@ namespace sim_mob {
             BigSerial unitIdForDevAgent;
             BigSerial buildingIdForDevAgent;
             BigSerial projectIdForDevAgent;
-            bool initUnitId;
-            bool initBuildingId;
-            bool initProjectId;
         };
     }
 }

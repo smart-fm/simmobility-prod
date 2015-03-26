@@ -145,9 +145,9 @@
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
 		<InitialPostcode value = "1000000"/>
-		<initialBuildingId value = "600000" />
-		<initialUnitId value = "6000000" />
-		<initialProjectId value = "600000" />
+		<initialBuildingId value = "300000" />
+		<initialUnitId value = "2000000" />
+		<initialProjectId value = "200000" />
     	</developerModel>
         <housingModel enabled="true"> 
             <timeOnMarket value="90"/>

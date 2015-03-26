@@ -752,6 +752,7 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 	if(pathTT && !pathTT->path.empty())
 	{
 		pathTT->scenario = "STTLE-SP";
+		pathTT->pathSetId = ps->id;
 		PathSetWorkerThread* work = new PathSetWorkerThread();
 		work->s = pathTT;
 		work->hasPath = true;
@@ -818,6 +819,7 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 	if(sinPathHighwayBias && !sinPathHighwayBias->path.empty())
 	{
 		sinPathHighwayBias->scenario = "STTHLE-SP";
+		sinPathHighwayBias->pathSetId = ps->id;
 		PathSetWorkerThread* work = new PathSetWorkerThread();
 		work->s = sinPathHighwayBias;
 		work->hasPath = true;

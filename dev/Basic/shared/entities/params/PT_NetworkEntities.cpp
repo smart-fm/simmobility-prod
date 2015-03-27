@@ -15,8 +15,10 @@ using namespace std;
 using namespace sim_mob;
 PT_Network sim_mob::PT_Network::instance_;
 
-void PT_Network::init(){
-
+void PT_Network::init()
+{
+	vector<PT_NetworkVertex> PublicTransitVertices;
+	vector<PT_NetworkEdge> PublicTransitEdges;
 	const std::string& dbId = ConfigManager::GetInstance().FullConfig().system.networkDatabase.database;
 	Database database = ConfigManager::GetInstance().FullConfig().constructs.databases.at(dbId);
 	std::string cred_id = ConfigManager::GetInstance().FullConfig().system.networkDatabase.credentials;
@@ -41,19 +43,17 @@ void PT_Network::init(){
 		Pt_EdgesSqlDao pt_edgesDao(conn,DB_GETALL_PT_EDGES_QUERY);
 		pt_edgesDao.getAll(PublicTransitEdges);
 	}
-	cout<<"Public Transport Network Loaded ";
-}
 
-PT_NetworkVertex PT_Network::getVertexFromStopId(std::string stopId)
-{
-	PT_NetworkVertex ptVertex;
-	for(vector<PT_NetworkVertex>::const_iterator ptVertexIt=PublicTransitVertices.begin();ptVertexIt!=PublicTransitVertices.end();ptVertexIt++){
-		if(ptVertexIt->getStopId() == stopId)
-		{
-			ptVertex= *ptVertexIt;
-		}
+	// Building a Public transit map for edges and vertices
+	for(vector<PT_NetworkVertex>::const_iterator ptVertexIt=PublicTransitVertices.begin();ptVertexIt!=PublicTransitVertices.end();ptVertexIt++)
+	{
+		PublicTransitVertexMap[(*ptVertexIt).getStopId()]=*ptVertexIt;
 	}
-	return ptVertex;
+	for(vector<PT_NetworkEdge>::const_iterator ptEdgeIt=PublicTransitEdges.begin();ptEdgeIt!=PublicTransitEdges.end();ptEdgeIt++)
+	{
+		PublicTransitVertexMap[(*ptEdgeIt).getEdgeId()]=*ptEdgeIt;
+	}
+	cout<<"Public Transport Network Loaded ";
 }
 
 PT_NetworkEdge::PT_NetworkEdge():startStop(""),endStop(""),rType(""),road_index(""),roadEdgeId(""),

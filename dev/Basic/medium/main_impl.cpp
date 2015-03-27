@@ -85,12 +85,12 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 
 
 void unit_test_function(){
-	sim_mob::Node* src_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(19569);
-	sim_mob::Node* dest_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(21231);
-	vector<PT_NetworkEdge> path = sim_mob::PT_PathSetManager::Instance().makePathset(src_node,dest_node);
+	sim_mob::Node* src_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(14934);
+	sim_mob::Node* dest_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(11392);
+	vector<sim_mob::StreetDirectory::PT_EdgeId> path = sim_mob::PT_PathSetManager::Instance().makePathset(src_node,dest_node);
 
-	for(vector<PT_NetworkEdge>::const_iterator it=path.begin();it!=path.end();it++){
-		cout<<it->getEdgeId()<<"-->";
+	for(vector<sim_mob::StreetDirectory::PT_EdgeId>::const_iterator it=path.begin();it!=path.end();it++){
+		cout<<*it<<"-->";
 	}
 	/*
 	std::ofstream pt_networkwriter;

@@ -95,6 +95,16 @@ enum PT_WeightLabels{
 	LabelingApproach8,
 	LabelingApproach9,
 	LabelingApproach10,
+	SimulationApproach1,
+	SimulationApproach2,
+	SimulationApproach3,
+	SimulationApproach4,
+	SimulationApproach5,
+	SimulationApproach6,
+	SimulationApproach7,
+	SimulationApproach8,
+	SimulationApproach9,
+	SimulationApproach10,
 	weightLabelscount
 };
 class StreetDirectory : private boost::noncopyable
@@ -200,9 +210,34 @@ public:
 	};
 
 	//Public transit graph
+	typedef int PT_EdgeId;
+	typedef std::string PT_VertexId;
+
 	struct PT_EdgeProperties{
-		int edge_id;
+		PT_EdgeId edge_id;
+		double weights[10];
 		double kShortestPathWeight;
+		double labelingApproach1Weight;
+		double labelingApproach2Weight;
+		double labelingApproach3Weight;
+		double labelingApproach4Weight;
+		double labelingApproach5Weight;
+		double labelingApproach6Weight;
+		double labelingApproach7Weight;
+		double labelingApproach8Weight;
+		double labelingApproach9Weight;
+		double labelingApproach10Weight;
+		// Simulation approach
+		double simulationApproach1Weight;
+		double simulationApproach2Weight;
+		double simulationApproach3Weight;
+		double simulationApproach4Weight;
+		double simulationApproach5Weight;
+		double simulationApproach6Weight;
+		double simulationApproach7Weight;
+		double simulationApproach8Weight;
+		double simulationApproach9Weight;
+		double simulationApproach10Weight;
 	};
     typedef boost::property<boost::vertex_name_t, std::string> PT_VertexProperties;
 
@@ -219,7 +254,6 @@ public:
 
     typedef PublicTransitGraph::edge_descriptor PT_Edge;
 
-    typedef int PT_EdgeId;
 
     /**
      * Provides an implementation of the main StreetDirectory functionality. We define this as a public class
@@ -283,10 +317,10 @@ public:
     class PublicTransitShortestPathImpl{
     public:
     	// TODO: Define the functions which you defined in A_StarPublictransitShortestPathImpl
-    	virtual std::vector<StreetDirectory::PT_EdgeId> searchShortestPath(PT_NetworkVertex,PT_NetworkVertex,PT_WeightLabels)=0;
+    	virtual std::vector<StreetDirectory::PT_EdgeId> searchShortestPath(PT_VertexId,PT_VertexId,int)=0;
 
-    	virtual std::vector<StreetDirectory::PT_EdgeId> searchShortestPathWithBlacklist(PT_NetworkVertex,PT_NetworkVertex,PT_WeightLabels,const std::set<StreetDirectory::PT_Edge>&,double &)=0;
-    	//virtual int getKShortestPaths(StreetDirectory::PT_Vertex,StreetDirectory::PT_Vertex , std::vector< std::vector<StreetDirectory::PT_EdgeId> > &) const =0;
+    	virtual std::vector<StreetDirectory::PT_EdgeId> searchShortestPathWithBlacklist(PT_VertexId,PT_VertexId,int,const std::set<StreetDirectory::PT_EdgeId>&,double &)=0;
+    	virtual int getKShortestPaths(PT_VertexId,PT_VertexId,std::vector< std::vector<StreetDirectory::PT_EdgeId> > &)=0;
     	friend class StreetDirectory;
     };
 

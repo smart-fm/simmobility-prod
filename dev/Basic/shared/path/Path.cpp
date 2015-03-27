@@ -1,6 +1,7 @@
 #include "Path.hpp"
 
 #include <boost/foreach.hpp>
+#include <math.h>
 #include <boost/iterator/filter_iterator.hpp>
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Link.hpp"
@@ -416,4 +417,116 @@ std::string sim_mob::makeWaypointsetString(const std::vector<sim_mob::WayPoint>&
 	}
 
 	return str.str();
+}
+
+std::string sim_mob::makePT_PathString(const std::vector<PT_NetworkEdge> &path)
+{
+	std::stringstream str("");
+	if(path.size()==0)
+	{
+		std::cout<<"warning: empty output makePT_PathString id"<<std::endl;
+	}
+	for(std::vector<PT_NetworkEdge>::const_iterator it = path.begin();it!=path.end();it++)
+	{
+		str<<it->getEdgeId()<<",";
+	}
+	if(str.str().size()<1)
+	{
+		std::cout<<"warning: empty output makePT_PathString id"<<std::endl;
+	}
+	return str.str();
+
+}
+std::string sim_mob::makePT_PathSetString(const std::vector<PT_NetworkEdge> &path)
+{
+	std::stringstream str("");
+	if(path.size()==0)
+	{
+		std::cout<<"warning: empty output makePT_PathSetString id"<<std::endl;
+	}
+	str<<path.front().getStartStop()<<",";
+	str<<path.back().getEndStop();
+	if(str.str().size()<1)
+	{
+		std::cout<<"warning: empty output makePT_PathSetString id"<<std::endl;
+	}
+	return str.str();
+}
+sim_mob::PT_Path::PT_Path (const std::vector<PT_NetworkEdge> &path) : pathEdges(path),
+		partialUtility(0.0),
+		totalDistanceKms(0.0),
+		totalCost(0.0),
+		totalInVehicleTravelTimeSecs(0.0),
+		totalWaitingTimeSecs(0.0),
+		totalWalkingTimeSecs(0.0),
+		totalNumberOfTransfers(-1),minDistance(false),validPath(false),shortestPath(false),
+		minInVehicleTravelTimeSecs(false),minNumberOfTransfers(false),minWalkingDistance(false),
+		minTravelOnMRT(false),minTravelOnBus(false),pathSize(0.0)
+{
+	double totalBusTravelDistance;
+	ptPathId=makePT_PathString(pathEdges);
+	ptPathSetId=makePT_PathSetString(pathEdges);
+	for(std::vector<PT_NetworkEdge>::const_iterator itEdge=pathEdges.begin();itEdge!=pathEdges.end();itEdge++)
+	{
+		totalWaitingTimeSecs+=itEdge->getWaitTimeSecs();
+		totalInVehicleTravelTimeSecs+=itEdge->getDayTransitTimeSecs();
+		totalWalkingTimeSecs+=itEdge->getWalkTimeSecs();
+		pathTravelTime+=itEdge->getLinkTravelTimeSecs();
+		totalNumberOfTransfers++;
+		totalDistanceKms+=itEdge->getDistKms();
+		if(itEdge->getType()=="Bus")
+		{
+			totalBusTravelDistance+=itEdge->getDistKms();
+		}
+	}
+	totalCost=this->getTotalCost(totalBusTravelDistance);
+}
+
+double sim_mob::PT_Path::getTotalCost(double totalDistance)
+{
+	if(totalDistance<=3.2)
+	{
+		return pathCostArray[0];
+	}
+	else if(totalDistance>40.2)
+	{
+		return pathCostArray[39];
+	}
+	else
+	{
+		return pathCostArray[floor(totalDistance-3.2000000001)+1];
+	}
+}
+
+void sim_mob::PT_PathSet::computeAndSetPathSize()
+{
+	for(std::set<PT_Path,cmp_path_vector>::iterator itPath =pathSet.begin();itPath!=pathSet.end();itPath++)
+	{
+		double pathSize=0;
+		double subPathSize=0;  // Used to store the path-size component for each edge
+		int subN=0;            // Used to store the number of overlapped edge in choice set
+		std::vector<PT_NetworkEdge> edges;
+		for(std::vector<PT_NetworkEdge>::const_iterator itEdge=edges.begin();itEdge!=edges.end();itEdge++)
+		{
+			subPathSize=itEdge->getLinkTravelTimeSecs()/itPath->getpathTravelTime();
+			std::stringstream edgestring;
+			edgestring<<itEdge->getEdgeId()<<",";
+			std::string edgeId= edgestring.str();
+			for(std::set<PT_Path,cmp_path_vector>::iterator itPathComp =pathSet.begin();itPathComp!=pathSet.end();itPathComp++)
+			{
+				if (itPathComp->getPtPathId().find(edgeId) != std::string::npos)
+				{
+					subN=subN+1;
+				}
+			}
+			subPathSize=subPathSize/subN;
+			pathSize=pathSize+subPathSize;
+		}
+		itPath->setPathSize(pathSize);
+	}
+}
+bool sim_mob::cmp_path_vector::operator()(const PT_Path A, const PT_Path B) const {
+
+	return A.getPtPathId() < B.getPtPathId();
+
 }

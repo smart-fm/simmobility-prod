@@ -396,7 +396,7 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetworkFromDatabase()
 }
 void sim_mob::ExpandAndValidateConfigFile::LoadPublicTransitNetworkFromDatabase()
 {
-	PT_Network* ptNetwork = new PT_Network();
+	PT_Network::getInstance().init();
 }
 
 void sim_mob::ExpandAndValidateConfigFile::WarnMidroadSidewalks()

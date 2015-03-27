@@ -243,8 +243,8 @@ public:
 	//PT_Network();
 	//~PT_Network();
 
-	std::vector<PT_NetworkEdge> PublicTransitEdges;
-	std::vector<PT_NetworkVertex> PublicTransitVertices;
+	std::map<int,PT_NetworkEdge> PT_NetworkEdgeMap;
+	std::map<std::string,PT_NetworkVertex> PublicTransitVertexMap;
 
 	void init();
 	PT_NetworkVertex getVertexFromStopId(std::string stopId);

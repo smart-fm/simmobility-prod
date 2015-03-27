@@ -20,6 +20,7 @@
 #include "util/GeomHelpers.hpp"
 #include "util/LangHelpers.hpp"
 #include "StreetDirectory.hpp"
+#include "util/Utils.hpp"
 
 using std::map;
 using std::vector;
@@ -63,9 +64,121 @@ double sim_mob::A_StarPublicTransitShortestPathImpl::getKshortestPathcost(const 
 {
 	return ptEdge.getDayTransitTimeSecs()+ptEdge.getTransferPenaltySecs()+ptEdge.getWalkTimeSecs();
 }
+
+double sim_mob::A_StarPublicTransitShortestPathImpl::getLabelingApproachWeights(int Label,PT_NetworkEdge ptEdge)
+{
+	double cost;
+	switch(Label)
+	{
+		case LabelingApproach1:
+		{
+			ptEdge.setWalkTimeSecs(0);
+			ptEdge.setWaitTimeSecs(0);
+			break;
+		}
+		case LabelingApproach2:
+		{
+			ptEdge.setWalkTimeSecs(0);
+			ptEdge.setWaitTimeSecs(0);
+			ptEdge.setDayTransitTimeSecs(0);
+			ptEdge.setTransferPenaltySecs(1);
+			break;
+		}
+		case LabelingApproach3:
+		{
+			if (ptEdge.getType()=="Walk")
+			{
+				ptEdge.setWalkTimeSecs(1000000);
+			}
+			break;
+		}
+		case LabelingApproach4:
+		{
+			if(ptEdge.getType()=="MRT")
+			{
+				ptEdge.setTransferPenaltySecs(1000000);
+			}
+			break;
+		}
+		case LabelingApproach5:
+		{
+			if(ptEdge.getType()=="Bus")
+			{
+				ptEdge.setTransferPenaltySecs(1000000);
+			}
+			break;
+		}
+		case LabelingApproach6:
+		{
+			ptEdge.setDayTransitTimeSecs(0);
+			ptEdge.setWalkTimeSecs(0);
+			break;
+		}
+		case LabelingApproach7:
+			// DO Nothing
+			break;
+		case LabelingApproach8:
+		{
+			double walkTime = ptEdge.getWalkTimeSecs();
+			double waitTime = ptEdge.getWaitTimeSecs();
+			ptEdge.setWalkTimeSecs(5*walkTime);
+			ptEdge.setWaitTimeSecs(10*waitTime);
+			break;
+		}
+		case LabelingApproach9:
+		{
+			double walkTime = ptEdge.getWalkTimeSecs();
+			double waitTime = ptEdge.getWaitTimeSecs();
+			ptEdge.setWalkTimeSecs(10*walkTime);
+			ptEdge.setWaitTimeSecs(10*waitTime);
+			break;
+		}
+		case LabelingApproach10:
+		{
+			double walkTime = ptEdge.getWalkTimeSecs();
+			double waitTime = ptEdge.getWaitTimeSecs();
+			ptEdge.setWalkTimeSecs(20*walkTime);
+			ptEdge.setWaitTimeSecs(10*waitTime);
+			break;
+		}
+		default:
+			// Do Nothing
+			break;
+	}
+	//Cost function for labeling approach
+	//Cost = day_transit_time + walk_time + wait_time + transfer_penalty
+	cost= ptEdge.getDayTransitTimeSecs()+ptEdge.getWalkTimeSecs()+ptEdge.getWaitTimeSecs()+ptEdge.getTransferPenaltySecs();
+	return cost;
+}
+double sim_mob::A_StarPublicTransitShortestPathImpl::getSimulationApproachWeights(PT_NetworkEdge ptEdge)
+{
+	double cost = ptEdge.getDayTransitTimeSecs()+ptEdge.getWalkTimeSecs()+ptEdge.getWaitTimeSecs();
+	return Utils::nRandom(cost,5*cost);
+}
 void sim_mob::A_StarPublicTransitShortestPathImpl::procAddPublicNetworkEdgeweights(const StreetDirectory::PT_Edge& edge,StreetDirectory::PublicTransitGraph& graph,PT_NetworkEdge& ptEdge)
 {
 	graph[edge].kShortestPathWeight=getKshortestPathcost(ptEdge);
+
+	graph[edge].labelingApproach1Weight=getLabelingApproachWeights(LabelingApproach1,ptEdge);
+	graph[edge].labelingApproach2Weight=getLabelingApproachWeights(LabelingApproach2,ptEdge);
+	graph[edge].labelingApproach3Weight=getLabelingApproachWeights(LabelingApproach3,ptEdge);
+	graph[edge].labelingApproach4Weight=getLabelingApproachWeights(LabelingApproach4,ptEdge);
+	graph[edge].labelingApproach5Weight=getLabelingApproachWeights(LabelingApproach5,ptEdge);
+	graph[edge].labelingApproach6Weight=getLabelingApproachWeights(LabelingApproach6,ptEdge);
+	graph[edge].labelingApproach7Weight=getLabelingApproachWeights(LabelingApproach7,ptEdge);
+	graph[edge].labelingApproach8Weight=getLabelingApproachWeights(LabelingApproach8,ptEdge);
+	graph[edge].labelingApproach9Weight=getLabelingApproachWeights(LabelingApproach9,ptEdge);
+	graph[edge].labelingApproach10Weight=getLabelingApproachWeights(LabelingApproach10,ptEdge);
+	graph[edge].simulationApproach1Weight=getSimulationApproachWeights(ptEdge);
+	graph[edge].simulationApproach2Weight=getSimulationApproachWeights(ptEdge);
+	graph[edge].simulationApproach3Weight=getSimulationApproachWeights(ptEdge);
+	graph[edge].simulationApproach4Weight=getSimulationApproachWeights(ptEdge);
+	graph[edge].simulationApproach5Weight=getSimulationApproachWeights(ptEdge);
+	graph[edge].simulationApproach6Weight=getSimulationApproachWeights(ptEdge);
+	graph[edge].simulationApproach7Weight=getSimulationApproachWeights(ptEdge);
+	graph[edge].simulationApproach8Weight=getSimulationApproachWeights(ptEdge);
+	graph[edge].simulationApproach9Weight=getSimulationApproachWeights(ptEdge);
+	graph[edge].simulationApproach10Weight=getSimulationApproachWeights(ptEdge);
 	graph[edge].edge_id=ptEdge.getEdgeId();
 }
 
@@ -73,35 +186,110 @@ void sim_mob::A_StarPublicTransitShortestPathImpl::procAddPublicNetworkEdgeweigh
 // Input - from node , to node , graph
 // output - List of egde id of the edges in the graph traversing the shortest path
 //TODO:Make it template so it can be used for any weight parameter given
-vector<sim_mob::StreetDirectory::PT_EdgeId> sim_mob::A_StarPublicTransitShortestPathImpl::searchShortestPath(PT_NetworkVertex fromNode,PT_NetworkVertex toNode,PT_WeightLabels cost)
+vector<sim_mob::PT_NetworkEdge> sim_mob::A_StarPublicTransitShortestPathImpl::searchShortestPath(StreetDirectory::PT_VertexId fromNode,StreetDirectory::PT_VertexId toNode,int cost)
 {
-	    vector<StreetDirectory::PT_EdgeId> res;
-	    StreetDirectory::PT_Vertex from = vertexMap[fromNode.getStopId()];
-	    StreetDirectory::PT_Vertex to = vertexMap[toNode.getStopId()];
+	    vector<PT_NetworkEdge> res;
+	    StreetDirectory::PT_Vertex from;
+	    StreetDirectory::PT_Vertex to;
+		if(vertexMap.find(fromNode) != vertexMap.end())
+		{
+			from = vertexMap.find(fromNode)->second;
+		}
+		else
+		{
+			std::cout<<"From Node not found in the graph";
+			return vector<StreetDirectory::PT_EdgeId>();
+		}
+		if(vertexMap.find(toNode) != vertexMap.end())
+		{
+			to = vertexMap.find(toNode)->second;
+		}
+		else
+		{
+			std::cout<<"To Node not found in the graph";
+			return vector<StreetDirectory::PT_EdgeId>();
+		}
 	    StreetDirectory::PublicTransitGraph& graph = publictransitMap_;
 		list<StreetDirectory::PT_Vertex> partialRes;
 		vector<StreetDirectory::PT_Vertex> p(boost::num_vertices(graph));  //Output variable
 		vector<double> d(boost::num_vertices(graph));  //Output variable
-		//boost::property_map<StreetDirectory::PublicTransitGraph,double[]> x;
-		//x=get(&StreetDirectory::PT_EdgeProperties::weightMap,graph);
-		//boost::property_map<StreetDirectory::PublicTransitGraph,double*>::type kWeightMap;
-		//kWeightMap = get(&StreetDirectory::PT_EdgeProperties::label,graph);
-		//auto kWeightMap = boost::make_transform_value_property_map(
-		  //              [](StreetDirectory::PT_EdgeProperties* ve) { return ve->label[cost]; },
-		  //              boost::get(boost::edge_bundle,graph)
-		  //         );
-		//boost::property_map<StreetDirectory::PublicTransitGraph, boost::edge_weight_t>::type kWeightMap;
-		//kWeightMap = get(&StreetDirectory::PT_EdgeProperties::label1,graph);
+		boost::property_map<StreetDirectory::PublicTransitGraph, double (StreetDirectory::PT_EdgeProperties::*)[]>::type weightMap;
+		switch(cost)
+		{
+			case KshortestPath:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::kShortestPathWeight, graph);
+				break;
+			case LabelingApproach1:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::labelingApproach1Weight, graph);
+				break;
+			case LabelingApproach2:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::labelingApproach2Weight, graph);
+				break;
+			case LabelingApproach3:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::labelingApproach3Weight, graph);
+				break;
+			case LabelingApproach4:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::labelingApproach4Weight, graph);
+				break;
+			case LabelingApproach5:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::labelingApproach5Weight, graph);
+				break;
+			case LabelingApproach6:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::labelingApproach6Weight, graph);
+				break;
+			case LabelingApproach7:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::labelingApproach7Weight, graph);
+				break;
+			case LabelingApproach8:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::labelingApproach8Weight, graph);
+				break;
+			case LabelingApproach9:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::labelingApproach9Weight, graph);
+				break;
+			case LabelingApproach10:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::labelingApproach10Weight, graph);
+				break;
+			case SimulationApproach1:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::simulationApproach1Weight, graph);
+				break;
+			case SimulationApproach2:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::simulationApproach2Weight, graph);
+				break;
+			case SimulationApproach3:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::simulationApproach3Weight, graph);
+				break;
+			case SimulationApproach4:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::simulationApproach4Weight, graph);
+				break;
+			case SimulationApproach5:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::simulationApproach5Weight, graph);
+				break;
+			case SimulationApproach6:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::simulationApproach6Weight, graph);
+				break;
+			case SimulationApproach7:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::simulationApproach7Weight, graph);
+				break;
+			case SimulationApproach8:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::simulationApproach8Weight, graph);
+				break;
+			case SimulationApproach9:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::simulationApproach9Weight, graph);
+				break;
+			case SimulationApproach10:
+				weightMap = boost::get(&StreetDirectory::PT_EdgeProperties::simulationApproach10Weight, graph);
+				break;
+		}
 		try {
 			boost::astar_search(
 				graph,
 				from,
 				distance_heuristic_graph_PT(&graph, to),
-				boost::weight_map(get(&StreetDirectory::PT_EdgeProperties::kShortestPathWeight,graph)).predecessor_map(&p[0]).
-					distance_map(&d[0]).visitor(astar_goal_visitor(to))
-			);
+				boost::weight_map(weightMap).predecessor_map(&p[0]).distance_map(&d[0])
+				.visitor(astar_pt_goal_visitor(to)));
 
-		} catch (found_goal& goal) {
+		}
+		catch (pt_found_goal& goal) {
 			//Build backwards.
 			for (StreetDirectory::PT_Vertex v=to;;v=p[v]) {
 				partialRes.push_front(v);
@@ -124,7 +312,7 @@ vector<sim_mob::StreetDirectory::PT_EdgeId> sim_mob::A_StarPublicTransitShortest
 					//Retrieve, add this edge's WayPoint.
 					//WayPoint wp = boost::get(boost::edge_name, graph, edge.first);
 					StreetDirectory::PT_EdgeId edge_id = get(&StreetDirectory::PT_EdgeProperties::edge_id, graph,edge.first);
-					res.push_back(edge_id);
+					res.push_back(PT_Network::getInstance().PT_NetworkEdgeMap.find(edge_id));
 				}
 				//Save for later.
 				prev = it;
@@ -132,17 +320,40 @@ vector<sim_mob::StreetDirectory::PT_EdgeId> sim_mob::A_StarPublicTransitShortest
 		}
 		return res;
 }
-vector<sim_mob::StreetDirectory::PT_EdgeId> sim_mob::A_StarPublicTransitShortestPathImpl::searchShortestPathWithBlacklist(PT_NetworkVertex fromNode,PT_NetworkVertex toNode,PT_WeightLabels cost,const std::set<StreetDirectory::PT_Edge>& blacklist,double &path_cost)
+vector<sim_mob::PT_NetworkEdge> sim_mob::A_StarPublicTransitShortestPathImpl::searchShortestPathWithBlacklist(StreetDirectory::PT_VertexId fromNode,StreetDirectory::PT_VertexId toNode,int cost,const std::set<StreetDirectory::PT_EdgeId>& blacklist,double &path_cost)
 {
-	    StreetDirectory::PublicTransitGraph& graph = publictransitMap_;
-	    StreetDirectory::PT_Vertex from = vertexMap[fromNode.getStopId()];
-	    StreetDirectory::PT_Vertex to = vertexMap[toNode.getStopId()];
-	    blacklist_PT_edge_constraint filter(blacklist);
+		StreetDirectory::PublicTransitGraph& graph = publictransitMap_;
+		StreetDirectory::PT_Vertex from;
+		StreetDirectory::PT_Vertex to;
+		if(vertexMap.find(fromNode) != vertexMap.end())
+		{
+			 from = vertexMap.find(fromNode)->second;
+		}
+		else
+		{
+			std::cout<<"From Node not found in the graph";
+			return vector<StreetDirectory::PT_EdgeId>();
+		}
+		if(vertexMap.find(toNode) != vertexMap.end())
+		{
+			 to = vertexMap.find(toNode)->second;
+		}
+		else
+		{
+			std::cout<<"TO Node not found in the graph";
+			return vector<StreetDirectory::PT_EdgeId>();
+		}
+		std::set<StreetDirectory::PT_Edge> blEdge = std::set<StreetDirectory::PT_Edge>();
+		for(std::set<StreetDirectory::PT_EdgeId>::const_iterator blIt=blacklist.begin();blIt!=blacklist.end();blIt++)
+		{
+			blEdge.insert(edgeMap[*blIt]);
+		}
+	    blacklist_PT_edge_constraint filter(blEdge);
 		boost::filtered_graph<StreetDirectory::PublicTransitGraph, blacklist_PT_edge_constraint> filtered(graph, filter);
 		// Same code copied from searchShortestPath function as we use filtered graph in this function rather than
 		// adjacency list in the other
 		//TODO: can fine way to have generic function
-		vector<StreetDirectory::PT_EdgeId> res;
+		vector<sim_mob::PT_NetworkEdge> res;
 		list<StreetDirectory::PT_Vertex> partialRes;
 		vector<StreetDirectory::PT_Vertex> p(boost::num_vertices(graph));  //Output variable
 		vector<double> d(boost::num_vertices(graph));  //Output variable
@@ -152,9 +363,9 @@ vector<sim_mob::StreetDirectory::PT_EdgeId> sim_mob::A_StarPublicTransitShortest
 				filtered,from,
 				distance_heuristic_graph_PT(&graph, to),
 				boost::weight_map(get(&StreetDirectory::PT_EdgeProperties::kShortestPathWeight,graph)).predecessor_map(&p[0]).
-				distance_map(&d[0]).visitor(astar_goal_visitor(to))
+				distance_map(&d[0]).visitor(astar_pt_goal_visitor(to))
 				);
-		} catch (found_goal& goal) {
+		} catch (pt_found_goal& goal) {
 			path_cost=d[to];
 			//Build backwards.
 			for (StreetDirectory::PT_Vertex v=to;;v=p[v]) {
@@ -178,7 +389,7 @@ vector<sim_mob::StreetDirectory::PT_EdgeId> sim_mob::A_StarPublicTransitShortest
 					//Retrieve, add this edge's WayPoint.
 					//WayPoint wp = boost::get(boost::edge_name, graph, edge.first);
 					StreetDirectory::PT_EdgeId edge_id = get(&StreetDirectory::PT_EdgeProperties::edge_id, graph,edge.first);
-					res.push_back(edge_id);
+					res.push_back(PT_Network::getInstance().PT_NetworkEdgeMap.find(edge_id));
 				}
 				//Save for later.
 				prev = it;
@@ -187,44 +398,46 @@ vector<sim_mob::StreetDirectory::PT_EdgeId> sim_mob::A_StarPublicTransitShortest
 		return res;
 }
 
-int sim_mob::A_StarPublicTransitShortestPathImpl::getKShortestPaths(PT_NetworkVertex& from,PT_NetworkVertex& to, vector<vector<StreetDirectory::PT_EdgeId> > &res)
+int sim_mob::A_StarPublicTransitShortestPathImpl::getKShortestPaths(StreetDirectory::PT_VertexId from,StreetDirectory::PT_VertexId to, vector<vector<sim_mob::PT_NetworkEdge> > &res)
 {
-	// Define Q to hold the k shortest paths
+
 	int kShortestPaths=10;
 	StreetDirectory::PublicTransitGraph& graph = publictransitMap_;
 	PT_WeightLabels KshortestPath;
 	double path_cost;
-	std::vector<vector<StreetDirectory::PT_EdgeId> > Q;
-	struct Btype{
+	struct tempPathSet {
 		vector<vector<StreetDirectory::PT_EdgeId> > paths;
 		vector<double> pathCosts;
 	};
 
+
+	// Define Q to hold the k shortest paths
+	std::vector<vector<StreetDirectory::PT_EdgeId> > Q;
+
 	// Define B to hold the intermediate paths found (Only subset from this set goes to Q)
-	Btype B;
+	tempPathSet B;
 
 	//step 1: Search shortest path p_1
-	std::set<StreetDirectory::PT_Edge> bl = std::set<StreetDirectory::PT_Edge>();
+	std::set<StreetDirectory::PT_EdgeId> bl = std::set<StreetDirectory::PT_EdgeId>();
 	std::vector<StreetDirectory::PT_EdgeId> p_1 = searchShortestPathWithBlacklist(from,to,KshortestPath,bl,path_cost);
 	Q.push_back(p_1);
 
 	// For k in 1:K-1 (K - number of paths required )
 	for(int k=1;k<kShortestPaths;k++)
 	{
-
+		bl.clear();
 		//step 2: Each iteration of the below code gives the kth shortest path
 		// Eliminate first edge from each paths found already(p_1,p_2,...,p_(k-1))
 		for(int p=0;p<k;p++)
 		{
-			StreetDirectory::PT_EdgeId first_edge_id = Q[p].front();
-			StreetDirectory::PT_Edge first_edge= edgeMap[first_edge_id];
-			bl.insert(first_edge);
+			StreetDirectory::PT_EdgeId firstEdgeId = Q[p].front();
+			bl.insert(firstEdgeId);
 		}
 
 		//Search Shortest path , denote p_temp , if p_temp doesnt exist in Q or B , B = union(B,p_temp)
 		std::vector<StreetDirectory::PT_EdgeId> p_temp = searchShortestPathWithBlacklist(from,to,KshortestPath,bl,path_cost);
 
-
+		bl.clear();
 		//Check if p_temp present in Q or B already
 		if(std::find(Q.begin(), Q.end(), p_temp)==Q.end())
 		{
@@ -258,20 +471,18 @@ int sim_mob::A_StarPublicTransitShortestPathImpl::getKShortestPaths(PT_NetworkVe
 				{
 
 					// Block e(i+1) from path p_j in graph
-					StreetDirectory::PT_EdgeId remove_edge_id = Q[j].at(i+1);
-					StreetDirectory::PT_Edge remove_edge= edgeMap[remove_edge_id];
-					bl.insert(remove_edge);
+					StreetDirectory::PT_EdgeId removeEdgeId = Q[j].at(i+1);
+					bl.insert(removeEdgeId);
 				}
 			}
 
 			// Denote (e_1,e_2,...e_(i-1)) as S_i. Find the shortest route R_i from ending vertex of e_i and same destination
 			vector<StreetDirectory::PT_EdgeId> S_i(Q[k-1].begin(),Q[k-1].begin()+(i-1));
 			vector<StreetDirectory::PT_EdgeId> R_i;
-			//std::copy(Q[k-1].begin(),Q.begin()+(i-1),S_i.begin());
 
 			//Finding the ending vertex of the edge e_i in Q[k-1]
-			StreetDirectory::PT_Vertex start_vertex = boost::target(edgeMap[rootpath.back()],graph);
-			PT_NetworkVertex start = PT_Network::getInstance().getVertexFromStopId(boost::get(boost::vertex_name,graph,start_vertex));
+			StreetDirectory::PT_Vertex startVertex = boost::target(edgeMap[rootpath.back()],graph);
+			StreetDirectory::PT_VertexId start = boost::get(boost::vertex_name,graph,startVertex);
 			R_i = searchShortestPathWithBlacklist(start,to,KshortestPath,bl,path_cost);
 
 			// Concatenate S_i and R_i to obtain A_i_k
@@ -291,7 +502,6 @@ int sim_mob::A_StarPublicTransitShortestPathImpl::getKShortestPaths(PT_NetworkVe
 				}
 			}
 		}
-
 		// If B is empty Break the whole loop
 		if(B.paths.size() == 0)
 		{
@@ -304,9 +514,18 @@ int sim_mob::A_StarPublicTransitShortestPathImpl::getKShortestPaths(PT_NetworkVe
 		B.paths.erase(B.paths.begin()+index);
 		B.pathCosts.erase(B.pathCosts.begin()+index);
 	}
-	res=Q; // Assigning the result to the reference variable
+	 // Assigning the result to the reference variable
+	for(vector<vector<StreetDirectory::PT_EdgeId> >::const_pointer itVecEdge=Q.begin();itVecEdge!=Q.end();itVecEdge++)
+	{
+		vector<StreetDirectory::PT_EdgeId> temp;
+		for(vector<StreetDirectory::PT_EdgeId>::const_pointer itEdge=(itVecEdge)->begin();itEdge!=itVecEdge->end();itEdge++)
+		{
+			temp.push_back(PT_Network::getInstance().PT_NetworkEdgeMap.find(*itEdge));
+		}
+		res.push_back(temp);
+	}
+	return 1;
 }
-
 /*
 void sim_mob::A_StarPublicTransitShortestPathImpl::shortest_path(map<const std::string,StreetDirectory::PT_Vertex> vertexmap)
 {

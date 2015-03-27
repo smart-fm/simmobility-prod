@@ -9,6 +9,8 @@
  */
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/Node.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
+#include "path/Path.hpp"
 using std::vector;
 namespace sim_mob{
 
@@ -23,8 +25,15 @@ public:
 		return _instance;
 	}
 public:
-	vector<PT_NetworkEdge> makePathset(sim_mob::Node* from,sim_mob::Node* to);
+	void makePathset(sim_mob::Node* from,sim_mob::Node* to);
 	PT_NetworkVertex getVertexFromNode(sim_mob::Node*);
+	std::string getVertexIdFromNode(sim_mob::Node*);
+	void getLabelingApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
+	void getkShortestPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
+	void getLinkEliminationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
+	void getSimulationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
+	const int LabelPoolSize=10;
+	const int simulationApproachPoolSize=10;
 };
 
 }

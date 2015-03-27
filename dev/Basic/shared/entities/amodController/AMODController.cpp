@@ -887,6 +887,44 @@ bool AMODController::setPath2Vh(Person* vh,std::vector<WayPoint>& path)
 {
 	vh->setPath(path);
 }
+//TODO: use uniform method for storing and retrieving travel times - Vahid
+#if 0
+void AMODController::setRdSegTravelTimes(Person* ag, double rdSegExitTime) {
+
+	std::map<double, Person::RdSegTravelStat>::const_iterator it =
+			ag->getRdSegTravelStatsMap().find(rdSegExitTime);
+
+	ofstream out_TT;
+	out_TT.open("out_TT.txt", fstream::out | fstream::app);
+
+	if (it != ag->getRdSegTravelStatsMap().end()){
+		double travelTime = (it->first) - (it->second).entryTime;
+		std::map<const RoadSegment*, Conflux::RdSegTravelTimes>::iterator itTT = RdSegTravelTimesMap.find((it->second).rs);
+		if (itTT != RdSegTravelTimesMap.end())
+		{
+			itTT->second.agCnt = itTT->second.agCnt + 1;
+			itTT->second.travelTimeSum = itTT->second.travelTimeSum + travelTime;
+		}
+		else{
+			Conflux::RdSegTravelTimes tTimes(travelTime, 1);
+			RdSegTravelTimesMap.insert(std::make_pair(ag->getCurrSegment(), tTimes));
+		}
+
+		WayPoint w = ag->amodPath.back();
+		const RoadSegment *rs = w.roadSegment_;
+		std::string segmentID = rs->originalDB_ID.getLogItem();
+
+		Print() << "Segment ID: "<< segmentID << " ,Segment travel time: " << rdSegExitTime << std::endl;
+
+		if (out_TT.is_open()) {
+			out_TT << "Segment ID: " << segmentID << "Segment travel time: " << rdSegExitTime << std::endl;
+		}
+		else{
+			Print() << "Unable to open file\n";
+		}
+	}
+	if (out_TT.is_open()) out_TT.close();
+}
 
 void AMODController::updateTravelTimeGraph()
 {
@@ -923,6 +961,8 @@ bool AMODController::insertTravelTime2TmpTable(timeslice frameNumber, std::map<c
 	}
 	return res;
 }
+#endif
+
 
 void AMODController::testTravelTimePath()
 {
@@ -1490,7 +1530,9 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 						//add drop off location
 						WayPoint lastWP = mergedWP[mergedWP.size()-1];
 						const RoadSegment *lastWPrs = lastWP.roadSegment_;
-						pickUpSegmentStr = lastWPrs->originalDB_ID.getLogItem();
+						std::stringstream segmentId("");
+						segmentId << lastWPrs->getId();
+						pickUpSegmentStr = segmentId.str();
 						StopPointRS = lastWPrs; //this is the segment where picking up f the passenger will occur
 //
 //						std::cout << "origin->destination: WPs after merging:" << std::endl;

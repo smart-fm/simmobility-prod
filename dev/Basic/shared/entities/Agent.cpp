@@ -114,7 +114,7 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	originNode(), destNode(), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), lastUpdatedFrame(-1),
 	isQueuing(false), distanceToEndOfSegment(0.0), currLinkTravelStats(nullptr, 0.0), linkTravelStatsMap(mtxStrat),
-	rdSegTravelStatsMap(mtxStrat), currRdSegTravelStats(nullptr, 0.0),
+	/*rdSegTravelStatsMap(mtxStrat),*/ currRdSegTravelStats(nullptr),
 	toRemoved(false), nextPathPlanned(false), dynamic_seed(id), currTick(0,0), commEventRegistered(false)
 {
 	//Register global life cycle events.
@@ -378,14 +378,19 @@ void sim_mob::Agent::HandleMessage(messaging::Message::MessageType type, const m
 
 }
 
-void sim_mob::Agent::initCurrRdSegTravelStat(const RoadSegment* rdSeg, double entryTime) {
-	currRdSegTravelStats.rs = rdSeg;
-	currRdSegTravelStats.entryTime = entryTime;
+sim_mob::Agent::RdSegTravelStat & sim_mob::Agent::startCurrRdSegTravelStat(const RoadSegment* rdSeg, double entryTime) {
+	currRdSegTravelStats.start(this, rdSeg,entryTime);
+	return currRdSegTravelStats;
 }
 
-void sim_mob::Agent::addRdSegTravelStat(double exitTime , RdSegTravelStat ts){
-	std::map<double, RdSegTravelStat>& travelMap = rdSegTravelStatsMap.getRW();
-	travelMap.insert(std::make_pair(exitTime, ts));
+sim_mob::Agent::RdSegTravelStat & sim_mob::Agent::finalizeCurrRdSegTravelStat(const RoadSegment* rdSeg,double exitTime, const std::string &travelMode)
+{
+	if(rdSeg != currRdSegTravelStats.rs)
+	{
+		throw std::runtime_error("roadsegment mismatch while finalizing travel time stats");
+	}
+	currRdSegTravelStats.finalize(rdSeg,exitTime, travelMode);
+	return currRdSegTravelStats;
 }
 
 #ifndef SIMMOB_DISABLE_MPI

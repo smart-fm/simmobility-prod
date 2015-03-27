@@ -32,7 +32,7 @@ namespace sim_mob {
 class ParseConfigFile : public ParseConfigXmlBase, private boost::noncopyable {
 public:
 	///Parse a config file into RawConfigParams, performing all XML parsing and some trivial semantic processing.
-	ParseConfigFile(const std::string& configFileName, RawConfigParams& result);
+	ParseConfigFile(const std::string& configFileName, RawConfigParams& result, bool longTerm = false);
 
 private:
 	virtual void processXmlFile(xercesc::XercesDOMParser& parser);
@@ -54,8 +54,11 @@ private:
 	void ProcessPassengersNode(xercesc::DOMElement* node);
 	void ProcessSignalsNode(xercesc::DOMElement* node);
 	void ProcessBusControllersNode(xercesc::DOMElement* node);
-	void ProcessPathSetNode(xercesc::DOMElement* node);
 	void ProcessCBD_Node(xercesc::DOMElement* node);
+	void ProcessPublicTransit(xercesc::DOMElement* node);
+	void processPathSetFileName(xercesc::DOMElement* node);
+	void processTT_Update(xercesc::DOMElement* node);
+	void processGeneratedRoutesNode(xercesc::DOMElement* node);
 	void ProcessLongTermParamsNode(xercesc::DOMElement* node);
         void ProcessLoopDetectorCountsNode(xercesc::DOMElement* node);
 
@@ -103,6 +106,7 @@ private:
 private:
 	//The config file we are currently loading
 	RawConfigParams& cfg;
+	bool longTerm;
 };
 
 }

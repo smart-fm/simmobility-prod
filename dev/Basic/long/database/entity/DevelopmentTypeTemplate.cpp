@@ -33,7 +33,7 @@ BigSerial DevelopmentTypeTemplate::getTemplateId() const {
     return templateId;
 }
 
-int DevelopmentTypeTemplate::getLandUsTypeId() const {
+int DevelopmentTypeTemplate::getLandUseTypeId() const {
     return landUseTypeId;
 }
 

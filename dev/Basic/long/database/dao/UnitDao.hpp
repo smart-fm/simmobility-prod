@@ -40,6 +40,12 @@ namespace sim_mob {
              * @param update tells if operation is an Update or Insert.
              */
             void toRow(Unit& data, db::Parameters& outParams, bool update);
+
+        public:
+            /*
+             * @return the maximum unit id from the database.
+             */
+            BigSerial getMaxUnitId();
         };
     }
 }

@@ -16,6 +16,7 @@
 #include "database/dao/UnitDao.hpp"
 #include "database/dao/IndividualDao.hpp"
 #include "database/dao/AwakeningDao.hpp"
+#include "database/dao/VehicleOwnershipCoefficientsDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -244,6 +245,22 @@ int HM_Model::getLifestyle3HHs() const
 	return numLifestyle3HHs;
 }
 
+HM_Model::VehicleOwnershipCoeffList HM_Model::getVehicleOwnershipCoeffs() const
+{
+	return this->vehicleOwnershipCoeffs;
+}
+
+VehicleOwnershipCoefficients* HM_Model::getVehicleOwnershipCoeffsById( BigSerial id) const
+{
+	VehicleOwnershipCoeffMap::const_iterator itr = vehicleOwnershipCoeffsById.find(id);
+
+		if (itr != vehicleOwnershipCoeffsById.end())
+		{
+			return (*itr).second;
+		}
+
+		return nullptr;
+}
 
 const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 {
@@ -255,6 +272,16 @@ const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 	return nullptr;
 }
 
+void HM_Model::addUnit(Unit* unit)
+{
+	units.push_back(unit);
+	unitsById.insert(std::pair<BigSerial,Unit*>(unit->getId(), unit));
+}
+
+std::vector<BigSerial> HM_Model::getRealEstateAgentIds()
+{
+	return this->realEstateAgentIds;
+}
 
 void HM_Model::startImpl()
 {
@@ -284,6 +311,8 @@ void HM_Model::startImpl()
 
 		loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
 		PrintOutV("Awakening probability: " << awakening.size() << std::endl );
+
+		loadData<VehicleOwnershipCoefficientsDao>(conn,vehicleOwnershipCoeffs,vehicleOwnershipCoeffsById, &VehicleOwnershipCoefficients::getParameterId);
 	}
 
 
@@ -307,12 +336,14 @@ void HM_Model::startImpl()
 
 
 	//
-	//Create real-estate agents. Their tasks are to sell units from the developper model.
+	//Create real-estate agents. Their tasks are to sell units from the developer model.
 	//
 	std::vector<RealEstateAgent*> realEstateAgents;
 	for( int i = 0; i < numWorkers ; i++ )
 	{
-		RealEstateAgent* realEstateAgent = new RealEstateAgent((FAKE_IDS_START + numWorkers + i), this, nullptr, &market, true);
+		BigSerial id = FAKE_IDS_START + numWorkers + i;
+		realEstateAgentIds.push_back(id);
+		RealEstateAgent* realEstateAgent = new RealEstateAgent(id, this, nullptr, &market, true);
 		AgentsLookupSingleton::getInstance().addRealEstateAgent(realEstateAgent);
 		agents.push_back(realEstateAgent);
 		workGroup.assignAWorker(realEstateAgent);
@@ -388,8 +419,6 @@ void HM_Model::startImpl()
 
 				if(awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
-
-					//(*it)->setbiddingMarketEntryDay( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 					(*it)->setbiddingMarketEntryDay( 0 );
 					(*it)->setTimeOnMarket( 1 + int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 

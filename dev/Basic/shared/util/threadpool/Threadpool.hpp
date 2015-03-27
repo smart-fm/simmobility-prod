@@ -2,6 +2,8 @@
 #include <boost/thread/thread.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/tuple/tuple.hpp>
+
 namespace sim_mob {
 /**
  * An implementation of threadpool using boost features: asio and threadgroup
@@ -18,13 +20,20 @@ namespace sim_mob {
  */
 class ThreadPool {
 public:
+	/**
+	 * the constructor just launches some amount of workers
+	 * @param nThreads number of threads running in this thread pool
+	 */
 	ThreadPool(std::size_t);
+
 	/**
 	 * posts a jpb to the tread pool
 	 * @param f if the function bound to its arguments using methods like boost::bind
 	 */
 	template<class F>
 	void enqueue(F f);
+
+	/// the destructor joins all threads
 	~ThreadPool();
 protected:
 	boost::asio::io_service io_service;
@@ -34,31 +43,12 @@ private:
 };
 
 /**
- * the constructor just launches some amount of workers
- * @param nThreads number of threads running in this thread pool
- */
-ThreadPool::ThreadPool(size_t nThreads) :
-		io_service(), work(new boost::asio::io_service::work(io_service)) {
-	for (std::size_t i = 0; i < nThreads; ++i) {
-		threads.create_thread(
-				boost::bind(&boost::asio::io_service::run, &io_service));
-	}
-}
-/**
  * add new work item to the pool
  * @param f function and its arguments
  */
 template<class F>
 void ThreadPool::enqueue(F f) {
 	io_service.post(f);
-}
-
-/// the destructor joins all threads
-ThreadPool::~ThreadPool() {
-	//kill the work so that io_service can be stopped
-	work.reset();
-	//stop after all your jobs are done(all your threads joined)
-	io_service.run();
 }
 
 /*
@@ -93,6 +83,7 @@ ThreadPool::~ThreadPool() {
 namespace batched {
 class ThreadPool :public sim_mob::ThreadPool{
 public:
+	/// the constructor just launches some amount of workers
 	ThreadPool(std::size_t);
 	/**
 	 * posts a jpb to the tread pool
@@ -118,9 +109,6 @@ private:
 	void wrapper(boost::tuple<F> f);
 };
 
-// the constructor just launches some amount of workers
-ThreadPool::ThreadPool(size_t nThreads) :sim_mob::ThreadPool(nThreads),nTasks(0){
-}
 // add new work item to the pool
 template<class F>
 void ThreadPool::enqueue(F f) {
@@ -139,13 +127,6 @@ void ThreadPool::wrapper(boost::tuple<F> f) {
 		boost::unique_lock<boost::mutex> lock(mutex_);
 		nTasks --;
 		cond.notify_one();
-	}
-}
-
-void ThreadPool::wait(){
-	boost::unique_lock<boost::mutex> lock(mutex_);
-	while(nTasks){
-		cond.wait(lock);
 	}
 }
 

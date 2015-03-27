@@ -194,8 +194,10 @@ void sim_mob::BusDriverMovement::frame_init() {
 	// put busStops to StopPointPool
 	for(int i=0;i<busStops.size();++i){
 		const BusStop* bs = busStops[i];
-		std::string segAimsunId = bs->getParentSegment()->originalDB_ID.getLogItem();
-		std::string segid = Utils::getNumberFromAimsunId(segAimsunId);
+		
+		std::stringstream segmentId("");
+		segmentId << bs->getParentSegment()->getId();
+		std::string segid = segmentId.str();
 		double dd = sim_mob::BusStop::EstimateStopPoint(bs->xPos, bs->yPos, bs->getParentSegment()) /100.0;
 		double dis = bs->distance;
 		double fd = dd;

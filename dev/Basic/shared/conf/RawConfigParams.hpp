@@ -53,6 +53,10 @@ struct LongTermParams{
 		DeveloperModel();
 		bool enabled;
 		unsigned int timeInterval;
+		int initialPostcode;
+		int initialUnitId;
+		int initialBuildingId;
+		int initialProjectId;
 	} developerModel;
 
 	struct HousingModel{
@@ -63,20 +67,15 @@ struct LongTermParams{
 		unsigned int timeOffMarket;
 		float vacantUnitActivationProbability;
 		int initialHouseholdsOnMarket;
+		float housingMarketSearchPercentage;
+		float housingMoveInDaysInterval;
 	} housingModel;
-};
 
-struct PathSetConf
-{
-	PathSetConf():enabled(false), database(""), credentials(""), singlePathTableName(""), RTTT_Conf(""), DTT_Conf(""), dbFunction("") {}
-	bool enabled;
-	std::string database;
-	std::string credentials;
-	std::string singlePathTableName;
-	std::string RTTT_Conf;//realtime travel time table name
-	std::string DTT_Conf;//default travel time table name
-	std::string dbFunction;
-	int interval; //travel time recording iterval
+	struct VehicleOwnershipModel{
+		VehicleOwnershipModel();
+		bool enabled;
+		unsigned int vehicleBuyingWaitingTimeInDays;
+	}vehicleOwnershipModel;
 };
 
 struct LoopDetectorCounts
@@ -166,6 +165,80 @@ public:
 	std::map<std::string, Credential> credentials;
 };
 
+
+struct PathSetConf
+{
+	PathSetConf():enabled(false), RTTT_Conf(""), DTT_Conf(""), psRetrieval(""), interval(0),
+	recPS(false),reroute(false), cbd(false), subTripOP(""), perturbationRange(std::pair<unsigned short,unsigned short>(0,0)), kspLevel(0), perturbationIteration(0){}
+	bool enabled;
+	std::string mode;//pathset operation mode "normal" , "generation"(for bulk pathset generation)
+	int threadPoolSize;
+	std::string bulkFile; //in case of using pathset manager in "generation" mode, the results will be outputted to this file
+	sim_mob::DatabaseDetails networkDatabase; //If loading from the database, how do we connect?// todo: unused for now
+	std::string pathSetTableName;
+	std::string RTTT_Conf;//realtime travel time table name
+	std::string DTT_Conf;//default travel time table name
+	std::string psRetrieval;// pathset retrieval stored procedure name
+	std::string upsert;//	historical travel time updation
+	int interval; //travel time recording iterval(in seconds)
+	double alpha; //travel time updation coefficient
+	///	recursive pathset Generation
+	bool recPS;
+	///	 enable rerouting?
+	bool reroute;
+	///	CBD enabled?
+	bool cbd;
+	/// subtrip level travel metrics output file(for preday use)
+	std::string subTripOP;
+	///	number of iterations in random perturbation
+	int perturbationIteration;
+	///	range of uniform distribution in random perturbation
+	std::pair<unsigned short,unsigned short> perturbationRange;
+	///k-shortest path level
+	int kspLevel;
+	/// Link Elimination types
+	std::vector<std::string> LE;
+
+	/// Utility parameters
+	struct UtilityParams
+	{
+
+		double bTTVOT;
+		double bCommonFactor;
+		double bLength;
+		double bHighway;
+		double bCost;
+		double bSigInter;
+		double bLeftTurns;
+		double bWork;
+		double bLeisure;
+		double highwayBias;
+		double minTravelTimeParam;
+		double minDistanceParam;
+		double minSignalParam;
+		double maxHighwayParam;
+		UtilityParams()
+		{
+			bTTVOT = -0.01373;//-0.0108879;
+			bCommonFactor = 1.0;
+			bLength = -0.001025;//0.0; //negative sign proposed by milan
+			bHighway = 0.00052;//0.0;
+			bCost = 0.0;
+			bSigInter = -0.13;//0.0;
+			bLeftTurns = 0.0;
+			bWork = 0.0;
+			bLeisure = 0.0;
+			highwayBias = 0.5;
+			minTravelTimeParam = 0.879;
+			minDistanceParam = 0.325;
+			minSignalParam = 0.256;
+			maxHighwayParam = 0.422;
+		}
+	};
+	double maxSegSpeed; //represents max_segment_speed attribute in xml, used in travel time based a_star heuristic function
+	/// Utility Parameters
+	UtilityParams params;
+};
 
 ///Represents the "Simulation" section of the config file.
 class SimulationParams {
@@ -301,6 +374,9 @@ struct EntityTemplate {
  * \author Seth N. Hetu
  */
 class RawConfigParams : public sim_mob::CMakeConfigParams {
+protected:
+	///Settings used for generation/retrieval of paths
+	PathSetConf pathset;
 public:
 	RawConfigParams();
 
@@ -321,13 +397,18 @@ public:
 	///Settings for Long Term Parameters
 	LongTermParams ltParams;
 
-	///Settings used for generation/retrieval of paths
-	PathSetConf pathset;
+	///pathset configuration file
+	std::string pathsetFile;
         
         //Settings for the loop detector counts
-        LoopDetectorCounts loopDetectorCounts;
+	LoopDetectorCounts loopDetectorCounts;
 
+	///	is CBD area restriction enforced
 	bool cbd;
+	bool generateBusRoutes;
+
+	// Public transit enabled if this flag set to true
+	bool publicTransitEnabled;
         
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;

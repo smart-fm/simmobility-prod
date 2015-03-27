@@ -234,6 +234,19 @@ public:
 	 * @return true if data has to be loaded in this tick; false otherwise
 	 */
 	bool checkTimeForNextLoad();
+
+
+	/**
+	 * makes a single sub trip for trip (for now)
+	 * @param r row from database table
+	 * @param parentTrip parent Trip for the subtrip to be constructed
+	 * @param subTripNo the sub trip number
+	 */
+	static void makeSubTrip(const soci::row& r, sim_mob::Trip* parentTrip, unsigned short subTripNo=1);
+
+	static sim_mob::Activity* makeActivity(const soci::row& r, unsigned int seqNo);
+
+	static sim_mob::Trip* makeTrip(const soci::row& r, unsigned int seqNo);
 };
 }
 

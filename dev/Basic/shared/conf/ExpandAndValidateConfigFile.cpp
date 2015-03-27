@@ -217,6 +217,19 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
  	//Initialize the street directory.
 	StreetDirectory::instance().init(cfg.getNetwork(), true);
 	std::cout << "Street Directory initialized  " << std::endl;
+
+	if(ConfigManager::GetInstance().FullConfig().pathSet().mode == "generation")
+	{
+		Print() << "bulk profiler start: " << std::endl;
+		sim_mob::Profiler profile("bulk profiler start", true);
+		//	This mode can be executed in the main function also but we need the street directory to be initialized first
+		//	to be least intrusive to the rest of the code, we take a safe approach and run this mode from here, although a lot of
+		//	unnecessary code will be executed.
+		sim_mob::PathSetManager::getInstance()->bulkPathSetGenerator();
+		Print() << "Bulk Generation Done " << profile.tick().first.count() << std::endl;
+		exit(1);
+	}
+
 	//TODO: put its option in config xml
 	//generateOD("/home/fm-simmobility/vahid/OD.txt", "/home/fm-simmobility/vahid/ODs.xml");
     //Process Confluxes if required
@@ -372,13 +385,6 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetworkFromDatabase()
 		sim_mob::aimsun::Loader::LoadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings, cfg.getNetworkRW(), cfg.getTripChains(), nullptr);
 	} else {
 		std::cout <<"Loading Road Network from XML.\n";
-		// load segment,node type from db ,TODO add type attribute to xml file
-		sim_mob::aimsun::Loader::loadSegNodeType(cfg.getDatabaseConnectionString(false),
-				cfg.getDatabaseProcMappings().procedureMappings,
-				cfg.getNetworkRW());
-
-//		DatabaseLoader loader(cfg.getDatabaseConnectionString(false));
-//		loader.loadObjectType(cfg.getDatabaseProcMappings().procedureMappings,cfg.getNetworkRW());
 		if (!sim_mob::xml::InitAndLoadXML(cfg.networkXmlInputFile(), cfg.getNetworkRW(), cfg.getTripChains())) {
 			throw std::runtime_error("Error loading/parsing XML file (see stderr).");
 		}

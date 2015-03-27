@@ -11,6 +11,7 @@ namespace sim_mob {
 class ConfigParams;
 class RawConfigParams;
 class CMakeConfigParams;
+class PathSetConf;
 
 
 
@@ -39,6 +40,9 @@ public:
 	//Retrieve the ConfigParams singleton as a ConfigParams object.
 	ConfigParams& FullConfig();
 	const ConfigParams& FullConfig() const;
+	///	returns pathset configuration structure
+	const PathSetConf& PathSetConfig() const;
+	PathSetConf& PathSetConfig();
 
 	//Retrieve the ConfigParams singleton as a RawConfigParams object.
 	RawConfigParams& XmlConfig();

@@ -153,48 +153,43 @@ void DriverUpdateParams::buildDebugInfo()
 #endif
 
 	// debug aura mgr
-#if 1
+#if 0
 	s << "            " << parentId;
 	int fwdcarid = -1;
 	if (this->nvFwd.exists())
 	{
 		char fwdnvdis[20] = "\0";
-		Driver* fwd_driver_ = const_cast<Driver*>(nvFwd.driver);
-		fwdcarid = fwd_driver_->getParent()->getId();
+		fwdcarid = nvFwd.driver->getParent()->getId();
 		sprintf(fwdnvdis, "fwdnvdis%03.1f", nvFwd.distance);
 	}
 	//
 	int backcarid = -1;
 	if (this->nvBack.exists())
 	{
-		Driver* back_driver_ = const_cast<Driver*>(nvBack.driver);
-		backcarid = back_driver_->getParent()->getId();
+		backcarid = nvBack.driver->getParent()->getId();
 	}
 	//
 	int leftFwdcarid = -1;
 	if (this->nvLeftFwd.exists())
 	{
-		Driver* driver_ = const_cast<Driver*>(nvLeftFwd.driver);
-		leftFwdcarid = driver_->getParent()->getId();
+		leftFwdcarid = nvLeftFwd.driver->getParent()->getId();
 	}
 	int leftBackcarid = -1;
 	if (this->nvLeftBack.exists())
 	{
-		Driver* driver_ = const_cast<Driver*>(nvLeftBack.driver);
-		leftBackcarid = driver_->getParent()->getId();
+		leftBackcarid = nvLeftBack.driver->getParent()->getId();
 	}
 	//
 	int rightFwdcarid = -1;
 	if (this->nvRightFwd.exists())
 	{
-		Driver* driver_ = const_cast<Driver*>(nvRightFwd.driver);
-		rightFwdcarid = driver_->getParent()->getId();
+		rightFwdcarid = nvRightFwd.driver->getParent()->getId();
 	}
+	//
 	int rightBackcarid = -1;
 	if (this->nvRightBack.exists())
 	{
-		Driver* driver_ = const_cast<Driver*>(nvRightBack.driver);
-		rightBackcarid = driver_->getParent()->getId();
+		rightBackcarid = nvRightBack.driver->getParent()->getId();
 	}
 
 	double dis = perceivedDistToFwdCar / 100.0;

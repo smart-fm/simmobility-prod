@@ -192,9 +192,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		PathSetManager* psMgr = PathSetManager::getInstance();
 		std::string name = configFileName;
 		psMgr->setScenarioName(name);
-		//psMgr->setTravleTimeTmpTableName(ConfigParams::GetInstance().travelTimeTmpTableName);
-		//psMgr->createTravelTimeTmpTable(psMgr->getTravleTimeTmpTableName());
-		//psMgr->getDataFromDB();
 	}
 
 	//Initialize the control manager and wait for an IDLE state (interactive mode only).
@@ -282,6 +279,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 
 	Print() << "Initial agents dispatched or pushed to pending." << endl;
+	
+	//before starting the groups, initialise the time interval for one of the PathSet manager's helpers
+	PathSetManager::initTimeInterval();
 
 	//
 	//  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
@@ -392,8 +392,14 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.stopMPIEnvironment();
 	}
+	
+	//Store the segment travel times
+	if (config.PathSetMode()) 
+	{
+		PathSetManager::getInstance()->storeRTT();
+	}
 
-	Print() <<"Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
+	Print() << "Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
 	Print() << "Max Agents at any given time: " <<maxAgents <<std::endl;
 	Print() << "Starting Agents: " << numStartAgents;
 	Print() << ",     Pending: ";

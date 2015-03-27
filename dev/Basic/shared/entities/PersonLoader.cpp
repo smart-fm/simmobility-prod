@@ -98,65 +98,6 @@ namespace
 		return random_time.str(); //HH24:MI:SS format
 	}
 
-	/**
-	 * makes a single sub trip for trip (for now)
-	 * @param r row from database table
-	 * @param parentTrip parent Trip for the subtrip to be constructed
-	 * @param subTripNo the sub trip number
-	 */
-	void makeSubTrip(const soci::row& r, sim_mob::Trip* parentTrip, unsigned short subTripNo=1)
-	{
-		sim_mob::RoadNetwork& rn = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW();
-		sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
-		sim_mob::SubTrip aSubTripInTrip;
-		aSubTripInTrip.setPersonID(r.get<string>(0));
-		aSubTripInTrip.itemType = sim_mob::TripChainItem::IT_TRIP;
-		aSubTripInTrip.tripID = parentTrip->tripID + "-" + boost::lexical_cast<string>(subTripNo);
-		aSubTripInTrip.fromLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(10)));
-		aSubTripInTrip.fromLocationType = sim_mob::TripChainItem::LT_NODE;
-		aSubTripInTrip.toLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(5)));
-		aSubTripInTrip.toLocationType = sim_mob::TripChainItem::LT_NODE;
-		aSubTripInTrip.mode = r.get<string>(6);
-		aSubTripInTrip.isPrimaryMode = r.get<int>(7);
-		aSubTripInTrip.startTime = parentTrip->startTime;
-		parentTrip->addSubTrip(aSubTripInTrip);
-	}
-
-	sim_mob::Activity* makeActivity(const soci::row& r, unsigned int seqNo)
-	{
-		sim_mob::RoadNetwork& rn = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW();
-		sim_mob::Activity* res = new sim_mob::Activity();
-		res->setPersonID(r.get<string>(0));
-		res->itemType = sim_mob::TripChainItem::IT_ACTIVITY;
-		res->sequenceNumber = seqNo;
-		res->description = r.get<string>(4);
-		res->isPrimary = r.get<int>(7);
-		res->isFlexible = false;
-		res->isMandatory = true;
-		res->location = rn.getNodeById(r.get<int>(5));
-		res->locationType = sim_mob::TripChainItem::LT_NODE;
-		res->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(8), true));
-		res->endTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(9), false));
-		return res;
-	}
-
-	sim_mob::Trip* makeTrip(const soci::row& r, unsigned int seqNo)
-	{
-		sim_mob::RoadNetwork& rn = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW();
-		sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
-		sim_mob::Trip* tripToSave = new sim_mob::Trip();
-		tripToSave->sequenceNumber = seqNo;
-		tripToSave->tripID = boost::lexical_cast<string>(r.get<int>(1) * 100 + r.get<int>(3)); //each row corresponds to 1 trip and 1 activity. The tour and stop number can be used to generate unique tripID
-		tripToSave->setPersonID(r.get<string>(0));
-		tripToSave->itemType = sim_mob::TripChainItem::IT_TRIP;
-		tripToSave->fromLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(10)));
-		tripToSave->fromLocationType = sim_mob::TripChainItem::LT_NODE;
-		tripToSave->toLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(5)));
-		tripToSave->toLocationType = sim_mob::TripChainItem::LT_NODE;
-		tripToSave->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(11), true, tripToSave->getPersonID()));
-		makeSubTrip(r, tripToSave);
-		return tripToSave;
-	}
 }//namespace
 
 /*************************************************************************************
@@ -191,34 +132,12 @@ void sim_mob::RestrictedRegion::populate()
 	{
 		zoneNodes.erase(boost::lexical_cast<std::string>(item.first->getEnd()->getID()));
 	}
-	//debug
-	sim_mob::BasicLogger & enterCbdLogger = sim_mob::Logger::log("Enter-CBD.csv");
-	BOOST_FOREACH(SegPair item, in)
-	{
-		enterCbdLogger << item.first->getId() << "," << item.second->getId() << ",\n";
-	}
-	sim_mob::BasicLogger & exitCbdLogger = sim_mob::Logger::log("Exit-CBD.csv");
-	BOOST_FOREACH(SegPair item, out)
-	{
-		exitCbdLogger << item.first->getId() << "," << item.second->getId() << ",\n";
-	}
-	sim_mob::BasicLogger & cbdSegLogger = sim_mob::Logger::log("CBD-Segments.csv");
-	BOOST_FOREACH(const sim_mob::RoadSegment*rs,zoneSegments)
-	{
-		cbdSegLogger << rs->getId() << ",";
-	}
 
-	sim_mob::BasicLogger & cbdNodeLogger = sim_mob::Logger::log("CBD-Nodes.csv");
 	typedef std::map<std::string, const Node*>::value_type Pair;
-	BOOST_FOREACH(Pair node,zoneNodes)
-	{
-		cbdNodeLogger << node.first << ",";
-	}
-
-	cout << "CBD Entering border Sections size: " << in.size() << "\n";
-	cout << "CBD Exitting border Sections size: " << out.size() << "\n";
-	cout << "Total segments in CBD Area: " << zoneSegments.size() << "\n";
-	cout << "Total nodes in CBD Area: " << zoneNodes.size() << "\n";
+//	cout << "CBD Entering border Sections size: " << in.size() << "\n";
+//	cout << "CBD Exitting border Sections size: " << out.size() << "\n";
+//	cout << "Total segments in CBD Area: " << zoneSegments.size() << "\n";
+//	cout << "Total nodes in CBD Area: " << zoneNodes.size() << "\n";
 	/********************************************************
 	 * ********** String representations & Tagging **********
 	 * ******************************************************/
@@ -454,7 +373,9 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 		std::vector<TripChainItem*>& personTripChain = tripchains[personId];
 		//add trip and activity
 		unsigned int seqNo = personTripChain.size(); //seqNo of last trip chain item
-		personTripChain.push_back(makeTrip(r, ++seqNo));
+		sim_mob::Trip* constructedTrip = makeTrip(r, ++seqNo);
+		if(constructedTrip) { personTripChain.push_back(constructedTrip); }
+		else { continue; }
 		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }
 		actCtr++;
 	}
@@ -464,6 +385,7 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	//add or stash new persons
 	for(map<string, vector<TripChainItem*> >::iterator i=tripchains.begin(); i!=tripchains.end(); i++)
 	{
+		if(i->second.empty()) { return; }
 		Person* person = new Person("DAS_TripChain", cfg.mutexStategy(), i->second);
 		if(!person->getTripChain().empty()) { addOrStashPerson(person); }
 		else { delete person; }
@@ -502,4 +424,65 @@ bool sim_mob::PeriodicPersonLoader::checkTimeForNextLoad()
 		return true;
 	}
 	return false;
+}
+
+
+void sim_mob::PeriodicPersonLoader::makeSubTrip(const soci::row& r, sim_mob::Trip* parentTrip, unsigned short subTripNo)
+{
+	sim_mob::RoadNetwork& rn = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW();
+	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
+	sim_mob::SubTrip aSubTripInTrip;
+	aSubTripInTrip.setPersonID(r.get<string>(0));
+	aSubTripInTrip.itemType = sim_mob::TripChainItem::IT_TRIP;
+	aSubTripInTrip.tripID = parentTrip->tripID + "-" + boost::lexical_cast<string>(subTripNo);
+	aSubTripInTrip.fromLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(10)));
+	aSubTripInTrip.fromLocationType = sim_mob::TripChainItem::LT_NODE;
+	aSubTripInTrip.toLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(5)));
+	aSubTripInTrip.toLocationType = sim_mob::TripChainItem::LT_NODE;
+	aSubTripInTrip.mode = r.get<string>(6);
+	aSubTripInTrip.isPrimaryMode = r.get<int>(7);
+	aSubTripInTrip.startTime = parentTrip->startTime;
+	parentTrip->addSubTrip(aSubTripInTrip);
+}
+
+sim_mob::Activity* sim_mob::PeriodicPersonLoader::makeActivity(const soci::row& r, unsigned int seqNo)
+{
+	sim_mob::RoadNetwork& rn = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW();
+	sim_mob::Activity* res = new sim_mob::Activity();
+	res->setPersonID(r.get<string>(0));
+	res->itemType = sim_mob::TripChainItem::IT_ACTIVITY;
+	res->sequenceNumber = seqNo;
+	res->description = r.get<string>(4);
+	res->isPrimary = r.get<int>(7);
+	res->isFlexible = false;
+	res->isMandatory = true;
+	res->location = rn.getNodeById(r.get<int>(5));
+	res->locationType = sim_mob::TripChainItem::LT_NODE;
+	res->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(8), true));
+	res->endTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(9), false));
+	return res;
+}
+
+sim_mob::Trip* sim_mob::PeriodicPersonLoader::makeTrip(const soci::row& r, unsigned int seqNo)
+{
+	sim_mob::RoadNetwork& rn = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW();
+	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
+	sim_mob::Trip* tripToSave = new sim_mob::Trip();
+	tripToSave->sequenceNumber = seqNo;
+	tripToSave->tripID = boost::lexical_cast<string>(r.get<int>(1) * 100 + r.get<int>(3)); //each row corresponds to 1 trip and 1 activity. The tour and stop number can be used to generate unique tripID
+	tripToSave->setPersonID(r.get<string>(0));
+	tripToSave->itemType = sim_mob::TripChainItem::IT_TRIP;
+	tripToSave->fromLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(10)));
+	tripToSave->fromLocationType = sim_mob::TripChainItem::LT_NODE;
+	tripToSave->toLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(5)));
+	tripToSave->toLocationType = sim_mob::TripChainItem::LT_NODE;
+	tripToSave->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(11), true, tripToSave->getPersonID()));
+	//just a sanity check
+	if(tripToSave->fromLocation == tripToSave->toLocation)
+	{
+		safe_delete_item(tripToSave);
+		return nullptr;
+	}
+	makeSubTrip(r, tripToSave);
+	return tripToSave;
 }

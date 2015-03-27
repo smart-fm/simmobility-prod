@@ -17,6 +17,7 @@
 #include "database/entity/Building.hpp"
 #include "database/entity/Unit.hpp"
 #include "database/entity/Project.hpp"
+#include "RealEstateAgent.hpp"
 
 namespace sim_mob {
 
@@ -66,11 +67,17 @@ namespace sim_mob {
             void onWorkerEnter();
             void onWorkerExit();
             virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
-        private:
+        public:
             enum UnitSaleStatus {
-            	NOT_LAUNCHED, LAUNCHED_BUT_UNSOLD, LAUNCHED_AND_SOLD};
+            	UNIT_NOT_LAUNCHED = 1, UNIT_LAUNCHED_BUT_UNSOLD, UNIT_LAUNCHED_AND_SOLD};
             enum UnitPhysicalStatus {
-                        	NOT_READY_FOR_OCCUPANCY, READY_FOR_OCCUPANCY_AND_VACANT, READY_FOR_OCCUPANCY_AND_OCCUPIED};
+                UNIT_NOT_READY_FOR_OCCUPANCY = 1, UNIT_READY_FOR_OCCUPANCY_AND_VACANT, UNIT_READY_FOR_OCCUPANCY_AND_OCCUPIED};
+            enum BuildingStatus{
+            	BUILDING_UNCOMPLETED_WITHOUT_PREREQUISITES = 1, BUILDING_UNCOMPLETED_WITH_PREREQUISITES, BUILDING_NOT_LAUNCHED, BUILDING_LAUNCHED_BUT_UNSOLD, BUILDING_LAUNCHED_AND_SOLD, BUILDING_COMPLETED_WITH_PREREQUISITES, BUILDING_DEMOLISHED
+            };
+            enum UnitStatus{
+            	UNIT_PLANNED, UNIT_UNDER_CONSTRUCTION, UNIT_CONSTRUCTION_COMPLETED, UNIT_DEMOLISHED
+            };
             /**
              * Events callbacks.
              */
@@ -102,16 +109,31 @@ namespace sim_mob {
              */
             void processExistingProjects();
 
+            /*
+             * set a 20% of new units at each month after 6th month of the simulation
+             * to be sent to HM via real estate agent
+             */
+            void setUnitsForHM(std::vector<Unit*>::iterator &first,std::vector<Unit*>::iterator &last);
+
+            void setUnitsRemain (bool unitRemain);
             std::tm getDate(int day);
+            void setRealEstateAgent(RealEstateAgent* realEstAgent);
+            void setPostcode(int postCode);
 
         private:
             DeveloperModel* model;
             Parcel *parcel;
             IdVector parcelsToProcess;
             bool active;
-            std::vector<Building> newBuildings;
-            std::vector<Unit> newUnits;
-            Project *fmProject;
+            std::vector<boost::shared_ptr<Building> > newBuildings;
+            //std::vector<boost::shared_ptr<Unit> > newUnits;
+            std::vector<Unit*> newUnits;
+            boost::shared_ptr<Project> fmProject;
+            int monthlyUnitCount;
+            bool unitsRemain;
+            std::vector<BigSerial> toBeDemolishedBuildingIds;
+            RealEstateAgent* realEstateAgent;
+            int postcode;
 
         };
     }

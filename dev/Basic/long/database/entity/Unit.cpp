@@ -14,11 +14,11 @@
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-Unit::Unit( BigSerial id, BigSerial building_id, BigSerial sla_address_id, int unit_type, int storey_range, std::string unit_status, double floor_area, int storey,
-			double rent, std::tm sale_from_date, std::tm physical_from_date, int sale_status, int physical_status, int biddingMarketEntryDay, int timeOnMarket, int timeOffMarket)
+Unit::Unit( BigSerial id, BigSerial building_id, BigSerial sla_address_id, int unit_type, int storey_range, int unit_status, double floor_area, int storey,
+			double rent, std::tm sale_from_date, std::tm physical_from_date, int sale_status, int physical_status, std::tm lastChangedDate, int biddingMarketEntryDay, int timeOnMarket, int timeOffMarket)
 		   : id(id), building_id(building_id), sla_address_id(sla_address_id), unit_type(unit_type), storey_range(storey_range), unit_status(unit_status),
 		     floor_area(floor_area), storey(storey), rent(rent), sale_from_date(sale_from_date), physical_from_date(physical_from_date), sale_status(sale_status),
-		     physical_status(physical_status), biddingMarketEntryDay(biddingMarketEntryDay),timeOnMarket(timeOnMarket), timeOffMarket(timeOffMarket){}
+		     physical_status(physical_status), lastChangedDate(lastChangedDate), biddingMarketEntryDay(biddingMarketEntryDay),timeOnMarket(timeOnMarket), timeOffMarket(timeOffMarket){}
 
 
 Unit::Unit(const Unit& source)
@@ -36,6 +36,7 @@ Unit::Unit(const Unit& source)
     this->physical_from_date  = source.physical_from_date;
     this->sale_status  = source.sale_status;
     this->physical_status  = source.physical_status;
+    this->lastChangedDate = source.lastChangedDate;
     this->biddingMarketEntryDay = source.biddingMarketEntryDay;
     this->timeOnMarket = source.timeOnMarket;
     this->timeOffMarket = source.timeOffMarket;
@@ -58,7 +59,10 @@ Unit& Unit::operator=(const Unit& source)
     this->physical_from_date  = source.physical_from_date;
     this->sale_status  = source.sale_status;
     this->physical_status  = source.physical_status;
+    this->lastChangedDate = source.lastChangedDate;
     this->biddingMarketEntryDay = source.biddingMarketEntryDay;
+    this->timeOnMarket = source.timeOnMarket;
+    this->timeOffMarket = source.timeOffMarket;
 
     return *this;
 }
@@ -88,7 +92,7 @@ int Unit::getStoreyRange() const
 	return storey_range;
 }
 
-std::string Unit::getUnitStatus() const
+int Unit::getUnitStatus() const
 {
 	return unit_status;
 }
@@ -125,6 +129,11 @@ int Unit::getSaleStatus() const
 int Unit::getPhysicalStatus() const
 {
 	return physical_status;
+}
+
+std::tm Unit::getLastChangedDate() const
+{
+	return lastChangedDate;
 }
 
 void Unit::setBuildingId(BigSerial buildingId) {
@@ -171,12 +180,17 @@ void Unit::setStoreyRange(int storeyRange) {
 	this->storey_range = storeyRange;
 }
 
-void Unit::setUnitStatus(const std::string& unitStatus) {
+void Unit::setUnitStatus(int unitStatus) {
 	this->unit_status = unitStatus;
 }
 
 void Unit::setUnitType(int unitType) {
 	this->unit_type = unitType;
+}
+
+void Unit::setLastChangedDate(std::tm date)
+{
+	this->lastChangedDate = date;
 }
 
 int Unit::getbiddingMarketEntryDay() const
@@ -230,6 +244,9 @@ namespace sim_mob
 						<< "\"sale_status \":\"" << data.sale_status << "\","
 						<< "\"physical_status \":\"" << data.physical_status << "\","
 						<< "\"biddingMarketEntryDay\":\"" << data.biddingMarketEntryDay << "\""
+						<< "\"timeOnMarket\":\"" << data.timeOnMarket << "\""
+            			<< "\"timeOffMarket\":\"" << data.timeOffMarket << "\""
+						<< "\"lastChangedDate\":\"" << data.lastChangedDate.tm_year << data.lastChangedDate.tm_mon << data.lastChangedDate.tm_wday << "\","
 						<< "}";
         }
     }

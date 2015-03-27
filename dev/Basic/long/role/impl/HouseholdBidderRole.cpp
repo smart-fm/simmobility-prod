@@ -5,6 +5,7 @@
 /* 
  * File:   HouseholdBidderRole.cpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * 		   Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  * 
  * Created on May 16, 2013, 5:13 PM
  */
@@ -23,6 +24,9 @@
 
 #include "core/AgentsLookup.hpp"
 #include "core/DataManager.hpp"
+
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 using std::list;
 using std::endl;
@@ -85,8 +89,8 @@ void HouseholdBidderRole::CurrentBiddingEntry::invalidate()
     tries = 0;
     wp = 0;
 }
-                
-HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false){}
+
+HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0), moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0),vehicleOwnershipOption(NO_CAR){}
 
 HouseholdBidderRole::~HouseholdBidderRole(){}
 
@@ -107,6 +111,37 @@ void HouseholdBidderRole::setActive(bool activeArg)
 
 void HouseholdBidderRole::update(timeslice now)
 {
+
+	//This bidder has a successful bid already.
+	//It's now waiting to move in its new unit.
+	//The bidder role will do nothing else during this period (hence the return at the end of the if function).
+	if( moveInWaitingTimeInDays > 0 )
+	{
+		//Just before we set the bidderRole to inactive, we do the unit ownership switch.
+		if( moveInWaitingTimeInDays == 1 )
+		{
+			TakeUnitOwnership();
+		}
+
+		moveInWaitingTimeInDays--;
+
+		return;
+	}
+
+	//wait 60 days after move in to a new unit to reconsider the vehicle ownership option.
+	if( vehicleBuyingWaitingTimeInDays > 0 && moveInWaitingTimeInDays == 0)
+	{
+
+		if( vehicleBuyingWaitingTimeInDays == 1 )
+		{
+			reconsiderVehicleOwnershipOption();
+		}
+			vehicleBuyingWaitingTimeInDays--;
+			return;
+
+	}
+
+
     //can bid another house if it is not waiting for any 
     //response and if it not the same day
     if (!waitingForResponse && lastTime.ms() < now.ms())
@@ -126,6 +161,18 @@ void HouseholdBidderRole::update(timeslice now)
     lastTime = now;
 }
 
+void HouseholdBidderRole::TakeUnitOwnership()
+{
+	getParent()->addUnitId( unitIdToBeOwned );
+
+    setActive(false);
+    getParent()->getModel()->decrementBidders();
+
+    biddingEntry.invalidate();
+    Statistics::increment(Statistics::N_ACCEPTED_BIDS);
+}
+
+
 void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message& message)
 {
     switch (type)
@@ -137,13 +184,11 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
             {
                 case ACCEPTED:// Bid accepted 
                 {
-                    getParent()->addUnitId(msg.getBid().getUnitId());
+                	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-                    setActive(false);
-                    getParent()->getModel()->decrementBidders();
-
-                    biddingEntry.invalidate();
-                    Statistics::increment(Statistics::N_ACCEPTED_BIDS);
+                	moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
+                	unitIdToBeOwned = msg.getBid().getUnitId();
+                	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
                     break;
                 }
                 case NOT_ACCEPTED:
@@ -190,7 +235,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
         if(pickEntryToBid())
         {
             entry = market->getEntryById(biddingEntry.getUnitId());
-            //PrintOut("Household " << household->getId() << " is picking a new unit " << biddingEntry.getUnitId() << "to bid on." << std::endl );
+            //PrintOutV("Household " << household->getId() << " is picking a new unit " << biddingEntry.getUnitId() << "to bid on." << std::endl );
         }   
     }
     
@@ -212,7 +257,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
                 if (entry->getOwner() && bidValue > 0.0f)
                 {
                 	//PrintOut("\033[1;36mHousehold " << std::dec << household->getId() << " submitted a bid on unit " << biddingEntry.getUnitId() << "\033[0m\n" );
-                	//PrintOut("Household " << std::dec << household->getId() << " submitted a bid of $" << bidValue << "[wp:$" << biddingEntry.getWP() << ",sp:$" << speculation  << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << "." << std::endl );
+                	//PrintOutV("Household " << std::dec << household->getId() << " submitted a bid of $" << bidValue << "[wp:$" << biddingEntry.getWP() << ",sp:$" << speculation  << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
 
                     bid(entry->getOwner(), Bid(entry->getUnitId(), household->getId(), getParent(), bidValue, now, biddingEntry.getWP(), speculation));
                     return true;
@@ -249,25 +294,35 @@ bool HouseholdBidderRole::pickEntryToBid()
     const HousingMarket::Entry* maxEntry = nullptr;
     double maxWP = 0; // holds the wp of the entry with maximum surplus.
 
-    // choose the unit to bid with max surplus.
-    for (HousingMarket::ConstEntryList::const_iterator itr = entries.begin(); itr != entries.end(); itr++)
+
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+    float housingMarketSearchPercentage = config.ltParams.housingModel.housingMarketSearchPercentage;
+
+    // Choose the unit to bid with max surplus. However, we are not iterating through the whole list of available units.
+    // We choose from a subset of units set by the housingMarketSearchPercentage parameter in the long term XML file.
+    // This is done to replicate the real life scenario where a household will only visit a certain percentage of vacant units before settling on one.
+    for(int n = 0; n < entries.size() * housingMarketSearchPercentage; n++)
     {
+    	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
+
+    	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
         const HousingMarket::Entry* entry = *itr;
 
-        if(entry->getOwner() != getParent())
+
+        if(entry && entry->getOwner() != getParent())
         {
             const Unit* unit = model->getUnitById(entry->getUnitId());
             const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
 
             bool flatEligibility = true;
 
-            if( unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false)
+            if( unit && unit->getUnitType() == 2 && household->getTwoRoomHdbEligibility()  == false)
             	flatEligibility = false;
 
-            if( unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
+            if( unit && unit->getUnitType() == 3 && household->getThreeRoomHdbEligibility() == false )
                 flatEligibility = false;
 
-            if( unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
+            if( unit && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
                 flatEligibility = false;
 
 
@@ -288,10 +343,104 @@ bool HouseholdBidderRole::pickEntryToBid()
     return biddingEntry.isValid();
 }
 
+void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
+{
+	const HM_Model* model = getParent()->getModel();
+	HM_Model::VehicleOwnershipCoeffList coefficients = model->getVehicleOwnershipCoeffs();
+
+	int unitTypeId = model->getUnitById(this->getParent()->getHousehold()->getUnitId())->getUnitType();
+	double expOneCar = getExpOneCar(unitTypeId);
+	double expTwoPlusCar = getExpTwoPlusCar(unitTypeId);
+
+	double probabilityOneCar = (expOneCar)/ (expOneCar+expTwoPlusCar);
+	double probabilityTwoPlusCar = (expTwoPlusCar)/ (expOneCar+expTwoPlusCar);
+
+	/*generate a random number between 0-1
+	* time(0) is passed as an input to constructor in order to randomize the result
+	*/
+	boost::mt19937 randomNumbergenerator( time( 0 ) );
+	boost::random::uniform_real_distribution< > uniformDistribution( 0.0, 1.0 );
+	boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >generateRandomNumbers( randomNumbergenerator, uniformDistribution );
+	const double randomNum = generateRandomNumbers( );
+	double pTemp = 0;
+	if(pTemp < randomNum < (probabilityOneCar + pTemp))
+	{
+		vehicleOwnershipOption = ONE_CAR;
+	}
+	else
+	{
+		pTemp = pTemp + probabilityOneCar;
+		if(pTemp < randomNum < (probabilityTwoPlusCar + pTemp))
+		{
+			vehicleOwnershipOption = TWO_PLUS_CAR;
+		}
+		else
+		{
+			vehicleOwnershipOption = NO_CAR;
+		}
+
+	}
+
+}
+
+double HouseholdBidderRole::getExpOneCar(int unitTypeId)
+{
+	double valueOneCar = 0;
+	const HM_Model* model = getParent()->getModel();
+	valueOneCar =  model->getVehicleOwnershipCoeffsById(ASC_ONECAR)->getCoefficientEstimate();
+
+	if(this->getParent()->getHousehold()->getEthnicityId() == CHINESE)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_CHINESE_ONECAR)->getCoefficientEstimate();
+	}
 
 
+	//finds out whether the household is an HDB or not
+	if( (unitTypeId>0) && (unitTypeId<=6))
+	{
+		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_HDB_ONECAR)->getCoefficientEstimate();
+	}
+
+	valueOneCar = valueOneCar + (this->getParent()->getHousehold()->getChildren() * model->getVehicleOwnershipCoeffsById(B_KIDS_ONECAR)->getCoefficientEstimate());
+	valueOneCar = valueOneCar + log(this->getParent()->getHousehold()->getSize()) * model->getVehicleOwnershipCoeffsById(B_LOG_HHSIZE_ONECAR)->getCoefficientEstimate();
+	valueOneCar = valueOneCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_MC_ONECAR)->getCoefficientEstimate();
+
+	double expOneCar = exp(valueOneCar);
+	return expOneCar;
+}
+
+double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId)
+{
+
+	double valueTwoPlusCar = 0;
+	const HM_Model* model = getParent()->getModel();
+	valueTwoPlusCar =  model->getVehicleOwnershipCoeffsById(ASC_TWO_PLUS_CAR)->getCoefficientEstimate();
+
+	if(this->getParent()->getHousehold()->getEthnicityId() == CHINESE)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_CHINESE_TWO_PLUS_CAR)->getCoefficientEstimate();
+	}
+
+	//finds out whether the household is an HDB or not
+	if( (unitTypeId>0) && (unitTypeId<=6))
+	{
+		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_HDB_TWO_PLUS_CAR)->getCoefficientEstimate();
+	}
 
 
+	valueTwoPlusCar = valueTwoPlusCar + (this->getParent()->getHousehold()->getChildren() * model->getVehicleOwnershipCoeffsById(B_KIDS_TWO_PLUS_CAR)->getCoefficientEstimate());
+	valueTwoPlusCar = valueTwoPlusCar + log(this->getParent()->getHousehold()->getSize()) * model->getVehicleOwnershipCoeffsById(B_LOG_HHSIZE_TWO_PLUS_CAR)->getCoefficientEstimate();
+	valueTwoPlusCar = valueTwoPlusCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_MC_TWO_PLUS_CAR)->getCoefficientEstimate();
 
+	double expTwoPlusCar = exp(valueTwoPlusCar);
+	return expTwoPlusCar;
+}
 
-
+bool HouseholdBidderRole::isMotorCycle(int vehicleCategoryId)
+{
+	if (vehicleCategoryId == 4 ||vehicleCategoryId == 8 || vehicleCategoryId == 11 || vehicleCategoryId == 13 || vehicleCategoryId == 14 || vehicleCategoryId == 17 || vehicleCategoryId == 19 || vehicleCategoryId == 21 || vehicleCategoryId == 22 || vehicleCategoryId == 24 || vehicleCategoryId == 25 || vehicleCategoryId == 26 || vehicleCategoryId == 27)
+	{
+		return true;
+	}
+	return false;
+}

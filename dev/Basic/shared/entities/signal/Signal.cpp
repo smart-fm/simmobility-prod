@@ -716,9 +716,11 @@ std::vector<std::pair<sim_mob::Phase, double> > sim_mob::Signal_SCATS::predictSi
 	return phaseTimes;*/
 }
 
-sim_mob::VehicleCounter::VehicleCounter():simStartTime(sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime()),frequency(300000), 
-		logger(sim_mob::Logger::log(std::string("vehicle_counter.csv"))), curTimeSlice(0,0)
+sim_mob::VehicleCounter::VehicleCounter():simStartTime(sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime()),
+		frequency(ConfigManager::GetInstance().FullConfig().loopDetectorCounts.frequency), 
+		logger(sim_mob::Logger::log(ConfigManager::GetInstance().FullConfig().loopDetectorCounts.fileName)), curTimeSlice(0,0)
 {
+	Print() << "\nConstructing VehicleCounter\n";
 }
 
 sim_mob::VehicleCounter::~VehicleCounter()
@@ -752,11 +754,14 @@ void sim_mob::VehicleCounter::resetCounter()
 
 void sim_mob::VehicleCounter::serialize(const uint32_t& time)
 {
-	std::map<const sim_mob::Lane*, int> ::iterator it(counter.begin());
-	for(; it != counter.end(); it++)
+	if (ConfigManager::GetInstance().FullConfig().loopDetectorCounts.outputEnabled)
 	{
-		logger << time << "," << nodeId << "," << it->first->getRoadSegment()->getId() \
+		std::map<const sim_mob::Lane*, int> ::iterator it(counter.begin());
+		for (; it != counter.end(); it++)
+		{
+			logger << time << "," << nodeId << "," << it->first->getRoadSegment()->getId() \
 			   << ","  << it->first->getLaneID() << ","  << it->second << "\n";
+		}
 	}
 }
 

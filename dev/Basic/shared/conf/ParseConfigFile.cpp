@@ -213,6 +213,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessBusControllersNode(GetSingleElementByName(rootNode, "buscontrollers"));
 	ProcessPathSetNode(GetSingleElementByName(rootNode, "pathset"));
 	ProcessCBD_Node(GetSingleElementByName(rootNode, "CBD"));
+	ProcessLoopDetectorCountsNode(GetSingleElementByName(rootNode, "loop-detector_counts"));
 }
 
 
@@ -663,6 +664,19 @@ void sim_mob::ParseConfigFile::ProcessCBD_Node(xercesc::DOMElement* node){
 		return;
 	}
 	cfg.cbd = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+}
+
+void sim_mob::ParseConfigFile::ProcessLoopDetectorCountsNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		cfg.loopDetectorCounts.frequency = ParseInteger(GetNamedAttributeValue(node, "frequency"), 600000);
+		cfg.loopDetectorCounts.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
+		if(cfg.loopDetectorCounts.outputEnabled)
+		{			
+			cfg.loopDetectorCounts.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/VehCounts.csv");
+		}
+	}
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)

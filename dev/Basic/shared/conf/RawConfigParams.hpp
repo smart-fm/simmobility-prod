@@ -79,6 +79,17 @@ struct PathSetConf
 	int interval; //travel time recording iterval
 };
 
+struct LoopDetectorCounts
+{
+  LoopDetectorCounts() : frequency(0), outputEnabled(false), fileName("")
+  {
+  }
+  
+  int frequency;
+  bool outputEnabled;
+  std::string fileName;
+} ;
+
 ///represent the incident data section of the config file
 struct IncidentParams {
 	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
@@ -312,9 +323,12 @@ public:
 
 	///Settings used for generation/retrieval of paths
 	PathSetConf pathset;
+        
+        //Settings for the loop detector counts
+        LoopDetectorCounts loopDetectorCounts;
 
 	bool cbd;
-
+        
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;
 

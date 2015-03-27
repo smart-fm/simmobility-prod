@@ -506,7 +506,11 @@
     <pathset enabled="false">
     	<pathset_database database="fm_remote_path_choice"  credentials="fm_remote_path_choice" />
     	<tables pathset_table="PathSet_SH_V" singlepath_table="SinglePath_SH_V" />
-    </pathset>  
+    </pathset>
+	
+	<!--If enabled, outputs the vehicles counted by every loop detector, accumulated over the given period length (in milliseconds)
+	i.e. count of vehicles passing a loop detector in every "600,000" milliseconds -->
+	<loop-detector_counts frequency="300000" outputEnabled="false" file-name="private/VehicleCounts.csv"/>  
     
 </config>
 

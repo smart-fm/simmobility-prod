@@ -57,6 +57,7 @@ private:
 	void ProcessPathSetNode(xercesc::DOMElement* node);
 	void ProcessCBD_Node(xercesc::DOMElement* node);
 	void ProcessLongTermParamsNode(xercesc::DOMElement* node);
+        void ProcessLoopDetectorCountsNode(xercesc::DOMElement* node);
 
 	//Descend through Constructs
 	void ProcessConstructDatabasesNode(xercesc::DOMElement* node);

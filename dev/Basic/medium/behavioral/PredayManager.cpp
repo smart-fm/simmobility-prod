@@ -1323,7 +1323,7 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 	username = logsumCredentials.getUsername();
 	password = logsumCredentials.getPassword(false);
 	DB_Config logsumDbConfig(logsumDatabase.host, logsumDatabase.port, logsumDatabase.dbName, username, password);
-	DB_Connection logsumConn(sim_mob::db::POSTGRES, populationDbConfig);
+	DB_Connection logsumConn(sim_mob::db::POSTGRES, logsumDbConfig);
 	logsumConn.connect();
 	if (!logsumConn.isConnected()) { throw std::runtime_error("logsum db connection failure!"); }
 	LogsumSqlDao logsumSqlDao(logsumConn);

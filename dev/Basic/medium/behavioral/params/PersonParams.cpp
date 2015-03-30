@@ -182,8 +182,16 @@ void sim_mob::medium::PersonParams::fixUpForLtPerson()
 	setMissingIncome(0);
 	setHouseholdFactor(1); // no scaling of persons when generating day activity schedule
 	setHomeLocation(getTAZCodeForAddressId(homeAddressId));
-	if(fixedWorkplace) { setFixedWorkLocation(getTAZCodeForAddressId(activityAddressId)); }
-	if(student) { setFixedSchoolLocation(getTAZCodeForAddressId(activityAddressId)); }
+	if(fixedWorkplace)
+	{
+		setFixedSchoolLocation(0);
+		setFixedWorkLocation(getTAZCodeForAddressId(activityAddressId));
+	}
+	if(student)
+	{
+		setFixedSchoolLocation(getTAZCodeForAddressId(activityAddressId));
+		setFixedWorkLocation(0);
+	}
 	setHasDrivingLicence(getCarLicense()||getVanbusLicense());
 	setIsUniversityStudent(studentTypeId == 4);
 	setIsFemale(genderId == 2);

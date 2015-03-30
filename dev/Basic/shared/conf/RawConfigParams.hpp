@@ -398,7 +398,7 @@ public:
 	///Settings for the FMOD controller.
 	FMOD_ControllerParams fmod;
 
-    ///Settings for the AMOD controller
+	///Settings for the AMOD controller
 	AMOD_ControllerParams amod;
 
 	///Settings for Long Term Parameters
@@ -407,7 +407,7 @@ public:
 	///pathset configuration file
 	std::string pathsetFile;
         
-    ///Settings for the loop detector counts
+	///Settings for the loop detector counts
 	LoopDetectorCounts loopDetectorCounts;
 
 	///	is CBD area restriction enforced

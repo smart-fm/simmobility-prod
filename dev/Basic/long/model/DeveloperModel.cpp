@@ -44,10 +44,10 @@ namespace {
     const string MODEL_NAME = "Developer Model";
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false),unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),initUnitId(false),initBuildingId(false),initProjectId(false){ //In days (7 - weekly, 30 - Monthly)
+DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false),unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0){ //In days (7 - weekly, 30 - Monthly)
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false), unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),initUnitId(false),initBuildingId(false),initProjectId(false){
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false), unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0){
 }
 
 DeveloperModel::~DeveloperModel() {
@@ -476,15 +476,7 @@ const bool DeveloperModel::isEmptyParcel(BigSerial id) const {
 
 BigSerial DeveloperModel::getProjectIdForDeveloperAgent()
 {
-	if(initProjectId)
-	{
-		initProjectId = false;
-		return projectIdForDevAgent;
-	}
-	else
-	{
-		return ++projectIdForDevAgent;
-	}
+	return ++projectIdForDevAgent;
 }
 
 BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
@@ -498,15 +490,9 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 	}
 	else
 	{
-		if(initBuildingId)
-		{
-			initBuildingId = false;
-			return buildingIdForDevAgent;
-		}
-		else
-		{
-			return ++buildingIdForDevAgent;
-		}
+
+		return ++buildingIdForDevAgent;
+
 	}
 
 }
@@ -514,15 +500,8 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 BigSerial DeveloperModel::getUnitIdForDeveloperAgent()
 {
 	boost::lock_guard<boost::recursive_mutex> lock(m_guard);
-	if(initUnitId)
-	{
-		initUnitId = false;
-		return unitIdForDevAgent;
-	}
-	else
-	{
-		return ++unitIdForDevAgent;
-	}
+	return ++unitIdForDevAgent;
+
 }
 
 void DeveloperModel::setUnitId(BigSerial unitId)

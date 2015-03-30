@@ -669,7 +669,7 @@ void sim_mob::medium::PredayManager::loadZoneNodes(db::BackendType dbType) {
 	switch(dbType) {
 		case POSTGRES:
 		{
-			throw std::runtime_error("AM, PM and off peak costs are not available in PostgreSQL database yet");
+			throw std::runtime_error("Zone to node mapping is not available in PostgreSQL database");
 		}
 		case MONGO_DB:
 		{
@@ -687,7 +687,6 @@ void sim_mob::medium::PredayManager::loadZoneNodes(db::BackendType dbType) {
 			throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
 		}
 	}
-	Print() << "zoneNodeMap.size() : " << zoneNodeMap.size() << std::endl;
 }
 
 void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
@@ -742,7 +741,7 @@ void sim_mob::medium::PredayManager::loadUnavailableODs(db::BackendType dbType)
 	switch(dbType) {
 	case POSTGRES:
 	{
-		throw std::runtime_error("AM, PM and off peak costs are not available in PostgreSQL database yet");
+		throw std::runtime_error("Unavailable ODs are not available in PostgreSQL database");
 	}
 	case MONGO_DB:
 	{
@@ -1329,8 +1328,8 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 	LogsumSqlDao logsumSqlDao(logsumConn);
 
 	// open log file for this thread
-    std::ofstream activityScheduleLogFile(activityScheduleLog.c_str(), std::ios::trunc|std::ios::out);
-    std::stringstream activityScheduleStream;
+	std::ofstream activityScheduleLogFile(activityScheduleLog.c_str(), std::ios::trunc|std::ios::out);
+	std::stringstream activityScheduleStream;
 
 	// loop through all persons within the range and plan their day
 	for(LT_PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++) {

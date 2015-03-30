@@ -180,6 +180,7 @@ bool sim_mob::medium::SubTourParams::allWindowsUnavailable()
 void sim_mob::medium::PersonParams::fixUpForLtPerson()
 {
 	setMissingIncome(0);
+	setHouseholdFactor(1); // no scaling of persons when generating day activity schedule
 	setHomeLocation(getTAZCodeForAddressId(homeAddressId));
 	if(fixedWorkplace) { setFixedWorkLocation(getTAZCodeForAddressId(activityAddressId)); }
 	if(student) { setFixedSchoolLocation(getTAZCodeForAddressId(activityAddressId)); }

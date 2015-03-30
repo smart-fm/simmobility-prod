@@ -52,28 +52,37 @@ namespace sim_mob
   class UnPackageUtils;
 #endif
 
+  //Structure to track the number of vehicles passing over a loop detector 
   struct VehicleCounter
   {
     const sim_mob::Signal_SCATS* signal;
     unsigned int nodeId;
     const DailyTime & simStartTime;
-    const int frequency; //Accumulation Period length in milliseconds seconds: eg return total count of vehicle in every "600,000" milliseconds
+    //Accumulation Period length in milliseconds seconds: eg return total count of vehicle in every "600,000" milliseconds
+    const unsigned int frequency; 
+    //Map of lane vs the number of vehicles detected by the loop detector
     std::map<const sim_mob::Lane*, int> counter;
+    //For file output 
     sim_mob::BasicLogger & logger;
     timeslice curTimeSlice;
 
     VehicleCounter();
     ~VehicleCounter();
 
+    //Initialises the vehicle counts for the loop detectors at the given signal
     void init(const Signal_SCATS* signal);
 
+    //Resets the vehicle counts of all loop detectors
     void resetCounter();
 
+    //Writes the vehicle counts to file
     void serialize(const uint32_t& time);
 
+    //Updates the vehicle counts
     void update();
 
-    void check(const timeslice &tick);
+    //Aggregates the vehicle counts according to the set frequency
+    void aggregateCounts(const timeslice &tick);
   } ;
 
   enum signalType

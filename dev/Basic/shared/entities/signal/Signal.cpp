@@ -495,25 +495,25 @@ std::size_t sim_mob::Signal_SCATS::computeCurrPhase(double currCycleTimer)
 	std::vector< double > currSplitPlan = splitPlan.CurrSplitPlan();
 
 	double sum = 0;
-	int i;
+	std::size_t i;
 	for(i = 0; i < getNOF_Phases(); i++)
 	{
 		//expanded the single line loop, for better understanding of future readers
 		sum += splitPlan.getCycleLength() * currSplitPlan[i] / 100; //in each iteration sum will represent the time (with respect to cycle length) each phase would end
 		if(sum > currCycleTimer)
-			{
-				break;
-			}
+		{
+			break;
+		}
 	}
 
 	if(i >= getNOF_Phases())
-		{
-			std::stringstream str;
-			str << "Signal " << this->getId() << " CouldNot computeCurrPhase for the given currCycleTimer(" << currCycleTimer <<  "/" << splitPlan.getCycleLength() << ") getNOF_Phases()(" <<  getNOF_Phases() << ") , sum of cycleLength chunks(" << sum << ")";
-			throw std::runtime_error(str.str());
-		}
-	//currPhaseID = (std::size_t)(i);
-	return (std::size_t)(i);
+	{
+		std::stringstream str;
+		str << "Signal " << this->getId() << " CouldNot computeCurrPhase for the given currCycleTimer(" << currCycleTimer <<  "/" << splitPlan.getCycleLength() << ") getNOF_Phases()(" <<  getNOF_Phases() << ") , sum of cycleLength chunks(" << sum << ")";
+		throw std::runtime_error(str.str());
+	}
+	
+	return i;
 }
 
 
@@ -533,7 +533,7 @@ std::size_t sim_mob::Signal_SCATS::computeCurrPhase(double currCycleTimer)
 Entity::UpdateStatus sim_mob::Signal_SCATS::frame_tick(timeslice now)
 {
 	// some book keeping	
-	curVehicleCounter.check(now);
+	curVehicleCounter.aggregateCounts(now);
 
 	if(!isIntersection_)
 	{
@@ -720,7 +720,6 @@ sim_mob::VehicleCounter::VehicleCounter():simStartTime(sim_mob::ConfigManager::G
 		frequency(ConfigManager::GetInstance().FullConfig().loopDetectorCounts.frequency), 
 		logger(sim_mob::Logger::log(ConfigManager::GetInstance().FullConfig().loopDetectorCounts.fileName)), curTimeSlice(0,0)
 {
-	Print() << "\nConstructing VehicleCounter\n";
 }
 
 sim_mob::VehicleCounter::~VehicleCounter()
@@ -779,7 +778,7 @@ void sim_mob::VehicleCounter::update()
 	}
 }
 
-void sim_mob::VehicleCounter::check(const timeslice& curTimeSlice_)
+void sim_mob::VehicleCounter::aggregateCounts(const timeslice& curTimeSlice_)
 {
 	curTimeSlice = curTimeSlice_;
 	const uint32_t& time = curTimeSlice_.ms();

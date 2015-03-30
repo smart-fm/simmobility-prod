@@ -78,14 +78,20 @@ struct LongTermParams{
 	}vehicleOwnershipModel;
 };
 
+///Represents the loop-detector_counts section of the configuration file
 struct LoopDetectorCounts
 {
   LoopDetectorCounts() : frequency(0), outputEnabled(false), fileName("")
   {
   }
   
-  int frequency;
+  ///The frequency of aggregating the vehicle counts at the loop detector
+  unsigned int frequency;
+  
+  ///Indicates whether the counts have to be output to a file
   bool outputEnabled;
+  
+  ///Name of the output file
   std::string fileName;
 } ;
 
@@ -392,6 +398,7 @@ public:
 	///Settings for the FMOD controller.
 	FMOD_ControllerParams fmod;
 
+    ///Settings for the AMOD controller
 	AMOD_ControllerParams amod;
 
 	///Settings for Long Term Parameters
@@ -400,7 +407,7 @@ public:
 	///pathset configuration file
 	std::string pathsetFile;
         
-        //Settings for the loop detector counts
+    ///Settings for the loop detector counts
 	LoopDetectorCounts loopDetectorCounts;
 
 	///	is CBD area restriction enforced

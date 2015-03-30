@@ -663,7 +663,7 @@ void sim_mob::ParseConfigFile::ProcessLoopDetectorCountsNode(xercesc::DOMElement
 {
 	if(node)
 	{
-		cfg.loopDetectorCounts.frequency = ParseInteger(GetNamedAttributeValue(node, "frequency"), 600000);
+		cfg.loopDetectorCounts.frequency = ParseUnsignedInt(GetNamedAttributeValue(node, "frequency"), 600000);
 		cfg.loopDetectorCounts.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
 		if(cfg.loopDetectorCounts.outputEnabled)
 		{			

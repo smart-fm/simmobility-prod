@@ -34,8 +34,8 @@ double calculateHighWayDistance(sim_mob::SinglePath *sp);
 double generateSinglePathLength(const std::vector<sim_mob::WayPoint>& wp);
 double calculateSinglePathDefaultTT(const std::vector<sim_mob::WayPoint>& wp);
 std::string makeWaypointsetString(const std::vector<WayPoint>& wp);
-std::string sim_mob::makePT_PathString(const std::vector<PT_NetworkEdge> &path);
-std::string sim_mob::makePT_PathSetString(const std::vector<PT_NetworkEdge> &path);
+std::string makePT_PathString(const std::vector<PT_NetworkEdge> &path);
+std::string makePT_PathSetString(const std::vector<PT_NetworkEdge> &path);
 
 class SinglePath
 {
@@ -135,28 +135,14 @@ public:
 };
 
 //Public Transit path
-struct cmp_path_vector: public std::less<PT_Path>
-{
-		bool operator() (const PT_Path, const PT_Path) const;
-};
-class PT_PathSet
-{
-public:
-	PT_PathSet();
-	~PT_PathSet();
-
-	std::set<PT_Path,cmp_path_vector> pathSet;
-	void computeAndSetPathSize();
-};
-
-const double pathCostArray[] { 0.77,0.87,0.98,1.08,1.16,1.23,1.29,1.33,1.37,1.41,1.45,1.49,1.53,
-								   1.57,1.61,1.65,1.69,1.72,1.75,1.78,1.81,1.83,1.85,1.87,1.88,1.89,
-								   1.90,1.91,1.92,1.93,1.94,1.95,1.96,1.97,1.98,1.99,2.00,2.01,2.02
-								 };
 
 class PT_Path
 {
 public:
+
+	PT_Path(const std::vector<PT_NetworkEdge>& path);
+	~PT_Path();
+
 	bool isMinDistance() const {
 		return minDistance;
 	}
@@ -165,12 +151,12 @@ public:
 		this->minDistance = minDistance;
 	}
 
-	bool isMinInVehicleTravelTime() const {
-		return minInVehicleTravelTimeSecs;
+	bool isMinInVehicleTravelTimeSecs() const {
+		return minInVehicleTravelTime;
 	}
 
-	void setMinInVehicleTravelTime(bool minInVehicleTravelTime) {
-		this->minInVehicleTravelTimeSecs = minInVehicleTravelTime;
+	void setMinInVehicleTravelTimeSecs(bool minInVehicleTravelTimeSecs) {
+		this->minInVehicleTravelTime = minInVehicleTravelTimeSecs;
 	}
 
 	bool isMinNumberOfTransfers() const {
@@ -213,12 +199,28 @@ public:
 		this->partialUtility = partialUtility;
 	}
 
+	const std::vector<PT_NetworkEdge>& getPathEdges() const {
+		return pathEdges;
+	}
+
+	void setPathEdges(const std::vector<PT_NetworkEdge>& pathEdges) {
+		this->pathEdges = pathEdges;
+	}
+
 	double getPathSize() const {
 		return pathSize;
 	}
 
-	void setPathSize(double pathSize) {
+	void setPathSize(double pathSize) const {
 		this->pathSize = pathSize;
+	}
+
+	double getPathTravelTime() const {
+		return pathTravelTime;
+	}
+
+	void setPathTravelTime(double pathTravelTime) {
+		this->pathTravelTime = pathTravelTime;
 	}
 
 	const std::string& getPtPathId() const {
@@ -253,7 +255,7 @@ public:
 		this->shortestPath = shortestPath;
 	}
 
-	double getTotalCost() const {
+	double getTotalCost() const{
 		return totalCost;
 	}
 
@@ -261,50 +263,44 @@ public:
 		this->totalCost = totalCost;
 	}
 
-	double getTotalDistance() const {
+	double getTotalDistanceKms() const {
 		return totalDistanceKms;
 	}
 
-	void setTotalDistance(double totalDistance) {
-		this->totalDistanceKms = totalDistance;
+	void setTotalDistanceKms(double totalDistanceKms) {
+		this->totalDistanceKms = totalDistanceKms;
 	}
 
-	double getpathTravelTime() const{
-		return pathTravelTime;
-	}
-	void setpathTravelTime(double pathTravelTime) const{
-		this->pathTravelTime = pathTravelTime;
-	}
-	double getTotalInVehicleTravelTime() const {
+	double getTotalInVehicleTravelTimeSecs() const {
 		return totalInVehicleTravelTimeSecs;
 	}
 
-	void setTotalInVehicleTravelTime(double totalInVehicleTravelTime) {
-		this->totalInVehicleTravelTimeSecs = totalInVehicleTravelTime;
+	void setTotalInVehicleTravelTimeSecs(double totalInVehicleTravelTimeSecs) {
+		this->totalInVehicleTravelTimeSecs = totalInVehicleTravelTimeSecs;
 	}
 
-	double getTotalNumberOfTransfers() const {
+	int getTotalNumberOfTransfers() const {
 		return totalNumberOfTransfers;
 	}
 
-	void setTotalNumberOfTransfers(double totalNumberOfTransfers) {
+	void setTotalNumberOfTransfers(int totalNumberOfTransfers) {
 		this->totalNumberOfTransfers = totalNumberOfTransfers;
 	}
 
-	double getTotalWaitingTime() const {
+	double getTotalWaitingTimeSecs() const {
 		return totalWaitingTimeSecs;
 	}
 
-	void setTotalWaitingTime(double totalWaitingTime) {
-		this->totalWaitingTimeSecs = totalWaitingTime;
+	void setTotalWaitingTimeSecs(double totalWaitingTimeSecs) {
+		this->totalWaitingTimeSecs = totalWaitingTimeSecs;
 	}
 
-	double getTotalWalkingTime() const {
+	double getTotalWalkingTimeSecs() const {
 		return totalWalkingTimeSecs;
 	}
 
-	void setTotalWalkingTime(double totalWalkingTime) {
-		this->totalWalkingTimeSecs = totalWalkingTime;
+	void setTotalWalkingTimeSecs(double totalWalkingTimeSecs) {
+		this->totalWalkingTimeSecs = totalWalkingTimeSecs;
 	}
 
 	bool isValidPath() const {
@@ -314,15 +310,10 @@ public:
 	void setValidPath(bool validPath) {
 		this->validPath = validPath;
 	}
-	std::vector<PT_NetworkEdge> getpathEdges()
-	{
-		return pathEdges;
-	}
+
+	//Path representation
 
 private:
-	PT_Path(const std::vector<PT_NetworkEdge>& path);
-	~PT_Path();
-	//Path representation
 	std::vector<PT_NetworkEdge> pathEdges;
 	std::string ptPathId;
 	std::string ptPathSetId;
@@ -330,7 +321,7 @@ private:
 	double partialUtility;
 	double pathTravelTime;
 	double totalDistanceKms;
-	double pathSize;
+	mutable double pathSize;
 	double totalCost;
 	double totalInVehicleTravelTimeSecs;
 	double totalWaitingTimeSecs;
@@ -339,12 +330,28 @@ private:
 	bool minDistance;
 	bool validPath;
 	bool shortestPath;
-	bool minInVehicleTravelTimeSecs;
+	bool minInVehicleTravelTime;
 	bool minNumberOfTransfers;
 	bool minWalkingDistance;
 	bool minTravelOnMRT;
 	bool minTravelOnBus;
-	double getTotalCost(double);
+	double getTotalCostByDistance(double);
 };
+
+struct cmp_path_vector: public std::less<PT_Path>
+{
+		bool operator() (const PT_Path, const PT_Path) const;
+};
+
+class PT_PathSet
+{
+public:
+	PT_PathSet();
+	~PT_PathSet();
+
+	std::set<PT_Path,cmp_path_vector> pathSet;
+	void computeAndSetPathSize();
+};
+
 
 }//namespace

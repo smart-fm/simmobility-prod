@@ -27,14 +27,14 @@ namespace sim_mob {
 
 class A_StarPublicTransitShortestPathImpl : public StreetDirectory::PublicTransitShortestPathImpl {
 public:
-    A_StarPublicTransitShortestPathImpl(std::vector<PT_NetworkEdge> pt_edgeslist,std::vector<PT_NetworkVertex> pt_verticeslist);
+    A_StarPublicTransitShortestPathImpl(std::map<int,PT_NetworkEdge>& ,std::map<std::string,PT_NetworkVertex>&);
     virtual ~A_StarPublicTransitShortestPathImpl() {}
 
 
 public:
     StreetDirectory::PublicTransitGraph publictransitMap_;
 
-    void initPublicNetwork(std::vector<PT_NetworkEdge>& ptEdgesList,std::vector<PT_NetworkVertex>& ptVerticesList);
+    void initPublicNetwork(std::map<int,PT_NetworkEdge>& ,std::map<std::string,PT_NetworkVertex>& );
 
     void procAddPublicNetworkVertices(StreetDirectory::PublicTransitGraph& graph,PT_NetworkVertex ptVertex);
 

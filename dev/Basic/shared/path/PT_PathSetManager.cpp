@@ -13,8 +13,8 @@ namespace{
 }
 PT_PathSetManager sim_mob::PT_PathSetManager::_instance;
 
-PT_PathSetManager::PT_PathSetManager() {
-
+PT_PathSetManager::PT_PathSetManager():labelPoolSize(10), simulationApproachPoolSize(10){
+	ptPathSetWriter.open("PT_Pathset.csv");
 }
 PT_PathSetManager::~PT_PathSetManager() {
 	// TODO Auto-generated destructor stub
@@ -27,7 +27,7 @@ PT_NetworkVertex PT_PathSetManager::getVertexFromNode(sim_mob::Node* node)
 	unsigned int node_id = node->getID();
 	string stopId = boost::lexical_cast<std::string>("N_"+boost::lexical_cast<std::string>(node_id));
 	//return PT_Network::getInstance().getVertexFromStopId(stopId);
-	return PT_Network::getInstance().PublicTransitVertexMap.find(stopId);
+	return PT_Network::getInstance().PublicTransitVertexMap.find(stopId)->second;
 }
 
 std::string PT_PathSetManager::getVertexIdFromNode(sim_mob::Node* node)
@@ -45,12 +45,10 @@ void PT_PathSetManager::makePathset(sim_mob::Node* from,sim_mob::Node* to)
 	StreetDirectory::PT_VertexId toId= getVertexIdFromNode(to);
 	PT_PathSet ptPathSet;
 
-
+	// KShortestpath Approach
+		getkShortestPaths(fromId,toId,ptPathSet);
 	//Labeling Approach
 	getLabelingApproachPaths(fromId,toId,ptPathSet);
-
-	// KShortestpath Approach
-	getkShortestPaths(fromId,toId,ptPathSet);
 
 	// Link Elimination Approach
 	getLinkEliminationApproachPaths(fromId,toId,ptPathSet);
@@ -59,18 +57,29 @@ void PT_PathSetManager::makePathset(sim_mob::Node* from,sim_mob::Node* to)
 	getSimulationApproachPaths(fromId,toId,ptPathSet);
 	ptPathSet.computeAndSetPathSize();
 
-}
+	// Writing the pathSet to the CSV file.
 
+}
+void PT_PathSetManager::writePathSetToFile(PT_PathSet &ptPathSet)
+{
+	for(std::set<PT_Path,cmp_path_vector>::const_iterator itPath=ptPathSet.pathSet.begin();itPath!=ptPathSet.pathSet.end();itPath++)
+	{
+		this->ptPathSetWriter<<"\""<<itPath->getPtPathId()<<"\""<<itPath->getPtPathSetId()<<itPath->getScenario()<<itPath->getPartialUtility()
+				<<itPath->getPathTravelTime()<<itPath->getTotalDistanceKms()<<itPath->getPathSize()<<itPath->getTotalCost()<<itPath->getTotalInVehicleTravelTimeSecs()
+				<<itPath->getTotalWaitingTimeSecs()<<itPath->getTotalWalkingTimeSecs()<<itPath->getTotalNumberOfTransfers()<<itPath->isMinDistance()
+				<<itPath->isValidPath()<<itPath->isShortestPath()<<itPath->isMinInVehicleTravelTimeSecs()<<itPath->isMinNumberOfTransfers()
+				<<itPath->isMinWalkingDistance()<<itPath->isMinTravelOnMrt()<<itPath->isMinTravelOnBus()<<"\n";
+	}
+}
 void PT_PathSetManager::getLabelingApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet)
 {
-	for(int i=0;i<LabelPoolSize;i++)
+	for(int i=0;i<labelPoolSize;i++)
 	{
-		PT_Path ptPath;
-		vector<StreetDirectory::PT_EdgeId> path;
+		vector<PT_NetworkEdge> path;
 		path = StreetDirectory::instance().getPublicTransitShortestPathImpl()->searchShortestPath(fromId,toId,i+LabelingApproach1);
-		ptPath(path);
+		PT_Path ptPath(path);
 		if(i==LabelingApproach1){
-			ptPath.setMinInVehicleTravelTime(true);
+			ptPath.setMinInVehicleTravelTimeSecs(true);
 		}
 		if(i==LabelingApproach2){
 			ptPath.setMinNumberOfTransfers(true);
@@ -91,15 +100,14 @@ void PT_PathSetManager::getLabelingApproachPaths(StreetDirectory::PT_VertexId fr
 
 void PT_PathSetManager::getkShortestPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet)
 {
-	vector<vector<StreetDirectory::PT_EdgeId> > kShortestPaths;
+	vector<vector<PT_NetworkEdge> > kShortestPaths;
 	StreetDirectory::instance().getPublicTransitShortestPathImpl()->getKShortestPaths(fromId,toId,kShortestPaths);
-	for(vector<vector<StreetDirectory::PT_EdgeId> >::const_iterator itPath=kShortestPaths.begin();itPath!=kShortestPaths.end();itPath++)
+	for(vector<vector<PT_NetworkEdge> >::iterator itPath=kShortestPaths.begin();itPath!=kShortestPaths.end();itPath++)
 	{
-		PT_Path ptPath;
-		if(kShortestPaths.begin()==(*itPath)){
+		PT_Path ptPath(*itPath);
+		if(kShortestPaths.begin() == itPath){
 			ptPath.setShortestPath(true);
 		}
-		ptPath(*itPath);
 		ptPath.setScenario(KSHORTEST_PATH);
 		ptPathSet.pathSet.insert(ptPath);
 	}
@@ -107,18 +115,17 @@ void PT_PathSetManager::getkShortestPaths(StreetDirectory::PT_VertexId fromId,St
 
 void PT_PathSetManager::getLinkEliminationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet)
 {
-	vector<StreetDirectory::PT_EdgeId> shortestPath;
+	vector<PT_NetworkEdge> shortestPath;
 	shortestPath = StreetDirectory::instance().getPublicTransitShortestPathImpl()->searchShortestPath(fromId,toId,KshortestPath);
 
-	for(vector<StreetDirectory::PT_EdgeId>::const_iterator edgeIt=shortestPath.begin();edgeIt!=shortestPath.end();edgeIt++)
+	for(vector<PT_NetworkEdge>::iterator edgeIt=shortestPath.begin();edgeIt!=shortestPath.end();edgeIt++)
 	{
-		PT_Path ptPath;
-		vector<StreetDirectory::PT_EdgeId> path;
+		vector<PT_NetworkEdge> path;
 		double cost=0;
 		std::set<StreetDirectory::PT_EdgeId> blackList = std::set<StreetDirectory::PT_EdgeId>();
-		blackList.insert(*edgeIt);
+		blackList.insert(edgeIt->getEdgeId());
 		path=StreetDirectory::instance().getPublicTransitShortestPathImpl()->searchShortestPathWithBlacklist(fromId,toId,KshortestPath,blackList,cost);
-		ptPath(path);
+		PT_Path ptPath(path);
 		ptPath.setScenario(LINK_ELIMINATION_APPROACH);
 		ptPathSet.pathSet.insert(ptPath);
 	}
@@ -128,10 +135,9 @@ void PT_PathSetManager::getSimulationApproachPaths(StreetDirectory::PT_VertexId 
 {
 	for(int i=0;i<simulationApproachPoolSize;i++)
 	{
-		PT_Path ptPath;
-		vector<StreetDirectory::PT_EdgeId> path;
+		vector<PT_NetworkEdge> path;
 		path = StreetDirectory::instance().getPublicTransitShortestPathImpl()->searchShortestPath(fromId,toId,i+SimulationApproach1);
-		ptPath(path);
+		PT_Path ptPath(path);
 		ptPath.setScenario(SIMULATION_APPROACH);
 		ptPathSet.pathSet.insert(ptPath);
 	}

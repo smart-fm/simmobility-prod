@@ -13,6 +13,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 namespace sim_mob{
 

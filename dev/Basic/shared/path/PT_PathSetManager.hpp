@@ -11,6 +11,7 @@
 #include "geospatial/Node.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "path/Path.hpp"
+#include <fstream>
 using std::vector;
 namespace sim_mob{
 
@@ -32,8 +33,11 @@ public:
 	void getkShortestPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
 	void getLinkEliminationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
 	void getSimulationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
-	const int LabelPoolSize=10;
-	const int simulationApproachPoolSize=10;
+	void writePathSetToFile(PT_PathSet &ptPathSet);
+	const int labelPoolSize;
+	const int simulationApproachPoolSize;
+	std::ofstream ptPathSetWriter;
+
 };
 
 }

@@ -51,7 +51,7 @@ void PT_Network::init()
 	}
 	for(vector<PT_NetworkEdge>::const_iterator ptEdgeIt=PublicTransitEdges.begin();ptEdgeIt!=PublicTransitEdges.end();ptEdgeIt++)
 	{
-		PublicTransitVertexMap[(*ptEdgeIt).getEdgeId()]=*ptEdgeIt;
+		PT_NetworkEdgeMap[(*ptEdgeIt).getEdgeId()]=*ptEdgeIt;
 	}
 	cout<<"Public Transport Network Loaded ";
 }

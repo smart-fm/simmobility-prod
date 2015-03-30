@@ -317,10 +317,10 @@ public:
     class PublicTransitShortestPathImpl{
     public:
     	// TODO: Define the functions which you defined in A_StarPublictransitShortestPathImpl
-    	virtual std::vector<StreetDirectory::PT_EdgeId> searchShortestPath(PT_VertexId,PT_VertexId,int)=0;
+    	virtual std::vector<PT_NetworkEdge> searchShortestPath(PT_VertexId,PT_VertexId,int)=0;
 
-    	virtual std::vector<StreetDirectory::PT_EdgeId> searchShortestPathWithBlacklist(PT_VertexId,PT_VertexId,int,const std::set<StreetDirectory::PT_EdgeId>&,double &)=0;
-    	virtual int getKShortestPaths(PT_VertexId,PT_VertexId,std::vector< std::vector<StreetDirectory::PT_EdgeId> > &)=0;
+    	virtual std::vector<PT_NetworkEdge> searchShortestPathWithBlacklist(PT_VertexId,PT_VertexId,int,const std::set<StreetDirectory::PT_EdgeId>&,double &)=0;
+    	virtual int getKShortestPaths(PT_VertexId,PT_VertexId,std::vector< std::vector<PT_NetworkEdge> > &)=0;
     	friend class StreetDirectory;
     };
 

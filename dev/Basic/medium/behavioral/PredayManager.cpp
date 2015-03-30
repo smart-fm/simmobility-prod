@@ -1318,7 +1318,7 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 	// logsum data source
 	const std::string& logsumDbId = mtConfig.getLogsumDb().database;
 	Database logsumDatabase = ConfigManager::GetInstance().FullConfig().constructs.databases.at(logsumDbId);
-	cred_id = mtConfig.getPopulationDb().credentials;
+	cred_id = mtConfig.getLogsumDb().credentials;
 	Credential logsumCredentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
 	username = logsumCredentials.getUsername();
 	password = logsumCredentials.getPassword(false);

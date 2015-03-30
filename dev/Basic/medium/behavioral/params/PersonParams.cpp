@@ -181,9 +181,8 @@ void sim_mob::medium::PersonParams::fixUpForLtPerson()
 {
 	setMissingIncome(0);
 	setHomeLocation(getTAZCodeForAddressId(homeAddressId));
-	Print() << "Person: " << personId << "|Home TAZ " << homeLocation << std::endl;
 	if(fixedWorkplace) { setFixedWorkLocation(getTAZCodeForAddressId(activityAddressId)); }
-	else if(student) { setFixedSchoolLocation(getTAZCodeForAddressId(activityAddressId)); }
+	if(student) { setFixedSchoolLocation(getTAZCodeForAddressId(activityAddressId)); }
 	setHasDrivingLicence(getCarLicense()||getVanbusLicense());
 	setIsUniversityStudent(studentTypeId == 4);
 	setIsFemale(genderId == 2);
@@ -194,7 +193,7 @@ void sim_mob::medium::PersonParams::fixUpForLtPerson()
 
 int sim_mob::medium::PersonParams::getTAZCodeForAddressId(long addressId)
 {
-	std::map<long, int>::const_iterator addressIdIt = addressTazLookup.find(getHomeAddressId());
+	std::map<long, int>::const_iterator addressIdIt = addressTazLookup.find(addressId);
 	if(addressIdIt == addressTazLookup.end()) { throw std::runtime_error("invalid address id");	}
 	return addressIdIt->second;
 }

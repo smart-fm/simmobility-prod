@@ -438,7 +438,7 @@ public:
 
 	void setIsStudent(bool isStudent)
 	{
-		this->student = student;
+		this->student = isStudent;
 	}
 
 	static double* getIncomeCategoryLowerLimits()

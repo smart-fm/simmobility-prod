@@ -18,6 +18,11 @@ using std::vector;
 
 using namespace sim_mob;
 
+namespace
+{
+	bool firstTick = true;
+}
+
 
 WorkGroupManager::~WorkGroupManager() {
 
@@ -130,6 +135,14 @@ void sim_mob::WorkGroupManager::waitAllGroups()
 
 	//Call each function in turn.
 	//NOTE: Each sub-function tests the current state.
+	if(firstTick)
+	{
+		//first tick has two frameTickBarr
+		if (frameTickBarr) {
+			frameTickBarr->wait();
+		}
+		firstTick = false;
+	}
 	waitAllGroups_FrameTick();
 	waitAllGroups_FlipBuffers(&removedEntities);
 	waitAllGroups_DistributeMessages(removedEntities);

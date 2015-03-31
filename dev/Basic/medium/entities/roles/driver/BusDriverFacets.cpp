@@ -206,8 +206,8 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 		person->setCurrSegStats(firstSegStat);
 		person->setCurrLane(firstSegStat->laneInfinity);
 		person->distanceToEndOfSegment = firstSegStat->getLength();
-		routeTracker.printBusRoute(person->getId());
-		pathMover.printPath();
+		//routeTracker.printBusRoute(person->getId());
+		//pathMover.printPath();
 	}
 
 	//to indicate that the path to next activity is already planned

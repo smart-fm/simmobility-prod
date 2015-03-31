@@ -41,6 +41,11 @@ using boost::function;
 using namespace sim_mob;
 using namespace sim_mob::event;
 
+namespace
+{
+	bool confluxInitializationsRqd = true;
+}
+
 typedef Entity::UpdateStatus UpdateStatus;
 
 UpdateEventArgs::UpdateEventArgs(const sim_mob::Entity *entity): entity(entity){};
@@ -602,10 +607,18 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 			unsigned int total = 0;
 			unsigned int infCount = 0;
 			unsigned int vqCount = 0;
+
+			if(confluxInitializationsRqd) //runs only once in the very first time.
+			{
+				for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+				{
+					if(!(*it)->isInitialized()) { (*it)->initialize(currTime); }
+				}
+				confluxInitializationsRqd = false;
+			}
 			for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 			{
 				conflux = *it;
-				if(!conflux->isInitialized()) { conflux->initialize(currTime); }
 				vqCount += conflux->resetOutputBounds();
 				total += conflux->countPersons(); //total = numInLanes+numInLaneInf. VQ is not included here
 				infCount += conflux->getNumRemainingInLaneInfinity();

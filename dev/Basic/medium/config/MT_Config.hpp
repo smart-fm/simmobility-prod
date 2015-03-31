@@ -13,6 +13,7 @@
 #include <vector>
 #include "conf/Constructs.hpp"
 #include "util/ProtectedCopyable.hpp"
+#include "database/DB_Connection.hpp"
 
 namespace sim_mob
 {
@@ -203,6 +204,13 @@ private:
 	std::string weightMatrixFile;
 };
 
+struct DB_Details
+{
+	DB_Details() : database(std::string()), credentials(std::string()) {}
+	std::string database;
+	std::string credentials;
+};
+
 class MT_Config : private sim_mob::ProtectedCopyable
 {
 public:
@@ -260,6 +268,12 @@ public:
 	void setFilenameOfWaitingAmountStats(const std::string& str);
 	const unsigned int getBusCapacity() const;
 	void setBusCapacity(const unsigned int busCapcacity);
+	db::BackendType getPopulationSource() const;
+	void setPopulationSource(const std::string& src);
+	const DB_Details& getLogsumDb() const;
+	void setLogsumDb(const std::string& logsumDb, const std::string& logsumCred);
+	const DB_Details& getPopulationDb() const;
+	void setPopulationDb(const std::string& populationDb, const std::string& populationCred);
 
 private:
 	MT_Config();
@@ -304,6 +318,11 @@ private:
 	std::string filenameOfWaitingAmountStats;
 	/**default capacity for bus*/
 	unsigned int busCapacity;
+	unsigned supplyUpdateInterval; //frames
+	unsigned activityScheduleLoadInterval; //seconds
+	db::BackendType populationSource;
+	DB_Details populationDB;
+	DB_Details logsumDB;
 
 	/**Preday calibration parameters*/
 	enum CalibrationMethodology { SPSA, WSPSA };
@@ -313,8 +332,7 @@ private:
 	std::string calibrationOutputFile;
 	unsigned logsumComputationFrequency;
 	StoredProcedureMap storedProcedure;
-	unsigned activityScheduleLoadInterval; //seconds
-	unsigned supplyUpdateInterval; //frames
+
 };
 }
 }

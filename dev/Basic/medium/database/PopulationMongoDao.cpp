@@ -53,6 +53,7 @@ void PopulationMongoDao::fromRow(mongo::BSONObj document, PersonParams& outParam
    	outParam.setDpsLogsum(document.getField(MONGO_FIELD_DPS_LOGSUM).Number());
    	outParam.setHouseholdFactor(document.getField(MONGO_FIELD_HH_FACTOR).Number());
    	outParam.setHasFixedWorkTiming(document.getField(MONGO_FIELD_WORK_TIME_FLEX).Int());
+   	outParam.setIsStudent(outParam.getPersonTypeId() == 4);
 }
 
 std::string PopulationMongoDao::getIdFromRow(mongo::BSONObj document)

@@ -111,26 +111,26 @@ void BusDriverMovement::frame_tick() {
 	{
 		setParentData(params);
 	}
-	std::stringstream logout;
-	sim_mob::Person* person = getParent();
-	unsigned int segId = (person->getCurrSegStats()? person->getCurrSegStats()->getRoadSegment()->getSegmentAimsunId() : 0 );
-	uint16_t statsNum = (person->getCurrSegStats()? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
-	logout << "(BusDriver"
-			<<","<<person->getId()
-			<<","<<parentBusDriver->getParams().now.frame()
-			<<",{"
-			<<"RoadSegment:"<< segId
-			<<",StatsNum:"<< statsNum
-			<<",Lane:"<<(person->getCurrLane()? person->getCurrLane()->getLaneID() : 0)
-			<<",DistanceToEndSeg:"<<person->distanceToEndOfSegment;
-
-	if(parentBusDriver->getResource()->isMoving()) { logout << ",ServingStop:" << "false"; }
-	else { logout << ",ServingStop:" << "true"; }
-
-	if (person->isQueuing) { logout << ",queuing:" << "true"; }
-	else { logout << ",queuing:" << "false";}
-	logout << "})" << std::endl;
-	Print()<<logout.str();
+//	std::stringstream logout;
+//	sim_mob::Person* person = getParent();
+//	unsigned int segId = (person->getCurrSegStats()? person->getCurrSegStats()->getRoadSegment()->getSegmentAimsunId() : 0 );
+//	uint16_t statsNum = (person->getCurrSegStats()? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
+//	logout << "(BusDriver"
+//			<<","<<person->getId()
+//			<<","<<parentBusDriver->getParams().now.frame()
+//			<<",{"
+//			<<"RoadSegment:"<< segId
+//			<<",StatsNum:"<< statsNum
+//			<<",Lane:"<<(person->getCurrLane()? person->getCurrLane()->getLaneID() : 0)
+//			<<",DistanceToEndSeg:"<<person->distanceToEndOfSegment;
+//
+//	if(parentBusDriver->getResource()->isMoving()) { logout << ",ServingStop:" << "false"; }
+//	else { logout << ",ServingStop:" << "true"; }
+//
+//	if (person->isQueuing) { logout << ",queuing:" << "true"; }
+//	else { logout << ",queuing:" << "false";}
+//	logout << "})" << std::endl;
+//	Print()<<logout.str();
 }
 
 void sim_mob::medium::BusDriverMovement::frame_tick_output() {

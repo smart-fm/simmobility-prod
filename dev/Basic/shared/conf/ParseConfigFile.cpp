@@ -221,6 +221,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessSignalsNode(GetSingleElementByName(rootNode, "signals"));
 	ProcessBusControllersNode(GetSingleElementByName(rootNode, "buscontrollers"));
 	ProcessCBD_Node(GetSingleElementByName(rootNode, "CBD"));
+	ProcessLoopDetectorCountsNode(GetSingleElementByName(rootNode, "loop-detector_counts"));
 	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
 	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update"));
 	processGeneratedRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
@@ -656,6 +657,19 @@ void sim_mob::ParseConfigFile::processGeneratedRoutesNode(xercesc::DOMElement* n
 		return;
 	}
 	cfg.generateBusRoutes = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+}
+
+void sim_mob::ParseConfigFile::ProcessLoopDetectorCountsNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		cfg.loopDetectorCounts.frequency = ParseUnsignedInt(GetNamedAttributeValue(node, "frequency"), 600000);
+		cfg.loopDetectorCounts.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
+		if(cfg.loopDetectorCounts.outputEnabled)
+		{			
+			cfg.loopDetectorCounts.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/VehCounts.csv");
+		}
+	}
 }
 
 

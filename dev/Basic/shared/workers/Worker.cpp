@@ -41,11 +41,6 @@ using boost::function;
 using namespace sim_mob;
 using namespace sim_mob::event;
 
-namespace
-{
-	bool confluxInitializationsRqd = true;
-}
-
 typedef Entity::UpdateStatus UpdateStatus;
 
 UpdateEventArgs::UpdateEventArgs(const sim_mob::Entity *entity): entity(entity){};
@@ -382,7 +377,16 @@ void sim_mob::Worker::threaded_function_loop()
 	///      Instead, add functionality into the sub-functions (perform_frame_tick(), etc.).
 	///      This is needed so that singleThreaded mode can be implemented easily. ~Seth
 	while (loop_params.active) {
-                messaging::MessageBus::ThreadDispatchMessages();
+		if(loop_params.currTick == 0)
+		{
+			initializeConfluxes(timeslice(loop_params.currTick, loop_params.currTick*loop_params.msPerFrame));
+			//Zero barrier
+			if (frame_tick_barr) {
+				frame_tick_barr->wait();
+			}
+		}
+
+		messaging::MessageBus::ThreadDispatchMessages();
 		perform_frame_tick();
 
 		//Now wait for our barriers. Interactive mode wraps this in a try...catch(all); hence the ifdefs.
@@ -391,31 +395,31 @@ void sim_mob::Worker::threaded_function_loop()
 		//      on STRICT_AGENT_ERRORS?
 		try {
 #endif
-			//First barrier
-			if (frame_tick_barr) {
-				frame_tick_barr->wait();
-			}
+		//First barrier
+		if (frame_tick_barr) {
+			frame_tick_barr->wait();
+		}
 
-			//Now flip all remaining data.
-			perform_buff_flip();
+		//Now flip all remaining data.
+		perform_buff_flip();
 
-			//Second barrier
-			if (buff_flip_barr) {
-				buff_flip_barr->wait();
-			}
+		//Second barrier
+		if (buff_flip_barr) {
+			buff_flip_barr->wait();
+		}
 
-			// Wait for the AuraManager
-			if (aura_mgr_barr) {
-				aura_mgr_barr->wait();
-			}
+		// Wait for the AuraManager
+		if (aura_mgr_barr) {
+			aura_mgr_barr->wait();
+		}
 
-			//If we have a macro barrier, we must wait exactly once more.
-			//  E.g., for an Agent with a tickStep of 10, we wait once at the end of tick0, and
-			//  once more at the end of tick 9.
-			//NOTE: We can't wait (or we'll lock up) if the "extra" tick will never be triggered.
-			if (macro_tick_barr && loop_params.extraActive(endTick)) {
-				macro_tick_barr->wait();
-			}
+		//If we have a macro barrier, we must wait exactly once more.
+		//  E.g., for an Agent with a tickStep of 10, we wait once at the end of tick0, and
+		//  once more at the end of tick 9.
+		//NOTE: We can't wait (or we'll lock up) if the "extra" tick will never be triggered.
+		if (macro_tick_barr && loop_params.extraActive(endTick)) {
+			macro_tick_barr->wait();
+		}
 
 #ifdef SIMMOB_INTERACTIVE_MODE
 		} catch(...) {
@@ -593,6 +597,13 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 	}
 }
 
+void sim_mob::Worker::initializeConfluxes(timeslice currTime)
+{
+	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+	{
+		if(!(*it)->isInitialized()) { (*it)->initialize(currTime); }
+	}
+}
 
 //TODO: It seems that beginManaging() and stopManaging() can also be called during update?
 //      May want to dig into this a bit more. ~Seth
@@ -608,14 +619,6 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 			unsigned int infCount = 0;
 			unsigned int vqCount = 0;
 
-			if(confluxInitializationsRqd) //runs only once in the very first time.
-			{
-				for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-				{
-					if(!(*it)->isInitialized()) { (*it)->initialize(currTime); }
-				}
-				confluxInitializationsRqd = false;
-			}
 			for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 			{
 				conflux = *it;
@@ -633,7 +636,6 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 			for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 			{
 				conflux = *it;
-				if(!conflux->isInitialized()) { conflux->initialize(currTime); }
 				conflux->resetOutputBounds();
 			}
 		}

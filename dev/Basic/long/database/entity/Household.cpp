@@ -16,13 +16,13 @@
 
 using namespace sim_mob::long_term;
 
-Household::Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int children, double income,
+Household::Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, double income,
 					  int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType ): id(id),
-					  lifestyleId(lifestyleId), unitId(unitId), ethnicityId(ethnicityId), vehicleCategoryId(vehicleCategoryId),size(size), children(children), income(income),
+					  lifestyleId(lifestyleId), unitId(unitId), ethnicityId(ethnicityId), vehicleCategoryId(vehicleCategoryId),size(size), childUnder4(childUnder4), childUnder15(childUnder15), income(income),
 					  housingDuration(housingDuration), workers(workers), ageOfHead(ageOfHead), twoRoomHdbEligibility(twoRoomHdbEligibility),
 					  threeRoomHdbEligibility(threeRoomHdbEligibility), fourRoomHdbEligibility(fourRoomHdbEligibility),familyType(familyType){}
 
-Household::Household(): id(0), lifestyleId(0), unitId(0), ethnicityId(0), vehicleCategoryId(0),size(0), children(0), income(0), housingDuration(0), workers(0), ageOfHead(0),
+Household::Household(): id(0), lifestyleId(0), unitId(0), ethnicityId(0), vehicleCategoryId(0),size(0), childUnder4(0), childUnder15(0), income(0), housingDuration(0), workers(0), ageOfHead(0),
 						twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0), familyType(0){}
 Household::~Household() {}
 
@@ -35,7 +35,8 @@ Household& Household::operator=(const Household& source)
     this->vehicleCategoryId = source.vehicleCategoryId;
     this->income = source.income;
     this->size = source.size;
-    this->children = source.children;
+    this->childUnder4 = source.childUnder15;
+    this->childUnder15 = source.childUnder15;
     this->housingDuration = source.housingDuration;
     this->workers = source.workers;
     this->ageOfHead = source.ageOfHead;
@@ -74,12 +75,20 @@ double Household::getIncome() const {
     return income;
 }
 
-void Household::setChildren(int children) {
-    this->children = children;
+void Household::setChildUnder4(int childUnder4) {
+    this->childUnder4 = childUnder4;
 }
 
-int Household::getChildren() const {
-    return children;
+void Household::setChildUnder15(int childUnder15) {
+    this->childUnder15 = childUnder15;
+}
+
+int Household::getChildUnder4() const {
+    return childUnder4;
+}
+
+int Household::getChildUnder15() const {
+    return childUnder15;
 }
 
 void Household::setSize(int size) {
@@ -193,7 +202,8 @@ namespace sim_mob {
                     << "\"ethnicityId\":\"" << data.ethnicityId << "\","
                     << "\"vehicleCategoryId\":\"" << data.vehicleCategoryId << "\","
                     << "\"size\":\"" << data.size << "\","
-                    << "\"children\":\"" << data.children << "\","
+                    << "\"childUnder4\":\"" << data.childUnder4 << "\","
+                    << "\"childUnder15\":\"" << data.childUnder15 << "\","
                     << "\"income\":\"" << data.income << "\","
                     << "\"housingDuration\":\"" << data.housingDuration << "\","
                     << "\"workers\":\"" << data.workers << "\","

@@ -90,6 +90,8 @@ namespace sim_mob
 
             HousingMarket* getMarket();
 
+            HouseholdList* getHouseholdList();
+
             void incrementBidders();
             void decrementBidders();
             int	 getNumberOfBidders();

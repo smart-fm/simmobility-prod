@@ -135,7 +135,7 @@ void sim_mob::WorkGroupManager::waitAllGroups()
 
 	//Call each function in turn.
 	//NOTE: Each sub-function tests the current state.
-	if(firstTick)
+	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply() && firstTick)
 	{
 		//first tick has two frameTickBarr
 		if (frameTickBarr) {

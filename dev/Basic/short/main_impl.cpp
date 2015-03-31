@@ -175,8 +175,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
     	if(signalScats) {
     		LoopDetectorEntity* loopDetector = new LoopDetectorEntity(mtx);
     		signalScats->setLoopDetector(loopDetector);
-    		loopDetector->init(*signal);
+    		loopDetector->init(*signal);			
     		Agent::all_agents.insert(loopDetector);
+			signalScats->curVehicleCounter.init(signalScats);
     	}
     }
 

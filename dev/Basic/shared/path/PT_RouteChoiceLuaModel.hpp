@@ -36,7 +36,7 @@ public:
 	static PT_RouteChoiceLuaModel* Instance();
 
 	void SetPathSet(PT_PathSet* set){
-		this->pathSet = set;
+		publicTransitPathSet = set;
 	}
 
 	/**

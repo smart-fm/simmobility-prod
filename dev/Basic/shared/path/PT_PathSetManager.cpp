@@ -39,7 +39,7 @@ std::string PT_PathSetManager::getVertexIdFromNode(sim_mob::Node* node)
 	string stopId = boost::lexical_cast<std::string>("N_"+boost::lexical_cast<std::string>(node_id));
 	return stopId;
 }
-void PT_PathSetManager::makePathset(sim_mob::Node* from,sim_mob::Node* to)
+PT_PathSet PT_PathSetManager::makePathset(sim_mob::Node* from,sim_mob::Node* to)
 {
 	StreetDirectory::PT_VertexId fromId =getVertexIdFromNode(from);
 	StreetDirectory::PT_VertexId toId= getVertexIdFromNode(to);
@@ -59,6 +59,7 @@ void PT_PathSetManager::makePathset(sim_mob::Node* from,sim_mob::Node* to)
 
 	// Writing the pathSet to the CSV file.
 
+	return ptPathSet;
 }
 void PT_PathSetManager::writePathSetToFile(PT_PathSet &ptPathSet)
 {

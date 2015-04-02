@@ -115,6 +115,7 @@ void PT_RouteChoiceLuaModel::mapClasses() {
             .addFunction("total_walk_time", &PT_RouteChoiceLuaModel::total_walk_time)
 			.addFunction("total_wait_time", &PT_RouteChoiceLuaModel::total_wait_time)
 			.addFunction("total_path_size", &PT_RouteChoiceLuaModel::total_path_size)
+			.addFunction("total_no_txf", &PT_RouteChoiceLuaModel::total_no_txf)
             .endClass();
 }
 }

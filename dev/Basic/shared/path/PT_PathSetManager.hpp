@@ -26,7 +26,7 @@ public:
 		return _instance;
 	}
 public:
-	void makePathset(sim_mob::Node* from,sim_mob::Node* to);
+	PT_PathSet makePathset(sim_mob::Node* from,sim_mob::Node* to);
 	PT_NetworkVertex getVertexFromNode(sim_mob::Node*);
 	std::string getVertexIdFromNode(sim_mob::Node*);
 	void getLabelingApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);

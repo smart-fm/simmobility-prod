@@ -45,6 +45,7 @@
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "path/PT_PathSetManager.hpp"
+#include "path/PT_RouteChoiceLuaModel.hpp"
 #include "util/DailyTime.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Utils.hpp"
@@ -87,7 +88,14 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 void unit_test_function(){
 	sim_mob::Node* src_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(14934);
 	sim_mob::Node* dest_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(11392);
-	sim_mob::PT_PathSetManager::Instance().makePathset(src_node,dest_node);
+	PT_PathSet pathSet = sim_mob::PT_PathSetManager::Instance().makePathset(src_node,dest_node);
+
+	const ModelScriptsMap& extScripts = MT_Config::getInstance().getModelScriptsMap();
+	const std::string& scriptsPath = extScripts.getPath();
+	sim_mob::PT_RouteChoiceLuaModel::Instance()->loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
+	sim_mob::PT_RouteChoiceLuaModel::Instance()->loadFile(scriptsPath + extScripts.getScriptFileName("ptrc"));
+	sim_mob::PT_RouteChoiceLuaModel::Instance()->SetPathSet(&pathSet);
+	int ret = sim_mob::PT_RouteChoiceLuaModel::Instance()->MakePT_RouteChoice();
 }
 
 /**

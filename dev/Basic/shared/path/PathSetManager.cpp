@@ -300,7 +300,7 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::SubTrip &subTri
 	}
 	else
 	{
-		getBestPath(res, subTrip,true,std::set<const sim_mob::RoadSegment*>(), false, false,enRoute, approach);
+		getBestPath(res, subTrip, true, std::set<const sim_mob::RoadSegment*>(), false, false, enRoute, approach);
 	}
 
 	//subscribe person
@@ -405,12 +405,14 @@ void sim_mob::PathSetManager::onGeneratePathSet(boost::shared_ptr<PathSet> &ps)
 //Step-3: If not found in DB, generate all 4 types of path
 //step-5: Choose the best path using utility function
 bool sim_mob::PathSetManager::getBestPath(
-		std::vector<sim_mob::WayPoint> &res,
-		const sim_mob::SubTrip& st,bool useCache,
+		std::vector<sim_mob::WayPoint>& res,
+		const sim_mob::SubTrip& st,
+		bool useCache,
 		std::set<const sim_mob::RoadSegment*> tempBlckLstSegs,
 		bool usePartialExclusion,
 		bool useBlackList,
-		bool enRoute,const sim_mob::RoadSegment* approach)
+		bool enRoute,
+		const sim_mob::RoadSegment* approach)
 {
 	res.clear();
 //	if(!(st->mode == "Car" || st->mode == "Taxi" || st->mode == "Motorcycle")) //mode filter if required
@@ -419,11 +421,11 @@ bool sim_mob::PathSetManager::getBestPath(
 //	}
 	//take care of partially excluded and blacklisted segments here
 	std::set<const sim_mob::RoadSegment*> blckLstSegs(tempBlckLstSegs);
-	if(useBlackList && this->blacklistSegments.size())
+	if(useBlackList && !blacklistSegments.empty())
 	{
 		blckLstSegs.insert(this->blacklistSegments.begin(), this->blacklistSegments.end()); //temporary + permanent
 	}
-	const std::set<const sim_mob::RoadSegment*> &partial = (usePartialExclusion ? this->partialExclusions : std::set<const sim_mob::RoadSegment*>());
+	const std::set<const sim_mob::RoadSegment*>& partial = (usePartialExclusion ? this->partialExclusions : std::set<const sim_mob::RoadSegment*>());
 
 	const sim_mob::Node* fromNode = st.fromLocation.node_;
 	const sim_mob::Node* toNode = st.toLocation.node_;
@@ -439,7 +441,7 @@ bool sim_mob::PathSetManager::getBestPath(
 	std::string fromToID = getFromToString(fromNode, toNode);
 	if(tempNoPath.find(fromToID))
 	{
-		logger <<  fromToID   << "[PREVIOUS RECORERD OF FAILURE.BYPASSING : " << fromToID << "]\n";
+		logger <<  fromToID   << "[PREVIOUS RECORD OF FAILURE. BYPASSING : " << fromToID << "]\n";
 		return false;
 	}
 	logger << "[THREAD " << boost::this_thread::get_id() << "][SEARCHING FOR : " << fromToID << "]\n" ;
@@ -450,7 +452,7 @@ bool sim_mob::PathSetManager::getBestPath(
 	 * supply only the temporary blacklist, because with the current implementation,
 	 * cache should never be filled with paths containing permanent black listed segments
 	 */
-	std::set<const sim_mob::RoadSegment*> emptyBlkLst = std::set<const sim_mob::RoadSegment*>();//and sometime you dont need a black list at all!
+	std::set<const sim_mob::RoadSegment*> emptyBlkLst = std::set<const sim_mob::RoadSegment*>();//and sometime you don't need a black list at all!
 	if(useCache && findCachedPathSet(fromToID, ps_))
 	{
 		logger <<  fromToID  << " : Cache Hit\n";
@@ -464,25 +466,19 @@ bool sim_mob::PathSetManager::getBestPath(
 			res = *(ps_->bestPath);
 			logger <<  fromToID << " : returning a path " << res.size() << "\n";
 			return true;
-
 		}
-		else{
-				logger <<  fromToID  << "UNUSED Cache Hit" <<  "\n";
-		}
+		else { logger <<  fromToID  << "UNUSED Cache Hit" <<  "\n"; }
 	}
-	else
-	{
-		logger <<  fromToID << " : Cache Miss " << "\n";
-	}
+	else { logger <<  fromToID << " : Cache Miss " << "\n"; }
 
-	//	before proceeding further, check if someone other thread has already started looking
-	// for a path for this OD.
-	//	if yes, back off and try after sometime
+	// before proceeding further, check if someone other thread has already started looking for a path for this OD.
+	// if yes, back off and try after sometime
 	if(!pathRetrievalAttempt.tryCheck(fromToID))
 	{
 		boost::this_thread::sleep(boost::posix_time::seconds(1));
-		return getBestPath(res,st,true,tempBlckLstSegs,usePartialExclusion,useBlackList,enRoute,approach);
+		return getBestPath(res, st, true, tempBlckLstSegs, usePartialExclusion, useBlackList, enRoute, approach);
 	}
+
 	//step-2:check  DB
 	sim_mob::HasPath hasPath = PSM_UNKNOWN;
 	ps_.reset(new sim_mob::PathSet());
@@ -491,42 +487,48 @@ bool sim_mob::PathSetManager::getBestPath(
 	ps_->scenario = scenarioName;
 	hasPath = sim_mob::aimsun::Loader::loadSinglePathFromDB(*getSession(),fromToID,ps_->pathChoices, psRetrieval,blckLstSegs);
 	logger  <<  fromToID << " : " << (hasPath == PSM_HASPATH ? "" : "Don't " ) << "have SinglePaths in DB \n" ;
-	switch (hasPath) {
-	case PSM_HASPATH: {
+	switch (hasPath)
+	{
+	case PSM_HASPATH:
+	{
 		logger << "[" << fromToID << "]" <<  " : DB Hit\n";
-		bool r = false;
-		ps_->oriPath = 0;
-		BOOST_FOREACH(sim_mob::SinglePath* sp, ps_->pathChoices) {
-			if (sp->isShortestPath) {
+		ps_->oriPath = nullptr;
+		BOOST_FOREACH(sim_mob::SinglePath* sp, ps_->pathChoices)
+		{
+			if (sp->isShortestPath)
+			{
 				ps_->oriPath = sp;
 				break;
 			}
 		}
-		if (ps_->oriPath == 0) {
-			std::string str = "Warning => SP: oriPath(shortest path) for "
-					+ ps_->id + " not valid anymore\n";
+		if (!ps_->oriPath)
+		{
+			std::string str = "Warning => SP: oriPath(shortest path) for " + ps_->id + " not valid anymore\n";
 			logger << str;
 		}
 		//	no need of processing and storing blacklisted paths
 		short psCnt = ps_->pathChoices.size();
 		onPathSetRetrieval(ps_,enRoute);
-		r = getBestPathChoiceFromPathSet(ps_, partial,emptyBlkLst,enRoute, approach);
+		bool r = getBestPathChoiceFromPathSet(ps_, partial,emptyBlkLst,enRoute, approach);
 		logger << "[" << fromToID << "]" <<  " :  number of paths before blcklist: " << psCnt << " after blacklist:" << ps_->pathChoices.size() << "\n";
-		if (r) {
+		if(r)
+		{
 			res = *(ps_->bestPath);
 			//cache
-			if(useCache)
-			{
-				cachePathSet(ps_);
-			}
+			if(useCache) { cachePathSet(ps_); }
+			pathRetrievalAttempt.erase(fromToID);
 			logger << "returning a path " << res.size() << "\n";
 			return true;
-		} else {
+		}
+		else
+		{
+			pathRetrievalAttempt.erase(fromToID);
 			logger << "UNUSED DB hit\n";
 		}
 		break;
 	}
-	case PSM_NOTFOUND: {
+	case PSM_NOTFOUND:
+	{
 		logger << "[" << fromToID << "]" <<  " : DB Miss\n";
 		// Step-3 : If not found in DB, generate all 4 types of path
 		logger << "[GENERATING PATHSET : " << fromToID << "]\n";
@@ -545,6 +547,7 @@ bool sim_mob::PathSetManager::getBestPath(
 		{
 			logger << "[PATHSET GENERATION FAILURE : " << fromToID << "]\n";
 			tempNoPath.insert(fromToID);
+			pathRetrievalAttempt.erase(fromToID);
 			return false;
 		}
 		//this hack conforms to the CBD property added to segment and node
@@ -554,33 +557,36 @@ bool sim_mob::PathSetManager::getBestPath(
 			{
 				logger << "[ALL PATHS IN CBD" << fromToID << "]\n" ;
 				tempNoPath.insert(fromToID);
+				pathRetrievalAttempt.erase(fromToID);
 				return false;
 			}
 		}
 		logger << "[PATHSET GENERATED : " << fromToID << "]\n" ;
 		onPathSetRetrieval(ps_, enRoute);
 		r = getBestPathChoiceFromPathSet(ps_, partial,emptyBlkLst,enRoute,approach);
-		if (r) {
+		if (r)
+		{
 			res = *(ps_->bestPath);
 			//cache
-			if(useCache)
-			{
-				cachePathSet(ps_);
-			}
+			if(useCache) { cachePathSet(ps_); }
+			pathRetrievalAttempt.erase(fromToID);
 			logger << ps_->id	<< "WARNING not cached, apparently, already in cache. this is NOT and expected behavior!!\n";
 			logger << "[RETURN PATH OF SIZE : " << res.size() << " : " << fromToID << "]\n";
 			return true;
 		}
 		else
 		{
+			pathRetrievalAttempt.erase(fromToID);
 			logger << "[NO PATH RETURNED EVEN AFTER GENERATING A PATHSET : " << fromToID << "]\n";
 			return false;
 		}
 		break;
 	}
 	case PSM_NOGOODPATH:
-	default: {
+	default:
+	{
 		tempNoPath.insert(fromToID);
+		pathRetrievalAttempt.erase(fromToID);
 		break;
 	}
 	};

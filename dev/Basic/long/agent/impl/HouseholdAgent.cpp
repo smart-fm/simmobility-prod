@@ -139,6 +139,10 @@ void HouseholdAgent::awakenHousehold()
 		bidder->setActive(true);
 		model->incrementBidders();
 
+		#ifdef VERBOSE
+		PrintOutV("Household " << getId() << " has been awakened."<< std::endl);
+		#endif
+
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 		{
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -148,7 +152,6 @@ void HouseholdAgent::awakenHousehold()
 
 			unit->setbiddingMarketEntryDay(day);
 			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
-			//PrintOutV("Awakening Model lifestyle 1. day: " << day << " unit: " << unit->getId() << std::endl);
 		}
 
 		model->incrementAwakeningCounter();
@@ -162,6 +165,10 @@ void HouseholdAgent::awakenHousehold()
 		bidder->setActive(true);
 		model->incrementBidders();
 
+		#ifdef VERBOSE
+		PrintOutV("[day " << day << "] Household " << getId() << " has been awakened."<< std::endl);
+		#endif
+
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 		{
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -171,7 +178,6 @@ void HouseholdAgent::awakenHousehold()
 
 			unit->setbiddingMarketEntryDay(day);
 			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
-			//PrintOutV("Awakening Model lifestyle 2. day: " << day << " unit: " << unit->getId() << std::endl);
 		}
 
 		model->incrementAwakeningCounter();
@@ -185,6 +191,10 @@ void HouseholdAgent::awakenHousehold()
 		bidder->setActive(true);
 		model->incrementBidders();
 
+		#ifdef VERBOSE
+		PrintOutV("[day " << day << "] Household " << getId() << " has been awakened."<< std::endl);
+		#endif
+
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 		{
 			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -194,7 +204,6 @@ void HouseholdAgent::awakenHousehold()
 
 			unit->setbiddingMarketEntryDay(day);
 			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
-			//PrintOutV("Awakening Model lifestyle 3. day: " << day << " unit: " << unit->getId() << std::endl);
 		}
 
 		model->incrementAwakeningCounter();
@@ -279,7 +288,6 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
 					}
             	}
 
-            	//PrintOut("Active seller " << seller->getParent()->GetId() << std::endl);
                 seller->setActive(true);
             }
 
@@ -289,6 +297,11 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
                 model->incrementBidders();
 
             }
+
+			#ifdef VERBOSE
+            PrintOutV("[day " << day << "] Household " << getId() << " has been awakened."<< std::endl);
+			#endif
+
             break;
         }
         default:break;

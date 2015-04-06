@@ -9,6 +9,7 @@
 
 #include "conf/params/ParameterManager.hpp"
 #include "conf/settings/DisableMPI.h"
+#include "entities/roles/driver/DriverUpdateParams.hpp"
 #include "geospatial/TurningSection.hpp"
 #include "util/DynamicVector.hpp"
 
@@ -20,7 +21,6 @@
 namespace sim_mob {
   
   class TurningSection;
-  class DriverUpdateParams;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -142,13 +142,19 @@ class SimpleIntDrivingModel : public IntersectionDrivingModel
 {
 public:
   
-  virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) {
+  virtual double makeAcceleratingDecision(DriverUpdateParams& params, const TurningSection *currTurning)
+  {
+    return params.maxAcceleration;
+  }
+  
+  virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) 
+  {
     intTrajectory = DynamicVector(fromLanePt.x, fromLanePt.y, toLanePt.x, toLanePt.y);
     totalMovement = startOffset;
   }
 
-
-  virtual DPoint continueDriving(double amount) {
+  virtual DPoint continueDriving(double amount, DriverUpdateParams& params) 
+  {
     totalMovement += amount;
     DynamicVector temp(intTrajectory);
     temp.scaleVectTo(totalMovement).translateVect();

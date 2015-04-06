@@ -2110,12 +2110,10 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 			if (!turnings.empty())
 			{
 				if(p.currLane->is_pedestrian_lane()) 
-				{
-					//if can different DEBUG or RELEASE mode, that will be perfect, but now comment it out, so that does nor affect performance.
-					//I remember the message is not critical
-					WarnOut("drive on pedestrian lane");
+				{					
+					WarnOut("Vehicle driving on pedestrian lane");
 					double d = driverMvt->fwdDriverMovement.getDisToCurrSegEndM()/100.0;
-					if(d<p.dis2stop)
+					if(d < p.dis2stop)
 					{
 						p.dis2stop = d;
 					}
@@ -2141,7 +2139,70 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 			} // end of if (!turning.empty())
 			else 
 			{
-				throw std::runtime_error("isLaneConnectToNextLink: Error, no Turning in Multi-node");
+				//Turnings not defined, use LaneConnectors
+				Print() << "\nTurnings not found for Node: " << nextSegment->getStart()->getID();
+				Print() << "\nDefaulting to Lane Connectors\n";
+				
+				//Lane connectors from current RoadSegment
+				const std::set<LaneConnector *>& lcs = currEndNode->getOutgoingLanes(driverMvt->fwdDriverMovement.getCurrSegment());
+				
+				// Check which lanes connect to next target segment
+				for (std::set<LaneConnector *>::const_iterator it = lcs.begin(); it != lcs.end(); ++it)
+				{
+					// The turning is connected to target segment
+					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment)
+					{
+						int laneIdx = getLaneIndex((*it)->getLaneFrom());
+						if (laneIdx > p.currLaneIndex)
+						{
+							p.setStatus(STATUS_LEFT_SIDE_OK, STATUS_YES, str);
+						} else if (laneIdx < p.currLaneIndex)
+						{
+							p.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_YES, str);
+						} else
+						{
+							p.setStatus(STATUS_CURRENT_LANE_OK, STATUS_YES, str);
+						}
+					}
+				}
+
+				if (!lcs.empty())
+				{
+					if (p.currLane->is_pedestrian_lane())
+					{
+						WarnOut("Vehicle driving on pedestrian lane");
+						double d = driverMvt->fwdDriverMovement.getDisToCurrSegEndM() / 100.0;
+						if (d < p.dis2stop)
+						{
+							p.dis2stop = d;
+						}
+						return -1;
+					}
+
+					for (std::set<LaneConnector *>::const_iterator it = lcs.begin(); it != lcs.end(); ++it)
+					{
+						if ((*it)->getLaneTo()->getRoadSegment() == nextSegment )
+						{
+							// add lane to targetLanes
+							const Lane* l = (*it)->getLaneFrom();
+							targetLanes.insert(l);
+
+							if ( (*it)->getLaneFrom() == p.currLane )
+							{
+								// current lane is connected to next link
+								// no need for lane change
+								res = 0;
+							}
+						}
+					}
+				}
+				else
+				{
+					stringstream msg;
+					msg << "isLaneConnectToNextLink: No Turnings or Lane connectors associated with the node ";
+					msg << currEndNode->getID();
+					throw std::runtime_error(msg.str());
+				}
 			}
 		}// end of else
 	}//end if(currEndNode)
@@ -2372,30 +2433,63 @@ void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)
 			// Turnings from the current segment
 			const std::set<TurningSection *>& turnings = currEndNode->getTurnings(driverMvt->fwdDriverMovement.getCurrSegment());
 
-			// Check if the turning is connected to the next segment
-			for (std::set<TurningSection *>::const_iterator it = turnings.begin(); it != turnings.end(); ++it)
+			if(!turnings.empty())
 			{
-				// This turning is connected to the target segment
-				if ((*it)->getLaneTo()->getRoadSegment() == nextSegment) 
+				// Check if the turning is connected to the next segment
+				for (std::set<TurningSection *>::const_iterator it = turnings.begin(); it != turnings.end(); ++it)
 				{
-					int laneIdx = getLaneIndex((*it)->getLaneFrom());
-					
-					// lane index 0 start from most left lane of the segment
-					// so lower number in the left, higher number in the right
-					if(laneIdx > p.currLaneIndex) 
+					// This turning is connected to the target segment
+					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment)
 					{
-						p.setStatus(STATUS_LEFT_SIDE_OK,STATUS_YES,str);
-					}
-					else if(laneIdx < p.currLaneIndex) 
+						int laneIdx = getLaneIndex((*it)->getLaneFrom());
+
+						// lane index 0 start from most left lane of the segment
+						// so lower number in the left, higher number in the right
+						if (laneIdx > p.currLaneIndex)
+						{
+							p.setStatus(STATUS_LEFT_SIDE_OK, STATUS_YES, str);
+						} else if (laneIdx < p.currLaneIndex)
+						{
+							p.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_YES, str);
+						} else if (laneIdx == p.currLaneIndex)
+						{
+							p.setStatus(STATUS_CURRENT_LANE_OK, STATUS_YES, str);
+						}
+					}// end if = nextsegment
+				}//end for
+			}
+			else
+			{
+				// Turnings not found, defaulting to lane connectors
+				Print() << "\nTurnings not found for Node: " << nextSegment->getStart()->getID();
+				Print() << "\nDefaulting to Lane Connectors\n";
+				
+				// Lane connectors from the current segment
+				const std::set<LaneConnector *>& lcs = currEndNode->getOutgoingLanes(driverMvt->fwdDriverMovement.getCurrSegment());
+				
+				// Check if the turning is connected to the next segment
+				for (std::set<LaneConnector *>::const_iterator it = lcs.begin(); it != lcs.end(); ++it)
+				{
+					// This turning is connected to the target segment
+					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment)
 					{
-						p.setStatus(STATUS_RIGHT_SIDE_OK,STATUS_YES,str);
+						int laneIdx = getLaneIndex((*it)->getLaneFrom());
+
+						// lane index 0 start from most left lane of the segment
+						// so lower number in the left, higher number in the right
+						if (laneIdx > p.currLaneIndex)
+						{
+							p.setStatus(STATUS_LEFT_SIDE_OK, STATUS_YES, str);
+						} else if (laneIdx < p.currLaneIndex)
+						{
+							p.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_YES, str);
+						} else if (laneIdx == p.currLaneIndex)
+						{
+							p.setStatus(STATUS_CURRENT_LANE_OK, STATUS_YES, str);
+						}
 					}
-					else if(laneIdx == p.currLaneIndex) 
-					{
-						p.setStatus(STATUS_CURRENT_LANE_OK,STATUS_YES,str);
-					}
-				}// end if = nextsegment
-			}//end for
+				}				
+			}			
 		}// end else
 	}// end if node
 	else 

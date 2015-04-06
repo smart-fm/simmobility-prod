@@ -860,9 +860,10 @@ double sim_mob::DriverMovement::approachIntersection()
 void sim_mob::DriverMovement::intersectionDriving(DriverUpdateParams& p) 
 {
 	//Don't move if we have no target
-	if (!nextLaneInNextLink) {
+	if (!nextLaneInNextLink) 
+	{
 		return;
-	}
+	}	
 	
 	perceiveParameters(p);
 	
@@ -1523,32 +1524,60 @@ void sim_mob::DriverMovement::getLanesConnectToLookAheadDis(double distance,
 	} //end for lanes
 }
 
-bool sim_mob::DriverMovement::laneConnectToSegment(sim_mob::Lane* lane,
-		const sim_mob::RoadSegment* rs) {
+bool sim_mob::DriverMovement::laneConnectToSegment(sim_mob::Lane* lane, const sim_mob::RoadSegment* rs) 
+{
 	bool isLaneOK = false;
 	size_t landIdx = getLaneIndex(lane);
-	//check if segment end node is intersection
-	const MultiNode* currEndNode = dynamic_cast<const MultiNode*>(lane->getRoadSegment()->getEnd());
 	const RoadSegment* from = lane->getRoadSegment();
+	//check if segment end node is intersection
+	const MultiNode* currEndNode = dynamic_cast<const MultiNode*>(from->getEnd());
 
-	if (currEndNode) {
-		// if is intersection
-		// get lane connector
-		const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(from);
+	if (currEndNode) 
+	{
+		// if intersection get turnings
+		const std::set<TurningSection *>& turnings = currEndNode->getTurnings(from);
 
-		if (!lcs.empty()) {
-			for (std::set<LaneConnector*>::const_iterator it = lcs.begin();it != lcs.end(); ++it) {	
-				if ((*it)->getLaneTo()->getRoadSegment() == rs
-						&& (*it)->getLaneFrom() == lane) {
-					// current lane connect to next link
+		if (!turnings.empty()) 
+		{
+			for (std::set<TurningSection *>::const_iterator it = turnings.begin(); it != turnings.end(); ++it) 
+			{	
+				if ((*it)->getLaneTo()->getRoadSegment() == rs && (*it)->getLaneFrom() == lane) 
+				{
+					// current lane connected to next link
 					isLaneOK = true;
 					break;
 				}
 			} //end for
-		} else {
-			isLaneOK = false;
+		} 
+		else 
+		{
+			// Turnings not found, defaulting to lane connectors
+			Print() << "\nTurnings not found for Node: " << from->getEnd()->getID();
+			Print() << "\nDefaulting to Lane Connectors\n";
+			
+			//Get the outgoing lane connectors
+			const std::set<LaneConnector *>& lcs = currEndNode->getOutgoingLanes(from);
+			
+			if(!lcs.empty())
+			{
+				for (std::set<LaneConnector *>::const_iterator it = lcs.begin(); it != lcs.end(); ++it)
+				{
+					if ((*it)->getLaneTo()->getRoadSegment() == rs && (*it)->getLaneFrom() == lane)
+					{
+						// current lane connected to next link
+						isLaneOK = true;
+						break;
+					}
+				}
+			}
+			else
+			{
+				isLaneOK = false;
+			}
 		}
-	} else {
+	} 
+	else 
+	{
 		// uni node
 		// TODO use uni node lane connector to check if lane connect to next segment
 		if (rs->getLanes().size() > landIdx) {
@@ -1702,17 +1731,70 @@ void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p)
 		//Get the set of turnings from the current segment
 		const std::set<TurningSection *> turnings = currEndNode->getTurnings(currSeg);
 		
-		//Look for the turning that has the 'to' RoadSegment as the next RoadSegment
-		for(std::set<TurningSection*>::const_iterator itTurnings = turnings.begin(); itTurnings != turnings.end(); ++itTurnings)
+		if (!turnings.empty())
 		{
-			if(nextSeg == (*itTurnings)->getToSeg())
+			//Look for the turning that has the 'to' RoadSegment as the next RoadSegment
+			for (std::set<TurningSection*>::const_iterator itTurnings = turnings.begin(); itTurnings != turnings.end(); ++itTurnings)
 			{
-				//Check if this turning has a from lane that is same as the current lane
-				if(currLane == (*itTurnings)->getLaneFrom() && nextSeg == (*itTurnings)->getToSeg())
+				if (nextSeg == (*itTurnings)->getToSeg())
 				{
-					targetLaneIndex = p.nextLaneIndex = (*itTurnings)->getTo_lane_index();
-					nextLaneInNextLink = (*itTurnings)->getLaneTo();
-					break;
+					//Check if this turning has a from lane that is same as the current lane
+					if (currLane == (*itTurnings)->getLaneFrom() && nextSeg == (*itTurnings)->getToSeg())
+					{
+						targetLaneIndex = p.nextLaneIndex = (*itTurnings)->getTo_lane_index();
+						nextLaneInNextLink = (*itTurnings)->getLaneTo();
+						break;
+					}
+				}
+			}
+		}
+		//No turnings, default to using lane connectors
+		else
+		{
+			Print() << "\nTurnings not found for Node: " << currSeg->getEnd()->getID();
+			Print() << "\nDefaulting to Lane Connectors\n";
+			
+			const std::set<LaneConnector *> lcs = currEndNode->getOutgoingLanes(currSeg);
+			vector<const Lane*> targetLanes;
+			
+			//Look for the lane connector that has the 'to' RoadSegment as the next RoadSegment
+			for(std::set<LaneConnector*>::const_iterator itLCS = lcs.begin(); itLCS != lcs.end(); ++itLCS)
+			{
+				if((*itLCS)->getLaneFrom() == p.currLane && (*itLCS)->getLaneTo()->getRoadSegment() == nextSeg)
+				{
+					//It's a valid lane.
+					targetLanes.push_back((*itLCS)->getLaneTo());
+
+					//find target lane with same index, use this lane
+					size_t laneIndex = getLaneIndex((*itLCS)->getLaneTo());
+					if (laneIndex == p.currLaneIndex && !((*itLCS)->getLaneTo()->is_pedestrian_lane()))
+					{
+						nextLaneInNextLink = (*itLCS)->getLaneTo();
+						targetLaneIndex = laneIndex;
+						break;
+					}
+				}
+			}
+			
+			//Next lane with same index as current lane not found, so look for other lanes
+			if (!nextLaneInNextLink)
+			{
+				//Use the first lane in the vector if possible.
+				if (targetLanes.size() > 0)
+				{
+					nextLaneInNextLink = targetLanes.at(0);
+					if (nextLaneInNextLink->is_pedestrian_lane() && targetLanes.size() > 1)
+					{
+						nextLaneInNextLink = targetLanes.at(1);
+					}
+					targetLaneIndex = getLaneIndex(nextLaneInNextLink);
+				} 
+				//Fallback
+				else if (nextSeg)
+				{ 
+					size_t fallbackIndex = std::min(p.currLaneIndex, nextSeg->getLanes().size() - 1);
+					nextLaneInNextLink = nextSeg->getLanes().at(fallbackIndex);
+					targetLaneIndex = fallbackIndex;
 				}
 			}
 		}
@@ -1738,6 +1820,18 @@ void sim_mob::DriverMovement::calculateIntersectionTrajectory(DPoint movingFrom,
 	}
 	
 	Point2D entry = nextLaneInNextLink->getPolyline().at(0);
+	
+	//Check if we have a turning
+	if(!fwdDriverMovement.currTurning)
+	{
+		MITSIM_IntDriving_Model *intersectionModel = dynamic_cast<MITSIM_IntDriving_Model *>(intModel);
+		
+		if(intersectionModel)
+		{
+			delete intModel;
+			intModel = new SimpleIntDrivingModel();
+		}
+	}
 	
 	//Compute a movement trajectory.
 

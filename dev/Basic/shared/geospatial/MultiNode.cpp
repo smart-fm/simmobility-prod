@@ -22,6 +22,7 @@ using std::map;
 
 namespace {
 static const set<LaneConnector*> EMPTY_LANE_CONNECTOR;
+static const set<TurningSection*> EMPTY_TURNING_PATH;
 //Compute the clockwise angle between two vectors with a common center point.
 // Returns the angle from "first" to "second", in the range 0 <= res < 2PI (NOTE: That might not be right)
 double AngleBetween(const Node* const center, const Node* const first, const Node* const second, bool readClockwise)
@@ -190,7 +191,7 @@ const std::set<TurningSection*>& sim_mob::MultiNode::getTurnings(const RoadSegme
 	} 
 	else
 	{
-		throw std::runtime_error("No turnings found from the given RoadSegment");
+		return EMPTY_TURNING_PATH;
 	}
 }
 

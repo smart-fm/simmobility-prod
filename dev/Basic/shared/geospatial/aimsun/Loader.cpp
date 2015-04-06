@@ -579,6 +579,12 @@ void DatabaseLoader::loadSegmentTypeTable(const std::string& storedProc,std::map
 void DatabaseLoader::loadTurningSectionTable(const std::string& storedProc,sim_mob::RoadNetwork& rn) {
 	try
 	{
+		if (storedProc.empty())
+		{
+			sim_mob::Warn() << "\nTurnings not loaded. Intersection behaviour will be affected.\n";
+			return;
+		}
+		
 		soci::rowset<sim_mob::TurningSection> ts = (sql_.prepare <<"select * from " + storedProc);
 		for (soci::rowset<sim_mob::TurningSection>::const_iterator it=ts.begin(); it!=ts.end(); ++it)  {
 			sim_mob::TurningSection *t = new sim_mob::TurningSection(*it);
@@ -593,9 +599,13 @@ void DatabaseLoader::loadTurningSectionTable(const std::string& storedProc,sim_m
 void DatabaseLoader::loadTurningPolyline(const std::string& storedProc,sim_mob::RoadNetwork& rn) {
 	try
 	{
-		std::stringstream s;
-		s<<"select * from \"Turning_Polylines\" ";
-		soci::rowset<sim_mob::TurningPolyline> ts = (sql_.prepare <<s.str());
+		if(storedProc.empty())
+		{
+			sim_mob::Warn() << "\nTurning poly-lines not loaded. Intersection behaviour will be affected.\n";
+			return;
+		}
+		
+		soci::rowset<sim_mob::TurningPolyline> ts = (sql_.prepare << "select * from " + storedProc);
 		for (soci::rowset<sim_mob::TurningPolyline>::const_iterator it=ts.begin(); it!=ts.end(); ++it)  {
 			sim_mob::TurningPolyline *t = new sim_mob::TurningPolyline(*it);
 			// load polypoint
@@ -647,17 +657,23 @@ void DatabaseLoader::storeTurningPoints(sim_mob::RoadNetwork& rn) {
 }
 void DatabaseLoader::loadTurningConflictTable(const std::string& storedProc,sim_mob::RoadNetwork& rn) {
 	try
+	{
+		if (storedProc.empty())
 		{
-			soci::rowset<sim_mob::TurningConflict> ts = (sql_.prepare <<"select * from " + storedProc);
-			for (soci::rowset<sim_mob::TurningConflict>::const_iterator it=ts.begin(); it!=ts.end(); ++it)  {
-				sim_mob::TurningConflict * t = new sim_mob::TurningConflict(*it);
-				rn.storeTurningConflict(t);
-			}
+			sim_mob::Warn() << "\nTurning conflicts not loaded. Intersection behaviour will be affected.\n";
+			return;
 		}
-		catch (soci::soci_error const & err)
-		{
-			std::cout<<"loadTurningConflictTable: "<<err.what()<<std::endl;
+		
+		soci::rowset<sim_mob::TurningConflict> ts = (sql_.prepare <<"select * from " + storedProc);
+		for (soci::rowset<sim_mob::TurningConflict>::const_iterator it=ts.begin(); it!=ts.end(); ++it)  {
+			sim_mob::TurningConflict * t = new sim_mob::TurningConflict(*it);
+			rn.storeTurningConflict(t);
 		}
+	}
+	catch (soci::soci_error const & err)
+	{
+		std::cout<<"loadTurningConflictTable: "<<err.what()<<std::endl;
+	}
 }
 void DatabaseLoader::loadNodeTypeTable(const std::string& storedProc,std::map<string,int>& nodeTypeMap)
 {
@@ -1198,9 +1214,9 @@ void DatabaseLoader::loadObjectType(map<string, string> const & storedProcs,sim_
 }
 void DatabaseLoader::loadTurningSection(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)
 {
-	loadTurningSectionTable(getStoredProcedure(storedProcs, "turning_section"), rn);
-	loadTurningConflictTable(getStoredProcedure(storedProcs, "turning_conflict"), rn);
-	loadTurningPolyline(getStoredProcedure(storedProcs, "turning_polyline",false), rn);
+	loadTurningSectionTable(getStoredProcedure(storedProcs, "turning_section", false), rn);
+	loadTurningConflictTable(getStoredProcedure(storedProcs, "turning_conflict", false), rn);
+	loadTurningPolyline(getStoredProcedure(storedProcs, "turning_polyline", false), rn);
 }
 void DatabaseLoader::loadTurningPolyline(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)
 {

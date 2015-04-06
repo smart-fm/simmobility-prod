@@ -286,31 +286,17 @@ void PredaySystem::predictTourMode(Tour& tour) {
 		tmParams.setTtCarIvtFirst(amObj->getCarIvt());
 		tmParams.setTtCarIvtSecond(pmObj->getCarIvt());
 		tmParams.setAvgTransfer((amObj->getAvgTransfer() + pmObj->getAvgTransfer())/2);
-		switch(tmParams.getStopType())
-		{
-		case WORK:
-			tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
-			tmParams.setShare2Available(1);
-			tmParams.setShare3Available(1);
-			tmParams.setPublicBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-			tmParams.setMrtAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-			tmParams.setPrivateBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-			tmParams.setWalkAvailable(amObj->getPubIvt() <= WALKABLE_DISTANCE && pmObj->getPubIvt() <= WALKABLE_DISTANCE);
-			tmParams.setTaxiAvailable(1);
-			tmParams.setMotorAvailable(1);
-			break;
-		case EDUCATION:
-			tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
-			tmParams.setShare2Available(1);
-			tmParams.setShare3Available(1);
-			tmParams.setPublicBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-			tmParams.setMrtAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-			tmParams.setPrivateBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-			tmParams.setWalkAvailable(amObj->getPubIvt() <= WALKABLE_DISTANCE && pmObj->getPubIvt() <= WALKABLE_DISTANCE);
-			tmParams.setTaxiAvailable(1);
-			tmParams.setMotorAvailable(1);
-			break;
-		}
+
+		//set availabilities
+		tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
+		tmParams.setShare2Available(1);
+		tmParams.setShare3Available(1);
+		tmParams.setPublicBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
+		tmParams.setMrtAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
+		tmParams.setPrivateBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
+		tmParams.setWalkAvailable(amObj->getPubIvt() <= WALKABLE_DISTANCE && pmObj->getPubIvt() <= WALKABLE_DISTANCE);
+		tmParams.setTaxiAvailable(1);
+		tmParams.setMotorAvailable(1);
 	}
 	else
 	{
@@ -332,6 +318,17 @@ void PredaySystem::predictTourMode(Tour& tour) {
 		tmParams.setTtCarIvtFirst(0);
 		tmParams.setTtCarIvtSecond(0);
 		tmParams.setAvgTransfer(0);
+
+		//set availabilities
+		tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
+		tmParams.setShare2Available(1);
+		tmParams.setShare3Available(1);
+		tmParams.setPublicBusAvailable(1);
+		tmParams.setMrtAvailable(1);
+		tmParams.setPrivateBusAvailable(1);
+		tmParams.setWalkAvailable(1);
+		tmParams.setTaxiAvailable(1);
+		tmParams.setMotorAvailable(1);
 	}
 
 	tour.setTourMode(PredayLuaProvider::getPredayModel().predictTourMode(personParams, tmParams));

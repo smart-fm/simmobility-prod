@@ -316,51 +316,49 @@ size_t sim_mob::getLaneIndex2(const sim_mob::Lane* l){
 
 void sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::SinglePath *sp)
 {
-	if(sp->path.size()<2)
+	if (sp->path.size() < 2)
 	{
 		sp->rightTurnNumber=0;
 		sp->signalNumber=0;
-		return ;
+		return;
 	}
-	int res=0;
-	int signalNumber=0;
-	std::vector<sim_mob::WayPoint>::iterator itt=sp->path.begin();
-	++itt;
-	for(std::vector<sim_mob::WayPoint>::iterator it=sp->path.begin();it!=sp->path.end();++it)
+
+	int rightTurnNumber = 0;
+	int signalNumber = 0;
+	std::vector<sim_mob::WayPoint>::iterator pathIt = sp->path.begin();
+	++pathIt;
+	for(std::vector<sim_mob::WayPoint>::iterator it=sp->path.begin(); it!=sp->path.end(); ++it)
 	{
 		const RoadSegment* currentSeg = it->roadSegment_;
 		const RoadSegment* targetSeg = NULL;
-		if(itt!=sp->path.end())
-		{
-
-			targetSeg = itt->roadSegment_;
-		}
-		else // already last segment
-		{
-			break;
-		}
+		if(pathIt != sp->path.end()) { targetSeg = pathIt->roadSegment_; }
+		else { break; } // already last segment
 
 		if(currentSeg->getEnd() == currentSeg->getLink()->getEnd()) // intersection
 		{
-			signalNumber++;
-			// get lane connector
-			const std::set<sim_mob::LaneConnector*>& lcs = dynamic_cast<const sim_mob::MultiNode*> (currentSeg->getEnd())->getOutgoingLanes(currentSeg);
-			for (std::set<LaneConnector*>::const_iterator it2 = lcs.begin(); it2 != lcs.end(); it2++) {
-				if((*it2)->getLaneTo()->getRoadSegment() == targetSeg)
-				{
-					int laneIndex = sim_mob::getLaneIndex2((*it2)->getLaneFrom());
-					if(laneIndex<2)//most left lane
+			const sim_mob::MultiNode* linkEndNode = dynamic_cast<const sim_mob::MultiNode*> (currentSeg->getEnd());
+			if(linkEndNode) // should always be true, but just double checking
+			{
+				if(linkEndNode->isSignalized()) { signalNumber++; }
+				// get lane connector
+				const std::set<sim_mob::LaneConnector*>& lcs = linkEndNode->getOutgoingLanes(currentSeg);
+				for (std::set<LaneConnector*>::const_iterator it2 = lcs.begin(); it2 != lcs.end(); it2++) {
+					if((*it2)->getLaneTo()->getRoadSegment() == targetSeg)
 					{
-						res++;
-						break;
-					}
-				}//end if targetSeg
-			}// end for lcs
-//			}// end if lcs
+						int laneIndex = sim_mob::getLaneIndex2((*it2)->getLaneFrom());
+						if(laneIndex<2)//most left lane
+						{
+							rightTurnNumber++;
+							break;
+						}
+					}//end if targetSeg
+				}// end for lcs
+			}// end if linkEndNode
+			else { throw std::runtime_error("end of link is not a Multinode"); }
 		}//end currEndNode
-		++itt;
+		++pathIt;
 	}//end for
-	sp->rightTurnNumber=res;
+	sp->rightTurnNumber=rightTurnNumber;
 	sp->signalNumber=signalNumber;
 }
 

@@ -20,7 +20,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/settings/DisableMPI.h"
-#include "entities/PersonLoader.hpp"//
+#include "entities/PersonLoader.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/misc/BusTrip.hpp"
@@ -2194,7 +2194,7 @@ void sim_mob::aimsun::Loader::ProcessGeneralNode(sim_mob::RoadNetwork& res, Node
 	sim_mob::Node* newNode = nullptr;
 	if (!src.candidateForSegmentNode) {
 		//This is an Intersection
-		newNode = new sim_mob::Intersection(src.getXPosAsInt(), src.getYPosAsInt());
+		newNode = new sim_mob::Intersection(src.getXPosAsInt(), src.getYPosAsInt(), src.hasTrafficSignal);
 
 		//Store it in the global nodes array
 		res.nodes.push_back(dynamic_cast<MultiNode*>(newNode));

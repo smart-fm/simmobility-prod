@@ -377,7 +377,7 @@ void sim_mob::Worker::threaded_function_loop()
 	///      Instead, add functionality into the sub-functions (perform_frame_tick(), etc.).
 	///      This is needed so that singleThreaded mode can be implemented easily. ~Seth
 	while (loop_params.active) {
-		if(loop_params.currTick == 0)
+		if(ConfigManager::GetInstance().FullConfig().RunningMidSupply() && loop_params.currTick == 0)
 		{
 			initializeConfluxes(timeslice(loop_params.currTick, loop_params.currTick*loop_params.msPerFrame));
 			//Zero barrier

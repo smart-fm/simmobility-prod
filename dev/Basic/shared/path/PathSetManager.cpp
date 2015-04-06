@@ -1468,7 +1468,7 @@ std::string sim_mob::PathSetManager::logPartialUtility(const sim_mob::SinglePath
 	//generate log file for debugging only
 	if(utilityLogger[nullptr].check())
 	{
-		sim_mob::Logger::log("partial_utility.txt") << "pathSetId#index#travleTime#bTTVOT#travleTime * bTTVOT#pathSize#bCommonFactor#pathSize*bCommonFactor#length#bLength#length*bLength#"
+		sim_mob::Logger::log("partial_utility.txt") << "pathSetId#algorithm#index#travleTime#bTTVOT#travleTime * bTTVOT#pathSize#bCommonFactor#pathSize*bCommonFactor#length#bLength#length*bLength#"
 				"highWayDistance#bHighway#highWayDistance*bHighway#travelCost#bCost#travelCost*bCost#signalNumber#bSigInter#signalNumber*bSigInter#rightTurnNumber#bLeftTurns#rightTurnNumber*bLeftTurns#"
 				"minTravelTimeParam#isMinTravelTime#minTravelTimeParam*isMinTravelTime#minDistanceParam#isMinDistance#minDistanceParam*isMinDistance#minSignalParam#isMinSignal#minSignalParam*isMinSignal#"
 				"maxHighwayParam#isMaxHighWayUsage#maxHighwayParam*isMaxHighWayUsage#purpose#b-value#purpose*b-value#partial-utility" << "\n" ;
@@ -1476,7 +1476,7 @@ std::string sim_mob::PathSetManager::logPartialUtility(const sim_mob::SinglePath
 
 	if(utilityLogger[sp].check())
 	{
-		sp->partialUtilityDbg << sp->pathSetId << "#" << sp->index << "#" << sp->travelTime << "#" << pathSetParam->bTTVOT <<  "#" << sp->travelTime * pathSetParam->bTTVOT << "#"
+		sp->partialUtilityDbg << sp->pathSetId << "#" << sp->scenario << "#" << sp->index << "#" << sp->travelTime << "#" << pathSetParam->bTTVOT <<  "#" << sp->travelTime * pathSetParam->bTTVOT << "#"
 				<< sp->pathSize << "#" << pathSetParam->bCommonFactor << "#" <<  sp->pathSize * pathSetParam->bCommonFactor << "#"
 				<< sp->length << "#" << pathSetParam->bLength << "#"   <<  sp->length * pathSetParam->bLength << "#"
 				<< sp->highWayDistance << "#"  <<  pathSetParam->bHighway << "#" << sp->highWayDistance * pathSetParam->bHighway << "#"
@@ -1571,7 +1571,7 @@ double sim_mob::PathSetManager::generateUtility(const sim_mob::SinglePath* sp) c
 	//for debugging purpose
 	//comment logging if not needed
 	//OD,partialUtility,travleTime,travelCost,utility
-	sim_mob::Logger::log("final_utility.csv") << sp->pathSetId << "," << partialUtility << "," << sp->travelTime << "," << sp->travelCost << "," << utility << "\n";
+	sim_mob::Logger::log("final_utility.csv") << sp->pathSetId << "," << sp->scenario << "," << partialUtility << "," << sp->travelTime << "," << sp->travelCost << "," << utility << "\n";
 	return utility;
 }
 

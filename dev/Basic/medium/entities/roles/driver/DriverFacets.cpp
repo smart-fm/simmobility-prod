@@ -190,6 +190,8 @@ void sim_mob::medium::DriverMovement::frame_tick_output() {
 
 void sim_mob::medium::DriverMovement::randomizeStartingSegment(std::vector<sim_mob::WayPoint>& wpPath)
 {
+	if(wpPath.size() < 2) { return; } //no randomization for very short paths
+
 	//compute number of segments in the first link of path
 	int numSegsInFirstLink = 0;
 	sim_mob::Node* firstLinkEnd = nullptr;
@@ -198,15 +200,16 @@ void sim_mob::medium::DriverMovement::randomizeStartingSegment(std::vector<sim_m
 		if (it->type_ == WayPoint::ROAD_SEGMENT)
 		{
 			const sim_mob::RoadSegment* rdSeg = it->roadSegment_;
-			if(!firstLinkEnd) { firstLinkEnd = rdSeg->getLink()->getEnd(); }
+			if(!firstLinkEnd) {	firstLinkEnd = rdSeg->getLink()->getEnd(); }
 			numSegsInFirstLink++;
 			if(firstLinkEnd == rdSeg->getEnd()) { break; }
 		}
 	}
 
-	//generate uniform random number between 0 and numSegsInFirstLink
-	int randomIdx = Utils::generateInt(0,numSegsInFirstLink);
+	if(numSegsInFirstLink >= wpPath.size()) { return; } //no randomization if the entire path is contained in 1 link
 
+	//generate uniform random number between 0 and numSegsInFirstLink-1 (minus 1 to keep atleast 1 segment in first link)
+	int randomIdx = Utils::generateInt(0, numSegsInFirstLink-1);
 	//remove that many elements from the front of the path
 	//the removals are guaranteed to stay within the first link
 	for(int i=0; i<randomIdx; i++)
@@ -250,13 +253,10 @@ bool sim_mob::medium::DriverMovement::initializePath()
 		parentDriver->goal.node = person->destNode.node_;
 		parentDriver->goal.point = parentDriver->goal.node->location;
 
-		if(parentDriver->origin.node == parentDriver->goal.node)
+		if(person->originNode.node_ == person->destNode.node_)
 		{
-			Print()
-			<< "DriverMovement::initializePath | Can't initializePath(); origin and destination are the same for driver " <<person->GetId()
-			<< "\norigin:" << parentDriver->origin.node->getID()
-			<< "\ndestination:" << parentDriver->goal.node->getID()
-			<< std::endl;
+			Print() << "DriverMovement::initializePath | Can't initializePath because origin and destination are the same for driver " << person->GetId()
+			<< "\norigin:" << person->originNode.node_->getID() << "\ndestination:" << person->destNode.node_->getID() << std::endl;
 			return false;
 		}
 
@@ -272,14 +272,7 @@ bool sim_mob::medium::DriverMovement::initializePath()
 			wp_path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
 		}
 
-		//For now, empty paths aren't supported.
-		if (wp_path.empty())
-		{
-			Print()<<"Can't DriverMovement::initializePath(); path is empty for driver "  << person->GetId() << std::endl;
-			return false;
-		}
-
-		randomizeStartingSegment(wp_path);
+		randomizeStartingSegment(wp_path); //start driver in random segment of first link
 
 		if (wp_path.empty()) //ideally should not be empty after randomization.
 		{
@@ -967,25 +960,26 @@ void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSeg
 	parent->getCurrRdSegTravelStats().reset();
 	parent->startCurrRdSegTravelStat(pathMover.getCurrSegStats()->getRoadSegment(), segEnterExitTime);
 }
-TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
-{//return  travelMetric;
 
+TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
+{
 	std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getRepr_());
 	travelMetric.startTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 	const Node* startNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getStart();
 	travelMetric.origin = WayPoint(startNode);
 	travelMetric.started = true;
+
 	//cbd
 	travelMetric.cbdTraverseType = getParent()->currSubTrip->cbdTraverseType;
 	switch(travelMetric.cbdTraverseType)
 	{
 	case TravelMetric::CBD_ENTER:
-		std::cout << "startTT : " << getParent()->GetId() << " , " << now << " , " << travelMetric.origin.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : ENTER START : No Action\n";
+		Print() << "startTT : " << getParent()->GetId() << " , " << now << " , " << travelMetric.origin.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : ENTER START : No Action\n";
 		break;
 	case TravelMetric::CBD_EXIT:
 		travelMetric.cbdOrigin = travelMetric.origin;
 		travelMetric.cbdStartTime = travelMetric.startTime;
-		std::cout << "startTT : " << getParent()->GetId() << " , " << now << " , " << travelMetric.origin.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : EXIT START : origin[" <<
+		Print() << "startTT : " << getParent()->GetId() << " , " << now << " , " << travelMetric.origin.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : EXIT START : origin[" <<
 				travelMetric.cbdOrigin.node_->getID() << "], end time[" << travelMetric.cbdStartTime.getRepr_() << "]\n";
 		break;
 	};
@@ -993,26 +987,22 @@ TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
 }
 
 TravelMetric& sim_mob::medium::DriverMovement::finalizeTravelTimeMetric()
-{//return  travelMetric;
-//	dbgMsg << finalizeTravelTimeMetric
-	//debug
+{
 	if(!pathMover.getPath().size())
 	{
-		std::cout << getParent()->getId() << " Has No Path\n";
+		Print() << "Person " << getParent()->getId() << " has no path\n";
 		return  travelMetric;
 	}
 
-	const sim_mob::SegmentStats * currSegStat =
-	((pathMover.getCurrSegStats() == nullptr) ? *(pathMover.getPath().rbegin()) : (pathMover.getCurrSegStats()));
-	//Print() << ((pathMover.getCurrSegStats() == nullptr) ? "Trip possibly completed\n" : "Simulation ended before Trip completed\n");
+	const sim_mob::SegmentStats * currSegStat = ((pathMover.getCurrSegStats() == nullptr) ? *(pathMover.getPath().rbegin()) : (pathMover.getCurrSegStats()));
 	const Node* endNode = currSegStat->getRoadSegment()->getEnd();
 	travelMetric.destination = WayPoint(endNode);
 	travelMetric.endTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 	travelMetric.travelTime = TravelMetric::getTimeDiffHours(travelMetric.endTime , travelMetric.startTime);
 	travelMetric.finalized = true;
+
 	//cbd
 	sim_mob::RestrictedRegion &cbd = sim_mob::RestrictedRegion::getInstance();
-
 	switch(travelMetric.cbdTraverseType)
 	{
 	case TravelMetric::CBD_ENTER:
@@ -1024,12 +1014,12 @@ TravelMetric& sim_mob::medium::DriverMovement::finalizeTravelTimeMetric()
 		break;
 	};
 
-	if(travelMetric.cbdTraverseType == sim_mob::TravelMetric::CBD_ENTER ||
-			travelMetric.cbdTraverseType == sim_mob::TravelMetric::CBD_EXIT)
-	{
+//	if(travelMetric.cbdTraverseType == sim_mob::TravelMetric::CBD_ENTER ||
+//			travelMetric.cbdTraverseType == sim_mob::TravelMetric::CBD_EXIT)
+//	{
 //		getParent()->serializeCBD_SubTrip(*travelMetric);
-	}
-	//getParent()->addSubtripTravelMetrics(*travelMetric);
+//	}
+//	getParent()->addSubtripTravelMetrics(*travelMetric);
 	return  travelMetric;
 }
 

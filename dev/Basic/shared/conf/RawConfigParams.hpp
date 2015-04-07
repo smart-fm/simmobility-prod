@@ -95,6 +95,23 @@ struct LoopDetectorCounts
   std::string fileName;
 } ;
 
+///Represents the short-term_density-map section of the configuration file
+struct SegmentDensityMap
+{
+  SegmentDensityMap() : updateInterval(0), outputEnabled(false), fileName("")
+  {
+  }
+  
+  ///The interval at which the density map is to be output
+  unsigned int updateInterval;
+  
+  ///Indicates whether the density map is to be output to a file
+  bool outputEnabled;
+  
+  ///Name of the output file
+  std::string fileName;
+} ;
+
 ///represent the incident data section of the config file
 struct IncidentParams {
 	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
@@ -409,6 +426,9 @@ public:
         
 	///Settings for the loop detector counts
 	LoopDetectorCounts loopDetectorCounts;
+        
+	///Settings for the short-term density map
+	SegmentDensityMap segDensityMap;
 
 	///	is CBD area restriction enforced
 	bool cbd;

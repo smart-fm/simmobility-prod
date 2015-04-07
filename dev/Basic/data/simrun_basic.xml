@@ -520,6 +520,10 @@
 	
     <!--If enabled, outputs the vehicles counted by every loop detector, accumulated over the given period length (in milliseconds)
     i.e. count of vehicles passing a loop detector in every "600,000" milliseconds -->
-    <loop-detector_counts frequency="300000" outputEnabled="false" file-name="private/VehicleCounts.csv"/>  
+    <loop-detector_counts frequency="300000" outputEnabled="false" file-name="private/VehicleCounts.csv"/>
+
+    <!--(Short-term only) If enabled, outputs the density at every road segment present at the end of the 
+    update interval (in milliseconds)-->
+    <short-term_density-map updateInterval="1000" outputEnabled="false" file-name="private/DensityMap.csv"/>  
 </config>
 

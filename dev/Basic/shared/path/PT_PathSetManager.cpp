@@ -99,7 +99,7 @@ void PT_PathSetManager::PT_BulkPathSetGenerator()
 	conn.disconnect();
 	std::cout<<"Number of enqueued threads "<<i;
 }
-void PT_PathSetManager::makePathset(sim_mob::Node* from,sim_mob::Node* to)
+PT_PathSet PT_PathSetManager::makePathset(sim_mob::Node* from,sim_mob::Node* to)
 {
 	StreetDirectory::PT_VertexId fromId =getVertexIdFromNode(from);
 	StreetDirectory::PT_VertexId toId= getVertexIdFromNode(to);
@@ -119,6 +119,7 @@ void PT_PathSetManager::makePathset(sim_mob::Node* from,sim_mob::Node* to)
 	// Writing the pathSet to the CSV file.
 
 	writePathSetToFile(ptPathSet);
+	return ptPathSet;
 }
 void PT_PathSetManager::writePathSetFileHeader()
 {

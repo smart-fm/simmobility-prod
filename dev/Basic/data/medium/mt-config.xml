@@ -32,6 +32,11 @@
                         <waiting_time_csv_file_output value="waitingtime.csv"/>
                         <waiting_amount_csv_file_output value="waitingamount.csv"/>
                 </statistics_output_paramemters>  
+                <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+                        <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models--> 
+                        <script name="ptrc" file="ptrc.lua"/> <!--public transit route choice -->
+                        <script name="ptrc1" file="ptrc1.lua"/> <!--testing -->
+                </model_scripts>
         </supply>                                      
                 
         <!-- config specific to preday simulator -->
@@ -71,8 +76,7 @@
                         <script name="sttd" file="sttd.lua"/> <!--Work Based Sub-Tours Time Of Day-->
                         <script name="isg" file="isg.lua"/> <!--Intermediate Stop Generation -->
                         <script name="imd" file="imd.lua"/> <!--Intermediate Stop Mode/Destination -->
-                        <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->
-                        <script name="ptrc" file="pt_route_choice.lua"/> <!--public transit route choice -->
+                        <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->                       
                 </model_scripts>
                 
                 <!-- Names of MongoDB database and collections -->

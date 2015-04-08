@@ -10,6 +10,13 @@
 #include "lua/LuaLibrary.hpp"
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+#include "boost/algorithm/string.hpp"
+#include "boost/regex.hpp"
+#include "boost/thread/mutex.hpp"
+#include "boost/foreach.hpp"
+#include "boost/filesystem.hpp"
 
 using namespace luabridge;
 
@@ -44,9 +51,9 @@ unsigned int PT_RouteChoiceLuaModel::GetSizeOfChoiceSet(){
 double PT_RouteChoiceLuaModel::total_in_vehicle_time(unsigned int index){
 	double ret=0.0;
 	unsigned int sizeOfChoiceSet = GetSizeOfChoiceSet();
-	if(publicTransitPathSet && index<sizeOfChoiceSet){
+	if(publicTransitPathSet && index<=sizeOfChoiceSet && index>0){
 		std::set<PT_Path,cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
-		std::advance(it, index);
+		std::advance(it, index-1);
 		ret = it->getTotalInVehicleTravelTimeSecs();
 	}
 	return ret;
@@ -55,9 +62,9 @@ double PT_RouteChoiceLuaModel::total_in_vehicle_time(unsigned int index){
 double PT_RouteChoiceLuaModel::total_walk_time(unsigned int index){
 	double ret=0.0;
 	unsigned int sizeOfChoiceSet = GetSizeOfChoiceSet();
-	if(publicTransitPathSet && index<sizeOfChoiceSet){
+	if(publicTransitPathSet && index<=sizeOfChoiceSet && index>0){
 		std::set<PT_Path,cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
-		std::advance(it, index);
+		std::advance(it, index-1);
 		ret = it->getTotalWalkingTimeSecs();
 	}
 	return ret;
@@ -66,9 +73,9 @@ double PT_RouteChoiceLuaModel::total_walk_time(unsigned int index){
 double PT_RouteChoiceLuaModel::total_wait_time(unsigned int index){
 	double ret=0.0;
 	unsigned int sizeOfChoiceSet = GetSizeOfChoiceSet();
-	if(publicTransitPathSet && index<sizeOfChoiceSet){
+	if(publicTransitPathSet && index<=sizeOfChoiceSet && index>0){
 		std::set<PT_Path,cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
-		std::advance(it, index);
+		std::advance(it, index-1);
 		ret = it->getTotalWaitingTimeSecs();
 	}
 	return ret;
@@ -77,9 +84,9 @@ double PT_RouteChoiceLuaModel::total_wait_time(unsigned int index){
 double PT_RouteChoiceLuaModel::total_path_size(unsigned int index){
 	double ret=0.0;
 	unsigned int sizeOfChoiceSet = GetSizeOfChoiceSet();
-	if(publicTransitPathSet && index<sizeOfChoiceSet){
+	if(publicTransitPathSet && index<=sizeOfChoiceSet && index>0){
 		std::set<PT_Path,cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
-		std::advance(it, index);
+		std::advance(it, index-1);
 		ret = it->getPathSize();
 	}
 	return ret;
@@ -88,13 +95,25 @@ double PT_RouteChoiceLuaModel::total_path_size(unsigned int index){
 int PT_RouteChoiceLuaModel::total_no_txf(unsigned int index){
 	int ret=0.0;
 	unsigned int sizeOfChoiceSet = GetSizeOfChoiceSet();
-	if(publicTransitPathSet && index<sizeOfChoiceSet){
+	if(publicTransitPathSet && index<=sizeOfChoiceSet && index>0){
 		std::set<PT_Path,cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
-		std::advance(it, index);
+		std::advance(it, index-1);
 		ret = it->getTotalNumberOfTransfers();
 	}
 	return ret;
 }
+
+double PT_RouteChoiceLuaModel::total_cost(unsigned int index){
+	double ret=0.0;
+	unsigned int sizeOfChoiceSet = GetSizeOfChoiceSet();
+	if(publicTransitPathSet && index<=sizeOfChoiceSet && index>0){
+		std::set<PT_Path,cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::advance(it, index-1);
+		ret = it->getTotalCost();
+	}
+	return ret;
+}
+
 
 int PT_RouteChoiceLuaModel::MakePT_RouteChoice()
 {
@@ -116,6 +135,36 @@ void PT_RouteChoiceLuaModel::mapClasses() {
 			.addFunction("total_wait_time", &PT_RouteChoiceLuaModel::total_wait_time)
 			.addFunction("total_path_size", &PT_RouteChoiceLuaModel::total_path_size)
 			.addFunction("total_no_txf", &PT_RouteChoiceLuaModel::total_no_txf)
+			.addFunction("total_cost", &PT_RouteChoiceLuaModel::total_cost)
             .endClass();
 }
+
+const boost::shared_ptr<soci::session> & sim_mob::PT_RouteChoiceLuaModel::getSession(){
+	boost::upgrade_lock<boost::shared_mutex> lock(cnnRepoMutex);
+	std::map<boost::thread::id, boost::shared_ptr<soci::session> >::iterator it;
+	it = cnnRepo.find(boost::this_thread::get_id());
+	if (it == cnnRepo.end()) {
+		std::string dbStr(
+				ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(
+						false));
+		{
+			boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+			boost::shared_ptr<soci::session> t(
+					new soci::session(soci::postgresql, dbStr));
+			it =
+					cnnRepo.insert(
+							std::make_pair(boost::this_thread::get_id(), t)).first;
+		}
+	}
+	return it->second;
+}
+
+PT_PathSet PT_RouteChoiceLuaModel::LoadPT_PathSet(const std::string& original, const std::string& dest)
+{
+	PT_PathSet pathSet;
+	std::string pathSetId = original+","+dest;
+	aimsun::Loader::LoadPT_ChoiceSetFrmDB(*getSession(),pathSetId, pathSet);
+	return pathSet;
+}
+
 }

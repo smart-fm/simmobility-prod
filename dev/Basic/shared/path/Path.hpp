@@ -141,6 +141,7 @@ class PT_Path
 public:
 
 	PT_Path(const std::vector<PT_NetworkEdge>& path);
+	PT_Path();
 	~PT_Path();
 
 	bool isMinDistance() const {
@@ -229,6 +230,7 @@ public:
 
 	void setPtPathId(const std::string& ptPathId) {
 		this->ptPathId = ptPathId;
+
 	}
 
 	const std::string& getPtPathSetId() const {

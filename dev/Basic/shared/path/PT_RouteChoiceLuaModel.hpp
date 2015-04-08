@@ -9,6 +9,9 @@
 
 #include "lua/LuaModel.hpp"
 #include "Path.hpp"
+#include "util/Utils.hpp"
+#include "Common.hpp"
+#include "geospatial/aimsun/Loader.hpp"
 
 namespace sim_mob{
 
@@ -56,10 +59,22 @@ public:
 	double total_wait_time(unsigned int index);
 	double total_path_size(unsigned int index);
 	int total_no_txf(unsigned int index);
+	double total_cost(unsigned int index);
+
+	/**
+	 * get the database session used for this thread
+	 */
+	const boost::shared_ptr<soci::session> & getSession();
+
+	PT_PathSet LoadPT_PathSet(const std::string& original, const std::string& dest);
+
 
 private:
 	PT_PathSet* publicTransitPathSet;
 	static PT_RouteChoiceLuaModel* instance;
+	std::map<boost::thread::id, boost::shared_ptr<soci::session > > cnnRepo;
+	boost::shared_mutex cnnRepoMutex;
+
 };
 
 }

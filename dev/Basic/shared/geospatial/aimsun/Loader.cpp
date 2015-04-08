@@ -130,6 +130,7 @@ public:
 					,const std::string functionName
 //					,std::stringstream *outDbg=nullptr
 					,const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
+	static void loadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet);
 #ifndef SIMMOB_DISABLE_MPI
 	void TransferBoundaryRoadSegment();
 #endif
@@ -300,6 +301,15 @@ bool DatabaseLoader::InsertSinglePath2DB(soci::session& sql,std::set<sim_mob::Si
 		}
 	}
 }
+
+void DatabaseLoader::loadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet)
+{
+	soci::rowset<sim_mob::PT_Path> rs = (sql.prepare << std::string("select * from get_pt_choiceset") + "(:pathset_id_in)", soci::use(pathSetId) );
+	for (soci::rowset<sim_mob::PT_Path>::const_iterator it = rs.begin();	it != rs.end(); ++it) {
+		pathSet.pathSet.insert(*it);
+	}
+}
+
 
 std::map<std::string, sim_mob::OneTimeFlag> ontimeFlog;
 sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
@@ -2599,6 +2609,11 @@ void sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(soci::session& sql,	std:
 bool sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(soci::session& sql, int interval,sim_mob::AverageTravelTime& linkRealtimeTravelTimePool)
 {
 	return DatabaseLoader::loadLinkRealTimeTravelTime(sql, interval, linkRealtimeTravelTimePool);
+}
+
+void sim_mob::aimsun::Loader::LoadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet)
+{
+	DatabaseLoader::loadPT_ChoiceSetFrmDB(sql, pathSetId, pathSet);
 }
 
 sim_mob::HasPath sim_mob::aimsun::Loader::loadSinglePathFromDB(soci::session& sql,

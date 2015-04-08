@@ -46,7 +46,7 @@ PT_PathSet PT_PathSetManager::makePathset(sim_mob::Node* from,sim_mob::Node* to)
 	PT_PathSet ptPathSet;
 
 	// KShortestpath Approach
-		getkShortestPaths(fromId,toId,ptPathSet);
+	getkShortestPaths(fromId,toId,ptPathSet);
 	//Labeling Approach
 	getLabelingApproachPaths(fromId,toId,ptPathSet);
 

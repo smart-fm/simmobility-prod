@@ -39,27 +39,23 @@ sim_mob::SinglePath::SinglePath(const SinglePath& source) :
 	purpose = sim_mob::work;
 }
 
-sim_mob::SinglePath::~SinglePath(){
+sim_mob::SinglePath::~SinglePath() {
 	clear();
 }
 
-
-bool sim_mob::SinglePath::includesRoadSegment(const std::set<const sim_mob::RoadSegment*> & segs, bool dbg, std::stringstream *out){
-	if(!this->path.size())
+bool sim_mob::SinglePath::includesRoadSegment(const std::set<const sim_mob::RoadSegment*>& segs) const
+{
+	if(segs.empty()) { return false; } //trivial case
+	std::stringstream pathSegId(""), inputSegId("");
+	BOOST_FOREACH(const sim_mob::WayPoint& wp, this->path)
 	{
-		int i = 0;
-	}
-	BOOST_FOREACH(sim_mob::WayPoint &wp, this->path){
-		BOOST_FOREACH(const sim_mob::RoadSegment* seg, segs){
-			if(dbg){
-				*out << "checking " << wp.roadSegment_->getId() << " against " <<  seg->getId() << "\n";
-			}
-			std::stringstream hack1(""),hack2("");
-			hack1 << wp.roadSegment_->getId();
-			hack2 << seg->getId();
-			if(hack1.str() == hack2.str() ){
-				return true;
-			}
+		pathSegId.str(std::string());
+		pathSegId << wp.roadSegment_->getId();
+		BOOST_FOREACH(const sim_mob::RoadSegment* seg, segs)
+		{
+			inputSegId.str(std::string());
+			inputSegId << seg->getId();
+			if(pathSegId.str() == inputSegId.str() ) { return true; }
 		}
 	}
 	return false;

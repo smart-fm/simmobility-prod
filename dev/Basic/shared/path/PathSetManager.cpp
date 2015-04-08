@@ -276,7 +276,7 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::SubTrip &subTri
 			subTrip.cbdTraverseType = TravelMetric::CBD_PASS;
 			str << "[BLCKLST]";
 			std::stringstream outDbg("");
-			getBestPath(res, subTrip, true,std::set<const sim_mob::RoadSegment*>(), false, true,enRoute, approach);//use/enforce blacklist
+			getBestPath(res, subTrip, true, std::set<const sim_mob::RoadSegment*>(), false, true, enRoute, approach);//use/enforce blacklist
 			if (sim_mob::RestrictedRegion::getInstance().isInRestrictedSegmentZone(res))
 			{
 				throw std::runtime_error("\npath inside cbd ");
@@ -415,10 +415,7 @@ bool sim_mob::PathSetManager::getBestPath(
 		const sim_mob::RoadSegment* approach)
 {
 	res.clear();
-//	if(!(st->mode == "Car" || st->mode == "Taxi" || st->mode == "Motorcycle")) //mode filter if required
-//	{
-//		return false;
-//	}
+
 	//take care of partially excluded and blacklisted segments here
 	std::set<const sim_mob::RoadSegment*> blckLstSegs(tempBlckLstSegs);
 	if(useBlackList && !blacklistSegments.empty())
@@ -445,7 +442,7 @@ bool sim_mob::PathSetManager::getBestPath(
 		return false;
 	}
 	logger << "[THREAD " << boost::this_thread::get_id() << "][SEARCHING FOR : " << fromToID << "]\n" ;
-	boost::shared_ptr<sim_mob::PathSet> ps_;
+	boost::shared_ptr<sim_mob::PathSet> pathset;
 
 	//Step-1 Check Cache
 	/*
@@ -453,17 +450,17 @@ bool sim_mob::PathSetManager::getBestPath(
 	 * cache should never be filled with paths containing permanent black listed segments
 	 */
 	std::set<const sim_mob::RoadSegment*> emptyBlkLst = std::set<const sim_mob::RoadSegment*>();//and sometime you don't need a black list at all!
-	if(useCache && findCachedPathSet(fromToID, ps_))
+	if(useCache && findCachedPathSet(fromToID, pathset))
 	{
 		logger <<  fromToID  << " : Cache Hit\n";
-		ps_->subTrip = st;//at least for the travel start time, subtrip is needed
-		onPathSetRetrieval(ps_,enRoute);
+		pathset->subTrip = st;//at least for the travel start time, subtrip is needed
+		onPathSetRetrieval(pathset,enRoute);
 		//no need to supply permanent blacklist
-		bool r = getBestPathChoiceFromPathSet(ps_,partial,emptyBlkLst,enRoute, approach);
-		logger <<  fromToID << " : getBestPathChoiceFromPathSet returned best path of size : " << ps_->bestPath->size() << "\n";
+		bool r = getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute, approach);
+		logger <<  fromToID << " : getBestPathChoiceFromPathSet returned best path of size : " << pathset->bestPath->size() << "\n";
 		if(r)
 		{
-			res = *(ps_->bestPath);
+			res = *(pathset->bestPath);
 			logger <<  fromToID << " : returning a path " << res.size() << "\n";
 			return true;
 		}
@@ -481,41 +478,41 @@ bool sim_mob::PathSetManager::getBestPath(
 
 	//step-2:check  DB
 	sim_mob::HasPath hasPath = PSM_UNKNOWN;
-	ps_.reset(new sim_mob::PathSet());
-	ps_->subTrip = st;
-	ps_->id = fromToID;
-	ps_->scenario = scenarioName;
-	hasPath = sim_mob::aimsun::Loader::loadSinglePathFromDB(*getSession(),fromToID,ps_->pathChoices, psRetrieval,blckLstSegs);
+	pathset.reset(new sim_mob::PathSet());
+	pathset->subTrip = st;
+	pathset->id = fromToID;
+	pathset->scenario = scenarioName;
+	hasPath = sim_mob::aimsun::Loader::loadSinglePathFromDB(*getSession(),fromToID,pathset->pathChoices, psRetrieval,blckLstSegs);
 	logger  <<  fromToID << " : " << (hasPath == PSM_HASPATH ? "" : "Don't " ) << "have SinglePaths in DB \n" ;
 	switch (hasPath)
 	{
 	case PSM_HASPATH:
 	{
 		logger << "[" << fromToID << "]" <<  " : DB Hit\n";
-		ps_->oriPath = nullptr;
-		BOOST_FOREACH(sim_mob::SinglePath* sp, ps_->pathChoices)
+		pathset->oriPath = nullptr;
+		BOOST_FOREACH(sim_mob::SinglePath* sp, pathset->pathChoices)
 		{
 			if (sp->isShortestPath)
 			{
-				ps_->oriPath = sp;
+				pathset->oriPath = sp;
 				break;
 			}
 		}
-		if (!ps_->oriPath)
+		if (!pathset->oriPath)
 		{
-			std::string str = "Warning => SP: oriPath(shortest path) for " + ps_->id + " not valid anymore\n";
+			std::string str = "Warning => SP: oriPath(shortest path) for " + pathset->id + " not valid anymore\n";
 			logger << str;
 		}
 		//	no need of processing and storing blacklisted paths
-		short psCnt = ps_->pathChoices.size();
-		onPathSetRetrieval(ps_,enRoute);
-		bool r = getBestPathChoiceFromPathSet(ps_, partial,emptyBlkLst,enRoute, approach);
-		logger << "[" << fromToID << "]" <<  " :  number of paths before blcklist: " << psCnt << " after blacklist:" << ps_->pathChoices.size() << "\n";
-		if(r)
+		short psCnt = pathset->pathChoices.size();
+		onPathSetRetrieval(pathset,enRoute);
+		bool pathChosen = getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute, approach);
+		logger << "[" << fromToID << "]" <<  " :  number of paths before blcklist: " << psCnt << " after blacklist:" << pathset->pathChoices.size() << "\n";
+		if(pathChosen)
 		{
-			res = *(ps_->bestPath);
+			res = *(pathset->bestPath);
 			//cache
-			if(useCache) { cachePathSet(ps_); }
+			if(useCache) { cachePathSet(pathset); }
 			pathRetrievalAttempt.erase(fromToID);
 			logger << "returning a path " << res.size() << "\n";
 			return true;
@@ -537,12 +534,12 @@ bool sim_mob::PathSetManager::getBestPath(
 		// 1.3 generate shortest path with full segs
 
 		//just to avoid
-		ps_.reset(new PathSet());
-		ps_->id = fromToID;
-		ps_->scenario = scenarioName;
-		ps_->subTrip = st;
+		pathset.reset(new PathSet());
+		pathset->id = fromToID;
+		pathset->scenario = scenarioName;
+		pathset->subTrip = st;
 		std::set<OD> recursiveOrigins;
-		bool r = generateAllPathChoices(ps_, recursiveOrigins, blckLstSegs);
+		bool r = generateAllPathChoices(pathset, recursiveOrigins, blckLstSegs);
 		if (!r)
 		{
 			logger << "[PATHSET GENERATION FAILURE : " << fromToID << "]\n";
@@ -553,7 +550,7 @@ bool sim_mob::PathSetManager::getBestPath(
 		//this hack conforms to the CBD property added to segment and node
 		if(useBlackList)
 		{
-			if(!purgeCbdPaths(*ps_))
+			if(!purgeCbdPaths(*pathset))
 			{
 				logger << "[ALL PATHS IN CBD" << fromToID << "]\n" ;
 				tempNoPath.insert(fromToID);
@@ -562,15 +559,15 @@ bool sim_mob::PathSetManager::getBestPath(
 			}
 		}
 		logger << "[PATHSET GENERATED : " << fromToID << "]\n" ;
-		onPathSetRetrieval(ps_, enRoute);
-		r = getBestPathChoiceFromPathSet(ps_, partial,emptyBlkLst,enRoute,approach);
+		onPathSetRetrieval(pathset, enRoute);
+		r = getBestPathChoiceFromPathSet(pathset, partial,emptyBlkLst,enRoute,approach);
 		if (r)
 		{
-			res = *(ps_->bestPath);
+			res = *(pathset->bestPath);
 			//cache
-			if(useCache) { cachePathSet(ps_); }
+			if(useCache) { cachePathSet(pathset); }
 			pathRetrievalAttempt.erase(fromToID);
-			logger << ps_->id	<< "WARNING not cached, apparently, already in cache. this is NOT and expected behavior!!\n";
+			logger << pathset->id	<< "WARNING not cached, apparently, already in cache. this is NOT and expected behavior!!\n";
 			logger << "[RETURN PATH OF SIZE : " << res.size() << " : " << fromToID << "]\n";
 			return true;
 		}
@@ -1550,26 +1547,15 @@ double sim_mob::PathSetManager::generatePartialUtility(const sim_mob::SinglePath
 
 double sim_mob::PathSetManager::generateUtility(const sim_mob::SinglePath* sp) const
 {
-	double utility=0;
-	if(!sp)
-	{
-		return utility;
-	}
-
-	if(sp->travelTime <= 0.0)
-	{
-		throw std::runtime_error("generateUtility: invalid single path travleTime :");
-	}
-	double partialUtility = (sp->partialUtility > 0.0 ? sp->partialUtility : generatePartialUtility(sp)) ;
-	utility = partialUtility;
-//	utility = (sp->partialUtility > 0.0 ? sp->partialUtility : generatePartialUtility(sp)) ; //commend this line and enable the above 2 lines for debugging purposes-vahid
+	if(!sp) { return 0; }
+	if(sp->travelTime <= 0.0) { throw std::runtime_error("generateUtility: invalid single path travleTime :"); }
+	double partialUtility = (sp->partialUtility > 0.0 ? sp->partialUtility : generatePartialUtility(sp));
+	double utility = partialUtility;
 	// calculate utility
-	//Obtain value of time for the agent A: bTTlowVOT/bTTmedVOT/bTThiVOT.
+	//obtain value of time for the agent A: bTTlowVOT/bTTmedVOT/bTThiVOT.
 	utility += sp->travelTime * pathSetParam->bTTVOT;
 	//obtain travel cost part of utility
 	utility += sp->travelCost * pathSetParam->bCost;
-	//for debugging purpose
-	//comment logging if not needed
 	//OD,partialUtility,travleTime,travelCost,utility
 	sim_mob::Logger::log("final_utility.csv") << sp->pathSetId << "," << sp->scenario << "," << partialUtility << "," << sp->travelTime << "," << sp->travelCost << "," << utility << "\n";
 	return utility;
@@ -1592,32 +1578,22 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
-		if(blckLstSegs.size() && sp->includesRoadSegment(blckLstSegs))
-		{
-			continue;//do the same thing while measuring the probability in the loop below
-		}
+		if(sp->path.empty()) { throw std::runtime_error ("Empty Path"); }
+		if(sp->includesRoadSegment(blckLstSegs)) { continue; } //do the same thing while measuring the probability in the loop below
 
-		if(sp->path.empty())
-		{
-			throw std::runtime_error ("Empty Path");
-		}
-		//	state of the network changed
-		//debug
 		if(sp->travelTime <= 0.0 )
 		{
 			std::stringstream out("");
 			out << sp->pathSetId << " getBestPathChoiceFromPathSet=>invalid single path travleTime :" << sp->travelTime;
 			throw std::runtime_error(out.str());
 		}
-		//debug..
-		if (partialExclusion.size() && sp->includesRoadSegment(partialExclusion) ) {
+
+		if (sp->includesRoadSegment(partialExclusion) )
+		{
 			sp->travelTime = std::numeric_limits<double>::max();//some large value like infinity
-			//	RE-calculate utility
-			sp->utility = generateUtility(sp);
+			sp->utility = generateUtility(sp); //re-calculate utility
 		}
-		//this is done in onPathSetRetrieval so no need to repeat for now
-//		sp->travleTime = getPathTravelTime(sp,ps->subTrip.startTime);
-//		sp->travelCost = getPathTravelCost(sp,ps->subTrip.startTime);
+
 		utilityDbg << "[" << sp->utility << "," << exp(sp->utility) << "]";
 		ps->logsum += exp(sp->utility);
 	}
@@ -1628,16 +1604,13 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 	//if not, just chose the shortest path as the best path
 	double upperProb=0;
 	// 2.1 Draw a random number X between 0.0 and 1.0 for agent A.
-	double random = sim_mob::genRandomFloat(0,1);
+	double random = sim_mob::genRandomDouble(0,1);
 	utilityDbg << "\nrandom number:" << random << "\n";
 	// 2.2 For each path i in the path choice set PathSet(O, D):
 	int i = -1;
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
-		if(blckLstSegs.size() && sp->includesRoadSegment(blckLstSegs))
-		{
-			continue;//do the same thing while processing the single path in the loop above
-		}
+		if(sp->includesRoadSegment(blckLstSegs)) { continue; } //do the same thing while processing the single path in the loop above
 		i++;
 		double prob = exp(sp->utility)/(ps->logsum);
 		upperProb += prob;

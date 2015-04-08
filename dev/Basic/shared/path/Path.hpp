@@ -88,7 +88,7 @@ public:
 	///	returns the raugh size of object in Bytes
 	uint32_t getSize();
 	///does these SinglePath include the any of given RoadSegment(s)
-	bool includesRoadSegment(const std::set<const sim_mob::RoadSegment*> &segs, bool dbg= false, std::stringstream *out = nullptr);
+	bool includesRoadSegment(const std::set<const sim_mob::RoadSegment*> &segs) const;
 	static void filterOutNodes(std::vector<sim_mob::WayPoint>& input, std::vector<sim_mob::WayPoint>& output);
 
 };

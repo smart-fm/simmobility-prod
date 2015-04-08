@@ -133,7 +133,17 @@ public:
 	void setWalkTimeSecs(double walkTimeSecs) {
 		this->walkTimeSecs = walkTimeSecs;
 	}
+	// Overloading == operator
 
+	bool operator== (const PT_NetworkEdge& edge) const
+	{
+		return (edgeId == edge.getEdgeId());
+	}
+
+	bool operator!= (const PT_NetworkEdge& edge) const
+	{
+		return !(*this == edge);
+	}
 private:
 	std::string startStop;       // Alphanumeric id
 	std::string endStop;         // Alphanumeric id

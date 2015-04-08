@@ -26,6 +26,75 @@ using std::map;
 using std::vector;
 using std::list;
 
+namespace
+{
+	void printPath(const std::vector<sim_mob::PT_NetworkEdge>& path,double cost,bool addedtoB)
+	{
+		if(addedtoB)
+		{
+			std::cout<<"Added to B: ";
+		}
+		else
+		{
+			std::cout<<"Added to Q: ";
+		}
+		for(std::vector<sim_mob::PT_NetworkEdge>::const_iterator it=path.begin();it!=path.end();it++)
+		{
+			std::cout<<it->getEdgeId()<<"-->";
+		}
+		std::cout<<"pathcost="<<cost;
+		std::cout<<"\n";
+	}
+/*
+	double getPathCost(sim_mob::StreetDirectory::PublicTransitGraph& graph,const std::vector<sim_mob::PT_NetworkEdge>& path)
+	{
+		double cost=0.0;
+		for(std::vector<sim_mob::PT_NetworkEdge>::const_iterator itEdge=path.begin();itEdge!=path.end();itEdge++)
+		{
+			cost+=graph[sim_mob::A_StarPublicTransitShortestPathImpl::edgeMap[itEdge->getEdgeId()]].kShortestPathWeight;
+		}
+		return cost;
+	}
+*/
+	struct TempPathSet
+	{
+	private:
+		std::vector<std::vector<sim_mob::PT_NetworkEdge> > paths;
+		std::vector<double> pathCosts;
+
+	public:
+		void addPathIfUnavailable(const std::vector<sim_mob::PT_NetworkEdge>& path, double cost)
+		{
+			if(std::find(paths.begin(),paths.end(),path) == paths.end())
+			{
+				paths.push_back(path);
+				pathCosts.push_back(cost);
+				//printPath(path,cost,true);
+			}
+		}
+
+		void deletePath(size_t index)
+		{
+			paths.erase(paths.begin()+index);
+			pathCosts.erase(pathCosts.begin()+index);
+		}
+
+		uint32_t getMinElementIdx() const
+		{
+			return std::distance(pathCosts.begin(), std::min_element(pathCosts.begin(), pathCosts.end()));
+		}
+
+		const std::vector<sim_mob::PT_NetworkEdge>& getPath(int index) const
+		{
+			if(index >= paths.size()) { throw std::runtime_error("invalid index"); }
+			return paths.at(index);
+		}
+
+		bool empty() const { return paths.empty(); }
+	};
+
+}
+
 sim_mob::A_StarPublicTransitShortestPathImpl::A_StarPublicTransitShortestPathImpl(std::map<int,PT_NetworkEdge>& ptEdgeMap,std::map<std::string,PT_NetworkVertex>& ptVertexMap)
 {
 	initPublicNetwork(ptEdgeMap,ptVertexMap);
@@ -62,7 +131,7 @@ void sim_mob::A_StarPublicTransitShortestPathImpl::procAddPublicNetworkEdges(Str
 }
 double sim_mob::A_StarPublicTransitShortestPathImpl::getKshortestPathcost(const PT_NetworkEdge& ptEdge)
 {
-	return ptEdge.getDayTransitTimeSecs()+ptEdge.getTransferPenaltySecs()+ptEdge.getWalkTimeSecs();
+	return ptEdge.getDayTransitTimeSecs()+ptEdge.getTransferPenaltySecs()+ptEdge.getWalkTimeSecs()+ptEdge.getWaitTimeSecs();
 }
 
 double sim_mob::A_StarPublicTransitShortestPathImpl::getLabelingApproachWeights(int Label,PT_NetworkEdge ptEdge)
@@ -88,23 +157,23 @@ double sim_mob::A_StarPublicTransitShortestPathImpl::getLabelingApproachWeights(
 		{
 			if (ptEdge.getType()=="Walk")
 			{
-				ptEdge.setWalkTimeSecs(1000000);
+				ptEdge.setWalkTimeSecs(100000000);
 			}
 			break;
 		}
 		case LabelingApproach4:
 		{
-			if(ptEdge.getType()=="MRT")
+			if(ptEdge.getType()!="RTS")
 			{
-				ptEdge.setTransferPenaltySecs(1000000);
+				ptEdge.setTransferPenaltySecs(100000000);
 			}
 			break;
 		}
 		case LabelingApproach5:
 		{
-			if(ptEdge.getType()=="Bus")
+			if(ptEdge.getType()!="Bus")
 			{
-				ptEdge.setTransferPenaltySecs(1000000);
+				ptEdge.setTransferPenaltySecs(100000000);
 			}
 			break;
 		}
@@ -150,15 +219,15 @@ double sim_mob::A_StarPublicTransitShortestPathImpl::getLabelingApproachWeights(
 	cost= ptEdge.getDayTransitTimeSecs()+ptEdge.getWalkTimeSecs()+ptEdge.getWaitTimeSecs()+ptEdge.getTransferPenaltySecs();
 	return cost;
 }
+
 double sim_mob::A_StarPublicTransitShortestPathImpl::getSimulationApproachWeights(PT_NetworkEdge ptEdge)
 {
-	double cost = ptEdge.getDayTransitTimeSecs()+ptEdge.getWalkTimeSecs()+ptEdge.getWaitTimeSecs();
-	return Utils::nRandom(cost,5*cost);
+	double cost = ptEdge.getDayTransitTimeSecs()+ptEdge.getWalkTimeSecs()+ptEdge.getWaitTimeSecs()+ ptEdge.getTransferPenaltySecs() ;
+	return abs(Utils::nRandom(cost,5*cost));
 }
 void sim_mob::A_StarPublicTransitShortestPathImpl::procAddPublicNetworkEdgeweights(const StreetDirectory::PT_Edge& edge,StreetDirectory::PublicTransitGraph& graph,PT_NetworkEdge& ptEdge)
 {
 	graph[edge].kShortestPathWeight=getKshortestPathcost(ptEdge);
-
 	graph[edge].labelingApproach1Weight=getLabelingApproachWeights(LabelingApproach1,ptEdge);
 	graph[edge].labelingApproach2Weight=getLabelingApproachWeights(LabelingApproach2,ptEdge);
 	graph[edge].labelingApproach3Weight=getLabelingApproachWeights(LabelingApproach3,ptEdge);
@@ -188,7 +257,7 @@ void sim_mob::A_StarPublicTransitShortestPathImpl::procAddPublicNetworkEdgeweigh
 //TODO:Make it template so it can be used for any weight parameter given
 vector<sim_mob::PT_NetworkEdge> sim_mob::A_StarPublicTransitShortestPathImpl::searchShortestPath(StreetDirectory::PT_VertexId fromNode,StreetDirectory::PT_VertexId toNode,int cost)
 {
-	    vector<PT_NetworkEdge> res;
+	    vector<PT_NetworkEdge> res = vector<sim_mob::PT_NetworkEdge>();
 	    StreetDirectory::PT_Vertex from;
 	    StreetDirectory::PT_Vertex to;
 		if(vertexMap.find(fromNode) != vertexMap.end())
@@ -321,7 +390,7 @@ vector<sim_mob::PT_NetworkEdge> sim_mob::A_StarPublicTransitShortestPathImpl::se
 		}
 		return res;
 }
-vector<sim_mob::PT_NetworkEdge> sim_mob::A_StarPublicTransitShortestPathImpl::searchShortestPathWithBlacklist(StreetDirectory::PT_VertexId fromNode,StreetDirectory::PT_VertexId toNode,int cost,const std::set<StreetDirectory::PT_EdgeId>& blacklist,double &path_cost)
+vector<sim_mob::PT_NetworkEdge> sim_mob::A_StarPublicTransitShortestPathImpl::searchShortestPathWithBlacklist(StreetDirectory::PT_VertexId fromNode, StreetDirectory::PT_VertexId toNode, const std::set<StreetDirectory::PT_EdgeId>& blacklist, double &path_cost)
 {
 		StreetDirectory::PublicTransitGraph& graph = publictransitMap_;
 		StreetDirectory::PT_Vertex from;
@@ -353,7 +422,7 @@ vector<sim_mob::PT_NetworkEdge> sim_mob::A_StarPublicTransitShortestPathImpl::se
 		boost::filtered_graph<StreetDirectory::PublicTransitGraph, blacklist_PT_edge_constraint> filtered(graph, filter);
 		// Same code copied from searchShortestPath function as we use filtered graph in this function rather than
 		// adjacency list in the other
-		//TODO: can fine way to have generic function
+		//TODO: can have fine way to have generic function
 		vector<sim_mob::PT_NetworkEdge> res;
 		list<StreetDirectory::PT_Vertex> partialRes;
 		vector<StreetDirectory::PT_Vertex> p(boost::num_vertices(graph));  //Output variable
@@ -399,144 +468,102 @@ vector<sim_mob::PT_NetworkEdge> sim_mob::A_StarPublicTransitShortestPathImpl::se
 		return res;
 }
 
-int sim_mob::A_StarPublicTransitShortestPathImpl::getKShortestPaths(StreetDirectory::PT_VertexId from,StreetDirectory::PT_VertexId to, vector<vector<sim_mob::PT_NetworkEdge> > &res)
+void sim_mob::A_StarPublicTransitShortestPathImpl::getKShortestPaths(uint32_t kPaths, StreetDirectory::PT_VertexId from,StreetDirectory::PT_VertexId to, vector<vector<sim_mob::PT_NetworkEdge> >& res)
 {
-
-	int kShortestPaths=10;
 	StreetDirectory::PublicTransitGraph& graph = publictransitMap_;
-	PT_WeightLabels KshortestPath;
-	double pathCost;
-	struct tempPathSet {
-		vector<vector<StreetDirectory::PT_EdgeId> > paths;
-		vector<double> pathCosts;
-	};
 
-
+	double pathCost = 0.0;
 	// Define Q to hold the k shortest paths
-	std::vector<vector<StreetDirectory::PT_EdgeId> > Q;
-
+	vector<vector<sim_mob::PT_NetworkEdge> >& Q = res; //another reference to be consistent with Tan Rui's algorithm specification
 	// Define B to hold the intermediate paths found (Only subset from this set goes to Q)
-	tempPathSet B;
+	TempPathSet B;
 
-	//step 1: Search shortest path p_1
-	std::vector<StreetDirectory::PT_EdgeId> p1;
-	std::set<StreetDirectory::PT_EdgeId> bl = std::set<StreetDirectory::PT_EdgeId>();
-	std::vector<PT_NetworkEdge> P_1 = searchShortestPathWithBlacklist(from,to,KshortestPath,bl,pathCost);
-	for(std::vector<PT_NetworkEdge>::const_iterator itEdge=P_1.begin();itEdge!=P_1.end();itEdge++)
-	{
-		p1.push_back(itEdge->getEdgeId());
-	}
-	Q.push_back(p1);
+	//step 1: Search shortest path p_0
+	std::set<StreetDirectory::PT_EdgeId> blackList = std::set<StreetDirectory::PT_EdgeId>();
+	std::vector<PT_NetworkEdge> p0 = searchShortestPathWithBlacklist(from,to,blackList,pathCost);
 
+	if(p0.empty()) { return; }
+	Q.push_back(p0);
+	//printPath(p0,pathCost,false);
+
+	//step 2: Each iteration of the below loop gives the kth shortest path
 	// For k in 1:K-1 (K - number of paths required )
-	for(int k=1;k<kShortestPaths;k++)
+	for(int k=1; k<kPaths; k++)
 	{
-		bl.clear();
-		//step 2: Each iteration of the below code gives the kth shortest path
-		// Eliminate first edge from each paths found already(p_1,p_2,...,p_(k-1))
-		for(int p=0;p<k;p++)
+		//black list first edge from each path found already (p_0,p_1,p_2,...,p_(k-1))
+		blackList.clear();
+		for(int p=0; p<k; p++)
 		{
-			StreetDirectory::PT_EdgeId firstEdgeId = Q[p].front();
-			bl.insert(firstEdgeId);
+			StreetDirectory::PT_EdgeId firstEdgeId = Q[p].front().getEdgeId();
+			blackList.insert(firstEdgeId);
 		}
-
-		//Search Shortest path , denote p_temp , if p_temp doesnt exist in Q or B , B = union(B,p_temp)
-		std::vector<PT_NetworkEdge> pTempEdge = searchShortestPathWithBlacklist(from,to,KshortestPath,bl,pathCost);
-		std::vector<StreetDirectory::PT_EdgeId> pTemp;
-		for(std::vector<PT_NetworkEdge>::const_iterator itEdge=pTempEdge.begin();itEdge!=pTempEdge.end();itEdge++)
-		{
-			pTemp.push_back(itEdge->getEdgeId());
-		}
-		bl.clear();
+		//Search shortest path, denote p_temp, if p_temp doesn't exist in Q or B, B = (B union {p_temp})
+		std::vector<PT_NetworkEdge> pTemp = searchShortestPathWithBlacklist(from,to,blackList,pathCost);
+		blackList.clear();
 		//Check if p_temp present in Q or B already
-		if(std::find(Q.begin(), Q.end(), pTemp)==Q.end())
+		if(!pTemp.empty() && std::find(Q.begin(), Q.end(), pTemp) == Q.end()) { B.addPathIfUnavailable(pTemp, pathCost); }
+
+		size_t prevPathLength = Q[k-1].size();
+		if(prevPathLength-1 >= 1) // Enter loop only if q(k-1) > 1 ;
 		{
-			if(std::find(B.paths.begin(),B.paths.end(),pTemp)==B.paths.end())
+			const vector<PT_NetworkEdge>& prevPath = Q[k-1];
+			// For i in 1:q(k-1)
+			for(int i=0; i<prevPathLength-1; i++)
 			{
-				B.paths.push_back(pTemp);
-				B.pathCosts.push_back(pathCost);
-
-			}
-		}
-
-		// q(k-1) - Number of edges in the path p_(k-1)
-		// If q(k-1) > 1 continue ;
-		if(Q[k-1].size()<=1)
-		{
-			continue;
-		}
-
-		// For i in 1:q(k-1)
-		for(int i=0;i<Q[k-1].size();i++)
-		{
-			vector<StreetDirectory::PT_EdgeId> rootpath(Q[k-1].begin(),Q[k-1].begin()+i);
-			//std::copy(Q[k-1].begin(),Q.begin()+i,rootpath.begin());
-
-			// For j in 1:k-1
-			for(int j=0;j<=k-1;j++)
-			{
-				// Check if (e_1,e_2,...e_(i))in p_(k-1) is same as (e_1,e_2,...e(i)) in p_j
-				if(std::equal(Q[j].begin(),Q[j].begin()+i,rootpath.begin()))
+				vector<PT_NetworkEdge> rootpath(prevPath.begin(), prevPath.begin()+(i+1));
+				// For j in 1:k-1
+				for(int j=0; j<=k-1; j++)
 				{
-
-					// Block e(i+1) from path p_j in graph
-					StreetDirectory::PT_EdgeId removeEdgeId = Q[j].at(i+1);
-					bl.insert(removeEdgeId);
+					const std::vector<PT_NetworkEdge>& Q_j = Q[j];
+					// Check if (e_1,e_2,...e_(i))in p_(k-1) is same as (e_1,e_2,...e(i)) in p_j
+					if(std::equal(Q_j.begin(), Q_j.begin()+(i+1), rootpath.begin()))
+					{
+						// Block e(i+1) from path p_j in graph
+						if(Q_j.size() > i+1)
+						{
+							PT_NetworkEdge removeEdge = Q_j.at(i+1);
+							blackList.insert(removeEdge.getEdgeId());
+						}
+					}
 				}
-			}
 
-			// Denote (e_1,e_2,...e_(i-1)) as S_i. Find the shortest route R_i from ending vertex of e_i and same destination
-			vector<StreetDirectory::PT_EdgeId> S_i(Q[k-1].begin(),Q[k-1].begin()+(i));
-			vector<PT_NetworkEdge> pathEdges;
-			vector<StreetDirectory::PT_EdgeId> R_i;
-
-			//Finding the ending vertex of the edge e_i in Q[k-1]
-			StreetDirectory::PT_Vertex startVertex = boost::target(edgeMap[rootpath.back()],graph);
-			StreetDirectory::PT_VertexId start = boost::get(boost::vertex_name,graph,startVertex);
-			pathEdges = searchShortestPathWithBlacklist(start,to,KshortestPath,bl,pathCost);
-			for(std::vector<PT_NetworkEdge>::const_iterator itEdge=pathEdges.begin();itEdge!=pathEdges.end();itEdge++)
-			{
-				R_i.push_back(itEdge->getEdgeId());
-			}
-
-			// Concatenate S_i and R_i to obtain A_i_k
-			vector<StreetDirectory::PT_EdgeId> A_i_k ;
-			A_i_k.insert( A_i_k.end(),S_i.begin(),S_i.end());
-			A_i_k.insert( A_i_k.end(),R_i.begin(),R_i.end());
-
-
-			// If A_i_k not exist in B not in Q
-			// B = Union(B,A_i_k)
-			if(std::find(Q.begin(), Q.end(), A_i_k)==Q.end())
-			{
-				if(std::find(B.paths.begin(),B.paths.end(),A_i_k)==B.paths.end())
+				// Denote (e_1,e_2,...e_(i-1)) as S_i. Find the shortest route R_i from ending vertex of e_i and same destination
+				vector<PT_NetworkEdge> S_i(Q[k-1].begin(),Q[k-1].begin()+(i));
+				StreetDirectory::PT_VertexId start;
+				//Finding the ending vertex of the edge e_i in Q[k-1]
+				if(S_i.empty()) { start = from; }
+				else
 				{
-					B.paths.push_back(A_i_k);
-					B.pathCosts.push_back(pathCost);
+					StreetDirectory::PT_Vertex startVertex = boost::target(edgeMap[S_i.back().getEdgeId()],graph);
+					start = boost::get(boost::vertex_name,graph,startVertex);
+				}
+				double s_i_cost =0.0;
+				for(std::vector<sim_mob::PT_NetworkEdge>::const_iterator itEdge=S_i.begin();itEdge!=S_i.end();itEdge++)
+				{
+					s_i_cost+=graph[sim_mob::A_StarPublicTransitShortestPathImpl::edgeMap[itEdge->getEdgeId()]].kShortestPathWeight;
+				}
+				vector<PT_NetworkEdge> R_i = searchShortestPathWithBlacklist(start,to,blackList,pathCost);
+				blackList.clear();
+				if(!R_i.empty())
+				{
+					// Concatenate S_i and R_i to obtain A_i_k
+					vector<PT_NetworkEdge> A_i_k ;
+					A_i_k.insert( A_i_k.end(),S_i.begin(),S_i.end());
+					A_i_k.insert( A_i_k.end(),R_i.begin(),R_i.end());
+					// If A_i_k not exist in B not in Q
+					// B = Union(B,A_i_k)
+					if(std::find(Q.begin(), Q.end(), A_i_k) == Q.end()) { B.addPathIfUnavailable(A_i_k, (pathCost+s_i_cost)); }
 				}
 			}
 		}
 		// If B is empty Break the whole loop
-		if(B.paths.size() == 0)
-		{
-			break;
-		}
+		if(B.empty()) { break; }
 
 		// Remove the least cost path A_j in B and put it in Q as p_k
-		int index=std::distance(B.pathCosts.begin(),std::min_element(B.pathCosts.begin(),B.pathCosts.end()));
-		Q.push_back(B.paths.at(index));
-		B.paths.erase(B.paths.begin()+index);
-		B.pathCosts.erase(B.pathCosts.begin()+index);
+		uint32_t index = B.getMinElementIdx();
+		Q.push_back(B.getPath(index));
+		//printPath(B.getPath(index),0.0,false);
+		B.deletePath(index);
 	}
-	 // Assigning the result to the reference variable
-	for(vector<vector<StreetDirectory::PT_EdgeId> >::const_iterator itVecEdge=Q.begin();itVecEdge!=Q.end();itVecEdge++)
-	{
-		vector<sim_mob::PT_NetworkEdge> temp;
-		for(vector<StreetDirectory::PT_EdgeId>::const_iterator itEdge=itVecEdge->begin();itEdge!=itVecEdge->end();itEdge++)
-		{
-			temp.push_back(PT_Network::getInstance().PT_NetworkEdgeMap.find(*itEdge)->second);
-		}
-		res.push_back(temp);
-	}
-	return 1;
+	return;
 }

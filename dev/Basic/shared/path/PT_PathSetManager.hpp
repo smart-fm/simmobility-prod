@@ -11,6 +11,7 @@
 #include "geospatial/Node.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "path/Path.hpp"
+#include "util/threadpool/Threadpool.hpp"
 #include <fstream>
 using std::vector;
 namespace sim_mob{
@@ -26,6 +27,8 @@ public:
 		return _instance;
 	}
 public:
+	static boost::shared_ptr<sim_mob::batched::ThreadPool> threadpool_;
+	boost::mutex fileExclusiveWrite;
 	PT_PathSet makePathset(sim_mob::Node* from,sim_mob::Node* to);
 	PT_NetworkVertex getVertexFromNode(sim_mob::Node*);
 	std::string getVertexIdFromNode(sim_mob::Node*);
@@ -34,10 +37,38 @@ public:
 	void getLinkEliminationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
 	void getSimulationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
 	void writePathSetToFile(PT_PathSet &ptPathSet);
+	void PT_BulkPathSetGenerator();
+	void writePathSetFileHeader();
 	const int labelPoolSize;
 	const int simulationApproachPoolSize;
 	std::ofstream ptPathSetWriter;
-
+};
+struct PT_OD{
+private:
+	int startNode;
+	int destNode;
+public:
+	PT_OD(int start,int dest)
+	{
+		startNode=start;
+		destNode=dest;
+	}
+	int getStartNode() const{
+		return startNode;
+	}
+	void setStartNode(int node){
+		startNode=node;
+	}
+	int getDestNode() const{
+		return destNode;
+	}
+	void setDestNode(int node){
+		destNode=node;
+	}
+};
+struct compare_OD: public std::less<PT_OD>
+{
+		bool operator() (const PT_OD& start, const PT_OD& dest) const;
 };
 
 }

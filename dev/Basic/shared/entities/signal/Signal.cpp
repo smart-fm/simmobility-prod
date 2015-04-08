@@ -532,8 +532,10 @@ std::size_t sim_mob::Signal_SCATS::computeCurrPhase(double currCycleTimer)
  */
 Entity::UpdateStatus sim_mob::Signal_SCATS::frame_tick(timeslice now)
 {
-	// some book keeping	
-	curVehicleCounter.aggregateCounts(now);
+	if(ConfigManager::GetInstance().FullConfig().loopDetectorCounts.outputEnabled)
+	{
+		curVehicleCounter.aggregateCounts(now);
+	}
 
 	if(!isIntersection_)
 	{

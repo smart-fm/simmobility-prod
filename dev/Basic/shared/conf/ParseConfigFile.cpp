@@ -666,12 +666,22 @@ void sim_mob::ParseConfigFile::processGeneratedRoutesNode(xercesc::DOMElement* n
 void sim_mob::ParseConfigFile::ProcessLoopDetectorCountsNode(xercesc::DOMElement* node)
 {
 	if(node)
-	{
-		cfg.loopDetectorCounts.frequency = ParseUnsignedInt(GetNamedAttributeValue(node, "frequency"), 600000);
+	{		
 		cfg.loopDetectorCounts.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
 		if(cfg.loopDetectorCounts.outputEnabled)
-		{			
+		{
+			cfg.loopDetectorCounts.frequency = ParseUnsignedInt(GetNamedAttributeValue(node, "frequency"), 600000);
 			cfg.loopDetectorCounts.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/VehCounts.csv");
+			
+			if(cfg.loopDetectorCounts.frequency == 0)
+			{
+				throw std::runtime_error("ParseConfigFile::ProcessLoopDetectorCountsNode - Update frequency for aggregating vehicle counts is 0");
+			}
+			
+			if(cfg.loopDetectorCounts.fileName.empty())
+			{
+				throw std::runtime_error("ParseConfigFile::ProcessLoopDetectorCountsNode - File name is empty");
+			}
 		}
 	}
 }
@@ -679,12 +689,22 @@ void sim_mob::ParseConfigFile::ProcessLoopDetectorCountsNode(xercesc::DOMElement
 void sim_mob::ParseConfigFile::ProcessShortDensityMapNode(xercesc::DOMElement* node)
 {
 	if(node)
-	{
-		cfg.segDensityMap.updateInterval = ParseUnsignedInt(GetNamedAttributeValue(node, "updateInterval"), 1000);
+	{		
 		cfg.segDensityMap.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
 		if(cfg.segDensityMap.outputEnabled)
 		{
+			cfg.segDensityMap.updateInterval = ParseUnsignedInt(GetNamedAttributeValue(node, "updateInterval"), 1000);
 			cfg.segDensityMap.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/DensityMap.csv");
+			
+			if(cfg.segDensityMap.updateInterval == 0)
+			{
+				throw std::runtime_error("ParseConfigFile::ProcessShortDensityMapNode - Update interval for aggregating density is 0");
+			}
+			
+			if(cfg.segDensityMap.fileName.empty())
+			{
+				throw std::runtime_error("ParseConfigFile::ProcessShortDensityMapNode - File name is empty");
+			}
 		}
 	}
 }

@@ -180,5 +180,10 @@ namespace medium {
 	const std::string MONGO_FIELD_SOURCE_NODE = "source";
 	const std::string MONGO_FIELD_SINK_NODE = "sink";
 
+	/**
+	 * Fields for MTZ1169 to MTZ1092 mapping data
+	 */
+	const std::string MONGO_FIELD_MTZ1092 = "MTZ1092";
+
 } // end namespace medium
 } // end namespace sim_mob

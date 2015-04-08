@@ -4,7 +4,7 @@
 <config>
         <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
         <!-- Admissible values are "preday", "withinday" and "supply". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.--> 
-        <mid_term_run_mode value="withinday"/>
+        <mid_term_run_mode value="preday"/>
         
         <!-- config specific to supply simulator -->                    
         <supply>
@@ -37,14 +37,14 @@
         <!-- config specific to preday simulator -->
         <preday>
                 <!-- Control variable to run simulation, calibration or logsum computation. Admissible values are "simulation", "calibration", "logsum" and "lt_logsum" -->
-                <run_mode value="simulation"/>
+                <run_mode value="logsum"/>
                 <!-- Number of threads to create for processing the population in-->
                 <!-- the preday demand simulator -->
                 <threads value="6"/>
                 <!-- outputs the preday predictions as activity schedule in CSV format if enabled with simulation run_mode -->
                 <output_activity_schedule enabled="true"/>
                 <!-- outputs the preday's predicted tours and stops to mongodb if enabled -->
-                <output_predictions enabled="false"/>
+                <output_predictions enabled="true"/>
                 <!-- prints person ids and tour details in console for each person if enabled -->
                 <console_output enabled="true"/>
                 
@@ -53,8 +53,8 @@
                      Value 'mongodb' is default for source. 
                      Database and credentials attributes are required only for pgsql source.
                      Valid ids from the list constructs list have to be specified -->
-                <population source="pgsql" database="fm_remote_lt" credential="lt_cred"/>
-                <logsum source="pgsql" database="fm_local" credential="harish_cred"/>
+                <population source="mongodb" database="fm_remote_lt" credential="lt_cred"/>
+                <logsum source="mongodb" database="fm_local" credential="harish_cred"/>
                 
                 <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
                         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
@@ -84,18 +84,19 @@
                 
                 <!-- Names of MongoDB database and collections -->
                 <mongo_collections db_name="preday">
-                        <mongo_collection name="population" collection="hits12_population"/>
+                        <mongo_collection name="population" collection="hits12_population_updated_zones"/>
                         <mongo_collection name="tcost_bus" collection="tcost_bus"/>
                         <mongo_collection name="tcost_car" collection="tcost_car"/>
-                        <mongo_collection name="AMCosts" collection="AMCosts"/>
-                        <mongo_collection name="OPCosts" collection="OPCosts"/>
-                        <mongo_collection name="PMCosts" collection="PMCosts"/>
-                        <mongo_collection name="Zone" collection="Zone"/>
-                        <mongo_collection name="zone_node" collection="node_mtz3"/>
-                        <mongo_collection name="Output_DayPattern" collection="daypattern_1601_1"/>
-                        <mongo_collection name="Output_Tour" collection="tour_1601_1"/>
-                        <mongo_collection name="Output_Activity" collection="activity_1601_1"/>
-                        <mongo_collection name="Output_SubTour" collection="wbst_1601_1"/>
+                        <mongo_collection name="AMCosts" collection="AMCosts_2012"/>
+                        <mongo_collection name="OPCosts" collection="OPCosts_2012"/>
+                        <mongo_collection name="PMCosts" collection="PMCosts_2012"/>
+                        <mongo_collection name="Zone" collection="Zone_2012"/>
+                        <mongo_collection name="zone_node" collection="node_mtz_6AprNW_1169z"/>
+                        <mongo_collection name="zone_08_12" collection="map_1169_to_1092_zones"/>
+                        <mongo_collection name="Output_DayPattern" collection="daypattern_0815"/>
+                        <mongo_collection name="Output_Tour" collection="tour_0815"/>
+                        <mongo_collection name="Output_Activity" collection="activity_0815"/>
+                        <mongo_collection name="Output_SubTour" collection="wbst_0815"/>
                 </mongo_collections>
                 
                 <calibration enabled="false">

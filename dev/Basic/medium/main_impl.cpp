@@ -371,6 +371,7 @@ bool performMainDemand()
 	const db::BackendType populationSource = mtConfig.getPopulationSource();
 	PredayManager predayManager;
 	predayManager.loadZones(db::MONGO_DB);
+	predayManager.load2012_2008ZoneMapping(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
 	predayManager.loadPersonIds(populationSource);
 	predayManager.loadUnavailableODs(db::MONGO_DB);
@@ -378,6 +379,7 @@ bool performMainDemand()
 	{
 		predayManager.loadZoneNodes(db::MONGO_DB);
 	}
+
 	if(mtConfig.runningPredayCalibration())
 	{
 		Print() << "Preday mode: calibration" << std::endl;

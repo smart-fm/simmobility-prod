@@ -637,7 +637,8 @@ void sim_mob::medium::PredayManager::loadPersonIds(BackendType dbType) {
 }
 
 void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType) {
-	switch(dbType) {
+	switch(dbType)
+	{
 		case POSTGRES:
 		{
 			throw std::runtime_error("Zone information is not available in PostgreSQL database yet");
@@ -686,6 +687,32 @@ void sim_mob::medium::PredayManager::loadZoneNodes(db::BackendType dbType) {
 		{
 			throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
 		}
+	}
+}
+
+void sim_mob::medium::PredayManager::load2012_2008ZoneMapping(db::BackendType dbType)
+{
+	switch(dbType)
+	{
+	case POSTGRES:
+	{
+		throw std::runtime_error("2012->2008 Zone mapping is not available in PostgreSQL database");
+	}
+	case MONGO_DB:
+	{
+		std::string zn12_08CollectionName = mtConfig.getMongoCollectionsMap().getCollectionName("zone_08_12");
+		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+		std::string emptyString;
+		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+		MTZ12_MTZ08_MappingDao mtz12_08MapDao(dbConfig, db.dbName, zn12_08CollectionName);
+		mtz12_08MapDao.getAll(MTZ12_MTZ08_Map);
+		Print() << "Zones 2012->2008 mapping loaded" << std::endl;
+		break;
+	}
+	default:
+	{
+		throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
+	}
 	}
 }
 

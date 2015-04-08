@@ -191,14 +191,6 @@ public:
 		this->minWalkingDistance = minWalkingDistance;
 	}
 
-	double getPartialUtility() const {
-		return partialUtility;
-	}
-
-	void setPartialUtility(double partialUtility) {
-		this->partialUtility = partialUtility;
-	}
-
 	const std::vector<PT_NetworkEdge>& getPathEdges() const {
 		return pathEdges;
 	}
@@ -313,12 +305,16 @@ public:
 
 	//Path representation
 
+//Test code
+public:
+	double kshortestpathcost;
+// End of Test code
+
 private:
 	std::vector<PT_NetworkEdge> pathEdges;
 	std::string ptPathId;
 	std::string ptPathSetId;
 	std::string scenario;
-	double partialUtility;
 	double pathTravelTime;
 	double totalDistanceKms;
 	mutable double pathSize;

@@ -44,9 +44,9 @@ public:
 
     std::vector<PT_NetworkEdge> searchShortestPath(StreetDirectory::PT_VertexId,StreetDirectory::PT_VertexId,int);
 
-    std::vector<PT_NetworkEdge> searchShortestPathWithBlacklist(StreetDirectory::PT_VertexId,StreetDirectory::PT_VertexId,int,const std::set<StreetDirectory::PT_EdgeId>&,double&);
+    std::vector<PT_NetworkEdge> searchShortestPathWithBlacklist(StreetDirectory::PT_VertexId from,StreetDirectory::PT_VertexId to, const std::set<StreetDirectory::PT_EdgeId>& blackList, double& cost);
 
-    int getKShortestPaths(StreetDirectory::PT_VertexId,StreetDirectory::PT_VertexId, std::vector< std::vector<PT_NetworkEdge> > &);
+    void getKShortestPaths(uint32_t k, StreetDirectory::PT_VertexId from, StreetDirectory::PT_VertexId to, std::vector< std::vector<PT_NetworkEdge> > & outPathList);
 
     //double sim_mob::A_StarPublicTransitShortestPathImpl::getKshortestPathcost(const PT_NetworkEdge&);
 

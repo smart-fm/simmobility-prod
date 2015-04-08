@@ -458,7 +458,6 @@ std::string sim_mob::makePT_PathSetString(const std::vector<PT_NetworkEdge> &pat
 	return str.str();
 }
 sim_mob::PT_Path::PT_Path (const std::vector<PT_NetworkEdge> &path) : pathEdges(path),
-		partialUtility(0.0),
 		totalDistanceKms(0.0),
 		totalCost(0.0),
 		totalInVehicleTravelTimeSecs(0.0),
@@ -466,9 +465,9 @@ sim_mob::PT_Path::PT_Path (const std::vector<PT_NetworkEdge> &path) : pathEdges(
 		totalWalkingTimeSecs(0.0),
 		totalNumberOfTransfers(-1),minDistance(false),validPath(false),shortestPath(false),
 		minInVehicleTravelTime(false),minNumberOfTransfers(false),minWalkingDistance(false),
-		minTravelOnMRT(false),minTravelOnBus(false),pathSize(0.0)
+		minTravelOnMRT(false),minTravelOnBus(false),pathSize(0.0),kshortestpathcost(0.0)
 {
-	double totalBusTravelDistance;
+	double totalBusMRTTravelDistance;
 	ptPathId=makePT_PathString(pathEdges);
 	ptPathSetId=makePT_PathSetString(pathEdges);
 	for(std::vector<PT_NetworkEdge>::const_iterator itEdge=pathEdges.begin();itEdge!=pathEdges.end();itEdge++)
@@ -479,12 +478,13 @@ sim_mob::PT_Path::PT_Path (const std::vector<PT_NetworkEdge> &path) : pathEdges(
 		pathTravelTime+=itEdge->getLinkTravelTimeSecs();
 		totalNumberOfTransfers++;
 		totalDistanceKms+=itEdge->getDistKms();
-		if(itEdge->getType()=="Bus")
+		kshortestpathcost+=(itEdge->getDayTransitTimeSecs()+itEdge->getTransferPenaltySecs()+itEdge->getWaitTimeSecs()+itEdge->getWalkTimeSecs());
+		if(itEdge->getType()=="Bus" && itEdge->getType()=="RTS")
 		{
-			totalBusTravelDistance+=itEdge->getDistKms();
+			totalBusMRTTravelDistance+=itEdge->getDistKms();
 		}
 	}
-	totalCost=this->getTotalCostByDistance(totalBusTravelDistance);
+	totalCost=this->getTotalCostByDistance(totalBusMRTTravelDistance);
 }
 sim_mob::PT_Path::~PT_Path()
 {
@@ -520,9 +520,14 @@ void sim_mob::PT_PathSet::computeAndSetPathSize()
 		double subPathSize=0;  // Used to store the path-size component for each edge
 		int subN=0;            // Used to store the number of overlapped edge in choice set
 		std::vector<PT_NetworkEdge> edges;
+		edges = itPath->getPathEdges();
 		for(std::vector<PT_NetworkEdge>::const_iterator itEdge=edges.begin();itEdge!=edges.end();itEdge++)
 		{
-			subPathSize=itEdge->getLinkTravelTimeSecs()/itPath->getPathTravelTime();
+			double pathTravelTime = itPath->getPathTravelTime();
+			if(pathTravelTime != 0)
+			{
+				subPathSize=itEdge->getLinkTravelTimeSecs()/pathTravelTime;
+			}
 			std::stringstream edgestring;
 			edgestring<<itEdge->getEdgeId()<<",";
 			std::string edgeId= edgestring.str();
@@ -533,7 +538,10 @@ void sim_mob::PT_PathSet::computeAndSetPathSize()
 					subN=subN+1;
 				}
 			}
-			subPathSize=subPathSize/subN;
+			if(subN != 0)
+			{
+				subPathSize=subPathSize/subN;
+			}
 			pathSize=pathSize+subPathSize;
 		}
 		itPath->setPathSize(pathSize);

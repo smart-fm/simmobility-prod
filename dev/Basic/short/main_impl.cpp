@@ -380,7 +380,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		unsigned long currTimeMS = currTick * config.baseGranMS();
 		if(config.segDensityMap.outputEnabled && (currTimeMS % config.segDensityMap.updateInterval == 0))
 		{
-			DriverMovement::outputDensityMap(currTimeMS / 1000);
+			DriverMovement::outputDensityMap(currTimeMS/config.segDensityMap.updateInterval);
 		}
 
 		//Check if the warmup period has ended.

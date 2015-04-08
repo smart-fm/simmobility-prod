@@ -86,7 +86,7 @@ public:
 	virtual TravelMetric & finalizeTravelTimeMetric();
         
 	//Outputs the road segment densities
-	static void outputDensityMap(unsigned int timeSec);
+	static void outputDensityMap(unsigned int tick);
 
 	Driver* getParentDriver() const
 	{

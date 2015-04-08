@@ -3,6 +3,7 @@
 #include <boost/foreach.hpp>
 #include <math.h>
 #include <boost/iterator/filter_iterator.hpp>
+#include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/MultiNode.hpp"
@@ -486,6 +487,15 @@ sim_mob::PT_Path::PT_Path (const std::vector<PT_NetworkEdge> &path) : pathEdges(
 	}
 	totalCost=this->getTotalCostByDistance(totalBusMRTTravelDistance);
 }
+void sim_mob::PT_Path::updatePathEdges()
+{
+	int edgeId;
+	std::stringstream ss(ptPathId);
+	while (ss >> edgeId){
+		pathEdges.push_back(PT_Network::PT_NetworkEdgeMap[edgeId]);
+	}
+
+}
 sim_mob::PT_Path::~PT_Path()
 {
 
@@ -495,6 +505,7 @@ sim_mob::PT_PathSet::PT_PathSet():pathSet(std::set<PT_Path,cmp_path_vector>())
 
 sim_mob::PT_PathSet::~PT_PathSet()
 {}
+
 double sim_mob::PT_Path::getTotalCostByDistance(double totalDistance)
 {
 	if(totalDistance<=3.2)

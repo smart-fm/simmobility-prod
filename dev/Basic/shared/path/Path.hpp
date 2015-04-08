@@ -332,6 +332,9 @@ private:
 	bool minTravelOnMRT;
 	bool minTravelOnBus;
 	double getTotalCostByDistance(double);
+
+public:
+	void updatePathEdges();
 };
 
 struct cmp_path_vector: public std::less<PT_Path>

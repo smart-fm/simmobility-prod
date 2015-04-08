@@ -376,6 +376,12 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 		//Agent-based cycle, steps 1,2,3,4 of 4
 		wgMgr.waitAllGroups();
+		
+		unsigned long currTimeMS = currTick * config.baseGranMS();
+		if(config.segDensityMap.outputEnabled && (currTimeMS % config.segDensityMap.updateInterval == 0))
+		{
+			DriverMovement::outputDensityMap(currTimeMS / 1000);
+		}
 
 		//Check if the warmup period has ended.
 		if (warmupDone) {

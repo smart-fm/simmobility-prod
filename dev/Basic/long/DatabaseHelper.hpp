@@ -53,7 +53,7 @@ namespace sim_mob {
         const std::string DB_TABLE_PARCEL_AMENITIES = APPLY_SCHEMA( MAIN_SCHEMA, "parcel_amenities");
         const std::string DB_TABLE_AWAKENING = APPLY_SCHEMA(MAIN_SCHEMA, "awakening");
         const std::string DB_TABLE_MACRO_ECONOMICS = APPLY_SCHEMA(MAIN_SCHEMA, "macro_economics");
-        const std::string DB_TABLE_VEHICLE_OWNERSHIP_COEFFICIENTS = APPLY_SCHEMA(MAIN_SCHEMA, "vehicle_ownership_coefficients");
+        const std::string DB_TABLE_VEHICLE_OWNERSHIP_COEFFICIENTS = APPLY_SCHEMA(CALIBRATION_SCHEMA, "vehicle_ownership_coefficients");
 
         /**
          * Views
@@ -150,7 +150,8 @@ namespace sim_mob {
         const std::string DB_FIELD_STOREY = "storey";
         const std::string DB_FIELD_RENT = "rent";
         const std::string DB_FIELD_SIZE = "size";
-        const std::string DB_FIELD_CHILDREN = "children";
+        const std::string DB_FIELD_CHILDUNDER4 = "child_under4";
+        const std::string DB_FIELD_CHILDUNDER15 = "child_under15";
         const std::string DB_FIELD_WORKERS = "workers";
         const std::string DB_FIELD_AGE_OF_HEAD = "age_of_head";
         const std::string DB_FIELD_HOUSING_DURATION = "housing_duration";
@@ -212,7 +213,8 @@ namespace sim_mob {
 												+ DB_FIELD_ID + ", "
 												+ DB_FIELD_UNIT_ID + ", "
 												+ DB_FIELD_SIZE + ", "
-												+ DB_FIELD_CHILDREN + ", "
+												+ DB_FIELD_CHILDUNDER4 + ", "
+												+ DB_FIELD_CHILDUNDER15 + ", "
 												+ DB_FIELD_INCOME + ", "
 												+ DB_FIELD_HOUSING_DURATION
 												+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)";
@@ -233,11 +235,12 @@ namespace sim_mob {
         const std::string DB_UPDATE_HOUSEHOLD = "UPDATE "	+ DB_TABLE_HOUSEHOLD + " SET "
 															+ DB_FIELD_UNIT_ID + "= :v1, "
 															+ DB_FIELD_SIZE + "= :v2, "
-															+ DB_FIELD_CHILDREN + "= :v3, "
-															+ DB_FIELD_INCOME + "= :v4, "
+															+ DB_FIELD_CHILDUNDER4 + "= :v3, "
+															+ DB_FIELD_CHILDUNDER15 + "= :v4, "
+															+ DB_FIELD_INCOME + "= :v5, "
 															+ DB_FIELD_HOUSING_DURATION
-															+ "= :v5 WHERE "
-															+ DB_FIELD_ID + "=:v6";
+															+ "= :v6 WHERE "
+															+ DB_FIELD_ID + "=:v7";
 
         const std::string DB_UPDATE_BUILDING = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_UNIT = DB_EMPTY_QUERY;

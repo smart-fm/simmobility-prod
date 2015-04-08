@@ -183,6 +183,16 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 				PrintOutV(" Lifestyle1: " << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle1HHs() <<
 						  " Lifestyle2: " << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle2HHs() <<
 						  " Lifestyle3: " << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle3HHs() << std::endl );
+
+				HM_Model::HouseholdList *householdList = (dynamic_cast<HM_Model*>(models[0]))->getHouseholdList();
+
+				#ifdef VERBOSE_POSTCODE
+	            for( int n = 0; n < householdList->size(); n++)
+	            {
+	            	const Unit *localUnit = (dynamic_cast<HM_Model*>(models[0]))->getUnitById( (*householdList)[n]->getUnitId());
+	            	PrintOutV(" Household " << (*householdList)[n]->getId() << " lives in postcode " << localUnit->getSlaAddressId() << std::endl);
+	            }
+				#endif
             }
 
             PrintOutV("Day " << currTick << " The housing market has " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize() << " units and \t" << (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " bidders on the market" << std::endl );
@@ -205,7 +215,6 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             	developerModel->wakeUpDeveloperAgents(developerAgents);
             }
         }
-        PrintOut( endl );
 
         //Save our output files if we are merging them later.
         if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && config.mergeLogFiles())
@@ -238,7 +247,6 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
 int main_impl(int ARGC, char* ARGV[])
 {
-
     std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
     if(args.size() < 2)
     {

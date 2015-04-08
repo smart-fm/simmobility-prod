@@ -220,12 +220,16 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessPassengersNode(GetSingleElementByName(rootNode, "passengers"));
 	ProcessSignalsNode(GetSingleElementByName(rootNode, "signals"));
 	ProcessBusControllersNode(GetSingleElementByName(rootNode, "buscontrollers"));
-	ProcessCBD_Node(GetSingleElementByName(rootNode, "CBD"));
-	ProcessLoopDetectorCountsNode(GetSingleElementByName(rootNode, "loop-detector_counts"));
+	ProcessCBD_Node(GetSingleElementByName(rootNode, "CBD"));	
 	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
 	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update"));
 	processGeneratedRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
 	ProcessPublicTransit(GetSingleElementByName(rootNode, "public_transit"));
+	
+	//Read the settings for loop detector counts (optional node, short term)
+	ProcessLoopDetectorCountsNode(GetSingleElementByName(rootNode, "loop-detector_counts"));
+	//Read the settings for density counts (optional node, short term)
+	ProcessShortDensityMapNode(GetSingleElementByName(rootNode, "short-term_density-map"));
 
 	//Take care of pathset manager confifuration in here
 	ParsePathXmlConfig(sim_mob::ConfigManager::GetInstance().FullConfig().pathsetFile, sim_mob::ConfigManager::GetInstanceRW().PathSetConfig());
@@ -672,6 +676,18 @@ void sim_mob::ParseConfigFile::ProcessLoopDetectorCountsNode(xercesc::DOMElement
 	}
 }
 
+void sim_mob::ParseConfigFile::ProcessShortDensityMapNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		cfg.segDensityMap.updateInterval = ParseUnsignedInt(GetNamedAttributeValue(node, "updateInterval"), 1000);
+		cfg.segDensityMap.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
+		if(cfg.segDensityMap.outputEnabled)
+		{
+			cfg.segDensityMap.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/DensityMap.csv");
+		}
+	}
+}
 
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)
 {

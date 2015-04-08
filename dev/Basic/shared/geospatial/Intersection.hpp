@@ -44,7 +44,7 @@ class Loader;
  */
 class Intersection : public sim_mob::MultiNode {
 public:
-	explicit Intersection(int x=0, int y=0) : MultiNode(x, y) {}
+	explicit Intersection(int x=0, int y=0, bool hasSignal=false) : MultiNode(x, y, hasSignal) {}
 
 protected:
 	///The length of each chunk. As each RoadSegment approaches an Intersection, a "chunk" of

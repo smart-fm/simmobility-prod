@@ -456,9 +456,9 @@ bool sim_mob::PathSetManager::getBestPath(
 		pathset->subTrip = st;//at least for the travel start time, subtrip is needed
 		onPathSetRetrieval(pathset,enRoute);
 		//no need to supply permanent blacklist
-		bool r = getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute, approach);
+		bool pathChosen = getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute, approach);
 		logger <<  fromToID << " : getBestPathChoiceFromPathSet returned best path of size : " << pathset->bestPath->size() << "\n";
-		if(r)
+		if(pathChosen)
 		{
 			res = *(pathset->bestPath);
 			logger <<  fromToID << " : returning a path " << res.size() << "\n";
@@ -539,8 +539,8 @@ bool sim_mob::PathSetManager::getBestPath(
 		pathset->scenario = scenarioName;
 		pathset->subTrip = st;
 		std::set<OD> recursiveOrigins;
-		bool r = generateAllPathChoices(pathset, recursiveOrigins, blckLstSegs);
-		if (!r)
+		bool successful = generateAllPathChoices(pathset, recursiveOrigins, blckLstSegs);
+		if (!successful)
 		{
 			logger << "[PATHSET GENERATION FAILURE : " << fromToID << "]\n";
 			tempNoPath.insert(fromToID);
@@ -560,8 +560,8 @@ bool sim_mob::PathSetManager::getBestPath(
 		}
 		logger << "[PATHSET GENERATED : " << fromToID << "]\n" ;
 		onPathSetRetrieval(pathset, enRoute);
-		r = getBestPathChoiceFromPathSet(pathset, partial,emptyBlkLst,enRoute,approach);
-		if (r)
+		successful = getBestPathChoiceFromPathSet(pathset, partial,emptyBlkLst,enRoute,approach);
+		if (successful)
 		{
 			res = *(pathset->bestPath);
 			//cache

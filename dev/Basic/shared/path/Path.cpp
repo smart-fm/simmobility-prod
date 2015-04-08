@@ -492,7 +492,10 @@ void sim_mob::PT_Path::updatePathEdges()
 	int edgeId;
 	std::stringstream ss(ptPathId);
 	while (ss >> edgeId){
-		pathEdges.push_back(PT_Network::PT_NetworkEdgeMap[edgeId]);
+		pathEdges.push_back(PT_Network::getInstance().PT_NetworkEdgeMap[edgeId]);
+		if (ss.peek() == ','){
+		   ss.ignore();
+		}
 	}
 
 }

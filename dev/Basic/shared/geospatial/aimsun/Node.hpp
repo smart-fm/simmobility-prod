@@ -39,9 +39,10 @@ public:
 	double xPos;
 	double yPos;
 	bool isIntersection;
+	bool hasTrafficSignal;
 
 	Node() : Base(),
-		xPos(0), yPos(0), isIntersection(false), candidateForSegmentNode(false), generatedNode(nullptr) {}
+		xPos(0), yPos(0), isIntersection(false), candidateForSegmentNode(false), generatedNode(nullptr), hasTrafficSignal(false) {}
 
 	int getXPosAsInt() {
 		return round(xPos);

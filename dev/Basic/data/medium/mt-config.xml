@@ -4,7 +4,7 @@
 <config>
         <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
         <!-- Admissible values are "preday", "withinday" and "supply". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.--> 
-        <mid_term_run_mode value="preday"/>
+        <mid_term_run_mode value="withinday"/>
         
         <!-- config specific to supply simulator -->                    
         <supply>

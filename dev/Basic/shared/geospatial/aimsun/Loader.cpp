@@ -20,7 +20,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/settings/DisableMPI.h"
-#include "entities/PersonLoader.hpp"//
+#include "entities/PersonLoader.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/misc/BusTrip.hpp"
@@ -127,10 +127,9 @@ public:
 	// save path set data
 	static bool InsertSinglePath2DB(soci::session& sql,std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool,const std::string pathSetTableName);
 	static sim_mob::HasPath loadSinglePathFromDB(soci::session& sql,
-					std::string& pathset_id,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool
-					,const std::string functionName
-//					,std::stringstream *outDbg=nullptr
-					,const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
+					std::string& pathset_id,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,
+					const std::string functionName,
+					const std::set<const sim_mob::RoadSegment*>& excludedRS = std::set<const sim_mob::RoadSegment*>());
 #ifndef SIMMOB_DISABLE_MPI
 	void TransferBoundaryRoadSegment();
 #endif
@@ -307,8 +306,7 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 		std::string& pathset_id,
 		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,
 		const std::string functionName,
-//		std::stringstream *outDbg,
-		const std::set<const sim_mob::RoadSegment *> & excludedRS)
+		const std::set<const sim_mob::RoadSegment*>& excludedRS)
 {
 	//prepare statement
 	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare	<< "select * from " + functionName + "(:pathset_id_in)", soci::use(pathset_id));
@@ -321,7 +319,7 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 		std::vector<sim_mob::WayPoint> path = std::vector<sim_mob::WayPoint>();
 		//use id to build shortestWayPointpath
 		std::vector<std::string> segIds = std::vector<std::string>();
-		boost::split(segIds,it->id,boost::is_any_of(","));
+		boost::split(segIds, it->id, boost::is_any_of(","));
 		// no path is correct
 		for(int ii = 0 ; ii < segIds.size(); ++ii)
 		{
@@ -2196,7 +2194,7 @@ void sim_mob::aimsun::Loader::ProcessGeneralNode(sim_mob::RoadNetwork& res, Node
 	sim_mob::Node* newNode = nullptr;
 	if (!src.candidateForSegmentNode) {
 		//This is an Intersection
-		newNode = new sim_mob::Intersection(src.getXPosAsInt(), src.getYPosAsInt());
+		newNode = new sim_mob::Intersection(src.getXPosAsInt(), src.getYPosAsInt(), src.hasTrafficSignal);
 
 		//Store it in the global nodes array
 		res.nodes.push_back(dynamic_cast<MultiNode*>(newNode));
@@ -2603,13 +2601,11 @@ bool sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(soci::session& sql, int
 	return DatabaseLoader::loadLinkRealTimeTravelTime(sql, interval, linkRealtimeTravelTimePool);
 }
 
-sim_mob::HasPath sim_mob::aimsun::Loader::loadSinglePathFromDB(soci::session& sql,
-			std::string& pathset_id,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool
-			,const std::string functionName,
-//			std::stringstream *outDbg,
-			const std::set<const sim_mob::RoadSegment *> & excludedRS)
+sim_mob::HasPath sim_mob::aimsun::Loader::loadSinglePathFromDB(soci::session& sql, std::string& pathset_id,
+		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool, const std::string functionName,
+		const std::set<const sim_mob::RoadSegment *> & excludedRS)
 {
-	return DatabaseLoader::loadSinglePathFromDB(sql,pathset_id,spPool,functionName/*,outDbg*/,excludedRS);
+	return DatabaseLoader::loadSinglePathFromDB(sql, pathset_id, spPool, functionName, excludedRS);
 }
 
 bool sim_mob::aimsun::Loader::storeSinglePath(soci::session& sql,

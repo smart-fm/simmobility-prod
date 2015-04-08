@@ -577,10 +577,10 @@ void sim_mob::DriverMovement::frame_tick_output() {
  */
 void sim_mob::DriverMovement::updateDensityMap()
 {
-	const RoadSegment *currSeg = fwdDriverMovement.getCurrSegment();
-	
 	//The density map is a static map, so all threads will want to access it. Lock before accessing.
 	densityUpdateMutex.lock();
+	
+	const RoadSegment *currSeg = fwdDriverMovement.getCurrSegment();
 	
 	//Find the entry for the road segment corresponding to the current vehicles segment
 	map<const RoadSegment *, unsigned long>::iterator itDensityMap = rdSegDensityMap.find(currSeg);
@@ -603,7 +603,7 @@ void sim_mob::DriverMovement::updateDensityMap()
 /*
  * This method computes the density at every road segment and outputs it to file
  */
-void sim_mob::DriverMovement::outputDensityMap(unsigned int timeSec)
+void sim_mob::DriverMovement::outputDensityMap(unsigned int tick)
 {
 	const ConfigParams &config = ConfigManager::GetInstance().FullConfig();
 	
@@ -630,7 +630,7 @@ void sim_mob::DriverMovement::outputDensityMap(unsigned int timeSec)
 		//Calculate density. The unit is no of vehicles per lane-km
 		double density = avgVehCount / (noOfLanes * segLength);
 
-		logger << timeSec << "," << itDensityMap->first->getId() << "," << density << "\n"; 
+		logger << tick << "," << itDensityMap->first->getId() << "," << density << "\n"; 
 		
 		++itDensityMap;
 	}
@@ -1567,10 +1567,15 @@ void sim_mob::DriverMovement::updateAdjacentLanes(DriverUpdateParams& p) {
 	p.rightLane = nullptr;
 	p.leftLane2 = nullptr;
 	p.rightLane2 = nullptr;
-
-	const size_t numLanes = p.currLane->getRoadSegment()->getLanes().size();
-	if (!p.currLane || numLanes == 1) {
+	
+	if (!p.currLane) {
 		return; //Can't do anything without a lane to reference.
+	}
+	
+	const size_t numLanes = p.currLane->getRoadSegment()->getLanes().size();
+	
+	if (numLanes == 1) {
+		return; 
 	}
 
 	if (p.currLaneIndex > 0) {
@@ -2634,9 +2639,13 @@ void sim_mob::DriverMovement::updateLateralMovement(DriverUpdateParams& p)
 void sim_mob::DriverMovement::syncInfoLateralMove(DriverUpdateParams& p)
 {
 	if (p.getStatus(STATUS_LC_RIGHT)) {
+		if(p.rightLane){
 			p.currLane = p.rightLane;
+		}
 	} else if (p.getStatus(STATUS_LC_LEFT)) {
+		if(p.leftLane){
 			p.currLane = p.leftLane;
+		}
 	} else {
 		std::stringstream msg;
 		msg << "syncInfoLateralMove (" << parent->getId()

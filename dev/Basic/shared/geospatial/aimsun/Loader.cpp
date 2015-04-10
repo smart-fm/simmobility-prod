@@ -737,11 +737,10 @@ void DatabaseLoader::LoadTurnings(const std::string& storedProc)
 	//Exectue as a rowset to avoid repeatedly building the query.
 	vector<int> skippedTurningIDs;
 	turnings_.clear();
-	for (soci::rowset<Turning>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-		//Check nodes
-		bool fromMissing = sections_.count(it->TMP_FromSection)==0;
-		bool toMissing = sections_.count(it->TMP_ToSection)==0;
-		if(fromMissing || toMissing) {
+	for (soci::rowset<Turning>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
+	{
+		if((sections_.count(it->TMP_FromSection)==0) || (sections_.count(it->TMP_ToSection)==0)) //Check nodes
+		{
 			skippedTurningIDs.push_back(it->id);
 			continue;
 		}
@@ -760,9 +759,11 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 
 	//Exectue as a rowset to avoid repeatedly building the query.
 	polylines_.clear();
-	for (soci::rowset<Polyline>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+	for (soci::rowset<Polyline>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
+	{
 		//Check nodes
-		if(sections_.count(it->TMP_SectionId)==0) {
+		if(sections_.count(it->TMP_SectionId)==0)
+		{
 			//throw std::runtime_error("Invalid polyline section reference.");
 			std::cout << "Invalid polyline section reference." << it->TMP_SectionId << std::endl;
 			continue;
@@ -878,55 +879,38 @@ DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
 void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 {
 	//Bus stops are optional
-	if (storedProc.empty()) {
-		return;
-	}
+	if (storedProc.empty()) { return; }
 
 	soci::rowset<BusStop> rows = (sql_.prepare <<"select * from " + storedProc);
 	for (soci::rowset<BusStop>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
 	{
 		BusStop busstop = *iter;
-//		         Convert from meters to centimeters.
-		        busstop.xPos *= 100;
-		        busstop.yPos *= 100;
-	        busstop_.insert(std::make_pair(busstop.bus_stop_no, busstop));
-		        //std :: cout.precision(15);
-		        //std :: cout << "Bus Stop ID is: "<< busstop.bus_stop_no <<"    "<< busstop.xPos << "     "<< busstop.yPos  <<std::endl;
-
-		        //it->atSection = &sections_[it->TMP_AtSectionID];
-		        	//	busstop_.push_back(*it);
+		//Convert from meters to centimeters.
+		busstop.xPos *= 100;
+		busstop.yPos *= 100;
+		busstop_.insert(std::make_pair(busstop.bus_stop_no, busstop));
 	}
 }
 
 void DatabaseLoader::LoadBusStopSG(const std::string& storedProc)
 {
 	//Bus stops are optional
-	if (storedProc.empty()) {
-		return;
-	}
+	if (storedProc.empty()) { return; }
 
 	soci::rowset<BusStopSG> rows = (sql_.prepare <<"select * from " + storedProc);
 	for (soci::rowset<BusStopSG>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
 	{
 		BusStopSG busstop = *iter;
-//		         Convert from meters to centimeters.
-		busstop.bus_stop_no.erase(remove_if(busstop.bus_stop_no.begin(), busstop.bus_stop_no.end(), ::isspace),
-				busstop.bus_stop_no.end());
-		busstop.stop_lat.erase(remove_if(busstop.stop_lat.begin(), busstop.stop_lat.end(), ::isspace),
-				busstop.stop_lat.end());
-		busstop.stop_lon.erase(remove_if(busstop.stop_lon.begin(), busstop.stop_lon.end(), ::isspace),
-				busstop.stop_lon.end());
+		// Convert from meters to centimeters.
+		busstop.bus_stop_no.erase(remove_if(busstop.bus_stop_no.begin(), busstop.bus_stop_no.end(), ::isspace), busstop.bus_stop_no.end());
+		busstop.stop_lat.erase(remove_if(busstop.stop_lat.begin(), busstop.stop_lat.end(), ::isspace), busstop.stop_lat.end());
+		busstop.stop_lon.erase(remove_if(busstop.stop_lon.begin(), busstop.stop_lon.end(), ::isspace), busstop.stop_lon.end());
 
-		        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat) * 100;
-		        busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon) * 100;
-        busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat);
-        busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon);
-		        bustopSG_.insert(std::make_pair(busstop.bus_stop_no, busstop));
-		        //std :: cout.precision(15);
-		        //std :: cout << "Bus Stop ID is: "<< busstop.bus_stop_no <<"    "<< busstop.xPos << "     "<< busstop.yPos  <<std::endl;
-
-		        //it->atSection = &sections_[it->TMP_AtSectionID];
-		        	//	busstop_.push_back(*it);
+		busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat) * 100;
+		busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon) * 100;
+		busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat);
+		busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon);
+		bustopSG_.insert(std::make_pair(busstop.bus_stop_no, busstop));
 	}
 }
 
@@ -1579,11 +1563,9 @@ void AddSubTrip(sim_mob::Trip* parent, const sim_mob::SubTrip& subTrip) {
 
 void DatabaseLoader::DecorateAndTranslateObjects()
 {
-
 	//Step 1: Tag all Nodes with the Sections that meet there.
-	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
-		//		if(it->second.fromNode) it->second.fromNode->sectionsAtNode.push_back(&(it->second));
-		//		if(it->second.toNode) it->second.toNode->sectionsAtNode.push_back(&(it->second));
+	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++)
+	{
 		it->second.fromNode->sectionsAtNode.push_back(&(it->second));
 		it->second.toNode->sectionsAtNode.push_back(&(it->second));
 	}
@@ -1595,7 +1577,8 @@ void DatabaseLoader::DecorateAndTranslateObjects()
 	//        3) All Segments share the same Road Name
 	//        4) Optionally, there can be a single link in ONE direction, representing a one-way road.
 	vector<int> nodeMismatchIDs;
-	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
+	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++)
+	{
 		Node* n = &it->second;
 		n->candidateForSegmentNode = true; //Conditional pass
 
@@ -1603,7 +1586,8 @@ void DatabaseLoader::DecorateAndTranslateObjects()
 		pair<Node*, Node*> others(nullptr, nullptr);
 		pair<unsigned int, unsigned int> flags(0, 0);  //1="from->to", 2="to->from"
 		string expectedName;
-		for (vector<Section*>::iterator it=n->sectionsAtNode.begin(); it!=n->sectionsAtNode.end(); it++) {
+		for (vector<Section*>::iterator it=n->sectionsAtNode.begin(); it!=n->sectionsAtNode.end(); it++)
+		{
 			//Get "other" node
 			Node* otherNode = ((*it)->fromNode!=n) ? (*it)->fromNode : (*it)->toNode;
 
@@ -1752,15 +1736,13 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 	}
 	//Next, Links and RoadSegments. See comments for our approach.
 	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
-		if (!it->second.hasBeenSaved) {  //Workaround...
+		if (!it->second.hasBeenSaved) {
 			sim_mob::aimsun::Loader::ProcessSection(res, it->second);
 		}
 	}
 	//Scan the vector to see if any skipped Sections were not filled in later.
 	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
-		if (!it->second.hasBeenSaved) {
-			throw std::runtime_error("Section was skipped.");
-		}
+		if (!it->second.hasBeenSaved) {	throw std::runtime_error("Section was skipped."); }
 		if (it->second.generatedSegment->originalDB_ID.getLogItem().empty()) { //A bit hackish...
 			it->second.generatedSegment->originalDB_ID.setProps("aimsun-id", it->first);
 		}
@@ -1996,9 +1978,7 @@ void DatabaseLoader::createBusStopAgents()
 		}
 	}
 	catch (const std::out_of_range& oorx) {
-		sim_mob::Print() << "generic property 'buses_per_stop' was not specified."
-				<< " Defaulting to " << stopCapacityAsLength << " threads."
-				<< std::endl;
+		sim_mob::Print() << "Generic property 'buses_per_stop' was not specified." << " Defaulting to " << stopCapacityAsLength << " buses." << std::endl;
 	}
 
 	//Save all bus stops
@@ -2185,108 +2165,83 @@ void sim_mob::aimsun::Loader::FixupLanesAndCrossings(sim_mob::RoadNetwork& res)
 	}
 }
 
-
-
 void sim_mob::aimsun::Loader::ProcessGeneralNode(sim_mob::RoadNetwork& res, Node& src)
 {
-	src.hasBeenSaved = true;
-
-	sim_mob::Node* newNode = nullptr;
-	if (!src.candidateForSegmentNode) {
-		//This is an Intersection
-		newNode = new sim_mob::Intersection(src.getXPosAsInt(), src.getYPosAsInt(), src.hasTrafficSignal);
-
-		//Store it in the global nodes array
-		res.nodes.push_back(dynamic_cast<MultiNode*>(newNode));
-	} else {
-		//Just save for later so the pointer isn't invalid
-		newNode = new UniNode(src.getXPosAsInt(), src.getYPosAsInt());
-		res.segmentnodes.insert(dynamic_cast<UniNode*>(newNode));
+	sim_mob::Node* node = nullptr;
+	if (!src.candidateForSegmentNode)
+	{	//This is an Intersection
+		sim_mob::MultiNode* multiNode = new sim_mob::Intersection(src.getXPosAsInt(), src.getYPosAsInt(), src.hasTrafficSignal);
+		res.nodes.push_back(multiNode); //store it in the global nodes array
+		node = multiNode;
 	}
-
-	//vahid
-	newNode->setID(src.id);
-	//For future reference
-	src.generatedNode = newNode;
+	else
+	{
+		sim_mob::UniNode* uniNode = new UniNode(src.getXPosAsInt(), src.getYPosAsInt());
+		res.segmentnodes.insert(uniNode); //just save for later so the pointer is valid
+		node = uniNode;
+	}
+	node->setID(src.id); //for future reference
+	src.generatedNode = node;
+	src.hasBeenSaved = true;
 }
-
 
 void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& src)
 {
 	//Find 2 sections "from" and 2 sections "to".
 	//(Bi-directional segments will complicate this eventually)
 	//Most of the checks done here are already done earlier in the Loading process, but it doesn't hurt to check again.
-	pair<Section*, Section*> fromSecs(nullptr, nullptr);
-	pair<Section*, Section*> toSecs(nullptr, nullptr);
-	for (vector<Section*>::iterator it=src.sectionsAtNode.begin(); it!=src.sectionsAtNode.end(); it++) {
-		if ((*it)->TMP_ToNodeID==src.id) {
-			if (!fromSecs.first) {
-				fromSecs.first = *it;
-			} else if (!fromSecs.second) {
-				fromSecs.second = *it;
-			} else {
-				throw std::runtime_error("UniNode contains unexpected additional Sections leading TO.");
-			}
-		} else if ((*it)->TMP_FromNodeID==src.id) {
-			if (!toSecs.first) {
-				toSecs.first = *it;
-			} else if (!toSecs.second) {
-				toSecs.second = *it;
-			} else {
-				throw std::runtime_error("UniNode contains unexpected additional Sections leading FROM.");
-			}
-		} else {
+	pair<Section*, Section*> fromSecs(nullptr, nullptr); //upstream sections
+	pair<Section*, Section*> toSecs(nullptr, nullptr); //downstream sections
+	for (vector<Section*>::iterator it=src.sectionsAtNode.begin(); it!=src.sectionsAtNode.end(); it++)
+	{
+		if ((*it)->TMP_ToNodeID==src.id)
+		{
+			if (!fromSecs.first) { fromSecs.first = *it; }
+			else if (!fromSecs.second) { fromSecs.second = *it;}
+			else { throw std::runtime_error("UniNode contains unexpected additional Sections leading TO.");	}
+		}
+		else if ((*it)->TMP_FromNodeID==src.id)
+		{
+			if (!toSecs.first) { toSecs.first = *it; }
+			else if (!toSecs.second) { toSecs.second = *it; }
+			else { throw std::runtime_error("UniNode contains unexpected additional Sections leading FROM."); }
+		}
+		else
+		{
 			throw std::runtime_error("UniNode contains a Section which actually does not lead to/from that Node.");
 		}
 	}
 
 	//Ensure at least one path was found, and a non-partial second path.
-	if (!(fromSecs.first && toSecs.first)) {
-		throw std::runtime_error("UniNode contains no primary path.");
-	}
-	if ((fromSecs.second && !toSecs.second) || (!fromSecs.second && toSecs.second)) {
-		throw std::runtime_error("UniNode contains partial secondary path.");
-	}
+	if (!(fromSecs.first && toSecs.first)) { throw std::runtime_error("UniNode contains no primary path."); }
+	if ((fromSecs.second && !toSecs.second) || (!fromSecs.second && toSecs.second)) { throw std::runtime_error("UniNode contains partial secondary path."); }
 
 	//This is a simple Road Segment joint
-	UniNode* newNode = dynamic_cast<UniNode*>(src.generatedNode);
+	UniNode* uniNode = dynamic_cast<UniNode*>(src.generatedNode);
 	//newNode->location = new Point2D(src.getXPosAsInt(), src.getYPosAsInt());
 
 	//Set locations (ensure unset locations are null)
 	//Also ensure that we don't point backwards from the same segment.
 	bool parallel = fromSecs.first->fromNode->id == toSecs.first->toNode->id;
-	newNode->firstPair.first = fromSecs.first->generatedSegment;
-	newNode->firstPair.second = parallel ? toSecs.second->generatedSegment : toSecs.first->generatedSegment;
-	if (fromSecs.second && toSecs.second) {
-		newNode->secondPair.first = fromSecs.second->generatedSegment;
-		newNode->secondPair.second = parallel ? toSecs.first->generatedSegment : toSecs.second->generatedSegment;
-	} else {
-		newNode->secondPair = pair<RoadSegment*, RoadSegment*>(nullptr, nullptr);
+	uniNode->firstPair.first = fromSecs.first->generatedSegment;
+	uniNode->firstPair.second = parallel ? toSecs.second->generatedSegment : toSecs.first->generatedSegment;
+	if (fromSecs.second && toSecs.second)
+	{
+		uniNode->secondPair.first = fromSecs.second->generatedSegment;
+		uniNode->secondPair.second = parallel ? toSecs.first->generatedSegment : toSecs.second->generatedSegment;
 	}
-
-	//Save it for later reference
-	//res.segmentnodes.insert(newNode);
+	else { uniNode->secondPair = pair<RoadSegment*, RoadSegment*>(nullptr, nullptr); }
 
 	//TODO: Actual connector alignment (requires map checking)
-	sim_mob::UniNode::buildConnectorsFromAlignedLanes(newNode, std::make_pair(0, 0), std::make_pair(0, 0));
+	sim_mob::UniNode::buildConnectorsFromAlignedLanes(uniNode, std::make_pair(0, 0), std::make_pair(0, 0));
 	//This UniNode can later be accessed by the RoadSegment itself.
 }
-
-sim_mob::RoadSegment * createNewRoadSegment(sim_mob::Link* ln, size_t numExistingSegsInLink, int id)
-{
-//	return new sim_mob::RoadSegment(ln, ln->getLinkId()*100 +numExistingSegsInLink);
-	return new sim_mob::RoadSegment(ln, id);
-}
-
 
 void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section& src)
 {
 	//Skip Sections which start at a non-intersection. These will be filled in later.
-	if (src.fromNode->candidateForSegmentNode) {
-		return;
-	}
+	if (src.fromNode->candidateForSegmentNode) { return; }
 	set<RoadSegment*> linkSegments;
-	//std::ostringstream convertLinkId,convertSegId;
 
 	//Process this section, and continue processing Sections along the direction of
 	// travel until one of these ends on an intersection.
@@ -2295,44 +2250,33 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	//      group RoadSegments into Links, but at least this works for our test network.
 	Section* currSec = &src;  //Which section are we currently processing?
 	sim_mob::Link* ln = new sim_mob::Link(1000001 + res.links.size());//max ten million links
-	src.generatedSegment = createNewRoadSegment(ln,linkSegments.size(),currSec->id);
 	ln->roadName = currSec->roadName;
 	ln->start = currSec->fromNode->generatedNode;
 
 	//Make sure the link's start node is represented at the Node level.
 	//TODO: Try to avoid dynamic casting if possible.
-	for (;;) {
+	for (;;)
+	{
 		//Update
 		ln->end = currSec->toNode->generatedNode;
 
 		//Check: not processing an existing segment
-		if (currSec->hasBeenSaved) {
-			throw std::runtime_error("Section processed twice.");
-		}
-
-		//Mark saved
-		currSec->hasBeenSaved = true;
+		if (currSec->hasBeenSaved) { throw std::runtime_error("Section processed twice."); }
+		currSec->hasBeenSaved = true; //Mark saved
 
 		//Check name
-		if (ln->roadName != currSec->roadName) {
-			throw std::runtime_error("Road names don't match up on RoadSegments in the same Link.");
-		}
+		if (ln->roadName != currSec->roadName) { throw std::runtime_error("Road names don't match up on RoadSegments in the same Link."); }
 
 		//Prepare a new segment IF required, and save it for later reference (or load from past ref.)
-		if (!currSec->generatedSegment) {
-			//convertSegId.clear();
-			//convertSegId.str(std::string());
-			currSec->generatedSegment = createNewRoadSegment(ln,linkSegments.size(),currSec->id);
-		}
+		if (!currSec->generatedSegment) { currSec->generatedSegment = new sim_mob::RoadSegment(ln, currSec->id); }
 
 		//Save this segment if either end points are multinodes
 		//TODO: This should be done at a global level, once the network has been loaded (similar to how XML does it).
-		for (size_t tempID=0; tempID<2; tempID++) {
-			sim_mob::Node* nd = tempID==0?currSec->fromNode->generatedNode:currSec->toNode->generatedNode;
+		for (size_t tempID=0; tempID<2; tempID++)
+		{
+			sim_mob::Node* nd = tempID==0? currSec->fromNode->generatedNode : currSec->toNode->generatedNode;
 			sim_mob::MultiNode* multNode = dynamic_cast<sim_mob::MultiNode*>(nd);
-			if (multNode) {
-				multNode->roadSegmentsAt.insert(currSec->generatedSegment);
-			}
+			if (multNode) { multNode->roadSegmentsAt.insert(currSec->generatedSegment); }
 		}
 
 		//Retrieve the generated segment
@@ -2364,7 +2308,6 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		rs->lanesLeftOfDivider = 0;
 		linkSegments.insert(rs);
 
-
 		//Break?
 		if (!currSec->toNode->candidateForSegmentNode) {
 			//Save it.
@@ -2372,16 +2315,13 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			break;
 		}
 
-
 		//Increment.
 		Section* nextSection = nullptr;
 		for (vector<Section*>::iterator it2=currSec->toNode->sectionsAtNode.begin(); it2!=currSec->toNode->sectionsAtNode.end(); it2++) {
 			//Our eariler check guarantees that there will be only ONE node which leads "from" the given segment "to" a node which is not the
 			//  same node.
 			if ((*it2)->fromNode==currSec->toNode && (*it2)->toNode!=currSec->fromNode) {
-				if (nextSection) {
-					throw std::runtime_error("UniNode has competing outgoing Sections.");
-				}
+				if (nextSection) { throw std::runtime_error("UniNode has competing outgoing Sections."); }
 				nextSection = *it2;
 			}
 		}
@@ -2396,7 +2336,6 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 
 	//Now add the link
 	res.links.push_back(ln);
-
 }
 
 
@@ -2454,9 +2393,7 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 
 	//Skip Turnings which meet at UniNodes; these will be handled elsewhere.
 	sim_mob::Node* meetingNode = src.fromSection->toNode->generatedNode;
-	if (dynamic_cast<UniNode*>(meetingNode)) {
-		return;
-	}
+	if (dynamic_cast<UniNode*>(meetingNode)) { return; }
 
 	//Essentially, just expand each turning into a set of LaneConnectors.
 	//TODO: This becomes slightly more complex at RoadSegmentNodes, since these
@@ -2474,8 +2411,8 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 
 			//just a check to avoid connecting pedestrian and non pedestrian lanes
 			int i = 0;
-			if(lc->laneFrom->is_pedestrian_lane()) i++;
-			if(lc->laneTo->is_pedestrian_lane()) i++;
+			if(lc->laneFrom->is_pedestrian_lane()) { i++; }
+			if(lc->laneTo->is_pedestrian_lane()) { i++; }
 
 			if(i == 1) // it should be 0 or 2. i = 1 means only one of them is pedestrian lane
 			{

@@ -1668,8 +1668,8 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::findShortestDrivingPath(
 				out <<	rs->originalDB_ID.getLogItem() << "]" << ",";
 			}
 		}
-		logger<< "No shortest driving path for nodes[" << fromNode->originalDB_ID.getLogItem() << "] and [" <<
-		toNode->originalDB_ID.getLogItem() << "]" << out.str() << "\n";
+		logger<< "No shortest driving path for nodes[" << fromNode->originalDB_ID.getLogItem() << "] and ["
+				<< toNode->originalDB_ID.getLogItem() << "]" << out.str() << "\n";
 		return s;
 	}
 	// make sp id

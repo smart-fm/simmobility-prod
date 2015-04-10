@@ -2632,10 +2632,10 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	//Step Four: Save
 	loader.SaveSimMobilityNetwork(rn, tcs);
 
+	{
 	//Temporary Workaround: Links need to know about any "reverse" direction Links.
 	//The StreetDirectory can provide this, but that hasn't been initialized yet.
 	//So, we set a temporary flag in the Link class itself.
-	{
 	map<std::pair<sim_mob::Node*, sim_mob::Node*>, sim_mob::Link*> startEndLinkMap;
 	//Scan first.
 	for (std::vector<sim_mob::Link*>::iterator linkIt=rn.getLinks().begin(); linkIt!=rn.getLinks().end(); linkIt++) {
@@ -2648,20 +2648,26 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	}
 	}
 
-	//Temporary workaround; Cut lanes short/extend them as reuquired.
-	for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
-		TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
-		TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut, false);
+	if(!config.RunningMidSupply()) //TODO: add config for flag indicating short-term
+	{		//Temporary workaround; Cut lanes short/extend them as required.
+		for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
+			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
+			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut, false);
+		}
+
+		// disabled by Max
+		//for(vector<sim_mob::Link*>::iterator it = rn.links.begin(); it!= rn.links.end();it++)
+		//{	(*it)->extendPolylinesBetweenRoadSegments(); }
 	}
-	for(vector<sim_mob::Link*>::iterator it = rn.links.begin(); it!= rn.links.end();it++)
-		(*it)->extendPolylinesBetweenRoadSegments();
+
+
 
 	//TODO: Possibly re-enable later.
 	//if (prof) { prof->logGenericEnd("PostProc", "main-prof"); }
 
 	for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
-		it->second.generatedSegment->laneZeroLength = it->second.generatedSegment->computeLaneZeroLength();
-		it->second.generatedSegment->defaultTravelTime = it->second.generatedSegment->laneZeroLength/sim_mob::kmPerHourToCentimeterPerSecond(it->second.generatedSegment->maxSpeed);
+		it->second.generatedSegment->computePolylineLength();
+		it->second.generatedSegment->defaultTravelTime = it->second.generatedSegment->polylineLength/sim_mob::kmPerHourToCentimeterPerSecond(it->second.generatedSegment->maxSpeed);
 	}
 
 	//add by xuyan, load in boundary segments
@@ -2673,12 +2679,12 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	}
 #endif
 
-	std::cout <<"AIMSUN Network successfully imported.\n";
-
 	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), config.getPT_bus_dispatch_freq());
 	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), config.getPT_bus_routes(), config.getRoadSegments_Map());
 	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), config.getPT_bus_stops(), config.getBusStops_Map());
 	loader.LoadOD_Trips(getStoredProcedure(storedProcs, "od_trips", false), config.getODsTripsMap());
+
+	std::cout <<"AIMSUN Network successfully imported.\n";
 
 }
 
@@ -2690,7 +2696,7 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdS
 	const std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>& obstacles = rdSeg->obstacles;
 	double lengthCoveredInSeg = 0;
 	double segStatLength;
-	double rdSegmentLength = rdSeg->getLaneZeroLength();
+	double rdSegmentLength = rdSeg->getPolylineLength();
 	// NOTE: std::map implements strict weak ordering which defaults to less<key_type>
 	// This is precisely the order in which we want to iterate the stops to create SegmentStats
 	for(std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>::const_iterator obsIt = obstacles.begin();
@@ -2908,7 +2914,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 					for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin(); segIt != upSegs.end(); segIt++)
 					{
 						sim_mob::RoadSegment* rdSeg = *segIt;
-						double rdSegmentLength = rdSeg->getLaneZeroLength();
+						double rdSegmentLength = rdSeg->getPolylineLength();
 						if(rdSeg->parentConflux == nullptr)
 						{
 							// assign only if not already assigned

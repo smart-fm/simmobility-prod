@@ -439,7 +439,7 @@ void DriverMovement::onSegmentCompleted(const sim_mob::RoadSegment* completedRS,
 	traversed.push_back(completedRS);
 
 	//2. update travel distance
-	travelMetric.distance += completedRS->getLaneZeroLength();
+	travelMetric.distance += completedRS->getPolylineLength();
 
 	//3. CBD
 	processCBD_TravelMetrics(completedRS, nextRS);
@@ -1041,7 +1041,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const sim_mob::RoadSegmen
 	//	update travel distance
 	if(cbd.isInRestrictedSegmentZone(completedRS))
 	{
-		travelMetric.cbdDistance += completedRS->getLaneZeroLength();
+		travelMetric.cbdDistance += completedRS->getPolylineLength();
 	}
 
 	//process either enter or exit

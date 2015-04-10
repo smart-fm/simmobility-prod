@@ -46,6 +46,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("car_own", &PersonParams::getCarOwn)
 				.addProperty("car_own_normal", &PersonParams::getCarOwnNormal)
 				.addProperty("car_own_offpeak", &PersonParams::getCarOwnOffpeak)
+				.addProperty("has_driving_licence", &PersonParams::hasDrivingLicence)
 				.addProperty("motor_own", &PersonParams::getMotorOwn)
 				.addProperty("fixed_work_hour", &PersonParams::getHasFixedWorkTiming) //not used in lua
 				.addProperty("homeLocation", &PersonParams::getHomeLocation) //not used in lua

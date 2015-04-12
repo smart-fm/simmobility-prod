@@ -81,25 +81,35 @@ typedef sim_mob::TT::TravelTimeStore AverageTravelTime;
 class OD
 {
 private:
-	std::string key;
+	std::string odIdStr;
+
 public:
+	sim_mob::WayPoint origin;
+	sim_mob::WayPoint destination;
+
 	OD(){}
+
 	OD(const sim_mob::WayPoint &origin, const sim_mob::WayPoint &destination):
 		origin(origin), destination(destination)
 	{
 		std::stringstream str("");
 		str << origin.node_->getID() << "," << destination.node_->getID();
-		key = str.str();
+		odIdStr = str.str();
 	}
+
 	OD(const sim_mob::Node * origin, const sim_mob::Node * destination):
 		origin(sim_mob::WayPoint(origin)), destination(sim_mob::WayPoint(destination))
 	{
 		std::stringstream str("");
 		str << origin->getID() << "," << destination->getID();
-		key = str.str();
+		odIdStr = str.str();
 	}
-	sim_mob::WayPoint origin;
-	sim_mob::WayPoint destination;
+
+	const std::string& getOD_Str() const
+	{
+		return odIdStr;
+	}
+
 	bool operator==(const OD & rhs) const
 	{
 		return (origin == rhs.origin && destination == rhs.destination);
@@ -116,9 +126,10 @@ public:
 		destination = rhs.destination;
 		return *this;
 	}
+
 	bool operator<(const OD & rhs) const
 	{
 		// just an almost dummy operator< to preserve uniquness
-		return key < rhs.key;
+		return odIdStr < rhs.odIdStr;
 	}
 };

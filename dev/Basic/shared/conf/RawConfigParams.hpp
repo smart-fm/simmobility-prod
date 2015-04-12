@@ -197,6 +197,7 @@ struct PathSetConf
 	std::string mode;//pathset operation mode "normal" , "generation"(for bulk pathset generation)
 	int threadPoolSize;
 	std::string bulkFile; //in case of using pathset manager in "generation" mode, the results will be outputted to this file
+	std::string odSourceTableName; //data source for getting ODs for bulk pathset generation
 	sim_mob::DatabaseDetails networkDatabase; //If loading from the database, how do we connect?// todo: unused for now
 	std::string pathSetTableName;
 	std::string RTTT_Conf;//realtime travel time table name

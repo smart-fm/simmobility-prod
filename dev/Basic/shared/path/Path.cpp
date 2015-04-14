@@ -18,7 +18,7 @@ sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
 
 const double HIGHWAY_SPEED = 60.0; //kmph
 
-double pathCostArray[] { 0.77,0.87,0.98,1.08,1.16,1.23,1.29,1.33,1.37,1.41,1.45,1.49,1.53,
+double pathCostArray[] {0.77,0.87,0.98,1.08,1.16,1.23,1.29,1.33,1.37,1.41,1.45,1.49,1.53,
 								   1.57,1.61,1.65,1.69,1.72,1.75,1.78,1.81,1.83,1.85,1.87,1.88,1.89,
 								   1.90,1.91,1.92,1.93,1.94,1.95,1.96,1.97,1.98,1.99,2.00,2.01,2.02
 								 };
@@ -480,10 +480,10 @@ sim_mob::PT_Path::PT_Path (const std::vector<PT_NetworkEdge> &path) : pathEdges(
 		totalWalkingTimeSecs(0.0),
 		totalNumberOfTransfers(-1),minDistance(false),validPath(false),shortestPath(false),
 		minInVehicleTravelTime(false),minNumberOfTransfers(false),minWalkingDistance(false),
-		minTravelOnMRT(false),minTravelOnBus(false),pathSize(0.0),kshortestpathcost(0.0)
+		minTravelOnMRT(false),minTravelOnBus(false),pathSize(0.0)
 
 {
-	double totalBusMRTTravelDistance;
+	double totalBusMRTTravelDistance=0.0;
 	ptPathId=makePT_PathString(pathEdges);
 	ptPathSetId=makePT_PathSetString(pathEdges);
 	for(std::vector<PT_NetworkEdge>::const_iterator itEdge=pathEdges.begin();itEdge!=pathEdges.end();itEdge++)
@@ -494,8 +494,7 @@ sim_mob::PT_Path::PT_Path (const std::vector<PT_NetworkEdge> &path) : pathEdges(
 		pathTravelTime+=itEdge->getLinkTravelTimeSecs();
 		totalNumberOfTransfers++;
 		totalDistanceKms+=itEdge->getDistKms();
-		kshortestpathcost+=(itEdge->getDayTransitTimeSecs()+itEdge->getTransferPenaltySecs()+itEdge->getWaitTimeSecs()+itEdge->getWalkTimeSecs());
-		if(itEdge->getType()=="Bus" && itEdge->getType()=="RTS")
+		if(itEdge->getType()=="Bus" || itEdge->getType()=="RTS")
 		{
 			totalBusMRTTravelDistance+=itEdge->getDistKms();
 		}
@@ -532,7 +531,7 @@ double sim_mob::PT_Path::getTotalCostByDistance(double totalDistance)
 	}
 	else if(totalDistance>40.2)
 	{
-		return pathCostArray[39];
+		return pathCostArray[38];
 	}
 	else
 	{

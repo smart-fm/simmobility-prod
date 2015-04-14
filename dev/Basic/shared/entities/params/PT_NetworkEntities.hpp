@@ -249,6 +249,30 @@ private:
 							// 2 --- MRT/LRT Stations
 	std::string stopDesc;   // Description of stops . Usually street where the stop is located
 };
+
+class MRT_Stop{
+public:
+	MRT_Stop();
+	MRT_Stop(std::string stopId,int roadSegment);
+	~MRT_Stop();
+	std::string getmrtStopId() const
+	{
+		return this->mrtStopId;
+	}
+
+	void addRoadSegment(int segmentId)
+	{
+		this->roadSegments.push_back(segmentId);
+	}
+	std::vector<int> getRoadSegments() const
+	{
+		return this->roadSegments;
+	}
+private:
+	std::string mrtStopId;
+	std::vector<int> roadSegments;
+};
+
 class PT_Network{
 public:
 	//PT_Network();
@@ -256,6 +280,7 @@ public:
 
 	std::map<int,PT_NetworkEdge> PT_NetworkEdgeMap;
 	std::map<std::string,PT_NetworkVertex> PublicTransitVertexMap;
+	std::map<std::string,MRT_Stop> MRTStopsMap;
 
 	void init();
 	PT_NetworkVertex getVertexFromStopId(std::string stopId);

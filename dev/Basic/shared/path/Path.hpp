@@ -307,11 +307,6 @@ public:
 
 	//Path representation
 
-//Test code
-public:
-	double kshortestpathcost;
-// End of Test code
-
 private:
 	std::vector<PT_NetworkEdge> pathEdges;
 	std::string ptPathId;

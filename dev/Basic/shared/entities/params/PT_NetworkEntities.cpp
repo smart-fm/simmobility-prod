@@ -53,7 +53,36 @@ void PT_Network::init()
 	{
 		PT_NetworkEdgeMap[ptEdgeIt->getEdgeId()]=*ptEdgeIt;
 	}
+
+	//Reading the MRT data
+	soci::session& sql_ = conn.getSession<soci::session>();
+	std::string storedProc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["mrt_road_segments"];
+	std::stringstream query;
+	query << "select * from " << storedProc;
+	soci::rowset<soci::row> rs = (sql_.prepare << query.str());
+	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it)
+	{
+	   soci::row const& row = *it;
+	   std::string mrtstopid = row.get<std::string>(0);
+	   int roadsegmentId = row.get<int>(1);
+	   if(MRTStopsMap.find(mrtstopid) == MRTStopsMap.end())
+	   {
+		   MRT_Stop mrtStopObj(mrtstopid,roadsegmentId);
+		   MRTStopsMap[mrtstopid]=mrtStopObj;
+	   }
+	   else{
+		   MRTStopsMap[mrtstopid].addRoadSegment(roadsegmentId);
+	   }
+	}
 	cout<<"Public Transport Network Loaded ";
+}
+MRT_Stop::MRT_Stop(){}
+
+MRT_Stop::~MRT_Stop(){}
+
+MRT_Stop::MRT_Stop(std::string stopId,int roadSegment){
+	this->mrtStopId=stopId;
+	this->roadSegments.push_back(roadSegment);
 }
 
 PT_NetworkEdge::PT_NetworkEdge():startStop(""),endStop(""),rType(""),road_index(""),roadEdgeId(""),

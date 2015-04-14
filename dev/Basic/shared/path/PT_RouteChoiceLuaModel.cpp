@@ -152,7 +152,7 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::MakePT_RouteChoice(
 			trip.originNode = original;
 			trip.destNode = dest;
 			odTrips.push_back(trip);
-			Print()<<itEdge->getEdgeId()<<","<<trip.startStop<<","<<trip.endStop<<","<<trip.serviceLines<<std::endl;
+			Print()<<itEdge->getEdgeId()<<","<<trip.startStop<<","<<trip.endStop<<","<<trip.tType<<","<<trip.serviceLines<<std::endl;
 		}
 	}
 

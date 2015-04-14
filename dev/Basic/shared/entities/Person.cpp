@@ -26,6 +26,7 @@
 #include "geospatial/aimsun/Loader.hpp"
 #include "message/MessageBus.hpp"
 #include "entities/amodController/AMODController.hpp"
+#include "path/PT_RouteChoiceLuaModel.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -587,6 +588,7 @@ void sim_mob::Person::insertWaitingActivityToTrip() {
 						subTrip.toLocation = itSubTrip[1]->toLocation;
 						subTrip.toLocationType = itSubTrip[1]->toLocationType;
 						subTrip.mode = "WaitingBusActivity";
+						subTrip.ptLineId = itSubTrip[1]->ptLineId;
 						itSubTrip[1] = subTrips.insert(itSubTrip[1], subTrip);
 					}
 				}
@@ -599,11 +601,11 @@ void sim_mob::Person::insertWaitingActivityToTrip() {
 }
 
 void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips,
-		std::vector<const sim_mob::OD_Trip*>& matchedTrips) {
+		const std::vector<sim_mob::OD_Trip>& matchedTrips) {
 
 	if (matchedTrips.size() > 0)
 	{
-		std::vector<const sim_mob::OD_Trip*>::iterator it = matchedTrips.begin();
+		std::vector<sim_mob::OD_Trip>::const_iterator it = matchedTrips.begin();
 		while (it != matchedTrips.end())
 		{
 			sim_mob::SubTrip subTrip;
@@ -611,8 +613,8 @@ void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			WayPoint dest=curSubTrip->toLocation;
 			bool isValid = true;
 			std::string sSrc, sEnd;
-			sSrc = (*it)->startStop;
-			sEnd = (*it)->endStop;
+			sSrc = (*it).startStop;
+			sEnd = (*it).endStop;
 			boost::trim_right(sSrc);
 			boost::trim_right(sEnd);
 			if (it == matchedTrips.begin()) {
@@ -666,14 +668,14 @@ void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 					subTrip.toLocationType = TripChainItem::LT_NODE;
 				}
 				subTrip.tripID = "";
-				if((*it)->type.find("Walk")!=string::npos){
+				if((*it).tType.find("Walk")!=string::npos){
 					subTrip.mode = "Walk";
 				}
 				else {
 					subTrip.mode = "BusTravel";
 				}
 				subTrip.isPrimaryMode = true;
-				subTrip.ptLineId = "";
+				subTrip.ptLineId = it->serviceLines;
 				newSubTrips.push_back(subTrip);
 			}
 			else {
@@ -703,30 +705,20 @@ void sim_mob::Person::convertODsToTrips() {
 						&& itSubTrip->toLocation.type_ == WayPoint::NODE
 						&& itSubTrip->mode == "BusTravel")
 				{
-					std::vector<sim_mob::OD_Trip>& OD_Trips = config.getODsTripsMap();
-					Print()<<"original Id:"<<itSubTrip->fromLocation.node_->getID()
-							<<" destination Id:"<<itSubTrip->toLocation.node_->getID() <<std::endl;
+					std::vector<sim_mob::OD_Trip> odTrips;
+					std::string originId = boost::lexical_cast<std::string>(
+							itSubTrip->fromLocation.node_->getID());
+					std::string destId = boost::lexical_cast<std::string>(
+							itSubTrip->toLocation.node_->getID());
+					bool ret = sim_mob::PT_RouteChoiceLuaModel::Instance()->GetBestPT_Path(originId, destId, odTrips);
 
-					std::vector<const OD_Trip*> result;
-					for(std::vector<sim_mob::OD_Trip>::iterator i=OD_Trips.begin(); i!=OD_Trips.end(); ++i)
-					{
-						std::string originId=boost::lexical_cast<std::string>(itSubTrip->fromLocation.node_->getID());
-						std::string destId=boost::lexical_cast<std::string>(itSubTrip->toLocation.node_->getID());
-						if((*i).originNode==originId && (*i).destNode==destId)
-						{
-							result.push_back(new OD_Trip(*i));
-						}
-					}
-					Print()<<"result.size:"<<result.size()<<std::endl;
-					if(!result.empty()) { makeODsToTrips(&(*itSubTrip), newSubTrips, result); }
-					else
-					{
+					if (ret) {
+						makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips);
+					} else {
 						brokenBusTravel = true;
 						brokenBusTravelItem = tripChainItem;
 						break;
 					}
-					for(std::vector<const OD_Trip*>::iterator i = result.begin(); i!=result.end(); ++i) { delete *i; }
-					result.clear();
 				}
 				++itSubTrip;
 			}

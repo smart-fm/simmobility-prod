@@ -58,7 +58,8 @@ void sim_mob::medium::WaitBusActivity::makeBoardingDecision(BusDriver* driver) {
 
 	const std::string busLineID = driver->getBusLineID();
 	sim_mob::SubTrip& subTrip = *(getParent()->currSubTrip);
-	if(busLineID==subTrip.getBusLineID()){
+	const std::string tripLineID = subTrip.getBusLineID();
+	if(tripLineID.find(busLineID)!=std::string::npos){
 		setBoardBus(true);
 		return;
 	}

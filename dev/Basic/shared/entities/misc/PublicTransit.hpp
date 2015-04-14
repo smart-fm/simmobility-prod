@@ -48,7 +48,9 @@ class OD_Trip {
 public:
 	  std::string startStop;
 	  std::string endStop;
-	  std::string type;
+	  std::string sType;
+	  std::string eType;
+	  std::string tType;
 	  std::string serviceLines;
 	  int OD_Id;
 	  int legId;
@@ -69,8 +71,6 @@ public:
 	}
 
 	bool operator()(const OD_Trip& item){
-		Print()<<"search original Id:"<<item.originNode
-				<<" destination Id:"<<item.destNode <<std::endl;
 		if(item.originNode==originId && item.destNode==destId){
 			result.push_back(&item);
 		}

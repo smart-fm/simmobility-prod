@@ -108,7 +108,7 @@ public:
     void insertWaitingActivityToTrip();
     void convertODsToTrips();
     void makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips,
-    		std::vector<const sim_mob::OD_Trip*>& matchedTrips);
+    		const std::vector<sim_mob::OD_Trip>& matchedTrips);
 
     // update nextTripChainItem, used only for NextRole
 	bool updateNextTripChainItem();

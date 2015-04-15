@@ -135,8 +135,8 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::MakePT_RouteChoice(
 		for (std::vector<PT_NetworkEdge>::const_iterator itEdge =
 				pathEdges.begin(); itEdge != pathEdges.end(); itEdge++) {
 			sim_mob::OD_Trip trip;
-			trip.sType = "Stop";
-			trip.eType = "Stop";
+			trip.sType = "BusStop";
+			trip.eType = "BusStop";
 			trip.startStop = itEdge->getStartStop();
 			if(trip.startStop.find("N_")!=std::string::npos){
 				trip.startStop = trip.startStop.substr(2);

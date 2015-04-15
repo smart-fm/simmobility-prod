@@ -151,7 +151,7 @@ void sim_mob::Person::initTripChain(){
 sim_mob::Person::~Person() {
 	safe_delete_item(prevRole);
 	safe_delete_item(currRole);
-	safe_delete_item(nextRole);
+	//safe_delete_item(nextRole);
 	//last chance to collect travel time metrics(if any)
 	//aggregateSubTripMetrics();
 	//serialize them

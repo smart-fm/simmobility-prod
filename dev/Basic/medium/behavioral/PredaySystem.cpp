@@ -1617,10 +1617,11 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 	long hhFactor = (long)std::ceil(personParams.getHouseholdFactor());
 	for(long k=1; k<=hhFactor; k++)
 	{
+		int homeZone = personParams.getHomeLocation();
 		int homeNode = 0;
-		if(zoneNodeMap.find(personParams.getHomeLocation()) != zoneNodeMap.end())
+		if(zoneNodeMap.find(homeZone) != zoneNodeMap.end())
 		{
-			homeNode =  getRandomNodeInZone(zoneNodeMap.at(personParams.getHomeLocation()));
+			homeNode =  getRandomNodeInZone(zoneNodeMap.at(homeZone));
 		}
 		if(homeNode == 0) { return; } //return if homeless
 
@@ -1642,14 +1643,16 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 			const StopList& stops = tour.stops;
 
 			int prevStopNode = homeNode;
+			int prevStopZone = homeZone;
 			double prevStopEndTime = homeActivityEndTime;
-			int currStopNode;
+			int currStopZone, currStopNode;
 			double currStopEndTime;
 			for(StopList::const_iterator stopIt=stops.begin(); stopIt!=stops.end(); stopIt++)
 			{
 				const Stop* stop = (*stopIt);
+				currStopZone = stop->getStopLocation();
 				currStopNode = 0;
-				ZoneNodeMap::const_iterator zoneNodeMapIt = zoneNodeMap.find(stop->getStopLocation());
+				ZoneNodeMap::const_iterator zoneNodeMapIt = zoneNodeMap.find(currStopZone);
 				if(zoneNodeMapIt != zoneNodeMap.end())
 				{
 					currStopNode = getRandomNodeInZone(zoneNodeMapIt->second);
@@ -1664,12 +1667,15 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 						<< stopNum << ","
 						<< stop->getStopTypeStr() << ","
 						<< currStopNode << ","
+						<< currStopZone << ","
 						<< modeMap.at(stop->getStopMode()) << ","
 						<< (stop->isPrimaryActivity()? "True":"False")  << ","
 						<< getTimeWindowFromIndex(stop->getArrivalTime()) << ","
 						<< currStopEndTime << ","
 						<< prevStopNode << ","
+						<< prevStopZone << ","
 						<< prevStopEndTime <<"\n";
+				prevStopZone = currStopZone;
 				prevStopNode = currStopNode;
 				prevStopEndTime = currStopEndTime;
 			}
@@ -1688,11 +1694,13 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 						<< ++stopNum << ","
 						<< "Home" << ","
 						<< homeNode << ","
+						<< homeZone << ","
 						<< modeMap.at(tour.getTourMode()) << ","
 						<< "False"  << ","
 						<< getTimeWindowFromIndex(tour.getEndTime()) << ","
 						<< homeActivityEndTime << ","
 						<< prevStopNode << ","
+						<< prevStopZone << ","
 						<< prevStopEndTime << "\n";
 				outStream << tourStream.str();
 				tourNum++;

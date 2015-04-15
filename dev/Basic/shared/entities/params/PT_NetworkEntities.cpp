@@ -76,6 +76,13 @@ void PT_Network::init()
 	}
 	cout<<"Public Transport Network Loaded ";
 }
+int PT_Network::getVertexTypeFromStopId(std::string stopId)
+{
+	if(PublicTransitVertexMap.find(stopId) != PublicTransitVertexMap.end())
+		return PublicTransitVertexMap.find(stopId)->second.getStopType();
+	return -1;
+}
+
 MRT_Stop::MRT_Stop(){}
 
 MRT_Stop::~MRT_Stop(){}

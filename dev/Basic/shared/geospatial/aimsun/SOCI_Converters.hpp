@@ -80,6 +80,7 @@ template<> struct type_conversion<sim_mob::PT_Path> {
 		res.setTotalWaitingTimeSecs(vals.get<double>("total_waiting_time", 0));
 		res.setTotalWalkingTimeSecs(vals.get<double>("total_walking_time", 0));
 		res.setTotalNumberOfTransfers(vals.get<int>("total_number_of_transfers", 0));
+		res.updatePathEdges();
 	}
 };
 

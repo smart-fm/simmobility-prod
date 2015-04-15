@@ -146,6 +146,14 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 
+	if(config.publicTransitEnabled){
+		const ModelScriptsMap& extScripts = MT_Config::getInstance().getModelScriptsMap();
+		const std::string& scriptsPath = extScripts.getPath();
+		sim_mob::PT_RouteChoiceLuaModel::Instance()->loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
+		sim_mob::PT_RouteChoiceLuaModel::Instance()->loadFile(scriptsPath + extScripts.getScriptFileName("ptrc"));
+		sim_mob::PT_RouteChoiceLuaModel::Instance()->initialize();
+	}
+
 	//Start boundaries
 #ifndef SIMMOB_DISABLE_MPI
 	if (config.using_MPI)
@@ -160,8 +168,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	{
 		partMgr = &PartitionManager::instance();
 	}
-	unit_test_function();
-	exit(1);
+
 	PeriodicPersonLoader periodicPersonLoader(Agent::all_agents, Agent::pending_agents);
 
 	{ //Begin scope: WorkGroups

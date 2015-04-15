@@ -200,7 +200,7 @@ struct type_conversion<sim_mob::OD_Trip>
     {
     	od_trip.startStop = values.get<std::string>("start_stop", "");
     	od_trip.endStop = values.get<std::string>("end_stop", "");
-    	od_trip.type = values.get<std::string>("r_type", "");
+    	od_trip.tType = values.get<std::string>("r_type", "");
     	od_trip.serviceLines = values.get<std::string>("r_service_lines", "");
     	od_trip.originNode = values.get<std::string>("origin_node", "");
     	od_trip.destNode = values.get<std::string>("dest_node", "");
@@ -216,7 +216,7 @@ struct type_conversion<sim_mob::OD_Trip>
     {
     	values.set("start_stop", od_trip.startStop);
        	values.set("end_stop", od_trip.endStop);
-       	values.set("r_type", od_trip.type);
+       	values.set("r_type", od_trip.tType);
        	values.set("r_service_lines", od_trip.serviceLines);
        	values.set("origin_node", od_trip.originNode);
        	values.set("dest_node", od_trip.destNode);

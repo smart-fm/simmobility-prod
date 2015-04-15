@@ -12,6 +12,7 @@
 #include "util/Utils.hpp"
 #include "Common.hpp"
 #include "geospatial/aimsun/Loader.hpp"
+#include "entities/misc/PublicTransit.hpp"
 
 namespace sim_mob{
 
@@ -21,33 +22,10 @@ public:
 	virtual ~PT_RouteChoiceLuaModel();
 
     /**
-     * Inherited from LuaModel
-     */
-	void mapClasses();
-
-    /**
-     * make public transit route choice from lua scripts.
-     *
-     * return the index of best selected path in the path set
-     */
-	int MakePT_RouteChoice();
-
-    /**
       * retrieve a singleton object
       * @return a pointer to PT_RouteChoiceModel .
       */
 	static PT_RouteChoiceLuaModel* Instance();
-
-	void SetPathSet(PT_PathSet* set){
-		publicTransitPathSet = set;
-	}
-
-	/**
-	 * get the size of current path set.
-	 *
-	 * return the size of current choice set
-	 */
-	unsigned int GetSizeOfChoiceSet();
 
 	/**
 	 * interfaces for Lua script
@@ -61,13 +39,7 @@ public:
 	int total_no_txf(unsigned int index);
 	double total_cost(unsigned int index);
 
-	/**
-	 * get the database session used for this thread
-	 */
-	const boost::shared_ptr<soci::session> & getSession();
-
-	PT_PathSet LoadPT_PathSet(const std::string& original, const std::string& dest);
-
+	bool GetBestPT_Path(const std::string& original, const std::string& dest, std::vector<sim_mob::OD_Trip>& odTrips);
 
 private:
 	PT_PathSet* publicTransitPathSet;
@@ -75,6 +47,35 @@ private:
 	std::map<boost::thread::id, boost::shared_ptr<soci::session > > cnnRepo;
 	boost::shared_mutex cnnRepoMutex;
 
+private:
+	/**
+	 * get the database session used for this thread
+	 */
+	const boost::shared_ptr<soci::session> & getSession();
+
+	PT_PathSet LoadPT_PathSet(const std::string& original, const std::string& dest);
+    /**
+     * Inherited from LuaModel
+     */
+	void mapClasses();
+
+    /**
+     * make public transit route choice from lua scripts.
+     *
+     * return the map from OD pair to pt trip
+     */
+	std::vector<sim_mob::OD_Trip> MakePT_RouteChoice(const std::string& original, const std::string& dest);
+
+	void SetPathSet(PT_PathSet* set){
+		publicTransitPathSet = set;
+	}
+
+	/**
+	 * get the size of current path set.
+	 *
+	 * return the size of current choice set
+	 */
+	unsigned int GetSizeOfChoiceSet();
 };
 
 }

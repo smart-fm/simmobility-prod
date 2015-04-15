@@ -209,12 +209,12 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 	unsigned int totalNumber = numAlighting + numBoarding;
 
 	int boardNum = std::max(numAlighting, numBoarding);
+	const std::vector<float>& dwellTimeParams = MT_Config::getInstance().getDwellTimeParams();
+	const float fixedTime = Utils::generateFloat(dwellTimeParams[0],dwellTimeParams[1]);
 	if(boardNum==0){
-		waitingTimeAtbusStop=0.0;
+		waitingTimeAtbusStop=fixedTime;
 	}
 	else{
-		const std::vector<float>& dwellTimeParams = MT_Config::getInstance().getDwellTimeParams();
-		const float fixedTime = Utils::generateFloat(dwellTimeParams[0],dwellTimeParams[1]);
 		const float individualTime = Utils::generateFloat(dwellTimeParams[2], dwellTimeParams[3]);
 		waitingTimeAtbusStop = fixedTime+boardNum*individualTime;
 	}

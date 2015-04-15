@@ -98,6 +98,7 @@ public:
 		return startStop;
 	}
 
+
 	void setStartStop(const std::string& startStop) {
 		this->startStop = startStop;
 	}
@@ -285,6 +286,7 @@ public:
 	void init();
 	PT_NetworkVertex getVertexFromStopId(std::string stopId);
 
+	int getVertexTypeFromStopId(std::string stopId);
 	static PT_Network instance_;
 
 	static PT_Network& getInstance()

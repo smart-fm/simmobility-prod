@@ -28,16 +28,6 @@ PT_PathSetManager::PT_PathSetManager():labelPoolSize(10), simulationApproachPool
 PT_PathSetManager::~PT_PathSetManager() {
 	// TODO Auto-generated destructor stub
 }
-PT_NetworkVertex PT_PathSetManager::getVertexFromNode(sim_mob::Node* node)
-{
-	//As in the PT_Network vertices simMobility nodes are represented as the N_ and node id
-	// to avoid the conflict with the bus stop id's
-	unsigned int node_id = node->getID();
-	std::stringstream stopId ;
-	stopId <<"N_"<<node_id;
-	return PT_Network::getInstance().PublicTransitVertexMap.find(stopId.str())->second;
-}
-
 std::string PT_PathSetManager::getVertexIdFromNode(sim_mob::Node* node)
 {
 	//As in the PT_Network vertices simMobility nodes are represented as the N_ and node id

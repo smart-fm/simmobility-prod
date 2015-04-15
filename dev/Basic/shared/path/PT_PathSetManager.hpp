@@ -15,7 +15,9 @@
 #include <fstream>
 using std::vector;
 namespace sim_mob{
-
+/*
+ * This class is used for
+ */
 class PT_PathSetManager {
 public:
 	PT_PathSetManager();
@@ -30,7 +32,6 @@ public:
 	static boost::shared_ptr<sim_mob::batched::ThreadPool> threadpool_;
 	boost::mutex fileExclusiveWrite;
 	PT_PathSet makePathset(sim_mob::Node* from,sim_mob::Node* to);
-	PT_NetworkVertex getVertexFromNode(sim_mob::Node*);
 	std::string getVertexIdFromNode(sim_mob::Node*);
 	void getLabelingApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
 	void getkShortestPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);

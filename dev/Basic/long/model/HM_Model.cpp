@@ -17,6 +17,7 @@
 #include "database/dao/IndividualDao.hpp"
 #include "database/dao/AwakeningDao.hpp"
 #include "database/dao/VehicleOwnershipCoefficientsDao.hpp"
+#include "database/dao/TaxiAccessCoefficientsDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -267,6 +268,23 @@ VehicleOwnershipCoefficients* HM_Model::getVehicleOwnershipCoeffsById( BigSerial
 		return nullptr;
 }
 
+HM_Model:: TaxiAccessCoeffList HM_Model::getTaxiAccessCoeffs()const
+{
+	return this->taxiAccessCoeffs;
+}
+
+TaxiAccessCoefficients* HM_Model::getTaxiAccessCoeffsById( BigSerial id) const
+{
+		TaxiAccessCoeffMap::const_iterator itr = taxiAccessCoeffsById.find(id);
+
+		if (itr != taxiAccessCoeffsById.end())
+		{
+			return (*itr).second;
+		}
+
+		return nullptr;
+}
+
 const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 {
 	BigSerial tazId = getUnitTazId(unitId);
@@ -318,6 +336,7 @@ void HM_Model::startImpl()
 		PrintOutV("Awakening probability: " << awakening.size() << std::endl );
 
 		loadData<VehicleOwnershipCoefficientsDao>(conn,vehicleOwnershipCoeffs,vehicleOwnershipCoeffsById, &VehicleOwnershipCoefficients::getParameterId);
+		loadData<TaxiAccessCoefficientsDao>(conn,taxiAccessCoeffs,taxiAccessCoeffsById, &TaxiAccessCoefficients::getParameterId);
 	}
 
 

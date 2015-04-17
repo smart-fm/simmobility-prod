@@ -20,7 +20,6 @@
 #include "params/PersonParams.hpp"
 #include "PredayClasses.hpp"
 #include "database/PopulationSqlDao.hpp"
-#include "database/TripChainSqlDao.hpp"
 #include "database/dao/MongoDao.hpp"
 
 namespace sim_mob {
@@ -254,17 +253,6 @@ private:
 	long getFirstNodeInZone(const std::vector<ZoneNodeParams*>& nodes) const;
 
 	/**
-	 * constructs trip chain from predictions for a person
-	 * \note This function will output all trips as car trips for now because the within day is not ready for other modes of transport.
-	 * \note This function assigns a random node from the zone as ODs for trips and for activity locations. This is because we do not have a model for mapping activity locations
-	 * to postal codes and ODs to nodes.
-	 * @param zoneNodeMap zone to nodes mapping
-	 * @param scale number of trip chains to be generated for this person
-	 * @param outTripChain output list (trip chain) to be constructed
-	 */
-	void constructTripChains(const ZoneNodeMap& zoneNodeMap, long scale, std::list<TripChainItemParams>& outTripChain);
-
-	/**
 	 * Person specific parameters
 	 */
 	PersonParams& personParams;
@@ -355,16 +343,6 @@ public:
 	 * Writes the logsums to mongo
 	 */
 	void updateLogsumsToMongo();
-
-	/**
-	 * Converts predictions to Trip chains and writes them off to PostGreSQL
-	 */
-	void outputTripChainsToPostgreSQL(const ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao);
-
-	/**
-	 * Converts predictions to Trip chains and writes them off to the given stringstream
-	 */
-	void outputTripChainsToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& outStream);
 
 	/**
 	 * Writes of the predicted stops for each tour to the given stringstream

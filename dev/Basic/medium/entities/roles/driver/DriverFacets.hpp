@@ -277,6 +277,11 @@ protected:
 	void initSegStatsPath(const std::vector<const sim_mob::RoadSegment*>& input,
 			std::vector<const sim_mob::SegmentStats*>& output);
 
+	/**
+	 * randomly chooses the starting segment from the first link of the path
+	 * @param path the path for which first segment has to be randomized
+	 */
+	void randomizeStartingSegment(std::vector<sim_mob::WayPoint>& path);
 
 	/**
 	 * constructs the path for this driver if required.

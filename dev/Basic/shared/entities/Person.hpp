@@ -264,15 +264,14 @@ public:
 
 	 /**
 	  * A version of serializer for subtrip level travel time.
-	  * \param subtripMetrics input metrics
-	  * \param currTripChainItem current TripChainItem
-	  * \param currSubTrip current SubTrip for which subtripMetrics is collected
+	  * @param subtripMetrics input metrics
+	  * @param currTripChainItem current TripChainItem
+	  * @param currSubTrip current SubTrip for which subtripMetrics is collected
 	  */
 	 void serializeSubTripChainItemTravelTimeMetrics(
 			 const TravelMetric& subtripMetrics,
 			 std::vector<TripChainItem*>::iterator currTripChainItem,
-			 std::vector<SubTrip>::iterator currSubTrip
-			 ) const;
+			 std::vector<SubTrip>::iterator currSubTrip) const;
 
 
 	 /**

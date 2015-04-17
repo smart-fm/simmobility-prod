@@ -143,6 +143,11 @@ Individual* HM_Model::getIndividualById(BigSerial id) const
 	return nullptr;
 }
 
+HM_Model::HouseholdList* HM_Model::getHouseholdList()
+{
+	return &households;
+}
+
 Household* HM_Model::getHouseholdById(BigSerial id) const
 {
 	HouseholdMap::const_iterator itr = householdsById.find(id);

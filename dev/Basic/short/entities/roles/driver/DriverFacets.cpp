@@ -108,6 +108,8 @@ size_t getLaneIndex(const Lane * l)
 } //End anon namespace
 
 namespace sim_mob {
+	
+map<const RoadSegment *, unsigned long> DriverMovement::rdSegDensityMap;
 
 DriverBehavior::DriverBehavior(sim_mob::Person* parentAgent) :
 				BehaviorFacet(parentAgent), parentDriver(nullptr) {
@@ -179,22 +181,30 @@ sim_mob::DriverMovement::~DriverMovement() {
 	}*/
 }
 
-void sim_mob::DriverMovement::frame_init() {
+void sim_mob::DriverMovement::frame_init() 
+{
 	//Save the path from orign to next activity location in allRoadSegments
 	parentDriver->getParams().initSegId = parent->initSegId;
 	parentDriver->getParams().initDis = parent->initDis;
 	parentDriver->getParams().initSpeed = parent->initSpeed;
 
 	Vehicle* newVeh = initializePath(true);
-	if (newVeh) {
+	
+	if (newVeh) 
+	{
 		safe_delete_item(parentDriver->vehicle);
+		parent->getRole()->setResource(nullptr);
 		parentDriver->vehicle = newVeh;
+		parent->getRole()->setResource(newVeh);
 	}
 
 	//Set some properties about the current path, such as the current polyline, etc.
-	if (parentDriver->vehicle && fwdDriverMovement.isPathSet()) {
+	if (parentDriver->vehicle && fwdDriverMovement.isPathSet()) 
+	{
 		setOrigin(parentDriver->getParams());
-	} else {
+	} 
+	else 
+	{
 		Warn()	<< "ERROR: Vehicle[short] could not be created for driver; no route!" << std::endl;
 	}
 }
@@ -231,18 +241,21 @@ void sim_mob::DriverMovement::setRR_RegionsFromCurrentPath() {
 	}
 }
 
-void sim_mob::DriverMovement::frame_tick() {
-
+void sim_mob::DriverMovement::frame_tick() 
+{
 	// lost some params
 	DriverUpdateParams& p2 = parentDriver->getParams();
 
-	if (!(parentDriver->vehicle)) {
+	if (!(parentDriver->vehicle)) 
+	{
 		throw std::runtime_error("Something wrong, Vehicle is NULL");
 	}
 
 	//Are we done already?
-	if (fwdDriverMovement.isDoneWithEntireRoute()) {
-		if (parent->amodId != "-1") {
+	if (fwdDriverMovement.isDoneWithEntireRoute()) 
+	{
+		if (parent->amodId != "-1") 
+		{
 			parent->handleAMODArrival(); //handle AMOD arrival (if necessary)
 		}
 		parent->setToBeRemoved();
@@ -250,18 +263,21 @@ void sim_mob::DriverMovement::frame_tick() {
 	}
 
 	//Specific for Region support.
-	if (parent->getRegionSupportStruct().isEnabled()) {
+	if (parent->getRegionSupportStruct().isEnabled())
+	{
 		//Currently all_regions only needs to be sent once.
-		if (sentAllRegions.check()) {
+		if (sentAllRegions.check())
+		{
 			//Send the Regions.
 			std::vector<RoadRunnerRegion> allRegions;
-			const RoadNetwork& net =
-					ConfigManager::GetInstance().FullConfig().getNetwork();
-			for (std::map<int, RoadRunnerRegion>::const_iterator it =
-					net.roadRunnerRegions.begin();
-					it != net.roadRunnerRegions.end(); ++it) {
+			const RoadNetwork& net = ConfigManager::GetInstance().FullConfig().getNetwork();
+
+			for (std::map<int, RoadRunnerRegion>::const_iterator it = net.roadRunnerRegions.begin();
+				 it != net.roadRunnerRegions.end(); ++it)
+			{
 				allRegions.push_back(it->second);
 			}
+			
 			parent->getRegionSupportStruct().setNewAllRegionsSet(allRegions);
 
 			//If a path has already been set, we will need to transmit it.
@@ -269,17 +285,20 @@ void sim_mob::DriverMovement::frame_tick() {
 		}
 
 		//We always need to send a path if one is available.
-		if (!rrPathToSend.empty()) {
+		if (!rrPathToSend.empty())
+		{
 			std::vector<RoadRunnerRegion> regPath;
-			for (std::vector<const RoadSegment*>::const_iterator it =
-					rrPathToSend.begin(); it != rrPathToSend.end(); ++it) {
+			for (std::vector<const RoadSegment*>::const_iterator it = rrPathToSend.begin(); it != rrPathToSend.end(); ++it)
+			{
 				//Determine if this road segment is within a Region.
-				std::pair<RoadRunnerRegion, bool> rReg =
-						StreetDirectory::instance().getRoadRunnerRegion(*it);
-				if (rReg.second) {
+				std::pair<RoadRunnerRegion, bool> rReg = StreetDirectory::instance().getRoadRunnerRegion(*it);
+				
+				if (rReg.second)
+				{
 					//Don't add if it's the last item in the list.
 					if (regPath.empty()
-							|| (regPath.back().id != rReg.first.id)) {
+						|| (regPath.back().id != rReg.first.id))
+					{
 						regPath.push_back(rReg.first);
 					}
 				}
@@ -310,30 +329,28 @@ void sim_mob::DriverMovement::frame_tick() {
 	//Update "current" time
 	parentDriver->perceivedFwdVel->update(parentDriver->getParams().now.ms());
 	parentDriver->perceivedFwdAcc->update(parentDriver->getParams().now.ms());
-	parentDriver->perceivedDistToFwdCar->update(
-			parentDriver->getParams().now.ms());
-	parentDriver->perceivedVelOfFwdCar->update(
-			parentDriver->getParams().now.ms());
-	parentDriver->perceivedAccOfFwdCar->update(
-			parentDriver->getParams().now.ms());
-	parentDriver->perceivedTrafficColor->update(
-			parentDriver->getParams().now.ms());
-	parentDriver->perceivedDistToTrafficSignal->update(
-			parentDriver->getParams().now.ms());
+	parentDriver->perceivedDistToFwdCar->update(parentDriver->getParams().now.ms());
+	parentDriver->perceivedVelOfFwdCar->update(parentDriver->getParams().now.ms());
+	parentDriver->perceivedAccOfFwdCar->update(parentDriver->getParams().now.ms());
+	parentDriver->perceivedTrafficColor->update(parentDriver->getParams().now.ms());
+	parentDriver->perceivedDistToTrafficSignal->update(parentDriver->getParams().now.ms());
 
 	//retrieved their current "sensed" values.
-	if (parentDriver->perceivedFwdVel->can_sense()) {
+	if (parentDriver->perceivedFwdVel->can_sense())
+	{
 		p2.perceivedFwdVelocity = parentDriver->perceivedFwdVel->sense();
-	} else
+	} 
+	else
+	{
 		p2.perceivedFwdVelocity = parentDriver->vehicle->getVelocity();
+	}
 
 	//General update behavior.
 	//Note: For now, most updates cannot take place unless there is a Lane and vehicle.
-	if (parentDriver->isVehicleInLoadingQueue == false && p2.currLane && parentDriver->vehicle) {
-
-		if (update_sensors(p2.now) && update_movement(p2.now)
-				&& update_post_movement(p2.now)) {
-
+	if (parentDriver->isVehicleInLoadingQueue == false && p2.currLane && parentDriver->vehicle) 
+	{
+		if (update_sensors(p2.now) && update_movement(p2.now) && update_post_movement(p2.now)) 
+		{
 			//Update parent data. Only works if we're not "done" for a bad reason.
 			setParentBufferedData();
 		}
@@ -341,12 +358,11 @@ void sim_mob::DriverMovement::frame_tick() {
 
 	//Update our Buffered types
 	//TODO: Update parent buffered properties, or perhaps delegate this.
-	if (!(fwdDriverMovement.isInIntersection())) {
+	if (!(fwdDriverMovement.isInIntersection())) 
+	{
 		parentDriver->currLane_.set(fwdDriverMovement.getCurrLane());
-		parentDriver->currLaneOffset_.set(
-				fwdDriverMovement.getCurrDistAlongRoadSegmentCM());
-		parentDriver->currLaneLength_.set(
-				fwdDriverMovement.getTotalRoadSegmentLengthCM());
+		parentDriver->currLaneOffset_.set(fwdDriverMovement.getCurrDistAlongRoadSegmentCM());
+		parentDriver->currLaneLength_.set(fwdDriverMovement.getTotalRoadSegmentLengthCM());
 	}
 
 	parentDriver->isInIntersection.set(fwdDriverMovement.isInIntersection());
@@ -354,17 +370,15 @@ void sim_mob::DriverMovement::frame_tick() {
 	parentDriver->fwdVelocity.set(parentDriver->vehicle->getVelocity());
 	parentDriver->latVelocity.set(parentDriver->vehicle->getLatVelocity());
 	parentDriver->fwdAccel.set(parentDriver->vehicle->getAcceleration());
-	parentDriver->turningDirection.set(
-			parentDriver->vehicle->getTurningDirection());
+	parentDriver->turningDirection.set(parentDriver->vehicle->getTurningDirection());
+	
 	//Update your perceptions
 	parentDriver->perceivedFwdVel->delay(parentDriver->vehicle->getVelocity());
-	parentDriver->perceivedFwdAcc->delay(
-			parentDriver->vehicle->getAcceleration());
+	parentDriver->perceivedFwdAcc->delay(parentDriver->vehicle->getAcceleration());
 
 	//Print output for this frame.
 	disToFwdVehicleLastFrame = p2.nvFwd.distance;
-	parentDriver->currDistAlongRoadSegment =
-			fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
+	parentDriver->currDistAlongRoadSegment = fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
 	DPoint position = getPosition();
 	parentDriver->setCurrPosition(position);
 	parentDriver->vehicle->setCurrPosition(position);
@@ -488,6 +502,7 @@ void sim_mob::DriverMovement::frame_tick_output() {
 	if (parentDriver->isVehicleInLoadingQueue || fwdDriverMovement.isDoneWithEntireRoute()) {
 		return;
 	}
+
 	if (ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) {
 		return;
 	}
@@ -555,6 +570,73 @@ void sim_mob::DriverMovement::frame_tick_output() {
 			"\",\"info\":\""<<p.debugInfo <<
 			"\",\"mandatory\":\""<<incidentPerformer.getIncidentStatus().getChangedLane() <<addLine.str() <<
 			"\"})"<<std::endl);
+}
+
+/*
+ * This method simply increments the vehicle count for the vehicle's current road segment in the RdSegDensityMap  
+ */
+void sim_mob::DriverMovement::updateDensityMap()
+{
+	//The density map is a static map, so all threads will want to access it. Lock before accessing.
+	densityUpdateMutex.lock();
+	
+	const RoadSegment *currSeg = fwdDriverMovement.getCurrSegment();
+	
+	//Find the entry for the road segment corresponding to the current vehicles segment
+	map<const RoadSegment *, unsigned long>::iterator itDensityMap = rdSegDensityMap.find(currSeg);
+	
+	//Check if an entry exists
+	if(itDensityMap != rdSegDensityMap.end())
+	{
+		itDensityMap->second += 1;
+	}
+	//Entry not found, so create a new one
+	else
+	{
+		rdSegDensityMap.insert(make_pair(currSeg, 1));
+	}
+	
+	//Done with update to the map, unlock.
+	densityUpdateMutex.unlock();
+}
+
+/*
+ * This method computes the density at every road segment and outputs it to file
+ */
+void sim_mob::DriverMovement::outputDensityMap(unsigned int tick)
+{
+	const ConfigParams &config = ConfigManager::GetInstance().FullConfig();
+	
+	//Get the logger instance
+	sim_mob::BasicLogger &logger = sim_mob::Logger::log(config.segDensityMap.fileName);
+	
+	//Iterator to access all elements in the map
+	map<const RoadSegment *, unsigned long>::iterator itDensityMap = rdSegDensityMap.begin();
+	
+	//Iterate through all elements in the map
+	while(itDensityMap != rdSegDensityMap.end())
+	{
+		//Get collection time
+		unsigned int period = config.segDensityMap.updateInterval / config.baseGranMS();
+		
+		//Get the average vehicle count
+		double avgVehCount = (double)itDensityMap->second / period;
+		
+		//Convert the segment length to km from cm
+		double segLength = itDensityMap->first->getLengthOfSegment() / 100000;
+		
+		unsigned int noOfLanes = itDensityMap->first->getLanes().size();
+		
+		//Calculate density. The unit is no of vehicles per lane-km
+		double density = avgVehCount / (noOfLanes * segLength);
+
+		logger << tick << "," << itDensityMap->first->getId() << "," << density << "\n"; 
+		
+		++itDensityMap;
+	}
+	
+	//Clear the map
+	rdSegDensityMap.clear();
 }
 
 // mark startTimeand origin
@@ -676,35 +758,75 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 		}
 	}
 
-	//Has the segment changed?
-	if ((!(fwdDriverMovement.isDoneWithEntireRoute()))
-			&& ((fwdDriverMovement.isPathSet()))) {
-		params.justChangedToNewSegment = ((fwdDriverMovement.getCurrSegment()
-				!= prevSegment));
-	}
-
-	//change segment happen, calculate link travel time
-	if (params.justChangedToNewSegment == true) {
-		const RoadSegment* prevSeg = fwdDriverMovement.getCurrSegment();
-		const Link* prevLink = prevSeg->getLink();
-		double actualTime = parentDriver->getParams().elapsedSeconds
-				+ (parentDriver->getParams().now.ms() / MILLISECS_CONVERT_UNIT);
-		//if prevLink is already in travelStats, update it's linkTT and add to travelStatsMap
-		Agent* parentAgent = parent;
-		if (prevLink == parentAgent->getLinkTravelStats().link_) {
-			parentAgent->addToLinkTravelStatsMap(
-					parentAgent->getLinkTravelStats(), actualTime); //in seconds
+	if ((!(fwdDriverMovement.isDoneWithEntireRoute())) && ((fwdDriverMovement.isPathSet())))
+	{
+		//Update the road segment density map
+		if (ConfigManager::GetInstance().FullConfig().segDensityMap.outputEnabled)
+		{
+			updateDensityMap();
 		}
-		//creating a new entry in agent's travelStats for the new link, with entry time
-		parentAgent->initLinkTravelStats(
-				fwdDriverMovement.getCurrSegment()->getLink(), actualTime);
+		
+		//Has the segment changed?
+		params.justChangedToNewSegment = ((fwdDriverMovement.getCurrSegment() != prevSegment));
 	}
 
-	if (!fwdDriverMovement.isDoneWithEntireRoute()) {
-		params.TEMP_lastKnownPolypoint = DPoint(
-				getCurrPolylineVector2().getEndX(),
-				getCurrPolylineVector2().getEndY());
+	//The segment has changed, calculate link travel time and road segment travel time
+	if (params.justChangedToNewSegment == true)
+	{
+		//Agent* parentAgent = parent;
+		const Link* prevLink = prevSegment->getLink();
+		double actualTime = parentDriver->getParams().elapsedSeconds
+					+ (parentDriver->getParams().now.ms() / MILLISECS_CONVERT_UNIT);
+		
+		//Check if the link has changed
+		if(prevLink != fwdDriverMovement.getCurrLink())
+		{
+			//if prevLink is already in travelStats, update it's linkTT and add to travelStatsMap
+			if (prevLink == parent->getLinkTravelStats().link_)
+			{
+				parent->addToLinkTravelStatsMap(parent->getLinkTravelStats(), actualTime); //in seconds
+			}
+
+			//creating a new entry in agent's travelStats for the new link, with entry time
+			parent->initLinkTravelStats(fwdDriverMovement.getCurrSegment()->getLink(), actualTime);
+		}
+		
+		//If previous segment is already in the travel stats, update the exit time
+		if(prevSegment == parent->getCurrRdSegTravelStats().rs)
+		{
+			const std::string &travelMode = parent->getRole()->getMode();
+			Agent::RdSegTravelStat &currStats = parent->finalizeCurrRdSegTravelStat(prevSegment, actualTime, travelMode);
+			PathSetManager::getInstance()->addSegTT(currStats);
+		}
+		
+		//creating a new entry in agent's travelStats for the new road segment, with entry time
+		parent->getCurrRdSegTravelStats().reset();
+		parent->startCurrRdSegTravelStat(fwdDriverMovement.getCurrSegment(), actualTime);
 	}
+	
+	//Finalise the travel times for the last link and segment
+	if (fwdDriverMovement.isDoneWithEntireRoute())
+	{
+		double actualTime = parentDriver->getParams().elapsedSeconds
+					+ (parentDriver->getParams().now.ms() / MILLISECS_CONVERT_UNIT);
+		
+		const std::string &travelMode = parent->getRole()->getMode();
+		Agent::RdSegTravelStat &currStats = parent->finalizeCurrRdSegTravelStat(prevSegment, actualTime, travelMode);
+		PathSetManager::getInstance()->addSegTT(currStats);
+		
+		//Update the link travel time only if the person completes the journey at the end of a link
+		const MultiNode* endNode = dynamic_cast<const MultiNode *>(prevSegment->getEnd());
+		if(endNode)
+		{
+			parent->addToLinkTravelStatsMap(parent->getLinkTravelStats(), actualTime);
+		}
+	}
+
+	if (!fwdDriverMovement.isDoneWithEntireRoute())
+	{
+		params.TEMP_lastKnownPolypoint = DPoint(getCurrPolylineVector2().getEndX(), getCurrPolylineVector2().getEndY());
+	}
+	
 	params.buildDebugInfo();
 	return true;
 }
@@ -1445,10 +1567,15 @@ void sim_mob::DriverMovement::updateAdjacentLanes(DriverUpdateParams& p) {
 	p.rightLane = nullptr;
 	p.leftLane2 = nullptr;
 	p.rightLane2 = nullptr;
-
-	const size_t numLanes = p.currLane->getRoadSegment()->getLanes().size();
-	if (!p.currLane || numLanes == 1) {
+	
+	if (!p.currLane) {
 		return; //Can't do anything without a lane to reference.
+	}
+	
+	const size_t numLanes = p.currLane->getRoadSegment()->getLanes().size();
+	
+	if (numLanes == 1) {
+		return; 
 	}
 
 	if (p.currLaneIndex > 0) {
@@ -2512,9 +2639,13 @@ void sim_mob::DriverMovement::updateLateralMovement(DriverUpdateParams& p)
 void sim_mob::DriverMovement::syncInfoLateralMove(DriverUpdateParams& p)
 {
 	if (p.getStatus(STATUS_LC_RIGHT)) {
+		if(p.rightLane){
 			p.currLane = p.rightLane;
+		}
 	} else if (p.getStatus(STATUS_LC_LEFT)) {
+		if(p.leftLane){
 			p.currLane = p.leftLane;
+		}
 	} else {
 		std::stringstream msg;
 		msg << "syncInfoLateralMove (" << parent->getId()

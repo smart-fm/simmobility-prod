@@ -50,8 +50,6 @@ namespace
 	const sim_mob::DailyTime eveningPeakEndTime(EVENING_PEAK_END);
 	const sim_mob::DailyTime offPeak1StartTime(OFF_PEAK1_START);
 	const sim_mob::DailyTime offPeak3EndTime(OFF_PEAK3_START);
-
-	const double MIN_HIGHWAY_SPEED = 60.0; //kmph
 }
 
 boost::shared_mutex sim_mob::A_StarShortestTravelTimePathImpl::GraphSearchMutex_;
@@ -230,25 +228,6 @@ void sim_mob::A_StarShortestTravelTimePathImpl::initDrivingNetworkNew(const vect
     		procAddDrivingLaneConnectors(drivingMap_Random_pool[i], dynamic_cast<const MultiNode*>(it->first), nodeLookup_Random_pool[i]);
 		}
     }
-
-//    //Now add BusStops (this mutates the network slightly, by segmenting Edges where a BusStop is located).
-//    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-////    	procAddDrivingBusStops(drivingMap_, (*iter)->getSegments(), nodeLookup, drivingBusStopLookup_, drivingSegmentLookup_);
-//    	procAddDrivingBusStops(drivingMap_MorningPeak, (*iter)->getSegments(), nodeLookup_MorningPeak, drivingBusStopLookup_MorningPeak_, drivingSegmentLookup_MorningPeak_);
-//    	procAddDrivingBusStops(drivingMap_EveningPeak, (*iter)->getSegments(), nodeLookup_EveningPeak, drivingBusStopLookup_EveningPeak_, drivingSegmentLookup_EveningPeak_);
-//    	procAddDrivingBusStops(drivingMap_NormalTime, (*iter)->getSegments(), nodeLookup_NormalTime, drivingBusStopLookup_NormalTime_, drivingSegmentLookup_NormalTime_);
-//    	procAddDrivingBusStops(drivingMap_Default, (*iter)->getSegments(), nodeLookup_Default, drivingBusStopLookup_Default_, drivingSegmentLookup_Default_);
-//    	procAddDrivingBusStops(drivingMap_HighwayBias_Distance, (*iter)->getSegments(), nodeLookup_HighwayBias_Distance, drivingBusStopLookup_HighwayBias_Distance_, drivingSegmentLookup_HighwayBias_Distance_);
-//    	procAddDrivingBusStops(drivingMap_HighwayBias_MorningPeak, (*iter)->getSegments(), nodeLookup_HighwayBias_MorningPeak, drivingBusStopLookup_HighwayBias_MorningPeak_, drivingSegmentLookup_HighwayBias_MorningPeak_);
-//    	procAddDrivingBusStops(drivingMap_HighwayBias_EveningPeak, (*iter)->getSegments(), nodeLookup_HighwayBias_EveningPeak, drivingBusStopLookup_HighwayBias_EveningPeak_, drivingSegmentLookup_HighwayBias_EveningPeak_);
-//    	procAddDrivingBusStops(drivingMap_HighwayBias_NormalTime, (*iter)->getSegments(), nodeLookup_HighwayBias_NormalTime, drivingBusStopLookup_HighwayBias_NormalTime_, drivingSegmentLookup_HighwayBias_NormalTime_);
-//    	procAddDrivingBusStops(drivingMap_HighwayBias_Default, (*iter)->getSegments(), nodeLookup_HighwayBias_Default, drivingBusStopLookup_HighwayBias_Default_, drivingSegmentLookup_HighwayBias_Default_);
-////    	procAddDrivingBusStops(drivingMap_Random, (*iter)->getSegments(), nodeLookup_Random, drivingBusStopLookup_Random_, drivingSegmentLookup_Random_);
-//    	for(int i=0; i < drivingMap_Random_pool.size(); ++i)
-//		{
-//    		procAddDrivingBusStops(drivingMap_Random_pool[i], (*iter)->getSegments(), nodeLookup_Random_pool[i], drivingBusStopLookup_Random_pool[i], drivingSegmentLookup_Random_pool[i]);
-//		}
-//    }
 
     //Finally, add our "master" node vertices
 //    procAddStartNodesAndEdges(drivingMap_, nodeLookup, drivingNodeLookup_);
@@ -716,19 +695,19 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 	    case sim_mob::HighwayBias_Distance:
 	    {
 	    	edgeWeight = rs->getLength();
-	    	if(rs->maxSpeed < MIN_HIGHWAY_SPEED) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
+	    	if(!rs->isHighway()) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
 	    	break;
 	    }
 	    case sim_mob::HighwayBias_MorningPeak:
 	    {
 	    	edgeWeight = sim_mob::PathSetParam::getInstance()->getSegRangeTT(rs, "Car", morningPeakStartTime, morningPeakEndTime);
-	    	if(rs->maxSpeed < MIN_HIGHWAY_SPEED) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
+	    	if(!rs->isHighway()) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
 	    	break;
 	    }
 	    case sim_mob::HighwayBias_EveningPeak:
 		{
 			edgeWeight = PathSetParam::getInstance()->getSegRangeTT(rs, "Car", eveningPeakStartTime, eveningPeakEndTime);
-			if(rs->maxSpeed < MIN_HIGHWAY_SPEED) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
+			if(!rs->isHighway()) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
 			break;
 		}
 	    case sim_mob::HighwayBias_OffPeak:
@@ -737,13 +716,13 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 			double key2 = PathSetParam::getInstance()->getSegRangeTT(rs, "Car", morningPeakEndTime, eveningPeakStartTime); //Off-peak 2
 			double key3 = PathSetParam::getInstance()->getSegRangeTT(rs, "Car", eveningPeakEndTime, offPeak3EndTime); //Off-peak 3
 			edgeWeight = (key1+key2+key3)/3.0;
-			if(rs->maxSpeed < MIN_HIGHWAY_SPEED) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
+			if(!rs->isHighway()) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
 			break;
 		}
 	    case sim_mob::HighwayBias_Default:
 		{
 			edgeWeight = PathSetParam::getInstance()->getDefSegTT(rs);
-			if(rs->maxSpeed < MIN_HIGHWAY_SPEED) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
+			if(!rs->isHighway()) { edgeWeight = edgeWeight / highwayBias; } //if not highway, increase edge weight
 			break;
 		}
 	    case sim_mob::Random:

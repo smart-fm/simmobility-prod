@@ -175,8 +175,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
     	if(signalScats) {
     		LoopDetectorEntity* loopDetector = new LoopDetectorEntity(mtx);
     		signalScats->setLoopDetector(loopDetector);
-    		loopDetector->init(*signal);
+    		loopDetector->init(*signal);			
     		Agent::all_agents.insert(loopDetector);
+			signalScats->curVehicleCounter.init(signalScats);
     	}
     }
 
@@ -278,6 +279,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 
 	Print() << "Initial agents dispatched or pushed to pending." << endl;
+	
+	//before starting the groups, initialise the time interval for one of the PathSet manager's helpers
+	PathSetManager::initTimeInterval();
 
 	//
 	//  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
@@ -372,6 +376,12 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 		//Agent-based cycle, steps 1,2,3,4 of 4
 		wgMgr.waitAllGroups();
+		
+		unsigned long currTimeMS = currTick * config.baseGranMS();
+		if(config.segDensityMap.outputEnabled && (currTimeMS % config.segDensityMap.updateInterval == 0))
+		{
+			DriverMovement::outputDensityMap(currTimeMS/config.segDensityMap.updateInterval);
+		}
 
 		//Check if the warmup period has ended.
 		if (warmupDone) {
@@ -388,8 +398,14 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.stopMPIEnvironment();
 	}
+	
+	//Store the segment travel times
+	if (config.PathSetMode()) 
+	{
+		PathSetManager::getInstance()->storeRTT();
+	}
 
-	Print() <<"Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
+	Print() << "Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
 	Print() << "Max Agents at any given time: " <<maxAgents <<std::endl;
 	Print() << "Starting Agents: " << numStartAgents;
 	Print() << ",     Pending: ";

@@ -39,11 +39,17 @@
             <database id="fm_local" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
-                <dbname value="SimMobility_DB_Path_Choice"/>
+                <dbname value="SimMobility_DB"/>
             </database>
 
             <database id="fm_local_lt" dbtype="postgres">
                 <host value="localhost"/>
+                <port value="5432"/>
+                <dbname value="sim_mob_lt"/>
+            </database>
+            
+            <database id="fm_remote_lt" dbtype="postgres">
+                <host value="172.25.184.31"/>
                 <port value="5432"/>
                 <dbname value="sim_mob_lt"/>
             </database>
@@ -245,6 +251,11 @@
                 <username value="postgres"/>
                 <password value="secret"/>
             </plaintext-credential>
+            
+            <plaintext-credential id="lt_cred">
+                <username value="postgres"/>
+                <password value="pg4LT_Tests"/>
+            </plaintext-credential>
         </credentials>
     </constructs>
 
@@ -335,7 +346,8 @@
     
         <!-- If loading from the database, which database, proc_map, and credentials are used? -->
         <!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
-        <network_database database="fm_local" credentials="fm_local" proc_map="HITS"/>
+        <!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->
+        <network_database database="fm_local" credentials="harish_cred" proc_map="HITS"/>
         <!-- <network_database database="fm_local" credentials="harish_cred" proc_map="bugis_large"/> -->
         <!--<network_database database="fm_remote" credentials="fm_remote" proc_map="bugis_large"/>-->
         
@@ -412,45 +424,45 @@
     <!--South node is: 37261496,14346008-->
     <!--East node is: 37270984,14378959-->
     <!--West node is: 37227139,14327875-->
-    <drivers>
-        <!-- These test the short term -->
-        <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="0" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="0"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="0" lane="3"/>
-        <driver originPos="37227139,14327875" destPos="37270984,14378959" time="1000" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="1000" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="1000"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="1000" lane="3"/>
-                <driver originPos="37227139,14327875" destPos="37270984,14378959" time="2000" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="3000" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="3000"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="3000" lane="3"/>
-         <driver originPos="37227139,14327875" destPos="37270984,14378959" time="0" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="0" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="0"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="0" lane="3"/>
-        <driver originPos="37227139,14327875" destPos="37270984,14378959" time="1000" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="1000" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="1000"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="1000" lane="3"/>
-                <driver originPos="37227139,14327875" destPos="37270984,14378959" time="2000" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="3000" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="3000"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="3000" lane="3"/>
-         <driver originPos="37227139,14327875" destPos="37270984,14378959" time="10000" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="10000" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="10000"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="10000" lane="3"/>
-        <driver originPos="37227139,14327875" destPos="37270984,14378959" time="10000" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="10000" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="10000"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="10000" lane="3"/>
-                <driver originPos="37227139,14327875" destPos="37270984,14378959" time="20000" lane="2"/>
-        <driver originPos="37245506,14359431" destPos="37254988,14351820" time="30000" lane="1"/>
-        <driver originPos="37232503,14369823" destPos="37240057,14318241" time="30000"/>
-        <driver originPos="37240057,14318241" destPos="37232503,14369823" time="30000" lane="3"/>
-    </drivers> 
+	<drivers>
+		<!-- These test the short term -->
+		<driver originPos="37227139,14327875" destPos="37270984,14378959" time="0" lane="2"/>
+		<driver originPos="37245506,14359431" destPos="37254988,14351820" time="0" lane="1"/>
+		<driver originPos="37232503,14369823" destPos="37240057,14318241" time="0"/>
+		<driver originPos="37240057,14318241" destPos="37232503,14369823" time="0" lane="3"/>
+		<driver originPos="37227139,14327875" destPos="37270984,14378959" time="1000" lane="2"/>
+		<driver originPos="37245506,14359431" destPos="37254988,14351820" time="1000" lane="1"/>
+		<driver originPos="37232503,14369823" destPos="37240057,14318241" time="1000"/>
+		<driver originPos="37240057,14318241" destPos="37232503,14369823" time="1000" lane="3"/>
+		<driver originPos="37227139,14327875" destPos="37270984,14378959" time="2000" lane="2"/>
+		<driver originPos="37245506,14359431" destPos="37254988,14351820" time="3000" lane="1"/>
+		<driver originPos="37232503,14369823" destPos="37240057,14318241" time="3000"/>
+		<driver originPos="37240057,14318241" destPos="37232503,14369823" time="3000" lane="3"/>
+		<driver originPos="37227139,14327875" destPos="37270984,14378959" time="0" lane="2"/>
+		<driver originPos="37245506,14359431" destPos="37254988,14351820" time="0" lane="1"/>
+		<driver originPos="37232503,14369823" destPos="37240057,14318241" time="0"/>
+		<driver originPos="37240057,14318241" destPos="37232503,14369823" time="0" lane="3"/>
+		<driver originPos="37227139,14327875" destPos="37270984,14378959" time="1000" lane="2"/>
+		<driver originPos="37245506,14359431" destPos="37254988,14351820" time="1000" lane="1"/>
+		<driver originPos="37232503,14369823" destPos="37240057,14318241" time="1000"/>
+		<driver originPos="37240057,14318241" destPos="37232503,14369823" time="1000" lane="3"/>
+		<driver originPos="37227139,14327875" destPos="37270984,14378959" time="2000" lane="2"/>
+		<driver originPos="37245506,14359431" destPos="37254988,14351820" time="3000" lane="1"/>
+		<driver originPos="37232503,14369823" destPos="37240057,14318241" time="3000"/>
+		<driver originPos="37240057,14318241" destPos="37232503,14369823" time="3000" lane="3"/>
+		<driver originPos="37227139,14327875" destPos="37270984,14378959" time="10000" lane="2"/>
+		<driver originPos="37245506,14359431" destPos="37254988,14351820" time="10000" lane="1"/>
+		<driver originPos="37232503,14369823" destPos="37240057,14318241" time="10000"/>
+		<driver originPos="37240057,14318241" destPos="37232503,14369823" time="10000" lane="3"/>
+		<driver originPos="37227139,14327875" destPos="37270984,14378959" time="10000" lane="2"/>
+		<driver originPos="37245506,14359431" destPos="37254988,14351820" time="10000" lane="1"/>
+		<driver originPos="37232503,14369823" destPos="37240057,14318241" time="10000"/>
+		<driver originPos="37240057,14318241" destPos="37232503,14369823" time="10000" lane="3"/>
+		<driver originPos="37227139,14327875" destPos="37270984,14378959" time="20000" lane="2"/>
+		<driver originPos="37245506,14359431" destPos="37254988,14351820" time="30000" lane="1"/>
+		<driver originPos="37232503,14369823" destPos="37240057,14318241" time="30000"/>
+		<driver originPos="37240057,14318241" destPos="37232503,14369823" time="30000" lane="3"/>
+	</drivers> 
     
     <pedestrians> 
         <!--Pedestrian start locations-->
@@ -476,13 +488,13 @@
         <buscontroller time="0" />    
     </buscontrollers>
     
-<!--<signals> -->
-    <!-- Any of the following signals will not be created if it has already been created by -->
-    <!-- the 'signal' stored procedure above.  Note that this <signals> section will be -->
-    <!-- removed soon and without notice.  After that, only signals found in the database -->
-    <!-- will be created. -->
-<!--<signal xpos="37250760" ypos="14355120"/>
-    </signals> -->
+	<!--<signals> -->
+	<!-- Any of the following signals will not be created if it has already been created by -->
+	<!-- the 'signal' stored procedure above.  Note that this <signals> section will be -->
+	<!-- removed soon and without notice.  After that, only signals found in the database -->
+	<!-- will be created. -->
+	<!--<signal xpos="37250760" ypos="14355120"/>
+	</signals> -->
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="false">
@@ -505,5 +517,13 @@
     <generateBusRoutes enabled="false" />
     <path-set-config-file value="data/pathset_config.xml" />
     <travel_time_update interval="300" alpha="0.5" />
+	
+    <!--If enabled, outputs the vehicles counted by every loop detector, accumulated over the given period length (in milliseconds)
+    i.e. count of vehicles passing a loop detector in every "600,000" milliseconds -->
+    <loop-detector_counts frequency="300000" outputEnabled="false" file-name="private/VehicleCounts.csv"/>
+
+    <!--(Short-term only) If enabled, outputs the density at every road segment present at the end of the 
+    update interval (in milliseconds)-->
+    <short-term_density-map updateInterval="1000" outputEnabled="false" file-name="private/DensityMap.csv"/>  
 </config>
 

@@ -388,10 +388,11 @@ bool performMainDemand()
 {
 	std::srand(clock()); // set random seed for RNGs in preday
 	const MT_Config& mtConfig = MT_Config::getInstance();
+	const db::BackendType populationSource = mtConfig.getPopulationSource();
 	PredayManager predayManager;
 	predayManager.loadZones(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
-	predayManager.loadPersonIds(db::MONGO_DB);
+	predayManager.loadPersonIds(populationSource);
 	predayManager.loadUnavailableODs(db::MONGO_DB);
 	if(mtConfig.runningPredaySimulation() && mtConfig.isFileOutputEnabled())
 	{
@@ -405,7 +406,8 @@ bool performMainDemand()
 	else
 	{
 		Print() << "Preday mode: " << (mtConfig.runningPredaySimulation()? "simulation":"logsum computation")  << std::endl;
-		predayManager.dispatchPersons();
+		if(populationSource == db::POSTGRES) { predayManager.dispatchLT_Persons(); }
+		else { predayManager.dispatchMongodbPersons(); }
 	}
 	return true;
 }

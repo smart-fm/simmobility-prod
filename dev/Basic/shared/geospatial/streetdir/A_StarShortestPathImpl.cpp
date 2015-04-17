@@ -160,11 +160,6 @@ void sim_mob::A_StarShortestPathImpl::initDrivingNetworkNew(const vector<Link*>&
     	procAddDrivingLaneConnectors(drivingMap_, dynamic_cast<const MultiNode*>(it->first), nodeLookup);
     }
 
-    //Now add BusStops (this mutates the network slightly, by segmenting Edges where a BusStop is located).
-    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-    	procAddDrivingBusStops(drivingMap_, (*iter)->getSegments(), nodeLookup, drivingBusStopLookup_, drivingSegmentLookup_);
-    }
-
     //Finally, add our "master" node vertices
     procAddStartNodesAndEdges(drivingMap_, nodeLookup, drivingNodeLookup_);
 }
@@ -625,21 +620,24 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingLaneConnectors(StreetDirecto
 			throw std::runtime_error("Intersection's Node is unknown by the vertex map.");
 		}
 
+		//sim_mob::Point2D fromPoint;
+		//sim_mob::Point2D toPoint;
 		//Find the "from" and "to" segments' associated end vertices. Keep track of each.
 		for (vector<NodeDescriptor>::const_iterator ndIt=vertCandidates->second.vertices.begin(); ndIt!=vertCandidates->second.vertices.end(); ndIt++) {
 			if (it->first == ndIt->before) {
 				fromVertex.first = ndIt->v;
 				fromVertex.second = true;
+				//fromPoint = ndIt->tempPos;
 			}
 			if (it->second == ndIt->after) {
 				toVertex.first = ndIt->v;
 				toVertex.second = true;
+				//toPoint = ndIt->tempPos;
 			}
 		}
 
 		//Ensure we have both
 		if (!fromVertex.second || !toVertex.second) {
-			//std::cout <<"ERROR_2906" <<std::endl; continue;
 			throw std::runtime_error("Lane connector has no associated vertex.");
 		}
 
@@ -651,9 +649,11 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingLaneConnectors(StreetDirecto
 	    //Calculate the edge length. Treat this as a Node WayPoint.
 	    WayPoint revWP(node);
 	    revWP.directionReverse = true;
-	    DynamicVector lc(fromVertex.second, toVertex.second);
+	    //DynamicVector lc(fromPoint, toPoint);
 	    boost::put(boost::edge_name, graph, edge, revWP);
-	    boost::put(boost::edge_weight, graph, edge, lc.getMagnitude());
+	    //boost::put(boost::edge_weight, graph, edge, lc.getMagnitude());
+	    boost::put(boost::edge_weight, graph, edge, 0);
+
 	}
 }
 

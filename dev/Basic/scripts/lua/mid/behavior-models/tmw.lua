@@ -53,6 +53,9 @@ local beta10_2_cost = -0.0382
 
 local beta_cost_erp = 0 
 local beta_cost_parking = 0
+local AMOD_cost = 10.0
+local AMOD_wt = 0.167  --0.334/2
+local AMOD_wtc = -1.10
 
 local beta_central_bus = 0.512
 local beta_central_mrt = 0.815
@@ -116,9 +119,16 @@ choice["non-PT"] = {4,5,6,7,8,9}
 local utility = {}
 local function computeUtilities(params,dbparams)
 	
-	--dbparams.cost_public_first = AM[(origin,destination)]['pub_cost']
+	-- dbparams.cost_public_first = AM[(origin,destination)]['pub_cost']
 	--origin is home, destination is tour destination
 	--0 if origin == destination
+	local central_dummy = dbparams.central_dummy
+	local cbd_dummy = dbparams.cbd_dummy
+	local cbd_dummy_origin=dbparams.cbd_dummy_origin
+	local person_type_id= params.person_type_id
+	local cost_bus = {}
+	local cost_mrt = {}
+	
 	local cost_public_first = dbparams.cost_public_first
 
 	--dbparams.cost_public_second = PM[(destination,origin)]['pub_cost']
@@ -126,9 +136,15 @@ local function computeUtilities(params,dbparams)
 	--0 if origin == destination
 	local cost_public_second = dbparams.cost_public_second
 
-	local cost_bus=cost_public_first+cost_public_second
-	local cost_mrt=cost_public_first+cost_public_second
-	local cost_privatebus=cost_public_first+cost_public_second
+	if person_type_id == 4 or person_type_id == 6 or person_type_id == 8 then
+		cost_bus=(cost_public_first+cost_public_second) 
+		cost_mrt=(cost_public_first+cost_public_second) 
+	else
+		cost_bus=(cost_public_first+cost_public_second) 
+		cost_mrt=(cost_public_first+cost_public_second)
+	end
+	
+	local cost_privatebus=cost_public_first+cost_public_second + cbd_dummy * AMOD_cost + cbd_dummy_origin *(1-cbd_dummy) * AMOD_cost
 
 	--dbparams.cost_car_ERP_first = AM[(origin,destination)]['car_cost_erp']
 	--dbparams.cost_car_ERP_second = PM[(destination,origin)]['car_cost_erp']
@@ -143,9 +159,9 @@ local function computeUtilities(params,dbparams)
 	local cost_car_OP_second = dbparams.cost_car_OP_second
 	local cost_car_parking = dbparams.cost_car_parking
 
-	local cost_cardriver=cost_car_ERP_first+cost_car_ERP_second+cost_car_OP_first+cost_car_OP_second+cost_car_parking
-	local cost_carpassenger=cost_car_ERP_first+cost_car_ERP_second+cost_car_OP_first+cost_car_OP_second+cost_car_parking
-	local cost_motor=0.5*(cost_car_ERP_first+cost_car_ERP_second+cost_car_OP_first+cost_car_OP_second)+0.65*cost_car_parking
+	local cost_cardriver=cost_car_ERP_first+cost_car_ERP_second+cost_car_OP_first+cost_car_OP_second+cost_car_parking + cbd_dummy * AMOD_cost + cbd_dummy_origin *(1-cbd_dummy) * AMOD_cost
+	local cost_carpassenger=cost_car_ERP_first+cost_car_ERP_second+cost_car_OP_first+cost_car_OP_second+cost_car_parking + cbd_dummy * AMOD_cost + cbd_dummy_origin *  (1-cbd_dummy) * AMOD_cost
+	local cost_motor=0.5*(cost_car_ERP_first+cost_car_ERP_second+cost_car_OP_first+cost_car_OP_second)+0.65*cost_car_parking +cbd_dummy * AMOD_cost + cbd_dummy_origin * (1-cbd_dummy) * AMOD_cost
 
 	--dbparams.walk_distance1= AM[(origin,destination)]['AM2dis']
 	--origin is home mtz, destination is usual work location mtz
@@ -158,7 +174,7 @@ local function computeUtilities(params,dbparams)
 
 	--dbparams.central_dummy=ZONE[destination]['central_dummy']
 	--destination is tour destination
-	local central_dummy = dbparams.central_dummy
+	
 	
 	local female_dummy = params.female_dummy
 	local income_id = params.income_id
@@ -263,11 +279,11 @@ local function computeUtilities(params,dbparams)
 
 	utility[1] = beta_cons_bus + beta1_1_tt * tt_bus_ivt + beta1_2_tt * tt_bus_walk + beta1_3_tt * tt_bus_wait + beta4_1_cost * cost_over_income_bus * (1-missing_income) + beta4_2_cost * cost_bus * missing_income + beta_central_bus * central_dummy + beta_transfer * average_transfer_number + beta_female_bus * female_dummy
 	utility[2] = beta_cons_mrt + beta1_1_tt * tt_mrt_ivt + beta1_2_tt * tt_mrt_walk + beta1_3_tt * tt_mrt_wait + beta4_1_cost * cost_over_income_mrt * (1-missing_income) + beta4_2_cost * cost_mrt * missing_income + beta_central_mrt * central_dummy + beta_transfer * average_transfer_number + beta_female_mrt * female_dummy
-	utility[3] = beta_cons_privatebus + beta_private_1_tt * tt_privatebus_ivt + beta5_1_cost * cost_over_income_privatebus * (1-missing_income) + beta5_2_cost * cost_privatebus * missing_income + beta_central_privatebus * central_dummy + beta_distance*(d1+d2) + beta_residence * residential_size + beta_attraction * work_attraction + beta_residence_2*math.pow(residential_size,2)+beta_attraction_2*math.pow(work_attraction,2)+beta_female_privatebus* female_dummy
-	utility[4] = beta_cons_drive1 + beta2_tt_drive1 * tt_cardriver_all + beta6_1_cost * cost_over_income_cardriver * (1-missing_income) + beta6_2_cost * cost_cardriver * missing_income + beta_female_drive1 * female_dummy + beta_zero_drive1 * zero_car + beta_oneplus_drive1 * one_plus_car + beta_twoplus_drive1 * two_plus_car + beta_threeplus_drive1 * three_plus_car
-	utility[5] = beta_cons_share2 + beta2_tt_share2 * tt_carpassenger_all + beta7_1_cost * cost_over_income_carpassenger/2 * (1-missing_income) + beta7_2_cost * cost_carpassenger/2 * missing_income  + beta_central_share2 * central_dummy + beta_female_share2 * female_dummy + beta_zero_share2 * zero_car + beta_oneplus_share2 * one_plus_car + beta_twoplus_share2 * two_plus_car + beta_threeplus_share2 * three_plus_car
-	utility[6] = beta_cons_share3 + beta2_tt_share3 * tt_carpassenger_all + beta8_1_cost * cost_over_income_carpassenger/3 * (1-missing_income) + beta8_2_cost * cost_carpassenger/3 * missing_income  + beta_central_share3 * central_dummy + beta_female_share3 * female_dummy + beta_zero_share3 * zero_car + beta_oneplus_share3 * one_plus_car + beta_twoplus_share3 * two_plus_car + beta_threeplus_share3 * three_plus_car
-	utility[7] = beta_cons_motor + beta2_tt_motor * tt_motor_all + beta9_1_cost * cost_over_income_motor * (1-missing_income) + beta9_2_cost * cost_motor * missing_income  + beta_central_motor * central_dummy + beta_zero_motor * zero_motor + beta_oneplus_motor * one_plus_motor + beta_twoplus_motor * two_plus_motor + beta_threeplus_motor * three_plus_motor + beta_female_motor * female_dummy
+	utility[3] = beta_cons_privatebus + beta_private_1_tt * tt_privatebus_ivt + beta5_1_cost * cost_over_income_privatebus * (1-missing_income) + beta5_2_cost * cost_privatebus * missing_income + beta_central_privatebus * central_dummy + beta_distance*(d1+d2) + beta_residence * residential_size + beta_attraction * work_attraction + beta_residence_2*math.pow(residential_size,2)+beta_attraction_2*math.pow(work_attraction,2)+beta_female_privatebus* female_dummy + AMOD_wtc * cbd_dummy * AMOD_wt + AMOD_wtc * cbd_dummy_origin * (1-cbd_dummy) * AMOD_wt
+	utility[4] = beta_cons_drive1 + beta2_tt_drive1 * tt_cardriver_all + beta6_1_cost * cost_over_income_cardriver * (1-missing_income) + beta6_2_cost * cost_cardriver * missing_income + beta_female_drive1 * female_dummy + beta_zero_drive1 * zero_car + beta_oneplus_drive1 * one_plus_car + beta_twoplus_drive1 * two_plus_car + beta_threeplus_drive1 * three_plus_car  + AMOD_wtc * cbd_dummy * AMOD_wt + AMOD_wtc * cbd_dummy_origin * (1-cbd_dummy) * AMOD_wt
+	utility[5] = beta_cons_share2 + beta2_tt_share2 * tt_carpassenger_all + beta7_1_cost * cost_over_income_carpassenger/2 * (1-missing_income) + beta7_2_cost * cost_carpassenger/2 * missing_income  + beta_central_share2 * central_dummy + beta_female_share2 * female_dummy + beta_zero_share2 * zero_car + beta_oneplus_share2 * one_plus_car + beta_twoplus_share2 * two_plus_car + beta_threeplus_share2 * three_plus_car + AMOD_wtc * cbd_dummy * AMOD_wt + AMOD_wtc * cbd_dummy_origin * (1-cbd_dummy) * AMOD_wt
+	utility[6] = beta_cons_share3 + beta2_tt_share3 * tt_carpassenger_all + beta8_1_cost * cost_over_income_carpassenger/3 * (1-missing_income) + beta8_2_cost * cost_carpassenger/3 * missing_income  + beta_central_share3 * central_dummy + beta_female_share3 * female_dummy + beta_zero_share3 * zero_car + beta_oneplus_share3 * one_plus_car + beta_twoplus_share3 * two_plus_car + beta_threeplus_share3 * three_plus_car + AMOD_wtc * cbd_dummy * AMOD_wt + AMOD_wtc * cbd_dummy_origin * (1-cbd_dummy) * AMOD_wt
+	utility[7] = beta_cons_motor + beta2_tt_motor * tt_motor_all + beta9_1_cost * cost_over_income_motor * (1-missing_income) + beta9_2_cost * cost_motor * missing_income  + beta_central_motor * central_dummy + beta_zero_motor * zero_motor + beta_oneplus_motor * one_plus_motor + beta_twoplus_motor * two_plus_motor + beta_threeplus_motor * three_plus_motor + beta_female_motor * female_dummy + AMOD_wtc * cbd_dummy * AMOD_wt + AMOD_wtc * cbd_dummy_origin * (1-cbd_dummy) * AMOD_wt
 	utility[8] = beta_cons_walk  + beta_tt_walk * tt_walk + beta_central_walk * central_dummy+ beta_female_walk * female_dummy
 	utility[9] = beta_cons_taxi + beta_tt_taxi * tt_taxi_all + beta10_1_cost * cost_over_income_taxi * (1-missing_income) + beta10_2_cost * cost_taxi * missing_income + beta_central_taxi * central_dummy + beta_female_taxi * female_dummy
 

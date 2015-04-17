@@ -30,14 +30,14 @@ local beta_DEP_2_2 = -0.878
 local beta_DEP_2_3 = -0.275 
 local beta_DEP_2_1 = 0.235 
 local beta_DEP_2_6 = 0.192
-local beta_TT1 = 0.0
+local beta_TT1 = -0.736
 local beta_DEP_2_4 = -1.33 
 local beta_DEP_2_5 = -0.732 
 local beta_DEP_1_5 = 4.26 
 local beta_DEP_1_4 = 12.5 
 local beta_DEP_1_6 = -1.64 
 local beta_DEP_1_1 = -9.33 
-local beta_TT2 = 0.0
+local beta_TT2 = -0.736
 local beta_DEP_1_3 = 1.47 
 local beta_DEP_1_2 = 4.81
 
@@ -100,15 +100,18 @@ local function computeUtilities(params,dbparams)
 	--local person_type_id = params.person_type_id 
 	-- gender in this model is the same as female_dummy
 	local gender = params.female_dummy
+	local cbd_dummy =dbparams.cbd_dummy
+	local cbd_dummy_origin = dbparams.cbd_dummy_origin
 	-- work time flexibility 1 for fixed hour, 2 for flexible hour
 	--local worktime = params.worktime
+	local AMOD_cost = 10
 
-	local cost_HT1_am = dbparams.cost_HT1_am
-	local cost_HT1_pm = dbparams.cost_HT1_pm
-	local cost_HT1_op = dbparams.cost_HT1_op
-	local cost_HT2_am = dbparams.cost_HT2_am
-	local cost_HT2_pm = dbparams.cost_HT2_pm
-	local cost_HT2_op = dbparams.cost_HT2_op
+	local cost_HT1_am = dbparams.cost_HT1_am + (cbd_dummy * AMOD_cost + cbd_dummy_origin * (1-cbd_dummy)* AMOD_cost)*0.5 
+	local cost_HT1_pm = dbparams.cost_HT1_pm + (cbd_dummy * AMOD_cost + cbd_dummy_origin * (1-cbd_dummy)* AMOD_cost)*0.5 
+	local cost_HT1_op = dbparams.cost_HT1_op + (cbd_dummy * AMOD_cost + cbd_dummy_origin * (1-cbd_dummy)* AMOD_cost)*0.5 
+	local cost_HT2_am = dbparams.cost_HT2_am + (cbd_dummy * AMOD_cost + cbd_dummy_origin * (1-cbd_dummy)* AMOD_cost)*0.5 
+	local cost_HT2_pm = dbparams.cost_HT2_pm + (cbd_dummy * AMOD_cost + cbd_dummy_origin * (1-cbd_dummy)* AMOD_cost)*0.5 
+	local cost_HT2_op = dbparams.cost_HT2_op + (cbd_dummy * AMOD_cost + cbd_dummy_origin * (1-cbd_dummy)* AMOD_cost)*0.5 
 	
 	local pow = math.pow
 	for i =1,1176 do

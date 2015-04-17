@@ -103,7 +103,7 @@ void BusDriverMovement::frame_tick() {
 			DriverMovement::moveToNextSegment(params);
 		}
 	}
-	if(params.elapsedSeconds < params.secondsInTick)
+	if(!parent->requestedNextSegStats && params.elapsedSeconds < params.secondsInTick)
 	{
 		DriverMovement::frame_tick();
 	}

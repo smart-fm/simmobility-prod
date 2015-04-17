@@ -125,49 +125,57 @@ struct LinkHelperStruct {
 	set<Section*> sections;
 	LinkHelperStruct() : start(nullptr), end(nullptr) {}
 };
+
 vector<LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& nodes, map<int, Section>& sections)
 {
 	//We can index on anything. We'll do a "start,end" index, and just check for both.
 	map<std::pair<sim_mob::Node*, sim_mob::Node*>, LinkHelperStruct> res;
 
 	//Build our index.
-	for (map<int, Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
+	for (map<int, Section>::iterator it=sections.begin(); it!=sections.end(); it++)
+	{
 		//Add an item if it doesn't exist.
 		sim_mob::Link* parent = it->second.generatedSegment->getLink();
 		map<std::pair<sim_mob::Node*, sim_mob::Node*>, LinkHelperStruct>::iterator helpIt = res.find(std::make_pair(parent->getStart(), parent->getEnd()));
-		if (helpIt==res.end()) {
+		if (helpIt==res.end())
+		{
 			//Try again
 			helpIt = res.find(std::make_pair(parent->getEnd(), parent->getStart()));
-			if (helpIt==res.end()) {
-			//Add it.
-			res[std::make_pair(parent->getStart(), parent->getEnd())];
+			if (helpIt==res.end())
+			{
+				//Add it.
+				res[std::make_pair(parent->getStart(), parent->getEnd())];
 
-			//Try again
-			helpIt = res.find(std::make_pair(parent->getStart(), parent->getEnd()));
+				//Try again
+				helpIt = res.find(std::make_pair(parent->getStart(), parent->getEnd()));
 
-			//Sanity check.
-			if (helpIt==res.end()) { throw std::runtime_error("Unexpected Insert failed in LaneLoader."); }
-		}
+				//Sanity check.
+				if (helpIt==res.end()) { throw std::runtime_error("Unexpected Insert failed in LaneLoader."); }
+			}
 		}
 
 		//Always add the section
 		helpIt->second.sections.insert(&(it->second));
 
 		//Conditionally add the start/end
-		if (!helpIt->second.start) {
+		if (!helpIt->second.start)
+		{
 			if (it->second.fromNode->generatedNode == parent->getStart()) {
-			helpIt->second.start = it->second.fromNode;
-			} else if (it->second.toNode->generatedNode == parent->getStart()) {
+				helpIt->second.start = it->second.fromNode;
+			}
+			else if (it->second.toNode->generatedNode == parent->getStart()) {
 				helpIt->second.start = it->second.toNode;
+			}
 		}
-		}
-		if (!helpIt->second.end) {
+		if (!helpIt->second.end)
+		{
 			if (it->second.fromNode->generatedNode == parent->getEnd()) {
 				helpIt->second.end = it->second.fromNode;
-			} else if (it->second.toNode->generatedNode == parent->getEnd()) {
-			helpIt->second.end = it->second.toNode;
+			}
+			else if (it->second.toNode->generatedNode == parent->getEnd()) {
+				helpIt->second.end = it->second.toNode;
+			}
 		}
-	}
 	}
 
 	//Actual results
@@ -644,6 +652,7 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 
 void sim_mob::aimsun::LaneLoader::DecorateLanes(map<int, Section>& sections, vector<Lane>& lanes)
 {
+	if(lanes.empty()) { return; }
 	//Step 4.5: Add all Lanes to their respective Sections. Then sort each line segment
 	for (vector<Lane>::iterator it=lanes.begin(); it!=lanes.end(); it++) {
 		it->atSection->laneLinesAtNode[it->laneID].push_back(&(*it));
@@ -662,7 +671,7 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLanes(const sim_mob::RoadNetwork& 
 {
 	vector<LinkHelperStruct> lhs = buildLinkHelperStruct(nodes, sections);
 	for (vector<LinkHelperStruct>::iterator it=lhs.begin(); it!=lhs.end(); it++) {
-			LaneLoader::GenerateLinkLaneZero(rn, it->start, it->end, it->sections);
+		LaneLoader::GenerateLinkLaneZero(rn, it->start, it->end, it->sections);
 	}
 }
 

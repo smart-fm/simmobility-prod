@@ -38,6 +38,24 @@ using namespace sim_mob;
 
 namespace{
 sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
+
+/**
+ * constructs a template for subtrip to use for bulk generation of pathsets
+ */
+sim_mob::SubTrip makeTemplateSubTrip()
+{
+	sim_mob::SubTrip subTrip;
+	subTrip.setPersonID(std::string());
+	subTrip.itemType = sim_mob::TripChainItem::IT_TRIP;
+	subTrip.tripID = "1";
+	subTrip.fromLocationType = sim_mob::TripChainItem::LT_NODE;
+	subTrip.toLocationType = sim_mob::TripChainItem::LT_NODE;
+	subTrip.mode = "Car";
+	subTrip.isPrimaryMode = true;
+	subTrip.startTime = sim_mob::DailyTime("00:00:00");
+	return subTrip;
+}
+
 }
 double getPathTravelCost(sim_mob::SinglePath *sp,const std::string & travelMode, const sim_mob::DailyTime & startTime_);
 sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::RoadSegment *rs);
@@ -606,47 +624,44 @@ namespace
 
 void sim_mob::PathSetManager::bulkPathSetGenerator()
 {
-	std::string storedProcName = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["day_activity_schedule"];
-	if (!storedProcName.size()) { return; }
+	const std::string odSourceTableName = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().odSourceTableName;
+	sim_mob::RoadNetwork& rn = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW();
+	if (odSourceTableName.empty()) { return; }
 	//Our SQL statement
 	stringstream query;
 	Print() << "Reading Demand...  " ;
-	query << "select * from " << storedProcName << "(0,30)";
+	query << "select * from " << odSourceTableName;
 	soci::rowset<soci::row> rs = ((*getSession()).prepare << query.str());
-	std::set<Trip*, TripComp> tripchains;
+	std::set<OD> odPairs;
 	int cnt = 0;
+	sim_mob::Node* originNode = nullptr;
+	sim_mob::Node* destinationNode = nullptr;
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
+		const soci::row& r = (*it);
 		cnt++;
-		Trip* trip = sim_mob::PeriodicPersonLoader::makeTrip(*it,0);
-		if(!trip || !tripchains.insert(trip).second)//todo, sequence number is NOT needed for now. But if needed later, make proper modifications
-		{
-			safe_delete_item(trip);
-		}
+		originNode = rn.getNodeById(r.get<int>(0));
+		destinationNode = rn.getNodeById(r.get<int>(1));
+		odPairs.insert(OD(originNode, destinationNode));
 	}
-	Print() << "TRIPCHAINS: " << cnt << "][DISTINICT :" <<  tripchains.size() << "]" << std::endl;
+	Print() << "[DISTINICT ODs:" <<  odPairs.size() << "]" << std::endl;
 
 	sim_mob::Profiler t("bulk generator details", true);
 	int total = 0, iterCnt1 = 0, iterCnt2 = 0;
 	std::set<OD> recursiveOrigins;
 	std::set<const RoadSegment*> tempBlackList;
-	BOOST_FOREACH(Trip* trip, tripchains)
+	sim_mob::SubTrip templateSubTrip = makeTemplateSubTrip();
+	BOOST_FOREACH(const OD& od, odPairs)
 	{
-		const std::vector<sim_mob::SubTrip>& subTrips = trip->getSubTrips();
-		BOOST_FOREACH(const SubTrip& subTrip, subTrips)
-		{
-			if(!recursiveOrigins.insert(OD(subTrip.fromLocation.node_, subTrip.toLocation.node_)).second)
-			{
-				continue;
-			}
+		templateSubTrip.fromLocation = od.origin;
+		templateSubTrip.toLocation = od.destination;
+		if(!recursiveOrigins.insert(od).second) { continue; }
 
-			boost::shared_ptr<sim_mob::PathSet> ps_(new PathSet());
-			ps_->id = getFromToString(subTrip.fromLocation.node_, subTrip.toLocation.node_);
-			ps_->scenario = scenarioName;
-			ps_->subTrip = subTrip;
-			int r = 0;
-			threadpool_->enqueue(boost::bind(&sim_mob::PathSetManager::generateAllPathChoices, this,ps_, boost::ref(recursiveOrigins), boost::ref(tempBlackList)));
-		}
+		boost::shared_ptr<sim_mob::PathSet> ps_(new PathSet());
+		ps_->id = od.getOD_Str();
+		ps_->scenario = scenarioName;
+		ps_->subTrip = templateSubTrip;
+		threadpool_->enqueue(boost::bind(&sim_mob::PathSetManager::generateAllPathChoices, this, ps_, boost::ref(recursiveOrigins), boost::ref(tempBlackList)));
 	}
 	threadpool_->wait();
 }
@@ -1620,7 +1635,7 @@ bool sim_mob::PathSetManager::getBestPathChoiceFromPathSet(boost::shared_ptr<sim
 			// 2.3 agent A chooses path i from the path choice set.
 			ps->bestPath = &(sp->path);
 			logger << "[LOGIT][" << sp->pathSetId <<  "] [" << i << " out of " << ps->pathChoices.size()  << " paths chosen] [UTIL: " <<  sp->utility << "] [LOGSUM: " << ps->logsum << "][exp(sp->utility)/(ps->logsum) : " << prob << "][X:" << random << "]\n";
-			utilityDbg << "\nselect: " << sp->pathSetId  << ":" << sp->scenario << "\n";
+			utilityDbg << "\nselect: " << sp->pathSetId  << "|" << sp->scenario << "|[" << sp->scenario << "," << sp->utility << "," << prob << "," << upperProb << "]" << "\n";
 			sim_mob::Logger::log("path_selection") << utilityDbg.str() << "\n-------------------------------------------------------\n";
 			return true;
 		}
@@ -1668,8 +1683,8 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::findShortestDrivingPath(
 				out <<	rs->originalDB_ID.getLogItem() << "]" << ",";
 			}
 		}
-		logger<< "No shortest driving path for nodes[" << fromNode->originalDB_ID.getLogItem() << "] and [" <<
-		toNode->originalDB_ID.getLogItem() << "]" << out.str() << "\n";
+		logger<< "No shortest driving path for nodes[" << fromNode->originalDB_ID.getLogItem() << "] and ["
+				<< toNode->originalDB_ID.getLogItem() << "]" << out.str() << "\n";
 		return s;
 	}
 	// make sp id

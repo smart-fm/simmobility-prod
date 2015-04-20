@@ -297,9 +297,9 @@ public:
 		educationOP = educationOp;
 	}
 
-	bool isCbdDestZone() const
+	int isCbdDestZone() const
 	{
-		return cbdDestZone;
+		return (cbdDestZone? 1 : 0);
 	}
 
 	void setCbdDestZone(bool cbdZone)
@@ -307,9 +307,9 @@ public:
 		this->cbdDestZone = cbdZone;
 	}
 
-	bool isCbdOrgZone() const
+	int isCbdOrgZone() const
 	{
-		return cbdOrgZone;
+		return (cbdOrgZone? 1 : 0);
 	}
 
 	void setCbdOrgZone(bool cbdOrgZone)

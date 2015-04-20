@@ -49,6 +49,8 @@ int minID(const vector<double>& vals)
 
 void sim_mob::aimsun::CrossingLoader::DecorateCrossings(map<int, Node>& nodes, vector<Crossing>& crossings)
 {
+	if(crossings.empty()) { return; }
+
 	//Step 5: Tag all Nodes with the crossings that are near to these nodes.
 	for (vector<Crossing>::iterator it=crossings.begin(); it!=crossings.end(); it++) {
 		//Given the section this crossing is on, find which node on the section it is closest to.

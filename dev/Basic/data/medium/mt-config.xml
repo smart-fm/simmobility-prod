@@ -16,7 +16,7 @@
                 <!-- these parameters will be organized in a better way after finding the meaning of these numbers -->
                 <dwell_time_parameters>
                 <!--parameters : minimum and maximum of fixed dwelling time, minimum and maximum of individual dwelling time-->
-                <parameters value="2.0, 10.0, 2.0, 3.0"/>
+                <parameters value="7.0, 10.0, 2.0, 3.0"/>
                 </dwell_time_parameters>
 
                 <!-- pedestrian walking speed in cm/s (approximately 5 km/h)-->
@@ -53,8 +53,8 @@
                      Value 'mongodb' is default for source. 
                      Database and credentials attributes are required only for pgsql source.
                      Valid ids from the list constructs list have to be specified -->
-                <population source="pgsql" database="fm_remote_lt" credential="lt_cred"/>
-                <logsum source="pgsql" database="fm_local" credential="harish_cred"/>
+                <population source="mongodb" database="fm_remote_lt" credential="lt_cred"/>
+                <logsum source="mongodb" database="fm_local" credential="harish_cred"/>
                 
                 <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
                         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
@@ -91,7 +91,7 @@
                         <mongo_collection name="OPCosts" collection="OPCosts"/>
                         <mongo_collection name="PMCosts" collection="PMCosts"/>
                         <mongo_collection name="Zone" collection="Zone"/>
-                        <mongo_collection name="zone_node" collection="node_mtz3"/>
+                        <mongo_collection name="zone_node" collection="node_mtz_6AprNW"/>
                         <mongo_collection name="Output_DayPattern" collection="daypattern_1601_1"/>
                         <mongo_collection name="Output_Tour" collection="tour_1601_1"/>
                         <mongo_collection name="Output_Activity" collection="activity_1601_1"/>

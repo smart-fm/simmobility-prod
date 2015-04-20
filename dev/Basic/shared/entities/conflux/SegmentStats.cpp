@@ -452,13 +452,7 @@ double SegmentStats::getDensity(bool hasVehicle)
 	double movingPCUs = getMovingLength() / PASSENGER_CAR_UNIT;
 	if (movingPartLength > PASSENGER_CAR_UNIT)
 	{
-		/*Some lines in this if section are commented as per Yang Lu's suggestion */
-		//if (roadSegment->getLaneZeroLength() > 10*vehicle_length) {
 		density = movingPCUs / (movingPartLength / 100.0);
-		//}
-		//else {
-		//	density = queueCount/(movingLength/100.0);
-		//}
 	}
 	else
 	{
@@ -1106,7 +1100,7 @@ void LaneStats::verifyOrdering()
 		{
 			std::stringstream debugMsgs;
 			debugMsgs << "Invariant violated: Ordering of laneAgents does not reflect ordering w.r.t. distance to end of segment." << "\nSegment: "
-					<< lane->getRoadSegment()->getStartEnd() << " length = " << lane->getRoadSegment()->getLaneZeroLength() << "\nLane: " << lane->getLaneID()
+					<< lane->getRoadSegment()->getStartEnd() << " length = " << lane->getRoadSegment()->getPolylineLength() << "\nLane: " << lane->getLaneID()
 					<< "\nCulprit Person: " << (*i)->getId();
 			debugMsgs << "\nAgents ";
 			for (PersonList::const_iterator j = laneAgents.begin(); j != laneAgents.end(); j++)

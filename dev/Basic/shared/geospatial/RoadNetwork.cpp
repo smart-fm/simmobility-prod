@@ -52,9 +52,9 @@ void sim_mob::RoadNetwork::storeTurningSection(sim_mob::TurningSection* turningS
 	}
 	
 	//Store to MultiNode
-	std::string multinodeId = fromSeg->getEnd()->originalDB_ID.getLogItem();
-	multinodeId = Utils::getNumberFromAimsunId(multinodeId);
-	sim_mob::MultiNode *multinode = getMultiNodeById(multinodeId);
+	std::stringstream multinodeId;
+	multinodeId << fromSeg->getEnd()->getID();
+	sim_mob::MultiNode *multinode = getMultiNodeById(multinodeId.str());
 	
 	if(!multinode)
 	{ 

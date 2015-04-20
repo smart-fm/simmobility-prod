@@ -373,7 +373,7 @@
 	<param name="intersection_attentivneess_factor_max" value="0.6"/>
 	
 	<!--Minimum gap-->
-	<param name="minimum_gap" value="2.5"/>
+	<param name="minimum_gap" value="1.25"/>
 	
 	<!--Critical gap random addon
 											mean	std.dev-->

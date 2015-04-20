@@ -75,8 +75,6 @@ public:
 	//  (e.g., Node ID reference that doesn't exist).
 	static void LoadNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof);
     static void loadSegNodeType(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn);
-    static void loadSimmobTurnings(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn);
-    static void storeTurningPoints(const std::string& connectionStr,  sim_mob::RoadNetwork& rn);
     static bool LoadPathSetDataWithId(const std::string& connectionStr,
 			std::map<std::string,sim_mob::SinglePath*>& pathPool,
 			std::map<std::string,SinglePath*> &waypoint_singlepathPool,

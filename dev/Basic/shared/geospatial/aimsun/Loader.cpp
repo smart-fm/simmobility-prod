@@ -116,9 +116,7 @@ public:
 	 *  /param rn road network object
 	 */
 	void loadObjectType(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
-	void loadTurningSection(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
-	void loadTurningPolyline(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
-	void loadPolypoint(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
+	void LoadTurningSection(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
 	void storeTurningPoints(sim_mob::RoadNetwork& rn);
 	void LoadERP_Surcharge(std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >& pool);
 	void LoadERP_Section(std::map<std::string,sim_mob::ERP_Section*>& ERP_SectionPool);
@@ -195,10 +193,10 @@ private:
 	void loadSegmentTypeTable(const std::string& storedProc,std::map<string,int>& segTypeMap);
 	void loadNodeTypeTable(const std::string& storedProc,std::map<string,int>& nodeTypeMap);
 
-	void loadTurningSectionTable(const std::string& storedProc,sim_mob::RoadNetwork& rn);
-	void loadTurningConflictTable(const std::string& storedProc,sim_mob::RoadNetwork& rn);
-	void loadTurningPolyline(const std::string& storedProc,sim_mob::RoadNetwork& rn);
-	void loadPolypointByPolyline(sim_mob::TurningPolyline *t);
+	void loadTurningSectionTable(const std::string& storedProc, sim_mob::RoadNetwork& rn);
+	void loadTurningConflictTable(const std::string& storedProc, sim_mob::RoadNetwork& rn);
+	void loadTurningPolyline(const std::string& storedProc, const std::string& pointsStoredProc, sim_mob::RoadNetwork& rn);
+	void loadPolypointByPolyline(const std::string& storedProc, sim_mob::TurningPolyline *t);
 public:
 	void LoadTripchains(const std::string& storedProc);
 
@@ -596,7 +594,7 @@ void DatabaseLoader::loadTurningSectionTable(const std::string& storedProc,sim_m
 		std::cout<<"loadTurningSectionTable: "<<err.what()<<std::endl;
 	}
 }
-void DatabaseLoader::loadTurningPolyline(const std::string& storedProc,sim_mob::RoadNetwork& rn) {
+void DatabaseLoader::loadTurningPolyline(const std::string& storedProc, const std::string& pointsStoredProc, sim_mob::RoadNetwork& rn) {
 	try
 	{
 		if(storedProc.empty())
@@ -606,10 +604,11 @@ void DatabaseLoader::loadTurningPolyline(const std::string& storedProc,sim_mob::
 		}
 		
 		soci::rowset<sim_mob::TurningPolyline> ts = (sql_.prepare << "select * from " + storedProc);
+		
 		for (soci::rowset<sim_mob::TurningPolyline>::const_iterator it=ts.begin(); it!=ts.end(); ++it)  {
 			sim_mob::TurningPolyline *t = new sim_mob::TurningPolyline(*it);
-			// load polypoint
-			loadPolypointByPolyline(t);
+			// load poly-point
+			loadPolypointByPolyline(pointsStoredProc, t);
 			rn.storeTurningPolyline(t);
 		}
 	}
@@ -618,12 +617,12 @@ void DatabaseLoader::loadTurningPolyline(const std::string& storedProc,sim_mob::
 		std::cout<<"loadTurningPolyline: "<<err.what()<<std::endl;
 	}
 }
-void DatabaseLoader::loadPolypointByPolyline(sim_mob::TurningPolyline *t) {
+void DatabaseLoader::loadPolypointByPolyline(const std::string& pointsStoredProc, sim_mob::TurningPolyline *t) {
 	try
 	{
 		std::stringstream s;
-		s<<"select * from \"Polypoints\" where \"polyline\"= '"<<t->id<<"'"<<" order by index asc";
-		soci::rowset<sim_mob::Polypoint> ts = (sql_.prepare <<s.str() );
+		s << "select * form " << pointsStoredProc << "('" << t->id << "')";
+		soci::rowset<sim_mob::Polypoint> ts = (sql_.prepare << s.str());
 		for (soci::rowset<sim_mob::Polypoint>::const_iterator it=ts.begin(); it!=ts.end(); ++it)  {
 			sim_mob::Polypoint *p = new sim_mob::Polypoint(*it);
 			p->x = p->x*100.0;
@@ -1184,7 +1183,7 @@ void DatabaseLoader::LoadObjectsForShortTerm(map<string, string> const & storedP
 	LoadLanes(getStoredProcedure(storedProcs, "lane"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain", false));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal", false));
-	LoadPhase(getStoredProcedure(storedProcs, "phase"));
+	LoadPhase(getStoredProcedure(storedProcs, "phase"));	
 
 	//add by xuyan
 	//load in boundary segments (not finished!)
@@ -1195,6 +1194,18 @@ void DatabaseLoader::LoadObjectsForShortTerm(map<string, string> const & storedP
 	}
 #endif
 
+}
+
+void DatabaseLoader::LoadTurningSection(const map<string,string>& storedProcs, sim_mob::RoadNetwork& rn)
+{
+	// load turnings and turning conflicts
+	loadTurningSectionTable(getStoredProcedure(storedProcs, "turning_section", false), rn);
+	loadTurningConflictTable(getStoredProcedure(storedProcs, "turning_conflict", false), rn);
+	loadTurningPolyline(getStoredProcedure(storedProcs, "turning_polyline", false),
+						getStoredProcedure(storedProcs, "turning_polypoints", false), rn);
+
+	// store turning start, to polyline points to db
+	//storeTurningPoints(rn);
 }
 
 void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedProcs)
@@ -1212,20 +1223,7 @@ void DatabaseLoader::loadObjectType(map<string, string> const & storedProcs,sim_
 	loadSegmentTypeTable(getStoredProcedure(storedProcs, "segment_type"),rn.segmentTypeMap);
 	loadNodeTypeTable(getStoredProcedure(storedProcs, "node_type"),rn.nodeTypeMap);
 }
-void DatabaseLoader::loadTurningSection(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)
-{
-	loadTurningSectionTable(getStoredProcedure(storedProcs, "turning_section", false), rn);
-	loadTurningConflictTable(getStoredProcedure(storedProcs, "turning_conflict", false), rn);
-	loadTurningPolyline(getStoredProcedure(storedProcs, "turning_polyline", false), rn);
-}
-void DatabaseLoader::loadTurningPolyline(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)
-{
-	loadTurningPolyline(getStoredProcedure(storedProcs, "turning_polyline",false), rn);
-}
-void DatabaseLoader::loadPolypoint(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn)
-{
-//	loadPolypoint(getStoredProcedure(storedProcs, "polypoint"), rn);
-}
+
 //Compute the distance from the source node of the polyline to a
 // point on the line from the source to the destination nodes which
 // is normal to the Poly-point.
@@ -2720,17 +2718,7 @@ void sim_mob::aimsun::Loader::loadSegNodeType(const std::string& connectionStr, 
 	// load segment type data, node type data
 	loader.loadObjectType(storedProcs,rn);
 }
-void sim_mob::aimsun::Loader::loadSimmobTurnings(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn)
-{
-	DatabaseLoader loader(connectionStr);
-	// load segment type data, node type data
-	loader.loadTurningSection(storedProcs,rn);
-}
-void sim_mob::aimsun::Loader::storeTurningPoints(const std::string& connectionStr,  sim_mob::RoadNetwork& rn) {
-	DatabaseLoader loader(connectionStr);
-		// load segment type data, node type data
-	loader.storeTurningPoints(rn);
-}
+
 void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
 {
 	std::cout << "Attempting to connect to database (generic)" << std::endl;
@@ -2752,7 +2740,7 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 		loader.LoadObjectsForShortTerm(storedProcs);
 
 		// load segment type data, node type data
-		loader.loadObjectType(storedProcs,rn);
+		loader.loadObjectType(storedProcs, rn);
 	}
 
 	//Step 1.1: Load "new style" objects, which don't require any post-processing.
@@ -2812,6 +2800,8 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 		loader.TransferBoundaryRoadSegment();
 	}
 #endif
+	
+	loader.LoadTurningSection(storedProcs, rn);	
 
 	std::cout <<"AIMSUN Network successfully imported.\n";
 
@@ -2821,13 +2811,6 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	loader.LoadOD_Trips(getStoredProcedure(storedProcs, "od_trips", false), config.getODsTripsMap());
 
 	rn.makeSegPool();
-	// load turnings and turning conflicts
-	loadSimmobTurnings(connectionStr,
-			storedProcs,
-					rn);
-	// store turning start, to polyline points to db
-	storeTurningPoints(connectionStr,
-						rn);
 }
 
 void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdSeg, std::list<sim_mob::SegmentStats*>& splitSegmentStats) {

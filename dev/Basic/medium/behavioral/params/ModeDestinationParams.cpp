@@ -242,7 +242,7 @@ void TourModeDestinationParams::setModeForParentWorkTour(int modeForParentWorkTo
 
 int sim_mob::medium::TourModeDestinationParams::isCbdOrgZone() const
 {
-	return cbdOrgZone;
+	return (cbdOrgZone? 1 : 0);
 }
 
 StopModeDestinationParams::StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
@@ -472,5 +472,5 @@ int StopModeDestinationParams::isSecondBound() const
 
 int sim_mob::medium::StopModeDestinationParams::isCbdOrgZone() const
 {
-	return cbdOrgZone;
+	return (cbdOrgZone? 1 : 0);
 }

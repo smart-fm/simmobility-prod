@@ -113,7 +113,7 @@ public:
 
 	int getCbdDummy() const
 	{
-		return cbdZone;
+		return (cbdZone? 1 : 0);
 	}
 
 	void setCbdDummy(bool cbdZone)

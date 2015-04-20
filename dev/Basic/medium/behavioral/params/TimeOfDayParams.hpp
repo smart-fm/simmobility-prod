@@ -103,9 +103,9 @@ public:
 		costHT2_PM = costHt2Pm;
 	}
 
-	bool isCbdDestZone() const
+	int isCbdDestZone() const
 	{
-		return cbdDestZone;
+		return (cbdDestZone? 1 : 0);
 	}
 
 	void setCbdDestZone(bool cbdDestZone)
@@ -113,9 +113,9 @@ public:
 		this->cbdDestZone = cbdDestZone;
 	}
 
-	bool isCbdOrgZone() const
+	int isCbdOrgZone() const
 	{
-		return cbdOrgZone;
+		return (cbdOrgZone? 1 : 0);
 	}
 
 	void setCbdOrgZone(bool cbdOrgZone)
@@ -248,9 +248,9 @@ public:
 		return 0; // anything else is unavailable
 	}
 
-	bool isCbdDestZone() const
+	int isCbdDestZone() const
 	{
-		return cbdDestZone;
+		return (cbdDestZone? 1 : 0);
 	}
 
 	void setCbdDestZone(bool cbdDestZone)
@@ -258,9 +258,9 @@ public:
 		this->cbdDestZone = cbdDestZone;
 	}
 
-	bool isCbdOrgZone() const
+	int isCbdOrgZone() const
 	{
-		return cbdOrgZone;
+		return (cbdOrgZone? 1 : 0);
 	}
 
 	void setCbdOrgZone(bool cbdOrgZone)

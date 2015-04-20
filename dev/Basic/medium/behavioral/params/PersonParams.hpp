@@ -681,9 +681,9 @@ public:
 	 */
 	bool allWindowsUnavailable();
 
-	bool isCbdDestZone() const
+	int isCbdDestZone() const
 	{
-		return cbdDestZone;
+		return (cbdDestZone? 1 : 0);
 	}
 
 	void setCbdDestZone(bool cbdDestZone)
@@ -691,9 +691,9 @@ public:
 		this->cbdDestZone = cbdDestZone;
 	}
 
-	bool isCbdOrgZone() const
+	int isCbdOrgZone() const
 	{
-		return cbdOrgZone;
+		return (cbdOrgZone? 1 : 0);
 	}
 
 	void setCbdOrgZone(bool cbdOrgZone)

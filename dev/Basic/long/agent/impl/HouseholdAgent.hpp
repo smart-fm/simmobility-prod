@@ -89,10 +89,13 @@ namespace sim_mob
             HM_Model* model;
             HousingMarket* market;
             const Household* household;
+
             IdVector unitIds;
             IdVector preferableZones;
+
             HouseholdBidderRole* bidder;
             HouseholdSellerRole* seller;
+
             bool marketSeller; //tells if the agent is only a fake market seller
             int day;
         };

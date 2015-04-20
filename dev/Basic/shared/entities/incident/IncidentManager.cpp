@@ -3,16 +3,17 @@
 
 //#include <entities/roles/Role.hpp>
 //#include <entities/roles/RoleFacets.hpp>
-#include <entities/roles/driver/DriverFacets.hpp>
+//#include <entities/roles/driver/DriverFacets.hpp>
 #include <entities/conflux/Conflux.hpp>
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "conf/ConfigParams.hpp"
 #include "path/PathSetManager.hpp"
 #include "message/MessageBus.hpp"
 #include "conf/ConfigManager.hpp"
 #include <boost/tokenizer.hpp>
 
 namespace{
-sim_mob::BasicLogger & logger = sim_mob::Logger::log("path_set");
+sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
 }
 
 sim_mob::IncidentManager * sim_mob::IncidentManager::instance = 0;
@@ -34,10 +35,9 @@ void sim_mob::IncidentManager::setSourceFile(const std::string inputFile_){
 void sim_mob::IncidentManager::readFromFile(std::string inputFile){
 	std::ifstream in(inputFile.c_str());
 	if (!in.is_open()){
-		std::ostringstream out("");
-		out << "Incident File " << inputFile << " not found";
+//		std::ostringstream out("");
+//		out << "Incident File " << inputFile << " not found";
 //		throw std::runtime_error(out.str());
-		//debug
 		return;
 	}
 	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::instance();
@@ -82,18 +82,12 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 		std::vector <const sim_mob::Person*> persons;
 		identifyAffectedDrivers(rs,persons);
 		logger << " INCIDENT  segment:"<< rs->getSegmentAimsunId() << " affected:" << persons.size() << "\n" ;
-//		/**
-//		 * DEBUG
-//		 */
-//		return;//dont inform any driver, let them go into incident section
-//		/**
-//		 * DEBUG...
-//		 */
+
 		//find affected Drivers (only active agents for now)
 		//inform the drivers about the incident
 		BOOST_FOREACH(const sim_mob::Person * person, persons) {
 			//send the same type of message
-			messaging::MessageBus::PostMessage(const_cast<sim_mob::MovementFacet*>(person->getRole()->Movement()), MSG_INSERT_INCIDENT,
+			messaging::MessageBus::PostMessage(const_cast<sim_mob::Person*>(person), MSG_INSERT_INCIDENT,
 								messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, incident->second.get<1>())));
 		}
 
@@ -109,69 +103,70 @@ std::map<const sim_mob::RoadSegment*, double> & sim_mob::IncidentManager::getCur
 //step-1: find those who used the target rs in their path
 //step-2: for each person, iterate through the path(meso path for now) to see if the agent's current segment is before, on or after the target path.
 //step-3: if agent's current segment is before the target path, then he can be informed(if the probability function allows that).
+//TODO: this method should be changed/scrabbed after this file was moved from medium to shared folder. const sim_mob::medium::DriverMovement is not functional here!!!-vahid
 void sim_mob::IncidentManager::identifyAffectedDrivers(const sim_mob::RoadSegment * targetRS,
 		std::vector <const sim_mob::Person*> & filteredPersons){
-	int affected = 0;
-	int ignored = 0;
-	int reacting = 0;
-	int ignorant = 0;
-	//step-1: find those who used the target rs in their path
-	const std::pair <SGPER::const_iterator,SGPER::const_iterator > range(sim_mob::PathSetManager::getInstance()->getODbySegment(targetRS));
-	for(SGPER::const_iterator it(range.first); it != range.second; it++){
-		const sim_mob::Person *per = it->second;
-		//get his,meso, path...//todo: you need to dynamic_cast!
-		const sim_mob::medium::DriverMovement *dm = dynamic_cast<sim_mob::medium::DriverMovement*>(per->getRole()->Movement());
-		const std::vector<const sim_mob::SegmentStats*> path = dm->getMesoPathMover().getPath();
-		const sim_mob::SegmentStats* curSS = dm->getMesoPathMover().getCurrSegStats();
-		//In the following steps, we try to select only those who are before the current segment
-		//todo, increase the criteria , add some min distance restriction
-		std::vector<const sim_mob::SegmentStats*>::const_iterator itSS;//segStat iterator
-		//a.is the incident before driver's current segment?
-		bool res = false;
-		for(itSS = path.begin(); (*itSS) != curSS ; itSS++){
-			if(targetRS == (*itSS)->getRoadSegment()){
-				res = true;
-//				logger << "This incident is happening on a segments 'before' this driver" << std::endl;
-				break;
-			}
-		}
-		//Same check for case (*itSS) == curSS i.e you are currently 'on' the incident segment
-		if(itSS != path.end() && (targetRS == (*itSS)->getRoadSegment())){
-//			logger << "This incident is happening on the driver's current segment" << std::endl;
-			res = true;
-		}
-
-		if(res){
-			ignored++;
-//			logger << "ignoring this driver" <<std::endl;
-			//person passed, or currently on the target path. So, not interested in this person
-			continue;
-		}
-		//b.So the incident is 'after' driver's current segment. still, Check it.
-		for(; itSS != path.end() ; itSS++){
-			if(targetRS == (*itSS)->getRoadSegment()){
-				res = true;
-				break;
-			}
-		}
-		if(!res){
-			//can't be! this means we have been searching for a target road segment that is not in the path!
-			throw std::runtime_error("searching for a roadsegment which was not in the path!");
-		}
-		affected ++;
-		//should react to incident or not?
-		if(shouldDriverReact(per)){
-			filteredPersons.push_back(per);
-			reacting ++;
-		}
-		else{
-			ignorant ++;
-		}
-	}//SGPER
-	logger << "Number of Affected Driver's Paths: " << affected << "\n";
-	logger << "Number of Affected Drivers: " << affected - ignored << "\n";
-	logger << "Number of Drivers Reacting to Incident: " << reacting << "\n";
-	logger << "Number of Drivers Ignoring the incident : " << ignorant << "\n";
+//	int affected = 0;
+//	int ignored = 0;
+//	int reacting = 0;
+//	int ignorant = 0;
+//	//step-1: find those who used the target rs in their path
+//	const std::pair <SGPER::const_iterator,SGPER::const_iterator > range(sim_mob::PathSetManager::getInstance()->getODbySegment(targetRS));
+//	for(SGPER::const_iterator it(range.first); it != range.second; it++){
+//		const sim_mob::Person *per = it->second;
+//		//TODO: this is currently not working-vahid
+//		const sim_mob::medium::DriverMovement *dm = dynamic_cast<sim_mob::medium::DriverMovement*>(per->getRole()->Movement());
+//		const std::vector<const sim_mob::SegmentStats*> path = dm->getMesoPathMover().getPath();
+//		const sim_mob::SegmentStats* curSS = dm->getMesoPathMover().getCurrSegStats();
+//		//In the following steps, we try to select only those who are before the current segment
+//		//todo, increase the criteria , add some min distance restriction
+//		std::vector<const sim_mob::SegmentStats*>::const_iterator itSS;//segStat iterator
+//		//a.is the incident before driver's current segment?
+//		bool res = false;
+//		for(itSS = path.begin(); (*itSS) != curSS ; itSS++){
+//			if(targetRS == (*itSS)->getRoadSegment()){
+//				res = true;
+////				logger << "This incident is happening on a segments 'before' this driver" << std::endl;
+//				break;
+//			}
+//		}
+//		//Same check for case (*itSS) == curSS i.e you are currently 'on' the incident segment
+//		if(itSS != path.end() && (targetRS == (*itSS)->getRoadSegment())){
+////			logger << "This incident is happening on the driver's current segment" << std::endl;
+//			res = true;
+//		}
+//
+//		if(res){
+//			ignored++;
+////			logger << "ignoring this driver" <<std::endl;
+//			//person passed, or currently on the target path. So, not interested in this person
+//			continue;
+//		}
+//		//b.So the incident is 'after' driver's current segment. still, Check it.
+//		for(; itSS != path.end() ; itSS++){
+//			if(targetRS == (*itSS)->getRoadSegment()){
+//				res = true;
+//				break;
+//			}
+//		}
+//		if(!res){
+//			//can't be! this means we have been searching for a target road segment that is not in the path!
+//			throw std::runtime_error("searching for a roadsegment which was not in the path!");
+//		}
+//		affected ++;
+//		//should react to incident or not?
+//		if(shouldDriverReact(per)){
+//			filteredPersons.push_back(per);
+//			reacting ++;
+//		}
+//		else{
+//			ignorant ++;
+//		}
+//	}//SGPER
+//	logger << "Number of Affected Driver's Paths: " << affected << "\n";
+//	logger << "Number of Affected Drivers: " << affected - ignored << "\n";
+//	logger << "Number of Drivers Reacting to Incident: " << reacting << "\n";
+//	logger << "Number of Drivers Ignoring the incident : " << ignorant << "\n";
 }
 
 //probability function(for now, just behave like tossing a coin

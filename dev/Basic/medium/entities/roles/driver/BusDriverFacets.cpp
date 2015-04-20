@@ -21,15 +21,6 @@ using std::vector;
 using std::endl;
 
 namespace {
-void initSegStatsPath(const vector<const sim_mob::RoadSegment*>& rsPath, vector<const sim_mob::SegmentStats*>& ssPath)
-{
-	for (vector<const sim_mob::RoadSegment*>::const_iterator it = rsPath.begin(); it != rsPath.end(); it++)
-	{
-		const sim_mob::RoadSegment* rdSeg = *it;
-		const vector<sim_mob::SegmentStats*>& statsInSegment = rdSeg->getParentConflux()->findSegStats(rdSeg);
-		ssPath.insert(ssPath.end(), statsInSegment.begin(), statsInSegment.end());
-	}
-}
 
 /**
  * converts time from milli-seconds to seconds
@@ -80,12 +71,14 @@ sim_mob::medium::BusDriverMovement::~BusDriverMovement() {}
 
 void sim_mob::medium::BusDriverMovement::frame_init() {
 	bool pathInitialized = initializePath();
-	if (pathInitialized) {
+	if (pathInitialized)
+	{
 		Vehicle* newVeh = new Vehicle(Vehicle::BUS, BUS_LENGTH);
 		VehicleBase* oldBus = parentBusDriver->getResource();
 		safe_delete_item(oldBus);
 		parentBusDriver->setResource(newVeh);
 	}
+	else { getParent()->setToBeRemoved(); }
 }
 
 void BusDriverMovement::frame_tick() {
@@ -110,7 +103,7 @@ void BusDriverMovement::frame_tick() {
 			DriverMovement::moveToNextSegment(params);
 		}
 	}
-	if(params.elapsedSeconds < params.secondsInTick)
+	if(!parent->requestedNextSegStats && params.elapsedSeconds < params.secondsInTick)
 	{
 		DriverMovement::frame_tick();
 	}
@@ -118,26 +111,26 @@ void BusDriverMovement::frame_tick() {
 	{
 		setParentData(params);
 	}
-	std::stringstream logout;
-	sim_mob::Person* person = getParent();
-	unsigned int segId = (person->getCurrSegStats()? person->getCurrSegStats()->getRoadSegment()->getSegmentAimsunId() : 0 );
-	uint16_t statsNum = (person->getCurrSegStats()? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
-	logout << "(BusDriver"
-			<<","<<person->getId()
-			<<","<<parentBusDriver->getParams().now.frame()
-			<<",{"
-			<<"RoadSegment:"<< segId
-			<<",StatsNum:"<< statsNum
-			<<",Lane:"<<(person->getCurrLane()? person->getCurrLane()->getLaneID() : 0)
-			<<",DistanceToEndSeg:"<<person->distanceToEndOfSegment;
-
-	if(parentBusDriver->getResource()->isMoving()) { logout << ",ServingStop:" << "false"; }
-	else { logout << ",ServingStop:" << "true"; }
-
-	if (person->isQueuing) { logout << ",queuing:" << "true"; }
-	else { logout << ",queuing:" << "false";}
-	logout << "})" << std::endl;
-	Print()<<logout.str();
+//	std::stringstream logout;
+//	sim_mob::Person* person = getParent();
+//	unsigned int segId = (person->getCurrSegStats()? person->getCurrSegStats()->getRoadSegment()->getSegmentAimsunId() : 0 );
+//	uint16_t statsNum = (person->getCurrSegStats()? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
+//	logout << "(BusDriver"
+//			<<","<<person->getId()
+//			<<","<<parentBusDriver->getParams().now.frame()
+//			<<",{"
+//			<<"RoadSegment:"<< segId
+//			<<",StatsNum:"<< statsNum
+//			<<",Lane:"<<(person->getCurrLane()? person->getCurrLane()->getLaneID() : 0)
+//			<<",DistanceToEndSeg:"<<person->distanceToEndOfSegment;
+//
+//	if(parentBusDriver->getResource()->isMoving()) { logout << ",ServingStop:" << "false"; }
+//	else { logout << ",ServingStop:" << "true"; }
+//
+//	if (person->isQueuing) { logout << ",queuing:" << "true"; }
+//	else { logout << ",queuing:" << "false";}
+//	logout << "})" << std::endl;
+//	Print()<<logout.str();
 }
 
 void sim_mob::medium::BusDriverMovement::frame_tick_output() {
@@ -213,8 +206,8 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 		person->setCurrSegStats(firstSegStat);
 		person->setCurrLane(firstSegStat->laneInfinity);
 		person->distanceToEndOfSegment = firstSegStat->getLength();
-		routeTracker.printBusRoute(person->getId());
-		pathMover.printPath();
+		//routeTracker.printBusRoute(person->getId());
+		//pathMover.printPath();
 	}
 
 	//to indicate that the path to next activity is already planned

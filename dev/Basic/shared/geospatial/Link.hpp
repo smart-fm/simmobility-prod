@@ -9,9 +9,9 @@
 #include <string>
 
 #include "conf/settings/DisableMPI.h"
-
 #include "Traversable.hpp"
-
+#include "metrics/Length.hpp"
+#include "util/OneTimeFlag.hpp"
 
 namespace sim_mob
 {
@@ -43,8 +43,8 @@ class Signal;
  */
 class Link : public sim_mob::Traversable {
 public:
-	Link() : Traversable(), hasOpposingLink(-1), linkID(0), currWorker(nullptr) {}
-	Link(unsigned int linkID_) : Traversable(), hasOpposingLink(-1), linkID(linkID_), currWorker(nullptr) {}
+	Link() : Traversable(), hasOpposingLink(-1), linkID(0) {}
+	Link(unsigned int linkID_) : Traversable(), hasOpposingLink(-1), linkID(linkID_) {}
 
 	//Does this Link have an "opposing" 2-way link? NOTE: This should *not* be serialized into XML.
 	//Unless you are loading from the database, this value should always be -1. (0==no, 1==yes)
@@ -67,7 +67,7 @@ public:
 
 	///Return the length of this Link, which is the sum of all RoadSegments
 	/// in the forward (if isForward is true) direction.
-	int getLength() const;
+	centimeter_t getLength() const;
 	const unsigned int & getLinkId() const;
 	const std::string & getRoadName() const;
 
@@ -88,10 +88,6 @@ public:
 	void extendPolylinesBetweenRoadSegments();
 	void extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>& segments);
 
-	//added methods to access the worker who is managing this link
-	Worker* getCurrWorker() const;
-	void setCurrWorker(Worker* w);
-
 #ifndef SIMMOB_DISABLE_MPI
 	///The identification of Link is packed using PackageUtils;
 	static void pack(sim_mob::PackageUtils& package, const Link* one_link);
@@ -109,13 +105,12 @@ public:
 protected:
 	//List of pointers to RoadSegments in each direction
 	std::vector<sim_mob::RoadSegment*> segs;
-//	std::vector<sim_mob::RoadSegment*> revSegments;
 	//when xml reader used, this container is filed with fwdSegments first and revSegments next-vahid
 	std::set<sim_mob::RoadSegment*> uniqueSegments;
+	mutable centimeter_t length;
 
-	//who is currently managing this link
-	//added by Jenny
-	sim_mob::Worker* currWorker;
+private:
+	mutable sim_mob::OneTimeFlag lengthCal;
 
 
 friend class sim_mob::aimsun::Loader;

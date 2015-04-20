@@ -27,8 +27,9 @@ void BusStopAgent::registerBusStopAgent(BusStopAgent* busstopAgent)
 
 BusStopAgent* BusStopAgent::findBusStopAgentByBusStop(const BusStop* busstop)
 {
-	try { return allBusstopAgents.at(busstop); }
-	catch (const std::out_of_range& oor) { return nullptr; }
+	BusStopAgentsMap::const_iterator stpAgIt = allBusstopAgents.find(busstop);
+	if(stpAgIt == allBusstopAgents.end()) { return nullptr; }
+	return stpAgIt->second;
 }
 
 void BusStopAgent::removeAllBusStopAgents()
@@ -66,6 +67,7 @@ void BusStopAgent::onEvent(event::EventId eventId, event::Context ctxId, event::
 
 void BusStopAgent::registerWaitingPerson(sim_mob::medium::WaitBusActivity* waitingPerson)
 {
+	messaging::MessageBus::ReRegisterHandler(waitingPerson->getParent(), GetContext());
 	waitingPersons.push_back(waitingPerson);
 }
 
@@ -91,7 +93,7 @@ const sim_mob::BusStop* BusStopAgent::getBusStop() const
 
 bool BusStopAgent::frame_init(timeslice now)
 {
-	messaging::MessageBus::RegisterHandler(this);
+	if(!GetContext()) { messaging::MessageBus::RegisterHandler(this); }
 	return true;
 }
 
@@ -122,12 +124,12 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 				{
 					Conflux* conflux = parentSegmentStats->getRoadSegment()->getParentConflux();
 					messaging::MessageBus::PostMessage(conflux, MSG_PEDESTRIAN_TRANSFER_REQUEST,
-							messaging::MessageBus::MessagePtr(new PedestrianTransferRequestMessage(person)));
+							messaging::MessageBus::MessagePtr(new PersonMessage(person)));
 					ret = true;
 				}
 				else if (role->roleType == Role::RL_PASSENGER && val.status == UpdateStatus::RS_DONE)
 				{
-					ret = true;
+					throw std::runtime_error("The next role of the person who just alighted at a bus stop cannot be PASSENGER");
 				}
 			}
 		}
@@ -151,7 +153,7 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 	}
 
 	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(),
-			STRORE_WAITING_AMOUNT,
+			STORE_WAITING_AMOUNT,
 			messaging::MessageBus::MessagePtr(
 					new WaitingAmountMessage(busStop->getBusstopno_(),
 							DailyTime(now.ms()).toString(),

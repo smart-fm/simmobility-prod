@@ -20,7 +20,8 @@
 #include "BusStop.hpp"
 #include "./Signal.hpp"
 #include "Phase.hpp"
-#include "path/PathSetManager.hpp"
+#include "path/Path.hpp"
+#include "path/PathSetParam.hpp"
 #include "entities/PersonLoader.hpp"
 #include "geospatial/TurningSection.hpp"
 #include "geospatial/TurningConflict.hpp"
@@ -58,6 +59,7 @@ template<> struct type_conversion<sim_mob::aimsun::Node>
     	res.xPos = vals.get<double>("xpos", 0.0);
     	res.yPos = vals.get<double>("ypos", 0.0);
     	res.isIntersection = vals.get<int>("isintersection", 0);
+    	//res.hasTrafficSignal = vals.get<int>("hassignal", 0);
     }
     static void to_base(const sim_mob::aimsun::Node& src, soci::values& vals, soci::indicator& ind)
     {
@@ -65,6 +67,7 @@ template<> struct type_conversion<sim_mob::aimsun::Node>
         vals.set("xpos", src.xPos);
         vals.set("ypos", src.yPos);
         vals.set("isintersection", src.isIntersection?1:0);
+        vals.set("hvTLights", src.hasTrafficSignal?1:0);
         ind = i_ok;
     }
 };
@@ -202,11 +205,11 @@ template<> struct type_conversion<sim_mob::LinkTravelTime>
     typedef values base_type;
     static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::LinkTravelTime &res)
     {
-//    	res.gid = vals.get<int>("gid", 0);
     	res.linkId = vals.get<int>("link_id", 0);
     	res.startTime = vals.get<std::string>("start_time", "00:00:00");
     	res.endTime = vals.get<std::string>("end_time", "00:00:00");
     	res.travelTime = vals.get<double>("travel_time", 0.0);
+    	res.travelMode = vals.get<std::string>("travel_mode", "");
     }
     static void to_base(const sim_mob::LinkTravelTime& src, soci::values& vals, soci::indicator& ind)
     {
@@ -214,6 +217,7 @@ template<> struct type_conversion<sim_mob::LinkTravelTime>
         vals.set("start_time", src.startTime);
         vals.set("end_time", src.endTime);
         vals.set("travel_time", src.travelTime);
+        vals.set("travel_mode", src.travelMode);
         ind = i_ok;
     }
 };
@@ -231,6 +235,7 @@ template<> struct type_conversion<sim_mob::aimsun::Section>
     	res.length = vals.get<double>("length", 0);
     	res.TMP_FromNodeID = vals.get<int>("fnode", 0);
     	res.TMP_ToNodeID = vals.get<int>("tnode", 0);
+    	//res.serviceCategory = vals.get<std::string>("category", "");
     }
     static void to_base(const sim_mob::aimsun::Section& src, soci::values& vals, soci::indicator& ind)
     {
@@ -242,6 +247,7 @@ template<> struct type_conversion<sim_mob::aimsun::Section>
         vals.set("length", src.length);
         vals.set("fnode", src.fromNode->id);
         vals.set("tnode", src.toNode->id);
+        vals.set("category", src.serviceCategory);
         ind = i_ok;
     }
 };
@@ -542,7 +548,7 @@ template<> struct type_conversion<sim_mob::Polypoint>
     	res.index = vals.get<int>("index", -1);
     	res.x = vals.get<double>("x", 0.0);
     	res.y = vals.get<double>("y", 0.0);
-    	res.z = vals.get<double>("z", 0.0);
+    	//res.z = vals.get<double>("z", 0.0);
     	res.scenario = vals.get<std::string>("scenario", "");
     }
     static void to_base(const sim_mob::Polypoint& src, soci::values& vals, soci::indicator& ind)

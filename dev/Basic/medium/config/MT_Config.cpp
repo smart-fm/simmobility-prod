@@ -26,10 +26,10 @@ PredayCalibrationParams::PredayCalibrationParams() :
 {}
 
 MT_Config::MT_Config() :
-		pedestrianWalkSpeed(0), numPredayThreads(0), configSealed(false), outputTripchains(false),
+		pedestrianWalkSpeed(0), numPredayThreads(0), configSealed(false), fileOutputEnabled(false),
 		consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA),
 		logsumComputationFrequency(0), supplyUpdateInterval(0), activityScheduleLoadInterval(0), busCapacity(0),
-		outputPredictions(false)
+		outputPredictions(false), populationSource(db::MONGO_DB), populationDB(), logsumDB()
 {}
 
 MT_Config::~MT_Config()
@@ -55,6 +55,7 @@ void MT_Config::setPredayRunMode(const std::string runMode)
 		if(runMode == "simulation") { predayRunMode = MT_Config::SIMULATION; }
 		else if(runMode == "logsum") { predayRunMode = MT_Config::LOGSUM_COMPUTATION; }
 		else if(runMode == "calibration") { predayRunMode = MT_Config::CALIBRATION; }
+		else if(runMode == "lt_logsum") { predayRunMode = MT_Config::LOGSUM_COMPUTATION_LT; }
 		else { throw std::runtime_error("Inadmissible value for preday run_mode"); }
 	}
 }
@@ -184,16 +185,16 @@ const PredayCalibrationParams& MT_Config::getWSPSA_CalibrationParams() const
 	return wspsaCalibrationParams;
 }
 
-bool MT_Config::isOutputTripchains() const
+bool MT_Config::isFileOutputEnabled() const
 {
-	return outputTripchains;
+	return fileOutputEnabled;
 }
 
-void MT_Config::setOutputTripchains(bool outputTripchains)
+void MT_Config::setFileOutputEnabled(bool outputTripchains)
 {
 	if(!configSealed)
 	{
-		this->outputTripchains = outputTripchains;
+		this->fileOutputEnabled = outputTripchains;
 	}
 }
 
@@ -236,6 +237,11 @@ bool MT_Config::runningPredayCalibration() const
 bool MT_Config::runningPredayLogsumComputation() const
 {
 	return (predayRunMode == MT_Config::LOGSUM_COMPUTATION);
+}
+
+bool MT_Config::runningPredayLogsumComputationForLT() const
+{
+	return (predayRunMode == MT_Config::LOGSUM_COMPUTATION_LT);
 }
 
 bool MT_Config::runningSPSA() const
@@ -339,6 +345,49 @@ void MT_Config::setBusCapacity(const unsigned int busCapacity)
 	if(!configSealed)
 	{
 		this->busCapacity = busCapacity;
+	}
+}
+
+db::BackendType MT_Config::getPopulationSource() const
+{
+	return populationSource;
+}
+
+void MT_Config::setPopulationSource(const std::string& src)
+{
+	if(!configSealed)
+	{
+		std::string dataSourceStr = boost::to_upper_copy(src);
+		if(dataSourceStr == "PGSQL") { populationSource = db::POSTGRES; }
+		else { populationSource = db::MONGO_DB; } //default setting
+	}
+}
+
+const DB_Details& MT_Config::getLogsumDb() const
+{
+	return logsumDB;
+}
+
+void MT_Config::setLogsumDb(const std::string& logsumDb, const std::string& logsumCred)
+{
+	if(!configSealed)
+	{
+		logsumDB.database = logsumDb;
+		logsumDB.credentials = logsumCred;
+	}
+}
+
+const DB_Details& MT_Config::getPopulationDb() const
+{
+	return populationDB;
+}
+
+void MT_Config::setPopulationDb(const std::string& populationDb, const std::string& populationCred)
+{
+	if(!configSealed)
+	{
+		populationDB.database = populationDb;
+		populationDB.credentials = populationCred;
 	}
 }
 

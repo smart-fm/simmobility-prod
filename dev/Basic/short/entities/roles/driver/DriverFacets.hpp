@@ -84,6 +84,9 @@ public:
 
 	//	mark the destination and end time and travel time
 	virtual TravelMetric & finalizeTravelTimeMetric();
+        
+	//Outputs the road segment densities
+	static void outputDensityMap(unsigned int tick);
 
 	Driver* getParentDriver() const
 	{
@@ -304,6 +307,9 @@ private:
 	//This method is used to check if there is enough space on the lane where a vehicle from the
 	//loading queue wants to start its journey
 	bool findEmptySpaceAhead();
+    
+	//This method updates the segment density map
+	void updateDensityMap();    
 
     //This method helps defines the driver behaviour when approaching an unsignalised intersection
     double approachIntersection();
@@ -333,5 +339,11 @@ private:
 
 	//The most recently-set path, which will be sent to RoadRunner.
 	std::vector<const sim_mob::RoadSegment*> rrPathToSend;
+    
+	//Map of road segment vs the aggregate vehicle count over the collection interval
+	static map<const RoadSegment *, unsigned long> rdSegDensityMap;
+    
+	//Mutex to lock the density map
+	static boost::mutex densityUpdateMutex;
 };
 }

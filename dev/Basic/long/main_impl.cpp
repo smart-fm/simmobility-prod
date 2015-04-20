@@ -50,13 +50,13 @@ const std::string MODEL_LINE_FORMAT = "### %-30s : %-20s";
 
 int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulationTime)
 {
-    PrintOut("#################### LONG-TERM SIMULATION ####################" << endl);
+    PrintOutV("#################### LONG-TERM SIMULATION ####################" << endl);
     //Simulation Statistics
-    PrintOut("#Simulation Number  : " << simulationNumber << endl);
-    PrintOut("#Simulation Time (s): " << simulationTime.getTime() << endl);
+    PrintOutV("#Simulation Number  : " << simulationNumber << endl);
+    PrintOutV("#Simulation Time (s): " << simulationTime.getTime() << endl);
     //Models Statistics
     PrintOut(endl);
-    PrintOut("#Models:" << endl);
+    PrintOutV("#Models:" << endl);
 
     for (vector<Model*>::iterator itr = models.begin(); itr != models.end(); itr++)
     {
@@ -71,7 +71,7 @@ int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulat
         }
         PrintOut(endl);
     }
-    PrintOut("##############################################################" << endl);
+    PrintOutV("##############################################################" << endl);
     return 0;
 }
 
@@ -82,8 +82,8 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
     //Initiate configuration instance
     LT_ConfigSingleton::getInstance();
-    PrintOut("Starting SimMobility, version " << SIMMOB_VERSION << endl);
-    
+    PrintOutV( "Starting SimMobility, version " << SIMMOB_VERSION << endl);
+
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
     //Simmobility Test Params
@@ -124,6 +124,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         WorkGroup* hmWorkers;
         WorkGroup* devWorkers;
         DeveloperModel *developerModel = nullptr;
+        HM_Model *housingMarketModel = nullptr;
 
         if( enableHousingMarket )
         	hmWorkers = wgMgr.newWorkGroup( workers, days, tickStep);
@@ -147,26 +148,29 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         eventsWorker->assignAWorker(&(agentsLookup.getEventsInjector()));
 
         if( enableHousingMarket )
-        	 models.push_back(new HM_Model(*hmWorkers));
+        	 housingMarketModel = new HM_Model(*hmWorkers);//initializing the housing market model
+        	 models.push_back(housingMarketModel);
 
         if( enableDeveloperModel )
+        {
         	 //initiate developer model; to be referred later at each time tick (day)
         	 developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel);
-        	 //developerModel->housingModel = hmModel;
+        	 developerModel->setHousingMarketModel(housingMarketModel);
         	 developerModel->setDays(days);
         	 models.push_back(developerModel);
+        }
 
         //start all models.
         for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)
         {
             (*it)->start();
         }
-        
+
         //Start work groups and all threads.
         wgMgr.startAllWorkGroups();
 
-        PrintOut("Started all workgroups." << endl);
-        PrintOut("Day of Simulation: " << std::endl);
+        PrintOutV("Started all workgroups." << endl);
+        PrintOutV("Day of Simulation: " << std::endl);
 
         //we add a new line break to format the output in a
         //reasonable way. 20 was found to be adequate.
@@ -174,21 +178,30 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
         for (unsigned int currTick = 0; currTick < days; currTick++)
         {
-            PrintOut("Day " << currTick << std::endl );
-            PrintOut("The housing market has " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize() << " units and \t" << (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " bidders on the market" << std::endl );
+            if( currTick == 0 )
+            {
+				PrintOutV(" Lifestyle1: " << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle1HHs() <<
+						  " Lifestyle2: " << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle2HHs() <<
+						  " Lifestyle3: " << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle3HHs() << std::endl );
+
+				HM_Model::HouseholdList *householdList = (dynamic_cast<HM_Model*>(models[0]))->getHouseholdList();
+
+				#ifdef VERBOSE_POSTCODE
+	            for( int n = 0; n < householdList->size(); n++)
+	            {
+	            	const Unit *localUnit = (dynamic_cast<HM_Model*>(models[0]))->getUnitById( (*householdList)[n]->getUnitId());
+	            	PrintOutV(" Household " << (*householdList)[n]->getId() << " lives in postcode " << localUnit->getSlaAddressId() << std::endl);
+	            }
+				#endif
+            }
+
+            PrintOutV("Day " << currTick << " The housing market has " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize() << " units and \t" << (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " bidders on the market" << std::endl );
 
             //start all models.
 		    for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)
 		    {
 		 	   (*it)->update(currTick);
 		    }
-
-            if( currTick == 1 )
-            {
-				PrintOut("Lifestyle1:" << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle1HHs() <<
-						 "Lifestyle2:" << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle2HHs() <<
-						 "Lifestyle3:" << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle3HHs() << std::endl );
-            }
 
             wgMgr.waitAllGroups();
 
@@ -202,7 +215,6 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             	developerModel->wakeUpDeveloperAgents(developerAgents);
             }
         }
-        PrintOut( endl );
 
         //Save our output files if we are merging them later.
         if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && config.mergeLogFiles())
@@ -235,7 +247,6 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
 int main_impl(int ARGC, char* ARGV[])
 {
-
     std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
     if(args.size() < 2)
     {
@@ -243,7 +254,8 @@ int main_impl(int ARGC, char* ARGV[])
     }
     const std::string configFileName = args[1];
     //Parse the config file (this *does not* create anything, it just reads it.).
-    ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
+    bool longTerm = true;
+    ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig(), longTerm );
 
     //Save a handle to the shared definition of the configuration.
     const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
@@ -257,7 +269,7 @@ int main_impl(int ARGC, char* ARGV[])
 	const unsigned int maxIterations = config.ltParams.maxIterations;
 	for (int i = 0; i < maxIterations; i++)
 	{
-		PrintOut("Simulation #:  " << std::dec << (i + 1) << endl);
+		PrintOutV("Simulation #:  " << std::dec << (i + 1) << endl);
 		performMain((i + 1), resLogFiles);
 	}
 

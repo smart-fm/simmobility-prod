@@ -25,6 +25,7 @@ const double LARGE_OUTPUT_FLOW_RATE = 1000.0;
 
 const double SINGLE_LANE_SEGMENT_CAPACITY = 1200.0; //veh/hr. suggested by Yang Lu on 11-Oct-2014
 const double DOUBLE_LANE_SEGMENT_CAPACITY = 3000.0; //veh/hr. suggested by Yang Lu on 11-Oct-2014
+const double UNIT_KMPH_IN_CMPS = 100000.0/3600.0; // 1km = 100000 cm; 1hr = 3600 s;
 
 /**
  * converts the unit of speed from Km/h to cm/s
@@ -33,7 +34,7 @@ const double DOUBLE_LANE_SEGMENT_CAPACITY = 3000.0; //veh/hr. suggested by Yang 
  */
 inline double convertKmphToCmps(double speedInKmph)
 {
-	return (speedInKmph / 3.6 * 100);
+	return (speedInKmph * UNIT_KMPH_IN_CMPS);
 }
 }
 
@@ -148,7 +149,7 @@ bool SegmentStats::removeAgent(const sim_mob::Lane* lane, sim_mob::Person* p, bo
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::removeAgent lane not found in segment stats");
 	}
 	bool removed = laneIt->second->removePerson(p, wasQueuing);
 	if(removed) { numPersons--; } //record removal from segment
@@ -160,7 +161,9 @@ void SegmentStats::updateQueueStatus(const sim_mob::Lane* lane, sim_mob::Person*
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		std::stringstream out("");
+		out << "SegmentStats::updateQueueStatus lane not found in segment stats. Segment[" << roadSegment->getId() << "] index" << statsNumberInSegment ;
+		throw std::runtime_error(out.str());
 	}
 	laneIt->second->updateQueueStatus(p);
 }
@@ -170,7 +173,7 @@ std::deque<sim_mob::Person*>& SegmentStats::getPersons(const sim_mob::Lane* lane
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::getPersons lane not found in segment stats");
 	}
 	return laneIt->second->laneAgents;
 }
@@ -248,7 +251,7 @@ void SegmentStats::getPersons(std::deque<sim_mob::Person*>& segAgents)
 
 void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 {
-	//And let's not forget the bus drivers serving stops in this segment stats
+	//let's not forget the bus drivers serving stops in this segment stats
 	//Bus drivers go in the front of the list, because bus stops are (virtually)
 	//located at the end of the segment
 	for (BusStopList::const_reverse_iterator stopIt = busStops.rbegin(); stopIt != busStops.rend(); stopIt++)
@@ -333,7 +336,7 @@ std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const sim
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::getLaneAgentCounts lane not found in segment stats");
 	}
 	return std::make_pair(laneIt->second->getQueuingAgentsCount(), laneIt->second->getMovingAgentsCount());
 }
@@ -343,7 +346,7 @@ double SegmentStats::getLaneQueueLength(const sim_mob::Lane* lane) const
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::getLaneQueueLength lane not found in segment stats");
 	}
 	return laneIt->second->getQueueLength();
 }
@@ -353,7 +356,7 @@ double SegmentStats::getLaneMovingLength(const sim_mob::Lane* lane) const
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::getLaneMovingLength lane not found in segment stats");
 	}
 	return laneIt->second->getMovingLength();
 }
@@ -363,7 +366,7 @@ double SegmentStats::getLaneTotalVehicleLength(const sim_mob::Lane* lane) const
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::getLaneTotalVehicleLength lane not found in segment stats");
 	}
 	return laneIt->second->getTotalVehicleLength();
 }
@@ -373,7 +376,7 @@ unsigned int SegmentStats::numAgentsInLane(const sim_mob::Lane* lane) const
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::numAgentsInLane lane not found in segment stats");
 	}
 	return laneIt->second->getNumPersons();
 }
@@ -449,13 +452,7 @@ double SegmentStats::getDensity(bool hasVehicle)
 	double movingPCUs = getMovingLength() / PASSENGER_CAR_UNIT;
 	if (movingPartLength > PASSENGER_CAR_UNIT)
 	{
-		/*Some lines in this if section are commented as per Yang Lu's suggestion */
-		//if (roadSegment->getLaneZeroLength() > 10*vehicle_length) {
 		density = movingPCUs / (movingPartLength / 100.0);
-		//}
-		//else {
-		//	density = queueCount/(movingLength/100.0);
-		//}
 	}
 	else
 	{
@@ -464,24 +461,18 @@ double SegmentStats::getDensity(bool hasVehicle)
 	return density;
 }
 
-//density will be computed in vehicles/km/seg for the moving part of the segment
+//density will be computed in vehicles/lane-km for the moving part of the segment
 double SegmentStats::getTotalDensity(bool hasVehicle)
 {
 	double density = 0.0;
 	double totalPCUs = getTotalVehicleLength() / PASSENGER_CAR_UNIT;
 	if (length > PASSENGER_CAR_UNIT)
 	{
-		/*Some lines in this if section are commented as per Yang Lu's suggestion */
-		//if (roadSegment->getLaneZeroLength() > 10*vehicle_length) {
-		density = totalPCUs / (length / 100000.0); //(cm to km)
-		//}
-		//else {
-		//	density = queueCount/(movingLength/100.0);
-		//}
+		density = totalPCUs/(numVehicleLanes * (length/100000.0));
 	}
 	else
 	{
-		density = 1 / (PASSENGER_CAR_UNIT / 100.0);
+		density = 1/(PASSENGER_CAR_UNIT/100.0);
 	}
 	return density;
 }
@@ -797,7 +788,7 @@ sim_mob::LaneParams* sim_mob::SegmentStats::getLaneParams(const Lane* lane) cons
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::getLaneParams lane not found in segment stats");
 	}
 	return laneIt->second->laneParams;
 }
@@ -841,7 +832,7 @@ void sim_mob::SegmentStats::restoreLaneParams(const Lane* lane)
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::restoreLaneParams lane not found in segment stats");
 	}
 	LaneStats* laneStats = laneIt->second;
 	laneStats->updateOutputFlowRate(getLaneParams(lane)->origOutputFlowRate);
@@ -856,7 +847,7 @@ void sim_mob::SegmentStats::updateLaneParams(const Lane* lane, double newOutputF
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::updateLaneParams lane not found in segment stats");
 	}
 	LaneStats* laneStats = laneIt->second;
 	laneStats->updateOutputFlowRate(newOutputFlowRate);
@@ -890,7 +881,7 @@ std::string sim_mob::SegmentStats::reportSegmentStats(uint32_t frameNumber)
 	std::stringstream msg("");
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
 	{
-		double density = (numMovingInSegment(true) + numQueuingInSegment(true)) / ((length / 100000.0) * numVehicleLanes); //veh/km/lane
+		double density = (numMovingInSegment(true) + numQueuingInSegment(true)) / ((length / 100000.0) * numVehicleLanes); //veh/lane-km
 
 	msg << "(\"segmentState\""
 		<< "," << frameNumber
@@ -940,7 +931,7 @@ double SegmentStats::getPositionOfLastUpdatedAgentInLane(const Lane* lane) const
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::getPositionOfLastUpdatedAgentInLane lane not found in segment stats");
 	}
 	return laneIt->second->getPositionOfLastUpdatedAgent();
 }
@@ -950,7 +941,7 @@ void SegmentStats::setPositionOfLastUpdatedAgentInLane(double positionOfLastUpda
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::setPositionOfLastUpdatedAgentInLane lane not found in segment stats");
 	}
 	laneIt->second->setPositionOfLastUpdatedAgent(positionOfLastUpdatedAgentInLane);
 }
@@ -960,7 +951,7 @@ unsigned int sim_mob::SegmentStats::getInitialQueueLength(const Lane* lane) cons
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
-		throw std::runtime_error("lane not found in segment stats");
+		throw std::runtime_error("SegmentStats::getInitialQueueLength lane not found in segment stats");
 	}
 	return laneIt->second->getInitialQueueLength();
 }
@@ -1069,6 +1060,14 @@ void SegmentStats::printBusStops() const
 	Print() << printStream.str() << std::endl;
 }
 
+void sim_mob::SegmentStats::registerBusStopAgents()
+{
+	for (AgentList::iterator stopIt = busStopAgents.begin(); stopIt != busStopAgents.end(); stopIt++)
+	{
+		messaging::MessageBus::RegisterHandler(*stopIt);
+	}
+}
+
 void LaneStats::printAgents(bool copy) const
 {
 	std::stringstream debugMsgs;
@@ -1101,7 +1100,7 @@ void LaneStats::verifyOrdering()
 		{
 			std::stringstream debugMsgs;
 			debugMsgs << "Invariant violated: Ordering of laneAgents does not reflect ordering w.r.t. distance to end of segment." << "\nSegment: "
-					<< lane->getRoadSegment()->getStartEnd() << " length = " << lane->getRoadSegment()->getLaneZeroLength() << "\nLane: " << lane->getLaneID()
+					<< lane->getRoadSegment()->getStartEnd() << " length = " << lane->getRoadSegment()->getPolylineLength() << "\nLane: " << lane->getLaneID()
 					<< "\nCulprit Person: " << (*i)->getId();
 			debugMsgs << "\nAgents ";
 			for (PersonList::const_iterator j = laneAgents.begin(); j != laneAgents.end(); j++)
@@ -1134,13 +1133,13 @@ sim_mob::Person* SegmentStats::dequeue(const sim_mob::Person* person, const sim_
 	{
 		printAgents();
 		debugMsgs << "Error: Person " << person->getId() << " was not found in lane " << lane->getLaneID() << std::endl;
+		throw std::runtime_error(debugMsgs.str());
 	}
 	return dequeuedPerson;
 }
 
 sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate)
 {
-	VehicleBase* vehicle = person->getRole()->getResource();
 	if (laneAgents.size() == 0)
 	{
 		std::stringstream debugMsgs;
@@ -1166,6 +1165,7 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 	{
 		p = laneAgents.front();
 		laneAgents.pop_front();
+		VehicleBase* vehicle = person->getRole()->getResource();
 		if (vehicle)
 		{
 			numPersons--; // record removal

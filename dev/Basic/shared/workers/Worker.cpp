@@ -67,7 +67,7 @@ bool sim_mob::Worker::MgmtParams::extraActive(uint32_t endTick) const
 
 
 sim_mob::Worker::Worker(WorkGroup* parent, std::ostream* logFile,  FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, std::vector<Entity*>* entityBredList, uint32_t endTick, uint32_t tickStep)
-    : logFile(logFile),sql(soci::postgresql,ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false)),
+    : logFile(logFile),
       frame_tick_barr(frame_tick), buff_flip_barr(buff_flip), aura_mgr_barr(aura_mgr), macro_tick_barr(macro_tick),
       endTick(endTick), tickStep(tickStep), parent(parent), entityRemovalList(entityRemovalList), entityBredList(entityBredList),
       profile(nullptr),pathSetMgr(nullptr)
@@ -215,10 +215,6 @@ int sim_mob::Worker::getAgentSize(bool includeToBeAdded)
 
 void sim_mob::Worker::addPendingEntities()
 {
-	/*if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-		return;
-	}*/
-	int i = 0;
 	for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
 		//Migrate its Buffered properties.
 		migrateIn(**it);
@@ -243,8 +239,8 @@ void sim_mob::Worker::removePendingEntities()
 			throw std::runtime_error("Attempting to remove an entity from a WorkGroup that doesn't allow it.");
 		}
 		entityRemovalList->push_back(*it);
-                messaging::MessageBus::UnRegisterHandler((*it));
-                (*it)->onWorkerExit();
+		messaging::MessageBus::UnRegisterHandler((*it));
+		(*it)->onWorkerExit();
 	}
 	toBeRemoved.clear();
 }
@@ -265,10 +261,10 @@ void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
 			(*it)->updateAndReportSupplyStats(currTime);
 			(*it)->reportLinkTravelTimes(currTime);
 			(*it)->resetLinkTravelTimes(currTime);
-			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-				(*it)->reportRdSegTravelTimes(currTime);
-				(*it)->resetRdSegTravelTimes();
-			}
+//			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
+//				(*it)->reportRdSegTravelTimes(currTime);
+//				(*it)->resetRdSegTravelTimes();
+//			}
 			(*it)->resetSegmentFlows();
 			//vqCount += (*it)->resetOutputBounds();
 		}
@@ -381,7 +377,16 @@ void sim_mob::Worker::threaded_function_loop()
 	///      Instead, add functionality into the sub-functions (perform_frame_tick(), etc.).
 	///      This is needed so that singleThreaded mode can be implemented easily. ~Seth
 	while (loop_params.active) {
-                messaging::MessageBus::ThreadDispatchMessages();
+		if(ConfigManager::GetInstance().FullConfig().RunningMidSupply() && loop_params.currTick == 0)
+		{
+			initializeConfluxes(timeslice(loop_params.currTick, loop_params.currTick*loop_params.msPerFrame));
+			//Zero barrier
+			if (frame_tick_barr) {
+				frame_tick_barr->wait();
+			}
+		}
+
+		messaging::MessageBus::ThreadDispatchMessages();
 		perform_frame_tick();
 
 		//Now wait for our barriers. Interactive mode wraps this in a try...catch(all); hence the ifdefs.
@@ -390,31 +395,31 @@ void sim_mob::Worker::threaded_function_loop()
 		//      on STRICT_AGENT_ERRORS?
 		try {
 #endif
-			//First barrier
-			if (frame_tick_barr) {
-				frame_tick_barr->wait();
-			}
+		//First barrier
+		if (frame_tick_barr) {
+			frame_tick_barr->wait();
+		}
 
-			//Now flip all remaining data.
-			perform_buff_flip();
+		//Now flip all remaining data.
+		perform_buff_flip();
 
-			//Second barrier
-			if (buff_flip_barr) {
-				buff_flip_barr->wait();
-			}
+		//Second barrier
+		if (buff_flip_barr) {
+			buff_flip_barr->wait();
+		}
 
-			// Wait for the AuraManager
-			if (aura_mgr_barr) {
-				aura_mgr_barr->wait();
-			}
+		// Wait for the AuraManager
+		if (aura_mgr_barr) {
+			aura_mgr_barr->wait();
+		}
 
-			//If we have a macro barrier, we must wait exactly once more.
-			//  E.g., for an Agent with a tickStep of 10, we wait once at the end of tick0, and
-			//  once more at the end of tick 9.
-			//NOTE: We can't wait (or we'll lock up) if the "extra" tick will never be triggered.
-			if (macro_tick_barr && loop_params.extraActive(endTick)) {
-				macro_tick_barr->wait();
-			}
+		//If we have a macro barrier, we must wait exactly once more.
+		//  E.g., for an Agent with a tickStep of 10, we wait once at the end of tick0, and
+		//  once more at the end of tick 9.
+		//NOTE: We can't wait (or we'll lock up) if the "extra" tick will never be triggered.
+		if (macro_tick_barr && loop_params.extraActive(endTick)) {
+			macro_tick_barr->wait();
+		}
 
 #ifdef SIMMOB_INTERACTIVE_MODE
 		} catch(...) {
@@ -592,30 +597,46 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 	}
 }
 
+void sim_mob::Worker::initializeConfluxes(timeslice currTime)
+{
+	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+	{
+		if(!(*it)->isInitialized()) { (*it)->initialize(currTime); }
+	}
+}
 
 //TODO: It seems that beginManaging() and stopManaging() can also be called during update?
 //      May want to dig into this a bit more. ~Seth
 void sim_mob::Worker::update_entities(timeslice currTime)
 {
 	//Confluxes require an additional set of updates.
-	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
-		if(ConfigManager::GetInstance().FullConfig().OutputEnabled()) {
+	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply())
+	{
+		Conflux* conflux = nullptr;
+		if(ConfigManager::GetInstance().FullConfig().OutputEnabled())
+		{
 			unsigned int total = 0;
 			unsigned int infCount = 0;
 			unsigned int vqCount = 0;
-			for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
-				vqCount += (*it)->resetOutputBounds();
-				total += (*it)->countPersons();
-				infCount += (*it)->getNumRemainingInLaneInfinity();
+
+			for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+			{
+				conflux = *it;
+				vqCount += conflux->resetOutputBounds();
+				total += conflux->countPersons(); //total = numInLanes+numInLaneInf. VQ is not included here
+				infCount += conflux->getNumRemainingInLaneInfinity();
 			}
-			if(managedConfluxes.size() > 0) {
-				Print() << "Worker::update_entities Time: "<< currTime.ms()/1000
-					<< "s \tnumInLanes: "<< (total - infCount - vqCount) << "\tnumInLaneInf: "<< infCount << "\tvqCount: " << vqCount << std::endl;
+			if(managedConfluxes.size() > 0)
+			{
+				Print() << "Worker::update_entities Time: "<< currTime.ms()/1000 << "s \tnumInLanes: "<< (total - infCount) << "\tnumInLaneInf: "<< infCount << "\tvqCount: " << vqCount << std::endl;
 			}
 		}
-		else {
-			for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++) {
-				(*it)->resetOutputBounds();
+		else
+		{
+			for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+			{
+				conflux = *it;
+				conflux->resetOutputBounds();
 			}
 		}
 
@@ -634,12 +655,12 @@ bool sim_mob::Worker::beginManagingConflux(Conflux* cf)
 	return managedConfluxes.insert(cf).second;
 }
 
-sim_mob::PathSetManager *sim_mob::Worker::getPathSetMgr()
-{
-	if(!pathSetMgr)
-	{
-		pathSetMgr = new PathSetManager();
-	}
-
-	return pathSetMgr;
-}
+//sim_mob::PathSetManager *sim_mob::Worker::getPathSetMgr()
+//{
+//	if(!pathSetMgr)
+//	{
+//		pathSetMgr = new PathSetManager();
+//	}
+//
+//	return pathSetMgr;
+//}

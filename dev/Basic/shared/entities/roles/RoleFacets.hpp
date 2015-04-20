@@ -13,6 +13,7 @@
 #include "logging/NullableOutputStream.hpp"
 #include "message/Message.hpp"
 #include "message/MessageHandler.hpp"
+#include "path/Reroute.hpp"
 
 namespace sim_mob {
 
@@ -25,6 +26,7 @@ class Driver;
 class Pedestrian;
 class Agent;
 struct TravelMetric;
+class Conflux;
 ///used to initialize message handler id of all facets
 #define FACET_MSG_HDLR_ID 1000
 /**
@@ -62,6 +64,13 @@ public:
 
 	///Generate output for this frame's tick for this Agent.
 	virtual void frame_tick_output() = 0;
+
+	/**
+	 * message handler which provide a chance to handle message transfered from parent agent.
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void handleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 protected:
 	///Access the Logger.
@@ -108,21 +117,14 @@ public:
  *
  * \author Harish Loganathan
  */
-class MovementFacet : public Facet, public messaging::MessageHandler {
+class MovementFacet : public Facet {
 public:
-	explicit MovementFacet(sim_mob::Person* parentAgent=nullptr);// : Facet(parentAgent), MessageHandler(msgHandlerId ++) { }
-	virtual ~MovementFacet(); //{}
+	explicit MovementFacet(sim_mob::Person* parentAgent=nullptr);
+	virtual ~MovementFacet();
 	virtual void init() {}
 
 	virtual bool updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Driver* other_driver) { return false; };
 	virtual void updateNearbyAgent(const sim_mob::Agent* agent,const sim_mob::Pedestrian* pedestrian) {};
-	/**
-	 * message handler which provide a chance to handle message transfered from parent agent.
-	 * @param type of the message.
-	 * @param message data received.
-	 */
-	virtual void HandleMessage(messaging::Message::MessageType type,
-			const messaging::Message& message){}
 	
 	///	mark startTimeand origin
 	virtual TravelMetric& startTravelTimeMetric() = 0;
@@ -131,7 +133,7 @@ public:
 	//needed if the role are reused rather than deleted!
 	virtual void resetTravelTimeMetric()
 	{
-		travelTimeMetric.reset();
+		travelMetric.reset();
 	}
 	/**
 	 * checks if lane is connected to the next segment
@@ -151,13 +153,22 @@ public:
 	 */
 	static bool isConnectedToNextSeg(const sim_mob::RoadSegment *srcRdSeg, const sim_mob::RoadSegment *nxtRdSeg);
 
-
+	/**
+	 * return the starting conflux of movement facet.
+	 * This function is currently useful only for mid-term since confluxes are not used in short-term yet.
+	 */
+	virtual Conflux* getStartingConflux() const;
 public:
 	friend class sim_mob::PartitionManager;
 protected:
 
 	///	placeholder for various movement measurements
-	 TravelMetric travelTimeMetric;
+	 TravelMetric travelMetric;
+	 /// rerouting member in charge
+	 boost::shared_ptr<sim_mob::Reroute> rerouter;
+
+	 ///	list of segments this role has traversed
+	 std::vector<const sim_mob::RoadSegment*> traversed;
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI

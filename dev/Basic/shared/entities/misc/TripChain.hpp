@@ -40,15 +40,23 @@ struct TravelMetric
 	WayPoint origin,destination;
 	DailyTime startTime,endTime;
 	double travelTime;
+	double distance;
 	bool started,finalized,valid;
+
+
+
 	TravelMetric():started(false),finalized(false),
 			valid(false),cbdTraverseType(CBD_NONE),
 			travelTime(0),cbdTravelTime(0),
 			cbdOrigin(WayPoint()),cbdDestination(WayPoint()),
 			origin(WayPoint()),destination(WayPoint()),
-			startTime(DailyTime()),endTime(DailyTime()),cbdStartTime(DailyTime()),cbdEndTime(DailyTime()){
+			startTime(DailyTime()),endTime(DailyTime()),
+			cbdStartTime(DailyTime()),cbdEndTime(DailyTime()),
+			distance(0),cbdDistance(0)
+	{
 
 	}
+
 	//CBD information
 	enum CDB_TraverseType
 	{
@@ -57,11 +65,14 @@ struct TravelMetric
 		CBD_PASS,
 		CBD_NONE,
 	};
+
 	CDB_TraverseType cbdTraverseType;
 	WayPoint cbdOrigin,cbdDestination;
 	DailyTime cbdStartTime,cbdEndTime;
 	OneTimeFlag cbdEntered,cbdExitted;
+	double cbdDistance;
 	double cbdTravelTime;
+
 	static double getTimeDiffHours(const DailyTime &end, const DailyTime &start)
 	{
 		double  t = (double((end - start).getValue()) /1000) / 3600;
@@ -69,19 +80,22 @@ struct TravelMetric
 	}
 	void reset()
 	{
-		started=false;
-		finalized=false;
-		valid=false;
-		cbdTraverseType=CBD_NONE;
-		travelTime=0;cbdTravelTime=0;
-		cbdOrigin=WayPoint();
-		cbdDestination=WayPoint();
-		origin=WayPoint();
-		destination=WayPoint();
-		startTime=DailyTime();
-		endTime=DailyTime();
-		cbdStartTime=DailyTime();
-		cbdEndTime=DailyTime();
+		started = false;
+		finalized = false;
+		valid = false;
+		cbdTraverseType = CBD_NONE;
+		travelTime = 0;
+		cbdTravelTime = 0;
+		cbdOrigin = WayPoint();
+		cbdDestination = WayPoint();
+		origin = WayPoint();
+		destination = WayPoint();
+		startTime = DailyTime();
+		endTime = DailyTime();
+		cbdStartTime = DailyTime();
+		cbdEndTime = DailyTime();
+		distance = 0;
+		cbdDistance = 0;
 	}
 };
 
@@ -230,6 +244,7 @@ public:
 	std::vector<Node*> routes;
 	std::vector<const Person*> insidePassengers;
 };
+
 /**
  * \author Harish
  * \author zhang huai peng

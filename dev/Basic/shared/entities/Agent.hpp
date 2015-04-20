@@ -41,6 +41,14 @@ class UnPackageUtils;
 class RoadSegment;
 class RoadRunnerRegion;
 
+class TestMessage : public messaging::Message
+{
+public:
+	TestMessage(int random) : random(random) {}
+	virtual ~TestMessage() {}
+	int random;
+};
+
 //It is not a good design, now. Need to verify.
 //The class is used in Sim-Tree for Bottom-Up Query
 struct TreeItem;
@@ -139,19 +147,6 @@ public:
 	void setToBeRemoved();
 	void clearToBeRemoved(); ///<Temporary function.
 
-	/* *
-	 * I'm keeping getters and setters for current lane, segment and link in Agent class to be able to determine the
-	 * location of the agent without having to dynamic_cast to Person and get the role.
-	 * If these are irrelevant for some sub-class of agent (E.g. Signal), the sub class can just ignore these.
-	 * ~ Harish
-	 */
-	virtual const sim_mob::Link* getCurrLink() const;
-	virtual	void setCurrLink(const sim_mob::Link* link);
-	virtual const sim_mob::RoadSegment* getCurrSegment() const;
-	virtual	void setCurrSegment(const sim_mob::RoadSegment* rdSeg);
-	virtual const sim_mob::Lane* getCurrLane() const;
-	virtual	void setCurrLane(const sim_mob::Lane* lane);
-
 	/**
 	 * Inherited from EventListener.
 	 */
@@ -195,22 +190,82 @@ public:
 		{}
 	};
 
+	/**
+	 * structur to record travel time of agents through a road segment
+	 */
 	struct RdSegTravelStat
 	{
-	public:
 		const RoadSegment* rs;
 		double entryTime;
-//		double rdSegExitTime_;
-//		std::map<double, unsigned int> rolesMap; //<timestamp, newRoleID>
-
-		/* note: segment exit time will be available only when the agent exits the
-		 * segment. -1 is a dummy value indication that the agent is in the segment*/
-		RdSegTravelStat(const RoadSegment* rdSeg,
-				unsigned int rdSegEntryTime)
-		: rs(rdSeg), entryTime(rdSegEntryTime)//, rdSegExitTime_(-1)
+		unsigned int entryTimeInterval;	//unused
+		double travelTime;
+		std::string travelMode;
+		bool started;
+		bool finalized;
+		std::string dbg;				//todo:debug
+		sim_mob::Agent * ag;
+		RdSegTravelStat(const RoadSegment* rdSeg, std::string travelMode = "")
+		: rs(rdSeg), entryTime(0.0), travelTime(0.0),started(false),finalized(false), travelMode(travelMode), ag(nullptr),entryTimeInterval(0)
 		{}
-	};
 
+		/**
+		 * this method is called when agent enters the segment
+		 * @param rdSeg RoadSegment
+		 * @rdSegEntryTime RoadSegment Entry time
+		 */
+		void start(sim_mob::Agent * ag_, const RoadSegment* rdSeg, double &rdSegEntryTime)
+		{
+			if(started)
+			{
+				throw std::runtime_error("Starting a travel time which was started before");
+			}
+			rs = rdSeg;
+			entryTime = rdSegEntryTime;
+			ag = ag_;
+			started = true;
+		}
+
+		/**
+		 * this method is called when agent exits the segment
+		 * @param rdSeg RoadSegment
+		 * @rdSegEntryTime RoadSegment Exit time
+		 */
+		void finalize(const RoadSegment* rdSeg,double &rdSegExitTime, const std::string &travelMode_)
+		{
+			if(!started)
+			{
+				throw std::runtime_error("Finalizing a travel time which never started");
+			}
+			if(finalized)
+			{
+				throw std::runtime_error("Finalizing a travel time which is already finalized");
+			}
+			if(rdSeg!= rs)
+			{
+				throw std::runtime_error("Finalizing a wrong travel time");
+			}
+			if(rs == nullptr)
+			{
+				throw std::runtime_error("empty road segment supplied for travel time calculations.");
+			}
+			finalized = true;
+			travelTime = rdSegExitTime - entryTime;
+			/*
+			 * we set the travel_mode in the end coz in our team, the probability of programmers "calling start() method of this structure before changing a role"
+			 * is more than the probability of "calling finalize 'after' changing the role". So we set the travel mode(which is dependent on the role type) at the end.
+			 * You may change it later if you wish so.
+			 */
+			travelMode = travelMode_;
+		}
+
+		/**
+		 * reset the member variables to their un-initialized values
+		 */
+		void reset(){
+			*this = RdSegTravelStat(nullptr);
+		}
+	};
+	RdSegTravelStat currRdSegTravelStats;
 public:
 	//The agent's start/end nodes.
 	WayPoint originNode;
@@ -265,20 +320,24 @@ public:
 	PendingEvent* getCurrEvent() { return currEvent; }
 
 	//==================== road segment travel time computation ===================================
-	//travelStats for each agent will be updated either for a role change or road segment change
-	void initCurrRdSegTravelStat(const RoadSegment* rdSeg, double entryTime);
-	void addRdSegTravelStat(double exitTime, RdSegTravelStat ts);
-	RdSegTravelStat getRdSegTravelStats()
+	/**
+	 * mark the start of the travelStats for the current road segment
+	 */
+	RdSegTravelStat &startCurrRdSegTravelStat(const RoadSegment* rdSeg, double entryTime);
+	/**
+	 * mark the end of the travelStats for each the current road segment
+	 */
+	RdSegTravelStat &finalizeCurrRdSegTravelStat(const RoadSegment* rdSeg, double exitTime, const std::string &travel_mode);
+	RdSegTravelStat &getCurrRdSegTravelStats()
 	{
 		return currRdSegTravelStats;
 	}
 
-	const std::map<double, RdSegTravelStat>& getRdSegTravelStatsMap()
-	{
-		return this->rdSegTravelStatsMap.get();
-	}
-	RdSegTravelStat currRdSegTravelStats;
-	sim_mob::Shared< std::map<double, RdSegTravelStat> > rdSegTravelStatsMap; //<linkExitTime, travelStats>
+//	const std::map<double, RdSegTravelStat>& getRdSegTravelStatsMap()
+//	{
+//		return this->rdSegTravelStatsMap.get();
+//	}
+//	sim_mob::Shared< std::map<double, RdSegTravelStat> > rdSegTravelStatsMap; //<linkExitTime, travelStats>
 	//==================== end of road segment travel time computation ============================
 
 	//============================ link travel time computation ===================================
@@ -338,9 +397,6 @@ protected:
 	//TODO: For now (for thread safety) I am giving each Agent control over its own random
 	//      number stream. We can probably raise this to the Worker level if we require it.
 	boost::mt19937 gen;
-	const sim_mob::Link* currLink;
-	const sim_mob::Lane* currLane;
-	const sim_mob::RoadSegment* currSegment;
 
 public:
 	int getOwnRandomNumber();

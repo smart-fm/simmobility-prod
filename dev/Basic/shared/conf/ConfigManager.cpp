@@ -67,6 +67,17 @@ const ConfigParams& sim_mob::ConfigManager::FullConfig() const
 	return get_config();
 }
 
+
+ PathSetConf& sim_mob::ConfigManager::PathSetConfig()
+{
+	return get_config().pathset;
+}
+
+const PathSetConf& sim_mob::ConfigManager::PathSetConfig()const
+{
+	return get_config().pathset;
+}
+
 RawConfigParams& sim_mob::ConfigManager::XmlConfig()
 {
 	return get_config();

@@ -11,7 +11,6 @@
 #pragma once
 
 #include <boost/unordered_map.hpp>
-#include "role/LT_Role.hpp"
 #include "database/entity/Bid.hpp"
 #include "database/entity/Household.hpp"
 #include "database/entity/Unit.hpp"
@@ -30,18 +29,22 @@ namespace sim_mob
          * the maximum bid *of the time unit* (in this case is DAY) 
          * that satisfies the seller's asking price.
          */
-        class HouseholdSellerRole : public LT_AgentRole<HouseholdAgent>
+        class HouseholdSellerRole
         {
         public:
-            HouseholdSellerRole(HouseholdAgent* parent);
+            HouseholdSellerRole(LT_Agent* parent);
             virtual ~HouseholdSellerRole();
+
+            bool isActive() const;
+            void setActive(bool active);
 
             /**
              * Method that will update the seller on each tick.
              * @param currTime
              */
             virtual void update(timeslice currTime);
-        protected:
+
+            LT_Agent* getParent();
 
             /**
              * Inherited from LT_Role
@@ -75,8 +78,10 @@ namespace sim_mob
              * @return true if exists valid expectation, false otherwise.
              */
             bool getCurrentExpectation(const BigSerial& unitId, ExpectationEntry& outEntry);
+
         public:
             typedef boost::unordered_map<BigSerial, unsigned int> CounterMap;
+
         private:
             typedef std::vector<ExpectationEntry> ExpectationList;
 
@@ -104,6 +109,9 @@ namespace sim_mob
             int timeOnMarket;
             int timeOffMarket;
             int marketLifespan;
+
+            LT_Agent *parent;
+            bool active;
         };
     }
 }

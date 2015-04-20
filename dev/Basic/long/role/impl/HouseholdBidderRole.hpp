@@ -10,7 +10,6 @@
  */
 #pragma once
 #include <boost/unordered_map.hpp>
-#include "role/LT_Role.hpp"
 #include "event/LT_EventArgs.hpp"
 #include "database/entity/Household.hpp"
 #include "core/HousingMarket.hpp"
@@ -32,7 +31,7 @@ namespace sim_mob
          * The bidder can only do one bid each day and It sticks to the unit until
          * gets rejected or reaches the a zero surplus.
          */
-        class HouseholdBidderRole : public LT_AgentRole<HouseholdAgent>
+        class HouseholdBidderRole
         {
         private:
 
@@ -69,11 +68,27 @@ namespace sim_mob
             HouseholdBidderRole(HouseholdAgent* parent);
             virtual ~HouseholdBidderRole();
 
+            bool isActive() const;
+            void setActive(bool active);
+            HouseholdAgent* getParent();
+
             /**
              * Inherited from LT_Role
              * @param currTime
              */
             virtual void update(timeslice currTime);
+
+            void reconsiderVehicleOwnershipOption();
+
+            double getExpOneCar(int unitTypeId);
+
+            double getExpTwoPlusCar(int unitTypeId);
+
+            /*
+             * check all the vehicle categories and returns if it includes a motorcycle
+             */
+            bool isMotorCycle(int vehicleCategoryId);
+
         protected:
 
             /**
@@ -94,17 +109,44 @@ namespace sim_mob
             bool bidUnit(timeslice now);
 
             /**
+             *  After a bid has been successful, there is a waiting time for a household to take ownership of a unit.
+             *  Once the count down, in days, is complete, the function is called.
+             */
+            void TakeUnitOwnership();
+
+            /**
              * Picks a new market entry to bid.
              * Attention this function updates the value on biddingEntry variable.
              * @return true if a unit was picked false otherwise;
              */
             bool pickEntryToBid();
 
-        private:
             volatile bool waitingForResponse;
             timeslice lastTime;
             bool bidOnCurrentDay;
             CurrentBiddingEntry biddingEntry;
+            HouseholdAgent *parent;
+            bool active;
+        	BigSerial unitIdToBeOwned;
+        	int moveInWaitingTimeInDays;
+        	int vehicleBuyingWaitingTimeInDays;
+        	uint32_t day;
+
+            enum EthnicityId{
+            	CHINESE = 1, MALAY, INDIAN, OTHERS
+            };
+            enum CoeffParamId{
+            	ASC_ONECAR = 1, ASC_TWO_PLUS_CAR, B_CHINESE_ONECAR, B_CHINESE_TWO_PLUS_CAR, B_HDB_ONECAR, B_HDB_TWO_PLUS_CAR,
+            	B_INC1_ONECAR, B_INC1_TWO_PLUS_CAR, B_INC2_ONECAR, B_INC2_TWO_PLUS_CAR, B_INC3_ONECAR, B_INC3_TWO_PLUS_CAR, B_INC4_ONECAR,
+            	B_INC4_TWO_PLUS_CAR, B_INC5_ONECAR, B_INC5_TWO_PLUS_CAR, B_INC6_ONECAR, B_INC6_TWO_PLUS_CAR, B_KIDS_ONECAR, B_KIDS_TWO_PLUS_CAR,
+            	B_LOG_HHSIZE_ONECAR, B_LOG_HHSIZE_TWO_PLUS_CAR, B_MC_ONECAR, B_MC_TWO_PLUS_CAR
+            };
+            enum VehicleOwnershipOption{
+            	NO_CAR = 1, ONE_CAR, TWO_PLUS_CAR
+            };
+
+            VehicleOwnershipOption vehicleOwnershipOption;
+
         };
     }
 }

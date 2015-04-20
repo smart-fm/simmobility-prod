@@ -13,6 +13,7 @@
 #include <vector>
 #include "conf/Constructs.hpp"
 #include "util/ProtectedCopyable.hpp"
+#include "database/DB_Connection.hpp"
 
 namespace sim_mob
 {
@@ -203,6 +204,13 @@ private:
 	std::string weightMatrixFile;
 };
 
+struct DB_Details
+{
+	DB_Details() : database(std::string()), credentials(std::string()) {}
+	std::string database;
+	std::string credentials;
+};
+
 class MT_Config : private sim_mob::ProtectedCopyable
 {
 public:
@@ -228,8 +236,8 @@ public:
 	void setSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams);
 	const PredayCalibrationParams& getWSPSA_CalibrationParams() const;
 	void setWSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams);
-	bool isOutputTripchains() const;
-	void setOutputTripchains(bool outputTripchains);
+	bool isFileOutputEnabled() const;
+	void setFileOutputEnabled(bool outputTripchains);
 	bool isOutputPredictions() const;
 	void setOutputPredictions(bool outputPredictions);
 	bool isConsoleOutput() const;
@@ -237,6 +245,7 @@ public:
 	bool runningPredaySimulation() const;
 	bool runningPredayCalibration() const;
 	bool runningPredayLogsumComputation() const;
+	bool runningPredayLogsumComputationForLT() const;
 	void setPredayRunMode(const std::string runMode);
 	bool runningSPSA() const;
 	bool runningWSPSA() const;
@@ -259,6 +268,12 @@ public:
 	void setFilenameOfWaitingAmountStats(const std::string& str);
 	const unsigned int getBusCapacity() const;
 	void setBusCapacity(const unsigned int busCapcacity);
+	db::BackendType getPopulationSource() const;
+	void setPopulationSource(const std::string& src);
+	const DB_Details& getLogsumDb() const;
+	void setLogsumDb(const std::string& logsumDb, const std::string& logsumCred);
+	const DB_Details& getPopulationDb() const;
+	void setPopulationDb(const std::string& populationDb, const std::string& populationCred);
 
 private:
 	MT_Config();
@@ -272,13 +287,20 @@ private:
 	double pedestrianWalkSpeed;
 
 	/**control variable for running preday simulation/logsum computation*/
-	enum PredayRunMode { NONE, SIMULATION, CALIBRATION, LOGSUM_COMPUTATION };
+	enum PredayRunMode
+	{
+		NONE,
+		SIMULATION,
+		CALIBRATION,
+		LOGSUM_COMPUTATION,
+		LOGSUM_COMPUTATION_LT
+	};
 	PredayRunMode predayRunMode;
 
 	/**num of threads to run for preday*/
 	unsigned numPredayThreads;
-	/**flag to indicate whether tripchains need to be output to postgresql db*/
-	bool outputTripchains;
+	/**flag to indicate whether output files need to be enabled*/
+	bool fileOutputEnabled;
 	/**flag to indicate whether tours and stops need to be output in mongodb*/
 	bool outputPredictions;
 	/**flag to indicate whether console output is required*/
@@ -296,6 +318,11 @@ private:
 	std::string filenameOfWaitingAmountStats;
 	/**default capacity for bus*/
 	unsigned int busCapacity;
+	unsigned supplyUpdateInterval; //frames
+	unsigned activityScheduleLoadInterval; //seconds
+	db::BackendType populationSource;
+	DB_Details populationDB;
+	DB_Details logsumDB;
 
 	/**Preday calibration parameters*/
 	enum CalibrationMethodology { SPSA, WSPSA };
@@ -305,8 +332,7 @@ private:
 	std::string calibrationOutputFile;
 	unsigned logsumComputationFrequency;
 	StoredProcedureMap storedProcedure;
-	unsigned activityScheduleLoadInterval; //seconds
-	unsigned supplyUpdateInterval; //frames
+
 };
 }
 }

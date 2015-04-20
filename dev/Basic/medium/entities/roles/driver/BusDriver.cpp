@@ -140,9 +140,10 @@ void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, co
 		std::string tripId = busTrip->tripID;
 		std::string busLineId = busLine->getBusLineID();
 		unsigned int sequenceNo = busTrip->getBusTripRun_SequenceNum();
+		double pctOccupancy = (((double)passengerList.size())/MT_Config::getInstance().getBusCapacity()) * 100.0;
 
 		messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(), STORE_BUS_ARRIVAL,
-				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(stopNo, busLineId, tripId, current, waitTime, sequenceNo)));
+				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(stopNo, busLineId, tripId, current, waitTime, sequenceNo,pctOccupancy)));
 	}
 }
 
@@ -208,12 +209,12 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 	unsigned int totalNumber = numAlighting + numBoarding;
 
 	int boardNum = std::max(numAlighting, numBoarding);
+	const std::vector<float>& dwellTimeParams = MT_Config::getInstance().getDwellTimeParams();
+	const float fixedTime = Utils::generateFloat(dwellTimeParams[0],dwellTimeParams[1]);
 	if(boardNum==0){
-		waitingTimeAtbusStop=0.0;
+		waitingTimeAtbusStop=fixedTime;
 	}
 	else{
-		const std::vector<float>& dwellTimeParams = MT_Config::getInstance().getDwellTimeParams();
-		const float fixedTime = Utils::generateFloat(dwellTimeParams[0],dwellTimeParams[1]);
 		const float individualTime = Utils::generateFloat(dwellTimeParams[2], dwellTimeParams[3]);
 		waitingTimeAtbusStop = fixedTime+boardNum*individualTime;
 	}

@@ -83,6 +83,28 @@ namespace
 HousingMarket::Entry::Entry(LT_Agent* owner, BigSerial unitId, BigSerial postcodeId, BigSerial tazId, double askingPrice, double hedonicPrice)
 						  : owner(owner), unitId(unitId), askingPrice(askingPrice), hedonicPrice(hedonicPrice), postcodeId(postcodeId), tazId(tazId) {}
 
+HousingMarket::Entry::Entry(const Entry &source)
+{
+	this->askingPrice = source.askingPrice;
+	this->hedonicPrice = source.hedonicPrice;
+	this->owner = source.owner;
+	this->postcodeId = source.postcodeId;
+	this->tazId = source.tazId;
+	this->unitId = source.unitId;
+}
+
+HousingMarket::Entry& HousingMarket::Entry::operator=(const Entry& source)
+{
+	this->askingPrice = source.askingPrice;
+	this->hedonicPrice = source.hedonicPrice;
+	this->owner = source.owner;
+	this->postcodeId = source.postcodeId;
+	this->tazId = source.tazId;
+	this->unitId = source.unitId;
+
+	return *this;
+}
+
 HousingMarket::Entry::~Entry(){}
 
 BigSerial HousingMarket::Entry::getUnitId() const

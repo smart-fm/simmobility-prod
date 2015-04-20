@@ -150,6 +150,7 @@ sim_mob::Driver::~Driver() {
 	//Our vehicle
 	safe_delete_item(vehicle);
 	safe_delete_item(perceivedFwdVel);
+	currResource = nullptr;
 	safe_delete_item(perceivedFwdAcc);
 	safe_delete_item(perceivedVelOfFwdCar);
 	safe_delete_item(perceivedAccOfFwdCar);

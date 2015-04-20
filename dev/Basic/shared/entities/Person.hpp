@@ -183,18 +183,6 @@ public:
 		this->remainingTimeThisTick = remainingTimeThisTick;
 	}
 
-	const std::vector<WayPoint>& getCurrPath() const {
-		return currPath;
-	}
-
-	void setCurrPath(const std::vector<WayPoint>& currPath) {
-		this->currPath = currPath;
-	}
-
-	void clearCurrPath() {
-		this->currPath.clear();
-	}
-
     const sim_mob::SegmentStats* requestedNextSegStats;  //Used by confluxes and movement facet of roles to move this person in the medium term
 
     enum Permission //to be renamed later
@@ -275,65 +263,54 @@ public:
 	 std::vector<TravelMetric> tripTravelMetrics;
 
 	 /**
+	  * A version of serializer for subtrip level travel time.
+	  * @param subtripMetrics input metrics
+	  * @param currTripChainItem current TripChainItem
+	  * @param currSubTrip current SubTrip for which subtripMetrics is collected
+	  */
+	 void serializeSubTripChainItemTravelTimeMetrics(
+			 const TravelMetric& subtripMetrics,
+			 std::vector<TripChainItem*>::iterator currTripChainItem,
+			 std::vector<SubTrip>::iterator currSubTrip) const;
+
+
+	 /**
 	  * subtrip level travel metrics
+	  * NOTE: Currently Unused
 	  */
 	 std::vector<TravelMetric> subTripTravelMetrics;
 
 	/**
 	 * get the measurements stored in subTripTravelMetrics and add them up into a new entry in tripTravelMetrics.
 	 * call this method whenever a subtrip is done.
+	  * NOTE: Currently Unused
 	 */
 	void aggregateSubTripMetrics();
 
 	/**
 	 * add the given TravelMetric to subTripTravelMetrics container
+	  * NOTE: Currently Unused
 	 */
 	void addSubtripTravelMetrics(TravelMetric & value);
 
 	/**
 	 * Serializer for Trip level travel time
+	  * NOTE: Currently Unused
 	 */
 	 void serializeTripTravelTimeMetrics();
 
 	 /**
-	  * A version of serializer for subtrip level travel time.
-	  * \param subtripMetrics input metrics
-	  * \param currTripChainItem current TripChainItem
-	  * \param currSubTrip current SubTrip for which subtripMetrics is collected
-	  */
-	 void serializeSubTripChainItemTravelTimeMetrics(
-			 const TravelMetric& subtripMetrics,
-			 std::vector<TripChainItem*>::iterator currTripChainItem,
-			 std::vector<SubTrip>::iterator currSubTrip
-			 ) const;
-
-	 /**
 	  * This is called by movement facet's destructor of non-activity role
+	  * NOTE: Currently Unused
 	  */
 	 void serializeCBD_SubTrip(const TravelMetric &metric);
 
 	 /**
 	  * This is called by  movement facet's destructor activity role
+	  * NOTE: Currently Unused
 	  */
 	 void serializeCBD_Activity(const TravelMetric &metric);
 private:
-	 /**
-	  * serialize person's tripchain item
-	  */
-	 //void serializeTripChainItem(std::vector<TripChainItem*>::iterator currTripChainItem);
-
-	 /**
-	  * During Serialization of person's tripchain, this routine is called if the given
-	  * tripchain item is a trip
-	  */
-	 //std::string serializeTrip(std::vector<TripChainItem*>::iterator item);
-
-
-	 /**
-	  * During Serialization of person's tripchain, this routine is called if the given
-	  * tripchain item is an activity
-	  */
-	 //std::string serializeActivity(std::vector<TripChainItem*>::iterator item);
 
 	 /**
 	  * prints the trip chain item types of each item in tripChain
@@ -373,13 +350,10 @@ private:
     std::vector<TripChainItem*> tripChain;
 
     //to mark the first call to update function
-    bool first_update_tick;
+    bool firstTick;
 
     //Used by confluxes to move the person for his tick duration across link and sub-trip boundaries
     double remainingTimeThisTick;
-
-    friend class PartitionManager;
-    friend class BoundaryProcessor;
 
     std::string databaseID;
     // person's age
@@ -388,13 +362,14 @@ private:
     double boardingTimeSecs;
     // person's alighting time secs
     double alightingTimeSecs;
-    std::vector<WayPoint> currPath;
 
     // current lane and segment are needed for confluxes to track this person
 	const sim_mob::Lane* currLane;
 	const sim_mob::SegmentStats* currSegStats;
-
 	const sim_mob::Link* nextLinkRequired;
+
+    friend class PartitionManager;
+    friend class BoundaryProcessor;
 
 public:
 	virtual void pack(PackageUtils& packageUtil) CHECK_MPI_THROW;

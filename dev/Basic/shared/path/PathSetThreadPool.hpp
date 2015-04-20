@@ -20,14 +20,14 @@ namespace sim_mob
 /// main class responsible for generating paths based on the input configuration
 class PathSetWorkerThread{
 public:
-	virtual void executeThis();
+	virtual void run();
     PathSetWorkerThread();
     virtual ~PathSetWorkerThread();
 
 public:
 	StreetDirectory::Graph* graph;
-	StreetDirectory::Vertex* fromVertex;
-	StreetDirectory::Vertex* toVertex;
+	StreetDirectory::Vertex fromVertex;
+	StreetDirectory::Vertex toVertex;
 	const sim_mob::Node *fromNode;
 	const sim_mob::Node *toNode;
 	std::set<const RoadSegment*> excludeSeg;
@@ -35,6 +35,7 @@ public:
 	SinglePath *s;
 	boost::shared_ptr<sim_mob::PathSet> ps;
 	bool hasPath;
+	bool timeBased;
 	///used by local profilers to report to the profiler in higher level.
 	std::string dbgStr;
 };

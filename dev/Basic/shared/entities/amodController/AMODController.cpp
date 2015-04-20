@@ -247,12 +247,12 @@ vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::s
 		// compute shortest path
 		std::vector<const sim_mob::RoadSegment*> blacklist;
 
-		//std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*origNode), stdir->DrivingVertex(*destNode),blacklist);
-		std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingTimePath(
+		std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*origNode), stdir->DrivingVertex(*destNode),blacklist);
+		/*std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingTimePath(
 					stdir->DrivingTimeVertex(*origNode,sim_mob::Default),
 					stdir->DrivingTimeVertex(*destNode,sim_mob::Default),
 					blacklist,
-					sim_mob::Default);
+					sim_mob::Default);*/
 		for (int i=0; i<wp2.size(); i++) {
 
 			if (wp2[i].type_ == WayPoint::ROAD_SEGMENT ) {
@@ -885,7 +885,8 @@ bool AMODController::setPath2Vh(Person* vh,std::vector<WayPoint>& path)
 {
 	vh->setPath(path);
 }
-
+//TODO: use uniform method for storing and retrieving travel times - Vahid
+#if 0
 void AMODController::setRdSegTravelTimes(Person* ag, double rdSegExitTime) {
 
 	std::map<double, Person::RdSegTravelStat>::const_iterator it =
@@ -958,6 +959,8 @@ bool AMODController::insertTravelTime2TmpTable(timeslice frameNumber, std::map<c
 	}
 	return res;
 }
+#endif
+
 
 void AMODController::testTravelTimePath()
 {
@@ -1231,7 +1234,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			string carParkIdDepartureTest = "";
 			string carParkIdArrivalTest = "";
 
-//check if there is a route from carpark to origin
+			//check if there is a route from carpark to origin
 			// I calculate the path from carpark to the second node from wp1
 			// find first WayPoint from (origin to dest)
 			WayPoint firstWP = wp1[0];
@@ -1249,7 +1252,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			}
 
 			//check if there is a route from destination to carpark
-// path from the second last node in WP1 to the nearest carpark
+			// path from the second last node in WP1 to the nearest carpark
 			// find the last wayPoint from the WP1 (origin to dest)
 			WayPoint lastWP = wp1[wp1.size() - 1];
 			const RoadSegment *lastWPrs = lastWP.roadSegment_;
@@ -1525,7 +1528,9 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 						//add drop off location
 						WayPoint lastWP = mergedWP[mergedWP.size()-1];
 						const RoadSegment *lastWPrs = lastWP.roadSegment_;
-						pickUpSegmentStr = lastWPrs->originalDB_ID.getLogItem();
+						std::stringstream segmentId("");
+						segmentId << lastWPrs->getId();
+						pickUpSegmentStr = segmentId.str();
 						StopPointRS = lastWPrs; //this is the segment where picking up f the passenger will occur
 //
 //						std::cout << "origin->destination: WPs after merging:" << std::endl;

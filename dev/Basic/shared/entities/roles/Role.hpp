@@ -72,7 +72,8 @@ public:
 		RL_BUSDRIVER,
 		RL_ACTIVITY,
 		RL_PASSENGER,
-		RL_WAITBUSACTITITY
+		RL_WAITBUSACTITITY,
+		RL_TRAINPASSENGER
 	};
 
 	//todo: use this to identify the type of request
@@ -91,7 +92,7 @@ public:
 	explicit Role(sim_mob::Person* parent = nullptr,
 			std::string roleName = std::string(),
 			Role::type roleType_ = RL_UNKNOWN) :
-		parent(parent), currResource(nullptr), name(roleName),
+		parent(parent), currResource(nullptr), name(roleName),mode(mode),
 		roleType(roleType_), behaviorFacet(nullptr), movementFacet(nullptr),
 		dynamic_seed(0)
 	{
@@ -117,7 +118,20 @@ public:
 		safe_delete_item(currResource);
 	}
 
-	//virtual void onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args){}
+	const std::string getMode()
+	{
+		switch (roleType)
+		{
+		case RL_UNKNOWN: return "NA";
+		case RL_DRIVER: return "Car";
+		case RL_BIKER: return "Motorcycle";
+		case RL_PEDESTRIAN: return "Walk";
+		case RL_BUSDRIVER: return "Bus";
+		case RL_ACTIVITY: return "Activity";
+		case RL_PASSENGER: return "BusTravel";
+		case RL_WAITBUSACTITITY: return "WaitingBusActivity";
+		}
+	}
 
 	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
 	virtual Role* clone(Person* parent) const = 0;
@@ -152,7 +166,7 @@ public:
 	VehicleBase* getResource() const { return currResource; }
 	void setResource(VehicleBase* currResource) { this->currResource = currResource; }
 
-	Person* getParent() {
+	Person* getParent() const {
 		return parent;
 	}
 
@@ -207,6 +221,8 @@ protected:
 
 	BehaviorFacet* behaviorFacet;
 	MovementFacet* movementFacet;
+	/// the mode string of the role (for output purposes)
+	const std::string mode;
 
 	//add by xuyan
 protected:

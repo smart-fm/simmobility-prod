@@ -12,6 +12,7 @@
 #include "database/entity/Unit.hpp"
 #include "database/entity/Individual.hpp"
 #include "database/entity/Awakening.hpp"
+#include "database/entity/VehicleOwnershipCoefficients.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -26,13 +27,18 @@ namespace sim_mob
         {
         public:
             typedef std::vector<Unit*> UnitList;
+            typedef boost::unordered_map<BigSerial, Unit*> UnitMap;
+
             typedef std::vector<Household*> HouseholdList;
             typedef boost::unordered_map<BigSerial, Household*> HouseholdMap;
-            typedef boost::unordered_map<BigSerial, Unit*> UnitMap;
+
             typedef std::vector<Individual*> IndividualList;
             typedef boost::unordered_map<BigSerial, Individual*> IndividualMap;
+
             typedef std::vector<Awakening*> AwakeningList;
             typedef boost::unordered_map<BigSerial, Awakening*> AwakeningMap;
+            typedef std::vector<VehicleOwnershipCoefficients*> VehicleOwnershipCoeffList;
+            typedef boost::unordered_map<BigSerial, VehicleOwnershipCoefficients*> VehicleOwnershipCoeffMap;
             /**
              * Taz statistics
              */
@@ -84,6 +90,8 @@ namespace sim_mob
 
             HousingMarket* getMarket();
 
+            HouseholdList* getHouseholdList();
+
             void incrementBidders();
             void decrementBidders();
             int	 getNumberOfBidders();
@@ -94,6 +102,10 @@ namespace sim_mob
             int getLifestyle1HHs() const;
             int getLifestyle2HHs() const;
             int getLifestyle3HHs() const;
+            VehicleOwnershipCoeffList getVehicleOwnershipCoeffs()const;
+            VehicleOwnershipCoefficients* getVehicleOwnershipCoeffsById( BigSerial id) const;
+            void addUnit(Unit* unit);
+            std::vector<BigSerial> getRealEstateAgentIds();
 
 
         protected:
@@ -107,18 +119,23 @@ namespace sim_mob
         private:
             // Data
             HousingMarket market;
+
             HouseholdList households;
-            UnitList units; //residential only.
             HouseholdMap householdsById;
+
+            UnitList units; //residential only.
             UnitMap unitsById;
+
             StatsMap stats;
+
             IndividualList individuals;
             IndividualMap individualsById;
-            boost::unordered_map<BigSerial, BigSerial> assignedUnits;
 
+            boost::unordered_map<BigSerial, BigSerial> assignedUnits;
+            VehicleOwnershipCoeffList vehicleOwnershipCoeffs;
+            VehicleOwnershipCoeffMap vehicleOwnershipCoeffsById;
             AwakeningList awakening;
             AwakeningMap awakeningById;
-
             HouseholdStatistics household_stats;
 
             int	initialHHAwakeningCounter;
@@ -126,6 +143,7 @@ namespace sim_mob
             int numLifestyle1HHs;
             int numLifestyle2HHs;
             int numLifestyle3HHs;
+            std::vector<BigSerial> realEstateAgentIds;
 
         };
     }

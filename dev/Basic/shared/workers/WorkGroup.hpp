@@ -86,7 +86,7 @@ public:
 	void assignAWorker(Entity* ag);
 	void assignConfluxToWorkers();
 	void putAgentOnConflux(Person* ag);
-	void processVirtualQueues();
+	void processVirtualQueues(std::set<Agent*>& removedEntities);
 	void outputSupplyStats();
 	/*
 	 * This function will check for
@@ -100,7 +100,7 @@ public:
 	void findBoundaryConfluxes();
 
 	unsigned int getNumAgentsWithNoPath() {
-		return numAgentsWithNoPath;
+		return numDiscardedAgents;
 	}
         
         unsigned int getNumberOfWorkers() const;
@@ -194,7 +194,7 @@ private:
 	//Barriers for each locking stage
 	sim_mob::FlexiBarrier* frame_tick_barr;
 	sim_mob::FlexiBarrier* buff_flip_barr;
-	sim_mob::FlexiBarrier* aura_mgr_barr;
+	sim_mob::FlexiBarrier* msg_bus_barr;
 
 	//An optional barrier phase unique to each WorkGroup. If the timeStep is >1, then
 	// one additional locking barrier is required to prevent Workers from rushing ahead
@@ -204,8 +204,8 @@ private:
 	//Profile
 	sim_mob::ProfileBuilder* profile;
 
-	//Number of agents who have no path and hence discarded from the simulation.
-	unsigned int numAgentsWithNoPath;
+	//Number of agents who have been discarded from the simulation.
+	unsigned int numDiscardedAgents;
 
 	PeriodicPersonLoader* periodicPersonLoader;
 };

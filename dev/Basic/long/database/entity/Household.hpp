@@ -22,7 +22,7 @@ namespace sim_mob
         {
         public:
             Household();
-            Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int children, double income,
+            Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, double income,
             		   int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType );
             virtual ~Household();
 
@@ -35,8 +35,10 @@ namespace sim_mob
             int getHousingDuration() const;
             void setIncome(double income);
             double getIncome() const;
-            void setChildren(int children);
-            int getChildren() const;
+            void setChildUnder4(int children);
+            void setChildUnder15(int children);
+            int getChildUnder4() const;
+            int getChildUnder15() const;
             void setSize(int size);
             int getSize() const;
             void setVehicleCategoryId(BigSerial vehicleCategoryId);
@@ -88,7 +90,8 @@ namespace sim_mob
             BigSerial ethnicityId;
             BigSerial vehicleCategoryId;
             int size;
-            int children;
+            int childUnder4;
+            int childUnder15;
             double income;
             int housingDuration;
             int workers;

@@ -26,7 +26,7 @@ void UnitDao::fromRow(Row& result, Unit& outObj)
     outObj.sla_address_id  = result.get<BigSerial>("sla_address_id", INVALID_ID);
     outObj.unit_type  = result.get<int>("unit_type", INVALID_ID);
     outObj.storey_range  = result.get<int>("storey_range", 0);
-    outObj.unit_status  = result.get<std::string>("unit_status", EMPTY_STR);
+    outObj.unit_status  = result.get<int>("unit_status", 0);
     outObj.floor_area  = result.get<double>("floor_area", .0);
     outObj.storey  = result.get<int>("storey", 0);
     outObj.rent  = result.get<double>("rent", .0);
@@ -37,3 +37,11 @@ void UnitDao::fromRow(Row& result, Unit& outObj)
 }
 
 void UnitDao::toRow(Unit& data, Parameters& outParams, bool update) {}
+
+BigSerial UnitDao::getMaxUnitId()
+{
+	const std::string queryStr = DB_FUNC_GETALL_UNIT_WITH_MAX_ID;
+	std::vector<Unit*> unitWithMaxId;
+	getByQuery(queryStr,unitWithMaxId);
+	return unitWithMaxId.at(0)->getId();
+}

@@ -14,7 +14,7 @@ class ActivityPerformer;
 
 class ActivityPerformerBehavior : public sim_mob::BehaviorFacet {
 public:
-	explicit ActivityPerformerBehavior(sim_mob::Person* parentAgent = nullptr, sim_mob::ActivityPerformer* parentRole = nullptr, std::string roleName = std::string());
+	explicit ActivityPerformerBehavior(sim_mob::Person* parentAgent = nullptr);
 	virtual ~ActivityPerformerBehavior() {}
 
 	//Virtual overrides
@@ -34,13 +34,15 @@ private:
 
 class ActivityPerformerMovement : public sim_mob::MovementFacet {
 public:
-	explicit ActivityPerformerMovement(sim_mob::Person* parentAgent = nullptr, sim_mob::ActivityPerformer* parentRole = nullptr, std::string roleName = std::string());
-	virtual ~ActivityPerformerMovement() ;//{}
+	explicit ActivityPerformerMovement(sim_mob::Person* parentAgent = nullptr);
+	virtual ~ActivityPerformerMovement();
 
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
 	virtual void frame_tick_output();
+	virtual sim_mob::Conflux* getStartingConflux() const;
+
 	/// mark startTimeand origin
 	virtual TravelMetric& startTravelTimeMetric();
 	///	mark the destination and end time and travel time

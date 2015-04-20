@@ -85,7 +85,7 @@ void ParseParamFile::parseElement(DOMElement* e)
 	   {
 		   throw std::runtime_error("name is empty");
 	   }
-	   
+
 	   const XMLCh* xmlchValue
 			 = e->getAttribute(XMLString::transcode("value"));
 	   string value = XMLString::transcode(xmlchValue);
@@ -93,7 +93,7 @@ void ParseParamFile::parseElement(DOMElement* e)
 	   {
 		   throw std::runtime_error("value is empty");
 	   }
-	   
+
 	   // save to parameter manager
 	   ParamData v(value);
 	   v.setParaFileName(fileName);

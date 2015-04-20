@@ -144,16 +144,23 @@
     	<tickStep value="1"/>
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
+		<InitialPostcode value = "1000000"/>
+		<initialBuildingId value = "300000" />
+		<initialUnitId value = "2000000" />
+		<initialProjectId value = "200000" />
     	</developerModel>
         <housingModel enabled="true"> 
-            <timeOnMarket value="30"/>
+            <timeOnMarket value="90"/>
+            <timeOffMarket value="150"/>
             <timeInterval value="7"/>
-	    <DayOneAwakenedProbability value="0.375"/>
-            <numberOfHouseholds value="-1"/>
-	    <numberOfUnits	value="-1"/>
-	    <numberOfVacantUnits value="-1"/> 
+	    <InitialHouseholdsOnMarket value="10000"/>
+	    <vacantUnitActivationProbability value="0.375"/>
+	    <housingMarketSearchPercentage value="0.15"/>
+	    <housingMoveInDaysInterval value="30"/>
         </housingModel>
+	<vehicleOwnershipModel enabled='true'>
+		<vehicleBuyingWaitingTimeInDays value= "60"/>
+	</vehicleOwnershipModel>
     </longTermParams>
-  
 </config>
 

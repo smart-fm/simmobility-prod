@@ -43,8 +43,6 @@ public:
 
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
-	void setStop(sim_mob::BusStop* busStop);
-
 	/**
 	 * increase waiting time every frame tick.
 	 *
@@ -71,6 +69,14 @@ public:
 	 */
 	virtual void HandleParentMessage(messaging::Message::MessageType type,
 			const messaging::Message& message);
+
+	const BusStop* getStop() const {
+		return stop;
+	}
+
+	void setStop(sim_mob::BusStop* busStop) {
+		stop = busStop;
+	}
 
 	bool canBoardBus() const {
 		return boardBus;

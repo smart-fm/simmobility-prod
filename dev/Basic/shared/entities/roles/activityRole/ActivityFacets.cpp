@@ -4,10 +4,12 @@
 
 #include "ActivityFacets.hpp"
 #include "logging/Log.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
-sim_mob::ActivityPerformerBehavior::ActivityPerformerBehavior(sim_mob::Person* parentAgent, sim_mob::ActivityPerformer* parentRole, std::string roleName) :
-	BehaviorFacet(parentAgent),
-	parentActivity(parentRole)
+sim_mob::ActivityPerformerBehavior::ActivityPerformerBehavior(sim_mob::Person* parentAgent) :
+	BehaviorFacet(parentAgent), parentActivity(nullptr)
 {}
 
 
@@ -26,7 +28,7 @@ void sim_mob::ActivityPerformerBehavior::frame_tick_output() {
 
 sim_mob::ActivityPerformerMovement::~ActivityPerformerMovement()
 {
-	/*if(travelTimeMetric.started)
+	/*if(travelMetric.started)
 	{
 		finalizeTravelTimeMetric();
 	}*/
@@ -55,18 +57,28 @@ void sim_mob::ActivityPerformerMovement::frame_tick_output() {
 			<<"\"})"<<std::endl);
 }
 
-sim_mob::ActivityPerformerMovement::ActivityPerformerMovement(sim_mob::Person* parentAgent, sim_mob::ActivityPerformer* parentRole, std::string roleName):
-	MovementFacet(parentAgent), parentActivity(parentRole) {
+sim_mob::ActivityPerformerMovement::ActivityPerformerMovement(sim_mob::Person* parentAgent):
+	MovementFacet(parentAgent), parentActivity(nullptr) {
 }
 
 sim_mob::TravelMetric& sim_mob::ActivityPerformerMovement::startTravelTimeMetric()
 {
-	//travelTimeMetric.started = true;
-	return  travelTimeMetric;
+	//travelMetric.started = true;
+	return  travelMetric;
 }
 sim_mob::TravelMetric& sim_mob::ActivityPerformerMovement::finalizeTravelTimeMetric()
 {
-	//getParent()->serializeCBD_Activity(travelTimeMetric);
-	//travelTimeMetric.finalized = true;
-	return  travelTimeMetric;
+	//getParent()->serializeCBD_Activity(travelMetric);
+	//travelMetric.finalized = true;
+	return  travelMetric;
+}
+
+sim_mob::Conflux* sim_mob::ActivityPerformerMovement::getStartingConflux() const
+{
+	const sim_mob::MultiNode* activityLocation = dynamic_cast<sim_mob::MultiNode*>(parentActivity->getLocation());
+	if(activityLocation) //activity locations must ideally be multinodes
+	{
+		return ConfigManager::GetInstanceRW().FullConfig().getConfluxForNode(activityLocation);
+	}
+	return nullptr;
 }

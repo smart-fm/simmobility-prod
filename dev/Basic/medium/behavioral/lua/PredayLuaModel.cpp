@@ -49,7 +49,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("motor_own", &PersonParams::getMotorOwn)
 				.addProperty("fixed_work_hour", &PersonParams::getHasFixedWorkTiming) //not used in lua
 				.addProperty("homeLocation", &PersonParams::getHomeLocation) //not used in lua
-				.addProperty("fixed_place", &PersonParams::getFixedWorkPlace) //not used in lua
+				.addProperty("fixed_place", &PersonParams::hasFixedWorkPlace)
 				.addProperty("fixedSchoolLocation", &PersonParams::getFixedSchoolLocation) //not used in lua
 				.addProperty("only_adults", &PersonParams::getHH_OnlyAdults)
 				.addProperty("only_workers", &PersonParams::getHH_OnlyWorkers)
@@ -233,6 +233,13 @@ void sim_mob::medium::PredayLuaModel::computeDayPatternLogsums(PersonParams& per
 	LuaRef computeLogsumDPS = getGlobal(state.get(), "compute_logsum_dps");
 	LuaRef dpsLogsum = computeLogsumDPS(personParams);
 	personParams.setDpsLogsum(dpsLogsum.cast<double>());
+}
+
+void sim_mob::medium::PredayLuaModel::computeDayPatternBinaryLogsums(PersonParams& personParams) const
+{
+	LuaRef computeLogsumDPB = getGlobal(state.get(), "compute_logsum_dpb");
+	LuaRef dpbLogsum = computeLogsumDPB(personParams);
+	personParams.setDpbLogsum(dpbLogsum.cast<double>());
 }
 
 void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern) const {
@@ -454,3 +461,4 @@ int sim_mob::medium::PredayLuaModel::predictSubTourTimeOfDay(PersonParams& perso
 	LuaRef retVal = chooseSTTD(&personParams, &subTourParams);
 	return retVal.cast<int>();
 }
+

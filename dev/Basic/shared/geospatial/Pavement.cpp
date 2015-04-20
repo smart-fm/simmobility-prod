@@ -23,12 +23,17 @@ bool sim_mob::Pavement::addObstacle(centimeter_t offset, const RoadItem* item, b
 //		PrintOut("Fixing RoadItem offset: " <<offset <<" to: " <<0 <<std::endl);
 		offset = 0;
 	}
+
 	//Too big?
 	if (offset>length) {
 		if (!fixErrors) { throw std::runtime_error("Can't add obstacle; offset is greater than the segment length."); }
 		if (length==0) { throw std::runtime_error("Can't fix Road Segment obstacle; length has not been set."); }
 //		PrintOut("Fixing RoadItem offset: " <<offset <<" to: " <<length <<std::endl);
 		offset = length;
+	}
+
+	while(obstacles.count(offset)>0 ){
+		offset++;
 	}
 
 	//Already something there?

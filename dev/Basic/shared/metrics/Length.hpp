@@ -77,9 +77,9 @@ inline float centimeterToMile(centimeter_t length)
 }
 
 /** Return the distance moved in one second if traveling at \c s km per hour.  */
-inline centimeterPerSecond_t kmPerHourToCentimeterPerSecond(float s)
+inline centimeterPerSecond_t kmPerHourToCentimeterPerSecond(double s)
 {
-    return s * 1000 * 100 / 3600;
+    return s * 100000 / 3600;
 }
 
 /** Return the speed in km / hr if traveling at \c s centimeter per second.  */

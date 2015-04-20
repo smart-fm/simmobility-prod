@@ -42,9 +42,8 @@ using namespace mongo;
 
 namespace {
 	const double HIGH_TRAVEL_TIME = 999.0;
-	const double WALKABLE_DISTANCE = 3.0;
 	const double PEDESTRIAN_WALK_SPEED = 5.0; //kmph
-
+	const double WALKABLE_DISTANCE = 3.0; //km
 	const int AM_PEAK_LOW = 10;
 	const int AM_PEAK_HIGH = 13;
 	const int PM_PEAK_LOW = 30;
@@ -266,7 +265,8 @@ void PredaySystem::predictTourMode(Tour& tour) {
 	tmParams.setEducationOp(znDesObj->getTotalEnrollment());
 	tmParams.setOriginArea(znOrgObj->getArea());
 	tmParams.setDestinationArea(znDesObj->getArea());
-	if(personParams.getHomeLocation() != tour.getTourDestination()) {
+	if(personParams.getHomeLocation() != tour.getTourDestination())
+	{
 		CostParams* amObj = amCostMap.at(personParams.getHomeLocation()).at(tour.getTourDestination());
 		CostParams* pmObj = pmCostMap.at(tour.getTourDestination()).at(personParams.getHomeLocation());
 		tmParams.setCostPublicFirst(amObj->getPubCost());
@@ -286,32 +286,20 @@ void PredaySystem::predictTourMode(Tour& tour) {
 		tmParams.setTtCarIvtFirst(amObj->getCarIvt());
 		tmParams.setTtCarIvtSecond(pmObj->getCarIvt());
 		tmParams.setAvgTransfer((amObj->getAvgTransfer() + pmObj->getAvgTransfer())/2);
-		switch(tmParams.getStopType()){
-		case WORK:
-			tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn());
-			tmParams.setShare2Available(1);
-			tmParams.setShare3Available(1);
-			tmParams.setPublicBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-			tmParams.setMrtAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-			tmParams.setPrivateBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-			tmParams.setWalkAvailable(amObj->getPubIvt() <= WALKABLE_DISTANCE && pmObj->getPubIvt() <= WALKABLE_DISTANCE);
-			tmParams.setTaxiAvailable(1);
-			tmParams.setMotorAvailable(1);
-			break;
-		case EDUCATION:
-			tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
-			tmParams.setShare2Available(1);
-			tmParams.setShare3Available(1);
-			tmParams.setPublicBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-			tmParams.setMrtAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-			tmParams.setPrivateBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
-			tmParams.setWalkAvailable(amObj->getPubIvt() <= WALKABLE_DISTANCE && pmObj->getPubIvt() <= WALKABLE_DISTANCE);
-			tmParams.setTaxiAvailable(1);
-			tmParams.setMotorAvailable(1);
-			break;
-		}
+
+		//set availabilities
+		tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
+		tmParams.setShare2Available(1);
+		tmParams.setShare3Available(1);
+		tmParams.setPublicBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
+		tmParams.setMrtAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
+		tmParams.setPrivateBusAvailable(amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
+		tmParams.setWalkAvailable(amObj->getPubIvt() <= WALKABLE_DISTANCE && pmObj->getPubIvt() <= WALKABLE_DISTANCE);
+		tmParams.setTaxiAvailable(1);
+		tmParams.setMotorAvailable(1);
 	}
-	else {
+	else
+	{
 		tmParams.setCostPublicFirst(0);
 		tmParams.setCostPublicSecond(0);
 		tmParams.setCostCarErpFirst(0);
@@ -330,6 +318,17 @@ void PredaySystem::predictTourMode(Tour& tour) {
 		tmParams.setTtCarIvtFirst(0);
 		tmParams.setTtCarIvtSecond(0);
 		tmParams.setAvgTransfer(0);
+
+		//set availabilities
+		tmParams.setDrive1Available(personParams.hasDrivingLicence() * personParams.getCarOwnNormal());
+		tmParams.setShare2Available(1);
+		tmParams.setShare3Available(1);
+		tmParams.setPublicBusAvailable(1);
+		tmParams.setMrtAvailable(1);
+		tmParams.setPrivateBusAvailable(1);
+		tmParams.setWalkAvailable(1);
+		tmParams.setTaxiAvailable(1);
+		tmParams.setMotorAvailable(1);
 	}
 
 	tour.setTourMode(PredayLuaProvider::getPredayModel().predictTourMode(personParams, tmParams));
@@ -1551,6 +1550,23 @@ void sim_mob::medium::PredaySystem::computeLogsums()
 			<<std::endl;
 }
 
+void sim_mob::medium::PredaySystem::computeLogsumsForLT(std::stringstream& outStream)
+{
+	computeLogsums();
+	PredayLuaProvider::getPredayModel().computeDayPatternBinaryLogsums(personParams);
+	outStream << personParams.getPersonId()
+			<< "," << personParams.getHomeLocation()
+			<< "," << personParams.getHhId()
+			<< "," << personParams.getWorkLogSum()
+			<< "," << personParams.getEduLogSum()
+			<< "," << personParams.getShopLogSum()
+			<< "," << personParams.getOtherLogSum()
+			<< "," << personParams.getDptLogsum()
+			<< "," << personParams.getDpsLogsum()
+			<< "," << personParams.getDpbLogsum()
+			<< "\n";
+}
+
 void sim_mob::medium::PredaySystem::outputPredictionsToMongo() {
 	insertDayPattern();
 	int tourNum=0;
@@ -1586,193 +1602,19 @@ void sim_mob::medium::PredaySystem::updateLogsumsToMongo()
 	mongoDao["population"]->update(query, updateObj);
 }
 
-void sim_mob::medium::PredaySystem::constructTripChains(const ZoneNodeMap& zoneNodeMap, long hhFactor, std::list<TripChainItemParams>& tripChain)
-{
-	std::string personId = personParams.getPersonId();
-	for(long k=1; k<=hhFactor; k++)
-	{
-		std::string pid;
-		{
-			std::stringstream sclPersonIdStrm;
-			sclPersonIdStrm << personId << "-" << k;
-			pid = sclPersonIdStrm.str();
-		}
-		int seqNum = 0;
-		int prevNode = 0;
-		int nextNode = 0;
-		std::string prevDeptTime = "";
-		int primaryMode = 0;
-		bool atHome = true;
-		int homeNode = 0;
-		if(zoneNodeMap.find(personParams.getHomeLocation()) != zoneNodeMap.end())
-		{
-			homeNode =  getRandomNodeInZone(zoneNodeMap.at(personParams.getHomeLocation()));
-		}
-		if(homeNode == 0) { return; } //do not insert this person at all
-		int tourNum = 0;
-		for(TourList::const_iterator tourIt = tours.begin(); tourIt != tours.end(); tourIt++)
-		{
-			tourNum = tourNum + 1;
-			const Tour& tour = *tourIt;
-			int stopNum = 0;
-			bool nodeMappingFailed = false;
-			const StopList& stopLst = tour.stops;
-			primaryMode = tour.getTourMode();
-			for(StopList::const_iterator stopIt = tour.stops.begin(); stopIt != tour.stops.end(); stopIt++)
-			{
-				stopNum = stopNum + 1;
-				Stop* stop = *stopIt;
-				nextNode = 0;
-				ZoneNodeMap::const_iterator zoneNodeMapIt = zoneNodeMap.find(stop->getStopLocation());
-				if(zoneNodeMapIt != zoneNodeMap.end())
-				{
-					nextNode = getFirstNodeInZone(zoneNodeMapIt->second);
-				}
-				if(nextNode == 0) { nodeMappingFailed = true; break; } // if there is no next node, cut the trip chain for this tour here
-
-				seqNum = seqNum + 1;
-				TripChainItemParams tcTrip = TripChainItemParams(pid, "Trip", seqNum);
-				tcTrip.setTripId(constructTripChainItemId(pid, tourNum, seqNum));
-				tcTrip.setSubtripId(constructTripChainItemId(pid, tourNum, seqNum, "-1"));
-				if(atHome)
-				{
-					constructTrip(tcTrip, homeNode, nextNode, getRandomTimeInWindow(getTimeWindowFromIndex(tour.getStartTime())), stop->getStopMode(),
-							(primaryMode==stop->getStopMode()));
-					atHome = false;
-				}
-				else
-				{
-					constructTrip(tcTrip, prevNode, nextNode, prevDeptTime, stop->getStopMode(), (primaryMode==stop->getStopMode()));
-				}
-				tripChain.push_back(tcTrip);
-
-				std::string arrTimeStr, deptTimeStr;
-				if(stop->isPrimaryActivity() && !tour.subTours.empty()) // check for subtours in primary activity
-				{
-					int tourActivityNode = nextNode;
-					double arrivalTime = stop->getArrivalTime();
-					for(TourList::const_iterator subTourIt = tour.subTours.begin(); subTourIt != tour.subTours.end(); subTourIt++)
-					{
-						const Tour& subTour = *subTourIt;
-						seqNum = seqNum + 1;
-						TripChainItemParams tcActivity = TripChainItemParams(pid, "Activity", seqNum);
-						tcActivity.setActivityId(constructTripChainItemId(pid, tourNum, seqNum));
-						arrTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(arrivalTime));
-						deptTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(subTour.getStartTime()));
-						constructActivity(tcActivity, stop, nextNode, arrTimeStr, deptTimeStr);
-						tripChain.push_back(tcActivity);
-						prevNode = nextNode; //activity location
-						prevDeptTime = deptTimeStr;
-
-						const Stop* subTourPrimaryStop = subTour.getPrimaryStop(); // subtours have only one stop
-						nextNode = 0;
-						ZoneNodeMap::const_iterator zoneNodeMapIt = zoneNodeMap.find(subTourPrimaryStop->getStopLocation());
-						if(zoneNodeMapIt != zoneNodeMap.end())
-						{
-							nextNode = getFirstNodeInZone(zoneNodeMapIt->second);
-						}
-						if(nextNode == 0) { nodeMappingFailed = true; break; } // if there is no next node, cut the trip chain for this tour here
-
-						// insert trip from activity location to sub-tour activity location
-						seqNum = seqNum + 1;
-						TripChainItemParams tcSubTourTrip = TripChainItemParams(pid, "Trip", seqNum);
-						tcSubTourTrip.setTripId(constructTripChainItemId(pid, tourNum, seqNum));
-						tcSubTourTrip.setSubtripId(constructTripChainItemId(pid, tourNum, seqNum, "-1"));
-						constructTrip(tcSubTourTrip, prevNode, nextNode, prevDeptTime, subTourPrimaryStop->getStopMode(),
-								(primaryMode==subTourPrimaryStop->getStopMode()));
-						tripChain.push_back(tcSubTourTrip);
-
-						// insert sub tour activity
-						seqNum = seqNum + 1;
-						TripChainItemParams tcSubTourActivity = TripChainItemParams(pid, "Activity", seqNum);
-						tcSubTourActivity.setActivityId(constructTripChainItemId(pid, tourNum, seqNum));
-						std::string subArrTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(subTourPrimaryStop->getArrivalTime()));
-						std::string subDeptTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(subTourPrimaryStop->getDepartureTime()));
-						constructActivity(tcSubTourActivity, subTourPrimaryStop, nextNode, subArrTimeStr, subDeptTimeStr);
-						tripChain.push_back(tcSubTourActivity);
-						prevNode = nextNode; //activity location
-						prevDeptTime = subDeptTimeStr;
-
-						// insert trip back to tour's primary activity location
-						nextNode = tourActivityNode; // get back to tour's primary activity location
-						seqNum = seqNum + 1;
-						tcSubTourTrip = TripChainItemParams(pid, "Trip", seqNum);
-						tcSubTourTrip.setTripId(constructTripChainItemId(pid, tourNum, seqNum));
-						tcSubTourTrip.setSubtripId(constructTripChainItemId(pid, tourNum, seqNum, "-1"));
-						constructTrip(tcSubTourTrip, prevNode, nextNode, prevDeptTime, subTourPrimaryStop->getStopMode(),
-                                                                (primaryMode==subTourPrimaryStop->getStopMode()));
-						tripChain.push_back(tcSubTourTrip);
-						arrivalTime = subTour.getEndTime(); // for the next activity
-					}
-					if(nodeMappingFailed) { break; }// ignore remaining tours as well.
-					else
-					{
-						// remainder of the primary activity
-						seqNum = seqNum + 1;
-						TripChainItemParams tcActivity = TripChainItemParams(pid, "Activity", seqNum);
-						tcActivity.setActivityId(constructTripChainItemId(pid, tourNum, seqNum));
-						arrTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(arrivalTime));
-						deptTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(stop->getDepartureTime()));
-						constructActivity(tcActivity, stop, nextNode, arrTimeStr, deptTimeStr);
-						tripChain.push_back(tcActivity);
-						prevNode = nextNode; //activity location
-						prevDeptTime = deptTimeStr;
-					}
-				}
-				else
-				{
-					seqNum = seqNum + 1;
-					TripChainItemParams tcActivity = TripChainItemParams(pid, "Activity", seqNum);
-					tcActivity.setActivityId(constructTripChainItemId(pid, tourNum, seqNum));
-					arrTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(stop->getArrivalTime()));
-					deptTimeStr = getRandomTimeInWindow(getTimeWindowFromIndex(stop->getDepartureTime()));
-					constructActivity(tcActivity, stop, nextNode, arrTimeStr, deptTimeStr);
-					tripChain.push_back(tcActivity);
-				}
-				prevNode = nextNode; //activity location
-				prevDeptTime = deptTimeStr;
-			}
-			if(nodeMappingFailed) { break; } // ignore remaining tours as well.
-			else
-			{
-				// insert last trip in tour
-				seqNum = seqNum + 1;
-				TripChainItemParams tcTrip = TripChainItemParams(pid, "Trip", seqNum);
-				tcTrip.setTripId(constructTripChainItemId(pid, tourNum, seqNum));
-				tcTrip.setSubtripId(constructTripChainItemId(pid, tourNum, seqNum, "-1"));
-				constructTrip(tcTrip, prevNode, homeNode, prevDeptTime, primaryMode, true);
-				tripChain.push_back(tcTrip);
-				atHome = true;
-			}
-		}
-	}
-}
-
-void sim_mob::medium::PredaySystem::outputTripChainsToPostgreSQL(const ZoneNodeMap& zoneNodeMap, TripChainSqlDao& tripChainDao)
-{
-	size_t numTours = tours.size();
-	if (numTours == 0) { return; }
-	long hhFactor = (long)std::ceil(personParams.getHouseholdFactor());
-	std::list<TripChainItemParams> tripChain;
-	constructTripChains(zoneNodeMap, hhFactor, tripChain);
-	for(std::list<TripChainItemParams>::iterator tcIt=tripChain.begin(); tcIt!=tripChain.end();tcIt++)
-	{
-		tripChainDao.insert(*tcIt);
-	}
-}
-
 void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& outStream)
 {
 	size_t numTours = tours.size();
 	if (numTours == 0) { return; }
 	std::string personId = personParams.getPersonId();
-	long hhFactor = 8; //(long)std::ceil(personParams.getHouseholdFactor());
+	long hhFactor = (long)std::ceil(personParams.getHouseholdFactor());
 	for(long k=1; k<=hhFactor; k++)
 	{
+		int homeZone = personParams.getHomeLocation();
 		int homeNode = 0;
-		if(zoneNodeMap.find(personParams.getHomeLocation()) != zoneNodeMap.end())
+		if(zoneNodeMap.find(homeZone) != zoneNodeMap.end())
 		{
-			homeNode =  getRandomNodeInZone(zoneNodeMap.at(personParams.getHomeLocation()));
+			homeNode =  getRandomNodeInZone(zoneNodeMap.at(homeZone));
 		}
 		if(homeNode == 0) { return; } //return if homeless
 
@@ -1794,14 +1636,16 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 			const StopList& stops = tour.stops;
 
 			int prevStopNode = homeNode;
+			int prevStopZone = homeZone;
 			double prevStopEndTime = homeActivityEndTime;
-			int currStopNode;
+			int currStopZone, currStopNode;
 			double currStopEndTime;
 			for(StopList::const_iterator stopIt=stops.begin(); stopIt!=stops.end(); stopIt++)
 			{
 				const Stop* stop = (*stopIt);
+				currStopZone = stop->getStopLocation();
 				currStopNode = 0;
-				ZoneNodeMap::const_iterator zoneNodeMapIt = zoneNodeMap.find(stop->getStopLocation());
+				ZoneNodeMap::const_iterator zoneNodeMapIt = zoneNodeMap.find(currStopZone);
 				if(zoneNodeMapIt != zoneNodeMap.end())
 				{
 					currStopNode = getRandomNodeInZone(zoneNodeMapIt->second);
@@ -1816,12 +1660,15 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 						<< stopNum << ","
 						<< stop->getStopTypeStr() << ","
 						<< currStopNode << ","
+						<< currStopZone << ","
 						<< modeMap.at(stop->getStopMode()) << ","
 						<< (stop->isPrimaryActivity()? "True":"False")  << ","
 						<< getTimeWindowFromIndex(stop->getArrivalTime()) << ","
 						<< currStopEndTime << ","
 						<< prevStopNode << ","
+						<< prevStopZone << ","
 						<< prevStopEndTime <<"\n";
+				prevStopZone = currStopZone;
 				prevStopNode = currStopNode;
 				prevStopEndTime = currStopEndTime;
 			}
@@ -1840,11 +1687,13 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 						<< ++stopNum << ","
 						<< "Home" << ","
 						<< homeNode << ","
+						<< homeZone << ","
 						<< modeMap.at(tour.getTourMode()) << ","
 						<< "False"  << ","
 						<< getTimeWindowFromIndex(tour.getEndTime()) << ","
 						<< homeActivityEndTime << ","
 						<< prevStopNode << ","
+						<< prevStopZone << ","
 						<< prevStopEndTime << "\n";
 				outStream << tourStream.str();
 				tourNum++;
@@ -1853,71 +1702,10 @@ void sim_mob::medium::PredaySystem::outputActivityScheduleToStream(const ZoneNod
 	}
 }
 
-void sim_mob::medium::PredaySystem::outputTripChainsToStream(const ZoneNodeMap& zoneNodeMap, std::stringstream& tripChainStream)
-{
-	size_t numTours = tours.size();
-	if (numTours == 0) { return; }
-	long hhFactor = (long)std::ceil(personParams.getHouseholdFactor());
-	std::list<TripChainItemParams> tripChains;
-	constructTripChains(zoneNodeMap, hhFactor, tripChains);
-	for(std::list<TripChainItemParams>::const_iterator tcIt=tripChains.begin(); tcIt!=tripChains.end();tcIt++)
-	{
-		/*
-		  ------------------ DATABASE preday_trip_chain_flat FIELDS for reference --------------------------------
-		  person_id character varying NOT NULL,
-		  tc_seq_no integer NOT NULL,
-		  tc_item_type character varying,
-		  trip_id character varying,
-		  trip_origin integer,
-		  trip_from_loc_type character varying DEFAULT 'node'::character varying,
-		  trip_destination integer,
-		  trip_to_loc_type character varying DEFAULT 'node'::character varying,
-		  subtrip_id character varying,
-		  subtrip_origin integer,
-		  subtrip_from_loc_type character varying DEFAULT 'node'::character varying,
-		  subtrip_destination integer,
-		  subtrip_to_loc_type character varying DEFAULT 'node'::character varying,
-		  subtrip_mode character varying,
-		  is_primary_mode boolean,
-		  start_time character varying,
-		  pt_line_id character varying DEFAULT ''::character varying,
-		  activity_id character varying,
-		  activity_type character varying,
-		  is_primary_activity boolean,
-		  flexible_activity boolean DEFAULT false,
-		  mandatory_activity boolean DEFAULT true,
-		  activity_location integer,
-		  activity_loc_type character varying DEFAULT 'node'::character varying,
-		  activity_start_time character varying,
-		  activity_end_time character varying
-		*/
-		const TripChainItemParams& data = (*tcIt);
-		tripChainStream << data.getPersonId() << ",";
-		tripChainStream << data.getTcSeqNum() << ",";
-		tripChainStream << data.getTcItemType() << ",";
-		tripChainStream << data.getTripId() << ",";
-		tripChainStream << data.getTripOrigin() << "," << "node" << ",";
-		tripChainStream << data.getTripDestination() << "," << "node" << ",";
-		tripChainStream << data.getSubtripId() << ",";
-		tripChainStream << data.getSubtripOrigin() << "," << "node" << ",";
-		tripChainStream << data.getSubtripDestination() << "," << "node" << ",";
-		tripChainStream << data.getSubtripMode() << ",";
-		tripChainStream << (data.isPrimaryMode()? "True":"False") << ",";
-		tripChainStream << data.getStartTime() << ",";
-		tripChainStream << "\"\"" << ","; //public transit line id
-		tripChainStream << data.getActivityId() << ",";
-		tripChainStream << data.getActivityType() << ",";
-		tripChainStream << (data.isPrimaryActivity()? "True":"False") << ",";
-		tripChainStream << "False" << "," << "True" << ","; //flexible and mandatory activity
-		tripChainStream << data.getActivityLocation() << "," << "node" << ",";
-		tripChainStream << data.getActivityStartTime() << ",";
-		tripChainStream << data.getActivityEndTime() << "\n";
-	}
-}
-
 void sim_mob::medium::PredaySystem::printLogs()
 {
 	Print() << logStream.str();
+	logStream.str(std::string());
 }
 
 void sim_mob::medium::PredaySystem::updateStatistics(CalibrationStatistics& statsCollector) const

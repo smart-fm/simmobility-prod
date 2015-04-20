@@ -13,7 +13,6 @@
 #include "HouseholdAgent.hpp"
 #include "message/MessageBus.hpp"
 #include "model/HM_Model.hpp"
-#include "role/LT_Role.hpp"
 #include "role/impl/HouseholdBidderRole.hpp"
 #include "role/impl/HouseholdSellerRole.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
@@ -99,7 +98,8 @@ void HouseholdAgent::awakenHousehold()
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
 	//We will awaken a specific number of households on day 1 as dictated by the long term XML file.
-	if( model->getAwakeningCounter() > config.ltParams.dayOneAwakening)
+
+	if( model->getAwakeningCounter() > config.ltParams.housingModel.initialHouseholdsOnMarket)
 		return;
 
 	if(household == nullptr)
@@ -138,6 +138,22 @@ void HouseholdAgent::awakenHousehold()
 		seller->setActive(true);
 		bidder->setActive(true);
 		model->incrementBidders();
+
+		#ifdef VERBOSE
+		PrintOutV("Household " << getId() << " has been awakened."<< std::endl);
+		#endif
+
+		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+		{
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+			BigSerial unitId = *itr;
+			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+			unit->setbiddingMarketEntryDay(day);
+			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+		}
+
 		model->incrementAwakeningCounter();
 
 		model->incrementLifestyle1HHs();
@@ -148,6 +164,22 @@ void HouseholdAgent::awakenHousehold()
 		seller->setActive(true);
 		bidder->setActive(true);
 		model->incrementBidders();
+
+		#ifdef VERBOSE
+		PrintOutV("[day " << day << "] Household " << getId() << " has been awakened."<< std::endl);
+		#endif
+
+		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+		{
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+			BigSerial unitId = *itr;
+			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+			unit->setbiddingMarketEntryDay(day);
+			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+		}
+
 		model->incrementAwakeningCounter();
 
 		model->incrementLifestyle2HHs();
@@ -158,6 +190,22 @@ void HouseholdAgent::awakenHousehold()
 		seller->setActive(true);
 		bidder->setActive(true);
 		model->incrementBidders();
+
+		#ifdef VERBOSE
+		PrintOutV("[day " << day << "] Household " << getId() << " has been awakened."<< std::endl);
+		#endif
+
+		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+		{
+			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+			BigSerial unitId = *itr;
+			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+			unit->setbiddingMarketEntryDay(day);
+			unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+		}
+
 		model->incrementAwakeningCounter();
 
 		model->incrementLifestyle3HHs();
@@ -168,7 +216,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 {
 	day = now.frame();
 
-	if( now.frame() == 1 )
+	if( day == 0 )
 	{		
 		awakenHousehold();
 	}
@@ -189,31 +237,13 @@ void HouseholdAgent::onFrameOutput(timeslice now) {}
 
 void HouseholdAgent::onEvent(EventId eventId, Context ctxId, EventPublisher*, const EventArgs& args)
 {
-        processEvent(eventId, ctxId, args);
+	processEvent(eventId, ctxId, args);
 }
 
 void HouseholdAgent::processEvent(EventId eventId, Context ctxId, const EventArgs& args)
 {
     switch (eventId)
     {
-        case LTEID_HM_UNIT_ADDED:
-        {
-            const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
-            //PrintOut("Unit added " << hmArgs.getUnitId() << endl);
-            break;
-        }
-        case LTEID_HM_UNIT_REMOVED:
-        {
-            const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
-            //PrintOut("Unit removed " << hmArgs.getUnitId() << endl);
-            break;
-        }
-        case LTEID_HM_BUILDING_REMOVED:
-        {
-             const HM_ActionEventArgs& hmArgs = MSG_CAST(HM_ActionEventArgs, args);
-            // PrintOut("Building removed " << hmArgs.getBuildingId() << endl);
-             break;
-        }
         case LTEID_EXT_LOST_JOB:
         case LTEID_EXT_NEW_CHILD:
         case LTEID_EXT_NEW_JOB:
@@ -258,7 +288,6 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
 					}
             	}
 
-            	//PrintOut("Active seller " << seller->getParent()->GetId() << std::endl);
                 seller->setActive(true);
             }
 
@@ -268,6 +297,11 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
                 model->incrementBidders();
 
             }
+
+			#ifdef VERBOSE
+            PrintOutV("[day " << day << "] Household " << getId() << " has been awakened."<< std::endl);
+			#endif
+
             break;
         }
         default:break;
@@ -284,9 +318,6 @@ void HouseholdAgent::onWorkerEnter()
         MessageBus::SubscribeEvent(LTEID_EXT_LOST_JOB, this, this);
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this, this);
         MessageBus::SubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
-        MessageBus::SubscribeEvent(LTEID_HM_UNIT_ADDED, this);
-        MessageBus::SubscribeEvent(LTEID_HM_UNIT_REMOVED, this);
-        MessageBus::SubscribeEvent(LTEID_HM_BUILDING_REMOVED, this);
     }
 }
 
@@ -299,9 +330,6 @@ void HouseholdAgent::onWorkerExit()
         MessageBus::UnSubscribeEvent(LTEID_EXT_LOST_JOB, this, this);
         MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_SCHOOL_LOCATION, this, this);
         MessageBus::UnSubscribeEvent(LTEID_EXT_NEW_JOB_LOCATION, this, this);
-        MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_ADDED, market, this);
-        MessageBus::UnSubscribeEvent(LTEID_HM_UNIT_REMOVED, this);
-        MessageBus::UnSubscribeEvent(LTEID_HM_BUILDING_REMOVED, this);
     }
 }
 

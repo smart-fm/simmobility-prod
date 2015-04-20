@@ -38,7 +38,7 @@ class Loader;
 
 class MultiNode : public sim_mob::Node {
 public:
-	MultiNode(int x, int y) : Node(x, y) {}
+	MultiNode(int x, int y, bool hasSignal=false) : Node(x, y), hasTrafficSignal(hasSignal) {}
 
 	///Query the list of connectors at the current node, restricting the results to
 	///   those which originate at the "from" segment.
@@ -72,6 +72,8 @@ public:
 
 	void setTurnings(const sim_mob::RoadSegment *key, TurningSection *val);
  
+	bool isSignalized() const;
+
     //Inserts the turning section to the map mapFromToLanesVsTurning
     void updateMapLaneVsTurning(const Lane *fromLane, const Lane *toLane, TurningSection *turning);
         
@@ -98,6 +100,9 @@ protected:
 
 	///Bookkeeping: which RoadSegments meet at this Node?
 	std::set<sim_mob::RoadSegment*> roadSegmentsAt;
+
+	///flag to track whether this multinode has a Traffic Signal
+	bool hasTrafficSignal;
 
 friend class sim_mob::aimsun::Loader;
 

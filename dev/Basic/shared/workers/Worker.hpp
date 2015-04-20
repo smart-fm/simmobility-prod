@@ -70,7 +70,6 @@ public:
 
 	virtual ProfileBuilder* getProfileBuilder() const = 0;
 
-	virtual sim_mob::PathSetManager* getPathSetMgr() = 0;
 };
 
 
@@ -130,8 +129,8 @@ public:
 
 	virtual std::ostream* getLogFile() const;
 
-	/// return current worker's path set manager
-	virtual sim_mob::PathSetManager *getPathSetMgr();
+//	/// return current worker's path set manager
+//	virtual sim_mob::PathSetManager *getPathSetMgr();
 
 	virtual ProfileBuilder* getProfileBuilder() const;
 
@@ -170,6 +169,7 @@ private:
 
 	//Helper functions for various update functionality.
 	virtual void update_entities(timeslice currTime);
+	void initializeConfluxes(timeslice currTime);
 
 	void migrateOut(Entity& ent);
 	void migrateOutConflux(Conflux& cfx);
@@ -232,7 +232,7 @@ private:
 	//int thread_id;
 	//static int auto_matical_thread_id;
 public:
-	soci::session sql;
+	
 	/// each worker has its own path set manager
 	sim_mob::PathSetManager *pathSetMgr;
 };

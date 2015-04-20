@@ -16,6 +16,7 @@
 #include "database/dao/UnitDao.hpp"
 #include "database/dao/IndividualDao.hpp"
 #include "database/dao/AwakeningDao.hpp"
+#include "database/dao/VehicleOwnershipCoefficientsDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -142,6 +143,11 @@ Individual* HM_Model::getIndividualById(BigSerial id) const
 	return nullptr;
 }
 
+HM_Model::HouseholdList* HM_Model::getHouseholdList()
+{
+	return &households;
+}
+
 Household* HM_Model::getHouseholdById(BigSerial id) const
 {
 	HouseholdMap::const_iterator itr = householdsById.find(id);
@@ -244,6 +250,22 @@ int HM_Model::getLifestyle3HHs() const
 	return numLifestyle3HHs;
 }
 
+HM_Model::VehicleOwnershipCoeffList HM_Model::getVehicleOwnershipCoeffs() const
+{
+	return this->vehicleOwnershipCoeffs;
+}
+
+VehicleOwnershipCoefficients* HM_Model::getVehicleOwnershipCoeffsById( BigSerial id) const
+{
+	VehicleOwnershipCoeffMap::const_iterator itr = vehicleOwnershipCoeffsById.find(id);
+
+		if (itr != vehicleOwnershipCoeffsById.end())
+		{
+			return (*itr).second;
+		}
+
+		return nullptr;
+}
 
 const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 {
@@ -255,6 +277,16 @@ const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 	return nullptr;
 }
 
+void HM_Model::addUnit(Unit* unit)
+{
+	units.push_back(unit);
+	unitsById.insert(std::pair<BigSerial,Unit*>(unit->getId(), unit));
+}
+
+std::vector<BigSerial> HM_Model::getRealEstateAgentIds()
+{
+	return this->realEstateAgentIds;
+}
 
 void HM_Model::startImpl()
 {
@@ -270,60 +302,67 @@ void HM_Model::startImpl()
 
 	if (conn.isConnected())
 	{
-		//Simmobility Test Params
-		const int numHouseholds = config.ltParams.housingModel.numberOfHouseholds;
-		const int numUnits = config.ltParams.housingModel.numberOfUnits;
-
 		//Load households
 		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
-		int displayHouseholds =	numHouseholds == -1 ? households.size() : numHouseholds;
-		PrintOut("Number of households: " << households.size() << ". Households used: " << displayHouseholds << std::endl);
+		PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
 
 		//Load units
 		loadData<UnitDao>(conn, units, unitsById, &Unit::getId);
-		int displayUnits = numUnits == -1 ? units.size() : numUnits;
-		PrintOut("Number of units: " << units.size() << ". Units Used: " << displayUnits << std::endl);
+		PrintOutV("Number of units: " << units.size() << ". Units Used: " << units.size() << std::endl);
 
 		//load individuals
 		loadData<IndividualDao>(conn, individuals, individualsById,	&Individual::getId);
-		PrintOut("Initial Individuals: " << individuals.size() << std::endl);
+		PrintOutV("Initial Individuals: " << individuals.size() << std::endl);
 
 		loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
-		PrintOut("Awakening probability: " << awakening.size() << std::endl );
+		PrintOutV("Awakening probability: " << awakening.size() << std::endl );
 
-
-
-		if (numUnits != -1 && numUnits < units.size())
-		{
-			units.resize(numUnits);
-		}
-
-		if (numHouseholds != -1 && numHouseholds < households.size())
-		{
-			households.resize(numHouseholds);
-		}
+		loadData<VehicleOwnershipCoefficientsDao>(conn,vehicleOwnershipCoeffs,vehicleOwnershipCoeffsById, &VehicleOwnershipCoefficients::getParameterId);
 	}
 
 
 	unitsFiltering();
 
 	workGroup.assignAWorker(&market);
-	unsigned int numberOffreelanceHousingAgents = workGroup.getNumberOfWorkers();
+	int numWorkers = workGroup.getNumberOfWorkers();
 
-	//create fake seller agents to sell vacant units.
+	//
+	//Create freelance seller agents to sell vacant units.
+	//
 	std::vector<HouseholdAgent*> freelanceAgents;
-	for (int i = 0; i < numberOffreelanceHousingAgents; i++)
+	for (int i = 0; i < numWorkers ; i++)
 	{
 		HouseholdAgent* freelanceAgent = new HouseholdAgent((FAKE_IDS_START + i),this, nullptr, &market, true);
-		AgentsLookupSingleton::getInstance().addHousehold(freelanceAgent);
+		AgentsLookupSingleton::getInstance().addHouseholdAgent(freelanceAgent);
 		agents.push_back(freelanceAgent);
 		workGroup.assignAWorker(freelanceAgent);
 		freelanceAgents.push_back(freelanceAgent);
 	}
 
+
+	//
+	//Create real-estate agents. Their tasks are to sell units from the developer model.
+	//
+	std::vector<RealEstateAgent*> realEstateAgents;
+	for( int i = 0; i < numWorkers ; i++ )
+	{
+		BigSerial id = FAKE_IDS_START + numWorkers + i;
+		realEstateAgentIds.push_back(id);
+		RealEstateAgent* realEstateAgent = new RealEstateAgent(id, this, nullptr, &market, true);
+		AgentsLookupSingleton::getInstance().addRealEstateAgent(realEstateAgent);
+		agents.push_back(realEstateAgent);
+		workGroup.assignAWorker(realEstateAgent);
+		realEstateAgents.push_back(realEstateAgent);
+	}
+
+
+
 	int homelessHousehold = 0;
 
-	// Assign households to the units.
+	//
+	// 1. Create Household Agents.
+	// 2. Assign households to the units.
+	//
 	for (HouseholdList::const_iterator it = households.begin();	it != households.end(); it++)
 	{
 		const Household* household = *it;
@@ -356,34 +395,16 @@ void HM_Model::startImpl()
 			 " AVG: "   << tazStats->getHH_AvgIncome() << std::endl);*/
 		}
 
-		AgentsLookupSingleton::getInstance().addHousehold(hhAgent);
+		AgentsLookupSingleton::getInstance().addHouseholdAgent(hhAgent);
 		agents.push_back(hhAgent);
 		workGroup.assignAWorker(hhAgent);
 	}
 
-	PrintOut( "There are " << homelessHousehold << " homeless households" << std::endl);
+	PrintOutV( "There are " << homelessHousehold << " homeless households" << std::endl);
 
-	const int NUM_VACANT_UNITS = config.ltParams.housingModel.numberOfVacantUnits;
-
-	//Delete vacant units set by config file.
-	//n: variable n will increment by 1 for every vacant unit
-	//m: variable m will keep the index of the last retrieved vacant unit to speed up the process.
-	for (int n = 0, m = 0; n < NUM_VACANT_UNITS;)
-	{
-		for (UnitList::const_iterator it = units.begin() + m; it != units.end(); it++)
-		{
-			//this unit is a vacancy
-			if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
-			{
-				units.erase(units.begin() + m);
-				n++;
-				break;
-			}
-
-			m++;
-		}
-	}
-
+	///////////////////////////////////////////
+	//Vacant Unit activation model
+	//////////////////////////////////////////
 	int vacancies = 0;
 	int onMarket  = 0;
 	int offMarket = 0;
@@ -391,7 +412,7 @@ void HM_Model::startImpl()
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
 		(*it)->setbiddingMarketEntryDay( 0 );
-		(*it)->setTimeOnMarket((float)rand() / RAND_MAX *  config.ltParams.housingModel.timeOnMarket);
+		(*it)->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 		(*it)->setTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
 
 		//this unit is a vacancy
@@ -401,11 +422,10 @@ void HM_Model::startImpl()
 			{
 				float awakeningProbability = (float)rand() / RAND_MAX;
 
-				if(awakeningProbability < config.ltParams.housingModel.awakenedProbability )
+				if(awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
-
-					(*it)->setbiddingMarketEntryDay( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
-					(*it)->setTimeOnMarket( int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
+					(*it)->setbiddingMarketEntryDay( 0 );
+					(*it)->setTimeOnMarket( 1 + int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 
 					onMarket++;
 				}
@@ -415,19 +435,19 @@ void HM_Model::startImpl()
 					offMarket++;
 				}
 
-				freelanceAgents[vacancies % numberOffreelanceHousingAgents]->addUnitId((*it)->getId());
+				freelanceAgents[vacancies % numWorkers]->addUnitId((*it)->getId());
 				vacancies++;
 			}
 		}
 	}
 
-	PrintOut("Initial Vacancies: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
+	PrintOutV("Initial Vacant units: " << vacancies << " onMarket: " << onMarket << " offMarket: " << offMarket << std::endl);
 
 
 	addMetadata("Initial Units", units.size());
 	addMetadata("Initial Households", households.size());
 	addMetadata("Initial Vacancies", vacancies);
-	addMetadata("Freelance housing agents", numberOffreelanceHousingAgents);
+	addMetadata("Freelance housing agents", numWorkers);
 
 	for (int n = 0; n < individuals.size(); n++)
 	{
@@ -444,18 +464,18 @@ void HM_Model::startImpl()
 		hdbEligibilityTest(n);
 	}
 
-	PrintOut("The synthetic population contains " << household_stats.adultSingaporean_global << " adult Singaporeans." << std::endl);
-	PrintOut("Minors. Male: " << household_stats.maleChild_global << " Female: " << household_stats.femaleChild_global << std::endl);
-	PrintOut("Young adults. Male: " << household_stats.maleAdultYoung_global << " Female: " << household_stats.femaleAdultYoung_global << std::endl);
-	PrintOut("Middle-age adults. Male: " << household_stats.maleAdultMiddleAged_global << " Female: " << household_stats.femaleAdultMiddleAged_global << std::endl);
-	PrintOut("Elderly adults. Male: " << household_stats.maleAdultElderly_global << " Female: " << household_stats.femaleAdultElderly_global << std::endl);
-	PrintOut("Household type Enumeration" << std::endl);
-	PrintOut("Couple and child " << household_stats.coupleAndChild << std::endl);
-	PrintOut("Siblings and parents " << household_stats.siblingsAndParents << std::endl );
-	PrintOut("Single parent " << household_stats.singleParent << std::endl );
-	PrintOut("Engaged couple " << household_stats.engagedCouple << std::endl );
-	PrintOut("Orphaned siblings " << household_stats.orphanSiblings << std::endl );
-	PrintOut("Multigenerational " << household_stats.multigeneration << std::endl );
+	PrintOutV("The synthetic population contains " << household_stats.adultSingaporean_global << " adult Singaporeans." << std::endl);
+	PrintOutV("Minors. Male: " << household_stats.maleChild_global << " Female: " << household_stats.femaleChild_global << std::endl);
+	PrintOutV("Young adults. Male: " << household_stats.maleAdultYoung_global << " Female: " << household_stats.femaleAdultYoung_global << std::endl);
+	PrintOutV("Middle-age adults. Male: " << household_stats.maleAdultMiddleAged_global << " Female: " << household_stats.femaleAdultMiddleAged_global << std::endl);
+	PrintOutV("Elderly adults. Male: " << household_stats.maleAdultElderly_global << " Female: " << household_stats.femaleAdultElderly_global << std::endl);
+	PrintOutV("Household type Enumeration" << std::endl);
+	PrintOutV("Couple and child " << household_stats.coupleAndChild << std::endl);
+	PrintOutV("Siblings and parents " << household_stats.siblingsAndParents << std::endl );
+	PrintOutV("Single parent " << household_stats.singleParent << std::endl );
+	PrintOutV("Engaged couple " << household_stats.engagedCouple << std::endl );
+	PrintOutV("Orphaned siblings " << household_stats.orphanSiblings << std::endl );
+	PrintOutV("Multigenerational " << household_stats.multigeneration << std::endl );
 
 }
 
@@ -485,9 +505,9 @@ void HM_Model::unitsFiltering()
 	int targetNumOfHDB   = 0.05 * numOfHDB;
 	int targetNumOfCondo = 0.10 * numOfCondo;
 
-	PrintOut( "[Prefilter] Total number of HDB: " << numOfHDB  << std::endl );
-	PrintOut( "[Prefilter] Total number of Condos: " << numOfCondo << std::endl );
-	PrintOut( "Total units " << units.size() << std::endl );
+	PrintOutV( "[Prefilter] Total number of HDB: " << numOfHDB  << std::endl );
+	PrintOutV( "[Prefilter] Total number of Condos: " << numOfCondo << std::endl );
+	PrintOutV( "Total units " << units.size() << std::endl );
 
 	srand(time(0));
 	for( int n = 0;  n < targetNumOfHDB; )
@@ -512,9 +532,9 @@ void HM_Model::unitsFiltering()
 		}
 	}
 
-	PrintOut( "[Postfilter] Total number of HDB: " << numOfHDB - targetNumOfHDB  << std::endl );
-	PrintOut( "[Postfilter] Total number of Condos: " << numOfCondo - targetNumOfCondo << std::endl );
-	PrintOut( "Total units " << units.size() << std::endl );
+	PrintOutV( "[Postfilter] Total number of HDB: " << numOfHDB - targetNumOfHDB  << std::endl );
+	PrintOutV( "[Postfilter] Total number of Condos: " << numOfCondo - targetNumOfCondo << std::endl );
+	PrintOutV( "Total units " << units.size() << std::endl );
 }
 
 void HM_Model::update(int day)
@@ -528,8 +548,9 @@ void HM_Model::update(int day)
 		if (assignedUnits.find((*it)->getId()) == assignedUnits.end())
 		{
 			//If a unit is off the market and unoccupied, we should put it back on the market after its timeOffMarket value is exceeded.
-			if( (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket() > day )
+			if( (*it)->getbiddingMarketEntryDay() + (*it)->getTimeOnMarket() + (*it)->getTimeOffMarket() < day )
 			{
+				//PrintOutV("A unit is being re-awakened" << std::endl);
 				(*it)->setbiddingMarketEntryDay(day + 1);
 				(*it)->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
 			}

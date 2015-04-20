@@ -112,9 +112,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 	//Load our user config file, which is a time costly function
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
-	cout<<"performMainSupply: trip chain pool size "
-		<<ConfigManager::GetInstance().FullConfig().getTripChains().size()
-		<<endl;
 
 	//insert bus stop agent to segmentStats;
 	std::set<sim_mob::SegmentStats*>& segmentStatsWithStops = ConfigManager::GetInstanceRW().FullConfig().getSegmentStatsWithBusStops();
@@ -190,7 +187,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}
 	//incident
 	personWorkers->assignAWorker(IncidentManager::getInstance());
-
+	//before starting the groups, initialize the time interval for one of the pathset manager's helpers
+	PathSetManager::initTimeInterval();
 	cout << "Initial Agents dispatched or pushed to pending.all_agents: " << Agent::all_agents.size() << " pending: " << Agent::pending_agents.size() << endl;
 
 	//Start work groups and all threads.
@@ -276,7 +274,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 	//finalize
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		PathSetManager::getInstance()->copyTravelTimeDataFromTmp2RealtimeTable();
+		PathSetManager::getInstance()->storeRTT();
 	}
 	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;
 	cout << "Max Agents at any given time: " <<maxAgents <<endl;
@@ -370,12 +368,13 @@ bool performMainDemand()
 {
 	std::srand(clock()); // set random seed for RNGs in preday
 	const MT_Config& mtConfig = MT_Config::getInstance();
+	const db::BackendType populationSource = mtConfig.getPopulationSource();
 	PredayManager predayManager;
 	predayManager.loadZones(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
-	predayManager.loadPersonIds(db::MONGO_DB);
+	predayManager.loadPersonIds(populationSource);
 	predayManager.loadUnavailableODs(db::MONGO_DB);
-	if(mtConfig.isOutputTripchains())
+	if(mtConfig.runningPredaySimulation() && mtConfig.isFileOutputEnabled())
 	{
 		predayManager.loadZoneNodes(db::MONGO_DB);
 	}
@@ -387,7 +386,8 @@ bool performMainDemand()
 	else
 	{
 		Print() << "Preday mode: " << (mtConfig.runningPredaySimulation()? "simulation":"logsum computation")  << std::endl;
-		predayManager.dispatchPersons();
+		if(populationSource == db::POSTGRES) { predayManager.dispatchLT_Persons(); }
+		else { predayManager.dispatchMongodbPersons(); }
 	}
 	return true;
 }
@@ -411,8 +411,7 @@ bool performMainDemand()
  */
 bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles)
 {
-	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
-	cout << "Main Thread[ " << boost::this_thread::get_id() << "]" << std::endl;
+	cout <<"Starting SimMobility, version " << SIMMOB_VERSION << endl;
 
 	//Parse the config file (this *does not* create anything, it just reads it.).
 	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());

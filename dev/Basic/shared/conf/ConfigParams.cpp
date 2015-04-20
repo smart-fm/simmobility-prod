@@ -510,6 +510,14 @@ bool sim_mob::ConfigParams::CBD() const{
 	return cbd;
 }
 
+bool sim_mob::ConfigParams::isGenerateBusRoutes() const{
+	return generateBusRoutes;
+}
+
+bool sim_mob::ConfigParams::PublicTransitEnabled() const{
+	return publicTransitEnabled;
+}
+
 const std::set<sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxes() const
 {
 	return confluxes;
@@ -518,4 +526,16 @@ const std::set<sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxes() const
 std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxNodes()
 {
 	return multinode_confluxes;
+}
+
+const std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxNodes() const
+{
+	return multinode_confluxes;
+}
+
+sim_mob::Conflux* sim_mob::ConfigParams::getConfluxForNode(const sim_mob::MultiNode* multinode) const
+{
+	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>::const_iterator cfxIt = multinode_confluxes.find(multinode);
+	if(cfxIt == multinode_confluxes.end()) { return nullptr; }
+	return cfxIt->second;
 }

@@ -175,6 +175,23 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities)
                     (amenities.terrace and 911.50 or 0) +
                     (amenities.ec and 1319.00 or 0))
  end
+
+                      --print("amenities.distanceToCBD" , amenities.distanceToCBD);
+                      --print("amenities.distanceToJob" , amenities.distanceToJob);
+                      --print("amenities.pms_1km" , amenities.pms_1km);
+                      --print("amenities.distanceToMall" , amenities.distanceToMall);
+                      --print("amenities.mrt_200m" , amenities.mrt_200m);
+                      --print("amenities.mrt_400m" , amenities.mrt_400m);
+                      --print("amenities.express_200m" , amenities.express_200m);
+                      --print("amenities.bus_200m" , amenities.bus_200m);
+                      --print("amenities.bus_400m" , amenities.bus_400m);
+                      --print("amenities.condo" , amenities.condo);
+                      --print("amenities.detached" , amenities.detached);
+                      --print("amenities.semi" , amenities.semi);
+                      --print("amenities.terrace" , amenities.terrace);
+                      --print("amenities.ec" , amenities.ec);
+  		      		  --print("Private hedonic" , hedonicPrice);
+
     return hedonicPrice;
 end
 
@@ -188,11 +205,12 @@ end
     @param amenities close to the unit.
 ]]
 function calculateHedonicPrice(unit, building, postcode, amenities)
-    if unit ~= nil and building ~= nil and
-       postcode ~= nil and amenities ~= nil then
-        return (amenities.hdb) and 
-                calculateHDB_HedonicPrice(unit, building, postcode, amenities) or
-                calculatePrivate_HedonicPrice(unit, building, postcode, amenities);
+    if unit ~= nil and building ~= nil and postcode ~= nil and amenities ~= nil then
+         if(amenities.hdb ~=nil) then
+		return calculateHDB_HedonicPrice(unit, building, postcode, amenities) 
+	 else 
+		return calculatePrivate_HedonicPrice(unit, building, postcode, amenities);
+	 end
     end
     return -1
 end
@@ -239,6 +257,9 @@ function calulateUnitExpectations (unit, timeOnMarket, building, postcode, ameni
     local expectations = {}
     -- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
     local hedonicPrice = (calculateHedonicPrice(unit, building, postcode, amenities) * sqfToSqm(unit.floorArea))/1000
+
+    --print("Hedonic price: ", hedonicPrice );
+
     if (hedonicPrice > 0) then
         local targetPrice = hedonicPrice -- IMPORTANT : this should be the hedonic value
         local a = 0 -- ratio of events expected by the seller per (considering that the price is 0)
@@ -304,10 +325,16 @@ function calculateWP (household, unit, tazStats, amenities)
     local b3 = -0.066
     local b4 = -0.050
     local hasCar = (CAR_CATEGORIES[household.vehicleCategoryId] and 1 or 0)
+    local distanceToCBD = 0;
+    
+    if(amenities ~= nil ) then
+		distanceToCBD = amenities.distanceToCBD;
+    end
+
     local x=  ((b1 * sqfToSqm(unit.floorArea) * Math.ln(household.size))                          --  b1 * Area_Per_Unit  *ln(HouseHold_Size) + 
            +(b2 * ((household.income / 1000) / household.size) * (tazStats.hhAvgIncome / 1000))   --  b2 * HouseHold_Income / HouseHold_Size * Zone_Average_Income +
-           +(b3 * (amenities.distanceToCBD) * hasCar)                                             --  b3 * Distance_to_CBD*(Dummie_if_car) +
-           +(b4 * (amenities.distanceToCBD) * (1-hasCar)))                                        --  b4 * Distance_to_CBD*(1-Dummie_if_car)
+           +(b3 * (distanceToCBD) * hasCar)                                             --  b3 * Distance_to_CBD*(Dummie_if_car) +
+           +(b4 * (distanceToCBD) * (1-hasCar)))                                        --  b4 * Distance_to_CBD*(1-Dummie_if_car)
     --print("WP: " .. x)
     --Area_Per_Unit, HouseHold_Size,HouseHold_Income,Distance_to_CBD, Zone_Average_Income, HasCar, WP
     --print ("HH_ID: " .. household.id .."," .. unit.floorArea..",".. household.size .. "," .. household.income .. ","..amenities.distanceToCBD .. ","..tazStats.hhAvgIncome .. ",".. hasCar .."," .. x)

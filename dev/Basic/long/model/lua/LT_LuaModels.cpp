@@ -103,7 +103,7 @@ namespace {
             .addProperty("mrt_400m", &PostcodeAmenities::hasMRT_400m)
             .addProperty("express_200m", &PostcodeAmenities::hasExpress_200m)
             .addProperty("bus_200m", &PostcodeAmenities::hasBus_200m)
-            .addProperty("bus_400m", &PostcodeAmenities::getDistanceToJob)
+            .addProperty("bus_400m", &PostcodeAmenities::hasBus_400m)
             .addProperty("pms_1km", &PostcodeAmenities::hasPms_1km)
             .endClass();
     getGlobalNamespace(state)
@@ -121,7 +121,7 @@ namespace {
             .addProperty("mrt_400m", &ParcelAmenities::hasMRT_400m)
             .addProperty("express_200m", &ParcelAmenities::hasExpress_200m)
             .addProperty("bus_200m", &ParcelAmenities::hasBus_200m)
-            .addProperty("bus_400m", &ParcelAmenities::getDistanceToJob)
+            .addProperty("bus_400m", &ParcelAmenities::hasBus_400m)
             .addProperty("pms_1km", &ParcelAmenities::hasPms_1km)
             .endClass();
     getGlobalNamespace(state)
@@ -219,7 +219,8 @@ void HM_LuaModel::mapClasses()
             .addProperty("ethnicityId", &Household::getEthnicityId)
             .addProperty("vehicleCategoryId", &Household::getVehicleCategoryId)
             .addProperty("size", &Household::getSize)
-            .addProperty("children", &Household::getChildren)
+            .addProperty("childUnder4", &Household::getChildUnder4)
+            .addProperty("childUnder15", &Household::getChildUnder15)
             .addProperty("income", &Household::getIncome)
             .addProperty("housingDuration", &Household::getHousingDuration)
             .addProperty("workers", &Household::getWorkers)
@@ -235,7 +236,7 @@ void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, v
     LuaRef funcRef = getGlobal(state.get(), "calulateUnitExpectations");
 
 	LuaRef retVal = funcRef(&unit, timeOnMarket, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
-    
+
     if (retVal.isTable())
     {
         // Reverse the expectations (HM requirement).
@@ -244,6 +245,17 @@ void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, v
             ExpectationEntry entry = retVal[i].cast<ExpectationEntry>();
             outValues.push_back(entry);
         }
+    }
+
+    if( retVal.length() == 0 )
+    {
+    	const Building* build = getBuilding(unit.getBuildingId());
+    	const Postcode* postcode = getPostcode(pcId);
+    	const PostcodeAmenities* amen = getAmenities(pcId);
+    	std::string buildingName = amen == NULL? "<empty>": amen->getBuildingName();
+
+    	//PrintOutV("[ERROR] Unit Expectations is empty for unit " << unit.getId() << " from building ID: "  << build->getFmBuildingId() << " at addressId: " << postcode->getAddressId() << " with building name: " << buildingName << std::endl );
+
     }
 }
 

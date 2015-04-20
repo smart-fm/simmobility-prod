@@ -16,6 +16,24 @@ PotentialUnit::PotentialUnit(BigSerial unitTypeId,int numUnits,double floorArea,
 
 }
 
+PotentialUnit::PotentialUnit( const PotentialUnit& source)
+{
+	this->unitTypeId = source.unitTypeId;
+	this->numUnits = source.numUnits;
+	this->floorArea = source.floorArea;
+	this->freehold = source.freehold;
+}
+
+PotentialUnit& PotentialUnit::operator=( const PotentialUnit& source)
+{
+	this->unitTypeId = source.unitTypeId;
+	this->numUnits = source.numUnits;
+	this->floorArea = source.floorArea;
+	this->freehold = source.freehold;
+
+	return *this;
+}
+
 PotentialUnit::~PotentialUnit() {
 }
 
@@ -47,8 +65,39 @@ void PotentialUnit::setUnitTypeId(int typeId){
 	this->unitTypeId = typeId;
 }
 
-PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel,double constructionCost, double grossArea)
-								  : devTemplate(devTemplate), parcel(parcel), profit(0) , constructionCost(constructionCost),grossArea(grossArea) {}
+PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel,double constructionCost, double grossArea,double tempSelectProbability,double investmentReturnRatio, double demolitionCost, double expRatio)
+								  : devTemplate(devTemplate), parcel(parcel), profit(0) , constructionCost(constructionCost),grossArea(grossArea),tempSelectProbability(tempSelectProbability),
+								    investmentReturnRatio(investmentReturnRatio), demolitionCost(demolitionCost), expRatio(expRatio) {}
+
+PotentialProject::PotentialProject( const PotentialProject &source)
+{
+	this->devTemplate = source.devTemplate;
+	this->parcel = source.parcel;
+	this->profit = source.profit;
+	this->constructionCost = source.constructionCost;
+	this->grossArea = source.grossArea;
+	this->tempSelectProbability = source.tempSelectProbability;
+	this->investmentReturnRatio = source.investmentReturnRatio;
+	this->demolitionCost = source.demolitionCost;
+	this->expRatio = source.expRatio;
+	this->units = source.units;
+}
+
+PotentialProject& PotentialProject::operator=(const PotentialProject& source)
+{
+	this->devTemplate = source.devTemplate;
+	this->parcel = source.parcel;
+	this->profit = source.profit;
+	this->constructionCost = source.constructionCost;
+	this->grossArea = source.grossArea;
+	this->tempSelectProbability = source.tempSelectProbability;
+	this->investmentReturnRatio = source.investmentReturnRatio;
+	this->demolitionCost = source.demolitionCost;
+	this->expRatio = source.expRatio;
+	this->units = source.units;
+
+	return *this;
+}
 
 PotentialProject::~PotentialProject() {
 }
@@ -106,6 +155,45 @@ void PotentialProject::setGrossArea(const double grossArea) {
     this->grossArea = grossArea;
 }
 
+double PotentialProject::getInvestmentReturnRatio() const
+{
+	return this->investmentReturnRatio;
+}
+
+void PotentialProject::setInvestmentReturnRatio(double inReturnRatio)
+{
+	this->investmentReturnRatio = inReturnRatio;
+}
+
+double PotentialProject::getExpRatio() const
+{
+	return this->expRatio;
+}
+
+void PotentialProject::setExpRatio(double exRatio)
+{
+	this->expRatio = exRatio;
+}
+
+double PotentialProject::getTempSelectProbability() const
+{
+	return this->tempSelectProbability;
+}
+
+void PotentialProject::setTempSelectProbability(double probability)
+{
+	this->tempSelectProbability = probability;
+}
+
+double PotentialProject::getDemolitionCost() const
+{
+	return this->demolitionCost;
+}
+
+void PotentialProject::setDemolitionCost(double demCost)
+{
+	this->demolitionCost = demCost;
+}
 namespace sim_mob
 {
     namespace long_term
@@ -136,7 +224,7 @@ namespace sim_mob
                     << "\"templateId\":\"" << data.getDevTemplate()->getTemplateId() << "\","
                     << "\"parcelId\":\"" << data.getParcel()->getId() << "\","
                     << "\"gpr\":\"" << data.getParcel()->getGpr() << "\","
-                    << "\"landUseTypeId\":\"" << data.getDevTemplate()->getLandUsTypeId() << "\","
+                    << "\"landUseTypeId\":\"" << data.getDevTemplate()->getLandUseTypeId() << "\","
                     << "\"profit\":\"" << data.getProfit() << "\","
                     << "\"units\":\"" << unitsStr.str() << "\""
                     << "}";

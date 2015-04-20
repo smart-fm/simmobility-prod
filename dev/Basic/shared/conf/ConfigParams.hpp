@@ -176,14 +176,18 @@ public:
 	const std::set<sim_mob::Conflux*>& getConfluxes() const;
 
 	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes();
-
+	const std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes() const;
+	sim_mob::Conflux* getConfluxForNode(const sim_mob::MultiNode* multinode) const;
 	std::set<sim_mob::SegmentStats*>& getSegmentStatsWithBusStops();
 
 	bool PathSetMode() const;
 	const PathSetConf & pathSet() const;
 
 	bool CBD() const;
+	bool isGenerateBusRoutes() const;
 	
+	bool PublicTransitEnabled() const;
+
 private:
 	ConfigParams();
 

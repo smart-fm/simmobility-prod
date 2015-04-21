@@ -12,6 +12,9 @@
 #include "geospatial/Link.hpp"
 
 namespace sim_mob {
+
+class MRT_Stop;
+
 namespace medium {
 
 class Pedestrian;
@@ -67,6 +70,11 @@ protected:
 	 * */
 	void initializePath(std::vector<const RoadSegment*>& path);
 
+	/**
+	 * choice shortest distance from node to mrt stop
+	 */
+	const sim_mob::RoadSegment* choiceNearestSegmentToMRT(const sim_mob::Node* src, const sim_mob::MRT_Stop* stop);
+
 	/**parent pedestrian*/
 	sim_mob::medium::Pedestrian* parentPedestrian;
 	/**record the current remaining time to the destination*/
@@ -75,6 +83,8 @@ protected:
 	const double walkSpeed;
 	/**store the pair of link and walking time*/
 	std::vector<std::pair<Link*, double> > trajectory;
+	/**starting link*/
+	sim_mob::Link* startLink;
 };
 
 }

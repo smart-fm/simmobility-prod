@@ -21,14 +21,17 @@ sim_mob::medium::Passenger::Passenger(Person* parent, MutexStrategy mtxStrat,
 		std::string roleName, Role::type roleType) :
 		sim_mob::Role(behavior, movement, parent, roleName, roleType),
 		driver(nullptr), alightBus(false) {
-
 }
 
 Role* sim_mob::medium::Passenger::clone(Person* parent) const {
 	PassengerBehavior* behavior = new PassengerBehavior(parent);
 	PassengerMovement* movement = new PassengerMovement(parent);
+	Role::type roleType=Role::RL_PASSENGER;
+	if(parent && parent->currSubTrip->mode=="MRT"){
+		roleType = Role::RL_TRAINPASSENGER;
+	}
 	Passenger* passenger = new Passenger(parent, parent->getMutexStrategy(),
-			behavior, movement);
+			behavior, movement, "Passenger_", roleType);
 	behavior->setParentPassenger(passenger);
 	movement->setParentPassenger(passenger);
 	return passenger;

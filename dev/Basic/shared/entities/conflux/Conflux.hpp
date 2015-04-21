@@ -217,6 +217,12 @@ private:
 	void assignPersonToBusStopAgent(Person* person);
 
 	/**
+	 * assign person to MRT
+	 * @param person is going to board MRT
+	 */
+	void assignPersonToMRT(Person* person);
+
+	/**
 	 * calls frame_init of the movement facet for the person's role
 	 * @param now current time slice
 	 * @param person person to initialize

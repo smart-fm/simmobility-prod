@@ -286,6 +286,8 @@ public:
 	void init();
 	PT_NetworkVertex getVertexFromStopId(std::string stopId);
 
+	MRT_Stop* findMRT_Stop(const std::string& stopId);
+
 	int getVertexTypeFromStopId(std::string stopId);
 	static PT_Network instance_;
 

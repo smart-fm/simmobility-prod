@@ -705,7 +705,7 @@ void sim_mob::Person::convertODsToTrips() {
 			{
 				if (itSubTrip->fromLocation.type_ == WayPoint::NODE
 						&& itSubTrip->toLocation.type_ == WayPoint::NODE
-						&& itSubTrip->mode == "BusTravel")
+						&& (itSubTrip->mode == "BusTravel"||itSubTrip->mode == "MRT"))
 				{
 					std::vector<sim_mob::OD_Trip> odTrips;
 					std::string originId = boost::lexical_cast<std::string>(

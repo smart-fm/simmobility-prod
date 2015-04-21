@@ -18,6 +18,7 @@
 #include "boost/foreach.hpp"
 #include "boost/filesystem.hpp"
 #include "PT_PathSetManager.hpp"
+#include "entities/params/PT_NetworkEntities.hpp"
 
 using namespace luabridge;
 
@@ -131,32 +132,50 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::MakePT_RouteChoice(
 				publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
 		const std::vector<PT_NetworkEdge>& pathEdges = it->getPathEdges();
-		Print()<<it->getPtPathId()<<std::endl;
+		Print() << it->getPtPathId() << std::endl;
 		for (std::vector<PT_NetworkEdge>::const_iterator itEdge =
 				pathEdges.begin(); itEdge != pathEdges.end(); itEdge++) {
 			sim_mob::OD_Trip trip;
-			trip.sType = "BusStop";
-			trip.eType = "BusStop";
 			trip.startStop = itEdge->getStartStop();
-			if(trip.startStop.find("N_")!=std::string::npos){
+			int type = PT_Network::getInstance().getVertexTypeFromStopId(
+					trip.startStop);
+			if (type == 0) {
+				trip.sType = "NODE";
+			} else if (type == 1) {
+				trip.sType = "BUSSTOP";
+			} else if (type == 2) {
+				trip.sType = "MRTSTOP";
+			}
+			if (trip.startStop.find("N_") != std::string::npos) {
 				trip.startStop = trip.startStop.substr(2);
-				trip.sType = "Node";
 			}
 			trip.endStop = itEdge->getEndStop();
-			if(trip.endStop.find("N_")!=std::string::npos){
+			type = PT_Network::getInstance().getVertexTypeFromStopId(
+					trip.endStop);
+			if (type == 0) {
+				trip.eType = "NODE";
+			} else if (type == 1) {
+				trip.eType = "BUSSTOP";
+			} else if (type == 2) {
+				trip.eType = "MRTSTOP";
+			}
+			if (trip.endStop.find("N_") != std::string::npos) {
 				trip.endStop = trip.endStop.substr(2);
-				trip.eType = "Node";
 			}
 			trip.tType = itEdge->getType();
 			trip.serviceLines = itEdge->getServiceLines();
 			trip.originNode = original;
 			trip.destNode = dest;
+			trip.travelTime = itEdge->getTransitTimeSecs();
 			odTrips.push_back(trip);
-			Print()<<itEdge->getEdgeId()<<","<<trip.startStop<<","<<trip.endStop<<","<<trip.tType<<","<<trip.serviceLines<<std::endl;
+			Print() << itEdge->getEdgeId() << "," << trip.startStop << ","
+					<< trip.sType << "," << trip.endStop << "," << trip.eType
+					<< "," << trip.tType << "," <<trip.travelTime<<","<< trip.serviceLines
+					<< std::endl;
 		}
 	}
 
-    return odTrips;
+	return odTrips;
 }
 
 bool PT_RouteChoiceLuaModel::GetBestPT_Path(const std::string& original,

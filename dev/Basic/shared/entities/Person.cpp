@@ -27,6 +27,7 @@
 #include "message/MessageBus.hpp"
 #include "entities/amodController/AMODController.hpp"
 #include "path/PT_RouteChoiceLuaModel.hpp"
+#include "entities/params/PT_NetworkEntities.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -600,86 +601,87 @@ void sim_mob::Person::insertWaitingActivityToTrip() {
 	}
 }
 
-void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips,
+void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
+		std::vector<sim_mob::SubTrip>& newSubTrips,
 		const std::vector<sim_mob::OD_Trip>& matchedTrips) {
 
-	if (matchedTrips.size() > 0)
-	{
+	if (matchedTrips.size() > 0) {
 		std::vector<sim_mob::OD_Trip>::const_iterator it = matchedTrips.begin();
-		while (it != matchedTrips.end())
-		{
+		while (it != matchedTrips.end()) {
 			sim_mob::SubTrip subTrip;
-			WayPoint source=curSubTrip->fromLocation;
-			WayPoint dest=curSubTrip->toLocation;
-			bool isValid = true;
-			std::string sSrc, sEnd;
-			sSrc = (*it).startStop;
-			sEnd = (*it).endStop;
-			boost::trim_right(sSrc);
-			boost::trim_right(sEnd);
+			WayPoint source;
+			WayPoint dest;
+			std::string sSrc = (*it).startStop;
+			std::string sEnd = (*it).endStop;
+			std::string sType = (*it).sType;
+			std::string eType = (*it).eType;
 			if (it == matchedTrips.begin()) {
 				source = curSubTrip->fromLocation;
-				unsigned int endNo = boost::lexical_cast<unsigned int>(sEnd);
-				sim_mob::BusStop* endBStop = sim_mob::BusStop::findBusStop(sEnd);
-				if (endBStop) {
-					dest = WayPoint(endBStop);
-				} else {
-					isValid=false;
-				}
 			} else if (it == matchedTrips.end() - 1) {
 				dest = curSubTrip->toLocation;
-				unsigned int startNo = boost::lexical_cast<unsigned int>(sSrc);
-				sim_mob::BusStop* startBStop = sim_mob::BusStop::findBusStop(sSrc);
-				if (startBStop) {
-					source = WayPoint(startBStop);
-				} else {
-					isValid=false;
+			}
+			if (eType == "BUSSTOP") {
+				sim_mob::BusStop* stop = sim_mob::BusStop::findBusStop(sEnd);
+				if (stop) {
+					dest = WayPoint(stop);
 				}
-			} else {
-				unsigned int startNo = boost::lexical_cast<unsigned int>(sSrc);
-				sim_mob::BusStop* startBStop = sim_mob::BusStop::findBusStop(sSrc);
-				unsigned int endNo = boost::lexical_cast<unsigned int>(sEnd);
-				sim_mob::BusStop* endBStop = sim_mob::BusStop::findBusStop(sEnd);
-				if (startBStop && endBStop) {
-					source = WayPoint(startBStop);
-					dest = WayPoint(endBStop);
-				} else {
-					isValid = false;
+			} else if (eType == "MRTSTOP") {
+				sim_mob::MRT_Stop* stop =
+						sim_mob::PT_Network::getInstance().findMRT_Stop(sEnd);
+				if (stop) {
+					dest = WayPoint(stop);
 				}
 			}
-			if (isValid) {
+			if (sType == "BUSSTOP") {
+				sim_mob::BusStop* stop = sim_mob::BusStop::findBusStop(sSrc);
+				if (stop) {
+					source = WayPoint(stop);
+				}
+			} else if (sType == "MRTSTOP") {
+				sim_mob::MRT_Stop* stop =
+						sim_mob::PT_Network::getInstance().findMRT_Stop(sSrc);
+				if (stop) {
+					source = WayPoint(stop);
+				}
+			}
+
+			if (source.type_ != WayPoint::INVALID
+					&& dest.type_ != WayPoint::INVALID) {
 				subTrip.setPersonID(-1);
 				subTrip.itemType = TripChainItem::getItemType("Trip");
 				subTrip.sequenceNumber = 1;
 				subTrip.startTime = curSubTrip->endTime;
-				subTrip.endTime = curSubTrip->endTime;
+				subTrip.endTime = DailyTime((*it).travelTime);
 				subTrip.fromLocation = source;
-				if(source.type_==WayPoint::BUS_STOP){
-					subTrip.fromLocationType = TripChainItem::LT_PUBLIC_TRANSIT_STOP;
-				}
-				else {
+				if (source.type_ == WayPoint::BUS_STOP) {
+					subTrip.fromLocationType =
+							TripChainItem::LT_PUBLIC_TRANSIT_STOP;
+				} else {
 					subTrip.fromLocationType = TripChainItem::LT_NODE;
 				}
 				subTrip.toLocation = dest;
-				if(dest.type_==WayPoint::BUS_STOP){
-					subTrip.toLocationType = TripChainItem::LT_PUBLIC_TRANSIT_STOP;
-				}
-				else {
+				if (dest.type_ == WayPoint::BUS_STOP) {
+					subTrip.toLocationType =
+							TripChainItem::LT_PUBLIC_TRANSIT_STOP;
+				} else {
 					subTrip.toLocationType = TripChainItem::LT_NODE;
 				}
 				subTrip.tripID = "";
-				if((*it).tType.find("Walk")!=string::npos){
+				subTrip.mode = (*it).tType;
+				if((*it).tType.find("Walk")!=std::string::npos){
 					subTrip.mode = "Walk";
-				}
-				else {
+				} else if((*it).tType.find("Bus")!=std::string::npos){
 					subTrip.mode = "BusTravel";
+				} else {
+					subTrip.mode = "MRT";
 				}
 				subTrip.isPrimaryMode = true;
 				subTrip.ptLineId = it->serviceLines;
 				newSubTrips.push_back(subTrip);
-			}
-			else {
-				Print()<<"bus trips include some bus stops which can not be found"<<std::endl;
+			} else {
+				Print()
+						<< "public trips include some bus stops or mrt stop which can not be found"
+						<< std::endl;
 			}
 			++it;
 		}

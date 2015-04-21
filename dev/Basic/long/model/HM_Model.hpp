@@ -14,6 +14,7 @@
 #include "database/entity/Awakening.hpp"
 #include "database/entity/VehicleOwnershipCoefficients.hpp"
 #include "database/entity/TaxiAccessCoefficients.hpp"
+#include "database/entity/Postcode.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -35,6 +36,9 @@ namespace sim_mob
 
             typedef std::vector<Individual*> IndividualList;
             typedef boost::unordered_map<BigSerial, Individual*> IndividualMap;
+
+            typedef std::vector<Postcode*> PostcodeList;
+            typedef boost::unordered_map<BigSerial, Postcode*> PostcodeMap;
 
             typedef std::vector<Awakening*> AwakeningList;
             typedef boost::unordered_map<BigSerial, Awakening*> AwakeningMap;
@@ -85,6 +89,7 @@ namespace sim_mob
             Household* getHouseholdById( BigSerial id) const;
 			Individual* getIndividualById( BigSerial id) const;
             Awakening* getAwakeningById( BigSerial id) const;
+            Postcode* getPostcodeById(BigSerial id) const;
 
             void hdbEligibilityTest(int );
             void unitsFiltering();
@@ -135,6 +140,9 @@ namespace sim_mob
 
             IndividualList individuals;
             IndividualMap individualsById;
+
+            PostcodeList postcodes;
+            PostcodeMap postcodesById;
 
             boost::unordered_map<BigSerial, BigSerial> assignedUnits;
             VehicleOwnershipCoeffList vehicleOwnershipCoeffs;

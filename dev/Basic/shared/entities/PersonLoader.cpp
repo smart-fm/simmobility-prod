@@ -385,7 +385,7 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	//add or stash new persons
 	for(map<string, vector<TripChainItem*> >::iterator i=tripchains.begin(); i!=tripchains.end(); i++)
 	{
-		if(i->second.empty()) { return; }
+		if(i->second.empty()) { continue; }
 		Person* person = new Person("DAS_TripChain", cfg.mutexStategy(), i->second);
 		if(!person->getTripChain().empty()) { addOrStashPerson(person); }
 		else { delete person; }

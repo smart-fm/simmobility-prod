@@ -105,9 +105,6 @@ sim_mob::medium::DriverMovement::~DriverMovement() {
 void sim_mob::medium::DriverMovement::frame_init() {
 	bool pathInitialized = initializePath();
 	if (pathInitialized) {
-		//initialize some travel metrics for this subTrip
-		startTravelTimeMetric();
-		//done with metric initialization...
 		Vehicle* newVehicle = new Vehicle(Vehicle::CAR, PASSENGER_CAR_UNIT);
 		VehicleBase* oldVehicle = parentDriver->getResource();
 		safe_delete_item(oldVehicle);
@@ -836,6 +833,9 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
 		getParent()->canMoveToNextSegment = Person::NONE;
 		// segment travel time related line(s)
 		getParent()->startCurrRdSegTravelStat(currSegStats->getRoadSegment(), actualT);
+
+		//initialize some travel metrics for this subTrip
+		startTravelTimeMetric();
 	}
 	else
 	{

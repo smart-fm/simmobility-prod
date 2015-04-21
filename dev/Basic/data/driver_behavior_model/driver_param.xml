@@ -348,6 +348,17 @@
 	"/>
 
 <!-- J.2. NOSING MODEL PARAMETERS -->
+<!--Kazi's Nosing model directly calculates the probability to nose when
+	distance from a point is less than a threshold. 
+	 
+	P = 1 / (1 + exp(-u))
+	
+	where:
+	u = b[0] + b[1] * min(0, lead_rel_spd) + b[3] * rem_dis_impact +
+		b[4] * gap + b[5] * nlanes
+	
+	rem_dis_impact =  10 - 10 / (1 + exp(b[2] * dis))
+-->
 	<param name="kazi_nosing_param" value="-3.159  0.313  -0.027  2.050  0.028  0.6"/>
 
 	<!-- This parameter is used to change drivers reaction time when in a nosing behavior

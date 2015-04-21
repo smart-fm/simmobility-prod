@@ -1169,66 +1169,45 @@ void sim_mob::Person::printTripChainItemTypes() const{
  	 sim_mob::BasicLogger & csv = sim_mob::Logger::log(ConfigManager::GetInstance().FullConfig().pathSet().subTripOP);
  	 sim_mob::OneTimeFlag titleSubPredayTT;
  }
- /**
-  * A version of serializer for subtrip level travel time.
-  * \param subtripMetrics input metrics
-  * \param currTripChainItem current TripChainItem
-  * \param currSubTrip current SubTrip for which subtripMetrics is collected
-  */
+
  void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(
 		 const TravelMetric& subtripMetrics,
 		 std::vector<TripChainItem*>::iterator currTripChainItem,
-		 std::vector<SubTrip>::iterator currSubTrip
-		 ) const
+		 std::vector<SubTrip>::iterator currSubTrip) const
  {
+	 if(!(subtripMetrics.finalized && subtripMetrics.started)) { return; } //sanity check
 	 if(titleSubPredayTT.check())
 	 {
 		 csv << "person_id,trip_id,subtrip_id,origin,destination,mode,start_time,end_time,travel_time,total_distance,ptt_wt,pt_walk,cbd_entry_node,cbd_exit_node,cbd_entry_time,cbd_exit_time,cbd_travel_time,non_cbd_travel_time,cbd_distance,non_cbd_distance\n";
 	 }
-	if(!(subtripMetrics.finalized && subtripMetrics.started))
-	{
-		return;
-	}
+
 	 sim_mob::SubTrip &st = (*currSubTrip);//easy reading
-	 //sanity check
-	 if(!(subtripMetrics.started && subtripMetrics.finalized))
-	 {
-		 return;
-	 }
-
-	 if(st.fromLocation.node_->getID() != subtripMetrics.origin.node_->getID() || st.toLocation.node_->getID() != subtripMetrics.destination.node_->getID())
-	 {
-		 std::stringstream error("");
-		 error << "OD mismatch: " <<
-				 st.fromLocation.node_->getID() << "," << subtripMetrics.origin.node_->getID() << "," <<
-				 st.toLocation.node_->getID() << "," <<  subtripMetrics.destination.node_->getID() ;
-		 throw std::runtime_error (error.str());
-	 }
-
 	 // restricted area which is to be appended at the end of the csv line
 	 std::stringstream restrictedRegion("");
-	 if(st.cbdTraverseType == sim_mob::TravelMetric::CBD_ENTER
-			 || st.cbdTraverseType == sim_mob::TravelMetric::CBD_EXIT)
+	 if(st.cbdTraverseType == sim_mob::TravelMetric::CBD_ENTER || st.cbdTraverseType == sim_mob::TravelMetric::CBD_EXIT)
 	 {
 		 //sanity check
 		 if(!(subtripMetrics.cbdOrigin.node_&&subtripMetrics.cbdDestination.node_))
 		 {
-			 restrictedRegion << subtripMetrics.origin.node_->getID() << "," << subtripMetrics.destination.node_->getID()
-			  << (st.cbdTraverseType == sim_mob::TravelMetric::CBD_ENTER ? " , Enter ": "  ,Exit")
-			  << " has null values " << (subtripMetrics.cbdOrigin.node_ != nullptr ? subtripMetrics.cbdOrigin.node_ : 0)
-			  << "," << (subtripMetrics.cbdDestination.node_ != nullptr ? subtripMetrics.cbdDestination.node_ : 0) << "\n";
+			 restrictedRegion <<
+					 subtripMetrics.origin.node_->getID() << "," <<
+					 subtripMetrics.destination.node_->getID() <<
+					 (st.cbdTraverseType == sim_mob::TravelMetric::CBD_ENTER ? " , Enter ": "  ,Exit") <<
+					  " has null values " <<
+					 (subtripMetrics.cbdOrigin.node_ != nullptr ? subtripMetrics.cbdOrigin.node_ : 0) << "," <<
+					 (subtripMetrics.cbdDestination.node_ != nullptr ? subtripMetrics.cbdDestination.node_ : 0) << "\n";
 		 }
-		 else //	valid scenario:
+		 else //valid scenario:
 		 {
 			 restrictedRegion <<
-				 subtripMetrics.cbdOrigin.node_->getID() << "," <<											//	cbd_entry_node
-				 subtripMetrics.cbdDestination.node_->getID() << "," <<										//	cbd_exit_node
-				 subtripMetrics.cbdStartTime.getRepr_() << ","  <<											//	cbd_entry_time
-				 subtripMetrics.cbdEndTime.getRepr_() << ","  <<											//	cbd_exit_time
-				 subtripMetrics.cbdTravelTime << ","  <<													//	cbd_travel_time
-				 (subtripMetrics.travelTime - subtripMetrics.cbdTravelTime) << "," <<						//	non_cbd_travel_time
-			 	 subtripMetrics.cbdDistance << "," <<	 	 	 	 	 	 	 	 	 	 	 	 	 	//	cbd_distance
-			 	 (subtripMetrics.distance - subtripMetrics.cbdDistance) ;		 	 	 	 	 	 	 	//	non_cbd_distance
+					 subtripMetrics.cbdOrigin.node_->getID() << "," <<											//	cbd_entry_node
+					 subtripMetrics.cbdDestination.node_->getID() << "," <<										//	cbd_exit_node
+					 subtripMetrics.cbdStartTime.getRepr_() << ","  <<											//	cbd_entry_time
+					 subtripMetrics.cbdEndTime.getRepr_() << ","  <<											//	cbd_exit_time
+					 subtripMetrics.cbdTravelTime << ","  <<													//	cbd_travel_time
+					 (subtripMetrics.travelTime - subtripMetrics.cbdTravelTime) << "," <<						//	non_cbd_travel_time
+					 subtripMetrics.cbdDistance << "," <<	 	 	 	 	 	 	 	 	 	 	 	 	 	//	cbd_distance
+					 (subtripMetrics.distance - subtripMetrics.cbdDistance) ;		 	 	 	 	 	 	 	//	non_cbd_distance
 		 }
 	 }
 	 else// if Agent never entered or exitted CBD
@@ -1236,11 +1215,11 @@ void sim_mob::Person::printTripChainItemTypes() const{
 		 restrictedRegion<<
 				 "0" << "," <<																				//	cbd_entry_node
 				 "0" << "," <<																				//	cbd_exit_node
-		 		 "00:00:00" << ","  <<																		//	cbd_entry_time
+				 "00:00:00" << ","  <<																		//	cbd_entry_time
 				 "00:00:00" << ","  <<																		//	cbd_exit_time
-		 		 "0" << ","  <<																				//	cbd_travel_time
+				 "0" << ","  <<																				//	cbd_travel_time
 				 subtripMetrics.travelTime << "," <<														//	non_cbd_travel_time
-		 	 	 "0" << "," <<	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 					//	cbd_distance
+				 "0" << "," <<	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 					//	cbd_distance
 				 subtripMetrics.distance ;			 	 	 	 	 	 	 	 	 	 	 	 	 	 	//	non_cbd_distance
 	 }
 
@@ -1255,7 +1234,7 @@ void sim_mob::Person::printTripChainItemTypes() const{
 			 st.mode  << "," <<																				//	mode
 			 subtripMetrics.startTime.getRepr_()  << "," <<													//	start_time
 			 subtripMetrics.endTime.getRepr_()  << "," <<													//	end_time
-//			 TravelMetric::getTimeDiffHours(subtripMetrics.endTime, subtripMetrics.startTime)  << ","		//	travel_time### commented
+			 //			 TravelMetric::getTimeDiffHours(subtripMetrics.endTime, subtripMetrics.startTime)  << ","		//	travel_time### commented
 			 subtripMetrics.travelTime << "," <<															//	travel_time
 			 subtripMetrics.distance << "," <<	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	//	total_distance
 			 "0" << ","	<<	//placeholder for paublic transit's waiting time								//	ptt_wt

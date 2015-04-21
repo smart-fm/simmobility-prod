@@ -147,6 +147,7 @@ void sim_mob::Driver::make_frame_tick_params(timeslice now){
 sim_mob::Driver::~Driver() {
 	//Our vehicle
 	safe_delete_item(vehicle);
+	currResource = nullptr;
 	/*safe_delete_item(perceivedFwdVel);
 	safe_delete_item(perceivedFwdAcc);
 	safe_delete_item(perceivedVelOfFwdCar);

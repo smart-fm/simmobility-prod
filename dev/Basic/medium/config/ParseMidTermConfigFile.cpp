@@ -15,6 +15,7 @@ namespace
 {
 const int DEFAULT_NUM_THREADS_DEMAND = 2; // default number of threads for demand
 const unsigned NUM_SECONDS_IN_AN_HOUR = 3600;
+const std::string EMPTY_STRING = std::string();
 
 unsigned int ProcessTimegranUnits(xercesc::DOMElement* node)
 {
@@ -88,6 +89,20 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 	mtCfg.setOutputPredictions(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
 	childNode = GetSingleElementByName(node, "console_output", true);
 	mtCfg.setConsoleOutput(ParseBoolean(GetNamedAttributeValue(childNode, "enabled", true)));
+
+	childNode = GetSingleElementByName(node, "population", true);
+	mtCfg.setPopulationSource(ParseString(GetNamedAttributeValue(childNode, "source", false), EMPTY_STRING));
+	if(mtCfg.getPopulationSource() == db::POSTGRES)
+	{
+		std::string database = ParseString(GetNamedAttributeValue(childNode, "database", false), EMPTY_STRING);
+		std::string credential = ParseString(GetNamedAttributeValue(childNode, "credential", false), EMPTY_STRING);
+		mtCfg.setPopulationDb(database, credential);
+
+		childNode = GetSingleElementByName(node, "logsum", true);
+		database = ParseString(GetNamedAttributeValue(childNode, "database", false), EMPTY_STRING);
+		credential = ParseString(GetNamedAttributeValue(childNode, "credential", false), EMPTY_STRING);
+		mtCfg.setLogsumDb(database, credential);
+	}
 
 	processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 	processMongoCollectionsNode(GetSingleElementByName(node, "mongo_collections", true));

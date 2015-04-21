@@ -169,6 +169,7 @@ private:
 
 	//Helper functions for various update functionality.
 	virtual void update_entities(timeslice currTime);
+	void initializeConfluxes(timeslice currTime);
 
 	void migrateOut(Entity& ent);
 	void migrateOutConflux(Conflux& cfx);

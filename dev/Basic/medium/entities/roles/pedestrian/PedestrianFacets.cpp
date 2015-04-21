@@ -88,7 +88,7 @@ void PedestrianMovement::frame_init() {
 
 	for (; it != roadSegs.end(); it++) {
 		const RoadSegment* rdSeg = *it;
-		curDistance = rdSeg->getLaneZeroLength();
+		curDistance = rdSeg->getPolylineLength();
 		if (rdSeg == segStart) {
 			curDistance = actualDistanceStart;
 		} else if (rdSeg == segEnd) {

@@ -53,6 +53,10 @@ struct LongTermParams{
 		DeveloperModel();
 		bool enabled;
 		unsigned int timeInterval;
+		int initialPostcode;
+		int initialUnitId;
+		int initialBuildingId;
+		int initialProjectId;
 	} developerModel;
 
 	struct HousingModel{
@@ -74,6 +78,39 @@ struct LongTermParams{
 	}vehicleOwnershipModel;
 };
 
+///Represents the loop-detector_counts section of the configuration file
+struct LoopDetectorCounts
+{
+  LoopDetectorCounts() : frequency(0), outputEnabled(false), fileName("")
+  {
+  }
+  
+  ///The frequency of aggregating the vehicle counts at the loop detector
+  unsigned int frequency;
+  
+  ///Indicates whether the counts have to be output to a file
+  bool outputEnabled;
+  
+  ///Name of the output file
+  std::string fileName;
+} ;
+
+///Represents the short-term_density-map section of the configuration file
+struct SegmentDensityMap
+{
+  SegmentDensityMap() : updateInterval(0), outputEnabled(false), fileName("")
+  {
+  }
+  
+  ///The interval at which the density map is to be output
+  unsigned int updateInterval;
+  
+  ///Indicates whether the density map is to be output to a file
+  bool outputEnabled;
+  
+  ///Name of the output file
+  std::string fileName;
+} ;
 
 ///represent the incident data section of the config file
 struct IncidentParams {
@@ -160,6 +197,7 @@ struct PathSetConf
 	std::string mode;//pathset operation mode "normal" , "generation"(for bulk pathset generation)
 	int threadPoolSize;
 	std::string bulkFile; //in case of using pathset manager in "generation" mode, the results will be outputted to this file
+	std::string odSourceTableName; //data source for getting ODs for bulk pathset generation
 	sim_mob::DatabaseDetails networkDatabase; //If loading from the database, how do we connect?// todo: unused for now
 	std::string pathSetTableName;
 	std::string RTTT_Conf;//realtime travel time table name
@@ -378,6 +416,7 @@ public:
 	///Settings for the FMOD controller.
 	FMOD_ControllerParams fmod;
 
+	///Settings for the AMOD controller
 	AMOD_ControllerParams amod;
 
 	///Settings for Long Term Parameters
@@ -385,6 +424,12 @@ public:
 
 	///pathset configuration file
 	std::string pathsetFile;
+        
+	///Settings for the loop detector counts
+	LoopDetectorCounts loopDetectorCounts;
+        
+	///Settings for the short-term density map
+	SegmentDensityMap segDensityMap;
 
 	///	is CBD area restriction enforced
 	bool cbd;
@@ -392,7 +437,7 @@ public:
 
 	// Public transit enabled if this flag set to true
 	bool publicTransitEnabled;
-
+        
 	///setting for the incidents
 	std::vector<IncidentParams> incidents;
 

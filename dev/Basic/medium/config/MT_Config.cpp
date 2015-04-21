@@ -29,7 +29,7 @@ MT_Config::MT_Config() :
 		pedestrianWalkSpeed(0), numPredayThreads(0), configSealed(false), fileOutputEnabled(false),
 		consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA),
 		logsumComputationFrequency(0), supplyUpdateInterval(0), activityScheduleLoadInterval(0), busCapacity(0),
-		outputPredictions(false)
+		outputPredictions(false), populationSource(db::MONGO_DB), populationDB(), logsumDB()
 {}
 
 MT_Config::~MT_Config()
@@ -345,6 +345,49 @@ void MT_Config::setBusCapacity(const unsigned int busCapacity)
 	if(!configSealed)
 	{
 		this->busCapacity = busCapacity;
+	}
+}
+
+db::BackendType MT_Config::getPopulationSource() const
+{
+	return populationSource;
+}
+
+void MT_Config::setPopulationSource(const std::string& src)
+{
+	if(!configSealed)
+	{
+		std::string dataSourceStr = boost::to_upper_copy(src);
+		if(dataSourceStr == "PGSQL") { populationSource = db::POSTGRES; }
+		else { populationSource = db::MONGO_DB; } //default setting
+	}
+}
+
+const DB_Details& MT_Config::getLogsumDb() const
+{
+	return logsumDB;
+}
+
+void MT_Config::setLogsumDb(const std::string& logsumDb, const std::string& logsumCred)
+{
+	if(!configSealed)
+	{
+		logsumDB.database = logsumDb;
+		logsumDB.credentials = logsumCred;
+	}
+}
+
+const DB_Details& MT_Config::getPopulationDb() const
+{
+	return populationDB;
+}
+
+void MT_Config::setPopulationDb(const std::string& populationDb, const std::string& populationCred)
+{
+	if(!configSealed)
+	{
+		populationDB.database = populationDb;
+		populationDB.credentials = populationCred;
 	}
 }
 

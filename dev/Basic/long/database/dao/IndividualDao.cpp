@@ -40,7 +40,9 @@ void IndividualDao::fromRow(Row& result, Individual& outObj)
 	outObj.income				= result.get<double>(		"income", 				0.0);
 	outObj.memberId				= result.get<int>(			"member_id", 			0);
 	outObj.workAtHome			= result.get<int>(			"work_at_home", 		0);
-	outObj.driversLicense		= result.get<int>(			"driver_license", 		0);
+	outObj.carLicense			= result.get<int>(			"car_license", 			0);
+	outObj.motorLicense			= result.get<int>(			"motor_license", 		0);
+	outObj.vanbusLicense		= result.get<int>(			"vanbus_license", 		0);
 	outObj.dateOfBirth			= result.get<std::tm>(		"date_of_birth", 		std::tm());
 }
 

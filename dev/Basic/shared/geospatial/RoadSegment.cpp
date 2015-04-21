@@ -37,7 +37,7 @@ std::map<unsigned long, const RoadSegment*> sim_mob::RoadSegment::allSegments;//
 sim_mob::RoadSegment::RoadSegment(sim_mob::Link* parent, unsigned long id) :
 	Pavement(),
 	maxSpeed(0), capacity(0), busstop(nullptr), lanesLeftOfDivider(0), parentLink(parent),segmentID(id),
-	parentConflux(nullptr), laneZeroLength(-1.0), type(LINK_TYPE_DEFAULT), CBD(false), defaultTravelTime(0)
+	parentConflux(nullptr), polylineLength(-1.0), type(LINK_TYPE_DEFAULT), CBD(false), defaultTravelTime(0), highway(false)
 {
 	allSegments[segmentID] = this;
 }
@@ -249,16 +249,13 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 	}
 }
 
-
-double sim_mob::RoadSegment::computeLaneZeroLength() const{
-	//This function will only computeLaneZeroLength once and re-use the value in subsequent calls
-	double res = 0.0;
-	const vector<Point2D>& polyLine = getLanes()[0]->getPolyline();
-	for (vector<Point2D>::const_iterator it2 = polyLine.begin(); (it2 + 1) != polyLine.end(); it2++)
+void sim_mob::RoadSegment::computePolylineLength()
+{
+	polylineLength = 0.0;
+	for (vector<Point2D>::const_iterator it2 = polyline.begin(); (it2 + 1) != polyline.end(); it2++)
 	{
-		res += dist(it2->getX(), it2->getY(), (it2 + 1)->getX(), (it2 + 1)->getY());
+		polylineLength += dist(it2->getX(), it2->getY(), (it2 + 1)->getX(), (it2 + 1)->getY());
 	}
-	return res;
 }
 
 void sim_mob::RoadSegment::setCapacity() {

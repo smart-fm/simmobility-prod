@@ -571,7 +571,7 @@ unsigned int sim_mob::Conflux::resetOutputBounds() {
 		 **/
 		//outputEstimate = segStats->computeExpectedOutputPerTick();
 		/** using ceil here, just to avoid short segments returning 0 as the total number of vehicles the road segment can hold i.e. when segment is shorter than a car**/
-		int num_emptySpaces = std::ceil(segStats->getRoadSegment()->getLaneZeroLength()*segStats->getRoadSegment()->getLanes().size()/PASSENGER_CAR_UNIT)
+		int num_emptySpaces = std::ceil(segStats->getRoadSegment()->getPolylineLength()*segStats->getRoadSegment()->getLanes().size()/PASSENGER_CAR_UNIT)
 				- segStats->numMovingInSegment(true) - segStats->numQueuingInSegment(true);
 		outputEstimate = (num_emptySpaces>=0)? num_emptySpaces:0;
 		/** we are decrementing the number of agents in lane infinity (of the first segment) to overcome problem [2] above**/

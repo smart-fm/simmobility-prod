@@ -33,106 +33,34 @@ double sim_mob::LastTT::getInSimulationSegTT(const std::string mode, const sim_m
 {
 	boost::unique_lock<boost::mutex> lock(parent.ttMapMutex);
 	//[time interval][travel mode][road segment][average travel time]
-	 //<-----TI-----><-------------------MRTC----------------------->
-		//start from the last recorded time interval (before the current time interval) and proceed to find a travel time for the given section.
-		//if no records found, check the previous time interval and so on.
-		double res = 0.0;
-		sim_mob::TravelTime::reverse_iterator itTI = parent.ttMap.rbegin();
-		//like I said, not the current interval
-		if(itTI != parent.ttMap.rend() && itTI->first == sim_mob::PathSetManager::curIntervalMS)
+	//<-----TI-----><-------------------MRTC----------------------->
+	//start from the last recorded time interval (before the current time interval) and proceed to find a travel time for the given section.
+	//if no records found, check the previous time interval and so on.
+	sim_mob::TravelTime::reverse_iterator itTI = parent.ttMap.rbegin();
+	//like I said, not the current interval
+	if(itTI != parent.ttMap.rend() && itTI->first == sim_mob::PathSetManager::curIntervalMS) { itTI++; }
+	sim_mob::TT::MRTC::iterator itMode;
+	sim_mob::TT::RSTC::iterator itSeg;
+	//search backwards. try to find a matching road segment in any of the previous time intervals
+	while(itTI != parent.ttMap.rend())
+	{
+		itMode = itTI->second.find(mode);
+		if(itMode != itTI->second.end())
 		{
-			itTI++;
-		}
-		sim_mob::TT::MRTC::iterator itMode;
-		sim_mob::TT::RSTC::iterator itSeg;
-		//search backwards. try to find a matching road segment in any of the previous time intervals
-		while(itTI != parent.ttMap.rend())
-		{
-			itMode = itTI->second.find(mode);
-			if(itMode != itTI->second.end())
+			itSeg = itMode->second.find(rs);
+			if(itSeg != itMode->second.end())
 			{
-				itSeg = itMode->second.find(rs);
-				if(itSeg != itMode->second.end())
-				{
-					return itSeg->second.totalTravelTime / itSeg->second.travelTimeCnt;
-				}
+				return itSeg->second.totalTravelTime / itSeg->second.travelTimeCnt;
 			}
-			++itTI;
 		}
-		return 0.0;
-
-
-// //[road segment][travel mode][time interval][average travel time]
-// //<-----RS-----><-------------------MTITC----------------------->
-//	//proceed towards the time interval sub-section and at the same time perform necessary sanity checks
-//	double res = 0.0;
-//	sim_mob::TravelTime::iterator itSeg = ttMap.find(rs);
-//	if(itSeg == ttMap.end())
-//	{
-//		return 0.0;
-//	}
-//
-//	TT::MTITC::iterator itMode = itSeg->second.find(mode);
-//	if(itMode == itSeg->second.end())
-//	{
-//		return 0.0;
-//	}
-//
-//
-//	if(itMode->second.empty())
-//	{
-//		return 0.0;
-//	}
-//
-//	// the reverse iterator on a std::map, guarantees the highest time interval value
-//	TT::TITC::const_reverse_iterator itTI = itMode->second.rbegin();
-//	//bypass the current interval
-//	if(itTI->first == TravelTimeManager::curIntervalMS)
-//	{
-//		itTI++;
-//	}
-//	if(itTI == itMode->second.rend())
-//	{
-//		return 0.0;
-//	}
-//	//the clean answer
-//	const TT::TimeAndCount &tc = itTI->second;
-//	return tc.totalTravelTime / tc.travelTimeCnt;
+		++itTI;
+	}
+	return 0.0;
 }
 
 void sim_mob::TravelTimeManager::insertTravelTime2TmpTable(const std::string fileName)
 {
-//	//whateever declaration needed for the following 3-tire nested loop:
-//	typedef sim_mob::TravelTime::value_type SegPairs;//time range pairs
-//	typedef TT::MTITC::value_type TravelModes;//travel mode collections
-//	typedef TT::TITC::value_type TiPairs;
-//	sim_mob::BasicLogger & TTLogger  = sim_mob::Logger::log(fileName);
-//	const int &intervalSec = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval;//config interval(in seconds)
-//	//Now the loop
-//	BOOST_FOREACH(SegPairs &segPair, ttMap)
-//	{
-//		const unsigned long &segmentId = segPair.first->getId();
-//		TT::MTITC & travelModes = segPair.second;
-//		BOOST_FOREACH(TravelModes &travelMode, travelModes)
-//		{
-//			const std::string & travelModeStr = travelMode.first;
-//			const TT::TITC & timeIntervals = travelMode.second;
-//			BOOST_FOREACH(const TiPairs &tiPair, timeIntervals)
-//			{
-//				const TT::TI & timeInterval = tiPair.first;
-//				const TT::TimeAndCount & tc = tiPair.second;
-//				const double &totalTT_ForThisSeg = tc.totalTravelTime;
-//				const int &totalTT_Submissions = tc.travelTimeCnt;
-//				double travelTime = totalTT_ForThisSeg / totalTT_Submissions;
-//				dbg_ProcessTT_cnt++;
-//				TTLogger << segmentId << ";" << DailyTime(timeInterval* intervalMS).getRepr_() << ";" << DailyTime((timeInterval + 1) * intervalMS - 1).getRepr_() << ";" << travelTime << ";"  << intervalSec << ";"  << travelModeStr <<  "\n";
-//			}
-//		}
-//	}
-
-
 	//	easy reading down the line
-
 	typedef std::map<const sim_mob::RoadSegment*,sim_mob::TT::TimeAndCount >::value_type STC;//SegmentTimeCount
 	typedef TT::MRTC::value_type TravelModes;
 	typedef sim_mob::TravelTime::value_type TRPs;
@@ -157,16 +85,18 @@ void sim_mob::TravelTimeManager::insertTravelTime2TmpTable(const std::string fil
 				//easy reading
 				const unsigned long &segmentId = RS_Pair.first->getId();
 				TT::TimeAndCount & timeAndCount = RS_Pair.second;
-				double &totalTT_ForThisSeg = timeAndCount.totalTravelTime;
-				int &totalTT_Submissions = timeAndCount.travelTimeCnt;
+				double& totalTT = timeAndCount.totalTravelTime;
+				unsigned int& totalCount = timeAndCount.travelTimeCnt;
 				// calculate the average travel time
-				double travelTime = totalTT_ForThisSeg / totalTT_Submissions;
+				double avgTravelTime = 0.0;
+				if(totalCount) { avgTravelTime = totalTT / totalCount; }
+
 				//start and end time:
 				const DailyTime &simStartTime = sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime();
 				DailyTime startTime(simStartTime.getValue() +  (timeInterval* intervalMS) );
 				DailyTime endTime(simStartTime.getValue() + ((timeInterval + 1) * intervalMS - 1) );
 				//now simply write it to the file
-				TTLogger << segmentId << ";" << startTime.getRepr_() << ";" << endTime.getRepr_() << ";" << travelTime << ";"  << intervalSec << ";"  << travelModeStr <<  "\n";
+				TTLogger << segmentId << ";" << startTime.getRepr_() << ";" << endTime.getRepr_() << ";" << avgTravelTime << ";"  << intervalSec << ";"  << travelModeStr <<  "\n";
 			}
 		}
 	}
@@ -179,7 +109,12 @@ bool sim_mob::TravelTimeManager::storeRTT2DB()
 	insertTravelTime2TmpTable(tempFileName);
 	sim_mob::Logger::log(tempFileName).flush();
 	tempFileName += ".txt";
-	return sim_mob::aimsun::Loader::upsertTravelTime(*sim_mob::PathSetManager::getInstance()->getSession(), boost::filesystem::canonical(tempFileName).string(), sim_mob::PathSetParam::getInstance()->RTTT, sim_mob::ConfigManager::GetInstance().PathSetConfig().alpha);
+	/*The below fucntion only works when SimMobility is executed on the same machine as the location of the db
+	 i.e. SimMobility on user machine + local db 
+	 OR	  SimMobility on remote machine + remote db
+	sim_mob::aimsun::Loader::upsertTravelTime(*sim_mob::PathSetManager::getInstance()->getSession(), boost::filesystem::canonical(tempFileName).string(), sim_mob::PathSetParam::getInstance()->RTTT, sim_mob::ConfigManager::GetInstance().PathSetConfig().alpha);
+	*/
+	return true;
 }
 
 sim_mob::TravelTimeManager::~TravelTimeManager()

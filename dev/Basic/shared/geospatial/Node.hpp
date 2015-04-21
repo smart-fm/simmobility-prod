@@ -33,13 +33,14 @@ class UnPackageUtils;
 #endif
 
 enum SimNodeType
-	{
-		DEFAULT_NODE  = 0,
-		URBAN_IS_SIGNAL_NODE= 1, //urban intersection with signal
-		URBAN_IS_NO_SIGNAL_NODE = 2,//urban intersection w/o signal
-		PRIORITY_MERGE_NODE = 3,//priority merge
-		NON_PRIORITY_MERGE_NODE = 4 //non-priority merge
-	};
+{
+	DEFAULT_NODE  = 0,
+	URBAN_IS_SIGNAL_NODE= 1, //urban intersection with signal
+	URBAN_IS_NO_SIGNAL_NODE = 2,//urban intersection w/o signal
+	PRIORITY_MERGE_NODE = 3,//priority merge
+	NON_PRIORITY_MERGE_NODE = 4 //non-priority merge
+};
+
 /**
  * A location on a map where other elements interact. Nodes contain a Point2D representing their
  * location. Additional information (such as lane connectors) are located in other classes (e.g.,
@@ -71,13 +72,12 @@ public:
 	///TODO: Restore const access later.
 	Point2D location;
 
-
 	//Nodes may have hidden properties useful only in for the visualizer.
 	OpaqueProperty<int> originalDB_ID;
 
 	/**
-	 *  /brief get aimsun id
-	 *  /return id
+	 * Gets aimsun ID
+	 * \note: Not a simple getter. This function has to be removed, if not required. Call getID() instead which returns id from database.
 	 */
 	unsigned int getAimsunId() const;
 
@@ -93,18 +93,10 @@ public:
 //protected:
     explicit Node(int x=0, int y=0, unsigned int nodeId_=0) : nodeId(nodeId_), location(x, y),type(DEFAULT_NODE),CBD(false) {}
 
-//private:
-//    sim_mob::Link* linkLoc;
-
 public:
     void setID(unsigned int);
     unsigned int getID()const;
-  //  void setLinkLoc(sim_mob::Link* link);
 
-  //  sim_mob::Link* getLinkLoc() const;
-  const Point2D getLocation() const { return location;}
+    const Point2D getLocation() const { return location;}
 };
-
-
-
 }

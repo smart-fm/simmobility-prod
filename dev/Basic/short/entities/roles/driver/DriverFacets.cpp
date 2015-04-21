@@ -758,7 +758,8 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 	if (!fwdDriverMovement.isInIntersection() && !fwdDriverMovement.isDoneWithEntireRoute()) 
 	{
 		params.cftimer -= params.elapsedSeconds;
-		if (params.cftimer < params.elapsedSeconds) {
+		if (params.cftimer < params.elapsedSeconds) 
+		{
 			// make lc decision and check if can do lc
 			calcVehicleStates(params);
 		}
@@ -767,10 +768,19 @@ bool sim_mob::DriverMovement::update_movement(timeslice now) {
 		params.overflowIntoIntersection = move(params);
 		
 		//Did our last move forward bring us into an intersection?
-		if (fwdDriverMovement.isInIntersection()) {
+		if (fwdDriverMovement.isInIntersection()) 
+		{
 			params.justMovedIntoIntersection = true;
 			parentDriver->vehicle->setLatVelocity(0);
 			parentDriver->vehicle->setTurningDirection(LCS_SAME);
+			
+			//We've reached the intersection, but we don't have the next lane in the next link.
+			//This means that we were not able to change lanes in time to reach the lane with the
+			//desired turning
+			if(nextLaneInNextLink == nullptr)
+			{
+				parent->setToBeRemoved();
+			}
 		}
 	}
 
@@ -1876,7 +1886,8 @@ void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p)
 			//Look for the turning that has the 'to' RoadSegment as the next RoadSegment
 			for (std::set<TurningSection*>::const_iterator itTurnings = turnings.begin(); itTurnings != turnings.end(); ++itTurnings)
 			{
-				//Check if this turning has a from lane that is same as the current lane
+				//Check if this turning has a from lane that is same as the current lane and the to segment
+				//that is the same as the next segment
 				if (currLane == (*itTurnings)->getLaneFrom() && nextSeg == (*itTurnings)->getToSeg())
 				{
 					targetLaneIndex = p.nextLaneIndex = (*itTurnings)->getTo_lane_index();
@@ -1925,14 +1936,7 @@ void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p)
 						nextLaneInNextLink = targetLanes.at(1);
 					}
 					targetLaneIndex = getLaneIndex(nextLaneInNextLink);
-				} 
-				//Fallback
-				else if (nextSeg)
-				{ 
-					size_t fallbackIndex = std::min(p.currLaneIndex, nextSeg->getLanes().size() - 1);
-					nextLaneInNextLink = nextSeg->getLanes().at(fallbackIndex);
-					targetLaneIndex = fallbackIndex;
-				}
+				} 				
 			}
 		}
 		

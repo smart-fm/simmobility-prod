@@ -59,7 +59,7 @@ template<> struct type_conversion<sim_mob::aimsun::Node>
     	res.xPos = vals.get<double>("xpos", 0.0);
     	res.yPos = vals.get<double>("ypos", 0.0);
     	res.isIntersection = vals.get<int>("isintersection", 0);
-    	//res.hasTrafficSignal = vals.get<int>("hassignal", 0);
+    	res.hasTrafficSignal = vals.get<int>("hassignal", 0);
     }
     static void to_base(const sim_mob::aimsun::Node& src, soci::values& vals, soci::indicator& ind)
     {
@@ -235,7 +235,7 @@ template<> struct type_conversion<sim_mob::aimsun::Section>
     	res.length = vals.get<double>("length", 0);
     	res.TMP_FromNodeID = vals.get<int>("fnode", 0);
     	res.TMP_ToNodeID = vals.get<int>("tnode", 0);
-    	//res.serviceCategory = vals.get<std::string>("category", "");
+    	res.serviceCategory = vals.get<std::string>("category", "");
     }
     static void to_base(const sim_mob::aimsun::Section& src, soci::values& vals, soci::indicator& ind)
     {
@@ -522,19 +522,19 @@ template<> struct type_conversion<sim_mob::TurningPolyline>
     typedef values base_type;
     static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::TurningPolyline &res)
     {
-    	res.id = vals.get<int>("id", -1);
-    	res.turningId = vals.get<int>("turning", -1);
-    	res.type = vals.get<int>("type", -1);
-    	res.length = vals.get<double>("length", -1);
-    	res.scenario = vals.get<int>("type", -1);
+    	res.setId(vals.get<int>("id", -1));
+    	res.setTurningId(vals.get<int>("turning", -1));
+    	res.setType(vals.get<int>("type", -1));
+    	res.setLength(vals.get<double>("length", -1));
+    	res.setScenario(vals.get<std::string>("scenario"));
     }
     static void to_base(const sim_mob::TurningPolyline& src, soci::values& vals, soci::indicator& ind)
     {
-    	vals.set("id", src.id);
-    	vals.set("turning", src.turningId);
-    	vals.set("type", src.type);
-    	vals.set("length", src.length);
-    	vals.set("scenario", src.scenario);
+    	vals.set("id", src.getId());
+    	vals.set("turning", src.getTurningId());
+    	vals.set("type", src.getType());
+    	vals.set("length", src.getLength());
+    	vals.set("scenario", src.getScenario());
         ind = i_ok;
     }
 };

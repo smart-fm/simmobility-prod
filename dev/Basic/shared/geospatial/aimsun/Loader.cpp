@@ -603,7 +603,8 @@ void DatabaseLoader::loadSegmentTypeTable(const std::string& storedProc,std::map
 		std::cout<<"loadSegmentTypeTable: "<<err.what()<<std::endl;
 	}
 }
-void DatabaseLoader::loadTurningSectionTable(const std::string& storedProc,sim_mob::RoadNetwork& rn) {
+void DatabaseLoader::loadTurningSectionTable(const std::string& storedProc,sim_mob::RoadNetwork& rn) 
+{
 	try
 	{
 		if (storedProc.empty())
@@ -612,10 +613,12 @@ void DatabaseLoader::loadTurningSectionTable(const std::string& storedProc,sim_m
 			return;
 		}
 		
-		soci::rowset<sim_mob::TurningSection> ts = (sql_.prepare <<"select * from " + storedProc);
-		for (soci::rowset<sim_mob::TurningSection>::const_iterator it=ts.begin(); it!=ts.end(); ++it)  {
-			sim_mob::TurningSection *t = new sim_mob::TurningSection(*it);
-			rn.storeTurningSection(t);
+		soci::rowset<sim_mob::TurningSection> turnings = (sql_.prepare <<"select * from " + storedProc);
+		
+		for (soci::rowset<sim_mob::TurningSection>::const_iterator it = turnings.begin(); it != turnings.end(); ++it)  
+		{
+			sim_mob::TurningSection *turning = new sim_mob::TurningSection(*it);
+			rn.storeTurningSection(turning);
 		}
 	}
 	catch (soci::soci_error const & err)
@@ -623,7 +626,8 @@ void DatabaseLoader::loadTurningSectionTable(const std::string& storedProc,sim_m
 		std::cout<<"loadTurningSectionTable: "<<err.what()<<std::endl;
 	}
 }
-void DatabaseLoader::loadTurningPolyline(const std::string& storedProc, const std::string& pointsStoredProc, sim_mob::RoadNetwork& rn) {
+void DatabaseLoader::loadTurningPolyline(const std::string& storedProc, const std::string& pointsStoredProc, sim_mob::RoadNetwork& rn) 
+{
 	try
 	{
 		if(storedProc.empty())
@@ -632,13 +636,13 @@ void DatabaseLoader::loadTurningPolyline(const std::string& storedProc, const st
 			return;
 		}
 		
-		soci::rowset<sim_mob::TurningPolyline> ts = (sql_.prepare << "select * from " + storedProc);
+		soci::rowset<sim_mob::TurningPolyline> polylines = (sql_.prepare << "select * from " + storedProc);
 		
-		for (soci::rowset<sim_mob::TurningPolyline>::const_iterator it=ts.begin(); it!=ts.end(); ++it)  {
-			sim_mob::TurningPolyline *t = new sim_mob::TurningPolyline(*it);
-			// load poly-point
-			loadPolypointByPolyline(pointsStoredProc, t);
-			rn.storeTurningPolyline(t);
+		for (soci::rowset<sim_mob::TurningPolyline>::const_iterator it = polylines.begin(); it != polylines.end(); ++it)  
+		{
+			sim_mob::TurningPolyline *turningPolyline = new sim_mob::TurningPolyline(*it);
+			loadPolypointByPolyline(pointsStoredProc, turningPolyline);
+			rn.storeTurningPolyline(turningPolyline);
 		}
 	}
 	catch (soci::soci_error const & err)
@@ -646,17 +650,20 @@ void DatabaseLoader::loadTurningPolyline(const std::string& storedProc, const st
 		std::cout<<"loadTurningPolyline: "<<err.what()<<std::endl;
 	}
 }
-void DatabaseLoader::loadPolypointByPolyline(const std::string& pointsStoredProc, sim_mob::TurningPolyline *t) {
+void DatabaseLoader::loadPolypointByPolyline(const std::string& pointsStoredProc, sim_mob::TurningPolyline *turningPolyline) 
+{
 	try
 	{
 		std::stringstream s;
-		s << "select * from " << pointsStoredProc << "(" << t->id << ")";
-		soci::rowset<sim_mob::Polypoint> ts = (sql_.prepare << s.str());
-		for (soci::rowset<sim_mob::Polypoint>::const_iterator it=ts.begin(); it!=ts.end(); ++it)  {
-			sim_mob::Polypoint *p = new sim_mob::Polypoint(*it);
-			p->x = p->x*100.0;
-			p->y = p->y*100.0;
-			t->polypoints.push_back(p);
+		s << "select * from " << pointsStoredProc << "(" << turningPolyline->getId() << ")";
+		soci::rowset<sim_mob::Polypoint> polyLine = (sql_.prepare << s.str());
+		
+		for (soci::rowset<sim_mob::Polypoint>::const_iterator it = polyLine.begin(); it != polyLine.end(); ++it)  
+		{
+			sim_mob::Polypoint *point = new sim_mob::Polypoint(*it);
+			point->x = point->x*100.0;
+			point->y = point->y*100.0;
+			turningPolyline->addPolypoint(point);
 		}
 	}
 	catch (soci::soci_error const & err)
@@ -664,17 +671,20 @@ void DatabaseLoader::loadPolypointByPolyline(const std::string& pointsStoredProc
 		std::cout<<"loadTurningPolyline: "<<err.what()<<std::endl;
 	}
 }
-void DatabaseLoader::storeTurningPoints(sim_mob::RoadNetwork& rn) {
-	try {
+void DatabaseLoader::storeTurningPoints(sim_mob::RoadNetwork& rn) 
+{
+	try 
+	{
 		std::string tableName = "TurningSection";
 
-		std::map<std::string,sim_mob::TurningSection* >::iterator it; ;
-		for(it=rn.turningSectionMap.begin();it!=rn.turningSectionMap.end();++it) {
+		std::map<std::string,sim_mob::TurningSection* >::iterator it;
+		
+		for(it = rn.turningSectionMap.begin(); it != rn.turningSectionMap.end(); ++it) 
+		{
 			sim_mob::TurningSection* ts = it->second;
 
 			sql_<<"update \""+ tableName +"\" set from_xpos=:from_xpos ,from_ypos=:from_ypos,to_xpos=:to_xpos,to_ypos=:to_ypos"
-					" where id=:id"
-								, soci::use(*ts);
+					" where id=:id", soci::use(*ts);
 			sql_.commit();
 		}
 	}
@@ -683,7 +693,8 @@ void DatabaseLoader::storeTurningPoints(sim_mob::RoadNetwork& rn) {
 		std::cout<<"storeTurningPoints: "<<err.what()<<std::endl;
 	}
 }
-void DatabaseLoader::loadTurningConflictTable(const std::string& storedProc,sim_mob::RoadNetwork& rn) {
+void DatabaseLoader::loadTurningConflictTable(const std::string& storedProc,sim_mob::RoadNetwork& rn) 
+{
 	try
 	{
 		if (storedProc.empty())
@@ -692,10 +703,11 @@ void DatabaseLoader::loadTurningConflictTable(const std::string& storedProc,sim_
 			return;
 		}
 		
-		soci::rowset<sim_mob::TurningConflict> ts = (sql_.prepare <<"select * from " + storedProc);
-		for (soci::rowset<sim_mob::TurningConflict>::const_iterator it=ts.begin(); it!=ts.end(); ++it)  {
-			sim_mob::TurningConflict * t = new sim_mob::TurningConflict(*it);
-			rn.storeTurningConflict(t);
+		soci::rowset<sim_mob::TurningConflict> conflicts = (sql_.prepare <<"select * from " + storedProc);
+		for (soci::rowset<sim_mob::TurningConflict>::const_iterator it = conflicts.begin(); it != conflicts.end(); ++it)  
+		{
+			sim_mob::TurningConflict * conflict = new sim_mob::TurningConflict(*it);
+			rn.storeTurningConflict(conflict);
 		}
 	}
 	catch (soci::soci_error const & err)

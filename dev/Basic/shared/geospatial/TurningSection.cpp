@@ -31,29 +31,29 @@ namespace sim_mob
 	} ;
 };
 
-sim_mob::TurningSection::TurningSection():
-		dbId(-1),from_xpos(-1),from_ypos(-1),
-				to_xpos(-1),to_ypos(-1),
-				from_road_section(""),
-				to_road_section(""),
-				from_lane_index(-1),
-				to_lane_index(-1),
-				fromSeg(nullptr),toSeg(nullptr),
-	laneFrom(nullptr),laneTo(nullptr),turningSpeed(0),hasStopSign(false)
+sim_mob::TurningSection::TurningSection() :
+	dbId(-1), from_xpos(-1), from_ypos(-1),
+	to_xpos(-1), to_ypos(-1),
+	from_road_section(""),
+	to_road_section(""),
+	from_lane_index(-1),
+	to_lane_index(-1),
+	fromSeg(nullptr), toSeg(nullptr),
+	laneFrom(nullptr), laneTo(nullptr), turningSpeed(0), hasStopSign(false)
 {
 }
 
 sim_mob::TurningSection::TurningSection(const TurningSection & ts):
-		dbId(ts.dbId),from_xpos(ts.from_xpos),from_ypos(ts.from_ypos),
-		to_xpos(ts.to_xpos),to_ypos(ts.to_ypos),
-		from_road_section(ts.from_road_section),
-		to_road_section(ts.to_road_section),
-		from_lane_index(ts.from_lane_index),
-		to_lane_index(ts.to_lane_index),
-		fromSeg(nullptr),toSeg(nullptr),
-		sectionId(ts.sectionId),
-		laneFrom(nullptr),laneTo(nullptr),
-		turningSpeed(ts.turningSpeed), hasStopSign(ts.hasStopSign)
+	dbId(ts.dbId),from_xpos(ts.from_xpos),from_ypos(ts.from_ypos),
+	to_xpos(ts.to_xpos),to_ypos(ts.to_ypos),
+	from_road_section(ts.from_road_section),
+	to_road_section(ts.to_road_section),
+	from_lane_index(ts.from_lane_index),
+	to_lane_index(ts.to_lane_index),
+	fromSeg(nullptr),toSeg(nullptr),
+	sectionId(ts.sectionId),
+	laneFrom(nullptr),laneTo(nullptr),
+	turningSpeed(ts.turningSpeed), hasStopSign(ts.hasStopSign)
 {
 	std::stringstream out("");
 	out<<ts.dbId;
@@ -74,19 +74,24 @@ void TurningSection::setPolyline(TurningPolyline* src)
 {
 	polyline = src;
 	polylinePoints.clear();
-	for(int i=0;i<src->polypoints.size();++i){
-		Polypoint* pp = src->polypoints.at(i);
+	
+	const std::vector<Polypoint *> polyPoints = src->getPolypoints();
+	
+	for(int i = 0; i < polyPoints.size();++i)
+	{
+		Polypoint* pp = polyPoints.at(i);
 		DPoint p;
 		p.x = pp->x;
 		p.y = pp->y;
 		polylinePoints.push_back(p);
 	}
 }
+
 void TurningSection::addTurningConflict(TurningConflict* turningConflict)
 {
 	this->turningConflicts.push_back(turningConflict);
 	
-	//Comparator struct for the sort function
+	//Comparator structure for the sort function
 	TComparator tComparator(this);
 	
 	//Sort the conflicts - the nearest conflict to the Turning comes first
@@ -125,17 +130,21 @@ void TurningSection::setLaneFrom(const sim_mob::Lane* laneFrom)
 
 void TurningSection::makePolylinePoint()
 {
-	if(!laneFrom || !laneTo) {
+	if(!laneFrom || !laneTo) 
+	{
 		throw std::runtime_error("no from/to lane");
 	}
+	
 	// get last point of "from lane" polyline
 	Point2D pfrom = laneFrom->polyline_.back();
+	
 	// get first point of to lane polyline
 	from_xpos = pfrom.getX() / 100.0;
 	from_ypos = pfrom.getY() / 100.0;
 
 	// get first point of "to lane" polyline
 	Point2D pto = laneTo->polyline_.front();
+	
 	// get first point of to lane polyline
 	to_xpos = pto.getX() / 100.0;
 	to_ypos = pto.getY() / 100.0;
@@ -287,13 +296,13 @@ TurningConflict* sim_mob::TurningSection::getTurningConflict(const TurningSectio
 		TurningSection *firstTurning = conflict->getFirstTurning();
 		TurningSection *secondTurning = conflict->getSecondTurning();
 		
-		if((turningSection == firstTurning && this == secondTurning) || 
-		 (this == firstTurning && turningSection == secondTurning)) 
+		if ((turningSection == firstTurning && this == secondTurning) ||
+			(this == firstTurning && turningSection == secondTurning))
 		{
 			res = conflict;
 			break;
 		}
-	}// end of for
+	}
 	
 	return res;
 }

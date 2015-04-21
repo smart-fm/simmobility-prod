@@ -50,8 +50,7 @@ private:
 	void LogLegacySimulationProps() const;
 	void LogLegacySignalProps() const;
 	void LogLegacyUniNodeProps(std::set<const sim_mob::RoadSegment*>& cachedSegments) const;
-	void LogLegacyMultiNodeProps(std::set<const sim_mob::RoadSegment*>& cachedSegments,
-			std::set<sim_mob::LaneConnector*>& cachedConnectors) const;
+	void LogLegacyMultiNodeProps(std::set<const sim_mob::RoadSegment*>& cachedSegments, std::set<sim_mob::LaneConnector*>& cachedConnectors) const;
 	void LogLegacyLinks() const;
 	void LogLegacySegment(const sim_mob::RoadSegment* const rs, std::set<const sim_mob::Crossing*>& cachedCrossings, std::set<const sim_mob::BusStop*>& cachedBusStops) const;
 	void LogLegacySegPolyline(const sim_mob::RoadSegment* const rs) const;

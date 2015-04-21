@@ -8,17 +8,50 @@ namespace sim_mob {
 TurningPolyline::TurningPolyline()
 :Polyline(),turningId(-1),turning(nullptr)
 {
-	// TODO Auto-generated constructor stub
-
 }
-TurningPolyline::TurningPolyline(const sim_mob::TurningPolyline& tp)
-:Polyline(tp),turning(tp.turning),turningId(tp.turningId)
+
+TurningPolyline::TurningPolyline(const sim_mob::TurningPolyline& tp) : 
+	Polyline(tp), turning(tp.turning), turningId(tp.turningId)
 {
-
 }
 
-TurningPolyline::~TurningPolyline() {
-	// TODO Auto-generated destructor stub
+TurningPolyline::~TurningPolyline() 
+{
+}
+
+void TurningPolyline::setPolypoints(std::vector<Polypoint*> polypoints)
+{
+	this->polypoints = polypoints;
+}
+
+void TurningPolyline::addPolypoint(Polypoint* point)
+{
+	this->polypoints.push_back(point);
+}
+
+std::vector<Polypoint*> TurningPolyline::getPolypoints() const
+{
+	return polypoints;
+}
+
+void TurningPolyline::setTurning(TurningSection* turning)
+{
+	this->turning = turning;
+}
+
+TurningSection* TurningPolyline::getTurning() const
+{
+	return turning;
+}
+
+void TurningPolyline::setTurningId(int turningId)
+{
+	this->turningId = turningId;
+}
+
+int TurningPolyline::getTurningId() const
+{
+	return turningId;
 }
 
 } /* namespace sim_mob */

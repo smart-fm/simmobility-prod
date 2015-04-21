@@ -23,24 +23,28 @@
 
 namespace sim_mob
 {
-
 /**
- * Lightwight double-point struct
- *
- * \author Seth N. Hetu
- */
-class DPoint {
-public:
-	double x;
-	double y;
-	explicit DPoint(double x=0.0, double y=0.0) : x(x), y(y) {}
+   * Lightwight double-point struct
+   *
+   * \author Seth N. Hetu
+   */
+  class DPoint
+  {
+  public:
+    double x;
+    double y;
 
-	DPoint& operator=( const DPoint& other ) {
-		x = other.x;
-		y = other.y;
-		return *this;
-	}
-};
+    explicit DPoint(double x=0.0, double y=0.0) : x(x), y(y)
+    {
+    }
+
+    DPoint& operator=( const DPoint& other )
+    {
+      x = other.x;
+      y = other.y;
+      return *this;
+    }
+  } ;
 
 } //namespace sim_mob
 

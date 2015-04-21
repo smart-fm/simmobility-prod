@@ -14,15 +14,48 @@ namespace sim_mob {
 class TurningSection;
 class Polyline;
 
-class TurningPolyline: public Polyline {
-public:
-	TurningPolyline();
-	TurningPolyline(const TurningPolyline& tp);
-	int turningId;
-	TurningSection *turning;
-	std::vector<Polypoint*> polypoints;
-	virtual ~TurningPolyline();
-};
+  class TurningPolyline : public Polyline
+  {
+  private:
+    
+    //Id of the turning to which the poly-line belongs
+    int turningId;
+    
+    //The Turning object to which the poly-line belongs
+    TurningSection *turning;
+    
+    //The points in the poly-line
+    std::vector<Polypoint*> polypoints;
+    
+  public:
+    
+    TurningPolyline();
+    
+    TurningPolyline(const TurningPolyline& tp);
+    
+    virtual ~TurningPolyline();
+    
+    //Setter for the poly-points
+    void setPolypoints(std::vector<Polypoint*> polypoints);
+    
+    //Adds a poly-point to the poly-line
+    void addPolypoint(Polypoint *point);
+    
+    //Getter for the poly-points
+    std::vector<Polypoint*> getPolypoints() const;
+    
+    //Setter for the turning
+    void setTurning(TurningSection* turning);
+    
+    //Getter for the turning
+    TurningSection* getTurning() const;
+    
+    //Setter for the turning id
+    void setTurningId(int turningId);
+    
+    //Getter for the turning id
+    int getTurningId() const;
+  } ;
 
 } /* namespace sim_mob */
 

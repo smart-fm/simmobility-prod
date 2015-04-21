@@ -70,17 +70,19 @@ public:
 	void setConnectorAt2(const sim_mob::RoadSegment* key, std::set<sim_mob::LaneConnector*>& val);
 	void addRoadSegmentAt(sim_mob::RoadSegment* rs) { roadSegmentsAt.insert(rs); }
 
+	/// Set the Turnings for the multi-node
 	void setTurnings(const sim_mob::RoadSegment *key, TurningSection *val);
  
 	bool isSignalized() const;
 
-    //Inserts the turning section to the map mapFromToLanesVsTurning
-    void updateMapLaneVsTurning(const Lane *fromLane, const Lane *toLane, TurningSection *turning);
+	/// Inserts the turning section to the map mapFromToLanesVsTurning
+	void updateMapLaneVsTurning(const Lane *fromLane, const Lane *toLane, TurningSection *turning);
         
-    //Finds and returns the TurningSection object that connects the given 'from' and 'to' lanes
-    const TurningSection* getTurningSection(const Lane *currentLane, const Lane *nextLane) const;
+	/// Finds and returns the TurningSection object that connects the given 'from' and 'to' lanes
+	const TurningSection* getTurningSection(const Lane *currentLane, const Lane *nextLane) const;
     
-    const std::set<TurningSection*>& getTurnings(const RoadSegment *) const;
+	/// Returns the turnings from the given road segment
+	const std::set<TurningSection*>& getTurnings(const RoadSegment *) const;
 
 protected:
 	///Mapping from RoadSegment* -> set<LaneConnector*> representing lane connectors.
@@ -92,10 +94,10 @@ protected:
 	//      is why we use "set").
 	std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > connectors;
 
-    //Mapping from RoadSegment* to set<TurningSection> representing the Turnings
+	/// Mapping from RoadSegment* to set<TurningSection> representing the Turnings
 	std::map<const sim_mob::RoadSegment*, std::set<sim_mob::TurningSection*> > turnings;
         
-    //This is a 2-level map of TurningSection with key as the the from lane and to lane
+	/// This is a 2-level map of TurningSection with key as the the from lane and to lane
     std::map<const Lane *, std::map<const Lane *, TurningSection *> > mapFromToLanesVsTurning;
 
 	///Bookkeeping: which RoadSegments meet at this Node?

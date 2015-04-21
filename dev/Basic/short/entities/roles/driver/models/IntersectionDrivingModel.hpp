@@ -175,6 +175,18 @@ public:
 class MITSIM_IntDriving_Model : public IntersectionDrivingModel
 {
 private:
+  
+  //Stores the poly-points of the turning path
+  std::vector<DPoint> polypoints;
+  std::vector<DPoint>::iterator polypointIter;
+
+  DPoint currPosition;
+  DynamicVector currPolyline;
+
+  //Length of the turning
+  double length;
+
+  double polylineMovement;
 
   //Reads and stores the parameters related to intersection driving from the driver parameter xml file
   //(data/driver_param.xml)
@@ -208,20 +220,6 @@ public:
   //Depending on the conflicting vehicles, calculates the acceleration that allows the vehicle to 
   //pass through without colliding with the other vehicles
   virtual double makeAcceleratingDecision(DriverUpdateParams& params, const TurningSection *currTurning);  
-
-private:
-  
-  //Stores the poly-points of the turning path
-  std::vector<DPoint> polypoints;
-  std::vector<DPoint>::iterator polypointIter;
-
-  DPoint currPosition;
-  DynamicVector currPolyline;
-
-  // length of the turning
-  double length;
-
-  double polylineMovement;
 };
   
 }

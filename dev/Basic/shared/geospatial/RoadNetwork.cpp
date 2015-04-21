@@ -94,37 +94,43 @@ void sim_mob::RoadNetwork::storeTurningSection(sim_mob::TurningSection* turningS
 	//Update the map of lane vs turnings
 	multinode->updateMapLaneVsTurning(from, to, turningSection);
 }
-void sim_mob::RoadNetwork::storeTurningPolyline(sim_mob::TurningPolyline* tp)
+
+void sim_mob::RoadNetwork::storeTurningPolyline(sim_mob::TurningPolyline* turningPolyline)
 {
 	// find turning section
 	std::stringstream out("");
-	out<<tp->turningId;
+	out<<turningPolyline->getTurningId();
 	std::string turningIdStr = out.str();
 	std::map<std::string,sim_mob::TurningSection* >::iterator it = turningSectionMap.find(turningIdStr);
+	
 	if(it!=turningSectionMap.end())
 	{
 		// find turning
 		sim_mob::TurningSection* ts = it->second;
-		ts->setPolyline(tp);
-		//
-		turningPolylineMap.insert(std::make_pair(tp->id,tp));
+		ts->setPolyline(turningPolyline);
+		turningPolylineMap.insert(std::make_pair(turningPolyline->getId(), turningPolyline));
 	}
-	else{
+	else
+	{
 		throw std::runtime_error("storeTurningPolyline: No turning found");
 	}
 }
-sim_mob::TurningSection* sim_mob::RoadNetwork::findTurningById(std::string id) {
+
+sim_mob::TurningSection* sim_mob::RoadNetwork::findTurningById(std::string id) 
+{
 	sim_mob::TurningSection* res = nullptr;
-	std::map<std::string,sim_mob::TurningSection* >::iterator it =
-			turningSectionMap.find(id);
-	if(it != turningSectionMap.end()){
+	std::map<std::string,sim_mob::TurningSection* >::iterator it = turningSectionMap.find(id);
+	
+	if(it != turningSectionMap.end())
+	{
 		res = it->second;
 	}
+	
 	return res;
 }
 
-void sim_mob::RoadNetwork::storeTurningConflict(sim_mob::TurningConflict* conflict) {
-	
+void sim_mob::RoadNetwork::storeTurningConflict(sim_mob::TurningConflict* conflict) 
+{	
 	// get turnings
 	sim_mob::TurningSection* firstTurning = turningSectionMap[conflict->getFirst_turning()];
 	sim_mob::TurningSection* secondTurning = turningSectionMap[conflict->getSecond_turning()];
@@ -142,28 +148,36 @@ void sim_mob::RoadNetwork::storeTurningConflict(sim_mob::TurningConflict* confli
 	turningConflictMap.insert(std::make_pair(conflict->getConflictId(),conflict));
 }
 
-sim_mob::RoadSegment* sim_mob::RoadNetwork::getSegById(std::string aimsunId) {
+sim_mob::RoadSegment* sim_mob::RoadNetwork::getSegById(std::string aimsunId) 
+{
 	sim_mob::RoadSegment* res = nullptr;
 	std::stringstream trimmer;
 	trimmer << aimsunId;
 	aimsunId.clear();
 	trimmer >> aimsunId;
 	std::map<std::string,sim_mob::RoadSegment*>::iterator it = segPool.find(aimsunId);
-	if(it != segPool.end()){
+	
+	if(it != segPool.end())
+	{
 		res = it->second;
 	}
+	
 	return res;
 }
 
-void sim_mob::RoadNetwork::makeSegPool() {
-	for (std::vector<sim_mob::Link *>::const_iterator it =	links.begin(), it_end( links.end()); it != it_end; it++) {
-			for (std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++) {
-				if (!(*seg_it)->originalDB_ID.getLogItem().empty()) {
-					std::string aimsun_id = (*seg_it)->originalDB_ID.getLogItem();
-					std::string seg_id = Utils::getNumberFromAimsunId(aimsun_id);
-					segPool.insert(std::make_pair(seg_id, *seg_it));
-				}
+void sim_mob::RoadNetwork::makeSegPool() 
+{
+	for (std::vector<sim_mob::Link *>::const_iterator it =	links.begin(), it_end( links.end()); it != it_end; it++) 
+	{
+		for (std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++) 
+		{
+			if (!(*seg_it)->originalDB_ID.getLogItem().empty()) 
+			{
+				std::string aimsun_id = (*seg_it)->originalDB_ID.getLogItem();
+				std::string seg_id = Utils::getNumberFromAimsunId(aimsun_id);
+				segPool.insert(std::make_pair(seg_id, *seg_it));
 			}
+		}
 	}
 }
 
@@ -295,19 +309,31 @@ sim_mob::Node* sim_mob::RoadNetwork::getNodeById(int aimsunId) {
 		return nullptr;
 	}
 }
-sim_mob::MultiNode* sim_mob::RoadNetwork::getMultiNodeById(std::string aimsunId) {
+
+sim_mob::MultiNode* sim_mob::RoadNetwork::getMultiNodeById(std::string aimsunId) 
+{
 	int id;
-	try {
+	
+	try 
+	{
 		id = boost::lexical_cast<int>( aimsunId );
-	} catch( boost::bad_lexical_cast const& ) {
+	} 
+	catch( boost::bad_lexical_cast const& ) 
+	{
 		throw std::runtime_error("getMultiNodeById: error");
 	}
+	
 	sim_mob::Node* n = getNodeById(id);
-	if(!n) {throw std::runtime_error("getMultiNodeById: error no node found");}
+	
+	if(!n) 
+	{
+		throw std::runtime_error("getMultiNodeById: error no node found");
+	}
 
 	sim_mob::MultiNode *mn = dynamic_cast<MultiNode*>(n);
 	return mn;
 }
+
 Node* sim_mob::RoadNetwork::locateNode(double xPos, double yPos, bool includeUniNodes, int maxDistCM) const
 {
 	//First, check the MultiNodes, since these will always be candidates

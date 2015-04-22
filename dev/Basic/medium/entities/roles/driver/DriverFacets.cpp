@@ -834,8 +834,11 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
 		// segment travel time related line(s)
 		getParent()->startCurrRdSegTravelStat(currSegStats->getRoadSegment(), actualT);
 
-		//initialize some travel metrics for this subTrip
-		startTravelTimeMetric();
+		if(getParentDriver()->roleType == sim_mob::Role::RL_DRIVER)
+		{
+			//initialize some travel metrics for this subTrip
+			startTravelTimeMetric(); //not for bus drivers or any other role
+		}
 	}
 	else
 	{
@@ -988,6 +991,7 @@ TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
 
 TravelMetric& sim_mob::medium::DriverMovement::finalizeTravelTimeMetric()
 {
+	if(!travelMetric.started) { return travelMetric; } //sanity check
 	if(!pathMover.getPath().size())
 	{
 		Print() << "Person " << getParent()->getId() << " has no path\n";

@@ -54,7 +54,7 @@ namespace{
 
 sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id)
 : Agent(mtxStrat, id), multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
-parentWorker(nullptr), currFrame(0,0), debugMsgs(std::stringstream::out), isBoundary(false), isMultipleReceiver(false)
+parentWorker(nullptr), currFrame(0,0), debugMsgs(std::stringstream::out), isBoundary(false), isMultipleReceiver(false), killedAgentsCount(0)
 {}
 
 sim_mob::Conflux::~Conflux()
@@ -72,6 +72,10 @@ sim_mob::Conflux::~Conflux()
 	activityPerformers.clear();
 	//clear pedestrian list
 	pedestrianList.clear();
+
+	std::stringstream strm;
+	strm << "Conflux "<< multiNode->getAimsunId() << " killed " << killedAgentsCount << "persons" << std::endl;
+	Print() << strm.str();
 }
 
 void sim_mob::Conflux::initialize(const timeslice& now)
@@ -758,6 +762,7 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 
 	parentWorker->remEntity(person);
 	parentWorker->scheduleForRemoval(person);
+	killedAgentsCount++;
 }
 
 void sim_mob::Conflux::resetPositionOfLastUpdatedAgentOnLanes() {

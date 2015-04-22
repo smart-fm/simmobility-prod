@@ -132,33 +132,19 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::MakePT_RouteChoice(
 				publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
 		const std::vector<PT_NetworkEdge>& pathEdges = it->getPathEdges();
-		//Print() << it->getPtPathId() << std::endl;
+		Print() << original<<"--->"<<dest<<"("<<it->getPtPathId()<<")" << std::endl;
 		for (std::vector<PT_NetworkEdge>::const_iterator itEdge =
 				pathEdges.begin(); itEdge != pathEdges.end(); itEdge++) {
 			sim_mob::OD_Trip trip;
 			trip.startStop = itEdge->getStartStop();
-			int type = PT_Network::getInstance().getVertexTypeFromStopId(
+			trip.sType = PT_Network::getInstance().getVertexTypeFromStopId(
 					trip.startStop);
-			if (type == 0) {
-				trip.sType = "NODE";
-			} else if (type == 1) {
-				trip.sType = "BUSSTOP";
-			} else if (type == 2) {
-				trip.sType = "MRTSTOP";
-			}
 			if (trip.startStop.find("N_") != std::string::npos) {
 				trip.startStop = trip.startStop.substr(2);
 			}
 			trip.endStop = itEdge->getEndStop();
-			type = PT_Network::getInstance().getVertexTypeFromStopId(
+			trip.eType = PT_Network::getInstance().getVertexTypeFromStopId(
 					trip.endStop);
-			if (type == 0) {
-				trip.eType = "NODE";
-			} else if (type == 1) {
-				trip.eType = "BUSSTOP";
-			} else if (type == 2) {
-				trip.eType = "MRTSTOP";
-			}
 			if (trip.endStop.find("N_") != std::string::npos) {
 				trip.endStop = trip.endStop.substr(2);
 			}
@@ -168,10 +154,10 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::MakePT_RouteChoice(
 			trip.destNode = dest;
 			trip.travelTime = itEdge->getTransitTimeSecs();
 			odTrips.push_back(trip);
-			//Print() << itEdge->getEdgeId() << "," << trip.startStop << ","
-			//		<< trip.sType << "," << trip.endStop << "," << trip.eType
-			//		<< "," << trip.tType << "," <<trip.travelTime<<","<< trip.serviceLines
-			//		<< std::endl;
+			Print() << itEdge->getEdgeId() << "," << trip.startStop << "("
+					<< trip.sType << ")," << trip.endStop << "(" << trip.eType
+					<< ")," << trip.tType << "," <<trip.travelTime<<","<< trip.serviceLines
+					<< std::endl;
 		}
 	}
 

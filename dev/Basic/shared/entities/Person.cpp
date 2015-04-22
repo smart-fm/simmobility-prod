@@ -613,36 +613,60 @@ void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
 			WayPoint dest;
 			std::string sSrc = (*it).startStop;
 			std::string sEnd = (*it).endStop;
-			std::string sType = (*it).sType;
-			std::string eType = (*it).eType;
-			if (it == matchedTrips.begin()) {
-				source = curSubTrip->fromLocation;
-			} else if (it == matchedTrips.end() - 1) {
-				dest = curSubTrip->toLocation;
+			int sType = (*it).sType;
+			int eType = (*it).eType;
+			switch (eType) {
+			case 0: {
+				int id = boost::lexical_cast<unsigned int>(sEnd);
+				sim_mob::Node* node =
+						ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(id);
+				if (node) {
+					dest = WayPoint(node);
+				}
+				break;
 			}
-			if (eType == "BUSSTOP") {
+			case 1: {
 				sim_mob::BusStop* stop = sim_mob::BusStop::findBusStop(sEnd);
 				if (stop) {
 					dest = WayPoint(stop);
 				}
-			} else if (eType == "MRTSTOP") {
+				break;
+			}
+			case 2: {
 				sim_mob::MRT_Stop* stop =
 						sim_mob::PT_Network::getInstance().findMRT_Stop(sEnd);
 				if (stop) {
 					dest = WayPoint(stop);
 				}
+				break;
 			}
-			if (sType == "BUSSTOP") {
+			}
+
+			switch (sType) {
+			case 0: {
+				int id = boost::lexical_cast<unsigned int>(sSrc);
+				sim_mob::Node* node =
+						ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(id);
+				if (node) {
+					source = WayPoint(node);
+				}
+				break;
+			}
+			case 1: {
 				sim_mob::BusStop* stop = sim_mob::BusStop::findBusStop(sSrc);
 				if (stop) {
 					source = WayPoint(stop);
 				}
-			} else if (sType == "MRTSTOP") {
+				break;
+			}
+			case 2: {
 				sim_mob::MRT_Stop* stop =
 						sim_mob::PT_Network::getInstance().findMRT_Stop(sSrc);
 				if (stop) {
 					source = WayPoint(stop);
 				}
+				break;
+			}
 			}
 
 			if (source.type_ != WayPoint::INVALID
@@ -680,8 +704,11 @@ void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
 				newSubTrips.push_back(subTrip);
 			} else {
 				Print()
-						<< "public trips include some bus stops or mrt stop which can not be found"
-						<< std::endl;
+						<< "public trip failed:["
+						<< sSrc
+						<< "]|["
+						<< sEnd
+						<< "]"<<std::endl;
 			}
 			++it;
 		}

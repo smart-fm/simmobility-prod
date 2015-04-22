@@ -29,7 +29,7 @@ const double UNIT_KMPH_IN_CMPS = 100000.0/3600.0; // 1km = 100000 cm; 1hr = 3600
 
 /**
  * converts the unit of speed from Km/h to cm/s
- * @param speedInKmph spped in Km/h
+ * @param speedInKmph speed in Km/h
  * @return speed in cm/s
  */
 inline double convertKmphToCmps(double speedInKmph)
@@ -883,23 +883,33 @@ std::string sim_mob::SegmentStats::reportSegmentStats(uint32_t frameNumber)
 	{
 		double density = (numMovingInSegment(true) + numQueuingInSegment(true)) / ((length / 100000.0) * numVehicleLanes); //veh/lane-km
 
-	msg << "(\"segmentState\""
-		<< "," << frameNumber
-		<< "," << roadSegment
-		<< ",{"
-		<< "\"speed\":\"" << segVehicleSpeed
-		<< "\",\"flow\":\"" << segFlow
-		<< "\",\"density\":\"" << getTotalDensity(true)
-		<< "\",\"total\":\"" << (numPersons - numAgentsInLane(laneInfinity))
-		<< "\",\"totalL\":\"" << getTotalVehicleLength()
-		<< "\",\"moving\":\"" << numMovingInSegment(true)
-		<< "\",\"movingL\":\"" << getMovingLength()
-		<< "\",\"queue\":\"" << numQueuingInSegment(true)
-		<< "\",\"queueL\":\"" << getQueueLength()
-		<< "\",\"numVehicleLanes\":\"" << numVehicleLanes
-		<< "\",\"segment_length\":\"" << length
-		<< "\"})"
-		<< "\n";
+//		msg << "(\"segmentState\""
+//			<< "," << frameNumber
+//			<< "," << roadSegment
+//			<< ",{"
+//			<< "\"speed\":\"" << segVehicleSpeed
+//			<< "\",\"flow\":\"" << segFlow
+//			<< "\",\"density\":\"" << getTotalDensity(true)
+//			<< "\",\"total\":\"" << (numPersons - numAgentsInLane(laneInfinity))
+//			<< "\",\"totalL\":\"" << getTotalVehicleLength()
+//			<< "\",\"moving\":\"" << numMovingInSegment(true)
+//			<< "\",\"movingL\":\"" << getMovingLength()
+//			<< "\",\"queue\":\"" << numQueuingInSegment(true)
+//			<< "\",\"queueL\":\"" << getQueueLength()
+//			<< "\",\"numVehicleLanes\":\"" << numVehicleLanes
+//			<< "\",\"segment_length\":\"" << length
+//			<< "\"})"
+//			<< "\n";
+		msg << "SegStats~,"
+				<< frameNumber << ","
+				<< roadSegment->getSegmentAimsunId() << ","
+				<< roadSegment->getPolylineLength() / 100000.0 << ","
+				<< statsNumberInSegment << ","
+				<< length / 100000.0 << ","
+				<< numVehicleLanes << ","
+				<< numMovingInSegment(true) << ","
+				<< numQueuingInSegment(true) << ","
+				<< segVehicleSpeed << std::endl;
 	}
 	return msg.str();
 

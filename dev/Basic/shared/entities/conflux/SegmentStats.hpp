@@ -58,11 +58,11 @@ public:
 	}
 
 private:
-	double freeFlowSpeed;  ///<Maximum speed of the road segment
-	double jamDensity;     ///<density during traffic jam in vehicles / m
-	double minDensity;     ///<minimum traffic density in vehicles / m
-	double minSpeed;       ///<minimum speed in the segment
-	double capacity;       ///<segment capacity in vehicles/second
+	double freeFlowSpeed;  ///<Maximum speed of the road segment in cm/s
+	double jamDensity;     ///<density during traffic jam in vehicles/m
+	double minDensity;     ///<minimum traffic density in vehicles/m
+	double minSpeed;       ///<minimum speed in the segment in cm/s
+	double capacity;       ///<segment capacity in vehicles/s
 	const double alpha;          ///<Model parameter of speed density function
 	const double beta;           ///<Model parameter of speed density function
 };
@@ -347,7 +347,7 @@ protected:
 	double segVehicleSpeed;
 	/**speed of pedestrians on this segment for each frame in cm/s --not used at the moment*/
 	double segPedSpeed;
-	/**vehicle density of this segment stats in PCU/cm*/
+	/**vehicle density of this segment stats in PCU/m*/
 	double segDensity;
 	/**number of lanes in this SegmentStats which is meant for vehicles*/
 	int numVehicleLanes;
@@ -636,6 +636,7 @@ public:
 	 * the speed density function for mid-term supply.
 	 * Computes the speed of vehicles in segment, given the density
 	 * @param segDensity the vehicle density of segment in vehicle/m
+	 * @return speed of the segment in cm/s
 	 */
 	double speedDensityFunction(const double segDensity) const;
 
@@ -668,6 +669,7 @@ public:
 	 * computes the density of the moving part of the segment
 	 * the density value computed here is meant to be used in speed density function
 	 * @param vehicleLanes boolean flag indicating whether we want the density from vehicle lanes
+	 * @return density in PCU/lane-m
 	 */
 	double getDensity(bool vehicleLanes);
 

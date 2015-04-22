@@ -806,7 +806,7 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
 
 	const Lane* laneInNextSegment = getBestTargetLane(currSegStats, nextSegStats);
 
-	//this will space out the drivers on the same lane, by seperating them by the time taken for the previous car to move a car's length
+	//this will space out the drivers on the same lane, by separating them by the time taken for the previous car to move a car's length
 	double departTime = getLastAccept(laneInNextSegment, currSegStats) + getAcceptRate(laneInNextSegment, currSegStats); //in seconds
 
 	/*//skip acceptance capacity if there's no queue - this is done in DynaMIT

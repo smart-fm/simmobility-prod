@@ -132,7 +132,7 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::MakePT_RouteChoice(
 				publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
 		const std::vector<PT_NetworkEdge>& pathEdges = it->getPathEdges();
-		Print() << it->getPtPathId() << std::endl;
+		//Print() << it->getPtPathId() << std::endl;
 		for (std::vector<PT_NetworkEdge>::const_iterator itEdge =
 				pathEdges.begin(); itEdge != pathEdges.end(); itEdge++) {
 			sim_mob::OD_Trip trip;
@@ -168,10 +168,10 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::MakePT_RouteChoice(
 			trip.destNode = dest;
 			trip.travelTime = itEdge->getTransitTimeSecs();
 			odTrips.push_back(trip);
-			Print() << itEdge->getEdgeId() << "," << trip.startStop << ","
-					<< trip.sType << "," << trip.endStop << "," << trip.eType
-					<< "," << trip.tType << "," <<trip.travelTime<<","<< trip.serviceLines
-					<< std::endl;
+			//Print() << itEdge->getEdgeId() << "," << trip.startStop << ","
+			//		<< trip.sType << "," << trip.endStop << "," << trip.eType
+			//		<< "," << trip.tType << "," <<trip.travelTime<<","<< trip.serviceLines
+			//		<< std::endl;
 		}
 	}
 

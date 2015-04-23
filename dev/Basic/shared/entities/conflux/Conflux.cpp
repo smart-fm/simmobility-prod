@@ -54,17 +54,17 @@ namespace{
 
 sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id)
 : Agent(mtxStrat, id), multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
-parentWorker(nullptr), currFrame(0,0), debugMsgs(std::stringstream::out), isBoundary(false), isMultipleReceiver(false), killedAgentsCount(0)
+parentWorker(nullptr), currFrame(0,0), debugMsgs(std::stringstream::out), isBoundary(false), isMultipleReceiver(false)
 {}
 
 sim_mob::Conflux::~Conflux()
 {
 	//delete all SegmentStats in this conflux
-	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin();
-			upstreamIt != upstreamSegStatsMap.end(); upstreamIt++) {
+	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin(); upstreamIt != upstreamSegStatsMap.end(); upstreamIt++)
+	{
 		const SegmentStatsList& linkSegments = upstreamIt->second;
-		for(SegmentStatsList::const_iterator segIt = linkSegments.begin();
-				segIt != linkSegments.end(); segIt++) {
+		for(SegmentStatsList::const_iterator segIt = linkSegments.begin(); segIt != linkSegments.end(); segIt++)
+		{
 			safe_delete_item(*segIt);
 		}
 	}
@@ -72,10 +72,6 @@ sim_mob::Conflux::~Conflux()
 	activityPerformers.clear();
 	//clear pedestrian list
 	pedestrianList.clear();
-
-	std::stringstream strm;
-	strm << "Conflux "<< multiNode->getAimsunId() << " killed " << killedAgentsCount << "persons" << std::endl;
-	Print() << strm.str();
 }
 
 void sim_mob::Conflux::initialize(const timeslice& now)
@@ -119,6 +115,25 @@ sim_mob::Conflux::PersonProps::PersonProps(const sim_mob::Person* person, const 
 		conflux = cnflx;
 		segStats = nullptr;
 	}
+}
+
+void sim_mob::Conflux::PersonProps::printProps(unsigned int personId, uint32_t frame, std::string prefix)
+{
+	std::stringstream propStrm;
+	propStrm << personId << "-" << frame << "-"<< prefix << "-{";
+	propStrm <<  " conflux:";
+	if(conflux) { propStrm << conflux->getMultiNode()->getID(); } else { propStrm << "0x0"; }
+	propStrm <<  " segment:";
+	if(segment) { propStrm << segment->getSegmentAimsunId(); } else { propStrm << "0x0"; }
+	propStrm <<  " segstats:";
+	if(segStats) { propStrm << segStats->getStatsNumberInSegment(); } else { propStrm << "0x0"; }
+	propStrm <<  " lane:";
+	if(lane) { propStrm << lane->getLaneID(); } else { propStrm << "0x0"; }
+	propStrm << " roleType:" << roleType
+			<< " isQueuing:" << isQueuing
+			<< " isMoving:" << isMoving
+			<< " }" << std::endl;
+	Print() << propStrm.str();
 }
 
 void sim_mob::Conflux::addAgent(sim_mob::Person* person)
@@ -433,7 +448,8 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 	if (afterUpdate.lane && afterUpdate.lane != afterUpdate.segStats->laneInfinity)
 	{
 		//if the person did not end up in a VQ and his lane is not lane infinity of segAfterUpdate
-		afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(person->distanceToEndOfSegment, afterUpdate.lane);
+		double lengthToVehicleEnd = person->distanceToEndOfSegment + person->getRole()->getResource()->getLengthCm();
+		afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(lengthToVehicleEnd, afterUpdate.lane);
 	}
 }
 
@@ -762,15 +778,14 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 
 	parentWorker->remEntity(person);
 	parentWorker->scheduleForRemoval(person);
-	killedAgentsCount++;
 }
 
 void sim_mob::Conflux::resetPositionOfLastUpdatedAgentOnLanes() {
-	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin();
-			upstreamIt != upstreamSegStatsMap.end(); upstreamIt++) {
+	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin(); upstreamIt != upstreamSegStatsMap.end(); upstreamIt++)
+	{
 		const SegmentStatsList& linkSegments = upstreamIt->second;
-		for(SegmentStatsList::const_iterator segIt = linkSegments.begin();
-				segIt != linkSegments.end(); segIt++) {
+		for(SegmentStatsList::const_iterator segIt = linkSegments.begin(); segIt != linkSegments.end(); segIt++)
+		{
 			(*segIt)->resetPositionOfLastUpdatedAgentOnLanes();
 		}
 	}
@@ -1415,4 +1430,6 @@ void sim_mob::Conflux::removeIncident(sim_mob::SegmentStats* segStats) {
 
 sim_mob::InsertIncidentMessage::InsertIncidentMessage(const std::vector<sim_mob::SegmentStats*>& stats, double newFlowRate):stats(stats), newFlowRate(newFlowRate){;}
 
-sim_mob::InsertIncidentMessage::~InsertIncidentMessage() {}
+sim_mob::InsertIncidentMessage::~InsertIncidentMessage()
+{
+}

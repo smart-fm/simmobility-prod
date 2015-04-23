@@ -109,6 +109,7 @@ private:
     	const sim_mob::Conflux* conflux;
 
     	PersonProps(const sim_mob::Person* person, const sim_mob::Conflux* conflux);
+    	void printProps(unsigned int personId, uint32_t frame, std::string prefix);
     };
 
 	/**
@@ -186,8 +187,6 @@ private:
 
 	/**list of persons currently on MRT train bound to some node in this conflux*/
 	PersonList mrt;
-
-	uint32_t killedAgentsCount;
 
 	/**
 	 * updates agents in this conflux
@@ -523,11 +522,6 @@ public:
 	 * @param segStats road segment stats to remove incident
 	 */
 	static void removeIncident(sim_mob::SegmentStats* segStats);
-
-	uint32_t getKilledAgentsCount() const
-	{
-		return killedAgentsCount;
-	}
 
 	bool isBoundary; //A conflux that receives person from at least one conflux that belongs to another worker
 	bool isMultipleReceiver; //A conflux that receives persons from confluxes that belong to multiple other workers

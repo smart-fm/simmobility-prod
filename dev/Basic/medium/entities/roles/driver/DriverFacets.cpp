@@ -545,8 +545,8 @@ bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& param
 	double total = nextSegStats->getTotalVehicleLength();
 
 	//if the segment is shorter than the vehicle's length and there are no vehicles in the segment just allow the vehicle to pass through
-	//this segment should ideally be removed from the segment. this is just an interim arrangment.
-	//if this hack is not in place, all vehicles will start queuing in upsream segments forever.
+	//this is just an interim arrangment. this segment should either be removed from database or it's length must be updated.
+	//if this hack is not in place, all vehicles will start queuing in upstream segments forever.
 	//TODO: remove this hack and put permanent fix
 	if((maxAllowed < enteringVehicleLength) && (total <= 0)) { return true; }
 

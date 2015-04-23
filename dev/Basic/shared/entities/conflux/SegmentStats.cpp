@@ -21,7 +21,7 @@ namespace
 {
 const double INFINITESIMAL_DOUBLE = 0.000001;
 const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
-const double LARGE_OUTPUT_FLOW_RATE = 1000.0;
+const double LARGE_OUTPUT_FLOW_RATE = 2.0; //veh/s (considered high output flow rate for a lane) (suggested by Yang Lu on 23-Apr-2015)
 
 const double SINGLE_LANE_SEGMENT_CAPACITY = 1200.0; //veh/hr. suggested by Yang Lu on 11-Oct-2014
 const double DOUBLE_LANE_SEGMENT_CAPACITY = 3000.0; //veh/hr. suggested by Yang Lu on 11-Oct-2014
@@ -773,13 +773,10 @@ void sim_mob::LaneStats::updateOutputCounter()
 	}
 }
 
-void sim_mob::LaneStats::updateAcceptRate(double upSpeed)
+void sim_mob::LaneStats::updateAcceptRate(double speed)
 {
-	const double omega = 0.01;
-	double tick_size = ConfigManager::GetInstance().FullConfig().baseGranSecond();
-	double capacity = laneParams->outputFlowRate * tick_size;
-	double acceptRateA = (capacity > 0) ? tick_size / capacity : 0;
-	double acceptRateB = (omega * PASSENGER_CAR_UNIT) / upSpeed;
+	double acceptRateA = (laneParams->outputFlowRate > 0) ? (1.0 / laneParams->outputFlowRate) : 0.0;
+	double acceptRateB = PASSENGER_CAR_UNIT / speed;
 	laneParams->acceptRate = std::max(acceptRateA, acceptRateB);
 }
 

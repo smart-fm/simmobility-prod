@@ -55,6 +55,8 @@ namespace sim_mob {
         const std::string DB_TABLE_MACRO_ECONOMICS = APPLY_SCHEMA(MAIN_SCHEMA, "macro_economics");
         const std::string DB_TABLE_VEHICLE_OWNERSHIP_COEFFICIENTS = APPLY_SCHEMA(CALIBRATION_SCHEMA, "vehicle_ownership_coefficients");
         const std::string DB_TABLE_TAXI_ACCESS_COEFFICIENTS = APPLY_SCHEMA(CALIBRATION_SCHEMA, "taxi_access_coefficients");
+        const std::string DB_TABLE_ESTABLISHMENT= APPLY_SCHEMA(MAIN_SCHEMA, "establishment");
+
 
         /**
          * Views
@@ -109,6 +111,7 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_MACRO_ECONOMICS = APPLY_SCHEMA( MAIN_SCHEMA, "getMacroEconomics()");
         const std::string DB_FUNC_GET_VEHICLE_OWNERSHIP_COEFFICIENTS = APPLY_SCHEMA( MAIN_SCHEMA, "getVehicleOwnershipCoefficients()");
         const std::string DB_FUNC_GET_TAXI_ACCESS_COEFFICIENTS = APPLY_SCHEMA( MAIN_SCHEMA, "getTaxiAccessCoefficients()");
+        const std::string DB_FUNC_GET_ESTABLISHMENT = APPLY_SCHEMA( MAIN_SCHEMA, "getEstablishments()");
 
         const std::string DB_FUNC_DEL_INDIVIDUAL_BY_ID  = APPLY_SCHEMA(MAIN_SCHEMA, "deleteIndividualById(:id)");
         const std::string DB_FUNC_GET_INDIVIDUALS 		= APPLY_SCHEMA( MAIN_SCHEMA, "getIndividuals()");
@@ -118,6 +121,7 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_RESIDENTIAL_STATUS_BY_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getResidentialStatusById(:id)");
         const std::string DB_FUNC_GET_RESIDENTIAL_STATUS 	   = APPLY_SCHEMA( MAIN_SCHEMA, "getResidentialStatus()");
         const std::string DB_FUNC_GET_AWAKENING_BY_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getAwakeningById(:id)");
+        const std::string DB_FUNC_GET_ESTABLISHMENT_BY_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getEstablishmentById(:id)");
 
         const std::string DB_FUNC_GET_UNIT_TYPES 	   = APPLY_SCHEMA( MAIN_SCHEMA, "getUnitTypes()");
         const std::string DB_FUNC_GET_EMPTY_PARCELS = APPLY_SCHEMA( MAIN_SCHEMA, "getEmptyParcels()");
@@ -229,6 +233,7 @@ namespace sim_mob {
         const std::string DB_INSERT_INDIVIDUAL = DB_EMPTY_QUERY;
         const std::string DB_INSERT_RESIDENTIAL_STATUS = DB_EMPTY_QUERY;
         const std::string DB_INSERT_AWAKENING = DB_EMPTY_QUERY;
+        const std::string DB_INSERT_ESTABLISHMENT = DB_EMPTY_QUERY;
 
 
         /**
@@ -252,6 +257,7 @@ namespace sim_mob {
         const std::string DB_UPDATE_INDIVIDUAL = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_RESIDENTIAL_STATUS = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_AWAKENING = DB_EMPTY_QUERY;
+        const std::string DB_UPDATE_ESTABLISHMENT = DB_EMPTY_QUERY;
 
         /**
          * DELETE
@@ -265,6 +271,8 @@ namespace sim_mob {
         const std::string DB_DELETE_RESIDENTIAL_STATUS = DB_EMPTY_QUERY;
         const std::string DB_DELETE_PROJECT = DB_EMPTY_QUERY;
         const std::string DB_DELETE_AWAKENING = DB_EMPTY_QUERY;
+        const std::string DB_DELETE_ESTABLISHMENT = DB_EMPTY_QUERY;
+
 
 
         /**
@@ -295,6 +303,7 @@ namespace sim_mob {
         const std::string DB_GETALL_VEHCILE_OWNERSHIP_COEFFICIENTS = "SELECT * FROM " + DB_FUNC_GET_VEHICLE_OWNERSHIP_COEFFICIENTS + LIMIT;
         const std::string DB_FUNC_GETALL_UNIT_WITH_MAX_ID = "SELECT * FROM " + DB_FUNC_GET_UNIT_WITH_MAX_ID + LIMIT;
         const std::string DB_GETALL_TAXI_ACCESS_COEFFICIENTS = "SELECT * FROM " + DB_FUNC_GET_TAXI_ACCESS_COEFFICIENTS + LIMIT;
+        const std::string DB_GETALL_ESTABLISHMENT = "SELECT * FROM " + DB_FUNC_GET_ESTABLISHMENT + LIMIT;
 
         /**
          * GET BY ID
@@ -313,6 +322,7 @@ namespace sim_mob {
         const std::string DB_GETBYID_INDIVIDUAL = "SELECT * FROM " + DB_FUNC_GET_INDIVIDUAL_BY_ID;
         const std::string DB_GETBYID_RESIDENTIAL_STATUS = "SELECT * FROM " + DB_FUNC_GET_RESIDENTIAL_STATUS_BY_ID;
         const std::string DB_GETBYID_AWAKENING = "SELECT * FROM " + DB_FUNC_GET_AWAKENING_BY_ID;
+        const std::string DB_GETBYID_ESTABLISHMENT = "SELECT * FROM " + DB_FUNC_GET_ESTABLISHMENT_BY_ID;
 
     }
 }

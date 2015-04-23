@@ -98,9 +98,9 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
                 otherDistance[i].lead = 5000;
                 otherAcc[i].lead = 5000;
             } else { //has vehicle ahead
-                otherSpeed[i].lead = fwd->driver->fwdVelocity.get();
+                otherSpeed[i].lead = fwd->driver->fwdVelocity_.get();
                 otherDistance[i].lead = fwd->distance/100.0;
-                otherAcc[i].lead = fwd->driver->fwdAccel.get()/100.0;
+                otherAcc[i].lead = fwd->driver->fwdAccel_.get()/100.0;
             }
 
             if (!back->exists()) {//no vehicle behind
@@ -108,9 +108,9 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
                 otherDistance[i].lag = 5000;
                 otherAcc[i].lag = 5000;
             } else { //has vehicle behind, check the gap
-                otherSpeed[i].lag = back->driver->fwdVelocity.get();
+                otherSpeed[i].lag = back->driver->fwdVelocity_.get();
                 otherDistance[i].lag = back->distance/100.0;
-                otherAcc[i].lag = back->driver->fwdAccel.get()/100.0;
+                otherAcc[i].lag = back->driver->fwdAccel_.get()/100.0;
             }
         } else { // no left/right side exists
             otherSpeed[i].lead = 0;
@@ -258,7 +258,7 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 		p.lcDebugStr<<";d3";
 		d1 = aav->distance/100.0 - av->distance/100.0 - av->driver->getVehicleLengthM(); // get gap length of av and aav
 		Driver *aavDriver = const_cast<Driver*>(aav->driver);
-		s1 = av->driver->fwdVelocity/100.0 - aavDriver->getFwdVelocityM(); // speed diff of av and aav
+		s1 = av->driver->fwdVelocity_/100.0 - aavDriver->getFwdVelocityM(); // speed diff of av and aav
 	  } else {
 		  p.lcDebugStr<<";d4";
 
@@ -430,7 +430,7 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p,
     double vel[2][4];
     for (int i = 0; i < 2; i++) {
         for (int j = 0; j < 4; j++) {
-            vel[i][j] = (nv[i][j]->exists()) ? nv[i][j]->driver->fwdVelocity / 100 : 0;
+            vel[i][j] = (nv[i][j]->exists()) ? nv[i][j]->driver->fwdVelocity_ / 100 : 0;
         }
 
     }
@@ -1083,7 +1083,7 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams& p,in
 	float heavy_neighbor = 0.0;
 	if(p.nvLeftFwd.exists()) // front left bumper leader
 	{
-		double leftFwdVel = p.nvLeftFwd.driver->fwdVelocity.get()/100.0;
+		double leftFwdVel = p.nvLeftFwd.driver->fwdVelocity_.get()/100.0;
 		double currentSpeed = p.perceivedFwdVelocity / 100.0;
 		vld = std::min<double>(leftFwdVel,currentSpeed);
 
@@ -1165,7 +1165,7 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams& p,i
 	float heavy_neighbor = 0.0;
 	if(p.nvRightFwd.exists()) // front left bumper leader
 	{
-		double leftFwdVel = p.nvRightFwd.driver->fwdVelocity.get()/100.0;
+		double leftFwdVel = p.nvRightFwd.driver->fwdVelocity_.get()/100.0;
 		double currentSpeed = p.perceivedFwdVelocity / 100.0;
 
 		vld = std::min<double>(leftFwdVel,currentSpeed);
@@ -1526,12 +1526,12 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 	}
 
 	// 6.0 check if lead,lag gap ok
-	if (bv->exists() && bheadway < lcCriticalGap(p,1, bv->driver->fwdVelocity/100.0 - p.currSpeed )) {
+	if (bv->exists() && bheadway < lcCriticalGap(p,1, bv->driver->fwdVelocity_/100.0 - p.currSpeed )) {
 		p.lcDebugStr<<";FLG";
 		p.setFlag(FLAG_LC_FAILED_LAG); // lag gap
 	}
 	else if ( av->exists() ) {
-		double cg = lcCriticalGap(p,0, av->driver->fwdVelocity/100.0 - p.currSpeed);
+		double cg = lcCriticalGap(p,0, av->driver->fwdVelocity_/100.0 - p.currSpeed);
 		p.lcDebugStr<<";aheadway"<<aheadway;
 		p.lcDebugStr<<";avcg"<<cg;
 		if(aheadway < cg  ){
@@ -1560,7 +1560,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 			p.lcDebugStr<<";NDis";
 			int nlanes = 0;
 			float gap = aheadway + bheadway ;
-			float dv = av->exists() ? av->driver->fwdVelocity/100.0 - p.currSpeed : 0 ;
+			float dv = av->exists() ? av->driver->fwdVelocity_/100.0 - p.currSpeed : 0 ;
 
 			float pmf;
 
@@ -1724,15 +1724,15 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 			p.lcDebugStr<<";CF5";
 		  // Acceleration rate in order to be slower than the leader
 
-		  upper = (av->driver->fwdVelocity.get()/100.0 - p.currSpeed) /
+		  upper = (av->driver->fwdVelocity_.get()/100.0 - p.currSpeed) /
 			lcNosingConstStateTime +
-			av->driver->fwdAccel.get()/100.0;
+			av->driver->fwdAccel_.get()/100.0;
 		  p.lcDebugStr<<";up"<<upper;
 		  if (upper < p.maxDeceleration) {
 			  p.lcDebugStr<<";CF6";
 			return 0;		// This vehicle is too fast
 		  }
-		} else if (av->driver->fwdVelocity/100.0 < Math::DOUBLE_EPSILON &&
+		} else if (av->driver->fwdVelocity_/100.0 < Math::DOUBLE_EPSILON &&
 				   p.dis2stop > p.distanceToNormalStop &&
 				   p.nvFwd.distance/100.0 > p.distanceToNormalStop) {
 			p.lcDebugStr<<";CF7";
@@ -1754,7 +1754,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 			// vehicle and do not cause the lag vehicle to decelerate
 			// harder than its normal deceleration rate
 
-			lower = (bv->driver->fwdVelocity/100.0- p.currSpeed) /
+			lower = (bv->driver->fwdVelocity_/100.0- p.currSpeed) /
 					lcNosingConstStateTime +
 					p.normalDeceleration;
 
@@ -1783,7 +1783,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 			// vehicle and do not cause the lag vehicle to decelerate
 			// harder than its normal deceleration rate
 
-			lower = (bv->driver->fwdVelocity/100.0 - p.currSpeed) /
+			lower = (bv->driver->fwdVelocity_/100.0 - p.currSpeed) /
 					lcNosingConstStateTime +
 					p.normalDeceleration;
 			p.lcDebugStr<<";low"<<lower;

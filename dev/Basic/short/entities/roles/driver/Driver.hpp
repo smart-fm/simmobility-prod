@@ -87,51 +87,96 @@ class UnPackageUtils;
 
     friend class DriverBehavior;
     friend class DriverMovement;
+    
+  protected:
+    
+    //Current position of the Driver
+    DPoint currPos;
 
   public:
-
+    
+    //Constant distance values used for looking ahead / behind
     const static int distanceInFront = 3000;
     const static int distanceBehind = 5000;
     const static int maxVisibleDis = 5000;
 
-    //Buffered data
-    //need to store these values in the double buffer, because it is needed by other drivers.
+    /*Buffered data
+     These values are stored the double buffer because they are needed by other drivers.*/
+    
+    //The driver's current lane
     Shared<const Lane*> currLane_;
-    Shared<bool> isInIntersection;
+    
+    //Indicates whether the driver is in an intersection
+    Shared<bool> isInIntersection_;
+    
+    //Pointer to a turning object. The driver is either on the turning (if in intersection) or will be
+    //soon (currently approaching an intersection)
     Shared<const TurningSection*> currTurning_;
+    
+    //Represents the distance covered within an intersection (in centimetre)
     Shared<double> moveDisOnTurning_;
+    
+    //Represents the distance to be covered in order to reach the approaching intersection (in metre)
     Shared<double> distToIntersection_;
+    
+    //Represents the distance covered on the current road segment (in centimetre)
     Shared<double> currLaneOffset_;
+    
+    //Represents the total length of the current road segment (in centimetre)
     Shared<double> currLaneLength_;
-    Shared<double> latMovement;
-    Shared<double> fwdVelocity;
-    Shared<double> latVelocity;
-    Shared<double> fwdAccel;
-    Shared<LANE_CHANGE_SIDE> turningDirection;
+    
+    //Represents the lateral movement distance of the vehicle (in centimetre)
+    Shared<double> latMovement_;
+    
+    //Represents the forward speed of the vehicle (centimetre/second)
+    Shared<double> fwdVelocity_;
+    
+    //Represents the lateral velocity of the vehicle (centimetre/second)
+    Shared<double> latVelocity_;
+    
+    //Represents the acceleration of the vehicle (centimetre/second^2)
+    Shared<double> fwdAccel_;
+    
+    //Indicates the lane changing move that the driver is going to make
+    Shared<LANE_CHANGE_SIDE> turningDirection_;
 
-    double currDistAlongRoadSegment;
+    //The distance covered along the current road segment (in centimetre)
+    Shared<double> currDistAlongRoadSegment_;
 
-    // me is doing yielding, and yieldVehicle is doing nosing
+    //Pointer to the Driver object that is performing 'nosing'. (Current driver is 'yielding')
     Driver* yieldVehicle;
-
-    // driver path-mover split purpose, we save the currPos in the Driver
-    DPoint currPos;
-
-    //Sample stored data which takes reaction time into account.
-    size_t reacTime;
+    
+    //Rection time of the driver
+    size_t reactionTime;
+    
+    //Perceived value of forward velocity
     FixedDelayed<double> *perceivedFwdVel;
+    
+    //Perceived value of the acceleration
     FixedDelayed<double> *perceivedFwdAcc;
+    
+    //Perceived value of the velocity of the vehicle in front
     FixedDelayed<double> *perceivedVelOfFwdCar;
+    
+    //Perceived value acceleration of the vehicle in front
     FixedDelayed<double> *perceivedAccOfFwdCar;
+    
+    //Perceived distance to the vehicle in front
     FixedDelayed<double> *perceivedDistToFwdCar;
+    
+    //The perceived colour of the traffic signal
     FixedDelayed<sim_mob::TrafficColor> *perceivedTrafficColor;
+    
+    //The perceived distance to the traffic signal
     FixedDelayed<double> *perceivedDistToTrafficSignal;
 
-    //first, assume that each vehicle moves towards a goal
+    //The origin of the driver's trip
     NodePoint origin;
+    
+    //The destination of the driver's trip
     NodePoint goal;
 
-    //for fmod request
+    //For FMOD request
     Shared<std::string> stop_event_time;
     Shared<int> stop_event_type;
     Shared<int> stop_event_scheduleid;
@@ -140,93 +185,106 @@ class UnPackageUtils;
     Shared<std::vector<int> > stop_event_lastAlightingPassengers;
 
     //Constructor and public member functions
-    Driver(Person* parent, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior = nullptr, sim_mob::DriverMovement* movement = nullptr, Role::type roleType_ = RL_DRIVER, std::string roleName_ = "driver");
+    Driver(Person* parent, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior = nullptr,
+           sim_mob::DriverMovement* movement = nullptr, Role::type roleType_ = RL_DRIVER, std::string roleName_ = "driver");
 
     virtual ~Driver();
 
+    //Initialises the reaction time of the driver and the perception delays based on the reaction time
     void initReactionTime();
 
+    //Updates the information held by the current driver about a nearby driver
     void handleUpdateRequest(MovementFacet* mFacet);
 
+    //Returns true if the vehicle associated with this driver is a bus, else returns false
     bool isBus();
 
-    /*
-     * /brief Find the distance from front vehicle.
-     * CAUTION: TS_Vehicles "front" and this vehicle may not be in the same
-     * lane (could be in the left or right neighbor lane), but they have
-     * to be in either the same segment or in a downstream NEIGHBOR
-     * segment.
-     */
+    //Calculates and returns the gap between the current driver and the given driver. The gap calculated
+    //is in terms of seconds (i.e. headway)
+    //CAUTION: The driver in "front" and this driver may not be in the same lane (it could be in the left
+    //or right neighbour lane), but the two have to be in either the same segment or in adjoining segment downstream
     double gapDistance(const Driver* front);
 
+    //Getter to the vehicle object controlled by the driver. Returns a constant pointer.
     const Vehicle* getVehicle() const
     {
       return vehicle;
     }
 
+    //Setter for the vehicle object controlled by the driver
     void setVehicle(Vehicle *vehicle)
     {
       safe_delete_item(this->vehicle);
       this->vehicle = vehicle;
     }
-
-    const double getVehicleLengthCM() const
-    {
-      return vehicle->getLengthCm();
-    }
-
-    const double getVehicleLengthM() const
-    {
-      return getVehicleLengthCM() / 100.0;
-    }
-
-    //Getter method for isVehicleInLoadingQueue
-
-    bool IsVehicleInLoadingQueue()
-    {
-      return isVehicleInLoadingQueue;
-    }
-
+    
+    //Getter to the vehicle object controlled by the driver.
     Vehicle* getVehicle()
     {
       return vehicle;
     }
 
+    //Getter to the length of the vehicle being driven by this driver (in centimetre). Returns a constant value.
+    const double getVehicleLengthCM() const
+    {
+      return vehicle->getLengthCm();
+    }
+
+    //Getter to the length of the vehicle being driven by this driver (in metre). Returns a constant value.
+    const double getVehicleLengthM() const
+    {
+      return getVehicleLengthCM() / 100.0;
+    }
+
+    //Getter to the isVehicleInLoadingQueue flag. Returns true if the vehicle is still in the loading queue.
+    bool IsVehicleInLoadingQueue()
+    {
+      return isVehicleInLoadingQueue;
+    }
+
+    //Returns the forward velocity of the vehicle (in metre/second)
     const double getFwdVelocityM() const;
 
+    //Returns the current position of the driver
     const DPoint& getCurrPosition() const;
 
+    //Sets a new path from the current segment to the destination.
+    //NOTE: Used only by road-runner. The vehicle will restart from the start of the current segment
     void rerouteWithPath(const std::vector<sim_mob::WayPoint>& path);
 
-    // for path-mover splitting purpose
+    //Sets the current position of the driver
     void setCurrPosition(DPoint currPosition);
 
-    /**
-     * /brief reset reaction time
-     * /param t time in ms
-     */
-    void resetReacTime(double t);
-
-    //Virtual implementations
-    virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
-
-    virtual void make_frame_tick_params(timeslice now);
-
-    virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-
-    virtual std::vector<sim_mob::BufferedBase*> getDriverInternalParams();
-
-    //handle parent event from other agents
-    virtual void onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
-
-    ///Reroute around a blacklisted set of RoadSegments. See Role's comments for more information.
-    virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
-
-    //Setter for yieldingToInIntersection
+    //Sets the reaction time of the driver to the one provided (in milli-seconds). 
+    //Also resets the perception delays accordingly.
+    void resetReactionTime(double timeMS);
+	
+	//Setter for yieldingToInIntersection
     void setYieldingToInIntersection(int);
 
     //Getter for yieldingToInIntersection
     int getYieldingToInIntersection() const;
+
+    /*Overridden functions*/
+	
+	//Creates and initialises the movement and behaviour objects required for the Driver role,
+	//assigns them to a new driver and returns a pointer to the driver.
+    virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+
+	//Resets the dirver parameters object
+    virtual void make_frame_tick_params(timeslice now);
+
+	//Creates a vector of the subscription parameters and returns it
+    virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
+
+	//Creates a vector of the subscription parameters specific to FMOD and returns it
+    virtual std::vector<sim_mob::BufferedBase*> getDriverInternalParams();
+
+    //Handler for the parent event from other agents
+    virtual void onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+
+    ///Reroute around a blacklisted set of RoadSegments. See Role's comments for more information.
+    virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
 
     //Serialization
 #ifndef SIMMOB_DISABLE_MPI

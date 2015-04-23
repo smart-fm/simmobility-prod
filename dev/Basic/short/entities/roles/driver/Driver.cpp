@@ -100,14 +100,13 @@ size_t getLaneIndex(const Lane* l) {
 
 //Initialize
 sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior, sim_mob::DriverMovement* movement, Role::type roleType_, std::string roleName_) :
-	Role(behavior, movement, parent, roleName_, roleType_), currLane_(mtxStrat, nullptr),currTurning_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
-	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),
+	Role(behavior, movement, parent, roleName_, roleType_), currLane_(mtxStrat, nullptr),currTurning_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection_(mtxStrat, false),
+	latMovement_(mtxStrat,0),fwdVelocity_(mtxStrat,0),latVelocity_(mtxStrat,0),fwdAccel_(mtxStrat,0),turningDirection_(mtxStrat,LCS_SAME),vehicle(nullptr),
 	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
 	,stop_event_nodeid(mtxStrat, -1), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false), moveDisOnTurning_(mtxStrat, 0),
 	distToIntersection_(mtxStrat, -1), perceivedAccOfFwdCar(nullptr), perceivedDistToFwdCar(nullptr), perceivedDistToTrafficSignal(nullptr), perceivedFwdAcc(nullptr),
-	perceivedFwdVel(nullptr), perceivedTrafficColor(nullptr), perceivedVelOfFwdCar(nullptr), yieldingToInIntersection(false)
+	perceivedFwdVel(nullptr), perceivedTrafficColor(nullptr), perceivedVelOfFwdCar(nullptr), yieldingToInIntersection(false), currDistAlongRoadSegment_(mtxStrat, 0.0)
 {
-	currDistAlongRoadSegment = 0;
 	getParams().driver = this;
 }
 
@@ -116,16 +115,16 @@ void sim_mob::Driver::initReactionTime()
 	DriverMovement* movement = dynamic_cast<DriverMovement*>(movementFacet);
 	if(movement)
 	{
-		reacTime = movement->getCarFollowModel()->nextPerceptionSize * 1000; // seconds to ms
+		reactionTime = movement->getCarFollowModel()->nextPerceptionSize * 1000; // seconds to ms
 	}
 
-	perceivedFwdVel = new FixedDelayed<double>(reacTime,true);
-	perceivedFwdAcc = new FixedDelayed<double>(reacTime,true);
-	perceivedVelOfFwdCar = new FixedDelayed<double>(reacTime,true);
-	perceivedAccOfFwdCar = new FixedDelayed<double>(reacTime,true);
-	perceivedDistToFwdCar = new FixedDelayed<double>(reacTime,true);
-	perceivedDistToTrafficSignal = new FixedDelayed<double>(reacTime,true);
-	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
+	perceivedFwdVel = new FixedDelayed<double>(reactionTime,true);
+	perceivedFwdAcc = new FixedDelayed<double>(reactionTime,true);
+	perceivedVelOfFwdCar = new FixedDelayed<double>(reactionTime,true);
+	perceivedAccOfFwdCar = new FixedDelayed<double>(reactionTime,true);
+	perceivedDistToFwdCar = new FixedDelayed<double>(reactionTime,true);
+	perceivedDistToTrafficSignal = new FixedDelayed<double>(reactionTime,true);
+	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reactionTime,true);
 }
 
 Role* sim_mob::Driver::clone(Person* parent) const
@@ -165,13 +164,13 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 	res.push_back(&(moveDisOnTurning_));
 	res.push_back(&(distToIntersection_));
 	res.push_back(&(currLaneLength_));
-	res.push_back(&(isInIntersection));
-	res.push_back(&(latMovement));
-	res.push_back(&(latMovement));
-	res.push_back(&(fwdVelocity));
-	res.push_back(&(latVelocity));
-	res.push_back(&(fwdAccel));
-	res.push_back(&(turningDirection));
+	res.push_back(&(isInIntersection_));
+	res.push_back(&(latMovement_));
+	res.push_back(&(latMovement_));
+	res.push_back(&(fwdVelocity_));
+	res.push_back(&(latVelocity_));
+	res.push_back(&(fwdAccel_));
+	res.push_back(&(turningDirection_));
 	res.push_back(&(stop_event_time));
 	res.push_back(&(stop_event_scheduleid));
 	res.push_back(&(stop_event_type));
@@ -210,8 +209,8 @@ std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
 	return res;
 }
 
-void sim_mob::Driver::handleUpdateRequest(MovementFacet* mFacet){
-
+void sim_mob::Driver::handleUpdateRequest(MovementFacet* mFacet)
+{
 	if(this->isVehicleInLoadingQueue == false)
 	{
 		mFacet->updateNearbyAgent(this->getParent(),this);
@@ -220,7 +219,7 @@ void sim_mob::Driver::handleUpdateRequest(MovementFacet* mFacet){
 
 const double sim_mob::Driver::getFwdVelocityM() const
 {
-	double d = fwdVelocity.get() / 100.0;
+	double d = fwdVelocity_.get() / 100.0;
 	return d;
 }
 
@@ -242,7 +241,6 @@ double sim_mob::Driver::gapDistance(const Driver* front)
 		}
 		else
 		{
-
 			//if our segment is the same as that of the driver ahead
 			if(mov->fwdDriverMovement.getCurrSegment() == frontMov->fwdDriverMovement.getCurrSegment())
 			{
@@ -380,15 +378,15 @@ const DPoint& Driver::getCurrPosition() const
 	return currPos;
 }
 
-void Driver::resetReacTime(double t)
+void Driver::resetReactionTime(double timeMS)
 {
-	perceivedFwdVel->set_delay(t);
-	perceivedFwdAcc->set_delay(t);
-	perceivedVelOfFwdCar->set_delay(t);
-	perceivedAccOfFwdCar->set_delay(t);
-	perceivedDistToFwdCar->set_delay(t);
-	perceivedDistToTrafficSignal->set_delay(t);
-	perceivedTrafficColor->set_delay(t);
+	perceivedFwdVel->set_delay(timeMS);
+	perceivedFwdAcc->set_delay(timeMS);
+	perceivedVelOfFwdCar->set_delay(timeMS);
+	perceivedAccOfFwdCar->set_delay(timeMS);
+	perceivedDistToFwdCar->set_delay(timeMS);
+	perceivedDistToTrafficSignal->set_delay(timeMS);
+	perceivedTrafficColor->set_delay(timeMS);
 }
 
 void Driver::rerouteWithPath(const std::vector<sim_mob::WayPoint>& path)

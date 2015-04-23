@@ -17,8 +17,8 @@ namespace sim_mob
 		class Establishment
 		{
 		public:
-			Establishment(BigSerial id =0, BigSerial firmId =0, BigSerial buildingId=0, BigSerial lifestyleId=0, BigSerial businessTypeId=0, int size=0, double revenue=0,
-						  double grossSqM=0, BigSerial slaAddressId =0);
+			Establishment(BigSerial id =INVALID_ID, BigSerial firmId =INVALID_ID, BigSerial buildingId=INVALID_ID, BigSerial lifestyleId=INVALID_ID,
+						  BigSerial businessTypeId=INVALID_ID, int size=0, double revenue=0, double grossSqM=0, BigSerial slaAddressId =INVALID_ID);
 			~Establishment();
 			Establishment& operator=(const Establishment& source);
 

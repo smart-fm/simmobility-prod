@@ -116,7 +116,7 @@ private:
 	unsigned int queueCount;
 	/**number of queuing persons at the start of the current tick*/
 	unsigned int initialQueueLength;
-	/**position of the last updated person in lane*/
+	/**end position of the last updated person in this lane*/
 	double positionOfLastUpdatedAgent;
 	/**geospatial lane corresponding to this lane stats*/
 	const sim_mob::Lane* lane;

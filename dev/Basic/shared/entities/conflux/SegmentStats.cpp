@@ -900,7 +900,7 @@ std::string sim_mob::SegmentStats::reportSegmentStats(uint32_t frameNumber)
 //			<< "\",\"segment_length\":\"" << length
 //			<< "\"})"
 //			<< "\n";
-		msg << "SegStats~,"
+		msg << "SegStats-,"
 				<< frameNumber << ","
 				<< roadSegment->getSegmentAimsunId() << ","
 				<< roadSegment->getPolylineLength() / 100000.0 << ","
@@ -909,7 +909,9 @@ std::string sim_mob::SegmentStats::reportSegmentStats(uint32_t frameNumber)
 				<< numVehicleLanes << ","
 				<< numMovingInSegment(true) << ","
 				<< numQueuingInSegment(true) << ","
-				<< segVehicleSpeed << std::endl;
+				<< segVehicleSpeed << ","
+				<< density 
+				<< std::endl;
 	}
 	return msg.str();
 

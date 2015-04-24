@@ -144,14 +144,14 @@ void SegmentStats::addAgent(const sim_mob::Lane* lane, sim_mob::Person* p) {
 	numPersons++; //record addition to segment
 }
 
-bool SegmentStats::removeAgent(const sim_mob::Lane* lane, sim_mob::Person* p, bool wasQueuing)
+bool SegmentStats::removeAgent(const sim_mob::Lane* lane, sim_mob::Person* p, bool wasQueuing, double vehicleLength)
 {
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
 	if(laneIt==laneStatsMap.end())
 	{
 		throw std::runtime_error("SegmentStats::removeAgent lane not found in segment stats");
 	}
-	bool removed = laneIt->second->removePerson(p, wasQueuing);
+	bool removed = laneIt->second->removePerson(p, wasQueuing, vehicleLength);
 	if(removed) { numPersons--; } //record removal from segment
 	return removed;
 }
@@ -692,23 +692,22 @@ void sim_mob::LaneStats::updateQueueStatus(sim_mob::Person* p)
 	}
 }
 
-bool sim_mob::LaneStats::removePerson(sim_mob::Person* p, bool wasQueuing)
+bool sim_mob::LaneStats::removePerson(sim_mob::Person* p, bool wasQueuing, double vehicleLength)
 {
 	PersonList::iterator pIt = std::find(laneAgents.begin(), laneAgents.end(), p);
-	VehicleBase* vehicle = p->getRole()->getResource();
 	if (pIt != laneAgents.end())
 	{
 		laneAgents.erase(pIt);
-		if (!laneInfinity && vehicle)
+		if (!laneInfinity)
 		{
 			numPersons--; //record removal
-			totalLength = totalLength - vehicle->getLengthCm();
+			totalLength = totalLength - vehicleLength;
 			if (wasQueuing)
 			{
 				if (queueCount > 0)
 				{
 					queueCount--;
-					queueLength = queueLength - vehicle->getLengthCm();
+					queueLength = queueLength - vehicleLength;
 				}
 				else
 				{
@@ -745,6 +744,7 @@ void sim_mob::LaneStats::initLaneParams(double vehSpeed, const double capacity)
 	// As per Yang Lu's suggestion for short segment correction
 	if (length < SHORT_SEGMENT_LENGTH_LIMIT)
 	{
+		laneParams->origOutputFlowRate = LARGE_OUTPUT_FLOW_RATE;
 		laneParams->outputFlowRate = LARGE_OUTPUT_FLOW_RATE; //some large number
 	}
 
@@ -1125,7 +1125,7 @@ void LaneStats::verifyOrdering()
 	}
 }
 
-sim_mob::Person* SegmentStats::dequeue(const sim_mob::Person* person, const sim_mob::Lane* lane, bool isQueuingBfrUpdate)
+sim_mob::Person* SegmentStats::dequeue(const sim_mob::Person* person, const sim_mob::Lane* lane, bool isQueuingBfrUpdate, double vehicleLength)
 {
 	if (!person) { return nullptr; }
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
@@ -1133,7 +1133,7 @@ sim_mob::Person* SegmentStats::dequeue(const sim_mob::Person* person, const sim_
 	{
 		return nullptr;
 	}
-	sim_mob::Person* dequeuedPerson = laneIt->second->dequeue(person, isQueuingBfrUpdate);
+	sim_mob::Person* dequeuedPerson = laneIt->second->dequeue(person, isQueuingBfrUpdate, vehicleLength);
 	if (dequeuedPerson)
 	{
 		numPersons--; // record removal from segment
@@ -1147,7 +1147,7 @@ sim_mob::Person* SegmentStats::dequeue(const sim_mob::Person* person, const sim_
 	return dequeuedPerson;
 }
 
-sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate)
+sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate, double vehicleLength)
 {
 	if (laneAgents.size() == 0)
 	{
@@ -1155,7 +1155,7 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 		debugMsgs << "Trying to dequeue Person " << person->getId() << " from empty lane." << std::endl;
 		return nullptr;
 	}
-	sim_mob::Person* p = nullptr;
+	sim_mob::Person* dequeuedPerson = nullptr;
 	if(laneInfinity)
 	{
 		PersonList::iterator it;
@@ -1163,7 +1163,7 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 		{
 			if ((*it) == person)
 			{
-				p = (*it);
+				dequeuedPerson = (*it);
 				it = laneAgents.erase(it); // erase returns the next iterator
 				numPersons--; //record removal
 				break; //exit loop
@@ -1172,34 +1172,30 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 	}
 	else if (person == laneAgents.front())
 	{
-		p = laneAgents.front();
+		dequeuedPerson = laneAgents.front();
 		laneAgents.pop_front();
-		VehicleBase* vehicle = person->getRole()->getResource();
-		if (vehicle)
+		numPersons--; // record removal
+		totalLength = totalLength - vehicleLength;
+		if (isQueuingBfrUpdate)
 		{
-			numPersons--; // record removal
-			totalLength = totalLength - vehicle->getLengthCm();
-			if (isQueuingBfrUpdate)
+			if (queueCount > 0)
 			{
-				if (queueCount > 0)
-				{
-					// we have removed a queuing agent
-					queueCount--;
-					queueLength = queueLength - vehicle->getLengthCm();
-				}
-				else
-				{
-					std::stringstream debugMsgs;
-					debugMsgs << "Error in dequeue(): queueCount cannot be lesser than 0 in lane." << "\nlane:" << lane->getLaneID() << "|Segment: "
-							<< lane->getRoadSegment()->getStartEnd() << "|Person: " << p->getId() << "\nQueuing: " << queueCount << "|Total: " << laneAgents.size()
-							<< std::endl;
-					Print() << debugMsgs.str();
-					throw std::runtime_error(debugMsgs.str());
-				}
+				// we have removed a queuing agent
+				queueCount--;
+				queueLength = queueLength - vehicleLength;
+			}
+			else
+			{
+				std::stringstream debugMsgs;
+				debugMsgs << "Error in dequeue(): queueCount cannot be lesser than 0 in lane." << "\nlane:" << lane->getLaneID() << "|Segment: "
+						<< lane->getRoadSegment()->getStartEnd() << "|Person: " << dequeuedPerson->getId() << "\nQueuing: " << queueCount << "|Total: " << laneAgents.size()
+						<< std::endl;
+				Print() << debugMsgs.str();
+				throw std::runtime_error(debugMsgs.str());
 			}
 		}
 	}
-	return p;
+	return dequeuedPerson;
 }
 
 } // end of namespace sim_mob

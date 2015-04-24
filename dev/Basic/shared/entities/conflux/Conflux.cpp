@@ -98,6 +98,9 @@ sim_mob::Conflux::PersonProps::PersonProps(const sim_mob::Person* person, const 
 	{
 		if(role->getResource()){ isMoving = role->getResource()->isMoving(); }
 		roleType = role->roleType;
+		VehicleBase* vehicle = role->getResource();
+		if(vehicle) { vehicleLength = vehicle->getLengthCm(); }
+		else { vehicleLength = 0; }
 	}
 
 	lane = person->getCurrLane();
@@ -117,7 +120,7 @@ sim_mob::Conflux::PersonProps::PersonProps(const sim_mob::Person* person, const 
 	}
 }
 
-void sim_mob::Conflux::PersonProps::printProps(unsigned int personId, uint32_t frame, std::string prefix)
+void sim_mob::Conflux::PersonProps::printProps(unsigned int personId, uint32_t frame, std::string prefix) const
 {
 	std::stringstream propStrm;
 	propStrm << personId << "-" << frame << "-"<< prefix << "-{";
@@ -315,7 +318,7 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 				// the person is currently in an activity, was on a Trip
 				// before this tick and was not in a virtual queue (because beforeUpdate.lane is not null)
 				// Remove this person from the network and add him to the activity performers list.
-				beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
+				beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing, beforeUpdate.vehicleLength);
 			}
 			activityPerformers.push_back(person);
 		}
@@ -338,7 +341,7 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 			//the bus driver.
 			if (beforeUpdate.lane)
 			{
-				beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
+				beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing, beforeUpdate.vehicleLength);
 			}
 			//if the bus driver started moving from a virtual queue, his beforeUpdate.lane will be null.
 			//However, since he is already into a bus stop (afterUpdate.isMoving is false) we need not
@@ -417,7 +420,7 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 		if(beforeUpdate.roleType!=sim_mob::Role::RL_ACTIVITY)
 		{
 			// the person could have been an activity performer in which case beforeUpdate.segStats would be just null
-			beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
+			beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing, beforeUpdate.vehicleLength);
 		}
 		if (afterUpdate.lane)
 		{
@@ -434,7 +437,7 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 	else if (beforeUpdate.segStats == afterUpdate.segStats && afterUpdate.lane == afterUpdate.segStats->laneInfinity)
 	{
 		//it's possible for some persons to start a new trip on the same segment where they ended the previous trip.
-		beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
+		beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing, beforeUpdate.vehicleLength);
 		//adding the person to lane infinity for the new trip
 		afterUpdate.segStats->addAgent(afterUpdate.lane, person);
 	}
@@ -719,6 +722,7 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 	sim_mob::SegmentStats* prevSegStats = beforeUpdate.segStats;
 	const sim_mob::Lane* prevLane = beforeUpdate.lane;
 	bool wasQueuing = beforeUpdate.isQueuing;
+	double vehicleLength = beforeUpdate.vehicleLength;
 	sim_mob::Role::type personRoleType = sim_mob::Role::RL_UNKNOWN;
 	if(person->getRole()) { personRoleType = person->getRole()->roleType; }
 	switch(personRoleType)
@@ -752,7 +756,7 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 		if(pIt!=activityPerformers.end()) {	activityPerformers.erase(pIt); } //Check if he was indeed an activity performer and erase him
 		else if (prevLane)
 		{
-			bool removed = prevSegStats->removeAgent(prevLane, person, wasQueuing);
+			bool removed = prevSegStats->removeAgent(prevLane, person, wasQueuing, vehicleLength);
 			if(!removed) { throw std::runtime_error("Conflux::killAgent(): Attempt to remove non-existent person in Lane");	}
 		}
 		break;
@@ -761,7 +765,7 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 	{
 		if (prevLane)
 		{
-			bool removed = prevSegStats->removeAgent(prevLane, person, wasQueuing);
+			bool removed = prevSegStats->removeAgent(prevLane, person, wasQueuing, vehicleLength);
 			//removed can be false only in the case of BusDrivers at the moment.
 			//This is because a BusDriver could have been dequeued from prevLane in the previous tick and be added to his
 			//last bus stop. When he has finished serving the stop, the BusDriver is done. He will be killed here. However,

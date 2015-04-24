@@ -168,16 +168,18 @@ public:
 	 * removes the person from the lane
 	 * @param person the person to be removed
 	 * @param wasQueuing the queuing status of person to manage queue count
+	 * @param vehicleLength length of vehicle used by person
 	 * @return true if removal was successful; false otherwise.
 	 */
-	bool removePerson(sim_mob::Person* person, bool wasQueuing);
+	bool removePerson(sim_mob::Person* person, bool wasQueuing, double vehicleLength);
 
 	/**
 	 * removes the person at the front in laneAgents list
 	 * @param isQueuingBfrUpdate queuing status of the person at front to manage queue count
+	 * @param vehicleLength the length of vehicle used before update
 	 * @return pointer to the dequeued person
 	 */
-	sim_mob::Person* dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate);
+	sim_mob::Person* dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate, double vehicleLength);
 
 	/**
 	 * gets the number of queuing persons in lane
@@ -452,18 +454,20 @@ public:
 	 * @param lane the lane to remove the person from
 	 * @param person the person to remove
 	 * @param wasQueuing the queuing status of person at the start of the tick
+	 * @param vehicleLength the length of vehicle used before update
 	 * @return true if removal was successful; false otherwise
 	 */
-	bool removeAgent(const sim_mob::Lane* lane, sim_mob::Person* person, bool wasQueuing);
+	bool removeAgent(const sim_mob::Lane* lane, sim_mob::Person* person, bool wasQueuing, double vehicleLength);
 
 	/**
 	 * removes person in the front from lane
 	 * @param person the person to remove
 	 * @param lane the lane to remove the person from
 	 * @param isQueuingBfrUpdate the queuing status of person at the start of the tick
+	 * @param vehicleLength the length of vehicle used before update
 	 * @return the dequeued person
 	 */
-	sim_mob::Person* dequeue(const sim_mob::Person* person, const sim_mob::Lane* lane, bool isQueuingBfrUpdate);
+	sim_mob::Person* dequeue(const sim_mob::Person* person, const sim_mob::Lane* lane, bool isQueuingBfrUpdate, double vehicleLength);
 
 	/**
 	 * returns a reference to the list of persons in lane

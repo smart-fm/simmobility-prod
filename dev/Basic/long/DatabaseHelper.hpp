@@ -238,8 +238,6 @@ namespace sim_mob {
         const std::string DB_INSERT_INDIVIDUAL = DB_EMPTY_QUERY;
         const std::string DB_INSERT_RESIDENTIAL_STATUS = DB_EMPTY_QUERY;
         const std::string DB_INSERT_AWAKENING = DB_EMPTY_QUERY;
-        const std::string DB_INSERT_ESTABLISHMENT = DB_EMPTY_QUERY;
-        const std::string DB_INSERT_JOB= DB_EMPTY_QUERY;
 
 
         /**
@@ -263,8 +261,6 @@ namespace sim_mob {
         const std::string DB_UPDATE_INDIVIDUAL = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_RESIDENTIAL_STATUS = DB_EMPTY_QUERY;
         const std::string DB_UPDATE_AWAKENING = DB_EMPTY_QUERY;
-        const std::string DB_UPDATE_ESTABLISHMENT = DB_EMPTY_QUERY;
-        const std::string DB_UPDATE_JOB= DB_EMPTY_QUERY;
 
         /**
          * DELETE
@@ -278,8 +274,6 @@ namespace sim_mob {
         const std::string DB_DELETE_RESIDENTIAL_STATUS = DB_EMPTY_QUERY;
         const std::string DB_DELETE_PROJECT = DB_EMPTY_QUERY;
         const std::string DB_DELETE_AWAKENING = DB_EMPTY_QUERY;
-        const std::string DB_DELETE_ESTABLISHMENT = DB_EMPTY_QUERY;
-        const std::string DB_DELETE_JOB = DB_EMPTY_QUERY;
 
 
 

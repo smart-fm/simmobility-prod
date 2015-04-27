@@ -37,7 +37,8 @@ namespace sim_mob {
                 STDOUT,
                 PARCELS,
                 UNITS,
-                PROJECTS
+                PROJECTS,
+                HH_PC
             };
             LoggerAgent();
             virtual ~LoggerAgent();

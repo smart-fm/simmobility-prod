@@ -52,6 +52,10 @@ LoggerAgent::LoggerAgent() : Entity(-1) {
     //projects
     std::ofstream* projectsFile = new std::ofstream("projects.csv");
     streams.insert(std::make_pair(PROJECTS, projectsFile));
+
+    //hhpc postcodes
+    std::ofstream* hhpcFile = new std::ofstream("HouseholdPostcodes.csv");
+    streams.insert(std::make_pair(HH_PC, hhpcFile));
 }
 
 LoggerAgent::~LoggerAgent() {

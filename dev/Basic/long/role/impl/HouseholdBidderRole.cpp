@@ -555,7 +555,7 @@ void HouseholdBidderRole::setTaxiAccess()
 	{
 		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(RETIRED_2)->getCoefficientEstimate();
 	}
-	//TODO::INCOME CATEGORY : HIGH and LOW --> DATA IS NOT AVALILABLE YET.
+
 	const double incomeLaw = 3000;
 	const double incomeHigh = 10000;
 	if(this->getParent()->getHousehold()->getIncome() <= incomeLaw)
@@ -566,6 +566,7 @@ void HouseholdBidderRole::setTaxiAccess()
 	{
 		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(INC_HIGH)->getCoefficientEstimate();
 	}
+
 	//TODO::Operator1 and operator2??
 	if(numServiceIndividuals >=2 )
 	{

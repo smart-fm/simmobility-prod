@@ -450,7 +450,7 @@ void HouseholdBidderRole::setTaxiAccess()
 	double valueTaxiAccess = model->getTaxiAccessCoeffsById(INTERCEPT)->getCoefficientEstimate();
 	//finds out whether the household is an HDB or not
 	int unitTypeId = model->getUnitById(this->getParent()->getHousehold()->getUnitId())->getUnitType();
-	if( unitTypeId==1)
+	if( (unitTypeId>0) && (unitTypeId<=6))
 	{
 
 		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(HDB1)->getCoefficientEstimate();
@@ -507,9 +507,8 @@ void HouseholdBidderRole::setTaxiAccess()
 			numProfIndividuals++;
 		}
 
-		//labour individuals
-		//TODO:: is this equal to manufacturing workers?
-		if(model->getIndividualById((*individualsItr))->getOccupationId() == 6)
+		//labour individuals : occupation type = other
+		if(model->getIndividualById((*individualsItr))->getOccupationId() == 7)
 		{
 			numLabourIndividuals++;
 		}
@@ -556,13 +555,24 @@ void HouseholdBidderRole::setTaxiAccess()
 	{
 		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(RETIRED_2)->getCoefficientEstimate();
 	}
-	//TODO::INCOME CATEGORY : HIGH and LOW --> DATA IS NOT AVALILABLE YET.
+
+	const double incomeLaw = 3000;
+	const double incomeHigh = 10000;
+	if(this->getParent()->getHousehold()->getIncome() <= incomeLaw)
+	{
+		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(INC_LOW)->getCoefficientEstimate();
+	}
+	else if (this->getParent()->getHousehold()->getIncome() > incomeHigh)
+	{
+		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(INC_HIGH)->getCoefficientEstimate();
+	}
+
 	//TODO::Operator1 and operator2??
 	if(numServiceIndividuals >=2 )
 	{
 		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(SERVICE_2)->getCoefficientEstimate();
 	}
-	//TODO::PROF_1 should this be numProfIndividuals==1 or numProfIndividuals >= 1 ??
+
 	if(numProfIndividuals >= 1)
 	{
 		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(PROF_1)->getCoefficientEstimate();

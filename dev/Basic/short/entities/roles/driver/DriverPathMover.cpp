@@ -641,8 +641,40 @@ const Lane* sim_mob::DriverPathMover::actualMoveToNextSegmentAndUpdateDir()
 		return nullptr;
 	}
 
-	//Bound lanes
+	//Find a lane that is not a pedestrian lane
 	currLaneID = std::min<int>(currLaneID, (*currSegmentIt)->getLanes().size() - 1);
+
+	int noOfLanes = (*currSegmentIt)->getLanes().size();
+	bool foundId = false;
+	currLaneID = std::min(currLaneID, noOfLanes -1);
+
+	for(int index = 0; index < noOfLanes; index++)
+	{
+		for(int prefix = -1; prefix <= 1; prefix = prefix + 2)
+		{
+			int laneId = currLaneID + (index * prefix);
+
+			if(laneId < noOfLanes && laneId >= 0)
+			{
+				if((*currSegmentIt)->getLanes().at(laneId)->is_pedestrian_lane() == false)
+				{
+					currLaneID = laneId;
+					foundId = true;
+					break;
+				}
+			}
+		}
+
+		if(foundId)
+		{
+			break;
+		}
+	}
+
+	if(!foundId)
+	{
+		assert(foundId);
+	}
 
 	//Is this new segment part of a Link we're traversing in reverse?
 	if (nextInNewLink)

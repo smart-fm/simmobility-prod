@@ -105,7 +105,7 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
 	,stop_event_nodeid(mtxStrat, -1), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false), moveDisOnTurning_(mtxStrat, 0),
 	distToIntersection_(mtxStrat, -1), perceivedAccOfFwdCar(nullptr), perceivedDistToFwdCar(nullptr), perceivedDistToTrafficSignal(nullptr), perceivedFwdAcc(nullptr),
-	perceivedFwdVel(nullptr), perceivedTrafficColor(nullptr), perceivedVelOfFwdCar(nullptr), yieldingToInIntersection(false), currDistAlongRoadSegment_(mtxStrat, 0.0)
+	perceivedFwdVel(nullptr), perceivedTrafficColor(nullptr), perceivedVelOfFwdCar(nullptr), yieldingToInIntersection(false), currDistAlongRoadSegment(0.0)
 {
 	getParams().driver = this;
 }

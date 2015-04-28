@@ -348,6 +348,8 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	nvLeftBack2 = NearestVehicle();
 	nvRightFwd2 = NearestVehicle();
 	nvRightBack2 = NearestVehicle();
+	
+	density = 0;
 }
 
 void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)

@@ -733,6 +733,7 @@ void sim_mob::VehicleCounter::init(const Signal_SCATS* signal)
 {
 	this->signal = signal;
 	nodeId = signal->getNode().getID();
+	nodeName = signal->getNode().name;
 	
 	const std::map<const Lane *, Shared<Sensor::CountAndTimePair> *>& countAndTimePairs =
 			signal->getLoopDetector()->getCountAndTimePairMap();
@@ -760,7 +761,7 @@ void sim_mob::VehicleCounter::serialize(const uint32_t& time)
 		std::map<const sim_mob::Lane*, int> ::iterator it(counter.begin());
 		for (; it != counter.end(); it++)
 		{
-			logger << time << "," << nodeId << "," << it->first->getRoadSegment()->getId() \
+			logger << time << "," << nodeName << "," << nodeId << "," << it->first->getRoadSegment()->getId() \
 			   << ","  << it->first->getLaneID() << ","  << it->second << "\n";
 		}
 	}

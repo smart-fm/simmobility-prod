@@ -2316,6 +2316,7 @@ void sim_mob::aimsun::Loader::ProcessGeneralNode(sim_mob::RoadNetwork& res, Node
 	node->setID(src.id); //for future reference
 	src.generatedNode = node;
 	src.hasBeenSaved = true;
+	src.generatedNode->name = src.nodeName;
 }
 
 void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& src)

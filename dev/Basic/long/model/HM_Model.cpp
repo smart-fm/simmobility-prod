@@ -19,6 +19,8 @@
 #include "database/dao/PostcodeDao.hpp"
 #include "database/dao/VehicleOwnershipCoefficientsDao.hpp"
 #include "database/dao/TaxiAccessCoefficientsDao.hpp"
+#include "database/dao/EstablishmentDao.hpp"
+#include "database/dao/JobDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -358,6 +360,12 @@ void HM_Model::startImpl()
 
 		loadData<TaxiAccessCoefficientsDao>(conn,taxiAccessCoeffs,taxiAccessCoeffsById, &TaxiAccessCoefficients::getParameterId);
 		PrintOutV("Taxi access coefficients: " << taxiAccessCoeffs.size() << std::endl );
+
+		loadData<EstablishmentDao>(conn, establishments, establishmentsById, &Establishment::getId);
+		PrintOutV("Number of establishments: " << establishments.size() << std::endl );
+
+		loadData<JobDao>( conn, jobs, jobsById, &Job::getId);
+		PrintOutV("Number of jobs: " << jobs.size() << std::endl );
 	}
 
 

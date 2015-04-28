@@ -15,6 +15,8 @@
 #include "database/entity/VehicleOwnershipCoefficients.hpp"
 #include "database/entity/TaxiAccessCoefficients.hpp"
 #include "database/entity/Postcode.hpp"
+#include "database/entity/Establishment.hpp"
+#include "database/entity/Job.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -42,10 +44,20 @@ namespace sim_mob
 
             typedef std::vector<Awakening*> AwakeningList;
             typedef boost::unordered_map<BigSerial, Awakening*> AwakeningMap;
+
             typedef std::vector<VehicleOwnershipCoefficients*> VehicleOwnershipCoeffList;
             typedef boost::unordered_map<BigSerial, VehicleOwnershipCoefficients*> VehicleOwnershipCoeffMap;
+
             typedef std::vector<TaxiAccessCoefficients*> TaxiAccessCoeffList;
             typedef boost::unordered_map<BigSerial, TaxiAccessCoefficients*> TaxiAccessCoeffMap;
+
+            typedef std::vector<Establishment*> EstablishmentList;
+            typedef boost::unordered_map<BigSerial, Establishment*> EstablishmentMap;
+
+            typedef std::vector<Job*> JobList;
+            typedef boost::unordered_map<BigSerial, Job*> JobMap;
+
+
             /**
              * Taz statistics
              */
@@ -143,6 +155,12 @@ namespace sim_mob
 
             PostcodeList postcodes;
             PostcodeMap postcodesById;
+
+            EstablishmentList establishments;
+            EstablishmentMap establishmentsById;
+
+            JobList jobs;
+            JobMap jobsById;
 
             boost::unordered_map<BigSerial, BigSerial> assignedUnits;
             VehicleOwnershipCoeffList vehicleOwnershipCoeffs;

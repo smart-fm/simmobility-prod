@@ -2156,10 +2156,12 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 						if (laneIdx > p.currLaneIndex)
 						{
 							p.setStatus(STATUS_LEFT_SIDE_OK, STATUS_YES, str);
-						} else if (laneIdx < p.currLaneIndex)
+						} 
+						else if (laneIdx < p.currLaneIndex)
 						{
 							p.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_YES, str);
-						} else
+						} 
+						else
 						{
 							p.setStatus(STATUS_CURRENT_LANE_OK, STATUS_YES, str);
 						}
@@ -2232,7 +2234,10 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToStopPoint(DriverUpdateParams& p,set
 	DriverMovement *driverMvt = dynamic_cast<DriverMovement*>(p.driver->Movement());
 	// get dis to stop point of current link
 	double distance = p.disToSP;//= driverMvt->getDisToStopPoint(p.stopPointPerDis);
-	if(distance>-10 || p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT){// in case car stop just bit ahead of the stop point
+	
+	if ((distance>-10 && p.stopPointState != DriverUpdateParams::NO_FOUND_STOP_POINT)
+		|| p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT) {
+		// in case car stop just bit ahead of the stop point
 		if(p.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT){
 			return res;
 		}
@@ -2448,10 +2453,12 @@ void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)
 						if (laneIdx > p.currLaneIndex)
 						{
 							p.setStatus(STATUS_LEFT_SIDE_OK, STATUS_YES, str);
-						} else if (laneIdx < p.currLaneIndex)
+						} 
+						else if (laneIdx < p.currLaneIndex)
 						{
 							p.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_YES, str);
-						} else if (laneIdx == p.currLaneIndex)
+						} 
+						else if (laneIdx == p.currLaneIndex)
 						{
 							p.setStatus(STATUS_CURRENT_LANE_OK, STATUS_YES, str);
 						}
@@ -2480,10 +2487,12 @@ void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)
 						if (laneIdx > p.currLaneIndex)
 						{
 							p.setStatus(STATUS_LEFT_SIDE_OK, STATUS_YES, str);
-						} else if (laneIdx < p.currLaneIndex)
+						} 
+						else if (laneIdx < p.currLaneIndex)
 						{
 							p.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_YES, str);
-						} else if (laneIdx == p.currLaneIndex)
+						} 
+						else if (laneIdx == p.currLaneIndex)
 						{
 							p.setStatus(STATUS_CURRENT_LANE_OK, STATUS_YES, str);
 						}

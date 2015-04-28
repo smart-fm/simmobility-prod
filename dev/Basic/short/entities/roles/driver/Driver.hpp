@@ -141,7 +141,7 @@ class UnPackageUtils;
     Shared<LANE_CHANGE_SIDE> turningDirection_;
 
     //The distance covered along the current road segment (in centimetre)
-    Shared<double> currDistAlongRoadSegment_;
+    double currDistAlongRoadSegment;
 
     //Pointer to the Driver object that is performing 'nosing'. (Current driver is 'yielding')
     Driver* yieldVehicle;

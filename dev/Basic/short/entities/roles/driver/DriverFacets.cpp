@@ -401,7 +401,7 @@ void sim_mob::DriverMovement::frame_tick()
 	parentDriver->perceivedFwdAcc->delay(parentDriver->vehicle->getAcceleration());
 
 	//Print output for this frame.
-	parentDriver->currDistAlongRoadSegment_.set(fwdDriverMovement.getCurrDistAlongRoadSegmentCM());
+	parentDriver->currDistAlongRoadSegment = fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
 	DPoint position = getPosition();
 	parentDriver->setCurrPosition(position);
 	parentDriver->vehicle->setCurrPosition(position);
@@ -734,15 +734,18 @@ bool sim_mob::DriverMovement::updateSensors(timeslice now)
 	return true;
 }
 
-bool sim_mob::DriverMovement::updateMovement(timeslice now) {
-	
+bool sim_mob::DriverMovement::updateMovement(timeslice now) 
+{	
 	DriverUpdateParams& params = parentDriver->getParams();
 	
 	//If reach the goal, get back to the origin
-	if (fwdDriverMovement.isDoneWithEntireRoute()) {
+	if (fwdDriverMovement.isDoneWithEntireRoute()) 
+	{
 		//Output
-		if (Debug::Drivers && !DebugStream.str().empty()) {
-			if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
+		if (Debug::Drivers && !DebugStream.str().empty()) 
+		{
+			if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) 
+			{
 				DebugStream << ">>>Vehicle done." << endl;
 				PrintOut(DebugStream.str());
 				DebugStream.str("");
@@ -2025,35 +2028,19 @@ void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p)
 			//Look for the lane connector that has the 'to' RoadSegment as the next RoadSegment
 			for(std::set<LaneConnector*>::const_iterator itLCS = lcs.begin(); itLCS != lcs.end(); ++itLCS)
 			{
-				if((*itLCS)->getLaneFrom() == p.currLane && (*itLCS)->getLaneTo()->getRoadSegment() == nextSeg)
+				if ((*itLCS)->getLaneFrom() == p.currLane && (*itLCS)->getLaneTo()->getRoadSegment() == nextSeg
+					&& !((*itLCS)->getLaneTo()->is_pedestrian_lane()))
 				{
 					//It's a valid lane.
-					targetLanes.push_back((*itLCS)->getLaneTo());
-
-					//find target lane with same index, use this lane
-					size_t laneIndex = getLaneIndex((*itLCS)->getLaneTo());
-					if (laneIndex == p.currLaneIndex && !((*itLCS)->getLaneTo()->is_pedestrian_lane()))
-					{
-						nextLaneInNextLink = (*itLCS)->getLaneTo();
-						targetLaneIndex = laneIndex;
-						break;
-					}
+					targetLanes.push_back((*itLCS)->getLaneTo());					
 				}
 			}
 			
-			//Next lane with same index as current lane not found, so look for other lanes
-			if (!nextLaneInNextLink)
-			{
-				//Use the first lane in the vector if possible.
-				if (targetLanes.size() > 0)
-				{
-					nextLaneInNextLink = targetLanes.at(0);
-					if (nextLaneInNextLink->is_pedestrian_lane() && targetLanes.size() > 1)
-					{
-						nextLaneInNextLink = targetLanes.at(1);
-					}
-					targetLaneIndex = getLaneIndex(nextLaneInNextLink);
-				} 				
+			//Use the first lane in the vector if possible.
+			if (!targetLanes.empty())
+			{				
+				nextLaneInNextLink = *(targetLanes.begin());
+				targetLaneIndex = getLaneIndex(nextLaneInNextLink);							
 			}
 		}
 		
@@ -2558,7 +2545,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 	//as we will be considering the vehicles on a particular lane of a link.
 	double lengthInM = Utils::cmToMeter((double)fwdDriverMovement.getCurrLink()->getLength());
 
-	double other_offset = other_driver->currDistAlongRoadSegment_.get();
+	double other_offset = other_driver->currDistAlongRoadSegment;
 
 	//If the vehicle is in the same Road segment
 	if (fwdDriverMovement.getCurrSegment() == otherRoadSegment) 
@@ -2771,7 +2758,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 					// 2. other_driver's distance move in the segment, it is also the distance vh to intersection
 					double currSL = fwdDriverMovement.getCurrentSegmentLengthCM();
 					double disMIS =	fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
-					double otherdis = other_driver->currDistAlongRoadSegment_.get();
+					double otherdis = other_driver->currDistAlongRoadSegment;
 					double distance = currSL - disMIS + otherdis;
 					
 					// 3. compare the distance and set params.nvFwdNextLink
@@ -2799,7 +2786,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 					double dis = currSL - disMIS;
 					
 					// other drive distance to priority merge node
-					double otherDis = otherRoadSegment->length - other_driver->currDistAlongRoadSegment_.get();
+					double otherDis = otherRoadSegment->length - other_driver->currDistAlongRoadSegment;
 					
 					// calculate distance of two vh
 					double distance = dis - otherDis;
@@ -2829,7 +2816,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 				double dis = currSL - disMIS;
 				
 				// other drive distance moved on outgoing freeway
-				double otherDis = other_driver->currDistAlongRoadSegment_.get();
+				double otherDis = other_driver->currDistAlongRoadSegment;
 				
 				// calculate distance of two vh
 				double distance = dis + otherDis;

@@ -403,7 +403,7 @@
 	<!-- Visibility of stopping points (default value) -->
 	<param name="check_stop_point_distance" value="200"/> <!-- meters -->
 
-	<!-- Density (default value) - NOT USED!!! -->
-	<param name="density" value="100.0"/> <!-- veh/km/lane -->
+	<!-- Density (default value) - Calculated by SimMobility!!!-->
+	<param name="density" value="0.0"/> <!-- veh/km/lane -->
 
 </parameters>

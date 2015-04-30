@@ -49,9 +49,8 @@ namespace
     }
 }
 
-HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry (const BigSerial unitId, const double wp, double lastSurplus) : unitId(unitId), wp(wp), tries(0), lastSurplus(lastSurplus)
-{
-}
+HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry ( const BigSerial unitId, const double wp, double lastSurplus) : unitId(unitId), wp(wp), tries(0),
+																lastSurplus(lastSurplus){}
 
 HouseholdBidderRole::CurrentBiddingEntry::~CurrentBiddingEntry()
 {
@@ -90,7 +89,9 @@ void HouseholdBidderRole::CurrentBiddingEntry::invalidate()
     wp = 0;
 }
 
-HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0), moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0),vehicleOwnershipOption(NO_CAR), day(day),hasTaxiAccess(false){}
+HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0),
+																  moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0),vehicleOwnershipOption(NO_CAR), day(day),
+																  hasTaxiAccess(false), householdAffordabilityAmount(0),initBidderRole(true){}
 
 HouseholdBidderRole::~HouseholdBidderRole(){}
 
@@ -109,8 +110,60 @@ void HouseholdBidderRole::setActive(bool activeArg)
     active = activeArg;
 }
 
+void HouseholdBidderRole::ComputeHouseholdAffordability()
+{
+	householdAffordabilityAmount = 0;
+
+	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+	const Household *bidderHousehold = getParent()->getHousehold();
+
+	std::vector<BigSerial> individuals = bidderHousehold->getIndividuals();
+	int householdSize = individuals.size();
+	double debtToIncomeRatio = 0.33;
+
+	int children = 0;
+	if( householdSize > 1 )
+	{
+		children = 0;
+		for( int n = 0; n < householdSize; n++ )
+		{
+			Individual * householdIndividual = getParent()->getModel()->getIndividualById( individuals[n] );
+
+			std::tm dob = householdIndividual->getDateOfBirth();
+
+			  struct tm thisTime;
+			  time_t now;
+			  time(&now);
+			  thisTime = *localtime(&now);
+			  int difference = thisTime.tm_year - dob.tm_year;
+
+			 if( difference < 18 )
+				 children++;
+		}
+
+		debtToIncomeRatio = 0.30;
+
+		if(children > 0 )
+			debtToIncomeRatio = 0.27;
+	}
+
+	double income = debtToIncomeRatio * bidderHousehold->getIncome();
+	double loanTenure = 65 - bidderHousehold->getAgeOfHead();
+	double interestRate = 	config.ltParams.housingModel.interestRate;
+}
+
+void HouseholdBidderRole::init()
+{
+	ComputeHouseholdAffordability();
+	initBidderRole = false;
+
+}
+
 void HouseholdBidderRole::update(timeslice now)
 {
+	if(initBidderRole)
+		init();
 
 	day = now.ms();
 
@@ -141,9 +194,7 @@ void HouseholdBidderRole::update(timeslice now)
 		}
 			vehicleBuyingWaitingTimeInDays--;
 			return;
-
 	}
-
 
     //can bid another house if it is not waiting for any 
     //response and if it not the same day

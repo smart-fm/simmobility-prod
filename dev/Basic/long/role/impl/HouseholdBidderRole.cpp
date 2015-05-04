@@ -150,7 +150,11 @@ void HouseholdBidderRole::ComputeHouseholdAffordability()
 
 	double income = debtToIncomeRatio * bidderHousehold->getIncome();
 	double loanTenure = 65 - bidderHousehold->getAgeOfHead();
-	double interestRate = 	config.ltParams.housingModel.interestRate;
+	double interestRate = 	config.ltParams.housingModel.interestRate / 12.0;
+
+	householdAffordabilityAmount = income / interestRate *  ( 1 - pow(1 + interestRate, -loanTenure ) );
+
+	//PrintOutV("Household affordability: " << householdAffordabilityAmount << std::endl);
 }
 
 void HouseholdBidderRole::init()
@@ -387,6 +391,9 @@ bool HouseholdBidderRole::pickEntryToBid()
             if ( unit && stats && flatEligibility )
             {
                 double wp = luaModel.calulateWP(*household, *unit, *stats);
+
+                if( wp > householdAffordabilityAmount )
+                	wp = householdAffordabilityAmount;
 
                 if (wp >= entry->getAskingPrice() && (wp - entry->getAskingPrice()) > maxWP)
                 {

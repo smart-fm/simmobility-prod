@@ -35,7 +35,6 @@
 #include "database/DB_Config.hpp"
 #include "database/PopulationSqlDao.hpp"
 #include "database/PopulationMongoDao.hpp"
-#include "database/TripChainSqlDao.hpp"
 #include "database/ZoneCostMongoDao.hpp"
 #include "logging/NullableOutputStream.hpp"
 #include "logging/Log.hpp"
@@ -594,46 +593,32 @@ sim_mob::medium::PredayManager::~PredayManager() {
 	zoneNodeMap.clear();
 }
 
-void sim_mob::medium::PredayManager::loadPersons(BackendType dbType) {
+void sim_mob::medium::PredayManager::loadPersonIds(BackendType dbType) {
 	switch(dbType) {
 	case POSTGRES:
 	{
-		const std::string& dbId = ConfigManager::GetInstance().FullConfig().system.networkDatabase.database;
-		Database database = ConfigManager::GetInstance().FullConfig().constructs.databases.at(dbId);
-		std::string cred_id = ConfigManager::GetInstance().FullConfig().system.networkDatabase.credentials;
-		Credential credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
-		std::string username = credentials.getUsername();
-		std::string password = credentials.getPassword(false);
-		DB_Config dbConfig(database.host, database.port, database.dbName, username, password);
+		// population data source
+		const std::string& populationDbId = mtConfig.getPopulationDb().database;
+		Database populationDatabase = ConfigManager::GetInstance().FullConfig().constructs.databases.at(populationDbId);
+		std::string cred_id = mtConfig.getPopulationDb().credentials;
+		Credential populationCredentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
+		std::string username = populationCredentials.getUsername();
+		std::string password = populationCredentials.getPassword(false);
+		DB_Config populationDbConfig(populationDatabase.host, populationDatabase.port, populationDatabase.dbName, username, password);
 
 		// Connect to database and load data.
-		DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+		DB_Connection conn(sim_mob::db::POSTGRES, populationDbConfig);
 		conn.connect();
-		if (conn.isConnected()) {
+		if (conn.isConnected())
+		{
 			PopulationSqlDao populationDao(conn);
-			populationDao.getAll(personList);
+			populationDao.getIncomeCategories(PersonParams::getIncomeCategoryLowerLimits());
+			populationDao.getVehicleCategories(PersonParams::getVehicleCategoryLookup());
+			populationDao.getAddressTAZs(PersonParams::getAddressTazLookup());
+			populationDao.getAllIds(ltPersonIdList);
 		}
 		break;
 	}
-	case MONGO_DB:
-	{
-		std::string populationCollectionName = mtConfig.getMongoCollectionsMap().getCollectionName("population");
-		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
-		std::string emptyString;
-		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
-		PopulationMongoDao populationDao(dbConfig, db.dbName, populationCollectionName);
-		populationDao.getAll(personList);
-		break;
-	}
-	default:
-	{
-		throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
-	}
-	}
-}
-
-void sim_mob::medium::PredayManager::loadPersonIds(BackendType dbType) {
-	switch(dbType) {
 	case MONGO_DB:
 	{
 		std::string populationCollectionName = mtConfig.getMongoCollectionsMap().getCollectionName("population");
@@ -652,7 +637,8 @@ void sim_mob::medium::PredayManager::loadPersonIds(BackendType dbType) {
 }
 
 void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType) {
-	switch(dbType) {
+	switch(dbType)
+	{
 		case POSTGRES:
 		{
 			throw std::runtime_error("Zone information is not available in PostgreSQL database yet");
@@ -684,7 +670,7 @@ void sim_mob::medium::PredayManager::loadZoneNodes(db::BackendType dbType) {
 	switch(dbType) {
 		case POSTGRES:
 		{
-			throw std::runtime_error("AM, PM and off peak costs are not available in PostgreSQL database yet");
+			throw std::runtime_error("Zone to node mapping is not available in PostgreSQL database");
 		}
 		case MONGO_DB:
 		{
@@ -702,7 +688,32 @@ void sim_mob::medium::PredayManager::loadZoneNodes(db::BackendType dbType) {
 			throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
 		}
 	}
-	Print() << "zoneNodeMap.size() : " << zoneNodeMap.size() << std::endl;
+}
+
+void sim_mob::medium::PredayManager::load2012_2008ZoneMapping(db::BackendType dbType)
+{
+	switch(dbType)
+	{
+	case POSTGRES:
+	{
+		throw std::runtime_error("2012->2008 Zone mapping is not available in PostgreSQL database");
+	}
+	case MONGO_DB:
+	{
+		std::string zn12_08CollectionName = mtConfig.getMongoCollectionsMap().getCollectionName("zone_08_12");
+		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+		std::string emptyString;
+		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+		MTZ12_MTZ08_MappingDao mtz12_08MapDao(dbConfig, db.dbName, zn12_08CollectionName);
+		mtz12_08MapDao.getAll(MTZ12_MTZ08_Map);
+		Print() << "Zones 2012->2008 mapping loaded" << std::endl;
+		break;
+	}
+	default:
+	{
+		throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
+	}
+	}
 }
 
 void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
@@ -757,7 +768,7 @@ void sim_mob::medium::PredayManager::loadUnavailableODs(db::BackendType dbType)
 	switch(dbType) {
 	case POSTGRES:
 	{
-		throw std::runtime_error("AM, PM and off peak costs are not available in PostgreSQL database yet");
+		throw std::runtime_error("Unavailable ODs are not available in PostgreSQL database");
 	}
 	case MONGO_DB:
 	{
@@ -796,7 +807,7 @@ void sim_mob::medium::PredayManager::loadUnavailableODs(db::BackendType dbType)
 	}
 }
 
-void sim_mob::medium::PredayManager::dispatchPersons()
+void sim_mob::medium::PredayManager::dispatchMongodbPersons()
 {
 	boost::thread_group threadGroup;
 	unsigned numWorkers = mtConfig.getNumPredayThreads();
@@ -808,9 +819,9 @@ void sim_mob::medium::PredayManager::dispatchPersons()
 
 	if(numWorkers == 1)
 	{ // if single threaded execution was requested
-		if(mtConfig.runningPredaySimulation()) { processPersonsById(personIdList.begin(), personIdList.end(), logFileNames.front()); }
-		else if(mtConfig.runningPredayLogsumComputation()) { computeLogsumsById(personIdList.begin(), personIdList.end()); }
-		else if(mtConfig.runningPredayLogsumComputationForLT()) { computeLogsumsByIdForLT(personIdList.begin(), personIdList.end(), logFileNames.front()); }
+		if(mtConfig.runningPredaySimulation()) { processPersons(personIdList.begin(), personIdList.end(), logFileNames.front()); }
+		else if(mtConfig.runningPredayLogsumComputation()) { computeLogsums(personIdList.begin(), personIdList.end()); }
+		else if(mtConfig.runningPredayLogsumComputationForLT()) { computeLT_FeedbackLogsums(personIdList.begin(), personIdList.end(), logFileNames.front()); }
 	}
 	else
 	{
@@ -835,16 +846,16 @@ void sim_mob::medium::PredayManager::dispatchPersons()
 		{
 			if(mtConfig.runningPredaySimulation())
 			{
-				threadGroup.create_thread( boost::bind(&PredayManager::processPersonsById, this, first, last, (*fileNameIt)) );
+				threadGroup.create_thread( boost::bind(&PredayManager::processPersons, this, first, last, (*fileNameIt)) );
 				fileNameIt++;
 			}
 			else if(mtConfig.runningPredayLogsumComputation())
 			{
-				threadGroup.create_thread( boost::bind(&PredayManager::computeLogsumsById, this, first, last) );
+				threadGroup.create_thread( boost::bind(&PredayManager::computeLogsums, this, first, last) );
 			}
 			else if(mtConfig.runningPredayLogsumComputationForLT())
 			{
-				threadGroup.create_thread( boost::bind(&PredayManager::computeLogsumsByIdForLT, this, first, last, (*fileNameIt)) );
+				threadGroup.create_thread( boost::bind(&PredayManager::computeLT_FeedbackLogsums, this, first, last, (*fileNameIt)) );
 				fileNameIt++;
 			}
 
@@ -852,6 +863,74 @@ void sim_mob::medium::PredayManager::dispatchPersons()
 			if(i+1 == numWorkers) {
 				// if the next iteration is the last take all remaining persons
 				last = personIdList.end();
+			}
+			else {
+				last = last + numPersonsPerThread;
+			}
+		}
+		threadGroup.join_all();
+	}
+
+	// merge log files from each thread into 1 file.
+	if(mtConfig.isFileOutputEnabled()) { mergeCSV_Files(logFileNames, logFileNamePrefix); }
+}
+
+void sim_mob::medium::PredayManager::dispatchLT_Persons()
+{
+	boost::thread_group threadGroup;
+	unsigned numWorkers = mtConfig.getNumPredayThreads();
+	std::list<std::string> logFileNames;
+	std::string logFileNamePrefix;
+	if(mtConfig.runningPredaySimulation()) { logFileNamePrefix = "activity_schedule"; }
+	else if(mtConfig.runningPredayLogsumComputationForLT()) { logFileNamePrefix = "lt_logsums"; }
+	constructFileNames(numWorkers, logFileNamePrefix, logFileNames);
+
+	if(numWorkers == 1)
+	{ // if single threaded execution was requested
+		if(mtConfig.runningPredaySimulation()) { processPersonsForLT_Population(ltPersonIdList.begin(), ltPersonIdList.end(), logFileNames.front()); }
+		else if(mtConfig.runningPredayLogsumComputation()) { computeLogsumsForLT_Population(ltPersonIdList.begin(), ltPersonIdList.end()); }
+		else if(mtConfig.runningPredayLogsumComputationForLT()) { computeLT_PopulationFeedbackLogsums(ltPersonIdList.begin(), ltPersonIdList.end(), logFileNames.front()); }
+	}
+	else
+	{
+		LT_PersonIdList::size_type numPersons = ltPersonIdList.size();
+		LT_PersonIdList::size_type numPersonsPerThread = numPersons / numWorkers;
+		Print() << "numPersons:" << numPersons << "|numWorkers:" << numWorkers
+				<< "|numPersonsPerThread:" << numPersonsPerThread << std::endl;
+
+		/*
+		 * We are passing different iterators on the same list into the threaded
+		 * function. Each thread will iterate through a mutually exclusive and
+		 * exhaustive set of persons from the population.
+		 *
+		 * Note that each thread will iterate the same personList with different
+		 * start and end iterators. It is therefore important that none of the
+		 * threads change the personList.
+		 */
+		LT_PersonIdList::iterator first = ltPersonIdList.begin();
+		LT_PersonIdList::iterator last = ltPersonIdList.begin()+numPersonsPerThread;
+		std::list<std::string>::const_iterator fileNameIt = logFileNames.begin();
+		for(int i = 1; i<=numWorkers; i++)
+		{
+			if(mtConfig.runningPredaySimulation())
+			{
+				threadGroup.create_thread( boost::bind(&PredayManager::processPersonsForLT_Population, this, first, last, (*fileNameIt)) );
+				fileNameIt++;
+			}
+			else if(mtConfig.runningPredayLogsumComputation())
+			{
+				threadGroup.create_thread( boost::bind(&PredayManager::computeLogsumsForLT_Population, this, first, last) );
+			}
+			else if(mtConfig.runningPredayLogsumComputationForLT())
+			{
+				threadGroup.create_thread( boost::bind(&PredayManager::computeLT_PopulationFeedbackLogsums, this, first, last, (*fileNameIt)) );
+				fileNameIt++;
+			}
+
+			first = last;
+			if(i+1 == numWorkers) {
+				// if the next iteration is the last take all remaining persons
+				last = ltPersonIdList.end();
 			}
 			else {
 				last = last + numPersonsPerThread;
@@ -1110,7 +1189,7 @@ void sim_mob::medium::PredayManager::processPersonsForCalibration(const PersonLi
 
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++)
 	{
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 		predaySystem.planDay();
 		predaySystem.updateStatistics(simStats);
 		if(consoleOutput) { predaySystem.printLogs(); }
@@ -1183,48 +1262,7 @@ void sim_mob::medium::PredayManager::computeWeightedGradient(const std::vector<s
 	}
 }
 
-void sim_mob::medium::PredayManager::processPersons(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, const std::string& activityScheduleLog)
-{
-	bool outputTripchains = mtConfig.isFileOutputEnabled();
-	bool outputPredictions = mtConfig.isOutputPredictions();
-	bool consoleOutput = mtConfig.isConsoleOutput();
-
-	// construct MongoDao-s for this thread
-	std::map<std::string, db::MongoDao*> mongoDao;
-	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
-	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
-	std::string emptyString;
-	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
-	db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
-	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
-		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
-	}
-
-	// open log file for this thread
-    std::ofstream activityScheduleLogFile(activityScheduleLog.c_str(), std::ios::trunc|std::ios::out);
-    std::stringstream activityScheduleStream;
-
-	// loop through all persons within the range and plan their day
-	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
-		predaySystem.planDay();
-		if(outputPredictions) { predaySystem.outputPredictionsToMongo(); }
-		if(outputTripchains)
-		{
-			predaySystem.outputActivityScheduleToStream(zoneNodeMap, activityScheduleStream);
-			outputToFile(activityScheduleLogFile, activityScheduleStream);
-		}
-		if(consoleOutput) { predaySystem.printLogs(); }
-	}
-
-	// destroy local objects
-	for(std::map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
-		safe_delete_item(i->second);
-	}
-	mongoDao.clear();
-}
-
-void sim_mob::medium::PredayManager::processPersonsById(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& activityScheduleLog)
+void sim_mob::medium::PredayManager::processPersons(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& activityScheduleLog)
 {
 	bool outputTripchains = mtConfig.isFileOutputEnabled();
 	bool outputPredictions = mtConfig.isOutputPredictions();
@@ -1254,7 +1292,79 @@ void sim_mob::medium::PredayManager::processPersonsById(const PersonIdList::iter
 	for(PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++) {
 		PersonParams personParams;
 		populationDao.getOneById(*i, personParams);
-		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
+		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
+		predaySystem.planDay();
+		if(outputPredictions) { predaySystem.outputPredictionsToMongo(); }
+		if(outputTripchains)
+		{
+			predaySystem.outputActivityScheduleToStream(zoneNodeMap, activityScheduleStream);
+			outputToFile(activityScheduleLogFile, activityScheduleStream);
+		}
+		if(consoleOutput) { predaySystem.printLogs(); }
+	}
+
+	// destroy local objects
+	for(std::map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
+		safe_delete_item(i->second);
+	}
+	mongoDao.clear();
+}
+
+void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_PersonIdList::iterator& firstPersonIdIt, const LT_PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& activityScheduleLog)
+{
+	bool outputTripchains = mtConfig.isFileOutputEnabled();
+	bool outputPredictions = mtConfig.isOutputPredictions();
+	bool consoleOutput = mtConfig.isConsoleOutput();
+
+	std::map<std::string, db::MongoDao*> mongoDao;
+	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
+	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+	std::string emptyString;
+	db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+
+	// construct MongoDao-s for this thread
+	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
+	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
+		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
+	}
+
+	// construct population dao specially
+	const std::string& populationDbId = mtConfig.getPopulationDb().database;
+	Database populationDatabase = ConfigManager::GetInstance().FullConfig().constructs.databases.at(populationDbId);
+	std::string cred_id = mtConfig.getPopulationDb().credentials;
+	Credential populationCredentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
+	std::string username = populationCredentials.getUsername();
+	std::string password = populationCredentials.getPassword(false);
+	DB_Config populationDbConfig(populationDatabase.host, populationDatabase.port, populationDatabase.dbName, username, password);
+	DB_Connection populationConn(sim_mob::db::POSTGRES, populationDbConfig);
+	populationConn.connect();
+	if(!populationConn.isConnected()) { throw std::runtime_error("population db connection failure!"); }
+	PopulationSqlDao populationDao(populationConn);
+
+	// logsum data source
+	const std::string& logsumDbId = mtConfig.getLogsumDb().database;
+	Database logsumDatabase = ConfigManager::GetInstance().FullConfig().constructs.databases.at(logsumDbId);
+	cred_id = mtConfig.getLogsumDb().credentials;
+	Credential logsumCredentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
+	username = logsumCredentials.getUsername();
+	password = logsumCredentials.getPassword(false);
+	DB_Config logsumDbConfig(logsumDatabase.host, logsumDatabase.port, logsumDatabase.dbName, username, password);
+	DB_Connection logsumConn(sim_mob::db::POSTGRES, logsumDbConfig);
+	logsumConn.connect();
+	if (!logsumConn.isConnected()) { throw std::runtime_error("logsum db connection failure!"); }
+	LogsumSqlDao logsumSqlDao(logsumConn);
+
+	// open log file for this thread
+	std::ofstream activityScheduleLogFile(activityScheduleLog.c_str(), std::ios::trunc|std::ios::out);
+	std::stringstream activityScheduleStream;
+
+	// loop through all persons within the range and plan their day
+	for(LT_PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++) {
+		PersonParams personParams;
+		populationDao.getOneById(*i, personParams);
+		if(personParams.getPersonId().empty()) { continue; } // some persons are not complete in the database
+		logsumSqlDao.getLogsumById(*i, personParams);
+		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 		predaySystem.planDay();
 		if(outputPredictions) { predaySystem.outputPredictionsToMongo(); }
 		if(outputTripchains)
@@ -1280,7 +1390,7 @@ void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonLi
 
 	// loop through all persons within the range and plan their day
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 		predaySystem.computeLogsums();
 		if(consoleOutput) { predaySystem.printLogs(); }
 	}
@@ -1305,38 +1415,11 @@ void sim_mob::medium::PredayManager::updateLogsumsToMongoAfterCalibration(const 
 	}
 }
 
-void sim_mob::medium::PredayManager::computeLogsums(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt)
+void sim_mob::medium::PredayManager::computeLogsums(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt)
 {
-	std::map<std::string, db::MongoDao*> mongoDao;
 	bool consoleOutput = mtConfig.isConsoleOutput();
-	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
-	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
-	std::string emptyString;
-	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
-	db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
-	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
-		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
-	}
 
-	// loop through all persons within the range and plan their day
-	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
-		predaySystem.computeLogsums();
-		predaySystem.updateLogsumsToMongo();
-		if(consoleOutput) { predaySystem.printLogs(); }
-	}
-
-	// destroy Dao objects
-	for(std::map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
-		safe_delete_item(i->second);
-	}
-	mongoDao.clear();
-}
-
-void sim_mob::medium::PredayManager::computeLogsumsById(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt)
-{
 	std::map<std::string, db::MongoDao*> mongoDao;
-	bool consoleOutput = mtConfig.isConsoleOutput();
 	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
 	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 	std::string emptyString;
@@ -1356,7 +1439,7 @@ void sim_mob::medium::PredayManager::computeLogsumsById(const PersonIdList::iter
 	for(PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++) {
 		PersonParams personParams;
 		populationDao.getOneById(*i, personParams);
-		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
+		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 		predaySystem.computeLogsums();
 		predaySystem.updateLogsumsToMongo();
 		if(consoleOutput) { predaySystem.printLogs(); }
@@ -1369,7 +1452,122 @@ void sim_mob::medium::PredayManager::computeLogsumsById(const PersonIdList::iter
 	mongoDao.clear();
 }
 
-void sim_mob::medium::PredayManager::computeLogsumsByIdForLT(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& logsumOutputFileName)
+void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_PersonIdList::iterator& firstPersonIdIt, const LT_PersonIdList::iterator& oneAfterLastPersonIdIt)
+{
+	bool consoleOutput = mtConfig.isConsoleOutput();
+
+	std::map<std::string, db::MongoDao*> mongoDao;
+	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
+	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+	std::string emptyString;
+	db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+
+	// construct MongoDao-s for this thread
+	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
+	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++)
+	{
+		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
+	}
+
+	// construct population dao specially
+	const std::string& populationDbId = mtConfig.getPopulationDb().database;
+	Database populationDatabase = ConfigManager::GetInstance().FullConfig().constructs.databases.at(populationDbId);
+	std::string cred_id = mtConfig.getPopulationDb().credentials;
+	Credential populationCredentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
+	std::string username = populationCredentials.getUsername();
+	std::string password = populationCredentials.getPassword(false);
+	DB_Config populationDbConfig(populationDatabase.host, populationDatabase.port, populationDatabase.dbName, username, password);
+	DB_Connection populationConn(sim_mob::db::POSTGRES, populationDbConfig);
+	populationConn.connect();
+	if(!populationConn.isConnected()) { throw std::runtime_error("population db connection failure!"); }
+	PopulationSqlDao populationDao(populationConn);
+
+	// logsum data source
+	const std::string& logsumDbId = mtConfig.getLogsumDb().database;
+	Database logsumDatabase = ConfigManager::GetInstance().FullConfig().constructs.databases.at(logsumDbId);
+	cred_id = mtConfig.getLogsumDb().credentials;
+	Credential logsumCredentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
+	username = logsumCredentials.getUsername();
+	password = logsumCredentials.getPassword(false);
+	DB_Config logsumDbConfig(logsumDatabase.host, logsumDatabase.port, logsumDatabase.dbName, username, password);
+	DB_Connection logsumConn(sim_mob::db::POSTGRES, logsumDbConfig);
+	logsumConn.connect();
+	if (!logsumConn.isConnected()) { throw std::runtime_error("logsum db connection failure!"); }
+	LogsumSqlDao logsumSqlDao(logsumConn);
+
+	// loop through all persons within the range and plan their day
+	for(LT_PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++)
+	{
+		PersonParams personParams;
+		populationDao.getOneById(*i, personParams);
+		if(personParams.getPersonId().empty()) { continue; } // some persons are not complete in the database
+		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
+		predaySystem.computeLogsums();
+		logsumSqlDao.insert(personParams);
+		if(consoleOutput) { predaySystem.printLogs(); }
+	}
+
+	// destroy Dao objects
+	for(std::map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++)
+	{
+		safe_delete_item(i->second);
+	}
+	mongoDao.clear();
+}
+
+void sim_mob::medium::PredayManager::computeLT_PopulationFeedbackLogsums(const LT_PersonIdList::iterator& firstPersonIdIt, const LT_PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& logsumOutputFileName)
+{
+	std::map<std::string, db::MongoDao*> mongoDao;
+	bool consoleOutput = mtConfig.isConsoleOutput();
+	const MongoCollectionsMap& mongoColl = mtConfig.getMongoCollectionsMap();
+	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+	std::string emptyString;
+	db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+
+	// construct MongoDao-s for this thread
+	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
+	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
+		mongoDao[i->first] = new db::MongoDao(dbConfig, db.dbName, i->second);
+	}
+
+	// construct population dao specially
+	const std::string& populationDbId = mtConfig.getPopulationDb().database;
+	Database populationDatabase = ConfigManager::GetInstance().FullConfig().constructs.databases.at(populationDbId);
+	std::string cred_id = mtConfig.getPopulationDb().credentials;
+	Credential populationCredentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
+	std::string username = populationCredentials.getUsername();
+	std::string password = populationCredentials.getPassword(false);
+	DB_Config populationDbConfig(populationDatabase.host, populationDatabase.port, populationDatabase.dbName, username, password);
+	DB_Connection populationConn(sim_mob::db::POSTGRES, populationDbConfig);
+	populationConn.connect();
+	if(!populationConn.isConnected()) { throw std::runtime_error("population db connection failure!"); }
+	PopulationSqlDao populationDao(populationConn);
+
+	/* initialize log file for this thread and log header line*/
+    std::ofstream logsumOutputFile(logsumOutputFileName.c_str(), std::ios::trunc|std::ios::out);
+    std::stringstream logsumStream;
+    outputToFile(logsumOutputFile, logsumStream);
+
+	// loop through all persons within the range and plan their day
+    PersonParams personParams;
+	PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
+	for(LT_PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++)
+	{
+		populationDao.getOneById(*i, personParams);
+		if(personParams.getPersonId().empty()) { continue; } // some persons are not complete in the database
+		predaySystem.computeLogsumsForLT(logsumStream);
+		outputToFile(logsumOutputFile, logsumStream);
+		if(consoleOutput) { predaySystem.printLogs(); }
+	}
+
+	// destroy Dao objects
+	for(std::map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
+		safe_delete_item(i->second);
+	}
+	mongoDao.clear();
+}
+
+void sim_mob::medium::PredayManager::computeLT_FeedbackLogsums(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& logsumOutputFileName)
 {
 	std::map<std::string, db::MongoDao*> mongoDao;
 	bool consoleOutput = mtConfig.isConsoleOutput();
@@ -1395,7 +1593,7 @@ void sim_mob::medium::PredayManager::computeLogsumsByIdForLT(const PersonIdList:
 
 	// loop through all persons within the range and plan their day
     PersonParams personParams;
-	PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
+	PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 	for(PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++)
 	{
 		populationDao.getOneById(*i, personParams);

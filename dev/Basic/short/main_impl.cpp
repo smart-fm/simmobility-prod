@@ -175,8 +175,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
     	if(signalScats) {
     		LoopDetectorEntity* loopDetector = new LoopDetectorEntity(mtx);
     		signalScats->setLoopDetector(loopDetector);
-    		loopDetector->init(*signal);
+    		loopDetector->init(*signal);			
     		Agent::all_agents.insert(loopDetector);
+			signalScats->curVehicleCounter.init(signalScats);
     	}
     }
 
@@ -375,6 +376,12 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 		//Agent-based cycle, steps 1,2,3,4 of 4
 		wgMgr.waitAllGroups();
+		
+		unsigned long currTimeMS = currTick * config.baseGranMS();
+		if(config.segDensityMap.outputEnabled && (currTimeMS % config.segDensityMap.updateInterval == 0))
+		{
+			DriverMovement::outputDensityMap(currTimeMS/config.segDensityMap.updateInterval);
+		}
 
 		//Check if the warmup period has ended.
 		if (warmupDone) {

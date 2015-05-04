@@ -44,10 +44,10 @@ namespace {
     const string MODEL_NAME = "Developer Model";
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),initialPostcodeForDevAgent(0),initPostcode(false){ //In days (7 - weekly, 30 - Monthly)
+DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false),unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0){ //In days (7 - weekly, 30 - Monthly)
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),buildingId(0),unitId(0),projectId(0),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),initialPostcodeForDevAgent(0),initPostcode(false){
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false), unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0){
 }
 
 DeveloperModel::~DeveloperModel() {
@@ -99,16 +99,19 @@ void DeveloperModel::startImpl() {
 		loadData<ParcelAmenitiesDao>(conn,amenities,amenitiesById,&ParcelAmenities::getFmParcelId);
 		loadData<MacroEconomicsDao>(conn,macroEconomics,macroEconomicsById,&MacroEconomics::getExFactorId);
 
-		UnitDao unitDao(conn);
-		unitId = unitDao.getMaxUnitId();
+		//UnitDao unitDao(conn);
+		//unitId = unitDao.getMaxUnitId();
 
 	}
 	setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	initialPostcodeForDevAgent = config.ltParams.developerModel.initialPostcode;
+	postcodeForDevAgent = config.ltParams.developerModel.initialPostcode;
+	unitIdForDevAgent = config.ltParams.developerModel.initialUnitId;
+	buildingIdForDevAgent = config.ltParams.developerModel.initialBuildingId;
+	projectIdForDevAgent = config.ltParams.developerModel.initialProjectId;
 
 	//get the highest building id, which is the one before the last building id as the last building id contain some random data.
-	buildingId = buildings.at(buildings.size()-2)->getFmBuildingId();
+	//buildingId = buildings.at(buildings.size()-2)->getFmBuildingId();
 	processParcels();
 	createDeveloperAgents(developmentCandidateParcelList);
 	wakeUpDeveloperAgents(getDeveloperAgents(true));
@@ -473,7 +476,7 @@ const bool DeveloperModel::isEmptyParcel(BigSerial id) const {
 
 BigSerial DeveloperModel::getProjectIdForDeveloperAgent()
 {
-	return ++projectId;
+	return ++projectIdForDevAgent;
 }
 
 BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
@@ -487,21 +490,23 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 	}
 	else
 	{
-		return ++buildingId;
+
+		return ++buildingIdForDevAgent;
+
 	}
+
 }
 
 BigSerial DeveloperModel::getUnitIdForDeveloperAgent()
 {
 	boost::lock_guard<boost::recursive_mutex> lock(m_guard);
-	++unitId;
+	return ++unitIdForDevAgent;
 
-	return unitId;
 }
 
 void DeveloperModel::setUnitId(BigSerial unitId)
 {
-	this->unitId = unitId;
+	this->unitIdForDevAgent = unitId;
 }
 
 DeveloperModel::BuildingList DeveloperModel::getBuildings()
@@ -567,11 +572,11 @@ int DeveloperModel::getPostcodeForDeveloperAgent()
 	if(initPostcode)
 	{
 		initPostcode = false;
-		return initialPostcodeForDevAgent;
+		return postcodeForDevAgent;
 	}
 	else
 	{
-		return ++initialPostcodeForDevAgent;
+		return ++postcodeForDevAgent;
 	}
 
 }

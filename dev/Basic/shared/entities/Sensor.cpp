@@ -36,8 +36,8 @@ Sensor::getCountAndTimePair(Lane const & lane) const
         Shared<CountAndTimePair> const * pair = iter->second;
         return pair->get();
     }
-    std::ostringstream stream;
-    stream << "Sensor::getCountAndTimePair() was called on invalid lane" << &lane;
+    std::stringstream stream("");
+    stream << "Sensor::getCountAndTimePair() was called on invalid lane:" << &lane;
     throw std::runtime_error(stream.str());
 }
 

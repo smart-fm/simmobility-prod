@@ -21,6 +21,7 @@
 #include "database/dao/TaxiAccessCoefficientsDao.hpp"
 #include "database/dao/EstablishmentDao.hpp"
 #include "database/dao/JobDao.hpp"
+#include "database/dao/HousingInterestRateDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -366,6 +367,9 @@ void HM_Model::startImpl()
 
 		loadData<JobDao>( conn, jobs, jobsById, &Job::getId);
 		PrintOutV("Number of jobs: " << jobs.size() << std::endl );
+
+		loadData<HousingInterestRateDao>( conn, housingInterestRates, housingInterestRatesById, &HousingInterestRate::getId);
+		PrintOutV("Number of interest rate quarters: " << housingInterestRates.size() << std::endl );
 	}
 
 

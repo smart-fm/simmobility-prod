@@ -14,6 +14,7 @@
 #include "database/entity/Awakening.hpp"
 #include "database/entity/VehicleOwnershipCoefficients.hpp"
 #include "database/entity/TaxiAccessCoefficients.hpp"
+#include "database/entity/HousingInterestRate.hpp"
 #include "database/entity/Postcode.hpp"
 #include "database/entity/Establishment.hpp"
 #include "database/entity/Job.hpp"
@@ -56,6 +57,9 @@ namespace sim_mob
 
             typedef std::vector<Job*> JobList;
             typedef boost::unordered_map<BigSerial, Job*> JobMap;
+
+            typedef std::vector<HousingInterestRate*> HousingInterestRateList;
+            typedef boost::unordered_map<BigSerial, HousingInterestRate*> HousingInterestRateMap;
 
 
             /**
@@ -158,6 +162,9 @@ namespace sim_mob
 
             EstablishmentList establishments;
             EstablishmentMap establishmentsById;
+
+            HousingInterestRateList housingInterestRates;
+            HousingInterestRateMap housingInterestRatesById;
 
             JobList jobs;
             JobMap jobsById;

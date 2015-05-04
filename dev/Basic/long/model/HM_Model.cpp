@@ -153,6 +153,11 @@ HM_Model::HouseholdList* HM_Model::getHouseholdList()
 	return &households;
 }
 
+HM_Model::HousingInterestRateList* HM_Model::getHousingInterestRateList()
+{
+	return &housingInterestRates;
+}
+
 
 Postcode* HM_Model::getPostcodeById(BigSerial id) const
 {

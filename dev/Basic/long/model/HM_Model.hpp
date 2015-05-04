@@ -116,6 +116,8 @@ namespace sim_mob
 
             HouseholdList* getHouseholdList();
 
+            HousingInterestRateList* getHousingInterestRateList();
+
             void incrementBidders();
             void decrementBidders();
             int	 getNumberOfBidders();

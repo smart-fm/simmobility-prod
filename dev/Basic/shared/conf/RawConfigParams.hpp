@@ -69,7 +69,6 @@ struct LongTermParams{
 		int initialHouseholdsOnMarket;
 		float housingMarketSearchPercentage;
 		float housingMoveInDaysInterval;
-		float interestRate;
 	} housingModel;
 
 	struct VehicleOwnershipModel{

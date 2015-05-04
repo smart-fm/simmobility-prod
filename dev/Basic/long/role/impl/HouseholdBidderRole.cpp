@@ -114,8 +114,6 @@ void HouseholdBidderRole::ComputeHouseholdAffordability()
 {
 	householdAffordabilityAmount = 0;
 
-	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
 	const Household *bidderHousehold = getParent()->getHousehold();
 
 	std::vector<BigSerial> individuals = bidderHousehold->getIndividuals();
@@ -150,9 +148,14 @@ void HouseholdBidderRole::ComputeHouseholdAffordability()
 
 	double income = debtToIncomeRatio * bidderHousehold->getIncome();
 	double loanTenure = 65 - bidderHousehold->getAgeOfHead();
-	double interestRate = 	config.ltParams.housingModel.interestRate / 12.0;
 
-	householdAffordabilityAmount = income / interestRate *  ( 1 - pow(1 + interestRate, -loanTenure ) );
+	HM_Model::HousingInterestRateList *interestRateListX = getParent()->getModel()->getHousingInterestRateList();
+
+	const double quarter = 365.0 / 4.0; // a yearly quarter
+	int index =	day / quarter;
+	double interestRate = (*interestRateListX)[index]->getInterestRate();
+
+	householdAffordabilityAmount = income / interestRate *  ( 1 - pow( 1 + interestRate, -loanTenure ) );
 
 	//PrintOutV("Household affordability: " << householdAffordabilityAmount << std::endl);
 }

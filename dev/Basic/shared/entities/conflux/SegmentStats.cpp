@@ -444,19 +444,6 @@ double SegmentStats::getTotalVehicleLength() const
 	return totalLength;
 }
 
-int SegmentStats::getTotalOutputCounter() const
-{
-	int totalOutputCtr = 0;
-	for (LaneStatsMap::const_iterator laneStatsIt = laneStatsMap.begin(); laneStatsIt != laneStatsMap.end(); laneStatsIt++)
-	{
-		if(!laneStatsIt->second->isLaneInfinity())
-		{
-			totalOutputCtr += getLaneParams(laneStatsIt->first)->getOutputCounter();
-		}
-	}
-	return totalOutputCtr;
-}
-
 //density will be computed in vehicles/meter for the moving part of the segment
 double SegmentStats::getDensity(bool hasVehicle)
 {
@@ -922,7 +909,6 @@ std::string sim_mob::SegmentStats::reportSegmentStats(uint32_t frameNumber)
 				<< segVehicleSpeed << ","
 				<< density << ","
 				<< supplyParams.getCapacity() << ","
-				<< getTotalOutputCounter()
 				<< std::endl;
 	}
 	return msg.str();

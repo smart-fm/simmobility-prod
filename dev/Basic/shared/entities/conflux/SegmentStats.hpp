@@ -373,9 +373,6 @@ protected:
 	 */
 	void addBusStop(const sim_mob::BusStop* stop);
 
-	//TODO: remove this after debugging
-	int getTotalOutputCounter() const;
-
 public:
 	SegmentStats(const sim_mob::RoadSegment* rdSeg, double length);
 	~SegmentStats();

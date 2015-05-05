@@ -609,32 +609,25 @@ unsigned int sim_mob::Conflux::resetOutputBounds() {
 	return vqCount;
 }
 
-bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
+bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk)
+{
 	bool res = false;
 	{
 		boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
-		try {
+		try
+		{
 			res = (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
-			if(lnk->getSegments().front()->getSegmentAimsunId() == 11717 && !res)
-			{
-				int i = 0;
-
-				sim_mob::SegmentStats* segStats = upstreamSegStatsMap.at(lnk).front();
-				int num_emptySpaces = std::ceil(segStats->getRoadSegment()->getPolylineLength()*segStats->getRoadSegment()->getLanes().size()/PASSENGER_CAR_UNIT)
-								- segStats->numMovingInSegment(true) - segStats->numQueuingInSegment(true);
-
-				Print() << "VQ size 11717: " << virtualQueuesMap.at(lnk).size() << "|VQ Bound: " << vqBounds.at(lnk)
-						<< "|empty space: " << num_emptySpaces <<std::endl;
-			}
 		}
-		catch(std::out_of_range& ex){
+		catch(std::out_of_range& ex)
+		{
 			debugMsgs  << boost::this_thread::get_id() << " out_of_range exception occured in hasSpaceInVirtualQueue()"
 					<< "|Conflux: " << this->multiNode->getID()
 					<< "|lnk:[" << lnk->getStart()->getID() << "," << lnk->getEnd()->getID() << "]"
 					<< "|lnk:" << lnk
 					<< "|virtualQueuesMap.size():" << virtualQueuesMap.size()
 					<< "|elements:";
-			for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i!= virtualQueuesMap.end(); i++) {
+			for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i!= virtualQueuesMap.end(); i++)
+			{
 				debugMsgs << " ([" << i->first->getStart()->getID() << "," << i->first->getEnd()->getID() << "]:" << i->first << "," << i->second.size() << "),";
 			}
 			debugMsgs << "|\nvqBounds.size(): " << vqBounds.size() << std::endl;
@@ -644,15 +637,10 @@ bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
 	return res;
 }
 
-void sim_mob::Conflux::pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p) {
-	{
-		boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
-		virtualQueuesMap.at(lnk).push_back(p);
-		if(lnk->getSegments().front()->getSegmentAimsunId() == 11717)
-		{
-			Print() << "VQ 11717 size: " << virtualQueuesMap.at(lnk).size() << std::endl;
-		}
-	}
+void sim_mob::Conflux::pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p)
+{
+	boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
+	virtualQueuesMap.at(lnk).push_back(p);
 }
 
 double sim_mob::Conflux::computeTimeToReachEndOfLink(sim_mob::SegmentStats* segStats, double distanceToEndOfSeg) const{

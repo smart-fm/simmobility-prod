@@ -157,7 +157,7 @@ void HouseholdBidderRole::ComputeHouseholdAffordability()
 
 	householdAffordabilityAmount = income / interestRate *  ( 1 - pow( 1 + interestRate, -loanTenure ) );
 
-	//PrintOutV("Household affordability: " << householdAffordabilityAmount << std::endl);
+	//PrintOutV( "Interest rate: " << interestRate << ". Household affordability: " << householdAffordabilityAmount << std::endl);
 }
 
 void HouseholdBidderRole::init()
@@ -169,10 +169,10 @@ void HouseholdBidderRole::init()
 
 void HouseholdBidderRole::update(timeslice now)
 {
+	day = now.ms();
+
 	if(initBidderRole)
 		init();
-
-	day = now.ms();
 
 	//This bidder has a successful bid already.
 	//It's now waiting to move in its new unit.

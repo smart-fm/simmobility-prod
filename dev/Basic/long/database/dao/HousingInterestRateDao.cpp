@@ -21,7 +21,7 @@ void HousingInterestRateDao::fromRow(Row& result, HousingInterestRate& outObj)
     outObj.id	= result.get<BigSerial>( "id", INVALID_ID);
     outObj.from_date	= result.get<std::tm>( "from_date", std::tm());
     outObj.to_date		= result.get<std::tm>( "to_date", std::tm());
-    outObj.interestRate	= result.get<float>( "interestRate", .0);
+    outObj.interestRate	= result.get<double>( "interest_rate", .0);
 
 }
 

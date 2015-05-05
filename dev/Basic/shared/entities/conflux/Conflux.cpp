@@ -594,10 +594,10 @@ unsigned int sim_mob::Conflux::resetOutputBounds() {
 		//outputEstimate = segStats->computeExpectedOutputPerTick();
 		/** using ceil here, just to avoid short segments returning 0 as the total number of vehicles the road segment can hold i.e. when segment is shorter than a car**/
 		int num_emptySpaces = std::ceil(segStats->getRoadSegment()->getPolylineLength()*segStats->getRoadSegment()->getLanes().size()/PASSENGER_CAR_UNIT)
-				- segStats->numMovingInSegment(true) - segStats->numQueuingInSegment(true);
+									- segStats->numMovingInSegment(true) - segStats->numQueuingInSegment(true);
 		outputEstimate = (num_emptySpaces>=0)? num_emptySpaces:0;
 		/** we are decrementing the number of agents in lane infinity (of the first segment) to overcome problem [2] above**/
-		outputEstimate = outputEstimate - virtualQueuesMap.at(lnk).size() - segStats->numAgentsInLane(segStats->laneInfinity); // decrement num. of agents already in virtual queue
+		outputEstimate = outputEstimate - segStats->numAgentsInLane(segStats->laneInfinity);
 		outputEstimate = (outputEstimate>0? outputEstimate : 0);
 		vqBounds.insert(std::make_pair(lnk, (unsigned int)outputEstimate));
 		vqCount += virtualQueuesMap.at(lnk).size();
@@ -615,6 +615,17 @@ bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
 		boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
 		try {
 			res = (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
+			if(lnk->getSegments().front()->getSegmentAimsunId() == 11717 && !res)
+			{
+				int i = 0;
+
+				sim_mob::SegmentStats* segStats = upstreamSegStatsMap.at(lnk).front();
+				int num_emptySpaces = std::ceil(segStats->getRoadSegment()->getPolylineLength()*segStats->getRoadSegment()->getLanes().size()/PASSENGER_CAR_UNIT)
+								- segStats->numMovingInSegment(true) - segStats->numQueuingInSegment(true);
+
+				Print() << "VQ size 11717: " << virtualQueuesMap.at(lnk).size() << "|VQ Bound: " << vqBounds.at(lnk)
+						<< "|empty space: " << num_emptySpaces <<std::endl;
+			}
 		}
 		catch(std::out_of_range& ex){
 			debugMsgs  << boost::this_thread::get_id() << " out_of_range exception occured in hasSpaceInVirtualQueue()"
@@ -637,6 +648,10 @@ void sim_mob::Conflux::pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Per
 	{
 		boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
 		virtualQueuesMap.at(lnk).push_back(p);
+		if(lnk->getSegments().front()->getSegmentAimsunId() == 11717)
+		{
+			Print() << "VQ 11717 size: " << virtualQueuesMap.at(lnk).size() << std::endl;
+		}
 	}
 }
 
@@ -708,11 +723,11 @@ void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
 		const SegmentStatsList& linkSegments = upstreamIt->second;
 		for(SegmentStatsList::const_iterator segIt = linkSegments.begin(); segIt != linkSegments.end(); segIt++)
 		{
-			(*segIt)->updateLaneParams(frameNumber);
 			if (updateThisTick && outputEnabled)
 			{
 				Log() << (*segIt)->reportSegmentStats(frameNumber.frame()/updtInterval);
 			}
+			(*segIt)->updateLaneParams(frameNumber);
 		}
 	}
 }
@@ -1018,11 +1033,13 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFrameTick(timeslice now, Pers
 			// grant permission. But check whether the subsequent frame_tick can be called now.
 			person->canMoveToNextSegment = Person::GRANTED;
 			long currentFrame = now.frame(); //frame will not be outside the range of long data type
+			LaneParams* currLnParams = person->getCurrSegStats()->getLaneParams(person->getCurrLane());
 			if(currentFrame > nxtConflux->getLastUpdatedFrame())
 			{
 				// nxtConflux is not processed for the current tick yet
-				if(nxtConflux->hasSpaceInVirtualQueue(nxtSegment->getLink()))
+				if(nxtConflux->hasSpaceInVirtualQueue(nxtSegment->getLink()) && currLnParams->getOutputCounter() > 0)
 				{
+					currLnParams->decrementOutputCounter();
 					person->setCurrSegStats(person->requestedNextSegStats);
 					person->setCurrLane(nullptr); // so that the updateAgent function will add this agent to the virtual queue
 					person->requestedNextSegStats = nullptr;
@@ -1038,7 +1055,16 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFrameTick(timeslice now, Pers
 			{
 				// nxtConflux is processed for the current tick. Can move to the next link.
 				// already handled by setting person->canMoveToNextSegment = GRANTED
-				person->requestedNextSegStats = nullptr;
+				if(currLnParams->getOutputCounter() > 0)
+				{
+					currLnParams->decrementOutputCounter();
+					person->requestedNextSegStats = nullptr;
+				}
+				else
+				{
+					person->canMoveToNextSegment = Person::DENIED;
+					person->requestedNextSegStats = nullptr;
+				}
 			}
 			else { throw std::runtime_error("lastUpdatedFrame of confluxes are managed incorrectly"); }
 		}

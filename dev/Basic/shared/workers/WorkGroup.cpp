@@ -371,7 +371,7 @@ void sim_mob::WorkGroup::waitFlipBuffers(bool singleThreaded, std::set<sim_mob::
 
 		if(periodicPersonLoader && periodicPersonLoader->checkTimeForNextLoad())
 		{
-			periodicPersonLoader->loadActivitySchedules();
+			//periodicPersonLoader->loadActivitySchedules();
 		}
 		//Stage Agent updates based on nextTimeTickToStage
 		stageEntities();

@@ -444,6 +444,19 @@ double SegmentStats::getTotalVehicleLength() const
 	return totalLength;
 }
 
+int SegmentStats::getTotalOutputCounter() const
+{
+	int totalOutputCtr = 0;
+	for (LaneStatsMap::const_iterator laneStatsIt = laneStatsMap.begin(); laneStatsIt != laneStatsMap.end(); laneStatsIt++)
+	{
+		if(!laneStatsIt->second->isLaneInfinity())
+		{
+			totalOutputCtr += getLaneParams(laneStatsIt->first)->getOutputCounter();
+		}
+	}
+	return totalOutputCtr;
+}
+
 //density will be computed in vehicles/meter for the moving part of the segment
 double SegmentStats::getDensity(bool hasVehicle)
 {
@@ -907,7 +920,9 @@ std::string sim_mob::SegmentStats::reportSegmentStats(uint32_t frameNumber)
 				<< numMovingInSegment(true) << ","
 				<< numQueuingInSegment(true) << ","
 				<< segVehicleSpeed << ","
-				<< density 
+				<< density << ","
+				<< supplyParams.getCapacity() << ","
+				<< getTotalOutputCounter()
 				<< std::endl;
 	}
 	return msg.str();
@@ -1196,6 +1211,12 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 		}
 	}
 	return dequeuedPerson;
+}
+
+void LaneParams::decrementOutputCounter()
+{
+	if(outputCounter > 0) { outputCounter--; }
+	else { throw std::runtime_error("cannot allow vehicles beyond output capacity."); }
 }
 
 } // end of namespace sim_mob

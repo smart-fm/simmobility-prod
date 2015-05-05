@@ -93,6 +93,7 @@ public:
 	double getAcceptRate() {return acceptRate;}
 
 	void setOutputCounter(int count) { outputCounter = count; }
+	void decrementOutputCounter();
 	void setOutputFlowRate(double output) {outputFlowRate = output;}
 	void setOrigOutputFlowRate(double orig) {origOutputFlowRate = orig;}
 
@@ -371,6 +372,9 @@ protected:
 	 * @param stop bus stop to be added
 	 */
 	void addBusStop(const sim_mob::BusStop* stop);
+
+	//TODO: remove this after debugging
+	int getTotalOutputCounter() const;
 
 public:
 	SegmentStats(const sim_mob::RoadSegment* rdSeg, double length);

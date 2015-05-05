@@ -471,7 +471,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 			removeFromQueue();
 		}
 
-		setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat)-1), currSegStat);
+		//setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat)-1), currSegStat);
 		currLane = laneInNextSegment;
 		pathMover.advanceInPath();
 		pathMover.setPositionInSegment(nextSegStats->getLength());
@@ -538,6 +538,11 @@ bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& param
 	//check if the next road segment has sufficient empty space to accommodate one more vehicle
 	if (!nextSegStats) {
 		return false;
+	}
+
+	if(nextSegStats->getRoadSegment()->getSegmentAimsunId() == 9453 || nextSegStats->getRoadSegment()->getSegmentAimsunId() == 11717)
+	{
+		int i = 0;
 	}
 
 	double enteringVehicleLength =  parentDriver->getResource()->getLengthCm();

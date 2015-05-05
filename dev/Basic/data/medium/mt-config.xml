@@ -10,7 +10,7 @@
         <supply>
         
                 <!-- period of supply output -->
-                <update_interval value="1" units="minute" />
+                <update_interval value="5" units="seconds" />
                 
                 <!-- these parameters are used to calculate dwell time of buses at bus stops-->
                 <!-- these parameters will be organized in a better way after finding the meaning of these numbers -->

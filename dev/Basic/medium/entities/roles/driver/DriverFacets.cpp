@@ -148,7 +148,9 @@ void sim_mob::medium::DriverMovement::frame_tick() {
 
 			params.elapsedSeconds = params.secondsInTick;
 			getParent()->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
+			getParent()->canMoveToNextSegment = Person::NONE;
 			setParentData(params);
+			return;
 		}
 	}
 	//if driver is still in lane infinity (currLane is null),

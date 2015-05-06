@@ -729,7 +729,7 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 				work->dbgStr = out.str();
 				work->timeBased = false;
 
-				if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+				if(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
 				{
 					/*
 					 * NOTE:
@@ -799,7 +799,7 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 				work->dbgStr = out.str();
 				work->timeBased = true;
 
-				if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+				if(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
 				{
 					/*
 					 * NOTE:
@@ -866,7 +866,7 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 				work->dbgStr = out.str();
 				work->timeBased = true;
 
-				if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+				if(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
 				{
 					/*
 					 * NOTE:
@@ -926,7 +926,7 @@ int sim_mob::PathSetManager::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps
 		RandPertStorage.push_back(work);
 		work->timeBased = true;
 
-		if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+		if(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
 		{
 			/*
 			 * NOTE:
@@ -990,7 +990,7 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 
 	//K-SHORTEST PATH
 	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> KSP_Storage;//main storage for k-shortest path
-	if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+	if(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
 	{
 		genK_ShortestPath(ps, KSP_Storage);
 	}
@@ -1017,7 +1017,7 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 	std::vector<PathSetWorkerThread*> randPertStorage;
 	genRandPert(ps,randPertStorage);
 
-	if(!(ConfigManager::GetInstance().PathSetConfig().mode == "generation"))
+	if(!(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation"))
 	{
 		/*
 		 * NOTE:

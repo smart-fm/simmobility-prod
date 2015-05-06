@@ -194,7 +194,19 @@ struct PathSetConf
 	PathSetConf():enabled(false), RTTT_Conf(""), DTT_Conf(""), psRetrieval(""), interval(0),
 	recPS(false),reroute(false), cbd(false), subTripOP(""), perturbationRange(std::pair<unsigned short,unsigned short>(0,0)), kspLevel(0), perturbationIteration(0){}
 	bool enabled;
-	std::string mode;//pathset operation mode "normal" , "generation"(for bulk pathset generation)
+	bool privatePathSetEnabled;
+	std::string privatePathSetMode;//pathset operation mode "normal" , "generation"(for bulk pathset generation)
+
+	bool publicPathSetEnabled;
+	std::string publicPathSetMode;
+
+	std::string publicPathSetOdSource;
+	std::string publicPathSetOutputFile;
+	// Public PathSet Generation Algorithm Configurations
+
+	int publickShortestPathLevel;
+	int simulationApproachIterations;
+
 	int threadPoolSize;
 	std::string bulkFile; //in case of using pathset manager in "generation" mode, the results will be outputted to this file
 	std::string odSourceTableName; //data source for getting ODs for bulk pathset generation

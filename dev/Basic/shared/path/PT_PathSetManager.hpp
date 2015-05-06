@@ -7,6 +7,7 @@
  *  Created on: Mar 18, 2015
  *      Author: Prabhuraj
  */
+
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
@@ -41,7 +42,6 @@ public:
 	void PT_BulkPathSetGenerator();
 	void writePathSetFileHeader();
 	const int labelPoolSize;
-	const int simulationApproachPoolSize;
 	std::ofstream ptPathSetWriter;
 };
 struct PT_OD{

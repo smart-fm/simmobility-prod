@@ -2566,7 +2566,7 @@ bool sim_mob::aimsun::Loader::storeSinglePath(soci::session& sql,
 		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& pathPool,const std::string pathSetTableName)
 {
 	bool res = false;
-	if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+	if(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
 	{
 		sim_mob::BasicLogger & pathsetCSV = sim_mob::Logger::log(ConfigManager::GetInstance().PathSetConfig().bulkFile);
 		BOOST_FOREACH(sim_mob::SinglePath* sp, pathPool)

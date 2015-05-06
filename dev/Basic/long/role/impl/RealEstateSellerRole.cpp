@@ -34,6 +34,8 @@ namespace
     const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
     //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, speculation, asking_price, floor_area, type_id, target_price, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
     const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%";
+    //unit Id
+    const std::string LOG_UNIT = "%1%";
 
     /**
      * Print the current bid on the unit.
@@ -90,6 +92,17 @@ namespace
 
         AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::EXPECTATIONS, fmtr.str());
         //PrintOut(fmtr.str() << endl);
+    }
+
+    /**
+     * Write the data of units to a csv.
+     * @param unit to be written.
+     *
+     */
+    inline void printNewUnitsInMarket(BigSerial unitId) {
+
+    	boost::format fmtr = boost::format(LOG_UNIT) % unitId;
+    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::UNITS_IN_MARKET,fmtr.str());
     }
 
     /**
@@ -258,6 +271,8 @@ void RealEstateSellerRole::update(timeslice now)
 				#ifdef VERBOSE
                 PrintOutV("[day " << currentTime.ms() << "] RealEstate Agent " <<  this->getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
 				#endif
+
+                printNewUnitsInMarket(unit->getId());
             }
 
             selling = true;
@@ -399,6 +414,7 @@ void RealEstateSellerRole::notifyWinnerBidders()
         PrintOutV("[day " << currentTime.ms() << "] RealEstate Agent. Seller " << std::dec << getParent()->getId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << std::endl );
 		#endif
 
+        printNewUnitsInMarket(maxBidOfDay.getUnitId());
         market->removeEntry(maxBidOfDay.getUnitId());
         dynamic_cast<RealEstateAgent*>(getParent())->removeUnitId(maxBidOfDay.getUnitId());
         sellingUnitsMap.erase(maxBidOfDay.getUnitId());

@@ -9,6 +9,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "geospatial/BusStop.hpp"
+#include "Pedestrian.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 
 namespace sim_mob {
@@ -26,7 +27,7 @@ PedestrianBehavior::~PedestrianBehavior() {
 PedestrianMovement::PedestrianMovement(sim_mob::Person* parentAgent,double speed) :
 		MovementFacet(parentAgent), parentPedestrian(nullptr),
 		remainingTimeToComplete(0), walkSpeed(speed),
-		startLink(nullptr){
+		startLink(nullptr), totalTimeToCompleteSec(10){
 }
 
 PedestrianMovement::~PedestrianMovement() {}
@@ -89,11 +90,6 @@ void PedestrianMovement::frame_init() {
 	for (; it != roadSegs.end(); it++) {
 		const RoadSegment* rdSeg = *it;
 		curDistance = rdSeg->getPolylineLength();
-		if (rdSeg == segStart) {
-			curDistance = actualDistanceStart;
-		} else if (rdSeg == segEnd) {
-			curDistance = actualDistanceEnd;
-		}
 
 		if (rdSeg->getLink() == currentLink) {
 			distanceInLink += curDistance;
@@ -102,6 +98,9 @@ void PedestrianMovement::frame_init() {
 			trajectory.push_back((std::make_pair(currentLink, remainingTime)));
 			currentLink = rdSeg->getLink();
 			distanceInLink = curDistance;
+			if(remainingTime<1.0){
+				int ii=0;
+			}
 		}
 	}
 
@@ -114,6 +113,8 @@ void PedestrianMovement::frame_init() {
 		remainingTimeToComplete = trajectory.front().second;
 		startLink = trajectory.front().first;
 		trajectory.erase(trajectory.begin());
+		totalTimeToCompleteSec += remainingTimeToComplete;
+		parentPedestrian->setTravelTime(totalTimeToCompleteSec*1000);
 	}
 
 }
@@ -200,6 +201,8 @@ void PedestrianMovement::frame_tick() {
 			remainingTimeToComplete = trajectory.front().second - lastRemainingTime;
 			trajectory.erase(trajectory.begin());
 			getParent()->setNextLinkRequired(nextLink);
+			totalTimeToCompleteSec += remainingTimeToComplete;
+			parentPedestrian->setTravelTime(totalTimeToCompleteSec*1000);
 		}
 	}
 	else {

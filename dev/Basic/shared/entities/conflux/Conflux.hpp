@@ -528,6 +528,11 @@ public:
 	 */
 	static void removeIncident(sim_mob::SegmentStats* segStats);
 
+	/**
+	 * collect current person travel time
+	 */
+	void collectTravelTime(Person* person);
+
 	bool isBoundary; //A conflux that receives person from at least one conflux that belongs to another worker
 	bool isMultipleReceiver; //A conflux that receives persons from confluxes that belong to multiple other workers
 };

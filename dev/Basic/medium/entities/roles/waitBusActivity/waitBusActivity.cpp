@@ -7,6 +7,8 @@
 #include "entities/Person.hpp"
 #include "geospatial/BusStop.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
+#include "message/MT_Message.hpp"
+#include "entities/PT_Statistics.hpp"
 
 using std::vector;
 using namespace sim_mob;
@@ -41,6 +43,25 @@ void sim_mob::medium::WaitBusActivity::increaseWaitingTime(unsigned int incremen
 void sim_mob::medium::WaitBusActivity::make_frame_tick_params(timeslice now)
 {
 	getParams().reset(now);
+}
+
+void sim_mob::medium::WaitBusActivity::collectTravelTime()
+{
+	std::string personId, startPoint, endPoint, mode, service, arrivaltime,
+			travelTime;
+	personId = boost::lexical_cast<std::string>(parent->GetId());
+	startPoint = parent->currSubTrip->fromLocationId;
+	endPoint = parent->currSubTrip->toLocationId;
+	mode = parent->currSubTrip->getMode();
+	service = parent->currSubTrip->ptLineId;
+	travelTime = DailyTime(parent->getRole()->getTravelTime()).toString();
+
+	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(),
+			STORE_PERSON_TRAVEL,
+			messaging::MessageBus::MessagePtr(
+					new PersonTravelTimeMessage(personId, startPoint, endPoint,
+							mode, service, arrivaltime, travelTime)));
+
 }
 
 void sim_mob::medium::WaitBusActivity::increaseFailedBoardingTimes()

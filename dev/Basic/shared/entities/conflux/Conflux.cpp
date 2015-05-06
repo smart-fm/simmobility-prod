@@ -262,7 +262,10 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 		//if the person has switched to Pedestrian role, put the person in that list
 		if (afterUpdate.roleType == sim_mob::Role::RL_PEDESTRIAN)
 		{
-			pedestrianList.push_back(person);
+			PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
+			if (pIt == pedestrianList.end()){
+				pedestrianList.push_back(person);
+			}
 			return; //we are done here.
 		}
 	}
@@ -757,6 +760,7 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 	}
 	}
 
+	//Print()<<"agent is removed by conflux:"<<person->getId()<<"|role:"<<(int)personRoleType<<std::endl;
 	parentWorker->remEntity(person);
 	parentWorker->scheduleForRemoval(person);
 }
@@ -881,7 +885,8 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 		messaging::MessageBus::ReRegisterHandler(msg.person, GetContext());
 		mrt.push_back(msg.person);
 		DailyTime time = msg.person->currSubTrip->endTime;
-		unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranSecond();
+		msg.person->getRole()->setTravelTime(time.getValue());
+		unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
 		//TODO: compute time to be expired and send message to self
 		messaging::MessageBus::PostMessage(this, MSG_WAKE_UP, messaging::MessageBus::MessagePtr(new PersonMessage(msg.person)), false, time.getValue()/tick); //last parameter (0) must be updated with actual time
 		break;
@@ -892,7 +897,7 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 		PersonList::iterator pIt = std::find(mrt.begin(), mrt.end(), msg.person);
 		if(pIt==mrt.end()) { throw std::runtime_error("Person not found in MRT list"); }
 		mrt.erase(pIt);
-
+		messaging::MessageBus::UnRegisterHandler(msg.person);
 		//switch to next trip chain item
 		switchTripChainItem(msg.person);
 		break;
@@ -902,8 +907,16 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 	}
 }
 
+void sim_mob::Conflux::collectTravelTime(Person* person)
+{
+	if(person && person->getRole()){
+		person->getRole()->collectTravelTime();
+	}
+}
+
 Entity::UpdateStatus sim_mob::Conflux::switchTripChainItem(Person* person)
 {
+	collectTravelTime(person);
 	Entity::UpdateStatus retVal = person->checkTripChain();
 	if (retVal.status == UpdateStatus::RS_DONE) { return retVal; }
 	Role* personRole = person->getRole();

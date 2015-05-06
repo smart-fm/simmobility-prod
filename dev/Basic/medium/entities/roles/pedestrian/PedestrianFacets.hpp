@@ -85,6 +85,7 @@ protected:
 	std::vector<std::pair<Link*, double> > trajectory;
 	/**starting link*/
 	sim_mob::Link* startLink;
+	double totalTimeToCompleteSec;
 };
 
 }

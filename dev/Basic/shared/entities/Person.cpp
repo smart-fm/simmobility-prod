@@ -588,6 +588,8 @@ void sim_mob::Person::insertWaitingActivityToTrip() {
 						subTrip.fromLocationType = itSubTrip[1]->fromLocationType;
 						subTrip.toLocation = itSubTrip[1]->toLocation;
 						subTrip.toLocationType = itSubTrip[1]->toLocationType;
+						subTrip.fromLocationId = itSubTrip[1]->fromLocation.busStop_->getBusstopno_();
+						subTrip.toLocationId = itSubTrip[1]->fromLocation.busStop_->getBusstopno_();
 						subTrip.mode = "WaitingBusActivity";
 						subTrip.ptLineId = itSubTrip[1]->ptLineId;
 						itSubTrip[1] = subTrips.insert(itSubTrip[1], subTrip);
@@ -601,10 +603,11 @@ void sim_mob::Person::insertWaitingActivityToTrip() {
 	}
 }
 
-void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
+bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
 		std::vector<sim_mob::SubTrip>& newSubTrips,
 		const std::vector<sim_mob::OD_Trip>& matchedTrips) {
 
+	bool ret = true;
 	if (matchedTrips.size() > 0) {
 		std::vector<sim_mob::OD_Trip>::const_iterator it = matchedTrips.begin();
 		while (it != matchedTrips.end()) {
@@ -675,8 +678,10 @@ void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
 				subTrip.itemType = TripChainItem::getItemType("Trip");
 				subTrip.sequenceNumber = 1;
 				subTrip.startTime = curSubTrip->endTime;
-				subTrip.endTime = DailyTime((*it).travelTime);
+				subTrip.endTime = DailyTime((*it).travelTime*1000.0);
 				subTrip.fromLocation = source;
+				subTrip.fromLocationId = sSrc;
+				subTrip.toLocationId = sEnd;
 				if (source.type_ == WayPoint::BUS_STOP) {
 					subTrip.fromLocationType =
 							TripChainItem::LT_PUBLIC_TRANSIT_STOP;
@@ -704,15 +709,18 @@ void sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
 				newSubTrips.push_back(subTrip);
 			} else {
 				Print()
-						<< "public trip failed:["
+						<< "[public transit]make trip failed:["
 						<< sSrc
 						<< "]|["
 						<< sEnd
 						<< "]"<<std::endl;
+				ret = false;
+				break;
 			}
 			++it;
 		}
 	}
+	return ret;
 }
 
 void sim_mob::Person::convertODsToTrips() {
@@ -739,11 +747,15 @@ void sim_mob::Person::convertODsToTrips() {
 							itSubTrip->fromLocation.node_->getID());
 					std::string destId = boost::lexical_cast<std::string>(
 							itSubTrip->toLocation.node_->getID());
+					(*tripChainItem)->fromLocationId = originId;
+					(*tripChainItem)->toLocationId = destId;
+
 					bool ret = sim_mob::PT_RouteChoiceLuaModel::Instance()->GetBestPT_Path(originId, destId, odTrips);
 
 					if (ret) {
-						makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips);
-					} else {
+						ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips);
+					}
+					if(!ret){
 						brokenBusTravel = true;
 						brokenBusTravelItem = tripChainItem;
 						break;
@@ -1152,7 +1164,7 @@ void sim_mob::Person::setPersonCharacteristics()
 
 void sim_mob::Person::printTripChainItemTypes() const{
 	std::stringstream ss;
-	ss << "Person: " << id << "|TripChain: ";
+	ss << "Person: " << id << "|TripChain: "<<std::endl;
 	for(std::vector<TripChainItem*>::const_iterator tci=tripChain.begin(); tci!=tripChain.end(); ++tci)
 	{
 		const TripChainItem* tcItem = *tci;
@@ -1160,12 +1172,12 @@ void sim_mob::Person::printTripChainItemTypes() const{
 		{
 		case TripChainItem::IT_TRIP:
 		{
-			ss << "|" << tcItem->getMode() << "-trip->";
+			ss << "Person: " << id << "|TripChain: ";
 			const Trip* trip = dynamic_cast<const Trip*>(tcItem);
 			const std::vector<sim_mob::SubTrip>& subTrips = trip->getSubTrips();
 			for(std::vector<SubTrip>::const_iterator sti=subTrips.begin(); sti!=subTrips.end(); ++sti)
 			{
-				ss << "~" << (*sti).getMode() << "-subtrip";
+				ss << "|" << tcItem->getMode() << "-trip->";
 			}
 			break;
 		}

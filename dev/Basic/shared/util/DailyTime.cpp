@@ -62,7 +62,8 @@ std::string sim_mob::DailyTime::BuildStringRepr(uint32_t timeVal, size_t maxFrac
 {
 	//Build up based on the total number of milliseconds.
 	time_duration val = milliseconds(timeVal);
-	return to_simple_string(val);
+	time_duration secs = seconds(val.total_seconds());
+	return to_simple_string(secs);
 
 
 }

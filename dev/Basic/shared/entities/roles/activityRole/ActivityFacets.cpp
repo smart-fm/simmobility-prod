@@ -35,6 +35,7 @@ sim_mob::ActivityPerformerMovement::~ActivityPerformerMovement()
 }
 void sim_mob::ActivityPerformerMovement::frame_init() {
 	parentActivity->initializeRemainingTime();
+	parentActivity->setTravelTime(parentActivity->remainingTimeToComplete);
 	//startTravelTimeMetric();
 }
 

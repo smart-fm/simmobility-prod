@@ -107,7 +107,7 @@ public:
      */
     void insertWaitingActivityToTrip();
     void convertODsToTrips();
-    void makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips,
+    bool makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips,
     		const std::vector<sim_mob::OD_Trip>& matchedTrips);
 
     // update nextTripChainItem, used only for NextRole
@@ -316,6 +316,7 @@ private:
 	  * prints the trip chain item types of each item in tripChain
 	  */
 	 void printTripChainItemTypes() const;
+
 protected:
 	virtual bool frame_init(timeslice now);
 	virtual Entity::UpdateStatus frame_tick(timeslice now);

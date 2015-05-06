@@ -6,6 +6,8 @@
 #include "PedestrianFacets.hpp"
 #include "entities/Person.hpp"
 #include "config/MT_Config.hpp"
+#include "message/MT_Message.hpp"
+#include "entities/PT_Statistics.hpp"
 
 using std::vector;
 using namespace sim_mob;
@@ -38,6 +40,25 @@ std::vector<BufferedBase*> sim_mob::medium::Pedestrian::getSubscriptionParams() 
 }
 
 void sim_mob::medium::Pedestrian::make_frame_tick_params(timeslice now) {}
+
+}
+
+void sim_mob::medium::Pedestrian::collectTravelTime()
+{
+	std::string personId, startPoint, endPoint, mode, service, arrivaltime,
+			travelTime;
+	personId = boost::lexical_cast<std::string>(parent->GetId());
+	startPoint = parent->currSubTrip->fromLocationId;
+	endPoint = parent->currSubTrip->toLocationId;
+	mode = parent->currSubTrip->getMode();
+	service = parent->currSubTrip->ptLineId;
+	travelTime = DailyTime(parent->getRole()->getTravelTime()).toString();
+
+	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(),
+			STORE_PERSON_TRAVEL,
+			messaging::MessageBus::MessagePtr(
+					new PersonTravelTimeMessage(personId, startPoint, endPoint,
+							mode, service, arrivaltime, travelTime)));
 
 }
 }

@@ -7,7 +7,8 @@
 #include "entities/Person.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "message/MT_Message.hpp"
-
+#include "message/MT_Message.hpp"
+#include "entities/PT_Statistics.hpp"
 using std::vector;
 using namespace sim_mob;
 
@@ -71,5 +72,25 @@ void sim_mob::medium::Passenger::HandleParentMessage(messaging::Message::Message
 	}
 	}
 }
+
+void sim_mob::medium::Passenger::collectTravelTime()
+{
+	std::string personId, startPoint, endPoint, mode, service, arrivaltime,
+			travelTime;
+	personId = boost::lexical_cast<std::string>(parent->GetId());
+	startPoint = parent->currSubTrip->fromLocationId;
+	endPoint = parent->currSubTrip->toLocationId;
+	mode = parent->currSubTrip->getMode();
+	service = parent->currSubTrip->ptLineId;
+	travelTime = DailyTime(parent->getRole()->getTravelTime()).toString();
+
+	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(),
+			STORE_PERSON_TRAVEL,
+			messaging::MessageBus::MessagePtr(
+					new PersonTravelTimeMessage(personId, startPoint, endPoint,
+							mode, service, arrivaltime, travelTime)));
+
+}
+
 }
 }

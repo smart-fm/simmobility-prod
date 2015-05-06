@@ -31,11 +31,11 @@
                         <journey_time_csv_file_output value="journeytime.csv"/>
                         <waiting_time_csv_file_output value="waitingtime.csv"/>
                         <waiting_amount_csv_file_output value="waitingamount.csv"/>
+                        <travel_time_csv_file_output value="traveltime.csv"/>
                 </statistics_output_paramemters>  
                 <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
                         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models--> 
-                        <script name="ptrc" file="ptrc.lua"/> <!--public transit route choice -->
-                        <script name="ptrc1" file="ptrc1.lua"/> <!--testing -->
+                        <script name="ptrc" file="ptrc.lua"/> <!--public transit route choice -->                        
                 </model_scripts>
         </supply>                                      
                 

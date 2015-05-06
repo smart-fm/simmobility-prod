@@ -40,12 +40,15 @@ public:
 	double total_cost(unsigned int index);
 
 	bool GetBestPT_Path(const std::string& original, const std::string& dest, std::vector<sim_mob::OD_Trip>& odTrips);
+	void StoreBestPT_Path();
+	std::vector<sim_mob::OD_Trip>& GetODsTripMap() {	return odTripMap; }
 
 private:
 	PT_PathSet* publicTransitPathSet;
 	static PT_RouteChoiceLuaModel* instance;
 	std::map<boost::thread::id, boost::shared_ptr<soci::session > > cnnRepo;
 	boost::shared_mutex cnnRepoMutex;
+	std::vector<sim_mob::OD_Trip> odTripMap;
 
 private:
 	/**
@@ -54,6 +57,7 @@ private:
 	const boost::shared_ptr<soci::session> & getSession();
 
 	PT_PathSet LoadPT_PathSet(const std::string& original, const std::string& dest);
+	bool SearchPT_Path(const std::string& original, const std::string& dest, std::vector<sim_mob::OD_Trip>& odTrips );
     /**
      * Inherited from LuaModel
      */
@@ -76,6 +80,7 @@ private:
 	 * return the size of current choice set
 	 */
 	unsigned int GetSizeOfChoiceSet();
+
 };
 
 }

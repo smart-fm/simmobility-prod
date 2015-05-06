@@ -83,6 +83,8 @@ void BusStopAgent::removeWaitingPerson(sim_mob::medium::WaitBusActivity* waiting
 
 void BusStopAgent::addAlightingPerson(sim_mob::medium::Passenger* passenger)
 {
+	Person* person = passenger->getParent();
+	person->getRole()->collectTravelTime();
 	alightingPersons.push_back(passenger);
 }
 
@@ -231,7 +233,7 @@ void BusStopAgent::storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingAct
 	}
 
 	Person* person = waitingActivity->getParent();
-
+	person->getRole()->collectTravelTime();
 	unsigned int waitingTime = waitingActivity->getWaitingTime();
 	DailyTime waitingDailyTime(waitingTime);
 	std::string stopId = busStop->getBusstopno_();

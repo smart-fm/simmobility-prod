@@ -29,7 +29,8 @@ enum PublicTransitMessage {
 	BUS_DEPARTURE,
 	STORE_BUS_ARRIVAL,
 	STORE_PERSON_WAITING,
-	STORE_WAITING_AMOUNT
+	STORE_WAITING_AMOUNT,
+	STORE_PERSON_TRAVEL
 };
 
 /**
@@ -90,6 +91,30 @@ public:
 	std::string personId;
 	std::string waitingTime;
 	unsigned int failedBoardingTimes;
+};
+
+/**
+ * Message to transfer person travel time
+ */
+class PersonTravelTimeMessage: public messaging::Message {
+public:
+	PersonTravelTimeMessage(const std::string& personId,
+			const std::string& startPoint, const std::string& endPoint,
+			const std::string& mode, const std::string& service,
+			const std::string& arrivalTime, const std::string& travelTime) :
+			personId(personId), startPoint(startPoint), endPoint(endPoint), mode(
+					mode), service(service), arrivalTime(arrivalTime), travelTime(
+					travelTime) {
+	}
+	virtual ~PersonTravelTimeMessage() {
+	}
+	std::string personId;
+	std::string startPoint;
+	std::string endPoint;
+	std::string mode;
+	std::string service;
+	std::string arrivalTime;
+	std::string travelTime;
 };
 
 /**

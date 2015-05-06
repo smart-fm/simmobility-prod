@@ -52,8 +52,8 @@ public:
 	  int eType;
 	  std::string tType;
 	  std::string serviceLines;
-	  int OD_Id;
-	  int legId;
+	  std::string pathset;
+	  int id;
 	  std::string originNode;
 	  std::string destNode;
 	  double travelTime;

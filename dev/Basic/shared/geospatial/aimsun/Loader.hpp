@@ -83,6 +83,7 @@ public:
 //			std::stringstream *outDbg=0,
 			const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
 	static void LoadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet);
+	static void LoadPT_PathsetFrmDB(soci::session& sql, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet);
 	static void LoadERPData(const std::string& connectionStr,
 			std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > &erp_surcharge_pool,
 			std::map<std::string,sim_mob::ERP_Gantry_Zone*>& erp_gantry_zone_pool,

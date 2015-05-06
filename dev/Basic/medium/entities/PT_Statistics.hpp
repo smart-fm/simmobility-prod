@@ -64,6 +64,28 @@ private:
 	std::vector<BusArrivalTime> busArrivalTimeList;
 };
 
+struct PersonTravelTime {
+	std::string personId;
+	std::string startPoint;
+	std::string endPoint;
+	std::string mode;
+	std::string service;
+	std::string arrivalTime;
+	std::string travelTime;
+};
+
+class PersonTravelStats {
+public:
+	void setPersonTravelTime(std::string personId, std::string startPoint,
+			std::string endPoint, std::string mode, std::string service,
+			std::string arrivalTime, std::string travelTime);
+	const std::vector<PersonTravelTime>& getPersonTravelTime() const {
+		return PersonTravelTimeList;
+	}
+private:
+	std::vector<PersonTravelTime> PersonTravelTimeList;
+};
+
 struct WaitingAmountStats {
 	std::string timeSlice;
 	std::string waitingAmount;
@@ -93,6 +115,8 @@ private:
     std::map<std::string, WaitingTimeStats*> personWaitingTime;
     /**store waiting number at each bus stop */
     std::map<std::string, std::vector<WaitingAmountStats> > waitingAmounts;
+    /**store travel time*/
+    std::map<std::string, PersonTravelStats*> personTravelTimes;
     static PT_Statistics* instance;
  };
 

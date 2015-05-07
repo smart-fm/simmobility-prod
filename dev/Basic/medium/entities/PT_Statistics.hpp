@@ -66,8 +66,12 @@ private:
 
 struct PersonTravelTime {
 	std::string personId;
-	std::string startPoint;
-	std::string endPoint;
+	std::string tripStartPoint;
+	std::string tripEndPoint;
+	std::string subStartPoint;
+	std::string subEndPoint;
+	std::string subStartType;
+	std::string subEndType;
 	std::string mode;
 	std::string service;
 	std::string arrivalTime;
@@ -76,9 +80,12 @@ struct PersonTravelTime {
 
 class PersonTravelStats {
 public:
-	void setPersonTravelTime(std::string personId, std::string startPoint,
-			std::string endPoint, std::string mode, std::string service,
-			std::string arrivalTime, std::string travelTime);
+	void setPersonTravelTime(const std::string& personId, const std::string& tripStartPoint,
+			const std::string& tripEndPoint,
+			const std::string& subStartPoint, const std::string& subEndPoint,
+			const std::string& subStartType, const std::string& subEndType,
+			const std::string& mode, const std::string& service,
+			const std::string& arrivalTime, const std::string& travelTime);
 	const std::vector<PersonTravelTime>& getPersonTravelTime() const {
 		return PersonTravelTimeList;
 	}

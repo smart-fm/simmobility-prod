@@ -948,9 +948,11 @@ Entity::UpdateStatus sim_mob::Conflux::switchTripChainItem(Person* person)
 		//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
 		//since start time of the activity is usually later than what is configured initially,
 		//we have to make adjustments so that it waits for exact amount of time
+		Activity* acItem = dynamic_cast<Activity*>((*person->currTripChainItem));
 		sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(personRole);
 		ap->setActivityStartTime(sim_mob::DailyTime(currFrame.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
 		ap->setActivityEndTime(sim_mob::DailyTime(currFrame.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
+		ap->setLocation(acItem->location);
 	}
 	if (callMovementFrameInit(currFrame, person)) { person->setInitialized(true); }
 	else { return UpdateStatus::Done; }

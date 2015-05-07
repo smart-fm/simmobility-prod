@@ -146,6 +146,7 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 
 	StreetDirectory::VertexDesc source, destination;
 	std::vector<WayPoint> wayPoints;
+	Point2D src(0,0), dest(0,0);
 	if (subTrip.fromLocation.type_ == WayPoint::NODE
 			&& subTrip.toLocation.type_ == WayPoint::MRT_STOP) {
 		source = streetDirectory.DrivingVertex(*subTrip.fromLocation.node_);
@@ -153,6 +154,8 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 		const Node* node = seg->getStart();
 		destination = streetDirectory.DrivingVertex(*node);
 		path.push_back(seg);
+		dest.setX(node->location.getX());
+		dest.setY(node->location.getY());
 	} else if (subTrip.fromLocation.type_ == WayPoint::MRT_STOP
 			&& subTrip.toLocation.type_ == WayPoint::NODE) {
 		destination = streetDirectory.DrivingVertex(*subTrip.toLocation.node_);
@@ -161,23 +164,42 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 		startLink = seg->getLink();
 		source = streetDirectory.DrivingVertex(*node);
 		path.push_back(seg);
+		src.setX(node->location.getX());
+		src.setY(node->location.getY());
 	}
 	else {
+		const Node* node = nullptr;
 		if (subTrip.fromLocation.type_ == WayPoint::NODE) {
 			source = streetDirectory.DrivingVertex(*subTrip.fromLocation.node_);
+			node = subTrip.fromLocation.node_;
 		} else if (subTrip.fromLocation.type_ == WayPoint::BUS_STOP) {
-			const Node* node = subTrip.fromLocation.busStop_->getParentSegment()->getStart();
+			node = subTrip.fromLocation.busStop_->getParentSegment()->getStart();
 			source = streetDirectory.DrivingVertex(*node);
 		}
+		if(node){
+			src.setX(node->location.getX());
+			src.setY(node->location.getY());
+		}
 
+		node = nullptr;
 		if (subTrip.toLocation.type_ == WayPoint::NODE) {
+			node = subTrip.toLocation.node_;
 			destination = streetDirectory.DrivingVertex(
 					*subTrip.toLocation.node_);
 		} else if (subTrip.toLocation.type_ == WayPoint::BUS_STOP) {
-			const Node* node = subTrip.toLocation.busStop_->getParentSegment()->getEnd();
+			node = subTrip.toLocation.busStop_->getParentSegment()->getEnd();
 			destination = streetDirectory.DrivingVertex(*node);
 		}
+		if(node){
+			dest.setX(node->location.getX());
+			dest.setY(node->location.getY());
+		}
 	}
+
+	DynamicVector EstimateDist(src.getX(),src.getY(),dest.getX(),dest.getY());
+	double distance = EstimateDist.getMagnitude();
+	double remainingTime = distance / walkSpeed;
+	parentPedestrian->setTravelTime(totalTimeToCompleteSec*1000);
 
 	wayPoints = streetDirectory.SearchShortestDrivingPath(source, destination);
 	for (std::vector<WayPoint>::iterator it = wayPoints.begin();

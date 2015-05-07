@@ -93,6 +93,7 @@ public:
     ///Change the role of this person: Driver, Passenger, Pedestrian
     void changeRole(sim_mob::Role* newRole);
     sim_mob::Role* getRole() const;
+    sim_mob::Role* getPrevRole() const;
     // set NextRole
     void setNextRole(sim_mob::Role* newRole);
     // get NextRole

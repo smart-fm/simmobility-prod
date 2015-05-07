@@ -108,8 +108,8 @@ void PT_Statistics::HandleMessage(Message::MessageType type,
 		}
 
 		if (stat) {
-			stat->setPersonTravelTime(msg.personId, msg.startPoint,
-					msg.endPoint, msg.mode, msg.service, msg.arrivalTime,
+			stat->setPersonTravelTime(msg.personId, msg.tripStartPoint, msg.tripEndPoint,msg.subStartPoint,
+					msg.subEndPoint,msg.subStartType, msg.subEndType, msg.mode, msg.service, msg.arrivalTime,
 					msg.travelTime);
 		}
 
@@ -312,10 +312,15 @@ void PT_Statistics::StoreStatistics() {
 				for (std::vector<PersonTravelTime>::const_iterator i =
 						travelTime.begin(); i != travelTime.end(); i++) {
 					outputFile << (*i).personId << ",";
-					outputFile << (*i).startPoint << ",";
-					outputFile << (*i).endPoint << ",";
+					outputFile << (*i).tripStartPoint<<",";
+					outputFile << (*i).tripEndPoint<<",";
+					outputFile << (*i).subStartPoint <<",";
+					outputFile << (*i).subEndPoint << ",";
+					outputFile << (*i).subStartType << ",";
+					outputFile << (*i).subEndType << ",";
 					outputFile << (*i).mode << ",";
-					outputFile << (*i).service << ",";
+					//outputFile << (*i).service << ",";
+					outputFile << (*i).arrivalTime << ",";
 					outputFile << (*i).travelTime << std::endl;
 				}
 			}
@@ -336,18 +341,32 @@ void JourneyTimeStats::setArrivalTime(const std::string& busLine,
 	busArrivalTimeList.push_back(stat);
 }
 
-void PersonTravelStats::setPersonTravelTime(std::string personId, std::string startPoint,
-			std::string endPoint, std::string mode, std::string service,
-			std::string arrivalTime, std::string travelTime)
-{
+void PersonTravelStats::setPersonTravelTime(const std::string& personId, const std::string& tripStartPoint,
+		const std::string& tripEndPoint,
+		const std::string& subStartPoint, const std::string& subEndPoint,
+		const std::string& subStartType, const std::string& subEndType,
+		const std::string& mode, const std::string& service,
+		const std::string& arrivalTime, const std::string& travelTime){
+
 	PersonTravelTime personTravelTime;
 	personTravelTime.personId = personId;
-	personTravelTime.startPoint = startPoint;
-	personTravelTime.endPoint = endPoint;
+	personTravelTime.tripStartPoint = tripStartPoint;
+	personTravelTime.tripEndPoint = tripEndPoint;
+	personTravelTime.subStartPoint = subStartPoint;
+	personTravelTime.subEndPoint = subEndPoint;
+	personTravelTime.subStartType = subStartType;
+	personTravelTime.subEndType = subEndType;
 	personTravelTime.mode = mode;
 	personTravelTime.service = service;
 	personTravelTime.arrivalTime = arrivalTime;
 	personTravelTime.travelTime = travelTime;
+	DailyTime startTime(arrivalTime);
+	if(startTime.getValue()==0&&PersonTravelTimeList.size()>0){
+		DailyTime lastStart(PersonTravelTimeList.back().arrivalTime);
+		DailyTime lastTravel(PersonTravelTimeList.back().travelTime);
+		startTime=DailyTime(lastStart.getValue()+lastTravel.getValue());
+		personTravelTime.arrivalTime = startTime.toString();
+	}
 	PersonTravelTimeList.push_back(personTravelTime);
 }
 

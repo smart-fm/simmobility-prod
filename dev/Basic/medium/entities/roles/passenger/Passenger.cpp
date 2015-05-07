@@ -75,21 +75,34 @@ void sim_mob::medium::Passenger::HandleParentMessage(messaging::Message::Message
 
 void sim_mob::medium::Passenger::collectTravelTime()
 {
-	std::string personId, startPoint, endPoint, mode, service, arrivaltime,
+	std::string personId, tripStartPoint, tripEndPoint, subStartPoint,
+			subEndPoint, subStartType, subEndType, mode, service, arrivaltime,
 			travelTime;
+
 	personId = boost::lexical_cast<std::string>(parent->GetId());
-	startPoint = parent->currSubTrip->fromLocationId;
-	endPoint = parent->currSubTrip->toLocationId;
+	tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
+	tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
+	subStartPoint = parent->currSubTrip->startLocationId;
+	subEndPoint = parent->currSubTrip->endLocationId;
+	subStartType = parent->currSubTrip->startLocationType;
+	subEndType = parent->currSubTrip->endLocationType;
 	mode = parent->currSubTrip->getMode();
 	service = parent->currSubTrip->ptLineId;
 	travelTime = DailyTime(parent->getRole()->getTravelTime()).toString();
+	arrivaltime = DailyTime(parent->getRole()->getArrivalTime()).toString();
+	if(roleType == Role::RL_TRAINPASSENGER){
+		mode = "MRT_TRAVEL";
+	} else {
+		mode = "BUS_TRAVEL";
+	}
 
 	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(),
 			STORE_PERSON_TRAVEL,
 			messaging::MessageBus::MessagePtr(
-					new PersonTravelTimeMessage(personId, startPoint, endPoint,
-							mode, service, arrivaltime, travelTime)));
-
+					new PersonTravelTimeMessage(personId, tripStartPoint,
+							tripEndPoint, subStartPoint, subEndPoint,
+							subStartType, subEndType, mode, service,
+							arrivaltime, travelTime)));
 }
 
 }

@@ -99,18 +99,26 @@ public:
 class PersonTravelTimeMessage: public messaging::Message {
 public:
 	PersonTravelTimeMessage(const std::string& personId,
-			const std::string& startPoint, const std::string& endPoint,
+			const std::string& tripStartPoint, const std::string& tripEndPoint,
+			const std::string& subStartPoint, const std::string& subEndPoint,
+			const std::string& subStartType, const std::string& subEndType,
 			const std::string& mode, const std::string& service,
 			const std::string& arrivalTime, const std::string& travelTime) :
-			personId(personId), startPoint(startPoint), endPoint(endPoint), mode(
-					mode), service(service), arrivalTime(arrivalTime), travelTime(
+			personId(personId), subStartPoint(subStartPoint), subEndPoint(subEndPoint),
+			tripStartPoint(tripStartPoint), tripEndPoint(tripEndPoint),
+			subStartType(subStartType), subEndType(subEndType),
+			mode(mode), service(service), arrivalTime(arrivalTime), travelTime(
 					travelTime) {
 	}
 	virtual ~PersonTravelTimeMessage() {
 	}
 	std::string personId;
-	std::string startPoint;
-	std::string endPoint;
+	std::string tripStartPoint;
+	std::string tripEndPoint;
+	std::string subStartPoint;
+	std::string subEndPoint;
+	std::string subStartType;
+	std::string subEndType;
 	std::string mode;
 	std::string service;
 	std::string arrivalTime;

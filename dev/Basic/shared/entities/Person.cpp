@@ -328,10 +328,13 @@ bool sim_mob::Person::frame_init(timeslice now)
 	if (!currRole) {
 		//TODO: This UpdateStatus has a "prevParams" and "currParams" that should
 		//      (one would expect) be dealt with. Where does this happen?
+		setStartTime(now.ms());
+
 		UpdateStatus res =	checkTripChain();
 
-		//Reset the start time (to the current time tick) so our dispatcher doesn't complain.
-		setStartTime(now.ms());
+		if(currRole) {
+			currRole->setArrivalTime(now.ms()+ConfigManager::GetInstance().FullConfig().baseGranMS());
+		}
 
 		//Nothing left to do?
 		if (res.status == UpdateStatus::RS_DONE) {
@@ -419,10 +422,10 @@ Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 	//      about Agent/Person at once. ~Seth
 	if (isToBeRemoved())
 	{
-		retVal = checkTripChain();
-
 		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
 		setStartTime(now.ms()+ConfigManager::GetInstance().FullConfig().baseGranMS());
+
+		retVal = checkTripChain();
 
 		if(currTripChainItem != tripChain.end())
 		{
@@ -523,8 +526,6 @@ UpdateStatus sim_mob::Person::checkTripChain() {
 			return UpdateStatus::Done;
 		}
 	}
-	firstTick = false;
-
 	//must be set to false whenever tripchainitem changes. And it has to happen before a probable creation of (or changing to) a new role
 	setNextPathPlanned(false);
 
@@ -550,6 +551,10 @@ UpdateStatus sim_mob::Person::checkTripChain() {
 	if (currRole) {
 		currParams = currRole->getSubscriptionParams();
 	}
+	if(firstTick&&currRole) {
+		currRole->setArrivalTime(startTime+ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
+	}
+	firstTick = false;
 
 	//Null out our trip chain, remove the "removed" flag, and return
 	clearToBeRemoved();
@@ -588,8 +593,10 @@ void sim_mob::Person::insertWaitingActivityToTrip() {
 						subTrip.fromLocationType = itSubTrip[1]->fromLocationType;
 						subTrip.toLocation = itSubTrip[1]->toLocation;
 						subTrip.toLocationType = itSubTrip[1]->toLocationType;
-						subTrip.fromLocationId = itSubTrip[1]->fromLocation.busStop_->getBusstopno_();
-						subTrip.toLocationId = itSubTrip[1]->fromLocation.busStop_->getBusstopno_();
+						subTrip.startLocationId = itSubTrip[1]->fromLocation.busStop_->getBusstopno_();
+						subTrip.endLocationId = itSubTrip[1]->fromLocation.busStop_->getBusstopno_();
+						subTrip.startLocationType = "BUS_STOP";
+						subTrip.endLocationType = "BUS_STOP";
 						subTrip.mode = "WaitingBusActivity";
 						subTrip.ptLineId = itSubTrip[1]->ptLineId;
 						itSubTrip[1] = subTrips.insert(itSubTrip[1], subTrip);
@@ -616,10 +623,13 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
 			WayPoint dest;
 			std::string sSrc = (*it).startStop;
 			std::string sEnd = (*it).endStop;
+			std::string srcType;
+			std::string endType;
 			int sType = (*it).sType;
 			int eType = (*it).eType;
 			switch (eType) {
 			case 0: {
+				endType = "NODE";
 				int id = boost::lexical_cast<unsigned int>(sEnd);
 				sim_mob::Node* node =
 						ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(id);
@@ -629,6 +639,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
 				break;
 			}
 			case 1: {
+				endType = "BUS_STOP";
 				sim_mob::BusStop* stop = sim_mob::BusStop::findBusStop(sEnd);
 				if (stop) {
 					dest = WayPoint(stop);
@@ -636,6 +647,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
 				break;
 			}
 			case 2: {
+				endType = "MRT_STOP";
 				sim_mob::MRT_Stop* stop =
 						sim_mob::PT_Network::getInstance().findMRT_Stop(sEnd);
 				if (stop) {
@@ -647,6 +659,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
 
 			switch (sType) {
 			case 0: {
+				srcType = "NODE";
 				int id = boost::lexical_cast<unsigned int>(sSrc);
 				sim_mob::Node* node =
 						ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(id);
@@ -656,6 +669,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
 				break;
 			}
 			case 1: {
+				srcType = "BUS_STOP";
 				sim_mob::BusStop* stop = sim_mob::BusStop::findBusStop(sSrc);
 				if (stop) {
 					source = WayPoint(stop);
@@ -663,6 +677,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
 				break;
 			}
 			case 2: {
+				srcType = "MRT_STOP";
 				sim_mob::MRT_Stop* stop =
 						sim_mob::PT_Network::getInstance().findMRT_Stop(sSrc);
 				if (stop) {
@@ -680,8 +695,10 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
 				subTrip.startTime = curSubTrip->endTime;
 				subTrip.endTime = DailyTime((*it).travelTime*1000.0);
 				subTrip.fromLocation = source;
-				subTrip.fromLocationId = sSrc;
-				subTrip.toLocationId = sEnd;
+				subTrip.startLocationId = sSrc;
+				subTrip.startLocationType = srcType;
+				subTrip.endLocationId = sEnd;
+				subTrip.endLocationType = endType;
 				if (source.type_ == WayPoint::BUS_STOP) {
 					subTrip.fromLocationType =
 							TripChainItem::LT_PUBLIC_TRANSIT_STOP;
@@ -733,6 +750,14 @@ void sim_mob::Person::convertODsToTrips() {
 		if(brokenBusTravel) { break; }
 		if ((*tripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 		{
+			Trip* trip = dynamic_cast<Trip*>(*tripChainItem);
+			std::vector<sim_mob::OD_Trip> odTrips;
+			std::string originId = boost::lexical_cast<std::string>(
+					trip->fromLocation.node_->getID());
+			std::string destId = boost::lexical_cast<std::string>(
+					trip->toLocation.node_->getID());
+			(*tripChainItem)->startLocationId = originId;
+			(*tripChainItem)->endLocationId = destId;
 			std::vector<sim_mob::SubTrip>& subTrips = (dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
 			std::vector<SubTrip>::iterator itSubTrip = subTrips.begin();
 			std::vector<sim_mob::SubTrip> newSubTrips;
@@ -747,8 +772,6 @@ void sim_mob::Person::convertODsToTrips() {
 							itSubTrip->fromLocation.node_->getID());
 					std::string destId = boost::lexical_cast<std::string>(
 							itSubTrip->toLocation.node_->getID());
-					(*tripChainItem)->fromLocationId = originId;
-					(*tripChainItem)->toLocationId = destId;
 
 					bool ret = sim_mob::PT_RouteChoiceLuaModel::Instance()->GetBestPT_Path(originId, destId, odTrips);
 
@@ -1112,6 +1135,10 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 
 sim_mob::Role* sim_mob::Person::getRole() const {
 	return currRole;
+}
+
+sim_mob::Role* sim_mob::Person::getPrevRole() const {
+	return prevRole;
 }
 
 void sim_mob::Person::setNextRole(sim_mob::Role* newRole)

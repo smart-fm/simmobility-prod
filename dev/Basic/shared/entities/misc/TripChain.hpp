@@ -141,8 +141,10 @@ public:
 	sim_mob::DailyTime endTime;
 	int requestTime;
 	std::string travelMode;
-	std::string fromLocationId;
-	std::string toLocationId;
+	std::string startLocationId;
+	std::string endLocationId;
+	std::string startLocationType;
+	std::string endLocationType;
 
 	//Get/set personID. Please make sure not to set the personID to an Integer!
 	std::string getPersonID() const;

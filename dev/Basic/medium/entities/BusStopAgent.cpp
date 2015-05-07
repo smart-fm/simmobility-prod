@@ -101,6 +101,7 @@ bool BusStopAgent::frame_init(timeslice now)
 
 Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 {
+	current = now;
 	std::list<sim_mob::medium::Passenger*>::iterator itPerson = alightingPersons.begin();
 	while (itPerson != alightingPersons.end())
 	{

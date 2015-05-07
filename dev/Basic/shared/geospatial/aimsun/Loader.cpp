@@ -2957,6 +2957,27 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 	} // end for each multinode
 }
 
+void sim_mob::aimsun::Loader::CreateLaneGroups()
+{
+	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
+	if(confluxes.empty()) { return; }
+
+	typedef std::vector<sim_mob::SegmentStats*> SegmentStatsList;
+	typedef std::map<sim_mob::Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
+
+	for(std::set<sim_mob::Conflux*>::const_iterator cfxIt=confluxes.begin(); cfxIt!=confluxes.end(); cfxIt++)
+	{
+		UpstreamSegmentStatsMap& upSegsMap = (*cfxIt)->upstreamSegStatsMap;
+		for(UpstreamSegmentStatsMap::const_iterator upSegsMapIt=upSegsMap.begin(); upSegsMapIt!=upSegsMap.end(); upSegsMapIt++)
+		{
+			const SegmentStatsList& segStatsList = upSegsMapIt->second;
+			if(segStatsList.empty()) { throw std::runtime_error("No segment stats for link"); }
+			const SegmentStats* lastStats = segStatsList.back();
+
+		}
+	}
+}
+
 sim_mob::BusStopFinder::BusStopFinder(const Node* src, const Node* dest)
 {
 	originBusStop = findNearbyBusStop(src);
@@ -3057,5 +3078,3 @@ sim_mob::BusStop* sim_mob::BusStopFinder::getBusStop(const Node* node,sim_mob::R
 
 	 return nullptr;
 }
-
-

@@ -889,8 +889,8 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextS
 	const sim_mob::Lane* minLane = nullptr;
 	double minQueueLength = std::numeric_limits<double>::max();
 	double minLength = std::numeric_limits<double>::max();
-	double que = 0.0;
-	double total = 0.0;
+	double queueLength = 0.0;
+	double totalLength = 0.0;
 
 	const std::vector<sim_mob::Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
 	for (vector<sim_mob::Lane* >::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
@@ -899,22 +899,19 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextS
 		if (!lane->is_pedestrian_lane() && !lane->is_whole_day_bus_lane())
 		{
 			if(!laneConnectorOverride && nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())) { continue; }
-			total = nextSegStats->getLaneTotalVehicleLength(lane);
-			que = nextSegStats->getLaneQueueLength(lane);
-			if (minLength > total)
-			{
-				//if total length of vehicles is less than current minLength
-				minLength = total;
-				minQueueLength = que;
+			totalLength = nextSegStats->getLaneTotalVehicleLength(lane);
+			queueLength = nextSegStats->getLaneQueueLength(lane);
+			if (minLength > totalLength)
+			{	//if total length of vehicles is less than current minLength
+				minLength = totalLength;
+				minQueueLength = queueLength;
 				minLane = lane;
 			}
-			else if (minLength == total)
-			{
-				//if total length of vehicles is equal to current minLength
-				if (minQueueLength > que)
-				{
-					//and if the queue length is less than current minQueueLength
-					minQueueLength = que;
+			else if (minLength == totalLength)
+			{	//if total length of vehicles is equal to current minLength
+				if (minQueueLength > queueLength)
+				{	//and if the queue length is less than current minQueueLength
+					minQueueLength = queueLength;
 					minLane = lane;
 				}
 			}

@@ -90,6 +90,8 @@ public:
 
 	void calcTravelTime();
 
+	int busSequenceNumber;
+
 private:
 	/**passengers list*/
 	std::list<sim_mob::medium::Passenger*> passengerList;

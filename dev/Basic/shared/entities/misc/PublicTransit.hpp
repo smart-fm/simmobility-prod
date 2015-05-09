@@ -57,6 +57,7 @@ public:
 	  std::string originNode;
 	  std::string destNode;
 	  double travelTime;
+	  double walkTime;
 };
 
 class MatchesOD_Trip {

@@ -20,17 +20,18 @@ local choice = {}
 local availability = {}
 
 local function computeUtilities(params, N_choice)
+        local log = math.log
 	for i = 1,N_choice do 
 		choice[i] = 1
 		availability[i] = 1
 	end
 	
 	for i = 1,N_choice do
-		utility[i] = beta_in_vehicle * params:total_in_vehicle_time(i) 
-				+ beta_walk * params:total_walk_time(i) 
-				+ beta_wait * params:total_wait_time(i) 
+		utility[i] = beta_in_vehicle * params:total_in_vehicle_time(i) / 60
+				+ beta_walk * params:total_walk_time(i) / 60
+				+ beta_wait * params:total_wait_time(i) / 60
 				+ beta_no_txf * params:total_no_txf(i) 
-				+ beta_path_size * params:total_path_size(i) 
+				+ beta_path_size * log(params:total_path_size(i)) 
 				+ beta_cost * params:total_cost(i)
 	end
 end

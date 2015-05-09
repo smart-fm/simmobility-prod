@@ -157,6 +157,7 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::MakePT_RouteChoice(
 			trip.originNode = original;
 			trip.destNode = dest;
 			trip.travelTime = itEdge->getTransitTimeSecs();
+			trip.walkTime = itEdge->getWalkTimeSecs();
 			trip.id = itEdge->getEdgeId();
 			trip.pathset = pathSetId;
 			odTrips.push_back(trip);

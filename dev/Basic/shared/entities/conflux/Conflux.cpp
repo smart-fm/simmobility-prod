@@ -146,7 +146,7 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* person)
 	}
 	case Role::RL_PEDESTRIAN:
 	{
-		pedestrianList.push_back(person);
+        pedestrianList.push_back(person);
 		break;
 	}
 	case Role::RL_WAITBUSACTITITY:

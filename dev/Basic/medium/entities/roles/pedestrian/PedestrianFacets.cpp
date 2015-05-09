@@ -57,6 +57,34 @@ void PedestrianMovement::frame_init() {
 	initializePath(roadSegs);
 
 	sim_mob::SubTrip& subTrip = *(getParent()->currSubTrip);
+
+	// To differentiate the logic for pedestrian in public transit and rest pedestrian
+	if(subTrip.isPT_Walk)
+	{
+		double walkTime = subTrip.walkTime;
+		Link* lastLink = nullptr;
+		std::vector<const RoadSegment*>::const_iterator it = roadSegs.begin();
+		if (it != roadSegs.end())
+		{
+			startLink = (*it)->getLink();
+			for (; it != roadSegs.end(); it++)
+			{
+				lastLink = (*it)->getLink();
+			}
+			if(startLink != lastLink)
+			{
+				remainingTimeToComplete = 0.0;
+				trajectory.push_back((std::make_pair(lastLink,(walkTime-1))));
+			}
+			else
+			{
+				remainingTimeToComplete = walkTime;
+			}
+			totalTimeToCompleteSec += remainingTimeToComplete;
+			parentPedestrian->setTravelTime(totalTimeToCompleteSec*1000);
+			return;
+		}
+	}
 	const RoadSegment* segStart = nullptr;
 	const RoadSegment* segEnd = nullptr;
 	double actualDistanceStart = 0.0;
@@ -116,7 +144,6 @@ void PedestrianMovement::frame_init() {
 		totalTimeToCompleteSec += remainingTimeToComplete;
 		parentPedestrian->setTravelTime(totalTimeToCompleteSec*1000);
 	}
-
 }
 
 const sim_mob::RoadSegment* PedestrianMovement::choiceNearestSegmentToMRT(

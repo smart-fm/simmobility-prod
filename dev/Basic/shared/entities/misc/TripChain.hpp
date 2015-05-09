@@ -270,6 +270,9 @@ public:
 	const std::string getMode() const ;
 	const std::string getBusLineID() const;
 
+	bool isPT_Walk;
+	double walkTime;
+
 };
 
 /**

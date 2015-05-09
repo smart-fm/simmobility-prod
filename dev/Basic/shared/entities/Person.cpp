@@ -716,6 +716,8 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
 				subTrip.mode = (*it).tType;
 				if((*it).tType.find("Walk")!=std::string::npos){
 					subTrip.mode = "Walk";
+					subTrip.isPT_Walk=true;
+					subTrip.walkTime = (*it).walkTime;
 				} else if((*it).tType.find("Bus")!=std::string::npos){
 					subTrip.mode = "BusTravel";
 				} else {

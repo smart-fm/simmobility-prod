@@ -9,6 +9,7 @@
 #include "entities/roles/driver/BusDriver.hpp"
 #include "message/MT_Message.hpp"
 #include "entities/PT_Statistics.hpp"
+#include "boost/algorithm/string.hpp"
 
 using std::vector;
 using namespace sim_mob;
@@ -89,8 +90,13 @@ void sim_mob::medium::WaitBusActivity::makeBoardingDecision(BusDriver* driver) {
 	const std::string busLineID = driver->getBusLineID();
 	sim_mob::SubTrip& subTrip = *(getParent()->currSubTrip);
 	const std::string tripLineID = subTrip.getBusLineID();
-	if(tripLineID.find(busLineID)!=std::string::npos){
+	std::vector<std::string> lines;
+	boost::split(lines, tripLineID, boost::is_any_of("/"));
+	if(std::find(lines.begin(), lines.end(), busLineID)!=lines.end()){
 		setBoardBus(true);
+		return;
+	} else {
+		setBoardBus(false);
 		return;
 	}
 

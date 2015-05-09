@@ -11,7 +11,6 @@
 #include "conf/ConfigParams.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
-#include "geospatial/Link.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
 
@@ -1078,6 +1077,18 @@ void sim_mob::SegmentStats::registerBusStopAgents()
 	}
 }
 
+bool SegmentStats::isConnectedToDownstreamLink(const Link* downstreamLink, const Lane* lane) const
+{
+	if(!downstreamLink) { return false; }
+	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
+	if(laneIt==laneStatsMap.end())
+	{
+		throw std::runtime_error("SegmentStats::getInitialQueueLength lane not found in segment stats");
+	}
+	const std::set<const Link*>& downStreamLinks = laneIt->second->getDownstreamLinks();
+	return (downStreamLinks.find(downstreamLink)!=downStreamLinks.end());
+}
+
 void LaneStats::printAgents(bool copy) const
 {
 	std::stringstream debugMsgs;
@@ -1199,6 +1210,20 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 	return dequeuedPerson;
 }
 
+bool LaneStats::addDownstreamLink(const sim_mob::Link* downStreamLink)
+{
+	if(downStreamLink)
+	{
+		return connectedDownstreamLinks.insert(downStreamLink).second;
+	}
+	return false;
+}
+
+void LaneStats::addDownstreamLinks(const std::set<const sim_mob::Link*>& downStreamLinks)
+{
+	connectedDownstreamLinks.insert(downStreamLinks.begin(), downStreamLinks.end());
+}
+
 void LaneParams::decrementOutputCounter()
 {
 	if(outputCounter > 0) { outputCounter--; }
@@ -1206,3 +1231,5 @@ void LaneParams::decrementOutputCounter()
 }
 
 } // end of namespace sim_mob
+
+

@@ -2957,6 +2957,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 		confluxes.insert(conflux);
 		multinode_confluxes.insert(std::make_pair(*i, conflux));
 	} // end for each multinode
+	CreateLaneGroups();
 }
 
 void sim_mob::aimsun::Loader::CreateLaneGroups()
@@ -2965,17 +2966,76 @@ void sim_mob::aimsun::Loader::CreateLaneGroups()
 	if(confluxes.empty()) { return; }
 
 	typedef std::vector<sim_mob::SegmentStats*> SegmentStatsList;
+	typedef std::map<const sim_mob::Lane*, sim_mob::LaneStats* > LaneStatsMap;
 	typedef std::map<sim_mob::Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
 
 	for(std::set<sim_mob::Conflux*>::const_iterator cfxIt=confluxes.begin(); cfxIt!=confluxes.end(); cfxIt++)
 	{
 		UpstreamSegmentStatsMap& upSegsMap = (*cfxIt)->upstreamSegStatsMap;
+		const sim_mob::MultiNode* cfxMultinode = (*cfxIt)->getMultiNode();
 		for(UpstreamSegmentStatsMap::const_iterator upSegsMapIt=upSegsMap.begin(); upSegsMapIt!=upSegsMap.end(); upSegsMapIt++)
 		{
 			const SegmentStatsList& segStatsList = upSegsMapIt->second;
 			if(segStatsList.empty()) { throw std::runtime_error("No segment stats for link"); }
-			const SegmentStats* lastStats = segStatsList.back();
 
+			//assign downstreamLinks to the last segment stats
+			const SegmentStats* lastStats = segStatsList.back();
+			const std::set<sim_mob::LaneConnector*>& lcs = cfxMultinode->getOutgoingLanes(lastStats->getRoadSegment());
+			for (std::set<sim_mob::LaneConnector*>::const_iterator lcIt = lcs.begin(); lcIt != lcs.end(); lcIt++)
+			{
+				const sim_mob::Lane* fromLane = (*lcIt)->getLaneFrom();
+				const sim_mob::Link* downStreamLink = (*lcIt)->getLaneTo()->getRoadSegment()->getLink();
+				lastStats->laneStatsMap.at(fromLane)->addDownstreamLink(downStreamLink); //duplicates are eliminated by the std::set containing the downstream links
+			}
+
+			//extend the downstream links assignment to the segmentStats upstream to the last segmentStats
+			SegmentStatsList::const_reverse_iterator upSegsRevIt = segStatsList.rbegin();
+			upSegsRevIt++; //lanestats of last segmentstats is already assigned with downstream links... so skip the last segmentstats
+			const sim_mob::SegmentStats* downstreamSegStats = lastStats;
+			for(; upSegsRevIt!=segStatsList.rend(); upSegsRevIt++)
+			{
+				sim_mob::SegmentStats* currSegStats = (*upSegsRevIt);
+				const sim_mob::RoadSegment* currSeg = currSegStats->getRoadSegment();
+				const std::vector<sim_mob::Lane*>& currLanes = currSeg->getLanes();
+				if(currSeg == downstreamSegStats->getRoadSegment())
+				{	//currSegStats and downstreamSegStats have the same parent segment
+					//lanes of the two segstats are same
+					for (std::vector<sim_mob::Lane*>::const_iterator lnIt = currLanes.begin(); lnIt != currLanes.end(); lnIt++)
+					{
+						const sim_mob::Lane* ln = (*lnIt);
+						const sim_mob::LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(ln);
+						sim_mob::LaneStats* currLnStats = currSegStats->laneStatsMap.at(ln);
+						currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
+					}
+				}
+				else
+				{
+					const sim_mob::UniNode* uninode = dynamic_cast<const sim_mob::UniNode*>(currSeg->getEnd());
+					if(!uninode) { throw std::runtime_error("Multinode found in the middle of a link"); }
+					for (std::vector<sim_mob::Lane*>::const_iterator lnIt = currLanes.begin(); lnIt != currLanes.end(); lnIt++)
+					{
+						const sim_mob::Lane* ln = (*lnIt);
+						sim_mob::LaneStats* currLnStats = currSegStats->laneStatsMap.at(ln);
+						const UniNode::UniLaneConnector uniLnConnector = uninode->getForwardLanes(*ln);
+						if(uniLnConnector.left)
+						{
+							const sim_mob::LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(uniLnConnector.left);
+							currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
+						}
+						if(uniLnConnector.right)
+						{
+							const sim_mob::LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(uniLnConnector.right);
+							currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
+						}
+						if(uniLnConnector.center)
+						{
+							const sim_mob::LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(uniLnConnector.center);
+							currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
+						}
+					}
+				}
+				downstreamSegStats = currSegStats;
+			}
 		}
 	}
 }

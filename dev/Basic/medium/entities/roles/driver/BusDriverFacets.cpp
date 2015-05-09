@@ -239,16 +239,16 @@ const sim_mob::Lane* BusDriverMovement::getBestTargetLane(
 		double que = 0.0;
 		double total = 0.0;
 
+		const sim_mob::SegmentStats* firstStatsInNextLink = pathMover.getFirstSegStatsInNextLink();
+		const sim_mob::Link* nextLink = nullptr;
+		if(firstStatsInNextLink) { nextLink = firstStatsInNextLink->getRoadSegment()->getLink(); }
 		const std::vector<sim_mob::Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
 		for (vector<sim_mob::Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
 		{
-			if (!((*lnIt)->is_pedestrian_lane()))
+			const Lane* lane = *lnIt;
+			if (!lane->is_pedestrian_lane() && nextSegStats->isConnectedToDownstreamLink(nextLink, lane))
 			{
-				const Lane* lane = *lnIt;
-				if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment()))
-				{
-					continue;
-				}
+				if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())) { continue; }
 				total = nextSegStats->getLaneTotalVehicleLength(lane);
 				que = nextSegStats->getLaneQueueLength(lane);
 				if (minLength > total)

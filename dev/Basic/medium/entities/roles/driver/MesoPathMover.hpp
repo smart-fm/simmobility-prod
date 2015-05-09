@@ -101,6 +101,12 @@ public:
 	 */
 	void printPath();
 
+	/**
+	 * gets the first segstats in the immediate downstream Link of path
+	 * @return first segstats in the immediate downstream Link of path
+	 */
+	const sim_mob::SegmentStats* getFirstSegStatsInNextLink() const;
+
 protected:
 	//Note: Be careful if you want to change the container type of Path.
 	//The functions in this class assume that Path is a container with random

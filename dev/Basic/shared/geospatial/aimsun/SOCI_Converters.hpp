@@ -55,6 +55,7 @@ template<> struct type_conversion<sim_mob::aimsun::Node>
     	res.xPos = vals.get<double>("xpos", 0.0);
     	res.yPos = vals.get<double>("ypos", 0.0);
     	res.isIntersection = vals.get<int>("isintersection", 0);
+    	res.hasTrafficSignal = vals.get<int>("hassignal", 0);
     }
     static void to_base(const sim_mob::aimsun::Node& src, soci::values& vals, soci::indicator& ind)
     {
@@ -62,6 +63,7 @@ template<> struct type_conversion<sim_mob::aimsun::Node>
         vals.set("xpos", src.xPos);
         vals.set("ypos", src.yPos);
         vals.set("isintersection", src.isIntersection?1:0);
+        vals.set("hvTLights", src.hasTrafficSignal?1:0);
         ind = i_ok;
     }
 };

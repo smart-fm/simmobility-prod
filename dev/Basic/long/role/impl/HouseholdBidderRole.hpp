@@ -130,6 +130,7 @@ namespace sim_mob
         	BigSerial unitIdToBeOwned;
         	int moveInWaitingTimeInDays;
         	int vehicleBuyingWaitingTimeInDays;
+        	uint32_t day;
 
             enum EthnicityId{
             	CHINESE = 1, MALAY, INDIAN, OTHERS

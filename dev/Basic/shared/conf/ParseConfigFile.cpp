@@ -220,11 +220,16 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessPassengersNode(GetSingleElementByName(rootNode, "passengers"));
 	ProcessSignalsNode(GetSingleElementByName(rootNode, "signals"));
 	ProcessBusControllersNode(GetSingleElementByName(rootNode, "buscontrollers"));
-	ProcessCBD_Node(GetSingleElementByName(rootNode, "CBD"));
+	ProcessCBD_Node(GetSingleElementByName(rootNode, "CBD"));	
 	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
 	processTT_Update(GetSingleElementByName(rootNode, "travel_time_update"));
 	processGeneratedRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes"));
 	ProcessPublicTransit(GetSingleElementByName(rootNode, "public_transit"));
+	
+	//Read the settings for loop detector counts (optional node, short term)
+	ProcessLoopDetectorCountsNode(GetSingleElementByName(rootNode, "loop-detector_counts"));
+	//Read the settings for density counts (optional node, short term)
+	ProcessShortDensityMapNode(GetSingleElementByName(rootNode, "short-term_density-map"));
 
 	//Take care of pathset manager confifuration in here
 	ParsePathXmlConfig(sim_mob::ConfigManager::GetInstance().FullConfig().pathsetFile, sim_mob::ConfigManager::GetInstanceRW().PathSetConfig());
@@ -479,6 +484,9 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	developerModel.enabled = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName( node, "developerModel"), "enabled"), false );
 	developerModel.timeInterval = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "developerModel"), "timeInterval"), "value"), static_cast<unsigned int>(0));
 	developerModel.initialPostcode = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "developerModel"), "InitialPostcode"), "value"), static_cast<int>(0));
+	developerModel.initialUnitId = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "developerModel"), "initialUnitId"), "value"), static_cast<int>(0));
+	developerModel.initialBuildingId = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "developerModel"), "initialBuildingId"), "value"), static_cast<int>(0));
+	developerModel.initialProjectId = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "developerModel"), "initialProjectId"), "value"), static_cast<int>(0));
 	cfg.ltParams.developerModel = developerModel;
 
 
@@ -655,6 +663,51 @@ void sim_mob::ParseConfigFile::processGeneratedRoutesNode(xercesc::DOMElement* n
 	cfg.generateBusRoutes = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
 }
 
+void sim_mob::ParseConfigFile::ProcessLoopDetectorCountsNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{		
+		cfg.loopDetectorCounts.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
+		if(cfg.loopDetectorCounts.outputEnabled)
+		{
+			cfg.loopDetectorCounts.frequency = ParseUnsignedInt(GetNamedAttributeValue(node, "frequency"), 600000);
+			cfg.loopDetectorCounts.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/VehCounts.csv");
+			
+			if(cfg.loopDetectorCounts.frequency == 0)
+			{
+				throw std::runtime_error("ParseConfigFile::ProcessLoopDetectorCountsNode - Update frequency for aggregating vehicle counts is 0");
+			}
+			
+			if(cfg.loopDetectorCounts.fileName.empty())
+			{
+				throw std::runtime_error("ParseConfigFile::ProcessLoopDetectorCountsNode - File name is empty");
+			}
+		}
+	}
+}
+
+void sim_mob::ParseConfigFile::ProcessShortDensityMapNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{		
+		cfg.segDensityMap.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "outputEnabled"), "false");
+		if(cfg.segDensityMap.outputEnabled)
+		{
+			cfg.segDensityMap.updateInterval = ParseUnsignedInt(GetNamedAttributeValue(node, "updateInterval"), 1000);
+			cfg.segDensityMap.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "private/DensityMap.csv");
+			
+			if(cfg.segDensityMap.updateInterval == 0)
+			{
+				throw std::runtime_error("ParseConfigFile::ProcessShortDensityMapNode - Update interval for aggregating density is 0");
+			}
+			
+			if(cfg.segDensityMap.fileName.empty())
+			{
+				throw std::runtime_error("ParseConfigFile::ProcessShortDensityMapNode - File name is empty");
+			}
+		}
+	}
+}
 
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)
 {

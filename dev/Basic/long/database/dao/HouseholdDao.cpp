@@ -28,7 +28,8 @@ void HouseholdDao::fromRow(Row& result, Household& outObj)
     outObj.ethnicityId = result.get<BigSerial>(DB_FIELD_ETHNICITY_ID, INVALID_ID);
     outObj.vehicleCategoryId = result.get<BigSerial>(DB_FIELD_VEHICLE_CATEGORY_ID, INVALID_ID);
     outObj.size = result.get<int>(DB_FIELD_SIZE, 0);
-    outObj.children = result.get<int>(DB_FIELD_CHILDREN, 0);
+    outObj.childUnder4  = result.get<int>(DB_FIELD_CHILDUNDER4, 0);
+    outObj.childUnder15 = result.get<int>(DB_FIELD_CHILDUNDER15, 0);
     outObj.income = result.get<double>(DB_FIELD_INCOME, 0);
     outObj.housingDuration = result.get<int>(DB_FIELD_HOUSING_DURATION, 0);
     outObj.workers = result.get<int>(DB_FIELD_WORKERS, 0);

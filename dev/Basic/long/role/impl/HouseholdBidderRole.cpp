@@ -90,7 +90,7 @@ void HouseholdBidderRole::CurrentBiddingEntry::invalidate()
     wp = 0;
 }
 
-HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0), moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0),vehicleOwnershipOption(NO_CAR){}
+HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0), moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0),vehicleOwnershipOption(NO_CAR), day(day){}
 
 HouseholdBidderRole::~HouseholdBidderRole(){}
 
@@ -111,6 +111,8 @@ void HouseholdBidderRole::setActive(bool activeArg)
 
 void HouseholdBidderRole::update(timeslice now)
 {
+
+	day = now.ms();
 
 	//This bidder has a successful bid already.
 	//It's now waiting to move in its new unit.
@@ -163,6 +165,9 @@ void HouseholdBidderRole::update(timeslice now)
 
 void HouseholdBidderRole::TakeUnitOwnership()
 {
+	#ifdef VERBOSE
+	PrintOutV("[day " << day << "] Household " << getParent()->getId() << " is moving into unit " << unitIdToBeOwned << " today." << std::endl);
+	#endif
 	getParent()->addUnitId( unitIdToBeOwned );
 
     setActive(false);
@@ -235,7 +240,6 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
         if(pickEntryToBid())
         {
             entry = market->getEntryById(biddingEntry.getUnitId());
-            //PrintOutV("Household " << household->getId() << " is picking a new unit " << biddingEntry.getUnitId() << "to bid on." << std::endl );
         }   
     }
     
@@ -257,7 +261,9 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
                 if (entry->getOwner() && bidValue > 0.0f)
                 {
                 	//PrintOut("\033[1;36mHousehold " << std::dec << household->getId() << " submitted a bid on unit " << biddingEntry.getUnitId() << "\033[0m\n" );
-                	//PrintOutV("Household " << std::dec << household->getId() << " submitted a bid of $" << bidValue << "[wp:$" << biddingEntry.getWP() << ",sp:$" << speculation  << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
+					#ifdef VERBOSE
+                	PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << bidValue << "[wp:$" << biddingEntry.getWP() << ",sp:$" << speculation  << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
+					#endif
 
                     bid(entry->getOwner(), Bid(entry->getUnitId(), household->getId(), getParent(), bidValue, now, biddingEntry.getWP(), speculation));
                     return true;
@@ -401,7 +407,7 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId)
 		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_HDB_ONECAR)->getCoefficientEstimate();
 	}
 
-	valueOneCar = valueOneCar + (this->getParent()->getHousehold()->getChildren() * model->getVehicleOwnershipCoeffsById(B_KIDS_ONECAR)->getCoefficientEstimate());
+	valueOneCar = valueOneCar + (this->getParent()->getHousehold()->getChildUnder4() * model->getVehicleOwnershipCoeffsById(B_KIDS_ONECAR)->getCoefficientEstimate());
 	valueOneCar = valueOneCar + log(this->getParent()->getHousehold()->getSize()) * model->getVehicleOwnershipCoeffsById(B_LOG_HHSIZE_ONECAR)->getCoefficientEstimate();
 	valueOneCar = valueOneCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_MC_ONECAR)->getCoefficientEstimate();
 
@@ -428,7 +434,7 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId)
 	}
 
 
-	valueTwoPlusCar = valueTwoPlusCar + (this->getParent()->getHousehold()->getChildren() * model->getVehicleOwnershipCoeffsById(B_KIDS_TWO_PLUS_CAR)->getCoefficientEstimate());
+	valueTwoPlusCar = valueTwoPlusCar + (this->getParent()->getHousehold()->getChildUnder4() * model->getVehicleOwnershipCoeffsById(B_KIDS_TWO_PLUS_CAR)->getCoefficientEstimate());
 	valueTwoPlusCar = valueTwoPlusCar + log(this->getParent()->getHousehold()->getSize()) * model->getVehicleOwnershipCoeffsById(B_LOG_HHSIZE_TWO_PLUS_CAR)->getCoefficientEstimate();
 	valueTwoPlusCar = valueTwoPlusCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_MC_TWO_PLUS_CAR)->getCoefficientEstimate();
 

@@ -219,9 +219,6 @@ namespace sim_mob {
             bool isParcelRemain;
             bool isDevAgentsRemain;
             int numSimulationDays;
-            BigSerial projectId;
-            BigSerial buildingId;
-            BigSerial unitId;
             AmenitiesList amenities;
             AmenitiesMap amenitiesById;
             int currentTick;
@@ -230,8 +227,11 @@ namespace sim_mob {
             std::vector<BigSerial> realEstateAgentIds;
             BigSerial realEstateAgentIdIndex;
             HM_Model *housingMarketModel;
-            int initialPostcodeForDevAgent;
+            BigSerial postcodeForDevAgent;
             bool initPostcode;
+            BigSerial unitIdForDevAgent;
+            BigSerial buildingIdForDevAgent;
+            BigSerial projectIdForDevAgent;
         };
     }
 }

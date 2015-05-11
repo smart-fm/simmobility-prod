@@ -120,6 +120,25 @@ const sim_mob::SegmentStats* sim_mob::medium::MesoPathMover::getFirstSegStatsInN
 	return nullptr;
 }
 
+const sim_mob::SegmentStats* sim_mob::medium::MesoPathMover::getFirstSegStatsInSecondLinkAhead() const
+{
+	if (currSegStatIt == path.end()) { return nullptr; }
+	const sim_mob::Link* currLink = (*currSegStatIt)->getRoadSegment()->getLink();
+	const sim_mob::Link* nextLink = nullptr;
+	for(Path::iterator it = currSegStatIt+1; it!=path.end(); it++)
+	{
+		if(!nextLink && (*it)->getRoadSegment()->getLink() != currLink)
+		{
+			nextLink = (*it)->getRoadSegment()->getLink();
+		}
+		else if(nextLink && (*it)->getRoadSegment()->getLink() != nextLink)
+		{
+			return (*it);
+		}
+	}
+	return nullptr;
+}
+
 bool sim_mob::medium::MesoPathMover::hasNextSegStats(bool inSameLink) const
 {
 	if (currSegStatIt == path.end() || (currSegStatIt + 1) == path.end())

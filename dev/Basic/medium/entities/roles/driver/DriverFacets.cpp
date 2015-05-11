@@ -892,16 +892,33 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextS
 	double queueLength = 0.0;
 	double totalLength = 0.0;
 
-	const sim_mob::SegmentStats* firstStatsInNextLink = pathMover.getFirstSegStatsInNextLink();
 	const sim_mob::Link* nextLink = nullptr;
+	const sim_mob::SegmentStats* firstStatsInNextLink = nullptr;
+	if(nextToNextSegStats)
+	{
+		if(nextSegStats->getRoadSegment()->getLink() == nextToNextSegStats->getRoadSegment()->getLink())
+		{
+			firstStatsInNextLink = pathMover.getFirstSegStatsInNextLink();
+		}
+		else
+		{
+			firstStatsInNextLink = pathMover.getFirstSegStatsInSecondLinkAhead();
+		}
+	}
 	if(firstStatsInNextLink) { nextLink = firstStatsInNextLink->getRoadSegment()->getLink(); }
+
 	const std::vector<sim_mob::Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
 	for (vector<sim_mob::Lane* >::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
 	{
 		const Lane* lane = *lnIt;
-		if (!lane->is_pedestrian_lane() && !lane->is_whole_day_bus_lane() && nextLink && nextSegStats->isConnectedToDownstreamLink(nextLink, lane))
+		if (!lane->is_pedestrian_lane() && !lane->is_whole_day_bus_lane())
 		{
-			if(!laneConnectorOverride && nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())) { continue; }
+			if(!laneConnectorOverride
+					&& nextToNextSegStats
+					&& !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())
+					&& nextLink
+					&& !nextSegStats->isConnectedToDownstreamLink(nextLink, lane))
+			{ continue; }
 			totalLength = nextSegStats->getLaneTotalVehicleLength(lane);
 			queueLength = nextSegStats->getLaneQueueLength(lane);
 			if (minLength > totalLength)
@@ -930,6 +947,12 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextS
 		out << "best target lane was not set!" << "\nCurrent Segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getSegmentAimsunId() <<
 				" =>" << nextSegStats->getRoadSegment()->getSegmentAimsunId() <<
 				" =>" <<  nextToNextSegStats->getRoadSegment()->getSegmentAimsunId()  << std::endl;
+		out << "firstSegInNextLink:" <<  (firstStatsInNextLink? firstStatsInNextLink->getRoadSegment()->getSegmentAimsunId() : 0)
+				<< "|NextLink: " << (firstStatsInNextLink? firstStatsInNextLink->getRoadSegment()->getLink()->getLinkId() : 0)
+				<< "|downstreamLinks of " << nextSegStats->getRoadSegment()->getSegmentAimsunId() << std::endl;
+
+		Print() << out.str();
+		nextSegStats->printDownstreamLinks();
 		throw std::runtime_error(out.str());
 	}
 	return minLane;

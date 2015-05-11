@@ -107,6 +107,12 @@ public:
 	 */
 	const sim_mob::SegmentStats* getFirstSegStatsInNextLink() const;
 
+	/**
+	 * gets the first segstats in the next to next downstream Link of path
+	 * @return first segstats in the next to next downstream Link of path
+	 */
+	const sim_mob::SegmentStats* getFirstSegStatsInSecondLinkAhead() const;
+
 protected:
 	//Note: Be careful if you want to change the container type of Path.
 	//The functions in this class assume that Path is a container with random

@@ -1089,6 +1089,23 @@ bool SegmentStats::isConnectedToDownstreamLink(const Link* downstreamLink, const
 	return (downStreamLinks.find(downstreamLink)!=downStreamLinks.end());
 }
 
+void SegmentStats::printDownstreamLinks() const
+{
+	std::stringstream out;
+	for (LaneStatsMap::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++)
+	{
+		if(i->second->isLaneInfinity()) { continue; }
+		out << i->first->getLaneID() << " - ";
+		const std::set<const Link*>& downStreamLinks = i->second->getDownstreamLinks();
+		for(std::set<const Link*>::const_iterator j=downStreamLinks.begin(); j!=downStreamLinks.end(); j++)
+		{
+			out << (*j)->getLinkId() << "|";
+		}
+		out << std::endl;
+	}
+	Print() << out.str();
+}
+
 void LaneStats::printAgents(bool copy) const
 {
 	std::stringstream debugMsgs;

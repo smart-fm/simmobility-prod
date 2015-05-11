@@ -729,6 +729,11 @@ public:
 	bool isConnectedToDownstreamLink(const Link* downstreamLink, const Lane* lane) const;
 
 	/**
+	 * prints all downstream links for all lanestats of this segment
+	 */
+	void printDownstreamLinks() const;
+
+	/**
 	 * prints all agents in this segment
 	 */
 	void printAgents() const;

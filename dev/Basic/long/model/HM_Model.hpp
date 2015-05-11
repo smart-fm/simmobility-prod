@@ -13,6 +13,8 @@
 #include "database/entity/Individual.hpp"
 #include "database/entity/Awakening.hpp"
 #include "database/entity/VehicleOwnershipCoefficients.hpp"
+#include "database/entity/TaxiAccessCoefficients.hpp"
+#include "database/entity/Postcode.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -35,10 +37,15 @@ namespace sim_mob
             typedef std::vector<Individual*> IndividualList;
             typedef boost::unordered_map<BigSerial, Individual*> IndividualMap;
 
+            typedef std::vector<Postcode*> PostcodeList;
+            typedef boost::unordered_map<BigSerial, Postcode*> PostcodeMap;
+
             typedef std::vector<Awakening*> AwakeningList;
             typedef boost::unordered_map<BigSerial, Awakening*> AwakeningMap;
             typedef std::vector<VehicleOwnershipCoefficients*> VehicleOwnershipCoeffList;
             typedef boost::unordered_map<BigSerial, VehicleOwnershipCoefficients*> VehicleOwnershipCoeffMap;
+            typedef std::vector<TaxiAccessCoefficients*> TaxiAccessCoeffList;
+            typedef boost::unordered_map<BigSerial, TaxiAccessCoefficients*> TaxiAccessCoeffMap;
             /**
              * Taz statistics
              */
@@ -82,6 +89,7 @@ namespace sim_mob
             Household* getHouseholdById( BigSerial id) const;
 			Individual* getIndividualById( BigSerial id) const;
             Awakening* getAwakeningById( BigSerial id) const;
+            Postcode* getPostcodeById(BigSerial id) const;
 
             void hdbEligibilityTest(int );
             void unitsFiltering();
@@ -104,6 +112,8 @@ namespace sim_mob
             int getLifestyle3HHs() const;
             VehicleOwnershipCoeffList getVehicleOwnershipCoeffs()const;
             VehicleOwnershipCoefficients* getVehicleOwnershipCoeffsById( BigSerial id) const;
+            TaxiAccessCoeffList getTaxiAccessCoeffs()const;
+            TaxiAccessCoefficients* getTaxiAccessCoeffsById( BigSerial id) const;
             void addUnit(Unit* unit);
             std::vector<BigSerial> getRealEstateAgentIds();
 
@@ -131,9 +141,14 @@ namespace sim_mob
             IndividualList individuals;
             IndividualMap individualsById;
 
+            PostcodeList postcodes;
+            PostcodeMap postcodesById;
+
             boost::unordered_map<BigSerial, BigSerial> assignedUnits;
             VehicleOwnershipCoeffList vehicleOwnershipCoeffs;
             VehicleOwnershipCoeffMap vehicleOwnershipCoeffsById;
+            TaxiAccessCoeffList taxiAccessCoeffs;
+            TaxiAccessCoeffMap taxiAccessCoeffsById;
             AwakeningList awakening;
             AwakeningMap awakeningById;
             HouseholdStatistics household_stats;

@@ -383,16 +383,17 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	//RestrictedRegion::getInstance().processTripChains(tripchains);//todo, plan changed, we are not chopping off the trips here
 
 	//add or stash new persons
+	unsigned personsLoaded = 0;
 	for(map<string, vector<TripChainItem*> >::iterator i=tripchains.begin(); i!=tripchains.end(); i++)
 	{
-		if(i->second.empty()) { return; }
+		if(i->second.empty()) { continue; }
 		Person* person = new Person("DAS_TripChain", cfg.mutexStategy(), i->second);
-		if(!person->getTripChain().empty()) { addOrStashPerson(person); }
+		if(!person->getTripChain().empty()) { addOrStashPerson(person); personsLoaded++; }
 		else { delete person; }
 	}
 
 	Print() << "PeriodicPersonLoader:: activities loaded from " << nextLoadStart << " to " << end << ": " << actCtr
-			<< " | new persons loaded: " << tripchains.size() << endl;
+			<< " | new persons loaded: " << personsLoaded << endl;
 
 	Print() << "active_agents: " << activeAgents.size() << " | pending_agents: " << pendingAgents.size() << endl;
 	//update next load start

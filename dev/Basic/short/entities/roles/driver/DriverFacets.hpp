@@ -339,6 +339,6 @@ private:
 	static map<const RoadSegment *, unsigned long> rdSegDensityMap;
     
 	//Mutex to lock the density map
-	boost::mutex densityUpdateMutex;
+	static boost::mutex densityUpdateMutex;
 };
 }

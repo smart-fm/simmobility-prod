@@ -110,6 +110,7 @@ size_t getLaneIndex(const Lane * l)
 namespace sim_mob {
 	
 map<const RoadSegment *, unsigned long> DriverMovement::rdSegDensityMap;
+boost::mutex DriverMovement::densityUpdateMutex;
 
 DriverBehavior::DriverBehavior(sim_mob::Person* parentAgent) :
 				BehaviorFacet(parentAgent), parentDriver(nullptr) {

@@ -249,12 +249,12 @@ vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::s
 		// compute shortest path
 		std::vector<const sim_mob::RoadSegment*> blacklist;
 
-		//std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*origNode), stdir->DrivingVertex(*destNode),blacklist);
-		std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingTimePath(
+		std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*origNode), stdir->DrivingVertex(*destNode),blacklist);
+		/*std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingTimePath(
 					stdir->DrivingTimeVertex(*origNode,sim_mob::Default),
 					stdir->DrivingTimeVertex(*destNode,sim_mob::Default),
 					blacklist,
-					sim_mob::Default);
+					sim_mob::Default);*/
 		for (int i=0; i<wp2.size(); i++) {
 
 			if (wp2[i].type_ == WayPoint::ROAD_SEGMENT ) {
@@ -1236,7 +1236,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			string carParkIdDepartureTest = "";
 			string carParkIdArrivalTest = "";
 
-//check if there is a route from carpark to origin
+			//check if there is a route from carpark to origin
 			// I calculate the path from carpark to the second node from wp1
 			// find first WayPoint from (origin to dest)
 			WayPoint firstWP = wp1[0];
@@ -1254,7 +1254,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 			}
 
 			//check if there is a route from destination to carpark
-// path from the second last node in WP1 to the nearest carpark
+			// path from the second last node in WP1 to the nearest carpark
 			// find the last wayPoint from the WP1 (origin to dest)
 			WayPoint lastWP = wp1[wp1.size() - 1];
 			const RoadSegment *lastWPrs = lastWP.roadSegment_;

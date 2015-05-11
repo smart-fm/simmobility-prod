@@ -327,7 +327,9 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 		const std::set<const sim_mob::RoadSegment*>& excludedRS)
 {
 	//prepare statement
-	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare	<< "select * from " + functionName + "(:pathset_id_in)", soci::use(pathset_id));
+	std::stringstream query;
+	query << "select * from " << functionName << "(" << pathset_id << ")"; //pathset_id is a string of "<origin_node_id>,<destination_node_id>" format
+	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare	<< query.str());
 	//	process result
 	int cnt = 0;
 	bool emptyCheck = true;

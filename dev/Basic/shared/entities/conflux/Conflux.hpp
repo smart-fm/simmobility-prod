@@ -105,10 +105,12 @@ private:
     	bool isQueuing;
     	bool isMoving;
     	unsigned int roleType;
+    	double vehicleLength;
     	sim_mob::SegmentStats* segStats;
     	const sim_mob::Conflux* conflux;
 
     	PersonProps(const sim_mob::Person* person, const sim_mob::Conflux* conflux);
+    	void printProps(unsigned int personId, uint32_t frame, std::string prefix) const;
     };
 
 	/**

@@ -16,7 +16,9 @@
 #include "database/dao/UnitDao.hpp"
 #include "database/dao/IndividualDao.hpp"
 #include "database/dao/AwakeningDao.hpp"
+#include "database/dao/PostcodeDao.hpp"
 #include "database/dao/VehicleOwnershipCoefficientsDao.hpp"
+#include "database/dao/TaxiAccessCoefficientsDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -148,6 +150,20 @@ HM_Model::HouseholdList* HM_Model::getHouseholdList()
 	return &households;
 }
 
+
+Postcode* HM_Model::getPostcodeById(BigSerial id) const
+{
+	PostcodeMap::const_iterator itr = postcodesById.find(id);
+
+	if (itr != postcodesById.end())
+	{
+		return (*itr).second;
+	}
+
+	return nullptr;
+}
+
+
 Household* HM_Model::getHouseholdById(BigSerial id) const
 {
 	HouseholdMap::const_iterator itr = householdsById.find(id);
@@ -267,6 +283,23 @@ VehicleOwnershipCoefficients* HM_Model::getVehicleOwnershipCoeffsById( BigSerial
 		return nullptr;
 }
 
+HM_Model:: TaxiAccessCoeffList HM_Model::getTaxiAccessCoeffs()const
+{
+	return this->taxiAccessCoeffs;
+}
+
+TaxiAccessCoefficients* HM_Model::getTaxiAccessCoeffsById( BigSerial id) const
+{
+		TaxiAccessCoeffMap::const_iterator itr = taxiAccessCoeffsById.find(id);
+
+		if (itr != taxiAccessCoeffsById.end())
+		{
+			return (*itr).second;
+		}
+
+		return nullptr;
+}
+
 const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 {
 	BigSerial tazId = getUnitTazId(unitId);
@@ -317,7 +350,14 @@ void HM_Model::startImpl()
 		loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
 		PrintOutV("Awakening probability: " << awakening.size() << std::endl );
 
+		loadData<PostcodeDao>(conn, postcodes, postcodesById,	&Postcode::getAddressId);
+		PrintOutV("Number of postcodes: " << postcodes.size() << std::endl );
+
 		loadData<VehicleOwnershipCoefficientsDao>(conn,vehicleOwnershipCoeffs,vehicleOwnershipCoeffsById, &VehicleOwnershipCoefficients::getParameterId);
+		PrintOutV("Vehicle Ownership coefficients: " << vehicleOwnershipCoeffs.size() << std::endl );
+
+		loadData<TaxiAccessCoefficientsDao>(conn,taxiAccessCoeffs,taxiAccessCoeffsById, &TaxiAccessCoefficients::getParameterId);
+		PrintOutV("Taxi access coefficients: " << taxiAccessCoeffs.size() << std::endl );
 	}
 
 

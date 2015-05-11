@@ -23,8 +23,8 @@ PT_PathSetManager sim_mob::PT_PathSetManager::_instance;
 boost::shared_ptr<sim_mob::batched::ThreadPool> sim_mob::PT_PathSetManager::threadpool_;
 
 PT_PathSetManager::PT_PathSetManager():labelPoolSize(10){
-	ptPathSetWriter.open(ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetOutputFile.c_str());
-	//ptPathSetWriter.open("pt_paths.csv");
+	//ptPathSetWriter.open(ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetOutputFile.c_str());
+	ptPathSetWriter.open("pt_paths.csv");
 }
 PT_PathSetManager::~PT_PathSetManager() {
 	// TODO Auto-generated destructor stub

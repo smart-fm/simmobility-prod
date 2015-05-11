@@ -529,8 +529,8 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 	}
 }
 
-bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& params,
-		const sim_mob::SegmentStats* nextSegStats) {
+bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& params, const sim_mob::SegmentStats* nextSegStats) const
+{
 	//return false if the Driver cannot be added during this time tick
 	if (params.elapsedSeconds >= params.secondsInTick) {
 		return false;

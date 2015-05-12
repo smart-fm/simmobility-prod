@@ -1114,7 +1114,7 @@ void LaneStats::printAgents(bool copy) const
 		debugMsgs << "Lane: " << lane->getLaneID();
 		for (PersonList::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++)
 		{
-			debugMsgs << "|" << (*i)->getId();
+			debugMsgs << "|" << (*i)->getId() << "(" << (*i)->getRole()->getRoleName() << ")";
 		}
 	}
 	else
@@ -1122,7 +1122,7 @@ void LaneStats::printAgents(bool copy) const
 		debugMsgs << "LaneCopy: " << lane->getLaneID();
 		for (PersonList::const_iterator i = laneAgentsCopy.begin(); i != laneAgentsCopy.end(); i++)
 		{
-			debugMsgs << "|" << (*i)->getId();
+			debugMsgs << "|" << (*i)->getId() << "(" << (*i)->getRole()->getRoleName() << ")";
 		}
 	}
 	debugMsgs << std::endl;
@@ -1170,7 +1170,7 @@ sim_mob::Person* SegmentStats::dequeue(const sim_mob::Person* person, const sim_
 	else
 	{
 		printAgents();
-		debugMsgs << "Error: Person " << person->getId() << " was not found in lane " << lane->getLaneID() << std::endl;
+		debugMsgs << "Error: Person " << person->getId() << "|" << person->getDatabaseId() << " (" << person->getRole()->getRoleName() << ")" << " was not found in lane " << lane->getLaneID() << std::endl;
 		throw std::runtime_error(debugMsgs.str());
 	}
 	return dequeuedPerson;

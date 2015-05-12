@@ -79,13 +79,6 @@ namespace
 		int min = 0, max = 29;
 		//if(firstFifteenMins) { min = 0; max = 14; }
 		int minute = Utils::generateInt(min,max) + ((mid - hour - 0.25)*60);
-
-		/*~~~~ adding 5 minutes to fake drivers for cbd policy demo. note: pid parameter in this function must also be removed later ~~~~~*/
-//		if(hour == 17 && minute <= 5 && boost::lexical_cast<long>(pid) > 5474288)
-//		{
-//			minute += 5;
-//		}
-		/*~~~~ end of - adding 5 minutes to fake drivers for cbd policy demo ~~~~~*/
 		int second = Utils::generateInt(0,60);
 		std::stringstream random_time;
 		hour = hour % 24;
@@ -355,6 +348,7 @@ sim_mob::PeriodicPersonLoader::~PeriodicPersonLoader()
 
 void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 {
+	return;
 	if (storedProcName.empty()) { return; }
 	//Our SQL statement
 	stringstream query;

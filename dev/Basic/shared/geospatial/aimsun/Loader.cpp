@@ -3034,6 +3034,18 @@ void sim_mob::aimsun::Loader::CreateLaneGroups()
 						}
 					}
 				}
+
+				//construct inverse lookup for convenience
+				for (LaneStatsMap::const_iterator lnStatsIt = currSegStats->laneStatsMap.begin(); lnStatsIt != currSegStats->laneStatsMap.end(); lnStatsIt++)
+				{
+					if(lnStatsIt->second->isLaneInfinity()) { continue; }
+					const std::set<const sim_mob::Link*>& downstreamLnks = lnStatsIt->second->getDownstreamLinks();
+					for(std::set<const sim_mob::Link*>::const_iterator dnStrmIt = downstreamLnks.begin(); dnStrmIt != downstreamLnks.end(); dnStrmIt++)
+					{
+						currSegStats->laneGroup[*dnStrmIt].push_back(lnStatsIt->second);
+					}
+				}
+
 				downstreamSegStats = currSegStats;
 			}
 		}

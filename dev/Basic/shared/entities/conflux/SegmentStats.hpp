@@ -390,6 +390,12 @@ protected:
 	 * structure to store parameters pertinent to supply
 	 */
 	sim_mob::SupplyParams supplyParams;
+
+	/**
+	 * map of lanes connected to each downstream link
+	 */
+	std::map<const sim_mob::Link*, std::vector<sim_mob::LaneStats*> > laneGroup;
+
 	/**
 	 * adds a bus stop to the list of stops
 	 * @param stop bus stop to be added
@@ -722,11 +728,25 @@ public:
 
 	/**
 	 * checks whether lane stats for lane is connected (eventually) to the next down stream link
-	 * @param downstreamLink nnext down stream link
+	 * @param downstreamLink next down stream link
 	 * @param lane lane in this segstats
 	 * @return true if connected; false otherwise.
 	 */
 	bool isConnectedToDownstreamLink(const Link* downstreamLink, const Lane* lane) const;
+
+	/**
+	 * returns the maximum allowed length of vehicles in the lane group of supplied lane
+	 * @param nextLink link downstream to the segment of lane (to identify lane group)
+	 * @return maximum allowed length of vehicles in the lane group of valid input lane
+	 */
+	double getAllowedVehicleLengthForLaneGroup(const Link* downstreamLink) const;
+
+	/**
+	 * returns the existing length of vehicles in the lane group of supplied lane
+	 * @param nextLink link downstream to the segment of lane (to identify lane group)
+	 * @return maximum allowed length of vehicles in the lane group of valid input lane
+	 */
+	double getVehicleLengthForLaneGroup(const Link* downstreamLink) const;
 
 	/**
 	 * prints all downstream links for all lanestats of this segment

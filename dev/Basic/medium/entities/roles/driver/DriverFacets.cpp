@@ -546,7 +546,7 @@ bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& param
 	double total = nextSegStats->getTotalVehicleLength();
 
 	//if the segment is shorter than the vehicle's length and there are no vehicles in the segment just allow the vehicle to pass through
-	//this is just an interim arrangment. this segment should either be removed from database or it's length must be updated.
+	//this is just an interim arrangement. this segment should either be removed from database or it's length must be updated.
 	//if this hack is not in place, all vehicles will start queuing in upstream segments forever.
 	//TODO: remove this hack and put permanent fix
 	if((maxAllowed < enteringVehicleLength) && (total <= 0)) { return true; }
@@ -892,21 +892,7 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextS
 	double queueLength = 0.0;
 	double totalLength = 0.0;
 
-	const sim_mob::Link* nextLink = nullptr;
-	const sim_mob::SegmentStats* firstStatsInNextLink = nullptr;
-	if(nextToNextSegStats)
-	{
-		if(nextSegStats->getRoadSegment()->getLink() == nextToNextSegStats->getRoadSegment()->getLink())
-		{
-			firstStatsInNextLink = pathMover.getFirstSegStatsInNextLink();
-		}
-		else
-		{
-			firstStatsInNextLink = pathMover.getFirstSegStatsInSecondLinkAhead();
-		}
-	}
-	if(firstStatsInNextLink) { nextLink = firstStatsInNextLink->getRoadSegment()->getLink(); }
-
+	const sim_mob::Link* nextLink = getNextLinkForLaneChoice(nextSegStats, nextToNextSegStats);
 	const std::vector<sim_mob::Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
 	for (vector<sim_mob::Lane* >::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
 	{
@@ -947,8 +933,8 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextS
 		out << "best target lane was not set!" << "\nCurrent Segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getSegmentAimsunId() <<
 				" =>" << nextSegStats->getRoadSegment()->getSegmentAimsunId() <<
 				" =>" <<  nextToNextSegStats->getRoadSegment()->getSegmentAimsunId()  << std::endl;
-		out << "firstSegInNextLink:" <<  (firstStatsInNextLink? firstStatsInNextLink->getRoadSegment()->getSegmentAimsunId() : 0)
-				<< "|NextLink: " << (firstStatsInNextLink? firstStatsInNextLink->getRoadSegment()->getLink()->getLinkId() : 0)
+		out << "firstSegInNextLink:" <<  (nextLink? nextLink->getSegments().front()->getSegmentAimsunId() : 0)
+				<< "|NextLink: " << (nextLink? nextLink->getLinkId() : 0)
 				<< "|downstreamLinks of " << nextSegStats->getRoadSegment()->getSegmentAimsunId() << std::endl;
 
 		Print() << out.str();
@@ -1374,5 +1360,26 @@ void DriverMovement::handleMessage(messaging::Message::MessageType type, const m
 	}
 }
 
+const sim_mob::Link* DriverMovement::getNextLinkForLaneChoice(const SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats) const
+{
+	const sim_mob::Link* nextLink = nullptr;
+	const sim_mob::SegmentStats* firstStatsInNextLink = nullptr;
+	if(nextToNextSegStats)
+	{
+		if(nextSegStats->getRoadSegment()->getLink() == nextToNextSegStats->getRoadSegment()->getLink())
+		{
+			firstStatsInNextLink = pathMover.getFirstSegStatsInNextLink();
+		}
+		else
+		{
+			firstStatsInNextLink = pathMover.getFirstSegStatsInSecondLinkAhead();
+		}
+	}
+	if(firstStatsInNextLink) { nextLink = firstStatsInNextLink->getRoadSegment()->getLink(); }
+	return nextLink;
+}
+
 } /* namespace medium */
 } /* namespace sim_mob */
+
+

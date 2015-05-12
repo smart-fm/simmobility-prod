@@ -385,6 +385,14 @@ protected:
 	 * @param message data received.
 	 */
 	virtual void handleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+
+	/**
+	 * gets the first link downstream to nextSegStats
+	 * @param nextSegStats the next segment stats for driver
+	 * @param nextToNextSegStats the second next segment stats for driver
+	 * @return next link for driver
+	 */
+	const sim_mob::Link* getNextLinkForLaneChoice(const SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats) const;
 	friend class MesoReroute;
 
 };

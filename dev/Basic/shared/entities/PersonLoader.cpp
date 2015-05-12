@@ -77,7 +77,7 @@ namespace
 	std::string getRandomTimeInWindow(double mid, bool firstFifteenMins, const std::string pid = "") {
 		int hour = int(std::floor(mid));
 		int min = 0, max = 29;
-		//if(firstFifteenMins) { min = 0; max = 14; }
+		if(firstFifteenMins) { min = 0; max = 14; }
 		int minute = Utils::generateInt(min,max) + ((mid - hour - 0.25)*60);
 		int second = Utils::generateInt(0,60);
 		std::stringstream random_time;
@@ -471,7 +471,7 @@ sim_mob::Trip* sim_mob::PeriodicPersonLoader::makeTrip(const soci::row& r, unsig
 	tripToSave->fromLocationType = sim_mob::TripChainItem::LT_NODE;
 	tripToSave->toLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(5)));
 	tripToSave->toLocationType = sim_mob::TripChainItem::LT_NODE;
-	tripToSave->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(11), true, tripToSave->getPersonID()));
+	tripToSave->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(11), false, tripToSave->getPersonID()));
 	//just a sanity check
 	if(tripToSave->fromLocation == tripToSave->toLocation)
 	{

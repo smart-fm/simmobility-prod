@@ -256,11 +256,21 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 
 	itPerson = waitingPersons.begin();
 	while (itPerson != waitingPersons.end()) {
+		WaitBusActivity* waitingPeople = *itPerson;
+		Person* person = waitingPeople->getParent();
+		unsigned int waitingTm = waitingPeople->getWaitingTime();
+		const unsigned int hourInMilliSecs = 3600000;
+		if (waitingTm > hourInMilliSecs) {
+			sim_mob::SubTrip& subTrip = *(person->currSubTrip);
+			const std::string tripLineID = subTrip.getBusLineID();
+			Warn() << "[waiting long]Person[" << person->GetId()
+					<< "] waiting [" << tripLineID << " ] at ["
+					<< this->getBusStop()->getBusstopno_() << "] for ["
+					<< DailyTime(waitingTm).toString() << "]" << std::endl;
+		}
 		if ((*itPerson)->canBoardBus()) {
 			bool ret = false;
-			WaitBusActivity* waitingPeople = *itPerson;
 			if (!busDriver->checkIsFull()) {
-				Person* person = waitingPeople->getParent();
 				storeWaitingTime(waitingPeople);
 				if (person) {
 					person->checkTripChain();

@@ -182,14 +182,14 @@ bool PT_RouteChoiceLuaModel::GetBestPT_Path(const std::string& original,
 	PT_PathSet pathSet;
 	pathSet = sim_mob::PT_RouteChoiceLuaModel::Instance()->LoadPT_PathSet(original, dest);
 	if(pathSet.pathSet.size()==0){
-		Warn()<<"[public transit]load pathset failed:["<<original<<"]:["<<dest<<"]"<<std::endl;
-		int srcId = boost::lexical_cast<int>(original);
-		int destId = boost::lexical_cast<int>(dest);
-		sim_mob::Node* srcNode = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(srcId);
-		sim_mob::Node* destNode = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(destId);
+		Warn()<<"[PT pathset]load pathset failed:["<<original<<"]:["<<dest<<"]"<<std::endl;
+		//int srcId = boost::lexical_cast<int>(original);
+		//int destId = boost::lexical_cast<int>(dest);
+		//sim_mob::Node* srcNode = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(srcId);
+		//sim_mob::Node* destNode = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(destId);
 		//pathSet = sim_mob::PT_PathSetManager::Instance().makePathset(srcNode,destNode);
 		if(pathSet.pathSet.size()==0){
-			Print()<<"[public transit]make pathset failed:["<<original<<"]:["<<dest<<"]"<<std::endl;
+			Print()<<"[PT pathset]make pathset failed:["<<original<<"]:["<<dest<<"]"<<std::endl;
 		}
 	}
 

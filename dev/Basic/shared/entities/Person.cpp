@@ -728,7 +728,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
 				newSubTrips.push_back(subTrip);
 			} else {
 				Print()
-						<< "[public transit]make trip failed:["
+						<< "[PT pathset]make trip failed:["
 						<< sSrc
 						<< "]|["
 						<< sEnd

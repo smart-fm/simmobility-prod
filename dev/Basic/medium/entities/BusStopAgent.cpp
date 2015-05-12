@@ -9,6 +9,8 @@
 #include "entities/roles/waitBusActivity/waitBusActivity.hpp"
 #include "message/MT_Message.hpp"
 #include "entities/PT_Statistics.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -101,7 +103,7 @@ bool BusStopAgent::frame_init(timeslice now)
 
 Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 {
-	current = now.ms();
+	current = now.ms()+ConfigManager::GetInstance().FullConfig().simStartTime().getValue();
 	std::list<sim_mob::medium::Passenger*>::iterator itPerson = alightingPersons.begin();
 	while (itPerson != alightingPersons.end())
 	{
@@ -236,7 +238,7 @@ void BusStopAgent::storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingAct
 	Person* person = waitingActivity->getParent();
 	person->getRole()->collectTravelTime();
 	unsigned int waitingTime = waitingActivity->getWaitingTime();
-	DailyTime waitingDailyTime(waitingTime);
+	DailyTime waitingDailyTime(current);
 	std::string stopId = busStop->getBusstopno_();
 	std::string personId = boost::lexical_cast<std::string>((person->GetId()));
 	std::string waitingTmInStr = waitingDailyTime.toString();
@@ -271,7 +273,6 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 		if ((*itPerson)->canBoardBus()) {
 			bool ret = false;
 			if (!busDriver->checkIsFull()) {
-				storeWaitingTime(waitingPeople);
 				if (person) {
 					person->checkTripChain();
 					Role* curRole = person->getRole();
@@ -283,6 +284,7 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 				}
 			} else {
 				waitingPeople->increaseFailedBoardingTimes();
+				storeWaitingTime(waitingPeople);
 			}
 
 			if (ret) {

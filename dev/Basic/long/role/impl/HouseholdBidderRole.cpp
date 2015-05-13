@@ -154,14 +154,16 @@ void HouseholdBidderRole::ComputeHouseholdAffordability()
 	}
 
 	double income = debtToIncomeRatio * bidderHousehold->getIncome();
-	double loanTenure = retirementAge - bidderHousehold->getAgeOfHead();
+	double loanTenure = retirementAge - bidderHousehold->getAgeOfHead() * 12.0; //times 12 to get he tenure in months, not years.
 
 	HM_Model::HousingInterestRateList *interestRateListX = getParent()->getModel()->getHousingInterestRateList();
 
 	const double quarter = 365.0 / 4.0; // a yearly quarter
 	int index =	day / quarter;
-	double interestRate = (*interestRateListX)[index]->getInterestRate();
+	double interestRate = (*interestRateListX)[index]->getInterestRate() / 12.0; // divide by 12 to get the monthly interest rate.
 
+	//Household affordability formula based on excel PV function:
+	//https://support.office.com/en-ca/article/PV-function-3d25f140-634f-4974-b13b-5249ff823415
 	householdAffordabilityAmount = income / interestRate *  ( 1 - pow( 1 + interestRate, -loanTenure ) );
 
 	//PrintOutV( "Interest rate: " << interestRate << ". Household affordability: " << householdAffordabilityAmount << std::endl);

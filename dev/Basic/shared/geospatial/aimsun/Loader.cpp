@@ -1576,8 +1576,7 @@ void DatabaseLoader::DecorateAndTranslateObjects()
 	//        1) In ALL sections that meet at this node, there are only two distinct nodes.
 	//        2) Each of these distinct nodes has exactly ONE Segment leading "from->to" and one leading "to->from".
 	//           This should take bi-directional Segments into account.
-	//        3) All Segments share the same Road Name
-	//        4) Optionally, there can be a single link in ONE direction, representing a one-way road.
+	//        3) Optionally, there can be a single link in ONE direction, representing a one-way road.
 	vector<int> nodeMismatchIDs;
 	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++)
 	{
@@ -1611,14 +1610,6 @@ void DatabaseLoader::DecorateAndTranslateObjects()
 			if (((*flagPtr)&toFlag)==0) {
 				*flagPtr = (*flagPtr) | toFlag;
 			} else {
-				n->candidateForSegmentNode = false; //Fail
-				break;
-			}
-
-			//Manage property three.
-			if (expectedName.empty()) {
-				expectedName = (*it)->roadName;
-			} else if (expectedName != (*it)->roadName) {
 				n->candidateForSegmentNode = false; //Fail
 				break;
 			}
@@ -2265,9 +2256,6 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		//Check: not processing an existing segment
 		if (currSec->hasBeenSaved) { throw std::runtime_error("Section processed twice."); }
 		currSec->hasBeenSaved = true; //Mark saved
-
-		//Check name
-		if (ln->roadName != currSec->roadName) { throw std::runtime_error("Road names don't match up on RoadSegments in the same Link."); }
 
 		//Prepare a new segment IF required, and save it for later reference (or load from past ref.)
 		if (!currSec->generatedSegment) { currSec->generatedSegment = new sim_mob::RoadSegment(ln, currSec->id); }

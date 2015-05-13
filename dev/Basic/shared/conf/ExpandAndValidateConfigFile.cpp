@@ -236,7 +236,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     if(cfg.RunningMidSupply()) {
 		size_t sizeBefore = cfg.getConfluxes().size();
 		sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
-		std::cout <<"Confluxes size before(" <<sizeBefore <<") and after(" <<cfg.getConfluxes().size() <<")\n";
+		std::cout << "Confluxes constructed: " << cfg.getConfluxes().size() << "\n";
     }
     //Maintain unique/non-colliding IDs.
     ConfigParams::AgentConstraints constraints;

@@ -907,7 +907,7 @@ std::string sim_mob::SegmentStats::reportSegmentStats(uint32_t frameNumber)
 				<< numQueuingInSegment(true) << ","
 				<< segVehicleSpeed << ","
 				<< density << ","
-				<< supplyParams.getCapacity() << ","
+				<< supplyParams.getCapacity()
 				<< std::endl;
 	}
 	return msg.str();

@@ -118,7 +118,14 @@ void HouseholdBidderRole::ComputeHouseholdAffordability()
 
 	std::vector<BigSerial> individuals = bidderHousehold->getIndividuals();
 	int householdSize = individuals.size();
-	double debtToIncomeRatio = 0.33;
+
+	const double DTIR_Single = 0.33; //Debt to income ratio of a single person.
+	const double DTIR_Couple = 0.30; //Debt to income ratio of a child-less couple.
+	const double DTIR_Family = 0.27; //Debt to income ratio of a family.
+	const  int retirementAge = 65;
+	const int maturityAge = 18;
+
+	double debtToIncomeRatio = DTIR_Single;
 
 	int children = 0;
 	if( householdSize > 1 )
@@ -136,18 +143,18 @@ void HouseholdBidderRole::ComputeHouseholdAffordability()
 			  thisTime = *localtime(&now);
 			  int difference = thisTime.tm_year - dob.tm_year;
 
-			 if( difference < 18 )
+			 if( difference < maturityAge )
 				 children++;
 		}
 
-		debtToIncomeRatio = 0.30;
+		debtToIncomeRatio = DTIR_Couple;
 
 		if(children > 0 )
-			debtToIncomeRatio = 0.27;
+			debtToIncomeRatio = DTIR_Family;
 	}
 
 	double income = debtToIncomeRatio * bidderHousehold->getIncome();
-	double loanTenure = 65 - bidderHousehold->getAgeOfHead();
+	double loanTenure = retirementAge - bidderHousehold->getAgeOfHead();
 
 	HM_Model::HousingInterestRateList *interestRateListX = getParent()->getModel()->getHousingInterestRateList();
 

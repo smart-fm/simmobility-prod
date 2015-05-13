@@ -20,6 +20,7 @@ using namespace messaging;
 
 struct PersonWaitingInfo
 {
+	std::string currentTime;
 	std::string waitingTime;
 	unsigned int failedBoardingTime;
 };
@@ -27,11 +28,12 @@ struct PersonWaitingInfo
 class WaitingTimeStats
 {
 public:
-	void setWaitingTime(const std::string& personId, const std::string& waitingTime, unsigned int failedBoardingTimes){
+	void setWaitingTime(const std::string& personId, const std::string& currentTime, const std::string& waitingTime, unsigned int failedBoardingTimes){
 		if(waitingTimeList.find(personId)==waitingTimeList.end()){
 			waitingTimeList.insert(std::make_pair(personId, PersonWaitingInfo() ));
 		}
 		waitingTimeList[personId].waitingTime = waitingTime;
+		waitingTimeList[personId].currentTime = currentTime;
 		waitingTimeList[personId].failedBoardingTime = failedBoardingTimes;
 	}
 

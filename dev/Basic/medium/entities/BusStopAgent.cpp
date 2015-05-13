@@ -238,13 +238,13 @@ void BusStopAgent::storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingAct
 	Person* person = waitingActivity->getParent();
 	person->getRole()->collectTravelTime();
 	unsigned int waitingTime = waitingActivity->getWaitingTime();
-	DailyTime waitingDailyTime(current);
+	DailyTime currDailyTime(current);
+	DailyTime waitingDailyTime(waitingTime);
 	std::string stopId = busStop->getBusstopno_();
 	std::string personId = boost::lexical_cast<std::string>((person->GetId()));
-	std::string waitingTmInStr = waitingDailyTime.toString();
 	unsigned int failedBoardingTime = waitingActivity->getFailedBoardingTimes();
 	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(), STORE_PERSON_WAITING,
-			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(stopId, personId, waitingTmInStr, failedBoardingTime)));
+			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(stopId, personId, currDailyTime.toString(), waitingDailyTime.toString(), failedBoardingTime)));
 }
 
 void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)

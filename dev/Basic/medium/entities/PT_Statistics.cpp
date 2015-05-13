@@ -89,7 +89,7 @@ void PT_Statistics::HandleMessage(Message::MessageType type,
 		}
 
 		if (stat) {
-			stat->setWaitingTime(msg.personId, msg.waitingTime, msg.failedBoardingTimes);
+			stat->setWaitingTime(msg.personId, msg.currentTime, msg.waitingTime, msg.failedBoardingTimes);
 		}
 
 		break;
@@ -262,8 +262,9 @@ void PT_Statistics::StoreStatistics() {
 				std::map<std::string, PersonWaitingInfo>::const_iterator itWaitingTime =
 						waitingTimeList.begin();
 				while (itWaitingTime != waitingTimeList.end()) {
-					outputFile << stopNo << ",";
 					outputFile << itWaitingTime->first << ",";
+					outputFile << stopNo << ",";
+					outputFile << itWaitingTime->second.currentTime << ",";
 					outputFile << itWaitingTime->second.waitingTime << ",";
 					outputFile << itWaitingTime->second.failedBoardingTime
 							<< std::endl;

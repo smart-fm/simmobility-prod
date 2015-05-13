@@ -1557,12 +1557,6 @@ void sim_mob::medium::PredaySystem::computeLogsumsForLT(std::stringstream& outSt
 	outStream << personParams.getPersonId()
 			<< "," << personParams.getHomeLocation()
 			<< "," << personParams.getHhId()
-			<< "," << personParams.getWorkLogSum()
-			<< "," << personParams.getEduLogSum()
-			<< "," << personParams.getShopLogSum()
-			<< "," << personParams.getOtherLogSum()
-			<< "," << personParams.getDptLogsum()
-			<< "," << personParams.getDpsLogsum()
 			<< "," << personParams.getDpbLogsum()
 			<< "\n";
 }

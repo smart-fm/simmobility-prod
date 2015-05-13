@@ -72,6 +72,7 @@ namespace sim_mob
             void setActive(bool active);
             HouseholdAgent* getParent();
 
+            void ComputeHouseholdAffordability();
             /**
              * Inherited from LT_Role
              * @param currTime
@@ -100,6 +101,8 @@ namespace sim_mob
 
         private:
             friend class HouseholdAgent;
+
+            void init();
 
             /**
              * Helper method that goes to the market, gets the available units
@@ -152,6 +155,8 @@ namespace sim_mob
             };
             VehicleOwnershipOption vehicleOwnershipOption;
             bool hasTaxiAccess;
+            float householdAffordabilityAmount;
+            bool initBidderRole;
         };
     }
 }

@@ -31,6 +31,7 @@ namespace
 	const double DEFAULT_LOAD_INTERVAL = 0.5; // 0.5, when added to the 30 min representation explained below, will span for 1 hour in our query
 
 	const double LAST_30MIN_WINDOW_OF_DAY = 26.75;
+	const double TWENTY_FOUR_HOURS = 24.0;
 	const string HOME_ACTIVITY_TYPE = "Home";
 	const unsigned int SECONDS_IN_ONE_HOUR = 3600;
 
@@ -79,13 +80,6 @@ namespace
 		int min = 0, max = 29;
 		//if(firstFifteenMins) { min = 0; max = 14; }
 		int minute = Utils::generateInt(min,max) + ((mid - hour - 0.25)*60);
-
-		/*~~~~ adding 5 minutes to fake drivers for cbd policy demo. note: pid parameter in this function must also be removed later ~~~~~*/
-//		if(hour == 17 && minute <= 5 && boost::lexical_cast<long>(pid) > 5474288)
-//		{
-//			minute += 5;
-//		}
-		/*~~~~ end of - adding 5 minutes to fake drivers for cbd policy demo ~~~~~*/
 		int second = Utils::generateInt(0,60);
 		std::stringstream random_time;
 		hour = hour % 24;
@@ -343,8 +337,6 @@ sim_mob::PeriodicPersonLoader::PeriodicPersonLoader(std::set<sim_mob::Entity*>& 
 	dataLoadInterval = SECONDS_IN_ONE_HOUR; //1 hour by default. TODO: must be configurable.
 	elapsedTimeSinceLastLoad = cfg.baseGranSecond(); // initializing to base gran second so that all subsequent loads will happen 1 tick before the actual start of the interval
 
-	//TODO:  This is rigid. Must do something about relating this variable to simulation time and extracting the 30 min representation when we actually load.
-	//we assume the simulation does not start before 3AM (the start of day for Preday)
 	nextLoadStart = getHalfHourWindow(cfg.system.simulation.simStartTime.getValue()/1000);
 
 	storedProcName = cfg.getDatabaseProcMappings().procedureMappings["day_activity_schedule"];
@@ -355,6 +347,7 @@ sim_mob::PeriodicPersonLoader::~PeriodicPersonLoader()
 
 void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 {
+	return;
 	if (storedProcName.empty()) { return; }
 	//Our SQL statement
 	stringstream query;
@@ -398,6 +391,10 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	Print() << "active_agents: " << activeAgents.size() << " | pending_agents: " << pendingAgents.size() << endl;
 	//update next load start
 	nextLoadStart = end + DEFAULT_LOAD_INTERVAL;
+	if(nextLoadStart > LAST_30MIN_WINDOW_OF_DAY)
+	{
+		nextLoadStart = nextLoadStart - TWENTY_FOUR_HOURS; //next day starts at 3.25
+	}
 }
 
 void sim_mob::PeriodicPersonLoader::addOrStashPerson(Person* p)

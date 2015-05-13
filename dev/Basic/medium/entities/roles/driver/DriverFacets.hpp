@@ -193,7 +193,7 @@ protected:
 	 * @param nextSegStats next segment stats in path
 	 * @return true if driver can move into the next segment; false otherwise
 	 */
-	bool canGoToNextRdSeg(DriverUpdateParams& params, const sim_mob::SegmentStats* nextSegStats);
+	bool canGoToNextRdSeg(DriverUpdateParams& params, const sim_mob::SegmentStats* nextSegStats) const;
 
 	/**
 	 * sets position of driver in queue

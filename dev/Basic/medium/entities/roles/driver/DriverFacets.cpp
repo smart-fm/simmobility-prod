@@ -393,7 +393,8 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - convertToSeconds(params.now.ms())); //in seconds
 
-	if (canGoToNextRdSeg(params, nxtSegStat)){
+	const Link* nextLink = getNextLinkForLaneChoice(nxtSegStat, nextToNextSegStat);
+	if (canGoToNextRdSeg(params, nxtSegStat, nextLink)){
 		if (isQueuing){
 			removeFromQueue();
 		}
@@ -468,7 +469,8 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
 
-	if (canGoToNextRdSeg(params, nextSegStats)) {
+	const Link* nextLink = getNextLinkForLaneChoice(nextSegStats, nextToNextSegStats);
+	if (canGoToNextRdSeg(params, nextSegStats, nextLink)) {
 		if (isQueuing){
 			removeFromQueue();
 		}
@@ -529,7 +531,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 	}
 }
 
-bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& params, const sim_mob::SegmentStats* nextSegStats) const
+bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& params, const sim_mob::SegmentStats* nextSegStats, const Link* nextLink) const
 {
 	//return false if the Driver cannot be added during this time tick
 	if (params.elapsedSeconds >= params.secondsInTick) {
@@ -550,8 +552,15 @@ bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& param
 	//if this hack is not in place, all vehicles will start queuing in upstream segments forever.
 	//TODO: remove this hack and put permanent fix
 	if((maxAllowed < enteringVehicleLength) && (total <= 0)) { return true; }
-
-	return ((maxAllowed - total) >= enteringVehicleLength);
+	bool hasSpaceInNextStats = ((maxAllowed - total) >= enteringVehicleLength);
+	if(hasSpaceInNextStats && nextLink)
+	{
+		//additionally check if the length of vehicles in the lanegroup is not too long to accommodate this driver
+		double maxAllowedInLG = nextSegStats->getAllowedVehicleLengthForLaneGroup(nextLink);
+		double totalInLG = nextSegStats->getVehicleLengthForLaneGroup(nextLink);
+		return (totalInLG < maxAllowedInLG);
+	}
+	return hasSpaceInNextStats;
 }
 
 void DriverMovement::moveInQueue() {
@@ -817,7 +826,8 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms())));	//in seconds
 
-	if(canGoToNextRdSeg(params, currSegStats))
+	const Link* nextLink = getNextLinkForLaneChoice(currSegStats, nextSegStats);
+	if(canGoToNextRdSeg(params, currSegStats, nextLink))
 	{
 		//set position to start
 		if(currSegStats)

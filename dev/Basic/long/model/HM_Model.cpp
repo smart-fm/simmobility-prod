@@ -19,6 +19,9 @@
 #include "database/dao/PostcodeDao.hpp"
 #include "database/dao/VehicleOwnershipCoefficientsDao.hpp"
 #include "database/dao/TaxiAccessCoefficientsDao.hpp"
+#include "database/dao/EstablishmentDao.hpp"
+#include "database/dao/JobDao.hpp"
+#include "database/dao/HousingInterestRateDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -64,7 +67,7 @@ namespace
 
 	enum INCOME_CEILING
 	{
-		TWOBEDROOM = 5000, THREEBEDROOM = 1000, THREEBEDROOMMATURE = 15000
+		TWOBEDROOM = 5000, THREEBEDROOM = 10000, THREEBEDROOMMATURE = 15000
 	};
 
 	const int YEAR = 365;
@@ -148,6 +151,11 @@ Individual* HM_Model::getIndividualById(BigSerial id) const
 HM_Model::HouseholdList* HM_Model::getHouseholdList()
 {
 	return &households;
+}
+
+HM_Model::HousingInterestRateList* HM_Model::getHousingInterestRateList()
+{
+	return &housingInterestRates;
 }
 
 
@@ -358,6 +366,15 @@ void HM_Model::startImpl()
 
 		loadData<TaxiAccessCoefficientsDao>(conn,taxiAccessCoeffs,taxiAccessCoeffsById, &TaxiAccessCoefficients::getParameterId);
 		PrintOutV("Taxi access coefficients: " << taxiAccessCoeffs.size() << std::endl );
+
+		loadData<EstablishmentDao>(conn, establishments, establishmentsById, &Establishment::getId);
+		PrintOutV("Number of establishments: " << establishments.size() << std::endl );
+
+		loadData<JobDao>( conn, jobs, jobsById, &Job::getId);
+		PrintOutV("Number of jobs: " << jobs.size() << std::endl );
+
+		loadData<HousingInterestRateDao>( conn, housingInterestRates, housingInterestRatesById, &HousingInterestRate::getId);
+		PrintOutV("Number of interest rate quarters: " << housingInterestRates.size() << std::endl );
 	}
 
 

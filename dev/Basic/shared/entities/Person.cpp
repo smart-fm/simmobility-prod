@@ -615,6 +615,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
 		const std::vector<sim_mob::OD_Trip>& matchedTrips) {
 
 	bool ret = true;
+	bool invalidFlag = false;
 	if (matchedTrips.size() > 0) {
 		std::vector<sim_mob::OD_Trip>::const_iterator it = matchedTrips.begin();
 		while (it != matchedTrips.end()) {
@@ -686,9 +687,17 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip,
 				break;
 			}
 			}
+			if(it->tType == "Bus" and (sType != 1 or eType != 1))
+			{
+				invalidFlag = true;
+			}
+			if(it->tType == "RTS" and (sType != 2 or eType != 2))
+			{
+				invalidFlag = true;
+			}
 
 			if (source.type_ != WayPoint::INVALID
-					&& dest.type_ != WayPoint::INVALID) {
+					&& dest.type_ != WayPoint::INVALID and !invalidFlag) {
 				subTrip.setPersonID(-1);
 				subTrip.itemType = TripChainItem::getItemType("Trip");
 				subTrip.sequenceNumber = 1;

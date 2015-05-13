@@ -281,9 +281,14 @@ PT_PathSet PT_RouteChoiceLuaModel::LoadPT_PathSet(const std::string& original, c
 	aimsun::Loader::LoadPT_ChoiceSetFrmDB(*getSession(),pathSetId, pathSet);
 	pathSet.pathSet.clear();*/
 
+	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+	std::string storedProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
+	if(storedProcName.empty()){
+		throw std::runtime_error("Loading PT pathset function is empty!(<mapping name=\"pt_pathset\" procedure=\"\"/>)");
+	}
 	int sNodeId = boost::lexical_cast<int>(original);
 	int dNodeId = boost::lexical_cast<int>(dest);
-	aimsun::Loader::LoadPT_PathsetFrmDB(*getSession(), sNodeId, dNodeId, pathSet);
+	aimsun::Loader::LoadPT_PathsetFrmDB(*getSession(), storedProcName, sNodeId, dNodeId, pathSet);
 
 	/*for(std::set<PT_Path, cmp_path_vector>::iterator it = pathSet.pathSet.begin();it!=pathSet.pathSet.end(); it++){
 		const std::vector<PT_NetworkEdge>& pathEdges = it->getPathEdges();

@@ -347,7 +347,6 @@ sim_mob::PeriodicPersonLoader::~PeriodicPersonLoader()
 
 void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 {
-	return;
 	if (storedProcName.empty()) { return; }
 	//Our SQL statement
 	stringstream query;

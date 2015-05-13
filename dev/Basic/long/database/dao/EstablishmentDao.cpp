@@ -5,7 +5,7 @@
  *  Author: Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  */
 
-#include <database/dao/EstablishmentDao.h>
+#include <database/dao/EstablishmentDao.hpp>
 #include "DatabaseHelper.hpp"
 
 using namespace sim_mob::db;
@@ -20,7 +20,7 @@ void EstablishmentDao::fromRow(Row& result, Establishment& outObj)
 {
     outObj.id = result.get<BigSerial>("id", INVALID_ID);
     outObj.firmId = result.get<BigSerial>("firm_id", INVALID_ID);
-    outObj.buildingId = result.get<BigSerial>("building_id", INVALID_ID);
+    outObj.buildingId = result.get<BigSerial>("fm_building_id", INVALID_ID);
     outObj.lifestyleId = result.get<BigSerial>("life_style_id", INVALID_ID);
     outObj.businessTypeId = result.get<BigSerial>("business_type_id", INVALID_ID);
     outObj.size = result.get<int>("size", 0);

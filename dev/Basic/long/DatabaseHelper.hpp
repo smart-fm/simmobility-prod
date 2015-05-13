@@ -57,6 +57,7 @@ namespace sim_mob {
         const std::string DB_TABLE_TAXI_ACCESS_COEFFICIENTS = APPLY_SCHEMA(CALIBRATION_SCHEMA, "taxi_access_coefficients");
         const std::string DB_TABLE_ESTABLISHMENT= APPLY_SCHEMA(MAIN_SCHEMA, "establishment");
         const std::string DB_TABLE_JOB= APPLY_SCHEMA(MAIN_SCHEMA, "job");
+        const std::string DB_TABLE_HIR= APPLY_SCHEMA(MAIN_SCHEMA, "housing_interest_rates");
 
 
         /**
@@ -127,6 +128,9 @@ namespace sim_mob {
 
         const std::string DB_FUNC_GET_JOB = APPLY_SCHEMA( MAIN_SCHEMA, "getJobs()");
         const std::string DB_FUNC_GET_JOB_BY_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getJobById(:id)");
+
+        const std::string DB_FUNC_GET_HIR = APPLY_SCHEMA( MAIN_SCHEMA, "getHousingInterestRates()");
+        const std::string DB_FUNC_GET_HIR_BY_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getHousingInterestRateById(:id)");
 
         const std::string DB_FUNC_GET_UNIT_TYPES 	   = APPLY_SCHEMA( MAIN_SCHEMA, "getUnitTypes()");
         const std::string DB_FUNC_GET_EMPTY_PARCELS = APPLY_SCHEMA( MAIN_SCHEMA, "getEmptyParcels()");
@@ -307,6 +311,7 @@ namespace sim_mob {
         const std::string DB_GETALL_TAXI_ACCESS_COEFFICIENTS = "SELECT * FROM " + DB_FUNC_GET_TAXI_ACCESS_COEFFICIENTS + LIMIT;
         const std::string DB_GETALL_ESTABLISHMENT = "SELECT * FROM " + DB_FUNC_GET_ESTABLISHMENT + LIMIT;
         const std::string DB_GETALL_JOB = "SELECT * FROM " + DB_FUNC_GET_JOB + LIMIT;
+        const std::string DB_GETALL_HIR = "SELECT * FROM " + DB_FUNC_GET_HIR + LIMIT;
 
         /**
          * GET BY ID
@@ -327,6 +332,7 @@ namespace sim_mob {
         const std::string DB_GETBYID_AWAKENING = "SELECT * FROM " + DB_FUNC_GET_AWAKENING_BY_ID;
         const std::string DB_GETBYID_ESTABLISHMENT = "SELECT * FROM " + DB_FUNC_GET_ESTABLISHMENT_BY_ID;
         const std::string DB_GETBYID_JOB = "SELECT * FROM " + DB_FUNC_GET_JOB_BY_ID;
+        const std::string DB_GETBYID_HIR = "SELECT * FROM " + DB_FUNC_GET_HIR_BY_ID;
 
     }
 }

@@ -116,7 +116,7 @@ void PT_PathSetManager::writePathSetFileHeader()
 	this->ptPathSetWriter<<"PtPathId,"<<"ptPathSetId,"<<"scenario,"<<"PathTravelTime,"<<"TotalDistanceKms,"<<"PathSize,"
 			<<"TotalCost,"<<"Total_In_Vehicle_Travel_Time_Secs,"<<"Total_waiting_time,"<<"Total_walking_time,"
 		    <<"Total_Number_of_transfers,"<<"isMinDistance,"<<"isValidPath,"<<"isShortestPath,"<<"isMinInVehicleTravelTimeSecs,"
-		    <<"isMinNumberOfTransfers,"<<"isMinWalkingDistance,"<<"isMinTravelOnMrt,"<<"isMinTravelOnBus,"<<"pathset_origin_node"
+		    <<"isMinNumberOfTransfers,"<<"isMinWalkingDistance,"<<"isMinTravelOnMrt,"<<"isMinTravelOnBus,"<<"pathset_origin_node,"
 		    <<"pathset_dest_node"<<std::endl;
 }
 void PT_PathSetManager::writePathSetToFile(PT_PathSet &ptPathSet,unsigned int fromNodeId,unsigned int toNodeId)

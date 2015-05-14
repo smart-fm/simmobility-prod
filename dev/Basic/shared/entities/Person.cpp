@@ -781,9 +781,8 @@ void sim_mob::Person::convertODsToTrips() {
 						ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips);
 					}
 					if(!ret){
-						brokenBusTravel = true;
-						brokenBusTravelItem = tripChainItem;
-						break;
+						tripChain.clear();
+						return;
 					}
 				}
 				++itSubTrip;

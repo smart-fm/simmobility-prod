@@ -193,39 +193,49 @@ bool PT_RouteChoiceLuaModel::GetBestPT_Path(const std::string& original,
 		}
 	}
 
+	stateMutex.lock();
 	if(pathSet.pathSet.size()>0){
 		SetPathSet(&pathSet);
 		odTrips = MakePT_RouteChoice(original, dest);
-		odTripMap.insert(odTripMap.end(), odTrips.begin(), odTrips.end());
+		odTripMapGen.insert(odTripMapGen.end(), odTrips.begin(), odTrips.end());
 		//StoreBestPT_Path();
 		ret = true;
 	}
+	stateMutex.unlock();
 	return ret;
+}
+
+void PT_RouteChoiceLuaModel::BuildLookupMap(){
+	std::vector<sim_mob::OD_Trip>::iterator odIt = odTripMap.begin();
+	for (; odIt != odTripMap.end(); odIt++){
+		std::string pathSetId = odIt->pathset;
+		std::map<std::string, std::vector<sim_mob::OD_Trip> >::iterator it;
+		it=odTripTable.find(pathSetId);
+		if(it==odTripTable.end()){
+			odTripTable.insert(std::make_pair(pathSetId, std::vector<sim_mob::OD_Trip>()));
+		}
+		odTripTable[pathSetId].push_back(*odIt);
+	}
 }
 
 bool PT_RouteChoiceLuaModel::SearchPT_Path(const std::string& original, const std::string& dest, std::vector<sim_mob::OD_Trip>& odTrips )
 {
 	bool ret = false;
 	std::string pathSetId = "N_"+original+"_"+"N_"+dest;
-	std::vector<sim_mob::OD_Trip>::iterator odIt = odTripMap.begin();
-	for (; odIt != odTripMap.end(); odIt++) {
-		if(odIt->pathset==pathSetId){
-			odTrips.push_back(*odIt);
-			ret = true;
-		}
-		else if(ret){
-			break;
-		}
+	std::map<std::string, std::vector<sim_mob::OD_Trip> >::iterator it;
+	it=odTripTable.find(pathSetId);
+	if(it!=odTripTable.end()){
+		ret = true;
+		odTrips = it->second;
 	}
-
 	return ret;
 }
 
 void PT_RouteChoiceLuaModel::StoreBestPT_Path() {
 	std::ofstream outputFile("od_to_trips.csv");
 	if (outputFile.is_open()) {
-		std::vector<sim_mob::OD_Trip>::iterator odIt = odTripMap.begin();
-		for (; odIt != odTripMap.end(); odIt++) {
+		std::vector<sim_mob::OD_Trip>::iterator odIt = odTripMapGen.begin();
+		for (; odIt != odTripMapGen.end(); odIt++) {
 			outputFile << odIt->startStop << ",";
 			outputFile << odIt->endStop << ",";
 			outputFile << odIt->sType << ",";
@@ -273,6 +283,9 @@ const boost::shared_ptr<soci::session> & sim_mob::PT_RouteChoiceLuaModel::getSes
 	}
 	return it->second;
 }
+
+
+
 
 PT_PathSet PT_RouteChoiceLuaModel::LoadPT_PathSet(const std::string& original, const std::string& dest)
 {

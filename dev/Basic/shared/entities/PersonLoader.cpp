@@ -357,6 +357,7 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	unsigned actCtr = 0;
 	map<string, vector<TripChainItem*> > tripchains;
+	map<int, vector<TripChainItem*> > trips;
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
 		const soci::row& r = (*it);
@@ -369,8 +370,16 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 		if(constructedTrip) { personTripChain.push_back(constructedTrip); }
 		else { continue; }
 		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }
+		trips[actCtr]=personTripChain;
 		actCtr++;
 	}
+
+	vector<Person*> persons;
+	int personsNum = CellLoader::Load(trips, persons);
+	for(vector<Person*>::iterator i=persons.begin(); i!=persons.end(); i++){
+		 addOrStashPerson(*i);
+	}
+
 	//CBD specific processing of trip chain
 	//RestrictedRegion::getInstance().processTripChains(tripchains);//todo, plan changed, we are not chopping off the trips here
 

@@ -42,6 +42,7 @@ public:
 	bool GetBestPT_Path(const std::string& original, const std::string& dest, std::vector<sim_mob::OD_Trip>& odTrips);
 	void StoreBestPT_Path();
 	std::vector<sim_mob::OD_Trip>& GetODsTripMap() {	return odTripMap; }
+	void BuildLookupMap();
 
 private:
 	PT_PathSet* publicTransitPathSet;
@@ -49,6 +50,9 @@ private:
 	std::map<boost::thread::id, boost::shared_ptr<soci::session > > cnnRepo;
 	boost::shared_mutex cnnRepoMutex;
 	std::vector<sim_mob::OD_Trip> odTripMap;
+	std::vector<sim_mob::OD_Trip> odTripMapGen;
+	std::map<std::string, std::vector<sim_mob::OD_Trip> >odTripTable;
+	boost::shared_mutex stateMutex;
 
 private:
 	/**

@@ -38,7 +38,7 @@ public:
 	void getkShortestPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
 	void getLinkEliminationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
 	void getSimulationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
-	void writePathSetToFile(PT_PathSet &ptPathSet);
+	void writePathSetToFile(PT_PathSet &ptPathSet,unsigned int fromNodeId, unsigned int toNodeId);
 	void PT_BulkPathSetGenerator();
 	void writePathSetFileHeader();
 	const int labelPoolSize;

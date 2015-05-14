@@ -24,7 +24,7 @@ boost::shared_ptr<sim_mob::batched::ThreadPool> sim_mob::PT_PathSetManager::thre
 
 PT_PathSetManager::PT_PathSetManager():labelPoolSize(10){
 	//ptPathSetWriter.open(ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetOutputFile.c_str());
-	ptPathSetWriter.open("pt_paths.csv");
+	ptPathSetWriter.open("/home/data1/pt_paths.csv");
 }
 PT_PathSetManager::~PT_PathSetManager() {
 	// TODO Auto-generated destructor stub
@@ -104,7 +104,7 @@ PT_PathSet PT_PathSetManager::makePathset(sim_mob::Node* from,sim_mob::Node* to)
 	ptPathSet.computeAndSetPathSize();
 	// Writing the pathSet to the CSV file.
 
-	writePathSetToFile(ptPathSet);
+	writePathSetToFile(ptPathSet,from->nodeId,to->nodeId);
 	return ptPathSet;
 }
 void PT_PathSetManager::writePathSetFileHeader()
@@ -112,9 +112,9 @@ void PT_PathSetManager::writePathSetFileHeader()
 	this->ptPathSetWriter<<"PtPathId,"<<"ptPathSetId,"<<"scenario,"<<"PathTravelTime,"<<"TotalDistanceKms,"<<"PathSize,"
 			<<"TotalCost,"<<"Total_In_Vehicle_Travel_Time_Secs,"<<"Total_waiting_time,"<<"Total_walking_time,"
 		    <<"Total_Number_of_transfers,"<<"isMinDistance,"<<"isValidPath,"<<"isShortestPath,"<<"isMinInVehicleTravelTimeSecs,"
-		    <<"isMinNumberOfTransfers,"<<"isMinWalkingDistance,"<<"isMinTravelOnMrt,"<<"isMinTravelOnBus,"<<std::endl;
+		    <<"isMinNumberOfTransfers,"<<"isMinWalkingDistance,"<<"isMinTravelOnMrt,"<<"isMinTravelOnBus,"<<"pathset_origin_node,"<<"pathset_dest_node"<<std::endl;
 }
-void PT_PathSetManager::writePathSetToFile(PT_PathSet &ptPathSet)
+void PT_PathSetManager::writePathSetToFile(PT_PathSet &ptPathSet,unsigned int fromNodeId,unsigned int toNodeId)
 {
 	fileExclusiveWrite.lock();
 	for(std::set<PT_Path,cmp_path_vector>::const_iterator itPath=ptPathSet.pathSet.begin();itPath!=ptPathSet.pathSet.end();itPath++)
@@ -124,7 +124,7 @@ void PT_PathSetManager::writePathSetToFile(PT_PathSet &ptPathSet)
 				<<itPath->getTotalInVehicleTravelTimeSecs()<<","<<itPath->getTotalWaitingTimeSecs()<<","<<itPath->getTotalWalkingTimeSecs()<<","
 				<<itPath->getTotalNumberOfTransfers()<<","<<itPath->isMinDistance()<<","<<itPath->isValidPath()<<","<<itPath->isShortestPath()<<","
 				<<itPath->isMinInVehicleTravelTimeSecs()<<","<<itPath->isMinNumberOfTransfers()
-				<<","<<itPath->isMinWalkingDistance()<<","<<itPath->isMinTravelOnMrt()<<","<<itPath->isMinTravelOnBus()<<std::endl;
+				<<","<<itPath->isMinWalkingDistance()<<","<<itPath->isMinTravelOnMrt()<<","<<itPath->isMinTravelOnBus()<<","<<fromNodeId<<","<<toNodeId<<std::endl;
 	}
 	fileExclusiveWrite.unlock();
 }

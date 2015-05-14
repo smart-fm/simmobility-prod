@@ -1126,6 +1126,7 @@ double SegmentStats::getVehicleLengthForLaneGroup(const Link* downstreamLink) co
 void SegmentStats::printDownstreamLinks() const
 {
 	std::stringstream out;
+	out << "DownStreamLinks of " << roadSegment->getSegmentAimsunId() << "-" << statsNumberInSegment << std::endl;
 	for (LaneStatsMap::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++)
 	{
 		if(i->second->isLaneInfinity()) { continue; }

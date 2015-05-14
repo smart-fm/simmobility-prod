@@ -390,10 +390,9 @@ protected:
 	/**
 	 * gets the first link downstream to nextSegStats
 	 * @param nextSegStats the next segment stats for driver
-	 * @param nextToNextSegStats the second next segment stats for driver
 	 * @return next link for driver
 	 */
-	const sim_mob::Link* getNextLinkForLaneChoice(const SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats) const;
+	const sim_mob::Link* getNextLinkForLaneChoice(const SegmentStats* nextSegStats) const;
 	friend class MesoReroute;
 
 };

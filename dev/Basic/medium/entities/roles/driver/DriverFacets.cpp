@@ -393,7 +393,7 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - convertToSeconds(params.now.ms())); //in seconds
 
-	const Link* nextLink = getNextLinkForLaneChoice(nxtSegStat, nextToNextSegStat);
+	const Link* nextLink = getNextLinkForLaneChoice(nxtSegStat);
 	if (canGoToNextRdSeg(params, nxtSegStat, nextLink)){
 		if (isQueuing){
 			removeFromQueue();
@@ -469,7 +469,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
 
-	const Link* nextLink = getNextLinkForLaneChoice(nextSegStats, nextToNextSegStats);
+	const Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
 	if (canGoToNextRdSeg(params, nextSegStats, nextLink)) {
 		if (isQueuing){
 			removeFromQueue();
@@ -826,7 +826,7 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms())));	//in seconds
 
-	const Link* nextLink = getNextLinkForLaneChoice(currSegStats, nextSegStats);
+	const Link* nextLink = getNextLinkForLaneChoice(currSegStats);
 	if(canGoToNextRdSeg(params, currSegStats, nextLink))
 	{
 		//set position to start
@@ -902,7 +902,7 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextS
 	double queueLength = 0.0;
 	double totalLength = 0.0;
 
-	const sim_mob::Link* nextLink = getNextLinkForLaneChoice(nextSegStats, nextToNextSegStats);
+	const sim_mob::Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
 	const std::vector<sim_mob::Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
 	for (vector<sim_mob::Lane* >::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
 	{
@@ -1370,21 +1370,10 @@ void DriverMovement::handleMessage(messaging::Message::MessageType type, const m
 	}
 }
 
-const sim_mob::Link* DriverMovement::getNextLinkForLaneChoice(const SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats) const
+const sim_mob::Link* DriverMovement::getNextLinkForLaneChoice(const SegmentStats* nextSegStats) const
 {
 	const sim_mob::Link* nextLink = nullptr;
-	const sim_mob::SegmentStats* firstStatsInNextLink = nullptr;
-	if(nextToNextSegStats)
-	{
-		if(nextSegStats->getRoadSegment()->getLink() == nextToNextSegStats->getRoadSegment()->getLink())
-		{
-			firstStatsInNextLink = pathMover.getFirstSegStatsInNextLink();
-		}
-		else
-		{
-			firstStatsInNextLink = pathMover.getFirstSegStatsInSecondLinkAhead();
-		}
-	}
+	const sim_mob::SegmentStats* firstStatsInNextLink = pathMover.getFirstSegStatsInNextLink(nextSegStats);
 	if(firstStatsInNextLink) { nextLink = firstStatsInNextLink->getRoadSegment()->getLink(); }
 	return nextLink;
 }

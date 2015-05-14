@@ -102,16 +102,11 @@ public:
 	void printPath();
 
 	/**
-	 * gets the first segstats in the immediate downstream Link of path
+	 * gets the first segstats in the immediate downstream Link of nextSegStats
+	 * @param segStats downstream seg stats for which downstream link is required
 	 * @return first segstats in the immediate downstream Link of path
 	 */
-	const sim_mob::SegmentStats* getFirstSegStatsInNextLink() const;
-
-	/**
-	 * gets the first segstats in the next to next downstream Link of path
-	 * @return first segstats in the next to next downstream Link of path
-	 */
-	const sim_mob::SegmentStats* getFirstSegStatsInSecondLinkAhead() const;
+	const sim_mob::SegmentStats* getFirstSegStatsInNextLink(const SegmentStats* segStats) const;
 
 protected:
 	//Note: Be careful if you want to change the container type of Path.

@@ -1092,8 +1092,12 @@ bool SegmentStats::isConnectedToDownstreamLink(const Link* downstreamLink, const
 double SegmentStats::getAllowedVehicleLengthForLaneGroup(const Link* downstreamLink) const
 {
 	size_t numLanes = getRoadSegment()->getLanes().size();
+	if(!downstreamLink) { return (numLanes * length); }
 	std::map<const sim_mob::Link*, std::vector<sim_mob::LaneStats*> >::const_iterator lnGpIt = laneGroup.find(downstreamLink);
-	if(lnGpIt == laneGroup.end()) { throw std::runtime_error("Invalid downstream link"); }
+	if(lnGpIt == laneGroup.end()) {
+		Print() << "DownstreamLink first seg: " <<  downstreamLink->getSegments().front()->getSegmentAimsunId() << std::endl;
+		throw std::runtime_error("Invalid downstream link");
+	}
 	size_t numLanesInLG = lnGpIt->second.size();
 
 	if(numLanes == numLanesInLG) { return (numLanesInLG * length); }
@@ -1107,6 +1111,7 @@ double SegmentStats::getAllowedVehicleLengthForLaneGroup(const Link* downstreamL
 
 double SegmentStats::getVehicleLengthForLaneGroup(const Link* downstreamLink) const
 {
+	if(!downstreamLink) { return getTotalVehicleLength(); }
 	double vehicleLength = 0.0;
 	std::map<const sim_mob::Link*, std::vector<sim_mob::LaneStats*> >::const_iterator lnGpIt = laneGroup.find(downstreamLink);
 	if(lnGpIt == laneGroup.end()) { throw std::runtime_error("Invalid downstream link"); }

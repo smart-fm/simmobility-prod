@@ -268,7 +268,7 @@ const sim_mob::Lane* BusDriverMovement::getBestTargetLane(const sim_mob::Segment
 		double que = 0.0;
 		double total = 0.0;
 
-		const sim_mob::Link* nextLink = getNextLinkForLaneChoice(nextSegStats, nextToNextSegStats);
+		const sim_mob::Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
 		const std::vector<sim_mob::Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
 		for (vector<sim_mob::Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
 		{

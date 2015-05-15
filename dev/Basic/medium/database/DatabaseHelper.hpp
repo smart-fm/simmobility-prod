@@ -23,7 +23,7 @@ namespace medium {
     /**
      * Schemas
      */
-    const std::string MAIN_SCHEMA = "main.";
+    const std::string MAIN_SCHEMA = "snapshot2012.";
     const std::string PUBLIC_SCHEMA = "public.";
 
     /**

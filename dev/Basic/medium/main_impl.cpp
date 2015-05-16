@@ -44,6 +44,8 @@
 #include "path/PathSetManager.hpp"
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
+#include "path/PT_PathSetManager.hpp"
+#include "path/PT_RouteChoiceLuaModel.hpp"
 #include "util/DailyTime.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Utils.hpp"
@@ -52,6 +54,9 @@
 #include "workers/WorkGroupManager.hpp"
 #include "config/MT_Config.hpp"
 #include "config/ParseMidTermConfigFile.hpp"
+#include "entities/params/PT_NetworkEntities.hpp"
+#include "database/pt_network_dao/PT_NetworkSqlDao.hpp"
+#include "geospatial/streetdir/A_StarPublicTransitShortestPathImpl.hpp"
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -78,6 +83,13 @@ const std::string MT_CONFIG_FILE = "data/medium/mt-config.xml";
 
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
+
+
+void unit_test_function(){
+	sim_mob::Node* src_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(14934);
+	sim_mob::Node* dest_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(11392);
+	sim_mob::PT_PathSetManager::Instance().makePathset(src_node,dest_node);
+}
 
 /**
  * Main simulation loop for the supply simulator
@@ -133,6 +145,14 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+
+	if(config.publicTransitEnabled){
+		const ModelScriptsMap& extScripts = MT_Config::getInstance().getModelScriptsMap();
+		const std::string& scriptsPath = extScripts.getPath();
+		sim_mob::PT_RouteChoiceLuaModel::Instance()->loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
+		sim_mob::PT_RouteChoiceLuaModel::Instance()->loadFile(scriptsPath + extScripts.getScriptFileName("ptrc"));
+		sim_mob::PT_RouteChoiceLuaModel::Instance()->initialize();
+	}
 
 	//Start boundaries
 #ifndef SIMMOB_DISABLE_MPI
@@ -275,6 +295,9 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//finalize
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		PathSetManager::getInstance()->storeRTT();
+	}
+	if(config.publicTransitEnabled){
+		sim_mob::PT_RouteChoiceLuaModel::Instance()->StoreBestPT_Path();
 	}
 	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;
 	cout << "Max Agents at any given time: " <<maxAgents <<endl;

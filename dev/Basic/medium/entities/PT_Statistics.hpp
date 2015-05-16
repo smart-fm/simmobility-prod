@@ -20,6 +20,7 @@ using namespace messaging;
 
 struct PersonWaitingInfo
 {
+	std::string currentTime;
 	std::string waitingTime;
 	unsigned int failedBoardingTime;
 };
@@ -27,11 +28,12 @@ struct PersonWaitingInfo
 class WaitingTimeStats
 {
 public:
-	void setWaitingTime(const std::string& personId, const std::string& waitingTime, unsigned int failedBoardingTimes){
+	void setWaitingTime(const std::string& personId, const std::string& currentTime, const std::string& waitingTime, unsigned int failedBoardingTimes){
 		if(waitingTimeList.find(personId)==waitingTimeList.end()){
 			waitingTimeList.insert(std::make_pair(personId, PersonWaitingInfo() ));
 		}
 		waitingTimeList[personId].waitingTime = waitingTime;
+		waitingTimeList[personId].currentTime = currentTime;
 		waitingTimeList[personId].failedBoardingTime = failedBoardingTimes;
 	}
 
@@ -64,6 +66,35 @@ private:
 	std::vector<BusArrivalTime> busArrivalTimeList;
 };
 
+struct PersonTravelTime {
+	std::string personId;
+	std::string tripStartPoint;
+	std::string tripEndPoint;
+	std::string subStartPoint;
+	std::string subEndPoint;
+	std::string subStartType;
+	std::string subEndType;
+	std::string mode;
+	std::string service;
+	std::string arrivalTime;
+	std::string travelTime;
+};
+
+class PersonTravelStats {
+public:
+	void setPersonTravelTime(const std::string& personId, const std::string& tripStartPoint,
+			const std::string& tripEndPoint,
+			const std::string& subStartPoint, const std::string& subEndPoint,
+			const std::string& subStartType, const std::string& subEndType,
+			const std::string& mode, const std::string& service,
+			const std::string& arrivalTime, const std::string& travelTime);
+	const std::vector<PersonTravelTime>& getPersonTravelTime() const {
+		return PersonTravelTimeList;
+	}
+private:
+	std::vector<PersonTravelTime> PersonTravelTimeList;
+};
+
 struct WaitingAmountStats {
 	std::string timeSlice;
 	std::string waitingAmount;
@@ -93,6 +124,8 @@ private:
     std::map<std::string, WaitingTimeStats*> personWaitingTime;
     /**store waiting number at each bus stop */
     std::map<std::string, std::vector<WaitingAmountStats> > waitingAmounts;
+    /**store travel time*/
+    std::map<std::string, PersonTravelStats*> personTravelTimes;
     static PT_Statistics* instance;
  };
 

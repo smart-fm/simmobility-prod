@@ -51,7 +51,7 @@ sim_mob::medium::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat,
   visitedBusStopSequenceNo(mtxStrat, -1), arrivalTime(mtxStrat, 0.0),
   dwellTime(mtxStrat, 0.0), visitedBusTripSequenceNo(mtxStrat, 0),
   visitedBusLine(mtxStrat, "0"), holdingTime(mtxStrat, 0.0),
-  waitingTimeAtbusStop(0.0)
+  waitingTimeAtbusStop(0.0),busSequenceNumber(1)
 {}
 
 sim_mob::medium::BusDriver::~BusDriver() {}
@@ -81,7 +81,7 @@ const std::vector<const sim_mob::BusStop*>* sim_mob::medium::BusDriver::getBusSt
 	stopsVec = &(routeInfo.getBusStops());
 	return stopsVec;
 }
-
+std::string lastBoarding;
 bool sim_mob::medium::BusDriver::addPassenger(sim_mob::medium::Passenger* passenger) {
 	passengerList.push_back(passenger);
 	return true;
@@ -139,13 +139,24 @@ void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, co
 		std::string stopNo = stop->getBusstopno_();
 		std::string tripId = busTrip->tripID;
 		std::string busLineId = busLine->getBusLineID();
-		unsigned int sequenceNo = busTrip->getBusTripRun_SequenceNum();
+		//unsigned int sequenceNo = busTrip->getBusTripStopIndex(stop);
 		double pctOccupancy = (((double)passengerList.size())/MT_Config::getInstance().getBusCapacity()) * 100.0;
 
 		messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(), STORE_BUS_ARRIVAL,
-				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(stopNo, busLineId, tripId, current, waitTime, sequenceNo,pctOccupancy)));
+				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(stopNo, busLineId, tripId, current, waitTime, this->busSequenceNumber,pctOccupancy)));
+		this->busSequenceNumber++;
 	}
 }
+
+void sim_mob::medium::BusDriver::calcTravelTime()
+{
+	std::list<sim_mob::medium::Passenger*>::iterator it=passengerList.begin();
+	for(; it!=passengerList.end(); it++){
+		PassengerMovement* movement = dynamic_cast<PassengerMovement*>((*it)->Movement());
+		movement->frame_tick();
+	}
+}
+
 
 void sim_mob::medium::BusDriver::predictArrivalAtBusStop(double preArrivalTime,
 		sim_mob::medium::BusStopAgent* busStopAgent) {

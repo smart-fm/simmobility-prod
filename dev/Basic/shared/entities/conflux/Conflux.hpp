@@ -219,6 +219,12 @@ private:
 	void assignPersonToBusStopAgent(Person* person);
 
 	/**
+	 * assign person to MRT
+	 * @param person is going to board MRT
+	 */
+	void assignPersonToMRT(Person* person);
+
+	/**
 	 * calls frame_init of the movement facet for the person's role
 	 * @param now current time slice
 	 * @param person person to initialize
@@ -523,6 +529,11 @@ public:
 	 * @param segStats road segment stats to remove incident
 	 */
 	static void removeIncident(sim_mob::SegmentStats* segStats);
+
+	/**
+	 * collect current person travel time
+	 */
+	void collectTravelTime(Person* person);
 
 	bool isBoundary; //A conflux that receives person from at least one conflux that belongs to another worker
 	bool isMultipleReceiver; //A conflux that receives persons from confluxes that belong to multiple other workers

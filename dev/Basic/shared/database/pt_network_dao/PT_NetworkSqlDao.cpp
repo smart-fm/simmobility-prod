@@ -22,7 +22,7 @@ using namespace sim_mob::db;
 
 
 PT_VerticesSqlDao::PT_VerticesSqlDao(DB_Connection& connection,std::string query):
-		SqlAbstractDao<PT_NetworkVertices>(connection, "", "", "", "",
+		SqlAbstractDao<PT_NetworkVertex>(connection, "", "", "", "",
 		query, "")
 {
 }
@@ -30,7 +30,7 @@ PT_VerticesSqlDao::PT_VerticesSqlDao(DB_Connection& connection,std::string query
 PT_VerticesSqlDao::~PT_VerticesSqlDao()
 {}
 
-void PT_VerticesSqlDao::fromRow(Row& result, PT_NetworkVertices& outObj) {
+void PT_VerticesSqlDao::fromRow(Row& result, PT_NetworkVertex& outObj) {
 	outObj.setStopId(result.get<std::string>(DB_FIELD_PT_VERTICES_STOP_ID,EMPTY_STRING));
 	outObj.setStopCode(result.get<std::string>(DB_FIELD_PT_VERTICES_STOP_CODE,EMPTY_STRING));
 	outObj.setStopName(result.get<std::string>(DB_FIELD_PT_VERTICES_STOP_NAME,EMPTY_STRING));
@@ -41,12 +41,12 @@ void PT_VerticesSqlDao::fromRow(Row& result, PT_NetworkVertices& outObj) {
 	outObj.setStopDesc(result.get<std::string>(DB_FIELD_PT_VERTICES_STOP_DESCRIPTION,EMPTY_STRING));
 }
 
-void PT_VerticesSqlDao::toRow(PT_NetworkVertices& data, Parameters& outParams, bool update) {
+void PT_VerticesSqlDao::toRow(PT_NetworkVertex& data, Parameters& outParams, bool update) {
 	throw std::runtime_error("Function PT_VerticesSqlDao::toRow not implemented");
 }
 
 Pt_EdgesSqlDao::Pt_EdgesSqlDao(DB_Connection& connection,std::string query):
-		SqlAbstractDao<PT_NetworkEdges>(connection, "", "", "", "",
+		SqlAbstractDao<PT_NetworkEdge>(connection, "", "", "", "",
 				query, "")
 {
 }
@@ -54,7 +54,7 @@ Pt_EdgesSqlDao::Pt_EdgesSqlDao(DB_Connection& connection,std::string query):
 Pt_EdgesSqlDao::~Pt_EdgesSqlDao()
 {}
 
-void Pt_EdgesSqlDao::fromRow(Row& result, PT_NetworkEdges& outObj) {
+void Pt_EdgesSqlDao::fromRow(Row& result, PT_NetworkEdge& outObj) {
 	outObj.setStartStop(result.get<std::string>(DB_FIELD_PT_EDGES_START_STOP,EMPTY_STRING));
 	outObj.setEndStop(result.get<std::string>(DB_FIELD_PT_EDGES_END_STOP,EMPTY_STRING));
 	outObj.setType(result.get<std::string>(DB_FIELD_PT_EDGES_R_TYPE,EMPTY_STRING));
@@ -72,7 +72,7 @@ void Pt_EdgesSqlDao::fromRow(Row& result, PT_NetworkEdges& outObj) {
 
 }
 
-void Pt_EdgesSqlDao::toRow(PT_NetworkEdges& data, Parameters& outParams, bool update) {
+void Pt_EdgesSqlDao::toRow(PT_NetworkEdge& data, Parameters& outParams, bool update) {
 	throw std::runtime_error("Function Pt_EdgesSqlDao::toRow not implemented");
 }
 

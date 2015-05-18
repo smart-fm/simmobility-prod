@@ -2604,7 +2604,8 @@ bool sim_mob::aimsun::Loader::storeSinglePath(soci::session& sql,
 						<< sp->valid_path << ","
 						<< sp->isShortestPath << ","
 						<< sp->travelTime << ","
-						<< sp->isMinTravelTime << "\n";
+						<< sp->isMinTravelTime << ","
+						<< sp->pathSetId << "\n";
 			}
 		}
 	}

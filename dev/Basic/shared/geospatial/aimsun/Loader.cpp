@@ -2977,15 +2977,6 @@ void sim_mob::aimsun::Loader::CreateLaneGroups()
 				const sim_mob::Link* downStreamLink = (*lcIt)->getLaneTo()->getRoadSegment()->getLink();
 				lastStats->laneStatsMap.at(fromLane)->addDownstreamLink(downStreamLink); //duplicates are eliminated by the std::set containing the downstream links
 			}
-			if(connLanes.size() != lastStats->getRoadSegment()->getLanes().size())
-			{
-				std::stringstream errstrm;
-				size_t numLanesInLastStats = lastStats->getRoadSegment()->getLanes().size();
-				errstrm << "connLanes.size() " << connLanes.size() << " != "
-						<< "numLanesInLastStats " << numLanesInLastStats
-						<< "|lastSeg " << lastStats->getRoadSegment()->getSegmentAimsunId() << std::endl;
-				Print() << errstrm.str() << std::endl;
-			}
 
 			//construct inverse lookup for convenience
 			for (LaneStatsMap::const_iterator lnStatsIt = lastStats->laneStatsMap.begin(); lnStatsIt != lastStats->laneStatsMap.end(); lnStatsIt++)
@@ -3000,13 +2991,11 @@ void sim_mob::aimsun::Loader::CreateLaneGroups()
 
 			//extend the downstream links assignment to the segmentStats upstream to the last segmentStats
 			SegmentStatsList::const_reverse_iterator upSegsRevIt = segStatsList.rbegin();
-			//Print() << (*upSegsRevIt)->getRoadSegment()->getSegmentAimsunId() << "|";
 			upSegsRevIt++; //lanestats of last segmentstats is already assigned with downstream links... so skip the last segmentstats
 			const sim_mob::SegmentStats* downstreamSegStats = lastStats;
 			for(; upSegsRevIt!=segStatsList.rend(); upSegsRevIt++)
 			{
 				sim_mob::SegmentStats* currSegStats = (*upSegsRevIt);
-				//Print() << currSegStats->getRoadSegment()->getSegmentAimsunId() << "|";
 				const sim_mob::RoadSegment* currSeg = currSegStats->getRoadSegment();
 				const std::vector<sim_mob::Lane*>& currLanes = currSeg->getLanes();
 				if(currSeg == downstreamSegStats->getRoadSegment())
@@ -3046,9 +3035,6 @@ void sim_mob::aimsun::Loader::CreateLaneGroups()
 							const sim_mob::LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(uniLnConnector.center);
 							currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
 						}
-//						if(currLnStats->getDownstreamLinks().empty()) {
-//							Print() << "no downstream links were added for lane " << ln->getLaneID() << std::endl;
-//						}
 					}
 				}
 
@@ -3065,8 +3051,8 @@ void sim_mob::aimsun::Loader::CreateLaneGroups()
 
 				downstreamSegStats = currSegStats;
 			}
-			//Print() << std::endl;
 
+//			*********** the commented for loop below is to print the lanes which do not have lane groups ***
 //			for(SegmentStatsList::const_reverse_iterator statsRevIt=segStatsList.rbegin(); statsRevIt!=segStatsList.rend(); statsRevIt++)
 //			{
 //				const LaneStatsMap lnStatsMap = (*statsRevIt)->laneStatsMap;

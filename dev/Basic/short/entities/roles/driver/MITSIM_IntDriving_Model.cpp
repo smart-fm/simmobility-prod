@@ -80,14 +80,10 @@ DPoint MITSIM_IntDriving_Model::continueDriving(double amount,DriverUpdateParams
 		polylineMovement += amount;
 	}
 
-	//std::cout<<std::endl;
-	//std::cout<<"tick: "<<p.now.frame()<<" amount: "<<amount<<" restLen: "<<restLen<< " polylineMovement: "<<polylineMovement<< " totalMovement: "<<totalMovement<<std::endl;
-	//std::cout<<std::setprecision(10)<<"currPolyline: "<<currPolyline.getX()<<" "<<currPolyline.getY()<<" "<<currPolyline.getEndX()<<" "<<currPolyline.getEndY()<<std::endl;
 	DynamicVector temp = currPolyline;
 	temp.scaleVectTo (polylineMovement).translateVect ();
 
 	currPosition = DPoint (temp.getX (), temp.getY ());
-	//std::cout<<"currPosition: "<<currPosition.x<<" "<<currPosition.y<<std::endl;
 
 	return currPosition;
 }
@@ -157,6 +153,8 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& par
 {
 	double acc = params.maxAcceleration;
 	const double vehicleLength = params.driver->getVehicleLengthM();
+	
+	//Safety margin distance in front of the vehicle (half a vehicle length seems a reasonable margin)
 	const double safeDist = 1.5 * vehicleLength;
 	double distToStopLine = params.driver->distToIntersection_.get() - safeDist;
 	

@@ -107,13 +107,13 @@ public:
   //Getter for intersectionAttentivenessFactorMin
   double getIntersectionAttentivenessFactorMin() const 
   {
-      return intersectionAttentivenessFactorMin;
+    return intersectionAttentivenessFactorMin;
   }
 
   //Getter for intersectionAttentivenessFactorMax
   double getIntersectionAttentivenessFactorMax() const 
   {
-      return intersectionAttentivenessFactorMax;
+    return intersectionAttentivenessFactorMax;
   }
 
   //Getter for the impatience factor
@@ -125,7 +125,7 @@ public:
   //Setter for the current turning
   void setCurrTurning(const TurningSection* currTurning) 
   {
-  	this->currTurning = currTurning;
+    this->currTurning = currTurning;
   }
 };
 

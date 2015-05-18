@@ -2543,7 +2543,7 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 
 	//we need the length of the link while calculating the lane level density
 	//as we will be considering the vehicles on a particular lane of a link.
-	double lengthInM = Utils::cmToMeter((double)fwdDriverMovement.getCurrLink()->getLength());
+	double lengthInM = (double)fwdDriverMovement.getCurrLink()->getLength() / 100;
 
 	double other_offset = other_driver->currDistAlongRoadSegment;
 
@@ -2979,61 +2979,6 @@ void sim_mob::DriverMovement::perceivedDataProcess(NearestVehicle& nv, DriverUpd
 		params.perceivedFwdVelocityOfFwdCar = 1900;
 		params.perceivedAccelerationOfFwdCar = 500;
 	}
-}
-
-NearestVehicle& sim_mob::DriverMovement::nearestVehicle(DriverUpdateParams& p) 
-{
-	double leftDis = 5000;
-	double rightDis = 5000;
-	double currentDis = 5000;
-
-	if (p.nvLeftFwd.exists()) 
-	{
-		leftDis = p.nvLeftFwd.distance;
-	}
-	
-	if (p.nvRightFwd.exists()) 
-	{
-		rightDis = p.nvRightFwd.distance;
-	}
-
-	if (p.nvFwd.exists()) 
-	{
-		currentDis = p.nvFwd.distance;
-	}
-	else if (p.nvFwdNextLink.exists() && p.turningDirection == LCS_SAME) 
-	{
-		currentDis = p.nvFwdNextLink.distance;
-		return p.nvFwdNextLink;
-	}
-	else if (p.nvLeadFreeway.exists()) // vh on freeway
-	{
-		currentDis = p.nvLeadFreeway.distance;
-		return p.nvLeadFreeway;
-	}
-	
-	if (leftDis < currentDis) 
-	{
-		//the vehicle in the left lane is turning to right
-		//or subject vehicle is turning to left
-		if (p.nvLeftFwd.driver->turningDirection_.get() == LCS_RIGHT
-			&& parentDriver->vehicle->getTurningDirection() == LCS_LEFT
-			&& p.nvLeftFwd.driver->getVehicle()->getVelocity() > 500) 
-		{
-			return p.nvLeftFwd;
-		}
-	}
-	else if (rightDis < currentDis) 
-	{
-		if (p.nvRightFwd.driver->turningDirection_.get() == LCS_LEFT
-			&& parentDriver->vehicle->getTurningDirection() == LCS_RIGHT
-			&& p.nvRightFwd.driver->getVehicle()->getVelocity() > 500) 
-		{
-			return p.nvRightFwd;
-		}
-	}
-
-	return p.nvFwd;
 }
 
 void sim_mob::DriverMovement::updateIntersectionVelocity() 

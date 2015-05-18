@@ -623,7 +623,7 @@ void DatabaseLoader::loadTurningSectionTable(const std::string& storedProc,sim_m
 	}
 	catch (soci::soci_error const & err)
 	{
-		std::cout<<"loadTurningSectionTable: "<<err.what()<<std::endl;
+		sim_mob::Print() << "loadTurningSectionTable: " << err.what() << std::endl;
 	}
 }
 void DatabaseLoader::loadTurningPolyline(const std::string& storedProc, const std::string& pointsStoredProc, sim_mob::RoadNetwork& rn) 
@@ -647,7 +647,7 @@ void DatabaseLoader::loadTurningPolyline(const std::string& storedProc, const st
 	}
 	catch (soci::soci_error const & err)
 	{
-		std::cout<<"loadTurningPolyline: "<<err.what()<<std::endl;
+		sim_mob::Print() << "loadTurningPolyline: " << err.what() << std::endl;
 	}
 }
 void DatabaseLoader::loadPolypointByPolyline(const std::string& pointsStoredProc, sim_mob::TurningPolyline *turningPolyline) 
@@ -668,7 +668,7 @@ void DatabaseLoader::loadPolypointByPolyline(const std::string& pointsStoredProc
 	}
 	catch (soci::soci_error const & err)
 	{
-		std::cout<<"loadTurningPolyline: "<<err.what()<<std::endl;
+		sim_mob::Print() << "loadTurningPolyline: " << err.what() << std::endl;
 	}
 }
 void DatabaseLoader::storeTurningPoints(sim_mob::RoadNetwork& rn) 
@@ -690,7 +690,7 @@ void DatabaseLoader::storeTurningPoints(sim_mob::RoadNetwork& rn)
 	}
 	catch (soci::soci_error const & err)
 	{
-		std::cout<<"storeTurningPoints: "<<err.what()<<std::endl;
+		sim_mob::Print() << "storeTurningPoints: " << err.what() << std::endl;
 	}
 }
 void DatabaseLoader::loadTurningConflictTable(const std::string& storedProc,sim_mob::RoadNetwork& rn) 
@@ -712,7 +712,7 @@ void DatabaseLoader::loadTurningConflictTable(const std::string& storedProc,sim_
 	}
 	catch (soci::soci_error const & err)
 	{
-		std::cout<<"loadTurningConflictTable: "<<err.what()<<std::endl;
+		sim_mob::Print() << "loadTurningConflictTable: " << err.what() << std::endl;
 	}
 }
 void DatabaseLoader::loadNodeTypeTable(const std::string& storedProc,std::map<string,int>& nodeTypeMap)
@@ -725,7 +725,7 @@ void DatabaseLoader::loadNodeTypeTable(const std::string& storedProc,std::map<st
 	}
 	catch (soci::soci_error const & err)
 	{
-		std::cout<<"loadNodeTypeTable: "<<err.what()<<std::endl;
+		sim_mob::Print() << "loadNodeTypeTable: " << err.what() << std::endl;
 	}
 }
 
@@ -739,8 +739,8 @@ void DatabaseLoader::LoadSections(const std::string& storedProc)
 	for (soci::rowset<Section>::iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check nodes
 		if(nodes_.count(it->TMP_FromNodeID)==0 || nodes_.count(it->TMP_ToNodeID)==0) {
-			std::cout <<"From node: " <<it->TMP_FromNodeID  <<"  " <<nodes_.count(it->TMP_FromNodeID) <<"\n";
-			std::cout <<"To node: " <<it->TMP_ToNodeID  <<"  " <<nodes_.count(it->TMP_ToNodeID) <<"\n";
+			sim_mob::Print() <<"From node: " <<it->TMP_FromNodeID  <<"  " <<nodes_.count(it->TMP_FromNodeID) <<"\n";
+			sim_mob::Print() <<"To node: " <<it->TMP_ToNodeID  <<"  " <<nodes_.count(it->TMP_ToNodeID) <<"\n";
 			throw std::runtime_error("Invalid From or To node.");
 		}
 
@@ -887,7 +887,7 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 		if(sections_.count(it->TMP_SectionId)==0)
 		{
 			//throw std::runtime_error("Invalid polyline section reference.");
-			std::cout << "Invalid polyline section reference." << it->TMP_SectionId << std::endl;
+			sim_mob::Print() << "Invalid polyline section reference." << it->TMP_SectionId << std::endl;
 			continue;
 		}
 
@@ -950,7 +950,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 			//check nodes
 			if (it->fromLocationType == sim_mob::TripChainItem::LT_NODE) {
 				if (nodes_.count(it->tmp_fromLocationNodeID) == 0) {
-					std::cout << "Invalid trip chain fromNode reference."<< std::endl;
+					sim_mob::Print() << "Invalid trip chain fromNode reference."<< std::endl;
 					//throw std::runtime_error("Invalid trip chain fromNode reference.");
 					continue;
 				} else {
@@ -960,7 +960,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 
 			if (it->toLocationType == sim_mob::TripChainItem::LT_NODE) {
 				if (nodes_.count(it->tmp_toLocationNodeID) == 0) {
-					std::cout << "Invalid trip chain toNode reference."<< std::endl;
+					sim_mob::Print() << "Invalid trip chain toNode reference."<< std::endl;
 					//throw std::runtime_error("Invalid trip chain toNode reference.");
 					continue;
 				} else {
@@ -1133,7 +1133,7 @@ std::string getStoredProcedure(map<string, string> const & storedProcs, string c
 	if (iter != storedProcs.end())
 		return iter->second;
 	if (!mandatory) {
-		std::cout <<"Skipping optional database property: " + procedureName <<std::endl;
+		sim_mob::Print() <<"Skipping optional database property: " + procedureName <<std::endl;
 		return "";
 	}
 	throw std::runtime_error("expected to find stored-procedure named '" + procedureName
@@ -2020,7 +2020,7 @@ DatabaseLoader::createSignals()
 //		  not needed for the time being
 //        const_cast<sim_mob::Signal &>(signal).addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, dbSignal.bearing);
     }
-    std::cout << "A Total of " << nof_signals << " were successfully created\n";
+    sim_mob::Print() << "A Total of " << nof_signals << " were successfully created\n";
 }
 
 /*SCATS IMPLEMENTATION ONLY.
@@ -3080,7 +3080,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 		catch (const std::out_of_range& oor) {
 			debugMsgs << "Loader::ProcessConfluxes() : No segments were found at multinode: "
 					<< (*i)->getID() << "|location: " << (*i)->getLocation() << std::endl;
-			Print() << debugMsgs.str();
+			sim_mob::Print() << debugMsgs.str();
 			debugMsgs.str(std::string());
 			continue;
 		}

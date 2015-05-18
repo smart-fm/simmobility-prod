@@ -19,6 +19,7 @@
 #include "entities/Person.hpp"
 #include "entities/amodController/AMODController.hpp"
 #include "entities/fmodController/FMOD_Controller.hpp"
+#include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/Incident.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/Node.hpp"
@@ -211,7 +212,10 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     	//sim_mob::WriteXMLInput("TEMP_TEST_OUT.xml");
     	std::cout << "XML input for SimMobility Created....\n";
     }
-
+    if(cfg.publicTransitEnabled)
+    {
+    	LoadPublicTransitNetworkFromDatabase();
+    }
  	//Initialize the street directory.
 	StreetDirectory::instance().init(cfg.getNetwork(), true);
 	std::cout << "Street Directory initialized  " << std::endl;
@@ -388,7 +392,10 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetworkFromDatabase()
 		}
 	}
 }
-
+void sim_mob::ExpandAndValidateConfigFile::LoadPublicTransitNetworkFromDatabase()
+{
+	PT_Network::getInstance().init();
+}
 
 void sim_mob::ExpandAndValidateConfigFile::WarnMidroadSidewalks()
 {

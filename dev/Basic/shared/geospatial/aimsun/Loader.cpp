@@ -47,6 +47,7 @@
 #include "geospatial/TurningPolyline.h"
 #include "geospatial/Polypoint.h"
 #include "path/PathSetManager.hpp"
+#include "path/PT_RouteChoiceLuaModel.hpp"
 
 #include "logging/Log.hpp"
 #include "metrics/Length.hpp"
@@ -136,6 +137,8 @@ public:
 					std::string& pathset_id,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,
 					const std::string functionName,
 					const std::set<const sim_mob::RoadSegment*>& excludedRS = std::set<const sim_mob::RoadSegment*>());
+	static void loadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet);
+	static void LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet);
 #ifndef SIMMOB_DISABLE_MPI
 	void TransferBoundaryRoadSegment();
 #endif
@@ -311,6 +314,21 @@ bool DatabaseLoader::InsertSinglePath2DB(soci::session& sql,std::set<sim_mob::Si
 	}
 }
 
+void DatabaseLoader::loadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet)
+{
+	soci::rowset<sim_mob::PT_Path> rs = (sql.prepare << std::string("select * from get_pt_choiceset") + "(:pathset_id_in)", soci::use(pathSetId) );
+	for (soci::rowset<sim_mob::PT_Path>::const_iterator it = rs.begin();	it != rs.end(); ++it) {
+		pathSet.pathSet.insert(*it);
+	}
+}
+
+void DatabaseLoader::LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet)
+{
+	soci::rowset<sim_mob::PT_Path> rs = (sql.prepare << std::string("select * from ")+funcName + "(:o_node,:d_node)", soci::use(originalNode),soci::use(destNode) );
+	for (soci::rowset<sim_mob::PT_Path>::const_iterator it = rs.begin();	it != rs.end(); ++it) {
+		pathSet.pathSet.insert(*it);
+	}
+}
 std::map<std::string, sim_mob::OneTimeFlag> ontimeFlog;
 sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 		std::string& pathset_id,
@@ -319,7 +337,9 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 		const std::set<const sim_mob::RoadSegment*>& excludedRS)
 {
 	//prepare statement
-	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare	<< "select * from " + functionName + "(:pathset_id_in)", soci::use(pathset_id));
+	std::stringstream query;
+	query << "select * from " << functionName << "(" << pathset_id << ")"; //pathset_id is a string of "<origin_node_id>,<destination_node_id>" format
+	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare	<< query.str());
 	//	process result
 	int cnt = 0;
 	bool emptyCheck = true;
@@ -2671,9 +2691,21 @@ bool sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(soci::session& sql, int
 	return DatabaseLoader::loadLinkRealTimeTravelTime(sql, interval, linkRealtimeTravelTimePool);
 }
 
+
+void sim_mob::aimsun::Loader::LoadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet)
+{
+	DatabaseLoader::loadPT_ChoiceSetFrmDB(sql, pathSetId, pathSet);
+}
+
+void sim_mob::aimsun::Loader::LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet)
+{
+	DatabaseLoader::LoadPT_PathsetFrmDB(sql, funcName, originalNode, destNode, pathSet);
+}
+
 sim_mob::HasPath sim_mob::aimsun::Loader::loadSinglePathFromDB(soci::session& sql, std::string& pathset_id,
 		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool, const std::string functionName,
 		const std::set<const sim_mob::RoadSegment *> & excludedRS)
+
 {
 	return DatabaseLoader::loadSinglePathFromDB(sql, pathset_id, spPool, functionName, excludedRS);
 }
@@ -2705,7 +2737,8 @@ bool sim_mob::aimsun::Loader::storeSinglePath(soci::session& sql,
 						<< sp->valid_path << ","
 						<< sp->isShortestPath << ","
 						<< sp->travelTime << ","
-						<< sp->isMinTravelTime << "\n";
+						<< sp->isMinTravelTime << ","
+						<< sp->pathSetId << "\n";
 			}
 		}
 	}
@@ -2815,7 +2848,7 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), config.getPT_bus_dispatch_freq());
 	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), config.getPT_bus_routes(), config.getRoadSegments_Map());
 	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), config.getPT_bus_stops(), config.getBusStops_Map());
-	loader.LoadOD_Trips(getStoredProcedure(storedProcs, "od_trips", false), config.getODsTripsMap());
+	loader.LoadOD_Trips(getStoredProcedure(storedProcs, "od_trips", false), sim_mob::PT_RouteChoiceLuaModel::Instance()->GetODsTripMap());
 
 	std::cout <<"AIMSUN Network successfully imported.\n";
 

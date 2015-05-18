@@ -16,7 +16,7 @@
                 <!-- these parameters will be organized in a better way after finding the meaning of these numbers -->
                 <dwell_time_parameters>
                 <!--parameters : minimum and maximum of fixed dwelling time, minimum and maximum of individual dwelling time-->
-                <parameters value="7.0, 10.0, 2.0, 3.0"/>
+                <parameters value="25.0, 35.0, 2.0, 3.0"/>
                 </dwell_time_parameters>
 
                 <!-- pedestrian walking speed in cm/s (approximately 5 km/h)-->
@@ -31,7 +31,12 @@
                         <journey_time_csv_file_output value="journeytime.csv"/>
                         <waiting_time_csv_file_output value="waitingtime.csv"/>
                         <waiting_amount_csv_file_output value="waitingamount.csv"/>
+                        <travel_time_csv_file_output value="traveltime.csv"/>
                 </statistics_output_paramemters>  
+                <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+                        <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models--> 
+                        <script name="ptrc" file="ptrc.lua"/> <!--public transit route choice -->                        
+                </model_scripts>
         </supply>                                      
                 
         <!-- config specific to preday simulator -->
@@ -79,7 +84,7 @@
                         <script name="sttd" file="sttd.lua"/> <!--Work Based Sub-Tours Time Of Day-->
                         <script name="isg" file="isg.lua"/> <!--Intermediate Stop Generation -->
                         <script name="imd" file="imd.lua"/> <!--Intermediate Stop Mode/Destination -->
-                        <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->
+                        <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->                       
                 </model_scripts>
                 
                 <!-- Names of MongoDB database and collections -->

@@ -335,6 +335,16 @@ void MT_Config::setFilenameOfWaitingAmountStats(const std::string& str) {
 	}
 }
 
+const std::string& MT_Config::getFilenameOfTravelTimeStats() const {
+	return filenameOfTravelTimeStats;
+}
+
+void MT_Config::setFilenameOfTravelTimeStats(const std::string& str) {
+	if(!configSealed)
+	{
+		filenameOfTravelTimeStats = str;
+	}
+}
 const unsigned int MT_Config::getBusCapacity() const
 {
 	return busCapacity;

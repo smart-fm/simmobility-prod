@@ -94,7 +94,7 @@ public:
 			Role::type roleType_ = RL_UNKNOWN) :
 		parent(parent), currResource(nullptr), name(roleName),mode(mode),
 		roleType(roleType_), behaviorFacet(nullptr), movementFacet(nullptr),
-		dynamic_seed(0)
+		dynamic_seed(0), totalTravelTimeMS(0),arrivalTimeMS(0)
 	{
 		//todo consider putting a runtime error for empty or zero length rolename
 	}
@@ -106,7 +106,7 @@ public:
 			Role::type roleType_ = RL_UNKNOWN) :
 		parent(parent), currResource(nullptr),name(roleName),
 		roleType(roleType_), behaviorFacet(behavior), movementFacet(movement),
-		dynamic_seed(0)
+		dynamic_seed(0), totalTravelTimeMS(0),arrivalTimeMS(0)
 	{
 		//todo consider putting a runtime error for empty or zero length rolename
 	}
@@ -208,11 +208,32 @@ public:
 		return movementFacet;
 	}
 
+	void setTravelTime(unsigned int time){
+		totalTravelTimeMS = time;
+	}
+
+	const unsigned int getTravelTime() const {
+		return totalTravelTimeMS;
+	}
+
+	void setArrivalTime(unsigned int time){
+		arrivalTimeMS = time;
+	}
+
+	const unsigned int getArrivalTime() const {
+		return arrivalTimeMS;
+	}
+
 	///Ask the Role to re-route its current sub-trip, avoiding the given blacklisted segments.
 	///This should keep the Role at its current position, but change all Segments after this one.
 	///Note that if no alternative route exists, this Role's current route will remain unchanged.
 	///(This function is somewhat experimental; use it with caution. Currently only implemented by the Driver class.)
 	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted) {}
+
+	/**
+	 * collect current travel time
+	 */
+	virtual void collectTravelTime() {}
 
 protected:
 	Person* parent;
@@ -221,6 +242,8 @@ protected:
 
 	BehaviorFacet* behaviorFacet;
 	MovementFacet* movementFacet;
+	unsigned int totalTravelTimeMS;
+	unsigned int arrivalTimeMS;
 	/// the mode string of the role (for output purposes)
 	const std::string mode;
 

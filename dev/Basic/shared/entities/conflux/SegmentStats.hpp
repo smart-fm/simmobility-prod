@@ -58,11 +58,11 @@ public:
 	}
 
 private:
-	double freeFlowSpeed;  ///<Maximum speed of the road segment
-	double jamDensity;     ///<density during traffic jam in vehicles / m
-	double minDensity;     ///<minimum traffic density in vehicles / m
-	double minSpeed;       ///<minimum speed in the segment
-	double capacity;       ///<segment capacity in vehicles/second
+	double freeFlowSpeed;  ///<Maximum speed of the road segment in cm/s
+	double jamDensity;     ///<density during traffic jam in vehicles/m
+	double minDensity;     ///<minimum traffic density in vehicles/m
+	double minSpeed;       ///<minimum speed in the segment in cm/s
+	double capacity;       ///<segment capacity in vehicles/s
 	const double alpha;          ///<Model parameter of speed density function
 	const double beta;           ///<Model parameter of speed density function
 };
@@ -93,6 +93,7 @@ public:
 	double getAcceptRate() {return acceptRate;}
 
 	void setOutputCounter(int count) { outputCounter = count; }
+	void decrementOutputCounter();
 	void setOutputFlowRate(double output) {outputFlowRate = output;}
 	void setOrigOutputFlowRate(double orig) {origOutputFlowRate = orig;}
 
@@ -116,7 +117,7 @@ private:
 	unsigned int queueCount;
 	/**number of queuing persons at the start of the current tick*/
 	unsigned int initialQueueLength;
-	/**position of the last updated person in lane*/
+	/**end position of the last updated person in this lane*/
 	double positionOfLastUpdatedAgent;
 	/**geospatial lane corresponding to this lane stats*/
 	const sim_mob::Lane* lane;
@@ -168,16 +169,18 @@ public:
 	 * removes the person from the lane
 	 * @param person the person to be removed
 	 * @param wasQueuing the queuing status of person to manage queue count
+	 * @param vehicleLength length of vehicle used by person
 	 * @return true if removal was successful; false otherwise.
 	 */
-	bool removePerson(sim_mob::Person* person, bool wasQueuing);
+	bool removePerson(sim_mob::Person* person, bool wasQueuing, double vehicleLength);
 
 	/**
 	 * removes the person at the front in laneAgents list
 	 * @param isQueuingBfrUpdate queuing status of the person at front to manage queue count
+	 * @param vehicleLength the length of vehicle used before update
 	 * @return pointer to the dequeued person
 	 */
-	sim_mob::Person* dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate);
+	sim_mob::Person* dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate, double vehicleLength);
 
 	/**
 	 * gets the number of queuing persons in lane
@@ -347,7 +350,7 @@ protected:
 	double segVehicleSpeed;
 	/**speed of pedestrians on this segment for each frame in cm/s --not used at the moment*/
 	double segPedSpeed;
-	/**vehicle density of this segment stats in PCU/cm*/
+	/**vehicle density of this segment stats in PCU/m*/
 	double segDensity;
 	/**number of lanes in this SegmentStats which is meant for vehicles*/
 	int numVehicleLanes;
@@ -452,18 +455,20 @@ public:
 	 * @param lane the lane to remove the person from
 	 * @param person the person to remove
 	 * @param wasQueuing the queuing status of person at the start of the tick
+	 * @param vehicleLength the length of vehicle used before update
 	 * @return true if removal was successful; false otherwise
 	 */
-	bool removeAgent(const sim_mob::Lane* lane, sim_mob::Person* person, bool wasQueuing);
+	bool removeAgent(const sim_mob::Lane* lane, sim_mob::Person* person, bool wasQueuing, double vehicleLength);
 
 	/**
 	 * removes person in the front from lane
 	 * @param person the person to remove
 	 * @param lane the lane to remove the person from
 	 * @param isQueuingBfrUpdate the queuing status of person at the start of the tick
+	 * @param vehicleLength the length of vehicle used before update
 	 * @return the dequeued person
 	 */
-	sim_mob::Person* dequeue(const sim_mob::Person* person, const sim_mob::Lane* lane, bool isQueuingBfrUpdate);
+	sim_mob::Person* dequeue(const sim_mob::Person* person, const sim_mob::Lane* lane, bool isQueuingBfrUpdate, double vehicleLength);
 
 	/**
 	 * returns a reference to the list of persons in lane
@@ -636,6 +641,7 @@ public:
 	 * the speed density function for mid-term supply.
 	 * Computes the speed of vehicles in segment, given the density
 	 * @param segDensity the vehicle density of segment in vehicle/m
+	 * @return speed of the segment in cm/s
 	 */
 	double speedDensityFunction(const double segDensity) const;
 
@@ -668,6 +674,7 @@ public:
 	 * computes the density of the moving part of the segment
 	 * the density value computed here is meant to be used in speed density function
 	 * @param vehicleLanes boolean flag indicating whether we want the density from vehicle lanes
+	 * @return density in PCU/lane-m
 	 */
 	double getDensity(bool vehicleLanes);
 

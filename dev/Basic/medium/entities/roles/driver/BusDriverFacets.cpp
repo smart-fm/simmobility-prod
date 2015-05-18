@@ -82,25 +82,57 @@ void sim_mob::medium::BusDriverMovement::frame_init() {
 }
 
 void BusDriverMovement::frame_tick() {
+	parentBusDriver->calcTravelTime();
 	sim_mob::medium::DriverUpdateParams& params = parentBusDriver->getParams();
-	if(!parentBusDriver->getResource()->isMoving()) {
+	if(!parentBusDriver->getResource()->isMoving())
+	{
 		// isMoving()==false implies the bus is serving a stop
-		if (parentBusDriver->waitingTimeAtbusStop > params.secondsInTick) {
+		if (parentBusDriver->waitingTimeAtbusStop > params.secondsInTick)
+		{
 			params.elapsedSeconds = params.secondsInTick;
 			parentBusDriver->waitingTimeAtbusStop -= params.secondsInTick;
 			pathMover.setPositionInSegment(0);
 		}
-		else {
+		else
+		{
 			params.elapsedSeconds = params.elapsedSeconds + parentBusDriver->waitingTimeAtbusStop;
-			parentBusDriver->waitingTimeAtbusStop = 0.0;
-			//the bus has expired its waiting time
-			//send bus departure message
+			parentBusDriver->waitingTimeAtbusStop = 0.0; //the bus has expired its waiting time
+
 			const BusStop* stop = routeTracker.getNextStop();
 			BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(stop);
+
+			double output = getOutputCounter(currLane, pathMover.getCurrSegStats());
+			bool isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
 			const sim_mob::SegmentStats* currSegStat = pathMover.getCurrSegStats();
-			parentBusDriver->closeBusDoors(stopAg);
-			routeTracker.updateNextStop();
-			DriverMovement::moveToNextSegment(params);
+			const sim_mob::SegmentStats* nxtSegStat = pathMover.getNextSegStats(!isNewLinkNext);
+
+			if (!nxtSegStat)
+			{
+				//vehicle is done
+				parentBusDriver->closeBusDoors(stopAg);
+				routeTracker.updateNextStop();
+				pathMover.advanceInPath();
+				if (pathMover.isPathCompleted())
+				{
+					setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat)-1), currSegStat);
+					currLane = nullptr;
+					getParent()->setToBeRemoved();
+				}
+				setParentData(params);
+				return;
+			}
+
+			if (output > 0 && canGoToNextRdSeg(params, nxtSegStat))
+			{
+				parentBusDriver->closeBusDoors(stopAg);
+				routeTracker.updateNextStop();
+				DriverMovement::moveToNextSegment(params);
+			}
+			else
+			{
+				params.elapsedSeconds = params.secondsInTick;
+				pathMover.setPositionInSegment(0);
+			}
 		}
 	}
 	if(!parent->requestedNextSegStats && params.elapsedSeconds < params.secondsInTick)

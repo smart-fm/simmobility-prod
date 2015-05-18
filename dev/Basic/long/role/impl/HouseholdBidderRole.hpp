@@ -72,6 +72,7 @@ namespace sim_mob
             void setActive(bool active);
             HouseholdAgent* getParent();
 
+            void ComputeHouseholdAffordability();
             /**
              * Inherited from LT_Role
              * @param currTime
@@ -89,6 +90,8 @@ namespace sim_mob
              */
             bool isMotorCycle(int vehicleCategoryId);
 
+            void setTaxiAccess();
+
         protected:
 
             /**
@@ -98,6 +101,8 @@ namespace sim_mob
 
         private:
             friend class HouseholdAgent;
+
+            void init();
 
             /**
              * Helper method that goes to the market, gets the available units
@@ -144,9 +149,14 @@ namespace sim_mob
             enum VehicleOwnershipOption{
             	NO_CAR = 1, ONE_CAR, TWO_PLUS_CAR
             };
-
+            enum TaxiAccessParamId{
+            	INTERCEPT = 1, HDB1, AGE5064_1, AGE5064_2, AGE65UP_1, AGE65UP_2, AGE3549_2, AGE1019_2, EMPLOYED_SELF_1, EMPLOYED_SELF_2, INC_LOW, INC_HIGH, RETIRED_1, RETIRED_2, OPERATOR_1,
+            	OPERATOR_2, SERVICE_2, PROF_1, LABOR_1, MANAGER_1, INDIAN_TAXI_ACCESS, MALAY_TAXI_ACCESS
+            };
             VehicleOwnershipOption vehicleOwnershipOption;
-
+            bool hasTaxiAccess;
+            float householdAffordabilityAmount;
+            bool initBidderRole;
         };
     }
 }

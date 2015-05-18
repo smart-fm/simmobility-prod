@@ -794,6 +794,21 @@ void sim_mob::Person::convertODsToTrips() {
 						return;
 					}
 				}
+				else if (itSubTrip->fromLocation.type_ == WayPoint::NODE
+						&& itSubTrip->toLocation.type_ == WayPoint::NODE
+						&& (itSubTrip->mode == "Walk"))
+				{
+					std::vector<sim_mob::OD_Trip> odTrips;
+					std::string originId = boost::lexical_cast<std::string>(
+							itSubTrip->fromLocation.node_->getID());
+					std::string destId = boost::lexical_cast<std::string>(
+							itSubTrip->toLocation.node_->getID());
+
+					itSubTrip->startLocationId=originId;
+					itSubTrip->endLocationId=destId;
+					itSubTrip->startLocationType="NODE";
+					itSubTrip->endLocationType="NODE";
+				}
 				++itSubTrip;
 			}
 

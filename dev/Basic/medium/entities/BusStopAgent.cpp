@@ -236,7 +236,6 @@ void BusStopAgent::storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingAct
 	}
 
 	Person* person = waitingActivity->getParent();
-	person->getRole()->collectTravelTime();
 	unsigned int waitingTime = waitingActivity->getWaitingTime();
 	DailyTime currDailyTime(current);
 	DailyTime waitingDailyTime(waitingTime);
@@ -274,6 +273,7 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 			bool ret = false;
 			if (!busDriver->checkIsFull()) {
 				if (person) {
+					person->getRole()->collectTravelTime();
 					person->checkTripChain();
 					Role* curRole = person->getRole();
 					sim_mob::medium::Passenger* passenger =

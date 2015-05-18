@@ -2969,11 +2969,22 @@ void sim_mob::aimsun::Loader::CreateLaneGroups()
 			//assign downstreamLinks to the last segment stats
 			SegmentStats* lastStats = segStatsList.back();
 			const std::set<sim_mob::LaneConnector*>& lcs = cfxMultinode->getOutgoingLanes(lastStats->getRoadSegment());
+			std::set<const sim_mob::Lane*> connLanes;
 			for (std::set<sim_mob::LaneConnector*>::const_iterator lcIt = lcs.begin(); lcIt != lcs.end(); lcIt++)
 			{
 				const sim_mob::Lane* fromLane = (*lcIt)->getLaneFrom();
+				connLanes.insert(fromLane);
 				const sim_mob::Link* downStreamLink = (*lcIt)->getLaneTo()->getRoadSegment()->getLink();
 				lastStats->laneStatsMap.at(fromLane)->addDownstreamLink(downStreamLink); //duplicates are eliminated by the std::set containing the downstream links
+			}
+			if(connLanes.size() != lastStats->getRoadSegment()->getLanes().size())
+			{
+				std::stringstream errstrm;
+				size_t numLanesInLastStats = lastStats->getRoadSegment()->getLanes().size();
+				errstrm << "connLanes.size() " << connLanes.size() << " != "
+						<< "numLanesInLastStats " << numLanesInLastStats
+						<< "|lastSeg " << lastStats->getRoadSegment()->getSegmentAimsunId() << std::endl;
+				Print() << errstrm.str() << std::endl;
 			}
 
 			//construct inverse lookup for convenience
@@ -3056,26 +3067,26 @@ void sim_mob::aimsun::Loader::CreateLaneGroups()
 			}
 			//Print() << std::endl;
 
-			for(SegmentStatsList::const_reverse_iterator statsRevIt=segStatsList.rbegin(); statsRevIt!=segStatsList.rend(); statsRevIt++)
-			{
-				const LaneStatsMap lnStatsMap = (*statsRevIt)->laneStatsMap;
-				unsigned int segId = (*statsRevIt)->getRoadSegment()->getSegmentAimsunId();
-				uint16_t statsNum = (*statsRevIt)->statsNumberInSegment;
-				const std::vector<sim_mob::Lane*>& lanes = (*statsRevIt)->getRoadSegment()->getLanes();
-				unsigned int numLanes = 0;
-				for(std::vector<sim_mob::Lane*>::const_iterator lnIt = lanes.begin(); lnIt!=lanes.end(); lnIt++)
-				{
-					if(!(*lnIt)->is_pedestrian_lane()) { numLanes++; }
-				}
-				for (LaneStatsMap::const_iterator lnStatsIt = lnStatsMap.begin(); lnStatsIt != lnStatsMap.end(); lnStatsIt++)
-				{
-					if(lnStatsIt->second->isLaneInfinity() || lnStatsIt->first->is_pedestrian_lane()) { continue; }
-					if(lnStatsIt->second->getDownstreamLinks().empty())
-					{
-						Print() << "~~~ " << segId << "," << statsNum << "," << lnStatsIt->first->getLaneID() << "," << numLanes << std::endl;
-					}
-				}
-			}
+//			for(SegmentStatsList::const_reverse_iterator statsRevIt=segStatsList.rbegin(); statsRevIt!=segStatsList.rend(); statsRevIt++)
+//			{
+//				const LaneStatsMap lnStatsMap = (*statsRevIt)->laneStatsMap;
+//				unsigned int segId = (*statsRevIt)->getRoadSegment()->getSegmentAimsunId();
+//				uint16_t statsNum = (*statsRevIt)->statsNumberInSegment;
+//				const std::vector<sim_mob::Lane*>& lanes = (*statsRevIt)->getRoadSegment()->getLanes();
+//				unsigned int numLanes = 0;
+//				for(std::vector<sim_mob::Lane*>::const_iterator lnIt = lanes.begin(); lnIt!=lanes.end(); lnIt++)
+//				{
+//					if(!(*lnIt)->is_pedestrian_lane()) { numLanes++; }
+//				}
+//				for (LaneStatsMap::const_iterator lnStatsIt = lnStatsMap.begin(); lnStatsIt != lnStatsMap.end(); lnStatsIt++)
+//				{
+//					if(lnStatsIt->second->isLaneInfinity() || lnStatsIt->first->is_pedestrian_lane()) { continue; }
+//					if(lnStatsIt->second->getDownstreamLinks().empty())
+//					{
+//						Print() << "~~~ " << segId << "," << statsNum << "," << lnStatsIt->first->getLaneID() << "," << numLanes << std::endl;
+//					}
+//				}
+//			}
 		}
 	}
 }

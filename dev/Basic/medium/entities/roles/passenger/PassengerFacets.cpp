@@ -52,10 +52,7 @@ void PassengerMovement::frame_tick() {
 	unsigned int tickMS =
 			ConfigManager::GetInstance().FullConfig().baseGranMS();
 	totalTimeToCompleteMS += tickMS;
-
-	if (parentPassenger->getDriver() == nullptr) {
-		getParent()->setToBeRemoved();
-	}
+	parentPassenger->setTravelTime(totalTimeToCompleteMS);
 }
 
 void PassengerMovement::frame_tick_output() {

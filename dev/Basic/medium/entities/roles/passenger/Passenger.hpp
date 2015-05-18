@@ -67,6 +67,11 @@ public:
 		this->alightBus = alightBus;
 	}
 
+	/**
+	 * collect travel time for current role
+	 */
+	virtual void collectTravelTime();
+
 private:
 	friend class PassengerBehavior;
 	friend class PassengerMovement;
@@ -76,6 +81,7 @@ private:
 
 	/**flag to indicate whether the passenger has decided to alight the bus*/
 	bool alightBus;
+
 };
 
 }

@@ -35,6 +35,7 @@ class ERP_Gantry_Zone;
 class ERP_Section;
 class ERP_Surcharge;
 class LinkTravelTime;
+class PT_PathSet;
 
 
 enum HasPath
@@ -81,6 +82,8 @@ public:
 			std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string functionName,
 //			std::stringstream *outDbg=0,
 			const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
+	static void LoadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet);
+	static void LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet);
 	static void LoadERPData(const std::string& connectionStr,
 			std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > &erp_surcharge_pool,
 			std::map<std::string,sim_mob::ERP_Gantry_Zone*>& erp_gantry_zone_pool,

@@ -168,7 +168,7 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* person)
 	}
 	case Role::RL_PEDESTRIAN:
 	{
-		pedestrianList.push_back(person);
+        pedestrianList.push_back(person);
 		break;
 	}
 	case Role::RL_WAITBUSACTITITY:
@@ -284,7 +284,10 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 		//if the person has switched to Pedestrian role, put the person in that list
 		if (afterUpdate.roleType == sim_mob::Role::RL_PEDESTRIAN)
 		{
-			pedestrianList.push_back(person);
+			PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
+			if (pIt == pedestrianList.end()){
+				pedestrianList.push_back(person);
+			}
 			return; //we are done here.
 		}
 	}
@@ -294,6 +297,7 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 	switch(afterUpdate.roleType)
 	{
 	case sim_mob::Role::RL_WAITBUSACTITITY:
+	case sim_mob::Role::RL_TRAINPASSENGER:
 	{
 		return; //would have already been handled
 	}
@@ -783,6 +787,7 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 	}
 	}
 
+	//Print()<<"agent is removed by conflux:"<<person->getId()<<"|role:"<<(int)personRoleType<<std::endl;
 	parentWorker->remEntity(person);
 	parentWorker->scheduleForRemoval(person);
 }
@@ -906,8 +911,11 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 		msg.person->currWorkerProvider = parentWorker;
 		messaging::MessageBus::ReRegisterHandler(msg.person, GetContext());
 		mrt.push_back(msg.person);
+		DailyTime time = msg.person->currSubTrip->endTime;
+		msg.person->getRole()->setTravelTime(time.getValue());
+		unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
 		//TODO: compute time to be expired and send message to self
-		messaging::MessageBus::PostMessage(this, MSG_WAKE_UP, messaging::MessageBus::MessagePtr(new PersonMessage(msg.person)), false, 0); //last parameter (0) must be updated with actual time
+		messaging::MessageBus::PostMessage(this, MSG_WAKE_UP, messaging::MessageBus::MessagePtr(new PersonMessage(msg.person)), false, time.getValue()/tick); //last parameter (0) must be updated with actual time
 		break;
 	}
 	case MSG_WAKE_UP:
@@ -916,7 +924,7 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 		PersonList::iterator pIt = std::find(mrt.begin(), mrt.end(), msg.person);
 		if(pIt==mrt.end()) { throw std::runtime_error("Person not found in MRT list"); }
 		mrt.erase(pIt);
-
+		messaging::MessageBus::UnRegisterHandler(msg.person);
 		//switch to next trip chain item
 		switchTripChainItem(msg.person);
 		break;
@@ -926,8 +934,16 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 	}
 }
 
+void sim_mob::Conflux::collectTravelTime(Person* person)
+{
+	if(person && person->getRole()){
+		person->getRole()->collectTravelTime();
+	}
+}
+
 Entity::UpdateStatus sim_mob::Conflux::switchTripChainItem(Person* person)
 {
+	collectTravelTime(person);
 	Entity::UpdateStatus retVal = person->checkTripChain();
 	if (retVal.status == UpdateStatus::RS_DONE) { return retVal; }
 	Role* personRole = person->getRole();
@@ -940,14 +956,30 @@ Entity::UpdateStatus sim_mob::Conflux::switchTripChainItem(Person* person)
 	}
 	person->setStartTime(currFrame.ms());
 
+	if(personRole && personRole->roleType==Role::RL_TRAINPASSENGER)
+	{
+		assignPersonToMRT(person);
+		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
+		if(pIt!=pedestrianList.end()) {	pedestrianList.erase(pIt); }
+		return retVal;
+	}
+
+	if(personRole && personRole->roleType==Role::RL_PEDESTRIAN){
+		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
+		if(pIt==pedestrianList.end()) {pedestrianList.push_back(person); }
+		return retVal;
+	}
+
 	if((*person->currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY)
 	{
 		//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
 		//since start time of the activity is usually later than what is configured initially,
 		//we have to make adjustments so that it waits for exact amount of time
+		Activity* acItem = dynamic_cast<Activity*>((*person->currTripChainItem));
 		sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(personRole);
 		ap->setActivityStartTime(sim_mob::DailyTime(currFrame.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
 		ap->setActivityEndTime(sim_mob::DailyTime(currFrame.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
+		ap->setLocation(acItem->location);
 	}
 	if (callMovementFrameInit(currFrame, person)) { person->setInitialized(true); }
 	else { return UpdateStatus::Done; }
@@ -1004,6 +1036,7 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFrameTick(timeslice now, Pers
 			Conflux* nextConflux = person->getNextLinkRequired()->getSegments().front()->getParentConflux();
 			messaging::MessageBus::PostMessage(nextConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST,
 					messaging::MessageBus::MessagePtr(new PersonMessage(person)));
+			person->setNextLinkRequired(nullptr);
 			PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
 			if(pIt!=pedestrianList.end())
 			{
@@ -1135,13 +1168,23 @@ void sim_mob::Conflux::assignPersonToBusStopAgent(Person* person)
 		const StreetDirectory& strDirectory = StreetDirectory::instance();
 		Agent* busStopAgent = strDirectory.findBusStopAgentByBusStop(stop);
 		if (busStopAgent) {
-			messaging::MessageBus::SendInstantaneousMessage(busStopAgent,
+			messaging::MessageBus::SendMessage(busStopAgent,
 					MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP,
 					messaging::MessageBus::MessagePtr(
 							new ArriavalAtStopMessage(person)));
 		}
 	}
 }
+
+void sim_mob::Conflux::assignPersonToMRT(Person* person) {
+	Role* role = person->getRole();
+	if (role && role->roleType == Role::RL_TRAINPASSENGER) {
+		messaging::MessageBus::SendInstantaneousMessage(this,
+				MSG_MRT_PASSENGER_TELEPORTATION,
+				messaging::MessageBus::MessagePtr(new PersonMessage(person)));
+	}
+}
+
 
 UpdateStatus sim_mob::Conflux::movePerson(timeslice now, Person* person)
 {

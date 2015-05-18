@@ -345,6 +345,61 @@ sim_mob::PeriodicPersonLoader::PeriodicPersonLoader(std::set<sim_mob::Entity*>& 
 sim_mob::PeriodicPersonLoader::~PeriodicPersonLoader()
 {}
 
+class CellLoader {
+public:
+	CellLoader():iStart(0),iEnd(0) {
+	}
+
+	void operator()(void) {
+		id = boost::this_thread::get_id();
+		for (int i = iStart; i < iEnd; i++) {
+			vector<TripChainItem*>& item = trips[i];
+			if (item.empty()) {
+				continue;
+			}
+			ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+			Person* person = new Person("DAS_TripChain", cfg.mutexStategy(),
+					item);
+			if (!person->getTripChain().empty()) {
+				persons.push_back(person);
+			} else {
+				delete person;
+			}
+		}
+		Print()<<id<<" load "<<persons.size()<<std::endl;
+	}
+
+	static int Load(map<int, vector<TripChainItem*> >& trips,
+			vector<Person*>& peoples) {
+		int eachNum = trips.size() / LoaderNum;
+		CellLoader workers[LoaderNum];
+		boost::thread_group threads;
+		for (int i = 0; i < LoaderNum; i++) {
+			workers[i].trips = trips;
+			workers[i].iStart = i * eachNum;
+			if (i != LoaderNum - 1) {
+				workers[i].iEnd = (i + 1) * eachNum;
+			} else {
+				workers[i].iEnd = trips.size();
+			}
+			threads.add_thread(new boost::thread(boost::ref(workers[i])));
+		}
+		threads.join_all();
+		unsigned personsNum = 0;
+		for (int i = 0; i < LoaderNum; i++) {
+			peoples.insert(peoples.end(), workers[i].persons.begin(), workers[i].persons.end());
+		}
+		personsNum = peoples.size();
+		return personsNum;
+	}
+private:
+	vector<Person*> persons;
+	map<int, vector<TripChainItem*> > trips;
+	int iStart, iEnd;
+	static const int LoaderNum = 20;
+	boost::thread::id id;
+};
+
 void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 {
 	if (storedProcName.empty()) { return; }
@@ -357,6 +412,7 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	unsigned actCtr = 0;
 	map<string, vector<TripChainItem*> > tripchains;
+	map<int, vector<TripChainItem*> > trips;
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
 		const soci::row& r = (*it);
@@ -369,20 +425,27 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 		if(constructedTrip) { personTripChain.push_back(constructedTrip); }
 		else { continue; }
 		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }
+		trips[actCtr]=personTripChain;
 		actCtr++;
+	}
+
+	vector<Person*> persons;
+	int personsLoaded = CellLoader::Load(trips, persons);
+	for(vector<Person*>::iterator i=persons.begin(); i!=persons.end(); i++){
+		addOrStashPerson(*i);
 	}
 	//CBD specific processing of trip chain
 	//RestrictedRegion::getInstance().processTripChains(tripchains);//todo, plan changed, we are not chopping off the trips here
 
 	//add or stash new persons
-	unsigned personsLoaded = 0;
+	/*unsigned personsLoaded = 0;
 	for(map<string, vector<TripChainItem*> >::iterator i=tripchains.begin(); i!=tripchains.end(); i++)
 	{
 		if(i->second.empty()) { continue; }
 		Person* person = new Person("DAS_TripChain", cfg.mutexStategy(), i->second);
 		if(!person->getTripChain().empty()) { addOrStashPerson(person); personsLoaded++; }
 		else { delete person; }
-	}
+	}*/
 
 	Print() << "PeriodicPersonLoader:: activities loaded from " << nextLoadStart << " to " << end << ": " << actCtr
 			<< " | new persons loaded: " << personsLoaded << endl;

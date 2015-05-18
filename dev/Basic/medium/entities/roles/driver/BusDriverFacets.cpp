@@ -82,6 +82,7 @@ void sim_mob::medium::BusDriverMovement::frame_init() {
 }
 
 void BusDriverMovement::frame_tick() {
+	parentBusDriver->calcTravelTime();
 	sim_mob::medium::DriverUpdateParams& params = parentBusDriver->getParams();
 	if(!parentBusDriver->getResource()->isMoving())
 	{

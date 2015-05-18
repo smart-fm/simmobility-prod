@@ -266,6 +266,8 @@ public:
 	void setFilenameOfWaitingTimeStats(const std::string& str);
 	const std::string& getFilenameOfWaitingAmountStats() const;
 	void setFilenameOfWaitingAmountStats(const std::string& str);
+	const std::string& getFilenameOfTravelTimeStats() const;
+	void setFilenameOfTravelTimeStats(const std::string& str);
 	const unsigned int getBusCapacity() const;
 	void setBusCapacity(const unsigned int busCapcacity);
 	db::BackendType getPopulationSource() const;
@@ -316,6 +318,8 @@ private:
 	std::string filenameOfWaitingTimeStats;
 	/**the filename of storing waiting amount statistics*/
 	std::string filenameOfWaitingAmountStats;
+	/** the filename of storing travel time statistics*/
+	std::string filenameOfTravelTimeStats;
 	/**default capacity for bus*/
 	unsigned int busCapacity;
 	unsigned supplyUpdateInterval; //frames

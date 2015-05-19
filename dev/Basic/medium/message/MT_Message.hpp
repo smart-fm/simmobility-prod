@@ -82,8 +82,8 @@ public:
 class PersonWaitingTimeMessage: public messaging::Message {
 public:
 	PersonWaitingTimeMessage(const std::string& stopNo,
-			const std::string& personId, const std::string& currentTime, const std::string& waitingTime, const unsigned int failedBoardingTimes) :
-			busStopNo(stopNo), personId(personId),currentTime(currentTime), waitingTime(waitingTime), failedBoardingTimes(failedBoardingTimes) {
+			const std::string& personId, const std::string& currentTime, const std::string& waitingTime, const std::string& busLines, const unsigned int failedBoardingTimes) :
+			busStopNo(stopNo), personId(personId),currentTime(currentTime), waitingTime(waitingTime), busLines(busLines),failedBoardingTimes(failedBoardingTimes) {
 	}
 	virtual ~PersonWaitingTimeMessage() {
 	}
@@ -91,6 +91,7 @@ public:
 	std::string personId;
 	std::string currentTime;
 	std::string waitingTime;
+	std::string busLines;
 	unsigned int failedBoardingTimes;
 };
 

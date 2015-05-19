@@ -79,6 +79,14 @@ void sim_mob::medium::WaitBusActivity::increaseFailedBoardingTimes()
 	failedBoardingTimes++;
 }
 
+const std::string sim_mob::medium::WaitBusActivity::getBusLines()
+{
+	sim_mob::SubTrip& subTrip = *(getParent()->currSubTrip);
+	const std::string tripLineID = subTrip.getBusLineID();
+	return tripLineID;
+}
+
+
 void sim_mob::medium::WaitBusActivity::makeBoardingDecision(BusDriver* driver) {
 	const std::vector<const sim_mob::BusStop*>* stopsVec =
 			driver->getBusStopsVector();

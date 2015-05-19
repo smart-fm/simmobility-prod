@@ -102,6 +102,8 @@ public:
     // find Person's NextRole
     bool findPersonNextRole();
 
+    virtual void setStartTime(unsigned int value);
+
     /**
      * insert a waiting activity before bus travel
      * @param tripChain is the reference to current trip chain

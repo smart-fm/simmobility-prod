@@ -514,6 +514,15 @@ bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 	return true;
 }
 
+void sim_mob::Person::setStartTime(unsigned int value)
+{
+	sim_mob::Entity::setStartTime(value);
+	if(currRole){
+		currRole->setArrivalTime(value+ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
+	}
+}
+
+
 UpdateStatus sim_mob::Person::checkTripChain() {
 	//some normal checks
 	if(tripChain.empty()) {

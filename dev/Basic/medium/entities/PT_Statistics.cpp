@@ -89,7 +89,7 @@ void PT_Statistics::HandleMessage(Message::MessageType type,
 		}
 
 		if (stat) {
-			stat->setWaitingTime(msg.personId, msg.currentTime, msg.waitingTime, msg.failedBoardingTimes);
+			stat->setWaitingTime(msg.personId, msg.currentTime, msg.waitingTime, msg.busLines, msg.failedBoardingTimes);
 		}
 
 		break;

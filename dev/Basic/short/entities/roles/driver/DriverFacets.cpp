@@ -1780,8 +1780,8 @@ bool sim_mob::DriverMovement::isLaneConnectedToSegment(sim_mob::Lane* lane, cons
 		else 
 		{
 			// Turnings not found, defaulting to lane connectors
-			Print() << "\nTurnings not found for Node: " << from->getEnd()->getID();
-			Print() << "\nDefaulting to Lane Connectors\n";
+			Warn() << "\nTurnings not found for Node: " << from->getEnd()->getID();
+			Warn() << "\nDefaulting to Lane Connectors\n";
 			
 			//Get the outgoing lane connectors
 			const std::set<LaneConnector *>& lcs = currEndNode->getOutgoingLanes(from);
@@ -2019,8 +2019,8 @@ void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p)
 		//No turnings, default to using lane connectors
 		else
 		{
-			Print() << "\nTurnings not found for Node: " << currSeg->getEnd()->getID();
-			Print() << "\nDefaulting to Lane Connectors\n";
+			Warn() << "\nTurnings not found for Node: " << currSeg->getEnd()->getID();
+			Warn() << "\nDefaulting to Lane Connectors\n";
 			
 			const std::set<LaneConnector *> lcs = currEndNode->getOutgoingLanes(currSeg);
 			vector<const Lane*> targetLanes;
@@ -2036,11 +2036,26 @@ void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p)
 				}
 			}
 			
-			//Use the first lane in the vector if possible.
+			//Try to stay in the same lane
 			if (!targetLanes.empty())
-			{				
-				nextLaneInNextLink = *(targetLanes.begin());
-				targetLaneIndex = getLaneIndex(nextLaneInNextLink);							
+			{	
+				std::vector<const Lane *>::const_iterator itTargetLanes = targetLanes.begin();
+				while(itTargetLanes != targetLanes.end())
+				{					
+					if(getLaneIndex(*itTargetLanes) == p.currLaneIndex)
+					{
+						nextLaneInNextLink = *itTargetLanes;
+						targetLaneIndex = getLaneIndex(nextLaneInNextLink);
+						break;
+					}
+					++itTargetLanes;
+				}
+				
+				if(!nextLaneInNextLink)
+				{
+					nextLaneInNextLink = *(targetLanes.begin());
+					targetLaneIndex = getLaneIndex(nextLaneInNextLink);
+				}
 			}
 		}
 		

@@ -31,6 +31,7 @@
 #include "database/dao/TotalBuildingSpaceDao.hpp"
 #include "database/dao/ParcelAmenitiesDao.hpp"
 #include "database/dao/MacroEconomicsDao.hpp"
+#include "database/dao/LogsumForDevModelDao.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
@@ -98,9 +99,7 @@ void DeveloperModel::startImpl() {
 
 		loadData<ParcelAmenitiesDao>(conn,amenities,amenitiesById,&ParcelAmenities::getFmParcelId);
 		loadData<MacroEconomicsDao>(conn,macroEconomics,macroEconomicsById,&MacroEconomics::getExFactorId);
-
-		//UnitDao unitDao(conn);
-		//unitId = unitDao.getMaxUnitId();
+		loadData<LogsumForDevModelDao>(conn,accessibilityList,accessibilityByTazId,&LogsumForDevModel::getFmParcelId);
 
 	}
 	setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
@@ -110,8 +109,6 @@ void DeveloperModel::startImpl() {
 	buildingIdForDevAgent = config.ltParams.developerModel.initialBuildingId;
 	projectIdForDevAgent = config.ltParams.developerModel.initialProjectId;
 
-	//get the highest building id, which is the one before the last building id as the last building id contain some random data.
-	//buildingId = buildings.at(buildings.size()-2)->getFmBuildingId();
 	processParcels();
 	createDeveloperAgents(developmentCandidateParcelList);
 	wakeUpDeveloperAgents(getDeveloperAgents(true));
@@ -195,6 +192,16 @@ float DeveloperModel::getBuildingSpaceByParcelId(BigSerial id) const {
         return itr->second->getTotalBuildingSpace();
     }
     return 0;
+}
+
+const LogsumForDevModel* DeveloperModel::getAccessibilityLogsumsByFmParcelId(BigSerial fmParcelId) const
+{
+	AccessibilityLogsumMap::const_iterator itr = accessibilityByTazId.find(fmParcelId);
+			if (itr != accessibilityByTazId.end())
+		    {
+				return itr->second;
+		    }
+		    return nullptr;
 }
 
 const DeveloperModel::DevelopmentTypeTemplateList& DeveloperModel::getDevelopmentTypeTemplates() const {

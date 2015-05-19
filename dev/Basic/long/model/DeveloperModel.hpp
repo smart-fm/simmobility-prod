@@ -24,6 +24,7 @@
 #include "database/entity/TotalBuildingSpace.hpp"
 #include "database/entity/ParcelAmenities.hpp"
 #include "database/entity/MacroEconomics.hpp"
+#include "database/entity/LogsumForDevModel.hpp"
 #include "agent/impl/DeveloperAgent.hpp"
 #include "agent/impl/RealEstateAgent.hpp"
 #include "model/HM_Model.hpp"
@@ -46,12 +47,15 @@ namespace sim_mob {
             typedef std::vector<Project*> ProjectList;
             typedef std::vector<ParcelAmenities*> AmenitiesList;
             typedef std::vector<MacroEconomics*> MacroEconomicsList;
+            typedef std::vector<LogsumForDevModel*> AccessibilityLogsumList;
+
             //maps
             typedef boost::unordered_map<BigSerial,Parcel*> ParcelMap;
             typedef boost::unordered_map<BigSerial,UnitType*> UnitTypeMap;
             typedef boost::unordered_map<BigSerial,TotalBuildingSpace*> TotalBuildingSpaceMap;
             typedef boost::unordered_map<BigSerial,ParcelAmenities*> AmenitiesMap;
             typedef boost::unordered_map<BigSerial,MacroEconomics*> MacroEconomicsMap;
+            typedef boost::unordered_map<BigSerial,LogsumForDevModel*> AccessibilityLogsumMap;
 
         public:
             DeveloperModel(WorkGroup& workGroup);
@@ -92,6 +96,7 @@ namespace sim_mob {
             const MacroEconomics* getMacroEconById(BigSerial id) const;
             float getBuildingSpaceByParcelId(BigSerial id) const;
             ParcelList getDevelopmentCandidateParcels(bool isInitial);
+            const LogsumForDevModel* getAccessibilityLogsumsByFmParcelId(BigSerial fmParcelId) const;
 
             DeveloperList getDeveloperAgents(bool isInitial);
             /*
@@ -232,6 +237,8 @@ namespace sim_mob {
             BigSerial unitIdForDevAgent;
             BigSerial buildingIdForDevAgent;
             BigSerial projectIdForDevAgent;
+            AccessibilityLogsumList accessibilityList;
+            AccessibilityLogsumMap accessibilityByTazId;
         };
     }
 }

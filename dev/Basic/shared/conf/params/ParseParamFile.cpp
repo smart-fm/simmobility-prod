@@ -25,7 +25,6 @@ ParseParamFile::ParseParamFile(const std::string& paramFileName,ParameterManager
 	:paramMgr(paramMgr),fileName(paramFileName)
 	{
 
-	cout<<"ParseParamFile: "<<paramFileName<<endl;
 	//Xerces initialization.
 	try {
 		XMLPlatformUtils::Initialize();
@@ -118,6 +117,7 @@ void ParseParamFile::parseElement(DOMElement* e)
 		}
 	}
 }
+
 ParseParamFile::~ParseParamFile() {
 	// TODO Auto-generated destructor stub
 }

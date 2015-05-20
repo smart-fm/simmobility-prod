@@ -8,6 +8,9 @@
 #include <set>
 #include <climits>
 #include "geospatial/RoadRunnerRegion.hpp"
+#include "TurningConflict.hpp"
+#include "TurningPolyline.h"
+#include "TurningSection.hpp"
 
 namespace sim_mob
 {
@@ -20,6 +23,9 @@ class Point2D;
 class Link;
 class Conflux;
 class CoordinateTransform;
+class TurningSection;
+class TurningConflict;
+class TurningPolyline;
 
 namespace aimsun
 {
@@ -95,6 +101,7 @@ public:
 	sim_mob::Node* locateNode(double xPos, double yPos, bool includeUniNodes=false, int maxDistCM=1e8) const;
 
 	sim_mob::Node* getNodeById(int aimsunId);
+	sim_mob::MultiNode* getMultiNodeById(std::string aimsunId);
 	std::map<int,sim_mob::Node*> nodeMap;
 
 	//Temporary; added for the XML loader
@@ -122,24 +129,68 @@ public:
 	///to store simmobility segment type table data, key = segment aimsun id,value=type
 	///segment type 1:freeway 2:ramp 3:urban road
 	std::map<std::string,int> segmentTypeMap;
+
+	/// Map to store the Turning sections, Key = Turning id, Vaule = TurningSection
+	std::map<std::string,sim_mob::TurningSection* > turningSectionMap;
+    
+	/// Getter for the map of Turning sections
+	const  std::map<std::string,sim_mob::TurningSection* >& getTurnings() const  { return turningSectionMap;}
+
+	/// Map to store Turning sections with 'from  segment' as the search key
+	/// Key = from segment aimsun id, Value = Turning
+	std::map<std::string,sim_mob::TurningSection* > turningSectionByFromSeg;
+	
+	/// Map to store Turning sections with 'to  segment' as the search key
+	/// Key= to segment aimsun seg id, Value = Turning
+	std::map<std::string,sim_mob::TurningSection* > turningSectionByToSeg;
+    
+	/// Map to store the Turning conflicts, Key = Turning id, Vaule = TurningConflict
+	std::map<std::string,sim_mob::TurningConflict* > turningConflictMap;
+	
+	/// Getter for the map of Turning conflicts
+	const std::map<std::string,sim_mob::TurningConflict* >& getConflicts() const { return turningConflictMap;}
+	
+	/// Stores the Turning section from the database to the road network object
+	void storeTurningSection( sim_mob::TurningSection* turning);
+
+	/// Map to store the Turning poly-lines, Key = Poly-line id, Value = Poly-line
+	std::map<int,sim_mob::TurningPolyline* > turningPolylineMap;
+        
+	/// Stores the turning poly-lines from the database to the road network object
+	void storeTurningPolyline(sim_mob::TurningPolyline* tp);
+
+	/// Stores the turning poly-lines from the database to the road network object
+	void storeTurningConflict( sim_mob::TurningConflict* t);
+        
+	/// Stores the turning poly-lines from the database to the road network object
+	sim_mob::TurningSection* findTurningById(std::string id);
+        
+	/// Builds the map of segment id vs road segment
+	void makeSegPool();
+        
+	///	Map for storing all segments <aimsun id ,seg>
+	std::map<std::string,sim_mob::RoadSegment*> segPool;
+    
+	/// Returns the required segment
+	sim_mob::RoadSegment* getSegById(std::string aimsunId);
+        
 	/**
 	 * /brief get segment type by aimsun id
 	 * /param id segment aimsun id
 	 * /return type id, if not find in segmentTypeMap return 0, which is unknown
 	 */
 	int getSegmentType(std::string& id);
+	
 	///to store simmobility node type table data, key = ndoe aimsun id,value=type
 	///node type 1:urban intersection with signal 2:urban intersection w/o signal 3:priority merge 4:non-priority merge
-	std::map<std::string,int> nodeTypeMap;
+    std::map<std::string,int> nodeTypeMap;
+	
 	/**
 	 * /brief get node type by aimsun id
 	 * /param id segment aimsun id
 	 * /return type id, if not find in nodeTypeMap return 0, which is unknown
 	 */
 	int getNodeType(std::string& id);
-
-
-
 };
 
 

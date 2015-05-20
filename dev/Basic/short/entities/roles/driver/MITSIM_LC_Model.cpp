@@ -98,9 +98,9 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
                 otherDistance[i].lead = 5000;
                 otherAcc[i].lead = 5000;
             } else { //has vehicle ahead
-                otherSpeed[i].lead = fwd->driver->fwdVelocity.get();
+                otherSpeed[i].lead = fwd->driver->fwdVelocity_.get();
                 otherDistance[i].lead = fwd->distance/100.0;
-                otherAcc[i].lead = fwd->driver->fwdAccel.get()/100.0;
+                otherAcc[i].lead = fwd->driver->fwdAccel_.get()/100.0;
             }
 
             if (!back->exists()) {//no vehicle behind
@@ -108,9 +108,9 @@ bool sim_mob::MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams& p) {
                 otherDistance[i].lag = 5000;
                 otherAcc[i].lag = 5000;
             } else { //has vehicle behind, check the gap
-                otherSpeed[i].lag = back->driver->fwdVelocity.get();
+                otherSpeed[i].lag = back->driver->fwdVelocity_.get();
                 otherDistance[i].lag = back->distance/100.0;
-                otherAcc[i].lag = back->driver->fwdAccel.get()/100.0;
+                otherAcc[i].lag = back->driver->fwdAccel_.get()/100.0;
             }
         } else { // no left/right side exists
             otherSpeed[i].lead = 0;
@@ -258,7 +258,7 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p)
 		p.lcDebugStr<<";d3";
 		d1 = aav->distance/100.0 - av->distance/100.0 - av->driver->getVehicleLengthM(); // get gap length of av and aav
 		Driver *aavDriver = const_cast<Driver*>(aav->driver);
-		s1 = av->driver->fwdVelocity/100.0 - aavDriver->getFwdVelocityM(); // speed diff of av and aav
+		s1 = av->driver->fwdVelocity_/100.0 - aavDriver->getFwdVelocityM(); // speed diff of av and aav
 	  } else {
 		  p.lcDebugStr<<";d4";
 
@@ -430,7 +430,7 @@ void sim_mob::MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams& p,
     double vel[2][4];
     for (int i = 0; i < 2; i++) {
         for (int j = 0; j < 4; j++) {
-            vel[i][j] = (nv[i][j]->exists()) ? nv[i][j]->driver->fwdVelocity / 100 : 0;
+            vel[i][j] = (nv[i][j]->exists()) ? nv[i][j]->driver->fwdVelocity_ / 100 : 0;
         }
 
     }
@@ -1083,7 +1083,7 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadLeft(DriverUpdateParams& p,in
 	float heavy_neighbor = 0.0;
 	if(p.nvLeftFwd.exists()) // front left bumper leader
 	{
-		double leftFwdVel = p.nvLeftFwd.driver->fwdVelocity.get()/100.0;
+		double leftFwdVel = p.nvLeftFwd.driver->fwdVelocity_.get()/100.0;
 		double currentSpeed = p.perceivedFwdVelocity / 100.0;
 		vld = std::min<double>(leftFwdVel,currentSpeed);
 
@@ -1165,7 +1165,7 @@ double sim_mob::MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams& p,i
 	float heavy_neighbor = 0.0;
 	if(p.nvRightFwd.exists()) // front left bumper leader
 	{
-		double leftFwdVel = p.nvRightFwd.driver->fwdVelocity.get()/100.0;
+		double leftFwdVel = p.nvRightFwd.driver->fwdVelocity_.get()/100.0;
 		double currentSpeed = p.perceivedFwdVelocity / 100.0;
 
 		vld = std::min<double>(leftFwdVel,currentSpeed);
@@ -1526,12 +1526,12 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 	}
 
 	// 6.0 check if lead,lag gap ok
-	if (bv->exists() && bheadway < lcCriticalGap(p,1, bv->driver->fwdVelocity/100.0 - p.currSpeed )) {
+	if (bv->exists() && bheadway < lcCriticalGap(p,1, bv->driver->fwdVelocity_/100.0 - p.currSpeed )) {
 		p.lcDebugStr<<";FLG";
 		p.setFlag(FLAG_LC_FAILED_LAG); // lag gap
 	}
 	else if ( av->exists() ) {
-		double cg = lcCriticalGap(p,0, av->driver->fwdVelocity/100.0 - p.currSpeed);
+		double cg = lcCriticalGap(p,0, av->driver->fwdVelocity_/100.0 - p.currSpeed);
 		p.lcDebugStr<<";aheadway"<<aheadway;
 		p.lcDebugStr<<";avcg"<<cg;
 		if(aheadway < cg  ){
@@ -1560,7 +1560,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p)
 			p.lcDebugStr<<";NDis";
 			int nlanes = 0;
 			float gap = aheadway + bheadway ;
-			float dv = av->exists() ? av->driver->fwdVelocity/100.0 - p.currSpeed : 0 ;
+			float dv = av->exists() ? av->driver->fwdVelocity_/100.0 - p.currSpeed : 0 ;
 
 			float pmf;
 
@@ -1724,15 +1724,15 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 			p.lcDebugStr<<";CF5";
 		  // Acceleration rate in order to be slower than the leader
 
-		  upper = (av->driver->fwdVelocity.get()/100.0 - p.currSpeed) /
+		  upper = (av->driver->fwdVelocity_.get()/100.0 - p.currSpeed) /
 			lcNosingConstStateTime +
-			av->driver->fwdAccel.get()/100.0;
+			av->driver->fwdAccel_.get()/100.0;
 		  p.lcDebugStr<<";up"<<upper;
 		  if (upper < p.maxDeceleration) {
 			  p.lcDebugStr<<";CF6";
 			return 0;		// This vehicle is too fast
 		  }
-		} else if (av->driver->fwdVelocity/100.0 < Math::DOUBLE_EPSILON &&
+		} else if (av->driver->fwdVelocity_/100.0 < Math::DOUBLE_EPSILON &&
 				   p.dis2stop > p.distanceToNormalStop &&
 				   p.nvFwd.distance/100.0 > p.distanceToNormalStop) {
 			p.lcDebugStr<<";CF7";
@@ -1754,7 +1754,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 			// vehicle and do not cause the lag vehicle to decelerate
 			// harder than its normal deceleration rate
 
-			lower = (bv->driver->fwdVelocity/100.0- p.currSpeed) /
+			lower = (bv->driver->fwdVelocity_/100.0- p.currSpeed) /
 					lcNosingConstStateTime +
 					p.normalDeceleration;
 
@@ -1783,7 +1783,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 			// vehicle and do not cause the lag vehicle to decelerate
 			// harder than its normal deceleration rate
 
-			lower = (bv->driver->fwdVelocity/100.0 - p.currSpeed) /
+			lower = (bv->driver->fwdVelocity_/100.0 - p.currSpeed) /
 					lcNosingConstStateTime +
 					p.normalDeceleration;
 			p.lcDebugStr<<";low"<<lower;
@@ -2037,43 +2037,59 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 	if(p.dis2stop>dis/100.0){
 		p.dis2stop = dis/100.0;
 	}
+	
 	const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (driverMvt->fwdDriverMovement.getCurrSegment()->getEnd());
+	
 	if(currEndNode)
 	{
 		// current segment's end node is multi node, so it is last segment of the link
 		// get next segment(in next link)
 		const RoadSegment* nextSegment = driverMvt->fwdDriverMovement.getNextSegment(false);
-		if(!nextSegment){
+		if(!nextSegment)
+		{
 			//seems current on last segment of the path
-			if(p.leftLane && !p.leftLane->is_pedestrian_lane()) {
+			if(p.leftLane && !p.leftLane->is_pedestrian_lane()) 
+			{
 				p.setStatus(STATUS_LEFT_SIDE_OK,STATUS_YES,str);
 			}
-			if(p.rightLane && !p.rightLane->is_pedestrian_lane()) {
+			if(p.rightLane && !p.rightLane->is_pedestrian_lane()) 
+			{
 				p.setStatus(STATUS_RIGHT_SIDE_OK,STATUS_YES,str);
 			}
-			if(p.currLane && !p.currLane->is_pedestrian_lane()) {
+			if(p.currLane && !p.currLane->is_pedestrian_lane()) 
+			{
 				p.setStatus(STATUS_CURRENT_LANE_OK,STATUS_YES,str);
 			}
 
 			const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
-			for(int i=0;i<lanes.size();++i) {
-				if(!lanes[i]->is_pedestrian_lane()) {
+			
+			for(int i=0;i<lanes.size();++i) 
+			{
+				if(!lanes[i]->is_pedestrian_lane()) 
+				{
 					targetLanes.insert(lanes[i]);
 				}
 			}// end of for
+			
 			res = 0; // no need lane change
 		}//end if(!nextSegment)
-		else {
-			// next segment on diff link
-			// get lane connector
-			const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(driverMvt->fwdDriverMovement.getCurrSegment());
+		else 
+		{
+			// Next segment is on a different link. We need to check if our lane is connected to the next road segment
+			
+			// Turnings from current RoadSegment
+			const std::set<TurningSection *>& turnings = currEndNode->getTurnings(driverMvt->fwdDriverMovement.getCurrSegment());
 
 			// unset status
-			p.setStatus(STATUS_LEFT_SIDE_OK,STATUS_NO,str); p.setStatus(STATUS_RIGHT_SIDE_OK,STATUS_NO,str);p.setStatus(STATUS_CURRENT_LANE_OK,STATUS_NO,str);
-			// check left,right lanes connect to next target segment
-			for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); ++it)
+			p.setStatus(STATUS_LEFT_SIDE_OK,STATUS_NO,str); 
+			p.setStatus(STATUS_RIGHT_SIDE_OK,STATUS_NO,str);
+			p.setStatus(STATUS_CURRENT_LANE_OK,STATUS_NO,str);
+			
+			// Check which lanes connect to next target segment
+			for (std::set<TurningSection *>::const_iterator it = turnings.begin(); it != turnings.end(); ++it)
 			{
-				if ( (*it)->getLaneTo()->getRoadSegment() == nextSegment ) // this lc connect to target segment
+				// The turning is connected to target segment
+				if ((*it)->getLaneTo()->getRoadSegment() == nextSegment)
 				{
 					int laneIdx = getLaneIndex((*it)->getLaneFrom());
 					if(laneIdx > p.currLaneIndex)
@@ -2084,51 +2100,127 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 					{
 						p.setStatus(STATUS_RIGHT_SIDE_OK,STATUS_YES,str);
 					}
-					else {
+					else 
+					{
 						p.setStatus(STATUS_CURRENT_LANE_OK,STATUS_YES,str);
 					}
 				}//end if
 			}//end for
 
-			if (!lcs.empty())
+			if (!turnings.empty())
 			{
-				if(p.currLane->is_pedestrian_lane()) {
-					//if can different DEBUG or RELEASE mode, that will be perfect, but now comment it out, so that does nor affect performance.
-					//I remember the message is not critical
-					WarnOut("drive on pedestrian lane");
+				if(p.currLane->is_pedestrian_lane()) 
+				{					
+					WarnOut("Vehicle driving on pedestrian lane");
 					double d = driverMvt->fwdDriverMovement.getDisToCurrSegEndM()/100.0;
-					if(d<p.dis2stop)
+					if(d < p.dis2stop)
+					{
 						p.dis2stop = d;
+					}
 					return -1;
 				}				
 
-				for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); ++it) {
-					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment ) {
+				for (std::set<TurningSection *>::const_iterator it = turnings.begin(); it != turnings.end(); ++it) 
+				{
+					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment ) 
+					{
 						// add lane to targetLanes
 						const Lane* l = (*it)->getLaneFrom();
 						targetLanes.insert(l);
+						
 						if( (*it)->getLaneFrom() == p.currLane )
 						{
-							// current lane connect to next link
-							// no need lc
+							// current lane is connected to next link
+							// no need for lane change
 							res = 0;
 						}
 					}
 				}// end for
-			} // end of if (!lcs)
-			else {
-				throw std::runtime_error("isLaneConnectToNextLink: error, no lane connect in multi node");
+			} // end of if (!turning.empty())
+			else 
+			{
+				//Turnings not defined, use LaneConnectors
+				Warn() << "\nTurnings not found for Node: " << nextSegment->getStart()->getID();
+				Warn() << "\nDefaulting to Lane Connectors\n";
+				
+				//Lane connectors from current RoadSegment
+				const std::set<LaneConnector *>& lcs = currEndNode->getOutgoingLanes(driverMvt->fwdDriverMovement.getCurrSegment());
+				
+				// Check which lanes connect to next target segment
+				for (std::set<LaneConnector *>::const_iterator it = lcs.begin(); it != lcs.end(); ++it)
+				{
+					// The turning is connected to target segment
+					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment)
+					{
+						int laneIdx = getLaneIndex((*it)->getLaneFrom());
+						if (laneIdx > p.currLaneIndex)
+						{
+							p.setStatus(STATUS_LEFT_SIDE_OK, STATUS_YES, str);
+						} 
+						else if (laneIdx < p.currLaneIndex)
+						{
+							p.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_YES, str);
+						} 
+						else
+						{
+							p.setStatus(STATUS_CURRENT_LANE_OK, STATUS_YES, str);
+						}
+					}
+				}
+
+				if (!lcs.empty())
+				{
+					if (p.currLane->is_pedestrian_lane())
+					{
+						WarnOut("Vehicle driving on pedestrian lane");
+						double d = driverMvt->fwdDriverMovement.getDisToCurrSegEndM() / 100.0;
+						if (d < p.dis2stop)
+						{
+							p.dis2stop = d;
+						}
+						return -1;
+					}
+
+					for (std::set<LaneConnector *>::const_iterator it = lcs.begin(); it != lcs.end(); ++it)
+					{
+						if ((*it)->getLaneTo()->getRoadSegment() == nextSegment )
+						{
+							// add lane to targetLanes
+							const Lane* l = (*it)->getLaneFrom();
+							targetLanes.insert(l);
+
+							if ( (*it)->getLaneFrom() == p.currLane )
+							{
+								// current lane is connected to next link
+								// no need for lane change
+								res = 0;
+							}
+						}
+					}
+				}
+				else
+				{
+					stringstream msg;
+					msg << "isLaneConnectToNextLink: No Turnings or Lane connectors associated with the node ";
+					msg << currEndNode->getID();
+					throw std::runtime_error(msg.str());
+				}
 			}
 		}// end of else
 	}//end if(currEndNode)
-	else {
+	else 
+	{
 		// not on last segment of the link
 		const std::vector<sim_mob::Lane*> lanes = driverMvt->fwdDriverMovement.getCurrSegment()->getLanes();
-		for(int i=0;i<lanes.size();++i) {
-			if(!lanes[i]->is_pedestrian_lane()) {
+		
+		for(int i = 0; i < lanes.size() ; ++i) 
+		{
+			if(!lanes[i]->is_pedestrian_lane()) 
+			{
 				targetLanes.insert(lanes[i]);
 			}
 		}// end of for
+		
 		res = 0;
 	}
 	return res;
@@ -2142,7 +2234,10 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToStopPoint(DriverUpdateParams& p,set
 	DriverMovement *driverMvt = dynamic_cast<DriverMovement*>(p.driver->Movement());
 	// get dis to stop point of current link
 	double distance = p.disToSP;//= driverMvt->getDisToStopPoint(p.stopPointPerDis);
-	if(distance>-10 || p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT){// in case car stop just bit ahead of the stop point
+	
+	if ((distance>-10 && p.stopPointState != DriverUpdateParams::NO_FOUND_STOP_POINT)
+		|| p.stopPointState == DriverUpdateParams::JUST_ARRIVE_STOP_POINT) {
+		// in case car stop just bit ahead of the stop point
 		if(p.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT){
 			return res;
 		}
@@ -2316,59 +2411,112 @@ void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)
 	// check current lane has connector to next link
 	DriverMovement *driverMvt = dynamic_cast<DriverMovement*>(p.driver->Movement());
 	const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (driverMvt->fwdDriverMovement.getCurrSegment()->getEnd());
+	
 	if(currEndNode)
 	{
 		// check has next segment in path
 		const RoadSegment* nextSegment = driverMvt->fwdDriverMovement.getNextSegment(false);
-		if(!nextSegment){
+		
+		if(!nextSegment)
+		{
 			//seems on last segment of the path
-			if(p.leftLane && !p.leftLane->is_pedestrian_lane()) {
+			if(p.leftLane && !p.leftLane->is_pedestrian_lane()) 
+			{
 				p.setStatus(STATUS_LEFT_SIDE_OK,STATUS_YES,str);
 			}
-			if(p.rightLane && !p.rightLane->is_pedestrian_lane()) {
+			if(p.rightLane && !p.rightLane->is_pedestrian_lane()) 
+			{
 				p.setStatus(STATUS_RIGHT_SIDE_OK,STATUS_YES,str);
 			}
-			if(p.currLane && !p.currLane->is_pedestrian_lane()) {
+			if(p.currLane && !p.currLane->is_pedestrian_lane()) 
+			{
 				p.setStatus(STATUS_CURRENT_LANE_OK,STATUS_YES,str);
 			}
 		}
-		else {
-			// get lane connector
-			const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(driverMvt->fwdDriverMovement.getCurrSegment());
+		else 
+		{
+			// Turnings from the current segment
+			const std::set<TurningSection *>& turnings = currEndNode->getTurnings(driverMvt->fwdDriverMovement.getCurrSegment());
 
-			// check left,right lanes connect to next target segment
-			for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); ++it)
+			if(!turnings.empty())
 			{
-				if ( (*it)->getLaneTo()->getRoadSegment() == nextSegment ) // this lc connect to target segment
+				// Check if the turning is connected to the next segment
+				for (std::set<TurningSection *>::const_iterator it = turnings.begin(); it != turnings.end(); ++it)
 				{
-					int laneIdx = getLaneIndex((*it)->getLaneFrom());
-					// lane index 0 start from most left lane of the segment
-					// so lower number in the left, higher number in the right
-					if(laneIdx > p.currLaneIndex) {
-						p.setStatus(STATUS_LEFT_SIDE_OK,STATUS_YES,str);
+					// This turning is connected to the target segment
+					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment)
+					{
+						int laneIdx = getLaneIndex((*it)->getLaneFrom());
+
+						// lane index 0 start from most left lane of the segment
+						// so lower number in the left, higher number in the right
+						if (laneIdx > p.currLaneIndex)
+						{
+							p.setStatus(STATUS_LEFT_SIDE_OK, STATUS_YES, str);
+						} 
+						else if (laneIdx < p.currLaneIndex)
+						{
+							p.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_YES, str);
+						} 
+						else if (laneIdx == p.currLaneIndex)
+						{
+							p.setStatus(STATUS_CURRENT_LANE_OK, STATUS_YES, str);
+						}
+					}// end if = nextsegment
+				}//end for
+			}
+			else
+			{
+				// Turnings not found, defaulting to lane connectors
+				Warn() << "\nTurnings not found for Node: " << nextSegment->getStart()->getID();
+				Warn() << "\nDefaulting to Lane Connectors\n";
+				
+				// Lane connectors from the current segment
+				const std::set<LaneConnector *>& lcs = currEndNode->getOutgoingLanes(driverMvt->fwdDriverMovement.getCurrSegment());
+				
+				// Check if the turning is connected to the next segment
+				for (std::set<LaneConnector *>::const_iterator it = lcs.begin(); it != lcs.end(); ++it)
+				{
+					// This turning is connected to the target segment
+					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment)
+					{
+						int laneIdx = getLaneIndex((*it)->getLaneFrom());
+
+						// lane index 0 start from most left lane of the segment
+						// so lower number in the left, higher number in the right
+						if (laneIdx > p.currLaneIndex)
+						{
+							p.setStatus(STATUS_LEFT_SIDE_OK, STATUS_YES, str);
+						} 
+						else if (laneIdx < p.currLaneIndex)
+						{
+							p.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_YES, str);
+						} 
+						else if (laneIdx == p.currLaneIndex)
+						{
+							p.setStatus(STATUS_CURRENT_LANE_OK, STATUS_YES, str);
+						}
 					}
-					else if(laneIdx < p.currLaneIndex) {
-						p.setStatus(STATUS_RIGHT_SIDE_OK,STATUS_YES,str);
-					}
-					else if(laneIdx == p.currLaneIndex) {
-						p.setStatus(STATUS_CURRENT_LANE_OK,STATUS_YES,str);
-					}
-				}// end if = nextsegment
-			}//end for
+				}				
+			}			
 		}// end else
 	}// end if node
-	else {
+	else 
+	{
 		// segment's end node is uninode
 		// here just assume every lane can connect to next segment
 		// for lane drop, it will set the status in isThereLaneDrop()
 		// TODO use uninode lane connector
-		if(p.leftLane && !p.leftLane->is_pedestrian_lane()) {
+		if(p.leftLane && !p.leftLane->is_pedestrian_lane()) 
+		{
 			p.setStatus(STATUS_LEFT_SIDE_OK,STATUS_YES,str);
 		}
-		if(p.rightLane && !p.rightLane->is_pedestrian_lane()) {
+		if(p.rightLane && !p.rightLane->is_pedestrian_lane()) 
+		{
 			p.setStatus(STATUS_RIGHT_SIDE_OK,STATUS_YES,str);
 		}
-		if(p.currLane && !p.currLane->is_pedestrian_lane()) {
+		if(p.currLane && !p.currLane->is_pedestrian_lane()) 
+		{
 			p.setStatus(STATUS_CURRENT_LANE_OK,STATUS_YES,str);
 		}
 	}

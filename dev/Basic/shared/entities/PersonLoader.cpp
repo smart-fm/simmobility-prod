@@ -15,12 +15,12 @@
 #include <soci.h>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "Person.hpp"
+#include "geospatial/aimsun/Loader.hpp"
 #include "logging/Log.hpp"
 #include "misc/TripChain.hpp"
+#include "Person.hpp"
 #include "util/DailyTime.hpp"
 #include "util/Utils.hpp"
-#include "geospatial/aimsun/Loader.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -330,8 +330,7 @@ bool sim_mob::RestrictedRegion::TagSearch::isInRestrictedSegmentZone(const sim_m
 
 
 sim_mob::PeriodicPersonLoader::PeriodicPersonLoader(std::set<sim_mob::Entity*>& activeAgents, StartTimePriorityQueue& pendinAgents)
-	: activeAgents(activeAgents), pendingAgents(pendinAgents),
-	  sql_(soci::postgresql, ConfigManager::GetInstanceRW().FullConfig().getDatabaseConnectionString(false))
+	: activeAgents(activeAgents), pendingAgents(pendinAgents)
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	dataLoadInterval = SECONDS_IN_ONE_HOUR; //1 hour by default. TODO: must be configurable.
@@ -408,6 +407,8 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	double end = nextLoadStart + DEFAULT_LOAD_INTERVAL;
 	query << "select * from " << storedProcName << "(" << nextLoadStart << "," << end << ")";
 	std::string sql_str = query.str();
+	soci::session sql_(soci::postgresql, ConfigManager::GetInstanceRW().FullConfig().getDatabaseConnectionString(false));
+
 	soci::rowset<soci::row> rs = (sql_.prepare << sql_str);
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	unsigned actCtr = 0;

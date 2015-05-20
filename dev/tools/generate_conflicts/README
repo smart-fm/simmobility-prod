@@ -1,0 +1,4 @@
+to run the python script
+
+install python postgresql lib(http://initd.org/psycopg/docs/install.html):
+sudo apt-get install python-psycopg2

@@ -252,7 +252,7 @@ double sim_mob::BusDriverMovement::busAccelerating(DriverUpdateParams& p) {
 	p.currSpeed = parentBusDriver->getVehicle()->getVelocity() / 100;
 
 	//Call our model
-	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, p.maxLaneSpeed);
+	newFwdAcc = cfModel->makeAcceleratingDecision(p);
 
 	return newFwdAcc;
 }

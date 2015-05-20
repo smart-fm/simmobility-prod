@@ -23,6 +23,7 @@
 
 
 
+
 using std::map;
 using std::set;
 using std::vector;
@@ -133,6 +134,11 @@ void sim_mob::PrintNetwork::LogNetworkLegacyFormat() const
 	for (set<LaneConnector*>::const_iterator it=cachedConnectors.begin(); it!=cachedConnectors.end(); it++) {
 		LogLegacyLaneConnectors(*it);
 	}
+	const std::map<std::string,sim_mob::TurningSection* > &turningSectionMap = cfg.getNetwork().getTurnings();
+	LogTurnings(turningSectionMap);
+
+	const std::map<std::string,sim_mob::TurningConflict* > &conflicts = cfg.getNetwork().getConflicts();
+	LogConflicts(conflicts);
 
 	//Tell the GUI this is done.
 	if (cfg.InteractiveMode()) {
@@ -460,7 +466,44 @@ void sim_mob::PrintNetwork::LogLegacyLaneConnectors(const LaneConnector* const l
 
 	PrintToFileAndGui(out);
 }
+void sim_mob::PrintNetwork::LogTurnings(const std::map<std::string,sim_mob::TurningSection*>& turnings) const
+{
+	std::map<std::string,sim_mob::TurningSection*>::const_iterator it;
+	for(it=turnings.begin();it!=turnings.end();++it){
+		const sim_mob::TurningSection* ts = it->second;
+		std::stringstream out;
+		out <<"(\"turning-path\", 0, " <<ts <<", {";
+		out <<"\"id\":\"" <<ts->getDbId() <<"\",";
+		out <<std::setprecision(10)<<"\"from_xpos\":\"" <<ts->getFrom_xpos()*100.0 <<"\",";
+		out <<std::setprecision(8)<<"\"from_ypos\":\"" <<ts->getFrom_ypos()*100.0 <<"\",";
+		out <<std::setprecision(8)<<"\"to_xpos\":\"" <<ts->getTo_xpos()*100.0 <<"\",";
+		out <<std::setprecision(8)<<"\"to_ypos\":\"" <<ts->getTo_ypos() *100.0<<"\",";
+		out <<std::setprecision(8)<<"\"from_road_section\":\"" <<ts->getFrom_road_section() <<"\",";
+		out <<std::setprecision(8)<<"\"to_road_section\":\"" <<ts->getTo_road_section() <<"\",";
+		out <<std::setprecision(8)<<"\"from_lane_index\":\"" <<ts->getFrom_lane_index() <<"\",";
+		out <<std::setprecision(8)<<"\"to_lane_index\":\"" <<ts->getTo_lane_index() <<"\",";
+		out <<"})";
 
+		PrintToFileAndGui(out);
+	}
+}
+void sim_mob::PrintNetwork::LogConflicts(const std::map<std::string,sim_mob::TurningConflict* >& conflicts) const
+{
+	std::map<std::string,sim_mob::TurningConflict* >::const_iterator it;
+	for(it=conflicts.begin();it!=conflicts.end();++it){
+		const sim_mob::TurningConflict* cf = it->second;
+		std::stringstream out;
+		out <<"(\"turning-conflict\", 0, " <<cf <<", {";
+		out <<"\"id\":\"" <<cf->getDbId() <<"\",";
+		out <<"\"first-turning\":\"" <<cf->getFirstTurning()->getDbId() <<"\",";
+		out <<std::setprecision(8)<<"\"first-cd\":\"" <<cf->getFirst_cd() <<"\",";
+		out <<"\"second-turning\":\"" <<cf->getSecondTurning()->getDbId() <<"\",";
+		out <<std::setprecision(8)<<"\"second-cd\":\"" <<cf->getSecond_cd() <<"\",";
+		out <<"})";
+
+		PrintToFileAndGui(out);
+	}
+}
 void sim_mob::PrintNetwork::PrintToFileAndGui(const std::stringstream& str) const
 {
 	//Print to file.

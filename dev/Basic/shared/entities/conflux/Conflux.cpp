@@ -1445,7 +1445,6 @@ unsigned int sim_mob::Conflux::getNumRemainingInLaneInfinity() {
 	return count;
 }
 
-/**TODO: use public transit route choice to replace subtrips for PT trip; return appropriate conflux*/
 sim_mob::Conflux* sim_mob::Conflux::findStartingConflux(Person* person, unsigned int now)
 {
 	UpdateStatus res = person->checkTripChain();

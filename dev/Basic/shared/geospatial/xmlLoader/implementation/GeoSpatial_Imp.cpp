@@ -26,9 +26,9 @@ void ProcessUniNodeConnectors(const helper::Bookkeeping& book,std::set<sim_mob::
 //Helper: Create new LaneConnector entries for all UniNodes
 void ProcessUniNodeForwardLanes(const helper::Bookkeeping& book,std::set<sim_mob::UniNode*>& nodes) {
 	for(std::set<sim_mob::UniNode*>::iterator it = nodes.begin(); it!=nodes.end(); it ++) {
-		sim_mob::UniNode::buildForwardLanesFromAlignedLanes((*it), (*it)->firstPair.first, (*it)->firstPair.second, 0 ,0);
+		sim_mob::UniNode::buildForwardLanesFromAlignedLanes((*it), (*it)->firstPair.first, (*it)->firstPair.second);
 		if((*it)->secondPair.first && (*it)->secondPair.second){
-			sim_mob::UniNode::buildForwardLanesFromAlignedLanes((*it), (*it)->secondPair.first, (*it)->secondPair.second, 0 ,0);
+			sim_mob::UniNode::buildForwardLanesFromAlignedLanes((*it), (*it)->secondPair.first, (*it)->secondPair.second);
 		}
 	}
 }

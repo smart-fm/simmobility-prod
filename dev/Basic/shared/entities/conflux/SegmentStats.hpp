@@ -5,9 +5,11 @@
 #pragma once
 
 #include <string>
+#include <set>
 #include "entities/Person.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
+#include "geospatial/Link.hpp"
 #include "geospatial/BusStop.hpp"
 
 namespace sim_mob {
@@ -141,6 +143,9 @@ private:
 	PersonList laneAgentsCopy;
 	PersonList::iterator laneAgentsIt;
 
+	/**set of downstream links connected to this lanestats*/
+	std::set<const sim_mob::Link*> connectedDownstreamLinks;
+
 public:
 	PersonList laneAgents;
 
@@ -151,6 +156,24 @@ public:
 		totalLength(0) {}
 	~LaneStats() {
 		safe_delete_item(laneParams);
+	}
+
+	/**
+	 * adds a link as downstream to this lanestats
+	 * @param downStreamLink a link which is downstream through this lanestats
+	 * @return true if insertion was successful; false otherwise
+	 */
+	bool addDownstreamLink(const sim_mob::Link* downStreamLink);
+
+	/**
+	 * adds a set of links as downstream to this lanestats
+	 * @param downStreamLinks a set of link which are downstream through this lanestats
+	 */
+	void addDownstreamLinks(const std::set<const sim_mob::Link*>& downStreamLinks);
+
+	const std::set<const sim_mob::Link*>& getDownstreamLinks() const
+	{
+		return connectedDownstreamLinks;
 	}
 
 	/**
@@ -367,6 +390,12 @@ protected:
 	 * structure to store parameters pertinent to supply
 	 */
 	sim_mob::SupplyParams supplyParams;
+
+	/**
+	 * map of lanes connected to each downstream link
+	 */
+	std::map<const sim_mob::Link*, std::vector<sim_mob::LaneStats*> > laneGroup;
+
 	/**
 	 * adds a bus stop to the list of stops
 	 * @param stop bus stop to be added
@@ -696,6 +725,33 @@ public:
 	 * performs message handler registrations for bus stops in this seg stats
 	 */
 	void registerBusStopAgents();
+
+	/**
+	 * checks whether lane stats for lane is connected (eventually) to the next down stream link
+	 * @param downstreamLink next down stream link
+	 * @param lane lane in this segstats
+	 * @return true if connected; false otherwise.
+	 */
+	bool isConnectedToDownstreamLink(const Link* downstreamLink, const Lane* lane) const;
+
+	/**
+	 * returns the maximum allowed length of vehicles in the lane group of supplied lane
+	 * @param nextLink link downstream to the segment of lane (to identify lane group)
+	 * @return maximum allowed length of vehicles in the lane group of valid input lane
+	 */
+	double getAllowedVehicleLengthForLaneGroup(const Link* downstreamLink) const;
+
+	/**
+	 * returns the existing length of vehicles in the lane group of supplied lane
+	 * @param nextLink link downstream to the segment of lane (to identify lane group)
+	 * @return maximum allowed length of vehicles in the lane group of valid input lane
+	 */
+	double getVehicleLengthForLaneGroup(const Link* downstreamLink) const;
+
+	/**
+	 * prints all downstream links for all lanestats of this segment
+	 */
+	void printDownstreamLinks() const;
 
 	/**
 	 * prints all agents in this segment

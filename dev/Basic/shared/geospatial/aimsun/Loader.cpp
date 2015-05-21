@@ -3121,6 +3121,136 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 		confluxes.insert(conflux);
 		multinode_confluxes.insert(std::make_pair(*i, conflux));
 	} // end for each multinode
+	CreateLaneGroups();
+}
+
+void sim_mob::aimsun::Loader::CreateLaneGroups()
+{
+	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
+	if(confluxes.empty()) { return; }
+
+	typedef std::vector<sim_mob::SegmentStats*> SegmentStatsList;
+	typedef std::map<const sim_mob::Lane*, sim_mob::LaneStats* > LaneStatsMap;
+	typedef std::map<sim_mob::Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
+
+	for(std::set<sim_mob::Conflux*>::const_iterator cfxIt=confluxes.begin(); cfxIt!=confluxes.end(); cfxIt++)
+	{
+		UpstreamSegmentStatsMap& upSegsMap = (*cfxIt)->upstreamSegStatsMap;
+		const sim_mob::MultiNode* cfxMultinode = (*cfxIt)->getMultiNode();
+		for(UpstreamSegmentStatsMap::const_iterator upSegsMapIt=upSegsMap.begin(); upSegsMapIt!=upSegsMap.end(); upSegsMapIt++)
+		{
+			const SegmentStatsList& segStatsList = upSegsMapIt->second;
+			if(segStatsList.empty()) { throw std::runtime_error("No segment stats for link"); }
+
+			//assign downstreamLinks to the last segment stats
+			SegmentStats* lastStats = segStatsList.back();
+			const std::set<sim_mob::LaneConnector*>& lcs = cfxMultinode->getOutgoingLanes(lastStats->getRoadSegment());
+			std::set<const sim_mob::Lane*> connLanes;
+			for (std::set<sim_mob::LaneConnector*>::const_iterator lcIt = lcs.begin(); lcIt != lcs.end(); lcIt++)
+			{
+				const sim_mob::Lane* fromLane = (*lcIt)->getLaneFrom();
+				connLanes.insert(fromLane);
+				const sim_mob::Link* downStreamLink = (*lcIt)->getLaneTo()->getRoadSegment()->getLink();
+				lastStats->laneStatsMap.at(fromLane)->addDownstreamLink(downStreamLink); //duplicates are eliminated by the std::set containing the downstream links
+			}
+
+			//construct inverse lookup for convenience
+			for (LaneStatsMap::const_iterator lnStatsIt = lastStats->laneStatsMap.begin(); lnStatsIt != lastStats->laneStatsMap.end(); lnStatsIt++)
+			{
+				if(lnStatsIt->second->isLaneInfinity()) { continue; }
+				const std::set<const sim_mob::Link*>& downstreamLnks = lnStatsIt->second->getDownstreamLinks();
+				for(std::set<const sim_mob::Link*>::const_iterator dnStrmIt = downstreamLnks.begin(); dnStrmIt != downstreamLnks.end(); dnStrmIt++)
+				{
+					lastStats->laneGroup[*dnStrmIt].push_back(lnStatsIt->second);
+				}
+			}
+
+			//extend the downstream links assignment to the segmentStats upstream to the last segmentStats
+			SegmentStatsList::const_reverse_iterator upSegsRevIt = segStatsList.rbegin();
+			upSegsRevIt++; //lanestats of last segmentstats is already assigned with downstream links... so skip the last segmentstats
+			const sim_mob::SegmentStats* downstreamSegStats = lastStats;
+			for(; upSegsRevIt!=segStatsList.rend(); upSegsRevIt++)
+			{
+				sim_mob::SegmentStats* currSegStats = (*upSegsRevIt);
+				const sim_mob::RoadSegment* currSeg = currSegStats->getRoadSegment();
+				const std::vector<sim_mob::Lane*>& currLanes = currSeg->getLanes();
+				if(currSeg == downstreamSegStats->getRoadSegment())
+				{	//currSegStats and downstreamSegStats have the same parent segment
+					//lanes of the two segstats are same
+					for (std::vector<sim_mob::Lane*>::const_iterator lnIt = currLanes.begin(); lnIt != currLanes.end(); lnIt++)
+					{
+						const sim_mob::Lane* ln = (*lnIt);
+						if(ln->is_pedestrian_lane()) { continue; }
+						const sim_mob::LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(ln);
+						sim_mob::LaneStats* currLnStats = currSegStats->laneStatsMap.at(ln);
+						currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
+					}
+				}
+				else
+				{
+					const sim_mob::UniNode* uninode = dynamic_cast<const sim_mob::UniNode*>(currSeg->getEnd());
+					if(!uninode) { throw std::runtime_error("Multinode found in the middle of a link"); }
+					for (std::vector<sim_mob::Lane*>::const_iterator lnIt = currLanes.begin(); lnIt != currLanes.end(); lnIt++)
+					{
+						const sim_mob::Lane* ln = (*lnIt);
+						if(ln->is_pedestrian_lane()) { continue; }
+						sim_mob::LaneStats* currLnStats = currSegStats->laneStatsMap.at(ln);
+						const UniNode::UniLaneConnector uniLnConnector = uninode->getForwardLanes(*ln);
+						if(uniLnConnector.left)
+						{
+							const sim_mob::LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(uniLnConnector.left);
+							currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
+						}
+						if(uniLnConnector.right)
+						{
+							const sim_mob::LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(uniLnConnector.right);
+							currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
+						}
+						if(uniLnConnector.center)
+						{
+							const sim_mob::LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(uniLnConnector.center);
+							currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
+						}
+					}
+				}
+
+				//construct inverse lookup for convenience
+				for (LaneStatsMap::const_iterator lnStatsIt = currSegStats->laneStatsMap.begin(); lnStatsIt != currSegStats->laneStatsMap.end(); lnStatsIt++)
+				{
+					if(lnStatsIt->second->isLaneInfinity()) { continue; }
+					const std::set<const sim_mob::Link*>& downstreamLnks = lnStatsIt->second->getDownstreamLinks();
+					for(std::set<const sim_mob::Link*>::const_iterator dnStrmIt = downstreamLnks.begin(); dnStrmIt != downstreamLnks.end(); dnStrmIt++)
+					{
+						currSegStats->laneGroup[*dnStrmIt].push_back(lnStatsIt->second);
+					}
+				}
+
+				downstreamSegStats = currSegStats;
+			}
+
+//			*********** the commented for loop below is to print the lanes which do not have lane groups ***
+//			for(SegmentStatsList::const_reverse_iterator statsRevIt=segStatsList.rbegin(); statsRevIt!=segStatsList.rend(); statsRevIt++)
+//			{
+//				const LaneStatsMap lnStatsMap = (*statsRevIt)->laneStatsMap;
+//				unsigned int segId = (*statsRevIt)->getRoadSegment()->getSegmentAimsunId();
+//				uint16_t statsNum = (*statsRevIt)->statsNumberInSegment;
+//				const std::vector<sim_mob::Lane*>& lanes = (*statsRevIt)->getRoadSegment()->getLanes();
+//				unsigned int numLanes = 0;
+//				for(std::vector<sim_mob::Lane*>::const_iterator lnIt = lanes.begin(); lnIt!=lanes.end(); lnIt++)
+//				{
+//					if(!(*lnIt)->is_pedestrian_lane()) { numLanes++; }
+//				}
+//				for (LaneStatsMap::const_iterator lnStatsIt = lnStatsMap.begin(); lnStatsIt != lnStatsMap.end(); lnStatsIt++)
+//				{
+//					if(lnStatsIt->second->isLaneInfinity() || lnStatsIt->first->is_pedestrian_lane()) { continue; }
+//					if(lnStatsIt->second->getDownstreamLinks().empty())
+//					{
+//						Print() << "~~~ " << segId << "," << statsNum << "," << lnStatsIt->first->getLaneID() << "," << numLanes << std::endl;
+//					}
+//				}
+//			}
+		}
+	}
 }
 
 sim_mob::BusStopFinder::BusStopFinder(const Node* src, const Node* dest)
@@ -3223,5 +3353,3 @@ sim_mob::BusStop* sim_mob::BusStopFinder::getBusStop(const Node* node,sim_mob::R
 
 	 return nullptr;
 }
-
-

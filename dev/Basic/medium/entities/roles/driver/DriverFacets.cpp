@@ -393,7 +393,8 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - convertToSeconds(params.now.ms())); //in seconds
 
-	if (canGoToNextRdSeg(params, nxtSegStat)){
+	const Link* nextLink = getNextLinkForLaneChoice(nxtSegStat);
+	if (canGoToNextRdSeg(params, nxtSegStat, nextLink)){
 		if (isQueuing){
 			removeFromQueue();
 		}
@@ -468,7 +469,8 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
 
-	if (canGoToNextRdSeg(params, nextSegStats)) {
+	const Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
+	if (canGoToNextRdSeg(params, nextSegStats, nextLink)) {
 		if (isQueuing){
 			removeFromQueue();
 		}
@@ -529,7 +531,7 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 	}
 }
 
-bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& params, const sim_mob::SegmentStats* nextSegStats) const
+bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& params, const sim_mob::SegmentStats* nextSegStats, const Link* nextLink) const
 {
 	//return false if the Driver cannot be added during this time tick
 	if (params.elapsedSeconds >= params.secondsInTick) {
@@ -546,12 +548,19 @@ bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& param
 	double total = nextSegStats->getTotalVehicleLength();
 
 	//if the segment is shorter than the vehicle's length and there are no vehicles in the segment just allow the vehicle to pass through
-	//this is just an interim arrangment. this segment should either be removed from database or it's length must be updated.
+	//this is just an interim arrangement. this segment should either be removed from database or it's length must be updated.
 	//if this hack is not in place, all vehicles will start queuing in upstream segments forever.
 	//TODO: remove this hack and put permanent fix
 	if((maxAllowed < enteringVehicleLength) && (total <= 0)) { return true; }
-
-	return ((maxAllowed - total) >= enteringVehicleLength);
+	bool hasSpaceInNextStats = ((maxAllowed - total) >= enteringVehicleLength);
+	if(hasSpaceInNextStats && nextLink)
+	{
+		//additionally check if the length of vehicles in the lanegroup is not too long to accommodate this driver
+		double maxAllowedInLG = nextSegStats->getAllowedVehicleLengthForLaneGroup(nextLink);
+		double totalInLG = nextSegStats->getVehicleLengthForLaneGroup(nextLink);
+		return (totalInLG < maxAllowedInLG);
+	}
+	return hasSpaceInNextStats;
 }
 
 void DriverMovement::moveInQueue() {
@@ -817,7 +826,8 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms())));	//in seconds
 
-	if(canGoToNextRdSeg(params, currSegStats))
+	const Link* nextLink = getNextLinkForLaneChoice(currSegStats);
+	if(canGoToNextRdSeg(params, currSegStats, nextLink))
 	{
 		//set position to start
 		if(currSegStats)
@@ -892,13 +902,19 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextS
 	double queueLength = 0.0;
 	double totalLength = 0.0;
 
+	const sim_mob::Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
 	const std::vector<sim_mob::Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
 	for (vector<sim_mob::Lane* >::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
 	{
 		const Lane* lane = *lnIt;
 		if (!lane->is_pedestrian_lane() && !lane->is_whole_day_bus_lane())
 		{
-			if(!laneConnectorOverride && nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())) { continue; }
+			if(!laneConnectorOverride
+					&& nextToNextSegStats
+					&& !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())
+					&& nextLink
+					&& !nextSegStats->isConnectedToDownstreamLink(nextLink, lane))
+			{ continue; }
 			totalLength = nextSegStats->getLaneTotalVehicleLength(lane);
 			queueLength = nextSegStats->getLaneQueueLength(lane);
 			if (minLength > totalLength)
@@ -927,6 +943,12 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextS
 		out << "best target lane was not set!" << "\nCurrent Segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getSegmentAimsunId() <<
 				" =>" << nextSegStats->getRoadSegment()->getSegmentAimsunId() <<
 				" =>" <<  nextToNextSegStats->getRoadSegment()->getSegmentAimsunId()  << std::endl;
+		out << "firstSegInNextLink:" <<  (nextLink? nextLink->getSegments().front()->getSegmentAimsunId() : 0)
+				<< "|NextLink: " << (nextLink? nextLink->getLinkId() : 0)
+				<< "|downstreamLinks of " << nextSegStats->getRoadSegment()->getSegmentAimsunId() << std::endl;
+
+		Print() << out.str();
+		nextSegStats->printDownstreamLinks();
 		throw std::runtime_error(out.str());
 	}
 	return minLane;
@@ -1348,5 +1370,15 @@ void DriverMovement::handleMessage(messaging::Message::MessageType type, const m
 	}
 }
 
+const sim_mob::Link* DriverMovement::getNextLinkForLaneChoice(const SegmentStats* nextSegStats) const
+{
+	const sim_mob::Link* nextLink = nullptr;
+	const sim_mob::SegmentStats* firstStatsInNextLink = pathMover.getFirstSegStatsInNextLink(nextSegStats);
+	if(firstStatsInNextLink) { nextLink = firstStatsInNextLink->getRoadSegment()->getLink(); }
+	return nextLink;
+}
+
 } /* namespace medium */
 } /* namespace sim_mob */
+
+

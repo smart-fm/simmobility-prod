@@ -35,8 +35,8 @@ class ERP_Gantry_Zone;
 class ERP_Section;
 class ERP_Surcharge;
 class LinkTravelTime;
-class TurningSection;
 class PT_PathSet;
+class TurningSection;
 class TurningConflict;
 class TurningPolyline;
 class Polypoint;
@@ -136,6 +136,12 @@ public:
 	 * @param splitSegmentStats vector of SegmentStats* to be filled up
 	 */
 	static void CreateSegmentStats(const sim_mob::RoadSegment* rdSeg, std::list<sim_mob::SegmentStats*>& splitSegmentStats);
+
+	/**
+	 * Creates lane groups for every SegmentStats in each link.
+	 * Lane groups are elicited based on the lane connections (turnings) of the last segment of the link.
+	 */
+	static void CreateLaneGroups();
 };
 
 }

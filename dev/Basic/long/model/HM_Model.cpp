@@ -22,6 +22,7 @@
 #include "database/dao/EstablishmentDao.hpp"
 #include "database/dao/JobDao.hpp"
 #include "database/dao/HousingInterestRateDao.hpp"
+#include "database/dao/LogSumVehicleOwnershipDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -329,6 +330,23 @@ std::vector<BigSerial> HM_Model::getRealEstateAgentIds()
 	return this->realEstateAgentIds;
 }
 
+HM_Model::VehicleOwnershipLogsumList HM_Model::getVehicleOwnershipLosums()const
+{
+	return this->vehicleOwnershipLogsums;
+}
+
+LogSumVehicleOwnership* HM_Model::getVehicleOwnershipLogsumsById( BigSerial id) const
+{
+	VehicleOwnershipLogsumMap::const_iterator itr = vehicleOwnershipLogsumById.find(id);
+
+		if (itr != vehicleOwnershipLogsumById.end())
+		{
+			return (*itr).second;
+		}
+
+		return nullptr;
+}
+
 void HM_Model::startImpl()
 {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -375,6 +393,9 @@ void HM_Model::startImpl()
 
 		loadData<HousingInterestRateDao>( conn, housingInterestRates, housingInterestRatesById, &HousingInterestRate::getId);
 		PrintOutV("Number of interest rate quarters: " << housingInterestRates.size() << std::endl );
+
+		loadData<LogSumVehicleOwnershipDao>( conn, vehicleOwnershipLogsums, vehicleOwnershipLogsumById, &LogSumVehicleOwnership::getHouseholdId);
+		PrintOutV("Number of vehicle ownership logsums: " << vehicleOwnershipLogsums.size() << std::endl );
 	}
 
 

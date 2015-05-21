@@ -879,36 +879,36 @@ std::string sim_mob::SegmentStats::reportSegmentStats(uint32_t frameNumber)
 	{
 		double density = (numMovingInSegment(true) + numQueuingInSegment(true)) / ((length / 100000.0) * numVehicleLanes); //veh/lane-km
 
-//		msg << "(\"segmentState\""
-//			<< "," << frameNumber
-//			<< "," << roadSegment
-//			<< ",{"
-//			<< "\"speed\":\"" << segVehicleSpeed
-//			<< "\",\"flow\":\"" << segFlow
-//			<< "\",\"density\":\"" << getTotalDensity(true)
-//			<< "\",\"total\":\"" << (numPersons - numAgentsInLane(laneInfinity))
-//			<< "\",\"totalL\":\"" << getTotalVehicleLength()
-//			<< "\",\"moving\":\"" << numMovingInSegment(true)
-//			<< "\",\"movingL\":\"" << getMovingLength()
-//			<< "\",\"queue\":\"" << numQueuingInSegment(true)
-//			<< "\",\"queueL\":\"" << getQueueLength()
-//			<< "\",\"numVehicleLanes\":\"" << numVehicleLanes
-//			<< "\",\"segment_length\":\"" << length
-//			<< "\"})"
-//			<< "\n";
-		msg << "SegStats-,"
-				<< frameNumber << ","
-				<< roadSegment->getSegmentAimsunId() << ","
-				<< roadSegment->getPolylineLength() / 100000.0 << ","
-				<< statsNumberInSegment << ","
-				<< length / 100000.0 << ","
-				<< numVehicleLanes << ","
-				<< numMovingInSegment(true) << ","
-				<< numQueuingInSegment(true) << ","
-				<< segVehicleSpeed << ","
-				<< density << ","
-				<< supplyParams.getCapacity()
-				<< std::endl;
+		msg << "(\"segmentState\""
+			<< "," << frameNumber
+			<< "," << roadSegment
+			<< ",{"
+			<< "\"speed\":\"" << segVehicleSpeed
+			<< "\",\"flow\":\"" << segFlow
+			<< "\",\"density\":\"" << getTotalDensity(true)
+			<< "\",\"total\":\"" << (numPersons - numAgentsInLane(laneInfinity))
+			<< "\",\"totalL\":\"" << getTotalVehicleLength()
+			<< "\",\"moving\":\"" << numMovingInSegment(true)
+			<< "\",\"movingL\":\"" << getMovingLength()
+			<< "\",\"queue\":\"" << numQueuingInSegment(true)
+			<< "\",\"queueL\":\"" << getQueueLength()
+			<< "\",\"numVehicleLanes\":\"" << numVehicleLanes
+			<< "\",\"segment_length\":\"" << length
+			<< "\"})"
+			<< "\n";
+//		msg << "SegStats-,"
+//				<< frameNumber << ","
+//				<< roadSegment->getSegmentAimsunId() << ","
+//				<< roadSegment->getPolylineLength() / 100000.0 << ","
+//				<< statsNumberInSegment << ","
+//				<< length / 100000.0 << ","
+//				<< numVehicleLanes << ","
+//				<< numMovingInSegment(true) << ","
+//				<< numQueuingInSegment(true) << ","
+//				<< segVehicleSpeed << ","
+//				<< density << ","
+//				<< supplyParams.getCapacity()
+//				<< std::endl;
 	}
 	return msg.str();
 

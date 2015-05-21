@@ -603,7 +603,7 @@ void sim_mob::Person::insertWaitingActivityToTrip() {
 						subTrip.toLocation = itSubTrip[1]->toLocation;
 						subTrip.toLocationType = itSubTrip[1]->toLocationType;
 						subTrip.startLocationId = itSubTrip[1]->fromLocation.busStop_->getBusstopno_();
-						subTrip.endLocationId = itSubTrip[1]->fromLocation.busStop_->getBusstopno_();
+						subTrip.endLocationId = itSubTrip[1]->toLocation.busStop_->getBusstopno_();
 						subTrip.startLocationType = "BUS_STOP";
 						subTrip.endLocationType = "BUS_STOP";
 						subTrip.mode = "WaitingBusActivity";

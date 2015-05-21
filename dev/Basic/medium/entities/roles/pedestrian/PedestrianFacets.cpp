@@ -62,26 +62,13 @@ void PedestrianMovement::frame_init() {
 	if(subTrip.isPT_Walk)
 	{
 		double walkTime = subTrip.walkTime;
-		Link* lastLink = nullptr;
 		std::vector<const RoadSegment*>::const_iterator it = roadSegs.begin();
-		if (it != roadSegs.end())
+		if (roadSegs.size()>0)
 		{
-			startLink = (*it)->getLink();
-			for (; it != roadSegs.end(); it++)
-			{
-				lastLink = (*it)->getLink();
-			}
-			if(startLink != lastLink)
-			{
-				remainingTimeToComplete = 0.0;
-				trajectory.push_back((std::make_pair(lastLink,(walkTime-1))));
-			}
-			else
-			{
-				remainingTimeToComplete = walkTime;
-			}
-			totalTimeToCompleteSec += remainingTimeToComplete;
-			parentPedestrian->setTravelTime(totalTimeToCompleteSec*1000);
+			startLink = roadSegs.back()->getLink();
+			remainingTimeToComplete = 0.0;
+			trajectory.push_back((std::make_pair(startLink, walkTime)));
+			parentPedestrian->setTravelTime(walkTime*1000);
 			return;
 		}
 	}
@@ -242,6 +229,16 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 		} else if (subTrip.fromLocation.type_ == WayPoint::BUS_STOP) {
 			node = subTrip.fromLocation.busStop_->getParentSegment()->getStart();
 			source = streetDirectory.DrivingVertex(*node);
+		} else if(subTrip.fromLocation.type_ == WayPoint::MRT_STOP) {
+			std::vector<int> segs = subTrip.fromLocation.mrtStop_->getRoadSegments();
+			if(segs.size()>0){
+				unsigned int id = segs.front();
+				const sim_mob::RoadSegment* seg = StreetDirectory::instance().getRoadSegment(id);
+				node = seg->getStart();
+				startLink = seg->getLink();
+				source = streetDirectory.DrivingVertex(*node);
+				path.push_back(seg);
+			}
 		}
 		if(node){
 			src.setX(node->location.getX());
@@ -256,6 +253,15 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 		} else if (subTrip.toLocation.type_ == WayPoint::BUS_STOP) {
 			node = subTrip.toLocation.busStop_->getParentSegment()->getEnd();
 			destination = streetDirectory.DrivingVertex(*node);
+		}else if(subTrip.toLocation.type_ == WayPoint::MRT_STOP) {
+			std::vector<int> segs = subTrip.toLocation.mrtStop_->getRoadSegments();
+			if(segs.size()>0){
+				unsigned int id = segs.front();
+				const sim_mob::RoadSegment* seg = StreetDirectory::instance().getRoadSegment(id);
+				node = seg->getStart();
+				destination = streetDirectory.DrivingVertex(*node);
+				path.push_back(seg);
+			}
 		}
 		if(node){
 			dest.setX(node->location.getX());

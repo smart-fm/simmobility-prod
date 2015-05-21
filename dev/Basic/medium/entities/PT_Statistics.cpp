@@ -234,6 +234,7 @@ void PT_Statistics::StoreStatistics() {
 					outputFile << itArrivalTm->busLine << ",";
 					outputFile << itArrivalTm->tripId << ",";
 					outputFile << stopNo << ",";
+					outputFile << itArrivalTm->pctOccupancy << ",";
 					outputFile << itArrivalTm->sequenceNo << ",";
 					outputFile << itArrivalTm->arrivalTime << ",";
 					outputFile << tt.toString() << ",";
@@ -264,6 +265,7 @@ void PT_Statistics::StoreStatistics() {
 				while (itWaitingTime != waitingTimeList.end()) {
 					outputFile << itWaitingTime->first << ",";
 					outputFile << stopNo << ",";
+					outputFile << itWaitingTime->second.busLines << ",";
 					outputFile << itWaitingTime->second.currentTime << ",";
 					outputFile << itWaitingTime->second.waitingTime << ",";
 					outputFile << itWaitingTime->second.failedBoardingTime

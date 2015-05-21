@@ -54,7 +54,7 @@ sim_mob::medium::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat,
   waitingTimeAtbusStop(0.0),busSequenceNumber(1)
 {}
 
-sim_mob::medium::BusDriver::~BusDriver() {}
+sim_mob::medium::BusDriver::~BusDriver(){}
 
 Role* sim_mob::medium::BusDriver::clone(Person* parent) const {
 	BusDriverBehavior* behavior = new BusDriverBehavior(parent);

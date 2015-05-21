@@ -426,8 +426,13 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 		if(constructedTrip) { personTripChain.push_back(constructedTrip); }
 		else { continue; }
 		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }
-		trips[actCtr]=personTripChain;
 		actCtr++;
+	}
+
+	int index = 0;
+	for(map<string, vector<TripChainItem*> >::iterator i=tripchains.begin(); i!=tripchains.end(); i++)
+	{
+		trips[index++]=i->second;
 	}
 
 	vector<Person*> persons;

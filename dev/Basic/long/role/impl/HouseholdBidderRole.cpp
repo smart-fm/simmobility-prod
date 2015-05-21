@@ -455,7 +455,6 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 		}
 
 	}
-	//TODO::INCOME CATEGORY DATA IS NOT YET AVAILABLE.
 
 }
 
@@ -463,21 +462,179 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId)
 {
 	double valueOneCar = 0;
 	const HM_Model* model = getParent()->getModel();
+	std::vector<BigSerial> individuals = this->getParent()->getHousehold()->getIndividuals();
 	valueOneCar =  model->getVehicleOwnershipCoeffsById(ASC_ONECAR)->getCoefficientEstimate();
+	std::vector<BigSerial>::iterator individualsItr;
 
-	if(this->getParent()->getHousehold()->getEthnicityId() == CHINESE)
+	bool aboveSixty = false;
+	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
 	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_CHINESE_ONECAR)->getCoefficientEstimate();
+		int ageCategoryId = model->getIndividualById((*individualsItr))->getAgeCategoryId();
+		if (ageCategoryId >= 12)
+		{
+			aboveSixty = true;
+			break;
+		}
+	}
+	if(aboveSixty)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_ABOVE60_ONE_CAR)->getCoefficientEstimate();
 	}
 
-
-	//finds out whether the household is an HDB or not
-	if( (unitTypeId>0) && (unitTypeId<=6))
+	bool isCEO = false;
+	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
 	{
-		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_HDB_ONECAR)->getCoefficientEstimate();
+		if(model->getIndividualById((*individualsItr))->getOccupationId() == 1)
+		{
+			isCEO = true;
+			break;
+		}
+	}
+	if(isCEO)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_CEO_ONECAR)->getCoefficientEstimate();
 	}
 
-	valueOneCar = valueOneCar + (this->getParent()->getHousehold()->getChildUnder4() * model->getVehicleOwnershipCoeffsById(B_KIDS_ONECAR)->getCoefficientEstimate() + log(this->getParent()->getHousehold()->getSize()) * model->getVehicleOwnershipCoeffsById(B_LOG_HHSIZE_ONECAR)->getCoefficientEstimate() + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_MC_ONECAR)->getCoefficientEstimate());
+	int numFullWorkers = 0;
+	int numStudents = 0;
+	int numWhiteCollars = 0;
+	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+	{
+		if(model->getIndividualById((*individualsItr))->getEmploymentStatusId() == 1)
+		{
+			numFullWorkers++;
+		}
+		else if(model->getIndividualById((*individualsItr))->getEmploymentStatusId() == 4)
+		{
+			numStudents++;
+		}
+
+		if(model->getIndividualById((*individualsItr))->getOccupationId() == 2)
+		{
+			numWhiteCollars++;
+		}
+	}
+	if(numFullWorkers==1)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER1_ONECAR)->getCoefficientEstimate();
+	}
+	else if(numFullWorkers==2)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER2_ONECAR)->getCoefficientEstimate();
+	}
+	else if(numFullWorkers>=3)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER3p_ONECAR)->getCoefficientEstimate();
+	}
+
+	if(numStudents == 1)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_STUDENT1_ONECAR)->getCoefficientEstimate();
+	}
+	else if(numStudents == 2)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_STUDENT2_ONECAR)->getCoefficientEstimate();
+	}
+	if(numStudents >= 3)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_STUDENT3_ONECAR)->getCoefficientEstimate();
+	}
+
+	if(numWhiteCollars==1)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_WHITECOLLAR1_ONECAR)->getCoefficientEstimate();
+	}
+	else if(numWhiteCollars>1)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_WHITECOLLAR2_ONECAR)->getCoefficientEstimate();
+	}
+
+	valueOneCar = valueOneCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_HAS_MC_ONECAR)->getCoefficientEstimate();
+
+	if(this->getParent()->getHousehold()->getSize()<=3)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE3_ONECAR)->getCoefficientEstimate();
+	}else if (this->getParent()->getHousehold()->getSize()==4)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE4_ONECAR)->getCoefficientEstimate();
+	}
+	else if (this->getParent()->getHousehold()->getSize() == 5)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE5_ONECAR)->getCoefficientEstimate();
+	}
+	else if (this->getParent()->getHousehold()->getSize() >= 6)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE6_ONECAR)->getCoefficientEstimate();
+	}
+
+	int incomeCatId = getIncomeCategoryId(this->getParent()->getHousehold()->getIncome());
+	if(incomeCatId == 1 || incomeCatId == 2)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC12_ONECAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 3)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC3_ONECAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 4)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC4_ONECAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 5)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC5_ONECAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 6)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC6_ONECAR)->getCoefficientEstimate();
+	}
+
+	if(this->getParent()->getHousehold()->getEthnicityId() == INDIAN)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INDIAN_ONECAR)->getCoefficientEstimate();
+	}
+	else if(this->getParent()->getHousehold()->getEthnicityId() == MALAY)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_MALAY_ONECAR)->getCoefficientEstimate();
+	}
+	else if (this->getParent()->getHousehold()->getEthnicityId() == OTHERS)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_OTHER_RACE_ONECAR)->getCoefficientEstimate();
+	}
+
+	if (this->getParent()->getHousehold()->getChildUnder4()==1)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_KID1_ONECAR)->getCoefficientEstimate();
+	}
+	else if (this->getParent()->getHousehold()->getChildUnder4()>1)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_KID2p_ONECAR)->getCoefficientEstimate();
+	}
+	//finds out whether the household is a landed property(terrace, semi detached, detached) or not
+	if( (unitTypeId>=17) && (unitTypeId<=31))
+	{
+		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LANDED_ONECAR)->getCoefficientEstimate();
+	}
+	else if((unitTypeId>=7) && (unitTypeId<=36)) //finds out whether the household is a private property(Apartment, Terrace, Semi Detached, Detached, Condo  and EC) or not
+	{
+		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_PRIVATE_ONECAR)->getCoefficientEstimate();
+	}
+
+	bool selfEmployed = false;
+	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+	{
+		if(model->getIndividualById((*individualsItr))->getEmploymentStatusId() == 3)
+		{
+			selfEmployed = true;
+			break;
+		}
+	}
+	if(selfEmployed)
+	{
+		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_SELFEMPLOYED_ONECAR)->getCoefficientEstimate();
+	}
+
+	valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId())->getAvgLogsum();
 	double expOneCar = exp(valueOneCar);
 	return expOneCar;
 }
@@ -487,20 +644,178 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId)
 
 	double valueTwoPlusCar = 0;
 	const HM_Model* model = getParent()->getModel();
-	valueTwoPlusCar =  model->getVehicleOwnershipCoeffsById(ASC_TWO_PLUS_CAR)->getCoefficientEstimate();
-
-	if(this->getParent()->getHousehold()->getEthnicityId() == CHINESE)
+	std::vector<BigSerial> individuals = this->getParent()->getHousehold()->getIndividuals();
+	valueTwoPlusCar =  model->getVehicleOwnershipCoeffsById(ASC_TWOplusCAR)->getCoefficientEstimate();
+	std::vector<BigSerial>::iterator individualsItr;
+	bool aboveSixty = false;
+	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
 	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_CHINESE_TWO_PLUS_CAR)->getCoefficientEstimate();
+		int ageCategoryId = model->getIndividualById((*individualsItr))->getAgeCategoryId();
+		if (ageCategoryId >= 12)
+		{
+			aboveSixty = true;
+			break;
+		}
+	}
+	if(aboveSixty)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_ABOVE60_TWOplusCAR)->getCoefficientEstimate();
 	}
 
-	//finds out whether the household is an HDB or not
-	if( (unitTypeId>0) && (unitTypeId<=6))
+	bool isCEO = false;
+	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
 	{
-		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_HDB_TWO_PLUS_CAR)->getCoefficientEstimate();
+		if(model->getIndividualById((*individualsItr))->getOccupationId() == 1)
+		{
+			isCEO = true;
+			break;
+		}
+	}
+	if(isCEO)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_CEO_TWOplusCAR)->getCoefficientEstimate();
 	}
 
-	valueTwoPlusCar = valueTwoPlusCar + (this->getParent()->getHousehold()->getChildUnder4() * model->getVehicleOwnershipCoeffsById(B_KIDS_TWO_PLUS_CAR)->getCoefficientEstimate()+ log(this->getParent()->getHousehold()->getSize()) * model->getVehicleOwnershipCoeffsById(B_LOG_HHSIZE_TWO_PLUS_CAR)->getCoefficientEstimate() + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_MC_TWO_PLUS_CAR)->getCoefficientEstimate());
+	int numFullWorkers = 0;
+	int numStudents = 0;
+	int numWhiteCollars = 0;
+	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+	{
+		if(model->getIndividualById((*individualsItr))->getEmploymentStatusId() == 1)
+		{
+			numFullWorkers++;
+		}
+		else if(model->getIndividualById((*individualsItr))->getEmploymentStatusId() == 4)
+		{
+			numStudents++;
+		}
+
+		if(model->getIndividualById((*individualsItr))->getOccupationId() == 2)
+		{
+			numWhiteCollars++;
+		}
+	}
+	if(numFullWorkers==1)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER1_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(numFullWorkers==2)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER2_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(numFullWorkers>=3)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER3p_TWOplusCAR)->getCoefficientEstimate();
+	}
+
+	if(numStudents == 1)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_STUDENT1_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(numStudents == 2)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_STUDENT2_TWOplusCAR)->getCoefficientEstimate();
+	}
+	if(numStudents >= 3)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_STUDENT3_TWOplusCAR)->getCoefficientEstimate();
+	}
+
+	if(numWhiteCollars==1)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_WHITECOLLAR1_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(numWhiteCollars>1)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_WHITECOLLAR2_TWOplusCAR)->getCoefficientEstimate();
+	}
+
+	valueTwoPlusCar = valueTwoPlusCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_HAS_MC_TWOplusCAR)->getCoefficientEstimate();
+
+	if(this->getParent()->getHousehold()->getSize()<=3)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE3_TWOplusCAR)->getCoefficientEstimate();
+	}else if (this->getParent()->getHousehold()->getSize()==4)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE4_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if (this->getParent()->getHousehold()->getSize() == 5)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE5_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if (this->getParent()->getHousehold()->getSize() >= 6)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE6_TWOplusCAR)->getCoefficientEstimate();
+	}
+
+	int incomeCatId = getIncomeCategoryId(this->getParent()->getHousehold()->getIncome());
+	if(incomeCatId == 1 || incomeCatId == 2)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC12_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 3)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC3_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 4)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC4_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 5)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC5_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 6)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC6_TWOplusCAR)->getCoefficientEstimate();
+	}
+
+	if(this->getParent()->getHousehold()->getEthnicityId() == INDIAN)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INDIAN_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(this->getParent()->getHousehold()->getEthnicityId() == MALAY)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_MALAY_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if (this->getParent()->getHousehold()->getEthnicityId() == OTHERS)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_OTHER_RACE_TWOplusCAR)->getCoefficientEstimate();
+	}
+
+	if (this->getParent()->getHousehold()->getChildUnder4()==1)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_KID1_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if (this->getParent()->getHousehold()->getChildUnder4()>1)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_KID2p_TWOplusCAR)->getCoefficientEstimate();
+	}
+	//finds out whether the household is a landed property(terrace, semi detached, detached) or not
+	if( (unitTypeId>=17) && (unitTypeId<=31))
+	{
+		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LANDED_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if((unitTypeId>=7) && (unitTypeId<=36)) //finds out whether the household is a private property(Apartment, Terrace, Semi Detached, Detached, Condo  and EC) or not
+	{
+		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_PRIVATE_TWOplusCAR)->getCoefficientEstimate();
+	}
+
+	bool selfEmployed = false;
+	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+	{
+		if(model->getIndividualById((*individualsItr))->getEmploymentStatusId() == 3)
+		{
+			selfEmployed = true;
+			break;
+		}
+	}
+	if(selfEmployed)
+	{
+		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_SELFEMPLOYED_TWOplusCAR)->getCoefficientEstimate();
+	}
+
+	valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_TWOplusCAR)->getCoefficientEstimate() * model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId())->getAvgLogsum();
 	double expTwoPlusCar = exp(valueTwoPlusCar);
 	return expTwoPlusCar;
 }
@@ -680,4 +995,34 @@ void HouseholdBidderRole::setTaxiAccess()
 	{
 		hasTaxiAccess = true;
 	}
+}
+
+int HouseholdBidderRole::getIncomeCategoryId(double income)
+{
+	int incomeCategoryId = 0;
+	if(income > 0 && income <=1000)
+	{
+		incomeCategoryId = 1;
+	}
+	else if(income > 1000 && income <=3000)
+	{
+		incomeCategoryId = 2;
+	}
+	else if(income > 3000 && income <=5000)
+	{
+		incomeCategoryId = 3;
+	}
+	else if(income > 5000 && income <=8000)
+	{
+		incomeCategoryId = 4;
+	}
+	else if(income > 8000 && income <=10000)
+	{
+		incomeCategoryId = 5;
+	}
+	else if(income > 10000)
+	{
+		incomeCategoryId = 6;
+	}
+	return incomeCategoryId;
 }

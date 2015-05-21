@@ -79,6 +79,8 @@ public:
 		return stop;
 	}
 
+	const std::string getBusLines();
+
 	void setStop(sim_mob::BusStop* busStop) {
 		stop = busStop;
 	}

@@ -91,8 +91,8 @@ uint32_t sim_mob::DailyTime::ParseStringRepr(std::string timeRepr)
 		}
 	}
 	if (numDigits%2==1) {
-		err = "Invalid format: non-even digit count:" + err;
-		throw std::runtime_error(err);
+		std::cout << "Invalid format: non-even digit count:" + err << std::endl;
+		//throw std::runtime_error(err);
 	}
 	if (numColon==1) {
 		if (hasComma) {

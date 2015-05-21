@@ -514,6 +514,15 @@ bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 	return true;
 }
 
+void sim_mob::Person::setStartTime(unsigned int value)
+{
+	sim_mob::Entity::setStartTime(value);
+	if(currRole){
+		currRole->setArrivalTime(value+ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
+	}
+}
+
+
 UpdateStatus sim_mob::Person::checkTripChain() {
 	//some normal checks
 	if(tripChain.empty()) {
@@ -793,6 +802,21 @@ void sim_mob::Person::convertODsToTrips() {
 						tripChain.clear();
 						return;
 					}
+				}
+				else if (itSubTrip->fromLocation.type_ == WayPoint::NODE
+						&& itSubTrip->toLocation.type_ == WayPoint::NODE
+						&& (itSubTrip->mode == "Walk"))
+				{
+					std::vector<sim_mob::OD_Trip> odTrips;
+					std::string originId = boost::lexical_cast<std::string>(
+							itSubTrip->fromLocation.node_->getID());
+					std::string destId = boost::lexical_cast<std::string>(
+							itSubTrip->toLocation.node_->getID());
+
+					itSubTrip->startLocationId=originId;
+					itSubTrip->endLocationId=destId;
+					itSubTrip->startLocationType="NODE";
+					itSubTrip->endLocationType="NODE";
 				}
 				++itSubTrip;
 			}

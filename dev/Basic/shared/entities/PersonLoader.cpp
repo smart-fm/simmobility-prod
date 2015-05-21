@@ -346,56 +346,55 @@ sim_mob::PeriodicPersonLoader::~PeriodicPersonLoader()
 
 class CellLoader {
 public:
-	CellLoader():iStart(0),iEnd(0) {
-	}
+	CellLoader() {}
 
-	void operator()(void) {
+	void operator()(void)
+	{
 		id = boost::this_thread::get_id();
-		for (int i = iStart; i < iEnd; i++) {
-			vector<TripChainItem*>& item = trips[i];
-			if (item.empty()) {
-				continue;
-			}
+		for (size_t i = 0; i < tripChainList.size(); i++)
+		{
+			std::vector<TripChainItem*>& personTripChain = tripChainList[i];
+			if (personTripChain.empty()) { continue; }
 			ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
-			Person* person = new Person("DAS_TripChain", cfg.mutexStategy(),
-					item);
-			if (!person->getTripChain().empty()) {
+			Person* person = new Person("DAS_TripChain", cfg.mutexStategy(), personTripChain);
+			if (!person->getTripChain().empty())
+			{
 				persons.push_back(person);
-			} else {
+			}
+			else
+			{
 				delete person;
 			}
 		}
-		Print()<<id<<" load "<<persons.size()<<std::endl;
+		Print() << "Thread " <<  id << " loaded "<< persons.size() << " persons" << std::endl;
 	}
 
-	static int Load(map<int, vector<TripChainItem*> >& trips,
-			vector<Person*>& peoples) {
-		int eachNum = trips.size() / LoaderNum;
-		CellLoader workers[LoaderNum];
-		boost::thread_group threads;
-		for (int i = 0; i < LoaderNum; i++) {
-			workers[i].trips = trips;
-			workers[i].iStart = i * eachNum;
-			if (i != LoaderNum - 1) {
-				workers[i].iEnd = (i + 1) * eachNum;
-			} else {
-				workers[i].iEnd = trips.size();
-			}
-			threads.add_thread(new boost::thread(boost::ref(workers[i])));
+	static int Load(std::map<std::string, std::vector<TripChainItem*> >& tripChainMap, std::vector<Person*>& outPersonsLoaded)
+	{
+		int personsPerThread = tripChainMap.size() / numThreads;
+		CellLoader thread[numThreads];
+		boost::thread_group threadGroup;
+		int thIdx = 0;
+		for(std::map<std::string, std::vector<TripChainItem*> >::iterator tcMapIt=tripChainMap.begin(); tcMapIt!=tripChainMap.end(); tcMapIt++, thIdx=(thIdx+1)%numThreads)
+		{
+			thread[thIdx].tripChainList.push_back(tcMapIt->second);
 		}
-		threads.join_all();
-		unsigned personsNum = 0;
-		for (int i = 0; i < LoaderNum; i++) {
-			peoples.insert(peoples.end(), workers[i].persons.begin(), workers[i].persons.end());
+		for (int i = 0; i < numThreads; i++)
+		{
+			threadGroup.add_thread(new boost::thread(boost::ref(thread[i])));
 		}
-		personsNum = peoples.size();
-		return personsNum;
+		threadGroup.join_all();
+		for (int i = 0; i < numThreads; i++)
+		{
+			outPersonsLoaded.insert(outPersonsLoaded.end(), thread[i].persons.begin(), thread[i].persons.end());
+		}
+		return outPersonsLoaded.size();
 	}
+
 private:
-	vector<Person*> persons;
-	map<int, vector<TripChainItem*> > trips;
-	int iStart, iEnd;
-	static const int LoaderNum = 20;
+	std::vector<Person*> persons;
+	std::vector<std::vector<TripChainItem*> > tripChainList;
+	static const int numThreads = 20;
 	boost::thread::id id;
 };
 
@@ -413,7 +412,6 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	unsigned actCtr = 0;
 	map<string, vector<TripChainItem*> > tripchains;
-	map<int, vector<TripChainItem*> > trips;
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
 		const soci::row& r = (*it);
@@ -426,32 +424,21 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 		if(constructedTrip) { personTripChain.push_back(constructedTrip); }
 		else { continue; }
 		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }
-		trips[actCtr]=personTripChain;
 		actCtr++;
 	}
 
 	vector<Person*> persons;
-	int personsLoaded = CellLoader::Load(trips, persons);
-	for(vector<Person*>::iterator i=persons.begin(); i!=persons.end(); i++){
+	int personsLoaded = CellLoader::Load(tripchains, persons);
+	for(vector<Person*>::iterator i=persons.begin(); i!=persons.end(); i++)
+	{
 		addOrStashPerson(*i);
 	}
 	//CBD specific processing of trip chain
 	//RestrictedRegion::getInstance().processTripChains(tripchains);//todo, plan changed, we are not chopping off the trips here
 
-	//add or stash new persons
-	/*unsigned personsLoaded = 0;
-	for(map<string, vector<TripChainItem*> >::iterator i=tripchains.begin(); i!=tripchains.end(); i++)
-	{
-		if(i->second.empty()) { continue; }
-		Person* person = new Person("DAS_TripChain", cfg.mutexStategy(), i->second);
-		if(!person->getTripChain().empty()) { addOrStashPerson(person); personsLoaded++; }
-		else { delete person; }
-	}*/
-
-	Print() << "PeriodicPersonLoader:: activities loaded from " << nextLoadStart << " to " << end << ": " << actCtr
-			<< " | new persons loaded: " << personsLoaded << endl;
-
+	Print() << "PeriodicPersonLoader:: activities loaded from " << nextLoadStart << " to " << end << ": " << actCtr << " | new persons loaded: " << personsLoaded << endl;
 	Print() << "active_agents: " << activeAgents.size() << " | pending_agents: " << pendingAgents.size() << endl;
+
 	//update next load start
 	nextLoadStart = end + DEFAULT_LOAD_INTERVAL;
 	if(nextLoadStart > LAST_30MIN_WINDOW_OF_DAY)

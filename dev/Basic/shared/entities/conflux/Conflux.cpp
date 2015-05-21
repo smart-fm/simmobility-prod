@@ -1179,9 +1179,13 @@ void sim_mob::Conflux::assignPersonToBusStopAgent(Person* person)
 void sim_mob::Conflux::assignPersonToMRT(Person* person) {
 	Role* role = person->getRole();
 	if (role && role->roleType == Role::RL_TRAINPASSENGER) {
-		messaging::MessageBus::SendInstantaneousMessage(this,
-				MSG_MRT_PASSENGER_TELEPORTATION,
-				messaging::MessageBus::MessagePtr(new PersonMessage(person)));
+		person->currWorkerProvider = parentWorker;
+			messaging::MessageBus::ReRegisterHandler(person, GetContext());
+			mrt.push_back(person);
+			DailyTime time = person->currSubTrip->endTime;
+			person->getRole()->setTravelTime(time.getValue());
+			unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
+			messaging::MessageBus::PostMessage(this, MSG_WAKE_UP, messaging::MessageBus::MessagePtr(new PersonMessage(person)), false, time.getValue()/tick);
 	}
 }
 

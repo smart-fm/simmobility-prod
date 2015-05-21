@@ -25,6 +25,11 @@ Link::Link(const Link& orig)
 
 Link::~Link()
 {
+	if(tag)
+	{
+		delete tag;
+		tag = NULL;
+	}
 }
 
 unsigned int Link::getLinkId() const

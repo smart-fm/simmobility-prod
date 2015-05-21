@@ -4,8 +4,22 @@
 
 #pragma once
 
+#include "Tag.hpp"
+
 namespace simmobility_network
 {
+  //Defines the types of lanes that are supported by SimMobility
+  enum LaneType
+  {
+    //Default lane type
+    LANE_TYPE_DEFAULT = 0,
+    
+    //Pedestrian lane
+    LANE_TYPE_PEDESTRIAN = 1,
+    
+    //Bus lane
+    LANE_TYPE_BUS = 2
+  };
 
   class Lane
   {
@@ -19,6 +33,9 @@ namespace simmobility_network
     
     //Indicates the index of the lane
     unsigned int laneIndex;
+    
+    //Indicates the type of the lane
+    LaneType laneType;
     
     //Indicates the id of the road section to which the lane belongs
     unsigned int roadSectionId;
@@ -53,7 +70,13 @@ namespace simmobility_network
     unsigned int getLaneIndex() const;
     
     //Sets the lane index
-    void setLaneIndex(unsigned int laneIndex);
+    void setLaneIndex(unsigned int laneIndex);    
+    
+    //Returns the lane type
+    LaneType getLaneType() const;
+    
+    //Sets the lane type
+    void setLaneType(LaneType laneType);
     
     //Returns the id of the road section to which the lane belongs
     unsigned int getRoadSectionId() const;
@@ -71,7 +94,7 @@ namespace simmobility_network
     unsigned int getTurningPathId() const;
     
     //Sets the id of the turning path to which the lane belongs
-    void setTurningPathId(unsigned int turningPathId);
+    void setTurningPathId(unsigned int turningPathId);    
     
   } ;
 }

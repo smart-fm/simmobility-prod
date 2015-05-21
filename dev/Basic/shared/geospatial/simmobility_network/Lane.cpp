@@ -3,7 +3,6 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Lane.hpp"
-#include "util/LangHelpers.hpp"
 
 using namespace simmobility_network;
 
@@ -27,7 +26,7 @@ Lane::~Lane()
 	if(tag)
 	{
 		delete tag;
-		tag = nullptr;
+		tag = NULL;
 	}
 }
 
@@ -59,6 +58,16 @@ unsigned int Lane::getLaneIndex() const
 void Lane::setLaneIndex(unsigned int laneIndex)
 {
 	this->laneIndex = laneIndex;
+}
+
+LaneType Lane::getLaneType() const
+{
+	return laneType;
+}
+
+void Lane::setLaneType(LaneType laneType)
+{
+	this->laneType = laneType;
 }
 
 unsigned int Lane::getRoadSectionId() const

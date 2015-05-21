@@ -24,6 +24,11 @@ LaneConnection::LaneConnection(const LaneConnection& orig)
 
 LaneConnection::~LaneConnection()
 {
+	if(tag)
+	{
+		delete tag;
+		tag = NULL;
+	}
 }
 
 unsigned int LaneConnection::getLaneConnectionId() const

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Tag.hpp"
+
 namespace simmobility_network
 {
   enum Rules

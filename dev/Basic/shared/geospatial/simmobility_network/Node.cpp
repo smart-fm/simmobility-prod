@@ -3,7 +3,6 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Node.hpp"
-#include "util/LangHelpers.hpp"
 
 using namespace simmobility_network;
 
@@ -25,7 +24,7 @@ Node::~Node()
 	if(tag)
 	{
 		delete tag;
-		tag = nullptr;
+		tag = NULL;
 	}
 }
 

@@ -33,7 +33,7 @@ RoadSection::~RoadSection()
 	if(tag)
 	{
 		delete tag;
-		tag = nullptr;
+		tag = NULL;
 	}
 }
 

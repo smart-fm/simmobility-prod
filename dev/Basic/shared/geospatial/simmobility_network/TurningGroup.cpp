@@ -25,6 +25,11 @@ TurningGroup::TurningGroup(const TurningGroup& orig)
 
 TurningGroup::~TurningGroup()
 {
+	if(tag)
+	{
+		delete tag;
+		tag = NULL;
+	}
 }
 
 unsigned int TurningGroup::getTurningGroupId() const

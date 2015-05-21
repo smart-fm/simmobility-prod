@@ -26,6 +26,11 @@ TurningPath::TurningPath(const TurningPath& orig)
 
 TurningPath::~TurningPath()
 {
+	if(tag)
+	{
+		delete tag;
+		tag = NULL;
+	}
 }
 
 unsigned int TurningPath::getTurningPathId() const

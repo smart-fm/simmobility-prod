@@ -57,8 +57,6 @@ sim_mob::AMOD::AMODController::~AMODController() {
 	{
 		out_tripStat.close();
 	}
-
-
 }
 
 void sim_mob::AMOD::AMODController::init()
@@ -306,7 +304,7 @@ void AMODController::calculateDistancesBetweenCarparks(std::vector<std::string> 
 			}else
 			{
 				vector<WayPoint> sp = getShortestPath(carParkOrigin, carParkDest);
-				double tripDistance;
+				double tripDistance = 0;
 				WayPoint iterWP;
 				const RoadSegment *iterwp;
 				for (int k = 0; k< sp.size(); k++)

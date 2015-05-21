@@ -70,7 +70,7 @@ void sim_mob::medium::Pedestrian::collectTravelTime()
 						new PersonTravelTimeMessage(personId, tripStartPoint,
 								tripEndPoint, subStartPoint, subEndPoint,
 								subStartType, subEndPoint, mode, service,
-								arrivaltime, travelTime)));
+								arrivaltime, travelTime)), true);
 	}
 	tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
 	tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
@@ -89,7 +89,7 @@ void sim_mob::medium::Pedestrian::collectTravelTime()
 					new PersonTravelTimeMessage(personId, tripStartPoint,
 							tripEndPoint, subStartPoint, subEndPoint,
 							subStartType, subEndType, mode, service,
-							arrivaltime, travelTime)));
+							arrivaltime, travelTime)), true);
 
 }
 }

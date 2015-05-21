@@ -121,7 +121,7 @@ namespace {
     struct CompareTriggeredTime {
 
     	bool operator()(const MessageEntry& t1, const MessageEntry& t2) const {
-            return (t1.triggerTime < t2.triggerTime);
+            return (t1.triggerTime > t2.triggerTime);
         }
     };
 

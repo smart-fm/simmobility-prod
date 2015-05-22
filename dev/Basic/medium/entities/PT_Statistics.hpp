@@ -22,18 +22,20 @@ struct PersonWaitingInfo
 {
 	std::string currentTime;
 	std::string waitingTime;
+	std::string busLines;
 	unsigned int failedBoardingTime;
 };
 
 class WaitingTimeStats
 {
 public:
-	void setWaitingTime(const std::string& personId, const std::string& currentTime, const std::string& waitingTime, unsigned int failedBoardingTimes){
+	void setWaitingTime(const std::string& personId, const std::string& currentTime, const std::string& waitingTime, const std::string& busLines, unsigned int failedBoardingTimes){
 		if(waitingTimeList.find(personId)==waitingTimeList.end()){
 			waitingTimeList.insert(std::make_pair(personId, PersonWaitingInfo() ));
 		}
 		waitingTimeList[personId].waitingTime = waitingTime;
 		waitingTimeList[personId].currentTime = currentTime;
+		waitingTimeList[personId].busLines = busLines;
 		waitingTimeList[personId].failedBoardingTime = failedBoardingTimes;
 	}
 

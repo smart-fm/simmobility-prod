@@ -191,9 +191,10 @@ protected:
 	 *
 	 * @param params driver update params for current tick
 	 * @param nextSegStats next segment stats in path
+	 * @param nextLink the immediate link downstream to nextSegStats
 	 * @return true if driver can move into the next segment; false otherwise
 	 */
-	bool canGoToNextRdSeg(DriverUpdateParams& params, const sim_mob::SegmentStats* nextSegStats) const;
+	bool canGoToNextRdSeg(DriverUpdateParams& params, const sim_mob::SegmentStats* nextSegStats, const Link* nextLink = nullptr) const;
 
 	/**
 	 * sets position of driver in queue
@@ -385,6 +386,13 @@ protected:
 	 * @param message data received.
 	 */
 	virtual void handleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+
+	/**
+	 * gets the first link downstream to nextSegStats
+	 * @param nextSegStats the next segment stats for driver
+	 * @return next link for driver
+	 */
+	const sim_mob::Link* getNextLinkForLaneChoice(const SegmentStats* nextSegStats) const;
 	friend class MesoReroute;
 
 };

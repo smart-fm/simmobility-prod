@@ -11,7 +11,6 @@
 #include "conf/ConfigParams.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
-#include "geospatial/Link.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
 
@@ -880,36 +879,36 @@ std::string sim_mob::SegmentStats::reportSegmentStats(uint32_t frameNumber)
 	{
 		double density = (numMovingInSegment(true) + numQueuingInSegment(true)) / ((length / 100000.0) * numVehicleLanes); //veh/lane-km
 
-//		msg << "(\"segmentState\""
-//			<< "," << frameNumber
-//			<< "," << roadSegment
-//			<< ",{"
-//			<< "\"speed\":\"" << segVehicleSpeed
-//			<< "\",\"flow\":\"" << segFlow
-//			<< "\",\"density\":\"" << getTotalDensity(true)
-//			<< "\",\"total\":\"" << (numPersons - numAgentsInLane(laneInfinity))
-//			<< "\",\"totalL\":\"" << getTotalVehicleLength()
-//			<< "\",\"moving\":\"" << numMovingInSegment(true)
-//			<< "\",\"movingL\":\"" << getMovingLength()
-//			<< "\",\"queue\":\"" << numQueuingInSegment(true)
-//			<< "\",\"queueL\":\"" << getQueueLength()
-//			<< "\",\"numVehicleLanes\":\"" << numVehicleLanes
-//			<< "\",\"segment_length\":\"" << length
-//			<< "\"})"
-//			<< "\n";
-		msg << "SegStats-,"
-				<< frameNumber << ","
-				<< roadSegment->getSegmentAimsunId() << ","
-				<< roadSegment->getPolylineLength() / 100000.0 << ","
-				<< statsNumberInSegment << ","
-				<< length / 100000.0 << ","
-				<< numVehicleLanes << ","
-				<< numMovingInSegment(true) << ","
-				<< numQueuingInSegment(true) << ","
-				<< segVehicleSpeed << ","
-				<< density << ","
-				<< supplyParams.getCapacity()
-				<< std::endl;
+		msg << "(\"segmentState\""
+			<< "," << frameNumber
+			<< "," << roadSegment
+			<< ",{"
+			<< "\"speed\":\"" << segVehicleSpeed
+			<< "\",\"flow\":\"" << segFlow
+			<< "\",\"density\":\"" << getTotalDensity(true)
+			<< "\",\"total\":\"" << (numPersons - numAgentsInLane(laneInfinity))
+			<< "\",\"totalL\":\"" << getTotalVehicleLength()
+			<< "\",\"moving\":\"" << numMovingInSegment(true)
+			<< "\",\"movingL\":\"" << getMovingLength()
+			<< "\",\"queue\":\"" << numQueuingInSegment(true)
+			<< "\",\"queueL\":\"" << getQueueLength()
+			<< "\",\"numVehicleLanes\":\"" << numVehicleLanes
+			<< "\",\"segment_length\":\"" << length
+			<< "\"})"
+			<< "\n";
+//		msg << "SegStats-,"
+//				<< frameNumber << ","
+//				<< roadSegment->getSegmentAimsunId() << ","
+//				<< roadSegment->getPolylineLength() / 100000.0 << ","
+//				<< statsNumberInSegment << ","
+//				<< length / 100000.0 << ","
+//				<< numVehicleLanes << ","
+//				<< numMovingInSegment(true) << ","
+//				<< numQueuingInSegment(true) << ","
+//				<< segVehicleSpeed << ","
+//				<< density << ","
+//				<< supplyParams.getCapacity()
+//				<< std::endl;
 	}
 	return msg.str();
 
@@ -1078,6 +1077,70 @@ void sim_mob::SegmentStats::registerBusStopAgents()
 	}
 }
 
+bool SegmentStats::isConnectedToDownstreamLink(const Link* downstreamLink, const Lane* lane) const
+{
+	if(!downstreamLink) { return false; }
+	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
+	if(laneIt==laneStatsMap.end())
+	{
+		throw std::runtime_error("SegmentStats::getInitialQueueLength lane not found in segment stats");
+	}
+	const std::set<const Link*>& downStreamLinks = laneIt->second->getDownstreamLinks();
+	return (downStreamLinks.find(downstreamLink)!=downStreamLinks.end());
+}
+
+double SegmentStats::getAllowedVehicleLengthForLaneGroup(const Link* downstreamLink) const
+{
+	size_t numLanes = getRoadSegment()->getLanes().size();
+	if(!downstreamLink) { return (numLanes * length); }
+	std::map<const sim_mob::Link*, std::vector<sim_mob::LaneStats*> >::const_iterator lnGpIt = laneGroup.find(downstreamLink);
+	if(lnGpIt == laneGroup.end()) {
+		Print() << "DownstreamLink first seg: " <<  downstreamLink->getSegments().front()->getSegmentAimsunId() << std::endl;
+		throw std::runtime_error("Invalid downstream link");
+	}
+	size_t numLanesInLG = lnGpIt->second.size();
+
+	if(numLanes == numLanesInLG) { return (numLanesInLG * length); }
+	else if (numLanes < numLanesInLG) { throw std::runtime_error("numLanes is lesser than numLanesInLaneGroup"); }
+	else
+	{
+		//total length of lanes in LG + half of length of remaining lanes (suggested by Sebastian on 12-May-2015)
+		return ((numLanesInLG * length) + ((numLanes-numLanesInLG)*0.5*length));
+	}
+}
+
+double SegmentStats::getVehicleLengthForLaneGroup(const Link* downstreamLink) const
+{
+	if(!downstreamLink) { return getTotalVehicleLength(); }
+	double vehicleLength = 0.0;
+	std::map<const sim_mob::Link*, std::vector<sim_mob::LaneStats*> >::const_iterator lnGpIt = laneGroup.find(downstreamLink);
+	if(lnGpIt == laneGroup.end()) { throw std::runtime_error("Invalid downstream link"); }
+	const std::vector<sim_mob::LaneStats*>& laneStatsInLG = lnGpIt->second;
+	for(std::vector<sim_mob::LaneStats*>::const_iterator lnStatsIt = laneStatsInLG.begin(); lnStatsIt!=laneStatsInLG.end(); lnStatsIt++)
+	{
+		vehicleLength = vehicleLength + (*lnStatsIt)->getTotalVehicleLength();
+	}
+	return vehicleLength;
+}
+
+void SegmentStats::printDownstreamLinks() const
+{
+	std::stringstream out;
+	out << "DownStreamLinks of " << roadSegment->getSegmentAimsunId() << "-" << statsNumberInSegment << std::endl;
+	for (LaneStatsMap::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++)
+	{
+		if(i->second->isLaneInfinity()) { continue; }
+		out << i->first->getLaneID() << " - ";
+		const std::set<const Link*>& downStreamLinks = i->second->getDownstreamLinks();
+		for(std::set<const Link*>::const_iterator j=downStreamLinks.begin(); j!=downStreamLinks.end(); j++)
+		{
+			out << (*j)->getLinkId() << "|";
+		}
+		out << std::endl;
+	}
+	Print() << out.str();
+}
+
 void LaneStats::printAgents(bool copy) const
 {
 	std::stringstream debugMsgs;
@@ -1199,6 +1262,20 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 	return dequeuedPerson;
 }
 
+bool LaneStats::addDownstreamLink(const sim_mob::Link* downStreamLink)
+{
+	if(downStreamLink)
+	{
+		return connectedDownstreamLinks.insert(downStreamLink).second;
+	}
+	return false;
+}
+
+void LaneStats::addDownstreamLinks(const std::set<const sim_mob::Link*>& downStreamLinks)
+{
+	connectedDownstreamLinks.insert(downStreamLinks.begin(), downStreamLinks.end());
+}
+
 void LaneParams::decrementOutputCounter()
 {
 	if(outputCounter > 0) { outputCounter--; }
@@ -1206,5 +1283,3 @@ void LaneParams::decrementOutputCounter()
 }
 
 } // end of namespace sim_mob
-
-

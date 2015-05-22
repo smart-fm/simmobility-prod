@@ -248,9 +248,7 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 
 }
 
-const sim_mob::Lane* BusDriverMovement::getBestTargetLane(
-		const sim_mob::SegmentStats* nextSegStats,
-		const SegmentStats* nextToNextSegStats)
+const sim_mob::Lane* BusDriverMovement::getBestTargetLane(const sim_mob::SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats)
 {
 	if(!nextSegStats) { return nullptr; }
 	const BusStop* nextStop = routeTracker.getNextStop();
@@ -271,16 +269,18 @@ const sim_mob::Lane* BusDriverMovement::getBestTargetLane(
 		double que = 0.0;
 		double total = 0.0;
 
+		const sim_mob::Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
 		const std::vector<sim_mob::Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
 		for (vector<sim_mob::Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
 		{
-			if (!((*lnIt)->is_pedestrian_lane()))
+			const Lane* lane = *lnIt;
+			if (!lane->is_pedestrian_lane())
 			{
-				const Lane* lane = *lnIt;
-				if(nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment()))
-				{
-					continue;
-				}
+				if(nextToNextSegStats
+						&& !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())
+						&& nextLink
+						&& !nextSegStats->isConnectedToDownstreamLink(nextLink, lane))
+				{ continue; }
 				total = nextSegStats->getLaneTotalVehicleLength(lane);
 				que = nextSegStats->getLaneQueueLength(lane);
 				if (minLength > total)

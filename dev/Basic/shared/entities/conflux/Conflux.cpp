@@ -947,6 +947,7 @@ Entity::UpdateStatus sim_mob::Conflux::switchTripChainItem(Person* person)
 	Entity::UpdateStatus retVal = person->checkTripChain();
 	if (retVal.status == UpdateStatus::RS_DONE) { return retVal; }
 	Role* personRole = person->getRole();
+	person->setStartTime(currFrame.ms());
 	if(personRole && personRole->roleType==Role::RL_WAITBUSACTITITY)
 	{
 		assignPersonToBusStopAgent(person);
@@ -954,7 +955,6 @@ Entity::UpdateStatus sim_mob::Conflux::switchTripChainItem(Person* person)
 		if(pIt!=pedestrianList.end()) {	pedestrianList.erase(pIt); }
 		return retVal;
 	}
-	person->setStartTime(currFrame.ms());
 
 	if(personRole && personRole->roleType==Role::RL_TRAINPASSENGER)
 	{

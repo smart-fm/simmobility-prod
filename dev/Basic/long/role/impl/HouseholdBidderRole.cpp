@@ -623,7 +623,7 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId)
 	bool selfEmployed = false;
 	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
 	{
-		if(model->getIndividualById((*individualsItr))->getEmploymentStatusId() == 3)
+		if(model->getIndividualById((*individualsItr))->getEmploymentStatusId() == 3) //check whether individual is self employed
 		{
 			selfEmployed = true;
 			break;
@@ -804,7 +804,7 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId)
 	bool selfEmployed = false;
 	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
 	{
-		if(model->getIndividualById((*individualsItr))->getEmploymentStatusId() == 3)
+		if(model->getIndividualById((*individualsItr))->getEmploymentStatusId() == 3) //check whether individual is self employed
 		{
 			selfEmployed = true;
 			break;

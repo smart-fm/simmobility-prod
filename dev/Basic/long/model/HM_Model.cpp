@@ -286,7 +286,7 @@ VehicleOwnershipCoefficients* HM_Model::getVehicleOwnershipCoeffsById( BigSerial
 
 		if (itr != vehicleOwnershipCoeffsById.end())
 		{
-			return (*itr).second;
+			return itr->second;
 		}
 
 		return nullptr;
@@ -303,7 +303,7 @@ TaxiAccessCoefficients* HM_Model::getTaxiAccessCoeffsById( BigSerial id) const
 
 		if (itr != taxiAccessCoeffsById.end())
 		{
-			return (*itr).second;
+			return itr->second;
 		}
 
 		return nullptr;
@@ -341,7 +341,7 @@ LogSumVehicleOwnership* HM_Model::getVehicleOwnershipLogsumsById( BigSerial id) 
 
 		if (itr != vehicleOwnershipLogsumById.end())
 		{
-			return (*itr).second;
+			return itr->second;
 		}
 
 		return nullptr;

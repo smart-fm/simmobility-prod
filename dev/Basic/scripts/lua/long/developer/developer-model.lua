@@ -354,6 +354,18 @@ UNIT_TAOVALUESQ4 = readOnlyTable
         },  
 }
 --[[****************************************************************************
+PROFIT CALCULATION EQUATIONS - HPI
+
+> condo market T^j(t)= -0.04155 + 1.49396 * T^j(t-4) -0.90378 * Tj(t-5) -0.20183 * T^j(t-6) +0.31161*T^j(t-7)
+> apartment market T^j(t)= 0.03016 + 0.93910 * T^j(t-4) -0.14051 * Tj(t-5) -0.30319 * T^j(t-6) +0.32669*T^j(t-7)
+> terrace market T^j(t)= -0.00466 + 1.32720 * T^j(t-4) -0.71526 * Tj(t-5) -0.04628 * T^j(t-6) +0.28911*T^j(t-7)
+> semi detached market T^j(t)= 0.01308 + 1.51888 * T^j(t-4) -0.62345 * Tj(t-5) -0.49521 * T^j(t-6) +0.53292*T^j(t-7)
+> detached market T^j(t)= 0.02164 + 1.19593 * T^j(t-4) -0.36370 * Tj(t-5) -0.19163 * T^j(t-6) +0.25972*T^j(t-7)
+> EC market T^j(t)= 0.01781 + 1.13111 * T^j(t-4) -0.34371 * Tj(t-5) -0.25454 * T^j(t-6) +0.41047 * T^j(t-7)
+
+********************************************************************************]]
+
+--[[****************************************************************************
     FUNCTIONS
 ******************************************************************************]]
 function getBuildingTypeFromUnitType(unitTypeId)
@@ -389,7 +401,9 @@ end
 function calculateUnitRevenueApartment(amenities,unit,logsum,quarter)
 	local revenue = 0
 	revenue = UNIT_TYPE_COEFFICIENTS[4][0] + UNIT_TYPE_COEFFICIENTS[4][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[4][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[4][3] * logsum.accessibility + UNIT_TYPE_COEFFICIENTS[4][4] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[4][5] * (amenities.distanceToMall/1000) + UNIT_TYPE_COEFFICIENTS[4][6]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[4][7]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[4][8]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[4][9]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[4][10]* amenities.bus_400m
+	
 	local HPI = 0
+	--constants are according to the equations - refer "PROFIT CALCULATION EQUATIONS - HPI" above.
 	if(quarter == 1) then HPI = 0.03016 + 0.93910 * UNIT_TAOVALUESQ1[4][0] -0.14051 * UNIT_TAOVALUESQ1[4][1] -0.30319 * UNIT_TAOVALUESQ1[4][2] + 0.32669 * UNIT_TAOVALUESQ1[4][3]
 	elseif(quarter == 2) then HPI = 0.03016 + 0.93910 * UNIT_TAOVALUESQ2[4][0] -0.14051 * UNIT_TAOVALUESQ2[4][1] -0.30319 * UNIT_TAOVALUESQ2[4][2] + 0.32669 * UNIT_TAOVALUESQ2[4][3]
 	elseif(quarter == 3) then HPI = 0.03016 + 0.93910 * UNIT_TAOVALUESQ3[4][0] -0.14051 * UNIT_TAOVALUESQ3[4][1] -0.30319 * UNIT_TAOVALUESQ3[4][2] + 0.32669 * UNIT_TAOVALUESQ3[4][3]

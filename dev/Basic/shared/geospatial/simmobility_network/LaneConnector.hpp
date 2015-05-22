@@ -4,12 +4,10 @@
 
 #pragma once
 
-#include "Tag.hpp"
-
 namespace simmobility_network
 {
 
-  class LaneConnection
+  class LaneConnector
   {
   private:
     
@@ -19,26 +17,22 @@ namespace simmobility_network
     //Indicates the id of the lane from which the lane connection originates
     unsigned int fromLaneId;
     
-    //Indicates the id of the road section from which the lane connection originates
-    unsigned int fromRoadSectionId;
-    
-    //Holds additional information
-    Tag *tag;
+    //Indicates the id of the road segment from which the lane connection originates
+    unsigned int fromRoadSegmentId;
     
     //Indicates the id of the lane at which the lane connection terminates
     unsigned int toLaneId;
     
-    //Indicates the id of the road section at which the lane connection terminates
-    unsigned int toRoadSectionId;    
+    //Indicates the id of the road segment at which the lane connection terminates
+    unsigned int toRoadSegmentId;    
 
   public:
 
-    LaneConnection(unsigned int id, unsigned int fromLane, unsigned int fromRoadSection, Tag *tag, 
-                   unsigned int toLane, unsigned int toRoadSection);
+    LaneConnector();
 
-    LaneConnection(const LaneConnection& orig);
+    LaneConnector(const LaneConnector& orig);
 
-    virtual ~LaneConnection();
+    virtual ~LaneConnector();
     
     //Returns the id of the lane connection
     unsigned int getLaneConnectionId() const;
@@ -52,17 +46,11 @@ namespace simmobility_network
     //Sets the id of the lane from which the lane connection begins
     void setFromLaneId(unsigned int fromLaneId);
     
-    //Returns the id of the road section from which the lane connection begins
-    unsigned int getFromRoadSectionId() const;
+    //Returns the id of the road segment from which the lane connection begins
+    unsigned int getFromRoadSegmentId() const;
     
-    //Sets the id of the road section from which the lane connection begins
-    void setFromRoadSectionId(unsigned int fromRoadSectionId);
-    
-    //Returns a pointer to the tag which holds the additional information
-    Tag* getTag() const;
-    
-    //Setter for the tag field which holds the additional information
-    void setTag(Tag* tag);
+    //Sets the id of the road segment from which the lane connection begins
+    void setFromRoadSegmentId(unsigned int fromRoadSectionId);
     
     //Returns the id of the lane at which the lane connection ends
     unsigned int getToLaneId() const;
@@ -71,10 +59,10 @@ namespace simmobility_network
     void setToLaneId(unsigned int toLaneId);
     
     //Returns the id of the road section at which the lane connection ends
-    unsigned int getToRoadSectionId() const;
+    unsigned int getToRoadSegmentId() const;
     
     //Sets the id of the road section at which the lane connection ends
-    void setToRoadSectionId(unsigned int toRoadSectionId);
+    void setToRoadSegmentId(unsigned int toRoadSectionId);
 
     } ;
 }

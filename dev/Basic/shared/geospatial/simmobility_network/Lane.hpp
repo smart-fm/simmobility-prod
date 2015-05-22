@@ -4,21 +4,17 @@
 
 #pragma once
 
+#include <vector>
+
 #include "Tag.hpp"
+#include "PolyLine.hpp"
 
 namespace simmobility_network
 {
-  //Defines the types of lanes that are supported by SimMobility
-  enum LaneType
+  //Defines the lane rules
+  enum LaneRules
   {
-    //Default lane type
-    LANE_TYPE_DEFAULT = 0,
-    
-    //Pedestrian lane
-    LANE_TYPE_PEDESTRIAN = 1,
-    
-    //Bus lane
-    LANE_TYPE_BUS = 2
+    LANE_RULES_IS_PEDESTRIAN_LANE
   };
 
   class Lane
@@ -28,27 +24,24 @@ namespace simmobility_network
     //Unique identifier for the lane
     unsigned int laneId;
     
-    //Indicates the id of the geometry information
-    unsigned int geometryId;
-    
     //Indicates the index of the lane
     unsigned int laneIndex;
     
-    //Indicates the type of the lane
-    LaneType laneType;
+    //Indicates the lane rules
+    LaneRules laneRules;
     
-    //Indicates the id of the road section to which the lane belongs
-    unsigned int roadSectionId;
+    //Represents the poly-line of the lane
+    PolyLine *polyLine;
     
     //Holds additional information
-    Tag *tag;
+    std::vector<Tag> tags;
     
-    //Indicates the id of the turning path to which the lane belongs
-    unsigned int turningPathId;    
+    //The width of the lane
+    double width;
     
   public:
     
-    Lane(unsigned int id, unsigned int geometryId, unsigned int index, unsigned int sectionId, Tag *tag, unsigned int pathId);
+    Lane();
     
     Lane(const Lane& orig);
     
@@ -60,44 +53,29 @@ namespace simmobility_network
     //Sets the lane id
     void setLaneId(unsigned int laneId);
     
-    //Returns the id of the geometry information
-    unsigned int getGeometryId() const;
-    
-    //Sets the id of the geometry information
-    void setGeometryId(unsigned int geometryId);
-    
     //Returns the lane index
     unsigned int getLaneIndex() const;
     
     //Sets the lane index
-    void setLaneIndex(unsigned int laneIndex);    
+    void setLaneIndex(unsigned int laneIndex);
     
-    //Returns the lane type
-    LaneType getLaneType() const;
+    //Returns the poly-line for the lane
+    PolyLine* getPolyLine() const;
     
-    //Sets the lane type
-    void setLaneType(LaneType laneType);
+    //Sets the poly-line for the name
+    void setPolyLine(PolyLine* polyLine);    
     
-    //Returns the id of the road section to which the lane belongs
-    unsigned int getRoadSectionId() const;
+    //Returns a vector of tags which holds the additional information
+    const std::vector<Tag>& getTags() const;
     
-    //Sets the id of the road section to which the lane belongs
-    void setRoadSectionId(unsigned int roadSectionId);
+    //Setter for the tags field which holds the additional information
+    void setTags(std::vector<Tag>& tags);
     
-    //Returns a pointer to the tag which holds the additional information
-    Tag* getTag() const;
+    //Returns the width of the lane
+    double getWidth() const;  
     
-    //Setter for the tag field which holds the additional information
-    void setTag(Tag* tag);
-    
-    //Returns the id of the turning path to which the lane belongs
-    unsigned int getTurningPathId() const;
-    
-    //Sets the id of the turning path to which the lane belongs
-    void setTurningPathId(unsigned int turningPathId);    
+    //Sets the lane width
+    void setWidth(double width);    
     
   } ;
 }
-
-
-

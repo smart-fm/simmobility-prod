@@ -5,11 +5,19 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
+#include "PolyLine.hpp"
 #include "Tag.hpp"
 
 namespace simmobility_network
 {
+  //Defines the various categories of links supported by SimMobility
+  enum LinkCategory
+  {
+    //The default category
+    LINK_CATEGORY_DEFAULT = 0
+  };
 
   class Link
   {
@@ -21,25 +29,21 @@ namespace simmobility_network
     //Indicates the node from which this link begins
     unsigned int fromNodeId;
     
-    //The identifier for the geometry information of the link
-    unsigned int geometryId;
-    
-    //The identifier for the poly-line of the link
-    unsigned int polyLineId;
+    //Indicates the link category
+    LinkCategory linkCategory;
     
     //The name of the road this link represents
     std::string roadName;
     
     //Holds the additional information
-    Tag *tag;
+    std::vector<Tag> tags;
     
     //Indicates the node at which this link ends
     unsigned int toNodeId;
     
   public:
     
-    Link(unsigned int id, unsigned int fromNode, unsigned int geometryId, unsigned int polyLineId, std::string roadName, 
-         Tag *tag, unsigned int toNode);
+    Link();
     
     Link(const Link& orig);
     
@@ -57,17 +61,11 @@ namespace simmobility_network
     //Setter for the from node id
     void setFromNodeId(unsigned int fromNodeId);
     
-    //Returns the id of the geometry information
-    unsigned int getGeometryId() const;
+    //Returns the link category
+    LinkCategory getLinkCategory() const;
     
-    //Setter for the geometry id
-    void setGeometryId(unsigned int geometryId);
-    
-    //Returns the id of the poly-line
-    unsigned int getPolyLineId() const;
-    
-    //Setter for the poly-line id
-    void setPolyLineId(unsigned int polyLineId);
+    //Sets the link category
+    void setLinkCategory(LinkCategory linkCategory);
     
     //Returns the road name
     std::string getRoadName() const;
@@ -75,11 +73,11 @@ namespace simmobility_network
     //Setter for the road name
     void setRoadName(std::string roadName);
     
-    //Returns a pointer to the tag which holds the additional information
-    Tag* getTag() const;
+    //Returns a vector of tags which holds the additional information
+    const std::vector<Tag>& getTags() const;
     
-    //Setter for the tag field which holds the additional information
-    void setTag(Tag* tag);
+    //Setter for the tags field which holds the additional information
+    void setTags(std::vector<Tag>& tags);
     
     unsigned int getToNodeId() const;
     

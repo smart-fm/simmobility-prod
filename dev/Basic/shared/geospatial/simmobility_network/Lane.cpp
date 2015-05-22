@@ -6,28 +6,29 @@
 
 using namespace simmobility_network;
 
-Lane::Lane(unsigned int id, unsigned int geometryId, unsigned int index, unsigned int sectionId, Tag *tag, unsigned int pathId) :
-laneId(id), geometryId(geometryId), laneIndex(index), roadSectionId(sectionId), tag(tag), turningPathId(pathId)
+Lane::Lane() :
+laneId(0), laneIndex(0), laneRules(LANE_RULES_IS_PEDESTRIAN_LANE), polyLine(NULL), width(0)
 {
 }
 
 Lane::Lane(const Lane& orig)
 {
 	this->laneId = orig.laneId;
-	this->geometryId = orig.geometryId;
 	this->laneIndex = orig.laneIndex;
-	this->roadSectionId = orig.roadSectionId;
-	this->tag = orig.tag;
-	this->turningPathId = orig.turningPathId;
+	this->laneRules = orig.laneRules;
+	this->polyLine = orig.polyLine;	
+	this->tags = orig.tags;
+	this->width = orig.width;
 }
 
 Lane::~Lane()
 {
-	if(tag)
+	if(polyLine)
 	{
-		delete tag;
-		tag = NULL;
+		delete polyLine;
+		polyLine = NULL;
 	}
+	tags.clear();
 }
 
 unsigned int Lane::getLaneId() const
@@ -40,16 +41,6 @@ void Lane::setLaneId(unsigned int laneId)
 	this->laneId = laneId;
 }
 
-unsigned int Lane::getGeometryId() const
-{
-	return geometryId;
-}
-
-void Lane::setGeometryId(unsigned int geometryId)
-{
-	this->geometryId = geometryId;
-}
-
 unsigned int Lane::getLaneIndex() const
 {
 	return laneIndex;
@@ -60,43 +51,32 @@ void Lane::setLaneIndex(unsigned int laneIndex)
 	this->laneIndex = laneIndex;
 }
 
-LaneType Lane::getLaneType() const
+PolyLine* Lane::getPolyLine() const
 {
-	return laneType;
+	return polyLine;
 }
 
-void Lane::setLaneType(LaneType laneType)
+void Lane::setPolyLine(PolyLine* polyLine)
 {
-	this->laneType = laneType;
+	this->polyLine = polyLine;
 }
 
-unsigned int Lane::getRoadSectionId() const
+const std::vector<Tag>& Lane::getTags() const
 {
-	return roadSectionId;
+	return tags;
 }
 
-void Lane::setRoadSectionId(unsigned int roadSectionId)
+void Lane::setTags(std::vector<Tag>& tags)
 {
-	this->roadSectionId = roadSectionId;
+	this->tags = tags;
 }
 
-Tag* Lane::getTag() const
+double Lane::getWidth() const
 {
-	return tag;
+	return width;
 }
 
-void Lane::setTag(Tag* tag)
+void Lane::setWidth(double width)
 {
-	this->tag = tag;
+	this->width = width;
 }
-
-unsigned int Lane::getTurningPathId() const
-{
-	return turningPathId;
-}
-
-void Lane::setTurningPathId(unsigned int turningPathId)
-{
-	this->turningPathId = turningPathId;
-}
-

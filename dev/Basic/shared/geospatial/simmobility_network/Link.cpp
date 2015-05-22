@@ -6,9 +6,8 @@
 
 using namespace simmobility_network;
 
-Link::Link(unsigned int id, unsigned int fromNode, unsigned int geometryId, unsigned int polyLineId, std::string roadName,
-		   Tag *tag, unsigned int toNode) :
-linkId(id), fromNodeId(fromNode), geometryId(geometryId), polyLineId(polyLineId), roadName(roadName), tag(tag), toNodeId(toNode)
+Link::Link() :
+linkId(0), fromNodeId(0), linkCategory(LINK_CATEGORY_DEFAULT), roadName(""), toNodeId(0)
 {
 }
 
@@ -16,20 +15,15 @@ Link::Link(const Link& orig)
 {
 	this->linkId = orig.linkId;
 	this->fromNodeId = orig.fromNodeId;
-	this->geometryId = orig.geometryId;
-	this->polyLineId = orig.polyLineId;
+	this->linkCategory = orig.linkCategory;
 	this->roadName = orig.roadName;
-	this->tag = orig.tag;
+	this->tags = orig.tags;
 	this->toNodeId = orig.toNodeId;
 }
 
 Link::~Link()
 {
-	if(tag)
-	{
-		delete tag;
-		tag = NULL;
-	}
+	tags.clear();
 }
 
 unsigned int Link::getLinkId() const
@@ -52,24 +46,14 @@ void Link::setFromNodeId(unsigned int fromNodeId)
 	this->fromNodeId = fromNodeId;
 }
 
-unsigned int Link::getGeometryId() const
+LinkCategory Link::getLinkCategory() const
 {
-	return geometryId;
+	return linkCategory;
 }
 
-void Link::setGeometryId(unsigned int geometryId)
+void Link::setLinkCategory(LinkCategory linkCategory)
 {
-	this->geometryId = geometryId;
-}
-
-unsigned int Link::getPolyLineId() const
-{
-	return polyLineId;
-}
-
-void Link::setPolyLineId(unsigned int polyLineId)
-{
-	this->polyLineId = polyLineId;
+	this->linkCategory = linkCategory;
 }
 
 std::string Link::getRoadName() const
@@ -82,14 +66,14 @@ void Link::setRoadName(std::string roadName)
 	this->roadName = roadName;
 }
 
-Tag* Link::getTag() const
+const std::vector<Tag>& Link::getTags() const
 {
-	return tag;
+	return tags;
 }
 
-void Link::setTag(Tag* tag)
+void Link::setTags(std::vector<Tag>& tags)
 {
-	this->tag = tag;
+	this->tags = tags;
 }
 
 unsigned int Link::getToNodeId() const

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "Tag.hpp"
 
 namespace simmobility_network
@@ -16,11 +18,19 @@ namespace simmobility_network
     //Conflict id
     unsigned int conflictId;
     
+    //Threshold value for accepting/rejecting the gap (and deciding whether to continue/slow down) between
+    //conflicting vehicles (in seconds)
+    double criticalGap;
+    
     //Distance of conflict point from start of the first turning
     double firstConflictDistance;
     
     //Id of the first conflicting Turning path
     unsigned int firstTurningId;
+    
+    //Indicates which turning has a higher priority.
+    //0 - equal, 1 - first_turning has higher priority, 2 - second_turning has higher priority
+    int priority;
       
     //Distance of conflict point from the start of the second turning
     double secondConflictDistance;
@@ -29,12 +39,11 @@ namespace simmobility_network
     unsigned int secondTurningId;
 
     //Holds additional information
-    Tag *tag;
+    std::vector<Tag> tags;
 
   public:
     
-    TurningConflict(unsigned int id, double first_cd, unsigned int firstTurningId, double second_cd, unsigned int secondTurningId,
-                    Tag *tag);
+    TurningConflict();
 
     TurningConflict(const TurningConflict& tc);
 
@@ -46,8 +55,20 @@ namespace simmobility_network
     //Sets the conflict id
     void setConflictId(unsigned int conflictId);
     
+    //Returns the value of the critical gap for the conflict
+    double getCriticalGap() const;
+    
+    //Sets the value of the critical gap for the conflict
+    void setCriticalGap(double criticalGap);
+    
     //Returns the conflict distance to first turning
     double getFirstConflictDistance() const;
+    
+    //Returns the value of the priority for the conflict
+    int getPriority() const;
+    
+    //Sets the value of the priority for the conflict
+    void setPriority(int priority);
     
     //Sets the conflict distance to the first turning
     void setFirstConflictDistance(double firstConflictDistance);
@@ -70,11 +91,11 @@ namespace simmobility_network
     //Sets the id of the second turning
     void setSecondTurningId(unsigned int secondTurningId);
     
-    //Returns a pointer to the tag which holds the additional information
-    Tag* getTag() const;
+    //Returns a vector of tags which holds the additional information
+    const std::vector<Tag>& getTags() const;
     
-    //Setter for the tag field which holds the additional information
-    void setTag(Tag* tag);
+    //Setter for the tags field which holds the additional information
+    void setTags(std::vector<Tag>& tags);
     
   } ;
 }

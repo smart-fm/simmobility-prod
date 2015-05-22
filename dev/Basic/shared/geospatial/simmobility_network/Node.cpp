@@ -6,26 +6,30 @@
 
 using namespace simmobility_network;
 
-Node::Node(unsigned int id, NodeType type, Tag *tag, unsigned int trafficLightId) :
-nodeId(id), nodeType(type), tag(tag), trafficLightId(trafficLightId)
+Node::Node() :
+nodeId(0), location(NULL), nodeType(DEFAULT_NODE), trafficLightId(0)
 {
 }
 
 Node::Node(const Node& orig)
 {
 	this->nodeId = orig.nodeId;
-	this->nodeType = orig.nodeType;
-	this->tag = orig.tag;
+	this->location = orig.location;
+	this->nodeType = orig.nodeType;	
+	this->tags = orig.tags;
 	this->trafficLightId = orig.trafficLightId;
 }
 
 Node::~Node()
 {
-	if(tag)
+	//Delete the point storing the location
+	if(location)
 	{
-		delete tag;
-		tag = NULL;
+		delete location;
+		location = NULL;
 	}
+	
+	tags.clear();
 }
 
 void Node::setNodeId(unsigned int nodeId)
@@ -38,6 +42,16 @@ unsigned int Node::getNodeId() const
 	return nodeId;
 }
 
+void Node::setLocation(Point* location)
+{
+	this->location = location;
+}
+
+Point* Node::getLocation() const
+{
+	return location;
+}
+
 void Node::setNodeType(NodeType nodeType)
 {
 	this->nodeType = nodeType;
@@ -48,14 +62,14 @@ NodeType Node::getNodeType() const
 	return nodeType;
 }
 
-void Node::setTag(Tag *tag)
+void Node::setTags(std::vector<Tag>& tags)
 {
-	this->tag = tag;
+	this->tags = tags;
 }
 
-Tag* Node::getTag() const
+const std::vector<Tag>& Node::getTags() const
 {
-	return tag;
+	return tags;
 }
 
 void Node::setTrafficLightId(unsigned int trafficLightId)

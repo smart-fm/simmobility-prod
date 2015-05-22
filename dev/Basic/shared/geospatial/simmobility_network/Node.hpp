@@ -5,7 +5,9 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
+#include "Point.hpp"
 #include "Tag.hpp"
 
 namespace simmobility_network
@@ -36,18 +38,21 @@ namespace simmobility_network
     //The unique identifier for a Node
     unsigned int nodeId;
     
+    //The location of the node
+    Point* location;
+    
     //The type of the node
     NodeType nodeType;
     
     //Holds additional information
-    Tag *tag;
+    std::vector<Tag> tags;
     
     //The identifier for the traffic light if present at the node
     unsigned int trafficLightId;
 
   public:
     
-    Node(unsigned int id, NodeType type, Tag *tag, unsigned int trafficLightId);
+    Node();
     
     Node(const Node& orig);
     
@@ -59,17 +64,23 @@ namespace simmobility_network
     //Returns the node id
     unsigned int getNodeId() const;
     
+    //Sets the location of the node
+    void setLocation(Point *location);
+    
+    //Returns a pointer to a point that defines the location of the node 
+    Point* getLocation() const;
+    
     //Sets the node type
     void setNodeType(NodeType nodeType);
     
     //Returns the type of the node
     NodeType getNodeType() const;
     
-    //Setter for the tag field which holds the additional information
-    void setTag(Tag *tag);
+    //Setter for the tags field which holds the additional information
+    void setTags(std::vector<Tag>& tags);
     
-    //Returns a pointer to the tag which holds the additional information
-    Tag* getTag() const;
+    //Returns a vector of tags which holds the additional information
+    const std::vector<Tag>& getTags() const;
     
     //Sets the traffic light id
     void setTrafficLightId(unsigned int trafficLightId);

@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <vector>
+
+#include "PolyLine.hpp"
 #include "Tag.hpp"
 
 namespace simmobility_network
@@ -19,14 +22,14 @@ namespace simmobility_network
     //Indicates the id of the lane where the turning path begins
     unsigned int fromLaneId;
     
-    //Indicates the id of the geometry information for the turning path
-    unsigned int geometryId;
+    //Defines the max speed that the vehicles should adhere to on the turning (m/s)
+    double maxSpeed;
     
-    //Indicates the id of the poly-line for the turning path
-    unsigned int polyLineId;
+    //Represents the poly-line for the turning path
+    PolyLine* polyLine;
     
     //Holds the additional information
-    Tag *tag;
+    std::vector<Tag> tags;
     
     //Indicates the id of the lane at which the turning path ends
     unsigned int toLaneId;
@@ -36,8 +39,7 @@ namespace simmobility_network
     
   public:
     
-    TurningPath(unsigned int id, unsigned int fromLane, unsigned int geometryId, unsigned int polyLineId, Tag *tag, unsigned int toLane,
-                unsigned int turningGroup);
+    TurningPath();
     
     TurningPath(const TurningPath& orig);
     
@@ -55,23 +57,17 @@ namespace simmobility_network
     //Setter for the id of the lane from which this turning path originates
     void setFromLaneId(unsigned int fromLaneId);
     
-    //Returns the geometry id of the turning path
-    unsigned int getGeometryId() const;
+    //Returns the poly-line for the turning path
+    PolyLine* getPolyLine() const;
     
-    //Setter for the geometry id
-    void setGeometryId(unsigned int geometryId);
+    //Setter for the poly-line of the turning path
+    void setPolyLine(PolyLine* polyLine);
     
-    //Returns the id of the poly-line for the turning path
-    unsigned int getPolyLineId() const;
+    //Returns a vector of tags which holds the additional information
+    const std::vector<Tag>& getTags() const;
     
-    //Setter for the id of the poly-line of the turning path
-    void setPolyLineId(unsigned int polyLineId);
-    
-    //Returns a pointer to the tag which holds the additional information
-    Tag* getTag() const;
-    
-    //Setter for the tag field which holds the additional information
-    void setTag(Tag* tag);
+    //Setter for the tags field which holds the additional information
+    void setTags(std::vector<Tag>& tags);
     
     //Returns the id of the lane where the turning path ends
     unsigned int getToLaneId() const;

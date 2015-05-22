@@ -6,10 +6,8 @@
 
 using namespace simmobility_network;
 
-TurningPath::TurningPath(unsigned int id, unsigned int fromLane, unsigned int geometryId, unsigned int polyLineId, Tag *tag,
-						 unsigned int toLane, unsigned int turningGroupId) :
-turningPathId(id), fromLaneId(fromLane), geometryId(geometryId), polyLineId(polyLineId), tag(tag), toLaneId(toLane),
-turningGroupId(turningGroupId)
+TurningPath::TurningPath() :
+turningPathId(0), fromLaneId(0), maxSpeed(0), polyLine(NULL), toLaneId(0), turningGroupId(0)
 {
 }
 
@@ -17,20 +15,22 @@ TurningPath::TurningPath(const TurningPath& orig)
 {
 	this->turningPathId = orig.turningPathId;
 	this->fromLaneId = orig.fromLaneId;
-	this->geometryId = orig.geometryId;
-	this->polyLineId = orig.polyLineId;
-	this->tag = orig.tag;
+	this->maxSpeed = orig.maxSpeed;
+	this->polyLine = orig.polyLine;
+	this->tags = orig.tags;
 	this->toLaneId = orig.toLaneId;
 	this->turningGroupId = orig.turningGroupId;
 }
 
 TurningPath::~TurningPath()
 {
-	if(tag)
+	if(polyLine)
 	{
-		delete tag;
-		tag = NULL;
+		delete polyLine;
+		polyLine = NULL;
 	}
+	
+	tags.clear();
 }
 
 unsigned int TurningPath::getTurningPathId() const
@@ -53,34 +53,24 @@ void TurningPath::setFromLaneId(unsigned int fromLaneId)
 	this->fromLaneId = fromLaneId;
 }
 
-unsigned int TurningPath::getGeometryId() const
+PolyLine* TurningPath::getPolyLine() const
 {
-	return geometryId;
+	return polyLine;
 }
 
-void TurningPath::setGeometryId(unsigned int geometryId)
+void TurningPath::setPolyLine(PolyLine* polyLine)
 {
-	this->geometryId = geometryId;
+	this->polyLine = polyLine;
 }
 
-unsigned int TurningPath::getPolyLineId() const
+const std::vector<Tag>& TurningPath::getTags() const
 {
-	return polyLineId;
+	return tags;
 }
 
-void TurningPath::setPolyLineId(unsigned int polyLineId)
+void TurningPath::setTags(std::vector<Tag>& tags)
 {
-	this->polyLineId = polyLineId;
-}
-
-Tag* TurningPath::getTag() const
-{
-	return tag;
-}
-
-void TurningPath::setTag(Tag* tag)
-{
-	this->tag = tag;
+	this->tags = tags;
 }
 
 unsigned int TurningPath::getToLaneId() const

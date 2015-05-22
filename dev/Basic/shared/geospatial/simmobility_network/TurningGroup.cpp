@@ -6,9 +6,8 @@
 
 using namespace simmobility_network;
 
-TurningGroup::TurningGroup(unsigned int id, unsigned int fromLink, unsigned int nodeId, std::string phases, Rules rules,
-						   Tag *tag, unsigned int toLink) :
-turningGroupId(id), fromLinkId(fromLink), nodeId(nodeId), phases(phases), rules(rules), tag(tag), toLinkId(toLink)
+TurningGroup::TurningGroup() :
+turningGroupId(0), fromLinkId(0), phases(""), rules(TURNING_GROUP_RULE_NO_STOP_SIGN), toLinkId(0), visibility(0)
 {
 }
 
@@ -16,20 +15,16 @@ TurningGroup::TurningGroup(const TurningGroup& orig)
 {
 	this->turningGroupId = orig.turningGroupId;
 	this->fromLinkId = orig.fromLinkId;
-	this->nodeId = orig.nodeId;
 	this->phases = orig.phases;
 	this->rules = orig.rules;
-	this->tag = orig.tag;
+	this->tags = orig.tags;
 	this->toLinkId = orig.toLinkId;
+	this->visibility = orig.visibility;
 }
 
 TurningGroup::~TurningGroup()
 {
-	if(tag)
-	{
-		delete tag;
-		tag = NULL;
-	}
+	tags.clear();
 }
 
 unsigned int TurningGroup::getTurningGroupId() const
@@ -52,16 +47,6 @@ void TurningGroup::setFromLinkId(unsigned int fromLinkId)
 	this->fromLinkId = fromLinkId;
 }
 
-unsigned int TurningGroup::getNodeId() const
-{
-	return nodeId;
-}
-
-void TurningGroup::setNodeId(unsigned int nodeId)
-{
-	this->nodeId = nodeId;
-}
-
 std::string TurningGroup::getPhases() const
 {
 	return phases;
@@ -82,14 +67,14 @@ void TurningGroup::setRules(Rules rules)
 	this->rules = rules;
 }
 
-Tag* TurningGroup::getTag() const
+const std::vector<Tag>& TurningGroup::getTags() const
 {
-	return tag;
+	return tags;
 }
 
-void TurningGroup::setTag(Tag* tag)
+void TurningGroup::setTag(std::vector<Tag>& tags)
 {
-	this->tag = tag;
+	this->tags = tags;
 }
 
 unsigned int TurningGroup::getToLinkId() const
@@ -102,3 +87,12 @@ void TurningGroup::setToLinkId(unsigned int toLinkId)
 	this->toLinkId = toLinkId;
 }
 
+double TurningGroup::getVisibility() const
+{
+	return visibility;
+}
+
+void TurningGroup::setVisibility(double visibility)
+{
+	this->visibility = visibility;
+}

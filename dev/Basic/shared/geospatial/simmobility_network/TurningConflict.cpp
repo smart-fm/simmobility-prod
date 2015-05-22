@@ -6,30 +6,28 @@
 
 using namespace simmobility_network;
 
-TurningConflict::TurningConflict(unsigned int id, double first_cd, unsigned int firstTurningId, double second_cd,
-								 unsigned int secondTurningId, Tag *tag) :
-conflictId(id), firstConflictDistance(first_cd), firstTurningId(firstTurningId), secondConflictDistance(second_cd),
-secondTurningId(secondTurningId), tag(tag)
+TurningConflict::TurningConflict() :
+conflictId(0), criticalGap(0), firstConflictDistance(0), firstTurningId(0), priority(0),
+secondConflictDistance(0), secondTurningId(0)
 {
 }
 
 TurningConflict::TurningConflict(const TurningConflict& orig)
 {
 	this->conflictId = orig.conflictId;
+	this->criticalGap = orig.criticalGap;
 	this->firstConflictDistance  = orig.firstConflictDistance;
 	this->firstTurningId = orig.firstTurningId;
+	this->priority = orig.priority;
 	this->secondConflictDistance = orig.secondConflictDistance;
 	this->secondTurningId = orig.secondTurningId;
-	this->tag = orig.tag;
+	this->tags = orig.tags;
+	
 }
 
 TurningConflict::~TurningConflict()
 {
-	if(tag)
-	{
-		delete tag;
-		tag = NULL;
-	}
+	tags.clear();
 }
 
 unsigned int TurningConflict::getConflictId() const
@@ -40,6 +38,16 @@ unsigned int TurningConflict::getConflictId() const
 void TurningConflict::setConflictId(unsigned int conflictId)
 {
 	this->conflictId = conflictId;
+}
+
+double TurningConflict::getCriticalGap() const
+{
+	return criticalGap;
+}
+
+void TurningConflict::setCriticalGap(double criticalGap)
+{
+	this->criticalGap = criticalGap;
 }
 
 double TurningConflict::getFirstConflictDistance() const
@@ -62,6 +70,16 @@ void TurningConflict::setFirstTurningId(unsigned int firstTurningId)
 	this->firstTurningId = firstTurningId;
 }
 
+void TurningConflict::setPriority(int priority)
+{
+	this->priority = priority;
+}
+
+int TurningConflict::getPriority() const
+{
+	return priority;
+}
+
 double TurningConflict::getSecondConflictDistance() const
 {
 	return secondConflictDistance;
@@ -80,14 +98,4 @@ unsigned int TurningConflict::getSecondTurningId() const
 void TurningConflict::setSecondTurningId(unsigned int secondTurningId)
 {
 	this->secondTurningId = secondTurningId;
-}
-
-Tag* TurningConflict::getTag() const
-{
-	return tag;
-}
-
-void TurningConflict::setTag(Tag* tag)
-{
-	this->tag = tag;
 }

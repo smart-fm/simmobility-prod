@@ -88,6 +88,10 @@ public:
 
 	const std::string getBusLineID() const;
 
+	void calcTravelTime();
+
+	int busSequenceNumber;
+
 private:
 	/**passengers list*/
 	std::list<sim_mob::medium::Passenger*> passengerList;

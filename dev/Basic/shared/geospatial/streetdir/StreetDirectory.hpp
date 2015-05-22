@@ -15,6 +15,7 @@
 #include "geospatial/WayPoint.hpp"
 #include "metrics/Length.hpp"
 #include "util/LangHelpers.hpp"
+#include "entities/params/PT_NetworkEntities.hpp"
 
 
 namespace sim_mob
@@ -82,6 +83,30 @@ enum TimeRange{
 	HighwayBias_Default=8,
 	Random
 };
+enum PT_WeightLabels{
+	KshortestPath=0,
+	LabelingApproach1,
+	LabelingApproach2,
+	LabelingApproach3,
+	LabelingApproach4,
+	LabelingApproach5,
+	LabelingApproach6,
+	LabelingApproach7,
+	LabelingApproach8,
+	LabelingApproach9,
+	LabelingApproach10,
+	SimulationApproach1,
+	SimulationApproach2,
+	SimulationApproach3,
+	SimulationApproach4,
+	SimulationApproach5,
+	SimulationApproach6,
+	SimulationApproach7,
+	SimulationApproach8,
+	SimulationApproach9,
+	SimulationApproach10,
+	weightLabelscount
+};
 class StreetDirectory : private boost::noncopyable
 {
 public:
@@ -144,7 +169,7 @@ public:
      * The distance is needed for our A* search, and the WayPoint is used when returning the actual results.
      */
     typedef boost::property<boost::edge_weight_t, double,
-    		boost::property<boost::edge_name_t, WayPoint> > EdgeProperties;
+    		boost::property<boost::edge_name_t, WayPoint > > EdgeProperties;
 
 
     /**
@@ -184,13 +209,61 @@ public:
 		VertexDesc(bool valid=false) : valid(valid), source(Vertex()), sink(Vertex()) {}
 	};
 
-	//Public transit graph
+	/**
+	 * Below public Transport graph is defined. We used different graph than private transit with a purpose
+	 * of not using multiple graphs instead single graph of all Pathset Generation algorithms
+	 *
+	 */
 
+	/*
+	 * Just a typedef for edgeId and vertexId of the public network data. Not to get confused with graph edges and vertex.
+	 */
+	typedef int PT_EdgeId;
+	typedef std::string PT_VertexId;
+
+	/*
+	 * This is the public transport edge properties. Different weights are being assigned used by different algorithms.
+	 * In this way we get rid of using multiple graphs.
+	 */
+	struct PT_EdgeProperties{
+		PT_EdgeId edge_id;
+
+		// This weight used by both Kshortest path and Link elimination approach algorithms.
+		double kShortestPathWeight;
+
+		// Weights used by Labelling Approach
+		double labelingApproach1Weight;
+		double labelingApproach2Weight;
+		double labelingApproach3Weight;
+		double labelingApproach4Weight;
+		double labelingApproach5Weight;
+		double labelingApproach6Weight;
+		double labelingApproach7Weight;
+		double labelingApproach8Weight;
+		double labelingApproach9Weight;
+		double labelingApproach10Weight;
+
+		//Weights used by Simulation approach
+		double simulationApproach1Weight;
+		double simulationApproach2Weight;
+		double simulationApproach3Weight;
+		double simulationApproach4Weight;
+		double simulationApproach5Weight;
+		double simulationApproach6Weight;
+		double simulationApproach7Weight;
+		double simulationApproach8Weight;
+		double simulationApproach9Weight;
+		double simulationApproach10Weight;
+	};
+
+	/*
+	 * This is the public transport graph vertex property. It uses vertexId as vertex_name
+	 */
     typedef boost::property<boost::vertex_name_t, std::string> PT_VertexProperties;
 
-    typedef boost::property<boost::edge_weight_t, double,
-        		boost::property<boost::edge_name_t, std::string> > PT_EdgeProperties;
-
+    /*
+     * Definition of public transport graph is a directed graph with above defined edge and vertex properties
+     */
     typedef boost::adjacency_list<boost::vecS,
                                       boost::vecS,
                                       boost::directedS,
@@ -200,6 +273,7 @@ public:
     typedef PublicTransitGraph::vertex_descriptor PT_Vertex;
 
     typedef PublicTransitGraph::edge_descriptor PT_Edge;
+
 
     /**
      * Provides an implementation of the main StreetDirectory functionality. We define this as a public class
@@ -260,6 +334,30 @@ public:
         friend class StreetDirectory;
     };
 
+
+    /*
+     * Its an abstract class for the public transport shortest path implementation .
+     * This class is extended by A_StarPublicTransitShortestPathImpl class in A_StarPublicTransitShortestPathImpl.hpp
+     */
+
+    class PublicTransitShortestPathImpl{
+    public:
+    	/*
+    	 * Pure virtual function to get shortest path in public transport network given pair of vertices
+    	 */
+    	virtual std::vector<PT_NetworkEdge> searchShortestPath(PT_VertexId,PT_VertexId,int)=0;
+
+    	/*
+    	 * Pure virtual function to get shortest path along with some blacklisted edges in public transport network given pair of vertices
+    	 */
+    	virtual std::vector<PT_NetworkEdge> searchShortestPathWithBlacklist(StreetDirectory::PT_VertexId from,StreetDirectory::PT_VertexId to, const std::set<StreetDirectory::PT_EdgeId>& blackList, double& cost)=0;
+    	/*
+    	 * Pure virtual Function to get first K shortest paths in public transport network given pair of vertices.
+    	 */
+    	virtual void getKShortestPaths(uint32_t k, StreetDirectory::PT_VertexId from, StreetDirectory::PT_VertexId to, std::vector< std::vector<PT_NetworkEdge> > & outPathList)=0;
+    	friend class StreetDirectory;
+
+    };
 
 
     /**
@@ -422,8 +520,9 @@ public:
 
     ShortestPathImpl* getDistanceImpl() { return spImpl_; }
 	ShortestPathImpl* getTravelTimeImpl() { return sttpImpl_; }
-	/**
-	 * find one BusStopAgent by BusStop
+	PublicTransitShortestPathImpl* getPublicTransitShortestPathImpl(){return ptImpl_;}
+
+	 /* find one BusStopAgent by BusStop
 	 * @param busStop is a pointer to a given bus stop
 	 * return a pointer to bus stop agent if found, otherwise return null
 	 */
@@ -444,7 +543,7 @@ private:
 
 
 private:
-    StreetDirectory() : pimpl_(nullptr), spImpl_(nullptr), sttpImpl_(nullptr)/*, stats_(nullptr)*/
+    StreetDirectory() : pimpl_(nullptr), spImpl_(nullptr), sttpImpl_(nullptr),ptImpl_(nullptr)/*, stats_(nullptr)*/
     {}
 
     static StreetDirectory instance_;
@@ -459,6 +558,10 @@ private:
 
     // shortest travel time path
     ShortestPathImpl* sttpImpl_;
+
+    //Public Transit implementation
+
+    PublicTransitShortestPathImpl* ptImpl_;
 
     ///The current set of StreetDirectoryStats
     //Stats* stats_;

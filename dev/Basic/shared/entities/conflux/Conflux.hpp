@@ -105,10 +105,12 @@ private:
     	bool isQueuing;
     	bool isMoving;
     	unsigned int roleType;
+    	double vehicleLength;
     	sim_mob::SegmentStats* segStats;
     	const sim_mob::Conflux* conflux;
 
     	PersonProps(const sim_mob::Person* person, const sim_mob::Conflux* conflux);
+    	void printProps(unsigned int personId, uint32_t frame, std::string prefix) const;
     };
 
 	/**
@@ -187,8 +189,6 @@ private:
 	/**list of persons currently on MRT train bound to some node in this conflux*/
 	PersonList mrt;
 
-	uint32_t killedAgentsCount;
-
 	/**
 	 * updates agents in this conflux
 	 */
@@ -217,6 +217,12 @@ private:
 	 * @param person is with the role "waiting bus activity"
 	 */
 	void assignPersonToBusStopAgent(Person* person);
+
+	/**
+	 * assign person to MRT
+	 * @param person is going to board MRT
+	 */
+	void assignPersonToMRT(Person* person);
 
 	/**
 	 * calls frame_init of the movement facet for the person's role
@@ -524,10 +530,10 @@ public:
 	 */
 	static void removeIncident(sim_mob::SegmentStats* segStats);
 
-	uint32_t getKilledAgentsCount() const
-	{
-		return killedAgentsCount;
-	}
+	/**
+	 * collect current person travel time
+	 */
+	void collectTravelTime(Person* person);
 
 	bool isBoundary; //A conflux that receives person from at least one conflux that belongs to another worker
 	bool isMultipleReceiver; //A conflux that receives persons from confluxes that belong to multiple other workers

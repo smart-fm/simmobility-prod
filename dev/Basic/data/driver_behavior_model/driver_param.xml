@@ -61,7 +61,7 @@
 	
 	where:
 	Spd: speed of the subject vehicle
-	Stimulus = <Desired Speed> - <Current Speed
+	Stimulus = <Desired Speed> - <Current Speed>
 
 	This model applies only if the current speed is greater than b[0].
 	Default values are:-->
@@ -74,7 +74,7 @@
 	<param name="FF_Acc_Params_b2" value="0.3091"/>
 	<param name="FF_Acc_Params_stddev" value="1.134"/-->
 
-	<param name="FF_Acc_Params_b0" value="3.0"/>
+	<param name="FF_Acc_Params_b0" value="10.0"/>
 	<param name="FF_Acc_Params_b2" value="0.3091"/>
 	<param name="FF_Acc_Params_stddev" value="1.15"/>
 
@@ -222,6 +222,10 @@
 	The visibility_distance parameter is used in the car follow model to reduce the follower reaction time 
 	when subject vehicle brakes (in meter) -->
 	<param name="visibility_distance" value="10"/>
+	
+<!--This is the distance at which an intersection and vehicles approaching it from other links become visible
+	to a driver.(in metres)-->
+	<param name="intersection_visibility" value="50"/>
 
 <!-- H. LANE CHANGE MODEL PARAMETERS -->
 
@@ -344,6 +348,17 @@
 	"/>
 
 <!-- J.2. NOSING MODEL PARAMETERS -->
+<!--Kazi's Nosing model directly calculates the probability to nose when
+	distance from a point is less than a threshold. 
+	 
+	P = 1 / (1 + exp(-u))
+	
+	where:
+	u = b[0] + b[1] * min(0, lead_rel_spd) + b[3] * rem_dis_impact +
+		b[4] * gap + b[5] * nlanes
+	
+	rem_dis_impact =  10 - 10 / (1 + exp(b[2] * dis))
+-->
 	<param name="kazi_nosing_param" value="-3.159  0.313  -0.027  2.050  0.028  0.6"/>
 
 	<!-- This parameter is used to change drivers reaction time when in a nosing behavior
@@ -363,8 +378,22 @@
 	    0.13    # two
 	    0.03    # three "/>
 
-
-<!-- K. OTHERS -->
+<!-- K. INTERSECTION DRIVING PARAMETERS -->
+	<!--Intersection attentiveness factor-->
+	<param name="intersection_attentiveness_factor_min" value="0.3"/>
+	<param name="intersection_attentivneess_factor_max" value="0.6"/>
+	
+	<!--Minimum gap-->
+	<param name="minimum_gap" value="1.25"/>
+	
+	<!--Critical gap random addon
+											mean	std.dev-->
+	<param name="critical_gap_addon" value="1.0		0.5"/>
+	
+	<!--Impatience factor-->
+	<param name="impatience_factor" value="0.2"/>
+	
+<!-- L. OTHERS -->
 	<!-- minimum speed to consider for a moving vehicle -->
 	<param name="min_speed" value="0.1"/>  <!-- m/s -->
 	<!-- minimum time required between lane changing decisions -->
@@ -374,7 +403,7 @@
 	<!-- Visibility of stopping points (default value) -->
 	<param name="check_stop_point_distance" value="200"/> <!-- meters -->
 
-	<!-- Density (default value) - NOT USED!!! -->
-	<param name="density" value="100.0"/> <!-- veh/km/lane -->
+	<!-- Density (default value) - Calculated by SimMobility!!!-->
+	<param name="density" value="0.0"/> <!-- veh/km/lane -->
 
 </parameters>

@@ -207,7 +207,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 			 }
 			#endif
 
-            //PrintOutV("Day " << currTick << " The housing market has " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize() << " units and \t" << (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " bidders on the market" << std::endl );
+            PrintOutV("Day " << currTick << " The housing market has " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize() << " units and \t" << (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " bidders on the market" << std::endl );
 
             //start all models.
 		    for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)

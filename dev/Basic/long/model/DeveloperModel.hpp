@@ -97,22 +97,7 @@ namespace sim_mob {
             float getBuildingSpaceByParcelId(BigSerial id) const;
             ParcelList getDevelopmentCandidateParcels(bool isInitial);
             const LogsumForDevModel* getAccessibilityLogsumsByFmParcelId(BigSerial fmParcelId) const;
-
-            DeveloperList getDeveloperAgents(bool isInitial);
-            /*
-             * set the iterators of development candidate parcels, at each time tick (day)
-             */
-            void setIterators(ParcelList::iterator &first,ParcelList::iterator &last,bool isInitial);
-
-            void setDevAgentListIterator(DeveloperList::iterator &first,DeveloperList::iterator &last,bool isInitial);
-            /*
-             * set the boolean parameter to indicate whether there are remaining parcels in the pool
-             */
-            void setIsParcelsRemain(bool parcelStatus);
-
-            bool getIsParcelRemain();
-
-            void setIsDevAgentsRemain(bool parcelStatus);
+            DeveloperList getDeveloperAgents();
 
             /*
              * @param days number of days the simulation runs

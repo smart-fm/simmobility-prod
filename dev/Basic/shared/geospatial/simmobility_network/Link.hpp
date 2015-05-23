@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "PolyLine.hpp"
+#include "RoadSegment.hpp"
 #include "Tag.hpp"
 
 namespace simmobility_network
@@ -34,6 +35,9 @@ namespace simmobility_network
     
     //The name of the road this link represents
     std::string roadName;
+    
+    //The road segments making up the link
+    std::vector<RoadSegment *> roadSegments;
     
     //Holds the additional information
     std::vector<Tag> tags;
@@ -72,6 +76,12 @@ namespace simmobility_network
     
     //Setter for the road name
     void setRoadName(std::string roadName);
+    
+    //Returns the vector of road segments that make up the link
+    const std::vector<RoadSegment*>& getRoadSegments() const;
+    
+    //Sets the vector of road segments that make up the link
+    void setRoadSegments(std::vector<RoadSegment*>& roadSegments);
     
     //Returns a vector of tags which holds the additional information
     const std::vector<Tag>& getTags() const;

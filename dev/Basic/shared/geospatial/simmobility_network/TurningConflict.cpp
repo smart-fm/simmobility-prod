@@ -7,8 +7,8 @@
 using namespace simmobility_network;
 
 TurningConflict::TurningConflict() :
-conflictId(0), criticalGap(0), firstConflictDistance(0), firstTurningId(0), priority(0),
-secondConflictDistance(0), secondTurningId(0)
+conflictId(0), criticalGap(0), firstConflictDistance(0), firstTurning(NULL), firstTurningId(0), priority(0),
+secondConflictDistance(0), secondTurning(NULL), secondTurningId(0)
 {
 }
 
@@ -17,9 +17,11 @@ TurningConflict::TurningConflict(const TurningConflict& orig)
 	this->conflictId = orig.conflictId;
 	this->criticalGap = orig.criticalGap;
 	this->firstConflictDistance  = orig.firstConflictDistance;
+	this->firstTurning = orig.firstTurning;
 	this->firstTurningId = orig.firstTurningId;
 	this->priority = orig.priority;
 	this->secondConflictDistance = orig.secondConflictDistance;
+	this->secondTurning = orig.secondTurning;
 	this->secondTurningId = orig.secondTurningId;
 	this->tags = orig.tags;
 	
@@ -27,7 +29,7 @@ TurningConflict::TurningConflict(const TurningConflict& orig)
 
 TurningConflict::~TurningConflict()
 {
-	tags.clear();
+	tags.clear();	
 }
 
 unsigned int TurningConflict::getConflictId() const
@@ -60,6 +62,16 @@ void TurningConflict::setFirstConflictDistance(double firstConflictDistance)
 	this->firstConflictDistance = firstConflictDistance;
 }
 
+TurningPath* TurningConflict::getFirstTurning() const
+{
+	return firstTurning;
+}
+
+void TurningConflict::setFirstTurning(TurningPath* firstTurning)
+{
+	this->firstTurning = firstTurning;
+}
+
 unsigned int TurningConflict::getFirstTurningId() const
 {
 	return firstTurningId;
@@ -88,6 +100,16 @@ double TurningConflict::getSecondConflictDistance() const
 void TurningConflict::setSecondConflictDistance(double secondConflictDistance)
 {
 	this->secondConflictDistance = secondConflictDistance;
+}
+
+TurningPath* TurningConflict::getSecondTurning() const
+{
+	return secondTurning;
+}
+
+void TurningConflict::setSecondTurning(TurningPath* secondTurning)
+{
+	this->secondTurning = secondTurning;
 }
 
 unsigned int TurningConflict::getSecondTurningId() const

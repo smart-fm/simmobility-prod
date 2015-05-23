@@ -14,6 +14,7 @@ laneId(0), laneIndex(0), laneRules(LANE_RULES_IS_PEDESTRIAN_LANE), polyLine(NULL
 Lane::Lane(const Lane& orig)
 {
 	this->laneId = orig.laneId;
+	this->laneConnectors = orig.laneConnectors;
 	this->laneIndex = orig.laneIndex;
 	this->laneRules = orig.laneRules;
 	this->polyLine = orig.polyLine;	
@@ -23,11 +24,19 @@ Lane::Lane(const Lane& orig)
 
 Lane::~Lane()
 {
+	//Delete the outgoing lane connectors
+	for(std::vector<LaneConnector *>::iterator itConnectors = laneConnectors.begin(); itConnectors != laneConnectors.end(); ++itConnectors)
+	{
+		delete *itConnectors;
+		*itConnectors = NULL;		
+	}
+	
 	if(polyLine)
 	{
 		delete polyLine;
 		polyLine = NULL;
 	}
+	
 	tags.clear();
 }
 
@@ -39,6 +48,16 @@ unsigned int Lane::getLaneId() const
 void Lane::setLaneId(unsigned int laneId)
 {
 	this->laneId = laneId;
+}
+
+const std::vector<LaneConnector*>& Lane::getLaneConnectors() const
+{
+	return laneConnectors;
+}
+
+void Lane::setLaneConnectors(std::vector<LaneConnector*>& laneConnectors)
+{
+	this->laneConnectors = laneConnectors;
 }
 
 unsigned int Lane::getLaneIndex() const

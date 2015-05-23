@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <map>
 #include <vector>
 
 #include "PolyLine.hpp"
 #include "Tag.hpp"
+#include "TurningConflict.hpp"
 
 namespace simmobility_network
 {
@@ -33,6 +35,10 @@ namespace simmobility_network
     
     //Indicates the id of the lane at which the turning path ends
     unsigned int toLaneId;
+    
+    //The turning conflicts that lie on the turning. The key for this map is the other turning 
+    //path
+    std::map<TurningPath *, TurningConflict *> turningConflicts;
     
     //Indicates the id of the turning group to which this turning path belongs
     unsigned int turningGroupId;

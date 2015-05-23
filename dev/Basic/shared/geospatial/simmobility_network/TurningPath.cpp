@@ -19,6 +19,7 @@ TurningPath::TurningPath(const TurningPath& orig)
 	this->polyLine = orig.polyLine;
 	this->tags = orig.tags;
 	this->toLaneId = orig.toLaneId;
+	this->turningConflicts = orig.turningConflicts;
 	this->turningGroupId = orig.turningGroupId;
 }
 
@@ -31,6 +32,20 @@ TurningPath::~TurningPath()
 	}
 	
 	tags.clear();
+	
+	//Delete the turning conflicts that lie on the turnings
+	std::map<TurningPath *, TurningConflict *>::iterator itConflicts = turningConflicts.begin();
+	while(itConflicts != turningConflicts.end())
+	{
+		if(itConflicts->second)
+		{
+			delete itConflicts->second;
+			itConflicts->second = NULL;
+		}
+		++itConflicts;
+	}
+	
+	turningConflicts.clear();
 }
 
 unsigned int TurningPath::getTurningPathId() const

@@ -18,6 +18,7 @@ Node::Node(const Node& orig)
 	this->nodeType = orig.nodeType;	
 	this->tags = orig.tags;
 	this->trafficLightId = orig.trafficLightId;
+	this->turningGroups = orig.turningGroups;
 }
 
 Node::~Node()
@@ -28,8 +29,33 @@ Node::~Node()
 		delete location;
 		location = NULL;
 	}
-	
+
 	tags.clear();
+	
+	//Delete the turning groups
+	
+	//Iterate through the outer map
+	std::map<unsigned int, std::map<unsigned int, TurningGroup *> >::iterator itOuterMap = turningGroups.begin();
+	while(itOuterMap != turningGroups.end())
+	{
+		//Iterate through the inner map
+		std::map<unsigned int, TurningGroup *>::iterator itInnerMap = itOuterMap->second.begin();
+		while(itInnerMap != itOuterMap->second.end())
+		{
+			//Delete the turning group
+			delete itInnerMap->second;
+			itInnerMap->second = NULL;
+			++itInnerMap;
+		}
+		
+		//Clear the inner map
+		itOuterMap->second.clear();
+		
+		++itOuterMap;
+	}
+	
+	//Clear the map
+	turningGroups.clear();
 }
 
 void Node::setNodeId(unsigned int nodeId)

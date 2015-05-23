@@ -4,11 +4,13 @@
 
 #pragma once
 
+#include <map>
 #include <string>
 #include <vector>
 
 #include "Point.hpp"
 #include "Tag.hpp"
+#include "TurningGroup.hpp"
 
 namespace simmobility_network
 {
@@ -49,6 +51,10 @@ namespace simmobility_network
     
     //The identifier for the traffic light if present at the node
     unsigned int trafficLightId;
+    
+    //The turning groups located at the node. The outer map stores the 'from link id' vs
+    //an inner map, which store the 'to link id' vs the turning group
+    std::map<unsigned int, std::map<unsigned int, TurningGroup *> > turningGroups;
 
   public:
     

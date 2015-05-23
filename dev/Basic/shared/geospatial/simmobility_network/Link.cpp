@@ -15,14 +15,22 @@ Link::Link(const Link& orig)
 {
 	this->linkId = orig.linkId;
 	this->fromNodeId = orig.fromNodeId;
-	this->linkCategory = orig.linkCategory;
+	this->linkCategory = orig.linkCategory;	
 	this->roadName = orig.roadName;
+	this->roadSegments = orig.roadSegments;
 	this->tags = orig.tags;
 	this->toNodeId = orig.toNodeId;
 }
 
 Link::~Link()
 {
+	//Delete the road segment in the link
+	for(std::vector<RoadSegment *>::iterator itSegments = roadSegments.begin(); itSegments != roadSegments.end(); ++itSegments)
+	{
+		delete *itSegments;
+		*itSegments = NULL;
+	}
+	
 	tags.clear();
 }
 
@@ -64,6 +72,16 @@ std::string Link::getRoadName() const
 void Link::setRoadName(std::string roadName)
 {
 	this->roadName = roadName;
+}
+
+const std::vector<RoadSegment*>& Link::getRoadSegments() const
+{
+	return roadSegments;
+}
+
+void Link::setRoadSegments(std::vector<RoadSegment*>& roadSegments)
+{
+	this->roadSegments = roadSegments;
 }
 
 const std::vector<Tag>& Link::getTags() const

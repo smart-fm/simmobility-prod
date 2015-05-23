@@ -18,13 +18,39 @@ TurningGroup::TurningGroup(const TurningGroup& orig)
 	this->phases = orig.phases;
 	this->rules = orig.rules;
 	this->tags = orig.tags;
-	this->toLinkId = orig.toLinkId;
+	this->toLinkId = orig.toLinkId;	
+	this->turningPaths = orig.turningPaths;
 	this->visibility = orig.visibility;
 }
 
 TurningGroup::~TurningGroup()
 {
 	tags.clear();
+	
+	//Delete the turning paths
+	
+	//Iterate through the outer map
+	std::map<unsigned int, std::map<unsigned int, TurningPath *> >::iterator itOuterMap = turningPaths.begin();
+	while(itOuterMap != turningPaths.end())
+	{
+		//Iterate through the inner map
+		std::map<unsigned int, TurningPath *>::iterator itInnerMap = itOuterMap->second.begin();
+		while(itInnerMap != itOuterMap->second.end())
+		{
+			//Delete the turning group
+			delete itInnerMap->second;
+			itInnerMap->second = NULL;
+			++itInnerMap;
+		}
+		
+		//Clear the inner map
+		itOuterMap->second.clear();
+		
+		++itOuterMap;
+	}
+	
+	//Clear the map
+	turningPaths.clear();
 }
 
 unsigned int TurningGroup::getTurningGroupId() const
@@ -45,6 +71,16 @@ unsigned int TurningGroup::getFromLinkId() const
 void TurningGroup::setFromLinkId(unsigned int fromLinkId)
 {
 	this->fromLinkId = fromLinkId;
+}
+
+unsigned int TurningGroup::getNodeId() const
+{
+	return nodeId;
+}
+
+void TurningGroup::setNodeId(unsigned int nodeId)
+{
+	this->nodeId = nodeId;
 }
 
 std::string TurningGroup::getPhases() const

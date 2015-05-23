@@ -11,6 +11,8 @@
 namespace simmobility_network
 {
 
+  class TurningPath;
+  
   class TurningConflict
   {
   private:
@@ -25,6 +27,10 @@ namespace simmobility_network
     //Distance of conflict point from start of the first turning
     double firstConflictDistance;
     
+    //The first turning path in the conflict 
+    //Note:: First/second doesn't have any significance
+    TurningPath *firstTurning;
+    
     //Id of the first conflicting Turning path
     unsigned int firstTurningId;
     
@@ -34,6 +40,10 @@ namespace simmobility_network
       
     //Distance of conflict point from the start of the second turning
     double secondConflictDistance;
+    
+    //The second turning section in the conflict 
+    //Note:: First/second doesn't have any significance
+    TurningPath *secondTurning;
 
     //Id of the second conflicting Turning path
     unsigned int secondTurningId;
@@ -62,16 +72,16 @@ namespace simmobility_network
     void setCriticalGap(double criticalGap);
     
     //Returns the conflict distance to first turning
-    double getFirstConflictDistance() const;
-    
-    //Returns the value of the priority for the conflict
-    int getPriority() const;
-    
-    //Sets the value of the priority for the conflict
-    void setPriority(int priority);
+    double getFirstConflictDistance() const;    
     
     //Sets the conflict distance to the first turning
     void setFirstConflictDistance(double firstConflictDistance);
+    
+    //Returns the first turning to which the conflict belongs
+    TurningPath* getFirstTurning() const;
+    
+    //Sets the first turning to which the conflict belongs
+    void setFirstTurning(TurningPath* firstTurning);
     
     //Returns the id of the first turning
     unsigned int getFirstTurningId() const;
@@ -79,11 +89,23 @@ namespace simmobility_network
     //Sets the id of the first turning
     void setFirstTurningId(unsigned int firstTurningId);
     
+    //Returns the value of the priority for the conflict
+    int getPriority() const;
+    
+    //Sets the value of the priority for the conflict
+    void setPriority(int priority);
+    
     //Returns the conflict distance to second turning
     double getSecondConflictDistance() const;
     
     //Sets the conflict distance to second turning
     void setSecondConflictDistance(double secondConflictDistance);
+    
+    //Returns the second turning to which the conflict belongs
+    TurningPath* getSecondTurning() const;
+    
+    //Sets the second turning to which the conflict belongs
+    void setSecondTurning(TurningPath* secondTurning);
     
     //Returns the id of the second turning
     unsigned int getSecondTurningId() const;

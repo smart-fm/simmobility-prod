@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "Lane.hpp"
 #include "PolyLine.hpp"
 #include "Tag.hpp"
 
@@ -48,6 +49,9 @@ namespace simmobility_network
     //Indicates the maximum number of vehicles that the road segment can accommodate
     unsigned int capacity;
     
+    //The lanes that make up th road segment
+    std::vector<Lane *> lanes;
+    
     //Indicates the maximum speed the vehicles should adhere to when travelling on the road segment
     unsigned int maxSpeed;
     
@@ -81,7 +85,13 @@ namespace simmobility_network
     unsigned int getCapacity() const;
     
     //Setter for the road segment capacity
-    void setCapacity(unsigned int capacity);    
+    void setCapacity(unsigned int capacity);
+    
+    //Returns the vector of lanes that make up the segment
+    const std::vector<Lane*>& getLanes() const;
+    
+    //Sets the vector of lanes that make up the segment
+    void setLanes(std::vector<Lane*>& lanes);    
     
     //Returns the id of the link to which the road segment belongs
     unsigned int getLinkId() const;

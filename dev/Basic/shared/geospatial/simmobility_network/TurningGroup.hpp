@@ -4,9 +4,11 @@
 
 #pragma once
 
+#include <map>
 #include <vector>
 
 #include "Tag.hpp"
+#include "TurningPath.hpp"
 
 namespace simmobility_network
 {
@@ -30,6 +32,9 @@ namespace simmobility_network
     //Indicates the link from which this turning group originates
     unsigned int fromLinkId;
     
+    //The id of the node to which this turning group belongs
+    unsigned int nodeId;
+    
     //Indicates the phases of the traffic light during which the vehicles can pass
     std::string phases;
     
@@ -41,6 +46,10 @@ namespace simmobility_network
     
     //Indicates the link at which this turning group terminates
     unsigned int toLinkId;
+    
+    //The turning paths located in a turning group. The outer map stores the 'from lane id' vs
+    //an inner map, which store the 'to lane id' vs the turning path
+    std::map<unsigned int, std::map<unsigned int, TurningPath *> > turningPaths;
     
     //Defines the visibility of the intersection from the turning group (m/s)
     double visibility;
@@ -64,6 +73,12 @@ namespace simmobility_network
     
     //Setter for the id of the link from which this turning group begins
     void setFromLinkId(unsigned int fromLinkId);
+    
+    //Returns the id of the node to which the turning group belongs
+    unsigned int getNodeId() const;
+    
+    //Sets the id of the node to which the turning group belong
+    void setNodeId(unsigned int nodeId);
     
     //Returns the signal phases during which vehicles on the turning group can pass
     std::string getPhases() const;

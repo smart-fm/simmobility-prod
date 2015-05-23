@@ -15,6 +15,7 @@ RoadSegment::RoadSegment(const RoadSegment& orig)
 {
 	this->roadSegmentId = orig.roadSegmentId;
 	this->capacity = orig.capacity;
+	this->lanes = orig.lanes;
 	this->maxSpeed = orig.maxSpeed;
 	this->polyLine = orig.polyLine;
 	this->roadName = orig.roadName;
@@ -24,6 +25,13 @@ RoadSegment::RoadSegment(const RoadSegment& orig)
 
 RoadSegment::~RoadSegment()
 {
+	//Delete the lanes in the road segment
+	for(std::vector<Lane *>::iterator itLanes = lanes.begin(); itLanes != lanes.end(); ++itLanes)
+	{
+		delete *itLanes;
+		*itLanes = NULL;
+	}
+	
 	if(polyLine)
 	{
 		delete polyLine;
@@ -51,6 +59,16 @@ unsigned int RoadSegment::getCapacity() const
 void RoadSegment::setCapacity(unsigned int capacity)
 {
 	this->capacity = capacity;
+}
+
+const std::vector<Lane*>& RoadSegment::getLanes() const
+{
+	return lanes;
+}
+
+void RoadSegment::setLanes(std::vector<Lane*>& lanes)
+{
+	this->lanes = lanes;
 }
 
 unsigned int RoadSegment::getMaxSpeed() const

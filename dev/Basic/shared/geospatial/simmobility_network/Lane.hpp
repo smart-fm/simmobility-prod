@@ -8,6 +8,7 @@
 
 #include "Tag.hpp"
 #include "PolyLine.hpp"
+#include "LaneConnector.hpp"
 
 namespace simmobility_network
 {
@@ -23,6 +24,9 @@ namespace simmobility_network
     
     //Unique identifier for the lane
     unsigned int laneId;
+    
+    //The outgoing lane connectors
+    std::vector<LaneConnector *> laneConnectors;
     
     //Indicates the index of the lane
     unsigned int laneIndex;
@@ -52,6 +56,12 @@ namespace simmobility_network
     
     //Sets the lane id
     void setLaneId(unsigned int laneId);
+    
+    //Returns the outgoing lane connectors
+    const std::vector<LaneConnector*>& getLaneConnectors() const;
+    
+    //Sets the outgoing lane connectors
+    void setLaneConnectors(std::vector<LaneConnector*>& laneConnectors);
     
     //Returns the lane index
     unsigned int getLaneIndex() const;

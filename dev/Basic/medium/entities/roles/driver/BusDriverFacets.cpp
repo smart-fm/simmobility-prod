@@ -366,10 +366,20 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				else {
 					params.elapsedSeconds += parentBusDriver->waitingTimeAtbusStop;
 					parentBusDriver->waitingTimeAtbusStop = 0;
-					parentBusDriver->closeBusDoors(stopAg);
-					routeTracker.updateNextStop();
-					// There is remaining time, try to move to next segment
-					return DriverMovement::moveToNextSegment(params);
+					double output = getOutputCounter(currLane, currSegStat);
+					if(output > 0)
+					{
+						parentBusDriver->closeBusDoors(stopAg);
+						routeTracker.updateNextStop();
+						// There is remaining time, try to move to next segment
+						return DriverMovement::moveToNextSegment(params);
+					}
+					else
+					{
+						//remain in bus stop
+						params.elapsedSeconds = params.secondsInTick;
+						return false;
+					}
 				}
 			}
 			else

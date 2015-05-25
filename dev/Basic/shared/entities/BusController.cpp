@@ -134,7 +134,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Enti
 				currAgTripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));// one person for one busTrip, currently not considering Activity for BusDriver
 				currAg->setTripChain(currAgTripChain);
 				currAg->initTripChain();
-
+				currAg->busLine = busline->getBusLineID();
 				// scheduled for dispatch
 				addOrStashBuses(currAg, active_agents);
 			}

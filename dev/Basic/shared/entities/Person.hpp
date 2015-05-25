@@ -383,6 +383,8 @@ public:
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil) CHECK_MPI_THROW;
 
 	friend class Conflux;
+
+	std::string busLine; //tmp addition for debugging ~ Harish
 };
 
 }

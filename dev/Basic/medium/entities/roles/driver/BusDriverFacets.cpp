@@ -149,6 +149,7 @@ void BusDriverMovement::frame_tick() {
 //	uint16_t statsNum = (person->getCurrSegStats()? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
 //	logout << "(BusDriver"
 //			<<","<<person->getId()
+//			<<","<<person->busLine
 //			<<","<<parentBusDriver->getParams().now.frame()
 //			<<",{"
 //			<<"RoadSegment:"<< segId

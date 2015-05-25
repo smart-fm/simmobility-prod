@@ -93,6 +93,7 @@ public:
     ///Change the role of this person: Driver, Passenger, Pedestrian
     void changeRole(sim_mob::Role* newRole);
     sim_mob::Role* getRole() const;
+    sim_mob::Role* getPrevRole() const;
     // set NextRole
     void setNextRole(sim_mob::Role* newRole);
     // get NextRole
@@ -101,14 +102,16 @@ public:
     // find Person's NextRole
     bool findPersonNextRole();
 
+    virtual void setStartTime(unsigned int value);
+
     /**
      * insert a waiting activity before bus travel
      * @param tripChain is the reference to current trip chain
      */
     void insertWaitingActivityToTrip();
     void convertODsToTrips();
-    void makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips,
-    		std::vector<const sim_mob::OD_Trip*>& matchedTrips);
+    bool makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips,
+    		const std::vector<sim_mob::OD_Trip>& matchedTrips);
 
     // update nextTripChainItem, used only for NextRole
 	bool updateNextTripChainItem();
@@ -316,6 +319,7 @@ private:
 	  * prints the trip chain item types of each item in tripChain
 	  */
 	 void printTripChainItemTypes() const;
+
 protected:
 	virtual bool frame_init(timeslice now);
 	virtual Entity::UpdateStatus frame_tick(timeslice now);

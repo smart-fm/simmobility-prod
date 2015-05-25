@@ -47,6 +47,7 @@
 #include "geospatial/TurningPolyline.h"
 #include "geospatial/Polypoint.h"
 #include "path/PathSetManager.hpp"
+#include "path/PT_RouteChoiceLuaModel.hpp"
 
 #include "logging/Log.hpp"
 #include "metrics/Length.hpp"
@@ -136,6 +137,8 @@ public:
 					std::string& pathset_id,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,
 					const std::string functionName,
 					const std::set<const sim_mob::RoadSegment*>& excludedRS = std::set<const sim_mob::RoadSegment*>());
+	static void loadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet);
+	static void LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet);
 #ifndef SIMMOB_DISABLE_MPI
 	void TransferBoundaryRoadSegment();
 #endif
@@ -311,6 +314,21 @@ bool DatabaseLoader::InsertSinglePath2DB(soci::session& sql,std::set<sim_mob::Si
 	}
 }
 
+void DatabaseLoader::loadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet)
+{
+	soci::rowset<sim_mob::PT_Path> rs = (sql.prepare << std::string("select * from get_pt_choiceset") + "(:pathset_id_in)", soci::use(pathSetId) );
+	for (soci::rowset<sim_mob::PT_Path>::const_iterator it = rs.begin();	it != rs.end(); ++it) {
+		pathSet.pathSet.insert(*it);
+	}
+}
+
+void DatabaseLoader::LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet)
+{
+	soci::rowset<sim_mob::PT_Path> rs = (sql.prepare << std::string("select * from ")+funcName + "(:o_node,:d_node)", soci::use(originalNode),soci::use(destNode) );
+	for (soci::rowset<sim_mob::PT_Path>::const_iterator it = rs.begin();	it != rs.end(); ++it) {
+		pathSet.pathSet.insert(*it);
+	}
+}
 std::map<std::string, sim_mob::OneTimeFlag> ontimeFlog;
 sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 		std::string& pathset_id,
@@ -319,7 +337,9 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 		const std::set<const sim_mob::RoadSegment*>& excludedRS)
 {
 	//prepare statement
-	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare	<< "select * from " + functionName + "(:pathset_id_in)", soci::use(pathset_id));
+	std::stringstream query;
+	query << "select * from " << functionName << "(" << pathset_id << ")"; //pathset_id is a string of "<origin_node_id>,<destination_node_id>" format
+	soci::rowset<sim_mob::SinglePath> rs = (sql.prepare	<< query.str());
 	//	process result
 	int cnt = 0;
 	bool emptyCheck = true;
@@ -623,7 +643,7 @@ void DatabaseLoader::loadTurningSectionTable(const std::string& storedProc,sim_m
 	}
 	catch (soci::soci_error const & err)
 	{
-		std::cout<<"loadTurningSectionTable: "<<err.what()<<std::endl;
+		sim_mob::Print() << "loadTurningSectionTable: " << err.what() << std::endl;
 	}
 }
 void DatabaseLoader::loadTurningPolyline(const std::string& storedProc, const std::string& pointsStoredProc, sim_mob::RoadNetwork& rn) 
@@ -647,7 +667,7 @@ void DatabaseLoader::loadTurningPolyline(const std::string& storedProc, const st
 	}
 	catch (soci::soci_error const & err)
 	{
-		std::cout<<"loadTurningPolyline: "<<err.what()<<std::endl;
+		sim_mob::Print() << "loadTurningPolyline: " << err.what() << std::endl;
 	}
 }
 void DatabaseLoader::loadPolypointByPolyline(const std::string& pointsStoredProc, sim_mob::TurningPolyline *turningPolyline) 
@@ -668,7 +688,7 @@ void DatabaseLoader::loadPolypointByPolyline(const std::string& pointsStoredProc
 	}
 	catch (soci::soci_error const & err)
 	{
-		std::cout<<"loadTurningPolyline: "<<err.what()<<std::endl;
+		sim_mob::Print() << "loadTurningPolyline: " << err.what() << std::endl;
 	}
 }
 void DatabaseLoader::storeTurningPoints(sim_mob::RoadNetwork& rn) 
@@ -690,7 +710,7 @@ void DatabaseLoader::storeTurningPoints(sim_mob::RoadNetwork& rn)
 	}
 	catch (soci::soci_error const & err)
 	{
-		std::cout<<"storeTurningPoints: "<<err.what()<<std::endl;
+		sim_mob::Print() << "storeTurningPoints: " << err.what() << std::endl;
 	}
 }
 void DatabaseLoader::loadTurningConflictTable(const std::string& storedProc,sim_mob::RoadNetwork& rn) 
@@ -712,7 +732,7 @@ void DatabaseLoader::loadTurningConflictTable(const std::string& storedProc,sim_
 	}
 	catch (soci::soci_error const & err)
 	{
-		std::cout<<"loadTurningConflictTable: "<<err.what()<<std::endl;
+		sim_mob::Print() << "loadTurningConflictTable: " << err.what() << std::endl;
 	}
 }
 void DatabaseLoader::loadNodeTypeTable(const std::string& storedProc,std::map<string,int>& nodeTypeMap)
@@ -725,7 +745,7 @@ void DatabaseLoader::loadNodeTypeTable(const std::string& storedProc,std::map<st
 	}
 	catch (soci::soci_error const & err)
 	{
-		std::cout<<"loadNodeTypeTable: "<<err.what()<<std::endl;
+		sim_mob::Print() << "loadNodeTypeTable: " << err.what() << std::endl;
 	}
 }
 
@@ -739,8 +759,8 @@ void DatabaseLoader::LoadSections(const std::string& storedProc)
 	for (soci::rowset<Section>::iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check nodes
 		if(nodes_.count(it->TMP_FromNodeID)==0 || nodes_.count(it->TMP_ToNodeID)==0) {
-			std::cout <<"From node: " <<it->TMP_FromNodeID  <<"  " <<nodes_.count(it->TMP_FromNodeID) <<"\n";
-			std::cout <<"To node: " <<it->TMP_ToNodeID  <<"  " <<nodes_.count(it->TMP_ToNodeID) <<"\n";
+			sim_mob::Print() <<"From node: " <<it->TMP_FromNodeID  <<"  " <<nodes_.count(it->TMP_FromNodeID) <<"\n";
+			sim_mob::Print() <<"To node: " <<it->TMP_ToNodeID  <<"  " <<nodes_.count(it->TMP_ToNodeID) <<"\n";
 			throw std::runtime_error("Invalid From or To node.");
 		}
 
@@ -887,7 +907,7 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 		if(sections_.count(it->TMP_SectionId)==0)
 		{
 			//throw std::runtime_error("Invalid polyline section reference.");
-			std::cout << "Invalid polyline section reference." << it->TMP_SectionId << std::endl;
+			sim_mob::Print() << "Invalid polyline section reference." << it->TMP_SectionId << std::endl;
 			continue;
 		}
 
@@ -950,7 +970,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 			//check nodes
 			if (it->fromLocationType == sim_mob::TripChainItem::LT_NODE) {
 				if (nodes_.count(it->tmp_fromLocationNodeID) == 0) {
-					std::cout << "Invalid trip chain fromNode reference."<< std::endl;
+					sim_mob::Print() << "Invalid trip chain fromNode reference."<< std::endl;
 					//throw std::runtime_error("Invalid trip chain fromNode reference.");
 					continue;
 				} else {
@@ -960,7 +980,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 
 			if (it->toLocationType == sim_mob::TripChainItem::LT_NODE) {
 				if (nodes_.count(it->tmp_toLocationNodeID) == 0) {
-					std::cout << "Invalid trip chain toNode reference."<< std::endl;
+					sim_mob::Print() << "Invalid trip chain toNode reference."<< std::endl;
 					//throw std::runtime_error("Invalid trip chain toNode reference.");
 					continue;
 				} else {
@@ -1133,7 +1153,7 @@ std::string getStoredProcedure(map<string, string> const & storedProcs, string c
 	if (iter != storedProcs.end())
 		return iter->second;
 	if (!mandatory) {
-		std::cout <<"Skipping optional database property: " + procedureName <<std::endl;
+		sim_mob::Print() <<"Skipping optional database property: " + procedureName <<std::endl;
 		return "";
 	}
 	throw std::runtime_error("expected to find stored-procedure named '" + procedureName
@@ -2020,7 +2040,7 @@ DatabaseLoader::createSignals()
 //		  not needed for the time being
 //        const_cast<sim_mob::Signal &>(signal).addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, dbSignal.bearing);
     }
-    std::cout << "A Total of " << nof_signals << " were successfully created\n";
+    sim_mob::Print() << "A Total of " << nof_signals << " were successfully created\n";
 }
 
 /*SCATS IMPLEMENTATION ONLY.
@@ -2672,9 +2692,21 @@ bool sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(soci::session& sql, int
 	return DatabaseLoader::loadLinkRealTimeTravelTime(sql, interval, linkRealtimeTravelTimePool);
 }
 
+
+void sim_mob::aimsun::Loader::LoadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet)
+{
+	DatabaseLoader::loadPT_ChoiceSetFrmDB(sql, pathSetId, pathSet);
+}
+
+void sim_mob::aimsun::Loader::LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet)
+{
+	DatabaseLoader::LoadPT_PathsetFrmDB(sql, funcName, originalNode, destNode, pathSet);
+}
+
 sim_mob::HasPath sim_mob::aimsun::Loader::loadSinglePathFromDB(soci::session& sql, std::string& pathset_id,
 		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool, const std::string functionName,
 		const std::set<const sim_mob::RoadSegment *> & excludedRS)
+
 {
 	return DatabaseLoader::loadSinglePathFromDB(sql, pathset_id, spPool, functionName, excludedRS);
 }
@@ -2706,7 +2738,8 @@ bool sim_mob::aimsun::Loader::storeSinglePath(soci::session& sql,
 						<< sp->valid_path << ","
 						<< sp->isShortestPath << ","
 						<< sp->travelTime << ","
-						<< sp->isMinTravelTime << "\n";
+						<< sp->isMinTravelTime << ","
+						<< sp->pathSetId << "\n";
 			}
 		}
 	}
@@ -2816,7 +2849,7 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), config.getPT_bus_dispatch_freq());
 	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), config.getPT_bus_routes(), config.getRoadSegments_Map());
 	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), config.getPT_bus_stops(), config.getBusStops_Map());
-	loader.LoadOD_Trips(getStoredProcedure(storedProcs, "od_trips", false), config.getODsTripsMap());
+	loader.LoadOD_Trips(getStoredProcedure(storedProcs, "od_trips", false), sim_mob::PT_RouteChoiceLuaModel::Instance()->GetODsTripMap());
 
 	std::cout <<"AIMSUN Network successfully imported.\n";
 
@@ -3081,7 +3114,7 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 		catch (const std::out_of_range& oor) {
 			debugMsgs << "Loader::ProcessConfluxes() : No segments were found at multinode: "
 					<< (*i)->getID() << "|location: " << (*i)->getLocation() << std::endl;
-			Print() << debugMsgs.str();
+			sim_mob::Print() << debugMsgs.str();
 			debugMsgs.str(std::string());
 			continue;
 		}
@@ -3089,6 +3122,136 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw)
 		confluxes.insert(conflux);
 		multinode_confluxes.insert(std::make_pair(*i, conflux));
 	} // end for each multinode
+	CreateLaneGroups();
+}
+
+void sim_mob::aimsun::Loader::CreateLaneGroups()
+{
+	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
+	if(confluxes.empty()) { return; }
+
+	typedef std::vector<sim_mob::SegmentStats*> SegmentStatsList;
+	typedef std::map<const sim_mob::Lane*, sim_mob::LaneStats* > LaneStatsMap;
+	typedef std::map<sim_mob::Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
+
+	for(std::set<sim_mob::Conflux*>::const_iterator cfxIt=confluxes.begin(); cfxIt!=confluxes.end(); cfxIt++)
+	{
+		UpstreamSegmentStatsMap& upSegsMap = (*cfxIt)->upstreamSegStatsMap;
+		const sim_mob::MultiNode* cfxMultinode = (*cfxIt)->getMultiNode();
+		for(UpstreamSegmentStatsMap::const_iterator upSegsMapIt=upSegsMap.begin(); upSegsMapIt!=upSegsMap.end(); upSegsMapIt++)
+		{
+			const SegmentStatsList& segStatsList = upSegsMapIt->second;
+			if(segStatsList.empty()) { throw std::runtime_error("No segment stats for link"); }
+
+			//assign downstreamLinks to the last segment stats
+			SegmentStats* lastStats = segStatsList.back();
+			const std::set<sim_mob::LaneConnector*>& lcs = cfxMultinode->getOutgoingLanes(lastStats->getRoadSegment());
+			std::set<const sim_mob::Lane*> connLanes;
+			for (std::set<sim_mob::LaneConnector*>::const_iterator lcIt = lcs.begin(); lcIt != lcs.end(); lcIt++)
+			{
+				const sim_mob::Lane* fromLane = (*lcIt)->getLaneFrom();
+				connLanes.insert(fromLane);
+				const sim_mob::Link* downStreamLink = (*lcIt)->getLaneTo()->getRoadSegment()->getLink();
+				lastStats->laneStatsMap.at(fromLane)->addDownstreamLink(downStreamLink); //duplicates are eliminated by the std::set containing the downstream links
+			}
+
+			//construct inverse lookup for convenience
+			for (LaneStatsMap::const_iterator lnStatsIt = lastStats->laneStatsMap.begin(); lnStatsIt != lastStats->laneStatsMap.end(); lnStatsIt++)
+			{
+				if(lnStatsIt->second->isLaneInfinity()) { continue; }
+				const std::set<const sim_mob::Link*>& downstreamLnks = lnStatsIt->second->getDownstreamLinks();
+				for(std::set<const sim_mob::Link*>::const_iterator dnStrmIt = downstreamLnks.begin(); dnStrmIt != downstreamLnks.end(); dnStrmIt++)
+				{
+					lastStats->laneGroup[*dnStrmIt].push_back(lnStatsIt->second);
+				}
+			}
+
+			//extend the downstream links assignment to the segmentStats upstream to the last segmentStats
+			SegmentStatsList::const_reverse_iterator upSegsRevIt = segStatsList.rbegin();
+			upSegsRevIt++; //lanestats of last segmentstats is already assigned with downstream links... so skip the last segmentstats
+			const sim_mob::SegmentStats* downstreamSegStats = lastStats;
+			for(; upSegsRevIt!=segStatsList.rend(); upSegsRevIt++)
+			{
+				sim_mob::SegmentStats* currSegStats = (*upSegsRevIt);
+				const sim_mob::RoadSegment* currSeg = currSegStats->getRoadSegment();
+				const std::vector<sim_mob::Lane*>& currLanes = currSeg->getLanes();
+				if(currSeg == downstreamSegStats->getRoadSegment())
+				{	//currSegStats and downstreamSegStats have the same parent segment
+					//lanes of the two segstats are same
+					for (std::vector<sim_mob::Lane*>::const_iterator lnIt = currLanes.begin(); lnIt != currLanes.end(); lnIt++)
+					{
+						const sim_mob::Lane* ln = (*lnIt);
+						if(ln->is_pedestrian_lane()) { continue; }
+						const sim_mob::LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(ln);
+						sim_mob::LaneStats* currLnStats = currSegStats->laneStatsMap.at(ln);
+						currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
+					}
+				}
+				else
+				{
+					const sim_mob::UniNode* uninode = dynamic_cast<const sim_mob::UniNode*>(currSeg->getEnd());
+					if(!uninode) { throw std::runtime_error("Multinode found in the middle of a link"); }
+					for (std::vector<sim_mob::Lane*>::const_iterator lnIt = currLanes.begin(); lnIt != currLanes.end(); lnIt++)
+					{
+						const sim_mob::Lane* ln = (*lnIt);
+						if(ln->is_pedestrian_lane()) { continue; }
+						sim_mob::LaneStats* currLnStats = currSegStats->laneStatsMap.at(ln);
+						const UniNode::UniLaneConnector uniLnConnector = uninode->getForwardLanes(*ln);
+						if(uniLnConnector.left)
+						{
+							const sim_mob::LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(uniLnConnector.left);
+							currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
+						}
+						if(uniLnConnector.right)
+						{
+							const sim_mob::LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(uniLnConnector.right);
+							currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
+						}
+						if(uniLnConnector.center)
+						{
+							const sim_mob::LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(uniLnConnector.center);
+							currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
+						}
+					}
+				}
+
+				//construct inverse lookup for convenience
+				for (LaneStatsMap::const_iterator lnStatsIt = currSegStats->laneStatsMap.begin(); lnStatsIt != currSegStats->laneStatsMap.end(); lnStatsIt++)
+				{
+					if(lnStatsIt->second->isLaneInfinity()) { continue; }
+					const std::set<const sim_mob::Link*>& downstreamLnks = lnStatsIt->second->getDownstreamLinks();
+					for(std::set<const sim_mob::Link*>::const_iterator dnStrmIt = downstreamLnks.begin(); dnStrmIt != downstreamLnks.end(); dnStrmIt++)
+					{
+						currSegStats->laneGroup[*dnStrmIt].push_back(lnStatsIt->second);
+					}
+				}
+
+				downstreamSegStats = currSegStats;
+			}
+
+//			*********** the commented for loop below is to print the lanes which do not have lane groups ***
+//			for(SegmentStatsList::const_reverse_iterator statsRevIt=segStatsList.rbegin(); statsRevIt!=segStatsList.rend(); statsRevIt++)
+//			{
+//				const LaneStatsMap lnStatsMap = (*statsRevIt)->laneStatsMap;
+//				unsigned int segId = (*statsRevIt)->getRoadSegment()->getSegmentAimsunId();
+//				uint16_t statsNum = (*statsRevIt)->statsNumberInSegment;
+//				const std::vector<sim_mob::Lane*>& lanes = (*statsRevIt)->getRoadSegment()->getLanes();
+//				unsigned int numLanes = 0;
+//				for(std::vector<sim_mob::Lane*>::const_iterator lnIt = lanes.begin(); lnIt!=lanes.end(); lnIt++)
+//				{
+//					if(!(*lnIt)->is_pedestrian_lane()) { numLanes++; }
+//				}
+//				for (LaneStatsMap::const_iterator lnStatsIt = lnStatsMap.begin(); lnStatsIt != lnStatsMap.end(); lnStatsIt++)
+//				{
+//					if(lnStatsIt->second->isLaneInfinity() || lnStatsIt->first->is_pedestrian_lane()) { continue; }
+//					if(lnStatsIt->second->getDownstreamLinks().empty())
+//					{
+//						Print() << "~~~ " << segId << "," << statsNum << "," << lnStatsIt->first->getLaneID() << "," << numLanes << std::endl;
+//					}
+//				}
+//			}
+		}
+	}
 }
 
 sim_mob::BusStopFinder::BusStopFinder(const Node* src, const Node* dest)
@@ -3191,5 +3354,3 @@ sim_mob::BusStop* sim_mob::BusStopFinder::getBusStop(const Node* node,sim_mob::R
 
 	 return nullptr;
 }
-
-

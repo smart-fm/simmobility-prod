@@ -44,6 +44,11 @@ public:
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	/**
+	 * collect travel time for current role
+	 */
+	virtual void collectTravelTime();
+
+	/**
 	 * increase waiting time every frame tick.
 	 *
 	 * @param incrementMs is accumulation time in milli seconds
@@ -73,6 +78,8 @@ public:
 	const BusStop* getStop() const {
 		return stop;
 	}
+
+	const std::string getBusLines();
 
 	void setStop(sim_mob::BusStop* busStop) {
 		stop = busStop;

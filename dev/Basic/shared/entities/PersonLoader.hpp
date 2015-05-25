@@ -9,10 +9,9 @@
 #include <set>
 #include <string>
 
+#include "entities/misc/TripChain.hpp"
 #include "soci.h"
 #include "soci-postgresql.h"
-
-#include "entities/misc/TripChain.hpp"
 #include "util/OneTimeFlag.hpp"
 
 namespace sim_mob
@@ -191,9 +190,6 @@ private:
 	/** start time of next load interval*/
 	double nextLoadStart;
 
-	/** database session */
-	soci::session sql_;
-
 	/** stored procedure to periodically load data*/
 	std::string storedProcName;
 
@@ -234,7 +230,6 @@ public:
 	 * @return true if data has to be loaded in this tick; false otherwise
 	 */
 	bool checkTimeForNextLoad();
-
 
 	/**
 	 * makes a single sub trip for trip (for now)

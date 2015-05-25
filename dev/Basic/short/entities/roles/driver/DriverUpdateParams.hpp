@@ -37,7 +37,7 @@ namespace sim_mob
   struct NearestVehicle
   {
 
-    NearestVehicle() : driver(nullptr), distance(50000)
+    NearestVehicle() : driver(nullptr), distance(DBL_MAX)
     {
     }
 
@@ -45,10 +45,9 @@ namespace sim_mob
     {
     }
     
-    //TODO: This is probably not needed. We should really set "distance" to DOUBLE_MAX.
     bool exists() const
     {
-      return distance < 5000;
+      return distance < DBL_MAX;
     }
     
     const Driver* driver;
@@ -67,14 +66,13 @@ namespace sim_mob
 
   struct NearestPedestrian
   {
-    NearestPedestrian() : distance(50000)
+    NearestPedestrian() : distance(DBL_MAX)
     {
     }
 
-    //TODO: This is probably not needed. We should really set "distance" to DOUBLE_MAX.
     bool exists()
     {
-      return distance < 5000;
+      return distance < DBL_MAX;
     }
 
     double distance;

@@ -45,6 +45,12 @@ PT_Statistics::~PT_Statistics() {
 	for (; itTm != personWaitingTime.end(); itTm++) {
 		safe_delete_item(itTm->second);
 	}
+
+	std::map<std::string, PersonTravelStats*>::iterator itTravel =
+			personTravelTimes.begin();
+	for (; itTravel != personTravelTimes.end(); itTravel++) {
+		safe_delete_item(itTravel->second);
+	}
 }
 
 void PT_Statistics::HandleMessage(Message::MessageType type,
@@ -83,7 +89,28 @@ void PT_Statistics::HandleMessage(Message::MessageType type,
 		}
 
 		if (stat) {
-			stat->setWaitingTime(msg.personId, msg.waitingTime, msg.failedBoardingTimes);
+			stat->setWaitingTime(msg.personId, msg.currentTime, msg.waitingTime, msg.busLines, msg.failedBoardingTimes);
+		}
+
+		break;
+	}
+	case STORE_PERSON_TRAVEL: {
+		const PersonTravelTimeMessage& msg = MSG_CAST(PersonTravelTimeMessage,
+				message);
+		PersonTravelStats* stat = nullptr;
+		std::map<std::string, PersonTravelStats*>::iterator it =
+				personTravelTimes.find(msg.personId);
+		if (it != personTravelTimes.end()) {
+			stat = it->second;
+		} else {
+			stat = new PersonTravelStats();
+			personTravelTimes[msg.personId] = stat;
+		}
+
+		if (stat) {
+			stat->setPersonTravelTime(msg.personId, msg.tripStartPoint, msg.tripEndPoint,msg.subStartPoint,
+					msg.subEndPoint,msg.subStartType, msg.subEndType, msg.mode, msg.service, msg.arrivalTime,
+					msg.travelTime);
 		}
 
 		break;
@@ -203,11 +230,13 @@ void PT_Statistics::StoreStatistics() {
 				while (itArrivalTm != busArrivalTm.end()) {
 					DailyTime tm(itArrivalTm->arrivalTime);
 					DailyTime dw(itArrivalTm->dwellTime);
-					DailyTime cu(tm.getValue()+dw.getValue());
-					outputFile << stopNo << ",";
+					DailyTime tt(tm.getValue()+dw.getValue());
 					outputFile << itArrivalTm->busLine << ",";
 					outputFile << itArrivalTm->tripId << ",";
+					outputFile << stopNo << ",";
+					outputFile << itArrivalTm->sequenceNo << ",";
 					outputFile << itArrivalTm->arrivalTime << ",";
+					outputFile << tt.toString() << ",";
 					outputFile << itArrivalTm->dwellTime << std::endl;
 					itArrivalTm++;
 				}
@@ -233,8 +262,9 @@ void PT_Statistics::StoreStatistics() {
 				std::map<std::string, PersonWaitingInfo>::const_iterator itWaitingTime =
 						waitingTimeList.begin();
 				while (itWaitingTime != waitingTimeList.end()) {
-					outputFile << stopNo << ",";
 					outputFile << itWaitingTime->first << ",";
+					outputFile << stopNo << ",";
+					outputFile << itWaitingTime->second.currentTime << ",";
 					outputFile << itWaitingTime->second.waitingTime << ",";
 					outputFile << itWaitingTime->second.failedBoardingTime
 							<< std::endl;
@@ -250,6 +280,7 @@ void PT_Statistics::StoreStatistics() {
 	if (filenameOfWaitingAmount.size() > 0) {
 		std::ofstream outputFile(filenameOfWaitingAmount.c_str());
 		if (outputFile.is_open()) {
+
 			std::map<std::string, std::vector<WaitingAmountStats> >::iterator itWaitingNum =
 					waitingAmounts.begin();
 			for (; itWaitingNum != waitingAmounts.end(); itWaitingNum++) {
@@ -261,6 +292,37 @@ void PT_Statistics::StoreStatistics() {
 					outputFile << (*it).timeSlice << ",";
 					outputFile << (*it).waitingAmount << std::endl;
 					it++;
+				}
+			}
+		}
+	}
+
+	std::string filenameOfTravelTime =
+			MT_Config::getInstance().getFilenameOfTravelTimeStats();
+	if (filenameOfTravelTime.size() > 0) {
+		std::ofstream outputFile(filenameOfTravelTime.c_str());
+		if (outputFile.is_open()) {
+			PersonTravelStats* stat = nullptr;
+			std::map<std::string, PersonTravelStats*>::iterator itPersonTravel =
+					personTravelTimes.begin();
+			for (; itPersonTravel != personTravelTimes.end();
+					itPersonTravel++) {
+				stat = itPersonTravel->second;
+				const std::vector<PersonTravelTime>& travelTime =
+						stat->getPersonTravelTime();
+				for (std::vector<PersonTravelTime>::const_iterator i =
+						travelTime.begin(); i != travelTime.end(); i++) {
+					outputFile << (*i).personId << ",";
+					outputFile << (*i).tripStartPoint<<",";
+					outputFile << (*i).tripEndPoint<<",";
+					outputFile << (*i).subStartPoint <<",";
+					outputFile << (*i).subEndPoint << ",";
+					outputFile << (*i).subStartType << ",";
+					outputFile << (*i).subEndType << ",";
+					outputFile << (*i).mode << ",";
+					//outputFile << (*i).service << ",";
+					outputFile << (*i).arrivalTime << ",";
+					outputFile << (*i).travelTime << std::endl;
 				}
 			}
 		}
@@ -278,6 +340,35 @@ void JourneyTimeStats::setArrivalTime(const std::string& busLine,
 	stat.dwellTime = dwellTime;
 	stat.pctOccupancy = pctOccupancy;
 	busArrivalTimeList.push_back(stat);
+}
+
+void PersonTravelStats::setPersonTravelTime(const std::string& personId, const std::string& tripStartPoint,
+		const std::string& tripEndPoint,
+		const std::string& subStartPoint, const std::string& subEndPoint,
+		const std::string& subStartType, const std::string& subEndType,
+		const std::string& mode, const std::string& service,
+		const std::string& arrivalTime, const std::string& travelTime){
+
+	PersonTravelTime personTravelTime;
+	personTravelTime.personId = personId;
+	personTravelTime.tripStartPoint = tripStartPoint;
+	personTravelTime.tripEndPoint = tripEndPoint;
+	personTravelTime.subStartPoint = subStartPoint;
+	personTravelTime.subEndPoint = subEndPoint;
+	personTravelTime.subStartType = subStartType;
+	personTravelTime.subEndType = subEndType;
+	personTravelTime.mode = mode;
+	personTravelTime.service = service;
+	personTravelTime.arrivalTime = arrivalTime;
+	personTravelTime.travelTime = travelTime;
+	DailyTime startTime(arrivalTime);
+	if(startTime.getValue()==0&&PersonTravelTimeList.size()>0){
+		DailyTime lastStart(PersonTravelTimeList.back().arrivalTime);
+		DailyTime lastTravel(PersonTravelTimeList.back().travelTime);
+		startTime=DailyTime(lastStart.getValue()+lastTravel.getValue());
+		personTravelTime.arrivalTime = startTime.toString();
+	}
+	PersonTravelTimeList.push_back(personTravelTime);
 }
 
 bool BusArrivalTime::operator<(const BusArrivalTime& rhs) const {

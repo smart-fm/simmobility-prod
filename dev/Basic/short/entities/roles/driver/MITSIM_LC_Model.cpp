@@ -2140,8 +2140,8 @@ int sim_mob::MITSIM_LC_Model::isLaneConnectToNextLink(DriverUpdateParams& p,set<
 			else 
 			{
 				//Turnings not defined, use LaneConnectors
-				Print() << "\nTurnings not found for Node: " << nextSegment->getStart()->getID();
-				Print() << "\nDefaulting to Lane Connectors\n";
+				Warn() << "\nTurnings not found for Node: " << nextSegment->getStart()->getID();
+				Warn() << "\nDefaulting to Lane Connectors\n";
 				
 				//Lane connectors from current RoadSegment
 				const std::set<LaneConnector *>& lcs = currEndNode->getOutgoingLanes(driverMvt->fwdDriverMovement.getCurrSegment());
@@ -2468,8 +2468,8 @@ void sim_mob::MITSIM_LC_Model::checkConnectLanes(DriverUpdateParams& p)
 			else
 			{
 				// Turnings not found, defaulting to lane connectors
-				Print() << "\nTurnings not found for Node: " << nextSegment->getStart()->getID();
-				Print() << "\nDefaulting to Lane Connectors\n";
+				Warn() << "\nTurnings not found for Node: " << nextSegment->getStart()->getID();
+				Warn() << "\nDefaulting to Lane Connectors\n";
 				
 				// Lane connectors from the current segment
 				const std::set<LaneConnector *>& lcs = currEndNode->getOutgoingLanes(driverMvt->fwdDriverMovement.getCurrSegment());

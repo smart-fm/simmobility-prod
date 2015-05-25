@@ -7,7 +7,8 @@
 #include "entities/Person.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "message/MT_Message.hpp"
-
+#include "message/MT_Message.hpp"
+#include "entities/PT_Statistics.hpp"
 using std::vector;
 using namespace sim_mob;
 
@@ -21,14 +22,17 @@ sim_mob::medium::Passenger::Passenger(Person* parent, MutexStrategy mtxStrat,
 		std::string roleName, Role::type roleType) :
 		sim_mob::Role(behavior, movement, parent, roleName, roleType),
 		driver(nullptr), alightBus(false) {
-
 }
 
 Role* sim_mob::medium::Passenger::clone(Person* parent) const {
 	PassengerBehavior* behavior = new PassengerBehavior(parent);
 	PassengerMovement* movement = new PassengerMovement(parent);
+	Role::type roleType=Role::RL_PASSENGER;
+	if(parent && parent->currSubTrip->mode=="MRT"){
+		roleType = Role::RL_TRAINPASSENGER;
+	}
 	Passenger* passenger = new Passenger(parent, parent->getMutexStrategy(),
-			behavior, movement);
+			behavior, movement, "Passenger_", roleType);
 	behavior->setParentPassenger(passenger);
 	movement->setParentPassenger(passenger);
 	return passenger;
@@ -68,5 +72,38 @@ void sim_mob::medium::Passenger::HandleParentMessage(messaging::Message::Message
 	}
 	}
 }
+
+void sim_mob::medium::Passenger::collectTravelTime()
+{
+	std::string personId, tripStartPoint, tripEndPoint, subStartPoint,
+			subEndPoint, subStartType, subEndType, mode, service, arrivaltime,
+			travelTime;
+
+	personId = boost::lexical_cast<std::string>(parent->GetId());
+	tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
+	tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
+	subStartPoint = parent->currSubTrip->startLocationId;
+	subEndPoint = parent->currSubTrip->endLocationId;
+	subStartType = parent->currSubTrip->startLocationType;
+	subEndType = parent->currSubTrip->endLocationType;
+	mode = parent->currSubTrip->getMode();
+	service = parent->currSubTrip->ptLineId;
+	travelTime = DailyTime(parent->getRole()->getTravelTime()).toString();
+	arrivaltime = DailyTime(parent->getRole()->getArrivalTime()).toString();
+	if(roleType == Role::RL_TRAINPASSENGER){
+		mode = "MRT_TRAVEL";
+	} else {
+		mode = "BUS_TRAVEL";
+	}
+
+	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(),
+			STORE_PERSON_TRAVEL,
+			messaging::MessageBus::MessagePtr(
+					new PersonTravelTimeMessage(personId, tripStartPoint,
+							tripEndPoint, subStartPoint, subEndPoint,
+							subStartType, subEndType, mode, service,
+							arrivaltime, travelTime)));
+}
+
 }
 }

@@ -118,7 +118,7 @@ public:
 
 	//Helper, to keep our loop in order.
 	static void buildConnectorsFromAlignedLanes(UniNode* node, const RoadSegment* fromSeg, const RoadSegment* toSeg, unsigned int fromAlignLane, unsigned int toAlignLane);
-	static void buildForwardLanesFromAlignedLanes(UniNode* node, const RoadSegment* fromSeg, const RoadSegment* toSeg, unsigned int fromAlignLane, unsigned int toAlignLane);
+	static void buildForwardLanesFromAlignedLanes(UniNode* node, const RoadSegment* fromSeg, const RoadSegment* toSeg);
 
 
 protected:

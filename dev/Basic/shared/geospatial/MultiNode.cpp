@@ -131,9 +131,8 @@ void sim_mob::MultiNode::setTurnings(const sim_mob::RoadSegment *key, TurningSec
 	}
 	else
 	{
-		std::set<sim_mob::TurningSection*> setOfTurningSetion;
+		std::set<sim_mob::TurningSection*> setOfTurningSetion = this->turnings[key];
 		setOfTurningSetion.insert(val);
-		this->turnings[key] = setOfTurningSetion;
 	}
 }
 

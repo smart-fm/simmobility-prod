@@ -16,7 +16,13 @@
 #include "database/dao/UnitDao.hpp"
 #include "database/dao/IndividualDao.hpp"
 #include "database/dao/AwakeningDao.hpp"
+#include "database/dao/PostcodeDao.hpp"
 #include "database/dao/VehicleOwnershipCoefficientsDao.hpp"
+#include "database/dao/TaxiAccessCoefficientsDao.hpp"
+#include "database/dao/EstablishmentDao.hpp"
+#include "database/dao/JobDao.hpp"
+#include "database/dao/HousingInterestRateDao.hpp"
+#include "database/dao/LogSumVehicleOwnershipDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -62,7 +68,7 @@ namespace
 
 	enum INCOME_CEILING
 	{
-		TWOBEDROOM = 5000, THREEBEDROOM = 1000, THREEBEDROOMMATURE = 15000
+		TWOBEDROOM = 5000, THREEBEDROOM = 10000, THREEBEDROOMMATURE = 15000
 	};
 
 	const int YEAR = 365;
@@ -147,6 +153,25 @@ HM_Model::HouseholdList* HM_Model::getHouseholdList()
 {
 	return &households;
 }
+
+HM_Model::HousingInterestRateList* HM_Model::getHousingInterestRateList()
+{
+	return &housingInterestRates;
+}
+
+
+Postcode* HM_Model::getPostcodeById(BigSerial id) const
+{
+	PostcodeMap::const_iterator itr = postcodesById.find(id);
+
+	if (itr != postcodesById.end())
+	{
+		return (*itr).second;
+	}
+
+	return nullptr;
+}
+
 
 Household* HM_Model::getHouseholdById(BigSerial id) const
 {
@@ -261,7 +286,24 @@ VehicleOwnershipCoefficients* HM_Model::getVehicleOwnershipCoeffsById( BigSerial
 
 		if (itr != vehicleOwnershipCoeffsById.end())
 		{
-			return (*itr).second;
+			return itr->second;
+		}
+
+		return nullptr;
+}
+
+HM_Model:: TaxiAccessCoeffList HM_Model::getTaxiAccessCoeffs()const
+{
+	return this->taxiAccessCoeffs;
+}
+
+TaxiAccessCoefficients* HM_Model::getTaxiAccessCoeffsById( BigSerial id) const
+{
+		TaxiAccessCoeffMap::const_iterator itr = taxiAccessCoeffsById.find(id);
+
+		if (itr != taxiAccessCoeffsById.end())
+		{
+			return itr->second;
 		}
 
 		return nullptr;
@@ -286,6 +328,23 @@ void HM_Model::addUnit(Unit* unit)
 std::vector<BigSerial> HM_Model::getRealEstateAgentIds()
 {
 	return this->realEstateAgentIds;
+}
+
+HM_Model::VehicleOwnershipLogsumList HM_Model::getVehicleOwnershipLosums()const
+{
+	return this->vehicleOwnershipLogsums;
+}
+
+LogSumVehicleOwnership* HM_Model::getVehicleOwnershipLogsumsById( BigSerial id) const
+{
+	VehicleOwnershipLogsumMap::const_iterator itr = vehicleOwnershipLogsumById.find(id);
+
+		if (itr != vehicleOwnershipLogsumById.end())
+		{
+			return itr->second;
+		}
+
+		return nullptr;
 }
 
 void HM_Model::startImpl()
@@ -317,7 +376,26 @@ void HM_Model::startImpl()
 		loadData<AwakeningDao>(conn, awakening, awakeningById,	&Awakening::getId);
 		PrintOutV("Awakening probability: " << awakening.size() << std::endl );
 
+		loadData<PostcodeDao>(conn, postcodes, postcodesById,	&Postcode::getAddressId);
+		PrintOutV("Number of postcodes: " << postcodes.size() << std::endl );
+
 		loadData<VehicleOwnershipCoefficientsDao>(conn,vehicleOwnershipCoeffs,vehicleOwnershipCoeffsById, &VehicleOwnershipCoefficients::getParameterId);
+		PrintOutV("Vehicle Ownership coefficients: " << vehicleOwnershipCoeffs.size() << std::endl );
+
+		loadData<TaxiAccessCoefficientsDao>(conn,taxiAccessCoeffs,taxiAccessCoeffsById, &TaxiAccessCoefficients::getParameterId);
+		PrintOutV("Taxi access coefficients: " << taxiAccessCoeffs.size() << std::endl );
+
+		loadData<EstablishmentDao>(conn, establishments, establishmentsById, &Establishment::getId);
+		PrintOutV("Number of establishments: " << establishments.size() << std::endl );
+
+		loadData<JobDao>( conn, jobs, jobsById, &Job::getId);
+		PrintOutV("Number of jobs: " << jobs.size() << std::endl );
+
+		loadData<HousingInterestRateDao>( conn, housingInterestRates, housingInterestRatesById, &HousingInterestRate::getId);
+		PrintOutV("Number of interest rate quarters: " << housingInterestRates.size() << std::endl );
+
+		loadData<LogSumVehicleOwnershipDao>( conn, vehicleOwnershipLogsums, vehicleOwnershipLogsumById, &LogSumVehicleOwnership::getHouseholdId);
+		PrintOutV("Number of vehicle ownership logsums: " << vehicleOwnershipLogsums.size() << std::endl );
 	}
 
 

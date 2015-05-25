@@ -15,12 +15,12 @@
 #include <soci.h>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "Person.hpp"
+#include "geospatial/aimsun/Loader.hpp"
 #include "logging/Log.hpp"
 #include "misc/TripChain.hpp"
+#include "Person.hpp"
 #include "util/DailyTime.hpp"
 #include "util/Utils.hpp"
-#include "geospatial/aimsun/Loader.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -31,6 +31,7 @@ namespace
 	const double DEFAULT_LOAD_INTERVAL = 0.5; // 0.5, when added to the 30 min representation explained below, will span for 1 hour in our query
 
 	const double LAST_30MIN_WINDOW_OF_DAY = 26.75;
+	const double TWENTY_FOUR_HOURS = 24.0;
 	const string HOME_ACTIVITY_TYPE = "Home";
 	const unsigned int SECONDS_IN_ONE_HOUR = 3600;
 
@@ -77,15 +78,8 @@ namespace
 	std::string getRandomTimeInWindow(double mid, bool firstFifteenMins, const std::string pid = "") {
 		int hour = int(std::floor(mid));
 		int min = 0, max = 29;
-		//if(firstFifteenMins) { min = 0; max = 14; }
+		if(firstFifteenMins) { min = 0; max = 14; }
 		int minute = Utils::generateInt(min,max) + ((mid - hour - 0.25)*60);
-
-		/*~~~~ adding 5 minutes to fake drivers for cbd policy demo. note: pid parameter in this function must also be removed later ~~~~~*/
-//		if(hour == 17 && minute <= 5 && boost::lexical_cast<long>(pid) > 5474288)
-//		{
-//			minute += 5;
-//		}
-		/*~~~~ end of - adding 5 minutes to fake drivers for cbd policy demo ~~~~~*/
 		int second = Utils::generateInt(0,60);
 		std::stringstream random_time;
 		hour = hour % 24;
@@ -336,15 +330,12 @@ bool sim_mob::RestrictedRegion::TagSearch::isInRestrictedSegmentZone(const sim_m
 
 
 sim_mob::PeriodicPersonLoader::PeriodicPersonLoader(std::set<sim_mob::Entity*>& activeAgents, StartTimePriorityQueue& pendinAgents)
-	: activeAgents(activeAgents), pendingAgents(pendinAgents),
-	  sql_(soci::postgresql, ConfigManager::GetInstanceRW().FullConfig().getDatabaseConnectionString(false))
+	: activeAgents(activeAgents), pendingAgents(pendinAgents)
 {
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	dataLoadInterval = SECONDS_IN_ONE_HOUR; //1 hour by default. TODO: must be configurable.
 	elapsedTimeSinceLastLoad = cfg.baseGranSecond(); // initializing to base gran second so that all subsequent loads will happen 1 tick before the actual start of the interval
 
-	//TODO:  This is rigid. Must do something about relating this variable to simulation time and extracting the 30 min representation when we actually load.
-	//we assume the simulation does not start before 3AM (the start of day for Preday)
 	nextLoadStart = getHalfHourWindow(cfg.system.simulation.simStartTime.getValue()/1000);
 
 	storedProcName = cfg.getDatabaseProcMappings().procedureMappings["day_activity_schedule"];
@@ -352,6 +343,60 @@ sim_mob::PeriodicPersonLoader::PeriodicPersonLoader(std::set<sim_mob::Entity*>& 
 
 sim_mob::PeriodicPersonLoader::~PeriodicPersonLoader()
 {}
+
+class CellLoader {
+public:
+	CellLoader() {}
+
+	void operator()(void)
+	{
+		id = boost::this_thread::get_id();
+		for (size_t i = 0; i < tripChainList.size(); i++)
+		{
+			std::vector<TripChainItem*>& personTripChain = tripChainList[i];
+			if (personTripChain.empty()) { continue; }
+			ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+			Person* person = new Person("DAS_TripChain", cfg.mutexStategy(), personTripChain);
+			if (!person->getTripChain().empty())
+			{
+				persons.push_back(person);
+			}
+			else
+			{
+				delete person;
+			}
+		}
+		Print() << "Thread " <<  id << " loaded "<< persons.size() << " persons" << std::endl;
+	}
+
+	static int Load(std::map<std::string, std::vector<TripChainItem*> >& tripChainMap, std::vector<Person*>& outPersonsLoaded)
+	{
+		int personsPerThread = tripChainMap.size() / numThreads;
+		CellLoader thread[numThreads];
+		boost::thread_group threadGroup;
+		int thIdx = 0;
+		for(std::map<std::string, std::vector<TripChainItem*> >::iterator tcMapIt=tripChainMap.begin(); tcMapIt!=tripChainMap.end(); tcMapIt++, thIdx=(thIdx+1)%numThreads)
+		{
+			thread[thIdx].tripChainList.push_back(tcMapIt->second);
+		}
+		for (int i = 0; i < numThreads; i++)
+		{
+			threadGroup.add_thread(new boost::thread(boost::ref(thread[i])));
+		}
+		threadGroup.join_all();
+		for (int i = 0; i < numThreads; i++)
+		{
+			outPersonsLoaded.insert(outPersonsLoaded.end(), thread[i].persons.begin(), thread[i].persons.end());
+		}
+		return outPersonsLoaded.size();
+	}
+
+private:
+	std::vector<Person*> persons;
+	std::vector<std::vector<TripChainItem*> > tripChainList;
+	static const int numThreads = 20;
+	boost::thread::id id;
+};
 
 void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 {
@@ -361,6 +406,8 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	double end = nextLoadStart + DEFAULT_LOAD_INTERVAL;
 	query << "select * from " << storedProcName << "(" << nextLoadStart << "," << end << ")";
 	std::string sql_str = query.str();
+	soci::session sql_(soci::postgresql, ConfigManager::GetInstanceRW().FullConfig().getDatabaseConnectionString(false));
+
 	soci::rowset<soci::row> rs = (sql_.prepare << sql_str);
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	unsigned actCtr = 0;
@@ -379,24 +426,25 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }
 		actCtr++;
 	}
+
+	vector<Person*> persons;
+	int personsLoaded = CellLoader::Load(tripchains, persons);
+	for(vector<Person*>::iterator i=persons.begin(); i!=persons.end(); i++)
+	{
+		addOrStashPerson(*i);
+	}
 	//CBD specific processing of trip chain
 	//RestrictedRegion::getInstance().processTripChains(tripchains);//todo, plan changed, we are not chopping off the trips here
 
-	//add or stash new persons
-	for(map<string, vector<TripChainItem*> >::iterator i=tripchains.begin(); i!=tripchains.end(); i++)
-	{
-		if(i->second.empty()) { return; }
-		Person* person = new Person("DAS_TripChain", cfg.mutexStategy(), i->second);
-		if(!person->getTripChain().empty()) { addOrStashPerson(person); }
-		else { delete person; }
-	}
-
-	Print() << "PeriodicPersonLoader:: activities loaded from " << nextLoadStart << " to " << end << ": " << actCtr
-			<< " | new persons loaded: " << tripchains.size() << endl;
-
+	Print() << "PeriodicPersonLoader:: activities loaded from " << nextLoadStart << " to " << end << ": " << actCtr << " | new persons loaded: " << personsLoaded << endl;
 	Print() << "active_agents: " << activeAgents.size() << " | pending_agents: " << pendingAgents.size() << endl;
+
 	//update next load start
 	nextLoadStart = end + DEFAULT_LOAD_INTERVAL;
+	if(nextLoadStart > LAST_30MIN_WINDOW_OF_DAY)
+	{
+		nextLoadStart = nextLoadStart - TWENTY_FOUR_HOURS; //next day starts at 3.25
+	}
 }
 
 void sim_mob::PeriodicPersonLoader::addOrStashPerson(Person* p)
@@ -476,7 +524,7 @@ sim_mob::Trip* sim_mob::PeriodicPersonLoader::makeTrip(const soci::row& r, unsig
 	tripToSave->fromLocationType = sim_mob::TripChainItem::LT_NODE;
 	tripToSave->toLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(5)));
 	tripToSave->toLocationType = sim_mob::TripChainItem::LT_NODE;
-	tripToSave->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(11), true, tripToSave->getPersonID()));
+	tripToSave->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(11), false, tripToSave->getPersonID()));
 	//just a sanity check
 	if(tripToSave->fromLocation == tripToSave->toLocation)
 	{

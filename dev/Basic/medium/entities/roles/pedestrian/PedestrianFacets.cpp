@@ -9,6 +9,8 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "geospatial/BusStop.hpp"
+#include "Pedestrian.hpp"
+#include "entities/params/PT_NetworkEntities.hpp"
 
 namespace sim_mob {
 namespace medium {
@@ -24,7 +26,8 @@ PedestrianBehavior::~PedestrianBehavior() {
 
 PedestrianMovement::PedestrianMovement(sim_mob::Person* parentAgent,double speed) :
 		MovementFacet(parentAgent), parentPedestrian(nullptr),
-		remainingTimeToComplete(0), walkSpeed(speed) {
+		remainingTimeToComplete(0), walkSpeed(speed),
+		startLink(nullptr), totalTimeToCompleteSec(10){
 }
 
 PedestrianMovement::~PedestrianMovement() {}
@@ -54,6 +57,34 @@ void PedestrianMovement::frame_init() {
 	initializePath(roadSegs);
 
 	sim_mob::SubTrip& subTrip = *(getParent()->currSubTrip);
+
+	// To differentiate the logic for pedestrian in public transit and rest pedestrian
+	if(subTrip.isPT_Walk)
+	{
+		double walkTime = subTrip.walkTime;
+		Link* lastLink = nullptr;
+		std::vector<const RoadSegment*>::const_iterator it = roadSegs.begin();
+		if (it != roadSegs.end())
+		{
+			startLink = (*it)->getLink();
+			for (; it != roadSegs.end(); it++)
+			{
+				lastLink = (*it)->getLink();
+			}
+			if(startLink != lastLink)
+			{
+				remainingTimeToComplete = 0.0;
+				trajectory.push_back((std::make_pair(lastLink,(walkTime-1))));
+			}
+			else
+			{
+				remainingTimeToComplete = walkTime;
+			}
+			totalTimeToCompleteSec += remainingTimeToComplete;
+			parentPedestrian->setTravelTime(totalTimeToCompleteSec*1000);
+			return;
+		}
+	}
 	const RoadSegment* segStart = nullptr;
 	const RoadSegment* segEnd = nullptr;
 	double actualDistanceStart = 0.0;
@@ -87,11 +118,6 @@ void PedestrianMovement::frame_init() {
 	for (; it != roadSegs.end(); it++) {
 		const RoadSegment* rdSeg = *it;
 		curDistance = rdSeg->getPolylineLength();
-		if (rdSeg == segStart) {
-			curDistance = actualDistanceStart;
-		} else if (rdSeg == segEnd) {
-			curDistance = actualDistanceEnd;
-		}
 
 		if (rdSeg->getLink() == currentLink) {
 			distanceInLink += curDistance;
@@ -100,6 +126,9 @@ void PedestrianMovement::frame_init() {
 			trajectory.push_back((std::make_pair(currentLink, remainingTime)));
 			currentLink = rdSeg->getLink();
 			distanceInLink = curDistance;
+			if(remainingTime<1.0){
+				int ii=0;
+			}
 		}
 	}
 
@@ -108,11 +137,34 @@ void PedestrianMovement::frame_init() {
 		trajectory.push_back((std::make_pair(currentLink, remainingTime)));
 	}
 
-	if (trajectory.size() > 0) {
+	if (trajectory.size() > 0 && !startLink) {
 		remainingTimeToComplete = trajectory.front().second;
+		startLink = trajectory.front().first;
 		trajectory.erase(trajectory.begin());
+		totalTimeToCompleteSec += remainingTimeToComplete;
+		parentPedestrian->setTravelTime(totalTimeToCompleteSec*1000);
+	}
+}
+
+const sim_mob::RoadSegment* PedestrianMovement::choiceNearestSegmentToMRT(
+		const sim_mob::Node* src, const sim_mob::MRT_Stop* stop) {
+	const RoadSegment* res = nullptr;
+	std::vector<int> segs = stop->getRoadSegments();
+	double minDis = std::numeric_limits<double>::max();
+	for (std::vector<int>::iterator i = segs.begin(); i != segs.end(); i++) {
+		unsigned int id = *i;
+		const sim_mob::RoadSegment* segment = StreetDirectory::instance().getRoadSegment(id);
+		const sim_mob::Node* node = segment->getStart();
+		DynamicVector EstimateDist(src->getLocation().getX(),src->getLocation().getY(),
+				node->getLocation().getX(),	node->getLocation().getY());
+		double actualDistanceStart = EstimateDist.getMagnitude();
+		if (minDis > actualDistanceStart) {
+			minDis = actualDistanceStart;
+			res = segment;
+		}
 	}
 
+	return res;
 }
 
 void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
@@ -121,19 +173,60 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 
 	StreetDirectory::VertexDesc source, destination;
 	std::vector<WayPoint> wayPoints;
-	if (subTrip.fromLocation.type_ == WayPoint::NODE) {
+	Point2D src(0,0), dest(0,0);
+	if (subTrip.fromLocation.type_ == WayPoint::NODE
+			&& subTrip.toLocation.type_ == WayPoint::MRT_STOP) {
 		source = streetDirectory.DrivingVertex(*subTrip.fromLocation.node_);
-	} else if (subTrip.fromLocation.type_ == WayPoint::BUS_STOP) {
-		const Node* node = subTrip.fromLocation.busStop_->getParentSegment()->getStart();
+		const RoadSegment* seg = choiceNearestSegmentToMRT(subTrip.fromLocation.node_,subTrip.toLocation.mrtStop_);
+		const Node* node = seg->getStart();
+		destination = streetDirectory.DrivingVertex(*node);
+		path.push_back(seg);
+		dest.setX(node->location.getX());
+		dest.setY(node->location.getY());
+	} else if (subTrip.fromLocation.type_ == WayPoint::MRT_STOP
+			&& subTrip.toLocation.type_ == WayPoint::NODE) {
+		destination = streetDirectory.DrivingVertex(*subTrip.toLocation.node_);
+		const RoadSegment* seg = choiceNearestSegmentToMRT(subTrip.toLocation.node_,	subTrip.fromLocation.mrtStop_);
+		const Node* node = seg->getStart();
+		startLink = seg->getLink();
 		source = streetDirectory.DrivingVertex(*node);
+		path.push_back(seg);
+		src.setX(node->location.getX());
+		src.setY(node->location.getY());
+	}
+	else {
+		const Node* node = nullptr;
+		if (subTrip.fromLocation.type_ == WayPoint::NODE) {
+			source = streetDirectory.DrivingVertex(*subTrip.fromLocation.node_);
+			node = subTrip.fromLocation.node_;
+		} else if (subTrip.fromLocation.type_ == WayPoint::BUS_STOP) {
+			node = subTrip.fromLocation.busStop_->getParentSegment()->getStart();
+			source = streetDirectory.DrivingVertex(*node);
+		}
+		if(node){
+			src.setX(node->location.getX());
+			src.setY(node->location.getY());
+		}
+
+		node = nullptr;
+		if (subTrip.toLocation.type_ == WayPoint::NODE) {
+			node = subTrip.toLocation.node_;
+			destination = streetDirectory.DrivingVertex(
+					*subTrip.toLocation.node_);
+		} else if (subTrip.toLocation.type_ == WayPoint::BUS_STOP) {
+			node = subTrip.toLocation.busStop_->getParentSegment()->getEnd();
+			destination = streetDirectory.DrivingVertex(*node);
+		}
+		if(node){
+			dest.setX(node->location.getX());
+			dest.setY(node->location.getY());
+		}
 	}
 
-	if (subTrip.toLocation.type_ == WayPoint::NODE) {
-		destination = streetDirectory.DrivingVertex(*subTrip.toLocation.node_);
-	} else if (subTrip.toLocation.type_ == WayPoint::BUS_STOP) {
-		const Node* node = subTrip.toLocation.busStop_->getParentSegment()->getEnd();
-		destination = streetDirectory.DrivingVertex(*node);
-	}
+	DynamicVector EstimateDist(src.getX(),src.getY(),dest.getX(),dest.getY());
+	double distance = EstimateDist.getMagnitude();
+	double remainingTime = distance / walkSpeed;
+	parentPedestrian->setTravelTime(totalTimeToCompleteSec*1000);
 
 	wayPoints = streetDirectory.SearchShortestDrivingPath(source, destination);
 	for (std::vector<WayPoint>::iterator it = wayPoints.begin();
@@ -157,6 +250,8 @@ void PedestrianMovement::frame_tick() {
 			remainingTimeToComplete = trajectory.front().second - lastRemainingTime;
 			trajectory.erase(trajectory.begin());
 			getParent()->setNextLinkRequired(nextLink);
+			totalTimeToCompleteSec += remainingTimeToComplete;
+			parentPedestrian->setTravelTime(totalTimeToCompleteSec*1000);
 		}
 	}
 	else {
@@ -169,8 +264,11 @@ void PedestrianMovement::frame_tick_output() {}
 
 sim_mob::Conflux* PedestrianMovement::getStartingConflux() const
 {
-	if(trajectory.empty()) { return nullptr; }
-	return trajectory.front().first->getSegments().front()->getParentConflux();
+	if (startLink) {
+		return startLink->getSegments().front()->getParentConflux();
+	} else {
+		return nullptr;
+	}
 }
 
 } /* namespace medium */

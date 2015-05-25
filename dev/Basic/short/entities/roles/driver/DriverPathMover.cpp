@@ -642,8 +642,6 @@ const Lane* sim_mob::DriverPathMover::actualMoveToNextSegmentAndUpdateDir()
 	}
 
 	//Find a lane that is not a pedestrian lane
-	currLaneID = std::min<int>(currLaneID, (*currSegmentIt)->getLanes().size() - 1);
-
 	int noOfLanes = (*currSegmentIt)->getLanes().size();
 	bool foundId = false;
 	currLaneID = std::min(currLaneID, noOfLanes -1);

@@ -207,7 +207,7 @@ class CarFollowModel;
     void setRR_RegionsFromCurrentPath();
 
     //Returns the nearest vehicle
-    NearestVehicle& nearestVehicle(DriverUpdateParams& p);
+    //NearestVehicle& nearestVehicle(DriverUpdateParams& p);
 
     //Updates the perceptions of the given nearest vehicle
     void perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params);

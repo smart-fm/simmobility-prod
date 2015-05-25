@@ -173,8 +173,8 @@ namespace sim_mob
 						<< "\"gross_sq_m_res \":\"" 	<< data.grossSqMRes 	<< "\","
 						<< "\"gross_sq_m_office \":\"" 	<< data.grossSqMOffice 	<< "\","
 						<< "\"gross_sq_m_retail \":\"" 	<< data.grossSqMRetail 	<< "\","
-						<< "\"gross_sq_m_other \":\"" 	<< data.grossSqMOther 	<< "\""
-						<< "\"last_changed_date \":\"" 	<< data.lastChangedDate.tm_year  	<< data.lastChangedDate.tm_wday 	<< data.lastChangedDate.tm_mon << "\","
+						<< "\"gross_sq_m_other \":\"" 	<< data.grossSqMOther 	<< "\","
+						<< "\"last_changed_date \":\"" 	<< data.lastChangedDate.tm_year  	<< data.lastChangedDate.tm_wday 	<< data.lastChangedDate.tm_mon << "\""
 						<< "}";
         }
     }

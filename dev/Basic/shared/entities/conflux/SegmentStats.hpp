@@ -5,9 +5,11 @@
 #pragma once
 
 #include <string>
+#include <set>
 #include "entities/Person.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
+#include "geospatial/Link.hpp"
 #include "geospatial/BusStop.hpp"
 
 namespace sim_mob {
@@ -58,11 +60,11 @@ public:
 	}
 
 private:
-	double freeFlowSpeed;  ///<Maximum speed of the road segment
-	double jamDensity;     ///<density during traffic jam in vehicles / m
-	double minDensity;     ///<minimum traffic density in vehicles / m
-	double minSpeed;       ///<minimum speed in the segment
-	double capacity;       ///<segment capacity in vehicles/second
+	double freeFlowSpeed;  ///<Maximum speed of the road segment in cm/s
+	double jamDensity;     ///<density during traffic jam in vehicles/m
+	double minDensity;     ///<minimum traffic density in vehicles/m
+	double minSpeed;       ///<minimum speed in the segment in cm/s
+	double capacity;       ///<segment capacity in vehicles/s
 	const double alpha;          ///<Model parameter of speed density function
 	const double beta;           ///<Model parameter of speed density function
 };
@@ -93,6 +95,7 @@ public:
 	double getAcceptRate() {return acceptRate;}
 
 	void setOutputCounter(int count) { outputCounter = count; }
+	void decrementOutputCounter();
 	void setOutputFlowRate(double output) {outputFlowRate = output;}
 	void setOrigOutputFlowRate(double orig) {origOutputFlowRate = orig;}
 
@@ -116,7 +119,7 @@ private:
 	unsigned int queueCount;
 	/**number of queuing persons at the start of the current tick*/
 	unsigned int initialQueueLength;
-	/**position of the last updated person in lane*/
+	/**end position of the last updated person in this lane*/
 	double positionOfLastUpdatedAgent;
 	/**geospatial lane corresponding to this lane stats*/
 	const sim_mob::Lane* lane;
@@ -140,6 +143,9 @@ private:
 	PersonList laneAgentsCopy;
 	PersonList::iterator laneAgentsIt;
 
+	/**set of downstream links connected to this lanestats*/
+	std::set<const sim_mob::Link*> connectedDownstreamLinks;
+
 public:
 	PersonList laneAgents;
 
@@ -150,6 +156,24 @@ public:
 		totalLength(0) {}
 	~LaneStats() {
 		safe_delete_item(laneParams);
+	}
+
+	/**
+	 * adds a link as downstream to this lanestats
+	 * @param downStreamLink a link which is downstream through this lanestats
+	 * @return true if insertion was successful; false otherwise
+	 */
+	bool addDownstreamLink(const sim_mob::Link* downStreamLink);
+
+	/**
+	 * adds a set of links as downstream to this lanestats
+	 * @param downStreamLinks a set of link which are downstream through this lanestats
+	 */
+	void addDownstreamLinks(const std::set<const sim_mob::Link*>& downStreamLinks);
+
+	const std::set<const sim_mob::Link*>& getDownstreamLinks() const
+	{
+		return connectedDownstreamLinks;
 	}
 
 	/**
@@ -168,16 +192,18 @@ public:
 	 * removes the person from the lane
 	 * @param person the person to be removed
 	 * @param wasQueuing the queuing status of person to manage queue count
+	 * @param vehicleLength length of vehicle used by person
 	 * @return true if removal was successful; false otherwise.
 	 */
-	bool removePerson(sim_mob::Person* person, bool wasQueuing);
+	bool removePerson(sim_mob::Person* person, bool wasQueuing, double vehicleLength);
 
 	/**
 	 * removes the person at the front in laneAgents list
 	 * @param isQueuingBfrUpdate queuing status of the person at front to manage queue count
+	 * @param vehicleLength the length of vehicle used before update
 	 * @return pointer to the dequeued person
 	 */
-	sim_mob::Person* dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate);
+	sim_mob::Person* dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate, double vehicleLength);
 
 	/**
 	 * gets the number of queuing persons in lane
@@ -347,7 +373,7 @@ protected:
 	double segVehicleSpeed;
 	/**speed of pedestrians on this segment for each frame in cm/s --not used at the moment*/
 	double segPedSpeed;
-	/**vehicle density of this segment stats in PCU/cm*/
+	/**vehicle density of this segment stats in PCU/m*/
 	double segDensity;
 	/**number of lanes in this SegmentStats which is meant for vehicles*/
 	int numVehicleLanes;
@@ -364,6 +390,12 @@ protected:
 	 * structure to store parameters pertinent to supply
 	 */
 	sim_mob::SupplyParams supplyParams;
+
+	/**
+	 * map of lanes connected to each downstream link
+	 */
+	std::map<const sim_mob::Link*, std::vector<sim_mob::LaneStats*> > laneGroup;
+
 	/**
 	 * adds a bus stop to the list of stops
 	 * @param stop bus stop to be added
@@ -452,18 +484,20 @@ public:
 	 * @param lane the lane to remove the person from
 	 * @param person the person to remove
 	 * @param wasQueuing the queuing status of person at the start of the tick
+	 * @param vehicleLength the length of vehicle used before update
 	 * @return true if removal was successful; false otherwise
 	 */
-	bool removeAgent(const sim_mob::Lane* lane, sim_mob::Person* person, bool wasQueuing);
+	bool removeAgent(const sim_mob::Lane* lane, sim_mob::Person* person, bool wasQueuing, double vehicleLength);
 
 	/**
 	 * removes person in the front from lane
 	 * @param person the person to remove
 	 * @param lane the lane to remove the person from
 	 * @param isQueuingBfrUpdate the queuing status of person at the start of the tick
+	 * @param vehicleLength the length of vehicle used before update
 	 * @return the dequeued person
 	 */
-	sim_mob::Person* dequeue(const sim_mob::Person* person, const sim_mob::Lane* lane, bool isQueuingBfrUpdate);
+	sim_mob::Person* dequeue(const sim_mob::Person* person, const sim_mob::Lane* lane, bool isQueuingBfrUpdate, double vehicleLength);
 
 	/**
 	 * returns a reference to the list of persons in lane
@@ -636,6 +670,7 @@ public:
 	 * the speed density function for mid-term supply.
 	 * Computes the speed of vehicles in segment, given the density
 	 * @param segDensity the vehicle density of segment in vehicle/m
+	 * @return speed of the segment in cm/s
 	 */
 	double speedDensityFunction(const double segDensity) const;
 
@@ -668,6 +703,7 @@ public:
 	 * computes the density of the moving part of the segment
 	 * the density value computed here is meant to be used in speed density function
 	 * @param vehicleLanes boolean flag indicating whether we want the density from vehicle lanes
+	 * @return density in PCU/lane-m
 	 */
 	double getDensity(bool vehicleLanes);
 
@@ -689,6 +725,33 @@ public:
 	 * performs message handler registrations for bus stops in this seg stats
 	 */
 	void registerBusStopAgents();
+
+	/**
+	 * checks whether lane stats for lane is connected (eventually) to the next down stream link
+	 * @param downstreamLink next down stream link
+	 * @param lane lane in this segstats
+	 * @return true if connected; false otherwise.
+	 */
+	bool isConnectedToDownstreamLink(const Link* downstreamLink, const Lane* lane) const;
+
+	/**
+	 * returns the maximum allowed length of vehicles in the lane group of supplied lane
+	 * @param nextLink link downstream to the segment of lane (to identify lane group)
+	 * @return maximum allowed length of vehicles in the lane group of valid input lane
+	 */
+	double getAllowedVehicleLengthForLaneGroup(const Link* downstreamLink) const;
+
+	/**
+	 * returns the existing length of vehicles in the lane group of supplied lane
+	 * @param nextLink link downstream to the segment of lane (to identify lane group)
+	 * @return maximum allowed length of vehicles in the lane group of valid input lane
+	 */
+	double getVehicleLengthForLaneGroup(const Link* downstreamLink) const;
+
+	/**
+	 * prints all downstream links for all lanestats of this segment
+	 */
+	void printDownstreamLinks() const;
 
 	/**
 	 * prints all agents in this segment

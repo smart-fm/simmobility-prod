@@ -7,16 +7,21 @@
 using namespace simmobility_network;
 
 Lane::Lane() :
-laneId(0), laneIndex(0), laneRules(LANE_RULES_IS_PEDESTRIAN_LANE), polyLine(NULL), width(0)
+laneId(0), busLaneRules(BUS_LANE_RULES_CAR_AND_BUS), canVehiclePark(false), canVehicleStop(false), hasRoadShoulder(false),
+isHOV_Allowed(false), laneIndex(0), polyLine(NULL), width(0)
 {
 }
 
 Lane::Lane(const Lane& orig)
 {
 	this->laneId = orig.laneId;
+	this->busLaneRules = orig.busLaneRules;
+	this->canVehiclePark = orig.canVehiclePark;
+	this->canVehicleStop = orig.canVehicleStop;
+	this->hasRoadShoulder = orig.hasRoadShoulder;
+	this->isHOV_Allowed = orig.isHOV_Allowed;
 	this->laneConnectors = orig.laneConnectors;
 	this->laneIndex = orig.laneIndex;
-	this->laneRules = orig.laneRules;
 	this->polyLine = orig.polyLine;	
 	this->tags = orig.tags;
 	this->width = orig.width;
@@ -48,6 +53,56 @@ unsigned int Lane::getLaneId() const
 void Lane::setLaneId(unsigned int laneId)
 {
 	this->laneId = laneId;
+}
+
+BusLaneRules Lane::getBusLaneRules() const
+{
+	return busLaneRules;
+}
+
+void Lane::setBusLaneRules(BusLaneRules busLaneRules)
+{
+	this->busLaneRules = busLaneRules;
+}
+
+bool Lane::isParkingAllowed() const
+{
+	return canVehiclePark;
+}
+
+void Lane::setCanVehiclePark(bool canVehiclePark)
+{
+	this->canVehiclePark = canVehiclePark;
+}
+
+bool Lane::isStoppingAllowed() const
+{
+	return canVehicleStop;
+}
+
+void Lane::setCanVehicleStop(bool canVehicleStop)
+{
+	this->canVehicleStop = canVehicleStop;
+}
+
+bool Lane::doesLaneHaveRoadShoulder() const
+{
+	return hasRoadShoulder;
+}
+
+void Lane::setHasRoadShoulder(bool hasRoadShoulder)
+{
+	this->hasRoadShoulder = hasRoadShoulder;
+}
+
+bool Lane::isHighOccupancyVehicleAllowed() const
+{
+	return isHOV_Allowed;
+}
+
+void Lane::setHighOccupancyVehicleAllowed(bool HighOccupancyVehicleAllowed)
+{
+	isHOV_Allowed = HighOccupancyVehicleAllowed;
 }
 
 const std::vector<LaneConnector*>& Lane::getLaneConnectors() const
@@ -99,3 +154,4 @@ void Lane::setWidth(double width)
 {
 	this->width = width;
 }
+

@@ -108,7 +108,7 @@ const std::vector<Tag>& TurningGroup::getTags() const
 	return tags;
 }
 
-void TurningGroup::setTag(std::vector<Tag>& tags)
+void TurningGroup::setTags(std::vector<Tag>& tags)
 {
 	this->tags = tags;
 }

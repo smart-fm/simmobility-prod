@@ -6,8 +6,8 @@
 
 using namespace simmobility_network;
 
-Point::Point() :
-sequenceNumber(0), x(0), y(0), z(0)
+Point::Point(unsigned int seqNum, double x, double y, double z) :
+sequenceNumber(seqNum), x(x), y(y), z(z)
 {
 }
 

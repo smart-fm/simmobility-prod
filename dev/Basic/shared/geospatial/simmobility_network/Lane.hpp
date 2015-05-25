@@ -12,10 +12,18 @@
 
 namespace simmobility_network
 {
-  //Defines the lane rules
-  enum LaneRules
+
+  //Defines the rules for the bus lanes
+  enum BusLaneRules
   {
-    LANE_RULES_IS_PEDESTRIAN_LANE
+    //Both cars and buses can use the lane during the entire day
+    BUS_LANE_RULES_CAR_AND_BUS = 0,
+    
+    //Buses only from Mon-Fri: 0730-0930 and 1700-2000
+    BUS_LANE_RULES_NORMAL_BUS_LANE = 1,
+    
+    //Buses only from Mon-Sat: 0730-2000
+    BUS_LANE_RULES_FULL_DAY_BUS_LANE = 2
   };
 
   class Lane
@@ -25,20 +33,37 @@ namespace simmobility_network
     //Unique identifier for the lane
     unsigned int laneId;
     
+    //Identifies the rule applicable for the bus lane
+    BusLaneRules busLaneRules;
+    
+    //Defines if a vehicle can park on the lane
+    bool canVehiclePark;
+    
+    //Defines if a vehicle can stop on the lane
+    bool canVehicleStop;
+    
+    //Defines whether the lane has a road shoulder
+    bool hasRoadShoulder;
+    
+    //Defines whether a high occupancy vehicle is allowed on the lane
+    bool isHOV_Allowed;
+    
     //The outgoing lane connectors
     std::vector<LaneConnector *> laneConnectors;
     
     //Indicates the index of the lane
     unsigned int laneIndex;
     
-    //Indicates the lane rules
-    LaneRules laneRules;
-    
     //Represents the poly-line of the lane
     PolyLine *polyLine;
     
     //Holds additional information
     std::vector<Tag> tags;
+    
+    //Defines the types of vehicles that can use the lane
+    //7 bits are used to identify the modes as follows:
+    //Pedestrian Bicycle Car Van Truck Bus Taxi
+    unsigned int vehicleMode;
     
     //The width of the lane
     double width;
@@ -53,7 +78,37 @@ namespace simmobility_network
     
     //Returns the lane id
     unsigned int getLaneId() const;
+
+    //Returns the bus lane rules
+    BusLaneRules getBusLaneRules() const;
+
+    //Sets the bus lane rules
+    void setBusLaneRules(BusLaneRules busLaneRules);
+
+    //Returns true if parking is allowed on the lane, else returns false
+    bool isParkingAllowed() const;
+
+    //Sets whether vehicle parking is allowed
+    void setCanVehiclePark(bool canVehiclePark);
     
+    //Returns true if stopping is allowed on the lane, else returns false
+    bool isStoppingAllowed() const;
+    
+    //Sets whether stopping on the lane is allowed
+    void setCanVehicleStop(bool canVehicleStop);
+    
+    //Returns true if the road shoulder is present, else returns false
+    bool doesLaneHaveRoadShoulder() const;
+    
+    //Sets whether the road shoulder is present
+    void setHasRoadShoulder(bool hasRoadShoulder);
+    
+    //Returns true if a high occupancy vehicle is allowed on the lane, else returns false
+    bool isHighOccupancyVehicleAllowed() const;
+    
+    //Sets whether a high occupancy vehicle is allowed on the lane
+    void setHighOccupancyVehicleAllowed(bool HighOccupancyVehicleAllowed);
+
     //Sets the lane id
     void setLaneId(unsigned int laneId);
     
@@ -85,7 +140,7 @@ namespace simmobility_network
     double getWidth() const;  
     
     //Sets the lane width
-    void setWidth(double width);    
+    void setWidth(double width);
     
   } ;
 }

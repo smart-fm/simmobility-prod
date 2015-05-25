@@ -96,7 +96,7 @@ namespace simmobility_network
     const std::vector<Tag>& getTags() const;
     
     //Setter for the tags field which holds the additional information
-    void setTag(std::vector<Tag>& tags);
+    void setTags(std::vector<Tag>& tags);
     
     //Returns the id of the link at which the turning group ends
     unsigned int getToLinkId() const;

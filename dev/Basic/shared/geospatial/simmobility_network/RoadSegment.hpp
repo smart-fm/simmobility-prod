@@ -13,31 +13,6 @@
 
 namespace simmobility_network
 {
-  //Defines the various types of road segments supported by SimMobility
-  enum RoadSegmentType
-  {
-    //Default road segment
-    RS_TYPE_DEFAULT = 0,
-    
-    //Freeway
-    RS_TYPE_FREEWAY = 1,
-    
-    //Ramp
-    RS_TYPE_RAMP = 2,
-    
-    //Urban road
-    RS_TYPE_URBANROAD = 3
-  };
-  
-  //Defines the various categories of road segments supported by SimMobility
-  enum RoadSegmentCategory
-  {
-    //Road segments within the CBD
-    RS_CATEGORY_CBD = 0,
-    
-    //Normal road segment category
-    RS_CATEGORY_DEFAULT = 1
-  };
 
   class RoadSegment
   {
@@ -76,10 +51,10 @@ namespace simmobility_network
     virtual ~RoadSegment();
     
     //Returns the road segment id
-    unsigned int getRoadSectionId() const;
+    unsigned int getRoadSegmentId() const;
     
     //Setter for the road segment id
-    void setRoadSectionId(unsigned int roadSectionId);
+    void setRoadSegmentId(unsigned int roadSegmentId);
     
     //Returns the value of the road segment capacity
     unsigned int getCapacity() const;
@@ -111,24 +86,6 @@ namespace simmobility_network
     //Sets the poly-line for the road segment
     void setPolyLine(PolyLine *polyLine);
     
-    //Returns the name of the road to which the road segment belongs
-    std::string getRoadName() const;
-    
-    //Setter for the name of the road segment
-    void setRoadName(std::string roadName);
-    
-    //Returns the category of the road segment
-    RoadSegmentCategory getRoadSectionCategory() const;
-    
-    //Setter for the category of the road segment
-    void setRoadSectionCategory(RoadSegmentCategory roadSectionCategory);
-    
-    //Returns the type of the road segment
-    RoadSegmentType getRoadSectionType() const;
-    
-    //Setter for the type of the road segment
-    void setRoadSectionType(RoadSegmentType roadSectionType);
-    
     //Returns the sequence number of the road segment within the link
     unsigned int getSequenceNumber() const;
     
@@ -139,7 +96,7 @@ namespace simmobility_network
     const std::vector<Tag>& getTags() const;
     
     //Setter for the tags field which holds the additional information
-    void setTag(std::vector<Tag>& tags);
+    void setTags(std::vector<Tag>& tags);
     
   } ;
 }

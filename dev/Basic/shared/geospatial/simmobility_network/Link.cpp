@@ -7,7 +7,7 @@
 using namespace simmobility_network;
 
 Link::Link() :
-linkId(0), fromNodeId(0), linkCategory(LINK_CATEGORY_DEFAULT), roadName(""), toNodeId(0)
+linkId(0), fromNodeId(0), linkCategory(LINK_CATEGORY_DEFAULT), roadName(""), tags(NULL), toNodeId(0)
 {
 }
 
@@ -31,7 +31,11 @@ Link::~Link()
 		*itSegments = NULL;
 	}
 	
-	tags.clear();
+	if(tags)
+	{
+		delete tags;
+		tags = NULL;
+	}
 }
 
 unsigned int Link::getLinkId() const
@@ -84,12 +88,12 @@ void Link::setRoadSegments(std::vector<RoadSegment*>& roadSegments)
 	this->roadSegments = roadSegments;
 }
 
-const std::vector<Tag>& Link::getTags() const
+const std::vector<Tag>* Link::getTags() const
 {
 	return tags;
 }
 
-void Link::setTags(std::vector<Tag>& tags)
+void Link::setTags(std::vector<Tag> *tags)
 {
 	this->tags = tags;
 }

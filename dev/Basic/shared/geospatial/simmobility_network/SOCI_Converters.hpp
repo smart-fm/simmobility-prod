@@ -15,6 +15,7 @@
 #include "Node.hpp"
 #include "Point.hpp"
 #include "RoadNetwork.hpp"
+#include "Tag.hpp"
 #include "TurningGroup.hpp"
 #include "TurningPath.hpp"
 
@@ -24,32 +25,33 @@ using namespace simmobility_network;
 namespace
 {
   //Helper functions
-  std::vector<Tag>& ParseStringToTags(std::string strTags)
+  std::vector<Tag>* ParseStringToTags(std::string strTags)
   {
-    //The vector of tags
-    std::vector<Tag> tags;
-    
     //For tokenizing the string
     boost::tokenizer<> tokens(strTags);
     boost::tokenizer<>::iterator itTokens = tokens.begin();
     
+    //Vector of tags
+    std::vector<Tag> *tags = new std::vector<Tag>();
+    
     while(itTokens != tokens.end())
     {
+      //The string representation is as follows:
+      //"<key_1>:value_1,<key_2>:value_2,...<key_n>:value_n"
+      
+      std::string key = *itTokens;
+      
+      ++itTokens;
+      
+      std::string value = *itTokens;
+      
+      ++itTokens;
+      
       //Create a tag
-      Tag tag;
-      
-      //Set the key
-      tag.setKey(*itTokens);
-      
-      ++itTokens;
-      
-      //Set the value
-      tag.setValue(*itTokens);
-      
-      ++itTokens;
+      Tag tag(key, value);
       
       //Add tag to the vector
-      tags.push_back(tag);
+      tags->push_back(tag);
     }
     
     return tags;
@@ -59,13 +61,13 @@ namespace
 namespace soci
 {    
   
-  template<> struct type_conversion<Node>
+  template<> struct type_conversion<simmobility_network::Node>
   {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, Node& res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, simmobility_network::Node& res)
     {
       res.setNodeId(vals.get<unsigned int>("id", 0));
-      res.setNodeType(vals.get<int>("node_type", 0));
+      res.setNodeType(vals.get<simmobility_network::NodeType>("node_type", simmobility_network::DEFAULT_NODE));
       res.setTrafficLightId(vals.get<unsigned int>("traffic_light_id", 0));
       
       //Create and set the node location
@@ -81,21 +83,21 @@ namespace soci
       std::string strTags = vals.get<std::string>("tags", "");
       
       //Parse the string to a vector tags
-      std::vector<Tag>& tags = ParseStringToTags(strTags);
+      std::vector<Tag> *tags = ParseStringToTags(strTags);
       res.setTags(tags);
     }
   };
   
-  template<> struct type_conversion<TurningGroup>
+  template<> struct type_conversion<simmobility_network::TurningGroup>
   {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, TurningGroup& res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, simmobility_network::TurningGroup& res)
     {
       res.setTurningGroupId(vals.get<unsigned int>("id", 0));
       res.setFromLinkId(vals.get<unsigned int>("from_link", 0));
       res.setNodeId(vals.get<unsigned int>("node_id", 0));
       res.setPhases(vals.get<std::string>("phases", ""));
-      res.setRules(vals.get<int>("rules", 0));
+      res.setRules(vals.get<simmobility_network::TurningGroupRules>("rules", simmobility_network::TURNING_GROUP_RULE_NO_STOP_SIGN));
       res.setToLinkId(vals.get<unsigned int>("to_link", 0));
       res.setVisibility(vals.get<double>("visibility", 0));
       
@@ -105,15 +107,15 @@ namespace soci
       std::string strTags = vals.get<std::string>("tags", "");
       
       //Parse the string to a vector tags
-      std::vector<Tag>& tags = ParseStringToTags(strTags);
+      std::vector<Tag> *tags = ParseStringToTags(strTags);
       res.setTags(tags);
     }
   };
   
-  template<> struct type_conversion<TurningPath>
+  template<> struct type_conversion<simmobility_network::TurningPath>
   {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, TurningPath& res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, simmobility_network::TurningPath& res)
     {
       res.setTurningPathId(vals.get<unsigned int>("id", 0));
       res.setFromLaneId(vals.get<unsigned int>("from_lane", 0));
@@ -126,15 +128,15 @@ namespace soci
       std::string strTags = vals.get<std::string>("tags", "");
       
       //Parse the string to a vector tags
-      std::vector<Tag>& tags = ParseStringToTags(strTags);
+      std::vector<Tag> *tags = ParseStringToTags(strTags);
       res.setTags(tags);
     }
   };
   
-  template<> struct type_conversion<TurningConflict>
+  template<> struct type_conversion<simmobility_network::TurningConflict>
   {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, TurningConflict& res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, simmobility_network::TurningConflict& res)
     {
       res.setConflictId(vals.get<unsigned int>("id", 0));
       res.setCriticalGap(vals.get<double>("gap_time", 0));
@@ -150,19 +152,19 @@ namespace soci
       std::string strTags = vals.get<std::string>("tags", "");
       
       //Parse the string to a vector tags
-      std::vector<Tag>& tags = ParseStringToTags(strTags);
+      std::vector<Tag> *tags = ParseStringToTags(strTags);
       res.setTags(tags);
     }
   };
   
-  template<> struct type_conversion<Link>
+  template<> struct type_conversion<simmobility_network::Link>
   {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, Link& res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, simmobility_network::Link& res)
     {
       res.setLinkId(vals.get<unsigned int>("id", 0));
       res.setFromNodeId(vals.get<unsigned int>("from_node", 0));
-      res.setLinkCategory(vals.get<int>("category", 0));
+      res.setLinkCategory(vals.get<simmobility_network::LinkCategory>("category", simmobility_network::LINK_CATEGORY_DEFAULT));
       res.setRoadName(vals.get<std::string>("road_name", ""));
       res.setToNodeId(vals.get<unsigned int>("to_node", 0));
       
@@ -172,15 +174,15 @@ namespace soci
       std::string strTags = vals.get<std::string>("tags", "");
       
       //Parse the string to a vector tags
-      std::vector<Tag>& tags = ParseStringToTags(strTags);
+      std::vector<Tag> *tags = ParseStringToTags(strTags);
       res.setTags(tags);
     }
   };
   
-  template<> struct type_converstion<RoadSegment>
+  template<> struct type_conversion<simmobility_network::RoadSegment>
   {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, RoadSegment& res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, simmobility_network::RoadSegment& res)
     {
       res.setRoadSegmentId(vals.get<unsigned int>("id", 0));
       res.setCapacity(vals.get<unsigned int>("capacity", 0));
@@ -194,18 +196,18 @@ namespace soci
       std::string strTags = vals.get<std::string>("tags", "");
       
       //Parse the string to a vector tags
-      std::vector<Tag>& tags = ParseStringToTags(strTags);
+      std::vector<Tag> *tags = ParseStringToTags(strTags);
       res.setTags(tags);
     }
   };
   
-  template<> struct type_conversion<Lane>
+  template<> struct type_conversion<simmobility_network::Lane>
   {
-    typedef values base_def;
-    static void from_base(const soci::values& vals, soci::indicator& ind, Lane& res)
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, simmobility_network::Lane& res)
     {
       res.setLaneId(vals.get<unsigned int>("id", 0));
-      res.setBusLaneRules(vals.get<int>("bus_lane", 0));
+      res.setBusLaneRules(vals.get<simmobility_network::BusLaneRules>("bus_lane", simmobility_network::BUS_LANE_RULES_CAR_AND_BUS));
       res.setCanVehiclePark(vals.get<int>("can_park", 0));
       res.setCanVehicleStop(vals.get<int>("can_stop", 0));
       res.setHasRoadShoulder(vals.get<int>("has_road_shoulder", 0));
@@ -218,15 +220,15 @@ namespace soci
       std::string strTags = vals.get<std::string>("tags", "");
       
       //Parse the string to a vector tags
-      std::vector<Tag>& tags = ParseStringToTags(strTags);
+      std::vector<Tag> *tags = ParseStringToTags(strTags);
       res.setTags(tags);
     }
   };
   
-  template<> struct type_conversion<LaneConnector>
+  template<> struct type_conversion<simmobility_network::LaneConnector>
   {
-    typedef values base_def;
-    static void from_base(const soci::values& vals, soci::indicator& ind, LaneConnector& res)
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, simmobility_network::LaneConnector& res)
     {
       res.setLaneConnectionId(vals.get<unsigned int>("id", 0));
       res.setFromLaneId(vals.get<unsigned int>("from_lane", 0));
@@ -236,10 +238,10 @@ namespace soci
     }
   };
   
-  template<> struct type_conversion<Point>
+  template<> struct type_conversion<simmobility_network::Point>
   {
-    typedef values base_def;
-    static void from_base(const soci::values& vals, soci::indicator& ind, Point& res)
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, simmobility_network::Point& res)
     {
       res.setPolyLineId(vals.get<unsigned int>("polyline_id", 0));
       res.setSequenceNumber(vals.get<unsigned int>("sequence_no", 0));

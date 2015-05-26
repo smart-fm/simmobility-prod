@@ -7,7 +7,7 @@
 using namespace simmobility_network;
 
 PolyLine::PolyLine() :
-polyLineId(0), type(POLYLINE_TYPE_POLYPOINT)
+polyLineId(0)
 {
 }
 
@@ -15,7 +15,6 @@ PolyLine::PolyLine(const PolyLine& orig)
 {
 	this->polyLineId = orig.polyLineId;
 	this->points = orig.points;
-	this->type = orig.type;
 }
 
 PolyLine::~PolyLine()
@@ -38,23 +37,12 @@ void PolyLine::setPolyLineId(int polyLineId)
 	this->polyLineId = polyLineId;
 }
 
-void PolyLine::setPoints(std::vector<Point*>& points)
-{
-	this->points = points;
-}
-
 const std::vector<Point*>& PolyLine::getPoints() const
 {
 	return points;
 }
 
-void PolyLine::setType(PolylineType type)
+void PolyLine::addPoint(Point *point)
 {
-	this->type = type;
+	this->points.push_back(point);
 }
-
-PolylineType PolyLine::getType() const
-{
-	return type;
-}
-

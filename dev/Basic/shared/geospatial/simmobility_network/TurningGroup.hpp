@@ -13,7 +13,7 @@
 namespace simmobility_network
 {
   //Defines the rules vehicles must observe at all the turnings in the same group
-  enum Rules
+  enum TurningGroupRules
   {
     //No stop sign at the turning group
     TURNING_GROUP_RULE_NO_STOP_SIGN = 0,
@@ -39,10 +39,10 @@ namespace simmobility_network
     std::string phases;
     
     //Stores the turning group rules
-    Rules rules;
+    TurningGroupRules rules;
     
     //Holds the additional information
-    std::vector<Tag> tags;
+    std::vector<Tag> *tags;
     
     //Indicates the link at which this turning group terminates
     unsigned int toLinkId;
@@ -87,16 +87,16 @@ namespace simmobility_network
     void setPhases(std::string phases);
     
     //Returns the rules for the turning group
-    Rules getRules() const;
+    TurningGroupRules getRules() const;
     
     //Setter for the rules for this turning group
-    void setRules(Rules rules);
+    void setRules(TurningGroupRules rules);
     
     //Returns a vector of tags which holds the additional information
-    const std::vector<Tag>& getTags() const;
+    const std::vector<Tag>* getTags() const;
     
     //Setter for the tags field which holds the additional information
-    void setTags(std::vector<Tag>& tags);
+    void setTags(std::vector<Tag> *tags);
     
     //Returns the id of the link at which the turning group ends
     unsigned int getToLinkId() const;
@@ -109,6 +109,9 @@ namespace simmobility_network
 
     //Sets the visibility distance of the intersection
     void setVisibility(double visibility);
+    
+    //Adds the turning path into the map
+    void addTurningPath(TurningPath *turningPath);
   } ;
 }
 

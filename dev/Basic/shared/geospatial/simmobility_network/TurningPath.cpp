@@ -7,7 +7,7 @@
 using namespace simmobility_network;
 
 TurningPath::TurningPath() :
-turningPathId(0), fromLaneId(0), maxSpeed(0), polyLine(NULL), toLaneId(0), turningGroupId(0)
+turningPathId(0), fromLaneId(0), maxSpeed(0), polyLine(NULL), tags(NULL), toLaneId(0), turningGroupId(0)
 {
 }
 
@@ -31,7 +31,11 @@ TurningPath::~TurningPath()
 		polyLine = NULL;
 	}
 	
-	tags.clear();
+	if(tags)
+	{
+		delete tags;
+		tags = NULL;
+	}
 	
 	//Delete the turning conflicts that lie on the turnings
 	std::map<TurningPath *, TurningConflict *>::iterator itConflicts = turningConflicts.begin();
@@ -78,12 +82,12 @@ void TurningPath::setPolyLine(PolyLine* polyLine)
 	this->polyLine = polyLine;
 }
 
-const std::vector<Tag>& TurningPath::getTags() const
+const std::vector<Tag>* TurningPath::getTags() const
 {
 	return tags;
 }
 
-void TurningPath::setTags(std::vector<Tag>& tags)
+void TurningPath::setTags(std::vector<Tag> *tags)
 {
 	this->tags = tags;
 }
@@ -106,4 +110,9 @@ unsigned int TurningPath::getTurningGroupId() const
 void TurningPath::setTurningGroupId(unsigned int turningGroupId)
 {
 	this->turningGroupId = turningGroupId;
+}
+
+void TurningPath::addTurningConflict(TurningPath* other, TurningConflict* conflict)
+{
+	turningConflicts.insert(std::make_pair(other, conflict));
 }

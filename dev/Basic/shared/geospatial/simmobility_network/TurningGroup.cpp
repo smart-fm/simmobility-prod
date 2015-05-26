@@ -7,7 +7,7 @@
 using namespace simmobility_network;
 
 TurningGroup::TurningGroup() :
-turningGroupId(0), fromLinkId(0), phases(""), rules(TURNING_GROUP_RULE_NO_STOP_SIGN), toLinkId(0), visibility(0)
+turningGroupId(0), fromLinkId(0), phases(""), rules(TURNING_GROUP_RULE_NO_STOP_SIGN), tags(NULL), toLinkId(0), visibility(0)
 {
 }
 
@@ -25,7 +25,11 @@ TurningGroup::TurningGroup(const TurningGroup& orig)
 
 TurningGroup::~TurningGroup()
 {
-	tags.clear();
+	if(tags)
+	{
+		delete tags;
+		tags = NULL;
+	}
 	
 	//Delete the turning paths
 	
@@ -93,22 +97,22 @@ void TurningGroup::setPhases(std::string phases)
 	this->phases = phases;
 }
 
-Rules TurningGroup::getRules() const
+TurningGroupRules TurningGroup::getRules() const
 {
 	return rules;
 }
 
-void TurningGroup::setRules(Rules rules)
+void TurningGroup::setRules(TurningGroupRules rules)
 {
 	this->rules = rules;
 }
 
-const std::vector<Tag>& TurningGroup::getTags() const
+const std::vector<Tag>* TurningGroup::getTags() const
 {
 	return tags;
 }
 
-void TurningGroup::setTags(std::vector<Tag>& tags)
+void TurningGroup::setTags(std::vector<Tag> *tags)
 {
 	this->tags = tags;
 }
@@ -131,4 +135,29 @@ double TurningGroup::getVisibility() const
 void TurningGroup::setVisibility(double visibility)
 {
 	this->visibility = visibility;
+}
+
+void TurningGroup::addTurningPath(TurningPath* turningPath)
+{
+	//Find the map entry having the key given by the 'from lane' of the turning path
+	std::map<unsigned int, std::map<unsigned int, TurningPath *> >::iterator itOuter = turningPaths.find(turningPath->getFromLaneId());
+	
+	//Check if such an entry exists
+	if(itOuter != turningPaths.end())
+	{
+		//Entry found, so just add a new entry in the inner map using the 'to lane' as the key
+		itOuter->second.insert(std::make_pair(turningPath->getToLaneId(), turningPath));
+	}
+	//Inner map doesn't exist
+	else
+	{
+		//Create the inner map
+		std::map<unsigned int, TurningPath *> innerMap;
+		
+		//Make a new entry in the inner map
+		innerMap.insert(std::make_pair(turningPath->getToLaneId(), turningPath));
+		
+		//Make a new entry into the outer map
+		turningPaths.insert(std::make_pair(turningPath->getFromLaneId(), innerMap));
+	}
 }

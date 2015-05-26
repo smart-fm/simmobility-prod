@@ -7,7 +7,7 @@
 using namespace simmobility_network;
 
 Node::Node() :
-nodeId(0), location(NULL), nodeType(DEFAULT_NODE), trafficLightId(0)
+nodeId(0), location(NULL), nodeType(DEFAULT_NODE), tags(NULL), trafficLightId(0)
 {
 }
 
@@ -30,7 +30,11 @@ Node::~Node()
 		location = NULL;
 	}
 
-	tags.clear();
+	if(tags)
+	{
+		delete tags;
+		tags = NULL;
+	}
 	
 	//Delete the turning groups
 	
@@ -88,12 +92,12 @@ NodeType Node::getNodeType() const
 	return nodeType;
 }
 
-void Node::setTags(std::vector<Tag>& tags)
+void Node::setTags(std::vector<Tag> *tags)
 {
 	this->tags = tags;
 }
 
-const std::vector<Tag>& Node::getTags() const
+const std::vector<Tag>* Node::getTags() const
 {
 	return tags;
 }
@@ -106,4 +110,29 @@ void Node::setTrafficLightId(unsigned int trafficLightId)
 unsigned int Node::getTrafficLightId() const
 {
 	return trafficLightId;
+}
+
+void Node::addTurningGroup(TurningGroup* turningGroup)
+{
+	//Find the map entry having the key given by the 'from link' of the turning group
+	std::map<unsigned int, std::map<unsigned int, TurningGroup *> >::iterator itOuter = turningGroups.find(turningGroup->getFromLinkId());
+	
+	//Check if such an entry exists
+	if(itOuter != turningGroups.end())
+	{
+		//Entry found, so just add a new entry in the inner map using the 'to link' as the key
+		itOuter->second.insert(std::make_pair(turningGroup->getToLinkId(), turningGroup));
+	}
+	//Inner map doesn't exist
+	else
+	{
+		//Create the inner map
+		std::map<unsigned int, TurningGroup *> innerMap;
+		
+		//Make a new entry in the inner map
+		innerMap.insert(std::make_pair(turningGroup->getToLinkId(), turningGroup));
+		
+		//Make a new entry into the outer map
+		turningGroups.insert(std::make_pair(turningGroup->getFromLinkId(), innerMap));
+	}
 }

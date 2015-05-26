@@ -31,7 +31,7 @@ namespace simmobility_network
     PolyLine* polyLine;
     
     //Holds the additional information
-    std::vector<Tag> tags;
+    std::vector<Tag> *tags;
     
     //Indicates the id of the lane at which the turning path ends
     unsigned int toLaneId;
@@ -70,10 +70,10 @@ namespace simmobility_network
     void setPolyLine(PolyLine* polyLine);
     
     //Returns a vector of tags which holds the additional information
-    const std::vector<Tag>& getTags() const;
+    const std::vector<Tag>* getTags() const;
     
     //Setter for the tags field which holds the additional information
-    void setTags(std::vector<Tag>& tags);
+    void setTags(std::vector<Tag> *tags);
     
     //Returns the id of the lane where the turning path ends
     unsigned int getToLaneId() const;
@@ -86,6 +86,9 @@ namespace simmobility_network
     
     //Setter for the id of the turning group of which this turning path is a part
     void setTurningGroupId(unsigned int turningGroupId);
+    
+    //Adds the turning conflict to the map of conflicts
+    void addTurningConflict(TurningPath *other, TurningConflict *conflict);
 
   } ;
 }

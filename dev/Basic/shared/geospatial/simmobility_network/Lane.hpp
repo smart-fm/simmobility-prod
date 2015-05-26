@@ -58,7 +58,7 @@ namespace simmobility_network
     PolyLine *polyLine;
     
     //Holds additional information
-    std::vector<Tag> tags;
+    std::vector<Tag> *tags;
     
     //Defines the types of vehicles that can use the lane
     //7 bits are used to identify the modes as follows:
@@ -131,10 +131,10 @@ namespace simmobility_network
     void setPolyLine(PolyLine* polyLine);    
     
     //Returns a vector of tags which holds the additional information
-    const std::vector<Tag>& getTags() const;
+    const std::vector<Tag>* getTags() const;
     
     //Setter for the tags field which holds the additional information
-    void setTags(std::vector<Tag>& tags);
+    void setTags(std::vector<Tag> *tags);
     
     //Returns the width of the lane
     double getWidth() const;  

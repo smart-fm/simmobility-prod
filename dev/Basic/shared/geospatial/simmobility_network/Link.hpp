@@ -40,7 +40,7 @@ namespace simmobility_network
     std::vector<RoadSegment *> roadSegments;
     
     //Holds the additional information
-    std::vector<Tag> tags;
+    std::vector<Tag> *tags;
     
     //Indicates the node at which this link ends
     unsigned int toNodeId;
@@ -84,10 +84,10 @@ namespace simmobility_network
     void setRoadSegments(std::vector<RoadSegment*>& roadSegments);
     
     //Returns a vector of tags which holds the additional information
-    const std::vector<Tag>& getTags() const;
+    const std::vector<Tag>* getTags() const;
     
     //Setter for the tags field which holds the additional information
-    void setTags(std::vector<Tag>& tags);
+    void setTags(std::vector<Tag> *tags);
     
     unsigned int getToNodeId() const;
     

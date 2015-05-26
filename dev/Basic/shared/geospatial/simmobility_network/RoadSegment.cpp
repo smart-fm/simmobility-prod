@@ -7,7 +7,7 @@
 using namespace simmobility_network;
 
 RoadSegment::RoadSegment() :
-roadSegmentId(0), capacity(0), maxSpeed(0), polyLine(NULL), sequenceNumber(0)
+roadSegmentId(0), capacity(0), maxSpeed(0), polyLine(NULL), sequenceNumber(0), tags(NULL)
 {
 }
 
@@ -37,7 +37,11 @@ RoadSegment::~RoadSegment()
 		polyLine = NULL;
 	}
 	
-	tags.clear();
+	if(tags)
+	{
+		delete tags;
+		tags = NULL;
+	}
 }
 
 unsigned int RoadSegment::getRoadSegmentId() const
@@ -100,12 +104,12 @@ void RoadSegment::setSequenceNumber(unsigned int sequenceNumber)
 	this->sequenceNumber = sequenceNumber;
 }
 
-const std::vector<Tag>& RoadSegment::getTags() const
+const std::vector<Tag>* RoadSegment::getTags() const
 {
 	return tags;
 }
 
-void RoadSegment::setTags(std::vector<Tag>& tags)
+void RoadSegment::setTags(std::vector<Tag> *tags)
 {
 	this->tags = tags;
 }

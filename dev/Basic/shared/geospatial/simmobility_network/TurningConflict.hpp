@@ -49,7 +49,7 @@ namespace simmobility_network
     unsigned int secondTurningId;
 
     //Holds additional information
-    std::vector<Tag> tags;
+    std::vector<Tag> *tags;
 
   public:
     
@@ -114,10 +114,10 @@ namespace simmobility_network
     void setSecondTurningId(unsigned int secondTurningId);
     
     //Returns a vector of tags which holds the additional information
-    const std::vector<Tag>& getTags() const;
+    const std::vector<Tag>* getTags() const;
     
     //Setter for the tags field which holds the additional information
-    void setTags(std::vector<Tag>& tags);
+    void setTags(std::vector<Tag> *tags);
     
   } ;
 }

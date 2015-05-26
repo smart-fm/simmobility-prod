@@ -47,7 +47,7 @@ namespace simmobility_network
     NodeType nodeType;
     
     //Holds additional information
-    std::vector<Tag> tags;
+    std::vector<Tag> *tags;
     
     //The identifier for the traffic light if present at the node
     unsigned int trafficLightId;
@@ -83,16 +83,19 @@ namespace simmobility_network
     NodeType getNodeType() const;
     
     //Setter for the tags field which holds the additional information
-    void setTags(std::vector<Tag>& tags);
+    void setTags(std::vector<Tag> *tags);
     
     //Returns a vector of tags which holds the additional information
-    const std::vector<Tag>& getTags() const;
+    const std::vector<Tag>* getTags() const;
     
     //Sets the traffic light id
     void setTrafficLightId(unsigned int trafficLightId);
     
     //Returns the traffic light id
     unsigned int getTrafficLightId() const;
+    
+    //Adds the turning group into the map
+    void addTurningGroup(TurningGroup *turningGroup);
 
   } ;
 }

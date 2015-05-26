@@ -8,7 +8,7 @@ using namespace simmobility_network;
 
 TurningConflict::TurningConflict() :
 conflictId(0), criticalGap(0), firstConflictDistance(0), firstTurning(NULL), firstTurningId(0), priority(0),
-secondConflictDistance(0), secondTurning(NULL), secondTurningId(0)
+secondConflictDistance(0), secondTurning(NULL), secondTurningId(0), tags(NULL)
 {
 }
 
@@ -29,7 +29,11 @@ TurningConflict::TurningConflict(const TurningConflict& orig)
 
 TurningConflict::~TurningConflict()
 {
-	tags.clear();	
+	if(tags)
+	{
+		delete tags;
+		tags = NULL;
+	}
 }
 
 unsigned int TurningConflict::getConflictId() const
@@ -120,4 +124,14 @@ unsigned int TurningConflict::getSecondTurningId() const
 void TurningConflict::setSecondTurningId(unsigned int secondTurningId)
 {
 	this->secondTurningId = secondTurningId;
+}
+
+const std::vector<Tag>* TurningConflict::getTags() const
+{
+	return tags;
+}
+
+void TurningConflict::setTags(std::vector<Tag> *tags)
+{
+	this->tags = tags;
 }

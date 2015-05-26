@@ -11,6 +11,9 @@ namespace simmobility_network
   {
   private:
     
+    //Indicates the poly-line to which the point belongs
+    unsigned int polyLineId;
+    
     //Indicates the position of the point in a line
     unsigned int sequenceNumber;
     
@@ -25,11 +28,17 @@ namespace simmobility_network
     
   public:
     
-    Point(unsigned int seqNum, double x, double y, double z);
+    Point(unsigned int id, unsigned int seqNum, double x, double y, double z);
     
     Point(const Point& orig);
     
     virtual ~Point();
+    
+    //Returns the id of the poly-line to which the point belongs
+    unsigned int getPolyLineId() const;
+    
+    //Sets the id of the poly-line to which the point belongs
+    void setPolyLineId(unsigned int polyLineId);
     
     //Returns the sequence number of the point within a line
     unsigned int getSequenceNumber() const;

@@ -6,13 +6,14 @@
 
 using namespace simmobility_network;
 
-Point::Point(unsigned int seqNum, double x, double y, double z) :
-sequenceNumber(seqNum), x(x), y(y), z(z)
+Point::Point(unsigned int id, unsigned int seqNum, double x, double y, double z) :
+polyLineId(id), sequenceNumber(seqNum), x(x), y(y), z(z)
 {
 }
 
 Point::Point(const Point& orig)
 {
+	this->polyLineId = orig.polyLineId;
 	this->sequenceNumber = orig.sequenceNumber;
 	this->x = orig.x;
 	this->y = orig.y;
@@ -21,6 +22,16 @@ Point::Point(const Point& orig)
 
 Point::~Point()
 {
+}
+
+unsigned int Point::getPolyLineId() const
+{
+	return polyLineId;
+}
+
+void Point::setPolyLineId(unsigned int polyLineId)
+{
+	this->polyLineId = polyLineId;
 }
 
 unsigned int Point::getSequenceNumber() const

@@ -72,7 +72,7 @@ namespace soci
       double x = vals.get<double>("x", 0);
       double y = vals.get<double>("y", 0);
       double z = vals.get<double>("z", 0);
-      Point *location = new Point(0, x, y, z);      
+      Point *location = new Point(0, 0, x, y, z);      
       res.setLocation(location);
       
       //Read the string representing the tags.
@@ -241,6 +241,7 @@ namespace soci
     typedef values base_def;
     static void from_base(const soci::values& vals, soci::indicator& ind, Point& res)
     {
+      res.setPolyLineId(vals.get<unsigned int>("polyline_id", 0));
       res.setSequenceNumber(vals.get<unsigned int>("sequence_no", 0));
       res.setX(vals.get<double>("x", 0));
       res.setY(vals.get<double>("y", 0));

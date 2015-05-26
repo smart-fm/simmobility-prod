@@ -36,6 +36,7 @@
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/Utils.hpp"
 #include "workers/WorkGroup.hpp"
+#include "geospatial/simmobility_network/NetworkLoader.hpp"
 
 using namespace sim_mob;
 
@@ -382,14 +383,15 @@ void sim_mob::ExpandAndValidateConfigFile::SetTicks()
 void sim_mob::ExpandAndValidateConfigFile::LoadNetworkFromDatabase()
 {
 	//Load from the database or from XML, depending.
-	if (ConfigManager::GetInstance().FullConfig().networkSource()==SystemParams::NETSRC_DATABASE) {
-		std::cout <<"Loading Road Network from the database.\n";
-		sim_mob::aimsun::Loader::LoadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings, cfg.getNetworkRW(), cfg.getTripChains(), nullptr);
-	} else {
-		std::cout <<"Loading Road Network from XML.\n";
-		if (!sim_mob::xml::InitAndLoadXML(cfg.networkXmlInputFile(), cfg.getNetworkRW(), cfg.getTripChains())) {
-			throw std::runtime_error("Error loading/parsing XML file (see stderr).");
-		}
+	if (ConfigManager::GetInstance().FullConfig().networkSource()==SystemParams::NETSRC_DATABASE) 
+	{
+		Print() <<"Loading Road Network from the database.\n";
+		simmobility_network::NetworkLoader::getInstance()->LoadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
+	}
+	else 
+	{
+		Print() <<"Loading Road Network from XML not yet implemented\n";
+		exit(-1);
 	}
 }
 void sim_mob::ExpandAndValidateConfigFile::LoadPublicTransitNetworkFromDatabase()

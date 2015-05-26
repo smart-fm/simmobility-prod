@@ -54,17 +54,7 @@
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/TrafficWatch.hpp"
-#include "geospatial/aimsun/Loader.hpp"
-#include "geospatial/BusStop.hpp"
-#include "geospatial/Intersection.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/LaneConnector.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/RoadNetwork.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Roundabout.hpp"
-#include "geospatial/Route.hpp"
-#include "geospatial/UniNode.hpp"
+#include "geospatial/simmobility_network/NetworkLoader.hpp"
 #include "logging/Log.hpp"
 #include "network/CommunicationManager.hpp"
 #include "network/ControlManager.hpp"
@@ -485,6 +475,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 
 	Print() << "Simulation complete; closing worker threads." << endl;
+	
+	//Destroy the road network
+	simmobility_network::NetworkLoader::destroyInstance();
 
 	//Delete the AMOD controller instance
 	sim_mob::AMOD::AMODController::deleteInstance();

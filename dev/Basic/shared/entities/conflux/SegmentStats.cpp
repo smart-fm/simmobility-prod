@@ -253,13 +253,14 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 	//let's not forget the bus drivers serving stops in this segment stats
 	//Bus drivers go in the front of the list, because bus stops are (virtually)
 	//located at the end of the segment
+	mergedPersonList.clear();
 	for (BusStopList::const_reverse_iterator stopIt = busStops.rbegin(); stopIt != busStops.rend(); stopIt++)
 	{
 		const sim_mob::BusStop* stop = *stopIt;
 		PersonList& driversAtStop = busDrivers.at(stop);
 		for (PersonList::iterator pIt = driversAtStop.begin(); pIt != driversAtStop.end(); pIt++)
 		{
-			mergedPersonList.push_front(*pIt);
+			mergedPersonList.push_back(*pIt);
 		}
 	}
 
@@ -935,6 +936,11 @@ bool SegmentStats::hasBusStop(const sim_mob::BusStop* busStop) const
 	return !(stopIt == busStops.end());
 }
 
+bool SegmentStats::hasBusStop() const
+{
+	return !(busStops.empty());
+}
+
 double SegmentStats::getPositionOfLastUpdatedAgentInLane(const Lane* lane) const
 {
 	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
@@ -1043,7 +1049,7 @@ void SegmentStats::printAgents() const
 		const PersonList& driversAtStop = busDrivers.at(stop);
 		for (PersonList::const_iterator pIt = driversAtStop.begin(); pIt != driversAtStop.end(); pIt++)
 		{
-			debugMsgs << "|" << (*pIt)->getId();
+			debugMsgs << "|" << (*pIt)->getId() << "(" << (*pIt)->busLine << ")";
 		}
 		debugMsgs << std::endl;
 	}

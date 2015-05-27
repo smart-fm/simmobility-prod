@@ -69,6 +69,11 @@ void BusStopAgent::onEvent(event::EventId eventId, event::Context ctxId, event::
 
 void BusStopAgent::registerWaitingPerson(sim_mob::medium::WaitBusActivity* waitingPerson)
 {
+	const sim_mob::BusStop* stop = this->getBusStop();
+	if(stop->terminusType == sim_mob::BusStop::SINK_TERMINUS)
+	{
+		throw std::runtime_error("attempt to add waiting person at SINK_TERMINUS");
+	}
 	messaging::MessageBus::ReRegisterHandler(waitingPerson->getParent(), GetContext());
 	waitingPersons.push_back(waitingPerson);
 }
@@ -108,8 +113,8 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 	while (itPerson != alightingPersons.end())
 	{
 		bool ret = false;
-		sim_mob::medium::Passenger* waitingPeople = *itPerson;
-		Person* person = waitingPeople->getParent();
+		sim_mob::medium::Passenger* alightedPassenger = *itPerson;
+		Person* person = alightedPassenger->getParent();
 		if (person)
 		{
 			UpdateStatus val = person->checkTripChain();
@@ -119,10 +124,27 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 			{
 				if (role->roleType == Role::RL_WAITBUSACTITITY && val.status == UpdateStatus::RS_CONTINUE)
 				{
-					WaitBusActivity* waitPerson = dynamic_cast<WaitBusActivity*>(role);
-					if (waitPerson)
+					WaitBusActivity* waitActivity = dynamic_cast<WaitBusActivity*>(role);
+					if (waitActivity)
 					{
-						registerWaitingPerson(waitPerson);
+						//always make sure we dispatch this person only to SOURCE_TERMINUS or NOT_A_TERMINUS stops
+						const sim_mob::BusStop* stop = this->getBusStop();
+						if(stop->terminusType == sim_mob::BusStop::SINK_TERMINUS)
+						{
+							stop = stop->getTwinStop();
+							if(stop->terminusType == sim_mob::BusStop::SINK_TERMINUS) { throw std::runtime_error("both twin stops are SINKs"); } //sanity check
+							const StreetDirectory& strDirectory = StreetDirectory::instance();
+							Agent* twinStopAgent = strDirectory.findBusStopAgentByBusStop(stop);
+							if (twinStopAgent)
+							{
+								messaging::MessageBus::SendMessage(twinStopAgent, MSG_WAITING_PERSON_ARRIVAL_AT_BUSSTOP,
+										messaging::MessageBus::MessagePtr(new ArrivalAtStopMessage(person)));
+							}
+						}
+						else
+						{
+							registerWaitingPerson(waitActivity);
+						}
 						ret = true;
 					}
 				}
@@ -193,9 +215,9 @@ void BusStopAgent::HandleMessage(messaging::Message::MessageType type, const mes
 		}
 		break;
 	}
-	case MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP:
+	case MSG_WAITING_PERSON_ARRIVAL_AT_BUSSTOP:
 	{
-		const ArriavalAtStopMessage& msg = MSG_CAST(ArriavalAtStopMessage, message);
+		const ArrivalAtStopMessage& msg = MSG_CAST(ArrivalAtStopMessage, message);
 		Person* person = msg.waitingPerson;
 		Role* role = person->getRole();
 		if (role)

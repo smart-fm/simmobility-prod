@@ -46,7 +46,7 @@ private:
 	void CheckGranularities();
 	void SetTicks();
 	bool SetTickFromBaseGran(unsigned int& res, unsigned int tickLenMs);
-	void LoadNetworkFromDatabase();
+	void LoadNetwork();
 	void LoadPublicTransitNetworkFromDatabase();
 	void WarnMidroadSidewalks();
 	void LoadFMOD_Controller();

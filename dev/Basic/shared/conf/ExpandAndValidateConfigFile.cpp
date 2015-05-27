@@ -161,7 +161,6 @@ void generateOD(
 void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 {
 	//Set reaction time distributions
-	//TODO: Refactor to avoid magic numbers
 	cfg.reactDist1 = GenerateReactionTimeDistribution(cfg.system.simulation.reactTimeDistribution1);
 	cfg.reactDist2 = GenerateReactionTimeDistribution(cfg.system.simulation.reactTimeDistribution2);
 
@@ -169,9 +168,11 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	InformLoadOrder(cfg.system.simulation.loadAgentsOrder);
 
 	//Set the auto-incrementing ID.
-	if (cfg.system.simulation.startingAutoAgentID<0) {
+	if (cfg.system.simulation.startingAutoAgentID < 0) 
+	{
 		throw std::runtime_error("Agent auto-id must start from >0.");
 	}
+	
 	Agent::SetIncrementIDStartValue(cfg.system.simulation.startingAutoAgentID, true);
 
 	//Print schema file.
@@ -183,15 +184,16 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	SetTicks();
 
 	//Set PartitionManager instance (if using MPI and it's enabled).
-	if (cfg.MPI_Enabled() && cfg.using_MPI) {
+	if (cfg.MPI_Enabled() && cfg.using_MPI) 
+	{
 		int partId = cfg.system.simulation.partitioningSolutionId;
 		PartitionManager::instance().partition_config->partition_solution_id = partId;
 		std::cout << "partition_solution_id in configuration:" <<partId << std::endl;
 	}
-	//Load from database or XML.
-	//TODO: This should be moved into its own class; we should NOT be doing loading in ExpandAndValidate()
-	//      (it is here now to maintain compatibility with the old order or loading things).
-	LoadNetworkFromDatabase();
+	
+	//Load the network
+	LoadNetwork();
+	
 	if(sim_mob::ConfigManager::GetInstance().FullConfig().CBD())
 	{
 		sim_mob::RestrictedRegion::getInstance().populate();
@@ -200,6 +202,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//TEMP: Test network output via boost.
 	//todo: enable/disble through cinfig
 	BoostSaveXML(cfg.networkXmlOutputFile(), cfg.getNetworkRW());
+	
 	//Detect sidewalks in the middle of the road.
 	WarnMidroadSidewalks();
 
@@ -217,6 +220,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     {
     	LoadPublicTransitNetworkFromDatabase();
     }
+	
  	//Initialize the street directory.
 	StreetDirectory::instance().init(cfg.getNetwork(), true);
 	std::cout << "Street Directory initialized  " << std::endl;
@@ -236,17 +240,20 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//TODO: put its option in config xml
 	//generateOD("/home/fm-simmobility/vahid/OD.txt", "/home/fm-simmobility/vahid/ODs.xml");
     //Process Confluxes if required
-    if(cfg.RunningMidSupply()) {
+    if(cfg.RunningMidSupply()) 
+	{
 		size_t sizeBefore = cfg.getConfluxes().size();
 		sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
 		std::cout <<"Confluxes size before(" <<sizeBefore <<") and after(" <<cfg.getConfluxes().size() <<")\n";
     }
-    //Maintain unique/non-colliding IDs.
+    
+	//Maintain unique/non-colliding IDs.
     ConfigParams::AgentConstraints constraints;
     constraints.startingAutoAgentID = cfg.system.simulation.startingAutoAgentID;
 
     //Start all "BusController" entities.
-    for (std::vector<EntityTemplate>::const_iterator it=cfg.busControllerTemplates.begin(); it!=cfg.busControllerTemplates.end(); ++it) {
+    for (std::vector<EntityTemplate>::const_iterator it=cfg.busControllerTemplates.begin(); it!=cfg.busControllerTemplates.end(); ++it) 
+	{
     	sim_mob::BusController::RegisterNewBusController(it->startTimeMs, cfg.mutexStategy());
 	}
 
@@ -259,7 +266,8 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	verifyIncidents();
 
     //Initialize all BusControllers.
-	if(BusController::HasBusControllers()) {
+	if(BusController::HasBusControllers()) 
+	{
 		BusController::InitializeAllControllers(active_agents, cfg.getPT_bus_dispatch_freq());
 	}
 
@@ -273,7 +281,8 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     PrintSettings();
 
     //Start the BusCotroller
-    if(BusController::HasBusControllers()) {
+    if(BusController::HasBusControllers()) 
+	{
     	BusController::DispatchAllControllers(active_agents);
     }
 }
@@ -380,9 +389,9 @@ void sim_mob::ExpandAndValidateConfigFile::SetTicks()
 }
 
 
-void sim_mob::ExpandAndValidateConfigFile::LoadNetworkFromDatabase()
+void sim_mob::ExpandAndValidateConfigFile::LoadNetwork()
 {
-	//Load from the database or from XML, depending.
+	//Load from the database or from XML
 	if (ConfigManager::GetInstance().FullConfig().networkSource()==SystemParams::NETSRC_DATABASE) 
 	{
 		Print() <<"Loading Road Network from the database.\n";

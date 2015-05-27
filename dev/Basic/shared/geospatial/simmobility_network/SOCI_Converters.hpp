@@ -212,6 +212,7 @@ namespace soci
       res.setCanVehicleStop(vals.get<int>("can_stop", 0));
       res.setHasRoadShoulder(vals.get<int>("has_road_shoulder", 0));
       res.setHighOccupancyVehicleAllowed(vals.get<int>("high_occ_veh", 0));
+      res.setRoadSegmentId(vals.get<unsigned int>("segment_id", 0));
       res.setWidth(vals.get<double>("width", 0));
       
       //Read the string representing the tags.

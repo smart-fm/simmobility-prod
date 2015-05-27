@@ -27,6 +27,9 @@ namespace simmobility_network
     //The lanes that make up th road segment
     std::vector<Lane *> lanes;
     
+    //The id of the link to which the segment belongs
+    unsigned int linkId;
+    
     //Indicates the maximum speed the vehicles should adhere to when travelling on the road segment
     unsigned int maxSpeed;
     
@@ -63,10 +66,7 @@ namespace simmobility_network
     void setCapacity(unsigned int capacity);
     
     //Returns the vector of lanes that make up the segment
-    const std::vector<Lane*>& getLanes() const;
-    
-    //Sets the vector of lanes that make up the segment
-    void setLanes(std::vector<Lane*>& lanes);    
+    const std::vector<Lane*>& getLanes() const;    
     
     //Returns the id of the link to which the road segment belongs
     unsigned int getLinkId() const;
@@ -97,6 +97,9 @@ namespace simmobility_network
     
     //Setter for the tags field which holds the additional information
     void setTags(std::vector<Tag> *tags);
+    
+    //Adds a lane to the vector of lanes that make up the segment
+    void addLane(Lane *lane);
     
   } ;
 }

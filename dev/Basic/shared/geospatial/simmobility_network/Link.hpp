@@ -78,10 +78,7 @@ namespace simmobility_network
     void setRoadName(std::string roadName);
     
     //Returns the vector of road segments that make up the link
-    const std::vector<RoadSegment*>& getRoadSegments() const;
-    
-    //Sets the vector of road segments that make up the link
-    void setRoadSegments(std::vector<RoadSegment*>& roadSegments);
+    const std::vector<RoadSegment*>& getRoadSegments() const;    
     
     //Returns a vector of tags which holds the additional information
     const std::vector<Tag>* getTags() const;
@@ -89,9 +86,14 @@ namespace simmobility_network
     //Setter for the tags field which holds the additional information
     void setTags(std::vector<Tag> *tags);
     
+    //Returns the id of the node at which the link terminates
     unsigned int getToNodeId() const;
     
+    //Setter for id of the node at which the link terminates
     void setToNodeId(unsigned int toNodeId);
+    
+    //Adds a road segment to the vector of road segments that make up the link
+    void addRoadSegment(RoadSegment *roadSegment);
   } ;
 }
 

@@ -26,6 +26,12 @@ namespace simmobility_network
     //This map stores all the nodes in the network, with the Node id as the key for retrieval
     std::map<unsigned int, Node *> mapOfIdvsNodes;
     
+    //This map stores all the lanes in the network, with the lane id as the key for retrieval
+    std::map<unsigned int, Lane *> mapOfIdVsLanes;
+    
+    //This map stores all the segments in the network, with the segment id as the key for retrieval
+    std::map<unsigned int, RoadSegment *> mapOfIdVsRoadSegments;
+    
     //This map stores all the turning groups in the network, with the group id as the key for retrieval
     std::map<unsigned int, TurningGroup *> mapOfIdvsTurningGroups;
     
@@ -50,10 +56,18 @@ namespace simmobility_network
     const std::map<unsigned int, TurningPath*>& getMapOfIdvsTurningPaths() const;
     
     const std::map<unsigned int, PolyLine*>& getMapOfIdVsTurningPolyLines() const;
+    
+    void addLane(Lane *lane);
+    
+    void addLanePolyLine(Point *point);
 
     void addLink(Link *link);
 
     void addNode(Node *node);
+    
+    void addRoadSegment(RoadSegment *segment);
+    
+    void addSegmentPolyLine(Point *point);
     
     void addTurningConflict(TurningConflict *turningConflict);
         

@@ -63,6 +63,32 @@ string NetworkLoader::getStoredProcedure(const map<string,string>& storedProcs, 
 	}
 }
 
+void NetworkLoader::LoadLanes(const std::string& storedProc)
+{
+	//SQL statement
+	soci::rowset<Lane> lanes = (sql.prepare << "select * from " + storedProc);
+	
+	for(soci::rowset<Lane>::const_iterator itLanes = lanes.begin(); itLanes != lanes.end(); ++itLanes)
+	{
+		//Create new lane and add it to the segment to which it belongs
+		Lane *lane = new Lane(*itLanes);
+		roadNetwork->addLane(lane);
+	}
+}
+
+void NetworkLoader::LoadLanePolyLines(const std::string& storedProc)
+{
+	//SQL statement
+	soci::rowset<simmobility_network::Point> points = (sql.prepare << "select * from " + storedProc);
+	
+	for(soci::rowset<Point>::const_iterator itPoints = points.begin(); itPoints != points.end(); ++itPoints)
+	{
+		//Create new point and add it to the poly-line, to which it belongs
+		Point *point = new Point(*itPoints);
+		roadNetwork->addLanePolyLine(point);
+	}
+}
+
 void NetworkLoader::LoadLinks(const std::string& storedProc)
 {
 	//SQL statement
@@ -86,6 +112,32 @@ void NetworkLoader::LoadNodes(const std::string& storedProc)
 		//Create new node and add it in the map of nodes
 		Node* node = new Node(*itNodes);
 		roadNetwork->addNode(node);
+	}
+}
+
+void NetworkLoader::LoadRoadSegments(const std::string& storedProc)
+{
+	//SQL statement
+	soci::rowset<RoadSegment> segments = (sql.prepare << "select * from " + storedProc);
+	
+	for(soci::rowset<RoadSegment>::const_iterator itSegments = segments.begin(); itSegments != segments.end(); ++itSegments)
+	{
+		//Create new road segment and add it to the link to which it belongs
+		RoadSegment *segment = new RoadSegment(*itSegments);
+		roadNetwork->addRoadSegment(segment);
+	}
+}
+
+void NetworkLoader::LoadSegmentPolyLines(const std::string& storedProc)
+{
+	//SQL statement
+	soci::rowset<simmobility_network::Point> points = (sql.prepare << "select * from " + storedProc);
+	
+	for(soci::rowset<Point>::const_iterator itPoints = points.begin(); itPoints != points.end(); ++itPoints)
+	{
+		//Create new point and add it to the poly-line, to which it belongs
+		Point *point = new Point(*itPoints);
+		roadNetwork->addSegmentPolyLine(point);
 	}
 }
 
@@ -161,6 +213,14 @@ void NetworkLoader::LoadNetwork(const string& connectionStr, const map<string,st
 		LoadTurningPolyLines(getStoredProcedure(storedProcs, "turning_polylines"));
 		
 		LoadTurningConflicts(getStoredProcedure(storedProcs, "turning_conflicts"));
+		
+		LoadRoadSegments(getStoredProcedure(storedProcs, "road_segments"));
+		
+		LoadSegmentPolyLines(getStoredProcedure(storedProcs, "segment_polylines"));
+		
+		LoadLanes(getStoredProcedure(storedProcs, "lanes"));
+		
+		LoadLanePolyLines(getStoredProcedure(storedProcs, "lane-polylines"));
 
 		//Close the connection
 		sql.close();

@@ -57,12 +57,16 @@ namespace simmobility_network
     //Represents the poly-line of the lane
     PolyLine *polyLine;
     
+    //The id of the road segment to which the lane belongs
+    unsigned int roadSegmentId;
+    
     //Holds additional information
     std::vector<Tag> *tags;
     
     //Defines the types of vehicles that can use the lane
     //7 bits are used to identify the modes as follows:
     //Pedestrian Bicycle Car Van Truck Bus Taxi
+    //Number stored as decimal in the database
     unsigned int vehicleMode;
     
     //The width of the lane
@@ -128,7 +132,13 @@ namespace simmobility_network
     PolyLine* getPolyLine() const;
     
     //Sets the poly-line for the name
-    void setPolyLine(PolyLine* polyLine);    
+    void setPolyLine(PolyLine* polyLine);
+    
+    //Returns the id of the road segment to which the lane belongs
+    unsigned int getRoadSegmentId() const;
+    
+    //Sets the id of the road segment to which the lane belongs
+    void setRoadSegmentId(unsigned int roadSegmentId);
     
     //Returns a vector of tags which holds the additional information
     const std::vector<Tag>* getTags() const;

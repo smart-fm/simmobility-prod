@@ -8,7 +8,7 @@ using namespace simmobility_network;
 
 Lane::Lane() :
 laneId(0), busLaneRules(BUS_LANE_RULES_CAR_AND_BUS), canVehiclePark(false), canVehicleStop(false), hasRoadShoulder(false),
-isHOV_Allowed(false), laneIndex(0), polyLine(NULL), tags(NULL), width(0)
+isHOV_Allowed(false), laneIndex(0), polyLine(NULL), roadSegmentId(0), tags(NULL), width(0)
 {
 }
 
@@ -22,7 +22,8 @@ Lane::Lane(const Lane& orig)
 	this->isHOV_Allowed = orig.isHOV_Allowed;
 	this->laneConnectors = orig.laneConnectors;
 	this->laneIndex = orig.laneIndex;
-	this->polyLine = orig.polyLine;	
+	this->polyLine = orig.polyLine;
+	this->roadSegmentId = orig.roadSegmentId;
 	this->tags = orig.tags;
 	this->width = orig.width;
 }
@@ -137,6 +138,16 @@ PolyLine* Lane::getPolyLine() const
 void Lane::setPolyLine(PolyLine* polyLine)
 {
 	this->polyLine = polyLine;
+}
+
+unsigned int Lane::getRoadSegmentId() const
+{
+	return roadSegmentId;
+}
+
+void Lane::setRoadSegmentId(unsigned int roadSegmentId)
+{
+	this->roadSegmentId = roadSegmentId;
 }
 
 const std::vector<Tag>* Lane::getTags() const

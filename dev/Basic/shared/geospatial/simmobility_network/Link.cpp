@@ -83,11 +83,6 @@ const std::vector<RoadSegment*>& Link::getRoadSegments() const
 	return roadSegments;
 }
 
-void Link::setRoadSegments(std::vector<RoadSegment*>& roadSegments)
-{
-	this->roadSegments = roadSegments;
-}
-
 const std::vector<Tag>* Link::getTags() const
 {
 	return tags;
@@ -108,3 +103,7 @@ void Link::setToNodeId(unsigned int toNodeId)
 	this->toNodeId = toNodeId;
 }
 
+void Link::addRoadSegment(RoadSegment *roadSegment)
+{
+	this->roadSegments.push_back(roadSegment);
+}

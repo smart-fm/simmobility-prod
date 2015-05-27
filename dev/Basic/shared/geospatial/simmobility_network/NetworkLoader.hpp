@@ -38,11 +38,23 @@ namespace simmobility_network
     //Returns the required stored procedure from the map of stored procedures
     string getStoredProcedure(map<string, string> const &storedProcs, string const &procedureName, bool mandatory);
     
+    //Loads the Lanes
+    void LoadLanes(const std::string& storedProc);
+    
+    //Loads the lane poly-lines
+    void LoadLanePolyLines(const std::string& storedProc);
+    
     //Loads the Links
     void LoadLinks(const std::string& storedProc);
     
     //Loads the Nodes
     void LoadNodes(const std::string& storedProc);
+    
+    //Load the road segments
+    void LoadRoadSegments(const std::string& storedProc);
+    
+    //Loads the road segment poly-lines
+    void LoadSegmentPolyLines(const std::string& storedProc);
     
     //Loads the turning conflicts
     void LoadTurningConflicts(const std::string& storedProc);

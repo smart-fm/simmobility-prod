@@ -1343,6 +1343,33 @@ void sim_mob::Person::printTripChainItemTypes() const{
 
 	 csv << res.str();
 	 std::cout << res.str();
+
+
+	int origiNode = 0, destNode = 0, cbdStartNode = 0, cbdEndNode = 0;
+	if (subtripMetrics.origin.type_ == WayPoint::NODE) {
+		origiNode = subtripMetrics.origin.node_->getID();
+	}
+	if (subtripMetrics.destination.type_ == WayPoint::NODE) {
+		destNode = subtripMetrics.destination.node_->getID();
+	}
+	if (subtripMetrics.cbdOrigin.type_ == WayPoint::NODE) {
+		cbdStartNode = subtripMetrics.cbdOrigin.node_->getID();
+	}
+	if (subtripMetrics.cbdDestination.type_ == WayPoint::NODE) {
+		cbdEndNode = subtripMetrics.cbdDestination.node_->getID();
+	}
+	if (subtripMetrics.cbdTraverseType == TravelMetric::CBD_NONE
+			|| cbdStartNode == 0 || cbdEndNode == 0) {
+		return;
+	}
+	std::stringstream ret("");
+	ret << this->GetId() << "," << origiNode << "," << destNode << ","
+			<< cbdStartNode << "," << cbdEndNode << ","
+			<< subtripMetrics.cbdStartTime.toString() << ","
+			<< subtripMetrics.cbdEndTime.toString() << ","
+			<< subtripMetrics.cbdTraverseType << std::endl;
+	sim_mob::BasicLogger& cbd = sim_mob::Logger::log("cdb.csv");
+	cbd << ret.str();
  }
 
  /********************************************************************

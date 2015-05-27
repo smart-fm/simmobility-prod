@@ -6,7 +6,7 @@
 	<thread_pool size="7"/>
 	<pathset_database database="fm_local_path_choice"  credentials="fm_local_path_choice" /> <!--unused for now-->
 	<!-- <tables singlepath_table="path_fake" realtime_traveltime="realtime_travel_time" default_traveltime = "link_default_travel_time_corrected_he_v2"/> -->
-	<tables singlepath_table="path" realtime_traveltime="realtime_travel_time" default_traveltime = "Singapore_Updated_link_default_travel_time"/>
+	<tables singlepath_table="path1" realtime_traveltime="realtime_travel_time" default_traveltime = "Singapore_Updated_link_default_travel_time"/>
 	<functions pathset="get_path_set" travel_time="upsert_realtime" />
 	<recursive_pathset_generation value="false"/>
 	<reroute_enabled value="false" />

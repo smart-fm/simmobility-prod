@@ -914,8 +914,9 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 		DailyTime time = msg.person->currSubTrip->endTime;
 		msg.person->getRole()->setTravelTime(time.getValue());
 		unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
+		unsigned int offset = time.getValue()/tick;
 		//TODO: compute time to be expired and send message to self
-		messaging::MessageBus::PostMessage(this, MSG_WAKE_UP, messaging::MessageBus::MessagePtr(new PersonMessage(msg.person)), false, time.getValue()/tick); //last parameter (0) must be updated with actual time
+		messaging::MessageBus::PostMessage(this, MSG_WAKE_UP, messaging::MessageBus::MessagePtr(new PersonMessage(msg.person)), false, offset); //last parameter (0) must be updated with actual time
 		break;
 	}
 	case MSG_WAKE_UP:
@@ -924,7 +925,6 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 		PersonList::iterator pIt = std::find(mrt.begin(), mrt.end(), msg.person);
 		if(pIt==mrt.end()) { throw std::runtime_error("Person not found in MRT list"); }
 		mrt.erase(pIt);
-		messaging::MessageBus::UnRegisterHandler(msg.person);
 		//switch to next trip chain item
 		switchTripChainItem(msg.person);
 		break;
@@ -1187,9 +1187,13 @@ void sim_mob::Conflux::assignPersonToBusStopAgent(Person* person)
 void sim_mob::Conflux::assignPersonToMRT(Person* person) {
 	Role* role = person->getRole();
 	if (role && role->roleType == Role::RL_TRAINPASSENGER) {
-		messaging::MessageBus::SendInstantaneousMessage(this,
-				MSG_MRT_PASSENGER_TELEPORTATION,
-				messaging::MessageBus::MessagePtr(new PersonMessage(person)));
+		person->currWorkerProvider = parentWorker;
+			messaging::MessageBus::ReRegisterHandler(person, GetContext());
+			mrt.push_back(person);
+			DailyTime time = person->currSubTrip->endTime;
+			person->getRole()->setTravelTime(time.getValue());
+			unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
+			messaging::MessageBus::PostMessage(this, MSG_WAKE_UP, messaging::MessageBus::MessagePtr(new PersonMessage(person)), false, time.getValue()/tick);
 	}
 }
 
@@ -1449,7 +1453,6 @@ unsigned int sim_mob::Conflux::getNumRemainingInLaneInfinity() {
 	return count;
 }
 
-/**TODO: use public transit route choice to replace subtrips for PT trip; return appropriate conflux*/
 sim_mob::Conflux* sim_mob::Conflux::findStartingConflux(Person* person, unsigned int now)
 {
 	UpdateStatus res = person->checkTripChain();

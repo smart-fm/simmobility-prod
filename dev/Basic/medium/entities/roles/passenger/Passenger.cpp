@@ -102,7 +102,7 @@ void sim_mob::medium::Passenger::collectTravelTime()
 					new PersonTravelTimeMessage(personId, tripStartPoint,
 							tripEndPoint, subStartPoint, subEndPoint,
 							subStartType, subEndType, mode, service,
-							arrivaltime, travelTime)));
+							arrivaltime, travelTime)), true);
 }
 
 }

@@ -54,7 +54,7 @@ sim_mob::medium::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat,
   waitingTimeAtbusStop(0.0),busSequenceNumber(1)
 {}
 
-sim_mob::medium::BusDriver::~BusDriver() {}
+sim_mob::medium::BusDriver::~BusDriver(){}
 
 Role* sim_mob::medium::BusDriver::clone(Person* parent) const {
 	BusDriverBehavior* behavior = new BusDriverBehavior(parent);
@@ -221,10 +221,10 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 	 * main thread, exactly one bus driver can be processed at a time and no other
 	 * agent in the simulation will be updating at the same time.
 	 */
-	busStopAgent->handleBusArrival(this);
-	unsigned int numAlighting = alightPassenger(busStopAgent);
-	unsigned int numBoarding = busStopAgent->getBoardingNum(this);
 
+	unsigned int numAlighting = alightPassenger(busStopAgent);
+	busStopAgent->handleBusArrival(this);
+	unsigned int numBoarding = busStopAgent->getBoardingNum(this);
 	unsigned int totalNumber = numAlighting + numBoarding;
 
 	int boardNum = std::max(numAlighting, numBoarding);

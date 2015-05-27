@@ -297,7 +297,8 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 			bool ret = false;
 			if (!busDriver->checkIsFull()) {
 				if (person) {
-					person->getRole()->collectTravelTime();
+					waitingPeople->collectTravelTime();
+					storeWaitingTime(waitingPeople);
 					person->checkTripChain();
 					Role* curRole = person->getRole();
 					curRole->setArrivalTime(current);

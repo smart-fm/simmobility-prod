@@ -41,6 +41,9 @@ namespace simmobility_network
     //Loads the Lanes
     void LoadLanes(const std::string& storedProc);
     
+    //Loads the lane connectors
+    void LoadLaneConnectors(const std::string& storedProc);
+    
     //Loads the lane poly-lines
     void LoadLanePolyLines(const std::string& storedProc);
     

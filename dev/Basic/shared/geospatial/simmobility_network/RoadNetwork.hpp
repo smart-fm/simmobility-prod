@@ -59,6 +59,9 @@ namespace simmobility_network
     //Adds a lane to the road network
     void addLane(Lane *lane);
     
+    //Adds a lane connector to the road network
+    void addLaneConnector(LaneConnector *connector);
+    
     //Adds a lane poly-line to the road network
     void addLanePolyLine(Point *point);
 

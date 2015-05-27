@@ -63,11 +63,6 @@ const std::map<unsigned int, TurningPath*>& RoadNetwork::getMapOfIdvsTurningPath
 	return mapOfIdvsTurningPaths;
 }
 
-const std::map<unsigned int, PolyLine*>& RoadNetwork::getMapOfIdVsTurningPolyLines() const
-{
-	return mapOfIdVsTurningPolyLines;
-}
-
 void RoadNetwork::addLane(Lane* lane)
 {
 	//Find the segment to which the lane belongs

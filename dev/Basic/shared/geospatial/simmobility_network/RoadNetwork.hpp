@@ -38,43 +38,52 @@ namespace simmobility_network
     //This map stores all the turning paths in the network, with the turning id as the key for retrieval
     std::map<unsigned int, TurningPath *> mapOfIdvsTurningPaths;
     
-    //This map stores all the turning poly-lines in the network with the poly-line id as the key for retrieval
-    std::map<unsigned int, PolyLine *> mapOfIdVsTurningPolyLines;
-    
   public:
     
     RoadNetwork();
     
     virtual ~RoadNetwork();
     
+    //Returns the map of link id vs links
     const std::map<unsigned int, Link*>& getMapOfIdVsLinks() const;
 
+    //Returns the map of node id vs nodes
     const std::map<unsigned int, Node*>& getMapOfIdvsNodes() const;
     
+    //Returns the map of turning group id vs turning groups
     const std::map<unsigned int, TurningGroup*>& getMapOfIdvsTurningGroups() const;
     
+    //Returns the map of turning path id vs turning path
     const std::map<unsigned int, TurningPath*>& getMapOfIdvsTurningPaths() const;
     
-    const std::map<unsigned int, PolyLine*>& getMapOfIdVsTurningPolyLines() const;
-    
+    //Adds a lane to the road network
     void addLane(Lane *lane);
     
+    //Adds a lane poly-line to the road network
     void addLanePolyLine(Point *point);
 
+    //Adds a link to the road network
     void addLink(Link *link);
 
+    //Adds a node to the road network
     void addNode(Node *node);
     
+    //Adds a road segment to the road network
     void addRoadSegment(RoadSegment *segment);
     
+    //Adds a segment poly-line to the road network
     void addSegmentPolyLine(Point *point);
     
+    //Adds a turning conflict to the road network
     void addTurningConflict(TurningConflict *turningConflict);
-        
+
+    //Adds a turning group to the road network
     void addTurningGroup(TurningGroup *turningGroup);
     
+    ////Adds a turning path to the road network
     void addTurningPath(TurningPath *turningPath);
     
+    //Adds a turning poly-line to the road network
     void addTurningPolyLine(Point *point);
     
   } ;

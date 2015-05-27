@@ -201,6 +201,8 @@ void NetworkLoader::LoadNetwork(const string& connectionStr, const map<string,st
 
 		//Open the connection to the database
 		sql.open(soci::postgresql, connectionStr);
+		
+		//Load the components of the network
 
 		LoadNodes(getStoredProcedure(storedProcs, "nodes"));
 		

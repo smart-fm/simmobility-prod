@@ -20,17 +20,15 @@ namespace simmobility_network
     //Default node
     DEFAULT_NODE = 0,
     
-    //This type of node only has incoming road sections connected to it
-    SINK_NODE = 1,
-    
-    //This type of node only has outgoing road sections connected to it
-    SOURCE_NODE = 2,
+    //Source node - only has outgoing road sections connected to it
+    //Sink node - only has incoming road sections connected to it
+    SOURCE_OR_SINK_NODE = 1,
     
     //This type of node is an intersection with or without a traffic signal
-    INTERSECTION_NODE = 3,
+    INTERSECTION_NODE = 2,
     
     //This type of node is a merging node
-    MERGE_NODE = 4
+    MERGE_NODE = 3
   };
 
   class Node

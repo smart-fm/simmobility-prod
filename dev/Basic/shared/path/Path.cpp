@@ -459,7 +459,7 @@ sim_mob::PT_Path::PT_Path() :
 				totalInVehicleTravelTimeSecs(0.0),
 				totalWaitingTimeSecs(0.0),
 				totalWalkingTimeSecs(0.0),
-				totalNumberOfTransfers(-1),minDistance(false),validPath(false),shortestPath(false),
+				totalNumberOfTransfers(0),minDistance(false),validPath(false),shortestPath(false),
 				minInVehicleTravelTime(false),minNumberOfTransfers(false),minWalkingDistance(false),
 				minTravelOnMRT(false),minTravelOnBus(false),pathSize(0.0)
 {
@@ -472,7 +472,7 @@ sim_mob::PT_Path::PT_Path (const std::vector<PT_NetworkEdge> &path) : pathEdges(
 		totalInVehicleTravelTimeSecs(0.0),
 		totalWaitingTimeSecs(0.0),
 		totalWalkingTimeSecs(0.0),
-		totalNumberOfTransfers(-1),minDistance(false),validPath(false),shortestPath(false),
+		totalNumberOfTransfers(0),minDistance(false),validPath(false),shortestPath(false),
 		minInVehicleTravelTime(false),minNumberOfTransfers(false),minWalkingDistance(false),
 		minTravelOnMRT(false),minTravelOnBus(false),pathSize(0.0)
 
@@ -486,12 +486,16 @@ sim_mob::PT_Path::PT_Path (const std::vector<PT_NetworkEdge> &path) : pathEdges(
 		totalInVehicleTravelTimeSecs+=itEdge->getDayTransitTimeSecs();
 		totalWalkingTimeSecs+=itEdge->getWalkTimeSecs();
 		pathTravelTime+=itEdge->getLinkTravelTimeSecs();
-		totalNumberOfTransfers++;
 		totalDistanceKms+=itEdge->getDistKms();
 		if(itEdge->getType()=="Bus" || itEdge->getType()=="RTS")
 		{
 			totalBusMRTTravelDistance+=itEdge->getDistKms();
+	           	totalNumberOfTransfers++;
 		}
+	}
+	if(totalNumberOfTransfers > 0)
+	{
+		totalNumberOfTransfers = totalNumberOfTransfers -1;
 	}
 	totalCost=this->getTotalCostByDistance(totalBusMRTTravelDistance);
 }

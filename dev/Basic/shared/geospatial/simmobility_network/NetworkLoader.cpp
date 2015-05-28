@@ -247,9 +247,11 @@ void NetworkLoader::LoadNetwork(const string& connectionStr, const map<string,st
 	catch (soci::soci_error const &err)
 	{
 		sim_mob::Print() << "Exception occurred while loading the network!\n" << err.what() << std::endl;
+		exit(-1);
 	}
 	catch(runtime_error const &err)
 	{
 		sim_mob::Print() << "Exception occurred while loading the network!\n" << err.what() << std::endl;
+		exit(-1);
 	}
 }

@@ -36,7 +36,7 @@ namespace simmobility_network
     
     //Indicates which turning has a higher priority.
     //0 - equal, 1 - first_turning has higher priority, 2 - second_turning has higher priority
-    int priority;
+    unsigned int priority;
       
     //Distance of conflict point from the start of the second turning
     double secondConflictDistance;
@@ -90,10 +90,10 @@ namespace simmobility_network
     void setFirstTurningId(unsigned int firstTurningId);
     
     //Returns the value of the priority for the conflict
-    int getPriority() const;
+    unsigned int getPriority() const;
     
     //Sets the value of the priority for the conflict
-    void setPriority(int priority);
+    void setPriority(unsigned int priority);
     
     //Returns the conflict distance to second turning
     double getSecondConflictDistance() const;

@@ -117,10 +117,7 @@ namespace simmobility_network
     void setLaneId(unsigned int laneId);
     
     //Returns the outgoing lane connectors
-    const std::vector<LaneConnector*>& getLaneConnectors() const;
-    
-    //Sets the outgoing lane connectors
-    void setLaneConnectors(std::vector<LaneConnector*>& laneConnectors);
+    const std::vector<LaneConnector*>& getLaneConnectors() const;    
     
     //Returns the lane index
     unsigned int getLaneIndex() const;
@@ -151,6 +148,9 @@ namespace simmobility_network
     
     //Sets the lane width
     void setWidth(double width);
+    
+    //Adds lane connector to the vector of outgoing lane connectors
+    void addLaneConnector(LaneConnector *laneConnector);
     
   } ;
 }

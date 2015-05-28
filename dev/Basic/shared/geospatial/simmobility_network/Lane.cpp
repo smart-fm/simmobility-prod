@@ -115,11 +115,6 @@ const std::vector<LaneConnector*>& Lane::getLaneConnectors() const
 	return laneConnectors;
 }
 
-void Lane::setLaneConnectors(std::vector<LaneConnector*>& laneConnectors)
-{
-	this->laneConnectors = laneConnectors;
-}
-
 unsigned int Lane::getLaneIndex() const
 {
 	return laneIndex;
@@ -170,3 +165,7 @@ void Lane::setWidth(double width)
 	this->width = width;
 }
 
+void Lane::addLaneConnector(LaneConnector *laneConnector)
+{
+	this->laneConnectors.push_back(laneConnector);
+}

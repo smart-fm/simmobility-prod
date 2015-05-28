@@ -85,6 +85,25 @@ void RoadNetwork::addLane(Lane* lane)
 	}
 }
 
+void RoadNetwork::addLaneConnector(LaneConnector* connector)
+{
+	//Find the lane to which the lane connector belongs
+	std::map<unsigned int, Lane *>::iterator itLanes = mapOfIdVsLanes.find(connector->getFromLaneId());
+	
+	//Check if the lane exists in the map
+	if(itLanes != mapOfIdVsLanes.end())
+	{
+		//Add the lane connector to the lane
+		itLanes->second->addLaneConnector(connector);
+	}
+	else
+	{
+		std::stringstream msg;
+		msg << "Lane connector" << connector->getLaneConnectionId() << " refers to an invalid lane " << connector->getFromLaneId();
+		throw std::runtime_error(msg.str());
+	}
+}
+
 void RoadNetwork::addLanePolyLine(Point* point)
 {
 	//Find the lane to which the poly-line belongs

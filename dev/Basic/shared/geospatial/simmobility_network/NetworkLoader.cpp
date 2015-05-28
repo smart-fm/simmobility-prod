@@ -76,6 +76,19 @@ void NetworkLoader::LoadLanes(const std::string& storedProc)
 	}
 }
 
+void NetworkLoader::LoadLaneConnectors(const std::string& storedProc)
+{
+	//SQL statement
+	soci::rowset<LaneConnector> connectors = (sql.prepare << "select * from " + storedProc);
+	
+	for(soci::rowset<LaneConnector>::const_iterator itConnectors = connectors.begin(); itConnectors != connectors.end(); ++itConnectors)
+	{
+		//Create new lane connector and add it to the lane to which it belongs
+		LaneConnector *connector = new LaneConnector(*itConnectors);
+		roadNetwork->addLaneConnector(connector);
+	}
+}
+
 void NetworkLoader::LoadLanePolyLines(const std::string& storedProc)
 {
 	//SQL statement
@@ -222,7 +235,9 @@ void NetworkLoader::LoadNetwork(const string& connectionStr, const map<string,st
 		
 		LoadLanes(getStoredProcedure(storedProcs, "lanes"));
 		
-		LoadLanePolyLines(getStoredProcedure(storedProcs, "lane-polylines"));
+		LoadLanePolyLines(getStoredProcedure(storedProcs, "lane_polylines"));
+		
+		LoadLaneConnectors(getStoredProcedure(storedProcs, "lane_connectors"));
 
 		//Close the connection
 		sql.close();

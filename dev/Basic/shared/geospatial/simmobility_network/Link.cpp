@@ -7,7 +7,7 @@
 using namespace simmobility_network;
 
 Link::Link() :
-linkId(0), fromNodeId(0), linkCategory(LINK_CATEGORY_DEFAULT), roadName(""), tags(NULL), toNodeId(0)
+linkId(0), fromNodeId(0), linkCategory(LINK_CATEGORY_DEFAULT), linkType(LINK_TYPE_DEFAULT), roadName(""), tags(NULL), toNodeId(0)
 {
 }
 
@@ -15,7 +15,8 @@ Link::Link(const Link& orig)
 {
 	this->linkId = orig.linkId;
 	this->fromNodeId = orig.fromNodeId;
-	this->linkCategory = orig.linkCategory;	
+	this->linkCategory = orig.linkCategory;
+	this->linkType = orig.linkType;
 	this->roadName = orig.roadName;
 	this->roadSegments = orig.roadSegments;
 	this->tags = orig.tags;
@@ -66,6 +67,16 @@ LinkCategory Link::getLinkCategory() const
 void Link::setLinkCategory(LinkCategory linkCategory)
 {
 	this->linkCategory = linkCategory;
+}
+
+LinkType Link::getLinkType() const
+{
+	return linkType;
+}
+
+void Link::setLinkType(LinkType linkType)
+{
+	this->linkType = linkType;
 }
 
 std::string Link::getRoadName() const

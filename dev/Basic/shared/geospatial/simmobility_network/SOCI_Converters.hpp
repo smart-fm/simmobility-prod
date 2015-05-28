@@ -165,6 +165,7 @@ namespace soci
       res.setLinkId(vals.get<unsigned int>("id", 0));
       res.setFromNodeId(vals.get<unsigned int>("from_node", 0));
       res.setLinkCategory(vals.get<simmobility_network::LinkCategory>("category", simmobility_network::LINK_CATEGORY_DEFAULT));
+      res.setLinkType(vals.get<simmobility_network::LinkType>("road_type", simmobility_network::LINK_TYPE_DEFAULT));
       res.setRoadName(vals.get<std::string>("road_name", ""));
       res.setToNodeId(vals.get<unsigned int>("to_node", 0));
       

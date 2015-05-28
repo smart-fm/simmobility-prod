@@ -19,6 +19,28 @@ namespace simmobility_network
     //The default category
     LINK_CATEGORY_DEFAULT = 0
   };
+  
+  //Defines the various types of links supported by SimMobility
+  enum LinkType
+  {
+    //Default road segment
+    LINK_TYPE_DEFAULT = 0,
+
+    //Expressway
+    LINK_TYPE_EXPRESSWAY = 1,
+
+    //Urban road
+    LINK_TYPE_URBAN = 2,
+    
+    //Ramp
+    LINK_TYPE_RAMP = 3,
+    
+    //Roundabout
+    LINK_TYPE_ROUNDABOUT = 4,
+    
+    //Access
+    LINK_TYPE_ACCESS = 5
+  } ;
 
   class Link
   {
@@ -32,6 +54,9 @@ namespace simmobility_network
     
     //Indicates the link category
     LinkCategory linkCategory;
+    
+    //Indicates the link type
+    LinkType linkType;
     
     //The name of the road this link represents
     std::string roadName;
@@ -70,6 +95,12 @@ namespace simmobility_network
     
     //Sets the link category
     void setLinkCategory(LinkCategory linkCategory);
+    
+    //Returns the link type
+    LinkType getLinkType() const;
+    
+    //Sets the link type
+    void setLinkType(LinkType linkType);
     
     //Returns the road name
     std::string getRoadName() const;

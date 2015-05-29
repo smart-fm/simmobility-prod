@@ -38,9 +38,24 @@ RoadNetwork::~RoadNetwork()
 	
 	mapOfIdVsLinks.clear();
 	
+	//Iterate through the map of conflicts and delete the them - conflicts are not deleted from
+	//within the turning path because it is shared with 2 turning paths and would get deleted twice
+	std::map<unsigned int, TurningConflict *>::iterator itConflicts = mapOfIdVsTurningConflicts.begin();
+	while(itConflicts != mapOfIdVsTurningConflicts.end())
+	{
+		delete itConflicts->second;
+		itConflicts->second = NULL;
+		++itConflicts;
+	}
+	
+	mapOfIdVsTurningConflicts.clear();
+	
 	//All other maps can simply be cleared as the 'Node' and 'Link' classes contain the others.
 	//So, when they get destroyed, the objects contained within them will be destroyed 
+	mapOfIdVsLanes.clear();
+	mapOfIdVsRoadSegments.clear();
 	mapOfIdvsTurningGroups.clear();
+	mapOfIdvsTurningPaths.clear();	
 }
 
 const std::map<unsigned int, Link*>& RoadNetwork::getMapOfIdVsLinks() const
@@ -245,6 +260,9 @@ void RoadNetwork::addTurningConflict(TurningConflict* turningConflict)
 	//Add the conflict to the turning - to both the turnings
 	first->addTurningConflict(second, turningConflict);
 	second->addTurningConflict(first, turningConflict);
+	
+	//Add the conflict to the map of conflicts
+	mapOfIdVsTurningConflicts.insert(std::make_pair(turningConflict->getConflictId(), turningConflict));
 }
 
 void RoadNetwork::addTurningGroup(TurningGroup *turningGroup)

@@ -32,6 +32,9 @@ namespace simmobility_network
     //This map stores all the segments in the network, with the segment id as the key for retrieval
     std::map<unsigned int, RoadSegment *> mapOfIdVsRoadSegments;
     
+    //This map stores all the turning conflicts in the network, with the conflict id as the key for retrieval
+    std::map<unsigned int, TurningConflict *> mapOfIdVsTurningConflicts;
+    
     //This map stores all the turning groups in the network, with the group id as the key for retrieval
     std::map<unsigned int, TurningGroup *> mapOfIdvsTurningGroups;
     

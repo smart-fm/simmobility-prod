@@ -37,18 +37,9 @@ TurningPath::~TurningPath()
 		tags = NULL;
 	}
 	
-	//Delete the turning conflicts that lie on the turnings
-	std::map<TurningPath *, TurningConflict *>::iterator itConflicts = turningConflicts.begin();
-	while(itConflicts != turningConflicts.end())
-	{
-		if(itConflicts->second)
-		{
-			delete itConflicts->second;
-			itConflicts->second = NULL;
-		}
-		++itConflicts;
-	}
-	
+	//Simply clear the map of conflicts. Conflicts are deleted separately in the 
+	//destructor of the road network to avoid double delete (as 2 turning paths share
+	//the same pointer to the conflict)
 	turningConflicts.clear();
 }
 

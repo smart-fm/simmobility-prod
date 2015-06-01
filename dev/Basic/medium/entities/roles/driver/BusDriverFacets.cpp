@@ -159,6 +159,8 @@ void BusDriverMovement::frame_tick() {
 //
 //	if(parentBusDriver->getResource()->isMoving()) { logout << ",ServingStop:" << "false"; }
 //	else { logout << ",ServingStop:" << "true"; }
+//	const sim_mob::BusStop* nextStop = routeTracker.getNextStop();
+//	logout << ",NextStop:" << (nextStop? nextStop->getBusstopno_() : "0");
 //
 //	if (person->isQueuing) { logout << ",queuing:" << "true"; }
 //	else { logout << ",queuing:" << "false";}

@@ -552,6 +552,10 @@ bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& param
 	//if this hack is not in place, all vehicles will start queuing in upstream segments forever.
 	//TODO: remove this hack and put permanent fix
 	if((maxAllowed < enteringVehicleLength) && (total <= 0)) { return true; }
+
+	//if this segment is a bus terminus segment, we assume only buses try to enter this segment and allow the bus inside irrespective of available space.
+	if(nextSegStats->getRoadSegment()->isBusTerminusSegment()) { return true; }
+
 	bool hasSpaceInNextStats = ((maxAllowed - total) >= enteringVehicleLength);
 	if(hasSpaceInNextStats && nextLink)
 	{

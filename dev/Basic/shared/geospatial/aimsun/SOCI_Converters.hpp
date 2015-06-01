@@ -431,6 +431,7 @@ template<> struct type_conversion<sim_mob::aimsun::BusStop>
     	res.bus_stop_no = vals.get<std::string>("bus_stop_no", "");
     	res.TMP_AtSectionID= vals.get<int>("section_id", 0);
     	res.TMP_RevSectionID = vals.get<int>("reverse_section_id", 0);
+    	res.TMP_TerminalNodeID = vals.get<int>("terminal_node_id", 0);
     	res.status = vals.get<std::string>("status", "");
     	res.lane_type = vals.get<std::string>("lane_type", "");
     	res.road_name = vals.get<std::string>("road_name", "");

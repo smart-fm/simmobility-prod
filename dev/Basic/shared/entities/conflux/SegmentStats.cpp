@@ -83,8 +83,8 @@ SupplyParams::SupplyParams(const sim_mob::RoadSegment* rdSeg, double statsLength
 		alpha(1.0), beta(2.5)
 {
 	//update capacity of single and double lane segments to avoid bottle necks. Suggested by Yang Lu on 11-Oct-14
-	if(rdSeg->getLanes().size() == 1) { capacity = SINGLE_LANE_SEGMENT_CAPACITY/3600.0; }
-	else if(rdSeg->getLanes().size() == 2) { capacity = DOUBLE_LANE_SEGMENT_CAPACITY/3600.0; }
+	if(rdSeg->getLanes().size() == 1) { capacity = std::max(capacity, SINGLE_LANE_SEGMENT_CAPACITY/3600.0); }
+	else if(rdSeg->getLanes().size() == 2) { capacity = std::max(capacity, DOUBLE_LANE_SEGMENT_CAPACITY/3600.0); }
 }
 
 SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double statslength) :

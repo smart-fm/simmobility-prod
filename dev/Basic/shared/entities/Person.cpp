@@ -1266,7 +1266,6 @@ void sim_mob::Person::printTripChainItemTypes() const{
 
  namespace
  {
- 	 sim_mob::BasicLogger & csv = sim_mob::Logger::log(ConfigManager::GetInstance().FullConfig().pathSet().subTripOP);
  	 sim_mob::OneTimeFlag titleSubPredayTT;
  }
 
@@ -1275,6 +1274,7 @@ void sim_mob::Person::printTripChainItemTypes() const{
 		 std::vector<TripChainItem*>::iterator currTripChainItem,
 		 std::vector<SubTrip>::iterator currSubTrip) const
  {
+	 sim_mob::BasicLogger& csv = sim_mob::Logger::log(ConfigManager::GetInstance().FullConfig().pathSet().subTripOP);
 	 if(!(subtripMetrics.finalized && subtripMetrics.started)) { return; } //sanity check
 	 if(titleSubPredayTT.check())
 	 {

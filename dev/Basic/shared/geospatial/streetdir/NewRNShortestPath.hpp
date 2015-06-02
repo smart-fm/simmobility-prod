@@ -19,56 +19,40 @@
 #include <boost/unordered_map.hpp>
 #include <boost/utility.hpp>
 #include <boost/thread.hpp>
-#include "StreetDirectory.hpp"
+#include "SMStreetDirectory.hpp"
 
 #include "geospatial/simmobility_network/RoadNetwork.hpp"
 #include "geospatial/simmobility_network/WayPoint.hpp"
 
-namespace sim_mob {
+namespace simmobility_network {
 
 
 
-class NewRNShortestPath : public StreetDirectory::ShortestPathImpl
+class NewRNShortestPath : public SMStreetDirectory::SMShortestPathImpl
 {
 public:
     explicit NewRNShortestPath(const simmobility_network::RoadNetwork* network);
     virtual ~NewRNShortestPath();
 
-    virtual StreetDirectory::VertexDesc DrivingVertex(const simmobility_network::Node& n);
+    virtual SMStreetDirectory::SMVertexDesc DrivingVertex(const simmobility_network::Node& node);
 
-    // no walking path, no bus stop
-	virtual StreetDirectory::VertexDesc WalkingVertex(const simmobility_network::Node& n){ return StreetDirectory::VertexDesc();}
-	virtual StreetDirectory::VertexDesc DrivingVertex(const BusStop& b){return StreetDirectory::VertexDesc();}
-	virtual StreetDirectory::VertexDesc WalkingVertex(const BusStop& b){ return StreetDirectory::VertexDesc();}
 
-	virtual std::vector<WayPoint> GetShortestDrivingPath(StreetDirectory::VertexDesc from,
-															StreetDirectory::VertexDesc to,
-															std::vector<const sim_mob::RoadSegment*> blacklist);
-	virtual std::vector<WayPoint> GetShortestWalkingPath(StreetDirectory::VertexDesc from,
-														StreetDirectory::VertexDesc to)
-																{return std::vector<WayPoint>();}
-
-	virtual void updateEdgeProperty() {}
-
-	virtual void printDrivingGraph(std::ostream& outFile){}
-	virtual void printWalkingGraph(std::ostream& outFile){}
+	virtual std::vector<WayPoint> GetShortestDrivingPath(simmobility_network::Node* from,
+														 simmobility_network::Node* to,
+														 std::vector<const simmobility_network::Link*> blacklist);
 
 public:
-	std::vector<simmobility_network::WayPoint> GetShortestDrivingPath(simmobility_network::Node* from,
-																	  simmobility_network::Node* to,
-																	  std::vector<const sim_mob::RoadSegment*>& blacklist);
-
 	void buildGraph();
 	void addNode(simmobility_network::Node* node);
 	void addLink(simmobility_network::Link* link);
 
 public:
-    StreetDirectory::Graph graph;
+    SMStreetDirectory::SMGraph graph;
 
     //Lookup the master Node for each Node-related vertex.
     //Note: The first item is the "source" vertex, used to search *from* that Node.
     //The second item is the "sink" vertex, used to search *to* that Node.
-    std::map<const simmobility_network::Node*, std::pair<StreetDirectory::Vertex,StreetDirectory::Vertex> > nodeLookup;
+    std::map<const simmobility_network::Node*, std::pair<SMStreetDirectory::SMVertex,SMStreetDirectory::SMVertex> > nodeLookup;
 
 private:
     const simmobility_network::RoadNetwork* network;

@@ -168,7 +168,8 @@ private:
 	std::map<sim_mob::medium::BusDriver*, unsigned int> lastBoardingRecorder;
 	/**available length in cm for incoming vehicles*/
 	double availableLength;
-	unsigned int current;
+	/**current time i milliseconds from start of simulation*/
+	unsigned int currentTimeMS;
 };
 }
 }

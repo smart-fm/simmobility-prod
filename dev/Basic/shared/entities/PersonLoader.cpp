@@ -118,14 +118,14 @@ void sim_mob::RestrictedRegion::populate()
 		zoneNodes[boost::lexical_cast<std::string>(rs->getEnd()->getID())] = rs->getEnd();
 	}
 
-	BOOST_FOREACH(SegPair item, in)
+	/*BOOST_FOREACH(SegPair item, in)
 	{
 		zoneNodes.erase(boost::lexical_cast<std::string>(item.first->getEnd()->getID()));
 	}
 	BOOST_FOREACH(SegPair item, out)
 	{
 		zoneNodes.erase(boost::lexical_cast<std::string>(item.first->getEnd()->getID()));
-	}
+	}*/
 
 	typedef std::map<std::string, const Node*>::value_type Pair;
 //	cout << "CBD Entering border Sections size: " << in.size() << "\n";
@@ -142,7 +142,6 @@ void sim_mob::RestrictedRegion::populate()
 		rs->CBD = true;
 	}
 	zoneSegmentsStr = out_.str();
-	std::cout << "zoneSegmentsStr :" << zoneSegmentsStr << std::endl;
 	out_.str("");
 	BOOST_FOREACH(Pair node, zoneNodes)
 	{

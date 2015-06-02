@@ -97,7 +97,7 @@ void NetworkLoader::LoadLanePolyLines(const std::string& storedProc)
 	for(soci::rowset<Point>::const_iterator itPoints = points.begin(); itPoints != points.end(); ++itPoints)
 	{
 		//Create new point and add it to the poly-line, to which it belongs
-		Point *point = new Point(*itPoints);
+		Point point = *itPoints;
 		roadNetwork->addLanePolyLine(point);
 	}
 }
@@ -149,7 +149,7 @@ void NetworkLoader::LoadSegmentPolyLines(const std::string& storedProc)
 	for(soci::rowset<Point>::const_iterator itPoints = points.begin(); itPoints != points.end(); ++itPoints)
 	{
 		//Create new point and add it to the poly-line, to which it belongs
-		Point *point = new Point(*itPoints);
+		Point point = *itPoints;
 		roadNetwork->addSegmentPolyLine(point);
 	}
 }
@@ -201,7 +201,7 @@ void NetworkLoader::LoadTurningPolyLines(const std::string& storedProc)
 	for(soci::rowset<Point>::const_iterator itPoints = points.begin(); itPoints != points.end(); ++itPoints)
 	{
 		//Create new point and add it to the poly-line, to which it belongs
-		Point *point = new Point(*itPoints);
+		Point point = *itPoints;
 		roadNetwork->addTurningPolyLine(point);
 	}
 }

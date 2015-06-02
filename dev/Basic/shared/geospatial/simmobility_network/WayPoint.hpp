@@ -5,6 +5,7 @@
 #pragma once
 
 #include "RoadSegment.hpp"
+#include "Link.hpp"
 
 namespace simmobility_network
 {
@@ -17,12 +18,14 @@ namespace simmobility_network
       INVALID,
 
       //The way point is a road-segment. roadSegment points to a RoadSegment object
-      ROAD_SEGMENT              
+      ROAD_SEGMENT,
+	  LINK
     } type;
 
     union
     {
-      const RoadSegment *roadSegment;
+      RoadSegment *roadSegment;
+      Link* link;
     } ;
     
     WayPoint() :
@@ -30,11 +33,16 @@ namespace simmobility_network
     {
     }
     
-    explicit WayPoint(RoadSegment const * segment) :
+    explicit WayPoint(RoadSegment * segment) :
     type(ROAD_SEGMENT), roadSegment(segment)
     {
     }
     
+    explicit WayPoint(Link* link) :
+	type(LINK), link(link)
+	{
+	}
+
     WayPoint(const WayPoint& orig)
     {
       type = orig.type;
@@ -48,12 +56,16 @@ namespace simmobility_network
       case ROAD_SEGMENT:
         roadSegment = orig.roadSegment;
         break;
+
+      case LINK:
+		  link = orig.link;
+		  break;
       }
     }
     
     bool operator==(const WayPoint& rhs) const
     {
-      return (type == rhs.type && roadSegment == rhs.roadSegment);
+      return (type == rhs.type && roadSegment == rhs.roadSegment && link == rhs.link);
     }
     
     bool operator!=(const WayPoint& rhs) const
@@ -74,7 +86,13 @@ namespace simmobility_network
       case ROAD_SEGMENT:
         roadSegment = rhs.roadSegment;
         break;
+
+      case LINK:
+      		  link = rhs.link;
+      		  break;
       }
+
+      return *this;
     }
     
   } ;

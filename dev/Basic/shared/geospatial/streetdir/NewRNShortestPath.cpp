@@ -17,35 +17,97 @@ NewRNShortestPath::~NewRNShortestPath() {
 	// TODO Auto-generated destructor stub
 }
 
-void NewRNShortestPath::addNode(simmobility_network::Node* node)
+simmobility_network::SMStreetDirectory::SMNodeVertexDesc  NewRNShortestPath::addNode(simmobility_network::Node* node)
 {
 	SMStreetDirectory::SMVertex source = boost::add_vertex(const_cast<SMStreetDirectory::SMGraph &>(graph));
 	SMStreetDirectory::SMVertex sink = boost::add_vertex(const_cast<SMStreetDirectory::SMGraph &>(graph));
 
 	// store
-	nodeLookup[node] = std::make_pair(source, sink);
+	simmobility_network::SMStreetDirectory::SMNodeVertexDesc vd(node);
+	vd.source = source;
+	vd.sink = sink;
+
+	nodeLookup.insert(std::make_pair(node,vd));
+
+//	nodeLookup[node] = std::make_pair(source, sink);
 
 	// insert to graph
 	simmobility_network::Point ps = *(node->getLocation());
 	boost::put(boost::vertex_name, graph, source, ps);
 	boost::put(boost::vertex_name, graph, sink, ps);
+
+	return vd;
 }
 void NewRNShortestPath::addLink(simmobility_network::Link* link)
 {
 
-//	//Create an edge.
-//	StreetDirectory::Edge edge;
-//	bool ok;
-//	boost::tie(edge, ok) = boost::add_edge(fromVertex, toVertex, graph);
-//	boost::put(boost::edge_name, graph, edge, WayPoint(rs));
-//
-//	//set edgeWeight
-//	boost::put(boost::edge_weight, graph, edge, edgeWeight);
-//
-//	//Save this in our lookup.
-//	resSegLookup[rs].insert(edge);
+
+	// 2.0 create two vertices
+	// 2.1 add from vertex, position is lane zero's first polyline point
+	SMStreetDirectory::SMVertex fromVertex = boost::add_vertex(const_cast<SMStreetDirectory::SMGraph &>(graph));
+	simmobility_network::RoadSegment* rs = link->roadSegments[0];
+	simmobility_network::Lane* lane = rs->lanes[0];
+	simmobility_network::Point fromPoint = lane->polyLine->getFirstPoint();
+	boost::put(boost::vertex_name, graph, fromVertex, fromPoint);
+
+	// 2.2 add to vertex
+	SMStreetDirectory::SMVertex toVertex = boost::add_vertex(const_cast<SMStreetDirectory::SMGraph &>(graph));
+	int size = link->roadSegments.size();
+	rs = link->roadSegments[size-1];
+	lane = rs->lanes[0];
+	simmobility_network::Point toPoint = lane->polyLine->getLastPoint();
+	boost::put(boost::vertex_name, graph, toVertex, toPoint);
+
+	// 3.0 Create an edge link from ,to vertice
+	SMStreetDirectory::SMEdge linkEdge;
+	bool ok;
+	boost::tie(linkEdge, ok) = boost::add_edge(fromVertex, toVertex, graph);
+	boost::put(boost::edge_name, graph, linkEdge, WayPoint(link));
+
+	//set edgeWeight TODO
+	double edgeWeight = link->getLength();
+	boost::put(boost::edge_weight, graph, linkEdge, edgeWeight);
+
+	//Save this in our lookup.
+	edgeLookup.insert(std::make_pair(link,linkEdge));
+
+	// 1.0 find from,to nodes' vertice
+	simmobility_network::Node* fromNode = link->getFromNode();
+	simmobility_network::Node* toNode = link->getToNode();
+
+	std::map<const simmobility_network::Node*, simmobility_network::SMStreetDirectory::SMNodeVertexDesc >::iterator it = nodeLookup.find(fromNode);
+	simmobility_network::SMStreetDirectory::SMNodeVertexDesc fromVD;
+	if( it == nodeLookup.end() ){
+		// add node to graph
+		fromVD = addNode(fromNode);
+	}
+	else{
+		fromVD = it->second;
+	}
+
+	it = nodeLookup.find(toNode);
+	simmobility_network::SMStreetDirectory::SMNodeVertexDesc toVD;
+	if( it == nodeLookup.end() ){
+		// add node to graph
+		toVD = addNode(toNode);
+	}
+	else{
+		toVD = it->second;
+	}
+
+	// link source vertex and from vertex
+	SMStreetDirectory::SMEdge sourceEdge;
+	boost::tie(sourceEdge, ok) = boost::add_edge(fromVD.source, fromVertex, graph);
+	boost::put(boost::edge_name, graph, sourceEdge, WayPoint());// invalid waypoint
+	boost::put(boost::edge_weight, graph, sourceEdge, 0);
+
+	// link to vertex and sink vertex
+	SMStreetDirectory::SMEdge toEdge;
+	boost::tie(toEdge, ok) = boost::add_edge(toVertex,toVD.sink, graph);
+	boost::put(boost::edge_name, graph, toEdge, WayPoint());// invalid waypoint
+	boost::put(boost::edge_weight, graph, toEdge, 0);
 }
-SMStreetDirectory::SMVertexDesc NewRNShortestPath::DrivingVertex(const simmobility_network::Node& n)
+SMStreetDirectory::SMNodeVertexDesc NewRNShortestPath::DrivingVertex(const simmobility_network::Node& n)
 {
 
 }

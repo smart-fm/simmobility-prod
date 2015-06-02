@@ -10,6 +10,7 @@
 #include "PolyLine.hpp"
 #include "RoadSegment.hpp"
 #include "Tag.hpp"
+#include "Node.hpp"
 
 namespace simmobility_network
 {
@@ -44,7 +45,7 @@ namespace simmobility_network
 
   class Link
   {
-  private:
+  public:
     
     //Unique identifier for the link
     unsigned int linkId;
@@ -70,14 +71,26 @@ namespace simmobility_network
     //Indicates the node at which this link ends
     unsigned int toNodeId;
     
+    Node* fromNode;
+    Node* toNode;
+
+    double length;
+
   public:
     
     Link();
     
     Link(const Link& orig);
     
+    std::vector<RoadSegment *>& getRoadSegments() {return roadSegments;}
+
     virtual ~Link();
     
+    Node* getFromNode() {return fromNode;}
+    Node* getToNode() {return toNode;}
+
+    double getLength(){return length;}
+
     //Returns the link id
     unsigned int getLinkId() const;
     

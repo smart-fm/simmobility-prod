@@ -23,6 +23,7 @@
 
 #include "geospatial/simmobility_network/RoadNetwork.hpp"
 #include "geospatial/simmobility_network/WayPoint.hpp"
+#include "geospatial/streetdir/SMStreetDirectory.hpp"
 
 namespace simmobility_network {
 
@@ -34,7 +35,7 @@ public:
     explicit NewRNShortestPath(const simmobility_network::RoadNetwork* network);
     virtual ~NewRNShortestPath();
 
-    virtual SMStreetDirectory::SMVertexDesc DrivingVertex(const simmobility_network::Node& node);
+    virtual SMStreetDirectory::SMNodeVertexDesc DrivingVertex(const simmobility_network::Node& node);
 
 
 	virtual std::vector<WayPoint> GetShortestDrivingPath(simmobility_network::Node* from,
@@ -43,7 +44,7 @@ public:
 
 public:
 	void buildGraph();
-	void addNode(simmobility_network::Node* node);
+	simmobility_network::SMStreetDirectory::SMNodeVertexDesc  addNode(simmobility_network::Node* node);
 	void addLink(simmobility_network::Link* link);
 
 public:
@@ -52,7 +53,8 @@ public:
     //Lookup the master Node for each Node-related vertex.
     //Note: The first item is the "source" vertex, used to search *from* that Node.
     //The second item is the "sink" vertex, used to search *to* that Node.
-    std::map<const simmobility_network::Node*, std::pair<SMStreetDirectory::SMVertex,SMStreetDirectory::SMVertex> > nodeLookup;
+    std::map<const simmobility_network::Node*, simmobility_network::SMStreetDirectory::SMNodeVertexDesc > nodeLookup;
+    std::map<const simmobility_network::Link*,simmobility_network::SMStreetDirectory::SMEdge> edgeLookup;
 
 private:
     const simmobility_network::RoadNetwork* network;

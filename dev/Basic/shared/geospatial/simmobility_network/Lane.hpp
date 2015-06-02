@@ -28,7 +28,7 @@ namespace simmobility_network
 
   class Lane
   {
-  private:
+  public:
     
     //Unique identifier for the lane
     unsigned int laneId;

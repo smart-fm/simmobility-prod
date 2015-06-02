@@ -85,13 +85,37 @@ public:
 
 
 	//A return value for "Driving/WalkingVertex"
-	struct SMVertexDesc {
-		bool valid;    //Is this a valid struct? If false, treat as "null"
+	struct SMNodeVertexDesc {
+		Node* node;
 		SMVertex source; //The outgoing Vertex (used for "source" master nodes).
 		SMVertex sink;   //The incoming Vertex (used for "sink" master nodes).
 
-		SMVertexDesc(bool valid=false) : valid(valid), source(SMVertex()), sink(SMVertex()) {}
+		SMNodeVertexDesc(Node* node=NULL) : node(node),source(SMVertex()), sink(SMVertex()) {}
+		SMNodeVertexDesc(const SMNodeVertexDesc& src):node(src.node),source(src.source),sink(src.sink){}
+		SMNodeVertexDesc& operator=(const SMNodeVertexDesc& rhs)
+		{
+			this->node = rhs.node;
+			this->source = rhs.source;
+			this->sink = rhs.sink;
+			return *this;
+		}
 	};
+
+	struct SMLinkVertexDesc {
+			Link* link;
+			SMVertex from; //The outgoing Vertex
+			SMVertex to;   //The incoming Vertex
+
+			SMLinkVertexDesc(simmobility_network::Link* link=NULL) : link(link),from(SMVertex()), to(SMVertex()) {}
+			SMLinkVertexDesc(const SMLinkVertexDesc& src):link(src.link),from(src.from),to(src.to){}
+			SMLinkVertexDesc& operator=(const SMLinkVertexDesc& rhs)
+			{
+				this->link = rhs.link;
+				this->from = rhs.from;
+				this->to = rhs.to;
+				return *this;
+			}
+		};
 
     /**
      * Provides an implementation of the StreetDirectory's shortest-path lookup functionality. See Impl's description for
@@ -102,7 +126,7 @@ public:
     	//ShortestPathImpl();   //Abstract?
 
     	///Retrieve a Vertex based on a Node, BusStop, etc.. Flag in the return value is false to indicate failure.
-    	virtual SMVertexDesc DrivingVertex(const simmobility_network::Node& n) const = 0;
+    	virtual SMNodeVertexDesc DrivingVertex(const simmobility_network::Node& n) const = 0;
 
     	//Meant to be used with the "DrivingVertex/WalkingVertex" functions.
         virtual std::vector<simmobility_network::WayPoint> GetShortestDrivingPath(simmobility_network::Node* from,

@@ -7,7 +7,8 @@
 using namespace simmobility_network;
 
 Link::Link() :
-linkId(0), fromNodeId(0), linkCategory(LINK_CATEGORY_DEFAULT), linkType(LINK_TYPE_DEFAULT), roadName(""), tags(NULL), toNodeId(0)
+linkId(0), fromNodeId(0), linkCategory(LINK_CATEGORY_DEFAULT), linkType(LINK_TYPE_DEFAULT), roadName(""), tags(NULL), toNodeId(0),
+fromNode(NULL),toNode(NULL)
 {
 }
 
@@ -21,6 +22,8 @@ Link::Link(const Link& orig)
 	this->roadSegments = orig.roadSegments;
 	this->tags = orig.tags;
 	this->toNodeId = orig.toNodeId;
+	this->fromNode = orig.fromNode;
+	this->toNode = orig.toNode;
 }
 
 Link::~Link()

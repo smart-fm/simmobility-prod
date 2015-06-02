@@ -16,7 +16,7 @@ namespace simmobility_network
 
   class RoadSegment
   {
-  private:
+  public:
     
     //Unique identifier for the road segment
     unsigned int roadSegmentId;

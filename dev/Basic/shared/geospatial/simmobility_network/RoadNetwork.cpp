@@ -119,10 +119,10 @@ void RoadNetwork::addLaneConnector(LaneConnector* connector)
 	}
 }
 
-void RoadNetwork::addLanePolyLine(Point* point)
+void RoadNetwork::addLanePolyLine(Point point)
 {
 	//Find the lane to which the poly-line belongs
-	std::map<unsigned int, Lane *>::iterator itLanes = mapOfIdVsLanes.find(point->getPolyLineId());
+	std::map<unsigned int, Lane *>::iterator itLanes = mapOfIdVsLanes.find(point.getPolyLineId());
 	
 	//Check if the lane exists in the map
 	if(itLanes != mapOfIdVsLanes.end())
@@ -134,7 +134,7 @@ void RoadNetwork::addLanePolyLine(Point* point)
 		{
 			//No poly-line exists, so create a new one
 			polyLine = new PolyLine();
-			polyLine->setPolyLineId(point->getPolyLineId());
+			polyLine->setPolyLineId(point.getPolyLineId());
 			
 			//Add poly-line to the map
 			itLanes->second->setPolyLine(polyLine);
@@ -146,7 +146,7 @@ void RoadNetwork::addLanePolyLine(Point* point)
 	else
 	{
 		std::stringstream msg;
-		msg << "Lane poly-line " << point->getPolyLineId() << " refers to an invalid lane " << point->getPolyLineId();
+		msg << "Lane poly-line " << point.getPolyLineId() << " refers to an invalid lane " << point.getPolyLineId();
 		throw std::runtime_error(msg.str());
 	}
 }
@@ -183,10 +183,10 @@ void RoadNetwork::addRoadSegment(RoadSegment* segment)
 	}
 }
 
-void RoadNetwork::addSegmentPolyLine(Point* point)
+void RoadNetwork::addSegmentPolyLine(Point point)
 {
 	//Find the road segment to which the poly-line belongs
-	std::map<unsigned int, RoadSegment *>::iterator itSegments = mapOfIdVsRoadSegments.find(point->getPolyLineId());
+	std::map<unsigned int, RoadSegment *>::iterator itSegments = mapOfIdVsRoadSegments.find(point.getPolyLineId());
 	
 	//Check if the segment exists in the map
 	if(itSegments != mapOfIdVsRoadSegments.end())
@@ -198,7 +198,7 @@ void RoadNetwork::addSegmentPolyLine(Point* point)
 		{
 			//No poly-line exists, so create a new one
 			polyLine = new PolyLine();
-			polyLine->setPolyLineId(point->getPolyLineId());
+			polyLine->setPolyLineId(point.getPolyLineId());
 			
 			//Add poly-line to the map
 			itSegments->second->setPolyLine(polyLine);
@@ -210,7 +210,7 @@ void RoadNetwork::addSegmentPolyLine(Point* point)
 	else
 	{
 		std::stringstream msg;
-		msg << "Segment poly-line " << point->getPolyLineId() << " refers to an invalid road segment " << point->getPolyLineId();
+		msg << "Segment poly-line " << point.getPolyLineId() << " refers to an invalid road segment " << point.getPolyLineId();
 		throw std::runtime_error(msg.str());
 	}
 }
@@ -309,10 +309,10 @@ void RoadNetwork::addTurningPath(TurningPath* turningPath)
 	}
 }
 
-void RoadNetwork::addTurningPolyLine(Point* point)
+void RoadNetwork::addTurningPolyLine(Point point)
 {
 	//Find the turning path to which the poly-line belongs
-	std::map<unsigned int, TurningPath *>::iterator itTurnings = mapOfIdvsTurningPaths.find(point->getPolyLineId());
+	std::map<unsigned int, TurningPath *>::iterator itTurnings = mapOfIdvsTurningPaths.find(point.getPolyLineId());
 	
 	//Check if the turning path exists in the map
 	if(itTurnings != mapOfIdvsTurningPaths.end())
@@ -324,7 +324,7 @@ void RoadNetwork::addTurningPolyLine(Point* point)
 		{
 			//No poly-line exists, so create a new one
 			polyLine = new PolyLine();
-			polyLine->setPolyLineId(point->getPolyLineId());
+			polyLine->setPolyLineId(point.getPolyLineId());
 			
 			//Add poly-line to the map
 			itTurnings->second->setPolyLine(polyLine);
@@ -336,7 +336,7 @@ void RoadNetwork::addTurningPolyLine(Point* point)
 	else
 	{
 		std::stringstream msg;
-		msg << "Turning poly-line " << point->getPolyLineId() << " refers to an invalid turning path " << point->getPolyLineId();
+		msg << "Turning poly-line " << point.getPolyLineId() << " refers to an invalid turning path " << point.getPolyLineId();
 		throw std::runtime_error(msg.str());
 	}
 }

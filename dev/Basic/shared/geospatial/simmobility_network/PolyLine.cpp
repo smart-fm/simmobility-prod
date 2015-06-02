@@ -19,12 +19,12 @@ PolyLine::PolyLine(const PolyLine& orig)
 
 PolyLine::~PolyLine()
 {
-	//Delete the points in the poly-line
-	for(std::vector<Point *>::iterator itPoints = points.begin(); itPoints != points.end(); ++itPoints)
-	{
-		delete *itPoints;
-		*itPoints = NULL;
-	}
+//	//Delete the points in the poly-line
+//	for(std::vector<Point *>::iterator itPoints = points.begin(); itPoints != points.end(); ++itPoints)
+//	{
+//		delete *itPoints;
+//		*itPoints = NULL;
+//	}
 }
 
 int PolyLine::getPolyLineId() const
@@ -37,12 +37,12 @@ void PolyLine::setPolyLineId(int polyLineId)
 	this->polyLineId = polyLineId;
 }
 
-const std::vector<Point*>& PolyLine::getPoints() const
+const std::vector<Point>& PolyLine::getPoints() const
 {
 	return points;
 }
 
-void PolyLine::addPoint(Point *point)
+void PolyLine::addPoint(Point point)
 {
 	this->points.push_back(point);
 }

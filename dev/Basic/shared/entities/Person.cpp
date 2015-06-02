@@ -1367,6 +1367,7 @@ void sim_mob::Person::printTripChainItemTypes() const{
 			<< cbdStartNode << "," << cbdEndNode << ","
 			<< subtripMetrics.cbdStartTime.toString() << ","
 			<< subtripMetrics.cbdEndTime.toString() << ","
+			<< st.mode << ","
 			<< subtripMetrics.cbdTraverseType << std::endl;
 	sim_mob::BasicLogger& cbd = sim_mob::Logger::log("cdb.csv");
 	cbd << ret.str();

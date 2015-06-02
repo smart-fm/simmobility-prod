@@ -47,7 +47,7 @@ void BusStopAgent::removeAllBusStopAgents()
 
 
 BusStopAgent::BusStopAgent(const MutexStrategy& mtxStrat, int id, const BusStop* stop, SegmentStats* stats) :
-		Agent(mtxStrat, id), busStop(stop), parentSegmentStats(stats), availableLength(stop->getBusCapacityAsLength())
+		Agent(mtxStrat, id), busStop(stop), parentSegmentStats(stats), availableLength(stop->getBusCapacityAsLength()), currentTimeMS(0)
 {
 }
 

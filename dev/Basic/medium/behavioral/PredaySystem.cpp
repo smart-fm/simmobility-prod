@@ -417,6 +417,7 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 	int origin = MTZ12_MTZ08_Map.at(origin_2012);
 	int destination = MTZ12_MTZ08_Map.at(destination_2012);
 	TourTimeOfDayParams todParams;
+	todParams.setTourMode(tour.getTourMode());
 	todParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin_2012))->getCbdDummy());
 	todParams.setCbdDestZone(zoneMap.at(zoneIdLookup.at(destination_2012))->getCbdDummy());
 	std::vector<double>& ttFirstHalfTour = todParams.travelTimesFirstHalfTour;
@@ -918,10 +919,14 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination_2012, bool i
 	int origin_2012 = stop->getStopLocation();
 	int origin = MTZ12_MTZ08_Map.at(origin_2012);
 	int destination = MTZ12_MTZ08_Map.at(destination_2012);
+	stodParams.setStopMode(stop->getStopMode());
 	stodParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin_2012))->getCbdDummy());
 	stodParams.setCbdDestZone(zoneMap.at(zoneIdLookup.at(destination_2012))->getCbdDummy());
 
-	if(origin_2012 == destination_2012 || origin == destination) { for(int i=FIRST_INDEX; i<=LAST_INDEX; i++) { stodParams.travelTimes.push_back(0.0); } }
+	if(origin_2012 == destination_2012 || origin == destination)
+	{
+		for(int i=FIRST_INDEX; i<=LAST_INDEX; i++) { stodParams.travelTimes.push_back(0.0); }
+	}
 	else
 	{
 		BSONObj bsonObjTT = BSON("origin" << origin << "destination" << destination);

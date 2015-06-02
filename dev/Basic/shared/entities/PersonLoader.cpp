@@ -142,7 +142,6 @@ void sim_mob::RestrictedRegion::populate()
 		rs->CBD = true;
 	}
 	zoneSegmentsStr = out_.str();
-	std::cout << "zoneSegmentsStr :" << zoneSegmentsStr << std::endl;
 	out_.str("");
 	BOOST_FOREACH(Pair node, zoneNodes)
 	{

@@ -61,7 +61,7 @@ TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
 {
 	travelMetric.destination = WayPoint(parentPassenger->getEndNode());
 	travelMetric.endTime = DailyTime(parentPassenger->getArrivalTime() + totalTimeToCompleteMS);
-	travelMetric.travelTime = (travelMetric.endTime - travelMetric.startTime).getValue(); // = totalTimeToCompleteMS
+	travelMetric.travelTime = TravelMetric::getTimeDiffHours(travelMetric.endTime , travelMetric.startTime); // = totalTimeToCompleteMS in hours
 	travelMetric.finalized = true;
 	return travelMetric;
 }

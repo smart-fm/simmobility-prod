@@ -14,68 +14,55 @@ namespace sim_mob {
 
 namespace medium {
 
-PassengerBehavior::PassengerBehavior(sim_mob::Person* parentAgent) :
-		BehaviorFacet(parentAgent), parentPassenger(nullptr) {
+PassengerBehavior::PassengerBehavior(sim_mob::Person* parentAgent) : BehaviorFacet(parentAgent), parentPassenger(nullptr)
+{}
 
-}
+PassengerBehavior::~PassengerBehavior() {}
 
-PassengerBehavior::~PassengerBehavior() {
+PassengerMovement::PassengerMovement(sim_mob::Person* parentAgent) : MovementFacet(parentAgent), parentPassenger(nullptr), totalTimeToCompleteMS(0)
+{}
 
-}
+PassengerMovement::~PassengerMovement() {}
 
-PassengerMovement::PassengerMovement(sim_mob::Person* parentAgent) :
-		MovementFacet(parentAgent), parentPassenger(nullptr), totalTimeToCompleteMS(
-				0) {
-
-}
-
-PassengerMovement::~PassengerMovement() {
-
-}
-
-void PassengerMovement::setParentPassenger(
-		sim_mob::medium::Passenger* parentPassenger) {
+void PassengerMovement::setParentPassenger(sim_mob::medium::Passenger* parentPassenger)
+{
 	this->parentPassenger = parentPassenger;
 }
 
-void PassengerBehavior::setParentPassenger(
-		sim_mob::medium::Passenger* parentPassenger) {
+void PassengerBehavior::setParentPassenger(sim_mob::medium::Passenger* parentPassenger)
+{
 	this->parentPassenger = parentPassenger;
 }
 
-void PassengerMovement::frame_init() {
-
+void PassengerMovement::frame_init()
+{
 	totalTimeToCompleteMS = 0;
 }
 
-void PassengerMovement::frame_tick() {
-	unsigned int tickMS =
-			ConfigManager::GetInstance().FullConfig().baseGranMS();
+void PassengerMovement::frame_tick()
+{
+	unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
 	totalTimeToCompleteMS += tickMS;
 	parentPassenger->setTravelTime(totalTimeToCompleteMS);
 }
 
-void PassengerMovement::frame_tick_output() {
-
-}
+void PassengerMovement::frame_tick_output() {}
 
 
 TravelMetric & PassengerMovement::startTravelTimeMetric()
 {
-//	travelMetric.startTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
-//	const Node* startNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getEnd();
-//	travelMetric.origin = WayPoint(startNode);
-//	travelMetric.started = true;
+	travelMetric.startTime = DailyTime(parentPassenger->getArrivalTime());
+	travelMetric.origin = WayPoint(parentPassenger->getStartNode());
+	travelMetric.started = true;
 	return travelMetric;
 }
 
 TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
 {
-//	const Node* endNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getEnd();
-//	travelMetric.destination = WayPoint(endNode);
-//	travelMetric.endTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
-//	travelMetric.travelTime = (travelMetric.endTime - travelMetric.startTime).getValue();
-//	travelMetric.finalized = true;
+	travelMetric.destination = WayPoint(parentPassenger->getEndNode());
+	travelMetric.endTime = DailyTime(parentPassenger->getArrivalTime() + totalTimeToCompleteMS);
+	travelMetric.travelTime = (travelMetric.endTime - travelMetric.startTime).getValue(); // = totalTimeToCompleteMS
+	travelMetric.finalized = true;
 	return travelMetric;
 }
 }//medium

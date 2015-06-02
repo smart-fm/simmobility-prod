@@ -86,12 +86,12 @@ void TurningConflict::setFirstTurningId(unsigned int firstTurningId)
 	this->firstTurningId = firstTurningId;
 }
 
-void TurningConflict::setPriority(int priority)
+void TurningConflict::setPriority(unsigned int priority)
 {
 	this->priority = priority;
 }
 
-int TurningConflict::getPriority() const
+unsigned int TurningConflict::getPriority() const
 {
 	return priority;
 }

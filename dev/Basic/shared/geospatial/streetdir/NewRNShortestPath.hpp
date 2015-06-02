@@ -22,6 +22,7 @@
 #include "StreetDirectory.hpp"
 
 #include "geospatial/simmobility_network/RoadNetwork.hpp"
+#include "geospatial/simmobility_network/WayPoint.hpp"
 
 namespace sim_mob {
 
@@ -30,7 +31,7 @@ namespace sim_mob {
 class NewRNShortestPath : public StreetDirectory::ShortestPathImpl
 {
 public:
-    explicit NewRNShortestPath(const simmobility_network::RoadNetwork& network);
+    explicit NewRNShortestPath(const simmobility_network::RoadNetwork* network);
     virtual ~NewRNShortestPath();
 
     virtual StreetDirectory::VertexDesc DrivingVertex(const simmobility_network::Node& n);
@@ -47,7 +48,7 @@ public:
 														StreetDirectory::VertexDesc to)
 																{return std::vector<WayPoint>();}
 
-	virtual void updateEdgeProperty() = 0;
+	virtual void updateEdgeProperty() {}
 
 	virtual void printDrivingGraph(std::ostream& outFile){}
 	virtual void printWalkingGraph(std::ostream& outFile){}
@@ -57,10 +58,20 @@ public:
 																	  simmobility_network::Node* to,
 																	  std::vector<const sim_mob::RoadSegment*>& blacklist);
 
-	void buildGraph(std::map<unsigned int, Link *>& links);
+	void buildGraph();
+	void addNode(simmobility_network::Node* node);
+	void addLink(simmobility_network::Link* link);
 
 public:
     StreetDirectory::Graph graph;
+
+    //Lookup the master Node for each Node-related vertex.
+    //Note: The first item is the "source" vertex, used to search *from* that Node.
+    //The second item is the "sink" vertex, used to search *to* that Node.
+    std::map<const simmobility_network::Node*, std::pair<StreetDirectory::Vertex,StreetDirectory::Vertex> > nodeLookup;
+
+private:
+    const simmobility_network::RoadNetwork* network;
 
 };
 

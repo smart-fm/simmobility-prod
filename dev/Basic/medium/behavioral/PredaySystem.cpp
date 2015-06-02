@@ -87,8 +87,8 @@ namespace {
 		res[2] = "MRT";
 		res[3] = "Bus";
 		res[4] = "Car";
-		res[5] = "Car Sharing";
-		res[6] = "Car Sharing";
+		res[5] = "Car Sharing 2";
+		res[6] = "Car Sharing 3";
 		res[7] = "Motorcycle";
 		res[8] = "Walk";
 		res[9] = "Taxi";

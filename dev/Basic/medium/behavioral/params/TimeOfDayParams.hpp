@@ -24,7 +24,7 @@ namespace medium {
 class TourTimeOfDayParams {
 public:
 	TourTimeOfDayParams()
-	: costHT1_AM(0), costHT1_PM(0), costHT1_OP(0), costHT2_AM(0), costHT2_PM(0), costHT2_OP(0), cbdOrgZone(false), cbdDestZone(false)
+	: costHT1_AM(0), costHT1_PM(0), costHT1_OP(0), costHT2_AM(0), costHT2_PM(0), costHT2_OP(0), cbdOrgZone(false), cbdDestZone(false), tourMode(0)
 	{}
 
 	virtual ~TourTimeOfDayParams() {}
@@ -123,6 +123,16 @@ public:
 		this->cbdOrgZone = cbdOrgZone;
 	}
 
+	int getTourMode() const
+	{
+		return tourMode;
+	}
+
+	void setTourMode(int tourMode)
+	{
+		this->tourMode = tourMode;
+	}
+
 	/**
 	 * Vector storing the travel times for first and second half-tours in all half-hour windows within a day.
 	 * The day starts at 0300Hrs and ends at 2659Hrs.
@@ -144,7 +154,7 @@ private:
 	double costHT2_OP;
 	bool cbdOrgZone;
 	bool cbdDestZone;
-
+	int tourMode;
 };
 
 /**
@@ -156,7 +166,7 @@ private:
 class StopTimeOfDayParams {
 public:
 	StopTimeOfDayParams(int stopType, bool firstBound)
-	: stopType(stopType), firstBound(firstBound), numTimeWindows(48), todHigh(0.0), todLow(0.0), cbdOrgZone(false), cbdDestZone(false)
+	: stopType(stopType), firstBound(firstBound), numTimeWindows(48), todHigh(0.0), todLow(0.0), cbdOrgZone(false), cbdDestZone(false), stopMode(0)
 	{
 		for(unsigned i=1; i<=numTimeWindows; i++) {
 			availability.push_back(true);
@@ -268,6 +278,16 @@ public:
 		this->cbdOrgZone = cbdOrgZone;
 	}
 
+	int getStopMode() const
+	{
+		return stopMode;
+	}
+
+	void setStopMode(int stopMode)
+	{
+		this->stopMode = stopMode;
+	}
+
 	/**
 	 * Vectors storing travel times and travel costs for each half-hour time window from 3.25 to 26.75
 	 *
@@ -288,6 +308,7 @@ private:
 	unsigned numTimeWindows;
 	bool cbdOrgZone;
 	bool cbdDestZone;
+	int stopMode;
 };
 } // end namespace medium
 } // end namespace sim_mob

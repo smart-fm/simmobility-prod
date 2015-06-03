@@ -46,5 +46,7 @@ namespace simmobility_network
     //Adds a point to the poly-line
     void addPoint(Point point);
 
+    double length;
+
   } ;
 }

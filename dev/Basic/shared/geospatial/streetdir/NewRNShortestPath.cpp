@@ -48,6 +48,45 @@ void NewRNShortestPath::addTurningPath(simmobility_network::TurningPath* tp)
 	simmobility_network::Link* fromLink = tp->fromLane->parentSegment->parentLink;
 	simmobility_network::Link* toLink = tp->toLane->parentSegment->parentLink;
 	// find from link's start vertex
+	SMStreetDirectory::SMVertex from;
+	std::map<const simmobility_network::Link*,simmobility_network::SMStreetDirectory::SMLinkVertexDesc>::iterator it = linkLookup.find(fromLink);
+	if( it== linkLookup.end() )
+	{
+		// never add this link to graph?
+		throw std::runtime_error("addTurningPath: link not find in graph");
+	}
+	else{
+		simmobility_network::SMStreetDirectory::SMLinkVertexDesc vd = it->second;
+		from = vd.to; // turningpath 's from vertex is from link's end vertex
+	}
+	// find to link's start vertex
+	SMStreetDirectory::SMVertex to;
+	it = linkLookup.find(toLink);
+	if( it== linkLookup.end() )
+	{
+		// never add this link to graph?
+		throw std::runtime_error("addTurningPath: link not find in graph");
+	}
+	else{
+		simmobility_network::SMStreetDirectory::SMLinkVertexDesc vd = it->second;
+		to = vd.from; // turningpath 's to vertex is to link's start vertex
+	}
+
+	// create edge
+	SMStreetDirectory::SMEdge turningPathEdge;
+	bool ok;
+	boost::tie(turningPathEdge, ok) = boost::add_edge(from, to, graph);
+	boost::put(boost::edge_name, graph, turningPathEdge, WayPoint(tp));
+	//set edgeWeight TODO
+	double edgeWeight = tp->getLength();
+	boost::put(boost::edge_weight, graph, turningPathEdge, edgeWeight);
+
+	//store
+	SMStreetDirectory::SMTurningPathVertexDesc vd(tp);
+	vd.from = from;
+	vd.to = to;
+	turningPathLookup.insert(std::make_pair(tp,vd));
+
 }
 void NewRNShortestPath::addLink(simmobility_network::Link* link)
 {
@@ -83,7 +122,7 @@ void NewRNShortestPath::addLink(simmobility_network::Link* link)
 	simmobility_network::SMStreetDirectory::SMLinkVertexDesc vd(link);
 	vd.from = fromVertex;
 	vd.to = toVertex;
-	edgeLookup.insert(std::make_pair(link,vd));
+	linkLookup.insert(std::make_pair(link,vd));
 
 	// 1.0 find from,to nodes' vertice
 	simmobility_network::Node* fromNode = link->getFromNode();

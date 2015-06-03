@@ -19,13 +19,15 @@ namespace simmobility_network
 
       //The way point is a road-segment. roadSegment points to a RoadSegment object
       ROAD_SEGMENT,
-	  LINK
+	  LINK,
+	  TURNING_PATH
     } type;
 
     union
     {
       RoadSegment *roadSegment;
       Link* link;
+      TurningPath* turningPath;
     } ;
     
     WayPoint() :
@@ -42,6 +44,8 @@ namespace simmobility_network
 	type(LINK), link(link)
 	{
 	}
+
+    explicit WayPoint(TurningPath* turningPath) : type(TURNING_PATH), turningPath(turningPath) {}
 
     WayPoint(const WayPoint& orig)
     {
@@ -60,12 +64,16 @@ namespace simmobility_network
       case LINK:
 		  link = orig.link;
 		  break;
+
+      case TURNING_PATH:
+		  turningPath = orig.turningPath;
+		  break;
       }
     }
     
     bool operator==(const WayPoint& rhs) const
     {
-      return (type == rhs.type && roadSegment == rhs.roadSegment && link == rhs.link);
+      return (type == rhs.type && roadSegment == rhs.roadSegment && link == rhs.link && turningPath == rhs.turningPath);
     }
     
     bool operator!=(const WayPoint& rhs) const
@@ -89,6 +97,10 @@ namespace simmobility_network
 
       case LINK:
       		  link = rhs.link;
+      		  break;
+
+      case TURNING_PATH:
+      		  turningPath = rhs.turningPath;
       		  break;
       }
 

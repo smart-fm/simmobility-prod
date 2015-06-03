@@ -24,6 +24,7 @@
 #include "geospatial/simmobility_network/RoadNetwork.hpp"
 #include "geospatial/simmobility_network/WayPoint.hpp"
 #include "geospatial/streetdir/SMStreetDirectory.hpp"
+#include "geospatial/simmobility_network/TurningPath.hpp"
 
 namespace simmobility_network {
 
@@ -56,8 +57,8 @@ public:
     //Note: The first item is the "source" vertex, used to search *from* that Node.
     //The second item is the "sink" vertex, used to search *to* that Node.
     std::map<const simmobility_network::Node*, simmobility_network::SMStreetDirectory::SMNodeVertexDesc > nodeLookup;
-    std::map<const simmobility_network::Link*,simmobility_network::SMStreetDirectory::SMLinkVertexDesc> edgeLookup;
-
+    std::map<const simmobility_network::Link*,simmobility_network::SMStreetDirectory::SMLinkVertexDesc> linkLookup;
+    std::map<const simmobility_network::TurningPath*,simmobility_network::SMStreetDirectory::SMTurningPathVertexDesc> turningPathLookup;
 private:
     const simmobility_network::RoadNetwork* network;
 

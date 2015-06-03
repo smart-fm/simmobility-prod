@@ -48,6 +48,7 @@ class Lane;
   public:
     Lane* fromLane;
     Lane* toLane;
+    double getLength() { return polyLine->length; };
 
   public:
     

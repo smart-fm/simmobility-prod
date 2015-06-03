@@ -102,20 +102,36 @@ public:
 	};
 
 	struct SMLinkVertexDesc {
-			Link* link;
-			SMVertex from; //The outgoing Vertex
-			SMVertex to;   //The incoming Vertex
+		Link* link;
+		SMVertex from; //The outgoing Vertex
+		SMVertex to;   //The incoming Vertex
 
-			SMLinkVertexDesc(simmobility_network::Link* link=NULL) : link(link),from(SMVertex()), to(SMVertex()) {}
-			SMLinkVertexDesc(const SMLinkVertexDesc& src):link(src.link),from(src.from),to(src.to){}
-			SMLinkVertexDesc& operator=(const SMLinkVertexDesc& rhs)
-			{
-				this->link = rhs.link;
-				this->from = rhs.from;
-				this->to = rhs.to;
-				return *this;
-			}
-		};
+		SMLinkVertexDesc(simmobility_network::Link* link=NULL) : link(link),from(SMVertex()), to(SMVertex()) {}
+		SMLinkVertexDesc(const SMLinkVertexDesc& src):link(src.link),from(src.from),to(src.to){}
+		SMLinkVertexDesc& operator=(const SMLinkVertexDesc& rhs)
+		{
+			this->link = rhs.link;
+			this->from = rhs.from;
+			this->to = rhs.to;
+			return *this;
+		}
+	};
+
+	struct SMTurningPathVertexDesc {
+		TurningPath* turningPath;
+		SMVertex from; //The outgoing Vertex
+		SMVertex to;   //The incoming Vertex
+
+		SMTurningPathVertexDesc(simmobility_network::TurningPath* turningPath=NULL) : turningPath(turningPath),from(SMVertex()), to(SMVertex()) {}
+		SMTurningPathVertexDesc(const SMTurningPathVertexDesc& src):turningPath(src.turningPath),from(src.from),to(src.to){}
+		SMTurningPathVertexDesc& operator=(const SMTurningPathVertexDesc& rhs)
+		{
+			this->turningPath = rhs.turningPath;
+			this->from = rhs.from;
+			this->to = rhs.to;
+			return *this;
+		}
+	};
 
     /**
      * Provides an implementation of the StreetDirectory's shortest-path lookup functionality. See Impl's description for

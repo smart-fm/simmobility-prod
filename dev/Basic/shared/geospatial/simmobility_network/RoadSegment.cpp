@@ -48,7 +48,7 @@ RoadSegment::~RoadSegment()
 
 double RoadSegment::getLength()
 {
-
+	return polyLine->getLength();
 }
 unsigned int RoadSegment::getRoadSegmentId() const
 {

@@ -185,16 +185,16 @@ void DriverUpdateParams::buildDebugInfo()
 	debugInfo = s.str();
 }
 
-void DriverUpdateParams::addTargetLanes(set<const Lane*> tl)
+void DriverUpdateParams::addTargetLanes(set<const simmobility_network::Lane*> tl)
 {
-	set<const Lane*> newTargetLanes;
-	set<const Lane*>::iterator it;
+	set<const simmobility_network::Lane*> newTargetLanes;
+	set<const simmobility_network::Lane*>::iterator it;
 
 	// find Lane* in both tl and targetLanes
-	for(it=tl.begin();it!=tl.end();++it)
+	for(it = tl.begin(); it != tl.end(); ++it)
 	{
-		const Lane* l = *it;
-		set<const Lane*>::iterator itFind = targetLanes.find(l);
+		const simmobility_network::Lane* l = *it;
+		set<const simmobility_network::Lane*>::iterator itFind = targetLanes.find(l);
 		if(itFind != targetLanes.end())
 		{
 			newTargetLanes.insert(l);

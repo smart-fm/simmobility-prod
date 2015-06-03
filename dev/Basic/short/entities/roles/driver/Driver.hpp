@@ -21,7 +21,6 @@
 
 #include "DriverUpdateParams.hpp"
 #include "DriverFacets.hpp"
-#include "geospatial/TurningSection.hpp"
 
 namespace sim_mob
 {
@@ -30,10 +29,9 @@ namespace sim_mob
 class Pedestrian;
 class Signal;
 class Link;
-class RoadSegment;
-class Lane;
-class Node;
-class MultiNode;
+class simmobility_network::RoadSegment;
+class simmobility_network::Lane;
+class simmobility_network::Node;
 class DPoint;
 class UpdateParams;
 class DriverBehavior;
@@ -104,14 +102,14 @@ class UnPackageUtils;
      These values are stored the double buffer because they are needed by other drivers.*/
     
     //The driver's current lane
-    Shared<const Lane*> currLane_;
+    Shared<const simmobility_network::Lane*> currLane_;
     
     //Indicates whether the driver is in an intersection
     Shared<bool> isInIntersection_;
     
     //Pointer to a turning object. The driver is either on the turning (if in intersection) or will be
     //soon (currently approaching an intersection)
-    Shared<const TurningSection*> currTurning_;
+    Shared<const simmobility_network::TurningPath *> currTurning_;
     
     //Represents the distance covered within an intersection (in centimetre)
     Shared<double> moveDisOnTurning_;
@@ -259,7 +257,7 @@ class UnPackageUtils;
     //Also resets the perception delays accordingly.
     void resetReactionTime(double timeMS);
 	
-	//Setter for yieldingToInIntersection
+    //Setter for yieldingToInIntersection
     void setYieldingToInIntersection(int);
 
     //Getter for yieldingToInIntersection
@@ -267,11 +265,11 @@ class UnPackageUtils;
 
     /*Overridden functions*/
 	
-	//Creates and initialises the movement and behaviour objects required for the Driver role,
-	//assigns them to a new driver and returns a pointer to the driver.
+    //Creates and initialises the movement and behaviour objects required for the Driver role,
+    //assigns them to a new driver and returns a pointer to the driver.
     virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
-	//Resets the dirver parameters object
+    //Resets the dirver parameters object
     virtual void make_frame_tick_params(timeslice now);
 
 	//Creates a vector of the subscription parameters and returns it

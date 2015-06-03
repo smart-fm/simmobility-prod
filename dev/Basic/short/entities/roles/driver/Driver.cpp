@@ -20,15 +20,6 @@
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
-#include "geospatial/Crossing.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/LaneConnector.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/Point2D.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/UniNode.hpp"
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "util/DebugFlags.hpp"
@@ -51,49 +42,65 @@ using std::string;
 using std::endl;
 
 //Helper functions
-namespace {
-//Helpful constants
+namespace
+{
+	//Helpful constants
 
-// millisecs conversion unit from seconds
-const double MILLISECS_CONVERT_UNIT = 1000.0;
+	// millisecs conversion unit from seconds
+	const double MILLISECS_CONVERT_UNIT = 1000.0;
 
-//Output helper
-string PrintLCS(LANE_CHANGE_SIDE s) {
-	if (s == LCS_LEFT) {
-		return "LCS_LEFT";
-	} else if (s == LCS_RIGHT) {
-		return "LCS_RIGHT";
-	}
-	return "LCS_SAME";
-}
+	//Output helper
 
-//used in lane changing, find the start index and end index of polyline in the target lane
-size_t updateStartEndIndex(const std::vector<sim_mob::Point2D>* const currLanePolyLine, double currLaneOffset,
-		size_t defaultValue) {
-	double offset = 0;
-	for (size_t i = 0; i < currLanePolyLine->size() - 1; i++) {
-		double xOffset = currLanePolyLine->at(i + 1).getX() - currLanePolyLine->at(i).getX();
-		double yOffset = currLanePolyLine->at(i + 1).getY() - currLanePolyLine->at(i).getY();
-		offset += sqrt(xOffset * xOffset + yOffset * yOffset);
-		if (offset >= currLaneOffset) {
-			return i;
+	string PrintLCS(LANE_CHANGE_SIDE s)
+	{
+		if (s == LCS_LEFT)
+		{
+			return "LCS_LEFT";
+		} 
+		else if (s == LCS_RIGHT)
+		{
+			return "LCS_RIGHT";
 		}
+		
+		return "LCS_SAME";
 	}
-	return defaultValue;
-}
 
-//TODO:I think lane index should be a data member in the lane class
-size_t getLaneIndex(const Lane* l) {
-	if (l) {
-		const RoadSegment* r = l->getRoadSegment();
-		for (size_t i = 0; i < r->getLanes().size(); i++) {
-			if (r->getLanes().at(i) == l) {
+	//used in lane changing, find the start index and end index of polyline in the target lane
+
+	size_t updateStartEndIndex(const std::vector<sim_mob::Point2D> * const currLanePolyLine, double currLaneOffset,
+							   size_t defaultValue)
+	{
+		double offset = 0;
+		for (size_t i = 0; i < currLanePolyLine->size() - 1; i++)
+		{
+			double xOffset = currLanePolyLine->at(i + 1).getX() - currLanePolyLine->at(i).getX();
+			double yOffset = currLanePolyLine->at(i + 1).getY() - currLanePolyLine->at(i).getY();
+			offset += sqrt(xOffset * xOffset + yOffset * yOffset);
+			if (offset >= currLaneOffset)
+			{
 				return i;
 			}
 		}
+		return defaultValue;
 	}
-	return -1; //NOTE: This might not do what you expect! ~Seth
-}
+
+	//TODO:I think lane index should be a data member in the lane class
+
+	size_t getLaneIndex(const Lane* l)
+	{
+		if (l)
+		{
+			const RoadSegment* r = l->getRoadSegment();
+			for (size_t i = 0; i < r->getLanes().size(); i++)
+			{
+				if (r->getLanes().at(i) == l)
+				{
+					return i;
+				}
+			}
+		}
+		return -1; //NOTE: This might not do what you expect! ~Seth
+	}
 
 
 } //End anon namespace
@@ -138,14 +145,16 @@ Role* sim_mob::Driver::clone(Person* parent) const
 	return driver;
 }
 
-void sim_mob::Driver::make_frame_tick_params(timeslice now){
+void sim_mob::Driver::make_frame_tick_params(timeslice now)
+{
 	getParams().reset(now, *this);
 }
 
 // Note that Driver's destructor is only for reclaiming memory.
 // If you want to remove its registered properties from the Worker (which you should do!) then
 // this should occur elsewhere.
-sim_mob::Driver::~Driver() {
+sim_mob::Driver::~Driver() 
+{
 	//Our vehicle
 	safe_delete_item(vehicle);
 	safe_delete_item(perceivedFwdVel);
@@ -156,7 +165,8 @@ sim_mob::Driver::~Driver() {
 	safe_delete_item(perceivedDistToFwdCar);
 }
 
-vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
+vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() 
+{
 	vector<BufferedBase*> res;
 	res.push_back(&(currLane_));
 	res.push_back(&(currTurning_));
@@ -271,10 +281,12 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	UpdateParams::reset(now);
 
 	//Set to the previous known buffered values
-	if(owner.currLane_.get()) {
+	if(owner.currLane_.get()) 
+	{
 		currLane = owner.currLane_.get();
 	}
-	currLaneIndex = getLaneIndex(currLane);
+	
+	currLaneIndex = currLane->getLaneIndex();
 	currLaneLength = owner.currLaneLength_.get();
 	currLaneOffset = owner.currLaneOffset_.get();
 	nextLaneIndex = currLaneIndex;
@@ -355,7 +367,8 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
 {
 	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
-	if (mov) {
+	if (mov) 
+	{
 		mov->rerouteWithBlacklist(blacklisted);
 	}
 }
@@ -394,7 +407,8 @@ void Driver::resetReactionTime(double timeMS)
 void Driver::rerouteWithPath(const std::vector<sim_mob::WayPoint>& path)
 {
 	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
-	if (mov) {
+	if (mov) 
+	{
 		mov->rerouteWithPath(path);
 	}
 }

@@ -12,9 +12,9 @@
 #include "entities/roles/driver/SMStatus.h"
 #include "entities/roles/driver/models/LaneChangeModel.hpp"
 #include "entities/signal/Signal.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/TurningConflict.hpp"
+#include "geospatial/simmobility_network/Lane.hpp"
+#include "geospatial/simmobility_network/RoadSegment.hpp"
+#include "geospatial/simmobility_network/TurningConflict.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/LangHelpers.hpp"
 
@@ -23,7 +23,7 @@ namespace sim_mob
 {
 
   //Forward declarations
-  class Lane;
+  class simmobility_network::Lane;
   class Driver;
   class IncidentPerformer;
 
@@ -135,7 +135,7 @@ namespace sim_mob
 
     bool willYield(unsigned int reason);
 
-    const RoadSegment* nextLink();
+    const simmobility_network::RoadSegment* nextLink();
 
     /**
      *  /brief add one kind of status to the vh
@@ -193,7 +193,7 @@ namespace sim_mob
     /**
      *  /brief add target lanes
      */
-    void addTargetLanes(set<const Lane*> tl);
+    void addTargetLanes(set<const simmobility_network::Lane*> tl);
 
     /**
      *  /brief calculate min gap
@@ -219,7 +219,7 @@ namespace sim_mob
     std::vector<double> targetGapParams;
 
     /// lanes,which are ok to change to
-    set<const Lane*> targetLanes;
+    set<const simmobility_network::Lane*> targetLanes;
 
     enum STOP_POINT_STATE
     {
@@ -231,13 +231,13 @@ namespace sim_mob
       NO_FOUND_STOP_POINT = 6
     } ;
 
-    const Lane* currLane;	//TODO: This should really be tied to PolyLineMover, but for now it's not important.
-    size_t currLaneIndex; 	//Cache of currLane's index.
-    size_t nextLaneIndex; 	//for lane changing model
-    const Lane* leftLane;
-    const Lane* rightLane;
-    const Lane* leftLane2; 	//the second left lane
-    const Lane* rightLane2;
+    const simmobility_network::Lane* currLane;
+    size_t currLaneIndex;
+    size_t nextLaneIndex;
+    const simmobility_network::Lane* leftLane;
+    const simmobility_network::Lane* rightLane;
+    const simmobility_network::Lane* leftLane2;
+    const simmobility_network::Lane* rightLane2;
 
     double currSpeed;
     double desiredSpeed;
@@ -281,7 +281,7 @@ namespace sim_mob
     NearestVehicle nvRightBack2;
 
     std::map<TurningConflict*, std::list<NearestVehicle> > conflictVehicles;
-    void insertConflictTurningDriver(TurningConflict* tc, double distance, const Driver* driver);
+    void insertConflictTurningDriver(simmobility_network::TurningConflict* tc, double distance, const Driver* driver);
 
     // used to check vh when do acceleration merging
     NearestVehicle nvLeadFreeway; // lead vh on freeway segment,used when subject vh on ramp

@@ -30,6 +30,7 @@
 #include "geospatial/UniNode.hpp"
 #include "IncidentPerformer.hpp"
 #include "network/CommunicationDataManager.hpp"
+#include "geospatial/simmobility_network/Node.hpp"
 
 using namespace sim_mob;
 using std::vector;
@@ -110,29 +111,31 @@ size_t getLaneIndex(const Lane * l)
 
 namespace sim_mob {
 	
-map<const RoadSegment *, unsigned long> DriverMovement::rdSegDensityMap;
+map<const simmobility_network::RoadSegment *, unsigned long> DriverMovement::rdSegDensityMap;
 boost::mutex DriverMovement::densityUpdateMutex;
 
 DriverBehavior::DriverBehavior(sim_mob::Person* parentAgent) :
-				BehaviorFacet(parentAgent), parentDriver(nullptr) {
+				BehaviorFacet(parentAgent), parentDriver(nullptr) 
+{
 }
 
-DriverBehavior::~DriverBehavior() {
+DriverBehavior::~DriverBehavior()
+{
 }
 
-void DriverBehavior::frame_init() {
-	throw std::runtime_error(
-			"DriverBehavior::frame_init is not implemented yet");
+void DriverBehavior::frame_init()
+{
+	throw std::runtime_error("DriverBehavior::frame_init is not implemented yet");
 }
 
-void DriverBehavior::frame_tick() {
-	throw std::runtime_error(
-			"DriverBehavior::frame_tick is not implemented yet");
+void DriverBehavior::frame_tick()
+{
+	throw std::runtime_error("DriverBehavior::frame_tick is not implemented yet");
 }
 
-void DriverBehavior::frame_tick_output() {
-	throw std::runtime_error(
-			"DriverBehavior::frame_tick_output is not implemented yet");
+void DriverBehavior::frame_tick_output()
+{
+	throw std::runtime_error("DriverBehavior::frame_tick_output is not implemented yet");
 }
 
 sim_mob::DriverMovement::DriverMovement(sim_mob::Person* parentAgent, Driver* parentDriver) : 
@@ -611,10 +614,10 @@ void sim_mob::DriverMovement::updateDensityMap()
 	//The density map is a static map, so all threads will want to access it. Lock before accessing.
 	densityUpdateMutex.lock();
 	
-	const RoadSegment *currSeg = fwdDriverMovement.getCurrSegment();
+	const simmobility_network::RoadSegment *currSeg = fwdDriverMovement.getCurrSegment();
 	
 	//Find the entry for the road segment corresponding to the current vehicles segment
-	map<const RoadSegment *, unsigned long>::iterator itDensityMap = rdSegDensityMap.find(currSeg);
+	map<const simmobility_network::RoadSegment *, unsigned long>::iterator itDensityMap = rdSegDensityMap.find(currSeg);
 	
 	//Check if an entry exists
 	if(itDensityMap != rdSegDensityMap.end())
@@ -642,7 +645,7 @@ void sim_mob::DriverMovement::outputDensityMap(unsigned int tick)
 	sim_mob::BasicLogger &logger = sim_mob::Logger::log(config.segDensityMap.fileName);
 	
 	//Iterator to access all elements in the map
-	map<const RoadSegment *, unsigned long>::iterator itDensityMap = rdSegDensityMap.begin();
+	map<const simmobility_network::RoadSegment *, unsigned long>::iterator itDensityMap = rdSegDensityMap.begin();
 	
 	//Iterate through all elements in the map
 	while(itDensityMap != rdSegDensityMap.end())
@@ -661,7 +664,7 @@ void sim_mob::DriverMovement::outputDensityMap(unsigned int tick)
 		//Calculate density. The unit is no of vehicles per lane-km
 		double density = avgVehCount / (noOfLanes * segLength);
 
-		logger << tick << "," << itDensityMap->first->getId() << "," << density << "\n"; 
+		logger << tick << "," << itDensityMap->first->getRoadSegmentId() << "," << density << "\n"; 
 		
 		++itDensityMap;
 	}
@@ -674,12 +677,12 @@ void sim_mob::DriverMovement::outputDensityMap(unsigned int tick)
 TravelMetric& sim_mob::DriverMovement::startTravelTimeMetric()
 {
 	travelMetric.startTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
-	const Node* startNode = (*(fwdDriverMovement.fullPath.begin()))->getStart();
+	const simmobility_network::Node *startNode = (*(fwdDriverMovement.fullPath.begin()))->getStart();
 	if(!startNode)
 	{
 		throw std::runtime_error("Unknown Origin Node");
 	}
-	travelMetric.origin = WayPoint(startNode);
+	travelMetric.origin = simmobility_network::WayPoint(startNode);
 	travelMetric.started = true;
 	return  travelMetric;
 }
@@ -691,13 +694,16 @@ TravelMetric& sim_mob::DriverMovement::finalizeTravelTimeMetric()
 	{
 		return  travelMetric;
 	}
-	const sim_mob::RoadSegment * currRS = (fwdDriverMovement.currSegmentIt == fwdDriverMovement.fullPath.end() ?
+	
+	const simmobility_network::RoadSegment *currRS = (fwdDriverMovement.currSegmentIt == fwdDriverMovement.fullPath.end() ?
 			(*(fwdDriverMovement.fullPath.rbegin())) : (*(fwdDriverMovement.currSegmentIt)));
+	
 	if(!currRS)
 	{
 		throw std::runtime_error("Unknown Current Segment");
 	}
-	const Node* endNode = currRS->getEnd();
+	
+	const simmobility_network::Node* endNode = currRS->getEnd();
 	travelMetric.destination = WayPoint(endNode);
 	travelMetric.endTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 	travelMetric.travelTime = (travelMetric.endTime - travelMetric.startTime).getValue();
@@ -716,7 +722,7 @@ bool sim_mob::DriverMovement::updateSensors(timeslice now)
 		return false;
 	}
 
-	//Manage traffic signal behavior if we are close to the end of the link.
+	//Manage traffic signal behaviour if we are close to the end of the link.
 	if(!fwdDriverMovement.isInIntersection()) 
 	{
 		setTrafficSignalParams(params);
@@ -756,7 +762,7 @@ bool sim_mob::DriverMovement::updateMovement(timeslice now)
 	}
 
 	//Save some values which might not be available later.
-	const RoadSegment* prevSegment = fwdDriverMovement.getCurrSegment();
+	const simmobility_network::RoadSegment* prevSegment = fwdDriverMovement.getCurrSegment();
 
 	params.TEMP_lastKnownPolypoint = DPoint(getCurrPolylineVector().getEndX(),
 			getCurrPolylineVector().getEndY());

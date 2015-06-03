@@ -80,10 +80,10 @@ class CarFollowModel;
     size_t targetLaneIndex;
 
     //The pointer to the lane in the next link which is connected to our current lane
-    const Lane* nextLaneInNextLink;
+    const simmobility_network::Lane *nextLaneInNextLink;
     
     //Map of road segment vs the aggregate vehicle count over the collection interval
-    static map<const RoadSegment *, unsigned long> rdSegDensityMap;
+    static map<const simmobility_network::RoadSegment *, unsigned long> rdSegDensityMap;
 
     //Mutex to lock the density map
     static boost::mutex densityUpdateMutex;
@@ -210,7 +210,7 @@ class CarFollowModel;
     //NearestVehicle& nearestVehicle(DriverUpdateParams& p);
 
     //Updates the perceptions of the given nearest vehicle
-    void perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params);
+    void perceivedDataProcess(NearestVehicle &nv, DriverUpdateParams& params);
 
     //Returns the angle (orientation) of the vehicle.
     //Used for displaying on the visualiser only
@@ -258,18 +258,18 @@ class CarFollowModel;
     void setParentBufferedData();
 
     //Builds a path consisting of road segments using the given way-points and starting lane
-    void buildAndSetPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
+    void buildAndSetPath(std::vector<simmobility_network::WayPoint> wp_path, int startLaneID);
 
     //Builds a path consisting of road segments using the given way-points, starting segment and starting lane
-    void buildAndSetPathWithInitSeg(std::vector<sim_mob::WayPoint> wp_path, int startLaneID, int segId, int initPer,
+    void buildAndSetPathWithInitSeg(std::vector<simmobility_network::WayPoint> wp_path, int startLaneID, int segId, int initPer,
                              int initSpeed);
 
     //Reset the path
-    void resetPath(std::vector<sim_mob::WayPoint> wp_path);
+    void resetPath(std::vector<simmobility_network::WayPoint> wp_path);
 
     //Returns true if the path contains the next segment, else returns false. The boolean parameter
     //allows us to check within the link or in the next link
-    const sim_mob::RoadSegment* hasNextSegment(bool inSameLink) const;
+    const simmobility_network::RoadSegment* hasNextSegment(bool inSameLink) const;
 
     //Returns the current position of the driver
     DPoint getPosition();
@@ -285,10 +285,10 @@ class CarFollowModel;
 
     //Gets the lanes connected to the segment within the look ahead distance
     //The parameter lanePool stores the result
-    void getLanesConnectToLookAheadDis(double distance, std::vector<sim_mob::Lane*>& lanePool);
+    void getLanesConnectToLookAheadDis(double distance, std::vector<simmobility_network::Lane*>& lanePool);
 
     //Returns true if the lane is connected to the segment
-    bool isLaneConnectedToSegment(sim_mob::Lane* lane, const sim_mob::RoadSegment* rs);
+    bool isLaneConnectedToSegment(simmobility_network::Lane* lane, const simmobility_network::RoadSegment* rs);
 
     //Updates the information known about the adjacent lanes
     void updateAdjacentLanes(DriverUpdateParams& p);

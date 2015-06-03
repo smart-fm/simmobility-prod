@@ -24,7 +24,7 @@ namespace simmobility_network
 
   class TurningGroup
   {
-  private:
+  public:
     
     //Unique identifier for the turning group
     unsigned int turningGroupId;

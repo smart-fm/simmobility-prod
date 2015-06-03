@@ -40,7 +40,16 @@ simmobility_network::SMStreetDirectory::SMNodeVertexDesc  NewRNShortestPath::add
 }
 void NewRNShortestPath::addTurningGroup(simmobility_network::TurningGroup* tg)
 {
+	std::map<unsigned int, std::map<unsigned int, simmobility_network::TurningPath *> >::iterator it=tg->turningPaths.begin();
 
+	for(;it!=tg->turningPaths.end();++it){
+		std::map<unsigned int, simmobility_network::TurningPath *>& tps = it->second;
+		std::map<unsigned int, simmobility_network::TurningPath *>::iterator itt = tps.begin();
+		for(;itt!=tps.end();++itt){
+			simmobility_network::TurningPath* tp = itt->second;
+			addTurningPath(tp);
+		}
+	}
 }
 void NewRNShortestPath::addTurningPath(simmobility_network::TurningPath* tp)
 {

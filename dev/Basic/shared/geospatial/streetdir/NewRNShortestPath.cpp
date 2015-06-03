@@ -6,11 +6,27 @@
 
 using namespace simmobility_network;
 
+boost::shared_mutex NewRNShortestPath::GraphSearchMutex_;
+
 NewRNShortestPath::NewRNShortestPath(const simmobility_network::RoadNetwork* network)
 	:network(network)
 {
-	// TODO Auto-generated constructor stub
+	// add node to graph first
+	const std::map<unsigned int, simmobility_network::Node*>& nodes = network->getMapOfIdvsNodes();
+	std::map<unsigned int, simmobility_network::Node*>::const_iterator it_node = nodes.begin();
+	for(;it_node!=nodes.end();++it_node){
+		simmobility_network::Node* node = it_node->second;
+		addNode(node);
+	}
 
+
+	const std::map<unsigned int, simmobility_network::Link*>& links = network->getMapOfIdVsLinks();
+	std::map<unsigned int, simmobility_network::Link*>::const_iterator it = links.begin();
+	for(;it!=links.end();++it)
+	{
+		simmobility_network::Link* link = it->second;
+		addLink(link);
+	}
 }
 
 NewRNShortestPath::~NewRNShortestPath() {
@@ -141,7 +157,7 @@ void NewRNShortestPath::addLink(simmobility_network::Link* link)
 	simmobility_network::SMStreetDirectory::SMNodeVertexDesc fromVD;
 	if( it == nodeLookup.end() ){
 		// add node to graph
-		fromVD = addNode(fromNode);
+		throw std::runtime_error("addLink: from node not find in graph");
 	}
 	else{
 		fromVD = it->second;
@@ -151,7 +167,7 @@ void NewRNShortestPath::addLink(simmobility_network::Link* link)
 	simmobility_network::SMStreetDirectory::SMNodeVertexDesc toVD;
 	if( it == nodeLookup.end() ){
 		// add node to graph
-		toVD = addNode(toNode);
+		throw std::runtime_error("addLink: to node not find in graph");
 	}
 	else{
 		toVD = it->second;
@@ -173,9 +189,93 @@ SMStreetDirectory::SMNodeVertexDesc NewRNShortestPath::DrivingVertex(const simmo
 {
 
 }
+std::vector<simmobility_network::WayPoint>  NewRNShortestPath::searchShortestPath(const SMStreetDirectory::SMVertex& fromVertex,
+																const SMStreetDirectory::SMVertex& toVertex) const
+{
+	std::vector<simmobility_network::WayPoint> res;
+	std::list<SMStreetDirectory::SMVertex> partialRes;
+
+	//Lock for read access.
+	{
+	boost::shared_lock<boost::shared_mutex> lock(GraphSearchMutex_);
+
+	//Use A* to search for a path
+	//Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
+	//...which is available under the terms of the Boost Software License, 1.0
+	std::vector<SMStreetDirectory::SMVertex> p(boost::num_vertices(graph));  //Output variable
+	std::vector<double> d(boost::num_vertices(graph));  //Output variable
+	try {
+		boost::astar_search(
+			graph,
+			fromVertex,
+			distance_heuristic_graph(&graph, toVertex),
+			boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(astar_goal_visitor(toVertex))
+		);
+	} catch (found_goal& goal) {
+		//Build backwards.
+		for (SMStreetDirectory::SMVertex v=toVertex;;v=p[v]) {
+			partialRes.push_front(v);
+			if(p[v] == v) {
+				break;
+			}
+		}
+
+		//Now build forwards.
+		std::list<SMStreetDirectory::SMVertex>::const_iterator prev = partialRes.end();
+		for (std::list<SMStreetDirectory::SMVertex>::const_iterator it=partialRes.begin(); it!=partialRes.end(); it++) {
+			//Add this edge.
+			if (prev!=partialRes.end()) {
+				//This shouldn't fail.
+				std::pair<SMStreetDirectory::SMEdge, bool> edge = boost::edge(*prev, *it, graph);
+				if (!edge.second) {
+					std::cout <<"ERROR: Boost can't find an edge that it should know about." <<std::endl;
+					return std::vector<WayPoint>();
+				}
+
+				//Retrieve, add this edge's WayPoint.
+				WayPoint wp = boost::get(boost::edge_name, graph, edge.first);
+				res.push_back(wp);
+			}
+
+			//Save for later.
+			prev = it;
+		}
+	}
+	} //End boost mutex lock for read access.
+
+	return res;
+}
 std::vector<simmobility_network::WayPoint> NewRNShortestPath::GetShortestDrivingPath(simmobility_network::Node* from,
 														 simmobility_network::Node* to,
 														 std::vector<const simmobility_network::Link*> blacklist)
 {
+	std::vector<simmobility_network::WayPoint> res;
+	SMStreetDirectory::SMVertex fromVertex;
+	SMStreetDirectory::SMVertex toVertex;
+	// find from node's source vertex
+	std::map<const simmobility_network::Node*, simmobility_network::SMStreetDirectory::SMNodeVertexDesc >::iterator it = nodeLookup.find(from);
+	if( it==nodeLookup.end() ){
+		std::cout<<"GetShortestDrivingPath: from node not in graph "<<from->getNodeId()<<std::endl;
+		return res;
+	}
+	else{
+		SMStreetDirectory::SMNodeVertexDesc vd = it->second;
+		fromVertex = vd.source;
+	}
+	// find to node's sink vertex
+	it = nodeLookup.find(to);
+	if( it==nodeLookup.end() ){
+		std::cout<<"GetShortestDrivingPath: to node not in graph "<<to->getNodeId()<<std::endl;
+		return res;
+	}
+	else{
+		SMStreetDirectory::SMNodeVertexDesc vd = it->second;
+		toVertex = vd.sink;
+	}
+	//
+	res = searchShortestPath(fromVertex,toVertex);
+
+	return res;
+
 
 }

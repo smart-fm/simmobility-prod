@@ -42,6 +42,8 @@ public:
 	virtual std::vector<WayPoint> GetShortestDrivingPath(simmobility_network::Node* from,
 														 simmobility_network::Node* to,
 														 std::vector<const simmobility_network::Link*> blacklist);
+	std::vector<simmobility_network::WayPoint> searchShortestPath(const SMStreetDirectory::SMVertex& fromVertex,
+																const SMStreetDirectory::SMVertex& toVertex) const;
 
 public:
 	void buildGraph();
@@ -52,6 +54,8 @@ public:
 
 public:
     SMStreetDirectory::SMGraph graph;
+    //Used for locking modifications to the graph
+	static boost::shared_mutex GraphSearchMutex_;
 
     //Lookup the master Node for each Node-related vertex.
     //Note: The first item is the "source" vertex, used to search *from* that Node.
@@ -61,6 +65,44 @@ public:
     std::map<const simmobility_network::TurningPath*,simmobility_network::SMStreetDirectory::SMTurningPathVertexDesc> turningPathLookup;
 private:
     const simmobility_network::RoadNetwork* network;
+
+public:
+    class distance_heuristic_graph : public boost::astar_heuristic<SMStreetDirectory::SMGraph, double>
+	{
+		public:
+			distance_heuristic_graph(const SMStreetDirectory::SMGraph* graph, SMStreetDirectory::SMVertex goal)
+				: m_graph(graph), m_goal(goal) {}
+
+			double operator()(SMStreetDirectory::SMVertex v)
+			{
+				return 0.0;
+			}
+
+		private:
+			const SMStreetDirectory::SMGraph* m_graph;
+			SMStreetDirectory::SMVertex m_goal;
+	};
+
+    //Used to terminate our search (todo: is there a better way?)
+	struct found_goal {};
+
+	//Goal visitor: terminates when a goal has been found.
+	//Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
+	//which is available under the terms of the Boost Software License, 1.0
+	class astar_goal_visitor : public boost::default_astar_visitor
+	{
+		public:
+			astar_goal_visitor(SMStreetDirectory::SMVertex goal) : m_goal(goal) {}
+
+			template <class Graph>
+			void examine_vertex(SMStreetDirectory::SMVertex u, const Graph& g)
+			{
+				if(u == m_goal) { throw found_goal(); }
+			}
+
+		private:
+			SMStreetDirectory::SMVertex m_goal;
+	};
 
 };
 

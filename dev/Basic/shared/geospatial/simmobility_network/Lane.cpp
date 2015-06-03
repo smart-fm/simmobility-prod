@@ -8,7 +8,7 @@ using namespace simmobility_network;
 
 Lane::Lane() :
 laneId(0), busLaneRules(BUS_LANE_RULES_CAR_AND_BUS), canVehiclePark(false), canVehicleStop(false), hasRoadShoulder(false),
-isHOV_Allowed(false), laneIndex(0), polyLine(NULL), roadSegmentId(0), tags(NULL), width(0)
+isHOV_Allowed(false), laneIndex(0), polyLine(NULL), roadSegmentId(0), tags(NULL), width(0),parentSegment(NULL)
 {
 }
 
@@ -26,6 +26,7 @@ Lane::Lane(const Lane& orig)
 	this->roadSegmentId = orig.roadSegmentId;
 	this->tags = orig.tags;
 	this->width = orig.width;
+	this->parentSegment = orig.parentSegment;
 }
 
 Lane::~Lane()

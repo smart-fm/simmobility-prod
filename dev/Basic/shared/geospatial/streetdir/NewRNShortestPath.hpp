@@ -46,6 +46,8 @@ public:
 	void buildGraph();
 	simmobility_network::SMStreetDirectory::SMNodeVertexDesc  addNode(simmobility_network::Node* node);
 	void addLink(simmobility_network::Link* link);
+	void addTurningGroup(simmobility_network::TurningGroup* tg);
+	void addTurningPath(simmobility_network::TurningPath* tp);
 
 public:
     SMStreetDirectory::SMGraph graph;
@@ -54,7 +56,7 @@ public:
     //Note: The first item is the "source" vertex, used to search *from* that Node.
     //The second item is the "sink" vertex, used to search *to* that Node.
     std::map<const simmobility_network::Node*, simmobility_network::SMStreetDirectory::SMNodeVertexDesc > nodeLookup;
-    std::map<const simmobility_network::Link*,simmobility_network::SMStreetDirectory::SMEdge> edgeLookup;
+    std::map<const simmobility_network::Link*,simmobility_network::SMStreetDirectory::SMLinkVertexDesc> edgeLookup;
 
 private:
     const simmobility_network::RoadNetwork* network;

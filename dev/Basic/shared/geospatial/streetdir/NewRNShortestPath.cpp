@@ -38,6 +38,17 @@ simmobility_network::SMStreetDirectory::SMNodeVertexDesc  NewRNShortestPath::add
 
 	return vd;
 }
+void NewRNShortestPath::addTurningGroup(simmobility_network::TurningGroup* tg)
+{
+
+}
+void NewRNShortestPath::addTurningPath(simmobility_network::TurningPath* tp)
+{
+	// find parent link
+	simmobility_network::Link* fromLink = tp->fromLane->parentSegment->parentLink;
+	simmobility_network::Link* toLink = tp->toLane->parentSegment->parentLink;
+	// find from link's start vertex
+}
 void NewRNShortestPath::addLink(simmobility_network::Link* link)
 {
 
@@ -69,7 +80,10 @@ void NewRNShortestPath::addLink(simmobility_network::Link* link)
 	boost::put(boost::edge_weight, graph, linkEdge, edgeWeight);
 
 	//Save this in our lookup.
-	edgeLookup.insert(std::make_pair(link,linkEdge));
+	simmobility_network::SMStreetDirectory::SMLinkVertexDesc vd(link);
+	vd.from = fromVertex;
+	vd.to = toVertex;
+	edgeLookup.insert(std::make_pair(link,vd));
 
 	// 1.0 find from,to nodes' vertice
 	simmobility_network::Node* fromNode = link->getFromNode();

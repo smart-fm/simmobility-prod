@@ -10,9 +10,11 @@
 #include "PolyLine.hpp"
 #include "Tag.hpp"
 #include "TurningConflict.hpp"
+#include "Lane.hpp"
 
 namespace simmobility_network
 {
+class Lane;
 
   class TurningPath
   {
@@ -43,6 +45,10 @@ namespace simmobility_network
     //Indicates the id of the turning group to which this turning path belongs
     unsigned int turningGroupId;
     
+  public:
+    Lane* fromLane;
+    Lane* toLane;
+
   public:
     
     TurningPath();

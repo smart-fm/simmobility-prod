@@ -9,6 +9,7 @@
 #include "Tag.hpp"
 #include "PolyLine.hpp"
 #include "LaneConnector.hpp"
+#include "RoadSegment.hpp"
 
 namespace simmobility_network
 {
@@ -25,6 +26,8 @@ namespace simmobility_network
     //Buses only from Mon-Sat: 0730-2000
     BUS_LANE_RULES_FULL_DAY_BUS_LANE = 2
   };
+
+  class RoadSegment;
 
   class Lane
   {
@@ -72,6 +75,9 @@ namespace simmobility_network
     //The width of the lane
     double width;
     
+  public:
+    RoadSegment* parentSegment;
+
   public:
     
     Lane();

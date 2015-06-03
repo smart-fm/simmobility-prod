@@ -7,7 +7,8 @@
 using namespace simmobility_network;
 
 TurningPath::TurningPath() :
-turningPathId(0), fromLaneId(0), maxSpeed(0), polyLine(NULL), tags(NULL), toLaneId(0), turningGroupId(0)
+turningPathId(0), fromLaneId(0), maxSpeed(0), polyLine(NULL), tags(NULL), toLaneId(0), turningGroupId(0),
+fromLane(NULL),toLane(NULL)
 {
 }
 
@@ -21,6 +22,8 @@ TurningPath::TurningPath(const TurningPath& orig)
 	this->toLaneId = orig.toLaneId;
 	this->turningConflicts = orig.turningConflicts;
 	this->turningGroupId = orig.turningGroupId;
+	this->fromLane = orig.fromLane;
+	this->toLane = orig.toLane;
 }
 
 TurningPath::~TurningPath()

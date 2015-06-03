@@ -43,6 +43,9 @@ namespace simmobility_network
     LINK_TYPE_ACCESS = 5
   } ;
 
+  class RoadSegment;
+  class Node;
+
   class Link
   {
   public:

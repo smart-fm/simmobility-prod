@@ -7,7 +7,7 @@
 using namespace simmobility_network;
 
 RoadSegment::RoadSegment() :
-roadSegmentId(0), capacity(0), linkId(0), maxSpeed(0), polyLine(NULL), sequenceNumber(0), tags(NULL)
+roadSegmentId(0), capacity(0), linkId(0), maxSpeed(0), polyLine(NULL), sequenceNumber(0), tags(NULL),parentLink(NULL)
 {
 }
 
@@ -21,6 +21,7 @@ RoadSegment::RoadSegment(const RoadSegment& orig)
 	this->polyLine = orig.polyLine;
 	this->sequenceNumber = orig.sequenceNumber;
 	this->tags = orig.tags;
+	this->parentLink = orig.parentLink;
 }
 
 RoadSegment::~RoadSegment()

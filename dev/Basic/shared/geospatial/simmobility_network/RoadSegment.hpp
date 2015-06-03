@@ -10,9 +10,13 @@
 #include "Lane.hpp"
 #include "PolyLine.hpp"
 #include "Tag.hpp"
+#include "Link.hpp"
 
 namespace simmobility_network
 {
+
+class Link;
+class Lane;
 
   class RoadSegment
   {
@@ -44,6 +48,9 @@ namespace simmobility_network
     
     //Holds additional information
     std::vector<Tag> *tags;
+
+  public:
+    Link* parentLink;
 
   public:
     

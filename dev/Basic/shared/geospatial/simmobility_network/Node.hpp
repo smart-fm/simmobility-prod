@@ -31,6 +31,8 @@ namespace simmobility_network
     MERGE_NODE = 3
   };
 
+  class TurningGroup;
+
   class Node
   {
   private:

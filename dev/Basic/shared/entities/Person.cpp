@@ -109,9 +109,11 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 	  client_id(-1),amodPath( std::vector<WayPoint>() ), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),
 	  amodSegmLength(0.0)
 {
-	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply()){
+	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply())
+	{
 		convertODsToTrips();
 		insertWaitingActivityToTrip();
+		assignSubtripIds();
 	}
 
 	if(!tripChain.empty()) { initTripChain(); }
@@ -578,6 +580,28 @@ std::vector<sim_mob::SubTrip>::iterator sim_mob::Person::resetCurrSubTrip()
 		throw std::runtime_error("non sim_mob::Trip cannot have subtrips");
 	}
 	return trip->getSubTripsRW().begin();
+}
+
+void sim_mob::Person::assignSubtripIds()
+{
+	for (std::vector<TripChainItem*>::iterator tcIt = tripChain.begin(); tcIt != tripChain.end(); tcIt++)
+	{
+		if ((*tcIt)->itemType == sim_mob::TripChainItem::IT_TRIP)
+		{
+			sim_mob::Trip* trip = dynamic_cast<sim_mob::Trip*>(*tcIt);
+			std::string tripId = trip->tripID;
+			std::stringstream stIdstream;
+			std::vector<sim_mob::SubTrip>& subTrips = trip->getSubTripsRW();
+			int stNo = 0;
+			for(std::vector<sim_mob::SubTrip>::iterator stIt=subTrips.begin(); stIt!=subTrips.end(); stIt++)
+			{
+				stNo++;
+				stIdstream << tripId << "_" << stNo;
+				(*stIt).tripID = stIdstream.str();
+				stIdstream.str(std::string());
+			}
+		}
+	}
 }
 
 void sim_mob::Person::insertWaitingActivityToTrip() {
@@ -1339,43 +1363,43 @@ void sim_mob::Person::printTripChainItemTypes() const{
 				 subtripMetrics.distance ;			 	 	 	 	 	 	 	 	 	 	 	 	 	 	//	non_cbd_distance
 	 }
 
-	 std::stringstream res("");
-	 // actual writing
-	 res <<
-			 this->getId() << "," <<																		//	person_id
-			 (static_cast<Trip*>(*currTripChainItem))->tripID  << "," <<									//	trip_id
-			 st.tripID  << "," <<																			//	subtrip_id
-			 st.fromLocation.node_->getID() << "," <<														//	origin
-			 st.toLocation.node_->getID() << "," <<															//	destination
-			 st.mode  << "," <<																				//	mode
-			 subtripMetrics.startTime.getRepr_()  << "," <<													//	start_time
-			 subtripMetrics.endTime.getRepr_()  << "," <<													//	end_time
-			 //			 TravelMetric::getTimeDiffHours(subtripMetrics.endTime, subtripMetrics.startTime)  << ","		//	travel_time### commented
-			 subtripMetrics.travelTime << "," <<															//	travel_time
-			 subtripMetrics.distance << "," <<	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	//	total_distance
-			 "0" << ","	<<	//placeholder for paublic transit's waiting time								//	ptt_wt
-			 "0" << "," << //placeholder for paublic transit's walk time									//	pt_walk
-			 restrictedRegion.str() << "\n";																/* MIXED CBD Information */
-
-	 csv << res.str();
-	 std::cout << res.str();
-
-
 	int origiNode = 0, destNode = 0, cbdStartNode = 0, cbdEndNode = 0;
-	if (subtripMetrics.origin.type_ == WayPoint::NODE) {
+	if (subtripMetrics.origin.type_ == WayPoint::NODE)
+	{
 		origiNode = subtripMetrics.origin.node_->getID();
 	}
-	if (subtripMetrics.destination.type_ == WayPoint::NODE) {
+	if (subtripMetrics.destination.type_ == WayPoint::NODE)
+	{
 		destNode = subtripMetrics.destination.node_->getID();
 	}
+	std::stringstream res("");
+	// actual writing
+	res <<
+		 this->getId() << "," <<																		//	person_id
+		 (static_cast<Trip*>(*currTripChainItem))->tripID  << "," <<									//	trip_id
+		 st.tripID  << "," <<																			//	subtrip_id
+		 origiNode << "," <<														//	origin
+		 destNode << "," <<															//	destination
+		 st.mode  << "," <<																				//	mode
+		 subtripMetrics.startTime.getRepr_()  << "," <<													//	start_time
+		 subtripMetrics.endTime.getRepr_()  << "," <<													//	end_time
+		 //			 TravelMetric::getTimeDiffHours(subtripMetrics.endTime, subtripMetrics.startTime)  << ","		//	travel_time### commented
+		 subtripMetrics.travelTime << "," <<															//	travel_time
+		 subtripMetrics.distance << "," <<	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	//	total_distance
+		 "0" << ","	<<	//placeholder for paublic transit's waiting time								//	ptt_wt
+		 "0" << "," << //placeholder for paublic transit's walk time									//	pt_walk
+		 restrictedRegion.str() << "\n";																/* MIXED CBD Information */
+
+	csv << res.str();
+	std::cout << res.str();
+
 	if (subtripMetrics.cbdOrigin.type_ == WayPoint::NODE) {
 		cbdStartNode = subtripMetrics.cbdOrigin.node_->getID();
 	}
 	if (subtripMetrics.cbdDestination.type_ == WayPoint::NODE) {
 		cbdEndNode = subtripMetrics.cbdDestination.node_->getID();
 	}
-	if (subtripMetrics.cbdTraverseType == TravelMetric::CBD_NONE
-			|| cbdStartNode == 0 || cbdEndNode == 0) {
+	if (subtripMetrics.cbdTraverseType == TravelMetric::CBD_NONE || cbdStartNode == 0 || cbdEndNode == 0) {
 		return;
 	}
 	std::stringstream ret("");
@@ -1535,4 +1559,4 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
 				 << "\n";
 	 }
 	 tripTravelMetrics.clear();
- }
+}

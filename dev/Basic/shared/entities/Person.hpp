@@ -109,9 +109,18 @@ public:
      * @param tripChain is the reference to current trip chain
      */
     void insertWaitingActivityToTrip();
+    /**
+     * alters trip chain in accordance to route choice for PT trips
+     */
     void convertODsToTrips();
-    bool makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips,
-    		const std::vector<sim_mob::OD_Trip>& matchedTrips);
+    /**
+     * creates subtrips for each leg of PT route choice made by person
+     */
+    bool makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips, const std::vector<sim_mob::OD_Trip>& matchedTrips);
+    /**
+     * assigns ids to subtrips
+     */
+    void assignSubtripIds();
 
     // update nextTripChainItem, used only for NextRole
 	bool updateNextTripChainItem();

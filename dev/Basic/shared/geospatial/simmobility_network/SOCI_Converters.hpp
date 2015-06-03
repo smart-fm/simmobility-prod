@@ -97,7 +97,7 @@ namespace soci
     typedef values base_type;
     static void from_base(const soci::values& vals, soci::indicator& ind, simmobility_network::TurningGroup& res)
     {
-      res.setTurningGroupId((unsigned int)vals.get<int>("id", 0));
+      res.setTurningGroupId(vals.get<unsigned int>("id", 0));
       res.setFromLinkId(vals.get<unsigned int>("from_link", 0));
       res.setNodeId(vals.get<unsigned int>("node_id", 0));
       res.setPhases(vals.get<std::string>("phases", ""));

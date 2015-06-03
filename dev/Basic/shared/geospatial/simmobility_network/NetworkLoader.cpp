@@ -41,6 +41,11 @@ void NetworkLoader::destroyInstance()
 	}
 }
 
+RoadNetwork* NetworkLoader::getRoadNetwork() const
+{
+	return roadNetwork;
+}
+
 string NetworkLoader::getStoredProcedure(const map<string,string>& storedProcs, const string& procedureName, bool mandatory = true)
 {
 	//Look for the stored procedure in the map

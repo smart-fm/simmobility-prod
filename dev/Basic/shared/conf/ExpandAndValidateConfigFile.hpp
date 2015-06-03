@@ -48,7 +48,6 @@ private:
 	bool SetTickFromBaseGran(unsigned int& res, unsigned int tickLenMs);
 	void LoadNetwork();
 	void LoadPublicTransitNetworkFromDatabase();
-	void WarnMidroadSidewalks();
 	void LoadFMOD_Controller();
 	void LoadAMOD_Controller();
 	void LoadAgentsInOrder(ConfigParams::AgentConstraints& constraints);

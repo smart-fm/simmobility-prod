@@ -92,6 +92,9 @@ namespace simmobility_network
     //Adds a turning poly-line to the road network
     void addTurningPolyLine(Point *point);
     
+    //Looks for the required node from the map of nodes and returns a pointer to it, if found
+    Node *getNodeById(unsigned int nodeId);
+    
   } ;
 }
 

@@ -82,11 +82,14 @@ void InformLoadOrder(const std::vector<SimulationParams::LoadAgentsOrderOption>&
 void addOrStashEntity(Agent* p, std::set<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	//Only agents with a start time of zero should start immediately in the all_agents list.
-	if (p->getStartTime()==0) {
+	if (p->getStartTime()==0) 
+	{
 		p->load(p->getConfigProperties());
 		p->clearConfigProperties();
 		active_agents.insert(p);
-	} else {
+	}
+	else 
+	{
 		//Start later.
 		pending_agents.push(p);
 	}
@@ -202,20 +205,19 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//TEMP: Test network output via boost.
 	//todo: enable/disble through cinfig
 	BoostSaveXML(cfg.networkXmlOutputFile(), cfg.getNetworkRW());
-	
-	//Detect sidewalks in the middle of the road.
-	WarnMidroadSidewalks();
 
     //Seal the network; no more changes can be made after this.
  	cfg.sealNetwork();
     std::cout << "Network Sealed" << std::endl;
 
     //Write the network (? This is weird. ?)
-    if (cfg.XmlWriterOn()) {
+    if (cfg.XmlWriterOn()) 
+	{
     	throw std::runtime_error("Old WriteXMLInput function deprecated; use boost instead.");
     	//sim_mob::WriteXMLInput("TEMP_TEST_OUT.xml");
     	std::cout << "XML input for SimMobility Created....\n";
     }
+	
     if(cfg.publicTransitEnabled)
     {
     	LoadPublicTransitNetworkFromDatabase();
@@ -408,26 +410,6 @@ void sim_mob::ExpandAndValidateConfigFile::LoadPublicTransitNetworkFromDatabase(
 	PT_Network::getInstance().init();
 }
 
-void sim_mob::ExpandAndValidateConfigFile::WarnMidroadSidewalks()
-{
-	const std::vector<Link*>& links = cfg.getNetwork().getLinks();
-	for(std::vector<Link*>::const_iterator linkIt=links.begin(); linkIt!=links.end(); ++linkIt) {
-		const std::set<RoadSegment*>& segs = (*linkIt)->getUniqueSegments();
-		for (std::set<RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); ++segIt) {
-			const std::vector<Lane*>& lanes = (*segIt)->getLanes();
-			for (std::vector<Lane*>::const_iterator laneIt=lanes.begin(); laneIt!=lanes.end(); ++laneIt) {
-				//Check it.
-				if((*laneIt)->is_pedestrian_lane() &&
-					((*laneIt) != (*segIt)->getLanes().front()) &&
-					((*laneIt) != (*segIt)->getLanes().back()))
-				{
-					Warn() << "Pedestrian lane is located in the middle of segment" <<(*segIt)->getId() <<"\n";
-				}
-			}
-		}
-	}
-}
-
 void sim_mob::ExpandAndValidateConfigFile::LoadFMOD_Controller()
 {
 	if (cfg.fmod.enabled) {
@@ -450,35 +432,43 @@ void sim_mob::ExpandAndValidateConfigFile::LoadAgentsInOrder(ConfigParams::Agent
 {
 	typedef std::vector<SimulationParams::LoadAgentsOrderOption> LoadOrder;
 	const LoadOrder& order = cfg.system.simulation.loadAgentsOrder;
-	for (LoadOrder::const_iterator it = order.begin(); it!=order.end(); ++it) {
-		switch (*it) {
-			case SimulationParams::LoadAg_Database: //fall-through
-			case SimulationParams::LoadAg_XmlTripChains:
-				//Create an agent for each Trip Chain in the database.
-				GenerateAgentsFromTripChain(constraints);
 
-				//Initialize the FMOD controller now that all entities have been loaded.
-				if( sim_mob::FMOD::FMOD_Controller::instanceExists() ) {
-					sim_mob::FMOD::FMOD_Controller::instance()->initialize();
-				}
-				std::cout <<"Loaded Database Agents (from Trip Chains).\n";
-				break;
-			case SimulationParams::LoadAg_Drivers:
-				GenerateXMLAgents(cfg.driverTemplates, "driver", constraints);
-				GenerateXMLAgents(cfg.taxiDriverTemplates, "taxidriver", constraints);
-				GenerateXMLAgents(cfg.busDriverTemplates, "busdriver", constraints);
-				std::cout <<"Loaded Driver Agents (from config file).\n";
-				break;
-			case SimulationParams::LoadAg_Pedestrians:
-				GenerateXMLAgents(cfg.pedestrianTemplates, "pedestrian", constraints);
-				std::cout <<"Loaded Pedestrian Agents (from config file).\n";
-				break;
-			case SimulationParams::LoadAg_Passengers:
-				GenerateXMLAgents(cfg.passengerTemplates, "passenger", constraints);
-				std::cout << "Loaded Passenger Agents (from config file).\n";
-				break;
-			default:
-				throw std::runtime_error("Unknown item in load_agents");
+	for (LoadOrder::const_iterator it = order.begin(); it != order.end(); ++it)
+	{
+		switch (*it) 
+		{
+		case SimulationParams::LoadAg_Database: //fall-through
+		case SimulationParams::LoadAg_XmlTripChains:
+			//Create an agent for each Trip Chain in the database.
+			GenerateAgentsFromTripChain(constraints);
+
+			//Initialize the FMOD controller now that all entities have been loaded.
+			if ( sim_mob::FMOD::FMOD_Controller::instanceExists() )
+			{
+				sim_mob::FMOD::FMOD_Controller::instance()->initialize();
+			}
+			std::cout << "Loaded Database Agents (from Trip Chains).\n";
+			break;
+
+		case SimulationParams::LoadAg_Drivers:
+			GenerateXMLAgents(cfg.driverTemplates, "driver", constraints);
+			GenerateXMLAgents(cfg.taxiDriverTemplates, "taxidriver", constraints);
+			GenerateXMLAgents(cfg.busDriverTemplates, "busdriver", constraints);
+			std::cout << "Loaded Driver Agents (from config file).\n";
+			break;
+			
+		case SimulationParams::LoadAg_Pedestrians:
+			GenerateXMLAgents(cfg.pedestrianTemplates, "pedestrian", constraints);
+			std::cout << "Loaded Pedestrian Agents (from config file).\n";
+			break;
+			
+		case SimulationParams::LoadAg_Passengers:
+			GenerateXMLAgents(cfg.passengerTemplates, "passenger", constraints);
+			std::cout << "Loaded Passenger Agents (from config file).\n";
+			break;
+			
+		default:
+			throw std::runtime_error("Unknown item in load_agents");
 		}
 	}
 	std::cout << "Loading Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder: Success!\n";
@@ -513,7 +503,8 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateAgentsFromTripChain(ConfigPar
 void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<EntityTemplate>& xmlItems, const std::string& roleName, ConfigParams::AgentConstraints& constraints)
 {
 	//Do nothing for empty roles.
-	if (xmlItems.empty()) {
+	if (xmlItems.empty())
+	{
 		return;
 	}
 
@@ -523,48 +514,42 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 	bool knownRole = rf.isKnownRole(roleName);
 
 	//If at least one elemnt of an unknown type exists, it's an error.
-	if (!knownRole) {
+	if (!knownRole)
+	{
 		std::stringstream msg;
-		msg <<"Unexpected agent type: " <<roleName;
+		msg << "Unexpected agent type: " << roleName;
 		throw std::runtime_error(msg.str().c_str());
 	}
+	
 	//Loop through all agents of this type.
-	for (std::vector<EntityTemplate>::const_iterator it=xmlItems.begin(); it!=xmlItems.end(); ++it) {
+	for (std::vector<EntityTemplate>::const_iterator it=xmlItems.begin(); it != xmlItems.end(); ++it)
+	{
 		//Keep track of the properties we have found.
 		//TODO: Currently, this is only used for the "#mode" flag, and for forwarding the "originPos" and "destPos"
 		std::map<std::string, std::string> props;
-
-
 
 		props["lane"] = Utils::toStr<unsigned int>(it->laneIndex);
 		props["initSegId"] = Utils::toStr<unsigned int>(it->initSegId);
 		props["initDis"] = Utils::toStr<unsigned int>(it->initDis);
 		props["initSpeed"] = Utils::toStr<unsigned int>(it->initSpeed);
-		if(it->originNode>0 && it->destNode>0) {
+		if (it->originNode > 0 && it->destNode > 0)
+		{
 			props["originNode"] = Utils::toStr<unsigned int>(it->originNode);
 			props["destNode"] = Utils::toStr<unsigned int>(it->destNode);
-		}
-		else {
+		} 
+		else
+		{
 			//TODO: This is very wasteful
 			{
-			std::stringstream msg;
-			msg <<it->originPos.getX() <<"," <<it->originPos.getY();
-			props["originPos"] = msg.str();
+				std::stringstream msg;
+				msg << it->originPos.getX() << "," << it->originPos.getY();
+				props["originPos"] = msg.str();
 			}
 			{
-			std::stringstream msg;
-			msg <<it->destPos.getX() <<"," <<it->destPos.getY();
-			props["destPos"] = msg.str();
+				std::stringstream msg;
+				msg << it->destPos.getX() << "," << it->destPos.getY();
+				props["destPos"] = msg.str();
 			}
-		}
-//		props["lane"] = boost::lexical_cast<std::string>(it->laneIndex);
-		{
-			//Loop through attributes, ensuring that all required attributes are found.
-			//std::map<std::string, bool> propLookup = rf.getRequiredAttributes(roleName);
-			//size_t propsLeft = propLookup.size();
-			//TODO: For now, we always check attributes anyway. We can change this later
-			//      to check based on the actual role factory, and to add additional property types.
-			//      (This was already checked in ParseConfigFile).
 		}
 
 		//We should generate the Agent's ID here (since otherwise Agents
@@ -573,55 +558,36 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		//  must deal with it here.
 		//TODO: At the moment, manual IDs don't work. We can easily re-add them if required.
 		int manualID = -1;
-		if(it->angentId != 0)
+		if (it->angentId != 0)
+		{
 			manualID = it->angentId;
-		//map<string, string>::iterator propIt = props.find("id");
-		/*if (propIt != props.end()) {
-			//Convert the ID to an integer.
-			std::istringstream(propIt->second) >> manualID;
-
-			//Simple constraint check.
-			if (manualID<0 || manualID>=constraints.startingAutoAgentID) {
-				throw std::runtime_error("Manual ID must be within the bounds specified in the config file.");
-			}
-
-			//Ensure agents are created with unique IDs
-			if (constraints.manualAgentIDs.count(manualID)>0) {
-				std::stringstream msg;
-				msg <<"Duplicate manual ID: " <<manualID;
-				throw std::runtime_error(msg.str().c_str());
-			}
-
-			//Mark it, save it, remove it from the list
-			constraints.manualAgentIDs.insert(manualID);
-			props.erase(propIt);
-		}*/
-
+		}
+		
 		//Finally, set the "#mode" flag in the configProps array.
 		// (XML can't have # inside tag names, so this will never be overwritten)
 		//
 		//TODO: We should just be able to save "driver" and "pedestrian", but we are
 		//      using different vocabulary for modes and roles. We need to change this.
-		if(roleName == "driver")
+		if (roleName == "driver")
 		{
 			props["#mode"] = "Car";
-		}
-		else if(roleName == "taxidriver")
+		} 
+		else if (roleName == "taxidriver")
 		{
 			props["#mode"] = "Taxi";
-		}
-		else if(roleName == "pedestrian")
+		} 
+		else if (roleName == "pedestrian")
 		{
 			props["#mode"] = "Walk";
-		}
+		} 
 		else if (roleName == "busdriver")
 		{
 			props["#mode"] = "Bus";
-		}
+		} 
 		else if (roleName == "passenger")
 		{
 			props["#mode"] = "BusTravel";
-		}
+		} 
 		else
 		{
 			props["#mode"] = "Unknown";

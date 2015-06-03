@@ -79,6 +79,9 @@ namespace simmobility_network
     //Destroys the singleton instance
     static void destroyInstance();
     
+    //Returns a pointer to the road network
+    RoadNetwork* getRoadNetwork() const;
+    
     //Loads the components of the network from the database
     void LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs);
 

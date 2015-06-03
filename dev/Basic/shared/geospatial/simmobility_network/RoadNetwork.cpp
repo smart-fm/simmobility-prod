@@ -7,6 +7,7 @@
 
 #include "RoadNetwork.hpp"
 #include "Link.hpp"
+#include "logging/Log.hpp"
 
 using namespace simmobility_network;
 
@@ -338,5 +339,20 @@ void RoadNetwork::addTurningPolyLine(Point* point)
 		std::stringstream msg;
 		msg << "Turning poly-line " << point->getPolyLineId() << " refers to an invalid turning path " << point->getPolyLineId();
 		throw std::runtime_error(msg.str());
+	}
+}
+
+Node* RoadNetwork::getNodeById(unsigned int nodeId)
+{
+	std::map<unsigned int, Node *>::iterator itNodes = mapOfIdvsNodes.find(nodeId);
+	
+	if(itNodes != mapOfIdvsNodes.end())
+	{
+		return itNodes->second;
+	}
+	else
+	{
+		sim_mob::Print() << "Node " << nodeId << " was not found!";
+		return NULL;
 	}
 }

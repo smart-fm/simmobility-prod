@@ -1391,7 +1391,6 @@ void sim_mob::Person::printTripChainItemTypes() const{
 		 restrictedRegion.str() << "\n";																/* MIXED CBD Information */
 
 	csv << res.str();
-	std::cout << res.str();
 
 	if (subtripMetrics.cbdOrigin.type_ == WayPoint::NODE) {
 		cbdStartNode = subtripMetrics.cbdOrigin.node_->getID();

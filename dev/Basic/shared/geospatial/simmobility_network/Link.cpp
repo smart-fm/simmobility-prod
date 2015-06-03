@@ -41,7 +41,13 @@ Link::~Link()
 		tags = NULL;
 	}
 }
-
+double Link::getLength()
+{
+	length = 0;
+	for(int i=0;i<roadSegments.size();++i){
+		length += roadSegments.at(i)->getLength();
+	}
+}
 unsigned int Link::getLinkId() const
 {
 	return linkId;

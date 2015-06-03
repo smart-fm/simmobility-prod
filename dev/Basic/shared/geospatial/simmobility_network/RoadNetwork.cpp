@@ -89,6 +89,9 @@ void RoadNetwork::addLane(Lane* lane)
 		//Add the lane to the road segment
 		itSegments->second->addLane(lane);
 		
+		// link lane and its parent segment
+		lane->parentSegment = itSegments->second;
+
 		//Add the lane to the map of lanes
 		mapOfIdVsLanes.insert(std::make_pair(lane->getLaneId(), lane));
 	}
@@ -172,6 +175,9 @@ void RoadNetwork::addRoadSegment(RoadSegment* segment)
 		//Add the road segment to the link
 		itLinks->second->addRoadSegment(segment);
 		
+		// link segment and parent link
+		segment->parentLink = itLinks->second;
+
 		//Add the road segment to the map of road segments
 		mapOfIdVsRoadSegments.insert(std::make_pair(segment->getRoadSegmentId(), segment));
 	}

@@ -48,7 +48,7 @@ namespace simmobility_network
 
   class Link
   {
-  public:
+  private:
     
     //Unique identifier for the link
     unsigned int linkId;
@@ -92,7 +92,7 @@ namespace simmobility_network
     Node* getFromNode() {return fromNode;}
     Node* getToNode() {return toNode;}
 
-    double getLength(){return length;}
+    double getLength();
 
     //Returns the link id
     unsigned int getLinkId() const;
@@ -141,6 +141,8 @@ namespace simmobility_network
     
     //Adds a road segment to the vector of road segments that make up the link
     void addRoadSegment(RoadSegment *roadSegment);
+
+    RoadSegment* getRoadSegment(int idx) { return roadSegments.at(idx); }
   } ;
 }
 

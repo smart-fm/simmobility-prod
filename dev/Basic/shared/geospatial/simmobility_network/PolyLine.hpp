@@ -22,6 +22,8 @@ namespace simmobility_network
     //Defines the points in the poly-line
     std::vector<Point> points;
 
+    double length;
+
   public:
     
     PolyLine();
@@ -46,7 +48,7 @@ namespace simmobility_network
     //Adds a point to the poly-line
     void addPoint(Point point);
 
-    double length;
+    double getLength() {return length;}
 
   } ;
 }

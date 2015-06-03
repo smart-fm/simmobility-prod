@@ -46,6 +46,10 @@ RoadSegment::~RoadSegment()
 	}
 }
 
+double RoadSegment::getLength()
+{
+
+}
 unsigned int RoadSegment::getRoadSegmentId() const
 {
 	return roadSegmentId;

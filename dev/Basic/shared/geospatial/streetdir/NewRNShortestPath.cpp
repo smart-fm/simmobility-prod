@@ -120,16 +120,16 @@ void NewRNShortestPath::addLink(simmobility_network::Link* link)
 	// 2.0 create two vertices
 	// 2.1 add from vertex, position is lane zero's first polyline point
 	SMStreetDirectory::SMVertex fromVertex = boost::add_vertex(const_cast<SMStreetDirectory::SMGraph &>(graph));
-	simmobility_network::RoadSegment* rs = link->roadSegments[0];
-	simmobility_network::Lane* lane = rs->lanes[0];
+	simmobility_network::RoadSegment* rs = link->getRoadSegment(0);//roadSegments[0];
+	simmobility_network::Lane* lane = rs->getLane(0);//lanes[0];
 	simmobility_network::Point fromPoint = lane->polyLine->getFirstPoint();
 	boost::put(boost::vertex_name, graph, fromVertex, fromPoint);
 
 	// 2.2 add to vertex
 	SMStreetDirectory::SMVertex toVertex = boost::add_vertex(const_cast<SMStreetDirectory::SMGraph &>(graph));
-	int size = link->roadSegments.size();
-	rs = link->roadSegments[size-1];
-	lane = rs->lanes[0];
+	int size = link->getRoadSegments().size();
+	rs = link->getRoadSegment(size);//roadSegments[size-1];
+	lane = rs->getLane(0);//lanes[0];
 	simmobility_network::Point toPoint = lane->polyLine->getLastPoint();
 	boost::put(boost::vertex_name, graph, toVertex, toPoint);
 

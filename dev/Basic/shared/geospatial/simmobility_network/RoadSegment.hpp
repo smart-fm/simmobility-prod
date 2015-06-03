@@ -20,7 +20,7 @@ class Lane;
 
   class RoadSegment
   {
-  public:
+  private:
     
     //Unique identifier for the road segment
     unsigned int roadSegmentId;
@@ -49,6 +49,8 @@ class Lane;
     //Holds additional information
     std::vector<Tag> *tags;
 
+    double length;
+
   public:
     Link* parentLink;
 
@@ -58,6 +60,8 @@ class Lane;
     
     RoadSegment(const RoadSegment& orig);
     
+    double getLength();
+
     virtual ~RoadSegment();
     
     //Returns the road segment id
@@ -108,6 +112,8 @@ class Lane;
     //Adds a lane to the vector of lanes that make up the segment
     void addLane(Lane *lane);
     
+    Lane* getLane(int idx) { return lanes.at(idx); }
+
   } ;
 }
 

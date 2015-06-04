@@ -17,6 +17,8 @@
 #include "util/LangHelpers.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 
+#include "geospatial/simmobility_network/WayPoint.hpp"
+
 
 namespace sim_mob
 {
@@ -183,6 +185,7 @@ public:
                                   VertexProperties,
                                   EdgeProperties> Graph;
 
+
     /**
      * Internal typedef to StreetDirectory representing:
      *   A Vertex within our graph. Internally, these are defined as some kind of integer, but you should
@@ -198,6 +201,7 @@ public:
      * You can use StreetDirectory::Edge to mean "an edge" in all contexts.
      */
     typedef Graph::edge_descriptor Edge;
+
 
 
 	//A return value for "Driving/WalkingVertex"

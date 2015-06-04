@@ -10,6 +10,7 @@
 #include "PolyLine.hpp"
 #include "RoadSegment.hpp"
 #include "Tag.hpp"
+#include "Node.hpp"
 
 namespace simmobility_network
 {
@@ -42,6 +43,9 @@ namespace simmobility_network
     LINK_TYPE_ACCESS = 5
   } ;
 
+  class RoadSegment;
+  class Node;
+
   class Link
   {
   private:
@@ -49,8 +53,14 @@ namespace simmobility_network
     //Unique identifier for the link
     unsigned int linkId;
     
+    //Pointer to the node from which this link begins
+    Node* fromNode;
+    
     //Indicates the node from which this link begins
     unsigned int fromNodeId;
+    
+    //The length of the link
+    double length;
     
     //Indicates the link category
     LinkCategory linkCategory;
@@ -67,22 +77,36 @@ namespace simmobility_network
     //Holds the additional information
     std::vector<Tag> *tags;
     
-    //Indicates the node at which this link ends
-    unsigned int toNodeId;
+    //Pointer to the node at which this link ends
+    Node* toNode;
     
+    //Indicates the node at which this link ends
+    unsigned int toNodeId;    
+
   public:
     
     Link();
     
     Link(const Link& orig);
     
+    std::vector<RoadSegment *>& getRoadSegments() {return roadSegments;}
+
     virtual ~Link();
-    
+
+    //Returns the length of the link
+    double getLength();
+
     //Returns the link id
     unsigned int getLinkId() const;
     
     //Setter for the link id
     void setLinkId(unsigned int linkId);
+    
+    //Returns a pointer to the node from where the link begins
+    Node* getFromNode() const; 
+    
+    //Setter for the from node
+    void setFromNode(Node *fromNode);
     
     //Returns the id of the node from where the link begins
     unsigned int getFromNodeId() const;
@@ -117,6 +141,12 @@ namespace simmobility_network
     //Setter for the tags field which holds the additional information
     void setTags(std::vector<Tag> *tags);
     
+    //Returns a pointer to the node at which the link terminates
+    Node* getToNode() const;
+    
+    //Setter for the node at which the link terminates
+    void setToNode(Node *toNode);
+    
     //Returns the id of the node at which the link terminates
     unsigned int getToNodeId() const;
     
@@ -125,6 +155,8 @@ namespace simmobility_network
     
     //Adds a road segment to the vector of road segments that make up the link
     void addRoadSegment(RoadSegment *roadSegment);
+
+    RoadSegment* getRoadSegment(int idx) { return roadSegments.at(idx); }
   } ;
 }
 

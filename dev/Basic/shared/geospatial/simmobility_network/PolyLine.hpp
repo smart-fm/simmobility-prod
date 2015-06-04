@@ -19,8 +19,11 @@ namespace simmobility_network
     //Unique identifier for the Poly-line
     int polyLineId;
     
+    //Defines the length of the poly-line
+    double length;
+    
     //Defines the points in the poly-line
-    std::vector<Point *> points;
+    std::vector<Point> points;    
 
   public:
     
@@ -36,11 +39,20 @@ namespace simmobility_network
     //Returns the id of the poly-line
     int getPolyLineId() const;
     
-    //Returns the vector of points within the poly-line
-    const std::vector<Point*>& getPoints() const;
+    //Returns the length of the poly-line
+    double getLength();
     
+    //Returns the vector of points within the poly-line
+    const std::vector<Point>& getPoints() const;
+    
+    //Returns the first point in the poly-line
+    Point getFirstPoint();
+
+    //Returns the last point in the poly-line
+    Point getLastPoint();
+
     //Adds a point to the poly-line
-    void addPoint(Point *point);
+    void addPoint(Point point);    
 
   } ;
 }

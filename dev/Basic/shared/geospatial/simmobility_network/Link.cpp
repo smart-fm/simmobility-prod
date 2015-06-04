@@ -7,20 +7,24 @@
 using namespace simmobility_network;
 
 Link::Link() :
-linkId(0), fromNodeId(0), linkCategory(LINK_CATEGORY_DEFAULT), linkType(LINK_TYPE_DEFAULT), roadName(""), tags(NULL), toNodeId(0)
+length(0), linkId(0), fromNode(NULL), fromNodeId(0), linkCategory(LINK_CATEGORY_DEFAULT), linkType(LINK_TYPE_DEFAULT), roadName(""), tags(NULL), toNode(NULL),
+toNodeId(0)
 {
 }
 
 Link::Link(const Link& orig)
 {
+	this->length = orig.length;
 	this->linkId = orig.linkId;
+	this->fromNode = orig.fromNode;
 	this->fromNodeId = orig.fromNodeId;
 	this->linkCategory = orig.linkCategory;
 	this->linkType = orig.linkType;
 	this->roadName = orig.roadName;
 	this->roadSegments = orig.roadSegments;
 	this->tags = orig.tags;
-	this->toNodeId = orig.toNodeId;
+	this->toNode = orig.toNode;
+	this->toNodeId = orig.toNodeId;		
 }
 
 Link::~Link()
@@ -39,6 +43,19 @@ Link::~Link()
 	}
 }
 
+double Link::getLength()
+{
+	if(length == 0)
+	{
+		for(int i = 0; i < roadSegments.size(); ++i)
+		{
+			length += roadSegments.at(i)->getLength();
+		}
+	}
+	
+	return length;
+}
+
 unsigned int Link::getLinkId() const
 {
 	return linkId;
@@ -47,6 +64,16 @@ unsigned int Link::getLinkId() const
 void Link::setLinkId(unsigned int linkId)
 {
 	this->linkId = linkId;
+}
+
+Node* Link::getFromNode() const
+{
+	return fromNode;
+}
+
+void Link::setFromNode(Node *fromNode)
+{
+	this->fromNode = fromNode;
 }
 
 unsigned int Link::getFromNodeId() const
@@ -102,6 +129,16 @@ const std::vector<Tag>* Link::getTags() const
 void Link::setTags(std::vector<Tag> *tags)
 {
 	this->tags = tags;
+}
+
+Node* Link::getToNode() const
+{
+	return toNode;
+}
+
+void Link::setToNode(Node *toNode)
+{
+	this->toNode = toNode;
 }
 
 unsigned int Link::getToNodeId() const

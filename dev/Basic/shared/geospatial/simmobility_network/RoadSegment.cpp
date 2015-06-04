@@ -7,7 +7,7 @@
 using namespace simmobility_network;
 
 RoadSegment::RoadSegment() :
-roadSegmentId(0), capacity(0), linkId(0), maxSpeed(0), polyLine(NULL), sequenceNumber(0), tags(NULL)
+roadSegmentId(0), capacity(0), linkId(0), maxSpeed(0), polyLine(NULL), sequenceNumber(0), tags(NULL),parentLink(NULL)
 {
 }
 
@@ -21,6 +21,7 @@ RoadSegment::RoadSegment(const RoadSegment& orig)
 	this->polyLine = orig.polyLine;
 	this->sequenceNumber = orig.sequenceNumber;
 	this->tags = orig.tags;
+	this->parentLink = orig.parentLink;
 }
 
 RoadSegment::~RoadSegment()
@@ -60,6 +61,11 @@ unsigned int RoadSegment::getCapacity() const
 	return capacity;
 }
 
+Lane* RoadSegment::getLane(int index) const
+{
+	return lanes.at(index);
+}
+
 void RoadSegment::setCapacity(unsigned int capacity)
 {
 	this->capacity = capacity;
@@ -68,6 +74,11 @@ void RoadSegment::setCapacity(unsigned int capacity)
 const std::vector<Lane*>& RoadSegment::getLanes() const
 {
 	return lanes;
+}
+
+double RoadSegment::getLength()
+{
+	return polyLine->getLength();
 }
 
 unsigned int RoadSegment::getLinkId() const
@@ -88,6 +99,16 @@ unsigned int RoadSegment::getMaxSpeed() const
 void RoadSegment::setMaxSpeed(unsigned int maxSpeed)
 {
 	this->maxSpeed = maxSpeed;
+}
+
+Link* RoadSegment::getParentLink() const
+{
+	return parentLink;
+}
+
+void RoadSegment::setParentLink(Link* parentLink)
+{
+	this->parentLink = parentLink;
 }
 
 PolyLine* RoadSegment::getPolyLine() const

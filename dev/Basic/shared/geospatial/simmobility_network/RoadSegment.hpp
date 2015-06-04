@@ -10,9 +10,13 @@
 #include "Lane.hpp"
 #include "PolyLine.hpp"
 #include "Tag.hpp"
+#include "Link.hpp"
 
 namespace simmobility_network
 {
+
+class Link;
+class Lane;
 
   class RoadSegment
   {
@@ -27,11 +31,17 @@ namespace simmobility_network
     //The lanes that make up th road segment
     std::vector<Lane *> lanes;
     
+    //Length of the road segment
+    double length;
+    
     //The id of the link to which the segment belongs
     unsigned int linkId;
     
     //Indicates the maximum speed the vehicles should adhere to when travelling on the road segment
     unsigned int maxSpeed;
+    
+    //The link to which this segment belongs
+    Link* parentLink;
     
     //Represents the poly-line for the road segment
     PolyLine *polyLine;
@@ -43,14 +53,14 @@ namespace simmobility_network
     unsigned int sequenceNumber;
     
     //Holds additional information
-    std::vector<Tag> *tags;
+    std::vector<Tag> *tags;        
 
   public:
     
     RoadSegment();
     
-    RoadSegment(const RoadSegment& orig);
-    
+    RoadSegment(const RoadSegment& orig);    
+
     virtual ~RoadSegment();
     
     //Returns the road segment id
@@ -65,8 +75,14 @@ namespace simmobility_network
     //Setter for the road segment capacity
     void setCapacity(unsigned int capacity);
     
+    //Returns the lane at the given index
+    Lane* getLane(int index) const;
+    
     //Returns the vector of lanes that make up the segment
-    const std::vector<Lane*>& getLanes() const;    
+    const std::vector<Lane*>& getLanes() const;
+    
+    //Returns the length of the road segment
+    double getLength();
     
     //Returns the id of the link to which the road segment belongs
     unsigned int getLinkId() const;
@@ -79,6 +95,12 @@ namespace simmobility_network
     
     //Setter for the max permissible speed for the road segment
     void setMaxSpeed(unsigned int maxSpeed);
+    
+    //Returns a pointer to the link which contains the road segment
+    Link* getParentLink() const;
+    
+    //Setter for the parentLink of the road segment
+    void setParentLink(Link* parentLink);    
     
     //Returns the poly-line for the road segment
     PolyLine* getPolyLine() const;
@@ -99,8 +121,8 @@ namespace simmobility_network
     void setTags(std::vector<Tag> *tags);
     
     //Adds a lane to the vector of lanes that make up the segment
-    void addLane(Lane *lane);
-    
+    void addLane(Lane *lane);    
+
   } ;
 }
 

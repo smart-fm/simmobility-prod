@@ -9,6 +9,7 @@
 #include "Tag.hpp"
 #include "PolyLine.hpp"
 #include "LaneConnector.hpp"
+#include "RoadSegment.hpp"
 
 namespace simmobility_network
 {
@@ -25,6 +26,8 @@ namespace simmobility_network
     //Buses only from Mon-Sat: 0730-2000
     BUS_LANE_RULES_FULL_DAY_BUS_LANE = 2
   };
+
+  class RoadSegment;
 
   class Lane
   {
@@ -54,6 +57,9 @@ namespace simmobility_network
     //Indicates the index of the lane
     unsigned int laneIndex;
     
+    //The road segment to which the lane belongs
+    RoadSegment* parentSegment;
+    
     //Represents the poly-line of the lane
     PolyLine *polyLine;
     
@@ -70,8 +76,8 @@ namespace simmobility_network
     unsigned int vehicleMode;
     
     //The width of the lane
-    double width;
-    
+    double width;    
+
   public:
     
     Lane();
@@ -125,6 +131,12 @@ namespace simmobility_network
     //Sets the lane index
     void setLaneIndex(unsigned int laneIndex);
     
+    //Returns a pointer to the road segment to which the lane belongs
+    RoadSegment* getParentSegment() const;
+    
+    //Sets the parent road segment of the lane
+    void setParentSegment(RoadSegment* parentSegment);
+    
     //Returns the poly-line for the lane
     PolyLine* getPolyLine() const;
     
@@ -150,7 +162,7 @@ namespace simmobility_network
     void setWidth(double width);
     
     //Adds lane connector to the vector of outgoing lane connectors
-    void addLaneConnector(LaneConnector *laneConnector);
+    void addLaneConnector(LaneConnector *laneConnector);    
     
   } ;
 }

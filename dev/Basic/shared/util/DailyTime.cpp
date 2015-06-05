@@ -14,14 +14,17 @@ using namespace sim_mob;
 using namespace boost::posix_time;
 using std::string;
 
+namespace
+{
+	const uint32_t MILLISECONDS_IN_DAY = 86400000;
+}
+
 
 sim_mob::DailyTime::DailyTime(uint32_t value, uint32_t base) : time_(value-base), repr_(BuildStringRepr(value-base))
-{
-}
+{}
 
 sim_mob::DailyTime::DailyTime(const string& value) : time_(ParseStringRepr(value)), repr_(value)
-{
-}
+{}
 
 bool sim_mob::DailyTime::isBefore(const DailyTime& other) const
 {
@@ -118,4 +121,45 @@ bool sim_mob::operator==(const DailyTime& lhs, const DailyTime& rhs)
 bool sim_mob::operator !=(const DailyTime& lhs, const DailyTime& rhs)
 {
 		return !(lhs == rhs);
+}
+
+DailyTime& sim_mob::DailyTime::operator=(const DailyTime& dailytime)
+{
+    if (&dailytime != this)
+    {
+    	time_ = dailytime.getValue();
+    	repr_ = dailytime.getRepr_();
+    }
+    return *this;
+}
+
+bool sim_mob::DailyTime::operator==(const DailyTime& dailytime)
+{
+    	return time_ == dailytime.getValue() && repr_ == dailytime.getRepr_();
+}
+
+bool sim_mob::DailyTime::operator!=(const DailyTime& dailytime)
+{
+    	return !(*this == dailytime);
+}
+
+const DailyTime& sim_mob::DailyTime::operator+=(const DailyTime& dailytime)
+{
+	time_ = (time_ + dailytime.getValue()) % MILLISECONDS_IN_DAY;
+	repr_ = BuildStringRepr(time_);
+    return *this;
+}
+
+const DailyTime& sim_mob::DailyTime::operator-=(const DailyTime& dailytime)
+{
+	if(time_ >= dailytime.getValue())
+	{
+		time_ = (time_ - dailytime.getValue());
+	}
+	else
+	{
+		time_ = MILLISECONDS_IN_DAY - (dailytime.getValue() - time_);
+	}
+	repr_ = BuildStringRepr(time_);
+    return *this;
 }

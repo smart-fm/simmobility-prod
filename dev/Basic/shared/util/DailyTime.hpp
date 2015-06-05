@@ -44,6 +44,8 @@ public:
 	///Construct a new DailyTime from a string formatted to ISO 8601 format.
 	explicit DailyTime(const std::string& value);
 
+	inline DailyTime(const DailyTime& dailytime) : time_(dailytime.getValue()), repr_(dailytime.getRepr_()) {}
+
 	//Various comparison functions
 	bool isBefore(const DailyTime& other) const;
 	bool isBeforeEqual(const DailyTime& other) const;
@@ -57,49 +59,22 @@ public:
 	//Accessors
 	std::string toString() const;
 
-	inline DailyTime(const DailyTime& dailytime) : time_(dailytime.getValue()), repr_(dailytime.getRepr_()){}
-	DailyTime& operator=(const DailyTime& dailytime)
-	{
-        if (&dailytime != this)
-        {
-        	time_ = dailytime.getValue();
-        	repr_ = dailytime.getRepr_();
-        }
-        return *this;
-	}
+	DailyTime& operator=(const DailyTime& dailytime);
 
-	bool operator==(const DailyTime& dailytime)
-	{
-        	return time_ == dailytime.getValue() && repr_ == dailytime.getRepr_();
-	}
+	bool operator==(const DailyTime& dailytime);
+	bool operator !=(const DailyTime& dailytime);
 
-	bool operator !=(const DailyTime& dailytime)
-	{
-        	return !(*this == dailytime);
-	}
+	inline uint32_t getValue() const { return time_; }
+	inline std::string getRepr_() const { return repr_; }
 
-	inline uint32_t getValue() const {
-		return time_;
-	}
-	inline std::string getRepr_() const {
-		return repr_;
-	}
-    inline const DailyTime& operator+=(const DailyTime& dailytime)
-    {
-			time_ += dailytime.getValue();
-			repr_ = BuildStringRepr(time_);
-            return *this;
-    }
-    inline const DailyTime& operator-=(const DailyTime& dailytime)
-    {
-			time_ -= dailytime.getValue();
-			repr_ = BuildStringRepr(time_);
-            return *this;
-    }
+    const DailyTime& operator+=(const DailyTime& dailytime);
+    const DailyTime& operator-=(const DailyTime& dailytime);
+
     friend const DailyTime operator+(DailyTime lhs, const DailyTime& rhs)
     {
         return lhs += rhs;
     }
+
     friend const DailyTime operator-(DailyTime lhs, const DailyTime& rhs)
     {
         return lhs -= rhs;
@@ -115,8 +90,6 @@ private:
 	///Helper method: generate a time from a formatted string.
 	static uint32_t ParseStringRepr(std::string timeRepr);
 
-private:
-	//TODO: Effectively const, but the keyword would make the equality operator tough...
 	uint32_t time_;  //MS from 0, which corresponds to 00:00:00.00
 	std::string repr_;
 
@@ -132,10 +105,7 @@ public:
 };
 
 bool operator==(const DailyTime& lhs, const DailyTime& rhs);
-
-bool operator !=(const DailyTime& lhs, const DailyTime& rhs);
-
-
+bool operator!=(const DailyTime& lhs, const DailyTime& rhs);
 }
 
 

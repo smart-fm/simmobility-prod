@@ -1327,15 +1327,14 @@ void sim_mob::Person::printTripChainItemTypes() const{
 	 if(st.cbdTraverseType == sim_mob::TravelMetric::CBD_ENTER || st.cbdTraverseType == sim_mob::TravelMetric::CBD_EXIT)
 	 {
 		 //sanity check
-		 if(!(subtripMetrics.cbdOrigin.node_&&subtripMetrics.cbdDestination.node_))
+		 if(!(subtripMetrics.cbdOrigin.node_ && subtripMetrics.cbdDestination.node_))
 		 {
 			 restrictedRegion <<
 					 subtripMetrics.origin.node_->getID() << "," <<
 					 subtripMetrics.destination.node_->getID() <<
-					 (st.cbdTraverseType == sim_mob::TravelMetric::CBD_ENTER ? " , Enter ": "  ,Exit") <<
-					  " has null values " <<
-					 (subtripMetrics.cbdOrigin.node_ != nullptr ? subtripMetrics.cbdOrigin.node_ : 0) << "," <<
-					 (subtripMetrics.cbdDestination.node_ != nullptr ? subtripMetrics.cbdDestination.node_ : 0) << "\n";
+					 (st.cbdTraverseType == sim_mob::TravelMetric::CBD_ENTER ? " ,Enter" : " ,Exit") << " has null values " <<
+					 (subtripMetrics.cbdOrigin.node_ != nullptr ? subtripMetrics.cbdOrigin.node_->getID() : 0) << "," <<
+					 (subtripMetrics.cbdDestination.node_ != nullptr ? subtripMetrics.cbdDestination.node_->getID() : 0) << "\n";
 		 }
 		 else //valid scenario:
 		 {
@@ -1350,7 +1349,7 @@ void sim_mob::Person::printTripChainItemTypes() const{
 					 (subtripMetrics.distance - subtripMetrics.cbdDistance) ;		 	 	 	 	 	 	 	//	non_cbd_distance
 		 }
 	 }
-	 else// if Agent never entered or exitted CBD
+	 else// if Agent never entered or exited CBD
 	 {
 		 restrictedRegion<<
 				 "0" << "," <<																				//	cbd_entry_node
@@ -1386,8 +1385,8 @@ void sim_mob::Person::printTripChainItemTypes() const{
 		 //			 TravelMetric::getTimeDiffHours(subtripMetrics.endTime, subtripMetrics.startTime)  << ","		//	travel_time### commented
 		 subtripMetrics.travelTime << "," <<															//	travel_time
 		 subtripMetrics.distance << "," <<	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	//	total_distance
-		 "0" << ","	<<	//placeholder for paublic transit's waiting time								//	ptt_wt
-		 "0" << "," << //placeholder for paublic transit's walk time									//	pt_walk
+		 "0" << ","	<<	//placeholder for public transit's waiting time								//	ptt_wt
+		 "0" << "," << //placeholder for public transit's walk time									//	pt_walk
 		 restrictedRegion.str() << "\n";																/* MIXED CBD Information */
 
 	csv << res.str();

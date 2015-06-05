@@ -31,17 +31,13 @@ void sim_mob::PathSetParam::getDataFromDB()
 {
 	setRTTT(ConfigManager::GetInstance().FullConfig().getRTTT());
 	logger << "[RTT TABLE NAME : " << RTTT << "]\n";
-	std::cout << "[RTT TABLE NAME : " << RTTT << "]\n";
 	sim_mob::aimsun::Loader::LoadERPData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 			ERP_SurchargePool,	ERP_Gantry_ZonePool,ERP_SectionPool);
-	std::cout << "[ERP RETRIEVED " <<	ERP_SurchargePool.size() << " "  << ERP_Gantry_ZonePool.size() << " " << ERP_SectionPool.size() << "]\n";
 
 	sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(*(PathSetManager::getSession()), segDefTT);
-	std::cout << segDefTT.size() << " records for Link_default_travel_time found\n";
 
 	bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(*(PathSetManager::getSession()),
 			sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval, segHistoryTT);
-	std::cout << segHistoryTT.size() << " records for Link_realtime_travel_time found " << segHistoryTT.begin()->first << "  " << segHistoryTT.end()->first << "\n";
 	if(!res) // no realtime travel time table
 	{
 		//create
@@ -50,7 +46,6 @@ void sim_mob::PathSetParam::getDataFromDB()
 			throw std::runtime_error("can not create travel time table");
 		}
 	}
-//	getchar();
 }
 void sim_mob::PathSetParam::storeSinglePath(soci::session& sql,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string pathSetTableName)
 {

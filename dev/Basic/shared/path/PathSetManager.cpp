@@ -1833,7 +1833,7 @@ double sim_mob::PathSetManager::getPathTravelTime(sim_mob::SinglePath *sp,const 
 		}
 		if(time == 0.0)
 		{
-			Print() << "No Travel Time [SEGMENT: " << rs->getId() << "] [START TIME : " << startTime.getRepr_() << "]\n";
+			Print() << "No Travel Time [SEGMENT: " << rs->getId() << "] [START TIME : " << startTime.getStrRepr() << "]\n";
 		}
 		timeSum  += time;
 		startTime = startTime + sim_mob::DailyTime(time*1000);

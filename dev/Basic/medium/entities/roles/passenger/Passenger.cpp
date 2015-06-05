@@ -80,8 +80,8 @@ void sim_mob::medium::Passenger::collectTravelTime()
 	subEndType = parent->currSubTrip->endLocationType;
 	mode = parent->currSubTrip->getMode();
 	service = parent->currSubTrip->ptLineId;
-	travelTime = DailyTime(parent->getRole()->getTravelTime()).toString();
-	arrivaltime = DailyTime(parent->getRole()->getArrivalTime()).toString();
+	travelTime = DailyTime(parent->getRole()->getTravelTime()).getStrRepr();
+	arrivaltime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
 	if(roleType == Role::RL_TRAINPASSENGER){
 		mode = "MRT_TRAVEL";
 	} else {

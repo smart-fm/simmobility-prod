@@ -5,9 +5,7 @@
 #pragma once
 
 #include <string>
-
 #include <stdint.h>  //NOTE: There's a bug in GCC whereby <cstdint> is not the same as <stdint.h>
-
 #include <boost/serialization/access.hpp>
 
 /*namespace geo {
@@ -44,7 +42,7 @@ public:
 	///Construct a new DailyTime from a string formatted to ISO 8601 format.
 	explicit DailyTime(const std::string& value);
 
-	inline DailyTime(const DailyTime& dailytime) : time_(dailytime.getValue()), repr_(dailytime.getRepr_()) {}
+	inline DailyTime(const DailyTime& dailytime) : time_(dailytime.getValue()), repr_(dailytime.getStrRepr()) {}
 
 	//Various comparison functions
 	bool isBefore(const DailyTime& other) const;
@@ -57,15 +55,14 @@ public:
 	uint32_t offsetMS_From(const DailyTime& other) const;
 
 	//Accessors
-	std::string toString() const;
+	inline uint32_t getValue() const { return time_; }
+	std::string getStrRepr() const { return repr_; }
 
+	//operator overloads
 	DailyTime& operator=(const DailyTime& dailytime);
 
-	bool operator==(const DailyTime& dailytime);
-	bool operator !=(const DailyTime& dailytime);
-
-	inline uint32_t getValue() const { return time_; }
-	inline std::string getRepr_() const { return repr_; }
+	bool operator==(const DailyTime& dailytime) const;
+	bool operator !=(const DailyTime& dailytime) const;
 
     const DailyTime& operator+=(const DailyTime& dailytime);
     const DailyTime& operator-=(const DailyTime& dailytime);
@@ -81,15 +78,6 @@ public:
     }
 
 private:
-	///Helper method: create a string representation from a given time value in miliseconds.
-	///
-	///\note
-	///The maxFractionDigits parameter is currently ignored. ~Seth
-	static std::string BuildStringRepr(uint32_t timeVal, size_t maxFractionDigits=4);
-
-	///Helper method: generate a time from a formatted string.
-	static uint32_t ParseStringRepr(std::string timeRepr);
-
 	uint32_t time_;  //MS from 0, which corresponds to 00:00:00.00
 	std::string repr_;
 
@@ -103,9 +91,6 @@ public:
 		ar & repr_;
 	}
 };
-
-bool operator==(const DailyTime& lhs, const DailyTime& rhs);
-bool operator!=(const DailyTime& lhs, const DailyTime& rhs);
 }
 
 

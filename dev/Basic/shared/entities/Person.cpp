@@ -802,6 +802,9 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 
 void sim_mob::Person::convertODsToTrips() {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	if(!config.publicTransitEnabled){
+		return;
+	}
 	std::vector<TripChainItem*>::iterator tripChainItem;
 	bool brokenBusTravel = false;
 	std::vector<TripChainItem*>::iterator brokenBusTravelItem;
@@ -873,6 +876,20 @@ void sim_mob::Person::convertODsToTrips() {
 						itSubTrip->startLocationType="NODE";
 						itSubTrip->endLocationType="NODE";
 						itSubTrip->mode = "Sharing";
+
+						const StreetDirectory& streetDirectory = StreetDirectory::instance();
+						StreetDirectory::VertexDesc source, destination;
+						source = streetDirectory.DrivingVertex(*itSubTrip->fromLocation.node_);
+						destination = streetDirectory.DrivingVertex(*itSubTrip->toLocation.node_);
+						std::vector<WayPoint> wayPoints = streetDirectory.SearchShortestDrivingPath(source, destination);
+						double travelTime = 0.0;
+						for (std::vector<WayPoint>::iterator it = wayPoints.begin();
+								it != wayPoints.end(); it++) {
+							if (it->type_ == WayPoint::ROAD_SEGMENT) {
+								travelTime += it->roadSegment_->getDefaultTravelTime();
+							}
+						}
+						itSubTrip->endTime = DailyTime(travelTime*1000);
 					}
 				}
 				++itSubTrip;

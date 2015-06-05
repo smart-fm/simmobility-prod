@@ -1225,12 +1225,21 @@ void sim_mob::Conflux::assignPersonToCar(Person* person) {
 	Role* role = person->getRole();
 	if (role && role->roleType == Role::RL_CARPASSENGER) {
 		person->currWorkerProvider = parentWorker;
-			PersonList::iterator pIt = std::find(carSharing.begin(), carSharing.end(), person);
-			if(pIt==carSharing.end()) { carSharing.push_back(person); }
-			DailyTime time(1000);
-			person->getRole()->setTravelTime(time.getValue());
-			unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
-			messaging::MessageBus::PostMessage(this, MSG_WAKEUP_CAR_PASSENGER_TELEPORTATION, messaging::MessageBus::MessagePtr(new PersonMessage(person)), true, time.getValue()/tick);
+		messaging::MessageBus::ReRegisterHandler(person, GetContext());
+		PersonList::iterator pIt = std::find(carSharing.begin(),
+				carSharing.end(), person);
+		if (pIt == carSharing.end()) {
+			carSharing.push_back(person);
+		}
+		DailyTime time(1000);
+		person->setStartTime(currFrame.ms());
+		person->getRole()->setTravelTime(time.getValue());
+		unsigned int tick =
+				ConfigManager::GetInstance().FullConfig().baseGranMS();
+		messaging::MessageBus::PostMessage(this,
+				MSG_WAKEUP_CAR_PASSENGER_TELEPORTATION,
+				messaging::MessageBus::MessagePtr(new PersonMessage(person)),
+				false, time.getValue() / tick);
 	}
 }
 

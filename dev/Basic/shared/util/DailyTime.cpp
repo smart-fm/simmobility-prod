@@ -4,7 +4,9 @@
 
 #include "DailyTime.hpp"
 
+#include <cstdlib>
 #include <stdexcept>
+#include <sstream>
 #include "boost/date_time/posix_time/posix_time.hpp"
 
 using namespace sim_mob;
@@ -13,17 +15,31 @@ using std::string;
 
 namespace
 {
-	const uint32_t MILLISECONDS_IN_DAY = 86400000;
 	///Helper method: create a string representation from a given time value in miliseconds.
 	///
 	///\note
 	///The maxFractionDigits parameter is currently ignored. ~Seth
 	std::string BuildStringRepr(uint32_t timeVal, size_t maxFractionDigits=4)
 	{
-		//Build up based on the total number of milliseconds.
-		time_duration val = milliseconds(timeVal);
-		time_duration secs = seconds(val.total_seconds());
-		return to_simple_string(secs);
+		uint32_t timeValInSec = timeVal/1000;
+		div_t divResult = std::div(timeValInSec, 60);
+		int seconds = divResult.rem;
+		int minutes = divResult.quot;
+		divResult = std::div(minutes, 60);
+		int hours = divResult.quot;
+		minutes = divResult.rem;
+
+		hours = (hours>=24)? (hours%24) : hours; //we want time and not the number of hours
+
+		std::stringstream ss;
+		ss << std::setfill ('0') << std::setw (2) << hours << ":";
+		ss << std::setfill ('0') << std::setw (2) << minutes << ":";
+		ss << std::setfill ('0') << std::setw (2) << seconds;
+		return ss.str();
+//		//Build up based on the total number of milliseconds.
+//		time_duration val = milliseconds(timeVal);
+//		time_duration secs = seconds(val.total_seconds());
+//		return to_simple_string(secs);
 	}
 
 	///Helper method: generate a time from a formatted string.
@@ -127,21 +143,14 @@ bool sim_mob::DailyTime::operator!=(const DailyTime& dailytime) const
 
 const DailyTime& sim_mob::DailyTime::operator+=(const DailyTime& dailytime)
 {
-	time_ = (time_ + dailytime.getValue()) % MILLISECONDS_IN_DAY;
+	time_ = time_ + dailytime.getValue();
 	repr_ = BuildStringRepr(time_);
     return *this;
 }
 
 const DailyTime& sim_mob::DailyTime::operator-=(const DailyTime& dailytime)
 {
-	if(time_ >= dailytime.getValue())
-	{
-		time_ = (time_ - dailytime.getValue());
-	}
-	else
-	{
-		time_ = MILLISECONDS_IN_DAY - (dailytime.getValue() - time_);
-	}
+	time_ = time_ - dailytime.getValue();
 	repr_ = BuildStringRepr(time_);
     return *this;
 }

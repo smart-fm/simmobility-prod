@@ -12,7 +12,6 @@
 #include <string>
 
 namespace sim_mob {
-namespace medium {
 
 /**
  * Class to hold properties of a zone
@@ -358,5 +357,4 @@ private:
 
 };
 
-}
 }

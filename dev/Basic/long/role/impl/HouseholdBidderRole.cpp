@@ -208,7 +208,7 @@ void HouseholdBidderRole::update(timeslice now)
 
 		moveInWaitingTimeInDays--;
 
-		//return;
+		return;
 	}
 
 	//wait 60 days after move in to a new unit to reconsider the vehicle ownership option.

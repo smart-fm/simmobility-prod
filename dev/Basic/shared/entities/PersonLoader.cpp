@@ -118,14 +118,14 @@ void sim_mob::RestrictedRegion::populate()
 		zoneNodes[boost::lexical_cast<std::string>(rs->getEnd()->getID())] = rs->getEnd();
 	}
 
-	BOOST_FOREACH(SegPair item, in)
+	/*BOOST_FOREACH(SegPair item, in)
 	{
 		zoneNodes.erase(boost::lexical_cast<std::string>(item.first->getEnd()->getID()));
 	}
 	BOOST_FOREACH(SegPair item, out)
 	{
 		zoneNodes.erase(boost::lexical_cast<std::string>(item.first->getEnd()->getID()));
-	}
+	}*/
 
 	typedef std::map<std::string, const Node*>::value_type Pair;
 //	cout << "CBD Entering border Sections size: " << in.size() << "\n";
@@ -142,14 +142,12 @@ void sim_mob::RestrictedRegion::populate()
 		rs->CBD = true;
 	}
 	zoneSegmentsStr = out_.str();
-	std::cout << "zoneSegmentsStr :" << zoneSegmentsStr << std::endl;
 	out_.str("");
 	BOOST_FOREACH(Pair node, zoneNodes)
 	{
 		zoneNodesStr += node.first + ",";
 		node.second->CBD = true;
 	}
-	std::cout << "zoneNodesStr: " << zoneNodesStr << std::endl;
 	out_.str("");
 	BOOST_FOREACH(SegPair item, in)
 	{
@@ -412,6 +410,7 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	unsigned actCtr = 0;
 	map<string, vector<TripChainItem*> > tripchains;
+	map<int, vector<TripChainItem*> > trips;
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
 		const soci::row& r = (*it);
@@ -425,6 +424,12 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 		else { continue; }
 		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }
 		actCtr++;
+	}
+
+	int index = 0;
+	for(map<string, vector<TripChainItem*> >::iterator i=tripchains.begin(); i!=tripchains.end(); i++)
+	{
+		trips[index++]=i->second;
 	}
 
 	vector<Person*> persons;

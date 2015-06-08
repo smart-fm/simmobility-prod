@@ -54,7 +54,7 @@ sim_mob::medium::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat,
   waitingTimeAtbusStop(0.0),busSequenceNumber(1)
 {}
 
-sim_mob::medium::BusDriver::~BusDriver() {}
+sim_mob::medium::BusDriver::~BusDriver(){}
 
 Role* sim_mob::medium::BusDriver::clone(Person* parent) const {
 	BusDriverBehavior* behavior = new BusDriverBehavior(parent);
@@ -105,6 +105,14 @@ bool  sim_mob::medium::BusDriver::checkIsFull()
 unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent){
 	unsigned int numAlighting = 0;
 	std::list<sim_mob::medium::Passenger*>::iterator itPassenger = passengerList.begin();
+	const sim_mob::BusStop* stop = busStopAgent->getBusStop();
+	if(stop->isVirtualStop())
+	{
+		stop = stop->getTwinStop();
+		if(stop->isVirtualStop()) { throw std::runtime_error("both of the twin stops are virtual"); }
+		busStopAgent = BusStopAgent::findBusStopAgentByBusStop(stop);
+	}
+
 	while (itPassenger != passengerList.end()) {
 
 		/*the passengers will be always together with bus driver, so
@@ -213,10 +221,10 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 	 * main thread, exactly one bus driver can be processed at a time and no other
 	 * agent in the simulation will be updating at the same time.
 	 */
-	busStopAgent->handleBusArrival(this);
-	unsigned int numAlighting = alightPassenger(busStopAgent);
-	unsigned int numBoarding = busStopAgent->getBoardingNum(this);
 
+	unsigned int numAlighting = alightPassenger(busStopAgent);
+	busStopAgent->handleBusArrival(this);
+	unsigned int numBoarding = busStopAgent->getBoardingNum(this);
 	unsigned int totalNumber = numAlighting + numBoarding;
 
 	int boardNum = std::max(numAlighting, numBoarding);

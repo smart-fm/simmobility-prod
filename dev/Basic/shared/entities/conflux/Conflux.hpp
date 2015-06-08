@@ -28,7 +28,7 @@ class Loader;
 enum {
 	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000,
 	MSG_INSERT_INCIDENT,
-	MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP,
+	MSG_WAITING_PERSON_ARRIVAL_AT_BUSSTOP,
 	MSG_MRT_PASSENGER_TELEPORTATION,
 	MSG_WAKE_UP,
 	MSG_WARN_INCIDENT
@@ -59,10 +59,10 @@ public:
  * Subclass wraps a bus stop into message so as to make alighting decision.
  * This is to allow it to function as an message callback parameter.
  */
-class ArriavalAtStopMessage : public messaging::Message {
+class ArrivalAtStopMessage : public messaging::Message {
 public:
-	ArriavalAtStopMessage(Person* person):waitingPerson(person){;}
-	virtual ~ArriavalAtStopMessage() {}
+	ArrivalAtStopMessage(Person* person):waitingPerson(person){;}
+	virtual ~ArrivalAtStopMessage() {}
 	Person* waitingPerson;
 };
 

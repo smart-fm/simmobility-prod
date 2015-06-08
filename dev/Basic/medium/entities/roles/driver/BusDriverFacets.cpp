@@ -149,6 +149,7 @@ void BusDriverMovement::frame_tick() {
 //	uint16_t statsNum = (person->getCurrSegStats()? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
 //	logout << "(BusDriver"
 //			<<","<<person->getId()
+//			<<","<<person->busLine
 //			<<","<<parentBusDriver->getParams().now.frame()
 //			<<",{"
 //			<<"RoadSegment:"<< segId
@@ -158,6 +159,8 @@ void BusDriverMovement::frame_tick() {
 //
 //	if(parentBusDriver->getResource()->isMoving()) { logout << ",ServingStop:" << "false"; }
 //	else { logout << ",ServingStop:" << "true"; }
+//	const sim_mob::BusStop* nextStop = routeTracker.getNextStop();
+//	logout << ",NextStop:" << (nextStop? nextStop->getBusstopno_() : "0");
 //
 //	if (person->isQueuing) { logout << ",queuing:" << "true"; }
 //	else { logout << ",queuing:" << "false";}
@@ -366,10 +369,20 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				else {
 					params.elapsedSeconds += parentBusDriver->waitingTimeAtbusStop;
 					parentBusDriver->waitingTimeAtbusStop = 0;
-					parentBusDriver->closeBusDoors(stopAg);
-					routeTracker.updateNextStop();
-					// There is remaining time, try to move to next segment
-					return DriverMovement::moveToNextSegment(params);
+					double output = getOutputCounter(currLane, currSegStat);
+					if(output > 0)
+					{
+						parentBusDriver->closeBusDoors(stopAg);
+						routeTracker.updateNextStop();
+						// There is remaining time, try to move to next segment
+						return DriverMovement::moveToNextSegment(params);
+					}
+					else
+					{
+						//remain in bus stop
+						params.elapsedSeconds = params.secondsInTick;
+						return false;
+					}
 				}
 			}
 			else

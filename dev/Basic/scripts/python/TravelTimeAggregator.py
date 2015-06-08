@@ -64,10 +64,10 @@ class TT_Aggregator:
 		
 		#connect to local mongodb
 		self.client = MongoClient('localhost', 27017)
-		self.db = self.client.mydb
+		self.db = self.client.preday
 		
 		self.nodeMTZ = self.db.node_mtz
-		self.zone = self.db.Zone
+		self.zone = self.db.Zone_2012
 		self.amCosts = self.db.LearnedAMCosts
 		self.pmCosts = self.db.LearnedPMCosts
 		self.opCosts = self.db.LearnedOPCosts
@@ -78,7 +78,7 @@ class TT_Aggregator:
 		self.zoneCode = {} #dictionary of <zone_id> : <zone_code>
 		self.NUM_ZONES = self.zone.count() #meant to be constant
 		
-		for z in range(1,1093):
+		for z in range(1, self.NUM_ZONES+1):
 			zoneDoc = self.zone.find_one({"zone_id" : z})
 			self.zoneId[int(zoneDoc["zone_code"])] = z
 			self.zoneCode[z] = int(zoneDoc["zone_code"])

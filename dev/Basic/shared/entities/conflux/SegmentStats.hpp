@@ -626,6 +626,13 @@ public:
 	bool hasBusStop(const sim_mob::BusStop* busStop) const;
 
 	/**
+	 * checks if this Segment stats contains a busStop in it
+	 * @returns true if this segstats cotains a busStop in its busStops list;
+	 * 			false otherwise
+	 */
+	bool hasBusStop() const;
+
+	/**
 	 * returns the number of agents moving in segment
 	 * @param vehicleLanes boolean flag indicating whether we want the numbers from vehicle lanes
 	 * @return the number of agents moving in segment

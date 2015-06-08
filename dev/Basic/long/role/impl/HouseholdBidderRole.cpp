@@ -47,6 +47,15 @@ namespace
     {
         MessageBus::PostMessage(owner, LTMID_BID, MessageBus::MessagePtr(new BidMessage(bid)));
     }
+
+    const std::string LOG_VEHICLE_OWNERSHIP = "%1%, %2%";
+
+    inline void writeVehicleOwnershipToFile(BigSerial hhId,int VehiclOwnershiOptionId)
+    {
+    	boost::format fmtr = boost::format(LOG_VEHICLE_OWNERSHIP) % hhId % VehiclOwnershiOptionId;
+    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_VEHICLE_OWNERSIP,fmtr.str());
+
+    }
 }
 
 HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry ( const BigSerial unitId, const double wp, double lastSurplus) : unitId(unitId), wp(wp), tries(0),
@@ -90,8 +99,8 @@ void HouseholdBidderRole::CurrentBiddingEntry::invalidate()
 }
 
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0),
-																  moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0),vehicleOwnershipOption(NO_CAR), day(day),
-																  hasTaxiAccess(false), householdAffordabilityAmount(0),initBidderRole(true){}
+																  moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0), day(day),
+																  householdAffordabilityAmount(0),initBidderRole(true){}
 
 HouseholdBidderRole::~HouseholdBidderRole(){}
 
@@ -164,7 +173,7 @@ void HouseholdBidderRole::ComputeHouseholdAffordability()
 
 	//Household affordability formula based on excel PV function:
 	//https://support.office.com/en-ca/article/PV-function-3d25f140-634f-4974-b13b-5249ff823415
-	householdAffordabilityAmount = income / interestRate *  ( 1 - pow( 1 + interestRate, -loanTenure ) );
+	householdAffordabilityAmount = income / interestRate *  ( 1 - pow( 1 + interestRate, loanTenure ) );
 
 	//PrintOutV( "Interest rate: " << interestRate << ". Household affordability: " << householdAffordabilityAmount << std::endl);
 }
@@ -181,13 +190,16 @@ void HouseholdBidderRole::update(timeslice now)
 	day = now.ms();
 
 	if(initBidderRole)
+	{
 		init();
+	}
 
 	//This bidder has a successful bid already.
 	//It's now waiting to move in its new unit.
 	//The bidder role will do nothing else during this period (hence the return at the end of the if function).
 	if( moveInWaitingTimeInDays > 0 )
 	{
+
 		//Just before we set the bidderRole to inactive, we do the unit ownership switch.
 		if( moveInWaitingTimeInDays == 1 )
 		{
@@ -196,20 +208,18 @@ void HouseholdBidderRole::update(timeslice now)
 
 		moveInWaitingTimeInDays--;
 
-		return;
+		//return;
 	}
 
 	//wait 60 days after move in to a new unit to reconsider the vehicle ownership option.
 	if( vehicleBuyingWaitingTimeInDays > 0 && moveInWaitingTimeInDays == 0)
 	{
 
-		if( vehicleBuyingWaitingTimeInDays == 1 )
+		if( vehicleBuyingWaitingTimeInDays == 1)
 		{
-			setTaxiAccess();
 			reconsiderVehicleOwnershipOption();
 		}
 			vehicleBuyingWaitingTimeInDays--;
-			return;
 	}
 
     //can bid another house if it is not waiting for any 
@@ -237,10 +247,6 @@ void HouseholdBidderRole::TakeUnitOwnership()
 	PrintOutV("[day " << day << "] Household " << getParent()->getId() << " is moving into unit " << unitIdToBeOwned << " today." << std::endl);
 	#endif
 	getParent()->addUnitId( unitIdToBeOwned );
-
-    setActive(false);
-    getParent()->getModel()->decrementBidders();
-
     biddingEntry.invalidate();
     Statistics::increment(Statistics::N_ACCEPTED_BIDS);
 }
@@ -258,7 +264,6 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 case ACCEPTED:// Bid accepted 
                 {
                 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
                 	moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
                 	unitIdToBeOwned = msg.getBid().getUnitId();
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
@@ -422,13 +427,18 @@ bool HouseholdBidderRole::pickEntryToBid()
 
 void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 {
+	if (isActive())
+	{
 	const HM_Model* model = getParent()->getModel();
 	int unitTypeId = model->getUnitById(this->getParent()->getHousehold()->getUnitId())->getUnitType();
+	double valueNoCar =  model->getVehicleOwnershipCoeffsById(ASC_NO_CAR)->getCoefficientEstimate();
+	double expNoCar = exp(valueNoCar);
 	double expOneCar = getExpOneCar(unitTypeId);
 	double expTwoPlusCar = getExpTwoPlusCar(unitTypeId);
 
-	double probabilityOneCar = (expOneCar)/ (expOneCar+expTwoPlusCar);
-	double probabilityTwoPlusCar = (expTwoPlusCar)/ (expOneCar+expTwoPlusCar);
+	double probabilityNoCar = (expNoCar) / (expNoCar + expOneCar+ expTwoPlusCar);
+	double probabilityOneCar = (expOneCar)/ (expNoCar + expOneCar+ expTwoPlusCar);
+	double probabilityTwoPlusCar = (expTwoPlusCar)/ (expNoCar + expOneCar+ expTwoPlusCar);
 
 	/*generate a random number between 0-1
 	* time(0) is passed as an input to constructor in order to randomize the result
@@ -438,23 +448,35 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 	boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >generateRandomNumbers( randomNumbergenerator, uniformDistribution );
 	const double randomNum = generateRandomNumbers( );
 	double pTemp = 0;
-	if(pTemp < randomNum < (probabilityOneCar + pTemp))
+	if((pTemp < randomNum ) && (randomNum < (probabilityNoCar + pTemp)))
 	{
-		vehicleOwnershipOption = ONE_CAR;
+		MessageBus::PostMessage(getParent(), LTMID_HH_NO_CAR, MessageBus::MessagePtr(new Message()));
+		writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),0);
+
+	}
+	else
+	{
+		pTemp = pTemp + probabilityNoCar;
+	if((pTemp < randomNum ) && (randomNum < (probabilityOneCar + pTemp)))
+	{
+		MessageBus::PostMessage(getParent(), LTMID_HH_ONE_CAR, MessageBus::MessagePtr(new Message()));
+		writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),1);
 	}
 	else
 	{
 		pTemp = pTemp + probabilityOneCar;
-		if(pTemp < randomNum < (probabilityTwoPlusCar + pTemp))
+		if ((pTemp < randomNum) &&( randomNum < (probabilityTwoPlusCar + pTemp)))
 		{
-			vehicleOwnershipOption = TWO_PLUS_CAR;
-		}
-		else
-		{
-			vehicleOwnershipOption = NO_CAR;
+			MessageBus::PostMessage(getParent(), LTMID_HH_TWO_PLUS_CAR, MessageBus::MessagePtr(new Message()));
+			std::vector<BigSerial> individuals = this->getParent()->getHousehold()->getIndividuals();
+			writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),2);
 		}
 
 	}
+	}
+	}
+	setActive(false);
+	getParent()->getModel()->decrementBidders();
 
 }
 
@@ -635,6 +657,21 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId)
 	}
 
 	valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId())->getAvgLogsum();
+
+	DistanceMRT *distanceMRT = model->getDistanceMRTById(this->getParent()->getHousehold()->getId());
+
+	if(distanceMRT != nullptr)
+	{
+		double distanceMrt = distanceMRT->getDistanceMrt();
+		if ((distanceMrt>0) && (distanceMrt<=500))
+		{
+			valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_distMRT500_ONECAR)->getCoefficientEstimate();
+		}
+		else if((distanceMrt<500) && (distanceMrt<=1000))
+		{
+			valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_distMRT1000_ONECAR)->getCoefficientEstimate();
+		}
+	}
 	double expOneCar = exp(valueOneCar);
 	return expOneCar;
 }
@@ -816,6 +853,22 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId)
 	}
 
 	valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_TWOplusCAR)->getCoefficientEstimate() * model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId())->getAvgLogsum();
+
+	DistanceMRT *distanceMRT = model->getDistanceMRTById(this->getParent()->getHousehold()->getId());
+
+	if(distanceMRT != nullptr)
+	{
+		double distanceMrt = distanceMRT->getDistanceMrt();
+		if ((distanceMrt>0) && (distanceMrt<=500))
+		{
+			valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_distMRT500_TWOplusCAR)->getCoefficientEstimate();
+		}
+		else if((distanceMrt<500) && (distanceMrt<=1000))
+		{
+			valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_distMRT1000_TWOplusCAR)->getCoefficientEstimate();
+		}
+	}
+
 	double expTwoPlusCar = exp(valueTwoPlusCar);
 	return expTwoPlusCar;
 }
@@ -827,174 +880,6 @@ bool HouseholdBidderRole::isMotorCycle(int vehicleCategoryId)
 		return true;
 	}
 	return false;
-}
-
-void HouseholdBidderRole::setTaxiAccess()
-{
-	const HM_Model* model = getParent()->getModel();
-	double valueTaxiAccess = model->getTaxiAccessCoeffsById(INTERCEPT)->getCoefficientEstimate();
-	//finds out whether the household is an HDB or not
-	int unitTypeId = model->getUnitById(this->getParent()->getHousehold()->getUnitId())->getUnitType();
-	if( (unitTypeId>0) && (unitTypeId<=6))
-	{
-
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(HDB1)->getCoefficientEstimate();
-	}
-
-	std::vector<BigSerial> individuals = this->getParent()->getHousehold()->getIndividuals();
-	int numIndividualsInAge5064 = 0;
-	int numIndividualsInAge65Up = 0;
-	int numIndividualsAge1019 = 0;
-	int numSelfEmployedIndividuals = 0;
-	int numRetiredIndividuals = 0;
-	int numServiceIndividuals = 0;
-	int numProfIndividuals = 0;
-	int numLabourIndividuals = 0;
-	int numManagerIndividuals = 0;
-
-	std::vector<BigSerial>::iterator individualsItr;
-	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
-	{
-		int ageCategoryId = model->getIndividualById((*individualsItr))->getAgeCategoryId();
-		//IndividualsAge1019
-		if((ageCategoryId==2) || (ageCategoryId==3))
-		{
-			numIndividualsAge1019++;
-		}
-		//IndividualsInAge5064
-		if((ageCategoryId >= 10)&& (ageCategoryId <= 12))
-		{
-			numIndividualsInAge5064++;
-		}
-		//IndividualsInAge65Up
-		if((ageCategoryId >= 13) && (ageCategoryId <= 17))
-		{
-			numIndividualsInAge65Up++;
-		}
-		//SelfEmployedIndividuals
-		if(model->getIndividualById((*individualsItr))->getEmploymentStatusId()==3)
-		{
-			numSelfEmployedIndividuals++;
-		}
-		//RetiredIndividuals
-		if(model->getIndividualById((*individualsItr))->getEmploymentStatusId()==6)
-		{
-			numRetiredIndividuals++;
-		}
-		//individuals in service sector
-		if(model->getIndividualById((*individualsItr))->getOccupationId() == 5)
-		{
-			numServiceIndividuals++;
-		}
-		//Professional Individuals
-		if(model->getIndividualById((*individualsItr))->getOccupationId() == 2)
-		{
-			numProfIndividuals++;
-		}
-
-		//labour individuals : occupation type = other
-		if(model->getIndividualById((*individualsItr))->getOccupationId() == 7)
-		{
-			numLabourIndividuals++;
-		}
-		//Manager individuals
-		if(model->getIndividualById((*individualsItr))->getOccupationId() == 2)
-		{
-			numManagerIndividuals++;
-		}
-	}
-
-	if(numIndividualsInAge5064 == 1)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(AGE5064_1)->getCoefficientEstimate();
-	}
-	else if (numIndividualsInAge5064 >= 2)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(AGE5064_2)->getCoefficientEstimate();
-	}
-	if(numIndividualsInAge65Up == 1)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(AGE65UP_1)->getCoefficientEstimate();
-	}
-	else if (numIndividualsInAge65Up >= 2 )
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(AGE65UP_2)->getCoefficientEstimate();
-	}
-	if(numIndividualsAge1019 >=2 )
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(AGE1019_2)->getCoefficientEstimate();
-	}
-	if(numSelfEmployedIndividuals == 1)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(EMPLOYED_SELF_1)->getCoefficientEstimate();
-	}
-	else if(numSelfEmployedIndividuals >= 2)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(EMPLOYED_SELF_2)->getCoefficientEstimate();
-	}
-	if(numRetiredIndividuals == 1)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(RETIRED_1)->getCoefficientEstimate();
-	}
-	else if (numRetiredIndividuals >= 2)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(RETIRED_2)->getCoefficientEstimate();
-	}
-
-	const double incomeLaw = 3000;
-	const double incomeHigh = 10000;
-	if(this->getParent()->getHousehold()->getIncome() <= incomeLaw)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(INC_LOW)->getCoefficientEstimate();
-	}
-	else if (this->getParent()->getHousehold()->getIncome() > incomeHigh)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(INC_HIGH)->getCoefficientEstimate();
-	}
-
-	//TODO::Operator1 and operator2??
-	if(numServiceIndividuals >=2 )
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(SERVICE_2)->getCoefficientEstimate();
-	}
-
-	if(numProfIndividuals >= 1)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(PROF_1)->getCoefficientEstimate();
-	}
-	if(numLabourIndividuals >= 1)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(LABOR_1)->getCoefficientEstimate();
-	}
-	if(numManagerIndividuals >= 1)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(MANAGER_1)->getCoefficientEstimate();
-	}
-	//Indian
-	if(this->getParent()->getHousehold()->getEthnicityId() == 3)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(INDIAN_TAXI_ACCESS)->getCoefficientEstimate();
-	}
-	//Malay
-	if(this->getParent()->getHousehold()->getEthnicityId() == 2)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(MALAY_TAXI_ACCESS)->getCoefficientEstimate();
-	}
-
-	double expTaxiAccess = exp(valueTaxiAccess);
-	double probabilityTaxiAccess = (expTaxiAccess) / (1 + expTaxiAccess);
-
-	/*generate a random number between 0-1
-	* time(0) is passed as an input to constructor in order to randomize the result
-	*/
-	boost::mt19937 randomNumbergenerator( time( 0 ) );
-	boost::random::uniform_real_distribution< > uniformDistribution( 0.0, 1.0 );
-	boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >generateRandomNumbers( randomNumbergenerator, uniformDistribution );
-	const double randomNum = generateRandomNumbers( );
-	if(randomNum < probabilityTaxiAccess)
-	{
-		hasTaxiAccess = true;
-	}
 }
 
 int HouseholdBidderRole::getIncomeCategoryId(double income)

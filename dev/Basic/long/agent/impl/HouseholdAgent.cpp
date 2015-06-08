@@ -31,18 +31,6 @@ using std::string;
 using std::map;
 using std::endl;
 
-namespace
-{
-const std::string LOG_VEHICLE_OWNERSHIP = "%1%, %2%";
-
-inline void writeVehicleOwnershipToFile(BigSerial hhId,int VehiclOwnershiOptionId)
-{
-	boost::format fmtr = boost::format(LOG_VEHICLE_OWNERSHIP) % hhId % VehiclOwnershiOptionId;
-	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_VEHICLE_OWNERSIP,fmtr.str());
-
-}
-
-}
 HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller, int day)
 : LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), bidder (nullptr), seller(nullptr), day(day),vehicleOwnershipOption(NO_CAR)
 {
@@ -373,7 +361,6 @@ void HouseholdAgent::HandleMessage(Message::MessageType type, const Message& mes
     		const HM_Model* model = this->getModel();
     	    Household* hh = model->getHouseholdById(this->getHousehold()->getId());
     	    (*hh).setVehicleOwnershipOptionId(NO_CAR);
-    	    //writeVehicleOwnershipToFile(hh->getId(),NO_CAR);
     	    break;
     	}
     	case LTMID_HH_ONE_CAR:
@@ -381,7 +368,6 @@ void HouseholdAgent::HandleMessage(Message::MessageType type, const Message& mes
     		const HM_Model* model = this->getModel();
     	    Household* hh = model->getHouseholdById(this->getHousehold()->getId());
     	    (*hh).setVehicleOwnershipOptionId(ONE_CAR);
-    	    //writeVehicleOwnershipToFile(hh->getId(),ONE_CAR);
     	    break;
     	}
     	case LTMID_HH_TWO_PLUS_CAR:
@@ -389,7 +375,6 @@ void HouseholdAgent::HandleMessage(Message::MessageType type, const Message& mes
     		const HM_Model* model = this->getModel();
     	    Household* hh = model->getHouseholdById(this->getHousehold()->getId());
     	    (*hh).setVehicleOwnershipOptionId(TWO_PLUS_CAR);
-    	    //writeVehicleOwnershipToFile(hh->getId(),TWO_PLUS_CAR);
     	    break;
     	}
     	default:break;

@@ -802,6 +802,9 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 
 void sim_mob::Person::convertODsToTrips() {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	if(!config.publicTransitEnabled){
+		return;
+	}
 	std::vector<TripChainItem*>::iterator tripChainItem;
 	bool brokenBusTravel = false;
 	std::vector<TripChainItem*>::iterator brokenBusTravelItem;
@@ -857,6 +860,37 @@ void sim_mob::Person::convertODsToTrips() {
 					itSubTrip->endLocationId=destId;
 					itSubTrip->startLocationType="NODE";
 					itSubTrip->endLocationType="NODE";
+				}
+				else if(itSubTrip->fromLocation.type_ == WayPoint::NODE
+						&& itSubTrip->toLocation.type_ == WayPoint::NODE){
+					if(itSubTrip->mode.find("Car Sharing")!=std::string::npos){
+
+						std::vector<sim_mob::OD_Trip> odTrips;
+						std::string originId = boost::lexical_cast<std::string>(
+								itSubTrip->fromLocation.node_->getID());
+						std::string destId = boost::lexical_cast<std::string>(
+								itSubTrip->toLocation.node_->getID());
+
+						itSubTrip->startLocationId=originId;
+						itSubTrip->endLocationId=destId;
+						itSubTrip->startLocationType="NODE";
+						itSubTrip->endLocationType="NODE";
+						itSubTrip->mode = "Sharing";
+
+						const StreetDirectory& streetDirectory = StreetDirectory::instance();
+						StreetDirectory::VertexDesc source, destination;
+						source = streetDirectory.DrivingVertex(*itSubTrip->fromLocation.node_);
+						destination = streetDirectory.DrivingVertex(*itSubTrip->toLocation.node_);
+						std::vector<WayPoint> wayPoints = streetDirectory.SearchShortestDrivingPath(source, destination);
+						double travelTime = 0.0;
+						for (std::vector<WayPoint>::iterator it = wayPoints.begin();
+								it != wayPoints.end(); it++) {
+							if (it->type_ == WayPoint::ROAD_SEGMENT) {
+								travelTime += it->roadSegment_->getDefaultTravelTime();
+							}
+						}
+						itSubTrip->endTime = DailyTime(travelTime*1000);
+					}
 				}
 				++itSubTrip;
 			}

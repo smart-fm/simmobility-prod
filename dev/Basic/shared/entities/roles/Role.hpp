@@ -73,7 +73,8 @@ public:
 		RL_ACTIVITY,
 		RL_PASSENGER,
 		RL_WAITBUSACTITITY,
-		RL_TRAINPASSENGER
+		RL_TRAINPASSENGER,
+		RL_CARPASSENGER
 	};
 
 	//todo: use this to identify the type of request

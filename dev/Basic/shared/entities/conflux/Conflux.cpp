@@ -182,6 +182,11 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* person)
 		//TODO: subscribe for time based event
 		break;
 	}
+	case Role::RL_CARPASSENGER:
+	{
+		assignPersonToCar(person);
+		break;
+	}
 	case Role::RL_ACTIVITY:
 	{
 		activityPerformers.push_back(person);
@@ -298,6 +303,7 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 	{
 	case sim_mob::Role::RL_WAITBUSACTITITY:
 	case sim_mob::Role::RL_TRAINPASSENGER:
+	case sim_mob::Role::RL_CARPASSENGER:
 	{
 		return; //would have already been handled
 	}
@@ -929,6 +935,16 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 		switchTripChainItem(msg.person);
 		break;
 	}
+	case MSG_WAKEUP_CAR_PASSENGER_TELEPORTATION:
+	{
+		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
+		PersonList::iterator pIt = std::find(carSharing.begin(), carSharing.end(), msg.person);
+		if(pIt==carSharing.end()) { throw std::runtime_error("Person not found in Car list"); }
+		carSharing.erase(pIt);
+		//switch to next trip chain item
+		switchTripChainItem(msg.person);
+		break;
+	}
 	default:
 		break;
 	}
@@ -959,6 +975,14 @@ Entity::UpdateStatus sim_mob::Conflux::switchTripChainItem(Person* person)
 	if(personRole && personRole->roleType==Role::RL_TRAINPASSENGER)
 	{
 		assignPersonToMRT(person);
+		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
+		if(pIt!=pedestrianList.end()) {	pedestrianList.erase(pIt); }
+		return retVal;
+	}
+
+	if(personRole && personRole->roleType==Role::RL_CARPASSENGER)
+	{
+		assignPersonToCar(person);
 		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
 		if(pIt!=pedestrianList.end()) {	pedestrianList.erase(pIt); }
 		return retVal;
@@ -1197,6 +1221,27 @@ void sim_mob::Conflux::assignPersonToMRT(Person* person) {
 	}
 }
 
+void sim_mob::Conflux::assignPersonToCar(Person* person) {
+	Role* role = person->getRole();
+	if (role && role->roleType == Role::RL_CARPASSENGER) {
+		person->currWorkerProvider = parentWorker;
+		messaging::MessageBus::ReRegisterHandler(person, GetContext());
+		PersonList::iterator pIt = std::find(carSharing.begin(),
+				carSharing.end(), person);
+		if (pIt == carSharing.end()) {
+			carSharing.push_back(person);
+		}
+		DailyTime time(1000);
+		person->setStartTime(currFrame.ms());
+		person->getRole()->setTravelTime(time.getValue());
+		unsigned int tick =
+				ConfigManager::GetInstance().FullConfig().baseGranMS();
+		messaging::MessageBus::PostMessage(this,
+				MSG_WAKEUP_CAR_PASSENGER_TELEPORTATION,
+				messaging::MessageBus::MessagePtr(new PersonMessage(person)),
+				false, time.getValue() / tick);
+	}
+}
 
 UpdateStatus sim_mob::Conflux::movePerson(timeslice now, Person* person)
 {

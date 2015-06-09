@@ -7,6 +7,7 @@
 
 #include "PassengerFacets.hpp"
 #include "Passenger.hpp"
+#include "geospatial/MultiNode.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
@@ -64,6 +65,18 @@ TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
 	travelMetric.travelTime = TravelMetric::getTimeDiffHours(travelMetric.endTime , travelMetric.startTime); // = totalTimeToCompleteMS in hours
 	travelMetric.finalized = true;
 	return travelMetric;
+}
+sim_mob::Conflux* PassengerMovement::getStartingConflux() const
+{
+	if (parentPassenger->roleType == Role::RL_CARPASSENGER) {
+		const sim_mob::MultiNode* location =
+				dynamic_cast<const sim_mob::MultiNode*>(parentPassenger->parent->currSubTrip->toLocation.node_);
+		if (location) {
+			return ConfigManager::GetInstanceRW().FullConfig().getConfluxForNode(
+					location);
+		}
+	}
+	return nullptr;
 }
 }//medium
 } /* namespace sim_mob */

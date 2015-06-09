@@ -794,6 +794,7 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 	}
 
 	//Print()<<"agent is removed by conflux:"<<person->getId()<<"|role:"<<(int)personRoleType<<std::endl;
+	person->currWorkerProvider = nullptr;
 	parentWorker->remEntity(person);
 	parentWorker->scheduleForRemoval(person);
 }
@@ -1225,13 +1226,12 @@ void sim_mob::Conflux::assignPersonToCar(Person* person) {
 	Role* role = person->getRole();
 	if (role && role->roleType == Role::RL_CARPASSENGER) {
 		person->currWorkerProvider = parentWorker;
-		messaging::MessageBus::ReRegisterHandler(person, GetContext());
 		PersonList::iterator pIt = std::find(carSharing.begin(),
 				carSharing.end(), person);
 		if (pIt == carSharing.end()) {
 			carSharing.push_back(person);
 		}
-		DailyTime time(1000);
+		DailyTime time=person->currSubTrip->endTime;
 		person->setStartTime(currFrame.ms());
 		person->getRole()->setTravelTime(time.getValue());
 		unsigned int tick =

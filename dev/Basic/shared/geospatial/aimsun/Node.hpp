@@ -40,7 +40,7 @@ class Node : public Base
 public:
 	double xPos;
 	double yPos;
-	std::string nodeName;
+	//std::string nodeName;
 	bool isIntersection;
 	bool hasTrafficSignal;
 
@@ -53,7 +53,7 @@ public:
 	//Reference to saved object (Maybe be UniNode or MultiNode, of course)
 	sim_mob::Node* generatedNode;
 
-	Node() : Base(), xPos(0), yPos(0), nodeName(""), isIntersection(false), candidateForSegmentNode(false), generatedNode(nullptr), hasTrafficSignal(false) {}
+	Node() : Base(), xPos(0), yPos(0), /*nodeName(""),*/ isIntersection(false), candidateForSegmentNode(false), generatedNode(nullptr), hasTrafficSignal(false) {}
 	int getXPosAsInt() { return round(xPos); }
 	int getYPosAsInt() { return round(yPos); }
 };

@@ -57,6 +57,7 @@
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "database/pt_network_dao/PT_NetworkSqlDao.hpp"
 #include "geospatial/streetdir/A_StarPublicTransitShortestPathImpl.hpp"
+#include "path/ScreenLineCounter.hpp"
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -553,6 +554,9 @@ int main_impl(int ARGC, char* ARGV[])
 
 	timeval simEndTime;
 	gettimeofday(&simEndTime, nullptr);
+
+	if(ConfigManager::GetInstance().FullConfig().screenLineParams.outputEnabled)
+			ScreenLineCounter::getInstance()->exportScreenLineCount();
 
 	Print() << "Done" << endl;
 	cout << "Total simulation time: "<< (ProfileBuilder::diff_ms(simEndTime, simStartTime))/1000.0 << " seconds." << endl;

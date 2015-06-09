@@ -337,14 +337,9 @@ protected:
 	void updateLinkTravelTimes(const sim_mob::SegmentStats* prevSegStat,
 			double linkExitTimeSec);
 
-	/**
-	 * Updates travel time for this driver for the road segment which he has just exited from.
-	 *
-	 * @param prevSeg the segment from which the driver has just exited
-	 * @param linkExitTimeSec time at which the segment was exited
-	 */
 	void updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat,
-			double segmentExitTimeSec);
+			double segEnterExitTime);
+
 	/**
 	 * get number of intersections between the agent's location and incident location
 	 * \param in list of stats in the incident roadsegemnt

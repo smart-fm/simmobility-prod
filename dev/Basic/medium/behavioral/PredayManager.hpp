@@ -22,7 +22,6 @@
 #include "config/MT_Config.hpp"
 #include "params/PersonParams.hpp"
 #include "behavioral/params/ZoneCostParams.hpp"
-#include "database/DB_Connection.hpp"
 
 namespace sim_mob {
 namespace medium {

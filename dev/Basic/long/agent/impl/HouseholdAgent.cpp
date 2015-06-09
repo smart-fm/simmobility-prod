@@ -17,6 +17,8 @@
 #include "role/impl/HouseholdSellerRole.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "core/DataManager.hpp"
+#include "core/LoggerAgent.hpp"
+#include "core/AgentsLookup.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/ConfigManager.hpp"
 
@@ -30,7 +32,7 @@ using std::map;
 using std::endl;
 
 HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller, int day)
-: LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), bidder (nullptr), seller(nullptr), day(day)
+: LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), bidder (nullptr), seller(nullptr), day(day),vehicleOwnershipOption(NO_CAR)
 {
     seller = new HouseholdSellerRole(this);
     seller->setActive(marketSeller);
@@ -344,5 +346,38 @@ void HouseholdAgent::HandleMessage(Message::MessageType type, const Message& mes
     if (seller && seller->isActive())
     {
         seller->HandleMessage(type, message);
+    }
+    switch(type)
+    {
+    	case LTMID_HH_TAXI_AVAILABILITY:
+    	{
+            const HM_Model* model = this->getModel();
+            Household* hh = model->getHouseholdById(this->getHousehold()->getId());
+            (*hh).setTaxiAvailability(true);
+            break;
+        }
+    	case LTMID_HH_NO_CAR:
+    	{
+    		const HM_Model* model = this->getModel();
+    	    Household* hh = model->getHouseholdById(this->getHousehold()->getId());
+    	    (*hh).setVehicleOwnershipOptionId(NO_CAR);
+    	    break;
+    	}
+    	case LTMID_HH_ONE_CAR:
+    	{
+    		const HM_Model* model = this->getModel();
+    	    Household* hh = model->getHouseholdById(this->getHousehold()->getId());
+    	    (*hh).setVehicleOwnershipOptionId(ONE_CAR);
+    	    break;
+    	}
+    	case LTMID_HH_TWO_PLUS_CAR:
+    	{
+    		const HM_Model* model = this->getModel();
+    	    Household* hh = model->getHouseholdById(this->getHousehold()->getId());
+    	    (*hh).setVehicleOwnershipOptionId(TWO_PLUS_CAR);
+    	    break;
+    	}
+    	default:break;
+
     }
 }

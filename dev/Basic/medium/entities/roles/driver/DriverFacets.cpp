@@ -978,7 +978,7 @@ void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSeg
 	sim_mob::Person *parent = getParent();
 	if(prevSeg == parent->getCurrRdSegTravelStats().rs){
 		const sim_mob::TripChainItem* tripChain = *(parent->currTripChainItem);
-		const std::string& travelMode = tripChain->travelMode;
+		const std::string& travelMode = tripChain->getMode();
 
 		sim_mob::Agent::RdSegTravelStat & currStats = parent->finalizeCurrRdSegTravelStat(prevSeg,segEnterExitTime, travelMode);
 

@@ -30,9 +30,9 @@ namespace sim_mob {
      */
     const std::string DB_TABLE_INCOME_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "income_category");
     const std::string DB_TABLE_VEHICLE_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "vehicle_category");
-    const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "AMcosts");
-    const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "PMcosts");
-    const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "OPcosts");
+    const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "amcosts");
+    const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "pmcosts");
+    const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "opcosts");
     const std::string DB_TABLE_TAZ = APPLY_SCHEMA(PUBLIC_SCHEMA, "zone_preday2012");
 
 	/**

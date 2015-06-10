@@ -196,6 +196,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 
 	if( longTerm )
 	{
+		ProcessConstructsNode(GetSingleElementByName(rootNode,"constructs"));
 		ProcessLongTermParamsNode( GetSingleElementByName(rootNode, "longTermParams"));
 		return;
 	}

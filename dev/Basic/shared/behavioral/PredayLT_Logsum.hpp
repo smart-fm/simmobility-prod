@@ -26,7 +26,7 @@ private:
 	/**
 	 * private instance of this class
 	 */
-	PredayLT_LogsumManager logsumManager;
+	static PredayLT_LogsumManager logsumManager;
 
 	/**
 	 * map of zone_id -> ZoneParams

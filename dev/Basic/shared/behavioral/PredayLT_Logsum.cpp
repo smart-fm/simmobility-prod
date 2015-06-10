@@ -13,12 +13,26 @@
 #include "database/predaydao/DatabaseHelper.hpp"
 #include "database/predaydao/LT_PopulationSqlDao.hpp"
 #include "database/predaydao/ZoneCostSqlDao.hpp"
+#include "logging/Log.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::db;
 
 namespace
 {
+std::string EMPTY_STRING = "";
+/**
+ * DB_Config for logsum db.
+ * initialized from getConnection()
+ */
+DB_Config logsumDbConfig(EMPTY_STRING,EMPTY_STRING,EMPTY_STRING,EMPTY_STRING,EMPTY_STRING);
+
+/**
+ * file global DB_Connection object
+ * re-initialized correctly from first call to getInstance
+ */
+DB_Connection dbConnection(sim_mob::db::POSTGRES, logsumDbConfig);
+
 /**
  * fetches configuration and constructs DB_Connection
  * @return the constructed DB_Connection object
@@ -26,23 +40,21 @@ namespace
 DB_Connection getConnection()
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	Database logsumDB = config.constructs.databases.at("fm_remote_mt");
-	Credential logsumDB_Credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at("fm_remote_mt");
+	const std::string dbId = "fm_remote_mt";
+	Database logsumDB = config.constructs.databases.at(dbId);
+	Credential logsumDB_Credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(dbId);
 	std::string username = logsumDB_Credentials.getUsername();
 	std::string password = logsumDB_Credentials.getPassword(false);
-	DB_Config logsumDbConfig(logsumDB.host, logsumDB.port, logsumDB.dbName, username, password);
+	logsumDbConfig = DB_Config(logsumDB.host, logsumDB.port, logsumDB.dbName, username, password);
 
 	//connect to database and load data.
 	DB_Connection conn(sim_mob::db::POSTGRES, logsumDbConfig);
 	return conn;
 }
-
-/**
- * file global DB_Connection object
- */
-DB_Connection dbConnection = getConnection();
-
 } //end anonymous namespace
+
+//init static member
+sim_mob::PredayLT_LogsumManager sim_mob::PredayLT_LogsumManager::logsumManager;
 
 sim_mob::PredayLT_LogsumManager::PredayLT_LogsumManager() : dataLoadReqd(true)
 {}
@@ -55,7 +67,7 @@ void sim_mob::PredayLT_LogsumManager::loadZones()
 	if (dbConnection.isConnected())
 	{
 		ZoneSqlDao zoneDao(dbConnection);
-		zoneDao.getAll(zoneMap, ZoneParams::getZoneId);
+		zoneDao.getAll(zoneMap, &ZoneParams::getZoneId);
 	}
 
 	//construct zoneIdLookup
@@ -82,17 +94,19 @@ void sim_mob::PredayLT_LogsumManager::loadCosts()
 
 const PredayLT_LogsumManager& sim_mob::PredayLT_LogsumManager::getInstance()
 {
-	if(dataLoadReqd)
+	if(logsumManager.dataLoadReqd)
 	{
+		dbConnection = getConnection();
 		dbConnection.connect();
-		loadZones();
-		loadCosts();
+		logsumManager.loadZones();
+		logsumManager.loadCosts();
 		dbConnection.disconnect();
-		dataLoadReqd = false;
+		logsumManager.dataLoadReqd = false;
 	}
 	return logsumManager;
 }
 
 double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int homeLocation, int workLocation) const
 {
+
 }

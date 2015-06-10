@@ -69,13 +69,13 @@ void ZoneSqlDao::fromRow(Row& result, ZoneParams& outObj)
 	outObj.setArea(result.get<double>(DB_FIELD_ZONE_AREA));
 	outObj.setPopulation(result.get<double>(DB_FIELD_ZONE_POPULATION));
 	outObj.setShop(result.get<double>(DB_FIELD_ZONE_SHOPS));
-	outObj.setCentralDummy(result.get<bool>(DB_FIELD_ZONE_CENTRAL_ZONE) > 0);
+	outObj.setCentralDummy(result.get<int>(DB_FIELD_ZONE_CENTRAL_ZONE) > 0);
 	outObj.setParkingRate(result.get<double>(DB_FIELD_ZONE_PARKING_RATE));
 	outObj.setResidentWorkers(result.get<double>(DB_FIELD_ZONE_RESIDENT_WORKERS));
 	outObj.setEmployment(result.get<double>(DB_FIELD_ZONE_EMPLOYMENT));
 	outObj.setTotalEnrollment(result.get<double>(DB_FIELD_ZONE_TOTAL_ENROLLMENT));
 	outObj.setResidentStudents(result.get<double>(DB_FIELD_ZONE_RESIDENT_STUDENTS));
-	outObj.setCbdDummy(result.get<bool>(DB_FIELD_ZONE_CBD_ZONE));
+	outObj.setCbdDummy(result.get<int>(DB_FIELD_ZONE_CBD_ZONE));
 }
 
 void ZoneSqlDao::toRow(ZoneParams& data, Parameters& outParams, bool update)

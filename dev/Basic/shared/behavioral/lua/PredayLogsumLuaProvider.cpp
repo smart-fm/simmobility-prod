@@ -36,25 +36,9 @@ namespace {
 				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dpb"));
 				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dpt"));
 				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dps"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("ntw"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("nte"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("nts"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("nto"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("uw"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tme"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmw"));
 				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmdw"));
 				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmds"));
 				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmdo"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("ttdw"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("ttde"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("ttdo"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tws"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("stmd"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("sttd"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("isg"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("imd"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("itd"));
 				modelCtx->predayModel.initialize();
 				threadContext.reset(modelCtx);
         	}

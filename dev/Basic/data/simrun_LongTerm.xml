@@ -172,5 +172,15 @@
 		<vehicleBuyingWaitingTimeInDays value= "60"/>
 	</vehicleOwnershipModel>
     </longTermParams>
+
+    <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
+	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
+	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->
+	<script name="dps" file="dps.lua"/> <!-- Day Pattern Stops -->
+	<script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->
+	<script name="tmds" file="tmds.lua"/> <!--Tour Mode/Destination Shopping -->
+	<script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->                    
+    </model_scripts>
 </config>
 

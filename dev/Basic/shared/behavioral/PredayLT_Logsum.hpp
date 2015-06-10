@@ -19,7 +19,6 @@ namespace sim_mob
 class PredayLT_LogsumManager : boost::noncopyable
 {
 private:
-	typedef std::vector<PredayPersonParams*> PersonList;
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
 

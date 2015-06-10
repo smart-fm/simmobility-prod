@@ -29,19 +29,6 @@ public:
 	virtual ~PredayLogsumLuaModel();
 
 	/**
-	 * Computes logsums from day pattern binary model. These logsums will be passed to long-term
-	 *
-	 * @param personParams object containing person and household related variables. logsums will be updated in this object
-	 */
-	void computeDayPatternBinaryLogsums(PredayPersonParams& personParams) const;
-
-private:
-    /**
-     * Inherited from LuaModel
-     */
-    void mapClasses();
-
-	/**
 	 * Computes log sums for all tour types by invoking corresponding functions in tour mode-destination model
 	 *
 	 * @param personParams object containing person and household related variables. logsums will be updated in this object
@@ -55,5 +42,18 @@ private:
 	 * @param personParams object containing person and household related variables. logsums will be updated in this object
 	 */
 	void computeDayPatternLogsums(PredayPersonParams& personParams) const;
+
+	/**
+	 * Computes logsums from day pattern binary model. These logsums will be passed to long-term
+	 *
+	 * @param personParams object containing person and household related variables. logsums will be updated in this object
+	 */
+	void computeDayPatternBinaryLogsums(PredayPersonParams& personParams) const;
+
+private:
+    /**
+     * Inherited from LuaModel
+     */
+    void mapClasses();
 };
 }//end namespace sim_mob

@@ -198,6 +198,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	{
 		ProcessConstructsNode(GetSingleElementByName(rootNode,"constructs"));
 		ProcessLongTermParamsNode( GetSingleElementByName(rootNode, "longTermParams"));
+		ProcessModelScriptsNode(GetSingleElementByName(rootNode, "model_scripts"));
 		return;
 	}
 
@@ -1037,5 +1038,46 @@ void sim_mob::ParseConfigFile::ProcessIncidentsNode(xercesc::DOMElement* node)
 
 		cfg.incidents.push_back(incident);
 	}
+}
+
+void sim_mob::ParseConfigFile::ProcessModelScriptsNode(xercesc::DOMElement* node)
+{
+	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
+	if (format.empty() || format != "lua")
+	{
+		throw std::runtime_error("Unsupported script format");
+	}
+
+	std::string scriptsDirectoryPath = ParseString(GetNamedAttributeValue(node, "path"), "");
+	if (scriptsDirectoryPath.empty())
+	{
+		throw std::runtime_error("path to scripts is not provided");
+	}
+	if ((*scriptsDirectoryPath.rbegin()) != '/')
+	{
+		//add a / to the end of the path string if it is not already there
+		scriptsDirectoryPath.push_back('/');
+	}
+	ModelScriptsMap scriptsMap(scriptsDirectoryPath, format);
+	for (DOMElement* item = node->getFirstElementChild(); item; item = item->getNextElementSibling())
+	{
+		std::string name = TranscodeString(item->getNodeName());
+		if (name != "script")
+		{
+			Warn() << "Invalid db_proc_groups child node.\n";
+			continue;
+		}
+
+		std::string key = ParseString(GetNamedAttributeValue(item, "name"), "");
+		std::string val = ParseString(GetNamedAttributeValue(item, "file"), "");
+		if (key.empty() || val.empty())
+		{
+			Warn() << "Invalid script; missing \"name\" or \"file\".\n";
+			continue;
+		}
+
+		scriptsMap.addScriptFileName(key, val);
+	}
+	cfg.luaScriptsMap = scriptsMap;
 }
 

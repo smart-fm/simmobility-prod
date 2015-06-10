@@ -103,6 +103,7 @@ private:
 	//All entities are added to a "pending" list in the same manner.
 	void ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<sim_mob::EntityTemplate>& res, bool originReq=true, bool destReq=true, bool timeReq=true, bool laneReq=false);
 
+	void ProcessModelScriptsNode(xercesc::DOMElement* node);
 
 private:
 	//The config file we are currently loading

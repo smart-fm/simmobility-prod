@@ -35,7 +35,7 @@
 		</path_generators>
 	</privatePathSet>
 	
-	<publicPathSet enabled="true" mode="generation"> <!-- Currently mode supports normal generation  -->
+	<publicPathSet enabled="true" mode="normal"> <!-- Currently mode supports normal generation  -->
     	        <OD_source table="sample_od"/>  
                 <bulk_generation_output_file_name value="pt_pathset.csv" />
                 <public_transit_pathset_algo_config> 

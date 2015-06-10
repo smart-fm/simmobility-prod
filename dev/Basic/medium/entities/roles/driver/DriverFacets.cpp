@@ -54,7 +54,7 @@ namespace {
 /**
  * converts time from milli-seconds to seconds
  */
-inline double converToSeconds(uint32_t timeInMs) {
+inline double convertToSeconds(uint32_t timeInMs) {
 	return (timeInMs/1000.0);
 }
 
@@ -148,7 +148,9 @@ void sim_mob::medium::DriverMovement::frame_tick() {
 
 			params.elapsedSeconds = params.secondsInTick;
 			getParent()->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
+			getParent()->canMoveToNextSegment = Person::NONE;
 			setParentData(params);
+			return;
 		}
 	}
 	//if driver is still in lane infinity (currLane is null),
@@ -389,9 +391,10 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 						+ (0.01 * vehicle->length) / (nextRdSeg->getParentConflux()->getSegmentSpeed(nextRdSeg, true) ); // skip input capacity
 	}*/
 
-	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - converToSeconds(params.now.ms())); //in seconds
+	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - convertToSeconds(params.now.ms())); //in seconds
 
-	if (canGoToNextRdSeg(params, nxtSegStat)){
+	const Link* nextLink = getNextLinkForLaneChoice(nxtSegStat);
+	if (canGoToNextRdSeg(params, nxtSegStat, nextLink)){
 		if (isQueuing){
 			removeFromQueue();
 		}
@@ -400,7 +403,7 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 		currLane = laneInNextSegment;
 		pathMover.advanceInPath();
 		pathMover.setPositionInSegment(nxtSegStat->getLength());
-		double segExitTimeSec =  params.elapsedSeconds + (converToSeconds(params.now.ms()));
+		double segExitTimeSec =  params.elapsedSeconds + (convertToSeconds(params.now.ms()));
 		setLastAccept(currLane, segExitTimeSec, nxtSegStat);
 
 		if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
@@ -464,20 +467,20 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 	//Commenting out the delay from accept rate as per Yang Lu's suggestion (we use this delay only in setOrigin)
 	double departTime = getLastAccept(laneInNextSegment, nextSegStats) /*+ getAcceptRate(laneInNextSegment, nextSegStats)*/; //in seconds
 
-	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (converToSeconds(params.now.ms()))); //in seconds
+	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
 
-	if (canGoToNextRdSeg(params, nextSegStats)) {
+	const Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
+	if (canGoToNextRdSeg(params, nextSegStats, nextLink)) {
 		if (isQueuing){
 			removeFromQueue();
 		}
 
-		setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat)-1), currSegStat);
 		currLane = laneInNextSegment;
 		pathMover.advanceInPath();
 		pathMover.setPositionInSegment(nextSegStats->getLength());
 
 		//todo: consider supplying milliseconds to be consistent with short-term
-		double linkExitTimeSec =  params.elapsedSeconds + (converToSeconds(params.now.ms()));
+		double linkExitTimeSec =  params.elapsedSeconds + (convertToSeconds(params.now.ms()));
 		//set Link Travel time for previous link
 		const SegmentStats* prevSegStats = pathMover.getPrevSegStats(false);
 		if (prevSegStats) {
@@ -528,8 +531,8 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 	}
 }
 
-bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& params,
-		const sim_mob::SegmentStats* nextSegStats) {
+bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& params, const sim_mob::SegmentStats* nextSegStats, const Link* nextLink) const
+{
 	//return false if the Driver cannot be added during this time tick
 	if (params.elapsedSeconds >= params.secondsInTick) {
 		return false;
@@ -545,26 +548,32 @@ bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& param
 	double total = nextSegStats->getTotalVehicleLength();
 
 	//if the segment is shorter than the vehicle's length and there are no vehicles in the segment just allow the vehicle to pass through
-	//this segment should ideally be removed from the segment. this is just an interim arrangment.
-	//if this hack is not in place, all vehicles will start queuing in upsream segments forever.
+	//this is just an interim arrangement. this segment should either be removed from database or it's length must be updated.
+	//if this hack is not in place, all vehicles will start queuing in upstream segments forever.
 	//TODO: remove this hack and put permanent fix
 	if((maxAllowed < enteringVehicleLength) && (total <= 0)) { return true; }
-
-	return ((maxAllowed - total) >= enteringVehicleLength);
+	bool hasSpaceInNextStats = ((maxAllowed - total) >= enteringVehicleLength);
+	if(hasSpaceInNextStats && nextLink)
+	{
+		//additionally check if the length of vehicles in the lanegroup is not too long to accommodate this driver
+		double maxAllowedInLG = nextSegStats->getAllowedVehicleLengthForLaneGroup(nextLink);
+		double totalInLG = nextSegStats->getVehicleLengthForLaneGroup(nextLink);
+		return (totalInLG < maxAllowedInLG);
+	}
+	return hasSpaceInNextStats;
 }
 
 void DriverMovement::moveInQueue() {
 	//1.update position in queue (vehicle->setPosition(distInQueue))
 	//2.update p.timeThisTick
-	double positionOfLastUpdatedAgentInLane =
-			pathMover.getCurrSegStats()->getPositionOfLastUpdatedAgentInLane(currLane);
-
-	if(positionOfLastUpdatedAgentInLane == -1.0) {
+	double positionOfLastUpdatedAgentInLane = pathMover.getCurrSegStats()->getPositionOfLastUpdatedAgentInLane(currLane);
+	if(positionOfLastUpdatedAgentInLane == -1.0)
+	{
 		pathMover.setPositionInSegment(0.0);
 	}
-	else {
-		pathMover.setPositionInSegment(positionOfLastUpdatedAgentInLane
-				+ parentDriver->getResource()->getLengthCm());
+	else
+	{
+		pathMover.setPositionInSegment(positionOfLastUpdatedAgentInLane	/*+ parentDriver->getResource()->getLengthCm()*/);
 	}
 }
 
@@ -603,8 +612,8 @@ bool DriverMovement::advanceQueuingVehicle(sim_mob::medium::DriverUpdateParams& 
 	//its purpose was not clear to anyone.~Harish
 	finalTimeSpent = initialTimeSpent + initialDistToSegEnd/(PASSENGER_CAR_UNIT*outRate);
 
-	if (output > 0 && finalTimeSpent < params.secondsInTick &&
-			pathMover.getCurrSegStats()->getPositionOfLastUpdatedAgentInLane(currLane) == -1)
+	if (output > 0 && finalTimeSpent < params.secondsInTick
+			&& pathMover.getCurrSegStats()->getPositionOfLastUpdatedAgentInLane(currLane) == -1)
 	{
 		res = moveToNextSegment(params);
 		finalDistToSegEnd = pathMover.getPositionInSegment();
@@ -806,7 +815,7 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
 
 	const Lane* laneInNextSegment = getBestTargetLane(currSegStats, nextSegStats);
 
-	//this will space out the drivers on the same lane, by seperating them by the time taken for the previous car to move a car's length
+	//this will space out the drivers on the same lane, by separating them by the time taken for the previous car to move a car's length
 	double departTime = getLastAccept(laneInNextSegment, currSegStats) + getAcceptRate(laneInNextSegment, currSegStats); //in seconds
 
 	/*//skip acceptance capacity if there's no queue - this is done in DynaMIT
@@ -815,9 +824,10 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
 						+ (0.01 * vehicle->length) / (getCurrSegment()->getParentConflux()->getSegmentSpeed(getCurrSegment(), true) ); // skip input capacity
 	}*/
 
-	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (converToSeconds(params.now.ms())));	//in seconds
+	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms())));	//in seconds
 
-	if(canGoToNextRdSeg(params, currSegStats))
+	const Link* nextLink = getNextLinkForLaneChoice(currSegStats);
+	if(canGoToNextRdSeg(params, currSegStats, nextLink))
 	{
 		//set position to start
 		if(currSegStats)
@@ -825,7 +835,7 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
 			pathMover.setPositionInSegment(currSegStats->getLength());
 		}
 		currLane = laneInNextSegment;
-		double actualT = params.elapsedSeconds + (converToSeconds(params.now.ms()));
+		double actualT = params.elapsedSeconds + (convertToSeconds(params.now.ms()));
 		getParent()->initLinkTravelStats(currSegStats->getRoadSegment()->getLink(), actualT);
 
 		setLastAccept(currLane, actualT, currSegStats);
@@ -889,32 +899,35 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextS
 	const sim_mob::Lane* minLane = nullptr;
 	double minQueueLength = std::numeric_limits<double>::max();
 	double minLength = std::numeric_limits<double>::max();
-	double que = 0.0;
-	double total = 0.0;
+	double queueLength = 0.0;
+	double totalLength = 0.0;
 
+	const sim_mob::Link* nextLink = getNextLinkForLaneChoice(nextSegStats);
 	const std::vector<sim_mob::Lane*>& lanes = nextSegStats->getRoadSegment()->getLanes();
 	for (vector<sim_mob::Lane* >::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
 	{
 		const Lane* lane = *lnIt;
 		if (!lane->is_pedestrian_lane() && !lane->is_whole_day_bus_lane())
 		{
-			if(!laneConnectorOverride && nextToNextSegStats && !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())) { continue; }
-			total = nextSegStats->getLaneTotalVehicleLength(lane);
-			que = nextSegStats->getLaneQueueLength(lane);
-			if (minLength > total)
-			{
-				//if total length of vehicles is less than current minLength
-				minLength = total;
-				minQueueLength = que;
+			if(!laneConnectorOverride
+					&& nextToNextSegStats
+					&& !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())
+					&& nextLink
+					&& !nextSegStats->isConnectedToDownstreamLink(nextLink, lane))
+			{ continue; }
+			totalLength = nextSegStats->getLaneTotalVehicleLength(lane);
+			queueLength = nextSegStats->getLaneQueueLength(lane);
+			if (minLength > totalLength)
+			{	//if total length of vehicles is less than current minLength
+				minLength = totalLength;
+				minQueueLength = queueLength;
 				minLane = lane;
 			}
-			else if (minLength == total)
-			{
-				//if total length of vehicles is equal to current minLength
-				if (minQueueLength > que)
-				{
-					//and if the queue length is less than current minQueueLength
-					minQueueLength = que;
+			else if (minLength == totalLength)
+			{	//if total length of vehicles is equal to current minLength
+				if (minQueueLength > queueLength)
+				{	//and if the queue length is less than current minQueueLength
+					minQueueLength = queueLength;
 					minLane = lane;
 				}
 			}
@@ -930,6 +943,12 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextS
 		out << "best target lane was not set!" << "\nCurrent Segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getSegmentAimsunId() <<
 				" =>" << nextSegStats->getRoadSegment()->getSegmentAimsunId() <<
 				" =>" <<  nextToNextSegStats->getRoadSegment()->getSegmentAimsunId()  << std::endl;
+		out << "firstSegInNextLink:" <<  (nextLink? nextLink->getSegments().front()->getSegmentAimsunId() : 0)
+				<< "|NextLink: " << (nextLink? nextLink->getLinkId() : 0)
+				<< "|downstreamLinks of " << nextSegStats->getRoadSegment()->getSegmentAimsunId() << std::endl;
+
+		Print() << out.str();
+		nextSegStats->printDownstreamLinks();
 		throw std::runtime_error(out.str());
 	}
 	return minLane;
@@ -1032,7 +1051,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const sim_mob::RoadSegmen
 {
 	//	the following conditions should hold in order to process CBD data
 	TravelMetric::CDB_TraverseType type = travelMetric.cbdTraverseType;
-	bool proceed = (nextRS && !pathMover.isPathCompleted() && (type == TravelMetric::CBD_ENTER || type == TravelMetric::CBD_EXIT));
+	bool proceed = (nextRS && !pathMover.isPathCompleted());
 	if(!proceed)
 	{
 		return	travelMetric;
@@ -1053,7 +1072,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const sim_mob::RoadSegmen
 	{
 	case TravelMetric::CBD_ENTER:{
 		//search if you are about to enter CBD (we assume the trip started outside cbd and  is going to end inside cbd)
-		if(cbd.isEnteringRestrictedZone(completedRS,nextRS) && travelMetric.cbdEntered.check())
+		if(!cbd.isInRestrictedSegmentZone(completedRS)&&cbd.isInRestrictedSegmentZone(nextRS) && travelMetric.cbdEntered.check())
 		{
 			out << getParent()->getId() << "onSegmentCompleted Enter CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
 			travelMetric.cbdOrigin = sim_mob::WayPoint(completedRS->getEnd());
@@ -1063,7 +1082,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const sim_mob::RoadSegmen
 	}
 	case TravelMetric::CBD_EXIT:{
 		//search if you are about to exit CBD(we assume the trip started inside cbd and is going to end outside cbd)
-		if(cbd.isExittingRestrictedZone(completedRS,nextRS) && travelMetric.cbdExitted.check())
+		if(cbd.isInRestrictedSegmentZone(completedRS)&&!cbd.isInRestrictedSegmentZone(nextRS) && travelMetric.cbdExitted.check())
 		{
 			out << getParent()->getId() << "onSegmentCompleted exit CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
 			travelMetric.cbdDestination = sim_mob::WayPoint(completedRS->getEnd());
@@ -1071,6 +1090,22 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const sim_mob::RoadSegmen
 			travelMetric.cbdTravelTime = sim_mob::TravelMetric::getTimeDiffHours(travelMetric.cbdEndTime , travelMetric.cbdStartTime);
 		}
 		break;
+	case TravelMetric::CBD_PASS:{
+		if(!cbd.isInRestrictedSegmentZone(completedRS)&&cbd.isInRestrictedSegmentZone(nextRS) && travelMetric.cbdEntered.check())
+		{
+			out << getParent()->getId() << "onSegmentCompleted Pass Enter CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
+			travelMetric.cbdOrigin = sim_mob::WayPoint(completedRS->getEnd());
+			travelMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+		}
+		if(cbd.isInRestrictedSegmentZone(completedRS)&&!cbd.isInRestrictedSegmentZone(nextRS))
+		{
+			out << getParent()->getId() << "onSegmentCompleted Pass exit CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
+			travelMetric.cbdDestination = sim_mob::WayPoint(completedRS->getEnd());
+			travelMetric.cbdEndTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+			travelMetric.cbdTravelTime = sim_mob::TravelMetric::getTimeDiffHours(travelMetric.cbdEndTime , travelMetric.cbdStartTime);
+		}
+		break;
+	}
 	}
 	};
 //		std::cout << out.str() ;
@@ -1351,5 +1386,15 @@ void DriverMovement::handleMessage(messaging::Message::MessageType type, const m
 	}
 }
 
+const sim_mob::Link* DriverMovement::getNextLinkForLaneChoice(const SegmentStats* nextSegStats) const
+{
+	const sim_mob::Link* nextLink = nullptr;
+	const sim_mob::SegmentStats* firstStatsInNextLink = pathMover.getFirstSegStatsInNextLink(nextSegStats);
+	if(firstStatsInNextLink) { nextLink = firstStatsInNextLink->getRoadSegment()->getLink(); }
+	return nextLink;
+}
+
 } /* namespace medium */
 } /* namespace sim_mob */
+
+

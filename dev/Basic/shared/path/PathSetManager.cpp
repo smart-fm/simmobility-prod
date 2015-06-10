@@ -291,13 +291,12 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::SubTrip &subTri
 		// case-1: Both O and D are outside CBD
 		if (to == false && from == false)
 		{
-			subTrip.cbdTraverseType = TravelMetric::CBD_PASS;
 			str << "[BLCKLST]";
 			std::stringstream outDbg("");
 			getBestPath(res, subTrip, true, std::set<const sim_mob::RoadSegment*>(), false, true, enRoute, approach);//use/enforce blacklist
 			if (sim_mob::RestrictedRegion::getInstance().isInRestrictedSegmentZone(res))
 			{
-				throw std::runtime_error("\npath inside cbd ");
+				subTrip.cbdTraverseType = TravelMetric::CBD_PASS;
 			}
 		}
 		else

@@ -48,15 +48,16 @@ class OD_Trip {
 public:
 	  std::string startStop;
 	  std::string endStop;
-	  std::string sType;
-	  std::string eType;
+	  int sType;
+	  int eType;
 	  std::string tType;
 	  std::string serviceLines;
-	  int OD_Id;
-	  int legId;
+	  std::string pathset;
+	  int id;
 	  std::string originNode;
 	  std::string destNode;
 	  double travelTime;
+	  double walkTime;
 };
 
 class MatchesOD_Trip {

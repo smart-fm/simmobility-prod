@@ -202,8 +202,6 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	BoostSaveXML(cfg.networkXmlOutputFile(), cfg.getNetworkRW());
 	//Detect sidewalks in the middle of the road.
 	WarnMidroadSidewalks();
- 	//Generate lanes, before StreetDirectory::init()
- 	RoadNetwork::ForceGenerateAllLaneEdgePolylines(cfg.getNetworkRW());
 
     //Seal the network; no more changes can be made after this.
  	cfg.sealNetwork();

@@ -36,6 +36,10 @@ class ERP_Section;
 class ERP_Surcharge;
 class LinkTravelTime;
 class PT_PathSet;
+class TurningSection;
+class TurningConflict;
+class TurningPolyline;
+class Polypoint;
 
 
 enum HasPath
@@ -73,7 +77,7 @@ public:
 	///Returns false if an exception was thrown or if something else unexpected occurred
 	//  (e.g., Node ID reference that doesn't exist).
 	static void LoadNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof);
-    static void loadSegNodeType(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn);
+	static void loadSegNodeType(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn);
 	static bool LoadPathSetDataWithId(const std::string& connectionStr,
 			std::map<std::string,sim_mob::SinglePath*>& pathPool,
 			std::map<std::string,SinglePath*> &waypoint_singlepathPool,
@@ -83,6 +87,7 @@ public:
 //			std::stringstream *outDbg=0,
 			const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
 	static void LoadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet);
+	static void LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet);
 	static void LoadERPData(const std::string& connectionStr,
 			std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > &erp_surcharge_pool,
 			std::map<std::string,sim_mob::ERP_Gantry_Zone*>& erp_gantry_zone_pool,
@@ -131,6 +136,12 @@ public:
 	 * @param splitSegmentStats vector of SegmentStats* to be filled up
 	 */
 	static void CreateSegmentStats(const sim_mob::RoadSegment* rdSeg, std::list<sim_mob::SegmentStats*>& splitSegmentStats);
+
+	/**
+	 * Creates lane groups for every SegmentStats in each link.
+	 * Lane groups are elicited based on the lane connections (turnings) of the last segment of the link.
+	 */
+	static void CreateLaneGroups();
 };
 
 }

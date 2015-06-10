@@ -141,6 +141,10 @@ public:
 	sim_mob::DailyTime endTime;
 	int requestTime;
 	std::string travelMode;
+	std::string startLocationId;
+	std::string endLocationId;
+	std::string startLocationType;
+	std::string endLocationType;
 
 	//Get/set personID. Please make sure not to set the personID to an Integer!
 	std::string getPersonID() const;
@@ -265,6 +269,9 @@ public:
 	mutable sim_mob::TravelMetric::CDB_TraverseType cbdTraverseType;
 	const std::string getMode() const ;
 	const std::string getBusLineID() const;
+
+	bool isPT_Walk;
+	double walkTime;
 
 };
 

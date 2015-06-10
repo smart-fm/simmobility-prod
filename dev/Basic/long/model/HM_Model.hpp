@@ -14,6 +14,11 @@
 #include "database/entity/Awakening.hpp"
 #include "database/entity/VehicleOwnershipCoefficients.hpp"
 #include "database/entity/TaxiAccessCoefficients.hpp"
+#include "database/entity/HousingInterestRate.hpp"
+#include "database/entity/Postcode.hpp"
+#include "database/entity/Establishment.hpp"
+#include "database/entity/Job.hpp"
+#include "database/entity/LogSumVehicleOwnership.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -36,12 +41,31 @@ namespace sim_mob
             typedef std::vector<Individual*> IndividualList;
             typedef boost::unordered_map<BigSerial, Individual*> IndividualMap;
 
+            typedef std::vector<Postcode*> PostcodeList;
+            typedef boost::unordered_map<BigSerial, Postcode*> PostcodeMap;
+
             typedef std::vector<Awakening*> AwakeningList;
             typedef boost::unordered_map<BigSerial, Awakening*> AwakeningMap;
+
             typedef std::vector<VehicleOwnershipCoefficients*> VehicleOwnershipCoeffList;
             typedef boost::unordered_map<BigSerial, VehicleOwnershipCoefficients*> VehicleOwnershipCoeffMap;
+
             typedef std::vector<TaxiAccessCoefficients*> TaxiAccessCoeffList;
             typedef boost::unordered_map<BigSerial, TaxiAccessCoefficients*> TaxiAccessCoeffMap;
+
+            typedef std::vector<Establishment*> EstablishmentList;
+            typedef boost::unordered_map<BigSerial, Establishment*> EstablishmentMap;
+
+            typedef std::vector<Job*> JobList;
+            typedef boost::unordered_map<BigSerial, Job*> JobMap;
+
+            typedef std::vector<HousingInterestRate*> HousingInterestRateList;
+            typedef boost::unordered_map<BigSerial, HousingInterestRate*> HousingInterestRateMap;
+
+            typedef std::vector<LogSumVehicleOwnership*> VehicleOwnershipLogsumList;
+            typedef boost::unordered_map<BigSerial, LogSumVehicleOwnership*> VehicleOwnershipLogsumMap;
+
+
             /**
              * Taz statistics
              */
@@ -85,6 +109,7 @@ namespace sim_mob
             Household* getHouseholdById( BigSerial id) const;
 			Individual* getIndividualById( BigSerial id) const;
             Awakening* getAwakeningById( BigSerial id) const;
+            Postcode* getPostcodeById(BigSerial id) const;
 
             void hdbEligibilityTest(int );
             void unitsFiltering();
@@ -94,6 +119,8 @@ namespace sim_mob
             HousingMarket* getMarket();
 
             HouseholdList* getHouseholdList();
+
+            HousingInterestRateList* getHousingInterestRateList();
 
             void incrementBidders();
             void decrementBidders();
@@ -111,6 +138,8 @@ namespace sim_mob
             TaxiAccessCoefficients* getTaxiAccessCoeffsById( BigSerial id) const;
             void addUnit(Unit* unit);
             std::vector<BigSerial> getRealEstateAgentIds();
+            VehicleOwnershipLogsumList getVehicleOwnershipLosums()const;
+            LogSumVehicleOwnership* getVehicleOwnershipLogsumsById( BigSerial id) const;
 
 
         protected:
@@ -136,6 +165,18 @@ namespace sim_mob
             IndividualList individuals;
             IndividualMap individualsById;
 
+            PostcodeList postcodes;
+            PostcodeMap postcodesById;
+
+            EstablishmentList establishments;
+            EstablishmentMap establishmentsById;
+
+            HousingInterestRateList housingInterestRates;
+            HousingInterestRateMap housingInterestRatesById;
+
+            JobList jobs;
+            JobMap jobsById;
+
             boost::unordered_map<BigSerial, BigSerial> assignedUnits;
             VehicleOwnershipCoeffList vehicleOwnershipCoeffs;
             VehicleOwnershipCoeffMap vehicleOwnershipCoeffsById;
@@ -144,6 +185,8 @@ namespace sim_mob
             AwakeningList awakening;
             AwakeningMap awakeningById;
             HouseholdStatistics household_stats;
+            VehicleOwnershipLogsumList vehicleOwnershipLogsums;
+            VehicleOwnershipLogsumMap vehicleOwnershipLogsumById;
 
             int	initialHHAwakeningCounter;
             int numberOfBidders;

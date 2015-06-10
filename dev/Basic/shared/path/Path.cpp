@@ -493,11 +493,12 @@ sim_mob::PT_Path::PT_Path (const std::vector<PT_NetworkEdge> &path) : pathEdges(
 	           	totalNumberOfTransfers++;
 		}
 	}
+		
+	totalCost=this->getTotalCostByDistance(totalBusMRTTravelDistance);
 	if(totalNumberOfTransfers > 0)
 	{
 		totalNumberOfTransfers = totalNumberOfTransfers -1;
 	}
-	totalCost=this->getTotalCostByDistance(totalBusMRTTravelDistance);
 }
 void sim_mob::PT_Path::updatePathEdges()
 {

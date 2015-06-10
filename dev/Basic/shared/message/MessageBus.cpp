@@ -118,16 +118,16 @@ namespace {
         }
     };
 
-    struct CompareTriggeredTime {
+    struct CompareTriggerTime {
 
     	bool operator()(const MessageEntry& t1, const MessageEntry& t2) const {
-            return (t1.triggerTime < t2.triggerTime);
+            return (t1.triggerTime > t2.triggerTime);
         }
     };
 
     typedef priority_queue<MessageEntry, std::deque<MessageEntry>, ComparePriority> MessageQueue;
 
-    typedef priority_queue<MessageEntry, std::deque<MessageEntry>, CompareTriggeredTime> TimebasedMessageQueue;
+    typedef priority_queue<MessageEntry, std::deque<MessageEntry>, CompareTriggerTime> TimebasedMessageQueue;
 
     /**
      * Represents a thread context.
@@ -143,7 +143,7 @@ namespace {
         : eventPublisher(nullptr),
         input(ComparePriority()),
         output(ComparePriority()),
-        futureEventList(CompareTriggeredTime()),
+        futureEventList(CompareTriggerTime()),
         main(false),
         receivedMessages(0),
         processedMessages(0),
@@ -417,7 +417,7 @@ void MessageBus::UnRegisterHandler(MessageHandler* handler) {
         if (context == handler->context || context->main) {
             handler->context = nullptr;
         } else {
-            throw runtime_error("MessageBus - To unregister the handler it is necessary to use the registered thread context.");
+ //           throw runtime_error("MessageBus - To unregister the handler it is necessary to use the registered thread context.");
         }
     }
 }
@@ -540,6 +540,7 @@ void MessageBus::PostMessage(MessageHandler* destination, Message::MessageType t
 			} else {
 				entry.triggerTime = currentTime + timeOffset;
 				context->futureEventList.push(entry);
+
 			}
         }
     }

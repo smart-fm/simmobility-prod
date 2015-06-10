@@ -84,7 +84,12 @@ int PT_Network::getVertexTypeFromStopId(std::string stopId)
 }
 
 MRT_Stop* PT_Network::findMRT_Stop(const std::string& stopId){
-	return &MRTStopsMap[stopId];
+	if(MRTStopsMap.find(stopId) != MRTStopsMap.end()){
+		return &MRTStopsMap[stopId];
+	}
+	else {
+		return nullptr;
+	}
 }
 
 

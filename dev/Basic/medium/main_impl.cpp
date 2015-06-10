@@ -296,6 +296,9 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		PathSetManager::getInstance()->storeRTT();
 	}
+	if(config.publicTransitEnabled){
+		sim_mob::PT_RouteChoiceLuaModel::Instance()->StoreBestPT_Path();
+	}
 	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;
 	cout << "Max Agents at any given time: " <<maxAgents <<endl;
 	cout << "Starting Agents: " << numStartAgents

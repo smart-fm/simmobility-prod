@@ -347,6 +347,7 @@ public:
 
 	std::set<PT_Path,cmp_path_vector> pathSet;
 	void computeAndSetPathSize();
+	void checkPathFeasibilty();
 };
 
 

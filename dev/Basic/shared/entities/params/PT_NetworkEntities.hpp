@@ -280,7 +280,7 @@ public:
 	//~PT_Network();
 
 	std::map<int,PT_NetworkEdge> PT_NetworkEdgeMap;
-	std::map<std::string,PT_NetworkVertex> PublicTransitVertexMap;
+	std::map<std::string,PT_NetworkVertex> PT_NetworkVertexMap;
 	std::map<std::string,MRT_Stop> MRTStopsMap;
 
 	void init();

@@ -103,6 +103,10 @@ PT_PathSet PT_PathSetManager::makePathset(sim_mob::Node* from,sim_mob::Node* to)
 	//Simulation approach
 	getSimulationApproachPaths(fromId,toId,ptPathSet);
 	ptPathSet.computeAndSetPathSize();
+
+	// Checking the feasibility of the paths in the pathset.
+	// Infeasible paths are removed.
+	ptPathSet.checkPathFeasibilty();
 	// Writing the pathSet to the CSV file.
 
 	writePathSetToFile(ptPathSet,from->nodeId,to->nodeId);

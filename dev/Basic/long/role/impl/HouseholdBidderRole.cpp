@@ -28,6 +28,8 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
+#include <random>
+
 using std::list;
 using std::endl;
 using namespace sim_mob::long_term;
@@ -164,7 +166,7 @@ void HouseholdBidderRole::ComputeHouseholdAffordability()
 
 	//Household affordability formula based on excel PV function:
 	//https://support.office.com/en-ca/article/PV-function-3d25f140-634f-4974-b13b-5249ff823415
-	householdAffordabilityAmount = income / interestRate *  ( 1 - pow( 1 + interestRate, -loanTenure ) );
+	householdAffordabilityAmount = income / interestRate *  ( 1.0 - pow( 1 + interestRate, loanTenure ) );
 
 	//PrintOutV( "Interest rate: " << interestRate << ". Household affordability: " << householdAffordabilityAmount << std::endl);
 }
@@ -347,6 +349,159 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
     return false;
 }
 
+double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Household* household)
+{
+	double V;
+
+	//
+	//These constants are extracted from Roberto Ponce's bidding model
+	//
+	const double mu			=  1.086;
+	const double bpriv		=  1.053;
+	const double bhdb123	=  0.195;
+	const double bhdb4		= -0.764;
+	const double bhdb5		= -1.553;
+	const double bs1a		=  2.956;
+	const double bs2a		=  3.206;
+	const double bs3a		=  3.475;
+	const double blogsum	=  0.288;
+	const double bchin		= -0.184;
+	const double bmalay		= -0.307;
+	const double bindian	=  0.145;
+	const double bzzinc		=  0.027;
+	const double bzsize		= -0.279;
+
+
+	const PostcodeAmenities* pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( unit->getSlaAddressId() );
+
+	double DD_priv		= 0;
+	double HDB123 		= 0;
+	double HDB4			= 0;
+	double HDB5			= 0;
+	double HH_size1		= 0;
+	double HH_size2		= 0;
+	double HH_size3m	= 0;
+	double DD_area		= 0;
+	double ZZ_logsumhh	= 0;
+	double ZZ_hhchinese = 0;
+	double ZZ_hhmalay	= 0;
+	double ZZ_hhindian	= 0;
+	double ZZ_hhinc		= 0;
+	double ZZ_hhsize	= 0;
+
+	int unitType = unit->getUnitType();
+
+	if( unitType == 1 || unitType == 2 || unitType == 3 )
+		HDB123 = 1;
+
+	if( unitType == 4 )
+		HDB4 = 1;
+
+	if( unitType == 5 )
+		HDB5 = 1;
+
+	if( unitType > 6 )
+		DD_priv = 1;
+
+
+	ZZ_hhsize = household->getSize();
+
+	if( ZZ_hhsize == 1)
+		HH_size1 = 1;
+	else
+	if( ZZ_hhsize == 2)
+		HH_size2 = 1;
+	else
+		HH_size3m = 1;
+
+
+	DD_area = unit->getFloorArea() / 100;
+
+	std::default_random_engine generator;
+	std::normal_distribution<double> householdLogSum( 2.038024, 0.5443059);
+
+	ZZ_logsumhh = householdLogSum(generator); //chetan TODO: get the household logsum
+
+	BigSerial ethnicity = household->getEthnicityId();
+
+	const BigSerial CHINESE	= 1;
+	const BigSerial MALAY 	= 2;
+	const BigSerial INDIAN 	= 3;
+	const BigSerial OTHERS 	= 4;
+
+	if( ethnicity == CHINESE )
+		ZZ_hhchinese = 1;
+
+	if( ethnicity == MALAY )
+		ZZ_hhmalay = 1;
+
+	if( ethnicity == INDIAN )
+		ZZ_hhindian = 1;
+
+	ZZ_hhchinese = bchin * ZZ_hhchinese;
+	ZZ_hhmalay 	 = bmalay * ZZ_hhmalay;
+	ZZ_hhindian  = bindian * ZZ_hhindian;
+
+	double av_income = 0;
+
+	//if( household->getIncome() >= av_income * 0.33 && household->getIncome() <= av_income * 1.33 )
+	ZZ_hhinc = 1; //Chetan TODO: Find the average income by taz
+
+	V = bpriv * DD_priv +
+		bhdb123 * HDB123 +
+		bhdb4 * HDB4 +
+		bhdb5 * HDB5 +
+		bs1a * HH_size1 *  DD_area +
+		bs2a * HH_size2 *  DD_area +
+		bs3a * HH_size3m * DD_area +
+		blogsum * ZZ_logsumhh +
+		bchin * ZZ_hhchinese +
+		bmalay * ZZ_hhmalay +
+		bindian * ZZ_hhindian +
+		bzzinc * ZZ_hhinc +
+		bzsize * ZZ_hhsize;
+
+	std::default_random_engine generator2;
+	std::normal_distribution<double> error( 0, mu);
+
+	double wtp_e = error(generator2);
+
+	return V + wtp_e;
+}
+
+
+
+
+double HouseholdBidderRole::calculateSurplus(double price, double min, double max)
+{
+	double scale1	 = 489.706;
+	double scale2	 = 348.322;
+	double location1 = -91.247;
+	double location2 = -20.547;
+
+	price = std::min(price, 0.0 );
+	price = std::max(price, 1.0 );
+
+	double fx    = 1 / (1 + exp(-( price - location1 ) / scale1 ) );
+	double fxmin = 1 / (1 + exp(-( min - location1 ) / scale1 ) );
+	double fxmax = 1 / (1 + exp(-( max - location1 ) / scale1 ) );
+
+	fx = fx - fxmin;
+	fx = fx/fxmax - fxmin;
+
+	double density    = 1 / scale1 * exp( ( price - location1 ) / scale1 ) * pow( ( 1.0 + exp( ( price - location1 ) / scale1 ) ), -2.0 );
+	double densitymax = 1 / scale1 * exp( ( min   - location1 ) / scale1 ) * pow( ( 1.0 + exp( ( min   - location1 ) / scale1 ) ), -2.0 );
+	double densitymin = 1 / scale1 * exp( ( max   - location1 ) / scale1 ) * pow( ( 1.0 + exp( ( max   - location1 ) / scale1 ) ), -2.0 );
+
+	density = density - densitymin;
+	density = -(density/densitymax - densitymin);
+
+	double surplus = fx / std::max(density, 0.00001);
+
+	return -surplus;
+}
+
+
 bool HouseholdBidderRole::pickEntryToBid()
 {
     const Household* household = getParent()->getHousehold();
@@ -382,7 +537,6 @@ bool HouseholdBidderRole::pickEntryToBid()
     	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
         const HousingMarket::Entry* entry = *itr;
 
-
         if(entry && entry->getOwner() != getParent())
         {
             const Unit* unit = model->getUnitById(entry->getUnitId());
@@ -402,20 +556,36 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             if ( unit && stats && flatEligibility )
             {
-                double wp = luaModel.calulateWP(*household, *unit, *stats);
+                double wp_old = luaModel.calulateWP(*household, *unit, *stats);
+            	double wp = calculateWillingnessToPay(unit, household);
 
-                if( wp > householdAffordabilityAmount )
+            	//PrintOutV("old wp: " << wp_old << " new wp: " << wp << std::endl);
+
+            	if( wp > householdAffordabilityAmount )
                 {
                 	householdAffordabilityAmount = std::min(0.0f, householdAffordabilityAmount);
                 	wp = householdAffordabilityAmount;
                 }
 
+            	//PrintOutV("wp: " << wp <<  " ap: " << entry->getAskingPrice() << std::endl);
 
-                if (wp >= entry->getAskingPrice() && (wp - entry->getAskingPrice()) > maxWP)
+            	double surplus = calculateSurplus( wp / entry->getAskingPrice(), 0.0, 2.1 );
+
+            	if( wp >= entry->getAskingPrice() && surplus > maxWP )
+            	{
+            		maxWP = surplus;
+            		maxEntry = entry;
+            	}
+
+            	//PrintOutV("surplus: " << surplus << std::endl);
+
+            	/*
+                if(wp >= entry->getAskingPrice() && (wp - entry->getAskingPrice()) > maxWP)
                 {
                     maxWP = wp;
                     maxEntry = entry;
                 }
+                */
             }
         }
     }

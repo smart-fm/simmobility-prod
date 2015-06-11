@@ -395,6 +395,7 @@ void sim_mob::DriverMovement::frame_tick()
 	parentDriver->latVelocity_.set(parentDriver->vehicle->getLatVelocity());
 	parentDriver->fwdAccel_.set(parentDriver->vehicle->getAcceleration());
 	parentDriver->turningDirection_.set(parentDriver->vehicle->getTurningDirection());
+	parentDriver->distToCurrSegmentEnd_.set(fwdDriverMovement.getDisToCurrSegEnd()); 
 	
 	//Update your perceptions
 	parentDriver->perceivedFwdVel->delay(parentDriver->vehicle->getVelocity());
@@ -462,10 +463,11 @@ bool sim_mob::DriverMovement::findEmptySpaceAhead()
 					if (parentDriver != nearbyDriver && nearbyDriver->isVehicleInLoadingQueue == false &&
 							driverUpdateParams.currLane == nearbyDriversParams.currLane)
 					{
-						DriverMovement *nearbyDriverMovement = dynamic_cast<DriverMovement *>(nearbyDriver->Movement());
+						DriverMovement *nearbyDriverMovement = dynamic_cast<DriverMovement *>(nearbyDriver->Movement());											
 
 						//Get the gap to the nearby driver (in cm)
-						double availableGapInCM = fwdDriverMovement.getDisToCurrSegEnd() - nearbyDriverMovement->fwdDriverMovement.getDisToCurrSegEnd();
+						//double availableGapInCM = fwdDriverMovement.getDisToCurrSegEnd() - nearbyDriverMovement->fwdDriverMovement.getDisToCurrSegEnd();
+						double availableGapInCM = parentDriver->distToCurrSegmentEnd_.get() - nearbyDriver->distToCurrSegmentEnd_.get();
 
 						//The gap between current driver and the one in front (or the one coming from behind) should be greater than
 						//length(in cm) + (headway(in s) * initial speed(in cm/s))
@@ -485,7 +487,7 @@ bool sim_mob::DriverMovement::findEmptySpaceAhead()
 							requiredGapInCM = (2 * nearbyDriver->vehicle->getLengthCm())+ (mitsim_cf_model->hBufferUpper)* (nearbyDriversParams.currSpeed * 100);
 
 							//In case a driver is approaching from the rear, we need to reduce the reaction time, so that he/she
-							//is aware of the presence of the car apprearing in front.
+							//is aware of the presence of the car appearing in front.
 							//But we need only the closest one
 							if(driverApproachingFromRear.second > availableGapInCM)
 							{

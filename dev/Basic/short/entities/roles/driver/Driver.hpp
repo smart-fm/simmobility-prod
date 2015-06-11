@@ -119,6 +119,9 @@ class UnPackageUtils;
     //Represents the distance to be covered in order to reach the approaching intersection (in metre)
     Shared<double> distToIntersection_;
     
+    //Represents the distance to be covered in order to reach the end of the current segment (in centimetre)
+    Shared<double> distToCurrSegmentEnd_;
+    
     //Represents the distance covered on the current road segment (in centimetre)
     Shared<double> currLaneOffset_;
     

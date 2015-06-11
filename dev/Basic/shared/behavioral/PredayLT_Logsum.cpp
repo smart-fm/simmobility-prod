@@ -186,8 +186,13 @@ double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int hom
 	PredayPersonParams personParams;
 	ltPopulationDao.getOneById(individualId, personParams);
 	if(personParams.getPersonId().empty()) { throw std::runtime_error("individual could not be fetched from LT db"); }
-	personParams.setHomeLocation(homeLocation);
-	personParams.setFixedWorkLocation(workLocation);
+
+	if(homeLocation > 0) { personParams.setHomeLocation(homeLocation); }
+	if(workLocation > 0)
+	{
+		personParams.setHasWorkplace(true);
+		personParams.setFixedWorkLocation(workLocation);
+	}
 
 	LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
 	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());

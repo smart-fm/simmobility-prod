@@ -582,7 +582,7 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 	// Check 3 : Doesn't walk back to any simMobility node from bus stop/ MRT station in the middle of the path
 	// Check 4 : Total number of bus legs <= 4
 	std::set<PT_Path>::iterator itPathComp =pathSet.begin();
-	std::string pathsetId =  itPathComp->getPtPathId();
+	std::string pathId =  itPathComp->getPtPathId();
 	bool incrementFlag;
 	while(itPathComp!=pathSet.end())
 	{
@@ -654,7 +654,7 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 	}
 	if(pathSet.empty())
 	{
-		std::cout << pathsetId << " has not left with any path after feasibility check"<< std::endl;
+		std::cout << pathId << " has not left with any path after feasibility check"<< std::endl;
 	}
 
 }

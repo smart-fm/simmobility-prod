@@ -972,18 +972,20 @@ void DriverMovement::updateLinkTravelTimes(const sim_mob::SegmentStats* prevSegS
 	getParent()->initLinkTravelStats(pathMover.getCurrSegStats()->getRoadSegment()->getLink(), linkExitTimeSec);
 }
 
-void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat, double segEnterExitTime){
+void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat, double segEnterExitTime) {
 	//if prevSeg is already in travelStats, update it's rdSegTT and add to rdSegTravelStatsMap
 	const RoadSegment* prevSeg= prevSegStat->getRoadSegment();
 	sim_mob::Person *parent = getParent();
-	if(prevSeg == parent->getCurrRdSegTravelStats().rs){
+	if(prevSeg == parent->getCurrRdSegTravelStats().rs) {
 		const sim_mob::TripChainItem* tripChain = *(parent->currTripChainItem);
 		const std::string& travelMode = tripChain->getMode();
 
 		sim_mob::Agent::RdSegTravelStat & currStats = parent->finalizeCurrRdSegTravelStat(prevSeg,segEnterExitTime, travelMode);
 
 		if(ConfigManager::GetInstance().FullConfig().PathSetMode())
+		{
 			PathSetManager::getInstance()->addSegTT(currStats);
+		}
 
 		ScreenLineCounter::getInstance()->updateScreenLineCount(currStats);
 	}

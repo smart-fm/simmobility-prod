@@ -10,7 +10,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-TaxiAccessCoefficientsDao::TaxiAccessCoefficientsDao(DB_Connection& connection): SqlAbstractDao<TaxiAccessCoefficients>( connection, DB_TABLE_TAXI_ACCESS_COEFFICIENTS, EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_VEHCILE_OWNERSHIP_COEFFICIENTS, EMPTY_STR ) {}
+TaxiAccessCoefficientsDao::TaxiAccessCoefficientsDao(DB_Connection& connection): SqlAbstractDao<TaxiAccessCoefficients>( connection, DB_TABLE_TAXI_ACCESS_COEFFICIENTS, EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_TAXI_ACCESS_COEFFICIENTS, EMPTY_STR ) {}
 
 TaxiAccessCoefficientsDao::~TaxiAccessCoefficientsDao() {}
 

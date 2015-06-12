@@ -237,7 +237,7 @@ void PT_Statistics::StoreStatistics() {
 					outputFile << itArrivalTm->pctOccupancy << ",";
 					outputFile << itArrivalTm->sequenceNo << ",";
 					outputFile << itArrivalTm->arrivalTime << ",";
-					outputFile << tt.toString() << ",";
+					outputFile << tt.getStrRepr() << ",";
 					outputFile << itArrivalTm->dwellTime << std::endl;
 					itArrivalTm++;
 				}
@@ -368,7 +368,7 @@ void PersonTravelStats::setPersonTravelTime(const std::string& personId, const s
 		DailyTime lastStart(PersonTravelTimeList.back().arrivalTime);
 		DailyTime lastTravel(PersonTravelTimeList.back().travelTime);
 		startTime=DailyTime(lastStart.getValue()+lastTravel.getValue());
-		personTravelTime.arrivalTime = startTime.toString();
+		personTravelTime.arrivalTime = startTime.getStrRepr();
 	}
 	PersonTravelTimeList.push_back(personTravelTime);
 }

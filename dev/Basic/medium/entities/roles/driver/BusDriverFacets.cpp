@@ -360,7 +360,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				}
 				DailyTime startTm = ConfigManager::GetInstance().FullConfig().simStartTime();
 				DailyTime current(params.now.ms()+converToMilliseconds(params.elapsedSeconds)+startTm.getValue());
-				parentBusDriver->openBusDoors(current.toString(), stopAg);
+				parentBusDriver->openBusDoors(current.getStrRepr(), stopAg);
 				double remainingTime = params.secondsInTick - params.elapsedSeconds;
 				if(parentBusDriver->waitingTimeAtbusStop > remainingTime) {
 					parentBusDriver->waitingTimeAtbusStop -= remainingTime;

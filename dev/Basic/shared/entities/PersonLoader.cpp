@@ -92,76 +92,63 @@ namespace
 		return random_time.str(); //HH24:MI:SS format
 	}
 
-}//namespace
+}//anon namespace
 
-/*************************************************************************************
- * 						Restricted Region Tripchain processing
- * ***********************************************************************************
- */
 boost::shared_ptr<sim_mob::RestrictedRegion> sim_mob::RestrictedRegion::instance;
-sim_mob::RestrictedRegion::RestrictedRegion():Impl(new TagSearch(*this)),zoneSegmentsStr(""),zoneNodesStr(""),inStr(""), outStr("")
+sim_mob::RestrictedRegion::RestrictedRegion() : Impl(new TagSearch(*this)),zoneSegmentsStr(""),zoneNodesStr(""),inStr(""), outStr("")
 {}
-sim_mob::RestrictedRegion::~RestrictedRegion(){safe_delete_item(Impl);}
+
+sim_mob::RestrictedRegion::~RestrictedRegion()
+{
+	safe_delete_item(Impl);
+}
+
 void sim_mob::RestrictedRegion::populate()
 {
-	//skip if already populated
-	if(!populated.check())
-	{
-		return;
-	}
+	if(!populated.check()) { return; } //skip if already populated
+
 	sim_mob::aimsun::Loader::getCBD_Border(in,out);
 	sim_mob::aimsun::Loader::getCBD_Segments(zoneSegments);
-	//zone nodes = start and end nodes of zoneSegments  minus border-in&out->from_section->toNode()
+
+	//zone nodes = start and end nodes of zoneSegments
 	BOOST_FOREACH(const sim_mob::RoadSegment*rs,zoneSegments)
 	{
-		zoneNodes[boost::lexical_cast<std::string>(rs->getStart()->getID())] = rs->getStart();
-		zoneNodes[boost::lexical_cast<std::string>(rs->getEnd()->getID())] = rs->getEnd();
+		zoneNodes[rs->getStart()->getID()] = rs->getStart();
+		zoneNodes[rs->getEnd()->getID()] = rs->getEnd();
 	}
 
-	/*BOOST_FOREACH(SegPair item, in)
-	{
-		zoneNodes.erase(boost::lexical_cast<std::string>(item.first->getEnd()->getID()));
-	}
-	BOOST_FOREACH(SegPair item, out)
-	{
-		zoneNodes.erase(boost::lexical_cast<std::string>(item.first->getEnd()->getID()));
-	}*/
+	typedef std::map<unsigned int, const Node*>::value_type Pair;
 
-	typedef std::map<std::string, const Node*>::value_type Pair;
-//	cout << "CBD Entering border Sections size: " << in.size() << "\n";
-//	cout << "CBD Exitting border Sections size: " << out.size() << "\n";
-//	cout << "Total segments in CBD Area: " << zoneSegments.size() << "\n";
-//	cout << "Total nodes in CBD Area: " << zoneNodes.size() << "\n";
-	/********************************************************
-	 * ********** String representations & Tagging **********
-	 * ******************************************************/
-	std::stringstream out_("");
+	//String representations & Tagging
+	std::stringstream outStrm("");
 	BOOST_FOREACH(const sim_mob::RoadSegment*rs,zoneSegments)
 	{
-		out_ << rs->getId() << ",";
+		outStrm << rs->getId() << ",";
 		rs->CBD = true;
 	}
-	zoneSegmentsStr = out_.str();
-	out_.str("");
+	zoneSegmentsStr = outStrm.str();
+
+	outStrm.str(std::string());
 	BOOST_FOREACH(Pair node, zoneNodes)
 	{
-		zoneNodesStr += node.first + ",";
+		outStrm << node.first << ",";
 		node.second->CBD = true;
 	}
-	out_.str("");
+	zoneNodesStr = outStrm.str();
+
+	outStrm.str(std::string());
 	BOOST_FOREACH(SegPair item, in)
 	{
-		out_ << item.first->getId() << ":" << item.second->getId() << ",";
+		outStrm << item.first->getId() << ":" << item.second->getId() << ",";
 	}
-	inStr = out_.str();
-	out_.str("");
+	inStr = outStrm.str();
+
+	outStrm.str(std::string());
 	BOOST_FOREACH(SegPair item, out)
 	{
-		out_ << item.first->getId() << ":" << item.second->getId() << ",";
+		outStrm << item.first->getId() << ":" << item.second->getId() << ",";
 	}
-	outStr = out_.str();
-	out_.str("");
-
+	outStr = outStrm.str();
 }
 //obsolete
 void sim_mob::RestrictedRegion::processTripChains(map<string, vector<TripChainItem*> > &tripchains)
@@ -236,7 +223,6 @@ bool sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::WayPoint& targ
 	return isInRestrictedZone(target.node_);
 }
 
-
 bool sim_mob::RestrictedRegion::isInRestrictedSegmentZone(const std::vector<WayPoint> & target) const
 {
 	BOOST_FOREACH(WayPoint wp, target)
@@ -253,6 +239,7 @@ bool sim_mob::RestrictedRegion::isInRestrictedSegmentZone(const std::vector<WayP
 	}
 	return false;
 }
+
 bool sim_mob::RestrictedRegion::isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const
 {
 	return Impl->isInRestrictedSegmentZone(target);
@@ -263,34 +250,27 @@ bool sim_mob::RestrictedRegion::isEnteringRestrictedZone(const sim_mob::RoadSegm
 	return in.find(std::make_pair(curSeg,nxtSeg)) != in.end();
 }
 
-bool sim_mob::RestrictedRegion::isExittingRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg)
+bool sim_mob::RestrictedRegion::isExitingRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg)
 {
 	return out.find(std::make_pair(curSeg,nxtSeg)) != out.end();
 }
 
-/*********  Search Implementaiont *****************/
+//Search implementation
 sim_mob::RestrictedRegion::StrSearch::StrSearch(sim_mob::RestrictedRegion & instance):Search(instance){}
 bool sim_mob::RestrictedRegion::StrSearch::isInRestrictedZone(const Node* target) const
 {
-	return
-			(instance.zoneNodesStr.find(boost::lexical_cast<string>(target->getID())) != std::string::npos ?
-					true :
-					false);
+	return (instance.zoneNodesStr.find(boost::lexical_cast<string>(target->getID())) != std::string::npos ? true : false);
 }
 
 bool sim_mob::RestrictedRegion::StrSearch::isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const
 {
-	return
-			(instance.zoneSegmentsStr.find(boost::lexical_cast<string>(target->getId())) != std::string::npos ?
-					true :
-					false);
-
+	return (instance.zoneSegmentsStr.find(boost::lexical_cast<string>(target->getId())) != std::string::npos ? true : false);
 }
-///////////////////
+
 sim_mob::RestrictedRegion::ObjSearch::ObjSearch(sim_mob::RestrictedRegion & instance):Search(instance){}
 bool sim_mob::RestrictedRegion::ObjSearch::isInRestrictedZone(const Node* target) const
 {
-	std::map<std::string,const Node*>::const_iterator it(instance.zoneNodes.find(boost::lexical_cast<std::string>(target->getID())));
+	std::map<unsigned int, const Node*>::const_iterator it(instance.zoneNodes.find(target->getID()));
 	return (instance.zoneNodes.end() == it ? false : true);
 }
 
@@ -299,12 +279,11 @@ bool sim_mob::RestrictedRegion::ObjSearch::isInRestrictedSegmentZone(const sim_m
 	std::set<const sim_mob::RoadSegment*>::iterator itDbg;
 	if ((itDbg = instance.zoneSegments.find(target)) != instance.zoneSegments.end())
 	{
-		std::cout << "segment " << (*itDbg)->getId() << " is in Zone Segments\n";
 		return true;
 	}
 	return false;
 }
-///////////////////////
+
 sim_mob::RestrictedRegion::TagSearch::TagSearch(sim_mob::RestrictedRegion & instance):Search(instance){}
 bool sim_mob::RestrictedRegion::TagSearch::isInRestrictedZone(const Node* target) const
 {
@@ -316,33 +295,8 @@ bool sim_mob::RestrictedRegion::TagSearch::isInRestrictedSegmentZone(const sim_m
 	return target->CBD;
 }
 
-///////////////////////
-//const Node* sim_mob::RestrictedRegion::StrSearch::isInRestrictedZone(const WayPoint& target) const;
-//bool sim_mob::RestrictedRegion::StrSearch::isInRestrictedSegmentZone(const std::vector<WayPoint> & target) const;
-//bool sim_mob::RestrictedRegion::StrSearch::isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const;
-//bool sim_mob::RestrictedRegion::StrSearch::isEnteringRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg);
-//bool sim_mob::RestrictedRegion::StrSearch::isExittingRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg);
-
-
-
-
-
-sim_mob::PeriodicPersonLoader::PeriodicPersonLoader(std::set<sim_mob::Entity*>& activeAgents, StartTimePriorityQueue& pendinAgents)
-	: activeAgents(activeAgents), pendingAgents(pendinAgents)
+class CellLoader
 {
-	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
-	dataLoadInterval = SECONDS_IN_ONE_HOUR; //1 hour by default. TODO: must be configurable.
-	elapsedTimeSinceLastLoad = cfg.baseGranSecond(); // initializing to base gran second so that all subsequent loads will happen 1 tick before the actual start of the interval
-
-	nextLoadStart = getHalfHourWindow(cfg.system.simulation.simStartTime.getValue()/1000);
-
-	storedProcName = cfg.getDatabaseProcMappings().procedureMappings["day_activity_schedule"];
-}
-
-sim_mob::PeriodicPersonLoader::~PeriodicPersonLoader()
-{}
-
-class CellLoader {
 public:
 	CellLoader() {}
 
@@ -395,6 +349,21 @@ private:
 	static const int numThreads = 20;
 	boost::thread::id id;
 };
+
+sim_mob::PeriodicPersonLoader::PeriodicPersonLoader(std::set<sim_mob::Entity*>& activeAgents, StartTimePriorityQueue& pendinAgents)
+	: activeAgents(activeAgents), pendingAgents(pendinAgents)
+{
+	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+	dataLoadInterval = SECONDS_IN_ONE_HOUR; //1 hour by default. TODO: must be configurable.
+	elapsedTimeSinceLastLoad = cfg.baseGranSecond(); // initializing to base gran second so that all subsequent loads will happen 1 tick before the actual start of the interval
+
+	nextLoadStart = getHalfHourWindow(cfg.system.simulation.simStartTime.getValue()/1000);
+
+	storedProcName = cfg.getDatabaseProcMappings().procedureMappings["day_activity_schedule"];
+}
+
+sim_mob::PeriodicPersonLoader::~PeriodicPersonLoader()
+{}
 
 void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 {
@@ -478,7 +447,6 @@ bool sim_mob::PeriodicPersonLoader::checkTimeForNextLoad()
 	}
 	return false;
 }
-
 
 void sim_mob::PeriodicPersonLoader::makeSubTrip(const soci::row& r, sim_mob::Trip* parentTrip, unsigned short subTripNo)
 {

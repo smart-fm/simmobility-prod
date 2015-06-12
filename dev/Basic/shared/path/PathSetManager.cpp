@@ -275,37 +275,32 @@ std::string sim_mob::printWPpath(const std::vector<WayPoint> &wps , const sim_mo
 
 vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::SubTrip &subTrip, bool enRoute, const sim_mob::RoadSegment* approach)
 {
-	// get person id and current subtrip id
 	std::stringstream str("");
 	str << subTrip.fromLocation.node_->getID() << "," << subTrip.toLocation.node_->getID();
 	std::string fromToID(str.str());
-	//todo change the subtrip signature from pointer to referencer
+
 	vector<WayPoint> res = vector<WayPoint>();
-	//CBD area logic
-	bool from = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.fromLocation);
-	bool to = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.toLocation);
+
+	//Restricted area logic
+	bool fromLocationInRestrictedRegion = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.fromLocation);
+	bool toLocationInRestrictedRegion = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.toLocation);
 	str.str("");
 	str << "[" << fromToID << "]";
 	if (sim_mob::ConfigManager::GetInstance().FullConfig().CBD())
 	{
 		// case-1: Both O and D are outside CBD
-		if (to == false && from == false)
+		if (!toLocationInRestrictedRegion && !fromLocationInRestrictedRegion)
 		{
 			str << "[BLCKLST]";
 			std::stringstream outDbg("");
 			getBestPath(res, subTrip, true, std::set<const sim_mob::RoadSegment*>(), false, true, enRoute, approach);//use/enforce blacklist
-			if (sim_mob::RestrictedRegion::getInstance().isInRestrictedSegmentZone(res))
-			{
-				subTrip.cbdTraverseType = TravelMetric::CBD_PASS;
-			}
 		}
 		else
 		{
 			// case-2:  Either O or D is outside CBD and the other one is inside CBD
-			if (!(to && from))
+			if (!(toLocationInRestrictedRegion && fromLocationInRestrictedRegion))
 			{
-				subTrip.cbdTraverseType = from ? TravelMetric::CBD_EXIT : TravelMetric::CBD_ENTER;
-				str << (from ? " [EXIT CBD]" : "[ENTER CBD]");
+				str << (fromLocationInRestrictedRegion ? " [EXIT CBD]" : "[ENTER CBD]");
 			}
 			else
 			{
@@ -320,13 +315,13 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::SubTrip &subTri
 		getBestPath(res, subTrip, true, std::set<const sim_mob::RoadSegment*>(), false, false, enRoute, approach);
 	}
 
-	//subscribe person
 	logger << "[SELECTED PATH FOR : " << fromToID  << "]:\n";
 	if(!res.empty())
 	{
 		str << printWPpath(res);
 	}
-	else{
+	else
+	{
 		str << "[NO PATH]" << "\n";
 	}
 	logger << str.str();
@@ -1838,7 +1833,7 @@ double sim_mob::PathSetManager::getPathTravelTime(sim_mob::SinglePath *sp,const 
 		}
 		if(time == 0.0)
 		{
-			Print() << "No Travel Time [iteration:" << i << "] [SEGMENT: " << rs->getId() << "] [START TIME : " << startTime.getRepr_() << "]\n";
+			Print() << "No Travel Time [SEGMENT: " << rs->getId() << "] [START TIME : " << startTime.getStrRepr() << "]\n";
 		}
 		timeSum  += time;
 		startTime = startTime + sim_mob::DailyTime(time*1000);

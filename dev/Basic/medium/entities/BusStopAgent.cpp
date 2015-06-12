@@ -185,7 +185,7 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 			STORE_WAITING_AMOUNT,
 			messaging::MessageBus::MessagePtr(
 					new WaitingAmountMessage(busStop->getBusstopno_(),
-							DailyTime(now.ms()).toString(),
+							DailyTime(now.ms()).getStrRepr(),
 							waitingPersons.size())));
 
 	return UpdateStatus::Continue;
@@ -268,7 +268,7 @@ void BusStopAgent::storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingAct
 	std::string busLines = waitingActivity->getBusLines();
 	unsigned int failedBoardingTime = waitingActivity->getFailedBoardingTimes();
 	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(), STORE_PERSON_WAITING,
-			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(stopId, personId, currDailyTime.toString(), waitingDailyTime.toString(), busLines, failedBoardingTime)));
+			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(stopId, personId, currDailyTime.getStrRepr(), waitingDailyTime.getStrRepr(), busLines, failedBoardingTime)));
 }
 
 void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
@@ -292,7 +292,7 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 			Warn() << "[waiting long]Person[" << person->GetId()
 					<< "] waiting [" << tripLineID << " ] at ["
 					<< this->getBusStop()->getBusstopno_() << "] for ["
-					<< DailyTime(waitingTm).toString() << "]" << std::endl;
+					<< DailyTime(waitingTm).getStrRepr() << "]" << std::endl;
 		}
 		if ((*itPerson)->canBoardBus()) {
 			bool ret = false;

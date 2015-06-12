@@ -238,7 +238,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     if(cfg.RunningMidSupply()) {
 		size_t sizeBefore = cfg.getConfluxes().size();
 		sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
-		std::cout <<"Confluxes size before(" <<sizeBefore <<") and after(" <<cfg.getConfluxes().size() <<")\n";
+		std::cout << cfg.getConfluxes().size() << " Confluxes created" << std::endl;
     }
     //Maintain unique/non-colliding IDs.
     ConfigParams::AgentConstraints constraints;
@@ -704,7 +704,7 @@ void sim_mob::ExpandAndValidateConfigFile::PrintSettings()
     std::cout <<"  Person Granularity: " <<cfg.granPersonTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Signal Granularity: " <<cfg.granSignalsTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Communication Granularity: " <<cfg.granCommunicationTicks <<" " <<"ticks" <<"\n";
-    std::cout <<"  Start time: " <<cfg.simStartTime().toString() <<"\n";
+    std::cout <<"  Start time: " <<cfg.simStartTime().getStrRepr() <<"\n";
     std::cout <<"  Mutex strategy: " <<(cfg.mutexStategy()==MtxStrat_Locked?"Locked":cfg.mutexStategy()==MtxStrat_Buffered?"Buffered":"Unknown") <<"\n";
 
 	//Output Database details

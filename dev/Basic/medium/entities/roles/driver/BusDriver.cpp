@@ -239,7 +239,7 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 	}
 
 	DailyTime dwellTime( converToMilliseconds(waitingTimeAtbusStop) );
-	storeArrivalTime(current, dwellTime.toString(), busStopAgent->getBusStop());
+	storeArrivalTime(current, dwellTime.getStrRepr(), busStopAgent->getBusStop());
 
 
 	if (requestMode.get() == Role::REQUEST_DECISION_TIME) {

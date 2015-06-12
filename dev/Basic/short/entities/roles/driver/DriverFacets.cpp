@@ -767,7 +767,7 @@ bool sim_mob::DriverMovement::updateMovement(timeslice now)
 	if (fwdDriverMovement.isInIntersection())
 	{
 		parentDriver->perceivedDistToTrafficSignal->clear();
-		parentDriver->perceivedTrafficColor->clear();
+		parentDriver->perceivedTrafficColor->clear();		
 		performIntersectionDriving(params);
 	}
 	
@@ -792,6 +792,7 @@ bool sim_mob::DriverMovement::updateMovement(timeslice now)
 			params.justMovedIntoIntersection = true;
 			parentDriver->vehicle->setLatVelocity(0);
 			parentDriver->vehicle->setTurningDirection(LCS_SAME);
+			chooseNextLaneForNextLink(params);
 			
 			//We've reached the intersection, but we don't have the next lane in the next link.
 			//This means that we were not able to change lanes in time to reach the lane with the
@@ -816,7 +817,7 @@ bool sim_mob::DriverMovement::updateMovement(timeslice now)
 	}
 
 	//The segment has changed, calculate link travel time and road segment travel time
-	if (params.justChangedToNewSegment == true)
+	/*if (params.justChangedToNewSegment == true)
 	{
 		//Agent* parentAgent = parent;
 		const Link* prevLink = prevSegment->getLink();
@@ -865,7 +866,7 @@ bool sim_mob::DriverMovement::updateMovement(timeslice now)
 		{
 			parent->addToLinkTravelStatsMap(parent->getLinkTravelStats(), actualTime);
 		}
-	}
+	}*/
 
 	if (!fwdDriverMovement.isDoneWithEntireRoute())
 	{
@@ -938,7 +939,7 @@ bool sim_mob::DriverMovement::updatePostMovement(timeslice now)
 											params.overflowIntoIntersection);
 
 			//Fix: We need to perform this calculation at least once or we won't have a heading within the intersection.
-			DPoint res = intModel->continueDriving(0,params);
+			DPoint res = intModel->continueDriving(0, params);
 			parentDriver->vehicle->setPositionInIntersection(res.x, res.y);
 		}
 	}
@@ -2030,7 +2031,7 @@ void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p)
 			//Look for the lane connector that has the 'to' RoadSegment as the next RoadSegment
 			for(std::set<LaneConnector*>::const_iterator itLCS = lcs.begin(); itLCS != lcs.end(); ++itLCS)
 			{
-				if ((*itLCS)->getLaneFrom() == p.currLane && (*itLCS)->getLaneTo()->getRoadSegment() == nextSeg
+				if ((*itLCS)->getLaneFrom() == currLane && (*itLCS)->getLaneTo()->getRoadSegment() == nextSeg
 					&& !((*itLCS)->getLaneTo()->is_pedestrian_lane()))
 				{
 					//It's a valid lane.
@@ -2044,7 +2045,7 @@ void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p)
 				std::vector<const Lane *>::const_iterator itTargetLanes = targetLanes.begin();
 				while(itTargetLanes != targetLanes.end())
 				{					
-					if(getLaneIndex(*itTargetLanes) == p.currLaneIndex)
+					if(getLaneIndex(*itTargetLanes) == getLaneIndex(currLane))
 					{
 						nextLaneInNextLink = *itTargetLanes;
 						targetLaneIndex = getLaneIndex(nextLaneInNextLink);

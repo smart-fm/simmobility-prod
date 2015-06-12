@@ -3165,7 +3165,7 @@ void sim_mob::DriverMovement::syncInfoLateralMove(DriverUpdateParams& p)
 //Retrieve the current traffic signal based on our RoadSegment's end node.
 void sim_mob::DriverMovement::setTrafficSignal() 
 {
-	const Node* node;
+	const Node *node = nullptr;
 	
 	if (fwdDriverMovement.isMovingForwardsInLink)
 	{

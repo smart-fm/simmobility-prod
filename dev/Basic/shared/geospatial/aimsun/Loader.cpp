@@ -1140,7 +1140,18 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 			const sim_mob::BusStop* firstStopTwin = firstStop->getTwinStop();
 			if(!firstStopTwin) { throw std::runtime_error("Sink bus stop found without a twin!"); }
 			stopList.push_back(firstStopTwin);
-			if(!segList.empty()) { segList.erase(segList.begin()); } // the bus must start from the second segment of its original path
+			if(!segList.empty())
+			{
+				std::vector<const sim_mob::RoadSegment*>::iterator itToDelete = segList.begin();
+				while((*itToDelete) != firstStopTwin->getParentSegment() && itToDelete!=segList.end())
+				{
+					itToDelete = segList.erase(itToDelete); // the bus must start from the segment of the twinStop
+				}
+				if(segList.empty())
+				{
+					throw std::runtime_error("Bus route violates terminus assumption. Entire route was deleted");
+				}
+			}
 		}
 		else
 		{
@@ -1185,7 +1196,19 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 			if(!lastStopTwin) { throw std::runtime_error("Source bus stop found without a twin!"); }
 			stopList.pop_back();
 			stopList.push_back(lastStopTwin);
-			if(!segList.empty()) { segList.erase((--segList.end())); }//the bus must end one segment earlier
+			if(!segList.empty())
+			{
+				std::vector<const sim_mob::RoadSegment*>::iterator itToDelete = --segList.end();
+				while((*itToDelete) != lastStopTwin->getParentSegment())
+				{
+					itToDelete = segList.erase(itToDelete); //the bus must end at the segment of twin stop
+					itToDelete--; //itToDelete will be segList.end(); so decrement to get last valid iterator
+				}
+				if(segList.empty())
+				{
+					throw std::runtime_error("Bus route violates terminus assumption. Entire route was deleted");
+				}
+			}
 		}
 		else
 		{

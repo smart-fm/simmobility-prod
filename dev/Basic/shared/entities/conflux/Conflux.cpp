@@ -1222,24 +1222,23 @@ void sim_mob::Conflux::assignPersonToMRT(Person* person) {
 	}
 }
 
-void sim_mob::Conflux::assignPersonToCar(Person* person) {
+void sim_mob::Conflux::assignPersonToCar(Person* person)
+{
 	Role* role = person->getRole();
-	if (role && role->roleType == Role::RL_CARPASSENGER) {
+	if (role && role->roleType == Role::RL_CARPASSENGER)
+	{
 		person->currWorkerProvider = parentWorker;
-		PersonList::iterator pIt = std::find(carSharing.begin(),
-				carSharing.end(), person);
-		if (pIt == carSharing.end()) {
+		PersonList::iterator pIt = std::find(carSharing.begin(), carSharing.end(), person);
+		if (pIt == carSharing.end())
+		{
 			carSharing.push_back(person);
 		}
-		DailyTime time=person->currSubTrip->endTime;
+		DailyTime time = person->currSubTrip->endTime;
 		person->setStartTime(currFrame.ms());
 		person->getRole()->setTravelTime(time.getValue());
-		unsigned int tick =
-				ConfigManager::GetInstance().FullConfig().baseGranMS();
-		messaging::MessageBus::PostMessage(this,
-				MSG_WAKEUP_CAR_PASSENGER_TELEPORTATION,
-				messaging::MessageBus::MessagePtr(new PersonMessage(person)),
-				false, time.getValue() / tick);
+		unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
+		messaging::MessageBus::PostMessage(this, MSG_WAKEUP_CAR_PASSENGER_TELEPORTATION,
+				messaging::MessageBus::MessagePtr(new PersonMessage(person)), false, time.getValue() / tick);
 	}
 }
 
@@ -1248,9 +1247,11 @@ UpdateStatus sim_mob::Conflux::movePerson(timeslice now, Person* person)
 	// We give the Agent the benefit of the doubt here and simply call frame_init().
 	// This allows them to override the start_time if it seems appropriate (e.g., if they
 	// are swapping trip chains). If frame_init() returns false, immediately exit.
-	if (!person->isInitialized()) {
+	if (!person->isInitialized())
+	{
 		//Call frame_init() and exit early if required.
-		if (!callMovementFrameInit(now, person)) {
+		if (!callMovementFrameInit(now, person))
+		{
 			return UpdateStatus::Done;
 		}
 
@@ -1262,7 +1263,8 @@ UpdateStatus sim_mob::Conflux::movePerson(timeslice now, Person* person)
 	UpdateStatus retVal = callMovementFrameTick(now, person);
 
 	//This persons next movement will be in the next tick
-	if (retVal.status != UpdateStatus::RS_DONE && person->remainingTimeThisTick<=0) {
+	if (retVal.status != UpdateStatus::RS_DONE && person->remainingTimeThisTick<=0)
+	{
 		//now is the right time to ask for resetting of updateParams
 		person->setResetParamsRequired(true);
 	}

@@ -556,7 +556,9 @@ int main_impl(int ARGC, char* ARGV[])
 	gettimeofday(&simEndTime, nullptr);
 
 	if(ConfigManager::GetInstance().FullConfig().screenLineParams.outputEnabled)
-			ScreenLineCounter::getInstance()->exportScreenLineCount();
+	{
+		ScreenLineCounter::getInstance()->exportScreenLineCount();
+	}
 
 	Print() << "Done" << endl;
 	cout << "Total simulation time: "<< (ProfileBuilder::diff_ms(simEndTime, simStartTime))/1000.0 << " seconds." << endl;

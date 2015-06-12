@@ -135,6 +135,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Enti
 				currAg->setTripChain(currAgTripChain);
 				currAg->initTripChain();
 				currAg->busLine = busline->getBusLineID();
+				currAg->bustripnum = (const_cast<BusTrip*>(&(*tripIt)))->getBusTripRun_SequenceNum();
 				// scheduled for dispatch
 				addOrStashBuses(currAg, active_agents);
 			}

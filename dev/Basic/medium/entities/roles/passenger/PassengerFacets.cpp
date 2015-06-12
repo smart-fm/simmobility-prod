@@ -6,14 +6,15 @@
  */
 
 #include "PassengerFacets.hpp"
-#include "Passenger.hpp"
-#include "geospatial/MultiNode.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "Passenger.hpp"
 
-namespace sim_mob {
-
-namespace medium {
+namespace sim_mob
+{
+namespace medium
+{
 
 PassengerBehavior::PassengerBehavior(sim_mob::Person* parentAgent) : BehaviorFacet(parentAgent), parentPassenger(nullptr)
 {}
@@ -68,12 +69,12 @@ TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
 }
 sim_mob::Conflux* PassengerMovement::getStartingConflux() const
 {
-	if (parentPassenger->roleType == Role::RL_CARPASSENGER) {
-		const sim_mob::MultiNode* location =
-				dynamic_cast<const sim_mob::MultiNode*>(parentPassenger->parent->currSubTrip->toLocation.node_);
-		if (location) {
-			return ConfigManager::GetInstanceRW().FullConfig().getConfluxForNode(
-					location);
+	if (parentPassenger->roleType == Role::RL_CARPASSENGER)
+	{
+		const sim_mob::MultiNode* location = dynamic_cast<const sim_mob::MultiNode*>(parentPassenger->parent->currSubTrip->toLocation.node_);
+		if (location)
+		{
+			return ConfigManager::GetInstanceRW().FullConfig().getConfluxForNode(location);
 		}
 	}
 	return nullptr;

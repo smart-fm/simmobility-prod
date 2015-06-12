@@ -802,7 +802,8 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 
 void sim_mob::Person::convertODsToTrips() {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	if(!config.publicTransitEnabled){
+	if(!config.publicTransitEnabled)
+	{
 		return;
 	}
 	std::vector<TripChainItem*>::iterator tripChainItem;
@@ -815,10 +816,8 @@ void sim_mob::Person::convertODsToTrips() {
 		{
 			Trip* trip = dynamic_cast<Trip*>(*tripChainItem);
 			std::vector<sim_mob::OD_Trip> odTrips;
-			std::string originId = boost::lexical_cast<std::string>(
-					trip->fromLocation.node_->getID());
-			std::string destId = boost::lexical_cast<std::string>(
-					trip->toLocation.node_->getID());
+			std::string originId = boost::lexical_cast<std::string>(trip->fromLocation.node_->getID());
+			std::string destId = boost::lexical_cast<std::string>(trip->toLocation.node_->getID());
 			(*tripChainItem)->startLocationId = originId;
 			(*tripChainItem)->endLocationId = destId;
 			std::vector<sim_mob::SubTrip>& subTrips = (dynamic_cast<sim_mob::Trip*>(*tripChainItem))->getSubTripsRW();
@@ -827,49 +826,36 @@ void sim_mob::Person::convertODsToTrips() {
 			while (itSubTrip != subTrips.end())
 			{
 				if (itSubTrip->fromLocation.type_ == WayPoint::NODE
-						&& itSubTrip->toLocation.type_ == WayPoint::NODE
-						&& (itSubTrip->mode == "BusTravel"||itSubTrip->mode == "MRT"))
+						&& itSubTrip->toLocation.type_ == WayPoint::NODE)
 				{
-					std::vector<sim_mob::OD_Trip> odTrips;
-					std::string originId = boost::lexical_cast<std::string>(
-							itSubTrip->fromLocation.node_->getID());
-					std::string destId = boost::lexical_cast<std::string>(
-							itSubTrip->toLocation.node_->getID());
-
-					bool ret = sim_mob::PT_RouteChoiceLuaModel::Instance()->GetBestPT_Path(originId, destId, odTrips);
-
-					if (ret) {
-						ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips);
-					}
-					if(!ret){
-						tripChain.clear();
-						return;
-					}
-				}
-				else if (itSubTrip->fromLocation.type_ == WayPoint::NODE
-						&& itSubTrip->toLocation.type_ == WayPoint::NODE
-						&& (itSubTrip->mode == "Walk"))
-				{
-					std::vector<sim_mob::OD_Trip> odTrips;
-					std::string originId = boost::lexical_cast<std::string>(
-							itSubTrip->fromLocation.node_->getID());
-					std::string destId = boost::lexical_cast<std::string>(
-							itSubTrip->toLocation.node_->getID());
-
-					itSubTrip->startLocationId=originId;
-					itSubTrip->endLocationId=destId;
-					itSubTrip->startLocationType="NODE";
-					itSubTrip->endLocationType="NODE";
-				}
-				else if(itSubTrip->fromLocation.type_ == WayPoint::NODE
-						&& itSubTrip->toLocation.type_ == WayPoint::NODE){
-					if(itSubTrip->mode.find("Car Sharing")!=std::string::npos){
-
+					if(itSubTrip->mode == "BusTravel" || itSubTrip->mode == "MRT")
+					{
 						std::vector<sim_mob::OD_Trip> odTrips;
-						std::string originId = boost::lexical_cast<std::string>(
-								itSubTrip->fromLocation.node_->getID());
-						std::string destId = boost::lexical_cast<std::string>(
-								itSubTrip->toLocation.node_->getID());
+						std::string originId = boost::lexical_cast<std::string>(itSubTrip->fromLocation.node_->getID());
+						std::string destId = boost::lexical_cast<std::string>(itSubTrip->toLocation.node_->getID());
+
+						bool ret = sim_mob::PT_RouteChoiceLuaModel::Instance()->GetBestPT_Path(originId, destId, odTrips);
+						if (ret) { ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips); }
+						if(!ret)
+						{
+							tripChain.clear();
+							return;
+						}
+					}
+					else if (itSubTrip->mode == "Walk")
+					{
+						std::string originId = boost::lexical_cast<std::string>(itSubTrip->fromLocation.node_->getID());
+						std::string destId = boost::lexical_cast<std::string>(itSubTrip->toLocation.node_->getID());
+
+						itSubTrip->startLocationId=originId;
+						itSubTrip->endLocationId=destId;
+						itSubTrip->startLocationType="NODE";
+						itSubTrip->endLocationType="NODE";
+					}
+					else if(itSubTrip->mode.find("Car Sharing")!=std::string::npos)
+					{
+						std::string originId = boost::lexical_cast<std::string>(itSubTrip->fromLocation.node_->getID());
+						std::string destId = boost::lexical_cast<std::string>(itSubTrip->toLocation.node_->getID());
 
 						itSubTrip->startLocationId=originId;
 						itSubTrip->endLocationId=destId;
@@ -883,9 +869,10 @@ void sim_mob::Person::convertODsToTrips() {
 						destination = streetDirectory.DrivingVertex(*itSubTrip->toLocation.node_);
 						std::vector<WayPoint> wayPoints = streetDirectory.SearchShortestDrivingPath(source, destination);
 						double travelTime = 0.0;
-						for (std::vector<WayPoint>::iterator it = wayPoints.begin();
-								it != wayPoints.end(); it++) {
-							if (it->type_ == WayPoint::ROAD_SEGMENT) {
+						for (std::vector<WayPoint>::iterator it = wayPoints.begin(); it != wayPoints.end(); it++)
+						{
+							if (it->type_ == WayPoint::ROAD_SEGMENT)
+							{
 								travelTime += it->roadSegment_->getDefaultTravelTime();
 							}
 						}

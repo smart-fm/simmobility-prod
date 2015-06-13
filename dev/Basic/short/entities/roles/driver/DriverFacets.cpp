@@ -395,7 +395,11 @@ void sim_mob::DriverMovement::frame_tick()
 	parentDriver->latVelocity_.set(parentDriver->vehicle->getLatVelocity());
 	parentDriver->fwdAccel_.set(parentDriver->vehicle->getAcceleration());
 	parentDriver->turningDirection_.set(parentDriver->vehicle->getTurningDirection());
-	parentDriver->distToCurrSegmentEnd_.set(fwdDriverMovement.getDisToCurrSegEnd()); 
+	
+	if(!fwdDriverMovement.isDoneWithEntireRoute())
+	{
+		parentDriver->distToCurrSegmentEnd_.set(fwdDriverMovement.getDisToCurrSegEnd()); 
+	}
 	
 	//Update your perceptions
 	parentDriver->perceivedFwdVel->delay(parentDriver->vehicle->getVelocity());
@@ -718,7 +722,7 @@ bool sim_mob::DriverMovement::updateSensors(timeslice now)
 		return false;
 	}
 
-	//Manage traffic signal behavior if we are close to the end of the link.
+	//Manage traffic signal behaviour if we are close to the end of the link.
 	if(!fwdDriverMovement.isInIntersection()) 
 	{
 		setTrafficSignalParams(params);
@@ -1046,6 +1050,13 @@ void sim_mob::DriverMovement::performIntersectionDriving(DriverUpdateParams& p)
 		{
 			//Call the intersection driving model
 			intAcc = intModel->makeAcceleratingDecision(p, fwdDriverMovement.currTurning);
+		}
+		//In case we've moved forward into an intersection then stopped, when there was a red light		
+		//The "aC" indicates that previously acceleration due to traffic signal was selected		
+		else if(p.accSelect == "aC" && parentDriver->getVehicle()->getAcceleration() <= 0)
+		{
+			//Get the traffic light colour
+			p.perceivedTrafficColor = trafficSignal->getDriverLight(*p.currLane, *nextLaneInNextLink);
 		}
 		
 		//Call the car following model
@@ -3226,7 +3237,7 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p)
 
 		if (!parentDriver->perceivedTrafficColor->can_sense()) 
 		{
-			p.perceivedTrafficColor = color;
+			p.perceivedTrafficColor = p.trafficColor;
 		}
 
 		parentDriver->perceivedTrafficColor->delay(p.trafficColor);

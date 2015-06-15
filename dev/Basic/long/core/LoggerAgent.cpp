@@ -62,6 +62,14 @@ LoggerAgent::LoggerAgent() : Entity(-1) {
     std::ofstream* unitsInMarketFile = new std::ofstream("unitsInMarket.csv");
     streams.insert(std::make_pair(UNITS_IN_MARKET, unitsInMarketFile));
 
+    //hh with taxi availability
+    std::ofstream* taxiAvailabilityFile = new std::ofstream("hhWithtaxiAvailability.csv");
+    streams.insert(std::make_pair(LOG_TAXI_AVAILABILITY, taxiAvailabilityFile));
+
+    //vehicle ownership options of hh
+    std::ofstream* vehicleOwnershipOptionFile = new std::ofstream("hhWithVehicleOwnership.csv");
+    streams.insert(std::make_pair(LOG_VEHICLE_OWNERSIP, vehicleOwnershipOptionFile));
+
 }
 
 LoggerAgent::~LoggerAgent() {

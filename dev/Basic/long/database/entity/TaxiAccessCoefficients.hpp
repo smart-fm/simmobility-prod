@@ -18,7 +18,7 @@ namespace sim_mob
     	class TaxiAccessCoefficients
 		{
 		public:
-    		TaxiAccessCoefficients(BigSerial parameterId = INVALID_ID, double coefficientEstimate = 0);
+    		TaxiAccessCoefficients(BigSerial parameterId = INVALID_ID, double coefficientEstimate = 0.0);
 			virtual ~TaxiAccessCoefficients();
 
 			double getCoefficientEstimate() const;

@@ -261,9 +261,10 @@ bool sim_mob::medium::DriverMovement::initializePath()
 
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 		vector<WayPoint> wp_path;
+		const sim_mob::SubTrip& currSubTrip = *(person->currSubTrip);
 		if (ConfigManager::GetInstance().FullConfig().PathSetMode()) // if use path set
 		{
-			wp_path = PathSetManager::getInstance()->getPath(*(person->currSubTrip), false, nullptr);
+			wp_path = PathSetManager::getInstance()->getPath(currSubTrip, false, nullptr);
 		}
 		else
 		{
@@ -277,6 +278,25 @@ bool sim_mob::medium::DriverMovement::initializePath()
 		{
 			Print()<<"Can't DriverMovement::initializePath(); path is empty for driver "  << person->GetId() << std::endl;
 			return false;
+		}
+
+		//Restricted area logic
+		if (sim_mob::ConfigManager::GetInstance().FullConfig().CBD())
+		{
+			bool fromLocationInRestrictedRegion = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(wp_path.front().roadSegment_->getStart());
+			bool toLocationInRestrictedRegion = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(wp_path.back().roadSegment_->getEnd());
+			if (!toLocationInRestrictedRegion && !fromLocationInRestrictedRegion)
+			{//both O & D outside
+				if (sim_mob::RestrictedRegion::getInstance().isInRestrictedSegmentZone(wp_path))
+				{
+					currSubTrip.cbdTraverseType = TravelMetric::CBD_PASS;
+				}
+			}
+			else if(!(toLocationInRestrictedRegion && fromLocationInRestrictedRegion))
+			{//exactly one of O & D is inside restricted region
+				currSubTrip.cbdTraverseType = fromLocationInRestrictedRegion ? TravelMetric::CBD_EXIT : TravelMetric::CBD_ENTER;
+			}
+			//else we leave the cbdTraverseType as CBD_NONE
 		}
 
 		std::vector<const sim_mob::SegmentStats*> path;
@@ -552,6 +572,10 @@ bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& param
 	//if this hack is not in place, all vehicles will start queuing in upstream segments forever.
 	//TODO: remove this hack and put permanent fix
 	if((maxAllowed < enteringVehicleLength) && (total <= 0)) { return true; }
+
+	//if this segment is a bus terminus segment, we assume only buses try to enter this segment and allow the bus inside irrespective of available space.
+	if(nextSegStats->getRoadSegment()->isBusTerminusSegment()) { return true; }
+
 	bool hasSpaceInNextStats = ((maxAllowed - total) >= enteringVehicleLength);
 	if(hasSpaceInNextStats && nextLink)
 	{
@@ -985,7 +1009,7 @@ void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSeg
 
 TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
 {
-	std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getRepr_());
+	std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getStrRepr());
 	travelMetric.startTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 	const Node* startNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getStart();
 	travelMetric.origin = WayPoint(startNode);
@@ -996,13 +1020,10 @@ TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
 	switch(travelMetric.cbdTraverseType)
 	{
 	case TravelMetric::CBD_ENTER:
-		Print() << "startTT : " << getParent()->GetId() << " , " << now << " , " << travelMetric.origin.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : ENTER START : No Action\n";
 		break;
 	case TravelMetric::CBD_EXIT:
 		travelMetric.cbdOrigin = travelMetric.origin;
 		travelMetric.cbdStartTime = travelMetric.startTime;
-		Print() << "startTT : " << getParent()->GetId() << " , " << now << " , " << travelMetric.origin.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : EXIT START : origin[" <<
-				travelMetric.cbdOrigin.node_->getID() << "], end time[" << travelMetric.cbdStartTime.getRepr_() << "]\n";
 		break;
 	};
 	return  travelMetric;
@@ -1011,7 +1032,7 @@ TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
 TravelMetric& sim_mob::medium::DriverMovement::finalizeTravelTimeMetric()
 {
 	if(!travelMetric.started) { return travelMetric; } //sanity check
-	if(!pathMover.getPath().size())
+	if(pathMover.getPath().empty())
 	{
 		Print() << "Person " << getParent()->getId() << " has no path\n";
 		return  travelMetric;
@@ -1051,13 +1072,13 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const sim_mob::RoadSegmen
 {
 	//	the following conditions should hold in order to process CBD data
 	TravelMetric::CDB_TraverseType type = travelMetric.cbdTraverseType;
-	bool proceed = (nextRS && !pathMover.isPathCompleted() && (type == TravelMetric::CBD_ENTER || type == TravelMetric::CBD_EXIT));
+	bool proceed = (nextRS && !pathMover.isPathCompleted());
 	if(!proceed)
 	{
 		return	travelMetric;
 	}
 
-	std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getRepr_());
+	std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getStrRepr());
 	sim_mob::RestrictedRegion &cbd = sim_mob::RestrictedRegion::getInstance();
 	std::stringstream out("");
 
@@ -1072,7 +1093,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const sim_mob::RoadSegmen
 	{
 	case TravelMetric::CBD_ENTER:{
 		//search if you are about to enter CBD (we assume the trip started outside cbd and  is going to end inside cbd)
-		if(cbd.isEnteringRestrictedZone(completedRS,nextRS) && travelMetric.cbdEntered.check())
+		if(!cbd.isInRestrictedSegmentZone(completedRS)&&cbd.isInRestrictedSegmentZone(nextRS) && travelMetric.cbdEntered.check())
 		{
 			out << getParent()->getId() << "onSegmentCompleted Enter CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
 			travelMetric.cbdOrigin = sim_mob::WayPoint(completedRS->getEnd());
@@ -1082,7 +1103,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const sim_mob::RoadSegmen
 	}
 	case TravelMetric::CBD_EXIT:{
 		//search if you are about to exit CBD(we assume the trip started inside cbd and is going to end outside cbd)
-		if(cbd.isExittingRestrictedZone(completedRS,nextRS) && travelMetric.cbdExitted.check())
+		if(cbd.isInRestrictedSegmentZone(completedRS)&&!cbd.isInRestrictedSegmentZone(nextRS) && travelMetric.cbdExitted.check())
 		{
 			out << getParent()->getId() << "onSegmentCompleted exit CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
 			travelMetric.cbdDestination = sim_mob::WayPoint(completedRS->getEnd());
@@ -1090,9 +1111,25 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const sim_mob::RoadSegmen
 			travelMetric.cbdTravelTime = sim_mob::TravelMetric::getTimeDiffHours(travelMetric.cbdEndTime , travelMetric.cbdStartTime);
 		}
 		break;
+	case TravelMetric::CBD_PASS:{
+		if(!cbd.isInRestrictedSegmentZone(completedRS)&&cbd.isInRestrictedSegmentZone(nextRS) && travelMetric.cbdEntered.check())
+		{
+			out << getParent()->getId() << "onSegmentCompleted Pass Enter CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
+			travelMetric.cbdOrigin = sim_mob::WayPoint(completedRS->getEnd());
+			travelMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+		}
+		if(cbd.isInRestrictedSegmentZone(completedRS)&&!cbd.isInRestrictedSegmentZone(nextRS))
+		{
+			out << getParent()->getId() << "onSegmentCompleted Pass exit CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
+			travelMetric.cbdDestination = sim_mob::WayPoint(completedRS->getEnd());
+			travelMetric.cbdEndTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+			travelMetric.cbdTravelTime = sim_mob::TravelMetric::getTimeDiffHours(travelMetric.cbdEndTime , travelMetric.cbdStartTime);
+		}
+		break;
+	}
 	}
 	};
-//		std::cout << out.str() ;
+//	std::cout << out.str() ;
 	return travelMetric;
 }
 

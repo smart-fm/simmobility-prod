@@ -34,6 +34,8 @@ void HouseholdDao::fromRow(Row& result, Household& outObj)
     outObj.housingDuration = result.get<int>(DB_FIELD_HOUSING_DURATION, 0);
     outObj.workers = result.get<int>(DB_FIELD_WORKERS, 0);
     outObj.ageOfHead = result.get<int>(DB_FIELD_AGE_OF_HEAD, 0);
+    outObj.taxiAvailability = result.get<int>(DB_FIELD_TAXI_AVAILABILITY, false);
+    outObj.vehicleOwnershipOptionId = result.get<int>("vehicle_ownership_option_id", false);
 }
 
 void HouseholdDao::toRow(Household& data, Parameters& outParams, bool update) {

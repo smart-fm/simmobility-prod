@@ -145,8 +145,8 @@ void FMOD_Controller::collectRequest()
 
 				cur += tm;
 				unsigned int requestWindow = trip->requestTime*MIN_MS/2;
-				request->departureTimeEarly = DailyTime(cur.getValue()-requestWindow).toString();
-				request->departureTimeLate = DailyTime(cur.getValue()+requestWindow).toString();
+				request->departureTimeEarly = DailyTime(cur.getValue()-requestWindow).getStrRepr();
+				request->departureTimeLate = DailyTime(cur.getValue()+requestWindow).getStrRepr();
 
 				allRequests.insert( std::make_pair(request, trip) );
 			}
@@ -178,7 +178,7 @@ bool FMOD_Controller::connectFmodService()
 		request.mapType = "osm";
 		request.mapFile = mapFile;
 		request.version = 1;
-		request.startTime = ConfigManager::GetInstance().FullConfig().simStartTime().toString();
+		request.startTime = ConfigManager::GetInstance().FullConfig().simStartTime().getStrRepr();
 		std::string msg = request.buildToString();
 		connectPoint->sendMessage(msg);
 		connectPoint->flush();
@@ -382,7 +382,7 @@ MessageList FMOD_Controller::collectVehStops()
 							DailyTime base(ConfigManager::GetInstance().FullConfig().simStartTime());
 							DailyTime start(curr.getValue()+base.getValue());
 
-							msg_stop.currentTime = start.toString();
+							msg_stop.currentTime = start.getStrRepr();
 							msg_stop.eventType = stop_event_type->get();
 							msg_stop.scheduleId = boost::lexical_cast<std::string>(stop_event_scheduleid->get());
 							msg_stop.stopId = boost::lexical_cast<std::string>(stop_event_nodeid->get());
@@ -420,7 +420,7 @@ MessageList FMOD_Controller::collectVehPos()
 			DailyTime base(ConfigManager::GetInstance().FullConfig().simStartTime());
 			DailyTime start(curr.getValue()+base.getValue());
 
-			msg_pos.currentTime = start.toString();
+			msg_pos.currentTime = start.getStrRepr();
 			msg_pos.vehicleId = person->client_id;
 			msg_pos.latitude = person->xPos.get();
 			msg_pos.longtitude = person->yPos.get();
@@ -463,7 +463,7 @@ MessageList FMOD_Controller::collectLinkTravelTime()
 	DailyTime start(curr.getValue()+base.getValue());
 
 	MsgLinkTravel msgTravel;
-	msgTravel.currentTime = start.toString();
+	msgTravel.currentTime = start.getStrRepr();
 	msgTravel.messageID_ = FMOD_Message::MSG_LINKTRAVELUPADTE;
 	for(std::map<const sim_mob::Link*, travelTimes>::iterator itTT=LinkTravelTimesMap.begin(); itTT!=LinkTravelTimesMap.end(); itTT++){
 		MsgLinkTravel::Link travel;
@@ -522,7 +522,7 @@ MessageList FMOD_Controller::handleOfferMessage(const std::string& msg)
 	msgAccept.scheduleId = msgOffer.offers[0].schduleId;
 	msgAccept.arrivalTime = msgOffer.offers[0].arivalTimeEarly;
 	msgAccept.departureTime = msgOffer.offers[0].departureTimeEarly;
-	msgAccept.currentTime = (curr+base).toString();
+	msgAccept.currentTime = (curr+base).getStrRepr();
 	std::string str = msgAccept.buildToString();
 
 	msgs.push( msgAccept.buildToString() );

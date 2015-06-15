@@ -134,7 +134,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Enti
 				currAgTripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));// one person for one busTrip, currently not considering Activity for BusDriver
 				currAg->setTripChain(currAgTripChain);
 				currAg->initTripChain();
-
+				currAg->busLine = busline->getBusLineID();
 				// scheduled for dispatch
 				addOrStashBuses(currAg, active_agents);
 			}
@@ -482,7 +482,7 @@ void sim_mob::BusController::storeRealTimes_eachBusStop(const std::string& busli
 		size_t iSize = busStopRealTimeTripkMinusOne.size();
 		for(size_t i = 0; i < iSize; i++) {
 			if(busStopRealTimeTripkMinusOne[i]->get().Real_busStop) {
-				std::cout << "real_ArrivalTime: " << i << " " << busStopRealTimeTripkMinusOne[i]->get().real_ArrivalTime.getRepr_() << " bus stop no: " << busStopRealTimeTripkMinusOne[i]->get().Real_busStop->busstopno_ << std::endl;
+				std::cout << "real_ArrivalTime: " << i << " " << busStopRealTimeTripkMinusOne[i]->get().real_ArrivalTime.getStrRepr() << " bus stop no: " << busStopRealTimeTripkMinusOne[i]->get().Real_busStop->busstopno_ << std::endl;
 			}
 		}
 	}
@@ -577,7 +577,7 @@ double sim_mob::BusController::headwayDecision(const string& busline_i, int trip
 		const vector<Shared<BusStop_RealTimes>* >& busStopRealTimeTripkMinusOne = BusTrips[trip_k - 1].getBusStopRealTimes();
 
 		std::cout << "busStopRealTime_tripK_1  size(): " << busStopRealTimeTripkMinusOne.size() << std::endl;
-		std::cout << "real_ArrivalTime in headway Decision: " << " trip_k - 1 " << trip_k - 1 << " busstopSequence_j " << busstopSequence_j << "	" << busStopRealTimeTripkMinusOne[busstopSequence_j]->get().real_ArrivalTime.getRepr_() << std::endl;
+		std::cout << "real_ArrivalTime in headway Decision: " << " trip_k - 1 " << trip_k - 1 << " busstopSequence_j " << busstopSequence_j << "	" << busStopRealTimeTripkMinusOne[busstopSequence_j]->get().real_ArrivalTime.getStrRepr() << std::endl;
 		if(busStopRealTimeTripkMinusOne[busstopSequence_j]->get().Real_busStop) { // data has already updated
 			ATijkMinusOne = busStopRealTimeTripkMinusOne[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigManager::GetInstance().FullConfig().simStartTime());// there are some cases that buses are bunched together so that k-1 has no values updated yet
 			Hi = PLANNED_HEADWAY_MS;// 857_1(headway: 480000ms) 444300(test holding), 143000(best), 142000, 140000(headway*100), 138000, 181000(bad effect) ;60000(headway*50)

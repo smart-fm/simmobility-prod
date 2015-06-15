@@ -245,19 +245,21 @@ bool polyline_sorter (const Polyline* const p1, const Polyline* const p2)
 
 void DatabaseLoader::getCBD_Border(const string & cnn,
 		std::set<std::pair<const sim_mob::RoadSegment*,const sim_mob::RoadSegment*> > &in,
-		std::set<std::pair<const sim_mob::RoadSegment*,const sim_mob::RoadSegment*> > & out) {
+		std::set<std::pair<const sim_mob::RoadSegment*,const sim_mob::RoadSegment*> > &out)
+{
 	soci::session sql(soci::postgresql, cnn);
+
 	soci::rowset<sim_mob::CBD_Pair> rsIn = sql.prepare << std::string("select * from ") + "get_banned_in_turning()";
-
-	for (soci::rowset<sim_mob::CBD_Pair>::iterator it = rsIn.begin();it != rsIn.end(); it++) {
+	for (soci::rowset<sim_mob::CBD_Pair>::iterator it = rsIn.begin();it != rsIn.end(); it++)
+	{
 		std::map<unsigned long, const sim_mob::RoadSegment*>::iterator itFromSeg(sim_mob::RoadSegment::allSegments.find(it->from_section));
 		std::map<unsigned long, const sim_mob::RoadSegment*>::iterator itToSeg(sim_mob::RoadSegment::allSegments.find(it->to_section));
-		if (itFromSeg != sim_mob::RoadSegment::allSegments.end()
-				&& itToSeg != sim_mob::RoadSegment::allSegments.end()) {
-
+		if (itFromSeg != sim_mob::RoadSegment::allSegments.end() && itToSeg != sim_mob::RoadSegment::allSegments.end())
+		{
 			in.insert(std::make_pair(itFromSeg->second, itToSeg->second));
-
-		} else {
+		}
+		else
+		{
 			std::stringstream str("");
 			str << "Section ids " << it->from_section << "," << it->to_section
 					<< " has no candidate Road Segment among "
@@ -266,20 +268,19 @@ void DatabaseLoader::getCBD_Border(const string & cnn,
 			throw std::runtime_error(str.str());
 		}
 	}
-	//for simplicity, we repeated code for Out segments
-	soci::rowset<sim_mob::CBD_Pair> rsOut = sql.prepare << std::string("select * from ") + "get_banned_out_turning()";
 
-	for (soci::rowset<sim_mob::CBD_Pair>::iterator it = rsOut.begin();	it != rsOut.end(); it++) {
+	soci::rowset<sim_mob::CBD_Pair> rsOut = sql.prepare << std::string("select * from ") + "get_banned_out_turning()";
+	for (soci::rowset<sim_mob::CBD_Pair>::iterator it = rsOut.begin();	it != rsOut.end(); it++)
+	{
 		std::map<unsigned long, const sim_mob::RoadSegment*>::iterator itFromSeg(sim_mob::RoadSegment::allSegments.find(it->from_section));
 		std::map<unsigned long, const sim_mob::RoadSegment*>::iterator itToSeg(sim_mob::RoadSegment::allSegments.find(it->to_section));
 
-		if (itFromSeg != sim_mob::RoadSegment::allSegments.end()
-				&& itToSeg != sim_mob::RoadSegment::allSegments.end()) {
-
+		if (itFromSeg != sim_mob::RoadSegment::allSegments.end() && itToSeg != sim_mob::RoadSegment::allSegments.end())
+		{
 			out.insert(std::make_pair(itFromSeg->second, itToSeg->second));
-
-		} else {
-
+		}
+		else
+		{
 			std::stringstream str("");
 			str << "Section ids " << it->from_section << "," << it->to_section
 					<< " has no candidate Road Segment among "
@@ -288,14 +289,14 @@ void DatabaseLoader::getCBD_Border(const string & cnn,
 			throw std::runtime_error(str.str());
 		}
 	}
-
 }
 
 void DatabaseLoader::getCBD_Segments(const string & cnn, std::set<const sim_mob::RoadSegment*> & zoneSegments)
 {
 	soci::session sql(soci::postgresql, cnn);
 	soci::rowset<int> rs = sql.prepare << std::string("select * from ") + "get_ban_section_CBD_aimsun()";
-	for (soci::rowset<int>::iterator it = rs.begin();	it != rs.end(); it++) {
+	for (soci::rowset<int>::iterator it = rs.begin();	it != rs.end(); it++)
+	{
 		std::map<unsigned long, const sim_mob::RoadSegment*>::iterator itSeg(sim_mob::RoadSegment::allSegments.find(*it));
 		if(itSeg != sim_mob::RoadSegment::allSegments.end())
 		{
@@ -2154,7 +2155,7 @@ DatabaseLoader::createSignals()
 //		  not needed for the time being
 //        const_cast<sim_mob::Signal &>(signal).addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, dbSignal.bearing);
     }
-    sim_mob::Print() << "A Total of " << nof_signals << " were successfully created\n";
+    sim_mob::Print() << "signals created: " << nof_signals << std::endl;
 }
 
 /*SCATS IMPLEMENTATION ONLY.
@@ -2809,7 +2810,7 @@ std::map<std::string, std::vector<sim_mob::TripChainItem*> > sim_mob::aimsun::Lo
 
 void sim_mob::aimsun::Loader::getCBD_Border(
 		std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > &in,
-		std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > & out)
+		std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > &out)
 {
 	std::string cnn(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
 	DatabaseLoader::getCBD_Border(cnn, in, out);
@@ -3046,7 +3047,8 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 }
 
 void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdSeg, std::list<sim_mob::SegmentStats*>& splitSegmentStats) {
-	if(!rdSeg) {
+	if(!rdSeg)
+	{
 		throw std::runtime_error("CreateSegmentStats(): NULL RoadSegment was passed");
 	}
 	std::stringstream debugMsgs;
@@ -3056,26 +3058,22 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdS
 	double rdSegmentLength = rdSeg->getPolylineLength();
 	// NOTE: std::map implements strict weak ordering which defaults to less<key_type>
 	// This is precisely the order in which we want to iterate the stops to create SegmentStats
-	for(std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>::const_iterator obsIt = obstacles.begin();
-			obsIt != obstacles.end(); obsIt++) {
+	for(std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>::const_iterator obsIt = obstacles.begin(); obsIt != obstacles.end(); obsIt++)
+	{
 		const sim_mob::BusStop* busStop = dynamic_cast<const sim_mob::BusStop*>(obsIt->second);
-		if(busStop) {
+		if(busStop)
+		{
 			double stopOffset = (double) (obsIt->first);
-			if(stopOffset <= 0) {
-				debugMsgs<<"error in stop offset data"
-						<<"|seg: "<<rdSeg->getStartEnd()
-						<<"|busstop: "<<busStop->getBusstopno_()
-						<<"|stopOffset: "<<stopOffset
-						<<"\n\tmanually pushing this stop to end of segment"
-						<<std::endl;
-				sim_mob::Print()<<debugMsgs.str();
-				debugMsgs.str(std::string());
+			if(stopOffset <= 0)
+			{
 				sim_mob::SegmentStats* segStats = new sim_mob::SegmentStats(rdSeg, rdSegmentLength);
 				segStats->addBusStop(busStop);
 				//add the current stop and the remaining stops (if any) to the end of the segment as well
-				while(++obsIt != obstacles.end()) {
+				while(++obsIt != obstacles.end())
+				{
 					busStop = dynamic_cast<const sim_mob::BusStop*>(obsIt->second);
-					if(busStop) {
+					if(busStop)
+					{
 						segStats->addBusStop(busStop);
 					}
 				}

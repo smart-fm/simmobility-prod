@@ -39,7 +39,9 @@ namespace sim_mob {
                 UNITS,
                 PROJECTS,
                 HH_PC,
-                UNITS_IN_MARKET
+                UNITS_IN_MARKET,
+                LOG_TAXI_AVAILABILITY,
+                LOG_VEHICLE_OWNERSIP,
             };
             LoggerAgent();
             virtual ~LoggerAgent();

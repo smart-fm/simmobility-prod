@@ -1343,7 +1343,7 @@ void sim_mob::Conflux::getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>&
 	for (UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin(); upStrmSegMapIt != upstreamSegStatsMap.end(); upStrmSegMapIt++)
 	{
 		const SegmentStatsList& upstreamSegments = upStrmSegMapIt->second;
-		sumCapacity += (int)(ceil((*upstreamSegments.rbegin())->getRoadSegment()->getCapacityPerInterval()));
+		sumCapacity += (int)(ceil((*upstreamSegments.rbegin())->getCapacity()));
 		double totalTimeToSegEnd = 0;
 		std::deque<sim_mob::Person*> oneDeque;
 		for (SegmentStatsList::const_reverse_iterator rdSegIt = upstreamSegments.rbegin(); rdSegIt != upstreamSegments.rend(); rdSegIt++)

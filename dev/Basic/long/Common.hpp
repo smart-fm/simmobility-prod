@@ -109,6 +109,13 @@ namespace sim_mob {
             LTMID_BID,
             LTMID_BID_RSP,
             LTMID_LOG,
+
+            //HH message for taxi availability
+            LTMID_HH_TAXI_AVAILABILITY,
+            //HH messages for vehicle ownership
+            LTMID_HH_NO_CAR,
+            LTMID_HH_ONE_CAR,
+            LTMID_HH_TWO_PLUS_CAR,
         };
 
         const int INTERNAL_MESSAGE_PRIORITY = 5;

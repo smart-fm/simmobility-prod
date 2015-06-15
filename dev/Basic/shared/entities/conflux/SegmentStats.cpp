@@ -264,7 +264,7 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 		}
 	}
 
-	int capacity = (int) (ceil(roadSegment->getCapacityPerInterval()));
+	int capacity = (int) (ceil(supplyParams.getCapacity()));
 	std::vector<PersonList::iterator> iteratorLists;
 
 	//init iterator list to the front of each lane
@@ -277,7 +277,7 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 	for (int c = 0; c < capacity; c++)
 	{
 		int dequeIndex = -1;
-		double minDistance = std::numeric_limits<double>::max();
+		double minVal = std::numeric_limits<double>::max();
 		sim_mob::Person* minPerson = nullptr;
 		int i = 0;
 		for (LaneStatsMap::iterator lnIt = laneStatsMap.begin(); lnIt != laneStatsMap.end(); lnIt++)
@@ -286,22 +286,50 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 			//order by location
 			if (orderBySetting == SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION)
 			{
-				if (iteratorLists[i] != personsInLane.end() && (*iteratorLists[i])->distanceToEndOfSegment < minDistance)
+				if (iteratorLists[i] != personsInLane.end())
 				{
-					dequeIndex = i;
-					minPerson = (*(iteratorLists[i]));
-					minDistance = minPerson->distanceToEndOfSegment;
+					if((*iteratorLists[i])->distanceToEndOfSegment == minVal)
+					{
+						// If current person and (*i) are at equal distance to the stop line, we 'toss a coin' and choose one of them
+						bool coinTossResult = ((rand() / (double) RAND_MAX) < 0.5);
+						if (coinTossResult)
+						{
+							dequeIndex = i;
+							minPerson = (*(iteratorLists[i]));
+							minVal = minPerson->distanceToEndOfSegment; //redundant, but still kept for clarity
+						}
+					}
+					else if((*iteratorLists[i])->distanceToEndOfSegment < minVal)
+					{
+						dequeIndex = i;
+						minPerson = (*(iteratorLists[i]));
+						minVal = minPerson->distanceToEndOfSegment;
+					}
 				}
 			}
-			//order by time
-			else if (orderBySetting == SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION)
+			else if (orderBySetting == SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION) //order by time
 			{
-				if (iteratorLists[i] != personsInLane.end() && (*iteratorLists[i])->drivingTimeToEndOfLink < minDistance)
+				if (iteratorLists[i] != personsInLane.end())
 				{
-					dequeIndex = i;
-					minPerson = (*(iteratorLists[i]));
-					minDistance = minPerson->drivingTimeToEndOfLink;
+					if((*iteratorLists[i])->drivingTimeToEndOfLink == minVal)
+					{
+						// If current person and (*i) are at equal time to the stop line, we 'toss a coin' and choose one of them
+						bool coinTossResult = ((rand() / (double) RAND_MAX) < 0.5);
+						if (coinTossResult)
+						{
+							dequeIndex = i;
+							minPerson = (*(iteratorLists[i]));
+							minVal = minPerson->drivingTimeToEndOfLink; //redundant, but still kept for clarity
+						}
+					}
+					else if( (*iteratorLists[i])->drivingTimeToEndOfLink < minVal)
+					{
+						dequeIndex = i;
+						minPerson = (*(iteratorLists[i]));
+						minVal = minPerson->drivingTimeToEndOfLink;
+					}
 				}
+
 			}
 			i++;
 		}
@@ -1290,4 +1318,10 @@ void LaneParams::decrementOutputCounter()
 	else { throw std::runtime_error("cannot allow vehicles beyond output capacity."); }
 }
 
+double SegmentStats::getCapacity() const
+{
+	return supplyParams.getCapacity();
+}
+
 } // end of namespace sim_mob
+

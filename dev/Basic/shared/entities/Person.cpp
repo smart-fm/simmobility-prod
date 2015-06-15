@@ -1348,30 +1348,29 @@ void sim_mob::Person::printTripChainItemTypes() const{
 	 if(st.cbdTraverseType == sim_mob::TravelMetric::CBD_ENTER || st.cbdTraverseType == sim_mob::TravelMetric::CBD_EXIT)
 	 {
 		 //sanity check
-		 if(!(subtripMetrics.cbdOrigin.node_&&subtripMetrics.cbdDestination.node_))
+		 if(!(subtripMetrics.cbdOrigin.node_ && subtripMetrics.cbdDestination.node_))
 		 {
 			 restrictedRegion <<
 					 subtripMetrics.origin.node_->getID() << "," <<
 					 subtripMetrics.destination.node_->getID() <<
-					 (st.cbdTraverseType == sim_mob::TravelMetric::CBD_ENTER ? " , Enter ": "  ,Exit") <<
-					  " has null values " <<
-					 (subtripMetrics.cbdOrigin.node_ != nullptr ? subtripMetrics.cbdOrigin.node_ : 0) << "," <<
-					 (subtripMetrics.cbdDestination.node_ != nullptr ? subtripMetrics.cbdDestination.node_ : 0) << "\n";
+					 (st.cbdTraverseType == sim_mob::TravelMetric::CBD_ENTER ? " ,Enter" : " ,Exit") << " has null values " <<
+					 (subtripMetrics.cbdOrigin.node_ != nullptr ? subtripMetrics.cbdOrigin.node_->getID() : 0) << "," <<
+					 (subtripMetrics.cbdDestination.node_ != nullptr ? subtripMetrics.cbdDestination.node_->getID() : 0) << "\n";
 		 }
 		 else //valid scenario:
 		 {
 			 restrictedRegion <<
 					 subtripMetrics.cbdOrigin.node_->getID() << "," <<											//	cbd_entry_node
 					 subtripMetrics.cbdDestination.node_->getID() << "," <<										//	cbd_exit_node
-					 subtripMetrics.cbdStartTime.getRepr_() << ","  <<											//	cbd_entry_time
-					 subtripMetrics.cbdEndTime.getRepr_() << ","  <<											//	cbd_exit_time
+					 subtripMetrics.cbdStartTime.getStrRepr() << ","  <<											//	cbd_entry_time
+					 subtripMetrics.cbdEndTime.getStrRepr() << ","  <<											//	cbd_exit_time
 					 subtripMetrics.cbdTravelTime << ","  <<													//	cbd_travel_time
 					 (subtripMetrics.travelTime - subtripMetrics.cbdTravelTime) << "," <<						//	non_cbd_travel_time
 					 subtripMetrics.cbdDistance << "," <<	 	 	 	 	 	 	 	 	 	 	 	 	 	//	cbd_distance
 					 (subtripMetrics.distance - subtripMetrics.cbdDistance) ;		 	 	 	 	 	 	 	//	non_cbd_distance
 		 }
 	 }
-	 else// if Agent never entered or exitted CBD
+	 else// if Agent never entered or exited CBD
 	 {
 		 restrictedRegion<<
 				 "0" << "," <<																				//	cbd_entry_node
@@ -1402,13 +1401,13 @@ void sim_mob::Person::printTripChainItemTypes() const{
 		 origiNode << "," <<														//	origin
 		 destNode << "," <<															//	destination
 		 st.mode  << "," <<																				//	mode
-		 subtripMetrics.startTime.getRepr_()  << "," <<													//	start_time
-		 subtripMetrics.endTime.getRepr_()  << "," <<													//	end_time
+		 subtripMetrics.startTime.getStrRepr()  << "," <<													//	start_time
+		 subtripMetrics.endTime.getStrRepr()  << "," <<													//	end_time
 		 //			 TravelMetric::getTimeDiffHours(subtripMetrics.endTime, subtripMetrics.startTime)  << ","		//	travel_time### commented
 		 subtripMetrics.travelTime << "," <<															//	travel_time
 		 subtripMetrics.distance << "," <<	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	//	total_distance
-		 "0" << ","	<<	//placeholder for paublic transit's waiting time								//	ptt_wt
-		 "0" << "," << //placeholder for paublic transit's walk time									//	pt_walk
+		 "0" << ","	<<	//placeholder for public transit's waiting time								//	ptt_wt
+		 "0" << "," << //placeholder for public transit's walk time									//	pt_walk
 		 restrictedRegion.str() << "\n";																/* MIXED CBD Information */
 
 	csv << res.str();
@@ -1425,8 +1424,8 @@ void sim_mob::Person::printTripChainItemTypes() const{
 	std::stringstream ret("");
 	ret << this->GetId() << "," << origiNode << "," << destNode << ","
 			<< cbdStartNode << "," << cbdEndNode << ","
-			<< subtripMetrics.cbdStartTime.toString() << ","
-			<< subtripMetrics.cbdEndTime.toString() << ","
+			<< subtripMetrics.cbdStartTime.getStrRepr() << ","
+			<< subtripMetrics.cbdEndTime.getStrRepr() << ","
 			<< st.mode << ","
 			<< subtripMetrics.cbdTraverseType << std::endl;
 	sim_mob::BasicLogger& cbd = sim_mob::Logger::log("cdb.csv");
@@ -1481,7 +1480,7 @@ void sim_mob::Person::printTripChainItemTypes() const{
 		"Node" <<  "," <<
 		st.mode <<  "," <<
 		(st.isPrimaryMode ? "TRUE" : "FALSE") <<  "," <<
-		st.startTime.getRepr_()  <<  "," <<
+		st.startTime.getStrRepr()  <<  "," <<
 		st.ptLineId;
 
 	//step-3 activity, part 1
@@ -1573,9 +1572,9 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
 		 csv << this->getId() << "," <<
 				 item.origin.node_->getID() << ","
 				 << item.destination.node_->getID() << ","
-				 << item.startTime.getRepr_() << ","
-				 << item.endTime.getRepr_() << ","
-				 << (item.endTime - item.startTime).getRepr_()
+				 << item.startTime.getStrRepr() << ","
+				 << item.endTime.getStrRepr() << ","
+				 << (item.endTime - item.startTime).getStrRepr()
 				 << "\n";
 	 }
 	 tripTravelMetrics.clear();

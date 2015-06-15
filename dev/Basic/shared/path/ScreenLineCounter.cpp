@@ -85,7 +85,7 @@ namespace sim_mob
 				for(;rstcIter != modeTCIter->second.end(); rstcIter++)
 				{
 					screenLineLogger << rstcIter->first->getId() << "\t" <<
-						startTime.getRepr_() << "\t" << endTime.getRepr_() <<
+						startTime.getStrRepr() << "\t" << endTime.getStrRepr() <<
 						"\t" << modeTCIter->first <<
 						"\t" << rstcIter->second.travelTimeCnt << "\n";
 				}

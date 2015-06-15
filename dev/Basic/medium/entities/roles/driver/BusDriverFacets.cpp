@@ -126,7 +126,7 @@ void BusDriverMovement::frame_tick() {
 			{
 				parentBusDriver->closeBusDoors(stopAg);
 				routeTracker.updateNextStop();
-				DriverMovement::moveToNextSegment(params);
+				moveToNextSegment(params);
 			}
 			else
 			{
@@ -370,12 +370,14 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 					params.elapsedSeconds += parentBusDriver->waitingTimeAtbusStop;
 					parentBusDriver->waitingTimeAtbusStop = 0;
 					double output = getOutputCounter(currLane, currSegStat);
-					if(output > 0)
+					bool isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
+					const sim_mob::SegmentStats* nxtSegStat = pathMover.getNextSegStats(!isNewLinkNext);
+					if(output > 0 && canGoToNextRdSeg(params, nxtSegStat))
 					{
 						parentBusDriver->closeBusDoors(stopAg);
 						routeTracker.updateNextStop();
 						// There is remaining time, try to move to next segment
-						return DriverMovement::moveToNextSegment(params);
+						return moveToNextSegment(params);
 					}
 					else
 					{

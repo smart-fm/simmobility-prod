@@ -108,7 +108,7 @@ public:
 		return (cbdDestZone? 1 : 0);
 	}
 
-	void setCbdDestZone(bool cbdDestZone)
+	void setCbdDestZone(int cbdDestZone)
 	{
 		this->cbdDestZone = cbdDestZone;
 	}
@@ -118,7 +118,7 @@ public:
 		return (cbdOrgZone? 1 : 0);
 	}
 
-	void setCbdOrgZone(bool cbdOrgZone)
+	void setCbdOrgZone(int cbdOrgZone)
 	{
 		this->cbdOrgZone = cbdOrgZone;
 	}
@@ -142,8 +142,8 @@ private:
 	double costHT2_AM;
 	double costHT2_PM;
 	double costHT2_OP;
-	bool cbdOrgZone;
-	bool cbdDestZone;
+	int cbdOrgZone;
+	int cbdDestZone;
 
 };
 
@@ -253,7 +253,7 @@ public:
 		return (cbdDestZone? 1 : 0);
 	}
 
-	void setCbdDestZone(bool cbdDestZone)
+	void setCbdDestZone(int cbdDestZone)
 	{
 		this->cbdDestZone = cbdDestZone;
 	}
@@ -263,7 +263,7 @@ public:
 		return (cbdOrgZone? 1 : 0);
 	}
 
-	void setCbdOrgZone(bool cbdOrgZone)
+	void setCbdOrgZone(int cbdOrgZone)
 	{
 		this->cbdOrgZone = cbdOrgZone;
 	}
@@ -286,8 +286,8 @@ private:
 	double todHigh; // upper limit for time of day for this stop
 	double todLow; // lower limit for time of day for this stop
 	unsigned numTimeWindows;
-	bool cbdOrgZone;
-	bool cbdDestZone;
+	int cbdOrgZone;
+	int cbdDestZone;
 };
 } // end namespace medium
 } // end namespace sim_mob

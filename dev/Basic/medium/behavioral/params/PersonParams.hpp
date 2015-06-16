@@ -686,7 +686,7 @@ public:
 		return (cbdDestZone? 1 : 0);
 	}
 
-	void setCbdDestZone(bool cbdDestZone)
+	void setCbdDestZone(int cbdDestZone)
 	{
 		this->cbdDestZone = cbdDestZone;
 	}
@@ -696,7 +696,7 @@ public:
 		return (cbdOrgZone? 1 : 0);
 	}
 
-	void setCbdOrgZone(bool cbdOrgZone)
+	void setCbdOrgZone(int cbdOrgZone)
 	{
 		this->cbdOrgZone = cbdOrgZone;
 	}
@@ -717,8 +717,8 @@ private:
     /** bitset of availablilities for fast checking*/
     std::bitset<1176> availabilityBit;
 
-	bool cbdOrgZone;
-	bool cbdDestZone;
+    int cbdOrgZone;
+    int cbdDestZone;
 };
 
 } //end namespace medium

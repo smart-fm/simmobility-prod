@@ -302,7 +302,7 @@ public:
 		return (cbdDestZone? 1 : 0);
 	}
 
-	void setCbdDestZone(bool cbdZone)
+	void setCbdDestZone(int cbdZone)
 	{
 		this->cbdDestZone = cbdZone;
 	}
@@ -312,7 +312,7 @@ public:
 		return (cbdOrgZone? 1 : 0);
 	}
 
-	void setCbdOrgZone(bool cbdOrgZone)
+	void setCbdOrgZone(int cbdOrgZone)
 	{
 		this->cbdOrgZone = cbdOrgZone;
 	}
@@ -329,8 +329,8 @@ private:
 	double walkDistance1;
 	double walkDistance2;
 	bool centralZone;
-	bool cbdOrgZone;
-	bool cbdDestZone;
+	int cbdOrgZone;
+	int cbdDestZone;
 	double ttPublicIvtFirst;
 	double ttPublicIvtSecond;
 	double ttPublicWaitingFirst;

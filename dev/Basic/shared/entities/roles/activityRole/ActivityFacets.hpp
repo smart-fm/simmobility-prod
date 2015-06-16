@@ -9,13 +9,15 @@
 #include "ActivityPerformer.hpp"
 #include "entities/Person.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 class ActivityPerformer;
 
-class ActivityPerformerBehavior : public sim_mob::BehaviorFacet {
+class ActivityPerformerBehavior : public sim_mob::BehaviorFacet
+{
 public:
 	explicit ActivityPerformerBehavior(sim_mob::Person* parentAgent = nullptr);
-	virtual ~ActivityPerformerBehavior() {}
+	virtual ~ActivityPerformerBehavior();
 
 	//Virtual overrides
 	virtual void frame_init();
@@ -23,16 +25,16 @@ public:
 	virtual void frame_tick_output();
 
 private:
-
 	sim_mob::ActivityPerformer* parentActivity;
+	friend class ActivityPerformer;
+
 	//Serialization-related friends
 	friend class PackageUtils;
 	friend class UnPackageUtils;
-
-	friend class ActivityPerformer;
 };
 
-class ActivityPerformerMovement : public sim_mob::MovementFacet {
+class ActivityPerformerMovement : public sim_mob::MovementFacet
+{
 public:
 	explicit ActivityPerformerMovement(sim_mob::Person* parentAgent = nullptr);
 	virtual ~ActivityPerformerMovement();
@@ -49,12 +51,11 @@ public:
 	virtual TravelMetric& finalizeTravelTimeMetric();
 
 private:
-
 	sim_mob::ActivityPerformer* parentActivity;
+	friend class ActivityPerformer;
+
 	//Serialization-related friends
 	friend class PackageUtils;
 	friend class UnPackageUtils;
-
-	friend class ActivityPerformer;
 };
 }

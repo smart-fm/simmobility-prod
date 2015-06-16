@@ -395,7 +395,11 @@ void sim_mob::DriverMovement::frame_tick()
 	parentDriver->latVelocity_.set(parentDriver->vehicle->getLatVelocity());
 	parentDriver->fwdAccel_.set(parentDriver->vehicle->getAcceleration());
 	parentDriver->turningDirection_.set(parentDriver->vehicle->getTurningDirection());
-	parentDriver->distToCurrSegmentEnd_.set(fwdDriverMovement.getDisToCurrSegEnd()); 
+	
+	if(!fwdDriverMovement.isDoneWithEntireRoute())
+	{
+		parentDriver->distToCurrSegmentEnd_.set(fwdDriverMovement.getDisToCurrSegEnd()); 
+	}
 	
 	//Update your perceptions
 	parentDriver->perceivedFwdVel->delay(parentDriver->vehicle->getVelocity());
@@ -718,7 +722,7 @@ bool sim_mob::DriverMovement::updateSensors(timeslice now)
 		return false;
 	}
 
-	//Manage traffic signal behavior if we are close to the end of the link.
+	//Manage traffic signal behaviour if we are close to the end of the link.
 	if(!fwdDriverMovement.isInIntersection()) 
 	{
 		setTrafficSignalParams(params);
@@ -767,7 +771,7 @@ bool sim_mob::DriverMovement::updateMovement(timeslice now)
 	if (fwdDriverMovement.isInIntersection())
 	{
 		parentDriver->perceivedDistToTrafficSignal->clear();
-		parentDriver->perceivedTrafficColor->clear();
+		parentDriver->perceivedTrafficColor->clear();		
 		performIntersectionDriving(params);
 	}
 	
@@ -792,6 +796,7 @@ bool sim_mob::DriverMovement::updateMovement(timeslice now)
 			params.justMovedIntoIntersection = true;
 			parentDriver->vehicle->setLatVelocity(0);
 			parentDriver->vehicle->setTurningDirection(LCS_SAME);
+			chooseNextLaneForNextLink(params);
 			
 			//We've reached the intersection, but we don't have the next lane in the next link.
 			//This means that we were not able to change lanes in time to reach the lane with the
@@ -816,7 +821,7 @@ bool sim_mob::DriverMovement::updateMovement(timeslice now)
 	}
 
 	//The segment has changed, calculate link travel time and road segment travel time
-	if (params.justChangedToNewSegment == true)
+	/*if (params.justChangedToNewSegment == true)
 	{
 		//Agent* parentAgent = parent;
 		const Link* prevLink = prevSegment->getLink();
@@ -865,7 +870,7 @@ bool sim_mob::DriverMovement::updateMovement(timeslice now)
 		{
 			parent->addToLinkTravelStatsMap(parent->getLinkTravelStats(), actualTime);
 		}
-	}
+	}*/
 
 	if (!fwdDriverMovement.isDoneWithEntireRoute())
 	{
@@ -938,7 +943,7 @@ bool sim_mob::DriverMovement::updatePostMovement(timeslice now)
 											params.overflowIntoIntersection);
 
 			//Fix: We need to perform this calculation at least once or we won't have a heading within the intersection.
-			DPoint res = intModel->continueDriving(0,params);
+			DPoint res = intModel->continueDriving(0, params);
 			parentDriver->vehicle->setPositionInIntersection(res.x, res.y);
 		}
 	}
@@ -1045,6 +1050,13 @@ void sim_mob::DriverMovement::performIntersectionDriving(DriverUpdateParams& p)
 		{
 			//Call the intersection driving model
 			intAcc = intModel->makeAcceleratingDecision(p, fwdDriverMovement.currTurning);
+		}
+		//In case we've moved forward into an intersection then stopped, when there was a red light		
+		//The "aC" indicates that previously acceleration due to traffic signal was selected		
+		else if(p.accSelect == "aC" && parentDriver->getVehicle()->getAcceleration() <= 0)
+		{
+			//Get the traffic light colour
+			p.perceivedTrafficColor = trafficSignal->getDriverLight(*p.currLane, *nextLaneInNextLink);
 		}
 		
 		//Call the car following model
@@ -2030,7 +2042,7 @@ void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p)
 			//Look for the lane connector that has the 'to' RoadSegment as the next RoadSegment
 			for(std::set<LaneConnector*>::const_iterator itLCS = lcs.begin(); itLCS != lcs.end(); ++itLCS)
 			{
-				if ((*itLCS)->getLaneFrom() == p.currLane && (*itLCS)->getLaneTo()->getRoadSegment() == nextSeg
+				if ((*itLCS)->getLaneFrom() == currLane && (*itLCS)->getLaneTo()->getRoadSegment() == nextSeg
 					&& !((*itLCS)->getLaneTo()->is_pedestrian_lane()))
 				{
 					//It's a valid lane.
@@ -2044,7 +2056,7 @@ void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p)
 				std::vector<const Lane *>::const_iterator itTargetLanes = targetLanes.begin();
 				while(itTargetLanes != targetLanes.end())
 				{					
-					if(getLaneIndex(*itTargetLanes) == p.currLaneIndex)
+					if(getLaneIndex(*itTargetLanes) == getLaneIndex(currLane))
 					{
 						nextLaneInNextLink = *itTargetLanes;
 						targetLaneIndex = getLaneIndex(nextLaneInNextLink);
@@ -3165,7 +3177,7 @@ void sim_mob::DriverMovement::syncInfoLateralMove(DriverUpdateParams& p)
 //Retrieve the current traffic signal based on our RoadSegment's end node.
 void sim_mob::DriverMovement::setTrafficSignal() 
 {
-	const Node* node;
+	const Node *node = nullptr;
 	
 	if (fwdDriverMovement.isMovingForwardsInLink)
 	{
@@ -3225,7 +3237,7 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p)
 
 		if (!parentDriver->perceivedTrafficColor->can_sense()) 
 		{
-			p.perceivedTrafficColor = color;
+			p.perceivedTrafficColor = p.trafficColor;
 		}
 
 		parentDriver->perceivedTrafficColor->delay(p.trafficColor);

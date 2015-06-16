@@ -1132,8 +1132,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 		std::vector<const sim_mob::BusStop*> stopListCopy = stopList; //copy locally
 		stopList.clear(); //empty stopList
 
-		std::vector<const sim_mob::BusStop*>::const_iterator stopIt=stopListCopy.begin();
-		const sim_mob::BusStop* firstStop = (*stopIt);
+		const sim_mob::BusStop* firstStop = stopListCopy.front();
 		if(firstStop->terminusType == sim_mob::BusStop::SINK_TERMINUS)
 		{
 			const sim_mob::BusStop* firstStopTwin = firstStop->getTwinStop();
@@ -1146,11 +1145,9 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 			stopList.push_back(firstStop);
 		}
 
-		stopIt++; //skip the first stop and last stop
-		std::vector<const sim_mob::BusStop*>::const_iterator endStopIt = (--stopListCopy.end());
-		for(; stopIt!=endStopIt; stopIt++) //iterate through all stops but the first and last
+		for(size_t stopIt = 1; stopIt < (stopListCopy.size()-1); stopIt++) //iterate through all stops but the first and last
 		{
-			const sim_mob::BusStop* stop = (*stopIt);
+			const sim_mob::BusStop* stop = stopListCopy[stopIt];
 			switch(stop->terminusType)
 			{
 				case sim_mob::BusStop::NOT_A_TERMINUS:
@@ -1177,7 +1174,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 			}
 		}
 
-		const sim_mob::BusStop* lastStop = (*endStopIt);
+		const sim_mob::BusStop* lastStop = stopListCopy[stopListCopy.size()-1];
 		if(lastStop->terminusType == sim_mob::BusStop::SOURCE_TERMINUS)
 		{
 			const sim_mob::BusStop* lastStopTwin = lastStop->getTwinStop();

@@ -254,7 +254,7 @@ bool sim_mob::medium::DriverMovement::initializePath()
 
 		if(person->originNode.node_ == person->destNode.node_)
 		{
-			Print() << "DriverMovement::initializePath | Can't initializePath because origin and destination are the same for driver " << person->GetId()
+			Print() << "DriverMovement::initializePath | Can't initializePath because origin and destination are the same for driver " << person->getId()
 			<< "\norigin:" << person->originNode.node_->getID() << "\ndestination:" << person->destNode.node_->getID() << std::endl;
 			return false;
 		}

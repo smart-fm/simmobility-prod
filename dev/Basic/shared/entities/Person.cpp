@@ -1401,7 +1401,7 @@ void sim_mob::Person::printTripChainItemTypes() const{
 		return;
 	}
 	std::stringstream ret("");
-	ret << this->GetId() << "," << origiNode << "," << destNode << ","
+	ret << this->getId() << "," << origiNode << "," << destNode << ","
 			<< cbdStartNode << "," << cbdEndNode << ","
 			<< subtripMetrics.cbdStartTime.getStrRepr() << ","
 			<< subtripMetrics.cbdEndTime.getStrRepr() << ","

@@ -71,7 +71,7 @@ void sim_mob::medium::Passenger::collectTravelTime()
 			subEndPoint, subStartType, subEndType, mode, service, arrivaltime,
 			travelTime;
 
-	personId = boost::lexical_cast<std::string>(parent->GetId());
+	personId = boost::lexical_cast<std::string>(parent->getId());
 	tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
 	tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
 	subStartPoint = parent->currSubTrip->startLocationId;

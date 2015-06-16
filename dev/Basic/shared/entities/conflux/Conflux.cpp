@@ -916,7 +916,8 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 		unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
 		unsigned int offset = time.getValue()/tick;
 		//TODO: compute time to be expired and send message to self
-		messaging::MessageBus::PostMessage(this, MSG_WAKE_UP, messaging::MessageBus::MessagePtr(new PersonMessage(msg.person)), false, offset); //last parameter (0) must be updated with actual time
+		messaging::MessageBus::PostMessage(this, MSG_WAKE_UP,
+				messaging::MessageBus::MessagePtr(new PersonMessage(msg.person)), false, offset);
 		break;
 	}
 	case MSG_WAKE_UP:

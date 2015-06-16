@@ -50,7 +50,9 @@ namespace sim_mob
 	void ScreenLineCounter::updateScreenLineCount(const Agent::RdSegTravelStat& rdSegStat)
 	{
 		if(!std::binary_search(screenLines.begin(), screenLines.end(), rdSegStat.rs->getId()))
+		{
 			return;
+		}
 
 		TT::TI timeInterval = ScreenLineCounter::getTimeInterval(rdSegStat.entryTime * 1000);
 		TT::TimeAndCount &tc = ttMap[timeInterval][rdSegStat.travelMode][rdSegStat.rs];

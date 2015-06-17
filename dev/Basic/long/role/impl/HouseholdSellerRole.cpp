@@ -436,9 +436,10 @@ double HouseholdSellerRole::calculateHedonicPrice(const Unit& unit)
 	double ZZ_hdb5 = unit.getUnitStatus() == 5? 1.0:0.0;
 
 	//temporary code to generate a logsum
-	std::default_random_engine generator;
-	std::normal_distribution<double> householdLogSum( 2.689474, 0.02226231);
-	ZZ_logsum = householdLogSum(generator); //chetan TODO: get the household logsum
+	boost::mt19937 rng(time(0));
+	boost::normal_distribution<> householdLogSum( 2.689474, 0.02226231);
+	boost::variate_generator<boost::mt19937&,  boost::normal_distribution<> > var_nor(rng, householdLogSum);
+	ZZ_logsum  = var_nor();
 
 	if( DD_priv == 1 )
 	{
@@ -579,17 +580,10 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
     info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
     //luaModel.calulateUnitExpectations(unit, info.numExpectations, info.expectations);
 
-
     double hedonicPrice = calculateHedonicPrice(unit);
 
     hedonicPrice = exp(hedonicPrice);
-    hedonicPrice = hedonicPrice / 500000;
-
-    //if( info.expectations.size() > 0 )
-    //	PrintOutV("old hedonic: " << info.expectations[0].hedonicPrice << " new hedonic: " << hedonicPrice << std::endl );
-    //else
-    //	PrintOutV("old hedonic: empty new hedonic: " << hedonicPrice << std::endl );
-
+    //hedonicPrice = hedonicPrice / 500000;
 
     ExpectationEntry expectation;
     for( int n = 0; n < info.numExpectations; n++ )
@@ -600,7 +594,6 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
 
     	info.expectations.push_back(expectation);
     }
-
 
     //number of expectations should match 
     if (info.expectations.size() == info.numExpectations)

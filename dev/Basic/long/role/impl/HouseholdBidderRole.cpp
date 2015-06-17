@@ -28,8 +28,6 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
-#include <random>
-
 using std::list;
 using std::endl;
 using namespace sim_mob::long_term;
@@ -417,10 +415,10 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	DD_area = unit->getFloorArea() / 100;
 
-	std::default_random_engine generator;
-	std::normal_distribution<double> householdLogSum( 2.038024, 0.5443059);
-
-	ZZ_logsumhh = householdLogSum(generator); //chetan TODO: get the household logsum
+	boost::mt19937 rng(time(0));
+	boost::normal_distribution<> nd( 2.038024, 0.5443059);
+	boost::variate_generator<boost::mt19937&,  boost::normal_distribution<> > var_nor(rng, nd);
+	ZZ_logsumhh = var_nor();
 
 	BigSerial ethnicity = household->getEthnicityId();
 
@@ -461,15 +459,13 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 		bzzinc * ZZ_hhinc +
 		bzsize * ZZ_hhsize;
 
-	std::default_random_engine generator2;
-	std::normal_distribution<double> error( 0, mu);
-
-	double wtp_e = error(generator2);
+	boost::mt19937 rng2(time(0));
+	boost::normal_distribution<> nd2( 0.0, mu);
+	boost::variate_generator<boost::mt19937&,  boost::normal_distribution<> > var_nor2(rng2, nd2);
+	double wtp_e  = var_nor2();
 
 	return V + wtp_e;
 }
-
-
 
 
 double HouseholdBidderRole::calculateSurplus(double price, double min, double max)
@@ -553,39 +549,28 @@ bool HouseholdBidderRole::pickEntryToBid()
             if( unit && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
                 flatEligibility = false;
 
+            const double constantVal = 500000;
 
             if ( unit && stats && flatEligibility )
             {
                 double wp_old = luaModel.calulateWP(*household, *unit, *stats);
-            	double wp = calculateWillingnessToPay(unit, household);
+            	double wp = calculateWillingnessToPay(unit, household) * constantVal;
 
-            	//PrintOutV("old wp: " << wp_old << " new wp: " << wp << std::endl);
+            	wp = std::max(0.0, wp );
 
             	if( wp > householdAffordabilityAmount )
                 {
-                	householdAffordabilityAmount = std::min(0.0f, householdAffordabilityAmount);
+            		householdAffordabilityAmount = std::max(0.0f, householdAffordabilityAmount);
                 	wp = householdAffordabilityAmount;
                 }
 
-            	//PrintOutV("wp: " << wp <<  " ap: " << entry->getAskingPrice() << std::endl);
-
-            	double surplus = calculateSurplus( wp / entry->getAskingPrice(), 0.0, 2.1 );
+            	double surplus = calculateSurplus( (wp / constantVal ) / (entry->getAskingPrice() / constantVal ) , 0.0, 2.1 ) * constantVal;
 
             	if( wp >= entry->getAskingPrice() && surplus > maxWP )
             	{
             		maxWP = surplus;
             		maxEntry = entry;
             	}
-
-            	//PrintOutV("surplus: " << surplus << std::endl);
-
-            	/*
-                if(wp >= entry->getAskingPrice() && (wp - entry->getAskingPrice()) > maxWP)
-                {
-                    maxWP = wp;
-                    maxEntry = entry;
-                }
-                */
             }
         }
     }

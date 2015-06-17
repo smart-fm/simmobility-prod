@@ -14,10 +14,6 @@
 namespace sim_mob{
 	class ScreenLineCounter {
 	public:
-		/*
-		 * Function to get the singleton instance
-		 * return - Singleton Instance
-		 */
 		static ScreenLineCounter* getInstance();
 
 		/*
@@ -31,14 +27,7 @@ namespace sim_mob{
 		 */
 		void exportScreenLineCount();
 	private:
-		/*
-		 * Constructor
-		 */
 		ScreenLineCounter();
-
-		/*
-		 * Destructor
-		 */
 		virtual ~ScreenLineCounter();
 
 		/*
@@ -51,20 +40,11 @@ namespace sim_mob{
 		 */
 		sim_mob::TravelTime ttMap;
 
-		/**
-		 * time interval value used for processing data.
-		 * This value is based on its counterpart in pathset manager.
-		 */
-		unsigned int intervalMS;
-
 		/*
 		 * List of Screen Lines
 		 */
 		std::vector<unsigned long> screenLines;
 
-		/*
-		 * Singleton Instance
-		 */
 		static ScreenLineCounter* instance;
 		static boost::mutex instanceMutex;
 	};

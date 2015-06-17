@@ -5,12 +5,26 @@
  *      Author: balakumar
  */
 
+#include <algorithm>
 #include "path/ScreenLineCounter.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "geospatial/aimsun/Loader.hpp"
-#include <algorithm>
+
+namespace
+{
+	/*
+	 * Reference of user configuration
+	 */
+	const sim_mob::ConfigParams& configParams = sim_mob::ConfigManager::GetInstance().FullConfig();
+
+	/**
+	 * time interval value used for processing data.
+	 * This value is based on its counterpart in pathset manager.
+	 */
+	const unsigned int INTERVAL_MS = configParams.screenLineParams.interval;
+}
 
 namespace sim_mob
 {
@@ -19,13 +33,12 @@ namespace sim_mob
 
 	ScreenLineCounter::ScreenLineCounter()
 	{
-		if(ConfigManager::GetInstance().FullConfig().screenLineParams.outputEnabled)
+		if(configParams.screenLineParams.outputEnabled)
 		{
 			screenLines.clear();
-			sim_mob::aimsun::Loader::getScreenLineSegments(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-				sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings,screenLines);
+			sim_mob::aimsun::Loader::getScreenLineSegments(configParams.getDatabaseConnectionString(false),
+					configParams.getDatabaseProcMappings().procedureMappings,screenLines);
 			std::sort(screenLines.begin(), screenLines.end());
-			intervalMS = ConfigManager::GetInstance().FullConfig().screenLineParams.interval * 1000;
 		}
 	}
 
@@ -62,29 +75,28 @@ namespace sim_mob
 
 	double ScreenLineCounter::getTimeInterval(const double time)
 	{
-		return time / intervalMS;
+		return time / INTERVAL_MS;
 	}
 
 	void ScreenLineCounter::exportScreenLineCount()
 	{
-		std::string fileName = ConfigManager::GetInstance().FullConfig().screenLineParams.fileName;
+		const std::string& fileName = configParams.screenLineParams.fileName;
 
 		sim_mob::BasicLogger& screenLineLogger  = sim_mob::Logger::log(fileName);
 
-		TravelTime::iterator travelTimeIter = ttMap.begin();
-		for(;travelTimeIter != ttMap.end(); travelTimeIter++)
+		for(TravelTime::const_iterator travelTimeIter = ttMap.begin(); travelTimeIter != ttMap.end(); travelTimeIter++)
 		{
 			const TT::TI & timeInterval = travelTimeIter->first;
 
-			const DailyTime &simStartTime = sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime();
-			DailyTime startTime(simStartTime.getValue() +  (timeInterval* intervalMS) );
-			DailyTime endTime(simStartTime.getValue() + ((timeInterval + 1) * intervalMS - 1) );
+			const DailyTime &simStartTime = configParams.simStartTime();
+			DailyTime startTime(simStartTime.getValue() +  (timeInterval* INTERVAL_MS) );
+			DailyTime endTime(simStartTime.getValue() + ((timeInterval + 1) * INTERVAL_MS - 1) );
 
-			sim_mob::TT::MRTC::iterator modeTCIter = travelTimeIter->second.begin();
-			for(;modeTCIter != travelTimeIter->second.end(); modeTCIter++)
+			for(sim_mob::TT::MRTC::const_iterator modeTCIter = travelTimeIter->second.begin();
+					modeTCIter != travelTimeIter->second.end(); modeTCIter++)
 			{
-				sim_mob::TT::RSTC::iterator rstcIter = modeTCIter->second.begin();
-				for(;rstcIter != modeTCIter->second.end(); rstcIter++)
+				for(sim_mob::TT::RSTC::const_iterator rstcIter = modeTCIter->second.begin();
+						rstcIter != modeTCIter->second.end(); rstcIter++)
 				{
 					screenLineLogger << rstcIter->first->getId() << "\t" <<
 						startTime.getStrRepr() << "\t" << endTime.getStrRepr() <<

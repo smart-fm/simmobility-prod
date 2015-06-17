@@ -1876,6 +1876,14 @@ void DatabaseLoader::DecorateAndTranslateObjects()
 				n->candidateForSegmentNode = false; //Fail
 				break;
 			}
+
+			//Manage property three.
+			if (expectedName.empty()) {
+				expectedName = (*it)->roadName;
+			} else if (expectedName != (*it)->roadName) {
+				n->candidateForSegmentNode = false; //Fail
+				break;
+			}
 		}
 
 		//One final check

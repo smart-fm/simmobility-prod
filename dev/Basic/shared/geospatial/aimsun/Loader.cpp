@@ -139,6 +139,8 @@ public:
 					const std::set<const sim_mob::RoadSegment*>& excludedRS = std::set<const sim_mob::RoadSegment*>());
 	static void loadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet);
 	static void LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet);
+
+	void LoadScreenLineSegmentIDs(const map<string, string>& storedProcs, std::vector<unsigned long>& screenLines);
 #ifndef SIMMOB_DISABLE_MPI
 	void TransferBoundaryRoadSegment();
 #endif
@@ -1138,7 +1140,18 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 			const sim_mob::BusStop* firstStopTwin = firstStop->getTwinStop();
 			if(!firstStopTwin) { throw std::runtime_error("Sink bus stop found without a twin!"); }
 			stopList.push_back(firstStopTwin);
-			if(!segList.empty()) { segList.erase(segList.begin()); } // the bus must start from the second segment of its original path
+			if(!segList.empty())
+			{
+				std::vector<const sim_mob::RoadSegment*>::iterator itToDelete = segList.begin();
+				while((*itToDelete) != firstStopTwin->getParentSegment() && itToDelete!=segList.end())
+				{
+					itToDelete = segList.erase(itToDelete); // the bus must start from the segment of the twinStop
+				}
+				if(segList.empty())
+				{
+					throw std::runtime_error("Bus route violates terminus assumption. Entire route was deleted");
+				}
+			}
 		}
 		else
 		{
@@ -1181,7 +1194,19 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 			if(!lastStopTwin) { throw std::runtime_error("Source bus stop found without a twin!"); }
 			stopList.pop_back();
 			stopList.push_back(lastStopTwin);
-			if(!segList.empty()) { segList.erase((--segList.end())); }//the bus must end one segment earlier
+			if(!segList.empty())
+			{
+				std::vector<const sim_mob::RoadSegment*>::iterator itToDelete = --segList.end();
+				while((*itToDelete) != lastStopTwin->getParentSegment())
+				{
+					itToDelete = segList.erase(itToDelete); //the bus must end at the segment of twin stop
+					itToDelete--; //itToDelete will be segList.end(); so decrement to get last valid iterator
+				}
+				if(segList.empty())
+				{
+					throw std::runtime_error("Bus route violates terminus assumption. Entire route was deleted");
+				}
+			}
 		}
 		else
 		{
@@ -1291,6 +1316,22 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 
 }
 #endif
+
+
+void DatabaseLoader::LoadScreenLineSegmentIDs(const map<string, string>& storedProcs, std::vector<unsigned long>& screenLines)
+{
+	screenLines.clear();
+
+	string storedProc = getStoredProcedure(storedProcs, "screen_line");
+
+	soci::rowset<unsigned long> rs = (sql_.prepare << "select * from " + storedProc);
+
+	soci::rowset<unsigned long>::const_iterator iter = rs.begin();
+	for(; iter != rs.end(); iter++)
+	{
+		screenLines.push_back(*iter);
+	}
+}
 
 void DatabaseLoader::LoadObjectsForShortTerm(map<string, string> const & storedProcs)
 {
@@ -2465,7 +2506,7 @@ void sim_mob::aimsun::Loader::ProcessGeneralNode(sim_mob::RoadNetwork& res, Node
 	node->setID(src.id); //for future reference
 	src.generatedNode = node;
 	src.hasBeenSaved = true;
-	src.generatedNode->name = src.nodeName;
+	//src.generatedNode->name = src.nodeName;
 }
 
 void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& src)
@@ -2884,6 +2925,15 @@ void sim_mob::aimsun::Loader::loadSegNodeType(const std::string& connectionStr, 
 	DatabaseLoader loader(connectionStr);
 	// load segment type data, node type data
 	loader.loadObjectType(storedProcs,rn);
+}
+
+void sim_mob::aimsun::Loader::getScreenLineSegments(const std::string& connectionStr,
+		const std::map<std::string, std::string>& storedProcs,
+		std::vector<unsigned long>& screenLineList)
+{
+	DatabaseLoader loader(connectionStr);
+
+	loader.LoadScreenLineSegmentIDs(storedProcs, screenLineList);
 }
 
 void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)

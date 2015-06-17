@@ -16,7 +16,7 @@
                 <!-- these parameters will be organized in a better way after finding the meaning of these numbers -->
                 <dwell_time_parameters>
                 <!--parameters : minimum and maximum of fixed dwelling time, minimum and maximum of individual dwelling time-->
-                <parameters value="25.0, 35.0, 2.0, 3.0"/>
+                <parameters value="0.0, 0.0, 2.0, 3.0"/>
                 </dwell_time_parameters>
 
                 <!-- pedestrian walking speed in cm/s (approximately 5 km/h)-->

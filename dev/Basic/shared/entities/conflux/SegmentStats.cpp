@@ -4,9 +4,9 @@
 
 #include "SegmentStats.hpp"
 
-#include <cmath>
 #include <algorithm>
-
+#include <cstdlib>
+#include <ctime>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/roles/Role.hpp"
@@ -276,72 +276,68 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 	//pick the Top C
 	for (int c = 0; c < capacity; c++)
 	{
-		int dequeIndex = -1;
 		double minVal = std::numeric_limits<double>::max();
-		sim_mob::Person* minPerson = nullptr;
+		sim_mob::Person* currPerson = nullptr;
+		std::vector<std::pair<int, sim_mob::Person*> > equiDistantList;
 		int i = 0;
 		for (LaneStatsMap::iterator lnIt = laneStatsMap.begin(); lnIt != laneStatsMap.end(); lnIt++)
 		{
 			PersonList& personsInLane = lnIt->second->laneAgents;
-			//order by location
-			if (orderBySetting == SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION)
+			if (iteratorLists[i] != personsInLane.end())
 			{
-				if (iteratorLists[i] != personsInLane.end())
+				currPerson = (*(iteratorLists[i]));
+				if (orderBySetting == SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION)
 				{
-					if((*iteratorLists[i])->distanceToEndOfSegment == minVal)
+					if(currPerson->distanceToEndOfSegment == minVal)
 					{
-						// If current person and (*i) are at equal distance to the stop line, we 'toss a coin' and choose one of them
-						bool coinTossResult = ((rand() / (double) RAND_MAX) < 0.5);
-						if (coinTossResult)
-						{
-							dequeIndex = i;
-							minPerson = (*(iteratorLists[i]));
-							minVal = minPerson->distanceToEndOfSegment; //redundant, but still kept for clarity
-						}
+						equiDistantList.push_back(std::make_pair(i, currPerson));
 					}
-					else if((*iteratorLists[i])->distanceToEndOfSegment < minVal)
+					else if(currPerson->distanceToEndOfSegment < minVal)
 					{
-						dequeIndex = i;
-						minPerson = (*(iteratorLists[i]));
-						minVal = minPerson->distanceToEndOfSegment;
+						minVal = currPerson->distanceToEndOfSegment;
+						equiDistantList.clear();
+						equiDistantList.push_back(std::make_pair(i, currPerson));
 					}
 				}
-			}
-			else if (orderBySetting == SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION) //order by time
-			{
-				if (iteratorLists[i] != personsInLane.end())
+				else if (orderBySetting == SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION)
 				{
-					if((*iteratorLists[i])->drivingTimeToEndOfLink == minVal)
-					{
-						// If current person and (*i) are at equal time to the stop line, we 'toss a coin' and choose one of them
-						bool coinTossResult = ((rand() / (double) RAND_MAX) < 0.5);
-						if (coinTossResult)
-						{
-							dequeIndex = i;
-							minPerson = (*(iteratorLists[i]));
-							minVal = minPerson->drivingTimeToEndOfLink; //redundant, but still kept for clarity
-						}
-					}
-					else if( (*iteratorLists[i])->drivingTimeToEndOfLink < minVal)
-					{
-						dequeIndex = i;
-						minPerson = (*(iteratorLists[i]));
-						minVal = minPerson->drivingTimeToEndOfLink;
-					}
-				}
 
+					if(currPerson->drivingTimeToEndOfLink == minVal)
+					{
+						equiDistantList.push_back(std::make_pair(i, currPerson));
+					}
+					else if(currPerson->drivingTimeToEndOfLink < minVal)
+					{
+						minVal = currPerson->drivingTimeToEndOfLink;
+						equiDistantList.clear();
+						equiDistantList.push_back(std::make_pair(i, currPerson));
+					}
+				}
 			}
 			i++;
 		}
 
-		if (dequeIndex < 0)
+		if (equiDistantList.empty())
 		{
 			return; //no more vehicles
 		}
 		else
 		{
-			iteratorLists.at(dequeIndex)++;
-			mergedPersonList.push_back(minPerson);
+			//we have to randomly choose from persons in equiDistantList
+			size_t numElements = equiDistantList.size();
+			std::pair<int, sim_mob::Person*> chosenPair;
+			if(numElements == 1)
+			{
+				chosenPair = equiDistantList.front();
+			}
+			else
+			{
+				int chosenIdx = rand() % numElements;
+				chosenPair = equiDistantList[chosenIdx];
+			}
+			iteratorLists.at(chosenPair.first)++;
+			mergedPersonList.push_back(chosenPair.second);
+			equiDistantList.clear();
 		}
 	}
 
@@ -356,7 +352,6 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 		}
 		i++;
 	}
-
 }
 
 std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const sim_mob::Lane* lane) const

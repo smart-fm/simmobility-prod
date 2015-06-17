@@ -337,7 +337,6 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 			}
 			iteratorLists.at(chosenPair.first)++;
 			mergedPersonList.push_back(chosenPair.second);
-			equiDistantList.clear();
 		}
 	}
 

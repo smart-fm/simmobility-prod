@@ -1368,40 +1368,69 @@ void sim_mob::Conflux::getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>&
 }
 
 void sim_mob::Conflux::topCMergeDifferentLinksInConflux(std::deque<sim_mob::Person*>& mergedPersonDeque,
-		std::vector< std::deque<sim_mob::Person*> >& allPersonLists, int capacity) {
+		std::vector< std::deque<sim_mob::Person*> >& allPersonLists, int capacity)
+{
 	std::vector<std::deque<sim_mob::Person*>::iterator> iteratorLists;
 
 	//init location
 	size_t dequeSize = allPersonLists.size();
-	for (std::vector<std::deque<sim_mob::Person*> >::iterator it = allPersonLists.begin(); it != allPersonLists.end(); ++it) {
+	for (std::vector<std::deque<sim_mob::Person*> >::iterator it = allPersonLists.begin(); it != allPersonLists.end(); ++it)
+	{
 		iteratorLists.push_back(((*it)).begin());
 	}
 
 	//pick the Top C
-	for (size_t c = 0; c < capacity; c++) {
-		int whichDeque = -1;
-		double minDistance = std::numeric_limits<double>::max();
-		sim_mob::Person* whichPerson = NULL;
-
-		for (size_t i = 0; i < dequeSize; i++) {
-			if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->drivingTimeToEndOfLink < minDistance) {
-				whichDeque = i;
-				minDistance = (*iteratorLists[i])->drivingTimeToEndOfLink;
-				whichPerson = (*iteratorLists[i]);
+	for (size_t c = 0; c < capacity; c++)
+	{
+		double minVal = std::numeric_limits<double>::max();
+		sim_mob::Person* currPerson = nullptr;
+		std::vector<std::pair<int, sim_mob::Person*> > equiTimeList;
+		for (size_t i = 0; i < dequeSize; i++)
+		{
+			if (iteratorLists[i] != (allPersonLists[i]).end())
+			{
+				currPerson = (*(iteratorLists[i]));
+				if(currPerson->drivingTimeToEndOfLink == minVal)
+				{
+					equiTimeList.push_back(std::make_pair(i, currPerson));
+				}
+				else if (currPerson->drivingTimeToEndOfLink < minVal)
+				{
+					minVal = (*iteratorLists[i])->drivingTimeToEndOfLink;
+					equiTimeList.clear();
+					equiTimeList.push_back(std::make_pair(i, currPerson));
+				}
 			}
 		}
 
-		if (whichDeque < 0) {
+		if (equiTimeList.empty())
+		{
 			return; //no more vehicles
-		} else {
-			iteratorLists[whichDeque]++;
-			mergedPersonDeque.push_back(whichPerson);
+		}
+		else
+		{
+			//we have to randomly choose from persons in equiDistantList
+			size_t numElements = equiTimeList.size();
+			std::pair<int, sim_mob::Person*> chosenPair;
+			if(numElements == 1)
+			{
+				chosenPair = equiTimeList.front();
+			}
+			else
+			{
+				int chosenIdx = rand() % numElements;
+				chosenPair = equiTimeList[chosenIdx];
+			}
+			iteratorLists.at(chosenPair.first)++;
+			mergedPersonDeque.push_back(chosenPair.second);
 		}
 	}
 
 	//After pick the Top C, there are still some vehicles left in the deque
-	for (size_t i = 0; i < dequeSize; i++) {
-		if (iteratorLists[i] != (allPersonLists[i]).end()) {
+	for (size_t i = 0; i < dequeSize; i++)
+	{
+		if (iteratorLists[i] != (allPersonLists[i]).end())
+		{
 			mergedPersonDeque.insert(mergedPersonDeque.end(), iteratorLists[i], (allPersonLists[i]).end());
 		}
 	}

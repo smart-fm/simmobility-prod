@@ -470,10 +470,11 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 double HouseholdBidderRole::calculateSurplus(double price, double min, double max)
 {
-	double scale1	 = 489.706;
-	double scale2	 = 348.322;
-	double location1 = -91.247;
-	double location2 = -20.547;
+	//These constant variables are defined in Roberto Ponce Lopez's new Bidding model
+	const double scale1	 = 489.706;
+	const double scale2	 = 348.322;
+	const double location1 = -91.247;
+	const double location2 = -20.547;
 
 	price = std::min(price, 0.0 );
 	price = std::max(price, 1.0 );

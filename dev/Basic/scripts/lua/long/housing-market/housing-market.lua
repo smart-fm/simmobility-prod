@@ -121,26 +121,119 @@ end
     @return hedonic price value.
 ]]
 function calculateHDB_HedonicPrice(unit, building, postcode, amenities)
- local simulationYear = CONSTANTS.SIMULATION_YEAR;
- local hedonicPrice = getStoreyEstimation(unit.storey) + 
-                      ((building ~= nil) and -- age
-                            ((simulationYear - building.builtYear) * -23.26) or 0)
- if amenities ~= nil then
-    hedonicPrice =  hedonicPrice +
-                    4295 + -- intercept
-                    (amenities.distanceToCBD * (-80.4) +
-                    amenities.distanceToJob * (0.001966) +
-                    (amenities.pms_1km and 25.67 or 0) +
-                    amenities.distanceToMall * (-56.46) +
-                    (amenities.mrt_200m and 462.90 or 0) +
-                    (amenities.mrt_400m and 274.60 or 0) +
-                    (amenities.express_200m and -140.10 or 0) +                    
-                    (amenities.bus_200m and 0 or 62.43)) -- shall be the oposite (bus_gt200m) check documentation 
- end
-    
-    --print(string.format("HDB Price: %d, dist_job: %s, dist_cdb: %s, pms1KM: %s, dist_mall: %s, mrt_200m: %s, mrt_400m: %s, dist_express_200m: %s, bus_200m: %s"
-    --, hedonicPrice, (amenities.distanceToJob * (0.001966)), (amenities.distanceToCBD * (-80.4)), (amenities.pms_1km and 25.67 or 0), (amenities.distanceToMall * (-56.46)), (amenities.mrt_200m and 462.90 or 0),
-    --                (amenities.mrt_400m and 274.60 or 0), (amenities.express_200m and -140.10 or 0), (amenities.bus_200m and 62.43 or 0)))
+	local simulationYear = CONSTANTS.SIMULATION_YEAR;
+	local hedonicPrice = getStoreyEstimation(unit.storey) + ((building ~= nil) and ((simulationYear - building.builtYear) * -23.26) or 0)
+
+	if amenities == nil then
+		return 100000000;
+	end
+
+	local DD_logarea  = 0;
+	local ZZ_dis_cbd  = 0;
+	local ZZ_pms1km   = 0;
+	local ZZ_dis_mall = 0;
+	local ZZ_mrt_200m = 0;
+	local ZZ_mrt_400m = 0;
+	local ZZ_mrt_800m = 0;
+	local ZZ_express_200m = 0;
+	local ZZ_bus_200m = 0;
+
+	local ZZ_freehold = 0; --TODO: chetan needs to revisit this.
+	local ZZ_logsum = 0; --TODO: chetan needs to revisit this.
+	local ZZ_bus_400m = 0;
+
+	if( unit.floorArea ~= nil ) then
+		DD_logarea  = math.log(unit.floorArea);
+	end
+	
+	if( amenities.distanceToCBD ~= nil ) then
+		ZZ_dis_cbd  = amenities.distanceToCBD;
+	end
+
+	if( amenities.distanceToMall ~= nil ) then
+		ZZ_dis_mall = amenities.distanceToMall;
+	end
+
+	if( amenities.pms_1km == true ) then
+		ZZ_pms1km = 1;
+	end
+
+	if( amenities.mrt_200m == true ) then
+		ZZ_mrt_200m = 1;
+	end
+
+	if( amenities.mrt_400m == true ) then
+		ZZ_mrt_400m = 1;
+	end
+
+	if( amenities.express_200m == true ) then
+		ZZ_express_200m = 1;
+	end
+
+	if( amenities.bus_200m == true ) then
+		ZZ_bus_200m = 1;
+	end
+
+	if( amenities.bus_400m ) then
+		ZZ_bus_400m = 1;
+	end
+
+	if(amenities.distanceToMRT ~= nil and amenities.distanceToMRT < 0.8) then
+		ZZ_mrt_800m = 1;
+	end
+
+	if( unit.unitType < 4 ) then
+		ZZ_hdb123 = 1;
+	end
+	
+	if( unit.unitType == 4 ) then
+		ZZ_hdb4 = 1;		
+	end	
+
+	if( unit.unitType == 5 ) then
+		ZZ_hdb5 = 1;
+	end
+
+   	if (ZZ_hdb123 == 1) then
+		return(-5.6642939 				+
+			0.7399724	*	DD_logarea 	+
+			5.7134371	*	ZZ_logsum 	+
+			0.0066065	*	ZZ_pms1km 	+
+			-0.0090966	*	ZZ_dis_mall	+
+			0.0490127	*	ZZ_mrt_200m	+
+			0.0332196	*	ZZ_mrt_400m	+
+			0.0251086	*	ZZ_mrt_800m	+
+			-0.0130123	*	ZZ_express_200m	+
+			0.0046816	*	ZZ_bus_200m);	
+	elseif (ZZ_hdb4 == 1) then
+		 return( -9.524393  				+
+			  0.391003	*	DD_logarea 	+
+			  7.771394	*	ZZ_logsum 	+
+			 -0.002164	*	ZZ_pms1km 	+
+			 -0.006755	*	ZZ_dis_mall	+
+			  0.139794	*	ZZ_mrt_200m	+
+			  0.091637	*	ZZ_mrt_400m	+
+			  0.019348	*	ZZ_mrt_800m	+
+			 -0.017984	*	ZZ_express_200m	+
+			 -0.032859	*	ZZ_bus_200m);
+	else
+		return(-12.987814 +
+			  0.262961	*	DD_logarea 	+
+			  9.329013	*	ZZ_logsum 	+
+			  0.003089	*	ZZ_pms1km 	+
+			 -0.002642	*	ZZ_dis_mall	+
+			  0.087935	*	ZZ_mrt_200m	+
+			  0.033191	*	ZZ_mrt_400m	+
+			  0.014972	*	ZZ_mrt_800m	+
+			 -0.022576	*	ZZ_express_200m	+
+			 -0.031353	*	ZZ_bus_200m);
+
+ 	end
+
+   
+--print(string.format("HDB Price: %d, dist_job: %s, dist_cdb: %s, pms1KM: %s, dist_mall: %s, mrt_200m: %s, mrt_400m: %s, dist_express_200m: %s, bus_200m: %s"
+--, hedonicPrice, (amenities.distanceToJob * (0.001966)), (amenities.distanceToCBD * (-80.4)), (amenities.pms_1km and 25.67 or 0), (amenities.distanceToMall * (-56.46)), (amenities.mrt_200m and 462.90 or 0),
+-- menities.mrt_400m and 274.60 or 0), (amenities.express_200m and -140.10 or 0), (amenities.bus_200m and 62.43 or 0)))
     return hedonicPrice;
 end
 
@@ -155,44 +248,138 @@ end
     @return hedonic price value.
 ]]
 function calculatePrivate_HedonicPrice(unit, building, postcode, amenities)
- local hedonicPrice = 0
- if amenities ~= nil then
-    hedonicPrice = hedonicPrice +
-                    9575.00 + -- intercept
-                    (-1239.00) + -- Resale estimation
-                    (amenities.distanceToCBD * (-164.80) +
-                    amenities.distanceToJob * (0.001526) +
-                    (amenities.pms_1km and 196.30 or 0) +
-                    amenities.distanceToMall * (-361.20) +
-                    (amenities.mrt_200m and -841.80 or 0) +
-                    (amenities.mrt_400m and 367.10 or 0) +
-                    (amenities.express_200m and -545.50 or 0) +                    
-                    (amenities.bus_200m and -4215.00 or 0) +
-                    (amenities.bus_400m and -3580.00 or 0) +
-                    (amenities.condo and 1657.00 or 0) +
-                    (amenities.detached and -352.10 or 0) +
-                    (amenities.semi and 736.20 or 0) +
-                    (amenities.terrace and 911.50 or 0) +
-                    (amenities.ec and 1319.00 or 0))
- end
+	local hedonicPrice = 0
 
-                      --print("amenities.distanceToCBD" , amenities.distanceToCBD);
-                      --print("amenities.distanceToJob" , amenities.distanceToJob);
-                      --print("amenities.pms_1km" , amenities.pms_1km);
-                      --print("amenities.distanceToMall" , amenities.distanceToMall);
-                      --print("amenities.mrt_200m" , amenities.mrt_200m);
-                      --print("amenities.mrt_400m" , amenities.mrt_400m);
-                      --print("amenities.express_200m" , amenities.express_200m);
-                      --print("amenities.bus_200m" , amenities.bus_200m);
-                      --print("amenities.bus_400m" , amenities.bus_400m);
-                      --print("amenities.condo" , amenities.condo);
-                      --print("amenities.detached" , amenities.detached);
-                      --print("amenities.semi" , amenities.semi);
-                      --print("amenities.terrace" , amenities.terrace);
-                      --print("amenities.ec" , amenities.ec);
-  		      		  --print("Private hedonic" , hedonicPrice);
+	if amenities == nil then
+		return 100000000;
+	end
 
-    return hedonicPrice;
+	local DD_logarea  = 0;
+	local ZZ_dis_cbd  = 0;
+	local ZZ_pms1km   = 0;
+	local ZZ_dis_mall = 0;
+	local ZZ_mrt_200m = 0;
+	local ZZ_mrt_400m = 0;
+	local ZZ_mrt_800m = 0;
+	local ZZ_express_200m = 0;
+	local ZZ_bus_200m = 0;
+
+	local ZZ_freehold = 0; --TODO: chetan needs to revisit this.
+	local ZZ_logsum = 0; --TODO: chetan needs to revisit this.
+	local ZZ_bus_400m = 0;
+
+	if( unit.floorArea ~= nil ) then
+		DD_logarea  = math.log(unit.floorArea);
+	end
+	
+	if( amenities.distanceToCBD ~= nil ) then
+		ZZ_dis_cbd  = amenities.distanceToCBD;
+	end
+
+	if( amenities.distanceToMall ~= nil ) then
+		ZZ_dis_mall = amenities.distanceToMall;
+	end
+
+	if( amenities.pms_1km == true ) then
+		ZZ_pms1km = 1;
+	end
+
+	if( amenities.mrt_200m == true ) then
+		ZZ_mrt_200m = 1;
+	end
+
+	if( amenities.mrt_400m == true ) then
+		ZZ_mrt_400m = 1;
+	end
+
+	if( amenities.express_200m == true ) then
+		ZZ_express_200m = 1;
+	end
+
+	if( amenities.bus_200m == true ) then
+		ZZ_bus_200m = 1;
+	end
+
+	if( amenities.bus_400m ) then
+		ZZ_bus_400m = 1;
+	end
+
+	if(amenities.distanceToMRT ~= nil and amenities.distanceToMRT < 0.8) then
+		ZZ_mrt_800m = 1;
+	end
+
+	if( (unit.unitType >= 12 and unit.unitType  <= 16 ) or ( unit.unitType >= 32 and unit.unitType  < 36 ) ) then -- Executive Condominium and Condominium	
+	  return( -36.748568 			+
+		    0.963625 *	DD_logarea	+
+	   	    0.187449 *	ZZ_freehold	+
+		   17.272551 *	ZZ_logsum	+
+   		    0.038230 *	ZZ_pms1km	+
+		   -0.036213 *	ZZ_dis_mall	+
+ 		    0.091531 *	ZZ_mrt_200m	+
+		    0.056021 *	ZZ_mrt_400m	+
+		   -0.123693 *	ZZ_mrt_800m	+
+		   -0.004624 *	ZZ_express_200m	+
+		   -0.370359 *	ZZ_bus_200m	+
+		   -0.326108 *	ZZ_bus_400m);
+
+	elseif (unit.unitType >= 7 and unit.unitType  <= 11 ) then --"Apartment"	
+	  return(-34.306668 +
+		   0.678823	*	DD_logarea	+
+		   0.106154	*	ZZ_freehold	+
+		  16.846582	*	ZZ_logsum	+
+		   0.056804	*	ZZ_pms1km	+
+		  -0.075085	*	ZZ_dis_mall	+
+		  -0.025750	*	ZZ_mrt_200m	+
+		   0.118587	*	ZZ_mrt_400m	+
+		  -0.134871	*	ZZ_mrt_800m	+
+		  -0.066508	*	ZZ_express_200m	+
+		  -0.389808	*	ZZ_bus_200m	+
+		  -0.291649	*	ZZ_bus_400m);
+	
+	elseif (unit.unitType >= 17 and unit.unitType  <= 21 ) then --"Terrace House"	
+	  return(-8.918093  +
+		  0.580383	*	DD_logarea	+
+		  0.136135	*	ZZ_freehold	+
+		  7.622885	*	ZZ_logsum	+
+		  0.009503	*	ZZ_pms1km	+
+		 -0.027296	*	ZZ_dis_mall	+
+		  0.038081	*	ZZ_mrt_200m	+
+		  0.048420	*	ZZ_mrt_400m	+
+		 -0.082811	*	ZZ_mrt_800m	+
+		 -0.067742	*	ZZ_express_200m	+
+		 -0.282542	*	ZZ_bus_200m	+
+		 -0.219494	*	ZZ_bus_400m);
+	
+	elseif ( unit.unitType >= 22 and unit.unitType  <= 26 ) then --"Semi-Detached House"	
+	  return(-26.82173  +
+		   0.55857	*	DD_logarea	+
+		   0.08751	*	ZZ_freehold	+
+		  14.30060	*	ZZ_logsum	+
+		   0.01432	*	ZZ_pms1km	+
+		   0.01622	*	ZZ_dis_mall	+
+		  -0.36268	*	ZZ_mrt_200m	+
+		   0.01651	*	ZZ_mrt_400m	+
+		  -0.10658	*	ZZ_mrt_800m	+
+		  -0.11848	*	ZZ_express_200m	+
+		  -0.10518	*	ZZ_bus_200m	+
+		  -0.0880	*	ZZ_bus_400m);	
+	else	
+	  return(-30.93807  +
+		   0.85347	*	DD_logarea 	+
+		  -0.04880	*	ZZ_freehold	+
+		  15.27921	*	ZZ_logsum 	+
+		  -0.01221	*	ZZ_pms1km 	+
+		   0.04148	*	ZZ_dis_mall	+
+		   0.14336	*	ZZ_mrt_200m	+
+		   0.13774	*	ZZ_mrt_400m	+
+		  -0.22627	*	ZZ_mrt_800m	+
+		  -0.15577	*	ZZ_express_200m	+
+		  -0.22743	*	ZZ_bus_200m	+
+		  -0.15131	*	ZZ_bus_400m);
+	end
+
+
+	return hedonicPrice;
 end
 
 --[[
@@ -206,7 +393,7 @@ end
 ]]
 function calculateHedonicPrice(unit, building, postcode, amenities)
     if unit ~= nil and building ~= nil and postcode ~= nil and amenities ~= nil then
-         if(amenities.hdb ~=nil) then
+         if(amenities.unitType ~= nil and amenities.unitType < 5) then
 		return calculateHDB_HedonicPrice(unit, building, postcode, amenities) 
 	 else 
 		return calculatePrivate_HedonicPrice(unit, building, postcode, amenities);
@@ -228,16 +415,17 @@ end
 function calculateExpectation(price, v, a, b, cost)
     local E = Math.E
     local rateOfBuyers = a - (b * price)
+
     --local expectation = price 
     --                    + (math.pow(E,-rateOfBuyers*(price-v)/price)-1 + rateOfBuyers)*price/rateOfBuyers 
     --                    + math.pow(E,-rateOfBuyers)*v 
     --                    - cost
+
     if (rateOfBuyers > 0) then
-        local expectation = price 
-                            + (math.pow(E,-rateOfBuyers*(price-v)/price)-1) * price/rateOfBuyers 
-                            - cost
+        local expectation = price + (math.pow(E,-rateOfBuyers*(price-v)/price)-1) * price/rateOfBuyers - cost
         return expectation
     end
+
     return v
 end
 
@@ -256,9 +444,8 @@ end
 function calulateUnitExpectations (unit, timeOnMarket, building, postcode, amenities)
     local expectations = {}
     -- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
-    local hedonicPrice = (calculateHedonicPrice(unit, building, postcode, amenities) * sqfToSqm(unit.floorArea))/1000
 
-    --print("Hedonic price: ", hedonicPrice );
+    local hedonicPrice = (calculateHedonicPrice(unit, building, postcode, amenities) * sqfToSqm(unit.floorArea))/1000
 
     if (hedonicPrice > 0) then
         local targetPrice = hedonicPrice -- IMPORTANT : this should be the hedonic value

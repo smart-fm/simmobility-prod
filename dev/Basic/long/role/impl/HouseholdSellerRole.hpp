@@ -69,8 +69,7 @@ namespace sim_mob
              * @param unit to cal
              */
             void calculateUnitExpectations(const Unit& unit);
-            double calculateHedonicPrice(const Unit& unit);
-        
+
             /**
              * Gets current expectation entry for given unit.
              * @param unitId to get the expectation.

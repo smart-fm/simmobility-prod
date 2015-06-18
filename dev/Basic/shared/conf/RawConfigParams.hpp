@@ -390,6 +390,22 @@ struct EntityTemplate {
 };
 
 
+///Represents the loop-detector_counts section of the configuration file
+struct ScreenLineParams
+{
+	ScreenLineParams() : interval(0), outputEnabled(false), fileName("") {}
+
+	///The frequency of aggregating the vehicle counts at the loop detector
+	unsigned int interval;
+
+	///Indicates whether the counts have to be output to a file
+	bool outputEnabled;
+
+	///Name of the output file
+	std::string fileName;
+};
+
+
 /**
  * Contains the properties of the config file as they appear in, e.g., test_road_network.xml, with
  *   minimal conversion.
@@ -430,6 +446,9 @@ public:
         
 	///Settings for the short-term density map
 	SegmentDensityMap segDensityMap;
+
+	///Settings for the Screen Line Count
+	ScreenLineParams screenLineParams;
 
 	///	is CBD area restriction enforced
 	bool cbd;

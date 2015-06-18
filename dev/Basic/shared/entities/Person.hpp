@@ -394,6 +394,7 @@ public:
 	friend class Conflux;
 
 	std::string busLine; //tmp addition for debugging ~ Harish
+	int bustripnum; //tmp addition for debugging ~ Harish
 };
 
 }

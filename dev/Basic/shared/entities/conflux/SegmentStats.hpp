@@ -771,6 +771,11 @@ public:
 	void printBusStops() const;
 
 	/**
+	 * gets the output capacity of segmentStats
+	 */
+	double getCapacity() const;
+
+	/**
 	 * laneInfinity is an augmented lane in the roadSegment. laneInfinity will be used only by confluxes and related objects for now.
 	 * The LaneStats object created for laneInfinity stores the new persons who will start at this roadSegment. A Person will be
 	 * added to laneInfinity (LaneStats corresponding to laneInfinity) when his start time falls within the current tick. The actual lane

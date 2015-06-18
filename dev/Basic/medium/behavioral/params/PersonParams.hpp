@@ -681,22 +681,22 @@ public:
 	 */
 	bool allWindowsUnavailable();
 
-	bool isCbdDestZone() const
+	int isCbdDestZone() const
 	{
 		return cbdDestZone;
 	}
 
-	void setCbdDestZone(bool cbdDestZone)
+	void setCbdDestZone(int cbdDestZone)
 	{
 		this->cbdDestZone = cbdDestZone;
 	}
 
-	bool isCbdOrgZone() const
+	int isCbdOrgZone() const
 	{
 		return cbdOrgZone;
 	}
 
-	void setCbdOrgZone(bool cbdOrgZone)
+	void setCbdOrgZone(int cbdOrgZone)
 	{
 		this->cbdOrgZone = cbdOrgZone;
 	}
@@ -717,8 +717,8 @@ private:
     /** bitset of availablilities for fast checking*/
     std::bitset<1176> availabilityBit;
 
-	bool cbdOrgZone;
-	bool cbdDestZone;
+    int cbdOrgZone;
+    int cbdDestZone;
 };
 
 } //end namespace medium

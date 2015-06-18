@@ -58,6 +58,7 @@ template<> struct type_conversion<sim_mob::aimsun::Node>
     	res.id = vals.get<int>("node_id", 0);
     	res.xPos = vals.get<double>("xpos", 0.0);
     	res.yPos = vals.get<double>("ypos", 0.0);
+        //res.nodeName = vals.get<std::string>("nodename", "");
     	res.isIntersection = vals.get<int>("isintersection", 0);
     	res.hasTrafficSignal = vals.get<int>("hassignal", 0);
     }
@@ -66,6 +67,7 @@ template<> struct type_conversion<sim_mob::aimsun::Node>
     	vals.set("node_id", src.id);
         vals.set("xpos", src.xPos);
         vals.set("ypos", src.yPos);
+        //vals.set("nodename", src.nodeName);
         vals.set("isintersection", src.isIntersection?1:0);
         vals.set("hvTLights", src.hasTrafficSignal?1:0);
         ind = i_ok;

@@ -408,6 +408,8 @@ void HouseholdSellerRole::notifyWinnerBidders()
     maxBidsOfDay.clear();
 }
 
+
+
 void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();

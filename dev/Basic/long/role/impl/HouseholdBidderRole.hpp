@@ -125,6 +125,8 @@ namespace sim_mob
              * @return true if a unit was picked false otherwise;
              */
             bool pickEntryToBid();
+            double calculateWillingnessToPay(const Unit* unit, const Household* household);
+            double calculateSurplus(double price, double min, double max );
 
             volatile bool waitingForResponse;
             timeslice lastTime;

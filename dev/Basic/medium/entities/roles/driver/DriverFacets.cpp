@@ -278,7 +278,7 @@ bool sim_mob::medium::DriverMovement::initializePath()
 
 		if (wp_path.empty()) //ideally should not be empty after randomization.
 		{
-			Print()<<"Can't DriverMovement::initializePath(); path is empty for driver "  << person->GetId() << std::endl;
+			Print()<<"Can't DriverMovement::initializePath(); path is empty for driver "  << person->getDatabaseId() << std::endl;
 			return false;
 		}
 

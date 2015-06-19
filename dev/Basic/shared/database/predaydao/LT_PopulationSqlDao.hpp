@@ -15,20 +15,19 @@
 #include <bitset>
 #include "database/dao/SqlAbstractDao.hpp"
 #include "database/DB_Connection.hpp"
-#include "behavioral/params/PersonParams.hpp"
+#include "behavioral/params/PredayPersonParams.hpp"
 
 namespace sim_mob {
-namespace medium {
 /**
  * Data access object for Population tables
  *
  * \author Harish Loganathan
  */
-class PopulationSqlDao : public db::SqlAbstractDao<PersonParams>
+class LT_PopulationSqlDao : public db::SqlAbstractDao<PredayPersonParams>
 {
 public:
-	PopulationSqlDao(db::DB_Connection& connection);
-	virtual ~PopulationSqlDao();
+	LT_PopulationSqlDao(db::DB_Connection& connection);
+	virtual ~LT_PopulationSqlDao();
 
 	/**
 	 * fetches all individual ids from LT population
@@ -41,7 +40,7 @@ public:
 	 * @param id individual id
 	 * @param outParam output parameter to load individual data
 	 */
-	void getOneById(long long id, PersonParams& outParam);
+	void getOneById(long long id, PredayPersonParams& outParam);
 
 	/**
 	 * fetches the lookup table for income categories
@@ -68,7 +67,7 @@ private:
      * @param result row with data to fill the out object.
      * @param outObj to fill.
      */
-    void fromRow(db::Row& result, PersonParams& outObj);
+    void fromRow(db::Row& result, PredayPersonParams& outObj);
 
     /**
      * Virtual override.
@@ -77,43 +76,6 @@ private:
      * @param outParams to put the data parameters.
      * @param update tells if operation is an Update or Insert.
      */
-    void toRow(PersonParams& data, db::Parameters& outParams, bool update);
+    void toRow(PredayPersonParams& data, db::Parameters& outParams, bool update);
 };
-
-/**
- * Data access object for Logsum table
- *
- * \author Harish Loganathan
- */
-class LogsumSqlDao : public db::SqlAbstractDao<PersonParams>
-{
-public:
-	LogsumSqlDao(db::DB_Connection& connection);
-	virtual ~LogsumSqlDao();
-
-	/**
-	 * fetches logsum data for individual id
-	 * @param id individual id
-	 * @param outParam output parameter to load logsums
-	 */
-	void getLogsumById(long long id, PersonParams& outObj);
-private:
-    /**
-     * Virtual override.
-     * Fills the given outObj with all values contained on Row.
-     * @param result row with data to fill the out object.
-     * @param outObj to fill with logsums.
-     */
-    void fromRow(db::Row& result, PersonParams& outObj);
-
-    /**
-     * Virtual override.
-     * Fills the outParam with all values to insert or update on datasource.
-     * @param data to get values.
-     * @param outParams to put the data parameters.
-     * @param update tells if operation is an Update or Insert.
-     */
-    void toRow(PersonParams& data, db::Parameters& outParams, bool update);
-};
-} // end namespace medium
-} // end namespace sim_mib
+} // end namespace sim_mob

@@ -30,6 +30,7 @@
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
 #include "conf/RawConfigParams.hpp"
+#include "database/DB_Connection.hpp"
 #include "database/DatabaseHelper.hpp"
 #include "database/dao/MongoDao.hpp"
 #include "database/DB_Config.hpp"

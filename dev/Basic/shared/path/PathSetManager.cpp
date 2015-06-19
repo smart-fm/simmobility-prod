@@ -1930,7 +1930,7 @@ double getPathTravelCost(sim_mob::SinglePath *sp,const std::string & travelMode,
 	sim_mob::DailyTime tripStartTime(startTime_);
 	double res=0.0;
 	double ts=0.0;
-	if(!sp || !sp->path.empty()) {
+	if(!sp || sp->path.empty()) {
 		sim_mob::Logger::log("pathset.log") << "gTC: sp is empty" << std::endl;
 	}
 	for(std::vector<WayPoint>::iterator it1 = sp->path.begin(); it1 != sp->path.end(); it1++)

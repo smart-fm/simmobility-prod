@@ -139,7 +139,7 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities)
 	local ZZ_bus_200m = 0;
 
 	local ZZ_freehold = 0; --TODO: chetan needs to revisit this.
-	local ZZ_logsum = 0; --TODO: chetan needs to revisit this.
+	local ZZ_logsum = 2; --TODO: chetan needs to revisit this.
 	local ZZ_bus_400m = 0;
 
 	if( unit.floorArea ~= nil ) then
@@ -265,7 +265,7 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities)
 	local ZZ_bus_200m = 0;
 
 	local ZZ_freehold = 0; --TODO: chetan needs to revisit this.
-	local ZZ_logsum = 0; --TODO: chetan needs to revisit this.
+	local ZZ_logsum = 2; --TODO: chetan needs to revisit this.
 	local ZZ_bus_400m = 0;
 
 	if( unit.floorArea ~= nil ) then

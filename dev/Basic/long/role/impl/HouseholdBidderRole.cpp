@@ -554,8 +554,8 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             if ( unit && stats && flatEligibility )
             {
-                double wp_old = luaModel.calulateWP(*household, *unit, *stats);
-            	double wp = calculateWillingnessToPay(unit, household) * constantVal;
+                double wp = luaModel.calulateWP(*household, *unit, *stats);
+            	double wp_new = calculateWillingnessToPay(unit, household) * constantVal;
 
             	wp = std::max(0.0, wp );
 
@@ -567,9 +567,9 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             	double surplus = calculateSurplus( (wp / constantVal ) / (entry->getAskingPrice() / constantVal ) , 0.0, 2.1 ) * constantVal;
 
-            	if( wp >= entry->getAskingPrice() && surplus > maxWP )
+            	if( wp >= entry->getAskingPrice() && wp > maxWP )
             	{
-            		maxWP = surplus;
+            		maxWP = wp;
             		maxEntry = entry;
             	}
             }

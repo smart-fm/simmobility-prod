@@ -126,7 +126,7 @@ void BusDriverMovement::frame_tick() {
 			{
 				parentBusDriver->closeBusDoors(stopAg);
 				routeTracker.updateNextStop();
-				DriverMovement::moveToNextSegment(params);
+				moveToNextSegment(params);
 			}
 			else
 			{
@@ -360,7 +360,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 				}
 				DailyTime startTm = ConfigManager::GetInstance().FullConfig().simStartTime();
 				DailyTime current(params.now.ms()+converToMilliseconds(params.elapsedSeconds)+startTm.getValue());
-				parentBusDriver->openBusDoors(current.toString(), stopAg);
+				parentBusDriver->openBusDoors(current.getStrRepr(), stopAg);
 				double remainingTime = params.secondsInTick - params.elapsedSeconds;
 				if(parentBusDriver->waitingTimeAtbusStop > remainingTime) {
 					parentBusDriver->waitingTimeAtbusStop -= remainingTime;
@@ -370,12 +370,14 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 					params.elapsedSeconds += parentBusDriver->waitingTimeAtbusStop;
 					parentBusDriver->waitingTimeAtbusStop = 0;
 					double output = getOutputCounter(currLane, currSegStat);
-					if(output > 0)
+					bool isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
+					const sim_mob::SegmentStats* nxtSegStat = pathMover.getNextSegStats(!isNewLinkNext);
+					if(output > 0 && canGoToNextRdSeg(params, nxtSegStat))
 					{
 						parentBusDriver->closeBusDoors(stopAg);
 						routeTracker.updateNextStop();
 						// There is remaining time, try to move to next segment
-						return DriverMovement::moveToNextSegment(params);
+						return moveToNextSegment(params);
 					}
 					else
 					{

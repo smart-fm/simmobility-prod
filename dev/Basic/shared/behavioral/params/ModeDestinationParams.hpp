@@ -33,7 +33,7 @@ protected:
 	const ZoneMap& zoneMap;
 	const CostMap& amCostsMap;
 	const CostMap& pmCostsMap;
-	bool cbdOrgZone;
+	int cbdOrgZone;
 
 public:
 	ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, StopType purpose, int originCode);
@@ -56,7 +56,7 @@ public:
 	 */
 	int getDestination(int choice) const;
 
-	void setCbdOrgZone(bool cbdOrg)
+	void setCbdOrgZone(int cbdOrg)
 	{
 		this->cbdOrgZone = cbdOrg;
 	}

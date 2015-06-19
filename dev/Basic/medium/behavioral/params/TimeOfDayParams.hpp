@@ -103,22 +103,22 @@ public:
 		costHT2_PM = costHt2Pm;
 	}
 
-	bool isCbdDestZone() const
+	int isCbdDestZone() const
 	{
 		return cbdDestZone;
 	}
 
-	void setCbdDestZone(bool cbdDestZone)
+	void setCbdDestZone(int cbdDestZone)
 	{
 		this->cbdDestZone = cbdDestZone;
 	}
 
-	bool isCbdOrgZone() const
+	int isCbdOrgZone() const
 	{
 		return cbdOrgZone;
 	}
 
-	void setCbdOrgZone(bool cbdOrgZone)
+	void setCbdOrgZone(int cbdOrgZone)
 	{
 		this->cbdOrgZone = cbdOrgZone;
 	}
@@ -142,8 +142,8 @@ private:
 	double costHT2_AM;
 	double costHT2_PM;
 	double costHT2_OP;
-	bool cbdOrgZone;
-	bool cbdDestZone;
+	int cbdOrgZone;
+	int cbdDestZone;
 
 };
 
@@ -248,22 +248,22 @@ public:
 		return 0; // anything else is unavailable
 	}
 
-	bool isCbdDestZone() const
+	int isCbdDestZone() const
 	{
 		return cbdDestZone;
 	}
 
-	void setCbdDestZone(bool cbdDestZone)
+	void setCbdDestZone(int cbdDestZone)
 	{
 		this->cbdDestZone = cbdDestZone;
 	}
 
-	bool isCbdOrgZone() const
+	int isCbdOrgZone() const
 	{
 		return cbdOrgZone;
 	}
 
-	void setCbdOrgZone(bool cbdOrgZone)
+	void setCbdOrgZone(int cbdOrgZone)
 	{
 		this->cbdOrgZone = cbdOrgZone;
 	}
@@ -286,8 +286,8 @@ private:
 	double todHigh; // upper limit for time of day for this stop
 	double todLow; // lower limit for time of day for this stop
 	unsigned numTimeWindows;
-	bool cbdOrgZone;
-	bool cbdDestZone;
+	int cbdOrgZone;
+	int cbdDestZone;
 };
 } // end namespace medium
 } // end namespace sim_mob

@@ -233,6 +233,8 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	//Read the settings for density counts (optional node, short term)
 	ProcessShortDensityMapNode(GetSingleElementByName(rootNode, "short-term_density-map"));
 
+	ProcessScreenLineNode(GetSingleElementByName(rootNode, "screen-line_count"));
+
 	//Take care of pathset manager confifuration in here
 	ParsePathXmlConfig(sim_mob::ConfigManager::GetInstance().FullConfig().pathsetFile, sim_mob::ConfigManager::GetInstanceRW().PathSetConfig());
 }
@@ -706,6 +708,28 @@ void sim_mob::ParseConfigFile::ProcessShortDensityMapNode(xercesc::DOMElement* n
 			if(cfg.segDensityMap.fileName.empty())
 			{
 				throw std::runtime_error("ParseConfigFile::ProcessShortDensityMapNode - File name is empty");
+			}
+		}
+	}
+}
+
+void sim_mob::ParseConfigFile::ProcessScreenLineNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		cfg.screenLineParams.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "screenLineCountEnabled"), "false");
+		if(cfg.screenLineParams.outputEnabled)
+		{
+			cfg.screenLineParams.interval = ParseUnsignedInt(GetNamedAttributeValue(node, "interval"), 300);
+			cfg.screenLineParams.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "screenLineCount.txt");
+
+			if(cfg.screenLineParams.interval == 0)
+			{
+				throw std::runtime_error("ParseConfigFile::ProcessScreenLineNode - Interval for screen line count is 0");
+			}
+			if(cfg.screenLineParams.fileName.empty())
+			{
+				throw std::runtime_error("ParseConfigFile::ProcessScreenLineNode - File Name is empty");
 			}
 		}
 	}

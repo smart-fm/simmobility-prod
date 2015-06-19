@@ -142,6 +142,7 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_PARCEL_AMENITIES 	   = APPLY_SCHEMA( MAIN_SCHEMA, "getParcelAmenities()");
         const std::string DB_FUNC_GET_UNIT_WITH_MAX_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getUnitWithMaxId()");
 
+        const std::string DB_FUNC_GET_DIST_MRT = APPLY_SCHEMA( MAIN_SCHEMA, "getdistMrt()");
 
         /**
          * Fields
@@ -172,6 +173,7 @@ namespace sim_mob {
         const std::string DB_FIELD_CHILDUNDER15 = "child_under15";
         const std::string DB_FIELD_WORKERS = "workers";
         const std::string DB_FIELD_AGE_OF_HEAD = "age_of_head";
+        const std::string DB_FIELD_TAXI_AVAILABILITY = "taxi_availability";
         const std::string DB_FIELD_HOUSING_DURATION = "housing_duration";
         const std::string DB_FIELD_BUILT_YEAR = "built_year";
         const std::string DB_FIELD_STOREYS = "storeys";
@@ -317,6 +319,7 @@ namespace sim_mob {
         const std::string DB_GETALL_JOB = "SELECT * FROM " + DB_FUNC_GET_JOB + LIMIT;
         const std::string DB_GETALL_DEV_LOGSUMS = "SELECT * FROM " + DB_FUNC_GET_DEV_LOGSUMS + LIMIT;
         const std::string DB_GETALL_HIR = "SELECT * FROM " + DB_FUNC_GET_HIR + LIMIT;
+        const std::string DB_GETALL_DIST_MRT = "SELECT * FROM " + DB_FUNC_GET_DIST_MRT + LIMIT;
 
         /**
          * GET BY ID

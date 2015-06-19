@@ -28,9 +28,10 @@ Role* sim_mob::medium::Passenger::clone(Person* parent) const {
 	PassengerBehavior* behavior = new PassengerBehavior(parent);
 	PassengerMovement* movement = new PassengerMovement(parent);
 	Role::type roleType=Role::RL_PASSENGER;
-	if(parent && parent->currSubTrip->mode=="MRT")
-	{
+	if (parent->currSubTrip->mode == "MRT") {
 		roleType = Role::RL_TRAINPASSENGER;
+	} else if (parent->currSubTrip->mode == "Sharing") {
+		roleType = Role::RL_CARPASSENGER;
 	}
 	Passenger* passenger = new Passenger(parent, parent->getMutexStrategy(), behavior, movement, "Passenger_", roleType);
 	behavior->setParentPassenger(passenger);
@@ -80,10 +81,12 @@ void sim_mob::medium::Passenger::collectTravelTime()
 	subEndType = parent->currSubTrip->endLocationType;
 	mode = parent->currSubTrip->getMode();
 	service = parent->currSubTrip->ptLineId;
-	travelTime = DailyTime(parent->getRole()->getTravelTime()).toString();
-	arrivaltime = DailyTime(parent->getRole()->getArrivalTime()).toString();
+	travelTime = DailyTime(parent->getRole()->getTravelTime()).getStrRepr();
+	arrivaltime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
 	if(roleType == Role::RL_TRAINPASSENGER){
 		mode = "MRT_TRAVEL";
+	} else if (roleType == Role::RL_CARPASSENGER) {
+		mode = "CARSHARING_TRAVEL";
 	} else {
 		mode = "BUS_TRAVEL";
 	}

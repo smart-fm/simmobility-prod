@@ -62,6 +62,7 @@ private:
 	void ProcessLongTermParamsNode(xercesc::DOMElement* node);
 	void ProcessLoopDetectorCountsNode(xercesc::DOMElement* node);
 	void ProcessShortDensityMapNode(xercesc::DOMElement* node);
+	void ProcessScreenLineNode(xercesc::DOMElement* node);
 
 	//Descend through Constructs
 	void ProcessConstructDatabasesNode(xercesc::DOMElement* node);

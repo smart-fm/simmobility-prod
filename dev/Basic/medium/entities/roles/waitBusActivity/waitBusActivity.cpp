@@ -61,8 +61,8 @@ void sim_mob::medium::WaitBusActivity::collectTravelTime()
 	subEndType = parent->currSubTrip->endLocationType;
 	mode = parent->currSubTrip->getMode();
 	service = parent->currSubTrip->ptLineId;
-	travelTime = DailyTime(parent->getRole()->getTravelTime()).toString();
-	arrivaltime = DailyTime(parent->getRole()->getArrivalTime()).toString();
+	travelTime = DailyTime(parent->getRole()->getTravelTime()).getStrRepr();
+	arrivaltime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
 	mode = "WAITING_BUS";
 	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(),
 			STORE_PERSON_TRAVEL,

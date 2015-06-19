@@ -725,12 +725,19 @@ const RoadSegment* sim_mob::DriverPathMover::getNextSegment(bool sameLink) const
 	{
 		return nullptr;
 	}
-	if (((*nextSegmentIt)->getLink() != (*currSegmentIt)->getLink()) && sameLink)
+	
+	if (((*nextSegmentIt)->getLink() == (*currSegmentIt)->getLink()) && sameLink)
+	{
+		return *nextSegmentIt;
+	}
+	else if(((*nextSegmentIt)->getLink() != (*currSegmentIt)->getLink()) && !sameLink)
+	{
+		return *nextSegmentIt;
+	}
+	else
 	{
 		return nullptr;
-	}
-
-	return *nextSegmentIt;
+	}	
 }
 
 const RoadSegment* sim_mob::DriverPathMover::getNextToNextSegment() const

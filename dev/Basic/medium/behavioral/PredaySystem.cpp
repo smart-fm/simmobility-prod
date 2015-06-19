@@ -20,11 +20,12 @@
 #include <sstream>
 #include <stdint.h>
 #include "behavioral/lua/PredayLuaProvider.hpp"
-#include "behavioral/params/ModeDestinationParams.hpp"
 #include "behavioral/params/StopGenerationParams.hpp"
 #include "behavioral/params/TimeOfDayParams.hpp"
 #include "behavioral/params/TourModeParams.hpp"
+#include "behavioral/params/TourModeDestinationParams.hpp"
 #include "behavioral/params/TripChainItemParams.hpp"
+#include "behavioral/StopType.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
@@ -876,19 +877,19 @@ void PredaySystem::generateIntermediateStops(uint8_t halfTour, Tour& tour, const
 		switch(choice)
 		{
 		case WORK_CHOICE_ISG:
-			generatedStop = new Stop(sim_mob::medium::WORK, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
+			generatedStop = new Stop(sim_mob::WORK, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
 			tour.addStop(generatedStop);
 			break;
 		case EDU_CHOICE_ISG:
-			generatedStop = new Stop(sim_mob::medium::EDUCATION, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
+			generatedStop = new Stop(sim_mob::EDUCATION, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
 			tour.addStop(generatedStop);
 			break;
 		case SHOP_CHOICE_ISG:
-			generatedStop = new Stop(sim_mob::medium::SHOP, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
+			generatedStop = new Stop(sim_mob::SHOP, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
 			tour.addStop(generatedStop);
 			break;
 		case OTHER_CHOICE_ISG:
-			generatedStop = new Stop(sim_mob::medium::OTHER, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
+			generatedStop = new Stop(sim_mob::OTHER, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
 			tour.addStop(generatedStop);
 			break;
 		default:
@@ -1396,7 +1397,7 @@ void PredaySystem::planDay() {
 		personParams.blockTime(timeWindow.getStartTime(), timeWindow.getEndTime());
 
 		//Generate sub tours for work tours
-		if(tour.getTourType() == sim_mob::medium::WORK) { predictSubTours(tour); }
+		if(tour.getTourType() == sim_mob::WORK) { predictSubTours(tour); }
 
 		//Generate stops for this tour
 		constructIntermediateStops(tour, remainingTours, prevTourEndTime);

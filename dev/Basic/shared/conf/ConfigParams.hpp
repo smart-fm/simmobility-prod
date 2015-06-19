@@ -180,6 +180,8 @@ public:
 	sim_mob::Conflux* getConfluxForNode(const sim_mob::MultiNode* multinode) const;
 	std::set<sim_mob::SegmentStats*>& getSegmentStatsWithBusStops();
 
+	const ModelScriptsMap& getLuaScriptsMap() const;
+
 	bool PathSetMode() const;
 	const PathSetConf & pathSet() const;
 

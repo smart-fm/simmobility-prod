@@ -32,3 +32,5 @@ sim_mob::LongTermParams::DeveloperModel::DeveloperModel(): enabled(false), timeI
 sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInterval(0), timeOnMarket(0), timeOffMarket(0), initialHouseholdsOnMarket(0), vacantUnitActivationProbability(0),
 													   housingMarketSearchPercentage(0), housingMoveInDaysInterval(0){}
 sim_mob::LongTermParams::VehicleOwnershipModel::VehicleOwnershipModel():enabled(false), vehicleBuyingWaitingTimeInDays(0){}
+
+ModelScriptsMap::ModelScriptsMap(const std::string& scriptFilesPath, const std::string& scriptsLang) : path(scriptFilesPath), scriptLanguage(scriptsLang) {}

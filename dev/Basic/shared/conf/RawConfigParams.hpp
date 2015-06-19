@@ -389,6 +389,42 @@ struct EntityTemplate {
 	int destNode;
 };
 
+/**
+ * contains the path and finle names of external scripts used in the simulation
+ *
+ * \author Harish Loganathan
+ */
+class ModelScriptsMap
+{
+public:
+	ModelScriptsMap(const std::string& scriptFilesPath = "", const std::string& scriptsLang = "");
+
+	const std::string& getPath() const
+	{
+		return path;
+	}
+
+	const std::string& getScriptLanguage() const
+	{
+		return scriptLanguage;
+	}
+
+	std::string getScriptFileName(std::string key) const
+	{
+		//at() is used intentionally so that an out_of_range exception is triggered when invalid key is passed
+		return scriptFileNameMap.at(key);
+	}
+
+	void addScriptFileName(const std::string& key, const std::string& value)
+	{
+		this->scriptFileNameMap[key] = value;
+	}
+
+private:
+	std::string path;
+	std::string scriptLanguage;
+	std::map<std::string, std::string> scriptFileNameMap; //key=>value
+};
 
 ///Represents the loop-detector_counts section of the configuration file
 struct ScreenLineParams
@@ -465,6 +501,9 @@ public:
 
 	//Person characteristics parameters
 	PersonCharacteristicsParams personCharacteristicsParams;
+
+	///container for lua scripts
+	ModelScriptsMap luaScriptsMap;
 
 	//@{
 	///Templates for creating entities of various types.

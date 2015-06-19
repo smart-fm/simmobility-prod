@@ -24,8 +24,8 @@ namespace sim_mob {
          */
         const std::string DB_EMPTY_QUERY = "";
         const std::string DB_SCHEMA_EMPTY = "";
-        const std::string MAIN_SCHEMA = "main.";
-        const std::string CALIBRATION_SCHEMA = "calibration.";
+        const std::string MAIN_SCHEMA = "main2012.";
+        const std::string CALIBRATION_SCHEMA = "calibration2012.";
         const std::string LIMIT_10 = " limit 10";
         const std::string LIMIT_ALL = "";
         const std::string LIMIT = LIMIT_ALL;
@@ -39,7 +39,7 @@ namespace sim_mob {
         const std::string DB_TABLE_DEVELOPER = APPLY_SCHEMA(MAIN_SCHEMA, "developer");
         const std::string DB_TABLE_PARCEL = APPLY_SCHEMA(MAIN_SCHEMA, "parcel");
         const std::string DB_TABLE_TEMPLATE = APPLY_SCHEMA(MAIN_SCHEMA, "template");
-        const std::string DB_TABLE_POSTCODE = APPLY_SCHEMA(MAIN_SCHEMA, "sla_addresses_2008");
+        const std::string DB_TABLE_POSTCODE = APPLY_SCHEMA(MAIN_SCHEMA, "sla_addresses");
         const std::string DB_TABLE_POSTCODE_AMENITIES = APPLY_SCHEMA(MAIN_SCHEMA, "postcode_amenities");
         const std::string DB_TABLE_LAND_USE_ZONE = APPLY_SCHEMA(MAIN_SCHEMA, "land_use_zone");
         const std::string DB_TABLE_DEVELOPMENT_TYPE_TEMPLATE = APPLY_SCHEMA(MAIN_SCHEMA, "development_type_template");

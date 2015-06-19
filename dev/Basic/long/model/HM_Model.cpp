@@ -384,7 +384,11 @@ void HM_Model::setTaxiAccess(const Household *household)
 {
 	double valueTaxiAccess = getTaxiAccessCoeffsById(INTERCEPT)->getCoefficientEstimate();
 	//finds out whether the household is an HDB or not
-	int unitTypeId = getUnitById(household->getUnitId())->getUnitType();
+	int unitTypeId = 0;
+	if(getUnitById(household->getUnitId()) != nullptr)
+	{
+		unitTypeId = getUnitById(household->getUnitId())->getUnitType();
+	}
 	if( (unitTypeId>0) && (unitTypeId<=6))
 	{
 

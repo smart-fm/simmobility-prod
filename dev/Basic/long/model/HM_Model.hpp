@@ -18,6 +18,8 @@
 #include "database/entity/Postcode.hpp"
 #include "database/entity/Establishment.hpp"
 #include "database/entity/Job.hpp"
+#include "database/entity/LogSumVehicleOwnership.hpp"
+#include "database/entity/DistanceMRT.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -61,6 +63,11 @@ namespace sim_mob
             typedef std::vector<HousingInterestRate*> HousingInterestRateList;
             typedef boost::unordered_map<BigSerial, HousingInterestRate*> HousingInterestRateMap;
 
+            typedef std::vector<LogSumVehicleOwnership*> VehicleOwnershipLogsumList;
+            typedef boost::unordered_map<BigSerial, LogSumVehicleOwnership*> VehicleOwnershipLogsumMap;
+
+            typedef std::vector<DistanceMRT*> DistMRTList;
+            typedef boost::unordered_map<BigSerial, DistanceMRT*> DistMRTMap;
 
             /**
              * Taz statistics
@@ -134,6 +141,11 @@ namespace sim_mob
             TaxiAccessCoefficients* getTaxiAccessCoeffsById( BigSerial id) const;
             void addUnit(Unit* unit);
             std::vector<BigSerial> getRealEstateAgentIds();
+            VehicleOwnershipLogsumList getVehicleOwnershipLosums()const;
+            LogSumVehicleOwnership* getVehicleOwnershipLogsumsById( BigSerial id) const;
+            void setTaxiAccess(const Household *household);
+            DistMRTList getDistanceMRT()const;
+            DistanceMRT* getDistanceMRTById( BigSerial id) const;
 
 
         protected:
@@ -179,6 +191,10 @@ namespace sim_mob
             AwakeningList awakening;
             AwakeningMap awakeningById;
             HouseholdStatistics household_stats;
+            VehicleOwnershipLogsumList vehicleOwnershipLogsums;
+            VehicleOwnershipLogsumMap vehicleOwnershipLogsumById;
+            DistMRTList mrtDistances;
+            DistMRTMap mrtDistancesById;
 
             int	initialHHAwakeningCounter;
             int numberOfBidders;
@@ -186,6 +202,7 @@ namespace sim_mob
             int numLifestyle2HHs;
             int numLifestyle3HHs;
             std::vector<BigSerial> realEstateAgentIds;
+            bool hasTaxiAccess;
 
         };
     }

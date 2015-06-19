@@ -104,7 +104,7 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverB
 	latMovement_(mtxStrat,0),fwdVelocity_(mtxStrat,0),latVelocity_(mtxStrat,0),fwdAccel_(mtxStrat,0),turningDirection_(mtxStrat,LCS_SAME),vehicle(nullptr),
 	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
 	,stop_event_nodeid(mtxStrat, -1), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false), moveDisOnTurning_(mtxStrat, 0),
-	distToIntersection_(mtxStrat, -1), perceivedAccOfFwdCar(nullptr), perceivedDistToFwdCar(nullptr), perceivedDistToTrafficSignal(nullptr), perceivedFwdAcc(nullptr),
+	distToIntersection_(mtxStrat, -1), distToCurrSegmentEnd_(mtxStrat, -1), perceivedAccOfFwdCar(nullptr), perceivedDistToFwdCar(nullptr), perceivedDistToTrafficSignal(nullptr), perceivedFwdAcc(nullptr),
 	perceivedFwdVel(nullptr), perceivedTrafficColor(nullptr), perceivedVelOfFwdCar(nullptr), yieldingToInIntersection(false), currDistAlongRoadSegment(0.0)
 {
 	getParams().driver = this;
@@ -163,6 +163,7 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 	res.push_back(&(currLaneOffset_));
 	res.push_back(&(moveDisOnTurning_));
 	res.push_back(&(distToIntersection_));
+	res.push_back(&(distToCurrSegmentEnd_));
 	res.push_back(&(currLaneLength_));
 	res.push_back(&(isInIntersection_));
 	res.push_back(&(latMovement_));

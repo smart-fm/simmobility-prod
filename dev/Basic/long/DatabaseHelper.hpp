@@ -57,6 +57,7 @@ namespace sim_mob {
         const std::string DB_TABLE_TAXI_ACCESS_COEFFICIENTS = APPLY_SCHEMA(CALIBRATION_SCHEMA, "taxi_access_coefficients");
         const std::string DB_TABLE_ESTABLISHMENT= APPLY_SCHEMA(MAIN_SCHEMA, "establishment");
         const std::string DB_TABLE_JOB= APPLY_SCHEMA(MAIN_SCHEMA, "job");
+        const std::string DB_TABLE_LOGSUM_FOR_DEVMODEL = APPLY_SCHEMA(CALIBRATION_SCHEMA, "logsum_for_dev_model");
         const std::string DB_TABLE_HIR= APPLY_SCHEMA(MAIN_SCHEMA, "housing_interest_rates");
 
 
@@ -113,6 +114,8 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_MACRO_ECONOMICS = APPLY_SCHEMA( MAIN_SCHEMA, "getMacroEconomics()");
         const std::string DB_FUNC_GET_VEHICLE_OWNERSHIP_COEFFICIENTS = APPLY_SCHEMA( MAIN_SCHEMA, "getVehicleOwnershipCoefficients()");
         const std::string DB_FUNC_GET_TAXI_ACCESS_COEFFICIENTS = APPLY_SCHEMA( MAIN_SCHEMA, "getTaxiAccessCoefficients()");
+        const std::string DB_FUNC_GET_CAR_OWNERSHIP_LOGSUMS_PER_HH = APPLY_SCHEMA( MAIN_SCHEMA, "getCarOwnershipLogsumsPerHH()");
+        const std::string DB_FUNC_GET_DEV_LOGSUMS = APPLY_SCHEMA( MAIN_SCHEMA, "getDevLogsums()");
 
         const std::string DB_FUNC_DEL_INDIVIDUAL_BY_ID  = APPLY_SCHEMA(MAIN_SCHEMA, "deleteIndividualById(:id)");
         const std::string DB_FUNC_GET_INDIVIDUALS 		= APPLY_SCHEMA( MAIN_SCHEMA, "getIndividuals()");
@@ -139,6 +142,7 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_PARCEL_AMENITIES 	   = APPLY_SCHEMA( MAIN_SCHEMA, "getParcelAmenities()");
         const std::string DB_FUNC_GET_UNIT_WITH_MAX_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getUnitWithMaxId()");
 
+        const std::string DB_FUNC_GET_DIST_MRT = APPLY_SCHEMA( MAIN_SCHEMA, "getdistMrt()");
 
         /**
          * Fields
@@ -169,6 +173,7 @@ namespace sim_mob {
         const std::string DB_FIELD_CHILDUNDER15 = "child_under15";
         const std::string DB_FIELD_WORKERS = "workers";
         const std::string DB_FIELD_AGE_OF_HEAD = "age_of_head";
+        const std::string DB_FIELD_TAXI_AVAILABILITY = "taxi_availability";
         const std::string DB_FIELD_HOUSING_DURATION = "housing_duration";
         const std::string DB_FIELD_BUILT_YEAR = "built_year";
         const std::string DB_FIELD_STOREYS = "storeys";
@@ -309,9 +314,12 @@ namespace sim_mob {
         const std::string DB_GETALL_VEHCILE_OWNERSHIP_COEFFICIENTS = "SELECT * FROM " + DB_FUNC_GET_VEHICLE_OWNERSHIP_COEFFICIENTS + LIMIT;
         const std::string DB_FUNC_GETALL_UNIT_WITH_MAX_ID = "SELECT * FROM " + DB_FUNC_GET_UNIT_WITH_MAX_ID + LIMIT;
         const std::string DB_GETALL_TAXI_ACCESS_COEFFICIENTS = "SELECT * FROM " + DB_FUNC_GET_TAXI_ACCESS_COEFFICIENTS + LIMIT;
+        const std::string DB_FUNC_GET_ALL_CAR_OWNERSHIP_LOGSUMS_PER_HH = "SELECT * FROM " + DB_FUNC_GET_CAR_OWNERSHIP_LOGSUMS_PER_HH + LIMIT;
         const std::string DB_GETALL_ESTABLISHMENT = "SELECT * FROM " + DB_FUNC_GET_ESTABLISHMENT + LIMIT;
         const std::string DB_GETALL_JOB = "SELECT * FROM " + DB_FUNC_GET_JOB + LIMIT;
+        const std::string DB_GETALL_DEV_LOGSUMS = "SELECT * FROM " + DB_FUNC_GET_DEV_LOGSUMS + LIMIT;
         const std::string DB_GETALL_HIR = "SELECT * FROM " + DB_FUNC_GET_HIR + LIMIT;
+        const std::string DB_GETALL_DIST_MRT = "SELECT * FROM " + DB_FUNC_GET_DIST_MRT + LIMIT;
 
         /**
          * GET BY ID

@@ -61,8 +61,8 @@ void sim_mob::medium::Pedestrian::collectTravelTime()
 		subEndType = "NODE";
 		mode = parent->currSubTrip->getMode();
 		service = parent->currSubTrip->ptLineId;
-		travelTime = DailyTime(activity->getTravelTime()).toString();
-		arrivaltime = DailyTime(activity->getArrivalTime()).toString();
+		travelTime = DailyTime(activity->getTravelTime()).getStrRepr();
+		arrivaltime = DailyTime(activity->getArrivalTime()).getStrRepr();
 		mode = "ACTIVITY";
 		messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(),
 				STORE_PERSON_TRAVEL,
@@ -70,7 +70,7 @@ void sim_mob::medium::Pedestrian::collectTravelTime()
 						new PersonTravelTimeMessage(personId, tripStartPoint,
 								tripEndPoint, subStartPoint, subEndPoint,
 								subStartType, subEndPoint, mode, service,
-								arrivaltime, travelTime)));
+								arrivaltime, travelTime)), true);
 	}
 	tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
 	tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
@@ -80,8 +80,8 @@ void sim_mob::medium::Pedestrian::collectTravelTime()
 	subEndType = parent->currSubTrip->endLocationType;
 	mode = parent->currSubTrip->getMode();
 	service = parent->currSubTrip->ptLineId;
-	travelTime = DailyTime(parent->getRole()->getTravelTime()).toString();
-	arrivaltime = DailyTime(parent->getRole()->getArrivalTime()).toString();
+	travelTime = DailyTime(parent->getRole()->getTravelTime()).getStrRepr();
+	arrivaltime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
 	mode = "WALK";
 	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(),
 			STORE_PERSON_TRAVEL,
@@ -89,7 +89,7 @@ void sim_mob::medium::Pedestrian::collectTravelTime()
 					new PersonTravelTimeMessage(personId, tripStartPoint,
 							tripEndPoint, subStartPoint, subEndPoint,
 							subStartType, subEndType, mode, service,
-							arrivaltime, travelTime)));
+							arrivaltime, travelTime)), true);
 
 }
 }

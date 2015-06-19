@@ -389,6 +389,58 @@ struct EntityTemplate {
 	int destNode;
 };
 
+/**
+ * contains the path and finle names of external scripts used in the simulation
+ *
+ * \author Harish Loganathan
+ */
+class ModelScriptsMap
+{
+public:
+	ModelScriptsMap(const std::string& scriptFilesPath = "", const std::string& scriptsLang = "");
+
+	const std::string& getPath() const
+	{
+		return path;
+	}
+
+	const std::string& getScriptLanguage() const
+	{
+		return scriptLanguage;
+	}
+
+	std::string getScriptFileName(std::string key) const
+	{
+		//at() is used intentionally so that an out_of_range exception is triggered when invalid key is passed
+		return scriptFileNameMap.at(key);
+	}
+
+	void addScriptFileName(const std::string& key, const std::string& value)
+	{
+		this->scriptFileNameMap[key] = value;
+	}
+
+private:
+	std::string path;
+	std::string scriptLanguage;
+	std::map<std::string, std::string> scriptFileNameMap; //key=>value
+};
+
+///Represents the loop-detector_counts section of the configuration file
+struct ScreenLineParams
+{
+	ScreenLineParams() : interval(0), outputEnabled(false), fileName("") {}
+
+	///The frequency of aggregating the vehicle counts at the loop detector
+	unsigned int interval;
+
+	///Indicates whether the counts have to be output to a file
+	bool outputEnabled;
+
+	///Name of the output file
+	std::string fileName;
+};
+
 
 /**
  * Contains the properties of the config file as they appear in, e.g., test_road_network.xml, with
@@ -431,6 +483,9 @@ public:
 	///Settings for the short-term density map
 	SegmentDensityMap segDensityMap;
 
+	///Settings for the Screen Line Count
+	ScreenLineParams screenLineParams;
+
 	///	is CBD area restriction enforced
 	bool cbd;
 	bool generateBusRoutes;
@@ -446,6 +501,9 @@ public:
 
 	//Person characteristics parameters
 	PersonCharacteristicsParams personCharacteristicsParams;
+
+	///container for lua scripts
+	ModelScriptsMap luaScriptsMap;
 
 	//@{
 	///Templates for creating entities of various types.

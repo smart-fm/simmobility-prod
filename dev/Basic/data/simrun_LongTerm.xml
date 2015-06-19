@@ -19,6 +19,12 @@
                 <port value="5432"/>
                 <dbname value="sim_mob_lt"/>
             </database>
+            
+            <database id="fm_remote_mt" dbtype="postgres">
+                <host value="172.25.184.48"/>
+                <port value="5432"/>
+                <dbname value="simmobility_db_2014"/>
+            </database>
         </databases>
     
         <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
@@ -38,7 +44,11 @@
                 "algorithm" : ["clear","xor23","base64","cipher"]
             }
             -->
-
+            
+            <file-based-credential id="fm_remote_mt">
+                <file path="private/fm_remote.cred.txt"/>
+            </file-based-credential>
+            
             <plaintext-credential id="LT_cred">
                 <username value="postgres"/>
                 <password value="postgres"/>
@@ -162,5 +172,15 @@
 		<vehicleBuyingWaitingTimeInDays value= "60"/>
 	</vehicleOwnershipModel>
     </longTermParams>
+
+    <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
+	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
+	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->
+	<script name="dps" file="dps.lua"/> <!-- Day Pattern Stops -->
+	<script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->
+	<script name="tmds" file="tmds.lua"/> <!--Tour Mode/Destination Shopping -->
+	<script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->                    
+    </model_scripts>
 </config>
 

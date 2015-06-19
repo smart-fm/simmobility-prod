@@ -11,7 +11,6 @@
 #include "conf/ConfigParams.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
-#include "geospatial/Link.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
 
@@ -84,8 +83,8 @@ SupplyParams::SupplyParams(const sim_mob::RoadSegment* rdSeg, double statsLength
 		alpha(1.0), beta(2.5)
 {
 	//update capacity of single and double lane segments to avoid bottle necks. Suggested by Yang Lu on 11-Oct-14
-	if(rdSeg->getLanes().size() == 1) { capacity = SINGLE_LANE_SEGMENT_CAPACITY/3600.0; }
-	else if(rdSeg->getLanes().size() == 2) { capacity = DOUBLE_LANE_SEGMENT_CAPACITY/3600.0; }
+	if(rdSeg->getLanes().size() == 1) { capacity = std::max(capacity, SINGLE_LANE_SEGMENT_CAPACITY/3600.0); }
+	else if(rdSeg->getLanes().size() == 2) { capacity = std::max(capacity, DOUBLE_LANE_SEGMENT_CAPACITY/3600.0); }
 }
 
 SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double statslength) :
@@ -254,17 +253,18 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 	//let's not forget the bus drivers serving stops in this segment stats
 	//Bus drivers go in the front of the list, because bus stops are (virtually)
 	//located at the end of the segment
+	mergedPersonList.clear();
 	for (BusStopList::const_reverse_iterator stopIt = busStops.rbegin(); stopIt != busStops.rend(); stopIt++)
 	{
 		const sim_mob::BusStop* stop = *stopIt;
 		PersonList& driversAtStop = busDrivers.at(stop);
 		for (PersonList::iterator pIt = driversAtStop.begin(); pIt != driversAtStop.end(); pIt++)
 		{
-			mergedPersonList.push_front(*pIt);
+			mergedPersonList.push_back(*pIt);
 		}
 	}
 
-	int capacity = (int) (ceil(roadSegment->getCapacityPerInterval()));
+	int capacity = (int) (ceil(supplyParams.getCapacity()));
 	std::vector<PersonList::iterator> iteratorLists;
 
 	//init iterator list to the front of each lane
@@ -277,7 +277,7 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 	for (int c = 0; c < capacity; c++)
 	{
 		int dequeIndex = -1;
-		double minDistance = std::numeric_limits<double>::max();
+		double minVal = std::numeric_limits<double>::max();
 		sim_mob::Person* minPerson = nullptr;
 		int i = 0;
 		for (LaneStatsMap::iterator lnIt = laneStatsMap.begin(); lnIt != laneStatsMap.end(); lnIt++)
@@ -286,22 +286,50 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 			//order by location
 			if (orderBySetting == SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION)
 			{
-				if (iteratorLists[i] != personsInLane.end() && (*iteratorLists[i])->distanceToEndOfSegment < minDistance)
+				if (iteratorLists[i] != personsInLane.end())
 				{
-					dequeIndex = i;
-					minPerson = (*(iteratorLists[i]));
-					minDistance = minPerson->distanceToEndOfSegment;
+					if((*iteratorLists[i])->distanceToEndOfSegment == minVal)
+					{
+						// If current person and (*i) are at equal distance to the stop line, we 'toss a coin' and choose one of them
+						bool coinTossResult = ((rand() / (double) RAND_MAX) < 0.5);
+						if (coinTossResult)
+						{
+							dequeIndex = i;
+							minPerson = (*(iteratorLists[i]));
+							minVal = minPerson->distanceToEndOfSegment; //redundant, but still kept for clarity
+						}
+					}
+					else if((*iteratorLists[i])->distanceToEndOfSegment < minVal)
+					{
+						dequeIndex = i;
+						minPerson = (*(iteratorLists[i]));
+						minVal = minPerson->distanceToEndOfSegment;
+					}
 				}
 			}
-			//order by time
-			else if (orderBySetting == SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION)
+			else if (orderBySetting == SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION) //order by time
 			{
-				if (iteratorLists[i] != personsInLane.end() && (*iteratorLists[i])->drivingTimeToEndOfLink < minDistance)
+				if (iteratorLists[i] != personsInLane.end())
 				{
-					dequeIndex = i;
-					minPerson = (*(iteratorLists[i]));
-					minDistance = minPerson->drivingTimeToEndOfLink;
+					if((*iteratorLists[i])->drivingTimeToEndOfLink == minVal)
+					{
+						// If current person and (*i) are at equal time to the stop line, we 'toss a coin' and choose one of them
+						bool coinTossResult = ((rand() / (double) RAND_MAX) < 0.5);
+						if (coinTossResult)
+						{
+							dequeIndex = i;
+							minPerson = (*(iteratorLists[i]));
+							minVal = minPerson->drivingTimeToEndOfLink; //redundant, but still kept for clarity
+						}
+					}
+					else if( (*iteratorLists[i])->drivingTimeToEndOfLink < minVal)
+					{
+						dequeIndex = i;
+						minPerson = (*(iteratorLists[i]));
+						minVal = minPerson->drivingTimeToEndOfLink;
+					}
 				}
+
 			}
 			i++;
 		}
@@ -895,6 +923,8 @@ std::string sim_mob::SegmentStats::reportSegmentStats(uint32_t frameNumber)
 //			<< "\",\"queueL\":\"" << getQueueLength()
 //			<< "\",\"numVehicleLanes\":\"" << numVehicleLanes
 //			<< "\",\"segment_length\":\"" << length
+//			<< "\",\"segment_id\":\"" << roadSegment->getSegmentAimsunId()
+//			<< "\",\"stats_num\":\"" << statsNumberInSegment
 //			<< "\"})"
 //			<< "\n";
 		msg << "SegStats-,"
@@ -934,6 +964,11 @@ bool SegmentStats::hasBusStop(const sim_mob::BusStop* busStop) const
 	if(!busStop) { return false; }
 	BusStopList::const_iterator stopIt = std::find(busStops.begin(), busStops.end(), busStop);
 	return !(stopIt == busStops.end());
+}
+
+bool SegmentStats::hasBusStop() const
+{
+	return !(busStops.empty());
 }
 
 double SegmentStats::getPositionOfLastUpdatedAgentInLane(const Lane* lane) const
@@ -1044,7 +1079,7 @@ void SegmentStats::printAgents() const
 		const PersonList& driversAtStop = busDrivers.at(stop);
 		for (PersonList::const_iterator pIt = driversAtStop.begin(); pIt != driversAtStop.end(); pIt++)
 		{
-			debugMsgs << "|" << (*pIt)->getId();
+			debugMsgs << "|" << (*pIt)->getId() << "(" << (*pIt)->busLine << ")";
 		}
 		debugMsgs << std::endl;
 	}
@@ -1076,6 +1111,70 @@ void sim_mob::SegmentStats::registerBusStopAgents()
 	{
 		messaging::MessageBus::RegisterHandler(*stopIt);
 	}
+}
+
+bool SegmentStats::isConnectedToDownstreamLink(const Link* downstreamLink, const Lane* lane) const
+{
+	if(!downstreamLink) { return false; }
+	LaneStatsMap::const_iterator laneIt = laneStatsMap.find(lane);
+	if(laneIt==laneStatsMap.end())
+	{
+		throw std::runtime_error("SegmentStats::getInitialQueueLength lane not found in segment stats");
+	}
+	const std::set<const Link*>& downStreamLinks = laneIt->second->getDownstreamLinks();
+	return (downStreamLinks.find(downstreamLink)!=downStreamLinks.end());
+}
+
+double SegmentStats::getAllowedVehicleLengthForLaneGroup(const Link* downstreamLink) const
+{
+	size_t numLanes = getRoadSegment()->getLanes().size();
+	if(!downstreamLink) { return (numLanes * length); }
+	std::map<const sim_mob::Link*, std::vector<sim_mob::LaneStats*> >::const_iterator lnGpIt = laneGroup.find(downstreamLink);
+	if(lnGpIt == laneGroup.end()) {
+		Print() << "DownstreamLink first seg: " <<  downstreamLink->getSegments().front()->getSegmentAimsunId() << std::endl;
+		throw std::runtime_error("Invalid downstream link");
+	}
+	size_t numLanesInLG = lnGpIt->second.size();
+
+	if(numLanes == numLanesInLG) { return (numLanesInLG * length); }
+	else if (numLanes < numLanesInLG) { throw std::runtime_error("numLanes is lesser than numLanesInLaneGroup"); }
+	else
+	{
+		//total length of lanes in LG + half of length of remaining lanes (suggested by Sebastian on 12-May-2015)
+		return ((numLanesInLG * length) + ((numLanes-numLanesInLG)*0.5*length));
+	}
+}
+
+double SegmentStats::getVehicleLengthForLaneGroup(const Link* downstreamLink) const
+{
+	if(!downstreamLink) { return getTotalVehicleLength(); }
+	double vehicleLength = 0.0;
+	std::map<const sim_mob::Link*, std::vector<sim_mob::LaneStats*> >::const_iterator lnGpIt = laneGroup.find(downstreamLink);
+	if(lnGpIt == laneGroup.end()) { throw std::runtime_error("Invalid downstream link"); }
+	const std::vector<sim_mob::LaneStats*>& laneStatsInLG = lnGpIt->second;
+	for(std::vector<sim_mob::LaneStats*>::const_iterator lnStatsIt = laneStatsInLG.begin(); lnStatsIt!=laneStatsInLG.end(); lnStatsIt++)
+	{
+		vehicleLength = vehicleLength + (*lnStatsIt)->getTotalVehicleLength();
+	}
+	return vehicleLength;
+}
+
+void SegmentStats::printDownstreamLinks() const
+{
+	std::stringstream out;
+	out << "DownStreamLinks of " << roadSegment->getSegmentAimsunId() << "-" << statsNumberInSegment << std::endl;
+	for (LaneStatsMap::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++)
+	{
+		if(i->second->isLaneInfinity()) { continue; }
+		out << i->first->getLaneID() << " - ";
+		const std::set<const Link*>& downStreamLinks = i->second->getDownstreamLinks();
+		for(std::set<const Link*>::const_iterator j=downStreamLinks.begin(); j!=downStreamLinks.end(); j++)
+		{
+			out << (*j)->getLinkId() << "|";
+		}
+		out << std::endl;
+	}
+	Print() << out.str();
 }
 
 void LaneStats::printAgents(bool copy) const
@@ -1199,12 +1298,30 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 	return dequeuedPerson;
 }
 
+bool LaneStats::addDownstreamLink(const sim_mob::Link* downStreamLink)
+{
+	if(downStreamLink)
+	{
+		return connectedDownstreamLinks.insert(downStreamLink).second;
+	}
+	return false;
+}
+
+void LaneStats::addDownstreamLinks(const std::set<const sim_mob::Link*>& downStreamLinks)
+{
+	connectedDownstreamLinks.insert(downStreamLinks.begin(), downStreamLinks.end());
+}
+
 void LaneParams::decrementOutputCounter()
 {
 	if(outputCounter > 0) { outputCounter--; }
 	else { throw std::runtime_error("cannot allow vehicles beyond output capacity."); }
 }
 
-} // end of namespace sim_mob
+double SegmentStats::getCapacity() const
+{
+	return supplyParams.getCapacity();
+}
 
+} // end of namespace sim_mob
 

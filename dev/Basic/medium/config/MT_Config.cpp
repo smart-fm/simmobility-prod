@@ -16,8 +16,6 @@ namespace sim_mob
 namespace medium
 {
 
-ModelScriptsMap::ModelScriptsMap(const std::string& scriptFilesPath, const std::string& scriptsLang) : path(scriptFilesPath), scriptLanguage(scriptsLang) {}
-
 MongoCollectionsMap::MongoCollectionsMap(const std::string& dbName) : dbName(dbName) {}
 
 PredayCalibrationParams::PredayCalibrationParams() :

@@ -33,6 +33,7 @@ class Busline;
  * Representation of a Bus Stop.
  * \author Skyler Seto
  * \author Seth N. Hetu
+ * \author Harish Loganathan
  */
 class BusStop : public sim_mob::RoadItem {
 	friend class ::geo::BusStop_t_pimpl;
@@ -40,8 +41,8 @@ public:
 	typedef std::map<std::string, BusStop*> BusStopSet;
 	///BusStops must be constructed with their stopPt, which must be the same
 	///  as the lane zero offset in their RoadSegment.
-	explicit BusStop() : RoadItem(), lane_location(0), busCapacityAsLength(0),
-	is_terminal(false), is_bay(false), xPos(0), yPos(0), has_shelter(false),distance(-1)
+	explicit BusStop() : RoadItem(), lane_location(0), busCapacityAsLength(0), terminusType(NOT_A_TERMINUS), twinStop(nullptr),
+	is_terminal(false), is_bay(false), xPos(0), yPos(0), has_shelter(false),distance(-1), virtualStop(false)
 	{}
 
 	///Adds a new bus stop to the Bus stop list
@@ -52,7 +53,6 @@ public:
 	///set of all bus stops in the network
 	static BusStopSet allBusstops;
 
-public:
 	///Which RoadItem and lane is this bus stop located at?
 	Lane* lane_location;
 
@@ -72,8 +72,17 @@ public:
 	///Is the pedestrian waiting area sheltered? Currently does not affect anything.
 	bool has_shelter;
 
-	//Distance to the bus-stop (in Meters)
+	///Distance to the bus-stop (in Meters)
 	double distance;
+
+	enum BusTerminusType
+	{
+		NOT_A_TERMINUS,
+		SOURCE_TERMINUS,
+		SINK_TERMINUS
+	};
+	///Control flag for bus terminus stops
+	BusTerminusType terminusType;
 
 	//The position bus shall stop in segment from start node
 	//NOTE: This is now correctly stored in the RoadSegment's obstacle list.
@@ -85,14 +94,14 @@ public:
 	const inline Lane* getLaneLocation() const { return lane_location; }
 	const inline unsigned int getBusCapacityAsLength() const { return busCapacityAsLength; }
 	const std::string getBusstopno_() const { return busstopno_; }
+	const BusStop* getTwinStop() const { return twinStop; }
+	void setTwinStop(const BusStop* twinStop) { this->twinStop = twinStop; }
+	bool isVirtualStop() const { return virtualStop; }
+	void setVirtualStop() { this->virtualStop = true; }
 
-
-public:
     //Estimate the stop point of this BusStop on a given road segment
     static double EstimateStopPoint(double xPos, double yPos, const sim_mob::RoadSegment* rs);
 
-
-public:
     std::vector<Busline*> BusLines;///to store bus line info at each bus stop for passengers
 	std::string busstopno_;
 		double xPos;
@@ -108,6 +117,13 @@ public:
 #endif
 	std::vector<sim_mob :: Lane*> lanes;
 	friend class RoadSegment;
+
+private:
+	///pointer to the twin bus stop. Contains value iff this bus stop is a terminus
+	const BusStop* twinStop;
+
+	///indicator to determine whether this stop is virtually created for terminus stops
+	bool virtualStop;
 
 };
 

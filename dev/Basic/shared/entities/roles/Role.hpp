@@ -73,7 +73,8 @@ public:
 		RL_ACTIVITY,
 		RL_PASSENGER,
 		RL_WAITBUSACTITITY,
-		RL_TRAINPASSENGER
+		RL_TRAINPASSENGER,
+		RL_CARPASSENGER
 	};
 
 	//todo: use this to identify the type of request
@@ -242,6 +243,9 @@ protected:
 
 	BehaviorFacet* behaviorFacet;
 	MovementFacet* movementFacet;
+
+	/* TODO: totalTravelTimeMS and arrivalTimeMS does not belong here.
+	 * This has to be re-factored and moved into relevant sub classes of role after July workshop 2015. ~Harish*/
 	unsigned int totalTravelTimeMS;
 	unsigned int arrivalTimeMS;
 	/// the mode string of the role (for output purposes)

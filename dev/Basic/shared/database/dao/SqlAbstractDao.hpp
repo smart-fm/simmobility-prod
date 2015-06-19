@@ -180,14 +180,12 @@ public:
 
 	template<typename K, typename F>
 	bool getAll(boost::unordered_map<K, T>& outMap, F getter) {
-		return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outMap,
-				getter);
+		return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outMap, getter);
 	}
 
 	template<typename K, typename F>
 	bool getAll(boost::unordered_map<K, T*>& outMap, F getter) {
-		return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outMap,
-				getter);
+		return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outMap, getter);
 	}
 
 	/*
@@ -364,7 +362,7 @@ private:
 	void appendRow(Row& row, boost::unordered_map<K, T*>& map, F getter) {
 		T* model = new T();
 		fromRow(row, *model);
-		map.insert(std::make_pair(((model).*getter)(), model));
+		map.insert(std::make_pair((model->*getter)(), model));
 	}
 
 protected:

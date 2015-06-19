@@ -43,7 +43,7 @@ bool sim_mob::MovementFacet::isConnectedToNextSeg(const Lane* lane, const sim_mo
 			const std::set<sim_mob::LaneConnector*>& lcs = currEndNode->getOutgoingLanes(currSeg);
 			for (std::set<sim_mob::LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++)
 			{
-				if ((*it)->getLaneTo()->getRoadSegment() == nxtRdSeg && (*it)->getLaneFrom() == lane) { return true; }
+				if ((*it)->getLaneFrom() == lane && (*it)->getLaneTo()->getRoadSegment() == nxtRdSeg) { return true; }
 			}
 		}
 	}

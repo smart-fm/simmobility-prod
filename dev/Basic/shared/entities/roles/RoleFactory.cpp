@@ -68,7 +68,7 @@ string sim_mob::RoleFactory::GetRoleName(const std::string mode)
 	if(mode=="Car" || mode=="Taxi") { return "driver"; }
 	if(mode=="Walk") { return "pedestrian"; }
 	if(mode=="Bus") { return "busdriver"; }
-	if(mode=="BusTravel" || mode=="MRT") { return "passenger"; }
+	if(mode=="BusTravel" || mode=="MRT" || mode=="Sharing") { return "passenger"; }
 	if(mode=="WaitingBusActivity") { return "waitBusActivity"; }
 	if(mode=="Motorcycle") { return "biker"; }
 	if(mode=="Activity") { return "activityRole"; }

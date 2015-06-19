@@ -264,7 +264,7 @@ void BusStopAgent::storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingAct
 	DailyTime currDailyTime(currentTimeMS);
 	DailyTime waitingDailyTime(waitingTime);
 	std::string stopId = busStop->getBusstopno_();
-	std::string personId = boost::lexical_cast<std::string>((person->GetId()));
+	std::string personId = boost::lexical_cast<std::string>((person->getId()));
 	std::string busLines = waitingActivity->getBusLines();
 	unsigned int failedBoardingTime = waitingActivity->getFailedBoardingTimes();
 	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(), STORE_PERSON_WAITING,
@@ -289,7 +289,7 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 		if (waitingTm > hourInMilliSecs) {
 			sim_mob::SubTrip& subTrip = *(person->currSubTrip);
 			const std::string tripLineID = subTrip.getBusLineID();
-			Warn() << "[waiting long]Person[" << person->GetId()
+			Warn() << "[waiting long]Person[" << person->getId()
 					<< "] waiting [" << tripLineID << " ] at ["
 					<< this->getBusStop()->getBusstopno_() << "] for ["
 					<< DailyTime(waitingTm).getStrRepr() << "]" << std::endl;

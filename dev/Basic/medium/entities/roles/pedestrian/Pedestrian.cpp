@@ -50,7 +50,7 @@ void sim_mob::medium::Pedestrian::collectTravelTime()
 			subEndPoint, subStartType, subEndType, mode, service, arrivaltime,
 			travelTime;
 
-	personId = boost::lexical_cast<std::string>(parent->GetId());
+	personId = boost::lexical_cast<std::string>(parent->getId());
 	if(parent->getPrevRole()&&parent->getPrevRole()->roleType==Role::RL_ACTIVITY){
 		ActivityPerformer* activity = dynamic_cast<ActivityPerformer*>(parent->getPrevRole());
 		tripStartPoint = boost::lexical_cast<std::string>(activity->getLocation()->getID());

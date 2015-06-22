@@ -174,16 +174,6 @@ public:
 		}
 		return *instance;
 	}
-
-	/**
-	 * modify trips whose origin and/or destination lies in a restricted area
-	 */
-	void processTripChains(std::map<std::string, std::vector<TripChainItem*> > &tripchains);
-
-	/**
-	 * Function to split the subtrips crossing the restricted Areas
-	 */
-	void processSubTrips(std::vector<sim_mob::SubTrip>& subTrips);
 };
 
 class PeriodicPersonLoader :  private boost::noncopyable

@@ -205,14 +205,13 @@ bool sim_mob::PathSetManager::cachePathSet_LRU(boost::shared_ptr<sim_mob::PathSe
 	cacheLRU.insert(ps->id, ps);
 }
 
-bool sim_mob::PathSetManager::findCachedPathSet(std::string  key, boost::shared_ptr<sim_mob::PathSet> &value){
+bool sim_mob::PathSetManager::findCachedPathSet(std::string key, boost::shared_ptr<sim_mob::PathSet> &value){
 	return findCachedPathSet_LRU(key,value);
 }
 
 bool sim_mob::PathSetManager::findCachedPathSet_LRU(std::string  key, boost::shared_ptr<sim_mob::PathSet> &value){
 	return cacheLRU.find(key,value);
 }
-
 
 void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>&ps)
 {
@@ -297,14 +296,13 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::SubTrip &subTri
 		}
 		else
 		{
-			// case-2:  Either O or D is outside CBD and the other one is inside CBD
+			// case-2:  Either O or D is inside CBD
 			if (!(toLocationInRestrictedRegion && fromLocationInRestrictedRegion))
 			{
 				str << (fromLocationInRestrictedRegion ? " [EXIT CBD]" : "[ENTER CBD]");
 			}
-			else
+			else //case-3: Both O & D are inside CBD
 			{
-				//case-3: Both are inside CBD
 				str << "[BOTH INSIDE CBD]";
 			}
 			getBestPath(res, subTrip, true,std::set<const sim_mob::RoadSegment*>(), false, false,enRoute, approach);
@@ -438,21 +436,26 @@ bool sim_mob::PathSetManager::getBestPath(
 
 	const sim_mob::Node* fromNode = st.fromLocation.node_;
 	const sim_mob::Node* toNode = st.toLocation.node_;
-	if(!(toNode && fromNode)){
+
+	if(!toNode || !fromNode)
+	{
 		logger << "Error, OD null\n" ;
 		return false;
 	}
-	if(toNode->getID() == fromNode->getID()){
-		logger << "Error: same OD id from different objects discarded:" << toNode->getID() << "\n" ;
+
+	if(toNode->getID() == fromNode->getID())
+	{
+		logger << "Error: same O and D:" << toNode->getID() << "\n" ;
 		return false;
 	}
 
 	std::string fromToID = getFromToString(fromNode, toNode);
 	if(tempNoPath.find(fromToID))
 	{
-		logger <<  fromToID   << "[PREVIOUS RECORD OF FAILURE. BYPASSING : " << fromToID << "]\n";
+		logger <<  fromToID   << "[PREVIOUS RECORD OF FAILURE. EARLY EXIT : " << fromToID << "]\n";
 		return false;
 	}
+
 	logger << "[THREAD " << boost::this_thread::get_id() << "][SEARCHING FOR : " << fromToID << "]\n" ;
 	boost::shared_ptr<sim_mob::PathSet> pathset;
 
@@ -461,7 +464,7 @@ bool sim_mob::PathSetManager::getBestPath(
 	 * supply only the temporary blacklist, because with the current implementation,
 	 * cache should never be filled with paths containing permanent black listed segments
 	 */
-	std::set<const sim_mob::RoadSegment*> emptyBlkLst = std::set<const sim_mob::RoadSegment*>();//and sometime you don't need a black list at all!
+	std::set<const sim_mob::RoadSegment*> emptyBlkLst = std::set<const sim_mob::RoadSegment*>(); //sometimes you don't need a black list at all!
 	if(useCache && findCachedPathSet(fromToID, pathset))
 	{
 		logger <<  fromToID  << " : Cache Hit\n";

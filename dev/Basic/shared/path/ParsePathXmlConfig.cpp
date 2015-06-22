@@ -110,6 +110,7 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 	else
 	{
 		cfg.psRetrieval = ParseString(GetNamedAttributeValue(functionNode, "pathset"), "");
+		cfg.psRetrievalWithoutBannedRegion = ParseString(GetNamedAttributeValue(functionNode, "pathset_without_banned_area"), "");
 		cfg.upsert = ParseString(GetNamedAttributeValue(functionNode, "travel_time"), "");
 	}
 

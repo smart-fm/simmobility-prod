@@ -82,10 +82,9 @@ unsigned int sim_mob::PathSetManager::intervalMS = 0;
 
 sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()),
 		pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName),isUseCache(true),
-		psRetrieval(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrieval),cacheLRU(2500),
-		processTT(intervalMS, curIntervalMS),
-		blacklistSegments((sim_mob::ConfigManager::GetInstance().FullConfig().CBD() ?
-				RestrictedRegion::getInstance().getZoneSegments(): std::set<const sim_mob::RoadSegment*>()))//todo placeholder
+		psRetrieval(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrieval),
+		psRetrievalWithoutRestrictedRegion(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrievalWithoutBannedRegion),
+		cacheLRU(2500), processTT(intervalMS, curIntervalMS)
 {
 	pathSetParam = PathSetParam::getInstance();
 	std::string dbStr(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
@@ -197,11 +196,11 @@ void sim_mob::PathSetManager::clearSinglePaths(boost::shared_ptr<sim_mob::PathSe
 	ps->pathChoices.clear();
 }
 
-bool sim_mob::PathSetManager::cachePathSet(boost::shared_ptr<sim_mob::PathSet>&ps){
-	return cachePathSet_LRU(ps);
+void sim_mob::PathSetManager::cachePathSet(boost::shared_ptr<sim_mob::PathSet>&ps){
+	cachePathSet_LRU(ps);
 }
 
-bool sim_mob::PathSetManager::cachePathSet_LRU(boost::shared_ptr<sim_mob::PathSet>&ps){
+void sim_mob::PathSetManager::cachePathSet_LRU(boost::shared_ptr<sim_mob::PathSet>&ps){
 	cacheLRU.insert(ps->id, ps);
 }
 
@@ -270,7 +269,6 @@ std::string sim_mob::printWPpath(const std::vector<WayPoint> &wps , const sim_mo
 	logger << out.str();
 	return out.str();
 }
-
 
 vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::SubTrip &subTrip, bool enRoute, const sim_mob::RoadSegment* approach)
 {
@@ -420,7 +418,7 @@ bool sim_mob::PathSetManager::getBestPath(
 		bool useCache,
 		std::set<const sim_mob::RoadSegment*> tempBlckLstSegs,
 		bool usePartialExclusion,
-		bool useBlackList,
+		bool nonCBD_OD,
 		bool enRoute,
 		const sim_mob::RoadSegment* approach)
 {
@@ -428,10 +426,6 @@ bool sim_mob::PathSetManager::getBestPath(
 
 	//take care of partially excluded and blacklisted segments here
 	std::set<const sim_mob::RoadSegment*> blckLstSegs(tempBlckLstSegs);
-	if(useBlackList && !blacklistSegments.empty())
-	{
-		blckLstSegs.insert(this->blacklistSegments.begin(), this->blacklistSegments.end()); //temporary + permanent
-	}
 	const std::set<const sim_mob::RoadSegment*>& partial = (usePartialExclusion ? this->partialExclusions : std::set<const sim_mob::RoadSegment*>());
 
 	const sim_mob::Node* fromNode = st.fromLocation.node_;
@@ -488,7 +482,7 @@ bool sim_mob::PathSetManager::getBestPath(
 	if(!pathRetrievalAttempt.tryCheck(fromToID))
 	{
 		boost::this_thread::sleep(boost::posix_time::seconds(1));
-		return getBestPath(res, st, true, tempBlckLstSegs, usePartialExclusion, useBlackList, enRoute, approach);
+		return getBestPath(res, st, true, tempBlckLstSegs, usePartialExclusion, nonCBD_OD, enRoute, approach);
 	}
 
 	//step-2:check  DB
@@ -497,7 +491,14 @@ bool sim_mob::PathSetManager::getBestPath(
 	pathset->subTrip = st;
 	pathset->id = fromToID;
 	pathset->scenario = scenarioName;
-	hasPath = sim_mob::aimsun::Loader::loadSinglePathFromDB(*getSession(),fromToID,pathset->pathChoices, psRetrieval,blckLstSegs);
+	if(nonCBD_OD)
+	{
+		hasPath = sim_mob::aimsun::Loader::loadSinglePathFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrievalWithoutRestrictedRegion, blckLstSegs);
+	}
+	else
+	{
+		hasPath = sim_mob::aimsun::Loader::loadSinglePathFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval, blckLstSegs);
+	}
 	logger  <<  fromToID << " : " << (hasPath == PSM_HASPATH ? "" : "Don't " ) << "have SinglePaths in DB \n" ;
 	switch (hasPath)
 	{
@@ -563,7 +564,7 @@ bool sim_mob::PathSetManager::getBestPath(
 			return false;
 		}
 		//this hack conforms to the CBD property added to segment and node
-		if(useBlackList)
+		if(nonCBD_OD)
 		{
 			if(!purgeCbdPaths(*pathset))
 			{

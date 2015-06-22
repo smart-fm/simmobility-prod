@@ -1127,8 +1127,14 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 	for(std::map<std::string, std::vector<const sim_mob::BusStop*> >::iterator routeIt=routeID_busStops.begin();
 			routeIt!=routeID_busStops.end(); routeIt++)
 	{
+		std::map<std::string, std::vector<const sim_mob::RoadSegment*> >::iterator routeIDSegIt = routeID_roadSegments.find(routeIt->first);
+		if(routeIDSegIt == routeID_roadSegments.end())
+		{
+			sim_mob::Warn() << routeIt->first << " has no route";
+			continue;
+		}
 		std::vector<const sim_mob::BusStop*>& stopList = routeIt->second;
-		std::vector<const sim_mob::RoadSegment*>& segList = routeID_roadSegments.find(routeIt->first)->second;
+		std::vector<const sim_mob::RoadSegment*>& segList = routeIDSegIt->second;
 
 		if(stopList.empty()) { throw std::runtime_error("empty stopList!"); }
 		std::vector<const sim_mob::BusStop*> stopListCopy = stopList; //copy locally
@@ -1143,7 +1149,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 			if(!segList.empty())
 			{
 				std::vector<const sim_mob::RoadSegment*>::iterator itToDelete = segList.begin();
-				while((*itToDelete) != firstStopTwin->getParentSegment() && itToDelete!=segList.end())
+				while(itToDelete!=segList.end() && (*itToDelete) != firstStopTwin->getParentSegment())
 				{
 					itToDelete = segList.erase(itToDelete); // the bus must start from the segment of the twinStop
 				}

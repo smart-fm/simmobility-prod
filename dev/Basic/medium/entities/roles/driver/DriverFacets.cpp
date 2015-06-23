@@ -285,11 +285,11 @@ bool sim_mob::medium::DriverMovement::initializePath()
 		//Restricted area logic
 		if (sim_mob::ConfigManager::GetInstance().FullConfig().CBD())
 		{
-			bool fromLocationInRestrictedRegion = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(wp_path.front().roadSegment_->getStart());
-			bool toLocationInRestrictedRegion = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(wp_path.back().roadSegment_->getEnd());
+			bool fromLocationInRestrictedRegion = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(wp_path.front());
+			bool toLocationInRestrictedRegion = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(wp_path.back());
 			if (!toLocationInRestrictedRegion && !fromLocationInRestrictedRegion)
 			{//both O & D outside
-				if (sim_mob::RestrictedRegion::getInstance().isInRestrictedSegmentZone(wp_path))
+				if (sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(wp_path))
 				{
 					currSubTrip.cbdTraverseType = TravelMetric::CBD_PASS;
 				}

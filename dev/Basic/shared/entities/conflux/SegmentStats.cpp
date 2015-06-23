@@ -77,10 +77,10 @@ bool cmp_person_distToSegmentEnd::operator ()(const Person* x, const Person* y) 
 SupplyParams::SupplyParams(const sim_mob::RoadSegment* rdSeg, double statsLength) :
 		freeFlowSpeed(convertKmphToCmps(rdSeg->maxSpeed)),
 		minSpeed(0.2 * freeFlowSpeed), /*20% of free flow speed as suggested by Yang Lu*/
-		jamDensity(0.25), /*density during traffic jam in veh/meter*/
-		minDensity(0.0048), /*minimum traffic density in veh/meter*/
+		jamDensity(0.2), /*density during traffic jam in veh/meter*/
+		minDensity(0.0), /*minimum traffic density in veh/meter*/
 		capacity(rdSeg->getCapacity() / 3600.0), /*converting capacity to vehicles/hr to vehicles/s*/
-		alpha(1.0), beta(2.5)
+		alpha(3.0), beta(1.5)
 {
 	//update capacity of single and double lane segments to avoid bottle necks. Suggested by Yang Lu on 11-Oct-14
 	if(rdSeg->getLanes().size() == 1) { capacity = std::max(capacity, SINGLE_LANE_SEGMENT_CAPACITY/3600.0); }

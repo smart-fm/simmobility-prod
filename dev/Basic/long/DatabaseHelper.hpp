@@ -24,8 +24,8 @@ namespace sim_mob {
          */
         const std::string DB_EMPTY_QUERY = "";
         const std::string DB_SCHEMA_EMPTY = "";
-        const std::string MAIN_SCHEMA = "main.";
-        const std::string CALIBRATION_SCHEMA = "calibration.";
+        const std::string MAIN_SCHEMA = "main2012.";
+        const std::string CALIBRATION_SCHEMA = "calibration2012.";
         const std::string LIMIT_10 = " limit 10";
         const std::string LIMIT_ALL = "";
         const std::string LIMIT = LIMIT_ALL;

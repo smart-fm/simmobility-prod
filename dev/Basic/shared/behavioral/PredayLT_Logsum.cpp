@@ -23,7 +23,7 @@ using namespace sim_mob::db;
 namespace
 {
 std::string EMPTY_STRING = "";
-const std::string LT_DB_CONFIG_FILE = "private/lt-db.ini";
+const std::string LT_DB_CONFIG_FILE = "../private/lt-db.ini";
 /**
  * DB_Config for logsum db.
  * initialized from getConnection()
@@ -195,7 +195,11 @@ double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int hom
 	}
 
 	LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
-	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
+	int xxx = personParams.getHomeLocation();
+	int yyy = zoneIdLookup.at(xxx);
+	ZoneParams *zzz = zoneMap.at(yyy);
+	int aaa = zzz->getCbdDummy();
+	tmdParams.setCbdOrgZone(aaa);
 
 	PredayLogsumLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, tmdParams);
 	PredayLogsumLuaProvider::getPredayModel().computeDayPatternLogsums(personParams);

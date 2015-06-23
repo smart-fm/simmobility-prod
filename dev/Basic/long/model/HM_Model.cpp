@@ -33,6 +33,7 @@
 #include "conf/ConfigParams.hpp"
 #include "message/LT_Message.hpp"
 #include "message/MessageBus.hpp"
+#include "behavioral/PredayLT_Logsum.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -153,6 +154,34 @@ int HM_Model::getNumberOfBidders()
 	return numberOfBidders;
 }
 
+
+Job* HM_Model::getJobById(BigSerial id) const
+{
+	JobMap::const_iterator itr = jobsById.find(id);
+
+	if (itr != jobsById.end())
+	{
+		return (*itr).second;
+	}
+
+	return nullptr;
+}
+
+
+
+Establishment* HM_Model::getEstablishmentById(BigSerial id) const
+{
+	EstablishmentMap::const_iterator itr = establishmentsById.find(id);
+
+	if (itr != establishmentsById.end())
+	{
+		return (*itr).second;
+	}
+
+	return nullptr;
+}
+
+
 Individual* HM_Model::getIndividualById(BigSerial id) const
 {
 	IndividualMap::const_iterator itr = individualsById.find(id);
@@ -222,6 +251,20 @@ const Unit* HM_Model::getUnitById(BigSerial id) const
 	}
 	return nullptr;
 }
+
+BigSerial HM_Model::getEstablishmentTazId(BigSerial establishmentId) const
+{
+	const Establishment* establishment = getEstablishmentById(establishmentId);
+	BigSerial tazId = INVALID_ID;
+
+	if (establishment)
+	{
+		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(establishment->getSlaAddressId());
+	}
+
+	return tazId;
+}
+
 
 BigSerial HM_Model::getUnitTazId(BigSerial unitId) const
 {
@@ -384,7 +427,15 @@ void HM_Model::setTaxiAccess(const Household *household)
 {
 	double valueTaxiAccess = getTaxiAccessCoeffsById(INTERCEPT)->getCoefficientEstimate();
 	//finds out whether the household is an HDB or not
-	int unitTypeId = getUnitById(household->getUnitId())->getUnitType();
+
+	const Unit* unit = getUnitById(household->getUnitId());
+
+
+	int unitTypeId = 1;
+
+	if( unit != NULL )
+		unitTypeId = unit->getUnitType();
+
 	if( (unitTypeId>0) && (unitTypeId<=6))
 	{
 
@@ -566,6 +617,9 @@ void HM_Model::setTaxiAccess(const Household *household)
 
 void HM_Model::startImpl()
 {
+	PredayLT_LogsumManager::getInstance();
+
+
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	MetadataEntry entry;
 

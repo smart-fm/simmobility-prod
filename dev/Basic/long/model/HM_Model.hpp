@@ -105,6 +105,7 @@ namespace sim_mob
              */
             const Unit* getUnitById(BigSerial id) const;
             BigSerial getUnitTazId(BigSerial unitId) const;
+            BigSerial getEstablishmentTazId(BigSerial establishmentId) const;
             const TazStats* getTazStats(BigSerial tazId) const;
             const TazStats* getTazStatsByUnitId(BigSerial unitId) const;
 
@@ -113,6 +114,8 @@ namespace sim_mob
 			Individual* getIndividualById( BigSerial id) const;
             Awakening* getAwakeningById( BigSerial id) const;
             Postcode* getPostcodeById(BigSerial id) const;
+            Job* getJobById(BigSerial id) const;
+            Establishment* getEstablishmentById( BigSerial id) const;
 
             void hdbEligibilityTest(int );
             void unitsFiltering();

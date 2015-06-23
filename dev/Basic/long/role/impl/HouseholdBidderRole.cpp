@@ -28,6 +28,8 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
+#include "behavioral/PredayLT_Logsum.hpp"
+
 using std::list;
 using std::endl;
 using namespace sim_mob::long_term;
@@ -421,10 +423,54 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	DD_area = unit->getFloorArea() / 100;
 
-	boost::mt19937 rng(time(0));
-	boost::normal_distribution<> nd( 2.038024, 0.5443059);
-	boost::variate_generator<boost::mt19937&,  boost::normal_distribution<> > var_nor(rng, nd);
-	ZZ_logsumhh = var_nor();
+	BigSerial homeTaz = -1;
+	BigSerial workTaz = -1;
+	Individual* headOfHousehold = NULL;
+
+	std::vector<BigSerial> householdOccupants = household->getIndividuals();
+
+	for( int n = 0; n < householdOccupants.size(); n++ )
+	{
+		Individual * householdIndividual = getParent()->getModel()->getIndividualById( householdOccupants[n] );
+
+		if( householdIndividual->getHouseholdHead() )
+		{
+			headOfHousehold = householdIndividual;
+		}
+	}
+
+	//This household does not seem to have an head of household, let's just assign one.
+	if(headOfHousehold == NULL)
+	{
+		int eldestHouseholdMemberAge = 0;
+		for( int n = 0; n < householdOccupants.size(); n++ )
+		{
+			Individual * householdIndividual = getParent()->getModel()->getIndividualById( householdOccupants[n] );
+			std::tm dob = householdIndividual->getDateOfBirth();
+			struct tm thisTime;
+			time_t now;
+			time(&now);
+			thisTime = *localtime(&now);
+			int age = thisTime.tm_year - dob.tm_year;
+
+			if( age >  eldestHouseholdMemberAge )
+			{
+				age =  eldestHouseholdMemberAge;
+				headOfHousehold = householdIndividual;
+			}
+		}
+	}
+
+	Job *job = getParent()->getModel()->getJobById(headOfHousehold->getJobId());
+
+	homeTaz = getParent()->getModel()->getUnitTazId( household->getUnitId() );
+	workTaz = getParent()->getModel()->getEstablishmentTazId( job->getEstablishmentId() );
+
+	if( homeTaz == -1 || workTaz == -1 )
+		ZZ_logsumhh = 2.0;
+	else
+		ZZ_logsumhh = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz );
+
 
 	BigSerial ethnicity = household->getEthnicityId();
 
@@ -591,7 +637,14 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 	if (isActive())
 	{
 	const HM_Model* model = getParent()->getModel();
-	int unitTypeId = model->getUnitById(this->getParent()->getHousehold()->getUnitId())->getUnitType();
+
+	const Unit *unit = model->getUnitById(this->getParent()->getHousehold()->getUnitId());
+
+	int unitTypeId = 1;
+
+	if( unit != NULL )
+		 unitTypeId = unit->getUnitType();
+
 	double valueNoCar =  model->getVehicleOwnershipCoeffsById(ASC_NO_CAR)->getCoefficientEstimate();
 	double expNoCar = exp(valueNoCar);
 	double expOneCar = getExpOneCar(unitTypeId);
@@ -817,7 +870,7 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId)
 		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_SELFEMPLOYED_ONECAR)->getCoefficientEstimate();
 	}
 
-	valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId())->getAvgLogsum();
+	valueOneCar = 0;//valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId())->getAvgLogsum();
 
 	DistanceMRT *distanceMRT = model->getDistanceMRTById(this->getParent()->getHousehold()->getId());
 
@@ -1013,7 +1066,7 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId)
 		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_SELFEMPLOYED_TWOplusCAR)->getCoefficientEstimate();
 	}
 
-	valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_TWOplusCAR)->getCoefficientEstimate() * model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId())->getAvgLogsum();
+	valueTwoPlusCar = 0;//valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_TWOplusCAR)->getCoefficientEstimate() * model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId())->getAvgLogsum();
 
 	DistanceMRT *distanceMRT = model->getDistanceMRTById(this->getParent()->getHousehold()->getId());
 

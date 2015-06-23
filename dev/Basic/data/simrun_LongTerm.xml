@@ -46,7 +46,7 @@
             -->
             
             <file-based-credential id="fm_remote_mt">
-                <file path="private/fm_remote.cred.txt"/>
+                <file path="../private/fm_remote.cred.txt"/>
             </file-based-credential>
             
             <plaintext-credential id="LT_cred">

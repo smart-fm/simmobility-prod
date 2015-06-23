@@ -4,6 +4,8 @@
 
 #include "PredayLT_Logsum.hpp"
 
+#include <boost/thread/thread.hpp>
+#include <boost/thread/tss.hpp>
 #include <vector>
 
 #include "behavioral/lua/PredayLogsumLuaProvider.hpp"
@@ -36,12 +38,42 @@ DB_Config ltDbConfig(LT_DB_CONFIG_FILE);
  * re-initialized correctly from first call to getInstance
  */
 DB_Connection mtDbConnection(sim_mob::db::POSTGRES, mtDbConfig);
-DB_Connection ltDbConnection(sim_mob::db::POSTGRES, ltDbConfig);
 
 /**
- * DAO for fetching individuals from db
+ * wrapper struct for thread local storage
  */
-LT_PopulationSqlDao ltPopulationDao(ltDbConnection);
+struct LT_PopulationSqlDaoContext
+{
+	/**
+	 * DB_Connection object for LT db
+	 */
+	DB_Connection ltDbConnection;
+
+	/**
+	 * DAO for fetching individuals from db
+	 */
+	LT_PopulationSqlDao ltPopulationDao;
+
+	LT_PopulationSqlDaoContext() : ltDbConnection(sim_mob::db::POSTGRES, ltDbConfig), ltPopulationDao(ltDbConnection)
+	{
+		ltDbConnection.connect();
+		if(!ltDbConnection.isConnected()) { throw std::runtime_error("LT database connection failure!"); }
+	}
+};
+
+boost::thread_specific_ptr<LT_PopulationSqlDaoContext> threadContext;
+
+/**
+ * constructs the SQL dao for calling thread, if not already constructed
+ */
+void ensureContext()
+{
+	if (!threadContext.get())
+	{
+		LT_PopulationSqlDaoContext* ltPopulationSqlDaoCtx = new LT_PopulationSqlDaoContext();
+		threadContext.reset(ltPopulationSqlDaoCtx);
+	}
+}
 
 /**
  * fetches configuration and constructs DB_Connection
@@ -73,8 +105,6 @@ sim_mob::PredayLT_LogsumManager::~PredayLT_LogsumManager()
 {
 	if(!logsumManager.dataLoadReqd)
 	{
-		ltDbConnection.disconnect(); //safe only because logsumManager is a singleton and this class is noncopyable
-
 		// clear Zones
 		Print() << "Clearing zoneMap" << std::endl;
 		for(ZoneMap::iterator i = zoneMap.begin(); i!=zoneMap.end(); i++) {
@@ -170,9 +200,9 @@ const PredayLT_LogsumManager& sim_mob::PredayLT_LogsumManager::getInstance()
 		mtDbConnection.disconnect();
 
 		ltDbConfig.load();
-		ltDbConnection = DB_Connection(sim_mob::db::POSTGRES, ltDbConfig);
-		ltDbConnection.connect();
-		if(!ltDbConnection.isConnected()) { throw std::runtime_error("LT database connection failure!"); }
+
+		ensureContext();
+		LT_PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
 		ltPopulationDao.getIncomeCategories(PredayPersonParams::getIncomeCategoryLowerLimits());
 		ltPopulationDao.getVehicleCategories(PredayPersonParams::getVehicleCategoryLookup());
 		ltPopulationDao.getAddressTAZs(PredayPersonParams::getAddressTazLookup());
@@ -183,10 +213,9 @@ const PredayLT_LogsumManager& sim_mob::PredayLT_LogsumManager::getInstance()
 
 double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int homeLocation, int workLocation) const
 {
-	// construct population dao
-	if(!ltDbConnection.isConnected()) { throw std::runtime_error("LT database connection failure!"); }
-
+	ensureContext();
 	PredayPersonParams personParams;
+	LT_PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
 	ltPopulationDao.getOneById(individualId, personParams);
 	if(personParams.getPersonId().empty()) { throw std::runtime_error("individual could not be fetched from LT db"); }
 

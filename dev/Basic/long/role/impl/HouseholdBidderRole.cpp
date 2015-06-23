@@ -423,8 +423,8 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	DD_area = unit->getFloorArea() / 100;
 
-	BigSerial homeTaz = -1;
-	BigSerial workTaz = -1;
+	BigSerial homeTaz = 0;
+	BigSerial workTaz = 0;
 	Individual* headOfHousehold = NULL;
 
 	std::vector<BigSerial> householdOccupants = household->getIndividuals();
@@ -461,13 +461,30 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 		}
 	}
 
-	Job *job = getParent()->getModel()->getJobById(headOfHousehold->getJobId());
+	HM_Model *model = getParent()->getModel();
+	Job *job = model->getJobById(headOfHousehold->getJobId());
 
-	homeTaz = 535080;//getParent()->getModel()->getUnitTazId( household->getUnitId() );
-	workTaz = 504140;//getParent()->getModel()->getEstablishmentTazId( job->getEstablishmentId() );
+	BigSerial hometazId = model->getUnitTazId( household->getUnitId() );
+	Taz *homeTazObj = model->getTazById( hometazId );
+
+	std::string homeTazStr;
+	if( homeTazObj != NULL )
+		homeTazStr = homeTazObj->getName();
+
+	homeTaz = std::atoi( homeTazStr.c_str() );
+
+	BigSerial worktazId = model->getEstablishmentTazId( job->getEstablishmentId() );
+	Taz *workTazObj = model->getTazById( worktazId );
+
+	std::string workTazStr;
+	if( workTazObj != NULL )
+		workTazStr =  workTazObj->getName();
+
+	workTaz = std::atoi( workTazStr.c_str());
+
 
 	if( homeTaz == -1 || workTaz == -1 )
-		ZZ_logsumhh = 2.0;
+		ZZ_logsumhh = 0;
 	else
 		ZZ_logsumhh = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz );
 

@@ -71,47 +71,50 @@ sim_mob::PredayLT_LogsumManager::PredayLT_LogsumManager() : dataLoadReqd(true)
 
 sim_mob::PredayLT_LogsumManager::~PredayLT_LogsumManager()
 {
-	ltDbConnection.disconnect(); //safe only because logsumManager is a singleton and this class is noncopyable
+	if(!logsumManager.dataLoadReqd)
+	{
+		ltDbConnection.disconnect(); //safe only because logsumManager is a singleton and this class is noncopyable
 
-	// clear Zones
-	Print() << "Clearing zoneMap" << std::endl;
-	for(ZoneMap::iterator i = zoneMap.begin(); i!=zoneMap.end(); i++) {
-		delete i->second;
-	}
-	zoneMap.clear();
+		// clear Zones
+		Print() << "Clearing zoneMap" << std::endl;
+		for(ZoneMap::iterator i = zoneMap.begin(); i!=zoneMap.end(); i++) {
+			delete i->second;
+		}
+		zoneMap.clear();
 
-	// clear AMCosts
-	Print() << "Clearing amCostMap" << std::endl;
-	for(CostMap::iterator i = amCostMap.begin(); i!=amCostMap.end(); i++) {
-		for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
-			if(j->second) {
-				delete j->second;
+		// clear AMCosts
+		Print() << "Clearing amCostMap" << std::endl;
+		for(CostMap::iterator i = amCostMap.begin(); i!=amCostMap.end(); i++) {
+			for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
+				if(j->second) {
+					delete j->second;
+				}
 			}
 		}
-	}
-	amCostMap.clear();
+		amCostMap.clear();
 
-	// clear PMCosts
-	Print() << "Clearing pmCostMap" << std::endl;
-	for(CostMap::iterator i = pmCostMap.begin(); i!=pmCostMap.end(); i++) {
-		for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
-			if(j->second) {
-				delete j->second;
+		// clear PMCosts
+		Print() << "Clearing pmCostMap" << std::endl;
+		for(CostMap::iterator i = pmCostMap.begin(); i!=pmCostMap.end(); i++) {
+			for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
+				if(j->second) {
+					delete j->second;
+				}
 			}
 		}
-	}
-	pmCostMap.clear();
+		pmCostMap.clear();
 
-	// clear OPCosts
-	Print() << "Clearing opCostMap" << std::endl;
-	for(CostMap::iterator i = opCostMap.begin(); i!=opCostMap.end(); i++) {
-		for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
-			if(j->second) {
-				delete j->second;
+		// clear OPCosts
+		Print() << "Clearing opCostMap" << std::endl;
+		for(CostMap::iterator i = opCostMap.begin(); i!=opCostMap.end(); i++) {
+			for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
+				if(j->second) {
+					delete j->second;
+				}
 			}
 		}
+		opCostMap.clear();
 	}
-	opCostMap.clear();
 }
 
 void sim_mob::PredayLT_LogsumManager::loadZones()

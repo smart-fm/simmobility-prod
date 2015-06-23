@@ -24,6 +24,7 @@
 #include "database/dao/HousingInterestRateDao.hpp"
 #include "database/dao/LogSumVehicleOwnershipDao.hpp"
 #include "database/dao/DistanceMRTDao.hpp"
+#include "database/dao/TazDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -368,6 +369,18 @@ TaxiAccessCoefficients* HM_Model::getTaxiAccessCoeffsById( BigSerial id) const
 		return nullptr;
 }
 
+Taz* HM_Model::getTazById( BigSerial id) const
+{
+		TazMap::const_iterator itr = tazById.find(id);
+
+		if (itr != tazById.end())
+		{
+			return itr->second;
+		}
+
+		return nullptr;
+}
+
 const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 {
 	BigSerial tazId = getUnitTazId(unitId);
@@ -427,14 +440,12 @@ void HM_Model::setTaxiAccess(const Household *household)
 {
 	double valueTaxiAccess = getTaxiAccessCoeffsById(INTERCEPT)->getCoefficientEstimate();
 	//finds out whether the household is an HDB or not
+	int unitTypeId = 0;
 
-	const Unit* unit = getUnitById(household->getUnitId());
-
-
-	int unitTypeId = 1;
-
-	if( unit != NULL )
-		unitTypeId = unit->getUnitType();
+	if(getUnitById(household->getUnitId()) != nullptr)
+	{
+		unitTypeId = getUnitById(household->getUnitId())->getUnitType();
+	}
 
 	if( (unitTypeId>0) && (unitTypeId<=6))
 	{
@@ -670,6 +681,10 @@ void HM_Model::startImpl()
 
 		loadData<DistanceMRTDao>( conn, mrtDistances, mrtDistancesById, &DistanceMRT::getHouseholdId);
 		PrintOutV("Number of mrt distances: " << mrtDistances.size() << std::endl );
+
+		loadData<TazDao>( conn, tazs, tazById, &Taz::getId);
+		PrintOutV("Number of taz: " << tazs.size() << std::endl );
+
 	}
 
 

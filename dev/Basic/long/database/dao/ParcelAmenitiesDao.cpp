@@ -25,7 +25,7 @@ void ParcelAmenitiesDao::fromRow(Row& result, ParcelAmenities& outObj)
     outObj.distanceToPMS30 = result.get<double>("distance_pms30", 0);
     outObj.distanceToCBD = result.get<double>("distance_cbd", 0);
     outObj.distanceToMall = result.get<double>("distance_mall", 0);
-    outObj.distanceToJob = 0;//result.get<double>("accessibility_job", 0);
+    //outObj.distanceToJob = result.get<double>("accessibility_job", 0); this field is not used anymore.
     outObj.mrt_200m = result.get<int>("mrt_200m", false);
     outObj.mrt_400m = result.get<int>("mrt_400m", false);
     outObj.express_200m = result.get<int>("express_200m", false);

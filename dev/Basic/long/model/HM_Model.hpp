@@ -20,6 +20,7 @@
 #include "database/entity/Job.hpp"
 #include "database/entity/LogSumVehicleOwnership.hpp"
 #include "database/entity/DistanceMRT.hpp"
+#include "database/entity/Taz.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -59,6 +60,9 @@ namespace sim_mob
 
             typedef std::vector<Job*> JobList;
             typedef boost::unordered_map<BigSerial, Job*> JobMap;
+
+            typedef std::vector<Taz*> TazList;
+            typedef boost::unordered_map<BigSerial, Taz*> TazMap;
 
             typedef std::vector<HousingInterestRate*> HousingInterestRateList;
             typedef boost::unordered_map<BigSerial, HousingInterestRate*> HousingInterestRateMap;
@@ -142,6 +146,7 @@ namespace sim_mob
             VehicleOwnershipCoefficients* getVehicleOwnershipCoeffsById( BigSerial id) const;
             TaxiAccessCoeffList getTaxiAccessCoeffs()const;
             TaxiAccessCoefficients* getTaxiAccessCoeffsById( BigSerial id) const;
+            Taz* getTazById( BigSerial id) const;
             void addUnit(Unit* unit);
             std::vector<BigSerial> getRealEstateAgentIds();
             VehicleOwnershipLogsumList getVehicleOwnershipLosums()const;
@@ -185,6 +190,9 @@ namespace sim_mob
 
             JobList jobs;
             JobMap jobsById;
+
+            TazList tazs;
+            TazMap tazById;
 
             boost::unordered_map<BigSerial, BigSerial> assignedUnits;
             VehicleOwnershipCoeffList vehicleOwnershipCoeffs;

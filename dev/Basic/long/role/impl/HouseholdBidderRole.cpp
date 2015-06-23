@@ -463,8 +463,8 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	Job *job = getParent()->getModel()->getJobById(headOfHousehold->getJobId());
 
-	homeTaz = getParent()->getModel()->getUnitTazId( household->getUnitId() );
-	workTaz = getParent()->getModel()->getEstablishmentTazId( job->getEstablishmentId() );
+	homeTaz = 535080;//getParent()->getModel()->getUnitTazId( household->getUnitId() );
+	workTaz = 504140;//getParent()->getModel()->getEstablishmentTazId( job->getEstablishmentId() );
 
 	if( homeTaz == -1 || workTaz == -1 )
 		ZZ_logsumhh = 2.0;
@@ -638,12 +638,11 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 	{
 	const HM_Model* model = getParent()->getModel();
 
-	const Unit *unit = model->getUnitById(this->getParent()->getHousehold()->getUnitId());
-
-	int unitTypeId = 1;
-
-	if( unit != NULL )
-		 unitTypeId = unit->getUnitType();
+	int unitTypeId = 0;
+	if(model->getUnitById(this->getParent()->getHousehold()->getUnitId())!=nullptr)
+	{
+		unitTypeId = model->getUnitById(this->getParent()->getHousehold()->getUnitId())->getUnitType();
+	}
 
 	double valueNoCar =  model->getVehicleOwnershipCoeffsById(ASC_NO_CAR)->getCoefficientEstimate();
 	double expNoCar = exp(valueNoCar);
@@ -870,7 +869,11 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId)
 		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_SELFEMPLOYED_ONECAR)->getCoefficientEstimate();
 	}
 
-	valueOneCar = 0;//valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId())->getAvgLogsum();
+	LogSumVehicleOwnership* logsum = model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId());
+	if(logsum != nullptr)
+	{
+		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * logsum->getAvgLogsum();
+	}
 
 	DistanceMRT *distanceMRT = model->getDistanceMRTById(this->getParent()->getHousehold()->getId());
 
@@ -1066,7 +1069,11 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId)
 		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_SELFEMPLOYED_TWOplusCAR)->getCoefficientEstimate();
 	}
 
-	valueTwoPlusCar = 0;//valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_TWOplusCAR)->getCoefficientEstimate() * model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId())->getAvgLogsum();
+	LogSumVehicleOwnership* logsum = model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId());
+	if(logsum != nullptr)
+	{
+		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_TWOplusCAR)->getCoefficientEstimate() * logsum->getAvgLogsum();
+	}
 
 	DistanceMRT *distanceMRT = model->getDistanceMRTById(this->getParent()->getHousehold()->getId());
 

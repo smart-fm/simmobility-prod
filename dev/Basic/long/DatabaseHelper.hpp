@@ -39,7 +39,7 @@ namespace sim_mob {
         const std::string DB_TABLE_DEVELOPER = APPLY_SCHEMA(MAIN_SCHEMA, "developer");
         const std::string DB_TABLE_PARCEL = APPLY_SCHEMA(MAIN_SCHEMA, "parcel");
         const std::string DB_TABLE_TEMPLATE = APPLY_SCHEMA(MAIN_SCHEMA, "template");
-        const std::string DB_TABLE_POSTCODE = APPLY_SCHEMA(MAIN_SCHEMA, "sla_addresses_2008");
+        const std::string DB_TABLE_POSTCODE = APPLY_SCHEMA(MAIN_SCHEMA, "sla_addresses");
         const std::string DB_TABLE_POSTCODE_AMENITIES = APPLY_SCHEMA(MAIN_SCHEMA, "postcode_amenities");
         const std::string DB_TABLE_LAND_USE_ZONE = APPLY_SCHEMA(MAIN_SCHEMA, "land_use_zone");
         const std::string DB_TABLE_DEVELOPMENT_TYPE_TEMPLATE = APPLY_SCHEMA(MAIN_SCHEMA, "development_type_template");
@@ -59,6 +59,7 @@ namespace sim_mob {
         const std::string DB_TABLE_JOB= APPLY_SCHEMA(MAIN_SCHEMA, "job");
         const std::string DB_TABLE_LOGSUM_FOR_DEVMODEL = APPLY_SCHEMA(CALIBRATION_SCHEMA, "logsum_for_dev_model");
         const std::string DB_TABLE_HIR= APPLY_SCHEMA(MAIN_SCHEMA, "housing_interest_rates");
+        const std::string DB_TABLE_TAZ= APPLY_SCHEMA(MAIN_SCHEMA, "taz");
 
 
         /**
@@ -320,6 +321,7 @@ namespace sim_mob {
         const std::string DB_GETALL_DEV_LOGSUMS = "SELECT * FROM " + DB_FUNC_GET_DEV_LOGSUMS + LIMIT;
         const std::string DB_GETALL_HIR = "SELECT * FROM " + DB_FUNC_GET_HIR + LIMIT;
         const std::string DB_GETALL_DIST_MRT = "SELECT * FROM " + DB_FUNC_GET_DIST_MRT + LIMIT;
+        const std::string DB_GETALL_TAZS = "SELECT * FROM " + DB_TABLE_TAZ + LIMIT;
 
         /**
          * GET BY ID
@@ -341,6 +343,7 @@ namespace sim_mob {
         const std::string DB_GETBYID_ESTABLISHMENT = "SELECT * FROM " + DB_FUNC_GET_ESTABLISHMENT_BY_ID;
         const std::string DB_GETBYID_JOB = "SELECT * FROM " + DB_FUNC_GET_JOB_BY_ID;
         const std::string DB_GETBYID_HIR = "SELECT * FROM " + DB_FUNC_GET_HIR_BY_ID;
-
+        const std::string DB_GETBYID_TAZ = "SELECT * FROM " + DB_TABLE_TAZ + " WHERE id = :v1;";
     }
 }
+

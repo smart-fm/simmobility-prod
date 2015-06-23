@@ -173,7 +173,7 @@
 	</vehicleOwnershipModel>
     </longTermParams>
 
-    <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+    <model_scripts path="../scripts/lua/mid/behavior-models/" format="lua">
 	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
 	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->

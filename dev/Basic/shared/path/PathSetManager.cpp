@@ -80,8 +80,8 @@ boost::shared_ptr<sim_mob::batched::ThreadPool> sim_mob::PathSetManager::threadp
 unsigned int sim_mob::PathSetManager::curIntervalMS = 0;
 unsigned int sim_mob::PathSetManager::intervalMS = 0;
 
-sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()),
-		pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName),isUseCache(true),
+sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()), isUseCache(true),
+		pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName),
 		psRetrieval(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrieval),
 		psRetrievalWithoutRestrictedRegion(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrievalWithoutBannedRegion),
 		cacheLRU(2500), processTT(intervalMS, curIntervalMS)
@@ -290,7 +290,7 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::SubTrip &subTri
 		{
 			str << "[BLCKLST]";
 			std::stringstream outDbg("");
-			getBestPath(res, subTrip, true, std::set<const sim_mob::RoadSegment*>(), false, true, enRoute, approach);//use/enforce blacklist
+			getBestPath(res, subTrip, true, std::set<const sim_mob::RoadSegment*>(), false, true, enRoute, approach);
 		}
 		else
 		{
@@ -403,7 +403,10 @@ void sim_mob::PathSetManager::onGeneratePathSet(boost::shared_ptr<PathSet> &ps)
 	}
 	//store in into the database
 	logger << "[STORE PATH: " << ps->id << "]\n";
-	pathSetParam->storeSinglePath(*getSession(), ps->pathChoices, pathSetTableName);
+	if(!ps->nonCDB_OD)
+	{
+		pathSetParam->storeSinglePath(*getSession(), ps->pathChoices, pathSetTableName);
+	}
 }
 
 //Operations:
@@ -491,6 +494,7 @@ bool sim_mob::PathSetManager::getBestPath(
 	pathset->subTrip = st;
 	pathset->id = fromToID;
 	pathset->scenario = scenarioName;
+	pathset->nonCDB_OD = nonCBD_OD;
 	if(nonCBD_OD)
 	{
 		hasPath = sim_mob::aimsun::Loader::loadSinglePathFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrievalWithoutRestrictedRegion, blckLstSegs);
@@ -554,6 +558,7 @@ bool sim_mob::PathSetManager::getBestPath(
 		pathset->id = fromToID;
 		pathset->scenario = scenarioName;
 		pathset->subTrip = st;
+		pathset->nonCDB_OD = nonCBD_OD;
 		std::set<OD> recursiveOrigins;
 		bool successful = generateAllPathChoices(pathset, recursiveOrigins, blckLstSegs);
 		if (!successful)

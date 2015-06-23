@@ -4,6 +4,8 @@
 
 #include "PredayLT_Logsum.hpp"
 
+#include <boost/thread/thread.hpp>
+#include <boost/thread/tss.hpp>
 #include <vector>
 
 #include "behavioral/lua/PredayLogsumLuaProvider.hpp"
@@ -22,44 +24,46 @@ using namespace sim_mob::db;
 
 namespace
 {
-std::string EMPTY_STRING = "";
 const std::string LT_DB_CONFIG_FILE = "private/lt-db.ini";
-/**
- * DB_Config for logsum db.
- * initialized from getConnection()
- */
-DB_Config mtDbConfig(EMPTY_STRING,EMPTY_STRING,EMPTY_STRING,EMPTY_STRING,EMPTY_STRING);
-DB_Config ltDbConfig(LT_DB_CONFIG_FILE);
 
 /**
- * file global DB_Connection objects
- * re-initialized correctly from first call to getInstance
+ * wrapper struct for thread local storage
  */
-DB_Connection mtDbConnection(sim_mob::db::POSTGRES, mtDbConfig);
-DB_Connection ltDbConnection(sim_mob::db::POSTGRES, ltDbConfig);
-
-/**
- * DAO for fetching individuals from db
- */
-LT_PopulationSqlDao ltPopulationDao(ltDbConnection);
-
-/**
- * fetches configuration and constructs DB_Connection
- * @return the constructed DB_Connection object
- */
-DB_Connection getConnection()
+struct LT_PopulationSqlDaoContext
 {
-	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	const std::string dbId = "fm_remote_mt";
-	Database logsumDB = config.constructs.databases.at(dbId);
-	Credential logsumDB_Credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(dbId);
-	std::string username = logsumDB_Credentials.getUsername();
-	std::string password = logsumDB_Credentials.getPassword(false);
-	mtDbConfig = DB_Config(logsumDB.host, logsumDB.port, logsumDB.dbName, username, password);
+public:
+	/**
+	 * DAO for fetching individuals from db
+	 */
+	LT_PopulationSqlDao ltPopulationDao;
 
-	//connect to database and load data.
-	DB_Connection conn(sim_mob::db::POSTGRES, mtDbConfig);
-	return conn;
+	LT_PopulationSqlDaoContext(const DB_Config& ltDbConfig) : ltDbConnection(sim_mob::db::POSTGRES, ltDbConfig), ltPopulationDao(ltDbConnection)
+	{
+		ltDbConnection.connect();
+		if(!ltDbConnection.isConnected()) { throw std::runtime_error("LT database connection failure!"); }
+	}
+
+private:
+	/**
+	 * DB_Connection object for LT db
+	 */
+	DB_Connection ltDbConnection;
+};
+
+boost::thread_specific_ptr<LT_PopulationSqlDaoContext> threadContext;
+
+/**
+ * constructs the SQL dao for calling thread, if not already constructed
+ */
+void ensureContext()
+{
+	if (!threadContext.get())
+	{
+		DB_Config ltDbConfig(LT_DB_CONFIG_FILE);
+		ltDbConfig.load();
+		LT_PopulationSqlDaoContext* ltPopulationSqlDaoCtx = new LT_PopulationSqlDaoContext(ltDbConfig);
+		threadContext.reset(ltPopulationSqlDaoCtx);
+	}
 }
 } //end anonymous namespace
 
@@ -73,8 +77,6 @@ sim_mob::PredayLT_LogsumManager::~PredayLT_LogsumManager()
 {
 	if(!logsumManager.dataLoadReqd)
 	{
-		ltDbConnection.disconnect(); //safe only because logsumManager is a singleton and this class is noncopyable
-
 		// clear Zones
 		Print() << "Clearing zoneMap" << std::endl;
 		for(ZoneMap::iterator i = zoneMap.begin(); i!=zoneMap.end(); i++) {
@@ -119,6 +121,17 @@ sim_mob::PredayLT_LogsumManager::~PredayLT_LogsumManager()
 
 void sim_mob::PredayLT_LogsumManager::loadZones()
 {
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	const std::string dbId = "fm_remote_mt";
+	Database logsumDB = config.constructs.databases.at(dbId);
+	Credential logsumDB_Credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(dbId);
+	std::string username = logsumDB_Credentials.getUsername();
+	std::string password = logsumDB_Credentials.getPassword(false);
+	DB_Config mtDbConfig(logsumDB.host, logsumDB.port, logsumDB.dbName, username, password);
+
+	//connect to database and load data.
+	DB_Connection mtDbConnection(sim_mob::db::POSTGRES, mtDbConfig);
+	mtDbConnection.connect();
 	if (mtDbConnection.isConnected())
 	{
 		ZoneSqlDao zoneDao(mtDbConnection);
@@ -139,6 +152,17 @@ void sim_mob::PredayLT_LogsumManager::loadZones()
 
 void sim_mob::PredayLT_LogsumManager::loadCosts()
 {
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	const std::string dbId = "fm_remote_mt";
+	Database logsumDB = config.constructs.databases.at(dbId);
+	Credential logsumDB_Credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(dbId);
+	std::string username = logsumDB_Credentials.getUsername();
+	std::string password = logsumDB_Credentials.getPassword(false);
+	DB_Config mtDbConfig(logsumDB.host, logsumDB.port, logsumDB.dbName, username, password);
+
+	//connect to database and load data.
+	DB_Connection mtDbConnection(sim_mob::db::POSTGRES, mtDbConfig);
+	mtDbConnection.connect();
 	if (mtDbConnection.isConnected())
 	{
 		CostSqlDao amCostDao(mtDbConnection, DB_GET_ALL_AM_COSTS);
@@ -163,16 +187,11 @@ const PredayLT_LogsumManager& sim_mob::PredayLT_LogsumManager::getInstance()
 {
 	if(logsumManager.dataLoadReqd)
 	{
-		mtDbConnection = getConnection();
-		mtDbConnection.connect();
 		logsumManager.loadZones();
 		logsumManager.loadCosts();
-		mtDbConnection.disconnect();
 
-		ltDbConfig.load();
-		ltDbConnection = DB_Connection(sim_mob::db::POSTGRES, ltDbConfig);
-		ltDbConnection.connect();
-		if(!ltDbConnection.isConnected()) { throw std::runtime_error("LT database connection failure!"); }
+		ensureContext();
+		LT_PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
 		ltPopulationDao.getIncomeCategories(PredayPersonParams::getIncomeCategoryLowerLimits());
 		ltPopulationDao.getVehicleCategories(PredayPersonParams::getVehicleCategoryLookup());
 		ltPopulationDao.getAddressTAZs(PredayPersonParams::getAddressTazLookup());
@@ -183,10 +202,9 @@ const PredayLT_LogsumManager& sim_mob::PredayLT_LogsumManager::getInstance()
 
 double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int homeLocation, int workLocation) const
 {
-	// construct population dao
-	if(!ltDbConnection.isConnected()) { throw std::runtime_error("LT database connection failure!"); }
-
+	ensureContext();
 	PredayPersonParams personParams;
+	LT_PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
 	ltPopulationDao.getOneById(individualId, personParams);
 	if(personParams.getPersonId().empty()) { throw std::runtime_error("individual could not be fetched from LT db"); }
 

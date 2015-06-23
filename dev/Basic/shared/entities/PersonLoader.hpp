@@ -141,6 +141,12 @@ public:
 	bool isInRestrictedSegmentZone(const std::vector<WayPoint> & target) const;
 
 	/**
+	 * does the given Path "RoadSegments" and "Nodes"(segments wrapped in WayPoints) lie in the restricted area,
+	 * returns true if any part of the target is in the restricted zone
+	 */
+	bool isInRestrictedZone(const std::vector<WayPoint>& target) const;
+
+	/**
 	 * does the given "RoadSegment" lie in the restricted area,
 	 * returns true if the target is in the restricted zone
 	 */

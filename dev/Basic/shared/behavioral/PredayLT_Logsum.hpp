@@ -15,6 +15,8 @@ namespace sim_mob
 {
 /**
  * singleton class to manage preday related data and compute logsums for long-term individuals
+ *
+ * \author Harish Loganathan
  */
 class PredayLT_LogsumManager : boost::noncopyable
 {
@@ -48,15 +50,11 @@ private:
 
 	/**
 	 * Gets details of all mtz zones
-	 *
-	 * @param dbType type of backend where the zone data is available
 	 */
 	void loadZones();
 
 	/**
 	 * loads the AM, PM and off peak costs data
-	 *
-	 * @param dbType type of backend where the cost data is available
 	 */
 	void loadCosts();
 

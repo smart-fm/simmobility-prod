@@ -719,13 +719,44 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId)
 	std::vector<BigSerial>::iterator individualsItr;
 
 	bool aboveSixty = false;
+	long householdHeadId = 0;
+	bool isCEO = false;
+	int numFullWorkers = 0;
+	int numStudents = 0;
+	int numWhiteCollars = 0;
+	bool selfEmployed = false;
+
 	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
 	{
-		int ageCategoryId = model->getIndividualById((*individualsItr))->getAgeCategoryId();
+		const Individual* individual = model->getIndividualById((*individualsItr));
+		int ageCategoryId = individual->getAgeCategoryId();
 		if (ageCategoryId >= 12)
 		{
 			aboveSixty = true;
-			break;
+		}
+		if(individual->getHouseholdHead())
+		{
+			householdHeadId = individual->getId();
+		}
+		if(individual->getOccupationId() == 1)
+		{
+			isCEO = true;
+		}
+		if(individual->getEmploymentStatusId() == 1)
+		{
+			numFullWorkers++;
+		}
+		else if(individual->getEmploymentStatusId() == 4)
+		{
+			numStudents++;
+		}
+		if(individual->getOccupationId() == 2)
+		{
+			numWhiteCollars++;
+		}
+		if(individual->getEmploymentStatusId() == 3) //check whether individual is self employed
+		{
+			selfEmployed = true;
 		}
 	}
 	if(aboveSixty)
@@ -733,39 +764,11 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId)
 		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_ABOVE60_ONE_CAR)->getCoefficientEstimate();
 	}
 
-	bool isCEO = false;
-	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
-	{
-		if(model->getIndividualById((*individualsItr))->getOccupationId() == 1)
-		{
-			isCEO = true;
-			break;
-		}
-	}
 	if(isCEO)
 	{
 		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_CEO_ONECAR)->getCoefficientEstimate();
 	}
 
-	int numFullWorkers = 0;
-	int numStudents = 0;
-	int numWhiteCollars = 0;
-	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
-	{
-		if(model->getIndividualById((*individualsItr))->getEmploymentStatusId() == 1)
-		{
-			numFullWorkers++;
-		}
-		else if(model->getIndividualById((*individualsItr))->getEmploymentStatusId() == 4)
-		{
-			numStudents++;
-		}
-
-		if(model->getIndividualById((*individualsItr))->getOccupationId() == 2)
-		{
-			numWhiteCollars++;
-		}
-	}
 	if(numFullWorkers==1)
 	{
 		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER1_ONECAR)->getCoefficientEstimate();
@@ -872,25 +875,19 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId)
 		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_PRIVATE_ONECAR)->getCoefficientEstimate();
 	}
 
-	bool selfEmployed = false;
-	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
-	{
-		if(model->getIndividualById((*individualsItr))->getEmploymentStatusId() == 3) //check whether individual is self employed
-		{
-			selfEmployed = true;
-			break;
-		}
-	}
 	if(selfEmployed)
 	{
 		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_SELFEMPLOYED_ONECAR)->getCoefficientEstimate();
 	}
 
-	LogSumVehicleOwnership* logsum = model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId());
-	if(logsum != nullptr)
-	{
-		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * logsum->getAvgLogsum();
-	}
+//	LogSumVehicleOwnership* logsum = model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId());
+//	if(logsum != nullptr)
+//	{
+//		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * logsum->getAvgLogsum();
+//	}
+//we are getting the logsums from mid term now.
+	double logsum = PredayLT_LogsumManager::getInstance().computeLogsum( householdHeadId, -1, -1,1);
+	valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * logsum;
 
 	DistanceMRT *distanceMRT = model->getDistanceMRTById(this->getParent()->getHousehold()->getId());
 
@@ -919,13 +916,42 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId)
 	valueTwoPlusCar =  model->getVehicleOwnershipCoeffsById(ASC_TWOplusCAR)->getCoefficientEstimate();
 	std::vector<BigSerial>::iterator individualsItr;
 	bool aboveSixty = false;
+	long householdHeadId = 0;
+	int numFullWorkers = 0;
+	int numStudents = 0;
+	int numWhiteCollars = 0;
+	bool selfEmployed = false;
+
 	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
 	{
-		int ageCategoryId = model->getIndividualById((*individualsItr))->getAgeCategoryId();
+		const Individual* individual = model->getIndividualById((*individualsItr));
+		int ageCategoryId = individual->getAgeCategoryId();
 		if (ageCategoryId >= 12)
 		{
 			aboveSixty = true;
-			break;
+		}
+		if(individual->getHouseholdHead())
+		{
+			householdHeadId = individual->getId();
+		}
+
+		if(individual->getEmploymentStatusId() == 1)
+		{
+			numFullWorkers++;
+		}
+		else if(individual->getEmploymentStatusId() == 4)
+		{
+			numStudents++;
+		}
+
+		if(individual->getOccupationId() == 2)
+		{
+			numWhiteCollars++;
+		}
+
+		if(individual->getEmploymentStatusId() == 3) //check whether individual is self employed
+		{
+			selfEmployed = true;
 		}
 	}
 	if(aboveSixty)
@@ -947,25 +973,6 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId)
 		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_CEO_TWOplusCAR)->getCoefficientEstimate();
 	}
 
-	int numFullWorkers = 0;
-	int numStudents = 0;
-	int numWhiteCollars = 0;
-	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
-	{
-		if(model->getIndividualById((*individualsItr))->getEmploymentStatusId() == 1)
-		{
-			numFullWorkers++;
-		}
-		else if(model->getIndividualById((*individualsItr))->getEmploymentStatusId() == 4)
-		{
-			numStudents++;
-		}
-
-		if(model->getIndividualById((*individualsItr))->getOccupationId() == 2)
-		{
-			numWhiteCollars++;
-		}
-	}
 	if(numFullWorkers==1)
 	{
 		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER1_TWOplusCAR)->getCoefficientEstimate();
@@ -1072,28 +1079,22 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId)
 		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_PRIVATE_TWOplusCAR)->getCoefficientEstimate();
 	}
 
-	bool selfEmployed = false;
-	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
-	{
-		if(model->getIndividualById((*individualsItr))->getEmploymentStatusId() == 3) //check whether individual is self employed
-		{
-			selfEmployed = true;
-			break;
-		}
-	}
 	if(selfEmployed)
 	{
 		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_SELFEMPLOYED_TWOplusCAR)->getCoefficientEstimate();
 	}
 
-	LogSumVehicleOwnership* logsum = model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId());
-	if(logsum != nullptr)
-	{
-		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_TWOplusCAR)->getCoefficientEstimate() * logsum->getAvgLogsum();
-	}
+//	LogSumVehicleOwnership* logsum = model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId());
+
+//	if(logsum != nullptr)
+//	{
+//		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_TWOplusCAR)->getCoefficientEstimate() * logsum->getAvgLogsum();
+//	}
+	//We are now getting the logsums from mid term.
+	double logsum = PredayLT_LogsumManager::getInstance().computeLogsum( householdHeadId, -1, -1,1);
+	valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_TWOplusCAR)->getCoefficientEstimate() * logsum;
 
 	DistanceMRT *distanceMRT = model->getDistanceMRTById(this->getParent()->getHousehold()->getId());
-
 	if(distanceMRT != nullptr)
 	{
 		double distanceMrt = distanceMRT->getDistanceMrt();

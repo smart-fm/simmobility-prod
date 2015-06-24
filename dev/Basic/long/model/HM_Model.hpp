@@ -21,6 +21,7 @@
 #include "database/entity/LogSumVehicleOwnership.hpp"
 #include "database/entity/DistanceMRT.hpp"
 #include "database/entity/Taz.hpp"
+#include "database/entity/HouseHoldHitsSample.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -72,6 +73,9 @@ namespace sim_mob
 
             typedef std::vector<DistanceMRT*> DistMRTList;
             typedef boost::unordered_map<BigSerial, DistanceMRT*> DistMRTMap;
+
+            typedef std::vector<HouseHoldHitsSample*> HouseHoldHitsSampleList;
+            typedef boost::unordered_map<BigSerial, HouseHoldHitsSample*> HouseHoldHitsSampleMap;
 
             /**
              * Taz statistics
@@ -154,6 +158,8 @@ namespace sim_mob
             void setTaxiAccess(const Household *household);
             DistMRTList getDistanceMRT()const;
             DistanceMRT* getDistanceMRTById( BigSerial id) const;
+            HouseHoldHitsSampleList getHouseHoldHits()const;
+            HouseHoldHitsSample* HouseHoldHitsById( BigSerial id) const;
 
 
         protected:
@@ -206,6 +212,8 @@ namespace sim_mob
             VehicleOwnershipLogsumMap vehicleOwnershipLogsumById;
             DistMRTList mrtDistances;
             DistMRTMap mrtDistancesById;
+            HouseHoldHitsSampleList houseHoldHits;
+            HouseHoldHitsSampleMap houseHoldHitsById;
 
             int	initialHHAwakeningCounter;
             int numberOfBidders;

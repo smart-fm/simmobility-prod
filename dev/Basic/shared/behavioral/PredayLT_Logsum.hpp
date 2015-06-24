@@ -78,6 +78,6 @@ public:
 	 * @param workLocation TAZ code for work location of individual
 	 * @return logsum value computed from day pattern binary (dpb.lua) model
 	 */
-	double computeLogsum(long individualId, int homeLocation=-1, int workLocation=-1) const;
+	double computeLogsum(long individualId, int homeLocation=-1, int workLocation=-1, int vehicleOwnership =-1) const;
 };
 }

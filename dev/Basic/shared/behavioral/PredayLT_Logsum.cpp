@@ -211,7 +211,7 @@ const PredayLT_LogsumManager& sim_mob::PredayLT_LogsumManager::getInstance()
 	return logsumManager;
 }
 
-double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int homeLocation, int workLocation) const
+double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int homeLocation, int workLocation, int vehicleOwnership) const
 {
 	ensureContext();
 	PredayPersonParams personParams;
@@ -228,6 +228,12 @@ double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int hom
 		personParams.setHasWorkplace(true);
 		personParams.setFixedWorkLocation(workLocation);
 	}
+
+	if( vehicleOwnership == 1)
+		personParams.setCarOwn(1);
+
+	if( vehicleOwnership == 0 )
+		personParams.setCarOwn(0);
 
 	LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
 	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());

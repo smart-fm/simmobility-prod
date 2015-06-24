@@ -191,6 +191,8 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//TODO: This should be moved into its own class; we should NOT be doing loading in ExpandAndValidate()
 	//      (it is here now to maintain compatibility with the old order or loading things).
 	LoadNetworkFromDatabase();
+
+	if(cfg.RunningMidSupply())
 	{
 		sim_mob::RestrictedRegion::getInstance().populate();
 	}

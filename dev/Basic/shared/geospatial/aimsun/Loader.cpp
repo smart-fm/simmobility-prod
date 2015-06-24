@@ -371,7 +371,7 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 						std::string str = "SinglePath: seg not find " + id;
 						throw std::runtime_error(str);
 					}
-					if(seg->CBD && excludedRS.find(seg) != excludedRS.end())//hack(seg->CBD)!!
+					if(excludedRS.find(seg) != excludedRS.end())
 					{
 						proceed = false;
 						break;

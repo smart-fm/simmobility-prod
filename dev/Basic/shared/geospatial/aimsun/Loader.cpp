@@ -82,6 +82,7 @@
 
 #include "partitions/PartitionManager.hpp"
 #include "partitions/BoundarySegment.hpp"
+#include "entities/IntersectionManager.hpp"
 
 using namespace sim_mob::aimsun;
 using sim_mob::DynamicVector;
@@ -2012,21 +2013,18 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 void
 DatabaseLoader::createSignals()
 {
-    //std::set<sim_mob::Node const *> uniNodes;
-    std::set<sim_mob::Node const *> badNodes;
     int j = 0, nof_signals = 0;
     for (map<int, Signal>::const_iterator iter = signals_.begin(); iter != signals_.end(); ++iter,j++)
     {
-
         Signal const & dbSignal = iter->second;
         map<int, Node>::const_iterator iter2 = nodes_.find(dbSignal.nodeId);
+
         //filter out signals which are not in the territory of our nodes_
         if (iter2 == nodes_.end())
         {
             std::ostringstream stream;
             stream << "cannot find node (id=" << dbSignal.nodeId
                    << ") in the database for signal id=" << iter->first;
-//            throw std::runtime_error(stream.str());
             continue;
         }
 
@@ -3481,4 +3479,21 @@ sim_mob::BusStop* sim_mob::BusStopFinder::getBusStop(const Node* node,sim_mob::R
 	 }
 
 	 return nullptr;
+}
+
+void sim_mob::aimsun::Loader::CreateIntersectionManagers(const sim_mob::RoadNetwork& roadNetwork)
+{
+	//Iterate through all the multi-nodes
+	for (vector<sim_mob::MultiNode*>::const_iterator itIntersection = roadNetwork.nodes.begin(); itIntersection != roadNetwork.nodes.end(); itIntersection++)
+	{
+		//Check if it has a traffic signal
+		if((*itIntersection)->hasTrafficSignal == false)
+		{
+			//No traffic signal at the multi-node, so create an intersection manager
+			IntersectionManager *intMgr = new IntersectionManager(sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy(), *itIntersection);
+			
+			//Add it to the vector
+			IntersectionManager::intManagers.push_back(intMgr);
+		}
+	}
 }

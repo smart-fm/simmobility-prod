@@ -156,6 +156,10 @@ sim_mob::DriverMovement::DriverMovement(sim_mob::Person* parentAgent, Driver* pa
 	
 	trafficSignal = nullptr;
 	nextLaneInNextLink = nullptr;
+	cfModel = nullptr;
+	lcModel = nullptr;
+	intModel = nullptr;
+	intModelBkUp = nullptr;
 }
 
 void sim_mob::DriverMovement::init() 
@@ -171,7 +175,28 @@ void sim_mob::DriverMovement::init()
 	//Initialise our models.
 	lcModel = new MITSIM_LC_Model(params);
 	cfModel = new MITSIM_CF_Model(params);
-	intModel = new MITSIM_IntDriving_Model(params);
+	
+	//Get the specified intersection driving model from the configuration
+	const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();	
+	std::map<std::string,std::string>::const_iterator itProp = configParams.system.genericProps.find("intersection_driving_model");
+	
+	//Set the default model as 'conflict-based'
+	std::string intersectionModel = "conflict-based";
+	
+	//Check if a model is specified
+	if(itProp != configParams.system.genericProps.end())
+	{
+		intersectionModel = itProp->second;
+	}
+	
+	if(intersectionModel == "slot-based")
+	{
+		intModel = new SlotBased_IntDriving_Model(params);
+	}
+	else
+	{
+		intModel = new MITSIM_IntDriving_Model(params);
+	}
 
 	parentDriver->initReactionTime();
 }
@@ -182,6 +207,7 @@ sim_mob::DriverMovement::~DriverMovement()
 	safe_delete_item(lcModel);
 	safe_delete_item(cfModel);
 	safe_delete_item(intModel);
+	safe_delete_item(intModelBkUp);
 	
 	//Usually the metrics for the last sub-trip is not manually finalised
 	/*
@@ -1005,8 +1031,11 @@ double sim_mob::DriverMovement::performIntersectionApproach()
 			//Scan for conflicts in intersection only in un-signalised intersections
 			if (!trafficSignal)
 			{
+				//Set the current turning
+				intModel->setCurrTurning(turningSection);
+				
 				//Calculate the acceleration based on the vehicles in the intersection
-				accInt = intModel->makeAcceleratingDecision(params, turningSection);
+				accInt = intModel->makeAcceleratingDecision(params);
 			}
 			
 			return accInt;
@@ -1043,13 +1072,16 @@ void sim_mob::DriverMovement::performIntersectionDriving(DriverUpdateParams& p)
 		double cfAcc = DBL_MAX, intAcc = DBL_MAX;
 
 		//Clear the flag 
-		parentDriver->setYieldingToInIntersection(-1);
+		parentDriver->setYieldingToInIntersection(-1);		
 		
 		//Scan for conflicts only in un-signalised intersections
 		if (!trafficSignal)
 		{
+			//Set the current turning
+			intModel->setCurrTurning(fwdDriverMovement.currTurning);	
+			
 			//Call the intersection driving model
-			intAcc = intModel->makeAcceleratingDecision(p, fwdDriverMovement.currTurning);
+			intAcc = intModel->makeAcceleratingDecision(p);
 		}
 		//In case we've moved forward into an intersection then stopped, when there was a red light		
 		//The "aC" indicates that previously acceleration due to traffic signal was selected		
@@ -1077,9 +1109,15 @@ void sim_mob::DriverMovement::performIntersectionDriving(DriverUpdateParams& p)
 			p.accSelect = "aInt";
 		}
 		
-		//Reduce the reaction time in intersection
-		p.cftimer = p.cftimer * Utils::generateFloat(intModel->getIntersectionAttentivenessFactorMin(),
-													intModel->getIntersectionAttentivenessFactorMax());
+		//We need to reduce reaction time in the intersection if we're using the MITSIM model
+		if(intModel->getIntModelType() == Int_Model_MITSIM)
+		{
+			MITSIM_IntDriving_Model *intersectionModel = dynamic_cast<MITSIM_IntDriving_Model *>(intModel);
+			
+			//Reduce the reaction time in intersection			
+			p.cftimer = p.cftimer * Utils::generateFloat(intersectionModel->getIntersectionAttentivenessFactorMin(),
+														 intersectionModel->getIntersectionAttentivenessFactorMax());
+		}
 	}
 	
 	//Calculate the distance travelled
@@ -2085,31 +2123,44 @@ void sim_mob::DriverMovement::chooseNextLaneForNextLink(DriverUpdateParams& p)
 }
 
 //TODO: For now, we're just using a simple trajectory model. Complex curves may be added later.
-void sim_mob::DriverMovement::calculateIntersectionTrajectory(DPoint movingFrom,
-		double overflow) {
+void sim_mob::DriverMovement::calculateIntersectionTrajectory(DPoint movingFrom, double overflow) 
+{
 	//If we have no target link, we have no target trajectory.
-	if (!nextLaneInNextLink) {
+	if (!nextLaneInNextLink) 
+	{
 		Warn() << "WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory." << std::endl;
 		return;
 	}
 	
 	Point2D entry = nextLaneInNextLink->getPolyline().at(0);
 	
-	//Check if we have a turning
-	if(!fwdDriverMovement.currTurning)
+	//Check if we are currently using the MITSIM or slot-based model
+	if(intModel->getIntModelType() != Int_Model_Simple)
 	{
-		MITSIM_IntDriving_Model *intersectionModel = dynamic_cast<MITSIM_IntDriving_Model *>(intModel);
-		
-		if(intersectionModel)
+		//Ensure that we have a turning
+		if(fwdDriverMovement.currTurning)
 		{
-			delete intModel;
-			intModel = new SimpleIntDrivingModel();
+			intModel->setCurrTurning(fwdDriverMovement.currTurning);
+		}
+		//We do not have a turning, so switch to the simple intersection driving model
+		else
+		{
+			if(intModelBkUp)
+			{
+				//Swap the in use model with the back-up
+				IntersectionDrivingModel *temporary = intModel;
+				intModel = intModelBkUp;
+				intModelBkUp = temporary;
+			}
+			else
+			{
+				//Create the simple intersection driving model and use it
+				intModelBkUp = intModel;
+				intModel = new SimpleIntDrivingModel();
+			}
 		}
 	}
 	
-	//Compute a movement trajectory.
-
-	intModel->setCurrTurning(fwdDriverMovement.currTurning);
 	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
 }
 
@@ -2947,13 +2998,13 @@ void sim_mob::DriverMovement::updateNearbyAgents()
 
 	//Update each nearby Pedestrian/Driver
 	params.nvFwdNextLink.driver = NULL;
-	params.nvFwdNextLink.distance = DEFAULT_DISTANCE_CM;
+	params.nvFwdNextLink.distance = DBL_MAX;
 	params.nvLeadFreeway.driver = NULL;
-	params.nvLeadFreeway.distance = DEFAULT_DISTANCE_CM;
+	params.nvLeadFreeway.distance = DBL_MAX;
 	params.nvLagFreeway.driver = NULL;
-	params.nvLagFreeway.distance = DEFAULT_DISTANCE_CM;
+	params.nvLagFreeway.distance = DBL_MAX;
 	params.nvFwd.driver = NULL;
-	params.nvFwd.distance = DEFAULT_DISTANCE_CM;
+	params.nvFwd.distance = DBL_MAX;
 
 	for (vector<const Agent*>::iterator it = nearby_agents.begin(); it != nearby_agents.end(); ++it) 
 	{

@@ -364,7 +364,30 @@
 	    0.03    # three "/>
 
 
-<!-- K. OTHERS -->
+<!-- K.1. INTERSECTION DRIVING PARAMETERS -->
+	<!--Intersection attentiveness factor-->
+	<param name="intersection_attentiveness_factor_min" value="0.3"/>
+	<param name="intersection_attentivneess_factor_max" value="0.6"/>
+	
+	<!--Minimum gap-->
+	<param name="minimum_gap" value="1.25"/>
+	
+	<!--Critical gap random addon
+											mean	std.dev-->
+	<param name="critical_gap_addon" value="1.0		0.5"/>
+	
+	<!--Impatience factor-->
+	<param name="impatience_factor" value="0.2"/>
+	
+<!-- K.2. Parameters for slot based intersections-->
+	
+	<!--Separation time between vehicles following one another (in sec) (also known as T1)-->
+	<param name="tailgate_separation_time" value="1"/>
+	
+	<!--Separation time between vehicles with conflicting trajectories (in sec) (also known as T2)-->
+	<param name="conflict_separation_time" value="2.46"/>
+	
+<!-- L. OTHERS -->
 	<!-- minimum speed to consider for a moving vehicle -->
 	<param name="min_speed" value="0.1"/>  <!-- m/s -->
 	<!-- minimum time required between lane changing decisions -->
@@ -374,7 +397,7 @@
 	<!-- Visibility of stopping points (default value) -->
 	<param name="check_stop_point_distance" value="200"/> <!-- meters -->
 
-	<!-- Density (default value) - Calculated by SimMobility!!! -->
+	<!-- Density (default value) - Calculated by SimMobility!!!-->
 	<param name="density" value="0.0"/> <!-- veh/km/lane -->
 
 </parameters>

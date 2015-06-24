@@ -27,11 +27,13 @@ void DriverUpdateParams::setStatus(unsigned int s)
 	status |= s;
 }
 
-void DriverUpdateParams::setStatus(string name,StatusValue v,string whoSet) {
+void DriverUpdateParams::setStatus(string name,StatusValue v,string whoSet) 
+{
 	statusMgr.setStatus(name,v,whoSet);
 }
 
-StatusValue DriverUpdateParams::getStatus(string name) {
+StatusValue DriverUpdateParams::getStatus(string name) 
+{
 	return statusMgr.getStatus(name);
 }
 
@@ -227,18 +229,24 @@ double DriverUpdateParams::lcMinGap(int type)
 	return b[2] * b[0];
 }
 
-void DriverUpdateParams::insertStopPoint(StopPoint& sp){
+void DriverUpdateParams::insertStopPoint(StopPoint& sp)
+{
 	std::map<std::string,std::vector<StopPoint> >::iterator it = stopPointPool.find(sp.segmentId);
-	if(it!=stopPointPool.end()){
+	
+	if(it!=stopPointPool.end())
+	{
 		it->second.push_back(sp);
 	}
-	else{
+	else
+	{
 		std::vector<StopPoint> v;
 		v.push_back(sp);
 		stopPointPool.insert(std::make_pair(sp.segmentId,v));
 	}
 }
-void DriverUpdateParams::insertConflictTurningDriver(TurningConflict* conflict, double distance, const Driver* driver) {
+
+void DriverUpdateParams::insertConflictTurningDriver(TurningConflict* conflict, double distance, const Driver* driver) 
+{
 	NearestVehicle nearestVehicle;
 	nearestVehicle.distance = distance;
 	nearestVehicle.driver = driver;
@@ -246,7 +254,8 @@ void DriverUpdateParams::insertConflictTurningDriver(TurningConflict* conflict, 
 	// find turning conflict
 	std::map<TurningConflict*,std::list<NearestVehicle> >::iterator it = conflictVehicles.find(conflict);
 	
-	if(it != conflictVehicles.end()) {
+	if(it != conflictVehicles.end()) 
+	{
 		std::list<NearestVehicle>& nearestVehicles = it->second;
 		nearestVehicles.push_back(nearestVehicle);
 
@@ -254,7 +263,8 @@ void DriverUpdateParams::insertConflictTurningDriver(TurningConflict* conflict, 
 		compare_NearestVehicle f;
 		nearestVehicles.sort(f);
 	}
-	else {
+	else 
+	{
 		std::list<NearestVehicle> nearestVehicles;
 		nearestVehicles.push_back(nearestVehicle);
 		conflictVehicles.insert(std::make_pair(conflict, nearestVehicles));

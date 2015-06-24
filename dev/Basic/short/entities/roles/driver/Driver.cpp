@@ -338,7 +338,6 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 
 	turningDirection = LCS_SAME;
 
-	nvFwd.distance = Driver::maxVisibleDis;
 	nvFwd = NearestVehicle();
 	nvLeftFwd = NearestVehicle();
 	nvRightFwd = NearestVehicle();

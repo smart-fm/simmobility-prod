@@ -22,6 +22,7 @@
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
 
+#include "behavioral/PredayLT_Logsum.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::event;
@@ -166,7 +167,7 @@ inline float getGpr(const Parcel *parcel)
 		return atof(parcel->getGpr().c_str());
 }
 
-inline void calculateProjectProfit(PotentialProject& project,const DeveloperModel* model,int quarter)
+inline void calculateProjectProfit(PotentialProject& project,const DeveloperModel* model,int quarter,double logsum)
 {
 	std::vector<PotentialUnit>& units = project.getUnits();
 
@@ -177,11 +178,13 @@ inline void calculateProjectProfit(PotentialProject& project,const DeveloperMode
 	double demolitionCost = 0;
 	for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++) {
 		const ParcelAmenities *amenities = model->getAmenitiesById(project.getParcel()->getId());
-		const LogsumForDevModel *logsum = model->getAccessibilityLogsumsByFmParcelId(project.getParcel()->getId());
-		if((amenities != nullptr) && (logsum != nullptr))
+		//commented the below code in 2012 data as we are now getting logsum from mid term.
+		//const LogsumForDevModel *logsumDev = model->getAccessibilityLogsumsByFmParcelId(project.getParcel()->getId());
+
+		if((amenities != nullptr))
 		{
 			const DeveloperLuaModel& luaModel = LuaProvider::getDeveloperModel();
-			double revenuePerUnitType = luaModel.calulateUnitRevenue((*unitsItr),*amenities,*logsum, quarter);
+			double revenuePerUnitType = luaModel.calulateUnitRevenue((*unitsItr),*amenities,logsum, quarter);
 			double totalRevenuePerUnitType = revenuePerUnitType * (*unitsItr).getNumUnits();
 			double profitPerUnit = revenuePerUnitType - (model->getUnitTypeById((*unitsItr).getUnitTypeId())->getConstructionCostPerUnit());
 			(*unitsItr).setUnitProfit(profitPerUnit);
@@ -270,7 +273,7 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
      * @param model Developer model.
      * @param outProjects (out parameter) list to receive all projects;
      */
-inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* model, PotentialProject& outProject,int quarter)
+inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* model, PotentialProject& outProject,int quarter,double logsum)
     {
         const DeveloperModel::DevelopmentTypeTemplateList& devTemplates = model->getDevelopmentTypeTemplates();
         const DeveloperModel::TemplateUnitTypeList& unitTemplates = model->getTemplateUnitType();
@@ -293,7 +296,7 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* mo
 
                 		addUnitTemplates(project, unitTemplates);
                 		createPotentialUnits(project,model);
-                        calculateProjectProfit(project,model,quarter);
+                        calculateProjectProfit(project,model,quarter,logsum);
 
                         const double threshold = 0.01; // temporary : to be determined later
 
@@ -381,8 +384,10 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     	{
     		std::tm currentDate = getDate(model->getCurrentTick());
     		int quarter = ((currentDate.tm_mon)/4); //get the current month of the simulation and divide it by 4 to determine the quarter
+    		double logsum = PredayLT_LogsumManager::getInstance().computeLogsum(-1, this->parcel->getTazId(), -1 );
+    		PrintOut("calculate logsum for dev"<<logsum);
     		PotentialProject project;
-    		createPotentialProjects(this->id,model,project,quarter);
+    		createPotentialProjects(this->parcel->getId(),model,project,quarter,logsum);
     		if(project.getUnits().size()>0)
     		{
     			BigSerial projectId = model->getProjectIdForDeveloperAgent();

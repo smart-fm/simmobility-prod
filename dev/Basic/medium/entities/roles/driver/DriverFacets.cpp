@@ -283,7 +283,6 @@ bool sim_mob::medium::DriverMovement::initializePath()
 		}
 
 		//Restricted area logic
-		if (sim_mob::ConfigManager::GetInstance().FullConfig().CBD())
 		{
 			bool fromLocationInRestrictedRegion = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(wp_path.front());
 			bool toLocationInRestrictedRegion = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(wp_path.back());

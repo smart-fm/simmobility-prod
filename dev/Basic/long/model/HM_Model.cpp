@@ -25,6 +25,7 @@
 #include "database/dao/LogSumVehicleOwnershipDao.hpp"
 #include "database/dao/DistanceMRTDao.hpp"
 #include "database/dao/TazDao.hpp"
+#include "database/dao/HouseHoldHitsSampleDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -469,6 +470,23 @@ DistanceMRT* HM_Model::getDistanceMRTById( BigSerial id) const
 	return nullptr;
 }
 
+HM_Model::HouseHoldHitsSampleList HM_Model::getHouseHoldHits()const
+{
+	return this->houseHoldHits;
+}
+
+HouseHoldHitsSample* HM_Model::HouseHoldHitsById( BigSerial id) const
+{
+	HouseHoldHitsSampleMap::const_iterator itr = houseHoldHitsById.find(id);
+
+	if (itr != houseHoldHitsById.end())
+		{
+			return itr->second;
+		}
+
+	return nullptr;
+}
+
 void HM_Model::setTaxiAccess(const Household *household)
 {
 	double valueTaxiAccess = getTaxiAccessCoeffsById(INTERCEPT)->getCoefficientEstimate();
@@ -709,14 +727,18 @@ void HM_Model::startImpl()
 		loadData<HousingInterestRateDao>( conn, housingInterestRates, housingInterestRatesById, &HousingInterestRate::getId);
 		PrintOutV("Number of interest rate quarters: " << housingInterestRates.size() << std::endl );
 
-		loadData<LogSumVehicleOwnershipDao>( conn, vehicleOwnershipLogsums, vehicleOwnershipLogsumById, &LogSumVehicleOwnership::getHouseholdId);
-		PrintOutV("Number of vehicle ownership logsums: " << vehicleOwnershipLogsums.size() << std::endl );
+		//only used in 2008 data. not used in 2012.
+		//loadData<LogSumVehicleOwnershipDao>( conn, vehicleOwnershipLogsums, vehicleOwnershipLogsumById, &LogSumVehicleOwnership::getHouseholdId);
+		//PrintOutV("Number of vehicle ownership logsums: " << vehicleOwnershipLogsums.size() << std::endl );
 
 		loadData<DistanceMRTDao>( conn, mrtDistances, mrtDistancesById, &DistanceMRT::getHouseholdId);
 		PrintOutV("Number of mrt distances: " << mrtDistances.size() << std::endl );
 
 		loadData<TazDao>( conn, tazs, tazById, &Taz::getId);
 		PrintOutV("Number of taz: " << tazs.size() << std::endl );
+
+		loadData<HouseHoldHitsSampleDao>( conn, houseHoldHits, houseHoldHitsById, &HouseHoldHitsSample::getHouseholdId);
+		PrintOutV("Number of houseHoldHits: " << houseHoldHits.size() << std::endl );
 
 	}
 

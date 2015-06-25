@@ -479,13 +479,13 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	if( workTazStr.size() == 0 )
 	{
-		PrintOutV("workTaz is empty for person: " << headOfHousehold->getId() << std::endl);
+		//PrintOutV("workTaz is empty for person: " << headOfHousehold->getId() << std::endl);
 		workTaz = homeTaz;
 	}
 
 	if( homeTazStr.size() == 0 )
 	{
-		PrintOutV("homeTaz is empty for person: " << headOfHousehold->getId() << std::endl);
+		//PrintOutV("homeTaz is empty for person: " << headOfHousehold->getId() << std::endl);
 		homeTaz = -1;
 		workTaz = -1;
 	}

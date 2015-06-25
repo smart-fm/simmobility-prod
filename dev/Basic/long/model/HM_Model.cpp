@@ -26,6 +26,7 @@
 #include "database/dao/DistanceMRTDao.hpp"
 #include "database/dao/TazDao.hpp"
 #include "database/dao/HouseHoldHitsSampleDao.hpp"
+#include "database/dao/TazLogsumWeightDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -775,6 +776,9 @@ void HM_Model::startImpl()
 
 		loadData<HouseHoldHitsSampleDao>( conn, houseHoldHits, houseHoldHitsById, &HouseHoldHitsSample::getHouseholdId);
 		PrintOutV("Number of houseHoldHits: " << houseHoldHits.size() << std::endl );
+
+		loadData<TazLogsumWeightDao>( conn, tazLogsumWeights, tazLogsumWeightById, &TazLogsumWeight::getGroupLogsum );
+		PrintOutV("Number of tazLogsumWeights: " << tazLogsumWeights.size() << std::endl );
 
 	}
 

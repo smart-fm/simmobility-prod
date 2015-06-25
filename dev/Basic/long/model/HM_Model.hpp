@@ -22,6 +22,7 @@
 #include "database/entity/DistanceMRT.hpp"
 #include "database/entity/Taz.hpp"
 #include "database/entity/HouseHoldHitsSample.hpp"
+#include "database/entity/TazLogsumWeight.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -76,6 +77,9 @@ namespace sim_mob
 
             typedef std::vector<HouseHoldHitsSample*> HouseHoldHitsSampleList;
             typedef boost::unordered_map<BigSerial, HouseHoldHitsSample*> HouseHoldHitsSampleMap;
+
+            typedef std::vector<TazLogsumWeight*> TazLogsumWeightList;
+            typedef boost::unordered_map<BigSerial, TazLogsumWeight*> TazLogsumWeightMap;
 
             /**
              * Taz statistics
@@ -239,6 +243,9 @@ namespace sim_mob
 
             TazList tazs;
             TazMap tazById;
+
+            TazLogsumWeightList tazLogsumWeights;
+            TazLogsumWeightMap tazLogsumWeightById;
 
             boost::unordered_map<BigSerial, BigSerial> assignedUnits;
             VehicleOwnershipCoeffList vehicleOwnershipCoeffs;

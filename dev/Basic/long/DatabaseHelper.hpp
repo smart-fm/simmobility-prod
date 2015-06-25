@@ -60,6 +60,7 @@ namespace sim_mob {
         const std::string DB_TABLE_LOGSUM_FOR_DEVMODEL = APPLY_SCHEMA(CALIBRATION_SCHEMA, "logsum_for_dev_model");
         const std::string DB_TABLE_HIR= APPLY_SCHEMA(MAIN_SCHEMA, "housing_interest_rates");
         const std::string DB_TABLE_TAZ= APPLY_SCHEMA(MAIN_SCHEMA, "taz");
+        const std::string DB_TABLE_TAZ_LOGUM_WEIGHT= APPLY_SCHEMA(CALIBRATION_SCHEMA, "taz_logsum_hedonic_price");
         const std::string DB_TABLE_HH_HITS_SAMPLE = APPLY_SCHEMA(MAIN_SCHEMA, "household_hits_sample");
 
 
@@ -323,6 +324,7 @@ namespace sim_mob {
         const std::string DB_GETALL_HIR = "SELECT * FROM " + DB_FUNC_GET_HIR + LIMIT;
         const std::string DB_GETALL_DIST_MRT = "SELECT * FROM " + DB_FUNC_GET_DIST_MRT + LIMIT;
         const std::string DB_GETALL_TAZS = "SELECT * FROM " + DB_TABLE_TAZ + LIMIT;
+        const std::string DB_GETALL_TAZ_LOGSUM_WEIGHTS = "SELECT * FROM " + DB_TABLE_TAZ_LOGUM_WEIGHT + LIMIT;
         const std::string DB_GETALL_HH_HITS_SAMPLE = "SELECT * FROM " + DB_TABLE_HH_HITS_SAMPLE + LIMIT;
 
         /**
@@ -346,6 +348,7 @@ namespace sim_mob {
         const std::string DB_GETBYID_JOB = "SELECT * FROM " + DB_FUNC_GET_JOB_BY_ID;
         const std::string DB_GETBYID_HIR = "SELECT * FROM " + DB_FUNC_GET_HIR_BY_ID;
         const std::string DB_GETBYID_TAZ = "SELECT * FROM " + DB_TABLE_TAZ + " WHERE id = :v1;";
+        const std::string DB_GETBYID_TAZ_LOGSUM_WEIGHT = "SELECT * FROM " + DB_TABLE_TAZ_LOGUM_WEIGHT + " WHERE id = :v1;";
         const std::string DB_GETBYID_HH_HITS_SAMPLE = "SELECT * FROM " + DB_TABLE_HH_HITS_SAMPLE + " WHERE household_id = :v1;";
 
     }

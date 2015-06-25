@@ -117,6 +117,34 @@ namespace sim_mob
             typedef boost::unordered_map<BigSerial, HM_Model::TazStats*> StatsMap;
             
 
+            /*
+             *This function will contain groups of households who share the same logsum if they have the same hometaz
+            */
+            class HouseholdGroup
+            {
+            public:
+
+            	HouseholdGroup(BigSerial groupId = 0, BigSerial homeTaz = 0, double logsum = .0);
+            	~HouseholdGroup(){};
+
+            	void	setLogsum(double value);
+            	void	setGroupId(BigSerial value);
+            	void	setHomeTaz( BigSerial value);
+
+            	double	  getLogsum() const;
+            	BigSerial getGroupId() const;
+            	BigSerial getHomeTaz() const;
+
+            private:
+
+            	double logsum;
+            	BigSerial homeTaz;
+            	BigSerial groupId;
+            };
+
+            std::vector<HouseholdGroup> householdGroupVec;
+
+
             HM_Model(WorkGroup& workGroup);
             virtual ~HM_Model();
             

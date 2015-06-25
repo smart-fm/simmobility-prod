@@ -387,7 +387,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	double HH_size2		= 0;
 	double HH_size3m	= 0;
 	double DD_area		= 0;
-	double ZZ_logsumhh	= 0;
+	double ZZ_logsumhh	= -1;
 	double ZZ_hhchinese = 0;
 	double ZZ_hhmalay	= 0;
 	double ZZ_hhindian	= 0;
@@ -496,9 +496,31 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 		return 0;
 	}
 	else
-		ZZ_logsumhh = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz );
+	{
+		HouseHoldHitsSample *hitssample = model->HouseHoldHitsById( household->getId() );
 
-	PrintOutV("ZZ_logsumhh for unit " <<  household->getUnitId() <<  " is " << ZZ_logsumhh  << std::endl );
+		for(int n = 0; n < model->householdGroupVec.size(); n++ )
+		{
+			BigSerial thisGroupId = model->householdGroupVec[n].getGroupId();
+			BigSerial thisHomeTaz = model->householdGroupVec[n].getHomeTaz();
+
+			if( thisGroupId == hitssample->getGroupId() &&  thisHomeTaz == homeTaz )
+			{
+				ZZ_logsumhh = model->householdGroupVec[n].getLogsum();
+				break;
+			}
+		}
+
+		if( ZZ_logsumhh == -1 )
+		{
+			ZZ_logsumhh = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz );
+
+			HM_Model::HouseholdGroup thisHHGroup(hitssample->getGroupId(), homeTaz, ZZ_logsumhh );
+			model->householdGroupVec.push_back(thisHHGroup);
+		}
+	}
+
+
 
 	const HM_Model::TazStats *tazstats = model->getTazStats( hometazId );
 

@@ -425,6 +425,42 @@ const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 	return nullptr;
 }
 
+
+
+HM_Model::HouseholdGroup::HouseholdGroup(BigSerial groupId, BigSerial homeTaz, double logsum):groupId(groupId),homeTaz(homeTaz),logsum(logsum){}
+
+
+BigSerial HM_Model::HouseholdGroup::getGroupId() const
+{
+	return groupId;
+}
+
+BigSerial HM_Model::HouseholdGroup::getHomeTaz() const
+{
+	return homeTaz;
+}
+
+double HM_Model::HouseholdGroup::getLogsum() const
+{
+	return logsum;
+}
+
+void HM_Model::HouseholdGroup::setHomeTaz(BigSerial value)
+{
+	homeTaz = value;
+}
+
+void HM_Model::HouseholdGroup::setLogsum(double value)
+{
+	logsum = value;
+}
+
+void HM_Model::HouseholdGroup::setGroupId(BigSerial value)
+{
+	groupId = value;
+}
+
+
 void HM_Model::addUnit(Unit* unit)
 {
 	units.push_back(unit);
@@ -480,9 +516,9 @@ HouseHoldHitsSample* HM_Model::HouseHoldHitsById( BigSerial id) const
 	HouseHoldHitsSampleMap::const_iterator itr = houseHoldHitsById.find(id);
 
 	if (itr != houseHoldHitsById.end())
-		{
-			return itr->second;
-		}
+	{
+		return itr->second;
+	}
 
 	return nullptr;
 }

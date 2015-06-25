@@ -25,7 +25,7 @@ using namespace sim_mob::db;
 namespace
 {
 
-const std::string LT_DB_CONFIG_FILE = "private/lt-db.ini";
+const std::string LT_DB_CONFIG_FILE = "../private/lt-db.ini";
 
 
 /**

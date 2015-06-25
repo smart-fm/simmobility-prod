@@ -325,6 +325,33 @@ const HM_Model::TazStats* HM_Model::getTazStats(BigSerial tazId) const
 	return nullptr;
 }
 
+double HM_Model::ComputeHedonicPriceLogsum(BigSerial taz)
+{
+
+    BigSerial workTaz = -1;
+    int vehicleOwnership = -1;
+    double logsum = 0;
+
+    boost::unordered_map<BigSerial, double>::const_iterator itr = tazLevelLogsum.find(taz);
+
+	if (itr != tazLevelLogsum.end())
+	{
+		return (*itr).second;
+	}
+
+	for(int n = 0; n < tazLogsumWeights.size(); n++)
+	{
+		double lg = PredayLT_LogsumManager::getInstance().computeLogsum( tazLogsumWeights[n]->getIndividualId(), taz, workTaz, vehicleOwnership );
+		double weight = tazLogsumWeights[n]->getWeight();
+
+		logsum = logsum + (lg * weight );
+	}
+
+	tazLevelLogsum.insert( std::make_pair<BigSerial,double>( taz,logsum ));
+
+	return logsum;
+}
+
 HousingMarket* HM_Model::getMarket()
 {
 	return &market;
@@ -779,7 +806,6 @@ void HM_Model::startImpl()
 
 		loadData<TazLogsumWeightDao>( conn, tazLogsumWeights, tazLogsumWeightById, &TazLogsumWeight::getGroupLogsum );
 		PrintOutV("Number of tazLogsumWeights: " << tazLogsumWeights.size() << std::endl );
-
 	}
 
 

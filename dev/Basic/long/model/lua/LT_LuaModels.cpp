@@ -230,12 +230,12 @@ void HM_LuaModel::mapClasses()
     mapCommonClasses(state.get());
 }
 
-void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, vector<ExpectationEntry>& outValues) const
+void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, double logsum, vector<ExpectationEntry>& outValues) const
 {
     const BigSerial pcId = unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calulateUnitExpectations");
 
-	LuaRef retVal = funcRef(&unit, timeOnMarket, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
+	LuaRef retVal = funcRef(&unit, timeOnMarket, logsum, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
 
     if (retVal.isTable())
     {

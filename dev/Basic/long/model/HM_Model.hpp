@@ -180,6 +180,8 @@ namespace sim_mob
 
             HousingInterestRateList* getHousingInterestRateList();
 
+            double ComputeHedonicPriceLogsum(BigSerial taz);
+
             void incrementBidders();
             void decrementBidders();
             int	 getNumberOfBidders();
@@ -246,6 +248,8 @@ namespace sim_mob
 
             TazLogsumWeightList tazLogsumWeights;
             TazLogsumWeightMap tazLogsumWeightById;
+
+            boost::unordered_map<BigSerial, double>tazLevelLogsum;
 
             boost::unordered_map<BigSerial, BigSerial> assignedUnits;
             VehicleOwnershipCoeffList vehicleOwnershipCoeffs;

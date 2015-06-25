@@ -177,7 +177,6 @@ void HouseholdBidderRole::ComputeHouseholdAffordability()
 	//https://support.office.com/en-ca/article/PV-function-3d25f140-634f-4974-b13b-5249ff823415
 	householdAffordabilityAmount = income / interestRate *  ( 1.0 - pow( 1 + interestRate, loanTenure ) );
 
-
 	//PrintOutV( "Interest rate: " << interestRate << ". Household affordability: " << householdAffordabilityAmount << std::endl);
 }
 
@@ -185,7 +184,6 @@ void HouseholdBidderRole::init()
 {
 	ComputeHouseholdAffordability();
 	initBidderRole = false;
-
 }
 
 void HouseholdBidderRole::update(timeslice now)

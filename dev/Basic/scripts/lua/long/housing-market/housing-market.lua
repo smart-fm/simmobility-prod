@@ -120,7 +120,7 @@ end
     @param amenities close to the unit.
     @return hedonic price value.
 ]]
-function calculateHDB_HedonicPrice(unit, building, postcode, amenities)
+function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum)
 	local simulationYear = CONSTANTS.SIMULATION_YEAR;
 	local hedonicPrice = getStoreyEstimation(unit.storey) + ((building ~= nil) and ((simulationYear - building.builtYear) * -23.26) or 0)
 
@@ -138,8 +138,8 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities)
 	local ZZ_express_200m = 0;
 	local ZZ_bus_200m = 0;
 
-	local ZZ_freehold = 0; --TODO: chetan needs to revisit this.
-	local ZZ_logsum = 2; --TODO: chetan needs to revisit this.
+	local ZZ_freehold = 0;
+	local ZZ_logsum = logsum;
 	local ZZ_bus_400m = 0;
 
 	if( unit.floorArea ~= nil ) then
@@ -247,7 +247,7 @@ end
     @param amenities close to the unit.
     @return hedonic price value.
 ]]
-function calculatePrivate_HedonicPrice(unit, building, postcode, amenities)
+function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logsum)
 	local hedonicPrice = 0
 
 	if amenities == nil then
@@ -264,8 +264,8 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities)
 	local ZZ_express_200m = 0;
 	local ZZ_bus_200m = 0;
 
-	local ZZ_freehold = 0; --TODO: chetan needs to revisit this.
-	local ZZ_logsum = 2; --TODO: chetan needs to revisit this.
+	local ZZ_freehold = 1; 
+	local ZZ_logsum = logsum;
 	local ZZ_bus_400m = 0;
 
 	if( unit.floorArea ~= nil ) then
@@ -391,12 +391,12 @@ end
     @param postcode of the unit.
     @param amenities close to the unit.
 ]]
-function calculateHedonicPrice(unit, building, postcode, amenities)
+function calculateHedonicPrice(unit, building, postcode, amenities, logsum)
     if unit ~= nil and building ~= nil and postcode ~= nil and amenities ~= nil then
          if(amenities.unitType ~= nil and amenities.unitType < 5) then
-		return calculateHDB_HedonicPrice(unit, building, postcode, amenities) 
+		return calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum) 
 	 else 
-		return calculatePrivate_HedonicPrice(unit, building, postcode, amenities);
+		return calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logsum);
 	 end
     end
     return -1
@@ -441,11 +441,11 @@ end
     @param amenities close to the unit.
     @return array of ExpectationEntry's with N expectations (N should be equal to timeOnMarket).
 ]]
-function calulateUnitExpectations (unit, timeOnMarket, building, postcode, amenities)
+function calulateUnitExpectations (unit, timeOnMarket, logsum, building, postcode, amenities)
     local expectations = {}
     -- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
 
-    local hedonicPrice = math.exp(calculateHedonicPrice(unit, building, postcode, amenities))
+    local hedonicPrice = math.exp(calculateHedonicPrice(unit, building, postcode, amenities, logsum))
 
     if (hedonicPrice > 0) then
         local targetPrice = hedonicPrice -- IMPORTANT : this should be the hedonic value

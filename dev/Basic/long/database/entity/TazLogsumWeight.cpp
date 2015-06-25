@@ -31,7 +31,7 @@ int TazLogsumWeight::getIndividualId() const
 	return individualId;
 }
 
-int TazLogsumWeight::getWeight() const
+double TazLogsumWeight::getWeight() const
 {
 	return weight;
 }

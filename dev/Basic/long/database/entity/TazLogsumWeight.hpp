@@ -28,7 +28,7 @@ namespace sim_mob {
              */
             int getGroupLogsum() const;
             int getIndividualId() const;
-            int getWeight() const;
+            double getWeight() const;
 
             void setGroupLogsum( int value);
             void setIndividualId( int value );

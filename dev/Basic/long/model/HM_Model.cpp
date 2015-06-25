@@ -103,7 +103,7 @@ namespace
 
 }
 
-HM_Model::TazStats::TazStats(BigSerial tazId) :	tazId(tazId), hhNum(0), hhTotalIncome(0) {}
+HM_Model::TazStats::TazStats(BigSerial tazId) :	tazId(tazId), hhNum(0), hhTotalIncome(0), numChinese(0), numIndian(0), numMalay(0), householdSize(0) {}
 
 HM_Model::TazStats::~TazStats() {}
 
@@ -111,6 +111,18 @@ void HM_Model::TazStats::updateStats(const Household& household)
 {
 	hhNum++;
 	hhTotalIncome += household.getIncome();
+
+	if( household.getEthnicityId() == 1 ) //chinese
+		numChinese++;
+
+	if( household.getEthnicityId() == 2 )  //malay
+		numMalay++;
+
+	if( household.getEthnicityId() == 3 ) // indian
+		numIndian++;
+
+	householdSize += household.getSize();
+
 }
 
 BigSerial HM_Model::TazStats::getTazId() const
@@ -132,6 +144,27 @@ double HM_Model::TazStats::getHH_AvgIncome() const
 {
 	return hhTotalIncome / static_cast<double>((hhNum == 0) ? 1 : hhNum);
 }
+
+double HM_Model::TazStats::getChinesePercentage() const
+{
+	return numChinese / static_cast<double>((hhNum == 0) ? 1 : hhNum);
+}
+
+double HM_Model::TazStats::getMalayPercentage() const
+{
+	return numMalay / static_cast<double>((hhNum == 0) ? 1 : hhNum);
+}
+
+double HM_Model::TazStats::getIndianPercentage() const
+{
+	return numIndian / static_cast<double>((hhNum == 0) ? 1 : hhNum);
+}
+
+double HM_Model::TazStats::getAvgHHSize() const
+{
+	return householdSize / static_cast<double>((hhNum == 0) ? 1 : hhNum);
+}
+
 
 HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false){}
 
@@ -755,16 +788,24 @@ void HM_Model::startImpl()
 				tazStats = new TazStats(tazId);
 				stats.insert( std::make_pair(tazId,	const_cast<HM_Model::TazStats*>(tazStats)));
 			}
+
 			const_cast<HM_Model::TazStats*>(tazStats)->updateStats(*household);
-			/*PrintOut(" Taz: "   << tazId <<
-			 " Total: " << tazStats->getHH_TotalIncome() <<
-			 " Num: "   << tazStats->getHH_Num() <<
-			 " AVG: "   << tazStats->getHH_AvgIncome() << std::endl);*/
 		}
 
 		AgentsLookupSingleton::getInstance().addHouseholdAgent(hhAgent);
 		agents.push_back(hhAgent);
 		workGroup.assignAWorker(hhAgent);
+	}
+
+
+	for ( StatsMap::iterator it = stats.begin(); it != stats.end(); ++it )
+	{
+		std::cout << "Taz: " << it->first << " \tAvg Income: " << it->second->getHH_AvgIncome()
+										  << " \t%Chinese: " << it->second->getChinesePercentage()
+										  << " \t%Malay: " << it->second->getMalayPercentage()
+										  << " \t%Indian: " << it->second->getIndianPercentage()
+										  << " \tAvg HH size: " << it->second->getAvgHHSize()
+										  << std::endl;
 	}
 
 	PrintOutV( "There are " << homelessHousehold << " homeless households" << std::endl);
@@ -778,7 +819,7 @@ void HM_Model::startImpl()
 	//assign empty units to freelance housing agents
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
-		(*it)->setbiddingMarketEntryDay( 0 );
+		(*it)->setbiddingMarketEntryDay( 365 );
 		(*it)->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 		(*it)->setTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
 
@@ -789,9 +830,9 @@ void HM_Model::startImpl()
 			{
 				float awakeningProbability = (float)rand() / RAND_MAX;
 
-				if(awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
+				if( 1 || awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
-					(*it)->setbiddingMarketEntryDay( 0 );
+					(*it)->setbiddingMarketEntryDay( 365 );
 					(*it)->setTimeOnMarket( 1 + int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 
 					onMarket++;
@@ -871,7 +912,7 @@ void HM_Model::unitsFiltering()
 	}
 
 
-	//we need to filter out 10% of apartments, condos and 5% of HDBs.
+	//we need to filter out 10% of unoccupied apartments, condos and 5% of HDBs.
 	int targetNumOfHDB   = 0.05 * numOfHDB;
 	int targetNumOfCondo = 0.10 * numOfCondo;
 

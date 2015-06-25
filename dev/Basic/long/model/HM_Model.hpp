@@ -89,6 +89,13 @@ namespace sim_mob
                 long int getHH_Num() const;
                 double getHH_TotalIncome() const;
                 double getHH_AvgIncome() const;
+
+                double getChinesePercentage() const;
+                double getMalayPercentage() const;
+                double getIndianPercentage() const;
+                double getAvgHHSize() const;
+
+
             private:
                 friend class HM_Model;
                 void updateStats(const Household& household);
@@ -96,6 +103,11 @@ namespace sim_mob
                 BigSerial tazId;
                 long int hhNum;
                 double hhTotalIncome;
+
+                long int householdSize;
+                long int numChinese;
+                long int numMalay;
+                long int numIndian;
             };
             
             typedef boost::unordered_map<BigSerial, HM_Model::TazStats*> StatsMap;

@@ -364,7 +364,7 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 	//Although the name of the method suggests segment change, it is actually segStat change. so we check again!
 	const sim_mob::RoadSegment *nxtRs = (nxtSegStat ? nxtSegStat->getRoadSegment() : nullptr);
 
-	if(curRs && nxtSegStat && curRs != nxtRs)
+	if(curRs && curRs != nxtRs)
 	{
 		onSegmentCompleted(curRs,nxtRs);
 	}

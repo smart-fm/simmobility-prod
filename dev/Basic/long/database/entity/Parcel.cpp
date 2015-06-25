@@ -14,12 +14,12 @@
 
 using namespace sim_mob::long_term;
 
-Parcel::Parcel(BigSerial id,float lot_size, std::string gpr,std::string owner_name,  int	owner_category, std::tm last_transaction_date,
+Parcel::Parcel(BigSerial id,BigSerial tazId, float lot_size, std::string gpr,std::string owner_name,  int	owner_category, std::tm last_transaction_date,
 	   float last_transaction_type_total, float psm_per_gps, int lease_type, std::tm lease_start_date, float centroid_x, float centroid_y, std::tm award_date,
        bool	award_status, std::string use_restriction, int	successful_tender_id,
        float successful_tender_price, std::tm tender_closing_date,int lease,float actual_gpr,float allowed_gpr, int land_use_type_id,int development_type_code,int status,
        int developmentAllowed, std::tm nextAvailableDate)
-	   : id(id),lot_size(lot_size), owner_name(owner_name), owner_category(owner_category),
+	   : id(id),tazId(tazId),lot_size(lot_size), owner_name(owner_name), owner_category(owner_category),
 	     last_transaction_date(last_transaction_date), last_transaction_type_total(last_transaction_type_total), psm_per_gps(psm_per_gps),
 	     lease_type(lease_type), lease_start_date(lease_start_date), centroid_x(centroid_x), centroid_y(centroid_y), award_date(award_date),
 	     award_status(award_status), use_restriction(use_restriction),successful_tender_id(successful_tender_id), successful_tender_price(successful_tender_price),
@@ -33,6 +33,11 @@ Parcel::~Parcel() {}
 BigSerial Parcel::getId() const
 {
     return id;
+}
+
+BigSerial Parcel::getTazId() const
+{
+	return tazId;
 }
 
 float Parcel::getLotSize() const
@@ -172,6 +177,7 @@ namespace sim_mob {
         std::ostream& operator<<(std::ostream& strm, const Parcel& data) {
             return strm << "{"
 						<< "\"id\":\"" << data.id << "\","
+						<< "\"taz_id\":\"" << data.tazId << "\","
 						<< "\"lot_size\":\"" << data.lot_size << "\","
 						<< "\"actual_gpr\":\"" << data.gpr << "\","
 						<< "\"land_use_type_id\":\"" << data.land_use_type_id << "\","

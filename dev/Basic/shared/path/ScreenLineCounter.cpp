@@ -14,16 +14,11 @@
 
 namespace
 {
-	/*
-	 * Reference of user configuration
-	 */
-	const sim_mob::ConfigParams& configParams = sim_mob::ConfigManager::GetInstance().FullConfig();
-
 	/**
 	 * time interval value used for processing data.
-	 * This value is based on its counterpart in pathset manager.
+	 * This value is based on the user configuration
 	 */
-	const unsigned int INTERVAL_MS = configParams.screenLineParams.interval;
+	unsigned int INTERVAL_MS = 0;
 }
 
 namespace sim_mob
@@ -33,12 +28,14 @@ namespace sim_mob
 
 	ScreenLineCounter::ScreenLineCounter()
 	{
+		const sim_mob::ConfigParams& configParams = sim_mob::ConfigManager::GetInstance().FullConfig();
 		if(configParams.screenLineParams.outputEnabled)
 		{
 			screenLines.clear();
 			sim_mob::aimsun::Loader::getScreenLineSegments(configParams.getDatabaseConnectionString(false),
 					configParams.getDatabaseProcMappings().procedureMappings,screenLines);
 			std::sort(screenLines.begin(), screenLines.end());
+			INTERVAL_MS = configParams.screenLineParams.interval * 1000;
 		}
 	}
 
@@ -80,6 +77,8 @@ namespace sim_mob
 
 	void ScreenLineCounter::exportScreenLineCount()
 	{
+		const sim_mob::ConfigParams& configParams = sim_mob::ConfigManager::GetInstance().FullConfig();
+
 		const std::string& fileName = configParams.screenLineParams.fileName;
 
 		sim_mob::BasicLogger& screenLineLogger  = sim_mob::Logger::log(fileName);

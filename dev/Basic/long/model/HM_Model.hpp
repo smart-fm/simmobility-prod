@@ -93,6 +93,13 @@ namespace sim_mob
                 long int getHH_Num() const;
                 double getHH_TotalIncome() const;
                 double getHH_AvgIncome() const;
+
+                double getChinesePercentage() const;
+                double getMalayPercentage() const;
+                double getIndianPercentage() const;
+                double getAvgHHSize() const;
+
+
             private:
                 friend class HM_Model;
                 void updateStats(const Household& household);
@@ -100,10 +107,43 @@ namespace sim_mob
                 BigSerial tazId;
                 long int hhNum;
                 double hhTotalIncome;
+
+                long int householdSize;
+                long int numChinese;
+                long int numMalay;
+                long int numIndian;
             };
             
             typedef boost::unordered_map<BigSerial, HM_Model::TazStats*> StatsMap;
             
+
+            /*
+             *This function will contain groups of households who share the same logsum if they have the same hometaz
+            */
+            class HouseholdGroup
+            {
+            public:
+
+            	HouseholdGroup(BigSerial groupId = 0, BigSerial homeTaz = 0, double logsum = .0);
+            	~HouseholdGroup(){};
+
+            	void	setLogsum(double value);
+            	void	setGroupId(BigSerial value);
+            	void	setHomeTaz( BigSerial value);
+
+            	double	  getLogsum() const;
+            	BigSerial getGroupId() const;
+            	BigSerial getHomeTaz() const;
+
+            private:
+
+            	double logsum;
+            	BigSerial homeTaz;
+            	BigSerial groupId;
+            };
+
+            std::vector<HouseholdGroup> householdGroupVec;
+
 
             HM_Model(WorkGroup& workGroup);
             virtual ~HM_Model();

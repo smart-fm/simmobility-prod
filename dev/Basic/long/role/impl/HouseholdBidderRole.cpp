@@ -377,7 +377,6 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	const double bzzinc		=  0.027;
 	const double bzsize		= -0.279;
 
-
 	const PostcodeAmenities* pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( unit->getSlaAddressId() );
 
 	double DD_priv		= 0;
@@ -388,7 +387,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	double HH_size2		= 0;
 	double HH_size3m	= 0;
 	double DD_area		= 0;
-	double ZZ_logsumhh	= 0;
+	double ZZ_logsumhh	= -1;
 	double ZZ_hhchinese = 0;
 	double ZZ_hhmalay	= 0;
 	double ZZ_hhindian	= 0;
@@ -409,17 +408,13 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	if( unitType > 6 )
 		DD_priv = 1;
 
-
-	ZZ_hhsize = household->getSize();
-
-	if( ZZ_hhsize == 1)
+	if( household->getSize() == 1)
 		HH_size1 = 1;
 	else
-	if( ZZ_hhsize == 2)
+	if( household->getSize() == 2)
 		HH_size2 = 1;
 	else
 		HH_size3m = 1;
-
 
 	DD_area = unit->getFloorArea() / 100;
 
@@ -482,37 +477,67 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	workTaz = std::atoi( workTazStr.c_str());
 
+	if( workTazStr.size() == 0 )
+	{
+		PrintOutV("workTaz is empty for person: " << headOfHousehold->getId() << std::endl);
+		workTaz = homeTaz;
+	}
+
+	if( homeTazStr.size() == 0 )
+	{
+		PrintOutV("homeTaz is empty for person: " << headOfHousehold->getId() << std::endl);
+		homeTaz = -1;
+		workTaz = -1;
+	}
 
 	if( homeTaz == -1 || workTaz == -1 )
+	{
 		ZZ_logsumhh = 0;
+		return 0;
+	}
 	else
-		ZZ_logsumhh = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz );
+	{
+		HouseHoldHitsSample *hitssample = model->HouseHoldHitsById( household->getId() );
+
+		for(int n = 0; n < model->householdGroupVec.size(); n++ )
+		{
+			BigSerial thisGroupId = model->householdGroupVec[n].getGroupId();
+			BigSerial thisHomeTaz = model->householdGroupVec[n].getHomeTaz();
+
+			if( thisGroupId == hitssample->getGroupId() &&  thisHomeTaz == homeTaz )
+			{
+				ZZ_logsumhh = model->householdGroupVec[n].getLogsum();
+				break;
+			}
+		}
+
+		if( ZZ_logsumhh == -1 )
+		{
+			ZZ_logsumhh = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz );
+
+			HM_Model::HouseholdGroup thisHHGroup(hitssample->getGroupId(), homeTaz, ZZ_logsumhh );
+			model->householdGroupVec.push_back(thisHHGroup);
+		}
+	}
 
 
-	BigSerial ethnicity = household->getEthnicityId();
 
-	const BigSerial CHINESE	= 1;
-	const BigSerial MALAY 	= 2;
-	const BigSerial INDIAN 	= 3;
-	const BigSerial OTHERS 	= 4;
+	const HM_Model::TazStats *tazstats = model->getTazStats( hometazId );
 
-	if( ethnicity == CHINESE )
+	if( tazstats->getChinesePercentage() > 0.76 )
 		ZZ_hhchinese = 1;
 
-	if( ethnicity == MALAY )
-		ZZ_hhmalay = 1;
+	if( tazstats->getChinesePercentage() > 0.10 )
+		ZZ_hhmalay 	 = 1;
 
-	if( ethnicity == INDIAN )
-		ZZ_hhindian = 1;
+	if( tazstats->getIndianPercentage() > 0.08 )
+		ZZ_hhindian  = 1;
 
-	ZZ_hhchinese = bchin * ZZ_hhchinese;
-	ZZ_hhmalay 	 = bmalay * ZZ_hhmalay;
-	ZZ_hhindian  = bindian * ZZ_hhindian;
+	if( household->getIncome() >= tazstats->getHH_AvgIncome() * 0.33 && household->getIncome() <= tazstats->getHH_AvgIncome() * 1.33 )
+		ZZ_hhinc = 1;
 
-	double av_income = 0;
-
-	//if( household->getIncome() >= av_income * 0.33 && household->getIncome() <= av_income * 1.33 )
-	ZZ_hhinc = 1; //Chetan TODO: Find the average income by taz
+	if( household->getSize() >= ( tazstats->getAvgHHSize() - 1 ) && household->getSize() <= ( tazstats->getAvgHHSize() + 1 ) )
+		ZZ_hhsize = 1;
 
 	V = bpriv * DD_priv +
 		bhdb123 * HDB123 +
@@ -528,10 +553,10 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 		bzzinc * ZZ_hhinc +
 		bzsize * ZZ_hhsize;
 
-	boost::mt19937 rng2(time(0));
-	boost::normal_distribution<> nd2( 0.0, mu);
-	boost::variate_generator<boost::mt19937&,  boost::normal_distribution<> > var_nor2(rng2, nd2);
-	double wtp_e  = var_nor2();
+	boost::mt19937 rng(time(0));
+	boost::normal_distribution<> nd( 0.0, mu);
+	boost::variate_generator<boost::mt19937&,  boost::normal_distribution<> > var_nor(rng, nd);
+	double wtp_e  = var_nor();
 
 	return V + wtp_e;
 }
@@ -540,6 +565,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 double HouseholdBidderRole::calculateSurplus(double price, double min, double max)
 {
 	//These constant variables are defined in Roberto Ponce Lopez's new Bidding model
+	// F(x) = 1 / (1 + exp(-(x-m)/s))
 	const double scale1	 = 489.706;
 	const double scale2	 = 348.322;
 	const double location1 = -91.247;
@@ -548,21 +574,22 @@ double HouseholdBidderRole::calculateSurplus(double price, double min, double ma
 	price = std::min(price, 0.0 );
 	price = std::max(price, 1.0 );
 
-	double fx    = 1 / (1 + exp(-( price - location1 ) / scale1 ) );
-	double fxmin = 1 / (1 + exp(-( min - location1 ) / scale1 ) );
-	double fxmax = 1 / (1 + exp(-( max - location1 ) / scale1 ) );
+	double fx    = 1.0 / (1.0 + exp(-( price - location1 ) / scale1 ) );
+	double fxmin = 1.0 / (1.0 + exp(-( min   - location1 ) / scale1 ) );
+	double fxmax = 1.0 / (1.0 + exp(-( max   - location1 ) / scale1 ) );
 
 	fx = fx - fxmin;
 	fx = fx/fxmax - fxmin;
 
-	double density    = 1 / scale1 * exp( ( price - location1 ) / scale1 ) * pow( ( 1.0 + exp( ( price - location1 ) / scale1 ) ), -2.0 );
-	double densitymax = 1 / scale1 * exp( ( min   - location1 ) / scale1 ) * pow( ( 1.0 + exp( ( min   - location1 ) / scale1 ) ), -2.0 );
-	double densitymin = 1 / scale1 * exp( ( max   - location1 ) / scale1 ) * pow( ( 1.0 + exp( ( max   - location1 ) / scale1 ) ), -2.0 );
+	// f(x) = 1/s exp((x-m)/s) (1 + exp((x-m)/s))^-2.
+	double density    = 1.0 / scale1 * exp( ( price - location1 ) / scale1 ) * pow( ( 1.0 + exp( ( price - location1 ) / scale1 ) ), -2.0 );
+	double densitymax = 1.0 / scale1 * exp( ( min   - location1 ) / scale1 ) * pow( ( 1.0 + exp( ( min   - location1 ) / scale1 ) ), -2.0 );
+	double densitymin = 1.0 / scale1 * exp( ( max   - location1 ) / scale1 ) * pow( ( 1.0 + exp( ( max   - location1 ) / scale1 ) ), -2.0 );
 
 	density = density - densitymin;
 	density = -(density/densitymax - densitymin);
 
-	double surplus = fx / std::max(density, 0.00001);
+	double surplus = fx / std::max(density, 0.000001);
 
 	return -surplus;
 }
@@ -619,26 +646,26 @@ bool HouseholdBidderRole::pickEntryToBid()
             if( unit && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
                 flatEligibility = false;
 
-            const double constantVal = 500000;
+           // const double constantVal = 500000;
 
             if ( unit && stats && flatEligibility )
             {
-                double wp = luaModel.calulateWP(*household, *unit, *stats);
-            	double wp_new = calculateWillingnessToPay(unit, household) * constantVal;
+               //double wp_old = luaModel.calulateWP(*household, *unit, *stats);
+            	double wp = calculateWillingnessToPay(unit, household);
 
             	wp = std::max(0.0, wp );
 
+            	householdAffordabilityAmount = std::max(0.0f, householdAffordabilityAmount);
             	if( wp > householdAffordabilityAmount )
                 {
-            		householdAffordabilityAmount = std::max(0.0f, householdAffordabilityAmount);
                 	wp = householdAffordabilityAmount;
                 }
 
-            	double surplus = calculateSurplus( (wp / constantVal ) / (entry->getAskingPrice() / constantVal ) , 0.0, 2.1 ) * constantVal;
+            	double bid = wp;//ComputeBidValue(wp);
 
-            	if( wp >= entry->getAskingPrice() && wp > maxWP )
+            	if( bid >= entry->getAskingPrice() && bid > maxWP )
             	{
-            		maxWP = wp;
+            		maxWP = bid;
             		maxEntry = entry;
             	}
             }
@@ -647,6 +674,31 @@ bool HouseholdBidderRole::pickEntryToBid()
 
     biddingEntry = CurrentBiddingEntry((maxEntry) ? maxEntry->getUnitId() : INVALID_ID, maxWP);
     return biddingEntry.isValid();
+}
+
+
+double HouseholdBidderRole::ComputeBidValue(double wp )
+{
+	double bid = wp;
+	const int MAX_ITERATIONS = 50;
+	double epsilon = 1;
+
+	//PrintOutV("wp: " << wp << "Bids: ");
+	for (int n = 0; n < MAX_ITERATIONS; n++  )
+	{
+		double bidL = wp - calculateSurplus( bid , 0.0, 2.1 );
+
+		if( abs(bidL - bid) < epsilon )
+			break;
+		else
+			bid = bidL;
+
+		//PrintOut(" " << bid );
+	}
+
+	//PrintOut(std::endl);
+
+	return bid;
 }
 
 void HouseholdBidderRole::reconsiderVehicleOwnershipOption()

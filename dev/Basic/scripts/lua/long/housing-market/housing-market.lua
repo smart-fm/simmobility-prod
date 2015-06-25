@@ -445,7 +445,7 @@ function calulateUnitExpectations (unit, timeOnMarket, building, postcode, ameni
     local expectations = {}
     -- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
 
-    local hedonicPrice = (calculateHedonicPrice(unit, building, postcode, amenities) * sqfToSqm(unit.floorArea))/1000
+    local hedonicPrice = math.exp(calculateHedonicPrice(unit, building, postcode, amenities))
 
     if (hedonicPrice > 0) then
         local targetPrice = hedonicPrice -- IMPORTANT : this should be the hedonic value

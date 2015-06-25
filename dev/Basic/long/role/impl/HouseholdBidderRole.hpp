@@ -73,6 +73,7 @@ namespace sim_mob
             HouseholdAgent* getParent();
 
             void ComputeHouseholdAffordability();
+            double ComputeBidValue(double wp);
             /**
              * Inherited from LT_Role
              * @param currTime

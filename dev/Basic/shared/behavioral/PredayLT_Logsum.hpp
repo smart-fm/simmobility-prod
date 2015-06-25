@@ -50,15 +50,11 @@ private:
 
 	/**
 	 * Gets details of all mtz zones
-	 *
-	 * @param dbType type of backend where the zone data is available
 	 */
 	void loadZones();
 
 	/**
 	 * loads the AM, PM and off peak costs data
-	 *
-	 * @param dbType type of backend where the cost data is available
 	 */
 	void loadCosts();
 

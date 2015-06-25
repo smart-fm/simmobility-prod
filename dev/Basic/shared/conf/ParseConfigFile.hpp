@@ -94,6 +94,7 @@ private:
 	//Descend through System/Workers
 	void ProcessWorkerPersonNode(xercesc::DOMElement* node);
 	void ProcessWorkerSignalNode(xercesc::DOMElement* node);
+	void ProcessWorkerIntMgrNode(xercesc::DOMElement* node);
 	void ProcessWorkerCommunicationNode(xercesc::DOMElement* node);
 
 	//Dabase mappings/connection

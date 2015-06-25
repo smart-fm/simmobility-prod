@@ -372,6 +372,9 @@ void sim_mob::ExpandAndValidateConfigFile::CheckGranularities()
     if (workers.signal.granularityMs < baseGranMS) {
     	throw std::runtime_error("Signal granularity cannot be smaller than base granularity.");
     }
+    if (workers.intersectionMgr.granularityMs < baseGranMS) {
+    	throw std::runtime_error("Intersection Manager granularity cannot be smaller than base granularity.");
+    }
     if (workers.communication.granularityMs < baseGranMS) {
     	throw std::runtime_error("Communication granularity cannot be smaller than base granularity.");
     }
@@ -397,6 +400,9 @@ void sim_mob::ExpandAndValidateConfigFile::SetTicks()
 		throw std::runtime_error("Person granularity not a multiple of base granularity.");
 	}
 	if (!SetTickFromBaseGran(cfg.granSignalsTicks, cfg.system.workers.signal.granularityMs)) {
+		throw std::runtime_error("Signal granularity not a multiple of base granularity.");
+	}
+	if (!SetTickFromBaseGran(cfg.granIntMgrTicks, cfg.system.workers.intersectionMgr.granularityMs)) {
 		throw std::runtime_error("Signal granularity not a multiple of base granularity.");
 	}
 	if (!SetTickFromBaseGran(cfg.granCommunicationTicks, cfg.system.workers.communication.granularityMs)) {

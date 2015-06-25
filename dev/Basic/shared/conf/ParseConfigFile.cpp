@@ -930,6 +930,12 @@ void sim_mob::ParseConfigFile::ProcessWorkerSignalNode(xercesc::DOMElement* node
 	cfg.system.workers.signal.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
 }
 
+void sim_mob::ParseConfigFile::ProcessWorkerIntMgrNode(xercesc::DOMElement* node)
+{
+	cfg.system.workers.intersectionMgr.count = ParseInteger(GetNamedAttributeValue(node, "count"));
+	cfg.system.workers.intersectionMgr.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
+}
+
 void sim_mob::ParseConfigFile::ProcessWorkerCommunicationNode(xercesc::DOMElement* node)
 {
 	cfg.system.workers.communication.count = ParseInteger(GetNamedAttributeValue(node, "count"));

@@ -343,6 +343,7 @@ public:
 
 	Worker person;
 	Worker signal;
+	Worker intersectionMgr;
 	Worker communication;
 };
 

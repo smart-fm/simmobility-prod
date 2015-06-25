@@ -320,6 +320,7 @@
         <workers>
             <person count="1" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
             <signal count="0" granularity="5 seconds"/> <!-- Traffic signals -->
+            <intersection_manager count="1" granularity="500ms"/> <!-- Intersection managers -->
             <communication count="0" granularity="5 seconds"/>  <!-- Communication simulator -->
         </workers>
         

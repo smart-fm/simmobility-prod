@@ -252,6 +252,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//Work Group specifications
 	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(), config.totalRuntimeTicks, config.granPersonTicks, &AuraManager::instance(), partMgr);
 	WorkGroup* signalStatusWorkers = wgMgr.newWorkGroup(config.signalWorkGroupSize(), config.totalRuntimeTicks, config.granSignalsTicks);
+	WorkGroup* intMgrWorkers = wgMgr.newWorkGroup(config.intMgrWorkGroupSize(), config.totalRuntimeTicks, config.granIntMgrTicks);
 
 	//TODO: Ideally, the Broker would go on the agent Work Group. However, the Broker often has to wait for all Agents to finish.
 	//      If an Agent is "behind" the Broker, we have two options:
@@ -268,6 +269,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//Initialize each work group individually
 	personWorkers->initWorkers(&entLoader);
 	signalStatusWorkers->initWorkers(nullptr);
+	intMgrWorkers->initWorkers(nullptr);
 	communicationWorkers->initWorkers(nullptr);
 
 	//If commsim is enabled, start the Broker.
@@ -298,9 +300,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 	
 	//Assign all intersection managers to the signal worker
-	for (vector<IntersectionManager *>::iterator it = IntersectionManager::intManagers.begin(); it != IntersectionManager::intManagers.end(); ++it)
+	for (map<unsigned int, IntersectionManager *>::iterator it = IntersectionManager::intManagers.begin(); it != IntersectionManager::intManagers.end(); ++it)
 	{
-		signalStatusWorkers->assignAWorker(*it);
+		intMgrWorkers->assignAWorker(it->second);
 	}
 
 	if(sim_mob::FMOD::FMOD_Controller::instanceExists())
@@ -544,7 +546,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	} 
 	else 
 	{
-		clear_delete_vector(IntersectionManager::intManagers);
+		clear_delete_map(IntersectionManager::intManagers);
 		clear_delete_vector(Signal::all_signals_);
 		clear_delete_vector(Agent::all_agents);
 	}

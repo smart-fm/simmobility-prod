@@ -17,7 +17,7 @@
 using namespace sim_mob::long_term;
 
 Household::Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, double income,
-					  int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType, bool taxiAvailability, int vehicleOwnershipOptionId ): id(id),
+					  int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType, bool taxiAvailability, int vehicleOwnershipOptionId): id(id),
 					  lifestyleId(lifestyleId), unitId(unitId), ethnicityId(ethnicityId), vehicleCategoryId(vehicleCategoryId),size(size), childUnder4(childUnder4), childUnder15(childUnder15), income(income),
 					  housingDuration(housingDuration), workers(workers), ageOfHead(ageOfHead), twoRoomHdbEligibility(twoRoomHdbEligibility),
 					  threeRoomHdbEligibility(threeRoomHdbEligibility), fourRoomHdbEligibility(fourRoomHdbEligibility),familyType(familyType), taxiAvailability(taxiAvailability), vehicleOwnershipOptionId(vehicleOwnershipOptionId){}
@@ -41,6 +41,7 @@ Household& Household::operator=(const Household& source)
     this->workers = source.workers;
     this->ageOfHead = source.ageOfHead;
     this->taxiAvailability = source.taxiAvailability;
+    this->vehicleOwnershipOptionId = source.vehicleOwnershipOptionId;
     return *this;
 }
 

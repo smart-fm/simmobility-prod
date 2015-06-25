@@ -249,7 +249,7 @@ void DatabaseLoader::getCBD_Border(const string & cnn,
 {
 	soci::session sql(soci::postgresql, cnn);
 
-	soci::rowset<sim_mob::CBD_Pair> rsIn = sql.prepare << std::string("select * from ") + "get_banned_in_turning()";
+	soci::rowset<sim_mob::CBD_Pair> rsIn = sql.prepare << std::string("select * from ") + "get_extended_cbd_in_turning()";
 	for (soci::rowset<sim_mob::CBD_Pair>::iterator it = rsIn.begin();it != rsIn.end(); it++)
 	{
 		std::map<unsigned long, const sim_mob::RoadSegment*>::iterator itFromSeg(sim_mob::RoadSegment::allSegments.find(it->from_section));
@@ -269,7 +269,7 @@ void DatabaseLoader::getCBD_Border(const string & cnn,
 		}
 	}
 
-	soci::rowset<sim_mob::CBD_Pair> rsOut = sql.prepare << std::string("select * from ") + "get_banned_out_turning()";
+	soci::rowset<sim_mob::CBD_Pair> rsOut = sql.prepare << std::string("select * from ") + "get_extended_cbd_out_turning()";
 	for (soci::rowset<sim_mob::CBD_Pair>::iterator it = rsOut.begin();	it != rsOut.end(); it++)
 	{
 		std::map<unsigned long, const sim_mob::RoadSegment*>::iterator itFromSeg(sim_mob::RoadSegment::allSegments.find(it->from_section));
@@ -294,7 +294,7 @@ void DatabaseLoader::getCBD_Border(const string & cnn,
 void DatabaseLoader::getCBD_Segments(const string & cnn, std::set<const sim_mob::RoadSegment*> & zoneSegments)
 {
 	soci::session sql(soci::postgresql, cnn);
-	soci::rowset<int> rs = sql.prepare << std::string("select * from ") + "get_ban_section_CBD_aimsun()";
+	soci::rowset<int> rs = sql.prepare << std::string("select * from ") + "get_section_extended_cbd()";
 	for (soci::rowset<int>::iterator it = rs.begin();	it != rs.end(); it++)
 	{
 		std::map<unsigned long, const sim_mob::RoadSegment*>::iterator itSeg(sim_mob::RoadSegment::allSegments.find(*it));
@@ -371,7 +371,7 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 						std::string str = "SinglePath: seg not find " + id;
 						throw std::runtime_error(str);
 					}
-					if(seg->CBD && excludedRS.find(seg) != excludedRS.end())//hack(seg->CBD)!!
+					if(excludedRS.find(seg) != excludedRS.end())
 					{
 						proceed = false;
 						break;

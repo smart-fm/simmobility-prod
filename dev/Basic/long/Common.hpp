@@ -147,7 +147,7 @@ namespace sim_mob {
         const std::string EX_EV_LUA_DIR = "../scripts/lua/long/external-events";
         const std::string DEV_LUA_DIR = "../scripts/lua/long/developer";
 
-		//#define VERBOSE
+		#define VERBOSE
 		//#define VERBOSE_POSTCODE
     }
 }

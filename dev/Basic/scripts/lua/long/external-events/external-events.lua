@@ -51,7 +51,7 @@ function getExternalEvents (day)
     --    return events[day];
     --end
     if day ~= 1 then
-  	for i= 1, 100 do
+  	for i= 1, 50 do
            local household = math.random(1,1146054)
            if excluded[household] == nil then
               addHouseHoldEvent(day, EventType.NEW_SCHOOL_LOCATION, household)

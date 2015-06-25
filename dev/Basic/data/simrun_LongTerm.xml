@@ -160,10 +160,10 @@
 		<initialProjectId value = "200000" />
     	</developerModel>
         <housingModel enabled="true"> 
-            <timeOnMarket value="90"/>
-            <timeOffMarket value="150"/>
+            <timeOnMarket value="9"/>
+            <timeOffMarket value="15"/>
             <timeInterval value="7"/>
-	    <InitialHouseholdsOnMarket value="10000"/>
+	    <InitialHouseholdsOnMarket value="100"/>
 	    <vacantUnitActivationProbability value="0.375"/>
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>

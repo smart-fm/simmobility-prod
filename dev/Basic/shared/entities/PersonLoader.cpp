@@ -216,11 +216,33 @@ bool sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::Node* target) 
 
 bool sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::WayPoint& target) const
 {
-	if(target.type_ != WayPoint::NODE)
+	switch(target.type_)
 	{
-		throw std::runtime_error ("Checking a Waypoint whose type is not Node");
+		case WayPoint::NODE:
+		{
+			return isInRestrictedZone(target.node_);
+		}
+		case WayPoint::ROAD_SEGMENT:
+		{
+			return isInRestrictedSegmentZone(target.roadSegment_);
+		}
+		default:
+		{
+			throw std::runtime_error("Invalid Waypoint type supplied\n");
+		}
 	}
-	return isInRestrictedZone(target.node_);
+}
+
+bool sim_mob::RestrictedRegion::isInRestrictedZone(const std::vector<WayPoint>& target) const
+{
+	BOOST_FOREACH(WayPoint wp, target)
+	{
+		if(isInRestrictedZone(wp))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 bool sim_mob::RestrictedRegion::isInRestrictedSegmentZone(const std::vector<WayPoint> & target) const
@@ -233,7 +255,6 @@ bool sim_mob::RestrictedRegion::isInRestrictedSegmentZone(const std::vector<WayP
 		}
 		if(Impl->isInRestrictedSegmentZone(wp.roadSegment_))
 		{
-			std::cout << wp.roadSegment_->getId() << " in the CBD zone\n";
 			return true;
 		}
 	}

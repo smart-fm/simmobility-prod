@@ -3493,7 +3493,7 @@ void sim_mob::aimsun::Loader::CreateIntersectionManagers(const sim_mob::RoadNetw
 			IntersectionManager *intMgr = new IntersectionManager(sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy(), *itIntersection);
 			
 			//Add it to the vector
-			IntersectionManager::intManagers.push_back(intMgr);
+			IntersectionManager::intManagers.insert(std::make_pair((*itIntersection)->getID(), intMgr));
 		}
 	}
 }

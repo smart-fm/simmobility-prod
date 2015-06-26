@@ -110,12 +110,7 @@ void sim_mob::RestrictedRegion::populate()
 	sim_mob::aimsun::Loader::getCBD_Border(in,out);
 	sim_mob::aimsun::Loader::getCBD_Segments(zoneSegments);
 
-	//zone nodes = start and end nodes of zoneSegments
-	BOOST_FOREACH(const sim_mob::RoadSegment*rs,zoneSegments)
-	{
-		zoneNodes[rs->getStart()->getID()] = rs->getStart();
-		zoneNodes[rs->getEnd()->getID()] = rs->getEnd();
-	}
+	sim_mob::aimsun::Loader::getCBD_Nodes(zoneNodes);
 
 	typedef std::map<unsigned int, const Node*>::value_type Pair;
 

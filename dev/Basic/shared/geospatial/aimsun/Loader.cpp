@@ -163,6 +163,8 @@ public:
 			std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > & out);
 	static void getCBD_Segments(const string & cnn,std::set<const sim_mob::RoadSegment*> & zoneSegments);
 
+	static void getCBD_Nodes(const string& cnn, std::map<unsigned int, const sim_mob::Node*>& nodes);
+
 private:
 	soci::session sql_;
 
@@ -312,6 +314,25 @@ void DatabaseLoader::getCBD_Segments(const string & cnn, std::set<const sim_mob:
 		{
 			itSeg->second->CBD = true;
 			zoneSegments.insert(itSeg->second);
+		}
+	}
+}
+
+void DatabaseLoader::getCBD_Nodes(const std::string& cnn, std::map<unsigned int, const sim_mob::Node*>& nodes)
+{
+	soci::session sql(soci::postgresql, cnn);
+
+	const std::string& restrictedNodesFunc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().
+															procedureMappings["restricted_reg_nodes"];
+
+	soci::rowset<int> rs = sql.prepare << std::string("select * from ") + restrictedNodesFunc;
+	for(soci::rowset<int>::iterator it = rs.begin(); it != rs.end(); it++)
+	{
+		std::map<unsigned int, const sim_mob::Node*>::iterator itNode = sim_mob::Node::allNodes.find((*it));
+		if(itNode != sim_mob::Node::allNodes.end())
+		{
+			itNode->second->CBD = true;
+			nodes[itNode->second->getID()] = itNode->second;
 		}
 	}
 }
@@ -2833,6 +2854,12 @@ void sim_mob::aimsun::Loader::getCBD_Segments(std::set<const sim_mob::RoadSegmen
 {
 	std::string cnn(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
 	DatabaseLoader::getCBD_Segments(cnn, zoneSegments);
+}
+
+void sim_mob::aimsun::Loader::getCBD_Nodes(std::map<unsigned int, const sim_mob::Node*>& nodes)
+{
+	std::string cnn(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
+	DatabaseLoader::getCBD_Nodes(cnn, nodes);
 }
 
 void sim_mob::aimsun::Loader::LoadERPData(const std::string& connectionStr,

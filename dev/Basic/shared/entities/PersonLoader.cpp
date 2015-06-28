@@ -27,73 +27,72 @@ using namespace sim_mob;
 
 namespace
 {
-	// for convenience. see loadActivitySchedule function
-	const double DEFAULT_LOAD_INTERVAL = 0.5; // 0.5, when added to the 30 min representation explained below, will span for 1 hour in our query
+// for convenience. see loadActivitySchedule function
+const double DEFAULT_LOAD_INTERVAL = 0.5; // 0.5, when added to the 30 min representation explained below, will span for 1 hour in our query
 
-	const double LAST_30MIN_WINDOW_OF_DAY = 26.75;
-	const double TWENTY_FOUR_HOURS = 24.0;
-	const string HOME_ACTIVITY_TYPE = "Home";
-	const unsigned int SECONDS_IN_ONE_HOUR = 3600;
+const double LAST_30MIN_WINDOW_OF_DAY = 26.75;
+const double TWENTY_FOUR_HOURS = 24.0;
+const string HOME_ACTIVITY_TYPE = "Home";
+const unsigned int SECONDS_IN_ONE_HOUR = 3600;
 
-	/**
-	 * given a time value in seconds measured from 00:00:00 (12AM)
-	 * this function returns a numeric representation of the half hour window of the day
-	 * the time belongs to.
-	 * The 48 numeric representations of the day are as follows
-	 * 3.25 = (3:00 - 3:29)
-	 * 3.75 = (3:30 - 3:59)
-	 * 4.25 = (4:00 - 4:29)
-	 * 4.75 = (4:30 - 4:59)
-	 * .
-	 * . and so on
-	 * .
-	 * 23.75 = (23:30 - 23:59)
-	 * 24:25 = (0:00 - 0:29) of next day
-	 * 24.75 = (0:30 - 0:59)
-	 * 25.25 = (1:00 - 1:29)
-	 * .
-	 * . and so on
-	 * .
-	 * 26.75 = (2:30 - 2:59)
-	 */
-	double getHalfHourWindow(uint32_t time) //time is in seconds
-	{
-		uint32_t hour = time / SECONDS_IN_ONE_HOUR;
-		uint32_t remainder = time % SECONDS_IN_ONE_HOUR;
-		uint32_t minutes = remainder/60;
-		if(hour < 3) { hour = hour+24; }
-		if(minutes < 30) { return (hour + 0.25); }
-		else { return (hour + 0.75); }
-	}
+/**
+ * given a time value in seconds measured from 00:00:00 (12AM)
+ * this function returns a numeric representation of the half hour window of the day
+ * the time belongs to.
+ * The 48 numeric representations of the day are as follows
+ * 3.25 = (3:00 - 3:29)
+ * 3.75 = (3:30 - 3:59)
+ * 4.25 = (4:00 - 4:29)
+ * 4.75 = (4:30 - 4:59)
+ * .
+ * . and so on
+ * .
+ * 23.75 = (23:30 - 23:59)
+ * 24:25 = (0:00 - 0:29) of next day
+ * 24.75 = (0:30 - 0:59)
+ * 25.25 = (1:00 - 1:29)
+ * .
+ * . and so on
+ * .
+ * 26.75 = (2:30 - 2:59)
+ */
+double getHalfHourWindow(uint32_t time) //time is in seconds
+{
+	uint32_t hour = time / SECONDS_IN_ONE_HOUR;
+	uint32_t remainder = time % SECONDS_IN_ONE_HOUR;
+	uint32_t minutes = remainder/60;
+	if(hour < 3) { hour = hour+24; }
+	if(minutes < 30) { return (hour + 0.25); }
+	else { return (hour + 0.75); }
+}
 
-	/**
-	 * generates a random time within the time window passed in preday's representation.
-	 *
-	 * @param mid time window in preday format (E.g. 4.75 => 4:30 to 4:59 AM)
-	 * @param firstFifteenMins flag to restrict random time to first fifteen minutes of 30 minute window.
-	 * 							This is useful in case of activities which have the same arrival and departure window
-	 * 							The arrival time can be chosen in the first 15 minutes and dep. time can be chosen in the 2nd 1 mins of the window
-	 * @return a random time within the window in hh24:mm:ss format
-	 */
-	std::string getRandomTimeInWindow(double mid, bool firstFifteenMins, const std::string pid = "") {
-		int hour = int(std::floor(mid));
-		int min = 0, max = 29;
-		if(firstFifteenMins) { min = 0; max = 14; }
-		int minute = Utils::generateInt(min,max) + ((mid - hour - 0.25)*60);
-		int second = Utils::generateInt(0,60);
-		std::stringstream random_time;
-		hour = hour % 24;
-		if (hour < 10) { random_time << "0"; }
-		random_time << hour << ":";
-		if (minute < 10) { random_time << "0"; }
-		random_time << minute << ":";
-		if(second < 10) { random_time << "0"; }
-		random_time << second;
-		return random_time.str(); //HH24:MI:SS format
-	}
+/**
+ * generates a random time within the time window passed in preday's representation.
+ *
+ * @param mid time window in preday format (E.g. 4.75 => 4:30 to 4:59 AM)
+ * @param firstFifteenMins flag to restrict random time to first fifteen minutes of 30 minute window.
+ * 							This is useful in case of activities which have the same arrival and departure window
+ * 							The arrival time can be chosen in the first 15 minutes and dep. time can be chosen in the 2nd 1 mins of the window
+ * @return a random time within the window in hh24:mm:ss format
+ */
+std::string getRandomTimeInWindow(double mid, bool firstFifteenMins, const std::string pid = "") {
+	int hour = int(std::floor(mid));
+	int min = 0, max = 29;
+	if(firstFifteenMins) { min = 0; max = 14; }
+	int minute = Utils::generateInt(min,max) + ((mid - hour - 0.25)*60);
+	int second = Utils::generateInt(0,60);
+	std::stringstream random_time;
+	hour = hour % 24;
+	if (hour < 10) { random_time << "0"; }
+	random_time << hour << ":";
+	if (minute < 10) { random_time << "0"; }
+	random_time << minute << ":";
+	if(second < 10) { random_time << "0"; }
+	random_time << second;
+	return random_time.str(); //HH24:MI:SS format
+}
 
 }//anon namespace
-
 
 /**
  * Parallel DAS loader
@@ -329,12 +328,7 @@ void sim_mob::RestrictedRegion::populate()
 	sim_mob::aimsun::Loader::getCBD_Border(in,out);
 	sim_mob::aimsun::Loader::getCBD_Segments(zoneSegments);
 
-	//zone nodes = start and end nodes of zoneSegments
-	BOOST_FOREACH(const sim_mob::RoadSegment*rs,zoneSegments)
-	{
-		zoneNodes[rs->getStart()->getID()] = rs->getStart();
-		zoneNodes[rs->getEnd()->getID()] = rs->getEnd();
-	}
+	sim_mob::aimsun::Loader::getCBD_Nodes(zoneNodes);
 
 	typedef std::map<unsigned int, const Node*>::value_type Pair;
 

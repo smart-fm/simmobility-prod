@@ -108,6 +108,9 @@ public:
 	static void getCBD_Border(
 			std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > &in,
 			std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > & out);
+
+	static void getCBD_Nodes(std::map<unsigned int, const sim_mob::Node*>& nodes);
+
 	///	get all CBD's segments
 	static void getCBD_Segments(std::set<const sim_mob::RoadSegment*> & zoneSegments);
 

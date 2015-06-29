@@ -51,12 +51,19 @@ namespace
     }
 
     const std::string LOG_VEHICLE_OWNERSHIP = "%1%, %2%";
+    const std::string LOG_HOUSEHOLD_GROUP_LOGSUM = "%1%, %2%, %3%";
 
     inline void writeVehicleOwnershipToFile(BigSerial hhId,int VehiclOwnershiOptionId)
     {
     	boost::format fmtr = boost::format(LOG_VEHICLE_OWNERSHIP) % hhId % VehiclOwnershiOptionId;
     	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_VEHICLE_OWNERSIP,fmtr.str());
 
+    }
+
+    inline void printHouseholdGroupLogsum( BigSerial hhId, int homeTaz, double logsum )
+    {
+    	boost::format fmtr = boost::format(LOG_HOUSEHOLD_GROUP_LOGSUM) % hhId % homeTaz % logsum;
+    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDGROUPLOGSUM,fmtr.str());
     }
 }
 
@@ -514,7 +521,9 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 			ZZ_logsumhh = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz );
 
 			HM_Model::HouseholdGroup thisHHGroup(hitssample->getGroupId(), homeTaz, ZZ_logsumhh );
-			//model->householdGroupVec.push_back(thisHHGroup);
+			model->householdGroupVec.push_back(thisHHGroup);
+
+			printHouseholdGroupLogsum(headOfHousehold->getId(), homeTaz, ZZ_logsumhh );
 		}
 	}
 

@@ -103,6 +103,16 @@ namespace
 
 	}
 
+	//taz logsum
+	const std::string LOG_TAZ_LOGSUM = "%1%, %2%";
+
+	inline void printTazLevelLogsum(int taz, double logsum)
+	{
+		boost::format fmtr = boost::format(LOG_TAZ_LOGSUM) 	% taz
+															% logsum;
+
+		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_TAZ_LEVEL_LOGSUM, fmtr.str());
+	}
 }
 
 HM_Model::TazStats::TazStats(BigSerial tazId) :	tazId(tazId), hhNum(0), hhTotalIncome(0), numChinese(0), numIndian(0), numMalay(0), householdSize(0) {}
@@ -325,6 +335,7 @@ const HM_Model::TazStats* HM_Model::getTazStats(BigSerial tazId) const
 	return nullptr;
 }
 
+
 double HM_Model::ComputeHedonicPriceLogsum(BigSerial taz)
 {
 
@@ -350,6 +361,8 @@ double HM_Model::ComputeHedonicPriceLogsum(BigSerial taz)
 
 		logsum = logsum + (lg * weight / hhSize);
 	}
+
+	printTazLevelLogsum(taz, logsum);
 
 	mtx.lock();
 	tazLevelLogsum.insert( std::make_pair<BigSerial,double>( taz,logsum ));

@@ -70,6 +70,13 @@ LoggerAgent::LoggerAgent() : Entity(-1) {
     std::ofstream* vehicleOwnershipOptionFile = new std::ofstream("hhWithVehicleOwnership.csv");
     streams.insert(std::make_pair(LOG_VEHICLE_OWNERSIP, vehicleOwnershipOptionFile));
 
+    //Tas level group logsum
+    std::ofstream* tazLevelLogsumFile = new std::ofstream("tazLevelLogsum.csv");
+    streams.insert(std::make_pair(LOG_TAZ_LEVEL_LOGSUM, tazLevelLogsumFile));
+
+    //household group logsum
+    std::ofstream* householdGroupLogsumFile = new std::ofstream("householdGroupLogsum.csv");
+    streams.insert(std::make_pair(LOG_HOUSEHOLDGROUPLOGSUM, householdGroupLogsumFile));
 }
 
 LoggerAgent::~LoggerAgent() {

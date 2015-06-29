@@ -13,13 +13,14 @@
 #include "Common.hpp"
 #include "Types.hpp"
 
-namespace sim_mob {
-
-    namespace long_term {
-
-        class TazLogsumWeight {
+namespace sim_mob
+{
+    namespace long_term
+    {
+        class TazLogsumWeight
+        {
         public:
-        	TazLogsumWeight(int groupLogsum = 0, int individualId = 0, double weight = .0);
+        	TazLogsumWeight(int groupLogsum = 0, int individualId = 0, double weight = .0, int householdId = 0);
 
             virtual ~TazLogsumWeight();
 
@@ -29,10 +30,12 @@ namespace sim_mob {
             int getGroupLogsum() const;
             int getIndividualId() const;
             double getWeight() const;
+            int getHouseholdId() const;
 
             void setGroupLogsum( int value);
             void setIndividualId( int value );
             void setWeight( double weight );
+            void setHouseholdId( int value );
 
             /**
              * Operator to print the Template data.
@@ -45,8 +48,7 @@ namespace sim_mob {
             int groupLogsum;
             int individualId;
             double weight;
-
-
+            int householdId;
         };
     }
 }

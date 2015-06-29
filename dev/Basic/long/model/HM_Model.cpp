@@ -344,7 +344,11 @@ double HM_Model::ComputeHedonicPriceLogsum(BigSerial taz)
 		double lg = PredayLT_LogsumManager::getInstance().computeLogsum( tazLogsumWeights[n]->getIndividualId(), taz, workTaz, vehicleOwnership );
 		double weight = tazLogsumWeights[n]->getWeight();
 
-		logsum = logsum + (lg * weight );
+		Individual *individual = this->getIndividualById(tazLogsumWeights[n]->getIndividualId());
+		Household  *household = this->getHouseholdById( individual->getHouseholdId() );
+		float hhSize = household->getSize();
+
+		logsum = logsum + (lg * weight / hhSize);
 	}
 
 	tazLevelLogsum.insert( std::make_pair<BigSerial,double>( taz,logsum ));
@@ -888,7 +892,8 @@ void HM_Model::startImpl()
 
 	for ( StatsMap::iterator it = stats.begin(); it != stats.end(); ++it )
 	{
-		std::cout << "Taz: " << it->first << " \tAvg Income: " << it->second->getHH_AvgIncome()
+		std::cout << "Taz: " << it->first << std::fixed << std::setprecision(2)
+										  << " \tAvg Income: " << it->second->getHH_AvgIncome()
 										  << " \t%Chinese: " << it->second->getChinesePercentage()
 										  << " \t%Malay: " << it->second->getMalayPercentage()
 										  << " \t%Indian: " << it->second->getIndianPercentage()

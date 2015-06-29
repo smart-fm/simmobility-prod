@@ -745,6 +745,7 @@ void sim_mob::ParseConfigFile::ProcessSystemWorkersNode(xercesc::DOMElement* nod
 {
 	ProcessWorkerPersonNode(GetSingleElementByName(node, "person", true));
 	ProcessWorkerSignalNode(GetSingleElementByName(node, "signal", true));
+	ProcessWorkerIntMgrNode(GetSingleElementByName(node, "intersection_manager", true));
 	ProcessWorkerCommunicationNode(GetSingleElementByName(node, "communication", true));
 
 }

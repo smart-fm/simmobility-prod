@@ -24,6 +24,7 @@ void TazLogsumWeightDao::fromRow(Row& result, TazLogsumWeight& outObj)
     outObj.groupLogsum = result.get<int>("group_logsum", 0);
     outObj.individualId = result.get<BigSerial>("individual_id", 0);
     outObj.weight = result.get<double>("weight", 0.0);
+    outObj.householdId = result.get<BigSerial>("household_id", 0);
 
 }
 

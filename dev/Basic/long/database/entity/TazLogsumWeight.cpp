@@ -14,7 +14,7 @@
 
 using namespace sim_mob::long_term;
 
-TazLogsumWeight::TazLogsumWeight(int groupLogsum, int individualId, double weight):groupLogsum(groupLogsum), individualId(individualId), weight(weight){}
+TazLogsumWeight::TazLogsumWeight(int groupLogsum, int individualId, double weight, int householdId ):groupLogsum(groupLogsum), individualId(individualId), weight(weight), householdId(householdId){}
 
 TazLogsumWeight::~TazLogsumWeight(){}
 
@@ -36,6 +36,11 @@ double TazLogsumWeight::getWeight() const
 	return weight;
 }
 
+int TazLogsumWeight::getHouseholdId() const
+{
+	return householdId;
+}
+
 void TazLogsumWeight::setGroupLogsum( int value)
 {
 	groupLogsum = value;
@@ -51,6 +56,12 @@ void TazLogsumWeight::setWeight( double value )
 	weight = value;
 }
 
+void TazLogsumWeight::setHouseholdId( int value )
+{
+	householdId = value;
+}
+
+
 
 namespace sim_mob
 {
@@ -61,7 +72,8 @@ namespace sim_mob
             return strm << "{"
                     << "\"groupLogsum\":\"" << data. groupLogsum<< "\","
                     << "\"individualId\":\"" << data.individualId << "\","
-                    << "\"weight\":\"" << data.weight << "\""
+                    << "\"weight\":\"" << data.weight << "\","
+                    << "\"householdId\":\"" << data.householdId << "\""
                     << "}";
         }
     }

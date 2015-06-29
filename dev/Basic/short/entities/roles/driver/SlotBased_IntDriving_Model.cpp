@@ -20,7 +20,6 @@ isRequestSent(false), accessRequest(nullptr)
 
 SlotBased_IntDriving_Model::~SlotBased_IntDriving_Model()
 {
-	safe_delete_item(accessRequest);
 }
 
 double SlotBased_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& params)

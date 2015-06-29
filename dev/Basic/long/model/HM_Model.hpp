@@ -147,6 +147,7 @@ namespace sim_mob
             };
 
             std::vector<HouseholdGroup> householdGroupVec;
+            boost::unordered_map<BigSerial, HouseholdGroup*> vehicleOwnerhipHHGroupByGroupId;
 
 
             HM_Model(WorkGroup& workGroup);
@@ -205,7 +206,9 @@ namespace sim_mob
             DistMRTList getDistanceMRT()const;
             DistanceMRT* getDistanceMRTById( BigSerial id) const;
             HouseHoldHitsSampleList getHouseHoldHits()const;
-            HouseHoldHitsSample* HouseHoldHitsById( BigSerial id) const;
+            HouseHoldHitsSample* getHouseHoldHitsById( BigSerial id) const;
+            HouseholdGroup* getHouseholdGroupByGroupId(BigSerial id)const;
+            void addHouseholdGroupByGroupId(HouseholdGroup* hhGroup);
 
 
         protected:
@@ -249,7 +252,10 @@ namespace sim_mob
             TazLogsumWeightList tazLogsumWeights;
             TazLogsumWeightMap tazLogsumWeightById;
 
+            boost::mutex mtx;
+            boost::mutex mtx2;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
+            boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
 
             boost::unordered_map<BigSerial, BigSerial> assignedUnits;
             VehicleOwnershipCoeffList vehicleOwnershipCoeffs;

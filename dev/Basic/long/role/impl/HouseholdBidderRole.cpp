@@ -245,7 +245,7 @@ void HouseholdBidderRole::update(timeslice now)
 void HouseholdBidderRole::TakeUnitOwnership()
 {
 	#ifdef VERBOSE
-	PrintOutV("[day " << day << "] Household " << getParent()->getId() << " is moving into unit " << unitIdToBeOwned << " today." << std::endl);
+	//PrintOutV("[day " << day << "] Household " << getParent()->getId() << " is moving into unit " << unitIdToBeOwned << " today." << std::endl);
 	#endif
 	getParent()->addUnitId( unitIdToBeOwned );
     biddingEntry.invalidate();
@@ -336,7 +336,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
                 {
                 	//PrintOut("\033[1;36mHousehold " << std::dec << household->getId() << " submitted a bid on unit " << biddingEntry.getUnitId() << "\033[0m\n" );
 					#ifdef VERBOSE
-                	PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << bidValue << "[wp:$" << biddingEntry.getWP() << ",sp:$" << speculation  << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
+                	//PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << bidValue << "[wp:$" << biddingEntry.getWP() << ",sp:$" << speculation  << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
 					#endif
 
                     bid(entry->getOwner(), Bid(entry->getUnitId(), household->getId(), getParent(), bidValue, now, biddingEntry.getWP(), speculation));
@@ -495,7 +495,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	}
 	else
 	{
-		HouseHoldHitsSample *hitssample = model->HouseHoldHitsById( household->getId() );
+		HouseHoldHitsSample *hitssample = model->getHouseHoldHitsById( household->getId() );
 
 		for(int n = 0; n < model->householdGroupVec.size(); n++ )
 		{
@@ -514,7 +514,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 			ZZ_logsumhh = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz );
 
 			HM_Model::HouseholdGroup thisHHGroup(hitssample->getGroupId(), homeTaz, ZZ_logsumhh );
-			model->householdGroupVec.push_back(thisHHGroup);
+			//model->householdGroupVec.push_back(thisHHGroup);
 		}
 	}
 
@@ -703,7 +703,7 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 {
 	if (isActive())
 	{
-	const HM_Model* model = getParent()->getModel();
+		HM_Model* model = getParent()->getModel();
 
 	int unitTypeId = 0;
 	if(model->getUnitById(this->getParent()->getHousehold()->getUnitId())!=nullptr)
@@ -713,8 +713,33 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 
 	double valueNoCar =  model->getVehicleOwnershipCoeffsById(ASC_NO_CAR)->getCoefficientEstimate();
 	double expNoCar = exp(valueNoCar);
-	double expOneCar = getExpOneCar(unitTypeId);
-	double expTwoPlusCar = getExpTwoPlusCar(unitTypeId);
+	double vehicleOwnershipLogsum = 0;
+	long householdHeadId = 0;
+	std::vector<BigSerial> individuals = this->getParent()->getHousehold()->getIndividuals();
+	std::vector<BigSerial>::iterator individualsItr;
+
+	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+	{
+		const Individual* individual = model->getIndividualById((*individualsItr));
+		if(individual->getHouseholdHead())
+		{
+			householdHeadId = individual->getId();
+		}
+	}
+	HouseHoldHitsSample *hitsSample = model->getHouseHoldHitsById( this->getParent()->getHousehold()->getId() );
+	if(model->getHouseholdGroupByGroupId(hitsSample->getGroupId())!= nullptr)
+	{
+		vehicleOwnershipLogsum = model->getHouseholdGroupByGroupId(hitsSample->getGroupId())->getLogsum();
+	}
+	else
+	{
+		vehicleOwnershipLogsum = PredayLT_LogsumManager::getInstance().computeLogsum( householdHeadId, -1, -1,1);
+		HM_Model::HouseholdGroup *hhGroup = new HM_Model::HouseholdGroup(hitsSample->getGroupId(),0,vehicleOwnershipLogsum);
+		model->addHouseholdGroupByGroupId(hhGroup);
+	}
+
+	double expOneCar = getExpOneCar(unitTypeId,vehicleOwnershipLogsum);
+	double expTwoPlusCar = getExpTwoPlusCar(unitTypeId,vehicleOwnershipLogsum);
 
 	double probabilityNoCar = (expNoCar) / (expNoCar + expOneCar+ expTwoPlusCar);
 	double probabilityOneCar = (expOneCar)/ (expNoCar + expOneCar+ expTwoPlusCar);
@@ -760,16 +785,15 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 
 }
 
-double HouseholdBidderRole::getExpOneCar(int unitTypeId)
+double HouseholdBidderRole::getExpOneCar(int unitTypeId,double vehicleOwnershipLogsum)
 {
 	double valueOneCar = 0;
-	const HM_Model* model = getParent()->getModel();
+	HM_Model* model = getParent()->getModel();
 	std::vector<BigSerial> individuals = this->getParent()->getHousehold()->getIndividuals();
 	valueOneCar =  model->getVehicleOwnershipCoeffsById(ASC_ONECAR)->getCoefficientEstimate();
 	std::vector<BigSerial>::iterator individualsItr;
 
 	bool aboveSixty = false;
-	long householdHeadId = 0;
 	bool isCEO = false;
 	int numFullWorkers = 0;
 	int numStudents = 0;
@@ -783,10 +807,6 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId)
 		if (ageCategoryId >= 12)
 		{
 			aboveSixty = true;
-		}
-		if(individual->getHouseholdHead())
-		{
-			householdHeadId = individual->getId();
 		}
 		if(individual->getOccupationId() == 1)
 		{
@@ -936,8 +956,7 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId)
 //		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * logsum->getAvgLogsum();
 //	}
 //we are getting the logsums from mid term now.
-	double logsum = PredayLT_LogsumManager::getInstance().computeLogsum( householdHeadId, -1, -1,1);
-	valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * logsum;
+	valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * vehicleOwnershipLogsum;
 
 	DistanceMRT *distanceMRT = model->getDistanceMRTById(this->getParent()->getHousehold()->getId());
 
@@ -957,7 +976,7 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId)
 	return expOneCar;
 }
 
-double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId)
+double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId, double vehicleOwnershipLogsum)
 {
 
 	double valueTwoPlusCar = 0;
@@ -966,7 +985,6 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId)
 	valueTwoPlusCar =  model->getVehicleOwnershipCoeffsById(ASC_TWOplusCAR)->getCoefficientEstimate();
 	std::vector<BigSerial>::iterator individualsItr;
 	bool aboveSixty = false;
-	long householdHeadId = 0;
 	int numFullWorkers = 0;
 	int numStudents = 0;
 	int numWhiteCollars = 0;
@@ -979,10 +997,6 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId)
 		if (ageCategoryId >= 12)
 		{
 			aboveSixty = true;
-		}
-		if(individual->getHouseholdHead())
-		{
-			householdHeadId = individual->getId();
 		}
 
 		if(individual->getEmploymentStatusId() == 1)
@@ -1141,8 +1155,7 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId)
 //		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_TWOplusCAR)->getCoefficientEstimate() * logsum->getAvgLogsum();
 //	}
 	//We are now getting the logsums from mid term.
-	double logsum = PredayLT_LogsumManager::getInstance().computeLogsum( householdHeadId, -1, -1,1);
-	valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_TWOplusCAR)->getCoefficientEstimate() * logsum;
+	valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_TWOplusCAR)->getCoefficientEstimate() * vehicleOwnershipLogsum;
 
 	DistanceMRT *distanceMRT = model->getDistanceMRTById(this->getParent()->getHousehold()->getId());
 	if(distanceMRT != nullptr)

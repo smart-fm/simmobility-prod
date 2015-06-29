@@ -82,9 +82,9 @@ namespace sim_mob
 
             void reconsiderVehicleOwnershipOption();
 
-            double getExpOneCar(int unitTypeId);
+            double getExpOneCar(int unitTypeId, double vehicleOwnershipLogsum);
 
-            double getExpTwoPlusCar(int unitTypeId);
+            double getExpTwoPlusCar(int unitTypeId, double vehicleOwnershipLogsum);
 
             /*
              * check all the vehicle categories and returns if it includes a motorcycle

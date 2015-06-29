@@ -347,7 +347,9 @@ double HM_Model::ComputeHedonicPriceLogsum(BigSerial taz)
 		logsum = logsum + (lg * weight );
 	}
 
+	mtx.lock();
 	tazLevelLogsum.insert( std::make_pair<BigSerial,double>( taz,logsum ));
+	mtx.unlock();
 
 	return logsum;
 }
@@ -539,7 +541,7 @@ HM_Model::HouseHoldHitsSampleList HM_Model::getHouseHoldHits()const
 	return this->houseHoldHits;
 }
 
-HouseHoldHitsSample* HM_Model::HouseHoldHitsById( BigSerial id) const
+HouseHoldHitsSample* HM_Model::getHouseHoldHitsById( BigSerial id) const
 {
 	HouseHoldHitsSampleMap::const_iterator itr = houseHoldHitsById.find(id);
 
@@ -549,6 +551,25 @@ HouseHoldHitsSample* HM_Model::HouseHoldHitsById( BigSerial id) const
 	}
 
 	return nullptr;
+}
+
+HM_Model::HouseholdGroup* HM_Model::getHouseholdGroupByGroupId(BigSerial id)const
+{
+	boost::unordered_map<BigSerial, HouseholdGroup*>::const_iterator itr = vehicleOwnerhipHHGroupByGroupId.find(id);
+
+		if (itr != vehicleOwnerhipHHGroupByGroupId.end())
+		{
+			return itr->second;
+		}
+
+		return nullptr;
+}
+
+void HM_Model::addHouseholdGroupByGroupId(HouseholdGroup* hhGroup)
+{
+	mtx2.lock();
+	this->vehicleOwnerhipHHGroupByGroupId.insert(std::make_pair(hhGroup->getGroupId(),hhGroup));
+	mtx2.unlock();
 }
 
 void HM_Model::setTaxiAccess(const Household *household)
@@ -760,6 +781,7 @@ void HM_Model::startImpl()
 	{
 		//Load households
 		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
+		//households.resize(10000);
 		PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
 
 		//Load units
@@ -806,6 +828,7 @@ void HM_Model::startImpl()
 
 		loadData<TazLogsumWeightDao>( conn, tazLogsumWeights, tazLogsumWeightById, &TazLogsumWeight::getGroupLogsum );
 		PrintOutV("Number of tazLogsumWeights: " << tazLogsumWeights.size() << std::endl );
+
 	}
 
 

@@ -384,8 +384,16 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     	{
     		std::tm currentDate = getDate(model->getCurrentTick());
     		int quarter = ((currentDate.tm_mon)/4); //get the current month of the simulation and divide it by 4 to determine the quarter
-    		double logsum = housingMarketModel->ComputeHedonicPriceLogsum(this->parcel->getTazId());
-    		PrintOut("calculate logsum for dev"<<logsum);
+    		BigSerial homeTazId = this->parcel->getTazId();
+    		Taz *homeTazObj = housingMarketModel->getTazById( homeTazId );
+    		std::string homeTazStr;
+    		if( homeTazObj != NULL )
+    		{
+    			homeTazStr = homeTazObj->getName();
+    		}
+
+    		BigSerial homeTaz = std::atoi( homeTazStr.c_str() );
+    		double logsum = housingMarketModel->ComputeHedonicPriceLogsum(homeTaz);
     		PotentialProject project;
     		createPotentialProjects(this->parcel->getId(),model,project,quarter,logsum);
     		if(project.getUnits().size()>0)

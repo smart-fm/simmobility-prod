@@ -227,6 +227,14 @@ double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int hom
 		personParams.setCarOwn(0);
 
 	LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
+
+	int homeLoc = personParams.getHomeLocation();
+
+	boost::unordered_map<int,int>::const_iterator zoneLookupItr = zoneIdLookup.find(homeLoc);
+
+	if( zoneLookupItr == zoneIdLookup.end())
+		return 0;
+
 	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
 
 	PredayLogsumLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, tmdParams);

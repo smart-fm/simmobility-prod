@@ -49,6 +49,8 @@ public:
 	double getArea(int zone) const;
 	void setDrive1Available(bool drive1Available);
 	int isAvailable_TMD(int choiceId) const;
+	int getCbdDummy(int zone) const;
+	int isCbdOrgZone() const;
 
 private:
 	bool drive1Available;

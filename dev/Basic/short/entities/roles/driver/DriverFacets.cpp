@@ -191,7 +191,7 @@ void sim_mob::DriverMovement::init()
 	
 	if(intersectionModel == "slot-based")
 	{
-		intModel = new SlotBased_IntDriving_Model(params);
+		intModel = new SlotBased_IntDriving_Model();
 	}
 	else
 	{
@@ -789,6 +789,9 @@ bool sim_mob::DriverMovement::updateMovement(timeslice now)
 
 	//Save some values which might not be available later.
 	const RoadSegment* prevSegment = fwdDriverMovement.getCurrSegment();
+	
+	//Store the current speed
+	params.currSpeed = parentDriver->getVehicle()->getVelocity() / 100;
 
 	params.TEMP_lastKnownPolypoint = DPoint(getCurrPolylineVector().getEndX(),
 			getCurrPolylineVector().getEndY());
@@ -1023,10 +1026,7 @@ double sim_mob::DriverMovement::performIntersectionApproach()
 			params.impatienceTimer = params.impatienceTimerStart = 0;
 			
 			//Set the max turning speed
-			params.maxLaneSpeed = turningSection->getTurningSpeed() / KILOMETER_PER_HOUR_TO_METER_PER_SEC;
-			
-			//Store the current speed
-			params.currSpeed = parentDriver->getVehicle()->getVelocity() / 100;
+			params.maxLaneSpeed = turningSection->getTurningSpeed() / KILOMETER_PER_HOUR_TO_METER_PER_SEC;			
 			
 			//Scan for conflicts in intersection only in un-signalised intersections
 			if (!trafficSignal)

@@ -35,6 +35,7 @@
 #include "util/DynamicVector.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/ReactionTimeDistributions.hpp"
+#include "entities/IntersectionManager.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -396,5 +397,22 @@ void Driver::rerouteWithPath(const std::vector<sim_mob::WayPoint>& path)
 	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
 	if (mov) {
 		mov->rerouteWithPath(path);
+	}
+}
+
+void Driver::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message)
+{
+	switch(type)
+	{
+		case MSG_RESPONSE_INT_ARR_TIME:
+		{
+			DriverUpdateParams &params = getParams();
+			const IntersectionAccess &msg = MSG_CAST(IntersectionAccess, message);
+			params.response = &msg;
+		}
+			break;
+		
+		default:
+			break;
 	}
 }

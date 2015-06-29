@@ -26,6 +26,7 @@ namespace sim_mob
   class Lane;
   class Driver;
   class IncidentPerformer;
+  class IntersectionAccess;
 
 #ifndef SIMMOB_DISABLE_MPI
   class PackageUtils;
@@ -122,7 +123,7 @@ namespace sim_mob
     v_lead(0), space_star(0), distanceToNormalStop(0), dis2stop(0), impatienceTimer(0.0), justChangedToNewSegment(false),
     justMovedIntoIntersection(false), overflowIntoIntersection(0), driver(NULL), emergHeadway(999), acc(0),
     density(0), initSegId(0), initDis(0), initSpeed(0), parentId(0), FFAccParamsBeta(0), nextStepSize(0), maxAcceleration(0), normalDeceleration(0),
-    lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), impatienceTimerStart(0.0), hasStoppedForStopSign(false)
+    lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), impatienceTimerStart(0.0), hasStoppedForStopSign(false), response(nullptr)
     {
     }
 
@@ -305,6 +306,9 @@ namespace sim_mob
     
     //Indicates if the driver has already stopped for the stop sign
     bool hasStoppedForStopSign;
+    
+    //The response of the intersection manager to a sent request
+    const IntersectionAccess *response;
     
     int crossingFwdDistance;
 

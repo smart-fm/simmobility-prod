@@ -66,7 +66,7 @@ namespace sim_mob
   public:
     
     IntersectionDrivingModel() :
-    totalMovement(0), intersectionVisbility(50), currTurning(nullptr)
+    totalMovement(0), intersectionVisbility(150), currTurning(nullptr)
     {
     }
 
@@ -217,6 +217,8 @@ namespace sim_mob
     double crawlingAcc(double distance, DriverUpdateParams& params);
 
   public:
+    
+    MITSIM_IntDriving_Model();
 
     MITSIM_IntDriving_Model(DriverUpdateParams& params);
 
@@ -257,20 +259,16 @@ namespace sim_mob
   class SlotBased_IntDriving_Model : public MITSIM_IntDriving_Model
   {
   private:
-
-    //Separation time between vehicles following one another (also known as T1)
-    double tailgateSeparationTime;
-
-    //Separation time between vehicles with conflicting trajectories (also known as T2)
-    double conflictSeparationTime;
-
-    //Reads and stores the parameters related to intersection driving from the driver parameter xml file
-    //(data/driver_param.xml)
-    void initParam(DriverUpdateParams& params);
+    
+    //Indicates whether a request has been sent to the intersection manager for access to the intersection
+    bool isRequestSent;
+    
+    //Pointer to the access request sent by the driver
+    IntersectionAccess *accessRequest;
 
   public:
 
-    SlotBased_IntDriving_Model(DriverUpdateParams& params);
+    SlotBased_IntDriving_Model();
 
     virtual ~SlotBased_IntDriving_Model();
 

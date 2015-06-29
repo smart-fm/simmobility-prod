@@ -13,6 +13,12 @@
 using namespace std;
 using namespace sim_mob;
 
+MITSIM_IntDriving_Model::MITSIM_IntDriving_Model() :
+intersectionAttentivenessFactorMin(0), intersectionAttentivenessFactorMax(0), minimumGap(0), impatienceFactor(0), length(0), polylineMovement(0)
+{
+	modelType = Int_Model_MITSIM;
+}
+
 MITSIM_IntDriving_Model::MITSIM_IntDriving_Model(sim_mob::DriverUpdateParams& params) :
 intersectionAttentivenessFactorMin(0), intersectionAttentivenessFactorMax(0), minimumGap(0), impatienceFactor(0), length(0), polylineMovement(0)
 {

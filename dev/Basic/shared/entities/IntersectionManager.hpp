@@ -7,7 +7,6 @@
 #include <list>
 #include <map>
 #include <set>
-#include <vector>
 
 #include "Agent.hpp"
 #include "conf/params/ParameterManager.hpp"
@@ -23,8 +22,7 @@ namespace sim_mob
   const Message::MessageType MSG_REQUEST_INT_ARR_TIME = 7000000;
   const Message::MessageType MSG_RESPONSE_INT_ARR_TIME = 7000001;
   
-  class IntAccessRequest;
-  class IntAccessResponse;
+  class IntersectionAccess;
 
   class IntersectionManager : public Agent
   {
@@ -41,7 +39,10 @@ namespace sim_mob
     map<int, double> mapOfPrevAccessTimes;
     
     //Stores the requests to be processed during the upcoming frame tick
-    list<const IntAccessRequest *> receivedRequests;
+    list<const IntersectionAccess *> receivedRequests;
+    
+    //Stores the responses sent in the current frame tick
+    list<const IntersectionAccess *> sentResponses;
     
     //Separation time between vehicles following one another (also known as T1)
     double tailgateSeparationTime;
@@ -49,14 +50,12 @@ namespace sim_mob
     //Separation time between vehicles with conflicting trajectories (also known as T2)
     double conflictSeparationTime;
     
-    //Iterates through the processed requests to find the request that are incompatible with the current request
-    //and adds them to the vector of incompatible requests
-    void getIncompatibleRequests(const IntAccessRequest *request, vector<const IntAccessRequest *> &processedReq,
-                                 vector<const IntAccessRequest *> &incompatibleReq);
+    //Iterates through the processed requests to find the vehicles that are incompatible with the current request
+    void getConflicts(const IntersectionAccess *request, list<const IntersectionAccess *> &conflicts);
     
-    //Filters out the incompatible requests which have been allocated access times less than the 
+    //Filters out the conflicts which have been allocated access times less than the 
 	//access time for current request
-    void filterOutNonConflictingReq(double accessTime, vector<const IntAccessRequest *> &incompatibleReq);
+    void filterConflicts(double accessTime, list<const IntersectionAccess *> &conflicts);
     
   protected:
     
@@ -92,14 +91,14 @@ namespace sim_mob
 
   } ;  
   
-  class IntAccessRequest : public Message
+  class IntersectionAccess : public Message
   {
   private:
     
     //The driver who sent the request
     const Person *person;
     
-    //The arrival time of the person (based on the current speed and distance to the intersection)
+    //The arrival time of the person at the intersection
     double arrivalTime;
     
     //The turning that will be used by the person
@@ -107,7 +106,7 @@ namespace sim_mob
     
   public:
     
-    IntAccessRequest(const Person *person, const double arrivalTime, const TurningSection *turning) : 
+    IntersectionAccess(const Person *person, const double arrivalTime, const TurningSection *turning) : 
     person(person), arrivalTime(arrivalTime), turning(turning)
     {
     }
@@ -118,7 +117,7 @@ namespace sim_mob
       return person;
     }
 
-    //Returns the earliest arrival time of the person at the intersection
+    //Returns the arrival time of the person at the intersection
     double getArrivalTime() const
     {
       return arrivalTime;
@@ -130,24 +129,10 @@ namespace sim_mob
     }
 
   } ;
-  
-  class IntAccessResponse : public Message
-  {
-  private:
-    
-    //The time at which the vehicle must reach the intersection
-    double intAccessTime;
-    
-  public:
-    
-    IntAccessResponse(double accessTime) : intAccessTime(accessTime)
-    {
-    }
-  };
 
   struct CompareArrivalTimes
   {
-    bool operator() (const IntAccessRequest *first, const IntAccessRequest *second)
+    bool operator() (const IntersectionAccess *first, const IntersectionAccess *second)
     {
       return ( first->getArrivalTime() > second->getArrivalTime() );
     }

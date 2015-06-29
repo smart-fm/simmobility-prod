@@ -323,7 +323,7 @@ void DeveloperLuaModel::mapClasses()
 double DeveloperLuaModel::calulateUnitRevenue(const PotentialUnit& unit,const ParcelAmenities& amenities, double logsum, int quarter) const {
 
     LuaRef funcRef = getGlobal(state.get(), "calculateUnitRevenue");
-    LuaRef retVal = funcRef(&unit, &amenities, &logsum, quarter);
+    LuaRef retVal = funcRef(&unit, &amenities, logsum, quarter);
 
     if (retVal.isNumber())
     {

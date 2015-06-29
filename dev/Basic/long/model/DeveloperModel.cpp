@@ -276,7 +276,7 @@ void DeveloperModel::processParcels()
 			else
 			{
 				const double minLotSize = 100;
-				if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize))
+				if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize)|| (parcel->getDevelopmentTypeCode() == 10))
 				{
 					nonEligibleParcelList.push_back(parcel);
 				}

@@ -119,6 +119,7 @@ namespace sim_mob {
             std::tm getDate(int day);
             void setRealEstateAgent(RealEstateAgent* realEstAgent);
             void setPostcode(int postCode);
+            void setHousingMarketModel(HM_Model *housingModel);
 
         private:
             DeveloperModel* model;
@@ -134,6 +135,8 @@ namespace sim_mob {
             std::vector<BigSerial> toBeDemolishedBuildingIds;
             RealEstateAgent* realEstateAgent;
             int postcode;
+            HM_Model *housingMarketModel;
+
 
         };
     }

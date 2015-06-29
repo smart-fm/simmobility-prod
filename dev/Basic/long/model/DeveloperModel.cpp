@@ -225,6 +225,7 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList)
 				RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
 				devAgent->setRealEstateAgent(realEstateAgent);
 				devAgent->setPostcode(getPostcodeForDeveloperAgent());
+				devAgent->setHousingMarketModel(housingMarketModel);
 				agents.push_back(devAgent);
 				developers.push_back(devAgent);
 				workGroup.assignAWorker(devAgent);

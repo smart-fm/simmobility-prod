@@ -384,7 +384,7 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     	{
     		std::tm currentDate = getDate(model->getCurrentTick());
     		int quarter = ((currentDate.tm_mon)/4); //get the current month of the simulation and divide it by 4 to determine the quarter
-    		double logsum = PredayLT_LogsumManager::getInstance().computeLogsum(-1, this->parcel->getTazId(), -1 );
+    		double logsum = housingMarketModel->ComputeHedonicPriceLogsum(this->parcel->getTazId());
     		PrintOut("calculate logsum for dev"<<logsum);
     		PotentialProject project;
     		createPotentialProjects(this->parcel->getId(),model,project,quarter,logsum);
@@ -729,4 +729,10 @@ void DeveloperAgent::setRealEstateAgent(RealEstateAgent* realEstAgent)
 void DeveloperAgent::setPostcode(int postCode)
 {
 	this->postcode = postCode;
+}
+
+void DeveloperAgent::setHousingMarketModel(HM_Model *housingModel)
+{
+
+	this->housingMarketModel = housingModel;
 }

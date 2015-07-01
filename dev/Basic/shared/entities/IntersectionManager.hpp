@@ -39,10 +39,10 @@ namespace sim_mob
     map<int, double> mapOfPrevAccessTimes;
     
     //Stores the requests to be processed during the upcoming frame tick
-    list<const IntersectionAccess *> receivedRequests;
+    list<IntersectionAccess> receivedRequests;
     
     //Stores the responses sent in the current frame tick
-    list<const IntersectionAccess *> sentResponses;
+    list<IntersectionAccess> sentResponses;
     
     //Separation time between vehicles following one another (also known as T1)
     double tailgateSeparationTime;
@@ -51,11 +51,11 @@ namespace sim_mob
     double conflictSeparationTime;
     
     //Iterates through the processed requests to find the vehicles that are incompatible with the current request
-    void getConflicts(const IntersectionAccess *request, list<const IntersectionAccess *> &conflicts);
+    void getConflicts(IntersectionAccess request, list<IntersectionAccess> &conflicts);
     
     //Filters out the conflicts which have been allocated access times less than the 
 	//access time for current request
-    void filterConflicts(double accessTime, list<const IntersectionAccess *> &conflicts);
+    void filterConflicts(double accessTime, list<IntersectionAccess> &conflicts);
     
   protected:
     
@@ -95,46 +95,37 @@ namespace sim_mob
   {
   private:
     
-    //The driver who sent the request
-    const Person *person;
-    
     //The arrival time of the person at the intersection
     double arrivalTime;
     
     //The turning that will be used by the person
-    const TurningSection *turning;
+    int turningId;
     
   public:
     
-    IntersectionAccess(const Person *person, const double arrivalTime, const TurningSection *turning) : 
-    person(person), arrivalTime(arrivalTime), turning(turning)
+    IntersectionAccess(const double arrivalTime, int turningId) : 
+    arrivalTime(arrivalTime), turningId(turningId)
     {
     }
-    
-    //Returns a pointer to the person object
-    const Person* getPerson() const
-    {
-      return person;
-    }
-
+ 
     //Returns the arrival time of the person at the intersection
     double getArrivalTime() const
     {
       return arrivalTime;
     }
     
-    const TurningSection* getTurning() const
+    int getTurningId() const
     {
-      return turning;
+      return turningId;
     }
 
   } ;
 
   struct CompareArrivalTimes
   {
-    bool operator() (const IntersectionAccess *first, const IntersectionAccess *second)
+    bool operator() (IntersectionAccess first, IntersectionAccess second)
     {
-      return ( first->getArrivalTime() > second->getArrivalTime() );
+      return ( first.getArrivalTime() > second.getArrivalTime() );
     }
   } ;
 }

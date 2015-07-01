@@ -66,7 +66,7 @@ namespace sim_mob
   public:
     
     IntersectionDrivingModel() :
-    totalMovement(0), intersectionVisbility(150), currTurning(nullptr)
+    totalMovement(0), intersectionVisbility(50), currTurning(nullptr)
     {
     }
 
@@ -215,6 +215,11 @@ namespace sim_mob
 
     //Calculate the acceleration needed to crawl
     double crawlingAcc(double distance, DriverUpdateParams& params);
+    
+  protected:
+    
+    //Calculates the time required to reach the intersection
+    double calcArrivalTime(DriverUpdateParams& params);
 
   public:
     
@@ -261,14 +266,13 @@ namespace sim_mob
   private:
     
     //Indicates whether a request has been sent to the intersection manager for access to the intersection
-    bool isRequestSent;
-    
-    //Pointer to the access request sent by the driver
-    IntersectionAccess *accessRequest;
+    bool isRequestSent;    
 
   public:
 
     SlotBased_IntDriving_Model();
+    
+    void sendAccessRequest(DriverUpdateParams& params);
 
     virtual ~SlotBased_IntDriving_Model();
 

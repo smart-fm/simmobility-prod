@@ -635,3 +635,43 @@ double MITSIM_IntDriving_Model::crawlingAcc(double distance, DriverUpdateParams&
 	//Acceleration to slowly crawl towards the conflict point
 	return 2 * ((distance / 2) - params.currSpeed * params.nextStepSize) / (params.nextStepSize * params.nextStepSize);
 }
+
+double MITSIM_IntDriving_Model::calcArrivalTime(DriverUpdateParams& params)
+{
+	double arrivalTime = 0;
+	
+	//We know s = ut + (1/2)at^2
+	//To find the time required, we rearrange the equation as follows:
+	//(1/2)at^2 + ut - s = 0	This is a quadratic equation AX^2 + BX + C = 0 and we can solve for t
+	//A = (1/2)a; B = u; C = -s
+	
+	if(params.newFwdAcc == 0 && params.currSpeed != 0)
+	{
+		//Acceleration is 0, so we have a linear relation : ut - s = 0
+		arrivalTime = params.driver->distToIntersection_.get() / params.currSpeed;
+	}
+	else
+	{
+		//As it is a quadratic equation, we will have two solutions
+		double sol1 = 0, sol2 = 0;
+
+		//The discriminant (b^2 - 4ac)
+		double discriminant = (params.currSpeed * params.currSpeed) - (4 * (1 / 2) * params.newFwdAcc * (-params.driver->distToIntersection_.get()));
+
+		//Calculate the solutions
+		sol1 = (-params.currSpeed - sqrt(discriminant)) / params.newFwdAcc;
+		sol2 = (-params.currSpeed + sqrt(discriminant)) / params.newFwdAcc;
+
+		//As time can be negative, return the solution that is a positive value	
+		if (sol1 >= 0)
+		{
+			arrivalTime = sol1;
+		} 
+		else
+		{
+			arrivalTime = sol2;
+		}
+	}
+	
+	return arrivalTime;
+}

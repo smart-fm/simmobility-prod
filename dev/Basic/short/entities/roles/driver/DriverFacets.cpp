@@ -808,7 +808,7 @@ bool sim_mob::DriverMovement::updateMovement(timeslice now)
 	// Note that a vehicle may leave an intersection during intersectionDriving(), so the conditional check is necessary.
 	// Note that there is no need to chain this back to intersectionDriving.
 	if (!fwdDriverMovement.isInIntersection() && !fwdDriverMovement.isDoneWithEntireRoute()) 
-	{
+	{				
 		params.cftimer -= params.elapsedSeconds;
 		if (params.cftimer < params.elapsedSeconds) 
 		{
@@ -951,6 +951,14 @@ bool sim_mob::DriverMovement::updatePostMovement(timeslice now)
 			
 			//Set the distance to the intersection 
 			parentDriver->distToIntersection_.set(distToIntersection);
+			
+			if(intModel->getIntModelType() == Int_Model_SlotBased)
+			{
+				//We send a request to the intersection manager of the approaching intersection, asking for 'permission' to enter the 
+				//intersection
+				SlotBased_IntDriving_Model *model = dynamic_cast<SlotBased_IntDriving_Model *>(intModel);
+				model->sendAccessRequest(params);
+			}
 		}
 		else
 		{

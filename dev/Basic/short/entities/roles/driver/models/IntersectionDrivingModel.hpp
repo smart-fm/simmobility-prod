@@ -66,7 +66,7 @@ namespace sim_mob
   public:
     
     IntersectionDrivingModel() :
-    totalMovement(0), intersectionVisbility(50), currTurning(nullptr)
+    totalMovement(0), intersectionVisbility(100), currTurning(nullptr)
     {
     }
 
@@ -208,15 +208,15 @@ namespace sim_mob
 
     //Reads and stores the parameters related to intersection driving from the driver parameter xml file
     //(data/driver_param.xml)
-    void initParam(DriverUpdateParams& params);
-
-    //Calculates the deceleration needed for the vehicle to come to a stop within a given distance
-    double brakeToStop(double distance, DriverUpdateParams& params);
+    void initParam(DriverUpdateParams& params);    
 
     //Calculate the acceleration needed to crawl
     double crawlingAcc(double distance, DriverUpdateParams& params);
     
   protected:
+    
+    //Calculates the deceleration needed for the vehicle to come to a stop within a given distance
+    double brakeToStop(double distance, DriverUpdateParams& params);
     
     //Calculates the time required to reach the intersection
     double calcArrivalTime(DriverUpdateParams& params);
@@ -266,13 +266,22 @@ namespace sim_mob
   private:
     
     //Indicates whether a request has been sent to the intersection manager for access to the intersection
-    bool isRequestSent;    
+    bool isRequestSent;
+    
+    //Indicates whether the uniform acceleration has been computed
+    bool isAccelerationComputed;
+    
+    //The calculated uniform acceleration required to reach the intersection at the given time
+    double uniformAcceleration;
 
   public:
 
     SlotBased_IntDriving_Model();
     
+    //Sends the intersection access request to the intersection manager
     void sendAccessRequest(DriverUpdateParams& params);
+    
+    bool isUniformAcceleration();
 
     virtual ~SlotBased_IntDriving_Model();
 

@@ -595,6 +595,8 @@ void MITSIM_IntDriving_Model::initParam(DriverUpdateParams& params)
 
 double MITSIM_IntDriving_Model::brakeToStop(double distance, DriverUpdateParams& params)
 {
+	double acc = 0;
+	
 	if (distance > sim_mob::Math::DOUBLE_EPSILON)
 	{
 		//v^2 = u^2 + 2as (Equation of motion)
@@ -602,32 +604,46 @@ double MITSIM_IntDriving_Model::brakeToStop(double distance, DriverUpdateParams&
 		//v = final velocity, u = initial velocity
 		//a = acceleration, s = displacement
 		double sqCurrVel = params.currSpeed * params.currSpeed;
-		double acc = -sqCurrVel / distance * 0.5;
+		
+		acc = -sqCurrVel / distance * 0.5;
 
 		if (acc <= params.normalDeceleration)
 		{
-			return acc;
+			acc = params.normalDeceleration;
 		}
-
-		double dt = params.nextStepSize;
-		double vt = params.currSpeed * dt;
-		double a = dt * dt;
-		double b = 2.0 * vt - params.normalDeceleration * a;
-		double c = sqCurrVel + 2.0 * params.normalDeceleration * (distance - vt);
-		double d = b * b - 4.0 * a * c;
-
-		if (d < 0 || a <= 0.0)
+		else
 		{
-			return acc;
-		}
+			double dt = params.nextStepSize;
+			double vt = params.currSpeed * dt;
+			double a = dt * dt;
+			double b = 2.0 * vt - params.normalDeceleration * a;
+			double c = sqCurrVel + 2.0 * params.normalDeceleration * (distance - vt);
+			double d = b * b - 4.0 * a * c;
 
-		return (sqrt(d) - b) / a * 0.5;
+			if (!(d < 0 || a <= 0.0))
+			{
+				acc = (sqrt(d) - b) / a * 0.5;
+			}			
+		}
 	} 
 	else
 	{
 		double dt = params.nextStepSize;
-		return (dt > 0.0) ? -(params.currSpeed) / dt : params.maxDeceleration;
+		acc = (dt > 0.0) ? -(params.currSpeed) / dt : params.maxDeceleration;
 	}
+	
+	//Make sure the value is bounded
+	if (acc > params.maxAcceleration)
+	{
+		acc = params.maxAcceleration;
+	}
+
+	if (acc < params.maxDeceleration)
+	{
+		acc = params.maxDeceleration;
+	}
+	
+	return acc;
 }
 
 double MITSIM_IntDriving_Model::crawlingAcc(double distance, DriverUpdateParams& params)
@@ -638,14 +654,25 @@ double MITSIM_IntDriving_Model::crawlingAcc(double distance, DriverUpdateParams&
 
 double MITSIM_IntDriving_Model::calcArrivalTime(DriverUpdateParams& params)
 {
-	double arrivalTime = 0;
+	double arrivalTime = 0, acceleration = 0, finalVel = 0;
+	
+	//The final velocity is limited by the turning speed, so calculate the acceleration required to
+	//achieve the final velocity
+	//v^2 = u^2 + 2as
+	//So, a = (v^2 - u^2) / (2s)
+	
+	//Get the speed limit and convert it to m/s
+	finalVel = currTurning->getTurningSpeed() / 3.6;
+	
+	//Calculate the acceleration
+	acceleration = ((finalVel * finalVel) - (params.currSpeed * params.currSpeed)) / (2 * params.driver->distToIntersection_.get());
 	
 	//We know s = ut + (1/2)at^2
 	//To find the time required, we rearrange the equation as follows:
 	//(1/2)at^2 + ut - s = 0	This is a quadratic equation AX^2 + BX + C = 0 and we can solve for t
 	//A = (1/2)a; B = u; C = -s
 	
-	if(params.newFwdAcc == 0 && params.currSpeed != 0)
+	if(acceleration == 0 && params.currSpeed != 0)
 	{
 		//Acceleration is 0, so we have a linear relation : ut - s = 0
 		arrivalTime = params.driver->distToIntersection_.get() / params.currSpeed;
@@ -656,11 +683,11 @@ double MITSIM_IntDriving_Model::calcArrivalTime(DriverUpdateParams& params)
 		double sol1 = 0, sol2 = 0;
 
 		//The discriminant (b^2 - 4ac)
-		double discriminant = (params.currSpeed * params.currSpeed) - (4 * (1 / 2) * params.newFwdAcc * (-params.driver->distToIntersection_.get()));
+		double discriminant = (params.currSpeed * params.currSpeed) - (2 * acceleration * (-params.driver->distToIntersection_.get()));
 
 		//Calculate the solutions
-		sol1 = (-params.currSpeed - sqrt(discriminant)) / params.newFwdAcc;
-		sol2 = (-params.currSpeed + sqrt(discriminant)) / params.newFwdAcc;
+		sol1 = (-params.currSpeed - sqrt(discriminant)) / acceleration;
+		sol2 = (-params.currSpeed + sqrt(discriminant)) / acceleration;
 
 		//As time can be negative, return the solution that is a positive value	
 		if (sol1 >= 0)

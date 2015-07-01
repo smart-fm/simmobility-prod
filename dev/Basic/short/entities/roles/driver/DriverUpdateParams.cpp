@@ -4,6 +4,7 @@
 
 #include "DriverUpdateParams.hpp"
 #include "../short/entities/roles/driver/DriverFacets.hpp"
+#include "entities/IntersectionManager.hpp"
 
 namespace sim_mob
 {
@@ -18,7 +19,7 @@ DriverUpdateParams::DriverUpdateParams()
 	v_lead(0), space_star(0), distanceToNormalStop(0), dis2stop(0), impatienceTimer(0.0), nextLaneIndex(0), justChangedToNewSegment(false),
 	justMovedIntoIntersection(false), overflowIntoIntersection(0), driver(NULL), isTargetLane(false), emergHeadway(999), acc(0),
 	density(0), initSegId(0), initDis(0), initSpeed(0), parentId(0), FFAccParamsBeta(0), nextStepSize(0), maxAcceleration(0), normalDeceleration(0),
-	lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), impatienceTimerStart(0.0), hasStoppedForStopSign(false), response(nullptr)
+	lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), impatienceTimerStart(0.0), hasStoppedForStopSign(false), accessTime(0), isResponseReceived(false)
 {
 }
 
@@ -56,8 +57,9 @@ void DriverUpdateParams::buildDebugInfo()
 	std::stringstream s;
 	
 	s << "            " << parentId << ":" << accSelect << ":" << acc;
-	s << ":speed:" << currSpeed;
-
+	s << ":speed:" << currSpeed << ":distToInt:" << driver->distToIntersection_.get();
+	s << ":arrTime:" << accessTime;
+	
 #if 0
 	//debug car jump;
 	char dl[20] = "\0";

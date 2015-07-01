@@ -1103,7 +1103,7 @@ void sim_mob::DriverMovement::performIntersectionDriving(DriverUpdateParams& p)
 		cfAcc = cfModel->makeAcceleratingDecision(p);
 		
 		//Select the lower of the two accelerations
-		if(cfAcc < intAcc)
+		if(cfAcc < intAcc && intModel->getIntModelType() != Int_Model_SlotBased)
 		{
 			p.newFwdAcc = cfAcc;
 			parentDriver->setYieldingToInIntersection(-1);
@@ -1230,6 +1230,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 	p.currSpeed = parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT_UNIT;
 
 	double intApproachAcc = DBL_MAX, cfAcc = DBL_MAX;
+	bool useIntAcc = false;
 	
 	//Check if this vehicle is approaching an unsignalised intersection.
 	if (p.isApproachingIntersection)
@@ -1238,13 +1239,19 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 		
 		//Calculate the approaching intersection acceleration
 		intApproachAcc = performIntersectionApproach();
+		
+		if(intModel->getIntModelType() == Int_Model_SlotBased)
+		{
+			SlotBased_IntDriving_Model *model = dynamic_cast<SlotBased_IntDriving_Model *>(intModel);
+			useIntAcc = model->isUniformAcceleration();
+		}
 	}
 	
 	//Call car following model
 	cfAcc = cfModel->makeAcceleratingDecision(p);
 	
 	//Select the lower of the two accelerations
-	if(cfAcc < intApproachAcc)
+	if(cfAcc < intApproachAcc && !useIntAcc)
 	{
 		p.newFwdAcc = cfAcc;
 		parentDriver->setYieldingToInIntersection(-1);

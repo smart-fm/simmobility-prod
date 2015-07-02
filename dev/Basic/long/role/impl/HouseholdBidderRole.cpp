@@ -578,8 +578,8 @@ double HouseholdBidderRole::calculateSurplus(double price, double min, double ma
 	const double location1 = -91.247;
 	const double location2 = -20.547;
 
-	price = std::min(price, 0.0 );
-	price = std::max(price, 1.0 );
+	//price = std::min(price, 0.0 );
+	//price = std::max(price, 1.0 );
 
 	double fx    = 1.0 / (1.0 + exp(-( price - location1 ) / scale1 ) );
 	double fxmin = 1.0 / (1.0 + exp(-( min   - location1 ) / scale1 ) );
@@ -668,7 +668,7 @@ bool HouseholdBidderRole::pickEntryToBid()
                 	wp = householdAffordabilityAmount;
                 }
 
-            	double bid = wp;//ComputeBidValue(wp);
+            	double bid = ComputeBidValue(wp);
 
             	if( bid >= entry->getAskingPrice() && bid > maxWP )
             	{

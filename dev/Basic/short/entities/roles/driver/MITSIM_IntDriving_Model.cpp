@@ -690,10 +690,14 @@ double MITSIM_IntDriving_Model::calcArrivalTime(DriverUpdateParams& params)
 		sol2 = (-params.currSpeed + sqrt(discriminant)) / acceleration;
 
 		//As time can be negative, return the solution that is a positive value	
-		if (sol1 >= 0)
+		if (sol1 >= 0 && sol2 >= 0)
+		{
+			arrivalTime = min(sol1, sol2);
+		} 
+		else if(sol1 >= 0)
 		{
 			arrivalTime = sol1;
-		} 
+		}
 		else
 		{
 			arrivalTime = sol2;

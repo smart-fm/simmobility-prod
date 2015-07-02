@@ -119,17 +119,27 @@ Entity::UpdateStatus IntersectionManager::frame_tick(timeslice now)
 				//Point the iterators to the beginning of the list and advance one of them to the next element
 				itConflicts = itConflictsNext = conflicts.begin();			
 				++itConflictsNext;
+				
+				bool isGapFound = false;
 
+				//Look for a gap between 2 conflicting requests. The gap should be larger than 2*T2
 				while(itConflictsNext != conflicts.end())
 				{
 					if((*itConflictsNext).getArrivalTime() - (*itConflicts).getArrivalTime() >= (2 * conflictSeparationTime))
 					{
 						accessTime = (*itConflicts).getArrivalTime() + conflictSeparationTime;
+						isGapFound = true;
 						break;
 					}
 
 					++itConflicts;
 					++itConflictsNext;
+				}
+								
+				if(!isGapFound)
+				{
+					//Gap was not found, so the access time is arrival time of last conflict request + T2
+					accessTime = (conflicts.back()).getArrivalTime() + conflictSeparationTime;
 				}
 			}
 		}

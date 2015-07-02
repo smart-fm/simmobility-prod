@@ -16,6 +16,14 @@ SlotBased_IntDriving_Model::SlotBased_IntDriving_Model() :
 isRequestSent(false), isAccelerationComputed(false), uniformAcceleration(0)
 {
 	modelType = Int_Model_SlotBased;
+	
+	string modelName = "general_driver_model";
+
+	//Get the parameter manager instance for the AMOD, as these intersections are for AMOD
+	ParameterManager *parameterMgr = ParameterManager::Instance(true);
+
+	//Read the parameter values
+	parameterMgr->param(modelName, "intersection_visibility", intersectionVisbility, 50.0);
 }
 
 SlotBased_IntDriving_Model::~SlotBased_IntDriving_Model()
@@ -51,7 +59,7 @@ double SlotBased_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& 
 		//Once we've entered the intersection, the acceleration should be 0 as the we've reached the turning speed limit		
 		if(params.driver->isInIntersection_.get())
 		{
-			if(uniformAcceleration > 0)
+			if(uniformAcceleration >= 0)
 			{
 				uniformAcceleration = 0;
 			}

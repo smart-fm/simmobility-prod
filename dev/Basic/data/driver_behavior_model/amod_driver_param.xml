@@ -222,6 +222,10 @@
 	The visibility_distance parameter is used in the car follow model to reduce the follower reaction time 
 	when subject vehicle brakes (in meter) -->
 	<param name="visibility_distance" value="10"/>
+	
+	<!--This is the distance at which an intersection and vehicles approaching it from other links become visible
+	to a driver.(in metres)-->
+	<param name="intersection_visibility" value="50"/>
 
 <!-- H. LANE CHANGE MODEL PARAMETERS -->
 

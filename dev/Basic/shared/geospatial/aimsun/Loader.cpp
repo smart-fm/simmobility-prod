@@ -3507,7 +3507,7 @@ void sim_mob::aimsun::Loader::CreateIntersectionManagers(const sim_mob::RoadNetw
 	for (vector<sim_mob::MultiNode*>::const_iterator itIntersection = roadNetwork.nodes.begin(); itIntersection != roadNetwork.nodes.end(); itIntersection++)
 	{		
 		//Check if it has a traffic signal
-		if((*itIntersection)->hasTrafficSignal == false)
+		if(!StreetDirectory::instance().signalAt(**itIntersection))
 		{
 			//No traffic signal at the multi-node, so create an intersection manager
 			IntersectionManager *intMgr = new IntersectionManager(sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy(), *itIntersection);

@@ -1802,7 +1802,8 @@ void DatabaseLoader::DecorateAndTranslateObjects()
 	//        1) In ALL sections that meet at this node, there are only two distinct nodes.
 	//        2) Each of these distinct nodes has exactly ONE Segment leading "from->to" and one leading "to->from".
 	//           This should take bi-directional Segments into account.
-	//        3) Optionally, there can be a single link in ONE direction, representing a one-way road.
+	//        3) All Segments share the same Road Name
+	//        4) Optionally, there can be a single link in ONE direction, representing a one-way road.
 	vector<int> nodeMismatchIDs;
 	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++)
 	{
@@ -1816,26 +1817,45 @@ void DatabaseLoader::DecorateAndTranslateObjects()
 		for (vector<Section*>::iterator it=n->sectionsAtNode.begin(); it!=n->sectionsAtNode.end(); it++)
 		{
 			//Get "other" node
-			Node* otherNode = ((*it)->fromNode!=n) ? (*it)->fromNode : (*it)->toNode;
+			Node* otherNode = ((*it)->fromNode != n) ? (*it)->fromNode : (*it)->toNode;
 
 			//Manage property one.
 			unsigned int* flagPtr;
-			if (!others.first || others.first==otherNode) {
+			if (!others.first || others.first == otherNode)
+			{
 				others.first = otherNode;
 				flagPtr = &flags.first;
-			} else if (!others.second || others.second==otherNode) {
+			}
+			else if (!others.second || others.second == otherNode)
+			{
 				others.second = otherNode;
 				flagPtr = &flags.second;
-			} else {
+			}
+			else
+			{
 				n->candidateForSegmentNode = false; //Fail
 				break;
 			}
 
 			//Manage property two.
-			unsigned int toFlag = ((*it)->toNode==n) ? 1 : 2;
-			if (((*flagPtr)&toFlag)==0) {
+			unsigned int toFlag = ((*it)->toNode == n) ? 1 : 2;
+			if (((*flagPtr) & toFlag) == 0)
+			{
 				*flagPtr = (*flagPtr) | toFlag;
-			} else {
+			}
+			else
+			{
+				n->candidateForSegmentNode = false; //Fail
+				break;
+			}
+
+			//Manage property three.
+			if (expectedName.empty())
+			{
+				expectedName = (*it)->roadName;
+			}
+			else if (expectedName != (*it)->roadName)
+			{
 				n->candidateForSegmentNode = false; //Fail
 				break;
 			}
@@ -3485,7 +3505,7 @@ void sim_mob::aimsun::Loader::CreateIntersectionManagers(const sim_mob::RoadNetw
 {
 	//Iterate through all the multi-nodes
 	for (vector<sim_mob::MultiNode*>::const_iterator itIntersection = roadNetwork.nodes.begin(); itIntersection != roadNetwork.nodes.end(); itIntersection++)
-	{
+	{		
 		//Check if it has a traffic signal
 		if((*itIntersection)->hasTrafficSignal == false)
 		{

@@ -31,11 +31,12 @@ double SlotBased_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& 
 	if(params.isResponseReceived)
 	{
 		//Time remaining to reach the intersection
-		double timeToReachInt = params.accessTime - (params.now.ms() / 1000);
+		double timeToReachInt = params.accessTime - ((double) params.now.ms() / 1000);
 		
 		if(timeToReachInt > 0)
 		{
 			//Calculate the acceleration required to reach the intersection at the given time
+			//We use s = ut + (1/2)at^2 to calculate a
 			acc = 2 * (params.driver->distToIntersection_.get() - (params.currSpeed * timeToReachInt)) / (timeToReachInt * timeToReachInt);
 			
 			//Set the uniform acceleration
@@ -47,6 +48,20 @@ double SlotBased_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& 
 	}
 	else if(isAccelerationComputed)
 	{
+		//Once we've entered the intersection, the acceleration should be 0 as the we've reached the turning speed limit		
+		if(params.driver->isInIntersection_.get())
+		{
+			if(uniformAcceleration > 0)
+			{
+				uniformAcceleration = 0;
+			}
+			else
+			{
+				uniformAcceleration = params.maxAcceleration;
+				isAccelerationComputed = false;
+			}
+		}
+		
 		acc = uniformAcceleration;
 	}
 	
@@ -70,7 +85,7 @@ void SlotBased_IntDriving_Model::sendAccessRequest(DriverUpdateParams& params)
 		if(arrivalTime > 0)
 		{
 			//Add the current time, to calculate the actual time the vehicle should reach the intersection
-			arrivalTime += (params.now.ms() / 1000);
+			arrivalTime += ((double) params.now.ms() / 1000);
 			
 			//Pointer to the access request sent by the driver
 			IntersectionAccess *accessRequest = new IntersectionAccess(arrivalTime, currTurning->getDbId());

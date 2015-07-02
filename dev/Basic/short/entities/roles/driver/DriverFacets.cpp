@@ -1078,7 +1078,8 @@ void sim_mob::DriverMovement::performIntersectionDriving(DriverUpdateParams& p)
 	if (p.cftimer < p.elapsedSeconds)
 	{
 		double cfAcc = DBL_MAX, intAcc = DBL_MAX;
-
+		bool useIntAcc = false;
+		
 		//Clear the flag 
 		parentDriver->setYieldingToInIntersection(-1);		
 		
@@ -1090,6 +1091,12 @@ void sim_mob::DriverMovement::performIntersectionDriving(DriverUpdateParams& p)
 			
 			//Call the intersection driving model
 			intAcc = intModel->makeAcceleratingDecision(p);
+			
+			if(intModel->getIntModelType() == Int_Model_SlotBased)
+			{
+				SlotBased_IntDriving_Model *model = dynamic_cast<SlotBased_IntDriving_Model *>(intModel);
+				useIntAcc = model->isUniformAcceleration();
+			}
 		}
 		//In case we've moved forward into an intersection then stopped, when there was a red light		
 		//The "aC" indicates that previously acceleration due to traffic signal was selected		
@@ -1103,7 +1110,7 @@ void sim_mob::DriverMovement::performIntersectionDriving(DriverUpdateParams& p)
 		cfAcc = cfModel->makeAcceleratingDecision(p);
 		
 		//Select the lower of the two accelerations
-		if(cfAcc < intAcc && intModel->getIntModelType() != Int_Model_SlotBased)
+		if(cfAcc < intAcc && !useIntAcc)
 		{
 			p.newFwdAcc = cfAcc;
 			parentDriver->setYieldingToInIntersection(-1);

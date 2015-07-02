@@ -51,7 +51,7 @@ namespace sim_mob
     double conflictSeparationTime;
     
     //Iterates through the processed requests to find the vehicles that are incompatible with the current request
-    void getConflicts(IntersectionAccess request, list<IntersectionAccess> &conflicts);
+    void getConflicts(IntersectionAccess &request, list<IntersectionAccess> &conflicts);
     
     //Filters out the conflicts which have been allocated access times less than the 
 	//access time for current request
@@ -125,7 +125,7 @@ namespace sim_mob
   {
     bool operator() (IntersectionAccess first, IntersectionAccess second)
     {
-      return ( first.getArrivalTime() > second.getArrivalTime() );
+      return ( first.getArrivalTime() < second.getArrivalTime() );
     }
   } ;
 }

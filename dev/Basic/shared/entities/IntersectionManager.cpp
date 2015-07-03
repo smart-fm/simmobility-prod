@@ -109,8 +109,7 @@ Entity::UpdateStatus IntersectionManager::frame_tick(timeslice now)
 		//access time for current request
 		filterConflicts(accessTime, conflicts);
 		
-		//We want to look for a gap between the conflicts, there's no point if there is only 1 conflict
-		if(!conflicts.empty() && conflicts.size() >= 2)
+		if(!conflicts.empty())
 		{
 			IntersectionAccess &firstConflict = conflicts.front();
 			if(firstConflict.getArrivalTime() < (accessTime + conflictSeparationTime))
@@ -123,15 +122,26 @@ Entity::UpdateStatus IntersectionManager::frame_tick(timeslice now)
 				++itConflictsNext;
 				
 				bool isGapFound = false;
+				double gapAccessTime = 0;
 
 				//Look for a gap between 2 conflicting requests. The gap should be larger than 2*T2
 				while(itConflictsNext != conflicts.end())
 				{
 					if((*itConflictsNext).getArrivalTime() - (*itConflicts).getArrivalTime() >= (2 * conflictSeparationTime))
 					{
-						accessTime = (*itConflicts).getArrivalTime() + conflictSeparationTime;
-						isGapFound = true;
-						break;
+						gapAccessTime = (*itConflicts).getArrivalTime() + conflictSeparationTime;
+						
+						//Check if this time is feasible for us (a person in front of us may be accessing the gap)
+						if(accessTime < gapAccessTime)
+						{
+							accessTime = gapAccessTime;
+							isGapFound = true;
+							break;
+						}
+						else if((*itConflictsNext).getArrivalTime() - accessTime >= conflictSeparationTime)
+						{
+							isGapFound = true;
+						}
 					}
 
 					++itConflicts;
@@ -141,8 +151,8 @@ Entity::UpdateStatus IntersectionManager::frame_tick(timeslice now)
 				if(!isGapFound)
 				{
 					//Gap was not found, so the access time is arrival time of last conflict request + T2
-					accessTime = (conflicts.back()).getArrivalTime() + conflictSeparationTime;
-				}
+					accessTime = max(accessTime, (conflicts.back()).getArrivalTime() + conflictSeparationTime);
+				}				
 			}
 		}
 		

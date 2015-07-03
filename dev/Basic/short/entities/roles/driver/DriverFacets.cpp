@@ -2858,10 +2858,12 @@ bool sim_mob::DriverMovement::updateNearbyAgent(const Agent* other, const Driver
 				if (params.nvFwd.driver == NULL) 
 				{
 					// 2. other_driver's distance move in the segment, it is also the distance vh to intersection
-					double currSL = fwdDriverMovement.getCurrentSegmentLengthCM();
-					double disMIS =	fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
+					double currSegLen = fwdDriverMovement.getCurrentSegmentLengthCM();
+					double distCoveredOnCurrSeg =	fwdDriverMovement.getCurrDistAlongRoadSegmentCM();
+					double turningLen = fwdDriverMovement.currTurning->getLength();
 					double otherdis = other_driver->currDistAlongRoadSegment;
-					double distance = currSL - disMIS + otherdis;
+					
+					double distance = currSegLen + turningLen - distCoveredOnCurrSeg - parentDriver->moveDisOnTurning_.get() + otherdis;
 					
 					// 3. compare the distance and set params.nvFwdNextLink
 					setNearestVehicle(params.nvFwdNextLink, distance, parentDriver->vehicle, other_driver);

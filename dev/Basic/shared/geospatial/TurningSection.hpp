@@ -85,6 +85,9 @@ class TurningPolyline;
     bool hasStopSign;
 
     TurningPolyline* polyline;
+    
+    //The length of the turning
+    double length;
 
   public:
     TurningSection();
@@ -212,6 +215,9 @@ class TurningPolyline;
     
     //Getter for hasStopSign
     bool turningHasStopSign() const;
+    
+    //Returns the length of the turning section
+    double getLength() const;
   } ;
 
 };// end namespace

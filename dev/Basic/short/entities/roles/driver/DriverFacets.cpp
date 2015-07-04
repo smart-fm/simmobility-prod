@@ -1103,7 +1103,7 @@ void sim_mob::DriverMovement::performIntersectionDriving(DriverUpdateParams& p)
 		cfAcc = cfModel->makeAcceleratingDecision(p);
 		
 		//Select the lower of the two accelerations
-		if(cfAcc < intAcc && !useIntAcc)
+		if(cfAcc < intAcc && !p.useIntAcc)
 		{
 			p.newFwdAcc = cfAcc;
 			parentDriver->setYieldingToInIntersection(-1);
@@ -1244,7 +1244,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 	cfAcc = cfModel->makeAcceleratingDecision(p);
 	
 	//Select the lower of the two accelerations
-	if(cfAcc < intApproachAcc && !useIntAcc)
+	if(cfAcc < intApproachAcc && !p.useIntAcc)
 	{
 		p.newFwdAcc = cfAcc;
 		parentDriver->setYieldingToInIntersection(-1);

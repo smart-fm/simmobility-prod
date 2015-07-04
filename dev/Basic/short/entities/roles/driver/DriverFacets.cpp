@@ -832,7 +832,9 @@ bool sim_mob::DriverMovement::updateMovement(timeslice now)
 			//desired turning
 			if(nextLaneInNextLink == nullptr)
 			{
-				parent->setToBeRemoved();
+				std::stringstream error;
+				error << "Cannot reach lane for correct turning: " << parentDriver->origin.node->nodeId << "," << parentDriver->goal.node->nodeId;
+				throw std::runtime_error(error.str());
 			}
 		}
 	}
@@ -1072,7 +1074,7 @@ void sim_mob::DriverMovement::performIntersectionDriving(DriverUpdateParams& p)
 	perceiveParameters(p);
 	
 	//Convert to m/s
-	p.currSpeed = parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT_UNIT;
+	p.currSpeed = parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT_UNIT;	
 
 	p.cftimer -= p.elapsedSeconds;	
 	if (p.cftimer < p.elapsedSeconds)
@@ -1103,7 +1105,7 @@ void sim_mob::DriverMovement::performIntersectionDriving(DriverUpdateParams& p)
 		cfAcc = cfModel->makeAcceleratingDecision(p);
 		
 		//Select the lower of the two accelerations
-		if(cfAcc < intAcc && !p.useIntAcc)
+		if(cfAcc < intAcc)
 		{
 			p.newFwdAcc = cfAcc;
 			parentDriver->setYieldingToInIntersection(-1);
@@ -3118,7 +3120,7 @@ void sim_mob::DriverMovement::postIntersectionDriving(DriverUpdateParams& p)
 
 	//Reset lateral movement/velocity to zero.
 	parentDriver->vehicle->setLatVelocity(0);
-	parentDriver->vehicle->resetLateralMovement();
+	parentDriver->vehicle->resetLateralMovement();	
 }
 
 void sim_mob::DriverMovement::updateLateralMovement(DriverUpdateParams& p)

@@ -49,12 +49,14 @@ double SlotBased_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& 
 			params.driver->getVehicle()->setVelocity(speed);
 			
 			acc = 0;
+			params.useIntAcc = true;
 		}
-
-		params.useIntAcc = true;
-		params.isResponseReceived = true;
+		else
+		{
+			params.useIntAcc = false;
+		}
 	}
-	
+		
 	return acc;
 }
 

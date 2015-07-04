@@ -70,7 +70,7 @@ void SlotBased_IntDriving_Model::sendAccessRequest(DriverUpdateParams& params)
 		IntersectionManager *intMgr = IntersectionManager::getIntManager(currTurning->getFromSeg()->getEnd()->getID());
 		
 		//Calculate the arrival time according to the current speed and the distance to the intersection
-		double arrivalTime = calcArrivalTime(params);		
+		double arrivalTime = calcArrivalTime(params.driver->distToIntersection_.get(), params);		
 		
 		if(arrivalTime > 0)
 		{

@@ -218,8 +218,8 @@ namespace sim_mob
     //Calculates the deceleration needed for the vehicle to come to a stop within a given distance
     double brakeToStop(double distance, DriverUpdateParams& params);
     
-    //Calculates the time required to reach the intersection
-    double calcArrivalTime(DriverUpdateParams& params);
+    //Calculates the time required to reach the given distance
+    double calcArrivalTime(double distance, DriverUpdateParams& params);
 
   public:
     

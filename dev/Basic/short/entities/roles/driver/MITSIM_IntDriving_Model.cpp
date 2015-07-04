@@ -202,7 +202,7 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& par
 	Print() << "\nID:" << params.parentId;
 	Print() << "\nDistToStopLine:" << distToStopLine;
 	*/
-	
+			
 	//Check if we've stopped close enough to the stop line
 	if (distToStopLine <= 1 && params.currSpeed <= 0.1)
 	{
@@ -316,12 +316,7 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& par
 		if (distToConflict > vehicleLength)
 		{
 			//Time taken to reach conflict by current driver
-			double timeToConflict = 0;
-			
-			if (params.currSpeed > 1.0)
-			{
-				timeToConflict = abs(distToConflict) / params.currSpeed;
-			}
+			double timeToConflict = calcArrivalTime(abs(distToConflict), params);
 			
 			//Print() << "\tTimeToConflict:" << timeToConflict;
 
@@ -652,7 +647,7 @@ double MITSIM_IntDriving_Model::crawlingAcc(double distance, DriverUpdateParams&
 	return 2 * ((distance / 2) - params.currSpeed * params.nextStepSize) / (params.nextStepSize * params.nextStepSize);
 }
 
-double MITSIM_IntDriving_Model::calcArrivalTime(DriverUpdateParams& params)
+double MITSIM_IntDriving_Model::calcArrivalTime(double distance, DriverUpdateParams& params)
 {
 	double arrivalTime = -1, acceleration = 0, finalVel = 0;
 	
@@ -665,7 +660,7 @@ double MITSIM_IntDriving_Model::calcArrivalTime(DriverUpdateParams& params)
 	finalVel = currTurning->getTurningSpeed() / 3.6;
 	
 	//Calculate the acceleration
-	acceleration = ((finalVel * finalVel) - (params.currSpeed * params.currSpeed)) / (2 * params.driver->distToIntersection_.get());
+	acceleration = ((finalVel * finalVel) - (params.currSpeed * params.currSpeed)) / (2 * distance);
 	
 	//We know s = ut + (1/2)at^2
 	//To find the time required, we rearrange the equation as follows:
@@ -675,7 +670,7 @@ double MITSIM_IntDriving_Model::calcArrivalTime(DriverUpdateParams& params)
 	if(acceleration == 0 && params.currSpeed != 0)
 	{
 		//Acceleration is 0, so we have a linear relation : ut - s = 0
-		arrivalTime = params.driver->distToIntersection_.get() / params.currSpeed;
+		arrivalTime = distance / params.currSpeed;
 	}
 	else
 	{
@@ -683,7 +678,7 @@ double MITSIM_IntDriving_Model::calcArrivalTime(DriverUpdateParams& params)
 		double sol1 = 0, sol2 = 0;
 
 		//The discriminant (b^2 - 4ac)
-		double discriminant = (params.currSpeed * params.currSpeed) - (2 * acceleration * (-params.driver->distToIntersection_.get()));
+		double discriminant = (params.currSpeed * params.currSpeed) - (2 * acceleration * (-distance));
 
 		if(discriminant >= 0)
 		{

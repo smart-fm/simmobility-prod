@@ -654,7 +654,7 @@ double MITSIM_IntDriving_Model::crawlingAcc(double distance, DriverUpdateParams&
 
 double MITSIM_IntDriving_Model::calcArrivalTime(DriverUpdateParams& params)
 {
-	double arrivalTime = 0, acceleration = 0, finalVel = 0;
+	double arrivalTime = -1, acceleration = 0, finalVel = 0;
 	
 	//The final velocity is limited by the turning speed, so calculate the acceleration required to
 	//achieve the final velocity
@@ -685,23 +685,26 @@ double MITSIM_IntDriving_Model::calcArrivalTime(DriverUpdateParams& params)
 		//The discriminant (b^2 - 4ac)
 		double discriminant = (params.currSpeed * params.currSpeed) - (2 * acceleration * (-params.driver->distToIntersection_.get()));
 
-		//Calculate the solutions
-		sol1 = (-params.currSpeed - sqrt(discriminant)) / acceleration;
-		sol2 = (-params.currSpeed + sqrt(discriminant)) / acceleration;
+		if(discriminant >= 0)
+		{
+			//Calculate the solutions
+			sol1 = (-params.currSpeed - sqrt(discriminant)) / acceleration;
+			sol2 = (-params.currSpeed + sqrt(discriminant)) / acceleration;
 
-		//As time can be negative, return the solution that is a positive value	
-		if (sol1 >= 0 && sol2 >= 0)
-		{
-			arrivalTime = min(sol1, sol2);
-		} 
-		else if(sol1 >= 0)
-		{
-			arrivalTime = sol1;
-		}
-		else
-		{
-			arrivalTime = sol2;
-		}
+			//As time can be negative, return the solution that is a positive value	
+			if (sol1 >= 0 && sol2 >= 0)
+			{
+				arrivalTime = min(sol1, sol2);
+			}
+			else if (sol1 >= 0)
+			{
+				arrivalTime = sol1;
+			}
+			else if(sol2 >= 0)
+			{
+				arrivalTime = sol2;
+			}
+		}		
 	}
 	
 	return arrivalTime;

@@ -267,12 +267,6 @@ namespace sim_mob
     
     //Indicates whether a request has been sent to the intersection manager for access to the intersection
     bool isRequestSent;
-    
-    //Indicates whether the uniform acceleration has been computed
-    bool isAccelerationComputed;
-    
-    //The calculated uniform acceleration required to reach the intersection at the given time
-    double uniformAcceleration;
 
   public:
 
@@ -281,8 +275,6 @@ namespace sim_mob
     //Sends the intersection access request to the intersection manager
     void sendAccessRequest(DriverUpdateParams& params);
     
-    bool isUniformAcceleration();
-
     virtual ~SlotBased_IntDriving_Model();
 
     //Calculates the acceleration required to reach the intersection at the allocated time so as to 

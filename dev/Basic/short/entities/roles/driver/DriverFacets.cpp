@@ -1078,7 +1078,6 @@ void sim_mob::DriverMovement::performIntersectionDriving(DriverUpdateParams& p)
 	if (p.cftimer < p.elapsedSeconds)
 	{
 		double cfAcc = DBL_MAX, intAcc = DBL_MAX;
-		bool useIntAcc = false;
 		
 		//Clear the flag 
 		parentDriver->setYieldingToInIntersection(-1);		
@@ -1091,12 +1090,6 @@ void sim_mob::DriverMovement::performIntersectionDriving(DriverUpdateParams& p)
 			
 			//Call the intersection driving model
 			intAcc = intModel->makeAcceleratingDecision(p);
-			
-			if(intModel->getIntModelType() == Int_Model_SlotBased)
-			{
-				SlotBased_IntDriving_Model *model = dynamic_cast<SlotBased_IntDriving_Model *>(intModel);
-				useIntAcc = model->isUniformAcceleration();
-			}
 		}
 		//In case we've moved forward into an intersection then stopped, when there was a red light		
 		//The "aC" indicates that previously acceleration due to traffic signal was selected		
@@ -1237,7 +1230,6 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 	p.currSpeed = parentDriver->vehicle->getVelocity() / METER_TO_CENTIMETER_CONVERT_UNIT;
 
 	double intApproachAcc = DBL_MAX, cfAcc = DBL_MAX;
-	bool useIntAcc = false;
 	
 	//Check if this vehicle is approaching an unsignalised intersection.
 	if (p.isApproachingIntersection)
@@ -1246,12 +1238,6 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 		
 		//Calculate the approaching intersection acceleration
 		intApproachAcc = performIntersectionApproach();
-		
-		if(intModel->getIntModelType() == Int_Model_SlotBased)
-		{
-			SlotBased_IntDriving_Model *model = dynamic_cast<SlotBased_IntDriving_Model *>(intModel);
-			useIntAcc = model->isUniformAcceleration();
-		}
 	}
 	
 	//Call car following model

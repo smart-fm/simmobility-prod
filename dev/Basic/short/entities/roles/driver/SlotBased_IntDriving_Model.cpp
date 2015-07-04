@@ -12,11 +12,11 @@ using namespace std;
 using namespace sim_mob;
 using namespace messaging;
 
-SlotBased_IntDriving_Model::SlotBased_IntDriving_Model() : 
-isRequestSent(false), isAccelerationComputed(false), uniformAcceleration(0)
+SlotBased_IntDriving_Model::SlotBased_IntDriving_Model() :
+isRequestSent(false)
 {
 	modelType = Int_Model_SlotBased;
-	
+
 	string modelName = "general_driver_model";
 
 	//Get the parameter manager instance for the AMOD, as these intersections are for AMOD
@@ -36,41 +36,23 @@ double SlotBased_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& 
 	
 	//The intersection manager responds with a time. We must adjust our speed such that we arrive at the intersection at the given
 	//time.	
+	
 	if(params.isResponseReceived)
 	{
 		//Time remaining to reach the intersection
 		double timeToReachInt = params.accessTime - ((double) params.now.ms() / 1000);
 		
-		if(timeToReachInt > 0)
+		if (timeToReachInt >= 0)
 		{
-			//Calculate the acceleration required to reach the intersection at the given time
-			//We use s = ut + (1/2)at^2 to calculate a
-			acc = 2 * (params.driver->distToIntersection_.get() - (params.currSpeed * timeToReachInt)) / (timeToReachInt * timeToReachInt);
+			double speed = params.driver->distToIntersection_.get() / timeToReachInt;
+			speed = speed * 100;
+			params.driver->getVehicle()->setVelocity(speed);
 			
-			//Set the uniform acceleration
-			uniformAcceleration = acc;
-			isAccelerationComputed = true;
+			acc = 0;
 		}
-		
-		params.isResponseReceived = false;
-	}
-	else if(isAccelerationComputed)
-	{
-		//Once we've entered the intersection, the acceleration should be 0 as the we've reached the turning speed limit		
-		if(params.driver->isInIntersection_.get())
-		{
-			if(uniformAcceleration >= 0)
-			{
-				uniformAcceleration = 0;
-			}
-			else
-			{
-				uniformAcceleration = params.maxAcceleration;
-				isAccelerationComputed = false;
-			}
-		}
-		
-		acc = uniformAcceleration;
+
+		params.useIntAcc = true;
+		params.isResponseReceived = true;
 	}
 	
 	return acc;
@@ -98,16 +80,15 @@ void SlotBased_IntDriving_Model::sendAccessRequest(DriverUpdateParams& params)
 			//Pointer to the access request sent by the driver
 			IntersectionAccess *accessRequest = new IntersectionAccess(arrivalTime, currTurning->getDbId());
 			accessRequest->SetSender(params.driver->getParent());
+			
+			//For debugging
+			params.accessTime = arrivalTime;
 
 			//Send the request message
 			MessageBus::PostMessage(intMgr, MSG_REQUEST_INT_ARR_TIME, MessageBus::MessagePtr(accessRequest));
 
-			isRequestSent = true;			
+			isRequestSent = true;
+			params.isResponseReceived = false;
 		}
 	}
-}
-
-bool SlotBased_IntDriving_Model::isUniformAcceleration()
-{
-	return isAccelerationComputed;
 }

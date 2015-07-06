@@ -122,7 +122,7 @@ namespace sim_mob {
             void setHousingMarketModel(HM_Model *housingModel);
 
         private:
-            DeveloperModel* model;
+            DeveloperModel* devModel;
             Parcel *parcel;
             IdVector parcelsToProcess;
             bool active;

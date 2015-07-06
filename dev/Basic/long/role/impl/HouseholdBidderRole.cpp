@@ -51,7 +51,7 @@ namespace
     }
 
     const std::string LOG_VEHICLE_OWNERSHIP = "%1%, %2%";
-    const std::string LOG_HOUSEHOLD_GROUP_LOGSUM = "%1%, %2%, %3%";
+    const std::string LOG_HOUSEHOLD_GROUP_LOGSUM = "%1%, %2%, %3%, %4%";
 
     inline void writeVehicleOwnershipToFile(BigSerial hhId,int VehiclOwnershiOptionId)
     {
@@ -60,9 +60,9 @@ namespace
 
     }
 
-    inline void printHouseholdGroupLogsum( BigSerial hhId, int homeTaz, double logsum )
+    inline void printHouseholdGroupLogsum( int homeTaz,  int group, BigSerial hhId, double logsum )
     {
-    	boost::format fmtr = boost::format(LOG_HOUSEHOLD_GROUP_LOGSUM) % hhId % homeTaz % logsum;
+    	boost::format fmtr = boost::format(LOG_HOUSEHOLD_GROUP_LOGSUM) % homeTaz % group % hhId % logsum;
     	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDGROUPLOGSUM,fmtr.str());
     }
 }
@@ -523,7 +523,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 			HM_Model::HouseholdGroup thisHHGroup(hitssample->getGroupId(), homeTaz, ZZ_logsumhh );
 			model->householdGroupVec.push_back(thisHHGroup);
 
-			printHouseholdGroupLogsum(headOfHousehold->getId(), homeTaz, ZZ_logsumhh );
+			printHouseholdGroupLogsum( homeTaz, hitssample->getGroupId(), headOfHousehold->getId(), ZZ_logsumhh );
 		}
 	}
 
@@ -578,8 +578,8 @@ double HouseholdBidderRole::calculateSurplus(double price, double min, double ma
 	const double location1 = -91.247;
 	const double location2 = -20.547;
 
-	price = std::min(price, 0.0 );
-	price = std::max(price, 1.0 );
+	//price = std::min(price, 0.0 );
+	//price = std::max(price, 1.0 );
 
 	double fx    = 1.0 / (1.0 + exp(-( price - location1 ) / scale1 ) );
 	double fxmin = 1.0 / (1.0 + exp(-( min   - location1 ) / scale1 ) );
@@ -668,7 +668,7 @@ bool HouseholdBidderRole::pickEntryToBid()
                 	wp = householdAffordabilityAmount;
                 }
 
-            	double bid = wp;//ComputeBidValue(wp);
+            	double bid = ComputeBidValue(wp);
 
             	if( bid >= entry->getAskingPrice() && bid > maxWP )
             	{

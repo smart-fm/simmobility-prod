@@ -224,3 +224,13 @@ int LogsumTourModeDestinationParams::isAvailable_TMD(int choiceId) const {
 	}
 	return 0;
 }
+
+int sim_mob::LogsumTourModeDestinationParams::getCbdDummy(int zone) const
+{
+	return zoneMap.at(zone)->getCbdDummy();
+}
+
+int sim_mob::LogsumTourModeDestinationParams::isCbdOrgZone() const
+{
+	return cbdOrgZone;
+}

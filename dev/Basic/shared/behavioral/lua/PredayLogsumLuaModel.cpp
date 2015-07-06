@@ -82,6 +82,8 @@ void sim_mob::PredayLogsumLuaModel::mapClasses() {
 				.addFunction("area", &LogsumTourModeDestinationParams::getArea)
 				.addFunction("shop", &LogsumTourModeDestinationParams::getShop)
 				.addFunction("availability",&LogsumTourModeDestinationParams::isAvailable_TMD)
+				.addProperty("cbd_dummy_origin",&LogsumTourModeDestinationParams::isCbdOrgZone)
+				.addFunction("cbd_dummy",&LogsumTourModeDestinationParams::getCbdDummy)
 			.endClass();
 }
 

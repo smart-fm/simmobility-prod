@@ -578,8 +578,8 @@ double HouseholdBidderRole::calculateSurplus(double price, double min, double ma
 	const double location1 = -91.247;
 	const double location2 = -20.547;
 
-	//price = std::min(price, 0.0 );
-	//price = std::max(price, 1.0 );
+	price = std::min(price, min );
+	price = std::max(price, max );
 
 	double fx    = 1.0 / (1.0 + exp(-( price - location1 ) / scale1 ) );
 	double fxmin = 1.0 / (1.0 + exp(-( min   - location1 ) / scale1 ) );
@@ -668,11 +668,14 @@ bool HouseholdBidderRole::pickEntryToBid()
                 	wp = householdAffordabilityAmount;
                 }
 
-            	double bid = ComputeBidValue(wp);
+            	double tempSurplus = wp - entry->getAskingPrice();
 
-            	if( bid >= entry->getAskingPrice() && bid > maxWP )
+            	//double bid = ComputeBidValue( entry->getAskingPrice() );
+
+            	//if( bid >= entry->getAskingPrice() && bid > maxWP )
+            	if( tempSurplus > maxWP )
             	{
-            		maxWP = bid;
+            		maxWP = tempSurplus;
             		maxEntry = entry;
             	}
             }
@@ -684,26 +687,21 @@ bool HouseholdBidderRole::pickEntryToBid()
 }
 
 
-double HouseholdBidderRole::ComputeBidValue(double wp )
+double HouseholdBidderRole::ComputeBidValue(double price )
 {
-	double bid = wp;
+	double bid = price;
 	const int MAX_ITERATIONS = 50;
 	double epsilon = 1;
 
-	//PrintOutV("wp: " << wp << "Bids: ");
 	for (int n = 0; n < MAX_ITERATIONS; n++  )
 	{
-		double bidL = wp - calculateSurplus( bid , 0.0, 2.1 );
+		double bidL = price - calculateSurplus( bid , 0.0, 1.2 );
 
 		if( abs(bidL - bid) < epsilon )
 			break;
 		else
 			bid = bidL;
-
-		//PrintOut(" " << bid );
 	}
-
-	//PrintOut(std::endl);
 
 	return bid;
 }

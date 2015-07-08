@@ -20,16 +20,25 @@
                 <dbname value="sim_mob_lt"/>
             </database>
             
+			<!-- internal ip for remote midterm server -->
             <database id="fm_remote_mt" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
                 <dbname value="simmobility_db_2014"/>
             </database>
 
-	    <database id="fm_remote_mt_public_ip" dbtype="postgres">
+            <!-- localhost for midterm server -->
+            <database id="fm_remote_mt_local" dbtype="postgres">
+                <host value="localhost"/>
+                <port value="5432"/>
+                <dbname value="sim_mob_lt"/>
+            </database>
+
+		<!-- public ip for remote midterm server -->
+	    <database id="fm_remote_mt_X" dbtype="postgres">
                 <host value="137.132.22.82"/>
-                <port value="15061"/>
-                <dbname value="simmobility_db_2014"/>
+                <port value="15061"/> <!--old port: 15025 -->
+               <dbname value="simmobility_db_2014"/>
             </database>
         </databases>
     

@@ -221,10 +221,10 @@ double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int hom
 	}
 
 	if( vehicleOwnership == 1)
-		personParams.setCarOwn(1);
+		personParams.setCarOwnNormal(1);
 
 	if( vehicleOwnership == 0 )
-		personParams.setCarOwn(0);
+		personParams.setCarOwnNormal(0);
 
 	LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
 

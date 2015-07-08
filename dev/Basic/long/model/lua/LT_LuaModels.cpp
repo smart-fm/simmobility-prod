@@ -320,7 +320,7 @@ void DeveloperLuaModel::mapClasses()
     mapCommonClasses(state.get());
 }
 
-double DeveloperLuaModel::calulateUnitRevenue(const PotentialUnit& unit,const ParcelAmenities& amenities, double logsum, int quarter) const {
+double DeveloperLuaModel::calculateUnitRevenue(const PotentialUnit& unit,const ParcelAmenities& amenities, double logsum, int quarter) const {
 
     LuaRef funcRef = getGlobal(state.get(), "calculateUnitRevenue");
     LuaRef retVal = funcRef(&unit, &amenities, logsum, quarter);

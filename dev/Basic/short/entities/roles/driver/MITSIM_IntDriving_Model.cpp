@@ -318,6 +318,18 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& par
 			//Time taken to reach conflict by current driver
 			double timeToConflict = calcArrivalTime(abs(distToConflict), params);
 			
+			if(timeToConflict == -1)
+			{
+				if(params.currSpeed > 1.0)
+				{
+					timeToConflict = abs(distToConflict) / params.currSpeed;
+				}
+				else
+				{
+					timeToConflict = 0;
+				}
+			}
+			
 			//Print() << "\tTimeToConflict:" << timeToConflict;
 
 			//Calculate the critical gap

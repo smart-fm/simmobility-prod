@@ -113,6 +113,16 @@ namespace
 
 		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_TAZ_LEVEL_LOGSUM, fmtr.str());
 	}
+
+
+
+	inline void printIndividualHitsLogsum( BigSerial individualId, double logsum )
+	{
+		boost::format fmtr = boost::format("%1%, %2%") % individualId % logsum;
+
+		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_HITS_LOGSUM, fmtr.str());
+
+	}
 }
 
 HM_Model::TazStats::TazStats(BigSerial tazId) :	tazId(tazId), hhNum(0), hhTotalIncome(0), numChinese(0), numIndian(0), numMalay(0), householdSize(0) {}
@@ -1017,6 +1027,33 @@ void HM_Model::startImpl()
 	PrintOutV("Orphaned siblings " << household_stats.orphanSiblings << std::endl );
 	PrintOutV("Multigenerational " << household_stats.multigeneration << std::endl );
 
+}
+
+void HM_Model::getLogsumOfIndividuals(BigSerial id)
+{
+
+	Household *currentHousehold = getHouseholdById( id );
+
+	BigSerial tazId = getUnitTazId( currentHousehold->getUnitId());
+	Taz *tazObj = getTazById( tazId );
+
+	std::string tazStr;
+	if( tazObj != NULL )
+		tazStr = tazObj->getName();
+
+	BigSerial taz = std::atoi( tazStr.c_str() );
+
+
+	std::vector<BigSerial> householdIndividualIds = currentHousehold->getIndividuals();
+
+	//chetan
+	for( int n = 0; n < householdIndividualIds.size(); n++ )
+	{
+		double logsum = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n], taz, -1, 1 );
+
+		printIndividualHitsLogsum( householdIndividualIds[n], logsum );
+		PrintOutV("individual id: " << householdIndividualIds[n] << " logsum: " << logsum << std::endl );
+	}
 }
 
 void HM_Model::unitsFiltering()

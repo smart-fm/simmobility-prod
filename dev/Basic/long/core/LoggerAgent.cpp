@@ -17,22 +17,24 @@ using namespace sim_mob::long_term;
 using namespace sim_mob::event;
 using namespace sim_mob::messaging;
 
-namespace {
-
-    class LogMsg : public Message {
+namespace
+{
+    class LogMsg : public Message
+    {
     public:
 
-        LogMsg(const std::string& logMsg, LoggerAgent::LogFile fileType)
-        : logMsg(logMsg), fileType(fileType) {
+        LogMsg(const std::string& logMsg, LoggerAgent::LogFile fileType) : logMsg(logMsg), fileType(fileType)
+    	{
             priority = INTERNAL_MESSAGE_PRIORITY;
         }
+
         std::string logMsg;
         LoggerAgent::LogFile fileType;
     };
 }
 
-LoggerAgent::LoggerAgent() : Entity(-1) {
-
+LoggerAgent::LoggerAgent() : Entity(-1)
+{
     //bids
     std::ofstream* bidsFile = new std::ofstream("bids.csv");
     streams.insert(std::make_pair(BIDS, bidsFile));
@@ -77,12 +79,19 @@ LoggerAgent::LoggerAgent() : Entity(-1) {
     //household group logsum
     std::ofstream* householdGroupLogsumFile = new std::ofstream("householdGroupLogsum.csv");
     streams.insert(std::make_pair(LOG_HOUSEHOLDGROUPLOGSUM, householdGroupLogsumFile));
+
+    //household group logsum
+    std::ofstream* individualHitsLogsumFile = new std::ofstream("IndividualHitsLogsum.csv");
+    streams.insert(std::make_pair(LOG_INDIVIDUAL_HITS_LOGSUM, individualHitsLogsumFile));
 }
 
-LoggerAgent::~LoggerAgent() {
+LoggerAgent::~LoggerAgent()
+{
     typename Files::iterator it;
-    for (it = streams.begin(); it != streams.end(); it++) {
-        if (it->second) {
+    for (it = streams.begin(); it != streams.end(); it++)
+    {
+        if (it->second)
+        {
             it->second->close();
             delete (it->second);
         }
@@ -90,38 +99,42 @@ LoggerAgent::~LoggerAgent() {
     streams.clear();
 }
 
-bool LoggerAgent::isNonspatial() {
+bool LoggerAgent::isNonspatial()
+{
     return false;
 }
 
-void LoggerAgent::buildSubscriptionList(std::vector<BufferedBase*>& subsList) {
-}
+void LoggerAgent::buildSubscriptionList(std::vector<BufferedBase*>& subsList) {}
 
-void LoggerAgent::onWorkerEnter() {
-}
+void LoggerAgent::onWorkerEnter() {}
 
-void LoggerAgent::onWorkerExit() {
-}
+void LoggerAgent::onWorkerExit() {}
 
-Entity::UpdateStatus LoggerAgent::update(timeslice now) {
+Entity::UpdateStatus LoggerAgent::update(timeslice now)
+{
     return Entity::UpdateStatus(Entity::UpdateStatus::RS_CONTINUE);
 }
 
-void LoggerAgent::log(LogFile outputType, const std::string& logMsg) {
+void LoggerAgent::log(LogFile outputType, const std::string& logMsg)
+{
     // entry will be available only on the next tick
-    MessageBus::PostMessage(this, LTMID_LOG,
-            MessageBus::MessagePtr(new LogMsg(logMsg, outputType)));
+    MessageBus::PostMessage(this, LTMID_LOG, MessageBus::MessagePtr(new LogMsg(logMsg, outputType)));
 }
 
-void LoggerAgent::HandleMessage(messaging::Message::MessageType type,
-        const messaging::Message& message) {
-    switch (type) {
+void LoggerAgent::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
+{
+    switch (type)
+    {
         case LTMID_LOG:
         {
             const LogMsg& msg = MSG_CAST(LogMsg, message);
-            if (msg.fileType == STDOUT) {
+
+            if (msg.fileType == STDOUT)
+            {
                 PrintOut(msg.logMsg << std::endl);
-            } else {
+            }
+            else
+            {
                 (*streams[msg.fileType]) << msg.logMsg << std::endl;
             }
             break;

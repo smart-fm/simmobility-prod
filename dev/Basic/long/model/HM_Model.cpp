@@ -24,6 +24,9 @@
 #include "database/dao/HousingInterestRateDao.hpp"
 #include "database/dao/LogSumVehicleOwnershipDao.hpp"
 #include "database/dao/DistanceMRTDao.hpp"
+#include "database/dao/TazDao.hpp"
+#include "database/dao/HouseHoldHitsSampleDao.hpp"
+#include "database/dao/TazLogsumWeightDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -33,6 +36,7 @@
 #include "conf/ConfigParams.hpp"
 #include "message/LT_Message.hpp"
 #include "message/MessageBus.hpp"
+#include "behavioral/PredayLT_Logsum.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::long_term;
@@ -99,9 +103,29 @@ namespace
 
 	}
 
+	//taz logsum
+	const std::string LOG_TAZ_LOGSUM = "%1%, %2%";
+
+	inline void printTazLevelLogsum(int taz, double logsum)
+	{
+		boost::format fmtr = boost::format(LOG_TAZ_LOGSUM) 	% taz
+															% logsum;
+
+		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_TAZ_LEVEL_LOGSUM, fmtr.str());
+	}
+
+
+
+	inline void printIndividualHitsLogsum( BigSerial individualId, double logsum )
+	{
+		boost::format fmtr = boost::format("%1%, %2%") % individualId % logsum;
+
+		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_HITS_LOGSUM, fmtr.str());
+
+	}
 }
 
-HM_Model::TazStats::TazStats(BigSerial tazId) :	tazId(tazId), hhNum(0), hhTotalIncome(0) {}
+HM_Model::TazStats::TazStats(BigSerial tazId) :	tazId(tazId), hhNum(0), hhTotalIncome(0), numChinese(0), numIndian(0), numMalay(0), householdSize(0) {}
 
 HM_Model::TazStats::~TazStats() {}
 
@@ -109,6 +133,18 @@ void HM_Model::TazStats::updateStats(const Household& household)
 {
 	hhNum++;
 	hhTotalIncome += household.getIncome();
+
+	if( household.getEthnicityId() == 1 ) //chinese
+		numChinese++;
+
+	if( household.getEthnicityId() == 2 )  //malay
+		numMalay++;
+
+	if( household.getEthnicityId() == 3 ) // indian
+		numIndian++;
+
+	householdSize += household.getSize();
+
 }
 
 BigSerial HM_Model::TazStats::getTazId() const
@@ -131,6 +167,27 @@ double HM_Model::TazStats::getHH_AvgIncome() const
 	return hhTotalIncome / static_cast<double>((hhNum == 0) ? 1 : hhNum);
 }
 
+double HM_Model::TazStats::getChinesePercentage() const
+{
+	return numChinese / static_cast<double>((hhNum == 0) ? 1 : hhNum);
+}
+
+double HM_Model::TazStats::getMalayPercentage() const
+{
+	return numMalay / static_cast<double>((hhNum == 0) ? 1 : hhNum);
+}
+
+double HM_Model::TazStats::getIndianPercentage() const
+{
+	return numIndian / static_cast<double>((hhNum == 0) ? 1 : hhNum);
+}
+
+double HM_Model::TazStats::getAvgHHSize() const
+{
+	return householdSize / static_cast<double>((hhNum == 0) ? 1 : hhNum);
+}
+
+
 HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false){}
 
 HM_Model::~HM_Model()
@@ -152,6 +209,34 @@ int HM_Model::getNumberOfBidders()
 {
 	return numberOfBidders;
 }
+
+
+Job* HM_Model::getJobById(BigSerial id) const
+{
+	JobMap::const_iterator itr = jobsById.find(id);
+
+	if (itr != jobsById.end())
+	{
+		return (*itr).second;
+	}
+
+	return nullptr;
+}
+
+
+
+Establishment* HM_Model::getEstablishmentById(BigSerial id) const
+{
+	EstablishmentMap::const_iterator itr = establishmentsById.find(id);
+
+	if (itr != establishmentsById.end())
+	{
+		return (*itr).second;
+	}
+
+	return nullptr;
+}
+
 
 Individual* HM_Model::getIndividualById(BigSerial id) const
 {
@@ -223,6 +308,20 @@ const Unit* HM_Model::getUnitById(BigSerial id) const
 	return nullptr;
 }
 
+BigSerial HM_Model::getEstablishmentTazId(BigSerial establishmentId) const
+{
+	const Establishment* establishment = getEstablishmentById(establishmentId);
+	BigSerial tazId = INVALID_ID;
+
+	if (establishment)
+	{
+		tazId = DataManagerSingleton::getInstance().getPostcodeTazId(establishment->getSlaAddressId());
+	}
+
+	return tazId;
+}
+
+
 BigSerial HM_Model::getUnitTazId(BigSerial unitId) const
 {
 	const Unit* unit = getUnitById(unitId);
@@ -244,6 +343,42 @@ const HM_Model::TazStats* HM_Model::getTazStats(BigSerial tazId) const
 		return (*itr).second;
 	}
 	return nullptr;
+}
+
+
+double HM_Model::ComputeHedonicPriceLogsum(BigSerial taz)
+{
+
+    BigSerial workTaz = -1;
+    int vehicleOwnership = -1;
+    double logsum = 0;
+
+    boost::unordered_map<BigSerial, double>::const_iterator itr = tazLevelLogsum.find(taz);
+
+	if (itr != tazLevelLogsum.end())
+	{
+		return (*itr).second;
+	}
+
+	for(int n = 0; n < tazLogsumWeights.size(); n++)
+	{
+		double lg = PredayLT_LogsumManager::getInstance().computeLogsum( tazLogsumWeights[n]->getIndividualId(), taz, workTaz, vehicleOwnership );
+		double weight = tazLogsumWeights[n]->getWeight();
+
+		Individual *individual = this->getIndividualById(tazLogsumWeights[n]->getIndividualId());
+		Household  *household = this->getHouseholdById( individual->getHouseholdId() );
+		float hhSize = household->getSize();
+
+		logsum = logsum + (lg * weight / hhSize);
+	}
+
+	printTazLevelLogsum(taz, logsum);
+
+	mtx.lock();
+	tazLevelLogsum.insert( std::make_pair<BigSerial,double>( taz,logsum ));
+	mtx.unlock();
+
+	return logsum;
 }
 
 HousingMarket* HM_Model::getMarket()
@@ -325,6 +460,18 @@ TaxiAccessCoefficients* HM_Model::getTaxiAccessCoeffsById( BigSerial id) const
 		return nullptr;
 }
 
+Taz* HM_Model::getTazById( BigSerial id) const
+{
+		TazMap::const_iterator itr = tazById.find(id);
+
+		if (itr != tazById.end())
+		{
+			return itr->second;
+		}
+
+		return nullptr;
+}
+
 const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 {
 	BigSerial tazId = getUnitTazId(unitId);
@@ -334,6 +481,42 @@ const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 	}
 	return nullptr;
 }
+
+
+
+HM_Model::HouseholdGroup::HouseholdGroup(BigSerial groupId, BigSerial homeTaz, double logsum):groupId(groupId),homeTaz(homeTaz),logsum(logsum){}
+
+
+BigSerial HM_Model::HouseholdGroup::getGroupId() const
+{
+	return groupId;
+}
+
+BigSerial HM_Model::HouseholdGroup::getHomeTaz() const
+{
+	return homeTaz;
+}
+
+double HM_Model::HouseholdGroup::getLogsum() const
+{
+	return logsum;
+}
+
+void HM_Model::HouseholdGroup::setHomeTaz(BigSerial value)
+{
+	homeTaz = value;
+}
+
+void HM_Model::HouseholdGroup::setLogsum(double value)
+{
+	logsum = value;
+}
+
+void HM_Model::HouseholdGroup::setGroupId(BigSerial value)
+{
+	groupId = value;
+}
+
 
 void HM_Model::addUnit(Unit* unit)
 {
@@ -380,15 +563,53 @@ DistanceMRT* HM_Model::getDistanceMRTById( BigSerial id) const
 	return nullptr;
 }
 
+HM_Model::HouseHoldHitsSampleList HM_Model::getHouseHoldHits()const
+{
+	return this->houseHoldHits;
+}
+
+HouseHoldHitsSample* HM_Model::getHouseHoldHitsById( BigSerial id) const
+{
+	HouseHoldHitsSampleMap::const_iterator itr = houseHoldHitsById.find(id);
+
+	if (itr != houseHoldHitsById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
+}
+
+HM_Model::HouseholdGroup* HM_Model::getHouseholdGroupByGroupId(BigSerial id)const
+{
+	boost::unordered_map<BigSerial, HouseholdGroup*>::const_iterator itr = vehicleOwnerhipHHGroupByGroupId.find(id);
+
+		if (itr != vehicleOwnerhipHHGroupByGroupId.end())
+		{
+			return itr->second;
+		}
+
+		return nullptr;
+}
+
+void HM_Model::addHouseholdGroupByGroupId(HouseholdGroup* hhGroup)
+{
+	mtx2.lock();
+	this->vehicleOwnerhipHHGroupByGroupId.insert(std::make_pair(hhGroup->getGroupId(),hhGroup));
+	mtx2.unlock();
+}
+
 void HM_Model::setTaxiAccess(const Household *household)
 {
 	double valueTaxiAccess = getTaxiAccessCoeffsById(INTERCEPT)->getCoefficientEstimate();
 	//finds out whether the household is an HDB or not
 	int unitTypeId = 0;
+
 	if(getUnitById(household->getUnitId()) != nullptr)
 	{
 		unitTypeId = getUnitById(household->getUnitId())->getUnitType();
 	}
+
 	if( (unitTypeId>0) && (unitTypeId<=6))
 	{
 
@@ -570,6 +791,9 @@ void HM_Model::setTaxiAccess(const Household *household)
 
 void HM_Model::startImpl()
 {
+	PredayLT_LogsumManager::getInstance();
+
+
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	MetadataEntry entry;
 
@@ -584,6 +808,7 @@ void HM_Model::startImpl()
 	{
 		//Load households
 		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
+		//households.resize(10000);
 		PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
 
 		//Load units
@@ -615,11 +840,22 @@ void HM_Model::startImpl()
 		loadData<HousingInterestRateDao>( conn, housingInterestRates, housingInterestRatesById, &HousingInterestRate::getId);
 		PrintOutV("Number of interest rate quarters: " << housingInterestRates.size() << std::endl );
 
-		loadData<LogSumVehicleOwnershipDao>( conn, vehicleOwnershipLogsums, vehicleOwnershipLogsumById, &LogSumVehicleOwnership::getHouseholdId);
-		PrintOutV("Number of vehicle ownership logsums: " << vehicleOwnershipLogsums.size() << std::endl );
+		//only used in 2008 data. not used in 2012.
+		//loadData<LogSumVehicleOwnershipDao>( conn, vehicleOwnershipLogsums, vehicleOwnershipLogsumById, &LogSumVehicleOwnership::getHouseholdId);
+		//PrintOutV("Number of vehicle ownership logsums: " << vehicleOwnershipLogsums.size() << std::endl );
 
 		loadData<DistanceMRTDao>( conn, mrtDistances, mrtDistancesById, &DistanceMRT::getHouseholdId);
 		PrintOutV("Number of mrt distances: " << mrtDistances.size() << std::endl );
+
+		loadData<TazDao>( conn, tazs, tazById, &Taz::getId);
+		PrintOutV("Number of taz: " << tazs.size() << std::endl );
+
+		loadData<HouseHoldHitsSampleDao>( conn, houseHoldHits, houseHoldHitsById, &HouseHoldHitsSample::getHouseholdId);
+		PrintOutV("Number of houseHoldHits: " << houseHoldHits.size() << std::endl );
+
+		loadData<TazLogsumWeightDao>( conn, tazLogsumWeights, tazLogsumWeightById, &TazLogsumWeight::getGroupLogsum );
+		PrintOutV("Number of tazLogsumWeights: " << tazLogsumWeights.size() << std::endl );
+
 	}
 
 
@@ -690,16 +926,25 @@ void HM_Model::startImpl()
 				tazStats = new TazStats(tazId);
 				stats.insert( std::make_pair(tazId,	const_cast<HM_Model::TazStats*>(tazStats)));
 			}
+
 			const_cast<HM_Model::TazStats*>(tazStats)->updateStats(*household);
-			/*PrintOut(" Taz: "   << tazId <<
-			 " Total: " << tazStats->getHH_TotalIncome() <<
-			 " Num: "   << tazStats->getHH_Num() <<
-			 " AVG: "   << tazStats->getHH_AvgIncome() << std::endl);*/
 		}
 
 		AgentsLookupSingleton::getInstance().addHouseholdAgent(hhAgent);
 		agents.push_back(hhAgent);
 		workGroup.assignAWorker(hhAgent);
+	}
+
+
+	for ( StatsMap::iterator it = stats.begin(); it != stats.end(); ++it )
+	{
+		std::cout << "Taz: " << it->first << std::fixed << std::setprecision(2)
+										  << " \tAvg Income: " << it->second->getHH_AvgIncome()
+										  << " \t%Chinese: " << it->second->getChinesePercentage()
+										  << " \t%Malay: " << it->second->getMalayPercentage()
+										  << " \t%Indian: " << it->second->getIndianPercentage()
+										  << " \tAvg HH size: " << it->second->getAvgHHSize()
+										  << std::endl;
 	}
 
 	PrintOutV( "There are " << homelessHousehold << " homeless households" << std::endl);
@@ -713,7 +958,7 @@ void HM_Model::startImpl()
 	//assign empty units to freelance housing agents
 	for (UnitList::const_iterator it = units.begin(); it != units.end(); it++)
 	{
-		(*it)->setbiddingMarketEntryDay( 0 );
+		(*it)->setbiddingMarketEntryDay( 365 );
 		(*it)->setTimeOnMarket(config.ltParams.housingModel.timeOnMarket);
 		(*it)->setTimeOffMarket(config.ltParams.housingModel.timeOffMarket);
 
@@ -724,9 +969,9 @@ void HM_Model::startImpl()
 			{
 				float awakeningProbability = (float)rand() / RAND_MAX;
 
-				if(awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
+				if( 1 || awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
-					(*it)->setbiddingMarketEntryDay( 0 );
+					(*it)->setbiddingMarketEntryDay( 365 );
 					(*it)->setTimeOnMarket( 1 + int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 
 					onMarket++;
@@ -784,6 +1029,33 @@ void HM_Model::startImpl()
 
 }
 
+void HM_Model::getLogsumOfIndividuals(BigSerial id)
+{
+
+	Household *currentHousehold = getHouseholdById( id );
+
+	BigSerial tazId = getUnitTazId( currentHousehold->getUnitId());
+	Taz *tazObj = getTazById( tazId );
+
+	std::string tazStr;
+	if( tazObj != NULL )
+		tazStr = tazObj->getName();
+
+	BigSerial taz = std::atoi( tazStr.c_str() );
+
+
+	std::vector<BigSerial> householdIndividualIds = currentHousehold->getIndividuals();
+
+	//chetan
+	for( int n = 0; n < householdIndividualIds.size(); n++ )
+	{
+		double logsum = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n], taz, -1, 1 );
+
+		printIndividualHitsLogsum( householdIndividualIds[n], logsum );
+		//PrintOutV("individual id: " << householdIndividualIds[n] << " logsum: " << logsum << std::endl );
+	}
+}
+
 void HM_Model::unitsFiltering()
 {
 	int numOfHDB = 0;
@@ -806,7 +1078,7 @@ void HM_Model::unitsFiltering()
 	}
 
 
-	//we need to filter out 10% of apartments, condos and 5% of HDBs.
+	//we need to filter out 10% of unoccupied apartments, condos and 5% of HDBs.
 	int targetNumOfHDB   = 0.05 * numOfHDB;
 	int targetNumOfCondo = 0.10 * numOfCondo;
 

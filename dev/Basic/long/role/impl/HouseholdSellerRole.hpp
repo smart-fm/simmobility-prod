@@ -32,7 +32,7 @@ namespace sim_mob
         class HouseholdSellerRole
         {
         public:
-            HouseholdSellerRole(LT_Agent* parent);
+            HouseholdSellerRole(HouseholdAgent* parent);
             virtual ~HouseholdSellerRole();
 
             bool isActive() const;
@@ -44,7 +44,7 @@ namespace sim_mob
              */
             virtual void update(timeslice currTime);
 
-            LT_Agent* getParent();
+            HouseholdAgent* getParent();
 
             /**
              * Inherited from LT_Role
@@ -110,7 +110,7 @@ namespace sim_mob
             int timeOffMarket;
             int marketLifespan;
 
-            LT_Agent *parent;
+            HouseholdAgent *parent;
             bool active;
         };
     }

@@ -22,7 +22,7 @@ namespace sim_mob {
     /**
      * Schemas
      */
-    const std::string MAIN_SCHEMA = "snapshot2012.";
+    const std::string MAIN_SCHEMA = "main2012.";
     const std::string PUBLIC_SCHEMA = "public.";
 
     /**
@@ -91,7 +91,7 @@ namespace sim_mob {
 	const std::string DB_GET_ALL_PERSON_IDS = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_IDS;
 
 	/** load a specific individual by id */
-	const std::string DB_GET_PERSON_BY_ID = "SELECT * FROM " + DB_SP_GET_INDIVIDUAL_BY_ID_FOR_PREDAY; //argument to be passed
+	const std::string DB_GET_PERSON_BY_ID = "SELECT * FROM main2012.getindividualbyidforpreday(:_id)"; //argument to be passed
 
 	/** load address taz mapping from LT database */
 	const std::string DB_GET_ADDRESS_TAZ = "SELECT * FROM " + DB_SP_GET_ADDRESS_TAZ;

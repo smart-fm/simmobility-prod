@@ -110,6 +110,7 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 	else
 	{
 		cfg.psRetrieval = ParseString(GetNamedAttributeValue(functionNode, "pathset"), "");
+		cfg.psRetrievalWithoutBannedRegion = ParseString(GetNamedAttributeValue(functionNode, "pathset_without_banned_area"), "");
 		cfg.upsert = ParseString(GetNamedAttributeValue(functionNode, "travel_time"), "");
 	}
 
@@ -134,18 +135,6 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 	{
 		cfg.reroute = ParseBoolean(GetNamedAttributeValue(reroute, "value"), false);
 	}
-
-	//CBD //todo: usage still unclear
-	xercesc::DOMElement* cbd = GetSingleElementByName(node, "CBD_enabled");
-	if(!cbd){
-		std::cerr << "CBD_enabled Not Found, setting to false\n";
-		cfg.cbd = false;
-	}
-	else
-	{
-		cfg.cbd = ParseBoolean(GetNamedAttributeValue(cbd, "value"), false);
-	}
-
 
 	//subtrip output for preday
 	xercesc::DOMElement* predayOP = GetSingleElementByName(node, "subtrip_travel_metrics_output");

@@ -28,8 +28,9 @@ class Loader;
 enum {
 	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000,
 	MSG_INSERT_INCIDENT,
-	MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP,
+	MSG_WAITING_PERSON_ARRIVAL_AT_BUSSTOP,
 	MSG_MRT_PASSENGER_TELEPORTATION,
+	MSG_WAKEUP_CAR_PASSENGER_TELEPORTATION,
 	MSG_WAKE_UP,
 	MSG_WARN_INCIDENT
 };
@@ -59,10 +60,10 @@ public:
  * Subclass wraps a bus stop into message so as to make alighting decision.
  * This is to allow it to function as an message callback parameter.
  */
-class ArriavalAtStopMessage : public messaging::Message {
+class ArrivalAtStopMessage : public messaging::Message {
 public:
-	ArriavalAtStopMessage(Person* person):waitingPerson(person){;}
-	virtual ~ArriavalAtStopMessage() {}
+	ArrivalAtStopMessage(Person* person):waitingPerson(person){;}
+	virtual ~ArrivalAtStopMessage() {}
 	Person* waitingPerson;
 };
 
@@ -105,10 +106,12 @@ private:
     	bool isQueuing;
     	bool isMoving;
     	unsigned int roleType;
+    	double vehicleLength;
     	sim_mob::SegmentStats* segStats;
     	const sim_mob::Conflux* conflux;
 
     	PersonProps(const sim_mob::Person* person, const sim_mob::Conflux* conflux);
+    	void printProps(unsigned int personId, uint32_t frame, std::string prefix) const;
     };
 
 	/**
@@ -187,6 +190,9 @@ private:
 	/**list of persons currently on MRT train bound to some node in this conflux*/
 	PersonList mrt;
 
+	/**list of persons currently on Car Sharing in this condflux*/
+	PersonList carSharing;
+
 	/**
 	 * updates agents in this conflux
 	 */
@@ -215,6 +221,18 @@ private:
 	 * @param person is with the role "waiting bus activity"
 	 */
 	void assignPersonToBusStopAgent(Person* person);
+
+	/**
+	 * assign person to MRT
+	 * @param person is going to board MRT
+	 */
+	void assignPersonToMRT(Person* person);
+
+	/**
+	 * assign person to car
+	 * @param person is going to board car
+	 */
+	void assignPersonToCar(Person* person);
 
 	/**
 	 * calls frame_init of the movement facet for the person's role
@@ -521,6 +539,11 @@ public:
 	 * @param segStats road segment stats to remove incident
 	 */
 	static void removeIncident(sim_mob::SegmentStats* segStats);
+
+	/**
+	 * collect current person travel time
+	 */
+	void collectTravelTime(Person* person);
 
 	bool isBoundary; //A conflux that receives person from at least one conflux that belongs to another worker
 	bool isMultipleReceiver; //A conflux that receives persons from confluxes that belong to multiple other workers

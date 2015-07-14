@@ -16,6 +16,7 @@ class Node;
 class BusStop;
 class Crossing;
 class Point2D;
+class MRT_Stop;
 
 
 /**
@@ -90,6 +91,7 @@ struct WayPoint
         SIDE_WALK,    //!< WayPoint is a side walk; lane_ points to a (side-walk) Lane object.
         ROAD_SEGMENT, //!< WayPoint is a road-segment; roadSegment_ points to a RoadSegment object.
         BUS_STOP,     //!< WayPoint is a bus-stop; busStop_ points to a BusStop object.
+        MRT_STOP,	  //!< WayPoint is a mrt-stop; mrtStop_ points to a mrtStop object.
         CROSSING,     //!< WayPoint is a crossing; crossing_ points to a Crossing object.
         NODE,         //!< WayPoint is node; node_ points to a Node object.
         NONSPATIAL,   //!< WayPoint has no associated data; it must simply be "traversed".
@@ -102,6 +104,7 @@ struct WayPoint
         const BusStop* busStop_;
         const Crossing* crossing_;
         const Node* node_;
+        const MRT_Stop* mrtStop_;
     };
 
     //NOTE: These two functions have been removed; they're not robust and make the WayPoint's union even
@@ -121,6 +124,7 @@ struct WayPoint
     explicit WayPoint(Lane const * lane) : type_(SIDE_WALK), lane_(lane),directionReverse(false) {}
     explicit WayPoint(RoadSegment const * road) : type_(ROAD_SEGMENT), roadSegment_(road),directionReverse(false) {}
     explicit WayPoint(BusStop const * stop) : type_(BUS_STOP), busStop_(stop),directionReverse(false) {}
+    explicit WayPoint(MRT_Stop const * stop) : type_(MRT_STOP), mrtStop_(stop),directionReverse(false) {}
     explicit WayPoint(Crossing const * crossing) : type_(CROSSING), crossing_(crossing),directionReverse(false) {}
     explicit WayPoint(Node const * node) : type_(NODE), node_(node),directionReverse(false) {}
     explicit WayPoint(const Point2D& ignored) : type_(NONSPATIAL), node_(nullptr),directionReverse(false) {}
@@ -132,6 +136,7 @@ struct WayPoint
     			lane_  == rhs.lane_ &&
     			roadSegment_ == rhs.roadSegment_ &&
     			busStop_ == rhs.busStop_ &&
+    			mrtStop_ == rhs.mrtStop_ &&
     			crossing_ == rhs.crossing_ &&
     			node_ == rhs.node_ &&
     			directionReverse == rhs.directionReverse);
@@ -161,6 +166,10 @@ struct WayPoint
     		break;
     	case BUS_STOP:
     		busStop_ = rhs.busStop_;
+    		directionReverse=false;
+    		break;
+    	case MRT_STOP:
+    		mrtStop_ = rhs.mrtStop_;
     		directionReverse=false;
     		break;
     	case CROSSING:
@@ -197,6 +206,10 @@ struct WayPoint
     		break;
     	case BUS_STOP:
     		busStop_ = rhs.busStop_;
+    		directionReverse=false;
+    		break;
+    	case MRT_STOP:
+    		mrtStop_ = rhs.mrtStop_;
     		directionReverse=false;
     		break;
     	case CROSSING:

@@ -23,6 +23,10 @@
 #include "path/Path.hpp"
 #include "path/PathSetParam.hpp"
 #include "entities/PersonLoader.hpp"
+#include "geospatial/TurningSection.hpp"
+#include "geospatial/TurningConflict.hpp"
+#include "geospatial/TurningPolyline.h"
+#include "geospatial/Polypoint.h"
 
 //using namespace sim_mob::aimsun;
 //using std::string;
@@ -54,6 +58,7 @@ template<> struct type_conversion<sim_mob::aimsun::Node>
     	res.id = vals.get<int>("node_id", 0);
     	res.xPos = vals.get<double>("xpos", 0.0);
     	res.yPos = vals.get<double>("ypos", 0.0);
+        //res.nodeName = vals.get<std::string>("nodename", "");
     	res.isIntersection = vals.get<int>("isintersection", 0);
     	res.hasTrafficSignal = vals.get<int>("hassignal", 0);
     }
@@ -62,10 +67,29 @@ template<> struct type_conversion<sim_mob::aimsun::Node>
     	vals.set("node_id", src.id);
         vals.set("xpos", src.xPos);
         vals.set("ypos", src.yPos);
+        //vals.set("nodename", src.nodeName);
         vals.set("isintersection", src.isIntersection?1:0);
         vals.set("hvTLights", src.hasTrafficSignal?1:0);
         ind = i_ok;
     }
+};
+
+template<> struct type_conversion<sim_mob::PT_Path> {
+	typedef values base_type;
+	static void from_base(const soci::values& vals, soci::indicator& ind,sim_mob::PT_Path &res) {
+		res.setPtPathId(vals.get<std::string>("path_id", ""));
+		res.setPtPathSetId(vals.get<std::string>("pathset_id", ""));
+		res.setScenario(vals.get<std::string>("scenario", ""));
+		res.setPathTravelTime(vals.get<double>("path_travel_time_secs", 0));
+		res.setTotalDistanceKms(vals.get<double>("total_distance_kms", 0));
+		res.setPathSize(vals.get<double>("path_size", 0.0));
+		res.setTotalCost(vals.get<double>("total_cost", 0.0));
+		res.setTotalInVehicleTravelTimeSecs(vals.get<double>("total_in_vehicle_travel_time_secs", 0.0));
+		res.setTotalWaitingTimeSecs(vals.get<double>("total_waiting_time", 0));
+		res.setTotalWalkingTimeSecs(vals.get<double>("total_walking_time", 0));
+		res.setTotalNumberOfTransfers(vals.get<int>("total_number_of_transfers", 0));
+		res.updatePathEdges();
+	}
 };
 
 template<> struct type_conversion<sim_mob::SinglePath>
@@ -82,13 +106,13 @@ template<> struct type_conversion<sim_mob::SinglePath>
     	res.scenario = vals.get<std::string>("scenario", "");
     	res.length = vals.get<double>("length",0.0);
     	res.highWayDistance = vals.get<double>("highway_distance",0.0);
-		res.isMinDistance = vals.get<int>("min_distance",0);
-		res.isMinSignal = vals.get<int>("min_signal",0);
-		res.isMinRightTurn = vals.get<int>("min_right_turn",0);
-		res.isMaxHighWayUsage = vals.get<int>("max_highway_usage",0);
-		res.valid_path = vals.get<int>("valid_path",0);
-		res.isShortestPath = vals.get<int>("shortest_path",0);
-		res.index = vals.get<long long>("serial_id",0);
+        res.isMinDistance = vals.get<int>("min_distance", 0);
+        res.isMinSignal = vals.get<int>("min_signal", 0);
+        res.isMinRightTurn = vals.get<int>("min_right_turn", 0);
+        res.isMaxHighWayUsage = vals.get<int>("max_highway_usage", 0);
+        res.valid_path = vals.get<int>("valid_path", 0);
+        res.isShortestPath = vals.get<int>("shortest_path", 0);
+        res.index = vals.get<long long>("serial_id", 0);
     }
     static void to_base(const sim_mob::SinglePath& src, soci::values& vals, soci::indicator& ind)
     {
@@ -408,6 +432,8 @@ template<> struct type_conversion<sim_mob::aimsun::BusStop>
     {
     	res.bus_stop_no = vals.get<std::string>("bus_stop_no", "");
     	res.TMP_AtSectionID= vals.get<int>("section_id", 0);
+    	res.TMP_RevSectionID = vals.get<int>("reverse_section_id", 0);
+    	res.TMP_TerminalNodeID = vals.get<int>("terminal_node_id", 0);
     	res.status = vals.get<std::string>("status", "");
     	res.lane_type = vals.get<std::string>("lane_type", "");
     	res.road_name = vals.get<std::string>("road_name", "");
@@ -455,4 +481,108 @@ template<> struct type_conversion<sim_mob::aimsun::BusStopSG>
     }
 };
 
+template<> struct type_conversion<sim_mob::TurningSection>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::TurningSection &res)
+    {
+    	res.setDbId(vals.get<int>("id", -1));
+    	res.setFrom_xpos(vals.get<double>("from_xpos", -1.0));
+    	res.setFrom_ypos(vals.get<double>("from_ypos", -1.0));
+    	res.setTo_xpos(vals.get<double>("to_xpos", -1.0));
+    	res.setTo_ypos(vals.get<double>("to_ypos", -1.0));
+    	res.setFrom_road_section(vals.get<std::string>("from_road_section", ""));
+    	res.setTo_road_section(vals.get<std::string>("to_road_section", ""));
+    	res.setFrom_lane_index(vals.get<int>("from_lane_index", -1));
+    	res.setTo_lane_index(vals.get<int>("to_lane_index", -1));
+        res.setTurningSpeed(vals.get<int>("turning_speed", 20));
+        res.setHasStopSign(vals.get<int>("has_stop_sign", 0));
+    }
+    static void to_base(const sim_mob::TurningSection& src, soci::values& vals, soci::indicator& ind)
+    {
+    	vals.set("id", src.getDbId());
+    	vals.set("from_xpos", src.getFrom_xpos());
+    	vals.set("from_ypos", src.getFrom_ypos());
+    	vals.set("to_xpos", src.getTo_xpos());
+    	vals.set("to_ypos", src.getTo_ypos());
+    	vals.set("from_road_section", src.getFrom_road_section());
+    	vals.set("to_road_section", src.getTo_road_section());
+    	vals.set("from_lane_index", src.getFrom_lane_index());
+    	vals.set("to_lane_index", src.getTo_lane_index());
+        vals.set("turning_speed", src.getTurningSpeed());
+        vals.set("has_stop_sign", (src.turningHasStopSign() ? 1 : 0));
+        ind = i_ok;
+    }
+};
+template<> struct type_conversion<sim_mob::TurningConflict>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::TurningConflict &res)
+    {
+    	res.setDbId(vals.get<int>("id", -1));
+    	res.setFirst_turning(vals.get<std::string>("first_turning", ""));
+    	res.setSecond_turning(vals.get<std::string>("second_turning", ""));
+    	res.setFirst_cd(vals.get<double>("first_cd", -1.0));
+    	res.setSecond_cd(vals.get<double>("second_cd", -1.0));
+        res.setCriticalGap(vals.get<double>("critical_gap", 1.5));
+        res.setPriority(vals.get<int>("priority", 0));
+    }
+    static void to_base(const sim_mob::TurningConflict& src, soci::values& vals, soci::indicator& ind)
+    {
+    	vals.set("id", src.getDbId());
+    	vals.set("first_turning", src.getFirst_turning());
+    	vals.set("second_turning", src.getSecond_turning());
+    	vals.set("first_cd", src.getFirst_cd());
+    	vals.set("second_cd", src.getSecond_cd());
+        vals.set("critical_gap", src.getCriticalGap());
+        vals.set("priority", src.getPriority());
+        ind = i_ok;
+    }
+};
+template<> struct type_conversion<sim_mob::TurningPolyline>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::TurningPolyline &res)
+    {
+    	res.setId(vals.get<int>("id", -1));
+    	res.setTurningId(vals.get<int>("turning", -1));
+    	res.setType(vals.get<int>("type", -1));
+    	res.setLength(vals.get<double>("length", -1));
+    	res.setScenario(vals.get<std::string>("scenario"));
+    }
+    static void to_base(const sim_mob::TurningPolyline& src, soci::values& vals, soci::indicator& ind)
+    {
+    	vals.set("id", src.getId());
+    	vals.set("turning", src.getTurningId());
+    	vals.set("type", src.getType());
+    	vals.set("length", src.getLength());
+    	vals.set("scenario", src.getScenario());
+        ind = i_ok;
+    }
+};
+template<> struct type_conversion<sim_mob::Polypoint>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::Polypoint &res)
+    {
+    	res.id = vals.get<int>("id", -1);
+    	res.polylineId = vals.get<int>("polyline", -1);
+    	res.index = vals.get<int>("index", -1);
+    	res.x = vals.get<double>("x", 0.0);
+    	res.y = vals.get<double>("y", 0.0);
+    	//res.z = vals.get<double>("z", 0.0);
+    	res.scenario = vals.get<std::string>("scenario", "");
+    }
+    static void to_base(const sim_mob::Polypoint& src, soci::values& vals, soci::indicator& ind)
+    {
+    	vals.set("id", src.id);
+    	vals.set("polyline", src.polylineId);
+    	vals.set("index", src.index);
+    	vals.set("x", src.x);
+    	vals.set("y", src.y);
+    	vals.set("z", src.z);
+    	vals.set("scenario", src.scenario);
+        ind = i_ok;
+    }
+};
 }

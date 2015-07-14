@@ -5,8 +5,9 @@
 #pragma once
 
 #include "entities/roles/Role.hpp"
-#include "PassengerFacets.hpp"
 #include "entities/roles/waitBusActivity/waitBusActivity.hpp"
+#include "geospatial/Node.hpp"
+#include "PassengerFacets.hpp"
 
 namespace sim_mob {
 
@@ -42,9 +43,6 @@ public:
 	virtual void make_frame_tick_params(timeslice now) {}
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
-	void setDriver(const Driver* driver);
-	const Driver* getDriver() const;
-
 	/**
 	 * make a decision for alighting.
 	 * @param nextStop is the next stop which bus will arrive at
@@ -56,8 +54,12 @@ public:
 	 * @param type of the message.
 	 * @param message data received.
 	 */
-	virtual void HandleParentMessage(messaging::Message::MessageType type,
-			const messaging::Message& message);
+	virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message);
+
+	/**
+	 * collect travel time for current role
+	 */
+	virtual void collectTravelTime();
 
 	bool canAlightBus() const {
 		return alightBus;
@@ -65,6 +67,34 @@ public:
 
 	void setAlightBus(bool alightBus) {
 		this->alightBus = alightBus;
+	}
+
+	const sim_mob::Node* getStartNode() const
+	{
+		return startNode;
+	}
+
+	void setStartNode(const sim_mob::Node* startNode)
+	{
+		this->startNode = startNode;
+	}
+
+	const sim_mob::Node* getEndNode() const
+	{
+		return endNode;
+	}
+
+	void setEndNode(const sim_mob::Node* endNode)
+	{
+		this->endNode = endNode;
+	}
+
+	const sim_mob::medium::Driver* getDriver() const {
+		return driver;
+	}
+
+	void setDriver(const Driver* driver) {
+		this->driver = driver;
 	}
 
 private:
@@ -76,6 +106,12 @@ private:
 
 	/**flag to indicate whether the passenger has decided to alight the bus*/
 	bool alightBus;
+
+	/** starting node of passenger - for travel time storage */
+	const sim_mob::Node* startNode;
+
+	const sim_mob::Node* endNode;
+
 };
 
 }

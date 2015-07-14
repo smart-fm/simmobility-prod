@@ -48,7 +48,7 @@ std::map<sim_mob::Node*, unsigned int>& sim_mob::xml::Node_t_pimpl::GetLinkLocLi
 
 void sim_mob::xml::Node_t_pimpl::nodeID (unsigned int value)
 {
-	model.nodeId = value;
+	model.setID(value);
 }
 
 void sim_mob::xml::Node_t_pimpl::location (sim_mob::Point2D value)

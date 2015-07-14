@@ -47,6 +47,7 @@ private:
 	void SetTicks();
 	bool SetTickFromBaseGran(unsigned int& res, unsigned int tickLenMs);
 	void LoadNetworkFromDatabase();
+	void LoadPublicTransitNetworkFromDatabase();
 	void WarnMidroadSidewalks();
 	void LoadFMOD_Controller();
 	void LoadAMOD_Controller();

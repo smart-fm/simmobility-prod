@@ -81,7 +81,7 @@ private:
 };
 
 /**
- * Data access object for Population tables
+ * Data access object for Logsum table
  *
  * \author Harish Loganathan
  */

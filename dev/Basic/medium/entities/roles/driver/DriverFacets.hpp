@@ -191,9 +191,10 @@ protected:
 	 *
 	 * @param params driver update params for current tick
 	 * @param nextSegStats next segment stats in path
+	 * @param nextLink the immediate link downstream to nextSegStats
 	 * @return true if driver can move into the next segment; false otherwise
 	 */
-	bool canGoToNextRdSeg(DriverUpdateParams& params, const sim_mob::SegmentStats* nextSegStats);
+	bool canGoToNextRdSeg(DriverUpdateParams& params, const sim_mob::SegmentStats* nextSegStats, const Link* nextLink = nullptr) const;
 
 	/**
 	 * sets position of driver in queue
@@ -333,17 +334,16 @@ protected:
 	 * @param prevSeg the last segment in the link from which the driver has just exited
 	 * @param linkExitTimeSec time at which the link was exited
 	 */
-	void updateLinkTravelTimes(const sim_mob::SegmentStats* prevSegStat,
-			double linkExitTimeSec);
+	void updateLinkTravelTimes(const sim_mob::SegmentStats* prevSegStat, double linkExitTimeSec);
 
 	/**
 	 * Updates travel time for this driver for the road segment which he has just exited from.
 	 *
-	 * @param prevSeg the segment from which the driver has just exited
-	 * @param linkExitTimeSec time at which the segment was exited
+	 * @param prevSeg the last segment in the link from which the driver has just exited
+	 * @param linkExitTimeSec time at which the link was exited
 	 */
-	void updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat,
-			double segmentExitTimeSec);
+	void updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat, double segEnterExitTime);
+
 	/**
 	 * get number of intersections between the agent's location and incident location
 	 * \param in list of stats in the incident roadsegemnt
@@ -385,6 +385,13 @@ protected:
 	 * @param message data received.
 	 */
 	virtual void handleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+
+	/**
+	 * gets the first link downstream to nextSegStats
+	 * @param nextSegStats the next segment stats for driver
+	 * @return next link for driver
+	 */
+	const sim_mob::Link* getNextLinkForLaneChoice(const SegmentStats* nextSegStats) const;
 	friend class MesoReroute;
 
 };

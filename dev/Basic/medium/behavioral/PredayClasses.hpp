@@ -17,6 +17,7 @@
 #include <boost/unordered_map.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include "behavioral/StopType.hpp"
 #include "util/LangHelpers.hpp"
 
 namespace sim_mob {
@@ -80,10 +81,6 @@ private:
 	double startTime;
 	double endTime;
 	bool availability;
-};
-
-enum StopType {
-	WORK, EDUCATION, SHOP, OTHER, NULL_STOP
 };
 
 class Tour;

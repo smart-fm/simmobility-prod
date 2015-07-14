@@ -1,6 +1,8 @@
 #include <sstream>
 #include <string>
 
+namespace {
+
 std::string dumpLuaState(lua_State *L) {
 	std::stringstream ostr;
 	int i;
@@ -25,4 +27,6 @@ std::string dumpLuaState(lua_State *L) {
 		}
 	}
 	return ostr.str();
+}
+
 }

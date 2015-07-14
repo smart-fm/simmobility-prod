@@ -17,7 +17,7 @@
 
 namespace sim_mob{
 
-class PT_VerticesSqlDao : public db::SqlAbstractDao<PT_NetworkVertices> {
+class PT_VerticesSqlDao : public db::SqlAbstractDao<PT_NetworkVertex> {
 public:
 	PT_VerticesSqlDao(db::DB_Connection& connection,std::string query);
 	virtual ~PT_VerticesSqlDao();
@@ -29,7 +29,7 @@ private:
      * @param result row with data to fill the out object.
      * @param outObj to fill.
      */
-    void fromRow(db::Row& result, PT_NetworkVertices& outObj);
+    void fromRow(db::Row& result, PT_NetworkVertex& outObj);
 
     /**
      * Virtual override.
@@ -38,11 +38,11 @@ private:
      * @param outParams to put the data parameters.
      * @param update tells if operation is an Update or Insert.
      */
-    void toRow(PT_NetworkVertices& data, db::Parameters& outParams, bool update);
+    void toRow(PT_NetworkVertex& data, db::Parameters& outParams, bool update);
 };
 
 
-class Pt_EdgesSqlDao : public db::SqlAbstractDao<PT_NetworkEdges> {
+class Pt_EdgesSqlDao : public db::SqlAbstractDao<PT_NetworkEdge> {
 public:
 	Pt_EdgesSqlDao(db::DB_Connection& connection,std::string query);
 	virtual ~Pt_EdgesSqlDao();
@@ -54,7 +54,7 @@ private:
      * @param result row with data to fill the out object.
      * @param outObj to fill.
      */
-    void fromRow(db::Row& result, PT_NetworkEdges& outObj);
+    void fromRow(db::Row& result, PT_NetworkEdge& outObj);
 
     /**
      * Virtual override.
@@ -63,6 +63,6 @@ private:
      * @param outParams to put the data parameters.
      * @param update tells if operation is an Update or Insert.
      */
-    void toRow(PT_NetworkEdges& data, db::Parameters& outParams, bool update);
+    void toRow(PT_NetworkEdge& data, db::Parameters& outParams, bool update);
 };
 }// End sim::mob namespace

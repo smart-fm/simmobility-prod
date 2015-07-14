@@ -11,6 +11,7 @@
 
 #pragma once
 #include "behavioral/PredayClasses.hpp"
+#include "behavioral/StopType.hpp"
 
 namespace sim_mob {
 namespace medium {

@@ -60,11 +60,11 @@ parentWorker(nullptr), currFrame(0,0), debugMsgs(std::stringstream::out), isBoun
 sim_mob::Conflux::~Conflux()
 {
 	//delete all SegmentStats in this conflux
-	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin();
-			upstreamIt != upstreamSegStatsMap.end(); upstreamIt++) {
+	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin(); upstreamIt != upstreamSegStatsMap.end(); upstreamIt++)
+	{
 		const SegmentStatsList& linkSegments = upstreamIt->second;
-		for(SegmentStatsList::const_iterator segIt = linkSegments.begin();
-				segIt != linkSegments.end(); segIt++) {
+		for(SegmentStatsList::const_iterator segIt = linkSegments.begin(); segIt != linkSegments.end(); segIt++)
+		{
 			safe_delete_item(*segIt);
 		}
 	}
@@ -98,6 +98,9 @@ sim_mob::Conflux::PersonProps::PersonProps(const sim_mob::Person* person, const 
 	{
 		if(role->getResource()){ isMoving = role->getResource()->isMoving(); }
 		roleType = role->roleType;
+		VehicleBase* vehicle = role->getResource();
+		if(vehicle) { vehicleLength = vehicle->getLengthCm(); }
+		else { vehicleLength = 0; }
 	}
 
 	lane = person->getCurrLane();
@@ -115,6 +118,25 @@ sim_mob::Conflux::PersonProps::PersonProps(const sim_mob::Person* person, const 
 		conflux = cnflx;
 		segStats = nullptr;
 	}
+}
+
+void sim_mob::Conflux::PersonProps::printProps(unsigned int personId, uint32_t frame, std::string prefix) const
+{
+	std::stringstream propStrm;
+	propStrm << personId << "-" << frame << "-"<< prefix << "-{";
+	propStrm <<  " conflux:";
+	if(conflux) { propStrm << conflux->getMultiNode()->getID(); } else { propStrm << "0x0"; }
+	propStrm <<  " segment:";
+	if(segment) { propStrm << segment->getSegmentAimsunId(); } else { propStrm << "0x0"; }
+	propStrm <<  " segstats:";
+	if(segStats) { propStrm << segStats->getStatsNumberInSegment(); } else { propStrm << "0x0"; }
+	propStrm <<  " lane:";
+	if(lane) { propStrm << lane->getLaneID(); } else { propStrm << "0x0"; }
+	propStrm << " roleType:" << roleType
+			<< " isQueuing:" << isQueuing
+			<< " isMoving:" << isMoving
+			<< " }" << std::endl;
+	Print() << propStrm.str();
 }
 
 void sim_mob::Conflux::addAgent(sim_mob::Person* person)
@@ -146,7 +168,7 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* person)
 	}
 	case Role::RL_PEDESTRIAN:
 	{
-		pedestrianList.push_back(person);
+        pedestrianList.push_back(person);
 		break;
 	}
 	case Role::RL_WAITBUSACTITITY:
@@ -158,6 +180,11 @@ void sim_mob::Conflux::addAgent(sim_mob::Person* person)
 	{
 		mrt.push_back(person);
 		//TODO: subscribe for time based event
+		break;
+	}
+	case Role::RL_CARPASSENGER:
+	{
+		assignPersonToCar(person);
 		break;
 	}
 	case Role::RL_ACTIVITY:
@@ -262,7 +289,10 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 		//if the person has switched to Pedestrian role, put the person in that list
 		if (afterUpdate.roleType == sim_mob::Role::RL_PEDESTRIAN)
 		{
-			pedestrianList.push_back(person);
+			PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
+			if (pIt == pedestrianList.end()){
+				pedestrianList.push_back(person);
+			}
 			return; //we are done here.
 		}
 	}
@@ -272,6 +302,8 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 	switch(afterUpdate.roleType)
 	{
 	case sim_mob::Role::RL_WAITBUSACTITITY:
+	case sim_mob::Role::RL_TRAINPASSENGER:
+	case sim_mob::Role::RL_CARPASSENGER:
 	{
 		return; //would have already been handled
 	}
@@ -296,7 +328,7 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 				// the person is currently in an activity, was on a Trip
 				// before this tick and was not in a virtual queue (because beforeUpdate.lane is not null)
 				// Remove this person from the network and add him to the activity performers list.
-				beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
+				beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing, beforeUpdate.vehicleLength);
 			}
 			activityPerformers.push_back(person);
 		}
@@ -319,7 +351,7 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 			//the bus driver.
 			if (beforeUpdate.lane)
 			{
-				beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
+				beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing, beforeUpdate.vehicleLength);
 			}
 			//if the bus driver started moving from a virtual queue, his beforeUpdate.lane will be null.
 			//However, since he is already into a bus stop (afterUpdate.isMoving is false) we need not
@@ -398,7 +430,7 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 		if(beforeUpdate.roleType!=sim_mob::Role::RL_ACTIVITY)
 		{
 			// the person could have been an activity performer in which case beforeUpdate.segStats would be just null
-			beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
+			beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing, beforeUpdate.vehicleLength);
 		}
 		if (afterUpdate.lane)
 		{
@@ -415,7 +447,7 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 	else if (beforeUpdate.segStats == afterUpdate.segStats && afterUpdate.lane == afterUpdate.segStats->laneInfinity)
 	{
 		//it's possible for some persons to start a new trip on the same segment where they ended the previous trip.
-		beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing);
+		beforeUpdate.segStats->dequeue(person, beforeUpdate.lane, beforeUpdate.isQueuing, beforeUpdate.vehicleLength);
 		//adding the person to lane infinity for the new trip
 		afterUpdate.segStats->addAgent(afterUpdate.lane, person);
 	}
@@ -429,7 +461,8 @@ void sim_mob::Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUp
 	if (afterUpdate.lane && afterUpdate.lane != afterUpdate.segStats->laneInfinity)
 	{
 		//if the person did not end up in a VQ and his lane is not lane infinity of segAfterUpdate
-		afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(person->distanceToEndOfSegment, afterUpdate.lane);
+		double lengthToVehicleEnd = person->distanceToEndOfSegment + person->getRole()->getResource()->getLengthCm();
+		afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(lengthToVehicleEnd, afterUpdate.lane);
 	}
 }
 
@@ -571,10 +604,10 @@ unsigned int sim_mob::Conflux::resetOutputBounds() {
 		//outputEstimate = segStats->computeExpectedOutputPerTick();
 		/** using ceil here, just to avoid short segments returning 0 as the total number of vehicles the road segment can hold i.e. when segment is shorter than a car**/
 		int num_emptySpaces = std::ceil(segStats->getRoadSegment()->getPolylineLength()*segStats->getRoadSegment()->getLanes().size()/PASSENGER_CAR_UNIT)
-				- segStats->numMovingInSegment(true) - segStats->numQueuingInSegment(true);
+									- segStats->numMovingInSegment(true) - segStats->numQueuingInSegment(true);
 		outputEstimate = (num_emptySpaces>=0)? num_emptySpaces:0;
 		/** we are decrementing the number of agents in lane infinity (of the first segment) to overcome problem [2] above**/
-		outputEstimate = outputEstimate - virtualQueuesMap.at(lnk).size() - segStats->numAgentsInLane(segStats->laneInfinity); // decrement num. of agents already in virtual queue
+		outputEstimate = outputEstimate - segStats->numAgentsInLane(segStats->laneInfinity);
 		outputEstimate = (outputEstimate>0? outputEstimate : 0);
 		vqBounds.insert(std::make_pair(lnk, (unsigned int)outputEstimate));
 		vqCount += virtualQueuesMap.at(lnk).size();
@@ -586,21 +619,25 @@ unsigned int sim_mob::Conflux::resetOutputBounds() {
 	return vqCount;
 }
 
-bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
+bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk)
+{
 	bool res = false;
 	{
 		boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
-		try {
+		try
+		{
 			res = (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
 		}
-		catch(std::out_of_range& ex){
+		catch(std::out_of_range& ex)
+		{
 			debugMsgs  << boost::this_thread::get_id() << " out_of_range exception occured in hasSpaceInVirtualQueue()"
 					<< "|Conflux: " << this->multiNode->getID()
 					<< "|lnk:[" << lnk->getStart()->getID() << "," << lnk->getEnd()->getID() << "]"
 					<< "|lnk:" << lnk
 					<< "|virtualQueuesMap.size():" << virtualQueuesMap.size()
 					<< "|elements:";
-			for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i!= virtualQueuesMap.end(); i++) {
+			for(std::map<sim_mob::Link*, std::deque<sim_mob::Person*> >::iterator i = virtualQueuesMap.begin(); i!= virtualQueuesMap.end(); i++)
+			{
 				debugMsgs << " ([" << i->first->getStart()->getID() << "," << i->first->getEnd()->getID() << "]:" << i->first << "," << i->second.size() << "),";
 			}
 			debugMsgs << "|\nvqBounds.size(): " << vqBounds.size() << std::endl;
@@ -610,11 +647,10 @@ bool sim_mob::Conflux::hasSpaceInVirtualQueue(sim_mob::Link* lnk) {
 	return res;
 }
 
-void sim_mob::Conflux::pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p) {
-	{
-		boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
-		virtualQueuesMap.at(lnk).push_back(p);
-	}
+void sim_mob::Conflux::pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p)
+{
+	boost::unique_lock< boost::recursive_mutex > lock(mutexOfVirtualQueue);
+	virtualQueuesMap.at(lnk).push_back(p);
 }
 
 double sim_mob::Conflux::computeTimeToReachEndOfLink(sim_mob::SegmentStats* segStats, double distanceToEndOfSeg) const{
@@ -685,11 +721,11 @@ void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
 		const SegmentStatsList& linkSegments = upstreamIt->second;
 		for(SegmentStatsList::const_iterator segIt = linkSegments.begin(); segIt != linkSegments.end(); segIt++)
 		{
-			(*segIt)->updateLaneParams(frameNumber);
 			if (updateThisTick && outputEnabled)
 			{
 				Log() << (*segIt)->reportSegmentStats(frameNumber.frame()/updtInterval);
 			}
+			(*segIt)->updateLaneParams(frameNumber);
 		}
 	}
 }
@@ -699,6 +735,7 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 	sim_mob::SegmentStats* prevSegStats = beforeUpdate.segStats;
 	const sim_mob::Lane* prevLane = beforeUpdate.lane;
 	bool wasQueuing = beforeUpdate.isQueuing;
+	double vehicleLength = beforeUpdate.vehicleLength;
 	sim_mob::Role::type personRoleType = sim_mob::Role::RL_UNKNOWN;
 	if(person->getRole()) { personRoleType = person->getRole()->roleType; }
 	switch(personRoleType)
@@ -732,7 +769,7 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 		if(pIt!=activityPerformers.end()) {	activityPerformers.erase(pIt); } //Check if he was indeed an activity performer and erase him
 		else if (prevLane)
 		{
-			bool removed = prevSegStats->removeAgent(prevLane, person, wasQueuing);
+			bool removed = prevSegStats->removeAgent(prevLane, person, wasQueuing, vehicleLength);
 			if(!removed) { throw std::runtime_error("Conflux::killAgent(): Attempt to remove non-existent person in Lane");	}
 		}
 		break;
@@ -741,7 +778,7 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 	{
 		if (prevLane)
 		{
-			bool removed = prevSegStats->removeAgent(prevLane, person, wasQueuing);
+			bool removed = prevSegStats->removeAgent(prevLane, person, wasQueuing, vehicleLength);
 			//removed can be false only in the case of BusDrivers at the moment.
 			//This is because a BusDriver could have been dequeued from prevLane in the previous tick and be added to his
 			//last bus stop. When he has finished serving the stop, the BusDriver is done. He will be killed here. However,
@@ -756,16 +793,18 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 	}
 	}
 
+	//Print()<<"agent is removed by conflux:"<<person->getId()<<"|role:"<<(int)personRoleType<<std::endl;
+	person->currWorkerProvider = nullptr;
 	parentWorker->remEntity(person);
 	parentWorker->scheduleForRemoval(person);
 }
 
 void sim_mob::Conflux::resetPositionOfLastUpdatedAgentOnLanes() {
-	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin();
-			upstreamIt != upstreamSegStatsMap.end(); upstreamIt++) {
+	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin(); upstreamIt != upstreamSegStatsMap.end(); upstreamIt++)
+	{
 		const SegmentStatsList& linkSegments = upstreamIt->second;
-		for(SegmentStatsList::const_iterator segIt = linkSegments.begin();
-				segIt != linkSegments.end(); segIt++) {
+		for(SegmentStatsList::const_iterator segIt = linkSegments.begin(); segIt != linkSegments.end(); segIt++)
+		{
 			(*segIt)->resetPositionOfLastUpdatedAgentOnLanes();
 		}
 	}
@@ -879,8 +918,13 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 		msg.person->currWorkerProvider = parentWorker;
 		messaging::MessageBus::ReRegisterHandler(msg.person, GetContext());
 		mrt.push_back(msg.person);
+		DailyTime time = msg.person->currSubTrip->endTime;
+		msg.person->getRole()->setTravelTime(time.getValue());
+		unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
+		unsigned int offset = time.getValue()/tick;
 		//TODO: compute time to be expired and send message to self
-		messaging::MessageBus::PostMessage(this, MSG_WAKE_UP, messaging::MessageBus::MessagePtr(new PersonMessage(msg.person)), false, 0); //last parameter (0) must be updated with actual time
+		messaging::MessageBus::PostMessage(this, MSG_WAKE_UP,
+				messaging::MessageBus::MessagePtr(new PersonMessage(msg.person)), false, offset);
 		break;
 	}
 	case MSG_WAKE_UP:
@@ -889,7 +933,16 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 		PersonList::iterator pIt = std::find(mrt.begin(), mrt.end(), msg.person);
 		if(pIt==mrt.end()) { throw std::runtime_error("Person not found in MRT list"); }
 		mrt.erase(pIt);
-
+		//switch to next trip chain item
+		switchTripChainItem(msg.person);
+		break;
+	}
+	case MSG_WAKEUP_CAR_PASSENGER_TELEPORTATION:
+	{
+		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
+		PersonList::iterator pIt = std::find(carSharing.begin(), carSharing.end(), msg.person);
+		if(pIt==carSharing.end()) { throw std::runtime_error("Person not found in Car list"); }
+		carSharing.erase(pIt);
 		//switch to next trip chain item
 		switchTripChainItem(msg.person);
 		break;
@@ -899,11 +952,20 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 	}
 }
 
+void sim_mob::Conflux::collectTravelTime(Person* person)
+{
+	if(person && person->getRole()){
+		person->getRole()->collectTravelTime();
+	}
+}
+
 Entity::UpdateStatus sim_mob::Conflux::switchTripChainItem(Person* person)
 {
+	collectTravelTime(person);
 	Entity::UpdateStatus retVal = person->checkTripChain();
 	if (retVal.status == UpdateStatus::RS_DONE) { return retVal; }
 	Role* personRole = person->getRole();
+	person->setStartTime(currFrame.ms());
 	if(personRole && personRole->roleType==Role::RL_WAITBUSACTITITY)
 	{
 		assignPersonToBusStopAgent(person);
@@ -911,16 +973,39 @@ Entity::UpdateStatus sim_mob::Conflux::switchTripChainItem(Person* person)
 		if(pIt!=pedestrianList.end()) {	pedestrianList.erase(pIt); }
 		return retVal;
 	}
-	person->setStartTime(currFrame.ms());
+
+	if(personRole && personRole->roleType==Role::RL_TRAINPASSENGER)
+	{
+		assignPersonToMRT(person);
+		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
+		if(pIt!=pedestrianList.end()) {	pedestrianList.erase(pIt); }
+		return retVal;
+	}
+
+	if(personRole && personRole->roleType==Role::RL_CARPASSENGER)
+	{
+		assignPersonToCar(person);
+		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
+		if(pIt!=pedestrianList.end()) {	pedestrianList.erase(pIt); }
+		return retVal;
+	}
+
+	if(personRole && personRole->roleType==Role::RL_PEDESTRIAN){
+		PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
+		if(pIt==pedestrianList.end()) {pedestrianList.push_back(person); }
+		return retVal;
+	}
 
 	if((*person->currTripChainItem)->itemType == sim_mob::TripChainItem::IT_ACTIVITY)
 	{
 		//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
 		//since start time of the activity is usually later than what is configured initially,
 		//we have to make adjustments so that it waits for exact amount of time
+		Activity* acItem = dynamic_cast<Activity*>((*person->currTripChainItem));
 		sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(personRole);
 		ap->setActivityStartTime(sim_mob::DailyTime(currFrame.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
 		ap->setActivityEndTime(sim_mob::DailyTime(currFrame.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
+		ap->setLocation(acItem->location);
 	}
 	if (callMovementFrameInit(currFrame, person)) { person->setInitialized(true); }
 	else { return UpdateStatus::Done; }
@@ -977,6 +1062,7 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFrameTick(timeslice now, Pers
 			Conflux* nextConflux = person->getNextLinkRequired()->getSegments().front()->getParentConflux();
 			messaging::MessageBus::PostMessage(nextConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST,
 					messaging::MessageBus::MessagePtr(new PersonMessage(person)));
+			person->setNextLinkRequired(nullptr);
 			PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
 			if(pIt!=pedestrianList.end())
 			{
@@ -994,11 +1080,13 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFrameTick(timeslice now, Pers
 			// grant permission. But check whether the subsequent frame_tick can be called now.
 			person->canMoveToNextSegment = Person::GRANTED;
 			long currentFrame = now.frame(); //frame will not be outside the range of long data type
+			LaneParams* currLnParams = person->getCurrSegStats()->getLaneParams(person->getCurrLane());
 			if(currentFrame > nxtConflux->getLastUpdatedFrame())
 			{
 				// nxtConflux is not processed for the current tick yet
-				if(nxtConflux->hasSpaceInVirtualQueue(nxtSegment->getLink()))
+				if(nxtConflux->hasSpaceInVirtualQueue(nxtSegment->getLink()) && currLnParams->getOutputCounter() > 0)
 				{
+					currLnParams->decrementOutputCounter();
 					person->setCurrSegStats(person->requestedNextSegStats);
 					person->setCurrLane(nullptr); // so that the updateAgent function will add this agent to the virtual queue
 					person->requestedNextSegStats = nullptr;
@@ -1014,7 +1102,16 @@ Entity::UpdateStatus sim_mob::Conflux::callMovementFrameTick(timeslice now, Pers
 			{
 				// nxtConflux is processed for the current tick. Can move to the next link.
 				// already handled by setting person->canMoveToNextSegment = GRANTED
-				person->requestedNextSegStats = nullptr;
+				if(currLnParams->getOutputCounter() > 0)
+				{
+					currLnParams->decrementOutputCounter();
+					person->requestedNextSegStats = nullptr;
+				}
+				else
+				{
+					person->canMoveToNextSegment = Person::DENIED;
+					person->requestedNextSegStats = nullptr;
+				}
 			}
 			else { throw std::runtime_error("lastUpdatedFrame of confluxes are managed incorrectly"); }
 		}
@@ -1078,30 +1175,71 @@ void sim_mob::Conflux::updateBusStopAgents()
 void sim_mob::Conflux::assignPersonToBusStopAgent(Person* person)
 {
 	Role* role = person->getRole();
-	if (role && role->roleType == Role::RL_WAITBUSACTITITY) {
+	if (role && role->roleType == Role::RL_WAITBUSACTITITY)
+	{
 		const BusStop* stop = nullptr;
-		if (person->originNode.type_ == WayPoint::BUS_STOP) {
+		if (person->originNode.type_ == WayPoint::BUS_STOP)
+		{
 			stop = person->originNode.busStop_;
 		}
 
-		if(!stop){
-			if(person->currSubTrip->fromLocation.type_==WayPoint::BUS_STOP) {
+		if(!stop)
+		{
+			if(person->currSubTrip->fromLocation.type_==WayPoint::BUS_STOP)
+			{
 				stop = person->currSubTrip->fromLocation.busStop_;
 			}
 		}
 
-		if (!stop) {
-			return;
+		if (!stop) { return; }
+
+		//always make sure we dispatch this person only to SOURCE_TERMINUS or NOT_A_TERMINUS stops
+		if(stop->terminusType == sim_mob::BusStop::SINK_TERMINUS)
+		{
+			stop = stop->getTwinStop();
+			if(stop->terminusType == sim_mob::BusStop::SINK_TERMINUS) { throw std::runtime_error("both twin stops are SINKs"); } //sanity check
 		}
 
 		const StreetDirectory& strDirectory = StreetDirectory::instance();
 		Agent* busStopAgent = strDirectory.findBusStopAgentByBusStop(stop);
-		if (busStopAgent) {
-			messaging::MessageBus::SendInstantaneousMessage(busStopAgent,
-					MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP,
-					messaging::MessageBus::MessagePtr(
-							new ArriavalAtStopMessage(person)));
+		if (busStopAgent)
+		{
+			messaging::MessageBus::SendMessage(busStopAgent, MSG_WAITING_PERSON_ARRIVAL_AT_BUSSTOP,
+					messaging::MessageBus::MessagePtr(new ArrivalAtStopMessage(person)));
 		}
+	}
+}
+
+void sim_mob::Conflux::assignPersonToMRT(Person* person) {
+	Role* role = person->getRole();
+	if (role && role->roleType == Role::RL_TRAINPASSENGER) {
+		person->currWorkerProvider = parentWorker;
+			messaging::MessageBus::ReRegisterHandler(person, GetContext());
+			mrt.push_back(person);
+			DailyTime time = person->currSubTrip->endTime;
+			person->getRole()->setTravelTime(time.getValue());
+			unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
+			messaging::MessageBus::PostMessage(this, MSG_WAKE_UP, messaging::MessageBus::MessagePtr(new PersonMessage(person)), false, time.getValue()/tick);
+	}
+}
+
+void sim_mob::Conflux::assignPersonToCar(Person* person)
+{
+	Role* role = person->getRole();
+	if (role && role->roleType == Role::RL_CARPASSENGER)
+	{
+		person->currWorkerProvider = parentWorker;
+		PersonList::iterator pIt = std::find(carSharing.begin(), carSharing.end(), person);
+		if (pIt == carSharing.end())
+		{
+			carSharing.push_back(person);
+		}
+		DailyTime time = person->currSubTrip->endTime;
+		person->setStartTime(currFrame.ms());
+		person->getRole()->setTravelTime(time.getValue());
+		unsigned int tick = ConfigManager::GetInstance().FullConfig().baseGranMS();
+		messaging::MessageBus::PostMessage(this, MSG_WAKEUP_CAR_PASSENGER_TELEPORTATION,
+				messaging::MessageBus::MessagePtr(new PersonMessage(person)), false, time.getValue() / tick);
 	}
 }
 
@@ -1110,9 +1248,11 @@ UpdateStatus sim_mob::Conflux::movePerson(timeslice now, Person* person)
 	// We give the Agent the benefit of the doubt here and simply call frame_init().
 	// This allows them to override the start_time if it seems appropriate (e.g., if they
 	// are swapping trip chains). If frame_init() returns false, immediately exit.
-	if (!person->isInitialized()) {
+	if (!person->isInitialized())
+	{
 		//Call frame_init() and exit early if required.
-		if (!callMovementFrameInit(now, person)) {
+		if (!callMovementFrameInit(now, person))
+		{
 			return UpdateStatus::Done;
 		}
 
@@ -1124,7 +1264,8 @@ UpdateStatus sim_mob::Conflux::movePerson(timeslice now, Person* person)
 	UpdateStatus retVal = callMovementFrameTick(now, person);
 
 	//This persons next movement will be in the next tick
-	if (retVal.status != UpdateStatus::RS_DONE && person->remainingTimeThisTick<=0) {
+	if (retVal.status != UpdateStatus::RS_DONE && person->remainingTimeThisTick<=0)
+	{
 		//now is the right time to ask for resetting of updateParams
 		person->setResetParamsRequired(true);
 	}
@@ -1203,7 +1344,7 @@ void sim_mob::Conflux::getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>&
 	for (UpstreamSegmentStatsMap::iterator upStrmSegMapIt = upstreamSegStatsMap.begin(); upStrmSegMapIt != upstreamSegStatsMap.end(); upStrmSegMapIt++)
 	{
 		const SegmentStatsList& upstreamSegments = upStrmSegMapIt->second;
-		sumCapacity += (int)(ceil((*upstreamSegments.rbegin())->getRoadSegment()->getCapacityPerInterval()));
+		sumCapacity += (int)(ceil((*upstreamSegments.rbegin())->getCapacity()));
 		double totalTimeToSegEnd = 0;
 		std::deque<sim_mob::Person*> oneDeque;
 		for (SegmentStatsList::const_reverse_iterator rdSegIt = upstreamSegments.rbegin(); rdSegIt != upstreamSegments.rend(); rdSegIt++)
@@ -1228,40 +1369,69 @@ void sim_mob::Conflux::getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>&
 }
 
 void sim_mob::Conflux::topCMergeDifferentLinksInConflux(std::deque<sim_mob::Person*>& mergedPersonDeque,
-		std::vector< std::deque<sim_mob::Person*> >& allPersonLists, int capacity) {
+		std::vector< std::deque<sim_mob::Person*> >& allPersonLists, int capacity)
+{
 	std::vector<std::deque<sim_mob::Person*>::iterator> iteratorLists;
 
 	//init location
 	size_t dequeSize = allPersonLists.size();
-	for (std::vector<std::deque<sim_mob::Person*> >::iterator it = allPersonLists.begin(); it != allPersonLists.end(); ++it) {
+	for (std::vector<std::deque<sim_mob::Person*> >::iterator it = allPersonLists.begin(); it != allPersonLists.end(); ++it)
+	{
 		iteratorLists.push_back(((*it)).begin());
 	}
 
 	//pick the Top C
-	for (size_t c = 0; c < capacity; c++) {
-		int whichDeque = -1;
-		double minDistance = std::numeric_limits<double>::max();
-		sim_mob::Person* whichPerson = NULL;
-
-		for (size_t i = 0; i < dequeSize; i++) {
-			if (iteratorLists[i] != (allPersonLists[i]).end() && (*iteratorLists[i])->drivingTimeToEndOfLink < minDistance) {
-				whichDeque = i;
-				minDistance = (*iteratorLists[i])->drivingTimeToEndOfLink;
-				whichPerson = (*iteratorLists[i]);
+	for (size_t c = 0; c < capacity; c++)
+	{
+		double minVal = std::numeric_limits<double>::max();
+		sim_mob::Person* currPerson = nullptr;
+		std::vector<std::pair<int, sim_mob::Person*> > equiTimeList;
+		for (size_t i = 0; i < dequeSize; i++)
+		{
+			if (iteratorLists[i] != (allPersonLists[i]).end())
+			{
+				currPerson = (*(iteratorLists[i]));
+				if(currPerson->drivingTimeToEndOfLink == minVal)
+				{
+					equiTimeList.push_back(std::make_pair(i, currPerson));
+				}
+				else if (currPerson->drivingTimeToEndOfLink < minVal)
+				{
+					minVal = (*iteratorLists[i])->drivingTimeToEndOfLink;
+					equiTimeList.clear();
+					equiTimeList.push_back(std::make_pair(i, currPerson));
+				}
 			}
 		}
 
-		if (whichDeque < 0) {
+		if (equiTimeList.empty())
+		{
 			return; //no more vehicles
-		} else {
-			iteratorLists[whichDeque]++;
-			mergedPersonDeque.push_back(whichPerson);
+		}
+		else
+		{
+			//we have to randomly choose from persons in equiDistantList
+			size_t numElements = equiTimeList.size();
+			std::pair<int, sim_mob::Person*> chosenPair;
+			if(numElements == 1)
+			{
+				chosenPair = equiTimeList.front();
+			}
+			else
+			{
+				int chosenIdx = rand() % numElements;
+				chosenPair = equiTimeList[chosenIdx];
+			}
+			iteratorLists.at(chosenPair.first)++;
+			mergedPersonDeque.push_back(chosenPair.second);
 		}
 	}
 
 	//After pick the Top C, there are still some vehicles left in the deque
-	for (size_t i = 0; i < dequeSize; i++) {
-		if (iteratorLists[i] != (allPersonLists[i]).end()) {
+	for (size_t i = 0; i < dequeSize; i++)
+	{
+		if (iteratorLists[i] != (allPersonLists[i]).end())
+		{
 			mergedPersonDeque.insert(mergedPersonDeque.end(), iteratorLists[i], (allPersonLists[i]).end());
 		}
 	}
@@ -1360,7 +1530,6 @@ unsigned int sim_mob::Conflux::getNumRemainingInLaneInfinity() {
 	return count;
 }
 
-/**TODO: use public transit route choice to replace subtrips for PT trip; return appropriate conflux*/
 sim_mob::Conflux* sim_mob::Conflux::findStartingConflux(Person* person, unsigned int now)
 {
 	UpdateStatus res = person->checkTripChain();
@@ -1410,4 +1579,6 @@ void sim_mob::Conflux::removeIncident(sim_mob::SegmentStats* segStats) {
 
 sim_mob::InsertIncidentMessage::InsertIncidentMessage(const std::vector<sim_mob::SegmentStats*>& stats, double newFlowRate):stats(stats), newFlowRate(newFlowRate){;}
 
-sim_mob::InsertIncidentMessage::~InsertIncidentMessage() {}
+sim_mob::InsertIncidentMessage::~InsertIncidentMessage()
+{
+}

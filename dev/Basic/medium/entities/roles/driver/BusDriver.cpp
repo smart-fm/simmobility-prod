@@ -51,10 +51,10 @@ sim_mob::medium::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat,
   visitedBusStopSequenceNo(mtxStrat, -1), arrivalTime(mtxStrat, 0.0),
   dwellTime(mtxStrat, 0.0), visitedBusTripSequenceNo(mtxStrat, 0),
   visitedBusLine(mtxStrat, "0"), holdingTime(mtxStrat, 0.0),
-  waitingTimeAtbusStop(0.0)
+  waitingTimeAtbusStop(0.0),busSequenceNumber(1)
 {}
 
-sim_mob::medium::BusDriver::~BusDriver() {}
+sim_mob::medium::BusDriver::~BusDriver(){}
 
 Role* sim_mob::medium::BusDriver::clone(Person* parent) const {
 	BusDriverBehavior* behavior = new BusDriverBehavior(parent);
@@ -81,7 +81,7 @@ const std::vector<const sim_mob::BusStop*>* sim_mob::medium::BusDriver::getBusSt
 	stopsVec = &(routeInfo.getBusStops());
 	return stopsVec;
 }
-
+std::string lastBoarding;
 bool sim_mob::medium::BusDriver::addPassenger(sim_mob::medium::Passenger* passenger) {
 	passengerList.push_back(passenger);
 	return true;
@@ -105,6 +105,14 @@ bool  sim_mob::medium::BusDriver::checkIsFull()
 unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent){
 	unsigned int numAlighting = 0;
 	std::list<sim_mob::medium::Passenger*>::iterator itPassenger = passengerList.begin();
+	const sim_mob::BusStop* stop = busStopAgent->getBusStop();
+	if(stop->isVirtualStop())
+	{
+		stop = stop->getTwinStop();
+		if(stop->isVirtualStop()) { throw std::runtime_error("both of the twin stops are virtual"); }
+		busStopAgent = BusStopAgent::findBusStopAgentByBusStop(stop);
+	}
+
 	while (itPassenger != passengerList.end()) {
 
 		/*the passengers will be always together with bus driver, so
@@ -139,13 +147,24 @@ void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, co
 		std::string stopNo = stop->getBusstopno_();
 		std::string tripId = busTrip->tripID;
 		std::string busLineId = busLine->getBusLineID();
-		unsigned int sequenceNo = busTrip->getBusTripRun_SequenceNum();
+		//unsigned int sequenceNo = busTrip->getBusTripStopIndex(stop);
 		double pctOccupancy = (((double)passengerList.size())/MT_Config::getInstance().getBusCapacity()) * 100.0;
 
 		messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(), STORE_BUS_ARRIVAL,
-				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(stopNo, busLineId, tripId, current, waitTime, sequenceNo,pctOccupancy)));
+				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(stopNo, busLineId, tripId, current, waitTime, this->busSequenceNumber,pctOccupancy)));
+		this->busSequenceNumber++;
 	}
 }
+
+void sim_mob::medium::BusDriver::calcTravelTime()
+{
+	std::list<sim_mob::medium::Passenger*>::iterator it=passengerList.begin();
+	for(; it!=passengerList.end(); it++){
+		PassengerMovement* movement = dynamic_cast<PassengerMovement*>((*it)->Movement());
+		movement->frame_tick();
+	}
+}
+
 
 void sim_mob::medium::BusDriver::predictArrivalAtBusStop(double preArrivalTime,
 		sim_mob::medium::BusStopAgent* busStopAgent) {
@@ -202,10 +221,10 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 	 * main thread, exactly one bus driver can be processed at a time and no other
 	 * agent in the simulation will be updating at the same time.
 	 */
-	busStopAgent->handleBusArrival(this);
-	unsigned int numAlighting = alightPassenger(busStopAgent);
-	unsigned int numBoarding = busStopAgent->getBoardingNum(this);
 
+	unsigned int numAlighting = alightPassenger(busStopAgent);
+	busStopAgent->handleBusArrival(this);
+	unsigned int numBoarding = busStopAgent->getBoardingNum(this);
 	unsigned int totalNumber = numAlighting + numBoarding;
 
 	int boardNum = std::max(numAlighting, numBoarding);
@@ -220,7 +239,7 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 	}
 
 	DailyTime dwellTime( converToMilliseconds(waitingTimeAtbusStop) );
-	storeArrivalTime(current, dwellTime.toString(), busStopAgent->getBusStop());
+	storeArrivalTime(current, dwellTime.getStrRepr(), busStopAgent->getBusStop());
 
 
 	if (requestMode.get() == Role::REQUEST_DECISION_TIME) {

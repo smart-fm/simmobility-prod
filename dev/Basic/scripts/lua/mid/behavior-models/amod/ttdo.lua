@@ -104,17 +104,19 @@ local function computeUtilities(params,dbparams)
 	--local person_type_id = params.person_type_id 
 	-- gender in this model is the same as female_dummy
 	local gender = params.female_dummy
+	local cbd_dummy =dbparams.cbd_dummy
+	local cbd_dummy_origin = dbparams.cbd_dummy_origin
 	-- work time flexibility 1 for fixed hour, 2 for flexible hour
 	--local worktime = params.worktime	
-	
+	local AMOD_cost = 10	
 	local pow = math.pow
 
-	local cost_HT1_am = dbparams.cost_HT1_am
-	local cost_HT1_pm = dbparams.cost_HT1_pm
-	local cost_HT1_op = dbparams.cost_HT1_op
-	local cost_HT2_am = dbparams.cost_HT2_am
-	local cost_HT2_pm = dbparams.cost_HT2_pm
-	local cost_HT2_op = dbparams.cost_HT2_op
+	local cost_HT1_am = dbparams.cost_HT1_am + (cbd_dummy * AMOD_cost + cbd_dummy_origin * (1-cbd_dummy)* AMOD_cost)*0.5
+	local cost_HT1_pm = dbparams.cost_HT1_pm + (cbd_dummy * AMOD_cost + cbd_dummy_origin * (1-cbd_dummy)* AMOD_cost)*0.5
+	local cost_HT1_op = dbparams.cost_HT1_op + (cbd_dummy * AMOD_cost + cbd_dummy_origin * (1-cbd_dummy)* AMOD_cost)*0.5
+	local cost_HT2_am = dbparams.cost_HT2_am + (cbd_dummy * AMOD_cost + cbd_dummy_origin * (1-cbd_dummy)* AMOD_cost)*0.5
+	local cost_HT2_pm = dbparams.cost_HT2_pm + (cbd_dummy * AMOD_cost + cbd_dummy_origin * (1-cbd_dummy)* AMOD_cost)*0.5
+	local cost_HT2_op = dbparams.cost_HT2_op + (cbd_dummy * AMOD_cost + cbd_dummy_origin * (1-cbd_dummy)* AMOD_cost)*0.5
 
 	for i = 1,1176 do
 		local arrid = comb[i][1]

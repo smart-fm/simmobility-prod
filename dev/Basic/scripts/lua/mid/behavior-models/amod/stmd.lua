@@ -20,6 +20,10 @@ local beta_cost_share3_1= 0
 local beta_cost_motor_1 = 0
 local beta_cost_taxi_1 = 0
 
+local AMOD_cost = 10.00
+local AMOD_wtc = -1.10
+local AMOD_wt = 0.167
+
 local beta_tt_bus_mrt = -3.78
 local beta_tt_private_bus = 0
 local beta_tt_drive1 = -4.64
@@ -52,15 +56,15 @@ local beta_distance_motor = 0
 local beta_distance_walk = 0
 local beta_distance_taxi = 0
 
-local beta_cons_bus = 2.80
+local beta_cons_bus = 2.82
 local beta_cons_mrt = 2.21
-local beta_cons_private_bus = 2.094
-local beta_cons_drive1 = 0.4
-local beta_cons_share2 = 1.85
-local beta_cons_share3 = 0.87
-local beta_cons_motor = -5.3
-local beta_cons_walk = -1.72
-local beta_cons_taxi = -3.59
+local beta_cons_private_bus = 2.44
+local beta_cons_drive1 = 0
+local beta_cons_share2 = 1.54
+local beta_cons_share3 = 0.905
+local beta_cons_motor = -5.14
+local beta_cons_walk = -1.79
+local beta_cons_taxi = -3.39
 
 local beta_female_bus = 0
 local beta_female_mrt = 0
@@ -92,7 +96,9 @@ end
 -- 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
 local utility = {}
 local function computeUtilities(params,dbparams)
+	local cbd_dummy_origin = dbparams.cbd_dummy_origin
 	local female_dummy = params.female_dummy
+	local person_type_id= params.person_type_id
 	local mode_work_bus = dbparams.mode_to_work == 1 and 1 or 0
 	local mode_work_mrt = dbparams.mode_to_work == 2 and 1 or 0
 	local mode_work_private_bus = dbparams.mode_to_work == 3 and 1 or 0
@@ -114,6 +120,7 @@ local function computeUtilities(params,dbparams)
 	local cost_taxi_2 = {}
 
 	local central_dummy={}
+	local cbd_dummy = {}
 
 	local tt_bus = {}
 	local tt_mrt = {}
@@ -138,14 +145,22 @@ local function computeUtilities(params,dbparams)
 
 	--for each area
 	for i =1,1169 do
-		cost_bus[i] = dbparams:cost_public_first(i) + dbparams:cost_public_second(i)
-		cost_mrt[i] = cost_bus[i]
-		cost_private_bus[i] = cost_bus[i]
+	cbd_dummy[i] = dbparams:cbd_dummy(i)	
+	if person_type_id == 4 or person_type_id == 6 or person_type_id == 8 then
 
-		cost_drive1[i] = dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)
-		cost_share2[i] = dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)/2
-		cost_share3[i] = dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)/3
-		cost_motor[i] = 0.5*(dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i))+0.65*dbparams:cost_car_parking(i)
+		cost_bus[i] = (dbparams:cost_public_first(i) + dbparams:cost_public_second(i))
+		cost_mrt[i] = (cost_bus[i]) 
+	else
+		cost_bus[i] = (dbparams:cost_public_first(i) + dbparams:cost_public_second(i)) 
+		cost_mrt[i] = (cost_bus[i])
+	end
+		
+		cost_private_bus[i] = dbparams:cost_public_first(i) + dbparams:cost_public_second(i) + cbd_dummy[i]*AMOD_cost + cbd_dummy_origin *(1-cbd_dummy[i])*AMOD_cost
+
+		cost_drive1[i] = dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i) + cbd_dummy[i]*AMOD_cost + cbd_dummy_origin *(1-cbd_dummy[i])*AMOD_cost
+		cost_share2[i] = dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)/2 + cbd_dummy[i]*AMOD_cost + cbd_dummy_origin *(1-cbd_dummy[i])*AMOD_cost
+		cost_share3[i] = dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)/3 + cbd_dummy[i]*AMOD_cost + cbd_dummy_origin *(1-cbd_dummy[i])*AMOD_cost
+		cost_motor[i] = 0.5*(dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i))+0.65*dbparams:cost_car_parking(i) + cbd_dummy[i]*AMOD_cost + cbd_dummy_origin *(1-cbd_dummy[i])*AMOD_cost
 		
 		central_dummy[i] = dbparams:central_dummy(i)
 		d1[i] = dbparams:walk_distance1(i)
@@ -195,31 +210,31 @@ local function computeUtilities(params,dbparams)
 	--utility function for private bus 1-1169
 	for i=1,1169 do
 		V_counter = V_counter +1
-		utility[V_counter] = beta_cons_private_bus + cost_private_bus[i] * beta_cost_private_bus_1 + tt_private_bus[i] * beta_tt_bus_mrt + beta_central_private_bus * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_private_bus + beta_female_private_bus * female_dummy + beta_mode_work_bus * mode_work_private_bus
+		utility[V_counter] = beta_cons_private_bus + cost_private_bus[i] * beta_cost_private_bus_1 + tt_private_bus[i] * beta_tt_bus_mrt + beta_central_private_bus * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_private_bus + beta_female_private_bus * female_dummy + beta_mode_work_bus * mode_work_private_bus + AMOD_wtc * cbd_dummy[i] * AMOD_wt + AMOD_wtc * cbd_dummy_origin * (1-cbd_dummy[i]) * AMOD_wt
 	end
 
 	--utility function for drive1 1-1169
 	for i=1,1169 do
 		V_counter = V_counter +1
-		utility[V_counter] = beta_cons_drive1 + cost_drive1[i] * beta_cost_drive1_1 + tt_drive1[i] * beta_tt_drive1 + beta_central_drive1 * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_drive1 + beta_female_drive1 * female_dummy + beta_mode_work_drive1 * mode_work_drive1 
+		utility[V_counter] = beta_cons_drive1 + cost_drive1[i] * beta_cost_private_bus_1 + tt_drive1[i] * beta_tt_drive1 + beta_central_drive1 * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_drive1 + beta_female_drive1 * female_dummy + beta_mode_work_drive1 * mode_work_drive1 + AMOD_wtc * cbd_dummy[i] * AMOD_wt + AMOD_wtc * cbd_dummy_origin * (1-cbd_dummy[i]) * AMOD_wt
 	end
 
 	--utility function for share2 1-1169
 	for i=1,1169 do
 		V_counter = V_counter +1
-		utility[V_counter] = beta_cons_share2 + cost_share2[i] *beta_cost_drive1_1 + tt_share2[i] * beta_tt_share2 + beta_central_share2 * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_share2 + beta_female_share2 * female_dummy + beta_mode_work_share2 * mode_work_share2
+		utility[V_counter] = beta_cons_share2 + cost_share2[i] *beta_cost_private_bus_1 + tt_share2[i] * beta_tt_share2 + beta_central_share2 * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_share2 + beta_female_share2 * female_dummy + beta_mode_work_share2 * mode_work_share2 + AMOD_wtc * cbd_dummy[i] * AMOD_wt + AMOD_wtc * cbd_dummy_origin * (1-cbd_dummy[i]) * AMOD_wt
 	end
 
 	--utility function for share3 1-1169
 	for i=1,1169 do
 		V_counter = V_counter +1
-		utility[V_counter] = beta_cons_share3 + cost_share3[i] * beta_cost_drive1_1 + tt_share3[i] * beta_tt_share3 + beta_central_share3 * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_share3 + beta_female_share3 * female_dummy + beta_mode_work_share2 * mode_work_share3
+		utility[V_counter] = beta_cons_share3 + cost_share3[i] * beta_cost_private_bus_1 + tt_share3[i] * beta_tt_share3 + beta_central_share3 * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_share3 + beta_female_share3 * female_dummy + beta_mode_work_share2 * mode_work_share3 + AMOD_wtc * cbd_dummy[i] * AMOD_wt + AMOD_wtc * cbd_dummy_origin * (1-cbd_dummy[i]) * AMOD_wt
 	end
 
 	--utility function for motor 1-1169
 	for i=1,1169 do
 		V_counter = V_counter +1
-		utility[V_counter] = beta_cons_motor + cost_motor[i] * beta_cost_drive1_1 + tt_motor[i] * beta_tt_motor + beta_central_motor * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_motor + beta_female_motor * female_dummy + beta_mode_work_drive1 * mode_work_motor
+		utility[V_counter] = beta_cons_motor + cost_motor[i] * beta_cost_private_bus_1 + tt_motor[i] * beta_tt_motor + beta_central_motor * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_motor + beta_female_motor * female_dummy + beta_mode_work_drive1 * mode_work_motor + AMOD_wtc * cbd_dummy[i] * AMOD_wt + AMOD_wtc * cbd_dummy_origin * (1-cbd_dummy[i]) * AMOD_wt
 	end
 
 	--utility function for walk 1-1169
@@ -231,7 +246,7 @@ local function computeUtilities(params,dbparams)
 	--utility function for taxi 1-1169
 	for i=1,1169 do
 		V_counter = V_counter +1
-		utility[V_counter] = beta_cons_taxi + cost_taxi[i] * beta_cost_drive1_1 + tt_taxi[i] * beta_tt_taxi + beta_central_taxi * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_taxi + beta_female_taxi * female_dummy
+		utility[V_counter] = beta_cons_taxi + cost_taxi[i] * beta_cost_private_bus_1 + tt_taxi[i] * beta_tt_taxi + beta_central_taxi * central_dummy[i] + beta_log * log(shop[i]+exp(beta_employment)*employment[i]) + (d1[i]+d2[i]) * beta_distance_taxi + beta_female_taxi * female_dummy
 	end
 end
 

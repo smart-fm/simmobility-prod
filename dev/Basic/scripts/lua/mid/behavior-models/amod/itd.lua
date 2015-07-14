@@ -41,7 +41,7 @@ local beta_ARR_1_3= -0.727
 local beta_ARR_1_2= -5.91 
 local beta_ARR_1_1= -9.47 
 local beta_DUR_3_other= 0
-
+local AMOD_cost =10.0
 
 local Begin={}
 local End={}
@@ -67,6 +67,8 @@ local function computeUtilities(params,dbparams)
 	local edu_stop_dummy = dbparams.stop_type == 2 and 1 or 0
 	local shop_stop_dummy = dbparams.stop_type == 3 and 1 or 0
 	local other_stop_dummy = dbparams.stop_type ==4 and 1 or 0 
+	local cbd_dummy = dbparams.cbd_dummy
+	local cbd_dummy_origin = dbparams.cbd_dummy_origin
 
 	local income_id = params.income_id
 	local income_cat = {500,1250,1750,2250,2750,3500,4500,5500,6500,7500,8500,0,99999,99999}
@@ -122,7 +124,7 @@ local function computeUtilities(params,dbparams)
 		local dur = first_bound*(high_tod-i+1)+second_bound*(i-low_tod+1)
 		dur = 0.25 + (dur-1)/2
 		
-		utility[i] = sarr_1(arr) + sdep_1(dep) + work_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * pow(dur,2) + beta_DUR_3_work * pow(dur,3)) + edu_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * pow(dur,2) + beta_DUR_3_work * pow(dur,3)) + shop_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * pow(dur,2) + beta_DUR_3_work * pow(dur,3)) + other_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * pow(dur,2) + beta_DUR_3_work * pow(dur,3)) + beta_TT * dbparams:TT(i) + (1-missing_income) * beta_C_1 * dbparams:cost(i)/(0.5+income_mid) + missing_income * beta_C_2 * dbparams:cost(i)
+		utility[i] = sarr_1(arr) + sdep_1(dep) + work_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * pow(dur,2) + beta_DUR_3_work * pow(dur,3)) + edu_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * pow(dur,2) + beta_DUR_3_work * pow(dur,3)) + shop_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * pow(dur,2) + beta_DUR_3_work * pow(dur,3)) + other_stop_dummy * (beta_DUR_1_work * dur + beta_DUR_2_work * pow(dur,2) + beta_DUR_3_work * pow(dur,3)) + beta_TT * dbparams:TT(i) + (1-missing_income) * beta_C_1 * (dbparams:cost(i)+ (cbd_dummy * AMOD_cost + cbd_dummy_origin * (1-cbd_dummy)* AMOD_cost)*0.5)/(0.5+income_mid) + missing_income * beta_C_2 * (dbparams:cost(i)+(cbd_dummy * AMOD_cost + cbd_dummy_origin * (1-cbd_dummy)* AMOD_cost)*0.5)
 
 	end
 

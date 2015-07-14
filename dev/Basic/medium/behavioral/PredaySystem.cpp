@@ -88,8 +88,8 @@ namespace {
 		res[2] = "MRT";
 		res[3] = "Bus";
 		res[4] = "Car";
-		res[5] = "Car Sharing";
-		res[6] = "Car Sharing";
+		res[5] = "Car Sharing 2";
+		res[6] = "Car Sharing 3";
 		res[7] = "Motorcycle";
 		res[8] = "Walk";
 		res[9] = "Taxi";
@@ -219,10 +219,11 @@ PredaySystem::PredaySystem(PersonParams& personParams,
 		const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 		const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
 		const std::map<std::string, db::MongoDao*>& mongoDao,
-		const std::vector<OD_Pair>& unavailableODs)
+		const std::vector<OD_Pair>& unavailableODs,
+		const std::map<int, int>& mtz12_08Map)
 : personParams(personParams), zoneMap(zoneMap), zoneIdLookup(zoneIdLookup),
   amCostMap(amCostMap), pmCostMap(pmCostMap), opCostMap(opCostMap),
-  mongoDao(mongoDao), unavailableODs(unavailableODs), logStream(std::stringstream::out)
+  mongoDao(mongoDao), unavailableODs(unavailableODs), MTZ12_MTZ08_Map(mtz12_08Map), logStream(std::stringstream::out)
 {}
 
 PredaySystem::~PredaySystem()
@@ -412,15 +413,18 @@ TimeWindowAvailability PredaySystem::predictSubTourTimeOfDay(Tour& subTour, SubT
 TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 	int timeWndw;
 	if(tour.isSubTour()) { throw std::runtime_error("predictTourTimeOfDay() is not meant for sub tours"); }
-	int origin = personParams.getHomeLocation();
-	int destination = tour.getTourDestination();
+	int origin_2012 = personParams.getHomeLocation();
+	int destination_2012 = tour.getTourDestination();
+	int origin = MTZ12_MTZ08_Map.at(origin_2012);
+	int destination = MTZ12_MTZ08_Map.at(destination_2012);
 	TourTimeOfDayParams todParams;
-	todParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin))->getCbdDummy());
-	todParams.setCbdDestZone(zoneMap.at(zoneIdLookup.at(destination))->getCbdDummy());
+	todParams.setTourMode(tour.getTourMode());
+	todParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin_2012))->getCbdDummy());
+	todParams.setCbdDestZone(zoneMap.at(zoneIdLookup.at(destination_2012))->getCbdDummy());
 	std::vector<double>& ttFirstHalfTour = todParams.travelTimesFirstHalfTour;
 	std::vector<double>& ttSecondHalfTour = todParams.travelTimesSecondHalfTour;
 
-	if(origin != destination) {
+	if(origin != destination && origin_2012 != destination_2012) {
 		for (uint32_t i=FIRST_INDEX; i<=LAST_INDEX; i++) {
 			switch (tour.getTourMode())
 			{
@@ -488,17 +492,17 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 				double travelTime = 0.0;
 				if(i>=AM_PEAK_LOW && i<=AM_PEAK_HIGH) // if i is in AM peak period
 				{
-					CostParams* amDistanceObj = amCostMap.at(origin).at(destination);
+					CostParams* amDistanceObj = amCostMap.at(origin_2012).at(destination_2012);
 					travelTime = amDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
 				}
 				else if(i>=PM_PEAK_LOW && i<=PM_PEAK_HIGH) // if i is in PM peak period
 				{
-					CostParams* pmDistanceObj = pmCostMap.at(origin).at(destination);
+					CostParams* pmDistanceObj = pmCostMap.at(origin_2012).at(destination_2012);
 					travelTime = pmDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
 				}
 				else // if i is in off-peak period
 				{
-					CostParams* opDistanceObj = opCostMap.at(origin).at(destination);
+					CostParams* opDistanceObj = opCostMap.at(origin_2012).at(destination_2012);
 					travelTime = opDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
 				}
 
@@ -909,15 +913,21 @@ void PredaySystem::predictStopModeDestination(Stop* stop, int origin)
 	stop->setStopLocation(zoneMap.at(zone_id)->getZoneCode());
 }
 
-bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBeforePrimary)
+bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination_2012, bool isBeforePrimary)
 {
 	if(!stop) { throw std::runtime_error("predictStopTimeOfDay() - stop is null"); }
 	StopTimeOfDayParams stodParams(stop->getStopTypeID(), isBeforePrimary);
-	int origin = stop->getStopLocation();
-	stodParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin))->getCbdDummy());
-	stodParams.setCbdDestZone(zoneMap.at(zoneIdLookup.at(destination))->getCbdDummy());
+	int origin_2012 = stop->getStopLocation();
+	int origin = MTZ12_MTZ08_Map.at(origin_2012);
+	int destination = MTZ12_MTZ08_Map.at(destination_2012);
+	stodParams.setStopMode(stop->getStopMode());
+	stodParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin_2012))->getCbdDummy());
+	stodParams.setCbdDestZone(zoneMap.at(zoneIdLookup.at(destination_2012))->getCbdDummy());
 
-	if(origin == destination) { for(int i=FIRST_INDEX; i<=LAST_INDEX; i++) { stodParams.travelTimes.push_back(0.0); } }
+	if(origin_2012 == destination_2012 || origin == destination)
+	{
+		for(int i=FIRST_INDEX; i<=LAST_INDEX; i++) { stodParams.travelTimes.push_back(0.0); }
+	}
 	else
 	{
 		BSONObj bsonObjTT = BSON("origin" << origin << "destination" << destination);
@@ -959,11 +969,11 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 			{
 				double travelTime = 0.0;
 				if(i>=AM_PEAK_LOW && i<=AM_PEAK_HIGH) /*if i is in AM peak period*/
-				{ travelTime = amCostMap.at(origin).at(destination)->getDistance()/PEDESTRIAN_WALK_SPEED; }
+				{ travelTime = amCostMap.at(origin_2012).at(destination_2012)->getDistance()/PEDESTRIAN_WALK_SPEED; }
 				else if(i>=PM_PEAK_LOW && i<=PM_PEAK_HIGH) // if i is in PM peak period
-				{ travelTime = pmCostMap.at(origin).at(destination)->getDistance()/PEDESTRIAN_WALK_SPEED; }
+				{ travelTime = pmCostMap.at(origin_2012).at(destination_2012)->getDistance()/PEDESTRIAN_WALK_SPEED; }
 				else // if i is in off-peak period
-				{ travelTime = opCostMap.at(origin).at(destination)->getDistance()/PEDESTRIAN_WALK_SPEED; }
+				{ travelTime = opCostMap.at(origin_2012).at(destination_2012)->getDistance()/PEDESTRIAN_WALK_SPEED; }
 				stodParams.travelTimes.push_back(travelTime);
 				break;
 			}
@@ -991,13 +1001,13 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 
 	if(stodParams.getTodHigh() < stodParams.getTodLow()) { return false; } //Invalid low and high TODs for stop
 
-	ZoneParams* zoneDoc = zoneMap.at(zoneIdLookup.at(origin));
-	if(origin != destination)
+	ZoneParams* zoneDoc = zoneMap.at(zoneIdLookup.at(origin_2012));
+	if(origin_2012 != destination_2012)
 	{
 		// calculate costs
-		CostParams* amDoc = amCostMap.at(origin).at(destination);
-		CostParams* pmDoc = pmCostMap.at(origin).at(destination);
-		CostParams* opDoc = opCostMap.at(origin).at(destination);
+		CostParams* amDoc = amCostMap.at(origin_2012).at(destination_2012);
+		CostParams* pmDoc = pmCostMap.at(origin_2012).at(destination_2012);
+		CostParams* opDoc = opCostMap.at(origin_2012).at(destination_2012);
 		double duration, parkingRate, costCarParking, costCarERP, costCarOP, walkDistance;
 		for(int i=FIRST_INDEX; i<=LAST_INDEX; i++)
 		{
@@ -1138,8 +1148,10 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination, bool isBefo
 	return true;
 }
 
-double PredaySystem::fetchTravelTime(int origin, int destination, int mode,  bool isArrivalBased, double timeIdx)
+double PredaySystem::fetchTravelTime(int origin_2012, int destination_2012, int mode,  bool isArrivalBased, double timeIdx)
 {
+	int origin = MTZ12_MTZ08_Map.at(origin_2012);
+	int destination = MTZ12_MTZ08_Map.at(destination_2012);
 	double travelTime = 0.0;
 	if(origin != destination)
 	{
@@ -1178,17 +1190,17 @@ double PredaySystem::fetchTravelTime(int origin, int destination, int mode,  boo
 		{
 			if(timeIdx>=AM_PEAK_LOW && timeIdx<=AM_PEAK_HIGH) // if i is in AM peak period
 			{
-				CostParams* amDistanceObj = amCostMap.at(origin).at(destination);
+				CostParams* amDistanceObj = amCostMap.at(origin_2012).at(destination_2012);
 				travelTime = amDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
 			}
 			else if(timeIdx>=PM_PEAK_LOW && timeIdx<=PM_PEAK_HIGH) // if i is in PM peak period
 			{
-				CostParams* pmDistanceObj = pmCostMap.at(origin).at(destination);
+				CostParams* pmDistanceObj = pmCostMap.at(origin_2012).at(destination_2012);
 				travelTime = pmDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
 			}
 			else // if i is in off-peak period
 			{
-				CostParams* opDistanceObj = opCostMap.at(origin).at(destination);
+				CostParams* opDistanceObj = opCostMap.at(origin_2012).at(destination_2012);
 				travelTime = opDistanceObj->getDistance()/PEDESTRIAN_WALK_SPEED;
 			}
 			break;

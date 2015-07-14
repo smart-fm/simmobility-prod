@@ -19,6 +19,7 @@
 #include "entities/Person.hpp"
 #include "entities/amodController/AMODController.hpp"
 #include "entities/fmodController/FMOD_Controller.hpp"
+#include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/Incident.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/Node.hpp"
@@ -190,7 +191,8 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//TODO: This should be moved into its own class; we should NOT be doing loading in ExpandAndValidate()
 	//      (it is here now to maintain compatibility with the old order or loading things).
 	LoadNetworkFromDatabase();
-	if(sim_mob::ConfigManager::GetInstance().FullConfig().CBD())
+
+	if(cfg.RunningMidSupply())
 	{
 		sim_mob::RestrictedRegion::getInstance().populate();
 	}
@@ -200,8 +202,6 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	BoostSaveXML(cfg.networkXmlOutputFile(), cfg.getNetworkRW());
 	//Detect sidewalks in the middle of the road.
 	WarnMidroadSidewalks();
- 	//Generate lanes, before StreetDirectory::init()
- 	RoadNetwork::ForceGenerateAllLaneEdgePolylines(cfg.getNetworkRW());
 
     //Seal the network; no more changes can be made after this.
  	cfg.sealNetwork();
@@ -213,7 +213,10 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     	//sim_mob::WriteXMLInput("TEMP_TEST_OUT.xml");
     	std::cout << "XML input for SimMobility Created....\n";
     }
-
+    if(cfg.publicTransitEnabled)
+    {
+    	LoadPublicTransitNetworkFromDatabase();
+    }
  	//Initialize the street directory.
 	StreetDirectory::instance().init(cfg.getNetwork(), true);
 	std::cout << "Street Directory initialized  " << std::endl;
@@ -236,7 +239,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     if(cfg.RunningMidSupply()) {
 		size_t sizeBefore = cfg.getConfluxes().size();
 		sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
-		std::cout <<"Confluxes size before(" <<sizeBefore <<") and after(" <<cfg.getConfluxes().size() <<")\n";
+		std::cout << cfg.getConfluxes().size() << " Confluxes created" << std::endl;
     }
     //Maintain unique/non-colliding IDs.
     ConfigParams::AgentConstraints constraints;
@@ -390,7 +393,10 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetworkFromDatabase()
 		}
 	}
 }
-
+void sim_mob::ExpandAndValidateConfigFile::LoadPublicTransitNetworkFromDatabase()
+{
+	PT_Network::getInstance().init();
+}
 
 void sim_mob::ExpandAndValidateConfigFile::WarnMidroadSidewalks()
 {
@@ -699,7 +705,7 @@ void sim_mob::ExpandAndValidateConfigFile::PrintSettings()
     std::cout <<"  Person Granularity: " <<cfg.granPersonTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Signal Granularity: " <<cfg.granSignalsTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Communication Granularity: " <<cfg.granCommunicationTicks <<" " <<"ticks" <<"\n";
-    std::cout <<"  Start time: " <<cfg.simStartTime().toString() <<"\n";
+    std::cout <<"  Start time: " <<cfg.simStartTime().getStrRepr() <<"\n";
     std::cout <<"  Mutex strategy: " <<(cfg.mutexStategy()==MtxStrat_Locked?"Locked":cfg.mutexStategy()==MtxStrat_Buffered?"Buffered":"Unknown") <<"\n";
 
 	//Output Database details

@@ -12,17 +12,21 @@ sim_mob::ActivityPerformerBehavior::ActivityPerformerBehavior(sim_mob::Person* p
 	BehaviorFacet(parentAgent), parentActivity(nullptr)
 {}
 
+sim_mob::ActivityPerformerBehavior::~ActivityPerformerBehavior()
+{}
 
-
-void sim_mob::ActivityPerformerBehavior::frame_init() {
+void sim_mob::ActivityPerformerBehavior::frame_init()
+{
 	throw std::runtime_error("ActivityPerformerBehavior::frame_init() is not implemented yet");
 }
 
-void sim_mob::ActivityPerformerBehavior::frame_tick() {
+void sim_mob::ActivityPerformerBehavior::frame_tick()
+{
 	throw std::runtime_error("ActivityPerformerBehavior::frame_tick() is not implemented yet");
 }
 
-void sim_mob::ActivityPerformerBehavior::frame_tick_output() {
+void sim_mob::ActivityPerformerBehavior::frame_tick_output()
+{
 	throw std::runtime_error("ActivityPerformerBehavior::frame_tick_output() is not implemented yet");
 }
 
@@ -33,33 +37,27 @@ sim_mob::ActivityPerformerMovement::~ActivityPerformerMovement()
 		finalizeTravelTimeMetric();
 	}*/
 }
-void sim_mob::ActivityPerformerMovement::frame_init() {
+void sim_mob::ActivityPerformerMovement::frame_init()
+{
 	parentActivity->initializeRemainingTime();
+	parentActivity->setTravelTime(parentActivity->getRemainingTimeToComplete());
 	//startTravelTimeMetric();
 }
 
-void sim_mob::ActivityPerformerMovement::frame_tick() {
+void sim_mob::ActivityPerformerMovement::frame_tick()
+{
 	parentActivity->updateRemainingTime();
-	if(parentActivity->remainingTimeToComplete <= 0){
+	if(parentActivity->getRemainingTimeToComplete() <= 0)
+	{
 		getParent()->setToBeRemoved();
 	}
 	getParent()->setRemainingTimeThisTick(0.0);
 }
 
-void sim_mob::ActivityPerformerMovement::frame_tick_output() {
-	ActivityPerformerUpdateParams &p = parentActivity->getParams();
-	LogOut("(\"Activity\""
-			<<","<<p.now.frame()
-			<<","<<getParent()->getId()
-			<<",{"
-			<<"\"xPos\":\""<<static_cast<int>(getParent()->xPos)
-			<<"\",\"yPos\":\""<<static_cast<int>(getParent()->yPos)
-			<<"\"})"<<std::endl);
-}
+void sim_mob::ActivityPerformerMovement::frame_tick_output() {}
 
 sim_mob::ActivityPerformerMovement::ActivityPerformerMovement(sim_mob::Person* parentAgent):
-	MovementFacet(parentAgent), parentActivity(nullptr) {
-}
+	MovementFacet(parentAgent), parentActivity(nullptr) {}
 
 sim_mob::TravelMetric& sim_mob::ActivityPerformerMovement::startTravelTimeMetric()
 {

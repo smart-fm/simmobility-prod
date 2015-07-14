@@ -32,22 +32,18 @@ namespace {
 
 RoadSegment* findSegment(const set<RoadSegment*>& segments, const Node* const startsAt, const Node* const prevNode) {
 	RoadSegment* res = nullptr;
-	for (set<RoadSegment*>::const_iterator it=segments.begin(); it!=segments.end(); it++) {
+	for (set<RoadSegment*>::const_iterator it=segments.begin(); it!=segments.end(); it++)
+	{
 		//Simple case.
-		if ((*it)->getStart()==startsAt) {
-			res = *it;
-		}
+		if ((*it)->getStart()==startsAt) { res = *it; }
 
 		//Special case for bidirectional roads
-		if ((*it)->isBiDirectional() && (*it)->getEnd()==startsAt) {
-			res = *it;
-		}
+		if ((*it)->isBiDirectional() && (*it)->getEnd()==startsAt) { res = *it; }
 
 		//Quality control; are we going back the way we came?
-		if (res) {
-			if (res->getStart()!=prevNode && res->getEnd()!=prevNode) {
-				return res;
-			}
+		if (res)
+		{
+			if (res->getStart()!=prevNode && res->getEnd()!=prevNode) {	return res;	}
 			res = nullptr; //Keep searching.
 		}
 	}
@@ -75,23 +71,14 @@ bool buildLinkList(set<RoadSegment*> segments, vector<RoadSegment*>& res, set<Ro
 		res.push_back(nextSeg);
 		usedSegments.insert(nextSeg);
 		prev = fwd;
-		if (fwd != nextSeg->getEnd())
-		{
-			fwd = nextSeg->getEnd();
-		}
-		else
-		{
-			fwd = nextSeg->getStart();
-		}
+		if (fwd != nextSeg->getEnd()) {	fwd = nextSeg->getEnd(); }
+		else { fwd = nextSeg->getStart(); }
 		segments.erase(nextSeg);
 	}
 	return true;
 }
 
-
 } //End anon namespace
-
-
 
 void sim_mob::Link::initializeLinkSegments(const std::set<sim_mob::RoadSegment*>& newSegs)
 {
@@ -101,17 +88,16 @@ void sim_mob::Link::initializeLinkSegments(const std::set<sim_mob::RoadSegment*>
 	bool res1 = buildLinkList(newSegs, this->segs, usedSegments, start, end);
 
 	//Ensure we have at least ONE path (for one-way Links)
-	if (!res1) {
-		throw std::runtime_error("Incomplete link; missing RoadSegment.");
-	}
+	if (!res1) { throw std::runtime_error("Incomplete link; missing RoadSegment."); }
 
 	//Double-check that everything's been read at least once.
-	if (usedSegments.size() < newSegs.size()) {
+	if (usedSegments.size() < newSegs.size())
+	{
 		std::stringstream msg;
-		msg <<"Link constructed without the use of all its segments: " <<usedSegments.size() <<" of " <<newSegs.size()
-			<<"  segments are: ";
-		for (std::set<sim_mob::RoadSegment*>::const_iterator it=newSegs.begin(); it!=newSegs.end(); it++) {
-			msg <<(*it)->originalDB_ID.getLogItem() <<"  ";
+		msg <<"Link constructed without the use of all its segments: " <<usedSegments.size() <<" of " <<newSegs.size() <<"  segments are: ";
+		for (std::set<sim_mob::RoadSegment*>::const_iterator it=newSegs.begin(); it!=newSegs.end(); it++)
+		{
+			msg << (*it)->originalDB_ID.getLogItem() << "  ";
 		}
 		throw std::runtime_error(msg.str().c_str());
 	}
@@ -239,14 +225,3 @@ void sim_mob::Link::extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>
 		}
 	}
 }
-
-sim_mob::Worker* sim_mob::Link::getCurrWorker() const
-{
-	return currWorker;
-}
-
-void sim_mob::Link::setCurrWorker(sim_mob::Worker* w)
-{
-	currWorker = w;
-}
-

@@ -95,6 +95,7 @@ public:
 	const int getBusTripRun_SequenceNum() const {
 		return busTripRun_sequenceNum;
 	}
+	const int getBusTripStopIndex(const BusStop* stop) const ;
 	void setBusline(Busline* aBusline) {
 		busline = aBusline;
 	}

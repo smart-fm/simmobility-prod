@@ -183,17 +183,29 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 				PrintOutV(" Lifestyle1: " << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle1HHs() <<
 						  " Lifestyle2: " << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle2HHs() <<
 						  " Lifestyle3: " << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle3HHs() << std::endl );
-
-				HM_Model::HouseholdList *householdList = (dynamic_cast<HM_Model*>(models[0]))->getHouseholdList();
-
-				#ifdef VERBOSE_POSTCODE
-	            for( int n = 0; n < householdList->size(); n++)
-	            {
-	            	const Unit *localUnit = (dynamic_cast<HM_Model*>(models[0]))->getUnitById( (*householdList)[n]->getUnitId());
-	            	PrintOutV(" Household " << (*householdList)[n]->getId() << " lives in postcode " << localUnit->getSlaAddressId() << std::endl);
-	            }
-				#endif
             }
+
+			#ifdef VERBOSE_POSTCODE
+
+            HM_Model::HouseholdList *householdList = (dynamic_cast<HM_Model*>(models[0]))->getHouseholdList();
+
+			for( int n = 0; n < householdList->size(); n++)
+			{
+				const Unit *localUnit = (dynamic_cast<HM_Model*>(models[0]))->getUnitById( (*householdList)[n]->getUnitId());
+				Postcode *postcode = (dynamic_cast<HM_Model*>(models[0]))->getPostcodeById(localUnit->getSlaAddressId());
+
+				//PrintOut( currTick << "," << (*householdList)[n]->getId() << ","  <<  postcode->getSlaPostcode() << "," << postcode->getLongitude() << "," <<  postcode->getLatitude() << std::endl );
+
+				const std::string LOG_HHPC = "%1%, %2%, %3%, %4%, %5%";
+		        boost::format fmtr = boost::format(LOG_HHPC) % currTick
+		        											 % (*householdList)[n]->getId()
+															 % postcode->getSlaPostcode()
+															 % postcode->getLongitude()
+															 % postcode->getLatitude();
+
+		        AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::HH_PC, fmtr.str());
+			 }
+			#endif
 
             PrintOutV("Day " << currTick << " The housing market has " << std::dec << (dynamic_cast<HM_Model*>(models[0]))->getMarket()->getEntrySize() << " units and \t" << (dynamic_cast<HM_Model*>(models[0]))->getNumberOfBidders() << " bidders on the market" << std::endl );
 
@@ -208,12 +220,9 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             developerModel->setCurrentTick(currTick);
             DeveloperModel::ParcelList parcels;
             DeveloperModel::DeveloperList developerAgents;
-            bool isParcelRemain = developerModel->getIsParcelRemain();
-            if(isParcelRemain)
-            {
-            	developerAgents = developerModel->getDeveloperAgents(false);
-            	developerModel->wakeUpDeveloperAgents(developerAgents);
-            }
+            developerAgents = developerModel->getDeveloperAgents();
+            developerModel->wakeUpDeveloperAgents(developerAgents);
+
         }
 
         //Save our output files if we are merging them later.

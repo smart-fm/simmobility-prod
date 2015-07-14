@@ -24,7 +24,7 @@ namespace medium {
 class TourTimeOfDayParams {
 public:
 	TourTimeOfDayParams()
-	: costHT1_AM(0), costHT1_PM(0), costHT1_OP(0), costHT2_AM(0), costHT2_PM(0), costHT2_OP(0), cbdOrgZone(false), cbdDestZone(false)
+	: costHT1_AM(0), costHT1_PM(0), costHT1_OP(0), costHT2_AM(0), costHT2_PM(0), costHT2_OP(0), cbdOrgZone(false), cbdDestZone(false), tourMode(0)
 	{}
 
 	virtual ~TourTimeOfDayParams() {}
@@ -105,7 +105,7 @@ public:
 
 	int isCbdDestZone() const
 	{
-		return (cbdDestZone? 1 : 0);
+		return cbdDestZone;
 	}
 
 	void setCbdDestZone(int cbdDestZone)
@@ -115,12 +115,22 @@ public:
 
 	int isCbdOrgZone() const
 	{
-		return (cbdOrgZone? 1 : 0);
+		return cbdOrgZone;
 	}
 
 	void setCbdOrgZone(int cbdOrgZone)
 	{
 		this->cbdOrgZone = cbdOrgZone;
+	}
+
+	int getTourMode() const
+	{
+		return tourMode;
+	}
+
+	void setTourMode(int tourMode)
+	{
+		this->tourMode = tourMode;
 	}
 
 	/**
@@ -144,7 +154,7 @@ private:
 	double costHT2_OP;
 	int cbdOrgZone;
 	int cbdDestZone;
-
+	int tourMode;
 };
 
 /**
@@ -156,7 +166,7 @@ private:
 class StopTimeOfDayParams {
 public:
 	StopTimeOfDayParams(int stopType, bool firstBound)
-	: stopType(stopType), firstBound(firstBound), numTimeWindows(48), todHigh(0.0), todLow(0.0), cbdOrgZone(false), cbdDestZone(false)
+	: stopType(stopType), firstBound(firstBound), numTimeWindows(48), todHigh(0.0), todLow(0.0), cbdOrgZone(false), cbdDestZone(false), stopMode(0)
 	{
 		for(unsigned i=1; i<=numTimeWindows; i++) {
 			availability.push_back(true);
@@ -250,7 +260,7 @@ public:
 
 	int isCbdDestZone() const
 	{
-		return (cbdDestZone? 1 : 0);
+		return cbdDestZone;
 	}
 
 	void setCbdDestZone(int cbdDestZone)
@@ -260,12 +270,22 @@ public:
 
 	int isCbdOrgZone() const
 	{
-		return (cbdOrgZone? 1 : 0);
+		return cbdOrgZone;
 	}
 
 	void setCbdOrgZone(int cbdOrgZone)
 	{
 		this->cbdOrgZone = cbdOrgZone;
+	}
+
+	int getStopMode() const
+	{
+		return stopMode;
+	}
+
+	void setStopMode(int stopMode)
+	{
+		this->stopMode = stopMode;
 	}
 
 	/**
@@ -288,6 +308,7 @@ private:
 	unsigned numTimeWindows;
 	int cbdOrgZone;
 	int cbdDestZone;
+	int stopMode;
 };
 } // end namespace medium
 } // end namespace sim_mob

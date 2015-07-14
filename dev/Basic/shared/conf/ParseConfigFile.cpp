@@ -196,7 +196,9 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 
 	if( longTerm )
 	{
+		ProcessConstructsNode(GetSingleElementByName(rootNode,"constructs"));
 		ProcessLongTermParamsNode( GetSingleElementByName(rootNode, "longTermParams"));
+		ProcessModelScriptsNode(GetSingleElementByName(rootNode, "model_scripts"));
 		return;
 	}
 
@@ -230,6 +232,8 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessLoopDetectorCountsNode(GetSingleElementByName(rootNode, "loop-detector_counts"));
 	//Read the settings for density counts (optional node, short term)
 	ProcessShortDensityMapNode(GetSingleElementByName(rootNode, "short-term_density-map"));
+
+	ProcessScreenLineNode(GetSingleElementByName(rootNode, "screen-line_count"));
 
 	//Take care of pathset manager confifuration in here
 	ParsePathXmlConfig(sim_mob::ConfigManager::GetInstance().FullConfig().pathsetFile, sim_mob::ConfigManager::GetInstanceRW().PathSetConfig());
@@ -709,6 +713,28 @@ void sim_mob::ParseConfigFile::ProcessShortDensityMapNode(xercesc::DOMElement* n
 	}
 }
 
+void sim_mob::ParseConfigFile::ProcessScreenLineNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		cfg.screenLineParams.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "screenLineCountEnabled"), "false");
+		if(cfg.screenLineParams.outputEnabled)
+		{
+			cfg.screenLineParams.interval = ParseUnsignedInt(GetNamedAttributeValue(node, "interval"), 300);
+			cfg.screenLineParams.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "screenLineCount.txt");
+
+			if(cfg.screenLineParams.interval == 0)
+			{
+				throw std::runtime_error("ParseConfigFile::ProcessScreenLineNode - Interval for screen line count is 0");
+			}
+			if(cfg.screenLineParams.fileName.empty())
+			{
+				throw std::runtime_error("ParseConfigFile::ProcessScreenLineNode - File Name is empty");
+			}
+		}
+	}
+}
+
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)
 {
 	//Several properties are set up as "x ms", or "x seconds", etc.
@@ -1036,5 +1062,46 @@ void sim_mob::ParseConfigFile::ProcessIncidentsNode(xercesc::DOMElement* node)
 
 		cfg.incidents.push_back(incident);
 	}
+}
+
+void sim_mob::ParseConfigFile::ProcessModelScriptsNode(xercesc::DOMElement* node)
+{
+	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
+	if (format.empty() || format != "lua")
+	{
+		throw std::runtime_error("Unsupported script format");
+	}
+
+	std::string scriptsDirectoryPath = ParseString(GetNamedAttributeValue(node, "path"), "");
+	if (scriptsDirectoryPath.empty())
+	{
+		throw std::runtime_error("path to scripts is not provided");
+	}
+	if ((*scriptsDirectoryPath.rbegin()) != '/')
+	{
+		//add a / to the end of the path string if it is not already there
+		scriptsDirectoryPath.push_back('/');
+	}
+	ModelScriptsMap scriptsMap(scriptsDirectoryPath, format);
+	for (DOMElement* item = node->getFirstElementChild(); item; item = item->getNextElementSibling())
+	{
+		std::string name = TranscodeString(item->getNodeName());
+		if (name != "script")
+		{
+			Warn() << "Invalid db_proc_groups child node.\n";
+			continue;
+		}
+
+		std::string key = ParseString(GetNamedAttributeValue(item, "name"), "");
+		std::string val = ParseString(GetNamedAttributeValue(item, "file"), "");
+		if (key.empty() || val.empty())
+		{
+			Warn() << "Invalid script; missing \"name\" or \"file\".\n";
+			continue;
+		}
+
+		scriptsMap.addScriptFileName(key, val);
+	}
+	cfg.luaScriptsMap = scriptsMap;
 }
 

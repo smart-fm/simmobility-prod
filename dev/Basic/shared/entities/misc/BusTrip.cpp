@@ -93,6 +93,19 @@ void sim_mob::BusTrip::setBusStopRealTimes(int busstopSequence_j, Shared<BusStop
 	}
 }
 
+const int sim_mob::BusTrip::getBusTripStopIndex(const BusStop* stop) const {
+	int index = 0;
+	const std::vector<const BusStop*>& busStopVec = bus_RouteInfo.getBusStops();
+	for (std::vector<const BusStop*>::const_iterator it = busStopVec.begin();
+			it != busStopVec.end(); it++) {
+		index++;
+		if (stop == (*it)) {
+			break;
+		}
+	}
+	return index;
+}
+
 bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*> roadSegment_vec, std::vector<const BusStop*> busStop_vec)
 {
 	if(roadSegment_vec.empty()) {

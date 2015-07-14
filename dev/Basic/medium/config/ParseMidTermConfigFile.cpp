@@ -67,6 +67,7 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processWalkSpeedElement(GetSingleElementByName(node, "pedestrian_walk_speed", true));
 	processStatisticsOutputNode(GetSingleElementByName(node, "statistics_output_paramemters", true));
 	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
+	processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 }
 
 
@@ -197,6 +198,14 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 	}
 	value = ParseString(GetNamedAttributeValue(child, "value"), "");
 	mtCfg.setFilenameOfWaitingAmountStats(value);
+
+	child = GetSingleElementByName(node, "travel_time_csv_file_output");
+	if (child == nullptr)
+	{
+		throw std::runtime_error("load statistics output parameters errors in MT_Config");
+	}
+	value = ParseString(GetNamedAttributeValue(child, "value"), "");
+	mtCfg.setFilenameOfTravelTimeStats(value);
 }
 
 

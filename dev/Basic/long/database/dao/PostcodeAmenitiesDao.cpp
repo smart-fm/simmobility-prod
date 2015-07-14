@@ -34,7 +34,7 @@ void PostcodeAmenitiesDao::fromRow(Row& result, PostcodeAmenities& outObj)
     outObj.distanceToPMS30 = result.get<double>(DB_FIELD_DISTANCE_TO_PMS30, 0);
     outObj.distanceToCBD = result.get<double>(DB_FIELD_DISTANCE_TO_CBD, 0);
     outObj.distanceToMall = result.get<double>(DB_FIELD_DISTANCE_TO_MALL, 0);
-    outObj.distanceToJob = result.get<double>(DB_FIELD_DISTANCE_TO_JOB, 0);
+    //outObj.distanceToJob = result.get<double>(DB_FIELD_DISTANCE_TO_JOB, 0);
     outObj.mrt_200m = result.get<int>(DB_FIELD_MRT_200M, false);
     outObj.mrt_400m = result.get<int>(DB_FIELD_MRT_400M, false);
     outObj.express_200m = result.get<int>(DB_FIELD_EXPRESS_200M, false);

@@ -63,14 +63,13 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 	//bulk pathset generation
 	if(cfg.mode == "generation")
 	{
+		xercesc::DOMElement* odSource = GetSingleElementByName(node, "OD_source");
+		if(!odSource){ throw std::runtime_error("pathset is in \"generation\" mode but OD_source is not found in pathset xml config\n");	}
+		else { cfg.odSourceTableName = ParseString(GetNamedAttributeValue(odSource, "table"), ""); }
+
 		xercesc::DOMElement* bulk = GetSingleElementByName(node, "bulk_generation_output_file_name");
-		if(!bulk){
-			throw std::runtime_error("pathset is in \"generation\" mode but bulk_generation_output_file_name is not found in pathset xml config\n");
-		}
-		else
-		{
-			cfg.bulkFile = ParseString(GetNamedAttributeValue(bulk, "value"), "");
-		}
+		if(!bulk){ throw std::runtime_error("pathset is in \"generation\" mode but bulk_generation_output_file_name is not found in pathset xml config\n");	}
+		else { cfg.bulkFile = ParseString(GetNamedAttributeValue(bulk, "value"), ""); }
 	}
 
 	//pathset generation threadpool size
@@ -111,6 +110,7 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 	else
 	{
 		cfg.psRetrieval = ParseString(GetNamedAttributeValue(functionNode, "pathset"), "");
+		cfg.psRetrievalWithoutBannedRegion = ParseString(GetNamedAttributeValue(functionNode, "pathset_without_banned_area"), "");
 		cfg.upsert = ParseString(GetNamedAttributeValue(functionNode, "travel_time"), "");
 	}
 
@@ -135,18 +135,6 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 	{
 		cfg.reroute = ParseBoolean(GetNamedAttributeValue(reroute, "value"), false);
 	}
-
-	//CBD //todo: usage still unclear
-	xercesc::DOMElement* cbd = GetSingleElementByName(node, "CBD_enabled");
-	if(!cbd){
-		std::cerr << "CBD_enabled Not Found, setting to false\n";
-		cfg.cbd = false;
-	}
-	else
-	{
-		cfg.cbd = ParseBoolean(GetNamedAttributeValue(cbd, "value"), false);
-	}
-
 
 	//subtrip output for preday
 	xercesc::DOMElement* predayOP = GetSingleElementByName(node, "subtrip_travel_metrics_output");

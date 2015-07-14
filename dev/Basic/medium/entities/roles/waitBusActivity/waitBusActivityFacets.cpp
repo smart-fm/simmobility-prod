@@ -62,6 +62,7 @@ void WaitBusActivityMovement::frame_tick()
 	totalTimeToCompleteMS += tickMS;
 	if(parentWaitBusActivity){
 		parentWaitBusActivity->setWaitingTime(totalTimeToCompleteMS);
+		parentWaitBusActivity->setTravelTime(totalTimeToCompleteMS);
 	}
 	parent->setRemainingTimeThisTick(0);
 }

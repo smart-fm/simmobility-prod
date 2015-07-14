@@ -22,6 +22,7 @@ using std::map;
 
 namespace {
 static const set<LaneConnector*> EMPTY_LANE_CONNECTOR;
+static const set<TurningSection*> EMPTY_TURNING_PATH;
 //Compute the clockwise angle between two vectors with a common center point.
 // Returns the angle from "first" to "second", in the range 0 <= res < 2PI (NOTE: That might not be right)
 double AngleBetween(const Node* const center, const Node* const first, const Node* const second, bool readClockwise)
@@ -120,6 +121,83 @@ void sim_mob::MultiNode::setConnectorAt2(const sim_mob::RoadSegment* key, std::s
 	}
 }
 
+void sim_mob::MultiNode::setTurnings(const sim_mob::RoadSegment *key, TurningSection *val)
+{
+	std::map<const sim_mob::RoadSegment*, std::set<sim_mob::TurningSection*> >::iterator it_find = turnings.find(key);
+	if(it_find != turnings.end())
+	{
+		// has this seg
+		it_find->second.insert(val);
+	}
+	else
+	{
+		std::set<sim_mob::TurningSection*> setOfTurningSetion = this->turnings[key];
+		setOfTurningSetion.insert(val);
+	}
+}
+
+void sim_mob::MultiNode::updateMapLaneVsTurning(const Lane* fromLane, const Lane* toLane, TurningSection *turning)
+{
+	//Look for an entry for the fromLane
+	std::map<const Lane *, std::map<const Lane *, TurningSection *> >::iterator it = mapFromToLanesVsTurning.find(fromLane);
+	
+	//If we already have an entry, insert the pair of toLane and turning into the secondary map
+	if(it != mapFromToLanesVsTurning.end())
+	{
+		it->second.insert(std::make_pair(toLane, turning));
+	}
+	else
+	{
+		//Create the second level map and insert the entry
+		std::map<const Lane *, TurningSection *> innerMap;
+		innerMap.insert(std::make_pair(toLane, turning));
+		
+		//Now add it to the first level map
+		mapFromToLanesVsTurning.insert(std::make_pair(fromLane, innerMap));
+	}
+}
+
+const TurningSection* sim_mob::MultiNode::getTurningSection(const Lane* currentLane, const Lane* nextLane) const
+{
+	//Find the entry for the currentLane
+	std::map<const Lane *, std::map<const Lane *, TurningSection *> >::const_iterator itLevel1 = mapFromToLanesVsTurning.find(currentLane);
+	
+	//Entry not found for the currentLane in the first level (shouldn't happen!)
+	if(itLevel1 != mapFromToLanesVsTurning.end())
+	{
+		//Now search in second level
+		std::map<const Lane *, TurningSection *>::const_iterator itLevel2 = itLevel1->second.find(nextLane);
+		
+		if(itLevel2 != itLevel1->second.end())
+		{
+			return itLevel2->second;
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
+const std::set<TurningSection*>& sim_mob::MultiNode::getTurnings(const RoadSegment *fromSeg) const
+{
+	//Find the set of turnings corresponding to the given road segment
+	std::map<const RoadSegment*, std::set<TurningSection*> >::const_iterator itTurnings = turnings.find(fromSeg);
+
+	//Return the set if found in the map
+	if (itTurnings != turnings.end())
+	{
+		return itTurnings->second;
+	} 
+	else
+	{
+		return EMPTY_TURNING_PATH;
+	}
+}
 
 pair< vector< pair<RoadSegment*, bool> >, vector< pair<RoadSegment*, bool> > >
 	sim_mob::MultiNode::getPedestrianPaths(const Node* const nodeBefore, const Node* const nodeAfter) const

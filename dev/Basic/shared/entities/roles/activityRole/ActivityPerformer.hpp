@@ -10,16 +10,10 @@
 
 #pragma once
 
-#include <time.h>
-#include <math.h>
-
-#include <boost/random.hpp>
-
+#include "ActivityFacets.hpp"
 #include "conf/settings/DisableMPI.h"
-
 #include "entities/roles/Role.hpp"
 #include "entities/roles/RoleFacets.hpp"
-#include "ActivityFacets.hpp"
 #include "entities/UpdateParams.hpp"
 #include "geospatial/Node.hpp"
 
@@ -41,61 +35,52 @@ class PackageUtils;
 class UnPackageUtils;
 #endif
 
-//Helper struct
-struct ActivityPerformerUpdateParams : public sim_mob::UpdateParams {
-	ActivityPerformerUpdateParams();
-	explicit ActivityPerformerUpdateParams(boost::mt19937& gen);
-	virtual ~ActivityPerformerUpdateParams() {}
-
-	virtual void reset(timeslice now)
-	{
-		sim_mob::UpdateParams::reset(now);
-	}
-
-#ifndef SIMMOB_DISABLE_MPI
-	static void pack(PackageUtils& package, const ActivityPerformerUpdateParams* params);
-
-	static void unpack(UnPackageUtils& unpackage, ActivityPerformerUpdateParams* params);
-#endif
-};
-
 /**
  * A Person basically does nothing in the ActivityPerformer role
  */
-class ActivityPerformer : public sim_mob::Role , public UpdateWrapper<ActivityPerformerUpdateParams>{
+class ActivityPerformer : public sim_mob::Role
+{
 public:
-	int remainingTimeToComplete;
 	ActivityPerformer(sim_mob::Person* parent, sim_mob::ActivityPerformerBehavior* behavior = nullptr, sim_mob::ActivityPerformerMovement* movement = nullptr, std::string roleName = std::string(), Role::type roleType_ = RL_ACTIVITY);
 	ActivityPerformer(sim_mob::Person* parent, const sim_mob::Activity& currActivity, sim_mob::ActivityPerformerBehavior* behavior = nullptr, sim_mob::ActivityPerformerMovement* movement = nullptr, Role::type roleType_ = RL_ACTIVITY, std::string roleName = "activityRole");
-	virtual ~ActivityPerformer() {}
-
-	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+	virtual ~ActivityPerformer();
 
 	//Virtual overrides
+	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
-	sim_mob::DailyTime getActivityEndTime() const;
-	void setActivityEndTime(sim_mob::DailyTime activityEndTime);
+	//getters and setters
 	sim_mob::DailyTime getActivityStartTime() const;
 	void setActivityStartTime(sim_mob::DailyTime activityStartTime);
+	sim_mob::DailyTime getActivityEndTime() const;
+	void setActivityEndTime(sim_mob::DailyTime activityEndTime);
 	sim_mob::Node* getLocation() const;
 	void setLocation(sim_mob::Node* location);
+	int getRemainingTimeToComplete() const;
+
+	/**
+	 * initializes the remaining time based on start and ent time of activity
+	 */
 	void initializeRemainingTime();
+
+	/**
+	 * decrements the remaining time by tick size (bounded below by 0)
+	 */
 	void updateRemainingTime();
 
 private:
 	sim_mob::DailyTime activityStartTime;
 	sim_mob::DailyTime activityEndTime;
 	sim_mob::Node* location;
+	int remainingTimeToComplete;
 
-	//Temporary variable which will be flushed each time tick. We save it
-	// here to avoid constantly allocating and clearing memory each time tick.
-	ActivityPerformerUpdateParams params;
+	friend class ActivityPerformerBehavior;
+	friend class ActivityPerformerMovement;
+
 	//Serialization-related friends
 	friend class PackageUtils;
 	friend class UnPackageUtils;
-
 
 #ifndef SIMMOB_DISABLE_MPI
 public:
@@ -105,10 +90,6 @@ public:
 	virtual void packProxy(PackageUtils& packageUtil) = 0;
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil) = 0;
 #endif
-
-
-	friend class ActivityPerformerBehavior;
-	friend class ActivityPerformerMovement;
 };
 
 }

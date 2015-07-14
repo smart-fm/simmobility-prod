@@ -47,14 +47,15 @@ const std::string sim_mob::DriverPathMover::ErrorGeneralPathDone("Entire path is
 
 sim_mob::DriverPathMover::DriverPathMover() :
 	distAlongPolylineCM(0), /*currPolylineLengthCM(0),*/
-	distMovedInCurrSegmentCM(0), distOfThisSegmentCM(0), distOfRestSegmentsCM(0), inIntersection(false), isMovingForwardsInLink(false), currLaneID(0), distToEndSegmentCM(0.0)
+	distMovedInCurrSegmentCM(0), distOfThisSegmentCM(0), distOfRestSegmentsCM(0), inIntersection(false), isMovingForwardsInLink(false), currLaneID(0), distToEndSegmentCM(0.0),
+	currTurning(nullptr)
 {
 }
 
 sim_mob::DriverPathMover::DriverPathMover(const DriverPathMover& copyFrom) :
 	fullPath(copyFrom.fullPath), polypointsList(copyFrom.polypointsList), distAlongPolylineCM(copyFrom.distAlongPolylineCM), distMovedInCurrSegmentCM(copyFrom.distMovedInCurrSegmentCM),
 			distOfThisSegmentCM(copyFrom.distOfThisSegmentCM), distOfRestSegmentsCM(copyFrom.distOfRestSegmentsCM), inIntersection(copyFrom.inIntersection),
-			isMovingForwardsInLink(copyFrom.isMovingForwardsInLink), currLaneID(copyFrom.currLaneID)
+			isMovingForwardsInLink(copyFrom.isMovingForwardsInLink), currLaneID(copyFrom.currLaneID),currTurning(copyFrom.currTurning)
 
 {
 	//We don't really care about the debug stream, but we should probably inform the user
@@ -640,8 +641,38 @@ const Lane* sim_mob::DriverPathMover::actualMoveToNextSegmentAndUpdateDir()
 		return nullptr;
 	}
 
-	//Bound lanes
-	currLaneID = std::min<int>(currLaneID, (*currSegmentIt)->getLanes().size() - 1);
+	//Find a lane that is not a pedestrian lane
+	int noOfLanes = (*currSegmentIt)->getLanes().size();
+	bool foundId = false;
+	currLaneID = std::min(currLaneID, noOfLanes -1);
+
+	for(int index = 0; index < noOfLanes; index++)
+	{
+		for(int prefix = -1; prefix <= 1; prefix = prefix + 2)
+		{
+			int laneId = currLaneID + (index * prefix);
+
+			if(laneId < noOfLanes && laneId >= 0)
+			{
+				if((*currSegmentIt)->getLanes().at(laneId)->is_pedestrian_lane() == false)
+				{
+					currLaneID = laneId;
+					foundId = true;
+					break;
+				}
+			}
+		}
+
+		if(foundId)
+		{
+			break;
+		}
+	}
+
+	if(!foundId)
+	{
+		assert(foundId);
+	}
 
 	//Is this new segment part of a Link we're traversing in reverse?
 	if (nextInNewLink)
@@ -694,12 +725,19 @@ const RoadSegment* sim_mob::DriverPathMover::getNextSegment(bool sameLink) const
 	{
 		return nullptr;
 	}
-	if (((*nextSegmentIt)->getLink() != (*currSegmentIt)->getLink()) && sameLink)
+	
+	if (((*nextSegmentIt)->getLink() == (*currSegmentIt)->getLink()) && sameLink)
+	{
+		return *nextSegmentIt;
+	}
+	else if(((*nextSegmentIt)->getLink() != (*currSegmentIt)->getLink()) && !sameLink)
+	{
+		return *nextSegmentIt;
+	}
+	else
 	{
 		return nullptr;
-	}
-
-	return *nextSegmentIt;
+	}	
 }
 
 const RoadSegment* sim_mob::DriverPathMover::getNextToNextSegment() const
@@ -855,6 +893,12 @@ double sim_mob::DriverPathMover::getDistToLinkEndM()
 	std::vector<const sim_mob::RoadSegment*>::iterator end =fullPath.end();
 	for (vector<const RoadSegment*>::const_iterator it = start; it != end; ++it)
 	{
+		//Break if the next Segment isn't in this link.
+		if ((it + 1 == end) || ((*it)->getLink() != (*(currSegmentIt))->getLink()))
+		{
+			break;
+		}
+
 		//Add all polylines in this Segment
 		const vector<Point2D>& polyLine = const_cast<RoadSegment*> (*it)->getLanes()[0]->getPolyline();
 		for (vector<Point2D>::const_iterator it2 = polyLine.begin(); (it2 + 1) != polyLine.end(); ++it2)
@@ -862,11 +906,7 @@ double sim_mob::DriverPathMover::getDistToLinkEndM()
 			res += dist(it2->getX(), it2->getY(), (it2 + 1)->getX(), (it2 + 1)->getY()) / 100.0;
 		}
 
-		//Break if the next Segment isn't in this link.
-		if ((it + 1 == end) || ((*it)->getLink() != (*(it + 1))->getLink()))
-		{
-			break;
-		}
+
 	}
 
 	return res;

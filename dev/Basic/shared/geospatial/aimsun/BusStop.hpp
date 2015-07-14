@@ -27,7 +27,9 @@ class Section;
 class Lane;
 class Polyline;
 
-
+/**
+ * aimsun class for bus stop -> segment mapping.
+ */
 class BusStop : public Base {
 public:
 	std::string  bus_stop_no;
@@ -39,14 +41,15 @@ public:
 	double xPos;
 	double yPos;
 
-
-
-	BusStop() : Base(), atSection(nullptr) {}
+	BusStop() : Base(), atSection(nullptr), bus_stop_no(""), status(""), lane_type(""), road_name(""),
+			xPos(0.0), yPos(0.0), TMP_AtSectionID(0), TMP_RevSectionID(0), TMP_AtLaneID(0), TMP_TerminalNodeID(0)
+	{}
 
 	//Placeholders
 	int TMP_AtSectionID;
+	int TMP_RevSectionID; // contains non zero value only for bus terminus stops
+	int TMP_TerminalNodeID;  // contains non zero value only for bus terminus stops
 	int TMP_AtLaneID;
-
 };
 
 class BusStopSG : public Base {

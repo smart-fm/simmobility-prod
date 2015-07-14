@@ -80,9 +80,13 @@ LoggerAgent::LoggerAgent() : Entity(-1)
     std::ofstream* householdGroupLogsumFile = new std::ofstream("householdGroupLogsum.csv");
     streams.insert(std::make_pair(LOG_HOUSEHOLDGROUPLOGSUM, householdGroupLogsumFile));
 
-    //household group logsum
+    //individual hits logsum
     std::ofstream* individualHitsLogsumFile = new std::ofstream("IndividualHitsLogsum.csv");
     streams.insert(std::make_pair(LOG_INDIVIDUAL_HITS_LOGSUM, individualHitsLogsumFile));
+
+    //household bid list
+    std::ofstream* householdBidFile = new std::ofstream("householdBidList.csv");
+    streams.insert(std::make_pair(LOG_INDIVIDUAL_HITS_LOGSUM, householdBidFile));
 }
 
 LoggerAgent::~LoggerAgent()

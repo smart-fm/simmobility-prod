@@ -1052,7 +1052,7 @@ void HM_Model::getLogsumOfIndividuals(BigSerial id)
 		double logsum = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n], taz, -1, 1 );
 
 		printIndividualHitsLogsum( householdIndividualIds[n], logsum );
-		PrintOutV("individual id: " << householdIndividualIds[n] << " logsum: " << logsum << std::endl );
+		//PrintOutV("individual id: " << householdIndividualIds[n] << " logsum: " << logsum << std::endl );
 	}
 }
 

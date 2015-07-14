@@ -44,7 +44,8 @@ namespace sim_mob {
                 LOG_VEHICLE_OWNERSIP,
                 LOG_TAZ_LEVEL_LOGSUM,
                 LOG_HOUSEHOLDGROUPLOGSUM,
-                LOG_INDIVIDUAL_HITS_LOGSUM
+                LOG_INDIVIDUAL_HITS_LOGSUM,
+                LOG_HOUSEHOLDBIDLIST
             };
             LoggerAgent();
             virtual ~LoggerAgent();

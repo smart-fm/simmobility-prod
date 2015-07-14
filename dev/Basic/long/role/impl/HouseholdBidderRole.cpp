@@ -50,25 +50,28 @@ namespace
         MessageBus::PostMessage(owner, LTMID_BID, MessageBus::MessagePtr(new BidMessage(bid)));
     }
 
-    const std::string LOG_VEHICLE_OWNERSHIP = "%1%, %2%";
-    const std::string LOG_HOUSEHOLD_GROUP_LOGSUM = "%1%, %2%, %3%, %4%";
 
     inline void writeVehicleOwnershipToFile(BigSerial hhId,int VehiclOwnershiOptionId)
     {
-    	boost::format fmtr = boost::format(LOG_VEHICLE_OWNERSHIP) % hhId % VehiclOwnershiOptionId;
+    	boost::format fmtr = boost::format("%1%, %2%") % hhId % VehiclOwnershiOptionId;
     	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_VEHICLE_OWNERSIP,fmtr.str());
 
     }
 
     inline void printHouseholdGroupLogsum( int homeTaz,  int group, BigSerial hhId, double logsum )
     {
-    	boost::format fmtr = boost::format(LOG_HOUSEHOLD_GROUP_LOGSUM) % homeTaz % group % hhId % logsum;
+    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%") % homeTaz % group % hhId % logsum;
     	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDGROUPLOGSUM,fmtr.str());
+    }
+
+    inline void printHouseholdBiddingList( BigSerial householdId, BigSerial unitId, BigSerial postcode  )
+    {
+    	boost::format fmtr = boost::format("%1%, %2%, %3%") % householdId % unitId % postcode;
+    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDBIDLIST,fmtr.str());
     }
 }
 
-HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry ( const BigSerial unitId, const double wp, double lastSurplus) : unitId(unitId), wp(wp), tries(0),
-																lastSurplus(lastSurplus){}
+HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry( const BigSerial unitId, const double wp, double lastSurplus) : unitId(unitId), wp(wp), tries(0), lastSurplus(lastSurplus){}
 
 HouseholdBidderRole::CurrentBiddingEntry::~CurrentBiddingEntry()
 {
@@ -657,6 +660,8 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             if ( unit && stats && flatEligibility )
             {
+            	printHouseholdBiddingList( household->getId(), unit->getId(), unit->getSlaAddressId());
+
                //double wp_old = luaModel.calulateWP(*household, *unit, *stats);
             	double wp = calculateWillingnessToPay(unit, household);
 

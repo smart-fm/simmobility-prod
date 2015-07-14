@@ -173,7 +173,8 @@ namespace sim_mob
             void hdbEligibilityTest(int );
             void unitsFiltering();
             void incrementAwakeningCounter();
-            int getAwakeningCounter() const;
+            int  getAwakeningCounter() const;
+            void getLogsumOfIndividuals(BigSerial id);
 
             HousingMarket* getMarket();
 

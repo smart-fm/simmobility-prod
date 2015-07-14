@@ -58,6 +58,7 @@ namespace
 
     }
 
+
     inline void printHouseholdGroupLogsum( int homeTaz,  int group, BigSerial hhId, double logsum )
     {
     	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%") % homeTaz % group % hhId % logsum;
@@ -726,32 +727,34 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 	double valueNoCar =  model->getVehicleOwnershipCoeffsById(ASC_NO_CAR)->getCoefficientEstimate();
 	double expNoCar = exp(valueNoCar);
 	double vehicleOwnershipLogsum = 0;
-	long householdHeadId = 0;
+	double SumVehicleOwnershipLogsum = 0;
 	std::vector<BigSerial> individuals = this->getParent()->getHousehold()->getIndividuals();
 	std::vector<BigSerial>::iterator individualsItr;
 
 	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
 	{
 		const Individual* individual = model->getIndividualById((*individualsItr));
-		if(individual->getHouseholdHead())
-		{
-			householdHeadId = individual->getId();
-		}
-	}
-	HouseHoldHitsSample *hitsSample = model->getHouseHoldHitsById( this->getParent()->getHousehold()->getId() );
-	if(model->getHouseholdGroupByGroupId(hitsSample->getGroupId())!= nullptr)
-	{
-		vehicleOwnershipLogsum = model->getHouseholdGroupByGroupId(hitsSample->getGroupId())->getLogsum();
-	}
-	else
-	{
-		vehicleOwnershipLogsum = PredayLT_LogsumManager::getInstance().computeLogsum( householdHeadId, -1, -1,1);
-		HM_Model::HouseholdGroup *hhGroup = new HM_Model::HouseholdGroup(hitsSample->getGroupId(),0,vehicleOwnershipLogsum);
-		model->addHouseholdGroupByGroupId(hhGroup);
+//		HouseHoldHitsSample *hitsSample = model->getHouseHoldHitsById( this->getParent()->getHousehold()->getId() );
+//		if(model->getHouseholdGroupByGroupId(hitsSample->getGroupId())!= nullptr)
+//		{
+//			vehicleOwnershipLogsum = model->getHouseholdGroupByGroupId(hitsSample->getGroupId())->getLogsum();
+//			SumVehicleOwnershipLogsum = vehicleOwnershipLogsum + SumVehicleOwnershipLogsum;
+//		}
+//		else
+//		{
+			//replace householdHeadId with individualId
+			double vehicleOwnershipLogsumCar = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), -1, -1,1) ;
+			double vehicleOwnershipLogsumTransit = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), -1, -1,0);
+			vehicleOwnershipLogsum = (vehicleOwnershipLogsumCar - vehicleOwnershipLogsumTransit);
+			SumVehicleOwnershipLogsum = vehicleOwnershipLogsum + SumVehicleOwnershipLogsum;
+//			HM_Model::HouseholdGroup *hhGroup = new HM_Model::HouseholdGroup(hitsSample->getGroupId(),0,vehicleOwnershipLogsum);
+//			model->addHouseholdGroupByGroupId(hhGroup);
+//		}
 	}
 
-	double expOneCar = getExpOneCar(unitTypeId,vehicleOwnershipLogsum);
-	double expTwoPlusCar = getExpTwoPlusCar(unitTypeId,vehicleOwnershipLogsum);
+
+	double expOneCar = getExpOneCar(unitTypeId,SumVehicleOwnershipLogsum);
+	double expTwoPlusCar = getExpTwoPlusCar(unitTypeId,SumVehicleOwnershipLogsum);
 
 	double probabilityNoCar = (expNoCar) / (expNoCar + expOneCar+ expTwoPlusCar);
 	double probabilityOneCar = (expOneCar)/ (expNoCar + expOneCar+ expTwoPlusCar);

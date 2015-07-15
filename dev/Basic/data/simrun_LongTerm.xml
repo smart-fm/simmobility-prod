@@ -20,40 +20,55 @@
                 <dbname value="sim_mob_lt"/>
             </database>
             
-            <database id="fm_remote_mt" dbtype="postgres">
+			<!-- internal ip for remote midterm server -->
+            <database id="fm_remote_mt1" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
                 <dbname value="simmobility_db_2014"/>
             </database>
-        </databases>
+
+            <!-- localhost for midterm server -->
+            <database id="fm_remote_mt2" dbtype="postgres">
+                <host value="localhost"/>
+                <port value="5432"/>
+                <dbname value="sim_mob_lt"/>
+            </database>
+
+		<!-- public ip for remote midterm server -->
+	    <database id="fm_remote_mt" dbtype="postgres">
+	        <host value="137.132.22.82"/>
+	        <port value="15061"/> <!--old port: 15025 -->
+	        <dbname value="simmobility_db_2014"/>
+	    </database>
+	 </databases>
     
-        <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
-        <db_proc_groups/>
-    
-        <!-- Login credentials to be used for database connections. These can be plaintext, -->
-        <!-- file-based, and possibly even signed. Note that invalid credentials will simply be ignored. -->
-        <credentials>
-            <!-- A file-based credential loads credentials from a JSON file with its own special format. -->
-            <!-- Multiple files can be listed, and they will be tried in order until one is found. -->
-            <!-- If the first existing file has an error, parsing will NOT continue to the next file. -->
-            <!-- The actual credentials file looks something like this: -->
-            <!-- 
-            {
-                "username" : "postgres",
-                "password" : "AbCdEfG=",
-                "algorithm" : ["clear","xor23","base64","cipher"]
-            }
-            -->
-            
-            <file-based-credential id="fm_remote_mt">
-                <file path="private/fm_remote.cred.txt"/>
-            </file-based-credential>
-            
-            <plaintext-credential id="LT_cred">
-                <username value="postgres"/>
-                <password value="postgres"/>
-            </plaintext-credential>
-        </credentials>
+		    <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
+		    <db_proc_groups/>
+		
+		    <!-- Login credentials to be used for database connections. These can be plaintext, -->
+		    <!-- file-based, and possibly even signed. Note that invalid credentials will simply be ignored. -->
+		    <credentials>
+		        <!-- A file-based credential loads credentials from a JSON file with its own special format. -->
+		        <!-- Multiple files can be listed, and they will be tried in order until one is found. -->
+		        <!-- If the first existing file has an error, parsing will NOT continue to the next file. -->
+		        <!-- The actual credentials file looks something like this: -->
+		        <!-- 
+		        {
+		            "username" : "postgres",
+		            "password" : "AbCdEfG=",
+		            "algorithm" : ["clear","xor23","base64","cipher"]
+		        }
+		        -->
+		        
+		        <file-based-credential id="fm_remote_mt">
+		            <file path="../private/fm_remote.cred.txt"/>
+		        </file-based-credential>
+		        
+		        <plaintext-credential id="LT_cred">
+		            <username value="postgres"/>
+		            <password value="postgres"/>
+		        </plaintext-credential>
+		    </credentials>
     </constructs>
 
     <!-- System configuration properties -->
@@ -148,10 +163,10 @@
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
-    	<days value="365"/>
+    	<days value="100"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
-    	<tickStep value="1"/>
+    	<tickStep value="1"/>       
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
 		<InitialPostcode value = "1000000"/>
@@ -160,10 +175,11 @@
 		<initialProjectId value = "200000" />
     	</developerModel>
         <housingModel enabled="true"> 
+	    <outputHouseholdLogsums value="true"/>
             <timeOnMarket value="90"/>
             <timeOffMarket value="150"/>
             <timeInterval value="7"/>
-	    <InitialHouseholdsOnMarket value="10000"/>
+	    <InitialHouseholdsOnMarket value="100"/>
 	    <vacantUnitActivationProbability value="0.375"/>
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>
@@ -173,7 +189,7 @@
 	</vehicleOwnershipModel>
     </longTermParams>
 
-    <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+    <model_scripts path="../scripts/lua/mid/behavior-models/" format="lua">
 	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
 	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->

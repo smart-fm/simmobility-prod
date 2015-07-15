@@ -300,7 +300,7 @@ public:
 
 	int isCbdDestZone() const
 	{
-		return cbdDestZone;
+		return (cbdDestZone? 1 : 0);
 	}
 
 	void setCbdDestZone(int cbdZone)
@@ -310,7 +310,7 @@ public:
 
 	int isCbdOrgZone() const
 	{
-		return cbdOrgZone;
+		return (cbdOrgZone? 1 : 0);
 	}
 
 	void setCbdOrgZone(int cbdOrgZone)

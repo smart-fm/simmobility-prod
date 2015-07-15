@@ -19,10 +19,13 @@
 #include "behavioral/PredayClasses.hpp"
 #include "PersonParams.hpp"
 
-namespace sim_mob {
-namespace medium {
+namespace sim_mob
+{
+namespace medium
+{
 
-class TourModeDestinationParams : public ModeDestinationParams {
+class TourModeDestinationParams : public ModeDestinationParams
+{
 public:
 	TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType tourType);
 	virtual ~TourModeDestinationParams();
@@ -62,7 +65,8 @@ private:
 	int modeForParentWorkTour;
 };
 
-class StopModeDestinationParams : public ModeDestinationParams {
+class StopModeDestinationParams : public ModeDestinationParams
+{
 public:
 	StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
 			const PersonParams& personParams, const Stop* stop, int originCode, const std::vector<OD_Pair>& unavailableODs);

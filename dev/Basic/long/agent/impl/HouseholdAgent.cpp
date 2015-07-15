@@ -221,7 +221,19 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	if( day == 0 )
 	{		
 		awakenHousehold();
+
+		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+		if( config.ltParams.housingModel.outputHouseholdLogsums )
+		{
+			const Household *hh = this->getHousehold();
+
+			if( hh != NULL )
+				model->getLogsumOfIndividuals(hh->getId());
+		}
 	}
+
+
 
     if (bidder && bidder->isActive())
     {

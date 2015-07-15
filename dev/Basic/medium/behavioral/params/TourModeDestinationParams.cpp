@@ -330,10 +330,11 @@ int StopModeDestinationParams::isAvailable_IMD(int choiceId) const {
 	 * 4. Walk is only avaiable if (AM[(origin,destination)][’distance’]<=2 and PM[(destination,origin)][’distance’]<=2)
 	 * 5. drive alone is available when for the agent, has_driving_license * one_plus_car == True
 	 */
-	if (choiceId < 1 || choiceId > 9828) {
+	int numZones = zoneMap.size();
+	int numModes = 9;
+	if (choiceId < 1 || choiceId > numZones*numModes) {
 		throw std::runtime_error("isAvailable()::invalid choice id for mode-destination model");
 	}
-	int numZones = zoneMap.size();
 	int zoneId = choiceId % numZones;
 	if(zoneId == 0) { zoneId = numZones; } // zoneId will become zero for the last zone
 	int destination = zoneMap.at(zoneId)->getZoneCode();

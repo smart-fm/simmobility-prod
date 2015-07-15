@@ -22,6 +22,7 @@
 #include "core/AgentsLookup.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "behavioral/PredayLT_Logsum.hpp"
 
 using namespace sim_mob::long_term;
 using namespace sim_mob::messaging;
@@ -160,7 +161,7 @@ namespace
 HouseholdSellerRole::SellingUnitInfo::SellingUnitInfo() :startedDay(0), interval(0), daysOnMarket(0), numExpectations(0)
 {}
 
-HouseholdSellerRole::HouseholdSellerRole(LT_Agent* parent): parent(parent), currentTime(0, 0), hasUnitsToSale(true), selling(false), active(false)
+HouseholdSellerRole::HouseholdSellerRole(HouseholdAgent* parent): parent(parent), currentTime(0, 0), hasUnitsToSale(true), selling(false), active(false)
 {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	timeOnMarket   = config.ltParams.housingModel.timeOnMarket;
@@ -173,7 +174,7 @@ HouseholdSellerRole::~HouseholdSellerRole()
     sellingUnitsMap.clear();
 }
 
-LT_Agent* HouseholdSellerRole::getParent()
+HouseholdAgent* HouseholdSellerRole::getParent()
 {
 	return parent;
 }
@@ -214,9 +215,9 @@ void HouseholdSellerRole::update(timeslice now)
 
 
     {
-        HM_Model* model = dynamic_cast<HouseholdAgent*>(getParent())->getModel();
-        HousingMarket* market = dynamic_cast<HouseholdAgent*>(getParent())->getMarket();
-        const vector<BigSerial>& unitIds = dynamic_cast<HouseholdAgent*>(getParent())->getUnitIds();
+        HM_Model* model = getParent()->getModel();
+        HousingMarket* market = getParent()->getMarket();
+        const vector<BigSerial>& unitIds = getParent()->getUnitIds();
 
         //get values from parent.
         const Unit* unit = nullptr;
@@ -305,7 +306,7 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type, const Message
                         // it is necessary to notify the old max bidder
                         // that his bid was not accepted.
                         //reply to sender.
-                        replyBid(*dynamic_cast<HouseholdAgent*>(getParent()), *maxBidOfDay, entry, BETTER_OFFER, dailyBidCounter);
+                        replyBid(*getParent(), *maxBidOfDay, entry, BETTER_OFFER, dailyBidCounter);
                         maxBidsOfDay.erase(unitId);
 
                         //update the new bid and bidder.
@@ -313,18 +314,18 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type, const Message
                     }
                     else
                     {
-                        replyBid(*dynamic_cast<HouseholdAgent*>(getParent()), msg.getBid(), entry, BETTER_OFFER, dailyBidCounter);
+                        replyBid(*getParent(), msg.getBid(), entry, BETTER_OFFER, dailyBidCounter);
                     }
                 }
                 else
                 {
-                    replyBid(*dynamic_cast<HouseholdAgent*>(getParent()), msg.getBid(), entry, NOT_ACCEPTED, dailyBidCounter);
+                    replyBid(*getParent(), msg.getBid(), entry, NOT_ACCEPTED, dailyBidCounter);
                 }
             }
             else
             {
                 // Sellers is not the owner of the unit or unit is not available.
-                replyBid(*dynamic_cast<HouseholdAgent*>(getParent()), msg.getBid(), entry, NOT_AVAILABLE, 0);
+                replyBid(*getParent(), msg.getBid(), entry, NOT_AVAILABLE, 0);
             }
 
             Statistics::increment(Statistics::N_BIDS);
@@ -337,9 +338,9 @@ void HouseholdSellerRole::HandleMessage(Message::MessageType type, const Message
 
 void HouseholdSellerRole::adjustNotSoldUnits()
 {
-    const HM_Model* model = dynamic_cast<HouseholdAgent*>(getParent())->getModel();
-    HousingMarket* market = dynamic_cast<HouseholdAgent*>(getParent())->getMarket();
-    const IdVector& unitIds = dynamic_cast<HouseholdAgent*>(getParent())->getUnitIds();
+    const HM_Model* model = getParent()->getModel();
+    HousingMarket* market = getParent()->getMarket();
+    const IdVector& unitIds = getParent()->getUnitIds();
     const Unit* unit = nullptr;
     const HousingMarket::Entry* unitEntry = nullptr;
 
@@ -385,14 +386,14 @@ void HouseholdSellerRole::adjustNotSoldUnits()
 
 void HouseholdSellerRole::notifyWinnerBidders()
 {
-    HousingMarket* market = dynamic_cast<HouseholdAgent*>(getParent())->getMarket();
+    HousingMarket* market = getParent()->getMarket();
 
     for (Bids::iterator itr = maxBidsOfDay.begin(); itr != maxBidsOfDay.end(); itr++)
     {
         Bid& maxBidOfDay = itr->second;
         ExpectationEntry entry;
         getCurrentExpectation(maxBidOfDay.getUnitId(), entry);
-        replyBid(*dynamic_cast<HouseholdAgent*>(getParent()), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getUnitId()));
+        replyBid(*getParent(), maxBidOfDay, entry, ACCEPTED, getCounter(dailyBids, maxBidOfDay.getUnitId()));
 
         //PrintOut("\033[1;37mSeller " << std::dec << getParent()->GetId() << " accepted the bid of " << maxBidOfDay.getBidderId() << " for unit " << maxBidOfDay.getUnitId() << " at $" << maxBidOfDay.getValue() << " psf. \033[0m\n" );
 		#ifdef VERBOSE
@@ -400,7 +401,7 @@ void HouseholdSellerRole::notifyWinnerBidders()
 		#endif
 
         market->removeEntry(maxBidOfDay.getUnitId());
-        dynamic_cast<HouseholdAgent*>(getParent())->removeUnitId(maxBidOfDay.getUnitId());
+        getParent()->removeUnitId(maxBidOfDay.getUnitId());
         sellingUnitsMap.erase(maxBidOfDay.getUnitId());
     }
 
@@ -422,8 +423,20 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
     info.interval = timeInterval;
     info.daysOnMarket = unit.getTimeOnMarket();
 
+    HM_Model *model = getParent()->getModel();
+	BigSerial tazId = model->getUnitTazId( unit.getId() );
+	Taz *tazObj = model->getTazById( tazId );
+
+	std::string tazStr;
+	if( tazObj != NULL )
+		tazStr = tazObj->getName();
+
+	BigSerial taz = std::atoi( tazStr.c_str() );
+
+	double logsum =  model->ComputeHedonicPriceLogsum( taz );
+
     info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
-    luaModel.calulateUnitExpectations(unit, info.numExpectations, info.expectations);
+    luaModel.calulateUnitExpectations(unit, info.numExpectations, logsum, info.expectations );
 
     //number of expectations should match 
     if (info.expectations.size() == info.numExpectations)
@@ -435,7 +448,7 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
         for (int i = 0; i < info.expectations.size() ; i++)
         {
             int dayToApply = currentTime.ms() + (i * info.interval);
-            printExpectation(currentTime, dayToApply, unit.getId(), *dynamic_cast<HouseholdAgent*>(getParent()), info.expectations[i]);
+            printExpectation(currentTime, dayToApply, unit.getId(), *getParent(), info.expectations[i]);
         }
     }
 }

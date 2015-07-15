@@ -24,7 +24,9 @@ using namespace sim_mob::db;
 
 namespace
 {
-const std::string LT_DB_CONFIG_FILE = "private/lt-db.ini";
+
+const std::string LT_DB_CONFIG_FILE = "../private/lt-db.ini";
+
 
 /**
  * wrapper struct for thread local storage
@@ -200,13 +202,16 @@ const PredayLT_LogsumManager& sim_mob::PredayLT_LogsumManager::getInstance()
 	return logsumManager;
 }
 
-double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int homeLocation, int workLocation) const
+double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int homeLocation, int workLocation, int vehicleOwnership) const
 {
 	ensureContext();
 	PredayPersonParams personParams;
 	LT_PopulationSqlDao& ltPopulationDao = threadContext.get()->ltPopulationDao;
 	ltPopulationDao.getOneById(individualId, personParams);
-	if(personParams.getPersonId().empty()) { throw std::runtime_error("individual could not be fetched from LT db"); }
+	if(personParams.getPersonId().empty())
+	{
+		return 0.0;
+	}
 
 	if(homeLocation > 0) { personParams.setHomeLocation(homeLocation); }
 	if(workLocation > 0)
@@ -215,7 +220,21 @@ double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int hom
 		personParams.setFixedWorkLocation(workLocation);
 	}
 
+	if( vehicleOwnership == 1)
+		personParams.setCarOwnNormal(1);
+
+	if( vehicleOwnership == 0 )
+		personParams.setCarOwnNormal(0);
+
 	LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
+
+	int homeLoc = personParams.getHomeLocation();
+
+	boost::unordered_map<int,int>::const_iterator zoneLookupItr = zoneIdLookup.find(homeLoc);
+
+	if( zoneLookupItr == zoneIdLookup.end())
+		return 0;
+
 	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
 
 	PredayLogsumLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, tmdParams);

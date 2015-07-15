@@ -42,6 +42,10 @@ namespace sim_mob {
                 UNITS_IN_MARKET,
                 LOG_TAXI_AVAILABILITY,
                 LOG_VEHICLE_OWNERSIP,
+                LOG_TAZ_LEVEL_LOGSUM,
+                LOG_HOUSEHOLDGROUPLOGSUM,
+                LOG_INDIVIDUAL_HITS_LOGSUM,
+                LOG_HOUSEHOLDBIDLIST
             };
             LoggerAgent();
             virtual ~LoggerAgent();

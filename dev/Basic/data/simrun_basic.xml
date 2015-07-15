@@ -217,6 +217,7 @@
                 <mapping name="restricted_reg_segments" procedure="get_section_extended_cbd()"/>
                 <mapping name="restricted_reg_in_turning" procedure="get_extended_cbd_in_turning()"/>
                 <mapping name="restricted_reg_out_turning" procedure="get_extended_cbd_out_turning()"/>
+		<mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>
                 <mapping name="screen_line" procedure="get_screen_line_segments()"/>
             </proc_map>
         </db_proc_groups>

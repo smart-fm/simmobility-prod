@@ -1046,13 +1046,11 @@ void HM_Model::getLogsumOfIndividuals(BigSerial id)
 
 	std::vector<BigSerial> householdIndividualIds = currentHousehold->getIndividuals();
 
-	//chetan
 	for( int n = 0; n < householdIndividualIds.size(); n++ )
 	{
 		double logsum = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n], taz, -1, 1 );
 
 		printIndividualHitsLogsum( householdIndividualIds[n], logsum );
-		//PrintOutV("individual id: " << householdIndividualIds[n] << " logsum: " << logsum << std::endl );
 	}
 }
 

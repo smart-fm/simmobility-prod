@@ -65,9 +65,9 @@ namespace
     	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDGROUPLOGSUM,fmtr.str());
     }
 
-    inline void printHouseholdBiddingList( BigSerial householdId, BigSerial unitId, BigSerial postcode  )
+    inline void printHouseholdBiddingList( BigSerial householdId, BigSerial unitId, BigSerial postcodeCurrent, BigSerial postcodeNew, float wp  )
     {
-    	boost::format fmtr = boost::format("%1%, %2%, %3%") % householdId % unitId % postcode;
+    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%") % householdId % unitId % postcodeCurrent % postcodeNew % wp;
     	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDBIDLIST,fmtr.str());
     }
 }
@@ -535,7 +535,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	const HM_Model::TazStats *tazstats = model->getTazStats( hometazId );
 
-	if( tazstats->getChinesePercentage() > 0.76 )
+	if( tazstats->getChinesePercentage() > 0.76 ) //chetan TODO: add to xml file
 		ZZ_hhchinese = 1;
 
 	if( tazstats->getChinesePercentage() > 0.10 )
@@ -572,8 +572,8 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	return V + wtp_e;
 }
 
-
-double HouseholdBidderRole::calculateSurplus(double price, double min, double max)
+/*
+double HouseholdBidderRole::calculateSurplus_old(double price, double min, double max)
 {
 	//These constant variables are defined in Roberto Ponce Lopez's new Bidding model
 	// F(x) = 1 / (1 + exp(-(x-m)/s))
@@ -590,7 +590,7 @@ double HouseholdBidderRole::calculateSurplus(double price, double min, double ma
 	double fxmax = 1.0 / (1.0 + exp(-( max   - location1 ) / scale1 ) );
 
 	fx = fx - fxmin;
-	fx = fx/fxmax - fxmin;
+	fx = fx/(fxmax - fxmin);
 
 	// f(x) = 1/s exp((x-m)/s) (1 + exp((x-m)/s))^-2.
 	double density    = 1.0 / scale1 * exp( ( price - location1 ) / scale1 ) * pow( ( 1.0 + exp( ( price - location1 ) / scale1 ) ), -2.0 );
@@ -598,12 +598,54 @@ double HouseholdBidderRole::calculateSurplus(double price, double min, double ma
 	double densitymin = 1.0 / scale1 * exp( ( max   - location1 ) / scale1 ) * pow( ( 1.0 + exp( ( max   - location1 ) / scale1 ) ), -2.0 );
 
 	density = density - densitymin;
-	density = -(density/densitymax - densitymin);
+	density = -(density/(densitymax - densitymin));
 
 	double surplus = fx / std::max(density, 0.000001);
 
-	return -surplus;
+	return surplus;
 }
+*/
+
+double HouseholdBidderRole::calculateSurplus(double price, double min, double max)
+{
+	//These constant variables are defined in Roberto Ponce Lopez's new Bidding model
+	// F(x) = 1 / (1 + exp(-(x-m)/s))
+	const double beta	 = 3.306;
+
+	price = std::min(price, min );
+	price = std::max(price, max );
+
+	double cpower = 0;
+    //cpower
+	{
+		double x = price, a = min, b = max;
+
+		cpower = pow(( 1.0/ b * x ),beta);
+
+		if( x >= b )
+			cpower = 1;
+	}
+
+	double dpower = 0;
+	//dpower
+	{
+		double x = price , a = min, b = max;
+
+		dpower = beta * pow(b, beta) * pow(x, (beta - 1.0) );
+
+		if( x > b )
+			dpower = 0;
+	}
+
+
+	if( dpower > 0 )
+		return cpower/dpower;
+	else
+		return cpower;
+}
+
+
+
 
 
 bool HouseholdBidderRole::pickEntryToBid()
@@ -625,8 +667,8 @@ bool HouseholdBidderRole::pickEntryToBid()
     }
 
     const HousingMarket::Entry* maxEntry = nullptr;
-    double maxWP = 0; // holds the wp of the entry with maximum surplus.
-
+    double maxSurplus = 0; // holds the wp of the entry with maximum surplus.
+    double finalBid = 0;
 
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     float housingMarketSearchPercentage = config.ltParams.housingModel.housingMarketSearchPercentage;
@@ -661,10 +703,16 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             if ( unit && stats && flatEligibility )
             {
-            	printHouseholdBiddingList( household->getId(), unit->getId(), unit->getSlaAddressId());
+            	const Unit *hhUnit = model->getUnitById( household->getUnitId() );
+
+            	BigSerial postcodeCurrent = 0;
+            	if( hhUnit != NULL )
+            		postcodeCurrent = hhUnit->getSlaAddressId();
 
                //double wp_old = luaModel.calulateWP(*household, *unit, *stats);
             	double wp = calculateWillingnessToPay(unit, household);
+
+            	printHouseholdBiddingList( household->getId(), unit->getId(), postcodeCurrent, unit->getSlaAddressId(), wp);
 
             	wp = std::max(0.0, wp );
 
@@ -674,34 +722,34 @@ bool HouseholdBidderRole::pickEntryToBid()
                 	wp = householdAffordabilityAmount;
                 }
 
-            	double tempSurplus = wp - entry->getAskingPrice();
+            	double currentBid = ComputeBidValue( entry->getAskingPrice(), wp );
 
-            	//double bid = ComputeBidValue( entry->getAskingPrice() );
+            	double currentSurplus = calculateSurplus(currentBid, 0.0, 1.2 );
 
-            	//if( bid >= entry->getAskingPrice() && bid > maxWP )
-            	if( tempSurplus > maxWP )
+            	if( currentSurplus > maxSurplus )
             	{
-            		maxWP = tempSurplus;
+            		maxSurplus = currentSurplus;
+            		finalBid = currentBid;
             		maxEntry = entry;
             	}
             }
         }
     }
 
-    biddingEntry = CurrentBiddingEntry((maxEntry) ? maxEntry->getUnitId() : INVALID_ID, maxWP);
+    biddingEntry = CurrentBiddingEntry( (maxEntry) ? maxEntry->getUnitId() : INVALID_ID, finalBid );
     return biddingEntry.isValid();
 }
 
 
-double HouseholdBidderRole::ComputeBidValue(double price )
+double HouseholdBidderRole::ComputeBidValue(double price, double wp)
 {
 	double bid = price;
-	const int MAX_ITERATIONS = 50;
-	double epsilon = 1;
+	const int MAX_ITERATIONS = 100;
+	double epsilon = 0.01;
 
-	for (int n = 0; n < MAX_ITERATIONS; n++  )
+	for (int n = 0; n < MAX_ITERATIONS; n++ )
 	{
-		double bidL = price - calculateSurplus( bid , 0.0, 1.2 );
+		double bidL = wp - calculateSurplus( bid , 0.0, 1.2 );
 
 		if( abs(bidL - bid) < epsilon )
 			break;

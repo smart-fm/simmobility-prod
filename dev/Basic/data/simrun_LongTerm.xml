@@ -163,7 +163,7 @@
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
-    	<days value="100"/>
+    	<days value="2"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>       

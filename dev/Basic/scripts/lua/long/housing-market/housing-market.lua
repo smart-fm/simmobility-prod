@@ -448,7 +448,7 @@ function calulateUnitExpectations (unit, timeOnMarket, logsum, building, postcod
     local hedonicPrice = math.exp(calculateHedonicPrice(unit, building, postcode, amenities, logsum))
 
     if (hedonicPrice > 0) then
-        local targetPrice = hedonicPrice -- IMPORTANT : this should be the hedonic value
+        local reservationPrice = hedonicPrice * 0.8  -- IMPORTANT : The reservation price should be less than the hedonic price and the asking price
         local a = 0 -- ratio of events expected by the seller per (considering that the price is 0)
         local b = 1 -- Importance of the price for seller.
        	local cost = 0.0 -- Cost of being in the market
@@ -456,13 +456,13 @@ function calulateUnitExpectations (unit, timeOnMarket, logsum, building, postcod
         local crit = 0.0001 -- criteria
         local maxIterations = 20 --number of iterations 
         for i=1,timeOnMarket do
-            a = 1.2 * targetPrice
-            x0 = 1.19 * targetPrice     
-            entry = ExpectationEntry()
+            a = 1.5 * reservationPrice
+            x0 = 1.4 * reservationPrice     
+            entry = ExpectationEntry()  --entry is a class initialized to 0, that will hold the hedonic, asking and target prices.
             entry.hedonicPrice = hedonicPrice
-            entry.askingPrice = findMaxArgConstrained(calculateExpectation, x0, targetPrice, a, b, cost, crit, maxIterations, targetPrice, 1.2 * targetPrice )
-            entry.targetPrice = calculateExpectation(entry.askingPrice, targetPrice, a, b, cost );
-            targetPrice = entry.targetPrice;
+            entry.askingPrice = findMaxArgConstrained(calculateExpectation, x0, reservationPrice, a, b, cost, crit, maxIterations, reservationPrice, 1.2 * reservationPrice )
+            entry.targetPrice = calculateExpectation(entry.askingPrice, reservationPrice, a, b, cost );
+            reservationPrice = entry.targetPrice;
             expectations[i] = entry
         end
     end

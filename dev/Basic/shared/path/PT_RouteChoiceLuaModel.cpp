@@ -175,10 +175,6 @@ bool PT_RouteChoiceLuaModel::GetBestPT_Path(const std::string& original,
 		const std::string& dest, std::vector<sim_mob::OD_Trip>& odTrips) {
 	bool ret = false;
 
-	if(ret=SearchPT_Path(original, dest, odTrips)){
-		return ret;
-	}
-
 	PT_PathSet pathSet;
 	pathSet = sim_mob::PT_RouteChoiceLuaModel::Instance()->LoadPT_PathSet(original, dest);
 	if(pathSet.pathSet.size()==0){
@@ -202,32 +198,6 @@ bool PT_RouteChoiceLuaModel::GetBestPT_Path(const std::string& original,
 		ret = true;
 	}
 	stateMutex.unlock();
-	return ret;
-}
-
-void PT_RouteChoiceLuaModel::BuildLookupMap(){
-	std::vector<sim_mob::OD_Trip>::iterator odIt = odTripMap.begin();
-	for (; odIt != odTripMap.end(); odIt++){
-		std::string pathSetId = odIt->pathset;
-		std::map<std::string, std::vector<sim_mob::OD_Trip> >::iterator it;
-		it=odTripTable.find(pathSetId);
-		if(it==odTripTable.end()){
-			odTripTable.insert(std::make_pair(pathSetId, std::vector<sim_mob::OD_Trip>()));
-		}
-		odTripTable[pathSetId].push_back(*odIt);
-	}
-}
-
-bool PT_RouteChoiceLuaModel::SearchPT_Path(const std::string& original, const std::string& dest, std::vector<sim_mob::OD_Trip>& odTrips )
-{
-	bool ret = false;
-	std::string pathSetId = "N_"+original+"_"+"N_"+dest;
-	std::map<std::string, std::vector<sim_mob::OD_Trip> >::iterator it;
-	it=odTripTable.find(pathSetId);
-	if(it!=odTripTable.end()){
-		ret = true;
-		odTrips = it->second;
-	}
 	return ret;
 }
 

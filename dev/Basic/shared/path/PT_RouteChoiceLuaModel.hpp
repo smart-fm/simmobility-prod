@@ -1,10 +1,3 @@
-/*
- * PT_RouteChoiceLuaModel.hpp
- *
- *  Created on: 1 Apr, 2015
- *      Author: zhang
- */
-
 #pragma once
 
 #include <boost/shared_ptr.hpp>
@@ -18,6 +11,11 @@
 
 namespace sim_mob
 {
+/**
+ * public transit route choice model
+ * \author Zhang Huai Peng
+ * \author Harish Loganathan
+ */
 class PT_RouteChoiceLuaModel : public lua::LuaModel
 {
 public:
@@ -33,9 +31,17 @@ public:
 	double getTotalCost(unsigned int index);
 
 	/**
-	 *
+	 * finds the best path for the given OD for public transit commuters
+	 * @param origin		trip origin
+	 * @param destination	trip destination
+	 * @param odTrips		list of trip legs in pt path
+	 * @return				true if route choice was successful; false otherwise
 	 */
 	bool getBestPT_Path(const std::string& origin, const std::string& destination, std::vector<sim_mob::OD_Trip>& odTrips);
+
+	/**
+	 * store chosen path in file
+	 */
 	void storeBestPT_Path();
 
 private:
@@ -45,9 +51,12 @@ private:
 	std::string ptPathsetStoredProcName;
 
 	/**
-	 *
+	 * load public transit pathset from database
+	 * @param origin	trip origin
+	 * @param dest		trip destination
+	 * @return 			pathset retrieved from database
 	 */
-	PT_PathSet loadPT_PathSet(const std::string& original, const std::string& dest);
+	PT_PathSet loadPT_PathSet(const std::string& origin, const std::string& dest);
 
 	/**
      * Inherited from LuaModel
@@ -56,15 +65,16 @@ private:
 
     /**
      * make public transit route choice from lua scripts.
-     *
-     * return the map from OD pair to pt trip
+	 * @param origin	trip origin
+	 * @param dest		trip destination
+     * @return 			the map from OD pair to pt trip
      */
-	std::vector<sim_mob::OD_Trip> makePT_RouteChoice(const std::string& original, const std::string& dest);
+	std::vector<sim_mob::OD_Trip> makePT_RouteChoice(const std::string& origin, const std::string& dest);
 
 	/**
 	 * get the size of current path set.
 	 *
-	 * return the size of current choice set
+	 * @return the size of current choice set
 	 */
 	unsigned int getSizeOfChoiceSet();
 

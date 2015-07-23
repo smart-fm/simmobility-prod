@@ -150,7 +150,7 @@ public:
 private:
 	std::vector<Person*> persons;
 	std::vector<std::vector<TripChainItem*> > tripChainList;
-	static const int numThreads = 1;
+	static const int numThreads = 20;
 	boost::thread::id id;
 };
 

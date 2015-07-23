@@ -69,7 +69,7 @@ void sim_mob::StreetDirectory::init(const RoadNetwork& network, bool keepStats, 
     //TODO: Create an object for A_StarPublicTransitShortestPathImpl
     //if(ConfigManager::GetInstance().config->publicTransitEnabled)
     //{
-    	ptImpl_ = new A_StarPublicTransitShortestPathImpl(PT_Network::getInstance().PT_NetworkEdgeMap,PT_Network::getInstance().PublicTransitVertexMap);
+    	ptImpl_ = new A_StarPublicTransitShortestPathImpl(PT_Network::getInstance().PT_NetworkEdgeMap,PT_Network::getInstance().PT_NetworkVertexMap);
     //}
 
     //Save a cache of Nodes to Links

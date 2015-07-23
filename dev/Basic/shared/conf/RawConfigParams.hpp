@@ -369,16 +369,27 @@ struct ScreenLineParams
 struct PathSetConf
 {
 	PathSetConf() : enabled(false), RTTT_Conf(""), DTT_Conf(""), psRetrieval(""), psRetrievalWithoutBannedRegion(""), interval(0), recPS(false), reroute(false),
-			cbd(false), subTripOP(""), perturbationRange(std::pair<unsigned short,unsigned short>(0,0)), kspLevel(0),
-			perturbationIteration(0), threadPoolSize(0), alpha(0), maxSegSpeed(0)
+			subTripOP(""), perturbationRange(std::pair<unsigned short,unsigned short>(0,0)), kspLevel(0),
+			perturbationIteration(0), threadPoolSize(0), alpha(0), maxSegSpeed(0), publickShortestPathLevel(10), simulationApproachIterations(10),
+			publicPathSetEnabled(true), privatePathSetEnabled(true)
 	{}
-
 	bool enabled;
-	std::string mode;//pathset operation mode "normal" , "generation"(for bulk pathset generation)
+	bool privatePathSetEnabled;
+	std::string privatePathSetMode;//pathset operation mode "normal" , "generation"(for bulk pathset generation)
+
+	bool publicPathSetEnabled;
+	std::string publicPathSetMode;
+
+	std::string publicPathSetOdSource;
+	std::string publicPathSetOutputFile;
+	// Public PathSet Generation Algorithm Configurations
+
+	int publickShortestPathLevel;
+	int simulationApproachIterations;
+
 	int threadPoolSize;
 	std::string bulkFile; //in case of using pathset manager in "generation" mode, the results will be outputted to this file
 	std::string odSourceTableName; //data source for getting ODs for bulk pathset generation
-	sim_mob::DatabaseDetails networkDatabase; //If loading from the database, how do we connect?// todo: unused for now
 	std::string pathSetTableName;
 	std::string RTTT_Conf;//realtime travel time table name
 	std::string DTT_Conf;//default travel time table name
@@ -391,8 +402,6 @@ struct PathSetConf
 	bool recPS;
 	///	 enable rerouting?
 	bool reroute;
-	///	CBD enabled?
-	bool cbd;
 	/// subtrip level travel metrics output file(for preday use)
 	std::string subTripOP;
 	///	number of iterations in random perturbation

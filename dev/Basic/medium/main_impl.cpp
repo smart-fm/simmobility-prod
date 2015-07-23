@@ -147,14 +147,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 
-	if(config.publicTransitEnabled){
-		const ModelScriptsMap& extScripts = MT_Config::getInstance().getModelScriptsMap();
-		const std::string& scriptsPath = extScripts.getPath();
-		sim_mob::PT_RouteChoiceLuaModel::Instance()->loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
-		sim_mob::PT_RouteChoiceLuaModel::Instance()->loadFile(scriptsPath + extScripts.getScriptFileName("ptrc"));
-		sim_mob::PT_RouteChoiceLuaModel::Instance()->initialize();
-	}
-
 	//Start boundaries
 #ifndef SIMMOB_DISABLE_MPI
 	if (config.using_MPI)
@@ -297,9 +289,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		PathSetManager::getInstance()->storeRTT();
 	}
-	if(config.publicTransitEnabled){
-		sim_mob::PT_RouteChoiceLuaModel::Instance()->StoreBestPT_Path();
-	}
+
 	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;
 	cout << "Max Agents at any given time: " <<maxAgents <<endl;
 	cout << "Starting Agents: " << numStartAgents

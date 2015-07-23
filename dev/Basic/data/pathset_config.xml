@@ -32,5 +32,9 @@
 		<link_elimination types="default,highway" />	<!-- unused for now. only default and highway are used in the code-->									
 		<random_perturbation modes="time" iteration="50" uniform_range="1,100" /> <!-- for 'modes' attribute, only "time" is supported for now -->		
 	</path_generators>
+	<model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+		<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
+		<script name="ptrc" file="ptrc.lua"/> <!--public transit route choice -->
+	</model_scripts>
 </pathset>
 

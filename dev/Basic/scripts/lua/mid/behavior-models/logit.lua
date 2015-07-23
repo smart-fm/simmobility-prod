@@ -104,6 +104,7 @@ function make_final_choice(probability)
 		end
 		cum_prob = cum_prob + p
 		table.insert(choices_prob, cum_prob)
+		print(c, cum_prob)
 	end
 	idx = binary_search(choices_prob, math.random()) 
 	return choices[idx]

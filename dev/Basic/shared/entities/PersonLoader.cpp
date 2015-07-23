@@ -150,7 +150,7 @@ public:
 private:
 	std::vector<Person*> persons;
 	std::vector<std::vector<TripChainItem*> > tripChainList;
-	static const int numThreads = 20;
+	static const int numThreads = 1;
 	boost::thread::id id;
 };
 
@@ -183,7 +183,6 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
 	unsigned actCtr = 0;
 	map<string, vector<TripChainItem*> > tripchains;
-	map<int, vector<TripChainItem*> > trips;
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
 		const soci::row& r = (*it);
@@ -197,12 +196,6 @@ void sim_mob::PeriodicPersonLoader::loadActivitySchedules()
 		else { continue; }
 		if(!isLastInSchedule) { personTripChain.push_back(makeActivity(r, ++seqNo)); }
 		actCtr++;
-	}
-
-	int index = 0;
-	for(map<string, vector<TripChainItem*> >::iterator i=tripchains.begin(); i!=tripchains.end(); i++)
-	{
-		trips[index++]=i->second;
 	}
 
 	vector<Person*> persons;

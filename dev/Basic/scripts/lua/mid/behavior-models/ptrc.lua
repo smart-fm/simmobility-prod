@@ -22,7 +22,7 @@ local availability = {}
 local function computeUtilities(params, N_choice)
         local log = math.log
 	for i = 1,N_choice do 
-		choice[i] = 1
+		choice[i] = i
 		availability[i] = 1
 	end
 	

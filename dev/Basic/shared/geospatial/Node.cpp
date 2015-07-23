@@ -8,11 +8,16 @@
 #include "logging/Log.hpp"
 #include "util/Utils.hpp"
 
+std::map<unsigned int, const sim_mob::Node*> sim_mob::Node::allNodes;
+
 unsigned int sim_mob::Node::getID() const
 { return nodeId; }
 
 void sim_mob::Node::setID(unsigned int id)
-{ nodeId = id; }
+{
+	nodeId = id;
+	allNodes[nodeId]  = this;
+}
 
 unsigned int sim_mob::Node::getAimsunId() const
 {

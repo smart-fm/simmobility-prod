@@ -19,6 +19,10 @@
 #include "database/entity/Establishment.hpp"
 #include "database/entity/Job.hpp"
 #include "database/entity/LogSumVehicleOwnership.hpp"
+#include "database/entity/DistanceMRT.hpp"
+#include "database/entity/Taz.hpp"
+#include "database/entity/HouseHoldHitsSample.hpp"
+#include "database/entity/TazLogsumWeight.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -59,12 +63,23 @@ namespace sim_mob
             typedef std::vector<Job*> JobList;
             typedef boost::unordered_map<BigSerial, Job*> JobMap;
 
+            typedef std::vector<Taz*> TazList;
+            typedef boost::unordered_map<BigSerial, Taz*> TazMap;
+
             typedef std::vector<HousingInterestRate*> HousingInterestRateList;
             typedef boost::unordered_map<BigSerial, HousingInterestRate*> HousingInterestRateMap;
 
             typedef std::vector<LogSumVehicleOwnership*> VehicleOwnershipLogsumList;
             typedef boost::unordered_map<BigSerial, LogSumVehicleOwnership*> VehicleOwnershipLogsumMap;
 
+            typedef std::vector<DistanceMRT*> DistMRTList;
+            typedef boost::unordered_map<BigSerial, DistanceMRT*> DistMRTMap;
+
+            typedef std::vector<HouseHoldHitsSample*> HouseHoldHitsSampleList;
+            typedef boost::unordered_map<BigSerial, HouseHoldHitsSample*> HouseHoldHitsSampleMap;
+
+            typedef std::vector<TazLogsumWeight*> TazLogsumWeightList;
+            typedef boost::unordered_map<BigSerial, TazLogsumWeight*> TazLogsumWeightMap;
 
             /**
              * Taz statistics
@@ -82,6 +97,13 @@ namespace sim_mob
                 long int getHH_Num() const;
                 double getHH_TotalIncome() const;
                 double getHH_AvgIncome() const;
+
+                double getChinesePercentage() const;
+                double getMalayPercentage() const;
+                double getIndianPercentage() const;
+                double getAvgHHSize() const;
+
+
             private:
                 friend class HM_Model;
                 void updateStats(const Household& household);
@@ -89,10 +111,44 @@ namespace sim_mob
                 BigSerial tazId;
                 long int hhNum;
                 double hhTotalIncome;
+
+                long int householdSize;
+                long int numChinese;
+                long int numMalay;
+                long int numIndian;
             };
             
             typedef boost::unordered_map<BigSerial, HM_Model::TazStats*> StatsMap;
             
+
+            /*
+             *This function will contain groups of households who share the same logsum if they have the same hometaz
+            */
+            class HouseholdGroup
+            {
+            public:
+
+            	HouseholdGroup(BigSerial groupId = 0, BigSerial homeTaz = 0, double logsum = .0);
+            	~HouseholdGroup(){};
+
+            	void	setLogsum(double value);
+            	void	setGroupId(BigSerial value);
+            	void	setHomeTaz( BigSerial value);
+
+            	double	  getLogsum() const;
+            	BigSerial getGroupId() const;
+            	BigSerial getHomeTaz() const;
+
+            private:
+
+            	double logsum;
+            	BigSerial homeTaz;
+            	BigSerial groupId;
+            };
+
+            std::vector<HouseholdGroup> householdGroupVec;
+            boost::unordered_map<BigSerial, HouseholdGroup*> vehicleOwnerhipHHGroupByGroupId;
+
 
             HM_Model(WorkGroup& workGroup);
             virtual ~HM_Model();
@@ -102,6 +158,7 @@ namespace sim_mob
              */
             const Unit* getUnitById(BigSerial id) const;
             BigSerial getUnitTazId(BigSerial unitId) const;
+            BigSerial getEstablishmentTazId(BigSerial establishmentId) const;
             const TazStats* getTazStats(BigSerial tazId) const;
             const TazStats* getTazStatsByUnitId(BigSerial unitId) const;
 
@@ -110,17 +167,22 @@ namespace sim_mob
 			Individual* getIndividualById( BigSerial id) const;
             Awakening* getAwakeningById( BigSerial id) const;
             Postcode* getPostcodeById(BigSerial id) const;
+            Job* getJobById(BigSerial id) const;
+            Establishment* getEstablishmentById( BigSerial id) const;
 
             void hdbEligibilityTest(int );
             void unitsFiltering();
             void incrementAwakeningCounter();
-            int getAwakeningCounter() const;
+            int  getAwakeningCounter() const;
+            void getLogsumOfIndividuals(BigSerial id);
 
             HousingMarket* getMarket();
 
             HouseholdList* getHouseholdList();
 
             HousingInterestRateList* getHousingInterestRateList();
+
+            double ComputeHedonicPriceLogsum(BigSerial taz);
 
             void incrementBidders();
             void decrementBidders();
@@ -136,10 +198,18 @@ namespace sim_mob
             VehicleOwnershipCoefficients* getVehicleOwnershipCoeffsById( BigSerial id) const;
             TaxiAccessCoeffList getTaxiAccessCoeffs()const;
             TaxiAccessCoefficients* getTaxiAccessCoeffsById( BigSerial id) const;
+            Taz* getTazById( BigSerial id) const;
             void addUnit(Unit* unit);
             std::vector<BigSerial> getRealEstateAgentIds();
             VehicleOwnershipLogsumList getVehicleOwnershipLosums()const;
             LogSumVehicleOwnership* getVehicleOwnershipLogsumsById( BigSerial id) const;
+            void setTaxiAccess(const Household *household);
+            DistMRTList getDistanceMRT()const;
+            DistanceMRT* getDistanceMRTById( BigSerial id) const;
+            HouseHoldHitsSampleList getHouseHoldHits()const;
+            HouseHoldHitsSample* getHouseHoldHitsById( BigSerial id) const;
+            HouseholdGroup* getHouseholdGroupByGroupId(BigSerial id)const;
+            void addHouseholdGroupByGroupId(HouseholdGroup* hhGroup);
 
 
         protected:
@@ -177,6 +247,17 @@ namespace sim_mob
             JobList jobs;
             JobMap jobsById;
 
+            TazList tazs;
+            TazMap tazById;
+
+            TazLogsumWeightList tazLogsumWeights;
+            TazLogsumWeightMap tazLogsumWeightById;
+
+            boost::mutex mtx;
+            boost::mutex mtx2;
+            boost::unordered_map<BigSerial, double>tazLevelLogsum;
+            boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
+
             boost::unordered_map<BigSerial, BigSerial> assignedUnits;
             VehicleOwnershipCoeffList vehicleOwnershipCoeffs;
             VehicleOwnershipCoeffMap vehicleOwnershipCoeffsById;
@@ -187,6 +268,10 @@ namespace sim_mob
             HouseholdStatistics household_stats;
             VehicleOwnershipLogsumList vehicleOwnershipLogsums;
             VehicleOwnershipLogsumMap vehicleOwnershipLogsumById;
+            DistMRTList mrtDistances;
+            DistMRTMap mrtDistancesById;
+            HouseHoldHitsSampleList houseHoldHits;
+            HouseHoldHitsSampleMap houseHoldHitsById;
 
             int	initialHHAwakeningCounter;
             int numberOfBidders;
@@ -194,6 +279,7 @@ namespace sim_mob
             int numLifestyle2HHs;
             int numLifestyle3HHs;
             std::vector<BigSerial> realEstateAgentIds;
+            bool hasTaxiAccess;
 
         };
     }

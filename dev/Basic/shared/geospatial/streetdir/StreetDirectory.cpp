@@ -135,9 +135,9 @@ const MultiNode* sim_mob::StreetDirectory::GetCrossingNode(const Crossing* cross
 
 const Signal* sim_mob::StreetDirectory::signalAt(Node const & node) const
 {
-
 	map<const Node *, Signal const *>::const_iterator iter = signals_.find(&node);
-    if (signals_.end() == iter) {
+    if (signals_.end() == iter) 
+	{
         return nullptr;
     }
     return iter->second;
@@ -257,11 +257,11 @@ void sim_mob::StreetDirectory::printStatistics() const
 
 void sim_mob::StreetDirectory::registerSignal(const Signal& signal)
 {
-    const Node* node = &(signal.getNode());
+    const MultiNode *node = dynamic_cast<const MultiNode *>(&(signal.getNode()));
 
-    if (signals_.count(node) == 0) {
+    if (signals_.count(node) == 0 && node->isSignalized()) 
+	{
         signals_.insert(std::make_pair(node, &signal));
-//        std::cout << "Signal at node: " << node->getID() << " was added" << std::endl;
     }
 }
 

@@ -105,6 +105,14 @@ bool  sim_mob::medium::BusDriver::checkIsFull()
 unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusStopAgent* busStopAgent){
 	unsigned int numAlighting = 0;
 	std::list<sim_mob::medium::Passenger*>::iterator itPassenger = passengerList.begin();
+	const sim_mob::BusStop* stop = busStopAgent->getBusStop();
+	if(stop->isVirtualStop())
+	{
+		stop = stop->getTwinStop();
+		if(stop->isVirtualStop()) { throw std::runtime_error("both of the twin stops are virtual"); }
+		busStopAgent = BusStopAgent::findBusStopAgentByBusStop(stop);
+	}
+
 	while (itPassenger != passengerList.end()) {
 
 		/*the passengers will be always together with bus driver, so
@@ -231,7 +239,7 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 	}
 
 	DailyTime dwellTime( converToMilliseconds(waitingTimeAtbusStop) );
-	storeArrivalTime(current, dwellTime.toString(), busStopAgent->getBusStop());
+	storeArrivalTime(current, dwellTime.getStrRepr(), busStopAgent->getBusStop());
 
 
 	if (requestMode.get() == Role::REQUEST_DECISION_TIME) {

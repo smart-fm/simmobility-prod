@@ -41,14 +41,6 @@ class UnPackageUtils;
 class RoadSegment;
 class RoadRunnerRegion;
 
-class TestMessage : public messaging::Message
-{
-public:
-	TestMessage(int random) : random(random) {}
-	virtual ~TestMessage() {}
-	int random;
-};
-
 //It is not a good design, now. Need to verify.
 //The class is used in Sim-Tree for Bottom-Up Query
 struct TreeItem;

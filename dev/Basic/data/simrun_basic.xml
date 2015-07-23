@@ -200,10 +200,25 @@
 
             <!-- Entire singapore network with scaled activity_schedules from preday-->
             <proc_map id="withinday" format="aimsun">
-                <mapping name="node" procedure="get_node_sg()"/>
-                <mapping name="section" procedure="get_section_sg()"/>
-                <mapping name="turning" procedure="get_lane_connector_bugis()"/>
-                <mapping name="day_activity_schedule" procedure="get_test_persons_between"/>
+                <mapping name="node" procedure="get_updated_node_sg()"/>
+                <mapping name="section" procedure="get_updated_section_sg()"/>
+                <mapping name="turning" procedure="get_updated_lane_connector_sg()"/>
+                <mapping name="busstop" procedure="get_bus_stop_location_interchange()"/>
+                <mapping name="polyline" procedure="get_updated_section_polyline()"/>
+                <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('weekday')"/>
+                <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
+                <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+                <mapping name="od_trips" procedure="get_od_trips()"/>
+                <mapping name="day_activity_schedule" procedure="get_persons_between_all"/>
+                <mapping name="pt_edges" procedure="get_pt_map_edges_latest()"/>
+                <mapping name="pt_vertices" procedure="get_pt_map_vertex_latest()"/>
+                <mapping name="mrt_road_segments" procedure="get_mrt_road_segments()"/>
+                <mapping name="pt_pathset" procedure="get_pt_pathset_corrected"/>
+                <mapping name="restricted_reg_segments" procedure="get_section_extended_cbd()"/>
+                <mapping name="restricted_reg_in_turning" procedure="get_extended_cbd_in_turning()"/>
+                <mapping name="restricted_reg_out_turning" procedure="get_extended_cbd_out_turning()"/>
+		<mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>
+                <mapping name="screen_line" procedure="get_screen_line_segments()"/>
             </proc_map>
         </db_proc_groups>
     

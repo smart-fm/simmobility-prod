@@ -84,7 +84,7 @@ struct type_conversion<sim_mob::BusSchedule>
     to_base(sim_mob::BusSchedule const & bus_schedule, soci::values & values, soci::indicator & indicator)
     {
         values.set("trip_id", bus_schedule.tripid);
-        values.set("start_time", bus_schedule.startTime.toString());
+        values.set("start_time", bus_schedule.startTime.getStrRepr());
         indicator = i_ok;
     }
 };
@@ -110,8 +110,8 @@ struct type_conversion<sim_mob::PT_trip>
         values.set("trip_id", pt_trip.trip_id);
         values.set("service_id", pt_trip.service_id);
         values.set("route_id", pt_trip.route_id);
-        values.set("start_time", pt_trip.start_time.toString());
-        values.set("end_time", pt_trip.end_time.toString());
+        values.set("start_time", pt_trip.start_time.getStrRepr());
+        values.set("end_time", pt_trip.end_time.getStrRepr());
         indicator = i_ok;
     }
 };
@@ -136,8 +136,8 @@ struct type_conversion<sim_mob::PT_bus_dispatch_freq>
     {
         values.set("frequency_id", pt_busdispatch_freq.frequency_id);
         values.set("route_id", pt_busdispatch_freq.route_id);
-        values.set("start_time", pt_busdispatch_freq.start_time.toString());
-        values.set("end_time", pt_busdispatch_freq.end_time.toString());
+        values.set("start_time", pt_busdispatch_freq.start_time.getStrRepr());
+        values.set("end_time", pt_busdispatch_freq.end_time.getStrRepr());
         values.set("headway_sec", pt_busdispatch_freq.headway_sec);
         indicator = i_ok;
     }

@@ -626,6 +626,13 @@ public:
 	bool hasBusStop(const sim_mob::BusStop* busStop) const;
 
 	/**
+	 * checks if this Segment stats contains a busStop in it
+	 * @returns true if this segstats cotains a busStop in its busStops list;
+	 * 			false otherwise
+	 */
+	bool hasBusStop() const;
+
+	/**
 	 * returns the number of agents moving in segment
 	 * @param vehicleLanes boolean flag indicating whether we want the numbers from vehicle lanes
 	 * @return the number of agents moving in segment
@@ -762,6 +769,11 @@ public:
 	 * prints all stops in this segment stats
 	 */
 	void printBusStops() const;
+
+	/**
+	 * gets the output capacity of segmentStats
+	 */
+	double getCapacity() const;
 
 	/**
 	 * laneInfinity is an augmented lane in the roadSegment. laneInfinity will be used only by confluxes and related objects for now.

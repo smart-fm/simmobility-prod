@@ -34,6 +34,8 @@
 #include "partitions/UnPackageUtils.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
 
+#include "path/ScreenLineCounter.hpp"
+
 #include "util/DebugFlags.hpp"
 #include "util/Utils.hpp"
 
@@ -254,16 +256,17 @@ bool sim_mob::medium::DriverMovement::initializePath()
 
 		if(person->originNode.node_ == person->destNode.node_)
 		{
-			Print() << "DriverMovement::initializePath | Can't initializePath because origin and destination are the same for driver " << person->GetId()
+			Print() << "DriverMovement::initializePath | Can't initializePath because origin and destination are the same for driver " << person->getId()
 			<< "\norigin:" << person->originNode.node_->getID() << "\ndestination:" << person->destNode.node_->getID() << std::endl;
 			return false;
 		}
 
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 		vector<WayPoint> wp_path;
+		const sim_mob::SubTrip& currSubTrip = *(person->currSubTrip);
 		if (ConfigManager::GetInstance().FullConfig().PathSetMode()) // if use path set
 		{
-			wp_path = PathSetManager::getInstance()->getPath(*(person->currSubTrip), false, nullptr);
+			wp_path = PathSetManager::getInstance()->getPath(currSubTrip, false, nullptr);
 		}
 		else
 		{
@@ -275,8 +278,26 @@ bool sim_mob::medium::DriverMovement::initializePath()
 
 		if (wp_path.empty()) //ideally should not be empty after randomization.
 		{
-			Print()<<"Can't DriverMovement::initializePath(); path is empty for driver "  << person->GetId() << std::endl;
+			Print()<<"Can't DriverMovement::initializePath(); path is empty for driver "  << person->getDatabaseId() << std::endl;
 			return false;
+		}
+
+		//Restricted area logic
+		{
+			bool fromLocationInRestrictedRegion = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(wp_path.front());
+			bool toLocationInRestrictedRegion = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(wp_path.back());
+			if (!toLocationInRestrictedRegion && !fromLocationInRestrictedRegion)
+			{//both O & D outside
+				if (sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(wp_path))
+				{
+					currSubTrip.cbdTraverseType = TravelMetric::CBD_PASS;
+				}
+			}
+			else if(!(toLocationInRestrictedRegion && fromLocationInRestrictedRegion))
+			{//exactly one of O & D is inside restricted region
+				currSubTrip.cbdTraverseType = fromLocationInRestrictedRegion ? TravelMetric::CBD_EXIT : TravelMetric::CBD_ENTER;
+			}
+			//else we leave the cbdTraverseType as CBD_NONE
 		}
 
 		std::vector<const sim_mob::SegmentStats*> path;
@@ -343,7 +364,7 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 	//Although the name of the method suggests segment change, it is actually segStat change. so we check again!
 	const sim_mob::RoadSegment *nxtRs = (nxtSegStat ? nxtSegStat->getRoadSegment() : nullptr);
 
-	if(curRs && nxtSegStat && curRs != nxtRs)
+	if(curRs && curRs != nxtRs)
 	{
 		onSegmentCompleted(curRs,nxtRs);
 	}
@@ -406,13 +427,12 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 		double segExitTimeSec =  params.elapsedSeconds + (convertToSeconds(params.now.ms()));
 		setLastAccept(currLane, segExitTimeSec, nxtSegStat);
 
-		if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-			const sim_mob::SegmentStats* prevSegStats = pathMover.getPrevSegStats(true);	//previous segment is in the same link
-			if(prevSegStats){
-				// update road segment travel times
-				updateRdSegTravelTimes(prevSegStats, segExitTimeSec);
-			}
+		const sim_mob::SegmentStats* prevSegStats = pathMover.getPrevSegStats(true);	//previous segment is in the same link
+		if(prevSegStats){
+			// update road segment travel times
+			updateRdSegTravelTimes(prevSegStats, segExitTimeSec);
 		}
+
 		res = advance(params);
 	}
 	else {
@@ -487,10 +507,8 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 			// update link travel times
 			updateLinkTravelTimes(prevSegStats, linkExitTimeSec);
 
-			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-				// update road segment travel times
-				updateRdSegTravelTimes(prevSegStats, linkExitTimeSec);
-			}
+			// update road segment travel times
+			updateRdSegTravelTimes(prevSegStats, linkExitTimeSec);
 		}
 		setLastAccept(currLane, linkExitTimeSec, nextSegStats);
 		setParentData(params);
@@ -552,6 +570,10 @@ bool DriverMovement::canGoToNextRdSeg(sim_mob::medium::DriverUpdateParams& param
 	//if this hack is not in place, all vehicles will start queuing in upstream segments forever.
 	//TODO: remove this hack and put permanent fix
 	if((maxAllowed < enteringVehicleLength) && (total <= 0)) { return true; }
+
+	//if this segment is a bus terminus segment, we assume only buses try to enter this segment and allow the bus inside irrespective of available space.
+	if(nextSegStats->getRoadSegment()->isBusTerminusSegment()) { return true; }
+
 	bool hasSpaceInNextStats = ((maxAllowed - total) >= enteringVehicleLength);
 	if(hasSpaceInNextStats && nextLink)
 	{
@@ -969,14 +991,22 @@ void DriverMovement::updateLinkTravelTimes(const sim_mob::SegmentStats* prevSegS
 	getParent()->initLinkTravelStats(pathMover.getCurrSegStats()->getRoadSegment()->getLink(), linkExitTimeSec);
 }
 
-void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat, double segEnterExitTime){
+void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat, double segEnterExitTime) {
 	//if prevSeg is already in travelStats, update it's rdSegTT and add to rdSegTravelStatsMap
 	const RoadSegment* prevSeg= prevSegStat->getRoadSegment();
 	sim_mob::Person *parent = getParent();
-	if(prevSeg == parent->getCurrRdSegTravelStats().rs){
-		const std::string & travelMode = parent->getRole()->getMode();
+	if(prevSeg == parent->getCurrRdSegTravelStats().rs) {
+		const sim_mob::TripChainItem* tripChain = *(parent->currTripChainItem);
+		const std::string& travelMode = tripChain->getMode();
+
 		sim_mob::Agent::RdSegTravelStat & currStats = parent->finalizeCurrRdSegTravelStat(prevSeg,segEnterExitTime, travelMode);
-		PathSetManager::getInstance()->addSegTT(currStats);
+
+		if(ConfigManager::GetInstance().FullConfig().PathSetMode())
+		{
+			PathSetManager::getInstance()->addSegTT(currStats);
+		}
+
+		ScreenLineCounter::getInstance()->updateScreenLineCount(currStats);
 	}
 	//creating a new entry in agent's travelStats for the new road segment, with entry time
 	parent->getCurrRdSegTravelStats().reset();
@@ -985,7 +1015,7 @@ void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSeg
 
 TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
 {
-	std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getRepr_());
+	std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getStrRepr());
 	travelMetric.startTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 	const Node* startNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getStart();
 	travelMetric.origin = WayPoint(startNode);
@@ -996,13 +1026,10 @@ TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
 	switch(travelMetric.cbdTraverseType)
 	{
 	case TravelMetric::CBD_ENTER:
-		Print() << "startTT : " << getParent()->GetId() << " , " << now << " , " << travelMetric.origin.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : ENTER START : No Action\n";
 		break;
 	case TravelMetric::CBD_EXIT:
 		travelMetric.cbdOrigin = travelMetric.origin;
 		travelMetric.cbdStartTime = travelMetric.startTime;
-		Print() << "startTT : " << getParent()->GetId() << " , " << now << " , " << travelMetric.origin.node_->getID() << "," << (*(getParent()->currSubTrip)).toLocation.node_->getID() << " : EXIT START : origin[" <<
-				travelMetric.cbdOrigin.node_->getID() << "], end time[" << travelMetric.cbdStartTime.getRepr_() << "]\n";
 		break;
 	};
 	return  travelMetric;
@@ -1011,7 +1038,7 @@ TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
 TravelMetric& sim_mob::medium::DriverMovement::finalizeTravelTimeMetric()
 {
 	if(!travelMetric.started) { return travelMetric; } //sanity check
-	if(!pathMover.getPath().size())
+	if(pathMover.getPath().empty())
 	{
 		Print() << "Person " << getParent()->getId() << " has no path\n";
 		return  travelMetric;
@@ -1057,7 +1084,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const sim_mob::RoadSegmen
 		return	travelMetric;
 	}
 
-	std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getRepr_());
+	std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getStrRepr());
 	sim_mob::RestrictedRegion &cbd = sim_mob::RestrictedRegion::getInstance();
 	std::stringstream out("");
 
@@ -1108,7 +1135,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const sim_mob::RoadSegmen
 	}
 	}
 	};
-//		std::cout << out.str() ;
+//	std::cout << out.str() ;
 	return travelMetric;
 }
 

@@ -74,7 +74,6 @@ void sim_mob::ParsePathXmlConfig::ProcessPathSetNode(xercesc::DOMElement* node){
 				cfg.privatePathSetMode = "normal";
 			}
 		}
-
 		//bulk pathset generation
 		if (cfg.privatePathSetMode == "generation") {
 			xercesc::DOMElement* odSource = GetSingleElementByName(pvtConfNode,

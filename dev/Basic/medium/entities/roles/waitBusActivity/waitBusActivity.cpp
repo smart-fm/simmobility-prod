@@ -52,7 +52,7 @@ void sim_mob::medium::WaitBusActivity::collectTravelTime()
 			subEndPoint, subStartType, subEndType, mode, service, arrivaltime,
 			travelTime;
 
-	personId = boost::lexical_cast<std::string>(parent->GetId());
+	personId = boost::lexical_cast<std::string>(parent->getId());
 	tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
 	tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
 	subStartPoint = parent->currSubTrip->startLocationId;
@@ -61,8 +61,8 @@ void sim_mob::medium::WaitBusActivity::collectTravelTime()
 	subEndType = parent->currSubTrip->endLocationType;
 	mode = parent->currSubTrip->getMode();
 	service = parent->currSubTrip->ptLineId;
-	travelTime = DailyTime(parent->getRole()->getTravelTime()).toString();
-	arrivaltime = DailyTime(parent->getRole()->getArrivalTime()).toString();
+	travelTime = DailyTime(parent->getRole()->getTravelTime()).getStrRepr();
+	arrivaltime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
 	mode = "WAITING_BUS";
 	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(),
 			STORE_PERSON_TRAVEL,

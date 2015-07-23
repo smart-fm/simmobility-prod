@@ -263,6 +263,7 @@ private:
      */
     const ZoneMap& zoneMap;
     const boost::unordered_map<int,int>& zoneIdLookup;
+    const std::map<int,int>& MTZ12_MTZ08_Map;
 
     /**
      * Reference to Costs [origin zone, destination zone] -> CostParams*
@@ -307,7 +308,8 @@ public:
 			const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
 			const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
 			const std::map<std::string, db::MongoDao*>& mongoDao,
-			const std::vector<OD_Pair>& unavailableODs);
+			const std::vector<OD_Pair>& unavailableODs,
+			const std::map<int, int>& mtz12_08Map);
 
 	virtual ~PredaySystem();
 

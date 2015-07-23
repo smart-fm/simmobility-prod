@@ -108,8 +108,15 @@ public:
 	static void getCBD_Border(
 			std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > &in,
 			std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > & out);
+
+	static void getCBD_Nodes(std::map<unsigned int, const sim_mob::Node*>& nodes);
+
 	///	get all CBD's segments
 	static void getCBD_Segments(std::set<const sim_mob::RoadSegment*> & zoneSegments);
+
+	// get the screen line segments
+	static void getScreenLineSegments(const std::string& connectionStr,
+				const std::map<std::string, std::string>& storedProcs, std::vector<unsigned long>& screenLineList);
 
 	//Semi-private functions
 	static void ProcessGeneralNode(sim_mob::RoadNetwork& res, Node& src);

@@ -5,6 +5,7 @@
 #include "Loader.hpp"
 
 #include <algorithm>
+#include <boost/foreach.hpp>
 #include <cmath>
 #include <iostream>
 #include <map>
@@ -15,8 +16,7 @@
 //NOTE: CMake should put the correct -I flags in for SOCI; be aware that some distros hide it though.
 //#include <soci.h>
 //#include <soci-postgresql.h>
-#include <boost/foreach.hpp>
-#include "boost/algorithm/string.hpp"
+
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/settings/DisableMPI.h"
@@ -1147,9 +1147,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 		sim_mob::PT_bus_stops pt_bus_stopsTemp = *iter;
 		pt_bus_stops.push_back(pt_bus_stopsTemp);
 
-		string str = pt_bus_stopsTemp.busstop_no;
-		boost::trim_right(str);
-		sim_mob::BusStop* bs = sim_mob::BusStop::findBusStop(str);
+		sim_mob::BusStop* bs = sim_mob::BusStop::findBusStop(pt_bus_stopsTemp.busstop_no);
 		if(bs) {
 			routeID_busStops[iter->route_id].push_back(bs);
 		}

@@ -2,40 +2,12 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-#include "ModeDestinationParams.hpp"
+#include "TourModeDestinationParams.hpp"
+#include "logging/Log.hpp"
 
 using namespace std;
 using namespace sim_mob;
 using namespace medium;
-
-ModeDestinationParams::ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, StopType purpose, int originCode)
-: zoneMap(zoneMap), amCostsMap(amCostsMap), pmCostsMap(pmCostsMap), purpose(purpose), origin(originCode), OPERATIONAL_COST(0.147), MAX_WALKING_DISTANCE(3),
-  cbdOrgZone(false)
-{}
-
-ModeDestinationParams::~ModeDestinationParams() {}
-
-int ModeDestinationParams::getMode(int choice) const {
-	int nZones = zoneMap.size();
-	int nModes = 9;
-	if (choice < 1 || choice > nZones*nModes) {
-		throw std::runtime_error("getMode()::invalid choice id for mode-destination model");
-	}
-	return ((choice-1)/nZones + 1);
-}
-
-int ModeDestinationParams::getDestination(int choice) const {
-	int nZones = zoneMap.size();
-	int nModes = 9;
-	if (choice < 1 || choice > nZones*nModes) {
-		throw std::runtime_error("getDestination()::invalid choice id for mode-destination model");
-	}
-	int zoneId = choice % nZones;
-	if(zoneId == 0) { // zoneId will become zero for zone 1092.
-		zoneId = nZones;
-	}
-	return zoneId;
-}
 
 TourModeDestinationParams::TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
 		const PersonParams& personParams, StopType tourType)
@@ -358,10 +330,11 @@ int StopModeDestinationParams::isAvailable_IMD(int choiceId) const {
 	 * 4. Walk is only avaiable if (AM[(origin,destination)][’distance’]<=2 and PM[(destination,origin)][’distance’]<=2)
 	 * 5. drive alone is available when for the agent, has_driving_license * one_plus_car == True
 	 */
-	if (choiceId < 1 || choiceId > 9828) {
+	int numZones = zoneMap.size();
+	int numModes = 9;
+	if (choiceId < 1 || choiceId > numZones*numModes) {
 		throw std::runtime_error("isAvailable()::invalid choice id for mode-destination model");
 	}
-	int numZones = zoneMap.size();
 	int zoneId = choiceId % numZones;
 	if(zoneId == 0) { zoneId = numZones; } // zoneId will become zero for the last zone
 	int destination = zoneMap.at(zoneId)->getZoneCode();

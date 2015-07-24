@@ -140,6 +140,8 @@ public:
 					const std::set<const sim_mob::RoadSegment*>& excludedRS = std::set<const sim_mob::RoadSegment*>());
 	static void loadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet);
 	static void LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet);
+
+	void LoadScreenLineSegmentIDs(const map<string, string>& storedProcs, std::vector<unsigned long>& screenLines);
 #ifndef SIMMOB_DISABLE_MPI
 	void TransferBoundaryRoadSegment();
 #endif
@@ -161,6 +163,8 @@ public:
 			std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > &in,
 			std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > & out);
 	static void getCBD_Segments(const string & cnn,std::set<const sim_mob::RoadSegment*> & zoneSegments);
+
+	static void getCBD_Nodes(const string& cnn, std::map<unsigned int, const sim_mob::Node*>& nodes);
 
 private:
 	soci::session sql_;
@@ -248,7 +252,10 @@ void DatabaseLoader::getCBD_Border(const string & cnn,
 {
 	soci::session sql(soci::postgresql, cnn);
 
-	soci::rowset<sim_mob::CBD_Pair> rsIn = sql.prepare << std::string("select * from ") + "get_banned_in_turning()";
+	const std::string& inTurningFunc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().
+														procedureMappings["restricted_reg_in_turning"];
+
+	soci::rowset<sim_mob::CBD_Pair> rsIn = sql.prepare << std::string("select * from ") + inTurningFunc;
 	for (soci::rowset<sim_mob::CBD_Pair>::iterator it = rsIn.begin();it != rsIn.end(); it++)
 	{
 		std::map<unsigned long, const sim_mob::RoadSegment*>::iterator itFromSeg(sim_mob::RoadSegment::allSegments.find(it->from_section));
@@ -268,7 +275,10 @@ void DatabaseLoader::getCBD_Border(const string & cnn,
 		}
 	}
 
-	soci::rowset<sim_mob::CBD_Pair> rsOut = sql.prepare << std::string("select * from ") + "get_banned_out_turning()";
+	const std::string& outTurningFunc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().
+															procedureMappings["restricted_reg_out_turning"];
+
+	soci::rowset<sim_mob::CBD_Pair> rsOut = sql.prepare << std::string("select * from ") + outTurningFunc;
 	for (soci::rowset<sim_mob::CBD_Pair>::iterator it = rsOut.begin();	it != rsOut.end(); it++)
 	{
 		std::map<unsigned long, const sim_mob::RoadSegment*>::iterator itFromSeg(sim_mob::RoadSegment::allSegments.find(it->from_section));
@@ -293,7 +303,11 @@ void DatabaseLoader::getCBD_Border(const string & cnn,
 void DatabaseLoader::getCBD_Segments(const string & cnn, std::set<const sim_mob::RoadSegment*> & zoneSegments)
 {
 	soci::session sql(soci::postgresql, cnn);
-	soci::rowset<int> rs = sql.prepare << std::string("select * from ") + "get_ban_section_CBD_aimsun()";
+
+	const std::string& restrictedRegSegFunc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().
+															procedureMappings["restricted_reg_segments"];
+
+	soci::rowset<int> rs = sql.prepare << std::string("select * from ") + restrictedRegSegFunc;
 	for (soci::rowset<int>::iterator it = rs.begin();	it != rs.end(); it++)
 	{
 		std::map<unsigned long, const sim_mob::RoadSegment*>::iterator itSeg(sim_mob::RoadSegment::allSegments.find(*it));
@@ -301,6 +315,25 @@ void DatabaseLoader::getCBD_Segments(const string & cnn, std::set<const sim_mob:
 		{
 			itSeg->second->CBD = true;
 			zoneSegments.insert(itSeg->second);
+		}
+	}
+}
+
+void DatabaseLoader::getCBD_Nodes(const std::string& cnn, std::map<unsigned int, const sim_mob::Node*>& nodes)
+{
+	soci::session sql(soci::postgresql, cnn);
+
+	const std::string& restrictedNodesFunc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().
+															procedureMappings["restricted_reg_nodes"];
+
+	soci::rowset<int> rs = sql.prepare << std::string("select * from ") + restrictedNodesFunc;
+	for(soci::rowset<int>::iterator it = rs.begin(); it != rs.end(); it++)
+	{
+		std::map<unsigned int, const sim_mob::Node*>::iterator itNode = sim_mob::Node::allNodes.find((*it));
+		if(itNode != sim_mob::Node::allNodes.end())
+		{
+			itNode->second->CBD = true;
+			nodes[itNode->second->getID()] = itNode->second;
 		}
 	}
 }
@@ -370,7 +403,7 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 						std::string str = "SinglePath: seg not find " + id;
 						throw std::runtime_error(str);
 					}
-					if(seg->CBD && excludedRS.find(seg) != excludedRS.end())//hack(seg->CBD)!!
+					if(excludedRS.find(seg) != excludedRS.end())
 					{
 						proceed = false;
 						break;
@@ -1126,32 +1159,46 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 	for(std::map<std::string, std::vector<const sim_mob::BusStop*> >::iterator routeIt=routeID_busStops.begin();
 			routeIt!=routeID_busStops.end(); routeIt++)
 	{
+		std::map<std::string, std::vector<const sim_mob::RoadSegment*> >::iterator routeIDSegIt = routeID_roadSegments.find(routeIt->first);
+		if(routeIDSegIt == routeID_roadSegments.end())
+		{
+			sim_mob::Warn() << routeIt->first << " has no route";
+			continue;
+		}
 		std::vector<const sim_mob::BusStop*>& stopList = routeIt->second;
-		std::vector<const sim_mob::RoadSegment*>& segList = routeID_roadSegments.find(routeIt->first)->second;
+		std::vector<const sim_mob::RoadSegment*>& segList = routeIDSegIt->second;
 
 		if(stopList.empty()) { throw std::runtime_error("empty stopList!"); }
 		std::vector<const sim_mob::BusStop*> stopListCopy = stopList; //copy locally
 		stopList.clear(); //empty stopList
 
-		std::vector<const sim_mob::BusStop*>::const_iterator stopIt=stopListCopy.begin();
-		const sim_mob::BusStop* firstStop = (*stopIt);
+		const sim_mob::BusStop* firstStop = stopListCopy.front();
 		if(firstStop->terminusType == sim_mob::BusStop::SINK_TERMINUS)
 		{
 			const sim_mob::BusStop* firstStopTwin = firstStop->getTwinStop();
 			if(!firstStopTwin) { throw std::runtime_error("Sink bus stop found without a twin!"); }
 			stopList.push_back(firstStopTwin);
-			if(!segList.empty()) { segList.erase(segList.begin()); } // the bus must start from the second segment of its original path
+			if(!segList.empty())
+			{
+				std::vector<const sim_mob::RoadSegment*>::iterator itToDelete = segList.begin();
+				while(itToDelete!=segList.end() && (*itToDelete) != firstStopTwin->getParentSegment())
+				{
+					itToDelete = segList.erase(itToDelete); // the bus must start from the segment of the twinStop
+				}
+				if(segList.empty())
+				{
+					throw std::runtime_error("Bus route violates terminus assumption. Entire route was deleted");
+				}
+			}
 		}
 		else
 		{
 			stopList.push_back(firstStop);
 		}
 
-		stopIt++; //skip the first stop and last stop
-		std::vector<const sim_mob::BusStop*>::const_iterator endStopIt = (--stopListCopy.end());
-		for(; stopIt!=endStopIt; stopIt++) //iterate through all stops but the first and last
+		for(size_t stopIt = 1; stopIt < (stopListCopy.size()-1); stopIt++) //iterate through all stops but the first and last
 		{
-			const sim_mob::BusStop* stop = (*stopIt);
+			const sim_mob::BusStop* stop = stopListCopy[stopIt];
 			switch(stop->terminusType)
 			{
 				case sim_mob::BusStop::NOT_A_TERMINUS:
@@ -1178,14 +1225,26 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 			}
 		}
 
-		const sim_mob::BusStop* lastStop = (*endStopIt);
+		const sim_mob::BusStop* lastStop = stopListCopy[stopListCopy.size()-1];
 		if(lastStop->terminusType == sim_mob::BusStop::SOURCE_TERMINUS)
 		{
 			const sim_mob::BusStop* lastStopTwin = lastStop->getTwinStop();
 			if(!lastStopTwin) { throw std::runtime_error("Source bus stop found without a twin!"); }
 			stopList.pop_back();
 			stopList.push_back(lastStopTwin);
-			if(!segList.empty()) { segList.erase((--segList.end())); }//the bus must end one segment earlier
+			if(!segList.empty())
+			{
+				std::vector<const sim_mob::RoadSegment*>::iterator itToDelete = --segList.end();
+				while((*itToDelete) != lastStopTwin->getParentSegment())
+				{
+					itToDelete = segList.erase(itToDelete); //the bus must end at the segment of twin stop
+					itToDelete--; //itToDelete will be segList.end(); so decrement to get last valid iterator
+				}
+				if(segList.empty())
+				{
+					throw std::runtime_error("Bus route violates terminus assumption. Entire route was deleted");
+				}
+			}
 		}
 		else
 		{
@@ -1295,6 +1354,22 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 
 }
 #endif
+
+
+void DatabaseLoader::LoadScreenLineSegmentIDs(const map<string, string>& storedProcs, std::vector<unsigned long>& screenLines)
+{
+	screenLines.clear();
+
+	string storedProc = getStoredProcedure(storedProcs, "screen_line");
+
+	soci::rowset<unsigned long> rs = (sql_.prepare << "select * from " + storedProc);
+
+	soci::rowset<unsigned long>::const_iterator iter = rs.begin();
+	for(; iter != rs.end(); iter++)
+	{
+		screenLines.push_back(*iter);
+	}
+}
 
 void DatabaseLoader::LoadObjectsForShortTerm(map<string, string> const & storedProcs)
 {
@@ -1856,6 +1931,14 @@ void DatabaseLoader::DecorateAndTranslateObjects()
 			}
 			else if (expectedName != (*it)->roadName)
 			{
+				n->candidateForSegmentNode = false; //Fail
+				break;
+			}
+
+			//Manage property three.
+			if (expectedName.empty()) {
+				expectedName = (*it)->roadName;
+			} else if (expectedName != (*it)->roadName) {
 				n->candidateForSegmentNode = false; //Fail
 				break;
 			}
@@ -2486,6 +2569,7 @@ void sim_mob::aimsun::Loader::ProcessGeneralNode(sim_mob::RoadNetwork& res, Node
 	node->setID(src.id); //for future reference
 	src.generatedNode = node;
 	src.hasBeenSaved = true;
+	//src.generatedNode->name = src.nodeName;
 }
 
 void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& src)
@@ -2790,6 +2874,12 @@ void sim_mob::aimsun::Loader::getCBD_Segments(std::set<const sim_mob::RoadSegmen
 	DatabaseLoader::getCBD_Segments(cnn, zoneSegments);
 }
 
+void sim_mob::aimsun::Loader::getCBD_Nodes(std::map<unsigned int, const sim_mob::Node*>& nodes)
+{
+	std::string cnn(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
+	DatabaseLoader::getCBD_Nodes(cnn, nodes);
+}
+
 void sim_mob::aimsun::Loader::LoadERPData(const std::string& connectionStr,
 		std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > &ERP_SurchargePool,
 		std::map<std::string,sim_mob::ERP_Gantry_Zone*>& ERP_GantryZonePool,
@@ -2864,7 +2954,7 @@ bool sim_mob::aimsun::Loader::storeSinglePath(soci::session& sql,
 		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& pathPool,const std::string pathSetTableName)
 {
 	bool res = false;
-	if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+	if(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
 	{
 		sim_mob::BasicLogger & pathsetCSV = sim_mob::Logger::log(ConfigManager::GetInstance().PathSetConfig().bulkFile);
 		BOOST_FOREACH(sim_mob::SinglePath* sp, pathPool)
@@ -2904,6 +2994,15 @@ void sim_mob::aimsun::Loader::loadSegNodeType(const std::string& connectionStr, 
 	DatabaseLoader loader(connectionStr);
 	// load segment type data, node type data
 	loader.loadObjectType(storedProcs,rn);
+}
+
+void sim_mob::aimsun::Loader::getScreenLineSegments(const std::string& connectionStr,
+		const std::map<std::string, std::string>& storedProcs,
+		std::vector<unsigned long>& screenLineList)
+{
+	DatabaseLoader loader(connectionStr);
+
+	loader.LoadScreenLineSegmentIDs(storedProcs, screenLineList);
 }
 
 void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)

@@ -553,3 +553,8 @@ sim_mob::Conflux* sim_mob::ConfigParams::getConfluxForNode(const sim_mob::MultiN
 	if(cfxIt == multinode_confluxes.end()) { return nullptr; }
 	return cfxIt->second;
 }
+
+const ModelScriptsMap& sim_mob::ConfigParams::getLuaScriptsMap() const
+{
+	return luaScriptsMap;
+}

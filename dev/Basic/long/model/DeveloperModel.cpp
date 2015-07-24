@@ -32,6 +32,7 @@
 #include "database/dao/ParcelAmenitiesDao.hpp"
 #include "database/dao/MacroEconomicsDao.hpp"
 #include "database/dao/LogsumForDevModelDao.hpp"
+#include "database/dao/ParcelsWithHDBDao.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
@@ -98,8 +99,11 @@ void DeveloperModel::startImpl() {
 		}
 
 		loadData<ParcelAmenitiesDao>(conn,amenities,amenitiesById,&ParcelAmenities::getFmParcelId);
+
 		loadData<MacroEconomicsDao>(conn,macroEconomics,macroEconomicsById,&MacroEconomics::getExFactorId);
 		loadData<LogsumForDevModelDao>(conn,accessibilityList,accessibilityByTazId,&LogsumForDevModel::getFmParcelId);
+		loadData<ParcelsWithHDBDao>(conn,parcelsWithHDB,parcelsWithHDB_ById,&ParcelsWithHDB::getFmParcelId);
+		PrintOutV("Parcels with HDB loaded " << parcelsWithHDB.size() << std::endl);
 
 	}
 	setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
@@ -119,7 +123,7 @@ void DeveloperModel::startImpl() {
 	PrintOutV("Initial Parcels " << initParcelList.size() << std::endl);
 	PrintOutV("Initial DevelopmentTypeTemplates " << developmentTypeTemplates.size() << std::endl);
 	PrintOutV("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
-	PrintOutV("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
+	PrintOutV("Parcel Amenities " << parcelsWithHDB.size() << std::endl);
 
 	addMetadata("Time Interval", timeInterval);
 	addMetadata("Initial Developers", developers.size());
@@ -197,13 +201,22 @@ float DeveloperModel::getBuildingSpaceByParcelId(BigSerial id) const {
 const LogsumForDevModel* DeveloperModel::getAccessibilityLogsumsByFmParcelId(BigSerial fmParcelId) const
 {
 	AccessibilityLogsumMap::const_iterator itr = accessibilityByTazId.find(fmParcelId);
-			if (itr != accessibilityByTazId.end())
-		    {
-				return itr->second;
-		    }
-		    return nullptr;
+	if (itr != accessibilityByTazId.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
 }
 
+const ParcelsWithHDB* DeveloperModel::getParcelsWithHDB_ByParcelId(BigSerial fmParcelId) const
+{
+	ParcelsWithHDBMap::const_iterator itr = parcelsWithHDB_ById.find(fmParcelId);
+	if (itr != parcelsWithHDB_ById.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+}
 const DeveloperModel::DevelopmentTypeTemplateList& DeveloperModel::getDevelopmentTypeTemplates() const {
     return developmentTypeTemplates;
 }
@@ -225,6 +238,7 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList)
 				RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
 				devAgent->setRealEstateAgent(realEstateAgent);
 				devAgent->setPostcode(getPostcodeForDeveloperAgent());
+				devAgent->setHousingMarketModel(housingMarketModel);
 				agents.push_back(devAgent);
 				developers.push_back(devAgent);
 				workGroup.assignAWorker(devAgent);
@@ -275,7 +289,7 @@ void DeveloperModel::processParcels()
 			else
 			{
 				const double minLotSize = 100;
-				if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize))
+				if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize)|| getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr)
 				{
 					nonEligibleParcelList.push_back(parcel);
 				}

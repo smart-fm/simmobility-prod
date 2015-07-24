@@ -135,6 +135,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Enti
 				currAg->setTripChain(currAgTripChain);
 				currAg->initTripChain();
 				currAg->busLine = busline->getBusLineID();
+				currAg->bustripnum = (const_cast<BusTrip*>(&(*tripIt)))->getBusTripRun_SequenceNum();
 				// scheduled for dispatch
 				addOrStashBuses(currAg, active_agents);
 			}
@@ -200,7 +201,7 @@ struct RouteInfo{
 };
 struct StopInfo{
 	std::string line;
-	unsigned int id;
+	std::string id;
 	unsigned int posX;
 	unsigned int posY;
 	int index;
@@ -226,8 +227,7 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 			if (k == 0) {
 				start = busStop;
 				StopInfo stopInfo;
-				stopInfo.id = boost::lexical_cast<unsigned int>(
-						start->getBusstopno_());
+				stopInfo.id = start->getBusstopno_();
 				stopInfo.line = busLine;
 				stopInfo.posX = start->xPos;
 				stopInfo.posY = start->yPos;
@@ -235,8 +235,7 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 			} else {
 				end = busStop;
 				const StreetDirectory& stdir = StreetDirectory::instance();
-				StreetDirectory::VertexDesc startDes = stdir.DrivingVertex(
-						*start);
+				StreetDirectory::VertexDesc startDes = stdir.DrivingVertex(*start);
 				StreetDirectory::VertexDesc endDes = stdir.DrivingVertex(*end);
 				vector<WayPoint> path;
 				if (start->getParentSegment() == end->getParentSegment()) {
@@ -275,8 +274,7 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 					break;
 				} else {
 					StopInfo stopInfo;
-					stopInfo.id = boost::lexical_cast<unsigned int>(
-							end->getBusstopno_());
+					stopInfo.id =   end->getBusstopno_();
 					stopInfo.line = busLine;
 					stopInfo.posX = end->xPos;
 					stopInfo.posY = end->yPos;

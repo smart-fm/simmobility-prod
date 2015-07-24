@@ -30,6 +30,7 @@ enum {
 	MSG_INSERT_INCIDENT,
 	MSG_WAITING_PERSON_ARRIVAL_AT_BUSSTOP,
 	MSG_MRT_PASSENGER_TELEPORTATION,
+	MSG_WAKEUP_CAR_PASSENGER_TELEPORTATION,
 	MSG_WAKE_UP,
 	MSG_WARN_INCIDENT
 };
@@ -189,6 +190,9 @@ private:
 	/**list of persons currently on MRT train bound to some node in this conflux*/
 	PersonList mrt;
 
+	/**list of persons currently on Car Sharing in this condflux*/
+	PersonList carSharing;
+
 	/**
 	 * updates agents in this conflux
 	 */
@@ -223,6 +227,12 @@ private:
 	 * @param person is going to board MRT
 	 */
 	void assignPersonToMRT(Person* person);
+
+	/**
+	 * assign person to car
+	 * @param person is going to board car
+	 */
+	void assignPersonToCar(Person* person);
 
 	/**
 	 * calls frame_init of the movement facet for the person's role

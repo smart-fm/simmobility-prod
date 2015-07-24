@@ -69,6 +69,7 @@ struct LongTermParams{
 		int initialHouseholdsOnMarket;
 		float housingMarketSearchPercentage;
 		float housingMoveInDaysInterval;
+		bool  outputHouseholdLogsums;
 	} housingModel;
 
 	struct VehicleOwnershipModel{
@@ -191,10 +192,24 @@ public:
 
 struct PathSetConf
 {
-	PathSetConf():enabled(false), RTTT_Conf(""), DTT_Conf(""), psRetrieval(""), interval(0),
-	recPS(false),reroute(false), cbd(false), subTripOP(""), perturbationRange(std::pair<unsigned short,unsigned short>(0,0)), kspLevel(0), perturbationIteration(0){}
+	PathSetConf() : enabled(false), RTTT_Conf(""), DTT_Conf(""), psRetrieval(""), psRetrievalWithoutBannedRegion(""), interval(0), recPS(false), reroute(false),
+			cbd(false), subTripOP(""), perturbationRange(std::pair<unsigned short,unsigned short>(0,0)), kspLevel(0),
+			perturbationIteration(0), threadPoolSize(0), alpha(0), maxSegSpeed(0)
+	{}
 	bool enabled;
-	std::string mode;//pathset operation mode "normal" , "generation"(for bulk pathset generation)
+	bool privatePathSetEnabled;
+	std::string privatePathSetMode;//pathset operation mode "normal" , "generation"(for bulk pathset generation)
+
+	bool publicPathSetEnabled;
+	std::string publicPathSetMode;
+
+	std::string publicPathSetOdSource;
+	std::string publicPathSetOutputFile;
+	// Public PathSet Generation Algorithm Configurations
+
+	int publickShortestPathLevel;
+	int simulationApproachIterations;
+
 	int threadPoolSize;
 	std::string bulkFile; //in case of using pathset manager in "generation" mode, the results will be outputted to this file
 	std::string odSourceTableName; //data source for getting ODs for bulk pathset generation
@@ -203,6 +218,7 @@ struct PathSetConf
 	std::string RTTT_Conf;//realtime travel time table name
 	std::string DTT_Conf;//default travel time table name
 	std::string psRetrieval;// pathset retrieval stored procedure name
+	std::string psRetrievalWithoutBannedRegion; // pathset retrival (excluding banned area) stored procedure name
 	std::string upsert;//	historical travel time updation
 	int interval; //travel time recording iterval(in seconds)
 	double alpha; //travel time updation coefficient
@@ -390,6 +406,58 @@ struct EntityTemplate {
 	int destNode;
 };
 
+/**
+ * contains the path and finle names of external scripts used in the simulation
+ *
+ * \author Harish Loganathan
+ */
+class ModelScriptsMap
+{
+public:
+	ModelScriptsMap(const std::string& scriptFilesPath = "", const std::string& scriptsLang = "");
+
+	const std::string& getPath() const
+	{
+		return path;
+	}
+
+	const std::string& getScriptLanguage() const
+	{
+		return scriptLanguage;
+	}
+
+	std::string getScriptFileName(std::string key) const
+	{
+		//at() is used intentionally so that an out_of_range exception is triggered when invalid key is passed
+		return scriptFileNameMap.at(key);
+	}
+
+	void addScriptFileName(const std::string& key, const std::string& value)
+	{
+		this->scriptFileNameMap[key] = value;
+	}
+
+private:
+	std::string path;
+	std::string scriptLanguage;
+	std::map<std::string, std::string> scriptFileNameMap; //key=>value
+};
+
+///Represents the loop-detector_counts section of the configuration file
+struct ScreenLineParams
+{
+	ScreenLineParams() : interval(0), outputEnabled(false), fileName("") {}
+
+	///The frequency of aggregating the vehicle counts at the loop detector
+	unsigned int interval;
+
+	///Indicates whether the counts have to be output to a file
+	bool outputEnabled;
+
+	///Name of the output file
+	std::string fileName;
+};
+
 
 /**
  * Contains the properties of the config file as they appear in, e.g., test_road_network.xml, with
@@ -432,6 +500,9 @@ public:
 	///Settings for the short-term density map
 	SegmentDensityMap segDensityMap;
 
+	///Settings for the Screen Line Count
+	ScreenLineParams screenLineParams;
+
 	///	is CBD area restriction enforced
 	bool cbd;
 	bool generateBusRoutes;
@@ -447,6 +518,9 @@ public:
 
 	//Person characteristics parameters
 	PersonCharacteristicsParams personCharacteristicsParams;
+
+	///container for lua scripts
+	ModelScriptsMap luaScriptsMap;
 
 	//@{
 	///Templates for creating entities of various types.

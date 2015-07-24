@@ -80,12 +80,11 @@ boost::shared_ptr<sim_mob::batched::ThreadPool> sim_mob::PathSetManager::threadp
 unsigned int sim_mob::PathSetManager::curIntervalMS = 0;
 unsigned int sim_mob::PathSetManager::intervalMS = 0;
 
-sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()),
-		pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName),isUseCache(true),
-		psRetrieval(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrieval),cacheLRU(2500),
-		processTT(intervalMS, curIntervalMS),
-		blacklistSegments((sim_mob::ConfigManager::GetInstance().FullConfig().CBD() ?
-				RestrictedRegion::getInstance().getZoneSegments(): std::set<const sim_mob::RoadSegment*>()))//todo placeholder
+sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()), isUseCache(true),
+		pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName),
+		psRetrieval(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrieval),
+		psRetrievalWithoutRestrictedRegion(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrievalWithoutBannedRegion),
+		cacheLRU(2500), processTT(intervalMS, curIntervalMS)
 {
 	pathSetParam = PathSetParam::getInstance();
 	std::string dbStr(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
@@ -197,22 +196,21 @@ void sim_mob::PathSetManager::clearSinglePaths(boost::shared_ptr<sim_mob::PathSe
 	ps->pathChoices.clear();
 }
 
-bool sim_mob::PathSetManager::cachePathSet(boost::shared_ptr<sim_mob::PathSet>&ps){
-	return cachePathSet_LRU(ps);
+void sim_mob::PathSetManager::cachePathSet(boost::shared_ptr<sim_mob::PathSet>&ps){
+	cachePathSet_LRU(ps);
 }
 
-bool sim_mob::PathSetManager::cachePathSet_LRU(boost::shared_ptr<sim_mob::PathSet>&ps){
+void sim_mob::PathSetManager::cachePathSet_LRU(boost::shared_ptr<sim_mob::PathSet>&ps){
 	cacheLRU.insert(ps->id, ps);
 }
 
-bool sim_mob::PathSetManager::findCachedPathSet(std::string  key, boost::shared_ptr<sim_mob::PathSet> &value){
+bool sim_mob::PathSetManager::findCachedPathSet(std::string key, boost::shared_ptr<sim_mob::PathSet> &value){
 	return findCachedPathSet_LRU(key,value);
 }
 
 bool sim_mob::PathSetManager::findCachedPathSet_LRU(std::string  key, boost::shared_ptr<sim_mob::PathSet> &value){
 	return cacheLRU.find(key,value);
 }
-
 
 void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>&ps)
 {
@@ -272,7 +270,6 @@ std::string sim_mob::printWPpath(const std::vector<WayPoint> &wps , const sim_mo
 	return out.str();
 }
 
-
 vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::SubTrip &subTrip, bool enRoute, const sim_mob::RoadSegment* approach)
 {
 	std::stringstream str("");
@@ -293,18 +290,17 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::SubTrip &subTri
 		{
 			str << "[BLCKLST]";
 			std::stringstream outDbg("");
-			getBestPath(res, subTrip, true, std::set<const sim_mob::RoadSegment*>(), false, true, enRoute, approach);//use/enforce blacklist
+			getBestPath(res, subTrip, true, std::set<const sim_mob::RoadSegment*>(), false, true, enRoute, approach);
 		}
 		else
 		{
-			// case-2:  Either O or D is outside CBD and the other one is inside CBD
+			// case-2:  Either O or D is inside CBD
 			if (!(toLocationInRestrictedRegion && fromLocationInRestrictedRegion))
 			{
 				str << (fromLocationInRestrictedRegion ? " [EXIT CBD]" : "[ENTER CBD]");
 			}
-			else
+			else //case-3: Both O & D are inside CBD
 			{
-				//case-3: Both are inside CBD
 				str << "[BOTH INSIDE CBD]";
 			}
 			getBestPath(res, subTrip, true,std::set<const sim_mob::RoadSegment*>(), false, false,enRoute, approach);
@@ -407,7 +403,10 @@ void sim_mob::PathSetManager::onGeneratePathSet(boost::shared_ptr<PathSet> &ps)
 	}
 	//store in into the database
 	logger << "[STORE PATH: " << ps->id << "]\n";
-	pathSetParam->storeSinglePath(*getSession(), ps->pathChoices, pathSetTableName);
+	if(!ps->nonCDB_OD)
+	{
+		pathSetParam->storeSinglePath(*getSession(), ps->pathChoices, pathSetTableName);
+	}
 }
 
 //Operations:
@@ -422,7 +421,7 @@ bool sim_mob::PathSetManager::getBestPath(
 		bool useCache,
 		std::set<const sim_mob::RoadSegment*> tempBlckLstSegs,
 		bool usePartialExclusion,
-		bool useBlackList,
+		bool nonCBD_OD,
 		bool enRoute,
 		const sim_mob::RoadSegment* approach)
 {
@@ -430,29 +429,30 @@ bool sim_mob::PathSetManager::getBestPath(
 
 	//take care of partially excluded and blacklisted segments here
 	std::set<const sim_mob::RoadSegment*> blckLstSegs(tempBlckLstSegs);
-	if(useBlackList && !blacklistSegments.empty())
-	{
-		blckLstSegs.insert(this->blacklistSegments.begin(), this->blacklistSegments.end()); //temporary + permanent
-	}
 	const std::set<const sim_mob::RoadSegment*>& partial = (usePartialExclusion ? this->partialExclusions : std::set<const sim_mob::RoadSegment*>());
 
 	const sim_mob::Node* fromNode = st.fromLocation.node_;
 	const sim_mob::Node* toNode = st.toLocation.node_;
-	if(!(toNode && fromNode)){
+
+	if(!toNode || !fromNode)
+	{
 		logger << "Error, OD null\n" ;
 		return false;
 	}
-	if(toNode->getID() == fromNode->getID()){
-		logger << "Error: same OD id from different objects discarded:" << toNode->getID() << "\n" ;
+
+	if(toNode->getID() == fromNode->getID())
+	{
+		logger << "Error: same O and D:" << toNode->getID() << "\n" ;
 		return false;
 	}
 
 	std::string fromToID = getFromToString(fromNode, toNode);
 	if(tempNoPath.find(fromToID))
 	{
-		logger <<  fromToID   << "[PREVIOUS RECORD OF FAILURE. BYPASSING : " << fromToID << "]\n";
+		logger <<  fromToID   << "[PREVIOUS RECORD OF FAILURE. EARLY EXIT : " << fromToID << "]\n";
 		return false;
 	}
+
 	logger << "[THREAD " << boost::this_thread::get_id() << "][SEARCHING FOR : " << fromToID << "]\n" ;
 	boost::shared_ptr<sim_mob::PathSet> pathset;
 
@@ -461,7 +461,7 @@ bool sim_mob::PathSetManager::getBestPath(
 	 * supply only the temporary blacklist, because with the current implementation,
 	 * cache should never be filled with paths containing permanent black listed segments
 	 */
-	std::set<const sim_mob::RoadSegment*> emptyBlkLst = std::set<const sim_mob::RoadSegment*>();//and sometime you don't need a black list at all!
+	std::set<const sim_mob::RoadSegment*> emptyBlkLst = std::set<const sim_mob::RoadSegment*>(); //sometimes you don't need a black list at all!
 	if(useCache && findCachedPathSet(fromToID, pathset))
 	{
 		logger <<  fromToID  << " : Cache Hit\n";
@@ -485,7 +485,7 @@ bool sim_mob::PathSetManager::getBestPath(
 	if(!pathRetrievalAttempt.tryCheck(fromToID))
 	{
 		boost::this_thread::sleep(boost::posix_time::seconds(1));
-		return getBestPath(res, st, true, tempBlckLstSegs, usePartialExclusion, useBlackList, enRoute, approach);
+		return getBestPath(res, st, true, tempBlckLstSegs, usePartialExclusion, nonCBD_OD, enRoute, approach);
 	}
 
 	//step-2:check  DB
@@ -494,7 +494,15 @@ bool sim_mob::PathSetManager::getBestPath(
 	pathset->subTrip = st;
 	pathset->id = fromToID;
 	pathset->scenario = scenarioName;
-	hasPath = sim_mob::aimsun::Loader::loadSinglePathFromDB(*getSession(),fromToID,pathset->pathChoices, psRetrieval,blckLstSegs);
+	pathset->nonCDB_OD = nonCBD_OD;
+	if(nonCBD_OD)
+	{
+		hasPath = sim_mob::aimsun::Loader::loadSinglePathFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrievalWithoutRestrictedRegion, blckLstSegs);
+	}
+	else
+	{
+		hasPath = sim_mob::aimsun::Loader::loadSinglePathFromDB(*getSession(), fromToID, pathset->pathChoices, psRetrieval, blckLstSegs);
+	}
 	logger  <<  fromToID << " : " << (hasPath == PSM_HASPATH ? "" : "Don't " ) << "have SinglePaths in DB \n" ;
 	switch (hasPath)
 	{
@@ -550,6 +558,7 @@ bool sim_mob::PathSetManager::getBestPath(
 		pathset->id = fromToID;
 		pathset->scenario = scenarioName;
 		pathset->subTrip = st;
+		pathset->nonCDB_OD = nonCBD_OD;
 		std::set<OD> recursiveOrigins;
 		bool successful = generateAllPathChoices(pathset, recursiveOrigins, blckLstSegs);
 		if (!successful)
@@ -560,7 +569,7 @@ bool sim_mob::PathSetManager::getBestPath(
 			return false;
 		}
 		//this hack conforms to the CBD property added to segment and node
-		if(useBlackList)
+		if(nonCBD_OD)
 		{
 			if(!purgeCbdPaths(*pathset))
 			{
@@ -723,7 +732,7 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 				work->dbgStr = out.str();
 				work->timeBased = false;
 
-				if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+				if(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
 				{
 					/*
 					 * NOTE:
@@ -793,7 +802,7 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 				work->dbgStr = out.str();
 				work->timeBased = true;
 
-				if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+				if(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
 				{
 					/*
 					 * NOTE:
@@ -860,7 +869,7 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 				work->dbgStr = out.str();
 				work->timeBased = true;
 
-				if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+				if(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
 				{
 					/*
 					 * NOTE:
@@ -920,7 +929,7 @@ int sim_mob::PathSetManager::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps
 		RandPertStorage.push_back(work);
 		work->timeBased = true;
 
-		if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+		if(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
 		{
 			/*
 			 * NOTE:
@@ -984,7 +993,7 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 
 	//K-SHORTEST PATH
 	std::set<sim_mob::SinglePath*, sim_mob::SinglePath> KSP_Storage;//main storage for k-shortest path
-	if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+	if(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
 	{
 		genK_ShortestPath(ps, KSP_Storage);
 	}
@@ -1011,7 +1020,7 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 	std::vector<PathSetWorkerThread*> randPertStorage;
 	genRandPert(ps,randPertStorage);
 
-	if(!(ConfigManager::GetInstance().PathSetConfig().mode == "generation"))
+	if(!(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation"))
 	{
 		/*
 		 * NOTE:
@@ -1930,7 +1939,7 @@ double getPathTravelCost(sim_mob::SinglePath *sp,const std::string & travelMode,
 	sim_mob::DailyTime tripStartTime(startTime_);
 	double res=0.0;
 	double ts=0.0;
-	if(!sp || !sp->path.empty()) {
+	if(!sp || sp->path.empty()) {
 		sim_mob::Logger::log("pathset.log") << "gTC: sp is empty" << std::endl;
 	}
 	for(std::vector<WayPoint>::iterator it1 = sp->path.begin(); it1 != sp->path.end(); it1++)

@@ -12,7 +12,6 @@
 #include <string>
 
 namespace sim_mob {
-namespace medium {
 
 /**
  * Class to hold properties of a zone
@@ -113,10 +112,10 @@ public:
 
 	int getCbdDummy() const
 	{
-		return cbdZone;
+		return (cbdZone? 1 : 0);
 	}
 
-	void setCbdDummy(bool cbdZone)
+	void setCbdDummy(int cbdZone)
 	{
 		this->cbdZone = cbdZone;
 	}
@@ -133,7 +132,7 @@ private:
 	double area;
 	double totalEnrollment;
 	double residentStudents;
-	bool cbdZone;
+	int cbdZone;
 };
 
 /**
@@ -358,5 +357,4 @@ private:
 
 };
 
-}
 }

@@ -334,17 +334,16 @@ protected:
 	 * @param prevSeg the last segment in the link from which the driver has just exited
 	 * @param linkExitTimeSec time at which the link was exited
 	 */
-	void updateLinkTravelTimes(const sim_mob::SegmentStats* prevSegStat,
-			double linkExitTimeSec);
+	void updateLinkTravelTimes(const sim_mob::SegmentStats* prevSegStat, double linkExitTimeSec);
 
 	/**
 	 * Updates travel time for this driver for the road segment which he has just exited from.
 	 *
-	 * @param prevSeg the segment from which the driver has just exited
-	 * @param linkExitTimeSec time at which the segment was exited
+	 * @param prevSeg the last segment in the link from which the driver has just exited
+	 * @param linkExitTimeSec time at which the link was exited
 	 */
-	void updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat,
-			double segmentExitTimeSec);
+	void updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat, double segEnterExitTime);
+
 	/**
 	 * get number of intersections between the agent's location and incident location
 	 * \param in list of stats in the incident roadsegemnt

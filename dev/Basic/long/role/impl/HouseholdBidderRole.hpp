@@ -73,6 +73,7 @@ namespace sim_mob
             HouseholdAgent* getParent();
 
             void ComputeHouseholdAffordability();
+            double ComputeBidValue(double wp);
             /**
              * Inherited from LT_Role
              * @param currTime
@@ -81,9 +82,9 @@ namespace sim_mob
 
             void reconsiderVehicleOwnershipOption();
 
-            double getExpOneCar(int unitTypeId);
+            double getExpOneCar(int unitTypeId, double vehicleOwnershipLogsum);
 
-            double getExpTwoPlusCar(int unitTypeId);
+            double getExpTwoPlusCar(int unitTypeId, double vehicleOwnershipLogsum);
 
             /*
              * check all the vehicle categories and returns if it includes a motorcycle
@@ -125,6 +126,8 @@ namespace sim_mob
              * @return true if a unit was picked false otherwise;
              */
             bool pickEntryToBid();
+            double calculateWillingnessToPay(const Unit* unit, const Household* household);
+            double calculateSurplus(double price, double min, double max );
 
             volatile bool waitingForResponse;
             timeslice lastTime;

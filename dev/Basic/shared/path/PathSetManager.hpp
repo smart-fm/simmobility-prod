@@ -47,7 +47,6 @@ public:
 public:
 	const std::set<const sim_mob::RoadSegment*> & getPartialExclusions(){return partialExclusions;}
 	void addPartialExclusion(const sim_mob::RoadSegment* value){ partialExclusions.insert(value);}
-	const std::set<const sim_mob::RoadSegment*> & getBlkLstSegs(){return blacklistSegments;}
 	bool pathInBlackList(const std::vector<WayPoint> path, const std::set<const sim_mob::RoadSegment*> & blkLst);
 	//void addBlkLstSegs(const sim_mob::RoadSegment* value){ blacklistSegments.insert(value);}
 	bool generateAllPathSetWithTripChain2();
@@ -59,7 +58,6 @@ public:
 
 	///	generate a path based on shortest travel time
 	sim_mob::SinglePath* generateShortestTravelTimePath(const sim_mob::Node *fromNode, const sim_mob::Node *toNode,
-//			std::set<std::string>& duplicateChecker,
 			sim_mob::TimeRange tr = sim_mob::MorningPeak,
 			const sim_mob::RoadSegment* excludedSegs=NULL, int random_graph_idx=0);
 
@@ -224,8 +222,8 @@ public:
 	///basically delete all the dynamically allocated memories, in addition to some more cleanups
 	void clearSinglePaths(boost::shared_ptr<sim_mob::PathSet> &ps);
 
-	///cache the generated pathset. returns true upon successful insertion
-	bool cachePathSet(boost::shared_ptr<sim_mob::PathSet> &ps);
+	///cache the generated pathset.
+	void cachePathSet(boost::shared_ptr<sim_mob::PathSet> &ps);
 
 	/**
 	 * searches for a pathset in the cache.
@@ -235,8 +233,6 @@ public:
 	 */
 	bool findCachedPathSet(std::string key, boost::shared_ptr<sim_mob::PathSet> &value);
 
-	///cache the generated pathset. returns true upon successful insertion
-	bool cachePathSet_LRU(boost::shared_ptr<sim_mob::PathSet> &ps);
 	/**
 	 * searches for a pathset in the cache.
 	 * @param key indicates the input key
@@ -285,13 +281,6 @@ private:
 	///example:like segments with incidents which have to be assigned
 	///a maximum travel time
 	std::set<const sim_mob::RoadSegment*> partialExclusions;
-	///	list of segments that must be considered off the network throughout simulation
-	///	in all operations of this class. The list must be already ready and supplied to
-	/// PathsetManager's instance upon creation of PathSetManager's instance.
-	/// if any additional/temporary blacklist emerged during simulation, they can be supplied
-	///	to getPath() with proper switches. The management of such blacklists is not in the scope
-	///	of PathSetManager
-	const std::set<const sim_mob::RoadSegment*> blacklistSegments;
 
 	///	protect access to incidents list
 	boost::shared_mutex mutexExclusion;
@@ -301,6 +290,9 @@ private:
 
 	///	stores the name of database's function operating on the pathset and singlepath tables
 	const std::string &psRetrieval;
+
+	///	stores the name of database's function operating on the pathset and singlepath tables
+	const std::string &psRetrievalWithoutRestrictedRegion;
 
 	///every thread which invokes db related parts of pathset manages, should have its own connection to the database
 	static std::map<boost::thread::id, boost::shared_ptr<soci::session > > cnnRepo;
@@ -312,8 +304,12 @@ private:
 	///	static sim_mob::Logger profiler;
 	static boost::shared_ptr<sim_mob::batched::ThreadPool> threadpool_;
 
-	///	Yet another cache
+	///	the cache
 	sim_mob::LRU_Cache<std::string, boost::shared_ptr<PathSet> > cacheLRU;
+
+	///cache the generated pathset. returns true upon successful insertion
+	void cachePathSet_LRU(boost::shared_ptr<sim_mob::PathSet> &ps);
+
 	/**
 	 * structure to help avoiding simultaneous pathset generation by multiple threads for identical OD
 	 */

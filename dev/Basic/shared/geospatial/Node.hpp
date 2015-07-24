@@ -65,6 +65,10 @@ public:
 	mutable bool CBD;
 	unsigned int nodeId;//read from DB
 	SimNodeType type;
+        std::string name;
+
+    //look up table for nodes
+    static std::map<unsigned int, const Node*> allNodes;
 public:
 	virtual ~Node() {} //A virtual destructor allows dynamic casting
 
@@ -91,7 +95,7 @@ public:
 
 
 //protected:
-    explicit Node(int x=0, int y=0, unsigned int nodeId_=0) : nodeId(nodeId_), location(x, y),type(DEFAULT_NODE),CBD(false) {}
+    explicit Node(int x=0, int y=0, unsigned int nodeId_=0) : nodeId(nodeId_), location(x, y),type(DEFAULT_NODE),CBD(false), name(""){}
 
 public:
     void setID(unsigned int);

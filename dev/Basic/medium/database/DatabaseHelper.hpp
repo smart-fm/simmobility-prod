@@ -23,7 +23,7 @@ namespace medium {
     /**
      * Schemas
      */
-    const std::string MAIN_SCHEMA = "main.";
+    const std::string MAIN_SCHEMA = "snapshot2012.";
     const std::string PUBLIC_SCHEMA = "public.";
 
     /**
@@ -176,9 +176,16 @@ namespace medium {
 	 * Fields from MongoDB zone_aimsunnode_mapping data
 	 */
 	const std::string MONGO_FIELD_NODE_ID = "_id";
-	const std::string MONGO_FIELD_MTZ = "MTZ_1092";
+	const std::string MONGO_FIELD_MTZ_1092 = "MTZ_1092";
+	const std::string MONGO_FIELD_MTZ = "MTZ";
 	const std::string MONGO_FIELD_SOURCE_NODE = "source";
 	const std::string MONGO_FIELD_SINK_NODE = "sink";
+
+
+	/**
+	 * Fields for MTZ1169 to MTZ1092 mapping data
+	 */
+	const std::string MONGO_FIELD_MTZ1092 = "MTZ1092";
 
 } // end namespace medium
 } // end namespace sim_mob

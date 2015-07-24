@@ -22,8 +22,9 @@ PT_PathSetManager sim_mob::PT_PathSetManager::_instance;
 
 boost::shared_ptr<sim_mob::batched::ThreadPool> sim_mob::PT_PathSetManager::threadpool_;
 
-PT_PathSetManager::PT_PathSetManager():labelPoolSize(10), simulationApproachPoolSize(10){
-	ptPathSetWriter.open("PT_Pathset.csv");
+PT_PathSetManager::PT_PathSetManager():labelPoolSize(10){
+	ptPathSetWriter.open(ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetOutputFile.c_str());
+	//ptPathSetWriter.open("/home/data1/pt_paths.csv");
 }
 PT_PathSetManager::~PT_PathSetManager() {
 	// TODO Auto-generated destructor stub
@@ -43,9 +44,7 @@ bool sim_mob::compare_OD::operator()(const PT_OD& A,const PT_OD& B) const {
 
 void PT_PathSetManager::PT_BulkPathSetGenerator()
 {
-	//Debug
-	int i=0;
-	//Done
+	this->ptPathSetWriter.open(ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetOutputFile.c_str());
 	std::set<PT_OD,compare_OD> PT_OD_Set;
 	//Reading the data from the database
 	const std::string& dbId = ConfigManager::GetInstance().FullConfig().system.networkDatabase.database;
@@ -60,15 +59,13 @@ void PT_PathSetManager::PT_BulkPathSetGenerator()
 	conn.connect();
 	soci::session& sql_ = conn.getSession<soci::session>();
 
-	std::string storedProc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().procedureMappings["day_activity_schedule"];
-
 	std::stringstream query;
-	query << "select * from " << storedProc << "(0,30)";
+	query << "select * from " << sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetOdSource;
 	soci::rowset<soci::row> rs = (sql_.prepare << query.str());
 	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it)
 	{
 	   soci::row const& row = *it;
-	   PT_OD singleOD(row.get<int>(10),row.get<int>(5));
+	   PT_OD singleOD(row.get<int>(0),row.get<int>(1));
 	   PT_OD_Set.insert(singleOD);
 	}
 	writePathSetFileHeader();
@@ -77,17 +74,17 @@ void PT_PathSetManager::PT_BulkPathSetGenerator()
 		int size = sim_mob::ConfigManager::GetInstance().PathSetConfig().threadPoolSize;
 		threadpool_.reset(new sim_mob::batched::ThreadPool(sim_mob::ConfigManager::GetInstance().PathSetConfig().threadPoolSize));
 	}
+	int total_count = PT_OD_Set.size();
+	Print() << "Total OD's in Bulk generation is "<<total_count;
 	for(std::set<PT_OD>::const_iterator OD_It=PT_OD_Set.begin();OD_It!=PT_OD_Set.end();OD_It++)
 	{
 		sim_mob::Node* src_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(OD_It->getStartNode());
 		sim_mob::Node* dest_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(OD_It->getDestNode());
 		//sim_mob::PT_PathSetManager::Instance().makePathset(src_node,dest_node);
 		threadpool_->enqueue(boost::bind(&sim_mob::PT_PathSetManager::makePathset,this,src_node,dest_node));
-		i++;
 	}
 	threadpool_->wait();
 	conn.disconnect();
-	std::cout<<"Number of enqueued threads "<<i;
 }
 PT_PathSet PT_PathSetManager::makePathset(sim_mob::Node* from,sim_mob::Node* to)
 {
@@ -106,6 +103,10 @@ PT_PathSet PT_PathSetManager::makePathset(sim_mob::Node* from,sim_mob::Node* to)
 	//Simulation approach
 	getSimulationApproachPaths(fromId,toId,ptPathSet);
 	ptPathSet.computeAndSetPathSize();
+
+	// Checking the feasibility of the paths in the pathset.
+	// Infeasible paths are removed.
+	ptPathSet.checkPathFeasibilty();
 	// Writing the pathSet to the CSV file.
 
 	writePathSetToFile(ptPathSet,from->nodeId,to->nodeId);
@@ -116,8 +117,7 @@ void PT_PathSetManager::writePathSetFileHeader()
 	this->ptPathSetWriter<<"PtPathId,"<<"ptPathSetId,"<<"scenario,"<<"PathTravelTime,"<<"TotalDistanceKms,"<<"PathSize,"
 			<<"TotalCost,"<<"Total_In_Vehicle_Travel_Time_Secs,"<<"Total_waiting_time,"<<"Total_walking_time,"
 		    <<"Total_Number_of_transfers,"<<"isMinDistance,"<<"isValidPath,"<<"isShortestPath,"<<"isMinInVehicleTravelTimeSecs,"
-		    <<"isMinNumberOfTransfers,"<<"isMinWalkingDistance,"<<"isMinTravelOnMrt,"<<"isMinTravelOnBus,"<<"pathset_origin_node,"
-		    <<"pathset_dest_node"<<std::endl;
+		    <<"isMinNumberOfTransfers,"<<"isMinWalkingDistance,"<<"isMinTravelOnMrt,"<<"isMinTravelOnBus,"<<"pathset_origin_node,"<<"pathset_dest_node"<<std::endl;
 }
 void PT_PathSetManager::writePathSetToFile(PT_PathSet &ptPathSet,unsigned int fromNodeId,unsigned int toNodeId)
 {
@@ -129,8 +129,7 @@ void PT_PathSetManager::writePathSetToFile(PT_PathSet &ptPathSet,unsigned int fr
 				<<itPath->getTotalInVehicleTravelTimeSecs()<<","<<itPath->getTotalWaitingTimeSecs()<<","<<itPath->getTotalWalkingTimeSecs()<<","
 				<<itPath->getTotalNumberOfTransfers()<<","<<itPath->isMinDistance()<<","<<itPath->isValidPath()<<","<<itPath->isShortestPath()<<","
 				<<itPath->isMinInVehicleTravelTimeSecs()<<","<<itPath->isMinNumberOfTransfers()
-				<<","<<itPath->isMinWalkingDistance()<<","<<itPath->isMinTravelOnMrt()<<","<<itPath->isMinTravelOnBus()<<","<<fromNodeId<<
-				","<<toNodeId<<std::endl;
+				<<","<<itPath->isMinWalkingDistance()<<","<<itPath->isMinTravelOnMrt()<<","<<itPath->isMinTravelOnBus()<<","<<fromNodeId<<","<<toNodeId<<std::endl;
 	}
 	fileExclusiveWrite.unlock();
 }
@@ -171,7 +170,8 @@ void PT_PathSetManager::getkShortestPaths(StreetDirectory::PT_VertexId fromId,St
 {
 	int i=0;
 	vector<vector<PT_NetworkEdge> > kShortestPaths;
-	StreetDirectory::instance().getPublicTransitShortestPathImpl()->getKShortestPaths(10,fromId,toId,kShortestPaths);
+	int kShortestLevel = ConfigManager::GetInstance().FullConfig().pathSet().publickShortestPathLevel;
+	StreetDirectory::instance().getPublicTransitShortestPathImpl()->getKShortestPaths(kShortestLevel,fromId,toId,kShortestPaths);
 	for(vector<vector<PT_NetworkEdge> >::iterator itPath=kShortestPaths.begin();itPath!=kShortestPaths.end();itPath++)
 	{
 		i++;
@@ -213,6 +213,7 @@ void PT_PathSetManager::getLinkEliminationApproachPaths(StreetDirectory::PT_Vert
 
 void PT_PathSetManager::getSimulationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet)
 {
+	int simulationApproachPoolSize = ConfigManager::GetInstance().FullConfig().pathSet().simulationApproachIterations;
 	for(int i=0;i<simulationApproachPoolSize;i++)
 	{
 		vector<PT_NetworkEdge> path;

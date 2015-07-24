@@ -36,6 +36,7 @@
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/Utils.hpp"
 #include "workers/WorkGroup.hpp"
+#include "path/PT_PathSetManager.hpp"
 
 using namespace sim_mob;
 
@@ -195,8 +196,8 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//TODO: This should be moved into its own class; we should NOT be doing loading in ExpandAndValidate()
 	//      (it is here now to maintain compatibility with the old order or loading things).
 	LoadNetworkFromDatabase();
-	
-	if(sim_mob::ConfigManager::GetInstance().FullConfig().CBD())
+
+	if(cfg.RunningMidSupply())
 	{
 		sim_mob::RestrictedRegion::getInstance().populate();
 	}
@@ -213,7 +214,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 
     //Write the network (? This is weird. ?)
     if (cfg.XmlWriterOn()) 
-	{
+    {
     	throw std::runtime_error("Old WriteXMLInput function deprecated; use boost instead.");
     	//sim_mob::WriteXMLInput("TEMP_TEST_OUT.xml");
     	std::cout << "XML input for SimMobility Created....\n";
@@ -228,7 +229,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	StreetDirectory::instance().init(cfg.getNetwork(), true);
 	std::cout << "Street Directory initialized  " << std::endl;
 
-	if(ConfigManager::GetInstance().FullConfig().pathSet().mode == "generation")
+	if(ConfigManager::GetInstance().FullConfig().pathSet().privatePathSetMode == "generation")
 	{
 		Print() << "bulk profiler start: " << std::endl;
 		sim_mob::Profiler profile("bulk profiler start", true);
@@ -239,6 +240,14 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 		Print() << "Bulk Generation Done " << profile.tick().first.count() << std::endl;
 		exit(1);
 	}
+	if (ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetMode == "generation")
+	{
+		Print() << "Public Transit bulk pathSet Generation started: " << std::endl;
+		sim_mob::PT_PathSetManager::Instance().PT_BulkPathSetGenerator();
+		Print() << "Public Transit bulk pathSet Generation Done: " << std::endl;
+		exit(1);
+	}
+
 
 	//TODO: put its option in config xml
 	//generateOD("/home/fm-simmobility/vahid/OD.txt", "/home/fm-simmobility/vahid/ODs.xml");

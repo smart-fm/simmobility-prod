@@ -25,7 +25,7 @@ local function computeUtilities(params, N_choice)
     choice = {}
     availability = {}
 	for i = 1,N_choice do 
-		choice[i] = 1
+		choice[i] = i
 		availability[i] = 1
 	end
 	

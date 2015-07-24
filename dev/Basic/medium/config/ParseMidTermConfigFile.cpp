@@ -67,7 +67,6 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processWalkSpeedElement(GetSingleElementByName(node, "pedestrian_walk_speed", true));
 	processStatisticsOutputNode(GetSingleElementByName(node, "statistics_output_paramemters", true));
 	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
-	processModelScriptsNode(GetSingleElementByName(node, "model_scripts", true));
 }
 
 

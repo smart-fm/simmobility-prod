@@ -70,6 +70,12 @@ namespace
     	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%") % householdId % unitId % postcodeCurrent % postcodeNew % wp;
     	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDBIDLIST,fmtr.str());
     }
+
+    inline void printFixedpointIteration(BigSerial householdId, BigSerial unitId, double bid, double surplus, double wp )
+    {
+    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%") % householdId % unitId % wp % surplus % bid;
+    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_FIXEDPOINTITERATIONOUTPUT,fmtr.str());
+    }
 }
 
 HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry( const BigSerial unitId, const double wp, double lastSurplus) : unitId(unitId), wp(wp), tries(0), lastSurplus(lastSurplus){}
@@ -610,7 +616,7 @@ double HouseholdBidderRole::calculateSurplus(double price, double min, double ma
 {
 	//These constant variables are defined in Roberto Ponce Lopez's new Bidding model
 	// F(x) = 1 / (1 + exp(-(x-m)/s))
-	const double beta	 = 3.306;
+	const double beta	 = 0.306;
 
 	price = std::min(price, min );
 	price = std::max(price, max );
@@ -722,7 +728,7 @@ bool HouseholdBidderRole::pickEntryToBid()
                 	wp = householdAffordabilityAmount;
                 }
 
-            	double currentBid = ComputeBidValue( entry->getAskingPrice(), wp );
+            	double currentBid = ComputeBidValue( household->getId(), unit->getId(), entry->getAskingPrice(), wp );
 
             	double currentSurplus = calculateSurplus(currentBid, 0.0, 1.2 );
 
@@ -741,20 +747,23 @@ bool HouseholdBidderRole::pickEntryToBid()
 }
 
 
-double HouseholdBidderRole::ComputeBidValue(double price, double wp)
+double HouseholdBidderRole::ComputeBidValue( BigSerial householdId, BigSerial unitId, double price, double wp )
 {
-	double bid = price;
+	double bid = 1.0;
 	const int MAX_ITERATIONS = 100;
 	double epsilon = 0.01;
 
 	for (int n = 0; n < MAX_ITERATIONS; n++ )
 	{
-		double bidL = wp - calculateSurplus( bid , 0.0, 1.2 );
+		double surplus = calculateSurplus( bid / price , 0.0, 1.2 );
+		double bidL = wp - surplus;
 
 		if( abs(bidL - bid) < epsilon )
 			break;
 		else
 			bid = bidL;
+
+		//printFixedpointIteration(householdId, unitId,bid,surplus,wp);
 	}
 
 	return bid;

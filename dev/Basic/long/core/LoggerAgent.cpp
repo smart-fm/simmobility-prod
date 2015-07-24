@@ -87,6 +87,10 @@ LoggerAgent::LoggerAgent() : Entity(-1)
     //household bid list
     std::ofstream* householdBidFile = new std::ofstream("householdBidList.csv");
     streams.insert(std::make_pair(LOG_HOUSEHOLDBIDLIST, householdBidFile));
+
+    //fixed point iteration file
+    std::ofstream* fixedPointIterationFile = new std::ofstream("fixedPointIterationOutput.csv");
+    streams.insert(std::make_pair(LOG_FIXEDPOINTITERATIONOUTPUT, fixedPointIterationFile));
 }
 
 LoggerAgent::~LoggerAgent()

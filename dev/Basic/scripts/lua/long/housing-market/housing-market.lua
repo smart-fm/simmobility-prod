@@ -139,7 +139,7 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum)
 	local ZZ_bus_200m = 0;
 
 	local ZZ_freehold = 0;
-	local ZZ_logsum = logsum;
+	local ZZ_logsum = logsum; //2.68; <- roberto's average.
 	local ZZ_bus_400m = 0;
 
 	if( unit.floorArea ~= nil ) then
@@ -265,7 +265,7 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logs
 	local ZZ_bus_200m = 0;
 
 	local ZZ_freehold = 1; 
-	local ZZ_logsum = logsum;
+	local ZZ_logsum = logsum; //2.68; <- roberto's average.
 	local ZZ_bus_400m = 0;
 
 	if( unit.floorArea ~= nil ) then
@@ -445,7 +445,8 @@ function calulateUnitExpectations (unit, timeOnMarket, logsum, building, postcod
     local expectations = {}
     -- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
 
-    local hedonicPrice = math.exp(calculateHedonicPrice(unit, building, postcode, amenities, logsum))
+    local hedonicPrice = calculateHedonicPrice(unit, building, postcode, amenities, logsum)
+    hedonicPrice = math.exp( hedonicPrice ) / 500000;
 
     if (hedonicPrice > 0) then
         local reservationPrice = hedonicPrice * 0.8  -- IMPORTANT : The reservation price should be less than the hedonic price and the asking price

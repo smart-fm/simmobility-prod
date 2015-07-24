@@ -26,7 +26,7 @@ namespace sim_mob
   class Lane;
   class Driver;
   class IncidentPerformer;
-  class IntersectionAccess;
+  class IntersectionAccessMessage;
 
 #ifndef SIMMOB_DISABLE_MPI
   class PackageUtils;

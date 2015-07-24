@@ -3610,7 +3610,7 @@ void sim_mob::aimsun::Loader::CreateIntersectionManagers(const sim_mob::RoadNetw
 			//No traffic signal at the multi-node, so create an intersection manager
 			IntersectionManager *intMgr = new IntersectionManager(sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy(), *itIntersection);
 			
-			//Add it to the vector
+			//Add it to the map
 			IntersectionManager::intManagers.insert(std::make_pair((*itIntersection)->getID(), intMgr));
 		}
 	}

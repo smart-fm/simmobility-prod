@@ -22,7 +22,7 @@ namespace sim_mob
   const Message::MessageType MSG_REQUEST_INT_ARR_TIME = 7000000;
   const Message::MessageType MSG_RESPONSE_INT_ARR_TIME = 7000001;
   
-  class IntersectionAccess;
+  class IntersectionAccessMessage;
 
   class IntersectionManager : public Agent
   {
@@ -39,10 +39,10 @@ namespace sim_mob
     map<int, double> mapOfPrevAccessTimes;
     
     //Stores the requests to be processed during the upcoming frame tick
-    list<IntersectionAccess> receivedRequests;
+    list<IntersectionAccessMessage> receivedRequests;
     
     //Stores the responses sent in the current frame tick
-    list<IntersectionAccess> sentResponses;
+    list<IntersectionAccessMessage> sentResponses;
     
     //Separation time between vehicles following one another (also known as T1)
     double tailgateSeparationTime;
@@ -51,11 +51,11 @@ namespace sim_mob
     double conflictSeparationTime;
     
     //Iterates through the processed requests to find the vehicles that are incompatible with the current request
-    void getConflicts(IntersectionAccess &request, list<IntersectionAccess> &conflicts);
+    void getConflicts(IntersectionAccessMessage &request, list<IntersectionAccessMessage> &conflicts);
     
     //Filters out the conflicts which have been allocated access times less than the 
 	//access time for current request
-    void filterConflicts(double accessTime, list<IntersectionAccess> &conflicts);
+    void filterConflicts(double accessTime, list<IntersectionAccessMessage> &conflicts);
     
   protected:
     
@@ -91,7 +91,7 @@ namespace sim_mob
 
   } ;  
   
-  class IntersectionAccess : public Message
+  class IntersectionAccessMessage : public Message
   {
   private:
     
@@ -103,7 +103,7 @@ namespace sim_mob
     
   public:
     
-    IntersectionAccess(const double arrivalTime, int turningId) : 
+    IntersectionAccessMessage(const double arrivalTime, int turningId) : 
     arrivalTime(arrivalTime), turningId(turningId)
     {
     }
@@ -123,7 +123,7 @@ namespace sim_mob
 
   struct CompareArrivalTimes
   {
-    bool operator() (IntersectionAccess first, IntersectionAccess second)
+    bool operator() (IntersectionAccessMessage first, IntersectionAccessMessage second)
     {
       return ( first.getArrivalTime() < second.getArrivalTime() );
     }

@@ -220,7 +220,7 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 		lanes.push_back(swLane);
 		width += swLane->width_;
 		vector<Point2D> res = makeLaneEdgeFromPolyline(lanes.back(), false);
-		laneEdgePolylines_cached.push_back(res); //crash -vahid
+		laneEdgePolylines_cached.push_back(res);
 		//Add an extra sidewalk on the other side if it's a road segment on a one-way link.
 		sim_mob::Link* parentLink = getLink();
 

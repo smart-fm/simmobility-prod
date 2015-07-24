@@ -267,7 +267,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
         {
             if(itIntModel->second == "slot-based")
             {
-				sim_mob::aimsun::Loader::CreateIntersectionManagers(ConfigManager::GetInstance().FullConfig().getNetwork());
+                sim_mob::aimsun::Loader::CreateIntersectionManagers(ConfigManager::GetInstance().FullConfig().getNetwork());
             }
         }
     }
@@ -290,7 +290,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//combine incident information to road network
 	verifyIncidents();
 
-    //Initialize all BusControllers.
+	//Initialize all BusControllers.
 	if(BusController::HasBusControllers()) 
 	{
 		BusController::InitializeAllControllers(active_agents, cfg.getPT_bus_dispatch_freq());

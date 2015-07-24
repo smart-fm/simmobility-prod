@@ -26,8 +26,8 @@ void IntersectionManager::HandleMessage(Message::MessageType type, const Message
 	{
 		case MSG_REQUEST_INT_ARR_TIME:
 		{
-			const IntersectionAccess& msg = MSG_CAST(IntersectionAccess, message);			
-			receivedRequests.push_back(IntersectionAccess(msg));
+			const IntersectionAccessMessage& msg = MSG_CAST(IntersectionAccessMessage, message);			
+			receivedRequests.push_back(IntersectionAccessMessage(msg));
 		}
 		break;
 	
@@ -91,7 +91,7 @@ Entity::UpdateStatus IntersectionManager::frame_tick(timeslice now)
 	receivedRequests.sort(compare);
 	
 	//Iterate through all the requests (sorted by increasing arrival time)
-	for(list<IntersectionAccess>::iterator itReq = receivedRequests.begin(); itReq != receivedRequests.end(); ++itReq)
+	for(list<IntersectionAccessMessage>::iterator itReq = receivedRequests.begin(); itReq != receivedRequests.end(); ++itReq)
 	{
 		//Get the id of the turning on which the requesting vehicle will be driving
 		unsigned int turningId = (*itReq).getTurningId();
@@ -100,7 +100,7 @@ Entity::UpdateStatus IntersectionManager::frame_tick(timeslice now)
 		double accessTime = max((*itReq).getArrivalTime(), mapOfPrevAccessTimes[turningId] + tailgateSeparationTime);
 		
 		//The responses to the requests which are incompatible with the current request
-		list<IntersectionAccess> conflicts;
+		list<IntersectionAccessMessage> conflicts;
 		
 		//Get the vehicles, whose requests have been processed, that conflict with the current requesting vehicle		
 		getConflicts(*itReq, conflicts);
@@ -111,11 +111,11 @@ Entity::UpdateStatus IntersectionManager::frame_tick(timeslice now)
 		
 		if(!conflicts.empty())
 		{
-			IntersectionAccess &firstConflict = conflicts.front();
+			IntersectionAccessMessage &firstConflict = conflicts.front();
 			if(firstConflict.getArrivalTime() < (accessTime + conflictSeparationTime))
 			{
 				//Iterators to point to consecutive elements in the list
-				list<IntersectionAccess>::iterator itConflicts, itConflictsNext;
+				list<IntersectionAccessMessage>::iterator itConflicts, itConflictsNext;
 
 				//Point the iterators to the beginning of the list and advance one of them to the next element
 				itConflicts = itConflictsNext = conflicts.begin();			
@@ -160,7 +160,7 @@ Entity::UpdateStatus IntersectionManager::frame_tick(timeslice now)
 		mapOfPrevAccessTimes[turningId] = accessTime;
 		
 		//Set the computed access time
-		IntersectionAccess *response = new IntersectionAccess(accessTime, turningId);
+		IntersectionAccessMessage *response = new IntersectionAccessMessage(accessTime, turningId);
 		
 		//Add to the sent responses list
 		sentResponses.push_back(*response);
@@ -179,7 +179,7 @@ void IntersectionManager::frame_output(timeslice now)
 	receivedRequests.clear();
 	
 	//Clear only the sent requests with access times that have expired
-	for(list<IntersectionAccess>::iterator itResponse = sentResponses.begin(); itResponse != sentResponses.end(); ++itResponse)
+	for(list<IntersectionAccessMessage>::iterator itResponse = sentResponses.begin(); itResponse != sentResponses.end(); ++itResponse)
 	{
 		if((*itResponse).getArrivalTime() <= (now.ms() / 1000))
 		{
@@ -197,13 +197,13 @@ void IntersectionManager::load(const std::map<std::string,std::string>& configPr
 {
 }
 
-void IntersectionManager::getConflicts(IntersectionAccess &request, list<IntersectionAccess> &conflicts)
+void IntersectionManager::getConflicts(IntersectionAccessMessage &request, list<IntersectionAccessMessage> &conflicts)
 {
 	//The turning section of the current requesting vehicle
 	const TurningSection *currTurning = multinode->getTurning(request.getTurningId());
 
 	//Iterate through the processed requests and find the requests that are incompatible with the current request
-	for (list<IntersectionAccess>::const_iterator itResponse = sentResponses.begin(); itResponse != sentResponses.end(); ++itResponse)
+	for (list<IntersectionAccessMessage>::const_iterator itResponse = sentResponses.begin(); itResponse != sentResponses.end(); ++itResponse)
 	{
 		//The turning section of the vehicle whose request has been processed
 		const TurningSection *processedTurning = multinode->getTurning((*itResponse).getTurningId());
@@ -217,10 +217,10 @@ void IntersectionManager::getConflicts(IntersectionAccess &request, list<Interse
 	}
 }
 
-void IntersectionManager::filterConflicts(double accessTime, list<IntersectionAccess> &conflicts)
+void IntersectionManager::filterConflicts(double accessTime, list<IntersectionAccessMessage> &conflicts)
 {
 	//Iterate through the list of conflicts
-	for(list<IntersectionAccess>::iterator itConflicts = conflicts.begin(); itConflicts != conflicts.end(); ++itConflicts)
+	for(list<IntersectionAccessMessage>::iterator itConflicts = conflicts.begin(); itConflicts != conflicts.end(); ++itConflicts)
 	{
 		//If the access time of the current request is greater than that of the conflicts to which responses have already been 
 		//sent, filter the conflict out

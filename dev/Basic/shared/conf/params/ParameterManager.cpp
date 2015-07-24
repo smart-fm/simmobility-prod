@@ -4,14 +4,12 @@
  *  Created on: Apr 27, 2014
  *      Author: Max
  */
-
-#include "ParameterManager.hpp"
-#include "conf/ConfigManager.hpp"
-#include "conf/RawConfigParams.hpp"
-
 #include <iostream>
 #include <stdexcept>
 
+#include "conf/ConfigManager.hpp"
+#include "conf/RawConfigParams.hpp"
+#include "ParameterManager.hpp"
 
 namespace sim_mob {
 

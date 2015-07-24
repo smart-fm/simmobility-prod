@@ -80,7 +80,7 @@ void SlotBased_IntDriving_Model::sendAccessRequest(DriverUpdateParams& params)
 			arrivalTime += ((double) params.now.ms() / 1000);
 			
 			//Pointer to the access request sent by the driver
-			IntersectionAccess *accessRequest = new IntersectionAccess(arrivalTime, currTurning->getDbId());
+			IntersectionAccessMessage *accessRequest = new IntersectionAccessMessage(arrivalTime, currTurning->getDbId());
 			accessRequest->SetSender(params.driver->getParent());
 			
 			//For debugging

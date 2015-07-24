@@ -407,7 +407,7 @@ void Driver::HandleParentMessage(messaging::Message::MessageType type, const mes
 		case MSG_RESPONSE_INT_ARR_TIME:
 		{
 			DriverUpdateParams &params = getParams();
-			const IntersectionAccess &msg = MSG_CAST(IntersectionAccess, message);
+			const IntersectionAccessMessage &msg = MSG_CAST(IntersectionAccessMessage, message);
 			params.accessTime = msg.getArrivalTime();
 			params.isResponseReceived = true;
 		}

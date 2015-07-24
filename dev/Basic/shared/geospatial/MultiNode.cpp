@@ -131,8 +131,8 @@ void sim_mob::MultiNode::setTurnings(const sim_mob::RoadSegment *key, TurningSec
 	}
 	else
 	{
-		std::set<sim_mob::TurningSection*> &setOfTurningSetion = this->turnings[key];
-		setOfTurningSetion.insert(val);
+		std::set<sim_mob::TurningSection*> &setOfTurningSection = this->turnings[key];
+		setOfTurningSection.insert(val);
 	}
 	
 	//Add to the map of ids vs turning sections

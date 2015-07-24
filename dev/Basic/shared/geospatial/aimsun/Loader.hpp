@@ -151,7 +151,8 @@ public:
 	static void CreateLaneGroups();
         
 	/**
-	 *Creates an intersection manager for every multi-node that doesn't have a traffic signal
+	 * Creates an intersection manager for every multi-node that doesn't have a traffic signal
+	 * @param roadNetwork the road segment for which intersection managers must be created
 	 */
 	static void CreateIntersectionManagers(const sim_mob::RoadNetwork& roadNetwork);
 };

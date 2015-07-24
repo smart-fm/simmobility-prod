@@ -46,7 +46,6 @@ sim_mob::ConfigParams::~ConfigParams()
 	safe_delete_item(controlMgr);
 
 	clear_delete_vector(busschedule);
-	clear_delete_vector(pt_trip);
 	clear_delete_vector(confluxes);
 	clear_delete_vector(segmentStatsWithBusStops);
 	clear_delete_map(busStopNo_busStops);
@@ -429,12 +428,6 @@ std::vector<sim_mob::BusSchedule*>& sim_mob::ConfigParams::getBusSchedule()
 std::vector<sim_mob::OD_Trip>& sim_mob::ConfigParams::getODsTripsMap()
 {
 	return ODsTripsMap;
-}
-
-
-std::vector<sim_mob::PT_trip*>& sim_mob::ConfigParams::getPT_trip()
-{
-	return pt_trip;
 }
 
 std::vector<sim_mob::PT_bus_dispatch_freq>& sim_mob::ConfigParams::getPT_bus_dispatch_freq()

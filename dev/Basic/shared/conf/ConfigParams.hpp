@@ -208,7 +208,6 @@ private:
 
 	// Temporary: Yao Jin
 	std::vector<sim_mob::BusSchedule*> busschedule; // Temporary
-	std::vector<sim_mob::PT_trip*> pt_trip;
 	std::vector<sim_mob::PT_bus_dispatch_freq> pt_busdispatch_freq;
 	std::vector<sim_mob::PT_bus_routes> pt_bus_routes;
 	std::vector<sim_mob::PT_bus_stops> pt_bus_stops;

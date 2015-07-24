@@ -220,7 +220,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     	std::cout << "XML input for SimMobility Created....\n";
     }
     
-	if(cfg.publicTransitEnabled)
+    if(cfg.publicTransitEnabled)
     {
     	LoadPublicTransitNetworkFromDatabase();
     }
@@ -253,34 +253,34 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//generateOD("/home/fm-simmobility/vahid/OD.txt", "/home/fm-simmobility/vahid/ODs.xml");
     //Process Confluxes if required
     if(cfg.RunningMidSupply()) 
-	{
-		size_t sizeBefore = cfg.getConfluxes().size();
-		sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
-		std::cout << cfg.getConfluxes().size() << " Confluxes created" << std::endl;
+    {
+        size_t sizeBefore = cfg.getConfluxes().size();
+        sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
+        std::cout << cfg.getConfluxes().size() << " Confluxes created" << std::endl;
     }
-	//Running short-term
-	else		
-	{
-		std::map<std::string, std::string>::iterator itIntModel = cfg.system.genericProps.find("intersection_driving_model");
-		
-		if(itIntModel != cfg.system.genericProps.end())
-		{
-			if(itIntModel->second == "slot-based")
-			{
+    //Running short-term
+    else		
+    {
+        std::map<std::string, std::string>::iterator itIntModel = cfg.system.genericProps.find("intersection_driving_model");
+
+        if(itIntModel != cfg.system.genericProps.end())
+        {
+            if(itIntModel->second == "slot-based")
+            {
 				sim_mob::aimsun::Loader::CreateIntersectionManagers(ConfigManager::GetInstance().FullConfig().getNetwork());
-			}
-		}
-	}
+            }
+        }
+    }
     
-	//Maintain unique/non-colliding IDs.
+    //Maintain unique/non-colliding IDs.
     ConfigParams::AgentConstraints constraints;
     constraints.startingAutoAgentID = cfg.system.simulation.startingAutoAgentID;
 
     //Start all "BusController" entities.
     for (std::vector<EntityTemplate>::const_iterator it=cfg.busControllerTemplates.begin(); it!=cfg.busControllerTemplates.end(); ++it) 
-	{
-    	sim_mob::BusController::RegisterNewBusController(it->startTimeMs, cfg.mutexStategy());
-	}
+    {
+        sim_mob::BusController::RegisterNewBusController(it->startTimeMs, cfg.mutexStategy());
+    }
 
     //Start all "FMOD" entities.
     LoadFMOD_Controller();

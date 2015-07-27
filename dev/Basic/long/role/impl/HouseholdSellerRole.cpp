@@ -267,7 +267,7 @@ void HouseholdSellerRole::update(timeslice now)
             {
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice));
 				#ifdef VERBOSE
-                PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
+                PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);
 				#endif
             }
 
@@ -444,7 +444,7 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
 
 	BigSerial taz = std::atoi( tazStr.c_str() );
 
-	//double logsum = model->ComputeHedonicPriceLogsumFromMidterm( taz );
+	//double logsum =  model->ComputeHedonicPriceLogsumFromMidterm( taz );
 	double logsum = model->ComputeHedonicPriceLogsumFromDatabase( taz );
 
     info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
@@ -461,6 +461,7 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
         {
             int dayToApply = currentTime.ms() + (i * info.interval);
             printExpectation(currentTime, dayToApply, unit.getId(), *getParent(), info.expectations[i]);
+            PrintOutV(" unit " << unit.getId() << " ap " << info.expectations[0].askingPrice << " hp " << info.expectations[0].hedonicPrice << " rp " << info.expectations[0].targetPrice << " lg: " << logsum << std::endl );
         }
     }
 }

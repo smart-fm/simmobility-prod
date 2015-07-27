@@ -63,6 +63,8 @@ namespace sim_mob {
         const std::string DB_TABLE_TAZ_LOGUM_WEIGHT= APPLY_SCHEMA(CALIBRATION_SCHEMA, "taz_logsum_hedonic_price");
         const std::string DB_TABLE_HH_HITS_SAMPLE = APPLY_SCHEMA(MAIN_SCHEMA, "household_hits_sample");
 
+        const std::string DB_TABLE_LOGSUMMTZV2 = APPLY_SCHEMA(CALIBRATION_SCHEMA, "logsum_mtz_v2");
+
 
         /**
          * Views
@@ -328,6 +330,7 @@ namespace sim_mob {
         const std::string DB_GETALL_TAZ_LOGSUM_WEIGHTS = "SELECT * FROM " + DB_TABLE_TAZ_LOGUM_WEIGHT + LIMIT;
         const std::string DB_GETALL_HH_HITS_SAMPLE = "SELECT * FROM " + DB_TABLE_HH_HITS_SAMPLE + LIMIT;
         const std::string DB_FUNC_GETALL_PARCELS_WITH_HDB = "SELECT * FROM " + DB_FUNC_GET_PARCELS_WITH_HDB + LIMIT;
+        const std::string DB_GETALL_LOGSUMMTZV2 = "SELECT * FROM " + DB_TABLE_LOGSUMMTZV2 + LIMIT;
 
         /**
          * GET BY ID
@@ -352,6 +355,7 @@ namespace sim_mob {
         const std::string DB_GETBYID_TAZ = "SELECT * FROM " + DB_TABLE_TAZ + " WHERE id = :v1;";
         const std::string DB_GETBYID_TAZ_LOGSUM_WEIGHT = "SELECT * FROM " + DB_TABLE_TAZ_LOGUM_WEIGHT + " WHERE id = :v1;";
         const std::string DB_GETBYID_HH_HITS_SAMPLE = "SELECT * FROM " + DB_TABLE_HH_HITS_SAMPLE + " WHERE household_id = :v1;";
+        const std::string DB_GETBYID_LOGSUMMTZV2 = "SELECT * FROM " + DB_TABLE_LOGSUMMTZV2 + " WHERE taz = :v1;";
 
     }
 }

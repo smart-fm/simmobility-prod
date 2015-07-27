@@ -3,6 +3,7 @@
  * 
  * File:   HM_Model.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ *         Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  *
  * Created on October 21, 2013, 3:08 PM
  */
@@ -23,6 +24,7 @@
 #include "database/entity/Taz.hpp"
 #include "database/entity/HouseHoldHitsSample.hpp"
 #include "database/entity/TazLogsumWeight.hpp"
+#include "database/entity/LogsumMtzV2.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -80,6 +82,10 @@ namespace sim_mob
 
             typedef std::vector<TazLogsumWeight*> TazLogsumWeightList;
             typedef boost::unordered_map<BigSerial, TazLogsumWeight*> TazLogsumWeightMap;
+
+            typedef std::vector<LogsumMtzV2*> LogsumMtzV2List;
+            typedef boost::unordered_map<BigSerial, LogsumMtzV2*> LogsumMtzV2Map;
+
 
             /**
              * Taz statistics
@@ -182,7 +188,8 @@ namespace sim_mob
 
             HousingInterestRateList* getHousingInterestRateList();
 
-            double ComputeHedonicPriceLogsum(BigSerial taz);
+            double ComputeHedonicPriceLogsumFromMidterm(BigSerial taz);
+            double ComputeHedonicPriceLogsumFromDatabase(BigSerial taz);
 
             void incrementBidders();
             void decrementBidders();
@@ -252,6 +259,10 @@ namespace sim_mob
 
             TazLogsumWeightList tazLogsumWeights;
             TazLogsumWeightMap tazLogsumWeightById;
+
+            LogsumMtzV2List logsumMtzV2;
+            LogsumMtzV2Map logsumMtzV2ById;
+
 
             boost::mutex mtx;
             boost::mutex mtx2;

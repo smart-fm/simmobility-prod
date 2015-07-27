@@ -1,24 +1,24 @@
 /*
- * AwakeningDao.hpp
+ * LogsumMtzV2Dao.hpp
  *
- *  Created on: 24 Nov, 2014
- *  Author: Chetan Rogbeer <chetan.rogbeer>
+ *  Created on: 27 Jul, 2015
+ *  Author: Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  */
 
 #pragma once
 
 #include "database/dao/SqlAbstractDao.hpp"
-#include "database/entity/Awakening.hpp"
+#include "database/entity/LogsumMtzV2.hpp"
 
 namespace sim_mob
 {
 	namespace long_term
 	{
-		class AwakeningDao : public db::SqlAbstractDao<Awakening>
+		class LogsumMtzV2Dao : public db::SqlAbstractDao<LogsumMtzV2>
 		{
 	        public:
-	            AwakeningDao(db::DB_Connection& connection);
-	            virtual ~AwakeningDao();
+			LogsumMtzV2Dao(db::DB_Connection& connection);
+	            virtual ~LogsumMtzV2Dao();
 
 	        private:
 	            /**
@@ -26,7 +26,7 @@ namespace sim_mob
 	             * @param result row with data to fill the out object.
 	             * @param outObj to fill.
 	             */
-	            void fromRow(db::Row& result, Awakening& outObj);
+	            void fromRow(db::Row& result, LogsumMtzV2& outObj);
 
 	            /**
 	             * Fills the outParam with all values to insert or update on datasource.
@@ -34,7 +34,8 @@ namespace sim_mob
 	             * @param outParams to put the data parameters.
 	             * @param update tells if operation is an Update or Insert.
 	             */
-	            void toRow(Awakening& data, db::Parameters& outParams, bool update);
+	            void toRow(LogsumMtzV2& data, db::Parameters& outParams, bool update);
 		};
 	}
 }
+

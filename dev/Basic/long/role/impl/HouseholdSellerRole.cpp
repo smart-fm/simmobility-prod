@@ -444,7 +444,8 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
 
 	BigSerial taz = std::atoi( tazStr.c_str() );
 
-	double logsum =  model->ComputeHedonicPriceLogsum( taz );
+	//double logsum = model->ComputeHedonicPriceLogsumFromMidterm( taz );
+	double logsum = model->ComputeHedonicPriceLogsumFromDatabase( taz );
 
     info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
     luaModel.calulateUnitExpectations(unit, info.numExpectations, logsum, info.expectations );

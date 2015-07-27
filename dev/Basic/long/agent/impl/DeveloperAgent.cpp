@@ -393,7 +393,9 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
 
     		BigSerial homeTaz = std::atoi( homeTazStr.c_str() );
     		const double scaleFactor = 1.566070312;
-    		double logsum = housingMarketModel->ComputeHedonicPriceLogsum(homeTaz) * scaleFactor;
+
+    		double logsum = housingMarketModel->ComputeHedonicPriceLogsumFromDatabase(homeTaz) * scaleFactor;
+
     		PotentialProject project;
     		createPotentialProjects(this->parcel->getId(),devModel,project,quarter,logsum);
     		if(project.getUnits().size()>0)

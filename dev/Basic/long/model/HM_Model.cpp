@@ -27,6 +27,7 @@
 #include "database/dao/TazDao.hpp"
 #include "database/dao/HouseHoldHitsSampleDao.hpp"
 #include "database/dao/TazLogsumWeightDao.hpp"
+#include "database/dao/LogsumMtzV2Dao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -346,7 +347,21 @@ const HM_Model::TazStats* HM_Model::getTazStats(BigSerial tazId) const
 }
 
 
-double HM_Model::ComputeHedonicPriceLogsum(BigSerial taz)
+double HM_Model::ComputeHedonicPriceLogsumFromDatabase( BigSerial taz)
+{
+	LogsumMtzV2Map::const_iterator itr = logsumMtzV2ById.find(taz);
+
+	if (itr != logsumMtzV2ById.end())
+	{
+		LogsumMtzV2 *tazLogsum = itr->second;
+
+		return tazLogsum->getLogsumWeighted();
+	}
+
+	return 0;
+}
+
+double HM_Model::ComputeHedonicPriceLogsumFromMidterm(BigSerial taz)
 {
 
     BigSerial workTaz = -1;
@@ -855,6 +870,9 @@ void HM_Model::startImpl()
 
 		loadData<TazLogsumWeightDao>( conn, tazLogsumWeights, tazLogsumWeightById, &TazLogsumWeight::getGroupLogsum );
 		PrintOutV("Number of tazLogsumWeights: " << tazLogsumWeights.size() << std::endl );
+
+		loadData<LogsumMtzV2Dao>( conn, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getTaz );
+		PrintOutV("Number of LogsumMtzV2: " << logsumMtzV2.size() << std::endl );
 
 	}
 

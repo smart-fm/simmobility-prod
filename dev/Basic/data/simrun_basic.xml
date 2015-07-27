@@ -334,6 +334,7 @@
         <workers>
             <person count="1" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
             <signal count="0" granularity="5 seconds"/> <!-- Traffic signals -->
+            <intersection_manager count="1" granularity="500ms"/> <!-- Intersection managers -->
             <communication count="0" granularity="5 seconds"/>  <!-- Communication simulator -->
         </workers>
         
@@ -392,6 +393,16 @@
             <!-- Used by SimTree. -->
             <!-- property key="simtree_pattern_file_1" value="shared/spatial_trees/simtree/density_pattern_sg_auto_study"/ -->
             <!-- property key="simtree_pattern_file_2" value="shared/spatial_trees/simtree/density_pattern_sg_20"/ -->
+            
+            <!--Specifies the location of the dirver behaviour parameter files-->
+            <property key="driver_behaviour_file" value="data/driver_behavior_model/driver_param.xml"/>
+            <property key="amod_behaviour_file" value="data/driver_behavior_model/amod_driver_param.xml"/>
+            
+            <!--Specifies the short-term driving model in un-signalised interesections.
+            Valid models: "slot-based", "conflict-based" (default)
+            Note: Both, slot-based and conflict-based require the stored procedures for turnings and conflicts. If these are not specified, 
+            there is no intersection driving behaviour i.e. vehicles collide with each other in the intersection-->
+            <property key="intersection_driving_model" value="slot-based"/>
         </generic_props>
     </system>
 

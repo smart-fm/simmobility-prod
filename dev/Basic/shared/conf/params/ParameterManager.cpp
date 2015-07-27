@@ -6,6 +6,8 @@
  */
 
 #include "ParameterManager.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/RawConfigParams.hpp"
 
 #include <iostream>
 #include <stdexcept>
@@ -52,13 +54,28 @@ ParameterManager *ParameterManager::Instance(bool isAMOD_InstanceRequested)
 }
 ParameterManager::ParameterManager(bool isAMOD_InstanceRequeseted)
 {
+	//Get the specified driver behaviour file from the configuration
+	const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
+	std::string filePathProperty;
+			
 	if(isAMOD_InstanceRequeseted)
 	{
-		ParseParamFile ppfile("data/driver_behavior_model/amod_driver_param.xml",this);
+		filePathProperty = "amod_behaviour_file";
 	}
 	else
 	{
-		ParseParamFile ppfile("data/driver_behavior_model/driver_param.xml",this);
+		filePathProperty = "driver_behaviour_file";
+	}
+	
+	std::map<std::string,std::string>::const_iterator itProperty = configParams.system.genericProps.find(filePathProperty);
+
+	if (itProperty != configParams.system.genericProps.end())
+	{
+		ParseParamFile ppfile(itProperty->second, this);
+	}
+	else
+	{
+		throw runtime_error("Driver behaviour parameter file not specified in the configuration file!");
 	}
 }
 

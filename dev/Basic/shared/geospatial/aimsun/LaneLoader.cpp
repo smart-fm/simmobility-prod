@@ -160,20 +160,30 @@ vector<LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& nodes, map<int, S
 		//Conditionally add the start/end
 		if (!helpIt->second.start)
 		{
-			if (it->second.fromNode->generatedNode == parent->getStart()) {
+			if (it->second.fromNode->generatedNode == parent->getStart()) 
+			{
 				helpIt->second.start = it->second.fromNode;
 			}
-			else if (it->second.toNode->generatedNode == parent->getStart()) {
+			else if (it->second.toNode->generatedNode == parent->getStart()) 
+			{
 				helpIt->second.start = it->second.toNode;
 			}
 		}
 		if (!helpIt->second.end)
 		{
-			if (it->second.fromNode->generatedNode == parent->getEnd()) {
-				helpIt->second.end = it->second.fromNode;
+			if (it->second.fromNode->generatedNode == parent->getEnd()) 
+			{
+				if (helpIt->second.start != it->second.fromNode)
+				{
+					helpIt->second.end = it->second.fromNode;
+				}
 			}
-			else if (it->second.toNode->generatedNode == parent->getEnd()) {
-				helpIt->second.end = it->second.toNode;
+			else if (it->second.toNode->generatedNode == parent->getEnd()) 
+			{
+				if(helpIt->second.start != it->second.toNode)
+				{
+					helpIt->second.end = it->second.toNode;
+				}
 			}
 		}
 	}

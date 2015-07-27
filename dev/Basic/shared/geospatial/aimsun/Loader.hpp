@@ -149,6 +149,11 @@ public:
 	 * Lane groups are elicited based on the lane connections (turnings) of the last segment of the link.
 	 */
 	static void CreateLaneGroups();
+        
+	/**
+	 *Creates an intersection manager for every multi-node that doesn't have a traffic signal
+	 */
+	static void CreateIntersectionManagers(const sim_mob::RoadNetwork& roadNetwork);
 };
 
 }

@@ -83,6 +83,9 @@ public:
     
 	/// Returns the turnings from the given road segment
 	const std::set<TurningSection*>& getTurnings(const RoadSegment *) const;
+        
+	//Returns the turning with the given id
+	const TurningSection* getTurning(int id) const;
 
 protected:
 	///Mapping from RoadSegment* -> set<LaneConnector*> representing lane connectors.
@@ -96,6 +99,9 @@ protected:
 
 	/// Mapping from RoadSegment* to set<TurningSection> representing the Turnings
 	std::map<const sim_mob::RoadSegment*, std::set<sim_mob::TurningSection*> > turnings;
+    
+	//Mapping of turnings with their ids
+	std::map<int, sim_mob::TurningSection *> mapOfIdsVsTurnings;    
         
 	/// This is a 2-level map of TurningSection with key as the the from lane and to lane
     std::map<const Lane *, std::map<const Lane *, TurningSection *> > mapFromToLanesVsTurning;

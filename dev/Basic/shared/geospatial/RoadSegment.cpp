@@ -197,6 +197,57 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 			laneEdgePolylines_cached.push_back(makeLaneEdgeFromPolyline(lanes[edgeIsRight?i:i-1], edgeIsRight));
 		}
 	}
+	
+	bool needGeneratePedLane = true;
+	if (lanes.back()->is_pedestrian_lane()) // last lane is ped lane, it means already generate before
+	{
+		needGeneratePedLane = false;
+	}
+	if (needGeneratePedLane)
+	{
+		//TEMP FIX
+		//Now, add one more edge and one more lane representing the sidewalk.
+		//TODO: This requires our function (and several others) to be declared non-const.
+		//      Re-enable const correctness when we remove this code.
+		//TEMP: For now, we just add the outer lane as a sidewalk. This won't quite work for bi-directional
+		//      segments or for one-way Links. But it should be sufficient for the demo.
+		Lane* swLane = new Lane(this, lanes.size());
+		swLane->is_pedestrian_lane(true);
+		swLane->width_ = lanes.back()->width_ / 2;
+		swLane->polyline_ = sim_mob::ShiftPolyline(lanes.back()->polyline_, lanes.back()->getWidth() / 2 + swLane->getWidth() / 2);
+
+		//Add it, update
+		lanes.push_back(swLane);
+		width += swLane->width_;
+		vector<Point2D> res = makeLaneEdgeFromPolyline(lanes.back(), false);
+		laneEdgePolylines_cached.push_back(res); //crash -vahid
+		//Add an extra sidewalk on the other side if it's a road segment on a one-way link.
+		sim_mob::Link* parentLink = getLink();
+
+		if (parentLink)
+		{
+			//Make sure we're not generating Lanes for XML data
+			if (parentLink->hasOpposingLink < 0)
+			{
+				throw std::runtime_error("Link::hasOpposingLink has not been initialized, but someone is attempting to use it.");
+			}
+
+			//Check whether the link is one-way
+			if (parentLink->hasOpposingLink == 0)
+			{
+				//Add a sidewalk on the other side of the road segment
+				Lane* swLane2 = new Lane(this, lanes.size());
+				swLane2->is_pedestrian_lane(true);
+
+				swLane2->width_ = lanes.front()->width_ / 2;
+				swLane2->polyline_ = sim_mob::ShiftPolyline(lanes.front()->polyline_, lanes.front()->getWidth() / 2 + swLane2->getWidth() / 2, false);
+				lanes.insert(lanes.begin(), swLane2);
+
+				width += swLane2->width_;
+				laneEdgePolylines_cached.insert(laneEdgePolylines_cached.begin(), makeLaneEdgeFromPolyline(lanes[0], true));
+			}
+		}
+	}
 }
 
 void sim_mob::RoadSegment::computePolylineLength()

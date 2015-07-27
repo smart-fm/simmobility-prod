@@ -174,6 +174,9 @@ class CarFollowModel;
 
     //Pointer to the intersection driving model being used
     IntersectionDrivingModel* intModel;
+    
+    //Pointer to the intersection driving model previously used (and which may be needed again)
+    IntersectionDrivingModel* intModelBkUp;
 
     //The speed which the vehicle will try to achieve.
     double targetSpeed;

@@ -131,9 +131,12 @@ void sim_mob::MultiNode::setTurnings(const sim_mob::RoadSegment *key, TurningSec
 	}
 	else
 	{
-		std::set<sim_mob::TurningSection*> setOfTurningSetion = this->turnings[key];
+		std::set<sim_mob::TurningSection*> &setOfTurningSetion = this->turnings[key];
 		setOfTurningSetion.insert(val);
 	}
+	
+	//Add to the map of ids vs turning sections
+	mapOfIdsVsTurnings.insert(std::make_pair(val->getDbId(), val));
 }
 
 void sim_mob::MultiNode::updateMapLaneVsTurning(const Lane* fromLane, const Lane* toLane, TurningSection *turning)
@@ -196,6 +199,20 @@ const std::set<TurningSection*>& sim_mob::MultiNode::getTurnings(const RoadSegme
 	else
 	{
 		return EMPTY_TURNING_PATH;
+	}
+}
+
+const TurningSection* sim_mob::MultiNode::getTurning(int id) const
+{
+	std::map<int, TurningSection *>::const_iterator itTurning = mapOfIdsVsTurnings.find(id);
+	
+	if(itTurning != mapOfIdsVsTurnings.end())
+	{
+		return itTurning->second;
+	}
+	else
+	{
+		return nullptr;
 	}
 }
 

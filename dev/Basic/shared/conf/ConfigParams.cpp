@@ -191,6 +191,15 @@ const unsigned int& sim_mob::ConfigParams::signalWorkGroupSize() const
 	return system.workers.signal.count;
 }
 
+unsigned int& sim_mob::ConfigParams::intMgrWorkGroupSize()
+{
+	return system.workers.intersectionMgr.count;
+}
+const unsigned int& sim_mob::ConfigParams::intMgrWorkGroupSize() const
+{
+	return system.workers.intersectionMgr.count;
+}
+
 unsigned int& sim_mob::ConfigParams::commWorkGroupSize()
 {
 	return system.workers.communication.count;
@@ -379,6 +388,11 @@ unsigned int sim_mob::ConfigParams::personTimeStepInMilliSeconds() const
 unsigned int sim_mob::ConfigParams::signalTimeStepInMilliSeconds() const
 {
 	return system.workers.signal.granularityMs;
+}
+
+unsigned int sim_mob::ConfigParams::intMgrTimeStepInMilliSeconds() const
+{
+	return system.workers.intersectionMgr.granularityMs;
 }
 
 bool sim_mob::ConfigParams::RunningMidSupply() const {

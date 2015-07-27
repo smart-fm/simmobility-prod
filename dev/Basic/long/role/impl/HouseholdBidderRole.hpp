@@ -73,7 +73,8 @@ namespace sim_mob
             HouseholdAgent* getParent();
 
             void ComputeHouseholdAffordability();
-            double ComputeBidValue( BigSerial householdId, BigSerial unitId, double ap, double wp );
+
+            void ComputeBidValueLogistic( double price, double wp, double &finalBid, double &finalSurplus );
             /**
              * Inherited from LT_Role
              * @param currTime
@@ -127,7 +128,6 @@ namespace sim_mob
              */
             bool pickEntryToBid();
             double calculateWillingnessToPay(const Unit* unit, const Household* household);
-            double calculateSurplus(double price, double min, double max );
 
             volatile bool waitingForResponse;
             timeslice lastTime;

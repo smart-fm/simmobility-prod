@@ -578,81 +578,6 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	return V + wtp_e;
 }
 
-/*
-double HouseholdBidderRole::calculateSurplus_old(double price, double min, double max)
-{
-	//These constant variables are defined in Roberto Ponce Lopez's new Bidding model
-	// F(x) = 1 / (1 + exp(-(x-m)/s))
-	const double scale1	 = 489.706;
-	const double scale2	 = 348.322;
-	const double location1 = -91.247;
-	const double location2 = -20.547;
-
-	price = std::min(price, min );
-	price = std::max(price, max );
-
-	double fx    = 1.0 / (1.0 + exp(-( price - location1 ) / scale1 ) );
-	double fxmin = 1.0 / (1.0 + exp(-( min   - location1 ) / scale1 ) );
-	double fxmax = 1.0 / (1.0 + exp(-( max   - location1 ) / scale1 ) );
-
-	fx = fx - fxmin;
-	fx = fx/(fxmax - fxmin);
-
-	// f(x) = 1/s exp((x-m)/s) (1 + exp((x-m)/s))^-2.
-	double density    = 1.0 / scale1 * exp( ( price - location1 ) / scale1 ) * pow( ( 1.0 + exp( ( price - location1 ) / scale1 ) ), -2.0 );
-	double densitymax = 1.0 / scale1 * exp( ( min   - location1 ) / scale1 ) * pow( ( 1.0 + exp( ( min   - location1 ) / scale1 ) ), -2.0 );
-	double densitymin = 1.0 / scale1 * exp( ( max   - location1 ) / scale1 ) * pow( ( 1.0 + exp( ( max   - location1 ) / scale1 ) ), -2.0 );
-
-	density = density - densitymin;
-	density = -(density/(densitymax - densitymin));
-
-	double surplus = fx / std::max(density, 0.000001);
-
-	return surplus;
-}
-*/
-
-double HouseholdBidderRole::calculateSurplus(double price, double min, double max)
-{
-	//These constant variables are defined in Roberto Ponce Lopez's new Bidding model
-	// F(x) = 1 / (1 + exp(-(x-m)/s))
-	const double beta	 = 0.306;
-
-	price = std::min(price, min );
-	price = std::max(price, max );
-
-	double cpower = 0;
-    //cpower
-	{
-		double x = price, a = min, b = max;
-
-		cpower = pow(( 1.0/ b * x ),beta);
-
-		if( x >= b )
-			cpower = 1;
-	}
-
-	double dpower = 0;
-	//dpower
-	{
-		double x = price , a = min, b = max;
-
-		dpower = beta * pow(b, beta) * pow(x, (beta - 1.0) );
-
-		if( x > b )
-			dpower = 0;
-	}
-
-
-	if( dpower > 0 )
-		return cpower/dpower;
-	else
-		return cpower;
-}
-
-
-
-
 
 bool HouseholdBidderRole::pickEntryToBid()
 {
@@ -728,9 +653,10 @@ bool HouseholdBidderRole::pickEntryToBid()
                 	wp = householdAffordabilityAmount;
                 }
 
-            	double currentBid = ComputeBidValue( household->getId(), unit->getId(), entry->getAskingPrice(), wp );
+            	double currentBid = 0;
+            	double currentSurplus = 0;
+            	ComputeBidValueLogistic(  entry->getAskingPrice(), wp, currentBid, currentSurplus );
 
-            	double currentSurplus = calculateSurplus(currentBid, 0.0, 1.2 );
 
             	if( currentSurplus > maxSurplus )
             	{
@@ -747,27 +673,46 @@ bool HouseholdBidderRole::pickEntryToBid()
 }
 
 
-double HouseholdBidderRole::ComputeBidValue( BigSerial householdId, BigSerial unitId, double price, double wp )
+
+void HouseholdBidderRole::ComputeBidValueLogistic( double price, double wp, double &finalBid, double &finalSurplus )
 {
-	double bid = 1.0;
-	const int MAX_ITERATIONS = 100;
-	double epsilon = 0.01;
+	const double sigma = 1.0;
+	const double mu    = 0.0;
 
-	for (int n = 0; n < MAX_ITERATIONS; n++ )
+	double lowerBound = -5.0;
+	double upperBound =  5.0;
+	double a = 0.6;
+	double b = 1.1;
+	double w = wp / price;
+	const int MAX_ITERATIONS = 50;
+
+	double increment = (upperBound - lowerBound) / MAX_ITERATIONS;
+	double m = lowerBound;
+
+	double  expectedSurplusMax = 0;
+	double incrementScaledMax  = 0;
+
+	for (int n = 0; n <= MAX_ITERATIONS; n++ )
 	{
-		double surplus = calculateSurplus( bid / price , 0.0, 1.2 );
-		double bidL = wp - surplus;
+		double incrementScaled = ( m - lowerBound ) * ( b - a ) / (upperBound - lowerBound ) + a;
 
-		if( abs(bidL - bid) < epsilon )
-			break;
-		else
-			bid = bidL;
+		double Fx   = 1.0 / (1.0 + exp(-( m - mu ) / sigma ) );
 
-		//printFixedpointIteration(householdId, unitId,bid,surplus,wp);
+		double expectedSurplus =  Fx * ( w - incrementScaled );
+
+		if( expectedSurplus > expectedSurplusMax )
+		{
+			expectedSurplusMax = expectedSurplus;
+			incrementScaledMax = incrementScaled;
+		}
+
+		m += increment;
 	}
 
-	return bid;
+	finalBid     = price * incrementScaledMax;
+	finalSurplus = expectedSurplusMax;
 }
+
 
 void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 {

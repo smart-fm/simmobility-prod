@@ -35,7 +35,7 @@
 	
 	<public_pathset enabled="true" mode="normal"> <!-- Currently mode supports normal generation  -->
 		<od_source table="sample_od"/>  
-		<bulk_generation_output_file name="pt_pathset.csv" />
+		<bulk_generation_output_file name="/home/data1/pt_pathset.csv" />
 		<pathset_generation_algorithms> 
 			<k_shortest_path level="10" />
 			<simulation_approach iterations="10"/> 

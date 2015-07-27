@@ -39,7 +39,8 @@ sim_mob::TurningSection::TurningSection() :
 	from_lane_index(-1),
 	to_lane_index(-1),
 	fromSeg(nullptr), toSeg(nullptr),
-	laneFrom(nullptr), laneTo(nullptr), turningSpeed(0), hasStopSign(false)
+	laneFrom(nullptr), laneTo(nullptr), turningSpeed(0), hasStopSign(false),
+	length(0)
 {
 }
 
@@ -53,7 +54,8 @@ sim_mob::TurningSection::TurningSection(const TurningSection & ts):
 	fromSeg(nullptr),toSeg(nullptr),
 	sectionId(ts.sectionId),
 	laneFrom(nullptr),laneTo(nullptr),
-	turningSpeed(ts.turningSpeed), hasStopSign(ts.hasStopSign)
+	turningSpeed(ts.turningSpeed), hasStopSign(ts.hasStopSign),
+	length(ts.length)
 {
 	std::stringstream out("");
 	out<<ts.dbId;
@@ -84,6 +86,17 @@ void TurningSection::setPolyline(TurningPolyline* src)
 		p.x = pp->x;
 		p.y = pp->y;
 		polylinePoints.push_back(p);
+	}
+	
+	//Set the length
+	for(int i = 0; i < polylinePoints.size()-1; ++i)
+	{
+		double dx = polylinePoints.at(i+1).x - polylinePoints.at(i).x;		
+		double dy = polylinePoints.at(i+1).y - polylinePoints.at(i).y;
+		
+		dx = dx * dx;
+		dy = dy * dy;
+		length += sqrt(dx + dy);
 	}
 }
 
@@ -325,5 +338,10 @@ void TurningSection::setHasStopSign(bool hasStopSign)
 bool TurningSection::turningHasStopSign() const
 {
 	return hasStopSign;
+}
+
+double TurningSection::getLength() const
+{
+	return length;
 }
 

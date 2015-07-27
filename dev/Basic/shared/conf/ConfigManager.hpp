@@ -4,11 +4,11 @@
 
 #pragma once
 
+#include "ConfigParams.hpp"
 
 namespace sim_mob {
 
 //Forward declarations
-class ConfigParams;
 class RawConfigParams;
 class CMakeConfigParams;
 class PathSetConf;

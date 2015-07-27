@@ -4,6 +4,7 @@
 
 #include "DriverUpdateParams.hpp"
 #include "../short/entities/roles/driver/DriverFacets.hpp"
+#include "entities/IntersectionManager.hpp"
 
 namespace sim_mob
 {
@@ -18,7 +19,8 @@ DriverUpdateParams::DriverUpdateParams()
 	v_lead(0), space_star(0), distanceToNormalStop(0), dis2stop(0), impatienceTimer(0.0), nextLaneIndex(0), justChangedToNewSegment(false),
 	justMovedIntoIntersection(false), overflowIntoIntersection(0), driver(NULL), isTargetLane(false), emergHeadway(999), acc(0),
 	density(0), initSegId(0), initDis(0), initSpeed(0), parentId(0), FFAccParamsBeta(0), nextStepSize(0), maxAcceleration(0), normalDeceleration(0),
-	lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), impatienceTimerStart(0.0), hasStoppedForStopSign(false)
+	lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), impatienceTimerStart(0.0), hasStoppedForStopSign(false), accessTime(0), isResponseReceived(false),
+	useIntAcc(false)
 {
 }
 
@@ -27,11 +29,13 @@ void DriverUpdateParams::setStatus(unsigned int s)
 	status |= s;
 }
 
-void DriverUpdateParams::setStatus(string name,StatusValue v,string whoSet) {
+void DriverUpdateParams::setStatus(string name,StatusValue v,string whoSet) 
+{
 	statusMgr.setStatus(name,v,whoSet);
 }
 
-StatusValue DriverUpdateParams::getStatus(string name) {
+StatusValue DriverUpdateParams::getStatus(string name) 
+{
 	return statusMgr.getStatus(name);
 }
 
@@ -54,8 +58,9 @@ void DriverUpdateParams::buildDebugInfo()
 	std::stringstream s;
 	
 	s << "            " << parentId << ":" << accSelect << ":" << acc;
-	s << ":speed:" << currSpeed;
-
+	s << ":speed:" << currSpeed << ":distToInt:" << driver->distToIntersection_.get();
+	s << ":arrTime:" << accessTime;
+	
 #if 0
 	//debug car jump;
 	char dl[20] = "\0";
@@ -227,18 +232,24 @@ double DriverUpdateParams::lcMinGap(int type)
 	return b[2] * b[0];
 }
 
-void DriverUpdateParams::insertStopPoint(StopPoint& sp){
+void DriverUpdateParams::insertStopPoint(StopPoint& sp)
+{
 	std::map<std::string,std::vector<StopPoint> >::iterator it = stopPointPool.find(sp.segmentId);
-	if(it!=stopPointPool.end()){
+	
+	if(it!=stopPointPool.end())
+	{
 		it->second.push_back(sp);
 	}
-	else{
+	else
+	{
 		std::vector<StopPoint> v;
 		v.push_back(sp);
 		stopPointPool.insert(std::make_pair(sp.segmentId,v));
 	}
 }
-void DriverUpdateParams::insertConflictTurningDriver(TurningConflict* conflict, double distance, const Driver* driver) {
+
+void DriverUpdateParams::insertConflictTurningDriver(TurningConflict* conflict, double distance, const Driver* driver) 
+{
 	NearestVehicle nearestVehicle;
 	nearestVehicle.distance = distance;
 	nearestVehicle.driver = driver;
@@ -246,7 +257,8 @@ void DriverUpdateParams::insertConflictTurningDriver(TurningConflict* conflict, 
 	// find turning conflict
 	std::map<TurningConflict*,std::list<NearestVehicle> >::iterator it = conflictVehicles.find(conflict);
 	
-	if(it != conflictVehicles.end()) {
+	if(it != conflictVehicles.end()) 
+	{
 		std::list<NearestVehicle>& nearestVehicles = it->second;
 		nearestVehicles.push_back(nearestVehicle);
 
@@ -254,7 +266,8 @@ void DriverUpdateParams::insertConflictTurningDriver(TurningConflict* conflict, 
 		compare_NearestVehicle f;
 		nearestVehicles.sort(f);
 	}
-	else {
+	else 
+	{
 		std::list<NearestVehicle> nearestVehicles;
 		nearestVehicles.push_back(nearestVehicle);
 		conflictVehicles.insert(std::make_pair(conflict, nearestVehicles));

@@ -88,6 +88,7 @@ public:
 
 	unsigned int granPersonTicks;     ///<Number of ticks to wait before updating all Person agents.
 	unsigned int granSignalsTicks;    ///<Number of ticks to wait before updating all signals.
+	unsigned int granIntMgrTicks;     ///<Number of ticks to wait before updating all intersection managers.
 	unsigned int granCommunicationTicks;      ///<Number of ticks to wait before updating all communication brokers.
 
 	///TEMP: Need to customize this later.
@@ -244,8 +245,12 @@ public:
 	///Number of workers handling Signals.
 	unsigned int& signalWorkGroupSize();
 	const unsigned int& signalWorkGroupSize() const;
+        
+	///Number of workers handling Intersection managers.
+	unsigned int& intMgrWorkGroupSize();
+	const unsigned int& intMgrWorkGroupSize() const;
 
-	///Number of workers handling Signals.
+	///Number of workers handling communication broker.
 	unsigned int& commWorkGroupSize();
 	const unsigned int& commWorkGroupSize() const;
 
@@ -325,6 +330,8 @@ public:
 	unsigned int personTimeStepInMilliSeconds() const;
 
 	unsigned int signalTimeStepInMilliSeconds() const;
+        
+	unsigned int intMgrTimeStepInMilliSeconds() const;
 
 	unsigned int communicationTimeStepInMilliSeconds() const;
 };

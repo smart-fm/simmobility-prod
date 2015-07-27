@@ -15,6 +15,7 @@
 #include "entities/roles/driver/models/CarFollowModel.hpp"
 #include "entities/roles/driver/models/LaneChangeModel.hpp"
 #include "entities/roles/driver/models/IntersectionDrivingModel.hpp"
+#include "message/Message.hpp"
 #include "perception/FixedDelayed.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/Math.hpp"
@@ -288,6 +289,9 @@ class UnPackageUtils;
 
     ///Reroute around a blacklisted set of RoadSegments. See Role's comments for more information.
     virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
+    
+    //Message handler which provide a chance to handle message transfered from parent agent
+    virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
     //Serialization
 #ifndef SIMMOB_DISABLE_MPI

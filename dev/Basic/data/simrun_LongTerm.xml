@@ -183,6 +183,7 @@
 	    <vacantUnitActivationProbability value="0.375"/>
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>
+	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
         </housingModel>
 	<vehicleOwnershipModel enabled='true'>
 		<vehicleBuyingWaitingTimeInDays value= "60"/>

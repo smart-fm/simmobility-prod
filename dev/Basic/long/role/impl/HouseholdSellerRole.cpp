@@ -461,7 +461,6 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
         {
             int dayToApply = currentTime.ms() + (i * info.interval);
             printExpectation(currentTime, dayToApply, unit.getId(), *getParent(), info.expectations[i]);
-            PrintOutV(" unit " << unit.getId() << " ap " << info.expectations[0].askingPrice << " hp " << info.expectations[0].hedonicPrice << " rp " << info.expectations[0].targetPrice << " lg: " << logsum << std::endl );
         }
     }
 }

@@ -139,7 +139,7 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum)
 	local ZZ_bus_200m = 0;
 
 	local ZZ_freehold = 0;
-	local ZZ_logsum = logsum; --2.68; <- roberto's average.
+	local ZZ_logsum = logsum;
 	local ZZ_bus_400m = 0;
 
 	if( unit.floorArea ~= nil ) then
@@ -187,7 +187,7 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum)
 	end
 	
 	if( unit.unitType == 4 ) then
-		ZZ_hdb4 = 1;		
+		ZZ_hdb4 = 1;
 	end	
 
 	if( unit.unitType == 5 ) then
@@ -251,6 +251,7 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logs
 	local hedonicPrice = 0
 
 	if amenities == nil then
+		print("amenities for unit " .. unit " not found");
 		return 100000000;
 	end
 
@@ -265,7 +266,7 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logs
 	local ZZ_bus_200m = 0;
 
 	local ZZ_freehold = 1; 
-	local ZZ_logsum = logsum; --2.68; <- roberto's average.
+	local ZZ_logsum = logsum; 
 	local ZZ_bus_400m = 0;
 
 	if( unit.floorArea ~= nil ) then

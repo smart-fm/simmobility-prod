@@ -49,6 +49,8 @@ namespace sim_mob
             HousingMarket* getMarket() const;
             const Household* getHousehold() const;
             void awakenHousehold();
+            void setBuySellInterval( int value );
+            int getBuySellInterval( ) const;
         
         protected:
             /**
@@ -101,6 +103,8 @@ namespace sim_mob
 
             HouseholdBidderRole* bidder;
             HouseholdSellerRole* seller;
+
+            int buySellInterval;
 
             bool marketSeller; //tells if the agent is only a fake market seller
             int day;

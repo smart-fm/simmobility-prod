@@ -65,9 +65,9 @@ namespace
     	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDGROUPLOGSUM,fmtr.str());
     }
 
-    inline void printHouseholdBiddingList( BigSerial householdId, BigSerial unitId, BigSerial postcodeCurrent, BigSerial postcodeNew, float wp  )
+    inline void printHouseholdBiddingList( int day, BigSerial householdId, BigSerial unitId, std::string postcodeCurrent, std::string postcodeNew, float wp  )
     {
-    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%") % householdId % unitId % postcodeCurrent % postcodeNew % wp;
+    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%")% day % householdId % unitId % postcodeCurrent % postcodeNew % wp;
     	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDBIDLIST,fmtr.str());
     }
 
@@ -118,8 +118,7 @@ void HouseholdBidderRole::CurrentBiddingEntry::invalidate()
 }
 
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0),
-																  moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0), day(day),
-																  householdAffordabilityAmount(0),initBidderRole(true){}
+																  moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0), day(day), householdAffordabilityAmount(0),initBidderRole(true){}
 
 HouseholdBidderRole::~HouseholdBidderRole(){}
 
@@ -640,10 +639,22 @@ bool HouseholdBidderRole::pickEntryToBid()
             	if( hhUnit != NULL )
             		postcodeCurrent = hhUnit->getSlaAddressId();
 
+            	Postcode *oldPC = model->getPostcodeById(postcodeCurrent);
+            	Postcode *newPC = model->getPostcodeById(unit->getSlaAddressId());
+
                //double wp_old = luaModel.calulateWP(*household, *unit, *stats);
             	double wp = calculateWillingnessToPay(unit, household);
 
-            	printHouseholdBiddingList( household->getId(), unit->getId(), postcodeCurrent, unit->getSlaAddressId(), wp);
+            	std::string oldPCStr = "empty";
+            	std::string newPCStr = "empty";
+
+            	if( oldPC )
+            		oldPCStr = oldPC->getSlaPostcode();
+
+            	if( newPC )
+            		newPCStr = newPC->getSlaPostcode();
+
+            	printHouseholdBiddingList( day, household->getId(), unit->getId(), oldPCStr, newPCStr, wp);
 
             	wp = std::max(0.0, wp );
 
@@ -720,83 +731,87 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 	{
 		HM_Model* model = getParent()->getModel();
 
-	int unitTypeId = 0;
-	if(model->getUnitById(this->getParent()->getHousehold()->getUnitId())!=nullptr)
-	{
-		unitTypeId = model->getUnitById(this->getParent()->getHousehold()->getUnitId())->getUnitType();
-	}
-
-	double valueNoCar =  model->getVehicleOwnershipCoeffsById(ASC_NO_CAR)->getCoefficientEstimate();
-	double expNoCar = exp(valueNoCar);
-	double vehicleOwnershipLogsum = 0;
-	double SumVehicleOwnershipLogsum = 0;
-	std::vector<BigSerial> individuals = this->getParent()->getHousehold()->getIndividuals();
-	std::vector<BigSerial>::iterator individualsItr;
-
-	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
-	{
-		const Individual* individual = model->getIndividualById((*individualsItr));
-//		HouseHoldHitsSample *hitsSample = model->getHouseHoldHitsById( this->getParent()->getHousehold()->getId() );
-//		if(model->getHouseholdGroupByGroupId(hitsSample->getGroupId())!= nullptr)
-//		{
-//			vehicleOwnershipLogsum = model->getHouseholdGroupByGroupId(hitsSample->getGroupId())->getLogsum();
-//			SumVehicleOwnershipLogsum = vehicleOwnershipLogsum + SumVehicleOwnershipLogsum;
-//		}
-//		else
-//		{
-			//replace householdHeadId with individualId
-			double vehicleOwnershipLogsumCar = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), -1, -1,1) ;
-			double vehicleOwnershipLogsumTransit = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), -1, -1,0);
-			vehicleOwnershipLogsum = (vehicleOwnershipLogsumCar - vehicleOwnershipLogsumTransit);
-			SumVehicleOwnershipLogsum = vehicleOwnershipLogsum + SumVehicleOwnershipLogsum;
-//			HM_Model::HouseholdGroup *hhGroup = new HM_Model::HouseholdGroup(hitsSample->getGroupId(),0,vehicleOwnershipLogsum);
-//			model->addHouseholdGroupByGroupId(hhGroup);
-//		}
-	}
-
-
-	double expOneCar = getExpOneCar(unitTypeId,SumVehicleOwnershipLogsum);
-	double expTwoPlusCar = getExpTwoPlusCar(unitTypeId,SumVehicleOwnershipLogsum);
-
-	double probabilityNoCar = (expNoCar) / (expNoCar + expOneCar+ expTwoPlusCar);
-	double probabilityOneCar = (expOneCar)/ (expNoCar + expOneCar+ expTwoPlusCar);
-	double probabilityTwoPlusCar = (expTwoPlusCar)/ (expNoCar + expOneCar+ expTwoPlusCar);
-
-	/*generate a random number between 0-1
-	* time(0) is passed as an input to constructor in order to randomize the result
-	*/
-	boost::mt19937 randomNumbergenerator( time( 0 ) );
-	boost::random::uniform_real_distribution< > uniformDistribution( 0.0, 1.0 );
-	boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >generateRandomNumbers( randomNumbergenerator, uniformDistribution );
-	const double randomNum = generateRandomNumbers( );
-	double pTemp = 0;
-	if((pTemp < randomNum ) && (randomNum < (probabilityNoCar + pTemp)))
-	{
-		MessageBus::PostMessage(getParent(), LTMID_HH_NO_CAR, MessageBus::MessagePtr(new Message()));
-		writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),0);
-
-	}
-	else
-	{
-		pTemp = pTemp + probabilityNoCar;
-	if((pTemp < randomNum ) && (randomNum < (probabilityOneCar + pTemp)))
-	{
-		MessageBus::PostMessage(getParent(), LTMID_HH_ONE_CAR, MessageBus::MessagePtr(new Message()));
-		writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),1);
-	}
-	else
-	{
-		pTemp = pTemp + probabilityOneCar;
-		if ((pTemp < randomNum) &&( randomNum < (probabilityTwoPlusCar + pTemp)))
+		int unitTypeId = 0;
+		if(model->getUnitById(this->getParent()->getHousehold()->getUnitId())!=nullptr)
 		{
-			MessageBus::PostMessage(getParent(), LTMID_HH_TWO_PLUS_CAR, MessageBus::MessagePtr(new Message()));
-			std::vector<BigSerial> individuals = this->getParent()->getHousehold()->getIndividuals();
-			writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),2);
+			unitTypeId = model->getUnitById(this->getParent()->getHousehold()->getUnitId())->getUnitType();
 		}
 
+		double valueNoCar =  model->getVehicleOwnershipCoeffsById(ASC_NO_CAR)->getCoefficientEstimate();
+		double expNoCar = exp(valueNoCar);
+		double vehicleOwnershipLogsum = 0;
+		double SumVehicleOwnershipLogsum = 0;
+		std::vector<BigSerial> individuals = this->getParent()->getHousehold()->getIndividuals();
+		std::vector<BigSerial>::iterator individualsItr;
+
+		for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+		{
+			const Individual* individual = model->getIndividualById((*individualsItr));
+	//		HouseHoldHitsSample *hitsSample = model->getHouseHoldHitsById( this->getParent()->getHousehold()->getId() );
+	//		if(model->getHouseholdGroupByGroupId(hitsSample->getGroupId())!= nullptr)
+	//		{
+	//			vehicleOwnershipLogsum = model->getHouseholdGroupByGroupId(hitsSample->getGroupId())->getLogsum();
+	//			SumVehicleOwnershipLogsum = vehicleOwnershipLogsum + SumVehicleOwnershipLogsum;
+	//		}
+	//		else
+	//		{
+				//replace householdHeadId with individualId
+				double vehicleOwnershipLogsumCar = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), -1, -1,1) ;
+				double vehicleOwnershipLogsumTransit = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), -1, -1,0);
+				vehicleOwnershipLogsum = (vehicleOwnershipLogsumCar - vehicleOwnershipLogsumTransit);
+				SumVehicleOwnershipLogsum = vehicleOwnershipLogsum + SumVehicleOwnershipLogsum;
+	//			HM_Model::HouseholdGroup *hhGroup = new HM_Model::HouseholdGroup(hitsSample->getGroupId(),0,vehicleOwnershipLogsum);
+	//			model->addHouseholdGroupByGroupId(hhGroup);
+	//		}
+		}
+
+
+		double expOneCar = getExpOneCar(unitTypeId,SumVehicleOwnershipLogsum);
+		double expTwoPlusCar = getExpTwoPlusCar(unitTypeId,SumVehicleOwnershipLogsum);
+
+		double probabilityNoCar = (expNoCar) / (expNoCar + expOneCar+ expTwoPlusCar);
+		double probabilityOneCar = (expOneCar)/ (expNoCar + expOneCar+ expTwoPlusCar);
+		double probabilityTwoPlusCar = (expTwoPlusCar)/ (expNoCar + expOneCar+ expTwoPlusCar);
+
+		/*generate a random number between 0-1
+		* time(0) is passed as an input to constructor in order to randomize the result
+		*/
+		boost::mt19937 randomNumbergenerator( time( 0 ) );
+		boost::random::uniform_real_distribution< > uniformDistribution( 0.0, 1.0 );
+		boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >generateRandomNumbers( randomNumbergenerator, uniformDistribution );
+		const double randomNum = generateRandomNumbers( );
+		double pTemp = 0;
+		if((pTemp < randomNum ) && (randomNum < (probabilityNoCar + pTemp)))
+		{
+			MessageBus::PostMessage(getParent(), LTMID_HH_NO_CAR, MessageBus::MessagePtr(new Message()));
+			writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),0);
+
+		}
+		else
+		{
+			pTemp = pTemp + probabilityNoCar;
+			if((pTemp < randomNum ) && (randomNum < (probabilityOneCar + pTemp)))
+			{
+				MessageBus::PostMessage(getParent(), LTMID_HH_ONE_CAR, MessageBus::MessagePtr(new Message()));
+				writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),1);
+			}
+			else
+			{
+				pTemp = pTemp + probabilityOneCar;
+				if ((pTemp < randomNum) &&( randomNum < (probabilityTwoPlusCar + pTemp)))
+				{
+					MessageBus::PostMessage(getParent(), LTMID_HH_TWO_PLUS_CAR, MessageBus::MessagePtr(new Message()));
+					std::vector<BigSerial> individuals = this->getParent()->getHousehold()->getIndividuals();
+					writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),2);
+				}
+
+			}
+		}
 	}
-	}
-	}
+
+	if( getParent()->getBuySellInterval() > 0 )
+		getParent()->setBuySellInterval( 0 );
+
 	setActive(false);
 	getParent()->getModel()->decrementBidders();
 

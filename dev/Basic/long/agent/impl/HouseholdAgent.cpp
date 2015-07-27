@@ -42,6 +42,9 @@ HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* h
         bidder = new HouseholdBidderRole(this);
         bidder->setActive(false);
     }
+
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+    buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
 }
 
 HouseholdAgent::~HouseholdAgent()
@@ -95,6 +98,17 @@ bool HouseholdAgent::onFrameInit(timeslice now)
     return true;
 }
 
+void HouseholdAgent::setBuySellInterval( int value )
+{
+	buySellInterval = value;
+}
+
+int HouseholdAgent::getBuySellInterval( ) const
+{
+	return buySellInterval;
+}
+
+
 void HouseholdAgent::awakenHousehold()
 {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -147,8 +161,6 @@ void HouseholdAgent::awakenHousehold()
 
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 		{
-			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
 			BigSerial unitId = *itr;
 			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
@@ -171,10 +183,9 @@ void HouseholdAgent::awakenHousehold()
 		PrintOutV("[day " << day << "] Household " << getId() << " has been awakened."<< std::endl);
 		#endif
 
+
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 		{
-			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
 			BigSerial unitId = *itr;
 			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
@@ -199,8 +210,6 @@ void HouseholdAgent::awakenHousehold()
 
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 		{
-			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
 			BigSerial unitId = *itr;
 			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
@@ -209,7 +218,6 @@ void HouseholdAgent::awakenHousehold()
 		}
 
 		model->incrementAwakeningCounter();
-
 		model->incrementLifestyle3HHs();
 	}
 }
@@ -223,7 +231,6 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		awakenHousehold();
 
 		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
 		if( config.ltParams.housingModel.outputHouseholdLogsums )
 		{
 			const Household *hh = this->getHousehold();
@@ -231,6 +238,34 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 			if( hh != NULL )
 				model->getLogsumOfIndividuals(hh->getId());
 		}
+	}
+
+	if( bidder && bidder->isActive() && buySellInterval > 0 )
+		buySellInterval--;
+
+
+	if( buySellInterval == 0 )
+	{
+		if (seller)
+		{
+			if( seller->isActive() == false )
+			{
+				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+				for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+				{
+					BigSerial unitId = *itr;
+					Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+					unit->setbiddingMarketEntryDay(day + 1);
+					unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+				}
+			}
+
+			seller->setActive(true);
+		}
+
+		buySellInterval--;
 	}
 
 
@@ -285,31 +320,11 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
         case ExternalEvent::NEW_JOB_LOCATION:
         case ExternalEvent::NEW_SCHOOL_LOCATION:
         {
-            if (seller)
-            {
-            	if( seller->isActive() == false )
-            	{
-            		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
-					{
-            			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
-
-						BigSerial unitId = *itr;
-						Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
-
-						unit->setbiddingMarketEntryDay(day + 1);
-						unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
-					}
-            	}
-
-                seller->setActive(true);
-            }
 
             if (bidder)
             {
                 bidder->setActive(true);
                 model->incrementBidders();
-
             }
 
 			#ifdef VERBOSE

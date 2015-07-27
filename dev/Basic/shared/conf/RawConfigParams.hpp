@@ -70,6 +70,7 @@ struct LongTermParams{
 		float housingMarketSearchPercentage;
 		float housingMoveInDaysInterval;
 		bool  outputHouseholdLogsums;
+		int offsetBetweenUnitBuyingAndSelling;
 	} housingModel;
 
 	struct VehicleOwnershipModel{

@@ -36,7 +36,7 @@ namespace sim_mob
         private:
 
             /**
-             * Simple struct to store the current unit which the bidder is trying to buy.
+             * Simple class to store the current unit which the bidder is trying to buy.
              */
             class CurrentBiddingEntry
             {
@@ -67,6 +67,7 @@ namespace sim_mob
                 long int tries; // number of bids sent to the seller.
                 double lastSurplus; // value of the last surplus
             };
+
         public:
             HouseholdBidderRole(HouseholdAgent* parent);
             virtual ~HouseholdBidderRole();

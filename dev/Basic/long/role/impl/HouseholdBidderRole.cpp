@@ -338,6 +338,12 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
     //decremented by a 25%. The variable below will keep track of that.
     double secondTrySurplusDiscount = 0;
 
+    if(entry && biddingEntry.isValid() && biddingEntry.getLastSurplus() != 0)
+    {
+    	secondTrySurplusDiscount = biddingEntry.getLastSurplus() * 0.25;
+    	PrintOutV("Household " << household->getId() <<  " has bid on unit " << biddingEntry.getUnitId() << " for "  << biddingEntry.getTries() << " times and will forgo 25% of the previous surplus valued at $" <<  secondTrySurplusDiscount << std::endl );
+    }
+
     if (!entry || !biddingEntry.isValid())
     {
         //if unit is not available or entry is not valid then
@@ -346,13 +352,6 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
         {
             entry = market->getEntryById(biddingEntry.getUnitId());
         }   
-    }
-    else
-    {
-    	secondTrySurplusDiscount = biddingEntry.getLastSurplus() * 0.25;
-
-    	PrintOutV("Household " << household->getId() <<  " has bid on unit " << biddingEntry.getUnitId() << " for "  << biddingEntry.getTries() << " times and will forgo 25% of the previous surplus valued at $" <<  secondTrySurplusDiscount << std::endl );
-
     }
     
     if (entry && biddingEntry.isValid())
@@ -384,6 +383,8 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
         }
         else
         {
+        	PrintOutV("Negative speculation. Bid again! " << std::endl );
+
             biddingEntry.invalidate();
             return bidUnit(now); // try to bid again.
         }
@@ -609,6 +610,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     //get available entries (for preferable zones if exists)
     HousingMarket::ConstEntryList entries;
 
+    /*
     if (getParent()->getPreferableZones().empty())
     {
         market->getAvailableEntries(entries);
@@ -617,6 +619,9 @@ bool HouseholdBidderRole::pickEntryToBid()
     {
         market->getAvailableEntries(getParent()->getPreferableZones(), entries);
     }
+    */
+
+    market->getAvailableEntries(entries);
 
     const HousingMarket::Entry* maxEntry = nullptr;
     double maxSurplus = 0; // holds the wp of the entry with maximum surplus.

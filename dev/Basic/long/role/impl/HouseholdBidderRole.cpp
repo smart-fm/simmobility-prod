@@ -117,6 +117,17 @@ void HouseholdBidderRole::CurrentBiddingEntry::invalidate()
     wp = 0;
 }
 
+double HouseholdBidderRole::CurrentBiddingEntry::getLastSurplus() const
+{
+	return lastSurplus;
+}
+
+void HouseholdBidderRole::CurrentBiddingEntry::setLastSurplus(double value)
+{
+	lastSurplus = value;
+}
+
+
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0),
 																  moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0), day(day), householdAffordabilityAmount(0),initBidderRole(true){}
 
@@ -261,7 +272,7 @@ void HouseholdBidderRole::update(timeslice now)
 void HouseholdBidderRole::TakeUnitOwnership()
 {
 	#ifdef VERBOSE
-	//PrintOutV("[day " << day << "] Household " << getParent()->getId() << " is moving into unit " << unitIdToBeOwned << " today." << std::endl);
+	PrintOutV("[day " << day << "] Household " << getParent()->getId() << " is moving into unit " << unitIdToBeOwned << " today." << std::endl);
 	#endif
 	getParent()->addUnitId( unitIdToBeOwned );
     biddingEntry.invalidate();
@@ -323,6 +334,10 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
     // does not have more margin of negotiation then is better look for another unit.
     const HousingMarket::Entry* entry = market->getEntryById(biddingEntry.getUnitId());
 
+    //If a household is bidding on the same unit for the second day in a row, the surplus is
+    //decremented by a 25%. The variable below will keep track of that.
+    double secondTrySurplusDiscount = 0;
+
     if (!entry || !biddingEntry.isValid())
     {
         //if unit is not available or entry is not valid then
@@ -331,6 +346,13 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
         {
             entry = market->getEntryById(biddingEntry.getUnitId());
         }   
+    }
+    else
+    {
+    	secondTrySurplusDiscount = biddingEntry.getLastSurplus() * 0.25;
+
+    	PrintOutV("Household " << household->getId() <<  " has bid on unit " << biddingEntry.getUnitId() << " for "  << biddingEntry.getTries() << " times and will forgo 25% of the previous surplus valued at $" <<  secondTrySurplusDiscount << std::endl );
+
     }
     
     if (entry && biddingEntry.isValid())
@@ -346,7 +368,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 
             if (unit && stats)
             {
-                double bidValue = biddingEntry.getWP() - speculation;
+                double bidValue = biddingEntry.getWP() - speculation - secondTrySurplusDiscount;
 
                 if (entry->getOwner() && bidValue > 0.0f)
                 {
@@ -679,7 +701,7 @@ bool HouseholdBidderRole::pickEntryToBid()
         }
     }
 
-    biddingEntry = CurrentBiddingEntry( (maxEntry) ? maxEntry->getUnitId() : INVALID_ID, finalBid );
+    biddingEntry = CurrentBiddingEntry( (maxEntry) ? maxEntry->getUnitId() : INVALID_ID, finalBid, maxSurplus );
     return biddingEntry.isValid();
 }
 

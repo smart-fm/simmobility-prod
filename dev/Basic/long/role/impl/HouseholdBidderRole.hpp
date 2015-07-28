@@ -52,6 +52,9 @@ namespace sim_mob
                 long int getTries() const;
                 bool isValid() const;
                 
+                double getLastSurplus() const;
+                void setLastSurplus(double value);
+
                 /**
                  * Increments the tries variable with given quantity.
                  * @param quantity to increment.

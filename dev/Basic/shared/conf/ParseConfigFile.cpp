@@ -237,6 +237,11 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 
 	//Take care of pathset manager confifuration in here
 	ParsePathXmlConfig(sim_mob::ConfigManager::GetInstance().FullConfig().pathsetFile, sim_mob::ConfigManager::GetInstanceRW().PathSetConfig());
+
+	if(cfg.cbd && ConfigManager::GetInstance().FullConfig().pathSet().psRetrievalWithoutBannedRegion.empty())
+	{
+		throw std::runtime_error("Pathset without banned area Stored Procedure not found\n");
+	}
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemNode(DOMElement* node)

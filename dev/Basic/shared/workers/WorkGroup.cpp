@@ -504,19 +504,23 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 	//Using confluxes by reference as we remove items as and when we assign them to a worker
 	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
 	int numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
-	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {
-		if(numConfluxesPerWorker > 0){
+	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++)
+	{
+		if(numConfluxesPerWorker > 0)
+		{
 			assignConfluxToWorkerRecursive((*confluxes.begin()), (*i), numConfluxesPerWorker);
 		}
 	}
-	if(confluxes.size() > 0) {
+	if(confluxes.size() > 0)
+	{
 		//There can be up to (workers.size() - 1) confluxes for which the parent
 		//worker is unassigned. Assign these to the last worker which has all
 		//its upstream confluxes.
 		sim_mob::Worker* worker = workers.back();
-		for(std::set<sim_mob::Conflux*>::iterator i = confluxes.begin();
-				i!=confluxes.end(); i++) {
-			if (worker->beginManagingConflux(*i)) {
+		for(std::set<sim_mob::Conflux*>::iterator i = confluxes.begin(); i!=confluxes.end(); i++)
+		{
+			if (worker->beginManagingConflux(*i))
+			{
 				(*i)->setParentWorker(worker);
 				(*i)->currWorkerProvider = worker;
 			}

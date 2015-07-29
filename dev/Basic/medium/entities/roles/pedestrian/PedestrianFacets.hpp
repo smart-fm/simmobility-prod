@@ -71,9 +71,12 @@ protected:
 	void initializePath(std::vector<const RoadSegment*>& path);
 
 	/**
-	 * choice shortest distance from node to mrt stop
+	 * finds a road segment attached with mrt stop that is closest to a node
+	 * @param nd simmobility node
+	 * @param mrtstop an mrt stop
+	 * @returns road segment attached with mrt stop and closest to nd
 	 */
-	const sim_mob::RoadSegment* choiceNearestSegmentToMRT(const sim_mob::Node* src, const sim_mob::MRT_Stop* stop);
+	const sim_mob::RoadSegment* chooseNearestSegmentToMRT(const sim_mob::Node* nd, const sim_mob::MRT_Stop* mrtstop) const;
 
 	/**parent pedestrian*/
 	sim_mob::medium::Pedestrian* parentPedestrian;

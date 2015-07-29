@@ -6,6 +6,8 @@
  */
 
 #include "PedestrianFacets.hpp"
+
+#include <limits>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "geospatial/BusStop.hpp"
@@ -133,24 +135,24 @@ void PedestrianMovement::frame_init() {
 	}
 }
 
-const sim_mob::RoadSegment* PedestrianMovement::choiceNearestSegmentToMRT(
-		const sim_mob::Node* src, const sim_mob::MRT_Stop* stop) {
+const sim_mob::RoadSegment* PedestrianMovement::chooseNearestSegmentToMRT(const sim_mob::Node* nd, const sim_mob::MRT_Stop* stop) const
+{
 	const RoadSegment* res = nullptr;
-	std::vector<int> segs = stop->getRoadSegments();
+	const std::vector<int>& segs = stop->getRoadSegments();
 	double minDis = std::numeric_limits<double>::max();
-	for (std::vector<int>::iterator i = segs.begin(); i != segs.end(); i++) {
-		unsigned int id = *i;
+	for (std::vector<int>::const_iterator segIt = segs.begin(); segIt != segs.end(); segIt++)
+	{
+		unsigned int id = *segIt;
 		const sim_mob::RoadSegment* segment = StreetDirectory::instance().getRoadSegment(id);
 		const sim_mob::Node* node = segment->getStart();
-		DynamicVector EstimateDist(src->getLocation().getX(),src->getLocation().getY(),
-				node->getLocation().getX(),	node->getLocation().getY());
-		double actualDistanceStart = EstimateDist.getMagnitude();
-		if (minDis > actualDistanceStart) {
+		DynamicVector estimateDistVector(nd->getLocation().getX(),nd->getLocation().getY(), node->getLocation().getX(),	node->getLocation().getY());
+		double actualDistanceStart = estimateDistVector.getMagnitude();
+		if (minDis > actualDistanceStart)
+		{
 			minDis = actualDistanceStart;
 			res = segment;
 		}
 	}
-
 	return res;
 }
 
@@ -164,7 +166,7 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 	if (subTrip.fromLocation.type_ == WayPoint::NODE
 			&& subTrip.toLocation.type_ == WayPoint::MRT_STOP) {
 		source = streetDirectory.DrivingVertex(*subTrip.fromLocation.node_);
-		const RoadSegment* seg = choiceNearestSegmentToMRT(subTrip.fromLocation.node_,subTrip.toLocation.mrtStop_);
+		const RoadSegment* seg = chooseNearestSegmentToMRT(subTrip.fromLocation.node_,subTrip.toLocation.mrtStop_);
 		const Node* node = seg->getStart();
 		destination = streetDirectory.DrivingVertex(*node);
 		path.push_back(seg);
@@ -173,7 +175,7 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 	} else if (subTrip.fromLocation.type_ == WayPoint::MRT_STOP
 			&& subTrip.toLocation.type_ == WayPoint::NODE) {
 		destination = streetDirectory.DrivingVertex(*subTrip.toLocation.node_);
-		const RoadSegment* seg = choiceNearestSegmentToMRT(subTrip.toLocation.node_,	subTrip.fromLocation.mrtStop_);
+		const RoadSegment* seg = chooseNearestSegmentToMRT(subTrip.toLocation.node_,	subTrip.fromLocation.mrtStop_);
 		const Node* node = seg->getStart();
 		startLink = seg->getLink();
 		source = streetDirectory.DrivingVertex(*node);
@@ -192,7 +194,7 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 		}
 		else
 		{
-			const RoadSegment* seg = choiceNearestSegmentToMRT(subTrip.toLocation.busStop_->getParentSegment()->getEnd(),subTrip.fromLocation.mrtStop_);
+			const RoadSegment* seg = chooseNearestSegmentToMRT(subTrip.toLocation.busStop_->getParentSegment()->getEnd(),subTrip.fromLocation.mrtStop_);
 			src_node = seg->getStart();
 			path.push_back(seg);
 			source = streetDirectory.DrivingVertex(*src_node);
@@ -209,7 +211,7 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 		}
 		else
 		{
-			const RoadSegment* seg = choiceNearestSegmentToMRT(subTrip.fromLocation.busStop_->getParentSegment()->getEnd(),subTrip.toLocation.mrtStop_);
+			const RoadSegment* seg = chooseNearestSegmentToMRT(subTrip.fromLocation.busStop_->getParentSegment()->getEnd(),subTrip.toLocation.mrtStop_);
 			dest_node = seg->getStart();
 			path.push_back(seg);
 			destination = streetDirectory.DrivingVertex(*dest_node);

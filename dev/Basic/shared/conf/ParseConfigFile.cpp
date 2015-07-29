@@ -240,7 +240,7 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 
 	if(cfg.cbd && ConfigManager::GetInstance().FullConfig().pathSet().psRetrievalWithoutBannedRegion.empty())
 	{
-		throw std::runtime_error("Pathset without banned area Stored Procedure not found\n");
+        throw std::runtime_error("Pathset without banned area stored procedure name not found\n");
 	}
 }
 

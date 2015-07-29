@@ -45,8 +45,7 @@ namespace sim_mob {
                 LOG_TAZ_LEVEL_LOGSUM,
                 LOG_HOUSEHOLDGROUPLOGSUM,
                 LOG_INDIVIDUAL_HITS_LOGSUM,
-                LOG_HOUSEHOLDBIDLIST,
-                LOG_FIXEDPOINTITERATIONOUTPUT
+                LOG_HOUSEHOLDBIDLIST
             };
             LoggerAgent();
             virtual ~LoggerAgent();

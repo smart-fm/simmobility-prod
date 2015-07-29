@@ -39,7 +39,6 @@ using boost::format;
 
 namespace
 {
-
     /**
      * Send given bid to given owner.
      * @param owner of the unit
@@ -50,14 +49,12 @@ namespace
         MessageBus::PostMessage(owner, LTMID_BID, MessageBus::MessagePtr(new BidMessage(bid)));
     }
 
-
     inline void writeVehicleOwnershipToFile(BigSerial hhId,int VehiclOwnershiOptionId)
     {
     	boost::format fmtr = boost::format("%1%, %2%") % hhId % VehiclOwnershiOptionId;
     	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_VEHICLE_OWNERSIP,fmtr.str());
 
     }
-
 
     inline void printHouseholdGroupLogsum( int homeTaz,  int group, BigSerial hhId, double logsum )
     {
@@ -69,12 +66,6 @@ namespace
     {
     	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%")% day % householdId % unitId % postcodeCurrent % postcodeNew % wp;
     	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDBIDLIST,fmtr.str());
-    }
-
-    inline void printFixedpointIteration(BigSerial householdId, BigSerial unitId, double bid, double surplus, double wp )
-    {
-    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%") % householdId % unitId % wp % surplus % bid;
-    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_FIXEDPOINTITERATIONOUTPUT,fmtr.str());
     }
 }
 

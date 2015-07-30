@@ -447,7 +447,7 @@ function calulateUnitExpectations (unit, timeOnMarket, logsum, building, postcod
     -- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
 
     local hedonicPrice = calculateHedonicPrice(unit, building, postcode, amenities, logsum)
-    hedonicPrice = math.exp( hedonicPrice ) / 500000;
+    hedonicPrice = math.exp( hedonicPrice ) / 1000000;
 
     if (hedonicPrice > 0) then
         local reservationPrice = hedonicPrice * 0.8  -- IMPORTANT : The reservation price should be less than the hedonic price and the asking price

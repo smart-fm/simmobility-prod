@@ -1,6 +1,6 @@
 //Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
-//   license.txt   (http://opensource.org/licenses/MIT)
+//license.txt   (http://opensource.org/licenses/MIT)
 
 /* 
  * File:   HouseholdBidderRole.cpp
@@ -390,20 +390,16 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	//
 	//These constants are extracted from Roberto Ponce's bidding model
 	//
-	const double mu			=  1.086;
-	const double bpriv		=  1.053;
-	const double bhdb123	=  0.195;
-	const double bhdb4		= -0.764;
-	const double bhdb5		= -1.553;
-	const double bs1a		=  2.956;
-	const double bs2a		=  3.206;
-	const double bs3a		=  3.475;
-	const double blogsum	=  0.288;
-	const double bchin		= -0.184;
-	const double bmalay		= -0.307;
-	const double bindian	=  0.145;
-	const double bzzinc		=  0.027;
-	const double bzsize		= -0.279;
+	const double sde		=  0.6321401001;
+	const double bpriv		=  0.4451238086;
+	const double bhdb123	=  -0.029778552;
+	const double bhdb4		= -0.1483637708;
+	const double bhdb5		= -0.2498613851;
+	const double barea		= 0.9995179115;
+	const double blogsum	= 0.0227986711;
+	const double bchin		= 0.0639243971;
+	const double bmalay		= -0.0516443165;
+	const double bHighInc	= 0.0274990591;
 
 	const PostcodeAmenities* pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( unit->getSlaAddressId() );
 
@@ -560,37 +556,71 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	if( tazstats->getChinesePercentage() > 0.10 )
 		ZZ_hhmalay 	 = 1;
 
-	if( tazstats->getIndianPercentage() > 0.08 )
-		ZZ_hhindian  = 1;
 
-	if( household->getIncome() >= tazstats->getHH_AvgIncome() * 0.33 && household->getIncome() <= tazstats->getHH_AvgIncome() * 1.33 )
-		ZZ_hhinc = 1;
+	std::vector<BigSerial> individuals = household->getIndividuals();
 
-	if( household->getSize() >= ( tazstats->getAvgHHSize() - 1 ) && household->getSize() <= ( tazstats->getAvgHHSize() + 1 ) )
-		ZZ_hhsize = 1;
+	int nonRetiredAdults = 0;
+	for(int n = 0; n < individuals.size(); n++ )
+	{
+		Individual* temp = model->getIndividualById(individuals[n]);
+
+		int employmentStatus = temp->getEmploymentStatusId();
+
+		if( employmentStatus == 1 || //full time worker
+		    employmentStatus == 2 || //part time worker
+		    employmentStatus == 3 || //self employed
+		    employmentStatus == 7 )  //unemployed
+		{
+			nonRetiredAdults++;
+		}
+	}
+
+	if( nonRetiredAdults == 0)
+	{
+			PrintOutV("[ERROR] non-retired adults in this household is zero.");
+			nonRetiredAdults = 1;
+	}
+
+	double ZZ_highInc = household->getIncome() / nonRetiredAdults;
+
+	if( ZZ_highInc > 3625 )
+		ZZ_highInc = 1;
+	else
+		ZZ_highInc = 0;
+
 
 	V = bpriv * DD_priv +
 		bhdb123 * HDB123 +
 		bhdb4 * HDB4 +
 		bhdb5 * HDB5 +
-		bs1a * HH_size1 *  DD_area +
-		bs2a * HH_size2 *  DD_area +
-		bs3a * HH_size3m * DD_area +
+		barea *  DD_area +
 		blogsum * ZZ_logsumhh +
 		bchin * ZZ_hhchinese +
 		bmalay * ZZ_hhmalay +
-		bindian * ZZ_hhindian +
-		bzzinc * ZZ_hhinc +
-		bzsize * ZZ_hhsize;
+		bHighInc * ZZ_highInc;
 
 	boost::mt19937 rng(time(0));
-	boost::normal_distribution<> nd( 0.0, mu);
+	boost::normal_distribution<> nd( 0.0, sde);
 	boost::variate_generator<boost::mt19937&,  boost::normal_distribution<> > var_nor(rng, nd);
 	double wtp_e  = var_nor();
 
 	return V + wtp_e;
 }
 
+namespace
+{
+	typedef struct
+	{
+		double probability;
+		int zone;
+
+	} PZ;
+
+	bool cmp( PZ a, PZ b )
+	{
+		return a.probability < b.probability;
+	}
+}
 
 bool HouseholdBidderRole::pickEntryToBid()
 {
@@ -621,14 +651,55 @@ bool HouseholdBidderRole::pickEntryToBid()
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     float housingMarketSearchPercentage = config.ltParams.housingModel.housingMarketSearchPercentage;
 
-    // Choose the unit to bid with max surplus. However, we are not iterating through the whole list of available units.
-    // We choose from a subset of units set by the housingMarketSearchPercentage parameter in the long term XML file.
-    // This is done to replicate the real life scenario where a household will only visit a certain percentage of vacant units before settling on one.
+    std::vector<PZ> zoneProbabilities;
+
+    for(int n = 0; n < 245; n++)
+    {
+    	PZ temp;
+
+    	temp.probability = (double)rand() / RAND_MAX;
+    	temp.zone = n;
+
+    	zoneProbabilities.push_back( temp );
+    }
+
+    std::sort(zoneProbabilities.begin(), zoneProbabilities.end(), cmp);
+
+    double randomDraw = rand()/RAND_MAX;
+    int zoneHousingType = -1;
+    for( int n = 0; n < zoneProbabilities.size(); n++ )
+    {
+    	if( randomDraw > zoneProbabilities[n].probability )
+    	{
+    		zoneHousingType = zoneProbabilities[n].zone;
+    		break;
+    	}
+    }
+
+    BigSerial zoneType = 0;
+    BigSerial housingType = 0;
+
     for(int n = 0; n < entries.size() * housingMarketSearchPercentage; n++)
     {
     	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
 
     	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
+    	const HousingMarket::Entry* entry = *itr;
+
+      	entry->getTazId();
+        const Unit* thisUnit = model->getUnitById( entry->getUnitId() );
+
+    	if( thisUnit->getUnitType() )
+    	{
+    	}
+    }
+
+    // Choose the unit to bid with max surplus. However, we are not iterating through the whole list of available units.
+    // We choose from a subset of units set by the housingMarketSearchPercentage parameter in the long term XML file.
+    // This is done to replicate the real life scenario where a household will only visit a certain percentage of vacant units before settling on one.
+    for(int n = 0; n < entries.size(); n++)
+    {
+    	HousingMarket::ConstEntryList::const_iterator itr = entries.begin();
         const HousingMarket::Entry* entry = *itr;
 
         if(entry && entry->getOwner() != getParent())
@@ -649,7 +720,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
            // const double constantVal = 500000;
 
-            if ( unit && stats && flatEligibility )
+            if( unit && stats && flatEligibility )
             {
             	const Unit *hhUnit = model->getUnitById( household->getUnitId() );
 
@@ -685,7 +756,6 @@ bool HouseholdBidderRole::pickEntryToBid()
             	double currentBid = 0;
             	double currentSurplus = 0;
             	ComputeBidValueLogistic(  entry->getAskingPrice(), wp, currentBid, currentSurplus );
-
 
             	if( currentSurplus > maxSurplus )
             	{

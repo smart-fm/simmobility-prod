@@ -98,12 +98,9 @@ public:
 	 * If the conditions are met, it will set isBoundary and isMultipleReceiver for the respective confluxes
 	 */
 	void findBoundaryConfluxes();
-
-	unsigned int getNumAgentsWithNoPath() {
-		return numDiscardedAgents;
-	}
         
-        unsigned int getNumberOfWorkers() const;
+	unsigned int getNumberOfWorkers() const;
+
 private:
 	void clear();
 	void interrupt();
@@ -156,6 +153,8 @@ private:
 
 	bool assignConfluxToWorkerRecursive(sim_mob::Conflux* conflux, sim_mob::Worker* worker, int numConfluxesInWorker);
 
+	void assignConfluxLoaderToWorker(sim_mob::Worker* worker);
+
 private:
 	//The "number" of this WorkGroup. E.g., the first one created is 0, the second is 1, etc. Used ONLY for generating Log files; DON'T use this as an ID.
 	unsigned int wgNum;
@@ -203,9 +202,6 @@ private:
 
 	//Profile
 	sim_mob::ProfileBuilder* profile;
-
-	//Number of agents who have been discarded from the simulation.
-	unsigned int numDiscardedAgents;
 
 	PeriodicPersonLoader* periodicPersonLoader;
 };

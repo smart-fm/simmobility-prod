@@ -34,13 +34,18 @@ using std::vector;
 
 using namespace sim_mob;
 
+namespace
+{
+	std::vector<Conflux*> confluxLoaders;
+	int nextConfluxIdx = 0;
+}
 
 sim_mob::WorkGroup::WorkGroup(unsigned int wgNum, unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep,
 		AuraManager* auraMgr, PartitionManager* partitionMgr, PeriodicPersonLoader* periodicLoader) :
 	wgNum(wgNum), numWorkers(numWorkers), numSimTicks(numSimTicks), tickStep(tickStep), auraMgr(auraMgr), partitionMgr(partitionMgr),
 	tickOffset(0), started(false), currTimeTick(0), nextTimeTick(0), loader(nullptr), nextWorkerID(0),
 	frame_tick_barr(nullptr), buff_flip_barr(nullptr), msg_bus_barr(nullptr), macro_tick_barr(nullptr),
-	profile(nullptr), numDiscardedAgents(0), periodicPersonLoader(periodicLoader)
+	profile(nullptr), periodicPersonLoader(periodicLoader)
 {
 	if (ConfigManager::GetInstance().CMakeConfig().ProfileAuraMgrUpdates()) {
 		profile = new ProfileBuilder();
@@ -510,6 +515,7 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 		{
 			assignConfluxToWorkerRecursive((*confluxes.begin()), (*i), numConfluxesPerWorker);
 		}
+		assignConfluxLoaderToWorker((*i));
 	}
 	if(confluxes.size() > 0)
 	{
@@ -537,6 +543,22 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 			(*workerIt)->beginManaging((*confluxIt)->getSubscriptionList());
 		}
 		std::cout << "Worker "<< (*workerIt) << " Conflux size: "<< (*workerIt)->managedConfluxes.size() << std::endl;
+	}
+}
+
+void sim_mob::WorkGroup::assignConfluxLoaderToWorker(sim_mob::Worker* worker)
+{
+	const sim_mob::MutexStrategy& mtxStrat = ConfigManager::GetInstance().FullConfig().mutexStategy();
+	sim_mob::Conflux* conflux = new sim_mob::Conflux(nullptr, mtxStrat, -1, true);
+	if(worker && worker->beginManagingConflux(conflux))
+	{
+		conflux->setParentWorker(worker);
+		conflux->currWorkerProvider = worker;
+		confluxLoaders.push_back(conflux);
+	}
+	else
+	{
+		throw std::runtime_error("worker assignment failed for conflux loader");
 	}
 }
 
@@ -614,10 +636,9 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 void sim_mob::WorkGroup::putAgentOnConflux(Person* person) {
 	if(person)
 	{
-		unsigned int nextTickMS = nextTimeTick*ConfigManager::GetInstance().FullConfig().baseGranMS();
-		sim_mob::Conflux* conflux = sim_mob::Conflux::findStartingConflux(person, nextTickMS);
-		if(conflux)	{ conflux->addAgent(person); }
-		else { numDiscardedAgents = numDiscardedAgents + 1; }
+		Conflux* loaderCfx = confluxLoaders[nextConfluxIdx];
+		loaderCfx->addAgent(person);
+		nextConfluxIdx = (nextConfluxIdx+1)%numWorkers;
 	}
 }
 

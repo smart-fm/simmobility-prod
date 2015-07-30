@@ -4,8 +4,9 @@
 
 #pragma once
 
+#include <deque>
 #include <map>
-
+#include <vector>
 #include "entities/Agent.hpp"
 #include "entities/signal/Signal.hpp"
 #include "boost/thread/shared_mutex.hpp"
@@ -32,7 +33,8 @@ enum {
 	MSG_MRT_PASSENGER_TELEPORTATION,
 	MSG_WAKEUP_CAR_PASSENGER_TELEPORTATION,
 	MSG_WAKE_UP,
-	MSG_WARN_INCIDENT
+	MSG_WARN_INCIDENT,
+	MSG_PERSON_LOAD
 };
 
 /**
@@ -193,10 +195,21 @@ private:
 	/**list of persons currently on Car Sharing in this condflux*/
 	PersonList carSharing;
 
+	/**flag to indicate whether this conflux is a person loading conflux*/
+	bool isLoader;
+
+	/**list of persons who are about to get into the simulation in the next tick*/
+	PersonList loadingQueue;
+
 	/**
 	 * updates agents in this conflux
 	 */
 	void processAgents();
+
+	/**
+	 * loads newly starting persons and dispatches them to the correct starting conflux.
+	 */
+	void loadPersons();
 
 	/**
 	 * moves the person and does housekeeping for the conflux
@@ -359,7 +372,7 @@ protected:
 	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 public:
-	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1);
+	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1, bool isLoader=false);
 	virtual ~Conflux() ;
 
 	//Confluxes are non-spatial in nature.

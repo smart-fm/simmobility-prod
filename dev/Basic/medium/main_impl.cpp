@@ -348,13 +348,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			<< Agent::pending_agents.top()->getStartTime() << " ms\n";
 	}
 
-	if(personWorkers->getNumAgentsWithNoPath() > 0)
-	{
-		cout<< personWorkers->getNumAgentsWithNoPath()
-			<< " persons were not added to the simulation because they could not find a path."
-			<< endl;
-	}
-
 	//Save our output files if we are merging them later.
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()
 			&& ConfigManager::GetInstance().FullConfig().mergeLogFiles())

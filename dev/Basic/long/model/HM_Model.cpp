@@ -32,6 +32,8 @@
 #include "database/dao/PlanningSubzoneDao.hpp"
 #include "database/dao/MtzDao.hpp"
 #include "database/dao/MtzTazDao.hpp"
+#include "database/dao/AlternativeDao.hpp"
+#include "database/dao/Hits2008ScreeningProbDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -878,7 +880,6 @@ void HM_Model::startImpl()
 		loadData<LogsumMtzV2Dao>( conn, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getV2 );
 		PrintOutV("Number of LogsumMtzV2: " << logsumMtzV2.size() << std::endl );
 
-		//
 		loadData<PlanningAreaDao>( conn, planningArea, planningAreaById, &PlanningArea::getId );
 		PrintOutV("Number of planning areas: " << planningArea.size() << std::endl );
 
@@ -890,6 +891,12 @@ void HM_Model::startImpl()
 
 		loadData<MtzTazDao>( conn, mtzTaz, mtzTazById, &MtzTaz::getMtzId );
 		PrintOutV("Number of mtz taz lookups: " << mtzTaz.size() << std::endl );
+
+		loadData<AlternativeDao>( conn, alternative, alternativeById, &Alternative::getId );
+		PrintOutV("Number of alternative region names: " << alternative.size() << std::endl );
+
+		loadData<Hits2008ScreeningProbDao>( conn, hits2008ScreeningProb, hits2008ScreeningProbById, &Hits2008ScreeningProb::getId );
+		PrintOutV("Number of hits2008 screening probabilities: " << hits2008ScreeningProb.size() << std::endl );
 
 	}
 

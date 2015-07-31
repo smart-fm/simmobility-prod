@@ -22,7 +22,7 @@ namespace sim_mob
 		{
 		public:
 
-			Hits2008ScreeningProb(	std::string h1_hhid,
+			Hits2008ScreeningProb(	BigSerial id = 0, std::string h1_hhid="",
 									double p1=0, double p2=0, double p3=0, double p4=0, double p5=0, double p6=0, double p7=0, double p8=0, double p9=0, double p10=0, double p11=0, double p12=0,
 									double p13=0, double p14=0, double p15=0, double p16=0, double p17=0, double p18=0, double p19=0, double p20=0, double p21=0, double p22=0, double p23=0,
 									double p24=0, double p25=0, double p26=0, double p27=0, double p28=0, double p29=0, double p30=0, double p31=0, double p32=0, double p33=0, double p34=0, double p35=0,
@@ -50,9 +50,11 @@ namespace sim_mob
 
 			Hits2008ScreeningProb operator=(const Hits2008ScreeningProb& source );
 
-			std::string getId() const;
+			BigSerial getId() const;
+			std::string getH1HhId() const;
 
-			 friend std::ostream& operator<<(std::ostream& strm, const Hits2008ScreeningProb& data);
+			friend std::ostream& operator<<(std::ostream& strm, const Hits2008ScreeningProb& data);
+
 
 			double getP1() const;
 			double getP2() const;
@@ -271,7 +273,9 @@ namespace sim_mob
 			double getP215() const;
 
 		private:
+			friend class Hits2008ScreeningProbDao;
 
+			BigSerial id;
 			std::string h1_hhid;
 			double p1;
 			double p2;

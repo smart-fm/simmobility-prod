@@ -1,6 +1,6 @@
 //Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
-//   license.txt   (http://opensource.org/licenses/MIT)
+//license.txt   (http://opensource.org/licenses/MIT)
 
 /* 
  * File:   DatabaseHelper.h
@@ -69,6 +69,8 @@ namespace sim_mob {
         const std::string DB_TABLE_PLANNING_SUBZONE = APPLY_SCHEMA(MAIN_SCHEMA, "planning_subzone");
         const std::string DB_TABLE_MTZ = APPLY_SCHEMA(MAIN_SCHEMA, "mtz");
         const std::string DB_TABLE_MTZ_TAZ= APPLY_SCHEMA(MAIN_SCHEMA, "mtz_taz");
+        const std::string DB_TABLE_ALTERNATIVE= APPLY_SCHEMA(CALIBRATION_SCHEMA, "alternative");
+        const std::string DB_TABLE_HITS2008SCREENINGPROB= APPLY_SCHEMA(CALIBRATION_SCHEMA, "hits2008_screening_prob");
 
 
 
@@ -342,6 +344,9 @@ namespace sim_mob {
         const std::string DB_GETALL_PLANNING_SUBZONE = "SELECT * FROM " + DB_TABLE_PLANNING_SUBZONE + LIMIT;
         const std::string DB_GETALL_MTZ = "SELECT * FROM " + DB_TABLE_MTZ + LIMIT;
         const std::string DB_GETALL_MTZ_TAZ = "SELECT * FROM " + DB_TABLE_MTZ_TAZ + LIMIT;
+        const std::string DB_GETALL_ALTERNATIVE = "SELECT * FROM " + DB_TABLE_ALTERNATIVE + LIMIT;
+        const std::string DB_GETALL_HITS2008SCREENINGPROB = "SELECT * FROM " + DB_TABLE_HITS2008SCREENINGPROB + LIMIT;
+
 
 
         /**
@@ -372,6 +377,8 @@ namespace sim_mob {
         const std::string DB_GETBYID_PLANNING_SUBZONE = "SELECT * FROM " + DB_TABLE_PLANNING_SUBZONE + " WHERE id = :v1;";
         const std::string DB_GETBYID_MTZ = "SELECT * FROM " + DB_TABLE_MTZ + " WHERE id = :v1;";
         const std::string DB_GETBYID_MTZ_TAZ = "SELECT * FROM " + DB_TABLE_MTZ_TAZ + " WHERE id = :v1;";
+        const std::string DB_GETBYID_ALTERNATIVE = "SELECT * FROM " + DB_TABLE_ALTERNATIVE + " WHERE id = :v1;";
+        const std::string DB_GETBYID_HITS2008SCREENINGPROB = "SELECT * FROM " + DB_TABLE_HITS2008SCREENINGPROB + " WHERE id = :v1;";
 
     }
 }

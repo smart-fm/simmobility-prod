@@ -3,26 +3,26 @@
 //license.txt   (http://opensource.org/licenses/MIT)
 
 /*
- * AwakeningDao.hpp
+ * AlternativeDao.hpp
  *
- *  Created on: 24 Nov, 2014
+ *  Created on: 31 Jul, 2015
  *  Author: Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  */
 
 #pragma once
 
 #include "database/dao/SqlAbstractDao.hpp"
-#include "database/entity/Awakening.hpp"
+#include "database/entity/Alternative.hpp"
 
 namespace sim_mob
 {
 	namespace long_term
 	{
-		class AwakeningDao : public db::SqlAbstractDao<Awakening>
+		class AlternativeDao : public db::SqlAbstractDao<Alternative>
 		{
 	        public:
-	            AwakeningDao(db::DB_Connection& connection);
-	            virtual ~AwakeningDao();
+			AlternativeDao(db::DB_Connection& connection);
+	            virtual ~AlternativeDao();
 
 	        private:
 	            /**
@@ -30,7 +30,7 @@ namespace sim_mob
 	             * @param result row with data to fill the out object.
 	             * @param outObj to fill.
 	             */
-	            void fromRow(db::Row& result, Awakening& outObj);
+	            void fromRow(db::Row& result, Alternative& outObj);
 
 	            /**
 	             * Fills the outParam with all values to insert or update on datasource.
@@ -38,7 +38,7 @@ namespace sim_mob
 	             * @param outParams to put the data parameters.
 	             * @param update tells if operation is an Update or Insert.
 	             */
-	            void toRow(Awakening& data, db::Parameters& outParams, bool update);
+	            void toRow(Alternative& data, db::Parameters& outParams, bool update);
 		};
 	}
 }

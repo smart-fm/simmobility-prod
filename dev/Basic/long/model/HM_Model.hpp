@@ -29,6 +29,8 @@
 #include "database/entity/PlanningSubzone.hpp"
 #include "database/entity/Mtz.hpp"
 #include "database/entity/MtzTaz.hpp"
+#include "database/entity/Alternative.hpp"
+#include "database/entity/Hits2008ScreeningProb.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -102,7 +104,11 @@ namespace sim_mob
             typedef std::vector<MtzTaz*> MtzTazList;
             typedef boost::unordered_map<BigSerial, MtzTaz*> MtzTazMap;
 
+            typedef std::vector<Alternative*> AlternativeList;
+            typedef boost::unordered_map<BigSerial, Alternative*> AlternativeMap;
 
+            typedef std::vector<Hits2008ScreeningProb*> Hits2008ScreeningProbList;
+            typedef boost::unordered_map<BigSerial, Hits2008ScreeningProb*> Hits2008ScreeningProbMap;
 
             /**
              * Taz statistics
@@ -292,6 +298,12 @@ namespace sim_mob
             MtzTazList mtzTaz;
             MtzTazMap mtzTazById;
 
+            Hits2008ScreeningProbList hits2008ScreeningProb;
+            Hits2008ScreeningProbMap hits2008ScreeningProbById;
+            AlternativeList alternative;
+            AlternativeMap alternativeById;
+
+
             boost::mutex mtx;
             boost::mutex mtx2;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
@@ -319,7 +331,6 @@ namespace sim_mob
             int numLifestyle3HHs;
             std::vector<BigSerial> realEstateAgentIds;
             bool hasTaxiAccess;
-
         };
     }
 }

@@ -16,7 +16,7 @@ namespace sim_mob
 	namespace long_term
 	{
 
-		Hits2008ScreeningProb::Hits2008ScreeningProb(std::string h1_hhid,
+		Hits2008ScreeningProb::Hits2008ScreeningProb(BigSerial id, std::string h1_hhid,
 													 double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8, double p9, double p10, double p11, double p12, double p13,
 													 double p14, double p15, double p16, double p17, double p18, double p19, double p20, double p21, double p22, double p23, double p24, double p25,
 													 double p26, double p27, double p28, double p29, double p30, double p31, double p32, double p33, double p34, double p35, double p36, double p37,
@@ -36,7 +36,7 @@ namespace sim_mob
 													 double p186, double p187, double p188, double p189, double p190, double p191, double p192, double p193, double p194, double p195, double p196,
 													 double p197, double p198, double p199, double p200, double p201, double p202, double p203, double p204, double p205, double p206, double p207,
 													 double p208, double p209, double p210, double p211, double p212, double p213, double p214, double p215)
-												 	 :h1_hhid(h1_hhid),
+												 	 :id(id),h1_hhid(h1_hhid),
 													 p1(p1),p2(p2),p3(p3),p4(p4),p5(p5),p6(p6),p7(p7),p8(p8),p9(p9),p10(p10),p11(p11),p12(p12),p13(p13),p14(p14),p15(p15),p16(p16),p17(p17),p18(p18),p19(p19),
 													 p20(p20),p21(p21),p22(p22),p23(p23),p24(p24),p25(p25),p26(p26),p27(p27),p28(p28),p29(p29),p30(p30),p31(p31),p32(p32),p33(p33),p34(p34),p35(p35),p36(p36),
 													 p37(p37),p38(p38),p39(p39),p40(p40),p41(p41),p42(p42),p43(p43),p44(p44),p45(p45),p46(p46),p47(p47),p48(p48),p49(p49),p50(p50),p51(p51),p52(p52),p53(p53),
@@ -56,6 +56,7 @@ namespace sim_mob
 
 		Hits2008ScreeningProb::Hits2008ScreeningProb(const Hits2008ScreeningProb& source)
 		{
+			this->id = source.id;
 			this->h1_hhid = source.h1_hhid;
 			this->p1 = source.p1;
 			this->p2 = source.p2;
@@ -276,6 +277,7 @@ namespace sim_mob
 
 		Hits2008ScreeningProb Hits2008ScreeningProb::operator=(const Hits2008ScreeningProb& source )
 		{
+			this->id = source.id;
 			this->h1_hhid = source.h1_hhid;
 			this->p1 = source.p1;
 			this->p2 = source.p2;
@@ -496,7 +498,12 @@ namespace sim_mob
 			return *this;
 		}
 
-		std::string Hits2008ScreeningProb::getId() const
+		BigSerial Hits2008ScreeningProb::getId() const
+		{
+			return id;
+		}
+
+		std::string Hits2008ScreeningProb::getH1HhId() const
 		{
 			return h1_hhid;
 		}

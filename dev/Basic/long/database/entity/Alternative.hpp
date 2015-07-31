@@ -36,6 +36,8 @@ namespace sim_mob
 			friend std::ostream& operator<<(std::ostream& strm, const Alternative& data);
 
 		private:
+			friend class AlternativeDao;
+
 			BigSerial id;
 			BigSerial planAreaId;
 			std::string planAreaName;

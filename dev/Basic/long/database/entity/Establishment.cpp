@@ -18,6 +18,20 @@ Establishment::Establishment(BigSerial id, BigSerial firmId, BigSerial buildingI
 
 Establishment::~Establishment(){}
 
+Establishment::Establishment(const Establishment& source)
+{
+	this->id 			= source.id;
+	this->firmId 		= source.firmId;
+	this->buildingId 	= source.buildingId;
+	this->lifestyleId 	= source.lifestyleId;
+	this->businessTypeId = source.businessTypeId;
+	this->size 			= source.size;
+	this->revenue 		= source.revenue;
+	this->grossSqM 		= source.grossSqM;
+	this->slaAddressId 	= source.slaAddressId;
+}
+
+
 Establishment& Establishment::operator=(const Establishment& source)
 {
 	this->id 			= source.id;

@@ -21,7 +21,7 @@ Hits2008ScreeningProbDao::~Hits2008ScreeningProbDao() {}
 
 void Hits2008ScreeningProbDao::fromRow(Row& result, Hits2008ScreeningProb& outObj)
 {
-	outObj.id 	= result.get<BigSerial>("id",	0);
+	outObj.id 	= result.get<int>("id",	0);
     outObj.h1_hhid 	= result.get<std::string>(	"h1_hhid",	"");
     outObj.p1 = result.get<double>(	"p1", 	0.0);
     outObj.p2 = result.get<double>(	"p2", 	0.0);

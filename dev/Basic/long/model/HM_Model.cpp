@@ -829,7 +829,6 @@ void HM_Model::startImpl()
 	{
 		//Load households
 		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
-		//households.resize(10000);
 		PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
 
 		//Load units

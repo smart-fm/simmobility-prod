@@ -95,7 +95,7 @@ using std::pair;
 using std::multimap;
 
 namespace{
-sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("pathset.log");
+//sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("pathset.log");
 }
 namespace {
 const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
@@ -346,7 +346,7 @@ bool DatabaseLoader::InsertSinglePath2DB(soci::session& sql,std::set<sim_mob::Si
 		{
 			sql << "insert into " << pathSetTableName << "(id,pathset_id,partial_utility,path_size,signal_number,right_turn_number,scenario,length,highway_distance, min_distance,min_signal,min_right_turn,max_highway_usage, valid_path, shortest_path) "
 					" values(:id,:pathset_id,:partial_utility,:path_size,:signal_number,:right_turn_number,:scenario,:length,:highway_distance, :min_distance,:min_signal,:min_right_turn,:max_highway_usage, :valid_path, :shortest_path)", soci::use(*sp);
-			pathsetLogger << "insert into " << pathSetTableName << "\n";
+			//pathsetLogger << "insert into " << pathSetTableName << "\n";
 		}
 	}
 }
@@ -426,7 +426,7 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 		}
 		if(!proceed)
 		{
-			pathsetLogger << "[PATHH: continue]\n";
+			//pathsetLogger << "[PATHH: continue]\n";
 			continue;
 		}
 		//create path object
@@ -446,7 +446,7 @@ sim_mob::HasPath DatabaseLoader::loadSinglePathFromDB(soci::session& sql,
 	}
 
 	if (cnt == 0) {
-		pathsetLogger << "DatabaseLoader::loadSinglePathFromDB: " << pathset_id << "no data in db\n" ;
+		//pathsetLogger << "DatabaseLoader::loadSinglePathFromDB: " << pathset_id << "no data in db\n" ;
 		return sim_mob::PSM_NOGOODPATH;
 	}
 	return sim_mob::PSM_HASPATH;

@@ -8,7 +8,7 @@
 
 
 namespace{
-sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
+//sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
 }
 
 sim_mob::PathSetParam *sim_mob::PathSetParam::instance_ = NULL;
@@ -30,7 +30,7 @@ void sim_mob::PathSetParam::populate()
 void sim_mob::PathSetParam::getDataFromDB()
 {
 	setRTTT(ConfigManager::GetInstance().FullConfig().getRTTT());
-	logger << "[RTT TABLE NAME : " << RTTT << "]\n";
+	//logger << "[RTT TABLE NAME : " << RTTT << "]\n";
 	sim_mob::aimsun::Loader::LoadERPData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
 			ERP_SurchargePool,	ERP_Gantry_ZonePool,ERP_SectionPool);
 
@@ -83,7 +83,7 @@ void sim_mob::PathSetParam::setRTTT(const std::string& value)
 				"or you are trying to access the file name before reading the Configuration file");
 	}
 	RTTT = value;
-	logger << "[REALTIME TABLE NAME : " << RTTT << "]\n";
+	//logger << "[REALTIME TABLE NAME : " << RTTT << "]\n";
 }
 
 double sim_mob::PathSetParam::getSegRangeTT(const sim_mob::RoadSegment* rs, const std::string travelMode, const sim_mob::DailyTime& startTime, const sim_mob::DailyTime& endTime)
@@ -119,7 +119,7 @@ double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs) const
 	{
 		std::stringstream out("");
 		out <<  "[NO DTT FOR : " <<  rs->getId() << "]\n";
-		logger << out.str();
+		//logger << out.str();
 		throw std::runtime_error(out.str());
 	}
 
@@ -141,7 +141,7 @@ double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs, const 
 
 	if(it == segDefTT.end())
 	{
-		logger <<  "[NOTT] " << rs->getId() << "\n";
+		//logger <<  "[NOTT] " << rs->getId() << "\n";
 		return 0.0;
 	}
 

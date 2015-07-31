@@ -28,6 +28,10 @@
 #include "database/dao/HouseHoldHitsSampleDao.hpp"
 #include "database/dao/TazLogsumWeightDao.hpp"
 #include "database/dao/LogsumMtzV2Dao.hpp"
+#include "database/dao/PlanningAreaDao.hpp"
+#include "database/dao/PlanningSubzoneDao.hpp"
+#include "database/dao/MtzDao.hpp"
+#include "database/dao/MtzTazDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -873,6 +877,19 @@ void HM_Model::startImpl()
 
 		loadData<LogsumMtzV2Dao>( conn, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getV2 );
 		PrintOutV("Number of LogsumMtzV2: " << logsumMtzV2.size() << std::endl );
+
+		//
+		loadData<PlanningAreaDao>( conn, planningArea, planningAreaById, &PlanningArea::getId );
+		PrintOutV("Number of planning areas: " << planningArea.size() << std::endl );
+
+		loadData<PlanningSubzoneDao>( conn, planningSubzone, planningSubzoneById, &PlanningSubzone::getId );
+		PrintOutV("Number of planing subzones: " << planningSubzone.size() << std::endl );
+
+		loadData<MtzDao>( conn, mtz, mtzById, &Mtz::getId );
+		PrintOutV("Number of Mtz: " << mtz.size() << std::endl );
+
+		loadData<MtzTazDao>( conn, mtzTaz, mtzTazById, &MtzTaz::getMtzId );
+		PrintOutV("Number of mtz taz lookups: " << mtzTaz.size() << std::endl );
 
 	}
 

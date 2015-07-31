@@ -25,6 +25,10 @@
 #include "database/entity/HouseHoldHitsSample.hpp"
 #include "database/entity/TazLogsumWeight.hpp"
 #include "database/entity/LogsumMtzV2.hpp"
+#include "database/entity/PlanningArea.hpp"
+#include "database/entity/PlanningSubzone.hpp"
+#include "database/entity/Mtz.hpp"
+#include "database/entity/MtzTaz.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -85,6 +89,19 @@ namespace sim_mob
 
             typedef std::vector<LogsumMtzV2*> LogsumMtzV2List;
             typedef boost::unordered_map<BigSerial, LogsumMtzV2*> LogsumMtzV2Map;
+            //
+            typedef std::vector<PlanningArea*> PlanningAreaList;
+            typedef boost::unordered_map<BigSerial, PlanningArea*> PlanningAreaMap;
+
+            typedef std::vector<PlanningSubzone*> PlanningSubzoneList;
+            typedef boost::unordered_map<BigSerial, PlanningSubzone*> PlanningSubzoneMap;
+
+            typedef std::vector<Mtz*> MtzList;
+            typedef boost::unordered_map<BigSerial, Mtz*> MtzMap;
+
+            typedef std::vector<MtzTaz*> MtzTazList;
+            typedef boost::unordered_map<BigSerial, MtzTaz*> MtzTazMap;
+
 
 
             /**
@@ -263,6 +280,17 @@ namespace sim_mob
             LogsumMtzV2List logsumMtzV2;
             LogsumMtzV2Map logsumMtzV2ById;
 
+            PlanningAreaList planningArea;
+            PlanningAreaMap  planningAreaById;
+
+            PlanningSubzoneList planningSubzone;
+            PlanningSubzoneMap planningSubzoneById;
+
+            MtzList mtz;
+            MtzMap mtzById;
+
+            MtzTazList mtzTaz;
+            MtzTazMap mtzTazById;
 
             boost::mutex mtx;
             boost::mutex mtx2;

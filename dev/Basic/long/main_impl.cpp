@@ -77,6 +77,24 @@ int printReport(int simulationNumber, vector<Model*>& models, StopWatch& simulat
 
 void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 {
+
+	for( int n = 1; n <= 215; n++)
+	{
+		//cout << "double getP" << n << "() const;" << std::endl;
+		//cout << "double Hits2008ScreeningProb::getP" << n << "() const" << std::endl;
+		//cout << "{" << std::endl;
+		//cout << "	return p" << n << ";" << std::endl;
+		//cout << "}" << std::endl;
+		//cout << " " << std::endl;
+		//cout << " " << std::endl;
+		//Hits2008ScreeningProb(double p1=0);
+		//cout << "double p" << n << ", ";
+		//double p1)
+		//cout << "p" << n << "(p" << n << "),";
+		//cout << "this->p" << n << " = source.p" << n <<";" << std::endl;
+		cout << "<< \"\\\"p"<<n<<" \\\":\\\"\" 		<< data.p" <<n<<" 		<< \"\\\",\"" << std::endl;
+	}
+
 	time_t timeInSeconds = std::time(0);
 	srand(timeInSeconds);
 

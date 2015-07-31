@@ -20,13 +20,13 @@ namespace sim_mob
 
 		MtzTaz::~MtzTaz(){}
 
-		MtzTaz::MtzTaz(MtzTaz& source )
+		MtzTaz::MtzTaz(const MtzTaz& source )
 		{
 			this->mtzId = source.mtzId;
 			this->tazId = source.tazId;
 		}
 
-		MtzTaz& MtzTaz::operator=(MtzTaz &source)
+		MtzTaz& MtzTaz::operator=(const MtzTaz &source)
 		{
 			this->mtzId = source.mtzId;
 			this->tazId = source.tazId;

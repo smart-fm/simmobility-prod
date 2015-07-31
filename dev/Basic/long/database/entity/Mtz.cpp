@@ -19,14 +19,14 @@ namespace sim_mob
 
 		Mtz::~Mtz(){}
 
-		Mtz::Mtz(Mtz& source)
+		Mtz::Mtz(const Mtz& source)
 		{
 			this->id = source.id;
 			this->planningSubzoneId = source.planningSubzoneId;
 			this->name = source.name;
 		}
 
-		Mtz& Mtz::operator =(Mtz &source)
+		Mtz& Mtz::operator =(const Mtz &source)
 		{
 			this->id = source.id;
 			this->planningSubzoneId  = source.planningSubzoneId;

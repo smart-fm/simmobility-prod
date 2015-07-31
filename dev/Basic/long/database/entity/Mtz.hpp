@@ -25,8 +25,8 @@ namespace sim_mob
 			Mtz(BigSerial id = 0, BigSerial planningSubzoneId = 0, std::string name = "" );
 			virtual ~Mtz();
 
-			Mtz(Mtz & source);
-			Mtz& operator=(Mtz& source);
+			Mtz(const Mtz & source);
+			Mtz& operator=(const Mtz& source);
 
 			BigSerial getId() const;
 			BigSerial getPlanningSubzoneId() const;
@@ -35,6 +35,8 @@ namespace sim_mob
 			friend std::ostream& operator<<(std::ostream& strm, const Mtz& data);
 
 		private:
+			friend class MtzDao;
+
 			BigSerial id;
 			BigSerial planningSubzoneId;
 			std::string name;

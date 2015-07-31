@@ -1,4 +1,4 @@
-//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Copyright (c) 2015 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
 //license.txt   (http://opensource.org/licenses/MIT)
 
@@ -33,6 +33,7 @@ namespace sim_mob
 			friend std::ostream& operator<<(std::ostream& strm, const PlanningArea& data);
 
 		private:
+			friend class PlanningAreaDao;
 
 			BigSerial id;
 			std::string name;

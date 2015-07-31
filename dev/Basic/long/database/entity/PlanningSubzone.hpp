@@ -26,8 +26,8 @@ namespace sim_mob
 			PlanningSubzone(BigSerial id = 0, BigSerial planningAreaId = 0, std::string name = "");
 			virtual ~PlanningSubzone();
 
-			PlanningSubzone(PlanningSubzone &source);
-			PlanningSubzone& operator=(PlanningSubzone& source);
+			PlanningSubzone(const PlanningSubzone &source);
+			PlanningSubzone& operator=(const PlanningSubzone& source);
 
 			BigSerial getId() const;
 			BigSerial getPlanningAreaId() const;
@@ -36,6 +36,9 @@ namespace sim_mob
 			friend std::ostream& operator<<(std::ostream& strm, const PlanningSubzone& data);
 
 		private:
+
+			friend class PlanningSubzoneDao;
+
 			BigSerial id;
 			BigSerial planningAreaId;
 			std::string name;

@@ -24,8 +24,8 @@ namespace sim_mob
 			MtzTaz(BigSerial mtzId =0, BigSerial tazId = 0);
 			virtual ~MtzTaz();
 
-			MtzTaz(MtzTaz& source);
-			MtzTaz& operator=(MtzTaz& source);
+			MtzTaz(const MtzTaz& source);
+			MtzTaz& operator=(const MtzTaz& source);
 
 			BigSerial getMtzId() const;
 			BigSerial getTazId() const;
@@ -33,6 +33,8 @@ namespace sim_mob
 			friend std::ostream& operator<<(std::ostream& strm, const MtzTaz& data);
 
 		private:
+			friend class MtzTazDao;
+
 			BigSerial mtzId;
 			BigSerial tazId;
 		};

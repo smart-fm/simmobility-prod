@@ -21,14 +21,14 @@ namespace sim_mob
 
 		PlanningSubzone::~PlanningSubzone(){}
 
-		PlanningSubzone::PlanningSubzone(PlanningSubzone &source)
+		PlanningSubzone::PlanningSubzone(const PlanningSubzone &source)
 		{
 			this->id = source.id;
 			this->planningAreaId = source.planningAreaId;
 			this->name = source.name;
 		}
 
-		PlanningSubzone & PlanningSubzone::operator=( PlanningSubzone & source)
+		PlanningSubzone & PlanningSubzone::operator=( const PlanningSubzone & source)
 		{
 			this->id = source.id;
 			this->planningAreaId = source.planningAreaId;

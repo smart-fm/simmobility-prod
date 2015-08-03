@@ -160,6 +160,12 @@ namespace sim_mob
             	HouseholdGroup(BigSerial groupId = 0, BigSerial homeTaz = 0, double logsum = .0);
             	~HouseholdGroup(){};
 
+            	HouseholdGroup( HouseholdGroup& source);
+            	HouseholdGroup(const HouseholdGroup& source);
+            	HouseholdGroup& operator=(const HouseholdGroup& source);
+            	HouseholdGroup& operator=( HouseholdGroup& source);
+
+
             	void	setLogsum(double value);
             	void	setGroupId(BigSerial value);
             	void	setHomeTaz( BigSerial value);
@@ -240,7 +246,12 @@ namespace sim_mob
             HouseHoldHitsSample* getHouseHoldHitsById( BigSerial id) const;
             HouseholdGroup* getHouseholdGroupByGroupId(BigSerial id)const;
             void addHouseholdGroupByGroupId(HouseholdGroup* hhGroup);
-
+            void getScreeningProbabilities(std::string hitsId, std::vector<double> &householdScreeningProbabilties );
+            Alternative* getAlternativeById(int zoneHousingType);
+            PlanningArea* getPlanningAreaById( int id );
+            std::vector<PlanningSubzone*> getPlanningSubZoneByPlanningAreaId(int id);
+            std::vector<Mtz*> getMtzBySubzoneVec(std::vector<PlanningSubzone*> vecPlanningSubzone );
+            std::vector <BigSerial> getTazByMtzVec( std::vector<Mtz*> vecMtz);
 
         protected:
             /**

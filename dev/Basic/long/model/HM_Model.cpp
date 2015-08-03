@@ -507,6 +507,37 @@ const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 
 HM_Model::HouseholdGroup::HouseholdGroup(BigSerial groupId, BigSerial homeTaz, double logsum):groupId(groupId),homeTaz(homeTaz),logsum(logsum){}
 
+HM_Model::HouseholdGroup::HouseholdGroup( HouseholdGroup& source)
+{
+	this->groupId = source.groupId;
+	this->homeTaz = source.homeTaz;
+	this->logsum = source.logsum;
+}
+
+HM_Model::HouseholdGroup::HouseholdGroup(const HouseholdGroup& source)
+{
+	this->groupId = source.groupId;
+	this->homeTaz = source.homeTaz;
+	this->logsum = source.logsum;
+}
+
+HM_Model::HouseholdGroup& HM_Model::HouseholdGroup::operator=(const HouseholdGroup& source)
+{
+	this->groupId = source.groupId;
+	this->homeTaz = source.homeTaz;
+	this->logsum = source.logsum;
+
+	return *this;
+}
+
+HM_Model::HouseholdGroup& HM_Model::HouseholdGroup::operator=( HouseholdGroup& source)
+{
+	this->groupId = source.groupId;
+	this->homeTaz = source.homeTaz;
+	this->logsum = source.logsum;
+
+	return *this;
+}
 
 BigSerial HM_Model::HouseholdGroup::getGroupId() const
 {
@@ -582,6 +613,82 @@ DistanceMRT* HM_Model::getDistanceMRTById( BigSerial id) const
 		}
 
 	return nullptr;
+}
+
+void HM_Model::getScreeningProbabilities(std::string hitsId, vector<double> &householdScreeningProbabilities )
+{
+	for( int n = 0; n < hits2008ScreeningProb.size(); n++ )
+	{
+		if( hits2008ScreeningProb[n]->getH1HhId() == hitsId )
+		{
+			hits2008ScreeningProb[n]->getProbabilities(householdScreeningProbabilities);
+			break;
+		}
+	}
+}
+
+Alternative* HM_Model::getAlternativeById(int id)
+{
+	AlternativeMap::const_iterator itr = alternativeById.find(id);
+
+	if (itr != alternativeById.end())
+		return itr->second;
+	else
+		return nullptr;
+}
+
+PlanningArea* HM_Model::getPlanningAreaById( int id )
+{
+	PlanningAreaMap::const_iterator itr = planningAreaById.find(id);
+
+	if( itr != planningAreaById.end())
+		return itr->second;
+	else
+		return nullptr;
+}
+
+std::vector<PlanningSubzone*> HM_Model::getPlanningSubZoneByPlanningAreaId(int id)
+{
+	std::vector<PlanningSubzone*> vecPlanningSubzone;
+	for(int n = 0; n < planningSubzone.size(); n++ )
+	{
+		if(planningSubzone[n]->getPlanningAreaId() == id )
+			vecPlanningSubzone.push_back( planningSubzone[n]);
+	}
+
+	return vecPlanningSubzone;
+}
+
+std::vector<Mtz*> HM_Model::getMtzBySubzoneVec( std::vector<PlanningSubzone*> vecPlanningSubzone )
+{
+	std::vector<Mtz*> vecMtz;
+	for(int n = 0; n < mtz.size(); n++ )
+	{
+		for(int m =0; m < vecPlanningSubzone.size(); m++ )
+		{
+			if(mtz[n]->getPlanningSubzoneId() == vecPlanningSubzone[m]->getId() )
+				vecMtz.push_back( mtz[n]);
+		}
+	}
+
+	return vecMtz;
+}
+
+std::vector<BigSerial> HM_Model::getTazByMtzVec( std::vector<Mtz*> vecMtz )
+{
+	std::vector<BigSerial> vecTaz;
+	for(int n = 0; n < mtzTaz.size(); n++ )
+	{
+		for( int m = 0; m < vecMtz.size(); m++ )
+		{
+			if( mtzTaz[n]->getMtzId() == vecMtz[m]->getId() )
+			{
+				vecTaz.push_back( mtzTaz[n]->getTazId());
+			}
+		}
+	}
+
+	return vecTaz;
 }
 
 HM_Model::HouseHoldHitsSampleList HM_Model::getHouseHoldHits()const
@@ -896,7 +1003,6 @@ void HM_Model::startImpl()
 
 		loadData<Hits2008ScreeningProbDao>( conn, hits2008ScreeningProb, hits2008ScreeningProbById, &Hits2008ScreeningProb::getId );
 		PrintOutV("Number of hits2008 screening probabilities: " << hits2008ScreeningProb.size() << std::endl );
-
 	}
 
 

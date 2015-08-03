@@ -20,7 +20,7 @@
                 <dbname value="sim_mob_lt"/>
             </database>
             
-			<!-- internal ip for remote midterm server -->
+	    <!-- internal ip for remote midterm server -->
             <database id="fm_remote_mt" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
@@ -184,6 +184,7 @@
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
+	    <bidderUnitsChoiceSet value = "100"/>
         </housingModel>
 	<vehicleOwnershipModel enabled='true'>
 		<vehicleBuyingWaitingTimeInDays value= "60"/>

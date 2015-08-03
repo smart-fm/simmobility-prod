@@ -55,7 +55,7 @@ namespace sim_mob
 
 			friend std::ostream& operator<<(std::ostream& strm, const Hits2008ScreeningProb& data);
 
-
+			void getProbabilities(std::vector<double> &screeningProbabilities ) const;
 			double getP1() const;
 			double getP2() const;
 			double getP3() const;
@@ -277,6 +277,7 @@ namespace sim_mob
 
 			BigSerial id;
 			std::string h1_hhid;
+
 			double p1;
 			double p2;
 			double p3;

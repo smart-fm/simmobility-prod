@@ -332,7 +332,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
     if(entry && biddingEntry.isValid() && biddingEntry.getLastSurplus() != 0)
     {
     	secondTrySurplusDiscount = biddingEntry.getLastSurplus() * 0.25;
-    	PrintOutV("Household " << household->getId() <<  " has bid on unit " << biddingEntry.getUnitId() << " for "  << biddingEntry.getTries() << " times and will forgo 25% of the previous surplus valued at $" <<  secondTrySurplusDiscount << std::endl );
+    	//PrintOutV("Household " << household->getId() <<  " has bid on unit " << biddingEntry.getUnitId() << " for "  << biddingEntry.getTries() << " times and will forgo 25% of the previous surplus valued at $" <<  secondTrySurplusDiscount << std::endl );
     }
 
     if (!entry || !biddingEntry.isValid())
@@ -539,13 +539,13 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 		{
 			ZZ_logsumhh = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz );
 
-			HM_Model::HouseholdGroup thisHHGroup(hitssample->getGroupId(), homeTaz, ZZ_logsumhh );
-			model->householdGroupVec.push_back(thisHHGroup);
+			BigSerial groupId = hitssample->getGroupId();
+			//const HM_Model::HouseholdGroup *thisHHGroup = new HM_Model::HouseholdGroup(groupId, homeTaz, ZZ_logsumhh );
+			model->householdGroupVec.push_back(  HM_Model::HouseholdGroup( HM_Model::HouseholdGroup(groupId, homeTaz, ZZ_logsumhh ) ) );
 
 			printHouseholdGroupLogsum( homeTaz, hitssample->getGroupId(), headOfHousehold->getId(), ZZ_logsumhh );
 		}
 	}
-
 
 
 	const HM_Model::TazStats *tazstats = model->getTazStats( hometazId );
@@ -577,7 +577,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	if( nonRetiredAdults == 0)
 	{
-			PrintOutV("[ERROR] non-retired adults in this household is zero.");
+			//PrintOutV("[ERROR] non-retired adults in this household is zero." << std::endl);
 			nonRetiredAdults = 1;
 	}
 
@@ -607,27 +607,13 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	return V + wtp_e;
 }
 
-namespace
-{
-	typedef struct
-	{
-		double probability;
-		int zone;
-
-	} PZ;
-
-	bool cmp( PZ a, PZ b )
-	{
-		return a.probability < b.probability;
-	}
-}
 
 bool HouseholdBidderRole::pickEntryToBid()
 {
     const Household* household = getParent()->getHousehold();
     HousingMarket* market = getParent()->getMarket();
     const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
-    const HM_Model* model = getParent()->getModel();
+    HM_Model* model = getParent()->getModel();
     //get available entries (for preferable zones if exists)
     HousingMarket::ConstEntryList entries;
 
@@ -651,55 +637,183 @@ bool HouseholdBidderRole::pickEntryToBid()
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     float housingMarketSearchPercentage = config.ltParams.housingModel.housingMarketSearchPercentage;
 
-    std::vector<PZ> zoneProbabilities;
+    HouseHoldHitsSample *householdHits = model->getHouseHoldHitsById( household->getId() );
+    std::string hitsId = householdHits->getHouseholdHitsId();
 
-    for(int n = 0; n < 245; n++)
+    std::vector<double>householdScreeningProbabilities;
+    model->getScreeningProbabilities(hitsId, householdScreeningProbabilities);
+
+    //if( householdScreeningProbabilities.size() > 0)
+    //	PrintOutV("hitsId " << hitsId << " sizeProb: " << householdScreeningProbabilities.size() << std::endl);
+
+    std::sort(householdScreeningProbabilities.begin(), householdScreeningProbabilities.end());
+
+
+    /*
+    if( householdScreeningProbabilities.size() > 0 )
     {
-    	PZ temp;
+    	double cummulativeProbability = 0.0;
+    	PrintOut( hitsId << " " );
 
-    	temp.probability = (double)rand() / RAND_MAX;
-    	temp.zone = n;
-
-    	zoneProbabilities.push_back( temp );
-    }
-
-    std::sort(zoneProbabilities.begin(), zoneProbabilities.end(), cmp);
-
-    double randomDraw = rand()/RAND_MAX;
-    int zoneHousingType = -1;
-    for( int n = 0; n < zoneProbabilities.size(); n++ )
-    {
-    	if( randomDraw > zoneProbabilities[n].probability )
+    	for( int n = 0; n < householdScreeningProbabilities.size(); n++ )
     	{
-    		zoneHousingType = zoneProbabilities[n].zone;
+    		cummulativeProbability +=  householdScreeningProbabilities[n];
+    		PrintOut( std::setprecision(6) << cummulativeProbability << " " );
+    	}
+
+    	PrintOut(std::endl);
+    }
+    */
+
+
+    double randomDraw = (double)rand()/RAND_MAX;
+    int zoneHousingType = -1;
+    double cummulativeProbability = 0.0;
+    for( int n = 0; n < householdScreeningProbabilities.size(); n++ )
+    {
+    	cummulativeProbability +=  householdScreeningProbabilities[n];
+    	if( randomDraw >cummulativeProbability )
+    	{
+    		zoneHousingType = n + 1; //housing type is a one-based index
     		break;
     	}
     }
 
-    BigSerial zoneType = 0;
-    BigSerial housingType = 0;
+    Alternative *alt = nullptr;
+    PlanningArea *planArea = nullptr;
+    std::vector<PlanningSubzone*> planSubzone;
+    std::vector<Mtz*> mtz;
+    std::vector<BigSerial> taz;
 
-    for(int n = 0; n < entries.size() * housingMarketSearchPercentage; n++)
+    if( zoneHousingType != -1)
+    {
+    	alt = model->getAlternativeById(zoneHousingType);
+    }
+
+    if( alt != nullptr)
+    {
+    	planArea = model->getPlanningAreaById( alt->getPlanAreaId() );
+    }
+
+    if( planArea != nullptr)
+    {
+    	planSubzone = model->getPlanningSubZoneByPlanningAreaId( planArea->getId() );
+    }
+
+    if( planSubzone.size() != 0)
+    {
+    	mtz = model->getMtzBySubzoneVec( planSubzone );
+    }
+
+    if( mtz.size() != 0)
+    {
+    	taz = model->getTazByMtzVec( mtz );
+    }
+
+    PrintOutV("hits " << hitsId << " probsize " << householdScreeningProbabilities.size() << " zonHouType " << zoneHousingType << " subzone " << planSubzone.size() << " mtz: " << mtz.size() << " taz " << taz.size() << std::endl );
+
+    BigSerial housingType = -1;
+
+    if( alt != nullptr)
+    	housingType = alt->getDwellingTypeId();
+
+    std::vector<const HousingMarket::Entry*> screenedEntries;
+
+    for(int n = 0; n < entries.size() /** housingMarketSearchPercentage*/ && housingType != -1 && taz.size() == 0 && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
     {
     	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
 
     	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
     	const HousingMarket::Entry* entry = *itr;
 
-      	entry->getTazId();
         const Unit* thisUnit = model->getUnitById( entry->getUnitId() );
 
-    	if( thisUnit->getUnitType() )
+        int thisDwellingType = 0;
+
+        /*
+            100	HDB12
+			300	HDB3
+			400	HDB4
+			500	HDB5
+			600	Condo
+			700	Landed
+			800	Other
+        */
+        if( thisUnit->getUnitType()  == 1 || thisUnit->getUnitType() == 2)
+        {
+        	thisDwellingType = 100;
+        }
+        else
+        if( thisUnit->getUnitType() == 3 )
+        {
+        	thisDwellingType = 300;
+        }
+        else
+        if( thisUnit->getUnitType() == 4)
+        {
+        	thisDwellingType = 400;
+        }
+        else
+        if( thisUnit->getUnitType() == 5)
+        {
+        	thisDwellingType = 500;
+        }
+        else
+        if( thisUnit->getUnitType() >= 12 && thisUnit->getUnitType() <= 16 )
+        {
+        	thisDwellingType = 600;
+        }
+        else
+        if( thisUnit->getUnitType() >= 17 && thisUnit->getUnitType() <= 31)
+        {
+        	thisDwellingType = 700;
+        }
+        else
+        {
+        	thisDwellingType = 800;
+        }
+
+    	if( thisDwellingType == housingType )
     	{
+    		for( int m = 0; m < taz.size(); m++ )
+    		{
+    			PrintOutV("entry " << entry->getTazId() << " taz " << taz[m]  << std::endl);
+
+    			if( entry->getTazId() == taz[m] )
+    				screenedEntries.push_back(entries[m]);
+    		}
     	}
     }
+
+   // PrintOutV("Screening results in " << screenedEntries.size() << " out of " << entries.size() << " entries in housing market."<< std::endl );
+
+    bool sucessfulScreening = true;
+    if( screenedEntries.size() == 0 )
+    {
+    	sucessfulScreening = false;
+    	screenedEntries = entries;
+    }
+    else
+    {
+    	PrintOutV("choiceset was successful" << std::endl);
+    }
+    //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );
 
     // Choose the unit to bid with max surplus. However, we are not iterating through the whole list of available units.
     // We choose from a subset of units set by the housingMarketSearchPercentage parameter in the long term XML file.
     // This is done to replicate the real life scenario where a household will only visit a certain percentage of vacant units before settling on one.
-    for(int n = 0; n < entries.size(); n++)
+    for(int n = 0; n < screenedEntries.size(); n++)
     {
-    	HousingMarket::ConstEntryList::const_iterator itr = entries.begin();
+    	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
+
+    	//if we have a good choiceset, let's iterate linearly
+    	if(sucessfulScreening == true)
+    		offset = n;
+
+    	if( n > config.ltParams.housingModel.bidderUnitsChoiceSet)
+    		break;
+
+    	HousingMarket::ConstEntryList::const_iterator itr = screenedEntries.begin() + offset;
         const HousingMarket::Entry* entry = *itr;
 
         if(entry && entry->getOwner() != getParent())
@@ -717,8 +831,6 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             if( unit && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
                 flatEligibility = false;
-
-           // const double constantVal = 500000;
 
             if( unit && stats && flatEligibility )
             {

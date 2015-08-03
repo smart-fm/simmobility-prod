@@ -4,11 +4,12 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include <math.h>
+#include <cmath>
 
 #include "models/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
 #include "Driver.hpp"
+#include "util/Utils.hpp"
 
 using namespace std;
 using namespace sim_mob;

@@ -9,10 +9,12 @@
 
 #include <cmath>
 #include <boost/algorithm/string.hpp>
-#include <boost/regex.hpp>
-#include <boost/thread/mutex.hpp>
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/regex.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/thread/tss.hpp>
 #include <sstream>
 #include "entities/incident/IncidentManager.hpp"
 #include "entities/PersonLoader.hpp"
@@ -41,6 +43,45 @@ using namespace sim_mob;
 
 namespace
 {
+
+	struct ModelContext
+	{
+		ModelContext() { pvtRouteChoiceModel = new PrivateTrafficRouteChoice(); }
+		~ModelContext() { delete pvtRouteChoiceModel; }
+
+		PrivateTrafficRouteChoice* pvtRouteChoiceModel;
+	};
+
+	boost::thread_specific_ptr<ModelContext> threadContext;
+
+	void ensureContext()
+	{
+		if (!threadContext.get())
+		{
+			ModelContext* modelCtx = new ModelContext();
+			threadContext.reset(modelCtx);
+		}
+	}
+
+	class PrivateRouteChoiceProvider
+	{
+	public:
+		/**
+		 * Gets the private traffic route choice model.
+		 *
+		 * Attention: you should not hold this instance.
+		 * This provider will give you an instance based on
+		 *  current thread context.
+		 *
+		 * @return Lua preday model reference.
+		 */
+		static PrivateTrafficRouteChoice* getPvtRouteChoiceModel()
+		{
+		    ensureContext();
+		    return threadContext.get()->pvtRouteChoiceModel;
+		}
+	};
+
 	//sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
 
 	unsigned int seed = 0;
@@ -51,6 +92,59 @@ namespace
 		boost::uniform_real<double> u(min, max);
 		boost::variate_generator<boost::mt19937&, boost::uniform_real<double> > gen(rng, u);
 		return gen();
+	}
+
+	/**
+	 * In the path set find the shortest path which includes the given segment.
+	 * The method uses linkPath container which covers all the links that the
+	 * path visits.
+	 * Note: A path visiting a link doesnt mean the enire link is within the path.
+	 * fist and last link might have segments that are not in the path.
+	 * @param pathChoices given path set
+	 * @param rs consider only the paths having the given road segment
+	 * @return the singlepath object containing the shortest path
+	 */
+	sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::Link *ln)
+	{
+		if(pathChoices.begin() == pathChoices.end())
+		{
+			return nullptr;
+		}
+		sim_mob::SinglePath* res = nullptr;
+		double min = std::numeric_limits<double>::max();
+		double tmp = 0.0;
+		BOOST_FOREACH(sim_mob::SinglePath*sp, pathChoices)
+		{
+
+			if(sp->linkPath.empty())
+			{
+				throw std::runtime_error("linkPath of singlepath object is Empty");
+			}
+			//filter paths not including the target link
+			if(std::find(sp->linkPath.begin(),sp->linkPath.end(),ln) == sp->linkPath.end())
+			{
+				continue;
+			}
+			if(sp->length <= 0.0)
+			{
+				throw std::runtime_error("Invalid path length");//todo remove this after enough testing
+			}
+			//double tmp = generateSinglePathLength(sp->path);
+			if ((sp->length*1000000 - min*1000000  ) < 0.0) //easy way to check doubles
+			{
+				//min = tmp;
+				min = sp->length;
+				res = sp;
+			}
+		}
+		return res;
+	}
+
+	// Overload
+	sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::RoadSegment *rs)
+	{
+		const sim_mob::Link *ln = rs->getLink();
+		return findShortestPath_LinkBased(pathChoices,ln);
 	}
 
 	/**
@@ -206,6 +300,42 @@ namespace
 		}
 	};
 
+	double getPathTravelCost(sim_mob::SinglePath *sp,const std::string & travelMode, const sim_mob::DailyTime & startTime_)
+	{
+		sim_mob::DailyTime tripStartTime(startTime_);
+		double res=0.0;
+		double ts=0.0;
+		for(std::vector<WayPoint>::iterator it1 = sp->path.begin(); it1 != sp->path.end(); it1++)
+		{
+			unsigned long segId = (it1)->roadSegment_->getId();
+			std::map<int,sim_mob::ERP_Section*>::iterator it = sim_mob::PathSetParam::getInstance()->ERP_SectionPool.find(segId);//todo type mismatch
+			//get travel time to this segment
+			double t = sim_mob::PathSetParam::getInstance()->getSegTT((it1)->roadSegment_,travelMode, tripStartTime);
+			ts += t;
+			tripStartTime = tripStartTime + sim_mob::DailyTime(t*1000);
+			if(it!=sim_mob::PathSetParam::getInstance()->ERP_SectionPool.end())
+			{
+				sim_mob::ERP_Section* erp_section = (*it).second;
+				std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::iterator itt =
+						sim_mob::PathSetParam::getInstance()->ERP_SurchargePool.find(erp_section->ERP_Gantry_No_str);
+				if(itt!=sim_mob::PathSetParam::getInstance()->ERP_SurchargePool.end())
+				{
+					std::vector<sim_mob::ERP_Surcharge*> erp_surcharges = (*itt).second;
+					for(int i=0;i<erp_surcharges.size();++i)
+					{
+						sim_mob::ERP_Surcharge* s = erp_surcharges[i];
+						if( s->startTime_DT.isBeforeEqual(tripStartTime) && s->endTime_DT.isAfter(tripStartTime) &&
+								s->vehicleTypeId == 1 && s->day == "Weekdays")
+						{
+							res += s->rate;
+						}
+					}
+				}
+			}
+		}
+		return res;
+	}
+
 	/**
 	 * Any attempt to generate a path set for any OD is recorded here and will not be attempted again
 	 */
@@ -218,10 +348,7 @@ namespace
 	SimpleCollector tempNoPath;
 }
 
-double getPathTravelCost(sim_mob::SinglePath *sp,const std::string & travelMode, const sim_mob::DailyTime & startTime_);
-sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::RoadSegment *rs);
-sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::Link *ln);
-
+PrivatePathsetGenerator* sim_mob::PrivatePathsetGenerator::instance_ = nullptr;
 
 std::string getFromToString(const sim_mob::Node* fromNode,const sim_mob::Node* toNode ){
 	std::stringstream out("");
@@ -238,6 +365,8 @@ unsigned int sim_mob::PathSetManager::intervalMS = 0;
 sim_mob::PathSetManager::PathSetManager(): pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName)
 {
 	pathSetParam = PathSetParam::getInstance();
+	std::string dbStr(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
+	dbSession = boost::shared_ptr<soci::session>(new soci::session(soci::postgresql,dbStr));
 }
 
 sim_mob::PathSetManager::~PathSetManager()
@@ -264,12 +393,6 @@ void sim_mob::PrivateTrafficRouteChoice::insertIncidentList(const sim_mob::RoadS
 const boost::shared_ptr<soci::session>& sim_mob::PathSetManager::getSession()
 {
 	return dbSession;
-}
-
-void sim_mob::PrivateTrafficRouteChoice::storeRTT()
-{
-	bool res = processTT.storeRTT2DB();
-	Print() << "Travel  Time Storage " << (res ? "Success" : "Failed") << std::endl;
 }
 
 void sim_mob::PathSetManager::clearSinglePaths(boost::shared_ptr<sim_mob::PathSet>& ps){
@@ -526,7 +649,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(
 		pathset->subTrip = st;//at least for the travel start time, subtrip is needed
 		onPathSetRetrieval(pathset,enRoute);
 		//no need to supply permanent blacklist
-		bool pathChosen = getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute, approach);
+		bool pathChosen = getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute);
 		//logger <<  fromToID << " : getBestPathChoiceFromPathSet returned best path of size : " << pathset->bestPath->size() << "\n";
 		if(pathChosen)
 		{
@@ -584,7 +707,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(
 		//	no need of processing and storing blacklisted paths
 		short psCnt = pathset->pathChoices.size();
 		onPathSetRetrieval(pathset,enRoute);
-		bool pathChosen = getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute, approach);
+		bool pathChosen = getBestPathChoiceFromPathSet(pathset, partial, emptyBlkLst, enRoute);
 		//logger << "[" << fromToID << "]" <<  " :  number of paths before blcklist: " << psCnt << " after blacklist:" << pathset->pathChoices.size() << "\n";
 		if(pathChosen)
 		{
@@ -639,7 +762,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(
 		}
 		//logger << "[PATHSET GENERATED : " << fromToID << "]\n" ;
 		onPathSetRetrieval(pathset, enRoute);
-		successful = getBestPathChoiceFromPathSet(pathset, partial,emptyBlkLst,enRoute,approach);
+		successful = getBestPathChoiceFromPathSet(pathset, partial,emptyBlkLst,enRoute);
 		if (successful)
 		{
 			res = *(pathset->bestPath);
@@ -1309,8 +1432,7 @@ double sim_mob::PrivateTrafficRouteChoice::generateUtility(const sim_mob::Single
 
 bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet> &ps,
 		const std::set<const sim_mob::RoadSegment *> & partialExclusion ,
-		const std::set<const sim_mob::RoadSegment*> &blckLstSegs , bool enRoute,
-		const sim_mob::RoadSegment* approach)
+		const std::set<const sim_mob::RoadSegment*> &blckLstSegs , bool enRoute)
 {
 	bool computeUtility = false;
 	// step 1.1 : For each path i in the path choice:
@@ -1519,18 +1641,15 @@ double sim_mob::PrivateTrafficRouteChoice::getPathTravelTime(sim_mob::SinglePath
 	return timeSum ;
 }
 
-void sim_mob::PrivateTrafficRouteChoice::addSegTT(const Agent::RdSegTravelStat & stats) {
-	processTT.addTravelTime(stats);
-}
-
-double sim_mob::PrivateTrafficRouteChoice::getInSimulationSegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime)
+double sim_mob::PrivateTrafficRouteChoice::getInSimulationSegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime) const
 {
 	return processTT.getInSimulationSegTT(travelMode,rs);
 }
 
 void sim_mob::PathSetManager::initTimeInterval()
 {
-	intervalMS = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval* 1000 /*milliseconds*/;
+	intervalMS = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval * 1000 /*milliseconds*/;
+	if(intervalMS <= 0) { throw runtime_error("invalid interval specified in config file"); }
 	uint32_t startTm = ConfigManager::GetInstance().FullConfig().simStartTime().getValue();
 	curIntervalMS = TravelTimeManager::getTimeInterval(startTm, intervalMS);
 }
@@ -1538,101 +1657,6 @@ void sim_mob::PathSetManager::initTimeInterval()
 void sim_mob::PathSetManager::updateCurrTimeInterval()
 {
 	curIntervalMS += intervalMS;
-}
-
-
-/**
- * In the path set find the shortest path which includes the given segment.
- * The method uses linkPath container which covers all the links that the
- * path visits.
- * Note: A path visiting a link doesnt mean the enire link is within the path.
- * fist and last link might have segments that are not in the path.
- * @param pathChoices given path set
- * @param rs consider only the paths having the given road segment
- * @return the singlepath object containing the shortest path
- */
-sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::Link *ln)
-{
-	if(pathChoices.begin() == pathChoices.end())
-	{
-		return nullptr;
-	}
-	sim_mob::SinglePath* res = nullptr;
-	double min = std::numeric_limits<double>::max();
-	double tmp = 0.0;
-	BOOST_FOREACH(sim_mob::SinglePath*sp, pathChoices)
-	{
-
-		if(sp->linkPath.empty())
-		{
-			throw std::runtime_error("linkPath of singlepath object is Empty");
-		}
-		//filter paths not including the target link
-		if(std::find(sp->linkPath.begin(),sp->linkPath.end(),ln) == sp->linkPath.end())
-		{
-			continue;
-		}
-		if(sp->length <= 0.0)
-		{
-			throw std::runtime_error("Invalid path length");//todo remove this after enough testing
-		}
-		//double tmp = generateSinglePathLength(sp->path);
-		if ((sp->length*1000000 - min*1000000  ) < 0.0) //easy way to check doubles
-		{
-			//min = tmp;
-			min = sp->length;
-			res = sp;
-		}
-	}
-	return res;
-}
-
-/**
- * Overload
- */
-sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::RoadSegment *rs)
-{
-	const sim_mob::Link *ln = rs->getLink();
-	return findShortestPath_LinkBased(pathChoices,ln);
-}
-
-double getPathTravelCost(sim_mob::SinglePath *sp,const std::string & travelMode, const sim_mob::DailyTime & startTime_)
-{
-	sim_mob::DailyTime tripStartTime(startTime_);
-	double res=0.0;
-	double ts=0.0;
-//	if(!sp || sp->path.empty()) {
-//		sim_mob::Logger::log("pathset.log") << "gTC: sp is empty" << std::endl;
-//	}
-	for(std::vector<WayPoint>::iterator it1 = sp->path.begin(); it1 != sp->path.end(); it1++)
-	{
-		unsigned long segId = (it1)->roadSegment_->getId();
-		std::map<int,sim_mob::ERP_Section*>::iterator it = sim_mob::PathSetParam::getInstance()->ERP_SectionPool.find(segId);//todo type mismatch
-		//get travel time to this segment
-		double t = sim_mob::PathSetParam::getInstance()->getSegTT((it1)->roadSegment_,travelMode, tripStartTime);
-		ts += t;
-		tripStartTime = tripStartTime + sim_mob::DailyTime(t*1000);
-		if(it!=sim_mob::PathSetParam::getInstance()->ERP_SectionPool.end())
-		{
-			sim_mob::ERP_Section* erp_section = (*it).second;
-			std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::iterator itt =
-					sim_mob::PathSetParam::getInstance()->ERP_SurchargePool.find(erp_section->ERP_Gantry_No_str);
-			if(itt!=sim_mob::PathSetParam::getInstance()->ERP_SurchargePool.end())
-			{
-				std::vector<sim_mob::ERP_Surcharge*> erp_surcharges = (*itt).second;
-				for(int i=0;i<erp_surcharges.size();++i)
-				{
-					sim_mob::ERP_Surcharge* s = erp_surcharges[i];
-					if( s->startTime_DT.isBeforeEqual(tripStartTime) && s->endTime_DT.isAfter(tripStartTime) &&
-							s->vehicleTypeId == 1 && s->day == "Weekdays")
-					{
-						res += s->rate;
-					}
-				}
-			}
-		}
-	}
-	return res;
 }
 
 sim_mob::PrivatePathsetGenerator::PrivatePathsetGenerator() : PathSetManager(), stdir(StreetDirectory::instance())
@@ -1649,26 +1673,27 @@ sim_mob::PrivatePathsetGenerator::~PrivatePathsetGenerator()
 sim_mob::PrivateTrafficRouteChoice::PrivateTrafficRouteChoice() : PathSetManager(),
 		psRetrieval(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrieval),
 		psRetrievalWithoutRestrictedRegion(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrievalWithoutBannedRegion),
-		cacheLRU(2500), processTT(intervalMS, curIntervalMS)
-{
-	std::string dbStr(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
-	dbSession = boost::shared_ptr<soci::session>(new soci::session(soci::postgresql,dbStr));
-}
+		cacheLRU(2500), processTT(*(sim_mob::TravelTimeManager::getInstance()))
+{}
 
 sim_mob::PrivateTrafficRouteChoice::~PrivateTrafficRouteChoice()
 {}
 
 PrivateTrafficRouteChoice* sim_mob::PrivateTrafficRouteChoice::getInstance()
 {
+	return PrivateRouteChoiceProvider::getPvtRouteChoiceModel();
 }
 
-static PrivatePathsetGenerator* sim_mob::PrivatePathsetGenerator::getInstance()
+PrivatePathsetGenerator* sim_mob::PrivatePathsetGenerator::getInstance()
 {
+	if(!instance_)
 	{
-		if(!instance_)
-		{
-			instance_ = new PrivatePathsetGenerator();
-		}
+		instance_ = new PrivatePathsetGenerator();
 	}
 	return instance_;
+}
+
+void sim_mob::PrivateTrafficRouteChoice::addPartialExclusion(const sim_mob::RoadSegment* value)
+{
+	partialExclusions.insert(value);
 }

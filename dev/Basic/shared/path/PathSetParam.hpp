@@ -15,16 +15,29 @@ private:
 	/**	current real time collection/retrieval interval (in milliseconds) */
 	const int intervalMS;
 
-public:
-	static PathSetParam *getInstance();
-
+	/** initializes parameters*/
 	void initParameters();
+
+	/**
+	 * create the table used to store realtime travel time information
+	 * @param dbSession the soci session object to use for table creation
+	 */
+	bool createTravelTimeRealtimeTable(soci::session& dbSession);
 
 	/** Retrieve 'ERP' and 'link travel time' information */
 	void populate();
 
 	/** Retrieve 'ERP' and 'link travel time' information from Database */
 	void getDataFromDB();
+
+	/**
+	 * set the database table name used to store travel time information
+	 * @param value table name
+	 */
+	void setRTTT(const std::string& value);
+
+public:
+	static PathSetParam* getInstance();
 
 	/**
 	 * insert an entry into singlepath table in the database
@@ -35,17 +48,6 @@ public:
 	void storeSinglePath(soci::session& sql,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string pathSetTableName);
 
 	/**
-	 * set the database table name used to store travel time information
-	 * @param value table name
-	 */
-	void setRTTT(const std::string& value);
-
-	/**
-	 * create the table used to store realtime travel time information
-	 */
-	bool createTravelTimeRealtimeTable();
-
-	/**
 	 * get the average travel time of a segment within a time range
 	 * @param rs input road segment
 	 * @param travelMode intended mode of traversing the segment
@@ -53,7 +55,7 @@ public:
 	 * @param endTime end of the time range
 	 * @return travel time in seconds
 	 */
-	double getSegRangeTT(const sim_mob::RoadSegment* rs, const std::string travelMode, const sim_mob::DailyTime& startTime, const sim_mob::DailyTime& endTime);
+	double getSegRangeTT(const sim_mob::RoadSegment* rs, const std::string travelMode, const sim_mob::DailyTime& startTime, const sim_mob::DailyTime& endTime) const;
 
 	/**
 	 * gets the average 'default' travel time of a segment.
@@ -61,14 +63,14 @@ public:
 	 * @param rs the input road segment
 	 * @return travel time in seconds
 	 */
-	double getDefSegTT(const sim_mob::RoadSegment* rs)const ;
+	double getDefSegTT(const sim_mob::RoadSegment* rs) const;
 
 	/**
 	 * gets the 'default' travel time of a segment based on the given time of day.
 	 * @param rs the input road segment
 	 * @return travel time in seconds
 	 */
-	double getDefSegTT(const sim_mob::RoadSegment* rs, const sim_mob::DailyTime &startTime);
+	double getDefSegTT(const sim_mob::RoadSegment* rs, const sim_mob::DailyTime &startTime) const;
 
 	/**
 	 * get historical average travel time of a segment in a specific time of day
@@ -78,7 +80,7 @@ public:
 	 * @param startTime start of the time range
 	 * @return travel time in seconds
 	 */
-	double getHistorySegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime);
+	double getHistorySegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime) const;
 
 	/**
 	 * base method to get travel time of a segment in a specific time of
@@ -91,7 +93,7 @@ public:
 	 * @param startTime start of the time range
 	 * @return travel time in seconds
 	 */
-	double getSegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime);
+	double getSegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime) const;
 
 //	///	return cached node given its id
 //	sim_mob::Node* getCachedNode(std::string id);

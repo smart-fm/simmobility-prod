@@ -266,7 +266,7 @@ bool sim_mob::medium::DriverMovement::initializePath()
 		const sim_mob::SubTrip& currSubTrip = *(person->currSubTrip);
 		if (ConfigManager::GetInstance().FullConfig().PathSetMode()) // if use path set
 		{
-			wp_path = PathSetManager::getInstance()->getPath(currSubTrip, false, nullptr);
+			wp_path = PrivateTrafficRouteChoice::getInstance()->getPath(currSubTrip, false, nullptr);
 		}
 		else
 		{
@@ -1003,7 +1003,7 @@ void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSeg
 
 		if(ConfigManager::GetInstance().FullConfig().PathSetMode())
 		{
-			PathSetManager::getInstance()->addSegTT(currStats);
+			TravelTimeManager::getInstance()->addTravelTime(currStats);
 		}
 
 		ScreenLineCounter::getInstance()->updateScreenLineCount(currStats);
@@ -1217,7 +1217,7 @@ bool DriverMovement::UTurnFree(std::vector<WayPoint> & newPath, std::vector<cons
 	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
 	//if no path, return false, if path found, return true
 	std::stringstream outDbg("");
-	sim_mob::PathSetManager::getInstance()->getBestPath(newPath,subTrip, true,  excludeRS,false,false,false,nullptr);
+	sim_mob::PrivateTrafficRouteChoice::getInstance()->getBestPath(newPath,subTrip, true,  excludeRS,false,false,false,nullptr);
 	//try again
 	if(!newPath.size()){
 		//pathsetLogger<< "No other path can avoid a Uturn, suggest to discard \n" ;
@@ -1252,7 +1252,7 @@ bool DriverMovement::canJoinPaths(std::vector<WayPoint> & newPath, std::vector<c
 	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
 	//if no path, return false, if path found, return true
 	std::stringstream outDbg("");
-	sim_mob::PathSetManager::getInstance()->getBestPath(newPath,subTrip, true, excludeRS,false,false,false,nullptr);
+	sim_mob::PrivateTrafficRouteChoice::getInstance()->getBestPath(newPath,subTrip, true, excludeRS,false,false,false,nullptr);
 	to = newPath.begin()->roadSegment_;
 	bool res = isConnectedToNextSeg(from,to);
 	return res;
@@ -1303,7 +1303,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 		//todo and the start time !!!-vahid
 		subTrip.fromLocation.node_ = detourNode.first;
 		//	record the new paths using the updated subtrip. (including no paths)
-		sim_mob::PathSetManager::getInstance()->getBestPath(newPaths[detourNode.first], subTrip,true, std::set<const sim_mob::RoadSegment*>(), false,false,false,nullptr);//partially excluded sections must be already added
+		sim_mob::PrivateTrafficRouteChoice::getInstance()->getBestPath(newPaths[detourNode.first], subTrip,true, std::set<const sim_mob::RoadSegment*>(), false,false,false,nullptr);//partially excluded sections must be already added
 	}
 
 	/*step-4: prepend the old path to the new path
@@ -1406,7 +1406,7 @@ void DriverMovement::handleMessage(messaging::Message::MessageType type, const m
 	switch (type){
 	case MSG_INSERT_INCIDENT:{
 		const InsertIncidentMessage &msg = MSG_CAST(InsertIncidentMessage,message);
-		PathSetManager::getInstance()->addPartialExclusion((*msg.stats.begin())->getRoadSegment());
+		PrivateTrafficRouteChoice::getInstance()->addPartialExclusion((*msg.stats.begin())->getRoadSegment());
 		reroute(msg);
 		break;
 	}

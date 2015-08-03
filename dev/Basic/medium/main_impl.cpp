@@ -287,7 +287,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 	//finalize
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		PathSetManager::getInstance()->storeRTT();
+		TravelTimeManager::getInstance()->storeRTT2DB();
 	}
 
 	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;

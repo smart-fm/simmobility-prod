@@ -78,7 +78,7 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 		//send a message to conflux to insert an incident to itseld
 		messaging::MessageBus::PostMessage(rs->getParentConflux(), MSG_INSERT_INCIDENT,
 							messaging::MessageBus::MessagePtr(new InsertIncidentMessage(stats, incident->second.get<1>())));
-		sim_mob::PathSetManager::getInstance()->inserIncidentList((*stats.begin())->getRoadSegment());
+		sim_mob::PrivateTrafficRouteChoice::getInstance()->insertIncidentList((*stats.begin())->getRoadSegment());
 		std::vector <const sim_mob::Person*> persons;
 		identifyAffectedDrivers(rs,persons);
 		//logger << " INCIDENT  segment:"<< rs->getSegmentAimsunId() << " affected:" << persons.size() << "\n" ;

@@ -1,12 +1,21 @@
 #include "TravelTimeManager.hpp"
-#include "PathSetManager.hpp"
+#include "boost/filesystem.hpp"
+#include "boost/foreach.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "boost/filesystem.hpp"
+#include "path/PathSetManager.hpp"
+#include "util/LangHelpers.hpp"
 
-sim_mob::TravelTimeManager::TravelTimeManager(unsigned int &intervalMS, unsigned int &curIntervalMS):intervalMS(intervalMS), curIntervalMS(curIntervalMS)
+sim_mob::TravelTimeManager* sim_mob::TravelTimeManager::instance = nullptr;
+
+sim_mob::TravelTimeManager::TravelTimeManager()
+	: intervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval),
+	  enRouteTT(new sim_mob::TravelTimeManager::EnRouteTT(*this))
+{}
+
+sim_mob::TravelTimeManager::~TravelTimeManager()
 {
-	enRouteTT.reset(new sim_mob::LastTT(*this));
+	safe_delete_item(enRouteTT);
 }
 
 void sim_mob::TravelTimeManager::addTravelTime(const Agent::RdSegTravelStat & stats) {
@@ -29,7 +38,7 @@ double sim_mob::TravelTimeManager::getInSimulationSegTT(const std::string mode, 
 	return enRouteTT->getInSimulationSegTT(mode,rs);
 }
 
-double sim_mob::LastTT::getInSimulationSegTT(const std::string mode, const sim_mob::RoadSegment *rs) const
+double sim_mob::TravelTimeManager::EnRouteTT::getInSimulationSegTT(const std::string mode, const sim_mob::RoadSegment *rs) const
 {
 	boost::unique_lock<boost::mutex> lock(parent.ttMapMutex);
 	//[time interval][travel mode][road segment][average travel time]
@@ -117,6 +126,11 @@ bool sim_mob::TravelTimeManager::storeRTT2DB()
 	return true;
 }
 
-sim_mob::TravelTimeManager::~TravelTimeManager()
+sim_mob::TravelTimeManager* sim_mob::TravelTimeManager::getInstance()
 {
+	if(!instance)
+	{
+		instance = new TravelTimeManager();
+	}
+	return instance;
 }

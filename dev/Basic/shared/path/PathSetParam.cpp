@@ -29,19 +29,17 @@ void sim_mob::PathSetParam::populate()
 
 void sim_mob::PathSetParam::getDataFromDB()
 {
-	setRTTT(ConfigManager::GetInstance().FullConfig().getRTTT());
-	//logger << "[RTT TABLE NAME : " << RTTT << "]\n";
-	sim_mob::aimsun::Loader::LoadERPData(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false),
-			ERP_SurchargePool,	ERP_Gantry_ZonePool,ERP_SectionPool);
-
-	sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(*(PathSetManager::getSession()), segDefTT);
-
-	bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(*(PathSetManager::getSession()),
-			sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval, segHistoryTT);
+	const sim_mob::ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
+	std::string dbStr(cfg.getDatabaseConnectionString(false));
+	soci::session dbSession(soci::postgresql,dbStr);
+	setRTTT(cfg.getRTTT());
+	sim_mob::aimsun::Loader::LoadERPData(cfg.getDatabaseConnectionString(false), ERP_SurchargePool,	ERP_Gantry_ZonePool, ERP_SectionPool);
+	sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(dbSession, segDefTT);
+	bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(dbSession, cfg.pathSet().interval, segHistoryTT);
 	if(!res) // no realtime travel time table
 	{
 		//create
-		if(!createTravelTimeRealtimeTable() )
+		if(!createTravelTimeRealtimeTable(dbSession) )
 		{
 			throw std::runtime_error("can not create travel time table");
 		}
@@ -52,7 +50,7 @@ void sim_mob::PathSetParam::storeSinglePath(soci::session& sql,std::set<sim_mob:
 	sim_mob::aimsun::Loader::storeSinglePath(sql,spPool,pathSetTableName);
 }
 
-bool sim_mob::PathSetParam::createTravelTimeRealtimeTable()
+bool sim_mob::PathSetParam::createTravelTimeRealtimeTable(soci::session& dbSession)
 {
 	bool res=false;
 	std::string createTableStr = "create table " + RTTT +
@@ -70,7 +68,7 @@ bool sim_mob::PathSetParam::createTravelTimeRealtimeTable()
 			");"
 			"ALTER TABLE " + RTTT +
 			"  OWNER TO postgres;";
-	res = sim_mob::aimsun::Loader::excuString(*(PathSetManager::getSession()),createTableStr);
+	res = sim_mob::aimsun::Loader::excuString(dbSession,createTableStr);
 	return res;
 }
 
@@ -86,7 +84,7 @@ void sim_mob::PathSetParam::setRTTT(const std::string& value)
 	//logger << "[REALTIME TABLE NAME : " << RTTT << "]\n";
 }
 
-double sim_mob::PathSetParam::getSegRangeTT(const sim_mob::RoadSegment* rs, const std::string travelMode, const sim_mob::DailyTime& startTime, const sim_mob::DailyTime& endTime)
+double sim_mob::PathSetParam::getSegRangeTT(const sim_mob::RoadSegment* rs, const std::string travelMode, const sim_mob::DailyTime& startTime, const sim_mob::DailyTime& endTime) const
 {
 	//1. check realtime table
 	double res=0.0;
@@ -129,7 +127,7 @@ double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs) const
 	return (totalTravelTime / e.size());
 }
 
-double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs, const sim_mob::DailyTime &startTime)
+double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs, const sim_mob::DailyTime &startTime) const
 {
 	/*
 	 *	Note:
@@ -137,7 +135,7 @@ double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs, const 
 	 *	if found, it returns the first occurrence of travel time
 	 *	which includes the given time
 	 */
-	std::map<unsigned long, std::vector<sim_mob::LinkTravelTime> >::iterator it = segDefTT.find(rs->getId());
+	std::map<unsigned long, std::vector<sim_mob::LinkTravelTime> >::const_iterator it = segDefTT.find(rs->getId());
 
 	if(it == segDefTT.end())
 	{
@@ -145,10 +143,10 @@ double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs, const 
 		return 0.0;
 	}
 
-	std::vector<sim_mob::LinkTravelTime> &e = (*it).second;
-	for(std::vector<sim_mob::LinkTravelTime>::iterator itL(e.begin());itL != e.end();++itL)
+	const std::vector<sim_mob::LinkTravelTime>& e = (*it).second;
+	for(std::vector<sim_mob::LinkTravelTime>::const_iterator itL(e.begin());itL != e.end();++itL)
 	{
-		sim_mob::LinkTravelTime& l = *itL;
+		const sim_mob::LinkTravelTime& l = *itL;
 		if( l.startTime_DT.isBeforeEqual(startTime) && l.endTime_DT.isAfter(startTime) )
 		{
 //			logger << rs->getId() << "  " << startTime.getRepr_() << " [DEFTT] " <<  "  " << dbg.str() << "\n";
@@ -159,20 +157,20 @@ double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs, const 
 	return 0.0;
 }
 
-double sim_mob::PathSetParam::getHistorySegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime)
+double sim_mob::PathSetParam::getHistorySegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime) const
 {
 	std::ostringstream dbg("");
 	//1. check realtime table
 	double res = 0.0;
 	TT::TI timeInterval = TravelTimeManager::getTimeInterval(startTime.getValue(),intervalMS);
-	AverageTravelTime::iterator itRange = segHistoryTT.find(timeInterval);
+	AverageTravelTime::const_iterator itRange = segHistoryTT.find(timeInterval);
 	if(itRange != segHistoryTT.end())
 	{
-		sim_mob::TT::MST & mst = itRange->second;
-		sim_mob::TT::MST::iterator itMode = mst.find(travelMode);
+		const sim_mob::TT::MST& mst = itRange->second;
+		sim_mob::TT::MST::const_iterator itMode = mst.find(travelMode);
 		if(itMode != mst.end())
 		{
-			std::map<const sim_mob::RoadSegment*,double >::iterator itRS = itMode->second.find(rs);
+			std::map<const sim_mob::RoadSegment*,double >::const_iterator itRS = itMode->second.find(rs);
 			if(itRS != itMode->second.end())
 			{
 //				logger << startTime.getRepr_() << " [REALTT] " <<  "  " << dbg.str() << "\n";
@@ -183,7 +181,7 @@ double sim_mob::PathSetParam::getHistorySegTT(const sim_mob::RoadSegment* rs, co
 	return 0.0;
 }
 
-double sim_mob::PathSetParam::getSegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime)
+double sim_mob::PathSetParam::getSegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime) const
 {
 	//check realtime table
 	double res = getHistorySegTT(rs, travelMode, startTime);

@@ -29,7 +29,7 @@ class PathSetWorkerThread;
  *
  * \author Vahid Saber Hamishagi
  * \author Harish Loganathan
- * \author Balakumar G
+ * \author Balakumar Marimuthu
  */
 class PathSetManager
 {
@@ -40,7 +40,8 @@ public:
 	/**
 	 * get the database session used for this thread
 	 */
-	static const boost::shared_ptr<soci::session>& getSession();
+	const boost::shared_ptr<soci::session>& getSession();
+
 	void setScenarioName(std::string& name) { scenarioName = name; }
 
 	/**
@@ -93,7 +94,7 @@ public:
 	*/
 	static unsigned int curIntervalMS;
 
-private:
+protected:
 	/**	link to pathset paramaters */
 	PathSetParam* pathSetParam;
 
@@ -104,7 +105,7 @@ private:
 	std::string scenarioName;
 
 	/** postgres session to query pathsets */
-	boost::shared_ptr<soci::session > dbSession;
+	boost::shared_ptr<soci::session> dbSession;
 };
 
 /**
@@ -112,7 +113,7 @@ private:
  *
  * \author Vahid Saber Hamishagi
  * \author Harish Loganathan
- * \author Balakumar G
+ * \author Balakumar Marimuthu
  */
 class PrivatePathsetGenerator : boost::noncopyable, public sim_mob::PathSetManager
 {
@@ -236,7 +237,7 @@ public:
  *
  * \author Vahid Saber Hamishagi
  * \author Harish Loganathan
- * \author Balakumar G
+ * \author Balakumar Marimuthu
  */
 class PrivateTrafficRouteChoice : public sim_mob::PathSetManager
 {
@@ -260,7 +261,7 @@ private:
 	const std::string& psRetrievalWithoutRestrictedRegion;
 
 	/**	Travel time processing */
-	TravelTimeManager& processTT;
+	const TravelTimeManager& processTT;
 
 	/**
 	 * cache the generated pathset
@@ -300,6 +301,20 @@ private:
 	 */
 	double generateUtility(const sim_mob::SinglePath* sp) const;
 
+	/**
+	 * Get best path from given pathsets
+	 * @param ps input pathset choices
+	 * @param partialExclusion input segments temporarily having different attributes
+	 * @param blckLstSegs segments off the road network. This
+	 * @param enRoute is this method called for an enroute path request
+	 * Note: PathsetManager object already has containers for partially excluded and blacklisted segments. They will be
+	 * the default containers throughout the simulation. but partialExcludedSegs and blckLstSegs arguments are combined
+	 * with their counterparts in PathSetmanager only during the scope of this method to serve temporary purposes.
+	 */
+	bool getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet> &ps,
+			const std::set<const sim_mob::RoadSegment *> & partialExclusion,
+			const std::set<const sim_mob::RoadSegment*> &blckLstSegs, bool enRoute);
+
 public:
 	PrivateTrafficRouteChoice();
 	virtual ~PrivateTrafficRouteChoice();
@@ -310,17 +325,6 @@ public:
 	static PrivateTrafficRouteChoice* getInstance();
 
 	/**
-	 * store the realtime travel time into permanent storage
-	 */
-	void storeRTT();
-
-	/**
-	 * record the travel time reported by agents
-	 * @param stats road segment travel time information
-	 */
-	void addSegTT(const Agent::RdSegTravelStat & stats);
-
-	/**
 	 * gets the average travel time of a segment experienced during the current simulation.
 	 * Whether the desired travel time is coming from the last time interval
 	 * or from the average of all previous time intervals is implementation dependent.
@@ -329,7 +333,7 @@ public:
 	 * @param startTime indicates when the segment is to be traversed.
 	 * @return travel time in seconds
 	 */
-	double getInSimulationSegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime);
+	double getInSimulationSegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime) const;
 
 	/**
 	 * insert roadsegment into incident list
@@ -338,14 +342,19 @@ public:
 	void insertIncidentList(const sim_mob::RoadSegment* rs);
 
 	/**
-	 * find/generate set of path choices for a given suntrip, and then return the best of them
+	 * add to exclusion list
+	 */
+	void addPartialExclusion(const sim_mob::RoadSegment* value);
+
+	/**
+	 * find/generate set of path choices for a given subtrip, and then return the best of them
 	 * @param st input subtrip
 	 * @param res output path generated
 	 * @param partialExcludedSegs segments temporarily having different attributes
 	 * @param blckLstSegs segments off the road network. This
 	 * @param tempBlckLstSegs segments temporarily off the road network
 	 * @param enRoute is this method called for an enroute path request
-	 * @param approache if this is an entoute, from which segment is it permitted to enter the rerouting point to start a new path
+	 * @param approach if this is an entoute, from which segment is it permitted to enter the rerouting point to start a new path
 	 * Note: PathsetManager object already has containers for partially excluded and blacklisted segments. They will be
 	 * the default containers throughout the simulation. but partialExcludedSegs and blckLstSegs arguments are combined
 	 * with their counterparts in PathSetmanager only during the scope of this method to serve temporary purposes.
@@ -355,11 +364,7 @@ public:
 			 const std::set<const sim_mob::RoadSegment*> tempBlckLstSegs/*=std::set<const sim_mob::RoadSegment*>()*/,
 			 bool usePartialExclusion ,
 			 bool useBlackList ,
-			 bool enRoute ,const sim_mob::RoadSegment* approache);
-
-	bool getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet> &ps,
-			const std::set<const sim_mob::RoadSegment *> & partialExclusion,
-			const std::set<const sim_mob::RoadSegment*> &blckLstSegs, bool enRoute, const sim_mob::RoadSegment* rs);
+			 bool enRoute ,const sim_mob::RoadSegment* approach);
 
 	/**
 	 * The main entry point to the pathset manager,

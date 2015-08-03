@@ -236,7 +236,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 		//	This mode can be executed in the main function also but we need the street directory to be initialized first
 		//	to be least intrusive to the rest of the code, we take a safe approach and run this mode from here, although a lot of
 		//	unnecessary code will be executed.
-		sim_mob::PathSetManager::getInstance()->bulkPathSetGenerator();
+		sim_mob::PrivatePathsetGenerator::getInstance()->bulkPathSetGenerator();
 		Print() << "Bulk Generation Done " << profile.tick().first.count() << std::endl;
 		exit(1);
 	}

@@ -12,7 +12,7 @@ private:
 	PathSetParam();
 	static PathSetParam *instance_;
 
-	///	current real time collection/retrieval interval (in milliseconds)
+	/**	current real time collection/retrieval interval (in milliseconds) */
 	const int intervalMS;
 
 public:
@@ -20,10 +20,10 @@ public:
 
 	void initParameters();
 
-	/// Retrieve 'ERP' and 'link travel time' information
+	/** Retrieve 'ERP' and 'link travel time' information */
 	void populate();
 
-	/// Retrieve 'ERP' and 'link travel time' information from Database
+	/** Retrieve 'ERP' and 'link travel time' information from Database */
 	void getDataFromDB();
 
 	/**
@@ -96,7 +96,7 @@ public:
 //	///	return cached node given its id
 //	sim_mob::Node* getCachedNode(std::string id);
 
-	double getHighwayBias() { return highwayBias; }
+	double getHighwayBias() const { return highwayBias; }
 
 	///	return the current rough size of the class todo:obsolete
 	uint32_t getSize();

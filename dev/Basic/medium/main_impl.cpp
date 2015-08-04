@@ -537,14 +537,13 @@ int main_impl(int ARGC, char* ARGV[])
 		Utils::printAndDeleteLogFiles(resLogFiles);
 	}
 
-	timeval simEndTime;
-	gettimeofday(&simEndTime, nullptr);
-
 	if(ConfigManager::GetInstance().FullConfig().screenLineParams.outputEnabled)
 	{
 		ScreenLineCounter::getInstance()->exportScreenLineCount();
 	}
 
+	timeval simEndTime;
+	gettimeofday(&simEndTime, nullptr);
 	Print() << "Done" << endl;
 	cout << "Total simulation time: "<< (ProfileBuilder::diff_ms(simEndTime, simStartTime))/1000.0 << " seconds." << endl;
 

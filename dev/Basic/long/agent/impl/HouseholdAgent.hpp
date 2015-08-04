@@ -5,6 +5,7 @@
 /* 
  * File:   HouseholdAgent.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ * 		   Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  *
  * Created on May 16, 2013, 6:36 PM
  */
@@ -31,7 +32,7 @@ namespace sim_mob
         class HouseholdAgent : public LT_Agent
         {
         public:
-            HouseholdAgent(BigSerial id, HM_Model* model, const Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0);
+            HouseholdAgent(BigSerial id, HM_Model* model, const Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0, int householdBiddingWindow = 0);
             virtual ~HouseholdAgent();
             
             enum VehicleOwnershipOption
@@ -51,6 +52,8 @@ namespace sim_mob
             void awakenHousehold();
             void setBuySellInterval( int value );
             int getBuySellInterval( ) const;
+
+            void setHouseholdBiddingWindow(int value);
         
         protected:
             /**
@@ -105,6 +108,8 @@ namespace sim_mob
             HouseholdSellerRole* seller;
 
             int buySellInterval;
+
+            int householdBiddingWindow;
 
             bool marketSeller; //tells if the agent is only a fake market seller
             int day;

@@ -31,8 +31,8 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller, int day)
-: LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), bidder (nullptr), seller(nullptr), day(day),vehicleOwnershipOption(NO_CAR)
+HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller, int day, int householdBiddingWindow)
+: LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), bidder (nullptr), seller(nullptr), day(day),vehicleOwnershipOption(NO_CAR), householdBiddingWindow(householdBiddingWindow)
 {
     seller = new HouseholdSellerRole(this);
     seller->setActive(marketSeller);
@@ -45,6 +45,7 @@ HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* h
 
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
+    householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow;
 }
 
 HouseholdAgent::~HouseholdAgent()
@@ -106,6 +107,11 @@ void HouseholdAgent::setBuySellInterval( int value )
 int HouseholdAgent::getBuySellInterval( ) const
 {
 	return buySellInterval;
+}
+
+void HouseholdAgent::setHouseholdBiddingWindow(int value)
+{
+	householdBiddingWindow = value;
 }
 
 
@@ -268,17 +274,21 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		buySellInterval--;
 	}
 
+	if( householdBiddingWindow == 0 )
+		bidder->setActive(false);
 
 
-    if (bidder && bidder->isActive())
+    if (bidder && bidder->isActive() && householdBiddingWindow > 0 )
     {
         bidder->update(now);
+        householdBiddingWindow--;
     }
 
     if (seller && seller->isActive())
     {
         seller->update(now);
     }
+
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
 

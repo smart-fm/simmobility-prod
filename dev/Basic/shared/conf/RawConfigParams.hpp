@@ -62,9 +62,9 @@ struct LongTermParams{
 	struct HousingModel{
 		HousingModel();
 		bool enabled;
-		unsigned int timeInterval;
-		unsigned int timeOnMarket;
-		unsigned int timeOffMarket;
+		unsigned int timeInterval; //time interval before a unit drops its asking price by a certain percentage.
+		unsigned int timeOnMarket; //for units on the housing market
+		unsigned int timeOffMarket;//for units on the housing market
 		float vacantUnitActivationProbability;
 		int initialHouseholdsOnMarket;
 		float housingMarketSearchPercentage;
@@ -72,6 +72,7 @@ struct LongTermParams{
 		bool  outputHouseholdLogsums;
 		int offsetBetweenUnitBuyingAndSelling;
 		int bidderUnitsChoiceSet;
+		int householdBiddingWindow;
 	} housingModel;
 
 	struct VehicleOwnershipModel{

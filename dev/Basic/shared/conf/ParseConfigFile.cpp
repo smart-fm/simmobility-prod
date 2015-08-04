@@ -506,6 +506,7 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	housingModel.outputHouseholdLogsums = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "outputHouseholdLogsums"), "value"), false);
 	housingModel.offsetBetweenUnitBuyingAndSelling = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "offsetBetweenUnitBuyingAndSelling"), "value"), static_cast<int>(0));
 	housingModel.bidderUnitsChoiceSet = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "bidderUnitsChoiceSet"), "value"), static_cast<int>(0));
+	housingModel.householdBiddingWindow = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "householdBiddingWindow"), "value"), static_cast<int>(0));
 	cfg.ltParams.housingModel = housingModel;
 
 	LongTermParams::VehicleOwnershipModel vehicleOwnershipModel;

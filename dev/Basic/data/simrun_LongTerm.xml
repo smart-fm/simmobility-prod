@@ -163,7 +163,7 @@
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
-    	<days value="365"/>
+    	<days value="4"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>       
@@ -179,12 +179,13 @@
             <timeOnMarket value="90"/>
             <timeOffMarket value="150"/>
             <timeInterval value="7"/>
-	    <InitialHouseholdsOnMarket value="10000"/>
+	    <InitialHouseholdsOnMarket value="1000"/>
 	    <vacantUnitActivationProbability value="0.375"/>
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
 	    <bidderUnitsChoiceSet value = "100"/>
+	    <householdBiddingWindow value = "100" />
         </housingModel>
 	<vehicleOwnershipModel enabled='true'>
 		<vehicleBuyingWaitingTimeInDays value= "60"/>

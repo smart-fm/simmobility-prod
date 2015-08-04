@@ -136,6 +136,12 @@ bool HouseholdBidderRole::isActive() const
 
 void HouseholdBidderRole::setActive(bool activeArg)
 {
+	if( activeArg == true )
+	{
+		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+		getParent()->setHouseholdBiddingWindow( config.ltParams.housingModel.householdBiddingWindow );
+	}
+
     active = activeArg;
 }
 
@@ -364,7 +370,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
                 {
                 	//PrintOut("\033[1;36mHousehold " << std::dec << household->getId() << " submitted a bid on unit " << biddingEntry.getUnitId() << "\033[0m\n" );
 					#ifdef VERBOSE
-                	//PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << bidValue << "[wp:$" << biddingEntry.getWP() << ",sp:$" << speculation  << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
+                	PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << bidValue << "[wp:$" << biddingEntry.getWP() << ",sp:$" << speculation  << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
 					#endif
 
                     bid(entry->getOwner(), Bid(entry->getUnitId(), household->getId(), getParent(), bidValue, now, biddingEntry.getWP(), speculation));
@@ -540,8 +546,8 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 			ZZ_logsumhh = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz );
 
 			BigSerial groupId = hitssample->getGroupId();
-			//const HM_Model::HouseholdGroup *thisHHGroup = new HM_Model::HouseholdGroup(groupId, homeTaz, ZZ_logsumhh );
-			model->householdGroupVec.push_back(  HM_Model::HouseholdGroup( HM_Model::HouseholdGroup(groupId, homeTaz, ZZ_logsumhh ) ) );
+			const HM_Model::HouseholdGroup *thisHHGroup = new HM_Model::HouseholdGroup(groupId, homeTaz, ZZ_logsumhh );
+			model->householdGroupVec.push_back(  *thisHHGroup );
 
 			printHouseholdGroupLogsum( homeTaz, hitssample->getGroupId(), headOfHousehold->getId(), ZZ_logsumhh );
 		}
@@ -643,29 +649,6 @@ bool HouseholdBidderRole::pickEntryToBid()
     std::vector<double>householdScreeningProbabilities;
     model->getScreeningProbabilities(hitsId, householdScreeningProbabilities);
 
-    //if( householdScreeningProbabilities.size() > 0)
-    //	PrintOutV("hitsId " << hitsId << " sizeProb: " << householdScreeningProbabilities.size() << std::endl);
-
-    std::sort(householdScreeningProbabilities.begin(), householdScreeningProbabilities.end());
-
-
-    /*
-    if( householdScreeningProbabilities.size() > 0 )
-    {
-    	double cummulativeProbability = 0.0;
-    	PrintOut( hitsId << " " );
-
-    	for( int n = 0; n < householdScreeningProbabilities.size(); n++ )
-    	{
-    		cummulativeProbability +=  householdScreeningProbabilities[n];
-    		PrintOut( std::setprecision(6) << cummulativeProbability << " " );
-    	}
-
-    	PrintOut(std::endl);
-    }
-    */
-
-
     double randomDraw = (double)rand()/RAND_MAX;
     int zoneHousingType = -1;
     double cummulativeProbability = 0.0;
@@ -710,7 +693,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	taz = model->getTazByMtzVec( mtz );
     }
 
-    PrintOutV("hits " << hitsId << " probsize " << householdScreeningProbabilities.size() << " zonHouType " << zoneHousingType << " subzone " << planSubzone.size() << " mtz: " << mtz.size() << " taz " << taz.size() << std::endl );
+    //PrintOutV("hits " << hitsId << " probsize " << householdScreeningProbabilities.size() << " zonHouType " << zoneHousingType << " subzone " << planSubzone.size() << " mtz: " << mtz.size() << " taz " << taz.size() << std::endl );
 
     BigSerial housingType = -1;
 
@@ -816,7 +799,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	HousingMarket::ConstEntryList::const_iterator itr = screenedEntries.begin() + offset;
         const HousingMarket::Entry* entry = *itr;
 
-        if(entry && entry->getOwner() != getParent())
+        if(entry && entry->getOwner() != getParent() && entry->getAskingPrice() > 0.01 )
         {
             const Unit* unit = model->getUnitById(entry->getUnitId());
             const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());

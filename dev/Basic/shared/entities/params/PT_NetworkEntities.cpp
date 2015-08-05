@@ -9,6 +9,8 @@
 #include "conf/RawConfigParams.hpp"
 #include "database/DB_Connection.hpp"
 #include "database/pt_network_dao/PT_NetworkSqlDao.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
+#include "util/Utils.hpp"
 
 
 using namespace std;
@@ -102,6 +104,34 @@ MRT_Stop::MRT_Stop(std::string stopId,int roadSegment){
 	this->roadSegments.push_back(roadSegment);
 }
 
+const sim_mob::RoadSegment* MRT_Stop::getStationSegmentForNode(const sim_mob::Node* nd) const
+{
+	const sim_mob::RoadSegment* res = nullptr;
+	double minDis = std::numeric_limits<double>::max();
+	for (std::vector<int>::const_iterator segIt = roadSegments.begin(); segIt != roadSegments.end(); segIt++)
+	{
+		unsigned int id = *segIt;
+		const sim_mob::RoadSegment* segment = sim_mob::StreetDirectory::instance().getRoadSegment(id);
+		const sim_mob::Node* node = segment->getStart();
+		sim_mob::DynamicVector estimateDistVector(nd->getLocation().getX(),nd->getLocation().getY(), node->getLocation().getX(),	node->getLocation().getY());
+		double actualDistanceStart = estimateDistVector.getMagnitude();
+		if (minDis > actualDistanceStart)
+		{
+			minDis = actualDistanceStart;
+			res = segment;
+		}
+	}
+	return res;
+}
+
+const sim_mob::RoadSegment* sim_mob::MRT_Stop::getRandomStationSegment() const
+{
+	int random = sim_mob::Utils::generateInt(0, roadSegments.size()-1);
+	std::vector<int>::const_iterator segIt = roadSegments.begin();
+	std::advance(segIt, random);
+	return sim_mob::StreetDirectory::instance().getRoadSegment(*segIt);
+}
+
 PT_NetworkEdge::PT_NetworkEdge():startStop(""),endStop(""),rType(""),road_index(""),roadEdgeId(""),
 rServiceLines(""),linkTravelTimeSecs(0),edgeId(0),waitTimeSecs(0),walkTimeSecs(0),transitTimeSecs(0),
 transferPenaltySecs(0),dayTransitTimeSecs(0),distKMs(0)
@@ -113,4 +143,6 @@ PT_NetworkVertex::PT_NetworkVertex():stopId(""),stopCode(""),stopName(""),stopLa
 		stopLongitude(0),ezlinkName(""),stopType(0),stopDesc("")
 {}
 
-PT_NetworkVertex::~PT_NetworkVertex() {}
+PT_NetworkVertex::~PT_NetworkVertex()
+{
+}

@@ -373,7 +373,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
  */
 bool performMainDemand()
 {
-	std::srand(clock()); // set random seed for RNGs in preday
 	const MT_Config& mtConfig = MT_Config::getInstance();
 	const db::BackendType populationSource = mtConfig.getPopulationSource();
 	PredayManager predayManager;
@@ -420,6 +419,7 @@ bool performMainDemand()
  */
 bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles)
 {
+	std::srand(clock()); // set random seed for RNGs
 	cout <<"Starting SimMobility, version " << SIMMOB_VERSION << endl;
 
 	//Parse the config file (this *does not* create anything, it just reads it.).

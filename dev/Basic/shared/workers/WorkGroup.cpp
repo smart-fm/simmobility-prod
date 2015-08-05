@@ -520,15 +520,15 @@ void sim_mob::WorkGroup::assignConfluxToWorkers() {
 	if(confluxes.size() > 0)
 	{
 		//There can be up to (workers.size() - 1) confluxes for which the parent
-		//worker is unassigned. Assign these to the last worker which has all
-		//its upstream confluxes.
-		sim_mob::Worker* worker = workers.back();
-		for(std::set<sim_mob::Conflux*>::iterator i = confluxes.begin(); i!=confluxes.end(); i++)
+		//worker is not yet assigned. We distribute these confluxes to the workers in round robin fashion
+		std::vector<Worker*>::iterator wrkrIt = workers.begin();
+		for(std::set<sim_mob::Conflux*>::iterator cfxIt = confluxes.begin(); cfxIt!=confluxes.end(); cfxIt++, wrkrIt++)
 		{
-			if (worker->beginManagingConflux(*i))
+			sim_mob::Worker* worker = *wrkrIt;
+			if (worker->beginManagingConflux(*cfxIt))
 			{
-				(*i)->setParentWorker(worker);
-				(*i)->currWorkerProvider = worker;
+				(*cfxIt)->setParentWorker(worker);
+				(*cfxIt)->currWorkerProvider = worker;
 			}
 		}
 		confluxes.clear();

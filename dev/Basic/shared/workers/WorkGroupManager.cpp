@@ -174,7 +174,7 @@ void sim_mob::WorkGroupManager::waitAllGroups()
 	}
 
 	gettimeofday(&end, nullptr);
-	timestream << "total: "<< (ProfileBuilder::diff_ms(end, endMT))/1000.0 << "s" << std::endl;
+	timestream << "total: "<< (ProfileBuilder::diff_ms(end, start))/1000.0 << "s" << std::endl;
 	std::cout << timestream.str();
 }
 

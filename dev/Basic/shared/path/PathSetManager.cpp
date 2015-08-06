@@ -337,11 +337,6 @@ namespace
 	}
 
 	/**
-	 * Any attempt to generate a path set for any OD is recorded here and will not be attempted again
-	 */
-	SimpleCollector pathRetrievalAttempt;
-
-	/**
 	 * used to avoid entering duplicate "HAS_PATH=-1" pathset entries into PathSet.
 	 * It will be removed once the cache and/or proper DB functions are in place
 	 */
@@ -661,14 +656,6 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(
 	}
 	//else { logger <<  fromToID << " : Cache Miss " << "\n"; }
 
-	// before proceeding further, check if someone other thread has already started looking for a path for this OD.
-	// if yes, back off and try after sometime
-	if(!pathRetrievalAttempt.tryCheck(fromToID))
-	{
-		boost::this_thread::sleep(boost::posix_time::seconds(1));
-		return getBestPath(res, st, true, tempBlckLstSegs, usePartialExclusion, nonCBD_OD, enRoute, approach);
-	}
-
 	//step-2:check  DB
 	sim_mob::HasPath hasPath = PSM_UNKNOWN;
 	pathset.reset(new sim_mob::PathSet());
@@ -714,78 +701,16 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(
 			res = *(pathset->bestPath);
 			//cache
 			if(useCache) { cachePathSet(pathset); }
-			pathRetrievalAttempt.erase(fromToID);
 			//logger << "returning a path " << res.size() << "\n";
 			return true;
 		}
-		else
-		{
-			pathRetrievalAttempt.erase(fromToID);
-			//logger << "UNUSED DB hit\n";
-		}
 		break;
 	}
-	case PSM_NOTFOUND:
+	case PSM_NOTFOUND: //if not found,
+	case PSM_NOGOODPATH: // or if no good path available
+	default: // or if anything else
 	{
-		//logger << "[" << fromToID << "]" <<  " : DB Miss\n";
-		// Step-3 : If not found in DB, generate all 4 types of path
-		//logger << "[GENERATING PATHSET : " << fromToID << "]\n";
-		// 1. generate shortest path with all segs
-		// 1.2 get all segs
-		// 1.3 generate shortest path with full segs
-
-		//just to avoid
-		pathset.reset(new PathSet());
-		pathset->id = fromToID;
-		pathset->scenario = scenarioName;
-		pathset->subTrip = st;
-		pathset->nonCDB_OD = nonCBD_OD;
-		std::set<OD> recursiveOrigins;
-		bool successful = PrivatePathsetGenerator::getInstance()->generateAllPathChoices(pathset, recursiveOrigins, blckLstSegs);
-		if (!successful)
-		{
-			//logger << "[PATHSET GENERATION FAILURE : " << fromToID << "]\n";
-			tempNoPath.insert(fromToID);
-			pathRetrievalAttempt.erase(fromToID);
-			return false;
-		}
-		//this hack conforms to the CBD property added to segment and node
-		if(nonCBD_OD)
-		{
-			if(!purgeCbdPaths(*pathset))
-			{
-				//logger << "[ALL PATHS IN CBD" << fromToID << "]\n" ;
-				tempNoPath.insert(fromToID);
-				pathRetrievalAttempt.erase(fromToID);
-				return false;
-			}
-		}
-		//logger << "[PATHSET GENERATED : " << fromToID << "]\n" ;
-		onPathSetRetrieval(pathset, enRoute);
-		successful = getBestPathChoiceFromPathSet(pathset, partial,emptyBlkLst,enRoute);
-		if (successful)
-		{
-			res = *(pathset->bestPath);
-			//cache
-			if(useCache) { cachePathSet(pathset); }
-			pathRetrievalAttempt.erase(fromToID);
-			//logger << pathset->id	<< "WARNING not cached, apparently, already in cache. this is NOT and expected behavior!!\n";
-			//logger << "[RETURN PATH OF SIZE : " << res.size() << " : " << fromToID << "]\n";
-			return true;
-		}
-		else
-		{
-			pathRetrievalAttempt.erase(fromToID);
-			//logger << "[NO PATH RETURNED EVEN AFTER GENERATING A PATHSET : " << fromToID << "]\n";
-			return false;
-		}
-		break;
-	}
-	case PSM_NOGOODPATH:
-	default:
-	{
-		tempNoPath.insert(fromToID);
-		pathRetrievalAttempt.erase(fromToID);
+		tempNoPath.insert(fromToID); //note pathset unavailability
 		break;
 	}
 	};

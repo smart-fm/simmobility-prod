@@ -41,7 +41,7 @@ namespace sim_mob
             class CurrentBiddingEntry
             {
             public:
-                CurrentBiddingEntry(const BigSerial unitId = INVALID_ID, const double wp = 0, double lastSurplus = 0 );
+                CurrentBiddingEntry(const BigSerial unitId = INVALID_ID, const double bestBid = 0, const double wp = 0, double lastSurplus = 0 );
                 ~CurrentBiddingEntry();
 
                 /**
@@ -49,6 +49,7 @@ namespace sim_mob
                  */
                 BigSerial getUnitId() const;
                 double getWP() const;
+                double getBestBid() const;
                 long int getTries() const;
                 bool isValid() const;
                 
@@ -64,6 +65,7 @@ namespace sim_mob
             private:
                 BigSerial unitId;
                 double wp; // willingness to pay.
+                double bestBid; //actual final bid
                 long int tries; // number of bids sent to the seller.
                 double lastSurplus; // value of the last surplus
             };
@@ -131,7 +133,7 @@ namespace sim_mob
              * @return true if a unit was picked false otherwise;
              */
             bool pickEntryToBid();
-            double calculateWillingnessToPay(const Unit* unit, const Household* household);
+            double calculateWillingnessToPay(const Unit* unit, const Household* household, double& wtp_e);
 
             volatile bool waitingForResponse;
             timeslice lastTime;

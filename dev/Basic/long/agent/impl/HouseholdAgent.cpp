@@ -274,7 +274,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 		buySellInterval--;
 	}
 
-	if( householdBiddingWindow == 0 )
+	if( bidder && householdBiddingWindow == 0 )
 		bidder->setActive(false);
 
 

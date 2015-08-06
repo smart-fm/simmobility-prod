@@ -69,7 +69,7 @@ namespace
     }
 }
 
-HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry( const BigSerial unitId, const double wp, double lastSurplus) : unitId(unitId), wp(wp), tries(0), lastSurplus(lastSurplus){}
+HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry( const BigSerial unitId, double bestBid, const double wp, double lastSurplus ) : unitId(unitId), bestBid(bestBid), wp(wp), tries(0), lastSurplus(lastSurplus){}
 
 HouseholdBidderRole::CurrentBiddingEntry::~CurrentBiddingEntry()
 {
@@ -84,6 +84,11 @@ BigSerial HouseholdBidderRole::CurrentBiddingEntry::getUnitId() const
 double HouseholdBidderRole::CurrentBiddingEntry::getWP() const
 {
     return wp;
+}
+
+double HouseholdBidderRole::CurrentBiddingEntry::getBestBid() const
+{
+	return bestBid;
 }
 
 long int HouseholdBidderRole::CurrentBiddingEntry::getTries() const
@@ -178,18 +183,25 @@ void HouseholdBidderRole::ComputeHouseholdAffordability()
 			  thisTime = *localtime(&now);
 			  int difference = thisTime.tm_year - dob.tm_year;
 
-			 if( difference < maturityAge )
+			if( difference < maturityAge )
+			{
 				 children++;
+				 //PrintOutV("children: "<< children << std::endl);
+			}
 		}
 
 		debtToIncomeRatio = DTIR_Couple;
 
 		if(children > 0 )
+		{
 			debtToIncomeRatio = DTIR_Family;
+		}
 	}
 
 	double income = debtToIncomeRatio * bidderHousehold->getIncome();
 	double loanTenure = retirementAge - bidderHousehold->getAgeOfHead() * 12.0; //times 12 to get he tenure in months, not years.
+
+	loanTenure = std::min( 360.0, loanTenure ); //tenure has a max for 30 years.
 
 	HM_Model::HousingInterestRateList *interestRateListX = getParent()->getModel()->getHousingInterestRateList();
 
@@ -331,16 +343,6 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
     // does not have more margin of negotiation then is better look for another unit.
     const HousingMarket::Entry* entry = market->getEntryById(biddingEntry.getUnitId());
 
-    //If a household is bidding on the same unit for the second day in a row, the surplus is
-    //decremented by a 25%. The variable below will keep track of that.
-    double secondTrySurplusDiscount = 0;
-
-    if(entry && biddingEntry.isValid() && biddingEntry.getLastSurplus() != 0)
-    {
-    	secondTrySurplusDiscount = biddingEntry.getLastSurplus() * 0.25;
-    	//PrintOutV("Household " << household->getId() <<  " has bid on unit " << biddingEntry.getUnitId() << " for "  << biddingEntry.getTries() << " times and will forgo 25% of the previous surplus valued at $" <<  secondTrySurplusDiscount << std::endl );
-    }
-
     if (!entry || !biddingEntry.isValid())
     {
         //if unit is not available or entry is not valid then
@@ -353,59 +355,44 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
     
     if (entry && biddingEntry.isValid())
     {
-        double speculation = luaModel.calculateSpeculation(*entry, biddingEntry.getTries());
+		const Unit* unit = model->getUnitById(entry->getUnitId());
+		const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
 
-        //If the speculation is 0 means the bidder has reached the maximum 
-        //number of bids that he can do for the current entry.
-        if (speculation > 0)
-        {
-            const Unit* unit = model->getUnitById(entry->getUnitId());
-            const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
+		if (unit && stats)
+		{
+			if (entry->getOwner() && biddingEntry.getBestBid() > 0.0f)
+			{
+				#ifdef VERBOSE
+				PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << bidValue << "[wp:$" << biddingEntry.getWP() << ",sp:$" << speculation  << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
+				#endif
 
-            if (unit && stats)
-            {
-                double bidValue = biddingEntry.getWP() - speculation - secondTrySurplusDiscount;
+				bid(entry->getOwner(), Bid(entry->getUnitId(), household->getId(), getParent(), biddingEntry.getBestBid(), now, biddingEntry.getWP()));
 
-                if (entry->getOwner() && bidValue > 0.0f)
-                {
-                	//PrintOut("\033[1;36mHousehold " << std::dec << household->getId() << " submitted a bid on unit " << biddingEntry.getUnitId() << "\033[0m\n" );
-					#ifdef VERBOSE
-                	PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << bidValue << "[wp:$" << biddingEntry.getWP() << ",sp:$" << speculation  << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
-					#endif
-
-                    bid(entry->getOwner(), Bid(entry->getUnitId(), household->getId(), getParent(), bidValue, now, biddingEntry.getWP(), speculation));
-                    return true;
-                }
-            }
-        }
-        else
-        {
-        	PrintOutV("Negative speculation. Bid again! " << std::endl );
-
-            biddingEntry.invalidate();
-            return bidUnit(now); // try to bid again.
-        }
+				return true;
+			}
+		}
     }
     return false;
 }
 
-double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Household* household)
+double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Household* household, double& wtp_e)
 {
 	double V;
 
 	//
 	//These constants are extracted from Roberto Ponce's bidding model
 	//
-	const double sde		=  0.6321401001;
-	const double bpriv		=  0.4451238086;
-	const double bhdb123	=  -0.029778552;
-	const double bhdb4		= -0.1483637708;
-	const double bhdb5		= -0.2498613851;
-	const double barea		= 0.9995179115;
-	const double blogsum	= 0.0227986711;
-	const double bchin		= 0.0639243971;
-	const double bmalay		= -0.0516443165;
-	const double bHighInc	= 0.0274990591;
+	const double sde		=  0.641045;
+	const double bpriv		= -1.022480;
+	const double bhdb123	= -1.634130;
+	const double bhdb4		= -1.694060;
+	const double bhdb5		= -1.693300;
+	const double barea		=  0.549532;
+	const double blogsum	=  0.019853;
+	const double bchin		=  0.069107;
+	const double bmalay		= -0.044110;
+	const double bHighInc	= -1.485980;
+	const double bAreaHinc  =  0.337325;
 
 	const PostcodeAmenities* pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( unit->getSlaAddressId() );
 
@@ -446,7 +433,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	else
 		HH_size3m = 1;
 
-	DD_area = unit->getFloorArea() / 100;
+	DD_area = log( unit->getFloorArea() );
 
 	BigSerial homeTaz = 0;
 	BigSerial workTaz = 0;
@@ -603,14 +590,15 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 		blogsum * ZZ_logsumhh +
 		bchin * ZZ_hhchinese +
 		bmalay * ZZ_hhmalay +
-		bHighInc * ZZ_highInc;
+		bHighInc * ZZ_highInc +
+		bAreaHinc * ZZ_highInc * barea;
 
-	boost::mt19937 rng(time(0));
+	boost::mt19937 rng( clock() );
 	boost::normal_distribution<> nd( 0.0, sde);
 	boost::variate_generator<boost::mt19937&,  boost::normal_distribution<> > var_nor(rng, nd);
-	double wtp_e  = var_nor();
+	wtp_e  = var_nor();
 
-	return V + wtp_e;
+	return V;
 }
 
 
@@ -623,22 +611,13 @@ bool HouseholdBidderRole::pickEntryToBid()
     //get available entries (for preferable zones if exists)
     HousingMarket::ConstEntryList entries;
 
-    /*
-    if (getParent()->getPreferableZones().empty())
-    {
-        market->getAvailableEntries(entries);
-    }
-    else
-    {
-        market->getAvailableEntries(getParent()->getPreferableZones(), entries);
-    }
-    */
-
     market->getAvailableEntries(entries);
 
     const HousingMarket::Entry* maxEntry = nullptr;
     double maxSurplus = 0; // holds the wp of the entry with maximum surplus.
     double finalBid = 0;
+    double maxWp	= 0;
+    double maxWtpe  = 0;
 
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     float housingMarketSearchPercentage = config.ltParams.housingModel.housingMarketSearchPercentage;
@@ -692,8 +671,6 @@ bool HouseholdBidderRole::pickEntryToBid()
     {
     	taz = model->getTazByMtzVec( mtz );
     }
-
-    //PrintOutV("hits " << hitsId << " probsize " << householdScreeningProbabilities.size() << " zonHouType " << zoneHousingType << " subzone " << planSubzone.size() << " mtz: " << mtz.size() << " taz " << taz.size() << std::endl );
 
     BigSerial housingType = -1;
 
@@ -768,8 +745,6 @@ bool HouseholdBidderRole::pickEntryToBid()
     	}
     }
 
-   // PrintOutV("Screening results in " << screenedEntries.size() << " out of " << entries.size() << " entries in housing market."<< std::endl );
-
     bool sucessfulScreening = true;
     if( screenedEntries.size() == 0 )
     {
@@ -827,9 +802,16 @@ bool HouseholdBidderRole::pickEntryToBid()
             	Postcode *newPC = model->getPostcodeById(unit->getSlaAddressId());
 
                //double wp_old = luaModel.calulateWP(*household, *unit, *stats);
-            	double wp = calculateWillingnessToPay(unit, household);
+            	double wtp_e = 0;
 
-            	std::string oldPCStr = "empty";
+            	//The willingness to pay is in millions of dollars
+            	double wp = calculateWillingnessToPay(unit, household, wtp_e);
+
+            	wtp_e = wtp_e * entry->getAskingPrice(); //wtp error is a fraction of the asking price.
+
+            	wp += wtp_e; // adjusted willingness to pay in millions of dollars
+
+           	    std::string oldPCStr = "empty";
             	std::string newPCStr = "empty";
 
             	if( oldPC )
@@ -857,12 +839,14 @@ bool HouseholdBidderRole::pickEntryToBid()
             		maxSurplus = currentSurplus;
             		finalBid = currentBid;
             		maxEntry = entry;
+            		maxWp = wp;
+            		maxWtpe = wtp_e;
             	}
             }
         }
     }
 
-    biddingEntry = CurrentBiddingEntry( (maxEntry) ? maxEntry->getUnitId() : INVALID_ID, finalBid, maxSurplus );
+    biddingEntry = CurrentBiddingEntry( (maxEntry) ? maxEntry->getUnitId() : INVALID_ID, finalBid, maxWp, maxSurplus );
     return biddingEntry.isValid();
 }
 
@@ -871,7 +855,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 void HouseholdBidderRole::ComputeBidValueLogistic( double price, double wp, double &finalBid, double &finalSurplus )
 {
 	const double sigma = 1.0;
-	const double mu    = 0.0;
+	const double mu    = 1.0;
 
 	double lowerBound = -5.0;
 	double upperBound =  5.0;
@@ -904,7 +888,7 @@ void HouseholdBidderRole::ComputeBidValueLogistic( double price, double wp, doub
 	}
 
 	finalBid     = price * incrementScaledMax;
-	finalSurplus = expectedSurplusMax;
+	finalSurplus = ( w - incrementScaledMax ) * price;
 }
 
 

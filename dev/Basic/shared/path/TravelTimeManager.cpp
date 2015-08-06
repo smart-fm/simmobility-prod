@@ -21,7 +21,8 @@ sim_mob::TravelTimeManager::~TravelTimeManager()
 void sim_mob::TravelTimeManager::addTravelTime(const Agent::RdSegTravelStat & stats) {
 	TT::TI timeInterval = TravelTimeManager::getTimeInterval(stats.entryTime * 1000, intervalMS);//milliseconds
 	{
-		boost::unique_lock<boost::mutex> lock(ttMapMutex);
+		boost::upgrade_lock<boost::shared_mutex> lock(ttMapMutex);
+		boost::upgrade_to_unique_lock<boost::shared_mutex> uniquelock(lock);
 		TT::TimeAndCount &tc = ttMap[timeInterval][stats.travelMode][stats.rs];
 		tc.totalTravelTime += stats.travelTime; //add to total travel time
 		tc.travelTimeCnt += 1; //increment the total contribution
@@ -40,7 +41,7 @@ double sim_mob::TravelTimeManager::getInSimulationSegTT(const std::string mode, 
 
 double sim_mob::TravelTimeManager::EnRouteTT::getInSimulationSegTT(const std::string mode, const sim_mob::RoadSegment *rs) const
 {
-	boost::unique_lock<boost::mutex> lock(parent.ttMapMutex);
+	boost::shared_lock<boost::shared_mutex> lock(parent.ttMapMutex);
 	//[time interval][travel mode][road segment][average travel time]
 	//<-----TI-----><-------------------MRTC----------------------->
 	//start from the last recorded time interval (before the current time interval) and proceed to find a travel time for the given section.

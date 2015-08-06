@@ -24,7 +24,7 @@ public:
 	 *	container to stor road segment travel times at different time intervals
 	 */
 	sim_mob::TravelTime ttMap;
-	boost::mutex ttMapMutex;
+	boost::shared_mutex ttMapMutex;
 
 	/**
 	 * time interval value used for processing data.

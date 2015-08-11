@@ -238,6 +238,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 		//	unnecessary code will be executed.
 		sim_mob::PrivatePathsetGenerator::getInstance()->bulkPathSetGenerator();
 		Print() << "Bulk Generation Done " << profile.tick().first.count() << std::endl;
+		sim_mob::PrivatePathsetGenerator::resetInstance();
 		exit(1);
 	}
 	if (ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetMode == "generation")

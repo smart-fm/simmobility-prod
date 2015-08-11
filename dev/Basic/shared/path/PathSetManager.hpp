@@ -212,6 +212,11 @@ public:
 	static PrivatePathsetGenerator* getInstance();
 
 	/**
+	 * deletes the singleton instance
+	 */
+	static void resetInstance();
+
+	/**
 	 * generate all the paths for a person given its subtrip(OD)
 	 * @param per input agent applying to get the path
 	 * @param st input subtrip

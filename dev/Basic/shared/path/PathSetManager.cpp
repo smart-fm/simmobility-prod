@@ -22,6 +22,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/MultiNode.hpp"
@@ -365,8 +366,7 @@ sim_mob::PathSetManager::PathSetManager(): pathSetTableName(sim_mob::ConfigManag
 }
 
 sim_mob::PathSetManager::~PathSetManager()
-{
-}
+{}
 
 bool sim_mob::PathSetManager::pathInBlackList(const std::vector<WayPoint> path, const std::set<const sim_mob::RoadSegment*> & blkLst) const
 {
@@ -1616,6 +1616,12 @@ PrivatePathsetGenerator* sim_mob::PrivatePathsetGenerator::getInstance()
 		instance_ = new PrivatePathsetGenerator();
 	}
 	return instance_;
+}
+
+void sim_mob::PrivatePathsetGenerator::resetInstance()
+{
+	delete instance_;
+	instance_ = nullptr;
 }
 
 void sim_mob::PrivateTrafficRouteChoice::addPartialExclusion(const sim_mob::RoadSegment* value)

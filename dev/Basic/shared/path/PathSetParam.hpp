@@ -1,15 +1,86 @@
 #pragma once
+
+#include <boost/unordered_map.hpp>
 #include "Common.hpp"
-#include "geospatial/aimsun/Loader.hpp"
+#include "Path.hpp"
+#include "soci.h"
+#include "soci-postgresql.h"
 
 namespace sim_mob
 {
+
+class ERP_Gantry_Zone
+{
+public:
+	ERP_Gantry_Zone() {}
+	ERP_Gantry_Zone(ERP_Gantry_Zone &src):gantryNo(src.gantryNo),zoneId(src.zoneId) {}
+	std::string gantryNo;
+	std::string zoneId;
+};
+
+class ERP_Section
+{
+public:
+	ERP_Section(): section_id(-1), ERP_Gantry_No(-1) {}
+	ERP_Section(ERP_Section &src);
+	int section_id;
+	int ERP_Gantry_No;
+	std::string ERP_Gantry_No_str;
+};
+
+class ERP_Surcharge
+{
+public:
+	ERP_Surcharge() : rate(-1.0), vehicleTypeId(-1) {}
+	ERP_Surcharge(ERP_Surcharge& src):gantryNo(src.gantryNo),startTime(src.startTime),endTime(src.endTime),rate(src.rate),
+			vehicleTypeId(src.vehicleTypeId),vehicleTypeDesc(src.vehicleTypeDesc),day(src.day),
+			startTime_DT(sim_mob::DailyTime(src.startTime)),endTime_DT(sim_mob::DailyTime(src.endTime)){}
+	std::string gantryNo;
+	std::string startTime;
+	std::string endTime;
+	sim_mob::DailyTime startTime_DT;
+	sim_mob::DailyTime endTime_DT;
+	double rate;
+	int vehicleTypeId;
+	std::string vehicleTypeDesc;
+	std::string day;
+};
+
+class SegmentTravelTime
+{
+public:
+	SegmentTravelTime();
+	SegmentTravelTime(const SegmentTravelTime& src);
+	/**
+	 * Common Information
+	 */
+	unsigned long linkId;
+	///	travel time in seconds
+	double travelTime;
+	std::string travelMode;
+	int interval;
+	/**
+	 * Filled during data Retrieval From DB and information usage
+	 */
+	std::string startTime;
+	std::string endTime;
+	sim_mob::DailyTime startTime_DT;
+	sim_mob::DailyTime endTime_DT;
+};
+
+struct SegmentTravelTimeVector
+{
+public:
+	std::vector<sim_mob::SegmentTravelTime> vecSegTT;
+};
+
 /**
  * This class is used to store, retrieve, cache different parameters used in the pathset generation
  */
 class PathSetParam {
 private:
 	PathSetParam();
+	~PathSetParam();
 	static PathSetParam *instance_;
 
 	/**	current real time collection/retrieval interval (in milliseconds) */
@@ -38,6 +109,11 @@ private:
 
 public:
 	static PathSetParam* getInstance();
+
+	/**
+	 * deletes the current instance
+	 */
+	static void resetInstance();
 
 	/**
 	 * insert an entry into singlepath table in the database
@@ -118,12 +194,6 @@ public:
 	double minSignalParam;
 	double maxHighwayParam;
 
-//	///	store all segs <aimsun id ,seg>
-//	std::map<std::string,sim_mob::RoadSegment*> segPool;
-
-	///	<seg , value>
-	std::map<const sim_mob::RoadSegment*,sim_mob::WayPoint*> wpPool;
-
 	///	store all multi nodes in the map
 	const std::vector<sim_mob::MultiNode*>  &multiNodesPool;
 
@@ -139,8 +209,8 @@ public:
 	///	ERP section <aim-sun id , ERP_Section>
 	std::map<int,sim_mob::ERP_Section*> ERP_SectionPool;
 
-	///	information of "Segment" default travel time <segment aim-sun id ,Link_default_travel_time with diff time stamp>
-	std::map<unsigned long, std::vector<sim_mob::LinkTravelTime> > segDefTT;
+	///	information of "Segment" default travel time <segment aim-sun id ,segment_default_travel_time with diff time stamp>
+	boost::unordered_map<unsigned long, sim_mob::SegmentTravelTimeVector*> segDefTT;
 
 	///	a structure to keep history of average travel time records from previous simulations
 	///	[time interval][travel mode][road segment][average travel time]
@@ -155,64 +225,4 @@ public:
 	std::string DTT;
 
 };
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-class ERP_Gantry_Zone
-{
-public:
-	ERP_Gantry_Zone() {}
-	ERP_Gantry_Zone(ERP_Gantry_Zone &src):gantryNo(src.gantryNo),zoneId(src.zoneId) {}
-	std::string gantryNo;
-	std::string zoneId;
-};
-
-class ERP_Section
-{
-public:
-	ERP_Section() {}
-	ERP_Section(ERP_Section &src);
-	int section_id;
-	int ERP_Gantry_No;
-	std::string ERP_Gantry_No_str;
-};
-
-class ERP_Surcharge
-{
-public:
-	ERP_Surcharge() {}
-	ERP_Surcharge(ERP_Surcharge& src):gantryNo(src.gantryNo),startTime(src.startTime),endTime(src.endTime),rate(src.rate),
-			vehicleTypeId(src.vehicleTypeId),vehicleTypeDesc(src.vehicleTypeDesc),day(src.day),
-			startTime_DT(sim_mob::DailyTime(src.startTime)),endTime_DT(sim_mob::DailyTime(src.endTime)){}
-	std::string gantryNo;
-	std::string startTime;
-	std::string endTime;
-	sim_mob::DailyTime startTime_DT;
-	sim_mob::DailyTime endTime_DT;
-	double rate;
-	int vehicleTypeId;
-	std::string vehicleTypeDesc;
-	std::string day;
-};
-
-class LinkTravelTime
-{
-public:
-	LinkTravelTime();
-	LinkTravelTime(const LinkTravelTime& src);
-	/**
-	 * Common Information
-	 */
-	unsigned long linkId;
-	///	travel time in seconds
-	double travelTime;
-	std::string travelMode;
-	int interval;
-	/**
-	 * Filled during data Retrieval From DB and information usage
-	 */
-	std::string startTime;
-	std::string endTime;
-	sim_mob::DailyTime startTime_DT;
-	sim_mob::DailyTime endTime_DT;
-};
-
 }//namspace sim_mob

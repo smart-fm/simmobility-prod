@@ -1157,8 +1157,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 		}
 	}
 
-	for(std::map<std::string, std::vector<const sim_mob::BusStop*> >::iterator routeIt=routeID_busStops.begin();
-			routeIt!=routeID_busStops.end(); routeIt++)
+	for(std::map<std::string, std::vector<const sim_mob::BusStop*> >::iterator routeIt=routeID_busStops.begin(); routeIt!=routeID_busStops.end(); routeIt++)
 	{
 		std::map<std::string, std::vector<const sim_mob::RoadSegment*> >::iterator routeIDSegIt = routeID_roadSegments.find(routeIt->first);
 		if(routeIDSegIt == routeID_roadSegments.end())
@@ -1223,15 +1222,18 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 					stopList.push_back(stopTwin);
 					break;
 				}
+				default:
+				{
+					throw std::runtime_error("unknown terminus type for stop");
+				}
 			}
 		}
 
-		const sim_mob::BusStop* lastStop = stopListCopy[stopListCopy.size()-1];
+		const sim_mob::BusStop* lastStop = stopListCopy.back();
 		if(lastStop->terminusType == sim_mob::BusStop::SOURCE_TERMINUS)
 		{
 			const sim_mob::BusStop* lastStopTwin = lastStop->getTwinStop();
 			if(!lastStopTwin) { throw std::runtime_error("Source bus stop found without a twin!"); }
-			stopList.pop_back();
 			stopList.push_back(lastStopTwin);
 			if(!segList.empty())
 			{

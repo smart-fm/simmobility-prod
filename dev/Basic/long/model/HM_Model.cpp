@@ -34,6 +34,7 @@
 #include "database/dao/MtzTazDao.hpp"
 #include "database/dao/AlternativeDao.hpp"
 #include "database/dao/Hits2008ScreeningProbDao.hpp"
+#include "database/dao/ZonalLanduseVariableValuesDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -1001,8 +1002,13 @@ void HM_Model::startImpl()
 		loadData<AlternativeDao>( conn, alternative, alternativeById, &Alternative::getId );
 		PrintOutV("Number of alternative region names: " << alternative.size() << std::endl );
 
-		loadData<Hits2008ScreeningProbDao>( conn, hits2008ScreeningProb, hits2008ScreeningProbById, &Hits2008ScreeningProb::getId );
-		PrintOutV("Number of hits2008 screening probabilities: " << hits2008ScreeningProb.size() << std::endl );
+		//only used with Hits2008 data
+		//loadData<Hits2008ScreeningProbDao>( conn, hits2008ScreeningProb, hits2008ScreeningProbById, &Hits2008ScreeningProb::getId );
+		//PrintOutV("Number of hits2008 screening probabilities: " << hits2008ScreeningProb.size() << std::endl );
+
+		loadData<ZonalLanduseVariableValuesDao>( conn, zonalLanduseVariableValues, zonalLanduseVariableValuesById, &ZonalLanduseVariableValues::getAltId );
+		PrintOutV("Number of zonal landuse variable values: " << zonalLanduseVariableValues.size() << std::endl );
+
 	}
 
 

@@ -31,6 +31,7 @@
 #include "database/entity/MtzTaz.hpp"
 #include "database/entity/Alternative.hpp"
 #include "database/entity/Hits2008ScreeningProb.hpp"
+#include "database/entity/ZonalLanduseVariableValues.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -109,6 +110,9 @@ namespace sim_mob
 
             typedef std::vector<Hits2008ScreeningProb*> Hits2008ScreeningProbList;
             typedef boost::unordered_map<BigSerial, Hits2008ScreeningProb*> Hits2008ScreeningProbMap;
+
+            typedef std::vector<ZonalLanduseVariableValues*> ZonalLanduseVariableValuesList;
+            typedef boost::unordered_map<BigSerial, ZonalLanduseVariableValues*> ZonalLanduseVariableValuesMap;
 
             /**
              * Taz statistics
@@ -334,6 +338,10 @@ namespace sim_mob
             DistMRTMap mrtDistancesById;
             HouseHoldHitsSampleList houseHoldHits;
             HouseHoldHitsSampleMap houseHoldHitsById;
+
+
+            ZonalLanduseVariableValuesList zonalLanduseVariableValues;
+            ZonalLanduseVariableValuesMap zonalLanduseVariableValuesById;
 
             int	initialHHAwakeningCounter;
             int numberOfBidders;

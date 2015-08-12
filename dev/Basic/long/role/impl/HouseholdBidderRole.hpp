@@ -78,9 +78,9 @@ namespace sim_mob
             void setActive(bool active);
             HouseholdAgent* getParent();
 
-            void ComputeHouseholdAffordability();
-
-            void ComputeBidValueLogistic( double price, double wp, double &finalBid, double &finalSurplus );
+            void computeHouseholdAffordability();
+            void computeBidValueLogistic( double price, double wp, double &finalBid, double &finalSurplus );
+            void getScreeningProbabilities(std::vector<double> &probabilities);
             /**
              * Inherited from LT_Role
              * @param currTime

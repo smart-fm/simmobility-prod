@@ -71,6 +71,7 @@ namespace sim_mob {
         const std::string DB_TABLE_MTZ_TAZ= APPLY_SCHEMA(MAIN_SCHEMA, "mtz_taz");
         const std::string DB_TABLE_ALTERNATIVE= APPLY_SCHEMA(CALIBRATION_SCHEMA, "alternative");
         const std::string DB_TABLE_HITS2008SCREENINGPROB= APPLY_SCHEMA(CALIBRATION_SCHEMA, "hits2008_screening_prob");
+        const std::string DB_TABLE_ZONALLANDUSEVARIABLEVALUES= APPLY_SCHEMA(CALIBRATION_SCHEMA, "zonal_landuse_variable_values");
 
 
 
@@ -346,6 +347,7 @@ namespace sim_mob {
         const std::string DB_GETALL_MTZ_TAZ = "SELECT * FROM " + DB_TABLE_MTZ_TAZ + LIMIT;
         const std::string DB_GETALL_ALTERNATIVE = "SELECT * FROM " + DB_TABLE_ALTERNATIVE + LIMIT;
         const std::string DB_GETALL_HITS2008SCREENINGPROB = "SELECT * FROM " + DB_TABLE_HITS2008SCREENINGPROB + LIMIT;
+        const std::string DB_GETALL_ZONALLANDUSEVARIABLEVALUES = "SELECT * FROM " + DB_TABLE_ZONALLANDUSEVARIABLEVALUES + LIMIT;
 
 
 
@@ -379,7 +381,7 @@ namespace sim_mob {
         const std::string DB_GETBYID_MTZ_TAZ = "SELECT * FROM " + DB_TABLE_MTZ_TAZ + " WHERE id = :v1;";
         const std::string DB_GETBYID_ALTERNATIVE = "SELECT * FROM " + DB_TABLE_ALTERNATIVE + " WHERE id = :v1;";
         const std::string DB_GETBYID_HITS2008SCREENINGPROB = "SELECT * FROM " + DB_TABLE_HITS2008SCREENINGPROB + " WHERE id = :v1;";
-
+        const std::string DB_GETBYID_ZONALLANDUSEVARIABLEVALUES = "SELECT * FROM " + DB_TABLE_ZONALLANDUSEVARIABLEVALUES + " WHERE id = :v1;";
     }
 }
 

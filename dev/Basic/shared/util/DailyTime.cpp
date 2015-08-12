@@ -93,10 +93,9 @@ namespace
 		return c;
 	}
 
-	///Helper method: create a string representation from a given time value in miliseconds.
-	std::string buildStringRepr(uint32_t timeVal)
+	///Helper method: create a string representation from a given time value in seconds.
+	std::string buildStringRepr(uint32_t timeValInSec)
 	{
-		uint32_t timeValInSec = timeVal/1000;
 		div_t divResult = std::div(timeValInSec, 60);
 		int seconds = divResult.rem;
 		int minutes = divResult.quot;

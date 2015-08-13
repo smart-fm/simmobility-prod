@@ -1,3 +1,8 @@
+//Copyright (c) 2015 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//license.txt   (http://opensource.org/licenses/MIT)
+
+
 /*
  * LogsumMtzV2Dao.cpp
  *
@@ -19,13 +24,13 @@ void LogsumMtzV2Dao::fromRow(Row& result, LogsumMtzV2& outObj)
 {
     outObj.taz				= result.get<int>( "taz", 0);
     outObj.v2				= result.get<double>( "v2", .0);
-    outObj.logsum_mean		= result.get<double>( "logsum_mean", .0);
-    outObj.logsum_sd		= result.get<double>( "logsum_sd", .0);
-    outObj.logsum_max		= result.get<double>( "logsum_max", .0);
-    outObj.logsum_min		= result.get<double>( "logsum_min", .0);
-    outObj.logsum_total		= result.get<double>( "logsum_total", .0);
-    outObj.factor_total		= result.get<double>( "factor_total", .0);
-    outObj.logsum_weighted	= result.get<double>( "logsum_weighted", .0);
+    outObj.logsumMean		= result.get<double>( "logsum_mean", .0);
+    outObj.logsumSd			= result.get<double>( "logsum_sd", .0);
+    outObj.logsumMax		= result.get<double>( "logsum_max", .0);
+    outObj.logsumMin		= result.get<double>( "logsum_min", .0);
+    outObj.logsumTotal		= result.get<double>( "logsum_total", .0);
+    outObj.factorTotal		= result.get<double>( "factor_total", .0);
+    outObj.logsumWeighted	= result.get<double>( "logsum_weighted", .0);
 }
 
 void LogsumMtzV2Dao::toRow(LogsumMtzV2& data, Parameters& outParams, bool update) {}

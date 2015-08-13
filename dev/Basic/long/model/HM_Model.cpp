@@ -35,6 +35,7 @@
 #include "database/dao/AlternativeDao.hpp"
 #include "database/dao/Hits2008ScreeningProbDao.hpp"
 #include "database/dao/ZonalLanduseVariableValuesDao.hpp"
+#include "database/dao/PopulationPerPlanningAreaDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -675,6 +676,41 @@ std::vector<Mtz*> HM_Model::getMtzBySubzoneVec( std::vector<PlanningSubzone*> ve
 	return vecMtz;
 }
 
+int HM_Model::getMtzIdByTazId(int tazId)
+{
+	for( int n = 0; n < mtzTaz.size(); n++)
+	{
+		if( mtzTaz[n]->getTazId() == tazId )
+			return mtzTaz[n]->getMtzId();
+	}
+
+	return 0;
+}
+
+PlanningSubzone* HM_Model::getPlanningSubzoneById(int id)
+{
+	PlanningSubzoneMap::const_iterator itr = planningSubzoneById.find(id);
+
+	if (itr != planningSubzoneById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
+}
+
+Mtz* HM_Model::getMtzById( int id)
+{
+	MtzMap::const_iterator itr = mtzById.find(id);
+
+	if (itr != mtzById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
+}
+
 std::vector<BigSerial> HM_Model::getTazByMtzVec( std::vector<Mtz*> vecMtz )
 {
 	std::vector<BigSerial> vecTaz;
@@ -690,6 +726,29 @@ std::vector<BigSerial> HM_Model::getTazByMtzVec( std::vector<Mtz*> vecMtz )
 	}
 
 	return vecTaz;
+}
+
+ZonalLanduseVariableValues* HM_Model::getZonalLandUseByAlternativeId(int id)const
+{
+	ZonalLanduseVariableValuesMap::const_iterator itr = zonalLanduseVariableValuesById.find(id);
+
+	if (itr != zonalLanduseVariableValuesById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
+}
+
+Alternative* HM_Model::getAlternativeByPlanningAreaId(int id) const
+{
+	for( int n = 0; n < alternative.size(); n++ )
+	{
+		if(alternative[n]->getPlanAreaId() == id)
+			return alternative[n];
+	}
+
+	return nullptr;
 }
 
 HM_Model::HouseHoldHitsSampleList HM_Model::getHouseHoldHits()const
@@ -720,6 +779,7 @@ HM_Model::HouseholdGroup* HM_Model::getHouseholdGroupByGroupId(BigSerial id)cons
 
 		return nullptr;
 }
+
 
 void HM_Model::addHouseholdGroupByGroupId(HouseholdGroup* hhGroup)
 {
@@ -1009,6 +1069,8 @@ void HM_Model::startImpl()
 		loadData<ZonalLanduseVariableValuesDao>( conn, zonalLanduseVariableValues, zonalLanduseVariableValuesById, &ZonalLanduseVariableValues::getAltId );
 		PrintOutV("Number of zonal landuse variable values: " << zonalLanduseVariableValues.size() << std::endl );
 
+		//loadData<PopulationPerPlanningAreaDao>( conn, populationPerPlanningArea, populationPerPlanningAreaById, &PopulationPerPlanningArea::getPlanningAreaId );
+		//PrintOutV("Number of PopulationPerPlanningArea rows: " << populationPerPlanningArea.size() << std::endl );
 	}
 
 

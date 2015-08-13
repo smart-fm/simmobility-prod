@@ -80,7 +80,7 @@ namespace sim_mob
 
             void computeHouseholdAffordability();
             void computeBidValueLogistic( double price, double wp, double &finalBid, double &finalSurplus );
-            void getScreeningProbabilities(std::vector<double> &probabilities);
+            void getScreeningProbabilities(int hitsId, std::vector<double> &probabilities);
             /**
              * Inherited from LT_Role
              * @param currTime

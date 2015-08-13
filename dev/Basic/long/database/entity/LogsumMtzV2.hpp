@@ -22,7 +22,7 @@ namespace sim_mob
 		class LogsumMtzV2
 		{
 		public:
-			LogsumMtzV2(int taz = 0, double logsum_mean = .0, double logsum_sd = .0, double logsum_max = .0, double logsum_min = .0, double logsum_total = .0, double factor_total = .0, double logsum_weighted = .0);
+			LogsumMtzV2(int taz = 0, double logsumMean = .0, double logsumSd = .0, double logsumMax = .0, double logsumMin = .0, double logsumTotal = .0, double factorTotal = .0, double logsumWeighted = .0);
 			virtual ~LogsumMtzV2();
 			LogsumMtzV2(const LogsumMtzV2& source);
 			LogsumMtzV2& operator=(const LogsumMtzV2& source);
@@ -44,13 +44,13 @@ namespace sim_mob
 
 			int taz;
 			double v2;
-			double logsum_mean;
-			double logsum_sd;
-			double logsum_max;
-			double logsum_min;
-			double logsum_total;
-			double factor_total;
-			double logsum_weighted;
+			double logsumMean;
+			double logsumSd;
+			double logsumMax;
+			double logsumMin;
+			double logsumTotal;
+			double factorTotal;
+			double logsumWeighted;
 		};
     }
 

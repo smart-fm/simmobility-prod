@@ -11,9 +11,9 @@ namespace sim_mob
 {
 	namespace long_term
 	{
-		LogsumMtzV2::LogsumMtzV2( int taz, double logsum_mean, double logsum_sd, double logsum_max, double logsum_min, double logsum_total, double factor_total, double logsum_weighted):
-								  taz(taz), v2(v2), logsum_mean(logsum_mean), logsum_sd(logsum_sd), logsum_max(logsum_max), logsum_min(logsum_min), logsum_total(logsum_total),
-								  factor_total(factor_total), logsum_weighted(logsum_weighted){}
+		LogsumMtzV2::LogsumMtzV2( int taz, double logsumMean, double logsumSd, double logsumMax, double logsumMin, double logsumTotal, double factorTotal, double logsumWeighted):
+								  taz(taz), v2(v2), logsumMean(logsumMean), logsumSd(logsumSd), logsumMax(logsumMax), logsumMin(logsumMin), logsumTotal(logsumTotal),
+								  factorTotal(factorTotal), logsumWeighted(logsumWeighted){}
 
 		LogsumMtzV2::~LogsumMtzV2(){}
 
@@ -21,26 +21,26 @@ namespace sim_mob
 		{
 		    this->taz = source.taz;
 		    this->v2 = source.v2;
-		    this->logsum_mean = source.logsum_mean;
-		    this->logsum_sd = source.logsum_sd;
-		    this->logsum_max = source.logsum_max;
-		    this->logsum_min = source.logsum_min;
-		    this->logsum_total = source.logsum_total;
-		    this->factor_total = source.factor_total;
-		    this->logsum_weighted = source.logsum_weighted;
+		    this->logsumMean = source.logsumMean;
+		    this->logsumSd = source.logsumSd;
+		    this->logsumMax = source.logsumMax;
+		    this->logsumMin = source.logsumMin;
+		    this->logsumTotal = source.logsumTotal;
+		    this->factorTotal = source.factorTotal;
+		    this->logsumWeighted = source.logsumWeighted;
 		}
 
 		LogsumMtzV2& LogsumMtzV2::operator=(const LogsumMtzV2& source)
 		{
 		    this->taz = source.taz;
 		    this->v2 = source.v2;
-		    this->logsum_mean = source.logsum_mean;
-		    this->logsum_sd = source.logsum_sd;
-		    this->logsum_max = source.logsum_max;
-		    this->logsum_min = source.logsum_min;
-		    this->logsum_total = source.logsum_total;
-		    this->factor_total = source.factor_total;
-		    this->logsum_weighted = source.logsum_weighted;
+		    this->logsumMean = source.logsumMean;
+		    this->logsumSd = source.logsumSd;
+		    this->logsumMax = source.logsumMax;
+		    this->logsumMin = source.logsumMin;
+		    this->logsumTotal = source.logsumTotal;
+		    this->factorTotal = source.factorTotal;
+		    this->logsumWeighted = source.logsumWeighted;
 
 		    return *this;
 		}
@@ -57,37 +57,37 @@ namespace sim_mob
 
 		double LogsumMtzV2::getLogsumMean() const
 		{
-			return logsum_mean;
+			return logsumMean;
 		}
 
 		double LogsumMtzV2::getLogsumSd() const
 		{
-			return logsum_sd;
+			return logsumSd;
 		}
 
 		double LogsumMtzV2::getLogsumMax() const
 		{
-			return logsum_max;
+			return logsumMax;
 		}
 
 		double LogsumMtzV2::getLogsumMin() const
 		{
-			return logsum_min;
+			return logsumMin;
 		}
 
 		double LogsumMtzV2::getLogsumTotal() const
 		{
-			return logsum_total;
+			return logsumTotal;
 		}
 
 		double LogsumMtzV2::getFactorTotal() const
 		{
-			return factor_total;
+			return factorTotal;
 		}
 
 		double LogsumMtzV2::getLogsumWeighted() const
 		{
-			return logsum_weighted;
+			return logsumWeighted;
 		}
 
 
@@ -97,13 +97,13 @@ namespace sim_mob
 			return strm << "{"
 						<< "\" taz\":\"" << data.taz << "\","
 						<< "\" v2\":\"" << data.v2 << "\","
-						<< "\" logsum_mean\":\"" << data.logsum_mean << "\","
-						<< "\" logsum_sd\":\"" << data.logsum_sd << "\","
-						<< "\" logsum_max\":\"" << data.logsum_max << "\","
-						<< "\" logsum_min\":\"" << data.logsum_min << "\","
-						<< "\" logsum_total\":\"" << data.logsum_total << "\","
-						<< "\" factor_total\":\"" << data.factor_total << "\","
-						<< "\" logsum_weighted\":\"" << data.logsum_weighted << "\""
+						<< "\" logsum_mean\":\"" << data.logsumMean << "\","
+						<< "\" logsum_sd\":\"" << data.logsumSd << "\","
+						<< "\" logsum_max\":\"" << data.logsumMax << "\","
+						<< "\" logsum_min\":\"" << data.logsumMin << "\","
+						<< "\" logsum_total\":\"" << data.logsumTotal << "\","
+						<< "\" factor_total\":\"" << data.factorTotal << "\","
+						<< "\" logsum_weighted\":\"" << data.logsumWeighted << "\""
 						<< "}";
 		}
 	}

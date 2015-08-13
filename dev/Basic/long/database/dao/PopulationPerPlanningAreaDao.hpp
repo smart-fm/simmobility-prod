@@ -4,26 +4,27 @@
 
 
 /*
- * LogsumMtzV2Dao.hpp
+ * PopulationPerPlanningAreaDao.hpp
  *
- *  Created on: 27 Jul, 2015
+ *  Created on: 13 Aug, 2015
  *  Author: Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  */
+
 
 #pragma once
 
 #include "database/dao/SqlAbstractDao.hpp"
-#include "database/entity/LogsumMtzV2.hpp"
+#include "database/entity/PopulationPerPlanningArea.hpp"
 
 namespace sim_mob
 {
 	namespace long_term
 	{
-		class LogsumMtzV2Dao : public db::SqlAbstractDao<LogsumMtzV2>
+		class PopulationPerPlanningAreaDao : public db::SqlAbstractDao<PopulationPerPlanningArea>
 		{
 	        public:
-			LogsumMtzV2Dao(db::DB_Connection& connection);
-	            virtual ~LogsumMtzV2Dao();
+			PopulationPerPlanningAreaDao(db::DB_Connection& connection);
+	            virtual ~PopulationPerPlanningAreaDao();
 
 	        private:
 	            /**
@@ -31,7 +32,7 @@ namespace sim_mob
 	             * @param result row with data to fill the out object.
 	             * @param outObj to fill.
 	             */
-	            void fromRow(db::Row& result, LogsumMtzV2& outObj);
+	            void fromRow(db::Row& result, PopulationPerPlanningArea& outObj);
 
 	            /**
 	             * Fills the outParam with all values to insert or update on datasource.
@@ -39,7 +40,7 @@ namespace sim_mob
 	             * @param outParams to put the data parameters.
 	             * @param update tells if operation is an Update or Insert.
 	             */
-	            void toRow(LogsumMtzV2& data, db::Parameters& outParams, bool update);
+	            void toRow(PopulationPerPlanningArea& data, db::Parameters& outParams, bool update);
 		};
 	}
 }

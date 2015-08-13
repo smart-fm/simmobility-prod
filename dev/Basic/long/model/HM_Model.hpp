@@ -32,6 +32,7 @@
 #include "database/entity/Alternative.hpp"
 #include "database/entity/Hits2008ScreeningProb.hpp"
 #include "database/entity/ZonalLanduseVariableValues.hpp"
+#include "database/entity/PopulationPerPlanningArea.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -113,6 +114,9 @@ namespace sim_mob
 
             typedef std::vector<ZonalLanduseVariableValues*> ZonalLanduseVariableValuesList;
             typedef boost::unordered_map<BigSerial, ZonalLanduseVariableValues*> ZonalLanduseVariableValuesMap;
+
+            typedef std::vector<PopulationPerPlanningArea*> PopulationPerPlanningAreaList;
+            typedef boost::unordered_map<BigSerial, PopulationPerPlanningArea*> PopulationPerPlanningAreaMap;
 
             /**
              * Taz statistics
@@ -256,6 +260,11 @@ namespace sim_mob
             std::vector<PlanningSubzone*> getPlanningSubZoneByPlanningAreaId(int id);
             std::vector<Mtz*> getMtzBySubzoneVec(std::vector<PlanningSubzone*> vecPlanningSubzone );
             std::vector <BigSerial> getTazByMtzVec( std::vector<Mtz*> vecMtz);
+            int getMtzIdByTazId(int tazId);
+            Mtz* getMtzById( int id);
+            PlanningSubzone* getPlanningSubzoneById(int id);
+            ZonalLanduseVariableValues* getZonalLandUseByAlternativeId(int id) const;
+            Alternative* getAlternativeByPlanningAreaId(int id) const;
 
         protected:
             /**
@@ -318,6 +327,8 @@ namespace sim_mob
             AlternativeList alternative;
             AlternativeMap alternativeById;
 
+            PopulationPerPlanningAreaList populationPerPlanningArea;
+            PopulationPerPlanningAreaMap populationPerPlanningAreaById;
 
             boost::mutex mtx;
             boost::mutex mtx2;

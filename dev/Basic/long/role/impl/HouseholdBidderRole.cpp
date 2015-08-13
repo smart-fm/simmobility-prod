@@ -358,7 +358,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
 		const Unit* unit = model->getUnitById(entry->getUnitId());
 		const HM_Model::TazStats* stats = model->getTazStatsByUnitId(entry->getUnitId());
 
-		if (unit && stats)
+		if(unit && stats)
 		{
 			if (entry->getOwner() && biddingEntry.getBestBid() > 0.0f)
 			{
@@ -383,73 +383,30 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	//These constants are extracted from Roberto Ponce's bidding model
 	//
 	/* willingness to pay in million of dollars*/
-	/*
-	const double sde		=  0.641045;
-	const double bpriv		= -1.022480;
-	const double bhdb123	= -1.634130;
-	const double bhdb4		= -1.694060;
-	const double bhdb5		= -1.693300;
-	const double barea		=  0.549532;
-	const double blogsum	=  0.019853;
-	const double bchin		=  0.069107;
-	const double bmalay		= -0.044110;
-	const double bHighInc	= -1.485980;
-	const double bAreaHinc  =  0.337325;
-	*/
+	double sde		= 1.0684375114;
+	double barea	= 0.7147660817;
+	double blogsum	=0.0719486398;
+	double bchin	= -0.1358159957 ;
+	double bmalay	= -0.5778758359 ;
+	double bHighInc =  0.1382808285;
+	const double bMIncChildApart  =	0.5287412793;
+	const double bHIncChildApart  =	-0.2048701544;
+	const double bMIncChildCondo  =	-0.1536915619;
+	const double bHIncChildCondo  =	-0.05558812;
+	const double bapartment =	-2.8851520518;
+	const double bcondo 	= 	-2.8373445517;
+	const double bdetachedAndSemiDetached = -2.5475656034;
+	const double terrace 	=	-2.7867069129;
 
-
-	/*
-	//log of wtp in millions of dollars
-	const double sde		=  0.6180279115;
-	const double bpriv		= -3.2916571854;
-	const double bhdb123	= -3.7714662931;
-	const double bhdb4		= -3.8231010255;
-	const double bhdb5		= -3.8620145887;
-	const double barea		=  0.7903302199;
-	const double blogsum	=  0.0411034464;
-	const double bchin		=  0.0398372117;
-	const double bmalay		= -0.1001843249;
-	const double bHighInc	= -0.0345756544;
-	const double bAreaHinc  =  0.0090664099;
-	*/
-
-	/*
-	double sde		= 1.1836923493;
-	double barea	= 1.3220093501;
-	double blogsum	= 0.0731889939;
-	double bchin	= -0.3863509347;
-	double bmalay	= -1.0063482021;
-	double bHighInc = 1.4591702985;
-	const double bAreaHinc  = -0.3285758702;
-	const double bapartment = -4.0659976158;
-	const double bcondo 	= -3.9903433657;
-	const double bdetachedAndSemiDetached = -1.290614823;
-	const double terrace 	=	-3.2923650761;
-	const double bhdb123	=	-1.2141674568;
-	const double bhdb4 		=	-1.1976630947;
-	const double bhdb5		=	-1.1432284503;
-	 */
-
-
-	double sde		= 	1.1374205204;
-	double barea	= 	0.8584310722;
-	double blogsum	=	0.0715646362;
-	double bchin	=  -0.1854756696;
-	double bmalay	=  -8.9601026704;
-	double bHighInc =   0.4277866543;
-	const double bAreaHinc  =	-0.0926010916;
-	const double bapartment =	-3.4315675144;
-	const double bcondo 	= 	-3.3927687742;
-	const double bdetachedAndSemiDetached = -3.1519990342;
-	const double terrace 	=	-3.3362008736;
-	const double bhdb123	=	-3.4596712933;
-	const double bhdb4 		=	-3.4749112953;
-	const double bhdb5		=	-3.4716830429;
-
+	const double midIncChildHDB4 = -0.035671715;
+	const double midIncChildHDB5 = -0.0493279029;
+	const double bhdb123	=	-3.4469197526;
+	const double bhdb4 		=	-3.4572917076;
+	const double bhdb5		=	-3.4542929656;
 
 	const PostcodeAmenities* pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( unit->getSlaAddressId() );
 
-	double Appartment	= 0;
+	double Apartment	= 0;
 	double Condo		= 0;
 	double DetachedAndSemidetaced	= 0;
 	double Terrace		= 0;
@@ -460,7 +417,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	double HH_size2		= 0;
 	double HH_size3m	= 0;
 	double DD_area		= 0;
-	double ZZ_logsumhh	= -1;
+	double ZZ_logsumhh	=-1;
 	double ZZ_hhchinese = 0;
 	double ZZ_hhmalay	= 0;
 	double ZZ_hhindian	= 0;
@@ -478,9 +435,8 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	if( unitType == 5 )
 		HDB5 = 1;
 
-
 	if( unitType >= 7 && unitType <= 11 )
-		Appartment = 1;
+		Apartment = 1;
 
 	if( unitType >= 12 && unitType <= 16 )
 		Condo = 1;
@@ -491,15 +447,14 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	if( unitType >= 22 && unitType <= 31 )
 		DetachedAndSemidetaced = 1;
 
-
 	if( unitType < 6 )
 	{
-		sde 	 = 0.5385391657;
-		barea 	 = 0.7145942363;
-		blogsum	 = 0.0128066118;
-		bchin 	 = 0.1013486801;
-		bmalay 	 = -0.0684229741;
-		bHighInc = 0.3506630177;
+		sde 	 = 0.538087157;
+		barea 	 = 0.7137466092;
+		blogsum	 = 0.0118120497;
+		bchin 	 = 0.0995361594;
+		bmalay 	 = -0.0670756414;
+		bHighInc =	0.0238942053;
 	}
 
 	if( household->getSize() == 1)
@@ -617,7 +572,6 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 		}
 	}
 
-
 	const HM_Model::TazStats *tazstats = model->getTazStats( hometazId );
 
 	if( tazstats->getChinesePercentage() > 0.76 ) //chetan TODO: add to xml file
@@ -626,91 +580,53 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	if( tazstats->getChinesePercentage() > 0.10 )
 		ZZ_hhmalay 	 = 1;
 
-
-	std::vector<BigSerial> individuals = household->getIndividuals();
-
-	int adults = 0;
-	for(int n = 0; n < individuals.size(); n++ )
-	{
-		Individual* householdIndividual = model->getIndividualById(individuals[n]);
-		std::tm dob = householdIndividual->getDateOfBirth();
-		struct tm thisTime;
-		time_t now;
-		time(&now);
-		thisTime = *localtime(&now);
-		int age = thisTime.tm_year - dob.tm_year;
-
-		if( age >  18 )
-		{
-			adults++;
-		}
-
-	}
-
-	if( adults == 0)
-	{
-		/*
-		PrintOutV("[ERROR] Household has " << individuals.size() << " members." << std::endl);
-		for(int n = 0; n < individuals.size(); n++ )
-		{
-			Individual* temp = model->getIndividualById(individuals[n]);
-			PrintOutV("id " << temp->getId() << " \t dob " << temp->getDateOfBirth().tm_year << "-" << temp->getDateOfBirth().tm_mon << "-" << temp->getDateOfBirth().tm_mday << std::endl );
-			PrintOutV("\t empStat " << temp->getEmploymentStatusId() << std::endl );
-
-		}
-		*/
-		adults = 1;
-	}
-
 	double ZZ_highInc = household->getIncome();
 	double ZZ_middleInc = household->getIncome();
 	double ZZ_lowInc  =  household->getIncome();
 
-	if( ZZ_highInc > 11000 )
+	if( ZZ_highInc >= 11000 )
 		ZZ_highInc = 1;
 	else
 		ZZ_highInc = 0;
 
-	if( ZZ_middleInc > 2500 && ZZ_middleInc < 11000)
+
+	if( ZZ_middleInc >= 2750 && ZZ_middleInc < 11000)
 		ZZ_middleInc = 1;
 	else
 		ZZ_middleInc = 0;
 
-	if( ZZ_lowInc < 2500 )
+
+	if( ZZ_lowInc < 2750 )
 		ZZ_lowInc = 1;
 	else
-		ZZ_highInc = 0;
+		ZZ_lowInc = 0;
 
-	/*
-	//log of wtp
-	V = bpriv * DD_priv +
-		bhdb123 * HDB123 +
-		bhdb4 * HDB4 +
-		bhdb5 * HDB5 +
-		barea *  DD_area +
-		blogsum * ZZ_logsumhh +
-		bchin * ZZ_hhchinese +
-		bmalay * ZZ_hhmalay +
-		bHighInc * ZZ_highInc +
-		bAreaHinc * ZZ_highInc * barea;
-	*/
+	int ZZ_children = 0;
+
+	if( household->getChildUnder15() > 0 )
+		ZZ_children = 1;
 
 
-	V = 	barea		*  DD_area 		+
-			blogsum	 	* ZZ_logsumhh 	+
-			bchin	  	* ZZ_hhchinese 	+
-			bmalay		* ZZ_hhmalay 	+
-			bHighInc    * ZZ_highInc 	+
-			bAreaHinc 	* ZZ_highInc * DD_area +
-			bhdb123 * HDB123 +
-			bhdb4 	* HDB4 	 +
-			bhdb5 	* HDB5 	 +
-			bapartment  * Appartment +
-			bcondo 		* Condo 	 +
-			bdetachedAndSemiDetached* DetachedAndSemidetaced +
-			terrace	* Terrace;
 
 
+	V = 	(barea		*  DD_area 		) +
+			(blogsum	* ZZ_logsumhh 	) +
+			(bchin	  	* ZZ_hhchinese 	) +
+			(bmalay		* ZZ_hhmalay 	) +
+			(bHighInc   * ZZ_highInc 	) +
+			(bMIncChildApart * ZZ_children * ZZ_middleInc 	* Apartment 	) +
+			(bHIncChildApart * ZZ_children * ZZ_highInc 	* Apartment 	) +
+			(bMIncChildCondo * ZZ_children * ZZ_middleInc 	* Condo 		) +
+			(bHIncChildCondo * ZZ_children * ZZ_highInc 	* Condo 		) +
+			(midIncChildHDB4 * ZZ_children * ZZ_middleInc 	* HDB4 			) +
+			(midIncChildHDB5 * ZZ_children * ZZ_middleInc 	* HDB5 			) +
+			(bhdb123 * HDB123 	) +
+			(bhdb4 	 * HDB4	 	) +
+			(bhdb5 	 * HDB5	 	) +
+			(bapartment  * Apartment ) +
+			(bcondo 	 * Condo 	 ) +
+			(bdetachedAndSemiDetached * DetachedAndSemidetaced ) +
+			(terrace	* Terrace);
 
 	boost::mt19937 rng( clock() );
 	boost::normal_distribution<> nd( 0.0, sde);
@@ -723,7 +639,7 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	return V;
 }
 
-void HouseholdBidderRole::getScreeningProbabilities(std::vector<double> &probabilities)
+void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double> &probabilities)
 {
 	double ln_popdwl		= 0.9701;	//1 logarithm of population by housing type in the zone 	persons
 	double den_respop_ha	= 0.0257;	//2 population density	persons per hectare (x10^-2)
@@ -747,6 +663,66 @@ void HouseholdBidderRole::getScreeningProbabilities(std::vector<double> &probabi
 	double DWL700			= 0.3254;	//20  = 1, if household size is 1, living in landed property
 	double DWL800			= 0.3394; 	//21 = 1, if household size is 1, living in other types of housing units
 
+	HM_Model *model = getParent()->getModel();
+	Household* household = model->getHouseholdById(hhId);
+	int tazId = model->getUnitTazId( household->getUnitId() );
+	Taz *taz  = model->getTazById(tazId);
+	int mtzId = model->getMtzIdByTazId(tazId);
+	Mtz *mtz  = model->getMtzById(mtzId);
+	PlanningSubzone *planningSubzone = model->getPlanningSubzoneById( mtz->getPlanningSubzoneId() );
+	PlanningArea *planningArea = model->getPlanningAreaById(planningSubzone->getPlanningAreaId() );
+	Alternative* alternative = model->getAlternativeByPlanningAreaId(planningArea->getId());
+
+	int dwellingId = alternative->getDwellingTypeId();
+
+
+	{
+		double logPopulationByHousingType	= 0.0;	//1 logarithm of population by housing type in the zone 	persons
+		double populationDensity			= 0.0;	//2 population density	persons per hectare (x10^-2)
+		double commercialLandFraction		= 0.0;	//3 zonal average fraction of commercial land within a 500-meter buffer area from a residential postcode (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
+		double residentialLandFraction		= 0.0;	//4 zonal average fraction of residential land within a 500-meter buffer area from a residential postcode  (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
+		double openSpaceFraction			= 0.0;	//5 zonal average fraction of open space within a 500-meter buffer area from a residential postcode (weighted by residential unit within the buffer)	percentage point (x10^-1)
+		double oppurtunityDiversityIndex	= 0.0;	//6 zonal average local land use mix (opportunity diversity) index: 1-(|lu1/t-1/9|+|lu2/t-1/9|+|lu3/t-1/9|+|lu4/t-1/9|+|lu5/t-1/9|+|lu6/t-1/9|+|lu7/t-1/9|+|lu8/t-1/9|+|lu9/t-1/9|)/(16/9)	(x10)
+		double distanceToMrt				= 0.0;	//7 zonal average distance to the nearest MRT station	in kilometer
+		double distanceToExp				= 0.0;	//8 zonal average distance to the nearest express way	in kilometer
+		double househldEorkerLogsumAverage	= 0.0;	//9 average of workers' logsum of a household (at the DGP level) x dummy if household has at least a worker with fixed workplace (=1, yes; =0, otherwise)	utils
+		double fractionYongerThan4			= 0.0;	//10 zonal fraction of population younger than 4 years old x dummy if presence of kids younger than 4 years old in the household (=1, yes; =0, no)	percentage point (x10^-1)
+		double fractionBetween5And19		= 0.0;	//11 zonal fraction of population between 5 and 19 years old x dummy if presence of children in the household  (=1, yes; =0, no)	percentage point (x10^-1)
+		double fractionOlderThan65			= 0.0;	//12 zonal fraction of population older than 65 years old x dummy if presence of seniors in the household  (=1, yes; =0, no)	percentage point (x10^-1)
+		double fractionOfChinese			= 0.0;	//13 zonal fraction of Chinese population x  dummy if household is Chinese (=1, yes; =0, no)	percentage point (x10^-1)
+		double fractionOfMalay				= 0.0;	//14 zonal fraction of Malay population x  dummy if household is Malay (=1, yes; =0, no)	percentage point (x10^-1)
+		double fractionOfIndian				= 0.0;	//15 zonal fraction of Indian population x  dummy if household is Indian (=1, yes; =0, no)	percentage point (x10^-1)
+		double householdSizeMinusZoneAvg	= 0.0;	//16 absolute difference between zonal average household size by housing type and household size	persons
+		double logHouseholdInconeMinusZoneAvg= 0.0;	//17 absolute difference between logarithm of the zonal median household montly income by housing type and logarithm of the household income	SGD
+		double logZonalMedianHousingPrice	= 0.0;	//18 logarithm of the zonal median housing price by housing type	in (2005) SGD
+		double privateCondoHhSizeOne		= 0.0;	//19 = 1, if household size is 1, living in private condo/apartment
+		double landedPropertyHhSizeOne		= 0.0;	//20  = 1, if household size is 1, living in landed property
+		double otherHousingHhSizeOne		= 0.0; 	//21 = 1, if household size is 1, living in other types of housing units
+
+
+
+		double probability =( logPopulationByHousingType* ln_popdwl 		) +
+							( populationDensity			* den_respop_ha 	) +
+							( commercialLandFraction	* f_loc_com 		) +
+							( residentialLandFraction	* f_loc_res		 	) +
+							( openSpaceFraction			* f_loc_open	 	) +
+							( oppurtunityDiversityIndex	* odi10_loc		 	) +
+							( distanceToMrt				* dis2mrt		 	) +
+							( distanceToExp				* dis2exp		 	) +
+							( househldEorkerLogsumAverage* hh_dgp_w_lgsm1 	) +
+							( fractionYongerThan4		* f_age4_n4		 	) +
+							( fractionBetween5And19		* f_age19_n19	 	) +
+							( fractionOlderThan65		* f_age65_n65	 	) +
+							( fractionOfChinese			* f_chn_nchn	 	) +
+							( fractionOfMalay			* f_mal_nmal	 	) +
+							( fractionOfIndian			* f_indian_nind	 	) +
+							( householdSizeMinusZoneAvg	* hhsize_diff	 	) +
+							( logHouseholdInconeMinusZoneAvg * log_hhinc_diff 	) +
+							( logZonalMedianHousingPrice* log_price05tt_med ) +
+							( privateCondoHhSizeOne		* DWL600 ) +
+							( landedPropertyHhSizeOne	* DWL700 ) +
+							( otherHousingHhSizeOne		* DWL800 );
+	}
 
 	/*
 	// NOTE: dgp is the planning area
@@ -784,16 +760,6 @@ void HouseholdBidderRole::getScreeningProbabilities(std::vector<double> &probabi
 	 * 23. Probability = eR/(1+eR)
 	*/
 
-
-
-
-
-
-
-
-
-
-
 }
 
 
@@ -824,7 +790,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
     //We cannot use those probabilities because they are based on HITS2008 ids
     //model->getScreeningProbabilities(hitsId, householdScreeningProbabilities);
-    getScreeningProbabilities(householdScreeningProbabilities);
+    getScreeningProbabilities(household->getId(), householdScreeningProbabilities);
 
     double randomDraw = (double)rand()/RAND_MAX;
     int zoneHousingType = -1;
@@ -1030,7 +996,11 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             	double currentBid = 0;
             	double currentSurplus = 0;
-            	computeBidValueLogistic(  entry->getAskingPrice(), wp, currentBid, currentSurplus );
+
+            	if( entry->getAskingPrice() != 0 )
+            		computeBidValueLogistic(  entry->getAskingPrice(), wp, currentBid, currentSurplus );
+            	else
+            		PrintOutV("Asking price is zero for unit " << entry->getUnitId() << std::endl );
 
             	if( currentSurplus > maxSurplus )
             	{
@@ -1057,7 +1027,7 @@ void HouseholdBidderRole::computeBidValueLogistic( double price, double wp, doub
 
 	double lowerBound = -5.0;
 	double upperBound =  5.0;
-	double a = 0.5;
+	double a = 0.6;
 	double b = 1.05;
 	double w = wp / price;
 	const int MAX_ITERATIONS = 50;

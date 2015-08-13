@@ -26,7 +26,7 @@ namespace sim_mob {
         const std::string DB_SCHEMA_EMPTY = "";
         const std::string MAIN_SCHEMA = "main2012.";
         const std::string CALIBRATION_SCHEMA = "calibration2012.";
-        const std::string LIMIT_10 = " limit 10";
+        const std::string LIMIT_10000 = " order by random() limit 10000;";
         const std::string LIMIT_ALL = "";
         const std::string LIMIT = LIMIT_ALL;
 
@@ -159,6 +159,7 @@ namespace sim_mob {
 
         const std::string DB_FUNC_GET_DIST_MRT = APPLY_SCHEMA( MAIN_SCHEMA, "getdistMrt()");
         const std::string DB_FUNC_GET_PARCELS_WITH_HDB = APPLY_SCHEMA( MAIN_SCHEMA, "getParcelsWithHDB()");
+        const std::string DB_FUNC_GET_POPULATION_PER_PLANNING_AREA = APPLY_SCHEMA( MAIN_SCHEMA, "getPopulationPerPlanningArea()");
 
         /**
          * Fields
@@ -308,16 +309,16 @@ namespace sim_mob {
         const std::string DB_GETALL_HOUSEHOLD 	= "SELECT * FROM " + DB_FUNC_GET_HOUSEHOLDS + LIMIT;
         const std::string DB_GETALL_BUILDING 	= "SELECT * FROM " + DB_FUNC_GET_BUILDINGS  + LIMIT;
         const std::string DB_GETALL_UNIT 		= "SELECT * FROM " + DB_FUNC_GET_UNITS + LIMIT;
-        const std::string DB_GETALL_DEVELOPERS 	= "SELECT * FROM " + DB_FUNC_GET_DEVELPERS;
-        const std::string DB_GETALL_PARCELS 	= "SELECT * FROM " + DB_FUNC_GET_PARCELS;
-        const std::string DB_GETALL_TEMPLATES 	= "SELECT * FROM " + DB_FUNC_GET_TEMPLATES;
-        const std::string DB_GETALL_POSTCODE 	= "SELECT * FROM " + DB_FUNC_GET_POSTCODES;
-        const std::string DB_GETALL_POSTCODE_AMENITIES 	= "SELECT * FROM " + DB_FUNC_GET_POSTCODES_AMENITIES;
-        const std::string DB_GETALL_LAND_USE_ZONES 		= "SELECT * FROM " + DB_FUNC_GET_LAND_USE_ZONES;
-        const std::string DB_GETALL_TEMPLATE_UNIT_TYPE 	= "SELECT * FROM " + DB_FUNC_GET_TEMPLATE_UNIT_TYPES;
-        const std::string DB_GETALL_DEVELOPMENT_TYPE_TEMPLATES = "SELECT * FROM " + DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATES;
+        const std::string DB_GETALL_DEVELOPERS 	= "SELECT * FROM " + DB_FUNC_GET_DEVELPERS + LIMIT;
+        const std::string DB_GETALL_PARCELS 	= "SELECT * FROM " + DB_FUNC_GET_PARCELS + LIMIT;
+        const std::string DB_GETALL_TEMPLATES 	= "SELECT * FROM " + DB_FUNC_GET_TEMPLATES + LIMIT;
+        const std::string DB_GETALL_POSTCODE 	= "SELECT * FROM " + DB_FUNC_GET_POSTCODES + LIMIT;
+        const std::string DB_GETALL_POSTCODE_AMENITIES 	= "SELECT * FROM " + DB_FUNC_GET_POSTCODES_AMENITIES + LIMIT;
+        const std::string DB_GETALL_LAND_USE_ZONES 		= "SELECT * FROM " + DB_FUNC_GET_LAND_USE_ZONES + LIMIT;
+        const std::string DB_GETALL_TEMPLATE_UNIT_TYPE 	= "SELECT * FROM " + DB_FUNC_GET_TEMPLATE_UNIT_TYPES + LIMIT;
+        const std::string DB_GETALL_DEVELOPMENT_TYPE_TEMPLATES = "SELECT * FROM " + DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATES + LIMIT;
         const std::string DB_GETALL_INDIVIDUAL = "SELECT * FROM " + DB_FUNC_GET_INDIVIDUALS + LIMIT;
-        const std::string DB_GETALL_RESIDENTIAL_STATUS = "SELECT * FROM " + DB_FUNC_GET_RESIDENTIAL_STATUS;
+        const std::string DB_GETALL_RESIDENTIAL_STATUS = "SELECT * FROM " + DB_FUNC_GET_RESIDENTIAL_STATUS + LIMIT;
         const std::string DB_GETALL_PROJECTS = "SELECT * FROM "+ DB_FUNC_GET_PROJECTS + LIMIT;
         const std::string DB_GETALL_PARCEL_MATCHES = "SELECT * FROM "+ DB_FUNC_GET_PARCEL_MATCHES + LIMIT;
         const std::string DB_GETALL_SLA_PARCELS = "SELECT * FROM "+ DB_FUNC_GET_SLA_PARCELS+ LIMIT;
@@ -348,6 +349,8 @@ namespace sim_mob {
         const std::string DB_GETALL_ALTERNATIVE = "SELECT * FROM " + DB_TABLE_ALTERNATIVE + LIMIT;
         const std::string DB_GETALL_HITS2008SCREENINGPROB = "SELECT * FROM " + DB_TABLE_HITS2008SCREENINGPROB + LIMIT;
         const std::string DB_GETALL_ZONALLANDUSEVARIABLEVALUES = "SELECT * FROM " + DB_TABLE_ZONALLANDUSEVARIABLEVALUES + LIMIT;
+        const std::string DB_GETALL_POPULATION_PER_PLANNING_AREA = "SELECT * FROM " + DB_FUNC_GET_POPULATION_PER_PLANNING_AREA + LIMIT;
+
 
 
 
@@ -382,6 +385,7 @@ namespace sim_mob {
         const std::string DB_GETBYID_ALTERNATIVE = "SELECT * FROM " + DB_TABLE_ALTERNATIVE + " WHERE id = :v1;";
         const std::string DB_GETBYID_HITS2008SCREENINGPROB = "SELECT * FROM " + DB_TABLE_HITS2008SCREENINGPROB + " WHERE id = :v1;";
         const std::string DB_GETBYID_ZONALLANDUSEVARIABLEVALUES = "SELECT * FROM " + DB_TABLE_ZONALLANDUSEVARIABLEVALUES + " WHERE id = :v1;";
+        const std::string DB_GETBYID_POPULATION_PER_PLANNING_AREA = "SELECT * FROM " + DB_FUNC_GET_POPULATION_PER_PLANNING_AREA + " WHERE planning_area_id = :v1;";
     }
 }
 

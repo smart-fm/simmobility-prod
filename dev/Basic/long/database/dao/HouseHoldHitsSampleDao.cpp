@@ -11,7 +11,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 HouseHoldHitsSampleDao::HouseHoldHitsSampleDao(DB_Connection& connection)
-: SqlAbstractDao<HouseHoldHitsSample>(connection, EMPTY_STR, EMPTY_STR, EMPTY_STR, EMPTY_STR, DB_GETALL_HH_HITS_SAMPLE, DB_GETBYID_HH_HITS_SAMPLE)
+: SqlAbstractDao<HouseHoldHitsSample>(connection, DB_TABLE_HH_HITS_SAMPLE, EMPTY_STR, EMPTY_STR, EMPTY_STR, DB_GETALL_HH_HITS_SAMPLE, DB_GETBYID_HH_HITS_SAMPLE)
 {}
 
 HouseHoldHitsSampleDao::~HouseHoldHitsSampleDao() {

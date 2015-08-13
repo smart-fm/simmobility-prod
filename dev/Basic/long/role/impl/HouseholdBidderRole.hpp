@@ -36,12 +36,12 @@ namespace sim_mob
         private:
 
             /**
-             * Simple struct to store the current unit which the bidder is trying to buy.
+             * Simple class to store the current unit which the bidder is trying to buy.
              */
             class CurrentBiddingEntry
             {
             public:
-                CurrentBiddingEntry(const BigSerial unitId = INVALID_ID, const double wp = 0, double lastSurplus = 0 );
+                CurrentBiddingEntry(const BigSerial unitId = INVALID_ID, const double bestBid = 0, const double wp = 0, double lastSurplus = 0 );
                 ~CurrentBiddingEntry();
 
                 /**
@@ -49,9 +49,13 @@ namespace sim_mob
                  */
                 BigSerial getUnitId() const;
                 double getWP() const;
+                double getBestBid() const;
                 long int getTries() const;
                 bool isValid() const;
                 
+                double getLastSurplus() const;
+                void setLastSurplus(double value);
+
                 /**
                  * Increments the tries variable with given quantity.
                  * @param quantity to increment.
@@ -61,9 +65,11 @@ namespace sim_mob
             private:
                 BigSerial unitId;
                 double wp; // willingness to pay.
+                double bestBid; //actual final bid
                 long int tries; // number of bids sent to the seller.
                 double lastSurplus; // value of the last surplus
             };
+
         public:
             HouseholdBidderRole(HouseholdAgent* parent);
             virtual ~HouseholdBidderRole();
@@ -72,8 +78,9 @@ namespace sim_mob
             void setActive(bool active);
             HouseholdAgent* getParent();
 
-            void ComputeHouseholdAffordability();
-            double ComputeBidValue(double wp);
+            void computeHouseholdAffordability();
+            void computeBidValueLogistic( double price, double wp, double &finalBid, double &finalSurplus );
+            void getScreeningProbabilities(int hitsId, std::vector<double> &probabilities);
             /**
              * Inherited from LT_Role
              * @param currTime
@@ -126,8 +133,7 @@ namespace sim_mob
              * @return true if a unit was picked false otherwise;
              */
             bool pickEntryToBid();
-            double calculateWillingnessToPay(const Unit* unit, const Household* household);
-            double calculateSurplus(double price, double min, double max );
+            double calculateWillingnessToPay(const Unit* unit, const Household* household, double& wtp_e);
 
             volatile bool waitingForResponse;
             timeslice lastTime;

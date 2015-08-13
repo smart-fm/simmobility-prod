@@ -80,14 +80,14 @@ sim_mob::PredayLT_LogsumManager::~PredayLT_LogsumManager()
 	if(!logsumManager.dataLoadReqd)
 	{
 		// clear Zones
-		Print() << "Clearing zoneMap" << std::endl;
+		//Print() << "Clearing zoneMap" << std::endl;
 		for(ZoneMap::iterator i = zoneMap.begin(); i!=zoneMap.end(); i++) {
 			delete i->second;
 		}
 		zoneMap.clear();
 
 		// clear AMCosts
-		Print() << "Clearing amCostMap" << std::endl;
+		//Print() << "Clearing amCostMap" << std::endl;
 		for(CostMap::iterator i = amCostMap.begin(); i!=amCostMap.end(); i++) {
 			for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
 				if(j->second) {
@@ -98,7 +98,7 @@ sim_mob::PredayLT_LogsumManager::~PredayLT_LogsumManager()
 		amCostMap.clear();
 
 		// clear PMCosts
-		Print() << "Clearing pmCostMap" << std::endl;
+		//Print() << "Clearing pmCostMap" << std::endl;
 		for(CostMap::iterator i = pmCostMap.begin(); i!=pmCostMap.end(); i++) {
 			for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
 				if(j->second) {
@@ -109,7 +109,7 @@ sim_mob::PredayLT_LogsumManager::~PredayLT_LogsumManager()
 		pmCostMap.clear();
 
 		// clear OPCosts
-		Print() << "Clearing opCostMap" << std::endl;
+		//Print() << "Clearing opCostMap" << std::endl;
 		for(CostMap::iterator i = opCostMap.begin(); i!=opCostMap.end(); i++) {
 			for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
 				if(j->second) {

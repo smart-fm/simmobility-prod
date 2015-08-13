@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * Establishment.hpp
  *
@@ -20,6 +24,9 @@ namespace sim_mob
 			Establishment(BigSerial id =INVALID_ID, BigSerial firmId =INVALID_ID, BigSerial buildingId=INVALID_ID, BigSerial lifestyleId=INVALID_ID,
 						  BigSerial businessTypeId=INVALID_ID, int size=0, double revenue=0, double grossSqM=0, BigSerial slaAddressId =INVALID_ID);
 			~Establishment();
+
+			Establishment( const Establishment& source);
+
 			Establishment& operator=(const Establishment& source);
 
 			void setId(BigSerial val);

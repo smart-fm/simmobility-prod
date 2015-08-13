@@ -1,3 +1,7 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * Establishment.cpp
  *
@@ -13,6 +17,20 @@ Establishment::Establishment(BigSerial id, BigSerial firmId, BigSerial buildingI
 							:id(id), firmId(firmId), buildingId(buildingId), lifestyleId(lifestyleId), businessTypeId(businessTypeId), size(size), revenue(revenue), grossSqM(grossSqM), slaAddressId(slaAddressId){}
 
 Establishment::~Establishment(){}
+
+Establishment::Establishment(const Establishment& source)
+{
+	this->id 			= source.id;
+	this->firmId 		= source.firmId;
+	this->buildingId 	= source.buildingId;
+	this->lifestyleId 	= source.lifestyleId;
+	this->businessTypeId = source.businessTypeId;
+	this->size 			= source.size;
+	this->revenue 		= source.revenue;
+	this->grossSqM 		= source.grossSqM;
+	this->slaAddressId 	= source.slaAddressId;
+}
+
 
 Establishment& Establishment::operator=(const Establishment& source)
 {

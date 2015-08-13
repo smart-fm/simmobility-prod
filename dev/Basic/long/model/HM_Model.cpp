@@ -27,6 +27,15 @@
 #include "database/dao/TazDao.hpp"
 #include "database/dao/HouseHoldHitsSampleDao.hpp"
 #include "database/dao/TazLogsumWeightDao.hpp"
+#include "database/dao/LogsumMtzV2Dao.hpp"
+#include "database/dao/PlanningAreaDao.hpp"
+#include "database/dao/PlanningSubzoneDao.hpp"
+#include "database/dao/MtzDao.hpp"
+#include "database/dao/MtzTazDao.hpp"
+#include "database/dao/AlternativeDao.hpp"
+#include "database/dao/Hits2008ScreeningProbDao.hpp"
+#include "database/dao/ZonalLanduseVariableValuesDao.hpp"
+#include "database/dao/PopulationPerPlanningAreaDao.hpp"
 #include "agent/impl/HouseholdAgent.hpp"
 #include "event/SystemEvents.hpp"
 #include "core/DataManager.hpp"
@@ -346,7 +355,21 @@ const HM_Model::TazStats* HM_Model::getTazStats(BigSerial tazId) const
 }
 
 
-double HM_Model::ComputeHedonicPriceLogsum(BigSerial taz)
+double HM_Model::ComputeHedonicPriceLogsumFromDatabase( BigSerial taz)
+{
+	LogsumMtzV2Map::const_iterator itr = logsumMtzV2ById.find(taz);
+
+	if (itr != logsumMtzV2ById.end())
+	{
+		LogsumMtzV2 *tazLogsum = itr->second;
+
+		return tazLogsum->getLogsumWeighted();
+	}
+
+	return 0;
+}
+
+double HM_Model::ComputeHedonicPriceLogsumFromMidterm(BigSerial taz)
 {
 
     BigSerial workTaz = -1;
@@ -486,6 +509,37 @@ const HM_Model::TazStats* HM_Model::getTazStatsByUnitId(BigSerial unitId) const
 
 HM_Model::HouseholdGroup::HouseholdGroup(BigSerial groupId, BigSerial homeTaz, double logsum):groupId(groupId),homeTaz(homeTaz),logsum(logsum){}
 
+HM_Model::HouseholdGroup::HouseholdGroup( HouseholdGroup& source)
+{
+	this->groupId = source.groupId;
+	this->homeTaz = source.homeTaz;
+	this->logsum = source.logsum;
+}
+
+HM_Model::HouseholdGroup::HouseholdGroup(const HouseholdGroup& source)
+{
+	this->groupId = source.groupId;
+	this->homeTaz = source.homeTaz;
+	this->logsum = source.logsum;
+}
+
+HM_Model::HouseholdGroup& HM_Model::HouseholdGroup::operator=(const HouseholdGroup& source)
+{
+	this->groupId = source.groupId;
+	this->homeTaz = source.homeTaz;
+	this->logsum = source.logsum;
+
+	return *this;
+}
+
+HM_Model::HouseholdGroup& HM_Model::HouseholdGroup::operator=( HouseholdGroup& source)
+{
+	this->groupId = source.groupId;
+	this->homeTaz = source.homeTaz;
+	this->logsum = source.logsum;
+
+	return *this;
+}
 
 BigSerial HM_Model::HouseholdGroup::getGroupId() const
 {
@@ -563,6 +617,140 @@ DistanceMRT* HM_Model::getDistanceMRTById( BigSerial id) const
 	return nullptr;
 }
 
+void HM_Model::getScreeningProbabilities(std::string hitsId, vector<double> &householdScreeningProbabilities )
+{
+	for( int n = 0; n < hits2008ScreeningProb.size(); n++ )
+	{
+		if( hits2008ScreeningProb[n]->getH1HhId() == hitsId )
+		{
+			hits2008ScreeningProb[n]->getProbabilities(householdScreeningProbabilities);
+			break;
+		}
+	}
+}
+
+Alternative* HM_Model::getAlternativeById(int id)
+{
+	AlternativeMap::const_iterator itr = alternativeById.find(id);
+
+	if (itr != alternativeById.end())
+		return itr->second;
+	else
+		return nullptr;
+}
+
+PlanningArea* HM_Model::getPlanningAreaById( int id )
+{
+	PlanningAreaMap::const_iterator itr = planningAreaById.find(id);
+
+	if( itr != planningAreaById.end())
+		return itr->second;
+	else
+		return nullptr;
+}
+
+std::vector<PlanningSubzone*> HM_Model::getPlanningSubZoneByPlanningAreaId(int id)
+{
+	std::vector<PlanningSubzone*> vecPlanningSubzone;
+	for(int n = 0; n < planningSubzone.size(); n++ )
+	{
+		if(planningSubzone[n]->getPlanningAreaId() == id )
+			vecPlanningSubzone.push_back( planningSubzone[n]);
+	}
+
+	return vecPlanningSubzone;
+}
+
+std::vector<Mtz*> HM_Model::getMtzBySubzoneVec( std::vector<PlanningSubzone*> vecPlanningSubzone )
+{
+	std::vector<Mtz*> vecMtz;
+	for(int n = 0; n < mtz.size(); n++ )
+	{
+		for(int m =0; m < vecPlanningSubzone.size(); m++ )
+		{
+			if(mtz[n]->getPlanningSubzoneId() == vecPlanningSubzone[m]->getId() )
+				vecMtz.push_back( mtz[n]);
+		}
+	}
+
+	return vecMtz;
+}
+
+int HM_Model::getMtzIdByTazId(int tazId)
+{
+	for( int n = 0; n < mtzTaz.size(); n++)
+	{
+		if( mtzTaz[n]->getTazId() == tazId )
+			return mtzTaz[n]->getMtzId();
+	}
+
+	return 0;
+}
+
+PlanningSubzone* HM_Model::getPlanningSubzoneById(int id)
+{
+	PlanningSubzoneMap::const_iterator itr = planningSubzoneById.find(id);
+
+	if (itr != planningSubzoneById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
+}
+
+Mtz* HM_Model::getMtzById( int id)
+{
+	MtzMap::const_iterator itr = mtzById.find(id);
+
+	if (itr != mtzById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
+}
+
+std::vector<BigSerial> HM_Model::getTazByMtzVec( std::vector<Mtz*> vecMtz )
+{
+	std::vector<BigSerial> vecTaz;
+	for(int n = 0; n < mtzTaz.size(); n++ )
+	{
+		for( int m = 0; m < vecMtz.size(); m++ )
+		{
+			if( mtzTaz[n]->getMtzId() == vecMtz[m]->getId() )
+			{
+				vecTaz.push_back( mtzTaz[n]->getTazId());
+			}
+		}
+	}
+
+	return vecTaz;
+}
+
+ZonalLanduseVariableValues* HM_Model::getZonalLandUseByAlternativeId(int id)const
+{
+	ZonalLanduseVariableValuesMap::const_iterator itr = zonalLanduseVariableValuesById.find(id);
+
+	if (itr != zonalLanduseVariableValuesById.end())
+	{
+		return itr->second;
+	}
+
+	return nullptr;
+}
+
+Alternative* HM_Model::getAlternativeByPlanningAreaId(int id) const
+{
+	for( int n = 0; n < alternative.size(); n++ )
+	{
+		if(alternative[n]->getPlanAreaId() == id)
+			return alternative[n];
+	}
+
+	return nullptr;
+}
+
 HM_Model::HouseHoldHitsSampleList HM_Model::getHouseHoldHits()const
 {
 	return this->houseHoldHits;
@@ -591,6 +779,7 @@ HM_Model::HouseholdGroup* HM_Model::getHouseholdGroupByGroupId(BigSerial id)cons
 
 		return nullptr;
 }
+
 
 void HM_Model::addHouseholdGroupByGroupId(HouseholdGroup* hhGroup)
 {
@@ -808,7 +997,6 @@ void HM_Model::startImpl()
 	{
 		//Load households
 		loadData<HouseholdDao>(conn, households, householdsById, &Household::getId);
-		//households.resize(10000);
 		PrintOutV("Number of households: " << households.size() << ". Households used: " << households.size()  << std::endl);
 
 		//Load units
@@ -856,6 +1044,33 @@ void HM_Model::startImpl()
 		loadData<TazLogsumWeightDao>( conn, tazLogsumWeights, tazLogsumWeightById, &TazLogsumWeight::getGroupLogsum );
 		PrintOutV("Number of tazLogsumWeights: " << tazLogsumWeights.size() << std::endl );
 
+		loadData<LogsumMtzV2Dao>( conn, logsumMtzV2, logsumMtzV2ById, &LogsumMtzV2::getV2 );
+		PrintOutV("Number of LogsumMtzV2: " << logsumMtzV2.size() << std::endl );
+
+		loadData<PlanningAreaDao>( conn, planningArea, planningAreaById, &PlanningArea::getId );
+		PrintOutV("Number of planning areas: " << planningArea.size() << std::endl );
+
+		loadData<PlanningSubzoneDao>( conn, planningSubzone, planningSubzoneById, &PlanningSubzone::getId );
+		PrintOutV("Number of planing subzones: " << planningSubzone.size() << std::endl );
+
+		loadData<MtzDao>( conn, mtz, mtzById, &Mtz::getId );
+		PrintOutV("Number of Mtz: " << mtz.size() << std::endl );
+
+		loadData<MtzTazDao>( conn, mtzTaz, mtzTazById, &MtzTaz::getMtzId );
+		PrintOutV("Number of mtz taz lookups: " << mtzTaz.size() << std::endl );
+
+		loadData<AlternativeDao>( conn, alternative, alternativeById, &Alternative::getId );
+		PrintOutV("Number of alternative region names: " << alternative.size() << std::endl );
+
+		//only used with Hits2008 data
+		//loadData<Hits2008ScreeningProbDao>( conn, hits2008ScreeningProb, hits2008ScreeningProbById, &Hits2008ScreeningProb::getId );
+		//PrintOutV("Number of hits2008 screening probabilities: " << hits2008ScreeningProb.size() << std::endl );
+
+		loadData<ZonalLanduseVariableValuesDao>( conn, zonalLanduseVariableValues, zonalLanduseVariableValuesById, &ZonalLanduseVariableValues::getAltId );
+		PrintOutV("Number of zonal landuse variable values: " << zonalLanduseVariableValues.size() << std::endl );
+
+		//loadData<PopulationPerPlanningAreaDao>( conn, populationPerPlanningArea, populationPerPlanningAreaById, &PopulationPerPlanningArea::getPlanningAreaId );
+		//PrintOutV("Number of PopulationPerPlanningArea rows: " << populationPerPlanningArea.size() << std::endl );
 	}
 
 
@@ -969,9 +1184,9 @@ void HM_Model::startImpl()
 			{
 				float awakeningProbability = (float)rand() / RAND_MAX;
 
-				if( 1 || awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
+				if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
-					(*it)->setbiddingMarketEntryDay( 365 );
+					(*it)->setbiddingMarketEntryDay( 0 );
 					(*it)->setTimeOnMarket( 1 + int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 
 					onMarket++;
@@ -1046,13 +1261,11 @@ void HM_Model::getLogsumOfIndividuals(BigSerial id)
 
 	std::vector<BigSerial> householdIndividualIds = currentHousehold->getIndividuals();
 
-	//chetan
 	for( int n = 0; n < householdIndividualIds.size(); n++ )
 	{
 		double logsum = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n], taz, -1, 1 );
 
 		printIndividualHitsLogsum( householdIndividualIds[n], logsum );
-		//PrintOutV("individual id: " << householdIndividualIds[n] << " logsum: " << logsum << std::endl );
 	}
 }
 

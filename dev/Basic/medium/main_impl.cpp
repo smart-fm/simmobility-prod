@@ -33,7 +33,7 @@
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
-#include "entities/roles/waitBusActivity/waitBusActivity.hpp"
+#include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/PersonLoader.hpp"

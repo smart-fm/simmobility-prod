@@ -6,7 +6,6 @@
  */
 
 #include "BusStopAgent.hpp"
-#include "entities/roles/waitBusActivity/waitBusActivity.hpp"
 #include "message/MT_Message.hpp"
 #include "entities/PT_Statistics.hpp"
 #include "conf/ConfigManager.hpp"

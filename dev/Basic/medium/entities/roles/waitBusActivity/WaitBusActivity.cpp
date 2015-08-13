@@ -2,8 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-#include "waitBusActivity.hpp"
-#include "waitBusActivityFacets.hpp"
+#include "WaitBusActivity.hpp"
 #include "entities/Person.hpp"
 #include "geospatial/BusStop.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
@@ -25,6 +24,9 @@ sim_mob::medium::WaitBusActivity::WaitBusActivity(Person* parent,
 		std::string roleName, Role::type roleType) :
 		sim_mob::Role(behavior, movement, parent, roleName, roleType),
 		waitingTime(0), stop(nullptr), boardBus(false), failedBoardingTimes(0)
+{}
+
+sim_mob::medium::WaitBusActivity::~WaitBusActivity()
 {}
 
 Role* sim_mob::medium::WaitBusActivity::clone(Person* parent) const {

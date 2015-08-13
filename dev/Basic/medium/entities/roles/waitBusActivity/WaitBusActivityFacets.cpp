@@ -5,13 +5,13 @@
  *      Author: zhang huai peng
  */
 
-#include "waitBusActivityFacets.hpp"
+#include "WaitBusActivityFacets.hpp"
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "geospatial/BusStop.hpp"
-#include "waitBusActivity.hpp"
+#include "WaitBusActivity.hpp"
 
 namespace sim_mob {
 

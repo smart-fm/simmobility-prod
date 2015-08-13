@@ -6,11 +6,10 @@
 #pragma once
 
 #include "entities/roles/Role.hpp"
-#include "waitBusActivityFacets.hpp"
+#include "WaitBusActivityFacets.hpp"
 
 namespace sim_mob {
 
-class Agent;
 class Person;
 class BusStop;
 
@@ -34,8 +33,7 @@ public:
 			std::string roleName = std::string("WaitBusActivity_"),
 			Role::type roleType = Role::RL_WAITBUSACTITITY);
 
-	virtual ~WaitBusActivity() {
-	}
+	virtual ~WaitBusActivity();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 

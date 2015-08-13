@@ -15,7 +15,7 @@
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
-#include "entities/roles/waitBusActivity/waitBusActivity.hpp"
+#include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "geospatial/BusStop.hpp"
 

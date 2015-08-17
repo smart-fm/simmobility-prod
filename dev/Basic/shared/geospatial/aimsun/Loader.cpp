@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <boost/foreach.hpp>
+#include <boost/lexical_cast.hpp>
 #include <cmath>
 #include <iostream>
 #include <map>
@@ -3287,10 +3288,11 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdS
 // TODO: Remove debug messages
 void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw) {
 	std::stringstream debugMsgs(std::stringstream::out);
-	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
-	const sim_mob::MutexStrategy& mtxStrat = ConfigManager::GetInstance().FullConfig().mutexStategy();
-	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& multinode_confluxes
-		= ConfigManager::GetInstanceRW().FullConfig().getConfluxNodes();
+	sim_mob::ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+	sim_mob::Conflux::updateInterval = boost::lexical_cast<uint32_t>(cfg.system.genericProps.at("update_interval"));
+	std::set<sim_mob::Conflux*>& confluxes = cfg.getConfluxes();
+	const sim_mob::MutexStrategy& mtxStrat = cfg.mutexStategy();
+	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& multinode_confluxes = cfg.getConfluxNodes();
 
 	//Make a temporary map of <multi node, set of road-segments directly connected to the multinode>
 	//TODO: This should be done automatically *before* it's needed.

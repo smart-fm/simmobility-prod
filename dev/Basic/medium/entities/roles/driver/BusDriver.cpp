@@ -140,18 +140,27 @@ void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, co
 		return;
 	}
 
-	const BusTrip* busTrip =
-			dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+	const BusTrip* busTrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
 	if (busTrip) {
-		const Busline* busLine = busTrip->getBusline();
-		std::string stopNo = stop->getBusstopno_();
-		std::string tripId = busTrip->tripID;
-		std::string busLineId = busLine->getBusLineID();
-		//unsigned int sequenceNo = busTrip->getBusTripStopIndex(stop);
-		double pctOccupancy = (((double)passengerList.size())/MT_Config::getInstance().getBusCapacity()) * 100.0;
+		std::string busStopNo;
+		if(stop->isVirtualStop())
+		{
+			busStopNo = stop->getTwinStop()->getBusstopno_();
+		}
+		else
+		{
+			busStopNo = stop->getBusstopno_();
+		}
+		BusArrivalTime busArrivalInfo;
+		busArrivalInfo.busLine = busTrip->getBusline()->getBusLineID();
+		busArrivalInfo.tripId = busTrip->tripID;
+		busArrivalInfo.sequenceNo = busSequenceNumber;
+		busArrivalInfo.arrivalTime = current;
+		busArrivalInfo.dwellTime = waitTime;
+		busArrivalInfo.pctOccupancy = (((double)passengerList.size())/MT_Config::getInstance().getBusCapacity()) * 100.0;
 
-		messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(), STORE_BUS_ARRIVAL,
-				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(stopNo, busLineId, tripId, current, waitTime, this->busSequenceNumber,pctOccupancy)));
+		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_BUS_ARRIVAL,
+				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(busStopNo, busArrivalInfo)));
 		this->busSequenceNumber++;
 	}
 }

@@ -143,6 +143,10 @@ void ParseMidTermConfigFile::processActivityLoadIntervalElement(xercesc::DOMElem
 void ParseMidTermConfigFile::processUpdateIntervalElement(xercesc::DOMElement* node)
 {
 	unsigned interval = ProcessTimegranUnits(node)/((unsigned)configParams.baseGranSecond());
+	if(interval == 0)
+	{
+		throw std::runtime_error("update interval is 0");
+	}
 	mtCfg.setSupplyUpdateInterval(interval);
 	configParams.system.genericProps["update_interval"] = boost::lexical_cast<std::string>(interval);
 }

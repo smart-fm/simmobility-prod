@@ -52,6 +52,8 @@ namespace{
     const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
 }
 
+unsigned sim_mob::Conflux::updateInterval = 0;
+
 sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id, bool isLoader)
 : Agent(mtxStrat, id), multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
   parentWorker(nullptr), currFrame(0,0), debugMsgs(std::stringstream::out), isBoundary(false), isMultipleReceiver(false), isLoader(isLoader)
@@ -745,8 +747,7 @@ sim_mob::Person* sim_mob::Conflux::agentClosestToIntersection() {
 void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
 	const ConfigManager& cfg = ConfigManager::GetInstance();
 	bool outputEnabled = cfg.CMakeConfig().OutputEnabled();
-	uint32_t updtInterval = boost::lexical_cast<uint32_t>(cfg.FullConfig().system.genericProps.at("update_interval"));
-	bool updateThisTick = ((frameNumber.frame() % updtInterval)==0);
+	bool updateThisTick = ((frameNumber.frame() % updateInterval)==0);
 	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin(); upstreamIt != upstreamSegStatsMap.end(); upstreamIt++)
 	{
 		const SegmentStatsList& linkSegments = upstreamIt->second;
@@ -754,7 +755,7 @@ void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
 		{
 			if (updateThisTick && outputEnabled)
 			{
-				Log() << (*segIt)->reportSegmentStats(frameNumber.frame()/updtInterval);
+				Log() << (*segIt)->reportSegmentStats(frameNumber.frame()/updateInterval);
 			}
 			(*segIt)->updateLaneParams(frameNumber);
 		}
@@ -1240,7 +1241,7 @@ void sim_mob::Conflux::assignPersonToBusStopAgent(Person* person)
 		Agent* busStopAgent = strDirectory.findBusStopAgentByBusStop(stop);
 		if (busStopAgent)
 		{
-			messaging::MessageBus::SendMessage(busStopAgent, MSG_WAITING_PERSON_ARRIVAL_AT_BUSSTOP,
+			messaging::MessageBus::SendMessage(busStopAgent, MSG_WAITING_PERSON_ARRIVAL,
 					messaging::MessageBus::MessagePtr(new ArrivalAtStopMessage(person)));
 		}
 	}

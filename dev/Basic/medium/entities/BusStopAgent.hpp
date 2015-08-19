@@ -15,25 +15,26 @@
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
-#include "entities/roles/waitBusActivity/waitBusActivity.hpp"
+#include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "geospatial/BusStop.hpp"
 
-namespace sim_mob {
-namespace medium {
+namespace sim_mob
+{
+namespace medium
+{
 /**
  * Agent to manage activities at a bus stop
  *
  * \author Zhang Huai Peng
  * \author Harish Loganathan
  */
-class BusStopAgent: public sim_mob::Agent {
+class BusStopAgent: public sim_mob::Agent
+{
 public:
-
 	typedef boost::unordered_map<const BusStop*, BusStopAgent*> BusStopAgentsMap; // there can be a lot of bus stops in the road network. unordered_map is faster.
 
-	BusStopAgent(const MutexStrategy& mtxStrat, int id,
-			const sim_mob::BusStop* stop, SegmentStats* stats);
+	BusStopAgent(const MutexStrategy& mtxStrat, int id, const sim_mob::BusStop* stop, SegmentStats* stats);
 	virtual ~BusStopAgent();
 
 	const sim_mob::BusStop* getBusStop() const;
@@ -114,21 +115,17 @@ public:
 
 protected:
 	//Virtual overrides
-	virtual bool frame_init(timeslice now); ;
+	virtual bool frame_init(timeslice now);
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
-	virtual void frame_output(timeslice now) {}
-	virtual bool isNonspatial(){
-		return false;
-	}
-	virtual void load(const std::map<std::string, std::string>& configProps) {}
+	virtual void frame_output(timeslice now);
+	virtual bool isNonspatial();
+	virtual void load(const std::map<std::string, std::string>& configProps);
 
 	//Inherited from Agent.
-	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId,
-			event::EventPublisher* sender, const event::EventArgs& args);
+	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 
 	//Inherited from MessageHandler.
-	virtual void HandleMessage(messaging::Message::MessageType type,
-			const messaging::Message& message);
+	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 	/**
 	 * process the persons boarding
@@ -153,7 +150,6 @@ protected:
 	 * @returns true if bus driver is removed; false otherwise
 	 */
 	bool removeBusDriver(BusDriver* driver);
-
 
 private:
 	static BusStopAgentsMap allBusstopAgents;

@@ -68,36 +68,22 @@ void sim_mob::medium::Passenger::HandleParentMessage(messaging::Message::Message
 
 void sim_mob::medium::Passenger::collectTravelTime()
 {
-	std::string personId, tripStartPoint, tripEndPoint, subStartPoint,
-			subEndPoint, subStartType, subEndType, mode, service, arrivaltime,
-			travelTime;
+	PersonTravelTime personTravelTime;
+	personTravelTime.personId = boost::lexical_cast<std::string>(parent->getId());
+	personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
+	personTravelTime.tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
+	personTravelTime.subStartPoint = parent->currSubTrip->startLocationId;
+	personTravelTime.subEndPoint = parent->currSubTrip->endLocationId;
+	personTravelTime.subStartType = parent->currSubTrip->startLocationType;
+	personTravelTime.subEndType = parent->currSubTrip->endLocationType;
+	personTravelTime.mode = parent->currSubTrip->getMode();
+	personTravelTime.service = parent->currSubTrip->ptLineId;
+	personTravelTime.travelTime = DailyTime(parent->getRole()->getTravelTime()).getStrRepr();
+	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
 
-	personId = boost::lexical_cast<std::string>(parent->getId());
-	tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
-	tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
-	subStartPoint = parent->currSubTrip->startLocationId;
-	subEndPoint = parent->currSubTrip->endLocationId;
-	subStartType = parent->currSubTrip->startLocationType;
-	subEndType = parent->currSubTrip->endLocationType;
-	mode = parent->currSubTrip->getMode();
-	service = parent->currSubTrip->ptLineId;
-	travelTime = DailyTime(parent->getRole()->getTravelTime()).getStrRepr();
-	arrivaltime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
-	if(roleType == Role::RL_TRAINPASSENGER){
-		mode = "MRT_TRAVEL";
-	} else if (roleType == Role::RL_CARPASSENGER) {
-		mode = "CARSHARING_TRAVEL";
-	} else {
-		mode = "BUS_TRAVEL";
-	}
-
-	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(),
-			STORE_PERSON_TRAVEL,
-			messaging::MessageBus::MessagePtr(
-					new PersonTravelTimeMessage(personId, tripStartPoint,
-							tripEndPoint, subStartPoint, subEndPoint,
-							subStartType, subEndType, mode, service,
-							arrivaltime, travelTime)), true);
+	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
+			STORE_PERSON_TRAVEL_TIME,
+			messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
 }
 
 }

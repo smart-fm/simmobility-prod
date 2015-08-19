@@ -23,6 +23,7 @@ namespace medium
 class BusDriverBehavior;
 class BusDriverMovement;
 class BusStopAgent;
+class Passenger;
 
 class BusDriver : public sim_mob::medium::Driver {
 public:

@@ -33,7 +33,7 @@
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
-#include "entities/roles/waitBusActivity/waitBusActivity.hpp"
+#include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/PersonLoader.hpp"
@@ -179,7 +179,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
 
-	messaging::MessageBus::RegisterHandler(PT_Statistics::GetInstance());
+	messaging::MessageBus::RegisterHandler(PT_Statistics::getInstance());
 
 	//Load persons for 0th tick
 	periodicPersonLoader.loadActivitySchedules();
@@ -336,7 +336,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			<< endl;
 	}
 
-	PT_Statistics::GetInstance()->PrintStatistics();
+	PT_Statistics::getInstance()->storeStatistics();
+	PT_Statistics::resetInstance();
 
 	if (ConfigManager::GetInstance().FullConfig().numAgentsSkipped>0)
 	{

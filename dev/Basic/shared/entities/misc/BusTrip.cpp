@@ -106,41 +106,30 @@ const int sim_mob::BusTrip::getBusTripStopIndex(const BusStop* stop) const {
 	return index;
 }
 
-bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*> roadSegment_vec, std::vector<const BusStop*> busStop_vec)
+void sim_mob::BusTrip::setBusRouteInfo(const std::vector<const RoadSegment*>& roadSegment_vec, const std::vector<const BusStop*>& busStop_vec)
 {
-	if(roadSegment_vec.empty()) {
-		Warn() << "Error: no roadSegments!!!" << std::endl;
-		return false;
-	}
-	if(busStop_vec.empty()) {
-		Warn() << "Error: no busStops!!!" << std::endl;
-		// can be, not return
-		//return false;
-	}
-	for(std::vector<const RoadSegment*>::const_iterator it=roadSegment_vec.begin(); it!=roadSegment_vec.end(); it++) {
-		bus_RouteInfo.addRoadSegment(*it);
-	}
-	// later add argument std::vector<const BusStop*>& busStop_vec
-	for(std::vector<const BusStop*>::const_iterator it=busStop_vec.begin(); it!=busStop_vec.end(); it++) {
-		bus_RouteInfo.addBusStop(*it);
-	}
+	bus_RouteInfo.setRoadSegments(roadSegment_vec);
+	bus_RouteInfo.setBusStops(busStop_vec);
+
 	// addBusStopRealTimes, first time fake Times
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	for(int k = 0; k < busStop_vec.size(); k++) {
-		Shared<BusStop_RealTimes>* pBusStopRealTimes = new Shared<BusStop_RealTimes>(config.mutexStategy(),BusStop_RealTimes());
+	for (int k = 0; k < busStop_vec.size(); k++)
+	{
+		Shared<BusStop_RealTimes>* pBusStopRealTimes = new Shared<BusStop_RealTimes>(config.mutexStategy(), BusStop_RealTimes());
 		addBusStopRealTimes(pBusStopRealTimes);
 	}
 
 	// addBusStopScheduledTimes since only "schedule_based", "evenheadway_based" and "hybrid_based" need these
-	if(config.busline_control_type() == "schedule_based" || config.busline_control_type() == "evenheadway_based" || config.busline_control_type() == "hybrid_based") {
-		std::map<int, BusStopScheduledTime> scheduledTimes =  config.busScheduledTimes;
-		for(std::map<int, BusStopScheduledTime>::iterator temp=scheduledTimes.begin();temp != scheduledTimes.end();temp++) {
-			BusStop_ScheduledTimes busStop_ScheduledTimes(startTime + DailyTime(temp->second.offsetAT),startTime + DailyTime(temp->second.offsetDT));
+	if (config.busline_control_type() == "schedule_based" || config.busline_control_type() == "evenheadway_based"
+			|| config.busline_control_type() == "hybrid_based")
+	{
+		std::map<int, BusStopScheduledTime> scheduledTimes = config.busScheduledTimes;
+		for (std::map<int, BusStopScheduledTime>::iterator temp = scheduledTimes.begin(); temp != scheduledTimes.end(); temp++)
+		{
+			BusStop_ScheduledTimes busStop_ScheduledTimes(startTime + DailyTime(temp->second.offsetAT), startTime + DailyTime(temp->second.offsetDT));
 			addBusStopScheduledTimes(busStop_ScheduledTimes);
 		}
 	}
-
-	return true;
 }
 
 sim_mob::Frequency_Busline::Frequency_Busline(DailyTime start_Time, DailyTime end_Time, int headway)

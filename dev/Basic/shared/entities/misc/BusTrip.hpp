@@ -54,20 +54,32 @@ public:
 /**
  * \author Yao Jin
  */
-class BusRouteInfo { // need copy constructor since BusTrip copy the BusRoute, or may need assign constructor
+class BusRouteInfo
+{ // need copy constructor since BusTrip copy the BusRoute, or may need assign constructor
 public:
-	BusRouteInfo(std::string busRoute_id="");
+	BusRouteInfo(std::string busRoute_id = "");
 	BusRouteInfo(const BusRouteInfo& copyFrom); ///<Copy constructor
 	virtual ~BusRouteInfo() {}
 
-	const std::string& getBusRouteId() const {
+	const std::string& getBusRouteId() const
+	{
 		return busRouteId;
 	}
-	const std::vector<const RoadSegment*>& getRoadSegments() const {
+	const std::vector<const RoadSegment*>& getRoadSegments() const
+	{
 		return roadSegmentList;
 	}
-	const std::vector<const BusStop*>& getBusStops() const {
+	const std::vector<const BusStop*>& getBusStops() const
+	{
 		return busStopList;
+	}
+	void setRoadSegments(const std::vector<const RoadSegment*>& segments)
+	{
+		roadSegmentList = segments;
+	}
+	void setBusStops(const std::vector<const BusStop*>& stops)
+	{
+		busStopList = stops;
 	}
 
 	void addBusStop(const BusStop* aBusStop);
@@ -114,7 +126,7 @@ public:
 		return "Bus";
 	}
 
-	bool setBusRouteInfo(std::vector<const RoadSegment*> roadSegment_vec, std::vector<const BusStop*> busStop_vec);
+	void setBusRouteInfo(const std::vector<const RoadSegment*>& roadSegment_vec, const std::vector<const BusStop*>& busStop_vec);
 	void addBusStopScheduledTimes(const BusStop_ScheduledTimes& aBusStopScheduledTime);
 	void addBusStopRealTimes(Shared<BusStop_RealTimes>* aBusStopRealTime);
 	void setBusStopRealTimes(int busstopSequence_j, Shared<BusStop_RealTimes>* busStopRealTimes);

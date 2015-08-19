@@ -197,7 +197,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//      (it is here now to maintain compatibility with the old order or loading things).
 	LoadNetworkFromDatabase();
 
-	if(cfg.RunningMidSupply())
+	if(cfg.RunningMidSupply() && cfg.CBD())
 	{
 		sim_mob::RestrictedRegion::getInstance().populate();
 	}

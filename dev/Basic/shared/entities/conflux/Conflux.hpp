@@ -29,7 +29,7 @@ class Loader;
 enum {
 	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000,
 	MSG_INSERT_INCIDENT,
-	MSG_WAITING_PERSON_ARRIVAL_AT_BUSSTOP,
+	MSG_WAITING_PERSON_ARRIVAL,
 	MSG_MRT_PASSENGER_TELEPORTATION,
 	MSG_WAKEUP_CAR_PASSENGER_TELEPORTATION,
 	MSG_WAKE_UP,
@@ -200,6 +200,8 @@ private:
 
 	/**list of persons who are about to get into the simulation in the next tick*/
 	PersonList loadingQueue;
+
+	static uint32_t updateInterval;
 
 	/**
 	 * updates agents in this conflux

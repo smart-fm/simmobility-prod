@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <boost/foreach.hpp>
+#include <boost/lexical_cast.hpp>
 #include <cmath>
 #include <iostream>
 #include <map>
@@ -456,7 +457,7 @@ void DatabaseLoader::loadLinkDefaultTravelTime(soci::session& sql, boost::unorde
 {
 	const std::string &tableName = sim_mob::ConfigManager::GetInstance().PathSetConfig().DTT_Conf;
 	std::string query = "select \"link_id\",to_char(\"start_time\",'HH24:MI:SS') AS start_time,"
-			"to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\", travel_mode from \"" + tableName + "\"";
+			"to_char(\"end_time\",'HH24:MI:SS') AS end_time,\"travel_time\", travel_mode from " + tableName;
 
 	soci::rowset<sim_mob::SegmentTravelTime> rs = sql.prepare << query;
 
@@ -473,8 +474,8 @@ bool DatabaseLoader::loadLinkRealTimeTravelTime(soci::session& sql, int interval
 	int intervalMS = intervalSec * 1000;
 	const std::string &tableName = sim_mob::ConfigManager::GetInstance().PathSetConfig().RTTT_Conf;
 	std::string query = "select link_id,to_char(start_time,'HH24:MI:SS') AS start_time,"
-			"to_char(end_time,'HH24:MI:SS') AS end_time,travel_time, travel_mode from \""
-			+ tableName + "\" where interval_time = " + boost::lexical_cast<std::string>(intervalSec);
+			"to_char(end_time,'HH24:MI:SS') AS end_time,travel_time, travel_mode from "
+			+ tableName + " where interval_time = " + boost::lexical_cast<std::string>(intervalSec);
 
 	//	local cache for optimization purposes
 	std::map<unsigned long, const sim_mob::RoadSegment*> rsCache;
@@ -594,9 +595,9 @@ bool DatabaseLoader::ExcuString(soci::session& sql,std::string& str)
 }
 void DatabaseLoader::LoadERP_Surcharge(std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >& pool)
 {
-//	soci::rowset<sim_mob::ERP_Surcharge> rs = (sql_.prepare <<"select \"Gantry_No\",to_char(\"Start_Time\",'HH24:MI:SS') AS Start_Time,to_char(\"End _Time\",'HH24:MI:SS') AS End_Time,\"Rate\",\"Vehicle_Type_Id\",\"Vehicle_Type_Desc\",\"Day\" from \"ERP_Surcharge\" ");
-	soci::rowset<sim_mob::ERP_Surcharge> rs = (sql_.prepare <<"select trim(both ' ' from \"Gantry_No\") AS Gantry_No,to_char(\"Start_Time\",'HH24:MI:SS') AS Start_Time,to_char(\"End _Time\",'HH24:MI:SS') AS End_Time,\"Rate\",\"Vehicle_Type_Id\",\"Vehicle_Type_Desc\",\"Day\" from \"ERP_Surcharge\" ");
-	for (soci::rowset<sim_mob::ERP_Surcharge>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+	soci::rowset<sim_mob::ERP_Surcharge> rs = (sql_.prepare << "select * from get_erp_surcharge()");
+	for (soci::rowset<sim_mob::ERP_Surcharge>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
+	{
 		sim_mob::ERP_Surcharge *s = new sim_mob::ERP_Surcharge(*it);
 		std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::iterator itt = pool.find(s->gantryNo);
 		if(itt!=pool.end())
@@ -615,7 +616,7 @@ void DatabaseLoader::LoadERP_Surcharge(std::map<std::string,std::vector<sim_mob:
 }
 void DatabaseLoader::LoadERP_Section(std::map<int,sim_mob::ERP_Section*>& ERP_SectionPool)
 {
-	soci::rowset<sim_mob::ERP_Section> rs = (sql_.prepare <<"select * from \"ERP_Section\" ");
+	soci::rowset<sim_mob::ERP_Section> rs = (sql_.prepare << "select * from get_erp_section()");
 	for (soci::rowset<sim_mob::ERP_Section>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		sim_mob::ERP_Section *s = new sim_mob::ERP_Section(*it);
 		ERP_SectionPool.insert(std::make_pair(s->section_id,s));
@@ -623,7 +624,7 @@ void DatabaseLoader::LoadERP_Section(std::map<int,sim_mob::ERP_Section*>& ERP_Se
 }
 void DatabaseLoader::LoadERP_Gantry_Zone(std::map<std::string,sim_mob::ERP_Gantry_Zone*>& ERP_GantryZonePool)
 {
-	soci::rowset<sim_mob::ERP_Gantry_Zone> rs = (sql_.prepare <<"select * from \"ERP_Gantry_Zone\" ");
+	soci::rowset<sim_mob::ERP_Gantry_Zone> rs = (sql_.prepare << "select * from get_erp_gantry_zone()");
 	for (soci::rowset<sim_mob::ERP_Gantry_Zone>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		sim_mob::ERP_Gantry_Zone *s = new sim_mob::ERP_Gantry_Zone(*it);
 		ERP_GantryZonePool.insert(std::make_pair(s->gantryNo,s));
@@ -1157,8 +1158,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 		}
 	}
 
-	for(std::map<std::string, std::vector<const sim_mob::BusStop*> >::iterator routeIt=routeID_busStops.begin();
-			routeIt!=routeID_busStops.end(); routeIt++)
+	for(std::map<std::string, std::vector<const sim_mob::BusStop*> >::iterator routeIt=routeID_busStops.begin(); routeIt!=routeID_busStops.end(); routeIt++)
 	{
 		std::map<std::string, std::vector<const sim_mob::RoadSegment*> >::iterator routeIDSegIt = routeID_roadSegments.find(routeIt->first);
 		if(routeIDSegIt == routeID_roadSegments.end())
@@ -1223,15 +1223,18 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 					stopList.push_back(stopTwin);
 					break;
 				}
+				default:
+				{
+					throw std::runtime_error("unknown terminus type for stop");
+				}
 			}
 		}
 
-		const sim_mob::BusStop* lastStop = stopListCopy[stopListCopy.size()-1];
+		const sim_mob::BusStop* lastStop = stopListCopy.back();
 		if(lastStop->terminusType == sim_mob::BusStop::SOURCE_TERMINUS)
 		{
 			const sim_mob::BusStop* lastStopTwin = lastStop->getTwinStop();
 			if(!lastStopTwin) { throw std::runtime_error("Source bus stop found without a twin!"); }
-			stopList.pop_back();
 			stopList.push_back(lastStopTwin);
 			if(!segList.empty())
 			{
@@ -3285,10 +3288,11 @@ void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdS
 // TODO: Remove debug messages
 void sim_mob::aimsun::Loader::ProcessConfluxes(const sim_mob::RoadNetwork& rdnw) {
 	std::stringstream debugMsgs(std::stringstream::out);
-	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
-	const sim_mob::MutexStrategy& mtxStrat = ConfigManager::GetInstance().FullConfig().mutexStategy();
-	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& multinode_confluxes
-		= ConfigManager::GetInstanceRW().FullConfig().getConfluxNodes();
+	sim_mob::ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+	sim_mob::Conflux::updateInterval = boost::lexical_cast<uint32_t>(cfg.system.genericProps.at("update_interval"));
+	std::set<sim_mob::Conflux*>& confluxes = cfg.getConfluxes();
+	const sim_mob::MutexStrategy& mtxStrat = cfg.mutexStategy();
+	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& multinode_confluxes = cfg.getConfluxNodes();
 
 	//Make a temporary map of <multi node, set of road-segments directly connected to the multinode>
 	//TODO: This should be done automatically *before* it's needed.

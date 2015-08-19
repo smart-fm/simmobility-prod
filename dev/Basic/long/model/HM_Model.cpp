@@ -928,17 +928,18 @@ HM_Model::HouseholdGroup* HM_Model::getHouseholdGroupByGroupId(BigSerial id)cons
 }
 
 
-PopulationPerPlanningArea* HM_Model::getPopulationByPlanningAreaId(BigSerial id) const
+std::vector<PopulationPerPlanningArea*> HM_Model::getPopulationByPlanningAreaId(BigSerial id) const
 {
-	//chetan change this
-	boost::unordered_map<BigSerial, PopulationPerPlanningArea*>::const_iterator itr = populationPerPlanningAreaById.find(id);
+	std::vector<PopulationPerPlanningArea*> populationPPAvector;
 
-	if (itr != populationPerPlanningAreaById.end())
+	for( int n = 0; n < populationPerPlanningArea.size(); n++ )
 	{
-		return itr->second;
+		if( populationPerPlanningArea[n]->getPlanningAreaId() == id )
+			populationPPAvector.push_back(populationPerPlanningArea[n]);
 	}
 
-	return nullptr;
+
+	return populationPPAvector;
 }
 
 

@@ -270,7 +270,7 @@ namespace sim_mob
             PlanningSubzone* getPlanningSubzoneById(int id);
             ZonalLanduseVariableValues* getZonalLandUseByAlternativeId(int id) const;
             Alternative* getAlternativeByPlanningAreaId(int id) const;
-            PopulationPerPlanningArea* getPopulationByPlanningAreaId(BigSerial id)const;
+            std::vector<PopulationPerPlanningArea*> getPopulationByPlanningAreaId(BigSerial id)const;
 
         protected:
             /**

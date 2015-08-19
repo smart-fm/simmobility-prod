@@ -693,9 +693,80 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 		return;
 
 
-	PopulationPerPlanningArea* populationPerPlanningArea = model->getPopulationByPlanningAreaId(planningArea->getId());
+	std::vector<PopulationPerPlanningArea*> populationPerPlanningArea = model->getPopulationByPlanningAreaId(planningArea->getId());
 
-	double population = populationPerPlanningArea->getPopulation();
+	double populationTotal 	 = 0;
+
+	double populationChinese = 0;
+	double populationMalay	 = 0;
+	double populationIndian	 = 0;
+	double populationOther	 = 0;
+
+	bool  bHouseholdEthnicityChinese = false;
+	bool  bHouseholdEthnicityMalay	 = false;
+	bool  bHouseholdEthnicityIndian	 = false;
+
+	double populationYoungerThan4 	= 0;
+	double population5To19 			= 0;
+	double populationGreaterThan65 	= 0;
+
+	double bHouseholdMemberYoungerThan4  = false;
+	double bHouseholdMember5To19		 = false;
+	double bHouseholdMemberGreaterThan65 = false;
+
+	if( household->getEthnicityId() == 1 )
+		bHouseholdEthnicityChinese = true;
+
+	if( household->getEthnicityId() == 2 )
+		bHouseholdEthnicityMalay = true;
+
+	if( household->getEthnicityId() == 3 )
+		bHouseholdEthnicityIndian = true;
+
+	std::vector<BigSerial> individualIds = household->getIndividuals();
+
+	for( int n = 0; n < individualIds.size(); n++ )
+	{
+		Individual* thisMember = model->getIndividualById(individualIds[n]);
+
+		if( thisMember->getAgeCategoryId()  == 0 )
+			bHouseholdMemberYoungerThan4 = true;
+
+		if( thisMember->getAgeCategoryId() > 0 && thisMember->getAgeCategoryId() < 4 )
+			bHouseholdMember5To19 = true;
+
+		if( thisMember->getAgeCategoryId() > 12 )
+			bHouseholdMemberGreaterThan65 = true;
+	}
+
+
+	for(int n = 0; n < populationPerPlanningArea.size(); n++)
+	{
+		populationTotal += populationPerPlanningArea[n]->getPopulation();
+
+		if(populationPerPlanningArea[n]->getEthnicityId() == 1 )
+			populationChinese++;
+
+		if(populationPerPlanningArea[n]->getEthnicityId() == 2 )
+			populationMalay++;
+
+		if(populationPerPlanningArea[n]->getEthnicityId() == 3 )
+			populationIndian++;
+
+		if(populationPerPlanningArea[n]->getEthnicityId() == 4 )
+			populationOther++;
+
+		if(populationPerPlanningArea[n]->getAgeCategoryId()  == 0 )
+			 populationYoungerThan4++;
+
+		if(populationPerPlanningArea[n]->getAgeCategoryId() > 0  && populationPerPlanningArea[n]->getAgeCategoryId()< 4 )
+			 population5To19++;
+
+		if(populationPerPlanningArea[n]->getAgeCategoryId() > 12 )
+			 populationGreaterThan65++;
+	}
+
+
 
 	std::vector<PlanningSubzone*>  planningSubzones = model->getPlanningSubZoneByPlanningAreaId(planningArea->getId());
 	std::vector<Mtz*> mtzs = model->getMtzBySubzoneVec(planningSubzones);
@@ -717,8 +788,8 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 	{
 		ZonalLanduseVariableValues *zonalLanduseVariableValues = model->getZonalLandUseByAlternativeId(n);
 
-		double logPopulationByHousingType	= log(population);	//1 logarithm of population by housing type in the zone 	persons
-		double populationDensity			= population / planningArea_size;	//2 population density	persons per hectare (x10^-2)
+		double logPopulationByHousingType	= log(populationTotal);	//1 logarithm of population by housing type in the zone 	persons
+		double populationDensity			= populationTotal / planningArea_size;	//2 population density	persons per hectare (x10^-2)
 		double commercialLandFraction		= zonalLanduseVariableValues->getFLocCom();	//3 zonal average fraction of commercial land within a 500-meter buffer area from a residential postcode (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
 		double residentialLandFraction		= zonalLanduseVariableValues->getFLocRes();	//4 zonal average fraction of residential land within a 500-meter buffer area from a residential postcode  (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
 		double openSpaceFraction			= zonalLanduseVariableValues->getFLocOpen();	//5 zonal average fraction of open space within a 500-meter buffer area from a residential postcode (weighted by residential unit within the buffer)	percentage point (x10^-1)
@@ -726,20 +797,18 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 		double distanceToMrt				= zonalLanduseVariableValues->getDis2mrt();	//7 zonal average distance to the nearest MRT station	in kilometer
 		double distanceToExp				= zonalLanduseVariableValues->getDis2exp();	//8 zonal average distance to the nearest express way	in kilometer
 		double householdWorkerLogsumAverage	= 0.0;	//9 average of workers' logsum of a household (at the DGP level) x dummy if household has at least a worker with fixed workplace (=1, yes; =0, otherwise)	utils
-		double fractionYoungerThan4			= 0.0;	//10 zonal fraction of population younger than 4 years old x dummy if presence of kids younger than 4 years old in the household (=1, yes; =0, no)	percentage point (x10^-1)
-		double fractionBetween5And19		= 0.0;	//11 zonal fraction of population between 5 and 19 years old x dummy if presence of children in the household  (=1, yes; =0, no)	percentage point (x10^-1)
-		double fractionOlderThan65			= 0.0;	//12 zonal fraction of population older than 65 years old x dummy if presence of seniors in the household  (=1, yes; =0, no)	percentage point (x10^-1)
-		double fractionOfChinese			= 0.0;	//13 zonal fraction of Chinese population x  dummy if household is Chinese (=1, yes; =0, no)	percentage point (x10^-1)
-		double fractionOfMalay				= 0.0;	//14 zonal fraction of Malay population x  dummy if household is Malay (=1, yes; =0, no)	percentage point (x10^-1)
-		double fractionOfIndian				= 0.0;	//15 zonal fraction of Indian population x  dummy if household is Indian (=1, yes; =0, no)	percentage point (x10^-1)
+		double fractionYoungerThan4			= ( populationYoungerThan4 / populationTotal ) * bHouseholdMemberYoungerThan4;	//10 zonal fraction of population younger than 4 years old x dummy if presence of kids younger than 4 years old in the household (=1, yes; =0, no)	percentage point (x10^-1)
+		double fractionBetween5And19		= ( population5To19 / populationTotal ) * bHouseholdMember5To19;	//11 zonal fraction of population between 5 and 19 years old x dummy if presence of children in the household  (=1, yes; =0, no)	percentage point (x10^-1)
+		double fractionOlderThan65			= ( populationGreaterThan65 / populationTotal ) * bHouseholdMemberGreaterThan65;	//12 zonal fraction of population older than 65 years old x dummy if presence of seniors in the household  (=1, yes; =0, no)	percentage point (x10^-1)
+		double fractionOfChinese			= ( populationChinese / populationTotal ) * bHouseholdEthnicityChinese;	//13 zonal fraction of Chinese population x  dummy if household is Chinese (=1, yes; =0, no)	percentage point (x10^-1)
+		double fractionOfMalay				= ( populationChinese / populationTotal ) * bHouseholdEthnicityMalay;	//14 zonal fraction of Malay population x  dummy if household is Malay (=1, yes; =0, no)	percentage point (x10^-1)
+		double fractionOfIndian				= ( populationChinese / populationTotal ) * bHouseholdEthnicityIndian;	//15 zonal fraction of Indian population x  dummy if household is Indian (=1, yes; =0, no)	percentage point (x10^-1)
 		double householdSizeMinusZoneAvg	= 0.0;	//16 absolute difference between zonal average household size by housing type and household size	persons
 		double logHouseholdInconeMinusZoneAvg= 0.0;	//17 absolute difference between logarithm of the zonal median household montly income by housing type and logarithm of the household income	SGD
 		double logZonalMedianHousingPrice	= 0.0;	//18 logarithm of the zonal median housing price by housing type	in (2005) SGD
 		double privateCondoHhSizeOne		= 0.0;	//19 = 1, if household size is 1, living in private condo/apartment
 		double landedPropertyHhSizeOne		= 0.0;	//20  = 1, if household size is 1, living in landed property
 		double otherHousingHhSizeOne		= 0.0; 	//21 = 1, if household size is 1, living in other types of housing units
-
-
 
 		double probability =( logPopulationByHousingType* ln_popdwl 		) +
 							( populationDensity			* den_respop_ha 	) +

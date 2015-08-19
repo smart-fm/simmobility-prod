@@ -1,39 +1,34 @@
-//Copyright (c) 2014 Singapore-MIT Alliance for Research and Technology
+//Copyright (c) 2015 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
 //license.txt   (http://opensource.org/licenses/MIT)
 
 /*
- * EstablishmentDao.h
+ * HitsIndividualLogsumDao.hpp
  *
- *  Created on: 23 Apr, 2015
+ *  Created on: 17 Aug, 2015
  *  Author: Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  */
 
-#pragma once
 #include "database/dao/SqlAbstractDao.hpp"
-#include "database/entity/Establishment.hpp"
+#include "database/entity/HitsIndividualLogsum.hpp"
 
 namespace sim_mob
 {
 	namespace long_term
 	{
-		/**
-		 * Data Access Object to Household table on datasource.
-		 */
-		class EstablishmentDao : public db::SqlAbstractDao<Establishment>
+		class HitsIndividualLogsumDao : public db::SqlAbstractDao<HitsIndividualLogsum>
 		{
-		public:
-			EstablishmentDao(db::DB_Connection& connection);
-			virtual ~EstablishmentDao();
+	        public:
+			HitsIndividualLogsumDao(db::DB_Connection& connection);
+	        virtual ~HitsIndividualLogsumDao();
 
-	    private:
-
+	        private:
 	            /**
 	             * Fills the given outObj with all values contained on Row.
 	             * @param result row with data to fill the out object.
 	             * @param outObj to fill.
 	             */
-	            void fromRow(db::Row& result, Establishment& outObj);
+	            void fromRow(db::Row& result, HitsIndividualLogsum& outObj);
 
 	            /**
 	             * Fills the outParam with all values to insert or update on datasource.
@@ -41,9 +36,7 @@ namespace sim_mob
 	             * @param outParams to put the data parameters.
 	             * @param update tells if operation is an Update or Insert.
 	             */
-	            void toRow(Establishment& data, db::Parameters& outParams, bool update);
+	            void toRow(HitsIndividualLogsum& data, db::Parameters& outParams, bool update);
 		};
 	}
 }
-
-

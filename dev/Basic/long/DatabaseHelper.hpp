@@ -26,7 +26,8 @@ namespace sim_mob {
         const std::string DB_SCHEMA_EMPTY = "";
         const std::string MAIN_SCHEMA = "main2012.";
         const std::string CALIBRATION_SCHEMA = "calibration2012.";
-        const std::string LIMIT_10000 = " order by random() limit 10000;";
+        const std::string LIMIT_10000 = " order by random() limit 10000";
+        const std::string LIMIT_RAND0_DOT1 = "WHERE random() < 0.01";
         const std::string LIMIT_ALL = "";
         const std::string LIMIT = LIMIT_ALL;
 
@@ -72,6 +73,7 @@ namespace sim_mob {
         const std::string DB_TABLE_ALTERNATIVE= APPLY_SCHEMA(CALIBRATION_SCHEMA, "alternative");
         const std::string DB_TABLE_HITS2008SCREENINGPROB= APPLY_SCHEMA(CALIBRATION_SCHEMA, "hits2008_screening_prob");
         const std::string DB_TABLE_ZONALLANDUSEVARIABLEVALUES= APPLY_SCHEMA(CALIBRATION_SCHEMA, "zonal_landuse_variable_values");
+        const std::string DB_TABLE_HITSINDIVIDUALLOGSUM= APPLY_SCHEMA(MAIN_SCHEMA, "hits_individual_logsum");
 
 
 
@@ -350,6 +352,7 @@ namespace sim_mob {
         const std::string DB_GETALL_HITS2008SCREENINGPROB = "SELECT * FROM " + DB_TABLE_HITS2008SCREENINGPROB + LIMIT;
         const std::string DB_GETALL_ZONALLANDUSEVARIABLEVALUES = "SELECT * FROM " + DB_TABLE_ZONALLANDUSEVARIABLEVALUES + LIMIT;
         const std::string DB_GETALL_POPULATION_PER_PLANNING_AREA = "SELECT * FROM " + DB_FUNC_GET_POPULATION_PER_PLANNING_AREA + LIMIT;
+        const std::string DB_GETALL_HITSINDIVIDUALLOGSUM = "SELECT * FROM " + DB_TABLE_HITSINDIVIDUALLOGSUM + LIMIT;
 
 
 
@@ -386,6 +389,7 @@ namespace sim_mob {
         const std::string DB_GETBYID_HITS2008SCREENINGPROB = "SELECT * FROM " + DB_TABLE_HITS2008SCREENINGPROB + " WHERE id = :v1;";
         const std::string DB_GETBYID_ZONALLANDUSEVARIABLEVALUES = "SELECT * FROM " + DB_TABLE_ZONALLANDUSEVARIABLEVALUES + " WHERE id = :v1;";
         const std::string DB_GETBYID_POPULATION_PER_PLANNING_AREA = "SELECT * FROM " + DB_FUNC_GET_POPULATION_PER_PLANNING_AREA + " WHERE planning_area_id = :v1;";
+        const std::string DB_GETBYID_HITSINDIVIDUALLOGSUM = "SELECT * FROM " + DB_TABLE_HITSINDIVIDUALLOGSUM + " WHERE id = :v1;";
     }
 }
 

@@ -669,24 +669,64 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 	Taz *taz  = model->getTazById(tazId);
 	int mtzId = model->getMtzIdByTazId(tazId);
 	Mtz *mtz  = model->getMtzById(mtzId);
-	PlanningSubzone *planningSubzone = model->getPlanningSubzoneById( mtz->getPlanningSubzoneId() );
-	PlanningArea *planningArea = model->getPlanningAreaById(planningSubzone->getPlanningAreaId() );
-	Alternative* alternative = model->getAlternativeByPlanningAreaId(planningArea->getId());
 
-	int dwellingId = alternative->getDwellingTypeId();
+	PlanningSubzone *planningSubzone = nullptr;
+	PlanningArea *planningArea = nullptr;
+	Alternative* alternative = nullptr;
+
+	if(mtz)
+		planningSubzone = model->getPlanningSubzoneById( mtz->getPlanningSubzoneId() );
+
+	if(planningSubzone)
+		planningArea = model->getPlanningAreaById(planningSubzone->getPlanningAreaId() );
+
+	if(planningArea)
+		alternative = model->getAlternativeByPlanningAreaId(planningArea->getId());
+
+	int dwellingId = 0;
+
+	if(alternative)
+		dwellingId = alternative->getDwellingTypeId();
 
 
+	if(!planningArea)
+		return;
+
+
+	PopulationPerPlanningArea* populationPerPlanningArea = model->getPopulationByPlanningAreaId(planningArea->getId());
+
+	double population = populationPerPlanningArea->getPopulation();
+
+	std::vector<PlanningSubzone*>  planningSubzones = model->getPlanningSubZoneByPlanningAreaId(planningArea->getId());
+	std::vector<Mtz*> mtzs = model->getMtzBySubzoneVec(planningSubzones);
+	std::vector<BigSerial> tazs = model->getTazByMtzVec(mtzs);
+
+	double planningArea_size = 0;
+	for( int n = 0; n < tazs.size();n++)
 	{
-		double logPopulationByHousingType	= 0.0;	//1 logarithm of population by housing type in the zone 	persons
-		double populationDensity			= 0.0;	//2 population density	persons per hectare (x10^-2)
-		double commercialLandFraction		= 0.0;	//3 zonal average fraction of commercial land within a 500-meter buffer area from a residential postcode (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
-		double residentialLandFraction		= 0.0;	//4 zonal average fraction of residential land within a 500-meter buffer area from a residential postcode  (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
-		double openSpaceFraction			= 0.0;	//5 zonal average fraction of open space within a 500-meter buffer area from a residential postcode (weighted by residential unit within the buffer)	percentage point (x10^-1)
-		double oppurtunityDiversityIndex	= 0.0;	//6 zonal average local land use mix (opportunity diversity) index: 1-(|lu1/t-1/9|+|lu2/t-1/9|+|lu3/t-1/9|+|lu4/t-1/9|+|lu5/t-1/9|+|lu6/t-1/9|+|lu7/t-1/9|+|lu8/t-1/9|+|lu9/t-1/9|)/(16/9)	(x10)
-		double distanceToMrt				= 0.0;	//7 zonal average distance to the nearest MRT station	in kilometer
-		double distanceToExp				= 0.0;	//8 zonal average distance to the nearest express way	in kilometer
-		double househldEorkerLogsumAverage	= 0.0;	//9 average of workers' logsum of a household (at the DGP level) x dummy if household has at least a worker with fixed workplace (=1, yes; =0, otherwise)	utils
-		double fractionYongerThan4			= 0.0;	//10 zonal fraction of population younger than 4 years old x dummy if presence of kids younger than 4 years old in the household (=1, yes; =0, no)	percentage point (x10^-1)
+		Taz *thisTaz = model->getTazById(tazs[n]);
+
+		planningArea_size += thisTaz->getArea();
+	}
+
+	//convert sqm into hectares
+	planningArea_size = planningArea_size / 10000.0;
+
+
+	for( int n = 1; n <= 215; n++ )
+	{
+		ZonalLanduseVariableValues *zonalLanduseVariableValues = model->getZonalLandUseByAlternativeId(n);
+
+		double logPopulationByHousingType	= log(population);	//1 logarithm of population by housing type in the zone 	persons
+		double populationDensity			= population / planningArea_size;	//2 population density	persons per hectare (x10^-2)
+		double commercialLandFraction		= zonalLanduseVariableValues->getFLocCom();	//3 zonal average fraction of commercial land within a 500-meter buffer area from a residential postcode (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
+		double residentialLandFraction		= zonalLanduseVariableValues->getFLocRes();	//4 zonal average fraction of residential land within a 500-meter buffer area from a residential postcode  (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
+		double openSpaceFraction			= zonalLanduseVariableValues->getFLocOpen();	//5 zonal average fraction of open space within a 500-meter buffer area from a residential postcode (weighted by residential unit within the buffer)	percentage point (x10^-1)
+		double oppurtunityDiversityIndex	= zonalLanduseVariableValues->getOdi10Loc();	//6 zonal average local land use mix (opportunity diversity) index: 1-(|lu1/t-1/9|+|lu2/t-1/9|+|lu3/t-1/9|+|lu4/t-1/9|+|lu5/t-1/9|+|lu6/t-1/9|+|lu7/t-1/9|+|lu8/t-1/9|+|lu9/t-1/9|)/(16/9)	(x10)
+		double distanceToMrt				= zonalLanduseVariableValues->getDis2mrt();	//7 zonal average distance to the nearest MRT station	in kilometer
+		double distanceToExp				= zonalLanduseVariableValues->getDis2exp();	//8 zonal average distance to the nearest express way	in kilometer
+		double householdWorkerLogsumAverage	= 0.0;	//9 average of workers' logsum of a household (at the DGP level) x dummy if household has at least a worker with fixed workplace (=1, yes; =0, otherwise)	utils
+		double fractionYoungerThan4			= 0.0;	//10 zonal fraction of population younger than 4 years old x dummy if presence of kids younger than 4 years old in the household (=1, yes; =0, no)	percentage point (x10^-1)
 		double fractionBetween5And19		= 0.0;	//11 zonal fraction of population between 5 and 19 years old x dummy if presence of children in the household  (=1, yes; =0, no)	percentage point (x10^-1)
 		double fractionOlderThan65			= 0.0;	//12 zonal fraction of population older than 65 years old x dummy if presence of seniors in the household  (=1, yes; =0, no)	percentage point (x10^-1)
 		double fractionOfChinese			= 0.0;	//13 zonal fraction of Chinese population x  dummy if household is Chinese (=1, yes; =0, no)	percentage point (x10^-1)
@@ -709,8 +749,8 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 							( oppurtunityDiversityIndex	* odi10_loc		 	) +
 							( distanceToMrt				* dis2mrt		 	) +
 							( distanceToExp				* dis2exp		 	) +
-							( househldEorkerLogsumAverage* hh_dgp_w_lgsm1 	) +
-							( fractionYongerThan4		* f_age4_n4		 	) +
+							( householdWorkerLogsumAverage* hh_dgp_w_lgsm1 	) +
+							( fractionYoungerThan4		* f_age4_n4		 	) +
 							( fractionBetween5And19		* f_age19_n19	 	) +
 							( fractionOlderThan65		* f_age65_n65	 	) +
 							( fractionOfChinese			* f_chn_nchn	 	) +
@@ -722,6 +762,8 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 							( privateCondoHhSizeOne		* DWL600 ) +
 							( landedPropertyHhSizeOne	* DWL700 ) +
 							( otherHousingHhSizeOne		* DWL800 );
+
+		probabilities.push_back(probability);
 	}
 
 	/*

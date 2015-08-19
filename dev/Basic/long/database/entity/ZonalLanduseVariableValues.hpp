@@ -21,7 +21,7 @@ namespace sim_mob
 		class ZonalLanduseVariableValues
 		{
 		public:
-			ZonalLanduseVariableValues(	int alt_id = 0,	int dgpid = 0, int dwl = 0, double f_loc_com = .0, double f_loc_res = .0, double odi10_loc = .0, double dis2mrt = .0, double dis2exp = .0);
+			ZonalLanduseVariableValues(	int alt_id = 0,	int dgpid = 0, int dwl = 0, double f_loc_com = .0, double f_loc_res = .0, double f_loc_open = .0, double odi10_loc = .0, double dis2mrt = .0, double dis2exp = .0);
 
 			ZonalLanduseVariableValues( const ZonalLanduseVariableValues & source);
 
@@ -34,6 +34,7 @@ namespace sim_mob
 			int getDwl() const;
 			double getFLocCom() const;
 			double getFLocRes() const;
+			double getFLocOpen() const;
 			double getOdi10Loc() const;
 			double getDis2mrt() const;
 			double getDis2exp() const;
@@ -48,6 +49,7 @@ namespace sim_mob
 			int dwl;
 			double f_loc_com;
 			double f_loc_res;
+			double f_loc_open;
 			double odi10_loc;
 			double dis2mrt;
 			double dis2exp;

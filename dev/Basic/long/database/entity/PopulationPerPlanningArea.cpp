@@ -9,14 +9,17 @@
 
 using namespace sim_mob::long_term;
 
-PopulationPerPlanningArea::PopulationPerPlanningArea(int planningAreaId, int population): planningAreaId(planningAreaId), population(population) {}
+PopulationPerPlanningArea::PopulationPerPlanningArea(int planningAreaId, int population, int ethnicityId, int ageCategoryId): planningAreaId(planningAreaId), population(population), ethnicityId(ethnicityId),
+																															  ageCategoryId(ageCategoryId){}
 
 PopulationPerPlanningArea::~PopulationPerPlanningArea() {}
 
 PopulationPerPlanningArea::PopulationPerPlanningArea( const PopulationPerPlanningArea &source)
 {
-	planningAreaId = source.planningAreaId;
-	population = source.population;
+	planningAreaId 	= source.planningAreaId;
+	population 		= source.population;
+	ethnicityId 	= source.ethnicityId;
+	ageCategoryId	= source.ageCategoryId;
 }
 
 
@@ -36,4 +39,14 @@ int PopulationPerPlanningArea::getPlanningAreaId() const
 int PopulationPerPlanningArea::getPopulation() const
 {
 	return population;
+}
+
+int PopulationPerPlanningArea::getEthnicityId() const
+{
+	return ethnicityId;
+}
+
+int PopulationPerPlanningArea::getAgeCategoryId() const
+{
+	return ageCategoryId;
 }

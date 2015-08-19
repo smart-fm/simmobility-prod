@@ -33,6 +33,7 @@
 #include "database/entity/Hits2008ScreeningProb.hpp"
 #include "database/entity/ZonalLanduseVariableValues.hpp"
 #include "database/entity/PopulationPerPlanningArea.hpp"
+#include "database/entity/HitsIndividualLogsum.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -117,6 +118,9 @@ namespace sim_mob
 
             typedef std::vector<PopulationPerPlanningArea*> PopulationPerPlanningAreaList;
             typedef boost::unordered_map<BigSerial, PopulationPerPlanningArea*> PopulationPerPlanningAreaMap;
+
+            typedef std::vector<HitsIndividualLogsum*> HitsIndividualLogsumList;
+            typedef boost::unordered_map<BigSerial, HitsIndividualLogsum*> HitsIndividualLogsumMap;
 
             /**
              * Taz statistics
@@ -218,6 +222,7 @@ namespace sim_mob
             void incrementAwakeningCounter();
             int  getAwakeningCounter() const;
             void getLogsumOfIndividuals(BigSerial id);
+            void getLogsumOfHousehold(BigSerial id);
 
             HousingMarket* getMarket();
 
@@ -265,6 +270,7 @@ namespace sim_mob
             PlanningSubzone* getPlanningSubzoneById(int id);
             ZonalLanduseVariableValues* getZonalLandUseByAlternativeId(int id) const;
             Alternative* getAlternativeByPlanningAreaId(int id) const;
+            PopulationPerPlanningArea* getPopulationByPlanningAreaId(BigSerial id)const;
 
         protected:
             /**
@@ -330,6 +336,9 @@ namespace sim_mob
             PopulationPerPlanningAreaList populationPerPlanningArea;
             PopulationPerPlanningAreaMap populationPerPlanningAreaById;
 
+            HitsIndividualLogsumList hitsIndividualLogsum;
+            HitsIndividualLogsumMap  hitsIndividualLogsumById;
+
             boost::mutex mtx;
             boost::mutex mtx2;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
@@ -350,6 +359,8 @@ namespace sim_mob
             HouseHoldHitsSampleList houseHoldHits;
             HouseHoldHitsSampleMap houseHoldHitsById;
 
+            std::set<std::string> processedHouseholdHitsLogsum;
+
 
             ZonalLanduseVariableValuesList zonalLanduseVariableValues;
             ZonalLanduseVariableValuesMap zonalLanduseVariableValuesById;
@@ -361,6 +372,8 @@ namespace sim_mob
             int numLifestyle3HHs;
             std::vector<BigSerial> realEstateAgentIds;
             bool hasTaxiAccess;
+            int householdLogsumCounter;
+            int simulationStopCounter;
         };
     }
 }

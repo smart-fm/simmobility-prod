@@ -23,7 +23,7 @@ PopulationPerPlanningAreaDao::~PopulationPerPlanningAreaDao(){}
 void PopulationPerPlanningAreaDao::fromRow(Row& result, PopulationPerPlanningArea& outObj)
 {
     outObj.planningAreaId	= result.get<BigSerial>( "planning_area_id", 0);
-    outObj.population		= result.get<int>( "population", 0);
+    outObj.population		= result.get<BigSerial>( "population", 0);
 }
 
 void PopulationPerPlanningAreaDao::toRow(PopulationPerPlanningArea& data, Parameters& outParams, bool update) {}

@@ -10,7 +10,7 @@
  *
  */
 
-
+#pragma once
 #include "AlternativeDao.hpp"
 #include "DatabaseHelper.hpp"
 

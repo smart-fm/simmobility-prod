@@ -15,15 +15,12 @@ using std::string;
 
 namespace
 {
-	const std::string templateStr = "00000000";
-	std::vector<std::string> timeList = std::vector<std::string>(86400, templateStr);
+	const std::string TEMPLATE_STRING = "00000000";
+	std::vector<std::string> timeList = std::vector<std::string>(86400, TEMPLATE_STRING);
 
 	/**
 	 * a verbose, dangerous and yet fast helper function to get characters corresponding to decimal numbers 0 through 59
 	 * buildStringRepr() uses this function to quickly get the string representation for a time value in milliseconds
-	 * \note buildStringRepr() is a function called in sim_mob::DailyTime::getStrRepr() which gets called billions or even trillions of times during simulation.
-	 *       It is therefore essential for buildStringRepr() to be as fast as possible. We therefore use this function and avoid
-	 *       stringstreams and insertion operators.
 	 */
 	inline char* timeDecimalDigitToChar(int num, char* c)
 	{
@@ -120,42 +117,63 @@ namespace
 	uint32_t parseStringRepr(std::string timeRepr)
 	{
 		//A few quick sanity checks
-		//TODO: These can be removed if we read up a bit more on Boost's format specifier strings.
 		size_t numColon = 0;
 		size_t numDigits = 0;
-		bool hasComma = false;
+		bool hasDot = false;
 		std::string err = timeRepr;
-		for (std::string::iterator it=timeRepr.begin(); it!=timeRepr.end(); it++) {
-			if (*it==',' || *it=='.') {
-				hasComma = true;
-			} else if (*it==':') {
-				numColon++;
-			} else if (*it>='0' && *it<='9') {
-				if (!hasComma) {
-					numDigits++;
+		int timePart[4] = {0,0,0,0}; //{hours, minutes, seconds, milliseconds}
+		int timePartIdx = 0; //hours index
+		uint32_t num = 0;
+		for (int i=0; i<timeRepr.size(); i++)
+		{
+			char currChar = timeRepr[i];
+			if (currChar==',' || currChar=='.')
+			{
+				hasDot = true;
+				timePart[timePartIdx] = num;
+				timePartIdx++;
+				if(timePartIdx>3)
+				{
+					throw std::runtime_error("Too many fields in time representation. Expected format is hh:mi:ss(.mil)");
 				}
-			} else if (*it!=' ' && *it!='\t'){
+				num = 0; // reset to start computing the next field
+			}
+			else if (currChar==':')
+			{
+				numColon++;
+				timePart[timePartIdx] = num;
+				timePartIdx++;
+				if(timePartIdx>3)
+				{
+					throw std::runtime_error("Too many fields in time representation. Expected format is hh:mi:ss(.mil)");
+				}
+				num = 0; // reset to start computing the next field
+			}
+			else if (currChar>='0' && currChar<='9')
+			{
+				if(!hasDot) { numDigits++; }
+				num = (num*10) + (currChar-'0');
+			}
+			else if (currChar!=' ' && currChar!='\t')
+			{
 				err = "Invalid format: unexpected non-whitespace character:" + err;
 				throw std::runtime_error(err);
 			}
 		}
-		if (numDigits%2==1) {
+		if(num > 0) { timePart[timePartIdx] = num; } //millisecond part was present in the string
+		if (numDigits%2!=0)
+		{
 			std::cout << "Invalid format: non-even digit count:" + err << std::endl;
 			//throw std::runtime_error(err);
 		}
-		if (numColon==1) {
-			if (hasComma) {
-				err = "Invalid format: missing hour component:" + err;
-				throw std::runtime_error(err);
-			}
-		} else if (numColon!=2) {
-			err = "Invalid format: invalid component count:" + err;
+		if (numColon!=2)
+		{
+			err = "Invalid format: invalid format: " + err + "\nexpected format is hh:mi:ss(.mil)";
 			throw std::runtime_error(err);
 		}
 
-		//Parse
-		time_duration val(duration_from_string(timeRepr));
-		return val.total_milliseconds();
+		//Parse: hour				: minute			: sec			   . milliseconds
+		return (timePart[0]*3600000 + timePart[1]*60000 + timePart[2]*1000 + timePart[3]);
 	}
 }
 

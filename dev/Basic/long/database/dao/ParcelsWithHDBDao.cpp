@@ -12,7 +12,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 ParcelsWithHDBDao::ParcelsWithHDBDao(DB_Connection& connection)
-: SqlAbstractDao<ParcelsWithHDB>(connection, EMPTY_STR,EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_FUNC_GETALL_PARCELS_WITH_HDB, EMPTY_STR) {}
+: SqlAbstractDao<ParcelsWithHDB>(connection, EMPTY_STR,EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_PARCELS_WITH_HDB, EMPTY_STR) {}
 
 ParcelsWithHDBDao::~ParcelsWithHDBDao() {}
 

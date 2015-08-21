@@ -1,8 +1,12 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//license.txt   (http://opensource.org/licenses/MIT)
+
 /*
  * AwakeningDao.hpp
  *
  *  Created on: 24 Nov, 2014
- *      Author: Chetan Rogbeer <chetan.rogbeer>
+ *  Author: Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  */
 
 #pragma once

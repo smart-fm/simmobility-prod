@@ -35,6 +35,7 @@
 #include "util/DynamicVector.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/ReactionTimeDistributions.hpp"
+#include "entities/IntersectionManager.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -338,7 +339,6 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 
 	turningDirection = LCS_SAME;
 
-	nvFwd.distance = Driver::maxVisibleDis;
 	nvFwd = NearestVehicle();
 	nvLeftFwd = NearestVehicle();
 	nvRightFwd = NearestVehicle();
@@ -397,5 +397,23 @@ void Driver::rerouteWithPath(const std::vector<sim_mob::WayPoint>& path)
 	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
 	if (mov) {
 		mov->rerouteWithPath(path);
+	}
+}
+
+void Driver::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message)
+{
+	switch(type)
+	{
+		case MSG_RESPONSE_INT_ARR_TIME:
+		{
+			DriverUpdateParams &params = getParams();
+			const IntersectionAccessMessage &msg = MSG_CAST(IntersectionAccessMessage, message);
+			params.accessTime = msg.getArrivalTime();
+			params.isResponseReceived = true;
+		}
+			break;
+		
+		default:
+			break;
 	}
 }

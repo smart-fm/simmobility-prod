@@ -373,30 +373,21 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 
 			vector<const RoadSegment*> segments = vector<const RoadSegment*>();
 			const std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments = config.getRoadSegments_Map();
-			map<string, vector<const RoadSegment*> >::const_iterator itSeg = routeID_roadSegments.begin();
-			for(; itSeg!=routeID_roadSegments.end(); itSeg++){
-				string str = itSeg->first;
-				boost::trim_right(str);
-				if(curr->route_id==str){
-					segments = itSeg->second;
-					break;
-				}
+			map<string, vector<const RoadSegment*> >::const_iterator itSeg = routeID_roadSegments.find(curr->route_id);
+			if(itSeg!=routeID_roadSegments.end())
+			{
+				segments = itSeg->second;
 			}
 
 			stops = vector<const BusStop*>();
 			const std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops = config.getBusStops_Map();
-			map<string, vector<const BusStop*> >::const_iterator itStop = routeID_busStops.begin();
-			for(; itStop!=routeID_busStops.end(); itStop++){
-				string str = itStop->first;
-				boost::trim_right(str);
-				if(curr->route_id==str){
-					stops = itStop->second;
-					break;
-				}
+			map<string, vector<const BusStop*> >::const_iterator itStop = routeID_busStops.find(curr->route_id);
+			if(itStop!=routeID_busStops.end())
+			{
+				stops = itStop->second;
 			}
 
-			if (busstop_busline_registered
-					&& sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes()) {
+			if (busstop_busline_registered && sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes()) {
 				if (searchBusRoutes(stops, curr->route_id, allRoutes,
 						allStops)) {
 					amount++;

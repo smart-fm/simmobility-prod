@@ -5,6 +5,7 @@
 #include "Loader.hpp"
 
 #include <algorithm>
+#include <boost/foreach.hpp>
 #include <cmath>
 #include <iostream>
 #include <map>
@@ -15,8 +16,7 @@
 //NOTE: CMake should put the correct -I flags in for SOCI; be aware that some distros hide it though.
 //#include <soci.h>
 //#include <soci-postgresql.h>
-#include <boost/foreach.hpp>
-#include "boost/algorithm/string.hpp"
+
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/settings/DisableMPI.h"
@@ -82,6 +82,7 @@
 
 #include "partitions/PartitionManager.hpp"
 #include "partitions/BoundarySegment.hpp"
+#include "entities/IntersectionManager.hpp"
 
 using namespace sim_mob::aimsun;
 using sim_mob::DynamicVector;
@@ -1147,9 +1148,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 		sim_mob::PT_bus_stops pt_bus_stopsTemp = *iter;
 		pt_bus_stops.push_back(pt_bus_stopsTemp);
 
-		string str = pt_bus_stopsTemp.busstop_no;
-		boost::trim_right(str);
-		sim_mob::BusStop* bs = sim_mob::BusStop::findBusStop(str);
+		sim_mob::BusStop* bs = sim_mob::BusStop::findBusStop(pt_bus_stopsTemp.busstop_no);
 		if(bs) {
 			routeID_busStops[iter->route_id].push_back(bs);
 		}
@@ -1876,7 +1875,8 @@ void DatabaseLoader::DecorateAndTranslateObjects()
 	//        1) In ALL sections that meet at this node, there are only two distinct nodes.
 	//        2) Each of these distinct nodes has exactly ONE Segment leading "from->to" and one leading "to->from".
 	//           This should take bi-directional Segments into account.
-	//        3) Optionally, there can be a single link in ONE direction, representing a one-way road.
+	//        3) All Segments share the same Road Name
+	//        4) Optionally, there can be a single link in ONE direction, representing a one-way road.
 	vector<int> nodeMismatchIDs;
 	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++)
 	{
@@ -1890,26 +1890,45 @@ void DatabaseLoader::DecorateAndTranslateObjects()
 		for (vector<Section*>::iterator it=n->sectionsAtNode.begin(); it!=n->sectionsAtNode.end(); it++)
 		{
 			//Get "other" node
-			Node* otherNode = ((*it)->fromNode!=n) ? (*it)->fromNode : (*it)->toNode;
+			Node* otherNode = ((*it)->fromNode != n) ? (*it)->fromNode : (*it)->toNode;
 
 			//Manage property one.
 			unsigned int* flagPtr;
-			if (!others.first || others.first==otherNode) {
+			if (!others.first || others.first == otherNode)
+			{
 				others.first = otherNode;
 				flagPtr = &flags.first;
-			} else if (!others.second || others.second==otherNode) {
+			}
+			else if (!others.second || others.second == otherNode)
+			{
 				others.second = otherNode;
 				flagPtr = &flags.second;
-			} else {
+			}
+			else
+			{
 				n->candidateForSegmentNode = false; //Fail
 				break;
 			}
 
 			//Manage property two.
-			unsigned int toFlag = ((*it)->toNode==n) ? 1 : 2;
-			if (((*flagPtr)&toFlag)==0) {
+			unsigned int toFlag = ((*it)->toNode == n) ? 1 : 2;
+			if (((*flagPtr) & toFlag) == 0)
+			{
 				*flagPtr = (*flagPtr) | toFlag;
-			} else {
+			}
+			else
+			{
+				n->candidateForSegmentNode = false; //Fail
+				break;
+			}
+
+			//Manage property three.
+			if (expectedName.empty())
+			{
+				expectedName = (*it)->roadName;
+			}
+			else if (expectedName != (*it)->roadName)
+			{
 				n->candidateForSegmentNode = false; //Fail
 				break;
 			}
@@ -2095,21 +2114,18 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 void
 DatabaseLoader::createSignals()
 {
-    //std::set<sim_mob::Node const *> uniNodes;
-    std::set<sim_mob::Node const *> badNodes;
     int j = 0, nof_signals = 0;
     for (map<int, Signal>::const_iterator iter = signals_.begin(); iter != signals_.end(); ++iter,j++)
     {
-
         Signal const & dbSignal = iter->second;
         map<int, Node>::const_iterator iter2 = nodes_.find(dbSignal.nodeId);
+
         //filter out signals which are not in the territory of our nodes_
         if (iter2 == nodes_.end())
         {
             std::ostringstream stream;
             stream << "cannot find node (id=" << dbSignal.nodeId
                    << ") in the database for signal id=" << iter->first;
-//            throw std::runtime_error(stream.str());
             continue;
         }
 
@@ -2936,7 +2952,7 @@ bool sim_mob::aimsun::Loader::storeSinglePath(soci::session& sql,
 		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& pathPool,const std::string pathSetTableName)
 {
 	bool res = false;
-	if(ConfigManager::GetInstance().PathSetConfig().mode == "generation")
+	if(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
 	{
 		sim_mob::BasicLogger & pathsetCSV = sim_mob::Logger::log(ConfigManager::GetInstance().PathSetConfig().bulkFile);
 		BOOST_FOREACH(sim_mob::SinglePath* sp, pathPool)
@@ -3079,7 +3095,6 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), config.getPT_bus_dispatch_freq());
 	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), config.getPT_bus_routes(), config.getRoadSegments_Map());
 	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), config.getPT_bus_stops(), config.getBusStops_Map(), config.getRoadSegments_Map());
-	loader.LoadOD_Trips(getStoredProcedure(storedProcs, "od_trips", false), sim_mob::PT_RouteChoiceLuaModel::Instance()->GetODsTripMap());
 
 	std::cout <<"AIMSUN Network successfully imported.\n";
 
@@ -3580,4 +3595,21 @@ sim_mob::BusStop* sim_mob::BusStopFinder::getBusStop(const Node* node,sim_mob::R
 	 }
 
 	 return nullptr;
+}
+
+void sim_mob::aimsun::Loader::CreateIntersectionManagers(const sim_mob::RoadNetwork& roadNetwork)
+{
+	//Iterate through all the multi-nodes
+	for (vector<sim_mob::MultiNode*>::const_iterator itIntersection = roadNetwork.nodes.begin(); itIntersection != roadNetwork.nodes.end(); itIntersection++)
+	{		
+		//Check if it has a traffic signal
+		if(!StreetDirectory::instance().signalAt(**itIntersection))
+		{
+			//No traffic signal at the multi-node, so create an intersection manager
+			IntersectionManager *intMgr = new IntersectionManager(sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy(), *itIntersection);
+			
+			//Add it to the map
+			IntersectionManager::intManagers.insert(std::make_pair((*itIntersection)->getID(), intMgr));
+		}
+	}
 }

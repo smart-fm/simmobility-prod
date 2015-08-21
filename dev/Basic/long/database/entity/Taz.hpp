@@ -12,11 +12,12 @@
 #include "Common.hpp"
 #include "Types.hpp"
 
-namespace sim_mob {
-
-    namespace long_term {
-
-        class Taz {
+namespace sim_mob
+{
+    namespace long_term
+    {
+        class Taz
+        {
         public:
         	Taz(BigSerial id = INVALID_ID,  const std::string& name = EMPTY_STR, float area = -1.0, int surcharge = -1);
 

@@ -1,6 +1,6 @@
 //Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
-//   license.txt   (http://opensource.org/licenses/MIT)
+//license.txt   (http://opensource.org/licenses/MIT)
 
 /* 
  * File:   Bid.hpp
@@ -25,7 +25,7 @@ namespace sim_mob
         class Bid
         {
         public:
-            Bid(BigSerial id, BigSerial bidderId, LT_Agent* bidder, double value, timeslice& time, double willingnessToPay = 0.0, double speculation = 0.0);
+            Bid(BigSerial id, BigSerial bidderId, LT_Agent* bidder, double value, timeslice& time, double willingnessToPay);
             Bid(const Bid& source);
             virtual ~Bid();
 
@@ -99,7 +99,6 @@ namespace sim_mob
             /**
              * Bidder information. 
              */ 
-            double speculation;
             double willingnessToPay;
         };
     }

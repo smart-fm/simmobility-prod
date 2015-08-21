@@ -27,6 +27,7 @@
 #include "message/MessageBus.hpp"
 #include "entities/amodController/AMODController.hpp"
 #include "path/PT_RouteChoiceLuaModel.hpp"
+#include "path/PT_RouteChoiceLuaProvider.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -834,7 +835,7 @@ void sim_mob::Person::convertODsToTrips() {
 						std::string originId = boost::lexical_cast<std::string>(itSubTrip->fromLocation.node_->getID());
 						std::string destId = boost::lexical_cast<std::string>(itSubTrip->toLocation.node_->getID());
 
-						bool ret = sim_mob::PT_RouteChoiceLuaModel::Instance()->GetBestPT_Path(originId, destId, odTrips);
+						bool ret = sim_mob::PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(originId, destId, odTrips);
 						if (ret) { ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips); }
 						if(!ret)
 						{

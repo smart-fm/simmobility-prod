@@ -14,8 +14,8 @@
 
 using namespace sim_mob::long_term;
 
-Bid::Bid(BigSerial unitId, BigSerial bidderId, LT_Agent* bidder, double value, timeslice& time, double willingnessToPay, double speculation)
-		:unitId(unitId), bidderId(bidderId), value(value), time(time), bidder(bidder), willingnessToPay(willingnessToPay), speculation(speculation){}
+Bid::Bid(BigSerial unitId, BigSerial bidderId, LT_Agent* bidder, double value, timeslice& time, double willingnessToPay)
+		:unitId(unitId), bidderId(bidderId), value(value), time(time), bidder(bidder), willingnessToPay(willingnessToPay){}
 
 Bid::Bid(const Bid& source) : time(source.time)
 {
@@ -23,11 +23,10 @@ Bid::Bid(const Bid& source) : time(source.time)
     this->bidderId = source.bidderId;
     this->value = source.value;
     this->bidder = source.bidder;
-    this->speculation = source.speculation;
     this->willingnessToPay = source.willingnessToPay;
 }
 
-Bid::Bid(): unitId(INVALID_ID), bidderId(INVALID_ID), value(0.0), time(0,0), bidder(nullptr), willingnessToPay(0.0), speculation(0.0) {}
+Bid::Bid(): unitId(INVALID_ID), bidderId(INVALID_ID), value(0.0), time(0,0), bidder(nullptr), willingnessToPay(0.0){}
 
 Bid::~Bid() {}
 
@@ -38,7 +37,6 @@ Bid& Bid::operator=(const Bid& source)
     this->value = source.value;
     this->time = source.time;
     this->bidder = source.bidder;
-    this->speculation = source.speculation;
     this->willingnessToPay = source.willingnessToPay;
     return *this;
 }
@@ -70,10 +68,6 @@ LT_Agent* Bid::getBidder() const
 
 double Bid::getWillingnessToPay() const {
     return willingnessToPay;
-}
-
-double Bid::getSpeculation() const {
-    return speculation;
 }
 
 namespace sim_mob {

@@ -187,7 +187,7 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum)
 	end
 	
 	if( unit.unitType == 4 ) then
-		ZZ_hdb4 = 1;		
+		ZZ_hdb4 = 1;
 	end	
 
 	if( unit.unitType == 5 ) then
@@ -251,6 +251,7 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logs
 	local hedonicPrice = 0
 
 	if amenities == nil then
+		print("amenities for unit " .. unit " not found");
 		return 100000000;
 	end
 
@@ -265,7 +266,7 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logs
 	local ZZ_bus_200m = 0;
 
 	local ZZ_freehold = 1; 
-	local ZZ_logsum = logsum;
+	local ZZ_logsum = logsum; 
 	local ZZ_bus_400m = 0;
 
 	if( unit.floorArea ~= nil ) then
@@ -309,75 +310,74 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logs
 	end
 
 	if( (unit.unitType >= 12 and unit.unitType  <= 16 ) or ( unit.unitType >= 32 and unit.unitType  < 36 ) ) then -- Executive Condominium and Condominium	
-	  return( -36.748568 			+
-		    0.963625 *	DD_logarea	+
-	   	    0.187449 *	ZZ_freehold	+
-		   17.272551 *	ZZ_logsum	+
-   		    0.038230 *	ZZ_pms1km	+
-		   -0.036213 *	ZZ_dis_mall	+
- 		    0.091531 *	ZZ_mrt_200m	+
-		    0.056021 *	ZZ_mrt_400m	+
-		   -0.123693 *	ZZ_mrt_800m	+
-		   -0.004624 *	ZZ_express_200m	+
-		   -0.370359 *	ZZ_bus_200m	+
-		   -0.326108 *	ZZ_bus_400m);
+	  hedonicPrice =  -36.748568 			+
+			    0.963625 *	DD_logarea	+
+		   	    0.187449 *	ZZ_freehold	+
+			   17.272551 *	ZZ_logsum	+
+	   		    0.038230 *	ZZ_pms1km	+
+			   -0.036213 *	ZZ_dis_mall	+
+	 		    0.091531 *	ZZ_mrt_200m	+
+			    0.056021 *	ZZ_mrt_400m	+
+			   -0.123693 *	ZZ_mrt_800m	+
+			   -0.004624 *	ZZ_express_200m	+
+			   -0.370359 *	ZZ_bus_200m	+
+			   -0.326108 *	ZZ_bus_400m;
 
 	elseif (unit.unitType >= 7 and unit.unitType  <= 11 ) then --"Apartment"	
-	  return(-34.306668 +
-		   0.678823	*	DD_logarea	+
-		   0.106154	*	ZZ_freehold	+
-		  16.846582	*	ZZ_logsum	+
-		   0.056804	*	ZZ_pms1km	+
-		  -0.075085	*	ZZ_dis_mall	+
-		  -0.025750	*	ZZ_mrt_200m	+
-		   0.118587	*	ZZ_mrt_400m	+
-		  -0.134871	*	ZZ_mrt_800m	+
-		  -0.066508	*	ZZ_express_200m	+
-		  -0.389808	*	ZZ_bus_200m	+
-		  -0.291649	*	ZZ_bus_400m);
+	  hedonicPrice = -34.306668 +
+			   0.678823	*	DD_logarea	+
+			   0.106154	*	ZZ_freehold	+
+			  16.846582	*	ZZ_logsum	+
+			   0.056804	*	ZZ_pms1km	+
+			  -0.075085	*	ZZ_dis_mall	+
+			  -0.025750	*	ZZ_mrt_200m	+
+			   0.118587	*	ZZ_mrt_400m	+
+			  -0.134871	*	ZZ_mrt_800m	+
+			  -0.066508	*	ZZ_express_200m	+
+			  -0.389808	*	ZZ_bus_200m	+
+			  -0.291649	*	ZZ_bus_400m;
 	
 	elseif (unit.unitType >= 17 and unit.unitType  <= 21 ) then --"Terrace House"	
-	  return(-8.918093  +
-		  0.580383	*	DD_logarea	+
-		  0.136135	*	ZZ_freehold	+
-		  7.622885	*	ZZ_logsum	+
-		  0.009503	*	ZZ_pms1km	+
-		 -0.027296	*	ZZ_dis_mall	+
-		  0.038081	*	ZZ_mrt_200m	+
-		  0.048420	*	ZZ_mrt_400m	+
-		 -0.082811	*	ZZ_mrt_800m	+
-		 -0.067742	*	ZZ_express_200m	+
-		 -0.282542	*	ZZ_bus_200m	+
-		 -0.219494	*	ZZ_bus_400m);
+	  hedonicPrice = -8.918093  +
+			  0.580383	*	DD_logarea	+
+			  0.136135	*	ZZ_freehold	+
+			  7.622885	*	ZZ_logsum	+
+			  0.009503	*	ZZ_pms1km	+
+			 -0.027296	*	ZZ_dis_mall	+
+			  0.038081	*	ZZ_mrt_200m	+
+			  0.048420	*	ZZ_mrt_400m	+
+			 -0.082811	*	ZZ_mrt_800m	+
+			 -0.067742	*	ZZ_express_200m	+
+			 -0.282542	*	ZZ_bus_200m	+
+			 -0.219494	*	ZZ_bus_400m;
 	
 	elseif ( unit.unitType >= 22 and unit.unitType  <= 26 ) then --"Semi-Detached House"	
-	  return(-26.82173  +
-		   0.55857	*	DD_logarea	+
-		   0.08751	*	ZZ_freehold	+
-		  14.30060	*	ZZ_logsum	+
-		   0.01432	*	ZZ_pms1km	+
-		   0.01622	*	ZZ_dis_mall	+
-		  -0.36268	*	ZZ_mrt_200m	+
-		   0.01651	*	ZZ_mrt_400m	+
-		  -0.10658	*	ZZ_mrt_800m	+
-		  -0.11848	*	ZZ_express_200m	+
-		  -0.10518	*	ZZ_bus_200m	+
-		  -0.0880	*	ZZ_bus_400m);	
+	  hedonicPrice = -26.82173  +
+			   0.55857	*	DD_logarea	+
+			   0.08751	*	ZZ_freehold	+
+			  14.30060	*	ZZ_logsum	+
+			   0.01432	*	ZZ_pms1km	+
+			   0.01622	*	ZZ_dis_mall	+
+			  -0.36268	*	ZZ_mrt_200m	+
+			   0.01651	*	ZZ_mrt_400m	+
+			  -0.10658	*	ZZ_mrt_800m	+
+			  -0.11848	*	ZZ_express_200m	+
+			  -0.10518	*	ZZ_bus_200m	+
+			  -0.0880	*	ZZ_bus_400m;	
 	else	
-	  return(-30.93807  +
-		   0.85347	*	DD_logarea 	+
-		  -0.04880	*	ZZ_freehold	+
-		  15.27921	*	ZZ_logsum 	+
-		  -0.01221	*	ZZ_pms1km 	+
-		   0.04148	*	ZZ_dis_mall	+
-		   0.14336	*	ZZ_mrt_200m	+
-		   0.13774	*	ZZ_mrt_400m	+
-		  -0.22627	*	ZZ_mrt_800m	+
-		  -0.15577	*	ZZ_express_200m	+
-		  -0.22743	*	ZZ_bus_200m	+
-		  -0.15131	*	ZZ_bus_400m);
+	  hedonicPrice = -30.93807  +
+			   0.85347	*	DD_logarea 	+
+			  -0.04880	*	ZZ_freehold	+
+			  15.27921	*	ZZ_logsum 	+
+			  -0.01221	*	ZZ_pms1km 	+
+			   0.04148	*	ZZ_dis_mall	+
+			   0.14336	*	ZZ_mrt_200m	+
+			   0.13774	*	ZZ_mrt_400m	+
+			  -0.22627	*	ZZ_mrt_800m	+
+			  -0.15577	*	ZZ_express_200m	+
+			  -0.22743	*	ZZ_bus_200m	+
+			  -0.15131	*	ZZ_bus_400m;
 	end
-
 
 	return hedonicPrice;
 end
@@ -445,10 +445,11 @@ function calulateUnitExpectations (unit, timeOnMarket, logsum, building, postcod
     local expectations = {}
     -- HEDONIC PRICE in SGD in thousands with average hedonic price (500)
 
-    local hedonicPrice = math.exp(calculateHedonicPrice(unit, building, postcode, amenities, logsum))
+    local hedonicPrice = calculateHedonicPrice(unit, building, postcode, amenities, logsum)
+    hedonicPrice = math.exp( hedonicPrice ) / 1000000;
 
     if (hedonicPrice > 0) then
-        local targetPrice = hedonicPrice -- IMPORTANT : this should be the hedonic value
+        local reservationPrice = hedonicPrice * 0.8  -- IMPORTANT : The reservation price should be less than the hedonic price and the asking price
         local a = 0 -- ratio of events expected by the seller per (considering that the price is 0)
         local b = 1 -- Importance of the price for seller.
        	local cost = 0.0 -- Cost of being in the market
@@ -456,13 +457,13 @@ function calulateUnitExpectations (unit, timeOnMarket, logsum, building, postcod
         local crit = 0.0001 -- criteria
         local maxIterations = 20 --number of iterations 
         for i=1,timeOnMarket do
-            a = 1.2 * targetPrice
-            x0 = 1.19 * targetPrice     
-            entry = ExpectationEntry()
+            a = 1.5 * reservationPrice
+            x0 = 1.4 * reservationPrice     
+            entry = ExpectationEntry()  --entry is a class initialized to 0, that will hold the hedonic, asking and target prices.
             entry.hedonicPrice = hedonicPrice
-            entry.askingPrice = findMaxArgConstrained(calculateExpectation, x0, targetPrice, a, b, cost, crit, maxIterations, targetPrice, 1.2 * targetPrice )
-            entry.targetPrice = calculateExpectation(entry.askingPrice, targetPrice, a, b, cost );
-            targetPrice = entry.targetPrice;
+            entry.askingPrice = findMaxArgConstrained(calculateExpectation, x0, reservationPrice, a, b, cost, crit, maxIterations, reservationPrice, 1.2 * reservationPrice )
+            entry.targetPrice = calculateExpectation(entry.askingPrice, reservationPrice, a, b, cost );
+            reservationPrice = entry.targetPrice;
             expectations[i] = entry
         end
     end

@@ -1,6 +1,6 @@
 //Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
-//   license.txt   (http://opensource.org/licenses/MIT)
+//license.txt   (http://opensource.org/licenses/MIT)
 
 /* 
  * File:   Postcode.cpp
@@ -16,9 +16,7 @@ using namespace sim_mob::long_term;
 
 Postcode::Postcode( BigSerial address_id, std::string sla_postcode, BigSerial taz_id, float longitude, float latitude, bool primary_postcode ):
 					address_id(address_id), sla_postcode( sla_postcode), taz_id(taz_id), longitude(longitude), latitude(latitude),
-					primary_postcode(primary_postcode)
-{}
-
+					primary_postcode(primary_postcode){}
             
 Postcode::Postcode(const Postcode& source)
 {
@@ -30,8 +28,7 @@ Postcode::Postcode(const Postcode& source)
 	this->primary_postcode = source.primary_postcode;
 }
 
-Postcode::~Postcode() {
-}
+Postcode::~Postcode() {}
 
 Postcode& Postcode::operator=(const Postcode& source)
 {
@@ -76,11 +73,10 @@ bool Postcode::getPrimaryPostcode() const
 	return primary_postcode;
 }
 
-
-
-namespace sim_mob {
-    namespace long_term {
-
+namespace sim_mob
+{
+    namespace long_term
+    {
         std::ostream& operator<<(std::ostream& strm, const Postcode& data) {
             return strm << "{"
             		<< "\"address_id \":\"" << data.address_id << "\","

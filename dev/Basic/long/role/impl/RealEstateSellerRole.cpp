@@ -58,7 +58,7 @@ namespace
 													% bid.getBidderId()
 													% bid.getUnitId()
 													% bid.getWillingnessToPay()
-													% bid.getSpeculation()
+													% entry.hedonicPrice
 													% entry.askingPrice
 													% floor_area
 													% type_id

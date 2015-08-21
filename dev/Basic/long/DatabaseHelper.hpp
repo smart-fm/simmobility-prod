@@ -62,6 +62,7 @@ namespace sim_mob {
         const std::string DB_TABLE_TAZ= APPLY_SCHEMA(MAIN_SCHEMA, "taz");
         const std::string DB_TABLE_TAZ_LOGUM_WEIGHT= APPLY_SCHEMA(CALIBRATION_SCHEMA, "taz_logsum_hedonic_price");
         const std::string DB_TABLE_HH_HITS_SAMPLE = APPLY_SCHEMA(MAIN_SCHEMA, "household_hits_sample");
+        const std::string DB_TABLE_TAO = APPLY_SCHEMA(CALIBRATION_SCHEMA, "tao_hedonic_price");
 
 
         /**
@@ -147,6 +148,9 @@ namespace sim_mob {
 
         const std::string DB_FUNC_GET_DIST_MRT = APPLY_SCHEMA( MAIN_SCHEMA, "getdistMrt()");
         const std::string DB_FUNC_GET_PARCELS_WITH_HDB = APPLY_SCHEMA( MAIN_SCHEMA, "getParcelsWithHDB()");
+        const std::string DB_FUNC_GET_TAO = APPLY_SCHEMA( MAIN_SCHEMA, "getTAO()");
+        const std::string DB_FUNC_GET_UNIT_PRICE_SUM_PER_PARCLE = APPLY_SCHEMA( MAIN_SCHEMA, "getUnitPriceSumPerParcel()");
+
 
         /**
          * Fields
@@ -327,7 +331,9 @@ namespace sim_mob {
         const std::string DB_GETALL_TAZS = "SELECT * FROM " + DB_TABLE_TAZ + LIMIT;
         const std::string DB_GETALL_TAZ_LOGSUM_WEIGHTS = "SELECT * FROM " + DB_TABLE_TAZ_LOGUM_WEIGHT + LIMIT;
         const std::string DB_GETALL_HH_HITS_SAMPLE = "SELECT * FROM " + DB_TABLE_HH_HITS_SAMPLE + LIMIT;
-        const std::string DB_FUNC_GETALL_PARCELS_WITH_HDB = "SELECT * FROM " + DB_FUNC_GET_PARCELS_WITH_HDB + LIMIT;
+        const std::string DB_GETALL_PARCELS_WITH_HDB = "SELECT * FROM " + DB_FUNC_GET_PARCELS_WITH_HDB + LIMIT;
+        const std::string DB_GETALL_TAO = "SELECT * FROM " + DB_FUNC_GET_TAO + LIMIT;
+        const std::string DB_GETALL_UNIT_PRICE_SUM_PER_PARCEL = "SELECT * FROM " + DB_FUNC_GET_UNIT_PRICE_SUM_PER_PARCLE + LIMIT;
 
         /**
          * GET BY ID

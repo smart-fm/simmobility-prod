@@ -17,7 +17,7 @@ namespace sim_mob {
         class UnitType {
         public:
             UnitType(BigSerial id = INVALID_ID,std::string name = EMPTY_STR,
-                     double typicalArea = 0.0, double constructionCostPerUnit = 0.0);
+                     double typicalArea = 0.0, double constructionCostPerUnit = 0.0,double demolitionCostPerUnit = 0.0);
 
             virtual ~UnitType();
 
@@ -28,6 +28,7 @@ namespace sim_mob {
             std::string getName() const;
             double getTypicalArea() const;
             double getConstructionCostPerUnit() const;
+            double getDemolitionCostPerUnit() const;
             /**
              * Operator to print the TemplateUnitType data.
              */
@@ -40,6 +41,7 @@ namespace sim_mob {
             std::string name;
             double typicalArea;
             double constructionCostPerUnit;
+            double demolitionCostPerUnit;
         };
     }
 }

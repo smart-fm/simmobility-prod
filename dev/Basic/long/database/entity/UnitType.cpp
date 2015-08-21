@@ -9,8 +9,8 @@
 
 using namespace sim_mob::long_term;
 
-UnitType::UnitType(BigSerial id,std::string name,double typicalArea, double constructionCostPerUnit)
-: id(id), name(name), typicalArea(typicalArea),constructionCostPerUnit(constructionCostPerUnit){
+UnitType::UnitType(BigSerial id,std::string name,double typicalArea, double constructionCostPerUnit,double demolitionCostPerUnit)
+: id(id), name(name), typicalArea(typicalArea),constructionCostPerUnit(constructionCostPerUnit),demolitionCostPerUnit(demolitionCostPerUnit){
 }
 
 UnitType::~UnitType() {
@@ -32,6 +32,10 @@ double UnitType::getConstructionCostPerUnit() const {
     return constructionCostPerUnit;
 }
 
+double UnitType::getDemolitionCostPerUnit() const
+{
+	return demolitionCostPerUnit;
+}
 namespace sim_mob {
     namespace long_term {
 
@@ -41,6 +45,7 @@ namespace sim_mob {
                     << "\"name\":\"" << data.name << "\","
                     << "\" typicalArea\":\"" << data.typicalArea << "\""
                     << "\" constructionCostPerUnit\":\"" << data.constructionCostPerUnit << "\""
+                    << "\" demolitionCostPerUnit\":\"" << data.demolitionCostPerUnit << "\""
                     << "}";
         }
     }

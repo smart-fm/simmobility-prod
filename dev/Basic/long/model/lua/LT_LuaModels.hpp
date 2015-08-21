@@ -127,7 +127,7 @@ namespace sim_mob {
              * @param parcel amenities.
              * @return value of the future revenue or long_term::INVALID_DOUBLE
              */
-            double calculateUnitRevenue (const PotentialUnit& unit,const ParcelAmenities& amenities, double logsum, int quarter) const;
+            double calculateUnitRevenue (const PotentialUnit& unit,const ParcelAmenities& amenities, double logsum, int quarter, int futureYear, double HPIfromData) const;
             
         private:
 

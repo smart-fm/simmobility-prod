@@ -21,6 +21,7 @@ void UnitTypeDao::fromRow(Row& result, UnitType& outObj)
     outObj.name  = result.get<std::string>("name", EMPTY_STR);
     outObj.typicalArea  = result.get<double>("typical_area", 0.0);
     outObj.constructionCostPerUnit  = result.get<double>("construction_cost_per_unit", INVALID_ID);
+    outObj.demolitionCostPerUnit = result.get<double>("demolition_cost_per_unit", INVALID_ID);
 
 }
 

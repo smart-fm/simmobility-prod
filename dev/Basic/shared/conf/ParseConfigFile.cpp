@@ -496,6 +496,8 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	developerModel.initialUnitId = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "developerModel"), "initialUnitId"), "value"), static_cast<int>(0));
 	developerModel.initialBuildingId = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "developerModel"), "initialBuildingId"), "value"), static_cast<int>(0));
 	developerModel.initialProjectId = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "developerModel"), "initialProjectId"), "value"), static_cast<int>(0));
+	developerModel.year = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "developerModel"), "year"), "value"), static_cast<int>(0));
+	developerModel.minLotSize = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(node, "minLotSize"), "value"));
 	cfg.ltParams.developerModel = developerModel;
 
 

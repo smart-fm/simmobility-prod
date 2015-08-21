@@ -16,15 +16,15 @@ namespace sim_mob {
 
         class LogsumForDevModel {
         public:
-        	LogsumForDevModel( BigSerial fmParcelId = INVALID_ID, BigSerial tazId = INVALID_ID, double accessibility = 0);
+        	LogsumForDevModel( BigSerial taz2012Id = INVALID_ID, BigSerial taz2008Id = INVALID_ID, double accessibility = 0);
 
             virtual ~LogsumForDevModel();
 
             /**
              * Getters and Setters
              */
-            BigSerial getFmParcelId() const;
-            BigSerial getTazId() const;
+            BigSerial gettAZ2012Id() const;
+            BigSerial getTaz2008Id() const;
             double getAccessibility() const;
 
             /**
@@ -34,8 +34,8 @@ namespace sim_mob {
         private:
             friend class LogsumForDevModelDao;
         private:
-            BigSerial fmParcelId;
-            BigSerial tazId;
+            BigSerial taz2012Id;
+            BigSerial taz2008Id;
             double accessibility;
         };
     }

@@ -28,7 +28,7 @@ sim_mob::SimulationParams::SimulationParams() :
 
 
 sim_mob::LongTermParams::LongTermParams(): enabled(false), workers(0), days(0), tickStep(0), maxIterations(0){}
-sim_mob::LongTermParams::DeveloperModel::DeveloperModel(): enabled(false), timeInterval(0), initialPostcode(0),initialUnitId(0),initialBuildingId(0),initialProjectId(0) {}
+sim_mob::LongTermParams::DeveloperModel::DeveloperModel(): enabled(false), timeInterval(0), initialPostcode(0),initialUnitId(0),initialBuildingId(0),initialProjectId(0),year(0),minLotSize(0) {}
 sim_mob::LongTermParams::HousingModel::HousingModel(): enabled(false), timeInterval(0), timeOnMarket(0), timeOffMarket(0), initialHouseholdsOnMarket(0), vacantUnitActivationProbability(0),
 													   housingMarketSearchPercentage(0), housingMoveInDaysInterval(0), outputHouseholdLogsums(0), offsetBetweenUnitBuyingAndSelling(0),
 													   bidderUnitsChoiceSet(0),householdBiddingWindow(0){}

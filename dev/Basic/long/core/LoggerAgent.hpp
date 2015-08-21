@@ -38,6 +38,7 @@ namespace sim_mob {
                 PARCELS,
                 UNITS,
                 PROJECTS,
+                PROJECTS_DB,
                 HH_PC,
                 UNITS_IN_MARKET,
                 LOG_TAXI_AVAILABILITY,

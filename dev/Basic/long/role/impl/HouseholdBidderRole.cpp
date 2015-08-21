@@ -383,13 +383,13 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	//These constants are extracted from Roberto Ponce's bidding model
 	//
 	/* willingness to pay in million of dollars*/
-	double sde		= 1.0684375114;
-	double barea	= 0.7147660817;
-	double blogsum	=0.0719486398;
-	double bchin	= -0.1358159957 ;
-	double bmalay	= -0.5778758359 ;
+	double sde		=  1.0684375114;
+	double barea	=  0.7147660817;
+	double blogsum	=  0.0719486398;
+	double bchin	= -0.1358159957;
+	double bmalay	= -0.5778758359;
 	double bHighInc =  0.1382808285;
-	const double bMIncChildApart  =	0.5287412793;
+	const double bMIncChildApart  =	 0.5287412793;
 	const double bHIncChildApart  =	-0.2048701544;
 	const double bMIncChildCondo  =	-0.1536915619;
 	const double bHIncChildCondo  =	-0.05558812;
@@ -453,8 +453,8 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 		barea 	 = 0.7137466092;
 		blogsum	 = 0.0118120497;
 		bchin 	 = 0.0995361594;
-		bmalay 	 = -0.0670756414;
-		bHighInc =	0.0238942053;
+		bmalay 	 =-0.0670756414;
+		bHighInc = 0.0238942053;
 	}
 
 	if( household->getSize() == 1)
@@ -665,6 +665,7 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 
 	HM_Model *model = getParent()->getModel();
 	Household* household = model->getHouseholdById(hhId);
+	const Unit* unit = model->getUnitById( household->getUnitId() );
 	int tazId = model->getUnitTazId( household->getUnitId() );
 	Taz *taz  = model->getTazById(tazId);
 	int mtzId = model->getMtzIdByTazId(tazId);
@@ -688,10 +689,8 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 	if(alternative)
 		dwellingId = alternative->getDwellingTypeId();
 
-
 	if(!planningArea)
 		return;
-
 
 	std::vector<PopulationPerPlanningArea*> populationPerPlanningArea = model->getPopulationByPlanningAreaId(planningArea->getId());
 
@@ -713,6 +712,9 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 	double bHouseholdMemberYoungerThan4  = false;
 	double bHouseholdMember5To19		 = false;
 	double bHouseholdMemberGreaterThan65 = false;
+
+	double avgHouseholdSize = 0;
+	double avgHouseholdIncome = 0;
 
 	if( household->getEthnicityId() == 1 )
 		bHouseholdEthnicityChinese = true;
@@ -739,7 +741,6 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 			bHouseholdMemberGreaterThan65 = true;
 	}
 
-
 	for(int n = 0; n < populationPerPlanningArea.size(); n++)
 	{
 		populationTotal += populationPerPlanningArea[n]->getPopulation();
@@ -764,9 +765,15 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 
 		if(populationPerPlanningArea[n]->getAgeCategoryId() > 12 )
 			 populationGreaterThan65++;
+
+		household->getSize();
+
+		if( populationPerPlanningArea[n]->getUnitType() == unit->getUnitType() )
+		{
+			avgHouseholdSize += populationPerPlanningArea[n]->getAvgHhSize();
+			avgHouseholdIncome += populationPerPlanningArea[n]->getAvgIncome();
+		}
 	}
-
-
 
 	std::vector<PlanningSubzone*>  planningSubzones = model->getPlanningSubZoneByPlanningAreaId(planningArea->getId());
 	std::vector<Mtz*> mtzs = model->getMtzBySubzoneVec(planningSubzones);
@@ -782,7 +789,6 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 
 	//convert sqm into hectares
 	planningArea_size = planningArea_size / 10000.0;
-
 
 	for( int n = 1; n <= 215; n++ )
 	{
@@ -803,12 +809,23 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 		double fractionOfChinese			= ( populationChinese / populationTotal ) * bHouseholdEthnicityChinese;	//13 zonal fraction of Chinese population x  dummy if household is Chinese (=1, yes; =0, no)	percentage point (x10^-1)
 		double fractionOfMalay				= ( populationChinese / populationTotal ) * bHouseholdEthnicityMalay;	//14 zonal fraction of Malay population x  dummy if household is Malay (=1, yes; =0, no)	percentage point (x10^-1)
 		double fractionOfIndian				= ( populationChinese / populationTotal ) * bHouseholdEthnicityIndian;	//15 zonal fraction of Indian population x  dummy if household is Indian (=1, yes; =0, no)	percentage point (x10^-1)
-		double householdSizeMinusZoneAvg	= 0.0;	//16 absolute difference between zonal average household size by housing type and household size	persons
-		double logHouseholdInconeMinusZoneAvg= 0.0;	//17 absolute difference between logarithm of the zonal median household montly income by housing type and logarithm of the household income	SGD
+		double householdSizeMinusZoneAvg	= abs( avgHouseholdSize - household->getSize());	//16 absolute difference between zonal average household size by housing type
+		double logHouseholdInconeMinusZoneAvg= abs( log(avgHouseholdIncome ) - log(household->getIncome() ) );	//17 absolute difference between logarithm of the zonal median household montly income by housing type and logarithm of the household income	SGD
 		double logZonalMedianHousingPrice	= 0.0;	//18 logarithm of the zonal median housing price by housing type	in (2005) SGD
 		double privateCondoHhSizeOne		= 0.0;	//19 = 1, if household size is 1, living in private condo/apartment
 		double landedPropertyHhSizeOne		= 0.0;	//20  = 1, if household size is 1, living in landed property
 		double otherHousingHhSizeOne		= 0.0; 	//21 = 1, if household size is 1, living in other types of housing units
+
+		if( household->getSize() == 1 )
+		{
+			if( unit->getUnitType() >= 12 && unit->getUnitType() <= 16 )
+				privateCondoHhSizeOne = 1.0;
+			else
+			if( unit->getUnitType() >= 17 && unit->getUnitType() <= 31 )
+				landedPropertyHhSizeOne = 1.0;
+			else
+				otherHousingHhSizeOne = 1.0;
+		}
 
 		double probability =( logPopulationByHousingType* ln_popdwl 		) +
 							( populationDensity			* den_respop_ha 	) +
@@ -826,11 +843,13 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 							( fractionOfMalay			* f_mal_nmal	 	) +
 							( fractionOfIndian			* f_indian_nind	 	) +
 							( householdSizeMinusZoneAvg	* hhsize_diff	 	) +
-							( logHouseholdInconeMinusZoneAvg * log_hhinc_diff 	) +
+							( logHouseholdInconeMinusZoneAvg * log_hhinc_diff ) +
 							( logZonalMedianHousingPrice* log_price05tt_med ) +
 							( privateCondoHhSizeOne		* DWL600 ) +
 							( landedPropertyHhSizeOne	* DWL700 ) +
 							( otherHousingHhSizeOne		* DWL800 );
+
+		probability = exp(probability)/ (1.0 + exp(probability));
 
 		probabilities.push_back(probability);
 	}

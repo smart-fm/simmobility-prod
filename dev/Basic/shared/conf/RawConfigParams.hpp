@@ -57,6 +57,8 @@ struct LongTermParams{
 		int initialUnitId;
 		int initialBuildingId;
 		int initialProjectId;
+		int year;
+		double minLotSize;
 	} developerModel;
 
 	struct HousingModel{

@@ -103,18 +103,20 @@ namespace {
 
 //id,lot_size, gpr, land_use_type_id, owner_name, owner_category, last_transaction_date, last_transaction_type_total, psm_per_gps, lease_type, lease_start_date, centroid_x, centroid_y,
 //award_date,award_status,use_restriction,development_type_code,successful_tender_id,successful_tender_price,tender_closing_date,lease,status,developmentAllowed,nextAvailableDate
-const std::string LOG_PARCEL = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%, %24%,%25%";
+const std::string LOG_PARCEL = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%, %24%,%25%, %26%, %27%";
 
-const std::string LOG_UNIT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%";
+const std::string LOG_UNIT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%";
 
 //projectId,parcelId,developerId,templateId,projectName,constructionDate,completionDate,constructionCost,demolitionCost,totalCost,fmLotSize,grossRatio,grossArea
-const std::string LOG_PROJECT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%";
+//const std::string LOG_PROJECT = "%1%, %2%lot_size, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%";
+const std::string LOG_PROJECT = "%1%, %2%, %3%, %4%, %5%, %6%";
+
 /**
  * Write the data of profitable parcels to a csv.
  * @param parcel to be written.
  *
  */
-inline void writeParcelDataToFile(Parcel &parcel, int newDevelopment) {
+inline void writeParcelDataToFile(Parcel &parcel, int newDevelopment,double profit) {
 
 	boost::format fmtr = boost::format(LOG_PARCEL) % parcel.getId()
 			% parcel.getLotSize() % parcel.getGpr() % parcel.getLandUseTypeId()
@@ -122,7 +124,7 @@ inline void writeParcelDataToFile(Parcel &parcel, int newDevelopment) {
 			% parcel.getLastTransactionDate().tm_year % parcel.getLastTransationTypeTotal() % parcel.getPsmPerGps() % parcel.getLeaseType()
 			% parcel.getLeaseStartDate().tm_year % parcel.getCentroidX() % parcel.getCentroidY() % parcel.getAwardDate().tm_year % parcel.getAwardStatus()
 			% parcel.getUseRestriction()%parcel.getDevelopmentTypeCode()% parcel.getSuccessfulTenderId() % parcel.getSuccessfulTenderPrice()
-			% parcel.getTenderClosingDate().tm_year% parcel.getLease() % parcel.getStatus() % parcel.getDevelopmentAllowed() % parcel.getNextAvailableDate().tm_year % newDevelopment;
+			% parcel.getTenderClosingDate().tm_year% parcel.getLease() % parcel.getStatus() % parcel.getDevelopmentAllowed() % parcel.getNextAvailableDate().tm_year % parcel.getTazId() % newDevelopment % profit;
 
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PARCELS,fmtr.str());
 
@@ -133,10 +135,10 @@ inline void writeParcelDataToFile(Parcel &parcel, int newDevelopment) {
  * @param unit to be written.
  *
  */
-inline void writeUnitDataToFile(Unit &unit, double unitProfit) {
+inline void writeUnitDataToFile(Unit &unit, double unitProfit,BigSerial parcelId,double demolitionCost) {
 
 	boost::format fmtr = boost::format(LOG_UNIT) % unit.getId() % unit.getBuildingId() % unit.getSlaAddressId() % unit.getUnitType() % unit.getStoreyRange() % unit.getUnitStatus() % unit.getFloorArea() % unit.getStorey() % unit.getRent()
-			% unit.getSaleFromDate().tm_year % unit.getPhysicalFromDate().tm_year % unit.getSaleStatus() % unit.getPhysicalStatus() % unit.getLastChangedDate().tm_year % unitProfit;
+			% unit.getSaleFromDate().tm_year % unit.getPhysicalFromDate().tm_year % unit.getSaleStatus() % unit.getPhysicalStatus() % unit.getLastChangedDate().tm_year % unitProfit % parcelId % demolitionCost;
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::UNITS,fmtr.str());
 
 }
@@ -147,11 +149,17 @@ inline void writeUnitDataToFile(Unit &unit, double unitProfit) {
  * @param project to be written.
  *
  */
-inline void writeProjectDataToFile(boost::shared_ptr<Project>project) {
+//inline void writeProjectDataToFile(boost::shared_ptr<Project>project) {
+//
+//	boost::format fmtr = boost::format(LOG_PROJECT) % project->getProjectId() % project->getParcelId()%project->getDeveloperId()%project->getTemplateId()%project->getProjectName()
+//			             %project->getConstructionDate().tm_year%project->getCompletionDate().tm_year%project->getConstructionCost()%project->getDemolitionCost()%project->getTotalCost()
+//			             %project->getFmLotSize()%project->getGrossRatio()%project->getGrossArea();
+//	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PROJECTS,fmtr.str());
+//
+//}
+inline void writeProjectDataToFile(BigSerial parcelId,BigSerial unitTypeId,double profitPerUnit, int numUnits, double profit, int newDev) {
 
-	boost::format fmtr = boost::format(LOG_PROJECT) % project->getProjectId() % project->getParcelId()%project->getDeveloperId()%project->getTemplateId()%project->getProjectName()
-			             %project->getConstructionDate().tm_year%project->getCompletionDate().tm_year%project->getConstructionCost()%project->getDemolitionCost()%project->getTotalCost()
-			             %project->getFmLotSize()%project->getGrossRatio()%project->getGrossArea();
+	boost::format fmtr = boost::format(LOG_PROJECT)  % parcelId %unitTypeId % profitPerUnit % numUnits % profit % newDev;
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PROJECTS,fmtr.str());
 
 }
@@ -168,7 +176,111 @@ inline float getGpr(const Parcel *parcel)
 		return atof(parcel->getGpr().c_str());
 }
 
-inline void calculateProjectProfit(PotentialProject& project,const DeveloperModel* model,int quarter,double logsum)
+inline BigSerial getBuildingTypeFromUnitType(BigSerial unitTypeId)
+{
+	if (unitTypeId >= 1 and unitTypeId <= 6)
+	{
+		return 1;
+
+	}
+	else if (unitTypeId >= 7 and unitTypeId <= 11)
+	{
+		return 2;
+	}
+
+	else if (unitTypeId >= 12 and unitTypeId <= 16)
+	{
+		return 3;
+	}
+
+	else if (unitTypeId >= 17 and unitTypeId <= 21)
+	{
+		return 4;
+	}
+	else if (unitTypeId >= 22 and unitTypeId <= 26)
+	{
+		return 5;
+	}
+	else if (unitTypeId >= 27 and unitTypeId <= 31)
+	{
+		return 6;
+	}
+	else if (unitTypeId >= 32 and unitTypeId <= 36)
+	{
+		return 7;
+	}
+	else if (unitTypeId >= 37 and unitTypeId <= 41)
+	{
+		return 8;
+	}
+	else if (unitTypeId >= 42 and unitTypeId <= 47)
+	{
+		return 9;
+	}
+	else if (unitTypeId >= 48 and unitTypeId <= 52)
+	{
+		return 10;
+	}
+	else if (unitTypeId == 53)
+	{
+		return 11;
+	}
+	else if (unitTypeId == 54)
+	{
+		return 12;
+	}
+	else if (unitTypeId == 55)
+	{
+		return 13;
+	}
+	else if (unitTypeId == 56)
+	{
+		return 14;
+	}
+	else if (unitTypeId == 57)
+	{
+		return 15;
+	}
+	else if (unitTypeId == 58)
+	{
+		return 16;
+	}
+	else if (unitTypeId == 59)
+	{
+		return 17;
+	}
+	else if (unitTypeId == 60)
+	{
+		return 18;
+	}
+	else if (unitTypeId == 61)
+	{
+		return 19;
+	}
+	else if (unitTypeId == 62)
+	{
+		return 20;
+	}
+	else if (unitTypeId == 63)
+	{
+		return 21;
+	}
+	else if (unitTypeId == 64 )
+	{
+		return 22;
+	}
+	else if (unitTypeId == 65)
+	{
+		return 23;
+	}
+	else if (unitTypeId == 66)
+	{
+		return 24;
+	}
+	else return 0;
+}
+
+inline void calculateProjectProfit(PotentialProject& project,const DeveloperModel* model,int quarter, const TAO *tao)
 {
 	std::vector<PotentialUnit>& units = project.getUnits();
 
@@ -176,33 +288,105 @@ inline void calculateProjectProfit(PotentialProject& project,const DeveloperMode
 
 	double totalRevenue = 0;
 	double totalConstructionCost = 0;
-	double demolitionCost = 0;
+	double demolitionCostPerUnit = 0;
+	double constructionCostPerUnit = 0;
+	double totalDemolitionCost = 0;
+
 	for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++) {
 		const ParcelAmenities *amenities = model->getAmenitiesById(project.getParcel()->getId());
-		//commented the below code in 2012 data as we are now getting logsum from mid term.
-		//const LogsumForDevModel *logsumDev = model->getAccessibilityLogsumsByFmParcelId(project.getParcel()->getId());
+		//commented the below code in 2012 data as we are now getting logsum per taz id.
+		//double logsum = model->getAccessibilityLogsumsByFmParcelId(project.getParcel()->getId())->getAccessibility();
+		const LogsumForDevModel *logsumDev = model->getAccessibilityLogsumsByTAZId(project.getParcel()->getTazId());
+		double logsum = 2.6875;
+		if(logsumDev != nullptr)
+		{
+			logsum = logsumDev->getAccessibility();
+		}
 
 		if((amenities != nullptr))
 		{
 			const DeveloperLuaModel& luaModel = LuaProvider::getDeveloperModel();
-			double revenuePerUnitType = luaModel.calculateUnitRevenue((*unitsItr),*amenities,logsum, quarter);
-			double totalRevenuePerUnitType = revenuePerUnitType * (*unitsItr).getNumUnits();
-			double profitPerUnit = revenuePerUnitType - (model->getUnitTypeById((*unitsItr).getUnitTypeId())->getConstructionCostPerUnit());
-			(*unitsItr).setUnitProfit(profitPerUnit);
+			double taoValue = 0;
+			BigSerial buildingTypeId = getBuildingTypeFromUnitType((*unitsItr).getUnitTypeId());
+			if(buildingTypeId == 2)
+			{
+				taoValue = tao->getApartment();
+			}
+			else if(buildingTypeId == 3)
+			{
+				taoValue = tao->getCondo();
+			}
+			else if(buildingTypeId == 4)
+			{
+				taoValue = tao->getTerrace();
+			}
+			else if(buildingTypeId == 5)
+			{
+				taoValue = tao->getSemi();
+			}
+			else if(buildingTypeId == 6)
+			{
+				taoValue = tao->getDetached();
+			}
+			else if(buildingTypeId == 7)
+			{
+				taoValue = tao->getEc();
+			}
+			//pass futureYear variable as 0 as we are calculating the profit for current year only.
+			double revenuePerUnit = luaModel.calculateUnitRevenue((*unitsItr),*amenities,logsum, quarter,0,taoValue);
 
+			if (!(model->isEmptyParcel(project.getParcel()->getId())))
+			{
+				demolitionCostPerUnit = (*unitsItr).getDemolitionCostPerUnit();
+			}
+			double demolitionCostPerUnitType = demolitionCostPerUnit * (*unitsItr).getNumUnits();
+			totalDemolitionCost = totalDemolitionCost + demolitionCostPerUnitType;
+			constructionCostPerUnit = model->getUnitTypeById((*unitsItr).getUnitTypeId())->getConstructionCostPerUnit();
+			double profitPerUnit = revenuePerUnit - (constructionCostPerUnit + demolitionCostPerUnit);
+			(*unitsItr).setUnitProfit(profitPerUnit);
+			(*unitsItr).setDemolitionCostPerUnit(demolitionCostPerUnit);
+
+			#ifdef VERBOSE_DEVELOPER
+			PrintOutV("revenue calculated per unit type "<<revenuePerUnit<<model->getUnitTypeById((*unitsItr).getUnitTypeId())->getName()<<" with logsum "<<logsum<<"with parcel id"<<project.getParcel()->getId()<<std::endl);
+			PrintOutV("construction Cost Per Unit type"<<constructionCostPerUnit<<"**"<<model->getUnitTypeById((*unitsItr).getUnitTypeId())->getName()<<std::endl);
+			if (!(model->isEmptyParcel(project.getParcel()->getId())))
+			{
+				PrintOutV("demolition cost per unit type"<<demolitionCostPerUnit<<std::endl);
+
+			}
+			PrintOutV("profit per unit"<<profitPerUnit<<std::endl);
+			#endif
+
+			double totalRevenuePerUnitType = revenuePerUnit * (*unitsItr).getNumUnits();
 			totalRevenue = totalRevenue + totalRevenuePerUnitType;
-			double constructionCostPerUnitType = model->getUnitTypeById((*unitsItr).getUnitTypeId())->getConstructionCostPerUnit()* (*unitsItr).getNumUnits();
-			totalConstructionCost = totalConstructionCost+ constructionCostPerUnitType;
-			//if (!(model->isEmptyParcel(project.getParcel()->getId())))
-			//{
-				//TODO::set demolition cost
-				project.setDemolitionCost(demolitionCost);
-			//}
+
+			double constructionCostPerUnitType = constructionCostPerUnit * (*unitsItr).getNumUnits();
+			totalConstructionCost = totalConstructionCost + constructionCostPerUnitType;
 		}
 
 	}
-	double profit = totalRevenue - totalConstructionCost;
+
+	//double demolitionCost = 0;
+	double totalCost = 0;
+	double acqusitionCost = 0;
+	if (!(model->isEmptyParcel(project.getParcel()->getId())))
+	{
+		//demolition cost is set to 10% of the total construction cost.
+		//demolitionCost = totalConstructionCost * 0.1;
+		project.setDemolitionCost(totalDemolitionCost);
+		const UnitPriceSum* unitPriceSum = model->getUnitPriceSumByParcelId(project.getParcel()->getId());
+		if(unitPriceSum != nullptr)
+		{
+			acqusitionCost = unitPriceSum->getUnitPriceSum();
+			//PrintOut("acqusitionCost"<<acqusitionCost<<std::endl);
+		}
+	}
+
+
+	double profit = totalRevenue - (totalConstructionCost + totalDemolitionCost + acqusitionCost);
 	project.setProfit(profit);
+
+	//writeParcelDataToFile(project.getParcel()->getId(),model->isEmptyParcel(project.getParcel()->getId()),profit,project.getDevTemplate()->getTemplateId());
 	project.setConstructionCost(totalConstructionCost);
 	double investmentReturnRatio = 0;
 	if((totalRevenue>0) && (totalConstructionCost>0))
@@ -274,7 +458,7 @@ inline void createPotentialUnits(PotentialProject& project,const DeveloperModel*
      * @param model Developer model.
      * @param outProjects (out parameter) list to receive all projects;
      */
-inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* model, PotentialProject& outProject,int quarter,double logsum)
+inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* model, PotentialProject& outProject,int quarter, const TAO *tao)
     {
         const DeveloperModel::DevelopmentTypeTemplateList& devTemplates = model->getDevelopmentTypeTemplates();
         const DeveloperModel::TemplateUnitTypeList& unitTemplates = model->getTemplateUnitType();
@@ -296,7 +480,13 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* mo
                 		PotentialProject project((*it), parcel);
                 		addUnitTemplates(project, unitTemplates);
                 		createPotentialUnits(project,model);
-                        calculateProjectProfit(project,model,quarter,logsum);
+                        calculateProjectProfit(project,model,quarter,tao);
+
+                        int newDevelopment = 0;
+                        if(model->isEmptyParcel(parcel->getId()))
+                        	{
+                        		newDevelopment = 1;
+                        	}
 
                         const double threshold = 0.01; // temporary : to be determined later
                         if(project.getInvestmentReturnRatio()> threshold)
@@ -340,6 +530,13 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* mo
                 			if( (pTemp < randomNum) && ( randomNum < ((*projectIt).getTempSelectProbability() + pTemp)))
                 			{
                 				outProject = (*projectIt);
+                				std::vector<PotentialUnit>& units = outProject.getUnits();
+                				std::vector<PotentialUnit>::iterator unitsItr;
+                				for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++) {
+                					double profitPerUnit = (*unitsItr).getUnitProfit();
+                					int newDev = model->isEmptyParcel(outProject.getParcel()->getId());
+                					writeProjectDataToFile(outProject.getParcel()->getId(),(*unitsItr).getUnitTypeId(),profitPerUnit, (*unitsItr).getNumUnits(),outProject.getProfit(),newDev);
+                				}
                 				break;
                 			}
                 			else
@@ -357,7 +554,7 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* mo
 }
 
 DeveloperAgent::DeveloperAgent(Parcel* parcel, DeveloperModel* model)
-: LT_Agent((parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(housingMarketModel){
+: LT_Agent((parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(housingMarketModel),simYear(simYear){
 
 }
 
@@ -383,19 +580,21 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     	{
     		std::tm currentDate = getDate(devModel->getCurrentTick());
     		int quarter = ((currentDate.tm_mon)/4) + 1; //get the current month of the simulation and divide it by 4 to determine the quarter
-    		BigSerial homeTazId = this->parcel->getTazId();
-    		Taz *homeTazObj = housingMarketModel->getTazById( homeTazId );
-    		std::string homeTazStr;
-    		if( homeTazObj != NULL )
-    		{
-    			homeTazStr = homeTazObj->getName();
-    		}
+    		std::string quarterStr = "Y"+boost::lexical_cast<std::string>(simYear)+"Q"+boost::lexical_cast<std::string>(quarter);
+    		const TAO *tao = devModel->getTaoByQuarter(getQuarterIdByQuarterStr(quarterStr));
+    		//BigSerial homeTazId = this->parcel->getTazId();
+    		//Taz *homeTazObj = housingMarketModel->getTazById( homeTazId );
+    		//std::string homeTazStr;
+    		//if( homeTazObj != NULL )
+    		//{
+    		//	homeTazStr = homeTazObj->getName();
+    		//}
 
-    		BigSerial homeTaz = std::atoi( homeTazStr.c_str() );
-    		const double scaleFactor = 1.566070312;
-    		double logsum = housingMarketModel->ComputeHedonicPriceLogsum(homeTaz) * scaleFactor;
+    		//BigSerial homeTaz = std::atoi( homeTazStr.c_str() );
+    		//const double scaleFactor = 1.566070312;
+    		//double logsum = housingMarketModel->ComputeHedonicPriceLogsum(homeTaz) * scaleFactor;
     		PotentialProject project;
-    		createPotentialProjects(this->parcel->getId(),devModel,project,quarter,logsum);
+    		createPotentialProjects(this->parcel->getId(),devModel,project,quarter,tao);
     		if(project.getUnits().size()>0)
     		{
     			BigSerial projectId = devModel->getProjectIdForDeveloperAgent();
@@ -432,7 +631,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	{
 		newDevelopment = 1;
 	}
-	writeParcelDataToFile(parcel,newDevelopment);
+	writeParcelDataToFile(parcel,newDevelopment,project.getProfit());
 	//check whether the parcel is empty; if not send a message to HM model with building id and future demolition date about the units that are going to be demolished.
 	if (!(devModel->isEmptyParcel(parcel.getId()))) {
 		DeveloperModel::BuildingList buildings = devModel->getBuildings();
@@ -488,12 +687,15 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 					  DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY, std::tm(), 0, 0, 0);
 			newUnits.push_back(unit);
 			double profit = (*unitsItr).getUnitProfit();
-			writeUnitDataToFile(*unit, profit);
+			double demolitionCost = (*unitsItr).getDemolitionCostPerUnit();
+			writeUnitDataToFile(*unit, profit,parcel.getId(),demolitionCost);
 			MessageBus::PostMessage(this, LTEID_DEV_UNIT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*unit)), true);
 		}
 
 	}
-
+	#ifdef VERBOSE_DEVELOPER
+	PrintOutV(newUnits.size()<<" number of units generated by developer agent with id "<<this->GetId()<<std::endl);
+    #endif
 }
 
 void DeveloperAgent::createProject(PotentialProject &project, BigSerial projectId)
@@ -509,7 +711,7 @@ void DeveloperAgent::createProject(PotentialProject &project, BigSerial projectI
 	double grossArea = project.getGrosArea();
 	std::string grossRatio = boost::lexical_cast<std::string>(grossArea / fmLotSize);
 	boost::shared_ptr<Project>fmProject(new Project(projectId,parcel->getId(),0,project.getDevTemplate()->getTemplateId(),std::string(),constructionDate,completionDate,constructionCost,demolitionCost,totalCost,fmLotSize,grossRatio,grossArea,0,constructionDate,"active"));
-	writeProjectDataToFile(fmProject);
+	//writeProjectDataToFile(fmProject);
 	this->fmProject = fmProject;
 	MessageBus::PostMessage(this, LTEID_DEV_PROJECT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg()), true);
 
@@ -570,6 +772,10 @@ void DeveloperAgent::processExistingProjects()
 				setUnitsForHM(first,last);
 				std::vector<Unit*> unitsToSale(first,last);
 
+				#ifdef VERBOSE_DEVELOPER
+				PrintOutV(unitsToSale.size()<<" number of units launched for selling by developer agent "<<this->GetId()<<"on day "<<devModel->getCurrentTick()<<std::endl);
+				#endif
+
 				for(unitsItr = unitsToSale.begin(); unitsItr != unitsToSale.end(); unitsItr++)
 				{
 					(*unitsItr)->setSaleStatus(UNIT_LAUNCHED_BUT_UNSOLD);
@@ -620,7 +826,7 @@ std::tm DeveloperAgent::getDate(int day)
 	std::tm currentDate = std::tm();
 	currentDate.tm_mday = dayMonth;
 	currentDate.tm_mon = month;
-	currentDate.tm_year = 2008;
+	currentDate.tm_year = simYear;
 	return currentDate;
 }
 
@@ -743,4 +949,50 @@ void DeveloperAgent::setHousingMarketModel(HM_Model *housingModel)
 {
 
 	this->housingMarketModel = housingModel;
+}
+
+BigSerial DeveloperAgent::getQuarterIdByQuarterStr(std::string quarterStr)
+{
+	if(simYear == 2008)
+	{
+		if (quarterStr == "Y2008Q1")
+		{
+			return 52;
+		}
+		else if(quarterStr == "Y2008Q2"){
+			return 53;
+		}
+		else if(quarterStr == "Y2008Q3")
+		{
+			return 54;
+		}
+		else if (quarterStr == "Y2008Q4")
+		{
+			return 55;
+		}
+	}
+	else if(simYear == 2012)
+	{
+		if (quarterStr == "Y2012Q1")
+		{
+			return 68;
+		}
+		else if(quarterStr == "Y2012Q2"){
+			return 69;
+		}
+		else if(quarterStr == "Y2012Q3")
+		{
+			return 70;
+		}
+		else if (quarterStr == "Y2012Q4")
+		{
+			return 71;
+		}
+	}
+	return 0;
+}
+
+void DeveloperAgent::setSimYear(int simulationYear)
+{
+	this->simYear = simulationYear;
 }

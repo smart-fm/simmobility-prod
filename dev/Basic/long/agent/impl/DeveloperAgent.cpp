@@ -108,8 +108,9 @@ const std::string LOG_PARCEL = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10
 const std::string LOG_UNIT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%";
 
 //projectId,parcelId,developerId,templateId,projectName,constructionDate,completionDate,constructionCost,demolitionCost,totalCost,fmLotSize,grossRatio,grossArea
-//const std::string LOG_PROJECT = "%1%, %2%lot_size, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%";
-const std::string LOG_PROJECT = "%1%, %2%, %3%, %4%, %5%, %6%";
+const std::string LOG_PROJECT_DB = "%1%, %2%lot_size, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%";
+
+const std::string LOG_PROJECT_INFO = "%1%, %2%, %3%, %4%, %5%, %6%";
 
 /**
  * Write the data of profitable parcels to a csv.
@@ -149,17 +150,17 @@ inline void writeUnitDataToFile(Unit &unit, double unitProfit,BigSerial parcelId
  * @param project to be written.
  *
  */
-//inline void writeProjectDataToFile(boost::shared_ptr<Project>project) {
-//
-//	boost::format fmtr = boost::format(LOG_PROJECT) % project->getProjectId() % project->getParcelId()%project->getDeveloperId()%project->getTemplateId()%project->getProjectName()
-//			             %project->getConstructionDate().tm_year%project->getCompletionDate().tm_year%project->getConstructionCost()%project->getDemolitionCost()%project->getTotalCost()
-//			             %project->getFmLotSize()%project->getGrossRatio()%project->getGrossArea();
-//	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PROJECTS,fmtr.str());
-//
-//}
+inline void writeProjectDBDataToFile(boost::shared_ptr<Project>project) {
+
+	boost::format fmtr = boost::format(LOG_PROJECT_DB) % project->getProjectId() % project->getParcelId()%project->getDeveloperId()%project->getTemplateId()%project->getProjectName()
+			             %project->getConstructionDate().tm_year%project->getCompletionDate().tm_year%project->getConstructionCost()%project->getDemolitionCost()%project->getTotalCost()
+			             %project->getFmLotSize()%project->getGrossRatio()%project->getGrossArea();
+	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PROJECTS,fmtr.str());
+
+}
 inline void writeProjectDataToFile(BigSerial parcelId,BigSerial unitTypeId,double profitPerUnit, int numUnits, double profit, int newDev) {
 
-	boost::format fmtr = boost::format(LOG_PROJECT)  % parcelId %unitTypeId % profitPerUnit % numUnits % profit % newDev;
+	boost::format fmtr = boost::format(LOG_PROJECT_INFO)  % parcelId %unitTypeId % profitPerUnit % numUnits % profit % newDev;
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PROJECTS,fmtr.str());
 
 }
@@ -178,105 +179,38 @@ inline float getGpr(const Parcel *parcel)
 
 inline BigSerial getBuildingTypeFromUnitType(BigSerial unitTypeId)
 {
-	if (unitTypeId >= 1 and unitTypeId <= 6)
+	if (unitTypeId >= 1 and unitTypeId <= 6) //HDB
 	{
 		return 1;
 
 	}
-	else if (unitTypeId >= 7 and unitTypeId <= 11)
+	else if (unitTypeId >= 7 and unitTypeId <= 11)//Apartment
 	{
 		return 2;
 	}
 
-	else if (unitTypeId >= 12 and unitTypeId <= 16)
+	else if (unitTypeId >= 12 and unitTypeId <= 16) //condo
 	{
 		return 3;
 	}
 
-	else if (unitTypeId >= 17 and unitTypeId <= 21)
+	else if (unitTypeId >= 17 and unitTypeId <= 21)//Terrace
 	{
 		return 4;
 	}
-	else if (unitTypeId >= 22 and unitTypeId <= 26)
+	else if (unitTypeId >= 22 and unitTypeId <= 26) //Semi Detached
 	{
 		return 5;
 	}
-	else if (unitTypeId >= 27 and unitTypeId <= 31)
+	else if (unitTypeId >= 27 and unitTypeId <= 31) //Detached
 	{
 		return 6;
 	}
-	else if (unitTypeId >= 32 and unitTypeId <= 36)
+	else if (unitTypeId >= 32 and unitTypeId <= 36) //EC
 	{
 		return 7;
 	}
-	else if (unitTypeId >= 37 and unitTypeId <= 41)
-	{
-		return 8;
-	}
-	else if (unitTypeId >= 42 and unitTypeId <= 47)
-	{
-		return 9;
-	}
-	else if (unitTypeId >= 48 and unitTypeId <= 52)
-	{
-		return 10;
-	}
-	else if (unitTypeId == 53)
-	{
-		return 11;
-	}
-	else if (unitTypeId == 54)
-	{
-		return 12;
-	}
-	else if (unitTypeId == 55)
-	{
-		return 13;
-	}
-	else if (unitTypeId == 56)
-	{
-		return 14;
-	}
-	else if (unitTypeId == 57)
-	{
-		return 15;
-	}
-	else if (unitTypeId == 58)
-	{
-		return 16;
-	}
-	else if (unitTypeId == 59)
-	{
-		return 17;
-	}
-	else if (unitTypeId == 60)
-	{
-		return 18;
-	}
-	else if (unitTypeId == 61)
-	{
-		return 19;
-	}
-	else if (unitTypeId == 62)
-	{
-		return 20;
-	}
-	else if (unitTypeId == 63)
-	{
-		return 21;
-	}
-	else if (unitTypeId == 64 )
-	{
-		return 22;
-	}
-	else if (unitTypeId == 65)
-	{
-		return 23;
-	}
-	else if (unitTypeId == 66)
-	{
-		return 24;
-	}
+
 	else return 0;
 }
 
@@ -297,7 +231,7 @@ inline void calculateProjectProfit(PotentialProject& project,const DeveloperMode
 		//commented the below code in 2012 data as we are now getting logsum per taz id.
 		//double logsum = model->getAccessibilityLogsumsByFmParcelId(project.getParcel()->getId())->getAccessibility();
 		const LogsumForDevModel *logsumDev = model->getAccessibilityLogsumsByTAZId(project.getParcel()->getTazId());
-		double logsum = 2.6875;
+		double logsum = 2.6875; // use the average logsum values for tazs without calculated logsum.
 		if(logsumDev != nullptr)
 		{
 			logsum = logsumDev->getAccessibility();
@@ -711,7 +645,7 @@ void DeveloperAgent::createProject(PotentialProject &project, BigSerial projectI
 	double grossArea = project.getGrosArea();
 	std::string grossRatio = boost::lexical_cast<std::string>(grossArea / fmLotSize);
 	boost::shared_ptr<Project>fmProject(new Project(projectId,parcel->getId(),0,project.getDevTemplate()->getTemplateId(),std::string(),constructionDate,completionDate,constructionCost,demolitionCost,totalCost,fmLotSize,grossRatio,grossArea,0,constructionDate,"active"));
-	//writeProjectDataToFile(fmProject);
+	writeProjectDBDataToFile(fmProject);
 	this->fmProject = fmProject;
 	MessageBus::PostMessage(this, LTEID_DEV_PROJECT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg()), true);
 

@@ -2729,49 +2729,6 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	res.links.push_back(ln);
 }
 
-
-struct MyLaneConectorSorter {
-  bool operator() ( const sim_mob::LaneConnector * c,  const sim_mob::LaneConnector * d) const
-  {
-	  if(!(c && d))
-	  {
-		  std::cout << "A lane connector is null\n";
-		  return false;
-	  }
-
-	  const sim_mob::Lane* a = (c->getLaneFrom());
-	  const unsigned int  aa = a->getRoadSegment()->getLink()->getLinkId();
-	  const unsigned long  aaa = a->getRoadSegment()->getId();
-	  const unsigned int  aaaa = a->getLaneID() ;
-
-	  const sim_mob::Lane* b = (d->getLaneFrom());
-	  const unsigned int  bb = b->getRoadSegment()->getLink()->getLinkId();
-	  const unsigned long  bbb = b->getRoadSegment()->getId();
-	  const unsigned int  bbbb = b->getLaneID() ;
-	  ///////////////////////////////////////////////////////
-	  const sim_mob::Lane* a1 = (c->getLaneTo());
-	  const unsigned int  aa1 = a1->getRoadSegment()->getLink()->getLinkId();
-	  const unsigned long  aaa1 = a1->getRoadSegment()->getId();
-	  const unsigned int  aaaa1 = a1->getLaneID() ;
-
-	  const sim_mob::Lane* b1 = (d->getLaneTo());
-	  const unsigned int  bb1 = b1->getRoadSegment()->getLink()->getLinkId();
-	  const unsigned long  bbb1 = b1->getRoadSegment()->getId();
-	  const unsigned int  bbbb1 = b1->getLaneID() ;
-
-	  if(!(a && b))
-	  {
-		  std::cout << "A lane from is null\n";
-		  return false;
-	  }
-	  bool result = std::make_pair( aa, std::make_pair( aaa, std::make_pair(aaaa, std::make_pair( aa1, std::make_pair( aaa1, aaaa1 ) ))))
-	        <
-	        std::make_pair( bb, std::make_pair( bbb, std::make_pair(bbbb, std::make_pair( bb1, std::make_pair( bbb1, bbbb1 ) ))));
-
-		  return result;
-  }
-} myLaneConnectorSorter;
-
 void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning& src)
 {
 	//Check

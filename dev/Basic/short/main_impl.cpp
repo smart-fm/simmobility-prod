@@ -531,7 +531,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	Print() << "Simulation complete; closing worker threads." << endl;
 	
 	//Destroy the road network
-	simmobility_network::NetworkLoader::destroyInstance();
+	simmobility_network::RoadNetwork::resetInstance();
 
 	//Delete the AMOD controller instance
 	sim_mob::AMOD::AMODController::deleteInstance();

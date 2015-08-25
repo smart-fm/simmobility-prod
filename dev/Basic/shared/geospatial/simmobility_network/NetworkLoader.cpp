@@ -3,50 +3,17 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "NetworkLoader.hpp"
+#include "logging/Log.hpp"
+#include "SOCI_Converters.hpp"
 
 using namespace simmobility_network;
 
 NetworkLoader* NetworkLoader::networkLoader = NULL;
 
-NetworkLoader::NetworkLoader()
+namespace
 {
-	roadNetwork = new RoadNetwork();
-}
-
-NetworkLoader::~NetworkLoader()
-{
-	if(roadNetwork)
-	{
-		delete roadNetwork;
-		roadNetwork = NULL;
-	}
-}
-
-NetworkLoader* NetworkLoader::getInstance()
-{
-	if(networkLoader == NULL)
-	{
-		networkLoader = new NetworkLoader();
-	}
-	
-	return networkLoader;
-}
-
-void NetworkLoader::destroyInstance()
-{
-	if(networkLoader)
-	{
-		delete networkLoader;
-		networkLoader = NULL;
-	}
-}
-
-RoadNetwork* NetworkLoader::getRoadNetwork() const
-{
-	return roadNetwork;
-}
-
-string NetworkLoader::getStoredProcedure(const map<string,string>& storedProcs, const string& procedureName, bool mandatory = true)
+//Returns the required stored procedure from the map of stored procedures
+string getStoredProcedure(const map<string,string>& storedProcs, const string& procedureName, bool mandatory = true)
 {
 	//Look for the stored procedure in the map
 	map<string, string>::const_iterator itProcedure = storedProcs.find(procedureName);
@@ -55,7 +22,7 @@ string NetworkLoader::getStoredProcedure(const map<string,string>& storedProcs, 
 	if (itProcedure != storedProcs.end())
 	{
 		return itProcedure->second;
-	} 
+	}
 	//Stored procedure not found, return empty string if not mandatory
 	else if(!mandatory)
 	{
@@ -67,8 +34,20 @@ string NetworkLoader::getStoredProcedure(const map<string,string>& storedProcs, 
 		throw std::runtime_error("Stored-procedure '" + procedureName + "' not found in the configuration file");
 	}
 }
+}
 
-void NetworkLoader::LoadLanes(const std::string& storedProc)
+NetworkLoader::NetworkLoader() : roadNetwork(RoadNetwork::getInstance())
+{}
+
+NetworkLoader::~NetworkLoader()
+{}
+
+RoadNetwork* NetworkLoader::getRoadNetwork() const
+{
+	return roadNetwork;
+}
+
+void NetworkLoader::loadLanes(const std::string& storedProc)
 {
 	//SQL statement
 	soci::rowset<Lane> lanes = (sql.prepare << "select * from " + storedProc);
@@ -81,7 +60,7 @@ void NetworkLoader::LoadLanes(const std::string& storedProc)
 	}
 }
 
-void NetworkLoader::LoadLaneConnectors(const std::string& storedProc)
+void NetworkLoader::loadLaneConnectors(const std::string& storedProc)
 {
 	//SQL statement
 	soci::rowset<LaneConnector> connectors = (sql.prepare << "select * from " + storedProc);
@@ -94,7 +73,7 @@ void NetworkLoader::LoadLaneConnectors(const std::string& storedProc)
 	}
 }
 
-void NetworkLoader::LoadLanePolyLines(const std::string& storedProc)
+void NetworkLoader::loadLanePolyLines(const std::string& storedProc)
 {
 	//SQL statement
 	soci::rowset<simmobility_network::Point> points = (sql.prepare << "select * from " + storedProc);
@@ -107,7 +86,7 @@ void NetworkLoader::LoadLanePolyLines(const std::string& storedProc)
 	}
 }
 
-void NetworkLoader::LoadLinks(const std::string& storedProc)
+void NetworkLoader::loadLinks(const std::string& storedProc)
 {
 	//SQL statement
 	soci::rowset<Link> links = (sql.prepare << "select * from " + storedProc);
@@ -120,7 +99,7 @@ void NetworkLoader::LoadLinks(const std::string& storedProc)
 	}
 }
 
-void NetworkLoader::LoadNodes(const std::string& storedProc)
+void NetworkLoader::loadNodes(const std::string& storedProc)
 {
 	//SQL statement
 	soci::rowset<Node> nodes = (sql.prepare << "select * from " + storedProc);
@@ -133,7 +112,7 @@ void NetworkLoader::LoadNodes(const std::string& storedProc)
 	}
 }
 
-void NetworkLoader::LoadRoadSegments(const std::string& storedProc)
+void NetworkLoader::loadRoadSegments(const std::string& storedProc)
 {
 	//SQL statement
 	soci::rowset<RoadSegment> segments = (sql.prepare << "select * from " + storedProc);
@@ -146,7 +125,7 @@ void NetworkLoader::LoadRoadSegments(const std::string& storedProc)
 	}
 }
 
-void NetworkLoader::LoadSegmentPolyLines(const std::string& storedProc)
+void NetworkLoader::loadSegmentPolyLines(const std::string& storedProc)
 {
 	//SQL statement
 	soci::rowset<simmobility_network::Point> points = (sql.prepare << "select * from " + storedProc);
@@ -159,7 +138,7 @@ void NetworkLoader::LoadSegmentPolyLines(const std::string& storedProc)
 	}
 }
 
-void NetworkLoader::LoadTurningConflicts(const std::string& storedProc)
+void NetworkLoader::loadTurningConflicts(const std::string& storedProc)
 {
 	//SQL statement
 	soci::rowset<TurningConflict> turningConflicts = (sql.prepare << "select * from " + storedProc);
@@ -172,7 +151,7 @@ void NetworkLoader::LoadTurningConflicts(const std::string& storedProc)
 	}
 }
 
-void NetworkLoader::LoadTurningGroups(const std::string& storedProc)
+void NetworkLoader::loadTurningGroups(const std::string& storedProc)
 {
 	//SQL statement
 	soci::rowset<TurningGroup> turningGroups = (sql.prepare << "select * from " + storedProc);
@@ -185,7 +164,7 @@ void NetworkLoader::LoadTurningGroups(const std::string& storedProc)
 	}
 }
 
-void NetworkLoader::LoadTurningPaths(const std::string& storedProc)
+void NetworkLoader::loadTurningPaths(const std::string& storedProc)
 {
 	//SQL statement
 	soci::rowset<TurningPath> turningPaths = (sql.prepare << "select * from " + storedProc);
@@ -198,7 +177,7 @@ void NetworkLoader::LoadTurningPaths(const std::string& storedProc)
 	}
 }
 
-void NetworkLoader::LoadTurningPolyLines(const std::string& storedProc)
+void NetworkLoader::loadTurningPolyLines(const std::string& storedProc)
 {
 	//SQL statement
 	soci::rowset<simmobility_network::Point> points = (sql.prepare << "select * from " + storedProc);
@@ -211,7 +190,7 @@ void NetworkLoader::LoadTurningPolyLines(const std::string& storedProc)
 	}
 }
 
-void NetworkLoader::LoadNetwork(const string& connectionStr, const map<string,string>& storedProcs)
+void NetworkLoader::loadNetwork(const string& connectionStr, const map<string,string>& storedProcs)
 {
 	try
 	{
@@ -222,27 +201,27 @@ void NetworkLoader::LoadNetwork(const string& connectionStr, const map<string,st
 		
 		//Load the components of the network
 
-		LoadNodes(getStoredProcedure(storedProcs, "nodes"));
+		loadNodes(getStoredProcedure(storedProcs, "nodes"));
 		
-		LoadLinks(getStoredProcedure(storedProcs, "links"));
+		loadLinks(getStoredProcedure(storedProcs, "links"));
 		
-		LoadTurningGroups(getStoredProcedure(storedProcs, "turning_groups"));
+		loadTurningGroups(getStoredProcedure(storedProcs, "turning_groups"));
 		
-		LoadTurningPaths(getStoredProcedure(storedProcs, "turning_paths"));
+		loadTurningPaths(getStoredProcedure(storedProcs, "turning_paths"));
 		
-		LoadTurningPolyLines(getStoredProcedure(storedProcs, "turning_polylines"));
+		loadTurningPolyLines(getStoredProcedure(storedProcs, "turning_polylines"));
 		
-		LoadTurningConflicts(getStoredProcedure(storedProcs, "turning_conflicts"));
+		loadTurningConflicts(getStoredProcedure(storedProcs, "turning_conflicts"));
 		
-		LoadRoadSegments(getStoredProcedure(storedProcs, "road_segments"));
+		loadRoadSegments(getStoredProcedure(storedProcs, "road_segments"));
 		
-		LoadSegmentPolyLines(getStoredProcedure(storedProcs, "segment_polylines"));
+		loadSegmentPolyLines(getStoredProcedure(storedProcs, "segment_polylines"));
 		
-		LoadLanes(getStoredProcedure(storedProcs, "lanes"));
+		loadLanes(getStoredProcedure(storedProcs, "lanes"));
 		
-		LoadLanePolyLines(getStoredProcedure(storedProcs, "lane_polylines"));
+		loadLanePolyLines(getStoredProcedure(storedProcs, "lane_polylines"));
 		
-		LoadLaneConnectors(getStoredProcedure(storedProcs, "lane_connectors"));
+		loadLaneConnectors(getStoredProcedure(storedProcs, "lane_connectors"));
 
 		//Close the connection
 		sql.close();

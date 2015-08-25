@@ -11,9 +11,10 @@
 
 using namespace simmobility_network;
 
+RoadNetwork* RoadNetwork::roadNetwork = nullptr;
+
 RoadNetwork::RoadNetwork()
-{
-}
+{}
 
 RoadNetwork::~RoadNetwork()
 {
@@ -390,4 +391,18 @@ Node* RoadNetwork::getNodeById(unsigned int nodeId)
 		sim_mob::Print() << "Node " << nodeId << " was not found!";
 		return NULL;
 	}
+}
+
+RoadNetwork* simmobility_network::RoadNetwork::getInstance()
+{
+	if(!roadNetwork)
+	{
+		roadNetwork = new RoadNetwork();
+	}
+	return roadNetwork;
+}
+
+void simmobility_network::RoadNetwork::resetInstance()
+{
+	safe_delete_item(roadNetwork);
 }

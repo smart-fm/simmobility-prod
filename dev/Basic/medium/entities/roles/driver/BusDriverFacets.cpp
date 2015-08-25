@@ -111,13 +111,7 @@ void BusDriverMovement::frame_tick() {
 				//vehicle is done
 				parentBusDriver->closeBusDoors(stopAg);
 				routeTracker.updateNextStop();
-				pathMover.advanceInPath();
-				if (pathMover.isPathCompleted())
-				{
-					setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat)-1), currSegStat);
-					currLane = nullptr;
-					getParent()->setToBeRemoved();
-				}
+				moveToNextSegment(params); //the next stop can potentially be in the same segmentStats and moveToNextSegment handles this
 				setParentData(params);
 				return;
 			}

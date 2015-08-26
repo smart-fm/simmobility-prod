@@ -89,8 +89,6 @@ namespace simmobility_network
     
     Link(const Link& orig);
     
-    std::vector<RoadSegment *>& getRoadSegments() {return roadSegments;}
-
     virtual ~Link();
 
     //Returns the length of the link
@@ -133,7 +131,10 @@ namespace simmobility_network
     void setRoadName(std::string roadName);
     
     //Returns the vector of road segments that make up the link
-    const std::vector<RoadSegment*>& getRoadSegments() const;    
+    const std::vector<RoadSegment*>& getRoadSegments() const;
+    
+    //Returns a pointer to the road segment at the given index in the vector
+    const RoadSegment* getRoadSegment(int idx);
     
     //Returns a vector of tags which holds the additional information
     const std::vector<Tag>* getTags() const;
@@ -154,9 +155,7 @@ namespace simmobility_network
     void setToNodeId(unsigned int toNodeId);
     
     //Adds a road segment to the vector of road segments that make up the link
-    void addRoadSegment(RoadSegment *roadSegment);
-
-    RoadSegment* getRoadSegment(int idx) { return roadSegments.at(idx); }
+    void addRoadSegment(RoadSegment *roadSegment);    
   } ;
 }
 

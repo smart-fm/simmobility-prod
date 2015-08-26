@@ -52,12 +52,12 @@ void PolyLine::addPoint(Point point)
 	this->points.push_back(point);
 }
 
-Point PolyLine::getFirstPoint() const
+const Point& PolyLine::getFirstPoint() const
 {
-	return points[0];
+	return points.front();
 }
 
-Point PolyLine::getLastPoint() const
+const Point& PolyLine::getLastPoint() const
 {
-	return points.at(points.size()-1);
+	return points.back();
 }

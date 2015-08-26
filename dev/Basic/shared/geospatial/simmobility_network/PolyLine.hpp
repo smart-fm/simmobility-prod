@@ -50,10 +50,10 @@ namespace simmobility_network
     const std::vector<Point>& getPoints() const;
     
     //Returns the first point in the poly-line
-    Point getFirstPoint() const;
+    const Point& getFirstPoint() const;
 
     //Returns the last point in the poly-line
-    Point getLastPoint() const;
+    const Point& getLastPoint() const;
 
     //Adds a point to the poly-line
     void addPoint(Point point);    

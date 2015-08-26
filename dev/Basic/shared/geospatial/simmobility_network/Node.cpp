@@ -3,6 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Node.hpp"
+#include "TurningGroup.hpp"
 
 using namespace simmobility_network;
 

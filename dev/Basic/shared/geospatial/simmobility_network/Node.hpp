@@ -10,10 +10,11 @@
 
 #include "Point.hpp"
 #include "Tag.hpp"
-#include "TurningGroup.hpp"
 
 namespace simmobility_network
 {
+  class TurningGroup;
+
   //Defines the various types of nodes supported by the SimMobility network
   enum NodeType
   {
@@ -95,5 +96,5 @@ namespace simmobility_network
     //Adds the turning group into the map
     void addTurningGroup(TurningGroup *turningGroup);
 
-  } ;
+  };
 }

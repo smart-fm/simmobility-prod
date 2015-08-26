@@ -8,6 +8,7 @@
 #include "RoadNetwork.hpp"
 #include "Link.hpp"
 #include "logging/Log.hpp"
+#include "util/GeomHelpers.hpp"
 
 using namespace simmobility_network;
 
@@ -149,7 +150,7 @@ void RoadNetwork::addLanePolyLine(Point point)
 		
 		//Get the length calculated till the last added point
 		double length = polyLine->getLength();
-		Point lastPoint = polyLine->getLastPoint();
+		const Point& lastPoint = polyLine->getLastPoint();
 		
 		//Add the distance between the new point and the previously added point
 		length += sim_mob::dist(lastPoint.getX(), lastPoint.getY(), point.getX(), point.getY());
@@ -257,7 +258,7 @@ void RoadNetwork::addSegmentPolyLine(Point point)
 		
 		//Get the length calculated till the last added point
 		double length = polyLine->getLength();
-		Point lastPoint = polyLine->getLastPoint();
+		const Point& lastPoint = polyLine->getLastPoint();
 		
 		//Add the distance between the new point and the previously added point
 		length += sim_mob::dist(lastPoint.getX(), lastPoint.getY(), point.getX(), point.getY());
@@ -395,7 +396,7 @@ void RoadNetwork::addTurningPolyLine(Point point)
 		
 		//Get the length calculated till the last added point
 		double length = polyLine->getLength();
-		Point lastPoint = polyLine->getLastPoint();
+		const Point& lastPoint = polyLine->getLastPoint();
 		
 		//Add the distance between the new point and the previously added point
 		length += sim_mob::dist(lastPoint.getX(), lastPoint.getY(), point.getX(), point.getY());

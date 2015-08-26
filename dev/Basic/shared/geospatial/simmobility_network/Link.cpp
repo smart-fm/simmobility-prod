@@ -121,6 +121,11 @@ const std::vector<RoadSegment*>& Link::getRoadSegments() const
 	return roadSegments;
 }
 
+const RoadSegment* Link::getRoadSegment(int idx) 
+{ 
+	return roadSegments.at(idx); 
+}
+
 const std::vector<Tag>* Link::getTags() const
 {
 	return tags;

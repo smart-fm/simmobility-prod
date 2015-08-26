@@ -692,6 +692,7 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 	if(!planningArea)
 		return;
 
+
 	std::vector<PopulationPerPlanningArea*> populationPerPlanningArea = model->getPopulationByPlanningAreaId(planningArea->getId());
 
 	double populationTotal 	 = 0;
@@ -713,8 +714,10 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 	double bHouseholdMember5To19		 = false;
 	double bHouseholdMemberGreaterThan65 = false;
 
-	double avgHouseholdSize = 0;
-	double avgHouseholdIncome = 0;
+	double 	avgHouseholdSize = 0;
+	double 	avgHouseholdIncome = 0;
+	int	   	unitTypeCounter = 0;
+	int 	populationByunitType = 0;
 
 	if( household->getEthnicityId() == 1 )
 		bHouseholdEthnicityChinese = true;
@@ -766,23 +769,27 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 		if(populationPerPlanningArea[n]->getAgeCategoryId() > 12 )
 			 populationGreaterThan65++;
 
-		household->getSize();
-
 		if( populationPerPlanningArea[n]->getUnitType() == unit->getUnitType() )
 		{
 			avgHouseholdSize += populationPerPlanningArea[n]->getAvgHhSize();
 			avgHouseholdIncome += populationPerPlanningArea[n]->getAvgIncome();
+			unitTypeCounter++;
+			populationByunitType += populationPerPlanningArea[n]->getPopulation();
 		}
 	}
 
+	avgHouseholdSize 	= avgHouseholdSize 	  / unitTypeCounter;
+	avgHouseholdIncome 	= avgHouseholdIncome  / unitTypeCounter;
+
+
 	std::vector<PlanningSubzone*>  planningSubzones = model->getPlanningSubZoneByPlanningAreaId(planningArea->getId());
 	std::vector<Mtz*> mtzs = model->getMtzBySubzoneVec(planningSubzones);
-	std::vector<BigSerial> tazs = model->getTazByMtzVec(mtzs);
+	std::vector<BigSerial> planningAreaTazs = model->getTazByMtzVec(mtzs);
 
 	double planningArea_size = 0;
-	for( int n = 0; n < tazs.size();n++)
+	for( int n = 0; n < planningAreaTazs.size();n++)
 	{
-		Taz *thisTaz = model->getTazById(tazs[n]);
+		Taz *thisTaz = model->getTazById(planningAreaTazs[n]);
 
 		planningArea_size += thisTaz->getArea();
 	}
@@ -790,12 +797,27 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 	//convert sqm into hectares
 	planningArea_size = planningArea_size / 10000.0;
 
+
+ 	double probabilitySum = 0;
+ 	/*
+ 	PrintOut("PA: " << planningArea->getName( ) << std::endl );
+ 	PrintOut(" Associated Taz: ");
+ 	for(int n = 0; n < planningAreaTazs.size(); n++ )
+ 	{
+ 		PrintOut(" " << planningAreaTazs[n] );
+ 	}
+ 	PrintOut("PA population: " << populationTotal << std::endl );
+ 	PrintOut("PA size: " << planningArea_size << std::endl );
+	*/
+
+
+
 	for( int n = 1; n <= 215; n++ )
 	{
 		ZonalLanduseVariableValues *zonalLanduseVariableValues = model->getZonalLandUseByAlternativeId(n);
 
-		double logPopulationByHousingType	= log(populationTotal);	//1 logarithm of population by housing type in the zone 	persons
-		double populationDensity			= populationTotal / planningArea_size;	//2 population density	persons per hectare (x10^-2)
+		double logPopulationByHousingType	= log((double)populationByunitType);	//1 logarithm of population by housing type in the zone 	persons
+		double populationDensity			= (double)populationByunitType / planningArea_size;	//2 population density	persons per hectare (x10^-2)
 		double commercialLandFraction		= zonalLanduseVariableValues->getFLocCom();	//3 zonal average fraction of commercial land within a 500-meter buffer area from a residential postcode (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
 		double residentialLandFraction		= zonalLanduseVariableValues->getFLocRes();	//4 zonal average fraction of residential land within a 500-meter buffer area from a residential postcode  (weighted by no. of residential unit within the buffer)	percentage point (x10^-1)
 		double openSpaceFraction			= zonalLanduseVariableValues->getFLocOpen();	//5 zonal average fraction of open space within a 500-meter buffer area from a residential postcode (weighted by residential unit within the buffer)	percentage point (x10^-1)
@@ -827,6 +849,62 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 				otherHousingHhSizeOne = 1.0;
 		}
 
+		if(household->getWorkers() != 0 )
+		{
+			std::vector<double> workerLogsumAtPlanningAreaLevel;
+			std::vector<BigSerial> individuals = household->getIndividuals();
+			int tazPopulation = 0;
+
+			for(int m = 0; m < individuals.size(); m++)
+			{
+				Individual *individual = model->getIndividualById(individuals[m]);
+				double logsum = 0;
+
+				if( individual->getEmploymentStatusId() <= 3) //1:fulltime. 2:partime 3:self-employed
+				{
+					tazPopulation = 0;
+					int patSize = planningAreaTazs.size();
+					for( int p = 0; p < patSize; p++)
+					{
+						Taz *thisTaz = model->getTazById(planningAreaTazs[n]);
+
+						if( thisTaz )
+						{
+							const HM_Model::TazStats *tazStats = model->getTazStats(thisTaz->getId());
+
+							if( tazStats )
+							{
+								tazPopulation += tazStats->getIndividuals();
+
+								int tazInt = atoi(thisTaz->getName().c_str());
+
+								double lg = PredayLT_LogsumManager::getInstance().computeLogsum( individuals[m] , tazInt, -1, -1 );
+								//PrintOutV(" tazInt " << tazInt << " log: " << lg << std::endl);
+
+								logsum = logsum + lg * (double)(tazStats->getIndividuals());
+							}
+						}
+					}
+
+					//PrintOut("PA:" << planningArea->getId() << " patSize: " << patSize << "pop1: " << populationTotal << " pop2: " << tazPopulation << " " );
+					//PrintOut(" logsum " << logsum << " tazPopulation " << tazPopulation << " patSize " << patSize << std::endl);
+
+					if( tazPopulation && patSize )
+					{
+						logsum = logsum / tazPopulation / patSize;
+					}
+
+					workerLogsumAtPlanningAreaLevel.push_back(logsum);
+				}
+			}
+
+			for( int m = 0; m < workerLogsumAtPlanningAreaLevel.size(); m++ )
+			{
+				householdWorkerLogsumAverage = householdWorkerLogsumAverage + ( workerLogsumAtPlanningAreaLevel[m] / workerLogsumAtPlanningAreaLevel.size() );
+			}
+		}
+
+
 		double probability =( logPopulationByHousingType* ln_popdwl 		) +
 							( populationDensity			* den_respop_ha 	) +
 							( commercialLandFraction	* f_loc_com 		) +
@@ -849,10 +927,45 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 							( landedPropertyHhSizeOne	* DWL700 ) +
 							( otherHousingHhSizeOne		* DWL800 );
 
+		/*
+		PrintOut("n: " <<   populationByunitType << " 0 " <<
+							logPopulationByHousingType  << " 1 " << ln_popdwl 		 << " " <<
+							populationDensity			<< " 2 " << den_respop_ha 	 << " " <<
+							commercialLandFraction	    << " 3 " << f_loc_com 	 	 << " " <<
+							 residentialLandFraction	<< " 4 " << f_loc_res		 << " " <<
+							 openSpaceFraction			<< " 5 " << f_loc_open	 	 << " " <<
+							 oppurtunityDiversityIndex	<< " 6 " << odi10_loc		 << " " <<
+							 distanceToMrt				<< " 7 " << dis2mrt		 	 << " " <<
+							 distanceToExp				<< " 8 " << dis2exp		 	 << " " <<
+							 householdWorkerLogsumAverage << " 9 " << hh_dgp_w_lgsm1 << " " <<
+							 fractionYoungerThan4		<< " a " << f_age4_n4		 << " " <<
+							 fractionBetween5And19		<< " b " << f_age19_n19	 	 << " " <<
+							 fractionOlderThan65		<< " c " << f_age65_n65	 	 << " " <<
+							 fractionOfChinese			<< " d " << f_chn_nchn	 	 << " " <<
+							 fractionOfMalay			<< " e " << f_mal_nmal	 	 << " " <<
+							 fractionOfIndian			<< " f " << f_indian_nind	 << " " <<
+							 householdSizeMinusZoneAvg	<< " g " << hhsize_diff	 	 << " " <<
+							 logHouseholdInconeMinusZoneAvg << " h " << log_hhinc_diff << " " <<
+							 logZonalMedianHousingPrice << " i " << log_price05tt_med  << " " <<
+							 privateCondoHhSizeOne		<< " j " << DWL600  << " " <<
+							 landedPropertyHhSizeOne	<< " k " << DWL700  << " " <<
+							 otherHousingHhSizeOne		<< " l " << DWL800  << std::endl);
+		*/
+		//PrintOut(" b: " << probability );
 		probability = exp(probability)/ (1.0 + exp(probability));
 
 		probabilities.push_back(probability);
+
+		probabilitySum += probability;
+
+		//PrintOut(" a: " << probability );
+
+
 	}
+
+	//PrintOut( " " << std::endl );
+
+	//PrintOut( " sum: "  << probabilitySum << std::endl);
 
 	/*
 	// NOTE: dgp is the planning area
@@ -864,11 +977,11 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 	//6. grab from shan's excel
 	//7. grab from shan's excel
 	//8. grab from shan's excel
-	//9. 	aa) Check if there are any workers in the household. If not, skip the steps below.
-		a) Get number of hhs in each taz within the dgp.
-		b) Compute the logsum for each worker in candidate household if workplace and vehicle are unchanged and residents is moved to each taz within the dgp.
-		c) Compute the weighted average of the logsum rtp the number of households per taz.
-		d) Do a simple average if the number of workers > 1.
+	//9.a) Check if there are any workers in the household. If not, skip the steps below.
+		b) Get number of hhs in each taz within the dgp.
+		c) Compute the logsum for each worker in candidate household if workplace and vehicle are unchanged and residents is moved to each taz within the dgp.
+		d) Compute the weighted average of the logsum rtp the number of households per taz.
+		e) Do a simple average if the number of workers > 1.
 	//10.	a) Check if there are any kids under 4 in the hh. If yes, go to b)
 		b) NUmber of people under 4 divided by total number of people in that dgp
 	//11.	a) Check if there are any kids 5 - 19 in the hh. If yes, go to b)
@@ -889,7 +1002,6 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 	 * 22. Multiply each coeff with values computed above a sum them up. This is refered to as R
 	 * 23. Probability = eR/(1+eR)
 	*/
-
 }
 
 
@@ -998,7 +1110,7 @@ bool HouseholdBidderRole::pickEntryToBid()
         	thisDwellingType = 100;
         }
         else
-        if( thisUnit->getUnitType() == 3 )
+        if( thisUnit->getUnitType() == 3)
         {
         	thisDwellingType = 300;
         }

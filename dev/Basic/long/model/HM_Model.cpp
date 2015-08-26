@@ -281,7 +281,7 @@ namespace
 	}
 }
 
-HM_Model::TazStats::TazStats(BigSerial tazId) :	tazId(tazId), hhNum(0), hhTotalIncome(0), numChinese(0), numIndian(0), numMalay(0), householdSize(0) {}
+HM_Model::TazStats::TazStats(BigSerial tazId) :	tazId(tazId), hhNum(0), hhTotalIncome(0), numChinese(0), numIndian(0), numMalay(0), householdSize(0),individuals(0) {}
 
 HM_Model::TazStats::~TazStats() {}
 
@@ -289,6 +289,7 @@ void HM_Model::TazStats::updateStats(const Household& household)
 {
 	hhNum++;
 	hhTotalIncome += household.getIncome();
+	individuals +=  household.getSize();
 
 	if( household.getEthnicityId() == 1 ) //chinese
 		numChinese++;
@@ -311,6 +312,11 @@ BigSerial HM_Model::TazStats::getTazId() const
 long int HM_Model::TazStats::getHH_Num() const
 {
 	return hhNum;
+}
+
+int HM_Model::TazStats::getIndividuals() const
+{
+	return individuals;
 }
 
 double HM_Model::TazStats::getHH_TotalIncome() const
@@ -1317,16 +1323,24 @@ void HM_Model::startImpl()
 	}
 
 
+	int totalPopulation = 0;
 	for ( StatsMap::iterator it = stats.begin(); it != stats.end(); ++it )
 	{
-		std::cout << "Taz: " << it->first << std::fixed << std::setprecision(2)
-										  << " \tAvg Income: " << it->second->getHH_AvgIncome()
-										  << " \t%Chinese: " << it->second->getChinesePercentage()
-										  << " \t%Malay: " << it->second->getMalayPercentage()
-										  << " \t%Indian: " << it->second->getIndianPercentage()
-										  << " \tAvg HH size: " << it->second->getAvgHHSize()
-										  << std::endl;
+
+		PrintOutV("Taz: " << it->first << std::fixed << std::setprecision(2)
+						  << " \tAvg Income: " << it->second->getHH_AvgIncome()
+						  << " \t%Chinese: " << it->second->getChinesePercentage()
+						  << " \t%Malay: " << it->second->getMalayPercentage()
+						  << " \t%Indian: " << it->second->getIndianPercentage()
+						  << " \tAvg HH size: " << it->second->getAvgHHSize()
+						  << " \tTaz Households: " << it->second->getHH_Num()
+		  	  	  	  	  << " \tTaz population: " << it->second->getIndividuals()
+						  << std::endl);
+
+		totalPopulation += it->second->getIndividuals();
 	}
+
+	PrintOutV("total Population: " << totalPopulation << std::endl);
 
 	PrintOutV( "There are " << homelessHousehold << " homeless households" << std::endl);
 

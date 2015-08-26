@@ -9,7 +9,7 @@
 
 using namespace sim_mob::long_term;
 
-PopulationPerPlanningArea::PopulationPerPlanningArea(int planningAreaId, int population, int ethnicityId, int ageCategoryId, int avgIncome, int avgHhSize, int unitType):
+PopulationPerPlanningArea::PopulationPerPlanningArea(int planningAreaId, int population, int ethnicityId, int ageCategoryId, double avgIncome, int avgHhSize, int unitType):
 													 planningAreaId(planningAreaId), population(population), ethnicityId(ethnicityId), ageCategoryId(ageCategoryId), avgIncome(avgIncome),
 													 avgHhSize(avgHhSize), unitType(unitType){}
 
@@ -60,7 +60,7 @@ int PopulationPerPlanningArea::getAgeCategoryId() const
 	return ageCategoryId;
 }
 
-int PopulationPerPlanningArea::getAvgIncome() const
+double PopulationPerPlanningArea::getAvgIncome() const
 {
 	return avgIncome;
 }

@@ -136,6 +136,7 @@ namespace sim_mob
                  */
                 BigSerial getTazId() const;
                 long int getHH_Num() const;
+                int getIndividuals() const;
                 double getHH_TotalIncome() const;
                 double getHH_AvgIncome() const;
 
@@ -145,12 +146,14 @@ namespace sim_mob
                 double getAvgHHSize() const;
 
 
+
             private:
                 friend class HM_Model;
                 void updateStats(const Household& household);
 
                 BigSerial tazId;
                 long int hhNum;
+                int individuals;
                 double hhTotalIncome;
 
                 long int householdSize;

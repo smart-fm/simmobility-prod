@@ -32,7 +32,12 @@ void PolyLine::setPolyLineId(int polyLineId)
 	this->polyLineId = polyLineId;
 }
 
-double PolyLine::getLength()
+void PolyLine::setLength(double length)
+{
+	this->length = length;
+}
+
+double PolyLine::getLength() const
 {
 	return length;
 }
@@ -47,12 +52,12 @@ void PolyLine::addPoint(Point point)
 	this->points.push_back(point);
 }
 
-Point PolyLine::getFirstPoint()
+Point PolyLine::getFirstPoint() const
 {
 	return points[0];
 }
 
-Point PolyLine::getLastPoint()
+Point PolyLine::getLastPoint() const
 {
 	return points.at(points.size()-1);
 }

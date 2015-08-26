@@ -17,22 +17,26 @@ namespace simmobility_network
     {
       //The way point is invalid. None of the pointers are valid
       INVALID,
-      
+
       //The way point is a road-segment. roadSegment points to a RoadSegment object
       NODE,
 
       //The way point is a road-segment. roadSegment points to a RoadSegment object
       ROAD_SEGMENT,
-	  LINK,
-	  TURNING_PATH
+      
+      //The way point is a link. link points to a Link object
+      LINK,
+      
+      //The way point is a turning. turningPath points to a TurningPath object
+      TURNING_PATH
     } type;
 
     union
     {
       const Node *node;
-      RoadSegment *roadSegment;
-      Link* link;
-      TurningPath* turningPath;
+      const RoadSegment *roadSegment;
+      const Link* link;
+      const TurningPath* turningPath;
     } ;
     
     WayPoint() :
@@ -40,22 +44,22 @@ namespace simmobility_network
     {
     }
     
-    explicit WayPoint(Node const * node) :
+    explicit WayPoint(const Node *node) :
     type(NODE), node(node)
     {
     }
     
-    explicit WayPoint(RoadSegment const * segment) :
+    explicit WayPoint(const RoadSegment *segment) :
     type(ROAD_SEGMENT), roadSegment(segment)
     {
     }
     
-    explicit WayPoint(Link* link) :
+    explicit WayPoint(const Link *link) :
 	type(LINK), link(link)
 	{
 	}
 
-    explicit WayPoint(TurningPath* turningPath) : type(TURNING_PATH), turningPath(turningPath) {}
+    explicit WayPoint(const TurningPath *turningPath) : type(TURNING_PATH), turningPath(turningPath) {}
 
     WayPoint(const WayPoint& orig)
     {

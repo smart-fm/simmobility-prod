@@ -143,7 +143,19 @@ void RoadNetwork::addLanePolyLine(Point point)
 			
 			//Add poly-line to the map
 			itLanes->second->setPolyLine(polyLine);
-		}
+		}		
+
+		//Update the length of the poly-line
+		
+		//Get the length calculated till the last added point
+		double length = polyLine->getLength();
+		Point lastPoint = polyLine->getLastPoint();
+		
+		//Add the distance between the new point and the previously added point
+		length += sim_mob::dist(lastPoint->getX(), lastPoint->getY(), point->getX(), point->getY());
+		
+		//Set the length
+		polyLine->setLength(length);
 		
 		//Add the point to the poly-line
 		polyLine->addPoint(point);
@@ -240,6 +252,18 @@ void RoadNetwork::addSegmentPolyLine(Point point)
 			//Add poly-line to the map
 			itSegments->second->setPolyLine(polyLine);
 		}
+		
+		//Update the length of the poly-line
+		
+		//Get the length calculated till the last added point
+		double length = polyLine->getLength();
+		Point lastPoint = polyLine->getLastPoint();
+		
+		//Add the distance between the new point and the previously added point
+		length += sim_mob::dist(lastPoint->getX(), lastPoint->getY(), point->getX(), point->getY());
+		
+		//Set the length
+		polyLine->setLength(length);
 		
 		//Add the point to the poly-line
 		polyLine->addPoint(point);
@@ -366,6 +390,18 @@ void RoadNetwork::addTurningPolyLine(Point point)
 			//Add poly-line to the map
 			itTurnings->second->setPolyLine(polyLine);
 		}
+		
+		//Update the length of the poly-line
+		
+		//Get the length calculated till the last added point
+		double length = polyLine->getLength();
+		Point lastPoint = polyLine->getLastPoint();
+		
+		//Add the distance between the new point and the previously added point
+		length += sim_mob::dist(lastPoint->getX(), lastPoint->getY(), point->getX(), point->getY());
+		
+		//Set the length
+		polyLine->setLength(length);
 		
 		//Add the point to the poly-line
 		polyLine->addPoint(point);

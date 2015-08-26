@@ -12,35 +12,37 @@ NetworkLoader* NetworkLoader::networkLoader = NULL;
 
 namespace
 {
-//Returns the required stored procedure from the map of stored procedures
-string getStoredProcedure(const map<string,string>& storedProcs, const string& procedureName, bool mandatory = true)
-{
-	//Look for the stored procedure in the map
-	map<string, string>::const_iterator itProcedure = storedProcs.find(procedureName);
+	//Returns the required stored procedure from the map of stored procedures
+	string getStoredProcedure(const map<string, string>& storedProcs, const string& procedureName, bool mandatory = true)
+	{
+		//Look for the stored procedure in the map
+		map<string, string>::const_iterator itProcedure = storedProcs.find(procedureName);
 
-	//Stored procedure found, return it
-	if (itProcedure != storedProcs.end())
-	{
-		return itProcedure->second;
+		//Stored procedure found, return it
+		if (itProcedure != storedProcs.end())
+		{
+			return itProcedure->second;
+		}			
+		//Stored procedure not found, return empty string if not mandatory
+		else if (!mandatory)
+		{
+			return "";
+		}			
+		//Mandatory stored procedure not found, throw exception
+		else
+		{
+			throw std::runtime_error("Stored-procedure '" + procedureName + "' not found in the configuration file");
+		}
 	}
-	//Stored procedure not found, return empty string if not mandatory
-	else if(!mandatory)
-	{
-		return "";
-	}
-	//Mandatory stored procedure not found, throw exception
-	else
-	{
-		throw std::runtime_error("Stored-procedure '" + procedureName + "' not found in the configuration file");
-	}
-}
 }
 
 NetworkLoader::NetworkLoader() : roadNetwork(RoadNetwork::getInstance())
-{}
+{
+}
 
 NetworkLoader::~NetworkLoader()
-{}
+{
+}
 
 RoadNetwork* NetworkLoader::getRoadNetwork() const
 {

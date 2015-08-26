@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Point.hpp"
+#include "util/GeomHelpers.hpp"
 
 namespace simmobility_network
 {
@@ -39,17 +40,20 @@ namespace simmobility_network
     //Returns the id of the poly-line
     int getPolyLineId() const;
     
+    //Sets the length of the poly-line
+    void setLength(double length);
+    
     //Returns the length of the poly-line
-    double getLength();
+    double getLength() const;
     
     //Returns the vector of points within the poly-line
     const std::vector<Point>& getPoints() const;
     
     //Returns the first point in the poly-line
-    Point getFirstPoint();
+    Point getFirstPoint() const;
 
     //Returns the last point in the poly-line
-    Point getLastPoint();
+    Point getLastPoint() const;
 
     //Adds a point to the poly-line
     void addPoint(Point point);    

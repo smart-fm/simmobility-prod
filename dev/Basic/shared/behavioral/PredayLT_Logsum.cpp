@@ -210,6 +210,7 @@ double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int hom
 	ltPopulationDao.getOneById(individualId, personParams);
 	if(personParams.getPersonId().empty())
 	{
+		//std::cout<< "personParam for individual Id " << individualId << " is empty" << std::endl;
 		return 0.0;
 	}
 
@@ -233,7 +234,10 @@ double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int hom
 	boost::unordered_map<int,int>::const_iterator zoneLookupItr = zoneIdLookup.find(homeLoc);
 
 	if( zoneLookupItr == zoneIdLookup.end())
-		return 0;
+	{
+		//std::cout<< "zone is empty for homeloc " << homeLoc << std::endl;
+		return 0.0;
+	}
 
 	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
 

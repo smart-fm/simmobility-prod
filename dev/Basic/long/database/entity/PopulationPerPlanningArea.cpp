@@ -9,21 +9,33 @@
 
 using namespace sim_mob::long_term;
 
-PopulationPerPlanningArea::PopulationPerPlanningArea(int planningAreaId, int population): planningAreaId(planningAreaId), population(population) {}
+PopulationPerPlanningArea::PopulationPerPlanningArea(int planningAreaId, int population, int ethnicityId, int ageCategoryId, double avgIncome, int avgHhSize, int unitType):
+													 planningAreaId(planningAreaId), population(population), ethnicityId(ethnicityId), ageCategoryId(ageCategoryId), avgIncome(avgIncome),
+													 avgHhSize(avgHhSize), unitType(unitType){}
 
 PopulationPerPlanningArea::~PopulationPerPlanningArea() {}
 
 PopulationPerPlanningArea::PopulationPerPlanningArea( const PopulationPerPlanningArea &source)
 {
-	planningAreaId = source.planningAreaId;
-	population = source.population;
+	planningAreaId 	= source.planningAreaId;
+	population 		= source.population;
+	ethnicityId 	= source.ethnicityId;
+	ageCategoryId	= source.ageCategoryId;
+	avgIncome		= source.avgIncome;
+	avgHhSize		= source.avgHhSize;
+	unitType		= source.unitType;
 }
 
 
 PopulationPerPlanningArea& PopulationPerPlanningArea::operator=( const PopulationPerPlanningArea& source)
 {
-	planningAreaId = source.planningAreaId;
-	population = source.population;
+	planningAreaId 	= source.planningAreaId;
+	population 		= source.population;
+	ethnicityId		= source.ethnicityId;
+	ageCategoryId	= source.ageCategoryId;
+	avgIncome		= source.avgIncome;
+	avgHhSize		= source.avgHhSize;
+	unitType		= source.unitType;
 
 	return *this;
 }
@@ -37,3 +49,38 @@ int PopulationPerPlanningArea::getPopulation() const
 {
 	return population;
 }
+
+int PopulationPerPlanningArea::getEthnicityId() const
+{
+	return ethnicityId;
+}
+
+int PopulationPerPlanningArea::getAgeCategoryId() const
+{
+	return ageCategoryId;
+}
+
+double PopulationPerPlanningArea::getAvgIncome() const
+{
+	return avgIncome;
+}
+
+int PopulationPerPlanningArea::getAvgHhSize() const
+{
+	return avgHhSize;
+}
+
+int PopulationPerPlanningArea::getUnitType() const
+{
+	return unitType;
+}
+
+
+
+
+
+
+
+
+
+

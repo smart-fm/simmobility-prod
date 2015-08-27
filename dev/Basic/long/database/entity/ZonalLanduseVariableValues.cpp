@@ -13,8 +13,8 @@
 
 using namespace sim_mob::long_term;
 
-ZonalLanduseVariableValues::ZonalLanduseVariableValues(	int alt_id,	int dgpid, int dwl, double f_loc_com, double f_loc_res, double odi10_loc, double dis2mrt, double dis2exp ):
-														alt_id(alt_id),	dgpid(dgpid), dwl(dwl), f_loc_com(f_loc_com), f_loc_res(f_loc_res), odi10_loc(odi10_loc), dis2mrt(dis2mrt), dis2exp(dis2exp) {}
+ZonalLanduseVariableValues::ZonalLanduseVariableValues(	int alt_id,	int dgpid, int dwl, double f_loc_com, double f_loc_res, double f_loc_open, double odi10_loc, double dis2mrt, double dis2exp ):
+														alt_id(alt_id),	dgpid(dgpid), dwl(dwl), f_loc_com(f_loc_com), f_loc_res(f_loc_res), f_loc_open(f_loc_open), odi10_loc(odi10_loc), dis2mrt(dis2mrt), dis2exp(dis2exp) {}
 
 ZonalLanduseVariableValues::ZonalLanduseVariableValues( const ZonalLanduseVariableValues & source)
 {
@@ -23,6 +23,7 @@ ZonalLanduseVariableValues::ZonalLanduseVariableValues( const ZonalLanduseVariab
 	this->dwl  	 = source.dwl;
 	this->f_loc_com = source.f_loc_com;
 	this->f_loc_res = source.f_loc_res;
+	this->f_loc_open = source.f_loc_open;
 	this->odi10_loc = source.odi10_loc;
 	this->dis2mrt = source.dis2mrt;
 	this->dis2exp = source.dis2exp;
@@ -35,6 +36,7 @@ ZonalLanduseVariableValues& ZonalLanduseVariableValues::operator=( const ZonalLa
 	this->dwl  	 = source.dwl;
 	this->f_loc_com = source.f_loc_com;
 	this->f_loc_res = source.f_loc_res;
+	this->f_loc_open = source.f_loc_open;
 	this->odi10_loc = source.odi10_loc;
 	this->dis2mrt = source.dis2mrt;
 	this->dis2exp = source.dis2exp;
@@ -69,6 +71,13 @@ double ZonalLanduseVariableValues::getFLocRes() const
 	return f_loc_res;
 }
 
+
+double ZonalLanduseVariableValues::getFLocOpen() const
+{
+	return f_loc_open;
+}
+
+
 double ZonalLanduseVariableValues::getOdi10Loc() const
 {
 	return odi10_loc;
@@ -92,6 +101,7 @@ std::ostream& operator<<(std::ostream& strm, const ZonalLanduseVariableValues& d
 				<< "\"dwl \":\"" << data.getDwl() << "\","
 				<< "\"f_loc_com \":\"" << data.getFLocCom() << "\","
 				<< "\"f_loc_res \":\"" << data.getFLocRes() << "\","
+				<< "\"f_loc_open \":\"" << data.getFLocOpen() << "\","
 				<< "\"odi10_loc \":\"" << data.getOdi10Loc() << "\","
 				<< "\"dis2mrt \":\"" << data.getDis2mrt() << "\","
 				<< "\"distoexp \":\"" << data.getDis2exp() << "\","

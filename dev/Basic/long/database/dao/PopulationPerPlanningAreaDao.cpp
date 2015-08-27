@@ -23,7 +23,12 @@ PopulationPerPlanningAreaDao::~PopulationPerPlanningAreaDao(){}
 void PopulationPerPlanningAreaDao::fromRow(Row& result, PopulationPerPlanningArea& outObj)
 {
     outObj.planningAreaId	= result.get<BigSerial>( "planning_area_id", 0);
-    outObj.population		= result.get<int>( "population", 0);
+    outObj.population		= result.get<BigSerial>( "population", 		 0);
+    outObj.ethnicityId		= result.get<BigSerial>( "ethnicity_id", 	 0);
+    outObj.ageCategoryId	= result.get<BigSerial>( "age_category_id",  0);
+    outObj.avgIncome		= result.get<double>( "avg_income", 		 0);
+    outObj.avgHhSize		= result.get<BigSerial>( "avg_hhsize", 		 0);
+    outObj.unitType			= result.get<int>( "unit_type",		 0);
 }
 
 void PopulationPerPlanningAreaDao::toRow(PopulationPerPlanningArea& data, Parameters& outParams, bool update) {}

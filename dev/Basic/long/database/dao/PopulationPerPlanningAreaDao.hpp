@@ -23,7 +23,7 @@ namespace sim_mob
 		class PopulationPerPlanningAreaDao : public db::SqlAbstractDao<PopulationPerPlanningArea>
 		{
 	        public:
-			PopulationPerPlanningAreaDao(db::DB_Connection& connection);
+				PopulationPerPlanningAreaDao(db::DB_Connection& connection);
 	            virtual ~PopulationPerPlanningAreaDao();
 
 	        private:

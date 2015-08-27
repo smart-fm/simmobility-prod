@@ -692,7 +692,6 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 	if(!planningArea)
 		return;
 
-
 	std::vector<PopulationPerPlanningArea*> populationPerPlanningArea = model->getPopulationByPlanningAreaId(planningArea->getId());
 
 	double populationTotal 	 = 0;
@@ -749,25 +748,25 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 		populationTotal += populationPerPlanningArea[n]->getPopulation();
 
 		if(populationPerPlanningArea[n]->getEthnicityId() == 1 )
-			populationChinese++;
+			populationChinese = populationChinese + populationPerPlanningArea[n]->getPopulation();
 
 		if(populationPerPlanningArea[n]->getEthnicityId() == 2 )
-			populationMalay++;
+			populationMalay = populationMalay + populationPerPlanningArea[n]->getPopulation();
 
 		if(populationPerPlanningArea[n]->getEthnicityId() == 3 )
-			populationIndian++;
+			populationIndian = populationIndian + populationPerPlanningArea[n]->getPopulation();
 
 		if(populationPerPlanningArea[n]->getEthnicityId() == 4 )
-			populationOther++;
+			populationOther = populationOther + populationPerPlanningArea[n]->getPopulation();
 
-		if(populationPerPlanningArea[n]->getAgeCategoryId()  == 0 )
-			 populationYoungerThan4++;
+		if(populationPerPlanningArea[n]->getAgeCategoryId() == 0 )
+			 populationYoungerThan4 = populationYoungerThan4 + populationPerPlanningArea[n]->getPopulation();
 
-		if(populationPerPlanningArea[n]->getAgeCategoryId() > 0  && populationPerPlanningArea[n]->getAgeCategoryId()< 4 )
-			 population5To19++;
+		if(populationPerPlanningArea[n]->getAgeCategoryId() > 0 && populationPerPlanningArea[n]->getAgeCategoryId()< 4 )
+			 population5To19 = population5To19 + populationPerPlanningArea[n]->getPopulation();
 
 		if(populationPerPlanningArea[n]->getAgeCategoryId() > 12 )
-			 populationGreaterThan65++;
+			 populationGreaterThan65 = populationGreaterThan65 + populationPerPlanningArea[n]->getPopulation();
 
 		if( populationPerPlanningArea[n]->getUnitType() == unit->getUnitType() )
 		{
@@ -780,7 +779,6 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 
 	avgHouseholdSize 	= avgHouseholdSize 	  / unitTypeCounter;
 	avgHouseholdIncome 	= avgHouseholdIncome  / unitTypeCounter;
-
 
 	std::vector<PlanningSubzone*>  planningSubzones = model->getPlanningSubZoneByPlanningAreaId(planningArea->getId());
 	std::vector<Mtz*> mtzs = model->getMtzBySubzoneVec(planningSubzones);
@@ -797,9 +795,8 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 	//convert sqm into hectares
 	planningArea_size = planningArea_size / 10000.0;
 
-
  	double probabilitySum = 0;
- 	/*
+	/*
  	PrintOut("PA: " << planningArea->getName( ) << std::endl );
  	PrintOut(" Associated Taz: ");
  	for(int n = 0; n < planningAreaTazs.size(); n++ )
@@ -809,8 +806,6 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
  	PrintOut("PA population: " << populationTotal << std::endl );
  	PrintOut("PA size: " << planningArea_size << std::endl );
 	*/
-
-
 
 	for( int n = 1; n <= 215; n++ )
 	{
@@ -904,7 +899,6 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 			}
 		}
 
-
 		double probability =( logPopulationByHousingType* ln_popdwl 		) +
 							( populationDensity			* den_respop_ha 	) +
 							( commercialLandFraction	* f_loc_com 		) +
@@ -926,9 +920,8 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 							( privateCondoHhSizeOne		* DWL600 ) +
 							( landedPropertyHhSizeOne	* DWL700 ) +
 							( otherHousingHhSizeOne		* DWL800 );
-
 		/*
-		PrintOut("n: " <<   populationByunitType << " 0 " <<
+		PrintOut("n: " <<   populationByunitType << " 0 " <<  planningArea->getId()  << " hhid:  " << hhId << " " <<
 							logPopulationByHousingType  << " 1 " << ln_popdwl 		 << " " <<
 							populationDensity			<< " 2 " << den_respop_ha 	 << " " <<
 							commercialLandFraction	    << " 3 " << f_loc_com 	 	 << " " <<
@@ -952,20 +945,22 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 							 otherHousingHhSizeOne		<< " l " << DWL800  << std::endl);
 		*/
 		//PrintOut(" b: " << probability );
-		probability = exp(probability)/ (1.0 + exp(probability));
 
 		probabilities.push_back(probability);
 
-		probabilitySum += probability;
+		probabilitySum += exp(probability);
 
-		//PrintOut(" a: " << probability );
-
-
+		//PrintOut(" prbability: " << probability );
 	}
 
 	//PrintOut( " " << std::endl );
 
 	//PrintOut( " sum: "  << probabilitySum << std::endl);
+
+	for( int n = 0; n < probabilities.size(); n++)
+	{
+		probabilities[n] = exp(probabilities[n])/ probabilitySum;
+	}
 
 	/*
 	// NOTE: dgp is the planning area

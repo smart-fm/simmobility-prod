@@ -252,12 +252,12 @@ bool sim_mob::medium::PredaySystem::predictUsualWorkLocation(bool firstOfMultipl
 	return PredayLuaProvider::getPredayModel().predictUsualWorkLocation(personParams, usualWorkParams);
 }
 
-void PredaySystem::predictTourMode(Tour& tour) {
-	TourModeParams tmParams;
-	tmParams.setStopType(tour.getTourType());
+void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destination, StopType tourType)
+{
+	tmParams.setStopType(tourType);
 
 	ZoneParams* znOrgObj = zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()));
-	ZoneParams* znDesObj = zoneMap.at(zoneIdLookup.at(tour.getTourDestination()));
+	ZoneParams* znDesObj = zoneMap.at(zoneIdLookup.at(destination));
 	tmParams.setCostCarParking(znDesObj->getParkingRate());
 	tmParams.setCentralZone(znDesObj->getCentralDummy());
 	tmParams.setCbdOrgZone(znOrgObj->getCbdDummy());
@@ -267,10 +267,10 @@ void PredaySystem::predictTourMode(Tour& tour) {
 	tmParams.setEducationOp(znDesObj->getTotalEnrollment());
 	tmParams.setOriginArea(znOrgObj->getArea());
 	tmParams.setDestinationArea(znDesObj->getArea());
-	if(personParams.getHomeLocation() != tour.getTourDestination())
+	if(personParams.getHomeLocation() != destination)
 	{
-		CostParams* amObj = amCostMap.at(personParams.getHomeLocation()).at(tour.getTourDestination());
-		CostParams* pmObj = pmCostMap.at(tour.getTourDestination()).at(personParams.getHomeLocation());
+		CostParams* amObj = amCostMap.at(personParams.getHomeLocation()).at(destination);
+		CostParams* pmObj = pmCostMap.at(destination).at(personParams.getHomeLocation());
 		tmParams.setCostPublicFirst(amObj->getPubCost());
 		tmParams.setCostPublicSecond(pmObj->getPubCost());
 		tmParams.setCostCarErpFirst(amObj->getCarCostErp());
@@ -332,7 +332,12 @@ void PredaySystem::predictTourMode(Tour& tour) {
 		tmParams.setTaxiAvailable(1);
 		tmParams.setMotorAvailable(1);
 	}
+}
 
+void PredaySystem::predictTourMode(Tour& tour)
+{
+	TourModeParams tmParams;
+	constructTourModeParams(tmParams, tour.getTourDestination(), tour.getTourType());
 	tour.setTourMode(PredayLuaProvider::getPredayModel().predictTourMode(personParams, tmParams));
 }
 
@@ -1549,6 +1554,12 @@ long sim_mob::medium::PredaySystem::getFirstNodeInZone(const std::vector<ZoneNod
 
 void sim_mob::medium::PredaySystem::computeLogsums()
 {
+	if(personParams.hasFixedWorkPlace())
+	{
+		TourModeParams tmParams;
+		constructTourModeParams(tmParams, personParams.getFixedWorkLocation(), WORK);
+		PredayLuaProvider::getPredayModel().computeTourModeLogsum(personParams, tmParams);
+	}
 	TourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
 	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
 	PredayLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, tmdParams);
@@ -1569,6 +1580,7 @@ void sim_mob::medium::PredaySystem::computeLogsumsForLT(std::stringstream& outSt
 	PredayLuaProvider::getPredayModel().computeDayPatternBinaryLogsums(personParams);
 	outStream << personParams.getPersonId()
 			<< "," << personParams.getHomeLocation()
+			<< "," << personParams.getFixedWorkLocation()
 			<< "," << personParams.getHhId()
 			<< "," << personParams.getDpbLogsum()
 			<< "\n";

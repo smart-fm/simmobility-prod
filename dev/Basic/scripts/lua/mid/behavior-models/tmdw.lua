@@ -60,7 +60,6 @@ local beta_distance_motor = -0.0319
 local beta_distance_walk = 0
 local beta_distance_taxi = 0
 
-
 local beta_cons_bus = 1.270
 local beta_cons_mrt = 1.548
 local beta_cons_private_bus = 0.958

@@ -24,7 +24,7 @@ namespace sim_mob {
          */
         class PotentialUnit {
         public:
-            PotentialUnit(BigSerial unitTypeId = INVALID_ID,int numUnits = 0,double floorArea = 0, int freehold = 0, double profitPerUnit = 0.0);
+            PotentialUnit(BigSerial unitTypeId = INVALID_ID,int numUnits = 0,double floorArea = 0, int freehold = 0, double profitPerUnit = 0.0, double demolitionCostPerUnit = 0.0);
             virtual ~PotentialUnit();
 
             PotentialUnit( const PotentialUnit &source);
@@ -41,6 +41,8 @@ namespace sim_mob {
             void setUnitTypeId(int typeId);
             void setUnitProfit(double unitProfit);
             double getUnitProfit() const;
+            void setDemolitionCostPerUnit(double demolitionCost);
+            double getDemolitionCostPerUnit();
             friend std::ostream& operator<<(std::ostream& strm,  const PotentialUnit& data);
 
         private:
@@ -49,6 +51,7 @@ namespace sim_mob {
             int freehold;
             int numUnits;
             double profitPerUnit;
+            double demolitionCostPerUnit;
         };
 
         /**
@@ -87,7 +90,7 @@ namespace sim_mob {
             const DevelopmentTypeTemplate* getDevTemplate() const;
             const Parcel* getParcel() const;
             std::vector<PotentialUnit>& getUnits();
-            double getProfit() const;
+            double getProfit();
             double getConstructionCost() const;
             double getRevenue() const;
             double getGrosArea() const;

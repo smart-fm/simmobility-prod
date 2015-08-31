@@ -61,6 +61,14 @@ private:
 	void predictTourMode(Tour& tour);
 
 	/**
+	 * builds outTourModeParams from destination and stop type
+	 * @param outTourModeParams output parameter to build
+	 * @param destination the tour destination
+	 * @param tourType the type of tour
+	 */
+	void constructTourModeParams(TourModeParams& outTourModeParams, int destination, StopType tourType);
+
+	/**
 	 * Predicts the mode and destination together for tours to unusual locations
 	 *
 	 * @param tour the tour for which the mode and destination are to be predicted

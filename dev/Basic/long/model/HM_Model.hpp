@@ -3,6 +3,7 @@
  * 
  * File:   HM_Model.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
+ *         Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  *
  * Created on October 21, 2013, 3:08 PM
  */
@@ -23,6 +24,16 @@
 #include "database/entity/Taz.hpp"
 #include "database/entity/HouseHoldHitsSample.hpp"
 #include "database/entity/TazLogsumWeight.hpp"
+#include "database/entity/LogsumMtzV2.hpp"
+#include "database/entity/PlanningArea.hpp"
+#include "database/entity/PlanningSubzone.hpp"
+#include "database/entity/Mtz.hpp"
+#include "database/entity/MtzTaz.hpp"
+#include "database/entity/Alternative.hpp"
+#include "database/entity/Hits2008ScreeningProb.hpp"
+#include "database/entity/ZonalLanduseVariableValues.hpp"
+#include "database/entity/PopulationPerPlanningArea.hpp"
+#include "database/entity/HitsIndividualLogsum.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
 
@@ -81,6 +92,36 @@ namespace sim_mob
             typedef std::vector<TazLogsumWeight*> TazLogsumWeightList;
             typedef boost::unordered_map<BigSerial, TazLogsumWeight*> TazLogsumWeightMap;
 
+            typedef std::vector<LogsumMtzV2*> LogsumMtzV2List;
+            typedef boost::unordered_map<BigSerial, LogsumMtzV2*> LogsumMtzV2Map;
+            //
+            typedef std::vector<PlanningArea*> PlanningAreaList;
+            typedef boost::unordered_map<BigSerial, PlanningArea*> PlanningAreaMap;
+
+            typedef std::vector<PlanningSubzone*> PlanningSubzoneList;
+            typedef boost::unordered_map<BigSerial, PlanningSubzone*> PlanningSubzoneMap;
+
+            typedef std::vector<Mtz*> MtzList;
+            typedef boost::unordered_map<BigSerial, Mtz*> MtzMap;
+
+            typedef std::vector<MtzTaz*> MtzTazList;
+            typedef boost::unordered_map<BigSerial, MtzTaz*> MtzTazMap;
+
+            typedef std::vector<Alternative*> AlternativeList;
+            typedef boost::unordered_map<BigSerial, Alternative*> AlternativeMap;
+
+            typedef std::vector<Hits2008ScreeningProb*> Hits2008ScreeningProbList;
+            typedef boost::unordered_map<BigSerial, Hits2008ScreeningProb*> Hits2008ScreeningProbMap;
+
+            typedef std::vector<ZonalLanduseVariableValues*> ZonalLanduseVariableValuesList;
+            typedef boost::unordered_map<BigSerial, ZonalLanduseVariableValues*> ZonalLanduseVariableValuesMap;
+
+            typedef std::vector<PopulationPerPlanningArea*> PopulationPerPlanningAreaList;
+            typedef boost::unordered_map<BigSerial, PopulationPerPlanningArea*> PopulationPerPlanningAreaMap;
+
+            typedef std::vector<HitsIndividualLogsum*> HitsIndividualLogsumList;
+            typedef boost::unordered_map<BigSerial, HitsIndividualLogsum*> HitsIndividualLogsumMap;
+
             /**
              * Taz statistics
              */
@@ -95,6 +136,7 @@ namespace sim_mob
                  */
                 BigSerial getTazId() const;
                 long int getHH_Num() const;
+                int getIndividuals() const;
                 double getHH_TotalIncome() const;
                 double getHH_AvgIncome() const;
 
@@ -104,12 +146,14 @@ namespace sim_mob
                 double getAvgHHSize() const;
 
 
+
             private:
                 friend class HM_Model;
                 void updateStats(const Household& household);
 
                 BigSerial tazId;
                 long int hhNum;
+                int individuals;
                 double hhTotalIncome;
 
                 long int householdSize;
@@ -130,6 +174,12 @@ namespace sim_mob
 
             	HouseholdGroup(BigSerial groupId = 0, BigSerial homeTaz = 0, double logsum = .0);
             	~HouseholdGroup(){};
+
+            	HouseholdGroup( HouseholdGroup& source);
+            	HouseholdGroup(const HouseholdGroup& source);
+            	HouseholdGroup& operator=(const HouseholdGroup& source);
+            	HouseholdGroup& operator=( HouseholdGroup& source);
+
 
             	void	setLogsum(double value);
             	void	setGroupId(BigSerial value);
@@ -175,6 +225,7 @@ namespace sim_mob
             void incrementAwakeningCounter();
             int  getAwakeningCounter() const;
             void getLogsumOfIndividuals(BigSerial id);
+            void getLogsumOfHousehold(BigSerial id);
 
             HousingMarket* getMarket();
 
@@ -182,7 +233,8 @@ namespace sim_mob
 
             HousingInterestRateList* getHousingInterestRateList();
 
-            double ComputeHedonicPriceLogsum(BigSerial taz);
+            double ComputeHedonicPriceLogsumFromMidterm(BigSerial taz);
+            double ComputeHedonicPriceLogsumFromDatabase(BigSerial taz);
 
             void incrementBidders();
             void decrementBidders();
@@ -210,7 +262,18 @@ namespace sim_mob
             HouseHoldHitsSample* getHouseHoldHitsById( BigSerial id) const;
             HouseholdGroup* getHouseholdGroupByGroupId(BigSerial id)const;
             void addHouseholdGroupByGroupId(HouseholdGroup* hhGroup);
-
+            void getScreeningProbabilities(std::string hitsId, std::vector<double> &householdScreeningProbabilties );
+            Alternative* getAlternativeById(int zoneHousingType);
+            PlanningArea* getPlanningAreaById( int id );
+            std::vector<PlanningSubzone*> getPlanningSubZoneByPlanningAreaId(int id);
+            std::vector<Mtz*> getMtzBySubzoneVec(std::vector<PlanningSubzone*> vecPlanningSubzone );
+            std::vector <BigSerial> getTazByMtzVec( std::vector<Mtz*> vecMtz);
+            int getMtzIdByTazId(int tazId);
+            Mtz* getMtzById( int id);
+            PlanningSubzone* getPlanningSubzoneById(int id);
+            ZonalLanduseVariableValues* getZonalLandUseByAlternativeId(int id) const;
+            Alternative* getAlternativeByPlanningAreaId(int id) const;
+            std::vector<PopulationPerPlanningArea*> getPopulationByPlanningAreaId(BigSerial id)const;
 
         protected:
             /**
@@ -253,6 +316,32 @@ namespace sim_mob
             TazLogsumWeightList tazLogsumWeights;
             TazLogsumWeightMap tazLogsumWeightById;
 
+            LogsumMtzV2List logsumMtzV2;
+            LogsumMtzV2Map logsumMtzV2ById;
+
+            PlanningAreaList planningArea;
+            PlanningAreaMap  planningAreaById;
+
+            PlanningSubzoneList planningSubzone;
+            PlanningSubzoneMap planningSubzoneById;
+
+            MtzList mtz;
+            MtzMap mtzById;
+
+            MtzTazList mtzTaz;
+            MtzTazMap mtzTazById;
+
+            Hits2008ScreeningProbList hits2008ScreeningProb;
+            Hits2008ScreeningProbMap hits2008ScreeningProbById;
+            AlternativeList alternative;
+            AlternativeMap alternativeById;
+
+            PopulationPerPlanningAreaList populationPerPlanningArea;
+            PopulationPerPlanningAreaMap populationPerPlanningAreaById;
+
+            HitsIndividualLogsumList hitsIndividualLogsum;
+            HitsIndividualLogsumMap  hitsIndividualLogsumById;
+
             boost::mutex mtx;
             boost::mutex mtx2;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
@@ -273,6 +362,12 @@ namespace sim_mob
             HouseHoldHitsSampleList houseHoldHits;
             HouseHoldHitsSampleMap houseHoldHitsById;
 
+            std::set<std::string> processedHouseholdHitsLogsum;
+
+
+            ZonalLanduseVariableValuesList zonalLanduseVariableValues;
+            ZonalLanduseVariableValuesMap zonalLanduseVariableValuesById;
+
             int	initialHHAwakeningCounter;
             int numberOfBidders;
             int numLifestyle1HHs;
@@ -280,7 +375,8 @@ namespace sim_mob
             int numLifestyle3HHs;
             std::vector<BigSerial> realEstateAgentIds;
             bool hasTaxiAccess;
-
+            int householdLogsumCounter;
+            int simulationStopCounter;
         };
     }
 }

@@ -10,18 +10,18 @@
 
 using namespace sim_mob::long_term;
 
-LogsumForDevModel::LogsumForDevModel(BigSerial fmParcelId, BigSerial tazId, double accessibility): fmParcelId(fmParcelId), tazId(tazId), accessibility(accessibility){}
+LogsumForDevModel::LogsumForDevModel(BigSerial taz2012Id, BigSerial taz2008Id, double accessibility): taz2012Id(taz2012Id), taz2008Id(taz2008Id), accessibility(accessibility){}
 
 LogsumForDevModel::~LogsumForDevModel() {}
 
-BigSerial LogsumForDevModel::getFmParcelId() const
+BigSerial LogsumForDevModel::gettAZ2012Id() const
 {
-	return fmParcelId;
+	return taz2012Id;
 }
 
-BigSerial LogsumForDevModel::getTazId() const
+BigSerial LogsumForDevModel::getTaz2008Id() const
 {
-    return tazId;
+    return taz2008Id;
 }
 
 double LogsumForDevModel::getAccessibility() const

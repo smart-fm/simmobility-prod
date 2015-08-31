@@ -326,12 +326,3 @@ function choose_tme(params,dbparams)
 	local probability = calculate_probability("nl", choice, utility, availability, scale)
 	return make_final_choice(probability)
 end
-
--- function to call from C++ preday simulator for logsums computation
--- params and dbparams tables contain data passed from C++
--- to check variable bindings in params or dbparams, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
-function compute_logsum_tmw(params,dbparams)
-	computeUtilities(params,dbparams) 
-	computeAvailabilities(params,dbparams)
-	return compute_nl_logsum(choice, utility, availability, scale)
-end

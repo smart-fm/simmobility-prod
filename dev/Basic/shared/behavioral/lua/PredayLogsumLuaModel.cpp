@@ -57,6 +57,8 @@ void sim_mob::PredayLogsumLuaModel::mapClasses() {
 				.addProperty("otherlogsum", &PredayPersonParams::getOtherLogSum)
 				.addProperty("dptour_logsum", &PredayPersonParams::getDptLogsum)
 				.addProperty("dpstop_logsum", &PredayPersonParams::getDpsLogsum)
+				.addProperty("travel_probability", &PredayPersonParams::getTravelProbability, &PredayPersonParams::setTravelProbability)
+				.addProperty("num_expected_trips", &PredayPersonParams::getTripsExpected, &PredayPersonParams::setTripsExpected)
 			.endClass()
 
 			.beginClass<LogsumTourModeDestinationParams>("LogsumTourModeDestinationParams")

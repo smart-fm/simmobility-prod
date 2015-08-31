@@ -246,5 +246,7 @@ end
 -- to check variable bindings in params, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
 function compute_logsum_dpb(params)
 	computeUtilities(params) 
+	local probability = calculate_probability("mnl", choice, utility, availability, scale)
+	params.travel_probability = probability[2]
 	return compute_mnl_logsum(utility, availability)
 end

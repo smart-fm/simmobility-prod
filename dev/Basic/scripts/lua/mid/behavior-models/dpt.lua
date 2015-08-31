@@ -522,5 +522,17 @@ end
 function compute_logsum_dpt(params)
 	computeUtilities(params) 
 	computeAvailabilities(params)
+	local probability = calculate_probability("mnl", choice, utility, availability, scale)
+	local num_tours = 0
+	for cno,prob in pairs(probability) do
+		if cno <= 4:
+			num_tours = num_tours + prob
+		elseif cno <= 10
+			num_tours = num_tours + (2*prob)
+		elseif cno <= 14
+			num_tours = num_tours + (3*prob)
+		end
+	end
+	params.num_expected_trips = 2 * num_tours
 	return compute_mnl_logsum(utility, availability)
 end

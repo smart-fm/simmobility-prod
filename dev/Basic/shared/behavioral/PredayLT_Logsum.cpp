@@ -210,7 +210,6 @@ double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int hom
 	ltPopulationDao.getOneById(individualId, personParams);
 	if(personParams.getPersonId().empty())
 	{
-		//std::cout<< "personParam for individual Id " << individualId << " is empty" << std::endl;
 		return 0.0;
 	}
 
@@ -235,7 +234,6 @@ double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int hom
 
 	if( zoneLookupItr == zoneIdLookup.end())
 	{
-		//std::cout<< "zone is empty for homeloc " << homeLoc << std::endl;
 		return 0.0;
 	}
 

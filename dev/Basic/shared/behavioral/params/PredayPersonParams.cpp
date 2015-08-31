@@ -25,7 +25,7 @@ sim_mob::PredayPersonParams::PredayPersonParams()
   fixedWorkLocation(-1), fixedSchoolLocation(-1), stopType(-1), drivingLicence(-1), hhOnlyAdults(-1), hhOnlyWorkers(-1), hhNumUnder4(-1),
   hasUnder15(-1), workLogSum(0), eduLogSum(0), shopLogSum(0), otherLogSum(0), dptLogsum(0), dpsLogsum(0), dpbLogsum(0), genderId(-1),
   missingIncome(-1), homeAddressId(-1), activityAddressId(-1), carLicense(false), motorLicense(false), vanbusLicense(false), fixedWorkplace(false),
-  student(false), hhSize(-1), hhNumAdults(-1), hhNumWorkers(-1), hhNumUnder15(-1), householdFactor(-1)
+  student(false), hhSize(-1), hhNumAdults(-1), hhNumWorkers(-1), hhNumUnder15(-1), householdFactor(-1), travelProbability(0), tripsExpected(0)
 {}
 
 sim_mob::PredayPersonParams::~PredayPersonParams()

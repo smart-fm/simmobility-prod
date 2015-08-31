@@ -11,47 +11,18 @@
 #include <string>
 #include <map>
 #include <vector>
+
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
-#include "util/ProtectedCopyable.hpp"
+#include "conf/RawConfigParams.hpp"
 #include "database/DB_Connection.hpp"
+#include "util/ProtectedCopyable.hpp"
 
 namespace sim_mob
 {
 namespace medium
 {
-
-class ModelScriptsMap
-{
-public:
-	ModelScriptsMap(const std::string& scriptFilesPath = "", const std::string& scriptsLang = "");
-
-	const std::string& getPath() const
-	{
-		return path;
-	}
-
-	const std::string& getScriptLanguage() const
-	{
-		return scriptLanguage;
-	}
-
-	std::string getScriptFileName(std::string key) const
-	{
-		//at() is used intentionally so that an out_of_range exception is triggered when invalid key is passed
-		return scriptFileNameMap.at(key);
-	}
-
-	void addScriptFileName(const std::string& key, const std::string& value)
-	{
-		this->scriptFileNameMap[key] = value;
-	}
-
-private:
-	std::string path;
-	std::string scriptLanguage;
-	std::map<std::string, std::string> scriptFileNameMap; //key=>value
-};
-
 class MongoCollectionsMap
 {
 public:
@@ -168,8 +139,6 @@ public:
 		this->tolerance = tolerance;
 	}
 
-
-
 	const std::string& getObservedStatisticsFile() const
 	{
 		return observedStatisticsFile;
@@ -266,6 +235,8 @@ public:
 	void setFilenameOfWaitingTimeStats(const std::string& str);
 	const std::string& getFilenameOfWaitingAmountStats() const;
 	void setFilenameOfWaitingAmountStats(const std::string& str);
+	const std::string& getFilenameOfTravelTimeStats() const;
+	void setFilenameOfTravelTimeStats(const std::string& str);
 	const unsigned int getBusCapacity() const;
 	void setBusCapacity(const unsigned int busCapcacity);
 	db::BackendType getPopulationSource() const;
@@ -316,6 +287,8 @@ private:
 	std::string filenameOfWaitingTimeStats;
 	/**the filename of storing waiting amount statistics*/
 	std::string filenameOfWaitingAmountStats;
+	/** the filename of storing travel time statistics*/
+	std::string filenameOfTravelTimeStats;
 	/**default capacity for bus*/
 	unsigned int busCapacity;
 	unsigned supplyUpdateInterval; //frames

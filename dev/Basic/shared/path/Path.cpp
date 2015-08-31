@@ -1,7 +1,9 @@
 #include "Path.hpp"
 
 #include <boost/foreach.hpp>
+#include <math.h>
 #include <boost/iterator/filter_iterator.hpp>
+#include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/MultiNode.hpp"
@@ -14,6 +16,12 @@
 namespace{
 sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
 
+const double HIGHWAY_SPEED = 60.0; //kmph
+
+double pathCostArray[] {0.77,0.87,0.98,1.08,1.16,1.23,1.29,1.33,1.37,1.41,1.45,1.49,1.53,
+								   1.57,1.61,1.65,1.69,1.72,1.75,1.78,1.81,1.83,1.85,1.87,1.88,1.89,
+								   1.90,1.91,1.92,1.93,1.94,1.95,1.96,1.97,1.98,1.99,2.00,2.01,2.02
+								 };
 }
 
 sim_mob::SinglePath::SinglePath() : purpose(work),utility(0.0),pathSize(0.0),travelCost(0.0),partialUtility(0.0),
@@ -409,4 +417,255 @@ std::string sim_mob::makeWaypointsetString(const std::vector<sim_mob::WayPoint>&
 	}
 
 	return str.str();
+}
+
+std::string sim_mob::makePT_PathString(const std::vector<PT_NetworkEdge> &path)
+{
+	std::stringstream str("");
+	if(path.size()==0)
+	{
+		std::cout<<"warning: empty output makePT_PathString id"<<std::endl;
+	}
+	for(std::vector<PT_NetworkEdge>::const_iterator it = path.begin();it!=path.end();it++)
+	{
+		str<<it->getEdgeId()<<",";
+	}
+	if(str.str().size()<1)
+	{
+		std::cout<<"warning: empty output makePT_PathString id"<<std::endl;
+	}
+	return str.str();
+
+}
+std::string sim_mob::makePT_PathSetString(const std::vector<PT_NetworkEdge> &path)
+{
+	std::stringstream str("");
+	if(path.size()==0)
+	{
+		std::cout<<"warning: empty output makePT_PathSetString id"<<std::endl;
+	}
+	str<<path.front().getStartStop()<<",";
+	str<<path.back().getEndStop();
+	if(str.str().size()<1)
+	{
+		std::cout<<"warning: empty output makePT_PathSetString id"<<std::endl;
+	}
+	return str.str();
+}
+
+sim_mob::PT_Path::PT_Path() :
+				totalDistanceKms(0.0),
+				totalCost(0.0),
+				totalInVehicleTravelTimeSecs(0.0),
+				totalWaitingTimeSecs(0.0),
+				totalWalkingTimeSecs(0.0),
+				totalNumberOfTransfers(0),minDistance(false),validPath(false),shortestPath(false),
+				minInVehicleTravelTime(false),minNumberOfTransfers(false),minWalkingDistance(false),
+				minTravelOnMRT(false),minTravelOnBus(false),pathSize(0.0)
+{
+
+}
+
+sim_mob::PT_Path::PT_Path (const std::vector<PT_NetworkEdge> &path) : pathEdges(path),
+		totalDistanceKms(0.0),
+		totalCost(0.0),
+		totalInVehicleTravelTimeSecs(0.0),
+		totalWaitingTimeSecs(0.0),
+		totalWalkingTimeSecs(0.0),
+		totalNumberOfTransfers(0),minDistance(false),validPath(false),shortestPath(false),
+		minInVehicleTravelTime(false),minNumberOfTransfers(false),minWalkingDistance(false),
+		minTravelOnMRT(false),minTravelOnBus(false),pathSize(0.0)
+
+{
+	double totalBusMRTTravelDistance=0.0;
+	ptPathId=makePT_PathString(pathEdges);
+	ptPathSetId=makePT_PathSetString(pathEdges);
+	for(std::vector<PT_NetworkEdge>::const_iterator itEdge=pathEdges.begin();itEdge!=pathEdges.end();itEdge++)
+	{
+		totalWaitingTimeSecs+=itEdge->getWaitTimeSecs();
+		totalInVehicleTravelTimeSecs+=itEdge->getDayTransitTimeSecs();
+		totalWalkingTimeSecs+=itEdge->getWalkTimeSecs();
+		pathTravelTime+=itEdge->getLinkTravelTimeSecs();
+		totalDistanceKms+=itEdge->getDistKms();
+		if(itEdge->getType()=="Bus" || itEdge->getType()=="RTS")
+		{
+			totalBusMRTTravelDistance+=itEdge->getDistKms();
+	           	totalNumberOfTransfers++;
+		}
+	}
+		
+	totalCost=this->getTotalCostByDistance(totalBusMRTTravelDistance);
+	if(totalNumberOfTransfers > 0)
+	{
+		totalNumberOfTransfers = totalNumberOfTransfers -1;
+	}
+}
+void sim_mob::PT_Path::updatePathEdges()
+{
+	int edgeId;
+	std::stringstream ss(ptPathId);
+	pathEdges.clear();
+	while (ss >> edgeId) {
+		pathEdges.push_back(PT_Network::getInstance().PT_NetworkEdgeMap[edgeId]);
+		if (ss.peek() == ','){
+		   ss.ignore();
+		}
+	}
+}
+sim_mob::PT_Path::~PT_Path()
+{
+
+}
+sim_mob::PT_PathSet::PT_PathSet():pathSet(std::set<PT_Path,cmp_path_vector>())
+{}
+
+sim_mob::PT_PathSet::~PT_PathSet()
+{}
+
+double sim_mob::PT_Path::getTotalCostByDistance(double totalDistance)
+{
+	if(totalDistance<=3.2)
+	{
+		return pathCostArray[0];
+	}
+	else if(totalDistance>40.2)
+	{
+		return pathCostArray[38];
+	}
+	else
+	{
+		return pathCostArray[(int)(floor(totalDistance-3.2000000001))+1];
+	}
+}
+
+
+void sim_mob::PT_PathSet::computeAndSetPathSize()
+{
+	for(std::set<PT_Path>::iterator itPath =pathSet.begin();itPath!=pathSet.end();itPath++)
+	{
+		double pathSize=0;
+		double subPathSize=0;  // Used to store the path-size component for each edge
+		int subN=0;            // Used to store the number of overlapped edge in choice set
+		std::vector<PT_NetworkEdge> edges;
+		edges = itPath->getPathEdges();
+		for(std::vector<PT_NetworkEdge>::const_iterator itEdge=edges.begin();itEdge!=edges.end();itEdge++)
+		{
+			double pathTravelTime = itPath->getPathTravelTime();
+			if(pathTravelTime != 0)
+			{
+				subPathSize=itEdge->getLinkTravelTimeSecs()/pathTravelTime;
+			}
+			std::stringstream edgestring;
+			edgestring<<itEdge->getEdgeId()<<",";
+			std::string edgeId= edgestring.str();
+			for(std::set<PT_Path,cmp_path_vector>::iterator itPathComp =pathSet.begin();itPathComp!=pathSet.end();itPathComp++)
+			{
+				if (itPathComp->getPtPathId().find(edgeId) != std::string::npos)
+				{
+					subN=subN+1;
+				}
+			}
+			if(subN != 0)
+			{
+				subPathSize=subPathSize/subN;
+			}
+			pathSize=pathSize+subPathSize;
+		}
+		itPath->setPathSize(pathSize);
+	}
+}
+void sim_mob::PT_PathSet::checkPathFeasibilty()
+{
+	// Implementing path feasibility checks
+	// Check 1 : Total Number of transfers < = 4
+	// Check 2 : No two consecutive walking edges along the path
+	// Check 3 : Doesn't walk back to any simMobility node from bus stop/ MRT station in the middle of the path
+	// Check 4 : Total number of bus legs <= 4
+
+	std::set<PT_Path>::iterator itPathComp =pathSet.begin();
+	if(itPathComp == pathSet.end())
+	{
+		return;
+	}
+	std::string pathsetId =  itPathComp->getPtPathSetId();
+	bool incrementFlag;
+	while(itPathComp!=pathSet.end())
+	{
+		incrementFlag = false;
+		std::set<PT_Path>::iterator tempitPath = itPathComp;
+		// Check 1 : Total Number of transfers < = 6
+		if(itPathComp->getTotalNumberOfTransfers() > 4)
+		{
+			// Infeasible path
+			itPathComp++;
+			pathSet.erase(tempitPath);
+			continue;
+		}
+		std::string prevEdgeType = "";
+		std::string currentEdgeType = "";
+		int simMobilityNodeCount=0; // simMobility Node counts along the path
+		int busLegCount = 0; // Number of buslegs along the path
+		std::vector<PT_NetworkEdge> edges;
+		edges = itPathComp->getPathEdges();
+		for(std::vector<PT_NetworkEdge>::const_iterator itEdge=edges.begin();itEdge!=edges.end();itEdge++)
+		{
+			// Check 2 : No two consecutive walking edges along the path
+			currentEdgeType = itEdge->getType();
+			if(currentEdgeType == "Walk" and prevEdgeType == "Walk")
+			{
+				// Infeasible path
+				itPathComp++;
+				pathSet.erase(tempitPath);
+				incrementFlag = true;
+				break;
+			}
+			prevEdgeType = currentEdgeType;
+
+			// Check 3 : Doesn't walk back to any simMobility node from bus stop/ MRT station in the middle of the path
+			if(sim_mob::PT_Network::getInstance().PT_NetworkVertexMap[itEdge->getStartStop()].getStopType() == 0)
+			{
+				simMobilityNodeCount++;
+			}
+			if(sim_mob::PT_Network::getInstance().PT_NetworkVertexMap[itEdge->getEndStop()].getStopType() == 0)
+			{
+				simMobilityNodeCount++;
+			}
+			if(simMobilityNodeCount > 2)
+			{
+				// Infeasible path
+				itPathComp++;
+				pathSet.erase(tempitPath);
+				incrementFlag = true;
+				break;
+			}
+			if(itEdge->getType() == "Bus")
+			{
+				busLegCount++;
+				// Check 4 : Total number of bus legs <= 4
+				if(busLegCount > 4)
+				{
+					// Infeasible path
+					itPathComp++;
+					pathSet.erase(tempitPath);
+					incrementFlag = true;
+					break;
+				}
+			}
+		}
+		if(!incrementFlag)
+		{
+			itPathComp++;
+		}
+	}
+	if(pathSet.empty())
+	{
+		std::cout << pathsetId << " has not left with any path after feasibility check"<< std::endl;
+	}
+
+}
+
+bool sim_mob::cmp_path_vector::operator()(const PT_Path A, const PT_Path B) const {
+
+	return A.getPtPathId() < B.getPtPathId();
+
 }

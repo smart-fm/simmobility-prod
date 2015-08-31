@@ -16,7 +16,7 @@ using namespace sim_mob::temp_spatial;
 
 void RStarAuraManager::update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers)
 {
-	tree_rstar.Remove(R_tree::AcceptAny(), R_tree::RemoveLeaf());
+	tree_rstar.RemoveAll();
 	assert(tree_rstar.GetSize() == 0);
 
 	for (std::set<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {

@@ -5,6 +5,8 @@
 #include "UniNode.hpp"
 
 #include <boost/thread.hpp>
+#include <cmath>
+#include <sstream>
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
 #include "logging/Log.hpp"
@@ -128,29 +130,125 @@ void sim_mob::UniNode::buildConnectorsFromAlignedLanes(UniNode* node, pair<unsig
 
 		//Dispatch
 		buildConnectorsFromAlignedLanes(node, segPair.first, segPair.second, fromToPair.first, fromToPair.second);
-		buildForwardLanesFromAlignedLanes(node, segPair.first, segPair.second, fromToPair.first, fromToPair.second);
+		buildForwardLanesFromAlignedLanes(node, segPair.first, segPair.second);
 	}
 }
 
 
-void sim_mob::UniNode::buildForwardLanesFromAlignedLanes(UniNode* node, const RoadSegment* fromSeg, const RoadSegment* toSeg, unsigned int fromAlignLane, unsigned int toAlignLane)
+void sim_mob::UniNode::buildForwardLanesFromAlignedLanes(UniNode* node, const RoadSegment* fromSeg, const RoadSegment* toSeg)
 {
-	//Get the "to" lane offset.
-	int alignOffset = static_cast<int>(toAlignLane) - static_cast<int>(fromAlignLane);
-
-	//We build a lookup based on the "from" lanes.
-	for (size_t fromID=0; fromID<fromSeg->getLanes().size(); fromID++) {
-		//We consider "left", "center", and "right", based on the original offset lane.
-		int toIDCenter = static_cast<int>(fromID) + alignOffset;
-		UniLaneConnector lc;
-		lc.left = toSeg->getLane(toIDCenter-1);
-		lc.center = toSeg->getLane(toIDCenter);
-		lc.right = toSeg->getLane(toIDCenter+1);
-
-		//Save it.
-		node->forwardLanes[fromSeg->getLane(fromID)] = lc;
+	int offset = 0;
+	int numFromLanes = fromSeg->getLanes().size();
+	int numToLanes = toSeg->getLanes().size();
+	if(std::abs(numFromLanes - numToLanes) < 2)
+	{
+		offset = 0;
+		//We build a lookup based on the "from" lanes.
+		for (int fromID=0; fromID<numFromLanes; fromID++)
+		{
+			//We consider "left", "center", and "right", based on the original offset lane.
+			int toIDCenter = fromID + offset;
+			UniLaneConnector lc;
+			lc.left = toSeg->getLane(toIDCenter+1);
+			lc.center = toSeg->getLane(toIDCenter);
+			lc.right = toSeg->getLane(toIDCenter-1);
+			//Save it.
+			node->forwardLanes[fromSeg->getLane(fromID)] = lc;
+		}
 	}
+	else
+	{
+		if(numFromLanes < numToLanes)
+		{	//branching of lanes
+			if(numToLanes > (numFromLanes*3)) //sanity check
+			{
+				std::stringstream errStrm;
+				errStrm << "Too many downstream lanes. Cannot connect all lanes - "
+						<< fromSeg->getSegmentAimsunId() << "(" << numFromLanes << " lanes)"
+						<< "->" << toSeg->getSegmentAimsunId() << "(" << numToLanes << " lanes)"
+						<< std::endl;
+				throw std::runtime_error(errStrm.str());
+			}
 
+			int innerLaneID = 0;
+			{
+				//first fix connections for innermost lane (lane 0)
+				UniLaneConnector lc;
+				lc.left = toSeg->getLane(innerLaneID+2);
+				lc.center = toSeg->getLane(innerLaneID+1);
+				lc.right = toSeg->getLane(innerLaneID);
+				node->forwardLanes[fromSeg->getLane(innerLaneID)] = lc;
+			}
+
+			int outerToLaneID = numToLanes-1;
+			int outerFromLaneID = numFromLanes-1;
+			{
+				//then fix connections for outermost lane
+				UniLaneConnector lc;
+				lc.left = toSeg->getLane(outerToLaneID);
+				lc.center = toSeg->getLane(outerToLaneID-1);
+				lc.right = toSeg->getLane(outerToLaneID-2);
+				node->forwardLanes[fromSeg->getLane(outerFromLaneID)] = lc;
+			}
+
+			//estimate offset and fix connections for remaining lanes
+			offset = (numToLanes - numFromLanes)/2; //integer division floors the result naturally
+			for(int fromID=1; fromID<outerFromLaneID; fromID++)
+			{
+				int toIDCenter = fromID + offset;
+				UniLaneConnector lc;
+				lc.left = toSeg->getLane(toIDCenter+1);
+				lc.center = toSeg->getLane(toIDCenter);
+				lc.right = toSeg->getLane(toIDCenter-1);
+				node->forwardLanes[fromSeg->getLane(fromID)] = lc;
+			}
+		}
+		else //(if numFromLanes >= numToLanes)
+		{	//merging of lanes
+			if(numFromLanes > (numToLanes*3)) //sanity check
+			{
+				std::stringstream errStrm;
+				errStrm << "Too many upstream lanes. Cannot connect all lanes - "
+						<< fromSeg->getSegmentAimsunId() << "(" << numFromLanes << " lanes)"
+						<< "->" << toSeg->getSegmentAimsunId() << "(" << numToLanes << " lanes)"
+						<< std::endl;
+				throw std::runtime_error(errStrm.str());
+			}
+
+			int innerLaneID = 0;
+			{
+				//first fix connections for innermost lane (lane 0)
+				UniLaneConnector lc;
+				lc.left = toSeg->getLane(innerLaneID);
+				lc.center = nullptr;
+				lc.right = nullptr;
+				node->forwardLanes[fromSeg->getLane(innerLaneID)] = lc;
+			}
+
+			int outerToLaneID = numToLanes-1;
+			int outerFromLaneID = numFromLanes-1;
+			{
+				//then fix connections for outermost lane
+				UniLaneConnector lc;
+				lc.left = nullptr;
+				lc.center = nullptr;
+				lc.right = toSeg->getLane(outerToLaneID);
+				node->forwardLanes[fromSeg->getLane(outerFromLaneID)] = lc;
+			}
+
+			//estimate offset and fix connections for remaining lanes
+			offset = (numFromLanes - numToLanes)/2; //integer division floors the result naturally
+			for(int fromID=1; fromID<outerFromLaneID; fromID++)
+			{
+				int toIDCenter = fromID - offset;
+				UniLaneConnector lc;
+				lc.left = toSeg->getLane(toIDCenter+1);
+				lc.center = toSeg->getLane(toIDCenter);
+				lc.right = toSeg->getLane(toIDCenter-1);
+				node->forwardLanes[fromSeg->getLane(fromID)] = lc;
+			}
+		}
+	}
 }
 
 

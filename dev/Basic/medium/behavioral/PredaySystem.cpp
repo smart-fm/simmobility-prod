@@ -20,11 +20,12 @@
 #include <sstream>
 #include <stdint.h>
 #include "behavioral/lua/PredayLuaProvider.hpp"
-#include "behavioral/params/ModeDestinationParams.hpp"
 #include "behavioral/params/StopGenerationParams.hpp"
 #include "behavioral/params/TimeOfDayParams.hpp"
 #include "behavioral/params/TourModeParams.hpp"
+#include "behavioral/params/TourModeDestinationParams.hpp"
 #include "behavioral/params/TripChainItemParams.hpp"
+#include "behavioral/StopType.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
@@ -87,8 +88,8 @@ namespace {
 		res[2] = "MRT";
 		res[3] = "Bus";
 		res[4] = "Car";
-		res[5] = "Car Sharing";
-		res[6] = "Car Sharing";
+		res[5] = "Car Sharing 2";
+		res[6] = "Car Sharing 3";
 		res[7] = "Motorcycle";
 		res[8] = "Walk";
 		res[9] = "Taxi";
@@ -422,6 +423,7 @@ TimeWindowAvailability PredaySystem::predictTourTimeOfDay(Tour& tour) {
 	int origin = MTZ12_MTZ08_Map.at(origin_2012);
 	int destination = MTZ12_MTZ08_Map.at(destination_2012);
 	TourTimeOfDayParams todParams;
+	todParams.setTourMode(tour.getTourMode());
 	todParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin_2012))->getCbdDummy());
 	todParams.setCbdDestZone(zoneMap.at(zoneIdLookup.at(destination_2012))->getCbdDummy());
 	std::vector<double>& ttFirstHalfTour = todParams.travelTimesFirstHalfTour;
@@ -884,19 +886,19 @@ void PredaySystem::generateIntermediateStops(uint8_t halfTour, Tour& tour, const
 		switch(choice)
 		{
 		case WORK_CHOICE_ISG:
-			generatedStop = new Stop(sim_mob::medium::WORK, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
+			generatedStop = new Stop(sim_mob::WORK, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
 			tour.addStop(generatedStop);
 			break;
 		case EDU_CHOICE_ISG:
-			generatedStop = new Stop(sim_mob::medium::EDUCATION, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
+			generatedStop = new Stop(sim_mob::EDUCATION, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
 			tour.addStop(generatedStop);
 			break;
 		case SHOP_CHOICE_ISG:
-			generatedStop = new Stop(sim_mob::medium::SHOP, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
+			generatedStop = new Stop(sim_mob::SHOP, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
 			tour.addStop(generatedStop);
 			break;
 		case OTHER_CHOICE_ISG:
-			generatedStop = new Stop(sim_mob::medium::OTHER, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
+			generatedStop = new Stop(sim_mob::OTHER, tour, false /*not primary*/, (halfTour==1) /*in first half tour*/);
 			tour.addStop(generatedStop);
 			break;
 		default:
@@ -923,10 +925,14 @@ bool PredaySystem::predictStopTimeOfDay(Stop* stop, int destination_2012, bool i
 	int origin_2012 = stop->getStopLocation();
 	int origin = MTZ12_MTZ08_Map.at(origin_2012);
 	int destination = MTZ12_MTZ08_Map.at(destination_2012);
+	stodParams.setStopMode(stop->getStopMode());
 	stodParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(origin_2012))->getCbdDummy());
 	stodParams.setCbdDestZone(zoneMap.at(zoneIdLookup.at(destination_2012))->getCbdDummy());
 
-	if(origin_2012 == destination_2012 || origin == destination) { for(int i=FIRST_INDEX; i<=LAST_INDEX; i++) { stodParams.travelTimes.push_back(0.0); } }
+	if(origin_2012 == destination_2012 || origin == destination)
+	{
+		for(int i=FIRST_INDEX; i<=LAST_INDEX; i++) { stodParams.travelTimes.push_back(0.0); }
+	}
 	else
 	{
 		BSONObj bsonObjTT = BSON("origin" << origin << "destination" << destination);
@@ -1408,7 +1414,7 @@ void PredaySystem::planDay() {
 		personParams.blockTime(timeWindow.getStartTime(), timeWindow.getEndTime());
 
 		//Generate sub tours for work tours
-		if(tour.getTourType() == sim_mob::medium::WORK) { predictSubTours(tour); }
+		if(tour.getTourType() == sim_mob::WORK) { predictSubTours(tour); }
 
 		//Generate stops for this tour
 		constructIntermediateStops(tour, remainingTours, prevTourEndTime);
@@ -1576,12 +1582,6 @@ void sim_mob::medium::PredaySystem::computeLogsumsForLT(std::stringstream& outSt
 			<< "," << personParams.getHomeLocation()
 			<< "," << personParams.getFixedWorkLocation()
 			<< "," << personParams.getHhId()
-			<< "," << personParams.getWorkLogSum()
-			<< "," << personParams.getEduLogSum()
-			<< "," << personParams.getShopLogSum()
-			<< "," << personParams.getOtherLogSum()
-			<< "," << personParams.getDptLogsum()
-			<< "," << personParams.getDpsLogsum()
 			<< "," << personParams.getDpbLogsum()
 			<< "\n";
 }

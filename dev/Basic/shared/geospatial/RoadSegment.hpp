@@ -45,6 +45,7 @@ namespace aimsun
 class Loader;
 class LaneLoader;
 } //End aimsun namespace
+
 /**
  * Part of a Link with consistent lane numbering. RoadSegments are unidirectional.
  *
@@ -152,17 +153,18 @@ public:
 
 	const double getLengthOfSegment() const;
 
-	double computeLaneZeroLength() const;
+	///computes total lenght of segment polyline loaded from the database
+	void computePolylineLength();
 
 	void setCapacity(); //for now since the capacity is not loaded from the xml
 
-	const double getLaneZeroLength() const { return laneZeroLength; }
+	const double getPolylineLength() const { return polylineLength; }
 
 	/// returns length of a segment
 	const double getLength() const{
 		//NOTE:there are multiple accessors and member variables used to return the road segment length in different ways
 		//this method was just added for uniform length invocation
-		return getLaneZeroLength();
+		return getPolylineLength();
 	}
 
 	double getCapacity() const { return capacity; }
@@ -180,6 +182,16 @@ public:
 	bool isHighway() const
 	{
 		return highway;
+	}
+
+	bool isBusTerminusSegment() const
+	{
+		return busTerminusSegment;
+	}
+
+	void setBusTerminusSegment()
+	{
+		this->busTerminusSegment = true;
 	}
 
 	/*void initLaneGroups() const;
@@ -210,13 +222,16 @@ private:
 	unsigned long segmentID;
 
 	///length of lane 0 of the segment in cm. This length is used by mid-term as an approximation of segment's length.
-	double laneZeroLength;
+	double polylineLength;
 
 	///mode and time independent default travel time for the segment (computed by laneZeroLength/maxSpeed)
 	double defaultTravelTime;
 
 	///flag to determine whether this segment is a part of highway or not
 	bool highway;
+
+	///flag to determine whether this segment is a part of bus interchange
+	bool busTerminusSegment;
 
 	friend class sim_mob::aimsun::Loader;
 	friend class sim_mob::aimsun::LaneLoader;

@@ -12,8 +12,10 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "geospatial/Link.hpp"
 #include "util/GeomHelpers.hpp"
 #include "logging/Log.hpp"
+#include "util/Utils.hpp"
 
 using std::set;
 using std::pair;
@@ -39,7 +41,145 @@ sim_mob::RoadNetwork::~RoadNetwork()
 	Warn() <<"Attempting to delete road network; memory will leak!\n";
 }
 
+void sim_mob::RoadNetwork::storeTurningSection(sim_mob::TurningSection* turningSection) {
 
+	// get from segment
+	sim_mob::RoadSegment* fromSeg = getSegById(turningSection->getFrom_road_section());
+	
+	if(!fromSeg) 
+	{
+		throw std::runtime_error("storeTurningSection: not found from section");
+	}
+	
+	//Store to MultiNode
+	std::stringstream multinodeId;
+	multinodeId << fromSeg->getEnd()->getID();
+	sim_mob::MultiNode *multinode = getMultiNodeById(multinodeId.str());
+	
+	if(!multinode)
+	{ 
+		throw std::runtime_error("StoreTurningSection: MultiNode not found"); 
+	}
+	
+	//Add turnings to multinode
+	multinode->setTurnings(fromSeg, turningSection);
+	
+	sim_mob::RoadSegment* toSeg = getSegById(turningSection->getTo_road_section());
+	
+	if(!toSeg) 
+	{
+		throw std::runtime_error("storeTurningSection: not found to section");
+	}
+	
+	turningSection->setFromSeg(fromSeg); 
+	turningSection->setToSeg(toSeg);
+	
+	//Get the from and to lanes
+	const Lane *from = fromSeg->getLane(turningSection->getFrom_lane_index());
+	const Lane *to = toSeg->getLane(turningSection->getTo_lane_index());
+	
+	//Assign them to the turning section object
+	turningSection->setLaneFrom(from);
+	turningSection->setLaneTo(to);
+	
+	// get turning start,end polyline point
+	turningSection->makePolylinePoint();
+
+	// store
+	turningSectionMap.insert(std::make_pair(turningSection->getSectionId(),turningSection));
+	
+	turningSectionByFromSeg.insert(std::make_pair(turningSection->getFrom_road_section(),turningSection));
+	turningSectionByToSeg.insert(std::make_pair(turningSection->getTo_road_section(),turningSection));
+	
+	//Update the map of lane vs turnings
+	multinode->updateMapLaneVsTurning(from, to, turningSection);
+}
+
+void sim_mob::RoadNetwork::storeTurningPolyline(sim_mob::TurningPolyline* turningPolyline)
+{
+	// find turning section
+	std::stringstream out("");
+	out<<turningPolyline->getTurningId();
+	std::string turningIdStr = out.str();
+	std::map<std::string,sim_mob::TurningSection* >::iterator it = turningSectionMap.find(turningIdStr);
+	
+	if(it!=turningSectionMap.end())
+	{
+		// find turning
+		sim_mob::TurningSection* ts = it->second;
+		ts->setPolyline(turningPolyline);
+		turningPolylineMap.insert(std::make_pair(turningPolyline->getId(), turningPolyline));
+	}
+	else
+	{
+		throw std::runtime_error("storeTurningPolyline: No turning found");
+	}
+}
+
+sim_mob::TurningSection* sim_mob::RoadNetwork::findTurningById(std::string id) 
+{
+	sim_mob::TurningSection* res = nullptr;
+	std::map<std::string,sim_mob::TurningSection* >::iterator it = turningSectionMap.find(id);
+	
+	if(it != turningSectionMap.end())
+	{
+		res = it->second;
+	}
+	
+	return res;
+}
+
+void sim_mob::RoadNetwork::storeTurningConflict(sim_mob::TurningConflict* conflict) 
+{	
+	// get turnings
+	sim_mob::TurningSection* firstTurning = turningSectionMap[conflict->getFirst_turning()];
+	sim_mob::TurningSection* secondTurning = turningSectionMap[conflict->getSecond_turning()];
+
+	firstTurning->addConflictingTurningSections(secondTurning);
+	firstTurning->addTurningConflict(conflict);
+
+	secondTurning->addConflictingTurningSections(firstTurning);
+	secondTurning->addTurningConflict(conflict);
+
+	conflict->setFirstTurning(firstTurning);
+	conflict->setSecondTurning(secondTurning);
+	
+	// store
+	turningConflictMap.insert(std::make_pair(conflict->getConflictId(),conflict));
+}
+
+sim_mob::RoadSegment* sim_mob::RoadNetwork::getSegById(std::string aimsunId) 
+{
+	sim_mob::RoadSegment* res = nullptr;
+	std::stringstream trimmer;
+	trimmer << aimsunId;
+	aimsunId.clear();
+	trimmer >> aimsunId;
+	std::map<std::string,sim_mob::RoadSegment*>::iterator it = segPool.find(aimsunId);
+	
+	if(it != segPool.end())
+	{
+		res = it->second;
+	}
+	
+	return res;
+}
+
+void sim_mob::RoadNetwork::makeSegPool() 
+{
+	for (std::vector<sim_mob::Link *>::const_iterator it =	links.begin(), it_end( links.end()); it != it_end; it++) 
+	{
+		for (std::set<sim_mob::RoadSegment *>::iterator seg_it = (*it)->getUniqueSegments().begin(), it_end((*it)->getUniqueSegments().end()); seg_it != it_end; seg_it++) 
+		{
+			if (!(*seg_it)->originalDB_ID.getLogItem().empty()) 
+			{
+				std::string aimsun_id = (*seg_it)->originalDB_ID.getLogItem();
+				std::string seg_id = Utils::getNumberFromAimsunId(aimsun_id);
+				segPool.insert(std::make_pair(seg_id, *seg_it));
+			}
+		}
+	}
+}
 
 void sim_mob::RoadNetwork::ForceGenerateAllLaneEdgePolylines(sim_mob::RoadNetwork& rn)
 {
@@ -64,9 +204,6 @@ void sim_mob::RoadNetwork::ForceGenerateAllLaneEdgePolylines(sim_mob::RoadNetwor
 		(*it)->getLaneEdgePolyline(0);
 	}
 }
-
-
-
 
 Node* sim_mob::RoadNetwork::locateNode(const Point2D& position, bool includeUniNodes, int maxDistCM) const
 {
@@ -172,6 +309,31 @@ sim_mob::Node* sim_mob::RoadNetwork::getNodeById(int aimsunId) {
 		return nullptr;
 	}
 }
+
+sim_mob::MultiNode* sim_mob::RoadNetwork::getMultiNodeById(std::string aimsunId) 
+{
+	int id;
+	
+	try 
+	{
+		id = boost::lexical_cast<int>( aimsunId );
+	} 
+	catch( boost::bad_lexical_cast const& ) 
+	{
+		throw std::runtime_error("getMultiNodeById: error");
+	}
+	
+	sim_mob::Node* n = getNodeById(id);
+	
+	if(!n) 
+	{
+		throw std::runtime_error("getMultiNodeById: error no node found");
+	}
+
+	sim_mob::MultiNode *mn = dynamic_cast<MultiNode*>(n);
+	return mn;
+}
+
 Node* sim_mob::RoadNetwork::locateNode(double xPos, double yPos, bool includeUniNodes, int maxDistCM) const
 {
 	//First, check the MultiNodes, since these will always be candidates

@@ -31,6 +31,10 @@
 #include "database/dao/TotalBuildingSpaceDao.hpp"
 #include "database/dao/ParcelAmenitiesDao.hpp"
 #include "database/dao/MacroEconomicsDao.hpp"
+#include "database/dao/LogsumForDevModelDao.hpp"
+#include "database/dao/ParcelsWithHDBDao.hpp"
+#include "database/dao/TAO_Dao.hpp"
+#include "database/dao/UnitPriceSumDao.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
@@ -44,10 +48,10 @@ namespace {
     const string MODEL_NAME = "Developer Model";
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false),unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0){ //In days (7 - weekly, 30 - Monthly)
+DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false),unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYearForDevAgent(0),minLotSize(0){ //In days (7 - weekly, 30 - Monthly)
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false), unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0){
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false), unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYearForDevAgent(0),minLotSize(0){
 }
 
 DeveloperModel::~DeveloperModel() {
@@ -97,10 +101,15 @@ void DeveloperModel::startImpl() {
 		}
 
 		loadData<ParcelAmenitiesDao>(conn,amenities,amenitiesById,&ParcelAmenities::getFmParcelId);
-		loadData<MacroEconomicsDao>(conn,macroEconomics,macroEconomicsById,&MacroEconomics::getExFactorId);
 
-		//UnitDao unitDao(conn);
-		//unitId = unitDao.getMaxUnitId();
+		loadData<MacroEconomicsDao>(conn,macroEconomics,macroEconomicsById,&MacroEconomics::getExFactorId);
+		loadData<LogsumForDevModelDao>(conn,accessibilityList,accessibilityByTazId,&LogsumForDevModel::gettAZ2012Id);
+		loadData<ParcelsWithHDBDao>(conn,parcelsWithHDB,parcelsWithHDB_ById,&ParcelsWithHDB::getFmParcelId);
+		PrintOutV("Parcels with HDB loaded " << parcelsWithHDB.size() << std::endl);
+		loadData<TAO_Dao>(conn,taoList,taoByQuarterId,&TAO::getId);
+		PrintOutV("TAO by quarters loaded " << taoList.size() << std::endl);
+		loadData<UnitPriceSumDao>(conn,unitPriceSumList,unitPriceSumByParcelId,&UnitPriceSum::getFmParcelId);
+		PrintOutV("unit price sums loaded " << unitPriceSumList.size() << std::endl);
 
 	}
 	setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
@@ -109,12 +118,13 @@ void DeveloperModel::startImpl() {
 	unitIdForDevAgent = config.ltParams.developerModel.initialUnitId;
 	buildingIdForDevAgent = config.ltParams.developerModel.initialBuildingId;
 	projectIdForDevAgent = config.ltParams.developerModel.initialProjectId;
+	simYearForDevAgent = config.ltParams.developerModel.year;
+	minLotSize= config.ltParams.developerModel.minLotSize;
 
-	//get the highest building id, which is the one before the last building id as the last building id contain some random data.
-	//buildingId = buildings.at(buildings.size()-2)->getFmBuildingId();
+	PrintOut("minLotSize"<<minLotSize<<std::endl);
 	processParcels();
 	createDeveloperAgents(developmentCandidateParcelList);
-	wakeUpDeveloperAgents(getDeveloperAgents(true));
+	wakeUpDeveloperAgents(getDeveloperAgents());
 
 	PrintOutV("Time Interval " << timeInterval << std::endl);
 	PrintOutV("Initial Developers " << developers.size() << std::endl);
@@ -122,7 +132,7 @@ void DeveloperModel::startImpl() {
 	PrintOutV("Initial Parcels " << initParcelList.size() << std::endl);
 	PrintOutV("Initial DevelopmentTypeTemplates " << developmentTypeTemplates.size() << std::endl);
 	PrintOutV("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
-	PrintOutV("Initial TemplateUnitTypes " << templateUnitTypes.size() << std::endl);
+	PrintOutV("Parcel Amenities " << parcelsWithHDB.size() << std::endl);
 
 	addMetadata("Time Interval", timeInterval);
 	addMetadata("Initial Developers", developers.size());
@@ -137,12 +147,22 @@ void DeveloperModel::stopImpl() {
 	parcelsById.clear();
 	emptyParcelsById.clear();
 	parcelsById.clear();
+	amenitiesById.clear();
+	buildingSpacesByParcelId.clear();
+	macroEconomicsById.clear();
+	parcelsWithHDB_ById.clear();
+	taoByQuarterId.clear();
 
 	clear_delete_vector(templates);
 	clear_delete_vector(developmentTypeTemplates);
 	clear_delete_vector(templateUnitTypes);
     clear_delete_vector(initParcelList);
     clear_delete_vector(existingProjectIds);
+    clear_delete_vector(amenities);
+    clear_delete_vector(buildingSpaces);
+    clear_delete_vector(macroEconomics);
+    clear_delete_vector(parcelsWithHDB);
+    clear_delete_vector(taoList);
 
 }
 
@@ -197,6 +217,36 @@ float DeveloperModel::getBuildingSpaceByParcelId(BigSerial id) const {
     return 0;
 }
 
+const LogsumForDevModel* DeveloperModel::getAccessibilityLogsumsByTAZId(BigSerial fmParcelId) const
+{
+	AccessibilityLogsumMap::const_iterator itr = accessibilityByTazId.find(fmParcelId);
+	if (itr != accessibilityByTazId.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+}
+
+const ParcelsWithHDB* DeveloperModel::getParcelsWithHDB_ByParcelId(BigSerial fmParcelId) const
+{
+	ParcelsWithHDBMap::const_iterator itr = parcelsWithHDB_ById.find(fmParcelId);
+	if (itr != parcelsWithHDB_ById.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+}
+
+const TAO* DeveloperModel::getTaoByQuarter(BigSerial id)
+{
+	TAOMap::const_iterator itr = taoByQuarterId.find(id);
+		if (itr != taoByQuarterId.end())
+		{
+			return itr->second;
+		}
+		return nullptr;
+}
+
 const DeveloperModel::DevelopmentTypeTemplateList& DeveloperModel::getDevelopmentTypeTemplates() const {
     return developmentTypeTemplates;
 }
@@ -218,6 +268,8 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList)
 				RealEstateAgent* realEstateAgent = const_cast<RealEstateAgent*>(getRealEstateAgentForDeveloper());
 				devAgent->setRealEstateAgent(realEstateAgent);
 				devAgent->setPostcode(getPostcodeForDeveloperAgent());
+				devAgent->setHousingMarketModel(housingMarketModel);
+				devAgent->setSimYear(simYearForDevAgent);
 				agents.push_back(devAgent);
 				developers.push_back(devAgent);
 				workGroup.assignAWorker(devAgent);
@@ -239,7 +291,7 @@ void DeveloperModel::wakeUpDeveloperAgents(DeveloperList devAgentList)
 		if (devAgentList[i])
 		{
 			devAgentList[i]->setActive(true);
-			//existingProjectParcelIds.push_back(devAgentList[i]->getId());
+			devAgentCount++;
 		}
 		else
 		{
@@ -267,8 +319,7 @@ void DeveloperModel::processParcels()
 			}
 			else
 			{
-				const double minLotSize = 100;
-				if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize))
+				if((parcel->getDevelopmentAllowed()!=2)||(parcel->getLotSize()< minLotSize)|| getParcelsWithHDB_ByParcelId(parcel->getId())!= nullptr)
 				{
 					nonEligibleParcelList.push_back(parcel);
 				}
@@ -280,6 +331,11 @@ void DeveloperModel::processParcels()
 					if ( actualGpr >= 0 && actualGpr < getAllowedGpr(*parcel))
 					{
 						developmentCandidateParcelList.push_back(parcel);
+						int newDevelopment = 0;
+						if(isEmptyParcel(parcel->getId()))
+							{
+								newDevelopment = 1;
+							}
 						devCandidateParcelsById.insert(std::make_pair(parcel->getId(), parcel));
 					}
 					else
@@ -334,103 +390,24 @@ void DeveloperModel::processProjects()
 	}
 }
 
-DeveloperModel::ParcelList DeveloperModel::getDevelopmentCandidateParcels(bool isInitial){
-
-	ParcelList::iterator first;
-	ParcelList::iterator last;
-	setIterators(first, last, isInitial);
-	ParcelList dailyParcels(first, last);
-	if (!isParcelRemain)
-	{
-		dailyParcels.clear();
-	}
-	return dailyParcels;
-}
-
-DeveloperModel::DeveloperList DeveloperModel::getDeveloperAgents(bool isInitial){
-
-	DeveloperList::iterator first;
-	DeveloperList::iterator last;
-	setDevAgentListIterator(first, last, isInitial);
-	DeveloperList dailyDevAgents(first, last);
-	return dailyDevAgents;
-}
-
-void DeveloperModel::setDevAgentListIterator(DeveloperList::iterator &first,DeveloperList::iterator &last,bool isInitial){
+DeveloperModel::DeveloperList DeveloperModel::getDeveloperAgents(){
 
 	const int poolSize = developers.size();
-	const int dailyAgentFraction = poolSize / numSimulationDays;
-	const int remainderAgents = poolSize % numSimulationDays;
-	//compute the number of parcels to process per day
-	int numAgentsPerDay = dailyAgentFraction;
-
-	first = developers.begin() + dailyAgentCount;
-
-	if (dailyAgentCount < poolSize)
+	const float dailyParcelPercentage = 0.1; //we are examining 10% of the pool everyday
+	const int dailyAgentFraction = poolSize * dailyParcelPercentage;
+	std::set<int> indexes;
+	DeveloperList dailyDevAgents;
+	int max_index = developers.size();
+	while (indexes.size() < std::min(dailyAgentFraction, max_index))
 	{
-		//Add the remainder parcels as well, on the Day 0.
-			if (isInitial)
-			{
-				dailyAgentCount = dailyAgentCount + remainderAgents + numAgentsPerDay;
-			}
-			else
-			{
-				dailyAgentCount = dailyAgentCount + numAgentsPerDay;
-			}
-
+	    int random_index = rand() % max_index;
+	    if (indexes.find(random_index) == indexes.end())
+	    {
+	    	dailyDevAgents.push_back(developers[random_index]);
+	        indexes.insert(random_index);
+	    }
 	}
-
-		last = developers.begin() + dailyAgentCount;
-
-	if (dailyAgentCount >= poolSize)
-	{
-		setIsParcelsRemain(false);
-	}
-
-}
-
-void DeveloperModel::setIterators(ParcelList::iterator &first,ParcelList::iterator &last,bool isInitial){
-
-	const int poolSize = developmentCandidateParcelList.size();
-	const int dailyParcelFraction = poolSize / numSimulationDays;
-	const int remainderparcels = poolSize % numSimulationDays;
-	//compute the number of parcels to process per day
-	int numParcelsPerDay = dailyParcelFraction;
-
-	first = developmentCandidateParcelList.begin() + dailyParcelCount;
-
-	if (dailyParcelCount < poolSize)
-	{
-		dailyParcelCount = dailyParcelCount + numParcelsPerDay;
-	}
-	//Add the remainder parcels as well, on the Day 0.
-	if (isInitial)
-	{
-		last = developmentCandidateParcelList.begin() + dailyParcelCount + remainderparcels;
-	}
-	else
-	{
-		last = developmentCandidateParcelList.begin() + dailyParcelCount;
-	}
-	if (dailyParcelCount > poolSize)
-	{
-		setIsParcelsRemain(false);
-	}
-
-}
-
-void DeveloperModel::setIsParcelsRemain(bool parcelStatus)
-{
-	this->isParcelRemain = parcelStatus;
-}
-
-bool DeveloperModel::getIsParcelRemain()
-{
-	return isParcelRemain;
-}
-void DeveloperModel::setIsDevAgentsRemain(bool devAgentStatus)
-{
-	this->isDevAgentsRemain = devAgentStatus;
+	return dailyDevAgents;
 }
 
 void DeveloperModel::setDays(int days)
@@ -529,6 +506,11 @@ int DeveloperModel::getCurrentTick()
 	return this->currentTick;
 }
 
+int DeveloperModel::getSimYearForDevAgent()
+{
+	return this->simYearForDevAgent;
+}
+
 void DeveloperModel::addProjects(boost::shared_ptr<Project> project)
 {
 	newProjects.push_back(project);
@@ -581,3 +563,12 @@ int DeveloperModel::getPostcodeForDeveloperAgent()
 
 }
 
+const UnitPriceSum* DeveloperModel::getUnitPriceSumByParcelId(BigSerial fmParcelId) const
+{
+	UnitPriceSumMap::const_iterator itr = unitPriceSumByParcelId.find(fmParcelId);
+	if (itr != unitPriceSumByParcelId.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+}

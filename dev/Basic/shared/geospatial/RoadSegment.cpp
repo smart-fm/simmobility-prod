@@ -37,7 +37,7 @@ std::map<unsigned long, const RoadSegment*> sim_mob::RoadSegment::allSegments;//
 sim_mob::RoadSegment::RoadSegment(sim_mob::Link* parent, unsigned long id) :
 	Pavement(),
 	maxSpeed(0), capacity(0), busstop(nullptr), lanesLeftOfDivider(0), parentLink(parent),segmentID(id),
-	parentConflux(nullptr), laneZeroLength(-1.0), type(LINK_TYPE_DEFAULT), CBD(false), defaultTravelTime(0)
+	parentConflux(nullptr), polylineLength(-1.0), type(LINK_TYPE_DEFAULT), CBD(false), defaultTravelTime(0), highway(false), busTerminusSegment(false)
 {
 	allSegments[segmentID] = this;
 }
@@ -197,13 +197,13 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 			laneEdgePolylines_cached.push_back(makeLaneEdgeFromPolyline(lanes[edgeIsRight?i:i-1], edgeIsRight));
 		}
 	}
-
+	
 	bool needGeneratePedLane = true;
-	if(lanes.back()->is_pedestrian_lane()) // last lane is ped lane, it means already generate before
+	if (lanes.back()->is_pedestrian_lane()) // last lane is ped lane, it means already generate before
 	{
 		needGeneratePedLane = false;
 	}
-	if(needGeneratePedLane)
+	if (needGeneratePedLane)
 	{
 		//TEMP FIX
 		//Now, add one more edge and one more lane representing the sidewalk.
@@ -213,33 +213,34 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 		//      segments or for one-way Links. But it should be sufficient for the demo.
 		Lane* swLane = new Lane(this, lanes.size());
 		swLane->is_pedestrian_lane(true);
-		swLane->width_ = lanes.back()->width_/2;
-		swLane->polyline_ = sim_mob::ShiftPolyline(lanes.back()->polyline_, lanes.back()->getWidth()/2+swLane->getWidth()/2);
+		swLane->width_ = lanes.back()->width_ / 2;
+		swLane->polyline_ = sim_mob::ShiftPolyline(lanes.back()->polyline_, lanes.back()->getWidth() / 2 + swLane->getWidth() / 2);
 
 		//Add it, update
 		lanes.push_back(swLane);
 		width += swLane->width_;
 		vector<Point2D> res = makeLaneEdgeFromPolyline(lanes.back(), false);
-		laneEdgePolylines_cached.push_back(res);//crash -vahid
+		laneEdgePolylines_cached.push_back(res);
 		//Add an extra sidewalk on the other side if it's a road segment on a one-way link.
 		sim_mob::Link* parentLink = getLink();
 
-		if(parentLink)
+		if (parentLink)
 		{
 			//Make sure we're not generating Lanes for XML data
-			if (parentLink->hasOpposingLink<0) {
+			if (parentLink->hasOpposingLink < 0)
+			{
 				throw std::runtime_error("Link::hasOpposingLink has not been initialized, but someone is attempting to use it.");
 			}
 
 			//Check whether the link is one-way
-			if (parentLink->hasOpposingLink==0)
+			if (parentLink->hasOpposingLink == 0)
 			{
 				//Add a sidewalk on the other side of the road segment
 				Lane* swLane2 = new Lane(this, lanes.size());
 				swLane2->is_pedestrian_lane(true);
 
-				swLane2->width_ = lanes.front()->width_/2;
-				swLane2->polyline_ = sim_mob::ShiftPolyline(lanes.front()->polyline_, lanes.front()->getWidth()/2+swLane2->getWidth()/2, false);
+				swLane2->width_ = lanes.front()->width_ / 2;
+				swLane2->polyline_ = sim_mob::ShiftPolyline(lanes.front()->polyline_, lanes.front()->getWidth() / 2 + swLane2->getWidth() / 2, false);
 				lanes.insert(lanes.begin(), swLane2);
 
 				width += swLane2->width_;
@@ -249,16 +250,13 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 	}
 }
 
-
-double sim_mob::RoadSegment::computeLaneZeroLength() const{
-	//This function will only computeLaneZeroLength once and re-use the value in subsequent calls
-	double res = 0.0;
-	const vector<Point2D>& polyLine = getLanes()[0]->getPolyline();
-	for (vector<Point2D>::const_iterator it2 = polyLine.begin(); (it2 + 1) != polyLine.end(); it2++)
+void sim_mob::RoadSegment::computePolylineLength()
+{
+	polylineLength = 0.0;
+	for (vector<Point2D>::const_iterator it2 = polyline.begin(); (it2 + 1) != polyline.end(); it2++)
 	{
-		res += dist(it2->getX(), it2->getY(), (it2 + 1)->getX(), (it2 + 1)->getY());
+		polylineLength += dist(it2->getX(), it2->getY(), (it2 + 1)->getX(), (it2 + 1)->getY());
 	}
-	return res;
 }
 
 void sim_mob::RoadSegment::setCapacity() {

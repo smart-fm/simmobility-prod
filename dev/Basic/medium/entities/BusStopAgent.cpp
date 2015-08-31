@@ -9,6 +9,8 @@
 #include "entities/roles/waitBusActivity/waitBusActivity.hpp"
 #include "message/MT_Message.hpp"
 #include "entities/PT_Statistics.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
@@ -45,7 +47,7 @@ void BusStopAgent::removeAllBusStopAgents()
 
 
 BusStopAgent::BusStopAgent(const MutexStrategy& mtxStrat, int id, const BusStop* stop, SegmentStats* stats) :
-		Agent(mtxStrat, id), busStop(stop), parentSegmentStats(stats), availableLength(stop->getBusCapacityAsLength())
+		Agent(mtxStrat, id), busStop(stop), parentSegmentStats(stats), availableLength(stop->getBusCapacityAsLength()), currentTimeMS(0)
 {
 }
 
@@ -67,6 +69,11 @@ void BusStopAgent::onEvent(event::EventId eventId, event::Context ctxId, event::
 
 void BusStopAgent::registerWaitingPerson(sim_mob::medium::WaitBusActivity* waitingPerson)
 {
+	const sim_mob::BusStop* stop = this->getBusStop();
+	if(stop->terminusType == sim_mob::BusStop::SINK_TERMINUS)
+	{
+		throw std::runtime_error("attempt to add waiting person at SINK_TERMINUS");
+	}
 	messaging::MessageBus::ReRegisterHandler(waitingPerson->getParent(), GetContext());
 	waitingPersons.push_back(waitingPerson);
 }
@@ -83,6 +90,8 @@ void BusStopAgent::removeWaitingPerson(sim_mob::medium::WaitBusActivity* waiting
 
 void BusStopAgent::addAlightingPerson(sim_mob::medium::Passenger* passenger)
 {
+	Person* person = passenger->getParent();
+	person->getRole()->collectTravelTime();
 	alightingPersons.push_back(passenger);
 }
 
@@ -99,24 +108,44 @@ bool BusStopAgent::frame_init(timeslice now)
 
 Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 {
+	currentTimeMS = now.ms()+ConfigManager::GetInstance().FullConfig().simStartTime().getValue();
 	std::list<sim_mob::medium::Passenger*>::iterator itPerson = alightingPersons.begin();
 	while (itPerson != alightingPersons.end())
 	{
 		bool ret = false;
-		sim_mob::medium::Passenger* waitingPeople = *itPerson;
-		Person* person = waitingPeople->getParent();
+		sim_mob::medium::Passenger* alightedPassenger = *itPerson;
+		alightedPassenger->setEndNode(busStop->getParentSegment()->getEnd());
+		Person* person = alightedPassenger->getParent();
 		if (person)
 		{
 			UpdateStatus val = person->checkTripChain();
+			person->setStartTime(now.ms());
 			Role* role = person->getRole();
 			if (role)
 			{
 				if (role->roleType == Role::RL_WAITBUSACTITITY && val.status == UpdateStatus::RS_CONTINUE)
 				{
-					WaitBusActivity* waitPerson = dynamic_cast<WaitBusActivity*>(role);
-					if (waitPerson)
+					WaitBusActivity* waitActivity = dynamic_cast<WaitBusActivity*>(role);
+					if (waitActivity)
 					{
-						registerWaitingPerson(waitPerson);
+						//always make sure we dispatch this person only to SOURCE_TERMINUS or NOT_A_TERMINUS stops
+						const sim_mob::BusStop* stop = this->getBusStop();
+						if(stop->terminusType == sim_mob::BusStop::SINK_TERMINUS)
+						{
+							stop = stop->getTwinStop();
+							if(stop->terminusType == sim_mob::BusStop::SINK_TERMINUS) { throw std::runtime_error("both twin stops are SINKs"); } //sanity check
+							const StreetDirectory& strDirectory = StreetDirectory::instance();
+							Agent* twinStopAgent = strDirectory.findBusStopAgentByBusStop(stop);
+							if (twinStopAgent)
+							{
+								messaging::MessageBus::SendMessage(twinStopAgent, MSG_WAITING_PERSON_ARRIVAL_AT_BUSSTOP,
+										messaging::MessageBus::MessagePtr(new ArrivalAtStopMessage(person)));
+							}
+						}
+						else
+						{
+							registerWaitingPerson(waitActivity);
+						}
 						ret = true;
 					}
 				}
@@ -156,7 +185,7 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 			STORE_WAITING_AMOUNT,
 			messaging::MessageBus::MessagePtr(
 					new WaitingAmountMessage(busStop->getBusstopno_(),
-							DailyTime(now.ms()).toString(),
+							DailyTime(now.ms()).getStrRepr(),
 							waitingPersons.size())));
 
 	return UpdateStatus::Continue;
@@ -187,9 +216,9 @@ void BusStopAgent::HandleMessage(messaging::Message::MessageType type, const mes
 		}
 		break;
 	}
-	case MSG_WAITINGPERSON_ARRIVALAT_BUSSTOP:
+	case MSG_WAITING_PERSON_ARRIVAL_AT_BUSSTOP:
 	{
-		const ArriavalAtStopMessage& msg = MSG_CAST(ArriavalAtStopMessage, message);
+		const ArrivalAtStopMessage& msg = MSG_CAST(ArrivalAtStopMessage, message);
 		Person* person = msg.waitingPerson;
 		Role* role = person->getRole();
 		if (role)
@@ -231,15 +260,15 @@ void BusStopAgent::storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingAct
 	}
 
 	Person* person = waitingActivity->getParent();
-
 	unsigned int waitingTime = waitingActivity->getWaitingTime();
+	DailyTime currDailyTime(currentTimeMS);
 	DailyTime waitingDailyTime(waitingTime);
 	std::string stopId = busStop->getBusstopno_();
-	std::string personId = boost::lexical_cast<std::string>((person->GetId()));
-	std::string waitingTmInStr = waitingDailyTime.toString();
+	std::string personId = boost::lexical_cast<std::string>((person->getId()));
+	std::string busLines = waitingActivity->getBusLines();
 	unsigned int failedBoardingTime = waitingActivity->getFailedBoardingTimes();
 	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(), STORE_PERSON_WAITING,
-			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(stopId, personId, waitingTmInStr, failedBoardingTime)));
+			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(stopId, personId, currDailyTime.getStrRepr(), waitingDailyTime.getStrRepr(), busLines, failedBoardingTime)));
 }
 
 void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
@@ -253,23 +282,38 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 
 	itPerson = waitingPersons.begin();
 	while (itPerson != waitingPersons.end()) {
+		WaitBusActivity* waitingPeople = *itPerson;
+		Person* person = waitingPeople->getParent();
+		unsigned int waitingTm = waitingPeople->getWaitingTime();
+		const unsigned int hourInMilliSecs = 3600000;
+		if (waitingTm > hourInMilliSecs) {
+			sim_mob::SubTrip& subTrip = *(person->currSubTrip);
+			const std::string tripLineID = subTrip.getBusLineID();
+			Warn() << "[waiting long]Person[" << person->getId()
+					<< "] waiting [" << tripLineID << " ] at ["
+					<< this->getBusStop()->getBusstopno_() << "] for ["
+					<< DailyTime(waitingTm).getStrRepr() << "]" << std::endl;
+		}
 		if ((*itPerson)->canBoardBus()) {
 			bool ret = false;
-			WaitBusActivity* waitingPeople = *itPerson;
 			if (!busDriver->checkIsFull()) {
-				Person* person = waitingPeople->getParent();
-				storeWaitingTime(waitingPeople);
 				if (person) {
+					waitingPeople->collectTravelTime();
+					storeWaitingTime(waitingPeople);
 					person->checkTripChain();
 					Role* curRole = person->getRole();
-					sim_mob::medium::Passenger* passenger =
-							dynamic_cast<sim_mob::medium::Passenger*>(curRole);
-					if (passenger && busDriver->addPassenger(passenger)) {
+					curRole->setArrivalTime(currentTimeMS);
+					sim_mob::medium::Passenger* passenger = dynamic_cast<sim_mob::medium::Passenger*>(curRole);
+					if (passenger && busDriver->addPassenger(passenger))
+					{
+						passenger->setStartNode(busStop->getParentSegment()->getEnd());
+						passenger->Movement()->startTravelTimeMetric();
 						ret = true;
 					}
 				}
 			} else {
 				waitingPeople->increaseFailedBoardingTimes();
+				storeWaitingTime(waitingPeople);
 			}
 
 			if (ret) {

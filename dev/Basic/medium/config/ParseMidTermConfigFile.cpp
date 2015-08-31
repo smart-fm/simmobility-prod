@@ -197,6 +197,14 @@ void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* no
 	}
 	value = ParseString(GetNamedAttributeValue(child, "value"), "");
 	mtCfg.setFilenameOfWaitingAmountStats(value);
+
+	child = GetSingleElementByName(node, "travel_time_csv_file_output");
+	if (child == nullptr)
+	{
+		throw std::runtime_error("load statistics output parameters errors in MT_Config");
+	}
+	value = ParseString(GetNamedAttributeValue(child, "value"), "");
+	mtCfg.setFilenameOfTravelTimeStats(value);
 }
 
 

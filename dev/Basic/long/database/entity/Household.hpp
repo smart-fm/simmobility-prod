@@ -1,6 +1,6 @@
 //Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
-//   license.txt   (http://opensource.org/licenses/MIT)
+//license.txt   (http://opensource.org/licenses/MIT)
 
 /* 
  * File:   Household.hpp
@@ -23,7 +23,7 @@ namespace sim_mob
         public:
             Household();
             Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, double income,
-            		   int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType );
+            		   int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType, bool taxiAvailability, int vehicleOwnershipOptionId);
             virtual ~Household();
 
             Household& operator=(const Household& source);
@@ -65,6 +65,10 @@ namespace sim_mob
 
 			void	  setFamilyType(int);
 			int		  getFamilyType();
+			void setTaxiAvailability(bool taxiAvailable);
+			bool getTaxiAvailability();
+			void setVehicleOwnershipOptionId(int vehicleOwnershipOption);
+			int getVehicleOwnershipOptionId();
 
 			enum FAMILY_TYPE
 			{
@@ -104,6 +108,8 @@ namespace sim_mob
 			bool fourRoomHdbEligibility;
 
 			int	 familyType;
+			bool taxiAvailability;
+			int vehicleOwnershipOptionId;
         };
 
 

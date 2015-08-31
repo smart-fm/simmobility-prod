@@ -62,6 +62,7 @@ private:
 	void ProcessLongTermParamsNode(xercesc::DOMElement* node);
 	void ProcessLoopDetectorCountsNode(xercesc::DOMElement* node);
 	void ProcessShortDensityMapNode(xercesc::DOMElement* node);
+	void ProcessScreenLineNode(xercesc::DOMElement* node);
 
 	//Descend through Constructs
 	void ProcessConstructDatabasesNode(xercesc::DOMElement* node);
@@ -94,6 +95,7 @@ private:
 	//Descend through System/Workers
 	void ProcessWorkerPersonNode(xercesc::DOMElement* node);
 	void ProcessWorkerSignalNode(xercesc::DOMElement* node);
+	void ProcessWorkerIntMgrNode(xercesc::DOMElement* node);
 	void ProcessWorkerCommunicationNode(xercesc::DOMElement* node);
 
 	//Dabase mappings/connection
@@ -103,6 +105,7 @@ private:
 	//All entities are added to a "pending" list in the same manner.
 	void ProcessFutureAgentList(xercesc::DOMElement* node, const std::string& itemName, std::vector<sim_mob::EntityTemplate>& res, bool originReq=true, bool destReq=true, bool timeReq=true, bool laneReq=false);
 
+	void ProcessModelScriptsNode(xercesc::DOMElement* node);
 
 private:
 	//The config file we are currently loading

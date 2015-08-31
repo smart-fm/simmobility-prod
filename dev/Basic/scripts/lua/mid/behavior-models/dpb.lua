@@ -13,7 +13,7 @@ UPDATED VERSION - Adnan
 --Estimated values for all betas
 --Note: the betas that not estimated are fixed to zero.
 --travel constants
-local cons_travel = 1.71
+local cons_travel = 3.347
 
 
 --Person type
@@ -49,7 +49,7 @@ local beta_onlyadults_travel = 0.326
 
 
 --Personal income
-local beta_income_travel = -0.162
+local beta_income_travel = 0.162
 local beta_missingincome_travel = -0.427
 
 --Others

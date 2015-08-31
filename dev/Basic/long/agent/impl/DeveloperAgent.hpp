@@ -115,13 +115,38 @@ namespace sim_mob {
              */
             void setUnitsForHM(std::vector<Unit*>::iterator &first,std::vector<Unit*>::iterator &last);
 
+            /*
+             * set whether there are new units remaining to enter to market
+             */
             void setUnitsRemain (bool unitRemain);
+            /*
+             * get the simulation date by frame tick
+             */
             std::tm getDate(int day);
+            /*
+             * set the real estate agent for this developer agent
+             */
             void setRealEstateAgent(RealEstateAgent* realEstAgent);
+            /*
+             * set newly generated 7digit postcode for new units in each parcel.
+             */
             void setPostcode(int postCode);
+            /*
+             * set the housing market model for this developer agent
+             */
+            void setHousingMarketModel(HM_Model *housingModel);
+            /*
+             * get the quarter id by the quarter string to get TAO for each quarter
+             */
+            BigSerial getQuarterIdByQuarterStr(std::string quarterStr);
+            /*
+             * set the simulation year
+             */
+            void setSimYear(int simulationYear);
+
 
         private:
-            DeveloperModel* model;
+            DeveloperModel* devModel;
             Parcel *parcel;
             IdVector parcelsToProcess;
             bool active;
@@ -134,6 +159,8 @@ namespace sim_mob {
             std::vector<BigSerial> toBeDemolishedBuildingIds;
             RealEstateAgent* realEstateAgent;
             int postcode;
+            HM_Model *housingMarketModel;
+            int simYear;
 
         };
     }

@@ -24,6 +24,7 @@ struct NodeType
 	std::string id;
 	int type;
 };
+
 namespace aimsun
 {
 
@@ -34,22 +35,14 @@ class Crossing;
 
 ///An AIMSUN road intersection or segment intersection.
 /// \author Seth N. Hetu
-class Node : public Base {
+class Node : public Base
+{
 public:
 	double xPos;
 	double yPos;
+	//std::string nodeName;
 	bool isIntersection;
 	bool hasTrafficSignal;
-
-	Node() : Base(),
-		xPos(0), yPos(0), isIntersection(false), candidateForSegmentNode(false), generatedNode(nullptr), hasTrafficSignal(false) {}
-
-	int getXPosAsInt() {
-		return round(xPos);
-	}
-	int getYPosAsInt() {
-		return round(yPos);
-	}
 
 	//Decorated data
 	std::vector<Section*> sectionsAtNode;
@@ -60,8 +53,9 @@ public:
 	//Reference to saved object (Maybe be UniNode or MultiNode, of course)
 	sim_mob::Node* generatedNode;
 
+	Node() : Base(), xPos(0), yPos(0), /*nodeName(""),*/ isIntersection(false), candidateForSegmentNode(false), generatedNode(nullptr), hasTrafficSignal(false) {}
+	int getXPosAsInt() { return round(xPos); }
+	int getYPosAsInt() { return round(yPos); }
 };
-
-
 }
 }

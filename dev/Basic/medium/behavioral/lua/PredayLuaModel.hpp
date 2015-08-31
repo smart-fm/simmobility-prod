@@ -15,7 +15,7 @@
 #include "behavioral/params/StopGenerationParams.hpp"
 #include "behavioral/params/TimeOfDayParams.hpp"
 #include "behavioral/params/TourModeParams.hpp"
-#include "behavioral/params/ModeDestinationParams.hpp"
+#include "behavioral/params/TourModeDestinationParams.hpp"
 #include "lua/LuaModel.hpp"
 #include "behavioral/PredayClasses.hpp"
 

@@ -1,6 +1,6 @@
 //Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
-//   license.txt   (http://opensource.org/licenses/MIT)
+//license.txt   (http://opensource.org/licenses/MIT)
 
 /* 
  * File:   Postcode.hpp
@@ -14,14 +14,15 @@
 #include "Types.hpp"
 #include "geospatial/coord/CoordinateTransform.hpp"
 
-namespace sim_mob {
-
-    namespace long_term {
-
+namespace sim_mob
+{
+    namespace long_term
+    {
         /**
          * Postcode plain object.
          */
-        class Postcode {
+        class Postcode
+        {
         public:
             Postcode( BigSerial address_id = INVALID_ID, std::string sla_postcode = EMPTY_STR, BigSerial taz_id = INVALID_ID, float longitude = .0,
             		  float latitude = .0, bool primary_postcode = false );
@@ -48,7 +49,7 @@ namespace sim_mob {
 
         private:
             friend class PostcodeDao;
-        private:
+
             BigSerial address_id;
             std::string sla_postcode;
             BigSerial taz_id;

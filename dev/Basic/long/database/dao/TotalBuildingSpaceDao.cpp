@@ -11,8 +11,7 @@
 using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
-TotalBuildingSpaceDao::TotalBuildingSpaceDao(DB_Connection& connection): SqlAbstractDao<TotalBuildingSpace>( connection, DB_GETALL_TOTAL_BUILDING_SPACE, EMPTY_STR, EMPTY_STR, EMPTY_STR,
-		EMPTY_STR, EMPTY_STR ) {}
+TotalBuildingSpaceDao::TotalBuildingSpaceDao(DB_Connection& connection): SqlAbstractDao<TotalBuildingSpace>( connection, EMPTY_STR, EMPTY_STR, EMPTY_STR,EMPTY_STR,DB_GETALL_TOTAL_BUILDING_SPACE, EMPTY_STR ) {}
 
 TotalBuildingSpaceDao::~TotalBuildingSpaceDao() {}
 

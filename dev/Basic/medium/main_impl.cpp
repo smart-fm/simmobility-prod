@@ -44,6 +44,8 @@
 #include "path/PathSetManager.hpp"
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
+#include "path/PT_PathSetManager.hpp"
+#include "path/PT_RouteChoiceLuaModel.hpp"
 #include "util/DailyTime.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Utils.hpp"
@@ -52,6 +54,10 @@
 #include "workers/WorkGroupManager.hpp"
 #include "config/MT_Config.hpp"
 #include "config/ParseMidTermConfigFile.hpp"
+#include "entities/params/PT_NetworkEntities.hpp"
+#include "database/pt_network_dao/PT_NetworkSqlDao.hpp"
+#include "geospatial/streetdir/A_StarPublicTransitShortestPathImpl.hpp"
+#include "path/ScreenLineCounter.hpp"
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -78,6 +84,13 @@ const std::string MT_CONFIG_FILE = "data/medium/mt-config.xml";
 
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
+
+
+void unit_test_function(){
+	sim_mob::Node* src_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(14934);
+	sim_mob::Node* dest_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(11392);
+	sim_mob::PT_PathSetManager::Instance().makePathset(src_node,dest_node);
+}
 
 /**
  * Main simulation loop for the supply simulator
@@ -276,6 +289,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		PathSetManager::getInstance()->storeRTT();
 	}
+
 	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;
 	cout << "Max Agents at any given time: " <<maxAgents <<endl;
 	cout << "Starting Agents: " << numStartAgents
@@ -532,6 +546,11 @@ int main_impl(int ARGC, char* ARGV[])
 
 	timeval simEndTime;
 	gettimeofday(&simEndTime, nullptr);
+
+	if(ConfigManager::GetInstance().FullConfig().screenLineParams.outputEnabled)
+	{
+		ScreenLineCounter::getInstance()->exportScreenLineCount();
+	}
 
 	Print() << "Done" << endl;
 	cout << "Total simulation time: "<< (ProfileBuilder::diff_ms(simEndTime, simStartTime))/1000.0 << " seconds." << endl;

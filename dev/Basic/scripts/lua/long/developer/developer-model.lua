@@ -86,107 +86,285 @@ UNIT_TYPE_COEFFICIENTS = readOnlyTable
 {
     [1]=
         {   -- Terraced houses 
-            [0]  = 11.540,  -- b0 constant
-            [1]  = 0.477,   -- b1 unit floor area (m^2) 
-            [2]  = 0.091,   -- b2 freehold (boolean)
-            [3]  = 0.003,   -- b3 straight line distance to CBD (KM)
-            [4]  = 0.000,   -- b4 job accessibility by Car (10^6)
-            [5]  = 0.030,   -- b5 within 1KM of top primary school (boolean)
-            [6]  = 0.005,   -- b6 straight line distance to Shopping Mall (KM)
-            [7]  = -0.047,  -- b7 within 200m of MRT station (boolean)
-            [8]  = 0.001,   -- b8 within 200m-400m of MRT station (boolean)
-            [9]  = -0.028,  -- b9 within 200m of an express way (boolean)
-            [10] = -0.190,  -- b10 within 200m of a bus stop (boolean)
-            [11] = -0.158   -- b11 within 200m-400m of a bus stop (boolean)
+            [0]  = 2.458,    -- intercept
+            [1]  = 0.480,   -- b1 unit floor area (m^2) 
+            [2]  = 0.111,   -- b2 freehold (boolean)
+            [3]  = 3.406,   -- b3 logsum accessebility
+            [4]  = 0.034,   -- b4 within 1KM of top primary school (boolean)
+            [5]  = -0.003,  -- b5 Distance to mall (km)
+            [6]  = 0.020,   -- b6 within 200m of a MRT station (boolean)
+            [7]  = 0.003,   -- b7 within 200m-400m of MRT station (boolean)
+            [8]  = 0.004,   -- b8 within 200m of express way (boolean)
+            [9]  = 0.031,   -- b9 Within 200-400m of a bus stop (boolean)
+            [10] = 0.224   -- b10 Beyond 400m of a bus stop (boolean)
         }, 
     [2]=
         {   -- Semi-Detached houses
-            [0]  = 11.890,  -- b0 constant
-            [1]  = 0.440,   -- b1 unit floor area (m^2) 
-            [2]  = 0.106,   -- b2 freehold (boolean)
-            [3]  = -0.015,   -- b3 straight line distance to CBD (KM)
-            [4]  = 1.337,   -- b4 job accessibility by Car (10^6)
-            [5]  = 0.033,   -- b5 within 1KM of top primary school (boolean)
-            [6]  = 0.010,   -- b6 straight line distance to Shopping Mall (KM)
-            [7]  = -0.210,  -- b7 within 200m of MRT station (boolean)
-            [8]  = -0.033,   -- b8 within 200m-400m of MRT station (boolean)
-            [9]  = -0.191,  -- b9 within 200m of an express way (boolean)
-            [10] = -0.125,  -- b10 within 200m of a bus stop (boolean)
-            [11] = -0.100   -- b11 within 200m-400m of a bus stop (boolean)
+            [0]  = -19.390,  -- intercept
+            [1]  = 0.4446,   -- b1 unit floor area (m^2) 
+            [2]  = 0.096,    -- b2 freehold (boolean)
+            [3]  = 11.640,   -- b3 logsum accessebility
+            [4]  = 0.020,    -- b4 within 1KM of top primary school (boolean)
+            [5]  = 0.007,    -- b5 Distance to mall (km)
+            [6]  = -0.229,   -- b6 within 200m of a MRT station (boolean)
+            [7]  = -0.050,   -- b7 within 200m-400m of MRT station (boolean)
+            [8]  = -0.168,   -- b8 within 200m of express way (boolean)
+            [9]  = 0.023,    -- b9 Within 200-400m of a bus stop (boolean)
+            [10] = 0.153    -- b10 Beyond 400m of a bus stop (boolean)
         }, 
     [3]=
         {   -- Detached houses
-            [0]  = 10.040,  -- b0 constant
-            [1]  = 0.807,   -- b1 unit floor area (m^2) 
-            [2]  = -0.008,   -- b2 freehold (boolean)
-            [3]  = -0.038,   -- b3 straight line distance to CBD (KM)
-            [4]  = 1.095,   -- b4 job accessibility by Car (10^6)
-            [5]  = 0.029,   -- b5 within 1KM of top primary school (boolean)
-            [6]  = 0.043,   -- b6 straight line distance to Shopping Mall (KM)
-            [7]  = 0.009,  -- b7 within 200m of MRT station (boolean)
-            [8]  = -0.043,   -- b8 within 200m-400m of MRT station (boolean)
-            [9]  = -0.118,  -- b9 within 200m of an express way (boolean)
-            [10] = -0.170,  -- b10 within 200m of a bus stop (boolean)
-            [11] = -0.084   -- b11 within 200m-400m of a bus stop (boolean)
+            [0]  = -26.490,  -- intercept
+            [1]  = 0.849,    -- b1 unit floor area (m^2) 
+            [2]  = -0.026,   -- b2 freehold (boolean)
+            [3]  = 13.420,   -- b3 logsum accessebility
+            [4]  = -0.011,   -- b4 within 1KM of top primary school (boolean)
+            [5]  = 0.011,    -- b5 Distance to mall (km)
+            [6]  = -0.008,   -- b6 within 200m of a MRT station (boolean)
+            [7]  = -0.049,   -- b7 within 200m-400m of MRT station (boolean)
+            [8]  = -0.113,   -- b8 within 200m of express way (boolean)
+            [9]  = 0.111,    -- b9 Within 200-400m of a bus stop (boolean)
+            [10] = 0.282    -- b10 Beyond 400m of a bus stop (boolean)
         }, 
     [4]=
         {   -- Apartement
-            [0]  = 9.306,   -- b0 constant
-            [1]  = 0.814,   -- b1 unit floor area (m^2) 
-            [2]  = 0.151,   -- b2 freehold (boolean)
-            [3]  = 0.0121,   -- b3 straight line distance to CBD (KM)
-            [4]  = 1.355,   -- b4 job accessibility by Car (10^6)
-            [5]  = 0.091,   -- b5 within 1KM of top primary school (boolean)
-            [6]  = -0.063,   -- b6 straight line distance to Shopping Mall (KM)
-            [7]  = 0.011,  -- b7 within 200m of MRT station (boolean)
-            [8]  = 0.150,   -- b8 within 200m-400m of MRT station (boolean)
-            [9]  = -0.095,  -- b9 within 200m of an express way (boolean)
-            [10] = -0.247,  -- b10 within 200m of a bus stop (boolean)
-            [11] = -0.170   -- b11 within 200m-400m of a bus stop (boolean)
+            [0]  = -20.320,  -- intercept
+            [1]  = 0.808,    -- b1 unit floor area (m^2) 
+            [2]  = 0.114,    -- b2 freehold (boolean)
+            [3]  = 11.150,   -- b3 logsum accessebility
+            [4]  = 0.048,    -- b4 within 1KM of top primary school (boolean)
+            [5]  = -0.110,   -- b5 Distance to mall (km)
+            [6]  = -0.030,   -- b6 within 200m of a MRT station (boolean)
+            [7]  = -0.168,   -- b7 within 200m-400m of MRT station (boolean)
+            [8]  = -0.084,   -- b8 within 200m of express way (boolean)
+            [9]  = 0.102,    -- b9 Within 200-400m of a bus stop (boolean)
+            [10] = 0.262    -- b10 Beyond 400m of a bus stop (boolean)
         }, 
     [5]=
         {   -- Executive Condo
-            [0]  = 10.310,  -- b0 constant
-            [1]  = 0.732,   -- b1 unit floor area (m^2) 
-            [2]  = 0,       -- b2 freehold (boolean)
-            [3]  = -0.014,  -- b3 straight line distance to CBD (KM)
-            [4]  = 0.008,   -- b4 job accessibility by Car (10^6)
-            [5]  = -0.020,  -- b5 within 1KM of top primary school (boolean)
-            [6]  = -0.014,  -- b6 straight line distance to Shopping Mall (KM)
-            [7]  = 0,       -- b7 within 200m of MRT station (boolean)
-            [8]  = 0.029,   -- b8 within 200m-400m of MRT station (boolean)
-            [9]  = -0.030,  -- b9 within 200m of an express way (boolean)
-            [10] = 0.035,   -- b10 within 200m of a bus stop (boolean)
-            [11] = 0.027    -- b11 within 200m-400m of a bus stop (boolean)
+            [0]  = 1.771,    -- intercept
+            [1]  = 0.722,    -- b1 unit floor area (m^2) 
+            [2]  = 0   ,    -- b2 freehold (boolean)
+            [3]  = 3.108,    -- b3 logsum accessebility
+            [4]  = -0.043,   -- b4 within 1KM of top primary school (boolean)
+            [5]  = -0.019,   -- b5 Distance to mall (km)
+            [6]  =  0 ,   -- b6 within 200m of a MRT station (boolean)
+            [7]  = 0.006,    -- b7 within 200m-400m of MRT station (boolean)
+            [8]  = -0.046,   -- b8 within 200m of express way (boolean)
+            [9]  = -0.011,   -- b9 Within 200-400m of a bus stop (boolean)
+            [10] = -0.030   -- b10 Beyond 400m of a bus stop (boolean)
         }, 
     [6]=
         {  -- Condo
-            [0]  = 9.796,   -- b0 constant
-            [1]  = 0.909,   -- b1 unit floor area (m^2) 
-            [2]  = 0.169,   -- b2 freehold (boolean)
-            [3]  = -0.031,   -- b3 straight line distance to CBD (KM)
-            [4]  = 0.609,   -- b4 job accessibility by Car (10^6)
-            [5]  = 0.063,   -- b5 within 1KM of top primary school (boolean)
-            [6]  = -0.031,   -- b6 straight line distance to Shopping Mall (KM)
-            [7]  = -0.003,  -- b7 within 200m of MRT station (boolean)
-            [8]  = 0.043,   -- b8 within 200m-400m of MRT station (boolean)
-            [9]  = -0.063,  -- b9 within 200m of an express way (boolean)
-            [10] = -0.273,  -- b10 within 200m of a bus stop (boolean)
-            [11] = -0.215   -- b11 within 200m-400m of a bus stop (boolean)
+            [0]  = -23.560,  -- intercept
+            [1]  = 0.939,    -- b1 unit floor area (m^2) 
+            [2]  = 0.186,    -- b2 freehold (boolean)
+            [3]  = 12.220,   -- b3 logsum accessebility
+            [4]  = 0.013,    -- b4 within 1KM of top primary school (boolean)
+            [5]  = -0.054,   -- b5 Distance to mall (km)
+            [6]  = -0.556,   -- b6 within 200m of a MRT station (boolean)
+            [7]  = -0.002,   -- b7 within 200m-400m of MRT station (boolean)
+            [8]  = -0.032,   -- b8 within 200m of express way (boolean)
+            [9]  = 0.056,    -- b9 Within 200-400m of a bus stop (boolean)
+            [10] = 0.362    -- b10 Beyond 400m of a bus stop (boolean)
         }, 
 }
 
-UNIT_HPIVALUES = readOnlyTable 
+UNIT_TAOVALUESQ1 = readOnlyTable 
 {
     [1]=
-        {   -- condo; Please note that the below values are for testing only
-            [0]  = 11.540,  -- HPI ^ t
-            [1]  = 0.477,   -- HPI ^ (t-4)
-            [2]  = 0.091,   -- HPI ^ (t-5)
-            [3]  = 0.003,   -- HPI ^ (t-6)
-            [4]  = 0.0006,   -- HPI ^ (t-7)
+        {   -- values for 2008Q1 : terraced houses
+            [0]  = -0.282,    -- HPI ^ (t-4)
+            [1]  = -0.3155,   -- HPI ^ (t-5)
+            [2]  = -0.3774,   -- HPI ^ (t-6)
+            [3]  = -0.3499,   -- HPI ^ (t-7)
         }, 
+    [2]=
+        {   -- values for 2008Q1 : semi detached houses
+            [0]  = -0.1838,  -- HPI ^ (t-4)
+            [1]  = -0.27,    -- HPI ^ (t-5)
+            [2]  = -0.3205,  -- HPI ^ (t-6)
+            [3]  = -0.34,    -- HPI ^ (t-7)
+        }, 
+    [3]=
+        {   -- values for 2008Q1 : detached houses
+            [0]  = -0.00163,  -- HPI ^ (t-4)
+            [1]  = -0.1035,    -- HPI ^ (t-5)
+            [2]  = -0.2107,  -- HPI ^ (t-6)
+            [3]  = -0.1809,    -- HPI ^ (t-7)
+        }, 
+    [4]=
+        {   -- values for 2008Q1 : Apartments
+            [0]  = 0.2114,  -- HPI ^ (t-4)
+            [1]  = 0.04926,    -- HPI ^ (t-5)
+            [2]  = -0.01006,  -- HPI ^ (t-6)
+            [3]  = -0.06399,    -- HPI ^ (t-7)
+        }, 
+    [5]=
+        {   -- values for 2008Q1 : Executive condos
+            [0]  = -0.1633,  -- HPI ^ (t-4)
+            [1]  = -0.1968,    -- HPI ^ (t-5)
+            [2]  = -0.1843,  -- HPI ^ (t-6)
+            [3]  = -0.1583,    -- HPI ^ (t-7)
+        },  
+    [6]=
+        {   -- values for 2008Q1 : Condos
+            [0]  = -0.05231,  -- HPI ^ (t-4)
+            [1]  = -0.08905,    -- HPI ^ (t-5)
+            [2]  = -0.155,  -- HPI ^ (t-6)
+            [3]  = -0.2565,    -- HPI ^ (t-7)
+        },  
 }
+
+UNIT_TAOVALUESQ2 = readOnlyTable 
+{
+    [1]=
+        {   -- values for 2008Q2 : terraced houses
+            [0]  = -0.1826,    -- HPI ^ (t-4)
+            [1]  = -0.282,   -- HPI ^ (t-5)
+            [2]  = -0.3155,   -- HPI ^ (t-6)
+            [3]  = -0.3774,   -- HPI ^ (t-7)
+        }, 
+    [2]=
+        {   -- values for 2008Q2 : semi detached houses
+            [0]  = -0.09528,  -- HPI ^ (t-4)
+            [1]  = -0.1838,  -- HPI ^ (t-5)
+            [2]  = -0.27,    -- HPI ^ (t-6)
+            [3]  = -0.3205,  -- HPI ^ (t-7)
+        }, 
+    [3]=
+        {   -- values for 2008Q2 : detached houses
+            [0]  = 0.1321,  -- HPI ^ (t-4)
+            [1]  = -0.00163,  -- HPI ^ (t-5)
+            [2]  = -0.1035,    -- HPI ^ (t-6)
+            [3]  = -0.2107,  -- HPI ^ (t-7)
+        }, 
+    [4]=
+        {   -- values for 2008Q2 : Apartments
+            [0]  = 0.2444,  -- HPI ^ (t-4)
+            [1]  = 0.2114,  -- HPI ^ (t-5)
+            [2]  = 0.04926,    -- HPI ^ (t-6)
+            [3]  = -0.01006,  -- HPI ^ (t-7)
+        }, 
+    [5]=
+        {   -- values for 2008Q2 : Executive condos
+            [0]  = -0.08069,  -- HPI ^ (t-4)
+            [1]  = -0.1633,  -- HPI ^ (t-5)
+            [2]  = -0.1968,    -- HPI ^ (t-6)
+            [3]  = -0.1843,  -- HPI ^ (t-7)
+        },  
+    [6]=
+        {   -- values for 2008Q2 : Condos
+            [0]  = 0.03072,  -- HPI ^ (t-4)
+            [1]  = -0.05231,    -- HPI ^ (t-5)
+            [2]  = -0.08905,  -- HPI ^ (t-6)
+            [3]  = -0.155,    -- HPI ^ (t-7)
+        },  
+}
+
+UNIT_TAOVALUESQ3 = readOnlyTable 
+{
+    [1]=
+        {   -- values for 2008Q3 : terraced houses
+            [0]  = -0.06558,    -- HPI ^ (t-4)
+            [1]  = -0.1826,   -- HPI ^ (t-5)
+            [2]  = -0.282,   -- HPI ^ (t-6)
+            [3]  = -0.3155,   -- HPI ^ (t-7)
+        }, 
+    [2]=
+        {   -- values for 2008Q3 : semi detached houses
+            [0]  = 0.02236,  -- HPI ^ (t-4)
+            [1]  = -0.09528,  -- HPI ^ (t-5)
+            [2]  = -0.1838,    -- HPI ^ (t-6)
+            [3]  = -0.27,  -- HPI ^ (t-7)
+        }, 
+    [3]=
+        {   -- values for 2008Q3 : detached houses
+            [0]  = 0.236,  -- HPI ^ (t-4)
+            [1]  = 0.1321,  -- HPI ^ (t-5)
+            [2]  = -0.00163,    -- HPI ^ (t-6)
+            [3]  = -0.1035,  -- HPI ^ (t-7)
+        }, 
+    [4]=
+        {   -- values for 2008Q3 : Apartments
+            [0]  = 0.3985,  -- HPI ^ (t-4)
+            [1]  = 0.2444,  -- HPI ^ (t-5)
+            [2]  = 0.2114,    -- HPI ^ (t-6)
+            [3]  = 0.04926,  -- HPI ^ (t-7)
+        }, 
+    [5]=
+        {   -- values for 2008Q3 : Executive condos
+            [0]  = 0.05983,  -- HPI ^ (t-4)
+            [1]  = -0.08069,  -- HPI ^ (t-5)
+            [2]  = -0.1633,    -- HPI ^ (t-6)
+            [3]  = -0.1968,  -- HPI ^ (t-7)
+        },  
+    [6]=
+        {   -- values for 2008Q3 : Condos
+            [0]  = 0.1838,  -- HPI ^ (t-4)
+            [1]  = 0.03072,    -- HPI ^ (t-5)
+            [2]  = -0.05231,  -- HPI ^ (t-6)
+            [3]  = -0.08905,    -- HPI ^ (t-7)
+        },  
+}
+
+UNIT_TAOVALUESQ4 = readOnlyTable 
+{
+    [1]=
+        {   -- values for 2008Q4 : terraced houses
+            [0]  = 0.06931,    -- HPI ^ (t-4)
+            [1]  = -0.06558,   -- HPI ^ (t-5)
+            [2]  = -0.1826,   -- HPI ^ (t-6)
+            [3]  = -0.282,   -- HPI ^ (t-7)
+        }, 
+    [2]=
+        {   -- values for 2008Q4 : semi detached houses
+            [0]  = 0.02953,  -- HPI ^ (t-4)
+            [1]  = 0.02236,  -- HPI ^ (t-5)
+            [2]  = -0.09528,    -- HPI ^ (t-6)
+            [3]  = -0.1838,  -- HPI ^ (t-7)
+        }, 
+    [3]=
+        {   -- values for 2008Q4 : detached houses
+            [0]  = 0.2003,  -- HPI ^ (t-4)
+            [1]  = 0.236,  -- HPI ^ (t-5)
+            [2]  = 0.1321,    -- HPI ^ (t-6)
+            [3]  = -0.00163,  -- HPI ^ (t-7)
+        }, 
+    [4]=
+        {   -- values for 2008Q4 : Apartments
+            [0]  = 0.3303,  -- HPI ^ (t-4)
+            [1]  = 0.3985,  -- HPI ^ (t-5)
+            [2]  = 0.2444,    -- HPI ^ (t-6)
+            [3]  = 0.2114,  -- HPI ^ (t-7)
+        }, 
+    [5]=
+        {   -- values for 2008Q4 : Executive condos
+            [0]  = 0.1285,  -- HPI ^ (t-4)
+            [1]  = 0.05983,  -- HPI ^ (t-5)
+            [2]  = -0.08069,    -- HPI ^ (t-6)
+            [3]  = -0.1633,  -- HPI ^ (t-7)
+        },  
+    [6]=
+        {   -- values for 2008Q4 : Condos
+            [0]  = 0.1932,  -- HPI ^ (t-4)
+            [1]  = 0.1838,    -- HPI ^ (t-5)
+            [2]  = 0.03072,  -- HPI ^ (t-6)
+            [3]  = -0.05231,    -- HPI ^ (t-7)
+        },  
+}
+--[[****************************************************************************
+PROFIT CALCULATION EQUATIONS - HPI
+
+> condo market T^j(t)= -0.04155 + 1.49396 * T^j(t-4) -0.90378 * Tj(t-5) -0.20183 * T^j(t-6) +0.31161*T^j(t-7)
+> apartment market T^j(t)= 0.03016 + 0.93910 * T^j(t-4) -0.14051 * Tj(t-5) -0.30319 * T^j(t-6) +0.32669*T^j(t-7)
+> terrace market T^j(t)= -0.00466 + 1.32720 * T^j(t-4) -0.71526 * Tj(t-5) -0.04628 * T^j(t-6) +0.28911*T^j(t-7)
+> semi detached market T^j(t)= 0.01308 + 1.51888 * T^j(t-4) -0.62345 * Tj(t-5) -0.49521 * T^j(t-6) +0.53292*T^j(t-7)
+> detached market T^j(t)= 0.02164 + 1.19593 * T^j(t-4) -0.36370 * Tj(t-5) -0.19163 * T^j(t-6) +0.25972*T^j(t-7)
+> EC market T^j(t)= 0.01781 + 1.13111 * T^j(t-4) -0.34371 * Tj(t-5) -0.25454 * T^j(t-6) +0.41047 * T^j(t-7)
+
+********************************************************************************]]
+
 --[[****************************************************************************
     FUNCTIONS
 ******************************************************************************]]
@@ -220,57 +398,115 @@ function getBuildingTypeFromUnitType(unitTypeId)
 end
 
 --exp value is calculated for amenties only: This should be changed as per "calculateUnitRevenueCondo(amenities,unit)" function once HPI values are received.
-function calculateUnitRevenueApartment(amenities,unit)
+function calculateUnitRevenueApartment(amenities,unit,logsum,quarter,futureYear,HPIfromData)
 	local revenue = 0
-	revenue = math.exp(UNIT_TYPE_COEFFICIENTS[4][0] + UNIT_TYPE_COEFFICIENTS[4][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[4][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[4][3] * (amenities.distanceToCBD/1000) + UNIT_TYPE_COEFFICIENTS[4][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[4][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[4][6]* (amenities.distanceToMall/1000) + UNIT_TYPE_COEFFICIENTS[4][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[4][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[4][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[4][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[4][11]* amenities.bus_400m)
-	return revenue;
+	revenue = (UNIT_TYPE_COEFFICIENTS[4][0]) + (UNIT_TYPE_COEFFICIENTS[4][1]* math.log(unit.floorArea)) + (UNIT_TYPE_COEFFICIENTS	[4][2] * unit.freehold)  + (UNIT_TYPE_COEFFICIENTS[4][3] * logsum) + (UNIT_TYPE_COEFFICIENTS[4][4] * amenities.pms_1km) + (UNIT_TYPE_COEFFICIENTS[4][5] * amenities.distanceToMall) + (UNIT_TYPE_COEFFICIENTS[4][6]* amenities.mrt_200m) + (UNIT_TYPE_COEFFICIENTS[4][7]* amenities.mrt_400m) + (UNIT_TYPE_COEFFICIENTS[4][8]* amenities.express_200m) + (UNIT_TYPE_COEFFICIENTS[4][9]* amenities.bus_200m) + (UNIT_TYPE_COEFFICIENTS[4][10]* amenities.bus_400m)
+	local HPI = 0
+	if(futureYear == 1) then
+	--constants are according to the equations - refer "PROFIT CALCULATION EQUATIONS - HPI" above.
+	if(quarter == 1) then HPI = 0.03016 + 0.93910 * UNIT_TAOVALUESQ1[4][0] -0.14051 * UNIT_TAOVALUESQ1[4][1] -0.30319 * UNIT_TAOVALUESQ1[4][2] + 0.32669 * UNIT_TAOVALUESQ1[4][3]
+	elseif(quarter == 2) then HPI = 0.03016 + 0.93910 * UNIT_TAOVALUESQ2[4][0] -0.14051 * UNIT_TAOVALUESQ2[4][1] -0.30319 * UNIT_TAOVALUESQ2[4][2] + 0.32669 * UNIT_TAOVALUESQ2[4][3]
+	elseif(quarter == 3) then HPI = 0.03016 + 0.93910 * UNIT_TAOVALUESQ3[4][0] -0.14051 * UNIT_TAOVALUESQ3[4][1] -0.30319 * UNIT_TAOVALUESQ3[4][2] + 0.32669 * UNIT_TAOVALUESQ3[4][3]
+	elseif(quarter == 4) then HPI = 0.03016 + 0.93910 * UNIT_TAOVALUESQ4[4][0] -0.14051 * UNIT_TAOVALUESQ4[4][1] -0.30319 * UNIT_TAOVALUESQ4[4][2] + 0.32669 * UNIT_TAOVALUESQ4[4][3]
+	end
+	else HPI = HPIfromData
+	end
+	local totalRevenue = math.exp(revenue + HPI)
+	return totalRevenue;
 end
 
-function calculateUnitRevenueCondo(amenities,unit)
+function calculateUnitRevenueCondo(amenities,unit,logsum,quarter,futureYear,HPIfromData)
 	local revenue = 0
-	revenue = math.exp(UNIT_TYPE_COEFFICIENTS[6][0] + UNIT_TYPE_COEFFICIENTS[6][1]* math.log(unit.floorArea) + 		UNIT_TYPE_COEFFICIENTS	[6][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[6][3] * (amenities.distanceToCBD/1000) + 	UNIT_TYPE_COEFFICIENTS[6][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[6][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[6][6]* (amenities.distanceToMall/1000) + UNIT_TYPE_COEFFICIENTS[6][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[6][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[6][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[6][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[6][11]* amenities.bus_400m)
---local HPI = 0.029 + 1.799 * UNIT_HPIVALUES[1][1] - 0.911 * UNIT_HPIVALUES [1][2] - 0.465 * UNIT_HPIVALUES [1][3] +
---UNIT_HPIVALUES [1][4]
-        --local profit = math.exp(revenue + HPI)
-	return revenue;
+	revenue = (UNIT_TYPE_COEFFICIENTS[6][0]) + (UNIT_TYPE_COEFFICIENTS[6][1]* math.log(unit.floorArea)) + (UNIT_TYPE_COEFFICIENTS [6][2] * unit.freehold ) + (UNIT_TYPE_COEFFICIENTS[6][3] * logsum) + (UNIT_TYPE_COEFFICIENTS[6][4] * amenities.pms_1km) + (UNIT_TYPE_COEFFICIENTS[6][5] * amenities.distanceToMall) +( UNIT_TYPE_COEFFICIENTS[6][6]* amenities.mrt_200m) + (UNIT_TYPE_COEFFICIENTS[6][7]* amenities.mrt_400m) + (UNIT_TYPE_COEFFICIENTS[6][8]* amenities.express_200m) + (UNIT_TYPE_COEFFICIENTS[6][9]* amenities.bus_200m) + (UNIT_TYPE_COEFFICIENTS[6][10]* amenities.bus_400m)
+	local HPI = 0
+	if(futureYear == 1) then
+	if(quarter == 1) then HPI = -0.01455 + 1.49396 * UNIT_TAOVALUESQ1[6][0] -0.90378 * UNIT_TAOVALUESQ1[6][1] -0.20183 * UNIT_TAOVALUESQ1[6][2] + 0.31161 * UNIT_TAOVALUESQ1[6][3]
+	elseif(quarter == 2) then HPI = -0.01455 + 1.49396 * UNIT_TAOVALUESQ2[6][0] -0.90378 * UNIT_TAOVALUESQ2[6][1] -0.20183 * UNIT_TAOVALUESQ2[6][2] + 0.31161 * UNIT_TAOVALUESQ2[6][3]
+	elseif(quarter == 3) then HPI = -0.01455 + 1.49396 * UNIT_TAOVALUESQ3[6][0] -0.90378 * UNIT_TAOVALUESQ3[6][1] -0.20183 * UNIT_TAOVALUESQ3[6][2] + 0.31161 * UNIT_TAOVALUESQ3[6][3]
+	elseif(quarter == 4) then HPI = -0.01455 + 1.49396 * UNIT_TAOVALUESQ4[6][0] -0.90378 * UNIT_TAOVALUESQ4[6][1] -0.20183 * UNIT_TAOVALUESQ4[6][2] + 0.31161 * UNIT_TAOVALUESQ4[6][3]
+	end
+	else HPI = HPIfromData
+	end
+	local totalRevenue = math.exp(revenue + HPI)
+	return totalRevenue;
 end
 
-function calculateUnitRevenueSemiDetatched(amenities,unit)
+function calculateUnitRevenueSemiDetatched(amenities,unit,logsum,quarter,futureYear,HPIfromData)
 	local revenue = 0
-	revenue = math.exp(UNIT_TYPE_COEFFICIENTS[2][0] + UNIT_TYPE_COEFFICIENTS[2][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[2][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[2][3] * (amenities.distanceToCBD/1000) + UNIT_TYPE_COEFFICIENTS[2][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[2][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[2][6]* (amenities.distanceToMall/1000) + UNIT_TYPE_COEFFICIENTS[2][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[2][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[2][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[2][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[2][11]* amenities.bus_400m)
-	return revenue;
+	revenue = (UNIT_TYPE_COEFFICIENTS[2][0]) + (UNIT_TYPE_COEFFICIENTS[2][1]* math.log(unit.floorArea)) + (UNIT_TYPE_COEFFICIENTS	[2][2] * unit.freehold)  + (UNIT_TYPE_COEFFICIENTS[2][3] * logsum) + (UNIT_TYPE_COEFFICIENTS[2][4] * amenities.pms_1km) + (UNIT_TYPE_COEFFICIENTS[2][5] * amenities.distanceToMall) + (UNIT_TYPE_COEFFICIENTS[2][6]* amenities.mrt_200m) + (UNIT_TYPE_COEFFICIENTS[2][7]* amenities.mrt_400m) + (UNIT_TYPE_COEFFICIENTS[2][8]* amenities.express_200m) + (UNIT_TYPE_COEFFICIENTS[2][9]* amenities.bus_200m) + (UNIT_TYPE_COEFFICIENTS[2][10]* amenities.bus_400m)
+	local HPI = 0
+	if(futureYear == 1) then
+	if(quarter == 1) then HPI = 0.01308 + 1.51888 * UNIT_TAOVALUESQ1[2][0] -0.62345 * UNIT_TAOVALUESQ1[2][1] -0.49512 * UNIT_TAOVALUESQ1[2][2] + 0.53292 * UNIT_TAOVALUESQ1[2][3]
+	elseif(quarter == 2) then HPI = 0.01308 + 1.51888 * UNIT_TAOVALUESQ2[2][0] -0.62345 * UNIT_TAOVALUESQ2[2][1] -0.49512 * UNIT_TAOVALUESQ2[2][2] + 0.53292 * UNIT_TAOVALUESQ2[2][3]
+	elseif(quarter == 3) then HPI = 0.01308 + 1.51888 * UNIT_TAOVALUESQ3[2][0] -0.62345 * UNIT_TAOVALUESQ3[2][1] -0.49512 * UNIT_TAOVALUESQ3[2][2] + 0.53292 * UNIT_TAOVALUESQ3[2][3]
+	elseif(quarter == 4) then HPI = 0.01308 + 1.51888 * UNIT_TAOVALUESQ4[2][0] -0.62345 * UNIT_TAOVALUESQ4[2][1] -0.49512 * UNIT_TAOVALUESQ4[2][2] + 0.53292 * UNIT_TAOVALUESQ4[2][3]
+	end
+	else HPI = HPIfromData
+	end
+	local totalRevenue = math.exp(revenue + HPI)
+	return totalRevenue;
 end
 
-function calculateUnitRevenueDetatched(amenities,unit)
+function calculateUnitRevenueDetatched(amenities,unit,logsum,quarter,futureYear,HPIfromData)
 	local revenue = 0
-	revenue = math.exp(UNIT_TYPE_COEFFICIENTS[3][0] + UNIT_TYPE_COEFFICIENTS[3][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[3][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[3][3] * (amenities.distanceToCBD /1000) + UNIT_TYPE_COEFFICIENTS[3][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[3][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[3][6]* (amenities.distanceToMall /1000) + UNIT_TYPE_COEFFICIENTS[3][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[3][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[3][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[3][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[3][11]* amenities.bus_400m)
-	return revenue;
+	revenue = (UNIT_TYPE_COEFFICIENTS[3][0]) + (UNIT_TYPE_COEFFICIENTS[3][1]* math.log(unit.floorArea)) + (UNIT_TYPE_COEFFICIENTS	[3][2] * unit.freehold)  + (UNIT_TYPE_COEFFICIENTS[3][3] * logsum) + (UNIT_TYPE_COEFFICIENTS[3][4] * amenities.pms_1km) + (UNIT_TYPE_COEFFICIENTS[3][5] * amenities.distanceToMall) + (UNIT_TYPE_COEFFICIENTS[3][6]* amenities.mrt_200m) + (UNIT_TYPE_COEFFICIENTS[3][7]* amenities.mrt_400m) + (UNIT_TYPE_COEFFICIENTS[3][8]* amenities.express_200m) + (UNIT_TYPE_COEFFICIENTS[3][9]* amenities.bus_200m) + (UNIT_TYPE_COEFFICIENTS[3][10]* amenities.bus_400m)
+	local HPI = 0
+	if(futureYear == 1) then
+	if(quarter == 1) then HPI = 0.02164 + 1.19593 * UNIT_TAOVALUESQ1[3][0] -0.36370 * UNIT_TAOVALUESQ1[3][1] -1.1963 * UNIT_TAOVALUESQ1[3][2] + 0.25972 * UNIT_TAOVALUESQ1[3][3]
+	elseif(quarter == 2) then HPI = 0.02164 + 1.19593 * UNIT_TAOVALUESQ2[3][0] -0.36370 * UNIT_TAOVALUESQ2[3][1] -1.1963 * UNIT_TAOVALUESQ2[3][2] + 0.25972 * UNIT_TAOVALUESQ2[3][3]
+	elseif(quarter == 3) then HPI = 0.02164 + 1.19593 * UNIT_TAOVALUESQ3[3][0] -0.36370 * UNIT_TAOVALUESQ3[3][1] -1.1963 * UNIT_TAOVALUESQ3[3][2] + 0.25972 * UNIT_TAOVALUESQ3[3][3]
+	elseif(quarter == 4) then HPI = 0.02164 + 1.19593 * UNIT_TAOVALUESQ4[3][0] -0.36370 * UNIT_TAOVALUESQ4[3][1] -1.1963 * UNIT_TAOVALUESQ4[3][2] + 0.25972 * UNIT_TAOVALUESQ4[3][3]
+	end
+	else HPI = HPIfromData
+	end
+	local totalRevenue = math.exp(revenue + HPI)
+	return totalRevenue;
 end
 
-function calculateUnitRevenueExecutiveCondo(amenities,unit)
+function calculateUnitRevenueExecutiveCondo(amenities,unit,logsum,quarter,futureYear,HPIfromData)
 	local revenue = 0
-	revenue = math.exp(UNIT_TYPE_COEFFICIENTS[5][0] + UNIT_TYPE_COEFFICIENTS[5][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[5][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[5][3] * (amenities.distanceToCBD/1000) + UNIT_TYPE_COEFFICIENTS[5][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[5][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[5][6]* (amenities.distanceToMall/1000) + UNIT_TYPE_COEFFICIENTS[5][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[5][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[5][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[5][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[5][11]* amenities.bus_400m)
-	return revenue;
+	revenue = (UNIT_TYPE_COEFFICIENTS[5][0]) + (UNIT_TYPE_COEFFICIENTS[5][1]* math.log(unit.floorArea)) + (UNIT_TYPE_COEFFICIENTS	[5][2] * unit.freehold)  + (UNIT_TYPE_COEFFICIENTS[5][3] * logsum) + (UNIT_TYPE_COEFFICIENTS[5][4] * amenities.pms_1km) + (UNIT_TYPE_COEFFICIENTS[5][5] * amenities.distanceToMall) + (UNIT_TYPE_COEFFICIENTS[5][6]* amenities.mrt_200m) + (UNIT_TYPE_COEFFICIENTS[5][7]* amenities.mrt_400m) + (UNIT_TYPE_COEFFICIENTS[5][8]* amenities.express_200m) + (UNIT_TYPE_COEFFICIENTS[5][9]* amenities.bus_200m) + (UNIT_TYPE_COEFFICIENTS[5][10]* amenities.bus_400m)
+	local HPI = 0
+	if(futureYear == 1) then
+	if(quarter == 1) then HPI = 0.01781 + 1.13111 * UNIT_TAOVALUESQ1[5][0] -0.34371 * UNIT_TAOVALUESQ1[5][1] -0.25454 * UNIT_TAOVALUESQ1[5][2] + 0.41047 * UNIT_TAOVALUESQ1[5][3]
+	elseif(quarter == 2) then HPI = 0.01781 + 1.13111 * UNIT_TAOVALUESQ2[5][0] -0.34371 * UNIT_TAOVALUESQ2[5][1] -0.25454 * UNIT_TAOVALUESQ2[5][2] + 0.41047 * UNIT_TAOVALUESQ2[5][3]
+	elseif(quarter == 3) then HPI = 0.01781 + 1.13111 * UNIT_TAOVALUESQ3[5][0] -0.34371 * UNIT_TAOVALUESQ3[5][1] -0.25454 * UNIT_TAOVALUESQ3[5][2] + 0.41047 * UNIT_TAOVALUESQ3[5][3]
+	elseif(quarter == 4) then HPI = 0.01781 + 1.13111 * UNIT_TAOVALUESQ4[5][0] -0.34371 * UNIT_TAOVALUESQ4[5][1] -0.25454 * UNIT_TAOVALUESQ4[5][2] + 0.41047 * UNIT_TAOVALUESQ4[5][3]
+	end
+	else HPI = HPIfromData
+	end
+	local totalRevenue = math.exp(revenue + HPI)
+	return totalRevenue;
 end
 
-function calculateUnitRevenueTerrace(amenities,unit)
+function calculateUnitRevenueTerrace(amenities,unit,logsum,quarter,futureYear,HPIfromData)
 	local revenue = 0
-	revenue = math.exp(UNIT_TYPE_COEFFICIENTS[1][0] + UNIT_TYPE_COEFFICIENTS[1][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[1][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[1][3] * (amenities.distanceToCBD/1000)+ UNIT_TYPE_COEFFICIENTS[1][4] * (amenities.distanceToJob/10^6) + UNIT_TYPE_COEFFICIENTS[1][5] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[1][6]* (amenities.distanceToMall/1000) + UNIT_TYPE_COEFFICIENTS[1][7]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[1][8]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[1][9]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[1][10]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[1][11]* amenities.bus_400m)
-	return revenue;
+	revenue = (UNIT_TYPE_COEFFICIENTS[1][0]) + (UNIT_TYPE_COEFFICIENTS[1][1]* math.log(unit.floorArea)) + (UNIT_TYPE_COEFFICIENTS	[1][2] * unit.freehold)  + (UNIT_TYPE_COEFFICIENTS[1][3] * logsum) + (UNIT_TYPE_COEFFICIENTS[1][4] * amenities.pms_1km) + (UNIT_TYPE_COEFFICIENTS[1][5] * amenities.distanceToMall) + (UNIT_TYPE_COEFFICIENTS[1][6]* amenities.mrt_200m) + (UNIT_TYPE_COEFFICIENTS[1][7]* amenities.mrt_400m) + (UNIT_TYPE_COEFFICIENTS[1][8]* amenities.express_200m) + (UNIT_TYPE_COEFFICIENTS[1][9]* amenities.bus_200m) + (UNIT_TYPE_COEFFICIENTS[1][10]* amenities.bus_400m)
+	local HPI = 0
+	if(futureYear == 1) then
+	if(quarter == 1) then HPI = -0.00466 + 1.132720 * UNIT_TAOVALUESQ1[1][0] -0.71526 * UNIT_TAOVALUESQ1[1][1] -0.04628 * UNIT_TAOVALUESQ1[1][2] + 0.28911 * UNIT_TAOVALUESQ1[1][3]
+	elseif(quarter == 2) then HPI = -0.00466 + 1.132720 * UNIT_TAOVALUESQ2[1][0] -0.71526 * UNIT_TAOVALUESQ2[1][1] -0.04628 * UNIT_TAOVALUESQ2[1][2] + 0.28911 * UNIT_TAOVALUESQ2[1][3]
+	elseif(quarter == 3) then HPI = -0.00466 + 1.132720 * UNIT_TAOVALUESQ3[1][0] -0.71526 * UNIT_TAOVALUESQ3[1][1] -0.04628 * UNIT_TAOVALUESQ3[1][2] + 0.28911 * UNIT_TAOVALUESQ3[1][3]
+	elseif(quarter == 4) then HPI = -0.00466 + 1.132720 * UNIT_TAOVALUESQ4[1][0] -0.71526 * UNIT_TAOVALUESQ4[1][1] -0.04628 * UNIT_TAOVALUESQ4[1][2] + 0.28911 * UNIT_TAOVALUESQ4[1][3]
+	end
+	else HPI = HPIfromData
+	end
+	local totalRevenue = math.exp(revenue + HPI)
+	return totalRevenue;
 end
 
 --[[
     Calculates the revenue for the given future unit.
 ]]
-function calculateUnitRevenue(unit,amenities)
+function calculateUnitRevenue(unit,amenities,logsum,quarter,futureYear,HPIfromData)
     local revenuePerUnit = 0
     local buildingTypeId = getBuildingTypeFromUnitType(unit.unitTypeId)
-    if(buildingTypeId == 2)then revenuePerUnit = calculateUnitRevenueApartment(amenities,unit)
-    elseif (buildingTypeId == 3)then revenuePerUnit = calculateUnitRevenueCondo(amenities,unit)
-    elseif (buildingTypeId == 5)then revenuePerUnit = calculateUnitRevenueSemiDetatched(amenities,unit)
-    elseif (buildingTypeId == 6)then revenuePerUnit = calculateUnitRevenueDetatched(amenities,unit)
-    elseif (buildingTypeId == 7)then revenuePerUnit = calculateUnitRevenueExecutiveCondo(amenities,unit)
-    elseif (buildingTypeId == 4)then revenuePerUnit = calculateUnitRevenueTerrace(amenities,unit);
+    if (buildingTypeId == 2)then revenuePerUnit = calculateUnitRevenueApartment(amenities,unit,logsum,quarter,futureYear,HPIfromData)
+    elseif (buildingTypeId == 3)then revenuePerUnit = calculateUnitRevenueCondo(amenities,unit,logsum,quarter,futureYear,HPIfromData)
+    elseif (buildingTypeId == 5)then revenuePerUnit = calculateUnitRevenueSemiDetatched(amenities,unit,logsum,quarter,futureYear,HPIfromData)
+    elseif (buildingTypeId == 6)then revenuePerUnit = calculateUnitRevenueDetatched(amenities,unit,logsum,quarter,futureYear,HPIfromData)
+    elseif (buildingTypeId == 7)then revenuePerUnit = calculateUnitRevenueExecutiveCondo(amenities,unit,logsum,quarter,futureYear,HPIfromData)
+    elseif (buildingTypeId == 4)then revenuePerUnit = calculateUnitRevenueTerrace(amenities,unit,logsum,quarter,futureYear,HPIfromData)
     end
     return revenuePerUnit;
 end

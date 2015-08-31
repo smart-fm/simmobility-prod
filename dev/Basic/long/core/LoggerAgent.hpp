@@ -13,10 +13,10 @@
 #include <fstream>
 #include <boost/unordered_map.hpp>
 
-namespace sim_mob {
-
-    namespace long_term {
-
+namespace sim_mob
+{
+    namespace long_term
+    {
         /**
          * Entity responsible log messages in a thread-safe way without logs.
          * 
@@ -28,17 +28,29 @@ namespace sim_mob {
          * MessageBus system. Do not use it within external threads.
          * 
          */
-        class LoggerAgent : public Entity {
+        class LoggerAgent : public Entity
+        {
         public:
             // STATIC for now this will change in the future with new output mechanisms
-            enum LogFile{
+            enum LogFile
+            {
                 BIDS,
                 EXPECTATIONS,
                 STDOUT,
                 PARCELS,
                 UNITS,
-                PROJECTS
+                PROJECTS,
+                PROJECTS_DB,
+                HH_PC,
+                UNITS_IN_MARKET,
+                LOG_TAXI_AVAILABILITY,
+                LOG_VEHICLE_OWNERSIP,
+                LOG_TAZ_LEVEL_LOGSUM,
+                LOG_HOUSEHOLDGROUPLOGSUM,
+                LOG_INDIVIDUAL_HITS_LOGSUM,
+                LOG_HOUSEHOLDBIDLIST
             };
+
             LoggerAgent();
             virtual ~LoggerAgent();
             
@@ -58,10 +70,8 @@ namespace sim_mob {
              * Inherited from Entity
              */
             virtual bool isNonspatial();
-            virtual void buildSubscriptionList(
-                std::vector<BufferedBase*>& subsList);
-            virtual void HandleMessage(messaging::Message::MessageType type,
-                    const messaging::Message& message);
+            virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
+            virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
         private:
             /**
@@ -69,6 +79,7 @@ namespace sim_mob {
              */
             void onWorkerEnter();
             void onWorkerExit();
+
         private:
             typedef boost::unordered_map<LogFile, std::ofstream*> Files;
             boost::unordered_map<LogFile, std::ofstream*> streams; 

@@ -1,35 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
-<pathset enabled="true" mode="normal"> <!-- currently, "normal" and "generation" are supported modes --> 
-	<bulk_generation_output_file_name value="/home/data1/pathset-bulk.csv" />
+<pathset enabled="true"> 
 	<thread_pool size="7"/>
-	<pathset_database database="fm_local_path_choice"  credentials="fm_local_path_choice" /> <!--unused for now-->
-	<!-- <tables singlepath_table="path_fake" realtime_traveltime="realtime_travel_time" default_traveltime = "link_default_travel_time_corrected_he_v2"/> -->
-	<tables singlepath_table="path" realtime_traveltime="realtime_travel_time" default_traveltime = "Singapore_Updated_link_default_travel_time"/>
-	<functions pathset="get_path_set" travel_time="upsert_realtime" />
-	<recursive_pathset_generation value="false"/>
-	<reroute_enabled value="false" />
-	<subtrip_travel_metrics_output enabled="true" file="subtrip_level_travel_metrics_for_preday.csv" />    	
-	<utility_parameters>
-		<bTTVOT value="-0.01373"/>
-		<bCommonFactor value="1.0"/>
-		<bLength value="-0.001025"/>
-		<bHighway value="0.00052"/>
-		<bCost value="0.0"/>
-		<bSigInter value="-0.13"/>
-		<bLeftTurns value="0.0"/>
-		<bWork value="0.0"/>
-		<bLeisure value="0.0"/>
-		<highwayBias value="0.5"/>
-		<minTravelTimeParam value="0.879"/>
-		<minDistanceParam value="0.325"/>
-		<minSignalParam value="0.256"/>
-		<maxHighwayParam value="0.422"/>
-	</utility_parameters>
-	<path_generators max_segment_speed="2639"> <!--in cm/s--> <!-- 2639cm/s = 95km/hr -->												
-		<k_shortest level="5" />														
-		<link_elimination types="default,highway" />	<!-- unused for now. only default and highway are used in the code-->									
-		<random_perturbation modes="time" iteration="50" uniform_range="1,100" /> <!-- for 'modes' attribute, only "time" is supported for now -->		
-	</path_generators>
+	<private_pathset enabled="true" mode="normal"> <!-- currently, "normal" and "generation" are supported modes -->
+		<od_source table="bulkpathgen_od"/>
+		<bulk_generation_output_file name="/home/data1/pathset-bulk.csv" />
+		<tables singlepath_table="path" realtime_traveltime="realtime_travel_time" default_traveltime = "Singapore_Updated_link_default_travel_time"/>
+		<functions pathset="get_path_set" pathset_without_banned_area="get_path_set_woba" travel_time="upsert_realtime" />
+		<recursive_pathset_generation value="false"/>
+		<reroute enabled="false" />
+		<subtrip_travel_metrics_output enabled="true" file="subtrip_level_travel_metrics_for_preday.csv" />    	
+		<utility_parameters>
+			<bTTVOT value="-0.01373"/>
+			<bCommonFactor value="1.0"/>
+			<bLength value="-0.001025"/>
+			<bHighway value="0.00052"/>
+			<bCost value="0.0"/>
+			<bSigInter value="-0.13"/>
+			<bLeftTurns value="0.0"/>
+			<bWork value="0.0"/>
+			<bLeisure value="0.0"/>
+			<highwayBias value="0.5"/>
+			<minTravelTimeParam value="0.879"/>
+			<minDistanceParam value="0.325"/>
+			<minSignalParam value="0.256"/>
+			<maxHighwayParam value="0.422"/>
+		</utility_parameters>
+		<path_generators max_segment_speed="2639"> <!--in cm/s--> <!-- 2639cm/s = 95km/hr -->												
+			<k_shortest_path level="5" />														
+			<link_elimination types="default,highway" />	<!-- unused for now. only default and highway are used in the code-->									
+			<random_perturbation modes="time" iterations="50" uniform_range="1,100" /> <!-- for 'modes' attribute, only "time" is supported for now -->		
+		</path_generators>
+	</private_pathset>
+	
+	<public_pathset enabled="true" mode="normal"> <!-- Currently mode supports normal generation  -->
+		<od_source table="sample_od"/>  
+		<bulk_generation_output_file name="/home/data1/pt_pathset.csv" />
+		<pathset_generation_algorithms> 
+			<k_shortest_path level="10" />
+			<simulation_approach iterations="10"/> 
+		</pathset_generation_algorithms>
+		<model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
+			<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
+			<script name="ptrc" file="ptrc.lua"/> <!--public transit route choice -->
+		</model_scripts>
+	</public_pathset>
 </pathset>
-

@@ -17,13 +17,13 @@
 using namespace sim_mob::long_term;
 
 Household::Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, BigSerial ethnicityId, BigSerial vehicleCategoryId,  int size, int childUnder4, int childUnder15, double income,
-					  int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType ): id(id),
+					  int housingDuration,int workers, int ageOfHead, bool twoRoomHdbEligibility, bool threeRoomHdbEligibility, bool fourRoomHdbEligibility, int familyType, bool taxiAvailability, int vehicleOwnershipOptionId): id(id),
 					  lifestyleId(lifestyleId), unitId(unitId), ethnicityId(ethnicityId), vehicleCategoryId(vehicleCategoryId),size(size), childUnder4(childUnder4), childUnder15(childUnder15), income(income),
 					  housingDuration(housingDuration), workers(workers), ageOfHead(ageOfHead), twoRoomHdbEligibility(twoRoomHdbEligibility),
-					  threeRoomHdbEligibility(threeRoomHdbEligibility), fourRoomHdbEligibility(fourRoomHdbEligibility),familyType(familyType){}
+					  threeRoomHdbEligibility(threeRoomHdbEligibility), fourRoomHdbEligibility(fourRoomHdbEligibility),familyType(familyType), taxiAvailability(taxiAvailability), vehicleOwnershipOptionId(vehicleOwnershipOptionId){}
 
 Household::Household(): id(0), lifestyleId(0), unitId(0), ethnicityId(0), vehicleCategoryId(0),size(0), childUnder4(0), childUnder15(0), income(0), housingDuration(0), workers(0), ageOfHead(0),
-						twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0), familyType(0){}
+						twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0), familyType(0),taxiAvailability(false), vehicleOwnershipOptionId(0){}
 Household::~Household() {}
 
 Household& Household::operator=(const Household& source)
@@ -40,6 +40,8 @@ Household& Household::operator=(const Household& source)
     this->housingDuration = source.housingDuration;
     this->workers = source.workers;
     this->ageOfHead = source.ageOfHead;
+    this->taxiAvailability = source.taxiAvailability;
+    this->vehicleOwnershipOptionId = source.vehicleOwnershipOptionId;
     return *this;
 }
 
@@ -190,6 +192,25 @@ int Household::getFamilyType()
 	return familyType;
 }
 
+bool Household::getTaxiAvailability()
+{
+	return this->taxiAvailability;
+}
+
+void Household::setTaxiAvailability(bool taxiAvailable)
+{
+	taxiAvailability = taxiAvailable;
+}
+
+void Household::setVehicleOwnershipOptionId(int vehicleOwnershipOption)
+{
+	this->vehicleOwnershipOptionId = vehicleOwnershipOption;
+}
+
+int Household::getVehicleOwnershipOptionId()
+{
+	return this->vehicleOwnershipOptionId;
+}
 
 namespace sim_mob {
     namespace long_term {
@@ -208,6 +229,8 @@ namespace sim_mob {
                     << "\"housingDuration\":\"" << data.housingDuration << "\","
                     << "\"workers\":\"" << data.workers << "\","
                     << "\"ageOfHead\":\"" << data.ageOfHead << "\""
+                    << "\"taxiAvailability\":\"" << data.taxiAvailability << "\""
+                    <<"\"vehicleOwnershipOptionId\":\"" << data.vehicleOwnershipOptionId << "\""
                     << "}";
         }
     }

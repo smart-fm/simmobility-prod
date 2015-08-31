@@ -23,7 +23,7 @@ namespace {
 }
 
 DB_Config::DB_Config(const string& file)
-: PropertyLoader(file, SECTION),
+: PropertyLoader(file, "database"),
 port(0), host(""), password(""), username(""), databaseName("")
 {}
 

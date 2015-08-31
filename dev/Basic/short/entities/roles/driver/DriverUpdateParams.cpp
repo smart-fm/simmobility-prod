@@ -4,6 +4,7 @@
 
 #include "DriverUpdateParams.hpp"
 #include "../short/entities/roles/driver/DriverFacets.hpp"
+#include "entities/IntersectionManager.hpp"
 
 namespace sim_mob
 {
@@ -13,12 +14,13 @@ DriverUpdateParams::DriverUpdateParams()
     movementVectx(0), movementVecty(0), headway(999), currLane(NULL), stopPointPerDis(100), stopPointState(NO_FOUND_STOP_POINT), startStopTime(0), disToSP(999),
     currLaneIndex(0), leftLane(NULL), rightLane(NULL), leftLane2(NULL), rightLane2(NULL), currSpeed(0), desiredSpeed(0), currLaneOffset(0),
 	currLaneLength(0), trafficSignalStopDistance(0), elapsedSeconds(0), perceivedFwdVelocity(0), perceivedLatVelocity(0), perceivedFwdVelocityOfFwdCar(0),
-	perceivedLatVelocityOfFwdCar(0), perceivedAccelerationOfFwdCar(0), perceivedDistToFwdCar(0), isMLC(false), isBeforIntersecton(false),
-	laneChangingVelocity(0), isCrossingAhead(false), isApproachingToIntersection(false), crossingFwdDistance(0), space(0), a_lead(0),
-	v_lead(0), space_star(0), distanceToNormalStop(0), dis2stop(0), isWaiting(false), nextLaneIndex(0), justChangedToNewSegment(false),
-	justMovedIntoIntersection(false), overflowIntoIntersection(0), driver(NULL), isTargetLane(false), lastAcc(0), emergHeadway(999), aZ(0),
+	perceivedLatVelocityOfFwdCar(0), perceivedAccelerationOfFwdCar(0), perceivedDistToFwdCar(0),
+	laneChangingVelocity(0), isCrossingAhead(false), isApproachingIntersection(false), crossingFwdDistance(0), space(0), a_lead(0),
+	v_lead(0), space_star(0), distanceToNormalStop(0), dis2stop(0), impatienceTimer(0.0), nextLaneIndex(0), justChangedToNewSegment(false),
+	justMovedIntoIntersection(false), overflowIntoIntersection(0), driver(NULL), isTargetLane(false), emergHeadway(999), acc(0),
 	density(0), initSegId(0), initDis(0), initSpeed(0), parentId(0), FFAccParamsBeta(0), nextStepSize(0), maxAcceleration(0), normalDeceleration(0),
-	lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0)
+	lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), impatienceTimerStart(0.0), hasStoppedForStopSign(false), accessTime(0), isResponseReceived(false),
+	useIntAcc(false)
 {
 }
 
@@ -27,11 +29,13 @@ void DriverUpdateParams::setStatus(unsigned int s)
 	status |= s;
 }
 
-void DriverUpdateParams::setStatus(string name,StatusValue v,string whoSet) {
+void DriverUpdateParams::setStatus(string name,StatusValue v,string whoSet) 
+{
 	statusMgr.setStatus(name,v,whoSet);
 }
 
-StatusValue DriverUpdateParams::getStatus(string name) {
+StatusValue DriverUpdateParams::getStatus(string name) 
+{
 	return statusMgr.getStatus(name);
 }
 
@@ -52,7 +56,11 @@ void DriverUpdateParams::setStatusDoingLC(LANE_CHANGE_SIDE& lcs)
 void DriverUpdateParams::buildDebugInfo()
 {
 	std::stringstream s;
-
+	
+	s << "            " << parentId << ":" << accSelect << ":" << acc;
+	s << ":speed:" << currSpeed << ":distToInt:" << driver->distToIntersection_.get();
+	s << ":arrTime:" << accessTime;
+	
 #if 0
 	//debug car jump;
 	char dl[20] = "\0";
@@ -128,7 +136,6 @@ void DriverUpdateParams::buildDebugInfo()
 	}
 	s<<"            "<<parentId;
 	s<<":"<<accSelect;
-	s<<lastAcc;
 
 	/*
 	s<<":"<<ul;
@@ -151,109 +158,35 @@ void DriverUpdateParams::buildDebugInfo()
 	 }
 	 s<<":rfwd"<<rightFwdcarid;*/
 #endif
-
-	// debug aura mgr
+	
 #if 0
-	s << "            " << parentId;
 	int fwdcarid = -1;
+	char fwdnvdis[20] = "\0";
 	if (this->nvFwd.exists())
 	{
-		char fwdnvdis[20] = "\0";
-		fwdcarid = nvFwd.driver->getParent()->getId();
-		sprintf(fwdnvdis, "fwdnvdis%03.1f", nvFwd.distance);
+		Driver* fwd_driver_ = const_cast<Driver*>(nvFwd.driver);
+		fwdcarid = fwd_driver_->getParent()->getId();
+		sprintf(fwdnvdis, "fwdnvdis:%03.1f", nvFwd.distance);
 	}
-	//
+	else if(this->nvFwdNextLink.exists())
+	{
+		Driver* fwd_driver_ = const_cast<Driver*>(nvFwdNextLink.driver);
+		fwdcarid = fwd_driver_->getParent()->getId();
+		sprintf(fwdnvdis, "fwdnv_nxtlnkdis:%03.1f", nvFwdNextLink.distance);
+	}
+
 	int backcarid = -1;
+	char backnvdis[20] = "\0";
 	if (this->nvBack.exists())
 	{
-		backcarid = nvBack.driver->getParent()->getId();
+		Driver* back_driver_ = const_cast<Driver*>(nvBack.driver);
+		backcarid = back_driver_->getParent()->getId();
+		sprintf(backnvdis, "backnvdis:%03.1f", nvBack.distance);
 	}
-	//
-	int leftFwdcarid = -1;
-	if (this->nvLeftFwd.exists())
-	{
-		leftFwdcarid = nvLeftFwd.driver->getParent()->getId();
-	}
-	int leftBackcarid = -1;
-	if (this->nvLeftBack.exists())
-	{
-		leftBackcarid = nvLeftBack.driver->getParent()->getId();
-	}
-	//
-	int rightFwdcarid = -1;
-	if (this->nvRightFwd.exists())
-	{
-		rightFwdcarid = nvRightFwd.driver->getParent()->getId();
-	}
-	//
-	int rightBackcarid = -1;
-	if (this->nvRightBack.exists())
-	{
-		rightBackcarid = nvRightBack.driver->getParent()->getId();
-	}
-
-	double dis = perceivedDistToFwdCar / 100.0;
-	char disChar[20] = "\0";
-	sprintf(disChar, "fwdis%03.1f", dis);
-
-	char az[20] = "\0";
-	sprintf(az, "az%03.1f", aZ);
-
-	char pfwdv[20] = "\0";
-	sprintf(pfwdv, "pfwdv%3.2f", perceivedFwdVelocity / 100.0);
-
-	if (headway > 100)
-	{
-		headway = 100;
-	}
-	if (headway < -100)
-	{
-		headway = 100;
-	}
-	char headwaystr[20] = "\0";
-	sprintf(headwaystr, "headway%03.1f", headway);
-
-	if (emergHeadway > 100)
-	{
-		emergHeadway = 100;
-	}
-	if (emergHeadway < -100)
-	{
-		emergHeadway = 100;
-	}
-	char emergHeadwaystr[20] = "\0";
-	sprintf(emergHeadwaystr, "emergHeadway%03.1f", emergHeadway);
-
-	s << ":fwd" << fwdcarid;
-	/*
-	s<<":"<<fwdnvdis;
-	s<<":"<<disChar;
-	s<<":"<<headwaystr;
-	s<<":"<<emergHeadwaystr;
-	s<<":"<<az;
-	s<<":"<<pfwdv;
-	s<<":"<<cfDebugStr;
-	*/
-	s << ":back" << backcarid;
-	s << ":lfwd" << leftFwdcarid;
-	s << ":lback" << leftBackcarid;
-	s << ":rfwd" << rightFwdcarid;
-	s << ":rback" << rightBackcarid;
+	s << ":fwd:" << fwdcarid << ":" <<fwdnvdis;
+	s << ":back:" << backcarid << ":" <<backnvdis;
 #endif
-
-	/*
-	<<":"<<ct
-	<<":"<<ul
-	<<":"<<uc
-	<<":"<<ur
-	<<":"<<rnd_;
-	<<":"<<accSelect
-	<<":"<<nvFwd.exists()
-	<<":"<<disChar
-	<<":"<<currLaneIndex;
-	<<":"<<perceivedTrafficColor
-	<<":"<<perceivedDistToTrafficSignal/100.0;
-	*/
+	
 	debugInfo = s.str();
 }
 
@@ -299,15 +232,45 @@ double DriverUpdateParams::lcMinGap(int type)
 	return b[2] * b[0];
 }
 
-void DriverUpdateParams::insertStopPoint(StopPoint& sp){
+void DriverUpdateParams::insertStopPoint(StopPoint& sp)
+{
 	std::map<std::string,std::vector<StopPoint> >::iterator it = stopPointPool.find(sp.segmentId);
-	if(it!=stopPointPool.end()){
+	
+	if(it!=stopPointPool.end())
+	{
 		it->second.push_back(sp);
 	}
-	else{
+	else
+	{
 		std::vector<StopPoint> v;
 		v.push_back(sp);
 		stopPointPool.insert(std::make_pair(sp.segmentId,v));
+	}
+}
+
+void DriverUpdateParams::insertConflictTurningDriver(TurningConflict* conflict, double distance, const Driver* driver) 
+{
+	NearestVehicle nearestVehicle;
+	nearestVehicle.distance = distance;
+	nearestVehicle.driver = driver;
+	
+	// find turning conflict
+	std::map<TurningConflict*,std::list<NearestVehicle> >::iterator it = conflictVehicles.find(conflict);
+	
+	if(it != conflictVehicles.end()) 
+	{
+		std::list<NearestVehicle>& nearestVehicles = it->second;
+		nearestVehicles.push_back(nearestVehicle);
+
+		// sort list
+		compare_NearestVehicle f;
+		nearestVehicles.sort(f);
+	}
+	else 
+	{
+		std::list<NearestVehicle> nearestVehicles;
+		nearestVehicles.push_back(nearestVehicle);
+		conflictVehicles.insert(std::make_pair(conflict, nearestVehicles));
 	}
 }
 

@@ -19,6 +19,7 @@
 #include "entities/Person.hpp"
 #include "entities/amodController/AMODController.hpp"
 #include "entities/fmodController/FMOD_Controller.hpp"
+#include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/Incident.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/Node.hpp"
@@ -35,6 +36,7 @@
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/Utils.hpp"
 #include "workers/WorkGroup.hpp"
+#include "path/PT_PathSetManager.hpp"
 
 using namespace sim_mob;
 
@@ -167,9 +169,11 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	InformLoadOrder(cfg.system.simulation.loadAgentsOrder);
 
 	//Set the auto-incrementing ID.
-	if (cfg.system.simulation.startingAutoAgentID<0) {
+	if (cfg.system.simulation.startingAutoAgentID < 0) 
+	{
 		throw std::runtime_error("Agent auto-id must start from >0.");
 	}
+	
 	Agent::SetIncrementIDStartValue(cfg.system.simulation.startingAutoAgentID, true);
 
 	//Print schema file.
@@ -181,16 +185,19 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	SetTicks();
 
 	//Set PartitionManager instance (if using MPI and it's enabled).
-	if (cfg.MPI_Enabled() && cfg.using_MPI) {
+	if (cfg.MPI_Enabled() && cfg.using_MPI) 
+	{
 		int partId = cfg.system.simulation.partitioningSolutionId;
 		PartitionManager::instance().partition_config->partition_solution_id = partId;
 		std::cout << "partition_solution_id in configuration:" <<partId << std::endl;
 	}
+	
 	//Load from database or XML.
 	//TODO: This should be moved into its own class; we should NOT be doing loading in ExpandAndValidate()
 	//      (it is here now to maintain compatibility with the old order or loading things).
 	LoadNetworkFromDatabase();
-	if(sim_mob::ConfigManager::GetInstance().FullConfig().CBD())
+
+	if(cfg.RunningMidSupply())
 	{
 		sim_mob::RestrictedRegion::getInstance().populate();
 	}
@@ -200,25 +207,29 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	BoostSaveXML(cfg.networkXmlOutputFile(), cfg.getNetworkRW());
 	//Detect sidewalks in the middle of the road.
 	WarnMidroadSidewalks();
- 	//Generate lanes, before StreetDirectory::init()
- 	RoadNetwork::ForceGenerateAllLaneEdgePolylines(cfg.getNetworkRW());
 
     //Seal the network; no more changes can be made after this.
  	cfg.sealNetwork();
     std::cout << "Network Sealed" << std::endl;
 
     //Write the network (? This is weird. ?)
-    if (cfg.XmlWriterOn()) {
+    if (cfg.XmlWriterOn()) 
+    {
     	throw std::runtime_error("Old WriteXMLInput function deprecated; use boost instead.");
     	//sim_mob::WriteXMLInput("TEMP_TEST_OUT.xml");
     	std::cout << "XML input for SimMobility Created....\n";
     }
-
- 	//Initialize the street directory.
+    
+    if(cfg.publicTransitEnabled)
+    {
+    	LoadPublicTransitNetworkFromDatabase();
+    }
+ 	
+	//Initialize the street directory.
 	StreetDirectory::instance().init(cfg.getNetwork(), true);
 	std::cout << "Street Directory initialized  " << std::endl;
 
-	if(ConfigManager::GetInstance().FullConfig().pathSet().mode == "generation")
+	if(ConfigManager::GetInstance().FullConfig().pathSet().privatePathSetMode == "generation")
 	{
 		Print() << "bulk profiler start: " << std::endl;
 		sim_mob::Profiler profile("bulk profiler start", true);
@@ -229,23 +240,47 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 		Print() << "Bulk Generation Done " << profile.tick().first.count() << std::endl;
 		exit(1);
 	}
+	if (ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetMode == "generation")
+	{
+		Print() << "Public Transit bulk pathSet Generation started: " << std::endl;
+		sim_mob::PT_PathSetManager::Instance().PT_BulkPathSetGenerator();
+		Print() << "Public Transit bulk pathSet Generation Done: " << std::endl;
+		exit(1);
+	}
+
 
 	//TODO: put its option in config xml
 	//generateOD("/home/fm-simmobility/vahid/OD.txt", "/home/fm-simmobility/vahid/ODs.xml");
     //Process Confluxes if required
-    if(cfg.RunningMidSupply()) {
-		size_t sizeBefore = cfg.getConfluxes().size();
-		sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
-		std::cout <<"Confluxes size before(" <<sizeBefore <<") and after(" <<cfg.getConfluxes().size() <<")\n";
+    if(cfg.RunningMidSupply()) 
+    {
+        size_t sizeBefore = cfg.getConfluxes().size();
+        sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
+        std::cout << cfg.getConfluxes().size() << " Confluxes created" << std::endl;
     }
+    //Running short-term
+    else		
+    {
+        std::map<std::string, std::string>::iterator itIntModel = cfg.system.genericProps.find("intersection_driving_model");
+
+        if(itIntModel != cfg.system.genericProps.end())
+        {
+            if(itIntModel->second == "slot-based")
+            {
+                sim_mob::aimsun::Loader::CreateIntersectionManagers(ConfigManager::GetInstance().FullConfig().getNetwork());
+            }
+        }
+    }
+    
     //Maintain unique/non-colliding IDs.
     ConfigParams::AgentConstraints constraints;
     constraints.startingAutoAgentID = cfg.system.simulation.startingAutoAgentID;
 
     //Start all "BusController" entities.
-    for (std::vector<EntityTemplate>::const_iterator it=cfg.busControllerTemplates.begin(); it!=cfg.busControllerTemplates.end(); ++it) {
-    	sim_mob::BusController::RegisterNewBusController(it->startTimeMs, cfg.mutexStategy());
-	}
+    for (std::vector<EntityTemplate>::const_iterator it=cfg.busControllerTemplates.begin(); it!=cfg.busControllerTemplates.end(); ++it) 
+    {
+        sim_mob::BusController::RegisterNewBusController(it->startTimeMs, cfg.mutexStategy());
+    }
 
     //Start all "FMOD" entities.
     LoadFMOD_Controller();
@@ -255,8 +290,9 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//combine incident information to road network
 	verifyIncidents();
 
-    //Initialize all BusControllers.
-	if(BusController::HasBusControllers()) {
+	//Initialize all BusControllers.
+	if(BusController::HasBusControllers()) 
+	{
 		BusController::InitializeAllControllers(active_agents, cfg.getPT_bus_dispatch_freq());
 	}
 
@@ -270,7 +306,8 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     PrintSettings();
 
     //Start the BusCotroller
-    if(BusController::HasBusControllers()) {
+    if(BusController::HasBusControllers()) 
+	{
     	BusController::DispatchAllControllers(active_agents);
     }
 }
@@ -344,6 +381,9 @@ void sim_mob::ExpandAndValidateConfigFile::CheckGranularities()
     if (workers.signal.granularityMs < baseGranMS) {
     	throw std::runtime_error("Signal granularity cannot be smaller than base granularity.");
     }
+    if (workers.intersectionMgr.granularityMs < baseGranMS) {
+    	throw std::runtime_error("Intersection Manager granularity cannot be smaller than base granularity.");
+    }
     if (workers.communication.granularityMs < baseGranMS) {
     	throw std::runtime_error("Communication granularity cannot be smaller than base granularity.");
     }
@@ -371,6 +411,9 @@ void sim_mob::ExpandAndValidateConfigFile::SetTicks()
 	if (!SetTickFromBaseGran(cfg.granSignalsTicks, cfg.system.workers.signal.granularityMs)) {
 		throw std::runtime_error("Signal granularity not a multiple of base granularity.");
 	}
+	if (!SetTickFromBaseGran(cfg.granIntMgrTicks, cfg.system.workers.intersectionMgr.granularityMs)) {
+		throw std::runtime_error("Signal granularity not a multiple of base granularity.");
+	}
 	if (!SetTickFromBaseGran(cfg.granCommunicationTicks, cfg.system.workers.communication.granularityMs)) {
 		throw std::runtime_error("Communication granularity not a multiple of base granularity.");
 	}
@@ -390,7 +433,10 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetworkFromDatabase()
 		}
 	}
 }
-
+void sim_mob::ExpandAndValidateConfigFile::LoadPublicTransitNetworkFromDatabase()
+{
+	PT_Network::getInstance().init();
+}
 
 void sim_mob::ExpandAndValidateConfigFile::WarnMidroadSidewalks()
 {
@@ -699,7 +745,7 @@ void sim_mob::ExpandAndValidateConfigFile::PrintSettings()
     std::cout <<"  Person Granularity: " <<cfg.granPersonTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Signal Granularity: " <<cfg.granSignalsTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Communication Granularity: " <<cfg.granCommunicationTicks <<" " <<"ticks" <<"\n";
-    std::cout <<"  Start time: " <<cfg.simStartTime().toString() <<"\n";
+    std::cout <<"  Start time: " <<cfg.simStartTime().getStrRepr() <<"\n";
     std::cout <<"  Mutex strategy: " <<(cfg.mutexStategy()==MtxStrat_Locked?"Locked":cfg.mutexStategy()==MtxStrat_Buffered?"Buffered":"Unknown") <<"\n";
 
 	//Output Database details

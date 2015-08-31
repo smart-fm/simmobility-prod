@@ -7,7 +7,7 @@
 #include <xercesc/dom/DOMNodeList.hpp>
 
 #include "conf/ParseConfigXmlBase.hpp"
-#include "conf/RawConfigParams.hpp" //For EntityTemplate.
+#include "conf/RawConfigParams.hpp"
 
 using namespace sim_mob;
 using namespace xercesc;
@@ -28,6 +28,25 @@ public:
 	 * @param parser reference to parser after parsing the xml
 	 */
 	void processXmlFile(xercesc::XercesDOMParser& parser) ;
+
+private:
+	/**
+	 * processes model scripts element in config xml
+	 * @param node node corresponding to model_scripts element inside xml file
+	 */
+	void processModelScriptsNode(xercesc::DOMElement* node);
+
+	/**
+	 * process public pathset node in config
+	 * @param node node corresponding to public pathset element inside xml file
+	 */
+	void processPrivatePathsetNode(xercesc::DOMElement* node);
+
+	/**
+	 * process public pathset node in config
+	 * @param node node corresponding to public pathset element inside xml file
+	 */
+	void processPublicPathsetNode(xercesc::DOMElement* node);
 };
 
 }

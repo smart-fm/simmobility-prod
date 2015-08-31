@@ -11,6 +11,7 @@
 
 #pragma once
 #include "behavioral/PredayClasses.hpp"
+#include "behavioral/StopType.hpp"
 
 namespace sim_mob {
 namespace medium {
@@ -297,22 +298,22 @@ public:
 		educationOP = educationOp;
 	}
 
-	bool isCbdDestZone() const
+	int isCbdDestZone() const
 	{
-		return cbdDestZone;
+		return (cbdDestZone? 1 : 0);
 	}
 
-	void setCbdDestZone(bool cbdZone)
+	void setCbdDestZone(int cbdZone)
 	{
 		this->cbdDestZone = cbdZone;
 	}
 
-	bool isCbdOrgZone() const
+	int isCbdOrgZone() const
 	{
-		return cbdOrgZone;
+		return (cbdOrgZone? 1 : 0);
 	}
 
-	void setCbdOrgZone(bool cbdOrgZone)
+	void setCbdOrgZone(int cbdOrgZone)
 	{
 		this->cbdOrgZone = cbdOrgZone;
 	}
@@ -329,8 +330,8 @@ private:
 	double walkDistance1;
 	double walkDistance2;
 	bool centralZone;
-	bool cbdOrgZone;
-	bool cbdDestZone;
+	int cbdOrgZone;
+	int cbdDestZone;
 	double ttPublicIvtFirst;
 	double ttPublicIvtSecond;
 	double ttPublicWaitingFirst;

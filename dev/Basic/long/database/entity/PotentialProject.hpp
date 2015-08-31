@@ -24,7 +24,7 @@ namespace sim_mob {
          */
         class PotentialUnit {
         public:
-            PotentialUnit(BigSerial unitTypeId = INVALID_ID,int numUnits = 0,double floorArea = 0, int freehold = 0);
+            PotentialUnit(BigSerial unitTypeId = INVALID_ID,int numUnits = 0,double floorArea = 0, int freehold = 0, double profitPerUnit = 0.0, double demolitionCostPerUnit = 0.0);
             virtual ~PotentialUnit();
 
             PotentialUnit( const PotentialUnit &source);
@@ -33,17 +33,25 @@ namespace sim_mob {
             //Getters
             BigSerial getUnitTypeId() const;
             double getFloorArea() const;
+            void setFloorArea(double area);
             int isFreehold() const;
             int getNumUnits() const;
             void setNumUnits(int units);
             int getNumUnits();
             void setUnitTypeId(int typeId);
+            void setUnitProfit(double unitProfit);
+            double getUnitProfit() const;
+            void setDemolitionCostPerUnit(double demolitionCost);
+            double getDemolitionCostPerUnit();
             friend std::ostream& operator<<(std::ostream& strm,  const PotentialUnit& data);
+
         private:
             BigSerial unitTypeId;
             double floorArea;
             int freehold;
             int numUnits;
+            double profitPerUnit;
+            double demolitionCostPerUnit;
         };
 
         /**
@@ -52,7 +60,7 @@ namespace sim_mob {
          */
         class PotentialProject {
         public:
-            PotentialProject(const DevelopmentTypeTemplate* devTemplate = nullptr,const Parcel* parcel = nullptr,double constructionCost = 0,double grossArea = 0,double tempSelectProbability = 0,double investmentReturnRatio=0,double demolitionCost = 0, double expRatio=0);
+            PotentialProject(const DevelopmentTypeTemplate* devTemplate = nullptr,const Parcel* parcel = nullptr,double constructionCost = 0,double grossArea = 0,double tempSelectProbability = 0,double investmentReturnRatio=0,double demolitionCost = 0, double expRatio=0,int totalUnits = 0);
             virtual ~PotentialProject();
             
             PotentialProject( const PotentialProject &source);
@@ -81,8 +89,8 @@ namespace sim_mob {
             //Getters
             const DevelopmentTypeTemplate* getDevTemplate() const;
             const Parcel* getParcel() const;
-            const std::vector<PotentialUnit>& getUnits() const;
-            double getProfit() const;
+            std::vector<PotentialUnit>& getUnits();
+            double getProfit();
             double getConstructionCost() const;
             double getRevenue() const;
             double getGrosArea() const;
@@ -90,6 +98,7 @@ namespace sim_mob {
             double getExpRatio() const;
             double getTempSelectProbability() const;
             double getDemolitionCost() const;
+            int getTotalUnits();
 
             //Setters
             void setProfit(const double profit);
@@ -100,6 +109,7 @@ namespace sim_mob {
             void setExpRatio(double exRatio);
             void setTempSelectProbability(double probability);
             void setDemolitionCost(double demCost);
+            void setTotalUnits (int totUnits);
 
             std::vector<TemplateUnitType*> templateUnitTypes;
 
@@ -119,6 +129,7 @@ namespace sim_mob {
             double investmentReturnRatio;
             double expRatio;
             double tempSelectProbability;
+            int totalUnits;
 
         };
     }

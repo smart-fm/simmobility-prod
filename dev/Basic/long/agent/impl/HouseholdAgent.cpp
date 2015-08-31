@@ -17,6 +17,8 @@
 #include "role/impl/HouseholdSellerRole.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "core/DataManager.hpp"
+#include "core/LoggerAgent.hpp"
+#include "core/AgentsLookup.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/ConfigManager.hpp"
 
@@ -29,8 +31,8 @@ using std::string;
 using std::map;
 using std::endl;
 
-HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller, int day)
-: LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), bidder (nullptr), seller(nullptr), day(day)
+HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* household, HousingMarket* market, bool marketSeller, int day, int householdBiddingWindow)
+: LT_Agent(id), model(model), market(market), household(household), marketSeller(marketSeller), bidder (nullptr), seller(nullptr), day(day),vehicleOwnershipOption(NO_CAR), householdBiddingWindow(householdBiddingWindow)
 {
     seller = new HouseholdSellerRole(this);
     seller->setActive(marketSeller);
@@ -40,6 +42,10 @@ HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* h
         bidder = new HouseholdBidderRole(this);
         bidder->setActive(false);
     }
+
+    ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+    buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
+    householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow;
 }
 
 HouseholdAgent::~HouseholdAgent()
@@ -93,6 +99,22 @@ bool HouseholdAgent::onFrameInit(timeslice now)
     return true;
 }
 
+void HouseholdAgent::setBuySellInterval( int value )
+{
+	buySellInterval = value;
+}
+
+int HouseholdAgent::getBuySellInterval( ) const
+{
+	return buySellInterval;
+}
+
+void HouseholdAgent::setHouseholdBiddingWindow(int value)
+{
+	householdBiddingWindow = value;
+}
+
+
 void HouseholdAgent::awakenHousehold()
 {
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
@@ -145,8 +167,6 @@ void HouseholdAgent::awakenHousehold()
 
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 		{
-			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
 			BigSerial unitId = *itr;
 			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
@@ -169,10 +189,9 @@ void HouseholdAgent::awakenHousehold()
 		PrintOutV("[day " << day << "] Household " << getId() << " has been awakened."<< std::endl);
 		#endif
 
+
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 		{
-			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
 			BigSerial unitId = *itr;
 			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
@@ -197,8 +216,6 @@ void HouseholdAgent::awakenHousehold()
 
 		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
 		{
-			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
 			BigSerial unitId = *itr;
 			Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
 
@@ -207,7 +224,6 @@ void HouseholdAgent::awakenHousehold()
 		}
 
 		model->incrementAwakeningCounter();
-
 		model->incrementLifestyle3HHs();
 	}
 }
@@ -219,17 +235,60 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 	if( day == 0 )
 	{		
 		awakenHousehold();
+
+		ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+		if( config.ltParams.housingModel.outputHouseholdLogsums )
+		{
+			const Household *hh = this->getHousehold();
+
+			if( hh != NULL )
+				model->getLogsumOfHousehold(hh->getId());
+		}
 	}
 
-    if (bidder && bidder->isActive())
+	if( bidder && bidder->isActive() && buySellInterval > 0 )
+		buySellInterval--;
+
+
+	if( buySellInterval == 0 )
+	{
+		if (seller)
+		{
+			if( seller->isActive() == false )
+			{
+				ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+
+				for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
+				{
+					BigSerial unitId = *itr;
+					Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
+
+					unit->setbiddingMarketEntryDay(day + 1);
+					unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
+				}
+			}
+
+			seller->setActive(true);
+		}
+
+		buySellInterval--;
+	}
+
+	if( bidder && householdBiddingWindow == 0 )
+		bidder->setActive(false);
+
+
+    if (bidder && bidder->isActive() && householdBiddingWindow > 0 )
     {
         bidder->update(now);
+        householdBiddingWindow--;
     }
 
     if (seller && seller->isActive())
     {
         seller->update(now);
     }
+
     return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 }
 
@@ -271,31 +330,11 @@ void HouseholdAgent::processExternalEvent(const ExternalEventArgs& args)
         case ExternalEvent::NEW_JOB_LOCATION:
         case ExternalEvent::NEW_SCHOOL_LOCATION:
         {
-            if (seller)
-            {
-            	if( seller->isActive() == false )
-            	{
-            		for (vector<BigSerial>::const_iterator itr = unitIds.begin(); itr != unitIds.end(); itr++)
-					{
-            			ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
-
-						BigSerial unitId = *itr;
-						Unit* unit = const_cast<Unit*>(model->getUnitById(unitId));
-
-						unit->setbiddingMarketEntryDay(day + 1);
-						unit->setTimeOnMarket( config.ltParams.housingModel.timeOnMarket);
-					}
-            	}
-
-                seller->setActive(true);
-            }
 
             if (bidder)
             {
                 bidder->setActive(true);
                 model->incrementBidders();
-
             }
 
 			#ifdef VERBOSE
@@ -344,5 +383,38 @@ void HouseholdAgent::HandleMessage(Message::MessageType type, const Message& mes
     if (seller && seller->isActive())
     {
         seller->HandleMessage(type, message);
+    }
+    switch(type)
+    {
+    	case LTMID_HH_TAXI_AVAILABILITY:
+    	{
+            const HM_Model* model = this->getModel();
+            Household* hh = model->getHouseholdById(this->getHousehold()->getId());
+            (*hh).setTaxiAvailability(true);
+            break;
+        }
+    	case LTMID_HH_NO_CAR:
+    	{
+    		const HM_Model* model = this->getModel();
+    	    Household* hh = model->getHouseholdById(this->getHousehold()->getId());
+    	    (*hh).setVehicleOwnershipOptionId(NO_CAR);
+    	    break;
+    	}
+    	case LTMID_HH_ONE_CAR:
+    	{
+    		const HM_Model* model = this->getModel();
+    	    Household* hh = model->getHouseholdById(this->getHousehold()->getId());
+    	    (*hh).setVehicleOwnershipOptionId(ONE_CAR);
+    	    break;
+    	}
+    	case LTMID_HH_TWO_PLUS_CAR:
+    	{
+    		const HM_Model* model = this->getModel();
+    	    Household* hh = model->getHouseholdById(this->getHousehold()->getId());
+    	    (*hh).setVehicleOwnershipOptionId(TWO_PLUS_CAR);
+    	    break;
+    	}
+    	default:break;
+
     }
 }

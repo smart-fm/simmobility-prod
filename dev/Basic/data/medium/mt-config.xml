@@ -4,7 +4,7 @@
 <config>
         <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
         <!-- Admissible values are "preday", "withinday" and "supply". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.--> 
-        <mid_term_run_mode value="preday"/>
+        <mid_term_run_mode value="withinday"/>
         
         <!-- config specific to supply simulator -->                    
         <supply>
@@ -16,7 +16,7 @@
                 <!-- these parameters will be organized in a better way after finding the meaning of these numbers -->
                 <dwell_time_parameters>
                 <!--parameters : minimum and maximum of fixed dwelling time, minimum and maximum of individual dwelling time-->
-                <parameters value="2.0, 10.0, 2.0, 3.0"/>
+                <parameters value="0.0, 0.0, 2.0, 3.0"/>
                 </dwell_time_parameters>
 
                 <!-- pedestrian walking speed in cm/s (approximately 5 km/h)-->
@@ -31,6 +31,7 @@
                         <journey_time_csv_file_output value="journeytime.csv"/>
                         <waiting_time_csv_file_output value="waitingtime.csv"/>
                         <waiting_amount_csv_file_output value="waitingamount.csv"/>
+                        <travel_time_csv_file_output value="traveltime.csv"/>
                 </statistics_output_paramemters>  
         </supply>                                      
                 
@@ -79,7 +80,7 @@
                         <script name="sttd" file="sttd.lua"/> <!--Work Based Sub-Tours Time Of Day-->
                         <script name="isg" file="isg.lua"/> <!--Intermediate Stop Generation -->
                         <script name="imd" file="imd.lua"/> <!--Intermediate Stop Mode/Destination -->
-                        <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->
+                        <script name="itd" file="itd.lua"/> <!--Intermediate Stop Time Of Day -->                       
                 </model_scripts>
                 
                 <!-- Names of MongoDB database and collections -->

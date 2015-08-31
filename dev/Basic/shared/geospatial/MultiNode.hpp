@@ -9,6 +9,7 @@
 #include <set>
 
 #include "geospatial/Node.hpp"
+#include "TurningSection.hpp"
 /*namespace geo {
 class intersection_t_pimpl;
 class GeoSpatial_t_pimpl;
@@ -23,6 +24,7 @@ class Point2D;
 class Link;
 class Lane;
 class LaneConnector;
+class TurningSection;
 class RoadSegment;
 class RoadNetwork;
 
@@ -68,7 +70,22 @@ public:
 	void setConnectorAt2(const sim_mob::RoadSegment* key, std::set<sim_mob::LaneConnector*>& val);
 	void addRoadSegmentAt(sim_mob::RoadSegment* rs) { roadSegmentsAt.insert(rs); }
 
+	/// Set the Turnings for the multi-node
+	void setTurnings(const sim_mob::RoadSegment *key, TurningSection *val);
+ 
 	bool isSignalized() const;
+
+	/// Inserts the turning section to the map mapFromToLanesVsTurning
+	void updateMapLaneVsTurning(const Lane *fromLane, const Lane *toLane, TurningSection *turning);
+        
+	/// Finds and returns the TurningSection object that connects the given 'from' and 'to' lanes
+	const TurningSection* getTurningSection(const Lane *currentLane, const Lane *nextLane) const;
+    
+	/// Returns the turnings from the given road segment
+	const std::set<TurningSection*>& getTurnings(const RoadSegment *) const;
+        
+	//Returns the turning with the given id
+	const TurningSection* getTurning(int id) const;
 
 protected:
 	///Mapping from RoadSegment* -> set<LaneConnector*> representing lane connectors.
@@ -79,6 +96,15 @@ protected:
 	//      In addition, the multimap wouldn't be able to handle a uniqueness qualifier (which
 	//      is why we use "set").
 	std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > connectors;
+
+	/// Mapping from RoadSegment* to set<TurningSection> representing the Turnings
+	std::map<const sim_mob::RoadSegment*, std::set<sim_mob::TurningSection*> > turnings;
+    
+	//Mapping of turnings with their ids
+	std::map<int, sim_mob::TurningSection *> mapOfIdsVsTurnings;    
+        
+	/// This is a 2-level map of TurningSection with key as the the from lane and to lane
+    std::map<const Lane *, std::map<const Lane *, TurningSection *> > mapFromToLanesVsTurning;
 
 	///Bookkeeping: which RoadSegments meet at this Node?
 	std::set<sim_mob::RoadSegment*> roadSegmentsAt;

@@ -12,13 +12,15 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include <map>
 
 namespace sim_mob{
 
-class PT_NetworkEdges{
+class PT_NetworkEdge{
 public:
-	PT_NetworkEdges();
-	virtual ~PT_NetworkEdges();
+	PT_NetworkEdge();
+	virtual ~PT_NetworkEdge();
 
 	double getDayTransitTimeSecs() const {
 		return dayTransitTimeSecs;
@@ -96,6 +98,7 @@ public:
 		return startStop;
 	}
 
+
 	void setStartStop(const std::string& startStop) {
 		this->startStop = startStop;
 	}
@@ -131,7 +134,17 @@ public:
 	void setWalkTimeSecs(double walkTimeSecs) {
 		this->walkTimeSecs = walkTimeSecs;
 	}
+	// Overloading == operator
 
+	bool operator== (const PT_NetworkEdge& edge) const
+	{
+		return (edgeId == edge.getEdgeId());
+	}
+
+	bool operator!= (const PT_NetworkEdge& edge) const
+	{
+		return !(*this == edge);
+	}
 private:
 	std::string startStop;       // Alphanumeric id
 	std::string endStop;         // Alphanumeric id
@@ -155,10 +168,10 @@ private:
 	double distKMs;               // Estimated distance from travel time table in kilometers
 };
 
-class PT_NetworkVertices{
+class PT_NetworkVertex{
 public:
-	PT_NetworkVertices();
-	virtual ~PT_NetworkVertices();
+	PT_NetworkVertex();
+	virtual ~PT_NetworkVertex();
 
 	const std::string& getEzlinkName() const {
 		return ezlinkName;
@@ -236,5 +249,51 @@ private:
 							// 1 --- Bus stops
 							// 2 --- MRT/LRT Stations
 	std::string stopDesc;   // Description of stops . Usually street where the stop is located
+};
+
+class MRT_Stop{
+public:
+	MRT_Stop();
+	MRT_Stop(std::string stopId,int roadSegment);
+	~MRT_Stop();
+	std::string getmrtStopId() const
+	{
+		return this->mrtStopId;
+	}
+
+	void addRoadSegment(int segmentId)
+	{
+		this->roadSegments.push_back(segmentId);
+	}
+	std::vector<int> getRoadSegments() const
+	{
+		return this->roadSegments;
+	}
+private:
+	std::string mrtStopId;
+	std::vector<int> roadSegments;
+};
+
+class PT_Network{
+public:
+	//PT_Network();
+	//~PT_Network();
+
+	std::map<int,PT_NetworkEdge> PT_NetworkEdgeMap;
+	std::map<std::string,PT_NetworkVertex> PT_NetworkVertexMap;
+	std::map<std::string,MRT_Stop> MRTStopsMap;
+
+	void init();
+	PT_NetworkVertex getVertexFromStopId(std::string stopId);
+
+	MRT_Stop* findMRT_Stop(const std::string& stopId);
+
+	int getVertexTypeFromStopId(std::string stopId);
+	static PT_Network instance_;
+
+	static PT_Network& getInstance()
+	{
+		return instance_;
+	}
 };
 }//End of namespace sim_mob

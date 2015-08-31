@@ -1,6 +1,6 @@
 //Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
-//   license.txt   (http://opensource.org/licenses/MIT)
+//license.txt   (http://opensource.org/licenses/MIT)
 
 /* 
  * File:   DatabaseHelper.h
@@ -24,9 +24,10 @@ namespace sim_mob {
          */
         const std::string DB_EMPTY_QUERY = "";
         const std::string DB_SCHEMA_EMPTY = "";
-        const std::string MAIN_SCHEMA = "main.";
-        const std::string CALIBRATION_SCHEMA = "calibration.";
-        const std::string LIMIT_10 = " limit 10";
+        const std::string MAIN_SCHEMA = "main2012.";
+        const std::string CALIBRATION_SCHEMA = "calibration2012.";
+        const std::string LIMIT_10000 = " order by random() limit 10000";
+        const std::string LIMIT_RAND0_DOT1 = "WHERE random() < 0.01";
         const std::string LIMIT_ALL = "";
         const std::string LIMIT = LIMIT_ALL;
 
@@ -39,7 +40,7 @@ namespace sim_mob {
         const std::string DB_TABLE_DEVELOPER = APPLY_SCHEMA(MAIN_SCHEMA, "developer");
         const std::string DB_TABLE_PARCEL = APPLY_SCHEMA(MAIN_SCHEMA, "parcel");
         const std::string DB_TABLE_TEMPLATE = APPLY_SCHEMA(MAIN_SCHEMA, "template");
-        const std::string DB_TABLE_POSTCODE = APPLY_SCHEMA(MAIN_SCHEMA, "sla_addresses_2008");
+        const std::string DB_TABLE_POSTCODE = APPLY_SCHEMA(MAIN_SCHEMA, "sla_addresses");
         const std::string DB_TABLE_POSTCODE_AMENITIES = APPLY_SCHEMA(MAIN_SCHEMA, "postcode_amenities");
         const std::string DB_TABLE_LAND_USE_ZONE = APPLY_SCHEMA(MAIN_SCHEMA, "land_use_zone");
         const std::string DB_TABLE_DEVELOPMENT_TYPE_TEMPLATE = APPLY_SCHEMA(MAIN_SCHEMA, "development_type_template");
@@ -54,6 +55,29 @@ namespace sim_mob {
         const std::string DB_TABLE_AWAKENING = APPLY_SCHEMA(MAIN_SCHEMA, "awakening");
         const std::string DB_TABLE_MACRO_ECONOMICS = APPLY_SCHEMA(MAIN_SCHEMA, "macro_economics");
         const std::string DB_TABLE_VEHICLE_OWNERSHIP_COEFFICIENTS = APPLY_SCHEMA(CALIBRATION_SCHEMA, "vehicle_ownership_coefficients");
+        const std::string DB_TABLE_TAXI_ACCESS_COEFFICIENTS = APPLY_SCHEMA(CALIBRATION_SCHEMA, "taxi_access_coefficients");
+        const std::string DB_TABLE_ESTABLISHMENT= APPLY_SCHEMA(MAIN_SCHEMA, "establishment");
+        const std::string DB_TABLE_JOB= APPLY_SCHEMA(MAIN_SCHEMA, "job");
+        const std::string DB_TABLE_LOGSUM_FOR_DEVMODEL = APPLY_SCHEMA(CALIBRATION_SCHEMA, "logsum_for_dev_model");
+        const std::string DB_TABLE_HIR= APPLY_SCHEMA(MAIN_SCHEMA, "housing_interest_rates");
+        const std::string DB_TABLE_TAZ= APPLY_SCHEMA(MAIN_SCHEMA, "taz");
+        const std::string DB_TABLE_TAZ_LOGUM_WEIGHT= APPLY_SCHEMA(CALIBRATION_SCHEMA, "taz_logsum_hedonic_price");
+        const std::string DB_TABLE_HH_HITS_SAMPLE = APPLY_SCHEMA(MAIN_SCHEMA, "household_hits_sample");
+        const std::string DB_TABLE_TAO = APPLY_SCHEMA(CALIBRATION_SCHEMA, "tao_hedonic_price");
+
+        const std::string DB_TABLE_LOGSUMMTZV2 = APPLY_SCHEMA(CALIBRATION_SCHEMA, "logsum_mtz_v2");
+
+        const std::string DB_TABLE_PLANNING_AREA = APPLY_SCHEMA(MAIN_SCHEMA, "planning_area");
+        const std::string DB_TABLE_PLANNING_SUBZONE = APPLY_SCHEMA(MAIN_SCHEMA, "planning_subzone");
+        const std::string DB_TABLE_MTZ = APPLY_SCHEMA(MAIN_SCHEMA, "mtz");
+        const std::string DB_TABLE_MTZ_TAZ= APPLY_SCHEMA(MAIN_SCHEMA, "mtz_taz");
+        const std::string DB_TABLE_ALTERNATIVE= APPLY_SCHEMA(CALIBRATION_SCHEMA, "alternative");
+        const std::string DB_TABLE_HITS2008SCREENINGPROB= APPLY_SCHEMA(CALIBRATION_SCHEMA, "hits2008_screening_prob");
+        const std::string DB_TABLE_ZONALLANDUSEVARIABLEVALUES= APPLY_SCHEMA(CALIBRATION_SCHEMA, "zonal_landuse_variable_values");
+        const std::string DB_TABLE_HITSINDIVIDUALLOGSUM= APPLY_SCHEMA(MAIN_SCHEMA, "hits_individual_logsum");
+
+
+
 
         /**
          * Views
@@ -107,6 +131,9 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_AWAKENING = APPLY_SCHEMA( MAIN_SCHEMA, "getHouseholdAwakeningProbability()");
         const std::string DB_FUNC_GET_MACRO_ECONOMICS = APPLY_SCHEMA( MAIN_SCHEMA, "getMacroEconomics()");
         const std::string DB_FUNC_GET_VEHICLE_OWNERSHIP_COEFFICIENTS = APPLY_SCHEMA( MAIN_SCHEMA, "getVehicleOwnershipCoefficients()");
+        const std::string DB_FUNC_GET_TAXI_ACCESS_COEFFICIENTS = APPLY_SCHEMA( MAIN_SCHEMA, "getTaxiAccessCoefficients()");
+        const std::string DB_FUNC_GET_CAR_OWNERSHIP_LOGSUMS_PER_HH = APPLY_SCHEMA( MAIN_SCHEMA, "getCarOwnershipLogsumsPerHH()");
+        const std::string DB_FUNC_GET_DEV_LOGSUMS = APPLY_SCHEMA( MAIN_SCHEMA, "getDevLogsums()");
 
         const std::string DB_FUNC_DEL_INDIVIDUAL_BY_ID  = APPLY_SCHEMA(MAIN_SCHEMA, "deleteIndividualById(:id)");
         const std::string DB_FUNC_GET_INDIVIDUALS 		= APPLY_SCHEMA( MAIN_SCHEMA, "getIndividuals()");
@@ -117,12 +144,28 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_RESIDENTIAL_STATUS 	   = APPLY_SCHEMA( MAIN_SCHEMA, "getResidentialStatus()");
         const std::string DB_FUNC_GET_AWAKENING_BY_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getAwakeningById(:id)");
 
+        const std::string DB_FUNC_GET_ESTABLISHMENT = APPLY_SCHEMA( MAIN_SCHEMA, "getEstablishments()");
+        const std::string DB_FUNC_GET_ESTABLISHMENT_BY_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getEstablishmentById(:id)");
+
+        const std::string DB_FUNC_GET_JOB = APPLY_SCHEMA( MAIN_SCHEMA, "getJobs()");
+        const std::string DB_FUNC_GET_JOB_BY_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getJobById(:id)");
+
+        const std::string DB_FUNC_GET_HIR = APPLY_SCHEMA( MAIN_SCHEMA, "getHousingInterestRates()");
+        const std::string DB_FUNC_GET_HIR_BY_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getHousingInterestRateById(:id)");
+
         const std::string DB_FUNC_GET_UNIT_TYPES 	   = APPLY_SCHEMA( MAIN_SCHEMA, "getUnitTypes()");
         const std::string DB_FUNC_GET_EMPTY_PARCELS = APPLY_SCHEMA( MAIN_SCHEMA, "getEmptyParcels()");
         const std::string DB_FUNC_GET_TOTAL_BUILDING_SPACE = APPLY_SCHEMA( MAIN_SCHEMA, "getTotalBuildingSpacePerParcel()");
         //const std::string DB_FUNC_GET_BUILDINGS_OF_PARCEL = APPLY_SCHEMA( MAIN_SCHEMA, "getBuildingsOfParcel(_parcelId BIGINT)");
         const std::string DB_FUNC_GET_PARCEL_AMENITIES 	   = APPLY_SCHEMA( MAIN_SCHEMA, "getParcelAmenities()");
         const std::string DB_FUNC_GET_UNIT_WITH_MAX_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getUnitWithMaxId()");
+
+        const std::string DB_FUNC_GET_DIST_MRT = APPLY_SCHEMA( MAIN_SCHEMA, "getdistMrt()");
+        const std::string DB_FUNC_GET_PARCELS_WITH_HDB = APPLY_SCHEMA( MAIN_SCHEMA, "getParcelsWithHDB()");
+        const std::string DB_FUNC_GET_TAO = APPLY_SCHEMA( MAIN_SCHEMA, "getTAO()");
+        const std::string DB_FUNC_GET_UNIT_PRICE_SUM_PER_PARCLE = APPLY_SCHEMA( MAIN_SCHEMA, "getUnitPriceSumPerParcel()");
+
+        const std::string DB_FUNC_GET_POPULATION_PER_PLANNING_AREA = APPLY_SCHEMA( MAIN_SCHEMA, "getPopulationPerPlanningArea()");
 
 
         /**
@@ -154,6 +197,7 @@ namespace sim_mob {
         const std::string DB_FIELD_CHILDUNDER15 = "child_under15";
         const std::string DB_FIELD_WORKERS = "workers";
         const std::string DB_FIELD_AGE_OF_HEAD = "age_of_head";
+        const std::string DB_FIELD_TAXI_AVAILABILITY = "taxi_availability";
         const std::string DB_FIELD_HOUSING_DURATION = "housing_duration";
         const std::string DB_FIELD_BUILT_YEAR = "built_year";
         const std::string DB_FIELD_STOREYS = "storeys";
@@ -265,22 +309,23 @@ namespace sim_mob {
         const std::string DB_DELETE_AWAKENING = DB_EMPTY_QUERY;
 
 
+
         /**
          * GET ALL
          */
         const std::string DB_GETALL_HOUSEHOLD 	= "SELECT * FROM " + DB_FUNC_GET_HOUSEHOLDS + LIMIT;
         const std::string DB_GETALL_BUILDING 	= "SELECT * FROM " + DB_FUNC_GET_BUILDINGS  + LIMIT;
         const std::string DB_GETALL_UNIT 		= "SELECT * FROM " + DB_FUNC_GET_UNITS + LIMIT;
-        const std::string DB_GETALL_DEVELOPERS 	= "SELECT * FROM " + DB_FUNC_GET_DEVELPERS;
-        const std::string DB_GETALL_PARCELS 	= "SELECT * FROM " + DB_FUNC_GET_PARCELS;
-        const std::string DB_GETALL_TEMPLATES 	= "SELECT * FROM " + DB_FUNC_GET_TEMPLATES;
-        const std::string DB_GETALL_POSTCODE 	= "SELECT * FROM " + DB_FUNC_GET_POSTCODES;
-        const std::string DB_GETALL_POSTCODE_AMENITIES 	= "SELECT * FROM " + DB_FUNC_GET_POSTCODES_AMENITIES;
-        const std::string DB_GETALL_LAND_USE_ZONES 		= "SELECT * FROM " + DB_FUNC_GET_LAND_USE_ZONES;
-        const std::string DB_GETALL_TEMPLATE_UNIT_TYPE 	= "SELECT * FROM " + DB_FUNC_GET_TEMPLATE_UNIT_TYPES;
-        const std::string DB_GETALL_DEVELOPMENT_TYPE_TEMPLATES = "SELECT * FROM " + DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATES;
+        const std::string DB_GETALL_DEVELOPERS 	= "SELECT * FROM " + DB_FUNC_GET_DEVELPERS + LIMIT;
+        const std::string DB_GETALL_PARCELS 	= "SELECT * FROM " + DB_FUNC_GET_PARCELS + LIMIT;
+        const std::string DB_GETALL_TEMPLATES 	= "SELECT * FROM " + DB_FUNC_GET_TEMPLATES + LIMIT;
+        const std::string DB_GETALL_POSTCODE 	= "SELECT * FROM " + DB_FUNC_GET_POSTCODES + LIMIT;
+        const std::string DB_GETALL_POSTCODE_AMENITIES 	= "SELECT * FROM " + DB_FUNC_GET_POSTCODES_AMENITIES + LIMIT;
+        const std::string DB_GETALL_LAND_USE_ZONES 		= "SELECT * FROM " + DB_FUNC_GET_LAND_USE_ZONES + LIMIT;
+        const std::string DB_GETALL_TEMPLATE_UNIT_TYPE 	= "SELECT * FROM " + DB_FUNC_GET_TEMPLATE_UNIT_TYPES + LIMIT;
+        const std::string DB_GETALL_DEVELOPMENT_TYPE_TEMPLATES = "SELECT * FROM " + DB_FUNC_GET_DEVELOPMENT_TYPE_TEMPLATES + LIMIT;
         const std::string DB_GETALL_INDIVIDUAL = "SELECT * FROM " + DB_FUNC_GET_INDIVIDUALS + LIMIT;
-        const std::string DB_GETALL_RESIDENTIAL_STATUS = "SELECT * FROM " + DB_FUNC_GET_RESIDENTIAL_STATUS;
+        const std::string DB_GETALL_RESIDENTIAL_STATUS = "SELECT * FROM " + DB_FUNC_GET_RESIDENTIAL_STATUS + LIMIT;
         const std::string DB_GETALL_PROJECTS = "SELECT * FROM "+ DB_FUNC_GET_PROJECTS + LIMIT;
         const std::string DB_GETALL_PARCEL_MATCHES = "SELECT * FROM "+ DB_FUNC_GET_PARCEL_MATCHES + LIMIT;
         const std::string DB_GETALL_SLA_PARCELS = "SELECT * FROM "+ DB_FUNC_GET_SLA_PARCELS+ LIMIT;
@@ -292,6 +337,31 @@ namespace sim_mob {
         const std::string DB_GETALL_MACRO_ECONOMICS = "SELECT * FROM " + DB_FUNC_GET_MACRO_ECONOMICS + LIMIT;
         const std::string DB_GETALL_VEHCILE_OWNERSHIP_COEFFICIENTS = "SELECT * FROM " + DB_FUNC_GET_VEHICLE_OWNERSHIP_COEFFICIENTS + LIMIT;
         const std::string DB_FUNC_GETALL_UNIT_WITH_MAX_ID = "SELECT * FROM " + DB_FUNC_GET_UNIT_WITH_MAX_ID + LIMIT;
+        const std::string DB_GETALL_TAXI_ACCESS_COEFFICIENTS = "SELECT * FROM " + DB_FUNC_GET_TAXI_ACCESS_COEFFICIENTS + LIMIT;
+        const std::string DB_FUNC_GET_ALL_CAR_OWNERSHIP_LOGSUMS_PER_HH = "SELECT * FROM " + DB_FUNC_GET_CAR_OWNERSHIP_LOGSUMS_PER_HH + LIMIT;
+        const std::string DB_GETALL_ESTABLISHMENT = "SELECT * FROM " + DB_FUNC_GET_ESTABLISHMENT + LIMIT;
+        const std::string DB_GETALL_JOB = "SELECT * FROM " + DB_FUNC_GET_JOB + LIMIT;
+        const std::string DB_GETALL_DEV_LOGSUMS = "SELECT * FROM " + DB_FUNC_GET_DEV_LOGSUMS + LIMIT;
+        const std::string DB_GETALL_HIR = "SELECT * FROM " + DB_FUNC_GET_HIR + LIMIT;
+        const std::string DB_GETALL_DIST_MRT = "SELECT * FROM " + DB_FUNC_GET_DIST_MRT + LIMIT;
+        const std::string DB_GETALL_TAZS = "SELECT * FROM " + DB_TABLE_TAZ + LIMIT;
+        const std::string DB_GETALL_TAZ_LOGSUM_WEIGHTS = "SELECT * FROM " + DB_TABLE_TAZ_LOGUM_WEIGHT + LIMIT;
+        const std::string DB_GETALL_HH_HITS_SAMPLE = "SELECT * FROM " + DB_TABLE_HH_HITS_SAMPLE + LIMIT;
+        const std::string DB_GETALL_PARCELS_WITH_HDB = "SELECT * FROM " + DB_FUNC_GET_PARCELS_WITH_HDB + LIMIT;
+        const std::string DB_GETALL_TAO = "SELECT * FROM " + DB_FUNC_GET_TAO + LIMIT;
+        const std::string DB_GETALL_UNIT_PRICE_SUM_PER_PARCEL = "SELECT * FROM " + DB_FUNC_GET_UNIT_PRICE_SUM_PER_PARCLE + LIMIT;
+        const std::string DB_FUNC_GETALL_PARCELS_WITH_HDB = "SELECT * FROM " + DB_FUNC_GET_PARCELS_WITH_HDB + LIMIT;
+        const std::string DB_GETALL_LOGSUMMTZV2 = "SELECT * FROM " + DB_TABLE_LOGSUMMTZV2 + LIMIT;
+        const std::string DB_GETALL_PLANNING_AREA = "SELECT * FROM " + DB_TABLE_PLANNING_AREA + LIMIT;
+        const std::string DB_GETALL_PLANNING_SUBZONE = "SELECT * FROM " + DB_TABLE_PLANNING_SUBZONE + LIMIT;
+        const std::string DB_GETALL_MTZ = "SELECT * FROM " + DB_TABLE_MTZ + LIMIT;
+        const std::string DB_GETALL_MTZ_TAZ = "SELECT * FROM " + DB_TABLE_MTZ_TAZ + LIMIT;
+        const std::string DB_GETALL_ALTERNATIVE = "SELECT * FROM " + DB_TABLE_ALTERNATIVE + LIMIT;
+        const std::string DB_GETALL_HITS2008SCREENINGPROB = "SELECT * FROM " + DB_TABLE_HITS2008SCREENINGPROB + LIMIT;
+        const std::string DB_GETALL_ZONALLANDUSEVARIABLEVALUES = "SELECT * FROM " + DB_TABLE_ZONALLANDUSEVARIABLEVALUES + LIMIT;
+        const std::string DB_GETALL_POPULATION_PER_PLANNING_AREA = "SELECT * FROM " + DB_FUNC_GET_POPULATION_PER_PLANNING_AREA + LIMIT;
+        const std::string DB_GETALL_HITSINDIVIDUALLOGSUM = "SELECT * FROM " + DB_TABLE_HITSINDIVIDUALLOGSUM + LIMIT;
+
 
         /**
          * GET BY ID
@@ -310,6 +380,22 @@ namespace sim_mob {
         const std::string DB_GETBYID_INDIVIDUAL = "SELECT * FROM " + DB_FUNC_GET_INDIVIDUAL_BY_ID;
         const std::string DB_GETBYID_RESIDENTIAL_STATUS = "SELECT * FROM " + DB_FUNC_GET_RESIDENTIAL_STATUS_BY_ID;
         const std::string DB_GETBYID_AWAKENING = "SELECT * FROM " + DB_FUNC_GET_AWAKENING_BY_ID;
-
+        const std::string DB_GETBYID_ESTABLISHMENT = "SELECT * FROM " + DB_FUNC_GET_ESTABLISHMENT_BY_ID;
+        const std::string DB_GETBYID_JOB = "SELECT * FROM " + DB_FUNC_GET_JOB_BY_ID;
+        const std::string DB_GETBYID_HIR = "SELECT * FROM " + DB_FUNC_GET_HIR_BY_ID;
+        const std::string DB_GETBYID_TAZ = "SELECT * FROM " + DB_TABLE_TAZ + " WHERE id = :v1;";
+        const std::string DB_GETBYID_TAZ_LOGSUM_WEIGHT = "SELECT * FROM " + DB_TABLE_TAZ_LOGUM_WEIGHT + " WHERE id = :v1;";
+        const std::string DB_GETBYID_HH_HITS_SAMPLE = "SELECT * FROM " + DB_TABLE_HH_HITS_SAMPLE + " WHERE household_id = :v1;";
+        const std::string DB_GETBYID_LOGSUMMTZV2 = "SELECT * FROM " + DB_TABLE_LOGSUMMTZV2 + " WHERE taz = :v1;";
+        const std::string DB_GETBYID_PLANNING_AREA = "SELECT * FROM " + DB_TABLE_PLANNING_AREA + " WHERE id = :v1;";
+        const std::string DB_GETBYID_PLANNING_SUBZONE = "SELECT * FROM " + DB_TABLE_PLANNING_SUBZONE + " WHERE id = :v1;";
+        const std::string DB_GETBYID_MTZ = "SELECT * FROM " + DB_TABLE_MTZ + " WHERE id = :v1;";
+        const std::string DB_GETBYID_MTZ_TAZ = "SELECT * FROM " + DB_TABLE_MTZ_TAZ + " WHERE id = :v1;";
+        const std::string DB_GETBYID_ALTERNATIVE = "SELECT * FROM " + DB_TABLE_ALTERNATIVE + " WHERE id = :v1;";
+        const std::string DB_GETBYID_HITS2008SCREENINGPROB = "SELECT * FROM " + DB_TABLE_HITS2008SCREENINGPROB + " WHERE id = :v1;";
+        const std::string DB_GETBYID_ZONALLANDUSEVARIABLEVALUES = "SELECT * FROM " + DB_TABLE_ZONALLANDUSEVARIABLEVALUES + " WHERE id = :v1;";
+        const std::string DB_GETBYID_POPULATION_PER_PLANNING_AREA = "SELECT * FROM " + DB_FUNC_GET_POPULATION_PER_PLANNING_AREA + " WHERE planning_area_id = :v1;";
+        const std::string DB_GETBYID_HITSINDIVIDUALLOGSUM = "SELECT * FROM " + DB_TABLE_HITSINDIVIDUALLOGSUM + " WHERE id = :v1;";
     }
 }
+

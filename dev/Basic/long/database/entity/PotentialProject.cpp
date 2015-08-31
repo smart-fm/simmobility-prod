@@ -12,7 +12,7 @@
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-PotentialUnit::PotentialUnit(BigSerial unitTypeId,int numUnits,double floorArea,int freehold): unitTypeId(unitTypeId),numUnits(numUnits),floorArea(floorArea),freehold(freehold) {
+PotentialUnit::PotentialUnit(BigSerial unitTypeId,int numUnits,double floorArea,int freehold, double profitPerUnit, double demolitionCostPerUnit): unitTypeId(unitTypeId),numUnits(numUnits),floorArea(floorArea),freehold(freehold),profitPerUnit(profitPerUnit),demolitionCostPerUnit(demolitionCostPerUnit){
 
 }
 
@@ -22,6 +22,8 @@ PotentialUnit::PotentialUnit( const PotentialUnit& source)
 	this->numUnits = source.numUnits;
 	this->floorArea = source.floorArea;
 	this->freehold = source.freehold;
+	this->profitPerUnit = source.profitPerUnit;
+	this->demolitionCostPerUnit = source.demolitionCostPerUnit;
 }
 
 PotentialUnit& PotentialUnit::operator=( const PotentialUnit& source)
@@ -30,6 +32,8 @@ PotentialUnit& PotentialUnit::operator=( const PotentialUnit& source)
 	this->numUnits = source.numUnits;
 	this->floorArea = source.floorArea;
 	this->freehold = source.freehold;
+	this->profitPerUnit = source.profitPerUnit;
+	this->demolitionCostPerUnit = source.demolitionCostPerUnit;
 
 	return *this;
 }
@@ -43,6 +47,11 @@ BigSerial PotentialUnit::getUnitTypeId() const {
 
 double PotentialUnit::getFloorArea() const {
     return floorArea;
+}
+
+void PotentialUnit::setFloorArea(double area)
+{
+	this->floorArea = area;
 }
 
 int PotentialUnit::isFreehold() const {
@@ -65,9 +74,29 @@ void PotentialUnit::setUnitTypeId(int typeId){
 	this->unitTypeId = typeId;
 }
 
-PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel,double constructionCost, double grossArea,double tempSelectProbability,double investmentReturnRatio, double demolitionCost, double expRatio)
+void PotentialUnit::setUnitProfit(double unitProfit)
+{
+	this->profitPerUnit = unitProfit;
+}
+
+double PotentialUnit::getUnitProfit() const
+{
+	return this->profitPerUnit;
+}
+
+void PotentialUnit::setDemolitionCostPerUnit(double demolitionCost)
+{
+	this->demolitionCostPerUnit = demolitionCost;
+}
+
+double PotentialUnit::getDemolitionCostPerUnit()
+{
+	return this->demolitionCostPerUnit;
+}
+
+PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel,double constructionCost, double grossArea,double tempSelectProbability,double investmentReturnRatio, double demolitionCost, double expRatio,int totalUnits)
 								  : devTemplate(devTemplate), parcel(parcel), profit(0) , constructionCost(constructionCost),grossArea(grossArea),tempSelectProbability(tempSelectProbability),
-								    investmentReturnRatio(investmentReturnRatio), demolitionCost(demolitionCost), expRatio(expRatio) {}
+								    investmentReturnRatio(investmentReturnRatio), demolitionCost(demolitionCost), expRatio(expRatio),totalUnits(totalUnits) {}
 
 PotentialProject::PotentialProject( const PotentialProject &source)
 {
@@ -80,7 +109,17 @@ PotentialProject::PotentialProject( const PotentialProject &source)
 	this->investmentReturnRatio = source.investmentReturnRatio;
 	this->demolitionCost = source.demolitionCost;
 	this->expRatio = source.expRatio;
+	this->totalUnits = source.totalUnits;
 	this->units = source.units;
+	for (int i=0; i < source.units.size(); i++)
+	{
+		PotentialUnit unit;
+		unit.setNumUnits( source.units[i].getNumUnits());
+		unit.setUnitProfit(source.units[i].getUnitProfit());
+		unit.setUnitTypeId( source.units[i].getUnitTypeId());
+		unit.setFloorArea(source.units[i].getFloorArea());
+		this->units[i]= unit;
+	}
 }
 
 PotentialProject& PotentialProject::operator=(const PotentialProject& source)
@@ -94,8 +133,18 @@ PotentialProject& PotentialProject::operator=(const PotentialProject& source)
 	this->investmentReturnRatio = source.investmentReturnRatio;
 	this->demolitionCost = source.demolitionCost;
 	this->expRatio = source.expRatio;
-	this->units = source.units;
+	this->totalUnits = source.totalUnits;
+	this->units.resize(source.units.size());
 
+	for (int i=0; i < source.units.size(); i++)
+		{
+			PotentialUnit unit;
+			unit.setNumUnits( source.units[i].getNumUnits());
+			unit.setUnitProfit(source.units[i].getUnitProfit());
+			unit.setUnitTypeId( source.units[i].getUnitTypeId());
+			unit.setFloorArea(source.units[i].getFloorArea());
+			this->units[i]= unit;
+		}
 	return *this;
 }
 
@@ -108,9 +157,7 @@ void PotentialProject::addUnit(const PotentialUnit& unit) {
 
 void PotentialProject::addTemplateUnitType(TemplateUnitType* templateUnitType) {
 
-	//PrintOut("BEFORE ADDING"<<templateUnitTypes.size());
 	templateUnitTypes.push_back(templateUnitType);
-	//PrintOut("AFTER ADDING"<<templateUnitTypes.size());
 }
 
 void PotentialProject::addUnits(int unitType,int numUnits) {
@@ -127,11 +174,11 @@ const Parcel* PotentialProject::getParcel() const {
     return parcel;
 }
 
-const std::vector<PotentialUnit>& PotentialProject::getUnits() const {
+std::vector<PotentialUnit>& PotentialProject::getUnits(){
     return units;
 }
 
-double PotentialProject::getProfit() const {
+double PotentialProject::getProfit() {
     return profit;
 }
 
@@ -194,6 +241,16 @@ void PotentialProject::setDemolitionCost(double demCost)
 {
 	this->demolitionCost = demCost;
 }
+
+int PotentialProject::getTotalUnits()
+{
+	return this->totalUnits;
+}
+
+void PotentialProject::setTotalUnits (int totUnits)
+{
+	this->totalUnits = totUnits;
+}
 namespace sim_mob
 {
     namespace long_term
@@ -207,7 +264,7 @@ namespace sim_mob
                     << "}";
         }
 
-        std::ostream& operator<<(std::ostream& strm, const PotentialProject& data)
+        std::ostream& operator<<(std::ostream& strm, PotentialProject& data)
         {
             std::stringstream unitsStr;
             unitsStr << "[";

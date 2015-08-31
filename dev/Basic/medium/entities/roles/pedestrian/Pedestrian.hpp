@@ -39,9 +39,15 @@ public:
 
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
+	/**
+	 * collect travel time for current role
+	 */
+	virtual void collectTravelTime();
+
 private:
 	friend class PedestrainBehavior;
 	friend class PedestrainMovement;
+
 };
 
 }

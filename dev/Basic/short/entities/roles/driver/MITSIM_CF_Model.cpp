@@ -51,7 +51,7 @@ double convertFrmMillisecondToSecond(double v) {
 double CalcHeadway(double space, double speed, double elapsedSeconds,
 		double maxAcceleration) {
 	if (speed == 0) {
-		return 2 * space * 100000;
+		return -1;
 	} else {
 		return 2 * space / (speed + speed + elapsedSeconds * maxAcceleration);
 	}
@@ -484,8 +484,7 @@ double sim_mob::MITSIM_CF_Model::headwayBuffer() {
 }
 
 
-double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
-		double targetSpeed, double maxLaneSpeed) {
+double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p) {
 	p.cfDebugStr="";
 
 	calcStateBasedVariables(p);
@@ -529,16 +528,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		}
 	}
 
-	// if (intersection){
-	// double aI = approachInter(p); // when approaching intersection to achieve the turn speed
-	// if(acc > aI) acc = aI;
-	// }
-	// FUNCTION approachInter MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
-
-	//double aZ1 = carFollowingRate(p, p.nvFwd);
-	//double aZ2 = carFollowingRate(p, p.nvFwdNextLink);
 	double aZ = calcCarFollowingRate(p);
-	p.aZ = aZ;
 
 	// stop point acc
 	double aSP = calcStopPointRate(p);
@@ -564,32 +554,30 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	//if (acc > aH3)
 	//acc = aH3;
 	//if(acc > aG) acc = aG;
+	
 	if (acc > aC) {
 		acc = aC;
 		p.accSelect = "aC";
 	}
+	
 	//if (acc > aE)
 	//acc = aE;
+	
 	if (acc > aZ) {
 		acc = aZ;
 		p.accSelect = "aZ";
 	}
 
-	if (acc>aSP){
+	if (acc > aSP){
 		acc = aSP;
 		p.accSelect = "aSP";
 	}
 
-	//if (acc > aZ1)
-	//acc = aZ1;
-	//if (acc > aZ2)
-	//acc = aZ2;
-
 	// SEVERAL CONDITONS MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
 
-	p.lastAcc = acc;
+	p.acc = acc;
 
-	// if brake ,alerm follower
+	// if brake ,alarm follower
 	if (acc < -ACC_EPSILON) {
 
 		// I am braking, alert the vehicle behind if it is close
@@ -597,11 +585,12 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		{
 			Driver* bvd = const_cast<Driver*>(p.nvBack.driver);
 			DriverUpdateParams& bvp = bvd->getParams();
-			if( p.nvBack.distance < visibility() &&
-					!(bvd->isBus() && bvp.getStatus(STATUS_STOPPED))) {
-						  float alert = CF_CRITICAL_TIMER_RATIO * updateStepSize[0];
-						  bvp.cftimer = std::min<double>(alert,bvp.cftimer);
-						}
+			if ( p.nvBack.distance < visibility() &&
+				!(bvd->isBus() && bvp.getStatus(STATUS_STOPPED)))
+			{
+				float alert = CF_CRITICAL_TIMER_RATIO * updateStepSize[0];
+				bvp.cftimer = std::min<double>(alert, bvp.cftimer);
+			}
 		}
 	}
 
@@ -672,9 +661,8 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p,
 
 		debugStr << emergSpace << ";";
 
-		// to fix bug: when subject vh speed=0 and space small, headway become large number
 		p.emergHeadway = -1;
-		if (emergSpace < 2.0)
+		if (emergSpace <= p.driver->getVehicleLengthM())
 		{
 			double speed = p.perceivedFwdVelocity / 100;
 			double emergHeadway = CalcHeadway(emergSpace, speed,
@@ -772,10 +760,10 @@ double sim_mob::MITSIM_CF_Model::calcMergingRate(
 			if (p.nvLeadFreeway.distance / 100.0 < headway)
 			{
 				// MITSIM TS_CFModels.cc
-				acc = p.nvLeadFreeway.driver->fwdAccel.get() / 100.0
+				acc = p.nvLeadFreeway.driver->fwdAccel_.get() / 100.0
 						+ brakeToTargetSpeed(p,
 								p.nvLeadFreeway.distance / 100.0,
-								p.nvLeadFreeway.driver->fwdVelocity);
+								p.nvLeadFreeway.driver->fwdVelocity_);
 			}
 		}
 	}
@@ -796,7 +784,7 @@ double sim_mob::MITSIM_CF_Model::calcMergingRate(
 			{
 				// lead exists, brake to target speed
 				acc = brakeToTargetSpeed(p, p.nvLeadFreeway.distance / 100.0,
-						p.nvLeadFreeway.driver->fwdVelocity);
+						p.nvLeadFreeway.driver->fwdVelocity_);
 			}
 		}
 	}
@@ -807,7 +795,7 @@ double sim_mob::MITSIM_CF_Model::calcMergingRate(
 bool sim_mob::MITSIM_CF_Model::isGapAcceptable(sim_mob::DriverUpdateParams& p,
 		NearestVehicle& vh) {
 	float accn = p.maxAcceleration;
-	float speedM = vh.driver->fwdVelocity / 100.0; //coming->currentSpeed_;
+	float speedM = vh.driver->fwdVelocity_ / 100.0; //coming->currentSpeed_;
 
 	// get object vh's max acceleration
 	Driver* d = const_cast<Driver*>(vh.driver);
@@ -818,7 +806,7 @@ bool sim_mob::MITSIM_CF_Model::isGapAcceptable(sim_mob::DriverUpdateParams& p,
 	double dt = p.nextStepSize;
 
 	double distance = p.dis2stop; // distance to end of the link
-	double currentSpeed = p.driver->fwdVelocity / 100.0; // subject vh current speed m/s
+	double currentSpeed = p.driver->fwdVelocity_ / 100.0; // subject vh current speed m/s
 
 	if (distance > sim_mob::Math::DOUBLE_EPSILON) {
 		// maximum speed can be reached at the end of the lane.
@@ -857,9 +845,6 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p) {
 
 	sim_mob::TrafficColor color;
 
-#if 0
-	Signal::TrafficColor color;
-#endif
 	double distanceToTrafficSignal;
 	distanceToTrafficSignal = p.perceivedDistToTrafficSignal;
 	color = p.perceivedTrafficColor;
@@ -868,63 +853,33 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p) {
 	{
 		double dis = distanceToTrafficSignal / 100;
 
-#if 0
-		if(p.perceivedTrafficColor == sim_mob::Red)
+		if (color == sim_mob::Red)
 		{
 			double a = brakeToStop(p, dis);
-			if(a < minacc)
-			minacc = a;
-		}
-		else if(p.perceivedTrafficColor == sim_mob::Amber)
-		{
-			double maxSpeed = (speed>minSpeedYellow)?speed:minSpeedYellow;
-			if(dis/maxSpeed > yellowStopHeadway)
+			
+			if (a < minacc)
 			{
-				double a = brakeToStop(p, dis);
-				if(a < minacc)
 				minacc = a;
 			}
-		}
-		else if(p.perceivedTrafficColor == sim_mob::Green)
-		{
-			minacc = maxAcceleration;
-		}
-#else
-		if (color == sim_mob::Red)
-#if 0
-		if(color == Signal::Red)
-#endif
-		{
-
-			double a = brakeToStop(p, dis);
-			if (a < minacc)
-				minacc = a;
-		}
+		} 
 		else if (color == sim_mob::Amber)
-#if 0
-		else if(color == Signal::Amber)
-#endif
 		{
-			double maxSpeed =
-					(p.perceivedFwdVelocity / 100 > minSpeedYellow) ?
-							p.perceivedFwdVelocity / 100 : minSpeedYellow;
+			double maxSpeed = (p.perceivedFwdVelocity / 100 > minSpeedYellow) ?	p.perceivedFwdVelocity / 100 : minSpeedYellow;
+			
 			if (dis / maxSpeed > yellowStopHeadway)
 			{
 				double a = brakeToStop(p, dis);
+				
 				if (a < minacc)
+				{
 					minacc = a;
+				}
 			}
-		}
+		} 
 		else if (color == sim_mob::Green)
-#if 0
-		else if(color == Signal::Green)
-#endif
 		{
 			minacc = p.maxAcceleration;
 		}
-
-#endif
-
 	}
 	return minacc;
 }
@@ -1077,20 +1032,20 @@ double sim_mob::MITSIM_CF_Model::calcCreateGapRate(DriverUpdateParams& p,
 
 	// freedom left
 	float dx = vh.distance/100.0 - gap; //gapDistance(front) - gap;
-	float dv = p.currSpeed - vh.driver->fwdVelocity / 100.0;
+	float dv = p.currSpeed - vh.driver->fwdVelocity_ / 100.0;
 
 	float dt = p.nextStepSize;
 	if (dt <= 0.0)
 		return p.maxAcceleration;
 #if 0
-	double res = vh.driver->fwdAccel.get()/100.0 + 2.0 * (dx - dv * dt) / (dt * dt);
+	double res = vh.driver->fwdAccel_.get()/100.0 + 2.0 * (dx - dv * dt) / (dt * dt);
 	return res;
 #else
 	if (dx < 0.01 || dv < 0.0)
 	{
 		// insufficient gap or my speed is slower than the leader
 		//front->accRate_ + 2.0 * (dx - dv * dt) / (dt * dt);
-		double res = vh.driver->fwdAccel.get() / 100.0
+		double res = vh.driver->fwdAccel_.get() / 100.0
 				+ 2.0 * (dx - dv * dt) / (dt * dt);
 		return res;
 	}
@@ -1098,7 +1053,7 @@ double sim_mob::MITSIM_CF_Model::calcCreateGapRate(DriverUpdateParams& p,
 	{
 		// gap is ok and my speed is higher.
 		//front->accRate_ - 0.5 * dv * dv / dx;
-		double res = vh.driver->fwdAccel.get() / 100.0 - 0.5 * dv * dv / dx;
+		double res = vh.driver->fwdAccel_.get() / 100.0 - 0.5 * dv * dv / dx;
 		return res;
 	}
 #endif
@@ -1551,8 +1506,8 @@ double sim_mob::MITSIM_CF_Model::makeNormalDist(UpdateStepSizeParam& sp) {
 }
 
 double sim_mob::CarFollowModel::calcNextStepSize(DriverUpdateParams& p) {
-	double accRate_ = p.driver->fwdAccel / 100.0;
-	double currentSpeed_ = p.driver->fwdVelocity / 100.0;
+	double accRate_ = p.driver->fwdAccel_ / 100.0;
+	double currentSpeed_ = p.driver->fwdVelocity_ / 100.0;
 
 	int i;
 	if(currentSpeed_ <  minSpeed)
@@ -1573,6 +1528,6 @@ double sim_mob::CarFollowModel::calcNextStepSize(DriverUpdateParams& p) {
 		p.nextStepSize = p.elapsedSeconds;
 	}
 	nextPerceptionSize = perceptionSize[i];
-	p.driver->resetReacTime(nextPerceptionSize * 1000);
+	p.driver->resetReactionTime(nextPerceptionSize * 1000);
 	return p.nextStepSize;
 }

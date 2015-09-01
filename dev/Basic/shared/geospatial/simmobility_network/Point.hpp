@@ -30,6 +30,8 @@ namespace simmobility_network
     
     Point();
     
+    Point(double x, double y);
+    
     Point(unsigned int id, unsigned int seqNum, double x, double y, double z);
     
     Point(const Point& orig);

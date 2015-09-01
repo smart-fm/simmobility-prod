@@ -14,6 +14,14 @@
 namespace simmobility_network
 {
 
+  #define PEDESTRIAN_LANE 0b1000000
+  #define BICYCLE_LANE 0b100000
+  #define CAR_LANE 0b10000
+  #define VAN_LANE 0b1000
+  #define TRUCK_LANE 0b100
+  #define BUS_LANE 0b10
+  #define TAXI_LANE 0b1
+
   //Defines the rules for the bus lanes
   enum BusLaneRules
   {
@@ -160,6 +168,9 @@ namespace simmobility_network
     
     //Sets the lane width
     void setWidth(double width);
+    
+    //Returns true if the lane is a pedestrian lane
+    bool isPedestrianLane();
     
     //Adds lane connector to the vector of outgoing lane connectors
     void addLaneConnector(LaneConnector *laneConnector);    

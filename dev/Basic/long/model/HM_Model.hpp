@@ -234,7 +234,7 @@ namespace sim_mob
             HousingInterestRateList* getHousingInterestRateList();
 
             double ComputeHedonicPriceLogsumFromMidterm(BigSerial taz);
-            double ComputeHedonicPriceLogsumFromDatabase(BigSerial taz);
+            double ComputeHedonicPriceLogsumFromDatabase(BigSerial taz) const;
 
             void incrementBidders();
             void decrementBidders();

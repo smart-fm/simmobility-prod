@@ -168,6 +168,7 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 	double debtToIncomeRatio = DTIR_Single;
 
 	int children = 0;
+	int householdHeadAge = 0;
 	if( householdSize > 1 )
 	{
 		children = 0;
@@ -183,11 +184,17 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 			  thisTime = *localtime(&now);
 			  int difference = thisTime.tm_year - dob.tm_year;
 
-			if( difference < maturityAge )
-			{
-				 children++;
-				 //PrintOutV("children: "<< children << std::endl);
-			}
+			  if( householdIndividual->getHouseholdHead() )
+			  {
+				  householdHeadAge = difference;
+			  }
+
+
+			  if( difference < maturityAge )
+			  {
+				  children++;
+				  //PrintOutV("children: "<< children << std::endl);
+			  }
 		}
 
 		debtToIncomeRatio = DTIR_Couple;
@@ -211,9 +218,23 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 
 	//Household affordability formula based on excel PV function:
 	//https://support.office.com/en-ca/article/PV-function-3d25f140-634f-4974-b13b-5249ff823415
-	householdAffordabilityAmount = income / interestRate *  ( 1.0 - pow( 1 + interestRate, loanTenure ) );
+	double maxMortgage = income / interestRate *  ( 1.0 - pow( 1 + interestRate, loanTenure ) );
 
-	//PrintOutV( "Interest rate: " << interestRate << ". Household affordability: " << householdAffordabilityAmount << std::endl);
+
+	const Household *household = getParent()->getHousehold();
+
+	double alpha = 0.03;
+
+	if( householdHeadAge < 30 )
+		alpha = 0.05;
+
+	double maxDownpayment = ( householdHeadAge - 20 ) * (0.36 * alpha);
+
+	householdAffordabilityAmount = ( maxMortgage + maxDownpayment ) / 500000.0;
+
+	householdAffordabilityAmount = std::max(householdAffordabilityAmount, 0.0f);
+
+	//PrintOutV( "Interest rate: " << std::setPrecision(5) << interestRate << ". Household affordability: " << householdAffordabilityAmount << std::endl);
 }
 
 void HouseholdBidderRole::init()
@@ -236,7 +257,6 @@ void HouseholdBidderRole::update(timeslice now)
 	//The bidder role will do nothing else during this period (hence the return at the end of the if function).
 	if( moveInWaitingTimeInDays > 0 )
 	{
-
 		//Just before we set the bidderRole to inactive, we do the unit ownership switch.
 		if( moveInWaitingTimeInDays == 1 )
 		{
@@ -562,7 +582,9 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 		if( ZZ_logsumhh == -1 )
 		{
-			ZZ_logsumhh = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz );
+			PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz );
+
+			ZZ_logsumhh = personParam.getDpbLogsum();
 
 			BigSerial groupId = hitssample->getGroupId();
 			const HM_Model::HouseholdGroup *thisHHGroup = new HM_Model::HouseholdGroup(groupId, homeTaz, ZZ_logsumhh );
@@ -648,7 +670,7 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 	double f_loc_open		= 0.0841;	//5 zonal average fraction of open space within a 500-meter buffer area from a residential postcode (weighted by residential unit within the buffer)	percentage point (x10^-1)
 	double odi10_loc		= 0.0928;	//6 zonal average local land use mix (opportunity diversity) index: 1-(|lu1/t-1/9|+|lu2/t-1/9|+|lu3/t-1/9|+|lu4/t-1/9|+|lu5/t-1/9|+|lu6/t-1/9|+|lu7/t-1/9|+|lu8/t-1/9|+|lu9/t-1/9|)/(16/9)	(x10)
 	double dis2mrt			=-0.3063;	//7 zonal average distance to the nearest MRT station	in kilometer
-	double 	dis2exp			= 0.0062;	//8 zonal average distance to the nearest express way	in kilometer
+	double dis2exp			= 0.0062;	//8 zonal average distance to the nearest express way	in kilometer
 	double hh_dgp_w_lgsm1	= 0.8204;	//9 average of workers' logsum of a household (at the DGP level) x dummy if household has at least a worker with fixed workplace (=1, yes; =0, otherwise)	utils
 	double f_age4_n4		= 1.5187;	//10 zonal fraction of population younger than 4 years old x dummy if presence of kids younger than 4 years old in the household (=1, yes; =0, no)	percentage point (x10^-1)
 	double f_age19_n19		= 0.3068;	//11 zonal fraction of population between 5 and 19 years old x dummy if presence of children in the household  (=1, yes; =0, no)	percentage point (x10^-1)
@@ -656,7 +678,7 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 	double f_chn_nchn		= 0.1689;	//13 zonal fraction of Chinese population x  dummy if household is Chinese (=1, yes; =0, no)	percentage point (x10^-1)
 	double f_mal_nmal		= 0.4890;	//14 zonal fraction of Malay population x  dummy if household is Malay (=1, yes; =0, no)	percentage point (x10^-1)
 	double f_indian_nind	= 0.8273;	//15 zonal fraction of Indian population x  dummy if household is Indian (=1, yes; =0, no)	percentage point (x10^-1)
-	double 	hhsize_diff		=-0.5926;	//16 absolute difference between zonal average household size by housing type and household size	persons
+	double hhsize_diff		=-0.5926;	//16 absolute difference between zonal average household size by housing type and household size	persons
 	double log_hhinc_diff	=-1.5749;	//17 absolute difference between logarithm of the zonal median household montly income by housing type and logarithm of the household income	SGD
 	double log_price05tt_med=-0.1473;	//18 logarithm of the zonal median housing price by housing type	in (2005) SGD
 	double DWL600			= 0.3940;	//19 = 1, if household size is 1, living in private condo/apartment
@@ -796,16 +818,6 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 	planningArea_size = planningArea_size / 10000.0;
 
  	double probabilitySum = 0;
-	/*
- 	PrintOut("PA: " << planningArea->getName( ) << std::endl );
- 	PrintOut(" Associated Taz: ");
- 	for(int n = 0; n < planningAreaTazs.size(); n++ )
- 	{
- 		PrintOut(" " << planningAreaTazs[n] );
- 	}
- 	PrintOut("PA population: " << populationTotal << std::endl );
- 	PrintOut("PA size: " << planningArea_size << std::endl );
-	*/
 
 	for( int n = 1; n <= 215; n++ )
 	{
@@ -826,11 +838,11 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 		double fractionOfChinese			= ( populationChinese / populationTotal ) * bHouseholdEthnicityChinese;	//13 zonal fraction of Chinese population x  dummy if household is Chinese (=1, yes; =0, no)	percentage point (x10^-1)
 		double fractionOfMalay				= ( populationChinese / populationTotal ) * bHouseholdEthnicityMalay;	//14 zonal fraction of Malay population x  dummy if household is Malay (=1, yes; =0, no)	percentage point (x10^-1)
 		double fractionOfIndian				= ( populationChinese / populationTotal ) * bHouseholdEthnicityIndian;	//15 zonal fraction of Indian population x  dummy if household is Indian (=1, yes; =0, no)	percentage point (x10^-1)
-		double householdSizeMinusZoneAvg	= abs( avgHouseholdSize - household->getSize());	//16 absolute difference between zonal average household size by housing type
-		double logHouseholdInconeMinusZoneAvg= abs( log(avgHouseholdIncome ) - log(household->getIncome() ) );	//17 absolute difference between logarithm of the zonal median household montly income by housing type and logarithm of the household income	SGD
+		double householdSizeMinusZoneAvg	= fabs( avgHouseholdSize - household->getSize());	//16 absolute difference between zonal average household size by housing type
+		double logHouseholdInconeMinusZoneAvg= fabs( log(avgHouseholdIncome ) - log(household->getIncome() ) );	//17 absolute difference between logarithm of the zonal median household montly income by housing type and logarithm of the household income	SGD
 		double logZonalMedianHousingPrice	= 0.0;	//18 logarithm of the zonal median housing price by housing type	in (2005) SGD
 		double privateCondoHhSizeOne		= 0.0;	//19 = 1, if household size is 1, living in private condo/apartment
-		double landedPropertyHhSizeOne		= 0.0;	//20  = 1, if household size is 1, living in landed property
+		double landedPropertyHhSizeOne		= 0.0;	//20 = 1, if household size is 1, living in landed property
 		double otherHousingHhSizeOne		= 0.0; 	//21 = 1, if household size is 1, living in other types of housing units
 
 		if( household->getSize() == 1 )
@@ -873,16 +885,14 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 
 								int tazInt = atoi(thisTaz->getName().c_str());
 
-								double lg = PredayLT_LogsumManager::getInstance().computeLogsum( individuals[m] , tazInt, -1, -1 );
-								//PrintOutV(" tazInt " << tazInt << " log: " << lg << std::endl);
+								PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( individuals[m] , tazInt, -1, -1 );
+								double lg = personParam.getDpbLogsum();
 
 								logsum = logsum + lg * (double)(tazStats->getIndividuals());
 							}
 						}
 					}
 
-					//PrintOut("PA:" << planningArea->getId() << " patSize: " << patSize << "pop1: " << populationTotal << " pop2: " << tazPopulation << " " );
-					//PrintOut(" logsum " << logsum << " tazPopulation " << tazPopulation << " patSize " << patSize << std::endl);
 
 					if( tazPopulation && patSize )
 					{
@@ -898,6 +908,21 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 				householdWorkerLogsumAverage = householdWorkerLogsumAverage + ( workerLogsumAtPlanningAreaLevel[m] / workerLogsumAtPlanningAreaLevel.size() );
 			}
 		}
+
+
+		//////////////////////////////////
+		std::vector<ExpectationEntry> expectations;
+		const HM_LuaModel& luaModel = LuaProvider::getHM_Model();
+		Taz* thisTaz = model->getTazById(model->getUnitTazId( unit->getId()));
+		int tazNum = 0;
+
+		if(thisTaz)
+			tazNum = atoi(thisTaz->getName().c_str());
+
+		double logsumHP = model->ComputeHedonicPriceLogsumFromDatabase( tazNum );
+	    luaModel.calulateUnitExpectations(*unit, 1, logsumHP, expectations);
+	    logZonalMedianHousingPrice = log(expectations[0].hedonicPrice);
+		//////////////////////////////////
 
 		double probability =( logPopulationByHousingType* ln_popdwl 		) +
 							( populationDensity			* den_respop_ha 	) +
@@ -920,11 +945,12 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 							( privateCondoHhSizeOne		* DWL600 ) +
 							( landedPropertyHhSizeOne	* DWL700 ) +
 							( otherHousingHhSizeOne		* DWL800 );
+
 		/*
-		PrintOut("n: " <<   populationByunitType << " 0 " <<  planningArea->getId()  << " hhid:  " << hhId << " " <<
-							logPopulationByHousingType  << " 1 " << ln_popdwl 		 << " " <<
-							populationDensity			<< " 2 " << den_respop_ha 	 << " " <<
-							commercialLandFraction	    << " 3 " << f_loc_com 	 	 << " " <<
+		PrintOut("n: " <<    populationByunitType 		<< " 0 " << planningArea->getId()  << " hhid:  " << hhId << " " <<
+							 logPopulationByHousingType << " 1 " << ln_popdwl 		 << " " <<
+							 populationDensity			<< " 2 " << den_respop_ha 	 << " " <<
+							 commercialLandFraction	    << " 3 " << f_loc_com 	 	 << " " <<
 							 residentialLandFraction	<< " 4 " << f_loc_res		 << " " <<
 							 openSpaceFraction			<< " 5 " << f_loc_open	 	 << " " <<
 							 oppurtunityDiversityIndex	<< " 6 " << odi10_loc		 << " " <<
@@ -944,23 +970,18 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 							 landedPropertyHhSizeOne	<< " k " << DWL700  << " " <<
 							 otherHousingHhSizeOne		<< " l " << DWL800  << std::endl);
 		*/
-		//PrintOut(" b: " << probability );
 
 		probabilities.push_back(probability);
 
 		probabilitySum += exp(probability);
-
-		//PrintOut(" prbability: " << probability );
 	}
-
-	//PrintOut( " " << std::endl );
-
-	//PrintOut( " sum: "  << probabilitySum << std::endl);
 
 	for( int n = 0; n < probabilities.size(); n++)
 	{
 		probabilities[n] = exp(probabilities[n])/ probabilitySum;
 	}
+
+	//PrintOut(std::endl);
 
 	/*
 	// NOTE: dgp is the planning area
@@ -1228,6 +1249,7 @@ bool HouseholdBidderRole::pickEntryToBid()
             	householdAffordabilityAmount = std::max(0.0f, householdAffordabilityAmount);
             	if( wp > householdAffordabilityAmount )
                 {
+                	//PrintOutV("wp is capped at " << householdAffordabilityAmount << " from " << wp << std::endl );
                 	wp = householdAffordabilityAmount;
                 }
 
@@ -1235,7 +1257,7 @@ bool HouseholdBidderRole::pickEntryToBid()
             	double currentSurplus = 0;
 
             	if( entry->getAskingPrice() != 0 )
-            		computeBidValueLogistic(  entry->getAskingPrice(), wp, currentBid, currentSurplus );
+            		computeBidValueLogistic( entry->getAskingPrice(), wp, currentBid, currentSurplus );
             	else
             		PrintOutV("Asking price is zero for unit " << entry->getUnitId() << std::endl );
 
@@ -1329,8 +1351,13 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 	//		else
 	//		{
 				//replace householdHeadId with individualId
-				double vehicleOwnershipLogsumCar = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), -1, -1,1) ;
-				double vehicleOwnershipLogsumTransit = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), -1, -1,0);
+				PredayPersonParams personParam1 = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), -1, -1,1) ;
+
+				double vehicleOwnershipLogsumCar = personParam1.getDpbLogsum();
+
+				PredayPersonParams personParam2 = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), -1, -1,0);
+				double vehicleOwnershipLogsumTransit =personParam2.getDpbLogsum();
+
 				vehicleOwnershipLogsum = (vehicleOwnershipLogsumCar - vehicleOwnershipLogsumTransit);
 				SumVehicleOwnershipLogsum = vehicleOwnershipLogsum + SumVehicleOwnershipLogsum;
 	//			HM_Model::HouseholdGroup *hhGroup = new HM_Model::HouseholdGroup(hitsSample->getGroupId(),0,vehicleOwnershipLogsum);

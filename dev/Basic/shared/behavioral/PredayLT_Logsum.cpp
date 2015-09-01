@@ -202,7 +202,7 @@ const PredayLT_LogsumManager& sim_mob::PredayLT_LogsumManager::getInstance()
 	return logsumManager;
 }
 
-double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int homeLocation, int workLocation, int vehicleOwnership) const
+PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int homeLocation, int workLocation, int vehicleOwnership) const
 {
 	ensureContext();
 	PredayPersonParams personParams;
@@ -210,7 +210,7 @@ double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int hom
 	ltPopulationDao.getOneById(individualId, personParams);
 	if(personParams.getPersonId().empty())
 	{
-		return 0.0;
+		return PredayPersonParams();
 	}
 
 	if(homeLocation > 0) { personParams.setHomeLocation(homeLocation); }
@@ -234,7 +234,7 @@ double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int hom
 
 	if( zoneLookupItr == zoneIdLookup.end())
 	{
-		return 0.0;
+		return PredayPersonParams();
 	}
 
 	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
@@ -243,5 +243,5 @@ double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int hom
 	PredayLogsumLuaProvider::getPredayModel().computeDayPatternLogsums(personParams);
 	PredayLogsumLuaProvider::getPredayModel().computeDayPatternBinaryLogsums(personParams);
 
-	return personParams.getDpbLogsum();
+	return personParams;
 }

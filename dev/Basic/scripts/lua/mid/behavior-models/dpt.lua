@@ -525,11 +525,11 @@ function compute_logsum_dpt(params)
 	local probability = calculate_probability("mnl", choice, utility, availability, scale)
 	local num_tours = 0
 	for cno,prob in pairs(probability) do
-		if cno <= 4:
+		if cno <= 4 then
 			num_tours = num_tours + prob
-		elseif cno <= 10
+		elseif cno <= 10 then
 			num_tours = num_tours + (2*prob)
-		elseif cno <= 14
+		elseif cno <= 14 then
 			num_tours = num_tours + (3*prob)
 		end
 	end

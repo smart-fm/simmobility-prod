@@ -24,6 +24,7 @@ Household::Household( BigSerial id, BigSerial lifestyleId, BigSerial unitId, Big
 
 Household::Household(): id(0), lifestyleId(0), unitId(0), ethnicityId(0), vehicleCategoryId(0),size(0), childUnder4(0), childUnder15(0), income(0), housingDuration(0), workers(0), ageOfHead(0),
 						twoRoomHdbEligibility(0), threeRoomHdbEligibility(0), fourRoomHdbEligibility(0), familyType(0),taxiAvailability(false), vehicleOwnershipOptionId(0){}
+
 Household::~Household() {}
 
 Household& Household::operator=(const Household& source)
@@ -45,99 +46,123 @@ Household& Household::operator=(const Household& source)
     return *this;
 }
 
-void Household::setAgeOfHead(int ageOfHead) {
+void Household::setAgeOfHead(int ageOfHead)
+{
     this->ageOfHead = ageOfHead;
 }
 
-int Household::getAgeOfHead() const {
+int Household::getAgeOfHead() const
+{
     return ageOfHead;
 }
 
-void Household::setWorkers(int workers) {
+void Household::setWorkers(int workers)
+{
     this->workers = workers;
 }
 
-int Household::getWorkers() const {
+int Household::getWorkers() const
+{
     return workers;
 }
 
-void Household::setHousingDuration(int housingDuration) {
+void Household::setHousingDuration(int housingDuration)
+{
     this->housingDuration = housingDuration;
 }
 
-int Household::getHousingDuration() const {
+int Household::getHousingDuration() const
+{
     return housingDuration;
 }
 
-void Household::setIncome(double income) {
+void Household::setIncome(double income)
+{
     this->income = income;
 }
 
-double Household::getIncome() const {
+double Household::getIncome() const
+{
     return income;
 }
 
-void Household::setChildUnder4(int childUnder4) {
+void Household::setChildUnder4(int childUnder4)
+{
     this->childUnder4 = childUnder4;
 }
 
-void Household::setChildUnder15(int childUnder15) {
+void Household::setChildUnder15(int childUnder15)
+{
     this->childUnder15 = childUnder15;
 }
 
-int Household::getChildUnder4() const {
+int Household::getChildUnder4() const
+{
     return childUnder4;
 }
 
-int Household::getChildUnder15() const {
+int Household::getChildUnder15() const
+{
     return childUnder15;
 }
 
-void Household::setSize(int size) {
+void Household::setSize(int size)
+{
     this->size = size;
 }
 
-int Household::getSize() const {
+int Household::getSize() const
+{
     return size;
 }
 
-void Household::setVehicleCategoryId(BigSerial vehicleCategoryId) {
+void Household::setVehicleCategoryId(BigSerial vehicleCategoryId)
+{
     this->vehicleCategoryId = vehicleCategoryId;
 }
 
-BigSerial Household::getVehicleCategoryId() const {
+BigSerial Household::getVehicleCategoryId() const
+{
     return vehicleCategoryId;
 }
 
-void Household::setEthnicityId(BigSerial ethnicityId) {
+void Household::setEthnicityId(BigSerial ethnicityId)
+{
     this->ethnicityId = ethnicityId;
 }
 
-BigSerial Household::getEthnicityId() const {
+BigSerial Household::getEthnicityId() const
+{
     return ethnicityId;
 }
 
-void Household::setUnitId(BigSerial unitId) {
+void Household::setUnitId(BigSerial unitId)
+{
     this->unitId = unitId;
 }
 
-BigSerial Household::getUnitId() const {
+BigSerial Household::getUnitId() const
+{
     return unitId;
 }
 
-void Household::setLifestyleId(BigSerial lifestyleId) {
+void Household::setLifestyleId(BigSerial lifestyleId)
+{
     this->lifestyleId = lifestyleId;
 }
 
-BigSerial Household::getLifestyleId() const {
+BigSerial Household::getLifestyleId() const
+{
     return lifestyleId;
 }
 
-void Household::setId(BigSerial id) {
+void Household::setId(BigSerial id)
+{
     this->id = id;
 }
 
-BigSerial Household::getId() const {
+BigSerial Household::getId() const
+{
     return id;
 }
 
@@ -212,10 +237,12 @@ int Household::getVehicleOwnershipOptionId()
 	return this->vehicleOwnershipOptionId;
 }
 
-namespace sim_mob {
-    namespace long_term {
-
-        std::ostream& operator<<(std::ostream& strm, const Household& data) {
+namespace sim_mob
+{
+    namespace long_term
+    {
+        std::ostream& operator<<(std::ostream& strm, const Household& data)
+        {
             return strm << "{"
                     << "\"id\":\"" << data.id << "\","
                     << "\"lifestyleId\":\"" << data.lifestyleId << "\","

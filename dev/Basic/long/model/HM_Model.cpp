@@ -508,7 +508,7 @@ const HM_Model::TazStats* HM_Model::getTazStats(BigSerial tazId) const
 }
 
 
-double HM_Model::ComputeHedonicPriceLogsumFromDatabase( BigSerial taz)
+double HM_Model::ComputeHedonicPriceLogsumFromDatabase( BigSerial taz) const
 {
 	LogsumMtzV2Map::const_iterator itr = logsumMtzV2ById.find(taz);
 
@@ -538,7 +538,8 @@ double HM_Model::ComputeHedonicPriceLogsumFromMidterm(BigSerial taz)
 
 	for(int n = 0; n < tazLogsumWeights.size(); n++)
 	{
-		double lg = PredayLT_LogsumManager::getInstance().computeLogsum( tazLogsumWeights[n]->getIndividualId(), taz, workTaz, vehicleOwnership );
+		PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( tazLogsumWeights[n]->getIndividualId(), taz, workTaz, vehicleOwnership );
+		double lg = personParam.getDpbLogsum();
 		double weight = tazLogsumWeights[n]->getWeight();
 
 		Individual *individual = this->getIndividualById(tazLogsumWeights[n]->getIndividualId());
@@ -1441,7 +1442,8 @@ void HM_Model::getLogsumOfIndividuals(BigSerial id)
 
 	for( int n = 0; n < householdIndividualIds.size(); n++ )
 	{
-		double logsum = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n], taz, -1, 1 );
+		PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n], taz, -1, 1 );
+		double logsum =  personParam.getDpbLogsum();
 
 		printIndividualHitsLogsum( householdIndividualIds[n], logsum );
 	}
@@ -1503,8 +1505,9 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 				tazStrH = tazObjH->getName();
 			BigSerial tazH = std::atoi( tazStrH.c_str() );
 
+			PredayPersonParams personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, -1 );
 
-			double logsumD = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, -1 );
+			double logsumD = personParams.getDpbLogsum();
 
 			logsum.push_back(logsumD);
 		}

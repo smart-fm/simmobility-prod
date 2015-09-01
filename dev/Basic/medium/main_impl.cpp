@@ -39,6 +39,7 @@
 #include "entities/PersonLoader.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/PT_Statistics.hpp"
+#include "entities/signal/Signal.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/RoadNetwork.hpp"

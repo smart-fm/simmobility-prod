@@ -8,12 +8,11 @@
 #include <map>
 #include <vector>
 #include "entities/Agent.hpp"
-#include "entities/signal/Signal.hpp"
+#include "geospatial/MultiNode.hpp"
 #include "boost/thread/shared_mutex.hpp"
 
 
 namespace sim_mob {
-class MultiNode;
 class Person;
 class RoadSegment;
 class Role;
@@ -122,12 +121,6 @@ private:
 	const sim_mob::MultiNode* multiNode;
 
 	/**
-	 * Signal at the multinode of this conflux (if any).
-	 * Note: Signals do not work in the mid-term. This is useless for now.
-	 */
-	const sim_mob::Signal* signal;
-
-	/**
 	 * Link-wise list of road segments in this conflux
 	 * stores std::map<link upstream to multiNode, segment stats on link>
 	 */
@@ -200,8 +193,12 @@ private:
 
 	/**list of persons who are about to get into the simulation in the next tick*/
 	PersonList loadingQueue;
-
+        
+        /**interval of output updates*/
 	static uint32_t updateInterval;
+
+	/**time in seconds of a single tick*/
+	const double tickTimeInS;
 
 	/**
 	 * updates agents in this conflux
@@ -272,14 +269,8 @@ private:
 	 */
 	void callMovementFrameOutput(timeslice now, Person* person);
 
-	/** function to initialize candidate agents in each tick*/
-	void initCandidateAgents();
-
 	/** sets the iterators on currSegToUpLinks to the segments at the end of the links*/
 	void resetCurrSegsOnUpLinks();
-
-	/** selects the agent closest to the intersection from candidateAgents;*/
-	sim_mob::Person* agentClosestToIntersection();
 
 	/**
 	 * removes the agent from the conflux and marks it for removal by the worker.
@@ -391,10 +382,6 @@ public:
 		return multiNode;
 	}
 
-	const sim_mob::Signal* getSignal() const {
-		return signal;
-	}
-
 	std::set<const sim_mob::RoadSegment*> getDownstreamSegments() {
 		return downstreamSegments;
 	}
@@ -473,14 +460,6 @@ public:
 	void reportLinkTravelTimes(timeslice frameNumber);
 
 	//================ end of road segment travel time computation ========================
-
-	/**
-	 * returns the time to reach the end of the link from a road segment on that
-	 * link
-	 * @param segStats the segment from which the time is to be measured
-	 * @param distanceToEndOfSeg remaining distance in seg
-	 */
-	double computeTimeToReachEndOfLink(sim_mob::SegmentStats* segStats, double distanceToEndOfSeg) const;
 
 	/**
 	 * update the number of persons that can be added to the downstream confluxes

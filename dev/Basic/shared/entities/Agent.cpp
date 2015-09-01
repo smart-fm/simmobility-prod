@@ -155,20 +155,9 @@ void sim_mob::Agent::rerouteWithBlacklist(const std::vector<const sim_mob::RoadS
 	//By default, re-routing does nothing. Subclasses of Agent can add behavior for this.
 }
 
-//long sim_mob::Agent::getLastUpdatedFrame() const {
-//	boost::unique_lock<boost::mutex> ll(lastUpdatedFrame_mutex);
-//	return lastUpdatedFrame;
-//}
-
-long sim_mob::Agent::getLastUpdatedFrame() {
-	return lastUpdatedFrame;
-}
-
 void sim_mob::Agent::setLastUpdatedFrame(long lastUpdatedFrame) {
 	this->lastUpdatedFrame = lastUpdatedFrame;
 }
-
-
 
 void sim_mob::Agent::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
 {

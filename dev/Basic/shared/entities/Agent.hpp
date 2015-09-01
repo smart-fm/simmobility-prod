@@ -402,7 +402,9 @@ public:
 		initialized = init;
 	}
 
-	long getLastUpdatedFrame();
+	inline long getLastUpdatedFrame() const {
+		return lastUpdatedFrame;
+	}
 
 	void setLastUpdatedFrame(long lastUpdatedFrame);
 

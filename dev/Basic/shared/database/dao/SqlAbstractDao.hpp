@@ -18,7 +18,7 @@
 #include "I_Dao.hpp"
 
 namespace {
-
+const soci::details::basic_type_tag basicTypeTag;
 typedef soci::details::use_type_ptr UseTypePtr;
 
 /**
@@ -30,7 +30,7 @@ public:
 
 	template<typename T>
 	UseTypePtr operator()(const T& val) const {
-		return soci::use(val);
+		return soci::details::do_use(val, std::string(), basicTypeTag);
 	}
 };
 // POSTGRES dependent. Needs to be fixed.

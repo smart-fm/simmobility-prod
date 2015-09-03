@@ -12,7 +12,7 @@
 using namespace sim_mob;
 using namespace sim_mob::long_term;
 
-PotentialUnit::PotentialUnit(BigSerial unitTypeId,int numUnits,double floorArea,int freehold, double profitPerUnit): unitTypeId(unitTypeId),numUnits(numUnits),floorArea(floorArea),freehold(freehold),profitPerUnit(profitPerUnit){
+PotentialUnit::PotentialUnit(BigSerial unitTypeId,int numUnits,double floorArea,int freehold, double profitPerUnit, double demolitionCostPerUnit): unitTypeId(unitTypeId),numUnits(numUnits),floorArea(floorArea),freehold(freehold),profitPerUnit(profitPerUnit),demolitionCostPerUnit(demolitionCostPerUnit){
 
 }
 
@@ -23,6 +23,7 @@ PotentialUnit::PotentialUnit( const PotentialUnit& source)
 	this->floorArea = source.floorArea;
 	this->freehold = source.freehold;
 	this->profitPerUnit = source.profitPerUnit;
+	this->demolitionCostPerUnit = source.demolitionCostPerUnit;
 }
 
 PotentialUnit& PotentialUnit::operator=( const PotentialUnit& source)
@@ -32,6 +33,7 @@ PotentialUnit& PotentialUnit::operator=( const PotentialUnit& source)
 	this->floorArea = source.floorArea;
 	this->freehold = source.freehold;
 	this->profitPerUnit = source.profitPerUnit;
+	this->demolitionCostPerUnit = source.demolitionCostPerUnit;
 
 	return *this;
 }
@@ -80,6 +82,16 @@ void PotentialUnit::setUnitProfit(double unitProfit)
 double PotentialUnit::getUnitProfit() const
 {
 	return this->profitPerUnit;
+}
+
+void PotentialUnit::setDemolitionCostPerUnit(double demolitionCost)
+{
+	this->demolitionCostPerUnit = demolitionCost;
+}
+
+double PotentialUnit::getDemolitionCostPerUnit()
+{
+	return this->demolitionCostPerUnit;
 }
 
 PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel,double constructionCost, double grossArea,double tempSelectProbability,double investmentReturnRatio, double demolitionCost, double expRatio,int totalUnits)
@@ -166,7 +178,7 @@ std::vector<PotentialUnit>& PotentialProject::getUnits(){
     return units;
 }
 
-double PotentialProject::getProfit() const {
+double PotentialProject::getProfit() {
     return profit;
 }
 

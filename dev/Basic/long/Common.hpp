@@ -149,6 +149,7 @@ namespace sim_mob {
 
 		//#define VERBOSE
 		//#define VERBOSE_POSTCODE
+		//#define VERBOSE_DEVELOPER
     }
 }
 

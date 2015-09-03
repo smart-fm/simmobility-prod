@@ -46,6 +46,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("car_own", &PersonParams::getCarOwn)
 				.addProperty("car_own_normal", &PersonParams::getCarOwnNormal)
 				.addProperty("car_own_offpeak", &PersonParams::getCarOwnOffpeak)
+				.addProperty("has_driving_licence", &PersonParams::hasDrivingLicence)
 				.addProperty("motor_own", &PersonParams::getMotorOwn)
 				.addProperty("fixed_work_hour", &PersonParams::getHasFixedWorkTiming) //not used in lua
 				.addProperty("homeLocation", &PersonParams::getHomeLocation) //not used in lua
@@ -353,11 +354,24 @@ int sim_mob::medium::PredayLuaModel::predictTourMode(PersonParams& personParams,
 	}
 }
 
+void sim_mob::medium::PredayLuaModel::computeTourModeLogsum(PersonParams& personParams, TourModeParams& tourModeParams) const
+{
+	if(personParams.hasFixedWorkPlace())
+	{
+		LuaRef computeLogsumTMW = getGlobal(state.get(), "compute_logsum_tmw");
+		LuaRef workLogSum = computeLogsumTMW(&personParams, &tourModeParams);
+		personParams.setWorkLogSum(workLogSum.cast<double>());
+	}
+}
+
 void sim_mob::medium::PredayLuaModel::computeTourModeDestinationLogsum(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const
 {
-	LuaRef computeLogsumTMDW = getGlobal(state.get(), "compute_logsum_tmdw");
-	LuaRef workLogSum = computeLogsumTMDW(&personParams, &tourModeDestinationParams);
-	personParams.setWorkLogSum(workLogSum.cast<double>());
+	if(!personParams.hasFixedWorkPlace())
+	{
+		LuaRef computeLogsumTMDW = getGlobal(state.get(), "compute_logsum_tmdw");
+		LuaRef workLogSum = computeLogsumTMDW(&personParams, &tourModeDestinationParams);
+		personParams.setWorkLogSum(workLogSum.cast<double>());
+	}
 
 	LuaRef computeLogsumTMDS = getGlobal(state.get(), "compute_logsum_tmds");
 	LuaRef shopLogSum = computeLogsumTMDS(&personParams, &tourModeDestinationParams);
@@ -463,4 +477,3 @@ int sim_mob::medium::PredayLuaModel::predictSubTourTimeOfDay(PersonParams& perso
 	LuaRef retVal = chooseSTTD(&personParams, &subTourParams);
 	return retVal.cast<int>();
 }
-

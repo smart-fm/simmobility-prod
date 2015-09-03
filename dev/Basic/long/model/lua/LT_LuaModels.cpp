@@ -313,17 +313,17 @@ void DeveloperLuaModel::mapClasses()
             .endClass();
     getGlobalNamespace(state.get())
             .beginClass <LogsumForDevModel> ("LogsumForDevModel")
-            .addProperty("fmParcelId", &LogsumForDevModel::getFmParcelId)
-            .addProperty("tazId", &LogsumForDevModel::getTazId)
+            .addProperty("fmParcelId", &LogsumForDevModel::gettAZ2012Id)
+            .addProperty("tazId", &LogsumForDevModel::getTaz2008Id)
             .addProperty("accessibility", &LogsumForDevModel::getAccessibility)
             .endClass();
     mapCommonClasses(state.get());
 }
 
-double DeveloperLuaModel::calculateUnitRevenue(const PotentialUnit& unit,const ParcelAmenities& amenities, double logsum, int quarter) const {
+double DeveloperLuaModel::calculateUnitRevenue(const PotentialUnit& unit,const ParcelAmenities& amenities, double logsum, int quarter, int futureYear, double HPIfromData) const {
 
     LuaRef funcRef = getGlobal(state.get(), "calculateUnitRevenue");
-    LuaRef retVal = funcRef(&unit, &amenities, logsum, quarter);
+    LuaRef retVal = funcRef(&unit, &amenities, logsum, quarter,futureYear,HPIfromData);
 
     if (retVal.isNumber())
     {

@@ -1,7 +1,11 @@
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//license.txt   (http://opensource.org/licenses/MIT)
+
 /*
- * file main.cpp
- * Empty file for the (future) long-term simulation
- * \author Pedro Gandola
+ * main.cpp
+ * Author: Pedro Gandola
+ * 		   Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  */
 
 #include <iostream>
@@ -171,10 +175,6 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
         PrintOutV("Started all workgroups." << endl);
         PrintOutV("Day of Simulation: " << std::endl);
-
-        //we add a new line break to format the output in a
-        //reasonable way. 20 was found to be adequate.
-        const int LINE_BREAK = 20;
 
         for (unsigned int currTick = 0; currTick < days; currTick++)
         {

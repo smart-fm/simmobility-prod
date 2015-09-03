@@ -26,6 +26,8 @@
 #include "database/entity/MacroEconomics.hpp"
 #include "database/entity/LogsumForDevModel.hpp"
 #include "database/entity/ParcelsWithHDB.hpp"
+#include "database/entity/TAO.hpp"
+#include "database/entity/UnitPriceSum.hpp"
 #include "agent/impl/DeveloperAgent.hpp"
 #include "agent/impl/RealEstateAgent.hpp"
 #include "model/HM_Model.hpp"
@@ -50,6 +52,8 @@ namespace sim_mob {
             typedef std::vector<MacroEconomics*> MacroEconomicsList;
             typedef std::vector<LogsumForDevModel*> AccessibilityLogsumList;
             typedef std::vector<ParcelsWithHDB*> ParcelsWithHDBList;
+            typedef std::vector<TAO*> TAOList;
+            typedef std::vector<UnitPriceSum*> UnitPriceSumList;
 
             //maps
             typedef boost::unordered_map<BigSerial,Parcel*> ParcelMap;
@@ -59,6 +63,8 @@ namespace sim_mob {
             typedef boost::unordered_map<BigSerial,MacroEconomics*> MacroEconomicsMap;
             typedef boost::unordered_map<BigSerial,LogsumForDevModel*> AccessibilityLogsumMap;
             typedef boost::unordered_map<BigSerial,ParcelsWithHDB*> ParcelsWithHDBMap;
+            typedef boost::unordered_map<BigSerial,TAO*> TAOMap;
+            typedef boost::unordered_map<BigSerial,UnitPriceSum*> UnitPriceSumMap;
 
         public:
             DeveloperModel(WorkGroup& workGroup);
@@ -99,9 +105,10 @@ namespace sim_mob {
             const MacroEconomics* getMacroEconById(BigSerial id) const;
             float getBuildingSpaceByParcelId(BigSerial id) const;
             ParcelList getDevelopmentCandidateParcels(bool isInitial);
-            const LogsumForDevModel* getAccessibilityLogsumsByFmParcelId(BigSerial fmParcelId) const;
+            const LogsumForDevModel* getAccessibilityLogsumsByTAZId(BigSerial fmParcelId) const;
             const ParcelsWithHDB* getParcelsWithHDB_ByParcelId(BigSerial fmParcelId) const;
             DeveloperList getDeveloperAgents();
+            const TAO* getTaoByQuarter(BigSerial id);
 
             /*
              * @param days number of days the simulation runs
@@ -161,6 +168,11 @@ namespace sim_mob {
              * @return current tick
              */
             int getCurrentTick();
+            /*
+             * get the year of the simulation
+             * @return simulation year
+             */
+            int getSimYearForDevAgent();
 
             void addProjects(boost::shared_ptr<Project> project);
 
@@ -176,6 +188,11 @@ namespace sim_mob {
             * @return newly generated 7digit postcode for new units in each parcel.
             */
             int getPostcodeForDeveloperAgent();
+
+            /*
+             * @return unit price by id
+             */
+            const UnitPriceSum* getUnitPriceSumByParcelId(BigSerial fmParcelId) const;
 
         protected:
             /**
@@ -226,10 +243,17 @@ namespace sim_mob {
             BigSerial unitIdForDevAgent;
             BigSerial buildingIdForDevAgent;
             BigSerial projectIdForDevAgent;
+            BigSerial simYearForDevAgent;
             AccessibilityLogsumList accessibilityList;
             AccessibilityLogsumMap accessibilityByTazId;
             ParcelsWithHDBList parcelsWithHDB;
             ParcelsWithHDBMap parcelsWithHDB_ById;
+            TAOList taoList;
+            TAOMap taoByQuarterId;
+            int devAgentCount;
+            double minLotSize;
+            UnitPriceSumList unitPriceSumList;
+            UnitPriceSumMap unitPriceSumByParcelId;
         };
     }
 }

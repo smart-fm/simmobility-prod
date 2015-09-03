@@ -11,7 +11,6 @@
 
 namespace sim_mob
 {
-
     namespace long_term
     {
     	class VehicleOwnershipCoefficients

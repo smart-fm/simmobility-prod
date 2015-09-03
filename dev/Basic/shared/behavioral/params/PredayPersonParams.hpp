@@ -451,6 +451,26 @@ public:
 	 */
 	void fixUpForLtPerson();
 
+	double getTravelProbability() const
+	{
+		return travelProbability;
+	}
+
+	void setTravelProbability(double travelProbability)
+	{
+		this->travelProbability = travelProbability;
+	}
+
+	double getTripsExpected() const
+	{
+		return tripsExpected;
+	}
+
+	void setTripsExpected(double tripsExpected)
+	{
+		this->tripsExpected = tripsExpected;
+	}
+
 protected:
 	std::string personId;
 	std::string hhId;
@@ -500,6 +520,10 @@ protected:
 	double dptLogsum;
 	double dpsLogsum;
 	double dpbLogsum;
+
+	//extras
+	double travelProbability;
+	double tripsExpected;
 
     /**
      * income category lookup containing lower limits of each category.

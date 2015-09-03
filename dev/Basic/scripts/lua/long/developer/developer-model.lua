@@ -398,81 +398,98 @@ function getBuildingTypeFromUnitType(unitTypeId)
 end
 
 --exp value is calculated for amenties only: This should be changed as per "calculateUnitRevenueCondo(amenities,unit)" function once HPI values are received.
-function calculateUnitRevenueApartment(amenities,unit,logsum,quarter)
+function calculateUnitRevenueApartment(amenities,unit,logsum,quarter,futureYear,HPIfromData)
 	local revenue = 0
-	revenue = UNIT_TYPE_COEFFICIENTS[4][0] + UNIT_TYPE_COEFFICIENTS[4][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[4][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[4][3] * logsum + UNIT_TYPE_COEFFICIENTS[4][4] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[4][5] * (amenities.distanceToMall) + UNIT_TYPE_COEFFICIENTS[4][6]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[4][7]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[4][8]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[4][9]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[4][10]* amenities.bus_400m
+	revenue = (UNIT_TYPE_COEFFICIENTS[4][0]) + (UNIT_TYPE_COEFFICIENTS[4][1]* math.log(unit.floorArea)) + (UNIT_TYPE_COEFFICIENTS	[4][2] * unit.freehold)  + (UNIT_TYPE_COEFFICIENTS[4][3] * logsum) + (UNIT_TYPE_COEFFICIENTS[4][4] * amenities.pms_1km) + (UNIT_TYPE_COEFFICIENTS[4][5] * amenities.distanceToMall) + (UNIT_TYPE_COEFFICIENTS[4][6]* amenities.mrt_200m) + (UNIT_TYPE_COEFFICIENTS[4][7]* amenities.mrt_400m) + (UNIT_TYPE_COEFFICIENTS[4][8]* amenities.express_200m) + (UNIT_TYPE_COEFFICIENTS[4][9]* amenities.bus_200m) + (UNIT_TYPE_COEFFICIENTS[4][10]* amenities.bus_400m)
 	local HPI = 0
+	if(futureYear == 1) then
 	--constants are according to the equations - refer "PROFIT CALCULATION EQUATIONS - HPI" above.
 	if(quarter == 1) then HPI = 0.03016 + 0.93910 * UNIT_TAOVALUESQ1[4][0] -0.14051 * UNIT_TAOVALUESQ1[4][1] -0.30319 * UNIT_TAOVALUESQ1[4][2] + 0.32669 * UNIT_TAOVALUESQ1[4][3]
 	elseif(quarter == 2) then HPI = 0.03016 + 0.93910 * UNIT_TAOVALUESQ2[4][0] -0.14051 * UNIT_TAOVALUESQ2[4][1] -0.30319 * UNIT_TAOVALUESQ2[4][2] + 0.32669 * UNIT_TAOVALUESQ2[4][3]
 	elseif(quarter == 3) then HPI = 0.03016 + 0.93910 * UNIT_TAOVALUESQ3[4][0] -0.14051 * UNIT_TAOVALUESQ3[4][1] -0.30319 * UNIT_TAOVALUESQ3[4][2] + 0.32669 * UNIT_TAOVALUESQ3[4][3]
 	elseif(quarter == 4) then HPI = 0.03016 + 0.93910 * UNIT_TAOVALUESQ4[4][0] -0.14051 * UNIT_TAOVALUESQ4[4][1] -0.30319 * UNIT_TAOVALUESQ4[4][2] + 0.32669 * UNIT_TAOVALUESQ4[4][3]
 	end
+	else HPI = HPIfromData
+	end
 	local totalRevenue = math.exp(revenue + HPI)
-
 	return totalRevenue;
 end
 
-function calculateUnitRevenueCondo(amenities,unit,logsum,quarter)
+function calculateUnitRevenueCondo(amenities,unit,logsum,quarter,futureYear,HPIfromData)
 	local revenue = 0
-	revenue = UNIT_TYPE_COEFFICIENTS[6][0] + UNIT_TYPE_COEFFICIENTS[6][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS [6][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[6][3] * logsum + 	UNIT_TYPE_COEFFICIENTS[6][4] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[6][5] * (amenities.distanceToMall) + UNIT_TYPE_COEFFICIENTS[6][6]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[6][7]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[6][8]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[6][9]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[6][10]* amenities.bus_400m
+	revenue = (UNIT_TYPE_COEFFICIENTS[6][0]) + (UNIT_TYPE_COEFFICIENTS[6][1]* math.log(unit.floorArea)) + (UNIT_TYPE_COEFFICIENTS [6][2] * unit.freehold ) + (UNIT_TYPE_COEFFICIENTS[6][3] * logsum) + (UNIT_TYPE_COEFFICIENTS[6][4] * amenities.pms_1km) + (UNIT_TYPE_COEFFICIENTS[6][5] * amenities.distanceToMall) +( UNIT_TYPE_COEFFICIENTS[6][6]* amenities.mrt_200m) + (UNIT_TYPE_COEFFICIENTS[6][7]* amenities.mrt_400m) + (UNIT_TYPE_COEFFICIENTS[6][8]* amenities.express_200m) + (UNIT_TYPE_COEFFICIENTS[6][9]* amenities.bus_200m) + (UNIT_TYPE_COEFFICIENTS[6][10]* amenities.bus_400m)
 	local HPI = 0
+	if(futureYear == 1) then
 	if(quarter == 1) then HPI = -0.01455 + 1.49396 * UNIT_TAOVALUESQ1[6][0] -0.90378 * UNIT_TAOVALUESQ1[6][1] -0.20183 * UNIT_TAOVALUESQ1[6][2] + 0.31161 * UNIT_TAOVALUESQ1[6][3]
 	elseif(quarter == 2) then HPI = -0.01455 + 1.49396 * UNIT_TAOVALUESQ2[6][0] -0.90378 * UNIT_TAOVALUESQ2[6][1] -0.20183 * UNIT_TAOVALUESQ2[6][2] + 0.31161 * UNIT_TAOVALUESQ2[6][3]
 	elseif(quarter == 3) then HPI = -0.01455 + 1.49396 * UNIT_TAOVALUESQ3[6][0] -0.90378 * UNIT_TAOVALUESQ3[6][1] -0.20183 * UNIT_TAOVALUESQ3[6][2] + 0.31161 * UNIT_TAOVALUESQ3[6][3]
 	elseif(quarter == 4) then HPI = -0.01455 + 1.49396 * UNIT_TAOVALUESQ4[6][0] -0.90378 * UNIT_TAOVALUESQ4[6][1] -0.20183 * UNIT_TAOVALUESQ4[6][2] + 0.31161 * UNIT_TAOVALUESQ4[6][3]
 	end
+	else HPI = HPIfromData
+	end
 	local totalRevenue = math.exp(revenue + HPI)
 	return totalRevenue;
 end
 
-function calculateUnitRevenueSemiDetatched(amenities,unit,logsum,quarter)
+function calculateUnitRevenueSemiDetatched(amenities,unit,logsum,quarter,futureYear,HPIfromData)
 	local revenue = 0
-	revenue = UNIT_TYPE_COEFFICIENTS[2][0] + UNIT_TYPE_COEFFICIENTS[2][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[2][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[2][3] * logsum + UNIT_TYPE_COEFFICIENTS[2][4] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[2][5] * (amenities.distanceToMall) + UNIT_TYPE_COEFFICIENTS[2][6]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[2][7]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[2][8]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[2][9]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[2][10]* amenities.bus_400m
+	revenue = (UNIT_TYPE_COEFFICIENTS[2][0]) + (UNIT_TYPE_COEFFICIENTS[2][1]* math.log(unit.floorArea)) + (UNIT_TYPE_COEFFICIENTS	[2][2] * unit.freehold)  + (UNIT_TYPE_COEFFICIENTS[2][3] * logsum) + (UNIT_TYPE_COEFFICIENTS[2][4] * amenities.pms_1km) + (UNIT_TYPE_COEFFICIENTS[2][5] * amenities.distanceToMall) + (UNIT_TYPE_COEFFICIENTS[2][6]* amenities.mrt_200m) + (UNIT_TYPE_COEFFICIENTS[2][7]* amenities.mrt_400m) + (UNIT_TYPE_COEFFICIENTS[2][8]* amenities.express_200m) + (UNIT_TYPE_COEFFICIENTS[2][9]* amenities.bus_200m) + (UNIT_TYPE_COEFFICIENTS[2][10]* amenities.bus_400m)
 	local HPI = 0
+	if(futureYear == 1) then
 	if(quarter == 1) then HPI = 0.01308 + 1.51888 * UNIT_TAOVALUESQ1[2][0] -0.62345 * UNIT_TAOVALUESQ1[2][1] -0.49512 * UNIT_TAOVALUESQ1[2][2] + 0.53292 * UNIT_TAOVALUESQ1[2][3]
 	elseif(quarter == 2) then HPI = 0.01308 + 1.51888 * UNIT_TAOVALUESQ2[2][0] -0.62345 * UNIT_TAOVALUESQ2[2][1] -0.49512 * UNIT_TAOVALUESQ2[2][2] + 0.53292 * UNIT_TAOVALUESQ2[2][3]
 	elseif(quarter == 3) then HPI = 0.01308 + 1.51888 * UNIT_TAOVALUESQ3[2][0] -0.62345 * UNIT_TAOVALUESQ3[2][1] -0.49512 * UNIT_TAOVALUESQ3[2][2] + 0.53292 * UNIT_TAOVALUESQ3[2][3]
 	elseif(quarter == 4) then HPI = 0.01308 + 1.51888 * UNIT_TAOVALUESQ4[2][0] -0.62345 * UNIT_TAOVALUESQ4[2][1] -0.49512 * UNIT_TAOVALUESQ4[2][2] + 0.53292 * UNIT_TAOVALUESQ4[2][3]
 	end
+	else HPI = HPIfromData
+	end
 	local totalRevenue = math.exp(revenue + HPI)
 	return totalRevenue;
 end
 
-function calculateUnitRevenueDetatched(amenities,unit,logsum,quarter)
+function calculateUnitRevenueDetatched(amenities,unit,logsum,quarter,futureYear,HPIfromData)
 	local revenue = 0
-	revenue = UNIT_TYPE_COEFFICIENTS[3][0] + UNIT_TYPE_COEFFICIENTS[3][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[3][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[3][3] * logsum + UNIT_TYPE_COEFFICIENTS[3][4] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[3][5] * (amenities.distanceToMall) + UNIT_TYPE_COEFFICIENTS[3][6]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[3][7]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[3][8]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[3][9]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[3][10]* amenities.bus_400m
+	revenue = (UNIT_TYPE_COEFFICIENTS[3][0]) + (UNIT_TYPE_COEFFICIENTS[3][1]* math.log(unit.floorArea)) + (UNIT_TYPE_COEFFICIENTS	[3][2] * unit.freehold)  + (UNIT_TYPE_COEFFICIENTS[3][3] * logsum) + (UNIT_TYPE_COEFFICIENTS[3][4] * amenities.pms_1km) + (UNIT_TYPE_COEFFICIENTS[3][5] * amenities.distanceToMall) + (UNIT_TYPE_COEFFICIENTS[3][6]* amenities.mrt_200m) + (UNIT_TYPE_COEFFICIENTS[3][7]* amenities.mrt_400m) + (UNIT_TYPE_COEFFICIENTS[3][8]* amenities.express_200m) + (UNIT_TYPE_COEFFICIENTS[3][9]* amenities.bus_200m) + (UNIT_TYPE_COEFFICIENTS[3][10]* amenities.bus_400m)
 	local HPI = 0
+	if(futureYear == 1) then
 	if(quarter == 1) then HPI = 0.02164 + 1.19593 * UNIT_TAOVALUESQ1[3][0] -0.36370 * UNIT_TAOVALUESQ1[3][1] -1.1963 * UNIT_TAOVALUESQ1[3][2] + 0.25972 * UNIT_TAOVALUESQ1[3][3]
 	elseif(quarter == 2) then HPI = 0.02164 + 1.19593 * UNIT_TAOVALUESQ2[3][0] -0.36370 * UNIT_TAOVALUESQ2[3][1] -1.1963 * UNIT_TAOVALUESQ2[3][2] + 0.25972 * UNIT_TAOVALUESQ2[3][3]
 	elseif(quarter == 3) then HPI = 0.02164 + 1.19593 * UNIT_TAOVALUESQ3[3][0] -0.36370 * UNIT_TAOVALUESQ3[3][1] -1.1963 * UNIT_TAOVALUESQ3[3][2] + 0.25972 * UNIT_TAOVALUESQ3[3][3]
 	elseif(quarter == 4) then HPI = 0.02164 + 1.19593 * UNIT_TAOVALUESQ4[3][0] -0.36370 * UNIT_TAOVALUESQ4[3][1] -1.1963 * UNIT_TAOVALUESQ4[3][2] + 0.25972 * UNIT_TAOVALUESQ4[3][3]
 	end
-	local totalRevenue = math.exp(revenue + HPI)
-	return totalRevenue;
-end
-
-function calculateUnitRevenueExecutiveCondo(amenities,unit,logsum,quarter)
-	local revenue = 0
-	revenue = UNIT_TYPE_COEFFICIENTS[5][0] + UNIT_TYPE_COEFFICIENTS[5][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[5][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[5][3] * logsum + UNIT_TYPE_COEFFICIENTS[5][4] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[5][5] * (amenities.distanceToMall) + UNIT_TYPE_COEFFICIENTS[5][6]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[5][7]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[5][8]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[5][9]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[5][10]* amenities.bus_400m
-	local HPI = 0
-	if(quarter == 1) then HPI = 0.01781 + 1.13111 * UNIT_TAOVALUESQ1[5][0] -0.34371 * UNIT_TAOVALUESQ1[5][1] -0.25454 * UNIT_TAOVALUESQ1[5][2] + 0.41047 * UNIT_TAOVALUESQ1[5][3]
-	elseif(quarter == 2) then HPI = 0.01781 + 1.13111 * UNIT_TAOVALUESQ2[5][0] -0.34371 * UNIT_TAOVALUESQ2[5][1] -0.25454 * UNIT_TAOVALUESQ2[5][2] + 0.41047 * UNIT_TAOVALUESQ2[5][3]
-	elseif(quarter == 3) then HPI = 0.01781 + 1.13111 * UNIT_TAOVALUESQ3[5][0] -0.34371 * UNIT_TAOVALUESQ3[5][1] -0.25454 * UNIT_TAOVALUESQ3[5][2] + 0.41047 * UNIT_TAOVALUESQ3[5][3]
-	elseif(quarter == 4) then HPI = 0.01781 + 1.13111 * UNIT_TAOVALUESQ4[5][0] -0.34371 * UNIT_TAOVALUESQ4[5][1] -0.25454 * UNIT_TAOVALUESQ4[5][2] + 0.41047 * UNIT_TAOVALUESQ4[5][3]
+	else HPI = HPIfromData
 	end
 	local totalRevenue = math.exp(revenue + HPI)
 	return totalRevenue;
 end
 
-function calculateUnitRevenueTerrace(amenities,unit,logsum,quarter)
+function calculateUnitRevenueExecutiveCondo(amenities,unit,logsum,quarter,futureYear,HPIfromData)
 	local revenue = 0
-	revenue = UNIT_TYPE_COEFFICIENTS[1][0] + UNIT_TYPE_COEFFICIENTS[1][1]* math.log(unit.floorArea) + UNIT_TYPE_COEFFICIENTS	[1][2] * unit.freehold  + UNIT_TYPE_COEFFICIENTS[1][3] * logsum + UNIT_TYPE_COEFFICIENTS[1][4] * amenities.pms_1km + UNIT_TYPE_COEFFICIENTS[1][5] * (amenities.distanceToMall) + UNIT_TYPE_COEFFICIENTS[1][6]* amenities.mrt_200m + UNIT_TYPE_COEFFICIENTS[1][7]* amenities.mrt_400m + UNIT_TYPE_COEFFICIENTS[1][8]* amenities.express_200m + UNIT_TYPE_COEFFICIENTS[1][9]* amenities.bus_200m + UNIT_TYPE_COEFFICIENTS[1][10]* amenities.bus_400m
+	revenue = (UNIT_TYPE_COEFFICIENTS[5][0]) + (UNIT_TYPE_COEFFICIENTS[5][1]* math.log(unit.floorArea)) + (UNIT_TYPE_COEFFICIENTS	[5][2] * unit.freehold)  + (UNIT_TYPE_COEFFICIENTS[5][3] * logsum) + (UNIT_TYPE_COEFFICIENTS[5][4] * amenities.pms_1km) + (UNIT_TYPE_COEFFICIENTS[5][5] * amenities.distanceToMall) + (UNIT_TYPE_COEFFICIENTS[5][6]* amenities.mrt_200m) + (UNIT_TYPE_COEFFICIENTS[5][7]* amenities.mrt_400m) + (UNIT_TYPE_COEFFICIENTS[5][8]* amenities.express_200m) + (UNIT_TYPE_COEFFICIENTS[5][9]* amenities.bus_200m) + (UNIT_TYPE_COEFFICIENTS[5][10]* amenities.bus_400m)
 	local HPI = 0
+	if(futureYear == 1) then
+	if(quarter == 1) then HPI = 0.01781 + 1.13111 * UNIT_TAOVALUESQ1[5][0] -0.34371 * UNIT_TAOVALUESQ1[5][1] -0.25454 * UNIT_TAOVALUESQ1[5][2] + 0.41047 * UNIT_TAOVALUESQ1[5][3]
+	elseif(quarter == 2) then HPI = 0.01781 + 1.13111 * UNIT_TAOVALUESQ2[5][0] -0.34371 * UNIT_TAOVALUESQ2[5][1] -0.25454 * UNIT_TAOVALUESQ2[5][2] + 0.41047 * UNIT_TAOVALUESQ2[5][3]
+	elseif(quarter == 3) then HPI = 0.01781 + 1.13111 * UNIT_TAOVALUESQ3[5][0] -0.34371 * UNIT_TAOVALUESQ3[5][1] -0.25454 * UNIT_TAOVALUESQ3[5][2] + 0.41047 * UNIT_TAOVALUESQ3[5][3]
+	elseif(quarter == 4) then HPI = 0.01781 + 1.13111 * UNIT_TAOVALUESQ4[5][0] -0.34371 * UNIT_TAOVALUESQ4[5][1] -0.25454 * UNIT_TAOVALUESQ4[5][2] + 0.41047 * UNIT_TAOVALUESQ4[5][3]
+	end
+	else HPI = HPIfromData
+	end
+	local totalRevenue = math.exp(revenue + HPI)
+	return totalRevenue;
+end
+
+function calculateUnitRevenueTerrace(amenities,unit,logsum,quarter,futureYear,HPIfromData)
+	local revenue = 0
+	revenue = (UNIT_TYPE_COEFFICIENTS[1][0]) + (UNIT_TYPE_COEFFICIENTS[1][1]* math.log(unit.floorArea)) + (UNIT_TYPE_COEFFICIENTS	[1][2] * unit.freehold)  + (UNIT_TYPE_COEFFICIENTS[1][3] * logsum) + (UNIT_TYPE_COEFFICIENTS[1][4] * amenities.pms_1km) + (UNIT_TYPE_COEFFICIENTS[1][5] * amenities.distanceToMall) + (UNIT_TYPE_COEFFICIENTS[1][6]* amenities.mrt_200m) + (UNIT_TYPE_COEFFICIENTS[1][7]* amenities.mrt_400m) + (UNIT_TYPE_COEFFICIENTS[1][8]* amenities.express_200m) + (UNIT_TYPE_COEFFICIENTS[1][9]* amenities.bus_200m) + (UNIT_TYPE_COEFFICIENTS[1][10]* amenities.bus_400m)
+	local HPI = 0
+	if(futureYear == 1) then
 	if(quarter == 1) then HPI = -0.00466 + 1.132720 * UNIT_TAOVALUESQ1[1][0] -0.71526 * UNIT_TAOVALUESQ1[1][1] -0.04628 * UNIT_TAOVALUESQ1[1][2] + 0.28911 * UNIT_TAOVALUESQ1[1][3]
 	elseif(quarter == 2) then HPI = -0.00466 + 1.132720 * UNIT_TAOVALUESQ2[1][0] -0.71526 * UNIT_TAOVALUESQ2[1][1] -0.04628 * UNIT_TAOVALUESQ2[1][2] + 0.28911 * UNIT_TAOVALUESQ2[1][3]
 	elseif(quarter == 3) then HPI = -0.00466 + 1.132720 * UNIT_TAOVALUESQ3[1][0] -0.71526 * UNIT_TAOVALUESQ3[1][1] -0.04628 * UNIT_TAOVALUESQ3[1][2] + 0.28911 * UNIT_TAOVALUESQ3[1][3]
 	elseif(quarter == 4) then HPI = -0.00466 + 1.132720 * UNIT_TAOVALUESQ4[1][0] -0.71526 * UNIT_TAOVALUESQ4[1][1] -0.04628 * UNIT_TAOVALUESQ4[1][2] + 0.28911 * UNIT_TAOVALUESQ4[1][3]
+	end
+	else HPI = HPIfromData
 	end
 	local totalRevenue = math.exp(revenue + HPI)
 	return totalRevenue;
@@ -481,15 +498,15 @@ end
 --[[
     Calculates the revenue for the given future unit.
 ]]
-function calculateUnitRevenue(unit,amenities,logsum,quarter)
+function calculateUnitRevenue(unit,amenities,logsum,quarter,futureYear,HPIfromData)
     local revenuePerUnit = 0
     local buildingTypeId = getBuildingTypeFromUnitType(unit.unitTypeId)
-    if     (buildingTypeId == 2)then revenuePerUnit = calculateUnitRevenueApartment(amenities,unit,logsum,quarter)
-    elseif (buildingTypeId == 3)then revenuePerUnit = calculateUnitRevenueCondo(amenities,unit,logsum,quarter)
-    elseif (buildingTypeId == 5)then revenuePerUnit = calculateUnitRevenueSemiDetatched(amenities,unit,logsum,quarter)
-    elseif (buildingTypeId == 6)then revenuePerUnit = calculateUnitRevenueDetatched(amenities,unit,logsum,quarter)
-    elseif (buildingTypeId == 7)then revenuePerUnit = calculateUnitRevenueExecutiveCondo(amenities,unit,logsum,quarter)
-    elseif (buildingTypeId == 4)then revenuePerUnit = calculateUnitRevenueTerrace(amenities,unit,logsum,quarter)
+    if (buildingTypeId == 2)then revenuePerUnit = calculateUnitRevenueApartment(amenities,unit,logsum,quarter,futureYear,HPIfromData)
+    elseif (buildingTypeId == 3)then revenuePerUnit = calculateUnitRevenueCondo(amenities,unit,logsum,quarter,futureYear,HPIfromData)
+    elseif (buildingTypeId == 5)then revenuePerUnit = calculateUnitRevenueSemiDetatched(amenities,unit,logsum,quarter,futureYear,HPIfromData)
+    elseif (buildingTypeId == 6)then revenuePerUnit = calculateUnitRevenueDetatched(amenities,unit,logsum,quarter,futureYear,HPIfromData)
+    elseif (buildingTypeId == 7)then revenuePerUnit = calculateUnitRevenueExecutiveCondo(amenities,unit,logsum,quarter,futureYear,HPIfromData)
+    elseif (buildingTypeId == 4)then revenuePerUnit = calculateUnitRevenueTerrace(amenities,unit,logsum,quarter,futureYear,HPIfromData)
     end
     return revenuePerUnit;
 end

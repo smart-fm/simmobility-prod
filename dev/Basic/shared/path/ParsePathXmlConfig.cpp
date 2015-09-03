@@ -210,6 +210,7 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 	else {
 		cfg.psRetrieval = ParseString(GetNamedAttributeValue(functionNode, "pathset"), "");
 		cfg.upsert = ParseString(GetNamedAttributeValue(functionNode, "travel_time"), "");
+		cfg.psRetrievalWithoutBannedRegion = ParseString(GetNamedAttributeValue(functionNode, "pathset_without_banned_area"), "");
 	}
 
 	//recirsive pathset generation

@@ -1,6 +1,6 @@
 //Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
-//   license.txt   (http://opensource.org/licenses/MIT)
+//license.txt   (http://opensource.org/licenses/MIT)
 
 /* 
  * File:   HouseholdSellerRole.cpp
@@ -34,8 +34,8 @@ namespace
 {
     //bid_timestamp, day_to_apply, seller_id, unit_id, hedonic_price, asking_price, target_price
     const std::string LOG_EXPECTATION = "%1%, %2%, %3%, %4%, %5%, %6%, %7%";
-    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, speculation, asking_price, floor_area, type_id, target_price, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED)
-    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%";
+    //bid_timestamp ,seller_id, bidder_id, unit_id, bidder wp, hedonicprice, asking_price, floor_area, type_id, target_price, bid_value, bids_counter (daily), status(0 - REJECTED, 1- ACCEPTED),
+    const std::string LOG_BID = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%";
 
     /**
      * Print the current bid on the unit.
@@ -52,20 +52,29 @@ namespace
     	const Unit* unit  = model->getUnitById(bid.getUnitId());
         double floor_area = unit->getFloorArea();
         BigSerial type_id = unit->getUnitType();
+        int UnitslaId = unit->getSlaAddressId();
+        Postcode *unitPostcode = model->getPostcodeById(UnitslaId);
+
+
+        Household *thisBidder = model->getHouseholdById(bid.getBidderId());
+        const Unit* thisUnit = model->getUnitById(thisBidder->getUnitId());
+        Postcode* thisPostcode = model->getPostcodeById( thisUnit->getSlaAddressId() );
 
         boost::format fmtr = boost::format(LOG_BID) % bid.getTime().ms()
 													% agent.getId()
 													% bid.getBidderId()
 													% bid.getUnitId()
 													% bid.getWillingnessToPay()
-													% bid.getSpeculation()
+													% entry.hedonicPrice
 													% entry.askingPrice
 													% floor_area
 													% type_id
 													% entry.targetPrice
 													% bid.getValue()
 													% bidsCounter
-													% ((accepted) ? 1 : 0);
+													% ((accepted) ? 1 : 0)
+													% thisPostcode->getSlaPostcode()
+													% unitPostcode->getSlaPostcode();
 
         AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::BIDS, fmtr.str());
         //PrintOut(fmtr.str() << endl);
@@ -256,7 +265,7 @@ void HouseholdSellerRole::update(timeslice now)
             {
                 market->addEntry( HousingMarket::Entry( getParent(), unit->getId(), unit->getSlaAddressId(), tazId, firstExpectation.askingPrice, firstExpectation.hedonicPrice));
 				#ifdef VERBOSE
-                PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with asking price: " << firstExpectation.askingPrice << std::endl);
+                PrintOutV("[day " << currentTime.ms() << "] Household Seller " << getParent()->getId() << ". Adding entry to Housing market for unit " << unit->getId() << " with ap: " << firstExpectation.askingPrice << " hp: " << firstExpectation.hedonicPrice << " rp: " << firstExpectation.targetPrice << std::endl);
 				#endif
             }
 
@@ -433,7 +442,8 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
 
 	BigSerial taz = std::atoi( tazStr.c_str() );
 
-	double logsum =  model->ComputeHedonicPriceLogsum( taz );
+	//double logsum =  model->ComputeHedonicPriceLogsumFromMidterm( taz );
+	double logsum = model->ComputeHedonicPriceLogsumFromDatabase( taz );
 
     info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
     luaModel.calulateUnitExpectations(unit, info.numExpectations, logsum, info.expectations );

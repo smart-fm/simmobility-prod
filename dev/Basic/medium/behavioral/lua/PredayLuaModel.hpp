@@ -87,6 +87,14 @@ public:
 	void computeTourModeDestinationLogsum(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const;
 
 	/**
+	 * Computes log sums for work tour type for persons with fixed work location
+	 *
+	 * @param personParams object containing person and household related variables. logsums will be updated in this object
+	 * @param tourModeParams parameters specific to tour mode model
+	 */
+	void computeTourModeLogsum(PersonParams& personParams, TourModeParams& tourModeParams) const;
+
+	/**
 	 * Computes logsums from day-pattern tours and day-pattern stops models
 	 *
 	 * @param personParams object containing person and household related variables. logsums will be updated in this object

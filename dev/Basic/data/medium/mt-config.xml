@@ -27,12 +27,12 @@
                         
                 <!-- these parameters are used to assign filename for the storage of statistics -->   
                 <!-- if the value is empty, no output file is generated, otherwise store to csv file -->     
-                <statistics_output_paramemters>                              
-                        <journey_time_csv_file_output value="journeytime.csv"/>
-                        <waiting_time_csv_file_output value="waitingtime.csv"/>
-                        <waiting_amount_csv_file_output value="waitingamount.csv"/>
-                        <travel_time_csv_file_output value="traveltime.csv"/>
-                </statistics_output_paramemters>  
+                <output_pt_statistics>                              
+                        <journey_time file="journeytime.csv"/>
+                        <waiting_time file="waitingtime.csv"/>
+                        <waiting_count file="waitingamount.csv"/>
+                        <travel_time file="traveltime.csv"/>
+                </output_pt_statistics>  
         </supply>                                      
                 
         <!-- config specific to preday simulator -->

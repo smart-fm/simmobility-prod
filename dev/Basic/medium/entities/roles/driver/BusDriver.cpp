@@ -158,9 +158,9 @@ void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, co
 		busArrivalInfo.arrivalTime = current;
 		busArrivalInfo.dwellTime = waitTime;
 		busArrivalInfo.pctOccupancy = (((double)passengerList.size())/MT_Config::getInstance().getBusCapacity()) * 100.0;
-
+		busArrivalInfo.busStopNo = busStopNo;
 		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_BUS_ARRIVAL,
-				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(busStopNo, busArrivalInfo)));
+				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(busArrivalInfo)));
 		this->busSequenceNumber++;
 	}
 }

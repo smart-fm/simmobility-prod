@@ -82,8 +82,7 @@ void sim_mob::medium::Passenger::collectTravelTime()
 	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
 
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
-			STORE_PERSON_TRAVEL_TIME,
-			messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
+			STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
 }
 
 }

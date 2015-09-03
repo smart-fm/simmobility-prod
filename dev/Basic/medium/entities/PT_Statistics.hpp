@@ -13,8 +13,10 @@ namespace medium
 {
 using namespace messaging;
 
-struct PersonWaitingInfo
+struct PersonWaitingTime
 {
+	std::string personId;
+	std::string busStopNo;
 	std::string currentTime;
 	std::string waitingTime;
 	std::string busLines;
@@ -26,37 +28,17 @@ struct PersonWaitingInfo
 /**
  * Message to transfer person waiting time at bus stop
  */
-class PersonWaitingTimeMessage: public messaging::Message {
-public:
-	PersonWaitingTimeMessage(const std::string& stopNo, const std::string& personId, const PersonWaitingInfo& personWaitingInfo)
-			: busStopNo(stopNo), personId(personId),personWaitingInfo(personWaitingInfo)
-	{}
-	virtual ~PersonWaitingTimeMessage() {}
-
-	const std::string busStopNo;
-	std::string personId;
-	PersonWaitingInfo personWaitingInfo;
-};
-
-class WaitingTimeStats
+class PersonWaitingTimeMessage: public messaging::Message
 {
 public:
-	void setWaitingTime(const std::string& personId, const PersonWaitingInfo& personWaitingInfo)
-	{
-		waitingTimeList[personId] = personWaitingInfo;
-	}
-
-	const std::map<std::string, PersonWaitingInfo>& getWaitingTimeList() const
-	{
-		return waitingTimeList;
-	}
-
-private:
-	std::map<std::string, PersonWaitingInfo> waitingTimeList;
+	PersonWaitingTimeMessage(const PersonWaitingTime& personWaitingInfo) : personWaitingTime(personWaitingInfo)	{}
+	virtual ~PersonWaitingTimeMessage() {}
+	PersonWaitingTime personWaitingTime;
 };
 
 struct BusArrivalTime
 {
+	std::string busStopNo;
 	std::string busLine;
 	std::string tripId;
 	unsigned int sequenceNo;
@@ -74,26 +56,9 @@ struct BusArrivalTime
 class BusArrivalTimeMessage : public messaging::Message
 {
 public:
-	BusArrivalTimeMessage(const std::string& stopNo, const BusArrivalTime& busArrivalInfo) :
-		busStopNo(stopNo), busArrivalInfo(busArrivalInfo)
-	{}
+	BusArrivalTimeMessage(const BusArrivalTime& busArrivalInfo) : busArrivalInfo(busArrivalInfo) {}
 	virtual ~BusArrivalTimeMessage() {}
-
-	std::string busStopNo;
 	BusArrivalTime busArrivalInfo;
-};
-
-class JourneyTimeStats
-{
-public:
-	void setArrivalTime(const BusArrivalTime& busArrivalInfo);
-
-	const std::vector<BusArrivalTime>& getArrivalTime() const
-	{
-		return busArrivalTimeList;
-	}
-private:
-	std::vector<BusArrivalTime> busArrivalTimeList;
 };
 
 struct PersonTravelTime
@@ -125,39 +90,24 @@ public:
 	PersonTravelTime personTravelTime;
 };
 
-class PersonTravelStats
+struct WaitingCount
 {
-public:
-	void setPersonTravelTime(PersonTravelTime personTravelTime);
+	std::string timeSlice;
+	std::string busStopNo;
+	unsigned int count;
 
-	const std::vector<PersonTravelTime>& getPersonTravelTime() const
-	{
-		return personTravelTimeList;
-	}
-
-private:
-	std::vector<PersonTravelTime> personTravelTimeList;
+	std::string getCSV() const;
 };
 
 /**
  * waiting count message
  */
-class WaitingCountMessage: public messaging::Message {
-public:
-	WaitingCountMessage(const std::string& stopNo, const std::string& timeSlice, unsigned int waitingNum) :
-			busStopNo(stopNo), timeSlice(timeSlice), waitingNum(waitingNum) {
-	}
-	virtual ~WaitingCountMessage() {
-	}
-	std::string timeSlice;
-	std::string busStopNo;
-	unsigned int waitingNum;
-};
-
-struct WaitingCountStats
+class WaitingCountMessage: public messaging::Message
 {
-	std::string timeSlice;
-	std::string waitingCount;
+public:
+	WaitingCountMessage(const WaitingCount& cnt) : waitingCnt(cnt) {}
+	virtual ~WaitingCountMessage() {}
+	WaitingCount waitingCnt;
 };
 
 class PT_Statistics : public messaging::MessageHandler
@@ -179,16 +129,16 @@ private:
 	PT_Statistics();
 
 	/**store stop to stop journey time. bus stop No. is key */
-	std::map<std::string, JourneyTimeStats*> busJourneyTime;
+	std::vector<BusArrivalTime> busJourneyTimes;
 
-	/**store waiting time at bus stop. bus stop No. is key*/
-	std::map<std::string, WaitingTimeStats*> personWaitingTime;
+	/**store for waiting time at bus stop*/
+	std::vector<PersonWaitingTime> personWaitingTimes;
 
-	/**store waiting number at each bus stop */
-	std::map<std::string, std::vector<WaitingCountStats> > waitingCounts;
+	/**store for number of persons waiting at each bus stop */
+	std::vector<WaitingCount> waitingCounts;
 
-	/**store travel time*/
-	std::map<std::string, PersonTravelStats*> personTravelTimes;
+	/**travel time store*/
+	std::vector<PersonTravelTime> personTravelTimes;
 
 	static PT_Statistics* instance;
 };

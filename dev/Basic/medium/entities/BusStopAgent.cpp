@@ -180,8 +180,12 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 		itWaitingPeople++;
 	}
 
+	sim_mob::medium::WaitingCount waitingCnt;
+	waitingCnt.busStopNo = busStop->getBusstopno_();
+	waitingCnt.timeSlice = DailyTime(now.ms()).getStrRepr();
+	waitingCnt.count = waitingPersons.size();
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_WAITING_PERSON_COUNT,
-			messaging::MessageBus::MessagePtr(new WaitingCountMessage(busStop->getBusstopno_(), DailyTime(now.ms()).getStrRepr(), waitingPersons.size())));
+											messaging::MessageBus::MessagePtr(new WaitingCountMessage(waitingCnt)));
 	return UpdateStatus::Continue;
 }
 
@@ -263,15 +267,15 @@ void BusStopAgent::storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingAct
 	if(!waitingActivity) { return; }
 	Person* person = waitingActivity->getParent();
 	unsigned int waitingTime = waitingActivity->getWaitingTime();
-	std::string stopId = busStop->getBusstopno_();
-	std::string personId = boost::lexical_cast<std::string>((person->getId()));
-	sim_mob::medium::PersonWaitingInfo personWaitInfo;
+	sim_mob::medium::PersonWaitingTime personWaitInfo;
+	personWaitInfo.busStopNo = busStop->getBusstopno_();
+	personWaitInfo.personId  = boost::lexical_cast<std::string>((person->getId()));
 	personWaitInfo.currentTime = DailyTime(currentTimeMS).getStrRepr();
-	personWaitInfo.waitingTime = DailyTime(waitingTime).getStrRepr();;
+	personWaitInfo.waitingTime = DailyTime(waitingTime).getStrRepr();
 	personWaitInfo.busLines = waitingActivity->getBusLines();
 	personWaitInfo.failedBoardingCount = waitingActivity->getFailedBoardingCount();
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_WAITING,
-			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(stopId, personId, personWaitInfo)));
+			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(personWaitInfo)));
 }
 
 void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)

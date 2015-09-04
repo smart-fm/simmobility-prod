@@ -269,11 +269,11 @@ void BusStopAgent::storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingAct
 	unsigned int waitingTime = waitingActivity->getWaitingTime();
 	sim_mob::medium::PersonWaitingTime personWaitInfo;
 	personWaitInfo.busStopNo = busStop->getBusstopno_();
-	personWaitInfo.personId  = boost::lexical_cast<std::string>((person->getId()));
+	personWaitInfo.personId  = person->getId();
 	personWaitInfo.currentTime = DailyTime(currentTimeMS).getStrRepr();
-	personWaitInfo.waitingTime = DailyTime(waitingTime).getStrRepr();
+	personWaitInfo.waitingTime = ((double)waitingTime)/1000.0; //convert ms to second
 	personWaitInfo.busLines = waitingActivity->getBusLines();
-	personWaitInfo.failedBoardingCount = waitingActivity->getFailedBoardingCount();
+	personWaitInfo.deniedBoardingCount = waitingActivity->getFailedBoardingCount();
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_WAITING,
 			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(personWaitInfo)));
 }

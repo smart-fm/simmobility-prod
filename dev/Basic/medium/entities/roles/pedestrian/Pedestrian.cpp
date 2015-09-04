@@ -47,7 +47,7 @@ void sim_mob::medium::Pedestrian::make_frame_tick_params(timeslice now) {}
 void sim_mob::medium::Pedestrian::collectTravelTime()
 {
 	PersonTravelTime personTravelTime;
-	personTravelTime.personId = boost::lexical_cast<std::string>(parent->getId());
+	personTravelTime.personId = parent->getId();
 	if(parent->getPrevRole() && parent->getPrevRole()->roleType==Role::RL_ACTIVITY)
 	{
 		ActivityPerformer* activity = dynamic_cast<ActivityPerformer*>(parent->getPrevRole());
@@ -59,7 +59,7 @@ void sim_mob::medium::Pedestrian::collectTravelTime()
 		personTravelTime.subEndType = "NODE";
 		personTravelTime.mode = "ACTIVITY";
 		personTravelTime.service = parent->currSubTrip->ptLineId;
-		personTravelTime.travelTime = DailyTime(activity->getTravelTime()).getStrRepr();
+		personTravelTime.travelTime = ((double) activity->getTravelTime())/1000.0;
 		personTravelTime.arrivalTime = DailyTime(activity->getArrivalTime()).getStrRepr();
 		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
 				STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
@@ -72,7 +72,7 @@ void sim_mob::medium::Pedestrian::collectTravelTime()
 	personTravelTime.subEndType = parent->currSubTrip->endLocationType;
 	personTravelTime.mode = "WALK";
 	personTravelTime.service = parent->currSubTrip->ptLineId;
-	personTravelTime.travelTime = DailyTime(parent->getRole()->getTravelTime()).getStrRepr();
+	personTravelTime.travelTime = ((double) parent->getRole()->getTravelTime())/1000.0;
 	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
 			STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);

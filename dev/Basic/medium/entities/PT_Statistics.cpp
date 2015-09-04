@@ -6,12 +6,8 @@
  */
 
 #include "entities/PT_Statistics.hpp"
-#include <algorithm>
-#include <boost/lexical_cast.hpp>
 #include <cstdio>
 #include <fstream>
-#include <string>
-
 #include "config/MT_Config.hpp"
 #include "util/LangHelpers.hpp"
 
@@ -53,7 +49,9 @@ void PT_Statistics::HandleMessage(Message::MessageType type, const Message& mess
 	case STORE_PERSON_WAITING:
 	{
 		const PersonWaitingTimeMessage& msg = MSG_CAST(PersonWaitingTimeMessage, message);
-		personWaitingTimes.push_back(msg.personWaitingTime);
+		char key[50];
+		sprintf(key, "%u,%s", msg.personWaitingTime.personId, msg.personWaitingTime.busStopNo.c_str());
+		personWaitingTimes[std::string(key)] = msg.personWaitingTime;
 		break;
 	}
 	case STORE_PERSON_TRAVEL_TIME:
@@ -100,10 +98,10 @@ void PT_Statistics::storeStatistics()
 		std::ofstream outputFile(waitingTimeStatsFilename.c_str());
 		if (outputFile.is_open())
 		{
-			std::vector<PersonWaitingTime>::const_iterator itWaitingTime = personWaitingTimes.begin();
+			std::map<std::string, PersonWaitingTime>::const_iterator itWaitingTime = personWaitingTimes.begin();
 			for (; itWaitingTime != personWaitingTimes.end(); itWaitingTime++)
 			{
-				outputFile << itWaitingTime->getCSV();
+				outputFile << itWaitingTime->second.getCSV();
 			}
 			outputFile.close();
 		}
@@ -143,32 +141,16 @@ void PT_Statistics::storeStatistics()
 	personTravelTimes.clear();
 }
 
-bool BusArrivalTime::operator<(const BusArrivalTime& rhs) const
-{
-	if (busLine < rhs.busLine)
-	{
-		return true;
-	}
-	else if (busLine > rhs.busLine)
-	{
-		return false;
-	}
-	else
-	{
-		return tripId < rhs.tripId;
-	}
-}
-
 std::string PersonWaitingTime::getCSV() const
 {
 	char csvArray[100];
-	sprintf(csvArray, "%s,%s,%s,%s,%s,%u\n",
-			personId.c_str(),
+	sprintf(csvArray, "%u,%s,%s,%s,%.2f,%u\n",
+			personId,
 			busStopNo.c_str(),
 			busLines.c_str(),
 			currentTime.c_str(),
-			waitingTime.c_str(),
-			failedBoardingCount);
+			waitingTime,
+			deniedBoardingCount);
 	return std::string(csvArray);
 }
 
@@ -189,8 +171,8 @@ std::string BusArrivalTime::getCSV() const
 std::string PersonTravelTime::getCSV() const
 {
 	char csvArray[100];
-	sprintf(csvArray, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
-			personId.c_str(),
+	sprintf(csvArray, "%u,%s,%s,%s,%s,%s,%s,%s,%s,%.2f\n",
+			personId,
 			tripStartPoint.c_str(),
 			tripEndPoint.c_str(),
 			subStartPoint.c_str(),
@@ -199,7 +181,7 @@ std::string PersonTravelTime::getCSV() const
 			subEndType.c_str(),
 			mode.c_str(),
 			arrivalTime.c_str(),
-			travelTime.c_str());
+			travelTime);
 	return std::string(csvArray);
 }
 

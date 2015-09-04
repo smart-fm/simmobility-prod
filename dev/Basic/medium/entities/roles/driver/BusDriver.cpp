@@ -110,7 +110,7 @@ unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusSto
 	{
 		stop = stop->getTwinStop();
 		if(stop->isVirtualStop()) { throw std::runtime_error("both of the twin stops are virtual"); }
-		busStopAgent = BusStopAgent::findBusStopAgentByBusStop(stop);
+		busStopAgent = BusStopAgent::getBusStopAgentForStop(stop);
 	}
 
 	while (itPassenger != passengerList.end()) {

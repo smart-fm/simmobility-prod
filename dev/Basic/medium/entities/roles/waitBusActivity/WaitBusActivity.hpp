@@ -59,7 +59,7 @@ public:
 	/**
 	 * increase failed boarding times
 	 */
-	void increaseFailedBoardingTimes();
+	void incrementDeniedBoardingCount();
 
 	/**
 	 * message handler which provide a chance to handle message transfered from parent agent.
@@ -73,9 +73,10 @@ public:
 		return stop;
 	}
 
-	const std::string getBusLines() const;
+	const std::string& getBusLines() const;
 
-	void setStop(sim_mob::BusStop* busStop) {
+	void setStop(sim_mob::BusStop* busStop)
+	{
 		stop = busStop;
 	}
 
@@ -89,22 +90,12 @@ public:
 		this->boardBus = boardBus;
 	}
 
-	void setWaitingTime(unsigned int time)
-	{
-		waitingTime = time;
-	}
-
-	const unsigned int getWaitingTime() const
+	unsigned int getWaitingTime() const
 	{
 		return waitingTime;
 	}
 
-	void setFailedBoardingCount(unsigned int times)
-	{
-		failedToBoardCount = times;
-	}
-
-	const unsigned int getFailedBoardingCount() const
+	unsigned int getDeniedBoardingCount() const
 	{
 		return failedToBoardCount;
 	}
@@ -113,7 +104,7 @@ private:
 	friend class WaitBusActivityBehavior;
 	friend class WaitBusActivityMovement;
 
-	/**record waiting time in the bus stop*/
+	/**record waiting time (in milliseconds) in the bus stop*/
 	unsigned int waitingTime;
 	/**pointer to waiting bus stop*/
 	BusStop* stop;

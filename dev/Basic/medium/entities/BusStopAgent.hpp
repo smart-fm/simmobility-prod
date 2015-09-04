@@ -2,15 +2,9 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * BusStopAgent.hpp
- *
- *  Created on: 17 Apr, 2014
- *      Author: zhang huai peng
- */
-
 #pragma once
-
+#include <boost/unordered_map.hpp>
+#include <list>
 #include "entities/Agent.hpp"
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/Person.hpp"
@@ -38,6 +32,7 @@ public:
 	virtual ~BusStopAgent();
 
 	const sim_mob::BusStop* getBusStop() const;
+	const SegmentStats* getParentSegmentStats() const;
 
 	/**
 	 * register a new waiting person.
@@ -65,28 +60,11 @@ public:
 	unsigned int getBoardingNum(sim_mob::medium::BusDriver* busDriver) const;
 
 	/**
-	 * finds the BusStopAgent corresponding to a bus stop.
-	 * @param busstop stop under consideration
-	 * @returns pointer to bus stop agent corresponding to busstop
-	 */
-	static BusStopAgent* findBusStopAgentByBusStop(const BusStop* busstop);
-
-	/**
-	 * adds bus stop agent to the static allBusstopAgents
-	 */
-	static void registerBusStopAgent(BusStopAgent* busstopAgent);
-
-	/**
-	 * remove all bus stops agent.
-	 */
-	static void removeAllBusStopAgents();
-
-	/**
 	 * checks whether the bus stop can accommodate a vehicle of a given length
 	 * @param length length of the vehicle
 	 * @returns true if vehicle can be accommodated; false otherwise
 	 */
-	bool canAccommodate(const double vehicleLength);
+	bool canAccommodate(double vehicleLength) const;
 
 	/**
 	 * accepts the incoming bus driver and co-ordinates the boarding activity
@@ -106,12 +84,24 @@ public:
 	 * store waiting time
 	 * @param waitingActivity is pointer to the waiting people
 	 */
-	void storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingActivity);
+	void storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingActivity) const;
 
-	const SegmentStats* getParentSegmentStats() const
-	{
-		return parentSegmentStats;
-	}
+	/**
+	 * finds the BusStopAgent corresponding to a bus stop.
+	 * @param busstop stop under consideration
+	 * @returns pointer to bus stop agent corresponding to busstop
+	 */
+	static BusStopAgent* getBusStopAgentForStop(const BusStop* busstop);
+
+	/**
+	 * adds bus stop agent to the static allBusstopAgents
+	 */
+	static void registerBusStopAgent(BusStopAgent* busstopAgent);
+
+	/**
+	 * remove all bus stops agent.
+	 */
+	static void removeAllBusStopAgents();
 
 protected:
 	//Virtual overrides
@@ -120,11 +110,7 @@ protected:
 	virtual void frame_output(timeslice now);
 	virtual bool isNonspatial();
 	virtual void load(const std::map<std::string, std::string>& configProps);
-
-	//Inherited from Agent.
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
-
-	//Inherited from MessageHandler.
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 	/**
@@ -152,9 +138,13 @@ protected:
 	bool removeBusDriver(BusDriver* driver);
 
 private:
+	/** global static bus stop agents lookup table*/
 	static BusStopAgentsMap allBusstopAgents;
+	/** list of persons waiting at this stop*/
 	std::list<sim_mob::medium::WaitBusActivity*> waitingPersons;
+	/** list of persons who just alighted (in current tick) at this stop*/
 	std::list<sim_mob::medium::Passenger*> alightingPersons;
+	/** list of bus drivers currently serving the stop*/
 	std::list<sim_mob::medium::BusDriver*> servingDrivers;
 	/**bus stop managed by this agent*/
 	const sim_mob::BusStop* busStop;
@@ -164,9 +154,8 @@ private:
 	std::map<sim_mob::medium::BusDriver*, unsigned int> lastBoardingRecorder;
 	/**available length in cm for incoming vehicles*/
 	double availableLength;
-	/**current time i milliseconds from start of simulation*/
+	/**current time in milliseconds from start of simulation*/
 	unsigned int currentTimeMS;
 };
 }
 }
-

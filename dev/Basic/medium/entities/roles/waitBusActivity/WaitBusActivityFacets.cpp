@@ -32,7 +32,7 @@ void sim_mob::medium::WaitBusActivityBehavior::frame_tick_output()
 {}
 
 WaitBusActivityMovement::WaitBusActivityMovement(sim_mob::Person* parentAgent) :
-		MovementFacet(parentAgent), parentWaitBusActivity(nullptr), totalTimeToCompleteMS(0)
+		MovementFacet(parentAgent), parentWaitBusActivity(nullptr)
 {}
 
 WaitBusActivityMovement::~WaitBusActivityMovement()
@@ -50,7 +50,6 @@ void WaitBusActivityBehavior::setParentWaitBusActivity(sim_mob::medium::WaitBusA
 
 void WaitBusActivityMovement::frame_init()
 {
-	totalTimeToCompleteMS = 0;
 	if(parentWaitBusActivity)
 	{
 		UpdateParams& params = parentWaitBusActivity->getParams();
@@ -62,11 +61,10 @@ void WaitBusActivityMovement::frame_init()
 void WaitBusActivityMovement::frame_tick()
 {
 	unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
-	totalTimeToCompleteMS += tickMS;
 	if(parentWaitBusActivity)
 	{
-		parentWaitBusActivity->setWaitingTime(totalTimeToCompleteMS);
-		parentWaitBusActivity->setTravelTime(totalTimeToCompleteMS);
+		parentWaitBusActivity->increaseWaitingTime(tickMS);
+		parentWaitBusActivity->setTravelTime(parentWaitBusActivity->getWaitingTime());
 	}
 	parent->setRemainingTimeThisTick(0);
 }
@@ -76,7 +74,7 @@ void WaitBusActivityMovement::frame_tick_output()
 
 sim_mob::Conflux* WaitBusActivityMovement::getStartingConflux() const
 {
-	const sim_mob::medium::BusStopAgent* stopAg = sim_mob::medium::BusStopAgent::findBusStopAgentByBusStop(parentWaitBusActivity->getStop());
+	const sim_mob::medium::BusStopAgent* stopAg = sim_mob::medium::BusStopAgent::getBusStopAgentForStop(parentWaitBusActivity->getStop());
 	if(stopAg)
 	{
 		return stopAg->getParentSegmentStats()->getRoadSegment()->getParentConflux();

@@ -141,8 +141,8 @@ public:
  */
 struct WaitingCount
 {
-	/** time tick when this information is collected*/
-	std::string timeSlice;
+	/** time in hh:mi:ss format when this information is collected*/
+	std::string currTime;
 	/** bus stop number*/
 	std::string busStopNo;
 	/** count of persons waiting at stop*/

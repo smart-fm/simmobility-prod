@@ -67,15 +67,14 @@ void sim_mob::medium::WaitBusActivity::collectTravelTime()
 					STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
 }
 
-void sim_mob::medium::WaitBusActivity::increaseFailedBoardingTimes()
+void sim_mob::medium::WaitBusActivity::incrementDeniedBoardingCount()
 {
 	failedToBoardCount++;
 }
 
-const std::string sim_mob::medium::WaitBusActivity::getBusLines() const
+const std::string& sim_mob::medium::WaitBusActivity::getBusLines() const
 {
-	const sim_mob::SubTrip& subTrip = *(getParent()->currSubTrip);
-	return subTrip.getBusLineID();
+	return parent->currSubTrip->getBusLineID();
 }
 
 void sim_mob::medium::WaitBusActivity::makeBoardingDecision(BusDriver* driver)

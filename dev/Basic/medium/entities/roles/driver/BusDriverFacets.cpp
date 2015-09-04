@@ -99,7 +99,7 @@ void BusDriverMovement::frame_tick() {
 			parentBusDriver->waitingTimeAtbusStop = 0.0; //the bus has expired its waiting time
 
 			const BusStop* stop = routeTracker.getNextStop();
-			BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(stop);
+			BusStopAgent* stopAg = sim_mob::medium::BusStopAgent::getBusStopAgentForStop(stop);
 
 			double output = getOutputCounter(currLane, pathMover.getCurrSegStats());
 			bool isNewLinkNext = (!pathMover.hasNextSegStats(true) && pathMover.hasNextSegStats(false));
@@ -343,7 +343,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	const BusStop* nextStop = routeTracker.getNextStop();
 	if(nextStop && currSegStat->hasBusStop(nextStop))
 	{
-		BusStopAgent* stopAg = BusStopAgent::findBusStopAgentByBusStop(nextStop);
+		BusStopAgent* stopAg = sim_mob::medium::BusStopAgent::getBusStopAgentForStop(nextStop);
 		if(stopAg)
 		{
 			if(stopAg->canAccommodate(parentBusDriver->getResource()->getLengthCm()))

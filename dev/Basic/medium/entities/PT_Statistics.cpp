@@ -190,7 +190,7 @@ std::string WaitingCount::getCSV() const
 	char csvArray[100];
 	sprintf(csvArray, "%s,%s,%u\n",
 			busStopNo.c_str(),
-			timeSlice.c_str(),
+			currTime.c_str(),
 			count);
 	return std::string(csvArray);
 }

@@ -1,5 +1,5 @@
 /*
- * SMStatus.h
+ * SMStatus.hpp
  *
  *  Created on: Jul 7, 2014
  *      Author: Max
@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "entities/models/Constants.h"
+#include "entities/models/Constants.hpp"
 
 using namespace std;
 

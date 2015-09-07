@@ -8,8 +8,8 @@
 
 #include "conf/settings/DisableMPI.h"
 #include "entities/UpdateParams.hpp"
-#include "entities/models/Constants.h"
-#include "entities/roles/driver/SMStatus.h"
+#include "entities/models/Constants.hpp"
+#include "entities/roles/driver/SMStatus.hpp"
 #include "entities/roles/driver/models/LaneChangeModel.hpp"
 #include "entities/signal/Signal.hpp"
 #include "geospatial/Lane.hpp"

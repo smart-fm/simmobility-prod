@@ -6,7 +6,7 @@
 
 #include "geospatial/Lane.hpp"
 #include "TurningConflict.hpp"
-#include "TurningPolyline.h"
+#include "TurningPolyline.hpp"
 #include "util/DynamicVector.hpp"
 
 namespace sim_mob

@@ -5,7 +5,7 @@
  *      Author: max
  */
 
-#include <geospatial/Polypoint.h>
+#include <geospatial/Polypoint.hpp>
 
 namespace sim_mob {
 

@@ -10,7 +10,7 @@
  */
 
 #pragma once
-#include "database/dao/I_Dao.h"
+#include "database/dao/I_Dao.hpp"
 #include "database/DB_Connection.hpp"
 #include "mongo/client/dbclient.h"
 

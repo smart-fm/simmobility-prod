@@ -26,7 +26,7 @@
 #include "entities/conflux/Conflux.hpp"
 #include "logging/Log.hpp"
 #include "util/Profiler.hpp"
-#include "entities/models/Constants.h"
+#include "entities/models/Constants.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"

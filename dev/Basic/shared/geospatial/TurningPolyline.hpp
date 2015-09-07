@@ -5,8 +5,8 @@
 #ifndef GEOSPATIAL_TURNINGPOLYLINE_H_
 #define GEOSPATIAL_TURNINGPOLYLINE_H_
 
-#include "geospatial/Polyline.h"
-#include "geospatial/Polypoint.h"
+#include "geospatial/Polyline.hpp"
+#include "geospatial/Polypoint.hpp"
 #include "geospatial/TurningSection.hpp"
 
 namespace sim_mob {

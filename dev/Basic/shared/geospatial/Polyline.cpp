@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 
-#include <geospatial/Polyline.h>
+#include <geospatial/Polyline.hpp>
 
 namespace sim_mob {
 

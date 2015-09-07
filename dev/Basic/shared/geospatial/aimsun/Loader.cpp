@@ -44,8 +44,8 @@
 #include "geospatial/aimsun/SOCI_Converters.hpp"
 #include "geospatial/TurningSection.hpp"
 #include "geospatial/TurningConflict.hpp"
-#include "geospatial/TurningPolyline.h"
-#include "geospatial/Polypoint.h"
+#include "geospatial/TurningPolyline.hpp"
+#include "geospatial/Polypoint.hpp"
 #include "path/PathSetManager.hpp"
 #include "path/PT_RouteChoiceLuaModel.hpp"
 

@@ -206,7 +206,7 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 	}
 
 	double income = debtToIncomeRatio * bidderHousehold->getIncome();
-	double loanTenure = retirementAge - bidderHousehold->getAgeOfHead() * 12.0; //times 12 to get he tenure in months, not years.
+	double loanTenure = retirementAge - householdHeadAge * 12.0; //times 12 to get he tenure in months, not years.
 
 	loanTenure = std::min( 360.0, loanTenure ); //tenure has a max for 30 years.
 
@@ -220,6 +220,7 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 	//https://support.office.com/en-ca/article/PV-function-3d25f140-634f-4974-b13b-5249ff823415
 	double maxMortgage = income / interestRate *  ( 1.0 - pow( 1 + interestRate, loanTenure ) );
 
+	maxMortgage = std::max(0.0, maxMortgage);
 
 	const Household *household = getParent()->getHousehold();
 
@@ -228,12 +229,14 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 	if( householdHeadAge < 30 )
 		alpha = 0.05;
 
-	double maxDownpayment = ( householdHeadAge - 20 ) * (0.36 * alpha);
+	double maxDownpayment = ( householdHeadAge - 20 ) *  bidderHousehold->getIncome() * 12 * (0.36 * alpha);
+
+	maxDownpayment = std::max(0.0, maxDownpayment);
 
 	householdAffordabilityAmount = ( maxMortgage + maxDownpayment ) / 500000.0;
-
 	householdAffordabilityAmount = std::max(householdAffordabilityAmount, 0.0f);
 
+	//PrintOutV(" affordability " << householdAffordabilityAmount << "income " << household->getIncome() << " tenure " << loanTenure << " interestRate " << interestRate << " maxMortgage " << maxMortgage << " maxDownpayment " <<  maxDownpayment << std::endl);
 	//PrintOutV( "Interest rate: " << std::setPrecision(5) << interestRate << ". Household affordability: " << householdAffordabilityAmount << std::endl);
 }
 
@@ -587,8 +590,8 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 			ZZ_logsumhh = personParam.getDpbLogsum();
 
 			BigSerial groupId = hitssample->getGroupId();
-			const HM_Model::HouseholdGroup *thisHHGroup = new HM_Model::HouseholdGroup(groupId, homeTaz, ZZ_logsumhh );
-			model->householdGroupVec.push_back(  *thisHHGroup );
+			const HM_Model::HouseholdGroup thisHHGroup =  HM_Model::HouseholdGroup(groupId, homeTaz, ZZ_logsumhh );
+			model->householdGroupVec.push_back( thisHHGroup );
 
 			printHouseholdGroupLogsum( homeTaz, hitssample->getGroupId(), headOfHousehold->getId(), ZZ_logsumhh );
 		}
@@ -886,7 +889,7 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 								int tazInt = atoi(thisTaz->getName().c_str());
 
 								PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( individuals[m] , tazInt, -1, -1 );
-								double lg = personParam.getDpbLogsum();
+								double lg = personParam.getDpbLogsum(); //2.71 use this value as an average for testing purposes
 
 								logsum = logsum + lg * (double)(tazStats->getIndividuals());
 							}
@@ -1050,6 +1053,18 @@ bool HouseholdBidderRole::pickEntryToBid()
     //model->getScreeningProbabilities(hitsId, householdScreeningProbabilities);
     getScreeningProbabilities(household->getId(), householdScreeningProbabilities);
 
+	/*
+    PrintOut("probability size: " << householdScreeningProbabilities.size() << std::endl);
+    double total = 0.0;
+    for(int n = 0; n < householdScreeningProbabilities.size(); n++ )
+    {
+    	PrintOut(" " << std::setprecision(5) << householdScreeningProbabilities[n]);
+    	total += householdScreeningProbabilities[n];
+    }
+
+    PrintOut("prob total: " << total << endl);
+	*/
+
     double randomDraw = (double)rand()/RAND_MAX;
     int zoneHousingType = -1;
     double cummulativeProbability = 0.0;
@@ -1101,7 +1116,7 @@ bool HouseholdBidderRole::pickEntryToBid()
 
     std::vector<const HousingMarket::Entry*> screenedEntries;
 
-    for(int n = 0; n < entries.size() /** housingMarketSearchPercentage*/ && housingType != -1 && taz.size() == 0 && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
+    for(int n = 0; n < entries.size() /** housingMarketSearchPercentage*/ && housingType != -1 && taz.size() != 0 && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
     {
     	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
 
@@ -1159,7 +1174,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     	{
     		for( int m = 0; m < taz.size(); m++ )
     		{
-    			PrintOutV("entry " << entry->getTazId() << " taz " << taz[m]  << std::endl);
+    			//PrintOutV("entry " << entry->getTazId() << " taz " << taz[m]  << std::endl);
 
     			if( entry->getTazId() == taz[m] )
     				screenedEntries.push_back(entries[m]);
@@ -1175,7 +1190,7 @@ bool HouseholdBidderRole::pickEntryToBid()
     }
     else
     {
-    	PrintOutV("choiceset was successful" << std::endl);
+    	//PrintOutV("choiceset was successful" << std::endl);
     }
     //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );
 

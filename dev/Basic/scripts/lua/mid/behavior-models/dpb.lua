@@ -247,6 +247,8 @@ end
 function compute_logsum_dpb(params)
 	computeUtilities(params) 
 	local probability = calculate_probability("mnl", choice, utility, availability, scale)
-	params.travel_probability = probability[2]
-	return compute_mnl_logsum(utility, availability)
+	local return_table = {}
+	return_table[1] = compute_mnl_logsum(utility, availability)
+	return_table[2] = probability[2]
+	return return_table
 end

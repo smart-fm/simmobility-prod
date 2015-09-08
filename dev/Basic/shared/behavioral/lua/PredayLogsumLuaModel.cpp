@@ -57,8 +57,8 @@ void sim_mob::PredayLogsumLuaModel::mapClasses() {
 				.addProperty("otherlogsum", &PredayPersonParams::getOtherLogSum)
 				.addProperty("dptour_logsum", &PredayPersonParams::getDptLogsum)
 				.addProperty("dpstop_logsum", &PredayPersonParams::getDpsLogsum)
-				.addProperty("travel_probability", &PredayPersonParams::getTravelProbability, &PredayPersonParams::setTravelProbability)
-				.addProperty("num_expected_trips", &PredayPersonParams::getTripsExpected, &PredayPersonParams::setTripsExpected)
+				.addProperty("travel_probability", &PredayPersonParams::getTravelProbability)
+				.addProperty("num_expected_trips", &PredayPersonParams::getTripsExpected)
 			.endClass()
 
 			.beginClass<LogsumTourModeDestinationParams>("LogsumTourModeDestinationParams")
@@ -92,8 +92,16 @@ void sim_mob::PredayLogsumLuaModel::mapClasses() {
 void sim_mob::PredayLogsumLuaModel::computeDayPatternLogsums(PredayPersonParams& personParams) const
 {
 	LuaRef computeLogsumDPT = getGlobal(state.get(), "compute_logsum_dpt");
-	LuaRef dptLogsum = computeLogsumDPT(personParams);
-	personParams.setDptLogsum(dptLogsum.cast<double>());
+	LuaRef dptRetVal = computeLogsumDPT(personParams);
+	if(dptRetVal.isTable())
+	{
+		personParams.setDptLogsum(dptRetVal[1].cast<double>());
+		personParams.setTripsExpected(dptRetVal[2].cast<double>());
+	}
+	else
+	{
+		throw std::runtime_error("compute_logsum_dpt function does not return a table as expected");
+	}
 
 	LuaRef computeLogsumDPS = getGlobal(state.get(), "compute_logsum_dps");
 	LuaRef dpsLogsum = computeLogsumDPS(personParams);
@@ -103,8 +111,16 @@ void sim_mob::PredayLogsumLuaModel::computeDayPatternLogsums(PredayPersonParams&
 void sim_mob::PredayLogsumLuaModel::computeDayPatternBinaryLogsums(PredayPersonParams& personParams) const
 {
 	LuaRef computeLogsumDPB = getGlobal(state.get(), "compute_logsum_dpb");
-	LuaRef dpbLogsum = computeLogsumDPB(personParams);
-	personParams.setDpbLogsum(dpbLogsum.cast<double>());
+	LuaRef dpbRetVal = computeLogsumDPB(personParams);
+	if(dpbRetVal.isTable())
+	{
+		personParams.setDpbLogsum(dpbRetVal[1].cast<double>());
+		personParams.setTravelProbability(dpbRetVal[2].cast<double>());
+	}
+	else
+	{
+		throw std::runtime_error("compute_logsum_dpb function does not return a table as expected");
+	}
 }
 
 void sim_mob::PredayLogsumLuaModel::computeTourModeDestinationLogsum(PredayPersonParams& personParams, LogsumTourModeDestinationParams& tourModeDestinationParams) const

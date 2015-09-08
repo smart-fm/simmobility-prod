@@ -508,7 +508,7 @@ const HM_Model::TazStats* HM_Model::getTazStats(BigSerial tazId) const
 }
 
 
-double HM_Model::ComputeHedonicPriceLogsumFromDatabase( BigSerial taz)
+double HM_Model::ComputeHedonicPriceLogsumFromDatabase( BigSerial taz) const
 {
 	LogsumMtzV2Map::const_iterator itr = logsumMtzV2ById.find(taz);
 
@@ -538,7 +538,8 @@ double HM_Model::ComputeHedonicPriceLogsumFromMidterm(BigSerial taz)
 
 	for(int n = 0; n < tazLogsumWeights.size(); n++)
 	{
-		double lg = PredayLT_LogsumManager::getInstance().computeLogsum( tazLogsumWeights[n]->getIndividualId(), taz, workTaz, vehicleOwnership );
+		PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( tazLogsumWeights[n]->getIndividualId(), taz, workTaz, vehicleOwnership );
+		double lg = personParam.getDpbLogsum();
 		double weight = tazLogsumWeights[n]->getWeight();
 
 		Individual *individual = this->getIndividualById(tazLogsumWeights[n]->getIndividualId());
@@ -1441,7 +1442,8 @@ void HM_Model::getLogsumOfIndividuals(BigSerial id)
 
 	for( int n = 0; n < householdIndividualIds.size(); n++ )
 	{
-		double logsum = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n], taz, -1, 1 );
+		PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n], taz, -1, 1 );
+		double logsum =  personParam.getDpbLogsum();
 
 		printIndividualHitsLogsum( householdIndividualIds[n], logsum );
 	}
@@ -1452,7 +1454,7 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 {
 	BigSerial householdId = householdLogsumCounter++;
 
-	if( simulationStopCounter > 400) //this is temporary. -Chetan (19Aug2015)
+	if( simulationStopCounter > 200) //this is temporary. -Chetan (19Aug2015)
 		return;
 
 	HouseHoldHitsSample *hitsSample = this->getHouseHoldHitsById( householdId );
@@ -1476,6 +1478,8 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 		Individual *thisIndividual = this->getIndividualById(householdIndividualIds[n]);
 
 		vector<double> logsum;
+		vector<double> travelProbability;
+		vector<double> tripsExpected;
 
 		int tazIdW = -1;
 
@@ -1503,15 +1507,22 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 				tazStrH = tazObjH->getName();
 			BigSerial tazH = std::atoi( tazStrH.c_str() );
 
+			PredayPersonParams personParams = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, -1 );
 
-			double logsumD = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, -1 );
+			double logsumD 				= personParams.getDpbLogsum();
+ 			double travelProbabilityD	= personParams.getTravelProbability();
+			double tripsExpectedD		= personParams.getTripsExpected();
 
 			logsum.push_back(logsumD);
+			travelProbability.push_back(travelProbabilityD);
+			tripsExpected.push_back(tripsExpectedD);
 		}
 
 		simulationStopCounter++;
 
 		printHouseholdHitsLogsum( hitsSample->getHouseholdHitsId() , householdIndividualIds[n], logsum );
+		printHouseholdHitsLogsum( hitsSample->getHouseholdHitsId() , householdIndividualIds[n], travelProbability );
+		printHouseholdHitsLogsum( hitsSample->getHouseholdHitsId() , householdIndividualIds[n], tripsExpected );
 		PrintOutV( hitsIndividualLogsum[p]->getHitsId() << ", " << hitsSample->getHouseholdHitsId() << ", " << householdId << ", " << thisIndividual->getMemberId() << ", " << householdIndividualIds[n] << ", " << std::setprecision(5)
 																						<< logsum[0]  << ", " << logsum[1]  << ", " << logsum[2]  << ", " << logsum[3]  << ", " << logsum[4]  << ", " << logsum[5]  << ", " << logsum[6]  << ", " << logsum[7]  << ", " << logsum[8]  << ", " << logsum[9]  << ", " << logsum[10]  << ", " << logsum[11]  << ", " << logsum[12]  << ", " << logsum[13]
 		                                                                                << ", " << logsum[14]  << ", " << logsum[15]  << ", " << logsum[16]  << ", " << logsum[17]  << ", " << logsum[18]  << ", " << logsum[19]  << ", " << logsum[20]  << ", " << logsum[21]  << ", " << logsum[22]  << ", " << logsum[23]  << ", " << logsum[24]  << ", " << logsum[25]  << ", " << logsum[26]  << ", " << logsum[27]

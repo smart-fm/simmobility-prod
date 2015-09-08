@@ -125,7 +125,7 @@ void HouseholdBidderRole::CurrentBiddingEntry::setLastSurplus(double value)
 
 
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0),
-																  moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0), day(day), householdAffordabilityAmount(0),initBidderRole(true){}
+																  moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0), day(day), initBidderRole(true){}
 
 HouseholdBidderRole::~HouseholdBidderRole(){}
 
@@ -152,9 +152,9 @@ void HouseholdBidderRole::setActive(bool activeArg)
 
 void HouseholdBidderRole::computeHouseholdAffordability()
 {
-	householdAffordabilityAmount = 0;
+	double householdAffordabilityAmount = 0;
 
-	const Household *bidderHousehold = getParent()->getHousehold();
+	Household *bidderHousehold = const_cast<Household*>(getParent()->getHousehold());
 
 	std::vector<BigSerial> individuals = bidderHousehold->getIndividuals();
 	int householdSize = individuals.size();
@@ -234,7 +234,9 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 	maxDownpayment = std::max(0.0, maxDownpayment);
 
 	householdAffordabilityAmount = ( maxMortgage + maxDownpayment ) / 500000.0;
-	householdAffordabilityAmount = std::max(householdAffordabilityAmount, 0.0f);
+	householdAffordabilityAmount = std::max(householdAffordabilityAmount, 0.0);
+
+	bidderHousehold->setAffordabilityAmount( householdAffordabilityAmount );
 
 	//PrintOutV(" affordability " << householdAffordabilityAmount << "income " << household->getIncome() << " tenure " << loanTenure << " interestRate " << interestRate << " maxMortgage " << maxMortgage << " maxDownpayment " <<  maxDownpayment << std::endl);
 	//PrintOutV( "Interest rate: " << std::setPrecision(5) << interestRate << ". Household affordability: " << householdAffordabilityAmount << std::endl);
@@ -1261,11 +1263,10 @@ bool HouseholdBidderRole::pickEntryToBid()
 
             	wp = std::max(0.0, wp );
 
-            	householdAffordabilityAmount = std::max(0.0f, householdAffordabilityAmount);
-            	if( wp > householdAffordabilityAmount )
+            	if( wp > household->getAffordabilityAmount() )
                 {
                 	//PrintOutV("wp is capped at " << householdAffordabilityAmount << " from " << wp << std::endl );
-                	wp = householdAffordabilityAmount;
+                	wp = household->getAffordabilityAmount();
                 }
 
             	double currentBid = 0;

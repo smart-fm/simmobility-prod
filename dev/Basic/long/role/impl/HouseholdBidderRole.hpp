@@ -81,6 +81,7 @@ namespace sim_mob
             void computeHouseholdAffordability();
             void computeBidValueLogistic( double price, double wp, double &finalBid, double &finalSurplus );
             void getScreeningProbabilities(int hitsId, std::vector<double> &probabilities);
+
             /**
              * Inherited from LT_Role
              * @param currTime
@@ -163,7 +164,6 @@ namespace sim_mob
             	B_WHITECOLLAR2_TWOplusCAR, B_distMRT1000_ONECAR, B_distMRT1000_TWOplusCAR, B_distMRT500_ONECAR, B_distMRT500_TWOplusCAR
             };
 
-            float householdAffordabilityAmount;
             bool initBidderRole;
         };
     }

@@ -237,6 +237,16 @@ int Household::getVehicleOwnershipOptionId()
 	return this->vehicleOwnershipOptionId;
 }
 
+void Household::setAffordabilityAmount(double value)
+{
+	householdAffordabilityAmount = value;
+}
+
+double Household::getAffordabilityAmount() const
+{
+	return householdAffordabilityAmount;
+}
+
 namespace sim_mob
 {
     namespace long_term

@@ -8,36 +8,37 @@
 
 namespace simmobility_network
 {
+class Tag
+{
+private:
+	//The 'key' part of the key-value pair
+	std::string key;
 
-  class Tag
-  {
-  private:
-    
-    //The 'key' part of the key-value pair
-    std::string key;
-    
-    //The 'value' part of the key-value pair
-    std::string value;
-    
-  public:
-    
-    Tag(std::string key, std::string value);
-    
-    Tag(const Tag& orig);
-    
-    virtual ~Tag();
-    
-    //Sets the key of the tag
-    void setKey(std::string key);
-    
-    //Returns the key of the tag
-    std::string getKey() const;  
-    
-    //Sets the value of tag
-    void setValue(std::string value);
-    
-    //Returns the value of the tag
-    std::string getValue() const;
-  } ;
+	//The 'value' part of the key-value pair
+	std::string value;
+
+public:
+	Tag(std::string key, std::string value) : key(key), value(value) {}
+	virtual ~Tag() {}
+
+	void setKey(std::string key)
+	{
+		this->key = key;
+	}
+
+	std::string getKey() const
+	{
+		return key;
+	}
+
+	void setValue(std::string value)
+	{
+		this->value = value;
+	}
+
+	std::string getValue() const
+	{
+		return value;
+	}
+};
 }
-

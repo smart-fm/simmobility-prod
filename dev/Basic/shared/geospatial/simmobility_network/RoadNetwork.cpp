@@ -125,7 +125,7 @@ void RoadNetwork::addLaneConnector(LaneConnector* connector)
 	}
 }
 
-void RoadNetwork::addLanePolyLine(Point point)
+void RoadNetwork::addLanePolyLine(PolyPoint point)
 {
 	//Find the lane to which the poly-line belongs
 	std::map<unsigned int, Lane *>::iterator itLanes = mapOfIdVsLanes.find(point.getPolyLineId());
@@ -150,7 +150,7 @@ void RoadNetwork::addLanePolyLine(Point point)
 		
 		//Get the length calculated till the last added point
 		double length = polyLine->getLength();
-		const Point& lastPoint = polyLine->getLastPoint();
+		const PolyPoint& lastPoint = polyLine->getLastPoint();
 		
 		//Add the distance between the new point and the previously added point
 		length += sim_mob::dist(lastPoint.getX(), lastPoint.getY(), point.getX(), point.getY());
@@ -233,7 +233,7 @@ void RoadNetwork::addRoadSegment(RoadSegment* segment)
 	}
 }
 
-void RoadNetwork::addSegmentPolyLine(Point point)
+void RoadNetwork::addSegmentPolyLine(PolyPoint point)
 {
 	//Find the road segment to which the poly-line belongs
 	std::map<unsigned int, RoadSegment *>::iterator itSegments = mapOfIdVsRoadSegments.find(point.getPolyLineId());
@@ -258,7 +258,7 @@ void RoadNetwork::addSegmentPolyLine(Point point)
 		
 		//Get the length calculated till the last added point
 		double length = polyLine->getLength();
-		const Point& lastPoint = polyLine->getLastPoint();
+		const PolyPoint& lastPoint = polyLine->getLastPoint();
 		
 		//Add the distance between the new point and the previously added point
 		length += sim_mob::dist(lastPoint.getX(), lastPoint.getY(), point.getX(), point.getY());
@@ -371,7 +371,7 @@ void RoadNetwork::addTurningPath(TurningPath* turningPath)
 	}
 }
 
-void RoadNetwork::addTurningPolyLine(Point point)
+void RoadNetwork::addTurningPolyLine(PolyPoint point)
 {
 	//Find the turning path to which the poly-line belongs
 	std::map<unsigned int, TurningPath *>::iterator itTurnings = mapOfIdvsTurningPaths.find(point.getPolyLineId());
@@ -396,7 +396,7 @@ void RoadNetwork::addTurningPolyLine(Point point)
 		
 		//Get the length calculated till the last added point
 		double length = polyLine->getLength();
-		const Point& lastPoint = polyLine->getLastPoint();
+		const PolyPoint& lastPoint = polyLine->getLastPoint();
 		
 		//Add the distance between the new point and the previously added point
 		length += sim_mob::dist(lastPoint.getX(), lastPoint.getY(), point.getX(), point.getY());

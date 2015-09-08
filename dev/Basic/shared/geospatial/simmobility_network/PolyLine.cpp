@@ -7,20 +7,11 @@
 using namespace simmobility_network;
 
 PolyLine::PolyLine() :
-polyLineId(0), length(0)
-{
-}
-
-PolyLine::PolyLine(const PolyLine& orig)
-{
-	this->polyLineId = orig.polyLineId;
-	this->length = orig.length;
-	this->points = orig.points;
-}
+		polyLineId(0), length(0)
+{}
 
 PolyLine::~PolyLine()
-{
-}
+{}
 
 int PolyLine::getPolyLineId() const
 {
@@ -42,22 +33,22 @@ double PolyLine::getLength() const
 	return length;
 }
 
-const std::vector<Point>& PolyLine::getPoints() const
+const std::vector<PolyPoint>& PolyLine::getPoints() const
 {
 	return points;
 }
 
-void PolyLine::addPoint(Point point)
+void PolyLine::addPoint(PolyPoint point)
 {
 	this->points.push_back(point);
 }
 
-const Point& PolyLine::getFirstPoint() const
+const PolyPoint& PolyLine::getFirstPoint() const
 {
 	return points.front();
 }
 
-const Point& PolyLine::getLastPoint() const
+const PolyPoint& PolyLine::getLastPoint() const
 {
 	return points.back();
 }

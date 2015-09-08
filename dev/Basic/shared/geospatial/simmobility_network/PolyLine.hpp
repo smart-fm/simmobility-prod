@@ -4,59 +4,50 @@
 
 #pragma once
 
-#include <string>
 #include <vector>
-
 #include "Point.hpp"
-#include "util/GeomHelpers.hpp"
 
 namespace simmobility_network
 {
+class PolyLine
+{
+protected:
 
-  class PolyLine
-  {
-  protected:
+	/**Unique identifier for the Poly-line*/
+	int polyLineId;
 
-    //Unique identifier for the Poly-line
-    int polyLineId;
-    
-    //Defines the length of the poly-line
-    double length;
-    
-    //Defines the points in the poly-line
-    std::vector<Point> points;    
+	/**Defines the length of the poly-line*/
+	double length;
 
-  public:
-    
-    PolyLine();
-    
-    PolyLine(const PolyLine& orig);
-    
-    virtual ~PolyLine();
-    
-    //Sets the id of the poly-line
-    void setPolyLineId(int polyLineId);
-    
-    //Returns the id of the poly-line
-    int getPolyLineId() const;
-    
-    //Sets the length of the poly-line
-    void setLength(double length);
-    
-    //Returns the length of the poly-line
-    double getLength() const;
-    
-    //Returns the vector of points within the poly-line
-    const std::vector<Point>& getPoints() const;
-    
-    //Returns the first point in the poly-line
-    const Point& getFirstPoint() const;
+	/**Defines the points in the poly-line*/
+	std::vector<PolyPoint> points;
 
-    //Returns the last point in the poly-line
-    const Point& getLastPoint() const;
+public:
+	PolyLine();
+	virtual ~PolyLine();
 
-    //Adds a point to the poly-line
-    void addPoint(Point point);    
+	/**Sets the id of the poly-line*/
+	void setPolyLineId(int polyLineId);
 
-  } ;
+	/**Returns the id of the poly-line*/
+	int getPolyLineId() const;
+
+	/**Sets the length of the poly-line*/
+	void setLength(double length);
+
+	/**Returns the length of the poly-line*/
+	double getLength() const;
+
+	/**Returns the vector of points within the poly-line*/
+	const std::vector<PolyPoint>& getPoints() const;
+
+	/**Returns the first point in the poly-line*/
+	const PolyPoint& getFirstPoint() const;
+
+	/**Returns the last point in the poly-line*/
+	const PolyPoint& getLastPoint() const;
+
+	/**Adds a point to the poly-line*/
+	void addPoint(PolyPoint point);
+};
 }

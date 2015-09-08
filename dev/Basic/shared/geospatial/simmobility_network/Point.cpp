@@ -7,52 +7,15 @@
 using namespace simmobility_network;
 
 Point::Point() :
-polyLineId(0), sequenceNumber(0), x(0), y(0), z(0)
-{
-}
+		x(0), y(0), z(0)
+{}
 
-Point::Point(double x, double y) :
-polyLineId(0), sequenceNumber(0), x(x), y(y), z(0)
-{
-}
-
-Point::Point(unsigned int id, unsigned int seqNum, double x, double y, double z) :
-polyLineId(id), sequenceNumber(seqNum), x(x), y(y), z(z)
-{
-}
-
-Point::Point(const Point& orig)
-{
-	this->polyLineId = orig.polyLineId;
-	this->sequenceNumber = orig.sequenceNumber;
-	this->x = orig.x;
-	this->y = orig.y;
-	this->z = orig.z;
-}
+Point::Point(double x, double y, double z) :
+		x(x), y(y), z(z)
+{}
 
 Point::~Point()
-{
-}
-
-unsigned int Point::getPolyLineId() const
-{
-	return polyLineId;
-}
-
-void Point::setPolyLineId(unsigned int polyLineId)
-{
-	this->polyLineId = polyLineId;
-}
-
-unsigned int Point::getSequenceNumber() const
-{
-	return sequenceNumber;
-}
-
-void Point::setSequenceNumber(unsigned int sequenceNumber)
-{
-	this->sequenceNumber = sequenceNumber;
-}
+{}
 
 double Point::getX() const
 {
@@ -84,3 +47,33 @@ void Point::setZ(double z)
 	this->z = z;
 }
 
+PolyPoint::PolyPoint() :
+		Point(), polyLineId(0), sequenceNumber(0)
+{}
+
+PolyPoint::PolyPoint(unsigned int id, unsigned int seqNum, double x, double y, double z) :
+		Point(x,y,z), polyLineId(id), sequenceNumber(seqNum)
+{}
+
+PolyPoint::~PolyPoint()
+{}
+
+unsigned int PolyPoint::getPolyLineId() const
+{
+	return polyLineId;
+}
+
+void PolyPoint::setPolyLineId(unsigned int polyLineId)
+{
+	this->polyLineId = polyLineId;
+}
+
+unsigned int PolyPoint::getSequenceNumber() const
+{
+	return sequenceNumber;
+}
+
+void PolyPoint::setSequenceNumber(unsigned int sequenceNumber)
+{
+	this->sequenceNumber = sequenceNumber;
+}

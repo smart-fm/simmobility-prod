@@ -3,34 +3,20 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "RoadSegment.hpp"
+#include "util/LangHelpers.hpp"
 
 using namespace simmobility_network;
 
-RoadSegment::RoadSegment() :
-roadSegmentId(0), capacity(0), linkId(0), maxSpeed(0), polyLine(NULL), sequenceNumber(0), tags(NULL),parentLink(NULL)
-{
-}
-
-RoadSegment::RoadSegment(const RoadSegment& orig)
-{
-	this->roadSegmentId = orig.roadSegmentId;
-	this->capacity = orig.capacity;
-	this->lanes = orig.lanes;
-	this->linkId = orig.linkId;
-	this->maxSpeed = orig.maxSpeed;
-	this->polyLine = orig.polyLine;
-	this->sequenceNumber = orig.sequenceNumber;
-	this->tags = orig.tags;
-	this->parentLink = orig.parentLink;
-}
+RoadSegment::RoadSegment() : roadSegmentId(0), capacity(0), linkId(0), maxSpeed(0), polyLine(NULL), sequenceNumber(0),
+		tags(NULL), parentLink(NULL), length(0)
+{}
 
 RoadSegment::~RoadSegment()
 {
-	//Delete the lanes in the road segment
-	for(std::vector<Lane *>::iterator itLanes = lanes.begin(); itLanes != lanes.end(); ++itLanes)
+	for(std::vector<Lane *>::iterator itLane = lanes.begin(); itLane != lanes.end(); ++itLane)
 	{
-		delete *itLanes;
-		*itLanes = NULL;
+		delete *itLane;
+		*itLane = NULL;
 	}
 	
 	if(polyLine)
@@ -61,7 +47,7 @@ unsigned int RoadSegment::getCapacity() const
 	return capacity;
 }
 
-Lane* RoadSegment::getLane(int index) const
+const Lane* RoadSegment::getLane(int index) const
 {
 	return lanes.at(index);
 }
@@ -101,7 +87,7 @@ void RoadSegment::setMaxSpeed(unsigned int maxSpeed)
 	this->maxSpeed = maxSpeed;
 }
 
-Link* RoadSegment::getParentLink() const
+const Link* RoadSegment::getParentLink() const
 {
 	return parentLink;
 }
@@ -111,7 +97,7 @@ void RoadSegment::setParentLink(Link* parentLink)
 	this->parentLink = parentLink;
 }
 
-PolyLine* RoadSegment::getPolyLine() const
+const PolyLine* RoadSegment::getPolyLine() const
 {
 	return polyLine;
 }

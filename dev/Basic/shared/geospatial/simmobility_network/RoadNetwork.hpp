@@ -76,7 +76,7 @@ namespace simmobility_network
     void addLaneConnector(LaneConnector *connector);
     
     //Adds a lane poly-line to the road network
-    void addLanePolyLine(Point point);
+    void addLanePolyLine(PolyPoint point);
 
     //Adds a link to the road network
     void addLink(Link *link);
@@ -88,7 +88,7 @@ namespace simmobility_network
     void addRoadSegment(RoadSegment *segment);
     
     //Adds a segment poly-line to the road network
-    void addSegmentPolyLine(Point point);
+    void addSegmentPolyLine(PolyPoint point);
     
     //Adds a turning conflict to the road network
     void addTurningConflict(TurningConflict *turningConflict);
@@ -100,7 +100,7 @@ namespace simmobility_network
     void addTurningPath(TurningPath *turningPath);
     
     //Adds a turning poly-line to the road network
-    void addTurningPolyLine(Point point);
+    void addTurningPolyLine(PolyPoint point);
     
     //Looks for the required node from the map of nodes and returns a pointer to it, if found
     Node *getNodeById(unsigned int nodeId);

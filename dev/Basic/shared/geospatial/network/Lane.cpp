@@ -4,51 +4,27 @@
 
 #include "Lane.hpp"
 
-using namespace simmobility_network;
+using namespace sim_mob;
 
 Lane::Lane() :
 laneId(0), busLaneRules(BUS_LANE_RULES_CAR_AND_BUS), canVehiclePark(false), canVehicleStop(false), hasRoadShoulder(false),
-isHOV_Allowed(false), laneIndex(0), parentSegment(NULL), polyLine(NULL), roadSegmentId(0), tags(NULL), vehicleMode(0), width(0)
+isHOV_Allowed(false), laneIndex(0), parentSegment(NULL), polyLine(NULL), roadSegmentId(0), vehicleMode(0), width(0)
 {
-}
-
-Lane::Lane(const Lane& orig)
-{
-	this->laneId = orig.laneId;
-	this->busLaneRules = orig.busLaneRules;
-	this->canVehiclePark = orig.canVehiclePark;
-	this->canVehicleStop = orig.canVehicleStop;
-	this->hasRoadShoulder = orig.hasRoadShoulder;
-	this->isHOV_Allowed = orig.isHOV_Allowed;
-	this->laneConnectors = orig.laneConnectors;
-	this->laneIndex = orig.laneIndex;
-	this->parentSegment = orig.parentSegment;
-	this->polyLine = orig.polyLine;
-	this->roadSegmentId = orig.roadSegmentId;
-	this->tags = orig.tags;
-	this->vehicleMode = orig.vehicleMode;
-	this->width = orig.width;	
 }
 
 Lane::~Lane()
 {
 	//Delete the outgoing lane connectors
-	for(std::vector<LaneConnector *>::iterator itConnectors = laneConnectors.begin(); itConnectors != laneConnectors.end(); ++itConnectors)
+	for (std::vector<LaneConnector *>::iterator itConnectors = laneConnectors.begin(); itConnectors != laneConnectors.end(); ++itConnectors)
 	{
 		delete *itConnectors;
-		*itConnectors = NULL;		
+		*itConnectors = NULL;
 	}
-	
-	if(polyLine)
+
+	if (polyLine)
 	{
 		delete polyLine;
 		polyLine = NULL;
-	}
-	
-	if(tags)
-	{
-		delete tags;
-		tags = NULL;
 	}
 }
 
@@ -127,6 +103,16 @@ void Lane::setLaneIndex(unsigned int laneIndex)
 	this->laneIndex = laneIndex;
 }
 
+void Lane::setParentSegment(RoadSegment* parentSegment)
+{
+	this->parentSegment = parentSegment;
+}
+
+RoadSegment* Lane::getParentSegment() const
+{
+	return parentSegment;
+}
+
 PolyLine* Lane::getPolyLine() const
 {
 	return polyLine;
@@ -147,16 +133,6 @@ void Lane::setRoadSegmentId(unsigned int roadSegmentId)
 	this->roadSegmentId = roadSegmentId;
 }
 
-const std::vector<Tag>* Lane::getTags() const
-{
-	return tags;
-}
-
-void Lane::setTags(std::vector<Tag> *tags)
-{
-	this->tags = tags;
-}
-
 double Lane::getWidth() const
 {
 	return width;
@@ -167,23 +143,12 @@ void Lane::setWidth(double width)
 	this->width = width;
 }
 
-void Lane::addLaneConnector(LaneConnector *laneConnector)
-{
-	this->laneConnectors.push_back(laneConnector);
-}
-
-void Lane::setParentSegment(RoadSegment* parentSegment)
-{
-	this->parentSegment = parentSegment;
-}
-
 bool Lane::isPedestrianLane()
 {
 	return (vehicleMode & PEDESTRIAN_LANE);
 }
 
-
-RoadSegment* Lane::getParentSegment() const
+void Lane::addLaneConnector(LaneConnector *laneConnector)
 {
-	return parentSegment;
+	this->laneConnectors.push_back(laneConnector);
 }

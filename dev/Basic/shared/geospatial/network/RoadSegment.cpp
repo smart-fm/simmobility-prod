@@ -3,32 +3,26 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "RoadSegment.hpp"
-#include "util/LangHelpers.hpp"
 
-using namespace simmobility_network;
+using namespace sim_mob;
 
 RoadSegment::RoadSegment() : roadSegmentId(0), capacity(0), linkId(0), maxSpeed(0), polyLine(NULL), sequenceNumber(0),
-		tags(NULL), parentLink(NULL), length(0)
-{}
+parentLink(NULL), length(0)
+{
+}
 
 RoadSegment::~RoadSegment()
 {
-	for(std::vector<Lane *>::iterator itLane = lanes.begin(); itLane != lanes.end(); ++itLane)
+	for (std::vector<Lane *>::iterator itLane = lanes.begin(); itLane != lanes.end(); ++itLane)
 	{
 		delete *itLane;
 		*itLane = NULL;
 	}
-	
-	if(polyLine)
+
+	if (polyLine)
 	{
 		delete polyLine;
 		polyLine = NULL;
-	}
-	
-	if(tags)
-	{
-		delete tags;
-		tags = NULL;
 	}
 }
 
@@ -47,11 +41,6 @@ unsigned int RoadSegment::getCapacity() const
 	return capacity;
 }
 
-const Lane* RoadSegment::getLane(int index) const
-{
-	return lanes.at(index);
-}
-
 void RoadSegment::setCapacity(unsigned int capacity)
 {
 	this->capacity = capacity;
@@ -60,11 +49,6 @@ void RoadSegment::setCapacity(unsigned int capacity)
 const std::vector<Lane*>& RoadSegment::getLanes() const
 {
 	return lanes;
-}
-
-double RoadSegment::getLength()
-{
-	return polyLine->getLength();
 }
 
 unsigned int RoadSegment::getLinkId() const
@@ -117,17 +101,17 @@ void RoadSegment::setSequenceNumber(unsigned int sequenceNumber)
 	this->sequenceNumber = sequenceNumber;
 }
 
-const std::vector<Tag>* RoadSegment::getTags() const
-{
-	return tags;
-}
-
-void RoadSegment::setTags(std::vector<Tag> *tags)
-{
-	this->tags = tags;
-}
-
 void RoadSegment::addLane(Lane *lane)
 {
 	this->lanes.push_back(lane);
+}
+
+const Lane* RoadSegment::getLane(int index) const
+{
+	return lanes.at(index);
+}
+
+double RoadSegment::getLength()
+{
+	return polyLine->getLength();
 }

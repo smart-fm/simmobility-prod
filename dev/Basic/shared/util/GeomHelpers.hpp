@@ -20,7 +20,7 @@
 
 #include "DynamicVector.hpp"
 
-namespace simmobility_network
+namespace sim_mob
 {
   class Point;
   class RoadSegment;

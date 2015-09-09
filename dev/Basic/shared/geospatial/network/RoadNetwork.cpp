@@ -10,7 +10,7 @@
 #include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
 
-using namespace simmobility_network;
+using namespace sim_mob;
 
 RoadNetwork* RoadNetwork::roadNetwork = nullptr;
 
@@ -430,7 +430,7 @@ Node* RoadNetwork::getNodeById(unsigned int nodeId)
 	}
 }
 
-RoadNetwork* simmobility_network::RoadNetwork::getInstance()
+RoadNetwork* sim_mob::RoadNetwork::getInstance()
 {
 	if(!roadNetwork)
 	{
@@ -439,7 +439,7 @@ RoadNetwork* simmobility_network::RoadNetwork::getInstance()
 	return roadNetwork;
 }
 
-void simmobility_network::RoadNetwork::resetInstance()
+void sim_mob::RoadNetwork::deleteInstance()
 {
 	safe_delete_item(roadNetwork);
 }

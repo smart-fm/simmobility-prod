@@ -4,14 +4,16 @@
 
 #include "PolyLine.hpp"
 
-using namespace simmobility_network;
+using namespace sim_mob;
 
 PolyLine::PolyLine() :
-		polyLineId(0), length(0)
-{}
+polyLineId(0), length(0)
+{
+}
 
 PolyLine::~PolyLine()
-{}
+{
+}
 
 int PolyLine::getPolyLineId() const
 {

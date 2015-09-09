@@ -4,26 +4,12 @@
 
 #include "TurningPath.hpp"
 
-using namespace simmobility_network;
+using namespace sim_mob;
 
 TurningPath::TurningPath() :
-turningPathId(0), fromLaneId(0), maxSpeed(0), polyLine(NULL), tags(NULL), toLaneId(0), turningGroupId(0),
+turningPathId(0), fromLaneId(0), maxSpeed(0), polyLine(NULL), toLaneId(0), turningGroupId(0),
 fromLane(NULL),toLane(NULL)
 {
-}
-
-TurningPath::TurningPath(const TurningPath& orig)
-{
-	this->turningPathId = orig.turningPathId;
-	this->fromLaneId = orig.fromLaneId;
-	this->maxSpeed = orig.maxSpeed;
-	this->polyLine = orig.polyLine;
-	this->tags = orig.tags;
-	this->toLaneId = orig.toLaneId;
-	this->turningConflicts = orig.turningConflicts;
-	this->turningGroupId = orig.turningGroupId;
-	this->fromLane = orig.fromLane;
-	this->toLane = orig.toLane;
 }
 
 TurningPath::~TurningPath()
@@ -32,12 +18,6 @@ TurningPath::~TurningPath()
 	{
 		delete polyLine;
 		polyLine = NULL;
-	}
-	
-	if(tags)
-	{
-		delete tags;
-		tags = NULL;
 	}
 	
 	//Simply clear the map of conflicts. Conflicts are deleted separately in the 
@@ -76,16 +56,6 @@ void TurningPath::setPolyLine(PolyLine* polyLine)
 	this->polyLine = polyLine;
 }
 
-const std::vector<Tag>* TurningPath::getTags() const
-{
-	return tags;
-}
-
-void TurningPath::setTags(std::vector<Tag> *tags)
-{
-	this->tags = tags;
-}
-
 unsigned int TurningPath::getToLaneId() const
 {
 	return toLaneId;
@@ -109,4 +79,9 @@ void TurningPath::setTurningGroupId(unsigned int turningGroupId)
 void TurningPath::addTurningConflict(TurningPath* other, TurningConflict* conflict)
 {
 	turningConflicts.insert(std::make_pair(other, conflict));
+}
+
+double TurningPath::getLength() const
+{
+	return polyLine->getLength();
 }

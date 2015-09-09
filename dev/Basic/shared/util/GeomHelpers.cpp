@@ -12,18 +12,18 @@
 #include "boost/lexical_cast.hpp"
 #include "geospatial/simmobility_network/Point.hpp"
 
-using namespace simmobility_network;
+using namespace sim_mob;
 using std::vector;
 using std::string;
 
-double simmobility_network::dist(Point pt1, Point pt2)
+double sim_mob::dist(Point pt1, Point pt2)
 {
 	double dx = pt2.getX() - pt1.getX();
 	double dy = pt2.getY() - pt1.getY();
 	return sqrt(dx * dx + dy * dy);
 }
 
-double simmobility_network::dist(double x1, double y1, double x2, double y2)
+double sim_mob::dist(double x1, double y1, double x2, double y2)
 {
 	return dist(Point(x1,y1), Point(x2,y2));
 }
@@ -32,22 +32,22 @@ double simmobility_network::dist(double x1, double y1, double x2, double y2)
 // Template implementations for dist()
 ///////////////////////////////////////////////////////////////////////////
 
-template <class T> double simmobility_network::dist(double x1, double y1, const T& point2)
+template <class T> double sim_mob::dist(double x1, double y1, const T& point2)
 {
 	return dist(Point(x1, y1), get_distarg(point2));
 }
 
-template <class T> double simmobility_network::dist(const T& point1, double x2, double y2)
+template <class T> double sim_mob::dist(const T& point1, double x2, double y2)
 {
 	return dist(get_distarg(point1), Point(x2, y2));
 }
 
-template <class T, class Y> double simmobility_network::dist(const T& point1, const Y& point2)
+template <class T, class Y> double sim_mob::dist(const T& point1, const Y& point2)
 {
 	return dist(get_distarg(point1), get_distarg(point2));
 }
 
-Point simmobility_network::normal_intersect(const Point& pt, const DynamicVector& line)
+Point sim_mob::normal_intersect(const Point& pt, const DynamicVector& line)
 {
 	//First, retrieve the coordinates of the point closest to 'pt' from 'line'.
 	//Using the equation of the line, we solve for 'u'.
@@ -87,7 +87,7 @@ Point simmobility_network::normal_intersect(const Point& pt, const DynamicVector
 }
 
 
-bool simmobility_network::lineContains(double ax, double ay, double bx, double by, double cx, double cy)
+bool sim_mob::lineContains(double ax, double ay, double bx, double by, double cx, double cy)
 {
 	//Check if the dot-product is >=0 and <= the squared distance
 	double dotProd = (cx - ax) * (bx - ax) + (cy - ay) * (by - ay);
@@ -96,18 +96,18 @@ bool simmobility_network::lineContains(double ax, double ay, double bx, double b
 
 }
 
-bool simmobility_network::PointIsLeftOfVector(double ax, double ay, double bx, double by, double cx, double cy)
+bool sim_mob::PointIsLeftOfVector(double ax, double ay, double bx, double by, double cx, double cy)
 {
 	//Via cross-product
 	return ((bx - ax) * (cy - ay) - (by - ay) * (cx - ax)) > 0;
 }
 
-bool simmobility_network::PointIsLeftOfVector(const DynamicVector& vec, double x, double y)
+bool sim_mob::PointIsLeftOfVector(const DynamicVector& vec, double x, double y)
 {
 	return PointIsLeftOfVector(vec.getX(), vec.getY(), vec.getEndX(), vec.getEndY(), x, y);
 }
 
-Point simmobility_network::LineLineIntersect(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
+Point sim_mob::LineLineIntersect(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
 {
 	//If the points are all on top of each other, return any pair of points
 	if ((x1 == x2 && x2 == x3 && x3 == x4) && (y1 == y2 && y2 == y3 && y3 == y4))
@@ -135,22 +135,22 @@ Point simmobility_network::LineLineIntersect(double x1, double y1, double x2, do
 	return Point(static_cast<int> (xRes), static_cast<int> (yRes));
 }
 
-Point simmobility_network::LineLineIntersect(const DynamicVector& v1, const DynamicVector& v2)
+Point sim_mob::LineLineIntersect(const DynamicVector& v1, const DynamicVector& v2)
 {
 	return LineLineIntersect(v1.getX(), v1.getY(), v1.getEndX(), v1.getEndY(), v2.getX(), v2.getY(), v2.getEndX(), v2.getEndY());
 }
 
-Point simmobility_network::LineLineIntersect(const DynamicVector& v1, const Point& p3, const Point& p4)
+Point sim_mob::LineLineIntersect(const DynamicVector& v1, const Point& p3, const Point& p4)
 {
 	return LineLineIntersect(v1.getX(), v1.getY(), v1.getEndX(), v1.getEndY(), p3.getX(), p3.getY(), p4.getX(), p4.getY());
 }
 
-Point simmobility_network::LineLineIntersect(const Point& p1, const Point& p2, const Point& p3, const Point& p4)
+Point sim_mob::LineLineIntersect(const Point& p1, const Point& p2, const Point& p3, const Point& p4)
 {
 	return LineLineIntersect(p1.getX(), p1.getY(), p2.getX(), p2.getY(), p3.getX(), p3.getY(), p4.getX(), p4.getY());
 }
 
-Point simmobility_network::ProjectOntoLine(const Point& pToProject, const Point& pA, const Point& pB)
+Point sim_mob::ProjectOntoLine(const Point& pToProject, const Point& pA, const Point& pB)
 {
 	double dotProductToPoint = (pToProject.getX() - pA.getX()) * (pB.getX() - pA.getX()) + (pToProject.getY() - pA.getY()) * (pB.getY() - pA.getY());
 	double dotProductOfLine = (pB.getX() - pA.getX()) * (pB.getX() - pA.getX()) + (pB.getY() - pA.getY()) * (pB.getY() - pA.getY());
@@ -162,7 +162,7 @@ Point simmobility_network::ProjectOntoLine(const Point& pToProject, const Point&
 	return Point(pA.getX() + ABscaled.getX(), pA.getY() + ABscaled.getY());
 }
 
-Point simmobility_network::getSidePoint(const Point& origin, const Point& direction, double magnitude)
+Point sim_mob::getSidePoint(const Point& origin, const Point& direction, double magnitude)
 {
 	DynamicVector dv(origin.getX(), origin.getY(), direction.getX(), direction.getY());
 	dv.flipNormal(false).scaleVectTo(magnitude).translateVect();
@@ -203,7 +203,7 @@ namespace
 } //End anon namespace
 
 
-vector<Point> simmobility_network::ShiftPolyline(const vector<Point>& orig, double shiftAmt, bool shiftLeft)
+vector<Point> sim_mob::ShiftPolyline(const vector<Point>& orig, double shiftAmt, bool shiftLeft)
 {
 	//Deal with right-shifts in advance.
 	if (!shiftLeft)
@@ -227,7 +227,7 @@ vector<Point> simmobility_network::ShiftPolyline(const vector<Point>& orig, doub
 }
 
 //add by xuyan
-Point simmobility_network::getMiddlePoint(const Point* start_point, const Point* end_point, double offset)
+Point sim_mob::getMiddlePoint(const Point* start_point, const Point* end_point, double offset)
 {
 	double distance = dist(start_point->getX(), start_point->getY(), end_point->getX(), end_point->getY());
 	double location_x = start_point->getX() + (offset * 100) / distance * (end_point->getX() - start_point->getX());
@@ -240,7 +240,7 @@ Point simmobility_network::getMiddlePoint(const Point* start_point, const Point*
 //To determine the status of a point (xp,yp) consider a horizontal ray emanating from (xp,yp) and to the right.
 //If the number of times this ray intersects the line segments making up the polygon is even then the point is outside the polygon.
 //Whereas if the number of intersections is odd then the point (xp,yp) lies inside the polygon.
-bool simmobility_network::PointInsidePolygon(const Point* polygon, int N, const Point p)
+bool sim_mob::PointInsidePolygon(const Point* polygon, int N, const Point p)
 {
 	int counter = 0;
 	int i;
@@ -281,7 +281,7 @@ bool simmobility_network::PointInsidePolygon(const Point* polygon, int N, const 
 	}
 }
 
-Point simmobility_network::parse_point(const string& str)
+Point sim_mob::parse_point(const string& str)
 {
 	//We need at least "1,2"
 	if (str.length() < 3)
@@ -318,7 +318,7 @@ Point simmobility_network::parse_point(const string& str)
 	return Point(xPos, yPos);
 }
 
-std::pair<uint32_t, uint32_t> simmobility_network::parse_point_pair(const std::string& src)
+std::pair<uint32_t, uint32_t> sim_mob::parse_point_pair(const std::string& src)
 {
 	std::pair<uint32_t, uint32_t> res;
 	std::stringstream curr;
@@ -370,12 +370,12 @@ std::pair<uint32_t, uint32_t> simmobility_network::parse_point_pair(const std::s
 
 ////Specialisation implementations
 
-template <> Point simmobility_network::get_distarg(const Point& item)
+template <> Point sim_mob::get_distarg(const Point& item)
 {
 	return Point(item.getX(), item.getY());
 }
 
-template <class T> Point simmobility_network::get_distarg(T* item)
+template <class T> Point sim_mob::get_distarg(T* item)
 {
 	return get_distarg(*item);
 }

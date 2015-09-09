@@ -4,29 +4,15 @@
 
 #include "RoadItem.hpp"
 
-using namespace simmobility_network;
+using namespace sim_mob;
 
-RoadItem::RoadItem(unsigned int id, unsigned int geomteryId, unsigned int polyLineId, unsigned int roadSectionId, Tag *tag) :
-roadItemId(id), geometryId(geomteryId), polyLineId(polyLineId), roadSectionId(roadSectionId), tag(tag)
+RoadItem::RoadItem(unsigned int id, unsigned int geomteryId, unsigned int polyLineId, unsigned int roadSectionId) :
+roadItemId(id), geometryId(geomteryId), polyLineId(polyLineId), roadSectionId(roadSectionId)
 {
-}
-
-RoadItem::RoadItem(const RoadItem& orig)
-{
-	this->roadItemId = orig.roadItemId;
-	this->geometryId = orig.geometryId;
-	this->polyLineId = orig.polyLineId;
-	this->roadSectionId = orig.roadSectionId;
-	this->tag = orig.tag;
 }
 
 RoadItem::~RoadItem()
 {
-	if(tag)
-	{
-		delete tag;
-		tag = NULL;
-	}
 }
 
 unsigned int RoadItem::getRoadItemId() const
@@ -67,14 +53,4 @@ unsigned int RoadItem::getRoadSectionId() const
 void RoadItem::setRoadSectionId(unsigned int roadSectionId)
 {
 	this->roadSectionId = roadSectionId;
-}
-
-Tag* RoadItem::getTag() const
-{
-	return tag;
-}
-
-void RoadItem::setTag(Tag* tag)
-{
-	this->tag = tag;
 }

@@ -31,7 +31,7 @@ namespace boost
   namespace serialization
   {
     template<class Archive>
-    void serialize(Archive & ar, simmobility_network::Point& pt, const unsigned int version)
+    void serialize(Archive & ar, sim_mob::Point& pt, const unsigned int version)
     {
       ar & pt.x;
       ar & pt.y;
@@ -44,7 +44,7 @@ namespace boost
 // End serialization code
 ////////////////////////////////////////////////
 
-namespace simmobility_network 
+namespace sim_mob 
 {
   /**
    * Simple, lightweight class to represent vector operations

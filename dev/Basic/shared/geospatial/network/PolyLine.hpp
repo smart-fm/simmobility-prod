@@ -7,8 +7,14 @@
 #include <vector>
 #include "Point.hpp"
 
-namespace simmobility_network
+namespace sim_mob
 {
+
+/**
+ * A poly-line is a simply a sequence of points. This class defines the structure of the poly-line
+ * \author Neeraj D
+ * \author Harish L
+ */
 class PolyLine
 {
 protected:
@@ -24,30 +30,24 @@ protected:
 
 public:
 	PolyLine();
+
 	virtual ~PolyLine();
 
-	/**Sets the id of the poly-line*/
 	void setPolyLineId(int polyLineId);
-
-	/**Returns the id of the poly-line*/
 	int getPolyLineId() const;
 
-	/**Sets the length of the poly-line*/
 	void setLength(double length);
-
-	/**Returns the length of the poly-line*/
 	double getLength() const;
 
-	/**Returns the vector of points within the poly-line*/
 	const std::vector<PolyPoint>& getPoints() const;
 
-	/**Returns the first point in the poly-line*/
 	const PolyPoint& getFirstPoint() const;
-
-	/**Returns the last point in the poly-line*/
 	const PolyPoint& getLastPoint() const;
 
-	/**Adds a point to the poly-line*/
+	/**
+	 * Extends the poly-line by adding a point to the end
+	 * @param point - the poly-point to be added
+	 */
 	void addPoint(PolyPoint point);
 };
 }

@@ -393,7 +393,7 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetwork()
 	if (ConfigManager::GetInstance().FullConfig().networkSource()==SystemParams::NETSRC_DATABASE) 
 	{
 		Print() <<"Loading Road Network from the database.\n";
-		simmobility_network::NetworkLoader nwLoader;
+		sim_mob::NetworkLoader nwLoader;
 		nwLoader.loadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
 	}
 	else 

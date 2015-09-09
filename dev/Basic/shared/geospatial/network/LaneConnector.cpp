@@ -4,20 +4,11 @@
 
 #include "LaneConnector.hpp"
 
-using namespace simmobility_network;
+using namespace sim_mob;
 
 LaneConnector::LaneConnector() :
 laneConnectionId(0), fromLaneId(0), fromRoadSegmentId(0), toLaneId(0), toRoadSegmentId(0)
 {
-}
-
-LaneConnector::LaneConnector(const LaneConnector& orig)
-{
-	this->laneConnectionId = orig.laneConnectionId;
-	this->fromLaneId = orig.fromLaneId;
-	this->fromRoadSegmentId = orig.fromRoadSegmentId;
-	this->toLaneId = orig.toLaneId;
-	this->toRoadSegmentId = orig.toRoadSegmentId;
 }
 
 LaneConnector::~LaneConnector()

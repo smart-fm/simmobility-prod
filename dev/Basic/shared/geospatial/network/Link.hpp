@@ -9,153 +9,144 @@
 
 #include "PolyLine.hpp"
 #include "RoadSegment.hpp"
-#include "Tag.hpp"
 #include "Node.hpp"
 
-namespace simmobility_network
+namespace sim_mob
 {
-  //Defines the various categories of links supported by SimMobility
-  enum LinkCategory
-  {
-    //The default category
-    LINK_CATEGORY_DEFAULT = 0
-  };
-  
-  //Defines the various types of links supported by SimMobility
-  enum LinkType
-  {
-    //Default road segment
-    LINK_TYPE_DEFAULT = 0,
 
-    //Expressway
-    LINK_TYPE_EXPRESSWAY = 1,
+/**Defines the various categories of links supported by SimMobility*/
+enum LinkCategory
+{
+	/**Category A*/
+	LINK_CATEGORY_A = 0,
 
-    //Urban road
-    LINK_TYPE_URBAN = 2,
-    
-    //Ramp
-    LINK_TYPE_RAMP = 3,
-    
-    //Roundabout
-    LINK_TYPE_ROUNDABOUT = 4,
-    
-    //Access
-    LINK_TYPE_ACCESS = 5
-  } ;
+	/**Category B*/
+	LINK_CATEGORY_B = 1,
 
-  class RoadSegment;
-  class Node;
+	/**Category C*/
+	LINK_CATEGORY_C = 2,
 
-  class Link
-  {
-  private:
-    
-    //Unique identifier for the link
-    unsigned int linkId;
-    
-    //Pointer to the node from which this link begins
-    Node* fromNode;
-    
-    //Indicates the node from which this link begins
-    unsigned int fromNodeId;
-    
-    //The length of the link
-    double length;
-    
-    //Indicates the link category
-    LinkCategory linkCategory;
-    
-    //Indicates the link type
-    LinkType linkType;
-    
-    //The name of the road this link represents
-    std::string roadName;
-    
-    //The road segments making up the link
-    std::vector<RoadSegment *> roadSegments;
-    
-    //Holds the additional information
-    std::vector<Tag> *tags;
-    
-    //Pointer to the node at which this link ends
-    Node* toNode;
-    
-    //Indicates the node at which this link ends
-    unsigned int toNodeId;    
+	/**Category D*/
+	LINK_CATEGORY_D = 3,
 
-  public:
-    
-    Link();
-    
-    Link(const Link& orig);
-    
-    virtual ~Link();
+	/**Category E*/
+	LINK_CATEGORY_E = 4,
 
-    //Returns the length of the link
-    double getLength();
+	/**Roundabout*/
+	LINK_CATEGORY_ROUND_ABOUT = 5,
 
-    //Returns the link id
-    unsigned int getLinkId() const;
-    
-    //Setter for the link id
-    void setLinkId(unsigned int linkId);
-    
-    //Returns a pointer to the node from where the link begins
-    Node* getFromNode() const; 
-    
-    //Setter for the from node
-    void setFromNode(Node *fromNode);
-    
-    //Returns the id of the node from where the link begins
-    unsigned int getFromNodeId() const;
-    
-    //Setter for the from node id
-    void setFromNodeId(unsigned int fromNodeId);
-    
-    //Returns the link category
-    LinkCategory getLinkCategory() const;
-    
-    //Sets the link category
-    void setLinkCategory(LinkCategory linkCategory);
-    
-    //Returns the link type
-    LinkType getLinkType() const;
-    
-    //Sets the link type
-    void setLinkType(LinkType linkType);
-    
-    //Returns the road name
-    std::string getRoadName() const;
-    
-    //Setter for the road name
-    void setRoadName(std::string roadName);
-    
-    //Returns the vector of road segments that make up the link
-    const std::vector<RoadSegment*>& getRoadSegments() const;
-    
-    //Returns a pointer to the road segment at the given index in the vector
-    const RoadSegment* getRoadSegment(int idx);
-    
-    //Returns a vector of tags which holds the additional information
-    const std::vector<Tag>* getTags() const;
-    
-    //Setter for the tags field which holds the additional information
-    void setTags(std::vector<Tag> *tags);
-    
-    //Returns a pointer to the node at which the link terminates
-    Node* getToNode() const;
-    
-    //Setter for the node at which the link terminates
-    void setToNode(Node *toNode);
-    
-    //Returns the id of the node at which the link terminates
-    unsigned int getToNodeId() const;
-    
-    //Setter for id of the node at which the link terminates
-    void setToNodeId(unsigned int toNodeId);
-    
-    //Adds a road segment to the vector of road segments that make up the link
-    void addRoadSegment(RoadSegment *roadSegment);    
-  } ;
+	/**Slip-road*/
+	LINK_CATEGORY_SLIP_ROAD = 6
+};
+
+/**Defines the various types of links supported by SimMobility*/
+enum LinkType
+{
+	/**Default road segment*/
+	LINK_TYPE_DEFAULT = 0,
+
+	/**Expressway*/
+	LINK_TYPE_EXPRESSWAY = 1,
+
+	/**Urban road*/
+	LINK_TYPE_URBAN = 2,
+
+	/**Ramp*/
+	LINK_TYPE_RAMP = 3,
+
+	/**Roundabout*/
+	LINK_TYPE_ROUNDABOUT = 4,
+
+	/**Access*/
+	LINK_TYPE_ACCESS = 5
+};
+
+class RoadSegment;
+class Node;
+
+/**
+ * Defines the structure of a Link
+ * \author Neeraj D
+ * \author Harish L
+ */
+class Link
+{
+private:
+
+	/**Unique identifier for the link*/
+	unsigned int linkId;
+
+	/**Pointer to the node from which this link begins*/
+	Node* fromNode;
+
+	/**Indicates the node from which this link begins*/
+	unsigned int fromNodeId;
+
+	/**The length of the link*/
+	double length;
+
+	/**Indicates the link category*/
+	LinkCategory linkCategory;
+
+	/**Indicates the link type*/
+	LinkType linkType;
+
+	/**The name of the road this link represents*/
+	std::string roadName;
+
+	/**The road segments making up the link*/
+	std::vector<RoadSegment *> roadSegments;
+
+	/**Pointer to the node at which this link ends*/
+	Node* toNode;
+
+	/**Indicates the node at which this link ends*/
+	unsigned int toNodeId;
+
+public:
+
+	Link();
+
+	virtual ~Link();
+
+	unsigned int getLinkId() const;
+	void setLinkId(unsigned int linkId);
+
+	Node* getFromNode() const;
+	void setFromNode(Node *fromNode);
+
+	unsigned int getFromNodeId() const;
+	void setFromNodeId(unsigned int fromNodeId);	
+
+	LinkCategory getLinkCategory() const;
+	void setLinkCategory(LinkCategory linkCategory);
+
+	LinkType getLinkType() const;
+	void setLinkType(LinkType linkType);
+
+	std::string getRoadName() const;
+	void setRoadName(std::string roadName);
+
+	const std::vector<RoadSegment*>& getRoadSegments() const;
+	const RoadSegment* getRoadSegment(int idx);
+
+	Node* getToNode() const;
+	void setToNode(Node *toNode);
+
+	unsigned int getToNodeId() const;
+	void setToNodeId(unsigned int toNodeId);
+
+	/**
+	 * Calculates the length of the link by summing up the lengths of the road segments that make up the
+	 * link
+	 * @return length of the link
+	 */
+	double getLength();
+
+	/**
+	 * Adds a road segment to the vector of road segments that make up the link
+	 * @param roadSegment - the road segment to be added to the link
+	 */
+	void addRoadSegment(RoadSegment *roadSegment);
+};
 }
-

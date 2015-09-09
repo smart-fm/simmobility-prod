@@ -4,7 +4,7 @@
 
 #include "Point.hpp"
 
-using namespace simmobility_network;
+using namespace sim_mob;
 
 Point::Point() :
 		x(0), y(0), z(0)

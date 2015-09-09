@@ -4,56 +4,22 @@
 
 #include "Link.hpp"
 
-using namespace simmobility_network;
+using namespace sim_mob;
 
 Link::Link() :
-length(0), linkId(0), fromNode(NULL), fromNodeId(0), linkCategory(LINK_CATEGORY_DEFAULT), linkType(LINK_TYPE_DEFAULT), roadName(""), tags(NULL), toNode(NULL),
+length(0), linkId(0), fromNode(NULL), fromNodeId(0), linkCategory(LINK_CATEGORY_DEFAULT), linkType(LINK_TYPE_DEFAULT), roadName(""), toNode(NULL),
 toNodeId(0)
 {
-}
-
-Link::Link(const Link& orig)
-{
-	this->length = orig.length;
-	this->linkId = orig.linkId;
-	this->fromNode = orig.fromNode;
-	this->fromNodeId = orig.fromNodeId;
-	this->linkCategory = orig.linkCategory;
-	this->linkType = orig.linkType;
-	this->roadName = orig.roadName;
-	this->roadSegments = orig.roadSegments;
-	this->tags = orig.tags;
-	this->toNode = orig.toNode;
-	this->toNodeId = orig.toNodeId;		
 }
 
 Link::~Link()
 {
 	//Delete the road segment in the link
-	for(std::vector<RoadSegment *>::iterator itSegments = roadSegments.begin(); itSegments != roadSegments.end(); ++itSegments)
+	for (std::vector<RoadSegment *>::iterator itSegments = roadSegments.begin(); itSegments != roadSegments.end(); ++itSegments)
 	{
 		delete *itSegments;
 		*itSegments = NULL;
 	}
-	
-	if(tags)
-	{
-		delete tags;
-		tags = NULL;
-	}
-}
-
-double Link::getLength()
-{
-	if(length == 0)
-	{
-		for(int i = 0; i < roadSegments.size(); ++i)
-		{
-			length += roadSegments.at(i)->getLength();
-		}
-	}
-	
-	return length;
 }
 
 unsigned int Link::getLinkId() const
@@ -121,19 +87,9 @@ const std::vector<RoadSegment*>& Link::getRoadSegments() const
 	return roadSegments;
 }
 
-const RoadSegment* Link::getRoadSegment(int idx) 
-{ 
-	return roadSegments.at(idx); 
-}
-
-const std::vector<Tag>* Link::getTags() const
+const RoadSegment* Link::getRoadSegment(int idx)
 {
-	return tags;
-}
-
-void Link::setTags(std::vector<Tag> *tags)
-{
-	this->tags = tags;
+	return roadSegments.at(idx);
 }
 
 Node* Link::getToNode() const
@@ -154,6 +110,19 @@ unsigned int Link::getToNodeId() const
 void Link::setToNodeId(unsigned int toNodeId)
 {
 	this->toNodeId = toNodeId;
+}
+
+double Link::getLength()
+{
+	if (length == 0)
+	{
+		for (int i = 0; i < roadSegments.size(); ++i)
+		{
+			length += roadSegments.at(i)->getLength();
+		}
+	}
+
+	return length;
 }
 
 void Link::addRoadSegment(RoadSegment *roadSegment)

@@ -4,66 +4,53 @@
 
 #pragma once
 
-namespace simmobility_network
+namespace sim_mob
 {
 
-  class LaneConnector
-  {
-  private:
-    
-    //Unique identifier for the lane connection
-    unsigned int laneConnectionId;
-    
-    //Indicates the id of the lane from which the lane connection originates
-    unsigned int fromLaneId;
-    
-    //Indicates the id of the road segment from which the lane connection originates
-    unsigned int fromRoadSegmentId;
-    
-    //Indicates the id of the lane at which the lane connection terminates
-    unsigned int toLaneId;
-    
-    //Indicates the id of the road segment at which the lane connection terminates
-    unsigned int toRoadSegmentId;    
+/**
+ * A lane connector connects one lane of a road segment to a lane of the next road segment in the same link.
+ * This class define the structure of a lane
+ * \author Neeraj D
+ * \author Harish L
+ */
+class LaneConnector
+{
+private:
 
-  public:
+	/**Unique identifier for the lane connection*/
+	unsigned int laneConnectionId;
 
-    LaneConnector();
+	/**Indicates the id of the lane from which the lane connection originates*/
+	unsigned int fromLaneId;
 
-    LaneConnector(const LaneConnector& orig);
+	/**Indicates the id of the road segment from which the lane connection originates*/
+	unsigned int fromRoadSegmentId;
 
-    virtual ~LaneConnector();
-    
-    //Returns the id of the lane connection
-    unsigned int getLaneConnectionId() const;
-    
-    //Sets the lane connection id
-    void setLaneConnectionId(unsigned int laneConnectionId);
-    
-    //Returns the id of the lane from which the lane connection begins
-    unsigned int getFromLaneId() const;
-    
-    //Sets the id of the lane from which the lane connection begins
-    void setFromLaneId(unsigned int fromLaneId);
-    
-    //Returns the id of the road segment from which the lane connection begins
-    unsigned int getFromRoadSegmentId() const;
-    
-    //Sets the id of the road segment from which the lane connection begins
-    void setFromRoadSegmentId(unsigned int fromRoadSectionId);
-    
-    //Returns the id of the lane at which the lane connection ends
-    unsigned int getToLaneId() const;
-    
-    //Sets the id of the lane at which the lane connection ends
-    void setToLaneId(unsigned int toLaneId);
-    
-    //Returns the id of the road section at which the lane connection ends
-    unsigned int getToRoadSegmentId() const;
-    
-    //Sets the id of the road section at which the lane connection ends
-    void setToRoadSegmentId(unsigned int toRoadSectionId);
+	/**Indicates the id of the lane at which the lane connection terminates*/
+	unsigned int toLaneId;
 
-    } ;
+	/**Indicates the id of the road segment at which the lane connection terminates*/
+	unsigned int toRoadSegmentId;
+
+public:
+
+	LaneConnector();
+
+	virtual ~LaneConnector();
+
+	unsigned int getLaneConnectionId() const;
+	void setLaneConnectionId(unsigned int laneConnectionId);
+
+	unsigned int getFromLaneId() const;
+	void setFromLaneId(unsigned int fromLaneId);
+
+	unsigned int getFromRoadSegmentId() const;
+	void setFromRoadSegmentId(unsigned int fromRoadSectionId);
+
+	unsigned int getToLaneId() const;
+	void setToLaneId(unsigned int toLaneId);
+
+	unsigned int getToRoadSegmentId() const;
+	void setToRoadSegmentId(unsigned int toRoadSectionId);
+};
 }
-

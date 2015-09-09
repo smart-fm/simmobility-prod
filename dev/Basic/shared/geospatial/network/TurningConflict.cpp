@@ -4,36 +4,16 @@
 
 #include "TurningConflict.hpp"
 
-using namespace simmobility_network;
+using namespace sim_mob;
 
 TurningConflict::TurningConflict() :
 conflictId(0), criticalGap(0), firstConflictDistance(0), firstTurning(NULL), firstTurningId(0), priority(0),
-secondConflictDistance(0), secondTurning(NULL), secondTurningId(0), tags(NULL)
+secondConflictDistance(0), secondTurning(NULL), secondTurningId(0)
 {
-}
-
-TurningConflict::TurningConflict(const TurningConflict& orig)
-{
-	this->conflictId = orig.conflictId;
-	this->criticalGap = orig.criticalGap;
-	this->firstConflictDistance  = orig.firstConflictDistance;
-	this->firstTurning = orig.firstTurning;
-	this->firstTurningId = orig.firstTurningId;
-	this->priority = orig.priority;
-	this->secondConflictDistance = orig.secondConflictDistance;
-	this->secondTurning = orig.secondTurning;
-	this->secondTurningId = orig.secondTurningId;
-	this->tags = orig.tags;
-	
 }
 
 TurningConflict::~TurningConflict()
 {
-	if(tags)
-	{
-		delete tags;
-		tags = NULL;
-	}
 }
 
 unsigned int TurningConflict::getConflictId() const
@@ -124,14 +104,4 @@ unsigned int TurningConflict::getSecondTurningId() const
 void TurningConflict::setSecondTurningId(unsigned int secondTurningId)
 {
 	this->secondTurningId = secondTurningId;
-}
-
-const std::vector<Tag>* TurningConflict::getTags() const
-{
-	return tags;
-}
-
-void TurningConflict::setTags(std::vector<Tag> *tags)
-{
-	this->tags = tags;
 }

@@ -4,121 +4,92 @@
 
 #pragma once
 
-#include <vector>
+#include "stddef.h"
 
-#include "Tag.hpp"
-
-namespace simmobility_network
+namespace sim_mob
 {
 
-  class TurningPath;
-  
-  class TurningConflict
-  {
-  private:
+class TurningPath;
 
-    //Conflict id
-    unsigned int conflictId;
-    
-    //Threshold value for accepting/rejecting the gap (and deciding whether to continue/slow down) between
-    //conflicting vehicles (in seconds)
-    double criticalGap;
-    
-    //Distance of conflict point from start of the first turning
-    double firstConflictDistance;
-    
-    //The first turning path in the conflict 
-    //Note:: First/second doesn't have any significance
-    TurningPath *firstTurning;
-    
-    //Id of the first conflicting Turning path
-    unsigned int firstTurningId;
-    
-    //Indicates which turning has a higher priority.
-    //0 - equal, 1 - first_turning has higher priority, 2 - second_turning has higher priority
-    unsigned int priority;
-      
-    //Distance of conflict point from the start of the second turning
-    double secondConflictDistance;
-    
-    //The second turning section in the conflict 
-    //Note:: First/second doesn't have any significance
-    TurningPath *secondTurning;
+/**
+ * A turning conflict is the point of overlap between two turning paths. This class defines
+ * the structure of a turning conflict
+ * \author Neeraj D
+ * \author Harish L
+ */
+class TurningConflict
+{
+private:
 
-    //Id of the second conflicting Turning path
-    unsigned int secondTurningId;
+	/**Unique identifier for the conflict*/
+	unsigned int conflictId;
 
-    //Holds additional information
-    std::vector<Tag> *tags;
+	/**
+	 * Threshold value for accepting/rejecting the gap (and deciding whether to continue/slow down) between
+	 * conflicting vehicles (in seconds)
+	 */
+	double criticalGap;
 
-  public:
-    
-    TurningConflict();
+	/**Distance of conflict point from start of the first turning*/
+	double firstConflictDistance;
 
-    TurningConflict(const TurningConflict& tc);
+	/**The first turning path in the conflict
+	 * Note:: First/second doesn't have any significance
+	 */
+	TurningPath *firstTurning;
 
-    virtual ~TurningConflict();
-    
-    //Returns the conflict id
-    unsigned int getConflictId() const;
-    
-    //Sets the conflict id
-    void setConflictId(unsigned int conflictId);
-    
-    //Returns the value of the critical gap for the conflict
-    double getCriticalGap() const;
-    
-    //Sets the value of the critical gap for the conflict
-    void setCriticalGap(double criticalGap);
-    
-    //Returns the conflict distance to first turning
-    double getFirstConflictDistance() const;    
-    
-    //Sets the conflict distance to the first turning
-    void setFirstConflictDistance(double firstConflictDistance);
-    
-    //Returns the first turning to which the conflict belongs
-    TurningPath* getFirstTurning() const;
-    
-    //Sets the first turning to which the conflict belongs
-    void setFirstTurning(TurningPath* firstTurning);
-    
-    //Returns the id of the first turning
-    unsigned int getFirstTurningId() const;
-    
-    //Sets the id of the first turning
-    void setFirstTurningId(unsigned int firstTurningId);
-    
-    //Returns the value of the priority for the conflict
-    unsigned int getPriority() const;
-    
-    //Sets the value of the priority for the conflict
-    void setPriority(unsigned int priority);
-    
-    //Returns the conflict distance to second turning
-    double getSecondConflictDistance() const;
-    
-    //Sets the conflict distance to second turning
-    void setSecondConflictDistance(double secondConflictDistance);
-    
-    //Returns the second turning to which the conflict belongs
-    TurningPath* getSecondTurning() const;
-    
-    //Sets the second turning to which the conflict belongs
-    void setSecondTurning(TurningPath* secondTurning);
-    
-    //Returns the id of the second turning
-    unsigned int getSecondTurningId() const;
-    
-    //Sets the id of the second turning
-    void setSecondTurningId(unsigned int secondTurningId);
-    
-    //Returns a vector of tags which holds the additional information
-    const std::vector<Tag>* getTags() const;
-    
-    //Setter for the tags field which holds the additional information
-    void setTags(std::vector<Tag> *tags);
-    
-  } ;
+	/**Id of the first conflicting Turning path*/
+	unsigned int firstTurningId;
+
+	/**Indicates which turning has a higher priority.
+	 * 0 - equal
+	 * 1 - first_turning has higher priority
+	 * 2 - second_turning has higher priority
+	 */
+	unsigned int priority;
+
+	/**Distance of conflict point from the start of the second turning*/
+	double secondConflictDistance;
+
+	/**The second turning section in the conflict
+	 * Note:: First/second doesn't have any significance
+	 */
+	TurningPath *secondTurning;
+
+	/**Id of the second conflicting Turning path*/
+	unsigned int secondTurningId;
+
+public:
+
+	TurningConflict();
+
+	virtual ~TurningConflict();
+
+	unsigned int getConflictId() const;
+	void setConflictId(unsigned int conflictId);
+
+	double getCriticalGap() const;
+	void setCriticalGap(double criticalGap);
+
+	double getFirstConflictDistance() const;
+	void setFirstConflictDistance(double firstConflictDistance);
+
+	TurningPath* getFirstTurning() const;
+	void setFirstTurning(TurningPath* firstTurning);
+
+	unsigned int getFirstTurningId() const;
+	void setFirstTurningId(unsigned int firstTurningId);
+
+	unsigned int getPriority() const;
+	void setPriority(unsigned int priority);
+
+	double getSecondConflictDistance() const;
+	void setSecondConflictDistance(double secondConflictDistance);
+
+	TurningPath* getSecondTurning() const;
+	void setSecondTurning(TurningPath* secondTurning);
+
+	unsigned int getSecondTurningId() const;
+	void setSecondTurningId(unsigned int secondTurningId);
+};
 }
-

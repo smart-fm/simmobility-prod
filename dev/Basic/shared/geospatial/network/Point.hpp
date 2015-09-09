@@ -4,7 +4,7 @@
 
 #pragma once
 
-namespace simmobility_network
+namespace sim_mob
 {
 class Point
 {

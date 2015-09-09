@@ -4,7 +4,7 @@
 
 #include "DynamicVector.hpp"
 
-using namespace simmobility_network;
+using namespace sim_mob;
 
 DynamicVector::DynamicVector(double fromX, double fromY, double toX, double toY) : pos(fromX, fromY), mag(toX - fromX, toY - fromY)
 {

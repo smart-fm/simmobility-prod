@@ -9,27 +9,26 @@
 #include "RoadSegment.hpp"
 #include "TurningGroup.hpp"
 
-namespace simmobility_network
+namespace sim_mob
 {
 
 struct WayPoint
 {
-
 	enum
 	{
-		//The way point is invalid. None of the pointers are valid
+		/**The way point is invalid. None of the pointers are valid*/
 		INVALID,
 
-		//The way point is a road-segment. roadSegment points to a RoadSegment object
+		/**The way point is a road-segment. roadSegment points to a RoadSegment object*/
 		NODE,
 
-		//The way point is a road-segment. roadSegment points to a RoadSegment object
+		/**The way point is a road-segment. roadSegment points to a RoadSegment object*/
 		ROAD_SEGMENT,
 
-		//The way point is a link. link points to a Link object
+		/**The way point is a link. link points to a Link object*/
 		LINK,
 
-		//The way point is a turning group. turningGroup points to a TurningGroup object
+		/**The way point is a turning group. turningGroup points to a TurningGroup object*/
 		TURNING_GROUP
 	} type;
 

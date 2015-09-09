@@ -221,23 +221,39 @@ double sim_mob::PredayLT_LogsumManager::computeLogsum(long individualId, int hom
 	}
 
 	if( vehicleOwnership == 1)
+	{
 		personParams.setCarOwnNormal(1);
-
-	if( vehicleOwnership == 0 )
+	}
+	else if( vehicleOwnership == 0 )
+	{
 		personParams.setCarOwnNormal(0);
-
-	LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
+	}
 
 	int homeLoc = personParams.getHomeLocation();
-
 	boost::unordered_map<int,int>::const_iterator zoneLookupItr = zoneIdLookup.find(homeLoc);
-
 	if( zoneLookupItr == zoneIdLookup.end())
 	{
 		return 0.0;
 	}
 
-	tmdParams.setCbdOrgZone(zoneMap.at(zoneIdLookup.at(personParams.getHomeLocation()))->getCbdDummy());
+	if(personParams.hasFixedWorkPlace())
+	{
+		int workLoc = personParams.getFixedWorkLocation();
+		ZoneParams* orgZnParams = zoneMap.at(zoneIdLookup.at(homeLoc));
+		ZoneParams* destZnParams = zoneMap.at(zoneIdLookup.at(workLoc));
+		CostParams* amCostParams = nullptr;
+		CostParams* pmCostParams = nullptr;
+		if(homeLoc != workLoc)
+		{
+			amCostParams = amCostMap.at(homeLoc).at(workLoc);
+			pmCostParams = pmCostMap.at(workLoc).at(homeLoc);
+		}
+		LogsumTourModeParams tmParams(orgZnParams, destZnParams, amCostParams, pmCostParams, personParams, WORK);
+		PredayLogsumLuaProvider::getPredayModel().computeTourModeLogsum(personParams, tmParams);
+	}
+
+	LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);
+	tmdParams.setCbdOrgZone(zoneMap.at(zoneLookupItr->second)->getCbdDummy());
 
 	PredayLogsumLuaProvider::getPredayModel().computeTourModeDestinationLogsum(personParams, tmdParams);
 	PredayLogsumLuaProvider::getPredayModel().computeDayPatternLogsums(personParams);

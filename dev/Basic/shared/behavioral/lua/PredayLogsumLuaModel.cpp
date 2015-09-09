@@ -61,6 +61,45 @@ void sim_mob::PredayLogsumLuaModel::mapClasses() {
 				.addProperty("num_expected_trips", &PredayPersonParams::getTripsExpected)
 			.endClass()
 
+			.beginClass<LogsumTourModeParams>("TourModeParams")
+				.addProperty("average_transfer_number",&LogsumTourModeParams::getAvgTransfer)
+				.addProperty("central_dummy",&LogsumTourModeParams::isCentralZone)
+				.addProperty("cost_car_ERP_first",&LogsumTourModeParams::getCostCarErpFirst)
+				.addProperty("cost_car_ERP_second",&LogsumTourModeParams::getCostCarErpSecond)
+				.addProperty("cost_car_OP_first",&LogsumTourModeParams::getCostCarOpFirst)
+				.addProperty("cost_car_OP_second",&LogsumTourModeParams::getCostCarOpSecond)
+				.addProperty("cost_car_parking",&LogsumTourModeParams::getCostCarParking)
+				.addProperty("cost_public_first",&LogsumTourModeParams::getCostPublicFirst)
+				.addProperty("cost_public_second",&LogsumTourModeParams::getCostPublicSecond)
+				.addProperty("drive1_AV",&LogsumTourModeParams::isDrive1Available)
+				.addProperty("motor_AV",&LogsumTourModeParams::isMotorAvailable)
+				.addProperty("mrt_AV",&LogsumTourModeParams::isMrtAvailable)
+				.addProperty("privatebus_AV",&LogsumTourModeParams::isPrivateBusAvailable)
+				.addProperty("publicbus_AV",&LogsumTourModeParams::isPublicBusAvailable)
+				.addProperty("share2_AV",&LogsumTourModeParams::isShare2Available)
+				.addProperty("share3_AV",&LogsumTourModeParams::isShare3Available)
+				.addProperty("taxi_AV",&LogsumTourModeParams::isTaxiAvailable)
+				.addProperty("walk_AV",&LogsumTourModeParams::isWalkAvailable)
+				.addProperty("tt_ivt_car_first",&LogsumTourModeParams::getTtCarIvtFirst)
+				.addProperty("tt_ivt_car_second",&LogsumTourModeParams::getTtCarIvtSecond)
+				.addProperty("tt_public_ivt_first",&LogsumTourModeParams::getTtPublicIvtFirst)
+				.addProperty("tt_public_ivt_second",&LogsumTourModeParams::getTtPublicIvtSecond)
+				.addProperty("tt_public_waiting_first",&LogsumTourModeParams::getTtPublicWaitingFirst)
+				.addProperty("tt_public_waiting_second",&LogsumTourModeParams::getTtPublicWaitingSecond)
+				.addProperty("tt_public_walk_first",&LogsumTourModeParams::getTtPublicWalkFirst)
+				.addProperty("tt_public_walk_second",&LogsumTourModeParams::getTtPublicWalkSecond)
+				.addProperty("walk_distance1",&LogsumTourModeParams::getWalkDistance1)
+				.addProperty("walk_distance2",&LogsumTourModeParams::getWalkDistance2)
+				.addProperty("destination_area",&LogsumTourModeParams::getDestinationArea)
+				.addProperty("origin_area",&LogsumTourModeParams::getOriginArea)
+				.addProperty("resident_size",&LogsumTourModeParams::getResidentSize)
+				.addProperty("work_op",&LogsumTourModeParams::getWorkOp)
+				.addProperty("education_op",&LogsumTourModeParams::getEducationOp)
+				.addProperty("cbd_dummy",&LogsumTourModeParams::isCbdDestZone)
+				.addProperty("cbd_dummy_origin",&LogsumTourModeParams::isCbdOrgZone)
+				.addProperty("cost_increase", &LogsumTourModeParams::getCostIncrease)
+			.endClass()
+
 			.beginClass<LogsumTourModeDestinationParams>("LogsumTourModeDestinationParams")
 				.addFunction("cost_public_first", &LogsumTourModeDestinationParams::getCostPublicFirst)
 				.addFunction("cost_public_second", &LogsumTourModeDestinationParams::getCostPublicSecond)
@@ -86,6 +125,7 @@ void sim_mob::PredayLogsumLuaModel::mapClasses() {
 				.addFunction("availability",&LogsumTourModeDestinationParams::isAvailable_TMD)
 				.addProperty("cbd_dummy_origin",&LogsumTourModeDestinationParams::isCbdOrgZone)
 				.addFunction("cbd_dummy",&LogsumTourModeDestinationParams::getCbdDummy)
+				.addProperty("cost_increase", &LogsumTourModeDestinationParams::getCostIncrease)
 			.endClass();
 }
 
@@ -123,11 +163,24 @@ void sim_mob::PredayLogsumLuaModel::computeDayPatternBinaryLogsums(PredayPersonP
 	}
 }
 
+void sim_mob::PredayLogsumLuaModel::computeTourModeLogsum(PredayPersonParams& personParams, LogsumTourModeParams& tourModeParams) const
+{
+	if(personParams.hasFixedWorkPlace())
+	{
+		LuaRef computeLogsumTMW = getGlobal(state.get(), "compute_logsum_tmw");
+		LuaRef workLogSum = computeLogsumTMW(&personParams, &tourModeParams);
+		personParams.setWorkLogSum(workLogSum.cast<double>());
+	}
+}
+
 void sim_mob::PredayLogsumLuaModel::computeTourModeDestinationLogsum(PredayPersonParams& personParams, LogsumTourModeDestinationParams& tourModeDestinationParams) const
 {
-	LuaRef computeLogsumTMDW = getGlobal(state.get(), "compute_logsum_tmdw");
-	LuaRef workLogSum = computeLogsumTMDW(&personParams, &tourModeDestinationParams);
-	personParams.setWorkLogSum(workLogSum.cast<double>());
+	if(!personParams.hasFixedWorkPlace())
+	{
+		LuaRef computeLogsumTMDW = getGlobal(state.get(), "compute_logsum_tmdw");
+		LuaRef workLogSum = computeLogsumTMDW(&personParams, &tourModeDestinationParams);
+		personParams.setWorkLogSum(workLogSum.cast<double>());
+	}
 
 	LuaRef computeLogsumTMDS = getGlobal(state.get(), "compute_logsum_tmds");
 	LuaRef shopLogSum = computeLogsumTMDS(&personParams, &tourModeDestinationParams);

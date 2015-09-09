@@ -29,12 +29,20 @@ public:
 	virtual ~PredayLogsumLuaModel();
 
 	/**
-	 * Computes log sums for all tour types by invoking corresponding functions in tour mode-destination model
+	 * Computes logsums for all tour types by invoking corresponding functions in tour mode-destination model
 	 *
 	 * @param personParams object containing person and household related variables. logsums will be updated in this object
 	 * @param tourModeDestinationParams parameters specific to tour mode-destination models
 	 */
 	void computeTourModeDestinationLogsum(PredayPersonParams& personParams, LogsumTourModeDestinationParams& tourModeDestinationParams) const;
+
+	/**
+	 * Computes logsums for work tours with fixed work location by invoking corresponding functions in tour mode (for work) model
+	 *
+	 * @param personParams object containing person and household related variables. logsums will be updated in this object
+	 * @param tourModeDestinationParams parameters specific to tour mode model
+	 */
+	void computeTourModeLogsum(PredayPersonParams& personParams, LogsumTourModeParams& tourModeParams) const;
 
 	/**
 	 * Computes logsums from day-pattern tours and day-pattern stops models

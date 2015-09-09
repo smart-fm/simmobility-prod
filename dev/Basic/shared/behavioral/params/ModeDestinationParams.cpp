@@ -7,6 +7,12 @@
 using namespace std;
 using namespace sim_mob;
 
+namespace
+{
+const double WALKABLE_DISTANCE = 3.0; //km
+const double OPERATIONAL_COST = 0.147;
+}
+
 ModeDestinationParams::ModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, StopType purpose, int originCode)
 : zoneMap(zoneMap), amCostsMap(amCostsMap), pmCostsMap(pmCostsMap), purpose(purpose), origin(originCode), OPERATIONAL_COST(0.147), MAX_WALKING_DISTANCE(3),
   cbdOrgZone(false)
@@ -39,7 +45,7 @@ int ModeDestinationParams::getDestination(int choice) const {
 LogsumTourModeDestinationParams::LogsumTourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
 		const PredayPersonParams& personParams, StopType tourType)
 : ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation()),
-  drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()), modeForParentWorkTour(0)
+  drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()), modeForParentWorkTour(0), costIncrease(1)
 {}
 
 LogsumTourModeDestinationParams::~LogsumTourModeDestinationParams() {}
@@ -166,6 +172,11 @@ void LogsumTourModeDestinationParams::setDrive1Available(bool drive1Available) {
 	this->drive1Available = drive1Available;
 }
 
+double LogsumTourModeDestinationParams::getCostIncrease() const
+{
+	return costIncrease;
+}
+
 int LogsumTourModeDestinationParams::isAvailable_TMD(int choiceId) const {
 	/* 1. if the destination == origin, the destination is not available.
 	 * 2. public bus, private bus and MRT/LRT are only available if AM[(origin,destination)][’pub_ivt’]>0 and PM[(destination,origin)][’pub_ivt’]>0
@@ -234,3 +245,77 @@ int sim_mob::LogsumTourModeDestinationParams::isCbdOrgZone() const
 {
 	return cbdOrgZone;
 }
+
+sim_mob::LogsumTourModeParams::LogsumTourModeParams(const ZoneParams* znOrgObj, const ZoneParams* znDesObj,
+		const CostParams* amObj, const CostParams* pmObj, const PredayPersonParams& personParams, StopType tourType) :
+				stopType(tourType), costIncrease(1), costCarParking(znDesObj->getParkingRate()), centralZone(znDesObj->getCentralDummy()),
+				cbdOrgZone(znOrgObj->getCbdDummy()), cbdDestZone(znDesObj->getCbdDummy()), residentSize(znOrgObj->getResidentWorkers()),
+				workOP(znDesObj->getEmployment()), educationOP(znDesObj->getTotalEnrollment()), originArea(znOrgObj->getArea()),
+				destinationArea(znDesObj->getArea())
+{
+	if(amObj && pmObj)
+	{
+		costPublicFirst = amObj->getPubCost();
+		costPublicSecond = pmObj->getPubCost();
+		costCarERP_First = amObj->getCarCostErp();
+		costCarERP_Second = pmObj->getCarCostErp();
+		costCarOP_First = amObj->getDistance() * OPERATIONAL_COST;
+		costCarOP_Second = pmObj->getDistance() * OPERATIONAL_COST;
+		walkDistance1 = amObj->getDistance();
+		walkDistance2 = pmObj->getDistance();
+		ttPublicIvtFirst = amObj->getPubIvt();
+		ttPublicIvtSecond = pmObj->getPubIvt();
+		ttPublicWaitingFirst = amObj->getPubWtt();
+		ttPublicWaitingSecond = pmObj->getPubWtt();
+		ttPublicWalkFirst = amObj->getPubWalkt();
+		ttPublicWalkSecond = pmObj->getPubWalkt();
+		ttCarIvtFirst = amObj->getCarIvt();
+		ttCarIvtSecond = pmObj->getCarIvt();
+		avgTransfer = (amObj->getAvgTransfer() + pmObj->getAvgTransfer())/2;
+
+		//set availabilities
+		drive1Available = personParams.hasDrivingLicence() * personParams.getCarOwnNormal();
+		share2Available = 1;
+		share3Available = 1;
+		publicBusAvailable = (amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
+		mrtAvailable = (amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
+		privateBusAvailable = (amObj->getPubIvt() > 0 && pmObj->getPubIvt() > 0);
+		walkAvailable = (amObj->getPubIvt() <= WALKABLE_DISTANCE && pmObj->getPubIvt() <= WALKABLE_DISTANCE);
+		taxiAvailable = 1;
+		motorAvailable = 1;
+	}
+	else
+	{
+		costPublicFirst = 0;
+		costPublicSecond = 0;
+		costCarERP_First = 0;
+		costCarERP_Second = 0;
+		costCarOP_First = 0;
+		costCarOP_Second = 0;
+		walkDistance1 = 0;
+		walkDistance2 = 0;
+		ttPublicIvtFirst = 0;
+		ttPublicIvtSecond = 0;
+		ttPublicWaitingFirst = 0;
+		ttPublicWaitingSecond = 0;
+		ttPublicWalkFirst = 0;
+		ttPublicWalkSecond = 0;
+		ttCarIvtFirst = 0;
+		ttCarIvtSecond = 0;
+		avgTransfer = 0;
+
+		//set availabilities
+		drive1Available = personParams.hasDrivingLicence() * personParams.getCarOwnNormal();
+		share2Available = 1;
+		share3Available = 1;
+		publicBusAvailable = 1;
+		mrtAvailable = 1;
+		privateBusAvailable = 1;
+		walkAvailable = 1;
+		taxiAvailable = 1;
+		motorAvailable = 1;
+	}
+}
+
+sim_mob::LogsumTourModeParams::~LogsumTourModeParams()
+{}

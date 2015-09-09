@@ -73,6 +73,7 @@ namespace sim_mob
             HouseholdAgent* getParent();
 
             void ComputeHouseholdAffordability();
+            double ComputeBidValue(double wp);
             /**
              * Inherited from LT_Role
              * @param currTime
@@ -81,16 +82,16 @@ namespace sim_mob
 
             void reconsiderVehicleOwnershipOption();
 
-            double getExpOneCar(int unitTypeId);
+            double getExpOneCar(int unitTypeId, double vehicleOwnershipLogsum);
 
-            double getExpTwoPlusCar(int unitTypeId);
+            double getExpTwoPlusCar(int unitTypeId, double vehicleOwnershipLogsum);
 
             /*
              * check all the vehicle categories and returns if it includes a motorcycle
              */
             bool isMotorCycle(int vehicleCategoryId);
 
-            void setTaxiAccess();
+            int getIncomeCategoryId(double income);
 
         protected:
 
@@ -125,6 +126,8 @@ namespace sim_mob
              * @return true if a unit was picked false otherwise;
              */
             bool pickEntryToBid();
+            double calculateWillingnessToPay(const Unit* unit, const Household* household);
+            double calculateSurplus(double price, double min, double max );
 
             volatile bool waitingForResponse;
             timeslice lastTime;
@@ -141,20 +144,15 @@ namespace sim_mob
             	CHINESE = 1, MALAY, INDIAN, OTHERS
             };
             enum CoeffParamId{
-            	ASC_ONECAR = 1, ASC_TWO_PLUS_CAR, B_CHINESE_ONECAR, B_CHINESE_TWO_PLUS_CAR, B_HDB_ONECAR, B_HDB_TWO_PLUS_CAR,
-            	B_INC1_ONECAR, B_INC1_TWO_PLUS_CAR, B_INC2_ONECAR, B_INC2_TWO_PLUS_CAR, B_INC3_ONECAR, B_INC3_TWO_PLUS_CAR, B_INC4_ONECAR,
-            	B_INC4_TWO_PLUS_CAR, B_INC5_ONECAR, B_INC5_TWO_PLUS_CAR, B_INC6_ONECAR, B_INC6_TWO_PLUS_CAR, B_KIDS_ONECAR, B_KIDS_TWO_PLUS_CAR,
-            	B_LOG_HHSIZE_ONECAR, B_LOG_HHSIZE_TWO_PLUS_CAR, B_MC_ONECAR, B_MC_TWO_PLUS_CAR
+            	ASC_NO_CAR = 1, ASC_ONECAR, ASC_TWOplusCAR, B_ABOVE60_ONE_CAR, B_ABOVE60_TWOplusCAR, B_CEO_ONECAR, B_CEO_TWOplusCAR,
+            	B_FULLWORKER1_ONECAR, B_FULLWORKER1_TWOplusCAR, B_FULLWORKER2_ONECAR, B_FULLWORKER2_TWOplusCAR, B_FULLWORKER3p_ONECAR, B_FULLWORKER3p_TWOplusCAR, B_HAS_MC_ONECAR,
+            	B_HAS_MC_TWOplusCAR, B_HHSIZE3_ONECAR, B_HHSIZE3_TWOplusCAR, B_HHSIZE4_ONECAR, B_HHSIZE4_TWOplusCAR, B_HHSIZE5_ONECAR, B_HHSIZE5_TWOplusCAR,
+            	B_HHSIZE6_ONECAR, B_HHSIZE6_TWOplusCAR, B_INC12_ONECAR, B_INC12_TWOplusCAR, B_INC3_ONECAR, B_INC3_TWOplusCAR, B_INC4_ONECAR, B_INC4_TWOplusCAR, B_INC5_ONECAR, B_INC5_TWOplusCAR,
+            	B_INC6_ONECAR, B_INC6_TWOplusCAR, B_INDIAN_ONECAR, B_INDIAN_TWOplusCAR, B_KID1_ONECAR, B_KID1_TWOplusCAR, B_KID2p_ONECAR, B_KID2p_TWOplusCAR, B_LANDED_ONECAR, B_LANDED_TWOplusCAR, B_LOGSUM_ONECAR,
+            	B_LOGSUM_TWOplusCAR, B_MALAY_ONECAR, B_MALAY_TWOplusCAR, B_OTHER_RACE_ONECAR, B_OTHER_RACE_TWOplusCAR, B_PRIVATE_ONECAR, B_PRIVATE_TWOplusCAR, B_SELFEMPLOYED_ONECAR, B_SELFEMPLOYED_TWOplusCAR,
+            	B_STUDENT1_ONECAR, B_STUDENT1_TWOplusCAR, B_STUDENT2_ONECAR, B_STUDENT2_TWOplusCAR, B_STUDENT3_ONECAR, B_STUDENT3_TWOplusCAR, B_WHITECOLLAR1_ONECAR, B_WHITECOLLAR1_TWOplusCAR, B_WHITECOLLAR2_ONECAR,
+            	B_WHITECOLLAR2_TWOplusCAR, B_distMRT1000_ONECAR, B_distMRT1000_TWOplusCAR, B_distMRT500_ONECAR, B_distMRT500_TWOplusCAR
             };
-            enum VehicleOwnershipOption{
-            	NO_CAR = 1, ONE_CAR, TWO_PLUS_CAR
-            };
-            enum TaxiAccessParamId{
-            	INTERCEPT = 1, HDB1, AGE5064_1, AGE5064_2, AGE65UP_1, AGE65UP_2, AGE3549_2, AGE1019_2, EMPLOYED_SELF_1, EMPLOYED_SELF_2, INC_LOW, INC_HIGH, RETIRED_1, RETIRED_2, OPERATOR_1,
-            	OPERATOR_2, SERVICE_2, PROF_1, LABOR_1, MANAGER_1, INDIAN_TAXI_ACCESS, MALAY_TAXI_ACCESS
-            };
-            VehicleOwnershipOption vehicleOwnershipOption;
-            bool hasTaxiAccess;
             float householdAffordabilityAmount;
             bool initBidderRole;
         };

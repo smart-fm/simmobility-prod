@@ -28,6 +28,8 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
+#include "behavioral/PredayLT_Logsum.hpp"
+
 using std::list;
 using std::endl;
 using namespace sim_mob::long_term;
@@ -47,10 +49,30 @@ namespace
     {
         MessageBus::PostMessage(owner, LTMID_BID, MessageBus::MessagePtr(new BidMessage(bid)));
     }
+
+
+    inline void writeVehicleOwnershipToFile(BigSerial hhId,int VehiclOwnershiOptionId)
+    {
+    	boost::format fmtr = boost::format("%1%, %2%") % hhId % VehiclOwnershiOptionId;
+    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_VEHICLE_OWNERSIP,fmtr.str());
+
+    }
+
+
+    inline void printHouseholdGroupLogsum( int homeTaz,  int group, BigSerial hhId, double logsum )
+    {
+    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%") % homeTaz % group % hhId % logsum;
+    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDGROUPLOGSUM,fmtr.str());
+    }
+
+    inline void printHouseholdBiddingList( BigSerial householdId, BigSerial unitId, BigSerial postcode  )
+    {
+    	boost::format fmtr = boost::format("%1%, %2%, %3%") % householdId % unitId % postcode;
+    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDBIDLIST,fmtr.str());
+    }
 }
 
-HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry ( const BigSerial unitId, const double wp, double lastSurplus) : unitId(unitId), wp(wp), tries(0),
-																lastSurplus(lastSurplus){}
+HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry( const BigSerial unitId, const double wp, double lastSurplus) : unitId(unitId), wp(wp), tries(0), lastSurplus(lastSurplus){}
 
 HouseholdBidderRole::CurrentBiddingEntry::~CurrentBiddingEntry()
 {
@@ -90,8 +112,8 @@ void HouseholdBidderRole::CurrentBiddingEntry::invalidate()
 }
 
 HouseholdBidderRole::HouseholdBidderRole(HouseholdAgent* parent): parent(parent), waitingForResponse(false), lastTime(0, 0), bidOnCurrentDay(false), active(false), unitIdToBeOwned(0),
-																  moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0),vehicleOwnershipOption(NO_CAR), day(day),
-																  hasTaxiAccess(false), householdAffordabilityAmount(0),initBidderRole(true){}
+																  moveInWaitingTimeInDays(0),vehicleBuyingWaitingTimeInDays(0), day(day),
+																  householdAffordabilityAmount(0),initBidderRole(true){}
 
 HouseholdBidderRole::~HouseholdBidderRole(){}
 
@@ -160,11 +182,11 @@ void HouseholdBidderRole::ComputeHouseholdAffordability()
 
 	const double quarter = 365.0 / 4.0; // a yearly quarter
 	int index =	day / quarter;
-	double interestRate = (*interestRateListX)[index]->getInterestRate() / 12.0; // divide by 12 to get the monthly interest rate.
+	double interestRate = (*interestRateListX)[index]->getInterestRate() / 100 / 12.0; // divide by 12 to get the monthly interest rate.
 
 	//Household affordability formula based on excel PV function:
 	//https://support.office.com/en-ca/article/PV-function-3d25f140-634f-4974-b13b-5249ff823415
-	householdAffordabilityAmount = income / interestRate *  ( 1 - pow( 1 + interestRate, -loanTenure ) );
+	householdAffordabilityAmount = income / interestRate *  ( 1.0 - pow( 1 + interestRate, loanTenure ) );
 
 	//PrintOutV( "Interest rate: " << interestRate << ". Household affordability: " << householdAffordabilityAmount << std::endl);
 }
@@ -173,7 +195,6 @@ void HouseholdBidderRole::init()
 {
 	ComputeHouseholdAffordability();
 	initBidderRole = false;
-
 }
 
 void HouseholdBidderRole::update(timeslice now)
@@ -181,13 +202,16 @@ void HouseholdBidderRole::update(timeslice now)
 	day = now.ms();
 
 	if(initBidderRole)
+	{
 		init();
+	}
 
 	//This bidder has a successful bid already.
 	//It's now waiting to move in its new unit.
 	//The bidder role will do nothing else during this period (hence the return at the end of the if function).
 	if( moveInWaitingTimeInDays > 0 )
 	{
+
 		//Just before we set the bidderRole to inactive, we do the unit ownership switch.
 		if( moveInWaitingTimeInDays == 1 )
 		{
@@ -203,13 +227,11 @@ void HouseholdBidderRole::update(timeslice now)
 	if( vehicleBuyingWaitingTimeInDays > 0 && moveInWaitingTimeInDays == 0)
 	{
 
-		if( vehicleBuyingWaitingTimeInDays == 1 )
+		if( vehicleBuyingWaitingTimeInDays == 1)
 		{
-			setTaxiAccess();
 			reconsiderVehicleOwnershipOption();
 		}
 			vehicleBuyingWaitingTimeInDays--;
-			return;
 	}
 
     //can bid another house if it is not waiting for any 
@@ -234,13 +256,9 @@ void HouseholdBidderRole::update(timeslice now)
 void HouseholdBidderRole::TakeUnitOwnership()
 {
 	#ifdef VERBOSE
-	PrintOutV("[day " << day << "] Household " << getParent()->getId() << " is moving into unit " << unitIdToBeOwned << " today." << std::endl);
+	//PrintOutV("[day " << day << "] Household " << getParent()->getId() << " is moving into unit " << unitIdToBeOwned << " today." << std::endl);
 	#endif
 	getParent()->addUnitId( unitIdToBeOwned );
-
-    setActive(false);
-    getParent()->getModel()->decrementBidders();
-
     biddingEntry.invalidate();
     Statistics::increment(Statistics::N_ACCEPTED_BIDS);
 }
@@ -258,7 +276,6 @@ void HouseholdBidderRole::HandleMessage(Message::MessageType type, const Message
                 case ACCEPTED:// Bid accepted 
                 {
                 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-
                 	moveInWaitingTimeInDays = config.ltParams.housingModel.housingMoveInDaysInterval;
                 	unitIdToBeOwned = msg.getBid().getUnitId();
                 	vehicleBuyingWaitingTimeInDays = config.ltParams.vehicleOwnershipModel.vehicleBuyingWaitingTimeInDays;
@@ -330,7 +347,7 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
                 {
                 	//PrintOut("\033[1;36mHousehold " << std::dec << household->getId() << " submitted a bid on unit " << biddingEntry.getUnitId() << "\033[0m\n" );
 					#ifdef VERBOSE
-                	PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << bidValue << "[wp:$" << biddingEntry.getWP() << ",sp:$" << speculation  << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
+                	//PrintOutV("[day " << day << "] Household " << std::dec << household->getId() << " submitted a bid of $" << bidValue << "[wp:$" << biddingEntry.getWP() << ",sp:$" << speculation  << ",bids:"  <<   biddingEntry.getTries() << ",ap:$" << entry->getAskingPrice() << "] on unit " << biddingEntry.getUnitId() << " to seller " <<  entry->getOwner()->getId() << "." << std::endl );
 					#endif
 
                     bid(entry->getOwner(), Bid(entry->getUnitId(), household->getId(), getParent(), bidValue, now, biddingEntry.getWP(), speculation));
@@ -346,6 +363,248 @@ bool HouseholdBidderRole::bidUnit(timeslice now)
     }
     return false;
 }
+
+double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Household* household)
+{
+	double V;
+
+	//
+	//These constants are extracted from Roberto Ponce's bidding model
+	//
+	const double mu			=  1.086;
+	const double bpriv		=  1.053;
+	const double bhdb123	=  0.195;
+	const double bhdb4		= -0.764;
+	const double bhdb5		= -1.553;
+	const double bs1a		=  2.956;
+	const double bs2a		=  3.206;
+	const double bs3a		=  3.475;
+	const double blogsum	=  0.288;
+	const double bchin		= -0.184;
+	const double bmalay		= -0.307;
+	const double bindian	=  0.145;
+	const double bzzinc		=  0.027;
+	const double bzsize		= -0.279;
+
+	const PostcodeAmenities* pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( unit->getSlaAddressId() );
+
+	double DD_priv		= 0;
+	double HDB123 		= 0;
+	double HDB4			= 0;
+	double HDB5			= 0;
+	double HH_size1		= 0;
+	double HH_size2		= 0;
+	double HH_size3m	= 0;
+	double DD_area		= 0;
+	double ZZ_logsumhh	= -1;
+	double ZZ_hhchinese = 0;
+	double ZZ_hhmalay	= 0;
+	double ZZ_hhindian	= 0;
+	double ZZ_hhinc		= 0;
+	double ZZ_hhsize	= 0;
+
+	int unitType = unit->getUnitType();
+
+	if( unitType == 1 || unitType == 2 || unitType == 3 )
+		HDB123 = 1;
+
+	if( unitType == 4 )
+		HDB4 = 1;
+
+	if( unitType == 5 )
+		HDB5 = 1;
+
+	if( unitType > 6 )
+		DD_priv = 1;
+
+	if( household->getSize() == 1)
+		HH_size1 = 1;
+	else
+	if( household->getSize() == 2)
+		HH_size2 = 1;
+	else
+		HH_size3m = 1;
+
+	DD_area = unit->getFloorArea() / 100;
+
+	BigSerial homeTaz = 0;
+	BigSerial workTaz = 0;
+	Individual* headOfHousehold = NULL;
+
+	std::vector<BigSerial> householdOccupants = household->getIndividuals();
+
+	for( int n = 0; n < householdOccupants.size(); n++ )
+	{
+		Individual * householdIndividual = getParent()->getModel()->getIndividualById( householdOccupants[n] );
+
+		if( householdIndividual->getHouseholdHead() )
+		{
+			headOfHousehold = householdIndividual;
+		}
+	}
+
+	//This household does not seem to have an head of household, let's just assign one.
+	if(headOfHousehold == NULL)
+	{
+		int eldestHouseholdMemberAge = 0;
+		for( int n = 0; n < householdOccupants.size(); n++ )
+		{
+			Individual * householdIndividual = getParent()->getModel()->getIndividualById( householdOccupants[n] );
+			std::tm dob = householdIndividual->getDateOfBirth();
+			struct tm thisTime;
+			time_t now;
+			time(&now);
+			thisTime = *localtime(&now);
+			int age = thisTime.tm_year - dob.tm_year;
+
+			if( age >  eldestHouseholdMemberAge )
+			{
+				age =  eldestHouseholdMemberAge;
+				headOfHousehold = householdIndividual;
+			}
+		}
+	}
+
+	HM_Model *model = getParent()->getModel();
+	Job *job = model->getJobById(headOfHousehold->getJobId());
+
+	BigSerial hometazId = model->getUnitTazId( household->getUnitId() );
+	Taz *homeTazObj = model->getTazById( hometazId );
+
+	std::string homeTazStr;
+	if( homeTazObj != NULL )
+		homeTazStr = homeTazObj->getName();
+
+	homeTaz = std::atoi( homeTazStr.c_str() );
+
+	BigSerial worktazId = model->getEstablishmentTazId( job->getEstablishmentId() );
+	Taz *workTazObj = model->getTazById( worktazId );
+
+	std::string workTazStr;
+	if( workTazObj != NULL )
+		workTazStr =  workTazObj->getName();
+
+	workTaz = std::atoi( workTazStr.c_str());
+
+	if( workTazStr.size() == 0 )
+	{
+		//PrintOutV("workTaz is empty for person: " << headOfHousehold->getId() << std::endl);
+		workTaz = homeTaz;
+	}
+
+	if( homeTazStr.size() == 0 )
+	{
+		//PrintOutV("homeTaz is empty for person: " << headOfHousehold->getId() << std::endl);
+		homeTaz = -1;
+		workTaz = -1;
+	}
+
+	if( homeTaz == -1 || workTaz == -1 )
+	{
+		ZZ_logsumhh = 0;
+		return 0;
+	}
+	else
+	{
+		HouseHoldHitsSample *hitssample = model->getHouseHoldHitsById( household->getId() );
+
+		for(int n = 0; n < model->householdGroupVec.size(); n++ )
+		{
+			BigSerial thisGroupId = model->householdGroupVec[n].getGroupId();
+			BigSerial thisHomeTaz = model->householdGroupVec[n].getHomeTaz();
+
+			if( thisGroupId == hitssample->getGroupId() &&  thisHomeTaz == homeTaz )
+			{
+				ZZ_logsumhh = model->householdGroupVec[n].getLogsum();
+				break;
+			}
+		}
+
+		if( ZZ_logsumhh == -1 )
+		{
+			ZZ_logsumhh = PredayLT_LogsumManager::getInstance().computeLogsum( headOfHousehold->getId(), homeTaz, workTaz );
+
+			HM_Model::HouseholdGroup thisHHGroup(hitssample->getGroupId(), homeTaz, ZZ_logsumhh );
+			model->householdGroupVec.push_back(thisHHGroup);
+
+			printHouseholdGroupLogsum( homeTaz, hitssample->getGroupId(), headOfHousehold->getId(), ZZ_logsumhh );
+		}
+	}
+
+
+
+	const HM_Model::TazStats *tazstats = model->getTazStats( hometazId );
+
+	if( tazstats->getChinesePercentage() > 0.76 )
+		ZZ_hhchinese = 1;
+
+	if( tazstats->getChinesePercentage() > 0.10 )
+		ZZ_hhmalay 	 = 1;
+
+	if( tazstats->getIndianPercentage() > 0.08 )
+		ZZ_hhindian  = 1;
+
+	if( household->getIncome() >= tazstats->getHH_AvgIncome() * 0.33 && household->getIncome() <= tazstats->getHH_AvgIncome() * 1.33 )
+		ZZ_hhinc = 1;
+
+	if( household->getSize() >= ( tazstats->getAvgHHSize() - 1 ) && household->getSize() <= ( tazstats->getAvgHHSize() + 1 ) )
+		ZZ_hhsize = 1;
+
+	V = bpriv * DD_priv +
+		bhdb123 * HDB123 +
+		bhdb4 * HDB4 +
+		bhdb5 * HDB5 +
+		bs1a * HH_size1 *  DD_area +
+		bs2a * HH_size2 *  DD_area +
+		bs3a * HH_size3m * DD_area +
+		blogsum * ZZ_logsumhh +
+		bchin * ZZ_hhchinese +
+		bmalay * ZZ_hhmalay +
+		bindian * ZZ_hhindian +
+		bzzinc * ZZ_hhinc +
+		bzsize * ZZ_hhsize;
+
+	boost::mt19937 rng(time(0));
+	boost::normal_distribution<> nd( 0.0, mu);
+	boost::variate_generator<boost::mt19937&,  boost::normal_distribution<> > var_nor(rng, nd);
+	double wtp_e  = var_nor();
+
+	return V + wtp_e;
+}
+
+
+double HouseholdBidderRole::calculateSurplus(double price, double min, double max)
+{
+	//These constant variables are defined in Roberto Ponce Lopez's new Bidding model
+	// F(x) = 1 / (1 + exp(-(x-m)/s))
+	const double scale1	 = 489.706;
+	const double scale2	 = 348.322;
+	const double location1 = -91.247;
+	const double location2 = -20.547;
+
+	price = std::min(price, min );
+	price = std::max(price, max );
+
+	double fx    = 1.0 / (1.0 + exp(-( price - location1 ) / scale1 ) );
+	double fxmin = 1.0 / (1.0 + exp(-( min   - location1 ) / scale1 ) );
+	double fxmax = 1.0 / (1.0 + exp(-( max   - location1 ) / scale1 ) );
+
+	fx = fx - fxmin;
+	fx = fx/fxmax - fxmin;
+
+	// f(x) = 1/s exp((x-m)/s) (1 + exp((x-m)/s))^-2.
+	double density    = 1.0 / scale1 * exp( ( price - location1 ) / scale1 ) * pow( ( 1.0 + exp( ( price - location1 ) / scale1 ) ), -2.0 );
+	double densitymax = 1.0 / scale1 * exp( ( min   - location1 ) / scale1 ) * pow( ( 1.0 + exp( ( min   - location1 ) / scale1 ) ), -2.0 );
+	double densitymin = 1.0 / scale1 * exp( ( max   - location1 ) / scale1 ) * pow( ( 1.0 + exp( ( max   - location1 ) / scale1 ) ), -2.0 );
+
+	density = density - densitymin;
+	density = -(density/densitymax - densitymin);
+
+	double surplus = fx / std::max(density, 0.000001);
+
+	return -surplus;
+}
+
 
 bool HouseholdBidderRole::pickEntryToBid()
 {
@@ -382,7 +641,6 @@ bool HouseholdBidderRole::pickEntryToBid()
     	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
         const HousingMarket::Entry* entry = *itr;
 
-
         if(entry && entry->getOwner() != getParent())
         {
             const Unit* unit = model->getUnitById(entry->getUnitId());
@@ -399,19 +657,33 @@ bool HouseholdBidderRole::pickEntryToBid()
             if( unit && unit->getUnitType() == 4 && household->getFourRoomHdbEligibility() == false )
                 flatEligibility = false;
 
+           // const double constantVal = 500000;
 
             if ( unit && stats && flatEligibility )
             {
-                double wp = luaModel.calulateWP(*household, *unit, *stats);
+            	printHouseholdBiddingList( household->getId(), unit->getId(), unit->getSlaAddressId());
 
-                if( wp > householdAffordabilityAmount )
-                	wp = householdAffordabilityAmount;
+               //double wp_old = luaModel.calulateWP(*household, *unit, *stats);
+            	double wp = calculateWillingnessToPay(unit, household);
 
-                if (wp >= entry->getAskingPrice() && (wp - entry->getAskingPrice()) > maxWP)
+            	wp = std::max(0.0, wp );
+
+            	householdAffordabilityAmount = std::max(0.0f, householdAffordabilityAmount);
+            	if( wp > householdAffordabilityAmount )
                 {
-                    maxWP = wp;
-                    maxEntry = entry;
+                	wp = householdAffordabilityAmount;
                 }
+
+            	double tempSurplus = wp - entry->getAskingPrice();
+
+            	//double bid = ComputeBidValue( entry->getAskingPrice() );
+
+            	//if( bid >= entry->getAskingPrice() && bid > maxWP )
+            	if( tempSurplus > maxWP )
+            	{
+            		maxWP = tempSurplus;
+            		maxEntry = entry;
+            	}
             }
         }
     }
@@ -420,15 +692,73 @@ bool HouseholdBidderRole::pickEntryToBid()
     return biddingEntry.isValid();
 }
 
+
+double HouseholdBidderRole::ComputeBidValue(double price )
+{
+	double bid = price;
+	const int MAX_ITERATIONS = 50;
+	double epsilon = 1;
+
+	for (int n = 0; n < MAX_ITERATIONS; n++  )
+	{
+		double bidL = price - calculateSurplus( bid , 0.0, 1.2 );
+
+		if( abs(bidL - bid) < epsilon )
+			break;
+		else
+			bid = bidL;
+	}
+
+	return bid;
+}
+
 void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 {
-	const HM_Model* model = getParent()->getModel();
-	int unitTypeId = model->getUnitById(this->getParent()->getHousehold()->getUnitId())->getUnitType();
-	double expOneCar = getExpOneCar(unitTypeId);
-	double expTwoPlusCar = getExpTwoPlusCar(unitTypeId);
+	if (isActive())
+	{
+		HM_Model* model = getParent()->getModel();
 
-	double probabilityOneCar = (expOneCar)/ (expOneCar+expTwoPlusCar);
-	double probabilityTwoPlusCar = (expTwoPlusCar)/ (expOneCar+expTwoPlusCar);
+	int unitTypeId = 0;
+	if(model->getUnitById(this->getParent()->getHousehold()->getUnitId())!=nullptr)
+	{
+		unitTypeId = model->getUnitById(this->getParent()->getHousehold()->getUnitId())->getUnitType();
+	}
+
+	double valueNoCar =  model->getVehicleOwnershipCoeffsById(ASC_NO_CAR)->getCoefficientEstimate();
+	double expNoCar = exp(valueNoCar);
+	double vehicleOwnershipLogsum = 0;
+	double SumVehicleOwnershipLogsum = 0;
+	std::vector<BigSerial> individuals = this->getParent()->getHousehold()->getIndividuals();
+	std::vector<BigSerial>::iterator individualsItr;
+
+	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+	{
+		const Individual* individual = model->getIndividualById((*individualsItr));
+//		HouseHoldHitsSample *hitsSample = model->getHouseHoldHitsById( this->getParent()->getHousehold()->getId() );
+//		if(model->getHouseholdGroupByGroupId(hitsSample->getGroupId())!= nullptr)
+//		{
+//			vehicleOwnershipLogsum = model->getHouseholdGroupByGroupId(hitsSample->getGroupId())->getLogsum();
+//			SumVehicleOwnershipLogsum = vehicleOwnershipLogsum + SumVehicleOwnershipLogsum;
+//		}
+//		else
+//		{
+			//replace householdHeadId with individualId
+			double vehicleOwnershipLogsumCar = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), -1, -1,1) ;
+			double vehicleOwnershipLogsumTransit = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), -1, -1,0);
+			vehicleOwnershipLogsum = (vehicleOwnershipLogsumCar - vehicleOwnershipLogsumTransit);
+			SumVehicleOwnershipLogsum = vehicleOwnershipLogsum + SumVehicleOwnershipLogsum;
+//			HM_Model::HouseholdGroup *hhGroup = new HM_Model::HouseholdGroup(hitsSample->getGroupId(),0,vehicleOwnershipLogsum);
+//			model->addHouseholdGroupByGroupId(hhGroup);
+//		}
+	}
+
+
+	double expOneCar = getExpOneCar(unitTypeId,SumVehicleOwnershipLogsum);
+	double expTwoPlusCar = getExpTwoPlusCar(unitTypeId,SumVehicleOwnershipLogsum);
+
+	double probabilityNoCar = (expNoCar) / (expNoCar + expOneCar+ expTwoPlusCar);
+	double probabilityOneCar = (expOneCar)/ (expNoCar + expOneCar+ expTwoPlusCar);
+	double probabilityTwoPlusCar = (expTwoPlusCar)/ (expNoCar + expOneCar+ expTwoPlusCar);
 
 	/*generate a random number between 0-1
 	* time(0) is passed as an input to constructor in order to randomize the result
@@ -438,69 +768,424 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 	boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >generateRandomNumbers( randomNumbergenerator, uniformDistribution );
 	const double randomNum = generateRandomNumbers( );
 	double pTemp = 0;
-	if(pTemp < randomNum < (probabilityOneCar + pTemp))
+	if((pTemp < randomNum ) && (randomNum < (probabilityNoCar + pTemp)))
 	{
-		vehicleOwnershipOption = ONE_CAR;
+		MessageBus::PostMessage(getParent(), LTMID_HH_NO_CAR, MessageBus::MessagePtr(new Message()));
+		writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),0);
+
+	}
+	else
+	{
+		pTemp = pTemp + probabilityNoCar;
+	if((pTemp < randomNum ) && (randomNum < (probabilityOneCar + pTemp)))
+	{
+		MessageBus::PostMessage(getParent(), LTMID_HH_ONE_CAR, MessageBus::MessagePtr(new Message()));
+		writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),1);
 	}
 	else
 	{
 		pTemp = pTemp + probabilityOneCar;
-		if(pTemp < randomNum < (probabilityTwoPlusCar + pTemp))
+		if ((pTemp < randomNum) &&( randomNum < (probabilityTwoPlusCar + pTemp)))
 		{
-			vehicleOwnershipOption = TWO_PLUS_CAR;
-		}
-		else
-		{
-			vehicleOwnershipOption = NO_CAR;
+			MessageBus::PostMessage(getParent(), LTMID_HH_TWO_PLUS_CAR, MessageBus::MessagePtr(new Message()));
+			std::vector<BigSerial> individuals = this->getParent()->getHousehold()->getIndividuals();
+			writeVehicleOwnershipToFile(getParent()->getHousehold()->getId(),2);
 		}
 
 	}
-	//TODO::INCOME CATEGORY DATA IS NOT YET AVAILABLE.
+	}
+	}
+	setActive(false);
+	getParent()->getModel()->decrementBidders();
 
 }
 
-double HouseholdBidderRole::getExpOneCar(int unitTypeId)
+double HouseholdBidderRole::getExpOneCar(int unitTypeId,double vehicleOwnershipLogsum)
 {
 	double valueOneCar = 0;
-	const HM_Model* model = getParent()->getModel();
+	HM_Model* model = getParent()->getModel();
+	std::vector<BigSerial> individuals = this->getParent()->getHousehold()->getIndividuals();
 	valueOneCar =  model->getVehicleOwnershipCoeffsById(ASC_ONECAR)->getCoefficientEstimate();
+	std::vector<BigSerial>::iterator individualsItr;
 
-	if(this->getParent()->getHousehold()->getEthnicityId() == CHINESE)
+	bool aboveSixty = false;
+	bool isCEO = false;
+	int numFullWorkers = 0;
+	int numStudents = 0;
+	int numWhiteCollars = 0;
+	bool selfEmployed = false;
+
+	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
 	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_CHINESE_ONECAR)->getCoefficientEstimate();
+		const Individual* individual = model->getIndividualById((*individualsItr));
+		int ageCategoryId = individual->getAgeCategoryId();
+		if (ageCategoryId >= 12)
+		{
+			aboveSixty = true;
+		}
+		if(individual->getOccupationId() == 1)
+		{
+			isCEO = true;
+		}
+		if(individual->getEmploymentStatusId() == 1)
+		{
+			numFullWorkers++;
+		}
+		else if(individual->getEmploymentStatusId() == 4)
+		{
+			numStudents++;
+		}
+		if(individual->getOccupationId() == 2)
+		{
+			numWhiteCollars++;
+		}
+		if(individual->getEmploymentStatusId() == 3) //check whether individual is self employed
+		{
+			selfEmployed = true;
+		}
+	}
+	if(aboveSixty)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_ABOVE60_ONE_CAR)->getCoefficientEstimate();
 	}
 
-
-	//finds out whether the household is an HDB or not
-	if( (unitTypeId>0) && (unitTypeId<=6))
+	if(isCEO)
 	{
-		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_HDB_ONECAR)->getCoefficientEstimate();
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_CEO_ONECAR)->getCoefficientEstimate();
 	}
 
-	valueOneCar = valueOneCar + (this->getParent()->getHousehold()->getChildUnder4() * model->getVehicleOwnershipCoeffsById(B_KIDS_ONECAR)->getCoefficientEstimate() + log(this->getParent()->getHousehold()->getSize()) * model->getVehicleOwnershipCoeffsById(B_LOG_HHSIZE_ONECAR)->getCoefficientEstimate() + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_MC_ONECAR)->getCoefficientEstimate());
+	if(numFullWorkers==1)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER1_ONECAR)->getCoefficientEstimate();
+	}
+	else if(numFullWorkers==2)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER2_ONECAR)->getCoefficientEstimate();
+	}
+	else if(numFullWorkers>=3)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER3p_ONECAR)->getCoefficientEstimate();
+	}
+
+	if(numStudents == 1)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_STUDENT1_ONECAR)->getCoefficientEstimate();
+	}
+	else if(numStudents == 2)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_STUDENT2_ONECAR)->getCoefficientEstimate();
+	}
+	if(numStudents >= 3)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_STUDENT3_ONECAR)->getCoefficientEstimate();
+	}
+
+	if(numWhiteCollars==1)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_WHITECOLLAR1_ONECAR)->getCoefficientEstimate();
+	}
+	else if(numWhiteCollars>1)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_WHITECOLLAR2_ONECAR)->getCoefficientEstimate();
+	}
+
+	valueOneCar = valueOneCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_HAS_MC_ONECAR)->getCoefficientEstimate();
+
+	if(this->getParent()->getHousehold()->getSize()<=3)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE3_ONECAR)->getCoefficientEstimate();
+	}else if (this->getParent()->getHousehold()->getSize()==4)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE4_ONECAR)->getCoefficientEstimate();
+	}
+	else if (this->getParent()->getHousehold()->getSize() == 5)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE5_ONECAR)->getCoefficientEstimate();
+	}
+	else if (this->getParent()->getHousehold()->getSize() >= 6)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE6_ONECAR)->getCoefficientEstimate();
+	}
+
+	int incomeCatId = getIncomeCategoryId(this->getParent()->getHousehold()->getIncome());
+	if(incomeCatId == 1 || incomeCatId == 2)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC12_ONECAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 3)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC3_ONECAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 4)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC4_ONECAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 5)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC5_ONECAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 6)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC6_ONECAR)->getCoefficientEstimate();
+	}
+
+	if(this->getParent()->getHousehold()->getEthnicityId() == INDIAN)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INDIAN_ONECAR)->getCoefficientEstimate();
+	}
+	else if(this->getParent()->getHousehold()->getEthnicityId() == MALAY)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_MALAY_ONECAR)->getCoefficientEstimate();
+	}
+	else if (this->getParent()->getHousehold()->getEthnicityId() == OTHERS)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_OTHER_RACE_ONECAR)->getCoefficientEstimate();
+	}
+
+	if (this->getParent()->getHousehold()->getChildUnder4()==1)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_KID1_ONECAR)->getCoefficientEstimate();
+	}
+	else if (this->getParent()->getHousehold()->getChildUnder4()>1)
+	{
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_KID2p_ONECAR)->getCoefficientEstimate();
+	}
+	//finds out whether the household is a landed property(terrace, semi detached, detached) or not
+	if( (unitTypeId>=17) && (unitTypeId<=31))
+	{
+		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LANDED_ONECAR)->getCoefficientEstimate();
+	}
+	else if((unitTypeId>=7) && (unitTypeId<=36)) //finds out whether the household is a private property(Apartment, Terrace, Semi Detached, Detached, Condo  and EC) or not
+	{
+		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_PRIVATE_ONECAR)->getCoefficientEstimate();
+	}
+
+	if(selfEmployed)
+	{
+		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_SELFEMPLOYED_ONECAR)->getCoefficientEstimate();
+	}
+
+//	LogSumVehicleOwnership* logsum = model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId());
+//	if(logsum != nullptr)
+//	{
+//		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * logsum->getAvgLogsum();
+//	}
+//we are getting the logsums from mid term now.
+	valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * vehicleOwnershipLogsum;
+
+	DistanceMRT *distanceMRT = model->getDistanceMRTById(this->getParent()->getHousehold()->getId());
+
+	if(distanceMRT != nullptr)
+	{
+		double distanceMrt = distanceMRT->getDistanceMrt();
+		if ((distanceMrt>0) && (distanceMrt<=500))
+		{
+			valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_distMRT500_ONECAR)->getCoefficientEstimate();
+		}
+		else if((distanceMrt<500) && (distanceMrt<=1000))
+		{
+			valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_distMRT1000_ONECAR)->getCoefficientEstimate();
+		}
+	}
 	double expOneCar = exp(valueOneCar);
 	return expOneCar;
 }
 
-double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId)
+double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId, double vehicleOwnershipLogsum)
 {
 
 	double valueTwoPlusCar = 0;
 	const HM_Model* model = getParent()->getModel();
-	valueTwoPlusCar =  model->getVehicleOwnershipCoeffsById(ASC_TWO_PLUS_CAR)->getCoefficientEstimate();
+	std::vector<BigSerial> individuals = this->getParent()->getHousehold()->getIndividuals();
+	valueTwoPlusCar =  model->getVehicleOwnershipCoeffsById(ASC_TWOplusCAR)->getCoefficientEstimate();
+	std::vector<BigSerial>::iterator individualsItr;
+	bool aboveSixty = false;
+	int numFullWorkers = 0;
+	int numStudents = 0;
+	int numWhiteCollars = 0;
+	bool selfEmployed = false;
 
-	if(this->getParent()->getHousehold()->getEthnicityId() == CHINESE)
+	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
 	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_CHINESE_TWO_PLUS_CAR)->getCoefficientEstimate();
+		const Individual* individual = model->getIndividualById((*individualsItr));
+		int ageCategoryId = individual->getAgeCategoryId();
+		if (ageCategoryId >= 12)
+		{
+			aboveSixty = true;
+		}
+
+		if(individual->getEmploymentStatusId() == 1)
+		{
+			numFullWorkers++;
+		}
+		else if(individual->getEmploymentStatusId() == 4)
+		{
+			numStudents++;
+		}
+
+		if(individual->getOccupationId() == 2)
+		{
+			numWhiteCollars++;
+		}
+
+		if(individual->getEmploymentStatusId() == 3) //check whether individual is self employed
+		{
+			selfEmployed = true;
+		}
+	}
+	if(aboveSixty)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_ABOVE60_TWOplusCAR)->getCoefficientEstimate();
 	}
 
-	//finds out whether the household is an HDB or not
-	if( (unitTypeId>0) && (unitTypeId<=6))
+	bool isCEO = false;
+	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
 	{
-		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_HDB_TWO_PLUS_CAR)->getCoefficientEstimate();
+		if(model->getIndividualById((*individualsItr))->getOccupationId() == 1)
+		{
+			isCEO = true;
+			break;
+		}
+	}
+	if(isCEO)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_CEO_TWOplusCAR)->getCoefficientEstimate();
 	}
 
-	valueTwoPlusCar = valueTwoPlusCar + (this->getParent()->getHousehold()->getChildUnder4() * model->getVehicleOwnershipCoeffsById(B_KIDS_TWO_PLUS_CAR)->getCoefficientEstimate()+ log(this->getParent()->getHousehold()->getSize()) * model->getVehicleOwnershipCoeffsById(B_LOG_HHSIZE_TWO_PLUS_CAR)->getCoefficientEstimate() + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_MC_TWO_PLUS_CAR)->getCoefficientEstimate());
+	if(numFullWorkers==1)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER1_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(numFullWorkers==2)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER2_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(numFullWorkers>=3)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER3p_TWOplusCAR)->getCoefficientEstimate();
+	}
+
+	if(numStudents == 1)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_STUDENT1_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(numStudents == 2)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_STUDENT2_TWOplusCAR)->getCoefficientEstimate();
+	}
+	if(numStudents >= 3)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_STUDENT3_TWOplusCAR)->getCoefficientEstimate();
+	}
+
+	if(numWhiteCollars==1)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_WHITECOLLAR1_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(numWhiteCollars>1)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_WHITECOLLAR2_TWOplusCAR)->getCoefficientEstimate();
+	}
+
+	valueTwoPlusCar = valueTwoPlusCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_HAS_MC_TWOplusCAR)->getCoefficientEstimate();
+
+	if(this->getParent()->getHousehold()->getSize()<=3)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE3_TWOplusCAR)->getCoefficientEstimate();
+	}else if (this->getParent()->getHousehold()->getSize()==4)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE4_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if (this->getParent()->getHousehold()->getSize() == 5)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE5_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if (this->getParent()->getHousehold()->getSize() >= 6)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE6_TWOplusCAR)->getCoefficientEstimate();
+	}
+
+	int incomeCatId = getIncomeCategoryId(this->getParent()->getHousehold()->getIncome());
+	if(incomeCatId == 1 || incomeCatId == 2)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC12_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 3)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC3_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 4)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC4_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 5)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC5_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 6)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC6_TWOplusCAR)->getCoefficientEstimate();
+	}
+
+	if(this->getParent()->getHousehold()->getEthnicityId() == INDIAN)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INDIAN_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(this->getParent()->getHousehold()->getEthnicityId() == MALAY)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_MALAY_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if (this->getParent()->getHousehold()->getEthnicityId() == OTHERS)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_OTHER_RACE_TWOplusCAR)->getCoefficientEstimate();
+	}
+
+	if (this->getParent()->getHousehold()->getChildUnder4()==1)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_KID1_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if (this->getParent()->getHousehold()->getChildUnder4()>1)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_KID2p_TWOplusCAR)->getCoefficientEstimate();
+	}
+	//finds out whether the household is a landed property(terrace, semi detached, detached) or not
+	if( (unitTypeId>=17) && (unitTypeId<=31))
+	{
+		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LANDED_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if((unitTypeId>=7) && (unitTypeId<=36)) //finds out whether the household is a private property(Apartment, Terrace, Semi Detached, Detached, Condo  and EC) or not
+	{
+		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_PRIVATE_TWOplusCAR)->getCoefficientEstimate();
+	}
+
+	if(selfEmployed)
+	{
+		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_SELFEMPLOYED_TWOplusCAR)->getCoefficientEstimate();
+	}
+
+//	LogSumVehicleOwnership* logsum = model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId());
+
+//	if(logsum != nullptr)
+//	{
+//		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_TWOplusCAR)->getCoefficientEstimate() * logsum->getAvgLogsum();
+//	}
+	//We are now getting the logsums from mid term.
+	valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_TWOplusCAR)->getCoefficientEstimate() * vehicleOwnershipLogsum;
+
+	DistanceMRT *distanceMRT = model->getDistanceMRTById(this->getParent()->getHousehold()->getId());
+	if(distanceMRT != nullptr)
+	{
+		double distanceMrt = distanceMRT->getDistanceMrt();
+		if ((distanceMrt>0) && (distanceMrt<=500))
+		{
+			valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_distMRT500_TWOplusCAR)->getCoefficientEstimate();
+		}
+		else if((distanceMrt<500) && (distanceMrt<=1000))
+		{
+			valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_distMRT1000_TWOplusCAR)->getCoefficientEstimate();
+		}
+	}
+
 	double expTwoPlusCar = exp(valueTwoPlusCar);
 	return expTwoPlusCar;
 }
@@ -514,170 +1199,32 @@ bool HouseholdBidderRole::isMotorCycle(int vehicleCategoryId)
 	return false;
 }
 
-void HouseholdBidderRole::setTaxiAccess()
+int HouseholdBidderRole::getIncomeCategoryId(double income)
 {
-	const HM_Model* model = getParent()->getModel();
-	double valueTaxiAccess = model->getTaxiAccessCoeffsById(INTERCEPT)->getCoefficientEstimate();
-	//finds out whether the household is an HDB or not
-	int unitTypeId = model->getUnitById(this->getParent()->getHousehold()->getUnitId())->getUnitType();
-	if( (unitTypeId>0) && (unitTypeId<=6))
+	int incomeCategoryId = 0;
+	if(income > 0 && income <=1000)
 	{
-
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(HDB1)->getCoefficientEstimate();
+		incomeCategoryId = 1;
 	}
-
-	std::vector<BigSerial> individuals = this->getParent()->getHousehold()->getIndividuals();
-	int numIndividualsInAge5064 = 0;
-	int numIndividualsInAge65Up = 0;
-	int numIndividualsAge1019 = 0;
-	int numSelfEmployedIndividuals = 0;
-	int numRetiredIndividuals = 0;
-	int numServiceIndividuals = 0;
-	int numProfIndividuals = 0;
-	int numLabourIndividuals = 0;
-	int numManagerIndividuals = 0;
-
-	std::vector<BigSerial>::iterator individualsItr;
-	for(individualsItr = individuals.begin(); individualsItr != individuals.end(); individualsItr++)
+	else if(income > 1000 && income <=3000)
 	{
-		int ageCategoryId = model->getIndividualById((*individualsItr))->getAgeCategoryId();
-		//IndividualsAge1019
-		if((ageCategoryId==2) || (ageCategoryId==3))
-		{
-			numIndividualsAge1019++;
-		}
-		//IndividualsInAge5064
-		if((ageCategoryId >= 10)&& (ageCategoryId <= 12))
-		{
-			numIndividualsInAge5064++;
-		}
-		//IndividualsInAge65Up
-		if((ageCategoryId >= 13) && (ageCategoryId <= 17))
-		{
-			numIndividualsInAge65Up++;
-		}
-		//SelfEmployedIndividuals
-		if(model->getIndividualById((*individualsItr))->getEmploymentStatusId()==3)
-		{
-			numSelfEmployedIndividuals++;
-		}
-		//RetiredIndividuals
-		if(model->getIndividualById((*individualsItr))->getEmploymentStatusId()==6)
-		{
-			numRetiredIndividuals++;
-		}
-		//individuals in service sector
-		if(model->getIndividualById((*individualsItr))->getOccupationId() == 5)
-		{
-			numServiceIndividuals++;
-		}
-		//Professional Individuals
-		if(model->getIndividualById((*individualsItr))->getOccupationId() == 2)
-		{
-			numProfIndividuals++;
-		}
-
-		//labour individuals : occupation type = other
-		if(model->getIndividualById((*individualsItr))->getOccupationId() == 7)
-		{
-			numLabourIndividuals++;
-		}
-		//Manager individuals
-		if(model->getIndividualById((*individualsItr))->getOccupationId() == 2)
-		{
-			numManagerIndividuals++;
-		}
+		incomeCategoryId = 2;
 	}
-
-	if(numIndividualsInAge5064 == 1)
+	else if(income > 3000 && income <=5000)
 	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(AGE5064_1)->getCoefficientEstimate();
+		incomeCategoryId = 3;
 	}
-	else if (numIndividualsInAge5064 >= 2)
+	else if(income > 5000 && income <=8000)
 	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(AGE5064_2)->getCoefficientEstimate();
+		incomeCategoryId = 4;
 	}
-	if(numIndividualsInAge65Up == 1)
+	else if(income > 8000 && income <=10000)
 	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(AGE65UP_1)->getCoefficientEstimate();
+		incomeCategoryId = 5;
 	}
-	else if (numIndividualsInAge65Up >= 2 )
+	else if(income > 10000)
 	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(AGE65UP_2)->getCoefficientEstimate();
+		incomeCategoryId = 6;
 	}
-	if(numIndividualsAge1019 >=2 )
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(AGE1019_2)->getCoefficientEstimate();
-	}
-	if(numSelfEmployedIndividuals == 1)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(EMPLOYED_SELF_1)->getCoefficientEstimate();
-	}
-	else if(numSelfEmployedIndividuals >= 2)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(EMPLOYED_SELF_2)->getCoefficientEstimate();
-	}
-	if(numRetiredIndividuals == 1)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(RETIRED_1)->getCoefficientEstimate();
-	}
-	else if (numRetiredIndividuals >= 2)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(RETIRED_2)->getCoefficientEstimate();
-	}
-
-	const double incomeLaw = 3000;
-	const double incomeHigh = 10000;
-	if(this->getParent()->getHousehold()->getIncome() <= incomeLaw)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(INC_LOW)->getCoefficientEstimate();
-	}
-	else if (this->getParent()->getHousehold()->getIncome() > incomeHigh)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(INC_HIGH)->getCoefficientEstimate();
-	}
-
-	//TODO::Operator1 and operator2??
-	if(numServiceIndividuals >=2 )
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(SERVICE_2)->getCoefficientEstimate();
-	}
-
-	if(numProfIndividuals >= 1)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(PROF_1)->getCoefficientEstimate();
-	}
-	if(numLabourIndividuals >= 1)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(LABOR_1)->getCoefficientEstimate();
-	}
-	if(numManagerIndividuals >= 1)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(MANAGER_1)->getCoefficientEstimate();
-	}
-	//Indian
-	if(this->getParent()->getHousehold()->getEthnicityId() == 3)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(INDIAN_TAXI_ACCESS)->getCoefficientEstimate();
-	}
-	//Malay
-	if(this->getParent()->getHousehold()->getEthnicityId() == 2)
-	{
-		valueTaxiAccess = valueTaxiAccess + model->getTaxiAccessCoeffsById(MALAY_TAXI_ACCESS)->getCoefficientEstimate();
-	}
-
-	double expTaxiAccess = exp(valueTaxiAccess);
-	double probabilityTaxiAccess = (expTaxiAccess) / (1 + expTaxiAccess);
-
-	/*generate a random number between 0-1
-	* time(0) is passed as an input to constructor in order to randomize the result
-	*/
-	boost::mt19937 randomNumbergenerator( time( 0 ) );
-	boost::random::uniform_real_distribution< > uniformDistribution( 0.0, 1.0 );
-	boost::variate_generator< boost::mt19937&, boost::random::uniform_real_distribution < > >generateRandomNumbers( randomNumbergenerator, uniformDistribution );
-	const double randomNum = generateRandomNumbers( );
-	if(randomNum < probabilityTaxiAccess)
-	{
-		hasTaxiAccess = true;
-	}
+	return incomeCategoryId;
 }

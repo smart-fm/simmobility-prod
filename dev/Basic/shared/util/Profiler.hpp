@@ -263,7 +263,6 @@ protected:
 	std::map<const std::string, boost::shared_ptr<sim_mob::BasicLogger> > repo;
 	virtual sim_mob::BasicLogger & operator()(const std::string &key);
 
-//	static sim_mob::Logger log_;
 	static boost::shared_mutex instanceMutex;
 public:
 	static sim_mob::BasicLogger &log(const std::string &key){

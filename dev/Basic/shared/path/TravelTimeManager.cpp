@@ -96,7 +96,7 @@ void sim_mob::TravelTimeManager::insertTravelTime2TmpTable(const std::string fil
 				DailyTime startTime(simStartTime.getValue() +  (timeInterval* intervalMS) );
 				DailyTime endTime(simStartTime.getValue() + ((timeInterval + 1) * intervalMS - 1) );
 				//now simply write it to the file
-				TTLogger << segmentId << ";" << startTime.getRepr_() << ";" << endTime.getRepr_() << ";" << avgTravelTime << ";"  << intervalSec << ";"  << travelModeStr <<  "\n";
+				TTLogger << segmentId << ";" << startTime.getStrRepr() << ";" << endTime.getStrRepr() << ";" << avgTravelTime << ";"  << intervalSec << ";"  << travelModeStr <<  "\n";
 			}
 		}
 	}

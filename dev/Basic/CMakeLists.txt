@@ -41,10 +41,16 @@ set (EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set (Basic_VERSION_MAJOR 0)
 set (Basic_VERSION_MINOR 1)
 
-#Flags for each configuration type
-SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
-SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
 
+
+#Flags for each configuration type
+#IF (${BUILD_LONG} MATCHES "ON" OR ${BUILD_TESTS_LONG} MATCHES "ON")
+#SET(CMAKE_CXX_FLAGS_RELEASE "-O2 -std=c++11 -DSIMMOB_LATEST_STANDARD ")
+#SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g -std=c++11 -DSIMMOB_LATEST_STANDARD ")
+#ELSE()
+SET(CMAKE_CXX_FLAGS_RELEASE "-O2 ")
+SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g ")
+#ENDIF(${BUILD_LONG} MATCHES "ON" OR ${BUILD_TESTS_LONG} MATCHES "ON")
 
 #Function that turns on Unity builds. From:
 #   http://cheind.wordpress.com/2009/12/10/reducing-compilation-time-unity-builds/

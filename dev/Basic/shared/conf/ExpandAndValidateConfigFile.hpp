@@ -53,7 +53,6 @@ private:
 	void LoadAgentsInOrder(ConfigParams::AgentConstraints& constraints);
 	void GenerateAgentsFromTripChain(ConfigParams::AgentConstraints& constraints);
 	void GenerateXMLAgents(const std::vector<EntityTemplate>& xmlItems, const std::string& roleName, ConfigParams::AgentConstraints& constraints);
-	void GenerateXMLSignals();
 	void PrintSettings();
 	void verifyIncidents();
 

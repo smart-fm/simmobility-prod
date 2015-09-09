@@ -69,6 +69,7 @@ struct LongTermParams{
 		int initialHouseholdsOnMarket;
 		float housingMarketSearchPercentage;
 		float housingMoveInDaysInterval;
+		bool  outputHouseholdLogsums;
 	} housingModel;
 
 	struct VehicleOwnershipModel{
@@ -188,82 +189,6 @@ public:
 	std::map<std::string, Credential> credentials;
 };
 
-
-struct PathSetConf
-{
-	PathSetConf():enabled(false), RTTT_Conf(""), DTT_Conf(""), psRetrieval(""), interval(0),
-	recPS(false),reroute(false), cbd(false), subTripOP(""), perturbationRange(std::pair<unsigned short,unsigned short>(0,0)), kspLevel(0), perturbationIteration(0){}
-	bool enabled;
-	std::string mode;//pathset operation mode "normal" , "generation"(for bulk pathset generation)
-	int threadPoolSize;
-	std::string bulkFile; //in case of using pathset manager in "generation" mode, the results will be outputted to this file
-	std::string odSourceTableName; //data source for getting ODs for bulk pathset generation
-	sim_mob::DatabaseDetails networkDatabase; //If loading from the database, how do we connect?// todo: unused for now
-	std::string pathSetTableName;
-	std::string RTTT_Conf;//realtime travel time table name
-	std::string DTT_Conf;//default travel time table name
-	std::string psRetrieval;// pathset retrieval stored procedure name
-	std::string upsert;//	historical travel time updation
-	int interval; //travel time recording iterval(in seconds)
-	double alpha; //travel time updation coefficient
-	///	recursive pathset Generation
-	bool recPS;
-	///	 enable rerouting?
-	bool reroute;
-	///	CBD enabled?
-	bool cbd;
-	/// subtrip level travel metrics output file(for preday use)
-	std::string subTripOP;
-	///	number of iterations in random perturbation
-	int perturbationIteration;
-	///	range of uniform distribution in random perturbation
-	std::pair<unsigned short,unsigned short> perturbationRange;
-	///k-shortest path level
-	int kspLevel;
-	/// Link Elimination types
-	std::vector<std::string> LE;
-
-	/// Utility parameters
-	struct UtilityParams
-	{
-
-		double bTTVOT;
-		double bCommonFactor;
-		double bLength;
-		double bHighway;
-		double bCost;
-		double bSigInter;
-		double bLeftTurns;
-		double bWork;
-		double bLeisure;
-		double highwayBias;
-		double minTravelTimeParam;
-		double minDistanceParam;
-		double minSignalParam;
-		double maxHighwayParam;
-		UtilityParams()
-		{
-			bTTVOT = -0.01373;//-0.0108879;
-			bCommonFactor = 1.0;
-			bLength = -0.001025;//0.0; //negative sign proposed by milan
-			bHighway = 0.00052;//0.0;
-			bCost = 0.0;
-			bSigInter = -0.13;//0.0;
-			bLeftTurns = 0.0;
-			bWork = 0.0;
-			bLeisure = 0.0;
-			highwayBias = 0.5;
-			minTravelTimeParam = 0.879;
-			minDistanceParam = 0.325;
-			minSignalParam = 0.256;
-			maxHighwayParam = 0.422;
-		}
-	};
-	double maxSegSpeed; //represents max_segment_speed attribute in xml, used in travel time based a_star heuristic function
-	/// Utility Parameters
-	UtilityParams params;
-};
-
 ///Represents the "Simulation" section of the config file.
 class SimulationParams {
 public:
@@ -343,6 +268,7 @@ public:
 
 	Worker person;
 	Worker signal;
+	Worker intersectionMgr;
 	Worker communication;
 };
 
@@ -389,6 +315,148 @@ struct EntityTemplate {
 	int destNode;
 };
 
+/**
+ * contains the path and finle names of external scripts used in the simulation
+ *
+ * \author Harish Loganathan
+ */
+class ModelScriptsMap
+{
+public:
+	ModelScriptsMap(const std::string& scriptFilesPath = "", const std::string& scriptsLang = "");
+
+	const std::string& getPath() const
+	{
+		return path;
+	}
+
+	const std::string& getScriptLanguage() const
+	{
+		return scriptLanguage;
+	}
+
+	std::string getScriptFileName(std::string key) const
+	{
+		//at() is used intentionally so that an out_of_range exception is triggered when invalid key is passed
+		return scriptFileNameMap.at(key);
+	}
+
+	void addScriptFileName(const std::string& key, const std::string& value)
+	{
+		this->scriptFileNameMap[key] = value;
+	}
+
+private:
+	std::string path;
+	std::string scriptLanguage;
+	std::map<std::string, std::string> scriptFileNameMap; //key=>value
+};
+
+///Represents the loop-detector_counts section of the configuration file
+struct ScreenLineParams
+{
+	ScreenLineParams() : interval(0), outputEnabled(false), fileName("") {}
+
+	///The frequency of aggregating the vehicle counts at the loop detector
+	unsigned int interval;
+
+	///Indicates whether the counts have to be output to a file
+	bool outputEnabled;
+
+	///Name of the output file
+	std::string fileName;
+};
+
+struct PathSetConf
+{
+	PathSetConf() : enabled(false), RTTT_Conf(""), DTT_Conf(""), psRetrieval(""), psRetrievalWithoutBannedRegion(""), interval(0), recPS(false), reroute(false),
+			subTripOP(""), perturbationRange(std::pair<unsigned short,unsigned short>(0,0)), kspLevel(0),
+			perturbationIteration(0), threadPoolSize(0), alpha(0), maxSegSpeed(0), publickShortestPathLevel(10), simulationApproachIterations(10),
+			publicPathSetEnabled(true), privatePathSetEnabled(true)
+	{}
+	bool enabled;
+	bool privatePathSetEnabled;
+	std::string privatePathSetMode;//pathset operation mode "normal" , "generation"(for bulk pathset generation)
+
+	bool publicPathSetEnabled;
+	std::string publicPathSetMode;
+
+	std::string publicPathSetOdSource;
+	std::string publicPathSetOutputFile;
+	// Public PathSet Generation Algorithm Configurations
+
+	int publickShortestPathLevel;
+	int simulationApproachIterations;
+
+	int threadPoolSize;
+	std::string bulkFile; //in case of using pathset manager in "generation" mode, the results will be outputted to this file
+	std::string odSourceTableName; //data source for getting ODs for bulk pathset generation
+	std::string pathSetTableName;
+	std::string RTTT_Conf;//realtime travel time table name
+	std::string DTT_Conf;//default travel time table name
+	std::string psRetrieval;// pathset retrieval stored procedure name
+	std::string psRetrievalWithoutBannedRegion; // pathset retrival (excluding banned area) stored procedure name
+	std::string upsert;//	historical travel time updation
+	int interval; //travel time recording iterval(in seconds)
+	double alpha; //travel time updation coefficient
+	///	recursive pathset Generation
+	bool recPS;
+	///	 enable rerouting?
+	bool reroute;
+	/// subtrip level travel metrics output file(for preday use)
+	std::string subTripOP;
+	///	number of iterations in random perturbation
+	int perturbationIteration;
+	///	range of uniform distribution in random perturbation
+	std::pair<unsigned short,unsigned short> perturbationRange;
+	///k-shortest path level
+	int kspLevel;
+	/// Link Elimination types
+	std::vector<std::string> LE;
+
+	/// Utility parameters
+	struct UtilityParams
+	{
+
+		double bTTVOT;
+		double bCommonFactor;
+		double bLength;
+		double bHighway;
+		double bCost;
+		double bSigInter;
+		double bLeftTurns;
+		double bWork;
+		double bLeisure;
+		double highwayBias;
+		double minTravelTimeParam;
+		double minDistanceParam;
+		double minSignalParam;
+		double maxHighwayParam;
+		UtilityParams()
+		{
+			bTTVOT = -0.01373;//-0.0108879;
+			bCommonFactor = 1.0;
+			bLength = -0.001025;//0.0; //negative sign proposed by milan
+			bHighway = 0.00052;//0.0;
+			bCost = 0.0;
+			bSigInter = -0.13;//0.0;
+			bLeftTurns = 0.0;
+			bWork = 0.0;
+			bLeisure = 0.0;
+			highwayBias = 0.5;
+			minTravelTimeParam = 0.879;
+			minDistanceParam = 0.325;
+			minSignalParam = 0.256;
+			maxHighwayParam = 0.422;
+		}
+	};
+	double maxSegSpeed; //represents max_segment_speed attribute in xml, used in travel time based a_star heuristic function
+	/// Utility Parameters
+	UtilityParams params;
+
+	///pt route choice model scripts params
+	ModelScriptsMap ptRouteChoiceScriptsMap;
+};
 
 /**
  * Contains the properties of the config file as they appear in, e.g., test_road_network.xml, with
@@ -431,6 +499,9 @@ public:
 	///Settings for the short-term density map
 	SegmentDensityMap segDensityMap;
 
+	///Settings for the Screen Line Count
+	ScreenLineParams screenLineParams;
+
 	///	is CBD area restriction enforced
 	bool cbd;
 	bool generateBusRoutes;
@@ -447,13 +518,15 @@ public:
 	//Person characteristics parameters
 	PersonCharacteristicsParams personCharacteristicsParams;
 
+	///container for lua scripts
+	ModelScriptsMap luaScriptsMap;
+
 	//@{
 	///Templates for creating entities of various types.
 	std::vector<EntityTemplate> driverTemplates;
 	std::vector<EntityTemplate> taxiDriverTemplates;
 	std::vector<EntityTemplate> pedestrianTemplates;
 	std::vector<EntityTemplate> busDriverTemplates;
-	std::vector<EntityTemplate> signalTemplates;
 	std::vector<EntityTemplate> passengerTemplates;
 	std::vector<EntityTemplate> busControllerTemplates;
 	//@}

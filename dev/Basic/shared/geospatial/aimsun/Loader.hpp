@@ -35,8 +35,8 @@ class ERP_Gantry_Zone;
 class ERP_Section;
 class ERP_Surcharge;
 class LinkTravelTime;
-class TurningSection;
 class PT_PathSet;
+class TurningSection;
 class TurningConflict;
 class TurningPolyline;
 class Polypoint;
@@ -108,8 +108,15 @@ public:
 	static void getCBD_Border(
 			std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > &in,
 			std::set< std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> > & out);
+
+	static void getCBD_Nodes(std::map<unsigned int, const sim_mob::Node*>& nodes);
+
 	///	get all CBD's segments
 	static void getCBD_Segments(std::set<const sim_mob::RoadSegment*> & zoneSegments);
+
+	// get the screen line segments
+	static void getScreenLineSegments(const std::string& connectionStr,
+				const std::map<std::string, std::string>& storedProcs, std::vector<unsigned long>& screenLineList);
 
 	//Semi-private functions
 	static void ProcessGeneralNode(sim_mob::RoadNetwork& res, Node& src);
@@ -136,6 +143,18 @@ public:
 	 * @param splitSegmentStats vector of SegmentStats* to be filled up
 	 */
 	static void CreateSegmentStats(const sim_mob::RoadSegment* rdSeg, std::list<sim_mob::SegmentStats*>& splitSegmentStats);
+
+	/**
+	 * Creates lane groups for every SegmentStats in each link.
+	 * Lane groups are elicited based on the lane connections (turnings) of the last segment of the link.
+	 */
+	static void CreateLaneGroups();
+        
+	/**
+	 * Creates an intersection manager for every multi-node that doesn't have a traffic signal
+	 * @param roadNetwork the road segment for which intersection managers must be created
+	 */
+	static void CreateIntersectionManagers(const sim_mob::RoadNetwork& roadNetwork);
 };
 
 }

@@ -104,7 +104,7 @@ public:
 class PathSet
 {
 public:
-	PathSet():  logsum(0.0),hasPath(false),bestPath(nullptr),oriPath(nullptr),isNeedSave2DB(false),id("")  {pathChoices.clear();}
+	PathSet():  logsum(0.0),hasPath(false),bestPath(nullptr),oriPath(nullptr),isNeedSave2DB(false),id(""),nonCDB_OD(false) {pathChoices.clear();}
 	~PathSet();
 	///	returns the rough size of object in Bytes
 	uint32_t getSize();
@@ -131,6 +131,7 @@ public:
 	std::string excludedPaths;
 	std::string scenario;
 	bool hasPath;
+	bool nonCDB_OD;
 	PathSet(boost::shared_ptr<sim_mob::PathSet> &ps);
 };
 
@@ -347,6 +348,7 @@ public:
 
 	std::set<PT_Path,cmp_path_vector> pathSet;
 	void computeAndSetPathSize();
+	void checkPathFeasibilty();
 };
 
 

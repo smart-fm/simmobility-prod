@@ -34,6 +34,12 @@ namespace sim_mob
             HouseholdAgent(BigSerial id, HM_Model* model, const Household* hh, HousingMarket* market, bool marketSeller = false, int day = 0);
             virtual ~HouseholdAgent();
             
+            enum VehicleOwnershipOption
+            {
+            	NO_CAR, ONE_CAR, TWO_PLUS_CAR
+            };
+            VehicleOwnershipOption vehicleOwnershipOption;
+
             //not-thread safe
             void addUnitId (const BigSerial& unitId);
             void removeUnitId (const BigSerial& unitId);

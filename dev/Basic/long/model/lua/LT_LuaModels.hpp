@@ -16,6 +16,7 @@
 #include "database/entity/ExternalEvent.hpp"
 #include "database/entity/ParcelAmenities.hpp"
 #include "database/entity/PotentialProject.hpp"
+#include "database/entity/LogsumForDevModel.hpp"
 #include "core/HousingMarket.hpp"
 #include "model/HM_Model.hpp"
 
@@ -65,7 +66,7 @@ namespace sim_mob {
              *        to calculate.
              * @param outValues vector that will hold returned expectations.
              */
-            void calulateUnitExpectations(const Unit& unit, int timeOnMarket, std::vector<ExpectationEntry>& outValues) const;
+            void calulateUnitExpectations(const Unit& unit, int timeOnMarket, double logsum, std::vector<ExpectationEntry>& outValues) const;
 
             /**
              * Calculates the hedonic price for the given unit.
@@ -126,7 +127,7 @@ namespace sim_mob {
              * @param parcel amenities.
              * @return value of the future revenue or long_term::INVALID_DOUBLE
              */
-            double calulateUnitRevenue (const PotentialUnit& unit,const ParcelAmenities& amenities) const;
+            double calculateUnitRevenue (const PotentialUnit& unit,const ParcelAmenities& amenities, double logsum, int quarter) const;
             
         private:
 

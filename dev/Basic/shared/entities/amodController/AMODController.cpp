@@ -949,9 +949,9 @@ bool AMODController::insertTravelTime2TmpTable(timeslice frameNumber, std::map<c
 				tt.linkId = -1;
 			}
 
-			tt.startTime = (simStart + sim_mob::DailyTime(frameNumber.ms())).toString();
+			tt.startTime = (simStart + sim_mob::DailyTime(frameNumber.ms())).getStrRepr();
 			double frameLength = ConfigManager::GetInstance().FullConfig().baseGranMS();
-			tt.endTime = (simStart + sim_mob::DailyTime(frameNumber.ms() + frameLength)).toString();
+			tt.endTime = (simStart + sim_mob::DailyTime(frameNumber.ms() + frameLength)).getStrRepr();
 			tt.travelTime = (*it).second.travelTimeSum/(*it).second.agCnt;
 
 			PathSetManager::getInstance()->insertTravelTime2TmpTable(tt);

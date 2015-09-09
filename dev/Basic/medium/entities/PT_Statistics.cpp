@@ -89,7 +89,7 @@ void PT_Statistics::HandleMessage(Message::MessageType type,
 		}
 
 		if (stat) {
-			stat->setWaitingTime(msg.personId, msg.currentTime, msg.waitingTime, msg.failedBoardingTimes);
+			stat->setWaitingTime(msg.personId, msg.currentTime, msg.waitingTime, msg.busLines, msg.failedBoardingTimes);
 		}
 
 		break;
@@ -234,9 +234,10 @@ void PT_Statistics::StoreStatistics() {
 					outputFile << itArrivalTm->busLine << ",";
 					outputFile << itArrivalTm->tripId << ",";
 					outputFile << stopNo << ",";
+					outputFile << itArrivalTm->pctOccupancy << ",";
 					outputFile << itArrivalTm->sequenceNo << ",";
 					outputFile << itArrivalTm->arrivalTime << ",";
-					outputFile << tt.toString() << ",";
+					outputFile << tt.getStrRepr() << ",";
 					outputFile << itArrivalTm->dwellTime << std::endl;
 					itArrivalTm++;
 				}
@@ -264,6 +265,7 @@ void PT_Statistics::StoreStatistics() {
 				while (itWaitingTime != waitingTimeList.end()) {
 					outputFile << itWaitingTime->first << ",";
 					outputFile << stopNo << ",";
+					outputFile << itWaitingTime->second.busLines << ",";
 					outputFile << itWaitingTime->second.currentTime << ",";
 					outputFile << itWaitingTime->second.waitingTime << ",";
 					outputFile << itWaitingTime->second.failedBoardingTime
@@ -366,7 +368,7 @@ void PersonTravelStats::setPersonTravelTime(const std::string& personId, const s
 		DailyTime lastStart(PersonTravelTimeList.back().arrivalTime);
 		DailyTime lastTravel(PersonTravelTimeList.back().travelTime);
 		startTime=DailyTime(lastStart.getValue()+lastTravel.getValue());
-		personTravelTime.arrivalTime = startTime.toString();
+		personTravelTime.arrivalTime = startTime.getStrRepr();
 	}
 	PersonTravelTimeList.push_back(personTravelTime);
 }

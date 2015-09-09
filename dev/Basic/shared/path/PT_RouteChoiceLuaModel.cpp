@@ -22,220 +22,194 @@
 
 using namespace luabridge;
 
-namespace sim_mob{
+namespace sim_mob
+{
 
-PT_RouteChoiceLuaModel* PT_RouteChoiceLuaModel::instance=nullptr;
-
-PT_RouteChoiceLuaModel::PT_RouteChoiceLuaModel() : publicTransitPathSet(nullptr) {
-	// TODO Auto-generated constructor stub
-
-}
-
-PT_RouteChoiceLuaModel::~PT_RouteChoiceLuaModel() {
-	// TODO Auto-generated destructor stub
-}
-
-PT_RouteChoiceLuaModel* PT_RouteChoiceLuaModel::Instance(){
-	if(instance==nullptr){
-		instance = new PT_RouteChoiceLuaModel();
+PT_RouteChoiceLuaModel::PT_RouteChoiceLuaModel() : publicTransitPathSet(nullptr)
+{
+	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+	ptPathsetStoredProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
+	if (ptPathsetStoredProcName.empty())
+	{
+		throw std::runtime_error("stored procedure for \"pt_pathset\" is empty or not specified in config file");
 	}
-	return instance;
+	dbSession = new soci::session(soci::postgresql, cfg.getDatabaseConnectionString(false));
+}
+PT_RouteChoiceLuaModel::~PT_RouteChoiceLuaModel()
+{
+	delete dbSession;
 }
 
-unsigned int PT_RouteChoiceLuaModel::GetSizeOfChoiceSet(){
+unsigned int PT_RouteChoiceLuaModel::getSizeOfChoiceSet()
+{
 	unsigned int size = 0;
-	if(publicTransitPathSet){
+	if (publicTransitPathSet)
+	{
 		size = publicTransitPathSet->pathSet.size();
 	}
 	return size;
 }
 
-double PT_RouteChoiceLuaModel::total_in_vehicle_time(unsigned int index){
-	double ret=0.0;
-	unsigned int sizeOfChoiceSet = GetSizeOfChoiceSet();
-	if(publicTransitPathSet && index<=sizeOfChoiceSet && index>0){
-		std::set<PT_Path,cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
-		std::advance(it, index-1);
+double PT_RouteChoiceLuaModel::getTotalInVehicleTime(unsigned int index)
+{
+	double ret = 0.0;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
+	{
+		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::advance(it, index - 1);
 		ret = it->getTotalInVehicleTravelTimeSecs();
 	}
 	return ret;
 }
 
-double PT_RouteChoiceLuaModel::total_walk_time(unsigned int index){
-	double ret=0.0;
-	unsigned int sizeOfChoiceSet = GetSizeOfChoiceSet();
-	if(publicTransitPathSet && index<=sizeOfChoiceSet && index>0){
-		std::set<PT_Path,cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
-		std::advance(it, index-1);
+double PT_RouteChoiceLuaModel::getTotalWalkTime(unsigned int index)
+{
+	double ret = 0.0;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
+	{
+		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::advance(it, index - 1);
 		ret = it->getTotalWalkingTimeSecs();
 	}
 	return ret;
 }
 
-double PT_RouteChoiceLuaModel::total_wait_time(unsigned int index){
-	double ret=0.0;
-	unsigned int sizeOfChoiceSet = GetSizeOfChoiceSet();
-	if(publicTransitPathSet && index<=sizeOfChoiceSet && index>0){
-		std::set<PT_Path,cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
-		std::advance(it, index-1);
+double PT_RouteChoiceLuaModel::getTotalWaitTime(unsigned int index)
+{
+	double ret = 0.0;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
+	{
+		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::advance(it, index - 1);
 		ret = it->getTotalWaitingTimeSecs();
 	}
 	return ret;
 }
 
-double PT_RouteChoiceLuaModel::total_path_size(unsigned int index){
-	double ret=0.0;
-	unsigned int sizeOfChoiceSet = GetSizeOfChoiceSet();
-	if(publicTransitPathSet && index<=sizeOfChoiceSet && index>0){
-		std::set<PT_Path,cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
-		std::advance(it, index-1);
+double PT_RouteChoiceLuaModel::getTotalPathSize(unsigned int index)
+{
+	double ret = 0.0;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
+	{
+		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::advance(it, index - 1);
 		ret = it->getPathSize();
 	}
 	return ret;
 }
 
-int PT_RouteChoiceLuaModel::total_no_txf(unsigned int index){
-	int ret=0.0;
-	unsigned int sizeOfChoiceSet = GetSizeOfChoiceSet();
-	if(publicTransitPathSet && index<=sizeOfChoiceSet && index>0){
-		std::set<PT_Path,cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
-		std::advance(it, index-1);
+int PT_RouteChoiceLuaModel::getTotalNumTxf(unsigned int index)
+{
+	int ret = 0.0;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
+	{
+		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::advance(it, index - 1);
 		ret = it->getTotalNumberOfTransfers();
 	}
 	return ret;
 }
 
-double PT_RouteChoiceLuaModel::total_cost(unsigned int index){
-	double ret=0.0;
-	unsigned int sizeOfChoiceSet = GetSizeOfChoiceSet();
-	if(publicTransitPathSet && index<=sizeOfChoiceSet && index>0){
-		std::set<PT_Path,cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
-		std::advance(it, index-1);
+double PT_RouteChoiceLuaModel::getTotalCost(unsigned int index)
+{
+	double ret = 0.0;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
+	{
+		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
+		std::advance(it, index - 1);
 		ret = it->getTotalCost();
 	}
 	return ret;
 }
 
-
-std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::MakePT_RouteChoice(
-		const std::string& original, const std::string& dest) {
+std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const std::string& origin, const std::string& destination)
+{
 	std::vector<sim_mob::OD_Trip> odTrips;
-	unsigned int sizeOfChoiceSet = GetSizeOfChoiceSet();
-	std::string pathSetId = "N_"+original+"_"+"N_"+dest;
+	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
+	std::string pathSetId = "N_" + origin + "_" + "N_" + destination;
 	LuaRef funcRef = getGlobal(state.get(), "choose_PT_path");
 	LuaRef retVal = funcRef(this, sizeOfChoiceSet);
 	int index = -1;
-	if (retVal.isNumber()) {
+	if (retVal.isNumber())
+	{
 		index = retVal.cast<int>();
-		if(index>sizeOfChoiceSet||index<=0){
-			index = sizeOfChoiceSet;
-		}
 	}
-	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0) {
-		std::set<PT_Path, cmp_path_vector>::iterator it =
-				publicTransitPathSet->pathSet.begin();
+
+	if (index > sizeOfChoiceSet || index <= 0)
+	{
+		std::stringstream errStrm;
+		errStrm << "invalid path index (" << index << ") returned from PT route choice for OD " << pathSetId
+				<< " with " <<  sizeOfChoiceSet << "path choices" << std::endl;
+		throw std::runtime_error(errStrm.str());
+	}
+
+	if (publicTransitPathSet)
+	{
+		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
 		const std::vector<PT_NetworkEdge>& pathEdges = it->getPathEdges();
-		//Print() << original<<"--->"<<dest<<"("<<it->getPtPathId()<<")" << std::endl;
-		for (std::vector<PT_NetworkEdge>::const_iterator itEdge =
-				pathEdges.begin(); itEdge != pathEdges.end(); itEdge++) {
+		for (std::vector<PT_NetworkEdge>::const_iterator itEdge = pathEdges.begin(); itEdge != pathEdges.end(); itEdge++)
+		{
 			sim_mob::OD_Trip trip;
 			trip.startStop = itEdge->getStartStop();
-			trip.sType = PT_Network::getInstance().getVertexTypeFromStopId(
-					trip.startStop);
-			if (trip.startStop.find("N_") != std::string::npos) {
+			trip.sType = PT_Network::getInstance().getVertexTypeFromStopId(trip.startStop);
+			if (trip.startStop.find("N_") != std::string::npos)
+			{
 				trip.startStop = trip.startStop.substr(2);
 			}
 			trip.endStop = itEdge->getEndStop();
-			trip.eType = PT_Network::getInstance().getVertexTypeFromStopId(
-					trip.endStop);
-			if (trip.endStop.find("N_") != std::string::npos) {
+			trip.eType = PT_Network::getInstance().getVertexTypeFromStopId(trip.endStop);
+			if (trip.endStop.find("N_") != std::string::npos)
+			{
 				trip.endStop = trip.endStop.substr(2);
 			}
 			trip.tType = itEdge->getType();
 			trip.serviceLines = itEdge->getServiceLines();
-			trip.originNode = original;
-			trip.destNode = dest;
+			trip.originNode = origin;
+			trip.destNode = destination;
 			trip.travelTime = itEdge->getTransitTimeSecs();
 			trip.walkTime = itEdge->getWalkTimeSecs();
 			trip.id = itEdge->getEdgeId();
 			trip.pathset = pathSetId;
 			odTrips.push_back(trip);
-			/*Print() << itEdge->getEdgeId() << "," << trip.startStop << "("
-					<< trip.sType << ")," << trip.endStop << "(" << trip.eType
-					<< ")," << trip.tType << "," <<trip.travelTime<<","<< trip.serviceLines
-					<< std::endl;*/
 		}
 	}
 
 	return odTrips;
 }
 
-bool PT_RouteChoiceLuaModel::GetBestPT_Path(const std::string& original,
-		const std::string& dest, std::vector<sim_mob::OD_Trip>& odTrips) {
-	bool ret = false;
-
-	if(ret=SearchPT_Path(original, dest, odTrips)){
-		return ret;
-	}
-
-	PT_PathSet pathSet;
-	pathSet = sim_mob::PT_RouteChoiceLuaModel::Instance()->LoadPT_PathSet(original, dest);
-	if(pathSet.pathSet.size()==0){
-		Warn()<<"[PT pathset]load pathset failed:["<<original<<"]:["<<dest<<"]"<<std::endl;
-		//int srcId = boost::lexical_cast<int>(original);
-		//int destId = boost::lexical_cast<int>(dest);
-		//sim_mob::Node* srcNode = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(srcId);
-		//sim_mob::Node* destNode = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(destId);
-		//pathSet = sim_mob::PT_PathSetManager::Instance().makePathset(srcNode,destNode);
-		if(pathSet.pathSet.size()==0){
-			Print()<<"[PT pathset]make pathset failed:["<<original<<"]:["<<dest<<"]"<<std::endl;
-		}
-	}
-
-	stateMutex.lock();
-	if(pathSet.pathSet.size()>0){
-		SetPathSet(&pathSet);
-		odTrips = MakePT_RouteChoice(original, dest);
-		odTripMapGen.insert(odTripMapGen.end(), odTrips.begin(), odTrips.end());
-		//StoreBestPT_Path();
-		ret = true;
-	}
-	stateMutex.unlock();
-	return ret;
-}
-
-void PT_RouteChoiceLuaModel::BuildLookupMap(){
-	std::vector<sim_mob::OD_Trip>::iterator odIt = odTripMap.begin();
-	for (; odIt != odTripMap.end(); odIt++){
-		std::string pathSetId = odIt->pathset;
-		std::map<std::string, std::vector<sim_mob::OD_Trip> >::iterator it;
-		it=odTripTable.find(pathSetId);
-		if(it==odTripTable.end()){
-			odTripTable.insert(std::make_pair(pathSetId, std::vector<sim_mob::OD_Trip>()));
-		}
-		odTripTable[pathSetId].push_back(*odIt);
-	}
-}
-
-bool PT_RouteChoiceLuaModel::SearchPT_Path(const std::string& original, const std::string& dest, std::vector<sim_mob::OD_Trip>& odTrips )
+bool PT_RouteChoiceLuaModel::getBestPT_Path(const std::string& origin, const std::string& dest, std::vector<sim_mob::OD_Trip>& odTrips)
 {
 	bool ret = false;
-	std::string pathSetId = "N_"+original+"_"+"N_"+dest;
-	std::map<std::string, std::vector<sim_mob::OD_Trip> >::iterator it;
-	it=odTripTable.find(pathSetId);
-	if(it!=odTripTable.end()){
+	PT_PathSet pathSet;
+	pathSet = loadPT_PathSet(origin, dest);
+	if (pathSet.pathSet.size() == 0)
+	{
+		Print() << "[PT pathset]load pathset failed:[" << origin << "]:[" << dest << "]" << std::endl;
+	}
+
+	if(pathSet.pathSet.size()>0){
+		publicTransitPathSet = &pathSet;
+		odTrips = makePT_RouteChoice(origin, dest);
 		ret = true;
-		odTrips = it->second;
 	}
 	return ret;
 }
 
-void PT_RouteChoiceLuaModel::StoreBestPT_Path() {
+void PT_RouteChoiceLuaModel::storeBestPT_Path()
+{
 	std::ofstream outputFile("od_to_trips.csv");
-	if (outputFile.is_open()) {
+	if (outputFile.is_open())
+	{
 		std::vector<sim_mob::OD_Trip>::iterator odIt = odTripMapGen.begin();
-		for (; odIt != odTripMapGen.end(); odIt++) {
+		for (; odIt != odTripMapGen.end(); odIt++)
+		{
 			outputFile << odIt->startStop << ",";
 			outputFile << odIt->endStop << ",";
 			outputFile << odIt->sType << ",";
@@ -252,65 +226,25 @@ void PT_RouteChoiceLuaModel::StoreBestPT_Path() {
 	}
 }
 
-void PT_RouteChoiceLuaModel::mapClasses() {
-    getGlobalNamespace(state.get())
-            .beginClass <PT_RouteChoiceLuaModel> ("PT_RouteChoiceLuaModel")
-            .addFunction("total_in_vehicle_time", &PT_RouteChoiceLuaModel::total_in_vehicle_time)
-            .addFunction("total_walk_time", &PT_RouteChoiceLuaModel::total_walk_time)
-			.addFunction("total_wait_time", &PT_RouteChoiceLuaModel::total_wait_time)
-			.addFunction("total_path_size", &PT_RouteChoiceLuaModel::total_path_size)
-			.addFunction("total_no_txf", &PT_RouteChoiceLuaModel::total_no_txf)
-			.addFunction("total_cost", &PT_RouteChoiceLuaModel::total_cost)
-            .endClass();
+void PT_RouteChoiceLuaModel::mapClasses()
+{
+	getGlobalNamespace(state.get())
+			.beginClass<PT_RouteChoiceLuaModel>("PT_RouteChoiceLuaModel")
+				.addFunction("total_in_vehicle_time", &PT_RouteChoiceLuaModel::getTotalInVehicleTime)
+				.addFunction("total_walk_time", &PT_RouteChoiceLuaModel::getTotalWalkTime)
+				.addFunction("total_wait_time", &PT_RouteChoiceLuaModel::getTotalWaitTime)
+				.addFunction("total_path_size", &PT_RouteChoiceLuaModel::getTotalPathSize)
+				.addFunction("total_no_txf", &PT_RouteChoiceLuaModel::getTotalNumTxf)
+				.addFunction("total_cost", &PT_RouteChoiceLuaModel::getTotalCost)
+			.endClass();
 }
 
-const boost::shared_ptr<soci::session> & sim_mob::PT_RouteChoiceLuaModel::getSession(){
-	boost::upgrade_lock<boost::shared_mutex> lock(cnnRepoMutex);
-	std::map<boost::thread::id, boost::shared_ptr<soci::session> >::iterator it;
-	it = cnnRepo.find(boost::this_thread::get_id());
-	if (it == cnnRepo.end()) {
-		std::string dbStr(
-				ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(
-						false));
-		{
-			boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
-			boost::shared_ptr<soci::session> t(
-					new soci::session(soci::postgresql, dbStr));
-			it =
-					cnnRepo.insert(
-							std::make_pair(boost::this_thread::get_id(), t)).first;
-		}
-	}
-	return it->second;
-}
-
-
-
-
-PT_PathSet PT_RouteChoiceLuaModel::LoadPT_PathSet(const std::string& original, const std::string& dest)
+PT_PathSet PT_RouteChoiceLuaModel::loadPT_PathSet(const std::string& origin, const std::string& dest)
 {
 	PT_PathSet pathSet;
-	/*std::string pathSetId = "N_"+original+","+"N_"+dest;
-	aimsun::Loader::LoadPT_ChoiceSetFrmDB(*getSession(),pathSetId, pathSet);
-	pathSet.pathSet.clear();*/
-
-	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
-	std::string storedProcName = cfg.getDatabaseProcMappings().procedureMappings["pt_pathset"];
-	if(storedProcName.empty()){
-		throw std::runtime_error("Loading PT pathset function is empty!(<mapping name=\"pt_pathset\" procedure=\"\"/>)");
-	}
-	int sNodeId = boost::lexical_cast<int>(original);
+	int sNodeId = boost::lexical_cast<int>(origin);
 	int dNodeId = boost::lexical_cast<int>(dest);
-	aimsun::Loader::LoadPT_PathsetFrmDB(*getSession(), storedProcName, sNodeId, dNodeId, pathSet);
-
-	/*for(std::set<PT_Path, cmp_path_vector>::iterator it = pathSet.pathSet.begin();it!=pathSet.pathSet.end(); it++){
-		const std::vector<PT_NetworkEdge>& pathEdges = it->getPathEdges();
-		Print() << original<<"--->"<<dest<<"("<<it->getPtPathId()<<")" << std::endl;
-		for (std::vector<PT_NetworkEdge>::const_iterator itEdge =
-				pathEdges.begin(); itEdge != pathEdges.end(); itEdge++) {
-			Print() << itEdge->getEdgeId() << std::endl;
-		}
-	}*/
+	aimsun::Loader::LoadPT_PathsetFrmDB(*dbSession, ptPathsetStoredProcName, sNodeId, dNodeId, pathSet);
 	return pathSet;
 }
 

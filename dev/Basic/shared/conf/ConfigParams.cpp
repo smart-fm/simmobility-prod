@@ -46,7 +46,6 @@ sim_mob::ConfigParams::~ConfigParams()
 	safe_delete_item(controlMgr);
 
 	clear_delete_vector(busschedule);
-	clear_delete_vector(pt_trip);
 	clear_delete_vector(confluxes);
 	clear_delete_vector(segmentStatsWithBusStops);
 	clear_delete_map(busStopNo_busStops);
@@ -189,6 +188,15 @@ unsigned int& sim_mob::ConfigParams::signalWorkGroupSize()
 const unsigned int& sim_mob::ConfigParams::signalWorkGroupSize() const
 {
 	return system.workers.signal.count;
+}
+
+unsigned int& sim_mob::ConfigParams::intMgrWorkGroupSize()
+{
+	return system.workers.intersectionMgr.count;
+}
+const unsigned int& sim_mob::ConfigParams::intMgrWorkGroupSize() const
+{
+	return system.workers.intersectionMgr.count;
 }
 
 unsigned int& sim_mob::ConfigParams::commWorkGroupSize()
@@ -381,6 +389,11 @@ unsigned int sim_mob::ConfigParams::signalTimeStepInMilliSeconds() const
 	return system.workers.signal.granularityMs;
 }
 
+unsigned int sim_mob::ConfigParams::intMgrTimeStepInMilliSeconds() const
+{
+	return system.workers.intersectionMgr.granularityMs;
+}
+
 bool sim_mob::ConfigParams::RunningMidSupply() const {
 	return (midTermRunMode == ConfigParams::SUPPLY);
 }
@@ -429,12 +442,6 @@ std::vector<sim_mob::BusSchedule*>& sim_mob::ConfigParams::getBusSchedule()
 std::vector<sim_mob::OD_Trip>& sim_mob::ConfigParams::getODsTripsMap()
 {
 	return ODsTripsMap;
-}
-
-
-std::vector<sim_mob::PT_trip*>& sim_mob::ConfigParams::getPT_trip()
-{
-	return pt_trip;
 }
 
 std::vector<sim_mob::PT_bus_dispatch_freq>& sim_mob::ConfigParams::getPT_bus_dispatch_freq()
@@ -538,4 +545,9 @@ sim_mob::Conflux* sim_mob::ConfigParams::getConfluxForNode(const sim_mob::MultiN
 	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>::const_iterator cfxIt = multinode_confluxes.find(multinode);
 	if(cfxIt == multinode_confluxes.end()) { return nullptr; }
 	return cfxIt->second;
+}
+
+const ModelScriptsMap& sim_mob::ConfigParams::getLuaScriptsMap() const
+{
+	return luaScriptsMap;
 }

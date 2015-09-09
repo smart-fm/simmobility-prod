@@ -58,6 +58,7 @@ template<> struct type_conversion<sim_mob::aimsun::Node>
     	res.id = vals.get<int>("node_id", 0);
     	res.xPos = vals.get<double>("xpos", 0.0);
     	res.yPos = vals.get<double>("ypos", 0.0);
+        //res.nodeName = vals.get<std::string>("nodename", "");
     	res.isIntersection = vals.get<int>("isintersection", 0);
     	res.hasTrafficSignal = vals.get<int>("hassignal", 0);
     }
@@ -66,6 +67,7 @@ template<> struct type_conversion<sim_mob::aimsun::Node>
     	vals.set("node_id", src.id);
         vals.set("xpos", src.xPos);
         vals.set("ypos", src.yPos);
+        //vals.set("nodename", src.nodeName);
         vals.set("isintersection", src.isIntersection?1:0);
         vals.set("hvTLights", src.hasTrafficSignal?1:0);
         ind = i_ok;
@@ -430,6 +432,8 @@ template<> struct type_conversion<sim_mob::aimsun::BusStop>
     {
     	res.bus_stop_no = vals.get<std::string>("bus_stop_no", "");
     	res.TMP_AtSectionID= vals.get<int>("section_id", 0);
+    	res.TMP_RevSectionID = vals.get<int>("reverse_section_id", 0);
+    	res.TMP_TerminalNodeID = vals.get<int>("terminal_node_id", 0);
     	res.status = vals.get<std::string>("status", "");
     	res.lane_type = vals.get<std::string>("lane_type", "");
     	res.road_name = vals.get<std::string>("road_name", "");

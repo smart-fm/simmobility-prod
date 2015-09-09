@@ -47,7 +47,7 @@ void PT_Network::init()
 	// Building a Public transit map for edges and vertices
 	for(vector<PT_NetworkVertex>::const_iterator ptVertexIt=PublicTransitVertices.begin();ptVertexIt!=PublicTransitVertices.end();ptVertexIt++)
 	{
-		PublicTransitVertexMap[(*ptVertexIt).getStopId()]=*ptVertexIt;
+		PT_NetworkVertexMap[(*ptVertexIt).getStopId()]=*ptVertexIt;
 	}
 	for(vector<PT_NetworkEdge>::const_iterator ptEdgeIt=PublicTransitEdges.begin();ptEdgeIt!=PublicTransitEdges.end();ptEdgeIt++)
 	{
@@ -78,8 +78,8 @@ void PT_Network::init()
 }
 int PT_Network::getVertexTypeFromStopId(std::string stopId)
 {
-	if(PublicTransitVertexMap.find(stopId) != PublicTransitVertexMap.end())
-		return PublicTransitVertexMap.find(stopId)->second.getStopType();
+	if(PT_NetworkVertexMap.find(stopId) != PT_NetworkVertexMap.end())
+		return PT_NetworkVertexMap.find(stopId)->second.getStopType();
 	return -1;
 }
 

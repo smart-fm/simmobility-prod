@@ -110,7 +110,23 @@ public:
 	// predefined visitors
 	typedef RStarRemoveLeaf<Leaf>				RemoveLeaf;
 	typedef RStarRemoveSpecificLeaf<Leaf>		RemoveSpecificLeaf;
+	std::vector<Leaf*> 							AllLeaves;
+	std::vector<Node*> 							AllNodes;
 	
+	void RemoveAll() {
+		while (AllLeaves.size() > 0) {
+			Leaf* leaf = AllLeaves.back();
+			AllLeaves.pop_back();
+			delete leaf;
+		}
+		while (AllNodes.size() > 0) {
+			Node* node = AllNodes.back();
+			AllNodes.pop_back();
+			delete node;
+		}
+		m_root = NULL;
+		m_size = 0;
+	}
 
 	// default constructor
 	RStarTree() : m_root(NULL), m_size(0) 
@@ -140,6 +156,7 @@ public:
 		newLeaf->bound = bound;
 		newLeaf->leaf  = leaf;
 		newLeaf->is_a_leaf = true;
+		AllLeaves.push_back(newLeaf);
 
 		// create a new root node if necessary
 		if (!m_root)
@@ -147,6 +164,7 @@ public:
 			m_root = new Node();
 			m_root->hasLeaves = true;
 			m_root->is_a_leaf = false;
+			AllNodes.push_back(m_root);
 			
 			// reserve memory
 			m_root->items.reserve(min_child_items);
@@ -412,6 +430,7 @@ protected:
 			Node * newRoot = new Node();
 			newRoot->hasLeaves = false;
 			newRoot->is_a_leaf = false;
+			AllNodes.push_back(newRoot);
 			
 			// reserve memory
 			newRoot->items.reserve(min_child_items);
@@ -447,6 +466,7 @@ protected:
 		Node * newNode = new Node();
 		newNode->hasLeaves = node->hasLeaves;
 		newNode->is_a_leaf = false;
+		AllNodes.push_back(newNode);
 
 		const std::size_t n_items = node->items.size();
 		const std::size_t distribution_count = n_items - 2*min_child_items + 1;

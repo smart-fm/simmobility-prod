@@ -196,7 +196,9 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 
 	if( longTerm )
 	{
+		ProcessConstructsNode(GetSingleElementByName(rootNode,"constructs"));
 		ProcessLongTermParamsNode( GetSingleElementByName(rootNode, "longTermParams"));
+		ProcessModelScriptsNode(GetSingleElementByName(rootNode, "model_scripts"));
 		return;
 	}
 
@@ -231,8 +233,15 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	//Read the settings for density counts (optional node, short term)
 	ProcessShortDensityMapNode(GetSingleElementByName(rootNode, "short-term_density-map"));
 
+	ProcessScreenLineNode(GetSingleElementByName(rootNode, "screen-line_count"));
+
 	//Take care of pathset manager confifuration in here
 	ParsePathXmlConfig(sim_mob::ConfigManager::GetInstance().FullConfig().pathsetFile, sim_mob::ConfigManager::GetInstanceRW().PathSetConfig());
+
+	if(cfg.cbd && ConfigManager::GetInstance().FullConfig().pathSet().psRetrievalWithoutBannedRegion.empty())
+	{
+        throw std::runtime_error("Pathset without banned area stored procedure name not found\n");
+	}
 }
 
 void sim_mob::ParseConfigFile::ProcessSystemNode(DOMElement* node)
@@ -499,6 +508,7 @@ void sim_mob::ParseConfigFile::ProcessLongTermParamsNode(xercesc::DOMElement* no
 	housingModel.initialHouseholdsOnMarket = ParseInteger(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "InitialHouseholdsOnMarket"), "value"), static_cast<int>(0));
 	housingModel.housingMarketSearchPercentage = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "housingMarketSearchPercentage"), "value"));
 	housingModel.housingMoveInDaysInterval = ParseFloat(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "housingMoveInDaysInterval"), "value"));
+	housingModel.outputHouseholdLogsums = ParseBoolean(GetNamedAttributeValue(GetSingleElementByName(GetSingleElementByName( node, "housingModel"), "outputHouseholdLogsums"), "value"), false);
 	cfg.ltParams.housingModel = housingModel;
 
 	LongTermParams::VehicleOwnershipModel vehicleOwnershipModel;
@@ -581,15 +591,6 @@ void sim_mob::ParseConfigFile::ProcessPassengersNode(xercesc::DOMElement* node)
 	}
 
 	ProcessFutureAgentList(node, "passenger", cfg.passengerTemplates);
-}
-
-void sim_mob::ParseConfigFile::ProcessSignalsNode(xercesc::DOMElement* node)
-{
-	if (!node) {
-		return;
-	}
-
-	ProcessFutureAgentList(node, "signal", cfg.signalTemplates, true, true, false, false);
 }
 
 void sim_mob::ParseConfigFile::ProcessBusControllersNode(xercesc::DOMElement* node)
@@ -709,6 +710,28 @@ void sim_mob::ParseConfigFile::ProcessShortDensityMapNode(xercesc::DOMElement* n
 	}
 }
 
+void sim_mob::ParseConfigFile::ProcessScreenLineNode(xercesc::DOMElement* node)
+{
+	if(node)
+	{
+		cfg.screenLineParams.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "screenLineCountEnabled"), "false");
+		if(cfg.screenLineParams.outputEnabled)
+		{
+			cfg.screenLineParams.interval = ParseUnsignedInt(GetNamedAttributeValue(node, "interval"), 300);
+			cfg.screenLineParams.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "screenLineCount.txt");
+
+			if(cfg.screenLineParams.interval == 0)
+			{
+				throw std::runtime_error("ParseConfigFile::ProcessScreenLineNode - Interval for screen line count is 0");
+			}
+			if(cfg.screenLineParams.fileName.empty())
+			{
+				throw std::runtime_error("ParseConfigFile::ProcessScreenLineNode - File Name is empty");
+			}
+		}
+	}
+}
+
 void sim_mob::ParseConfigFile::ProcessSystemSimulationNode(xercesc::DOMElement* node)
 {
 	//Several properties are set up as "x ms", or "x seconds", etc.
@@ -745,6 +768,7 @@ void sim_mob::ParseConfigFile::ProcessSystemWorkersNode(xercesc::DOMElement* nod
 {
 	ProcessWorkerPersonNode(GetSingleElementByName(node, "person", true));
 	ProcessWorkerSignalNode(GetSingleElementByName(node, "signal", true));
+	ProcessWorkerIntMgrNode(GetSingleElementByName(node, "intersection_manager", true));
 	ProcessWorkerCommunicationNode(GetSingleElementByName(node, "communication", true));
 
 }
@@ -930,6 +954,12 @@ void sim_mob::ParseConfigFile::ProcessWorkerSignalNode(xercesc::DOMElement* node
 	cfg.system.workers.signal.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
 }
 
+void sim_mob::ParseConfigFile::ProcessWorkerIntMgrNode(xercesc::DOMElement* node)
+{
+	cfg.system.workers.intersectionMgr.count = ParseInteger(GetNamedAttributeValue(node, "count"));
+	cfg.system.workers.intersectionMgr.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
+}
+
 void sim_mob::ParseConfigFile::ProcessWorkerCommunicationNode(xercesc::DOMElement* node)
 {
 	cfg.system.workers.communication.count = ParseInteger(GetNamedAttributeValue(node, "count"));
@@ -1036,5 +1066,46 @@ void sim_mob::ParseConfigFile::ProcessIncidentsNode(xercesc::DOMElement* node)
 
 		cfg.incidents.push_back(incident);
 	}
+}
+
+void sim_mob::ParseConfigFile::ProcessModelScriptsNode(xercesc::DOMElement* node)
+{
+	std::string format = ParseString(GetNamedAttributeValue(node, "format"), "");
+	if (format.empty() || format != "lua")
+	{
+		throw std::runtime_error("Unsupported script format");
+	}
+
+	std::string scriptsDirectoryPath = ParseString(GetNamedAttributeValue(node, "path"), "");
+	if (scriptsDirectoryPath.empty())
+	{
+		throw std::runtime_error("path to scripts is not provided");
+	}
+	if ((*scriptsDirectoryPath.rbegin()) != '/')
+	{
+		//add a / to the end of the path string if it is not already there
+		scriptsDirectoryPath.push_back('/');
+	}
+	ModelScriptsMap scriptsMap(scriptsDirectoryPath, format);
+	for (DOMElement* item = node->getFirstElementChild(); item; item = item->getNextElementSibling())
+	{
+		std::string name = TranscodeString(item->getNodeName());
+		if (name != "script")
+		{
+			Warn() << "Invalid db_proc_groups child node.\n";
+			continue;
+		}
+
+		std::string key = ParseString(GetNamedAttributeValue(item, "name"), "");
+		std::string val = ParseString(GetNamedAttributeValue(item, "file"), "");
+		if (key.empty() || val.empty())
+		{
+			Warn() << "Invalid script; missing \"name\" or \"file\".\n";
+			continue;
+		}
+
+		scriptsMap.addScriptFileName(key, val);
+	}
+	cfg.luaScriptsMap = scriptsMap;
 }
 

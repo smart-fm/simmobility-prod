@@ -220,12 +220,9 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             developerModel->setCurrentTick(currTick);
             DeveloperModel::ParcelList parcels;
             DeveloperModel::DeveloperList developerAgents;
-            bool isParcelRemain = developerModel->getIsParcelRemain();
-            if(isParcelRemain)
-            {
-            	developerAgents = developerModel->getDeveloperAgents(false);
-            	developerModel->wakeUpDeveloperAgents(developerAgents);
-            }
+            developerAgents = developerModel->getDeveloperAgents();
+            developerModel->wakeUpDeveloperAgents(developerAgents);
+
         }
 
         //Save our output files if we are merging them later.

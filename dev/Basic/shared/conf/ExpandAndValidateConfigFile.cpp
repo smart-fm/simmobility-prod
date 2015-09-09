@@ -28,6 +28,7 @@
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/aimsun/Loader.hpp"
+#include "geospatial/simmobility_network/NetworkLoader.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/xmlLoader/geo10.hpp"
 #include "geospatial/xmlWriter/boostXmlWriter.hpp"
@@ -36,129 +37,83 @@
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/Utils.hpp"
 #include "workers/WorkGroup.hpp"
-#include "geospatial/simmobility_network/NetworkLoader.hpp"
+#include "path/PT_PathSetManager.hpp"
 
 using namespace sim_mob;
 
-
-namespace {
-
-ReactionTimeDist* GenerateReactionTimeDistribution(SimulationParams::ReactionTimeDistDescription rdist)  {
-	if (rdist.typeId==0) {
-		return new NormalReactionTimeDist(rdist.mean, rdist.stdev);
-	} else if (rdist.typeId==1) {
-		return new LognormalReactionTimeDist(rdist.mean, rdist.stdev);
-	} else {
-		throw std::runtime_error("Unknown reaction time magic number.");
-	}
-}
-
-void InformLoadOrder(const std::vector<SimulationParams::LoadAgentsOrderOption>& order) {
-	std::cout <<"Agent Load order: ";
-	if (order.empty()) {
-		std::cout <<"<N/A>";
-	} else {
-		for (std::vector<SimulationParams::LoadAgentsOrderOption>::const_iterator it=order.begin(); it!=order.end(); ++it) {
-			if ((*it)==SimulationParams::LoadAg_Drivers) {
-				std::cout <<"drivers";
-			} else if ((*it)==SimulationParams::LoadAg_Database) {
-				std::cout <<"database";
-			} else if ((*it)==SimulationParams::LoadAg_Pedestrians) {
-				std::cout <<"pedestrians";
-			} else {
-				std::cout <<"<unknown>";
-			}
-			std::cout <<"  ";
+namespace 
+{
+	ReactionTimeDist* GenerateReactionTimeDistribution(SimulationParams::ReactionTimeDistDescription rdist)
+	{
+		if (rdist.typeId == 0)
+		{
+			return new NormalReactionTimeDist(rdist.mean, rdist.stdev);
+		} 
+		else if (rdist.typeId == 1)
+		{
+			return new LognormalReactionTimeDist(rdist.mean, rdist.stdev);
+		} 
+		else
+		{
+			throw std::runtime_error("Unknown reaction time magic number.");
 		}
 	}
-	std::cout <<std::endl;
-}
 
-
-////
-//// TODO: Eventually, we need to re-write WorkGroup to encapsulate the functionality of "addOrStash()".
-////       For now, just make sure that if you add something to all_agents manually, you call "load()" before.
-////
-void addOrStashEntity(Agent* p, std::set<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
-{
-	//Only agents with a start time of zero should start immediately in the all_agents list.
-	if (p->getStartTime()==0) 
+	void InformLoadOrder(const std::vector<SimulationParams::LoadAgentsOrderOption>& order)
 	{
-		p->load(p->getConfigProperties());
-		p->clearConfigProperties();
-		active_agents.insert(p);
+		std::cout << "Agent Load order: ";
+		if (order.empty())
+		{
+			std::cout << "<N/A>";
+		} 
+		else
+		{
+			for (std::vector<SimulationParams::LoadAgentsOrderOption>::const_iterator it=order.begin(); it != order.end(); ++it)
+			{
+				if ((*it) == SimulationParams::LoadAg_Drivers)
+				{
+					std::cout << "drivers";
+				} 
+				else if ((*it) == SimulationParams::LoadAg_Database)
+				{
+					std::cout << "database";
+				} 
+				else if ((*it) == SimulationParams::LoadAg_Pedestrians)
+				{
+					std::cout << "pedestrians";
+				} 
+				else
+				{
+					std::cout << "<unknown>";
+				}
+				std::cout << "  ";
+			}
+		}
+		std::cout << std::endl;
 	}
-	else 
+
+	//// TODO: Eventually, we need to re-write WorkGroup to encapsulate the functionality of "addOrStash()".
+	////       For now, just make sure that if you add something to all_agents manually, you call "load()" before.
+	void addOrStashEntity(Agent* p, std::set<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 	{
-		//Start later.
-		pending_agents.push(p);
+		//Only agents with a start time of zero should start immediately in the all_agents list.
+		if (p->getStartTime() == 0)
+		{
+			p->load(p->getConfigProperties());
+			p->clearConfigProperties();
+			active_agents.insert(p);
+		} 
+		else
+		{
+			//Start later.
+			pending_agents.push(p);
+		}
 	}
-}
-
-
-
 } //End un-named namespace
-
 
 sim_mob::ExpandAndValidateConfigFile::ExpandAndValidateConfigFile(ConfigParams& result, std::set<sim_mob::Entity*>& active_agents, StartTimePriorityQueue& pending_agents) : cfg(result), active_agents(active_agents), pending_agents(pending_agents)
 {
 	ProcessConfig();
-}
-
-///generates OD in the form of xml config's OD format
-///@param input aimsun nide id
-///@param output output file
-void generateOD(
-		const std::string input = "/home/vahid/Downloads/OD_oldmap_new.txt", const std::string output = "/home/vahid/Downloads/ODs.xml", bool stopOnError = false, bool exitAtEnd = true) {
-	//find location of ODs and generate xml dirver ODs
-	std::ifstream in;
-	std::ofstream out;
-	in.open(input.c_str()); //home/vahid/Downloads/ODs_oldmap.txt
-	out.open(output.c_str(), std::ofstream::out);
-	std::string line;
-	if (in.is_open()) {
-		while (std::getline(in, line)) {
-			std::vector<std::string> pair_s;
-			boost::split(pair_s, line, boost::is_any_of("\t, "));
-			if(pair_s[1].size() - 1 == '\n'){
-				pair_s[1].erase(pair_s[1].size() - 1); //omit carriage return
-			}
-			if (!std::isdigit(pair_s[0][0])) {
-				continue;
-			}
-			std::vector<unsigned int> pair_ui;
-			pair_ui.push_back(boost::lexical_cast<unsigned int>(pair_s[0]));
-			pair_ui.push_back(boost::lexical_cast<unsigned int>(pair_s[1]));
-			const sim_mob::Node *origin = StreetDirectory::instance().getNode(pair_ui[0]);
-			const sim_mob::Node *destination = StreetDirectory::instance().getNode(pair_ui[1]);
-			if (!origin || !destination) {
-				std::ostringstream err("");
-				err << "generateOD: either origin[" /*<< origin << ","*/ << pair_ui[0] << "] or destination["
-						<< destination << /*","	<< pair_ui[1] <<*/ "] are null. original input :" << pair_s[0] << " " << pair_s[1] << std::endl;
-				if(stopOnError){
-					throw std::runtime_error(err.str());
-				}
-				else{
-					Print() << err.str() << std::endl;
-				}
-				continue;
-			}
-
-			out << "<driver originPos=\"" << origin->getLocation().getX()
-					<< "," << origin->getLocation().getY() << "\" destPos=\""
-					<< destination->getLocation().getX() << ","
-					<< destination->getLocation().getY() << "\""
-					<< " od=\"(" << pair_s[0] << "," << pair_s[1] << ")\""
-					<< " time=\"0\"/>"
-					<< std::endl;
-		}
-		in.close();
-	} else {
-		Print() << "File " << input << " not found" << std::endl;
-	}
-	if(exitAtEnd){
-		exit(0);
-	}
 }
 
 void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
@@ -171,33 +126,33 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	InformLoadOrder(cfg.system.simulation.loadAgentsOrder);
 
 	//Set the auto-incrementing ID.
-	if (cfg.system.simulation.startingAutoAgentID < 0) 
+	if (cfg.system.simulation.startingAutoAgentID < 0)
 	{
 		throw std::runtime_error("Agent auto-id must start from >0.");
 	}
-	
+
 	Agent::SetIncrementIDStartValue(cfg.system.simulation.startingAutoAgentID, true);
 
 	//Print schema file.
 	const std::string schem = cfg.roadNetworkXsdSchemaFile();
-	Print() <<"XML (road network) schema file: "  <<(schem.empty()?"<default>":schem) <<std::endl;
+	Print() << "XML (road network) schema file: "  << (schem.empty() ? "<default>" : schem) << std::endl;
 
 	//Ensure granularities are multiples of each other. Then set the "ticks" based on each granularity.
 	CheckGranularities();
 	SetTicks();
 
 	//Set PartitionManager instance (if using MPI and it's enabled).
-	if (cfg.MPI_Enabled() && cfg.using_MPI) 
+	if (cfg.MPI_Enabled() && cfg.using_MPI)
 	{
 		int partId = cfg.system.simulation.partitioningSolutionId;
 		PartitionManager::instance().partition_config->partition_solution_id = partId;
-		std::cout << "partition_solution_id in configuration:" <<partId << std::endl;
+		std::cout << "partition_solution_id in configuration:" << partId << std::endl;
 	}
-	
+
 	//Load the network
 	LoadNetwork();
-	
-	if(sim_mob::ConfigManager::GetInstance().FullConfig().CBD())
+
+	if (cfg.RunningMidSupply())
 	{
 		sim_mob::RestrictedRegion::getInstance().populate();
 	}
@@ -206,32 +161,31 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//todo: enable/disble through cinfig
 	BoostSaveXML(cfg.networkXmlOutputFile(), cfg.getNetworkRW());
 
-    //Seal the network; no more changes can be made after this.
- 	cfg.sealNetwork();
-    std::cout << "Network Sealed" << std::endl;
+	//Seal the network; no more changes can be made after this.
+	cfg.sealNetwork();
+	std::cout << "Network Sealed" << std::endl;
 
-    //Write the network (? This is weird. ?)
-    if (cfg.XmlWriterOn()) 
+	//Write the network (? This is weird. ?)
+	if (cfg.XmlWriterOn())
 	{
-    	throw std::runtime_error("Old WriteXMLInput function deprecated; use boost instead.");
-    	//sim_mob::WriteXMLInput("TEMP_TEST_OUT.xml");
-    	std::cout << "XML input for SimMobility Created....\n";
-    }
-	
-    if(cfg.publicTransitEnabled)
-    {
-    	LoadPublicTransitNetworkFromDatabase();
-    }
-	
- 	//Initialize the street directory.
-	StreetDirectory::instance().init(cfg.getNetwork(), true);
-	std::cout << "Street Directory initialized  " << std::endl;
+		throw std::runtime_error("Old WriteXMLInput function deprecated; use boost instead.");
+		std::cout << "XML input for SimMobility Created....\n";
+	}
 
-	if(ConfigManager::GetInstance().FullConfig().pathSet().mode == "generation")
+	if (cfg.publicTransitEnabled)
+	{
+		LoadPublicTransitNetworkFromDatabase();
+	}
+
+	//Initialise the street directory.
+	StreetDirectory::instance().init(cfg.getNetwork(), true);
+	std::cout << "Street Directory initialised  " << std::endl;
+
+	if (ConfigManager::GetInstance().FullConfig().pathSet().privatePathSetMode == "generation")
 	{
 		Print() << "bulk profiler start: " << std::endl;
 		sim_mob::Profiler profile("bulk profiler start", true);
-		//	This mode can be executed in the main function also but we need the street directory to be initialized first
+		//	This mode can be executed in the main function also but we need the street directory to be initialised first
 		//	to be least intrusive to the rest of the code, we take a safe approach and run this mode from here, although a lot of
 		//	unnecessary code will be executed.
 		sim_mob::PathSetManager::getInstance()->bulkPathSetGenerator();
@@ -239,36 +193,55 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 		exit(1);
 	}
 
-	//TODO: put its option in config xml
-	//generateOD("/home/fm-simmobility/vahid/OD.txt", "/home/fm-simmobility/vahid/ODs.xml");
-    //Process Confluxes if required
-    if(cfg.RunningMidSupply()) 
+	if (ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetMode == "generation")
+	{
+		Print() << "Public Transit bulk pathSet Generation started: " << std::endl;
+		sim_mob::PT_PathSetManager::Instance().PT_BulkPathSetGenerator();
+		Print() << "Public Transit bulk pathSet Generation Done: " << std::endl;
+		exit(1);
+	}
+
+	//Process Confluxes if required
+	if (cfg.RunningMidSupply())
 	{
 		size_t sizeBefore = cfg.getConfluxes().size();
 		sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
-		std::cout <<"Confluxes size before(" <<sizeBefore <<") and after(" <<cfg.getConfluxes().size() <<")\n";
-    }
-    
-	//Maintain unique/non-colliding IDs.
-    ConfigParams::AgentConstraints constraints;
-    constraints.startingAutoAgentID = cfg.system.simulation.startingAutoAgentID;
-
-    //Start all "BusController" entities.
-    for (std::vector<EntityTemplate>::const_iterator it=cfg.busControllerTemplates.begin(); it!=cfg.busControllerTemplates.end(); ++it) 
+		std::cout << cfg.getConfluxes().size() << " Confluxes created" << std::endl;
+	}
+	//Running short-term
+	else
 	{
-    	sim_mob::BusController::RegisterNewBusController(it->startTimeMs, cfg.mutexStategy());
+		std::map<std::string, std::string>::iterator itIntModel = cfg.system.genericProps.find("intersection_driving_model");
+
+		if (itIntModel != cfg.system.genericProps.end())
+		{
+			if (itIntModel->second == "slot-based")
+			{
+				sim_mob::aimsun::Loader::CreateIntersectionManagers(ConfigManager::GetInstance().FullConfig().getNetwork());
+			}
+		}
 	}
 
-    //Start all "FMOD" entities.
-    LoadFMOD_Controller();
+	//Maintain unique/non-colliding IDs.
+	ConfigParams::AgentConstraints constraints;
+	constraints.startingAutoAgentID = cfg.system.simulation.startingAutoAgentID;
 
-    LoadAMOD_Controller();
+	//Start all "BusController" entities.
+	for (std::vector<EntityTemplate>::const_iterator it=cfg.busControllerTemplates.begin(); it != cfg.busControllerTemplates.end(); ++it)
+	{
+		sim_mob::BusController::RegisterNewBusController(it->startTimeMs, cfg.mutexStategy());
+	}
+
+	//Start all "FMOD" entities.
+	LoadFMOD_Controller();
+
+	LoadAMOD_Controller();
 
 	//combine incident information to road network
 	verifyIncidents();
 
-    //Initialize all BusControllers.
-	if(BusController::HasBusControllers()) 
+	//Initialise all BusControllers.
+	if (BusController::HasBusControllers())
 	{
 		BusController::InitializeAllControllers(active_agents, cfg.getPT_bus_dispatch_freq());
 	}
@@ -276,17 +249,14 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
 	LoadAgentsInOrder(constraints);
 
-    //Load signals, which are currently agents
-    GenerateXMLSignals();
+	//Print some of the settings we just generated.
+	PrintSettings();
 
-    //Print some of the settings we just generated.
-    PrintSettings();
-
-    //Start the BusCotroller
-    if(BusController::HasBusControllers()) 
+	//Start the BusCotroller
+	if (BusController::HasBusControllers())
 	{
-    	BusController::DispatchAllControllers(active_agents);
-    }
+		BusController::DispatchAllControllers(active_agents);
+	}
 }
 
 void sim_mob::ExpandAndValidateConfigFile::verifyIncidents()
@@ -294,12 +264,12 @@ void sim_mob::ExpandAndValidateConfigFile::verifyIncidents()
 	std::vector<IncidentParams>& incidents = cfg.getIncidents();
 	const unsigned int baseGranMS = cfg.system.simulation.simStartTime.getValue();
 
-	for(std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt!=incidents.end(); ++incIt){
-
+	for (std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt != incidents.end(); ++incIt)
+	{
 		const RoadSegment* roadSeg = StreetDirectory::instance().getRoadSegment((*incIt).segmentId);
 
-		if(roadSeg) {
-
+		if (roadSeg)
+		{
 			Incident* item = new sim_mob::Incident();
 			item->accessibility = (*incIt).accessibility;
 			item->capFactor = (*incIt).capFactor;
@@ -310,59 +280,73 @@ void sim_mob::ExpandAndValidateConfigFile::verifyIncidents()
 			item->segmentId = (*incIt).segmentId;
 			item->length = (*incIt).length;
 			item->severity = (*incIt).severity;
-			item->startTime = (*incIt).startTime-baseGranMS;
+			item->startTime = (*incIt).startTime - baseGranMS;
 			item->visibilityDistance = (*incIt).visibilityDistance;
 
 			const std::vector<sim_mob::Lane*>& lanes = roadSeg->getLanes();
-			for(std::vector<IncidentParams::LaneParams>::iterator laneIt=incIt->laneParams.begin(); laneIt!=incIt->laneParams.end(); ++laneIt){
+			for (std::vector<IncidentParams::LaneParams>::iterator laneIt=incIt->laneParams.begin(); laneIt != incIt->laneParams.end(); ++laneIt)
+			{
 				Incident::LaneItem lane;
 				lane.laneId = laneIt->laneId;
 				lane.speedLimit = laneIt->speedLimit;
 				item->laneItems.push_back(lane);
-				if(lane.laneId<lanes.size() && lane.laneId<incIt->laneParams.size()){
+				if (lane.laneId < lanes.size() && lane.laneId < incIt->laneParams.size())
+				{
 					incIt->laneParams[lane.laneId].xLaneStartPos = lanes[lane.laneId]->polyline_[0].getX();
 					incIt->laneParams[lane.laneId].yLaneStartPos = lanes[lane.laneId]->polyline_[0].getY();
-					if(lanes[lane.laneId]->polyline_.size()>0){
+					if (lanes[lane.laneId]->polyline_.size() > 0)
+					{
 						unsigned int sizePoly = lanes[lane.laneId]->polyline_.size();
-						incIt->laneParams[lane.laneId].xLaneEndPos = lanes[lane.laneId]->polyline_[sizePoly-1].getX();
-						incIt->laneParams[lane.laneId].yLaneEndPos = lanes[lane.laneId]->polyline_[sizePoly-1].getY();
+						incIt->laneParams[lane.laneId].xLaneEndPos = lanes[lane.laneId]->polyline_[sizePoly - 1].getX();
+						incIt->laneParams[lane.laneId].yLaneEndPos = lanes[lane.laneId]->polyline_[sizePoly - 1].getY();
 					}
 				}
 			}
 
-			RoadSegment* rs = const_cast<RoadSegment*>(roadSeg);
+			RoadSegment* rs = const_cast<RoadSegment*> (roadSeg);
 			float length = rs->getLengthOfSegment();
-			centimeter_t pos = length*item->position/100.0;
+			centimeter_t pos = length * item->position / 100.0;
 			rs->addObstacle(pos, item);
 		}
 	}
-
-
 }
 
 void sim_mob::ExpandAndValidateConfigFile::CheckGranularities()
 {
-    //Granularity check
+	//Granularity check
 	const unsigned int baseGranMS = cfg.system.simulation.baseGranMS;
 	const WorkerParams& workers = cfg.system.workers;
 
-    if (cfg.system.simulation.totalRuntimeMS < baseGranMS) {
-    	throw std::runtime_error("Total Runtime cannot be smaller than base granularity.");
-    }
-    if (cfg.system.simulation.totalWarmupMS != 0 && cfg.system.simulation.totalWarmupMS < baseGranMS) {
-    	Warn() << "Warning! Total Warmup is smaller than base granularity.\n";
-    }
-    if (workers.person.granularityMs < baseGranMS) {
-    	throw std::runtime_error("Person granularity cannot be smaller than base granularity.");
-    }
-    if (workers.signal.granularityMs < baseGranMS) {
-    	throw std::runtime_error("Signal granularity cannot be smaller than base granularity.");
-    }
-    if (workers.communication.granularityMs < baseGranMS) {
-    	throw std::runtime_error("Communication granularity cannot be smaller than base granularity.");
-    }
+	if (cfg.system.simulation.totalRuntimeMS < baseGranMS)
+	{
+		throw std::runtime_error("Total Runtime cannot be smaller than base granularity.");
+	}
+	
+	if (cfg.system.simulation.totalWarmupMS != 0 && cfg.system.simulation.totalWarmupMS < baseGranMS)
+	{
+		Warn() << "Warning! Total Warmup is smaller than base granularity.\n";
+	}
+	
+	if (workers.person.granularityMs < baseGranMS)
+	{
+		throw std::runtime_error("Person granularity cannot be smaller than base granularity.");
+	}
+	
+	if (workers.signal.granularityMs < baseGranMS)
+	{
+		throw std::runtime_error("Signal granularity cannot be smaller than base granularity.");
+	}
+	
+	if (workers.intersectionMgr.granularityMs < baseGranMS)
+	{
+		throw std::runtime_error("Intersection Manager granularity cannot be smaller than base granularity.");
+	}
+	
+	if (workers.communication.granularityMs < baseGranMS)
+	{
+		throw std::runtime_error("Communication granularity cannot be smaller than base granularity.");
+	}
 }
-
 
 bool sim_mob::ExpandAndValidateConfigFile::SetTickFromBaseGran(unsigned int& res, unsigned int tickLenMs)
 {
@@ -370,26 +354,38 @@ bool sim_mob::ExpandAndValidateConfigFile::SetTickFromBaseGran(unsigned int& res
 	return tickLenMs%cfg.system.simulation.baseGranMS == 0;
 }
 
-
 void sim_mob::ExpandAndValidateConfigFile::SetTicks()
 {
-	if (!SetTickFromBaseGran(cfg.totalRuntimeTicks, cfg.system.simulation.totalRuntimeMS)) {
-		Warn() <<"Total runtime will be truncated by the base granularity\n";
+	if (!SetTickFromBaseGran(cfg.totalRuntimeTicks, cfg.system.simulation.totalRuntimeMS))
+	{
+		Warn() << "Total runtime will be truncated by the base granularity\n";
 	}
-	if (!SetTickFromBaseGran(cfg.totalWarmupTicks, cfg.system.simulation.totalWarmupMS)) {
-		Warn() <<"Total warm-up will be truncated by the base granularity\n";
+	
+	if (!SetTickFromBaseGran(cfg.totalWarmupTicks, cfg.system.simulation.totalWarmupMS))
+	{
+		Warn() << "Total warm-up will be truncated by the base granularity\n";
 	}
-	if (!SetTickFromBaseGran(cfg.granPersonTicks, cfg.system.workers.person.granularityMs)) {
+	
+	if (!SetTickFromBaseGran(cfg.granPersonTicks, cfg.system.workers.person.granularityMs))
+	{
 		throw std::runtime_error("Person granularity not a multiple of base granularity.");
 	}
-	if (!SetTickFromBaseGran(cfg.granSignalsTicks, cfg.system.workers.signal.granularityMs)) {
+	
+	if (!SetTickFromBaseGran(cfg.granSignalsTicks, cfg.system.workers.signal.granularityMs))
+	{
 		throw std::runtime_error("Signal granularity not a multiple of base granularity.");
 	}
-	if (!SetTickFromBaseGran(cfg.granCommunicationTicks, cfg.system.workers.communication.granularityMs)) {
+	
+	if (!SetTickFromBaseGran(cfg.granIntMgrTicks, cfg.system.workers.intersectionMgr.granularityMs))
+	{
+		throw std::runtime_error("Signal granularity not a multiple of base granularity.");
+	}
+	
+	if (!SetTickFromBaseGran(cfg.granCommunicationTicks, cfg.system.workers.communication.granularityMs))
+	{
 		throw std::runtime_error("Communication granularity not a multiple of base granularity.");
 	}
 }
-
 
 void sim_mob::ExpandAndValidateConfigFile::LoadNetwork()
 {
@@ -406,6 +402,7 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetwork()
 		exit(-1);
 	}
 }
+
 void sim_mob::ExpandAndValidateConfigFile::LoadPublicTransitNetworkFromDatabase()
 {
 	PT_Network::getInstance().init();
@@ -413,9 +410,9 @@ void sim_mob::ExpandAndValidateConfigFile::LoadPublicTransitNetworkFromDatabase(
 
 void sim_mob::ExpandAndValidateConfigFile::LoadFMOD_Controller()
 {
-	if (cfg.fmod.enabled) {
+	if (cfg.fmod.enabled)
+	{
 		sim_mob::FMOD::FMOD_Controller::registerController(-1, cfg.mutexStategy());
-		//sim_mob::FMOD::FMOD_Controller::instance()->settings(cfg.fmod.ipAddress, cfg.fmod.port, cfg.fmod.updateTravelMS, cfg.fmod.updatePosMS, cfg.fmod.mapfile, cfg.fmod.blockingTimeSec);
 		sim_mob::FMOD::FMOD_Controller::instance()->connectFmodService();
 	}
 }
@@ -428,7 +425,6 @@ void sim_mob::ExpandAndValidateConfigFile::LoadAMOD_Controller()
 	}
 }
 
-
 void sim_mob::ExpandAndValidateConfigFile::LoadAgentsInOrder(ConfigParams::AgentConstraints& constraints)
 {
 	typedef std::vector<SimulationParams::LoadAgentsOrderOption> LoadOrder;
@@ -438,8 +434,9 @@ void sim_mob::ExpandAndValidateConfigFile::LoadAgentsInOrder(ConfigParams::Agent
 	{
 		switch (*it) 
 		{
-		case SimulationParams::LoadAg_Database: //fall-through
+		case SimulationParams::LoadAg_Database: 
 		case SimulationParams::LoadAg_XmlTripChains:
+			
 			//Create an agent for each Trip Chain in the database.
 			GenerateAgentsFromTripChain(constraints);
 
@@ -448,30 +445,38 @@ void sim_mob::ExpandAndValidateConfigFile::LoadAgentsInOrder(ConfigParams::Agent
 			{
 				sim_mob::FMOD::FMOD_Controller::instance()->initialize();
 			}
+			
 			std::cout << "Loaded Database Agents (from Trip Chains).\n";
 			break;
 
 		case SimulationParams::LoadAg_Drivers:
+			
 			GenerateXMLAgents(cfg.driverTemplates, "driver", constraints);
 			GenerateXMLAgents(cfg.taxiDriverTemplates, "taxidriver", constraints);
 			GenerateXMLAgents(cfg.busDriverTemplates, "busdriver", constraints);
+			
 			std::cout << "Loaded Driver Agents (from config file).\n";
 			break;
-			
+
 		case SimulationParams::LoadAg_Pedestrians:
+			
 			GenerateXMLAgents(cfg.pedestrianTemplates, "pedestrian", constraints);
+			
 			std::cout << "Loaded Pedestrian Agents (from config file).\n";
 			break;
-			
+
 		case SimulationParams::LoadAg_Passengers:
+			
 			GenerateXMLAgents(cfg.passengerTemplates, "passenger", constraints);
+			
 			std::cout << "Loaded Passenger Agents (from config file).\n";
 			break;
-			
+
 		default:
 			throw std::runtime_error("Unknown item in load_agents");
 		}
 	}
+	
 	std::cout << "Loading Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder: Success!\n";
 }
 
@@ -483,23 +488,29 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateAgentsFromTripChain(ConfigPar
 	const TripChainMap& tcs = cfg.getTripChains();
 
 	//The current agent we are working on.
-	for (TripChainMap::const_iterator it_map=tcs.begin(); it_map!=tcs.end(); ++it_map) {
+	for (TripChainMap::const_iterator it_map=tcs.begin(); it_map != tcs.end(); ++it_map)
+	{
 		TripChainItem* tc = it_map->second.front();
-		if( tc->itemType != TripChainItem::IT_FMODSIM){
+		if ( tc->itemType != TripChainItem::IT_FMODSIM)
+		{
 			Person* person = new sim_mob::Person("XML_TripChain", cfg.mutexStategy(), it_map->second);
 			person->setPersonCharacteristics();
 			addOrStashEntity(person, active_agents, pending_agents);
-		} else {
+		} 
+		else
+		{
 			//insert to FMOD controller so that collection of requests
-			if (sim_mob::FMOD::FMOD_Controller::instanceExists()) {
+			if (sim_mob::FMOD::FMOD_Controller::instanceExists())
+			{
 				sim_mob::FMOD::FMOD_Controller::instance()->insertFmodItems(it_map->first, tc);
-			} else {
-				Warn() <<"Skipping FMOD agent; FMOD controller is not active.\n";
+			} 
+			else
+			{
+				Warn() << "Skipping FMOD agent; FMOD controller is not active.\n";
 			}
 		}
 	}
 }
-
 
 void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<EntityTemplate>& xmlItems, const std::string& roleName, ConfigParams::AgentConstraints& constraints)
 {
@@ -521,7 +532,7 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		msg << "Unexpected agent type: " << roleName;
 		throw std::runtime_error(msg.str().c_str());
 	}
-	
+
 	//Loop through all agents of this type.
 	for (std::vector<EntityTemplate>::const_iterator it=xmlItems.begin(); it != xmlItems.end(); ++it)
 	{
@@ -537,7 +548,7 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		{
 			props["originNode"] = Utils::toStr<unsigned int>(it->originNode);
 			props["destNode"] = Utils::toStr<unsigned int>(it->destNode);
-		} 
+		}
 		else
 		{
 			//TODO: This is very wasteful
@@ -554,41 +565,41 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		}
 
 		//We should generate the Agent's ID here (since otherwise Agents
-		//  will have seemingly random IDs that do not reflect their order in the config file).
+		//will have seemingly random IDs that do not reflect their order in the config file).
 		//It is generally preferred to use the automatic IDs, but if a manual ID is specified we
-		//  must deal with it here.
+		//must deal with it here.
 		//TODO: At the moment, manual IDs don't work. We can easily re-add them if required.
 		int manualID = -1;
 		if (it->angentId != 0)
 		{
 			manualID = it->angentId;
 		}
-		
+
 		//Finally, set the "#mode" flag in the configProps array.
-		// (XML can't have # inside tag names, so this will never be overwritten)
-		//
+		//(XML can't have # inside tag names, so this will never be overwritten)
+
 		//TODO: We should just be able to save "driver" and "pedestrian", but we are
 		//      using different vocabulary for modes and roles. We need to change this.
 		if (roleName == "driver")
 		{
 			props["#mode"] = "Car";
-		} 
+		}
 		else if (roleName == "taxidriver")
 		{
 			props["#mode"] = "Taxi";
-		} 
+		}
 		else if (roleName == "pedestrian")
 		{
 			props["#mode"] = "Walk";
-		} 
+		}
 		else if (roleName == "busdriver")
 		{
 			props["#mode"] = "Bus";
-		} 
+		}
 		else if (roleName == "passenger")
 		{
 			props["#mode"] = "BusTravel";
-		} 
+		}
 		else
 		{
 			props["#mode"] = "Unknown";
@@ -604,101 +615,49 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 	}
 }
 
-
-void sim_mob::ExpandAndValidateConfigFile::GenerateXMLSignals()
-{
-	if (cfg.signalTemplates.empty()) { return; }
-	StreetDirectory& streetDirectory = StreetDirectory::instance();
-
-	//Loop through all agents of this type
-	for (std::vector<EntityTemplate>::const_iterator it=cfg.signalTemplates.begin(); it!=cfg.signalTemplates.end(); ++it) {
-		//Find the nearest Node for this Signal.
-		Node* road_node = cfg.getNetwork().locateNode(it->originPos, true);
-		if (!road_node) {
-			Warn()  << "xpos=\"" <<it->originPos.getX() << "\" and ypos=\"" <<it->originPos.getY()
-					<< "\" are not suitable attributes for Signal because there is no node there; correct the config file."
-					<< std::endl;
-			continue;
-		}
-
-		// See the comments in createSignals() in geospatial/aimsun/Loader.cpp.
-		// At some point in the future, this function loadXMLSignals() will be removed
-		// in its entirety, not just the following code fragment.
-		std::set<const Link*> links;
-		if (MultiNode const * multi_node = dynamic_cast<MultiNode const *>(road_node)) {
-			std::set<RoadSegment*> const & roads = multi_node->getRoadSegments();
-			std::set<RoadSegment*>::const_iterator iter;
-			for (iter = roads.begin(); iter != roads.end(); ++iter) {
-				RoadSegment const * road = *iter;
-				links.insert(road->getLink());
-			}
-		}
-
-		if (links.size() != 4) {
-			Warn()  <<"the multi-node at " <<it->originPos << " does not have 4 links; "
-					<< "no signal will be created here." << std::endl;
-			continue;
-		}
-
-		const Signal* signal = streetDirectory.signalAt(*road_node);
-		if (signal) {
-			Warn()  << "signal at node(" <<it->originPos << ") already exists; "
-					<< "skipping this config file entry" << std::endl;
-		} else {
-			Warn() <<"signal at node(" <<it->originPos << ") was not found; No more action will be taken\n ";
-//          // The following call will create and register the signal with the
-//          // street-directory.
-//          std::cout << "register signal again!" << std::endl;
-//          Signal::signalAt(*road_node, ConfigParams::GetInstance().mutexStategy);
-		}
-	}
-}
-
-
 void sim_mob::ExpandAndValidateConfigFile::PrintSettings()
 {
-    std::cout <<"Config parameters:\n";
-    std::cout <<"------------------\n";
-    std::cout <<"Force single-threaded: " <<(cfg.singleThreaded()?"yes":"no") <<"\n";
+	std::cout << "Config parameters:\n";
+	std::cout << "------------------\n";
+	std::cout << "Force single-threaded: " << (cfg.singleThreaded() ? "yes" : "no") << "\n";
 
 	//Print the WorkGroup strategy.
-	std::cout <<"WorkGroup assignment: ";
-	switch (cfg.defaultWrkGrpAssignment()) {
-		case WorkGroup::ASSIGN_ROUNDROBIN:
-			std::cout <<"roundrobin" <<std::endl;
-			break;
-		case WorkGroup::ASSIGN_SMALLEST:
-			std::cout <<"smallest" <<std::endl;
-			break;
-		default:
-			std::cout <<"<unknown>" <<std::endl;
-			break;
+	std::cout << "WorkGroup assignment: ";
+	switch (cfg.defaultWrkGrpAssignment()) 
+	{
+	case WorkGroup::ASSIGN_ROUNDROBIN:
+		std::cout << "roundrobin" << std::endl;
+		break;
+	case WorkGroup::ASSIGN_SMALLEST:
+		std::cout << "smallest" << std::endl;
+		break;
+	default:
+		std::cout << "<unknown>" << std::endl;
+		break;
 	}
 
 	//Basic statistics
-	std::cout <<"  Base Granularity: " <<cfg.baseGranMS() <<" " <<"ms" <<"\n";
-    std::cout <<"  Total Runtime: " <<cfg.totalRuntimeTicks <<" " <<"ticks" <<"\n";
-    std::cout <<"  Total Warmup: " <<cfg.totalWarmupTicks <<" " <<"ticks" <<"\n";
-    std::cout <<"  Person Granularity: " <<cfg.granPersonTicks <<" " <<"ticks" <<"\n";
-    std::cout <<"  Signal Granularity: " <<cfg.granSignalsTicks <<" " <<"ticks" <<"\n";
-    std::cout <<"  Communication Granularity: " <<cfg.granCommunicationTicks <<" " <<"ticks" <<"\n";
-    std::cout <<"  Start time: " <<cfg.simStartTime().toString() <<"\n";
-    std::cout <<"  Mutex strategy: " <<(cfg.mutexStategy()==MtxStrat_Locked?"Locked":cfg.mutexStategy()==MtxStrat_Buffered?"Buffered":"Unknown") <<"\n";
+	std::cout << "  Base Granularity: " << cfg.baseGranMS() << " " << "ms" << "\n";
+	std::cout << "  Total Runtime: " << cfg.totalRuntimeTicks << " " << "ticks" << "\n";
+	std::cout << "  Total Warmup: " << cfg.totalWarmupTicks << " " << "ticks" << "\n";
+	std::cout << "  Person Granularity: " << cfg.granPersonTicks << " " << "ticks" << "\n";
+	std::cout << "  Signal Granularity: " << cfg.granSignalsTicks << " " << "ticks" << "\n";
+	std::cout << "  Communication Granularity: " << cfg.granCommunicationTicks << " " << "ticks" << "\n";
+	std::cout << "  Start time: " << cfg.simStartTime().getStrRepr() << "\n";
+	std::cout << "  Mutex strategy: " << (cfg.mutexStategy() == MtxStrat_Locked ? "Locked" : cfg.mutexStategy() == MtxStrat_Buffered ? "Buffered" : "Unknown") << "\n";
 
 	//Output Database details
-    if (cfg.system.networkSource==SystemParams::NETSRC_XML) {
-    	std::cout <<"Network details loaded from xml file: " <<cfg.system.networkXmlInputFile <<"\n";
-    }
-    if (cfg.system.networkSource==SystemParams::NETSRC_DATABASE) {
-    	std::cout <<"Network details loaded from database connection: " <<cfg.getDatabaseConnectionString() <<"\n";
-    }
+	if (cfg.system.networkSource == SystemParams::NETSRC_XML)
+	{
+		std::cout << "Network details loaded from xml file: " << cfg.system.networkXmlInputFile << "\n";
+	}
+	if (cfg.system.networkSource == SystemParams::NETSRC_DATABASE)
+	{
+		std::cout << "Network details loaded from database connection: " << cfg.getDatabaseConnectionString() << "\n";
+	}
 
-    //Print the network (this will go to a different output file...)
-	std::cout <<"------------------\n";
+	//Print the network (this will go to a different output file...)
+	std::cout << "------------------\n";
 	PrintNetwork(cfg, cfg.outNetworkFileName);
-	std::cout <<"------------------\n";
+	std::cout << "------------------\n";
 }
-
-
-
-

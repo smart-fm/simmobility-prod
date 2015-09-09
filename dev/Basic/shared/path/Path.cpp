@@ -459,7 +459,7 @@ sim_mob::PT_Path::PT_Path() :
 				totalInVehicleTravelTimeSecs(0.0),
 				totalWaitingTimeSecs(0.0),
 				totalWalkingTimeSecs(0.0),
-				totalNumberOfTransfers(-1),minDistance(false),validPath(false),shortestPath(false),
+				totalNumberOfTransfers(0),minDistance(false),validPath(false),shortestPath(false),
 				minInVehicleTravelTime(false),minNumberOfTransfers(false),minWalkingDistance(false),
 				minTravelOnMRT(false),minTravelOnBus(false),pathSize(0.0)
 {
@@ -472,7 +472,7 @@ sim_mob::PT_Path::PT_Path (const std::vector<PT_NetworkEdge> &path) : pathEdges(
 		totalInVehicleTravelTimeSecs(0.0),
 		totalWaitingTimeSecs(0.0),
 		totalWalkingTimeSecs(0.0),
-		totalNumberOfTransfers(-1),minDistance(false),validPath(false),shortestPath(false),
+		totalNumberOfTransfers(0),minDistance(false),validPath(false),shortestPath(false),
 		minInVehicleTravelTime(false),minNumberOfTransfers(false),minWalkingDistance(false),
 		minTravelOnMRT(false),minTravelOnBus(false),pathSize(0.0)
 
@@ -486,14 +486,19 @@ sim_mob::PT_Path::PT_Path (const std::vector<PT_NetworkEdge> &path) : pathEdges(
 		totalInVehicleTravelTimeSecs+=itEdge->getDayTransitTimeSecs();
 		totalWalkingTimeSecs+=itEdge->getWalkTimeSecs();
 		pathTravelTime+=itEdge->getLinkTravelTimeSecs();
-		totalNumberOfTransfers++;
 		totalDistanceKms+=itEdge->getDistKms();
 		if(itEdge->getType()=="Bus" || itEdge->getType()=="RTS")
 		{
 			totalBusMRTTravelDistance+=itEdge->getDistKms();
+	           	totalNumberOfTransfers++;
 		}
 	}
+		
 	totalCost=this->getTotalCostByDistance(totalBusMRTTravelDistance);
+	if(totalNumberOfTransfers > 0)
+	{
+		totalNumberOfTransfers = totalNumberOfTransfers -1;
+	}
 }
 void sim_mob::PT_Path::updatePathEdges()
 {
@@ -569,6 +574,96 @@ void sim_mob::PT_PathSet::computeAndSetPathSize()
 		itPath->setPathSize(pathSize);
 	}
 }
+void sim_mob::PT_PathSet::checkPathFeasibilty()
+{
+	// Implementing path feasibility checks
+	// Check 1 : Total Number of transfers < = 4
+	// Check 2 : No two consecutive walking edges along the path
+	// Check 3 : Doesn't walk back to any simMobility node from bus stop/ MRT station in the middle of the path
+	// Check 4 : Total number of bus legs <= 4
+
+	std::set<PT_Path>::iterator itPathComp =pathSet.begin();
+	if(itPathComp == pathSet.end())
+	{
+		return;
+	}
+	std::string pathsetId =  itPathComp->getPtPathSetId();
+	bool incrementFlag;
+	while(itPathComp!=pathSet.end())
+	{
+		incrementFlag = false;
+		std::set<PT_Path>::iterator tempitPath = itPathComp;
+		// Check 1 : Total Number of transfers < = 6
+		if(itPathComp->getTotalNumberOfTransfers() > 4)
+		{
+			// Infeasible path
+			itPathComp++;
+			pathSet.erase(tempitPath);
+			continue;
+		}
+		std::string prevEdgeType = "";
+		std::string currentEdgeType = "";
+		int simMobilityNodeCount=0; // simMobility Node counts along the path
+		int busLegCount = 0; // Number of buslegs along the path
+		std::vector<PT_NetworkEdge> edges;
+		edges = itPathComp->getPathEdges();
+		for(std::vector<PT_NetworkEdge>::const_iterator itEdge=edges.begin();itEdge!=edges.end();itEdge++)
+		{
+			// Check 2 : No two consecutive walking edges along the path
+			currentEdgeType = itEdge->getType();
+			if(currentEdgeType == "Walk" and prevEdgeType == "Walk")
+			{
+				// Infeasible path
+				itPathComp++;
+				pathSet.erase(tempitPath);
+				incrementFlag = true;
+				break;
+			}
+			prevEdgeType = currentEdgeType;
+
+			// Check 3 : Doesn't walk back to any simMobility node from bus stop/ MRT station in the middle of the path
+			if(sim_mob::PT_Network::getInstance().PT_NetworkVertexMap[itEdge->getStartStop()].getStopType() == 0)
+			{
+				simMobilityNodeCount++;
+			}
+			if(sim_mob::PT_Network::getInstance().PT_NetworkVertexMap[itEdge->getEndStop()].getStopType() == 0)
+			{
+				simMobilityNodeCount++;
+			}
+			if(simMobilityNodeCount > 2)
+			{
+				// Infeasible path
+				itPathComp++;
+				pathSet.erase(tempitPath);
+				incrementFlag = true;
+				break;
+			}
+			if(itEdge->getType() == "Bus")
+			{
+				busLegCount++;
+				// Check 4 : Total number of bus legs <= 4
+				if(busLegCount > 4)
+				{
+					// Infeasible path
+					itPathComp++;
+					pathSet.erase(tempitPath);
+					incrementFlag = true;
+					break;
+				}
+			}
+		}
+		if(!incrementFlag)
+		{
+			itPathComp++;
+		}
+	}
+	if(pathSet.empty())
+	{
+		std::cout << pathsetId << " has not left with any path after feasibility check"<< std::endl;
+	}
+
+}
+
 bool sim_mob::cmp_path_vector::operator()(const PT_Path A, const PT_Path B) const {
 
 	return A.getPtPathId() < B.getPtPathId();

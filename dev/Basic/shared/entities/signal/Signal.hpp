@@ -56,6 +56,7 @@ namespace sim_mob
   struct VehicleCounter
   {
     const sim_mob::Signal_SCATS* signal;
+    std::string nodeName;
     unsigned int nodeId;
     const DailyTime & simStartTime;
     //Accumulation Period length in milliseconds seconds: eg return total count of vehicle in every "600,000" milliseconds

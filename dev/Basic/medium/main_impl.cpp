@@ -57,6 +57,7 @@
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "database/pt_network_dao/PT_NetworkSqlDao.hpp"
 #include "geospatial/streetdir/A_StarPublicTransitShortestPathImpl.hpp"
+#include "path/ScreenLineCounter.hpp"
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -145,14 +146,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-
-	if(config.publicTransitEnabled){
-		const ModelScriptsMap& extScripts = MT_Config::getInstance().getModelScriptsMap();
-		const std::string& scriptsPath = extScripts.getPath();
-		sim_mob::PT_RouteChoiceLuaModel::Instance()->loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
-		sim_mob::PT_RouteChoiceLuaModel::Instance()->loadFile(scriptsPath + extScripts.getScriptFileName("ptrc"));
-		sim_mob::PT_RouteChoiceLuaModel::Instance()->initialize();
-	}
 
 	//Start boundaries
 #ifndef SIMMOB_DISABLE_MPI
@@ -296,9 +289,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
 		PathSetManager::getInstance()->storeRTT();
 	}
-	if(config.publicTransitEnabled){
-		sim_mob::PT_RouteChoiceLuaModel::Instance()->StoreBestPT_Path();
-	}
+
 	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;
 	cout << "Max Agents at any given time: " <<maxAgents <<endl;
 	cout << "Starting Agents: " << numStartAgents
@@ -394,6 +385,7 @@ bool performMainDemand()
 	const db::BackendType populationSource = mtConfig.getPopulationSource();
 	PredayManager predayManager;
 	predayManager.loadZones(db::MONGO_DB);
+	predayManager.load2012_2008ZoneMapping(db::MONGO_DB);
 	predayManager.loadCosts(db::MONGO_DB);
 	predayManager.loadPersonIds(populationSource);
 	predayManager.loadUnavailableODs(db::MONGO_DB);
@@ -401,6 +393,7 @@ bool performMainDemand()
 	{
 		predayManager.loadZoneNodes(db::MONGO_DB);
 	}
+
 	if(mtConfig.runningPredayCalibration())
 	{
 		Print() << "Preday mode: calibration" << std::endl;
@@ -553,6 +546,11 @@ int main_impl(int ARGC, char* ARGV[])
 
 	timeval simEndTime;
 	gettimeofday(&simEndTime, nullptr);
+
+	if(ConfigManager::GetInstance().FullConfig().screenLineParams.outputEnabled)
+	{
+		ScreenLineCounter::getInstance()->exportScreenLineCount();
+	}
 
 	Print() << "Done" << endl;
 	cout << "Total simulation time: "<< (ProfileBuilder::diff_ms(simEndTime, simStartTime))/1000.0 << " seconds." << endl;

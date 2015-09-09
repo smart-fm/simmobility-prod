@@ -30,6 +30,7 @@
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
 #include "conf/RawConfigParams.hpp"
+#include "database/DB_Connection.hpp"
 #include "database/DatabaseHelper.hpp"
 #include "database/dao/MongoDao.hpp"
 #include "database/DB_Config.hpp"
@@ -637,7 +638,8 @@ void sim_mob::medium::PredayManager::loadPersonIds(BackendType dbType) {
 }
 
 void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType) {
-	switch(dbType) {
+	switch(dbType)
+	{
 		case POSTGRES:
 		{
 			throw std::runtime_error("Zone information is not available in PostgreSQL database yet");
@@ -686,6 +688,32 @@ void sim_mob::medium::PredayManager::loadZoneNodes(db::BackendType dbType) {
 		{
 			throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
 		}
+	}
+}
+
+void sim_mob::medium::PredayManager::load2012_2008ZoneMapping(db::BackendType dbType)
+{
+	switch(dbType)
+	{
+	case POSTGRES:
+	{
+		throw std::runtime_error("2012->2008 Zone mapping is not available in PostgreSQL database");
+	}
+	case MONGO_DB:
+	{
+		std::string zn12_08CollectionName = mtConfig.getMongoCollectionsMap().getCollectionName("zone_08_12");
+		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+		std::string emptyString;
+		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+		MTZ12_MTZ08_MappingDao mtz12_08MapDao(dbConfig, db.dbName, zn12_08CollectionName);
+		mtz12_08MapDao.getAll(MTZ12_MTZ08_Map);
+		Print() << "Zones 2012->2008 mapping loaded" << std::endl;
+		break;
+	}
+	default:
+	{
+		throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
+	}
 	}
 }
 
@@ -1162,7 +1190,7 @@ void sim_mob::medium::PredayManager::processPersonsForCalibration(const PersonLi
 
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++)
 	{
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 		predaySystem.planDay();
 		predaySystem.updateStatistics(simStats);
 		if(consoleOutput) { predaySystem.printLogs(); }
@@ -1265,7 +1293,7 @@ void sim_mob::medium::PredayManager::processPersons(const PersonIdList::iterator
 	for(PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++) {
 		PersonParams personParams;
 		populationDao.getOneById(*i, personParams);
-		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
+		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 		predaySystem.planDay();
 		if(outputPredictions) { predaySystem.outputPredictionsToMongo(); }
 		if(outputTripchains)
@@ -1337,7 +1365,7 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 		populationDao.getOneById(*i, personParams);
 		if(personParams.getPersonId().empty()) { continue; } // some persons are not complete in the database
 		logsumSqlDao.getLogsumById(*i, personParams);
-		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
+		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 		predaySystem.planDay();
 		if(outputPredictions) { predaySystem.outputPredictionsToMongo(); }
 		if(outputTripchains)
@@ -1363,7 +1391,7 @@ void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonLi
 
 	// loop through all persons within the range and plan their day
 	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
-		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
+		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 		predaySystem.computeLogsums();
 		if(consoleOutput) { predaySystem.printLogs(); }
 	}
@@ -1412,7 +1440,7 @@ void sim_mob::medium::PredayManager::computeLogsums(const PersonIdList::iterator
 	for(PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++) {
 		PersonParams personParams;
 		populationDao.getOneById(*i, personParams);
-		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
+		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 		predaySystem.computeLogsums();
 		predaySystem.updateLogsumsToMongo();
 		if(consoleOutput) { predaySystem.printLogs(); }
@@ -1474,7 +1502,7 @@ void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_Per
 		PersonParams personParams;
 		populationDao.getOneById(*i, personParams);
 		if(personParams.getPersonId().empty()) { continue; } // some persons are not complete in the database
-		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
+		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 		predaySystem.computeLogsums();
 		logsumSqlDao.insert(personParams);
 		if(consoleOutput) { predaySystem.printLogs(); }
@@ -1523,7 +1551,7 @@ void sim_mob::medium::PredayManager::computeLT_PopulationFeedbackLogsums(const L
 
 	// loop through all persons within the range and plan their day
     PersonParams personParams;
-	PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
+	PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 	for(LT_PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++)
 	{
 		populationDao.getOneById(*i, personParams);
@@ -1566,7 +1594,7 @@ void sim_mob::medium::PredayManager::computeLT_FeedbackLogsums(const PersonIdLis
 
 	// loop through all persons within the range and plan their day
     PersonParams personParams;
-	PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs);
+	PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 	for(PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++)
 	{
 		populationDao.getOneById(*i, personParams);

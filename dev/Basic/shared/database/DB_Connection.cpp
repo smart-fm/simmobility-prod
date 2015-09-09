@@ -66,7 +66,8 @@ DB_Connection::DB_Connection(BackendType type, const DB_Config& config)
     switch (type) {
         case POSTGRES:
         {
-            boost::format fmtr = boost::format(PGSQL_CONNSTR_FORMAT);
+            const std::string PGSQL_CONNSTR_FORMAT2 = "host=%1% port=%2% user=%3% password=%4% dbname=%5%";
+            boost::format fmtr = boost::format(PGSQL_CONNSTR_FORMAT2);
             fmtr % config.getHost() % config.getPort() % config.getUsername() 
                  % config.getPassword() % config.getDatabaseName();
             connectionStr = fmtr.str();

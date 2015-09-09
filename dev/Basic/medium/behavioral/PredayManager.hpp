@@ -21,8 +21,7 @@
 #include "CalibrationStatistics.hpp"
 #include "config/MT_Config.hpp"
 #include "params/PersonParams.hpp"
-#include "params/ZoneCostParams.hpp"
-#include "database/DB_Connection.hpp"
+#include "behavioral/params/ZoneCostParams.hpp"
 
 namespace sim_mob {
 namespace medium {
@@ -131,6 +130,13 @@ public:
 	 * @param dbType type of backend where the zone node mapping data is available
 	 */
 	void loadZoneNodes(db::BackendType dbType);
+
+	/**
+	 * gets the mapping of zones from data for 2012 back to data for 2008
+	 *
+	 * @param dbType type of backend where the zone node mapping data is available
+	 */
+	void load2012_2008ZoneMapping(db::BackendType dbType);
 
 	/**
 	 * loads the AM, PM and off peak costs data
@@ -342,6 +348,8 @@ private:
     ZoneMap zoneMap;
     ZoneNodeMap zoneNodeMap;
     boost::unordered_map<int,int> zoneIdLookup;
+    std::map<int,int> MTZ12_MTZ08_Map;
+
 
     /**
      * Map of AM, PM and Off peak Costs [origin zone, destination zone] -> CostParams*

@@ -267,6 +267,7 @@ void PredaySystem::constructTourModeParams(TourModeParams& tmParams, int destina
 	tmParams.setEducationOp(znDesObj->getTotalEnrollment());
 	tmParams.setOriginArea(znOrgObj->getArea());
 	tmParams.setDestinationArea(znDesObj->getArea());
+	tmParams.setCostIncrease(0);
 	if(personParams.getHomeLocation() != destination)
 	{
 		CostParams* amObj = amCostMap.at(personParams.getHomeLocation()).at(destination);

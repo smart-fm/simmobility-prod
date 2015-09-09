@@ -12,7 +12,7 @@ using namespace medium;
 TourModeDestinationParams::TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
 		const PersonParams& personParams, StopType tourType)
 : ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation()),
-  drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()), modeForParentWorkTour(0)
+  drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()), modeForParentWorkTour(0), costIncrease(0)
 {}
 
 TourModeDestinationParams::~TourModeDestinationParams() {}
@@ -141,6 +141,11 @@ double TourModeDestinationParams::getArea(int zone) const {
 
 void TourModeDestinationParams::setDrive1Available(bool drive1Available) {
 	this->drive1Available = drive1Available;
+}
+
+double TourModeDestinationParams::getCostIncrease() const
+{
+	return costIncrease;
 }
 
 int TourModeDestinationParams::isAvailable_TMD(int choiceId) const {

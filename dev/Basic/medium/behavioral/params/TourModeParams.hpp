@@ -318,6 +318,16 @@ public:
 		this->cbdOrgZone = cbdOrgZone;
 	}
 
+	double getCostIncrease() const
+	{
+		return costIncrease;
+	}
+
+	void setCostIncrease(double costIncrease)
+	{
+		this->costIncrease = costIncrease;
+	}
+
 private:
 	StopType stopType;
 	double costPublicFirst;
@@ -346,6 +356,7 @@ private:
 	double educationOP;
 	double originArea;
 	double destinationArea;
+	double costIncrease;
 	
 	bool publicBusAvailable;
 	bool mrtAvailable;

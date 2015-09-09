@@ -58,11 +58,13 @@ public:
 	void setModeForParentWorkTour(int modeForParentWorkTour);
 	int getCbdDummy(int zone) const;
 	int isCbdOrgZone() const;
+	double getCostIncrease() const;
 
 private:
 	bool drive1Available;
 	/**mode for parent work tour in case of sub tours*/
 	int modeForParentWorkTour;
+	double costIncrease;
 };
 
 class StopModeDestinationParams : public ModeDestinationParams

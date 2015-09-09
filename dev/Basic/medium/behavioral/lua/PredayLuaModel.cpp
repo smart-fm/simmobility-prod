@@ -109,6 +109,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("education_op",&TourModeParams::getEducationOp)
 				.addProperty("cbd_dummy",&TourModeParams::isCbdDestZone)
 				.addProperty("cbd_dummy_origin",&TourModeParams::isCbdOrgZone)
+				.addProperty("cost_increase", &TourModeParams::getCostIncrease)
 			.endClass()
 
 			.beginClass<TourModeDestinationParams>("TourModeDestinationParams")
@@ -137,6 +138,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addFunction("availability",&TourModeDestinationParams::isAvailable_TMD)
 				.addProperty("cbd_dummy_origin",&TourModeDestinationParams::isCbdOrgZone)
 				.addFunction("cbd_dummy",&TourModeDestinationParams::getCbdDummy)
+				.addProperty("cost_increase", &TourModeDestinationParams::getCostIncrease)
 			.endClass()
 
 			.beginClass<StopModeDestinationParams>("StopModeDestinationParams")

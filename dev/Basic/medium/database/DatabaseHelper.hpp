@@ -23,15 +23,16 @@ namespace medium {
     /**
      * Schemas
      */
-    const std::string MAIN_SCHEMA = "snapshot2012.";
+    const std::string MAIN_SCHEMA = "main2012.";
     const std::string PUBLIC_SCHEMA = "public.";
+    const std::string DEMAND_SCHEMA = "demand.";
 
     /**
      * Tables
      */
     const std::string DB_TABLE_INCOME_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "income_category");
     const std::string DB_TABLE_VEHICLE_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "vehicle_category");
-    const std::string DB_TABLE_LOGSUMS = APPLY_SCHEMA(PUBLIC_SCHEMA, "preday_logsum");
+    const std::string DB_TABLE_LOGSUMS = APPLY_SCHEMA(DEMAND_SCHEMA, "preday_logsum");
 
 	/**
 	 * Stored procedures for long-term population database

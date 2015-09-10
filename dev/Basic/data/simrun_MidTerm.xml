@@ -26,11 +26,11 @@
             <database id="fm_remote" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
-                <dbname value="simmobility_db_2014"/>
+                <dbname value="SimMobility_DB_2015"/>
             </database>
             
-            <database id="fm_local_lt" dbtype="postgres">
-                <host value="localhost"/>
+            <database id="fm_remote_lt" dbtype="postgres">
+                <host value="172.25.184.14"/>
                 <port value="5432"/>
                 <dbname value="sim_mob_lt"/>
             </database>
@@ -39,7 +39,7 @@
             <database id="fm_mongo" dbtype="mongodb">
                 <host value="localhost"/>
                 <port value="27017"/>
-                <dbname value="preday"/>
+                <dbname value="mydb"/>
             </database>
 
         </databases>
@@ -97,9 +97,9 @@
             <!-- BE CAREFUL with these; remember that EVERYONE can see them: -->
             <!--    1) Don't put any passwords here that you care about (e.g., email accounts) -->
             <!--    2) Don't put any passwords to databases on the FM server. -->
-            <plaintext-credential id="fm_local_med">
-                <username value="postgres"/>
-                <password value="postgres123456"/>
+            <plaintext-credential id="lt_cred">
+                <username value="fmstaff"/>
+                <password value="fm4trans"/>
             </plaintext-credential>
 
         </credentials>

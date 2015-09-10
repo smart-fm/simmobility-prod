@@ -232,8 +232,15 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 void sim_mob::medium::PredayLuaModel::computeDayPatternLogsums(PersonParams& personParams) const
 {
 	LuaRef computeLogsumDPT = getGlobal(state.get(), "compute_logsum_dpt");
-	LuaRef dptLogsum = computeLogsumDPT(personParams);
-	personParams.setDptLogsum(dptLogsum.cast<double>());
+	LuaRef dptRetVal = computeLogsumDPT(personParams);
+	if(dptRetVal.isTable())
+	{
+		personParams.setDptLogsum(dptRetVal[1].cast<double>());
+	}
+	else
+	{
+		throw std::runtime_error("compute_logsum_dpt function does not return a table as expected");
+	}
 
 	LuaRef computeLogsumDPS = getGlobal(state.get(), "compute_logsum_dps");
 	LuaRef dpsLogsum = computeLogsumDPS(personParams);
@@ -243,8 +250,15 @@ void sim_mob::medium::PredayLuaModel::computeDayPatternLogsums(PersonParams& per
 void sim_mob::medium::PredayLuaModel::computeDayPatternBinaryLogsums(PersonParams& personParams) const
 {
 	LuaRef computeLogsumDPB = getGlobal(state.get(), "compute_logsum_dpb");
-	LuaRef dpbLogsum = computeLogsumDPB(personParams);
-	personParams.setDpbLogsum(dpbLogsum.cast<double>());
+	LuaRef dpbRetVal = computeLogsumDPB(personParams);
+	if(dpbRetVal.isTable())
+	{
+		personParams.setDpbLogsum(dpbRetVal[1].cast<double>());
+	}
+	else
+	{
+		throw std::runtime_error("compute_logsum_dpb function does not return a table as expected");
+	}
 }
 
 void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern) const {

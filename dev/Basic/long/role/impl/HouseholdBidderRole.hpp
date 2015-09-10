@@ -81,6 +81,7 @@ namespace sim_mob
             void computeHouseholdAffordability();
             void computeBidValueLogistic( double price, double wp, double &finalBid, double &finalSurplus );
             void getScreeningProbabilities(int hitsId, std::vector<double> &probabilities);
+
             /**
              * Inherited from LT_Role
              * @param currTime
@@ -146,10 +147,13 @@ namespace sim_mob
         	int vehicleBuyingWaitingTimeInDays;
         	uint32_t day;
 
-            enum EthnicityId{
+            enum EthnicityId
+            {
             	CHINESE = 1, MALAY, INDIAN, OTHERS
             };
-            enum CoeffParamId{
+
+            enum CoeffParamId
+            {
             	ASC_NO_CAR = 1, ASC_ONECAR, ASC_TWOplusCAR, B_ABOVE60_ONE_CAR, B_ABOVE60_TWOplusCAR, B_CEO_ONECAR, B_CEO_TWOplusCAR,
             	B_FULLWORKER1_ONECAR, B_FULLWORKER1_TWOplusCAR, B_FULLWORKER2_ONECAR, B_FULLWORKER2_TWOplusCAR, B_FULLWORKER3p_ONECAR, B_FULLWORKER3p_TWOplusCAR, B_HAS_MC_ONECAR,
             	B_HAS_MC_TWOplusCAR, B_HHSIZE3_ONECAR, B_HHSIZE3_TWOplusCAR, B_HHSIZE4_ONECAR, B_HHSIZE4_TWOplusCAR, B_HHSIZE5_ONECAR, B_HHSIZE5_TWOplusCAR,
@@ -159,7 +163,7 @@ namespace sim_mob
             	B_STUDENT1_ONECAR, B_STUDENT1_TWOplusCAR, B_STUDENT2_ONECAR, B_STUDENT2_TWOplusCAR, B_STUDENT3_ONECAR, B_STUDENT3_TWOplusCAR, B_WHITECOLLAR1_ONECAR, B_WHITECOLLAR1_TWOplusCAR, B_WHITECOLLAR2_ONECAR,
             	B_WHITECOLLAR2_TWOplusCAR, B_distMRT1000_ONECAR, B_distMRT1000_TWOplusCAR, B_distMRT500_ONECAR, B_distMRT500_TWOplusCAR
             };
-            float householdAffordabilityAmount;
+
             bool initBidderRole;
         };
     }

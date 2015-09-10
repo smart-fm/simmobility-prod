@@ -2,12 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/* 
- * File:   AbstractDao.hpp
- * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
- *
- * Created on April 23, 2013, 4:29 PM
- */
 #pragma once
 #include <vector>
 #include <boost/algorithm/string.hpp>
@@ -17,30 +11,35 @@
 #include "soci.h"
 #include "I_Dao.h"
 
-namespace {
-const soci::details::basic_type_tag basicTypeTag;
-typedef soci::details::use_type_ptr UseTypePtr;
-
+namespace
+{
 /**
- * Visitor that will convert an variant value into details::use_type_ptr.
+ * Visitor that will bind an variant value into an sql statement
  */
-class UsePtrConverter: public boost::static_visitor<UseTypePtr> {
+class ParamBinder: public boost::static_visitor<>
+{
 public:
-	// visitor interfaces
+	ParamBinder(soci::details::prepare_temp_type& statement) : statement(statement)
+	{}
 
 	template<typename T>
-	UseTypePtr operator()(const T& val) const {
-		return soci::details::do_use(val, std::string(), basicTypeTag);
+	void operator()(const T& val) const
+	{
+		statement, soci::use(val);
 	}
+
+	soci::details::prepare_temp_type& statement;
 };
+
 // POSTGRES dependent. Needs to be fixed.
 const std::string DB_RETURNING_CLAUSE = "RETURNING";
 const std::string DB_RETURNING_ALL_CLAUSE = " " + DB_RETURNING_CLAUSE + " * ";
 }
 
-namespace sim_mob {
-
-namespace db {
+namespace sim_mob
+{
+namespace db
+{
 typedef soci::row Row;
 typedef soci::rowset<Row> ResultSet;
 
@@ -78,14 +77,15 @@ typedef soci::rowset<Row> ResultSet;
  * Attention: The given connection is not managed by DAO implementation.
  * This implementation is not thread-safe.
  *
+ * \author Pedro Gandola
+ *
  */
-template<typename T> class SqlAbstractDao: public I_Dao<T> {
+template<typename T> class SqlAbstractDao: public I_Dao<T>
+{
 public:
 
-	SqlAbstractDao(DB_Connection& connection, const std::string& tableName,
-			const std::string& insertQuery, const std::string& updateQuery,
-			const std::string& deleteQuery, const std::string& getAllQuery,
-			const std::string& getByIdQuery) :
+	SqlAbstractDao(DB_Connection& connection, const std::string& tableName, const std::string& insertQuery, const std::string& updateQuery,
+			const std::string& deleteQuery, const std::string& getAllQuery, const std::string& getByIdQuery) :
 			connection(connection), tableName(tableName)
 	{
 		defaultQueries[INSERT] = insertQuery;
@@ -95,11 +95,14 @@ public:
 		defaultQueries[GET_BY_ID] = getByIdQuery;
 	}
 
-	virtual ~SqlAbstractDao() {
+	virtual ~SqlAbstractDao()
+	{
 	}
 
-	virtual T& insert(T& entity, bool returning = false) {
-		if (isConnected()) {
+	virtual T& insert(T& entity, bool returning = false)
+	{
+		if (isConnected())
+		{
 			// Get data to insert.
 			Parameters params;
 			toRow(entity, params, false);
@@ -108,12 +111,13 @@ public:
 			Statement query(connection.getSession<soci::session>());
 			//append returning clause.
 			//Attention: this is only prepared for POSTGRES.
-			std::string upperQuery = boost::to_upper_copy(
-					defaultQueries[INSERT]);
+			std::string upperQuery = boost::to_upper_copy(defaultQueries[INSERT]);
 
-			if (returning) {
+			if (returning)
+			{
 				size_t found = upperQuery.rfind(DB_RETURNING_CLAUSE);
-				if (found == std::string::npos) {
+				if (found == std::string::npos)
+				{
 					upperQuery += DB_RETURNING_ALL_CLAUSE;
 				}
 			}
@@ -125,9 +129,11 @@ public:
 			//execute and return data if (RETURNING clause is defined)
 			ResultSet rs(query);
 
-			if (returning) {
+			if (returning)
+			{
 				ResultSet::const_iterator it = rs.begin();
-				if (it != rs.end()) {
+				if (it != rs.end())
+				{
 					fromRow((*it), entity);
 				}
 			}
@@ -136,8 +142,10 @@ public:
 		return entity;
 	}
 
-	virtual bool update(T& entity) {
-		if (isConnected()) {
+	virtual bool update(T& entity)
+	{
+		if (isConnected())
+		{
 			Transaction tr(connection.getSession<soci::session>());
 			Statement query(connection.getSession<soci::session>());
 			// Get data to insert.
@@ -152,8 +160,10 @@ public:
 		return false;
 	}
 
-	virtual bool erase(const Parameters& params) {
-		if (isConnected()) {
+	virtual bool erase(const Parameters& params)
+	{
+		if (isConnected())
+		{
 			Transaction tr(connection.getSession<soci::session>());
 			Statement query(connection.getSession<soci::session>());
 			// prepare statement.
@@ -166,35 +176,41 @@ public:
 		return false;
 	}
 
-	virtual bool getById(const Parameters& ids, T& outParam) {
+	virtual bool getById(const Parameters& ids, T& outParam)
+	{
 		return getByValues(defaultQueries[GET_BY_ID], ids, outParam);
 	}
 
-	virtual bool getAll(std::vector<T>& outList) {
+	virtual bool getAll(std::vector<T>& outList)
+	{
 		return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outList);
 	}
 
-	virtual bool getAll(std::vector<T*>& outList) {
+	virtual bool getAll(std::vector<T*>& outList)
+	{
 		return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outList);
 	}
 
 	template<typename K, typename F>
-	bool getAll(boost::unordered_map<K, T>& outMap, F getter) {
+	bool getAll(boost::unordered_map<K, T>& outMap, F getter)
+	{
 		return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outMap, getter);
 	}
 
 	template<typename K, typename F>
-	bool getAll(boost::unordered_map<K, T*>& outMap, F getter) {
+	bool getAll(boost::unordered_map<K, T*>& outMap, F getter)
+	{
 		return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outMap, getter);
 	}
 
 	/*
-	* execute a given query
-	* @param query to be executed query
-	* @param outList gives the result of the query
-	*/
-	virtual bool getByQuery(std::string query,std::vector<T*>& outList) {
-			return getByValues(query, EMPTY_PARAMS, outList);
+	 * execute a given query
+	 * @param query to be executed query
+	 * @param outList gives the result of the query
+	 */
+	virtual bool getByQuery(std::string query, std::vector<T*>& outList)
+	{
+		return getByValues(query, EMPTY_PARAMS, outList);
 	}
 
 protected:
@@ -205,7 +221,8 @@ protected:
 	 * @param result result row.
 	 * @param outParam (Out parameter) to receive data from row.
 	 */
-	virtual void fromRow(Row& result, T& outParam) {
+	virtual void fromRow(Row& result, T& outParam)
+	{
 	}
 
 	/**
@@ -214,13 +231,15 @@ protected:
 	 * @param outParams Parameter list that will receive the data.
 	 * @param update tells you if it is an update or an insert.
 	 */
-	virtual void toRow(T& data, Parameters& outParams, bool update) {
+	virtual void toRow(T& data, Parameters& outParams, bool update)
+	{
 	}
 
 	/**
 	 * Enum for default queries.
 	 */
-	enum DefaultQuery {
+	enum DefaultQuery
+	{
 		INSERT = 0, UPDATE, DELETE, GET_ALL, GET_BY_ID, NUM_QUERIES
 	};
 
@@ -234,7 +253,8 @@ protected:
 	 * Tells we DAO has connection to the database.
 	 * @return
 	 */
-	bool isConnected() {
+	bool isConnected()
+	{
 		return (connection.isConnected());
 	}
 
@@ -249,15 +269,17 @@ protected:
 	 * @return true if some value was returned, false otherwise.
 	 */
 	template<typename V, typename F>
-	bool getByValues(const std::string& queryStr, const Parameters& params,
-			V& outParam, F getter) {
+	bool getByValues(const std::string& queryStr, const Parameters& params, V& outParam, F getter)
+	{
 		bool hasValues = false;
-		if (isConnected()) {
+		if (isConnected())
+		{
 			Statement query(connection.getSession<soci::session>());
 			prepareStatement(queryStr, params, query);
 			ResultSet rs(query);
 			ResultSet::const_iterator it = rs.begin();
-			for (it; it != rs.end(); ++it) {
+			for (it; it != rs.end(); ++it)
+			{
 				appendRow((*it), outParam, getter);
 				hasValues = true;
 			}
@@ -275,15 +297,17 @@ protected:
 	 * @return true if some value was returned, false otherwise.
 	 */
 	template<typename V>
-	bool getByValues(const std::string& queryStr, const Parameters& params,
-			V& outParam) {
+	bool getByValues(const std::string& queryStr, const Parameters& params, V& outParam)
+	{
 		bool hasValues = false;
-		if (isConnected()) {
+		if (isConnected())
+		{
 			Statement query(connection.getSession<soci::session>());
 			prepareStatement(queryStr, params, query);
 			ResultSet rs(query);
 			ResultSet::const_iterator it = rs.begin();
-			for (it; it != rs.end(); ++it) {
+			for (it; it != rs.end(); ++it)
+			{
 				appendRow((*it), outParam);
 				hasValues = true;
 			}
@@ -297,12 +321,14 @@ protected:
 	 * @param params to put on the statement.
 	 * @param outParam out statement.
 	 */
-	void prepareStatement(const std::string& queryStr, const Parameters& params,
-			Statement& outParam) {
+	void prepareStatement(const std::string& queryStr, const Parameters& params, Statement& outParam)
+	{
 		outParam << queryStr;
+		ParamBinder paramBinder(outParam);
 		Parameters::const_iterator it = params.begin();
-		for (it; it != params.end(); ++it) {
-			outParam, boost::apply_visitor(UsePtrConverter(), *it);
+		for (it; it != params.end(); ++it)
+		{
+			boost::apply_visitor(paramBinder, *it);
 		}
 	}
 
@@ -313,7 +339,8 @@ private:
 	 * @param row to create the object.
 	 * @param list to fill.
 	 */
-	void appendRow(Row& row, T& obj) {
+	void appendRow(Row& row, T& obj)
+	{
 		fromRow(row, obj);
 	}
 
@@ -322,7 +349,8 @@ private:
 	 * @param row to create the object.
 	 * @param list to fill.
 	 */
-	void appendRow(Row& row, std::vector<T*>& list) {
+	void appendRow(Row& row, std::vector<T*>& list)
+	{
 		T* model = new T();
 		fromRow(row, *model);
 		list.push_back(model);
@@ -333,7 +361,8 @@ private:
 	 * @param row to create the object.
 	 * @param list to fill.
 	 */
-	void appendRow(Row& row, std::vector<T>& list) {
+	void appendRow(Row& row, std::vector<T>& list)
+	{
 		T model;
 		fromRow(row, model);
 		list.push_back(model);
@@ -346,7 +375,8 @@ private:
 	 * @param getter to get the key.
 	 */
 	template<typename K, typename F>
-	void appendRow(Row& row, boost::unordered_map<K, T>& map, F getter) {
+	void appendRow(Row& row, boost::unordered_map<K, T>& map, F getter)
+	{
 		T model;
 		fromRow(row, model);
 		map.insert(std::make_pair(((model).*getter)(), model));
@@ -359,7 +389,8 @@ private:
 	 * @param getter to get the key.
 	 */
 	template<typename K, typename F>
-	void appendRow(Row& row, boost::unordered_map<K, T*>& map, F getter) {
+	void appendRow(Row& row, boost::unordered_map<K, T*>& map, F getter)
+	{
 		T* model = new T();
 		fromRow(row, *model);
 		map.insert(std::make_pair((model->*getter)(), model));

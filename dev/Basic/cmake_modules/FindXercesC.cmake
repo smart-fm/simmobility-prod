@@ -23,13 +23,15 @@ FIND_LIBRARY(XERCESC_LIBRARIES
     $ENV{XERCESCROOT}/lib
     /usr/local/lib
     /usr/lib
+  NO_SYSTEM_ENVIRONMENT_PATH
 )
 
 # if the include a the library are found then we have it
 IF(XERCESC_INCLUDE_DIR)
   IF(XERCESC_LIBRARIES)
     SET( XERCESC_FOUND "YES" )
-    MESSAGE(STATUS "XercesC was found")
+#    MESSAGE(STATUS "XercesC was found")
+    MESSAGE(STATUS "Found XercesC - ${XERCESC_LIBRARIES} , ${XERCESC_INCLUDE_DIR}")
    ELSE(XERCESC_LIBRARIES)
     MESSAGE(STATUS "XercesC was Not found")
   ENDIF(XERCESC_LIBRARIES)

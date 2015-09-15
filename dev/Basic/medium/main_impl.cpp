@@ -196,8 +196,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 	if(BusController::HasBusControllers())
 	{
-		personWorkers->assignAWorker(BusController::TEMP_Get_Bc_1());
-
+		personWorkers->assignAWorker(BusController::GetInstance());
 	}
 	//incident
 	personWorkers->assignAWorker(IncidentManager::getInstance());

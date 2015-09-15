@@ -279,7 +279,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
     //Start all "BusController" entities.
     for (std::vector<EntityTemplate>::const_iterator it=cfg.busControllerTemplates.begin(); it!=cfg.busControllerTemplates.end(); ++it) 
     {
-        sim_mob::BusController::RegisterNewBusController(it->startTimeMs, cfg.mutexStategy());
+        sim_mob::BusController::RegisterBusController(it->startTimeMs, cfg.mutexStategy());
     }
 
     //Start all "FMOD" entities.

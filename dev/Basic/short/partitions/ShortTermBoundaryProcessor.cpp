@@ -191,7 +191,7 @@ void sim_mob::ShortTermBoundaryProcessor::clearFakeAgentFlag()
 {
 	std::set<Entity*>::iterator itr = Agent::all_agents.begin();
 	while (itr != Agent::all_agents.end()) {
-		if (((*itr)->isFake) && ((*itr)->receiveTheFakeEntityAgain == false)) {
+		if (((*itr)->isFake) && ((*itr)->isDuplicateFakeEntity == false)) {
 			itr = Agent::all_agents.erase(itr);
 			releaseFakeAgentMemory(*itr);
 		} else {
@@ -204,14 +204,14 @@ void sim_mob::ShortTermBoundaryProcessor::clearFakeAgentFlag()
 	{
 		if ((*itr)->isFake)
 		{
-			(*itr)->receiveTheFakeEntityAgain = false;
+			(*itr)->isDuplicateFakeEntity = false;
 		}
 	}
 
 	itr = Agent::all_agents.begin();
 	for (; itr != Agent::all_agents.end(); itr++)
 	{
-		if ((*itr)->isFake && ((*itr)->receiveTheFakeEntityAgain == true))
+		if ((*itr)->isFake && ((*itr)->isDuplicateFakeEntity == true))
 		{
 			std::cout << "Error" << std::endl;
 			return;
@@ -543,7 +543,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 			one_person->getRole()->unpackProxy(unpackageUtil);
 
 			one_person->isFake = true;
-			one_person->receiveTheFakeEntityAgain = true;
+			one_person->isDuplicateFakeEntity = true;
 //			one_person->toRemoved = false;
 		}
 		else
@@ -572,7 +572,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 //				debug.outputToConsole("receive 31");
 
 				one_person->isFake = true;
-				one_person->receiveTheFakeEntityAgain = true;
+				one_person->isDuplicateFakeEntity = true;
 //				one_person->toRemoved = false;
 				insertOneFakeAgentToWorkerGroup(one_person);
 //				debug.outputToConsole("receive 32");
@@ -590,7 +590,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 					continue;
 
 				one_person->isFake = true;
-				one_person->receiveTheFakeEntityAgain = true;
+				one_person->isDuplicateFakeEntity = true;
 //				one_person->toRemoved = false;
 				insertOneFakeAgentToWorkerGroup(one_person);
 				break;
@@ -795,7 +795,7 @@ bool sim_mob::ShortTermBoundaryProcessor::isAgentInFeedbackorForward(BoundarySeg
 void sim_mob::ShortTermBoundaryProcessor::changeAgentToFake(Agent * agent)
 {
 	agent->isFake = true;
-	agent->receiveTheFakeEntityAgain = true;
+	agent->isDuplicateFakeEntity = true;
 //	agent->toRemoved = false;
 
 	entity_group->removeAgentFromWorker(agent);
@@ -804,7 +804,7 @@ void sim_mob::ShortTermBoundaryProcessor::changeAgentToFake(Agent * agent)
 void sim_mob::ShortTermBoundaryProcessor::insertOneAgentToWorkerGroup(Agent * agent)
 {
 	agent->isFake = false;
-	agent->receiveTheFakeEntityAgain = false;
+	agent->isDuplicateFakeEntity = false;
 //	agent->toRemoved = false;
 
 	Agent::all_agents.push_back(agent);
@@ -814,7 +814,7 @@ void sim_mob::ShortTermBoundaryProcessor::insertOneAgentToWorkerGroup(Agent * ag
 void sim_mob::ShortTermBoundaryProcessor::insertOneFakeAgentToWorkerGroup(Agent * agent)
 {
 	agent->isFake = true;
-	agent->receiveTheFakeEntityAgain = true;
+	agent->isDuplicateFakeEntity = true;
 //	agent->toRemoved = false;
 
 	Agent::all_agents.push_back(agent);

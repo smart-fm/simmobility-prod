@@ -815,7 +815,8 @@ void DatabaseLoader::LoadSections(const std::string& storedProc)
 void DatabaseLoader::LoadPhase(const std::string& storedProc)
 {
 	//Optional
-	if (storedProc.empty()) {
+	if (storedProc.empty())
+	{
 		return;
 	}
 
@@ -827,10 +828,9 @@ void DatabaseLoader::LoadPhase(const std::string& storedProc)
 		map<int, Section>::iterator from = sections_.find(it->sectionFrom), to = sections_.find(it->sectionTo);
 		//since the section index in sections_ and phases_ are read from two different tables, inconsistecy check is a must
 		if((from ==sections_.end())||(to ==sections_.end()))
-			{
-
-				continue; //you are not in the sections_ container
-			}
+		{
+			continue; //you are not in the sections_ container
+		}
 
 		it->ToSection = &sections_[it->sectionTo];
 		it->FromSection = &sections_[it->sectionFrom];
@@ -841,6 +841,10 @@ void DatabaseLoader::LoadPhase(const std::string& storedProc)
 
 void DatabaseLoader::LoadCrossings(const std::string& storedProc)
 {
+	if (storedProc.empty()) {
+		return;
+	}
+
 	//Our SQL statement
 	soci::rowset<Crossing> rs = (sql_.prepare <<"select * from " + storedProc);
 
@@ -865,6 +869,10 @@ void DatabaseLoader::LoadCrossings(const std::string& storedProc)
 
 void DatabaseLoader::LoadLanes(const std::string& storedProc)
 {
+	if (storedProc.empty()) {
+		return;
+	}
+
 	//Our SQL statement
 	soci::rowset<Lane> rs = (sql_.prepare <<"select * from " + storedProc);
 
@@ -1371,11 +1379,11 @@ void DatabaseLoader::LoadScreenLineSegmentIDs(const map<string, string>& storedP
 
 void DatabaseLoader::LoadObjectsForShortTerm(map<string, string> const & storedProcs)
 {
-	LoadCrossings(getStoredProcedure(storedProcs, "crossing"));
-	LoadLanes(getStoredProcedure(storedProcs, "lane"));
+	LoadCrossings(getStoredProcedure(storedProcs, "crossing", false));
+	LoadLanes(getStoredProcedure(storedProcs, "lane", false));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain", false));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal", false));
-	LoadPhase(getStoredProcedure(storedProcs, "phase"));	
+	LoadPhase(getStoredProcedure(storedProcs, "phase", false));
 
 	//add by xuyan
 	//load in boundary segments (not finished!)
@@ -3022,9 +3030,6 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	{
 		// load data required for short-term
 		loader.LoadObjectsForShortTerm(storedProcs);
-
-		// load segment type data, node type data
-		loader.loadObjectType(storedProcs, rn);
 	}
 
 	//Step 1.1: Load "new style" objects, which don't require any post-processing.

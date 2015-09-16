@@ -52,7 +52,7 @@ bool sim_mob::BusController::HasBusControllers()
 	return (instance!=nullptr);
 }
 
-void sim_mob::BusController::InitializeAllControllers(std::set<Entity*>& agentList, const vector<PT_bus_dispatch_freq>& dispatchFreq)
+void sim_mob::BusController::InitializeAllControllers(std::set<Entity*>& agentList, const vector<PT_BusDispatchFreq>& dispatchFreq)
 {
 	if (!instance) {
 		throw std::runtime_error("Currently, we only support zero or one Bus Controller");
@@ -101,10 +101,10 @@ void sim_mob::BusController::assignBusTripChainWithPerson(
 	for (map<string, Busline*>::const_iterator buslinesIt = buslines.begin();
 			buslinesIt != buslines.end(); buslinesIt++) {
 		Busline* busline = buslinesIt->second;
-		const vector<BusTrip>& busTrip_vec = busline->queryBusTrips();
+		const vector<BusTrip>& busTrips = busline->queryBusTrips();
 
-		for (vector<BusTrip>::const_iterator tripIt = busTrip_vec.begin();
-				tripIt != busTrip_vec.end(); tripIt++) {
+		for (vector<BusTrip>::const_iterator tripIt = busTrips.begin();
+				tripIt != busTrips.end(); tripIt++) {
 			if (tripIt->startTime.isAfterEqual(
 					ConfigManager::GetInstance().FullConfig().simStartTime())) {
 				Person* person = new Person("bus driver", config.mutexStategy(), -1, tripIt->getPersonID());
@@ -113,7 +113,6 @@ void sim_mob::BusController::assignBusTripChainWithPerson(
 				tripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));
 				person->setTripChain(tripChain);
 				person->initTripChain();
-				// scheduled for dispatch
 				addOrStashBuses(person, activeAgents);
 			}
 		}
@@ -259,7 +258,7 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 	return isFound;
 }
 
-void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatch_freq>& dispatchFreq)
+void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_BusDispatchFreq>& dispatchFreq)
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	vector<const BusStop*> stops;
@@ -271,55 +270,55 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 	std::deque<RouteInfo> allRoutes;
 	std::deque<StopInfo> allStops;
 
-	for (vector<sim_mob::PT_bus_dispatch_freq>::const_iterator curr=dispatchFreq.begin(); curr!=dispatchFreq.end(); curr++) {
-		vector<sim_mob::PT_bus_dispatch_freq>::const_iterator next = curr+1;
+	for (vector<sim_mob::PT_BusDispatchFreq>::const_iterator curr=dispatchFreq.begin(); curr!=dispatchFreq.end(); curr++) {
+		vector<sim_mob::PT_BusDispatchFreq>::const_iterator next = curr+1;
 
 		//If we're on a new BusLine, register it with the scheduler.
-		if(!busline || (curr->route_id != busline->getBusLineID())) {
-			busline = new sim_mob::Busline(curr->route_id,config.busline_control_type());
+		if(!busline || (curr->routeId != busline->getBusLineID())) {
+			busline = new sim_mob::Busline(curr->routeId,config.busline_control_type());
 
-			ptSchedule.registerBusLine(curr->route_id, busline);
-			ptSchedule.registerControlType(curr->route_id, busline->getControlType());
+			ptSchedule.registerBusLine(curr->routeId, busline);
+			ptSchedule.registerControlType(curr->routeId, busline->getControlType());
 			step = 0;
 			busLineRegistered = true;
 		}
 
 		// define frequency_busline for one busline
-		busline->addFrequencyBusline(Frequency_Busline(curr->start_time,curr->end_time,curr->headway_sec));
+		busline->addFrequencyBusline(Frequency_Busline(curr->startTime,curr->endTime,curr->headwaySec));
 
 		//Set nextTime to the next frequency bus line's start time or the current line's end time if this is the last line.
-		sim_mob::DailyTime nextTime = curr->end_time;
+		sim_mob::DailyTime nextTime = curr->endTime;
 
-		DailyTime advance(curr->headway_sec*MILLISECS_CONVERT_UNIT);
-		for(DailyTime startTime = curr->start_time; startTime.isBeforeEqual(nextTime); startTime += advance) {
+		DailyTime advance(curr->headwaySec*MILLISECS_CONVERT_UNIT);
+		for(DailyTime startTime = curr->startTime; startTime.isBeforeEqual(nextTime); startTime += advance) {
 			// deal with small gaps between the group dispatching times
 			if((startTime - lastBusDispatchTime).isBeforeEqual(advance)) {
 				startTime = lastBusDispatchTime + advance;
 			}
 
-			BusTrip bustrip("", "BusTrip", 0, -1, startTime, DailyTime("00:00:00"), step++, busline, -1, curr->route_id, nullptr, "node", nullptr, "node");
+			BusTrip bustrip("", "BusTrip", 0, -1, startTime, DailyTime("00:00:00"), step++, busline, -1, curr->routeId, nullptr, "node", nullptr, "node");
 
 			//Try to find our data.
-			map<string, vector<const RoadSegment*> >::const_iterator segmentsIt = config.getRoadSegments_Map().find(curr->route_id);
-			map<string, vector<const BusStop*> >::const_iterator stopsIt = config.getBusStops_Map().find(curr->route_id);
+			map<string, vector<const RoadSegment*> >::const_iterator segmentsIt = config.getRoadSegments_Map().find(curr->routeId);
+			map<string, vector<const BusStop*> >::const_iterator stopsIt = config.getBusStops_Map().find(curr->routeId);
 
 			vector<const RoadSegment*> segments = vector<const RoadSegment*>();
 			const std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments = config.getRoadSegments_Map();
-			map<string, vector<const RoadSegment*> >::const_iterator itSeg = routeID_roadSegments.find(curr->route_id);
+			map<string, vector<const RoadSegment*> >::const_iterator itSeg = routeID_roadSegments.find(curr->routeId);
 			if (itSeg != routeID_roadSegments.end()) {
 				segments = itSeg->second;
 			}
 
 			stops = vector<const BusStop*>();
 			const std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops = config.getBusStops_Map();
-			map<string, vector<const BusStop*> >::const_iterator itStop = routeID_busStops.find(curr->route_id);
+			map<string, vector<const BusStop*> >::const_iterator itStop = routeID_busStops.find(curr->routeId);
 			if (itStop != routeID_busStops.end()) {
 				stops = itStop->second;
 			}
 
 			if (busLineRegistered
 					&& sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes()) {
-				searchBusRoutes(stops, curr->route_id, allRoutes,allStops);
+				searchBusRoutes(stops, curr->routeId, allRoutes,allStops);
 			}
 
 			if (busLineRegistered)

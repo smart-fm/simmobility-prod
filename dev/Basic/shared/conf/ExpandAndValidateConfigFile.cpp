@@ -293,7 +293,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//Initialize all BusControllers.
 	if(BusController::HasBusControllers()) 
 	{
-		BusController::InitializeAllControllers(active_agents, cfg.getPT_bus_dispatch_freq());
+		BusController::InitializeAllControllers(active_agents, cfg.getPT_BusDispatchFreq());
 	}
 
 	//Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder

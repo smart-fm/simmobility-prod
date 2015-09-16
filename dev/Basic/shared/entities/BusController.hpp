@@ -43,7 +43,7 @@ public:
 	/**
 	 * Initialize all bus controller objects based on the parameters.
 	 */
-	static void InitializeAllControllers(std::set<sim_mob::Entity*>& agentList, const std::vector<sim_mob::PT_bus_dispatch_freq>& dispatchFreq);
+	static void InitializeAllControllers(std::set<sim_mob::Entity*>& agentList, const std::vector<sim_mob::PT_BusDispatchFreq>& dispatchFreq);
 
 	/**
 	 * Place bus controller agents on to the all_agents list.
@@ -101,7 +101,7 @@ public:
 	/**
 	 * set bus schedule which loaded from the database.
 	 */
-	void setPTScheduleFromConfig(const std::vector<sim_mob::PT_bus_dispatch_freq>& dispatchFreq);
+	void setPTScheduleFromConfig(const std::vector<sim_mob::PT_BusDispatchFreq>& dispatchFreq);
 
 	/**
 	 * unregister child item from children list

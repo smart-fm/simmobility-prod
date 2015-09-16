@@ -11,37 +11,28 @@
 namespace sim_mob {
 
 
-class PT_trip {
-public:
-	std::string trip_id;
-	std::string service_id;
-	std::string route_id;
-	sim_mob::DailyTime start_time;
-	sim_mob::DailyTime end_time;
 
+class PT_BusDispatchFreq {
+public:
+	std::string frequencyId;
+	std::string routeId;
+	sim_mob::DailyTime startTime;
+	sim_mob::DailyTime endTime;
+	int headwaySec;
 };
 
-class PT_bus_dispatch_freq {
+class PT_BusRoutes {
 public:
-	std::string frequency_id;
-	std::string route_id;
-	sim_mob::DailyTime start_time;
-	sim_mob::DailyTime end_time;
-	int headway_sec;
+	std::string routeId;
+	std::string linkId;
+	int sequenceNo;
 };
 
-class PT_bus_routes {
+class PT_BusStops {
 public:
-	std::string route_id;
-	std::string link_id;
-	int link_sequence_no;
-};
-
-class PT_bus_stops {
-public:
-	std::string route_id;
-	std::string busstop_no;
-	int busstop_sequence_no;
+	std::string routeId;
+	std::string stopNo;
+	int sequenceNo;
 };
 
 class OD_Trip {

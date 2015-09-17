@@ -107,7 +107,7 @@ void sim_mob::BusController::assignBusTripChainWithPerson(
 				tripIt != busTrips.end(); tripIt++) {
 			if (tripIt->startTime.isAfterEqual(
 					ConfigManager::GetInstance().FullConfig().simStartTime())) {
-				Person* person = new Person("bus driver", config.mutexStategy(), -1, tripIt->getPersonID());
+				Person* person = new Person("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
 				person->setPersonCharacteristics();
 				vector<TripChainItem*> tripChain;
 				tripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));

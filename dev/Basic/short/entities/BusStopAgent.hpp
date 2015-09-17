@@ -86,7 +86,7 @@ public:
 
 	virtual ~BusStopAgent(){}
 	virtual void load(const std::map<std::string, std::string>& configProps){}
-	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
+	virtual std::vector<BufferedBase*> buildSubscriptionList();
 
 	virtual bool frame_init(timeslice now);
 	virtual Entity::UpdateStatus frame_tick(timeslice now);

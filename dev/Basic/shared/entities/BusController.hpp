@@ -60,7 +60,7 @@ public:
 	//Signals are non-spatial in nature.
 	virtual bool isNonspatial() { return true; }
 
-	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
+	virtual std::vector<BufferedBase*> buildSubscriptionList();
 
 	//virtual Entity::UpdateStatus update(timeslice now);
 

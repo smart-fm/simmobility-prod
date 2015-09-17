@@ -216,7 +216,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_DistributeMessages(std::set<Agent*
 
 		(*it)->waitAuraManager(removedEntities);
 	}
-	PathSetManager::updateCurrTimeInterval();
+	TravelTimeManager::updateCurrTimeInterval();
 
 	//Now is a good time to distribute messages since all agents have finished processing for this tick
 	sim_mob::messaging::MessageBus::DistributeMessages();

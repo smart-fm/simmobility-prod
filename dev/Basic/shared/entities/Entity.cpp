@@ -33,11 +33,9 @@ sim_mob::Entity::~Entity()
 	}
 }
 
-vector<BufferedBase*> sim_mob::Entity::getSubscriptionList()
+vector<BufferedBase *> sim_mob::Entity::getSubscriptionList()
 {
-	std::vector<sim_mob::BufferedBase*> subsList;
-	buildSubscriptionList(subsList);
-	return subsList;
+	return buildSubscriptionList();
 }
 
 sim_mob::Entity::UpdateStatus::UpdateStatus(UpdateStatus::RET_STATUS status, const vector<BufferedBase*>& currTickVals,

@@ -76,15 +76,11 @@ boost::shared_mutex sim_mob::PathSetManager::cnnRepoMutex;
 
 boost::shared_ptr<sim_mob::batched::ThreadPool> sim_mob::PathSetManager::threadpool_;
 
-
-unsigned int sim_mob::PathSetManager::curIntervalMS = 0;
-unsigned int sim_mob::PathSetManager::intervalMS = 0;
-
 sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()), isUseCache(true),
 		pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName),
 		psRetrieval(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrieval),
 		psRetrievalWithoutRestrictedRegion(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrievalWithoutBannedRegion),
-		cacheLRU(2500), processTT(intervalMS, curIntervalMS)
+		cacheLRU(2500)
 {
 	pathSetParam = PathSetParam::getInstance();
 	std::string dbStr(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
@@ -1856,8 +1852,7 @@ double sim_mob::PathSetManager::getPathTravelTime(sim_mob::SinglePath *sp,const 
 	return timeSum ;
 }
 
-
-void sim_mob::PathSetManager::addSegTT(const Agent::RdSegTravelStat & stats) {
+void sim_mob::PathSetManager::addSegTT(const RdSegTravelStat & stats) {
 	processTT.addTravelTime(stats);
 }
 
@@ -1865,19 +1860,6 @@ double sim_mob::PathSetManager::getInSimulationSegTT(const sim_mob::RoadSegment*
 {
 	return processTT.getInSimulationSegTT(travelMode,rs);
 }
-
-void sim_mob::PathSetManager::initTimeInterval()
-{
-	intervalMS = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval* 1000 /*milliseconds*/;
-	uint32_t startTm = ConfigManager::GetInstance().FullConfig().simStartTime().getValue();
-	curIntervalMS = TravelTimeManager::getTimeInterval(startTm, intervalMS);
-}
-
-void sim_mob::PathSetManager::updateCurrTimeInterval()
-{
-	curIntervalMS += intervalMS;
-}
-
 
 /**
  * In the path set find the shortest path which includes the given segment.

@@ -876,7 +876,7 @@ bool sim_mob::DriverMovement::updateMovement(timeslice now)
 		if(prevSegment == parent->getCurrRdSegTravelStats().rs)
 		{
 			const std::string &travelMode = parent->getRole()->getMode();
-			Agent::RdSegTravelStat &currStats = parent->finalizeCurrRdSegTravelStat(prevSegment, actualTime, travelMode);
+			RdSegTravelStat &currStats = parent->finalizeCurrRdSegTravelStat(prevSegment, actualTime, travelMode);
 			PathSetManager::getInstance()->addSegTT(currStats);
 		}
 		
@@ -892,7 +892,7 @@ bool sim_mob::DriverMovement::updateMovement(timeslice now)
 					+ (parentDriver->getParams().now.ms() / MILLISECS_CONVERT_UNIT);
 		
 		const std::string &travelMode = parent->getRole()->getMode();
-		Agent::RdSegTravelStat &currStats = parent->finalizeCurrRdSegTravelStat(prevSegment, actualTime, travelMode);
+		RdSegTravelStat &currStats = parent->finalizeCurrRdSegTravelStat(prevSegment, actualTime, travelMode);
 		PathSetManager::getInstance()->addSegTT(currStats);
 		
 		//Update the link travel time only if the person completes the journey at the end of a link
@@ -1336,10 +1336,6 @@ void sim_mob::DriverMovement::setParentBufferedData()
 {
 	parent->xPos.set(parentDriver->getCurrPosition().x);
 	parent->yPos.set(parentDriver->getCurrPosition().y);
-
-	//TODO: Need to see how the parent agent uses its velocity vector.
-	parent->fwdVel.set(parentDriver->vehicle->getVelocity());
-	parent->latVel.set(parentDriver->vehicle->getLatVelocity());
 }
 
 void sim_mob::DriverMovement::buildAndSetPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID) 

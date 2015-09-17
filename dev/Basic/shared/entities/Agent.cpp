@@ -46,10 +46,13 @@ std::set<Entity*> sim_mob::Agent::all_agents;
 //vector<Entity*> sim_mob::Agent::agents_on_event;
 
 //Implementation of our comparison function for Agents by start time.
+
 bool sim_mob::cmp_agent_start::operator()(const Agent* x,
-		const Agent* y) const {
+		const Agent* y) const
+{
 	//TODO: Not sure what to do in this case...
-	if ((!x) || (!y)) {
+	if ((!x) || (!y))
+	{
 		return 0;
 	}
 
@@ -58,25 +61,31 @@ bool sim_mob::cmp_agent_start::operator()(const Agent* x,
 }
 
 //Implementation of our comparison function for events by start time.
+
 bool sim_mob::cmp_event_start::operator()(const PendingEvent& x,
-		const PendingEvent& y) const {
+		const PendingEvent& y) const
+{
 	//We want a lower start time to translate into a higher priority.
 	return x.start > y.start;
 }
 
 unsigned int sim_mob::Agent::next_agent_id = 0;
-unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID) {
+
+unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID)
+{
 	//If the ID is valid, modify next_agent_id;
-	if (preferredID > static_cast<int>(next_agent_id)) {
-		next_agent_id = static_cast<unsigned int>(preferredID);
+	if (preferredID > static_cast<int> (next_agent_id))
+	{
+		next_agent_id = static_cast<unsigned int> (preferredID);
 	}
 
 #ifndef SIMMOB_DISABLE_MPI
-	if (ConfigManager::GetInstance().FullConfig().using_MPI) {
+	if (ConfigManager::GetInstance().FullConfig().using_MPI)
+	{
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		int mpi_id = partitionImpl.partition_config->partition_id;
 		int cycle = partitionImpl.partition_config->maximum_agent_id;
-		return (next_agent_id++) + cycle * mpi_id;
+		return (next_agent_id++) +cycle * mpi_id;
 	}
 #endif
 
@@ -84,7 +93,7 @@ unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID) {
 	//  the value of next_agent_id (if it's <0)
 	unsigned int res =
 			(preferredID >= 0) ?
-					static_cast<unsigned int>(preferredID) : next_agent_id++;
+			static_cast<unsigned int> (preferredID) : next_agent_id++;
 
 	//std::cout <<"  assigned: " <<res <<std::endl;
 
@@ -92,17 +101,20 @@ unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID) {
 }
 
 void sim_mob::Agent::SetIncrementIDStartValue(int startID,
-		bool failIfAlreadyUsed) {
+											  bool failIfAlreadyUsed)
+{
 	//Check fail condition
-	if (failIfAlreadyUsed && Agent::next_agent_id != 0) {
+	if (failIfAlreadyUsed && Agent::next_agent_id != 0)
+	{
 		throw std::runtime_error(
-				"Can't call SetIncrementIDStartValue(); Agent ID has already been used.");
+								"Can't call SetIncrementIDStartValue(); Agent ID has already been used.");
 	}
 
 	//Fail if we've already passed this ID.
-	if (Agent::next_agent_id > startID) {
+	if (Agent::next_agent_id > startID)
+	{
 		throw std::runtime_error(
-				"Can't call SetIncrementIDStartValue(); Agent ID has already been assigned.");
+								"Can't call SetIncrementIDStartValue(); Agent ID has already been assigned.");
 	}
 
 	//Set
@@ -110,43 +122,37 @@ void sim_mob::Agent::SetIncrementIDStartValue(int startID,
 }
 
 sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)),
-	mutexStrat(mtxStrat), initialized(false),
-	originNode(), destNode(), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
-	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), lastUpdatedFrame(-1),
-	isQueuing(false), distanceToEndOfSegment(0.0), currLinkTravelStats(nullptr, 0.0), linkTravelStatsMap(mtxStrat),
-	/*rdSegTravelStatsMap(mtxStrat),*/ currRdSegTravelStats(nullptr),
-	toRemoved(false), nextPathPlanned(false), dynamic_seed(id), currTick(0,0), commEventRegistered(false)
+mutexStrat(mtxStrat), initialized(false),
+originNode(), destNode(), xPos(mtxStrat, 0), yPos(mtxStrat, 0), lastUpdatedFrame(-1),
+isQueuing(false), distanceToEndOfSegment(0.0), currLinkTravelStats(nullptr, 0.0),
+currRdSegTravelStats(nullptr), toRemoved(false), nextPathPlanned(false), dynamic_seed(id), currTick(0, 0), 
+commEventRegistered(false)
 {
-	//Register global life cycle events.
-	//NOTE: We can't profile the agent's construction, since it's not necessarily on a thread at this point.
-	//      Fortunately, no-one was using this behavior anyway.
-	/*if (ConfigManager::GetInstance().CMakeConfig().ProfileAgentUpdates()) {
-		profile = new ProfileBuilder();
-		//profile->logAgentCreated(*this);
-	}*/
-	errorFlag = false;
 }
 
-sim_mob::Agent::~Agent() {
+sim_mob::Agent::~Agent()
+{
 	//NOTE: We can't profile the agent's deletion, since it's not necessarily on a thread at this point.
-	//      Fortunately, no-one was using this behavior anyway.
+	//      Fortunately, no-one was using this behaviour anyway.
 	/*if (ConfigManager::GetInstance().CMakeConfig().ProfileAgentUpdates()) {
 		profile->logAgentDeleted(*this);
 	}*/
 	//safe_delete_item(profile);
 
 	//Un-register event listeners.
-	if (commEventRegistered) {
+	if (commEventRegistered)
+	{
 		messaging::MessageBus::UnSubscribeEvent(
-			sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
-			this,
-			this
-		);
+												sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
+												this,
+												this
+												);
 	}
 
 }
 
-void sim_mob::Agent::resetFrameInit() {
+void sim_mob::Agent::resetFrameInit()
+{
 	initialized = false;
 }
 
@@ -155,64 +161,71 @@ void sim_mob::Agent::rerouteWithBlacklist(const std::vector<const sim_mob::RoadS
 	//By default, re-routing does nothing. Subclasses of Agent can add behavior for this.
 }
 
-void sim_mob::Agent::setLastUpdatedFrame(long lastUpdatedFrame) {
+void sim_mob::Agent::setLastUpdatedFrame(long lastUpdatedFrame)
+{
 	this->lastUpdatedFrame = lastUpdatedFrame;
 }
 
 void sim_mob::Agent::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
 {
 	//Has update() been called early?
-	if (now<startTime) {
+	if (now < startTime)
+	{
 		std::stringstream msg;
-		msg << "Agent(" <<agentId << ") specifies a start time of: " <<startTime
+		msg << "Agent(" << agentId << ") specifies a start time of: " << startTime
 				<< " but it is currently: " << now
 				<< "; this indicates an error, and should be handled automatically.";
 		throw std::runtime_error(msg.str().c_str());
 	}
 
 	//Has update() been called too late?
-	if (wasRemoved) {
+	if (wasRemoved)
+	{
 		std::stringstream msg;
-		msg << "Agent(" <<agentId << ") should have already been removed, but was instead updated at: " <<now
+		msg << "Agent(" << agentId << ") should have already been removed, but was instead updated at: " << now
 				<< "; this indicates an error, and should be handled automatically.";
 		throw std::runtime_error(msg.str().c_str());
 	}
 
 	//Was frame_init() called at the wrong point in time?
-	if (wasFirstFrame) {
-		if (abs(now-startTime)>=ConfigManager::GetInstance().FullConfig().baseGranMS()) {
+	if (wasFirstFrame)
+	{
+		if (abs(now - startTime) >= ConfigManager::GetInstance().FullConfig().baseGranMS())
+		{
 			std::stringstream msg;
-			msg <<"Agent was not started within one timespan of its requested start time.";
-			msg <<"\nStart was: " <<startTime <<",  Curr time is: " <<now <<"\n";
-			msg <<"Agent ID: " <<agentId <<"\n";
+			msg << "Agent was not started within one timespan of its requested start time.";
+			msg << "\nStart was: " << startTime << ",  Curr time is: " << now << "\n";
+			msg << "Agent ID: " << agentId << "\n";
 			throw std::runtime_error(msg.str().c_str());
 		}
 	}
 }
 
-
-
-UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
+UpdateStatus sim_mob::Agent::perform_update(timeslice now)
+{
 	//Reset the Region tracking data structures, if applicable.
 	//regionAndPathTracker.reset();
 
 	//Register for commsim messages, if applicable.
-	if (!commEventRegistered && ConfigManager::GetInstance().XmlConfig().system.simulation.commsim.enabled) {
+	if (!commEventRegistered && ConfigManager::GetInstance().XmlConfig().system.simulation.commsim.enabled)
+	{
 		commEventRegistered = true;
 		messaging::MessageBus::SubscribeEvent(
-			sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
-			this, //Only when we are the Agent having commsim enabled.
-			this //Return this event to us (the agent).
-		);
+											sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
+											this, //Only when we are the Agent having commsim enabled.
+											this //Return this event to us (the agent).
+											);
 	}
 
 	//We give the Agent the benefit of the doubt here and simply call frame_init().
 	//This allows them to override the start_time if it seems appropriate (e.g., if they
 	// are swapping trip chains). If frame_init() returns false, immediately exit.
 	bool calledFrameInit = false;
-	if (!initialized) {
+	if (!initialized)
+	{
 		//Call frame_init() and exit early if requested to.
-		if (!frame_init(now)) {
+		if (!frame_init(now))
+		{
 			return UpdateStatus::Done;
 		}
 
@@ -228,103 +241,109 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now) {
 	UpdateStatus retVal = frame_tick(now);
 
 	//Save the output
-	if (retVal.status != UpdateStatus::RS_DONE) {
+	if (retVal.status != UpdateStatus::RS_DONE)
+	{
 		frame_output(now);
 	}
 
 	//Output if removal requested.
-	if (Debug::WorkGroupSemantics && isToBeRemoved()) {
-		LogOut("Person requested removal: " <<"(Role Hidden)" <<std::endl);
+	if (Debug::WorkGroupSemantics && isToBeRemoved())
+	{
+		LogOut("Person requested removal: " << "(Role Hidden)" << std::endl);
 	}
 
 	return retVal;
 }
 
-Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
+Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
+{
 	PROFILE_LOG_AGENT_UPDATE_BEGIN(currWorkerProvider, this, now);
 
 	//Update within an optional try/catch block.
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
-	try {
+	try
+	{
 #endif
 		//Update functionality
 		retVal = perform_update(now);
 
-//Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
+		//Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
-	} catch (std::exception& ex) {
+	}
+	catch (std::exception& ex)
+	{
 		//TODO: We can't handle this right now.
 		//PROFILE_LOG_AGENT_EXCEPTION(currWorkerProvider->getProfileBuilder(), *this, now, ex);
 
 		//Add a line to the output file.
-		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
+		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
+		{
 			std::stringstream msg;
-			msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
-			if(originNode.type_ == WayPoint::NODE)
+			msg << "Error updating Agent[" << getId() << "], will be removed from the simulation.";
+			if (originNode.type_ == WayPoint::NODE)
 			{
-				msg <<"\n  From node: " <<(originNode.node_?originNode.node_->originalDB_ID.getLogItem():"<Unknown>");
+				msg << "\n  From node: " << (originNode.node_ ? originNode.node_->originalDB_ID.getLogItem() : "<Unknown>");
 			}
-			if(destNode.type_ == WayPoint::NODE )
+			if (destNode.type_ == WayPoint::NODE)
 			{
-				msg <<"\n  To node: " <<(destNode.node_?destNode.node_->originalDB_ID.getLogItem():"<Unknown>");
+				msg << "\n  To node: " << (destNode.node_ ? destNode.node_->originalDB_ID.getLogItem() : "<Unknown>");
 			}
-			msg <<"\n  " <<ex.what();
-			LogOut(msg.str() <<std::endl);
+			msg << "\n  " << ex.what();
+			LogOut(msg.str() << std::endl);
 		}
 		setToBeRemoved();
 	}
 #endif
 
 	//Ensure that isToBeRemoved() and UpdateStatus::status are in sync
-	if (isToBeRemoved() || retVal.status == UpdateStatus::RS_DONE) {
+	if (isToBeRemoved() || retVal.status == UpdateStatus::RS_DONE)
+	{
 		retVal.status = UpdateStatus::RS_DONE;
 		setToBeRemoved();
 
 		//notify subscribers that this agent is done
 		MessageBus::PublishEvent(event::EVT_CORE_AGENT_DIED, this,
-        MessageBus::EventArgsPtr(new AgentLifeCycleEventArgs(getId(), this)));
-                
-        //unsubscribes all listeners of this agent to this event.
-        //(it is safe to do this here because the priority between events)
-        MessageBus::UnSubscribeAll(event::EVT_CORE_AGENT_DIED, this);
+								MessageBus::EventArgsPtr(new AgentLifeCycleEventArgs(getId(), this)));
+
+		//unsubscribes all listeners of this agent to this event.
+		//(it is safe to do this here because the priority between events)
+		MessageBus::UnSubscribeAll(event::EVT_CORE_AGENT_DIED, this);
 	}
 
 	PROFILE_LOG_AGENT_UPDATE_END(currWorkerProvider, this, now);
 	return retVal;
 }
 
-void sim_mob::Agent::buildSubscriptionList(vector<BufferedBase*>& subsList) {
+vector<BufferedBase *> sim_mob::Agent::buildSubscriptionList()
+{
+	vector<BufferedBase *> subsList;
+	
 	subsList.push_back(&xPos);
 	subsList.push_back(&yPos);
-	subsList.push_back(&fwdVel);
-	subsList.push_back(&latVel);
-	subsList.push_back(&xAcc);
-	subsList.push_back(&yAcc);
-	//subscriptionList_cached.push_back(&currentLink);
-	//subscriptionList_cached.push_back(&currentCrossing);
+	
+	return subsList;
 }
 
-bool sim_mob::Agent::isToBeRemoved() {
+bool sim_mob::Agent::isToBeRemoved()
+{
 	return toRemoved;
 }
 
-void sim_mob::Agent::setToBeRemoved() {
+void sim_mob::Agent::setToBeRemoved()
+{
 	toRemoved = true;
 }
 
-void sim_mob::Agent::clearToBeRemoved() {
+void sim_mob::Agent::clearToBeRemoved()
+{
 	toRemoved = false;
 }
 
-void sim_mob::Agent::initLinkTravelStats(const Link* link, double entryTime) {
-	currLinkTravelStats.link_ = link;
-	currLinkTravelStats.entryTime = entryTime;
-}
-
-void sim_mob::Agent::addToLinkTravelStatsMap(linkTravelStats ts, double exitTime){
-	std::map<double, linkTravelStats>& travelMap = linkTravelStatsMap.getRW();
+void sim_mob::Agent::addToLinkTravelStatsMap(LinkTravelStats ts, double exitTime)
+{
+	std::map<double, LinkTravelStats>& travelMap = linkTravelStatsMap;
 	travelMap.insert(std::make_pair(exitTime, ts));
 }
 
@@ -333,29 +352,32 @@ NullableOutputStream sim_mob::Agent::Log()
 	return NullableOutputStream(currWorkerProvider->getLogFile());
 }
 
-void sim_mob::Agent::onEvent(EventId eventId, 
-        Context ctxId, EventPublisher* sender, 
-        const EventArgs& args)
+void sim_mob::Agent::onEvent(EventId eventId, Context ctxId, EventPublisher* sender, const EventArgs& args)
 {
 	//Some events only matter if they are for us.
-	if (ctxId == this) {
-		if (eventId==event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT) {
+	if (ctxId == this)
+	{
+		if (eventId == event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT)
+		{
 			//Was commsim enabled for us? If so, start tracking Regions.
-			Print() <<"Enabling Region support for agent: " <<this <<"\n";
+			Print() << "Enabling Region support for agent: " << this << "\n";
 			enableRegionSupport();
 
 			//This requires us to now listen for a new set of events.
 			messaging::MessageBus::SubscribeEvent(
-				sim_mob::event::EVT_CORE_COMMSIM_REROUTING_REQUEST,
-				this, //Only when we are the Agent being requested to re-route..
-				this //Return this event to us (the agent).
-			);
-		} else if (eventId==event::EVT_CORE_COMMSIM_REROUTING_REQUEST) {
+												sim_mob::event::EVT_CORE_COMMSIM_REROUTING_REQUEST,
+												this, //Only when we are the Agent being requested to re-route..
+												this //Return this event to us (the agent).
+												);
+		}
+		else if (eventId == event::EVT_CORE_COMMSIM_REROUTING_REQUEST)
+		{
 			//Were we requested to re-route?
 			const ReRouteEventArgs& rrArgs = MSG_CAST(ReRouteEventArgs, args);
 			const std::map<int, sim_mob::RoadRunnerRegion>& regions = ConfigManager::GetInstance().FullConfig().getNetwork().roadRunnerRegions;
 			std::map<int, sim_mob::RoadRunnerRegion>::const_iterator it = regions.find(boost::lexical_cast<int>(rrArgs.getBlacklistRegion()));
-			if (it != regions.end()) {
+			if (it != regions.end())
+			{
 				std::vector<const sim_mob::RoadSegment*> blacklisted = StreetDirectory::instance().getSegmentsFromRegion(it->second);
 				rerouteWithBlacklist(blacklisted);
 			}
@@ -363,33 +385,22 @@ void sim_mob::Agent::onEvent(EventId eventId,
 	}
 }
 
-void sim_mob::Agent::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message){
-
-}
-
-sim_mob::Agent::RdSegTravelStat & sim_mob::Agent::startCurrRdSegTravelStat(const RoadSegment* rdSeg, double entryTime) {
-	currRdSegTravelStats.start(this, rdSeg,entryTime);
-	return currRdSegTravelStats;
-}
-
-sim_mob::Agent::RdSegTravelStat & sim_mob::Agent::finalizeCurrRdSegTravelStat(const RoadSegment* rdSeg,double exitTime, const std::string &travelMode)
+void sim_mob::Agent::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
-	if(rdSeg != currRdSegTravelStats.rs)
-	{
-		throw std::runtime_error("roadsegment mismatch while finalizing travel time stats");
-	}
-	currRdSegTravelStats.finalize(rdSeg,exitTime, travelMode);
-	return currRdSegTravelStats;
+
 }
 
 #ifndef SIMMOB_DISABLE_MPI
-int sim_mob::Agent::getOwnRandomNumber() {
+
+int sim_mob::Agent::getOwnRandomNumber()
+{
 	int one_try = -1;
 	int second_try = -2;
 	int third_try = -3;
 	//		int forth_try = -4;
 
-	while (one_try != second_try || third_try != second_try) {
+	while (one_try != second_try || third_try != second_try)
+	{
 		srand(dynamic_seed);
 		one_try = rand();
 
@@ -404,6 +415,3 @@ int sim_mob::Agent::getOwnRandomNumber() {
 	return one_try;
 }
 #endif
-
-
-

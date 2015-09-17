@@ -43,6 +43,7 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/Lane.hpp"
 #include "path/PathSetManager.hpp"
+#include "entities/TravelTimeManager.hpp"
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "path/PT_PathSetManager.hpp"
@@ -202,7 +203,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//incident
 	personWorkers->assignAWorker(IncidentManager::getInstance());
 	//before starting the groups, initialize the time interval for one of the pathset manager's helpers
-	PathSetManager::initTimeInterval();
+	TravelTimeManager::initTimeInterval();
 	cout << "Initial Agents dispatched or pushed to pending.all_agents: " << Agent::all_agents.size() << " pending: " << Agent::pending_agents.size() << endl;
 
 	//Start work groups and all threads.

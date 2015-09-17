@@ -141,18 +141,25 @@ TripChainItem::LocationType sim_mob::TripChainItem::getLocationType(
 TripChainItem::ItemType sim_mob::TripChainItem::getItemType(std::string itemType)
 {
 	itemType.erase(remove_if(itemType.begin(), itemType.end(), isspace),
-			itemType.end());
-	if (itemType == "Activity") {
+				itemType.end());
+	if (itemType == "Activity")
+	{
 		return IT_ACTIVITY;
-	} else if (itemType == "Trip") {
+	}
+	else if (itemType == "Trip")
+	{
 		return IT_TRIP;
-	} else if (itemType == "BusTrip") {
+	}
+	else if (itemType == "BusTrip")
+	{
 		return IT_BUSTRIP;
-	}else if(itemType == "FMOD" ) {
-		return IT_FMODSIM;
-	} else if(itemType == "WaitingBusActivity"){
+	}
+	else if (itemType == "WaitingBusActivity")
+	{
 		return IT_WAITBUSACTIVITY;
-	} else {
+	}
+	else
+	{
 		throw std::runtime_error("Unknown trip chain item type.");
 	}
 }

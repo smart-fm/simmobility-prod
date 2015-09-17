@@ -18,6 +18,7 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Profiler.hpp"
+#include "workers/Worker.hpp"
 
 namespace sim_mob
 {
@@ -76,8 +77,11 @@ public:
 	/// requested.
 	virtual void load(const std::map<std::string, std::string>& configProps);
 
-    ///Update a Person's subscription list.
-    virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
+	/**
+	 * Update a Person's subscription list.
+	 * @return
+	 */
+	virtual std::vector<BufferedBase *> buildSubscriptionList();
 
     //interfaces dynamically to modify the trip chain
     bool insertATripChainItem(TripChainItem* before, TripChainItem* newone);
@@ -318,10 +322,16 @@ public:
 	 void serializeCBD_SubTrip(const TravelMetric &metric);
 
 	 /**
-	  * This is called by  movement facet's destructor activity role
-	  * NOTE: Currently Unused
-	  */
-	 void serializeCBD_Activity(const TravelMetric &metric);
+	 * This is called by  movement facet's destructor activity role
+	 * NOTE: Currently Unused
+	 */
+	void serializeCBD_Activity(const TravelMetric &metric);
+
+	boost::mt19937& getGenerator()
+	{
+		return currWorkerProvider->getGenerator();
+	}
+
 private:
 
 	 /**

@@ -18,7 +18,6 @@
 #include "entities/Entity.hpp"
 #include "entities/Person.hpp"
 #include "entities/amodController/AMODController.hpp"
-#include "entities/fmodController/FMOD_Controller.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/Incident.hpp"
 #include "geospatial/Link.hpp"
@@ -282,9 +281,6 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
         sim_mob::BusController::RegisterNewBusController(it->startTimeMs, cfg.mutexStategy());
     }
 
-    //Start all "FMOD" entities.
-    LoadFMOD_Controller();
-
     LoadAMOD_Controller();
 
 	//combine incident information to road network
@@ -458,15 +454,6 @@ void sim_mob::ExpandAndValidateConfigFile::WarnMidroadSidewalks()
 	}
 }
 
-void sim_mob::ExpandAndValidateConfigFile::LoadFMOD_Controller()
-{
-	if (cfg.fmod.enabled) {
-		sim_mob::FMOD::FMOD_Controller::registerController(-1, cfg.mutexStategy());
-		//sim_mob::FMOD::FMOD_Controller::instance()->settings(cfg.fmod.ipAddress, cfg.fmod.port, cfg.fmod.updateTravelMS, cfg.fmod.updatePosMS, cfg.fmod.mapfile, cfg.fmod.blockingTimeSec);
-		sim_mob::FMOD::FMOD_Controller::instance()->connectFmodService();
-	}
-}
-
 void sim_mob::ExpandAndValidateConfigFile::LoadAMOD_Controller()
 {
 	if (cfg.amod.enabled) 
@@ -486,11 +473,6 @@ void sim_mob::ExpandAndValidateConfigFile::LoadAgentsInOrder(ConfigParams::Agent
 			case SimulationParams::LoadAg_XmlTripChains:
 				//Create an agent for each Trip Chain in the database.
 				GenerateAgentsFromTripChain(constraints);
-
-				//Initialize the FMOD controller now that all entities have been loaded.
-				if( sim_mob::FMOD::FMOD_Controller::instanceExists() ) {
-					sim_mob::FMOD::FMOD_Controller::instance()->initialize();
-				}
 				std::cout <<"Loaded Database Agents (from Trip Chains).\n";
 				break;
 			case SimulationParams::LoadAg_Drivers:
@@ -522,20 +504,12 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateAgentsFromTripChain(ConfigPar
 	const TripChainMap& tcs = cfg.getTripChains();
 
 	//The current agent we are working on.
-	for (TripChainMap::const_iterator it_map=tcs.begin(); it_map!=tcs.end(); ++it_map) {
+	for (TripChainMap::const_iterator it_map = tcs.begin(); it_map != tcs.end(); ++it_map)
+	{
 		TripChainItem* tc = it_map->second.front();
-		if( tc->itemType != TripChainItem::IT_FMODSIM){
-			Person* person = new sim_mob::Person("XML_TripChain", cfg.mutexStategy(), it_map->second);
-			person->setPersonCharacteristics();
-			addOrStashEntity(person, active_agents, pending_agents);
-		} else {
-			//insert to FMOD controller so that collection of requests
-			if (sim_mob::FMOD::FMOD_Controller::instanceExists()) {
-				sim_mob::FMOD::FMOD_Controller::instance()->insertFmodItems(it_map->first, tc);
-			} else {
-				Warn() <<"Skipping FMOD agent; FMOD controller is not active.\n";
-			}
-		}
+		Person* person = new sim_mob::Person("XML_TripChain", cfg.mutexStategy(), it_map->second);
+		person->setPersonCharacteristics();
+		addOrStashEntity(person, active_agents, pending_agents);
 	}
 }
 

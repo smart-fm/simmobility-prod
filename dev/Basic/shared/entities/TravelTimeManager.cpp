@@ -1,15 +1,18 @@
 #include "TravelTimeManager.hpp"
-#include "PathSetManager.hpp"
+#include "path/PathSetManager.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "boost/filesystem.hpp"
 
-sim_mob::TravelTimeManager::TravelTimeManager(unsigned int &intervalMS, unsigned int &curIntervalMS):intervalMS(intervalMS), curIntervalMS(curIntervalMS)
+unsigned int sim_mob::TravelTimeManager::curIntervalMS = 0;
+unsigned int sim_mob::TravelTimeManager::intervalMS = 0;
+
+sim_mob::TravelTimeManager::TravelTimeManager()
 {
 	enRouteTT.reset(new sim_mob::LastTT(*this));
 }
 
-void sim_mob::TravelTimeManager::addTravelTime(const Agent::RdSegTravelStat & stats) {
+void sim_mob::TravelTimeManager::addTravelTime(const RdSegTravelStat & stats) {
 	TT::TI timeInterval = TravelTimeManager::getTimeInterval(stats.entryTime * 1000, intervalMS);//milliseconds
 	{
 		boost::unique_lock<boost::mutex> lock(ttMapMutex);
@@ -38,7 +41,7 @@ double sim_mob::LastTT::getInSimulationSegTT(const std::string mode, const sim_m
 	//if no records found, check the previous time interval and so on.
 	sim_mob::TravelTime::reverse_iterator itTI = parent.ttMap.rbegin();
 	//like I said, not the current interval
-	if(itTI != parent.ttMap.rend() && itTI->first == sim_mob::PathSetManager::curIntervalMS) { itTI++; }
+	if(itTI != parent.ttMap.rend() && itTI->first == TravelTimeManager::curIntervalMS) { itTI++; }
 	sim_mob::TT::MRTC::iterator itMode;
 	sim_mob::TT::RSTC::iterator itSeg;
 	//search backwards. try to find a matching road segment in any of the previous time intervals
@@ -119,4 +122,16 @@ bool sim_mob::TravelTimeManager::storeRTT2DB()
 
 sim_mob::TravelTimeManager::~TravelTimeManager()
 {
+}
+
+void sim_mob::TravelTimeManager::initTimeInterval()
+{
+	intervalMS = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval* 1000 /*milliseconds*/;
+	uint32_t startTm = ConfigManager::GetInstance().FullConfig().simStartTime().getValue();
+	curIntervalMS = TravelTimeManager::getTimeInterval(startTm, intervalMS);
+}
+
+void sim_mob::TravelTimeManager::updateCurrTimeInterval()
+{
+	curIntervalMS += intervalMS;
 }

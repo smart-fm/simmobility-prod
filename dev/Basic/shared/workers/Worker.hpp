@@ -7,6 +7,7 @@
 #include <ostream>
 #include <vector>
 #include <set>
+#include <boost/random.hpp>
 #include <boost/thread.hpp>
 #include "buffering/BufferedDataManager.hpp"
 #include "metrics/Frame.hpp"
@@ -47,7 +48,6 @@ public:
 	virtual ~UpdateEventArgs();
 };
 
-
 /**
  * A "WorkerProvider" is a restrictive parent class of Worker that provides Worker-related
  * functionality to Agents. This prevents the Agent from requiring full access to the Worker.
@@ -56,7 +56,12 @@ public:
  * \note
  * See the Worker class for documentation on these functions.
  */
-class WorkerProvider : public BufferedDataManager {
+class WorkerProvider : public BufferedDataManager
+{
+protected:
+	/**Worker specific random number generator*/
+	boost::mt19937 gen;
+
 public:
 	//NOTE: Allowing access to the BufferedDataManager is somewhat risky; we need it for Roles, but we might
 	//      want to organize this differently.
@@ -70,6 +75,13 @@ public:
 
 	virtual ProfileBuilder* getProfileBuilder() const = 0;
 
+	/**
+	 * Note: Calling this function from another worker is extremely dangerous if you don't know what you're doing
+	 */
+	boost::mt19937& getGenerator()
+	{
+		return gen;
+	}
 };
 
 
@@ -232,7 +244,7 @@ private:
 	//int thread_id;
 	//static int auto_matical_thread_id;
 public:
-	
+
 	/// each worker has its own path set manager
 	sim_mob::PathSetManager *pathSetMgr;
 };

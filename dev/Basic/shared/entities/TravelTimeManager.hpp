@@ -1,10 +1,98 @@
 #pragma once
-#include "Common.hpp"
-#include "entities/Agent.hpp"
+#include "path/Common.hpp"
 
 namespace sim_mob
 {
-class PathSetManager;
+/**
+ * Structure to record travel time of agents through a link
+ */
+struct LinkTravelStats
+{
+	const Link* link_;
+	double entryTime;
+
+	LinkTravelStats(const Link* link, unsigned int linkEntryTime)
+	: link_(link), entryTime(linkEntryTime)
+	{
+	}
+};
+
+/**
+ * Structure to record travel time of agents through a road segment
+ */
+struct RdSegTravelStat
+{
+	const RoadSegment* rs;
+	double entryTime;
+	double travelTime;
+	std::string travelMode;
+	bool started;
+	bool finalized;
+
+	RdSegTravelStat(const RoadSegment* rdSeg, std::string travelMode = "")
+	: rs(rdSeg), entryTime(0.0), travelTime(0.0), started(false), finalized(false), travelMode(travelMode)
+	{
+	}
+
+	/**
+	 * Records the entry time for the road segment.
+	 *
+	 * @param rdSeg The road segment which the agent has entered
+	 * @param rdSegEntryTime The time of entry on the road segment
+	 */
+	void start(const RoadSegment* rdSeg, double &rdSegEntryTime)
+	{
+		if (started)
+		{
+			throw std::runtime_error("Starting a travel time which was started before");
+		}
+		rs = rdSeg;
+		entryTime = rdSegEntryTime;
+		started = true;
+	}
+
+	/**
+	 * Records the exit time for the road segment.
+	 *
+	 * @param rdSeg The road segment which the agent has exited
+	 * @param rdSegExitTime The time of exit on the road segment
+	 * @param travelMode_ The mode of travel being used by the agent
+	 */
+	void finalize(const RoadSegment* rdSeg, double &rdSegExitTime, const std::string &travelMode_)
+	{
+		if (!started)
+		{
+			throw std::runtime_error("Finalizing a travel time which never started");
+		}
+		if (finalized)
+		{
+			throw std::runtime_error("Finalizing a travel time which is already finalized");
+		}
+		if (rdSeg != rs)
+		{
+			throw std::runtime_error("Finalizing a wrong travel time");
+		}
+		if (rs == nullptr)
+		{
+			throw std::runtime_error("empty road segment supplied for travel time calculations.");
+		}
+		finalized = true;
+		travelTime = rdSegExitTime - entryTime;
+		/*
+		 * we set the travel_mode in the end coz in our team, the probability of programmers "calling start() method of this structure before changing a role"
+		 * is more than the probability of "calling finalize 'after' changing the role". So we set the travel mode(which is dependent on the role type) at the end.
+		 * You may change it later if you wish so.
+		 */
+		travelMode = travelMode_;
+	}
+
+	/**Reset the member variables to their un-initialized values*/
+	void reset()
+	{
+		*this = RdSegTravelStat(nullptr);
+	}
+};
+
 /**
  * TravelTimeManager is a small helper class to process Real Time Travel Time at RoadSegment Level.
  * PathSetManager receives Real Time Travel Time and delegates
@@ -22,30 +110,38 @@ public:
 	boost::mutex ttMapMutex;
 
 	/**
-	 * time interval value used for processing data.
-	 * This value is based on its counterpart in pathset manager.
+	 * simulation time interval in milliseconds
 	 */
-	unsigned int &intervalMS;
+	static unsigned int intervalMS;
 
 	/**
 	* current time interval, with respect to simulation time
 	* this is used to avoid continuous calculation of the current
 	* time interval.
 	* Note: Updating this happens once in one of the barriers, currently
-	* Aura Manager barrier(void sim_mob::WorkGroupManager::waitAllGroups_AuraManager())
+	* Distribute messages barrier(void sim_mob::WorkGroupManager::waitAllGroups_DistributeMessages())
 	*/
-	unsigned int &curIntervalMS;
+	static unsigned int curIntervalMS;
 
-	TravelTimeManager(unsigned int &intervalMS, unsigned int &curIntervalMS);
-
+	TravelTimeManager();
 	~TravelTimeManager();
+
+	/**
+	 * initialises static time interval
+     */
+	static void initTimeInterval();
+
+	/**
+	 * updates current time interval
+     */
+	static void updateCurrTimeInterval();
 
 	/*
 	 * accumulates Travel Time data
 	 * @param stats travel time record
 	 * @person the recording person
 	 */
-	void addTravelTime(const Agent::RdSegTravelStat & stats);
+	void addTravelTime(const RdSegTravelStat & stats);
 
 	/**
 	 * Writes the aggregated data into the file
@@ -73,8 +169,6 @@ public:
 	 * @return the travel time
 	 */
 	double getInSimulationSegTT(const std::string mode,const  sim_mob::RoadSegment *rs) const;
-
-	friend class sim_mob::PathSetManager;
 
 	/**
 	 * a helper class that maintains the latest processed travel time information.

@@ -158,7 +158,7 @@ namespace sim_mob
              * Inherited from Entity
              */
             virtual bool isNonspatial();
-            virtual void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList);
+            virtual std::vector<sim_mob::BufferedBase*> buildSubscriptionList();
             virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
         private:

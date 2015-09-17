@@ -111,7 +111,10 @@ bool LoggerAgent::isNonspatial()
     return false;
 }
 
-void LoggerAgent::buildSubscriptionList(std::vector<BufferedBase*>& subsList) {}
+std::vector<sim_mob::BufferedBase*> LoggerAgent::buildSubscriptionList() 
+{
+	return std::vector<sim_mob::BufferedBase*>();
+}
 
 void LoggerAgent::onWorkerEnter() {}
 

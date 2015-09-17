@@ -30,8 +30,8 @@ class PartitionManager;
  * Base class of all agents and other "decision-making" entities.
  * \author Seth N. Hetu
  * \author LIM Fung Chai
- * \author Harish L.
- * \author Neeraj
+ * \author Harish Loganathan
+ * \author Neeraj Deshmukh
  */
 class Entity : public messaging::MessageHandler, public event::EventListener
 {
@@ -47,6 +47,7 @@ protected:
 
 	/**
 	 * Handles all messages sent to the MessageHandler implementation.
+	 *
 	 * @param type of the message.
 	 * @param message data received.
 	 */
@@ -59,9 +60,10 @@ protected:
 	 * override this method. The first thing to do is call the buildSubscriptionList() method of the immediate
 	 * base class, which will construct the subscription list up to this point. Then, any Buffered types in the
 	 * current class should be added to subscriptionList_cached.
-	 * @param subsList
+	 *
+	 * @return the list of Buffered<> types this entity subscribes to
 	 */
-	virtual void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList) = 0;
+	virtual std::vector<sim_mob::BufferedBase*> buildSubscriptionList() = 0;
 
 	/**Callback method called when this entity enters (migrates in) into a new Worker.*/
 	virtual void onWorkerEnter();
@@ -142,11 +144,13 @@ public:
 	}
 
 	/**
-	 * Update function. This will be called each time tick (at the entity type's granularity; see
-	 * simpleconf.hpp for more information), and will update the entity's state. During this phase,
+	 * Update function. This will be called each time tick (at the entity type's granularity),
+	 * and will update the entity's state. During this phase,
 	 * the entity may call any Buffered data type's "get" method, but may only "set" its own
 	 * Buffered data. Flip is called after each update phase.
+	 *
 	 * @param now The timeslice representing the time frame for which this method is called
+	 *
 	 * @return The return value is specified by the UpdateStatus class, which allows for an Entity to "Continue"
 	 * processing or be considered "Done" processing, and optionally to manually register and deregister
 	 * several buffered types.
@@ -161,8 +165,8 @@ public:
 	 * which will usually be (0,0) (but this is not guaranteed).
 	 * Subclasses should override this function to indicate that they should not be considered as part of the spatial index.
 	 * Note that they *may* still have a geo-spatial location (e.g., Signals), but this location should not be searchable.
-	 * 
-	 * @return true if the Agent is "non-spatial" in nature. 
+	 *
+	 * @return true if the Agent is "non-spatial" in nature.
 	 *
 	 * Note: if true, it should be added to our spatial index.
 	 */
@@ -170,6 +174,7 @@ public:
 
 	/**
 	 * Inform parent to cut off connection with it if necessary
+	 *
 	 * @param child The child entity to be un-registered
 	 */
 	virtual void unregisteredChild(Entity* child = nullptr)

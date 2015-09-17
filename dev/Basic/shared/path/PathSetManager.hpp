@@ -9,7 +9,7 @@
 #pragma once
 
 #include "PathSetParam.hpp"
-#include "TravelTimeManager.hpp"
+#include "entities/TravelTimeManager.hpp"
 #include "geospatial/Link.hpp"
 #include "entities/Person.hpp"
 #include "util/Cache.hpp"
@@ -188,7 +188,7 @@ public:
 	 * record the travel time reported by agents
 	 * @param stats road segment travel time information
 	 */
-	void addSegTT(const Agent::RdSegTravelStat & stats);
+	void addSegTT(const RdSegTravelStat & stats);
 
 	/**
 	 * gets the average travel time of a segment experienced during the current simulation.
@@ -243,26 +243,8 @@ public:
 	///	set some tags as a result of comparing attributes among paths in a pathset
 	void setPathSetTags(boost::shared_ptr<sim_mob::PathSet>&ps);
 
-	static void initTimeInterval();
-	static void updateCurrTimeInterval();
-
 	PathSetManager();
 	~PathSetManager();
-	/**
-	 * time interval value used for processing data.
-	 * This value is based on its counterpart in pathset manager.
-	 */
-
-	static unsigned int intervalMS;
-
-	/**
-	* current time interval, with respect to simulation time
-	* this is used to avoid continuous calculation of the current
-	* time interval.
-	* Note: Updating this happens once in one of the barriers, currently
-	* Aura Manager barrier(void sim_mob::WorkGroupManager::waitAllGroups_AuraManager())
-	*/
-	static unsigned int curIntervalMS;
 
 private:
 	static PathSetManager *instance_;

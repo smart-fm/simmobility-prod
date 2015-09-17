@@ -131,7 +131,7 @@ void sim_mob::Person::initTripChain(){
 	{
 		setStartTime((*currTripChainItem)->startTime.getValue());
 	}
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM)
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
 		vector<SubTrip>::iterator subTripEnd = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW()).end();
 		currSubTrip = ((dynamic_cast<sim_mob::Trip*>(*currTripChainItem))->getSubTripsRW()).begin();
@@ -508,7 +508,7 @@ bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
 	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
 	const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
 	const sim_mob::SubTrip* subTrip = nullptr;
-	if( tci->itemType==sim_mob::TripChainItem::IT_TRIP || tci->itemType==sim_mob::TripChainItem::IT_FMODSIM )
+	if( tci->itemType==sim_mob::TripChainItem::IT_TRIP )
 	{
 		subTrip = &(*currSubTrip);
 	}
@@ -1157,7 +1157,7 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 	}
 
 	//first check if you just need to advance the subtrip
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM )
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 	{
 		//don't advance to next tripchainItem immediately, check the subtrip first
 		bool res = advanceCurrentSubTrip();
@@ -1186,24 +1186,28 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 
 	//so far, advancing the tripchainitem has been successful
 	//Also set the currSubTrip to the beginning of trip , just in case
-	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP  || (*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_FMODSIM) {
+	if((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP) {
 		currSubTrip = resetCurrSubTrip();
 
 	}
 	return true;
 }
 
-void sim_mob::Person::buildSubscriptionList(vector<BufferedBase*>& subsList) {
+vector<BufferedBase *> sim_mob::Person::buildSubscriptionList()
+{
 	//First, add the x and y co-ordinates
-	Agent::buildSubscriptionList(subsList);
+	vector<BufferedBase *> subsList = Agent::buildSubscriptionList();
 
 	//Now, add our own properties.
-	if (this->getRole()) {
+	if (this->getRole())
+	{
 		vector<BufferedBase*> roleParams = this->getRole()->getSubscriptionParams();
-		for (vector<BufferedBase*>::iterator it = roleParams.begin(); it != roleParams.end(); ++it) {
-			subsList.push_back(*it);
-		}
+		
+		//Append the subsList with all elements in roleParams
+		subsList.insert(subsList.end(), roleParams.begin(), roleParams.end());
 	}
+	
+	return subsList;
 }
 
 //Role changing should always be done through changeRole, because it also manages subscriptions.
@@ -1309,9 +1313,6 @@ void sim_mob::Person::printTripChainItemTypes() const{
 			break;
 		case TripChainItem::IT_BUSTRIP:
 			ss << "|bus-trip";
-			break;
-		case TripChainItem::IT_FMODSIM:
-			ss << "|fmod-trip";
 			break;
 		case TripChainItem::IT_WAITBUSACTIVITY:
 			ss << "|waitbus-activity";

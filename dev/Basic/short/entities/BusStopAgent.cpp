@@ -87,9 +87,9 @@ BusStopAgent* sim_mob::BusStopAgent::findBusStopAgentByBusStopNo(const std::stri
 	}
 }
 
-void sim_mob::BusStopAgent::buildSubscriptionList(vector<BufferedBase*>& subsList)
+std::vector<BufferedBase*> sim_mob::BusStopAgent::buildSubscriptionList()
 {
-	Agent::buildSubscriptionList(subsList);
+	return Agent::buildSubscriptionList();
 }
 
 bool sim_mob::BusStopAgent::frame_init(timeslice now)

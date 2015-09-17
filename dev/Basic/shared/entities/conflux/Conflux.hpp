@@ -317,7 +317,7 @@ bool sim_mob::insertIncidentS(const std::string fileName){
 	 * @return Entity::UpdateStatus update status
 	 */
 	Entity::UpdateStatus switchTripChainItem(Person* person);
-	
+
 	/**
 	 * gets the context of the agents right if the agent has moved out of this conflux
 	 * @param beforeUpdate person properties before update
@@ -355,7 +355,7 @@ public:
 	//Confluxes are non-spatial in nature.
 	virtual bool isNonspatial() { return true; }
 
-	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
+	virtual std::vector<BufferedBase *> buildSubscriptionList();
 
 	// functions from agent
 	virtual void load(const std::map<std::string, std::string>&) {}
@@ -439,7 +439,7 @@ public:
 	};
 
 	std::map<const Link*, LinkTravelTimes> LinkTravelTimesMap;
-	void setLinkTravelTimes(Person* ag, double linkExitTime);
+	void setLinkTravelTimes(Person* ag, double linkExitTime, const Link* link);
 	void resetLinkTravelTimes(timeslice frameNumber);
 	void reportLinkTravelTimes(timeslice frameNumber);
 

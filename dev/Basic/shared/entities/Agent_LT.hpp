@@ -137,7 +137,7 @@ public:
     }
 
 	///Subscribe this agent to a data manager.
-	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList) = 0;
+	virtual std::vector<BufferedBase*> buildSubscriptionList();
 
 	//Removal methods
 	bool isToBeRemoved();

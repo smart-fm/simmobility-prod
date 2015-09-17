@@ -2,7 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/* 
+/*
  * File:   LT_Agent.hpp
  * Author: Pedro Gandola <pedrogandola@smart.mit.edu>
  *
@@ -37,7 +37,7 @@ namespace sim_mob {
             virtual void load(const std::map<std::string, std::string>& configProps);
 
         protected:
-            
+
             /**
              * Handler for frame_init method from agent.
              * @param now time.
@@ -47,7 +47,7 @@ namespace sim_mob {
 
             /**
              * Handler for frame_tick method from agent.
-             * 
+             *
              * @param now time.
              * @return update status.
              */
@@ -61,7 +61,7 @@ namespace sim_mob {
 
 
             sim_mob::Entity::UpdateStatus update(timeslice now);
-            virtual void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>&);
+            virtual std::vector<sim_mob::BufferedBase*> buildSubscriptionList();
             void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
             const sim_mob::Link* getCurrLink() const;
             void setCurrLink(const sim_mob::Link* link);
@@ -75,7 +75,7 @@ namespace sim_mob {
             bool frame_init(timeslice now);
             sim_mob::Entity::UpdateStatus frame_tick(timeslice now);
             void frame_output(timeslice now);
-            bool isNonspatial();    
+            bool isNonspatial();
         };
     }
 }

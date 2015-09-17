@@ -6,7 +6,7 @@
  */
 
 #include <algorithm>
-#include "path/ScreenLineCounter.hpp"
+#include "ScreenLineCounter.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -57,7 +57,7 @@ namespace sim_mob
 		return instance;
 	}
 
-	void ScreenLineCounter::updateScreenLineCount(const Agent::RdSegTravelStat& rdSegStat)
+	void ScreenLineCounter::updateScreenLineCount(const RdSegTravelStat& rdSegStat)
 	{
 		if(!std::binary_search(screenLines.begin(), screenLines.end(), rdSegStat.rs->getId()))
 		{

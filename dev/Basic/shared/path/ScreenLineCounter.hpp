@@ -20,7 +20,7 @@ namespace sim_mob{
 		 * Update the count of vehicles passing through a screen line segment
 		 * @param rdSegStat Road Segment statistics
 		 */
-		void updateScreenLineCount(const sim_mob::Agent::RdSegTravelStat& rdSegStat);
+		void updateScreenLineCount(const RdSegTravelStat& rdSegStat);
 
 		/*
 		 * Export the screen line count to a file.

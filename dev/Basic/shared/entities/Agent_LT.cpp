@@ -287,7 +287,10 @@ Entity::UpdateStatus sim_mob::Agent_LT::update(timeslice now)
 }
 
 
-void sim_mob::Agent_LT::buildSubscriptionList(vector<BufferedBase*>& subsList){}
+vector<BufferedBase*> sim_mob::Agent_LT::buildSubscriptionList()
+{
+	return vector<BufferedBase*>();
+}
 
 
 bool sim_mob::Agent_LT::isToBeRemoved()

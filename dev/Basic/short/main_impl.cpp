@@ -38,7 +38,6 @@
 #include "entities/AuraManager.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/commsim/broker/Broker.hpp"
-#include "entities/fmodController/FMOD_Controller.hpp"
 #include "entities/IntersectionManager.hpp"
 #include "entities/LoopDetectorEntity.hpp"
 #include "entities/Person.hpp"
@@ -73,6 +72,7 @@
 #include "partitions/ShortTermBoundaryProcessor.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
 #include "path/PathSetManager.hpp"
+#include "entities/TravelTimeManager.hpp"
 #include "perception/FixedDelayed.hpp"
 #include "util/DailyTime.hpp"
 #include "util/StateSwitcher.hpp"
@@ -305,11 +305,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		intMgrWorkers->assignAWorker(it->second);
 	}
 
-	if(sim_mob::FMOD::FMOD_Controller::instanceExists())
-	{
-		personWorkers->assignAWorker( sim_mob::FMOD::FMOD_Controller::instance() );
-	}
-
 	if(sim_mob::AMOD::AMODController::instanceExists())
 	{
 		personWorkers->assignAWorker( sim_mob::AMOD::AMODController::instance() );
@@ -318,7 +313,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	Print() << "Initial agents dispatched or pushed to pending." << endl;
 	
 	//before starting the groups, initialise the time interval for one of the PathSet manager's helpers
-	PathSetManager::initTimeInterval();
+	TravelTimeManager::initTimeInterval();
 
 	//
 	//  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp

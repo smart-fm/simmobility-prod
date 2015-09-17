@@ -170,7 +170,7 @@ protected:
 	virtual void load(const std::map<std::string, std::string>& configProps){}
 	//Signals are non-spatial in nature.
 	virtual bool isNonspatial() { return true; }
-	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList){}
+	virtual std::vector<BufferedBase *> buildSubscriptionList(){return std::vector<BufferedBase *>();}
 	//	override from the class agent, provide a chance to clear up a child pointer when it will be deleted from system
 	virtual void unregisteredChild(Entity* child);
 

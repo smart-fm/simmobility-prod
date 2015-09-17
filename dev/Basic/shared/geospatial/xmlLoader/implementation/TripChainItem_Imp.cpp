@@ -13,12 +13,13 @@ namespace {
 //Helper: Get the TripChain item type from a string.
 sim_mob::TripChainItem::ItemType GetTripChainItemType(std::string name)
 {
-	if (name == "IT_TRIP") {
+	if (name == "IT_TRIP")
+	{
 		return sim_mob::TripChainItem::IT_TRIP;
-	} else if (name == "IT_ACTIVITY") {
+	}
+	else if (name == "IT_ACTIVITY")
+	{
 		return sim_mob::TripChainItem::IT_ACTIVITY;
-	} else if( name == "IT_FMODSIM"){
-		return sim_mob::TripChainItem::IT_FMODSIM;
 	}
 
 	throw std::runtime_error("Unknown TripChain item type.");

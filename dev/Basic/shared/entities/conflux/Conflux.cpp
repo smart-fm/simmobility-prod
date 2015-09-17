@@ -544,8 +544,9 @@ void sim_mob::Conflux::resetPersonRemTimes() {
 	}
 }
 
-void sim_mob::Conflux::buildSubscriptionList(std::vector<BufferedBase*>& subsList) {
-	Agent::buildSubscriptionList(subsList);
+std::vector<BufferedBase *> sim_mob::Conflux::buildSubscriptionList() 
+{
+	return Agent::buildSubscriptionList();
 }
 
 unsigned int sim_mob::Conflux::resetOutputBounds() {
@@ -739,20 +740,18 @@ const std::vector<sim_mob::SegmentStats*>& sim_mob::Conflux::findSegStats(const 
 	return (segmentAgents.find(rdSeg)->second);
 }
 
-void sim_mob::Conflux::setLinkTravelTimes(Person* person, double linkExitTime) {
-	std::map<double, Person::linkTravelStats>::const_iterator it = person->getLinkTravelStatsMap().find(linkExitTime);
-	if (it != person->getLinkTravelStatsMap().end()){
-		double travelTime = (it->first) - (it->second).entryTime;
-		std::map<const Link*, LinkTravelTimes>::iterator itTT = LinkTravelTimesMap.find((it->second).link_);
-		if (itTT != LinkTravelTimesMap.end())
-		{
-			itTT->second.agCnt = itTT->second.agCnt + 1;
-			itTT->second.linkTravelTime_ = itTT->second.linkTravelTime_ + travelTime;
-		}
-		else{
-			LinkTravelTimes tTimes(travelTime, 1);
-			LinkTravelTimesMap.insert(std::make_pair(person->getCurrSegStats()->getRoadSegment()->getLink(), tTimes));
-		}
+void sim_mob::Conflux::setLinkTravelTimes(Person* person, double travelTime, const Link* link) 
+{
+	std::map<const Link*, LinkTravelTimes>::iterator itTT = LinkTravelTimesMap.find(link);
+	if (itTT != LinkTravelTimesMap.end())
+	{
+		itTT->second.agCnt = itTT->second.agCnt + 1;
+		itTT->second.linkTravelTime_ = itTT->second.linkTravelTime_ + travelTime;
+	}
+	else
+	{
+		LinkTravelTimes tTimes(travelTime, 1);
+		LinkTravelTimesMap.insert(std::make_pair(person->getCurrSegStats()->getRoadSegment()->getLink(), tTimes));
 	}
 }
 

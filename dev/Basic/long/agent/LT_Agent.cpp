@@ -36,7 +36,10 @@ Entity::UpdateStatus LT_Agent::update(timeslice now)
 	return onFrameTick(now);
 }
 
-void LT_Agent::buildSubscriptionList(std::vector<sim_mob::BufferedBase*>&){}
+std::vector<sim_mob::BufferedBase*> LT_Agent::buildSubscriptionList()
+{
+	return std::vector<sim_mob::BufferedBase*>();
+}
 
 void LT_Agent::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message){}
 

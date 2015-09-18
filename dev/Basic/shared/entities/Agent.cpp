@@ -15,7 +15,6 @@
 #include "conf/settings/StrictAgentErrors.h"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "event/SystemEvents.hpp"
-#include "event/args/ReRouteEventArgs.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/Link.hpp"
@@ -42,7 +41,7 @@ using std::priority_queue;
 
 StartTimePriorityQueue sim_mob::Agent::pending_agents;
 std::set<Entity*> sim_mob::Agent::all_agents;
-unsigned int sim_mob::Agent::next_agent_id = 0;
+unsigned int sim_mob::Agent::nextAgentId = 0;
 
 //Implementation of our comparison function for Agents by start time.
 bool sim_mob::cmp_agent_start::operator()(const Agent* x, const Agent* y) const
@@ -57,12 +56,12 @@ bool sim_mob::cmp_agent_start::operator()(const Agent* x, const Agent* y) const
 	return x->getStartTime() > y->getStartTime();
 }
 
-unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID)
+unsigned int sim_mob::Agent::getAndIncrementID(int preferredID)
 {
 	//If the ID is valid, modify next_agent_id;
-	if (preferredID > static_cast<int> (next_agent_id))
+	if (preferredID > static_cast<int> (nextAgentId))
 	{
-		next_agent_id = static_cast<unsigned int> (preferredID);
+		nextAgentId = static_cast<unsigned int> (preferredID);
 	}
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -71,7 +70,7 @@ unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID)
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		int mpi_id = partitionImpl.partition_config->partition_id;
 		int cycle = partitionImpl.partition_config->maximum_agent_id;
-		return (next_agent_id++) +cycle * mpi_id;
+		return (nextAgentId++) +cycle * mpi_id;
 	}
 #endif
 
@@ -79,65 +78,41 @@ unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID)
 	//  the value of next_agent_id (if it's <0)
 	unsigned int res =
 			(preferredID >= 0) ?
-			static_cast<unsigned int> (preferredID) : next_agent_id++;
+			static_cast<unsigned int> (preferredID) : nextAgentId++;
 
 	return res;
 }
 
-void sim_mob::Agent::SetIncrementIDStartValue(int startID, bool failIfAlreadyUsed)
+void sim_mob::Agent::setIncrementIDStartValue(int startID, bool failIfAlreadyUsed)
 {
 	//Check fail condition
-	if (failIfAlreadyUsed && Agent::next_agent_id != 0)
+	if (failIfAlreadyUsed && Agent::nextAgentId != 0)
 	{
 		throw std::runtime_error(
 								"Can't call SetIncrementIDStartValue(); Agent ID has already been used.");
 	}
 
 	//Fail if we've already passed this ID.
-	if (Agent::next_agent_id > startID)
+	if (Agent::nextAgentId > startID)
 	{
 		throw std::runtime_error(
 								"Can't call SetIncrementIDStartValue(); Agent ID has already been assigned.");
 	}
 
 	//Set
-	Agent::next_agent_id = startID;
+	Agent::nextAgentId = startID;
 }
 
-sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)),
-mutexStrat(mtxStrat), initialized(false),
-originNode(), destNode(), xPos(mtxStrat, 0), yPos(mtxStrat, 0), lastUpdatedFrame(-1),
-isQueuing(false), distanceToEndOfSegment(0.0), currLinkTravelStats(nullptr, 0.0),
-currRdSegTravelStats(nullptr), toRemoved(false), nextPathPlanned(false), dynamic_seed(id), currTick(0, 0), 
-commEventRegistered(false)
+sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(getAndIncrementID(id)),
+mutexStrat(mtxStrat), initialized(false), xPos(mtxStrat, 0), yPos(mtxStrat, 0), toRemoved(false), dynamicSeed(id), currTick(0, 0)
 {
 }
 
 sim_mob::Agent::~Agent()
 {
-	//Un-register event listeners.
-	if (commEventRegistered)
-	{
-		messaging::MessageBus::UnSubscribeEvent(sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT, this, this);
-	}
 }
 
-void sim_mob::Agent::resetFrameInit()
-{
-	initialized = false;
-}
-
-void sim_mob::Agent::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
-{
-	//By default, re-routing does nothing. Subclasses of Agent can add behavior for this.
-}
-
-void sim_mob::Agent::setLastUpdatedFrame(long lastUpdatedFrame)
-{
-	this->lastUpdatedFrame = lastUpdatedFrame;
-}
-
-void sim_mob::Agent::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
+void sim_mob::Agent::checkFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved)
 {
 	//Has update() been called early?
 	if (now < startTime)
@@ -172,22 +147,8 @@ void sim_mob::Agent::CheckFrameTimes(unsigned int agentId, uint32_t now, unsigne
 	}
 }
 
-UpdateStatus sim_mob::Agent::perform_update(timeslice now)
+UpdateStatus sim_mob::Agent::performUpdate(timeslice now)
 {
-	//Reset the Region tracking data structures, if applicable.
-	//regionAndPathTracker.reset();
-
-	//Register for commsim messages, if applicable.
-	if (!commEventRegistered && ConfigManager::GetInstance().XmlConfig().system.simulation.commsim.enabled)
-	{
-		commEventRegistered = true;
-		messaging::MessageBus::SubscribeEvent(
-											sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
-											this, //Only when we are the Agent having commsim enabled.
-											this //Return this event to us (the agent).
-											);
-	}
-
 	//We give the Agent the benefit of the doubt here and simply call frame_init().
 	//This allows them to override the start_time if it seems appropriate (e.g., if they
 	// are swapping trip chains). If frame_init() returns false, immediately exit.
@@ -206,7 +167,7 @@ UpdateStatus sim_mob::Agent::perform_update(timeslice now)
 	}
 
 	//Now that frame_init has been called, ensure that it was done so for the correct time tick.
-	CheckFrameTimes(getId(), now.ms(), getStartTime(), calledFrameInit, isToBeRemoved());
+	checkFrameTimes(getId(), now.ms(), getStartTime(), calledFrameInit, isToBeRemoved());
 
 	//Perform the main update tick
 	UpdateStatus retVal = frame_tick(now);
@@ -233,40 +194,24 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 	//Update within an optional try/catch block.
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 
-#ifndef SIMMOB_STRICT_AGENT_ERRORS
 	try
 	{
-#endif
 		//Update functionality
-		retVal = perform_update(now);
-
-		//Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
-#ifndef SIMMOB_STRICT_AGENT_ERRORS
+		retVal = performUpdate(now);
 	}
 	catch (std::exception& ex)
 	{
-		//TODO: We can't handle this right now.
 		//PROFILE_LOG_AGENT_EXCEPTION(currWorkerProvider->getProfileBuilder(), *this, now, ex);
 
 		//Add a line to the output file.
 		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
 		{
 			std::stringstream msg;
-			msg << "Error updating Agent[" << getId() << "], will be removed from the simulation.";
-			if (originNode.type_ == WayPoint::NODE)
-			{
-				msg << "\n  From node: " << (originNode.node_ ? originNode.node_->originalDB_ID.getLogItem() : "<Unknown>");
-			}
-			if (destNode.type_ == WayPoint::NODE)
-			{
-				msg << "\n  To node: " << (destNode.node_ ? destNode.node_->originalDB_ID.getLogItem() : "<Unknown>");
-			}
-			msg << "\n  " << ex.what();
+			msg << "Error updating Agent[" << getId() << "], will be removed from the simulation. \n  " << ex.what();
 			LogOut(msg.str() << std::endl);
 		}
 		setToBeRemoved();
 	}
-#endif
 
 	//Ensure that isToBeRemoved() and UpdateStatus::status are in sync
 	if (isToBeRemoved() || retVal.status == UpdateStatus::RS_DONE)
@@ -289,12 +234,7 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now)
 
 vector<BufferedBase *> sim_mob::Agent::buildSubscriptionList()
 {
-	vector<BufferedBase *> subsList;
-	
-	subsList.push_back(&xPos);
-	subsList.push_back(&yPos);
-	
-	return subsList;
+	return vector<BufferedBase *>();
 }
 
 bool sim_mob::Agent::isToBeRemoved()
@@ -307,17 +247,6 @@ void sim_mob::Agent::setToBeRemoved()
 	toRemoved = true;
 }
 
-void sim_mob::Agent::clearToBeRemoved()
-{
-	toRemoved = false;
-}
-
-void sim_mob::Agent::addToLinkTravelStatsMap(LinkTravelStats ts, double exitTime)
-{
-	std::map<double, LinkTravelStats>& travelMap = linkTravelStatsMap;
-	travelMap.insert(std::make_pair(exitTime, ts));
-}
-
 NullableOutputStream sim_mob::Agent::Log()
 {
 	return NullableOutputStream(currWorkerProvider->getLogFile());
@@ -325,64 +254,8 @@ NullableOutputStream sim_mob::Agent::Log()
 
 void sim_mob::Agent::onEvent(EventId eventId, Context ctxId, EventPublisher* sender, const EventArgs& args)
 {
-	//Some events only matter if they are for us.
-	if (ctxId == this)
-	{
-		if (eventId == event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT)
-		{
-			//Was commsim enabled for us? If so, start tracking Regions.
-			Print() << "Enabling Region support for agent: " << this << "\n";
-			enableRegionSupport();
-
-			//This requires us to now listen for a new set of events.
-			messaging::MessageBus::SubscribeEvent(
-												sim_mob::event::EVT_CORE_COMMSIM_REROUTING_REQUEST,
-												this, //Only when we are the Agent being requested to re-route..
-												this //Return this event to us (the agent).
-												);
-		}
-		else if (eventId == event::EVT_CORE_COMMSIM_REROUTING_REQUEST)
-		{
-			//Were we requested to re-route?
-			const ReRouteEventArgs& rrArgs = MSG_CAST(ReRouteEventArgs, args);
-			const std::map<int, sim_mob::RoadRunnerRegion>& regions = ConfigManager::GetInstance().FullConfig().getNetwork().roadRunnerRegions;
-			std::map<int, sim_mob::RoadRunnerRegion>::const_iterator it = regions.find(boost::lexical_cast<int>(rrArgs.getBlacklistRegion()));
-			if (it != regions.end())
-			{
-				std::vector<const sim_mob::RoadSegment*> blacklisted = StreetDirectory::instance().getSegmentsFromRegion(it->second);
-				rerouteWithBlacklist(blacklisted);
-			}
-		}
-	}
 }
 
 void sim_mob::Agent::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
-
 }
-
-#ifndef SIMMOB_DISABLE_MPI
-
-int sim_mob::Agent::getOwnRandomNumber()
-{
-	int one_try = -1;
-	int second_try = -2;
-	int third_try = -3;
-	//		int forth_try = -4;
-
-	while (one_try != second_try || third_try != second_try)
-	{
-		srand(dynamic_seed);
-		one_try = rand();
-
-		srand(dynamic_seed);
-		second_try = rand();
-
-		srand(dynamic_seed);
-		third_try = rand();
-	}
-
-	dynamic_seed = one_try;
-	return one_try;
-}
-#endif

@@ -173,7 +173,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 		throw std::runtime_error("Agent auto-id must start from >0.");
 	}
 	
-	Agent::SetIncrementIDStartValue(cfg.system.simulation.startingAutoAgentID, true);
+	Agent::setIncrementIDStartValue(cfg.system.simulation.startingAutoAgentID, true);
 
 	//Print schema file.
 	const std::string schem = cfg.roadNetworkXsdSchemaFile();

@@ -22,6 +22,7 @@
 #include "logging/Log.hpp"
 #include "geospatial/Node.hpp"
 #include "entities/misc/TripChain.hpp"
+#include "event/args/ReRouteEventArgs.hpp"
 #include "workers/Worker.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "message/MessageBus.hpp"
@@ -40,6 +41,7 @@ using std::map;
 using std::string;
 using std::vector;
 using namespace sim_mob;
+using namespace sim_mob::event;
 typedef Entity::UpdateStatus UpdateStatus;
 
 
@@ -99,7 +101,9 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, i
 	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), remainingTimeThisTick(0.0),
 	requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
 	age(0), boardingTimeSecs(0), alightingTimeSecs(0), client_id(-1), resetParamsRequired(false), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),amodSegmLength(0.0),
-	initSegId(0), initDis(0), initSpeed(0), amodSegmLength2(0), currStatus(IN_CAR_PARK), firstTick(true), currLane(NULL)
+	initSegId(0), initDis(0), initSpeed(0), amodSegmLength2(0), currStatus(IN_CAR_PARK), firstTick(true), currLane(NULL), nextPathPlanned(false),
+	lastUpdatedFrame(-1), commEventRegistered(false), originNode(), destNode(), isQueuing(false), distanceToEndOfSegment(0.0), currLinkTravelStats(nullptr, 0.0),
+	currRdSegTravelStats(nullptr)
 {
 }
 
@@ -108,7 +112,8 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 	  databaseID(tc.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
 	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tc), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
 	  client_id(-1),amodPath( std::vector<WayPoint>() ), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),
-	  amodSegmLength(0.0)
+	  amodSegmLength(0.0), nextPathPlanned(false), lastUpdatedFrame(-1), commEventRegistered(false), originNode(), destNode(), isQueuing(false),
+	  distanceToEndOfSegment(0.0), currLinkTravelStats(nullptr, 0.0), currRdSegTravelStats(nullptr)
 {
 	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply())
 	{
@@ -155,6 +160,13 @@ void sim_mob::Person::initTripChain(){
 sim_mob::Person::~Person() {
 	safe_delete_item(prevRole);
 	safe_delete_item(currRole);
+
+	//Un-register event listeners.
+	if (commEventRegistered)
+	{
+		messaging::MessageBus::UnSubscribeEvent(sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT, this, this);
+	}
+
 	//safe_delete_item(nextRole);
 	//last chance to collect travel time metrics(if any)
 	//aggregateSubTripMetrics();
@@ -327,6 +339,21 @@ bool sim_mob::Person::frame_init(timeslice now)
 {
 	messaging::MessageBus::RegisterHandler(this);
 	currTick = now;
+
+	//Reset the Region tracking data structures, if applicable.
+	//regionAndPathTracker.reset();
+
+	//Register for commsim messages, if applicable.
+	if (!commEventRegistered && ConfigManager::GetInstance().XmlConfig().system.simulation.commsim.enabled)
+	{
+		commEventRegistered = true;
+		messaging::MessageBus::SubscribeEvent(
+											sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
+											this, //Only when we are the Agent having commsim enabled.
+											this //Return this event to us (the agent).
+											);
+	}
+
 	//Agents may be created with a null Role and a valid trip chain
 	if (!currRole) {
 		//TODO: This UpdateStatus has a "prevParams" and "currParams" that should
@@ -375,6 +402,36 @@ void sim_mob::Person::setPath(std::vector<WayPoint>& path)
 void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
 {
 	Agent::onEvent(eventId, ctxId, sender, args);
+ 	//Some events only matter if they are for us.
+ 	if (ctxId == this)
+ 	{
+ 		if (eventId == event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT)
+ 		{
+ 			//Was commsim enabled for us? If so, start tracking Regions.
+ 			Print() << "Enabling Region support for agent: " << this << "\n";
+ 			enableRegionSupport();
+
+ 			//This requires us to now listen for a new set of events.
+ 			messaging::MessageBus::SubscribeEvent(
+ 												sim_mob::event::EVT_CORE_COMMSIM_REROUTING_REQUEST,
+ 												this, //Only when we are the Agent being requested to re-route..
+ 												this //Return this event to us (the agent).
+ 												);
+ 		}
+ 		else if (eventId == event::EVT_CORE_COMMSIM_REROUTING_REQUEST)
+ 		{
+ 			//Were we requested to re-route?
+ 			const ReRouteEventArgs& rrArgs = MSG_CAST(ReRouteEventArgs, args);
+ 			const std::map<int, sim_mob::RoadRunnerRegion>& regions = ConfigManager::GetInstance().FullConfig().getNetwork().roadRunnerRegions;
+ 			std::map<int, sim_mob::RoadRunnerRegion>::const_iterator it = regions.find(boost::lexical_cast<int>(rrArgs.getBlacklistRegion()));
+ 			if (it != regions.end())
+ 			{
+ 				std::vector<const sim_mob::RoadSegment*> blacklisted = StreetDirectory::instance().getSegmentsFromRegion(it->second);
+ 				rerouteWithBlacklist(blacklisted);
+ 			}
+ 		}
+ 	}
+
 	if(currRole){
 		currRole->onParentEvent(eventId, ctxId, sender, args);
 	}
@@ -552,7 +609,7 @@ UpdateStatus sim_mob::Person::checkTripChain() {
 	//currentTipchainItem or current subtrip are changed
 	//so OD will be changed too,
 	//therefore we need to call frame_init regardless of change in the role
-	resetFrameInit();
+	unsetInitialized();
 
 	//Create a return type based on the differences in these Roles
 	vector<BufferedBase*> prevParams;
@@ -1196,7 +1253,9 @@ bool sim_mob::Person::advanceCurrentTripChainItem()
 vector<BufferedBase *> sim_mob::Person::buildSubscriptionList()
 {
 	//First, add the x and y co-ordinates
-	vector<BufferedBase *> subsList = Agent::buildSubscriptionList();
+	vector<BufferedBase *> subsList;
+	subsList.push_back(&xPos);
+	subsList.push_back(&yPos);
 
 	//Now, add our own properties.
 	if (this->getRole())
@@ -1581,3 +1640,10 @@ void sim_mob::Person::addSubtripTravelMetrics(TravelMetric &value){
 	 }
 	 tripTravelMetrics.clear();
 }
+
+ void sim_mob::Person::addToLinkTravelStatsMap(LinkTravelStats ts, double exitTime)
+ {
+ 	std::map<double, LinkTravelStats>& travelMap = linkTravelStatsMap;
+ 	travelMap.insert(std::make_pair(exitTime, ts));
+ }
+

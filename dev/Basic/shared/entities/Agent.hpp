@@ -78,19 +78,10 @@ private:
 	bool toRemoved;
 
 	/**Keeps track of the next agent's id. Used for auto-generating the agent id's*/
-	static unsigned int next_agent_id;
+	static unsigned int nextAgentId;
 
 	/**Indicates if the agent has been initialised using the frame_init method*/
 	bool initialized;
-
-	/**Stores the configuration properties of the agent loaded from the XML configuration file*/
-	std::map<std::string, std::string> configProperties;
-
-	/**Indicates if the detailed path for the current sub-trip is already planned*/
-	bool nextPathPlanned;
-
-	/**Stores the frame number in which the previous update of this agent took place*/
-	long lastUpdatedFrame;
 
 	/**
 	 * Internal update function for handling frame_init(), frame_tick(), etc.
@@ -99,9 +90,29 @@ private:
 	 *
 	 * @return the status of the update method
 	 */
-	sim_mob::Entity::UpdateStatus perform_update(timeslice now);
+	sim_mob::Entity::UpdateStatus performUpdate(timeslice now);
+
+	/**
+	 * Checks if the update method is being called for the agent before it's start time, later than the
+	 * intended start time or after it's end time and raises an exception if so.
+	 *
+	 * @param agentId The agent's id
+	 * @param now The current time
+	 * @param startTime The agent's start time
+	 * @param wasFirstFrame Indicates if the frame_init() method was called for the agent
+	 * @param wasRemoved Indicates if the agent was removed from the simulation
+	 */
+	static void checkFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved);
 
 protected:
+	/**
+	 * local seed for random number generator (initialized to agent id directly passed into the constructor)
+	 *
+	 * NOTE: this seed seems to be used only in MPI code.
+	 * TODO: revisit this when testing MPI
+	 */
+	int dynamicSeed;
+
 	/**
 	 * Access the Logger.
 	 * Note that the non-standard capitalisation of this function is left in for compatibility with its previous usage as a class.
@@ -143,33 +154,12 @@ protected:
 	/**
 	 * Sets the initialised flag to false, enabling frame_init() to be called again
 	 */
-	void resetFrameInit();
-
-	/**
-	 * Ask this Agent to re-route.
-	 * @param blacklisted the black-listed road segments
-	 */
-	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment *>& blacklisted);
-
-	/**
-	 * Checks if the update method is being called for the agent before it's start time, later than the
-	 * intended start time or after it's end time and raises an exception if so.
-	 *
-	 * @param agentId The agent's id
-	 * @param now The current time
-	 * @param startTime The agent's start time
-	 * @param wasFirstFrame Indicates if the frame_init() method was called for the agent
-	 * @param wasRemoved Indicates if the agent was removed from the simulation
-	 */
-	static void CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved);
+	void unsetInitialized()
+	{
+		initialized = false;
+	}
 
 public:
-	/**The agent's start node*/
-	WayPoint originNode;
-
-	/**The agent's end node*/
-	WayPoint destNode;
-
 	/**The agent's position (X-coordinate)*/
 	sim_mob::Shared<int> xPos;
 
@@ -178,24 +168,6 @@ public:
 
 	/**The current time tick*/
 	timeslice currTick;
-
-	/**Indicates if the agent is queuing*/
-	bool isQueuing;
-
-	/**The distance to the end of the segment*/
-	double distanceToEndOfSegment;
-
-	/**The time taken to drive to the end of the link*/
-	double drivingTimeToEndOfLink;
-
-	/**Holds the road segment travel time*/
-	RdSegTravelStat currRdSegTravelStats;
-
-	/**Holds the link travel time*/
-	LinkTravelStats currLinkTravelStats;
-
-	/**Stores the link travel times with link exit time as the key*/
-	std::map<double, LinkTravelStats> linkTravelStatsMap;
 
 	/**The set of all agents. Agents can access all other agents (although they usually do not access by ID)*/
 	static std::set<Entity*> all_agents;
@@ -213,13 +185,6 @@ public:
 	 */
 	explicit Agent(const MutexStrategy& mtxStrat, int id = -1);
 	virtual ~Agent();
-
-	/**
-	 * Loads an agent.
-	 *
-	 * @param configProps
-	 */
-	virtual void load(const std::map<std::string, std::string>& configProps) = 0;
 
 	/**
 	 * The agent update behaviour. This will call frame_init(), frame_tick(), etc. correctly.
@@ -251,13 +216,6 @@ public:
 	 */
 	void setToBeRemoved();
 
-	//Temporary function.
-
-	/**
-	 * Clears the flag indicating that the agent is marked for removal
-	 */
-	void clearToBeRemoved();
-
 	/**
 	 * Inherited from EventListener.
 	 *
@@ -283,7 +241,7 @@ public:
 	 * @param preferredID preferredID Will be returned if it is greater than the current maximum-assigned ID.
 	 * @return a unique ID value
 	 */
-	static unsigned int GetAndIncrementID(int preferredID);
+	static unsigned int getAndIncrementID(int preferredID);
 
 	/**
 	 * Set the start ID for automatically generated IDs.
@@ -291,51 +249,12 @@ public:
 	 * @param startID The agent's start ID. This must be > 0
 	 * @param failIfAlreadyUsed If true, fails with an exception if the auto ID has already been used or set.
 	 */
-	static void SetIncrementIDStartValue(int startID, bool failIfAlreadyUsed);
-
-	void setConfigProperties(const std::map<std::string, std::string>& props)
-	{
-		this->configProperties = props;
-	}
-
-	const std::map<std::string, std::string>& getConfigProperties()
-	{
-		return this->configProperties;
-	}
-
-	/**Clears the map configProperties which contains the configuration properties*/
-	void clearConfigProperties()
-	{
-		this->configProperties.clear();
-	}
+	static void setIncrementIDStartValue(int startID, bool failIfAlreadyUsed);
 
 	const sim_mob::MutexStrategy& getMutexStrategy()
 	{
 		return mutexStrat;
 	}
-
-	void setNextPathPlanned(bool value)
-	{
-		nextPathPlanned = value;
-	}
-
-	bool getNextPathPlanned()
-	{
-		return nextPathPlanned;
-	}
-
-	/**
-	 * Inserts the LinkTravelStats into the map
-	 * @param ts the LinkTravelStats to be added
-	 * @param exitTime the time of exiting the link
-	 */
-	void addToLinkTravelStatsMap(LinkTravelStats ts, double exitTime);
-
-protected:
-	int dynamic_seed;
-
-public:
-	int getOwnRandomNumber();
 
 	bool isInitialized() const
 	{
@@ -347,21 +266,13 @@ public:
 		initialized = init;
 	}
 
-	inline long getLastUpdatedFrame() const
-	{
-		return lastUpdatedFrame;
-	}
-
-	void setLastUpdatedFrame(long lastUpdatedFrame);
-
-	friend class BoundaryProcessor;
-	friend class ShortTermBoundaryProcessor;
-
+#ifndef SIMMOB_DISABLE_MPI
 	/**
 	 * xuyan: All Agents should have the serialization functions implemented for Distributed Version
 	 */
-#ifndef SIMMOB_DISABLE_MPI
-public:
+	friend class BoundaryProcessor;
+	friend class ShortTermBoundaryProcessor;
+
 	/**
 	 * Used for crossing agents
 	 */
@@ -376,16 +287,11 @@ public:
 #endif
 
 
-private:
-	///Have we registered to receive commsim-related messages?
-	bool commEventRegistered;
-
-
 public:
 
 	/**
 	 * This struct is used to track the Regions and Paths available to this Agent. This functionality is
-	 *   ONLY used in RoadRunner, so putting it in Agent is not idea. At the moment, I am not sure of the best
+	 *   ONLY used in RoadRunner, so putting it in Agent is not ideal. At the moment, I am not sure of the best
 	 *   way to resolve this (as the commsim code uses a generic "Agent" in most cases), so I'm putting it in
 	 *   the most obvious place. Ideally, we would have a framework for "optional" elements such as this.
 	 * Note that, if the RegionAndPathTracker is disabled, attempting to call getNewRegion/PathSet() will throw

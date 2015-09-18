@@ -47,7 +47,7 @@ void sim_mob::Agent::pack(PackageUtils& packageUtil)
 	packageUtil<<(yAcc.get());
 
 	packageUtil<<(toRemoved);
-	packageUtil<<(dynamic_seed);
+	packageUtil<<(dynamicSeed);
 }
 
 void sim_mob::Agent::unpack(UnPackageUtils& unpackageUtil) {
@@ -88,10 +88,10 @@ void sim_mob::Agent::unpack(UnPackageUtils& unpackageUtil) {
 	latVel.force(y_vel);
 
 	unpackageUtil >> toRemoved;
-	unpackageUtil >> dynamic_seed;
+	unpackageUtil >> dynamicSeed;
 
 //	toRemoved = unpackageUtil.unpackBasicData<bool> ();
-//	dynamic_seed = unpackageUtil.unpackBasicData<int> ();
+//	dynamicSeed = unpackageUtil.unpackBasicData<int> ();
 }
 
 void sim_mob::Agent::packProxy(PackageUtils& packageUtil)
@@ -108,7 +108,7 @@ void sim_mob::Agent::packProxy(PackageUtils& packageUtil)
 	packageUtil<<(yAcc.get());
 
 	packageUtil<<(toRemoved);
-	packageUtil<<(dynamic_seed);
+	packageUtil<<(dynamicSeed);
 }
 
 void sim_mob::Agent::unpackProxy(UnPackageUtils& unpackageUtil) {
@@ -144,10 +144,10 @@ void sim_mob::Agent::unpackProxy(UnPackageUtils& unpackageUtil) {
 	latVel.force(y_vel);
 
 	unpackageUtil >> toRemoved;
-	unpackageUtil >> dynamic_seed;
+	unpackageUtil >> dynamicSeed;
 
 //	toRemoved = unpackageUtil.unpackBasicData<bool> ();
-//	dynamic_seed = unpackageUtil.unpackBasicData<int> ();
+//	dynamicSeed = unpackageUtil.unpackBasicData<int> ();
 }
 
 /**

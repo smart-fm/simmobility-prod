@@ -61,6 +61,80 @@ public:
 	virtual ~Person();
 	void initTripChain();
 
+	void setConfigProperties(const std::map<std::string, std::string>& props)
+	{
+		this->configProperties = props;
+	}
+
+	const std::map<std::string, std::string>& getConfigProperties()
+	{
+		return this->configProperties;
+	}
+
+	void setNextPathPlanned(bool value)
+	{
+		nextPathPlanned = value;
+	}
+
+	bool getNextPathPlanned()
+	{
+		return nextPathPlanned;
+	}
+
+	long getLastUpdatedFrame() const
+	{
+		return lastUpdatedFrame;
+	}
+
+	void setLastUpdatedFrame(long lastUpdatedFrame)
+	{
+		this->lastUpdatedFrame = lastUpdatedFrame;
+	}
+
+	/**Clears the map configProperties which contains the configuration properties*/
+	void clearConfigProperties()
+	{
+		this->configProperties.clear();
+	}
+
+	/**The agent's start node*/
+	WayPoint originNode;
+
+	/**The agent's end node*/
+	WayPoint destNode;
+
+	/**Indicates if the agent is queuing*/
+	bool isQueuing;
+
+	/**The distance to the end of the segment*/
+	double distanceToEndOfSegment;
+
+	/**The time taken to drive to the end of the link*/
+	double drivingTimeToEndOfLink;
+
+	/**Holds the road segment travel time*/
+	RdSegTravelStat currRdSegTravelStats;
+
+	/**Holds the link travel time*/
+	LinkTravelStats currLinkTravelStats;
+
+	/**Stores the link travel times with link exit time as the key*/
+	std::map<double, LinkTravelStats> linkTravelStatsMap;
+
+	/**
+	 * Inserts the LinkTravelStats into the map
+	 * @param ts the LinkTravelStats to be added
+	 * @param exitTime the time of exiting the link
+	 */
+	void addToLinkTravelStatsMap(LinkTravelStats ts, double exitTime);
+
+	/**
+	 * Clears the flag indicating that the agent is marked for removal
+	 */
+	void clearToBeRemoved()
+	 {
+	 	toRemoved = false;
+	 }
 
 	//Person objects are spatial in nature
 	virtual bool isNonspatial() { return false; }
@@ -70,8 +144,12 @@ public:
             sim_mob::event::EventPublisher* sender,
             const AMOD::AMODEventArgs& args);
 
-	///Reroute to the destination with the given set of blacklisted RoadSegments.
-	///If the Agent cannot complete this new route, it will fall back onto the old route.
+	/**
+	 * Ask this person to re-route to the destination with the given set of blacklisted RoadSegments
+	 * If the Agent cannot complete this new route, it will fall back onto the old route.
+	 *
+	 * @param blacklisted the black-listed road segments
+	 */
 	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
 
 	///Load a Person's config-specified properties, creating a placeholder trip chain if
@@ -340,6 +418,17 @@ private:
 	  */
 	 void printTripChainItemTypes() const;
 
+	/**Stores the configuration properties of the agent loaded from the XML configuration file*/
+	std::map<std::string, std::string> configProperties;
+
+	/**Indicates if the detailed path for the current sub-trip is already planned*/
+	bool nextPathPlanned;
+
+	/**Stores the frame number in which the previous update of this agent took place*/
+	long lastUpdatedFrame;
+
+	///Have we registered to receive commsim-related messages?
+	bool commEventRegistered;
 protected:
 	virtual bool frame_init(timeslice now);
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
@@ -353,6 +442,8 @@ protected:
 	//Inherited from MessageHandler.
 	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
+
+	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment *>& blacklisted);
 
 private:
 	//to indicate that Role's updateParams has to be reset.

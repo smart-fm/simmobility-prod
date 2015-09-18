@@ -13,6 +13,8 @@
 
 namespace sim_mob {
 
+class Person;
+
 /**
  * A class designed to manage the incidents.
  * It can read the load the incidents for preday/test planning as well as en-route incidents

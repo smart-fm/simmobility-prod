@@ -42,13 +42,10 @@ using std::priority_queue;
 
 StartTimePriorityQueue sim_mob::Agent::pending_agents;
 std::set<Entity*> sim_mob::Agent::all_agents;
-//EventTimePriorityQueue sim_mob::Agent::agents_with_pending_event;
-//vector<Entity*> sim_mob::Agent::agents_on_event;
+unsigned int sim_mob::Agent::next_agent_id = 0;
 
 //Implementation of our comparison function for Agents by start time.
-
-bool sim_mob::cmp_agent_start::operator()(const Agent* x,
-		const Agent* y) const
+bool sim_mob::cmp_agent_start::operator()(const Agent* x, const Agent* y) const
 {
 	//TODO: Not sure what to do in this case...
 	if ((!x) || (!y))
@@ -59,17 +56,6 @@ bool sim_mob::cmp_agent_start::operator()(const Agent* x,
 	//We want a lower start time to translate into a higher priority.
 	return x->getStartTime() > y->getStartTime();
 }
-
-//Implementation of our comparison function for events by start time.
-
-bool sim_mob::cmp_event_start::operator()(const PendingEvent& x,
-		const PendingEvent& y) const
-{
-	//We want a lower start time to translate into a higher priority.
-	return x.start > y.start;
-}
-
-unsigned int sim_mob::Agent::next_agent_id = 0;
 
 unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID)
 {
@@ -95,13 +81,10 @@ unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID)
 			(preferredID >= 0) ?
 			static_cast<unsigned int> (preferredID) : next_agent_id++;
 
-	//std::cout <<"  assigned: " <<res <<std::endl;
-
 	return res;
 }
 
-void sim_mob::Agent::SetIncrementIDStartValue(int startID,
-											  bool failIfAlreadyUsed)
+void sim_mob::Agent::SetIncrementIDStartValue(int startID, bool failIfAlreadyUsed)
 {
 	//Check fail condition
 	if (failIfAlreadyUsed && Agent::next_agent_id != 0)
@@ -132,23 +115,11 @@ commEventRegistered(false)
 
 sim_mob::Agent::~Agent()
 {
-	//NOTE: We can't profile the agent's deletion, since it's not necessarily on a thread at this point.
-	//      Fortunately, no-one was using this behaviour anyway.
-	/*if (ConfigManager::GetInstance().CMakeConfig().ProfileAgentUpdates()) {
-		profile->logAgentDeleted(*this);
-	}*/
-	//safe_delete_item(profile);
-
 	//Un-register event listeners.
 	if (commEventRegistered)
 	{
-		messaging::MessageBus::UnSubscribeEvent(
-												sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
-												this,
-												this
-												);
+		messaging::MessageBus::UnSubscribeEvent(sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT, this, this);
 	}
-
 }
 
 void sim_mob::Agent::resetFrameInit()

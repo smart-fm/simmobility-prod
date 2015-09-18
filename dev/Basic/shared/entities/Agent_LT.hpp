@@ -24,7 +24,6 @@
 
 #include "buffering/Shared.hpp"
 #include "entities/Entity.hpp"
-#include "entities/PendingEvent.hpp"
 #include "logging/NullableOutputStream.hpp"
 #include "event/EventListener.hpp"
 
@@ -36,6 +35,7 @@ class Link;
 class WorkGroup;
 class ShortTermBoundaryProcessor;
 class PackageUtils;
+class RoadSegment;
 class UnPackageUtils;
 
 
@@ -49,15 +49,8 @@ struct cmp_agent_lt_start : public std::less<Agent_LT*>
   bool operator() (const Agent_LT* x, const Agent_LT* y) const;
 };
 
-struct cmp_event_lt_start : public std::less<PendingEvent>
-{
-  bool operator() (const PendingEvent& x, const PendingEvent& y) const;
-};
-
-
 //C++ static constructors...
 class StartTimePriorityQueue_lt : public std::priority_queue<Agent_LT*, std::vector<Agent_LT*>, cmp_agent_lt_start> {};
-class EventTimePriorityQueue_lt : public std::priority_queue<PendingEvent, std::vector<PendingEvent>, cmp_event_lt_start> {};
 
 /**
  * Basic Agent class.

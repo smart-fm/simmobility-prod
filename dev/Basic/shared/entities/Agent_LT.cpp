@@ -59,13 +59,6 @@ bool sim_mob::cmp_agent_lt_start::operator()(const Agent_LT* x, const Agent_LT* 
 	return x->getStartTime() > y->getStartTime();
 }
 
-//Implementation of our comparison function for events by start time.
-bool sim_mob::cmp_event_lt_start::operator()(const PendingEvent& x,		const PendingEvent& y) const
-{
-	//We want a lower start time to translate into a higher priority.
-	return x.start > y.start;
-}
-
 unsigned int sim_mob::Agent_LT::next_agent_id = 0;
 unsigned int sim_mob::Agent_LT::GetAndIncrementID(int preferredID)
 {

@@ -23,7 +23,6 @@
 
 #include "buffering/Shared.hpp"
 #include "entities/Entity.hpp"
-#include "entities/PendingEvent.hpp"
 #include "logging/NullableOutputStream.hpp"
 #include "event/EventListener.hpp"
 #include "entities/TravelTimeManager.hpp"
@@ -52,17 +51,8 @@ struct cmp_agent_start : public std::less<Agent*>
 	bool operator()(const Agent* x, const Agent* y) const;
 };
 
-struct cmp_event_start : public std::less<PendingEvent>
-{
-	bool operator()(const PendingEvent& x, const PendingEvent& y) const;
-};
-
 /**C++ static constructors*/
 class StartTimePriorityQueue : public std::priority_queue<Agent*, std::vector<Agent*>, cmp_agent_start>
-{
-};
-
-class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vector<PendingEvent>, cmp_event_start>
 {
 };
 
@@ -84,13 +74,31 @@ private:
 	/**The mutex strategy for the agent*/
 	const sim_mob::MutexStrategy mutexStrat;
 
+	/**Indicates if the agent is to be removed from the simulation*/
+	bool toRemoved;
+
+	/**Keeps track of the next agent's id. Used for auto-generating the agent id's*/
+	static unsigned int next_agent_id;
+
+	/**Indicates if the agent has been initialised using the frame_init method*/
+	bool initialized;
+
+	/**Stores the configuration properties of the agent loaded from the XML configuration file*/
+	std::map<std::string, std::string> configProperties;
+
+	/**Indicates if the detailed path for the current sub-trip is already planned*/
+	bool nextPathPlanned;
+
+	/**Stores the frame number in which the previous update of this agent took place*/
+	long lastUpdatedFrame;
+
 	/**
 	 * Internal update function for handling frame_init(), frame_tick(), etc.
-     *
+	 *
 	 * @param now The timeslice representing the time frame for which this method is called
-     *
+	 *
 	 * @return the status of the update method
-     */
+	 */
 	sim_mob::Entity::UpdateStatus perform_update(timeslice now);
 
 protected:
@@ -134,14 +142,26 @@ protected:
 
 	/**
 	 * Sets the initialised flag to false, enabling frame_init() to be called again
-     */
+	 */
 	void resetFrameInit();
 
 	/**
 	 * Ask this Agent to re-route.
-     * @param blacklisted the black-listed road segments
-     */
+	 * @param blacklisted the black-listed road segments
+	 */
 	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment *>& blacklisted);
+
+	/**
+	 * Checks if the update method is being called for the agent before it's start time, later than the
+	 * intended start time or after it's end time and raises an exception if so.
+	 *
+	 * @param agentId The agent's id
+	 * @param now The current time
+	 * @param startTime The agent's start time
+	 * @param wasFirstFrame Indicates if the frame_init() method was called for the agent
+	 * @param wasRemoved Indicates if the agent was removed from the simulation
+	 */
+	static void CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved);
 
 public:
 	/**The agent's start node*/
@@ -158,6 +178,15 @@ public:
 
 	/**The current time tick*/
 	timeslice currTick;
+
+	/**Indicates if the agent is queuing*/
+	bool isQueuing;
+
+	/**The distance to the end of the segment*/
+	double distanceToEndOfSegment;
+
+	/**The time taken to drive to the end of the link*/
+	double drivingTimeToEndOfLink;
 
 	/**Holds the road segment travel time*/
 	RdSegTravelStat currRdSegTravelStats;
@@ -232,36 +261,36 @@ public:
 	/**
 	 * Inherited from EventListener.
 	 *
-     * @param eventId
-     * @param ctxId
-     * @param sender
-     * @param args
-     */
+	 * @param eventId
+	 * @param ctxId
+	 * @param sender
+	 * @param args
+	 */
 	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
 
 	/**
 	 * Inherited from MessageHandler.
 	 *
-     * @param type
-     * @param message
-     */
+	 * @param type
+	 * @param message
+	 */
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 	/**
 	 * Retrieves a monotonically-increasing unique ID value. Passing in a negative number will
 	 * always auto-assign an ID, and is recommended.
 	 *
-     * @param preferredID preferredID Will be returned if it is greater than the current maximum-assigned ID.
-     * @return a unique ID value
-     */
+	 * @param preferredID preferredID Will be returned if it is greater than the current maximum-assigned ID.
+	 * @return a unique ID value
+	 */
 	static unsigned int GetAndIncrementID(int preferredID);
 
 	/**
 	 * Set the start ID for automatically generated IDs.
 	 *
-     * @param startID The agent's start ID. This must be > 0
-     * @param failIfAlreadyUsed If true, fails with an exception if the auto ID has already been used or set.
-     */
+	 * @param startID The agent's start ID. This must be > 0
+	 * @param failIfAlreadyUsed If true, fails with an exception if the auto ID has already been used or set.
+	 */
 	static void SetIncrementIDStartValue(int startID, bool failIfAlreadyUsed);
 
 	void setConfigProperties(const std::map<std::string, std::string>& props)
@@ -285,16 +314,6 @@ public:
 		return mutexStrat;
 	}
 
-	void setOnActivity(bool value)
-	{
-		onActivity = value;
-	}
-
-	bool getOnActivity()
-	{
-		return onActivity;
-	}
-
 	void setNextPathPlanned(bool value)
 	{
 		nextPathPlanned = value;
@@ -305,64 +324,12 @@ public:
 		return nextPathPlanned;
 	}
 
-	void setNextEvent(PendingEvent* value)
-	{
-		nextEvent = value;
-	}
-
-	PendingEvent* getNextEvent()
-	{
-		return nextEvent;
-	}
-
-	void setCurrEvent(PendingEvent* value)
-	{
-		currEvent = value;
-	}
-
-	PendingEvent* getCurrEvent()
-	{
-		return currEvent;
-	}
-
 	/**
 	 * Inserts the LinkTravelStats into the map
-     * @param ts the LinkTravelStats to be added
-     * @param exitTime the time of exiting the link
-     */
+	 * @param ts the LinkTravelStats to be added
+	 * @param exitTime the time of exiting the link
+	 */
 	void addToLinkTravelStatsMap(LinkTravelStats ts, double exitTime);
-
-	bool isQueuing;
-	double distanceToEndOfSegment;
-	double drivingTimeToEndOfLink;
-	double movingVelocity;
-
-	//timeslice enqueueTick;
-
-protected:
-	///Raises an exception if the given Agent was started either too early or too late, or exists past its end time.
-	static void CheckFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved);
-
-private:
-	//unsigned int currMode;
-	bool toRemoved;
-	static unsigned int next_agent_id;
-
-	///Should this agent call frame_init()?
-	///NOTE: This only applies to the Agent; a Person, for example, may call frame_init()
-	///      on its Roles from its own frame_tick() method.
-	bool initialized;
-
-	//Unknown until runtime
-	std::map<std::string, std::string> configProperties;
-
-	PendingEvent* currEvent;
-	PendingEvent* nextEvent;
-
-	bool nextPathPlanned; //determines if the detailed path for the current subtrip is already planned
-
-	bool onActivity; //Determines if the person is conducting any activity
-	long lastUpdatedFrame; //Frame number in which the previous update of this agent took place
 
 protected:
 	int dynamic_seed;
@@ -432,21 +399,18 @@ public:
 		}
 
 		///Enable Region tracking. Without this, the "get()" functions will throw.
-
 		void enable()
 		{
 			enabled = true;
 		}
 
 		///Is Region tracking enabled?
-
 		bool isEnabled() const
 		{
 			return enabled;
 		}
 
 		///Reset the list of Regions (or paths)
-
 		void resetAllRegionsSet()
 		{
 			newAllRegions.clear();
@@ -458,7 +422,6 @@ public:
 		}
 
 		///See: Agent::getNewAllRegionsSet()
-
 		std::vector<sim_mob::RoadRunnerRegion> getNewAllRegionsSet() const
 		{
 			if (!enabled)
@@ -469,7 +432,6 @@ public:
 		}
 
 		///Set Agent::getNewRegionPath()
-
 		std::vector<sim_mob::RoadRunnerRegion> getNewRegionPath() const
 		{
 			if (!enabled)
@@ -480,14 +442,12 @@ public:
 		}
 
 		///Set the "all regions" return value.
-
 		void setNewAllRegionsSet(const std::vector<sim_mob::RoadRunnerRegion>& value)
 		{
 			newAllRegions = value;
 		}
 
 		///Set the "region path" return value.
-
 		void setNewRegionPath(const std::vector<sim_mob::RoadRunnerRegion>& value)
 		{
 			newRegionPath = value;
@@ -503,7 +463,6 @@ public:
 private:
 	///Enable Region support.
 	///See RegionAndPathTracker for more information.
-
 	void enableRegionSupport()
 	{
 		regionAndPathTracker.enable();
@@ -513,7 +472,6 @@ public:
 	///Returns the current set of "all Regions", but only if region-tracking is enabled, and only if
 	/// the region set has changed since the last time tick.
 	///See RegionAndPathTracker for more information.
-
 	std::vector<sim_mob::RoadRunnerRegion> getAndClearNewAllRegionsSet()
 	{
 		std::vector<sim_mob::RoadRunnerRegion> res = regionAndPathTracker.getNewAllRegionsSet();

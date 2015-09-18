@@ -21,7 +21,7 @@
             </database>
             
 	    <!-- internal ip for remote midterm server -->
-            <database id="fm_remote_mt" dbtype="postgres">
+            <database id="fm_remote_mt1" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
                 <dbname value="simmobility_db_2014"/>
@@ -35,7 +35,7 @@
             </database>
 
 		<!-- public ip for remote midterm server -->
-	    <database id="fm_remote_mt3" dbtype="postgres">
+	    <database id="fm_remote_mt" dbtype="postgres">
 	        <host value="137.132.22.82"/>
 	        <port value="15061"/> <!--old port: 15025 -->
 	        <dbname value="simmobility_db_2014"/>
@@ -163,7 +163,7 @@
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
-    	<days value="365"/>
+    	<days value="3"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>       
@@ -177,17 +177,17 @@
 		<minLotSize value = "100.00" />
     	</developerModel>
         <housingModel enabled="true"> 
-	    <outputHouseholdLogsums value="false"/>
+	    <outputHouseholdLogsums value="true"/>
             <timeOnMarket value="90"/>
             <timeOffMarket value="150"/>
             <timeInterval value="7"/>
-	    <InitialHouseholdsOnMarket value="1000"/>
+	    <InitialHouseholdsOnMarket value="10"/>
 	    <vacantUnitActivationProbability value="0.375"/>
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
-	    <bidderUnitsChoiceSet value = "100"/>
-	    <householdBiddingWindow value = "100" />
+	    <bidderUnitsChoiceSet value = "10"/>
+	    <householdBiddingWindow value = "10" />
         </housingModel>
 	<vehicleOwnershipModel enabled='true'>
 		<vehicleBuyingWaitingTimeInDays value= "60"/>

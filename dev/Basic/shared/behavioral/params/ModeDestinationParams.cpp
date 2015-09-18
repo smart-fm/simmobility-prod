@@ -45,7 +45,7 @@ int ModeDestinationParams::getDestination(int choice) const {
 LogsumTourModeDestinationParams::LogsumTourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
 		const PredayPersonParams& personParams, StopType tourType)
 : ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation()),
-  drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()), modeForParentWorkTour(0), costIncrease(1)
+  drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()), modeForParentWorkTour(0), costIncrease(0)
 {}
 
 LogsumTourModeDestinationParams::~LogsumTourModeDestinationParams() {}
@@ -248,7 +248,7 @@ int sim_mob::LogsumTourModeDestinationParams::isCbdOrgZone() const
 
 sim_mob::LogsumTourModeParams::LogsumTourModeParams(const ZoneParams* znOrgObj, const ZoneParams* znDesObj,
 		const CostParams* amObj, const CostParams* pmObj, const PredayPersonParams& personParams, StopType tourType) :
-				stopType(tourType), costIncrease(1), costCarParking(znDesObj->getParkingRate()), centralZone(znDesObj->getCentralDummy()),
+				stopType(tourType), costIncrease(0), costCarParking(znDesObj->getParkingRate()), centralZone(znDesObj->getCentralDummy()),
 				cbdOrgZone(znOrgObj->getCbdDummy()), cbdDestZone(znDesObj->getCbdDummy()), residentSize(znOrgObj->getResidentWorkers()),
 				workOP(znDesObj->getEmployment()), educationOP(znDesObj->getTotalEnrollment()), originArea(znOrgObj->getArea()),
 				destinationArea(znDesObj->getArea())

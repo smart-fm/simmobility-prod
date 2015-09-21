@@ -81,11 +81,20 @@ void InformLoadOrder(const std::vector<SimulationParams::LoadAgentsOrderOption>&
 void addOrStashEntity(Agent* p, std::set<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	//Only agents with a start time of zero should start immediately in the all_agents list.
-	if (p->getStartTime()==0) {
-		p->load(p->getConfigProperties());
-		p->clearConfigProperties();
+	if (p->getStartTime() == 0)
+	{
+		Person *person = dynamic_cast<Person *>(p);
+		
+		if(person != nullptr)
+		{
+			person->load(person->getConfigProperties());
+			person->clearConfigProperties();
+		}
+		
 		active_agents.insert(p);
-	} else {
+	}
+	else
+	{
 		//Start later.
 		pending_agents.push(p);
 	}

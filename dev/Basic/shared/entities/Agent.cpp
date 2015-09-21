@@ -104,7 +104,7 @@ void sim_mob::Agent::setIncrementIDStartValue(int startID, bool failIfAlreadyUse
 }
 
 sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(getAndIncrementID(id)),
-mutexStrat(mtxStrat), initialized(false), xPos(mtxStrat, 0), yPos(mtxStrat, 0), toRemoved(false), dynamicSeed(id), currTick(0, 0)
+mutexStrat(mtxStrat), initialized(false), xPos(mtxStrat, 0), yPos(mtxStrat, 0), toRemoved(false), lastUpdatedFrame(-1), dynamicSeed(id), currTick(0, 0)
 {
 }
 

@@ -74,9 +74,6 @@ private:
 	/**The mutex strategy for the agent*/
 	const sim_mob::MutexStrategy mutexStrat;
 
-	/**Indicates if the agent is to be removed from the simulation*/
-	bool toRemoved;
-
 	/**Keeps track of the next agent's id. Used for auto-generating the agent id's*/
 	static unsigned int nextAgentId;
 
@@ -105,6 +102,12 @@ private:
 	static void checkFrameTimes(unsigned int agentId, uint32_t now, unsigned int startTime, bool wasFirstFrame, bool wasRemoved);
 
 protected:
+	/**Indicates if the agent is to be removed from the simulation*/
+	bool toRemoved;
+
+	/**Stores the frame number in which the previous update of this agent took place*/
+	long lastUpdatedFrame;
+	
 	/**
 	 * local seed for random number generator (initialized to agent id directly passed into the constructor)
 	 *
@@ -266,6 +269,119 @@ public:
 		initialized = init;
 	}
 
+	long getLastUpdatedFrame() const
+	{
+		return lastUpdatedFrame;
+	}
+
+	void setLastUpdatedFrame(long lastUpdatedFrame)
+	{
+		this->lastUpdatedFrame = lastUpdatedFrame;
+	}
+
+	/**
+	 * This struct is used to track the Regions and Paths available to this Agent. This functionality is
+	 * ONLY used in RoadRunner, so putting it in Agent is not ideal. At the moment, I am not sure of the best
+	 * way to resolve this (as the commsim code uses a generic "Agent" in most cases), so I'm putting it in
+	 * the most obvious place. Ideally, we would have a framework for "optional" elements such as this.
+	 * Note that, if the RegionAndPathTracker is disabled, attempting to call getNewRegion/PathSet() will throw
+	 * an exception.
+	 */
+	struct RegionAndPathTracker
+	{
+	private:
+		std::vector<sim_mob::RoadRunnerRegion> newAllRegions;
+		std::vector<sim_mob::RoadRunnerRegion> newRegionPath;
+		bool enabled;
+
+	public:
+		RegionAndPathTracker() : enabled(false)
+		{
+		}
+
+		/**Enable Region tracking. Without this, the "get()" functions will throw.*/
+		void enable()
+		{
+			enabled = true;
+		}
+
+		bool isEnabled() const
+		{
+			return enabled;
+		}
+
+		void resetAllRegionsSet()
+		{
+			newAllRegions.clear();
+		}
+
+		void resetNewRegionPath()
+		{
+			newRegionPath.clear();
+		}
+
+		std::vector<sim_mob::RoadRunnerRegion> getNewAllRegionsSet() const
+		{
+			if (!enabled)
+			{
+				throw std::runtime_error("Agent Region Tracking is disabled.");
+			}
+			return newAllRegions;
+		}
+
+		std::vector<sim_mob::RoadRunnerRegion> getNewRegionPath() const
+		{
+			if (!enabled)
+			{
+				throw std::runtime_error("Agent Region Tracking is disabled.");
+			}
+			return newRegionPath;
+		}
+
+		void setNewAllRegionsSet(const std::vector<sim_mob::RoadRunnerRegion>& value)
+		{
+			newAllRegions = value;
+		}
+
+		void setNewRegionPath(const std::vector<sim_mob::RoadRunnerRegion>& value)
+		{
+			newRegionPath = value;
+		}
+
+	} regionAndPathTracker;
+
+	/**
+     * @return the current set of "all Regions", but only if region-tracking is enabled, and only if
+	 * the region set has changed since the last time tick.
+     */
+	std::vector<sim_mob::RoadRunnerRegion> getAndClearNewAllRegionsSet()
+	{
+		std::vector<sim_mob::RoadRunnerRegion> res = regionAndPathTracker.getNewAllRegionsSet();
+		regionAndPathTracker.resetAllRegionsSet();
+		return res;
+	}
+
+	/**
+     * @return the current set of Regions this Agent expects to travel through on its way to its goal,
+	 * but only if region-tracking is enabled, and only if the path set has changed since the last time tick.
+     */
+	std::vector<sim_mob::RoadRunnerRegion> getAndClearNewRegionPath()
+	{
+		std::vector<sim_mob::RoadRunnerRegion> res = regionAndPathTracker.getNewRegionPath();
+		regionAndPathTracker.resetNewRegionPath();
+		return res;
+	}
+
+	RegionAndPathTracker& getRegionSupportStruct()
+	{
+		return regionAndPathTracker;
+	}
+
+	const RegionAndPathTracker& getRegionSupportStruct() const
+	{
+		return regionAndPathTracker;
+	}
+
 #ifndef SIMMOB_DISABLE_MPI
 	/**
 	 * xuyan: All Agents should have the serialization functions implemented for Distributed Version
@@ -285,126 +401,6 @@ public:
 	virtual void packProxy(PackageUtils& packageUtil);
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
 #endif
-
-
-public:
-
-	/**
-	 * This struct is used to track the Regions and Paths available to this Agent. This functionality is
-	 *   ONLY used in RoadRunner, so putting it in Agent is not ideal. At the moment, I am not sure of the best
-	 *   way to resolve this (as the commsim code uses a generic "Agent" in most cases), so I'm putting it in
-	 *   the most obvious place. Ideally, we would have a framework for "optional" elements such as this.
-	 * Note that, if the RegionAndPathTracker is disabled, attempting to call getNewRegion/PathSet() will throw
-	 *   an exception.
-	 */
-	struct RegionAndPathTracker
-	{
-
-		RegionAndPathTracker() : enabled(false)
-		{
-		}
-
-		///Enable Region tracking. Without this, the "get()" functions will throw.
-		void enable()
-		{
-			enabled = true;
-		}
-
-		///Is Region tracking enabled?
-		bool isEnabled() const
-		{
-			return enabled;
-		}
-
-		///Reset the list of Regions (or paths)
-		void resetAllRegionsSet()
-		{
-			newAllRegions.clear();
-		}
-
-		void resetNewRegionPath()
-		{
-			newRegionPath.clear();
-		}
-
-		///See: Agent::getNewAllRegionsSet()
-		std::vector<sim_mob::RoadRunnerRegion> getNewAllRegionsSet() const
-		{
-			if (!enabled)
-			{
-				throw std::runtime_error("Agent Region Tracking is disabled.");
-			}
-			return newAllRegions;
-		}
-
-		///Set Agent::getNewRegionPath()
-		std::vector<sim_mob::RoadRunnerRegion> getNewRegionPath() const
-		{
-			if (!enabled)
-			{
-				throw std::runtime_error("Agent Region Tracking is disabled.");
-			}
-			return newRegionPath;
-		}
-
-		///Set the "all regions" return value.
-		void setNewAllRegionsSet(const std::vector<sim_mob::RoadRunnerRegion>& value)
-		{
-			newAllRegions = value;
-		}
-
-		///Set the "region path" return value.
-		void setNewRegionPath(const std::vector<sim_mob::RoadRunnerRegion>& value)
-		{
-			newRegionPath = value;
-		}
-
-	private:
-		///Actual storage + enabled.
-		std::vector<sim_mob::RoadRunnerRegion> newAllRegions;
-		std::vector<sim_mob::RoadRunnerRegion> newRegionPath;
-		bool enabled;
-	} regionAndPathTracker;
-
-private:
-	///Enable Region support.
-	///See RegionAndPathTracker for more information.
-	void enableRegionSupport()
-	{
-		regionAndPathTracker.enable();
-	}
-
-public:
-	///Returns the current set of "all Regions", but only if region-tracking is enabled, and only if
-	/// the region set has changed since the last time tick.
-	///See RegionAndPathTracker for more information.
-	std::vector<sim_mob::RoadRunnerRegion> getAndClearNewAllRegionsSet()
-	{
-		std::vector<sim_mob::RoadRunnerRegion> res = regionAndPathTracker.getNewAllRegionsSet();
-		regionAndPathTracker.resetAllRegionsSet();
-		return res;
-	}
-
-	///Returns the current set of Regions this Agent expects to travel through on its way to its goal,
-	///but only if region-tracking is enabled, and only if the path set has changed since the last time tick.
-	///See RegionAndPathTracker for more information.
-	std::vector<sim_mob::RoadRunnerRegion> getAndClearNewRegionPath()
-	{
-		std::vector<sim_mob::RoadRunnerRegion> res = regionAndPathTracker.getNewRegionPath();
-		regionAndPathTracker.resetNewRegionPath();
-		return res;
-	}
-
-	///Get the Region-support object. This is used for all other Region-related queries.
-	RegionAndPathTracker& getRegionSupportStruct()
-	{
-		return regionAndPathTracker;
-	}
-
-	const RegionAndPathTracker& getRegionSupportStruct() const
-	{
-		return regionAndPathTracker;
-	}
 
 };
 

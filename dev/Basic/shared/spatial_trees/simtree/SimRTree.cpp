@@ -863,15 +863,19 @@ SimRTree::BoundingBox sim_mob::SimRTree::locationBoundingBox(Agent * agent) {
 }
 
 SimRTree::BoundingBox sim_mob::SimRTree::ODBoundingBox(Agent * agent) {
-	//Retrieve the location (Point) of the OriginWayPoint.
-	//TODO: This only occurs here, so I'm removing it from the WayPoint class.
-	//      We need a better way to do this; it really has nothing to do with WayPoints ~Seth.
-	Point2D originLoc = WayPointToLocation(agent->originNode);
-	Point2D densiLoc = WayPointToLocation(agent->destNode);
-
+	
 	SimRTree::BoundingBox box;
-	box.edges[0].first = box.edges[0].second = originLoc.getX();
-	box.edges[1].first = box.edges[1].second = originLoc.getY();
+	Person *person = dynamic_cast<Person *>(agent);
+	
+	if(person != nullptr)
+	{
+		//Retrieve the location (Point) of the OriginWayPoint.
+		Point2D originLoc = WayPointToLocation(person->originNode);
+		Point2D destLoc = WayPointToLocation(person->destNode);
+
+		box.edges[0].first = box.edges[0].second = originLoc.getX();
+		box.edges[1].first = box.edges[1].second = originLoc.getY();
+	}
 
 	return box;
 }

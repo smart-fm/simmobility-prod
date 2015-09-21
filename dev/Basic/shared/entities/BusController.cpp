@@ -693,12 +693,21 @@ double sim_mob::BusController::hybridDecision(const string& busline_i, int trip_
 
 void sim_mob::BusController::addOrStashBuses(Agent* p, std::set<Entity*>& active_agents)
 {
-	if (p->getStartTime()==0) {
-		//Only agents with a start time of zero should start immediately in the all_agents list.
-		p->load(p->getConfigProperties());
-		p->clearConfigProperties();
+	//Only agents with a start time of zero should start immediately in the all_agents list.
+	if (p->getStartTime() == 0)
+	{
+		Person *person = dynamic_cast<Person *>(p);
+		
+		if(person != nullptr)
+		{
+			person->load(person->getConfigProperties());
+			person->clearConfigProperties();
+		}
+
 		active_agents.insert(p);
-	} else {
+	}
+	else
+	{
 		//Start later.
 		pending_buses.push(p);
 	}

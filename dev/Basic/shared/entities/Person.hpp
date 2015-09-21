@@ -79,17 +79,7 @@ public:
 	bool getNextPathPlanned()
 	{
 		return nextPathPlanned;
-	}
-
-	long getLastUpdatedFrame() const
-	{
-		return lastUpdatedFrame;
-	}
-
-	void setLastUpdatedFrame(long lastUpdatedFrame)
-	{
-		this->lastUpdatedFrame = lastUpdatedFrame;
-	}
+	}	
 
 	/**Clears the map configProperties which contains the configuration properties*/
 	void clearConfigProperties()
@@ -132,17 +122,14 @@ public:
 	 * Clears the flag indicating that the agent is marked for removal
 	 */
 	void clearToBeRemoved()
-	 {
-	 	toRemoved = false;
-	 }
+	{
+	   toRemoved = false;
+	}
 
 	//Person objects are spatial in nature
 	virtual bool isNonspatial() { return false; }
 
-	void handleAMODEvent(sim_mob::event::EventId id,
-            sim_mob::event::Context ctxId,
-            sim_mob::event::EventPublisher* sender,
-            const AMOD::AMODEventArgs& args);
+	void handleAMODEvent(sim_mob::event::EventId id, sim_mob::event::Context ctxId, sim_mob::event::EventPublisher* sender, const AMOD::AMODEventArgs& args);
 
 	/**
 	 * Ask this person to re-route to the destination with the given set of blacklisted RoadSegments
@@ -424,11 +411,16 @@ private:
 	/**Indicates if the detailed path for the current sub-trip is already planned*/
 	bool nextPathPlanned;
 
-	/**Stores the frame number in which the previous update of this agent took place*/
-	long lastUpdatedFrame;
-
 	///Have we registered to receive commsim-related messages?
 	bool commEventRegistered;
+
+	///Enable Region support.
+	///See RegionAndPathTracker for more information.
+	void enableRegionSupport()
+	{
+		regionAndPathTracker.enable();
+	}
+
 protected:
 	virtual bool frame_init(timeslice now);
 	virtual Entity::UpdateStatus frame_tick(timeslice now);
@@ -440,10 +432,7 @@ protected:
 
 
 	//Inherited from MessageHandler.
-	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
-
-
-	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment *>& blacklisted);
+	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 private:
 	//to indicate that Role's updateParams has to be reset.

@@ -101,8 +101,8 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, i
 	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), remainingTimeThisTick(0.0),
 	requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
 	age(0), boardingTimeSecs(0), alightingTimeSecs(0), client_id(-1), resetParamsRequired(false), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),amodSegmLength(0.0),
-	initSegId(0), initDis(0), initSpeed(0), amodSegmLength2(0), currStatus(IN_CAR_PARK), firstTick(true), currLane(NULL), nextPathPlanned(false),
-	lastUpdatedFrame(-1), commEventRegistered(false), originNode(), destNode(), isQueuing(false), distanceToEndOfSegment(0.0), currLinkTravelStats(nullptr, 0.0),
+	initSegId(0), initDis(0), initSpeed(0), amodSegmLength2(0), currStatus(IN_CAR_PARK), firstTick(true), currLane(NULL), nextPathPlanned(false), 
+	commEventRegistered(false), originNode(), destNode(), isQueuing(false), distanceToEndOfSegment(0.0), currLinkTravelStats(nullptr, 0.0),
 	currRdSegTravelStats(nullptr)
 {
 }
@@ -112,7 +112,7 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 	  databaseID(tc.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
 	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tc), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
 	  client_id(-1),amodPath( std::vector<WayPoint>() ), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),
-	  amodSegmLength(0.0), nextPathPlanned(false), lastUpdatedFrame(-1), commEventRegistered(false), originNode(), destNode(), isQueuing(false),
+	  amodSegmLength(0.0), nextPathPlanned(false), commEventRegistered(false), originNode(), destNode(), isQueuing(false),
 	  distanceToEndOfSegment(0.0), currLinkTravelStats(nullptr, 0.0), currRdSegTravelStats(nullptr)
 {
 	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply())

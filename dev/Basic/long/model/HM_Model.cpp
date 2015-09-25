@@ -175,7 +175,7 @@ namespace
 											"%1176%, %1177%, %1178%, %1179%, %1180%, %1181%, %1182%, %1183%, %1184%, %1185%, %1186%, %1187%, %1188%, %1189%, %1190%, %1191%, %1192%, %1193%, %1194%, %1195%, %1196%, %1197%, %1198%, %1199%, %1200%, %1201%, %1202%, %1203%, "
 											"%1204%, %1205%, %1206%, %1207%, %1208%, %1209%, %1210%, %1211%, %1212%, %1213%, %1214%, %1215%, %1216%, %1217%, %1218%, %1219%, %1220%, %1221%, %1222%, %1223%, %1224%, %1225%, %1226%, %1227%, %1228%, %1229%, %1230%, %1231%, "
 											"%1232%, %1233%, %1234%, %1235%, %1236%, %1237%, %1238%, %1239%, %1240%, %1241%, %1242%, %1243%, %1244%, %1245%, %1246%, %1247%, %1248%, %1249%, %1250%, %1251%, %1252%, %1253%, %1254%, %1255%, %1256%, %1257%, %1258%, %1259%, "
-											"%1260%, %1261%, %1262%, %1263%, %1264%, %1265%, %1266%, %1267%, %1268%, %1269%, %1270% %1271%") % title % hitsId % householdId % individualId
+											"%1260%, %1261%, %1262%, %1263%, %1264%, %1265%, %1266%, %1267%, %1268%, %1269%, %1270%, %1271%") % title % hitsId % householdId % individualId
 											% logsum[0]  % logsum[1]  % logsum[2]  % logsum[3]  % logsum[4]  % logsum[5]  % logsum[6]  % logsum[7]  % logsum[8]  % logsum[9]  % logsum[10]  % logsum[11]  % logsum[12]  % logsum[13]
 											% logsum[14]  % logsum[15]  % logsum[16]  % logsum[17]  % logsum[18]  % logsum[19]  % logsum[20]  % logsum[21]  % logsum[22]  % logsum[23]  % logsum[24]  % logsum[25]  % logsum[26]  % logsum[27]
 											% logsum[28]  % logsum[29]  % logsum[30]  % logsum[31]  % logsum[32]  % logsum[33]  % logsum[34]  % logsum[35]  % logsum[36]  % logsum[37]  % logsum[38]  % logsum[39]  % logsum[40]  % logsum[41]
@@ -1452,22 +1452,30 @@ void HM_Model::getLogsumOfIndividuals(BigSerial id)
 
 void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 {
-	BigSerial householdId = householdLogsumCounter++;
+	BigSerial householdId = 0;
+	HouseHoldHitsSample *hitsSample = nullptr;
 
-	if( simulationStopCounter > 200) //this is temporary. -Chetan (19Aug2015)
-		return;
+	{
+		boost::mutex::scoped_lock lock( mtx3 );
 
-	HouseHoldHitsSample *hitsSample = this->getHouseHoldHitsById( householdId );
+		householdId = householdLogsumCounter++;
 
-	if( !hitsSample )
-		return;
+		if( simulationStopCounter > 200) //this is temporary. -Chetan (19Aug2015)
+			return;
 
-	std::string householdHitsIdStr = hitsSample->getHouseholdHitsId();
+		hitsSample = this->getHouseHoldHitsById( householdId );
 
-	if( processedHouseholdHitsLogsum.find( householdHitsIdStr ) != processedHouseholdHitsLogsum.end() )
-		return;
-	else
-		processedHouseholdHitsLogsum.insert( householdHitsIdStr );
+		if( !hitsSample )
+			return;
+
+		std::string householdHitsIdStr = hitsSample->getHouseholdHitsId();
+
+		if( processedHouseholdHitsLogsum.find( householdHitsIdStr ) != processedHouseholdHitsLogsum.end() )
+			return;
+		else
+			processedHouseholdHitsLogsum.insert( householdHitsIdStr );
+	}
+
 
 	Household *currentHousehold = getHouseholdById( householdId );
 

@@ -138,6 +138,8 @@ namespace sim_mob {
 
         const int TIME_UNIT = TIME_UNIT_WEEKLY;
 
+        const int HITS_SURVEY_YEAR = 2012;
+
         /**
          * Configs
          */

@@ -344,6 +344,7 @@ namespace sim_mob
 
             boost::mutex mtx;
             boost::mutex mtx2;
+            boost::mutex mtx3;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
             boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
 

@@ -55,7 +55,7 @@ bool sim_mob::BusController::HasBusControllers()
 void sim_mob::BusController::InitializeAllControllers(std::set<Entity*>& agentList, const vector<PT_BusDispatchFreq>& dispatchFreq)
 {
 	if (!instance) {
-		throw std::runtime_error("Currently, we only support zero or one Bus Controller");
+		throw std::runtime_error("create bus controller before you want to initialize");
 	}
 
 	instance->setPTScheduleFromConfig(dispatchFreq);
@@ -74,6 +74,9 @@ void sim_mob::BusController::DispatchAllControllers(std::set<Entity*>& agentList
 
 BusController* sim_mob::BusController::GetInstance()
 {
+	if(!instance){
+		instance = new sim_mob::BusController();
+	}
 	return instance;
 }
 

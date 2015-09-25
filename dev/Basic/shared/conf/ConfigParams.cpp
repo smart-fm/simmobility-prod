@@ -10,7 +10,6 @@
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
-#include "entities/misc/BusSchedule.hpp"
 #include "entities/misc/PublicTransit.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/BusStop.hpp"
@@ -45,7 +44,6 @@ sim_mob::ConfigParams::~ConfigParams()
 	safe_delete_item(commDataMgr);
 	safe_delete_item(controlMgr);
 
-	clear_delete_vector(busschedule);
 	clear_delete_vector(confluxes);
 	clear_delete_vector(segmentStatsWithBusStops);
 	clear_delete_map(busStopNo_busStops);
@@ -434,34 +432,29 @@ const std::map<std::string, std::vector<sim_mob::TripChainItem*> >& sim_mob::Con
 	return tripchains;
 }
 
-std::vector<sim_mob::BusSchedule*>& sim_mob::ConfigParams::getBusSchedule()
-{
-	return busschedule;
-}
-
 std::vector<sim_mob::OD_Trip>& sim_mob::ConfigParams::getODsTripsMap()
 {
 	return ODsTripsMap;
 }
 
-std::vector<sim_mob::PT_bus_dispatch_freq>& sim_mob::ConfigParams::getPT_bus_dispatch_freq()
+std::vector<sim_mob::PT_BusDispatchFreq>& sim_mob::ConfigParams::getPT_BusDispatchFreq()
 {
-	return pt_busdispatch_freq;
+	return ptBusDispatchFreq;
 }
 
-const std::vector<sim_mob::PT_bus_dispatch_freq>& sim_mob::ConfigParams::getPT_bus_dispatch_freq() const
+const std::vector<sim_mob::PT_BusDispatchFreq>& sim_mob::ConfigParams::getPT_BusDispatchFreq() const
 {
-	return pt_busdispatch_freq;
+	return ptBusDispatchFreq;
 }
 
-std::vector<sim_mob::PT_bus_routes>& sim_mob::ConfigParams::getPT_bus_routes()
+std::vector<sim_mob::PT_BusRoutes>& sim_mob::ConfigParams::getPT_BusRoutes()
 {
-	return pt_bus_routes;
+	return ptBusRoutes;
 }
 
-std::vector<sim_mob::PT_bus_stops>& sim_mob::ConfigParams::getPT_bus_stops()
+std::vector<sim_mob::PT_BusStops>& sim_mob::ConfigParams::getPT_BusStops()
 {
-	return pt_bus_stops;
+	return ptBusStops;
 }
 
 const std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& sim_mob::ConfigParams::getRoadSegments_Map() const

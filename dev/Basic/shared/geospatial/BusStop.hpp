@@ -27,7 +27,7 @@ namespace sim_mob
 
 //Forward declarations
 class Lane;
-class Busline;
+class BusLine;
 
 /**
  * Representation of a Bus Stop.
@@ -102,7 +102,7 @@ public:
     //Estimate the stop point of this BusStop on a given road segment
     static double EstimateStopPoint(double xPos, double yPos, const sim_mob::RoadSegment* rs);
 
-    std::vector<Busline*> BusLines;///to store bus line info at each bus stop for passengers
+    std::vector<BusLine*> BusLines;///to store bus line info at each bus stop for passengers
 	std::string busstopno_;
 		double xPos;
 		double yPos;

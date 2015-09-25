@@ -81,12 +81,12 @@ public:
 	/**
 	 * decide holding time when a bus arrive at bus stop
 	 */
-	double decisionCalculation(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStop_RealTimes& realTime, const BusStop* lastVisited_BusStop);// return Departure MS from Aijk, DWijk etc
+	double decisionCalculation(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisited_BusStop);// return Departure MS from Aijk, DWijk etc
 
 	/**
 	 * store real times at each bus stop for future decision
 	 */
-	void storeRealTimesAtEachBusStop(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, const BusStop* lastVisited_BusStop, BusStop_RealTimes& realTime);
+	void storeRealTimesAtEachBusStop(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, const BusStop* lastVisited_BusStop, BusStopRealTimes& realTime);
 
 	/**
 	 * decide whether current agent should be into active agents list at current time
@@ -130,22 +130,22 @@ private:
 	/**
 	 * estimate holding time by scheduled-based control
 	 */
-	double scheduledDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStop_RealTimes& realTime, const BusStop* lastVisited_busStop);
+	double scheduledDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisited_busStop);
 
 	/**
 	 * estimate holding time by headway-based control
 	 */
-	double headwayDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStop_RealTimes& realTime, const BusStop* lastVisited_busStop);
+	double headwayDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisited_busStop);
 
 	/**
 	 * estimate holding time by even headway-based control
 	 */
-	double evenheadwayDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStop_RealTimes& realTime, const BusStop* lastVisited_busStop);
+	double evenheadwayDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisited_busStop);
 
 	/**
 	 * estimate holding time by hybrid-based control
 	 */
-	double hybridDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStop_RealTimes& realTime, const BusStop* lastVisited_busStop);
+	double hybridDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisited_busStop);
 
 	/**
 	 * record next time tick to help dispatching decision

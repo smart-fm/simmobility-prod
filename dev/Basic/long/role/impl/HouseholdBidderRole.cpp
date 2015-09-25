@@ -200,7 +200,6 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 			if( age < maturityAge )
 			{
 				children++;
-				//PrintOutV("children: "<< children << std::endl);
 			}
 		}
 
@@ -212,9 +211,6 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 		}
 	}
 
-
-	//
-	//
 	//
 	const Household *household = getParent()->getHousehold();
 	int maxMortgage = 0;
@@ -224,11 +220,10 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 		Individual * householdIndividual = getParent()->getModel()->getIndividualById( individuals[n] );
 		std::tm dob = householdIndividual->getDateOfBirth();
 
-
 		double income = debtToIncomeRatio * householdIndividual->getIncome();
 		double loanTenure = ( retirementAge - dob.tm_year ) * 12.0; //times 12 to get he tenure in months, not years.
 
-		//loanTenure = std::min( 360.0, loanTenure ); //tenure has a max for 30 years.
+		loanTenure = std::min( 360.0, loanTenure ); //tenure has a max for 30 years.
 
 		HM_Model::HousingInterestRateList *interestRateListX = getParent()->getModel()->getHousingInterestRateList();
 
@@ -240,17 +235,16 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 		//https://support.office.com/en-ca/article/PV-function-3d25f140-634f-4974-b13b-5249ff823415
 		double mortgage = income / interestRate *  ( 1.0 - pow( 1 + interestRate, loanTenure ) );
 
-		//mortgage = std::max(0.0, mortgage);
+		mortgage = std::max(0.0, mortgage);
 
 		PrintOutV("mortage " << householdIndividual->getId() << " " << mortgage << std::endl);
 
 		maxMortgage += mortgage;
 	}
 
-
 	//
-	//
-	//
+	// We use the current income as a baseline and estimate the income to the current age
+	// starting from 20 years old. We can then estimate how much this individual has saved.
 	double alpha = 0.03;
 
 	if( householdSize > 1 )
@@ -269,20 +263,14 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 		for( int n = 0; n < ( age - 20 ); n++ )
 		{
 			double normIncome = householdIndividual->getIncome() * 12 * (0.3 + alpha);
+			double increment = ( ( normIncome / incomeProjection[ ( age - 20 ) ] ) * incomeProjection[n] );
 
-			double incrementX = ( ( normIncome / incomeProjection[ ( age - 20 ) ] ) * incomeProjection[n] );
+			individualIncome = individualIncome + increment;
 
-			individualIncome = individualIncome + incrementX;
-
-			//PrintOutV(" id : " << householdIndividual->getId() << " normInc: " << normIncome << " increment: " << incrementX << std::endl);
 		}
-
-		//PrintOutV("Individual " << householdIndividual->getId() << "income " << individualIncome << std::endl );
 
 		savedIncome = savedIncome + individualIncome;
 		individualIncome = 0;
-
-		//PrintOutV(" ind : " << householdIndividual->getId() << " savedInc: " << savedIncome << std::endl);
 	}
 
 	double maxDownpayment = savedIncome + ( bidderHousehold->getIncome() * 12 * (0.3 + alpha) );
@@ -293,9 +281,6 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 	householdAffordabilityAmount = std::max(householdAffordabilityAmount, 0.0);
 
 	bidderHousehold->setAffordabilityAmount( householdAffordabilityAmount );
-
-	//PrintOutV(" affordability " << householdAffordabilityAmount << "income " << household->getIncome() << " tenure " << loanTenure << " interestRate " << interestRate << " maxMortgage " << maxMortgage << " maxDownpayment " <<  maxDownpayment << std::endl);
-	//PrintOutV( "Interest rate: " << std::setPrecision(5) << interestRate << ". Household affordability: " << householdAffordabilityAmount << std::endl);
 }
 
 void HouseholdBidderRole::init()

@@ -114,56 +114,92 @@ public:
 	virtual ~BusTrip() {
 	}
 
+	/**
+	 * get total sequence number of bus stops along current bus line
+	 */
 	const int getTotalSequenceNum() const {
 		return totalSequenceNum;
 	}
+	/**
+	 * get the index of current bus stop along bus line
+	 */
 	const int getBusTripStopIndex(const BusStop* stop) const;
 
+	/**
+	 * assign bus line information to current bus trip
+	 */
 	void setBusline(BusLine* line) {
 		busLine = line;
 	}
+	/**
+	 * get current bus line information from this bus trip
+	 */
 	const BusLine* getBusLine() const {
 		return busLine;
 	}
-	int getVehicleID() const {
-		return vehicleId;
-	}
+	/**
+	 * get bus route information from this bus trip
+	 */
 	const BusRouteInfo& getBusRouteInfo() const {
 		return busRouteInfo;
 	}
-
+	/**
+	 * get trip mode from this bus trip
+	 */
 	virtual const std::string getMode() const {
 		return "Bus";
 	}
-
+	/**
+	 * set bus route information to current bus trip
+	 */
 	bool setBusRouteInfo(std::vector<const RoadSegment*> roadSegments,	std::vector<const BusStop*> busStops);
-
+	/**
+	 * add scheduled time at each bus stop to current bus trip
+	 */
 	void addBusStopScheduledTimes(const BusStopScheduledTimes& aBusStopScheduledTime);
-
+	/**
+	 * add real time at each bus stop to current bus trip
+	 */
 	void addBusStopRealTimes(Shared<BusStopRealTimes>* aBusStopRealTime);
-
+	/**
+	 * set real time at a given bus stop to current bus trip
+	 */
 	void setBusStopRealTimes(int stopSequence, Shared<BusStopRealTimes>* busStopRealTimes);
-
+	/**
+	 * return scheduled times at each bus stop from current bus trip
+	 */
 	const std::vector<BusStopScheduledTimes>& getBusStopScheduledTimes() const {
 		return busStopScheduledTimes;
 	}
-
+	/**
+	 * return real times at each bus stop from current bus trip
+	 */
 	const std::vector<Shared<BusStopRealTimes>*>& getBusStopRealTimes() const {
 		return busStopRealTimes;
 	}
+	/**
+	 * delete real times data from current bus trip
+	 */
 	void safeDeleteBusStopRealTimes() {
 		clear_delete_vector(busStopRealTimes);
 	}
-
+	/**
+	 * get last visited seuqence number of bus stop
+	 */
 	int getLastStopSequenceNumber() const {
 		return lastVisitedStopSequenceNumber;
 	}
-
+	/**
+	 * set last visited sequence number of bus stop
+	 */
 	void setLastStopSequenceNumber(int seq) {
 		lastVisitedStopSequenceNumber = seq;
 	}
 
 private:
+	/**
+	 * the last visited sequence number of bus stop
+	 */
 	int lastVisitedStopSequenceNumber;
 	/**
 	 * the sequence number for all the trips
@@ -221,6 +257,9 @@ public:
 	virtual ~BusLine();
 
 	static ControlTypes getControlTypeFromString(std::string controlType);
+	/**
+	 * get control type for holding strategy in current bus line
+	 */
 	const ControlTypes getControlType() const {
 		return controlType;
 	}
@@ -239,17 +278,34 @@ public:
 	const int getControlTimePointNum3() const {
 		return controlTimePointNum3;
 	}
+	/**
+	 * add one bus trip to current bus line
+	 */
 	void addBusTrip(BusTrip& aBusTrip);
+	/**
+	 * add one bus frequency to current bus line
+	 */
 	void addFrequencyBusLine(const FrequencyBusLine& aFrequencyBusline);
+	/**
+	 * query all the bus trips related to current bus line
+	 */
 	const std::vector<BusTrip>& queryBusTrips() const {
 		return busTrips;
 	}
+	/**
+	 * query all the bus frequencies related to current bus line
+	 */
 	const std::vector<FrequencyBusLine>& queryFrequencyBusline() const {
 		return frequencyBusLine;
 	}
-
+	/**
+	 * reset the bus arrival time to zero when necessary
+	 * @param trip is trip id in current bus line
+	 * @param stopSequence is sequence No. in the bus stop list along bus route
+	 * @param busStopRealTime holding arrival time at bus stop
+	 */
 	void resetBusTripStopRealTimes(int trip, int stopSequence,
-			Shared<BusStopRealTimes>* busStopRealTimes);
+			Shared<BusStopRealTimes>* busStopRealTime);
 
 private:
 	/**
@@ -286,18 +342,26 @@ public:
 
 	/**
 	 * register a new bus line
+	 * @param lineId is one bus line's ID
+	 * @param busLine is the information about one bus line
 	 */
-	void registerBusLine(const std::string buslineId, BusLine* line);
+	void registerBusLine(const std::string lineId, BusLine* line);
 	/**
 	 * register a new control type for holding strategy
+	 * @param lineId is one bus line's ID
+	 * @param controlType is control type for holding strategy at the bus line
 	 */
-	void registerControlType(const std::string buslineId, const ControlTypes controlType);
+	void registerControlType(const std::string lineId, const ControlTypes controlType);
 	/**
 	 * find a bus line from registered set
+	 * @param lineId is one bus line's ID
+	 * @return corresponding bus line from line's ID
 	 */
-	BusLine* findBusLine(const std::string& buslineId);
+	BusLine* findBusLine(const std::string& lineId);
 	/**
 	 * find a control type from registered control set
+	 * @param lineId is one bus line's ID
+	 * @return corresponding control type from line's ID
 	 */
 	ControlTypes findBusLineControlType(const std::string& buslineId);
 	/**

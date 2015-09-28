@@ -153,6 +153,8 @@ void HouseholdBidderRole::setActive(bool activeArg)
 void HouseholdBidderRole::computeHouseholdAffordability()
 {
 	double householdAffordabilityAmount = 0;
+	//This is the inflation-adjusted income of individuals thourough the years starting from age 20 (first elemet) based on the 2012 HITS survey.
+	//This model was done by Jingsi Shaw [xujs@mit.edu]
 	int incomeProjection[] = { 	13, 15, 16, 18, 21, 23, 26, 28, 31, 34, 37, 41, 44, 48, 51, 55, 59, 63, 66, 70, 74, 77, 81, 84, 87, 90, 92, 94, 96, 98, 99,
 								100, 100, 100, 100, 99, 98, 96, 95, 92, 90, 87, 84, 81, 78, 74, 71, 67, 63, 59, 56, 52, 48, 45, 41, 38, 35, 32, 29, 26, 23 };
 
@@ -221,7 +223,7 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 		std::tm dob = householdIndividual->getDateOfBirth();
 
 		double income = debtToIncomeRatio * householdIndividual->getIncome();
-		double loanTenure = ( retirementAge - dob.tm_year ) * 12.0; //times 12 to get he tenure in months, not years.
+		double loanTenure = ( retirementAge - ( HITS_SURVEY_YEAR - ( 1900 + dob.tm_year ) ) ) * 12.0; //times 12 to get he tenure in months, not years.
 
 		loanTenure = std::min( 360.0, loanTenure ); //tenure has a max for 30 years.
 
@@ -229,16 +231,14 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 
 		const double quarter = 365.0 / 4.0; // a yearly quarter
 		int index =	day / quarter;
-		double interestRate = 0.05 / 12.0; //(*interestRateListX)[index]->getInterestRate() / 100 / 12.0; // divide by 12 to get the monthly interest rate.
+		double interestRate = (*interestRateListX)[index]->getInterestRate() / 100 / 12.0; // divide by 12 to get the monthly interest rate.
 
 		//Household affordability formula based on excel PV function:
 		//https://support.office.com/en-ca/article/PV-function-3d25f140-634f-4974-b13b-5249ff823415
-		double mortgage = income / interestRate *  ( 1.0 - pow( 1 + interestRate, loanTenure ) );
+		double mortgage = income / interestRate *  ( 1.0 - pow( 1 + interestRate, -loanTenure ) );
 
 		mortgage = std::max(0.0, mortgage);
-
-		PrintOutV("mortage " << householdIndividual->getId() << " " << mortgage << std::endl);
-
+		//PrintOutV("mortage " << householdIndividual->getId() << " " << mortgage << std::endl);
 		maxMortgage += mortgage;
 	}
 
@@ -266,7 +266,6 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 			double increment = ( ( normIncome / incomeProjection[ ( age - 20 ) ] ) * incomeProjection[n] );
 
 			individualIncome = individualIncome + increment;
-
 		}
 
 		savedIncome = savedIncome + individualIncome;
@@ -277,7 +276,7 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 
 	maxDownpayment = std::max(0.0, maxDownpayment);
 
-	householdAffordabilityAmount = ( maxMortgage + maxDownpayment ) / 1000000.0;
+	householdAffordabilityAmount = ( maxMortgage + maxDownpayment ) / 1000000.0; //Roberto's model calculates housing prices in units of million.
 	householdAffordabilityAmount = std::max(householdAffordabilityAmount, 0.0);
 
 	bidderHousehold->setAffordabilityAmount( householdAffordabilityAmount );

@@ -196,6 +196,10 @@ public:
 		lastVisitedStopSequenceNumber = seq;
 	}
 
+	int getVehicleID() const {
+		return vehicleId;
+	}
+
 private:
 	/**
 	 * the last visited sequence number of bus stop

@@ -157,7 +157,7 @@ void sim_mob::BusDriverMovement::frame_init() {
 			throw std::runtime_error("BusDriver created without an appropriate BusTrip item.");
 		}
 
-		Vehicle *bus = new Bus(nullRoute, newVeh,bustrip_change->getBusline()->getBusLineID());
+		Vehicle *bus = new Bus(nullRoute, newVeh,bustrip_change->getBusLine()->getBusLineID());
 		parentBusDriver->setVehicle(bus);
 		delete newVeh;
 
@@ -542,12 +542,12 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 	uint32_t lastBoardingMS = 0;
 	uint32_t lastAlightingMS = 0;
 	const uint32_t baseGranMS = ConfigManager::GetInstance().FullConfig().baseGranMS();// baseGran MS perFrame
-	const Busline* busline = nullptr;
+	const BusLine* busline = nullptr;
 	BusStopAgent* busstopAgent = BusStopAgent::findBusStopAgentByBusStopNo(parentBusDriver->lastVisited_BusStop.get()->getBusstopno_());
 	std::vector<sim_mob::WaitBusActivityRole*>& boarding_waitBusActivities = busstopAgent->getBoarding_WaitBusActivities();// get the boarding queue of persons for all Buslines
 	const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(getParent()->currTripChainItem));
 	if (bustrip && bustrip->itemType == TripChainItem::IT_BUSTRIP) {
-		busline = bustrip->getBusline();
+		busline = bustrip->getBusLine();
 		if(!busline) {
 			return;
 		}
@@ -605,7 +605,7 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 					}
 					if(passenger_movement) {
 						passenger_movement->alightingMS = alightingMS;// set Alighting_MS for this Passenger
-						passenger_movement->busTripRunNum = bustrip->getBusTripRun_SequenceNum();
+						passenger_movement->busTripRunNum = bustrip->getTotalSequenceNum();
 						passenger_movement->buslineId = busline->getBusLineID();
 					}
 					alightingMSs.push_back(alightingMS);
@@ -648,7 +648,7 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 					}
 					if(passenger_movement) {
 						passenger_movement->alightingMS = alightingMS;// set Alighting_MS for this Passenger
-						passenger_movement->busTripRunNum = bustrip->getBusTripRun_SequenceNum();
+						passenger_movement->busTripRunNum = bustrip->getTotalSequenceNum();
 						passenger_movement->buslineId = busline->getBusLineID();
 					}
 					alightingMSs.push_back(alightingMS);
@@ -704,14 +704,6 @@ void sim_mob::BusDriverMovement::DetermineBoardingAlightingMS(Bus* bus)
 	lastBoardingAlightingMS = (lastBoardingMS > lastAlightingMS) ? lastBoardingMS : lastAlightingMS;// determine the last MS, may be boarding MS or alighting MS
 	busStopWaitBoardingAlightingSec = (double)((lastBoardingAlightingMS - firstBoardingAlightingMS) / 1000.0 + 0.1f);// set the dwelltime for output, some precision corrected
 	allowBoardingAlightingFlag = true;// next time allow boarding and alighting individually, will not go to this whole loop to check
-
-	// currently only monitor 857_1
-	if(busline->getBusLineID() == "857_1") {
-		busstopAgent->addBuslineIdAlightingNum(busline->getBusLineID(), alightingMSs.size());
-		busstopAgent->addBuslineIdBoardingNum(busline->getBusLineID(), boardingMSs.size());
-		busstopAgent->addBuslineIdBoardingAlightingSecs(busline->getBusLineID(), busStopWaitBoardingAlightingSec);
-		busstopAgent->addBuslineIdBusTripRunSequenceNum(busline->getBusLineID(), bustrip->getBusTripRun_SequenceNum());
-	}
 }
 
 void sim_mob::BusDriverMovement::StartBoardingAlighting(Bus* bus)
@@ -747,7 +739,6 @@ void sim_mob::BusDriverMovement::StartBoardingAlighting(Bus* bus)
 	{
 		for(i = 0; i < boardingMSs.size(); i++) {// individual boarding
 			if(curr_ms == boardingMSs[i]) {
-				std::cout << "busline ID: " << bus->getBusLineID() << " bus trip Run No: " << bustrip->getBusTripRun_SequenceNum() << "BoardingNumPos[i]: " << BoardingNumPos[i] << std::endl;
 				if(!boarding_waitBusActivities.empty()) {
 					(bus->passengers_inside_bus).push_back(virtualBoardingPersons[i]);
 					bus->setPassengerCount(bus->getPassengerCount()+1);

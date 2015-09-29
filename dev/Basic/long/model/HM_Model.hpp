@@ -274,6 +274,7 @@ namespace sim_mob
             ZonalLanduseVariableValues* getZonalLandUseByAlternativeId(int id) const;
             Alternative* getAlternativeByPlanningAreaId(int id) const;
             std::vector<PopulationPerPlanningArea*> getPopulationByPlanningAreaId(BigSerial id)const;
+            HitsIndividualLogsumList getHitsIndividualLogsumVec() const;
 
         protected:
             /**

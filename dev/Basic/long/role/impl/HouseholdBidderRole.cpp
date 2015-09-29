@@ -928,10 +928,33 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 							{
 								tazPopulation += tazStats->getIndividuals();
 
-								int tazInt = atoi(thisTaz->getName().c_str());
+								HouseHoldHitsSample *hitsSample = model->getHouseHoldHitsById( household->getId() );
+								int tazH = atoi(thisTaz->getName().c_str());
 
-								PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( individuals[m] , tazInt, -1, -1 );
-								double lg = personParam.getDpbLogsum(); //2.71 use this value as an average for testing purposes
+								int p = 0;
+								int tazIdW = -1;
+								for(p = 0; p < model->getHitsIndividualLogsumVec().size(); p++ )
+								{
+									if ( model->getHitsIndividualLogsumVec()[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
+									{
+										tazIdW = model->getHitsIndividualLogsumVec()[p]->getWorkTaz();
+										break;
+									}
+								}
+
+								Taz *tazObjW = model->getTazById( tazIdW );
+							    std::string tazStrW;
+								if( tazObjW != NULL )
+									tazStrW = tazObjW->getName();
+								BigSerial tazW = std::atoi( tazStrW.c_str() );
+
+								double lg =  0;
+
+								if( tazH > 0 && tazW > 0 )
+								{
+									PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( individuals[m] , tazH, tazW, -1 );
+									lg = personParam.getDpbLogsum(); //2.71 use this value as an average for testing purposes
+								}
 
 								logsum = logsum + lg * (double)(tazStats->getIndividuals());
 							}
@@ -1158,6 +1181,8 @@ bool HouseholdBidderRole::pickEntryToBid()
 
     std::vector<const HousingMarket::Entry*> screenedEntries;
 
+    //PrintOutV("household " << household->getId() << " entrySize: " << entries.size() << " tazSize: " << taz.size() << "screenedEntries: " << screenedEntries.size() << " housingtype: " << housingType << std::endl );
+
     for(int n = 0; n < entries.size() /** housingMarketSearchPercentage*/ && housingType != -1 && taz.size() != 0 && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
     {
     	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
@@ -1212,6 +1237,8 @@ bool HouseholdBidderRole::pickEntryToBid()
         	thisDwellingType = 800;
         }
 
+        //PrintOutV("thisDwellingType " << thisDwellingType << std::endl);
+
     	if( thisDwellingType == housingType )
     	{
     		for( int m = 0; m < taz.size(); m++ )
@@ -1232,7 +1259,17 @@ bool HouseholdBidderRole::pickEntryToBid()
     }
     else
     {
-    	//PrintOutV("choiceset was successful" << std::endl);
+		/*
+    	PrintOutV("choiceset was successful" << std::endl);
+
+    	char temp[300];
+    	for(int n = 0; n < screenedEntries.size(); n++)
+    	{
+    		sprintf( temp, " %i ", (int)screenedEntries[n]->getUnitId());
+    	}
+
+    	PrintOutV(" The choiceset of household " << household->getId() << " is units: " << temp << std::endl );
+		*/
     }
     //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );
 

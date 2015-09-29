@@ -41,22 +41,22 @@ void sim_mob::xml::Trip_t_pimpl::tripID (long long value)
 
 void sim_mob::xml::Trip_t_pimpl::fromLocation (unsigned int value)
 {
-	model.fromLocation = sim_mob::WayPoint( book.getNode(value) );
+	model.origin = sim_mob::WayPoint( book.getNode(value) );
 }
 
 void sim_mob::xml::Trip_t_pimpl::fromLocationType (std::string value)
 {
-	model.fromLocationType = sim_mob::TripChainItem::GetLocationTypeXML(value);
+	model.originType = sim_mob::TripChainItem::GetLocationTypeXML(value);
 }
 
 void sim_mob::xml::Trip_t_pimpl::toLocation (unsigned int value)
 {
-	model.toLocation = sim_mob::WayPoint(book.getNode(value));
+	model.destination = sim_mob::WayPoint(book.getNode(value));
 }
 
 void sim_mob::xml::Trip_t_pimpl::toLocationType (std::string value)
 {
-	model.toLocationType = sim_mob::TripChainItem::GetLocationTypeXML(value);
+	model.destinationType = sim_mob::TripChainItem::GetLocationTypeXML(value);
 }
 
 void sim_mob::xml::Trip_t_pimpl::subTrips (std::vector<sim_mob::SubTrip> value)

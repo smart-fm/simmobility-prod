@@ -911,7 +911,7 @@ Entity::UpdateStatus sim_mob::Conflux::switchTripChainItem(Person* person)
 		sim_mob::ActivityPerformer *ap = dynamic_cast<sim_mob::ActivityPerformer*>(personRole);
 		ap->setActivityStartTime(sim_mob::DailyTime(currFrame.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
 		ap->setActivityEndTime(sim_mob::DailyTime(currFrame.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
-		ap->setLocation(acItem->location);
+		ap->setLocation(acItem->destination.node_);
 	}
 	if (callMovementFrameInit(currFrame, person)) { person->setInitialized(true); }
 	else { return UpdateStatus::Done; }
@@ -1091,9 +1091,9 @@ void sim_mob::Conflux::assignPersonToBusStopAgent(Person* person)
 
 		if(!stop)
 		{
-			if(person->currSubTrip->fromLocation.type_==WayPoint::BUS_STOP)
+			if(person->currSubTrip->origin.type_==WayPoint::BUS_STOP)
 			{
-				stop = person->currSubTrip->fromLocation.busStop_;
+				stop = person->currSubTrip->origin.busStop_;
 			}
 		}
 

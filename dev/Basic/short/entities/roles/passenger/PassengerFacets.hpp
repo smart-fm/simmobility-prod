@@ -134,5 +134,8 @@ private:
 
 	///to display alighted passenger for certain no of frame ticks before removal
 	int skip;
+
+protected:
+	Person_ST *parent;
 };
 }

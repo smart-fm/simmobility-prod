@@ -86,6 +86,7 @@ protected:
 	/**starting link*/
 	sim_mob::Link* startLink;
 	double totalTimeToCompleteSec;
+	Person_MT *parent;
 };
 
 }

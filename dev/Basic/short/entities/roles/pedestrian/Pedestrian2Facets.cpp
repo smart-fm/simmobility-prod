@@ -71,8 +71,8 @@ sim_mob::Pedestrian2Movement::~Pedestrian2Movement() {
 }
 
 void sim_mob::Pedestrian2Movement::frame_init() {
-	if(getParent()) {
-		getParent()->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
+	if(parent) {
+		parent->setNextRole(nullptr);// set nextRole to be nullptr at frame_init
 	}
 	setSubPath();
 
@@ -110,16 +110,16 @@ void sim_mob::Pedestrian2Movement::frame_tick() {
 		else
 		{
 			//Person* person = dynamic_cast<Person*> (parent);
-			if(getParent() && (getParent()->destNode.type_==WayPoint::BUS_STOP)) { // it is at the busstop, dont set to be removed, just changeRole
-				if(!getParent()->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
+			if(parent && (parent->destNode.type_==WayPoint::BUS_STOP)) { // it is at the busstop, dont set to be removed, just changeRole
+				if(!parent->findPersonNextRole())// find and assign the nextRole to this Person, when this nextRole is set to be nullptr?
 				{
 					std::cout << "End of trip chain...." << std::endl;
 				}
-				Passenger* passenger = dynamic_cast<Passenger*> (getParent()->getNextRole());
+				Passenger* passenger = dynamic_cast<Passenger*> (parent->getNextRole());
 				if(passenger) {// nextRole is passenger, create temporary role to avoid tripchain
 					const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
-					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", getParent());
-					getParent()->changeRole(newRole);
+					sim_mob::Role* newRole = rf.createRole("waitBusActivityRole", parent);
+					parent->changeRole(newRole);
 					newRole->Movement()->frame_init();
 					return;
 //					passenger->busdriver.set(busDriver);// assign this busdriver to Passenger
@@ -127,15 +127,15 @@ void sim_mob::Pedestrian2Movement::frame_tick() {
 //					passenger->AlightedBus.set(false);
 				}
 			} else {// not at the busstop, set to be removed
-				getParent()->setToBeRemoved();
+				parent->setToBeRemoved();
 			}
 		}
 	}
 
 		pedMovement.advance(vel);
 
-		getParent()->xPos.set(pedMovement.getPosition().x);
-		getParent()->yPos.set(pedMovement.getPosition().y);
+		parent->xPos.set(pedMovement.getPosition().x);
+		parent->yPos.set(pedMovement.getPosition().y);
 }
 
 void sim_mob::Pedestrian2Movement::frame_tick_output() {
@@ -147,7 +147,7 @@ void sim_mob::Pedestrian2Movement::frame_tick_output() {
 	//MPI-specific output.
 	std::stringstream addLine;
 	if (ConfigManager::GetInstance().FullConfig().using_MPI) {
-		addLine <<"\",\"fake\":\"" <<(this->getParent()->isFake?"true":"false");
+		addLine <<"\",\"fake\":\"" <<(this->parent->isFake?"true":"false");
 	}
 
 
@@ -156,28 +156,28 @@ void sim_mob::Pedestrian2Movement::frame_tick_output() {
 	//	std::string s=stream.str();
 	//	CommunicationDataManager::GetInstance()->sendTrafficData(s);
 
-		LogOut("("<<"\"pedestrian\","<<p.now.frame()<<","<<getParent()->getId()<<","<<"{\"xPos\":\""<<getParent()->xPos.get()<<"\"," <<"\"yPos\":\""<<this->getParent()->yPos.get()<<addLine.str()<<"\",})"<<std::endl);
+		LogOut("("<<"\"pedestrian\","<<p.now.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<addLine.str()<<"\",})"<<std::endl);
 }
 
 void sim_mob::Pedestrian2Movement::setSubPath() {
 	const StreetDirectory& stdir = StreetDirectory::instance();
 
 	StreetDirectory::VertexDesc source, destination;
-	if(getParent()->originNode.type_==WayPoint::NODE)
-		source = stdir.WalkingVertex(*getParent()->originNode.node_);
-	else if(getParent()->originNode.type_==WayPoint::BUS_STOP)
-		source = stdir.WalkingVertex(*getParent()->originNode.busStop_);
+	if(parent->originNode.type_==WayPoint::NODE)
+		source = stdir.WalkingVertex(*parent->originNode.node_);
+	else if(parent->originNode.type_==WayPoint::BUS_STOP)
+		source = stdir.WalkingVertex(*parent->originNode.busStop_);
 
-	if(getParent()->destNode.type_==WayPoint::NODE)
-		destination = stdir.WalkingVertex(*getParent()->destNode.node_);
-	else if(getParent()->destNode.type_==WayPoint::BUS_STOP)
-		destination = stdir.WalkingVertex(*getParent()->destNode.busStop_);
+	if(parent->destNode.type_==WayPoint::NODE)
+		destination = stdir.WalkingVertex(*parent->destNode.node_);
+	else if(parent->destNode.type_==WayPoint::BUS_STOP)
+		destination = stdir.WalkingVertex(*parent->destNode.busStop_);
 
 	vector<WayPoint> wp_path = stdir.SearchShortestWalkingPath(source, destination);
 
 	//Used to debug pedestrian walking paths.
 	//for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
-	//std::cout<<"Pedestrian requested path from: " <<getParent()->originNode.getID() <<" => " <<getParent()->destNode.node_->getID() <<"  {" <<std::endl;
+	//std::cout<<"Pedestrian requested path from: " <<parent->originNode.getID() <<" => " <<parent->destNode.node_->getID() <<"  {" <<std::endl;
 	/*for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
 		if (it->type_ == WayPoint::SIDE_WALK) {
 			const Node* start = !it->directionReverse ? it->lane_->getRoadSegment()->getStart() : it->lane_->getRoadSegment()->getEnd();
@@ -255,14 +255,14 @@ void sim_mob::Pedestrian2Movement::checkForCollisions()
 			break;
 		} //Shouldn't happen; we might need to write a function for this later.
 
-		if (other->getId() == getParent()->getId()) {
+		if (other->getId() == parent->getId()) {
 			other = nullptr;
 			continue;
 		}
 
 		//Check.
-		double dx = other->xPos.get() - getParent()->xPos.get();
-		double dy = other->yPos.get() - getParent()->yPos.get();
+		double dx = other->xPos.get() - parent->xPos.get();
+		double dy = other->yPos.get() - parent->yPos.get();
 		double distance = sqrt(dx * dx + dy * dy);
 		if (distance < 2 * agentRadius) {
 			break; //Collision
@@ -273,14 +273,14 @@ void sim_mob::Pedestrian2Movement::checkForCollisions()
 	//Set collision vector. Overrides previous setting, if any.
 	if (other) {
 		//Get a heading.
-		double dx = other->xPos.get() - getParent()->xPos.get();
-		double dy = other->yPos.get() - getParent()->yPos.get();
+		double dx = other->xPos.get() - parent->xPos.get();
+		double dy = other->yPos.get() - parent->yPos.get();
 
 		//If the two agents are directly on top of each other, set
 		//  their distances to something non-crashable.
 		if (dx == 0 && dy == 0) {
-			dx = other->getId() - getParent()->getId();
-			dy = getParent()->getId() - other->getId();
+			dx = other->getId() - parent->getId();
+			dy = parent->getId() - other->getId();
 		}
 
 		//Normalize

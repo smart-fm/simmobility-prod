@@ -46,22 +46,14 @@ class DriverMovement;
  * \author Harish Loganathan
  */
 
-class Driver : public sim_mob::Role, public UpdateWrapper<DriverUpdateParams> {
-private:
-	/** Helper class for grouping a Node and a Point2D together. */
-	class NodePoint {
-	public:
-		Point2D point;
-		const Node* node;
-		NodePoint() : point(0,0), node(nullptr) {}
-	};
-
+class Driver : public sim_mob::Role, public UpdateWrapper<DriverUpdateParams>
+{
 public:
 	Driver(Person* parent, MutexStrategy mtxStrat,
-			sim_mob::medium::DriverBehavior* behavior = nullptr,
-			sim_mob::medium::DriverMovement* movement = nullptr,
-			std::string roleName = std::string(),
-			Role::type roleType = Role::RL_DRIVER);
+		sim_mob::medium::DriverBehavior* behavior = nullptr,
+		sim_mob::medium::DriverMovement* movement = nullptr,
+		std::string roleName = std::string(),
+		Role::type roleType = Role::RL_DRIVER);
 	virtual ~Driver();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
@@ -75,8 +67,8 @@ public:
 	const Lane* currLane;
 
 protected:
-	NodePoint origin;
-	NodePoint goal;
+	WayPoint origin;
+	WayPoint goal;
 
 	friend class DriverBehavior;
 	friend class DriverMovement;

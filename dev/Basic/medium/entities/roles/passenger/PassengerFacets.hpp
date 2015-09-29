@@ -57,7 +57,7 @@ public:
 protected:
 	sim_mob::medium::Passenger* parentPassenger;
 	unsigned int totalTimeToCompleteMS;
-
+	Person_MT *parent;
 };
 
 }

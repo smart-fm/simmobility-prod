@@ -526,7 +526,8 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateAgentsFromTripChain(ConfigPar
 void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<EntityTemplate>& xmlItems, const std::string& roleName, ConfigParams::AgentConstraints& constraints)
 {
 	//Do nothing for empty roles.
-	if (xmlItems.empty()) {
+	if (xmlItems.empty())
+	{
 		return;
 	}
 
@@ -536,94 +537,65 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 	bool knownRole = rf.isKnownRole(roleName);
 
 	//If at least one elemnt of an unknown type exists, it's an error.
-	if (!knownRole) {
+	if (!knownRole)
+	{
 		std::stringstream msg;
-		msg <<"Unexpected agent type: " <<roleName;
+		msg << "Unexpected agent type: " << roleName;
 		throw std::runtime_error(msg.str().c_str());
 	}
+	
 	//Loop through all agents of this type.
-	for (std::vector<EntityTemplate>::const_iterator it=xmlItems.begin(); it!=xmlItems.end(); ++it) {
+	for (std::vector<EntityTemplate>::const_iterator it = xmlItems.begin(); it != xmlItems.end(); ++it)
+	{
 		//Keep track of the properties we have found.
 		//TODO: Currently, this is only used for the "#mode" flag, and for forwarding the "originPos" and "destPos"
 		std::map<std::string, std::string> props;
-
-
-
 		props["lane"] = Utils::toStr<unsigned int>(it->laneIndex);
 		props["initSegId"] = Utils::toStr<unsigned int>(it->initSegId);
 		props["initDis"] = Utils::toStr<unsigned int>(it->initDis);
 		props["initSpeed"] = Utils::toStr<unsigned int>(it->initSpeed);
-		if(it->originNode>0 && it->destNode>0) {
+		
+		if (it->originNode > 0 && it->destNode > 0)
+		{
 			props["originNode"] = Utils::toStr<unsigned int>(it->originNode);
 			props["destNode"] = Utils::toStr<unsigned int>(it->destNode);
 		}
-		else {
+		else
+		{
 			//TODO: This is very wasteful
 			{
-			std::stringstream msg;
-			msg <<it->originPos.getX() <<"," <<it->originPos.getY();
-			props["originPos"] = msg.str();
+				std::stringstream msg;
+				msg << it->originPos.getX() << "," << it->originPos.getY();
+				props["originPos"] = msg.str();
 			}
 			{
-			std::stringstream msg;
-			msg <<it->destPos.getX() <<"," <<it->destPos.getY();
-			props["destPos"] = msg.str();
-			}
-		}
-//		props["lane"] = boost::lexical_cast<std::string>(it->laneIndex);
-		{
-			//Loop through attributes, ensuring that all required attributes are found.
-			//std::map<std::string, bool> propLookup = rf.getRequiredAttributes(roleName);
-			//size_t propsLeft = propLookup.size();
-			//TODO: For now, we always check attributes anyway. We can change this later
-			//      to check based on the actual role factory, and to add additional property types.
-			//      (This was already checked in ParseConfigFile).
-		}
-
-		//We should generate the Agent's ID here (since otherwise Agents
-		//  will have seemingly random IDs that do not reflect their order in the config file).
-		//It is generally preferred to use the automatic IDs, but if a manual ID is specified we
-		//  must deal with it here.
-		//TODO: At the moment, manual IDs don't work. We can easily re-add them if required.
-		int manualID = -1;
-		if(it->angentId != 0)
-			manualID = it->angentId;
-		//map<string, string>::iterator propIt = props.find("id");
-		/*if (propIt != props.end()) {
-			//Convert the ID to an integer.
-			std::istringstream(propIt->second) >> manualID;
-
-			//Simple constraint check.
-			if (manualID<0 || manualID>=constraints.startingAutoAgentID) {
-				throw std::runtime_error("Manual ID must be within the bounds specified in the config file.");
-			}
-
-			//Ensure agents are created with unique IDs
-			if (constraints.manualAgentIDs.count(manualID)>0) {
 				std::stringstream msg;
-				msg <<"Duplicate manual ID: " <<manualID;
-				throw std::runtime_error(msg.str().c_str());
+				msg << it->destPos.getX() << "," << it->destPos.getY();
+				props["destPos"] = msg.str();
 			}
+		}
 
-			//Mark it, save it, remove it from the list
-			constraints.manualAgentIDs.insert(manualID);
-			props.erase(propIt);
-		}*/
+		int agentId = -1;
+		
+		if (it->angentId != 0)
+		{
+			agentId = it->angentId;
+		}		
 
 		//Finally, set the "#mode" flag in the configProps array.
 		// (XML can't have # inside tag names, so this will never be overwritten)
 		//
 		//TODO: We should just be able to save "driver" and "pedestrian", but we are
 		//      using different vocabulary for modes and roles. We need to change this.
-		if(roleName == "driver")
+		if (roleName == "driver")
 		{
 			props["#mode"] = "Car";
 		}
-		else if(roleName == "taxidriver")
+		else if (roleName == "taxidriver")
 		{
 			props["#mode"] = "Taxi";
 		}
-		else if(roleName == "pedestrian")
+		else if (roleName == "pedestrian")
 		{
 			props["#mode"] = "Walk";
 		}
@@ -641,7 +613,7 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateXMLAgents(const std::vector<E
 		}
 
 		//Create the Person agent with that given ID (or an auto-generated one)
-		Person* agent = new Person("XML_Def", cfg.mutexStategy(), manualID);
+		Person* agent = new Person("XML_Def", cfg.mutexStategy(), agentId);
 		agent->setConfigProperties(props);
 		agent->setStartTime(it->startTimeMs);
 

@@ -71,7 +71,7 @@ sim_mob::Conflux* PassengerMovement::getStartingConflux() const
 {
 	if (parentPassenger->roleType == Role::RL_CARPASSENGER)
 	{
-		const sim_mob::MultiNode* location = dynamic_cast<const sim_mob::MultiNode*>(parentPassenger->parent->currSubTrip->toLocation.node_);
+		const sim_mob::MultiNode* location = dynamic_cast<const sim_mob::MultiNode*>(parentPassenger->parent->currSubTrip->destination.node_);
 		if (location)
 		{
 			return ConfigManager::GetInstanceRW().FullConfig().getConfluxForNode(location);

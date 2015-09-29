@@ -112,7 +112,7 @@ public:
 			std::vector<TripChainItem*>& personTripChain = tripChainList[i];
 			if (personTripChain.empty()) { continue; }
 			ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
-			Person* person = new Person("DAS_TripChain", cfg.mutexStategy(), personTripChain);
+			Person* person = new Person_MT("DAS_TripChain", cfg.mutexStategy(), personTripChain);
 			if (!person->getTripChain().empty())
 			{
 				persons.push_back(person);
@@ -253,10 +253,10 @@ void sim_mob::PeriodicPersonLoader::makeSubTrip(const soci::row& r, sim_mob::Tri
 	aSubTripInTrip.setPersonID(r.get<string>(0));
 	aSubTripInTrip.itemType = sim_mob::TripChainItem::IT_TRIP;
 	aSubTripInTrip.tripID = parentTrip->tripID + "-" + boost::lexical_cast<string>(subTripNo);
-	aSubTripInTrip.fromLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(10)));
-	aSubTripInTrip.fromLocationType = sim_mob::TripChainItem::LT_NODE;
-	aSubTripInTrip.toLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(5)));
-	aSubTripInTrip.toLocationType = sim_mob::TripChainItem::LT_NODE;
+	aSubTripInTrip.origin = sim_mob::WayPoint(rn.getNodeById(r.get<int>(10)));
+	aSubTripInTrip.originType = sim_mob::TripChainItem::LT_NODE;
+	aSubTripInTrip.destination = sim_mob::WayPoint(rn.getNodeById(r.get<int>(5)));
+	aSubTripInTrip.destinationType = sim_mob::TripChainItem::LT_NODE;
 	aSubTripInTrip.mode = r.get<string>(6);
 	aSubTripInTrip.isPrimaryMode = r.get<int>(7);
 	aSubTripInTrip.startTime = parentTrip->startTime;
@@ -274,8 +274,8 @@ sim_mob::Activity* sim_mob::PeriodicPersonLoader::makeActivity(const soci::row& 
 	res->isPrimary = r.get<int>(7);
 	res->isFlexible = false;
 	res->isMandatory = true;
-	res->location = rn.getNodeById(r.get<int>(5));
-	res->locationType = sim_mob::TripChainItem::LT_NODE;
+	res->destination = WayPoint(rn.getNodeById(r.get<int>(5)));
+	res->destinationType = sim_mob::TripChainItem::LT_NODE;
 	res->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(8), true));
 	res->endTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(9), false));
 	return res;
@@ -290,13 +290,13 @@ sim_mob::Trip* sim_mob::PeriodicPersonLoader::makeTrip(const soci::row& r, unsig
 	tripToSave->tripID = boost::lexical_cast<string>(r.get<int>(1) * 100 + r.get<int>(3)); //each row corresponds to 1 trip and 1 activity. The tour and stop number can be used to generate unique tripID
 	tripToSave->setPersonID(r.get<string>(0));
 	tripToSave->itemType = sim_mob::TripChainItem::IT_TRIP;
-	tripToSave->fromLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(10)));
-	tripToSave->fromLocationType = sim_mob::TripChainItem::LT_NODE;
-	tripToSave->toLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(5)));
-	tripToSave->toLocationType = sim_mob::TripChainItem::LT_NODE;
+	tripToSave->origin = sim_mob::WayPoint(rn.getNodeById(r.get<int>(10)));
+	tripToSave->originType = sim_mob::TripChainItem::LT_NODE;
+	tripToSave->destination = sim_mob::WayPoint(rn.getNodeById(r.get<int>(5)));
+	tripToSave->destinationType = sim_mob::TripChainItem::LT_NODE;
 	tripToSave->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(11), false, tripToSave->getPersonID()));
 	//just a sanity check
-	if(tripToSave->fromLocation == tripToSave->toLocation)
+	if(tripToSave->origin == tripToSave->destination)
 	{
 		safe_delete_item(tripToSave);
 		return nullptr;

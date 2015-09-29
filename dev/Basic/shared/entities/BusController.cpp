@@ -57,13 +57,14 @@ bool sim_mob::BusController::HasBusControllers()
 void sim_mob::BusController::InitializeAllControllers(std::set<Entity*>& agents_list, const vector<PT_bus_dispatch_freq>& busdispatch_freq)
 {
 	//Check: Do we have exactly one BusController?
-	if (all_busctrllers_.size()>1) {
+	if (all_busctrllers_.size() > 1)
+	{
 		throw std::runtime_error("Currently, we only support zero or one Bus Controller");
 	}
 
 	//Initialize every item in the list.
-
-	for (vector<BusController*>::iterator it=all_busctrllers_.begin(); it!=all_busctrllers_.end(); it++) {
+	for (vector<BusController*>::iterator it = all_busctrllers_.begin(); it != all_busctrllers_.end(); it++)
+	{
 		(*it)->setPTScheduleFromConfig(busdispatch_freq);
 		(*it)->assignBusTripChainWithPerson(agents_list);
 	}
@@ -143,46 +144,6 @@ void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Enti
 	}
 
 	for (std::set<Entity*>::iterator it=active_agents.begin(); it!=active_agents.end(); it++) {
-		(*it)->parentEntity = this;
-		all_children.push_back( (*it) );
-	}
-}
-
-void sim_mob::BusController::dynamicalGenerateAgent(unsigned int preTicks, unsigned int curTicks, std::vector<Entity*>& active_agents)
-{
-	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	const map<string, Busline*>& buslines = pt_schedule.getBusLines();
-	if(0 == buslines.size()) {
-		throw std::runtime_error("Error: No busline in the PT_Schedule, please check the setPTSchedule.");
-	}
-
-	for(map<string, Busline*>::const_iterator buslinesIt = buslines.begin();buslinesIt!=buslines.end();buslinesIt++) {
-		Busline* busline = buslinesIt->second;
-		const vector<BusTrip>& busTrip_vec = busline->queryBusTrips();
-
-		for (vector<BusTrip>::const_iterator tripIt=busTrip_vec.begin(); tripIt!=busTrip_vec.end(); tripIt++) {
-			if(tripIt->startTime.isAfterEqual(config.simStartTime())) {// in case sometimes BusTrip startTime is smaller than simStartTime to skip some BusTrips
-
-				unsigned int tripStartTime = tripIt->startTime.offsetMS_From(config.simStartTime());
-
-				if( tripStartTime>=preTicks && tripStartTime<curTicks)
-				{
-					Person* currAg = new Person("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
-					currAg->setStartTime(tripStartTime);
-
-					vector<TripChainItem*> currAgTripChain;
-					currAgTripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));// one person for one busTrip, currently not considering Activity for BusDriver
-					currAg->setTripChain(currAgTripChain);
-					currAg->initTripChain();
-
-					// scheduled for dispatch
-					active_agents.push_back(currAg);
-				}
-			}
-		}
-	}
-
-	for (vector<Entity*>::iterator it=active_agents.begin(); it!=active_agents.end(); it++) {
 		(*it)->parentEntity = this;
 		all_children.push_back( (*it) );
 	}

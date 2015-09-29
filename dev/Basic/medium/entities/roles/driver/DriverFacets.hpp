@@ -127,6 +127,9 @@ protected:
 	 */
 	sim_mob::medium::Driver* parentDriver;
 
+	/**The person playing the role of the driver*/
+	Person_MT *parent;
+
 	MesoPathMover pathMover;
 	const Lane* currLane;
 	bool isQueuing;

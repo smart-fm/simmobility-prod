@@ -10,12 +10,8 @@
 #include <functional>
 #include <queue>
 #include <set>
-#include <vector>
-
-//TODO: Move to cpp file.
 #include <stdexcept>
-#include "geospatial/RoadRunnerRegion.hpp"
-//END TODO
+#include <vector>
 
 //These are minimal header file, so please keep includes to a minimum.
 #include "conf/settings/DisableOutput.h"
@@ -23,9 +19,10 @@
 
 #include "buffering/Shared.hpp"
 #include "entities/Entity.hpp"
-#include "logging/NullableOutputStream.hpp"
-#include "event/EventListener.hpp"
 #include "entities/TravelTimeManager.hpp"
+#include "event/EventListener.hpp"
+#include "geospatial/RoadRunnerRegion.hpp"
+#include "logging/NullableOutputStream.hpp"
 
 namespace sim_mob
 {
@@ -150,6 +147,7 @@ protected:
 	/**
 	 * Called after frame_tick() for every call to update() for a given agent.
 	 * Use this method to display output for this time tick.
+	 *
 	 * @param now The timeslice representing the time frame for which this method is called
 	 */
 	virtual void frame_output(timeslice now) = 0;

@@ -36,12 +36,12 @@ void sim_mob::xml::Activity_t_pimpl::description (const ::std::string& value)
 
 void sim_mob::xml::Activity_t_pimpl::location (unsigned int value)
 {
-	model.location = book.getNode(value);
+	model.destination = WayPoint(book.getNode(value));
 }
 
 void sim_mob::xml::Activity_t_pimpl::locationType (std::string value)
 {
-	model.locationType = sim_mob::TripChainItem::GetLocationTypeXML(value);
+	model.destinationType = sim_mob::TripChainItem::GetLocationTypeXML(value);
 }
 
 void sim_mob::xml::Activity_t_pimpl::isPrimary (bool value)

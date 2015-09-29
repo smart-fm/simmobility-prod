@@ -34,10 +34,10 @@ sim_mob::SubTrip sim_mob::xml::SubTrip_t_pimpl::post_SubTrip_t ()
 	////////////////////////////////////////////////
 
 	model.tripID = temp->tripID;
-	model.fromLocation = temp->fromLocation;
-	model.toLocation = temp->toLocation;
-	model.fromLocationType = temp->fromLocationType;
-	model.toLocationType = temp->toLocationType;
+	model.origin = temp->origin;
+	model.destination = temp->destination;
+	model.originType = temp->originType;
+	model.destinationType = temp->destinationType;
 	delete tempParent;
 
 	return model;

@@ -51,6 +51,7 @@ public:
 	virtual TravelMetric& finalizeTravelTimeMetric();
 
 private:
+	Person *parent;
 	sim_mob::ActivityPerformer* parentActivity;
 	friend class ActivityPerformer;
 

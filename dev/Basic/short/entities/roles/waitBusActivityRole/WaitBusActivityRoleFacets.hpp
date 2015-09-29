@@ -81,6 +81,7 @@ protected:
 	//uint32_t TimeOfReachingBusStop;
 	std::string buslineId;
 	Point2D displayOffset;
+	Person_ST *parent;
 
 public:
 	WaitBusActivityRole* parentWaitBusActivityRole;

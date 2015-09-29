@@ -40,6 +40,7 @@
 #include "util/Utils.hpp"
 
 #include "boost/foreach.hpp"
+#include "entities/Person_MT.hpp"
 using namespace sim_mob;
 using namespace sim_mob::medium;
 using std::max;
@@ -112,7 +113,7 @@ void sim_mob::medium::DriverMovement::frame_init() {
 		safe_delete_item(oldVehicle);
 		parentDriver->setResource(newVehicle);
 	}
-	else{ getParent()->setToBeRemoved(); }
+	else{ parent->setToBeRemoved(); }
 }
 
 void sim_mob::medium::DriverMovement::frame_tick() {
@@ -122,26 +123,26 @@ void sim_mob::medium::DriverMovement::frame_tick() {
 		//if currSegstats is NULL, either the driver did not find a path to his
 		//destination or his path is completed. Either way, we remove this
 		//person from the simulation.
-		getParent()->setToBeRemoved();
+		parent->setToBeRemoved();
 		return;
 	}
-	else if (currSegStats == getParent()->getCurrSegStats())
+	else if (currSegStats == parent->getCurrSegStats())
 	{
 		//the vehicle will be in lane infinity before it starts.
 		//set origin will move it to the correct lane
-		if (getParent()->getCurrLane() == currSegStats->laneInfinity) {
+		if (parent->getCurrLane() == currSegStats->laneInfinity) {
 			setOrigin(params);
 		}
 	}
 	//canMoveToNextSegment is GRANTED/DENIED only when this driver had previously
 	//requested permission to move to the next segment. This request is made
 	//only when the driver has reached the end of the current link
-	if(getParent()->canMoveToNextSegment == Person::GRANTED) {
+	if(parent->canMoveToNextSegment == Person_MT::GRANTED) {
 		flowIntoNextLinkIfPossible(params);
 	}
-	else if (getParent()->canMoveToNextSegment == Person::DENIED){
+	else if (parent->canMoveToNextSegment == Person_MT::DENIED){
 		if(currLane) {
-			if(getParent()->isQueuing) {
+			if(parent->isQueuing) {
 				moveInQueue();
 			}
 			else {
@@ -149,15 +150,15 @@ void sim_mob::medium::DriverMovement::frame_tick() {
 			}
 
 			params.elapsedSeconds = params.secondsInTick;
-			getParent()->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
-			getParent()->canMoveToNextSegment = Person::NONE;
+			parent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
+			parent->canMoveToNextSegment = Person_MT::NONE;
 			setParentData(params);
 			return;
 		}
 	}
 	//if driver is still in lane infinity (currLane is null),
 	//he shouldn't be advanced
-	if (currLane && getParent()->canMoveToNextSegment == Person::NONE) {
+	if (currLane && parent->canMoveToNextSegment == Person_MT::NONE) {
 		advance(params);
 		setParentData(params);
 	}
@@ -173,14 +174,14 @@ void sim_mob::medium::DriverMovement::frame_tick_output() {
 
 	std::stringstream logout;
 	logout << "(\"Driver\""
-			<<","<<getParent()->getId()
+			<<","<<parent->getId()
 			<<","<<params.now.frame()
 			<<",{"
-			<<"\"RoadSegment\":\""<< (getParent()->getCurrSegStats()->getRoadSegment()->getId())
-			<<"\",\"Lane\":\""<<((getParent()->getCurrLane())? getParent()->getCurrLane()->getLaneID():0)
-			<<"\",\"Segment\":\""<<(getParent()->getCurrSegStats()->getRoadSegment()->getStartEnd())
-			<<"\",\"DistanceToEndSeg\":\""<<getParent()->distanceToEndOfSegment;
-	if (this->getParent()->isQueuing) {
+			<<"\"RoadSegment\":\""<< (parent->getCurrSegStats()->getRoadSegment()->getId())
+			<<"\",\"Lane\":\""<<((parent->getCurrLane())? parent->getCurrLane()->getLaneID():0)
+			<<"\",\"Segment\":\""<<(parent->getCurrSegStats()->getRoadSegment()->getStartEnd())
+			<<"\",\"DistanceToEndSeg\":\""<<parent->distanceToEndOfSegment;
+	if (this->parent->isQueuing) {
 			logout << "\",\"queuing\":\"" << "true";
 	} else {
 			logout << "\",\"queuing\":\"" << "false";
@@ -245,14 +246,12 @@ void sim_mob::medium::DriverMovement::initSegStatsPath(const std::vector<const s
 bool sim_mob::medium::DriverMovement::initializePath()
 {
 	//Only initialize if the next path has not been planned for yet.
-	sim_mob::Person* person = getParent();
+	sim_mob::Person_MT* person = parent;
 	if(!person->getNextPathPlanned())
 	{
 		//Save local copies of the parent's origin/destination nodes.
-		parentDriver->origin.node = person->originNode.node_;
-		parentDriver->origin.point = parentDriver->origin.node->location;
-		parentDriver->goal.node = person->destNode.node_;
-		parentDriver->goal.point = parentDriver->goal.node->location;
+		parentDriver->origin.node_ = person->originNode.node_;
+		parentDriver->goal.node_ = person->destNode.node_;
 
 		if(person->originNode.node_ == person->destNode.node_)
 		{
@@ -271,7 +270,7 @@ bool sim_mob::medium::DriverMovement::initializePath()
 		else
 		{
 			const StreetDirectory& stdir = StreetDirectory::instance();
-			wp_path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
+			wp_path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node_), stdir.DrivingVertex(*(parentDriver->goal).node_));
 		}
 
 		randomizeStartingSegment(wp_path); //start driver in random segment of first link
@@ -335,11 +334,11 @@ void DriverMovement::stepFwdInTime(sim_mob::medium::DriverUpdateParams& params, 
 
 bool DriverMovement::advance(sim_mob::medium::DriverUpdateParams& params) {
 	if (pathMover.isPathCompleted()) {
-		getParent()->setToBeRemoved();
+		parent->setToBeRemoved();
 		return false;
 	}
 
-	if(getParent()->getRemainingTimeThisTick() <= 0){
+	if(parent->getRemainingTimeThisTick() <= 0){
 		return false;
 	}
 
@@ -386,14 +385,14 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 		if (pathMover.isPathCompleted()) {
 			setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat)-1), currSegStat);
 			currLane = nullptr;
-			getParent()->setToBeRemoved();
+			parent->setToBeRemoved();
 		}
 		return false;
 	}
 
 	if(isNewLinkNext) {
-		getParent()->requestedNextSegStats = nxtSegStat;
-		getParent()->canMoveToNextSegment = Person::NONE;
+		parent->requestedNextSegStats = nxtSegStat;
+		parent->canMoveToNextSegment = Person_MT::NONE;
 		return false; // return whenever a new link is to be entered. Seek permission from Conflux.
 	}
 
@@ -443,7 +442,7 @@ bool DriverMovement::moveToNextSegment(sim_mob::medium::DriverUpdateParams& para
 			addToQueue();
 		}
 		params.elapsedSeconds = params.secondsInTick;
-		getParent()->setRemainingTimeThisTick(0.0);
+		parent->setRemainingTimeThisTick(0.0);
 	}
 	return res;
 }
@@ -512,40 +511,40 @@ void DriverMovement::flowIntoNextLinkIfPossible(sim_mob::medium::DriverUpdatePar
 		}
 		setLastAccept(currLane, linkExitTimeSec, nextSegStats);
 		setParentData(params);
-		getParent()->canMoveToNextSegment = Person::NONE;
+		parent->canMoveToNextSegment = Person_MT::NONE;
 	}
 	else {
 		//Person is in previous segment (should be added to queue if canGoTo failed)
-		if(pathMover.getCurrSegStats() == getParent()->getCurrSegStats() ){
+		if(pathMover.getCurrSegStats() == parent->getCurrSegStats() ){
 			if(currLane){
-				if(getParent()->isQueuing) {
+				if(parent->isQueuing) {
 					moveInQueue();
 				}
 				else {
 					addToQueue(); // adds to queue if not already in queue
 				}
-				getParent()->canMoveToNextSegment = Person::NONE; // so that advance() and setParentData() is called subsequently
+				parent->canMoveToNextSegment = Person_MT::NONE; // so that advance() and setParentData() is called subsequently
 			}
 		}
-		else if (pathMover.getNextSegStats(false) == getParent()->getCurrSegStats() ){
+		else if (pathMover.getNextSegStats(false) == parent->getCurrSegStats() ){
 			//Person is in virtual queue (should remain in virtual queues if canGoTo failed)
 			//do nothing
 		}
 		else{
-			DebugStream << "Driver " << getParent()->getId()
+			DebugStream << "Driver " << parent->getId()
 					<< "was neither in virtual queue nor in previous segment!"
 					<< "\ndriver| segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getStartEnd()
 					<< "|id: " << pathMover.getCurrSegStats()->getRoadSegment()->getId()
 					<< "|lane: " << currLane->getLaneID()
-					<< "\nPerson| segment: " << getParent()->getCurrSegStats()->getRoadSegment()->getStartEnd()
-					<< "|id: " << getParent()->getCurrSegStats()->getRoadSegment()->getId()
-					<< "|lane: " << (getParent()->getCurrLane()? getParent()->getCurrLane()->getLaneID():0)
+					<< "\nPerson| segment: " << parent->getCurrSegStats()->getRoadSegment()->getStartEnd()
+					<< "|id: " << parent->getCurrSegStats()->getRoadSegment()->getId()
+					<< "|lane: " << (parent->getCurrLane()? parent->getCurrLane()->getLaneID():0)
 					<< std::endl;
 
 			throw::std::runtime_error(DebugStream.str());
 		}
 		params.elapsedSeconds = params.secondsInTick;
-		getParent()->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
+		parent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
 	}
 }
 
@@ -606,7 +605,7 @@ bool DriverMovement::moveInSegment(double distance) {
 		pathMover.moveFwdInSegStats(distance);
 	} catch (std::exception& ex) {
 		std::stringstream msg;
-		msg << "Error moving vehicle forward for Agent ID: " << getParent()->getId() << "," << pathMover.getPositionInSegment() << "\n" << ex.what();
+		msg << "Error moving vehicle forward for Agent ID: " << parent->getId() << "," << pathMover.getPositionInSegment() << "\n" << ex.what();
 		throw std::runtime_error(msg.str().c_str());
 		return false;
 	}
@@ -820,8 +819,8 @@ void DriverMovement::updateFlow(const sim_mob::SegmentStats* segStats, double st
 }
 
 void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
-	if(params.now.ms() < getParent()->getStartTime()) {
-		stepFwdInTime(params, (getParent()->getStartTime() - params.now.ms())/1000.0); //set time to start - to accommodate drivers starting during the frame
+	if(params.now.ms() < parent->getStartTime()) {
+		stepFwdInTime(params, (parent->getStartTime() - params.now.ms())/1000.0); //set time to start - to accommodate drivers starting during the frame
 	}
 
 	// here the person tries to move into a proper lane in the current segstats
@@ -862,7 +861,7 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
 
 		setLastAccept(currLane, actualT, currSegStats);
 		setParentData(params);
-		getParent()->canMoveToNextSegment = Person::NONE;
+		parent->canMoveToNextSegment = Person_MT::NONE;
 		// segment travel time related line(s)
 		parent->currRdSegTravelStats.start(currSegStats->getRoadSegment(), actualT);
 
@@ -875,7 +874,7 @@ void DriverMovement::setOrigin(sim_mob::medium::DriverUpdateParams& params) {
 	else
 	{
 		params.elapsedSeconds = params.secondsInTick;
-		getParent()->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
+		parent->setRemainingTimeThisTick(0.0); //(elapsed - seconds this tick)
 	}
 }
 
@@ -883,15 +882,14 @@ void DriverMovement::addToQueue() {
 	/* 1. set position to queue length in front
 	 * 2. set isQueuing = true
 	*/
-	Person* parentP = getParent();
-	if (parentP) {
-		if(!parentP->isQueuing) {
+	if (parent) {
+		if(!parent->isQueuing) {
 			pathMover.setPositionInSegment(getQueueLength(currLane));
 			isQueuing = true;
-			parentP->isQueuing = isQueuing;
+			parent->isQueuing = isQueuing;
 		}
 		else {
-			DebugStream << "addToQueue() was called for a driver who is already in queue. Person: " << parentP->getId()
+			DebugStream << "addToQueue() was called for a driver who is already in queue. Person: " << parent->getId()
 					<< "|RoadSegment: " << currLane->getRoadSegment()->getStartEnd()
 					<< "|Lane: " << currLane->getLaneID() << std::endl;
 			throw std::runtime_error(DebugStream.str());
@@ -899,18 +897,21 @@ void DriverMovement::addToQueue() {
 	}
 }
 
-void DriverMovement::removeFromQueue() {
-	Person* parentP = getParent();
-	if (parentP) {
-		if(parentP->isQueuing) {
-			parentP->isQueuing = false;
+void DriverMovement::removeFromQueue()
+{
+	if (parent)
+	{
+		if (parent->isQueuing)
+		{
+			parent->isQueuing = false;
 			isQueuing = false;
 		}
-		else {
-			 DebugStream << "removeFromQueue() was called for a driver who is not in queue. Person: " << parentP->getId()
+		else
+		{
+			DebugStream << "removeFromQueue() was called for a driver who is not in queue. Person: " << parent->getId()
 					<< "|RoadSegment: " << currLane->getRoadSegment()->getStartEnd()
 					<< "|Lane: " << currLane->getLaneID() << std::endl;
-			 throw std::runtime_error(DebugStream.str());
+			throw std::runtime_error(DebugStream.str());
 		}
 	}
 }
@@ -994,7 +995,7 @@ void DriverMovement::updateLinkTravelTimes(const sim_mob::SegmentStats* prevSegS
 void DriverMovement::updateRdSegTravelTimes(const sim_mob::SegmentStats* prevSegStat, double segEnterExitTime) {
 	//if prevSeg is already in travelStats, update it's rdSegTT and add to rdSegTravelStatsMap
 	const RoadSegment* prevSeg= prevSegStat->getRoadSegment();
-	sim_mob::Person *parent = getParent();
+	sim_mob::Person *parent = parent;
 	if(prevSeg == parent->currRdSegTravelStats.rs) {
 		const sim_mob::TripChainItem* tripChain = *(parent->currTripChainItem);
 		const std::string& travelMode = tripChain->getMode();
@@ -1022,7 +1023,7 @@ TravelMetric & sim_mob::medium::DriverMovement::startTravelTimeMetric()
 	travelMetric.started = true;
 
 	//cbd
-	travelMetric.cbdTraverseType = getParent()->currSubTrip->cbdTraverseType;
+	travelMetric.cbdTraverseType = parent->currSubTrip->cbdTraverseType;
 	switch(travelMetric.cbdTraverseType)
 	{
 	case TravelMetric::CBD_ENTER:
@@ -1040,7 +1041,7 @@ TravelMetric& sim_mob::medium::DriverMovement::finalizeTravelTimeMetric()
 	if(!travelMetric.started) { return travelMetric; } //sanity check
 	if(pathMover.getPath().empty())
 	{
-		Print() << "Person " << getParent()->getId() << " has no path\n";
+		Print() << "Person " << parent->getId() << " has no path\n";
 		return  travelMetric;
 	}
 
@@ -1067,9 +1068,9 @@ TravelMetric& sim_mob::medium::DriverMovement::finalizeTravelTimeMetric()
 //	if(travelMetric.cbdTraverseType == sim_mob::TravelMetric::CBD_ENTER ||
 //			travelMetric.cbdTraverseType == sim_mob::TravelMetric::CBD_EXIT)
 //	{
-//		getParent()->serializeCBD_SubTrip(*travelMetric);
+//		parent->serializeCBD_SubTrip(*travelMetric);
 //	}
-//	getParent()->addSubtripTravelMetrics(*travelMetric);
+//	parent->addSubtripTravelMetrics(*travelMetric);
 	return  travelMetric;
 }
 
@@ -1101,7 +1102,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const sim_mob::RoadSegmen
 		//search if you are about to enter CBD (we assume the trip started outside cbd and  is going to end inside cbd)
 		if(!cbd.isInRestrictedSegmentZone(completedRS)&&cbd.isInRestrictedSegmentZone(nextRS) && travelMetric.cbdEntered.check())
 		{
-			out << getParent()->getId() << "onSegmentCompleted Enter CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
+			out << parent->getId() << "onSegmentCompleted Enter CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
 			travelMetric.cbdOrigin = sim_mob::WayPoint(completedRS->getEnd());
 			travelMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 		}
@@ -1111,7 +1112,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const sim_mob::RoadSegmen
 		//search if you are about to exit CBD(we assume the trip started inside cbd and is going to end outside cbd)
 		if(cbd.isInRestrictedSegmentZone(completedRS)&&!cbd.isInRestrictedSegmentZone(nextRS) && travelMetric.cbdExitted.check())
 		{
-			out << getParent()->getId() << "onSegmentCompleted exit CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
+			out << parent->getId() << "onSegmentCompleted exit CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
 			travelMetric.cbdDestination = sim_mob::WayPoint(completedRS->getEnd());
 			travelMetric.cbdEndTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 			travelMetric.cbdTravelTime = sim_mob::TravelMetric::getTimeDiffHours(travelMetric.cbdEndTime , travelMetric.cbdStartTime);
@@ -1120,13 +1121,13 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const sim_mob::RoadSegmen
 	case TravelMetric::CBD_PASS:{
 		if(!cbd.isInRestrictedSegmentZone(completedRS)&&cbd.isInRestrictedSegmentZone(nextRS) && travelMetric.cbdEntered.check())
 		{
-			out << getParent()->getId() << "onSegmentCompleted Pass Enter CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
+			out << parent->getId() << "onSegmentCompleted Pass Enter CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
 			travelMetric.cbdOrigin = sim_mob::WayPoint(completedRS->getEnd());
 			travelMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 		}
 		if(cbd.isInRestrictedSegmentZone(completedRS)&&!cbd.isInRestrictedSegmentZone(nextRS))
 		{
-			out << getParent()->getId() << "onSegmentCompleted Pass exit CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
+			out << parent->getId() << "onSegmentCompleted Pass exit CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
 			travelMetric.cbdDestination = sim_mob::WayPoint(completedRS->getEnd());
 			travelMetric.cbdEndTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 			travelMetric.cbdTravelTime = sim_mob::TravelMetric::getTimeDiffHours(travelMetric.cbdEndTime , travelMetric.cbdStartTime);
@@ -1295,13 +1296,13 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 	typedef std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> >::value_type	DetourOption ; //for 'deTourOptions' container
 	std::set<const sim_mob::RoadSegment*> excludeRS = std::set<const sim_mob::RoadSegment*>();
 	//	get a 'copy' of the person's current subtrip
-	SubTrip subTrip = *(getParent()->currSubTrip);
+	SubTrip subTrip = *(parent->currSubTrip);
 	std::map<const sim_mob::Node* , std::vector<WayPoint> > newPaths ; //stores new paths starting from the re-routing points
 	BOOST_FOREACH(DetourOption detourNode, deTourOptions)
 	{
 		// change the origin
 		//todo and the start time !!!-vahid
-		subTrip.fromLocation.node_ = detourNode.first;
+		subTrip.origin.node_ = detourNode.first;
 		//	record the new paths using the updated subtrip. (including no paths)
 		sim_mob::PathSetManager::getInstance()->getBestPath(newPaths[detourNode.first], subTrip,true, std::set<const sim_mob::RoadSegment*>(), false,false,false,nullptr);//partially excluded sections must be already added
 	}
@@ -1324,7 +1325,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg){
 		}
 		//4.b
 		// change the origin
-		subTrip.fromLocation.node_ = newPath.first;
+		subTrip.origin.node_ = newPath.first;
 		pathsetLogger<< "Try Joining old and new paths for detour point :" << newPath.first->getID() << std::endl;
 //		MesoPathMover::printPath(deTourOptions[newPath.first], newPath.first);
 //		printWPpath(newPath.second, newPath.first);

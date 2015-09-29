@@ -270,9 +270,9 @@ short sim_mob::PathSet::addOrDeleteSinglePath(sim_mob::SinglePath* s)
 	{
 		return 0;
 	}
-	if(s->path.begin()->roadSegment_->getStart()->getID() != subTrip.fromLocation.node_->getID())
+	if(s->path.begin()->roadSegment_->getStart()->getID() != subTrip.origin.node_->getID())
 	{
-		std::cerr << s->scenario << " path begins with " << s->path.begin()->roadSegment_->getStart()->getID() << " while pathset begins with " << subTrip.fromLocation.node_->getID() << std::endl;
+		std::cerr << s->scenario << " path begins with " << s->path.begin()->roadSegment_->getStart()->getID() << " while pathset begins with " << subTrip.origin.node_->getID() << std::endl;
 		throw std::runtime_error("Mismatch");
 	}
 

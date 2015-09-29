@@ -78,7 +78,7 @@ void sim_mob::medium::BusDriverMovement::frame_init() {
 		safe_delete_item(oldBus);
 		parentBusDriver->setResource(newVeh);
 	}
-	else { getParent()->setToBeRemoved(); }
+	else { parent->setToBeRemoved(); }
 }
 
 void BusDriverMovement::frame_tick() {
@@ -116,7 +116,7 @@ void BusDriverMovement::frame_tick() {
 				{
 					setOutputCounter(currLane, (getOutputCounter(currLane, currSegStat)-1), currSegStat);
 					currLane = nullptr;
-					getParent()->setToBeRemoved();
+					parent->setToBeRemoved();
 				}
 				setParentData(params);
 				return;
@@ -144,7 +144,7 @@ void BusDriverMovement::frame_tick() {
 		setParentData(params);
 	}
 //	std::stringstream logout;
-//	sim_mob::Person* person = getParent();
+//	sim_mob::Person* person = parent;
 //	unsigned int segId = (person->getCurrSegStats()? person->getCurrSegStats()->getRoadSegment()->getSegmentAimsunId() : 0 );
 //	uint16_t statsNum = (person->getCurrSegStats()? person->getCurrSegStats()->getStatsNumberInSegment() : 0);
 //	logout << "(BusDriver"
@@ -178,7 +178,7 @@ void sim_mob::medium::BusDriverMovement::frame_tick_output() {
 	}
 
 	std::stringstream logout;
-	sim_mob::Person* person = getParent();
+	sim_mob::Person* person = parent;
 	logout << "(\"BusDriver\""
 			<<","<<person->getId()
 			<<","<<parentBusDriver->getParams().now.frame()
@@ -198,7 +198,7 @@ void sim_mob::medium::BusDriverMovement::frame_tick_output() {
 
 bool sim_mob::medium::BusDriverMovement::initializePath()
 {
-	sim_mob::Person* person = getParent();
+	sim_mob::Person* person = parent;
 	if (!person) {
 		Print()<<"Parent person of BusDriverMovement is NULL" << std::endl;
 		return false;
@@ -208,12 +208,10 @@ bool sim_mob::medium::BusDriverMovement::initializePath()
 	if(!person->getNextPathPlanned()){
 		//Save local copies of the parent's origin/destination nodes.
 		if( person->originNode.type_ != WayPoint::INVALID){
-			parentBusDriver->origin.node = person->originNode.node_;
-			parentBusDriver->origin.point = parentBusDriver->origin.node->location;
+			parentBusDriver->origin = *(person->currTripChainItem)->origin;
 		}
 		if( person->destNode.type_ != WayPoint::INVALID ){
-			parentBusDriver->goal.node = person->destNode.node_;
-			parentBusDriver->goal.point = parentBusDriver->goal.node->location;
+			parentBusDriver->goal = person->destNode;
 		}
 
 		const BusTrip* bustrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
@@ -398,7 +396,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 					addToQueue();
 				}
 				params.elapsedSeconds = params.secondsInTick;
-				getParent()->setRemainingTimeThisTick(0.0);
+				parent->setRemainingTimeThisTick(0.0);
 			}
 		}
 		else

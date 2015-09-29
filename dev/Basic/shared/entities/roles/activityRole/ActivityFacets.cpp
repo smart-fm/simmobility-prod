@@ -49,15 +49,15 @@ void sim_mob::ActivityPerformerMovement::frame_tick()
 	parentActivity->updateRemainingTime();
 	if(parentActivity->getRemainingTimeToComplete() <= 0)
 	{
-		getParent()->setToBeRemoved();
+		parent->setToBeRemoved();
 	}
-	getParent()->setRemainingTimeThisTick(0.0);
+	parent->setRemainingTimeThisTick(0.0);
 }
 
 void sim_mob::ActivityPerformerMovement::frame_tick_output() {}
 
 sim_mob::ActivityPerformerMovement::ActivityPerformerMovement(sim_mob::Person* parentAgent):
-	MovementFacet(parentAgent), parentActivity(nullptr) {}
+	MovementFacet(), parent(parentAgent), parentActivity(nullptr) {}
 
 sim_mob::TravelMetric& sim_mob::ActivityPerformerMovement::startTravelTimeMetric()
 {
@@ -66,7 +66,7 @@ sim_mob::TravelMetric& sim_mob::ActivityPerformerMovement::startTravelTimeMetric
 }
 sim_mob::TravelMetric& sim_mob::ActivityPerformerMovement::finalizeTravelTimeMetric()
 {
-	//getParent()->serializeCBD_Activity(travelMetric);
+	//parent->serializeCBD_Activity(travelMetric);
 	//travelMetric.finalized = true;
 	return  travelMetric;
 }

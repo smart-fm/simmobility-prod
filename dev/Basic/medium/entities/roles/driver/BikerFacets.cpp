@@ -48,5 +48,5 @@ void sim_mob::medium::BikerMovement::frame_init()
 		safe_delete_item(oldBus);
 		parentBiker->setResource(newVeh);
 	}
-	else { getParent()->setToBeRemoved(); }
+	else { parent->setToBeRemoved(); }
 }

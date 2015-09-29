@@ -140,6 +140,10 @@ public:
 	sim_mob::DailyTime startTime;
 	sim_mob::DailyTime endTime;
 	int requestTime;
+	WayPoint origin;
+	WayPoint destination;
+	LocationType originType;
+	LocationType destinationType;
 	std::string travelMode;
 	std::string startLocationId;
 	std::string endLocationId;
@@ -178,8 +182,6 @@ class Activity: public sim_mob::TripChainItem {
 public:
 	//NOTE: I've gone with Harish's implementation here. Please double-check. ~Seth
 	std::string description;
-	sim_mob::Node* location;
-	TripChainItem::LocationType locationType;
 	bool isPrimary;
 	bool isFlexible;
 	bool isMandatory;
@@ -202,10 +204,6 @@ class Trip: public sim_mob::TripChainItem {
 
 public:
 	std::string tripID;
-	WayPoint fromLocation;
-	TripChainItem::LocationType fromLocationType;
-	WayPoint toLocation;
-	TripChainItem::LocationType toLocationType;
 
 	Trip(std::string entId = "", std::string type="Trip", unsigned int seqNumber=0, int requestTime=-1,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(),
@@ -275,46 +273,8 @@ public:
 
 };
 
-/**
- * \author zhang huai peng
- *//*
-class FMODTrip : public sim_mob::Trip {
-
-public:
-	struct STOP
-	{
-		std::string stop_id;
-		std::string arrival_time;
-		std::string depature_time;
-		std::vector< std::string > boardingpassengers;
-		std::vector< std::string > alightingpassengers;
-	};
-	std::vector<STOP> stop_schdules;
-	struct PASSENGER
-	{
-		std::string client_id;
-		int price;
-	};
-	std::vector<PASSENGER> passengers;
-	struct ROUTE
-	{
-		std::string id;
-		int type;
-	};
-	std::vector<ROUTE> routes;
-
-	FMODTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,int requestTime=-1,
-			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
-			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node");
-
-	virtual ~FMODTrip() {}
-};
-*/
-
 //Non-member comparison functions
 bool operator==(const SubTrip& s1, const SubTrip& s2);
 bool operator!=(const SubTrip& s1, const SubTrip& s2);
-
-
 
 }

@@ -29,7 +29,7 @@ sim_mob::ActivityPerformer::ActivityPerformer(Person* parent, const sim_mob::Act
 {
 	activityStartTime = currActivity.startTime;
 	activityEndTime = currActivity.endTime;
-	location = currActivity.location;
+	location = currActivity.destination.node_;
 }
 
 sim_mob::ActivityPerformer::~ActivityPerformer() {}

@@ -281,7 +281,7 @@ void sim_mob::PathSetWorkerThread::run() {
 			s->init(wps);
 			s->id = id;
 			s->pathSize = 0;
-			if(this->s->path.begin()->roadSegment_->getStart()->getID() != this->ps->subTrip.fromLocation.node_->getID())
+			if(this->s->path.begin()->roadSegment_->getStart()->getID() != this->ps->subTrip.origin.node_->getID())
 			{
 				safe_delete_item(s);
 				hasPath = false;
@@ -289,7 +289,7 @@ void sim_mob::PathSetWorkerThread::run() {
 				 * todo I havent yet figured out what this bug is, but it happens, mainly for random perturbation(time), discarding for now-vahid
 				 * it may not be an issue after solving some multithreaded generation issue
 				 */
-				 logger << ps->scenario << dbgStr << " generation Mismatch : " << this->s->path.begin()->roadSegment_->getStart()->getID() << "   " <<  this->ps->subTrip.fromLocation.node_->getID() <<  "  " << fromVertex << "," << toVertex << std::endl;
+				 logger << ps->scenario << dbgStr << " generation Mismatch : " << this->s->path.begin()->roadSegment_->getStart()->getID() << "   " <<  this->ps->subTrip.origin.node_->getID() <<  "  " << fromVertex << "," << toVertex << std::endl;
 			}
 		}
 	}

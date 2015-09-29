@@ -95,6 +95,9 @@ private:
 
 	//Are we using the multi-path movement model? Set automatically if we move on a path of size >2
 	bool isUsingGenPathMover;
+
+protected:
+	Person_ST *parent;
 };
 
 }

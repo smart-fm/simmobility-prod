@@ -46,6 +46,7 @@
 #include "geospatial/TurningConflict.hpp"
 #include "geospatial/TurningPolyline.hpp"
 #include "geospatial/Polypoint.hpp"
+#include "geospatial/WayPoint.hpp"
 #include "path/PathSetManager.hpp"
 #include "path/PT_RouteChoiceLuaModel.hpp"
 
@@ -1654,8 +1655,8 @@ sim_mob::Activity* MakeActivity(const TripChainItem& tcItem) {
 	res->isPrimary = tcItem.isPrimary;
 	res->isFlexible = tcItem.isFlexible;
 	res->isMandatory = tcItem.isMandatory;
-	res->location = tcItem.location->generatedNode;
-	res->locationType = tcItem.locationType;
+	res->destination = WayPoint(tcItem.location->generatedNode);
+	res->destinationType = tcItem.locationType;
 	res->startTime = tcItem.startTime;
 	res->endTime = tcItem.endTime;
 	res->travelMode = tcItem.mode;
@@ -1674,14 +1675,14 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 		std::string fromStop_no = boost::lexical_cast<std::string>(tcItem.tmp_fromLocationNodeID);
 		sim_mob::BusStop* fromBusStop = config.getBusStopNo_BusStops()[fromStop_no];
 		if(fromBusStop) {
-			tripToSave->fromLocation = sim_mob::WayPoint(fromBusStop);
+			tripToSave->origin = sim_mob::WayPoint(fromBusStop);
 		} else {
 			return nullptr;
 		}
 	} else {
-		tripToSave->fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
+		tripToSave->origin = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
 	}
-	tripToSave->fromLocationType = tcItem.fromLocationType;
+	tripToSave->originType = tcItem.fromLocationType;
 	tripToSave->startTime = tcItem.startTime;
 	tripToSave->travelMode = tcItem.mode;
 	return tripToSave;
@@ -1834,20 +1835,20 @@ sim_mob::SubTrip MakeSubTrip(const TripChainItem& tcItem) {
 		std::string fromStop_no = boost::lexical_cast<std::string>(tcItem.tmp_fromLocationNodeID);
 		sim_mob::BusStop* fromBusStop = config.getBusStopNo_BusStops()[fromStop_no];
 		if(fromBusStop) {
-			aSubTripInTrip.fromLocation = sim_mob::WayPoint(fromBusStop);
+			aSubTripInTrip.origin = sim_mob::WayPoint(fromBusStop);
 		}
 	} else {
-		aSubTripInTrip.fromLocation = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
+		aSubTripInTrip.origin = sim_mob::WayPoint( tcItem.fromLocation->generatedNode );
 	}
-	aSubTripInTrip.fromLocationType = tcItem.fromLocationType;
+	aSubTripInTrip.originType = tcItem.fromLocationType;
 	if(tcItem.toLocationType == sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP) {
 		std::string toStop_no = boost::lexical_cast<std::string>(tcItem.tmp_toLocationNodeID);
 		sim_mob::BusStop* toBusStop = config.getBusStopNo_BusStops()[toStop_no];
-		aSubTripInTrip.toLocation = sim_mob::WayPoint(toBusStop);
+		aSubTripInTrip.destination = sim_mob::WayPoint(toBusStop);
 	} else {
-		aSubTripInTrip.toLocation = sim_mob::WayPoint( tcItem.toLocation->generatedNode );
+		aSubTripInTrip.destination = sim_mob::WayPoint( tcItem.toLocation->generatedNode );
 	}
-	aSubTripInTrip.toLocationType = tcItem.toLocationType;
+	aSubTripInTrip.destinationType = tcItem.toLocationType;
 	aSubTripInTrip.mode = tcItem.mode;
 	aSubTripInTrip.isPrimaryMode = tcItem.isPrimaryMode;
 	aSubTripInTrip.ptLineId = tcItem.ptLineId;
@@ -1861,10 +1862,10 @@ void AddSubTrip(sim_mob::Trip* parent, const sim_mob::SubTrip& subTrip) {
 	if(!parent) {
 		return;
 	}
-	parent->toLocation = subTrip.toLocation;
-	parent->toLocationType = subTrip.toLocationType;
+	parent->destination = subTrip.destination;
+	parent->destinationType = subTrip.destinationType;
 
-	if(subTrip.fromLocation.busStop_ && subTrip.toLocation.busStop_) {
+	if(subTrip.origin.busStop_ && subTrip.destination.busStop_) {
 		//Add it to the list.
 		parent->addSubTrip(subTrip);
 	}

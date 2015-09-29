@@ -476,7 +476,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 		switch (type)
 		{
 		case DRIVER_TYPE: {
-			Person* one_person = new Person("XML_Def", ConfigManager::GetInstance().FullConfig().mutexStategy);
+			Person* one_person = new Person_ST("XML_Def", ConfigManager::GetInstance().FullConfig().mutexStategy);
 			Driver* one_driver = new Driver(one_person, ConfigManager::GetInstance().FullConfig().mutexStategy);
 			one_person->changeRole(one_driver);
 
@@ -491,7 +491,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 
 			break;
 		case PEDESTRIAN_TYPE: {
-			Person* one_person = new Person("XML_Def", ConfigManager::GetInstance().FullConfig().mutexStategy);
+			Person* one_person = new Person_ST("XML_Def", ConfigManager::GetInstance().FullConfig().mutexStategy);
 			Pedestrian* one_pedestrian = new Pedestrian(one_person);
 			one_person->changeRole(one_pedestrian);
 
@@ -556,7 +556,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 			case DRIVER_TYPE:
 
 //				debug.outputToConsole("receive 27");
-				one_person = new Person("XML_Def", config.mutexStategy, -1);
+				one_person = new Person_ST("XML_Def", config.mutexStategy, -1);
 				one_person->changeRole(new Driver(one_person, config.mutexStategy));
 
 //				debug.outputToConsole("receive 28");
@@ -580,7 +580,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 
 			case PEDESTRIAN_TYPE:
 //				debug.outputToConsole("receive 311");
-				one_person = new Person("XML_Def", ConfigParams::GetInstance().mutexStategy, -1);
+				one_person = new Person_ST("XML_Def", ConfigParams::GetInstance().mutexStategy, -1);
 				one_person->changeRole(new Pedestrian(one_person));
 
 				one_person->unpackProxy(unpackageUtil);

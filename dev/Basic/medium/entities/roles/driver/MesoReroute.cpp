@@ -24,7 +24,7 @@ bool sim_mob::medium::MesoReroute::shouldReroute()
 	{
 //		 {
 //			 std::stringstream fileName("");
-//			 fileName << "reroute-" << dm.getParent()->getId() << &dm;
+//			 fileName << "reroute-" << dm.parent->getId() << &dm;
 //			 sim_mob::BasicLogger &logger = sim_mob::Logger::log(fileName.str());
 //			 logger << "No rerouting from " << currSegment->getEnd()->getID() << "\n";
 //		 }
@@ -61,10 +61,10 @@ bool sim_mob::medium::MesoReroute::doReroute()
 	std::cout << std::endl;
 
 	 //STEP-1 you need a subtrip(with some fields updated) for pathset manager to work;
-	 sim_mob::SubTrip subTrip(*(dm.getParent()->currSubTrip));
+	 sim_mob::SubTrip subTrip(*(dm.parent->currSubTrip));
 	 subTrip.startTime = DailyTime(dm.getParentDriver()->getParams().now.ms()) + sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime();
-	 subTrip.fromLocation = sim_mob::WayPoint(currSegment->getEnd());
-	 subTrip.toLocation = sim_mob::WayPoint((*(dm.pathMover.getPath().rbegin()))->getRoadSegment()->getEnd());
+	 subTrip.origin = sim_mob::WayPoint(currSegment->getEnd());
+	 subTrip.destination = sim_mob::WayPoint((*(dm.pathMover.getPath().rbegin()))->getRoadSegment()->getEnd());
 
 	 //STEP-2: find a new path
 	 std::vector<WayPoint> newWP_Path = sim_mob::PathSetManager::getInstance()->getPath(subTrip, true, currSegment);//new waypoint path
@@ -80,7 +80,7 @@ bool sim_mob::medium::MesoReroute::doReroute()
 	 traversed.insert((*(itSS))->getRoadSegment());
 //	 //debug
 //	 	 std::stringstream fileName("");
-//	 	 fileName << "reroute-" << dm.getParent()->getId() << &dm;
+//	 	 fileName << "reroute-" << dm.parent->getId() << &dm;
 //	 	 sim_mob::BasicLogger &logger = sim_mob::Logger::log(fileName.str());
 //	 //debug ..
 	 //now check:

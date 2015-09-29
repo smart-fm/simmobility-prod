@@ -36,6 +36,7 @@ namespace {
 				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dpb"));
 				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dpt"));
 				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dps"));
+				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmw"));
 				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmdw"));
 				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmds"));
 				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmdo"));

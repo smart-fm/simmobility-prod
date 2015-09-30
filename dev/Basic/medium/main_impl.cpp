@@ -364,6 +364,12 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 	}  //End scope: WorkGroups.
 
+    //Save screen line counts
+    if(ConfigManager::GetInstance().FullConfig().screenLineParams.outputEnabled)
+    {
+        ScreenLineCounter::getInstance()->exportScreenLineCount();
+    }
+
 	//Test: At this point, it should be possible to delete all Signals and Agents.
 	clear_delete_vector(Signal::all_signals_);
 	clear_delete_vector(Agent::all_agents);
@@ -546,11 +552,6 @@ int main_impl(int ARGC, char* ARGV[])
 
 	timeval simEndTime;
 	gettimeofday(&simEndTime, nullptr);
-
-	if(ConfigManager::GetInstance().FullConfig().screenLineParams.outputEnabled)
-	{
-		ScreenLineCounter::getInstance()->exportScreenLineCount();
-	}
 
 	Print() << "Done" << endl;
 	cout << "Total simulation time: "<< (ProfileBuilder::diff_ms(simEndTime, simStartTime))/1000.0 << " seconds." << endl;

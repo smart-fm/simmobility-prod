@@ -90,6 +90,10 @@ LoggerAgent::LoggerAgent() : Entity(-1)
     //household bid list
     std::ofstream* householdBidFile = new std::ofstream("householdBidList.csv");
     streams.insert(std::make_pair(LOG_HOUSEHOLDBIDLIST, householdBidFile));
+
+    //individual hits logsum for vehicle ownership
+    std::ofstream* individualHitsLogsumForVOFile = new std::ofstream("IndividualHitsLogsum4VO.csv");
+    streams.insert(std::make_pair(LOG_INDIVIDUAL_LOGSUM_VO, individualHitsLogsumForVOFile));
 }
 
 LoggerAgent::~LoggerAgent()

@@ -94,9 +94,9 @@ double PotentialUnit::getDemolitionCostPerUnit()
 	return this->demolitionCostPerUnit;
 }
 
-PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel,double constructionCost, double grossArea,double tempSelectProbability,double investmentReturnRatio, double demolitionCost, double expRatio,int totalUnits)
+PotentialProject::PotentialProject(const DevelopmentTypeTemplate* devTemplate, const Parcel* parcel,double constructionCost, double grossArea,double tempSelectProbability,double investmentReturnRatio, double demolitionCost, double expRatio,int totalUnits,double acquisitionCost, double landValue)
 								  : devTemplate(devTemplate), parcel(parcel), profit(0) , constructionCost(constructionCost),grossArea(grossArea),tempSelectProbability(tempSelectProbability),
-								    investmentReturnRatio(investmentReturnRatio), demolitionCost(demolitionCost), expRatio(expRatio),totalUnits(totalUnits) {}
+								    investmentReturnRatio(investmentReturnRatio), demolitionCost(demolitionCost), expRatio(expRatio),totalUnits(totalUnits),acquisitionCost(acquisitionCost), landValue(landValue){}
 
 PotentialProject::PotentialProject( const PotentialProject &source)
 {
@@ -110,6 +110,9 @@ PotentialProject::PotentialProject( const PotentialProject &source)
 	this->demolitionCost = source.demolitionCost;
 	this->expRatio = source.expRatio;
 	this->totalUnits = source.totalUnits;
+	this->acquisitionCost = source.acquisitionCost;
+	this->landValue = source.landValue;
+
 	this->units = source.units;
 	for (int i=0; i < source.units.size(); i++)
 	{
@@ -134,6 +137,9 @@ PotentialProject& PotentialProject::operator=(const PotentialProject& source)
 	this->demolitionCost = source.demolitionCost;
 	this->expRatio = source.expRatio;
 	this->totalUnits = source.totalUnits;
+	this->acquisitionCost = source.acquisitionCost;
+	this->landValue = source.landValue;
+
 	this->units.resize(source.units.size());
 
 	for (int i=0; i < source.units.size(); i++)
@@ -251,6 +257,27 @@ void PotentialProject::setTotalUnits (int totUnits)
 {
 	this->totalUnits = totUnits;
 }
+
+void PotentialProject::setAcquisitionCost(double acqCost)
+{
+	this->acquisitionCost = acqCost;
+}
+
+double PotentialProject::getAcquisitionCost() const
+{
+	return this->acquisitionCost;
+}
+
+void PotentialProject::setLandValue(double landVal)
+{
+	this->landValue = landVal;
+}
+
+double PotentialProject::getLandValue() const
+{
+	return this->landValue;
+}
+
 namespace sim_mob
 {
     namespace long_term

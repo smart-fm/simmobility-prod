@@ -226,6 +226,7 @@ namespace sim_mob
             int  getAwakeningCounter() const;
             void getLogsumOfIndividuals(BigSerial id);
             void getLogsumOfHousehold(BigSerial id);
+            void getLogsumOfHouseholdVO(BigSerial householdId);
 
             HousingMarket* getMarket();
 
@@ -346,6 +347,7 @@ namespace sim_mob
             boost::mutex mtx;
             boost::mutex mtx2;
             boost::mutex mtx3;
+            boost::mutex mtx4;
             boost::unordered_map<BigSerial, double>tazLevelLogsum;
             boost::unordered_map<BigSerial, double>vehicleOwnershipLogsum;
 

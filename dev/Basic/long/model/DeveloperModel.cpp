@@ -315,7 +315,7 @@ void DeveloperModel::processParcels()
 
 		if (parcel)
 		{
-			//parcel has an ongoing project.
+			//parcel has an ongoing project. unitPrice sum null means that the parcel has buildings without units or buildings with HDB units.
 			if ((parcel->getStatus()==1) || ((!isEmptyParcel(parcel->getId())) && (getUnitPriceSumByParcelId(parcel->getId())==nullptr)))
 			{
 				parcelsWithProjectsList.push_back(parcel);

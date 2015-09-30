@@ -103,8 +103,7 @@ namespace {
 
 //id,lot_size, gpr, land_use_type_id, owner_name, owner_category, last_transaction_date, last_transaction_type_total, psm_per_gps, lease_type, lease_start_date, centroid_x, centroid_y,
 //award_date,award_status,use_restriction,development_type_code,successful_tender_id,successful_tender_price,tender_closing_date,lease,status,developmentAllowed,nextAvailableDate
-//const std::string LOG_PARCEL = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%, %24%,%25%, %26%, %27%";
-const std::string LOG_PARCEL = "%1%, %2%";
+const std::string LOG_PARCEL = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%, %24%,%25%, %26%, %27%";
 
 const std::string LOG_UNIT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%";
 
@@ -131,13 +130,6 @@ inline void writeParcelDataToFile(Parcel &parcel, int newDevelopment,double prof
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PARCELS,fmtr.str());
 
 }
-
-//inline void writeParcelDataToFile(int parcelId,double acquisitionCost) {
-//
-//	boost::format fmtr = boost::format(LOG_PARCEL) % parcelId % acquisitionCost;
-//	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PARCELS,fmtr.str());
-//
-//}
 
 /**
  * Write the data of units to a csv.

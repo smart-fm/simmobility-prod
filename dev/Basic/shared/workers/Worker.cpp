@@ -536,15 +536,6 @@ void sim_mob::Worker::migrateOut(Entity& ag)
 	//Remove this entity's Buffered<> types from our list
 	stopManaging(ag.getSubscriptionList());
 
-	//TODO: This should be integrated into Person::getSubscriptionList()
-	Person* person = dynamic_cast<Person*>(&ag);
-	if(person)	{
-		Role* role = person->getRole();
-		if(role){
-			stopManaging(role->getDriverRequestParams().asVector());
-		}
-	}
-
 	//Debugging output
 	if (Debug::WorkGroupSemantics) {
 		PrintOut("Removing Entity " <<ag.getId() <<" from worker: " <<this <<std::endl);
@@ -557,10 +548,7 @@ void sim_mob::Worker::migrateOutConflux(Conflux& cfx) {
 		Person* person = *pIt;
 		person->currWorkerProvider = nullptr;
 		stopManaging(person->getSubscriptionList());
-		Role* role = person->getRole();
-		if(role){
-			stopManaging(role->getDriverRequestParams().asVector());
-		}
+
 		//Debugging output
 		if (Debug::WorkGroupSemantics) {
 			PrintOut("Removing Entity " <<person->getId() << " from conflux: " << cfx.getMultiNode()->getID() <<std::endl);

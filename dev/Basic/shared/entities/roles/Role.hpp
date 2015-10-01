@@ -241,18 +241,6 @@ public:
 		return std::vector<BufferedBase*>();
 	}
 
-	/**
-	 * This method returns a request list for asynchronous communication.
-	 * Subclasses of Role should override this method if they want to enable asynchronous communication.
-	 * NOTE: This function is only used by the Driver class, but it's required here
-	 * due to the way we split Driver into the short-term folder
-     * @return a request list for asynchronous communication
-     */
-	virtual sim_mob::DriverRequestParams getDriverRequestParams()
-	{
-		return sim_mob::DriverRequestParams();
-	}
-
 	VehicleBase* getResource() const
 	{
 		return currResource;

@@ -293,30 +293,10 @@ vector<BufferedBase *> Person_MT::buildSubscriptionList()
 
 void Person_MT::changeRole()
 {
-	if (currRole)
-	{
-		currRole->setParent(nullptr);
-		if (this->currWorkerProvider)
-		{
-			this->currWorkerProvider->stopManaging(currRole->getSubscriptionParams());
-			this->currWorkerProvider->stopManaging(currRole->getDriverRequestParams().asVector());
-		}
-	}
-
 	safe_delete_item(prevRole);
 	prevRole = currRole;
 	currRole = nextRole;
 	nextRole = nullptr;
-
-	if (currRole)
-	{
-		currRole->setParent(this);
-		if (this->currWorkerProvider)
-		{
-			this->currWorkerProvider->beginManaging(currRole->getSubscriptionParams());
-			this->currWorkerProvider->beginManaging(currRole->getDriverRequestParams().asVector());
-		}
-	}
 }
 
 bool Person_MT::advanceCurrentTripChainItem()

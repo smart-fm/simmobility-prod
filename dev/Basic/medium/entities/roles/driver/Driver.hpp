@@ -46,17 +46,17 @@ class DriverMovement;
  * \author Harish Loganathan
  */
 
-class Driver : public sim_mob::Role, public UpdateWrapper<DriverUpdateParams>
+class Driver : public sim_mob::Role<Person_MT>, public UpdateWrapper<DriverUpdateParams>
 {
 public:
-	Driver(Person* parent, MutexStrategy mtxStrat,
+	Driver(Person_MT* parent, 
 		sim_mob::medium::DriverBehavior* behavior = nullptr,
 		sim_mob::medium::DriverMovement* movement = nullptr,
 		std::string roleName = std::string(),
 		Role::type roleType = Role::RL_DRIVER);
 	virtual ~Driver();
 
-	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+	virtual sim_mob::Role* clone(Person_MT *parent) const;
 
 	//Virtual overrides
 	virtual void make_frame_tick_params(timeslice now);

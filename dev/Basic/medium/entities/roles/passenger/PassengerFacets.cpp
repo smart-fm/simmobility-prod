@@ -16,15 +16,21 @@ namespace sim_mob
 namespace medium
 {
 
-PassengerBehavior::PassengerBehavior(sim_mob::Person* parentAgent) : BehaviorFacet(parentAgent), parentPassenger(nullptr)
-{}
+PassengerBehavior::PassengerBehavior() : BehaviorFacet(), parentPassenger(nullptr)
+{
+}
 
-PassengerBehavior::~PassengerBehavior() {}
+PassengerBehavior::~PassengerBehavior()
+{
+}
 
-PassengerMovement::PassengerMovement(sim_mob::Person* parentAgent) : MovementFacet(parentAgent), parentPassenger(nullptr), totalTimeToCompleteMS(0)
-{}
+PassengerMovement::PassengerMovement() : MovementFacet(), parentPassenger(nullptr), totalTimeToCompleteMS(0)
+{
+}
 
-PassengerMovement::~PassengerMovement() {}
+PassengerMovement::~PassengerMovement()
+{
+}
 
 void PassengerMovement::setParentPassenger(sim_mob::medium::Passenger* parentPassenger)
 {
@@ -48,8 +54,9 @@ void PassengerMovement::frame_tick()
 	parentPassenger->setTravelTime(totalTimeToCompleteMS);
 }
 
-void PassengerMovement::frame_tick_output() {}
-
+void PassengerMovement::frame_tick_output()
+{
+}
 
 TravelMetric & PassengerMovement::startTravelTimeMetric()
 {
@@ -63,15 +70,16 @@ TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
 {
 	travelMetric.destination = WayPoint(parentPassenger->getEndNode());
 	travelMetric.endTime = DailyTime(parentPassenger->getArrivalTime() + totalTimeToCompleteMS);
-	travelMetric.travelTime = TravelMetric::getTimeDiffHours(travelMetric.endTime , travelMetric.startTime); // = totalTimeToCompleteMS in hours
+	travelMetric.travelTime = TravelMetric::getTimeDiffHours(travelMetric.endTime, travelMetric.startTime); // = totalTimeToCompleteMS in hours
 	travelMetric.finalized = true;
 	return travelMetric;
 }
+
 sim_mob::Conflux* PassengerMovement::getStartingConflux() const
 {
 	if (parentPassenger->roleType == Role::RL_CARPASSENGER)
 	{
-		const sim_mob::MultiNode* location = dynamic_cast<const sim_mob::MultiNode*>(parentPassenger->parent->currSubTrip->destination.node_);
+		const sim_mob::MultiNode* location = dynamic_cast<const sim_mob::MultiNode*> (parentPassenger->parent->currSubTrip->destination.node_);
 		if (location)
 		{
 			return ConfigManager::GetInstanceRW().FullConfig().getConfluxForNode(location);

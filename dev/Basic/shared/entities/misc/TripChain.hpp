@@ -26,7 +26,8 @@ namespace geo
 class Trip_t_pimpl;
 class SubTrip_t;
 }
-namespace sim_mob {
+namespace sim_mob
+{
 
 //Forward declarations
 class Node;
@@ -35,29 +36,29 @@ class Person;
 
 
 /// simple structure used to collect travel time information
+
 struct TravelMetric
 {
-	WayPoint origin,destination;
-	DailyTime startTime,endTime;
+	WayPoint origin, destination;
+	DailyTime startTime, endTime;
 	double travelTime;
 	double distance;
-	bool started,finalized,valid;
+	bool started, finalized, valid;
 
-
-
-	TravelMetric():started(false),finalized(false),
-			valid(false),cbdTraverseType(CBD_NONE),
-			travelTime(0),cbdTravelTime(0),
-			cbdOrigin(WayPoint()),cbdDestination(WayPoint()),
-			origin(WayPoint()),destination(WayPoint()),
-			startTime(DailyTime()),endTime(DailyTime()),
-			cbdStartTime(DailyTime()),cbdEndTime(DailyTime()),
-			distance(0),cbdDistance(0)
+	TravelMetric() : started(false), finalized(false),
+	valid(false), cbdTraverseType(CBD_NONE),
+	travelTime(0), cbdTravelTime(0),
+	cbdOrigin(WayPoint()), cbdDestination(WayPoint()),
+	origin(WayPoint()), destination(WayPoint()),
+	startTime(DailyTime()), endTime(DailyTime()),
+	cbdStartTime(DailyTime()), cbdEndTime(DailyTime()),
+	distance(0), cbdDistance(0)
 	{
 
 	}
 
 	//CBD information
+
 	enum CDB_TraverseType
 	{
 		CBD_ENTER,
@@ -67,17 +68,18 @@ struct TravelMetric
 	};
 
 	CDB_TraverseType cbdTraverseType;
-	WayPoint cbdOrigin,cbdDestination;
-	DailyTime cbdStartTime,cbdEndTime;
-	OneTimeFlag cbdEntered,cbdExitted;
+	WayPoint cbdOrigin, cbdDestination;
+	DailyTime cbdStartTime, cbdEndTime;
+	OneTimeFlag cbdEntered, cbdExitted;
 	double cbdDistance;
 	double cbdTravelTime;
 
 	static double getTimeDiffHours(const DailyTime &end, const DailyTime &start)
 	{
-		double  t = (double((end - start).getValue()) /1000) / 3600;
+		double t = (double((end - start).getValue()) / 1000) / 3600;
 		return t;
 	}
+
 	void reset()
 	{
 		started = false;
@@ -103,8 +105,10 @@ struct TravelMetric
  * Base class for elements in a trip chain.
  * \author Harish L
  */
-class TripChainItem {
+class TripChainItem
+{
 public:
+
 	/**
 	 * Type of location of this trip chain item.
 	 *
@@ -112,7 +116,8 @@ public:
 	 * If you make changes in the following enum, you have to manually make required modifications
 	 * in the xml reader too.
 	 */
-	enum LocationType {
+	enum LocationType
+	{
 		LT_BUILDING, LT_NODE, LT_LINK, LT_PUBLIC_TRANSIT_STOP
 	};
 
@@ -123,7 +128,8 @@ public:
 	 * If you make changes in the following enum, you have to manually make required modifications
 	 * in the xml reader too.
 	 */
-	enum ItemType {
+	enum ItemType
+	{
 		IT_TRIP, IT_ACTIVITY, IT_BUSTRIP, IT_WAITBUSACTIVITY
 	};
 
@@ -156,21 +162,25 @@ public:
 	void setPersonID(int val);
 
 	//TripChainItem();
-	TripChainItem(std::string entId= "", std::string type="Trip",
-				DailyTime start=DailyTime(), DailyTime end=DailyTime(),
-				unsigned int seqNumber=0, int requestTime=-1);
+	TripChainItem(std::string entId = "", std::string type = "Trip",
+				DailyTime start = DailyTime(), DailyTime end = DailyTime(),
+				unsigned int seqNumber = 0, int requestTime = -1);
 	virtual ~TripChainItem();
 
 	static LocationType getLocationType(std::string locType);
 	static ItemType getItemType(std::string itemType);
 
 	//initialization within person's constructor with respect to tripchain
-	virtual bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *) { return false; }
+
+	virtual bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *)
+	{
+		return false;
+	}
 	virtual const std::string getMode() const; //can't make it pure virtual coz the class will turn to abstract and we will face problem in XML reader
 
 	//Helper: Convert a location type string to an object of that type.
 	//TODO: This SHOULD NOT be different for the database and for XML.
-	static sim_mob::TripChainItem::LocationType  GetLocationTypeXML(std::string name);
+	static sim_mob::TripChainItem::LocationType GetLocationTypeXML(std::string name);
 };
 
 /**
@@ -178,7 +188,8 @@ public:
  * \author Seth N. Hetu
  * \author Harish L
  */
-class Activity: public sim_mob::TripChainItem {
+class Activity : public sim_mob::TripChainItem
+{
 public:
 	//NOTE: I've gone with Harish's implementation here. Please double-check. ~Seth
 	std::string description;
@@ -186,7 +197,7 @@ public:
 	bool isFlexible;
 	bool isMandatory;
 
-	Activity(std::string locType="node");
+	Activity(std::string locType = "node");
 	virtual ~Activity();
 	bool setPersonOD(sim_mob::Person *person, const sim_mob::SubTrip *);
 	virtual const std::string getMode() const;
@@ -197,18 +208,18 @@ public:
  * \author Harish
  * \author zhang huai peng
  */
-class Trip: public sim_mob::TripChainItem {
-
+class Trip : public sim_mob::TripChainItem
+{
 	friend class ::geo::Trip_t_pimpl;
 	friend class ::geo::SubTrip_t;
 
 public:
 	std::string tripID;
 
-	Trip(std::string entId = "", std::string type="Trip", unsigned int seqNumber=0, int requestTime=-1,
-			DailyTime start=DailyTime(), DailyTime end=DailyTime(),
-			std::string tripId = "", const Node* from=nullptr, std::string fromLocType="node",
-			const Node* to=nullptr, std::string toLocType="node");
+	Trip(std::string entId = "", std::string type = "Trip", unsigned int seqNumber = 0, int requestTime = -1,
+		DailyTime start = DailyTime(), DailyTime end = DailyTime(),
+		std::string tripId = "", const Node* from = nullptr, std::string fromLocType = "node",
+		const Node* to = nullptr, std::string toLocType = "node");
 	virtual ~Trip();
 
 	void addSubTrip(const sim_mob::SubTrip& aSubTrip);
@@ -230,8 +241,10 @@ private:
 	std::vector<sim_mob::SubTrip> subTrips;
 };
 
-class FMODSchedule{
+class FMODSchedule
+{
 public:
+
 	struct STOP
 	{
 		int stopId;
@@ -251,12 +264,13 @@ public:
  * \author Harish
  * \author zhang huai peng
  */
-class SubTrip: public sim_mob::Trip {
+class SubTrip : public sim_mob::Trip
+{
 public:
-	SubTrip(std::string entId="", std::string type="Trip", unsigned int seqNumber=0,int requestTime=-1,
-			DailyTime start=DailyTime(), DailyTime end=DailyTime(), const Node* from=nullptr,
-			std::string fromLocType="node", const Node* to=nullptr, std::string toLocType="node",
-			std::string mode="", bool isPrimary=true, std::string ptLineId="");
+	SubTrip(std::string entId = "", std::string type = "Trip", unsigned int seqNumber = 0, int requestTime = -1,
+			DailyTime start = DailyTime(), DailyTime end = DailyTime(), const Node* from = nullptr,
+			std::string fromLocType = "node", const Node* to = nullptr, std::string toLocType = "node",
+			std::string mode = "", bool isPrimary = true, std::string ptLineId = "");
 	virtual ~SubTrip();
 
 	std::string mode;
@@ -265,7 +279,7 @@ public:
 
 	FMODSchedule* schedule;
 	mutable sim_mob::TravelMetric::CDB_TraverseType cbdTraverseType;
-	const std::string getMode() const ;
+	const std::string getMode() const;
 	const std::string getBusLineID() const;
 
 	bool isPT_Walk;

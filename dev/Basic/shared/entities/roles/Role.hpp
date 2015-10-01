@@ -19,7 +19,8 @@
 #include "DriverRequestParams.hpp"
 #include "RoleFacets.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 #ifndef SIMMOB_DISABLE_MPI
 class PartitionManager;
@@ -42,14 +43,19 @@ class UnPackageUtils;
  * For now, this class is very simplistic.
  */
 template<class PARAM>
-class UpdateWrapper {
+class UpdateWrapper
+{
 protected:
 	PARAM dataParam;
 
 public:
-	UpdateWrapper() {}
 
-	PARAM &getParams() {
+	UpdateWrapper()
+	{
+	}
+
+	PARAM &getParams()
+	{
 		return dataParam;
 	}
 
@@ -59,13 +65,13 @@ public:
 	}
 };
 
+template<class PERSON>
 class Role
 {
 public:
-	//todo: use this to register roles
 	enum type
 	{
-		RL_UNKNOWN=0,
+		RL_UNKNOWN = 0,
 		RL_DRIVER,
 		RL_BIKER,
 		RL_PEDESTRIAN,
@@ -77,10 +83,9 @@ public:
 		RL_CARPASSENGER
 	};
 
-	//todo: use this to identify the type of request
 	enum request
 	{
-		REQUEST_NONE=0,
+		REQUEST_NONE = 0,
 		REQUEST_DECISION_TIME,
 		REQUEST_STORE_ARRIVING_TIME
 	};
@@ -88,36 +93,38 @@ public:
 	const std::string name;
 	const type roleType;
 
-public:
-	//NOTE: Don't forget to call this from sub-classes!
-	explicit Role(sim_mob::Person* parent = nullptr,
-			std::string roleName = std::string(),
-			Role::type roleType_ = RL_UNKNOWN) :
-		parent(parent), currResource(nullptr), name(roleName),mode(mode),
-		roleType(roleType_), behaviorFacet(nullptr), movementFacet(nullptr),
-		dynamic_seed(0), totalTravelTimeMS(0),arrivalTimeMS(0)
+	explicit Role(PERSON *person, std::string roleName = std::string(), Role<PERSON>::type roleType_ = RL_UNKNOWN) :
+	parent(person), currResource(nullptr), name(roleName), mode(mode), roleType(roleType_), behaviorFacet(nullptr),
+	movementFacet(nullptr),	dynamic_seed(0), totalTravelTimeMS(0), arrivalTimeMS(0)
 	{
-		//todo consider putting a runtime error for empty or zero length rolename
 	}
 
-	explicit Role(sim_mob::BehaviorFacet* behavior = nullptr,
-			sim_mob::MovementFacet* movement = nullptr,
-			sim_mob::Person* parent = nullptr,
-			std::string roleName = std::string(),
-			Role::type roleType_ = RL_UNKNOWN) :
-		parent(parent), currResource(nullptr),name(roleName),
-		roleType(roleType_), behaviorFacet(behavior), movementFacet(movement),
-		dynamic_seed(0), totalTravelTimeMS(0),arrivalTimeMS(0)
+	explicit Role(PERSON *person, sim_mob::BehaviorFacet* behavior = nullptr, sim_mob::MovementFacet* movement = nullptr,
+				  std::string roleName = std::string(), Role<PERSON>::type roleType_ = RL_UNKNOWN) :
+	parent(person), currResource(nullptr), name(roleName), roleType(roleType_), behaviorFacet(behavior), movementFacet(movement),
+	dynamic_seed(0), totalTravelTimeMS(0), arrivalTimeMS(0)
 	{
-		//todo consider putting a runtime error for empty or zero length rolename
 	}
 
-	//Allow propagating destructors
-	virtual ~Role() {
+	//Allow propagating destructor
+	virtual ~Role()
+	{
 		safe_delete_item(behaviorFacet);
 		safe_delete_item(movementFacet);
 		safe_delete_item(currResource);
 	}
+
+	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
+	virtual Role<PERSON>* clone(PERSON* parent) const = 0;
+
+	///Return a list of parameters that expect their subscriptions to be managed.
+	///Agents can append/remove this list to their own subscription list each time
+	///they change their Role.
+	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() = 0;
+
+	///Create the UpdateParams (or, more likely, sub-class) which will hold all
+	///the temporary information for this time tick.
+	virtual void make_frame_tick_params(timeslice now) = 0;
 
 	const std::string getMode()
 	{
@@ -134,45 +141,49 @@ public:
 		}
 	}
 
-	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
-	virtual Role* clone(Person* parent) const = 0;
-	std::string getRoleName()const {return name;}
+	std::string getRoleName()const
+	{
+		return name;
+	}
+	
 	//provide information to MovementFacet object passed as argument.
-		//such information can be provided by passing 'this'
-		//as an argument to one of the MovementFacet object's methods.
-		//Note:This twisting was originally invented to avoid dynamic_cast(s)
-		//another -better- approach is to re-write updateDriverAgent methods and change the subject and object.
-		//(in the other words change the place of the caller and the argument)
-	virtual void handleUpdateRequest(MovementFacet* mFacet){};
+	//such information can be provided by passing 'this'
+	//as an argument to one of the MovementFacet object's methods.
+	//Note:This twisting was originally invented to avoid dynamic_cast(s)
+	//another -better- approach is to re-write updateDriverAgent methods and change the subject and object.
+	//(in the other words change the place of the caller and the argument)
+	virtual void handleUpdateRequest(MovementFacet* mFacet)
+	{
+	};
 
-	///Return a list of parameters that expect their subscriptions to be managed.
-	/// Agents can append/remove this list to their own subscription list each time
-	/// they change their Role.
-	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() = 0;
-	virtual std::vector<sim_mob::BufferedBase*> getDriverInternalParams() {return std::vector<BufferedBase*>();}
+	virtual std::vector<sim_mob::BufferedBase*> getDriverInternalParams()
+	{
+		return std::vector<BufferedBase*>();
+	}
 
-	///Create the UpdateParams (or, more likely, sub-class) which will hold all
-	///  the temporary information for this time tick.
-	virtual void make_frame_tick_params(timeslice now) = 0;
-
-	///Return a request list for asychronous communication.
+	///Return a request list for asynchronous communication.
 	///  Subclasses of Role should override this method if they want to enable
 	///  asynchronous communication.
 	///NOTE: This function is only used by the Driver class, but it's required here
 	///      due to the way we split Driver into the short-term folder.
-	virtual sim_mob::DriverRequestParams getDriverRequestParams() {
+	virtual sim_mob::DriverRequestParams getDriverRequestParams()
+	{
 		return sim_mob::DriverRequestParams();
 	}
 
-	VehicleBase* getResource() const { return currResource; }
-	void setResource(VehicleBase* currResource) { this->currResource = currResource; }
-
-	Person* getParent() const {
-		return parent;
+	VehicleBase* getResource() const
+	{
+		return currResource;
 	}
 
-	void setParent(Person* parent) {
-		this->parent = parent;
+	void setResource(VehicleBase* currResource)
+	{
+		this->currResource = currResource;
+	}
+
+	void setParent(PERSON *person)
+	{
+		parent = person;
 	}
 
 	int getOwnRandomNumber(boost::mt19937& gen)
@@ -201,27 +212,33 @@ public:
 		return one_try;
 	}
 
-	BehaviorFacet* Behavior() const {
+	BehaviorFacet* Behavior() const
+	{
 		return behaviorFacet;
 	}
 
-	MovementFacet* Movement() const {
+	MovementFacet* Movement() const
+	{
 		return movementFacet;
 	}
 
-	void setTravelTime(unsigned int time){
+	void setTravelTime(unsigned int time)
+	{
 		totalTravelTimeMS = time;
 	}
 
-	const unsigned int getTravelTime() const {
+	const unsigned int getTravelTime() const
+	{
 		return totalTravelTimeMS;
 	}
 
-	void setArrivalTime(unsigned int time){
+	void setArrivalTime(unsigned int time)
+	{
 		arrivalTimeMS = time;
 	}
 
-	const unsigned int getArrivalTime() const {
+	const unsigned int getArrivalTime() const
+	{
 		return arrivalTimeMS;
 	}
 
@@ -229,18 +246,39 @@ public:
 	///This should keep the Role at its current position, but change all Segments after this one.
 	///Note that if no alternative route exists, this Role's current route will remain unchanged.
 	///(This function is somewhat experimental; use it with caution. Currently only implemented by the Driver class.)
-	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted) {}
+	virtual void rerouteWithBlacklist(const std::vector<const RoadSegment*>& blacklisted)
+	{
+	}
 
 	/**
 	 * collect current travel time
 	 */
-	virtual void collectTravelTime() {}
+	virtual void collectTravelTime()
+	{
+	}
+
+	/**
+	 * event handler which provide a chance to handle event transfered from parent agent.
+	 * @param sender pointer for the event producer.
+	 * @param id event identifier.
+	 * @param args event arguments.
+	 */
+	virtual void onParentEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
+	{
+	}
+
+	/**
+	 * message handler which provide a chance to handle message transfered from parent agent.
+	 * @param type of the message.
+	 * @param message data received.
+	 */
+	virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message)
+	{
+	}
 
 protected:
-	Person* parent;
-
+	PERSON *parent;
 	VehicleBase* currResource; ///<Roles may hold "resources" for the current task. Expand later into multiple types.
-
 	BehaviorFacet* behaviorFacet;
 	MovementFacet* movementFacet;
 
@@ -251,9 +289,8 @@ protected:
 	/// the mode string of the role (for output purposes)
 	const std::string mode;
 
-	//add by xuyan
-protected:
-	NullableOutputStream Log() {
+	NullableOutputStream Log()
+	{
 		return NullableOutputStream(parent->currWorkerProvider->getLogFile());
 	}
 
@@ -273,25 +310,6 @@ public:
 	virtual void packProxy(PackageUtils& packageUtil) = 0;
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil) = 0;
 #endif
-
-
-	/**
-	 * event handler which provide a chance to handle event transfered from parent agent.
-	 * @param sender pointer for the event producer.
-	 * @param id event identifier.
-	 * @param args event arguments.
-	 */
-	virtual void onParentEvent(event::EventId eventId,
-			sim_mob::event::Context ctxId, event::EventPublisher* sender,
-			const event::EventArgs& args){}
-
-	/**
-	 * message handler which provide a chance to handle message transfered from parent agent.
-	 * @param type of the message.
-	 * @param message data received.
-	 */
-	virtual void HandleParentMessage(messaging::Message::MessageType type,
-			const messaging::Message& message){}
 
 };
 

@@ -55,10 +55,9 @@ class UnPackageUtils;
    * \author Zhang Shuai
    * \author Xu Yan
    */
-  class Driver : public sim_mob::Role , public UpdateWrapper<DriverUpdateParams>
+  class Driver : public sim_mob::Role<Person_ST>, public UpdateWrapper<DriverUpdateParams>
   {
   private:
-
     //Internal classes
     //Helper class for grouping a Node and a Point2D together.
     class NodePoint
@@ -90,12 +89,10 @@ class UnPackageUtils;
     friend class DriverMovement;
     
   protected:
-    
     //Current position of the Driver
     DPoint currPos;
 
   public:
-    
     //Constant distance values used for looking ahead / behind
     const static int distanceInFront = 3000;
     const static int distanceBehind = 5000;
@@ -189,7 +186,7 @@ class UnPackageUtils;
     Shared<std::vector<int> > stop_event_lastAlightingPassengers;
 
     //Constructor and public member functions
-    Driver(Person* parent, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior = nullptr,
+    Driver(Person_ST *parent, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior = nullptr,
            sim_mob::DriverMovement* movement = nullptr, Role::type roleType_ = RL_DRIVER, std::string roleName_ = "driver");
 
     virtual ~Driver();
@@ -273,7 +270,7 @@ class UnPackageUtils;
 	
 	//Creates and initialises the movement and behaviour objects required for the Driver role,
 	//assigns them to a new driver and returns a pointer to the driver.
-    virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+    virtual sim_mob::Role* clone(Person_ST* parent) const;
 
 	//Resets the dirver parameters object
     virtual void make_frame_tick_params(timeslice now);

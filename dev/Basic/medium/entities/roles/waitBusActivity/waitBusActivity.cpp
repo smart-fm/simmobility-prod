@@ -10,34 +10,38 @@
 #include "message/MT_Message.hpp"
 #include "entities/PT_Statistics.hpp"
 #include "boost/algorithm/string.hpp"
+#include "entities/Person_MT.hpp"
 
 using std::vector;
 using namespace sim_mob;
 
-namespace sim_mob {
+namespace sim_mob
+{
 
-namespace medium {
+namespace medium
+{
 
-sim_mob::medium::WaitBusActivity::WaitBusActivity(Person* parent,
-		MutexStrategy mtxStrat,
-		sim_mob::medium::WaitBusActivityBehavior* behavior,
-		sim_mob::medium::WaitBusActivityMovement* movement,
-		std::string roleName, Role::type roleType) :
-		sim_mob::Role(behavior, movement, parent, roleName, roleType),
-		waitingTime(0), stop(nullptr), boardBus(false), failedBoardingTimes(0)
-{}
+sim_mob::medium::WaitBusActivity::WaitBusActivity(Person_MT *parent,
+												  sim_mob::medium::WaitBusActivityBehavior* behavior,
+												  sim_mob::medium::WaitBusActivityMovement* movement,
+												  std::string roleName, Role::type roleType) :
+sim_mob::Role(parent, behavior, movement, parent, roleName, roleType),
+waitingTime(0), stop(nullptr), boardBus(false), failedBoardingTimes(0)
+{
+}
 
-Role* sim_mob::medium::WaitBusActivity::clone(Person* parent) const {
-	WaitBusActivityBehavior* behavior = new WaitBusActivityBehavior(parent);
-	WaitBusActivityMovement* movement = new WaitBusActivityMovement(parent);
-	WaitBusActivity* waitBusActivity = new WaitBusActivity(parent,
-			parent->getMutexStrategy(), behavior, movement);
+Role* sim_mob::medium::WaitBusActivity::clone(Person_MT *parent) const
+{
+	WaitBusActivityBehavior* behavior = new WaitBusActivityBehavior();
+	WaitBusActivityMovement* movement = new WaitBusActivityMovement();
+	WaitBusActivity* waitBusActivity = new WaitBusActivity(parent, behavior, movement);
 	behavior->setParentWaitBusActivity(waitBusActivity);
 	movement->setParentWaitBusActivity(waitBusActivity);
 	return waitBusActivity;
 }
 
-void sim_mob::medium::WaitBusActivity::increaseWaitingTime(unsigned int incrementMs) {
+void sim_mob::medium::WaitBusActivity::increaseWaitingTime(unsigned int incrementMs)
+{
 	waitingTime += incrementMs;
 }
 
@@ -65,12 +69,12 @@ void sim_mob::medium::WaitBusActivity::collectTravelTime()
 	arrivaltime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
 	mode = "WAITING_BUS";
 	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(),
-			STORE_PERSON_TRAVEL,
-			messaging::MessageBus::MessagePtr(
-					new PersonTravelTimeMessage(personId, tripStartPoint,
-							tripEndPoint, subStartPoint, subEndPoint,
-							subStartType, subEndType, mode, service,
-							arrivaltime, travelTime)), true);
+									STORE_PERSON_TRAVEL,
+									messaging::MessageBus::MessagePtr(
+																	  new PersonTravelTimeMessage(personId, tripStartPoint,
+																								  tripEndPoint, subStartPoint, subEndPoint,
+																								  subStartType, subEndType, mode, service,
+																								  arrivaltime, travelTime)), true);
 
 }
 
@@ -81,59 +85,66 @@ void sim_mob::medium::WaitBusActivity::increaseFailedBoardingTimes()
 
 const std::string sim_mob::medium::WaitBusActivity::getBusLines()
 {
-	sim_mob::SubTrip& subTrip = *(getParent()->currSubTrip);
+	sim_mob::SubTrip& subTrip = *(parent->currSubTrip);
 	const std::string tripLineID = subTrip.getBusLineID();
 	return tripLineID;
 }
 
-
-void sim_mob::medium::WaitBusActivity::makeBoardingDecision(BusDriver* driver) {
+void sim_mob::medium::WaitBusActivity::makeBoardingDecision(BusDriver* driver)
+{
 	const std::vector<const sim_mob::BusStop*>* stopsVec =
 			driver->getBusStopsVector();
-	if (!stopsVec) {
+	if (!stopsVec)
+	{
 		setBoardBus(false);
 		return;
 	}
 
 	const std::string busLineID = driver->getBusLineID();
-	sim_mob::SubTrip& subTrip = *(getParent()->currSubTrip);
+	sim_mob::SubTrip& subTrip = *(parent->currSubTrip);
 	const std::string tripLineID = subTrip.getBusLineID();
 	std::vector<std::string> lines;
 	boost::split(lines, tripLineID, boost::is_any_of("/"));
-	if(std::find(lines.begin(), lines.end(), busLineID)!=lines.end()){
+	if (std::find(lines.begin(), lines.end(), busLineID) != lines.end())
+	{
 		setBoardBus(true);
 		return;
-	} else {
+	}
+	else
+	{
 		setBoardBus(false);
 		return;
 	}
 
 	const sim_mob::BusStop* destStop = nullptr;
-	if (getParent()->destNode.type_ == WayPoint::BUS_STOP
-			&& getParent()->destNode.busStop_) {
-		destStop = getParent()->destNode.busStop_;
+	if (parent->destNode.type_ == WayPoint::BUS_STOP
+			&& parent->destNode.busStop_)
+	{
+		destStop = parent->destNode.busStop_;
 	}
 
-	if (!destStop) {
+	if (!destStop)
+	{
 		setBoardBus(false);
 		return;
 	}
 
-	std::vector<const sim_mob::BusStop*>::const_iterator itStop = std::find(
-			stopsVec->begin(), stopsVec->end(), destStop);
-	if (itStop != stopsVec->end()) {
+	std::vector<const sim_mob::BusStop*>::const_iterator itStop = std::find(stopsVec->begin(), stopsVec->end(), destStop);
+	
+	if (itStop != stopsVec->end())
+	{
 		setBoardBus(true);
 	}
 }
 
-void sim_mob::medium::WaitBusActivity::HandleParentMessage(messaging::Message::MessageType type,
-		const messaging::Message& message)
+void sim_mob::medium::WaitBusActivity::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
-
 }
 
-std::vector<BufferedBase*> sim_mob::medium::WaitBusActivity::getSubscriptionParams() {
+std::vector<BufferedBase*> sim_mob::medium::WaitBusActivity::getSubscriptionParams()
+{
 	return vector<BufferedBase*>();
 }
+
 }
 }

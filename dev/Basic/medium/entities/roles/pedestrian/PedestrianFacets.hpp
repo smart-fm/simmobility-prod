@@ -11,25 +11,34 @@
 #include "entities/Person.hpp"
 #include "geospatial/Link.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 class MRT_Stop;
 
-namespace medium {
+namespace medium
+{
 
 class Pedestrian;
 
-class PedestrianBehavior: public BehaviorFacet {
+class PedestrianBehavior : public BehaviorFacet
+{
 public:
-	explicit PedestrianBehavior(sim_mob::Person* parentAgent = nullptr);
+	explicit PedestrianBehavior();
 	virtual ~PedestrianBehavior();
 
 	//Virtual overrides
-	virtual void frame_init() {
+
+	virtual void frame_init()
+	{
 	}
-	virtual void frame_tick() {
+
+	virtual void frame_tick()
+	{
 	}
-	virtual void frame_tick_output() {
+
+	virtual void frame_tick_output()
+	{
 	}
 
 	/**
@@ -43,9 +52,10 @@ protected:
 
 };
 
-class PedestrianMovement: public MovementFacet {
+class PedestrianMovement : public MovementFacet
+{
 public:
-	explicit PedestrianMovement(sim_mob::Person* parentAgent, double speed);
+	explicit PedestrianMovement(double speed);
 	virtual ~PedestrianMovement();
 
 	//Virtual overrides
@@ -86,7 +96,6 @@ protected:
 	/**starting link*/
 	sim_mob::Link* startLink;
 	double totalTimeToCompleteSec;
-	Person_MT *parent;
 };
 
 }

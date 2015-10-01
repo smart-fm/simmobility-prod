@@ -49,7 +49,6 @@
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/driver/driverCommunication/DriverComm.hpp"
-#include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/pedestrian/Pedestrian2.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/signal/Signal.hpp"
@@ -80,6 +79,7 @@
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
+#include "entities/Person_ST.hpp"
 
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
@@ -150,27 +150,29 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		ProfileBuilder::InitLogFile("profile_trace.txt");
 		prof = new ProfileBuilder();
 	}
-
-	RoleFactory& rf = ConfigManager::GetInstanceRW().FullConfig().getRoleFactoryRW();
+	
 	const MutexStrategy& mtx = ConfigManager::GetInstance().FullConfig().mutexStategy();
 
-	//Register our Role types.
+	//Create an instance of role factory
+	RoleFactory<Person_ST> rf = new RoleFactory<Person_ST>;
+	RoleFactory<Person_ST>::setInstance(rf);
 
+	//Register our Role types.
 	if (ConfigManager::GetInstance().FullConfig().commSimEnabled()) 
 	{
-		rf.registerRole("driver", new sim_mob::DriverComm(nullptr, mtx));
+		rf->registerRole("driver", new sim_mob::DriverComm(nullptr, mtx));
 	}
 	else 
 	{
-		rf.registerRole("driver", new sim_mob::Driver(nullptr, mtx));
+		rf->registerRole("driver", new sim_mob::Driver(nullptr, mtx));
 	}
 
-	rf.registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
-	rf.registerRole("passenger",new sim_mob::Passenger(nullptr, mtx));
-	rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, mtx));
-	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
-	rf.registerRole("waitBusActivityRole", new sim_mob::WaitBusActivityRoleImpl(nullptr));
-	rf.registerRole("taxidriver", new sim_mob::Driver(nullptr, mtx));
+	rf->registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
+	rf->registerRole("passenger",new sim_mob::Passenger(nullptr, mtx));
+	rf->registerRole("busdriver", new sim_mob::BusDriver(nullptr, mtx));
+	rf->registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
+	rf->registerRole("waitBusActivityRole", new sim_mob::WaitBusActivityRoleImpl(nullptr));
+	rf->registerRole("taxidriver", new sim_mob::Driver(nullptr, mtx));
 
 	//Loader params for our Agents
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);

@@ -13,45 +13,47 @@
 #include "geospatial/BusStop.hpp"
 #include "waitBusActivity.hpp"
 
-namespace sim_mob {
-
-namespace medium {
-
-WaitBusActivityBehavior::WaitBusActivityBehavior(sim_mob::Person* parentAgent) :
-		BehaviorFacet(parentAgent), parentWaitBusActivity(nullptr)
+namespace sim_mob
 {
 
+namespace medium
+{
+
+WaitBusActivityBehavior::WaitBusActivityBehavior() :
+BehaviorFacet(), parentWaitBusActivity(nullptr)
+{
 }
 
 WaitBusActivityBehavior::~WaitBusActivityBehavior()
 {
-
 }
 
-WaitBusActivityMovement::WaitBusActivityMovement(sim_mob::Person* parentAgent):
-		MovementFacet(parentAgent), parentWaitBusActivity(nullptr), totalTimeToCompleteMS(0)
+WaitBusActivityMovement::WaitBusActivityMovement() :
+MovementFacet(), parentWaitBusActivity(nullptr), totalTimeToCompleteMS(0)
 {
-
 }
 
 WaitBusActivityMovement::~WaitBusActivityMovement()
 {
-
 }
 
-void WaitBusActivityMovement::setParentWaitBusActivity(sim_mob::medium::WaitBusActivity* parentWaitBusActivity){
+void WaitBusActivityMovement::setParentWaitBusActivity(sim_mob::medium::WaitBusActivity* parentWaitBusActivity)
+{
 	this->parentWaitBusActivity = parentWaitBusActivity;
 }
 
-void WaitBusActivityBehavior::setParentWaitBusActivity(sim_mob::medium::WaitBusActivity* parentWaitBusActivity){
+void WaitBusActivityBehavior::setParentWaitBusActivity(sim_mob::medium::WaitBusActivity* parentWaitBusActivity)
+{
 	this->parentWaitBusActivity = parentWaitBusActivity;
 }
 
-void WaitBusActivityMovement::frame_init(){
+void WaitBusActivityMovement::frame_init()
+{
 	totalTimeToCompleteMS = 0;
-	if(parentWaitBusActivity){
+	if (parentWaitBusActivity)
+	{
 		UpdateParams& params = parentWaitBusActivity->getParams();
-		Person* person = parentWaitBusActivity->getParent();
+		Person* person = parentWaitBusActivity->parent;
 		person->setStartTime(params.now.ms());
 	}
 }
@@ -60,25 +62,31 @@ void WaitBusActivityMovement::frame_tick()
 {
 	unsigned int tickMS = ConfigManager::GetInstance().FullConfig().baseGranMS();
 	totalTimeToCompleteMS += tickMS;
-	if(parentWaitBusActivity){
+	if (parentWaitBusActivity)
+	{
 		parentWaitBusActivity->setWaitingTime(totalTimeToCompleteMS);
 		parentWaitBusActivity->setTravelTime(totalTimeToCompleteMS);
 	}
-	parent->setRemainingTimeThisTick(0);
+	parentWaitBusActivity->parent->setRemainingTimeThisTick(0);
 }
 
-void WaitBusActivityMovement::frame_tick_output(){
+void WaitBusActivityMovement::frame_tick_output()
+{
 
 }
 
 sim_mob::Conflux* WaitBusActivityMovement::getStartingConflux() const
 {
 	const BusStopAgent* stopAg = sim_mob::medium::BusStopAgent::findBusStopAgentByBusStop(parentWaitBusActivity->getStop());
-	if(stopAg) { return stopAg->getParentSegmentStats()->getRoadSegment()->getParentConflux(); }
+	if (stopAg)
+	{
+		return stopAg->getParentSegmentStats()->getRoadSegment()->getParentConflux();
+	}
 	return nullptr;
 }
 
 }
+
 TravelMetric & medium::WaitBusActivityMovement::startTravelTimeMetric()
 {
 	return travelMetric;

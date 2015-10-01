@@ -167,14 +167,10 @@ void sim_mob::medium::BusDriver::calcTravelTime()
 
 
 void sim_mob::medium::BusDriver::predictArrivalAtBusStop(double preArrivalTime,
-		sim_mob::medium::BusStopAgent* busStopAgent) {
-	sim_mob::Person* person = dynamic_cast<Person*>(parent);
-	if (!person) {
-		return;
-	}
-
+		sim_mob::medium::BusStopAgent* busStopAgent) 
+{
 	const BusTrip* busTrip =
-			dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+			dynamic_cast<const BusTrip*>(*(parent->currTripChainItem));
 	if (busTrip) {
 		const Busline* busLine = busTrip->getBusline();
 		visitedBusLine.set(busLine->getBusLineID());

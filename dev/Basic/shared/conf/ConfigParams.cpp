@@ -53,24 +53,10 @@ sim_mob::ConfigParams::~ConfigParams()
 	clear_delete_map_with_vector(tripchains);
 }
 
-
-const sim_mob::RoleFactory& sim_mob::ConfigParams::getRoleFactory() const
-{
-	return roleFact;
-}
-
-
-sim_mob::RoleFactory& sim_mob::ConfigParams::getRoleFactoryRW()
-{
-	return roleFact;
-}
-
-
 sim_mob::Factory<sim_mob::Broker>& sim_mob::ConfigParams::getBrokerFactoryRW()
 {
 	return brokerFact;
 }
-
 
 std::string sim_mob::ConfigParams::getDatabaseConnectionString(bool maskPassword) const
 {

@@ -14,21 +14,32 @@
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/Person.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 namespace medium
 {
 
 class WaitBusActivity;
 
-class WaitBusActivityBehavior: public BehaviorFacet {
+class WaitBusActivityBehavior : public BehaviorFacet
+{
 public:
-	explicit WaitBusActivityBehavior(sim_mob::Person* parentAgent = nullptr);
+	explicit WaitBusActivityBehavior();
 	virtual ~WaitBusActivityBehavior();
 
 	//Virtual overrides
-	virtual void frame_init() {}
-	virtual void frame_tick() {}
-	virtual void frame_tick_output() {}
+
+	virtual void frame_init()
+	{
+	}
+
+	virtual void frame_tick()
+	{
+	}
+
+	virtual void frame_tick_output()
+	{
+	}
 
 	/**
 	 * set parent reference to waiting activity role.
@@ -40,9 +51,10 @@ protected:
 	sim_mob::medium::WaitBusActivity* parentWaitBusActivity;
 };
 
-class WaitBusActivityMovement: public MovementFacet {
+class WaitBusActivityMovement : public MovementFacet
+{
 public:
-	explicit WaitBusActivityMovement(sim_mob::Person* parentAgent = nullptr);
+	explicit WaitBusActivityMovement();
 	virtual ~WaitBusActivityMovement();
 
 	//Virtual overrides
@@ -63,7 +75,7 @@ public:
 protected:
 	sim_mob::medium::WaitBusActivity* parentWaitBusActivity;
 	unsigned int totalTimeToCompleteMS;
-	Person_MT *parent;
 };
+
 }
 }

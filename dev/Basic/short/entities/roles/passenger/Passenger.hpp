@@ -27,14 +27,23 @@ class PassengerMovement;
 class PackageUtils;
 class UnPackageUtils;
 
-struct PassengerUpdateParams : public sim_mob::UpdateParams {
-	PassengerUpdateParams() : UpdateParams() {}
-	explicit PassengerUpdateParams(boost::mt19937& gen) : UpdateParams(gen) {}
-	virtual ~PassengerUpdateParams() {}
+struct PassengerUpdateParams : public UpdateParams
+{
+	PassengerUpdateParams() : UpdateParams()
+	{
+	}
+
+	explicit PassengerUpdateParams(boost::mt19937& gen) : UpdateParams(gen)
+	{
+	}
+
+	virtual ~PassengerUpdateParams()
+	{
+	}
 
 	virtual void reset(timeslice now)
 	{
-		sim_mob::UpdateParams::reset(now);
+		UpdateParams::reset(now);
 	}
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -43,38 +52,61 @@ struct PassengerUpdateParams : public sim_mob::UpdateParams {
 #endif
 };
 
-
-class Passenger : public sim_mob::Role , public UpdateWrapper<PassengerUpdateParams>{
+class Passenger : public Role<Person_ST>, public UpdateWrapper<PassengerUpdateParams>
+{
 public:
-	Passenger(Person* parent, MutexStrategy mtxStrat, sim_mob::PassengerBehavior* behavior = nullptr, sim_mob::PassengerMovement* movement = nullptr, Role::type roleType_ = RL_PASSENGER, std::string roleName_ = "passenger");
-	virtual ~Passenger() {}
+	Passenger(Person_ST *parent, MutexStrategy mtxStrat, PassengerBehavior* behavior = nullptr, PassengerMovement* movement = nullptr,
+			 Role::type roleType_ = RL_PASSENGER, std::string roleName_ = "passenger");
 
-	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+	virtual ~Passenger()
+	{
+	}
+
+	virtual Role* clone(sim_mob::Person_ST *parent) const;
 	void make_frame_tick_params(timeslice now);
-	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-	const uint32_t getWaitingTimeAtStop() const {
+	virtual std::vector<BufferedBase*> getSubscriptionParams();
+
+	const uint32_t getWaitingTimeAtStop() const
+	{
 		return waitingTimeAtStop;
 	}
-	void setWaitingTimeAtStop(uint32_t waitingTime) {
+
+	void setWaitingTimeAtStop(uint32_t waitingTime)
+	{
 		waitingTimeAtStop = waitingTime;
 	}
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI
 public:
-	virtual void pack(PackageUtils& packageUtil){}
-	virtual void unpack(UnPackageUtils& unpackageUtil){}
-	virtual void packProxy(PackageUtils& packageUtil){}
-	virtual void unpackProxy(UnPackageUtils& unpackageUtil){}
+
+	virtual void pack(PackageUtils& packageUtil)
+	{
+	}
+
+	virtual void unpack(UnPackageUtils& unpackageUtil)
+	{
+	}
+
+	virtual void packProxy(PackageUtils& packageUtil)
+	{
+	}
+
+	virtual void unpackProxy(UnPackageUtils& unpackageUtil)
+	{
+	}
 #endif
 
 public:
-	sim_mob::Shared<Driver*> busdriver;///passenger should have info about the driver
+	sim_mob::Shared<Driver*> busdriver; ///passenger should have info about the driver
 	sim_mob::Shared<bool> BoardedBus;
 	sim_mob::Shared<bool> AlightedBus;
 	uint32_t waitingTimeAtStop;
 private:
 	PassengerUpdateParams params;
+
+	friend class PassengerBehavior;
+	friend class PassengerMovement;
 };
 
 

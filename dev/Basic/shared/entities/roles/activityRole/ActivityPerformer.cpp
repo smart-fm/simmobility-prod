@@ -18,26 +18,31 @@
 #include "logging/Log.hpp"
 
 using std::vector;
+using namespace std;
 using namespace sim_mob;
 
-sim_mob::ActivityPerformer::ActivityPerformer(sim_mob::Person* parent, sim_mob::ActivityPerformerBehavior* behavior, sim_mob::ActivityPerformerMovement* movement, std::string roleName, Role::type roleType_):
-		Role(behavior, movement, parent, roleName, roleType_), remainingTimeToComplete(0), location(nullptr)
-{}
+ActivityPerformer::ActivityPerformer(Person* parent, ActivityPerformerBehavior* behavior, ActivityPerformerMovement* movement, string roleName, type roleType_) 
+: Role(parent, behavior, movement, roleName, roleType_), remainingTimeToComplete(0), location(nullptr)
+{
+}
 
-sim_mob::ActivityPerformer::ActivityPerformer(Person* parent, const sim_mob::Activity& currActivity, sim_mob::ActivityPerformerBehavior* behavior, sim_mob::ActivityPerformerMovement* movement, Role::type roleType_, std::string roleName) :
-		Role(behavior, movement, parent, roleName, roleType_),remainingTimeToComplete(0), location(nullptr)
+ActivityPerformer::ActivityPerformer(Person* parent, const Activity& currActivity, ActivityPerformerBehavior* behavior, ActivityPerformerMovement* movement, 
+									 Role::type roleType_, string roleName) 
+: Role(parent, behavior, movement, roleName, roleType_), remainingTimeToComplete(0), location(nullptr)
 {
 	activityStartTime = currActivity.startTime;
 	activityEndTime = currActivity.endTime;
 	location = currActivity.destination.node_;
 }
 
-sim_mob::ActivityPerformer::~ActivityPerformer() {}
+sim_mob::ActivityPerformer::~ActivityPerformer()
+{
+}
 
 Role* sim_mob::ActivityPerformer::clone(Person* parent) const
 {
-	ActivityPerformerBehavior* behavior = new ActivityPerformerBehavior(parent);
-	ActivityPerformerMovement* movement = new ActivityPerformerMovement(parent);
+	ActivityPerformerBehavior* behavior = new ActivityPerformerBehavior();
+	ActivityPerformerMovement* movement = new ActivityPerformerMovement();
 	ActivityPerformer* activityRole = new ActivityPerformer(parent, behavior, movement, "activityRole");
 	movement->parentActivity = activityRole;
 	return activityRole;
@@ -89,7 +94,9 @@ int sim_mob::ActivityPerformer::getRemainingTimeToComplete() const
 	return remainingTimeToComplete;
 }
 
-void sim_mob::ActivityPerformer::make_frame_tick_params(timeslice now){}
+void sim_mob::ActivityPerformer::make_frame_tick_params(timeslice now)
+{
+}
 
 void sim_mob::ActivityPerformer::updateRemainingTime()
 {

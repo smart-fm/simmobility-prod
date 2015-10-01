@@ -118,8 +118,8 @@ namespace sim_mob
 map<const RoadSegment *, unsigned long> DriverMovement::rdSegDensityMap;
 boost::mutex DriverMovement::densityUpdateMutex;
 
-DriverBehavior::DriverBehavior(sim_mob::Person* parentAgent) :
-BehaviorFacet(parentAgent), parentDriver(nullptr)
+DriverBehavior::DriverBehavior() :
+BehaviorFacet(), parentDriver(nullptr)
 {
 }
 
@@ -129,32 +129,29 @@ DriverBehavior::~DriverBehavior()
 
 void DriverBehavior::frame_init()
 {
-	throw std::runtime_error(
-							"DriverBehavior::frame_init is not implemented yet");
+	throw std::runtime_error("DriverBehavior::frame_init is not implemented yet");
 }
 
 void DriverBehavior::frame_tick()
 {
-	throw std::runtime_error(
-							"DriverBehavior::frame_tick is not implemented yet");
+	throw std::runtime_error("DriverBehavior::frame_tick is not implemented yet");
 }
 
 void DriverBehavior::frame_tick_output()
 {
-	throw std::runtime_error(
-							"DriverBehavior::frame_tick_output is not implemented yet");
+	throw std::runtime_error("DriverBehavior::frame_tick_output is not implemented yet");
 }
 
-sim_mob::DriverMovement::DriverMovement(sim_mob::Person* parentAgent, Driver* parentDriver) :
-MovementFacet(parentAgent), parentDriver(parentDriver)
+sim_mob::DriverMovement::DriverMovement(Driver* parentDriver) :
+MovementFacet(), parentDriver(parentDriver)
 {
 	if (Debug::Drivers)
 	{
 		DebugStream << "Driver starting: ";
 
-		if (parentAgent)
+		if (parentDriver->parent)
 		{
-			DebugStream << parentAgent->getId();
+			DebugStream << parentDriver->parent->getId();
 		}
 		else
 		{
@@ -180,7 +177,7 @@ void sim_mob::DriverMovement::init()
 	}
 
 	DriverUpdateParams& params = parentDriver->getParams();
-	params.parentId = parent->getId();
+	params.parentId = parentDriver->parent->getId();
 
 	//Initialise our models.
 	lcModel = new MITSIM_LC_Model(params);
@@ -230,22 +227,22 @@ sim_mob::DriverMovement::~DriverMovement()
 
 void sim_mob::DriverMovement::frame_init()
 {
-	//Save the path from orign to next activity location in allRoadSegments
-	parentDriver->getParams().initSegId = parent->initSegId;
-	parentDriver->getParams().initDis = parent->initDis;
-	parentDriver->getParams().initSpeed = parent->initSpeed;
+	//Save the path from origin to next activity location in allRoadSegments
+	parentDriver->getParams().initSegId = parentDriver->parent->initSegId;
+	parentDriver->getParams().initDis = parentDriver->parent->initDis;
+	parentDriver->getParams().initSpeed = parentDriver->parent->initSpeed;
 
 	Vehicle* newVeh = initializePath(true);
 
 	if (newVeh)
 	{
 		safe_delete_item(parentDriver->vehicle);
-		parent->getRole()->setResource(nullptr);
+		parentDriver->parent->getRole()->setResource(nullptr);
 		parentDriver->vehicle = newVeh;
-		parent->getRole()->setResource(newVeh);
+		parentDriver->parent->getRole()->setResource(newVeh);
 	}
 
-	//Set some properties about the current path, such as the current polyline, etc.
+	//Set some properties about the current path, such as the current poly-line, etc.
 	if (parentDriver->vehicle && fwdDriverMovement.isPathSet())
 	{
 		setOrigin(parentDriver->getParams());
@@ -258,7 +255,7 @@ void sim_mob::DriverMovement::frame_init()
 
 void sim_mob::DriverMovement::setRR_RegionsFromCurrentPath()
 {
-	if (parent->getRegionSupportStruct().isEnabled())
+	if (parentDriver->parent->getRegionSupportStruct().isEnabled())
 	{
 		if (parentDriver->vehicle)
 		{
@@ -267,13 +264,11 @@ void sim_mob::DriverMovement::setRR_RegionsFromCurrentPath()
 			if (!path.empty())
 			{
 				//We may be partly along this route, but it is unlikely. Still, just to be safe...
-				const sim_mob::RoadSegment* currseg =
-						fwdDriverMovement.getCurrSegment();
+				const sim_mob::RoadSegment* currseg = fwdDriverMovement.getCurrSegment();
 
 				//Now save it, taking into account the "current segment"
 				rrPathToSend.clear();
-				for (std::vector<const sim_mob::RoadSegment*>::const_iterator it =
-						path.begin(); it != path.end(); ++it)
+				for (std::vector<const sim_mob::RoadSegment*>::const_iterator it = path.begin(); it != path.end(); ++it)
 				{
 					//Have we reached our starting segment yet?
 					if (currseg)
@@ -299,7 +294,6 @@ void sim_mob::DriverMovement::setRR_RegionsFromCurrentPath()
 
 void sim_mob::DriverMovement::frame_tick()
 {
-	// lost some params
 	DriverUpdateParams& params = parentDriver->getParams();
 
 	if (!(parentDriver->vehicle))
@@ -310,16 +304,16 @@ void sim_mob::DriverMovement::frame_tick()
 	//Are we done already?
 	if (fwdDriverMovement.isDoneWithEntireRoute())
 	{
-		if (parent->amodId != "-1")
+		if (parentDriver->parent->amodId != "-1")
 		{
-			parent->handleAMODArrival(); //handle AMOD arrival (if necessary)
+			parentDriver->parent->handleAMODArrival(); //handle AMOD arrival (if necessary)
 		}
-		parent->setToBeRemoved();
+		parentDriver->parent->setToBeRemoved();
 		return;
 	}
 
 	//Specific for Region support.
-	if (parent->getRegionSupportStruct().isEnabled())
+	if (parentDriver->parent->getRegionSupportStruct().isEnabled())
 	{
 		//Currently all_regions only needs to be sent once.
 		if (sentAllRegions.check())
@@ -334,7 +328,7 @@ void sim_mob::DriverMovement::frame_tick()
 				allRegions.push_back(it->second);
 			}
 
-			parent->getRegionSupportStruct().setNewAllRegionsSet(allRegions);
+			parentDriver->parent->getRegionSupportStruct().setNewAllRegionsSet(allRegions);
 
 			//If a path has already been set, we will need to transmit it.
 			setRR_RegionsFromCurrentPath();
@@ -359,7 +353,7 @@ void sim_mob::DriverMovement::frame_tick()
 					}
 				}
 			}
-			parent->getRegionSupportStruct().setNewRegionPath(regPath);
+			parentDriver->parent->getRegionSupportStruct().setNewRegionPath(regPath);
 			rrPathToSend.clear();
 		}
 	}
@@ -379,7 +373,6 @@ void sim_mob::DriverMovement::frame_tick()
 		}
 	}
 
-	//Just a bit glitchy...
 	updateAdjacentLanes(params);
 
 	//Update "current" time
@@ -610,17 +603,17 @@ void sim_mob::DriverMovement::frame_tick_output()
 	if (ConfigManager::GetInstance().FullConfig().using_MPI)
 	{
 		addLine << "\",\"fake\":\""
-				<< (this->parent->isFake ? "true" : "false");
+				<< (this->parentDriver->parent->isFake ? "true" : "false");
 	}
 
-	int simid = parent->getId();
+	int simid = parentDriver->parent->getId();
 	std::stringstream res;
 	res << simid;
 	std::string id = res.str();
 
-	if (parent->amodId != "-1")
+	if (parentDriver->parent->amodId != "-1")
 	{
-		id = parent->amodTripId;
+		id = parentDriver->parent->amodTripId;
 		p.debugInfo = p.debugInfo + "<AMOD>";
 	}
 	else
@@ -629,7 +622,7 @@ void sim_mob::DriverMovement::frame_tick_output()
 
 		//Check if the trip mode is taxi, if so append <Taxi> to debug info,
 		//otherwise it means it is a private vehicle
-		TripChainItem *tripChainItem = *(parent->currTripChainItem);
+		TripChainItem *tripChainItem = *(parentDriver->parent->currTripChainItem);
 
 		if (tripChainItem->travelMode.compare("Taxi") == 0)
 		{
@@ -1181,14 +1174,14 @@ void sim_mob::DriverMovement::calcDistanceToStoppingPoint(DriverUpdateParams& p)
 	// 1.0 find nearest forward stop point
 	DriverMovement *driverMvt = dynamic_cast<DriverMovement*> (p.driver->Movement());
 	
-	// get dis to stop point of current link
+	// get distance to stop point of current link
 	double distance = driverMvt->getDisToStopPoint(p.stopPointPerDis);
 
 	if (abs(distance) < 50)
 	{
-		if (parent->amodId != "-1")
+		if (parentDriver->parent->amodId != "-1")
 		{
-			parent->handleAMODPickup(); //handle AMOD arrival (if necessary)
+			parentDriver->parent->handleAMODPickup(); //handle AMOD arrival (if necessary)
 		}
 	}
 
@@ -1240,7 +1233,7 @@ void sim_mob::DriverMovement::calcVehicleStates(DriverUpdateParams& p)
 
 	//Currently on AMOD and Buses have stop points, so at the moment calls to check for stop point
 	//for private cars and taxis will be a burden.
-	if (parent->amodId != "-1" || parentDriver->isBus())
+	if (parentDriver->parent->amodId != "-1" || parentDriver->isBus())
 	{
 		calcDistanceToStoppingPoint(p);
 	}
@@ -1365,8 +1358,8 @@ double sim_mob::DriverMovement::getDistanceToSegmentEnd() const
 
 void sim_mob::DriverMovement::setParentBufferedData()
 {
-	parent->xPos.set(parentDriver->getCurrPosition().x);
-	parent->yPos.set(parentDriver->getCurrPosition().y);
+	parentDriver->parent->xPos.set(parentDriver->getCurrPosition().x);
+	parentDriver->parent->yPos.set(parentDriver->getCurrPosition().y);
 }
 
 void sim_mob::DriverMovement::buildAndSetPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID)
@@ -2210,36 +2203,36 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle)
 	Vehicle* res = nullptr;
 
 	//Only initialise if the next path has not been planned for yet.
-	if (!parent->getNextPathPlanned())
+	if (!parentDriver->parent->getNextPathPlanned())
 	{
 		//Save local copies of the parent's origin/destination nodes.
-		parentDriver->origin.node = parent->originNode.node_;
+		parentDriver->origin.node = parentDriver->parent->originNode.node_;
 		parentDriver->origin.point = parentDriver->origin.node->location;
-		parentDriver->goal.node = parent->destNode.node_;
+		parentDriver->goal.node = parentDriver->parent->destNode.node_;
 		parentDriver->goal.point = parentDriver->goal.node->location;
 
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 		vector<WayPoint> path;
 
-		sim_mob::SubTrip* subTrip = (&(*(parent->currSubTrip)));
+		sim_mob::SubTrip* subTrip = (&(*(parentDriver->parent->currSubTrip)));
 
-		if (!parent->amodPath.empty())
+		if (!parentDriver->parent->amodPath.empty())
 		{
-			path = parent->amodPath;
+			path = parentDriver->parent->amodPath;
 			// set the stop point and dwell time
-			std::string stopSegmentStr = parent->amodPickUpSegmentStr;
+			std::string stopSegmentStr = parentDriver->parent->amodPickUpSegmentStr;
 
 			double dwelltime = 5; //in sec
-			double segl = parent->amodPickUpOffset / 100.0; //length of the segment in m
+			double segl = parentDriver->parent->amodPickUpOffset / 100.0; //length of the segment in m
 			double fd = (segl - segl / 5); //distance where the vh will stop counting from the beginning of the segment
 
 			StopPoint stopPoint(stopSegmentStr, fd, dwelltime);
 			parentDriver->getParams().insertStopPoint(stopPoint);
 
 			// set the stop point and dwell time for dropping off the passenger
-			std::string dropOffSegmentStr = parent->amodDropOffSegmentStr;
+			std::string dropOffSegmentStr = parentDriver->parent->amodDropOffSegmentStr;
 
-			double segld = parent->amodDropOffset / 100.0; //length of the segment in m
+			double segld = parentDriver->parent->amodDropOffset / 100.0; //length of the segment in m
 			double fd2 = (segld - segld / 5); //distance where the vh will stop counting from the beginning of the segment
 			StopPoint stopPoint2(dropOffSegmentStr, fd2, dwelltime);
 			parentDriver->getParams().insertStopPoint(stopPoint2);
@@ -2253,7 +2246,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle)
 				// if use path set
 				if (ConfigManager::GetInstance().FullConfig().PathSetMode())
 				{
-					path = PathSetManager::getInstance()->getPath(*(parent->currSubTrip), false, nullptr);
+					path = PathSetManager::getInstance()->getPath(*(parentDriver->parent->currSubTrip), false, nullptr);
 				}
 				else
 				{
@@ -2285,7 +2278,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle)
 		}
 
 		//RoadRunner may need to know of our path, but it can't be send inevitably.
-		if (parent->getRegionSupportStruct().isEnabled())
+		if (parentDriver->parent->getRegionSupportStruct().isEnabled())
 		{
 			rrPathToSend.clear();
 			for (std::vector<WayPoint>::const_iterator it = path.begin(); it != path.end(); ++it)
@@ -2303,12 +2296,12 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle)
 		if (path[1].type_ == WayPoint::ROAD_SEGMENT)
 		{
 			//Check if the desired lane is a valid lane for driving
-			if (parent->laneID != -1)
+			if (parentDriver->parent->laneID != -1)
 			{
 				//Ensure that the desired lane is not pedestrian lane
-				if (!path[1].roadSegment_->getLane(parent->laneID)->is_pedestrian_lane())
+				if (!path[1].roadSegment_->getLane(parentDriver->parent->laneID)->is_pedestrian_lane())
 				{
-					startLaneId = parent->laneID;
+					startLaneId = parentDriver->parent->laneID;
 				}
 			}
 
@@ -2316,12 +2309,12 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle)
 			//look for one
 			if (startLaneId == -1)
 			{
-				for (parent->laneID = 0; parent->laneID < path[1].roadSegment_->getLanes().size(); parent->laneID++)
+				for (parentDriver->parent->laneID = 0; parentDriver->parent->laneID < path[1].roadSegment_->getLanes().size(); parentDriver->parent->laneID++)
 				{
 					//Ensure that the lane is not pedestrian lane
-					if (!path[1].roadSegment_->getLane(parent->laneID)->is_pedestrian_lane())
+					if (!path[1].roadSegment_->getLane(parentDriver->parent->laneID)->is_pedestrian_lane())
 					{
-						startLaneId = parent->laneID;
+						startLaneId = parentDriver->parent->laneID;
 						break;
 					}
 				}
@@ -2329,7 +2322,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle)
 		}
 		else
 		{
-			parent->laneID = -1;
+			parentDriver->parent->laneID = -1;
 		}
 
 		// Bus should be at least 1200 to be displayed on Visualiser
@@ -2351,7 +2344,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle)
 	}
 
 	//to indicate that the path to next activity is already planned
-	parent->setNextPathPlanned(true);
+	parentDriver->parent->setNextPathPlanned(true);
 	return res;
 }
 
@@ -3030,7 +3023,7 @@ void sim_mob::DriverMovement::updateNearbyAgents()
 	if (parentDriver->getCurrPosition().x > 0 && parentDriver->getCurrPosition().y > 0)
 	{
 		double distance = 10000.0;
-		const Agent* parentAgent = parent;
+		const Agent* parentAgent = parentDriver->parent;
 
 		//Retrieve a list of nearby agents
 		nearby_agents = AuraManager::instance().nearbyAgents(Point2D(parentDriver->getCurrPosition().x, parentDriver->getCurrPosition().y), *params.currLane,
@@ -3201,7 +3194,7 @@ void sim_mob::DriverMovement::updateLateralMovement(DriverUpdateParams& p)
 
 			std::stringstream msg;
 			msg << "Error: Car has moved onto sidewalk. Agent ID: "
-					<< parent->getId();
+				<< parentDriver->parent->getId();
 			throw std::runtime_error(msg.str().c_str());
 		}
 
@@ -3251,7 +3244,7 @@ void sim_mob::DriverMovement::syncInfoLateralMove(DriverUpdateParams& p)
 	else
 	{
 		std::stringstream msg;
-		msg << "syncInfoLateralMove (" << parent->getId()
+		msg << "syncInfoLateralMove (" << parentDriver->parent->getId()
 				<< ") is attempting to change lane when no lane changing decision made";
 		throw std::runtime_error(msg.str().c_str());
 	}

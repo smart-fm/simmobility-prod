@@ -11,6 +11,7 @@
 //#include "PassengerFacets.hpp"
 #include "entities/Person.hpp"
 #include "entities/vehicle/Bus.hpp"
+#include "entities/Person_ST.hpp"
 
 using namespace sim_mob;
 using std::vector;
@@ -18,8 +19,10 @@ using std::cout;
 using std::map;
 using std::string;
 
-sim_mob::Passenger::Passenger(Person* parent, MutexStrategy mtxStrat, sim_mob::PassengerBehavior* behavior, sim_mob::PassengerMovement* movement, Role::type roleType_, std::string roleName) :
-		Role(behavior, movement, parent, roleName, roleType_), BoardedBus(mtxStrat,false), AlightedBus(mtxStrat,false), busdriver(mtxStrat,nullptr), params(parent->getGenerator()), waitingTimeAtStop(0)
+sim_mob::Passenger::Passenger(Person_ST *parent, MutexStrategy mtxStrat, sim_mob::PassengerBehavior* behavior, sim_mob::PassengerMovement* movement,
+							  Role::type roleType_, std::string roleName) :
+Role(parent, behavior, movement, parent, roleName, roleType_), BoardedBus(mtxStrat, false), AlightedBus(mtxStrat, false), busdriver(mtxStrat, nullptr),
+params(parent->getGenerator()), waitingTimeAtStop(0)
 {
 }
 
@@ -28,9 +31,10 @@ void sim_mob::Passenger::make_frame_tick_params(timeslice now)
 	getParams().reset(now);
 }
 
-Role* sim_mob::Passenger::clone(sim_mob::Person* parent) const {
-	PassengerBehavior* behavior = new PassengerBehavior(parent);
-	PassengerMovement* movement = new PassengerMovement(parent);
+Role* sim_mob::Passenger::clone(sim_mob::Person_ST *parent) const
+{
+	PassengerBehavior* behavior = new PassengerBehavior();
+	PassengerMovement* movement = new PassengerMovement();
 	Passenger* passenger = new Passenger(parent, parent->getMutexStrategy(), behavior, movement);
 	behavior->setParentPassenger(passenger);
 	movement->setParentPassenger(passenger);
@@ -39,9 +43,9 @@ Role* sim_mob::Passenger::clone(sim_mob::Person* parent) const {
 
 std::vector<sim_mob::BufferedBase*> sim_mob::Passenger::getSubscriptionParams()
 {
- 	std::vector<sim_mob::BufferedBase*> res;
- 	res.push_back(&(BoardedBus));
- 	res.push_back(&(AlightedBus));
- 	res.push_back(&(busdriver));
- 	return res;
+	std::vector<sim_mob::BufferedBase*> res;
+	res.push_back(&(BoardedBus));
+	res.push_back(&(AlightedBus));
+	res.push_back(&(busdriver));
+	return res;
 }

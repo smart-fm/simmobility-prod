@@ -6,23 +6,28 @@
 
 #include "entities/Person.hpp"
 #include "entities/vehicle/Bus.hpp"
+#include "entities/Person_ST.hpp"
 
 using std::vector;
 using namespace sim_mob;
 
-sim_mob::WaitBusActivityRole::WaitBusActivityRole(Person* parent, sim_mob::WaitBusActivityRoleBehavior* behavior, sim_mob::WaitBusActivityRoleMovement* movement, Role::type roleType_, std::string roleName) :
-		Role(behavior, movement, parent, roleName, roleType_), params(parent->getGenerator()), TimeOfReachingBusStop(0), waitingTimeAtBusStop(0)
+sim_mob::WaitBusActivityRole::WaitBusActivityRole(Person_ST *parent, WaitBusActivityRoleBehavior *behavior, WaitBusActivityRoleMovement *movement,
+												  Role::type roleType_, std::string roleName)
+: Role(parent, behavior, movement, parent, roleName, roleType_), params(parent->getGenerator()), TimeOfReachingBusStop(0), waitingTimeAtBusStop(0)
 {
 }
 
-sim_mob::WaitBusActivityRole::~WaitBusActivityRole() {
+sim_mob::WaitBusActivityRole::~WaitBusActivityRole()
+{
 }
 
-void sim_mob::WaitBusActivityRole::make_frame_tick_params(timeslice now){
+void sim_mob::WaitBusActivityRole::make_frame_tick_params(timeslice now)
+{
 	getParams().reset(now);
 }
 
-std::vector<sim_mob::BufferedBase*> sim_mob::WaitBusActivityRole::getSubscriptionParams() {
+std::vector<sim_mob::BufferedBase*> sim_mob::WaitBusActivityRole::getSubscriptionParams()
+{
 	vector<BufferedBase*> res;
 	return res;
 }

@@ -18,7 +18,6 @@
 #include "entities/amodController/AMODController.hpp"
 #include "entities/IncidentStatus.hpp"
 #include "entities/roles/driver/models/CarFollowModel.hpp"
-#include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/vehicle/Vehicle.hpp"
@@ -39,7 +38,7 @@ protected:
 	Driver* parentDriver;
 
 public:
-	explicit DriverBehavior(sim_mob::Person* parentAgent = nullptr);
+	explicit DriverBehavior();
 	virtual ~DriverBehavior();
 
 	//Virtual overrides
@@ -163,9 +162,6 @@ private:
 	double performIntersectionApproach();
 
 protected:
-	//The person playing the role of the driver
-	Person_ST *parent;
-
 	//Pointer to the lane changing model being used
 	LaneChangeModel* lcModel;
 

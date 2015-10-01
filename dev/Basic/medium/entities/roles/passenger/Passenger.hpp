@@ -9,13 +9,15 @@
 #include "geospatial/Node.hpp"
 #include "PassengerFacets.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 class Agent;
 class Person;
 class BusStop;
 
-namespace medium {
+namespace medium
+{
 
 class PassengerBehavior;
 class PassengerMovement;
@@ -26,21 +28,26 @@ class Driver;
  * \author Seth N. Hetu
  * \author zhang huai peng
  */
-class Passenger: public sim_mob::Role {
+class Passenger : public sim_mob::Role<Person_MT>
+{
 public:
 
-	explicit Passenger(Person* parent, MutexStrategy mtxStrat,
-			sim_mob::medium::PassengerBehavior* behavior = nullptr,
-			sim_mob::medium::PassengerMovement* movement = nullptr,
-			std::string roleName = std::string("Passenger_"),
-			Role::type roleType = Role::RL_PASSENGER);
+	explicit Passenger(Person_MT *parent, 
+					sim_mob::medium::PassengerBehavior* behavior = nullptr,
+					sim_mob::medium::PassengerMovement* movement = nullptr,
+					std::string roleName = std::string("Passenger_"),
+					Role::type roleType = Role::RL_PASSENGER);
 
-	virtual ~Passenger() {
+	virtual ~Passenger()
+	{
 	}
 
 	//Virtual overrides
-	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
-	virtual void make_frame_tick_params(timeslice now) {}
+	virtual sim_mob::Role* clone(sim_mob::Person_MT *parent) const;
+
+	virtual void make_frame_tick_params(timeslice now)
+	{
+	}
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	/**
@@ -61,11 +68,13 @@ public:
 	 */
 	virtual void collectTravelTime();
 
-	bool canAlightBus() const {
+	bool canAlightBus() const
+	{
 		return alightBus;
 	}
 
-	void setAlightBus(bool alightBus) {
+	void setAlightBus(bool alightBus)
+	{
 		this->alightBus = alightBus;
 	}
 
@@ -89,11 +98,13 @@ public:
 		this->endNode = endNode;
 	}
 
-	const sim_mob::medium::Driver* getDriver() const {
+	const sim_mob::medium::Driver* getDriver() const
+	{
 		return driver;
 	}
 
-	void setDriver(const Driver* driver) {
+	void setDriver(const Driver* driver)
+	{
 		this->driver = driver;
 	}
 
@@ -111,7 +122,6 @@ private:
 	const sim_mob::Node* startNode;
 
 	const sim_mob::Node* endNode;
-
 };
 
 }

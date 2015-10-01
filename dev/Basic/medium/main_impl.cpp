@@ -60,6 +60,7 @@
 #include "database/pt_network_dao/PT_NetworkSqlDao.hpp"
 #include "geospatial/streetdir/A_StarPublicTransitShortestPathImpl.hpp"
 #include "path/ScreenLineCounter.hpp"
+#include "entities/Person_MT.hpp"
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -116,14 +117,18 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not ok.
 	const MutexStrategy& mtx = ConfigManager::GetInstance().FullConfig().mutexStategy();
-	RoleFactory& rf = ConfigManager::GetInstanceRW().FullConfig().getRoleFactoryRW();
-	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, mtx));
-	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
-	rf.registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, mtx));
-	rf.registerRole("waitBusActivity", new sim_mob::medium::WaitBusActivity(nullptr, mtx));
-	rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr, mtx));
-	rf.registerRole("passenger", new sim_mob::medium::Passenger(nullptr, mtx));
-	rf.registerRole("biker", new sim_mob::medium::Biker(nullptr, mtx));
+	
+	//Create an instance of role factory
+	RoleFactory<Person_MT> rf = new RoleFactory<Person_MT>;
+	RoleFactory<Person_MT>::setInstance(rf);
+	
+	rf->registerRole("driver", new sim_mob::medium::Driver(nullptr, mtx));
+	rf->registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
+	rf->registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, mtx));
+	rf->registerRole("waitBusActivity", new sim_mob::medium::WaitBusActivity(nullptr, mtx));
+	rf->registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr, mtx));
+	rf->registerRole("passenger", new sim_mob::medium::Passenger(nullptr, mtx));
+	rf->registerRole("biker", new sim_mob::medium::Biker(nullptr, mtx));
 
 	//Load our user config file, which is a time costly function
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);

@@ -10,8 +10,10 @@
 #include "entities/conflux/SegmentStats.hpp"
 #include "MesoPathMover.hpp"
 
-namespace sim_mob {
-namespace medium {
+namespace sim_mob
+{
+namespace medium
+{
 
 class Driver;
 
@@ -21,9 +23,10 @@ class Driver;
  * \author Melani Jayasuriya
  * \author Harish Loganathan
  */
-class DriverBehavior: public sim_mob::BehaviorFacet {
+class DriverBehavior : public sim_mob::BehaviorFacet
+{
 public:
-	explicit DriverBehavior(sim_mob::Person* parentAgent = nullptr);
+	explicit DriverBehavior();
 	virtual ~DriverBehavior();
 
 	/**
@@ -33,12 +36,15 @@ public:
 	virtual void frame_tick();
 	virtual void frame_tick_output();
 
-	sim_mob::medium::Driver* getParentDriver() const {
+	sim_mob::medium::Driver* getParentDriver() const
+	{
 		return parentDriver;
 	}
 
-	void setParentDriver(sim_mob::medium::Driver* parentDriver) {
-		if(!parentDriver) {
+	void setParentDriver(sim_mob::medium::Driver* parentDriver)
+	{
+		if (!parentDriver)
+		{
 			throw std::runtime_error("parentDriver cannot be NULL");
 		}
 		this->parentDriver = parentDriver;
@@ -60,9 +66,10 @@ protected:
  * \author Melani Jayasuriya
  * \author Harish Loganathan
  */
-class DriverMovement: public sim_mob::MovementFacet {
+class DriverMovement : public sim_mob::MovementFacet
+{
 public:
-	explicit DriverMovement(sim_mob::Person* parentAgent = nullptr);
+	explicit DriverMovement();
 	virtual ~DriverMovement();
 
 	//virtual overrides
@@ -71,22 +78,27 @@ public:
 	virtual void frame_tick_output();
 	virtual sim_mob::Conflux* getStartingConflux() const;
 
-	sim_mob::medium::Driver* getParentDriver() const {
+	sim_mob::medium::Driver* getParentDriver() const
+	{
 		return parentDriver;
 	}
 
-	void setParentDriver(sim_mob::medium::Driver* parentDriver) {
-		if(!parentDriver) {
+	void setParentDriver(sim_mob::medium::Driver* parentDriver)
+	{
+		if (!parentDriver)
+		{
 			throw std::runtime_error("parentDriver cannot be NULL");
 		}
 		this->parentDriver = parentDriver;
 	}
 
-	const MesoPathMover & getMesoPathMover() const{
+	const MesoPathMover & getMesoPathMover() const
+	{
 		return pathMover;
 	}
 
-	MesoPathMover & getMesoPathMover() {
+	MesoPathMover & getMesoPathMover()
+	{
 		return pathMover;
 	}
 
@@ -127,9 +139,6 @@ protected:
 	 */
 	sim_mob::medium::Driver* parentDriver;
 
-	/**The person playing the role of the driver*/
-	Person_MT *parent;
-
 	MesoPathMover pathMover;
 	const Lane* currLane;
 	bool isQueuing;
@@ -149,7 +158,7 @@ protected:
 	 *
 	 * @param params driver update params for current tick
 	 */
-	void setParentData(DriverUpdateParams& params);	///<set next data to parent buffer data
+	void setParentData(DriverUpdateParams& params); ///<set next data to parent buffer data
 
 	/**
 	 * adds to the time spent by driver in current tick
@@ -274,12 +283,12 @@ protected:
 	 * to RoadSegment* in the list of WayPoint.
 	 */
 	void initSegStatsPath(std::vector<sim_mob::WayPoint>& input,
-			std::vector<const sim_mob::SegmentStats*>& output);
+						std::vector<const sim_mob::SegmentStats*>& output);
 	/**
 	 * overload of the above
 	 */
 	void initSegStatsPath(const std::vector<const sim_mob::RoadSegment*>& input,
-			std::vector<const sim_mob::SegmentStats*>& output);
+						std::vector<const sim_mob::SegmentStats*>& output);
 
 	/**
 	 * randomly chooses the starting segment from the first link of the path
@@ -327,9 +336,7 @@ protected:
 	 * @param nextToNextSegStats second segment stats ahead from the current
 	 * @return best lane in nextSegStats
 	 */
-	virtual const sim_mob::Lane* getBestTargetLane(
-			const sim_mob::SegmentStats* nextSegStats,
-			const sim_mob::SegmentStats* nextToNextSegStats);
+	virtual const sim_mob::Lane* getBestTargetLane(const sim_mob::SegmentStats* nextSegStats, const sim_mob::SegmentStats* nextToNextSegStats);
 
 	/**
 	 * Updates travel time for this driver for the link which he has just exited from.
@@ -354,9 +361,12 @@ protected:
 	 * \param remaining lists of segstats from the original path which are remaining to reach to each of the suggested re-routing point
 	 * return the number of intersections
 	 */
-	int findReroutingPoints(const std::vector<sim_mob::SegmentStats*>& stats,std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > & remaining) const;
+	int findReroutingPoints(const std::vector<sim_mob::SegmentStats*>& stats, std::map<const sim_mob::Node*, std::vector<const sim_mob::SegmentStats*> > & remaining) const;
 
-	bool wantReRoute(){return true;};//placeholder
+	bool wantReRoute()
+	{
+		return true;
+	}; //placeholder
 
 	/**
 	 * Changes the Travel Path

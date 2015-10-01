@@ -9,14 +9,16 @@ using namespace sim_mob;
 Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, int id = -1, std::string databaseID = "")
 : Person(src, mtxStrat, id, databaseID),
 isQueuing(false), distanceToEndOfSegment(0.0), drivingTimeToEndOfLink(0.0), remainingTimeThisTick(0.0),
-requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), nextLinkRequired(nullptr), currSegStats(nullptr), currLane(NULL)
+requestedNextSegStats(NULL), canMoveToNextSegment(NONE), nextLinkRequired(NULL), currSegStats(NULL), currLane(NULL),
+prevRole(NULL), currRole(NULL), nextRole(NULL)		
 {
 }
 
 Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc)
 : Person(src, mtxStrat, tc),
 isQueuing(false), distanceToEndOfSegment(0.0), drivingTimeToEndOfLink(0.0), remainingTimeThisTick(0.0),
-requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), nextLinkRequired(nullptr), currSegStats(nullptr), currLane(NULL)
+requestedNextSegStats(NULL), canMoveToNextSegment(NONE), nextLinkRequired(NULL), currSegStats(NULL), currLane(NULL),
+prevRole(NULL), currRole(NULL), nextRole(NULL)
 {
 	convertODsToTrips();
 	insertWaitingActivityToTrip();
@@ -25,6 +27,9 @@ requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), nextLinkRequired(nul
 
 Person_MT::~Person_MT()
 {
+	safe_delete_item(prevRole);
+	safe_delete_item(currRole);
+	safe_delete_item(nextRole);
 }
 
 void Person_MT::convertODsToTrips()
@@ -223,7 +228,7 @@ void Person_MT::initTripChain()
 		// if the first trip chain item is passenger, create waitBusActivityRole
 		if (currSubTrip->mode == "BusTravel")
 		{
-			const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
+			const RoleFactory<Person_MT> *rf = RoleFactory<Person_MT>::getInstance();
 			currRole = rf.createRole("waitBusActivity", this);
 			nextRole = rf.createRole("passenger", this);
 		}
@@ -237,4 +242,200 @@ void Person_MT::initTripChain()
 
 	setNextPathPlanned(false);
 	isFirstTick = true;
+}
+
+bool Person_MT::updatePersonRole()
+{
+	//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
+	//it's better to avoid possible errors (e.g., if the equality operator is defined)
+	//by saving it until the next time tick.
+	safe_delete_item(prevRole);
+	
+	const RoleFactory<Person_MT> *rf = RoleFactory<Person_MT>::getInstance();
+	const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
+	const sim_mob::SubTrip* subTrip = nullptr;
+
+	if (tci->itemType == sim_mob::TripChainItem::IT_TRIP)
+	{
+		subTrip = &(*currSubTrip);
+	}
+
+	if (!nextRole)
+	{
+		nextRole = rf->createRole(tci, subTrip, this);
+	}
+
+	changeRole();
+	return true;
+}
+
+void Person_MT::setStartTime(unsigned int value)
+{
+	sim_mob::Entity::setStartTime(value);
+	if (currRole)
+	{
+		currRole->setArrivalTime(value + ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
+	}
+}
+
+vector<BufferedBase *> Person_MT::buildSubscriptionList()
+{
+	//First, add the x and y co-ordinates
+	vector<BufferedBase *> subsList;
+	subsList.push_back(&xPos);
+	subsList.push_back(&yPos);
+
+	//Now, add our own properties.
+	if (this->getRole())
+	{
+		vector<BufferedBase*> roleParams = this->getRole()->getSubscriptionParams();
+
+		//Append the subsList with all elements in roleParams
+		subsList.insert(subsList.end(), roleParams.begin(), roleParams.end());
+	}
+
+	return subsList;
+}
+
+void Person_MT::changeRole()
+{
+	if (currRole)
+	{
+		currRole->setParent(nullptr);
+		if (this->currWorkerProvider)
+		{
+			this->currWorkerProvider->stopManaging(currRole->getSubscriptionParams());
+			this->currWorkerProvider->stopManaging(currRole->getDriverRequestParams().asVector());
+		}
+	}
+
+	safe_delete_item(prevRole);
+	prevRole = currRole;
+	currRole = nextRole;
+	nextRole = nullptr;
+
+	if (currRole)
+	{
+		currRole->setParent(this);
+		if (this->currWorkerProvider)
+		{
+			this->currWorkerProvider->beginManaging(currRole->getSubscriptionParams());
+			this->currWorkerProvider->beginManaging(currRole->getDriverRequestParams().asVector());
+		}
+	}
+}
+
+bool Person_MT::advanceCurrentTripChainItem()
+{
+	if (currTripChainItem == tripChain.end()) /*just a harmless basic check*/
+	{
+		return false;
+	}
+
+	// current role (activity or sub-trip level role)[for now: only subtrip] is about to change, time to collect its movement metrics(even activity performer)
+	if (currRole != nullptr)
+	{
+		TravelMetric currRoleMetrics = currRole->Movement()->finalizeTravelTimeMetric();
+		currRole->Movement()->resetTravelTimeMetric(); //sorry for manual reset, just a precaution for now
+		serializeSubTripChainItemTravelTimeMetrics(currRoleMetrics, currTripChainItem, currSubTrip);
+	}
+
+	//first check if you just need to advance the subtrip
+	if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	{
+		//don't advance to next tripchainItem immediately, check the subtrip first
+		bool res = advanceCurrentSubTrip();
+
+		//subtrip advanced successfully, no need to advance currTripChainItem
+		if (res)
+		{
+			return res;
+		}
+	}
+
+	//Trip is about the change, collect the Metrics	
+	//if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	//{
+	//	aggregateSubTripMetrics();
+	//}
+	//
+	//serializeTripChainItem(currTripChainItem); 
+
+	//do the increment
+	++currTripChainItem;
+
+	if (currTripChainItem == tripChain.end())
+	{
+		//but tripchain items are also over, get out !
+		return false;
+	}
+
+	//so far, advancing the tripchainitem has been successful
+	//Also set the currSubTrip to the beginning of trip , just in case
+	if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	{
+		currSubTrip = resetCurrSubTrip();
+	}
+
+	return true;
+}
+
+UpdateStatus Person_MT::checkTripChain()
+{
+	if (tripChain.empty())
+	{
+		return UpdateStatus::Done;
+	}
+
+	//advance the trip, sub-trip or activity....
+	if (!isFirstTick)
+	{
+		if (!(advanceCurrentTripChainItem()))
+		{
+			return UpdateStatus::Done;
+		}
+	}
+	
+	//must be set to false whenever trip chain item changes. And it has to happen before a probable creation of (or changing to) a new role
+	setNextPathPlanned(false);
+
+	//Create a new Role based on the trip chain type
+	updatePersonRole();
+
+	//Update our origin/destination pair.
+	if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
+	{ 
+		//put if to avoid & evade bus trips, can be removed when everything is ok
+		updateOD(*currTripChainItem, &(*currSubTrip));
+	}
+
+	//currentTipchainItem or current sub-trip are changed
+	//so OD will be changed too,
+	//therefore we need to call frame_init regardless of change in the role
+	unsetInitialized();
+
+	//Create a return type based on the differences in these Roles
+	vector<BufferedBase*> prevParams;
+	vector<BufferedBase*> currParams;
+	
+	if (prevRole)
+	{
+		prevParams = prevRole->getSubscriptionParams();
+	}
+	
+	if (currRole)
+	{
+		currParams = currRole->getSubscriptionParams();
+	}
+	
+	if (isFirstTick && currRole)
+	{
+		currRole->setArrivalTime(startTime + ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
+	}
+	
+	isFirstTick = false;
+
+	//Null out our trip chain, remove the "removed" flag, and return
+	clearToBeRemoved();
+	return UpdateStatus(UpdateStatus::RS_CONTINUE, prevParams, currParams);
 }

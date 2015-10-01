@@ -38,7 +38,7 @@ class UnPackageUtils;
 /**
  * A Person basically does nothing in the ActivityPerformer role
  */
-class ActivityPerformer : public sim_mob::Role
+class ActivityPerformer : public sim_mob::Role<Person>
 {
 public:
 	ActivityPerformer(sim_mob::Person* parent, sim_mob::ActivityPerformerBehavior* behavior = nullptr, sim_mob::ActivityPerformerMovement* movement = nullptr, std::string roleName = std::string(), Role::type roleType_ = RL_ACTIVITY);

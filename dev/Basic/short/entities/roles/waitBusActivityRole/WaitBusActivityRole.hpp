@@ -29,11 +29,21 @@ class UnPackageUtils;
 #endif
 
 //Helper struct
-struct WaitBusActivityRoleUpdateParams : public sim_mob::UpdateParams {
 
-	WaitBusActivityRoleUpdateParams() : UpdateParams() {}
-	explicit WaitBusActivityRoleUpdateParams(boost::mt19937& gen) : UpdateParams(gen), skipThisFrame(false) {}
-	virtual ~WaitBusActivityRoleUpdateParams() {}
+struct WaitBusActivityRoleUpdateParams : public sim_mob::UpdateParams
+{
+
+	WaitBusActivityRoleUpdateParams() : UpdateParams()
+	{
+	}
+
+	explicit WaitBusActivityRoleUpdateParams(boost::mt19937& gen) : UpdateParams(gen), skipThisFrame(false)
+	{
+	}
+
+	virtual ~WaitBusActivityRoleUpdateParams()
+	{
+	}
 
 	virtual void reset(timeslice now)
 	{
@@ -50,19 +60,22 @@ struct WaitBusActivityRoleUpdateParams : public sim_mob::UpdateParams {
 #endif
 };
 
-class WaitBusActivityRole : public sim_mob::Role , public UpdateWrapper<WaitBusActivityRoleUpdateParams>{
+class WaitBusActivityRole : public sim_mob::Role<Person_ST>, public UpdateWrapper<WaitBusActivityRoleUpdateParams>
+{
 public:
-	WaitBusActivityRole(Person* parent, sim_mob::WaitBusActivityRoleBehavior* behavior = nullptr, sim_mob::WaitBusActivityRoleMovement* movement = nullptr, Role::type roleType_ = RL_WAITBUSACTITITY, std::string roleName = "waitBusActivityRole");
+	WaitBusActivityRole(Person_ST *parent, WaitBusActivityRoleBehavior *behavior = nullptr, WaitBusActivityRoleMovement *movement = nullptr,
+					 Role::type roleType_ = RL_WAITBUSACTITITY, std::string roleName = "waitBusActivityRole");
 	virtual ~WaitBusActivityRole();
 	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
-//	bool getRegisteredFlag() { return registered; } // get the registered flag
-//	void setRegisteredFlag(bool registeredFlag) { registered = registeredFlag; } // set the registered flag
-//	sim_mob::BusStopAgent* getBusStopAgent() { return busStopAgent; }
-//	BusStop* setBusStopXY(const Node* node);//to find the nearest busstop to a node
-	uint32_t getTimeOfReachingBusStop() const { return TimeOfReachingBusStop; }
-	uint32_t getWaitingTimeAtBusStop() const {
+	uint32_t getTimeOfReachingBusStop() const
+	{
+		return TimeOfReachingBusStop;
+	}
+
+	uint32_t getWaitingTimeAtBusStop() const
+	{
 		return waitingTimeAtBusStop;
 	}
 
@@ -76,10 +89,13 @@ private:
 	friend class UnPackageUtils;
 };
 
-struct less_than_TimeOfReachingBusStop {
-	inline bool operator() (const WaitBusActivityRole* wbaRole1, const WaitBusActivityRole* wbaRole2)
+struct less_than_TimeOfReachingBusStop
+{
+
+	inline bool operator()(const WaitBusActivityRole* wbaRole1, const WaitBusActivityRole* wbaRole2)
 	{
-		if ((!wbaRole1) || (!wbaRole2)) {
+		if ((!wbaRole1) || (!wbaRole2))
+		{
 			return 0;
 		}
 

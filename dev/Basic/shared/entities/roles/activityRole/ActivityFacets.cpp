@@ -8,8 +8,8 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
-sim_mob::ActivityPerformerBehavior::ActivityPerformerBehavior(sim_mob::Person* parentAgent) :
-	BehaviorFacet(parentAgent), parentActivity(nullptr)
+sim_mob::ActivityPerformerBehavior::ActivityPerformerBehavior() :
+	BehaviorFacet(), parentActivity(nullptr)
 {}
 
 sim_mob::ActivityPerformerBehavior::~ActivityPerformerBehavior()
@@ -49,15 +49,15 @@ void sim_mob::ActivityPerformerMovement::frame_tick()
 	parentActivity->updateRemainingTime();
 	if(parentActivity->getRemainingTimeToComplete() <= 0)
 	{
-		parent->setToBeRemoved();
+		parentActivity->parent->setToBeRemoved();
 	}
-	parent->setRemainingTimeThisTick(0.0);
+	parentActivity->parent->setRemainingTimeThisTick(0.0);
 }
 
 void sim_mob::ActivityPerformerMovement::frame_tick_output() {}
 
-sim_mob::ActivityPerformerMovement::ActivityPerformerMovement(sim_mob::Person* parentAgent):
-	MovementFacet(), parent(parentAgent), parentActivity(nullptr) {}
+sim_mob::ActivityPerformerMovement::ActivityPerformerMovement():
+	MovementFacet(), parentActivity(nullptr) {}
 
 sim_mob::TravelMetric& sim_mob::ActivityPerformerMovement::startTravelTimeMetric()
 {

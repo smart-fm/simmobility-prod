@@ -8,7 +8,7 @@
  *  Created on: 2011-7-5
  *      Author: wangxy & Li Zhemin
  */
- 
+
 #include "Driver.hpp"
 #include "DriverFacets.hpp"
 #include "buffering/BufferedDataManager.hpp"
@@ -36,6 +36,7 @@
 #include "util/GeomHelpers.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "entities/IntersectionManager.hpp"
+#include "entities/Person_ST.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -52,31 +53,41 @@ using std::string;
 using std::endl;
 
 //Helper functions
-namespace {
+namespace
+{
 //Helpful constants
 
 // millisecs conversion unit from seconds
 const double MILLISECS_CONVERT_UNIT = 1000.0;
 
 //Output helper
-string PrintLCS(LANE_CHANGE_SIDE s) {
-	if (s == LCS_LEFT) {
+
+string PrintLCS(LANE_CHANGE_SIDE s)
+{
+	if (s == LCS_LEFT)
+	{
 		return "LCS_LEFT";
-	} else if (s == LCS_RIGHT) {
+	}
+	else if (s == LCS_RIGHT)
+	{
 		return "LCS_RIGHT";
 	}
 	return "LCS_SAME";
 }
 
 //used in lane changing, find the start index and end index of polyline in the target lane
-size_t updateStartEndIndex(const std::vector<sim_mob::Point2D>* const currLanePolyLine, double currLaneOffset,
-		size_t defaultValue) {
+
+size_t updateStartEndIndex(const std::vector<sim_mob::Point2D> * const currLanePolyLine, double currLaneOffset,
+						   size_t defaultValue)
+{
 	double offset = 0;
-	for (size_t i = 0; i < currLanePolyLine->size() - 1; i++) {
+	for (size_t i = 0; i < currLanePolyLine->size() - 1; i++)
+	{
 		double xOffset = currLanePolyLine->at(i + 1).getX() - currLanePolyLine->at(i).getX();
 		double yOffset = currLanePolyLine->at(i + 1).getY() - currLanePolyLine->at(i).getY();
 		offset += sqrt(xOffset * xOffset + yOffset * yOffset);
-		if (offset >= currLaneOffset) {
+		if (offset >= currLaneOffset)
+		{
 			return i;
 		}
 	}
@@ -84,11 +95,16 @@ size_t updateStartEndIndex(const std::vector<sim_mob::Point2D>* const currLanePo
 }
 
 //TODO:I think lane index should be a data member in the lane class
-size_t getLaneIndex(const Lane* l) {
-	if (l) {
+
+size_t getLaneIndex(const Lane* l)
+{
+	if (l)
+	{
 		const RoadSegment* r = l->getRoadSegment();
-		for (size_t i = 0; i < r->getLanes().size(); i++) {
-			if (r->getLanes().at(i) == l) {
+		for (size_t i = 0; i < r->getLanes().size(); i++)
+		{
+			if (r->getLanes().at(i) == l)
+			{
 				return i;
 			}
 		}
@@ -100,53 +116,58 @@ size_t getLaneIndex(const Lane* l) {
 } //End anon namespace
 
 //Initialize
-sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior, sim_mob::DriverMovement* movement, Role::type roleType_, std::string roleName_) :
-	Role(behavior, movement, parent, roleName_, roleType_), currLane_(mtxStrat, nullptr),currTurning_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection_(mtxStrat, false),
-	latMovement_(mtxStrat,0),fwdVelocity_(mtxStrat,0),latVelocity_(mtxStrat,0),fwdAccel_(mtxStrat,0),turningDirection_(mtxStrat,LCS_SAME),vehicle(nullptr),
-	stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat)
-	,stop_event_nodeid(mtxStrat, -1), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false), moveDisOnTurning_(mtxStrat, 0),
-	distToIntersection_(mtxStrat, -1), distToCurrSegmentEnd_(mtxStrat, -1), perceivedAccOfFwdCar(nullptr), perceivedDistToFwdCar(nullptr), perceivedDistToTrafficSignal(nullptr), perceivedFwdAcc(nullptr),
-	perceivedFwdVel(nullptr), perceivedTrafficColor(nullptr), perceivedVelOfFwdCar(nullptr), yieldingToInIntersection(false), currDistAlongRoadSegment(0.0)
+
+sim_mob::Driver::Driver(Person_ST *parent, MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior, sim_mob::DriverMovement* movement, Role::type roleType_, std::string roleName_) :
+Role(parent, behavior, movement, roleName_, roleType_), currLane_(mtxStrat, nullptr), currTurning_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection_(mtxStrat, false),
+latMovement_(mtxStrat, 0), fwdVelocity_(mtxStrat, 0), latVelocity_(mtxStrat, 0), fwdAccel_(mtxStrat, 0), turningDirection_(mtxStrat, LCS_SAME), vehicle(nullptr),
+stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat), 
+stop_event_nodeid(mtxStrat, -1), isVehicleInLoadingQueue(true), isVehiclePositionDefined(false), moveDisOnTurning_(mtxStrat, 0),
+distToIntersection_(mtxStrat, -1), distToCurrSegmentEnd_(mtxStrat, -1), perceivedAccOfFwdCar(nullptr), perceivedDistToFwdCar(nullptr), perceivedDistToTrafficSignal(nullptr), perceivedFwdAcc(nullptr),
+perceivedFwdVel(nullptr), perceivedTrafficColor(nullptr), perceivedVelOfFwdCar(nullptr), yieldingToInIntersection(false), currDistAlongRoadSegment(0.0),
+parent(dynamic_cast<Person_ST *>(parent))
 {
 	getParams().driver = this;
 }
 
 void sim_mob::Driver::initReactionTime()
 {
-	DriverMovement* movement = dynamic_cast<DriverMovement*>(movementFacet);
-	if(movement)
+	DriverMovement* movement = dynamic_cast<DriverMovement*> (movementFacet);
+	if (movement)
 	{
 		reactionTime = movement->getCarFollowModel()->nextPerceptionSize * 1000; // seconds to ms
 	}
 
-	perceivedFwdVel = new FixedDelayed<double>(reactionTime,true);
-	perceivedFwdAcc = new FixedDelayed<double>(reactionTime,true);
-	perceivedVelOfFwdCar = new FixedDelayed<double>(reactionTime,true);
-	perceivedAccOfFwdCar = new FixedDelayed<double>(reactionTime,true);
-	perceivedDistToFwdCar = new FixedDelayed<double>(reactionTime,true);
-	perceivedDistToTrafficSignal = new FixedDelayed<double>(reactionTime,true);
-	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reactionTime,true);
+	perceivedFwdVel = new FixedDelayed<double>(reactionTime, true);
+	perceivedFwdAcc = new FixedDelayed<double>(reactionTime, true);
+	perceivedVelOfFwdCar = new FixedDelayed<double>(reactionTime, true);
+	perceivedAccOfFwdCar = new FixedDelayed<double>(reactionTime, true);
+	perceivedDistToFwdCar = new FixedDelayed<double>(reactionTime, true);
+	perceivedDistToTrafficSignal = new FixedDelayed<double>(reactionTime, true);
+	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reactionTime, true);
 }
 
-Role* sim_mob::Driver::clone(Person* parent) const
+Role* sim_mob::Driver::clone(Person_ST *parent) const
 {
-	DriverBehavior* behavior = new DriverBehavior(parent);
-	DriverMovement* movement = new DriverMovement(parent);
-	Driver* driver = new Driver(parent, parent->getMutexStrategy(), behavior, movement);
+	DriverBehavior *behavior = new DriverBehavior();
+	DriverMovement *movement = new DriverMovement();
+	Driver *driver = new Driver(parent, parent->getMutexStrategy(), behavior, movement);
 	behavior->setParentDriver(driver);
 	movement->setParentDriver(driver);
 	movement->init();
 	return driver;
 }
 
-void sim_mob::Driver::make_frame_tick_params(timeslice now){
+void sim_mob::Driver::make_frame_tick_params(timeslice now)
+{
 	getParams().reset(now, *this);
 }
 
 // Note that Driver's destructor is only for reclaiming memory.
 // If you want to remove its registered properties from the Worker (which you should do!) then
 // this should occur elsewhere.
-sim_mob::Driver::~Driver() {
+
+sim_mob::Driver::~Driver()
+{
 	//Our vehicle
 	safe_delete_item(vehicle);
 	safe_delete_item(perceivedFwdVel);
@@ -157,7 +178,8 @@ sim_mob::Driver::~Driver() {
 	safe_delete_item(perceivedDistToFwdCar);
 }
 
-vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
+vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams()
+{
 	vector<BufferedBase*> res;
 	res.push_back(&(currLane_));
 	res.push_back(&(currTurning_));
@@ -184,15 +206,15 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 }
 
 void sim_mob::Driver::onParentEvent(event::EventId eventId,
-		sim_mob::event::Context ctxId,
-		event::EventPublisher* sender,
-		const event::EventArgs& args)
+									sim_mob::event::Context ctxId,
+									event::EventPublisher* sender,
+									const event::EventArgs& args)
 {
-	if(eventId == event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH)
+	if (eventId == event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH)
 	{
 		AMOD::AMODEventPublisher* pub = (AMOD::AMODEventPublisher*) sender;
 		const AMOD::AMODRerouteEventArgs& rrArgs = MSG_CAST(AMOD::AMODRerouteEventArgs, args);
-		std::cout<<"driver get reroute event <"<< rrArgs.reRoutePath.size() <<"> from <"<<pub->id<<">"<<std::endl;
+		std::cout << "driver get reroute event <" << rrArgs.reRoutePath.size() << "> from <" << pub->id << ">" << std::endl;
 
 		rerouteWithPath(rrArgs.reRoutePath);
 	}
@@ -213,9 +235,9 @@ std::vector<sim_mob::BufferedBase*> sim_mob::Driver::getDriverInternalParams()
 
 void sim_mob::Driver::handleUpdateRequest(MovementFacet* mFacet)
 {
-	if(this->isVehicleInLoadingQueue == false)
+	if (this->isVehicleInLoadingQueue == false)
 	{
-		mFacet->updateNearbyAgent(this->getParent(),this);
+		mFacet->updateNearbyAgent(parent, this);
 	}
 }
 
@@ -228,13 +250,13 @@ const double sim_mob::Driver::getFwdVelocityM() const
 double sim_mob::Driver::gapDistance(const Driver* front)
 {
 	double headway;
-	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
+	DriverMovement* mov = dynamic_cast<DriverMovement*> (Movement());
 
 	if (front)
 	{
 		/* vehicle ahead */
 		DriverMovement* frontMov =
-				dynamic_cast<DriverMovement*>(front->Movement());
+				dynamic_cast<DriverMovement*> (front->Movement());
 
 		if (frontMov->fwdDriverMovement.isDoneWithEntireRoute())
 		{
@@ -244,7 +266,7 @@ double sim_mob::Driver::gapDistance(const Driver* front)
 		else
 		{
 			//if our segment is the same as that of the driver ahead
-			if(mov->fwdDriverMovement.getCurrSegment() == frontMov->fwdDriverMovement.getCurrSegment())
+			if (mov->fwdDriverMovement.getCurrSegment() == frontMov->fwdDriverMovement.getCurrSegment())
 			{
 				headway = mov->fwdDriverMovement.getDisToCurrSegEnd() - frontMov->fwdDriverMovement.getDisToCurrSegEnd() - front->getVehicleLengthM();
 			}
@@ -273,7 +295,8 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	UpdateParams::reset(now);
 
 	//Set to the previous known buffered values
-	if(owner.currLane_.get()) {
+	if (owner.currLane_.get())
+	{
 		currLane = owner.currLane_.get();
 	}
 	currLaneIndex = getLaneIndex(currLane);
@@ -349,14 +372,15 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	nvLeftBack2 = NearestVehicle();
 	nvRightFwd2 = NearestVehicle();
 	nvRightBack2 = NearestVehicle();
-	
+
 	density = 0;
 }
 
 void Driver::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
 {
-	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
-	if (mov) {
+	DriverMovement* mov = dynamic_cast<DriverMovement*> (Movement());
+	if (mov)
+	{
 		mov->rerouteWithBlacklist(blacklisted);
 	}
 }
@@ -394,26 +418,27 @@ void Driver::resetReactionTime(double timeMS)
 
 void Driver::rerouteWithPath(const std::vector<sim_mob::WayPoint>& path)
 {
-	DriverMovement* mov = dynamic_cast<DriverMovement*>(Movement());
-	if (mov) {
+	DriverMovement* mov = dynamic_cast<DriverMovement*> (Movement());
+	if (mov)
+	{
 		mov->rerouteWithPath(path);
 	}
 }
 
 void Driver::HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
-	switch(type)
+	switch (type)
 	{
-		case MSG_RESPONSE_INT_ARR_TIME:
-		{
-			DriverUpdateParams &params = getParams();
-			const IntersectionAccessMessage &msg = MSG_CAST(IntersectionAccessMessage, message);
-			params.accessTime = msg.getArrivalTime();
-			params.isResponseReceived = true;
-		}
-			break;
-		
-		default:
-			break;
+	case MSG_RESPONSE_INT_ARR_TIME:
+	{
+		DriverUpdateParams &params = getParams();
+		const IntersectionAccessMessage &msg = MSG_CAST(IntersectionAccessMessage, message);
+		params.accessTime = msg.getArrivalTime();
+		params.isResponseReceived = true;
+	}
+		break;
+
+	default:
+		break;
 	}
 }

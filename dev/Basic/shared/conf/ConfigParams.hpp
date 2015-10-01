@@ -94,11 +94,6 @@ public:
 	///TEMP: Need to customize this later.
 	std::string outNetworkFileName;
 
-	//The role factory used for generating roles.
-	const sim_mob::RoleFactory& getRoleFactory() const;
-
-	//Use caution here.
-	sim_mob::RoleFactory& getRoleFactoryRW();
 	sim_mob::Factory<sim_mob::Broker>& getBrokerFactoryRW();
 
 	//For generating reaction times
@@ -197,7 +192,6 @@ private:
 	//static ConfigParams instance;
 
 	sim_mob::RoadNetwork network;
-	sim_mob::RoleFactory roleFact;
 	sim_mob::Factory<sim_mob::Broker> brokerFact;
 
 	std::map<std::string, sim_mob::BusStop*> busStopNo_busStops;

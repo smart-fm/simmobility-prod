@@ -24,7 +24,7 @@
 namespace sim_mob
 {
 
-class Role;
+template <class PERSON> class Role;
 class TripChainItem;
 class SubTrip;
 class PartitionManager;
@@ -63,20 +63,11 @@ private:
 	/**Indicates that Role's updateParams has to be reset*/
 	bool resetParamsRequired;
 
-	/**The previous role that was played by the person.*/
-	sim_mob::Role* prevRole;
-
-	/**The current role being played by the person*/
-	sim_mob::Role* currRole;
-
-	/**The next role that the person will play. However, this variable is only temporary and will not be used to update the currRole*/
-	sim_mob::Role* nextRole;
-
 	/**Indicates the source of creation of the person*/
 	std::string agentSrc;
 
 	/**Holds the person's trip-chain*/
-	std::vector<TripChainItem*> tripChain;
+	std::vector<TripChainItem *> tripChain;
 
 	/**Marks the first call to update function*/
 	bool isFirstTick;
@@ -87,9 +78,6 @@ private:
 	/**Indicates if the detailed path for the current sub-trip is already planned*/
 	bool nextPathPlanned;
 
-	/**Indicates whether we have registered to receive communication simulator related messages*/
-	bool commEventRegistered;
-
 	/**Used by confluxes to move the person for his tick duration across link and sub-trip boundaries*/
 	double remainingTimeThisTick;
 	
@@ -99,15 +87,7 @@ private:
 	 *
 	 * @param blacklisted the black-listed road segments
 	 */
-	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted);
-
-	/**
-	 * Advances the current trip chain item to the next item if all the sub-trips in the trip have been completed.
-	 * If not, calls the advanceCurrentTripChainItem() method
-     * 
-	 * @return true, if the trip chain item is advanced
-     */
-	bool advanceCurrentTripChainItem();
+	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment *>& blacklisted);
 
 	/**
 	 * Advances the current sub-trip to the next item.
@@ -122,15 +102,6 @@ private:
      * @return an iterator pointing to the first sub-trip of the current trip chain \
      */
 	std::vector<sim_mob::SubTrip>::iterator resetCurrSubTrip();
-
-	/**
-	 * Enable Region support
-	 * See RegionAndPathTracker for more information.
-	 */
-	void enableRegionSupport()
-	{
-		regionAndPathTracker.enable();
-	}
 
 protected:
 	/**
@@ -162,13 +133,12 @@ protected:
 	virtual void frame_output(timeslice now);
 
 	/**Inherited from EventListener*/
-	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
+	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher *sender, const event::EventArgs &args);
 
 	/**Inherited from MessageHandler.*/
-	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message &message);
 
 public:
-
 	/**The agent's start node*/
 	WayPoint originNode;
 
@@ -185,13 +155,13 @@ public:
 	std::map<double, LinkTravelStats> linkTravelStatsMap;
 
 	/**The current item in trip chain*/
-	std::vector<TripChainItem*>::iterator currTripChainItem;
+	std::vector<TripChainItem *>::iterator currTripChainItem;
 
 	/**The current sub-trip in the current trip (if the current item is a trip)*/
 	std::vector<SubTrip>::iterator currSubTrip;
 
 	/**The next item in trip chain*/
-	std::vector<TripChainItem*>::iterator nextTripChainItem;
+	std::vector<TripChainItem *>::iterator nextTripChainItem;
 
 	/**The next sub-trip in the current trip (if the current item is a trip)*/
 	std::vector<SubTrip>::const_iterator nextSubTrip;
@@ -220,8 +190,8 @@ public:
 	std::vector<TravelMetric> subTripTravelMetrics;	
 
 	/**The "src" variable is used to help flag how this person was created.*/
-	explicit Person(const std::string& src, const MutexStrategy& mtxStrat, int id = -1, std::string databaseID = "");
-	explicit Person(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc);
+	explicit Person(const std::string &src, const MutexStrategy &mtxStrat, int id = -1, std::string databaseID = "");
+	explicit Person(const std::string &src, const MutexStrategy &mtxStrat, const std::vector<sim_mob::TripChainItem *> &tc);
 	virtual ~Person();
 
 	/**Sets the person's characteristics by some distribution*/
@@ -230,7 +200,7 @@ public:
 	/**
 	 * Initialises the trip chain
      */
-	virtual void initTripChain() = 0;
+	virtual void initTripChain();
 
 	/**
 	 * Inserts the LinkTravelStats into the map
@@ -246,21 +216,14 @@ public:
      *
 	 * @param configProps The properties specified in the configuration file
      */
-	virtual void load(const std::map<std::string, std::string>& configProps);
+	virtual void load(const std::map<std::string, std::string> &configProps);
 
 	/**
 	 * Builds a subscriptions list to be added to the managed data of the parent worker
 	 * 
 	 * @return the list of Buffered<> types this entity subscribes to
 	 */
-	virtual std::vector<BufferedBase *> buildSubscriptionList();
-
-	/**
-	 * Change the role of this person
-	 *
-     * @param newRole the new role to be assigned to the person
-     */
-	void changeRole(sim_mob::Role* newRole);
+	virtual std::vector<BufferedBase *> buildSubscriptionList() = 0;
 
 	/**
 	 * Updates the person's current role to the given role.
@@ -270,21 +233,14 @@ public:
 	 *
      * @return true, if role is updated successfully
      */
-	bool updatePersonRole(sim_mob::Role* newRole = 0);
-
-	/**
-	 * Finds the person's next role based on the person's trip-chain
-	 *
-     * @return true, if the next role is successfully found
-     */
-	bool findPersonNextRole();
+	virtual bool updatePersonRole() = 0;
 
 	/**
 	 * Sets the simulation start time of the entity
 	 *
      * @param value The simulation start time to be set
      */
-	virtual void setStartTime(unsigned int value);
+	virtual void setStartTime(unsigned int value) = 0;
 	
 	/**
 	 * Creates sub-trips for each leg of Public transit route choice made by the person
@@ -295,7 +251,7 @@ public:
      * 
 	 * @return true, if successful
      */
-	bool makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::SubTrip>& newSubTrips, const std::vector<sim_mob::OD_Trip>& matchedTrips);
+	bool makeODsToTrips(SubTrip *curSubTrip, std::vector<SubTrip> &newSubTrips, const std::vector<OD_Trip> &matchedTrips);
 
 	/**
 	 * Updates the next trip chain, used only for NextRole
@@ -316,7 +272,7 @@ public:
 
 	 * @return
      */
-	Entity::UpdateStatus checkTripChain();
+	virtual Entity::UpdateStatus checkTripChain() = 0;
 
 	/**
 	 * Update origin and destination node based on the trip, sub-trip or activity given
@@ -326,7 +282,7 @@ public:
      *
 	 * @return
      */
-	bool updateOD(sim_mob::TripChainItem* tc, const sim_mob::SubTrip* subtrip = 0);
+	bool updateOD(sim_mob::TripChainItem *tc, const sim_mob::SubTrip *subtrip = 0);
 
 	/**
 	 * A version of serializer for sub-trip level travel time.
@@ -335,7 +291,7 @@ public:
 	 * @param currTripChainItem current TripChainItem
 	 * @param currSubTrip current SubTrip for which subtripMetrics is collected
 	 */
-	void serializeSubTripChainItemTravelTimeMetrics(const TravelMetric& subtripMetrics, std::vector<TripChainItem*>::iterator currTripChainItem,
+	void serializeSubTripChainItemTravelTimeMetrics(const TravelMetric &subtripMetrics, std::vector<TripChainItem *>::iterator currTripChainItem,
 													std::vector<SubTrip>::iterator currSubTrip) const;
 
 	/**
@@ -349,7 +305,7 @@ public:
 	 * Add the given TravelMetric to subTripTravelMetrics container
 	 * NOTE: Currently Unused
 	 */
-	void addSubtripTravelMetrics(TravelMetric & value);
+	void addSubtripTravelMetrics(TravelMetric &value);
 
 	/**
 	 * Serializer for Trip level travel time
@@ -374,7 +330,7 @@ public:
      * 
 	 * @param tripChain the new trip chain
      */
-	void setTripChain(const std::vector<TripChainItem *>& tripChain);
+	void setTripChain(const std::vector<TripChainItem *> &tripChain);
 
 	/**
 	 * Indicates whether an entity is non-spatial in nature
@@ -398,7 +354,7 @@ public:
 		toRemoved = false;
 	}
 
-	const std::vector<TripChainItem*>& getTripChain() const
+	const std::vector<TripChainItem *>& getTripChain() const
 	{
 		return tripChain;
 	}
@@ -413,7 +369,7 @@ public:
 		return databaseID;
 	}
 
-	void setDatabaseId(const std::string& databaseId)
+	void setDatabaseId(const std::string &databaseId)
 	{
 		databaseID = databaseId;
 	}
@@ -433,7 +389,7 @@ public:
 		return currWorkerProvider->getGenerator();
 	}
 
-	void setConfigProperties(const std::map<std::string, std::string>& props)
+	void setConfigProperties(const std::map<std::string, std::string> &props)
 	{
 		this->configProperties = props;
 	}
@@ -451,26 +407,6 @@ public:
 	bool getNextPathPlanned()
 	{
 		return nextPathPlanned;
-	}
-
-	sim_mob::Role* getRole() const
-	{
-		return currRole;
-	}
-
-	sim_mob::Role* getPrevRole() const
-	{
-		return prevRole;
-	}
-
-	void setNextRole(sim_mob::Role* newRole)
-	{
-		nextRole = newRole;
-	}
-
-	sim_mob::Role* getNextRole() const
-	{
-		return nextRole;
 	}
 
 	double getRemainingTimeThisTick() const

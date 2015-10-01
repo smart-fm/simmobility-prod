@@ -36,7 +36,7 @@ private:
 class ActivityPerformerMovement : public sim_mob::MovementFacet
 {
 public:
-	explicit ActivityPerformerMovement(sim_mob::Person* parentAgent = nullptr);
+	explicit ActivityPerformerMovement();
 	virtual ~ActivityPerformerMovement();
 
 	//Virtual overrides
@@ -51,7 +51,6 @@ public:
 	virtual TravelMetric& finalizeTravelTimeMetric();
 
 private:
-	Person *parent;
 	sim_mob::ActivityPerformer* parentActivity;
 	friend class ActivityPerformer;
 

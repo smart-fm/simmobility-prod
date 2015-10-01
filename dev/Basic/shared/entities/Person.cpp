@@ -22,7 +22,6 @@
 #include "logging/Log.hpp"
 #include "geospatial/Node.hpp"
 #include "entities/misc/TripChain.hpp"
-#include "event/args/ReRouteEventArgs.hpp"
 #include "workers/Worker.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "message/MessageBus.hpp"
@@ -54,16 +53,16 @@ const int DEFAULT_HIGHEST_AGE = 60;
 } //End unnamed namespace
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID)
-: Agent(mtxStrat, id), databaseID(databaseID), prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src),
-tripChain(nullptr), age(0), resetParamsRequired(false), isFirstTick(true), nextPathPlanned(false), commEventRegistered(false), originNode(),
-destNode(), currLinkTravelStats(nullptr, 0.0), currRdSegTravelStats(nullptr)
+: Agent(mtxStrat, id), databaseID(databaseID), agentSrc(src),
+tripChain(nullptr), age(0), resetParamsRequired(false), isFirstTick(true), nextPathPlanned(false), 
+originNode(), destNode(), currLinkTravelStats(nullptr, 0.0), currRdSegTravelStats(nullptr)
 {
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc)
-: Agent(mtxStrat), databaseID(tc.front()->getPersonID()), prevRole(nullptr), currRole(nullptr), nextRole(nullptr), 
-agentSrc(src), tripChain(tc), age(0), resetParamsRequired(false), isFirstTick(true), nextPathPlanned(false), commEventRegistered(false), 
-originNode(), destNode(), currLinkTravelStats(nullptr, 0.0), currRdSegTravelStats(nullptr)
+: Agent(mtxStrat), databaseID(tc.front()->getPersonID()), agentSrc(src), tripChain(tc), age(0), resetParamsRequired(false), 
+isFirstTick(true), nextPathPlanned(false), originNode(), destNode(), currLinkTravelStats(nullptr, 0.0), 
+currRdSegTravelStats(nullptr)
 {
 	if (!tripChain.empty())
 	{
@@ -73,18 +72,9 @@ originNode(), destNode(), currLinkTravelStats(nullptr, 0.0), currRdSegTravelStat
 
 sim_mob::Person::~Person()
 {
-	safe_delete_item(prevRole);
-	safe_delete_item(currRole);
-
-	//Un-register event listeners.
-	if (commEventRegistered)
-	{
-		messaging::MessageBus::UnSubscribeEvent(sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT, this, this);
-	}
-
-	//safe_delete_item(nextRole);
 	//last chance to collect travel time metrics(if any)
 	//aggregateSubTripMetrics();
+	
 	//serialize them
 	//serializeTripTravelTimeMetrics();
 }
@@ -105,313 +95,33 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 {
 }
 
-void Person::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
+void Person::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment *> &blacklisted)
 {
-	//This requires the Role's intervention.
-	if (currRole)
-	{
-		currRole->rerouteWithBlacklist(blacklisted);
-	}
-}
-
-bool sim_mob::Person::frame_init(timeslice now)
-{
-	messaging::MessageBus::RegisterHandler(this);
-	currTick = now;
-
-	//Reset the Region tracking data structures, if applicable.
-	//regionAndPathTracker.reset();
-
-	//Register for commsim messages, if applicable.
-	if (!commEventRegistered && ConfigManager::GetInstance().XmlConfig().system.simulation.commsim.enabled)
-	{
-		commEventRegistered = true;
-		messaging::MessageBus::SubscribeEvent(
-											sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
-											this, //Only when we are the Agent having commsim enabled.
-											this //Return this event to us (the agent).
-											);
-	}
-
-	//Agents may be created with a null Role and a valid trip chain
-	if (!currRole)
-	{
-		//TODO: This UpdateStatus has a "prevParams" and "currParams" that should
-		//      (one would expect) be dealt with. Where does this happen?
-		setStartTime(now.ms());
-
-		UpdateStatus res = checkTripChain();
-
-		if (currRole)
-		{
-			currRole->setArrivalTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS());
-		}
-
-		//Nothing left to do?
-		if (res.status == UpdateStatus::RS_DONE)
-		{
-			return false;
-		}
-	}
-
-	//Failsafe: no Role at all?
-	if (!currRole)
-	{
-		std::ostringstream txt;
-		txt << "Person " << this->getId() << " has no Role.";
-		throw std::runtime_error(txt.str());
-	}
-
-	//Get an UpdateParams instance.
-	//TODO: This is quite unsafe, but it's a relic of how Person::update() used to work.
-	//      We should replace this eventually (but this will require a larger code cleanup).
-	currRole->make_frame_tick_params(now);
-
-	//Now that the Role has been fully constructed, initialise it.
-	if ((*currTripChainItem))
-	{
-		currRole->Movement()->frame_init();
-	}
-	return true;
 }
 
 void sim_mob::Person::onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args)
 {
-	Agent::onEvent(eventId, ctxId, sender, args);
-	//Some events only matter if they are for us.
-	if (ctxId == this)
-	{
-		if (eventId == event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT)
-		{
-			//Was commsim enabled for us? If so, start tracking Regions.
-			Print() << "Enabling Region support for agent: " << this << "\n";
-			enableRegionSupport();
-
-			//This requires us to now listen for a new set of events.
-			messaging::MessageBus::SubscribeEvent(
-												sim_mob::event::EVT_CORE_COMMSIM_REROUTING_REQUEST,
-												this, //Only when we are the Agent being requested to re-route..
-												this //Return this event to us (the agent).
-												);
-		}
-		else if (eventId == event::EVT_CORE_COMMSIM_REROUTING_REQUEST)
-		{
-			//Were we requested to re-route?
-			const ReRouteEventArgs& rrArgs = MSG_CAST(ReRouteEventArgs, args);
-			const std::map<int, sim_mob::RoadRunnerRegion>& regions = ConfigManager::GetInstance().FullConfig().getNetwork().roadRunnerRegions;
-			std::map<int, sim_mob::RoadRunnerRegion>::const_iterator it = regions.find(boost::lexical_cast<int>(rrArgs.getBlacklistRegion()));
-			if (it != regions.end())
-			{
-				std::vector<const sim_mob::RoadSegment*> blacklisted = StreetDirectory::instance().getSegmentsFromRegion(it->second);
-				rerouteWithBlacklist(blacklisted);
-			}
-		}
-	}
-
-	if (currRole)
-	{
-		currRole->onParentEvent(eventId, ctxId, sender, args);
-	}
 }
 
 void sim_mob::Person::HandleMessage(messaging::Message::MessageType type, const messaging::Message& message)
 {
-	if (currRole)
-	{
-		currRole->HandleParentMessage(type, message);
-	}
+}
+
+bool sim_mob::Person::frame_init(timeslice now)
+{
 }
 
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {
-	currTick = now;
-	//TODO: Here is where it gets risky.
-	if (resetParamsRequired)
-	{
-		currRole->make_frame_tick_params(now);
-		resetParamsRequired = false;
-	}
-
-	Entity::UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
-
-	if (!isToBeRemoved())
-	{
-		currRole->Movement()->frame_tick();
-	}
-
-	//If we're "done", try checking to see if we have any more items in our Trip Chain.
-	// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
-	// in this manner), but it's the easiest solution that uses the current API.
-	//TODO: This section should technically go after frame_output(), but doing that
-	//      (by overriding Person::update() and calling Agent::update() then inserting this code)
-	//      will bring us outside the bounds of our try {} catch {} statement. We might move this
-	//      statement into the worker class, but I don't want to change too many things
-	//      about Agent/Person at once. ~Seth
-	if (isToBeRemoved())
-	{
-		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
-		setStartTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS());
-
-		retVal = checkTripChain();
-
-		if (currTripChainItem != tripChain.end())
-		{
-			sim_mob::TripChainItem* tcItem = *currTripChainItem;
-			if (tcItem) // if currTripChain not end and has value, call frame_init and switching roles
-			{
-				if (tcItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY)
-				{
-					//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
-					//since start time of the activity is usually later than what is configured initially,
-					//we have to make adjustments so that the person waits for exact amount of time
-					sim_mob::ActivityPerformer* ap = dynamic_cast<sim_mob::ActivityPerformer*> (currRole);
-					ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
-					ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + (tcItem->endTime.getValue() - tcItem->startTime.getValue())));
-				}
-				if (!isInitialized())
-				{
-					currRole->Movement()->frame_init();
-					setInitialized(true); // set to be false so later no need to frame_init later
-				}
-			}
-		}
-	}
-
-	return retVal;
 }
 
 void sim_mob::Person::frame_output(timeslice now)
 {
-	//Save the output
-	if (!isToBeRemoved())
-	{
-		currRole->Movement()->frame_tick_output();
-	}
-
-	//avoiding logical errors while improving the code
-	resetParamsRequired = true;
 }
 
 bool sim_mob::Person::updateOD(sim_mob::TripChainItem * tc, const sim_mob::SubTrip *subtrip)
 {
 	return tc->setPersonOD(this, subtrip);
-}
-
-bool sim_mob::Person::findPersonNextRole()
-{
-	if (!updateNextTripChainItem())
-	{
-		safe_delete_item(nextRole);
-		return false;
-	}
-
-	//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
-	// it's better to avoid possible errors (e.g., if the equality operator is defined)
-	// by saving it until the next time tick.
-	//safe_delete_item(prevRole);
-	safe_delete_item(nextRole);
-	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
-
-	const sim_mob::TripChainItem* tci = *(this->nextTripChainItem);
-	if (tci->itemType == sim_mob::TripChainItem::IT_TRIP)
-	{
-		nextRole = rf.createRole(tci, &(*nextSubTrip), this);
-	}
-
-	return true;
-}
-
-bool sim_mob::Person::updatePersonRole(sim_mob::Role* newRole)
-{
-	//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
-	// it's better to avoid possible errors (e.g., if the equality operator is defined)
-	// by saving it until the next time tick.
-	safe_delete_item(prevRole);
-	const RoleFactory& rf = ConfigManager::GetInstance().FullConfig().getRoleFactory();
-	const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
-	const sim_mob::SubTrip* subTrip = nullptr;
-
-	if (tci->itemType == sim_mob::TripChainItem::IT_TRIP)
-	{
-		subTrip = &(*currSubTrip);
-	}
-
-	if (!newRole)
-	{
-		newRole = rf.createRole(tci, subTrip, this);
-	}
-
-	changeRole(newRole);
-	return true;
-}
-
-void sim_mob::Person::setStartTime(unsigned int value)
-{
-	sim_mob::Entity::setStartTime(value);
-	if (currRole)
-	{
-		currRole->setArrivalTime(value + ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
-	}
-}
-
-UpdateStatus sim_mob::Person::checkTripChain()
-{
-	if (tripChain.empty())
-	{
-		return UpdateStatus::Done;
-	}
-
-	//advance the trip, sub-trip or activity....
-	if (!isFirstTick)
-	{
-		if (!(advanceCurrentTripChainItem()))
-		{
-			return UpdateStatus::Done;
-		}
-	}
-	
-	//must be set to false whenever trip chain item changes. And it has to happen before a probable creation of (or changing to) a new role
-	setNextPathPlanned(false);
-
-	//Create a new Role based on the trip chain type
-	updatePersonRole(nextRole);
-
-	//Update our origin/destination pair.
-	if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
-	{ 
-		//put if to avoid & evade bus trips, can be removed when everything is ok
-		updateOD(*currTripChainItem, &(*currSubTrip));
-	}
-
-	//currentTipchainItem or current sub-trip are changed
-	//so OD will be changed too,
-	//therefore we need to call frame_init regardless of change in the role
-	unsetInitialized();
-
-	//Create a return type based on the differences in these Roles
-	vector<BufferedBase*> prevParams;
-	vector<BufferedBase*> currParams;
-	
-	if (prevRole)
-	{
-		prevParams = prevRole->getSubscriptionParams();
-	}
-	
-	if (currRole)
-	{
-		currParams = currRole->getSubscriptionParams();
-	}
-	
-	if (isFirstTick && currRole)
-	{
-		currRole->setArrivalTime(startTime + ConfigManager::GetInstance().FullConfig().simStartTime().getValue());
-	}
-	
-	isFirstTick = false;
-
-	//Null out our trip chain, remove the "removed" flag, and return
-	clearToBeRemoved();
-	return UpdateStatus(UpdateStatus::RS_CONTINUE, prevParams, currParams);
 }
 
 std::vector<sim_mob::SubTrip>::iterator sim_mob::Person::resetCurrSubTrip()
@@ -680,107 +390,6 @@ bool sim_mob::Person::advanceCurrentSubTrip()
 		return false;
 	}
 	return true;
-}
-
-bool sim_mob::Person::advanceCurrentTripChainItem()
-{
-	if (currTripChainItem == tripChain.end()) /*just a harmless basic check*/
-	{
-		return false;
-	}
-
-	// current role (activity or sub-trip level role)[for now: only subtrip] is about to change, time to collect its movement metrics(even activity performer)
-	if (currRole != nullptr)
-	{
-		TravelMetric currRoleMetrics = currRole->Movement()->finalizeTravelTimeMetric();
-		currRole->Movement()->resetTravelTimeMetric(); //sorry for manual reset, just a precaution for now
-		serializeSubTripChainItemTravelTimeMetrics(currRoleMetrics, currTripChainItem, currSubTrip);
-	}
-
-	//first check if you just need to advance the subtrip
-	if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
-	{
-		//don't advance to next tripchainItem immediately, check the subtrip first
-		bool res = advanceCurrentSubTrip();
-
-		//subtrip advanced successfully, no need to advance currTripChainItem
-		if (res)
-		{
-			return res;
-		}
-	}
-
-	//Trip is about the change, collect the Metrics	
-	//if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
-	//{
-	//	aggregateSubTripMetrics();
-	//}
-	//
-	//serializeTripChainItem(currTripChainItem); 
-
-	//do the increment
-	++currTripChainItem;
-
-	if (currTripChainItem == tripChain.end())
-	{
-		//but tripchain items are also over, get out !
-		return false;
-	}
-
-	//so far, advancing the tripchainitem has been successful
-	//Also set the currSubTrip to the beginning of trip , just in case
-	if ((*currTripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
-	{
-		currSubTrip = resetCurrSubTrip();
-	}
-
-	return true;
-}
-
-vector<BufferedBase *> sim_mob::Person::buildSubscriptionList()
-{
-	//First, add the x and y co-ordinates
-	vector<BufferedBase *> subsList;
-	subsList.push_back(&xPos);
-	subsList.push_back(&yPos);
-
-	//Now, add our own properties.
-	if (this->getRole())
-	{
-		vector<BufferedBase*> roleParams = this->getRole()->getSubscriptionParams();
-
-		//Append the subsList with all elements in roleParams
-		subsList.insert(subsList.end(), roleParams.begin(), roleParams.end());
-	}
-
-	return subsList;
-}
-
-void sim_mob::Person::changeRole(sim_mob::Role* newRole)
-{
-	if (currRole)
-	{
-		currRole->setParent(nullptr);
-		if (this->currWorkerProvider)
-		{
-			this->currWorkerProvider->stopManaging(currRole->getSubscriptionParams());
-			this->currWorkerProvider->stopManaging(currRole->getDriverRequestParams().asVector());
-		}
-	}
-
-	safe_delete_item(prevRole);
-	prevRole = currRole;
-	currRole = newRole;
-
-	if (currRole)
-	{
-		currRole->setParent(this);
-		if (this->currWorkerProvider)
-		{
-			this->currWorkerProvider->beginManaging(currRole->getSubscriptionParams());
-			this->currWorkerProvider->beginManaging(currRole->getDriverRequestParams().asVector());
-		}
-	}
 }
 
 void sim_mob::Person::setPersonCharacteristics()

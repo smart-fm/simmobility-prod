@@ -21,6 +21,15 @@ private:
 	/***/
 	const sim_mob::Link* nextLinkRequired;
 
+	/**The previous role that was played by the person.*/
+	Role<Person_MT>* prevRole;
+
+	/**The current role being played by the person*/
+	Role<Person_MT>* currRole;
+
+	/**The next role that the person will play. However, this variable is only temporary and will not be used to update the currRole*/
+	Role<Person_MT>* nextRole;
+
 	/**Alters trip chain in accordance to route choice for public transit trips*/
 	void convertODsToTrips();
 
@@ -29,6 +38,14 @@ private:
 
 	/**Assigns id to sub-trips*/
 	void assignSubtripIds();
+
+	/**
+	 * Advances the current trip chain item to the next item if all the sub-trips in the trip have been completed.
+	 * If not, calls the advanceCurrentTripChainItem() method
+     *
+	 * @return true, if the trip chain item is advanced
+     */
+	bool advanceCurrentTripChainItem();
 
 protected:
 public:
@@ -59,7 +76,45 @@ public:
 	/**
 	 * Initialises the trip chain
      */
-	void initTripChain() = 0;
+	void initTripChain();
+
+	/**
+	 * Check if any role changing is required.
+
+	 * @return
+     */
+	Entity::UpdateStatus checkTripChain();
+
+	/**
+	 * Sets the simulation start time of the entity
+	 *
+     * @param value The simulation start time to be set
+     */
+	virtual void setStartTime(unsigned int value);
+
+	/**
+	 * Updates the person's current role to the given role.
+	 *
+     * @param newRole Indicates the new role of the person. If the new role is not provided,
+	 * a new role is created based on the current sub-trip
+	 *
+     * @return true, if role is updated successfully
+     */
+	bool updatePersonRole();
+
+	/**
+	 * Change the role of this person
+	 *
+     * @param newRole the new role to be assigned to the person
+     */
+	void changeRole();
+
+	/**
+	 * Builds a subscriptions list to be added to the managed data of the parent worker
+	 *
+	 * @return the list of Buffered<> types this entity subscribes to
+	 */
+	virtual std::vector<BufferedBase *> buildSubscriptionList() = 0;
 
 	const sim_mob::Lane* getCurrLane() const
 	{
@@ -89,6 +144,26 @@ public:
 	void setNextLinkRequired(Link* nextLink)
 	{
 		nextLinkRequired = nextLink;
+	}
+
+	Role<Person_MT>* getRole() const
+	{
+		return currRole;
+	}
+
+	Role<Person_MT>* getPrevRole() const
+	{
+		return prevRole;
+	}
+
+	void setNextRole(Role<Person_MT> *newRole)
+	{
+		nextRole = newRole;
+	}
+
+	Role<Person_MT>* getNextRole() const
+	{
+		return nextRole;
 	}
 };
 }

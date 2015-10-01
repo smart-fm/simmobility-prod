@@ -8,13 +8,15 @@
 #include "entities/roles/Role.hpp"
 #include "waitBusActivityFacets.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 class Agent;
 class Person;
 class BusStop;
 
-namespace medium {
+namespace medium
+{
 
 class WaitBusActivityBehavior;
 class WaitBusActivityMovement;
@@ -25,19 +27,21 @@ class BusDriver;
  * \author Seth N. Hetu
  * \author zhang huai peng
  */
-class WaitBusActivity: public sim_mob::Role, public UpdateWrapper<UpdateParams> {
+class WaitBusActivity : public sim_mob::Role<Person_MT>, public UpdateWrapper<UpdateParams>
+{
 public:
 
-	explicit WaitBusActivity(Person* parent, MutexStrategy mtxStrat,
-			sim_mob::medium::WaitBusActivityBehavior* behavior = nullptr,
-			sim_mob::medium::WaitBusActivityMovement* movement = nullptr,
-			std::string roleName = std::string("WaitBusActivity_"),
-			Role::type roleType = Role::RL_WAITBUSACTITITY);
+	explicit WaitBusActivity(Person_MT *parent, 
+							sim_mob::medium::WaitBusActivityBehavior* behavior = nullptr,
+							sim_mob::medium::WaitBusActivityMovement* movement = nullptr,
+							std::string roleName = std::string("WaitBusActivity_"),
+							Role::type roleType = Role::RL_WAITBUSACTITITY);
 
-	virtual ~WaitBusActivity() {
+	virtual ~WaitBusActivity()
+	{
 	}
 
-	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+	virtual sim_mob::Role* clone(Person_MT *parent) const;
 
 	virtual void make_frame_tick_params(timeslice now);
 
@@ -73,39 +77,47 @@ public:
 	 * @param message data received.
 	 */
 	virtual void HandleParentMessage(messaging::Message::MessageType type,
-			const messaging::Message& message);
+									const messaging::Message& message);
 
-	const BusStop* getStop() const {
+	const BusStop* getStop() const
+	{
 		return stop;
 	}
 
 	const std::string getBusLines();
 
-	void setStop(sim_mob::BusStop* busStop) {
+	void setStop(sim_mob::BusStop* busStop)
+	{
 		stop = busStop;
 	}
 
-	bool canBoardBus() const {
+	bool canBoardBus() const
+	{
 		return boardBus;
 	}
 
-	void setBoardBus(bool boardBus) {
+	void setBoardBus(bool boardBus)
+	{
 		this->boardBus = boardBus;
 	}
 
-	void setWaitingTime(unsigned int time){
+	void setWaitingTime(unsigned int time)
+	{
 		waitingTime = time;
 	}
 
-	const unsigned int getWaitingTime() const {
+	const unsigned int getWaitingTime() const
+	{
 		return waitingTime;
 	}
 
-	void setFailedBoardingTimes(unsigned int times){
+	void setFailedBoardingTimes(unsigned int times)
+	{
 		failedBoardingTimes = times;
 	}
 
-	const unsigned int getFailedBoardingTimes() const {
+	const unsigned int getFailedBoardingTimes() const
+	{
 		return failedBoardingTimes;
 	}
 

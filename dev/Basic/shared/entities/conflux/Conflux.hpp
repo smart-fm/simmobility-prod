@@ -14,7 +14,6 @@
 namespace sim_mob {
 class Person;
 class RoadSegment;
-class Role;
 class SegmentStats;
 class Worker;
 

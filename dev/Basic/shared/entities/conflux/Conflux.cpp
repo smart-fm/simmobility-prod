@@ -646,7 +646,7 @@ void sim_mob::Conflux::killAgent(sim_mob::Person* person, PersonProps& beforeUpd
 	const sim_mob::Lane* prevLane = beforeUpdate.lane;
 	bool wasQueuing = beforeUpdate.isQueuing;
 	double vehicleLength = beforeUpdate.vehicleLength;
-	sim_mob::Role::type personRoleType = sim_mob::Role::RL_UNKNOWN;
+	sim_mob::Role::Type personRoleType = sim_mob::Role::RL_UNKNOWN;
 	if(person->getRole()) { personRoleType = person->getRole()->roleType; }
 	switch(personRoleType)
 	{

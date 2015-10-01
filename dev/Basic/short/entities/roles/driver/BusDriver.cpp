@@ -37,7 +37,7 @@ namespace {
 //const int BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;
 }//End anonymous namespace
 
-sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat, sim_mob::BusDriverBehavior* behavior, sim_mob::BusDriverMovement* movement, Role::type roleType_) :
+sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat, sim_mob::BusDriverBehavior* behavior, sim_mob::BusDriverMovement* movement, Role::Type roleType_) :
 	Driver(parent, mtxStrat, behavior, movement, roleType_), existed_Request_Mode(mtxStrat, 0), waiting_Time(mtxStrat, 0),
 	lastVisited_Busline(mtxStrat, "0"), lastVisited_BusTrip_SequenceNo(mtxStrat, 0), lastVisited_BusStop(mtxStrat, nullptr), lastVisited_BusStopSequenceNum(mtxStrat, 0),
 	real_DepartureTime(mtxStrat, 0), real_ArrivalTime(mtxStrat, 0), DwellTime_ijk(mtxStrat, 0), busstop_sequence_no(mtxStrat, 0),

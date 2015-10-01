@@ -53,7 +53,7 @@ public:
 		sim_mob::medium::DriverBehavior* behavior = nullptr,
 		sim_mob::medium::DriverMovement* movement = nullptr,
 		std::string roleName = std::string(),
-		Role::type roleType = Role::RL_DRIVER);
+		Role::Type roleType = Role::RL_DRIVER);
 	virtual ~Driver();
 
 	virtual sim_mob::Role* clone(Person_MT *parent) const;

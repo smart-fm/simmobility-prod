@@ -35,7 +35,7 @@ public:
 							sim_mob::medium::WaitBusActivityBehavior* behavior = nullptr,
 							sim_mob::medium::WaitBusActivityMovement* movement = nullptr,
 							std::string roleName = std::string("WaitBusActivity_"),
-							Role::type roleType = Role::RL_WAITBUSACTITITY);
+							Role::Type roleType = Role::RL_WAITBUSACTITITY);
 
 	virtual ~WaitBusActivity()
 	{

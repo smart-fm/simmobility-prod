@@ -21,13 +21,13 @@ using std::vector;
 using namespace std;
 using namespace sim_mob;
 
-ActivityPerformer::ActivityPerformer(Person* parent, ActivityPerformerBehavior* behavior, ActivityPerformerMovement* movement, string roleName, type roleType_) 
+ActivityPerformer::ActivityPerformer(Person* parent, ActivityPerformerBehavior* behavior, ActivityPerformerMovement* movement, string roleName, Type roleType_) 
 : Role(parent, behavior, movement, roleName, roleType_), remainingTimeToComplete(0), location(nullptr)
 {
 }
 
 ActivityPerformer::ActivityPerformer(Person* parent, const Activity& currActivity, ActivityPerformerBehavior* behavior, ActivityPerformerMovement* movement, 
-									 Role::type roleType_, string roleName) 
+									 Role::Type roleType_, string roleName) 
 : Role(parent, behavior, movement, roleName, roleType_), remainingTimeToComplete(0), location(nullptr)
 {
 	activityStartTime = currActivity.startTime;

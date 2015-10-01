@@ -83,7 +83,7 @@ class Pedestrian2 : public sim_mob::Role<Person_ST>, public UpdateWrapper<Pedest
 {
 public:
 	Pedestrian2(Person_ST *parent, sim_mob::Pedestrian2Behavior* behavior = nullptr, sim_mob::Pedestrian2Movement* movement = nullptr,
-			 Role::type roleType_ = RL_PEDESTRIAN, std::string roleName = "pedestrian");
+			 Role::Type roleType_ = RL_PEDESTRIAN, std::string roleName = "pedestrian");
 	virtual ~Pedestrian2();
 
 	virtual sim_mob::Role* clone(sim_mob::Person_ST *parent) const;

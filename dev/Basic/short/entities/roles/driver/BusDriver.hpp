@@ -33,7 +33,7 @@ class BusDriverMovement;
  */
 class BusDriver : public sim_mob::Driver {
 public:
-	BusDriver(sim_mob::Person* parent, sim_mob::MutexStrategy mtxStrat, sim_mob::BusDriverBehavior* behavior = nullptr, sim_mob::BusDriverMovement* movement = nullptr, Role::type roleType_ = RL_BUSDRIVER);
+	BusDriver(sim_mob::Person* parent, sim_mob::MutexStrategy mtxStrat, sim_mob::BusDriverBehavior* behavior = nullptr, sim_mob::BusDriverMovement* movement = nullptr, Role::Type roleType_ = RL_BUSDRIVER);
 
 	//Overrides
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

@@ -10,7 +10,7 @@ using namespace sim_mob;
 sim_mob::medium::Biker::Biker(Person* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::BikerBehavior* behavior,
 		sim_mob::medium::BikerMovement* movement,
-		std::string roleName, Role::type roleType)
+		std::string roleName, Role::Type roleType)
 : sim_mob::medium::Driver(parent, mtxStrat, behavior, movement, roleName, roleType)
 {}
 

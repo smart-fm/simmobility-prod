@@ -66,7 +66,7 @@ size_t getLaneIndex(const Lane* l) {
 sim_mob::medium::Driver::Driver(Person_MT* parent,
 		sim_mob::medium::DriverBehavior* behavior,
 		sim_mob::medium::DriverMovement* movement,
-		std::string roleName, Role<Person_MT>::type roleType) :
+		std::string roleName, Role<Person_MT>::Type roleType) :
 	sim_mob::Role(behavior, movement, parent, roleName, roleType),
 	currLane(nullptr)
 {}

@@ -187,7 +187,7 @@ class UnPackageUtils;
 
     //Constructor and public member functions
     Driver(Person_ST *parent, sim_mob::MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior = nullptr,
-           sim_mob::DriverMovement* movement = nullptr, Role::type roleType_ = RL_DRIVER, std::string roleName_ = "driver");
+           sim_mob::DriverMovement* movement = nullptr, Role::Type roleType_ = RL_DRIVER, std::string roleName_ = "driver");
 
     virtual ~Driver();
 

@@ -12,7 +12,7 @@ using std::vector;
 using namespace sim_mob;
 
 sim_mob::WaitBusActivityRole::WaitBusActivityRole(Person_ST *parent, WaitBusActivityRoleBehavior *behavior, WaitBusActivityRoleMovement *movement,
-												  Role::type roleType_, std::string roleName)
+												  Role::Type roleType_, std::string roleName)
 : Role(parent, behavior, movement, parent, roleName, roleType_), params(parent->getGenerator()), TimeOfReachingBusStop(0), waitingTimeAtBusStop(0)
 {
 }

@@ -30,7 +30,7 @@ public:
 			sim_mob::medium::BusDriverBehavior* behavior = nullptr,
 			sim_mob::medium::BusDriverMovement* movement = nullptr,
 			std::string roleName = std::string(),
-			Role::type roleType = RL_BUSDRIVER);
+			Role::Type roleType = RL_BUSDRIVER);
 	virtual ~BusDriver();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;

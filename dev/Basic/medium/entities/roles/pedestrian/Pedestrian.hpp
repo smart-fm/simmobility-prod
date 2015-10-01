@@ -32,7 +32,7 @@ public:
 						sim_mob::medium::PedestrianBehavior* behavior = nullptr,
 						sim_mob::medium::PedestrianMovement* movement = nullptr,
 						std::string roleName = std::string("Pedestrian_"),
-						Role::type roleType = Role::RL_PEDESTRIAN);
+						Role::Type roleType = Role::RL_PEDESTRIAN);
 
 	virtual ~Pedestrian();
 

@@ -64,7 +64,7 @@ class WaitBusActivityRole : public sim_mob::Role<Person_ST>, public UpdateWrappe
 {
 public:
 	WaitBusActivityRole(Person_ST *parent, WaitBusActivityRoleBehavior *behavior = nullptr, WaitBusActivityRoleMovement *movement = nullptr,
-					 Role::type roleType_ = RL_WAITBUSACTITITY, std::string roleName = "waitBusActivityRole");
+					 Role::Type roleType_ = RL_WAITBUSACTITITY, std::string roleName = "waitBusActivityRole");
 	virtual ~WaitBusActivityRole();
 	virtual void make_frame_tick_params(timeslice now);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();

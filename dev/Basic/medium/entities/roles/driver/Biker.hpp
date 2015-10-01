@@ -26,7 +26,7 @@ public:
 			sim_mob::medium::BikerBehavior* behavior = nullptr,
 			sim_mob::medium::BikerMovement* movement = nullptr,
 			std::string roleName = std::string(),
-			Role::type roleType = RL_BIKER);
+			Role::Type roleType = RL_BIKER);
 	virtual ~Biker();
 
 	//Virtual overrides

@@ -117,7 +117,7 @@ size_t getLaneIndex(const Lane* l)
 
 //Initialize
 
-sim_mob::Driver::Driver(Person_ST *parent, MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior, sim_mob::DriverMovement* movement, Role::type roleType_, std::string roleName_) :
+sim_mob::Driver::Driver(Person_ST *parent, MutexStrategy mtxStrat, sim_mob::DriverBehavior* behavior, sim_mob::DriverMovement* movement, Role::Type roleType_, std::string roleName_) :
 Role(parent, behavior, movement, roleName_, roleType_), currLane_(mtxStrat, nullptr), currTurning_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection_(mtxStrat, false),
 latMovement_(mtxStrat, 0), fwdVelocity_(mtxStrat, 0), latVelocity_(mtxStrat, 0), fwdAccel_(mtxStrat, 0), turningDirection_(mtxStrat, LCS_SAME), vehicle(nullptr),
 stop_event_type(mtxStrat, -1), stop_event_scheduleid(mtxStrat, -1), stop_event_lastBoardingPassengers(mtxStrat), stop_event_lastAlightingPassengers(mtxStrat), stop_event_time(mtxStrat), 

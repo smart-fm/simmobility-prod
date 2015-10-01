@@ -78,7 +78,7 @@ vector<const RoadSegment*> ForceForwardSubpath(const RoadSegment* revSegment, ve
 
 }
 
-sim_mob::Pedestrian2::Pedestrian2(Person_ST *parent, Pedestrian2Behavior* behavior, Pedestrian2Movement* movement, Role::type roleType_, std::string roleName) 
+sim_mob::Pedestrian2::Pedestrian2(Person_ST *parent, Pedestrian2Behavior* behavior, Pedestrian2Movement* movement, Role::Type roleType_, std::string roleName) 
 : Role(parent, behavior, movement, parent, roleName, roleType_), params(parent->getGenerator())
 {
 	//	//Check non-null parent. Perhaps references may be of use here?

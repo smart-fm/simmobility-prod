@@ -41,8 +41,8 @@ class UnPackageUtils;
 class ActivityPerformer : public sim_mob::Role<Person>
 {
 public:
-	ActivityPerformer(sim_mob::Person* parent, sim_mob::ActivityPerformerBehavior* behavior = nullptr, sim_mob::ActivityPerformerMovement* movement = nullptr, std::string roleName = std::string(), Role::type roleType_ = RL_ACTIVITY);
-	ActivityPerformer(sim_mob::Person* parent, const sim_mob::Activity& currActivity, sim_mob::ActivityPerformerBehavior* behavior = nullptr, sim_mob::ActivityPerformerMovement* movement = nullptr, Role::type roleType_ = RL_ACTIVITY, std::string roleName = "activityRole");
+	ActivityPerformer(sim_mob::Person* parent, sim_mob::ActivityPerformerBehavior* behavior = nullptr, sim_mob::ActivityPerformerMovement* movement = nullptr, std::string roleName = std::string(), Role::Type roleType_ = RL_ACTIVITY);
+	ActivityPerformer(sim_mob::Person* parent, const sim_mob::Activity& currActivity, sim_mob::ActivityPerformerBehavior* behavior = nullptr, sim_mob::ActivityPerformerMovement* movement = nullptr, Role::Type roleType_ = RL_ACTIVITY, std::string roleName = "activityRole");
 	virtual ~ActivityPerformer();
 
 	//Virtual overrides

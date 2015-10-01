@@ -24,7 +24,7 @@ namespace medium
 sim_mob::medium::WaitBusActivity::WaitBusActivity(Person_MT *parent,
 												  sim_mob::medium::WaitBusActivityBehavior* behavior,
 												  sim_mob::medium::WaitBusActivityMovement* movement,
-												  std::string roleName, Role::type roleType) :
+												  std::string roleName, Role::Type roleType) :
 sim_mob::Role(parent, behavior, movement, parent, roleName, roleType),
 waitingTime(0), stop(nullptr), boardBus(false), failedBoardingTimes(0)
 {

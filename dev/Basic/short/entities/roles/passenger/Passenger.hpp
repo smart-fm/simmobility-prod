@@ -56,7 +56,7 @@ class Passenger : public Role<Person_ST>, public UpdateWrapper<PassengerUpdatePa
 {
 public:
 	Passenger(Person_ST *parent, MutexStrategy mtxStrat, PassengerBehavior* behavior = nullptr, PassengerMovement* movement = nullptr,
-			 Role::type roleType_ = RL_PASSENGER, std::string roleName_ = "passenger");
+			 Role::Type roleType_ = RL_PASSENGER, std::string roleName_ = "passenger");
 
 	virtual ~Passenger()
 	{

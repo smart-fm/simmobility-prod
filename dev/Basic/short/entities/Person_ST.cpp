@@ -407,22 +407,16 @@ bool Person_ST::findPersonNextRole()
 
 bool Person_ST::updatePersonRole()
 {
-	//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
-	//it's better to avoid possible errors (e.g., if the equality operator is defined)
-	//by saving it until the next time tick.
-	safe_delete_item(prevRole);
-	
-	const RoleFactory<Person_ST> *rf = RoleFactory<Person_ST>::getInstance();
-	const TripChainItem *tci = *(this->currTripChainItem);
-	const SubTrip* subTrip = NULL;
-
-	if (tci->itemType == TripChainItem::IT_TRIP)
-	{
-		subTrip = &(*currSubTrip);
-	}
-
 	if (!nextRole)
 	{
+		const RoleFactory<Person_ST> *rf = RoleFactory<Person_ST>::getInstance();
+		const TripChainItem *tci = *(this->currTripChainItem);
+		const SubTrip* subTrip = NULL;
+
+		if (tci->itemType == TripChainItem::IT_TRIP)
+		{
+			subTrip = &(*currSubTrip);
+		}
 		nextRole = rf->createRole(tci, subTrip, this);
 	}
 

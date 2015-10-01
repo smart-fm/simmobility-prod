@@ -245,23 +245,17 @@ void Person_MT::initTripChain()
 }
 
 bool Person_MT::updatePersonRole()
-{
-	//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
-	//it's better to avoid possible errors (e.g., if the equality operator is defined)
-	//by saving it until the next time tick.
-	safe_delete_item(prevRole);
-	
-	const RoleFactory<Person_MT> *rf = RoleFactory<Person_MT>::getInstance();
-	const sim_mob::TripChainItem* tci = *(this->currTripChainItem);
-	const sim_mob::SubTrip* subTrip = nullptr;
-
-	if (tci->itemType == sim_mob::TripChainItem::IT_TRIP)
-	{
-		subTrip = &(*currSubTrip);
-	}
-
+{	
 	if (!nextRole)
 	{
+		const RoleFactory<Person_MT> *rf = RoleFactory<Person_MT>::getInstance();
+		const TripChainItem *tci = *(this->currTripChainItem);
+		const SubTrip* subTrip = NULL;
+
+		if (tci->itemType == TripChainItem::IT_TRIP)
+		{
+			subTrip = &(*currSubTrip);
+		}
 		nextRole = rf->createRole(tci, subTrip, this);
 	}
 

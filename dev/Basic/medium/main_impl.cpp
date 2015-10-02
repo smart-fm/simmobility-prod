@@ -119,15 +119,15 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	const MutexStrategy& mtx = ConfigManager::GetInstance().FullConfig().mutexStategy();
 	
 	//Create an instance of role factory
-	RoleFactory<Person_MT> rf = new RoleFactory<Person_MT>;
+	RoleFactory<Person_MT>* rf = new RoleFactory<Person_MT>;
 	RoleFactory<Person_MT>::setInstance(rf);
 	
-	rf->registerRole("driver", new sim_mob::medium::Driver(nullptr, mtx));
-	rf->registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
+	rf->registerRole("driver", new sim_mob::medium::Driver(nullptr));
+	rf->registerRole("activityRole", new sim_mob::ActivityPerformer<Person_MT>(nullptr));
 	rf->registerRole("busdriver", new sim_mob::medium::BusDriver(nullptr, mtx));
-	rf->registerRole("waitBusActivity", new sim_mob::medium::WaitBusActivity(nullptr, mtx));
-	rf->registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr, mtx));
-	rf->registerRole("passenger", new sim_mob::medium::Passenger(nullptr, mtx));
+	rf->registerRole("waitBusActivity", new sim_mob::medium::WaitBusActivity(nullptr));
+	rf->registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr));
+	rf->registerRole("passenger", new sim_mob::medium::Passenger(nullptr));
 	rf->registerRole("biker", new sim_mob::medium::Biker(nullptr, mtx));
 
 	//Load our user config file, which is a time costly function
@@ -312,7 +312,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		size_t numPedestrian = 0;
 		for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++)
 		{
-			Person* person = dynamic_cast<Person*> (*it);
+			Person_MT* person = dynamic_cast<Person_MT*> (*it);
 			if (person)
 			{
 				numPerson++;

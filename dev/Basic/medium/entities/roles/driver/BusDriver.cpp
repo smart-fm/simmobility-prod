@@ -42,11 +42,11 @@ inline unsigned int converToMilliseconds(double timeInMs) {
 }
 }
 
-sim_mob::medium::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat,
+sim_mob::medium::BusDriver::BusDriver(Person_MT* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::BusDriverBehavior* behavior,
 		sim_mob::medium::BusDriverMovement* movement,
-		std::string roleName, Role::Type roleType)
-: sim_mob::medium::Driver(parent, mtxStrat, behavior, movement, roleName, roleType),
+		std::string roleName, Role<Person_MT>::Type roleType)
+: sim_mob::medium::Driver(parent, behavior, movement, roleName, roleType),
   requestMode(mtxStrat, 0), visitedBusStop(mtxStrat, nullptr),
   visitedBusStopSequenceNo(mtxStrat, -1), arrivalTime(mtxStrat, 0.0),
   dwellTime(mtxStrat, 0.0), visitedBusTripSequenceNo(mtxStrat, 0),
@@ -56,7 +56,7 @@ sim_mob::medium::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat,
 
 sim_mob::medium::BusDriver::~BusDriver(){}
 
-Role* sim_mob::medium::BusDriver::clone(Person* parent) const {
+Role<Person_MT>* sim_mob::medium::BusDriver::clone(Person* parent) const {
 	BusDriverBehavior* behavior = new BusDriverBehavior(parent);
 	BusDriverMovement* movement = new BusDriverMovement(parent);
 	BusDriver* busdriver = new BusDriver(parent, parent->getMutexStrategy(), behavior, movement, "BusDriver_");

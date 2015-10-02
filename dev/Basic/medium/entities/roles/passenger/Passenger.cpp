@@ -22,24 +22,24 @@ namespace medium
 sim_mob::medium::Passenger::Passenger(Person_MT *parent, 
 									  sim_mob::medium::PassengerBehavior* behavior,
 									  sim_mob::medium::PassengerMovement* movement,
-									  std::string roleName, Role::type roleType) :
-sim_mob::Role(parent, behavior, movement, parent, roleName, roleType),
+									  std::string roleName, Role<Person_MT>::Type roleType) :
+Role<Person_MT>(parent, behavior, movement, roleName, roleType),
 driver(nullptr), alightBus(false), startNode(nullptr), endNode(nullptr)
 {
 }
 
-Role* sim_mob::medium::Passenger::clone(Person_MT *parent) const
+Role<Person_MT>* sim_mob::medium::Passenger::clone(Person_MT *parent) const
 {
 	PassengerBehavior* behavior = new PassengerBehavior();
 	PassengerMovement* movement = new PassengerMovement();
-	Role::type roleType = Role::RL_PASSENGER;
+	Role<Person_MT>::Type roleType = Role<Person_MT>::RL_PASSENGER;
 	if (parent->currSubTrip->mode == "MRT")
 	{
-		roleType = Role::RL_TRAINPASSENGER;
+		roleType = Role<Person_MT>::RL_TRAINPASSENGER;
 	}
 	else if (parent->currSubTrip->mode == "Sharing")
 	{
-		roleType = Role::RL_CARPASSENGER;
+		roleType = Role<Person_MT>::RL_CARPASSENGER;
 	}
 	Passenger* passenger = new Passenger(parent, behavior, movement, "Passenger_", roleType);
 	behavior->setParentPassenger(passenger);
@@ -97,11 +97,11 @@ void sim_mob::medium::Passenger::collectTravelTime()
 	service = parent->currSubTrip->ptLineId;
 	travelTime = DailyTime(parent->getRole()->getTravelTime()).getStrRepr();
 	arrivaltime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
-	if (roleType == Role::RL_TRAINPASSENGER)
+	if (roleType == Role<Person_MT>::RL_TRAINPASSENGER)
 	{
 		mode = "MRT_TRAVEL";
 	}
-	else if (roleType == Role::RL_CARPASSENGER)
+	else if (roleType == Role<Person_MT>::RL_CARPASSENGER)
 	{
 		mode = "CARSHARING_TRAVEL";
 	}

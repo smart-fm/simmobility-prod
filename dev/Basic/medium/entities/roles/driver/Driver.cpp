@@ -82,7 +82,7 @@ void sim_mob::medium::Driver::make_frame_tick_params(timeslice now)
 	getParams().reset(now);
 }
 
-Role* sim_mob::medium::Driver::clone(Person_MT* parent) const
+Role<Person_MT>* sim_mob::medium::Driver::clone(Person_MT* parent) const
 {
 	DriverBehavior* behavior = new DriverBehavior(parent);
 	DriverMovement* movement = new DriverMovement(parent);

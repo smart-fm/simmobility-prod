@@ -1641,7 +1641,7 @@ sim_mob::Activity* MakeActivity(const TripChainItem& tcItem) {
 	res->isPrimary = tcItem.isPrimary;
 	res->isFlexible = tcItem.isFlexible;
 	res->isMandatory = tcItem.isMandatory;
-	res->destination = WayPoint(tcItem.location->generatedNode);
+	res->destination = sim_mob::WayPoint(tcItem.location->generatedNode);
 	res->destinationType = tcItem.locationType;
 	res->startTime = tcItem.startTime;
 	res->endTime = tcItem.endTime;

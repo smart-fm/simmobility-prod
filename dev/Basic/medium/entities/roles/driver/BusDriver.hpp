@@ -26,14 +26,14 @@ class BusStopAgent;
 
 class BusDriver : public sim_mob::medium::Driver {
 public:
-	BusDriver(Person* parent, MutexStrategy mtxStrat,
+	BusDriver(Person_MT* parent, MutexStrategy mtxStrat,
 			sim_mob::medium::BusDriverBehavior* behavior = nullptr,
 			sim_mob::medium::BusDriverMovement* movement = nullptr,
 			std::string roleName = std::string(),
-			Role::Type roleType = RL_BUSDRIVER);
+			Role<Person_MT>::Type roleType = RL_BUSDRIVER);
 	virtual ~BusDriver();
 
-	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+	virtual sim_mob::Role<Person_MT>* clone(sim_mob::Person* parent) const;
 
 	//Virtual overrides
 	virtual void make_frame_tick_params(timeslice now);

@@ -36,14 +36,14 @@ public:
 					sim_mob::medium::PassengerBehavior* behavior = nullptr,
 					sim_mob::medium::PassengerMovement* movement = nullptr,
 					std::string roleName = std::string("Passenger_"),
-					Role::Type roleType = Role::RL_PASSENGER);
+					Role<Person_MT>::Type roleType = Role<Person_MT>::RL_PASSENGER);
 
 	virtual ~Passenger()
 	{
 	}
 
 	//Virtual overrides
-	virtual sim_mob::Role* clone(sim_mob::Person_MT *parent) const;
+	virtual Role<Person_MT>* clone(sim_mob::Person_MT *parent) const;
 
 	virtual void make_frame_tick_params(timeslice now)
 	{

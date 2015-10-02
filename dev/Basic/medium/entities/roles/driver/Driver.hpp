@@ -53,10 +53,10 @@ public:
 		sim_mob::medium::DriverBehavior* behavior = nullptr,
 		sim_mob::medium::DriverMovement* movement = nullptr,
 		std::string roleName = std::string(),
-		Role::Type roleType = Role::RL_DRIVER);
+		Role<Person_MT>::Type roleType = Role<Person_MT>::RL_DRIVER);
 	virtual ~Driver();
 
-	virtual sim_mob::Role* clone(Person_MT *parent) const;
+	virtual Role<Person_MT>* clone(Person_MT *parent) const;
 
 	//Virtual overrides
 	virtual void make_frame_tick_params(timeslice now);

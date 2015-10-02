@@ -32,11 +32,11 @@ public:
 						sim_mob::medium::PedestrianBehavior* behavior = nullptr,
 						sim_mob::medium::PedestrianMovement* movement = nullptr,
 						std::string roleName = std::string("Pedestrian_"),
-						Role::Type roleType = Role::RL_PEDESTRIAN);
+						Role<Person_MT>::Type roleType = Role<Person_MT>::RL_PEDESTRIAN);
 
 	virtual ~Pedestrian();
 
-	virtual sim_mob::Role* clone(sim_mob::Person_MT *parent) const;
+	virtual sim_mob::Role<Person_MT>* clone(sim_mob::Person_MT *parent) const;
 
 	virtual void make_frame_tick_params(timeslice now);
 

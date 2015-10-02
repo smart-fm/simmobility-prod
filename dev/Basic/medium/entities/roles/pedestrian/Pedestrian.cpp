@@ -23,8 +23,8 @@ namespace medium
 sim_mob::medium::Pedestrian::Pedestrian(Person_MT *parent,
 										sim_mob::medium::PedestrianBehavior* behavior,
 										sim_mob::medium::PedestrianMovement* movement,
-										std::string roleName, Role::Type roleType) :
-sim_mob::Role(parent, behavior, movement, parent, roleName, roleType)
+										std::string roleName, Role<Person_MT>::Type roleType) :
+sim_mob::Role(parent, behavior, movement, roleName, roleType)
 {
 }
 
@@ -32,7 +32,7 @@ sim_mob::medium::Pedestrian::~Pedestrian()
 {
 }
 
-Role* sim_mob::medium::Pedestrian::clone(Person_MT *parent) const
+Role<Person_MT>* sim_mob::medium::Pedestrian::clone(Person_MT *parent) const
 {
 	double walkSpeed = MT_Config::getInstance().getPedestrianWalkSpeed();
 	PedestrianBehavior* behavior = new PedestrianBehavior();
@@ -61,7 +61,7 @@ void sim_mob::medium::Pedestrian::collectTravelTime()
 			travelTime;
 
 	personId = boost::lexical_cast<std::string>(parent->getId());
-	if (parent->getPrevRole() && parent->getPrevRole()->roleType == Role::RL_ACTIVITY)
+	if (parent->getPrevRole() && parent->getPrevRole()->roleType == Role<Person_MT>::RL_ACTIVITY)
 	{
 		ActivityPerformer* activity = dynamic_cast<ActivityPerformer*> (parent->getPrevRole());
 		tripStartPoint = boost::lexical_cast<std::string>(activity->getLocation()->getID());

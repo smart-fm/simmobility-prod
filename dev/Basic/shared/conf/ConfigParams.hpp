@@ -21,7 +21,6 @@ namespace sim_mob {
 
 //Forward declarations
 class BusStop;
-class BusSchedule;
 class Conflux;
 class CommunicationDataManager;
 class ControlManager;
@@ -29,7 +28,6 @@ class ConfigManager;
 class ReactionTimeDist;
 class RoadSegment;
 class PassengerDist;
-class PT_trip;
 class ProfileBuilder;
 class TripChainItem;
 class Broker;
@@ -143,14 +141,11 @@ public:
 	std::map<std::string, std::vector<sim_mob::TripChainItem*> >& getTripChains();
 	const std::map<std::string, std::vector<sim_mob::TripChainItem*> >& getTripChains() const;
 
-	std::vector<sim_mob::BusSchedule*>& getBusSchedule();
-	std::vector<sim_mob::PT_trip*>& getPT_trip();
+	std::vector<sim_mob::PT_BusDispatchFreq>& getPT_BusDispatchFreq();
+	const std::vector<sim_mob::PT_BusDispatchFreq>& getPT_BusDispatchFreq() const;
 
-	std::vector<sim_mob::PT_bus_dispatch_freq>& getPT_bus_dispatch_freq();
-	const std::vector<sim_mob::PT_bus_dispatch_freq>& getPT_bus_dispatch_freq() const;
-
-	std::vector<sim_mob::PT_bus_routes>& getPT_bus_routes();
-	std::vector<sim_mob::PT_bus_stops>& getPT_bus_stops();
+	std::vector<sim_mob::PT_BusRoutes>& getPT_BusRoutes();
+	std::vector<sim_mob::PT_BusStops>& getPT_BusStops();
 	std::vector<sim_mob::OD_Trip>& getODsTripsMap();
 
 	//Temporary: Santhosh
@@ -201,11 +196,9 @@ private:
 	mutable CommunicationDataManager* commDataMgr;
 	mutable ControlManager* controlMgr;
 
-	// Temporary: Yao Jin
-	std::vector<sim_mob::BusSchedule*> busschedule; // Temporary
-	std::vector<sim_mob::PT_bus_dispatch_freq> pt_busdispatch_freq;
-	std::vector<sim_mob::PT_bus_routes> pt_bus_routes;
-	std::vector<sim_mob::PT_bus_stops> pt_bus_stops;
+	std::vector<sim_mob::PT_BusDispatchFreq> ptBusDispatchFreq;
+	std::vector<sim_mob::PT_BusRoutes> ptBusRoutes;
+	std::vector<sim_mob::PT_BusStops> ptBusStops;
 	std::vector<sim_mob::OD_Trip> ODsTripsMap;
 	// Temporary: Yao Jin
 

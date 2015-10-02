@@ -60,7 +60,7 @@ namespace sim_mob {
          */
         class PotentialProject {
         public:
-            PotentialProject(const DevelopmentTypeTemplate* devTemplate = nullptr,const Parcel* parcel = nullptr,double constructionCost = 0,double grossArea = 0,double tempSelectProbability = 0,double investmentReturnRatio=0,double demolitionCost = 0, double expRatio=0,int totalUnits = 0);
+            PotentialProject(const DevelopmentTypeTemplate* devTemplate = nullptr,const Parcel* parcel = nullptr,double constructionCost = 0,double grossArea = 0,double tempSelectProbability = 0,double investmentReturnRatio=0,double demolitionCost = 0, double expRatio=0,int totalUnits = 0,double acquisitionCost = 0, double landValue = 0);
             virtual ~PotentialProject();
             
             PotentialProject( const PotentialProject &source);
@@ -99,6 +99,8 @@ namespace sim_mob {
             double getTempSelectProbability() const;
             double getDemolitionCost() const;
             int getTotalUnits();
+            double getAcquisitionCost() const;
+            double getLandValue() const;
 
             //Setters
             void setProfit(const double profit);
@@ -110,6 +112,8 @@ namespace sim_mob {
             void setTempSelectProbability(double probability);
             void setDemolitionCost(double demCost);
             void setTotalUnits (int totUnits);
+            void setAcquisitionCost(double acqCost);
+            void setLandValue(double landVal);
 
             std::vector<TemplateUnitType*> templateUnitTypes;
 
@@ -130,6 +134,8 @@ namespace sim_mob {
             double expRatio;
             double tempSelectProbability;
             int totalUnits;
+            double acquisitionCost;
+            double landValue;
 
         };
     }

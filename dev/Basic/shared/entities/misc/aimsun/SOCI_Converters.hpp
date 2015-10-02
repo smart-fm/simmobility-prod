@@ -11,7 +11,6 @@
 #include "boost/algorithm/string.hpp"
 #include "soci.h"
 #include "TripChain.hpp"
-#include "entities/misc/BusSchedule.hpp"
 
 
 using namespace sim_mob::aimsun;
@@ -69,103 +68,82 @@ template<> struct type_conversion<sim_mob::aimsun::TripChainItem>
 };
 
 
+
 template<>
-struct type_conversion<sim_mob::BusSchedule>
+struct type_conversion<sim_mob::PT_BusDispatchFreq>
 {
     typedef values base_type;
 
     static void
-    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::BusSchedule& bus_schedule)
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_BusDispatchFreq& ptBusDispatchFreq)
     {
-    	bus_schedule.tripid = values.get<std::string>("trip_id", "");
-    	boost::trim(bus_schedule.tripid);
-    	bus_schedule.startTime = sim_mob::DailyTime(values.get<std::string>("start_time", ""));
+    	ptBusDispatchFreq.frequencyId = values.get<std::string>("frequency_id", "");
+    	boost::trim(ptBusDispatchFreq.frequencyId);
+    	ptBusDispatchFreq.routeId = values.get<std::string>("route_id", "");
+    	boost::trim(ptBusDispatchFreq.routeId);
+    	ptBusDispatchFreq.startTime = sim_mob::DailyTime(values.get<std::string>("start_time", ""));
+    	ptBusDispatchFreq.endTime = sim_mob::DailyTime(values.get<std::string>("end_time", ""));
+    	ptBusDispatchFreq.headwaySec = values.get<int>("headway_sec", 0);
     }
 
     static void
-    to_base(sim_mob::BusSchedule const & bus_schedule, soci::values & values, soci::indicator & indicator)
+    to_base(sim_mob::PT_BusDispatchFreq const & ptBusDispatchFreq, soci::values & values, soci::indicator & indicator)
     {
-        values.set("trip_id", bus_schedule.tripid);
-        values.set("start_time", bus_schedule.startTime.getStrRepr());
+        values.set("frequency_id", ptBusDispatchFreq.frequencyId);
+        values.set("route_id", ptBusDispatchFreq.routeId);
+        values.set("start_time", ptBusDispatchFreq.startTime.getStrRepr());
+        values.set("end_time", ptBusDispatchFreq.endTime.getStrRepr());
+        values.set("headway_sec", ptBusDispatchFreq.headwaySec);
         indicator = i_ok;
     }
 };
 
 template<>
-struct type_conversion<sim_mob::PT_bus_dispatch_freq>
+struct type_conversion<sim_mob::PT_BusRoutes>
 {
     typedef values base_type;
 
     static void
-    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_bus_dispatch_freq& pt_busdispatch_freq)
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_BusRoutes& ptBusRoutes)
     {
-    	pt_busdispatch_freq.frequency_id = values.get<std::string>("frequency_id", "");
-    	boost::trim(pt_busdispatch_freq.frequency_id);
-    	pt_busdispatch_freq.route_id = values.get<std::string>("route_id", "");
-    	boost::trim(pt_busdispatch_freq.route_id);
-    	pt_busdispatch_freq.start_time = sim_mob::DailyTime(values.get<std::string>("start_time", ""));
-    	pt_busdispatch_freq.end_time = sim_mob::DailyTime(values.get<std::string>("end_time", ""));
-    	pt_busdispatch_freq.headway_sec = values.get<int>("headway_sec", 0);
+    	ptBusRoutes.routeId = values.get<std::string>("route_id", "");
+    	boost::trim(ptBusRoutes.routeId);
+    	ptBusRoutes.linkId = values.get<std::string>("link_id", "");
+    	boost::trim(ptBusRoutes.linkId);
+    	ptBusRoutes.sequenceNo = values.get<int>("link_sequence_no", 0);
     }
 
     static void
-    to_base(sim_mob::PT_bus_dispatch_freq const & pt_busdispatch_freq, soci::values & values, soci::indicator & indicator)
+    to_base(sim_mob::PT_BusRoutes const & ptBusRoutes, soci::values & values, soci::indicator & indicator)
     {
-        values.set("frequency_id", pt_busdispatch_freq.frequency_id);
-        values.set("route_id", pt_busdispatch_freq.route_id);
-        values.set("start_time", pt_busdispatch_freq.start_time.getStrRepr());
-        values.set("end_time", pt_busdispatch_freq.end_time.getStrRepr());
-        values.set("headway_sec", pt_busdispatch_freq.headway_sec);
+        values.set("route_id", ptBusRoutes.routeId);
+        values.set("link_id", ptBusRoutes.linkId);
+        values.set("link_sequence_no", ptBusRoutes.sequenceNo);
         indicator = i_ok;
     }
 };
 
 template<>
-struct type_conversion<sim_mob::PT_bus_routes>
+struct type_conversion<sim_mob::PT_BusStops>
 {
     typedef values base_type;
 
     static void
-    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_bus_routes& pt_bus_routes)
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_BusStops& ptBusStops)
     {
-    	pt_bus_routes.route_id = values.get<std::string>("route_id", "");
-    	boost::trim(pt_bus_routes.route_id);
-    	pt_bus_routes.link_id = values.get<std::string>("link_id", "");
-    	boost::trim(pt_bus_routes.link_id);
-    	pt_bus_routes.link_sequence_no = values.get<int>("link_sequence_no", 0);
+    	ptBusStops.routeId = values.get<std::string>("route_id", "");
+    	boost::trim(ptBusStops.routeId);
+    	ptBusStops.stopNo = values.get<std::string>("busstop_no", "");
+    	boost::trim(ptBusStops.stopNo);
+    	ptBusStops.sequenceNo = values.get<int>("busstop_sequence_no", 0);
     }
 
     static void
-    to_base(sim_mob::PT_bus_routes const & pt_bus_routes, soci::values & values, soci::indicator & indicator)
+    to_base(sim_mob::PT_BusStops const & ptBusStops, soci::values & values, soci::indicator & indicator)
     {
-        values.set("route_id", pt_bus_routes.route_id);
-        values.set("link_id", pt_bus_routes.link_id);
-        values.set("link_sequence_no", pt_bus_routes.link_sequence_no);
-        indicator = i_ok;
-    }
-};
-
-template<>
-struct type_conversion<sim_mob::PT_bus_stops>
-{
-    typedef values base_type;
-
-    static void
-    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_bus_stops& pt_bus_stops)
-    {
-    	pt_bus_stops.route_id = values.get<std::string>("route_id", "");
-    	boost::trim(pt_bus_stops.route_id);
-    	pt_bus_stops.busstop_no = values.get<std::string>("busstop_no", "");
-    	boost::trim(pt_bus_stops.busstop_no);
-    	pt_bus_stops.busstop_sequence_no = values.get<int>("busstop_sequence_no", 0);
-    }
-
-    static void
-    to_base(sim_mob::PT_bus_stops const & pt_bus_stops, soci::values & values, soci::indicator & indicator)
-    {
-        values.set("route_id", pt_bus_stops.route_id);
-        values.set("busstop_no", pt_bus_stops.busstop_no);
-        values.set("busstop_sequence_no", pt_bus_stops.busstop_sequence_no);
+        values.set("route_id", ptBusStops.routeId);
+        values.set("busstop_no", ptBusStops.stopNo);
+        values.set("busstop_sequence_no", ptBusStops.sequenceNo);
         indicator = i_ok;
     }
 };

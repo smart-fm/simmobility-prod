@@ -159,32 +159,4 @@ public:
 
 }
 
-/**
- * Class for find the bus line from source destination nodes.
- * \author meenu
- * \author zhang huai peng
-  */
-class BusStop;
-class Busline;
-class Node;
-class RoadSegment;
-class BusStopFinder
-{
-public:
-	BusStopFinder(const Node* src, const Node* dest);
-	Busline* getBusLineToTake(){ return BusLineToTake; }
-	BusStop* getSourceBusStop(){ return originBusStop; }
-	BusStop* getDestinationBusStop(){ return destBusStop;}
-
-private:
-	BusStop* findNearbyBusStop(const Node* src);
-	//Busline* findBusLineToTaken();
-	BusStop* getBusStop(const Node* node,sim_mob::RoadSegment* segment);
-
-private:
-	BusStop* originBusStop;
-    BusStop* destBusStop;
-    Busline* BusLineToTake;
-};
-
 }

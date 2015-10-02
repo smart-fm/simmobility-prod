@@ -293,8 +293,6 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 	return ret;
 }
 
-
-
 bool sim_mob::Person::updateNextSubTrip()
 {
 	sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *> (*currTripChainItem);
@@ -318,6 +316,7 @@ bool sim_mob::Person::updateNextSubTrip()
 
 	return true;
 }
+
 
 bool sim_mob::Person::updateNextTripChainItem()
 {

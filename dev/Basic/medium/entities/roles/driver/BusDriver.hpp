@@ -102,7 +102,7 @@ private:
 	/**real arrival time set by bus driver*/
 	Shared<double> arrivalTime;
 	/**current bus stop real times including departure and arrival time*/
-	Shared<BusStop_RealTimes>* busStopRealTimes;
+	Shared<BusStopRealTimes>* busStopRealTimes;
 	/** dwell time set by bus driver*/
 	Shared<double> dwellTime;
 	/**holding time set by bus controller*/

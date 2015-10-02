@@ -143,7 +143,7 @@ void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, co
 	const BusTrip* busTrip =
 			dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
 	if (busTrip) {
-		const Busline* busLine = busTrip->getBusline();
+		const BusLine* busLine = busTrip->getBusLine();
 		std::string stopNo = stop->getBusstopno_();
 		std::string tripId = busTrip->tripID;
 		std::string busLineId = busLine->getBusLineID();
@@ -172,9 +172,9 @@ void sim_mob::medium::BusDriver::predictArrivalAtBusStop(double preArrivalTime,
 	const BusTrip* busTrip =
 			dynamic_cast<const BusTrip*>(*(parent->currTripChainItem));
 	if (busTrip) {
-		const Busline* busLine = busTrip->getBusline();
+		const BusLine* busLine = busTrip->getBusLine();
 		visitedBusLine.set(busLine->getBusLineID());
-		visitedBusTripSequenceNo.set(busTrip->getBusTripRun_SequenceNum());
+		visitedBusTripSequenceNo.set(busTrip->getTotalSequenceNum());
 		requestMode.set(Role::REQUEST_DECISION_TIME);
 		visitedBusStop.set(busStopAgent->getBusStop());
 		visitedBusStopSequenceNo.set(visitedBusStopSequenceNo.get() + 1);
@@ -191,7 +191,7 @@ const std::string sim_mob::medium::BusDriver::getBusLineID() const
 	const BusTrip* busTrip =
 			dynamic_cast<const BusTrip*>(*(parent->currTripChainItem));
 	if (busTrip) {
-		return busTrip->getBusline()->getBusLineID();
+		return busTrip->getBusLine()->getBusLineID();
 	}
 	else {
 		return std::string();

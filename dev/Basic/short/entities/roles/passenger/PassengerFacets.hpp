@@ -112,7 +112,7 @@ public:
 	///based on bussline info at the busstop
 	void FindBusLines();
 
-	std::vector<Busline*> ReturnBusLines();
+	std::vector<BusLine*> ReturnBusLines();
 
 	//bool isOnCrossing() const;
 
@@ -148,6 +148,7 @@ private:
 	BusStop* destBusStop; ///busstop passenger is ending the trip
 
 	std::vector<Busline*> buslinesToTake; ///buslines passenger can take;decided by passenger upon reaching busstop
+
 	double waitingTime;
 	double timeOfReachingBusStop;
 	uint32_t timeOfStartTrip;

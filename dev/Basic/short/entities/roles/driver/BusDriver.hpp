@@ -44,12 +44,12 @@ public:
 	double getPositionY() const;
 	
 	// get the last bus stop real times
-	Shared<BusStop_RealTimes>* getLastBusStopRealTimes() {
+	Shared<BusStopRealTimes>* getLastBusStopRealTimes() {
 		return last_busStopRealTimes;
 	}
 	
 	// get the bus stop real times vector
-	std::vector<Shared<BusStop_RealTimes>* >& getBusStopRealTimes() {
+	std::vector<Shared<BusStopRealTimes>* >& getBusStopRealTimes() {
 		return busStopRealTimes_vec_bus;
 	}
 
@@ -58,7 +58,7 @@ public:
 	* @param busStopSeqNum the sequence number of the bus stop to be set.
 	* @param busStopRealTimes the busStopRealTimes that will be set later and will be valid at the next time tick.
 	*/
-	void setBusStopRealTimes(const int& busStopSeqNum, const BusStop_RealTimes& busStopRealTimes);
+	void setBusStopRealTimes(const int& busStopSeqNum, const BusStopRealTimes& busStopRealTimes);
 
 	double get_xPosApproachingBusStop() { return xpos_approachingbusstop; }
 
@@ -79,7 +79,7 @@ private:
 	Shared<double> real_ArrivalTime;
 	
 	// current BusStop real Times, convenient for reset
-	Shared<BusStop_RealTimes>* last_busStopRealTimes;
+	Shared<BusStopRealTimes>* last_busStopRealTimes;
 	
 	// set by BusDriver, reset once stop at any busStop
 	Shared<double> DwellTime_ijk;
@@ -102,7 +102,7 @@ private:
 	double xpos_approachingbusstop,ypos_approachingbusstop;
 	
 	// can be different for different pair<busLine_id,busTripRun_sequenceNum>
-	std::vector<Shared<BusStop_RealTimes>* > busStopRealTimes_vec_bus;
+	std::vector<Shared<BusStopRealTimes>* > busStopRealTimes_vec_bus;
 
 	//Serialization, not implemented
 	friend class BusDriverBehavior;

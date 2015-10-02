@@ -467,7 +467,7 @@ void sim_mob::PassengerMovement::FindBusLines() //find bus lines there and decid
 	}
 }
 
-std::vector<Busline*> sim_mob::PassengerMovement::ReturnBusLines()
+std::vector<BusLine*> sim_mob::PassengerMovement::ReturnBusLines()
 {
 	return buslinesToTake;
 }

@@ -76,6 +76,7 @@ namespace sim_mob {
         const std::string DB_TABLE_ZONALLANDUSEVARIABLEVALUES= APPLY_SCHEMA(CALIBRATION_SCHEMA, "zonal_landuse_variable_values");
         const std::string DB_TABLE_HITSINDIVIDUALLOGSUM= APPLY_SCHEMA(MAIN_SCHEMA, "hits_individual_logsum");
 
+        const std::string DB_TABLE_TAZ_LEVEL_LAND_PRICE = APPLY_SCHEMA(CALIBRATION_SCHEMA, "taz_level_land_price");
 
 
 
@@ -361,6 +362,7 @@ namespace sim_mob {
         const std::string DB_GETALL_ZONALLANDUSEVARIABLEVALUES = "SELECT * FROM " + DB_TABLE_ZONALLANDUSEVARIABLEVALUES + LIMIT;
         const std::string DB_GETALL_POPULATION_PER_PLANNING_AREA = "SELECT * FROM " + DB_FUNC_GET_POPULATION_PER_PLANNING_AREA + LIMIT;
         const std::string DB_GETALL_HITSINDIVIDUALLOGSUM = "SELECT * FROM " + DB_TABLE_HITSINDIVIDUALLOGSUM + LIMIT;
+        const std::string DB_GETALL_TAZ_LEVEL_LAND_PRICES = "SELECT * FROM " + DB_TABLE_TAZ_LEVEL_LAND_PRICE + LIMIT;
 
 
         /**

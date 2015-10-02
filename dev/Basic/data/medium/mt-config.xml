@@ -41,21 +41,21 @@
                 <run_mode value="simulation"/>
                 <!-- Number of threads to create for processing the population in-->
                 <!-- the preday demand simulator -->
-                <threads value="6"/>
+                <threads value="50"/>
                 <!-- outputs the preday predictions as activity schedule in CSV format if enabled with simulation run_mode -->
                 <output_activity_schedule enabled="true"/>
                 <!-- outputs the preday's predicted tours and stops to mongodb if enabled -->
-                <output_predictions enabled="true"/>
+                <output_predictions enabled="false"/>
                 <!-- prints person ids and tour details in console for each person if enabled -->
-                <console_output enabled="true"/>
+                <console_output enabled="false"/>
                 
                 <!-- Data source for population and logsums. 
                      Admissible values for source are 'pgsql' and 'mongodb' which points to LT database or local MongoDB respectively. 
                      Value 'mongodb' is default for source. 
                      Database and credentials attributes are required only for pgsql source.
                      Valid ids from the list constructs list have to be specified -->
-                <population source="mongodb" database="fm_remote_lt" credential="lt_cred"/>
-                <logsum source="mongodb" database="fm_local" credential="harish_cred"/>
+                <population source="pgsql" database="fm_hpchead_lt" credential="fm_hpchead"/>
+                <logsum source="pgsql" database="fm_hpchead" credential="fm_hpchead"/>
                 
                 <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
                         <script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->

@@ -173,11 +173,30 @@ private:
 	std::string weightMatrixFile;
 };
 
+///Represents the "Workers" section of the config file.
+class WorkerParams {
+public:
+    struct Worker {
+    Worker();
+    unsigned int count;
+    unsigned int granularityMs;
+    };
+
+    Worker person;
+};
+
 struct DB_Details
 {
 	DB_Details() : database(std::string()), credentials(std::string()) {}
 	std::string database;
 	std::string credentials;
+};
+
+///Represents a complete connection to the database, via Construct ID.
+struct DatabaseDetails {
+    std::string database;
+    std::string credentials;
+    std::string procedures;
 };
 
 class MT_Config : private sim_mob::ProtectedCopyable
@@ -296,6 +315,8 @@ private:
 	db::BackendType populationSource;
 	DB_Details populationDB;
 	DB_Details logsumDB;
+
+    WorkerParams workers;
 
 	/**Preday calibration parameters*/
 	enum CalibrationMethodology { SPSA, WSPSA };

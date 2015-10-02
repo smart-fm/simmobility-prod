@@ -21,25 +21,6 @@
 
 namespace sim_mob {
 
-///Represents the FMOD controller section of the config file.
-struct FMOD_ControllerParams {
-	FMOD_ControllerParams() : enabled(false), port(0), updateTimeMS(0), blockingTimeSec(0) {}
-
-	bool enabled;
-	std::string ipAddress;
-	unsigned int port;
-	unsigned int updateTimeMS;
-	std::string mapfile;
-	unsigned int blockingTimeSec;
-};
-
-struct AMOD_ControllerParams
-{
-	AMOD_ControllerParams() : enabled(false) {}
-
-	bool enabled;
-};
-
 //Represents the long-term developer model of the config file
 struct LongTermParams{
 	LongTermParams();
@@ -83,40 +64,6 @@ struct LongTermParams{
 		unsigned int vehicleBuyingWaitingTimeInDays;
 	}vehicleOwnershipModel;
 };
-
-///Represents the loop-detector_counts section of the configuration file
-struct LoopDetectorCounts
-{
-  LoopDetectorCounts() : frequency(0), outputEnabled(false), fileName("")
-  {
-  }
-  
-  ///The frequency of aggregating the vehicle counts at the loop detector
-  unsigned int frequency;
-  
-  ///Indicates whether the counts have to be output to a file
-  bool outputEnabled;
-  
-  ///Name of the output file
-  std::string fileName;
-} ;
-
-///Represents the short-term_density-map section of the configuration file
-struct SegmentDensityMap
-{
-  SegmentDensityMap() : updateInterval(0), outputEnabled(false), fileName("")
-  {
-  }
-  
-  ///The interval at which the density map is to be output
-  unsigned int updateInterval;
-  
-  ///Indicates whether the density map is to be output to a file
-  bool outputEnabled;
-  
-  ///Name of the output file
-  std::string fileName;
-} ;
 
 ///represent the incident data section of the config file
 struct IncidentParams {
@@ -177,45 +124,18 @@ struct BusStopScheduledTime {
 	unsigned int offsetDT; //<Presumably departure time?
 };
 
-///Represents a complete connection to the database, via Construct ID.
-struct DatabaseDetails {
-	std::string database;
-	std::string credentials;
-	std::string procedures;
-};
-
-
 ///Represents the "Constructs" section of the config file.
 class Constructs {
 public:
-	//std::map<std::string, Distribution> distributions; //<TODO
-	std::map<std::string, Database> databases;
-	std::map<std::string, StoredProcedureMap> procedureMaps;
-	std::map<std::string, Credential> credentials;
+    //std::map<std::string, Distribution> distributions; //<TODO
+    std::map<std::string, Database> databases;
+    std::map<std::string, Credential> credentials;
 };
 
 ///Represents the "Simulation" section of the config file.
 class SimulationParams {
 public:
 	SimulationParams();
-
-	///Sources of Agents.
-	enum LoadAgentsOrderOption {
-		LoadAg_Drivers,       ///<Load Drivers from the config file.
-		LoadAg_Pedestrians,   ///<Load Pedestrians from the config file.
-		LoadAg_Passengers,    ///<Load Passengers from the config file.
-		LoadAg_Database,      ///<Load Trip-Chain based entities from the database.
-		LoadAg_XmlTripChains, ///<Not sure what this does exactly....
-	};
-
-	///Our reaction time distributions.
-	struct ReactionTimeDistDescription {
-		ReactionTimeDistDescription() : typeId(0), mean(0), stdev(0) {}
-
-		int typeId;
-		int mean;
-		int stdev;
-	};
 
 	unsigned int baseGranMS;       ///<Base system granularity, in milliseconds. Each "tick" is this long.
 	double baseGranSecond;         ///<Base system granularity, in seconds. Each "tick" is this long.
@@ -224,100 +144,11 @@ public:
 
 	DailyTime simStartTime; ///<When the simulation begins(based on configuration)
 
-	AuraManager::AuraManagerImplementation auraManagerImplementation; ///<What type of Aura Manager we're using.
-
 	WorkGroup::ASSIGNMENT_STRATEGY workGroupAssigmentStrategy;  ///<Defautl assignment strategy for Workgroups.
-
-	int partitioningSolutionId;  ///<Property specific to MPI version; not fully documented.
-
-	std::vector<LoadAgentsOrderOption> loadAgentsOrder; ///<What order to load agents in.
 
 	int startingAutoAgentID; ///<Default starting ID for agents with auto-generated IDs.
 
 	sim_mob::MutexStrategy mutexStategy; ///<Locking strategy for Shared<> properties.
-
-	struct Commsim {
-		bool enabled;  ///< True if commsim is enabled. If false, no Broker will be created.
-		int numIoThreads; ///< How many threads to allocate to boost's io processor.
-		int minClients;  ///< The minimum number of simultaneous clients required to proceed with the simulation.
-		int holdTick;    ///< The simulation tick that we will pause on until minClients connections are made.
-		bool useNs3;  ///< If true, waits for the ns-3 simulator to connect.
-		Commsim() : enabled(false), numIoThreads(1), minClients(1), holdTick(1), useNs3(false) {}
-	};
-	Commsim commsim;
-
-	//Reaction time parameters.
-	//TODO: This should be one of the first areas we clean up.
-	ReactionTimeDistDescription reactTimeDistribution1;
-	ReactionTimeDistDescription reactTimeDistribution2;
-
-    //Passenger distribution parameters.
-    //TODO: This should be the second thing we clean up.
-    int passenger_distribution_busstop;
-    int passenger_mean_busstop;
-    int passenger_standardDev_busstop;
-    int passenger_percent_boarding;
-    int passenger_percent_alighting;
-    int passenger_min_uniform_distribution;
-    int passenger_max_uniform_distribution;
-};
-
-///Represents the "Workers" section of the config file.
-class WorkerParams {
-public:
-	struct Worker {
-		Worker();
-		unsigned int count;
-		unsigned int granularityMs;
-	};
-
-	Worker person;
-	Worker signal;
-	Worker intersectionMgr;
-	Worker communication;
-};
-
-
-///Represents the "System" section of the config file.
-class SystemParams {
-public:
-	SystemParams();
-
-	enum NetworkSource {
-		NETSRC_XML,
-		NETSRC_DATABASE,
-	};
-
-	SimulationParams simulation;
-	WorkerParams workers;
-
-	bool singleThreaded; ///<If true, we are running everything on one thread.
-	bool mergeLogFiles;  ///<If true, we take time to merge the output of the individual log files after the simulation is complete.
-
-	NetworkSource networkSource; ///<Whethere to load the network from the database or from an XML file.
-	std::string networkXmlInputFile;  ///<If loading the network from an XML file, which file? Empty=private/SimMobilityInput.xml
-	std::string networkXmlOutputFile;  ///<If loading the network from an XML file, which file? Empty=private/SimMobilityInput.xml
-	DatabaseDetails networkDatabase; //<If loading from the database, how do we connect?
-
-	std::string roadNetworkXsdSchemaFile; ///<Valid path to a schema file for loading XML road network files.
-
-	std::map<std::string, std::string> genericProps; ///<Generic properties, for testing new features.
-};
-
-
-///Represents an entity in the "Drivers" or "Pedestrians" section of the config file.
-struct EntityTemplate {
-	EntityTemplate();
-	Point2D originPos;
-	Point2D destPos;
-	unsigned int startTimeMs;// default is zero
-	unsigned int laneIndex;// default is zero
-	int angentId;
-	int initSegId;
-	int initDis;
-	double initSpeed;
-	int originNode;
-	int destNode;
 };
 
 /**
@@ -480,17 +311,8 @@ public:
 	///"Constructs" for general re-use.
 	Constructs constructs;
 
-	///"Sytem" level settings, including simulation parameters and global flags.
-	SystemParams system;
-
 	///Available gemetries (currently only database geometries).
 	//GeometryParams geometry;
-
-	///Settings for the FMOD controller.
-	FMOD_ControllerParams fmod;
-
-	///Settings for the AMOD controller
-	AMOD_ControllerParams amod;
 
 	///Settings for Long Term Parameters
 	LongTermParams ltParams;
@@ -498,14 +320,12 @@ public:
 	///pathset configuration file
 	std::string pathsetFile;
         
-	///Settings for the loop detector counts
-	LoopDetectorCounts loopDetectorCounts;
-        
-	///Settings for the short-term density map
-	SegmentDensityMap segDensityMap;
-
 	///Settings for the Screen Line Count
 	ScreenLineParams screenLineParams;
+
+    SimulationParams simulation;
+
+    bool mergeLogFiles;  ///<If true, we take time to merge the output of the individual log files after the simulation is complete.
 
 	///	is CBD area restriction enforced
 	bool cbd;
@@ -525,17 +345,6 @@ public:
 
 	///container for lua scripts
 	ModelScriptsMap luaScriptsMap;
-
-	//@{
-	///Templates for creating entities of various types.
-	std::vector<EntityTemplate> driverTemplates;
-	std::vector<EntityTemplate> taxiDriverTemplates;
-	std::vector<EntityTemplate> pedestrianTemplates;
-	std::vector<EntityTemplate> busDriverTemplates;
-	std::vector<EntityTemplate> signalTemplates;
-	std::vector<EntityTemplate> passengerTemplates;
-	std::vector<EntityTemplate> busControllerTemplates;
-	//@}
 };
 
 

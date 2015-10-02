@@ -273,24 +273,6 @@ const AuraManager::AuraManagerImplementation& sim_mob::ConfigParams::aura_manage
 	return system.simulation.auraManagerImplementation;
 }
 
-int& sim_mob::ConfigParams::percent_boarding()
-{
-	return system.simulation.passenger_percent_boarding;
-}
-const int& sim_mob::ConfigParams::percent_boarding() const
-{
-	return system.simulation.passenger_percent_boarding;
-}
-
-int& sim_mob::ConfigParams::percent_alighting()
-{
-	return system.simulation.passenger_percent_alighting;
-}
-const int& sim_mob::ConfigParams::percent_alighting() const
-{
-	return system.simulation.passenger_percent_alighting;
-}
-
 WorkGroup::ASSIGNMENT_STRATEGY& sim_mob::ConfigParams::defaultWrkGrpAssignment()
 {
 	return system.simulation.workGroupAssigmentStrategy;

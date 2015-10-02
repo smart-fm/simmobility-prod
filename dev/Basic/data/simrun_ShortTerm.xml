@@ -3,191 +3,85 @@
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
 
 <config>
-	<!-- Anything in the "constructs" section is created with an ID and some structure (e.g., an object) -->
-	<!-- The idea here is to allow re-using some common settings in multiple places, and to allow multiple optional -->
-	<!-- items (e.g. database connections), without having to comment out the ones which are not used. -->
-	<!-- Key to the idea of a construct is that if it is incorrectly specified, it is only considered to be an error if -->
-	<!-- it is USED. In other words, the parser will flag it as an error, but pend that error until the construct is requested. -->
-	<!-- A construct ID must be unique for its type (databases, credentials, etc.) -->
-	<!-- Note that constructs can be defined and used out-of-order, since their IDs are only resolved once they are retrieved. -->
-	<constructs>
-		<!-- Define distributions which may be used for a variety of things. -->
-		<!-- NOTE: These are not currently created or used, but should be added soon. -->
-		<distributions>
-			<!-- Distributions pertinent to driver reaction times -->
-			<dist id="driver_react_1" type="lognormal"  mean="500"  stdev="100"/>
-			<dist id="driver_react_2" type="lognormal"  mean="500"  stdev="100"/>
-		</distributions>
+	<!-- Groupings of stored procedures, used for loading network data from certain tables. -->
+	<db_proc_groups>
+		<!-- The small Bugis-area network -->
+		<proc_map id="bugis_small" format="aimsun">
+			<mapping name="node" procedure="get_singapore_node_small_bugis()"/>
+			<mapping name="section" procedure="get_singapore_section_small_bugis()"/>
+			<mapping name="crossing" procedure="get_pedestrian_crossing()"/>
+			<mapping name="lane" procedure="get_lanes_bugis()"/>
+			<mapping name="turning" procedure="get_singapore_lane_connector_small_bugis()"/>
+			<mapping name="turning_section" procedure="get_simmob_turning_section()"/>
+			<mapping name="turning_conflict" procedure="get_simmob_turning_conflict()"/>
+			<mapping name="turning_polyline" procedure="get_simmob_turning_polyline()"/>
+			<mapping name="turning_polypoints" procedure="get_simmob_polypoint_by_polyline"/>
+			<mapping name="polyline" procedure="get_singapore_section_polyline_small_bugis()"/>
+			<mapping name="tripchain" procedure=""/>                
+			<!--mapping name="signal" procedure="get_singapore_traffic_signals_small_bugis()"/-->
+			<mapping name="signal" procedure=""/>
+			<mapping name="phase" procedure="get_singapore_lane_connector_phases_small_bugis()"/>
+			<mapping name="segment_type" procedure="get_segment_type()"/>
+			<mapping name="node_type" procedure="get_node_type()"/>
+			<!--mapping name="busstop" procedure=""/>
+			<mapping name="pt_bus_dispatch_freq" procedure=""/>
+			<mapping name="pt_bus_routes" procedure=""/>
+			<mapping name="pt_bus_stops" procedure=""/-->
+		</proc_map>
 
-		<!-- Various database connections, used for loading network and agent data. -->
-		<!-- Note that credentials (login details) are stored in a separate construct. -->
-		<databases>
-			<!-- FM server connection -->
-			<database id="fm_remote" dbtype="postgres">
-				<host value="172.25.184.48"/>
-				<port value="5432"/>
-				<dbname value="simmobility_db_2014"/>
-			</database>
+		<!-- Entire Singapore network -->
+		<proc_map id="singapore" format="aimsun">
+			<mapping name="nodes" procedure="get_singapore_nodes()"/>
+			<mapping name="links" procedure="get_singapore_links()"/>
+			<mapping name="turning_groups" procedure="get_singapore_turning_groups()"/>
+			<mapping name="turning_paths" procedure="get_singapore_turning_paths()"/>
+			<mapping name="turning_polylines" procedure="get_singapore_turning_polylines()"/>
+			<mapping name="turning_conflicts" procedure="get_singapore_turning_conflicts()"/>
+			<mapping name="road_segments" procedure="get_singapore_road_segments()"/>
+			<mapping name="segment_polylines" procedure="get_singapore_segment_polylines()"/>
+			<mapping name="lanes" procedure="get_singapore_lanes()"/>
+			<mapping name="lane_polylines" procedure="get_singapore_lane_polylines()"/>
+			<mapping name="lane_connectors" procedure="get_singapore_lane_connectors()"/>
+		</proc_map>
 
-			<!-- Local copy of the FM server (see wiki for how to set up) -->
-			<database id="fm_local" dbtype="postgres">
-				<host value="localhost"/>
-				<port value="5432"/>
-				<dbname value="SimMobility_DB_2014_bkp"/>
-			</database>
-		</databases>
-    
-		<!-- Groupings of stored procedures, used for loading network data from certain tables. -->
-		<db_proc_groups>
-			<!-- The small Bugis-area network -->
-			<proc_map id="bugis_small" format="aimsun">
-				<mapping name="node" procedure="get_singapore_node_small_bugis()"/>
-				<mapping name="section" procedure="get_singapore_section_small_bugis()"/>
-				<mapping name="crossing" procedure="get_pedestrian_crossing()"/>
-				<mapping name="lane" procedure="get_lanes_bugis()"/>
-				<mapping name="turning" procedure="get_singapore_lane_connector_small_bugis()"/>
-				<mapping name="turning_section" procedure="get_simmob_turning_section()"/>
-				<mapping name="turning_conflict" procedure="get_simmob_turning_conflict()"/>
-				<mapping name="turning_polyline" procedure="get_simmob_turning_polyline()"/>
-				<mapping name="turning_polypoints" procedure="get_simmob_polypoint_by_polyline"/>
-				<mapping name="polyline" procedure="get_singapore_section_polyline_small_bugis()"/>
-				<mapping name="tripchain" procedure=""/>                
-				<!--mapping name="signal" procedure="get_singapore_traffic_signals_small_bugis()"/-->
-				<mapping name="signal" procedure=""/>
-				<mapping name="phase" procedure="get_singapore_lane_connector_phases_small_bugis()"/>
-				<mapping name="segment_type" procedure="get_segment_type()"/>
-				<mapping name="node_type" procedure="get_node_type()"/>
-				<!--mapping name="busstop" procedure=""/>
-				<mapping name="pt_bus_dispatch_freq" procedure=""/>
-				<mapping name="pt_bus_routes" procedure=""/>
-				<mapping name="pt_bus_stops" procedure=""/-->
-			</proc_map>
-
-			<!-- Entire Singapore network -->
-			<proc_map id="singapore" format="aimsun">
-				<mapping name="nodes" procedure="get_singapore_nodes()"/>
-				<mapping name="links" procedure="get_singapore_links()"/>
-				<mapping name="turning_groups" procedure="get_singapore_turning_groups()"/>
-				<mapping name="turning_paths" procedure="get_singapore_turning_paths()"/>
-				<mapping name="turning_polylines" procedure="get_singapore_turning_polylines()"/>
-				<mapping name="turning_conflicts" procedure="get_singapore_turning_conflicts()"/>
-				<mapping name="road_segments" procedure="get_singapore_road_segments()"/>
-				<mapping name="segment_polylines" procedure="get_singapore_segment_polylines()"/>
-				<mapping name="lanes" procedure="get_singapore_lanes()"/>
-				<mapping name="lane_polylines" procedure="get_singapore_lane_polylines()"/>
-				<mapping name="lane_connectors" procedure="get_singapore_lane_connectors()"/>
-			</proc_map>
-
-			<proc_map id="extended_cbd_updated" format="aimsun"> 
-				<mapping name="node" procedure="get_singapore_node_extended_cbd()"/>
-				<mapping name="section" procedure="get_singapore_section_extended_cbd()"/>
-				<mapping name="crossing" procedure="get_pedestrian_crossing()"/>
-				<mapping name="lane" procedure="get_lanes_bugis()"/>
-				<mapping name="turning" procedure="get_singapore_lane_connector_extended_cbd()"/>
-				<!--mapping name="turning_section" procedure="get_simmob_turning_section()"/>
-				<mapping name="turning_conflict" procedure="get_simmob_turning_conflict()"/-->
-				<mapping name="polyline" procedure="get_singapore_section_polyline_extended_cbd()"/>
-				<mapping name="tripchain" procedure=""/>                
-				<mapping name="signal" procedure="get_singapore_traffic_signals_extended_cbd()"/>
-				<mapping name="phase" procedure="get_lane_connector_phases_extended_cbd()"/>
-				<mapping name="segment_type" procedure="get_segment_type()"/>
-				<mapping name="node_type" procedure="get_node_type()"/>
-				<!--mapping name="busstop" procedure="get_bus_stop_bugis()"/>
-				<mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq_sg('saturday')"/>
-				<mapping name="pt_bus_routes" procedure="get_pt_bus_routes_bugis()"/>
-				<mapping name="pt_bus_stops" procedure="get_pt_bus_stops_bugis()"/!-->              
-			</proc_map>
-		</db_proc_groups>
-    
-		<!-- Login credentials to be used for database connections. These can be plaintext, -->
-		<!-- file-based, and possibly even signed. Note that invalid credentials will simply be ignored. -->
-		<credentials>
-			<!-- A file-based credential loads credentials from a JSON file with its own special format. -->
-			<!-- Multiple files can be listed, and they will be tried in order until one is found. -->
-			<!-- If the first existing file has an error, parsing will NOT continue to the next file. -->
-			<!-- The actual credentials file looks something like this: -->
-			<!-- 
-			{
-				"username" : "postgres",
-				"password" : "AbCdEfG=",
-				"algorithm" : ["clear","xor23","base64","cipher"]
-			}
-			-->
-			<!-- Here, the username is stored in cleartext. The password is stored according to the algorithm listed. -->
-			<!-- So in this example, the "clear" text is first "xor23"'d, then "base64" encoded, then finally we arrive at the "cipher" text. -->
-			<!-- If you  just want to store the password in cleartext, use "algorithm" : ["clear","cipher"] -->
-			<file-based-credential id="fm_remote">
-				<file path="private/fm_remote.cred.txt"/>
-			</file-based-credential>
-
-			<file-based-credential id="fm_local">
-				<file path="private/fm_local.cred.txt"/>
-			</file-based-credential>
-      
-			<!-- Plaintext credentials can be used to store the password verbatim. -->
-			<!-- BE CAREFUL with these; remember that EVERYONE can see them: -->
-			<!--    1) Don't put any passwords here that you care about (e.g., email accounts) -->
-			<!--    2) Don't put any passwords to databases on the FM server. -->
-			<plaintext-credential id="fm_remote_plain">
-				<username value="postgres"/>
-				<password value="5M_S1mM0bility"/>
-			</plaintext-credential>
-
-			<plaintext-credential id="neeraj_cred">
-				<username value="postgres"/>
-				<password value="neeraj_cred"/>
-			</plaintext-credential>
-		</credentials>
-
-	</constructs>
+		<proc_map id="extended_cbd_updated" format="aimsun"> 
+			<mapping name="node" procedure="get_singapore_node_extended_cbd()"/>
+			<mapping name="section" procedure="get_singapore_section_extended_cbd()"/>
+			<mapping name="crossing" procedure="get_pedestrian_crossing()"/>
+			<mapping name="lane" procedure="get_lanes_bugis()"/>
+			<mapping name="turning" procedure="get_singapore_lane_connector_extended_cbd()"/>
+			<!--mapping name="turning_section" procedure="get_simmob_turning_section()"/>
+			<mapping name="turning_conflict" procedure="get_simmob_turning_conflict()"/-->
+			<mapping name="polyline" procedure="get_singapore_section_polyline_extended_cbd()"/>
+			<mapping name="tripchain" procedure=""/>                
+			<mapping name="signal" procedure="get_singapore_traffic_signals_extended_cbd()"/>
+			<mapping name="phase" procedure="get_lane_connector_phases_extended_cbd()"/>
+			<mapping name="segment_type" procedure="get_segment_type()"/>
+			<mapping name="node_type" procedure="get_node_type()"/>
+			<!--mapping name="busstop" procedure="get_bus_stop_bugis()"/>
+			<mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq_sg('saturday')"/>
+			<mapping name="pt_bus_routes" procedure="get_pt_bus_routes_bugis()"/>
+			<mapping name="pt_bus_stops" procedure="get_pt_bus_stops_bugis()"/!-->              
+		</proc_map>
+	</db_proc_groups>
 
 	<!-- System configuration properties -->
 	<system>
-		<!-- Properties for a single simulation run -->
-		<!-- Total runtime need not be a multiple of the base granularity -->
-		<!-- (but will be rounded down.) -->
-		<simulation>
-			<base_granularity   value="100" units="ms" />
-			<total_runtime      value="10"  units="minutes" />
-			<total_warmup       value="10"  units="seconds" />
+		<!-- Implementation to use for the Aura Manager. -->
+		<!-- Values include: simtree, rdu, rstar (default) -->
+		<aura_manager_impl value="rstar"/>
             
-			<start_time         value="08:30:00"/>           
-            
-			<!-- Implementation to use for the Aura Manager. -->
-			<!-- Values include: simtree, rdu, rstar (default) -->
-			<aura_manager_impl value="rstar"/>
-            
-			<!-- Strategy for adding new Agents to Workers. -->
-			<!-- "roundrobin" assigns in order. (default) -->
-			<!-- "smallest" assigns to the Worker with the smallest Agent count. -->
-			<!--  Note that "smallest" does not appear to offer any benefit over "roundrobin" -->
-			<workgroup_assignment value="roundrobin"/>
-                        
-			<!-- Properties for SimMobility-MPI -->
-			<partitioning_solution_id   value="1"    units="unit" />
-            
-			<!-- Order in which agents are to be loaded into the simulation -->
-			<!-- Values include: database, drivers, pedestrians, passenger, xml-tripchains -->
+		<!-- Order in which agents are to be loaded into the simulation -->
+		<!-- Values include: database, drivers, pedestrians, passenger, xml-tripchains -->
+		<load_agents order="database"/>
 
-			<load_agents order="database"/>
-
-            
-			<!-- Optional. At what value do we start counting for automatically -->
-			<!-- generated Agent IDs? Set to a high value if you want to avoid  -->
-			<!-- ID collisions when manually specifying Agent IDs in the config file. -->
-			<!-- Setting this to zero has the same effect as leaving it out; the default value is zero. -->
-			<auto_id_start value="0"/>
-            
-			<!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
-			<mutex_enforcement    strategy="buffered" />
-
-			<!--  Commsim (communication) settings -->
-			<commsim enabled="false"> <!-- If false, the Broker is never added, so no commsim activities take place. -->
-				<min_clients value="1"/> <!-- Sim Mobility will hold on time tick 1 until this many clients connect. -->
-				<io_threads value="2"/> <!-- The number of threads to use for boost's io_service (for reading from Android clients). -->
-				<hold_tick value="500"/> <!-- Which tick to enforce the "min_clients" restriction at. -->
-				<use_ns3 value="true"/>  <!-- Use ns-3 to route network traffice between agents? If not, opaque messages are dispatched immediately. -->
-			</commsim>
+		<!--  Commsim (communication) settings -->
+		<commsim enabled="false"> <!-- If false, the Broker is never added, so no commsim activities take place. -->
+			<min_clients value="1"/> <!-- Sim Mobility will hold on time tick 1 until this many clients connect. -->
+			<io_threads value="2"/> <!-- The number of threads to use for boost's io_service (for reading from Android clients). -->
+			<hold_tick value="500"/> <!-- Which tick to enforce the "min_clients" restriction at. -->
+			<use_ns3 value="true"/>  <!-- Use ns-3 to route network traffice between agents? If not, opaque messages are dispatched immediately. -->
+		</commsim>
 
 			<reacTime_distributionType1      value="1" /> <!-- 0 is normal distribution, 1 is log normal-->
 			<reacTime_distributionType2      value="1" />
@@ -196,37 +90,7 @@
 			<reacTime_standardDev1    value="100" />
 			<reacTime_standardDev2    value="100" />
 		</simulation>
-                
-		<!-- List of all Worker types and their properties. -->
-		<!-- granularity of each component must be a multiple of the "base" granularity -->
-		<workers>
-			<person count="2" granularity="100 ms"/> <!-- Person agents (with Roles) -->
-			<signal count="1" granularity="1 second"/> <!-- Traffic signals -->
-			<intersection_manager count="1" granularity="500 ms"/> <!-- Intersection managers -->
-			<communication count="0" granularity="100 ms"/>  <!-- Communication simulator -->
-		</workers>
-        
-		<!-- Setting to true should push everything onto one thread. -->
-		<!-- NOTE: Setting to true will cause the synchronization barriers not to be used. -->
-		<!-- Be careful about any functional logic which depends on the barriers -->
-		<single_threaded value="false"/>
-        
-		<!-- Setting to true will combine all out* files into one out.txt and delete the out* files. -->
-		<!-- Note that this may take quite some time to complete. -->
-		<!-- NOTE: We currently don't delete the source files; this seems un-needed. -->
-		<merge_log_files value="true"/>
-        
-		<!-- Setting to "database" will load the road network from the database. By default we load from "xml". -->
-		<!-- NOTE: This is fairly confusing; later we'll make it easier for different users to -->
-		<!--       maintain their own configurations. -->
-		<network_source value="database"/>
-        
-		<!-- If loading from XML, which input file? Default (or blank string) will force private/SimMobilityInput.xml -->
-		<!-- If Writing XML, which output file? Default (or blank string) don't write at all -->
-		<!-- This only has an effect if network_source is set to "xml" -->
-		<network_xml_file_input value=""/>
-		<network_xml_file_output value=""/>
-    
+                   
 		<!-- If loading from the database, which database, proc_map, and credentials are used? -->
 		<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
 		<!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->        

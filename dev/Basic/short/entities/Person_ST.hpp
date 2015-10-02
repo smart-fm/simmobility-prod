@@ -172,7 +172,7 @@ public:
 	 *
 	 * @return the list of Buffered<> types this entity subscribes to
 	 */
-	virtual std::vector<BufferedBase *> buildSubscriptionList() = 0;
+	virtual std::vector<BufferedBase *> buildSubscriptionList();
 
 	/**
 	 * Change the role of this person

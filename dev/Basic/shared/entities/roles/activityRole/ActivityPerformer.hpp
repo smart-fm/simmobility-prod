@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include<vector>
+
 #include "ActivityFacets.hpp"
 #include "conf/settings/DisableMPI.h"
 #include "entities/roles/Role.hpp"
@@ -11,14 +13,16 @@
 #include "entities/UpdateParams.hpp"
 #include "geospatial/Node.hpp"
 
+using namespace std;
+
 namespace sim_mob
 {
 
 class PackageUtils;
 class UnPackageUtils;
 class Activity;
-class ActivityPerformerBehavior;
-class ActivityPerformerMovement;
+template <class PERSON> class ActivityPerformerBehavior;
+template <class PERSON> class ActivityPerformerMovement;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PartitionManager;
@@ -35,11 +39,11 @@ class UnPackageUtils;
  * \author Harish Loganathan
  */
 template<class PERSON>
-class ActivityPerformer<PERSON> : public sim_mob::Role<PERSON>
+class ActivityPerformer : public sim_mob::Role<PERSON>
 {
 public:
-	ActivityPerformer(PERSON* parent, sim_mob::ActivityPerformerBehavior* behavior = nullptr, sim_mob::ActivityPerformerMovement* movement = nullptr,
-			std::string roleName = std::string(), Role<PERSON>::Type roleType_ = Role<PERSON>::RL_ACTIVITY) :
+	ActivityPerformer(PERSON* parent, sim_mob::ActivityPerformerBehavior<PERSON>* behavior = nullptr, sim_mob::ActivityPerformerMovement<PERSON>* movement = nullptr,
+			std::string roleName = std::string(), typename Role<PERSON>::Type roleType_ = Role<PERSON>::RL_ACTIVITY) :
 			Role<PERSON>(parent, behavior, movement, roleName, roleType_), remainingTimeToComplete(0), location(nullptr)
 	{
 	}
@@ -51,9 +55,9 @@ public:
 	//Virtual overrides
 	virtual sim_mob::Role<PERSON>* clone(PERSON* parent) const
 	{
-		ActivityPerformerBehavior* behavior = new ActivityPerformerBehavior();
-		ActivityPerformerMovement* movement = new ActivityPerformerMovement();
-		ActivityPerformer* activityRole = new ActivityPerformer<PERSON>(parent, behavior, movement, "activityRole");
+		ActivityPerformerBehavior<PERSON>* behavior = new ActivityPerformerBehavior<PERSON>();
+		ActivityPerformerMovement<PERSON>* movement = new ActivityPerformerMovement<PERSON>();
+		ActivityPerformer<PERSON>* activityRole = new ActivityPerformer<PERSON>(parent, behavior, movement, "activityRole");
 		movement->parentActivity = activityRole;
 		return activityRole;
 	}
@@ -120,8 +124,8 @@ private:
 	sim_mob::Node* location;
 	int remainingTimeToComplete;
 
-	friend class ActivityPerformerBehavior;
-	friend class ActivityPerformerMovement;
+	friend class ActivityPerformerBehavior<PERSON>;
+	friend class ActivityPerformerMovement<PERSON>;
 
 	//Serialization-related friends
 	friend class PackageUtils;

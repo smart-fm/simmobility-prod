@@ -3,59 +3,110 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
-
+#include <stdexcept>
+#include "ActivityPerformer.hpp"
+#include "conf/ConfigManager.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/UpdateParams.hpp"
-#include "ActivityPerformer.hpp"
+#include "geospatial/MultiNode.hpp"
 #include "entities/Person.hpp"
 
 namespace sim_mob
 {
-class ActivityPerformer;
 
+template<class PERSON> class ActivityPerformer;
+
+template<class PERSON>
 class ActivityPerformerBehavior : public sim_mob::BehaviorFacet
 {
 public:
-	explicit ActivityPerformerBehavior(sim_mob::Person* parentAgent = nullptr);
-	virtual ~ActivityPerformerBehavior();
+	explicit ActivityPerformerBehavior() : BehaviorFacet()
+	{
+	}
+	virtual ~ActivityPerformerBehavior()
+	{
+	}
 
 	//Virtual overrides
-	virtual void frame_init();
-	virtual void frame_tick();
-	virtual void frame_tick_output();
-
-private:
-	sim_mob::ActivityPerformer* parentActivity;
-	friend class ActivityPerformer;
-
-	//Serialization-related friends
-	friend class PackageUtils;
-	friend class UnPackageUtils;
+	virtual void frame_init()
+	{
+		throw std::runtime_error("ActivityPerformerBehavior::frame_init() is not implemented yet");
+	}
+	virtual void frame_tick()
+	{
+		throw std::runtime_error("ActivityPerformerBehavior::frame_tick() is not implemented yet");
+	}
+	virtual void frame_tick_output()
+	{
+		throw std::runtime_error("ActivityPerformerBehavior::frame_tick_output() is not implemented yet");
+	}
 };
 
+template<class PERSON>
 class ActivityPerformerMovement : public sim_mob::MovementFacet
 {
 public:
-	explicit ActivityPerformerMovement();
-	virtual ~ActivityPerformerMovement();
+	explicit ActivityPerformerMovement() : MovementFacet(), parentActivity(NULL)
+	{
+	}
+
+	virtual ~ActivityPerformerMovement()
+	{
+		/*if(travelMetric.started)
+		{
+			finalizeTravelTimeMetric();
+		}*/
+	}
 
 	//Virtual overrides
-	virtual void frame_init();
-	virtual void frame_tick();
-	virtual void frame_tick_output();
-	virtual sim_mob::Conflux* getStartingConflux() const;
+	virtual void frame_init()
+	{
+		parentActivity->initializeRemainingTime();
+		parentActivity->setTravelTime(parentActivity->getRemainingTimeToComplete());
+		//startTravelTimeMetric();
+	}
+
+	virtual void frame_tick()
+	{
+		parentActivity->updateRemainingTime();
+		if(parentActivity->getRemainingTimeToComplete() <= 0)
+		{
+			parentActivity->parent->setToBeRemoved();
+		}
+		parentActivity->parent->setRemainingTimeThisTick(0.0);
+	}
+
+	virtual void frame_tick_output()
+	{
+	}
+
+	virtual sim_mob::Conflux* getStartingConflux() const
+	{
+		const sim_mob::MultiNode* activityLocation = dynamic_cast<sim_mob::MultiNode*>(parentActivity->getLocation());
+		if(activityLocation) //activity locations must ideally be multinodes
+		{
+			return ConfigManager::GetInstanceRW().FullConfig().getConfluxForNode(activityLocation);
+		}
+		return nullptr;
+	}
 
 	/// mark startTimeand origin
-	virtual TravelMetric& startTravelTimeMetric();
+	virtual TravelMetric& startTravelTimeMetric()
+	{
+		//travelMetric.started = true;
+		return  travelMetric;
+	}
+
 	///	mark the destination and end time and travel time
-	virtual TravelMetric& finalizeTravelTimeMetric();
+	virtual TravelMetric& finalizeTravelTimeMetric()
+	{
+		//parent->serializeCBD_Activity(travelMetric);
+		//travelMetric.finalized = true;
+		return  travelMetric;
+	}
 
 private:
-	sim_mob::ActivityPerformer* parentActivity;
-	friend class ActivityPerformer;
-
-	//Serialization-related friends
-	friend class PackageUtils;
-	friend class UnPackageUtils;
+	sim_mob::ActivityPerformer<PERSON>* parentActivity;
+	friend class ActivityPerformer<PERSON>;
 };
 }

@@ -273,7 +273,7 @@ void sim_mob::WorkGroup::collectRemovedEntities(std::set<sim_mob::Agent*>* remov
 
 			//if parent existed, will inform parent to unregister this child if necessary
 			if( Entity* parent = (*it)->parentEntity ) {
-				parent->unregisteredChild( (*it) );
+				parent->unregisterChild( (*it) );
 			}
 
 			//If this Entity is an Agent, save its memory address.

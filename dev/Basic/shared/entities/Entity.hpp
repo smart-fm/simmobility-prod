@@ -177,7 +177,7 @@ public:
 	 *
 	 * @param child The child entity to be un-registered
 	 */
-	virtual void unregisteredChild(Entity* child = nullptr)
+	virtual void unregisterChild(Entity* child = nullptr)
 	{
 	}
 

@@ -7,6 +7,7 @@
 #include "entities/roles/RoleFactory.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
 
+using namespace std;
 using namespace sim_mob;
 
 namespace
@@ -547,7 +548,7 @@ Entity::UpdateStatus Person_ST::frame_tick(timeslice now)
 					//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
 					//since start time of the activity is usually later than what is configured initially,
 					//we have to make adjustments so that the person waits for exact amount of time
-					sim_mob::ActivityPerformer* ap = dynamic_cast<sim_mob::ActivityPerformer*> (currRole);
+					sim_mob::ActivityPerformer<Person_ST>* ap = dynamic_cast<sim_mob::ActivityPerformer<Person_ST>* > (currRole);
 					ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
 					ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + (tcItem->endTime.getValue() - tcItem->startTime.getValue())));
 				}

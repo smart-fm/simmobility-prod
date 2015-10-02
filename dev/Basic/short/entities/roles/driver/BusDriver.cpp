@@ -95,6 +95,10 @@ vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {
 		res.push_back(busStopRealTimes_vec_bus[j]);
 	}
 
+	res.push_back(&existed_Request_Mode);
+	res.push_back(&lastVisited_Busline);
+	res.push_back(&lastVisited_BusTrip_SequenceNo);
+	res.push_back(&waiting_Time);
 	return res;
 }
 

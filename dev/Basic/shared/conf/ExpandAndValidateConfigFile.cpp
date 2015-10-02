@@ -315,22 +315,10 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	ConfigParams::AgentConstraints constraints;
 	constraints.startingAutoAgentID = cfg.system.simulation.startingAutoAgentID;
 
-	//Start all "BusController" entities.
-	for (std::vector<EntityTemplate>::const_iterator it = cfg.busControllerTemplates.begin(); it != cfg.busControllerTemplates.end(); ++it)
-	{
-		sim_mob::BusController::RegisterBusController(it->startTimeMs, cfg.mutexStategy());
-	}
-
 	LoadAMOD_Controller();
 
 	//combine incident information to road network
 	verifyIncidents();
-
-	//Initialize all BusControllers.
-	if (BusController::HasBusControllers())
-	{
-		BusController::InitializeAllControllers(active_agents, cfg.getPT_BusDispatchFreq());
-	}
 
 	//Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
 	LoadAgentsInOrder(constraints);
@@ -338,14 +326,18 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//Load signals, which are currently agents
 	GenerateXMLSignals();
 
+	//register and initialize BusController
+	//TODO: simplify bus controller config in xml (BALA)
+	for (std::vector<EntityTemplate>::const_iterator it = cfg.busControllerTemplates.begin(); it != cfg.busControllerTemplates.end(); ++it)
+	{
+		sim_mob::BusController::RegisterBusController(it->startTimeMs, cfg.mutexStategy());
+		sim_mob::BusController* busController = sim_mob::BusController::GetInstance();
+		busController->initializeBusController(active_agents, cfg.getPT_BusDispatchFreq());
+		active_agents.insert(busController);
+	}
+
 	//Print some of the settings we just generated.
 	PrintSettings();
-
-	//Start the BusCotroller
-	if (BusController::HasBusControllers())
-	{
-		BusController::DispatchAllControllers(active_agents);
-	}
 }
 
 void sim_mob::ExpandAndValidateConfigFile::verifyIncidents()

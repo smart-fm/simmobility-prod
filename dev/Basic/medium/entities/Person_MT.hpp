@@ -4,7 +4,14 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
 #include "entities/Person.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/Link.hpp"
+#include "entities/conflux/SegmentStats.hpp"
+#include "entities/roles/Role.hpp"
+#include "buffering/BufferedDataManager.hpp"
 
 namespace sim_mob
 {
@@ -114,7 +121,7 @@ public:
 	 *
 	 * @return the list of Buffered<> types this entity subscribes to
 	 */
-	virtual std::vector<BufferedBase *> buildSubscriptionList() = 0;
+	virtual std::vector<BufferedBase *> buildSubscriptionList();
 
 	const sim_mob::Lane* getCurrLane() const
 	{

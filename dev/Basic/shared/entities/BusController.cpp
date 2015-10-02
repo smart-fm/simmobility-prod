@@ -48,35 +48,21 @@ void sim_mob::BusController::RegisterBusController(unsigned int startTime, const
 	}
 }
 
-bool sim_mob::BusController::HasBusControllers()
+bool sim_mob::BusController::HasBusController()
 {
 	return (instance!=nullptr);
 }
 
-void sim_mob::BusController::InitializeAllControllers(std::set<Entity*>& agentList, const vector<PT_BusDispatchFreq>& dispatchFreq)
+void sim_mob::BusController::initializeBusController(std::set<Entity*>& agentList, const vector<PT_BusDispatchFreq>& dispatchFreq)
 {
-	if (!instance) {
-		throw std::runtime_error("create bus controller before you want to initialize");
-	}
-
-	instance->setPTScheduleFromConfig(dispatchFreq);
-	instance->assignBusTripChainWithPerson(agentList);
+	setPTScheduleFromConfig(dispatchFreq);
+	assignBusTripChainWithPerson(agentList);
 }
-
-
-void sim_mob::BusController::DispatchAllControllers(std::set<Entity*>& agentList)
-{
-	//Push every item on the list into the agents array as an active agent
-	if(instance) {
-		agentList.insert(instance);
-	}
-}
-
 
 BusController* sim_mob::BusController::GetInstance()
 {
 	if(!instance){
-		instance = new sim_mob::BusController();
+		throw std::runtime_error("bus controller not registered");
 	}
 	return instance;
 }
@@ -84,50 +70,6 @@ BusController* sim_mob::BusController::GetInstance()
 std::vector<BufferedBase *> sim_mob::BusController::buildSubscriptionList()
 {
 	return Agent::buildSubscriptionList();
-}
-
-void sim_mob::BusController::CollectAndProcessAllRequests()
-{
-	if (instance)
-	{
-		instance->handleChildrenRequest();
-	}
-}
-
-void sim_mob::BusController::assignBusTripChainWithPerson(std::set<sim_mob::Entity*>& activeAgents)
-{
-	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
-	const map<string, BusLine*>& buslines = ptSchedule.getBusLines();
-	if (0 == buslines.size())
-	{
-		throw std::runtime_error("Error:  No busline in the ptSchedule, please check the setPTSchedule.");
-	}
-
-	for (map<string, BusLine*>::const_iterator buslinesIt = buslines.begin(); buslinesIt != buslines.end(); buslinesIt++)
-	{
-		BusLine* busline = buslinesIt->second;
-		const vector<BusTrip>& busTrips = busline->queryBusTrips();
-
-		for (vector<BusTrip>::const_iterator tripIt = busTrips.begin(); tripIt != busTrips.end(); tripIt++)
-		{
-			if (tripIt->startTime.isAfterEqual(ConfigManager::GetInstance().FullConfig().simStartTime()))
-			{
-				Person* person = new Person("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
-				person->setPersonCharacteristics();
-				vector<TripChainItem*> tripChain;
-				tripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));
-				person->setTripChain(tripChain);
-				person->initTripChain();
-				addOrStashBuses(person, activeAgents);
-			}
-		}
-	}
-
-	for (std::set<Entity*>::iterator it = activeAgents.begin(); it != activeAgents.end(); it++)
-	{
-		(*it)->parentEntity = this;
-		allChildren.push_back(*it);
-	}
 }
 
 struct RouteInfo{
@@ -289,7 +231,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_BusDispatch
 	vector<const BusStop*> stops;
 	sim_mob::BusLine* busline = nullptr;
 	int step = 0;
-	allChildren.clear();
+	busDrivers.clear();
 	bool busLineRegistered=false;
 	DailyTime lastBusDispatchTime;
 	std::deque<RouteInfo> allRoutes;
@@ -413,7 +355,7 @@ void sim_mob::BusController::storeRealTimesAtEachBusStop(const std::string& busL
 	busline->resetBusTripStopRealTimes(trip, sequence, sharedStopRealTimes);
 }
 
-double sim_mob::BusController::decisionCalculation(const string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisitedBusStop)
+double sim_mob::BusController::computeDwellTime(const string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisitedBusStop)
 {
 	ControlTypes controlType = ptSchedule.findBusLineControlType(busLine);
 	BusLine* busline = ptSchedule.findBusLine(busLine);
@@ -596,7 +538,7 @@ double sim_mob::BusController::hybridDecision(const string& busLine, int trip, i
 	return estimatedTime;
 }
 
-void sim_mob::BusController::addOrStashBuses(Agent* p, std::set<Entity*>& activeAgents)
+void sim_mob::BusController::addOrStashBuses(Person* p, std::set<Entity*>& activeAgents)
 {
 	if (p->getStartTime()==0) {
 		//Only agents with a start time of zero should start immediately in the all_agents list.
@@ -609,70 +551,12 @@ void sim_mob::BusController::addOrStashBuses(Agent* p, std::set<Entity*>& active
 	}
 }
 
-void sim_mob::BusController::handleEachChildRequest(sim_mob::DriverRequestParams rParams)
-{
-	//No reaction if request params is empty.
-	if (rParams.asVector().empty()) {
-		return;
-	}
-
-	Shared<int>* existedRequestMode = rParams.existedRequest_Mode;
-	if (existedRequestMode
-			&& (existedRequestMode->get() == Role::REQUEST_DECISION_TIME || existedRequestMode->get() == Role::REQUEST_STORE_ARRIVING_TIME)) {
-		Shared<string>* lastVisitedBusline = rParams.lastVisited_Busline;
-		Shared<int>* lastVisitedBusTripSequenceNo = rParams.lastVisited_BusTrip_SequenceNo;
-		Shared<int>* busstopSequenceNo = rParams.busstop_sequence_no;
-		Shared<double>* realArrivalTime = rParams.real_ArrivalTime;
-		Shared<double>* dwellTime = rParams.DwellTime_ijk;
-		Shared<const BusStop*>* lastVisitedBusStop = rParams.lastVisited_BusStop;
-		Shared<BusStopRealTimes>* lastBusStopRealTimes = rParams.last_busStopRealTimes;
-		Shared<double>* waitingTime = rParams.waiting_Time;
-
-		if (existedRequestMode && lastVisitedBusline
-				&& lastVisitedBusTripSequenceNo && busstopSequenceNo
-				&& realArrivalTime && dwellTime && lastVisitedBusStop
-				&& lastBusStopRealTimes && waitingTime) {
-			BusStopRealTimes realTime;
-			if (existedRequestMode->get() == Role::REQUEST_DECISION_TIME) {
-				double waitingtime = decisionCalculation(
-						lastVisitedBusline->get(),
-						lastVisitedBusTripSequenceNo->get(),
-						busstopSequenceNo->get(), realArrivalTime->get(),
-						dwellTime->get(), realTime,
-						lastVisitedBusStop->get());
-				waitingTime->set(waitingtime);
-			} else if (existedRequestMode->get() == Role::REQUEST_STORE_ARRIVING_TIME) {
-				storeRealTimesAtEachBusStop(lastVisitedBusline->get(),
-						lastVisitedBusTripSequenceNo->get(),
-						busstopSequenceNo->get(), realArrivalTime->get(),
-						dwellTime->get(), lastVisitedBusStop->get(),
-						realTime);
-			}
-			lastBusStopRealTimes->set(realTime);
-		}
-	}
-}
-
-
-void sim_mob::BusController::handleChildrenRequest() {
-	for (vector<Entity*>::iterator it = allChildren.begin();
-			it != allChildren.end(); it++) {
-		Person* person = dynamic_cast<sim_mob::Person*>(*it);
-		if (person) {
-			Role* role = person->getRole();
-			if (role) {
-				handleEachChildRequest(role->getDriverRequestParams());
-			}
-		}
-	}
-}
-
-void sim_mob::BusController::unregisteredChild(Entity* child) {
+void sim_mob::BusController::unregisterChild(Entity* child) {
 	if (child) {
-		std::vector<Entity*>::iterator it = std::find(allChildren.begin(),
-				allChildren.end(), child);
-		if (it != allChildren.end()) {
-			allChildren.erase(it);
+		std::vector<Entity*>::iterator it = std::find(busDrivers.begin(),
+				busDrivers.end(), child);
+		if (it != busDrivers.end()) {
+			busDrivers.erase(it);
 		}
 	}
 }
@@ -690,10 +574,10 @@ Entity::UpdateStatus sim_mob::BusController::frame_tick(timeslice now)
 		pendingChildren.pop();
 		child->parentEntity = this;
 		currWorkerProvider->scheduleForBred(child);
-		allChildren.push_back(child);
+		busDrivers.push_back(child);
 	}
 
-	handleChildrenRequest();
+	processRequests();
 
 	return Entity::UpdateStatus::Continue;
 }
@@ -709,4 +593,13 @@ void sim_mob::BusController::frame_output(timeslice now)
 			<<","<<now.frame()
 			<<","<<getId()
 			<<","<<std::endl);
+}
+
+void sim_mob::BusController::load(const std::map<std::string, std::string>& configProps)
+{
+}
+
+bool sim_mob::BusController::isNonspatial()
+{
+	return true;
 }

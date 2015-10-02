@@ -15,14 +15,17 @@
 #include "roles/DriverRequestParams.hpp"
 #include "util/DynamicVector.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 class BusStop;
-class BusController : public sim_mob::Agent {
+class BusController: public sim_mob::Agent
+{
 private:
-	explicit BusController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id),
-		nextTimeTickToStage(0)
-	{}
+	explicit BusController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) :
+			Agent(mtxStrat, id), nextTimeTickToStage(0)
+	{
+	}
 
 public:
 	/**
@@ -31,82 +34,63 @@ public:
 	static void RegisterBusController(unsigned int startTime, const MutexStrategy& mtxStrat);
 
 	/**
-	 * Returns true if we have at least one bus controller capable of dispatching buses.
-	 */
-	static bool HasBusControllers();
-
-	/**
 	 * get current instance
 	 */
 	static BusController* GetInstance();
 
 	/**
+	 * checks if the bus controller instance exists
+	 */
+	static bool HasBusController();
+
+	/**
 	 * Initialize all bus controller objects based on the parameters.
 	 */
-	static void InitializeAllControllers(std::set<sim_mob::Entity*>& agentList, const std::vector<sim_mob::PT_BusDispatchFreq>& dispatchFreq);
+	void initializeBusController(std::set<sim_mob::Entity*>& agentList, const std::vector<sim_mob::PT_BusDispatchFreq>& dispatchFreq);
 
-	/**
-	 * Place bus controller agents on to the all_agents list.
-	 */
-	static void DispatchAllControllers(std::set<sim_mob::Entity*>& agentList);
-
-	/**
-	 * collect and process all requests from bus drivers
-	 */
-	static void CollectAndProcessAllRequests();
-
-public:
 	/**
 	 * inherited function to load configurable items
 	 */
-	virtual void load(const std::map<std::string, std::string>& configProps){}
+	virtual void load(const std::map<std::string, std::string>& configProps);
 
 	/**
 	 * Signals are non-spatial in nature.
 	 */
-	virtual bool isNonspatial() { return true; }
+	virtual bool isNonspatial();
 
 	virtual std::vector<BufferedBase*> buildSubscriptionList();
 
 	/**
 	 * processes requests from all bus drivers
 	 */
-	void handleChildrenRequest();
+	virtual void processRequests() = 0;
 
 	/**
 	 * processes bus driver request
 	 */
-	void handleEachChildRequest(sim_mob::DriverRequestParams rParams);
+	virtual void handleRequest(sim_mob::DriverRequestParams rParams) = 0;
 
 	/**
 	 * decide holding time when a bus arrive at bus stop
 	 */
-	double decisionCalculation(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisited_BusStop);// return Departure MS from Aijk, DWijk etc
+	double computeDwellTime(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime,
+			const BusStop* lastVisited_BusStop); // return Departure MS from Aijk, DWijk etc
 
 	/**
 	 * store real times at each bus stop for future decision
 	 */
-	void storeRealTimesAtEachBusStop(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, const BusStop* lastVisited_BusStop, BusStopRealTimes& realTime);
+	void storeRealTimesAtEachBusStop(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime,
+			const BusStop* lastVisited_BusStop, BusStopRealTimes& realTime);
 
 	/**
 	 * decide whether current agent should be into active agents list at current time
 	 */
-	void addOrStashBuses(Agent* p, std::set<Entity*>& activeAgents);
-
-	/**
-	 * assign bus trip information to person so as to travel on the road
-	 */
-	void assignBusTripChainWithPerson(std::set<sim_mob::Entity*>& activeAgents);
-
-	/**
-	 * set bus schedule which loaded from the database.
-	 */
-	void setPTScheduleFromConfig(const std::vector<sim_mob::PT_BusDispatchFreq>& dispatchFreq);
+	void addOrStashBuses(Person* p, std::set<Entity*>& activeAgents);
 
 	/**
 	 * unregister child item from children list
 	 */
-	virtual void unregisteredChild(Entity* child);
+	virtual void unregisterChild(Entity* child);
 
 protected:
 
@@ -125,48 +109,64 @@ protected:
 	 */
 	virtual void frame_output(timeslice now);
 
-private:
+	/**
+	 * set bus schedule which loaded from the database.
+	 */
+	void setPTScheduleFromConfig(const std::vector<sim_mob::PT_BusDispatchFreq>& dispatchFreq);
+
+	/**
+	 * assign bus trip information to person so as to travel on the road
+	 */
+	virtual void assignBusTripChainWithPerson(std::set<sim_mob::Entity*>& activeAgents) = 0;
 
 	/**
 	 * estimate holding time by scheduled-based control
 	 */
-	double scheduledDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisited_busStop);
+	double scheduledDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime,
+			const BusStop* lastVisited_busStop);
 
 	/**
 	 * estimate holding time by headway-based control
 	 */
-	double headwayDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisited_busStop);
+	double headwayDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime,
+			const BusStop* lastVisited_busStop);
 
 	/**
 	 * estimate holding time by even headway-based control
 	 */
-	double evenheadwayDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisited_busStop);
+	double evenheadwayDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime,
+			const BusStop* lastVisited_busStop);
 
 	/**
 	 * estimate holding time by hybrid-based control
 	 */
-	double hybridDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisited_busStop);
+	double hybridDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime,
+			const BusStop* lastVisited_busStop);
 
 	/**
 	 * record next time tick to help dispatching decision
 	 */
 	uint32_t nextTimeTickToStage;
+
 	/**
 	 * buses waiting to be added to the simulation, prioritized by start time.
 	 */
 	StartTimePriorityQueue pendingChildren;
+
 	/**
 	 * hold bus schedule information
 	 */
 	PT_Schedule ptSchedule;
+
 	/**
 	 * reference to the instance of bus controller
 	 */
 	static BusController* instance;
+
 	/**
 	 * keep all children agents to communicate with it
 	 */
-	std::vector<Entity*> allChildren;
+	std::vector<Entity*> busDrivers;
 };
 
 }

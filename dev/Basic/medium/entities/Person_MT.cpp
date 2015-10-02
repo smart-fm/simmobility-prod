@@ -4,6 +4,18 @@
 
 #include "Person_MT.hpp"
 
+#include <stdexcept>
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
+#include "entities/misc/PublicTransit.hpp"
+#include "entities/misc/TripChain.hpp"
+#include "entities/roles/RoleFactory.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/WayPoint.hpp"
+#include "path/PT_RouteChoiceLuaProvider.hpp"
+#include "util/DailyTime.hpp"
+
+using namespace std;
 using namespace sim_mob;
 
 Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, int id = -1, std::string databaseID = "")
@@ -229,8 +241,8 @@ void Person_MT::initTripChain()
 		if (currSubTrip->mode == "BusTravel")
 		{
 			const RoleFactory<Person_MT> *rf = RoleFactory<Person_MT>::getInstance();
-			currRole = rf.createRole("waitBusActivity", this);
-			nextRole = rf.createRole("passenger", this);
+			currRole = rf->createRole("waitBusActivity", this);
+			nextRole = rf->createRole("passenger", this);
 		}
 		
 		if (!updateOD(*currTripChainItem))
@@ -354,7 +366,7 @@ bool Person_MT::advanceCurrentTripChainItem()
 	return true;
 }
 
-UpdateStatus Person_MT::checkTripChain()
+Entity::UpdateStatus Person_MT::checkTripChain()
 {
 	if (tripChain.empty())
 	{

@@ -35,6 +35,12 @@
 				<port value="5432"/>
 				<dbname value="SimMobility_DB_2014_bkp"/>
 			</database>
+
+                        <database id="fm_hpchead" dbtype="postgres">
+                                <host value="fmhpchead"/>
+                                <port value="5432"/>
+                                <dbname value="SimMobility_DB_2015"/>
+                        </database>
 		</databases>
     
 		<!-- Groupings of stored procedures, used for loading network data from certain tables. -->
@@ -97,6 +103,15 @@
 				<mapping name="pt_bus_routes" procedure="get_pt_bus_routes_bugis()"/>
 				<mapping name="pt_bus_stops" procedure="get_pt_bus_stops_bugis()"/!-->              
 			</proc_map>
+
+                        <!-- Entire singapore network with scaled activity_schedules from preday-->
+                        <proc_map id="withinday" format="aimsun">
+                                <mapping name="node" procedure="get_node_sg()"/>
+                                <mapping name="section" procedure="get_section_sg()"/>
+                                <mapping name="turning" procedure="get_lane_connector_sg()"/>
+                                <mapping name="polyline" procedure="get_section_polyline()"/>
+                        </proc_map>
+
 		</db_proc_groups>
     
 		<!-- Login credentials to be used for database connections. These can be plaintext, -->
@@ -137,8 +152,12 @@
 				<username value="postgres"/>
 				<password value="neeraj_cred"/>
 			</plaintext-credential>
-		</credentials>
 
+                        <plaintext-credential id="fm_hpchead">
+                                <username value="postgres"/>
+                                <password value="d84dmiN"/>
+                                </plaintext-credential>
+		        </credentials>
 	</constructs>
 
 	<!-- System configuration properties -->
@@ -148,7 +167,7 @@
 		<!-- (but will be rounded down.) -->
 		<simulation>
 			<base_granularity   value="100" units="ms" />
-			<total_runtime      value="10"  units="minutes" />
+			<total_runtime      value="5"  units="minutes" />
 			<total_warmup       value="10"  units="seconds" />
             
 			<start_time         value="08:30:00"/>           
@@ -228,12 +247,7 @@
 		<network_xml_file_output value=""/>
     
 		<!-- If loading from the database, which database, proc_map, and credentials are used? -->
-		<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
-		<!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->        
-		<network_database database="fm_remote" credentials="fm_remote" proc_map="extended_cbd_updated"/>
-		<!--network_database database="fm_local" credentials="neeraj_cred" proc_map="bugis_large"/-->        
-		<!--network_database database="fm_local" credentials="neeraj_cred" proc_map="singapore"/-->
-		<!--network_database database="fm_local" credentials="neeraj_cred" proc_map="bugis_small"/-->
+		<network_database database="fm_hpchead" credentials="fm_hpc_head" proc_map="extended_cbd_updated"/>
         
 		<!-- Where to find our various schema files. -->
 		<!-- Overrides xsi:schemaLocation in the files themselves. -->

@@ -12,7 +12,6 @@
 #include "conf/settings/DisableMPI.h"
 #include "entities/Agent.hpp"
 #include "entities/amodController/AMODEvent.hpp"
-#include "entities/conflux/Conflux.hpp"
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
@@ -418,8 +417,6 @@ public:
 	{
 		this->remainingTimeThisTick = remainingTimeThisTick;
 	}
-
-	friend class Conflux;
 
 #ifndef SIMMOB_DISABLE_MPI
 

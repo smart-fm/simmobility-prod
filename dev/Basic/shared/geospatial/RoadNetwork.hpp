@@ -21,7 +21,6 @@ class UniNode;
 class MultiNode;
 class Point2D;
 class Link;
-class Conflux;
 class CoordinateTransform;
 class TurningSection;
 class TurningConflict;

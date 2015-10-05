@@ -6,10 +6,9 @@
 #include <stdexcept>
 #include "ActivityPerformer.hpp"
 #include "conf/ConfigManager.hpp"
+#include "entities/misc/TripChain.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/UpdateParams.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "entities/Person.hpp"
 
 namespace sim_mob
 {
@@ -78,16 +77,6 @@ public:
 
 	virtual void frame_tick_output()
 	{
-	}
-
-	virtual sim_mob::Conflux* getStartingConflux() const
-	{
-		const sim_mob::MultiNode* activityLocation = dynamic_cast<sim_mob::MultiNode*>(parentActivity->getLocation());
-		if(activityLocation) //activity locations must ideally be multinodes
-		{
-			return ConfigManager::GetInstanceRW().FullConfig().getConfluxForNode(activityLocation);
-		}
-		return nullptr;
 	}
 
 	/// mark startTimeand origin

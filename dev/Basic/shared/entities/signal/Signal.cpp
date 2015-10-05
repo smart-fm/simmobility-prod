@@ -23,7 +23,6 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "entities/conflux/Conflux.hpp"
 #include "logging/Log.hpp"
 #include "util/Profiler.hpp"
 #include "entities/models/Constants.hpp"

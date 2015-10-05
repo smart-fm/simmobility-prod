@@ -1487,6 +1487,13 @@ sim_mob::Conflux* sim_mob::Conflux::findStartingConflux(Person* person, unsigned
 		sim_mob::ActivityPerformer* ap = dynamic_cast<sim_mob::ActivityPerformer*>(personRole);
 		ap->setActivityStartTime(sim_mob::DailyTime(now + ConfigManager::GetInstance().FullConfig().baseGranMS()));
 		ap->setActivityEndTime(sim_mob::DailyTime(now + ConfigManager::GetInstance().FullConfig().baseGranMS() + ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
+
+		const sim_mob::MultiNode* activityLocation = dynamic_cast<sim_mob::MultiNode*>(ap->getLocation());
+		if(activityLocation) //activity locations must ideally be multinodes
+		{
+			return ConfigManager::GetInstanceRW().FullConfig().getConfluxForNode(activityLocation);
+		}
+		return nullptr;
 	}
 
 	//Now that the Role has been fully constructed, initialize it.

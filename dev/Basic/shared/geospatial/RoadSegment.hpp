@@ -149,8 +149,6 @@ public:
 
 	sim_mob::Conflux* getParentConflux() const { return parentConflux; }
 
-	void setParentConflux(sim_mob::Conflux* parentConflux) { this->parentConflux = parentConflux; }
-
 	const double getLengthOfSegment() const;
 
 	///computes total lenght of segment polyline loaded from the database

@@ -9,6 +9,7 @@
 #include "entities/Person.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/Link.hpp"
+#include "entities/conflux/Conflux.hpp"
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/roles/Role.hpp"
 #include "buffering/BufferedDataManager.hpp"
@@ -175,6 +176,8 @@ public:
 	{
 		return nextRole;
 	}
+
+	friend class Conflux;
 };
 } // namespace medium
 } //namespace sim_mob

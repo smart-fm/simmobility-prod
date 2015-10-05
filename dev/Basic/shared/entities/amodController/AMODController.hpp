@@ -16,7 +16,6 @@
 #include <string>
 #include "AMODEvent.hpp"
 #include "entities/Agent.hpp"
-#include "entities/conflux/Conflux.hpp"
 #include "entities/Person.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventPublisher.hpp"

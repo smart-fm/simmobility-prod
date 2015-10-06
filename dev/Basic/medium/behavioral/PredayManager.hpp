@@ -2,13 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * PredayManager.hpp
- *
- *  Created on: Nov 18, 2013
- *      Author: Harish Loganathan
- */
-
 #pragma once
 #include <boost/unordered_map.hpp>
 #include <boost/function.hpp>
@@ -23,17 +16,23 @@
 #include "params/PersonParams.hpp"
 #include "behavioral/params/ZoneCostParams.hpp"
 
-namespace sim_mob {
-namespace medium {
+namespace sim_mob
+{
+namespace medium
+{
 
 /**
  * structure to hold a calibration variable and its pertinent details.
+ *
+ * \author Harish Loganathan
  */
 struct CalibrationVariable
 {
 public:
-	CalibrationVariable() : variableName(std::string()), scriptFileName(std::string()), initialValue(0), currentValue(0), lowerLimit(0), upperLimit(0)
-	{}
+	CalibrationVariable() :
+			variableName(std::string()), scriptFileName(std::string()), initialValue(0), currentValue(0), lowerLimit(0), upperLimit(0)
+	{
+	}
 
 	double getInitialValue() const
 	{
@@ -104,7 +103,13 @@ private:
 	double upperLimit;
 };
 
-class PredayManager {
+/**
+ * Manager class which handles all preday level computations
+ *
+ * \author Harish Loganathan
+ */
+class PredayManager
+{
 public:
 
 	PredayManager();
@@ -255,7 +260,8 @@ private:
 	 *
 	 * \NOTE: This function must be removed when we are able to fully feedback LT population's logsums
 	 */
-	void computeLT_FeedbackLogsums(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& logsumOutputFileName);
+	void computeLT_FeedbackLogsums(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt,
+			const std::string& logsumOutputFileName);
 
 	/**
 	 * Threaded logsum computation for LT feedback.
@@ -269,7 +275,8 @@ private:
 	 *
 	 * \NOTE: This function must be removed when we are able to fully feedback LT population's logsums
 	 */
-	void computeLT_PopulationFeedbackLogsums(const LT_PersonIdList::iterator& firstPersonIdIt, const LT_PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& logsumOutputFileName);
+	void computeLT_PopulationFeedbackLogsums(const LT_PersonIdList::iterator& firstPersonIdIt, const LT_PersonIdList::iterator& oneAfterLastPersonIdIt,
+			const std::string& logsumOutputFileName);
 
 	/**
 	 * Threaded logsum computation for calibration
@@ -321,6 +328,8 @@ private:
 	 * runs preday and computes the value for objective function
 	 * @param calibrationVariableList values of calibration variables to use in simulation
 	 * @param simulatedHITS_Stats output list to populate simulated stats
+	 *
+	 * @return computed objective function result
 	 */
 	double computeObjectiveFunction(const std::vector<CalibrationVariable>& calibrationVariableList, std::vector<double>& simulatedHITS_Stats);
 
@@ -336,53 +345,75 @@ private:
 	 */
 	void log();
 
+	/**
+	 * list of persons to process
+	 */
 	PersonList personList;
 
+	/**
+	 * list of person Ids
+	 */
 	PersonIdList personIdList;
+
+	/**
+	 * list of LT person Ids
+	 */
 	LT_PersonIdList ltPersonIdList;
 
-    /**
-     * map of zone_id -> ZoneParams
-     * \note this map has 1092 elements
-     */
-    ZoneMap zoneMap;
-    ZoneNodeMap zoneNodeMap;
-    boost::unordered_map<int,int> zoneIdLookup;
-    std::map<int,int> MTZ12_MTZ08_Map;
+	/**
+	 * map of zone_id -> ZoneParams
+	 */
+	ZoneMap zoneMap;
+	ZoneNodeMap zoneNodeMap;
+	boost::unordered_map<int, int> zoneIdLookup;
+	std::map<int, int> MTZ12_MTZ08_Map;
 
+	/**
+	 * Map of AM Costs [origin zone, destination zone] -> CostParams*
+	 */
+	CostMap amCostMap;
 
-    /**
-     * Map of AM, PM and Off peak Costs [origin zone, destination zone] -> CostParams*
-     * \note these maps have (1092 zones * 1092 zones - 1092 (entries with same origin and destination is not available)) 1191372 elements
-     */
-    CostMap amCostMap;
-    CostMap pmCostMap;
-    CostMap opCostMap;
+	/**
+	 * Map of PM Costs [origin zone, destination zone] -> CostParams*
+	 */
+	CostMap pmCostMap;
 
-    /** for each origin, has a list of unavailable destinations */
-    std::vector<OD_Pair> unavailableODs;
+	/**
+	 * Map of Off peak Costs [origin zone, destination zone] -> CostParams*
+	 */
+	CostMap opCostMap;
 
-    /**
-     * list of values computed for objective function
-     * objectiveFunctionValue[i] is the objective function value for iteration i
-     */
-    std::vector<double> objectiveFunctionValues;
+	/** for each origin, has a list of unavailable destinations */
+	std::vector<OD_Pair> unavailableODs;
 
-    /**
-     * Calibration statistics collector for each thread
-     * simulatedStats[4] is the statistics from the 5th thread
-     */
-    std::vector<CalibrationStatistics> simulatedStatsVector;
+	/**
+	 * list of values computed for objective function
+	 * objectiveFunctionValue[i] is the objective function value for iteration i
+	 */
+	std::vector<double> objectiveFunctionValues;
 
-    const MT_Config& mtConfig;
+	/**
+	 * Calibration statistics collector for each thread
+	 * simulatedStats[4] is the statistics from the 5th thread
+	 */
+	std::vector<CalibrationStatistics> simulatedStatsVector;
 
-    std::ostream* logFile;
+	/**
+	 * mid-term configurations
+	 */
+	const MT_Config& mtConfig;
 
-    std::stringstream logStream;
+	/**
+	 * output file for calibration results
+	 */
+	std::ostream* logFile;
+
+	/**
+	 * stream for logging calibration results
+	 */
+	std::stringstream logStream;
 
 };
 } //end namespace medium
 } //end namespace sim_mob
-
-
 

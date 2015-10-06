@@ -243,7 +243,7 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 
 			if( hh != NULL )
 			{
-				model->getLogsumOfHouseholdVO(hh->getId());
+				//model->getLogsumOfHouseholdVO(hh->getId());
 				model->getLogsumOfHousehold(hh->getId());
 			}
 		}

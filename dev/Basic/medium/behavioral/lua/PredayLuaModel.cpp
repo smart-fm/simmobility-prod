@@ -8,13 +8,11 @@
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"
 #include "logging/Log.hpp"
-#include "mongo/client/dbclient.h"
 
 using namespace std;
 using namespace sim_mob;
 using namespace sim_mob::medium;
 using namespace luabridge;
-using namespace mongo;
 
 sim_mob::medium::PredayLuaModel::PredayLuaModel()
 {}

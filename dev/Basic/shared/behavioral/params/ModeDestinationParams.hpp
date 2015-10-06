@@ -2,26 +2,21 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * ModeDestinationParams.hpp
- *
- *  Created on: Nov 30, 2013
- *      Author: Harish Loganathan
- */
-
 #pragma once
 #include <boost/unordered_map.hpp>
-#include <cmath>
-#include <string>
 #include "behavioral/params/ZoneCostParams.hpp"
 #include "behavioral/StopType.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 /**
  * Base class for tour and stop mode destination params
+ *
+ * \author Harish Loganathan
  */
-class ModeDestinationParams {
+class ModeDestinationParams
+{
 protected:
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;

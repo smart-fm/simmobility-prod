@@ -2,305 +2,370 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * TourModeParams.hpp
- *
- *  Created on: Nov 29, 2013
- *      Author: Harish Loganathan
- */
-
 #pragma once
-#include "behavioral/PredayClasses.hpp"
 #include "behavioral/StopType.hpp"
 
-namespace sim_mob {
-namespace medium {
+namespace sim_mob
+{
+namespace medium
+{
 
 /**
  * Simple class to store information pertaining tour tour-mode models
- * \note This class is used by the mid-term behavior models.
+ * NOTE: This class is used by the mid-term behavior models.
  *
  * \author Harish Loganathan
  */
-class TourModeParams {
+class TourModeParams
+{
 public:
-	virtual ~TourModeParams() {}
+	virtual ~TourModeParams()
+	{
+	}
 
-	double getAvgTransfer() const {
+	double getAvgTransfer() const
+	{
 		return avgTransfer;
 	}
 
-	void setAvgTransfer(double avgTransfer) {
+	void setAvgTransfer(double avgTransfer)
+	{
 		this->avgTransfer = avgTransfer;
 	}
 
-	int isCentralZone() const {
+	int isCentralZone() const
+	{
 		return centralZone;
 	}
 
-	void setCentralZone(bool centralZone) {
+	void setCentralZone(bool centralZone)
+	{
 		this->centralZone = centralZone;
 	}
 
-	double getCostCarErpFirst() const {
+	double getCostCarErpFirst() const
+	{
 		return costCarERP_First;
 	}
 
-	void setCostCarErpFirst(double costCarErpFirst) {
+	void setCostCarErpFirst(double costCarErpFirst)
+	{
 		costCarERP_First = costCarErpFirst;
 	}
 
-	double getCostCarErpSecond() const {
+	double getCostCarErpSecond() const
+	{
 		return costCarERP_Second;
 	}
 
-	void setCostCarErpSecond(double costCarErpSecond) {
+	void setCostCarErpSecond(double costCarErpSecond)
+	{
 		costCarERP_Second = costCarErpSecond;
 	}
 
-	double getCostCarOpFirst() const {
+	double getCostCarOpFirst() const
+	{
 		return costCarOP_First;
 	}
 
-	void setCostCarOpFirst(double costCarOpFirst) {
+	void setCostCarOpFirst(double costCarOpFirst)
+	{
 		costCarOP_First = costCarOpFirst;
 	}
 
-	double getCostCarOpSecond() const {
+	double getCostCarOpSecond() const
+	{
 		return costCarOP_Second;
 	}
 
-	void setCostCarOpSecond(double costCarOpSecond) {
+	void setCostCarOpSecond(double costCarOpSecond)
+	{
 		costCarOP_Second = costCarOpSecond;
 	}
 
-	double getCostCarParking() const {
+	double getCostCarParking() const
+	{
 		return costCarParking;
 	}
 
-	void setCostCarParking(double costCarParking) {
+	void setCostCarParking(double costCarParking)
+	{
 		this->costCarParking = costCarParking;
 	}
 
-	double getCostPublicFirst() const {
+	double getCostPublicFirst() const
+	{
 		return costPublicFirst;
 	}
 
-	void setCostPublicFirst(double costPublicFirst) {
+	void setCostPublicFirst(double costPublicFirst)
+	{
 		this->costPublicFirst = costPublicFirst;
 	}
 
-	double getCostPublicSecond() const {
+	double getCostPublicSecond() const
+	{
 		return costPublicSecond;
 	}
 
-	void setCostPublicSecond(double costPublicSecond) {
+	void setCostPublicSecond(double costPublicSecond)
+	{
 		this->costPublicSecond = costPublicSecond;
 	}
 
-	int isDrive1Available() const {
+	int isDrive1Available() const
+	{
 		return drive1Available;
 	}
 
-	void setDrive1Available(bool drive1Available) {
+	void setDrive1Available(bool drive1Available)
+	{
 		this->drive1Available = drive1Available;
 	}
 
-	int isMotorAvailable() const {
+	int isMotorAvailable() const
+	{
 		return motorAvailable;
 	}
 
-	void setMotorAvailable(bool motorAvailable) {
+	void setMotorAvailable(bool motorAvailable)
+	{
 		this->motorAvailable = motorAvailable;
 	}
 
-	int isMrtAvailable() const {
+	int isMrtAvailable() const
+	{
 		return mrtAvailable;
 	}
 
-	void setMrtAvailable(bool mrtAvailable) {
+	void setMrtAvailable(bool mrtAvailable)
+	{
 		this->mrtAvailable = mrtAvailable;
 	}
 
-	int isPrivateBusAvailable() const {
+	int isPrivateBusAvailable() const
+	{
 		return privateBusAvailable;
 	}
 
-	void setPrivateBusAvailable(bool privateBusAvailable) {
+	void setPrivateBusAvailable(bool privateBusAvailable)
+	{
 		this->privateBusAvailable = privateBusAvailable;
 	}
 
-	int isPublicBusAvailable() const {
+	int isPublicBusAvailable() const
+	{
 		return publicBusAvailable;
 	}
 
-	void setPublicBusAvailable(bool publicBusAvailable) {
+	void setPublicBusAvailable(bool publicBusAvailable)
+	{
 		this->publicBusAvailable = publicBusAvailable;
 	}
 
-	int isShare2Available() const {
+	int isShare2Available() const
+	{
 		return share2Available;
 	}
 
-	void setShare2Available(bool share2Available) {
+	void setShare2Available(bool share2Available)
+	{
 		this->share2Available = share2Available;
 	}
 
-	int isShare3Available() const {
+	int isShare3Available() const
+	{
 		return share3Available;
 	}
 
-	void setShare3Available(bool share3Available) {
+	void setShare3Available(bool share3Available)
+	{
 		this->share3Available = share3Available;
 	}
 
-	StopType getStopType() const {
+	StopType getStopType() const
+	{
 		return stopType;
 	}
 
-	void setStopType(StopType stopType) {
+	void setStopType(StopType stopType)
+	{
 		this->stopType = stopType;
 	}
 
-	int isTaxiAvailable() const {
+	int isTaxiAvailable() const
+	{
 		return taxiAvailable;
 	}
 
-	void setTaxiAvailable(bool taxiAvailable) {
+	void setTaxiAvailable(bool taxiAvailable)
+	{
 		this->taxiAvailable = taxiAvailable;
 	}
 
-	double getTtCarIvtFirst() const {
+	double getTtCarIvtFirst() const
+	{
 		return ttCarIvtFirst;
 	}
 
-	void setTtCarIvtFirst(double ttCarIvtFirst) {
+	void setTtCarIvtFirst(double ttCarIvtFirst)
+	{
 		this->ttCarIvtFirst = ttCarIvtFirst;
 	}
 
-	double getTtCarIvtSecond() const {
+	double getTtCarIvtSecond() const
+	{
 		return ttCarIvtSecond;
 	}
 
-	void setTtCarIvtSecond(double ttCarIvtSecond) {
+	void setTtCarIvtSecond(double ttCarIvtSecond)
+	{
 		this->ttCarIvtSecond = ttCarIvtSecond;
 	}
 
-	double getTtPublicIvtFirst() const {
+	double getTtPublicIvtFirst() const
+	{
 		return ttPublicIvtFirst;
 	}
 
-	void setTtPublicIvtFirst(double ttPublicIvtFirst) {
+	void setTtPublicIvtFirst(double ttPublicIvtFirst)
+	{
 		this->ttPublicIvtFirst = ttPublicIvtFirst;
 	}
 
-	double getTtPublicIvtSecond() const {
+	double getTtPublicIvtSecond() const
+	{
 		return ttPublicIvtSecond;
 	}
 
-	void setTtPublicIvtSecond(double ttPublicIvtSecond) {
+	void setTtPublicIvtSecond(double ttPublicIvtSecond)
+	{
 		this->ttPublicIvtSecond = ttPublicIvtSecond;
 	}
 
-	double getTtPublicWaitingFirst() const {
+	double getTtPublicWaitingFirst() const
+	{
 		return ttPublicWaitingFirst;
 	}
 
-	void setTtPublicWaitingFirst(double ttPublicWaitingFirst) {
+	void setTtPublicWaitingFirst(double ttPublicWaitingFirst)
+	{
 		this->ttPublicWaitingFirst = ttPublicWaitingFirst;
 	}
 
-	double getTtPublicWaitingSecond() const {
+	double getTtPublicWaitingSecond() const
+	{
 		return ttPublicWaitingSecond;
 	}
 
-	void setTtPublicWaitingSecond(double ttPublicWaitingSecond) {
+	void setTtPublicWaitingSecond(double ttPublicWaitingSecond)
+	{
 		this->ttPublicWaitingSecond = ttPublicWaitingSecond;
 	}
 
-	double getTtPublicWalkFirst() const {
+	double getTtPublicWalkFirst() const
+	{
 		return ttPublicWalkFirst;
 	}
 
-	void setTtPublicWalkFirst(double ttPublicWalkFirst) {
+	void setTtPublicWalkFirst(double ttPublicWalkFirst)
+	{
 		this->ttPublicWalkFirst = ttPublicWalkFirst;
 	}
 
-	double getTtPublicWalkSecond() const {
+	double getTtPublicWalkSecond() const
+	{
 		return ttPublicWalkSecond;
 	}
 
-	void setTtPublicWalkSecond(double ttPublicWalkSecond) {
+	void setTtPublicWalkSecond(double ttPublicWalkSecond)
+	{
 		this->ttPublicWalkSecond = ttPublicWalkSecond;
 	}
 
-	int isWalkAvailable() const {
+	int isWalkAvailable() const
+	{
 		return walkAvailable;
 	}
 
-	void setWalkAvailable(bool walkAvailable) {
+	void setWalkAvailable(bool walkAvailable)
+	{
 		this->walkAvailable = walkAvailable;
 	}
 
-	double getWalkDistance1() const {
+	double getWalkDistance1() const
+	{
 		return walkDistance1;
 	}
 
-	void setWalkDistance1(double walkDistance1) {
+	void setWalkDistance1(double walkDistance1)
+	{
 		this->walkDistance1 = walkDistance1;
 	}
 
-	double getWalkDistance2() const {
+	double getWalkDistance2() const
+	{
 		return walkDistance2;
 	}
 
-	void setWalkDistance2(double walkDistance2) {
+	void setWalkDistance2(double walkDistance2)
+	{
 		this->walkDistance2 = walkDistance2;
 	}
 
-	double getDestinationArea() const {
+	double getDestinationArea() const
+	{
 		return destinationArea;
 	}
 
-	void setDestinationArea(double destinationArea) {
+	void setDestinationArea(double destinationArea)
+	{
 		this->destinationArea = destinationArea;
 	}
 
-	double getOriginArea() const {
+	double getOriginArea() const
+	{
 		return originArea;
 	}
 
-	void setOriginArea(double originArea) {
+	void setOriginArea(double originArea)
+	{
 		this->originArea = originArea;
 	}
 
-	double getResidentSize() const {
+	double getResidentSize() const
+	{
 		return residentSize;
 	}
 
-	void setResidentSize(double residentSize) {
+	void setResidentSize(double residentSize)
+	{
 		this->residentSize = residentSize;
 	}
 
-	double getWorkOp() const {
+	double getWorkOp() const
+	{
 		return workOP;
 	}
 
-	void setWorkOp(double workOp) {
+	void setWorkOp(double workOp)
+	{
 		workOP = workOp;
 	}
 
-	double getEducationOp() const {
+	double getEducationOp() const
+	{
 		return educationOP;
 	}
 
-	void setEducationOp(double educationOp) {
+	void setEducationOp(double educationOp)
+	{
 		educationOP = educationOp;
 	}
 
 	int isCbdDestZone() const
 	{
-		return (cbdDestZone? 1 : 0);
+		return (cbdDestZone ? 1 : 0);
 	}
 
 	void setCbdDestZone(int cbdZone)
@@ -310,7 +375,7 @@ public:
 
 	int isCbdOrgZone() const
 	{
-		return (cbdOrgZone? 1 : 0);
+		return (cbdOrgZone ? 1 : 0);
 	}
 
 	void setCbdOrgZone(int cbdOrgZone)
@@ -357,7 +422,7 @@ private:
 	double originArea;
 	double destinationArea;
 	double costIncrease;
-	
+
 	bool publicBusAvailable;
 	bool mrtAvailable;
 	bool privateBusAvailable;

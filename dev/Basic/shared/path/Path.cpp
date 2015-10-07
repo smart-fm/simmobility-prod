@@ -14,7 +14,7 @@
 #include "util/Utils.hpp"
 
 namespace{
-sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
+//sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
 
 const double HIGHWAY_SPEED = 60.0; //kmph
 
@@ -180,7 +180,7 @@ uint32_t sim_mob::SinglePath::getSize(){
 	sum += sizeof(double); // double length;
 	sum += sizeof(double); // double travle_time;
 	sum += sizeof(sim_mob::TRIP_PURPOSE); // sim_mob::TRIP_PURPOSE purpose;
-	logger << "SinglePath size bytes:" << sum << "\n" ;
+	//logger << "SinglePath size bytes:" << sum << "\n" ;
 	return sum;
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -225,7 +225,7 @@ uint32_t sim_mob::PathSet::getSize(){
 		sum += scenario.length();//std::string scenario;
 		sum += sizeof(int);//int hasPath;
 //		sum += sizeof(sim_mob::PathSetManager *);//PathSetManager *psMgr;
-		logger << "pathset_cached_bytes :" << sum << "\n" ;
+		//logger << "pathset_cached_bytes :" << sum << "\n" ;
 		return sum;
 }
 
@@ -397,10 +397,10 @@ double sim_mob::calculateSinglePathDefaultTT(const std::vector<sim_mob::WayPoint
 std::string sim_mob::makeWaypointsetString(const std::vector<sim_mob::WayPoint>& wp)
 {
 	std::stringstream str("");
-	if(wp.size()==0)
-	{
-		sim_mob::Logger::log("pathset.log") << "warning: empty input for makeWaypointsetString" << std::endl;
-	}
+//	if(wp.size()==0)
+//	{
+//		sim_mob::Logger::log("pathset.log") << "warning: empty input for makeWaypointsetString" << std::endl;
+//	}
 
 	for(std::vector<sim_mob::WayPoint>::const_iterator it = wp.begin(); it != wp.end(); it++)
 	{
@@ -410,11 +410,11 @@ std::string sim_mob::makeWaypointsetString(const std::vector<sim_mob::WayPoint>&
 		} // if ROAD_SEGMENT
 	}
 
-	if(str.str().size()<1)
-	{
-		// when same f,t node, it happened
-		sim_mob::Logger::log("pathset.log") << "warning: empty output makeWaypointsetString id" << std::endl;
-	}
+//	if(str.str().size()<1)
+//	{
+//		// when same f,t node, it happened
+//		sim_mob::Logger::log("pathset.log") << "warning: empty output makeWaypointsetString id" << std::endl;
+//	}
 
 	return str.str();
 }

@@ -197,7 +197,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	//      (it is here now to maintain compatibility with the old order or loading things).
 	LoadNetworkFromDatabase();
 
-	if(cfg.RunningMidSupply())
+	if(cfg.RunningMidSupply() && cfg.CBD())
 	{
 		sim_mob::RestrictedRegion::getInstance().populate();
 	}
@@ -236,8 +236,9 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 		//	This mode can be executed in the main function also but we need the street directory to be initialized first
 		//	to be least intrusive to the rest of the code, we take a safe approach and run this mode from here, although a lot of
 		//	unnecessary code will be executed.
-		sim_mob::PathSetManager::getInstance()->bulkPathSetGenerator();
+		sim_mob::PrivatePathsetGenerator::getInstance()->bulkPathSetGenerator();
 		Print() << "Bulk Generation Done " << profile.tick().first.count() << std::endl;
+		sim_mob::PrivatePathsetGenerator::resetInstance();
 		exit(1);
 	}
 	if (ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetMode == "generation")

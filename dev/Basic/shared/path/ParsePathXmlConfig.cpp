@@ -117,7 +117,7 @@ void sim_mob::ParsePathXmlConfig::processPublicPathsetNode(xercesc::DOMElement* 
 {
 
 	cfg.publicPathSetMode = ParseString(GetNamedAttributeValue(publicConfNode, "mode"), "");
-	if (cfg.publicPathSetMode.empty() || !(cfg.privatePathSetMode == "normal" || cfg.privatePathSetMode == "generation"))
+	if (cfg.publicPathSetMode.empty() || !(cfg.publicPathSetMode == "normal" || cfg.publicPathSetMode == "generation"))
 	{
 		throw std::runtime_error("No pathset mode specified, \"normal\" and \"generation\" modes are supported supported\n");
 	}

@@ -15,14 +15,17 @@
 #include "roles/DriverRequestParams.hpp"
 #include "util/DynamicVector.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 class BusStop;
-class BusController : public sim_mob::Agent {
+class BusController: public sim_mob::Agent
+{
 private:
-	explicit BusController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) : Agent(mtxStrat, id),
-		nextTimeTickToStage(0)
-	{}
+	explicit BusController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) :
+			Agent(mtxStrat, id), nextTimeTickToStage(0)
+	{
+	}
 
 public:
 	/**
@@ -59,12 +62,17 @@ public:
 	/**
 	 * inherited function to load configurable items
 	 */
-	virtual void load(const std::map<std::string, std::string>& configProps){}
+	virtual void load(const std::map<std::string, std::string>& configProps)
+	{
+	}
 
 	/**
 	 * Signals are non-spatial in nature.
 	 */
-	virtual bool isNonspatial() { return true; }
+	virtual bool isNonspatial()
+	{
+		return true;
+	}
 
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
@@ -81,12 +89,14 @@ public:
 	/**
 	 * decide holding time when a bus arrive at bus stop
 	 */
-	double decisionCalculation(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisited_BusStop);// return Departure MS from Aijk, DWijk etc
+	double decisionCalculation(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime,
+			const BusStop* lastVisited_BusStop); // return Departure MS from Aijk, DWijk etc
 
 	/**
 	 * store real times at each bus stop for future decision
 	 */
-	void storeRealTimesAtEachBusStop(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, const BusStop* lastVisited_BusStop, BusStopRealTimes& realTime);
+	void storeRealTimesAtEachBusStop(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime,
+			const BusStop* lastVisited_BusStop, BusStopRealTimes& realTime);
 
 	/**
 	 * decide whether current agent should be into active agents list at current time
@@ -130,22 +140,26 @@ private:
 	/**
 	 * estimate holding time by scheduled-based control
 	 */
-	double scheduledDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisited_busStop);
+	double scheduledDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime,
+			const BusStop* lastVisited_busStop);
 
 	/**
 	 * estimate holding time by headway-based control
 	 */
-	double headwayDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisited_busStop);
+	double headwayDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime,
+			const BusStop* lastVisited_busStop);
 
 	/**
 	 * estimate holding time by even headway-based control
 	 */
-	double evenheadwayDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisited_busStop);
+	double evenheadwayDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime,
+			const BusStop* lastVisited_busStop);
 
 	/**
 	 * estimate holding time by hybrid-based control
 	 */
-	double hybridDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisited_busStop);
+	double hybridDecision(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime,
+			const BusStop* lastVisited_busStop);
 
 	/**
 	 * record next time tick to help dispatching decision

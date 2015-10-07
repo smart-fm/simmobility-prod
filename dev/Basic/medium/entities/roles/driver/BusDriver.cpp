@@ -110,7 +110,7 @@ unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusSto
 	{
 		stop = stop->getTwinStop();
 		if(stop->isVirtualStop()) { throw std::runtime_error("both of the twin stops are virtual"); }
-		busStopAgent = BusStopAgent::findBusStopAgentByBusStop(stop);
+		busStopAgent = BusStopAgent::getBusStopAgentForStop(stop);
 	}
 
 	while (itPassenger != passengerList.end()) {
@@ -140,18 +140,26 @@ void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, co
 		return;
 	}
 
-	const BusTrip* busTrip =
-			dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+	const BusTrip* busTrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
 	if (busTrip) {
-		const BusLine* busLine = busTrip->getBusLine();
-		std::string stopNo = stop->getBusstopno_();
-		std::string tripId = busTrip->tripID;
-		std::string busLineId = busLine->getBusLineID();
-		//unsigned int sequenceNo = busTrip->getBusTripStopIndex(stop);
-		double pctOccupancy = (((double)passengerList.size())/MT_Config::getInstance().getBusCapacity()) * 100.0;
-
-		messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(), STORE_BUS_ARRIVAL,
-				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(stopNo, busLineId, tripId, current, waitTime, this->busSequenceNumber,pctOccupancy)));
+		std::string busStopNo;
+		if(stop->isVirtualStop())
+		{
+			busStopNo = stop->getTwinStop()->getBusstopno_();
+		}
+		else
+		{
+			busStopNo = stop->getBusstopno_();
+		}
+		BusArrivalTime busArrivalInfo;
+		busArrivalInfo.busLine = busTrip->getBusLine()->getBusLineID();
+		busArrivalInfo.tripId = busTrip->tripID;
+		busArrivalInfo.sequenceNo = busSequenceNumber;
+		busArrivalInfo.arrivalTime = current;
+		busArrivalInfo.dwellTime = waitTime;
+		busArrivalInfo.pctOccupancy = (((double)passengerList.size())/MT_Config::getInstance().getBusCapacity()) * 100.0;
+		busArrivalInfo.busStopNo = busStopNo;
+		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_BUS_ARRIVAL, messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(busArrivalInfo)));
 		this->busSequenceNumber++;
 	}
 }

@@ -296,14 +296,17 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
 }
 
 void sim_mob::Agent::buildSubscriptionList(vector<BufferedBase*>& subsList) {
-	subsList.push_back(&xPos);
-	subsList.push_back(&yPos);
-	subsList.push_back(&fwdVel);
-	subsList.push_back(&latVel);
-	subsList.push_back(&xAcc);
-	subsList.push_back(&yAcc);
-	//subscriptionList_cached.push_back(&currentLink);
-	//subscriptionList_cached.push_back(&currentCrossing);
+	if(!ConfigManager::GetInstance().FullConfig().RunningMidSupply())
+	{
+		subsList.push_back(&xPos);
+		subsList.push_back(&yPos);
+		subsList.push_back(&fwdVel);
+		subsList.push_back(&latVel);
+		subsList.push_back(&xAcc);
+		subsList.push_back(&yAcc);
+		//subscriptionList_cached.push_back(&currentLink);
+		//subscriptionList_cached.push_back(&currentCrossing);
+	}
 }
 
 bool sim_mob::Agent::isToBeRemoved() {

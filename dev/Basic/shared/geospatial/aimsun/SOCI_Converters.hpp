@@ -143,21 +143,10 @@ template<> struct type_conversion<sim_mob::ERP_Surcharge>
     	res.gantryNo = vals.get<std::string>("gantry_no", "");
     	res.startTime = vals.get<std::string>("start_time", "00:00:00");
     	res.endTime = vals.get<std::string>("end_time", "00:00:00");
-    	res.rate = vals.get<double>("Rate", 0.0);
-    	res.vehicleTypeId = vals.get<int>("Vehicle_Type_Id", 0);
-    	res.vehicleTypeDesc = vals.get<std::string>("Vehicle_Type_Desc", "");
-    	res.day = vals.get<std::string>("Day", "");
-    }
-    static void to_base(const sim_mob::ERP_Surcharge& src, soci::values& vals, soci::indicator& ind)
-    {
-    	vals.set("Gantry_No", src.gantryNo);
-        vals.set("Start_Time", src.startTime);
-        vals.set("End _Time", src.endTime);
-        vals.set("Rate", src.rate);
-        vals.set("Vehicle_Type_Id", src.vehicleTypeId);
-        vals.set("Vehicle_Type_Desc", src.vehicleTypeDesc);
-        vals.set("Day", src.day);
-        ind = i_ok;
+    	res.rate = vals.get<double>("rate", 0.0);
+    	res.vehicleTypeId = vals.get<int>("vehicle_type_id", 0);
+    	res.vehicleTypeDesc = vals.get<std::string>("vehicle_type_desc", "");
+    	res.day = vals.get<std::string>("day_type", "");
     }
 };
 template<> struct type_conversion<sim_mob::ERP_Section>
@@ -165,14 +154,8 @@ template<> struct type_conversion<sim_mob::ERP_Section>
     typedef values base_type;
     static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::ERP_Section &res)
     {
-    	res.ERP_Gantry_No = vals.get<int>("ERP_Gantry_No", 0);
+    	res.ERP_Gantry_No = vals.get<int>("erp_gantry_no", 0);
     	res.section_id = vals.get<int>("section_id", 0);
-    }
-    static void to_base(const sim_mob::ERP_Section& src, soci::values& vals, soci::indicator& ind)
-    {
-    	vals.set("ERP_Gantry_No", src.ERP_Gantry_No);
-        vals.set("section_id", src.section_id);
-        ind = i_ok;
     }
 };
 template<> struct type_conversion<sim_mob::SegmentType>
@@ -210,20 +193,14 @@ template<> struct type_conversion<sim_mob::ERP_Gantry_Zone>
     typedef values base_type;
     static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::ERP_Gantry_Zone &res)
     {
-    	res.gantryNo = vals.get<std::string>("Gantry_no", "");
-    	res.zoneId = vals.get<std::string>("Zone_Id", "");
-    }
-    static void to_base(const sim_mob::ERP_Gantry_Zone& src, soci::values& vals, soci::indicator& ind)
-    {
-    	vals.set("Gantry_no", src.gantryNo);
-        vals.set("Zone_Id", src.zoneId);
-        ind = i_ok;
+    	res.gantryNo = vals.get<std::string>("gantry_no", "");
+    	res.zoneId = vals.get<std::string>("zone_id", "");
     }
 };
-template<> struct type_conversion<sim_mob::LinkTravelTime>
+template<> struct type_conversion<sim_mob::SegmentTravelTime>
 {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::LinkTravelTime &res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::SegmentTravelTime &res)
     {
     	res.linkId = vals.get<int>("link_id", 0);
     	res.startTime = vals.get<std::string>("start_time", "00:00:00");
@@ -231,7 +208,7 @@ template<> struct type_conversion<sim_mob::LinkTravelTime>
     	res.travelTime = vals.get<double>("travel_time", 0.0);
     	res.travelMode = vals.get<std::string>("travel_mode", "");
     }
-    static void to_base(const sim_mob::LinkTravelTime& src, soci::values& vals, soci::indicator& ind)
+    static void to_base(const sim_mob::SegmentTravelTime& src, soci::values& vals, soci::indicator& ind)
     {
     	vals.set("link_id", src.linkId);
         vals.set("start_time", src.startTime);

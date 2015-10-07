@@ -65,7 +65,7 @@ void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 	processUpdateIntervalElement(GetSingleElementByName(node, "update_interval", true));
 	processDwellTimeElement(GetSingleElementByName(node, "dwell_time_parameters", true));
 	processWalkSpeedElement(GetSingleElementByName(node, "pedestrian_walk_speed", true));
-	processStatisticsOutputNode(GetSingleElementByName(node, "statistics_output_paramemters", true));
+	processStatisticsOutputNode(GetSingleElementByName(node, "output_pt_statistics", true));
 	processBusCapactiyElement(GetSingleElementByName(node, "bus_default_capacity", true));
 }
 
@@ -143,6 +143,10 @@ void ParseMidTermConfigFile::processActivityLoadIntervalElement(xercesc::DOMElem
 void ParseMidTermConfigFile::processUpdateIntervalElement(xercesc::DOMElement* node)
 {
 	unsigned interval = ProcessTimegranUnits(node)/((unsigned)configParams.baseGranSecond());
+	if(interval == 0)
+	{
+		throw std::runtime_error("update interval is 0");
+	}
 	mtCfg.setSupplyUpdateInterval(interval);
 	configParams.system.genericProps["update_interval"] = boost::lexical_cast<std::string>(interval);
 }
@@ -174,37 +178,37 @@ void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)
 
 void ParseMidTermConfigFile::processStatisticsOutputNode(xercesc::DOMElement* node)
 {
-	DOMElement* child = GetSingleElementByName(node, "journey_time_csv_file_output");
+	DOMElement* child = GetSingleElementByName(node, "journey_time");
 	if (child == nullptr)
 	{
 		throw std::runtime_error("load statistics output parameters errors in MT_Config");
 	}
-	std::string value = ParseString(GetNamedAttributeValue(child, "value"), "");
-	mtCfg.setFilenameOfJourneyTimeStats(value);
+	std::string value = ParseString(GetNamedAttributeValue(child, "file"), "");
+	mtCfg.setJourneyTimeStatsFilename(value);
 
-	child = GetSingleElementByName(node, "waiting_time_csv_file_output");
+	child = GetSingleElementByName(node, "waiting_time");
 	if (child == nullptr)
 	{
 		throw std::runtime_error("load statistics output parameters errors in MT_Config");
 	}
-	value = ParseString(GetNamedAttributeValue(child, "value"), "");
-	mtCfg.setFilenameOfWaitingTimeStats(value);
+	value = ParseString(GetNamedAttributeValue(child, "file"), "");
+	mtCfg.setWaitingTimeStatsFilename(value);
 
-	child = GetSingleElementByName(node, "waiting_amount_csv_file_output");
+	child = GetSingleElementByName(node, "waiting_count");
 	if (child == nullptr)
 	{
 		throw std::runtime_error("load statistics output parameters errors in MT_Config");
 	}
-	value = ParseString(GetNamedAttributeValue(child, "value"), "");
-	mtCfg.setFilenameOfWaitingAmountStats(value);
+	value = ParseString(GetNamedAttributeValue(child, "file"), "");
+	mtCfg.setWaitingCountStatsFilename(value);
 
-	child = GetSingleElementByName(node, "travel_time_csv_file_output");
+	child = GetSingleElementByName(node, "travel_time");
 	if (child == nullptr)
 	{
 		throw std::runtime_error("load statistics output parameters errors in MT_Config");
 	}
-	value = ParseString(GetNamedAttributeValue(child, "value"), "");
-	mtCfg.setFilenameOfTravelTimeStats(value);
+	value = ParseString(GetNamedAttributeValue(child, "file"), "");
+	mtCfg.setTravelTimeStatsFilename(value);
 }
 
 

@@ -65,7 +65,6 @@ public:
 	DailyTime departureTime;
 };
 
-
 class BusRouteInfo {
 public:
 	BusRouteInfo(std::string busRoute_id = "");
@@ -73,14 +72,25 @@ public:
 	virtual ~BusRouteInfo() {
 	}
 
-	const std::string& getBusRouteId() const {
+	const std::string& getBusRouteId() const
+	{
 		return busRouteId;
 	}
-	const std::vector<const RoadSegment*>& getRoadSegments() const {
+	const std::vector<const RoadSegment*>& getRoadSegments() const
+	{
 		return roadSegmentList;
 	}
-	const std::vector<const BusStop*>& getBusStops() const {
+	const std::vector<const BusStop*>& getBusStops() const
+	{
 		return busStopList;
+	}
+	void setRoadSegments(const std::vector<const RoadSegment*>& segments)
+	{
+		roadSegmentList = segments;
+	}
+	void setBusStops(const std::vector<const BusStop*>& stops)
+	{
+		busStopList = stops;
 	}
 
 	void addBusStop(const BusStop* stop);
@@ -149,10 +159,11 @@ public:
 	virtual const std::string getMode() const {
 		return "Bus";
 	}
+
 	/**
 	 * set bus route information to current bus trip
 	 */
-	bool setBusRouteInfo(std::vector<const RoadSegment*> roadSegments,	std::vector<const BusStop*> busStops);
+	bool setBusRouteInfo(const std::vector<const RoadSegment*>& roadSegments, const std::vector<const BusStop*>& busStops);
 	/**
 	 * add scheduled time at each bus stop to current bus trip
 	 */

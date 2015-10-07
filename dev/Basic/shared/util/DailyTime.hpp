@@ -42,7 +42,12 @@ public:
 	///Construct a new DailyTime from a string formatted to ISO 8601 format.
 	explicit DailyTime(const std::string& value);
 
-	inline DailyTime(const DailyTime& dailytime) : time_(dailytime.getValue()), repr_(dailytime.getStrRepr()) {}
+	inline DailyTime(const DailyTime& dailytime) : time_(dailytime.getValue()) {}
+
+	/**
+	 * initializes string representation of time in hh:mi:ss format for each seconds in a day
+	 */
+	static void initAllTimes();
 
 	//Various comparison functions
 	bool isBefore(const DailyTime& other) const;
@@ -56,7 +61,7 @@ public:
 
 	//Accessors
 	inline uint32_t getValue() const { return time_; }
-	std::string getStrRepr() const { return repr_; }
+	std::string getStrRepr() const;
 
 	//operator overloads
 	DailyTime& operator=(const DailyTime& dailytime);
@@ -79,7 +84,6 @@ public:
 
 private:
 	uint32_t time_;  //MS from 0, which corresponds to 00:00:00.00
-	std::string repr_;
 
 	//add by xuyan
 public:
@@ -88,7 +92,6 @@ public:
 	void serialize(Archive & ar, const unsigned int version)
 	{
 		ar & time_;
-		ar & repr_;
 	}
 };
 }

@@ -229,14 +229,14 @@ public:
 	void setActivityScheduleLoadInterval(unsigned activityScheduleLoadInterval);
 	unsigned getSupplyUpdateInterval() const;
 	void setSupplyUpdateInterval(unsigned supplyUpdateInterval);
-	const std::string& getFilenameOfJourneyTimeStats() const;
-	const std::string& getFilenameOfWaitingTimeStats() const;
-	void setFilenameOfJourneyTimeStats(const std::string& str);
-	void setFilenameOfWaitingTimeStats(const std::string& str);
-	const std::string& getFilenameOfWaitingAmountStats() const;
-	void setFilenameOfWaitingAmountStats(const std::string& str);
-	const std::string& getFilenameOfTravelTimeStats() const;
-	void setFilenameOfTravelTimeStats(const std::string& str);
+	const std::string& getJourneyTimeStatsFilename() const;
+	const std::string& getWaitingTimeStatsFilename() const;
+	void setJourneyTimeStatsFilename(const std::string& str);
+	void setWaitingTimeStatsFilename(const std::string& str);
+	const std::string& getWaitingCountStatsFilename() const;
+	void setWaitingCountStatsFilename(const std::string& str);
+	const std::string& getTravelTimeStatsFilename() const;
+	void setTravelTimeStatsFilename(const std::string& str);
 	const unsigned int getBusCapacity() const;
 	void setBusCapacity(const unsigned int busCapcacity);
 	db::BackendType getPopulationSource() const;
@@ -282,13 +282,13 @@ private:
 	MongoCollectionsMap mongoCollectionsMap;
 
 	/**the filename of storing journey statistics */
-	std::string filenameOfJourneyTimeStats;
+	std::string journeyTimeStatsFilename;
 	/**the filename of storing waiting time statistics*/
-	std::string filenameOfWaitingTimeStats;
-	/**the filename of storing waiting amount statistics*/
-	std::string filenameOfWaitingAmountStats;
+	std::string waitingTimeStatsFilename;
+	/**the filename of storing waiting count statistics*/
+	std::string waitingCountStatsFilename;
 	/** the filename of storing travel time statistics*/
-	std::string filenameOfTravelTimeStats;
+	std::string travelTimeStatsFilename;
 	/**default capacity for bus*/
 	unsigned int busCapacity;
 	unsigned supplyUpdateInterval; //frames

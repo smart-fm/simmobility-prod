@@ -30,6 +30,7 @@
 #include "geospatial/UniNode.hpp"
 #include "IncidentPerformer.hpp"
 #include "network/CommunicationDataManager.hpp"
+#include "util/Utils.hpp"
 
 using namespace sim_mob;
 using std::vector;
@@ -2224,7 +2225,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle)
 				// if use path set
 				if (ConfigManager::GetInstance().FullConfig().PathSetMode())
 				{
-					path = PathSetManager::getInstance()->getPath(*(parent->currSubTrip), false, nullptr);
+					path = PrivateTrafficRouteChoice::getInstance()->getPath(*(parent->currSubTrip), false, nullptr);
 				}
 				else
 				{

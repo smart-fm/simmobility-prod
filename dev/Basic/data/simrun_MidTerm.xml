@@ -35,8 +35,14 @@
                 <dbname value="SimMobility_DB_2015"/>
             </database>
             
-            <database id="fm_local_lt" dbtype="postgres">
-                <host value="localhost"/>
+            <database id="fm_remote_lt" dbtype="postgres">
+                <host value="172.25.184.14"/>
+                <port value="5432"/>
+                <dbname value="sim_mob_lt"/>
+            </database>
+
+            <database id="fm_hpchead_lt" dbtype="postgres">
+                <host value="fmhpchead"/>
                 <port value="5432"/>
                 <dbname value="sim_mob_lt"/>
             </database>

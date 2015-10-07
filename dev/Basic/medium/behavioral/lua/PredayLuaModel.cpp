@@ -2,27 +2,17 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * PredayLuaModel.cpp
- *
- *  Created on: Nov 27, 2013
- *      Author: Harish Loganathan
- */
-
 #include "PredayLuaModel.hpp"
 
 #include "lua/LuaLibrary.hpp"
 #include "lua/third-party/luabridge/LuaBridge.h"
 #include "lua/third-party/luabridge/RefCountedObject.h"
 #include "logging/Log.hpp"
-#include "mongo/client/dbclient.h"
-#include "behavioral/PredayClasses.hpp"
 
 using namespace std;
 using namespace sim_mob;
 using namespace sim_mob::medium;
 using namespace luabridge;
-using namespace mongo;
 
 sim_mob::medium::PredayLuaModel::PredayLuaModel()
 {}
@@ -30,7 +20,8 @@ sim_mob::medium::PredayLuaModel::PredayLuaModel()
 sim_mob::medium::PredayLuaModel::~PredayLuaModel()
 {}
 
-void sim_mob::medium::PredayLuaModel::mapClasses() {
+void sim_mob::medium::PredayLuaModel::mapClasses()
+{
 	getGlobalNamespace(state.get())
 			.beginClass <PersonParams> ("PersonParams")
 				.addProperty("person_id", &PersonParams::getPersonId)
@@ -109,6 +100,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addProperty("education_op",&TourModeParams::getEducationOp)
 				.addProperty("cbd_dummy",&TourModeParams::isCbdDestZone)
 				.addProperty("cbd_dummy_origin",&TourModeParams::isCbdOrgZone)
+				.addProperty("cost_increase", &TourModeParams::getCostIncrease)
 			.endClass()
 
 			.beginClass<TourModeDestinationParams>("TourModeDestinationParams")
@@ -137,6 +129,7 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 				.addFunction("availability",&TourModeDestinationParams::isAvailable_TMD)
 				.addProperty("cbd_dummy_origin",&TourModeDestinationParams::isCbdOrgZone)
 				.addFunction("cbd_dummy",&TourModeDestinationParams::getCbdDummy)
+				.addProperty("cost_increase", &TourModeDestinationParams::getCostIncrease)
 			.endClass()
 
 			.beginClass<StopModeDestinationParams>("StopModeDestinationParams")
@@ -230,8 +223,15 @@ void sim_mob::medium::PredayLuaModel::mapClasses() {
 void sim_mob::medium::PredayLuaModel::computeDayPatternLogsums(PersonParams& personParams) const
 {
 	LuaRef computeLogsumDPT = getGlobal(state.get(), "compute_logsum_dpt");
-	LuaRef dptLogsum = computeLogsumDPT(personParams);
-	personParams.setDptLogsum(dptLogsum.cast<double>());
+	LuaRef dptRetVal = computeLogsumDPT(personParams);
+	if(dptRetVal.isTable())
+	{
+		personParams.setDptLogsum(dptRetVal[1].cast<double>());
+	}
+	else
+	{
+		throw std::runtime_error("compute_logsum_dpt function does not return a table as expected");
+	}
 
 	LuaRef computeLogsumDPS = getGlobal(state.get(), "compute_logsum_dps");
 	LuaRef dpsLogsum = computeLogsumDPS(personParams);
@@ -241,11 +241,19 @@ void sim_mob::medium::PredayLuaModel::computeDayPatternLogsums(PersonParams& per
 void sim_mob::medium::PredayLuaModel::computeDayPatternBinaryLogsums(PersonParams& personParams) const
 {
 	LuaRef computeLogsumDPB = getGlobal(state.get(), "compute_logsum_dpb");
-	LuaRef dpbLogsum = computeLogsumDPB(personParams);
-	personParams.setDpbLogsum(dpbLogsum.cast<double>());
+	LuaRef dpbRetVal = computeLogsumDPB(personParams);
+	if(dpbRetVal.isTable())
+	{
+		personParams.setDpbLogsum(dpbRetVal[1].cast<double>());
+	}
+	else
+	{
+		throw std::runtime_error("compute_logsum_dpb function does not return a table as expected");
+	}
 }
 
-void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern) const {
+void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern) const
+{
 	LuaRef chooseDPB = getGlobal(state.get(), "choose_dpb");
 	LuaRef retValB = chooseDPB(&personParams);
 	if(retValB.cast<int>() == 1) // no travel
@@ -289,40 +297,50 @@ void sim_mob::medium::PredayLuaModel::predictDayPattern(PersonParams& personPara
 	}
 }
 
-void sim_mob::medium::PredayLuaModel::predictNumTours(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern, boost::unordered_map<std::string, int>& numTours) const {
+void sim_mob::medium::PredayLuaModel::predictNumTours(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern, boost::unordered_map<std::string, int>& numTours) const
+{
 	numTours["WorkT"] = numTours["EduT"] = numTours["ShopT"] = numTours["OthersT"] = 0;
 
-	if(dayPattern["WorkT"]) {
+	if(dayPattern["WorkT"])
+	{
 		LuaRef chooseNTW = getGlobal(state.get(), "choose_ntw"); // choose Num. of Work Tours
 		LuaRef retVal = chooseNTW(&personParams);
-	    if (retVal.isNumber()) {
+	    if (retVal.isNumber())
+	    {
 	    	numTours["WorkT"] = retVal.cast<int>();
 	    }
 	}
-	if(dayPattern["EduT"]) {
+	if(dayPattern["EduT"])
+	{
 		LuaRef chooseNTE = getGlobal(state.get(), "choose_nte"); // choose Num. of Education Tours
 		LuaRef retVal = chooseNTE(&personParams);
-	    if (retVal.isNumber()) {
+	    if (retVal.isNumber())
+	    {
 	    	numTours["EduT"] = retVal.cast<int>();
 	    }
 	}
-	if(dayPattern["ShopT"]) {
+	if(dayPattern["ShopT"])
+	{
 		LuaRef chooseNTS = getGlobal(state.get(), "choose_nts"); // choose Num. of Shopping Tours
 		LuaRef retVal = chooseNTS(&personParams);
-	    if (retVal.isNumber()) {
+	    if (retVal.isNumber())
+	    {
 	    	numTours["ShopT"] = retVal.cast<int>();
 	    }
 	}
-	if(dayPattern["OthersT"]) {
+	if(dayPattern["OthersT"])
+	{
 		LuaRef chooseNTO = getGlobal(state.get(), "choose_nto"); // choose Num. of Other Tours
 		LuaRef retVal = chooseNTO(&personParams);
-	    if (retVal.isNumber()) {
+	    if (retVal.isNumber())
+	    {
 	    	numTours["OthersT"] = retVal.cast<int>();
 	    }
 	}
 }
 
-bool sim_mob::medium::PredayLuaModel::predictUsualWorkLocation(PersonParams& personParams, UsualWorkParams& usualWorkParams) const {
+bool sim_mob::medium::PredayLuaModel::predictUsualWorkLocation(PersonParams& personParams, UsualWorkParams& usualWorkParams) const
+{
 	LuaRef chooseUW = getGlobal(state.get(), "choose_uw"); // choose usual work location
 	LuaRef retVal = chooseUW(&personParams, &usualWorkParams);
 	if (!retVal.isNumber()) {
@@ -331,7 +349,8 @@ bool sim_mob::medium::PredayLuaModel::predictUsualWorkLocation(PersonParams& per
 	return retVal.cast<bool>();
 }
 
-int sim_mob::medium::PredayLuaModel::predictTourMode(PersonParams& personParams, TourModeParams& tourModeParams) const {
+int sim_mob::medium::PredayLuaModel::predictTourMode(PersonParams& personParams, TourModeParams& tourModeParams) const
+{
 	switch (tourModeParams.getStopType()) {
 	case WORK:
 	{
@@ -382,8 +401,10 @@ void sim_mob::medium::PredayLuaModel::computeTourModeDestinationLogsum(PersonPar
 	personParams.setOtherLogSum(otherLogSum.cast<double>());
 }
 
-int sim_mob::medium::PredayLuaModel::predictTourModeDestination(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const {
-	switch (tourModeDestinationParams.getTourPurpose()) {
+int sim_mob::medium::PredayLuaModel::predictTourModeDestination(PersonParams& personParams, TourModeDestinationParams& tourModeDestinationParams) const
+{
+	switch (tourModeDestinationParams.getTourPurpose())
+	{
 	case WORK:
 	{
 		LuaRef chooseTMD = getGlobal(state.get(), "choose_tmdw");
@@ -412,8 +433,10 @@ int sim_mob::medium::PredayLuaModel::predictTourModeDestination(PersonParams& pe
 	}
 }
 
-int sim_mob::medium::PredayLuaModel::predictTourTimeOfDay(PersonParams& personParams, TourTimeOfDayParams& tourTimeOfDayParams, StopType tourType) const {
-	switch (tourType) {
+int sim_mob::medium::PredayLuaModel::predictTourTimeOfDay(PersonParams& personParams, TourTimeOfDayParams& tourTimeOfDayParams, StopType tourType) const
+{
+	switch (tourType)
+	{
 	case WORK:
 	{
 		LuaRef chooseTTDW = getGlobal(state.get(), "choose_ttdw");
@@ -439,19 +462,22 @@ int sim_mob::medium::PredayLuaModel::predictTourTimeOfDay(PersonParams& personPa
 	}
 }
 
-int sim_mob::medium::PredayLuaModel::generateIntermediateStop(PersonParams& personParams, StopGenerationParams& isgParams) const {
+int sim_mob::medium::PredayLuaModel::generateIntermediateStop(PersonParams& personParams, StopGenerationParams& isgParams) const
+{
 	LuaRef chooseISG = getGlobal(state.get(), "choose_isg");
 	LuaRef retVal = chooseISG(&personParams, &isgParams);
 	return retVal.cast<int>();
 }
 
-int sim_mob::medium::PredayLuaModel::predictStopModeDestination(PersonParams& personParams, StopModeDestinationParams& imdParams) const {
+int sim_mob::medium::PredayLuaModel::predictStopModeDestination(PersonParams& personParams, StopModeDestinationParams& imdParams) const
+{
 	LuaRef chooseIMD = getGlobal(state.get(), "choose_imd");
 	LuaRef retVal = chooseIMD(&personParams, &imdParams);
 	return retVal.cast<int>();
 }
 
-int sim_mob::medium::PredayLuaModel::predictStopTimeOfDay(PersonParams& personParams, StopTimeOfDayParams& stopTimeOfDayParams) const {
+int sim_mob::medium::PredayLuaModel::predictStopTimeOfDay(PersonParams& personParams, StopTimeOfDayParams& stopTimeOfDayParams) const
+{
 	LuaRef chooseITD = getGlobal(state.get(), "choose_itd");
 	LuaRef retVal = chooseITD(&personParams, &stopTimeOfDayParams);
 	return retVal.cast<int>();

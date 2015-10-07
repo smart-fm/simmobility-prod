@@ -20,7 +20,6 @@ namespace medium
 class CalibrationStatistics
 {
 private:
-	//city level number of tours and trips
 	/**
 	 * vector to track the number of persons with different number of tours.
 	 * Spoken semantics apply.
@@ -195,6 +194,5 @@ public:
 	/** pretty prints this object */
 	void prettyPrint();
 };
-}
-}
-
+} // namespace medium
+} // namespace sim_mob

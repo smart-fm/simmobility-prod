@@ -58,7 +58,7 @@ void PopulationSqlDao::fromRow(Row& result, PersonParams& outObj)
 	outObj.setHH_NumWorkers(result.get<int>(DB_FIELD_HH_WORKERS));
 
 	//infer params
-	outObj.fixUpForLtPerson();
+	outObj.fixUpParamsForLtPerson();
 }
 
 void PopulationSqlDao::toRow(PersonParams& data, Parameters& outParams, bool update) {

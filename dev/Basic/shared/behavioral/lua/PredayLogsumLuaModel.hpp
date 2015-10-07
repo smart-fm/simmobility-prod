@@ -2,15 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * PredayLuaModel.hpp
- *
- *  Created on: Nov 27, 2013
- *      Author: Harish Loganathan
- */
-
 #pragma once
-#include <boost/unordered_map.hpp>
 #include "behavioral/params/PredayPersonParams.hpp"
 #include "behavioral/params/LogsumTourModeDestinationParams.hpp"
 #include "lua/LuaModel.hpp"
@@ -29,12 +21,20 @@ public:
 	virtual ~PredayLogsumLuaModel();
 
 	/**
-	 * Computes log sums for all tour types by invoking corresponding functions in tour mode-destination model
+	 * Computes logsums for all tour types by invoking corresponding functions in tour mode-destination model
 	 *
 	 * @param personParams object containing person and household related variables. logsums will be updated in this object
 	 * @param tourModeDestinationParams parameters specific to tour mode-destination models
 	 */
 	void computeTourModeDestinationLogsum(PredayPersonParams& personParams, LogsumTourModeDestinationParams& tourModeDestinationParams) const;
+
+	/**
+	 * Computes logsums for work tours with fixed work location by invoking corresponding functions in tour mode (for work) model
+	 *
+	 * @param personParams object containing person and household related variables. logsums will be updated in this object
+	 * @param tourModeDestinationParams parameters specific to tour mode model
+	 */
+	void computeTourModeLogsum(PredayPersonParams& personParams, LogsumTourModeParams& tourModeParams) const;
 
 	/**
 	 * Computes logsums from day-pattern tours and day-pattern stops models

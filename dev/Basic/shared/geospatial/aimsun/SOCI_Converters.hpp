@@ -25,8 +25,8 @@
 #include "entities/PersonLoader.hpp"
 #include "geospatial/TurningSection.hpp"
 #include "geospatial/TurningConflict.hpp"
-#include "geospatial/TurningPolyline.h"
-#include "geospatial/Polypoint.h"
+#include "geospatial/TurningPolyline.hpp"
+#include "geospatial/Polypoint.hpp"
 
 //using namespace sim_mob::aimsun;
 //using std::string;

@@ -199,6 +199,7 @@
 	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
 	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->
 	<script name="dps" file="dps.lua"/> <!-- Day Pattern Stops -->
+	<script name="tmw" file="tmw.lua"/> <!--Tour Mode/Destination Work -->
 	<script name="tmdw" file="tmdw.lua"/> <!--Tour Mode/Destination Work -->
 	<script name="tmds" file="tmds.lua"/> <!--Tour Mode/Destination Shopping -->
 	<script name="tmdo" file="tmdo.lua"/> <!--Tour Mode/Destination Others -->                    

@@ -108,9 +108,9 @@ const std::string LOG_PARCEL = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10
 const std::string LOG_UNIT = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%";
 
 //projectId,parcelId,developerId,templateId,projectName,constructionDate,completionDate,constructionCost,demolitionCost,totalCost,fmLotSize,grossRatio,grossArea
-const std::string LOG_PROJECT_DB = "%1%, %2%lot_size, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%";
+const std::string LOG_PROJECT_DB = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%";
 
-const std::string LOG_PROJECT_INFO = "%1%, %2%, %3%, %4%, %5%, %6%";
+const std::string LOG_PROJECT_INFO = "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%";
 
 /**
  * Write the data of profitable parcels to a csv.
@@ -155,12 +155,12 @@ inline void writeProjectDBDataToFile(boost::shared_ptr<Project>project) {
 	boost::format fmtr = boost::format(LOG_PROJECT_DB) % project->getProjectId() % project->getParcelId()%project->getDeveloperId()%project->getTemplateId()%project->getProjectName()
 			             %project->getConstructionDate().tm_year%project->getCompletionDate().tm_year%project->getConstructionCost()%project->getDemolitionCost()%project->getTotalCost()
 			             %project->getFmLotSize()%project->getGrossRatio()%project->getGrossArea();
-	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PROJECTS,fmtr.str());
+	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PROJECTS_DB,fmtr.str());
 
 }
-inline void writeProjectDataToFile(BigSerial parcelId,BigSerial unitTypeId,double profitPerUnit, int numUnits, double profit, int newDev) {
+inline void writeProjectDataToFile(BigSerial parcelId,BigSerial unitTypeId,double profitPerUnit, int numUnits, double profit, double acqCost, double landVal, int newDev) {
 
-	boost::format fmtr = boost::format(LOG_PROJECT_INFO)  % parcelId %unitTypeId % profitPerUnit % numUnits % profit % newDev;
+	boost::format fmtr = boost::format(LOG_PROJECT_INFO)  % parcelId %unitTypeId % profitPerUnit % numUnits % profit % acqCost % landVal % newDev;
 	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::PROJECTS,fmtr.str());
 
 }
@@ -301,31 +301,37 @@ inline void calculateProjectProfit(PotentialProject& project,const DeveloperMode
 	}
 
 	//double demolitionCost = 0;
-	double totalCost = 0;
 	double acqusitionCost = 0;
+	double landCost = 0;
 	if (!(model->isEmptyParcel(project.getParcel()->getId())))
 	{
-		//demolition cost is set to 10% of the total construction cost.
-		//demolitionCost = totalConstructionCost * 0.1;
 		project.setDemolitionCost(totalDemolitionCost);
 		const UnitPriceSum* unitPriceSum = model->getUnitPriceSumByParcelId(project.getParcel()->getId());
 		if(unitPriceSum != nullptr)
 		{
 			acqusitionCost = unitPriceSum->getUnitPriceSum();
-			//PrintOut("acqusitionCost"<<acqusitionCost<<std::endl);
+		}
+	}
+	else
+	{
+		const TazLevelLandPrice* landPrice = model->getTazLevelLandPriceByTazId(project.getParcel()->getTazId());
+		if(landPrice != nullptr)
+		{
+			landCost = project.getParcel()->getLotSize() * getGpr(project.getParcel()) * landPrice->getLandValue();
 		}
 	}
 
+	project.setAcquisitionCost(acqusitionCost);
+	project.setLandValue(landCost);
 
-	double profit = totalRevenue - (totalConstructionCost + totalDemolitionCost + acqusitionCost);
+	double totalCost = totalConstructionCost + totalDemolitionCost + acqusitionCost+ landCost;
+	double profit = totalRevenue - totalCost;
 	project.setProfit(profit);
-
-	//writeParcelDataToFile(project.getParcel()->getId(),model->isEmptyParcel(project.getParcel()->getId()),profit,project.getDevTemplate()->getTemplateId());
 	project.setConstructionCost(totalConstructionCost);
 	double investmentReturnRatio = 0;
 	if((totalRevenue>0) && (totalConstructionCost>0))
 	{
-		investmentReturnRatio = (totalRevenue - totalConstructionCost)/ (totalConstructionCost);
+		investmentReturnRatio = (totalRevenue - totalCost)/ (totalCost);
 	}
 	project.setInvestmentReturnRatio(investmentReturnRatio);
 
@@ -469,7 +475,7 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* mo
                 				for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++) {
                 					double profitPerUnit = (*unitsItr).getUnitProfit();
                 					int newDev = model->isEmptyParcel(outProject.getParcel()->getId());
-                					writeProjectDataToFile(outProject.getParcel()->getId(),(*unitsItr).getUnitTypeId(),profitPerUnit, (*unitsItr).getNumUnits(),outProject.getProfit(),newDev);
+                					writeProjectDataToFile(outProject.getParcel()->getId(),(*unitsItr).getUnitTypeId(),profitPerUnit, (*unitsItr).getNumUnits(),outProject.getProfit(),outProject.getAcquisitionCost(),outProject.getLandValue(),newDev);
                 				}
                 				break;
                 			}

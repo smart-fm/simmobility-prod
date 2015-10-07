@@ -18,38 +18,45 @@
 using namespace sim_mob;
 using namespace sim_mob::lua;
 
-namespace {
+namespace
+{
 
-    struct ModelContext {
-        PredayLogsumLuaModel predayModel;
-    };
+struct ModelContext
+{
+	PredayLogsumLuaModel predayModel;
+};
 
-    boost::thread_specific_ptr<ModelContext> threadContext;
+boost::thread_specific_ptr<ModelContext> threadContext;
 
-    void ensureContext() {
-        if (!threadContext.get()) {
-        	try {
-				const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMap;
-				const std::string& scriptsPath = extScripts.getPath();
-				ModelContext* modelCtx = new ModelContext();
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dpb"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dpt"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dps"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmdw"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmds"));
-				modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmdo"));
-				modelCtx->predayModel.initialize();
-				threadContext.reset(modelCtx);
-        	}
-        	catch (const std::out_of_range& oorx) {
-        		throw std::runtime_error("missing or invalid generic property 'external_scripts'");
-        	}
-        }
-    }
+void ensureContext()
+{
+	if (!threadContext.get())
+	{
+		try
+		{
+			const ModelScriptsMap& extScripts = ConfigManager::GetInstance().FullConfig().luaScriptsMap;
+			const std::string& scriptsPath = extScripts.getPath();
+			ModelContext* modelCtx = new ModelContext();
+			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("logit"));
+			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dpb"));
+			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dpt"));
+			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("dps"));
+			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmw"));
+			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmdw"));
+			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmds"));
+			modelCtx->predayModel.loadFile(scriptsPath + extScripts.getScriptFileName("tmdo"));
+			modelCtx->predayModel.initialize();
+			threadContext.reset(modelCtx);
+		} catch (const std::out_of_range& oorx)
+		{
+			throw std::runtime_error("missing or invalid generic property 'external_scripts'");
+		}
+	}
+}
 }
 
-const PredayLogsumLuaModel& PredayLogsumLuaProvider::getPredayModel() {
-    ensureContext();
-    return threadContext.get()->predayModel;
+const PredayLogsumLuaModel& PredayLogsumLuaProvider::getPredayModel()
+{
+	ensureContext();
+	return threadContext.get()->predayModel;
 }

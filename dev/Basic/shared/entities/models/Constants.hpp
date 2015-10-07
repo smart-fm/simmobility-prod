@@ -1,5 +1,5 @@
 //-*-c++-*------------------------------------------------------------
-// FILE: Constants.h
+// FILE: Constants.hpp
 // AUTH: Qi Yang
 // DATE: Fri Oct 20 22:52:55 1995
 // WARNING:: Do NOT modify this file.  If you want to add or change

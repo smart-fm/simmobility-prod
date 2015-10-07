@@ -28,6 +28,7 @@
 #include "database/entity/ParcelsWithHDB.hpp"
 #include "database/entity/TAO.hpp"
 #include "database/entity/UnitPriceSum.hpp"
+#include "database/entity/TazLevelLandPrice.hpp"
 #include "agent/impl/DeveloperAgent.hpp"
 #include "agent/impl/RealEstateAgent.hpp"
 #include "model/HM_Model.hpp"
@@ -54,6 +55,7 @@ namespace sim_mob {
             typedef std::vector<ParcelsWithHDB*> ParcelsWithHDBList;
             typedef std::vector<TAO*> TAOList;
             typedef std::vector<UnitPriceSum*> UnitPriceSumList;
+            typedef std::vector<TazLevelLandPrice*>TazLevelLandPriceList;
 
             //maps
             typedef boost::unordered_map<BigSerial,Parcel*> ParcelMap;
@@ -65,6 +67,7 @@ namespace sim_mob {
             typedef boost::unordered_map<BigSerial,ParcelsWithHDB*> ParcelsWithHDBMap;
             typedef boost::unordered_map<BigSerial,TAO*> TAOMap;
             typedef boost::unordered_map<BigSerial,UnitPriceSum*> UnitPriceSumMap;
+            typedef boost::unordered_map<BigSerial,TazLevelLandPrice*> TazLevelLandPriceMap;
 
         public:
             DeveloperModel(WorkGroup& workGroup);
@@ -194,6 +197,11 @@ namespace sim_mob {
              */
             const UnitPriceSum* getUnitPriceSumByParcelId(BigSerial fmParcelId) const;
 
+            /*
+             * @return land price by taz id
+             */
+            const TazLevelLandPrice* getTazLevelLandPriceByTazId(BigSerial tazId) const;
+
         protected:
             /**
              * Inherited from Model.
@@ -254,6 +262,8 @@ namespace sim_mob {
             double minLotSize;
             UnitPriceSumList unitPriceSumList;
             UnitPriceSumMap unitPriceSumByParcelId;
+            TazLevelLandPriceList tazLevelLandPriceList;
+            TazLevelLandPriceMap tazLevelLandPriceByTazId;
         };
     }
 }

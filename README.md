@@ -1,7 +1,7 @@
 SimMobility
 ===========
 
-Repository for the Sim Mobility short/medium/long term simulator.
+Code repository for the Sim Mobility short/mid/long term simulator.
 
 Useful Links
 ==========

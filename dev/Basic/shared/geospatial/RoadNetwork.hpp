@@ -9,7 +9,7 @@
 #include <climits>
 #include "geospatial/RoadRunnerRegion.hpp"
 #include "TurningConflict.hpp"
-#include "TurningPolyline.h"
+#include "TurningPolyline.hpp"
 #include "TurningSection.hpp"
 
 namespace sim_mob

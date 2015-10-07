@@ -8,7 +8,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-#include "SMStatus.h"
+#include "SMStatus.hpp"
 
 using namespace std;
 

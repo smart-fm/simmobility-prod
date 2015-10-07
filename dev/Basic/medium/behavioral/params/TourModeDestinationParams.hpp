@@ -2,17 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * TourModeDestinationParams.hpp
- *
- *  Created on: Nov 30, 2013
- *      Author: Harish Loganathan
- */
-
 #pragma once
-#include <boost/unordered_map.hpp>
-#include <cmath>
-#include <string>
 #include "behavioral/params/ModeDestinationParams.hpp"
 #include "behavioral/params/ZoneCostParams.hpp"
 #include "behavioral/StopType.hpp"
@@ -24,7 +14,13 @@ namespace sim_mob
 namespace medium
 {
 
-class TourModeDestinationParams : public ModeDestinationParams
+/**
+ * Class to hold parameters for tour mode destination models
+ * NOTE: this class is mapped to tmd models in corresponding lua scripts
+ *
+ * \author Harish Loganathan
+ */
+class TourModeDestinationParams: public ModeDestinationParams
 {
 public:
 	TourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, StopType tourType);
@@ -58,18 +54,19 @@ public:
 	void setModeForParentWorkTour(int modeForParentWorkTour);
 	int getCbdDummy(int zone) const;
 	int isCbdOrgZone() const;
+	double getCostIncrease() const;
 
 private:
 	bool drive1Available;
-	/**mode for parent work tour in case of sub tours*/
 	int modeForParentWorkTour;
+	double costIncrease;
 };
 
-class StopModeDestinationParams : public ModeDestinationParams
+class StopModeDestinationParams: public ModeDestinationParams
 {
 public:
-	StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
-			const PersonParams& personParams, const Stop* stop, int originCode, const std::vector<OD_Pair>& unavailableODs);
+	StopModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PersonParams& personParams, const Stop* stop,
+			int originCode, const std::vector<OD_Pair>& unavailableODs);
 	virtual ~StopModeDestinationParams();
 	double getCostCarParking(int zone) const;
 	double getCostCarOP(int zone) const;
@@ -81,7 +78,7 @@ public:
 	double getWalkDistanceFirst(int zone) const;
 	double getWalkDistanceSecond(int zone) const;
 	int getCentralDummy(int zone) const;
-	StopType getTourPurpose() const ;
+	StopType getTourPurpose() const;
 	double getShop(int zone) const;
 	double getEmployment(int zone) const;
 	double getPopulation(int zone) const;

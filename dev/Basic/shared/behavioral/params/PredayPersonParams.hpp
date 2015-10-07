@@ -14,7 +14,7 @@ namespace sim_mob
 
 /**
  * Simple class to store information about a person from population database.
- * \note This class is used by the mid-term behavior models and logsum computation in long-term
+ * NOTE: This class is used by the mid-term behavior models and logsum computation in long-term
  *
  * \author Harish Loganathan
  */
@@ -34,211 +34,263 @@ public:
 		this->hhId = hhId;
 	}
 
-	int getAgeId() const {
+	int getAgeId() const
+	{
 		return ageId;
 	}
 
-	void setAgeId(int ageId) {
+	void setAgeId(int ageId)
+	{
 		this->ageId = ageId;
 	}
 
-	int getCarOwnNormal() const {
+	int getCarOwnNormal() const
+	{
 		return carOwnNormal;
 	}
 
-	void setCarOwnNormal(int carOwnNormal) {
+	void setCarOwnNormal(int carOwnNormal)
+	{
 		this->carOwnNormal = carOwnNormal;
 	}
 
-	int getCarOwnOffpeak() const {
+	int getCarOwnOffpeak() const
+	{
 		return carOwnOffpeak;
 	}
 
-	void setCarOwnOffpeak(int carOwnOffpeak) {
+	void setCarOwnOffpeak(int carOwnOffpeak)
+	{
 		this->carOwnOffpeak = carOwnOffpeak;
 	}
 
-	int getFixedWorkLocation() const {
+	int getFixedWorkLocation() const
+	{
 		return fixedWorkLocation;
 	}
 
-	void setFixedWorkLocation(int fixedWorkLocation) {
+	void setFixedWorkLocation(int fixedWorkLocation)
+	{
 		this->fixedWorkLocation = fixedWorkLocation;
 	}
 
-	int hasFixedWorkPlace() const {
+	int hasFixedWorkPlace() const
+	{
 		return (fixedWorkLocation != 0);
 	}
 
-	int getHasFixedWorkTiming() const {
+	int getHasFixedWorkTiming() const
+	{
 		return hasFixedWorkTiming;
 	}
 
-	void setHasFixedWorkTiming(int hasFixedWorkTiming) {
+	void setHasFixedWorkTiming(int hasFixedWorkTiming)
+	{
 		this->hasFixedWorkTiming = hasFixedWorkTiming;
 	}
 
-	int getHomeLocation() const {
+	int getHomeLocation() const
+	{
 		return homeLocation;
 	}
 
-	void setHomeLocation(int homeLocation) {
+	void setHomeLocation(int homeLocation)
+	{
 		this->homeLocation = homeLocation;
 	}
 
-	int getIncomeId() const {
+	int getIncomeId() const
+	{
 		return incomeId;
 	}
 
-	void setIncomeId(int income_id) {
+	void setIncomeId(int income_id)
+	{
 		this->incomeId = income_id;
 	}
 
-	int getIsFemale() const {
+	int getIsFemale() const
+	{
 		return isFemale;
 	}
 
-	void setIsFemale(int isFemale) {
+	void setIsFemale(int isFemale)
+	{
 		this->isFemale = isFemale;
 	}
 
-	int getIsUniversityStudent() const {
+	int getIsUniversityStudent() const
+	{
 		return isUniversityStudent;
 	}
 
-	void setIsUniversityStudent(int isUniversityStudent) {
+	void setIsUniversityStudent(int isUniversityStudent)
+	{
 		this->isUniversityStudent = isUniversityStudent;
 	}
 
-	int getMotorOwn() const {
+	int getMotorOwn() const
+	{
 		return motorOwn;
 	}
 
-	void setMotorOwn(int motorOwn) {
+	void setMotorOwn(int motorOwn)
+	{
 		this->motorOwn = motorOwn;
 	}
 
-	int getPersonTypeId() const {
+	int getPersonTypeId() const
+	{
 		return personTypeId;
 	}
 
-	void setPersonTypeId(int personTypeId) {
+	void setPersonTypeId(int personTypeId)
+	{
 		this->personTypeId = personTypeId;
 	}
 
-	int getWorksAtHome() const {
+	int getWorksAtHome() const
+	{
 		return worksAtHome;
 	}
 
-	void setWorksAtHome(int worksAtHome) {
+	void setWorksAtHome(int worksAtHome)
+	{
 		this->worksAtHome = worksAtHome;
 	}
 
-	int getFixedSchoolLocation() const {
+	int getFixedSchoolLocation() const
+	{
 		return fixedSchoolLocation;
 	}
 
-	void setFixedSchoolLocation(int fixedSchoolLocation) {
+	void setFixedSchoolLocation(int fixedSchoolLocation)
+	{
 		this->fixedSchoolLocation = fixedSchoolLocation;
 	}
 
-	int getStopType() const {
+	int getStopType() const
+	{
 		return stopType;
 	}
 
-	void setStopType(int stopType) {
+	void setStopType(int stopType)
+	{
 		this->stopType = stopType;
 	}
 
-	int isWorker() const {
+	int isWorker() const
+	{
 		return (personTypeId == 1 || personTypeId == 2 || personTypeId == 3 || personTypeId == 8 || personTypeId == 9 || personTypeId == 10);
 	}
 
-	int hasDrivingLicence() const {
+	int hasDrivingLicence() const
+	{
 		return drivingLicence;
 	}
 
-	void setHasDrivingLicence(bool hasDrivingLicence) {
-		this->drivingLicence = (int)hasDrivingLicence;
+	void setHasDrivingLicence(bool hasDrivingLicence)
+	{
+		this->drivingLicence = (int) hasDrivingLicence;
 	}
 
-	std::string getPersonId() const {
+	std::string getPersonId() const
+	{
 		return personId;
 	}
 
-	void setPersonId(std::string personId) {
+	void setPersonId(std::string personId)
+	{
 		this->personId = personId;
 	}
 
-	int getHH_HasUnder15() const {
+	int getHH_HasUnder15() const
+	{
 		return hasUnder15;
 	}
 
-	void setHH_HasUnder15(int hhUnder15) {
+	void setHH_HasUnder15(int hhUnder15)
+	{
 		this->hasUnder15 = (hhUnder15 > 0);
 	}
 
-	int getHH_NumUnder4() const {
+	int getHH_NumUnder4() const
+	{
 		return hhNumUnder4;
 	}
 
-	void setHH_NumUnder4(int hhNumUnder4) {
+	void setHH_NumUnder4(int hhNumUnder4)
+	{
 		this->hhNumUnder4 = hhNumUnder4;
 	}
 
-	int getHH_OnlyAdults() const {
+	int getHH_OnlyAdults() const
+	{
 		return hhOnlyAdults;
 	}
 
-	void setHH_OnlyAdults(int hhOnlyAdults) {
+	void setHH_OnlyAdults(int hhOnlyAdults)
+	{
 		this->hhOnlyAdults = hhOnlyAdults;
 	}
 
-	int getHH_OnlyWorkers() const {
+	int getHH_OnlyWorkers() const
+	{
 		return hhOnlyWorkers;
 	}
 
-	void setHH_OnlyWorkers(int hhOnlyWorkers) {
+	void setHH_OnlyWorkers(int hhOnlyWorkers)
+	{
 		this->hhOnlyWorkers = hhOnlyWorkers;
 	}
 
-	double getEduLogSum() const {
+	double getEduLogSum() const
+	{
 		return eduLogSum;
 	}
 
-	void setEduLogSum(double eduLogSum) {
+	void setEduLogSum(double eduLogSum)
+	{
 		this->eduLogSum = eduLogSum;
 	}
 
-	double getOtherLogSum() const {
+	double getOtherLogSum() const
+	{
 		return otherLogSum;
 	}
 
-	void setOtherLogSum(double otherLogSum) {
+	void setOtherLogSum(double otherLogSum)
+	{
 		this->otherLogSum = otherLogSum;
 	}
 
-	double getShopLogSum() const {
+	double getShopLogSum() const
+	{
 		return shopLogSum;
 	}
 
-	void setShopLogSum(double shopLogSum) {
+	void setShopLogSum(double shopLogSum)
+	{
 		this->shopLogSum = shopLogSum;
 	}
 
-	double getWorkLogSum() const {
+	double getWorkLogSum() const
+	{
 		return workLogSum;
 	}
 
-	void setWorkLogSum(double workLogSum) {
+	void setWorkLogSum(double workLogSum)
+	{
 		this->workLogSum = workLogSum;
 	}
 
-	int getStudentTypeId() const {
+	int getStudentTypeId() const
+	{
 		return studentTypeId;
 	}
 
-	void setStudentTypeId(int studentTypeId) {
+	void setStudentTypeId(int studentTypeId)
+	{
 		this->studentTypeId = studentTypeId;
 	}
 
@@ -271,11 +323,6 @@ public:
 	{
 		this->carOwn = carOwn;
 	}
-
-	/**
-	 * prints the fields of this object
-	 */
-	void print();
 
 	double getDpsLogsum() const
 	{
@@ -417,7 +464,8 @@ public:
 		this->fixedWorkplace = hasFixedWorkplace;
 	}
 
-	int isStudent() const {
+	int isStudent() const
+	{
 		return student;
 	}
 
@@ -435,21 +483,6 @@ public:
 	{
 		return vehicleCategoryLookup;
 	}
-
-	static std::map<long, int>& getAddressTazLookup()
-	{
-		return addressTazLookup;
-	}
-
-	int getTAZCodeForAddressId(long addressId);
-
-	void setIncomeIdFromIncome(double income);
-	void setVehicleOwnershipFromCategoryId(int vehicleCategoryId);
-
-	/**
-	 * function to infer params used in preday system of models from params read from LT population
-	 */
-	void fixUpForLtPerson();
 
 	double getTravelProbability() const
 	{
@@ -470,6 +503,45 @@ public:
 	{
 		this->tripsExpected = tripsExpected;
 	}
+
+	static std::map<long, int>& getAddressTazLookup()
+	{
+		return addressTazLookup;
+	}
+
+	/**
+	 * prints the data members of this object
+	 */
+	void print();
+
+	/**
+	 * looks up TAZ code for a given address ID from LT population data
+	 *
+	 * @param addressId input address id
+	 *
+	 * @return TAZ code for addressId
+	 */
+	int getTAZCodeForAddressId(long addressId);
+
+	/**
+	 * sets income ID by looking up income on a pre loaded map of income ranges.
+	 * handles incomeId value mismatch between preday and long-term formats. See implementation for details.
+	 *
+	 * @param income the income value
+	 */
+	void setIncomeIdFromIncome(double income);
+
+	/**
+	 * maps vehicleCategoryID from LT db to preday understandable format
+	 *
+	 * @param vehicleCategoryId LT vechicle category id
+	 */
+	void setVehicleOwnershipFromCategoryId(int vehicleCategoryId);
+
+	/**
+	 * infers params used in preday system of models from params obtained from LT population
+	 */
+	void fixUpForLtPerson();
 
 protected:
 	std::string personId;
@@ -525,22 +597,22 @@ protected:
 	double travelProbability;
 	double tripsExpected;
 
-    /**
-     * income category lookup containing lower limits of each category.
-     * income category id for a specific income is the index of the greatest element lower than the income in this array
-     * index 0 corresponds no income.
-     */
-    static double incomeCategoryLowerLimits[12];
+	/**
+	 * income category lookup containing lower limits of each category.
+	 * income category id for a specific income is the index of the greatest element lower than the income in this array
+	 * index 0 corresponds no income.
+	 */
+	static double incomeCategoryLowerLimits[12];
 
-    /**
-     * vehicle category map of id->bitset<4> (4 bits representing 0-carOwn, 1-carOwnNormal, 2-carOwnOffPeak and 3-motorOwn bit for the id)
-     */
-    static std::map<int, std::bitset<4> > vehicleCategoryLookup;
+	/**
+	 * vehicle category map of id->bitset<4> (4 bits representing 0-carOwn, 1-carOwnNormal, 2-carOwnOffPeak and 3-motorOwn bit for the id)
+	 */
+	static std::map<int, std::bitset<4> > vehicleCategoryLookup;
 
-    /**
-     * address to taz map
-     */
-    static std::map<long, int> addressTazLookup;
+	/**
+	 * address to taz map
+	 */
+	static std::map<long, int> addressTazLookup;
 };
 
-}// end namespace sim_mob
+} // end namespace sim_mob

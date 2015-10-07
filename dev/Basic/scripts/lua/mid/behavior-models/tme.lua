@@ -11,7 +11,6 @@ Authors - Siyu Li, Harish Loganathan
 --Note: the betas that not estimated are fixed to zero.
 
 --!! see the documentation on the definition of AM,PM and OP table!!
-
 local beta_cons_bus = -1.866
 local beta_cons_mrt = -2.799
 local beta_cons_privatebus= -2.074
@@ -130,7 +129,8 @@ choice["other"] = {8,9}
 -- 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
 local utility = {}
 local function computeUtilities(params,dbparams)
-	
+	local cost_increase = dbparams.cost_increase
+
 	--dbparams.cost_public_first = AM[(origin,destination)]['pub_cost']
 	--origin is home, destination is tour destination
 	--0 if origin == destination
@@ -141,9 +141,9 @@ local function computeUtilities(params,dbparams)
 	--0 if origin == destination
 	local cost_public_second = dbparams.cost_public_second
 
-	local cost_bus=cost_public_first+cost_public_second
-	local cost_mrt=cost_public_first+cost_public_second
-	local cost_privatebus=cost_public_first+cost_public_second
+	local cost_bus=cost_public_first+cost_public_second+cost_increase
+	local cost_mrt=cost_public_first+cost_public_second+cost_increase
+	local cost_privatebus=cost_public_first+cost_public_second+cost_increase
 
 	--dbparams.cost_car_ERP_first = AM[(origin,destination)]['car_cost_erp']
 	--dbparams.cost_car_ERP_second = PM[(destination,origin)]['car_cost_erp']
@@ -158,9 +158,9 @@ local function computeUtilities(params,dbparams)
 	local cost_car_OP_second = dbparams.cost_car_OP_second
 	local cost_car_parking = dbparams.cost_car_parking
 
-	local cost_cardriver=cost_car_ERP_first+cost_car_ERP_second+cost_car_OP_first+cost_car_OP_second+cost_car_parking
-	local cost_carpassenger=cost_car_ERP_first+cost_car_ERP_second+cost_car_OP_first+cost_car_OP_second+cost_car_parking
-	local cost_motor=0.5*(cost_car_ERP_first+cost_car_ERP_second+cost_car_OP_first+cost_car_OP_second)+0.65*cost_car_parking
+	local cost_cardriver=cost_car_ERP_first+cost_car_ERP_second+cost_car_OP_first+cost_car_OP_second+cost_car_parking+cost_increase
+	local cost_carpassenger=cost_car_ERP_first+cost_car_ERP_second+cost_car_OP_first+cost_car_OP_second+cost_car_parking+cost_increase
+	local cost_motor=0.5*(cost_car_ERP_first+cost_car_ERP_second+cost_car_OP_first+cost_car_OP_second)+0.65*cost_car_parking+cost_increase
 
 	--dbparams.walk_distance1= AM[(origin,destination)]['AM2dis']
 	--origin is home mtz, destination is usual work location mtz
@@ -189,7 +189,7 @@ local function computeUtilities(params,dbparams)
 
 	local cost_taxi_1=3.4+((d1*(d1>10 and 1 or 0)-10*(d1>10 and 1 or 0))/0.35+(d1*(d1<=10 and 1 or 0)+10*(d1>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_first + central_dummy*3
 	local cost_taxi_2=3.4+((d2*(d2>10 and 1 or 0)-10*(d2>10 and 1 or 0))/0.35+(d2*(d2<=10 and 1 or 0)+10*(d2>10 and 1 or 0))/0.4)*0.22+ cost_car_ERP_second + central_dummy*3
-	local cost_taxi=cost_taxi_1+cost_taxi_2
+	local cost_taxi=cost_taxi_1+cost_taxi_2+cost_increase
 
 	local cost_over_income_bus=30*cost_bus/(0.5+income_mid)
 	local cost_over_income_mrt=30*cost_mrt/(0.5+income_mid)

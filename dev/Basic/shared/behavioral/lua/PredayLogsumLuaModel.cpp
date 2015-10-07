@@ -2,13 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * PredayLuaModel.cpp
- *
- *  Created on: Nov 27, 2013
- *      Author: Harish Loganathan
- */
-
 #include "PredayLogsumLuaModel.hpp"
 
 #include "lua/LuaLibrary.hpp"
@@ -26,7 +19,8 @@ sim_mob::PredayLogsumLuaModel::PredayLogsumLuaModel()
 sim_mob::PredayLogsumLuaModel::~PredayLogsumLuaModel()
 {}
 
-void sim_mob::PredayLogsumLuaModel::mapClasses() {
+void sim_mob::PredayLogsumLuaModel::mapClasses()
+{
 	getGlobalNamespace(state.get())
 			.beginClass <PredayPersonParams> ("PredayPersonParams")
 				.addProperty("person_id", &PredayPersonParams::getPersonId)
@@ -57,8 +51,47 @@ void sim_mob::PredayLogsumLuaModel::mapClasses() {
 				.addProperty("otherlogsum", &PredayPersonParams::getOtherLogSum)
 				.addProperty("dptour_logsum", &PredayPersonParams::getDptLogsum)
 				.addProperty("dpstop_logsum", &PredayPersonParams::getDpsLogsum)
-				.addProperty("travel_probability", &PredayPersonParams::getTravelProbability, &PredayPersonParams::setTravelProbability)
-				.addProperty("num_expected_trips", &PredayPersonParams::getTripsExpected, &PredayPersonParams::setTripsExpected)
+				.addProperty("travel_probability", &PredayPersonParams::getTravelProbability)
+				.addProperty("num_expected_trips", &PredayPersonParams::getTripsExpected)
+			.endClass()
+
+			.beginClass<LogsumTourModeParams>("TourModeParams")
+				.addProperty("average_transfer_number",&LogsumTourModeParams::getAvgTransfer)
+				.addProperty("central_dummy",&LogsumTourModeParams::isCentralZone)
+				.addProperty("cost_car_ERP_first",&LogsumTourModeParams::getCostCarErpFirst)
+				.addProperty("cost_car_ERP_second",&LogsumTourModeParams::getCostCarErpSecond)
+				.addProperty("cost_car_OP_first",&LogsumTourModeParams::getCostCarOpFirst)
+				.addProperty("cost_car_OP_second",&LogsumTourModeParams::getCostCarOpSecond)
+				.addProperty("cost_car_parking",&LogsumTourModeParams::getCostCarParking)
+				.addProperty("cost_public_first",&LogsumTourModeParams::getCostPublicFirst)
+				.addProperty("cost_public_second",&LogsumTourModeParams::getCostPublicSecond)
+				.addProperty("drive1_AV",&LogsumTourModeParams::isDrive1Available)
+				.addProperty("motor_AV",&LogsumTourModeParams::isMotorAvailable)
+				.addProperty("mrt_AV",&LogsumTourModeParams::isMrtAvailable)
+				.addProperty("privatebus_AV",&LogsumTourModeParams::isPrivateBusAvailable)
+				.addProperty("publicbus_AV",&LogsumTourModeParams::isPublicBusAvailable)
+				.addProperty("share2_AV",&LogsumTourModeParams::isShare2Available)
+				.addProperty("share3_AV",&LogsumTourModeParams::isShare3Available)
+				.addProperty("taxi_AV",&LogsumTourModeParams::isTaxiAvailable)
+				.addProperty("walk_AV",&LogsumTourModeParams::isWalkAvailable)
+				.addProperty("tt_ivt_car_first",&LogsumTourModeParams::getTtCarIvtFirst)
+				.addProperty("tt_ivt_car_second",&LogsumTourModeParams::getTtCarIvtSecond)
+				.addProperty("tt_public_ivt_first",&LogsumTourModeParams::getTtPublicIvtFirst)
+				.addProperty("tt_public_ivt_second",&LogsumTourModeParams::getTtPublicIvtSecond)
+				.addProperty("tt_public_waiting_first",&LogsumTourModeParams::getTtPublicWaitingFirst)
+				.addProperty("tt_public_waiting_second",&LogsumTourModeParams::getTtPublicWaitingSecond)
+				.addProperty("tt_public_walk_first",&LogsumTourModeParams::getTtPublicWalkFirst)
+				.addProperty("tt_public_walk_second",&LogsumTourModeParams::getTtPublicWalkSecond)
+				.addProperty("walk_distance1",&LogsumTourModeParams::getWalkDistance1)
+				.addProperty("walk_distance2",&LogsumTourModeParams::getWalkDistance2)
+				.addProperty("destination_area",&LogsumTourModeParams::getDestinationArea)
+				.addProperty("origin_area",&LogsumTourModeParams::getOriginArea)
+				.addProperty("resident_size",&LogsumTourModeParams::getResidentSize)
+				.addProperty("work_op",&LogsumTourModeParams::getWorkOp)
+				.addProperty("education_op",&LogsumTourModeParams::getEducationOp)
+				.addProperty("cbd_dummy",&LogsumTourModeParams::isCbdDestZone)
+				.addProperty("cbd_dummy_origin",&LogsumTourModeParams::isCbdOrgZone)
+				.addProperty("cost_increase", &LogsumTourModeParams::getCostIncrease)
 			.endClass()
 
 			.beginClass<LogsumTourModeDestinationParams>("LogsumTourModeDestinationParams")
@@ -86,14 +119,23 @@ void sim_mob::PredayLogsumLuaModel::mapClasses() {
 				.addFunction("availability",&LogsumTourModeDestinationParams::isAvailable_TMD)
 				.addProperty("cbd_dummy_origin",&LogsumTourModeDestinationParams::isCbdOrgZone)
 				.addFunction("cbd_dummy",&LogsumTourModeDestinationParams::getCbdDummy)
+				.addProperty("cost_increase", &LogsumTourModeDestinationParams::getCostIncrease)
 			.endClass();
 }
 
 void sim_mob::PredayLogsumLuaModel::computeDayPatternLogsums(PredayPersonParams& personParams) const
 {
 	LuaRef computeLogsumDPT = getGlobal(state.get(), "compute_logsum_dpt");
-	LuaRef dptLogsum = computeLogsumDPT(personParams);
-	personParams.setDptLogsum(dptLogsum.cast<double>());
+	LuaRef dptRetVal = computeLogsumDPT(personParams);
+	if(dptRetVal.isTable())
+	{
+		personParams.setDptLogsum(dptRetVal[1].cast<double>());
+		personParams.setTripsExpected(dptRetVal[2].cast<double>());
+	}
+	else
+	{
+		throw std::runtime_error("compute_logsum_dpt function does not return a table as expected");
+	}
 
 	LuaRef computeLogsumDPS = getGlobal(state.get(), "compute_logsum_dps");
 	LuaRef dpsLogsum = computeLogsumDPS(personParams);
@@ -103,15 +145,36 @@ void sim_mob::PredayLogsumLuaModel::computeDayPatternLogsums(PredayPersonParams&
 void sim_mob::PredayLogsumLuaModel::computeDayPatternBinaryLogsums(PredayPersonParams& personParams) const
 {
 	LuaRef computeLogsumDPB = getGlobal(state.get(), "compute_logsum_dpb");
-	LuaRef dpbLogsum = computeLogsumDPB(personParams);
-	personParams.setDpbLogsum(dpbLogsum.cast<double>());
+	LuaRef dpbRetVal = computeLogsumDPB(personParams);
+	if(dpbRetVal.isTable())
+	{
+		personParams.setDpbLogsum(dpbRetVal[1].cast<double>());
+		personParams.setTravelProbability(dpbRetVal[2].cast<double>());
+	}
+	else
+	{
+		throw std::runtime_error("compute_logsum_dpb function does not return a table as expected");
+	}
+}
+
+void sim_mob::PredayLogsumLuaModel::computeTourModeLogsum(PredayPersonParams& personParams, LogsumTourModeParams& tourModeParams) const
+{
+	if(personParams.hasFixedWorkPlace())
+	{
+		LuaRef computeLogsumTMW = getGlobal(state.get(), "compute_logsum_tmw");
+		LuaRef workLogSum = computeLogsumTMW(&personParams, &tourModeParams);
+		personParams.setWorkLogSum(workLogSum.cast<double>());
+	}
 }
 
 void sim_mob::PredayLogsumLuaModel::computeTourModeDestinationLogsum(PredayPersonParams& personParams, LogsumTourModeDestinationParams& tourModeDestinationParams) const
 {
-	LuaRef computeLogsumTMDW = getGlobal(state.get(), "compute_logsum_tmdw");
-	LuaRef workLogSum = computeLogsumTMDW(&personParams, &tourModeDestinationParams);
-	personParams.setWorkLogSum(workLogSum.cast<double>());
+	if(!personParams.hasFixedWorkPlace())
+	{
+		LuaRef computeLogsumTMDW = getGlobal(state.get(), "compute_logsum_tmdw");
+		LuaRef workLogSum = computeLogsumTMDW(&personParams, &tourModeDestinationParams);
+		personParams.setWorkLogSum(workLogSum.cast<double>());
+	}
 
 	LuaRef computeLogsumTMDS = getGlobal(state.get(), "compute_logsum_tmds");
 	LuaRef shopLogSum = computeLogsumTMDS(&personParams, &tourModeDestinationParams);

@@ -9,7 +9,7 @@
 #include "database/DB_Connection.hpp"
 #include "util/LangHelpers.hpp"
 #include "soci.h"
-#include "I_Dao.h"
+#include "I_Dao.hpp"
 
 namespace
 {

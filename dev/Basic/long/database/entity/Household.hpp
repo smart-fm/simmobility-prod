@@ -55,20 +55,23 @@ namespace sim_mob
             void setIndividual( BigSerial individualId );
             std::vector<BigSerial> getIndividuals() const;
 
-			bool	  getTwoRoomHdbEligibility() const;
-			bool	  getThreeRoomHdbEligibility() const;
-			bool	  getFourRoomHdbEligibility() const;
+			bool	getTwoRoomHdbEligibility() const;
+			bool	getThreeRoomHdbEligibility() const;
+			bool	getFourRoomHdbEligibility() const;
 
-			void	  setTwoRoomHdbEligibility(bool);
-			void	  setThreeRoomHdbEligibility(bool);
-			void	  setFourRoomHdbEligibility(bool);
+			void	setTwoRoomHdbEligibility(bool);
+			void	setThreeRoomHdbEligibility(bool);
+			void	setFourRoomHdbEligibility(bool);
 
-			void	  setFamilyType(int);
-			int		  getFamilyType();
-			void setTaxiAvailability(bool taxiAvailable);
-			bool getTaxiAvailability();
-			void setVehicleOwnershipOptionId(int vehicleOwnershipOption);
-			int getVehicleOwnershipOptionId();
+			void	setFamilyType(int);
+			int		getFamilyType();
+			void 	setTaxiAvailability(bool taxiAvailable);
+			bool 	getTaxiAvailability();
+			void 	setVehicleOwnershipOptionId(int vehicleOwnershipOption);
+			int 	getVehicleOwnershipOptionId();
+
+			void 	setAffordabilityAmount( double value );
+			double	getAffordabilityAmount() const;
 
 			enum FAMILY_TYPE
 			{
@@ -110,6 +113,8 @@ namespace sim_mob
 			int	 familyType;
 			bool taxiAvailability;
 			int vehicleOwnershipOptionId;
+
+			double householdAffordabilityAmount;
         };
 
 

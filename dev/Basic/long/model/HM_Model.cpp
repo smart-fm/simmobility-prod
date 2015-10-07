@@ -280,10 +280,10 @@ namespace
 		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_HITS_LOGSUM, fmtr.str());
 	}
 
-	inline void printHouseholdHitsLogsumFVO( std::string hitsId, BigSerial householdId, BigSerial individualId, vector<double> logsum, vector<double> travelProbability, vector<double> tripsExpected )
+	inline void printHouseholdHitsLogsumFVO( std::string hitsId, int paxId, BigSerial householdId, BigSerial individualId, int memberId, int tazH, int tazW, vector<double> logsum, vector<double> travelProbability, vector<double> tripsExpected )
 	{
 
-		boost::format fmtr = boost::format( "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%") % hitsId % householdId % individualId % logsum[0] % logsum[1] % travelProbability[0] % travelProbability[1] % tripsExpected[0] % tripsExpected[1];
+		boost::format fmtr = boost::format( "%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%") % hitsId % paxId % householdId % individualId % memberId % tazH % tazW % logsum[0] % logsum[1] % travelProbability[0] % travelProbability[1] % tripsExpected[0] % tripsExpected[1];
 		AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_INDIVIDUAL_LOGSUM_VO, fmtr.str());
 	}
 }
@@ -1500,6 +1500,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId2)
 
 		int tazIdW = -1;
 		int tazIdH = -1;
+		int paxId  = -1;
 
 		int p = 0;
 		for(p = 0; p < hitsIndividualLogsum.size(); p++ )
@@ -1508,6 +1509,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId2)
 			{
 				tazIdW = hitsIndividualLogsum[p]->getWorkTaz();
 				tazIdH = hitsIndividualLogsum[p]->getHomeTaz();
+				paxId  = hitsIndividualLogsum[p]->getPaxId();
 				break;
 			}
 		}
@@ -1524,7 +1526,7 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId2)
 			tazStrH = tazObjH->getName();
 		BigSerial tazH = std::atoi( tazStrH.c_str() );
 
-		if( tazH > 0 && tazW > 0 )
+		if( 1 )
 		{
 			PredayPersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 );
 			double logsumNoVehicle	= personParams1.getDpbLogsum();
@@ -1571,9 +1573,10 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId2)
 
 		simulationStopCounter++;
 
-		printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], logsum, travelProbability, tripsExpected );
-		PrintOutV( simulationStopCounter << ". " << hitsIndividualLogsum[p]->getHitsId() << ", " << hitsSample->getHouseholdHitsId() << ", " << householdId << ", " << thisIndividual->getMemberId()
-										 << ", " << householdIndividualIds[n] << ", " << std::setprecision(5)	<< logsum[0]  << ", " << logsum[1] << ", " << tripsExpected[0] << ", " << tripsExpected[1]
+		printHouseholdHitsLogsumFVO( hitsSample->getHouseholdHitsId(), paxId, householdId, householdIndividualIds[n], thisIndividual->getMemberId(), tazH, tazW, logsum, travelProbability, tripsExpected );
+		PrintOutV( simulationStopCounter << ". " << hitsIndividualLogsum[p]->getHitsId() << ", " << paxId << ", " << hitsSample->getHouseholdHitsId() << ", " << householdId << ", " << thisIndividual->getMemberId()
+										 << ", " << householdIndividualIds[n] << ", " << tazH << ", " << tazW << ", "
+										 << std::setprecision(5)	<< logsum[0]  << ", " << logsum[1] << ", " << tripsExpected[0] << ", " << tripsExpected[1]
 										 << ", " << travelProbability[0] << ", " << travelProbability[1] <<std::endl );
 
 	}

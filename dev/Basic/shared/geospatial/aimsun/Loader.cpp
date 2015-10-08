@@ -14,10 +14,6 @@
 #include <stdexcept>
 #include <vector>
 
-//NOTE: CMake should put the correct -I flags in for SOCI; be aware that some distros hide it though.
-//#include <soci.h>
-//#include <soci-postgresql.h>
-
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/settings/DisableMPI.h"

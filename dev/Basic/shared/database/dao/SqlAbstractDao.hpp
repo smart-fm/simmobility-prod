@@ -6,9 +6,9 @@
 #include <vector>
 #include <boost/algorithm/string.hpp>
 #include <boost/unordered_map.hpp>
+#include "soci/soci.h"
 #include "database/DB_Connection.hpp"
 #include "util/LangHelpers.hpp"
-#include "soci.h"
 #include "I_Dao.hpp"
 
 namespace

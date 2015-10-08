@@ -10,7 +10,7 @@
 /// \author LIM Fung Chai
 /// \author Matthew Bremer Bruchon
 
-#include "soci.h"
+#include "soci/soci.h"
 #include "Node.hpp"
 #include "Section.hpp"
 #include "Lane.hpp"

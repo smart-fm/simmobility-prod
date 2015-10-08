@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include <utility>
 #include <vector>
-#include <soci.h>
+#include "soci/soci.h"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "geospatial/aimsun/Loader.hpp"

@@ -12,8 +12,8 @@
 #include <boost/format.hpp>
 #include "DB_Connection.hpp"
 #include "mongo/client/dbclient.h"
-#include "soci.h"
-#include "soci-postgresql.h"
+#include "soci/soci.h"
+#include "soci/postgresql/soci-postgresql.h"
 #include "util/LangHelpers.hpp"
 
 

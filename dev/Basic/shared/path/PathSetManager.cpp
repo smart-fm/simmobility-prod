@@ -32,9 +32,11 @@
 #include "message/MessageBus.hpp"
 #include "Path.hpp"
 #include "path/PathSetThreadPool.hpp"
+#include "soci/postgresql/soci-postgresql.h"
 #include "util/threadpool/Threadpool.hpp"
 #include "util/Utils.hpp"
 #include "workers/Worker.hpp"
+
 
 
 using std::vector;

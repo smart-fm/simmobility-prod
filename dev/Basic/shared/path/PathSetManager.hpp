@@ -8,10 +8,12 @@
 
 #pragma once
 
-#include "PathSetParam.hpp"
-#include "TravelTimeManager.hpp"
-#include "geospatial/Link.hpp"
+#include <boost/shared_ptr.hpp>
 #include "entities/Person.hpp"
+#include "PathSetParam.hpp"
+#include "geospatial/Link.hpp"
+#include "soci/soci.h"
+#include "TravelTimeManager.hpp"
 #include "util/Cache.hpp"
 
 namespace sim_mob

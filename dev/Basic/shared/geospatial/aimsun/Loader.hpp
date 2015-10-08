@@ -13,9 +13,8 @@
 
 #include <boost/shared_ptr.hpp>
 #include <boost/unordered_map.hpp>
-#include "soci.h"
-#include "soci-postgresql.h"
-
+#include "soci/soci.h"
+#include "soci/postgresql/soci-postgresql.h"
 #include "path/Common.hpp"
 #include "path/PathSetParam.hpp"
 

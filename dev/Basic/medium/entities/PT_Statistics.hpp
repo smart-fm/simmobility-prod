@@ -6,6 +6,8 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "message/MessageBus.hpp"
+#include "message/MessageHandler.hpp"
 #include "message/MT_Message.hpp"
 
 namespace sim_mob

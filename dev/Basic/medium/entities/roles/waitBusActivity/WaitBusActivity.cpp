@@ -72,7 +72,7 @@ void sim_mob::medium::WaitBusActivity::incrementDeniedBoardingCount()
 	failedToBoardCount++;
 }
 
-const std::string& sim_mob::medium::WaitBusActivity::getBusLines() const
+const std::string sim_mob::medium::WaitBusActivity::getBusLines() const
 {
 	return parent->currSubTrip->getBusLineID();
 }

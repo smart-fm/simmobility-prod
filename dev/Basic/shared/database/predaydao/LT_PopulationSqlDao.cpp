@@ -2,13 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * PredayDao.cpp
- *
- *  Created on: Nov 15, 2013
- *      Author: Harish Loganathan
- */
-
 #include "LT_PopulationSqlDao.hpp"
 
 #include <boost/lexical_cast.hpp>
@@ -23,12 +16,14 @@ namespace
 typedef long long BigInt;
 }
 
-LT_PopulationSqlDao::LT_PopulationSqlDao(DB_Connection& connection)
-: SqlAbstractDao<PredayPersonParams>(connection, "", "", "", "", "", "SELECT * FROM main2012.getindividualbyidforpreday(:_id)")
-{}
+LT_PopulationSqlDao::LT_PopulationSqlDao(DB_Connection& connection) :
+		SqlAbstractDao<PredayPersonParams>(connection, "", "", "", "", "", "SELECT * FROM main2012.getindividualbyidforpreday(:_id)")
+{
+}
 
 LT_PopulationSqlDao::~LT_PopulationSqlDao()
-{}
+{
+}
 
 void LT_PopulationSqlDao::fromRow(Row& result, PredayPersonParams& outObj)
 {
@@ -61,7 +56,8 @@ void LT_PopulationSqlDao::fromRow(Row& result, PredayPersonParams& outObj)
 	outObj.fixUpForLtPerson();
 }
 
-void LT_PopulationSqlDao::toRow(PredayPersonParams& data, Parameters& outParams, bool update) {
+void LT_PopulationSqlDao::toRow(PredayPersonParams& data, Parameters& outParams, bool update)
+{
 }
 
 void sim_mob::LT_PopulationSqlDao::getOneById(long long id, PredayPersonParams& outParam)
@@ -74,7 +70,7 @@ void sim_mob::LT_PopulationSqlDao::getOneById(long long id, PredayPersonParams& 
 
 void sim_mob::LT_PopulationSqlDao::getAllIds(std::vector<long>& outList)
 {
-	if(isConnected())
+	if (isConnected())
 	{
 		Statement query(connection.getSession<soci::session>());
 		prepareStatement(DB_GET_ALL_PERSON_IDS, db::EMPTY_PARAMS, query);
@@ -89,7 +85,7 @@ void sim_mob::LT_PopulationSqlDao::getAllIds(std::vector<long>& outList)
 
 void sim_mob::LT_PopulationSqlDao::getAddressTAZs(std::map<long, int>& addressTazMap)
 {
-	if(isConnected())
+	if (isConnected())
 	{
 		addressTazMap.clear();
 		Statement query(connection.getSession<soci::session>());
@@ -115,7 +111,10 @@ void LT_PopulationSqlDao::getIncomeCategories(double incomeLowerLimits[])
 		for (ResultSet::const_iterator it = rs.begin(); it != rs.end(); ++it)
 		{
 			uLimit = (*it).get<double>(DB_FIELD_INCOME_CATEGORY_LOWER_LIMIT);
-			if(uLimit > 0) { incomeLowerLimits[(*it).get<BigInt>(DB_FIELD_ID)] = uLimit; }
+			if (uLimit > 0)
+			{
+				incomeLowerLimits[(*it).get<BigInt>(DB_FIELD_ID)] = uLimit;
+			}
 		}
 	}
 }
@@ -132,9 +131,20 @@ void LT_PopulationSqlDao::getVehicleCategories(std::map<int, std::bitset<4> >& v
 		{
 			std::bitset<4> vehOwnershipBits;
 			std::string categoryDescription = (*it).get<std::string>(DB_FIELD_VEHICLE_CATEGORY_NAME);
-			if(categoryDescription.find(SEARCH_STRING_CAR_OWN_NORMAL) != std::string::npos) { vehOwnershipBits[0] = 1; vehOwnershipBits[1] = 1; }
-			if(categoryDescription.find(SEARCH_STRING_CAR_OWN_OFF_PEAK) != std::string::npos) { vehOwnershipBits[0] = 1; vehOwnershipBits[2] = 1;}
-			if(categoryDescription.find(SEARCH_STRING_MOTORCYCLE) != std::string::npos) { vehOwnershipBits[3] = 1; }
+			if (categoryDescription.find(SEARCH_STRING_CAR_OWN_NORMAL) != std::string::npos)
+			{
+				vehOwnershipBits[0] = 1;
+				vehOwnershipBits[1] = 1;
+			}
+			if (categoryDescription.find(SEARCH_STRING_CAR_OWN_OFF_PEAK) != std::string::npos)
+			{
+				vehOwnershipBits[0] = 1;
+				vehOwnershipBits[2] = 1;
+			}
+			if (categoryDescription.find(SEARCH_STRING_MOTORCYCLE) != std::string::npos)
+			{
+				vehOwnershipBits[3] = 1;
+			}
 			vehicleCategories[(*it).get<BigInt>(DB_FIELD_ID)] = vehOwnershipBits;
 		}
 	}

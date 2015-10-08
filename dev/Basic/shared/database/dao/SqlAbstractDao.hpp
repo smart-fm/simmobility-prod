@@ -19,8 +19,10 @@ namespace
 class ParamBinder: public boost::static_visitor<>
 {
 public:
-	ParamBinder(soci::details::prepare_temp_type& statement) : statement(statement)
-	{}
+	ParamBinder(soci::details::prepare_temp_type& statement) :
+			statement(statement)
+	{
+	}
 
 	template<typename T>
 	void operator()(const T& val) const
@@ -38,6 +40,7 @@ const std::string DB_RETURNING_ALL_CLAUSE = " " + DB_RETURNING_CLAUSE + " * ";
 
 namespace sim_mob
 {
+
 namespace db
 {
 typedef soci::row Row;

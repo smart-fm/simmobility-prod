@@ -984,6 +984,34 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 	}
 	constructFileNames(numWorkers, logFileNamePrefix, logFileNames);
 
+	if(mtConfig.runningPredayLogsumComputation())
+	{
+		// logsum data source
+		const std::string& logsumDbId = mtConfig.getLogsumDb().database;
+		Database logsumDatabase = ConfigManager::GetInstance().FullConfig().constructs.databases.at(logsumDbId);
+		std::string cred_id = mtConfig.getLogsumDb().credentials;
+		Credential logsumCredentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
+		std::string username = logsumCredentials.getUsername();
+		std::string password = logsumCredentials.getPassword(false);
+		DB_Config logsumDbConfig(logsumDatabase.host, logsumDatabase.port, logsumDatabase.dbName, username, password);
+		DB_Connection logsumConn(sim_mob::db::POSTGRES, logsumDbConfig);
+		logsumConn.connect();
+		if (!logsumConn.isConnected())
+		{
+			throw std::runtime_error("logsum db connection failure!");
+		}
+		LogsumSqlDao logsumSqlDao(logsumConn);
+		bool truncated = logsumSqlDao.erase(db::EMPTY_PARAMS);
+		if(truncated)
+		{
+			Print() << DB_TABLE_LOGSUMS << " truncated on logsumDatabase.dbName" << std::endl;
+		}
+		else
+		{
+			Print() << DB_TABLE_LOGSUMS << " truncation failed!" << std::endl;
+		}
+	}
+
 	if (numWorkers == 1)
 	{ // if single threaded execution was requested
 		if (mtConfig.runningPredaySimulation())

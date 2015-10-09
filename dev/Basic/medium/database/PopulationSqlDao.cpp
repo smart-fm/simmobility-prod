@@ -152,7 +152,7 @@ void PopulationSqlDao::getVehicleCategories(std::map<int, std::bitset<4> >& vehi
 }
 
 sim_mob::medium::LogsumSqlDao::LogsumSqlDao(db::DB_Connection& connection) :
-		SqlAbstractDao<PersonParams>(connection, DB_TABLE_LOGSUMS, DB_INSERT_LOGSUMS, "", "", "", DB_GET_LOGSUMS_BY_ID)
+		SqlAbstractDao<PersonParams>(connection, DB_TABLE_LOGSUMS, DB_INSERT_LOGSUMS, "", DB_TRUNCATE_LOGSUMS, "", DB_GET_LOGSUMS_BY_ID)
 {
 }
 

@@ -103,6 +103,9 @@ const std::string DB_GET_LOGSUMS_BY_ID = "SELECT * FROM " + DB_SP_GET_LOGSUMS_BY
 /** insert logsums */
 const std::string DB_INSERT_LOGSUMS = "INSERT INTO " + DB_TABLE_LOGSUMS + " VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)";
 
+/** truncate logsums data */
+const std::string DB_TRUNCATE_LOGSUMS = "TRUNCATE " + DB_TABLE_LOGSUMS;
+
 /**
  * Fields for mongoDB population data
  */

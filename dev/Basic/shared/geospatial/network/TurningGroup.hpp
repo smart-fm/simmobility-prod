@@ -13,7 +13,7 @@ namespace sim_mob
 {
 
 /**Defines the rules vehicles must observe at all the turnings in the same group*/
-enum TurningGroupRules
+enum TurningGroupRule
 {
 	/**No stop sign at the turning group*/
 	TURNING_GROUP_RULE_NO_STOP_SIGN = 0,
@@ -45,7 +45,7 @@ public:
 	std::string phases;
 
 	/**Stores the turning group rules*/
-	TurningGroupRules rules;
+	TurningGroupRule groupRule;
 
 	/**Indicates the link at which this turning group terminates*/
 	unsigned int toLinkId;
@@ -76,8 +76,8 @@ public:
 	std::string getPhases() const;
 	void setPhases(std::string phases);
 
-	TurningGroupRules getRules() const;
-	void setRules(TurningGroupRules rules);
+	TurningGroupRule getRule() const;
+	void setRule(TurningGroupRule rules);
 
 	unsigned int getToLinkId() const;
 	void setToLinkId(unsigned int toLinkId);
@@ -90,5 +90,15 @@ public:
 	 * @param turningPath - turning path to be added to the turning group
 	 */
 	void addTurningPath(TurningPath *turningPath);
+
+	/**
+	 * This method looks up the turning path connecting the given from and to lanes and returns a pointer to it.
+	 *
+     * @param fromLaneId - the lane id where the turning path begins
+     * @param toLaneId - the lane id where the turning path ends
+	 *
+     * @return the turning path if found, else NULL
+     */
+	const TurningPath* getTurningPath(unsigned int fromLaneId, unsigned int toLaneId);
 };
 }

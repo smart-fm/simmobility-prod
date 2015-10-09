@@ -9,13 +9,15 @@
 #include "Link.hpp"
 #include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
+#include "RoadItem.hpp"
 
 using namespace sim_mob;
 
 RoadNetwork* RoadNetwork::roadNetwork = nullptr;
 
 RoadNetwork::RoadNetwork()
-{}
+{
+}
 
 RoadNetwork::~RoadNetwork()
 {
@@ -58,27 +60,40 @@ RoadNetwork::~RoadNetwork()
 	mapOfIdVsLanes.clear();
 	mapOfIdVsRoadSegments.clear();
 	mapOfIdvsTurningGroups.clear();
-	mapOfIdvsTurningPaths.clear();	
+	mapOfIdvsTurningPaths.clear();
+	mapOfIdvsBusStops.clear();
+	
+	roadNetwork = NULL;
 }
 
-const std::map<unsigned int, Link*>& RoadNetwork::getMapOfIdVsLinks() const
+const std::map<unsigned int, Link *>& RoadNetwork::getMapOfIdVsLinks() const
 {
 	return mapOfIdVsLinks;
 }
 
-const std::map<unsigned int, Node*>& RoadNetwork::getMapOfIdvsNodes() const
+const std::map<unsigned int, Node *>& RoadNetwork::getMapOfIdvsNodes() const
 {
 	return mapOfIdvsNodes;
 }
 
-const std::map<unsigned int, TurningGroup*>& RoadNetwork::getMapOfIdvsTurningGroups() const
+const std::map<unsigned int, TurningGroup *>& RoadNetwork::getMapOfIdvsTurningGroups() const
 {
 	return mapOfIdvsTurningGroups;
 }
 
-const std::map<unsigned int, TurningPath*>& RoadNetwork::getMapOfIdvsTurningPaths() const
+const std::map<unsigned int, TurningPath *>& RoadNetwork::getMapOfIdvsTurningPaths() const
 {
 	return mapOfIdvsTurningPaths;
+}
+
+const std::map<unsigned int, TurningConflict *>& RoadNetwork::getMapOfIdvsTurningConflicts() const
+{
+	return mapOfIdVsTurningConflicts;
+}
+
+const std::map<unsigned int, BusStop *>& RoadNetwork::getMapOfIdvsBusStops() const
+{
+	return mapOfIdvsBusStops;
 }
 
 void RoadNetwork::addLane(Lane* lane)
@@ -108,20 +123,27 @@ void RoadNetwork::addLane(Lane* lane)
 
 void RoadNetwork::addLaneConnector(LaneConnector* connector)
 {
-	//Find the lane to which the lane connector belongs
-	std::map<unsigned int, Lane *>::iterator itLanes = mapOfIdVsLanes.find(connector->getFromLaneId());
+	//Find the lanes to which the lane connector belongs
+	std::map<unsigned int, Lane *>::iterator itFromLanes = mapOfIdVsLanes.find(connector->getFromLaneId());
+	std::map<unsigned int, Lane *>::iterator itToLanes = mapOfIdVsLanes.find(connector->getToLaneId());
 	
 	//Check if the lane exists in the map
-	if(itLanes != mapOfIdVsLanes.end())
+	if(itFromLanes != mapOfIdVsLanes.end() && itToLanes != mapOfIdVsLanes.end())
 	{
-		//Add the lane connector to the lane
-		itLanes->second->addLaneConnector(connector);
+		//Add the outgoing lane connector to the lane
+		itFromLanes->second->addLaneConnector(connector);
+		
+		//Add the from and to lanes to the lane connector
+		connector->setFromLane(itFromLanes->second);
+		connector->setToLane(itToLanes->second);
 	}
 	else
 	{
 		std::stringstream msg;
-		msg << "Lane connector" << connector->getLaneConnectionId() << " refers to an invalid lane " << connector->getFromLaneId();
-		throw std::runtime_error(msg.str());
+		msg << "\nLane connector " << connector->getLaneConnectionId() << " refers to an invalid lane - " << connector->getFromLaneId()
+			<< " or " << connector->getToLaneId();
+		//Print() << msg.str();
+		//throw std::runtime_error(msg.str());
 	}
 }
 
@@ -144,19 +166,21 @@ void RoadNetwork::addLanePolyLine(PolyPoint point)
 			
 			//Add poly-line to the map
 			itLanes->second->setPolyLine(polyLine);
-		}		
+		}
+		else
+		{
+			//Update the length of the poly-line
 
-		//Update the length of the poly-line
-		
-		//Get the length calculated till the last added point
-		double length = polyLine->getLength();
-		const PolyPoint& lastPoint = polyLine->getLastPoint();
-		
-		//Add the distance between the new point and the previously added point
-		length += sim_mob::dist(lastPoint.getX(), lastPoint.getY(), point.getX(), point.getY());
-		
-		//Set the length
-		polyLine->setLength(length);
+			//Get the length calculated till the last added point
+			double length = polyLine->getLength();
+			const PolyPoint& lastPoint = polyLine->getLastPoint();
+
+			//Add the distance between the new point and the previously added point
+			length += sim_mob::dist(lastPoint.getX(), lastPoint.getY(), point.getX(), point.getY());
+
+			//Set the length
+			polyLine->setLength(length);
+		}
 		
 		//Add the point to the poly-line
 		polyLine->addPoint(point);
@@ -184,8 +208,9 @@ void RoadNetwork::addLink(Link *link)
 	else
 	{
 		std::stringstream msg;
-		msg << "Link " << link->getLinkId() << " refers to an invalid fromNode " << link->getFromNodeId();
-		throw std::runtime_error(msg.str());
+		msg << "\nLink " << link->getLinkId() << " refers to an invalid fromNode " << link->getFromNodeId();
+		Print() << msg.str();
+		//throw std::runtime_error(msg.str());
 	}
 	
 	//Set the to node of the link
@@ -198,8 +223,9 @@ void RoadNetwork::addLink(Link *link)
 	else
 	{
 		std::stringstream msg;
-		msg << "Link " << link->getLinkId() << " refers to an invalid toNode " << link->getToNodeId();
-		throw std::runtime_error(msg.str());
+		msg << "\nLink " << link->getLinkId() << " refers to an invalid toNode " << link->getToNodeId();
+		//Print() << msg.str();
+		//throw std::runtime_error(msg.str());
 	}
 }
 
@@ -253,18 +279,20 @@ void RoadNetwork::addSegmentPolyLine(PolyPoint point)
 			//Add poly-line to the map
 			itSegments->second->setPolyLine(polyLine);
 		}
-		
-		//Update the length of the poly-line
-		
-		//Get the length calculated till the last added point
-		double length = polyLine->getLength();
-		const PolyPoint& lastPoint = polyLine->getLastPoint();
-		
-		//Add the distance between the new point and the previously added point
-		length += sim_mob::dist(lastPoint.getX(), lastPoint.getY(), point.getX(), point.getY());
-		
-		//Set the length
-		polyLine->setLength(length);
+		else
+		{
+			//Update the length of the poly-line
+
+			//Get the length calculated till the last added point
+			double length = polyLine->getLength();
+			const PolyPoint& lastPoint = polyLine->getLastPoint();
+
+			//Add the distance between the new point and the previously added point
+			length += sim_mob::dist(lastPoint.getX(), lastPoint.getY(), point.getX(), point.getY());
+
+			//Set the length
+			polyLine->setLength(length);
+		}
 		
 		//Add the point to the poly-line
 		polyLine->addPoint(point);
@@ -344,8 +372,9 @@ void RoadNetwork::addTurningGroup(TurningGroup *turningGroup)
 	else
 	{
 		std::stringstream msg;
-		msg << "Turning group " << turningGroup->getTurningGroupId() << " refers to an invalid Node " << turningGroup->getNodeId();
-		throw std::runtime_error(msg.str());
+		msg << "\nTurning group " << turningGroup->getTurningGroupId() << " refers to an invalid Node " << turningGroup->getNodeId();
+		Print() << msg.str();
+		//throw std::runtime_error(msg.str());
 	}
 }
 
@@ -391,18 +420,20 @@ void RoadNetwork::addTurningPolyLine(PolyPoint point)
 			//Add poly-line to the map
 			itTurnings->second->setPolyLine(polyLine);
 		}
-		
-		//Update the length of the poly-line
-		
-		//Get the length calculated till the last added point
-		double length = polyLine->getLength();
-		const PolyPoint& lastPoint = polyLine->getLastPoint();
-		
-		//Add the distance between the new point and the previously added point
-		length += sim_mob::dist(lastPoint.getX(), lastPoint.getY(), point.getX(), point.getY());
-		
-		//Set the length
-		polyLine->setLength(length);
+		else
+		{
+			//Update the length of the poly-line
+
+			//Get the length calculated till the last added point
+			double length = polyLine->getLength();
+			const PolyPoint& lastPoint = polyLine->getLastPoint();
+
+			//Add the distance between the new point and the previously added point
+			length += sim_mob::dist(lastPoint.getX(), lastPoint.getY(), point.getX(), point.getY());
+
+			//Set the length
+			polyLine->setLength(length);
+		}
 		
 		//Add the point to the poly-line
 		polyLine->addPoint(point);
@@ -415,9 +446,45 @@ void RoadNetwork::addTurningPolyLine(PolyPoint point)
 	}
 }
 
-Node* RoadNetwork::getNodeById(unsigned int nodeId)
+void RoadNetwork::addBusStop(BusStop* stop)
 {
-	std::map<unsigned int, Node *>::iterator itNodes = mapOfIdvsNodes.find(nodeId);
+	//Check if the bus stop has already been added to the map
+	std::map<unsigned int, BusStop *>::iterator itStop = mapOfIdvsBusStops.find(stop->getRoadItemId());
+
+	if (itStop != mapOfIdvsBusStops.end())
+	{
+		std::stringstream msg;
+		msg << "Bus stop " << stop->getRoadItemId() << " has already been added!";
+		throw std::runtime_error(msg.str());
+	}
+	else
+	{
+		//Insert the stop into the map
+		mapOfIdvsBusStops.insert(std::make_pair(stop->getRoadItemId(), stop));
+		
+		//Get the road segment to which the bus stop belongs
+		std::map<unsigned int, RoadSegment *>::iterator itSegments = mapOfIdVsRoadSegments.find(stop->getRoadSegmentId());
+		
+		if (itSegments != mapOfIdVsRoadSegments.end())
+		{
+			//Set the parent segment of the bus stop
+			stop->setParentSegment(itSegments->second);
+			
+			//Add the stop to the segment
+			itSegments->second->addObstacle(stop->getOffset(), stop);
+		}
+		else
+		{
+			std::stringstream msg;
+			msg << "Bus stop " << stop->getRoadItemId() << " refers to an invalid road segment " << stop->getRoadSegmentId();
+			throw std::runtime_error(msg.str());
+		}
+	}
+}
+
+const Node* RoadNetwork::getNodeById(unsigned int nodeId) const
+{
+	std::map<unsigned int, Node *>::const_iterator itNodes = mapOfIdvsNodes.find(nodeId);
 	
 	if(itNodes != mapOfIdvsNodes.end())
 	{
@@ -437,9 +504,4 @@ RoadNetwork* sim_mob::RoadNetwork::getInstance()
 		roadNetwork = new RoadNetwork();
 	}
 	return roadNetwork;
-}
-
-void sim_mob::RoadNetwork::deleteInstance()
-{
-	safe_delete_item(roadNetwork);
 }

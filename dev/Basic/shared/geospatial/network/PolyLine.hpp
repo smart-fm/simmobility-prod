@@ -30,14 +30,13 @@ protected:
 
 public:
 	PolyLine();
-
 	virtual ~PolyLine();
 
-	void setPolyLineId(int polyLineId);
 	int getPolyLineId() const;
+	void setPolyLineId(int polyLineId);
 
-	void setLength(double length);
 	double getLength() const;
+	void setLength(double length);
 
 	const std::vector<PolyPoint>& getPoints() const;
 

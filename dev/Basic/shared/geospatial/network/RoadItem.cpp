@@ -6,8 +6,13 @@
 
 using namespace sim_mob;
 
+RoadItem::RoadItem() :
+roadItemId(0), geometryId(0), polyLineId(0), roadSegmentId(0)
+{
+}
+
 RoadItem::RoadItem(unsigned int id, unsigned int geomteryId, unsigned int polyLineId, unsigned int roadSectionId) :
-roadItemId(id), geometryId(geomteryId), polyLineId(polyLineId), roadSectionId(roadSectionId)
+roadItemId(id), geometryId(geomteryId), polyLineId(polyLineId), roadSegmentId(roadSectionId)
 {
 }
 
@@ -45,12 +50,12 @@ void RoadItem::setPolyLineId(unsigned int polyLineId)
 	this->polyLineId = polyLineId;
 }
 
-unsigned int RoadItem::getRoadSectionId() const
+unsigned int RoadItem::getRoadSegmentId() const
 {
-	return roadSectionId;
+	return roadSegmentId;
 }
 
-void RoadItem::setRoadSectionId(unsigned int roadSectionId)
+void RoadItem::setRoadSegmentId(unsigned int roadSegmentId)
 {
-	this->roadSectionId = roadSectionId;
+	this->roadSegmentId = roadSegmentId;
 }

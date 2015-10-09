@@ -17,6 +17,7 @@
 #include "RoadNetwork.hpp"
 #include "TurningGroup.hpp"
 #include "TurningPath.hpp"
+#include "RoadItem.hpp"
 
 using namespace sim_mob;
 
@@ -111,7 +112,7 @@ template<> struct type_conversion<sim_mob::TurningGroup>
 		res.setFromLinkId(vals.get<unsigned int>("from_link", 0));
 		res.setNodeId(vals.get<unsigned int>("node_id", 0));
 		res.setPhases(vals.get<std::string>("phases", ""));
-		res.setRules((sim_mob::TurningGroupRules)vals.get<unsigned int>("rules", 0));
+		res.setRule((sim_mob::TurningGroupRule)vals.get<unsigned int>("rules", 0));
 		res.setToLinkId(vals.get<unsigned int>("to_link", 0));
 		res.setVisibility(vals.get<double>("visibility", 0));
 	}
@@ -217,6 +218,21 @@ template<> struct type_conversion<sim_mob::PolyPoint>
 		res.setX(vals.get<double>("x", 0));
 		res.setY(vals.get<double>("y", 0));
 		res.setZ(vals.get<double>("z", 0));
+	}
+};
+
+template<> struct type_conversion<sim_mob::BusStop>
+{
+	typedef values base_type;
+
+	static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::BusStop& res)
+	{
+		res.setRoadItemId(vals.get<unsigned int>("id", 0));
+		res.setCapacityAsLength(vals.get<unsigned int>("length", 0));
+		res.setRoadSegmentId(vals.get<unsigned int>("segment_id", 0));
+		res.setStopName(vals.get<std::string>("name", ""));
+		res.setTerminusType((sim_mob::TerminusType)vals.get<unsigned int>("type", 0));
+		res.setOffset(vals.get<double>("offset", 0.0));
 	}
 };
 

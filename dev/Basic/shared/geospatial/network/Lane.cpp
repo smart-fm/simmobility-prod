@@ -108,7 +108,7 @@ void Lane::setParentSegment(RoadSegment* parentSegment)
 	this->parentSegment = parentSegment;
 }
 
-RoadSegment* Lane::getParentSegment() const
+const RoadSegment* Lane::getParentSegment() const
 {
 	return parentSegment;
 }
@@ -143,9 +143,14 @@ void Lane::setWidth(double width)
 	this->width = width;
 }
 
-bool Lane::isPedestrianLane()
+bool Lane::isPedestrianLane() const
 {
 	return (vehicleMode & PEDESTRIAN_LANE);
+}
+
+bool Lane::isBicycleLane() const
+{
+	return (vehicleMode & BICYCLE_LANE);
 }
 
 void Lane::addLaneConnector(LaneConnector *laneConnector)

@@ -6,6 +6,7 @@
 
 #include <map>
 
+#include "BusStop.hpp"
 #include "Link.hpp"
 #include "Node.hpp"
 #include "Point.hpp"
@@ -24,9 +25,8 @@ namespace sim_mob
 class RoadNetwork
 {
 private:
-	static RoadNetwork* roadNetwork;
-
-	RoadNetwork();
+	/**Points to the singleton instance of the road network*/
+	static RoadNetwork *roadNetwork;
 
 	/**This map stores all the links in the network, with the Link id as the key for retrieval*/
 	std::map<unsigned int, Link *> mapOfIdVsLinks;
@@ -49,14 +49,17 @@ private:
 	/**This map stores all the turning paths in the network, with the turning id as the key for retrieval*/
 	std::map<unsigned int, TurningPath *> mapOfIdvsTurningPaths;
 
+	/**This map stores all the bus stops in the network with bus stop id as the key*/
+	std::map<unsigned int, BusStop *> mapOfIdvsBusStops;
+
+	/**Private constructor as the class is a singleton*/
+	RoadNetwork();
+
 public:
 	virtual ~RoadNetwork();
 
 	/**Returns pointer to the singleton instance of RoadNetwork*/
 	static RoadNetwork* getInstance();
-
-	/**deletes the singleton instance of RoadNetwork*/
-	static void deleteInstance();
 
 	const std::map<unsigned int, Link *>& getMapOfIdVsLinks() const;
 
@@ -65,6 +68,10 @@ public:
 	const std::map<unsigned int, TurningGroup *>& getMapOfIdvsTurningGroups() const;
 
 	const std::map<unsigned int, TurningPath *>& getMapOfIdvsTurningPaths() const;
+
+	const std::map<unsigned int, TurningConflict *>& getMapOfIdvsTurningConflicts() const;
+
+	const std::map<unsigned int, BusStop *>& getMapOfIdvsBusStops() const;
 
 	/**
 	 * Adds a lane to the road network
@@ -133,11 +140,17 @@ public:
 	void addTurningPolyLine(PolyPoint point);
 
 	/**
+	 * Adds a bus stop to the road network
+	 * @param stop - the pointer to bus stop
+	 */
+	void addBusStop(BusStop* stop);
+
+	/**
 	 * Looks-up the required node from the map of nodes
 	 * @param nodeId - the id of the required node
 	 * @return a pointer to the node if found; NULL otherwise
 	 */
-	Node * getNodeById(unsigned int nodeId);
+	const Node * getNodeById(unsigned int nodeId) const;
 };
 }
 

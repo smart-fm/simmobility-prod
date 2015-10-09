@@ -8,6 +8,7 @@
 #include <string>
 
 #include "Point.hpp"
+#include "TurningGroup.hpp"
 
 namespace sim_mob
 {
@@ -45,7 +46,7 @@ private:
 	unsigned int nodeId;
 
 	/**The location of the node*/
-	Point* location;
+	Point *location;
 
 	/**The type of the node*/
 	NodeType nodeType;
@@ -65,26 +66,36 @@ private:
 public:
 
 	Node();
-
 	virtual ~Node();
 
-	void setNodeId(unsigned int nodeId);
 	unsigned int getNodeId() const;
+	void setNodeId(unsigned int nodeId);
 
-	void setLocation(Point *location);
 	Point* getLocation() const;
+	void setLocation(Point *location);
 
-	void setNodeType(NodeType nodeType);
 	NodeType getNodeType() const;
+	void setNodeType(NodeType nodeType);
 
-	void setTrafficLightId(unsigned int trafficLightId);
 	unsigned int getTrafficLightId() const;
+	void setTrafficLightId(unsigned int trafficLightId);
 
 	/**
 	 * This method adds a turning group to the map - turningGroups, based on the "from link" and "to link" of the
 	 * turning group
+	 *
 	 * @param turningGroup - the turning group to be added
 	 */
 	void addTurningGroup(TurningGroup *turningGroup);
+
+	/**
+	 * This method looks up the turning group connecting the given from and to links and returns a pointer to it.
+	 *
+     * @param fromLinkId - the link id where the turning group begins
+     * @param toLinkId - the link id where the turning group ends
+	 *
+     * @return the turning group if found, else NULL
+     */
+	const TurningGroup* getTurningGroup(unsigned int fromLinkId, unsigned int toLinkId) const;
 };
 }

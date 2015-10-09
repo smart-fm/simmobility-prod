@@ -24,12 +24,11 @@ class Lane;
 class TurningPath
 {
 private:
-
 	/**Unique identifier for the turning path*/
 	unsigned int turningPathId;
 
 	/**Represents the lane where the turning path begins*/
-	Lane* fromLane;
+	Lane *fromLane;
 
 	/**Indicates the id of the lane where the turning path begins*/
 	unsigned int fromLaneId;
@@ -38,10 +37,10 @@ private:
 	double maxSpeed;
 
 	/**Represents the poly-line for the turning path*/
-	PolyLine* polyLine;
+	PolyLine *polyLine;
 
 	/**Represents the lane where the turning path ends*/
-	Lane* toLane;
+	Lane *toLane;
 
 	/**Indicates the id of the lane at which the turning path ends*/
 	unsigned int toLaneId;
@@ -55,9 +54,7 @@ private:
 	unsigned int turningGroupId;
 
 public:
-
 	TurningPath();
-
 	virtual ~TurningPath();
 
 	unsigned int getTurningPathId() const;
@@ -75,6 +72,15 @@ public:
 	unsigned int getTurningGroupId() const;
 	void setTurningGroupId(unsigned int turningGroupId);
 
+    const Lane* getFromLane() const;
+	const Lane* getToLane() const;
+
+	/**
+	 * Gets the length of the turning path poly-line. This is equal to the length of the turning path.
+	 * @return length of the turning path
+	 */
+	double getLength() const;
+
 	/**
 	 * Adds the turning conflict to the map of conflicts
 	 * @param other - the conflicting turning path
@@ -83,9 +89,12 @@ public:
 	void addTurningConflict(TurningPath *other, TurningConflict *conflict);
 
 	/**
-	 * Gets the length of the turning path poly-line. This is equal to the length of the turning path.
-	 * @return length of the turning path
-	 */
-	double getLength() const;
+	 * This method looks up and returns the turning conflict between this turning path and the given turning path
+     *
+	 * @param turningPath - the turning path with which this turning has a conflict
+     *
+	 * @return the turning conflict if found, else NULL
+     */
+	const TurningConflict* getTurningConflict(TurningPath *turningPath);
 };
 }

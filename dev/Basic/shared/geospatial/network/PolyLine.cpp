@@ -40,11 +40,6 @@ const std::vector<PolyPoint>& PolyLine::getPoints() const
 	return points;
 }
 
-void PolyLine::addPoint(PolyPoint point)
-{
-	this->points.push_back(point);
-}
-
 const PolyPoint& PolyLine::getFirstPoint() const
 {
 	return points.front();
@@ -53,4 +48,9 @@ const PolyPoint& PolyLine::getFirstPoint() const
 const PolyPoint& PolyLine::getLastPoint() const
 {
 	return points.back();
+}
+
+void PolyLine::addPoint(PolyPoint point)
+{
+	this->points.push_back(point);
 }

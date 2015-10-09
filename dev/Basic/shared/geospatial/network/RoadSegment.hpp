@@ -4,19 +4,21 @@
 
 #pragma once
 
+#include <map>
 #include <string>
 #include <vector>
 
 #include "Lane.hpp"
 #include "Link.hpp"
 #include "PolyLine.hpp"
-
+#include "RoadItem.hpp"
 
 namespace sim_mob
 {
 
 class Link;
 class Lane;
+class RoadItem;
 
 /**
  * This class define the structure of a road segment
@@ -36,9 +38,6 @@ private:
 	/**The lanes that make up th road segment*/
 	std::vector<Lane *> lanes;
 
-	/**Length of the road segment*/
-	double length;
-
 	/**The id of the link to which the segment belongs*/
 	unsigned int linkId;
 
@@ -46,7 +45,7 @@ private:
 	unsigned int maxSpeed;
 
 	/**The link to which this segment belongs*/
-	Link* parentLink;
+	Link *parentLink;
 
 	/**Represents the poly-line for the road segment*/
 	PolyLine *polyLine;
@@ -57,9 +56,11 @@ private:
 	/**Indicates the position of the road segment within the link*/
 	unsigned int sequenceNumber;
 
+	/**Obstacles generally include things like bus stops and crossing and incidents*/
+	std::map<double, RoadItem *> obstacles;
+
 public:
 	RoadSegment();
-
 	virtual ~RoadSegment();
 
 	unsigned int getRoadSegmentId() const;
@@ -80,11 +81,19 @@ public:
 	const Link* getParentLink() const;
 	void setParentLink(Link* parentLink);
 
-	const PolyLine* getPolyLine() const;
+	PolyLine* getPolyLine() const;
 	void setPolyLine(PolyLine *polyLine);
 
 	unsigned int getSequenceNumber() const;
 	void setSequenceNumber(unsigned int sequenceNumber);
+
+	const std::map<double, RoadItem *> &getObstacles() const;
+
+	/**
+	 * Gets the length of the road segment poly-line. This is equal to the length of the segment
+	 * @return length of the road segment
+	 */
+	double getLength() const;
 
 	/**
 	 * Adds a lane to the vector of lanes that make up the segment
@@ -93,11 +102,11 @@ public:
 	void addLane(Lane *lane);
 
 	/**
-	 * Gets the length of the road segment poly-line. This is equal to the length of the segment
-	 * @return length of the road segment
-	 */
-	double getLength();
-
+	 * Adds an obstacle in the road segment. It can be a bus stop, a crossing or an incident
+     * @param offset - the offset from the start of the segment at which the obstacle is to be added
+     * @param item - the obstacle
+     */
+	void addObstacle(double offset, RoadItem *item);
 };
 }
 

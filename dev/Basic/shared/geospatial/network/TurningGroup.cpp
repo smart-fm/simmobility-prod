@@ -7,7 +7,7 @@
 using namespace sim_mob;
 
 TurningGroup::TurningGroup() :
-turningGroupId(0), fromLinkId(0), nodeId(0), phases(""), rules(TURNING_GROUP_RULE_NO_STOP_SIGN), toLinkId(0), visibility(0)
+turningGroupId(0), fromLinkId(0), nodeId(0), phases(""), groupRule(TURNING_GROUP_RULE_NO_STOP_SIGN), toLinkId(0), visibility(0)
 {
 }
 
@@ -79,14 +79,14 @@ void TurningGroup::setPhases(std::string phases)
 	this->phases = phases;
 }
 
-TurningGroupRules TurningGroup::getRules() const
+TurningGroupRule TurningGroup::getRule() const
 {
-	return rules;
+	return groupRule;
 }
 
-void TurningGroup::setRules(TurningGroupRules rules)
+void TurningGroup::setRule(TurningGroupRule rules)
 {
-	this->rules = rules;
+	this->groupRule = rules;
 }
 
 unsigned int TurningGroup::getToLinkId() const
@@ -131,5 +131,30 @@ void TurningGroup::addTurningPath(TurningPath* turningPath)
 
 		//Make a new entry into the outer map
 		turningPaths.insert(std::make_pair(turningPath->getFromLaneId(), innerMap));
+	}
+}
+
+const TurningPath * TurningGroup::getTurningPath(unsigned int fromLaneId, unsigned int toLaneId)
+{
+	//Get the map of turning groups starting from the "fromLink"
+	std::map<unsigned int, std::map<unsigned int, TurningPath *> >::const_iterator itPathsFrom = turningPaths.find(fromLaneId);
+	
+	if(itPathsFrom != turningPaths.end())
+	{
+		//Get the turning group ending at the "toLink"
+		std::map<unsigned int, TurningPath *>::const_iterator itPaths = itPathsFrom->second.find(toLaneId);
+		
+		if(itPaths != itPathsFrom->second.end())
+		{
+			return itPaths->second;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	{
+		return NULL;
 	}
 }

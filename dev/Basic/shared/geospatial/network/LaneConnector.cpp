@@ -25,6 +25,16 @@ void LaneConnector::setLaneConnectionId(unsigned int laneConnectionId)
 	this->laneConnectionId = laneConnectionId;
 }
 
+void LaneConnector::setFromLane(Lane* fromLane)
+{
+	this->fromLane = fromLane;
+}
+
+const Lane* LaneConnector::getFromLane() const
+{
+	return fromLane;
+}
+
 unsigned int LaneConnector::getFromLaneId() const
 {
 	return fromLaneId;
@@ -43,6 +53,16 @@ unsigned int LaneConnector::getFromRoadSegmentId() const
 void LaneConnector::setFromRoadSegmentId(unsigned int fromRoadSectionId)
 {
 	this->fromRoadSegmentId = fromRoadSectionId;
+}
+
+void LaneConnector::setToLane(Lane* toLane)
+{
+	this->toLane = toLane;
+}
+
+const Lane* LaneConnector::getToLane() const
+{
+	return toLane;
 }
 
 unsigned int LaneConnector::getToLaneId() const

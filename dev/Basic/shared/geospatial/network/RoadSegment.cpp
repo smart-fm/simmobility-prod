@@ -2,12 +2,13 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
+#include <stdexcept>
 #include "RoadSegment.hpp"
 
 using namespace sim_mob;
 
 RoadSegment::RoadSegment() : roadSegmentId(0), capacity(0), linkId(0), maxSpeed(0), polyLine(NULL), sequenceNumber(0),
-parentLink(NULL), length(0)
+parentLink(NULL)
 {
 }
 
@@ -23,6 +24,11 @@ RoadSegment::~RoadSegment()
 	{
 		delete polyLine;
 		polyLine = NULL;
+	}
+	
+	for(std::map<double, RoadItem *>::iterator it = obstacles.begin(); it != obstacles.end(); it++)
+	{
+		delete it->second;
 	}
 }
 
@@ -49,6 +55,11 @@ void RoadSegment::setCapacity(unsigned int capacity)
 const std::vector<Lane*>& RoadSegment::getLanes() const
 {
 	return lanes;
+}
+
+const Lane* RoadSegment::getLane(int index) const
+{
+	return lanes.at(index);
 }
 
 unsigned int RoadSegment::getLinkId() const
@@ -81,7 +92,7 @@ void RoadSegment::setParentLink(Link* parentLink)
 	this->parentLink = parentLink;
 }
 
-const PolyLine* RoadSegment::getPolyLine() const
+PolyLine* RoadSegment::getPolyLine() const
 {
 	return polyLine;
 }
@@ -101,17 +112,38 @@ void RoadSegment::setSequenceNumber(unsigned int sequenceNumber)
 	this->sequenceNumber = sequenceNumber;
 }
 
+const std::map<double, RoadItem *> & RoadSegment::getObstacles() const
+{
+	return obstacles;
+}
+
+double RoadSegment::getLength() const
+{
+	return polyLine->getLength();
+}
+
 void RoadSegment::addLane(Lane *lane)
 {
 	this->lanes.push_back(lane);
 }
 
-const Lane* RoadSegment::getLane(int index) const
+void RoadSegment::addObstacle(double offset, RoadItem* item)
 {
-	return lanes.at(index);
-}
+	if (offset < 0)
+	{
+		throw std::runtime_error("Can't add obstacle; offset is less than zero.");
+	}
 
-double RoadSegment::getLength()
-{
-	return polyLine->getLength();
+	if (offset > this->getLength())
+	{
+		throw std::runtime_error("Can't add obstacle; offset is greater than the segment length.");
+	}
+
+	//Already something there
+	if (obstacles.count(offset) > 0)
+	{
+		throw std::runtime_error("Can't add obstacle; something is already at that offset.");
+	}
+
+	obstacles[offset] = item;
 }

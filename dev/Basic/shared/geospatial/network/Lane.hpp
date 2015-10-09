@@ -34,6 +34,7 @@ enum BusLaneRules
 	BUS_LANE_RULES_FULL_DAY_BUS_LANE = 2
 };
 
+class LaneConnector;
 class RoadSegment;
 
 /**
@@ -70,7 +71,7 @@ private:
 	unsigned int laneIndex;
 
 	/**The road segment to which the lane belongs*/
-	RoadSegment* parentSegment;
+	RoadSegment *parentSegment;
 
 	/**Represents the poly-line of the lane*/
 	PolyLine *polyLine;
@@ -117,7 +118,7 @@ public:
 	unsigned int getLaneIndex() const;
 	void setLaneIndex(unsigned int laneIndex);
 
-	RoadSegment* getParentSegment() const;
+	const RoadSegment* getParentSegment() const;
 	void setParentSegment(RoadSegment* parentSegment);
 
 	PolyLine* getPolyLine() const;
@@ -133,7 +134,13 @@ public:
 	 * Checks if the lane is a pedestrian lane
 	 * @return true if the lane is a pedestrian lane; false otherwise
 	 */
-	bool isPedestrianLane();
+	bool isPedestrianLane() const;
+
+	/**
+	 * Checks if the lane is a bicycle lane
+	 * @return true if the lane is a bicycle lane; false otherwise
+	 */
+	bool isBicycleLane() const;
 
 	/**
 	 * Adds lane connector to the vector of outgoing lane connectors

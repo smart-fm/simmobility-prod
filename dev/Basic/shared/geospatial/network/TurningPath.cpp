@@ -76,12 +76,37 @@ void TurningPath::setTurningGroupId(unsigned int turningGroupId)
 	this->turningGroupId = turningGroupId;
 }
 
-void TurningPath::addTurningConflict(TurningPath* other, TurningConflict* conflict)
+const Lane* TurningPath::getFromLane() const
 {
-	turningConflicts.insert(std::make_pair(other, conflict));
+	return fromLane;
+}
+
+const Lane* TurningPath::getToLane() const
+{
+	return toLane;
 }
 
 double TurningPath::getLength() const
 {
 	return polyLine->getLength();
+}
+
+void TurningPath::addTurningConflict(TurningPath* other, TurningConflict* conflict)
+{
+	turningConflicts.insert(std::make_pair(other, conflict));
+}
+
+const TurningConflict* TurningPath::getTurningConflict(TurningPath* turningPath)
+{
+	//Get the conflict on this turning shared with the given turning
+	std::map<TurningPath *, TurningConflict *>::const_iterator itConflicts = turningConflicts.find(turningPath);
+	
+	if(itConflicts != turningConflicts.end())
+	{
+		return itConflicts->second;
+	}
+	else
+	{
+		return NULL;
+	}
 }

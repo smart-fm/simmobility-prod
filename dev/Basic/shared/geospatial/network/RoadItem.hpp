@@ -10,7 +10,6 @@ namespace sim_mob
 class RoadItem
 {
 private:
-
 	/**Unique identifier for the road item*/
 	unsigned int roadItemId;
 
@@ -20,13 +19,12 @@ private:
 	/**Indicates the id of the poly-line for the road item*/
 	unsigned int polyLineId;
 
-	/**Indicates the id of the road section to which the road item belongs*/
-	unsigned int roadSectionId;
+	/**Indicates the id of the road segment to which the road item belongs*/
+	unsigned int roadSegmentId;
 
 public:
-
+	RoadItem();
 	RoadItem(unsigned int id, unsigned int geomteryId, unsigned int polyLineId, unsigned int roadSectionId);
-
 	virtual ~RoadItem();
 
 	unsigned int getRoadItemId() const;
@@ -38,8 +36,8 @@ public:
 	unsigned int getPolyLineId() const;
 	void setPolyLineId(unsigned int polyLineId);
 
-	unsigned int getRoadSectionId() const;
-	void setRoadSectionId(unsigned int roadSectionId);
+	unsigned int getRoadSegmentId() const;
+	void setRoadSegmentId(unsigned int roadSegmentId);
 };
 }
 

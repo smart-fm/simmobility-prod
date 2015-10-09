@@ -7,7 +7,7 @@
 using namespace sim_mob;
 
 Link::Link() :
-length(0), linkId(0), fromNode(NULL), fromNodeId(0), linkCategory(LINK_CATEGORY_DEFAULT), linkType(LINK_TYPE_DEFAULT), roadName(""), toNode(NULL),
+length(0), linkId(0), fromNode(NULL), fromNodeId(0), linkCategory(LINK_CATEGORY_A), linkType(LINK_TYPE_DEFAULT), roadName(""), toNode(NULL),
 toNodeId(0)
 {
 }
@@ -87,7 +87,7 @@ const std::vector<RoadSegment*>& Link::getRoadSegments() const
 	return roadSegments;
 }
 
-const RoadSegment* Link::getRoadSegment(int idx)
+const RoadSegment* Link::getRoadSegment(int idx) const
 {
 	return roadSegments.at(idx);
 }
@@ -112,16 +112,8 @@ void Link::setToNodeId(unsigned int toNodeId)
 	this->toNodeId = toNodeId;
 }
 
-double Link::getLength()
+double Link::getLength() const
 {
-	if (length == 0)
-	{
-		for (int i = 0; i < roadSegments.size(); ++i)
-		{
-			length += roadSegments.at(i)->getLength();
-		}
-	}
-
 	return length;
 }
 

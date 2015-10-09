@@ -111,3 +111,28 @@ void Node::addTurningGroup(TurningGroup* turningGroup)
 		turningGroups.insert(std::make_pair(turningGroup->getFromLinkId(), innerMap));
 	}
 }
+
+const TurningGroup* Node::getTurningGroup(unsigned int fromLinkId, unsigned int toLinkId) const
+{
+	//Get the map of turning groups starting from the "fromLink"
+	std::map<unsigned int, std::map<unsigned int, TurningGroup *> >::const_iterator itGroupsFrom = turningGroups.find(fromLinkId);
+	
+	if(itGroupsFrom != turningGroups.end())
+	{
+		//Get the turning group ending at the "toLink"
+		std::map<unsigned int, TurningGroup *>::const_iterator itGroups = itGroupsFrom->second.find(toLinkId);
+		
+		if(itGroups != itGroupsFrom->second.end())
+		{
+			return itGroups->second;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	{
+		return NULL;
+	}
+}

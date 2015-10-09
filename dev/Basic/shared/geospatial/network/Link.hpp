@@ -77,7 +77,7 @@ private:
 	unsigned int linkId;
 
 	/**Pointer to the node from which this link begins*/
-	Node* fromNode;
+	Node *fromNode;
 
 	/**Indicates the node from which this link begins*/
 	unsigned int fromNodeId;
@@ -98,7 +98,7 @@ private:
 	std::vector<RoadSegment *> roadSegments;
 
 	/**Pointer to the node at which this link ends*/
-	Node* toNode;
+	Node *toNode;
 
 	/**Indicates the node at which this link ends*/
 	unsigned int toNodeId;
@@ -128,7 +128,7 @@ public:
 	void setRoadName(std::string roadName);
 
 	const std::vector<RoadSegment*>& getRoadSegments() const;
-	const RoadSegment* getRoadSegment(int idx);
+	const RoadSegment* getRoadSegment(int idx) const;
 
 	Node* getToNode() const;
 	void setToNode(Node *toNode);
@@ -141,7 +141,7 @@ public:
 	 * link
 	 * @return length of the link
 	 */
-	double getLength();
+	double getLength() const;
 
 	/**
 	 * Adds a road segment to the vector of road segments that make up the link

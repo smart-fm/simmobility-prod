@@ -12,8 +12,8 @@ NetworkLoader* NetworkLoader::networkLoader = NULL;
 
 namespace
 {
-//Returns the required stored procedure from the map of stored procedures
 
+/**Returns the required stored procedure from the map of stored procedures*/
 string getStoredProcedure(const map<string, string>& storedProcs, const string& procedureName, bool mandatory = true)
 {
 	//Look for the stored procedure in the map
@@ -43,11 +43,7 @@ NetworkLoader::NetworkLoader() : roadNetwork(RoadNetwork::getInstance())
 
 NetworkLoader::~NetworkLoader()
 {
-}
-
-RoadNetwork* NetworkLoader::getRoadNetwork() const
-{
-	return roadNetwork;
+	safe_delete_item(roadNetwork);
 }
 
 void NetworkLoader::loadLanes(const std::string& storedProc)
@@ -79,12 +75,12 @@ void NetworkLoader::loadLaneConnectors(const std::string& storedProc)
 void NetworkLoader::loadLanePolyLines(const std::string& storedProc)
 {
 	//SQL statement
-	soci::rowset<sim_mob::Point> points = (sql.prepare << "select * from " + storedProc);
+	soci::rowset<PolyPoint> points = (sql.prepare << "select * from " + storedProc);
 
-	for (soci::rowset<Point>::const_iterator itPoints = points.begin(); itPoints != points.end(); ++itPoints)
+	for (soci::rowset<PolyPoint>::const_iterator itPoints = points.begin(); itPoints != points.end(); ++itPoints)
 	{
 		//Create new point and add it to the poly-line, to which it belongs
-		Point point = *itPoints;
+		PolyPoint point(*itPoints);
 		roadNetwork->addLanePolyLine(point);
 	}
 }
@@ -131,12 +127,12 @@ void NetworkLoader::loadRoadSegments(const std::string& storedProc)
 void NetworkLoader::loadSegmentPolyLines(const std::string& storedProc)
 {
 	//SQL statement
-	soci::rowset<sim_mob::Point> points = (sql.prepare << "select * from " + storedProc);
+	soci::rowset<PolyPoint> points = (sql.prepare << "select * from " + storedProc);
 
-	for (soci::rowset<Point>::const_iterator itPoints = points.begin(); itPoints != points.end(); ++itPoints)
+	for (soci::rowset<PolyPoint>::const_iterator itPoints = points.begin(); itPoints != points.end(); ++itPoints)
 	{
 		//Create new point and add it to the poly-line, to which it belongs
-		Point point = *itPoints;
+		PolyPoint point(*itPoints);
 		roadNetwork->addSegmentPolyLine(point);
 	}
 }
@@ -183,13 +179,26 @@ void NetworkLoader::loadTurningPaths(const std::string& storedProc)
 void NetworkLoader::loadTurningPolyLines(const std::string& storedProc)
 {
 	//SQL statement
-	soci::rowset<sim_mob::Point> points = (sql.prepare << "select * from " + storedProc);
+	soci::rowset<PolyPoint> points = (sql.prepare << "select * from " + storedProc);
 
-	for (soci::rowset<Point>::const_iterator itPoints = points.begin(); itPoints != points.end(); ++itPoints)
+	for (soci::rowset<PolyPoint>::const_iterator itPoints = points.begin(); itPoints != points.end(); ++itPoints)
 	{
 		//Create new point and add it to the poly-line, to which it belongs
-		Point point = *itPoints;
+		PolyPoint point(*itPoints);
 		roadNetwork->addTurningPolyLine(point);
+	}
+}
+
+void NetworkLoader::loadBusStops(const std::string& storedProc)
+{
+	//SQL statement
+	soci::rowset<sim_mob::BusStop> stops = (sql.prepare << "select * from " + storedProc);
+
+	for (soci::rowset<BusStop>::const_iterator itStop = stops.begin(); itStop != stops.end(); ++itStop)
+	{
+		//Create new bus stop and add it to road network
+		BusStop* stop = new BusStop(*itStop);
+		roadNetwork->addBusStop(stop);
 	}
 }
 
@@ -203,7 +212,7 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 		sql.open(soci::postgresql, connectionStr);
 
 		//Load the components of the network
-
+		
 		loadNodes(getStoredProcedure(storedProcs, "nodes"));
 
 		loadLinks(getStoredProcedure(storedProcs, "links"));
@@ -225,7 +234,9 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 		loadLanePolyLines(getStoredProcedure(storedProcs, "lane_polylines"));
 
 		loadLaneConnectors(getStoredProcedure(storedProcs, "lane_connectors"));
-
+		
+		//loadBusStops(getStoredProcedure(storedProcs, "bus_stops"));
+		
 		//Close the connection
 		sql.close();
 
@@ -241,4 +252,19 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 		sim_mob::Print() << "Exception occurred while loading the network!\n" << err.what() << std::endl;
 		exit(-1);
 	}
+}
+
+NetworkLoader* NetworkLoader::getInstance()
+{
+	if(networkLoader == NULL)
+	{
+		networkLoader = new NetworkLoader();
+	}
+	
+	return networkLoader;
+}
+
+void NetworkLoader::deleteInstance()
+{
+	safe_delete_item(networkLoader);
 }

@@ -47,15 +47,10 @@
                 <dbname value="sim_mob_lt"/>
             </database>
 
-            <database id="fm_hpchead_lt" dbtype="postgres">
-                <host value="fmhpchead"/>
-                <port value="5432"/>
-                <dbname value="sim_mob_lt"/>
-            </database>
-            
             <!-- Variables stores for preday demand simulator-->
             <database id="fm_mongo" dbtype="mongodb">
-                <host value="192.168.114.200"/> <!--private IP of hpc head node-->
+                <host value="localhost"/>
+                <!--<host value="192.168.114.200"/>--> <!--private IP of hpc head node-->
                 <port value="27017"/>
                 <dbname value="preday"/>
             </database>

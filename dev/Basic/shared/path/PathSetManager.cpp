@@ -80,7 +80,7 @@ sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()), is
 		pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName),
 		psRetrieval(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrieval),
 		psRetrievalWithoutRestrictedRegion(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrievalWithoutBannedRegion),
-		cacheLRU(2500)
+        cacheLRU(2500), regionRestrictonEnabled(false)
 {
 	pathSetParam = PathSetParam::getInstance();
 	std::string dbStr(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
@@ -200,6 +200,16 @@ void sim_mob::PathSetManager::cachePathSet_LRU(boost::shared_ptr<sim_mob::PathSe
 	cacheLRU.insert(ps->id, ps);
 }
 
+bool PathSetManager::getRegionRestrictonEnabled() const
+{
+    return regionRestrictonEnabled;
+}
+
+void PathSetManager::setRegionRestrictonEnabled(bool value)
+{
+    regionRestrictonEnabled = value;
+}
+
 bool sim_mob::PathSetManager::findCachedPathSet(std::string key, boost::shared_ptr<sim_mob::PathSet> &value){
 	return findCachedPathSet_LRU(key,value);
 }
@@ -279,9 +289,9 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::SubTrip &subTri
 	bool toLocationInRestrictedRegion = sim_mob::RestrictedRegion::getInstance().isInRestrictedZone(subTrip.destination);
 	str.str("");
 	str << "[" << fromToID << "]";
-	if (sim_mob::ConfigManager::GetInstance().FullConfig().CBD())
+    if (regionRestrictonEnabled)
 	{
-		// case-1: Both O and D are outside CBD
+        // case-1: Both O and D are outside restricted region
 		if (!toLocationInRestrictedRegion && !fromLocationInRestrictedRegion)
 		{
 			str << "[BLCKLST]";
@@ -290,12 +300,12 @@ vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::SubTrip &subTri
 		}
 		else
 		{
-			// case-2:  Either O or D is inside CBD
+            // case-2:  Either O or D is inside restricted region
 			if (!(toLocationInRestrictedRegion && fromLocationInRestrictedRegion))
 			{
 				str << (fromLocationInRestrictedRegion ? " [EXIT CBD]" : "[ENTER CBD]");
 			}
-			else //case-3: Both O & D are inside CBD
+            else //case-3: Both O & D are inside region
 			{
 				str << "[BOTH INSIDE CBD]";
 			}

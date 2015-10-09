@@ -135,7 +135,7 @@ void sim_mob::WorkGroupManager::waitAllGroups()
 
 	//Call each function in turn.
 	//NOTE: Each sub-function tests the current state.
-	if(ConfigManager::GetInstance().FullConfig().RunningMidSupply() && firstTick)
+    if(ConfigManager::GetInstance().FullConfig().RunningMidTerm() && firstTick)
 	{
 		//first tick has two frameTickBarr
 		if (frameTickBarr) {
@@ -209,7 +209,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_DistributeMessages(std::set<Agent*
 	}
 
 	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
-		if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
+        if (ConfigManager::GetInstance().FullConfig().RunningMidTerm()) {
 			(*it)->processVirtualQueues(removedEntities);
 			(*it)->outputSupplyStats();
 		}

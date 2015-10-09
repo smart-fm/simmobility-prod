@@ -60,7 +60,7 @@ private:
 	void LogLegacyLaneConnectors(const sim_mob::LaneConnector* const lc) const;
 	void LogTurnings(const std::map<std::string,sim_mob::TurningSection*>& turnings) const;
 	void LogConflicts(const std::map<std::string,sim_mob::TurningConflict* >& conflicts) const;
-	void LogIncidents() const;
+    //void LogIncidents() const;
 
 	///Helper function: Print to the output file AND to the GUI, if Interactive mode is on.
 	///Appends a newline to file output; no newline is appended to GUI output.

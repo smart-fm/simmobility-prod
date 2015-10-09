@@ -38,6 +38,7 @@ sim_mob::PrintNetwork::PrintNetwork(ConfigParams& cfg, const std::string& outFil
 	LogNetworkLegacyFormat();
 }
 
+/*
 void sim_mob::PrintNetwork::LogIncidents() const
 {
 	std::vector<IncidentParams>& incidents = cfg.getIncidents();
@@ -89,7 +90,7 @@ void sim_mob::PrintNetwork::LogIncidents() const
 	}
 	out <<"}" <<std::endl;
 }
-
+*/
 
 void sim_mob::PrintNetwork::LogNetworkLegacyFormat() const
 {
@@ -153,7 +154,7 @@ void sim_mob::PrintNetwork::LogNetworkLegacyFormat() const
 	//Required for the visualizer
 	out <<"ROADNETWORK_DONE" <<std::endl;
 
-	LogIncidents();
+    //LogIncidents();
 
 }
 

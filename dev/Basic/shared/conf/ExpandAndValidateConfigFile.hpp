@@ -11,7 +11,6 @@
 
 namespace sim_mob {
 
-class StartTimePriorityQueue;
 class ConfigParams;
 class Entity;
 
@@ -35,36 +34,13 @@ class Entity;
 class ExpandAndValidateConfigFile : private boost::noncopyable {
 public:
 	///Perform further semantic processing, and confirm that parameters are set correctly.
-	ExpandAndValidateConfigFile(ConfigParams& result, std::set<sim_mob::Entity*>& active_agents, StartTimePriorityQueue& pending_agents);
-
-protected:
-	///Does all the work.
-	void ProcessConfig();
+    ExpandAndValidateConfigFile(ConfigParams& result);
 
 private:
-	//These functions are called by ProcessConfig()
-	void CheckGranularities();
-	void SetTicks();
-	bool SetTickFromBaseGran(unsigned int& res, unsigned int tickLenMs);
-	void LoadNetworkFromDatabase();
-	void LoadPublicTransitNetworkFromDatabase();
-	void WarnMidroadSidewalks();
-	void LoadFMOD_Controller();
-	void LoadAMOD_Controller();
-	void LoadAgentsInOrder(ConfigParams::AgentConstraints& constraints);
-	void GenerateAgentsFromTripChain(ConfigParams::AgentConstraints& constraints);
-	void GenerateXMLAgents(const std::vector<EntityTemplate>& xmlItems, const std::string& roleName, ConfigParams::AgentConstraints& constraints);
-	void GenerateXMLSignals();
-	void PrintSettings();
-	void verifyIncidents();
+    ///Does all the work.
+    void processConfig();
 
-private:
-	//The config file we are currently loading
-	ConfigParams& cfg;
 
-	//Our active/pending agent lists.
-	std::set<sim_mob::Entity*>& active_agents;
-	StartTimePriorityQueue& pending_agents;
 };
 
 }

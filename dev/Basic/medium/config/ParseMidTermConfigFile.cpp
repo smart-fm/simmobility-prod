@@ -25,8 +25,8 @@ unsigned int ProcessTimegranUnits(xercesc::DOMElement* node)
 }
 namespace sim_mob
 {
-ParseMidTermConfigFile::ParseMidTermConfigFile(const std::string& configFileName, MT_Config& result, ConfigParams& cfgPrms) :
-		ParseConfigXmlBase(configFileName), mtCfg(result), configParams(cfgPrms)
+ParseMidTermConfigFile::ParseMidTermConfigFile(const std::string& configFileName, MT_Config& result, ConfigParams &cfg) :
+        ParseConfigXmlBase(configFileName), mtCfg(result), cfg(cfg)
 {
 	parseXmlAndProcess();
 }
@@ -34,34 +34,43 @@ ParseMidTermConfigFile::ParseMidTermConfigFile(const std::string& configFileName
 void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 {
 	DOMElement* rootNode = parser.getDocument()->getDocumentElement();
-	//Verify that the root node is "config"
+    ///Verify that the root node is "config"
 	if (TranscodeString(rootNode->getTagName()) != "config")
 	{
 		throw std::runtime_error("xml parse error: root node must be \"config\"");
 	}
 
+    processProcMapNode(GetSingleElementByName(rootNode, "db_proc_groups", true));
+    processSystemNode(GetSingleElementByName(rootNode, "system", true));
+    processWorkersNode(GetSingleElementByName(rootNode, "workers", true));
+    processIncidentsNode(GetSingleElementByName(rootNode, "incidentsData", true));
+    processBusStopScheduledTimesNode(GetSingleElementByName(rootNode, "scheduledTimes", true));
+    processScreenLineNode(GetSingleElementByName(rootNode, "screen-line-count", true));
+    processGenerateBusRoutesNode(GetSingleElementByName(rootNode, "generateBusRoutes", true));
+    processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
+    processPublicTransit(GetSingleElementByName(rootNode, "public_transit", true));
+    processCBDNode(GetSingleElementByName(rootNode, "cbd", true));
+
 	processMidTermRunMode(GetSingleElementByName(rootNode, "mid_term_run_mode", true));
 
-	if (configParams.RunningMidSupply())
+    if (mtCfg.RunningMidSupply())
 	{
 		processSupplyNode(GetSingleElementByName(rootNode, "supply", true));
 	}
-	else if (configParams.RunningMidDemand())
+    else if (mtCfg.RunningMidDemand())
 	{
 		processPredayNode(GetSingleElementByName(rootNode, "preday", true));
 	}
-	mtCfg.sealConfig(); //no more updation in mtConfig
+    mtCfg.sealConfig(); ///no more updation in mtConfig
 }
 
 void ParseMidTermConfigFile::processMidTermRunMode(xercesc::DOMElement* node)
 {
-	configParams.setMidTermRunMode(TranscodeString(GetNamedAttributeValue(node, "value", true)));
+    mtCfg.setMidTermRunMode(TranscodeString(GetNamedAttributeValue(node, "value", true)));
 }
 
 void ParseMidTermConfigFile::processSupplyNode(xercesc::DOMElement* node)
 {
-	//processProcMapNode(GetSingleElementByName(node, "proc_map", true));
-	//processActivityLoadIntervalElement(GetSingleElementByName(node, "activity_load_interval", true));
 	processUpdateIntervalElement(GetSingleElementByName(node, "update_interval", true));
 	processDwellTimeElement(GetSingleElementByName(node, "dwell_time_parameters", true));
 	processWalkSpeedElement(GetSingleElementByName(node, "pedestrian_walk_speed", true));
@@ -110,41 +119,58 @@ void ParseMidTermConfigFile::processPredayNode(xercesc::DOMElement* node)
 
 void ParseMidTermConfigFile::processProcMapNode(xercesc::DOMElement* node)
 {
-	StoredProcedureMap spMap(ParseString(GetNamedAttributeValue(node, "id")));
-	spMap.dbFormat = ParseString(GetNamedAttributeValue(node, "format"), "");
+    for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling())
+    {
+        if (TranscodeString(item->getNodeName())!="proc_map")
+        {
+            Warn() <<"Invalid db_proc_groups child node.\n";
+            continue;
+        }
 
-	//Loop through and save child attributes.
-	for (DOMElement* mapItem=node->getFirstElementChild(); mapItem; mapItem=mapItem->getNextElementSibling()) {
-		if (TranscodeString(mapItem->getNodeName())!="mapping") {
-			Warn() <<"Invalid proc_map child node.\n";
-			continue;
-		}
+        ///Retrieve some attributes from the Node itself.
+        StoredProcedureMap pm(ParseString(GetNamedAttributeValue(item, "id")));
+        pm.dbFormat = ParseString(GetNamedAttributeValue(item, "format"), "");
+        if (pm.dbFormat != "aimsun" && pm.dbFormat != "long-term")
+        {
+            throw std::runtime_error("Stored procedure map format not supported.");
+        }
 
-		std::string key = ParseString(GetNamedAttributeValue(mapItem, "name"), "");
-		std::string val = ParseString(GetNamedAttributeValue(mapItem, "procedure"), "");
-		if (key.empty() || val.empty()) {
-			Warn() <<"Invalid mapping; missing \"name\" or \"procedure\".\n";
-			continue;
-		}
+        ///Loop through and save child attributes.
+        for (DOMElement* mapItem=item->getFirstElementChild(); mapItem; mapItem=mapItem->getNextElementSibling())
+        {
+            if (TranscodeString(mapItem->getNodeName())!="mapping")
+            {
+                Warn() <<"Invalid proc_map child node.\n";
+                continue;
+            }
 
-		spMap.procedureMappings[key] = val;
-	}
-	mtCfg.setStoredProcedureMap(spMap);
-	configParams.constructs.procedureMaps[spMap.getId()] = spMap;
+            std::string key = ParseString(GetNamedAttributeValue(mapItem, "name"), "");
+            std::string val = ParseString(GetNamedAttributeValue(mapItem, "procedure"), "");
+            if (key.empty() || val.empty())
+            {
+                Warn() <<"Invalid mapping; missing \"name\" or \"procedure\".\n";
+                continue;
+            }
+
+            pm.procedureMappings[key] = val;
+        }
+
+        cfg.procedureMaps[pm.getId()] = pm;
+    }
 }
 
 void ParseMidTermConfigFile::processActivityLoadIntervalElement(xercesc::DOMElement* node)
 {
 	unsigned interval = ProcessTimegranUnits(node);
 	mtCfg.setActivityScheduleLoadInterval(interval);
-	configParams.system.genericProps["activity_load_interval"] = boost::lexical_cast<std::string>(interval);
+    mtCfg.genericProps["activity_load_interval"] = boost::lexical_cast<std::string>(interval);
 }
 
 void ParseMidTermConfigFile::processUpdateIntervalElement(xercesc::DOMElement* node)
 {
-	unsigned interval = ProcessTimegranUnits(node)/((unsigned)configParams.baseGranSecond());
+    unsigned interval = ProcessTimegranUnits(node)/((unsigned)ConfigManager::GetInstance().FullConfig().baseGranMS());
 	mtCfg.setSupplyUpdateInterval(interval);
-	configParams.system.genericProps["update_interval"] = boost::lexical_cast<std::string>(interval);
+    mtCfg.genericProps["update_interval"] = boost::lexical_cast<std::string>(interval);
 }
 
 void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)
@@ -233,7 +259,7 @@ void ParseMidTermConfigFile::processModelScriptsNode(xercesc::DOMElement* node)
 	}
 	if ((*scriptsDirectoryPath.rbegin()) != '/')
 	{
-		//add a / to the end of the path string if it is not already there
+        ///add a / to the end of the path string if it is not already there
 		scriptsDirectoryPath.push_back('/');
 	}
 	ModelScriptsMap scriptsMap(scriptsDirectoryPath, format);
@@ -289,12 +315,12 @@ void sim_mob::ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement
 		PredayCalibrationParams spsaCalibrationParams;
 		PredayCalibrationParams wspsaCalibrationParams;
 
-		//get name of csv listing variables to calibrate
+        ///get name of csv listing variables to calibrate
 		DOMElement* variablesNode = GetSingleElementByName(node, "variables", true);
 		spsaCalibrationParams.setCalibrationVariablesFile(ParseString(GetNamedAttributeValue(variablesNode, "file"), ""));
 		wspsaCalibrationParams.setCalibrationVariablesFile(ParseString(GetNamedAttributeValue(variablesNode, "file"), ""));
 
-		//get name of csv listing observed statistics
+        ///get name of csv listing observed statistics
 		DOMElement* observedStatsNode = GetSingleElementByName(node, "observed_statistics", true);
 		std::string observedStatsFile = ParseString(GetNamedAttributeValue(observedStatsNode, "file"), "");
 		spsaCalibrationParams.setObservedStatisticsFile(observedStatsFile);
@@ -306,7 +332,7 @@ void sim_mob::ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement
 		DOMElement* logsumFrequencyNode = GetSingleElementByName(node, "logsum_computation_frequency", true);
 		mtCfg.setLogsumComputationFrequency(ParseUnsignedInt(GetNamedAttributeValue(logsumFrequencyNode, "value", true)));
 
-		/**parse SPSA node*/
+        ///parse SPSA node
 		DOMElement* spsaNode = GetSingleElementByName(node, "SPSA", true);
 		DOMElement* childNode = nullptr;
 
@@ -325,7 +351,7 @@ void sim_mob::ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement
 		spsaCalibrationParams.setInitialStepSize(ParseFloat(GetNamedAttributeValue(childNode, "initial_value", true)));
 		spsaCalibrationParams.setAlgorithmCoefficient1(ParseFloat(GetNamedAttributeValue(childNode, "algorithm_coefficient1", true)));
 
-		/**process W-SPSA node*/
+        ///process W-SPSA node
 		DOMElement* wspsaNode = GetSingleElementByName(node, "WSPSA", true);
 
 		childNode = GetSingleElementByName(wspsaNode, "iterations", true);
@@ -352,7 +378,223 @@ void sim_mob::ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement
 		DOMElement* outputNode = GetSingleElementByName(node, "output", true);
 		mtCfg.setCalibrationOutputFile(ParseString(GetNamedAttributeValue(outputNode, "file"), "out.txt"));
 	}
-	//else just return.
+    ///else just return.
+}
+
+void ParseMidTermConfigFile::processSystemNode(DOMElement *node)
+{
+    if(node)
+    {
+        processDatabaseNode(GetSingleElementByName(node, "network_database", true));
+        processGenericPropsNode(GetSingleElementByName(node, "generic_props", true));
+    }
+    else
+    {
+        throw std::runtime("processSystemNode : System node not defined");
+    }
+}
+
+void ParseMidTermConfigFile::processDatabaseNode(DOMElement *node)
+{
+    if(node)
+    {
+        mtCfg.networkDatabase.database = ParseString(GetNamedAttributeValue(node, "database"), "");
+        mtCfg.networkDatabase.credentials = ParseString(GetNamedAttributeValue(node, "credentials"), "");
+        mtCfg.networkDatabase.procedures = ParseString(GetNamedAttributeValue(node, "proc_map"), "");
+    }
+    else
+    {
+        throw std::runtime("processDatabaseNode : Network database configuration not defined");
+    }
+}
+
+void ParseMidTermConfigFile::processGenericPropsNode(DOMElement *node)
+{
+    if (!node) {
+        return;
+    }
+
+    std::vector<DOMElement*> properties = GetElementsByName(node, "property");
+    for (std::vector<DOMElement*>::const_iterator it=properties.begin(); it!=properties.end(); ++it)
+    {
+        std::string key = ParseString(GetNamedAttributeValue(*it, "key"), "");
+        std::string val = ParseString(GetNamedAttributeValue(*it, "value"), "");
+        if (!(key.empty() && val.empty()))
+        {
+            cfg.genericProps[key] = val;
+        }
+    }
+}
+
+void ParseMidTermConfigFile::processWorkersNode(DOMElement *node)
+{
+    if(node)
+    {
+        ProcessWorkerPersonNode(GetSingleElementByName(node, "person", true));
+    }
+    else
+    {
+        throw std::runtime_error("processWorkerParamsNode : Workers configuration not defined");
+    }
+}
+
+void ParseMidTermConfigFile::processWorkerPersonNode(DOMElement *node)
+{
+    if(node)
+    {
+        mtCfg.workers.person.count = ParseInteger(GetNamedAttributeValue(node, "count"));
+        mtCfg.workers.person.granularityMs = ParseGranularitySingle(GetNamedAttributeValue(node, "granularity"));
+    }
+}
+
+void ParseMidTermConfigFile::processScreenLineNode(DOMElement *node)
+{
+    if(node)
+    {
+        mtCfg.screenLineParams.outputEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+        if(mtCfg.screenLineParams.outputEnabled)
+        {
+            mtCfg.screenLineParams.interval = ParseUnsignedInt(GetNamedAttributeValue(node, "interval"), 300);
+            mtCfg.screenLineParams.fileName = ParseString(GetNamedAttributeValue(node, "file-name"), "screenLineCount.txt");
+
+            if(mtCfg.screenLineParams.interval == 0)
+            {
+                throw std::runtime_error("processScreenLineNode - Interval for screen line count is 0");
+            }
+            if(mtCfg.screenLineParams.fileName.empty())
+            {
+                throw std::runtime_error("processScreenLineNode - File Name is empty");
+            }
+        }
+    }
+}
+
+void ParseMidTermConfigFile::processGenerateBusRoutesNode(xercesc::DOMElement* node){
+    if (!node) {
+
+        cfg.generateBusRoutes = false;
+        return;
+    }
+    cfg.generateBusRoutes = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+}
+
+void ParseMidTermConfigFile::processPublicTransit(xercesc::DOMElement* node)
+{
+    if(!node)
+    {
+        mtCfg.publicTransitEnabled = false;
+    }
+    else
+    {
+        mtCfg.publicTransitEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+        if(mtCfg.publicTransitEnabled)
+        {
+            const std::string& key = cfg.system.networkDatabase.procedures;
+            std::map<std::string, StoredProcedureMap>::const_iterator procMapIt = mtCfg.procedureMaps.find(key);
+            if(procMapIt->second.procedureMappings.count("pt_vertices")==0 || procMapIt->second.procedureMappings.count("pt_edges")==0)
+            {
+                throw std::runtime_error("Public transit is enabled , but stored procedures not defined");
+            }
+        }
+    }
+}
+
+void ParseMidTermConfigFile::processTT_Update(xercesc::DOMElement* node){
+    if(!node)
+    {
+        throw std::runtime_error("pathset travel_time_interval not found\n");
+    }
+    else
+    {
+        sim_mob::ConfigManager::GetInstanceRW().PathSetConfig().interval = ParseInteger(GetNamedAttributeValue(node, "interval"), 600);
+        sim_mob::ConfigManager::GetInstanceRW().PathSetConfig().alpha = ParseFloat(GetNamedAttributeValue(node, "alpha"), 0.5);
+    }
+}
+
+
+void ParseMidTermConfigFile::processCBDNode(xercesc::DOMElement* node){
+
+    if (!node) {
+
+        cfg.cbd = false;
+        return;
+    }
+    cfg.cbd = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+}
+
+
+void ParseMidTermConfigFile::processBusStopScheduledTimesNode(xercesc::DOMElement* node)
+{
+    if (!node) {
+        return;
+    }
+
+    ///Loop through all children
+    int count=0;
+    for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
+        if (TranscodeString(item->getNodeName())!="stop") {
+            Warn() <<"Invalid busStopScheduledTimes child node.\n";
+            continue;
+        }
+
+        ///Retrieve properties, add a new item to the vector.
+        BusStopScheduledTime res;
+        res.offsetAT = ParseUnsignedInt(GetNamedAttributeValue(item, "offsetAT"), static_cast<unsigned int>(0));
+        res.offsetDT = ParseUnsignedInt(GetNamedAttributeValue(item, "offsetDT"), static_cast<unsigned int>(0));
+        mtCfg.busScheduledTimes[count++] = res;
+    }
+}
+
+void ParseMidTermConfigFile::processIncidentsNode(xercesc::DOMElement* node)
+{
+    if(!node) {
+        return;
+    }
+
+    bool enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+    if(!enabled){
+        return;
+    }
+
+    for(DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
+        IncidentParams incident;
+        incident.incidentId = ParseUnsignedInt(GetNamedAttributeValue(item, "id"));
+        incident.visibilityDistance = ParseFloat(GetNamedAttributeValue(item, "visibility"));
+        incident.segmentId = ParseUnsignedInt(GetNamedAttributeValue(item, "segment") );
+        incident.position = ParseFloat(GetNamedAttributeValue(item, "position"));
+        incident.capFactor = ParseFloat(GetNamedAttributeValue(item, "cap_factor") );
+        incident.startTime = ParseDailyTime(GetNamedAttributeValue(item, "start_time") ).getValue();
+        incident.duration = ParseDailyTime(GetNamedAttributeValue(item, "duration") ).getValue();
+        incident.length = ParseFloat(GetNamedAttributeValue(item, "length") );
+        incident.compliance = ParseFloat(GetNamedAttributeValue(item, "compliance") );
+        incident.accessibility = ParseFloat(GetNamedAttributeValue(item, "accessibility") );
+
+        for(DOMElement* child=item->getFirstElementChild(); child; child=child->getNextElementSibling()){
+            IncidentParams::LaneParams lane;
+            lane.laneId = ParseUnsignedInt(GetNamedAttributeValue(child, "laneId"));
+            lane.speedLimit = ParseFloat(GetNamedAttributeValue(child, "speedLimitFactor") );
+            incident.laneParams.push_back(lane);
+        }
+
+        mtCfg.incidents.push_back(incident);
+    }
+}
+
+void ParseMidTermConfigFile::processBusControllerNode(DOMElement *node)
+{
+    if(node)
+    {
+        cfg.busController.enabled = ParseBoolean(GetNameAttributeValue(node, "enabled"), "false");
+        cfg.busController.busLineControlType = ParseString(GetNamedAttributeValue(node, "busline_control_type"), "");
+    }
+}
+
+void ParseMidTermConfigFile::processPathSetFileName(xercesc::DOMElement* node)
+{
+    if (!node) {
+        return;
+    }
+    cfg.pathsetFile = ParseString(GetNamedAttributeValue(node, "value"));
 }
 
 }

@@ -83,21 +83,29 @@
 			<use_ns3 value="true"/>  <!-- Use ns-3 to route network traffice between agents? If not, opaque messages are dispatched immediately. -->
 		</commsim>
 
-			<reacTime_distributionType1      value="1" /> <!-- 0 is normal distribution, 1 is log normal-->
-			<reacTime_distributionType2      value="1" />
-			<reacTime_mean1      value="500" />
-			<reacTime_mean2      value="500" />
-			<reacTime_standardDev1    value="100" />
-			<reacTime_standardDev2    value="100" />
-		</simulation>
-                   
-		<!-- If loading from the database, which database, proc_map, and credentials are used? -->
-		<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
-		<!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->        
-		<network_database database="fm_remote" credentials="fm_remote" proc_map="extended_cbd_updated"/>
-		<!--network_database database="fm_local" credentials="neeraj_cred" proc_map="bugis_large"/-->        
-		<!--network_database database="fm_local" credentials="neeraj_cred" proc_map="singapore"/-->
-		<!--network_database database="fm_local" credentials="neeraj_cred" proc_map="bugis_small"/-->
+		<!-- Properties for SimMobility-MPI -->
+		<partitioning_solution_id   value="1"    units="unit" />
+
+		<network>
+	    	<!-- Setting to "database" will load the road network from the database. By default we load from "xml". -->
+	        <!-- NOTE: This is fairly confusing; later we'll make it easier for different users to -->
+	        <!--       maintain their own configurations. -->
+	        <network_source value="database"/>
+	        
+	        <!-- If loading from XML, which input file? Default (or blank string) will force private/SimMobilityInput.xml -->
+	        <!-- If Writing XML, which output file? Default (or blank string) don't write at all -->
+	        <!-- This only has an effect if network_source is set to "xml" -->
+	        <network_xml_file_input value=""/>
+	        <network_xml_file_output value=""/>
+
+	        <!-- If loading from the database, which database, proc_map, and credentials are used? -->
+			<!-- <network_database database="fm_local" credentials="vahid_cred" proc_map="bugis_small"/> -->
+			<!-- <network_database database="fm_remote_path_choice" credentials="fm_remote_path_choice" proc_map="HITS"/> -->        
+			<network_database database="fm_remote" credentials="fm_remote" proc_map="extended_cbd_updated"/>
+			<!--network_database database="fm_local" credentials="neeraj_cred" proc_map="bugis_large"/-->        
+			<!--network_database database="fm_local" credentials="neeraj_cred" proc_map="singapore"/-->
+			<!--network_database database="fm_local" credentials="neeraj_cred" proc_map="bugis_small"/-->
+	    </network>
         
 		<!-- Where to find our various schema files. -->
 		<!-- Overrides xsi:schemaLocation in the files themselves. -->
@@ -139,7 +147,15 @@
 		</generic_props>
 	</system>
 
-    
+    <!-- List of all Worker types and their properties. -->
+	<!-- granularity of each component must be a multiple of the "base" granularity -->
+	<workers>
+		<person count="2" granularity="100 ms"/> <!-- Person agents (with Roles) -->
+		<signal count="1" granularity="1 second"/> <!-- Traffic signals -->
+		<intersection_manager count="1" granularity="500 ms"/> <!-- Intersection managers -->
+		<communication count="0" granularity="100 ms"/>  <!-- Communication simulator -->
+	</workers>
+
 	<!-- FMOD controller settings. This is for FMOD extention -->
 	<fmodcontroller enabled="false">
 		<ip_address value="127.0.0.1"/>
@@ -149,47 +165,17 @@
 		<map_file value="cityhall/cityhall.osm"/>
 
 		<blocking_time_sec value="5"/>
-	</fmodcontroller>  
-        
-	<incidentsData enabled="false">
-		<incident id="0" visibility="4000" segment="40200" position="60" cap_factor="1.0" start_time="08:30:00" duration="00:32:00" length="1000" compliance="50" accessibility="50" > 
-			<lane laneId="0" speedLimitFactor="0"/>
-			<lane laneId="1" speedLimitFactor="0"/>
-			<lane laneId="2" speedLimitFactor="20"/>
-		</incident>
-	</incidentsData>
-    
-	<!-- This is data only for "schedule_based", "evenheadway_based" or "hybrid_based" control strategies -->
-	<!-- each item store the scheduled offset arriving time(ms) and offset departure time(ms) at some bus stops -->
-	<scheduledTimes>
-		<stop offsetAT="11600" offsetDT="17600" />
-		<stop offsetAT="74800" offsetDT="80800" />
-		<stop offsetAT="101000" offsetDT="107100" />
-		<stop offsetAT="124000" offsetDT="130000" />       
-		<stop offsetAT="174300" offsetDT="180300" />    
-		<stop offsetAT="254400" offsetDT="260400" />
-		<stop offsetAT="287800" offsetDT="293800" />
-		<stop offsetAT="313500" offsetDT="319500" />       
-		<stop offsetAT="376100" offsetDT="382100" />    
-		<stop offsetAT="403600" offsetDT="409600" />        
-	</scheduledTimes>
-    
-    
-	<!--Driver start locations-->
-	<!--3 drivers start at the N/S/E/W and each turns a different way-->
-	<!--Center node is: 37218351,14335255-->
-	<!--North node is: 37241080,14362955-->
-	<!--South node is: 37261496,14346008-->
-	<!--East node is: 37270984,14378959-->
-	<!--West node is: 37227139,14327875-->
-	<drivers>
-		<!-- These test the short term -->
-		<driver originPos="0,0" destPos="0,0" originNode="20314" destNode="12144" initSegId="4742" initDis="0" initSpeed="0" time="422701"/>
-	</drivers>
+	</fmodcontroller>   
 
-	<taxidrivers>
-		<taxidriver originPos="0,0" destPos="0,0" originNode="11344" initSegId="5404" destNode="10243" initDis="0" initSpeed="0" time="0" lane="2"/>
-	</taxidrivers>
+    <vehicleTypes>
+    	<vehicleType name="Car" associated_roles="driver|passenger" length="4.0" width="2.0" capacity="4"/>
+    	<vehicleType name="Truck" associated_roles="driver" length="6.0" width="2.0" capacity="8"/>
+    </vehicleTypes>
+
+    <tripFiles>
+    	<tripFile name="CarTrips" vehicleType="Car" fileName="data/carTrips.xml"/>
+    	<tripFile name="TruckTrips" vehicleType="Truck" fileName="data/truckTrips.xml"/>
+    </tripFiles>
     
 	<pedestrians> 
 		<!--Pedestrian start locations-->
@@ -199,6 +185,13 @@
 		<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="0"/>
 		<pedestrian originPos="37245506,14359431" destPos="37254988,14351820" time="1000"/> 
 	</pedestrians>
+
+	<person_characteristics>
+		<person lowerAge="20" upperAge="30" lowerSecs="3" upperSecs="7"/>
+		<person lowerAge="30" upperAge="40" lowerSecs="4" upperSecs="8"/>
+		<person lowerAge="40" upperAge="50" lowerSecs="5" upperSecs="9"/>
+		<person lowerAge="50" upperAge="60" lowerSecs="6" upperSecs="10"/>
+	</person_characteristics>
     
 	<!-- Bus Drivers. This is just for testing; currently a lot of Bus information is simply generated. -->
 	<!-- Note that Buses are loaded with "drivers", since I don't want to add a new tag for testing data -->
@@ -211,18 +204,14 @@
 	<!-- 3. "pt_bus_stops" -->
 	<!-- With the above three procedures present and valid, enable buses with "<buscontroller time="0" />" in the <buscontrollers> -->
 	<!-- To Disable Buses: user can simply comment the buscontroller in the <buscontrollers> -->
-	<buscontrollers>
-		<buscontroller time="0"/>    
-	</buscontrollers>
-                  
-	<CBD enabled="false"/> 
-	<generateBusRoutes enabled="false" />
-	<path-set-config-file value="data/pathset_config.xml" />
-	<travel_time_update interval="300" alpha="0.5" />
+	<!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
+	<busController enabled="false" busline_control_type="headway_based"/>
 	
 	<!--If enabled, outputs the vehicles counted by every loop detector, accumulated over the given period length (in milliseconds)
 	i.e. count of vehicles passing a loop detector in every "600,000" milliseconds -->
 	<loop-detector_counts frequency="300000" outputEnabled="false" file-name="private/VehicleCounts.csv"/>
+
+    <path-set-config-file value="data/pathset_config.xml" />
 
 	<!--(Short-term only) If enabled, outputs the density at every road segment present at the end of the 
 	update interval (in milliseconds)-->

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright Singapore-MIT Alliance for Research and Technology
  *
  * File:   MT_Config.hpp
@@ -173,13 +173,15 @@ private:
 	std::string weightMatrixFile;
 };
 
-///Represents the "Workers" section of the config file.
+/**
+ * Represents the "Workers" section of the config file.
+ */
 class WorkerParams {
 public:
     struct Worker {
-    Worker();
-    unsigned int count;
-    unsigned int granularityMs;
+        Worker();
+        unsigned int count;
+        unsigned int granularityMs;
     };
 
     Worker person;
@@ -192,91 +194,597 @@ struct DB_Details
 	std::string credentials;
 };
 
-///Represents a complete connection to the database, via Construct ID.
-struct DatabaseDetails {
-    std::string database;
-    std::string credentials;
-    std::string procedures;
+/**
+ * Represents the loop-detector_counts section of the configuration file
+ */
+struct ScreenLineParams
+{
+    ScreenLineParams() : interval(0), outputEnabled(false), fileName("") {}
+
+    ///The frequency of aggregating the vehicle counts at the loop detector
+    unsigned int interval;
+
+    ///Indicates whether the counts have to be output to a file
+    bool outputEnabled;
+
+    ///Name of the output file
+    std::string fileName;
+};
+
+/**
+ * Represents a Bust Stop in the config file. (NOTE: Further documentation needed.)
+ */
+struct BusStopScheduledTime {
+    BusStopScheduledTime() : offsetAT(0), offsetDT(0) {}
+
+    unsigned int offsetAT; //<Presumably arrival time?
+    unsigned int offsetDT; //<Presumably departure time?
+};
+
+/**
+ * represent the incident data section of the config file
+ */
+struct IncidentParams {
+    IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
+            capFactor(0), startTime(0), duration(0), length(0),	compliance(0), accessibility(0){}
+
+    struct LaneParams {
+        LaneParams() : laneId(0), speedLimit(0), xLaneStartPos(0), yLaneStartPos(0), xLaneEndPos(0),yLaneEndPos(0){}
+        unsigned int laneId;
+        float speedLimit;
+        float xLaneStartPos;
+        float yLaneStartPos;
+        float xLaneEndPos;
+        float yLaneEndPos;
+    };
+
+    unsigned int incidentId;
+    float visibilityDistance;
+    unsigned int segmentId;
+    float position;
+    unsigned int severity;
+    float capFactor;
+    unsigned int startTime;
+    unsigned int duration;
+    float length;
+    float compliance;
+    float accessibility;
+    std::vector<LaneParams> laneParams;
 };
 
 class MT_Config : private sim_mob::ProtectedCopyable
 {
 public:
+    /**
+     * Destructor
+     */
 	virtual ~MT_Config();
 
+    /**
+     * Retrieves the singleton instance of MT_Config
+     *
+     * @return reference to the singleton instance
+     */
 	static MT_Config& getInstance();
 
+    /**
+     * Retrived pedestrian walk speed
+     *
+     * @return pedestrian walk speed
+     */
 	double getPedestrianWalkSpeed() const;
+
+    /**
+     * Retrieves dwell time parameters
+     *
+     * @return dwell time params
+     */
 	std::vector<float>& getDwellTimeParams();
+
+    /**
+     * Sets pedestrian walk speed
+     *
+     * @param pedestrianWalkSpeed speed to be set
+     */
 	void setPedestrianWalkSpeed(double pedestrianWalkSpeed);
+
+    /**
+     * Retrieves number of threads allocated for Preday
+     *
+     * @return number of threads
+     */
 	unsigned getNumPredayThreads() const;
+
+    /**
+     * Sets number of threads allocated for preday
+     *
+     * @param numPredayThreads number of threads
+     */
 	void setNumPredayThreads(unsigned numPredayThreads);
+
+    /**
+     * Retrieves model scripts map
+     *
+     * @return model scritps map
+     */
 	const ModelScriptsMap& getModelScriptsMap() const;
+
+    /**
+     * Sets model scripts map
+     *
+     * @param modelScriptsMap model scripts map to be set
+     */
 	void setModelScriptsMap(const ModelScriptsMap& modelScriptsMap);
+
+    /**
+     * Retrieves Mongo Collection map
+     *
+     * @return mongo collections map
+     */
 	const MongoCollectionsMap& getMongoCollectionsMap() const;
+
+    /**
+     * Sets mongo collection map
+     *
+     * @param mongoCollectionsMap mongo collections map to be set
+     */
 	void setMongoCollectionsMap(const MongoCollectionsMap& mongoCollectionsMap);
 
-	/** the object of this class gets sealed when this function is called. No more changes will be allowed via the setters */
+    /**
+     * the object of this class gets sealed when this function is called. No more changes will be allowed via the setters
+     */
 	void sealConfig();
 
+    /**
+     * Retrieves Preday calibration params
+     *
+     * @return preday calibration params
+     */
 	const PredayCalibrationParams& getPredayCalibrationParams() const;
+
+    /**
+     * Retrieves SPSA Calibration params
+     *
+     * @return SPSA Calibration params
+     */
 	const PredayCalibrationParams& getSPSA_CalibrationParams() const;
-	void setSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams);
+
+    /**
+     * Sets SPSA Calibration params
+     *
+     * @param spsaCalibrationParams SPSA calibration params to be set
+     */
+    void setSPSA_CalibrationParams(const PredayCalibrationParams& spsaCalibrationParams);
+
+    /**
+     * Retrieves WSPSA Calibration params
+     *
+     * @return WSPSA Calibration params
+     */
 	const PredayCalibrationParams& getWSPSA_CalibrationParams() const;
-	void setWSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams);
+
+    /**
+     * Sets WSPSA Calibration params
+     *
+     * @param wspsaCalibrationParams WSPSA Calibration params to be set
+     */
+    void setWSPSA_CalibrationParams(const PredayCalibrationParams& wspsaCalibrationParams);
+
+    /**
+     * Checks whether output to file is enabled
+     *
+     * @return true if enabled, else false
+     */
 	bool isFileOutputEnabled() const;
+
+    /**
+     * Sets output file enabled/disabled status
+     *
+     * @param outputTripchains status to be set
+     */
 	void setFileOutputEnabled(bool outputTripchains);
+
+    /**
+     * Checks whether output predictions is enabled
+     *
+     * @return true if enabled, else false
+     */
 	bool isOutputPredictions() const;
+
+    /**
+     * Sets output predictions enabled/disabled status
+     *
+     * @param outputPredictions status to be set
+     */
 	void setOutputPredictions(bool outputPredictions);
+
+    /**
+     * Checks whether console output enabled/disabled status
+     *
+     * @return true if enabled, else false
+     */
 	bool isConsoleOutput() const;
+
+    /**
+     * Sets console output enabled/disabled status
+     *
+     * @param consoleOutput status to be set
+     */
 	void setConsoleOutput(bool consoleOutput);
+
+    /**
+     * Checks whether preday simulation is running
+     *
+     * @return true if preday simulation is running, else false
+     */
 	bool runningPredaySimulation() const;
+
+    /**
+     * Checks whether preday calibration is running
+     *
+     * @return true if preday calibration is running, else false
+     */
 	bool runningPredayCalibration() const;
+
+    /**
+     * Checks whether preday logsum computation is running
+     *
+     * @return true if preday logsum computation is running, else false
+     */
 	bool runningPredayLogsumComputation() const;
+
+    /**
+     * Checks whether preday logsum computation for LT is running
+     *
+     * @return true if preday logsum computation for LT is running, else false
+     */
 	bool runningPredayLogsumComputationForLT() const;
+
+    /**
+     * Sets the preday run mode
+     *
+     * @param runMode run mode to be set
+     */
 	void setPredayRunMode(const std::string runMode);
+
+    /**
+     * Checks whether SPSA is running
+     *
+     * @return true if SPSA is running, else false
+     */
 	bool runningSPSA() const;
+
+    /**
+     * Checks whether WSPSA is running
+     *
+     * @return true if WSPSA is running
+     */
 	bool runningWSPSA() const;
+
+    /**
+     * Sets calibration methodology
+     *
+     * @param calibrationMethod calibration method to be set
+     */
 	void setCalibrationMethodology(const std::string calibrationMethod);
+
+    /**
+     * Retrieves calibration output file name
+     *
+     * @return calibration output file name
+     */
 	const std::string& getCalibrationOutputFile() const;
+
+    /**
+     * Sets the calibration output file name
+     *
+     * @param calibrationOutputFile filname to be set
+     */
 	void setCalibrationOutputFile(const std::string& calibrationOutputFile);
+
+    /**
+     * Retrieves logsum computation frequency
+     *
+     * @return logsum computation frequency
+     */
 	unsigned getLogsumComputationFrequency() const;
+
+    /**
+     * Sets logsum computation frequency
+     *
+     * @param logsumComputationFrequency logsum computation frequency to be set
+     */
 	void setLogsumComputationFrequency(unsigned logsumComputationFrequency);
-	const StoredProcedureMap& getStoredProcedure() const;
-	void setStoredProcedureMap(const StoredProcedureMap& storedProcedure);
+
+    /**
+     * Retrieves activity schedule loading interval
+     *
+     * @return activity schedule load interval
+     */
 	unsigned getActivityScheduleLoadInterval() const;
+
+    /**
+     * Sets activity schedule loading interval
+     *
+     * @param activityScheduleLoadInterval interval to be set
+     */
 	void setActivityScheduleLoadInterval(unsigned activityScheduleLoadInterval);
+
+    /**
+     * Retrieves supply update interval
+     *
+     * @return supply update interval
+     */
 	unsigned getSupplyUpdateInterval() const;
+
+    /**
+     * Sets supply update interval
+     *
+     * @param supplyUpdateInterval interval to be set
+     */
 	void setSupplyUpdateInterval(unsigned supplyUpdateInterval);
+
+    /**
+     * Retrives journey time stats file name
+     *
+     * @return journey time file name
+     */
 	const std::string& getFilenameOfJourneyTimeStats() const;
+
+    /**
+     * Retrieves waiting time stats file name
+     *
+     * @return waiting time file name
+     */
 	const std::string& getFilenameOfWaitingTimeStats() const;
+
+    /**
+     * Sets journey time stats file name
+     *
+     * @param str journey time stats file name to be set
+     */
 	void setFilenameOfJourneyTimeStats(const std::string& str);
+
+    /**
+     * Sets waiting time stats file name
+     *
+     * @param str waiting time stats file name to be set
+     */
 	void setFilenameOfWaitingTimeStats(const std::string& str);
+
+    /**
+     * Retrieves waiting amount stats file name
+     *
+     * @return waiting amount stats file name
+     */
 	const std::string& getFilenameOfWaitingAmountStats() const;
+
+    /**
+     * Sets waiting amount stats file name
+     *
+     * @param str waiting amount stats file name to be set
+     */
 	void setFilenameOfWaitingAmountStats(const std::string& str);
+
+    /**
+     * Retrieves travel time stats file name
+     *
+     * @return travel time stats file name
+     */
 	const std::string& getFilenameOfTravelTimeStats() const;
+
+    /**
+     * Sets travel time stats file name
+     *
+     * @param str travel time stats file name to be set
+     */
 	void setFilenameOfTravelTimeStats(const std::string& str);
+
+    /**
+     * Retrieves bus capacity
+     *
+     * @return bus capacity
+     */
 	const unsigned int getBusCapacity() const;
+
+    /**
+     * Sets bus capacity
+     *
+     * @param busCapcacity bus capacity to be set
+     */
 	void setBusCapacity(const unsigned int busCapcacity);
+
+    /**
+     * Retrieves population source database type
+     *
+     * @return population source database
+     */
 	db::BackendType getPopulationSource() const;
+
+    /**
+     * Sets population source database
+     *
+     * @param src population source database to be set
+     */
 	void setPopulationSource(const std::string& src);
+
+    /**
+     * Retrieves logsum databse details
+     *
+     * @return logsum db details
+     */
 	const DB_Details& getLogsumDb() const;
+
+    /**
+     * Sets logsum database details
+     *
+     * @param logsumDb logsum database name
+     * @param logsumCred credentials for logsum database
+     */
 	void setLogsumDb(const std::string& logsumDb, const std::string& logsumCred);
+
+    /**
+     * Retrieves population database details
+     *
+     * @return population db details
+     */
 	const DB_Details& getPopulationDb() const;
+
+    /**
+     * Sets population database details
+     *
+     * @param populationDb population database name
+     * @param populationCred credentials for population database
+     */
 	void setPopulationDb(const std::string& populationDb, const std::string& populationCred);
 
+    /**
+     * Retrives busline control type
+     *
+     * @return busline control method
+     */
+    std::string buslineControlType() const;
+
+    /**
+     * Retrieves number of workers for handling agents
+     *
+     * @return number of workers
+     */
+    unsigned int& personWorkGroupSize();
+
+    /**
+     * Retrieves number of workers for handling agents
+     *
+     * @return number of workers
+     */
+    const unsigned int& personWorkGroupSize() const;
+
+    /**
+     * Checks whether CBD area restriction enforced
+     *
+     * @return true if restriction enforced, else false
+     */
+    bool CBD() const;
+
+    /**
+     * Checks whether public transit is enabeld/disabled
+     *
+     * @return true if enabled, else false
+     */
+    bool PublicTransitEnabled() const;
+
+    /**
+     * Retrives the confluxes
+     *
+     * @return confluxes
+     */
+    std::set<sim_mob::Conflux*>& getConfluxes();
+
+    /**
+     * Retrives the confluxes
+     *
+     * @return confluxes (const reference)
+     */
+    const std::set<sim_mob::Conflux*>& getConfluxes() const;
+
+    /**
+     * Retrieves conflux nodes
+     *
+     * @return conflux nodes
+     */
+    std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes();
+
+    /**
+     * Retrieves conflux nodes
+     *
+     * @return conflux nodes (const reference)
+     */
+    const std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes() const;
+
+    /**
+     * Retrives the conflux corresponding to a node
+     *
+     * @param multinode node for which the conflux to be found
+     *
+     * @return conflux
+     */
+    sim_mob::Conflux* getConfluxForNode(const sim_mob::MultiNode* multinode) const;
+
+    /**
+     * Retrives the segment stats with bus stops
+     *
+     * @return segment stats with bus stops
+     */
+    std::set<sim_mob::SegmentStats*>& getSegmentStatsWithBusStops();
+
+    /**
+     * Checks whether mid term supply is running
+     *
+     * @return true if mid term supply is running, else false
+     */
+    bool RunningMidSupply() const;
+
+    /**
+     * Checks whether mid term demand is running
+     *
+     * @return true if mid term demand is running, else false
+     */
+    bool RunningMidDemand() const;
+
+    /**
+     * Sets the mid term run mode
+     *
+     * @param runMode run mode (supply/demand/withinday) to be set
+     */
+    void setMidTermRunMode(const std::string& runMode);
+
+    /**
+     * Retrives the incident params list
+     *
+     * @return incidents
+     */
+    std::vector<IncidentParams>& getIncidents();
+
+    /**
+     * Enumerator for mid term run mode
+     */
+    enum MidTermRunMode
+    {
+        NONE,
+        SUPPLY,
+        PREDAY
+    };
+
+    /// Mid term run mode identifier
+    MidTermRunMode midTermRunMode;
+
+    /// Number of agents skipped in loading
+    unsigned int numAgentsSkipped;
+
+    /// screen line counts parameter
+    ScreenLineParams screenLineParams;
+
 private:
+    /**
+     * Constructor
+     */
 	MT_Config();
+
+    /// Singleton instance
 	static MT_Config* instance;
 
-	/**protection for changes after config is loaded*/
+    /// protection for changes after config is loaded
 	bool configSealed;
-	/**store parameters for dwelling time calculation*/
+
+    /// store parameters for dwelling time calculation
 	std::vector<float> dwellTimeParams;
-	/**store parameters for pedestrian walking speed*/
+
+    /// store parameters for pedestrian walking speed
 	double pedestrianWalkSpeed;
 
-	/**control variable for running preday simulation/logsum computation*/
+    /**
+     * control variable for running preday simulation/logsum computation
+     */
 	enum PredayRunMode
 	{
 		NONE,
@@ -287,46 +795,98 @@ private:
 	};
 	PredayRunMode predayRunMode;
 
-	/**num of threads to run for preday*/
+    /// num of threads to run for preday
 	unsigned numPredayThreads;
-	/**flag to indicate whether output files need to be enabled*/
+
+    /// flag to indicate whether output files need to be enabled
 	bool fileOutputEnabled;
-	/**flag to indicate whether tours and stops need to be output in mongodb*/
+
+    /// flag to indicate whether tours and stops need to be output in mongodb
 	bool outputPredictions;
-	/**flag to indicate whether console output is required*/
+
+    /// flag to indicate whether console output is required
 	bool consoleOutput;
-	/**container for lua scripts*/
+
+    /// Container for lua scripts
 	ModelScriptsMap modelScriptsMap;
-	/**container for mongo collections*/
+
+    /// container for mongo collections
 	MongoCollectionsMap mongoCollectionsMap;
 
-	/**the filename of storing journey statistics */
+    /// the filename of storing journey statistics
 	std::string filenameOfJourneyTimeStats;
-	/**the filename of storing waiting time statistics*/
+
+    /// the filename of storing waiting time statistics
 	std::string filenameOfWaitingTimeStats;
-	/**the filename of storing waiting amount statistics*/
+
+    /// the filename of storing waiting amount statistics
 	std::string filenameOfWaitingAmountStats;
-	/** the filename of storing travel time statistics*/
+
+    /// the filename of storing travel time statistics
 	std::string filenameOfTravelTimeStats;
-	/**default capacity for bus*/
+
+    /// default capacity for bus
 	unsigned int busCapacity;
-	unsigned supplyUpdateInterval; //frames
-	unsigned activityScheduleLoadInterval; //seconds
+
+    /// supply update interval in frames
+    unsigned supplyUpdateInterval;
+
+    /// activity schedule loading interval in seconds
+    unsigned activityScheduleLoadInterval;
+
+    /// population database type
 	db::BackendType populationSource;
+
+    /// poulation database details
 	DB_Details populationDB;
+
+    /// logsum database details
 	DB_Details logsumDB;
 
+    /// worker allocation details
     WorkerParams workers;
 
-	/**Preday calibration parameters*/
-	enum CalibrationMethodology { SPSA, WSPSA };
-	CalibrationMethodology calibrationMethodology;
-	PredayCalibrationParams spsaCalibrationParams;
-	PredayCalibrationParams wspsaCalibrationParams;
-	std::string calibrationOutputFile;
-	unsigned logsumComputationFrequency;
-	StoredProcedureMap storedProcedure;
+    ///	is CBD area restriction enforced
+    bool cbd;
 
+    /// is public transit enabled
+    bool publicTransitEnabled;
+
+    ///setting for the incidents
+    std::vector<IncidentParams> incidents;
+
+    ///Some settings for bus stop arrivals/departures.
+    std::map<int, BusStopScheduledTime> busScheduledTimes; //The int is a "bus stop ID", starting from 0.
+
+    /// set of confluxes
+    std::set<Conflux*> confluxes;
+
+    /// key:value (MultiNode:Conflux) map
+    std::map<const MultiNode*, Conflux*> multinode_confluxes;
+
+    /**
+     * Enumerator for calibration methodology
+     */
+    enum CalibrationMethodology
+    {
+        SPSA,
+        WSPSA
+    };
+
+    /// Calibration methodology identifier
+	CalibrationMethodology calibrationMethodology;
+
+    /// SPSA Calibration params
+	PredayCalibrationParams spsaCalibrationParams;
+
+    /// WSPSA Calibration params
+	PredayCalibrationParams wspsaCalibrationParams;
+
+    /// Calibration output file name
+	std::string calibrationOutputFile;
+
+    /// Logsum computation frequency
+	unsigned logsumComputationFrequency;
 };
 }
 }

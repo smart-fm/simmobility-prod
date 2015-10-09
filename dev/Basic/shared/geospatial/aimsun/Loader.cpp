@@ -141,7 +141,7 @@ public:
 	static void loadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet);
 	static void LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet);
 
-	void LoadScreenLineSegmentIDs(const map<string, string>& storedProcs, std::vector<unsigned long>& screenLines);
+    void LoadScreenLineSegmentIDs(const map<string, string>& storedProcs, std::set<unsigned long> &screenLines);
 #ifndef SIMMOB_DISABLE_MPI
 	void TransferBoundaryRoadSegment();
 #endif
@@ -1349,7 +1349,7 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 #endif
 
 
-void DatabaseLoader::LoadScreenLineSegmentIDs(const map<string, string>& storedProcs, std::vector<unsigned long>& screenLines)
+void DatabaseLoader::LoadScreenLineSegmentIDs(const map<string, string>& storedProcs, std::set<unsigned long>& screenLines)
 {
 	screenLines.clear();
 
@@ -1360,7 +1360,7 @@ void DatabaseLoader::LoadScreenLineSegmentIDs(const map<string, string>& storedP
 	soci::rowset<unsigned long>::const_iterator iter = rs.begin();
 	for(; iter != rs.end(); iter++)
 	{
-		screenLines.push_back(*iter);
+        screenLines.insert(*iter);
 	}
 }
 
@@ -2886,8 +2886,8 @@ void sim_mob::aimsun::Loader::loadSegNodeType(const std::string& connectionStr, 
 }
 
 void sim_mob::aimsun::Loader::getScreenLineSegments(const std::string& connectionStr,
-		const std::map<std::string, std::string>& storedProcs,
-		std::vector<unsigned long>& screenLineList)
+        const std::map<std::string, std::string>& storedProcs,
+        std::set<unsigned long> &screenLineList)
 {
 	DatabaseLoader loader(connectionStr);
 
@@ -2909,7 +2909,7 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	//Step One: Load
 	loader.LoadBasicAimsunObjects(storedProcs);
 
-	if(!config.RunningMidSupply()) //TODO: add config for flag indicating short-term
+    if(config.RunningShortTerm())
 	{
 		// load data required for short-term
 		loader.LoadObjectsForShortTerm(storedProcs);
@@ -2939,7 +2939,7 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 		(*linkIt)->hasOpposingLink = hasOpp ? 1 : 0;
 	}
 
-	if(!config.RunningMidSupply()) //TODO: add config for flag indicating short-term
+    if(config.RunningShortTerm())
 	{		//Temporary workaround; Cut lanes short/extend them as required.
 		for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
 			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);

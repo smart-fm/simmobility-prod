@@ -11,90 +11,62 @@
 #include "buffering/Shared.hpp"
 #include "conf/CMakeConfigParams.hpp"
 #include "conf/Constructs.hpp"
-#include "entities/AuraManager.hpp"
 #include "geospatial/Point2D.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/DailyTime.hpp"
-
-//TODO: Need to move the useful "Constructs" out of this file (e.g., Passwords)
 #include "conf/Constructs.hpp"
 
 namespace sim_mob {
 
-//Represents the long-term developer model of the config file
+/**
+ * Represents the long-term developer model of the config file
+ */
 struct LongTermParams{
-	LongTermParams();
-	bool enabled;
-	unsigned int workers;
-	unsigned int days;
-	unsigned int tickStep;
-	unsigned int maxIterations;
+    LongTermParams();
+    bool enabled;
+    unsigned int workers;
+    unsigned int days;
+    unsigned int tickStep;
+    unsigned int maxIterations;
 
-	struct DeveloperModel{
-		DeveloperModel();
-		bool enabled;
-		unsigned int timeInterval;
-		int initialPostcode;
-		int initialUnitId;
-		int initialBuildingId;
-		int initialProjectId;
-		int year;
-		double minLotSize;
-	} developerModel;
+    struct DeveloperModel{
+        DeveloperModel();
+        bool enabled;
+        unsigned int timeInterval;
+        int initialPostcode;
+        int initialUnitId;
+        int initialBuildingId;
+        int initialProjectId;
+        int year;
+        double minLotSize;
+    } developerModel;
 
-	struct HousingModel{
-		HousingModel();
-		bool enabled;
-		unsigned int timeInterval; //time interval before a unit drops its asking price by a certain percentage.
-		unsigned int timeOnMarket; //for units on the housing market
-		unsigned int timeOffMarket;//for units on the housing market
-		float vacantUnitActivationProbability;
-		int initialHouseholdsOnMarket;
-		float housingMarketSearchPercentage;
-		float housingMoveInDaysInterval;
-		bool  outputHouseholdLogsums;
-		int offsetBetweenUnitBuyingAndSelling;
-		int bidderUnitsChoiceSet;
-		int householdBiddingWindow;
-	} housingModel;
+    struct HousingModel{
+        HousingModel();
+        bool enabled;
+        unsigned int timeInterval; ///time interval before a unit drops its asking price by a certain percentage.
+        unsigned int timeOnMarket; ///for units on the housing market
+        unsigned int timeOffMarket;///for units on the housing market
+        float vacantUnitActivationProbability;
+        int initialHouseholdsOnMarket;
+        float housingMarketSearchPercentage;
+        float housingMoveInDaysInterval;
+        bool  outputHouseholdLogsums;
+        int offsetBetweenUnitBuyingAndSelling;
+        int bidderUnitsChoiceSet;
+        int householdBiddingWindow;
+    } housingModel;
 
-	struct VehicleOwnershipModel{
-		VehicleOwnershipModel();
-		bool enabled;
-		unsigned int vehicleBuyingWaitingTimeInDays;
-	}vehicleOwnershipModel;
+    struct VehicleOwnershipModel{
+        VehicleOwnershipModel();
+        bool enabled;
+        unsigned int vehicleBuyingWaitingTimeInDays;
+    }vehicleOwnershipModel;
 };
 
-///represent the incident data section of the config file
-struct IncidentParams {
-	IncidentParams() : incidentId(-1), visibilityDistance(0), segmentId(-1), position(0), severity(0),
-			capFactor(0), startTime(0), duration(0), length(0),	compliance(0), accessibility(0){}
-
-	struct LaneParams {
-		LaneParams() : laneId(0), speedLimit(0), xLaneStartPos(0), yLaneStartPos(0), xLaneEndPos(0),yLaneEndPos(0){}
-		unsigned int laneId;
-		float speedLimit;
-		float xLaneStartPos;
-		float yLaneStartPos;
-		float xLaneEndPos;
-		float yLaneEndPos;
-	};
-
-	unsigned int incidentId;
-	float visibilityDistance;
-	unsigned int segmentId;
-	float position;
-	unsigned int severity;
-	float capFactor;
-	unsigned int startTime;
-	unsigned int duration;
-	float length;
-	float compliance;
-	float accessibility;
-	std::vector<LaneParams> laneParams;
-};
-
-///Represents a Person's Characteristic in the config file. (NOTE: Further documentation needed.)
+/**
+ * Represents a Person's Characteristic in the config file. (NOTE: Further documentation needed.)
+ */
 struct PersonCharacteristics {
 	PersonCharacteristics() : lowerAge(0), upperAge(0), lowerSecs(0), upperSecs(0) {}
 
@@ -104,7 +76,9 @@ struct PersonCharacteristics {
 	int upperSecs;// upperSecs
 };
 
-///represent the person characteristics data section of the config file
+/**
+ * represent the person characteristics data section of the config file
+ */
 struct PersonCharacteristicsParams {
 
 	PersonCharacteristicsParams() : lowestAge(100), highestAge(0), DEFAULT_LOWER_SECS(3), DEFAULT_UPPER_SECS(10) {}
@@ -112,43 +86,66 @@ struct PersonCharacteristicsParams {
 	int highestAge;
 	const int DEFAULT_LOWER_SECS;
 	const int DEFAULT_UPPER_SECS;
-	//Some settings for person characteristics(age range, boarding alighting secs)
+    ///Some settings for person characteristics(age range, boarding alighting secs)
 	std::map<int, PersonCharacteristics> personCharacteristics;
 };
 
-///Represents a Bust Stop in the config file. (NOTE: Further documentation needed.)
-struct BusStopScheduledTime {
-	BusStopScheduledTime() : offsetAT(0), offsetDT(0) {}
-
-	unsigned int offsetAT; //<Presumably arrival time?
-	unsigned int offsetDT; //<Presumably departure time?
-};
-
-///Represents the "Constructs" section of the config file.
+/**
+ * Represents the "Constructs" section of the config file.
+ */
 class Constructs {
 public:
-    //std::map<std::string, Distribution> distributions; //<TODO
     std::map<std::string, Database> databases;
     std::map<std::string, Credential> credentials;
 };
 
-///Represents the "Simulation" section of the config file.
+/**
+ * Represents the "Simulation" section of the config file.
+ */
 class SimulationParams {
 public:
+    /**
+     * Constructor
+     */
 	SimulationParams();
 
-	unsigned int baseGranMS;       ///<Base system granularity, in milliseconds. Each "tick" is this long.
-	double baseGranSecond;         ///<Base system granularity, in seconds. Each "tick" is this long.
-	unsigned int totalRuntimeMS;   ///<Total time (in milliseconds) to run the simulation for. (Includes "warmup" time.)
-	unsigned int totalWarmupMS;    ///<Total time (in milliseconds) considered "warmup".
+    /// Base system granularity, in milliseconds. Each "tick" is this long.
+    unsigned int baseGranMS;
 
-	DailyTime simStartTime; ///<When the simulation begins(based on configuration)
+    /// Base system granularity, in seconds. Each "tick" is this long.
+    double baseGranSecond;
 
-	WorkGroup::ASSIGNMENT_STRATEGY workGroupAssigmentStrategy;  ///<Defautl assignment strategy for Workgroups.
+    /// Total time (in milliseconds) to run the simulation for. (Includes "warmup" time.)
+    unsigned int totalRuntimeMS;
 
-	int startingAutoAgentID; ///<Default starting ID for agents with auto-generated IDs.
+    /// Total time (in milliseconds) considered "warmup".
+    unsigned int totalWarmupMS;
 
-	sim_mob::MutexStrategy mutexStategy; ///<Locking strategy for Shared<> properties.
+    /// When the simulation begins(based on configuration)
+    DailyTime simStartTime;
+
+    /// Defautl assignment strategy for Workgroups.
+    WorkGroup::ASSIGNMENT_STRATEGY workGroupAssigmentStrategy;
+
+    /// Default starting ID for agents with auto-generated IDs.
+    int startingAutoAgentID;
+
+    /// Locking strategy for Shared<> properties.
+    sim_mob::MutexStrategy mutexStategy;
+};
+
+/**
+ * Represents a complete connection to the database, via Construct ID.
+ */
+struct DatabaseDetails {
+    /// Key for database detail in constructs
+    std::string database;
+
+    /// Key for credential detail in constructs
+    std::string credentials;
+
+    /// Key for stored procedures in proceduremaps
+    std::string procedures;
 };
 
 /**
@@ -159,95 +156,163 @@ public:
 class ModelScriptsMap
 {
 public:
+    /**
+     * Contructor
+     *
+     * @param scriptFilesPath - path where the scripts are located
+     * @param scriptsLang - script language (lua/python..)
+     */
 	ModelScriptsMap(const std::string& scriptFilesPath = "", const std::string& scriptsLang = "");
 
+    /**
+     * Retrives the scripts file path
+     *
+     * @return scripts file path
+     */
 	const std::string& getPath() const
 	{
 		return path;
 	}
 
+    /**
+     * Retrieves the script language
+     *
+     * @return script language
+     */
 	const std::string& getScriptLanguage() const
 	{
 		return scriptLanguage;
 	}
 
+    /**
+     * Retrives a script file name given its key
+     *
+     * @param key
+     *
+     * @return script file name
+     */
 	std::string getScriptFileName(std::string key) const
 	{
-		//at() is used intentionally so that an out_of_range exception is triggered when invalid key is passed
+        /// at() is used intentionally so that an out_of_range exception is triggered when invalid key is passed
 		return scriptFileNameMap.at(key);
 	}
 
+    /**
+     * Sets a script file name
+     *
+     * @param key
+     * @param value filename
+     */
 	void addScriptFileName(const std::string& key, const std::string& value)
 	{
 		this->scriptFileNameMap[key] = value;
 	}
 
 private:
+    /// scripts file path
 	std::string path;
+
+    /// script language
 	std::string scriptLanguage;
-	std::map<std::string, std::string> scriptFileNameMap; //key=>value
+
+    /// Scripts file map
+    std::map<std::string, std::string> scriptFileNameMap;
 };
 
-///Represents the loop-detector_counts section of the configuration file
-struct ScreenLineParams
-{
-	ScreenLineParams() : interval(0), outputEnabled(false), fileName("") {}
-
-	///The frequency of aggregating the vehicle counts at the loop detector
-	unsigned int interval;
-
-	///Indicates whether the counts have to be output to a file
-	bool outputEnabled;
-
-	///Name of the output file
-	std::string fileName;
-};
-
+/**
+ * Representation of pathset config file
+ */
 struct PathSetConf
 {
+    /**
+     * Constructor
+     */
 	PathSetConf() : enabled(false), RTTT_Conf(""), DTT_Conf(""), psRetrieval(""), psRetrievalWithoutBannedRegion(""), interval(0), recPS(false), reroute(false),
 			subTripOP(""), perturbationRange(std::pair<unsigned short,unsigned short>(0,0)), kspLevel(0),
 			perturbationIteration(0), threadPoolSize(0), alpha(0), maxSegSpeed(0), publickShortestPathLevel(10), simulationApproachIterations(10),
 			publicPathSetEnabled(true), privatePathSetEnabled(true)
 	{}
-	bool enabled;
-	bool privatePathSetEnabled;
-	std::string privatePathSetMode;//pathset operation mode "normal" , "generation"(for bulk pathset generation)
 
+    /// Whether pathset enabled
+	bool enabled;
+
+    /// Whether private pathset enabled
+	bool privatePathSetEnabled;
+
+    /// pathset operation mode "normal" , "generation"(for bulk pathset generation)
+    std::string privatePathSetMode;
+
+    /// Whether public pathset enabled
 	bool publicPathSetEnabled;
+
+    /// public pathset mode (normal / generation)
 	std::string publicPathSetMode;
 
+    /// public pathset od source table
 	std::string publicPathSetOdSource;
-	std::string publicPathSetOutputFile;
-	// Public PathSet Generation Algorithm Configurations
 
-	int publickShortestPathLevel;
+    /// Public pathset output file
+	std::string publicPathSetOutputFile;
+
+    /// Public PathSet Generation Algorithm Configurations
+    /// 'k' value for kShortestPathAlgorithm
+    int publickShortestPathLevel;
+
+    /// Num of simulation approach iterations
 	int simulationApproachIterations;
 
+    /// thread pool size for pathset generation
 	int threadPoolSize;
-	std::string bulkFile; //in case of using pathset manager in "generation" mode, the results will be outputted to this file
-	std::string odSourceTableName; //data source for getting ODs for bulk pathset generation
-	std::string pathSetTableName;
-	std::string RTTT_Conf;//realtime travel time table name
-	std::string DTT_Conf;//default travel time table name
-	std::string psRetrieval;// pathset retrieval stored procedure name
-	std::string psRetrievalWithoutBannedRegion; // pathset retrival (excluding banned area) stored procedure name
-	std::string upsert;//	historical travel time updation
-	int interval; //travel time recording iterval(in seconds)
-	double alpha; //travel time updation coefficient
-	///	recursive pathset Generation
+
+    /// in case of using pathset manager in "generation" mode, the results will be outputted to this file
+    std::string bulkFile;
+
+    /// data source for getting ODs for bulk pathset generation
+    std::string odSourceTableName;
+
+    /// path set table name
+    std::string pathSetTableName;
+
+    /// realtime travel time table name
+    std::string RTTT_Conf;
+
+    /// default travel time table name
+    std::string DTT_Conf;
+
+    /// pathset retrieval stored procedure name
+    std::string psRetrieval;
+
+    /// pathset retrival (excluding banned area) stored procedure name
+    std::string psRetrievalWithoutBannedRegion;
+
+    ///historical travel time updation
+    std::string upsert;
+
+    /// travel time recording iterval(in seconds)
+    int interval;
+
+    /// travel time updation coefficient
+    double alpha;
+
+    ///	recursive pathset Generation
 	bool recPS;
-	///	 enable rerouting?
+
+    ///	 enable rerouting?
 	bool reroute;
-	/// subtrip level travel metrics output file(for preday use)
+
+    /// subtrip level travel metrics output file(for preday use)
 	std::string subTripOP;
-	///	number of iterations in random perturbation
+
+    ///	number of iterations in random perturbation
 	int perturbationIteration;
-	///	range of uniform distribution in random perturbation
+
+    ///	range of uniform distribution in random perturbation
 	std::pair<unsigned short,unsigned short> perturbationRange;
-	///k-shortest path level
+
+    ///k-shortest path level
 	int kspLevel;
-	/// Link Elimination types
+
+    /// Link Elimination types
 	std::vector<std::string> LE;
 
 	/// Utility parameters
@@ -270,12 +335,12 @@ struct PathSetConf
 		double maxHighwayParam;
 		UtilityParams()
 		{
-			bTTVOT = -0.01373;//-0.0108879;
+            bTTVOT = -0.01373;///-0.0108879;
 			bCommonFactor = 1.0;
-			bLength = -0.001025;//0.0; //negative sign proposed by milan
-			bHighway = 0.00052;//0.0;
+            bLength = -0.001025;///0.0; ///negative sign proposed by milan
+            bHighway = 0.00052;///0.0;
 			bCost = 0.0;
-			bSigInter = -0.13;//0.0;
+            bSigInter = -0.13;///0.0;
 			bLeftTurns = 0.0;
 			bWork = 0.0;
 			bLeisure = 0.0;
@@ -286,12 +351,33 @@ struct PathSetConf
 			maxHighwayParam = 0.422;
 		}
 	};
-	double maxSegSpeed; //represents max_segment_speed attribute in xml, used in travel time based a_star heuristic function
-	/// Utility Parameters
+
+    /// represents max_segment_speed attribute in xml, used in travel time based a_star heuristic function
+    double maxSegSpeed;
+
+    /// Utility Parameters
 	UtilityParams params;
 
-	///pt route choice model scripts params
+    /// pt route choice model scripts params
 	ModelScriptsMap ptRouteChoiceScriptsMap;
+};
+
+/**
+ * Represents bus controller parameter section
+ */
+struct BusControllerParams
+{
+    /**
+     * Constructor
+     */
+    BusControllerParams() : enabled(false), busLineControlType("")
+    {}
+
+    /// Is bus controller enabled?
+    bool enabled;
+
+    /// bus line control type
+    std::string busLineControlType;
 };
 
 /**
@@ -303,47 +389,59 @@ struct PathSetConf
  */
 class RawConfigParams : public sim_mob::CMakeConfigParams {
 protected:
-	///Settings used for generation/retrieval of paths
-	PathSetConf pathset;
+    /// Pathset config
+    PathSetConf pathset;
+
 public:
+    /**
+     * Constructor
+     */
 	RawConfigParams();
 
-	///"Constructs" for general re-use.
+    /**
+     * Enumerator for simmobility running mode
+     */
+    enum SimMobRunMode
+    {
+        SHORT_TERM,
+        MID_TERM,
+        LONG_TERM
+    };
+
+    /// Simmobility running mode
+    SimMobRunMode simMobRunMode;
+
+    /// "Constructs" for general re-use.
 	Constructs constructs;
 
-	///Available gemetries (currently only database geometries).
-	//GeometryParams geometry;
-
-	///Settings for Long Term Parameters
+    /// Settings for Long Term Parameters
 	LongTermParams ltParams;
 
-	///pathset configuration file
+    /// pathset configuration file
 	std::string pathsetFile;
-        
-	///Settings for the Screen Line Count
-	ScreenLineParams screenLineParams;
 
+    /// If loading from the database, how do we connect?
+    DatabaseDetails networkDatabase;
+
+    /// Represents simulation section
     SimulationParams simulation;
 
-    bool mergeLogFiles;  ///<If true, we take time to merge the output of the individual log files after the simulation is complete.
+    /// Bus controller parameters
+    BusControllerParams busController;
 
-	///	is CBD area restriction enforced
-	bool cbd;
-	bool generateBusRoutes;
+    /// Stored procedure mappings
+    std::map<std::string, StoredProcedureMap> procedureMaps;
 
-	// Public transit enabled if this flag set to true
-	bool publicTransitEnabled;
-        
-	///setting for the incidents
-	std::vector<IncidentParams> incidents;
+    /// If true, we take time to merge the output of the individual log files after the simulation is complete.
+    bool mergeLogFiles;
 
-	///Some settings for bus stop arrivals/departures.
-	std::map<int, BusStopScheduledTime> busScheduledTimes; //The int is a "bus stop ID", starting from 0.
+    /// If true, bus routes will be generated by buscontroller
+    bool generateBusRoutes;
 
-	//Person characteristics parameters
+    /// Person characteristics parameters
 	PersonCharacteristicsParams personCharacteristicsParams;
 
-	///container for lua scripts
+    /// container for lua scripts
 	ModelScriptsMap luaScriptsMap;
 };
 

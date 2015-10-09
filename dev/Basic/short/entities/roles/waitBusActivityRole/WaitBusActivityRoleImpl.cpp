@@ -118,9 +118,6 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick() {
 
 void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick_output() {
 	WaitBusActivityRoleUpdateParams &p = parentWaitBusActivityRole->getParams();
-	if (ConfigManager::GetInstance().FullConfig().is_run_on_many_computers) {
-		return;
-	}
 
 	//Reset our offset if it's set to zero
 	if (displayOffset.getX()==0 && displayOffset.getY()==0) {

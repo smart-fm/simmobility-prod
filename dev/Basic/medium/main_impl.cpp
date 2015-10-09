@@ -464,12 +464,12 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 		Print::Ignore();
 	}
 
-	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply())
+    if (MT_Config::getInstance().RunningMidSupply())
 	{
 		Print() << "Mid-term run mode: supply" << endl;
 		return performMainSupply(configFileName, resLogFiles);
 	}
-	else if (ConfigManager::GetInstance().FullConfig().RunningMidDemand())
+    else if (MT_Config::getInstance().RunningMidDemand())
 	{
 		Print() << "Mid-term run mode: preday" << endl;
 		return performMainDemand();

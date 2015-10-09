@@ -246,9 +246,13 @@ public:
 	PathSetManager();
 	~PathSetManager();
 
+    void setRegionRestrictonEnabled(bool value);
+
+    bool getRegionRestrictonEnabled() const;
+
 private:
-	static PathSetManager *instance_;
-	static boost::mutex instanceMutex;
+    static PathSetManager *instance_;
+    static boost::mutex instanceMutex;
 
 	///	link to street directory
 	StreetDirectory& stdir;
@@ -343,6 +347,9 @@ private:
 
 	///	used to avoid entering duplicate "HAS_PATH=-1" pathset entries into PathSet. It will be removed once the cache and/or proper DB functions are in place
 	SimpleCollector tempNoPath;
+
+    /// Flag to indicate restricted region scenario
+    bool regionRestrictonEnabled;
 };
 
 /**

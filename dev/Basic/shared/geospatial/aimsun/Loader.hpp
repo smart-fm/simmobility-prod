@@ -116,7 +116,7 @@ public:
 
 	// get the screen line segments
 	static void getScreenLineSegments(const std::string& connectionStr,
-				const std::map<std::string, std::string>& storedProcs, std::vector<unsigned long>& screenLineList);
+                const std::map<std::string, std::string>& storedProcs, std::set<unsigned long>& screenLineList);
 
 	//Semi-private functions
 	static void ProcessGeneralNode(sim_mob::RoadNetwork& res, Node& src);

@@ -47,9 +47,9 @@ void PT_PathSetManager::PT_BulkPathSetGenerator()
 	this->ptPathSetWriter.open(ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetOutputFile.c_str());
 	std::set<PT_OD,compare_OD> PT_OD_Set;
 	//Reading the data from the database
-	const std::string& dbId = ConfigManager::GetInstance().FullConfig().system.networkDatabase.database;
+    const std::string& dbId = ConfigManager::GetInstance().FullConfig().networkDatabase.database;
 	Database database = ConfigManager::GetInstance().FullConfig().constructs.databases.at(dbId);
-	std::string cred_id = ConfigManager::GetInstance().FullConfig().system.networkDatabase.credentials;
+    std::string cred_id = ConfigManager::GetInstance().FullConfig().networkDatabase.credentials;
 	Credential credentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
 	std::string username = credentials.getUsername();
 	std::string password = credentials.getPassword(false);

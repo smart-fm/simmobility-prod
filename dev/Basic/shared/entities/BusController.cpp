@@ -284,7 +284,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_BusDispatch
 			}
 
 			if (busLineRegistered
-					&& sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes()) {
+                    && sim_mob::ConfigManager::GetInstance().FullConfig().generateBusRoutes) {
 				searchBusRoutes(stops, curr->routeId, allRoutes,allStops);
 			}
 
@@ -304,7 +304,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_BusDispatch
 		}
 	}
 
-	if (sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes())
+    if (sim_mob::ConfigManager::GetInstance().FullConfig().generateBusRoutes)
 	{
 
 		std::ofstream outputRoutes("routes.csv");

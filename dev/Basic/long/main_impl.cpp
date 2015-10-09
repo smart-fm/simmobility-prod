@@ -103,7 +103,6 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     config.baseGranMS() = tickStep;
     config.totalRuntimeTicks = days;
     config.defaultWrkGrpAssignment() = WorkGroup::ASSIGN_ROUNDROBIN;
-    config.singleThreaded() = false;
    
     //simulation time.
     StopWatch simulationWatch;
@@ -120,7 +119,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     vector<Model*> models;
     {
         WorkGroupManager wgMgr;
-        wgMgr.setSingleThreadMode(config.singleThreaded());
+        wgMgr.setSingleThreadMode(false);
         
         // -- Events injector work group.
         WorkGroup* logsWorker = wgMgr.newWorkGroup(1, days, tickStep);

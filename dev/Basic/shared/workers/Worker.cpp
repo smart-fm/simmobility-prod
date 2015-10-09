@@ -253,7 +253,7 @@ void sim_mob::Worker::processVirtualQueues() {
 }
 
 void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
-	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
+    if (ConfigManager::GetInstance().FullConfig().RunningMidTerm()) {
 		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 		{
 			const unsigned int msPerFrame = ConfigManager::GetInstance().FullConfig().baseGranMS();
@@ -274,7 +274,7 @@ void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
 void sim_mob::Worker::findBoundaryConfluxes() {
 	unsigned int boundaryCount = 0;
 	unsigned int multipleReceiverCount = 0;
-	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply()) {
+    if (ConfigManager::GetInstance().FullConfig().RunningMidTerm()) {
 		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
 		{
 			(*it)->findBoundaryConfluxes();
@@ -377,7 +377,7 @@ void sim_mob::Worker::threaded_function_loop()
 	///      Instead, add functionality into the sub-functions (perform_frame_tick(), etc.).
 	///      This is needed so that singleThreaded mode can be implemented easily. ~Seth
 	while (loop_params.active) {
-		if(ConfigManager::GetInstance().FullConfig().RunningMidSupply() && loop_params.currTick == 0)
+        if(ConfigManager::GetInstance().FullConfig().RunningMidTerm() && loop_params.currTick == 0)
 		{
 			initializeConfluxes(timeslice(loop_params.currTick, loop_params.currTick*loop_params.msPerFrame));
 			//Zero barrier
@@ -445,26 +445,26 @@ struct EntityUpdater {
 
 	virtual void operator() (sim_mob::Entity* entity) {
 		UpdateStatus res = entity->update(currTime);
-		if(ConfigManager::GetInstance().FullConfig().commSimEnabled())
+        if(ConfigManager::GetInstance().FullConfig().isWorkerPublisherEnabled())
 		{
 				Worker::GetUpdatePublisher().publish(event::EVT_CORE_AGENT_UPDATED,(void*)event::CXT_CORE_AGENT_UPDATE,UpdateEventArgs(entity));
 //				std::cout << "tick: " << currTime.frame() << " : Entity update-done published for agent [" << entity->getId() << "] " << std::endl;
 		}
-			if (res.status == UpdateStatus::RS_DONE) {
-				//This Entity is done; schedule for deletion.
-				wrk.scheduleForRemoval(entity);
-				//entity->can_remove_by_RTREE = true;
-			} else if (res.status == UpdateStatus::RS_CONTINUE) {
-				//Still going, but we may have properties to start/stop managing
-				for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
-					wrk.stopManaging(*it);
-				}
-				for (set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
-					wrk.beginManaging(*it);
-				}
-			} else {
-				throw std::runtime_error("Unknown/unexpected update() return status.");
-			}
+        if (res.status == UpdateStatus::RS_DONE) {
+            //This Entity is done; schedule for deletion.
+            wrk.scheduleForRemoval(entity);
+            //entity->can_remove_by_RTREE = true;
+        } else if (res.status == UpdateStatus::RS_CONTINUE) {
+            //Still going, but we may have properties to start/stop managing
+            for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
+                wrk.stopManaging(*it);
+            }
+            for (set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
+                wrk.beginManaging(*it);
+            }
+        } else {
+            throw std::runtime_error("Unknown/unexpected update() return status.");
+        }
 	}
 };
 
@@ -598,7 +598,7 @@ void sim_mob::Worker::initializeConfluxes(timeslice currTime)
 void sim_mob::Worker::update_entities(timeslice currTime)
 {
 	//Confluxes require an additional set of updates.
-	if (ConfigManager::GetInstance().FullConfig().RunningMidSupply())
+    if (ConfigManager::GetInstance().FullConfig().RunningMidTerm())
 	{
 		Conflux* conflux = nullptr;
 		if(ConfigManager::GetInstance().FullConfig().OutputEnabled())

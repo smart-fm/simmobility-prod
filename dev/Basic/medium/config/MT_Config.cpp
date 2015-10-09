@@ -32,6 +32,10 @@ MT_Config::MT_Config() :
 
 MT_Config::~MT_Config()
 {
+    clear_delete_vector(confluxes);
+    clear_delete_vector(segmentStatsWithBusStops);
+    clear_delete_map(multinode_confluxes);
+
 	safe_delete_item(instance);
 }
 
@@ -81,19 +85,6 @@ void MT_Config::setSupplyUpdateInterval(unsigned supplyUpdateInterval)
 	if(!configSealed)
 	{
 		this->supplyUpdateInterval = supplyUpdateInterval;
-	}
-}
-
-const StoredProcedureMap& MT_Config::getStoredProcedure() const
-{
-	return storedProcedure;
-}
-
-void MT_Config::setStoredProcedureMap(const StoredProcedureMap& storedProcedure)
-{
-	if(!configSealed)
-	{
-		this->storedProcedure = storedProcedure;
 	}
 }
 
@@ -170,11 +161,11 @@ const PredayCalibrationParams& MT_Config::getSPSA_CalibrationParams() const
 	return spsaCalibrationParams;
 }
 
-void MT_Config::setSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams)
+void MT_Config::setSPSA_CalibrationParams(const PredayCalibrationParams& spsaCalibrationParams)
 {
 	if(!configSealed)
 	{
-		this->spsaCalibrationParams = predayCalibrationParams;
+        this->spsaCalibrationParams = spsaCalibrationParams;
 	}
 }
 
@@ -275,15 +266,15 @@ void MT_Config::setCalibrationMethodology(const std::string calibrationMethod)
 	}
 }
 
-void MT_Config::setWSPSA_CalibrationParams(const PredayCalibrationParams& predayCalibrationParams)
+void MT_Config::setWSPSA_CalibrationParams(const PredayCalibrationParams& wspsaCalibrationParams)
 {
 	if(!configSealed)
 	{
-		if(runningWSPSA() && predayCalibrationParams.getWeightMatrixFile().empty())
+        if(runningWSPSA() && wspsaCalibrationParams.getWeightMatrixFile().empty())
 		{
 			throw std::runtime_error("weight matrix is not provided for WSPSA");
 		}
-		this->wspsaCalibrationParams = predayCalibrationParams;
+        this->wspsaCalibrationParams = wspsaCalibrationParams;
 	}
 }
 
@@ -397,6 +388,90 @@ void MT_Config::setPopulationDb(const std::string& populationDb, const std::stri
 		populationDB.database = populationDb;
 		populationDB.credentials = populationCred;
 	}
+}
+
+bool MT_Config::RunningMidSupply() const {
+    return (midTermRunMode == MT_Config::SUPPLY);
+}
+
+bool MT_Config::RunningMidDemand() const {
+    return (midTermRunMode == MT_Config::PREDAY);
+}
+
+void MT_Config::setMidTermRunMode(const std::string& runMode)
+{
+    if(runMode.empty()) { return; }
+    if(runMode == "supply" || runMode == "withinday")
+    {
+        midTermRunMode = MT_Config::SUPPLY;
+    }
+    else if (runMode == "preday")
+    {
+        midTermRunMode = MT_Config::PREDAY;
+    }
+    else
+    {
+        throw std::runtime_error("inadmissible value for mid_term_run_mode. Must be either 'supply' or 'preday'");
+    }
+}
+
+bool MT_Config::CBD() const{
+    return cbd;
+}
+
+bool MT_Config::PublicTransitEnabled() const{
+    return publicTransitEnabled;
+}
+
+
+std::vector<IncidentParams>& MT_Config::getIncidents(){
+    return incidents;
+}
+
+const std::set<sim_mob::Conflux*>& MT_Config::getConfluxes() const
+{
+    return confluxes;
+}
+
+std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& MT_Config::getConfluxNodes()
+{
+    return multinode_confluxes;
+}
+
+const std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& MT_Config::getConfluxNodes() const
+{
+    return multinode_confluxes;
+}
+
+sim_mob::Conflux* MT_Config::getConfluxForNode(const sim_mob::MultiNode* multinode) const
+{
+    std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>::const_iterator cfxIt = multinode_confluxes.find(multinode);
+    if(cfxIt == multinode_confluxes.end()) { return nullptr; }
+    return cfxIt->second;
+}
+
+std::set<sim_mob::Conflux*>& MT_Config::getConfluxes()
+{
+    return confluxes;
+}
+
+std::set<sim_mob::SegmentStats*>& MT_Config::getSegmentStatsWithBusStops()
+{
+    return segmentStatsWithBusStops;
+}
+
+unsigned int MT_Config::personTimeStepInMilliSeconds() const
+{
+    return workers.person.granularityMs;
+}
+
+std::string sim_mob::ConfigParams::busline_control_type() const
+{
+    std::map<std::string,std::string>::const_iterator it = system.genericProps.find("busline_control_type");
+    if (it==system.genericProps.end()) {
+        throw std::runtime_error("busline_control_type property not found.");
+    }
+    return it->second;
 }
 
 }

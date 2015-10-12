@@ -15,7 +15,7 @@
 #include "entities/roles/Role.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/UpdateParams.hpp"
-#include "geospatial/Node.hpp"
+#include "geospatial/network/Node.hpp"
 
 namespace sim_mob
 {
@@ -55,8 +55,8 @@ public:
 	void setActivityStartTime(sim_mob::DailyTime activityStartTime);
 	sim_mob::DailyTime getActivityEndTime() const;
 	void setActivityEndTime(sim_mob::DailyTime activityEndTime);
-	sim_mob::Node* getLocation() const;
-	void setLocation(sim_mob::Node* location);
+	const Node* getLocation() const;
+	void setLocation(const Node *location);
 	int getRemainingTimeToComplete() const;
 
 	/**
@@ -72,7 +72,7 @@ public:
 private:
 	sim_mob::DailyTime activityStartTime;
 	sim_mob::DailyTime activityEndTime;
-	sim_mob::Node* location;
+	const Node* location;
 	int remainingTimeToComplete;
 
 	friend class ActivityPerformerBehavior;

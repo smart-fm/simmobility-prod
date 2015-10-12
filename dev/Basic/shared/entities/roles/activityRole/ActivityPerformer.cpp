@@ -14,7 +14,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/Person.hpp"
-#include "geospatial/Node.hpp"
+#include "geospatial/network/Node.hpp"
 #include "logging/Log.hpp"
 
 using std::vector;
@@ -68,12 +68,12 @@ void sim_mob::ActivityPerformer::setActivityStartTime(sim_mob::DailyTime activit
 	this->activityStartTime = activityStartTime;
 }
 
-sim_mob::Node* sim_mob::ActivityPerformer::getLocation() const
+const Node* sim_mob::ActivityPerformer::getLocation() const
 {
 	return location;
 }
 
-void sim_mob::ActivityPerformer::setLocation(sim_mob::Node* location)
+void sim_mob::ActivityPerformer::setLocation(const Node* location)
 {
 	this->location = location;
 }

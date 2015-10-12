@@ -4,7 +4,7 @@
 
 #include "ActivityFacets.hpp"
 #include "logging/Log.hpp"
-#include "geospatial/MultiNode.hpp"
+#include "geospatial/network/Node.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
@@ -73,7 +73,7 @@ sim_mob::TravelMetric& sim_mob::ActivityPerformerMovement::finalizeTravelTimeMet
 
 sim_mob::Conflux* sim_mob::ActivityPerformerMovement::getStartingConflux() const
 {
-	const sim_mob::MultiNode* activityLocation = dynamic_cast<sim_mob::MultiNode*>(parentActivity->getLocation());
+	const Node* activityLocation = parentActivity->getLocation();
 	if(activityLocation) //activity locations must ideally be multinodes
 	{
 		return ConfigManager::GetInstanceRW().FullConfig().getConfluxForNode(activityLocation);

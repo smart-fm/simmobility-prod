@@ -11,9 +11,9 @@
 
 #include "BoundarySegment.hpp"
 
-#include "geospatial/Lane.hpp"
+#include "geospatial/network/Lane.hpp"
 
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "util/GeomHelpers.hpp"
 #include "logging/Log.hpp"
 
@@ -22,7 +22,7 @@ using namespace sim_mob;
 
 //Use anonymous namespaces for private helper functions.
 namespace {
-void outputLine(Point2D& start_p, Point2D& end_p, std::string color)
+void outputLine(Point& start_p, Point& end_p, std::string color)
 {
 	static int line_id = 100;
 std::cout.operator <<(std::endl);
@@ -42,12 +42,12 @@ void sim_mob::BoundarySegment::buildBoundaryBox(double boundary_length, double b
 	int lane_count = boundarySegment->getLanes().size();
 	int middle_lane = lane_count / 2;
 	sim_mob::Lane* the_lane = boundarySegment->getLanes()[middle_lane];
-	const std::vector<sim_mob::Point2D>& the_lines = the_lane->getPolyline();
-	const Point2D& start_node = the_lines[0];
-	const Point2D& end_node = the_lines[the_lines.size() - 1];
+	const std::vector<PolyPoint> the_lines = the_lane->getPolyLine()->getPoints();
+	const Point& start_node = the_lines[0];
+	const Point& end_node = the_lines[the_lines.size() - 1];
 
-	Point2D down_point = sim_mob::getMiddlePoint2D(&start_node, &end_node, down_offset);
-	Point2D up_point = sim_mob::getMiddlePoint2D(&start_node, &end_node, up_offset);
+	Point down_point = sim_mob::getMiddlePoint2D(&start_node, &end_node, down_offset);
+	Point up_point = sim_mob::getMiddlePoint2D(&start_node, &end_node, up_offset);
 
 	double length = dist(down_point, up_point);
 	double ratio = boundary_width * 1.0 / length;
@@ -55,10 +55,10 @@ void sim_mob::BoundarySegment::buildBoundaryBox(double boundary_length, double b
 	int x_dis = (int) ((down_point.getY() - up_point.getY()) * ratio);
 	int y_dis = (int) ((down_point.getX() - up_point.getX()) * ratio);
 
-	Point2D firstPoint(down_point.getX() + x_dis, down_point.getY() - y_dis);
-	Point2D secondPoint(down_point.getX() - x_dis, down_point.getY() + y_dis);
-	Point2D thirdPoint(up_point.getX() - x_dis, up_point.getY() + y_dis);
-	Point2D forthPoint(up_point.getX() + x_dis, up_point.getY() - y_dis);
+	Point firstPoint(down_point.getX() + x_dis, down_point.getY() - y_dis);
+	Point secondPoint(down_point.getX() - x_dis, down_point.getY() + y_dis);
+	Point thirdPoint(up_point.getX() - x_dis, up_point.getY() + y_dis);
+	Point forthPoint(up_point.getX() + x_dis, up_point.getY() - y_dis);
 
 	bounary_box.push_back(firstPoint);
 	bounary_box.push_back(secondPoint);
@@ -72,8 +72,8 @@ void sim_mob::BoundarySegment::buildBoundaryBox(double boundary_length, double b
 	int middle_2_x = (secondPoint.getX() + thirdPoint.getX()) / 2;
 	int middle_2_y = (secondPoint.getY() + thirdPoint.getY()) / 2;
 
-	Point2D middlePoint_1(middle_1_x, middle_1_y);
-	Point2D middlePoint_2(middle_2_x, middle_2_y);
+	Point middlePoint_1(middle_1_x, middle_1_y);
+	Point middlePoint_2(middle_2_x, middle_2_y);
 
 	int width_of_section = 3 * 100 * lane_count;
 	double length_points = sim_mob::dist(middlePoint_1, middlePoint_2);
@@ -85,8 +85,8 @@ void sim_mob::BoundarySegment::buildBoundaryBox(double boundary_length, double b
 	int long_x = middle_1_x + (middle_2_x - middle_1_x) / length_points * dis_long;
 	int long_y = middle_1_y + (middle_2_y- middle_1_y) / length_points * dis_long;
 
-	cut_line_start = new Point2D(short_x, short_y);
-	cut_line_to = new Point2D(long_x, long_y);
+	cut_line_start = new Point(short_x, short_y);
+	cut_line_to = new Point(long_x, long_y);
 }
 
 
@@ -99,7 +99,7 @@ void sim_mob::BoundarySegment::output()
 
 	outputLine(*cut_line_start, *cut_line_to, "red");
 
-	std::vector<Point2D>::iterator itr = bounary_box.begin();
+	std::vector<Point>::iterator itr = bounary_box.begin();
 
 	for (unsigned int i = 0; i < bounary_box.size() - 1; i++) {
 		outputLine(*(itr + i), *(itr + i + 1), "blue");

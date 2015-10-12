@@ -9,7 +9,7 @@
 #include "util/GeomHelpers.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/DailyTime.hpp"
-#include "geospatial/Point2D.hpp"
+#include "geospatial/network/Point.hpp"
 
 using namespace sim_mob;
 

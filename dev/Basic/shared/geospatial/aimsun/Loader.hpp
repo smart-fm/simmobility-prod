@@ -36,7 +36,7 @@ class ERP_Section;
 class ERP_Surcharge;
 class LinkTravelTime;
 class PT_PathSet;
-class TurningSection;
+class TurningPath;
 class TurningConflict;
 class TurningPolyline;
 class Polypoint;

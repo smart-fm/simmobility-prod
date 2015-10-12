@@ -18,15 +18,14 @@
 #include "Turning.hpp"
 #include "Polyline.hpp"
 #include "BusStop.hpp"
-#include "./Signal.hpp"
+#include "Signal.hpp"
 #include "Phase.hpp"
 #include "path/Path.hpp"
 #include "path/PathSetParam.hpp"
 #include "entities/PersonLoader.hpp"
-#include "geospatial/TurningSection.hpp"
-#include "geospatial/TurningConflict.hpp"
-#include "geospatial/TurningPolyline.h"
-#include "geospatial/Polypoint.h"
+#include "geospatial/network/TurningPath.hpp"
+#include "geospatial/network/TurningConflict.hpp"
+#include "geospatial/network/PolyLine.hpp"
 
 //using namespace sim_mob::aimsun;
 //using std::string;
@@ -50,6 +49,7 @@ template<> struct type_conversion<sim_mob::CBD_Pair>
     	res.to_section = vals.get<int>("to_section", 0);
     }
 };
+
 template<> struct type_conversion<sim_mob::aimsun::Node>
 {
     typedef values base_type;
@@ -190,6 +190,8 @@ template<> struct type_conversion<sim_mob::SegmentType>
         ind = i_ok;
     }
 };
+
+/*
 template<> struct type_conversion<sim_mob::NodeType>
 {
     typedef values base_type;
@@ -205,6 +207,8 @@ template<> struct type_conversion<sim_mob::NodeType>
         ind = i_ok;
     }
 };
+*/
+
 template<> struct type_conversion<sim_mob::ERP_Gantry_Zone>
 {
     typedef values base_type;
@@ -481,10 +485,11 @@ template<> struct type_conversion<sim_mob::aimsun::BusStopSG>
     }
 };
 
-template<> struct type_conversion<sim_mob::TurningSection>
+/*
+template<> struct type_conversion<TurningPath>
 {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::TurningSection &res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, TurningPath &res)
     {
     	res.setDbId(vals.get<int>("id", -1));
     	res.setFrom_xpos(vals.get<double>("from_xpos", -1.0));
@@ -498,7 +503,7 @@ template<> struct type_conversion<sim_mob::TurningSection>
         res.setTurningSpeed(vals.get<int>("turning_speed", 20));
         res.setHasStopSign(vals.get<int>("has_stop_sign", 0));
     }
-    static void to_base(const sim_mob::TurningSection& src, soci::values& vals, soci::indicator& ind)
+    static void to_base(const TurningPath& src, soci::values& vals, soci::indicator& ind)
     {
     	vals.set("id", src.getDbId());
     	vals.set("from_xpos", src.getFrom_xpos());
@@ -539,6 +544,7 @@ template<> struct type_conversion<sim_mob::TurningConflict>
         ind = i_ok;
     }
 };
+
 template<> struct type_conversion<sim_mob::TurningPolyline>
 {
     typedef values base_type;
@@ -560,6 +566,7 @@ template<> struct type_conversion<sim_mob::TurningPolyline>
         ind = i_ok;
     }
 };
+
 template<> struct type_conversion<sim_mob::Polypoint>
 {
     typedef values base_type;
@@ -585,4 +592,5 @@ template<> struct type_conversion<sim_mob::Polypoint>
         ind = i_ok;
     }
 };
+*/
 }

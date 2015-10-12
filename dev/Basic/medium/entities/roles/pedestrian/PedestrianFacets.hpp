@@ -9,7 +9,7 @@
 
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/Person.hpp"
-#include "geospatial/Link.hpp"
+#include "geospatial/network/Link.hpp"
 
 namespace sim_mob {
 

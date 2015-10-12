@@ -8,7 +8,7 @@
 #include "PedestrianFacets.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "geospatial/BusStop.hpp"
+#include "geospatial/network/BusStop.hpp"
 #include "Pedestrian.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 
@@ -160,7 +160,7 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 
 	StreetDirectory::VertexDesc source, destination;
 	std::vector<WayPoint> wayPoints;
-	Point2D src(0,0), dest(0,0);
+	Point src(0,0), dest(0,0);
 	if (subTrip.fromLocation.type_ == WayPoint::NODE
 			&& subTrip.toLocation.type_ == WayPoint::MRT_STOP) {
 		source = streetDirectory.DrivingVertex(*subTrip.fromLocation.node_);

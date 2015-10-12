@@ -38,7 +38,6 @@
 #include "entities/AuraManager.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/commsim/broker/Broker.hpp"
-#include "entities/fmodController/FMOD_Controller.hpp"
 #include "entities/LoopDetectorEntity.hpp"
 #include "entities/Person.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
@@ -49,12 +48,11 @@
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/driver/driverCommunication/DriverComm.hpp"
-#include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/pedestrian/Pedestrian2.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/TrafficWatch.hpp"
-#include "geospatial/simmobility_network/NetworkLoader.hpp"
+#include "geospatial/network/NetworkLoader.hpp"
 #include "logging/Log.hpp"
 #include "network/CommunicationManager.hpp"
 #include "network/ControlManager.hpp"
@@ -286,11 +284,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		signalStatusWorkers->assignAWorker(*it);
 	}
 
-	if(sim_mob::FMOD::FMOD_Controller::instanceExists())
-	{
-		personWorkers->assignAWorker( sim_mob::FMOD::FMOD_Controller::instance() );
-	}
-
 	if(sim_mob::AMOD::AMODController::instanceExists())
 	{
 		personWorkers->assignAWorker( sim_mob::AMOD::AMODController::instance() );
@@ -466,7 +459,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 					numDriver++;
 				}
 				
-				if (person->getRole() && dynamic_cast<Pedestrian*> (person->getRole())) 
+				if (person->getRole() && dynamic_cast<Pedestrian2 *> (person->getRole())) 
 				{
 					numPedestrian++;
 				}
@@ -531,7 +524,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	Print() << "Simulation complete; closing worker threads." << endl;
 	
 	//Destroy the road network
-	simmobility_network::RoadNetwork::resetInstance();
+	NetworkLoader::deleteInstance();
 
 	//Delete the AMOD controller instance
 	sim_mob::AMOD::AMODController::deleteInstance();

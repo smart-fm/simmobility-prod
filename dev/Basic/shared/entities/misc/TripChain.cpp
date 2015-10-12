@@ -8,7 +8,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include "entities/Person.hpp"
-#include "geospatial/Node.hpp"
+#include "geospatial/network/Node.hpp"
 
 
 using std::string;
@@ -57,19 +57,19 @@ sim_mob::Trip::Trip(std::string entId, std::string type, unsigned int seqNumber,
 	{
 		fromLocation = WayPoint( (Node*)from );
 	}
-	else if( fromLocationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP )
+	/*else if( fromLocationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP )
 	{
 		fromLocation = WayPoint( (BusStop*)from );
-	}
+	}*/
 
 	if( toLocationType == TripChainItem::LT_NODE )
 	{
 		toLocation = WayPoint( (Node*)to );
 	}
-	else if( toLocationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP )
+	/*else if( toLocationType == TripChainItem::LT_PUBLIC_TRANSIT_STOP )
 	{
 		toLocation = WayPoint( (BusStop*)to );
-	}
+	}*/
 }
 
 sim_mob::Trip::~Trip() {}

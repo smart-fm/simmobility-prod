@@ -12,6 +12,7 @@
 #include "buffering/Shared.hpp"
 #include "conf/settings/DisableMPI.h"
 #include "entities/misc/TripChain.hpp"
+#include "util/DailyTime.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -23,6 +24,7 @@ namespace sim_mob {
 /**
  * \author Yao Jin
  */
+class BusStop;
 class Busline;
 
 /**

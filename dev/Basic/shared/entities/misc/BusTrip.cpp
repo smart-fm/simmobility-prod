@@ -7,7 +7,7 @@
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "geospatial/BusStop.hpp"
+#include "geospatial/network/BusStop.hpp"
 #include "logging/Log.hpp"
 
 

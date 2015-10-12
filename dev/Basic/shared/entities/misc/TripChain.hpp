@@ -8,7 +8,7 @@
 #include <string>
 #include <string>
 
-#include "geospatial/WayPoint.hpp"
+#include "geospatial/network/WayPoint.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
 #include "util/OneTimeFlag.hpp"
@@ -178,7 +178,7 @@ class Activity: public sim_mob::TripChainItem {
 public:
 	//NOTE: I've gone with Harish's implementation here. Please double-check. ~Seth
 	std::string description;
-	sim_mob::Node* location;
+	const Node* location;
 	TripChainItem::LocationType locationType;
 	bool isPrimary;
 	bool isFlexible;
@@ -195,10 +195,8 @@ public:
  * \author Harish
  * \author zhang huai peng
  */
-class Trip: public sim_mob::TripChainItem {
-
-	friend class ::geo::Trip_t_pimpl;
-	friend class ::geo::SubTrip_t;
+class Trip: public sim_mob::TripChainItem
+{
 
 public:
 	std::string tripID;

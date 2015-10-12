@@ -751,8 +751,7 @@ double sim_mob::MITSIM_CF_Model::calcMergingRate(
 	// priority.  Seperate procedures are applied. (MITSIM TS_CFModels.cc)
 	DriverMovement *driverMvt = dynamic_cast<DriverMovement*>(p.driver->Movement());
 
-	if (driverMvt->fwdDriverMovement.getCurrSegment()->type
-			== sim_mob::LINK_TYPE_FREEWAY) // current on freeway
+	if (driverMvt->fwdDriverMovement.getCurrLink()->getLinkType() == LINK_TYPE_EXPRESSWAY) // current on freeway
 	{
 		if (p.nvLeadFreeway.exists()) // has lead vh on next link
 		{
@@ -767,8 +766,7 @@ double sim_mob::MITSIM_CF_Model::calcMergingRate(
 			}
 		}
 	}
-	else if (driverMvt->fwdDriverMovement.getCurrSegment()->type
-			== sim_mob::LINK_TYPE_RAMP) // on ramp
+	else if (driverMvt->fwdDriverMovement.getCurrLink()->getLinkType() == LINK_TYPE_RAMP) // on ramp
 	{
 		if (p.nvLagFreeway.exists()) // has lag vh on freeway
 		{

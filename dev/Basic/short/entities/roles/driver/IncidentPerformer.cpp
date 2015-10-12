@@ -39,9 +39,9 @@ void sim_mob::IncidentPerformer::responseIncidentStatus( DriverUpdateParams& p, 
 		//calculate the distance to the nearest front vehicle, if no front vehicle exists, the distance is given to a enough large gap as 5 kilometers
 		double fwdCarDist = 5000;
 		if( p.nvFwd.exists() ){
-			DPoint dFwd = p.nvFwd.driver->getCurrPosition();
-			DPoint dCur = parentDriver->getCurrPosition();
-			DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
+			Point dFwd = p.nvFwd.driver->getCurrPosition();
+			Point dCur = parentDriver->getCurrPosition();
+			DynamicVector movementVect(dFwd.getX(), dFwd.getY(), dCur.getX(), dCur.getY());
 			fwdCarDist = movementVect.getMagnitude()-parentDriver->getVehicle()->getLengthCm();
 			if(fwdCarDist < 0) {
 				fwdCarDist = parentDriver->getVehicle()->getLengthCm();
@@ -104,9 +104,9 @@ void sim_mob::IncidentPerformer::checkAheadVehicles( DriverUpdateParams& p){
 
 	Driver* parentDriver = p.driver;
 	if(p.nvFwd.exists() ){//avoid cars stacking together
-		DPoint dFwd = p.nvFwd.driver->getCurrPosition();
-		DPoint dCur = parentDriver->getCurrPosition();
-		DynamicVector movementVect(dFwd.x, dFwd.y, dCur.x, dCur.y);
+		Point dFwd = p.nvFwd.driver->getCurrPosition();
+		Point dCur = parentDriver->getCurrPosition();
+		DynamicVector movementVect(dFwd.getX(), dFwd.getY(), dCur.getX(), dCur.getY());
 		double len = parentDriver->getVehicle()->getLengthCm();
 		double dist = movementVect.getMagnitude();
 		if( dist < len){
@@ -124,7 +124,7 @@ void sim_mob::IncidentPerformer::checkIncidentStatus(DriverUpdateParams& p, time
 	const RoadSegment* curSegment = driverMvt->fwdDriverMovement.getCurrSegment();
 //	const Lane* curLane = parentDriver->getVehicle()->getCurrLane();
 	const Lane* curLane = driverMvt->fwdDriverMovement.getCurrLane();
-	int curLaneIndex = curLane->getLaneID() - curSegment->getLanes().at(0)->getLaneID();
+	int curLaneIndex = curLane->getLaneId() - curSegment->getLane(0)->getLaneId();
 	if(curLaneIndex<0){
 		return;
 	}
@@ -134,17 +134,17 @@ void sim_mob::IncidentPerformer::checkIncidentStatus(DriverUpdateParams& p, time
 	IncidentStatus::IncidentStatusType status = IncidentStatus::INCIDENT_CLEARANCE;
 	incidentStatus.setDistanceToIncident(0);
 
-	incidentStatus.setDefaultSpeedLimit(curSegment->maxSpeed*CONVERT_FACTOR_METER_PER_SEC);
+	incidentStatus.setDefaultSpeedLimit(curSegment->getMaxSpeed() * CONVERT_FACTOR_METER_PER_SEC);
 
-	const std::map<centimeter_t, const RoadItem*> obstacles = curSegment->getObstacles();
-	std::map<centimeter_t, const RoadItem*>::const_iterator obsIt;
+	const std::map<double, RoadItem *> obstacles = curSegment->getObstacles();
+	std::map<double, RoadItem *>::const_iterator obsIt;
 	double realDist = 0;
 	bool replan = false;
 	DriverMovement* driverMovement = dynamic_cast<DriverMovement*>(parentDriver->Movement());
 	if(!driverMovement){
 		return;
 	}
-	const RoadItem* roadItem = driverMovement->getRoadItemByDistance(sim_mob::INCIDENT, realDist);
+	const RoadItem* roadItem = NULL;//driverMovement->getRoadItemByDistance(sim_mob::INCIDENT, realDist);
 	if(roadItem) {//retrieve front incident obstacle
 		const Incident* incidentObj = dynamic_cast<const Incident*>( roadItem );
 

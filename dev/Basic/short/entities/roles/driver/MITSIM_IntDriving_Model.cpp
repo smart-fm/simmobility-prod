@@ -4,18 +4,26 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include <math.h>
+#include <cmath>
 
 #include "models/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
 #include "Driver.hpp"
+#include "util/Utils.hpp"
 
 using namespace std;
 using namespace sim_mob;
 
-MITSIM_IntDriving_Model::MITSIM_IntDriving_Model(sim_mob::DriverUpdateParams& params)
+MITSIM_IntDriving_Model::MITSIM_IntDriving_Model() :
+intersectionAttentivenessFactorMin(0), intersectionAttentivenessFactorMax(0), minimumGap(0), impatienceFactor(0), length(0), polylineMovement(0)
 {
-	totalMovement = 0;
+	modelType = Int_Model_MITSIM;
+}
+
+MITSIM_IntDriving_Model::MITSIM_IntDriving_Model(sim_mob::DriverUpdateParams& params) :
+intersectionAttentivenessFactorMin(0), intersectionAttentivenessFactorMax(0), minimumGap(0), impatienceFactor(0), length(0), polylineMovement(0)
+{
+	modelType = Int_Model_MITSIM;
 	initParam(params);
 }
 
@@ -24,66 +32,86 @@ MITSIM_IntDriving_Model::~MITSIM_IntDriving_Model()
 
 }
 
-void MITSIM_IntDriving_Model::startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset)
+double MITSIM_IntDriving_Model::getIntersectionAttentivenessFactorMin() const
 {
-//	makePolypoints(fromLanePt,toLanePt);
-	polypoints = currTurning->getPolylinePoints();
+	return intersectionAttentivenessFactorMin;
+}
+
+double MITSIM_IntDriving_Model::getIntersectionAttentivenessFactorMax() const
+{
+	return intersectionAttentivenessFactorMax;
+}
+
+double MITSIM_IntDriving_Model::getImpatienceFactor() const
+{
+	return impatienceFactor;
+}
+
+void MITSIM_IntDriving_Model::startDriving(const Point& fromLanePt, const Point& toLanePt, double startOffset)
+{
+	polypoints = currTurning->getPolyLine()->getPoints();
+	
 	// calculate polyline length
-	length = 0;
-	for(int i=0;i<polypoints.size()-1;++i){
-		double dx = polypoints.at(i+1).x-polypoints.at(i).x;
-		dx=dx*dx;
-		double dy = polypoints.at(i+1).y-polypoints.at(i).y;
-		dy=dy*dy;
-		length += sqrt(dx+dy);
-	}
+	length = currTurning->getLength();
+	
 	polypointIter = polypoints.begin();
-	DPoint p1 = (*polypointIter);
-	DPoint p2 = *(polypointIter+1);
-	currPolyline = DynamicVector ( p1.x, p1.y, p2.x, p2.y);
+	Point p1 = (*polypointIter);
+	Point p2 = *(polypointIter+1);
+	
+	currPolyline = DynamicVector ( p1.getX(), p1.getY(), p2.getX(), p2.getY());
 	polypointIter++;
-	if(polypointIter == polypoints.end()) {
+	
+	if(polypointIter == polypoints.end()) 
+	{
 		//poly-points only have one point! throw error
 		std::string str = "MITSIM_IntDriving_Model poly-points only have one point.";
 		throw std::runtime_error(str);
 	}
+	
 	currPosition = fromLanePt;
 	totalMovement = startOffset;
 	polylineMovement = startOffset;
 }
 
-DPoint MITSIM_IntDriving_Model::continueDriving(double amount,DriverUpdateParams& p)
+Point MITSIM_IntDriving_Model::continueDriving(double amount,DriverUpdateParams& p)
 {
-	if(amount == 0){
+	if(amount == 0)
+	{
 		return currPosition;
 	}
+	
 	totalMovement += amount;
+	
 	// check "amount" exceed the rest length of the DynamicVector
-	DynamicVector tt(currPosition.x,currPosition.y,currPolyline.getEndX(),currPolyline.getEndY());
+	DynamicVector tt(currPosition.getX(),currPosition.getY(),currPolyline.getEndX(),currPolyline.getEndY());
 	double restLen = tt.getMagnitude();
-
-	double a = amount;
-	if (amount > restLen &&  polypointIter != polypoints.end() && polypointIter+1 != polypoints.end() ){
+	
+	if (amount > restLen &&  polypointIter != polypoints.end() && polypointIter+1 != polypoints.end())
+	{
 		// move to next polyline, if has
 		polylineMovement = amount - restLen;
-		currPolyline = DynamicVector ( (*polypointIter).x, (*polypointIter).y, (*(polypointIter+1)).x, (*(polypointIter+1)).y);
+		currPolyline = DynamicVector ( (*polypointIter).getX(), (*polypointIter).getY(), (*(polypointIter+1)).getX(), (*(polypointIter+1)).getY());
 		polypointIter++;
+		
 		// current polyline length
 		double l = currPolyline.getMagnitude();
-		while(polylineMovement > l && polypointIter != polypoints.end() && polypointIter+1 != polypoints.end()){
+		
+		while(polylineMovement > l && polypointIter != polypoints.end() && polypointIter+1 != polypoints.end())
+		{
 			polylineMovement = polylineMovement - l;
-			currPolyline = DynamicVector ( (*polypointIter).x, (*polypointIter).y, (*(polypointIter+1)).x, (*(polypointIter+1)).y);
+			currPolyline = DynamicVector ( (*polypointIter).getX(), (*polypointIter).getY(), (*(polypointIter+1)).getX(), (*(polypointIter+1)).getY());
 			polypointIter++;
 		}
 	}
-	else {
+	else 
+	{
 		polylineMovement += amount;
 	}
 
 	DynamicVector temp = currPolyline;
 	temp.scaleVectTo (polylineMovement).translateVect ();
 
-	currPosition = DPoint (temp.getX (), temp.getY ());
+	currPosition = Point (temp.getX (), temp.getY ());
 
 	return currPosition;
 }
@@ -98,7 +126,9 @@ double MITSIM_IntDriving_Model::getCurrentAngle()
 	return currPolyline.getAngle();
 }
 
-void MITSIM_IntDriving_Model::makePolypoints(const DPoint& fromLanePt, const DPoint& toLanePt) {
+void MITSIM_IntDriving_Model::makePolypoints(const Point& fromLanePt, const Point& toLanePt) 
+{
+	/*
 	// 1.0 calculate circle radius
 	//http://rossum.sourceforge.net/papers/CalculationsForRobotics/CirclePath.htm
 
@@ -120,50 +150,52 @@ void MITSIM_IntDriving_Model::makePolypoints(const DPoint& fromLanePt, const DPo
 
 	// middle point position
 	double xm,ym;
-	if(fromLanePt.x > toLanePt.x){
+	if(fromLanePt.x > toLanePt.x)
+	{
 		xm = toLanePt.x + abs(dx)/2.0;
 	}
-	else {
+	else 
+	{
 		xm = fromLanePt.x + abs(dx)/2.0;
 	}
 
-	if(fromLanePt.y > toLanePt.y){
+	if(fromLanePt.y > toLanePt.y)
+	{
 		ym = toLanePt.y + abs(dy)/2.0;
 	}
-	else {
+	else 
+	{
 		ym = fromLanePt.y + abs(dy)/2.0;
 	}
 
 	double xx = b* cos(kk) + xm;
 	double yy = b*sin(kk) + ym;
 
-	DPoint dp(xx,yy);
+	Point dp(xx,yy);
 
 	polypoints.push_back(fromLanePt);
 	polypoints.push_back(dp);
 	polypoints.push_back(toLanePt);
 
-	//std::cout<<std::setprecision(10)<<"dp x: "<<dp.x<<" y: "<<dp.y<<std::endl;
-
-	length = sqrt( (fromLanePt.x-dp.x)*(fromLanePt.x-dp.x) + (fromLanePt.y-dp.y)*(fromLanePt.y-dp.y));
-	length += sqrt( (toLanePt.x-dp.x)*(toLanePt.x-dp.x) + (toLanePt.y-dp.y)*(toLanePt.y-dp.y));
+	length = sqrt((fromLanePt.x - dp.x)*(fromLanePt.x - dp.x) + (fromLanePt.y - dp.y)*(fromLanePt.y - dp.y));
+	length += sqrt((toLanePt.x - dp.x)*(toLanePt.x - dp.x) + (toLanePt.y - dp.y)*(toLanePt.y - dp.y));
+	*/
 }
 
-double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& params, const TurningSection* currTurning)
+double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& params)
 {
 	double acc = params.maxAcceleration;
 	const double vehicleLength = params.driver->getVehicleLengthM();
 	
+	/*
 	//Safety margin distance in front of the vehicle (half a vehicle length seems a reasonable margin)
 	const double safeDist = 1.5 * vehicleLength;
 	double distToStopLine = params.driver->distToIntersection_.get() - safeDist;
 	
-	/*
-	Print() << "\nTime:" << params.now.frame();
-	Print() << "\nID:" << params.parentId;
-	Print() << "\nDistToStopLine:" << distToStopLine;
-	*/
-	
+	//Print() << "\nTime:" << params.now.frame();
+	//Print() << "\nID:" << params.parentId;
+	//Print() << "\nDistToStopLine:" << distToStopLine;
+			
 	//Check if we've stopped close enough to the stop line
 	if (distToStopLine <= 1 && params.currSpeed <= 0.1)
 	{
@@ -241,9 +273,8 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& par
 			cfltDistFrmTurning = (*itConflicts)->getSecond_cd();
 		}
 		
-		/*
-		Print() << "\tConfDist:" << cfltDistFrmTurning;
-		Print() << "\tDistOnTurn:" << params.driver->moveDisOnTurning_ / 100;*/
+		//Print() << "\tConfDist:" << cfltDistFrmTurning;
+		//Print() << "\tDistOnTurn:" << params.driver->moveDisOnTurning_ / 100;
 	
 		//Calculate the distance to conflict point from current position
 		distToConflict = cfltDistFrmTurning - (params.driver->moveDisOnTurning_ / 100);
@@ -277,11 +308,18 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& par
 		if (distToConflict > vehicleLength)
 		{
 			//Time taken to reach conflict by current driver
-			double timeToConflict = 0;
+			double timeToConflict = calcArrivalTime(abs(distToConflict), params);
 			
-			if (params.currSpeed > 1.0)
+			if(timeToConflict == -1)
 			{
-				timeToConflict = abs(distToConflict) / params.currSpeed;
+				if(params.currSpeed > 1.0)
+				{
+					timeToConflict = abs(distToConflict) / params.currSpeed;
+				}
+				else
+				{
+					timeToConflict = 0;
+				}
 			}
 			
 			//Print() << "\tTimeToConflict:" << timeToConflict;
@@ -495,7 +533,7 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& par
 			//Print() << "\nConflict " << (*itConflicts)->getDbId() << " crossed. Distance: " << distToConflict;
 		}
 	}
-	
+	*/
 	return acc;
 }
 
@@ -556,6 +594,8 @@ void MITSIM_IntDriving_Model::initParam(DriverUpdateParams& params)
 
 double MITSIM_IntDriving_Model::brakeToStop(double distance, DriverUpdateParams& params)
 {
+	double acc = 0;
+	
 	if (distance > sim_mob::Math::DOUBLE_EPSILON)
 	{
 		//v^2 = u^2 + 2as (Equation of motion)
@@ -563,36 +603,108 @@ double MITSIM_IntDriving_Model::brakeToStop(double distance, DriverUpdateParams&
 		//v = final velocity, u = initial velocity
 		//a = acceleration, s = displacement
 		double sqCurrVel = params.currSpeed * params.currSpeed;
-		double acc = -sqCurrVel / distance * 0.5;
+		
+		acc = -sqCurrVel / distance * 0.5;
 
 		if (acc <= params.normalDeceleration)
 		{
-			return acc;
+			acc = params.normalDeceleration;
 		}
-
-		double dt = params.nextStepSize;
-		double vt = params.currSpeed * dt;
-		double a = dt * dt;
-		double b = 2.0 * vt - params.normalDeceleration * a;
-		double c = sqCurrVel + 2.0 * params.normalDeceleration * (distance - vt);
-		double d = b * b - 4.0 * a * c;
-
-		if (d < 0 || a <= 0.0)
+		else
 		{
-			return acc;
-		}
+			double dt = params.nextStepSize;
+			double vt = params.currSpeed * dt;
+			double a = dt * dt;
+			double b = 2.0 * vt - params.normalDeceleration * a;
+			double c = sqCurrVel + 2.0 * params.normalDeceleration * (distance - vt);
+			double d = b * b - 4.0 * a * c;
 
-		return (sqrt(d) - b) / a * 0.5;
+			if (!(d < 0 || a <= 0.0))
+			{
+				acc = (sqrt(d) - b) / a * 0.5;
+			}			
+		}
 	} 
 	else
 	{
 		double dt = params.nextStepSize;
-		return (dt > 0.0) ? -(params.currSpeed) / dt : params.maxDeceleration;
+		acc = (dt > 0.0) ? -(params.currSpeed) / dt : params.maxDeceleration;
 	}
+	
+	//Make sure the value is bounded
+	if (acc > params.maxAcceleration)
+	{
+		acc = params.maxAcceleration;
+	}
+
+	if (acc < params.maxDeceleration)
+	{
+		acc = params.maxDeceleration;
+	}
+	
+	return acc;
 }
 
 double MITSIM_IntDriving_Model::crawlingAcc(double distance, DriverUpdateParams& params)
 {
 	//Acceleration to slowly crawl towards the conflict point
 	return 2 * ((distance / 2) - params.currSpeed * params.nextStepSize) / (params.nextStepSize * params.nextStepSize);
+}
+
+double MITSIM_IntDriving_Model::calcArrivalTime(double distance, DriverUpdateParams& params)
+{
+	double arrivalTime = -1, acceleration = 0, finalVel = 0;
+	
+	//The final velocity is limited by the turning speed, so calculate the acceleration required to
+	//achieve the final velocity
+	//v^2 = u^2 + 2as
+	//So, a = (v^2 - u^2) / (2s)
+	
+	//Get the speed limit and convert it to m/s
+	finalVel = 1;//currTurning->getTurningSpeed() / 3.6;
+	
+	//Calculate the acceleration
+	acceleration = ((finalVel * finalVel) - (params.currSpeed * params.currSpeed)) / (2 * distance);
+	
+	//We know s = ut + (1/2)at^2
+	//To find the time required, we rearrange the equation as follows:
+	//(1/2)at^2 + ut - s = 0	This is a quadratic equation AX^2 + BX + C = 0 and we can solve for t
+	//A = (1/2)a; B = u; C = -s
+	
+	if(acceleration == 0 && params.currSpeed != 0)
+	{
+		//Acceleration is 0, so we have a linear relation : ut - s = 0
+		arrivalTime = distance / params.currSpeed;
+	}
+	else
+	{
+		//As it is a quadratic equation, we will have two solutions
+		double sol1 = 0, sol2 = 0;
+
+		//The discriminant (b^2 - 4ac)
+		double discriminant = (params.currSpeed * params.currSpeed) - (2 * acceleration * (-distance));
+
+		if(discriminant >= 0)
+		{
+			//Calculate the solutions
+			sol1 = (-params.currSpeed - sqrt(discriminant)) / acceleration;
+			sol2 = (-params.currSpeed + sqrt(discriminant)) / acceleration;
+
+			//As time can be negative, return the solution that is a positive value	
+			if (sol1 >= 0 && sol2 >= 0)
+			{
+				arrivalTime = min(sol1, sol2);
+			}
+			else if (sol1 >= 0)
+			{
+				arrivalTime = sol1;
+			}
+			else if(sol2 >= 0)
+			{
+				arrivalTime = sol2;
+			}
+		}		
+	}
+	
+	return arrivalTime;
 }

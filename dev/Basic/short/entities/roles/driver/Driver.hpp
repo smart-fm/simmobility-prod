@@ -26,13 +26,13 @@ namespace sim_mob
 {
 
 //Forward declarations
-class Pedestrian;
+class Pedestrian2;
 class Signal;
 class Link;
-class simmobility_network::RoadSegment;
-class simmobility_network::Lane;
-class simmobility_network::Node;
-class DPoint;
+class RoadSegment;
+class Lane;
+class Node;
+class Point;
 class UpdateParams;
 class DriverBehavior;
 class DriverMovement;
@@ -55,20 +55,6 @@ class UnPackageUtils;
   class Driver : public sim_mob::Role , public UpdateWrapper<DriverUpdateParams>
   {
   private:
-
-    //Internal classes
-    //Helper class for grouping a Node and a Point2D together.
-    class NodePoint
-    {
-    public:
-      Point2D point;
-      const Node* node;
-
-      NodePoint() : point(0, 0), node(nullptr)
-      {
-      }
-    } ;
-
     //Indicates whether the driver is in a loading queue. There isn't actually any data structure to represent this
     //queue. We use the fact that at every time tick, agents are going to be processed sequentially anyway.
     //If this boolean is true, it means that there is no space for it on the road.
@@ -89,7 +75,7 @@ class UnPackageUtils;
   protected:
     
     //Current position of the Driver
-    DPoint currPos;
+    Point currPos;
 
   public:
     
@@ -102,14 +88,14 @@ class UnPackageUtils;
      These values are stored the double buffer because they are needed by other drivers.*/
     
     //The driver's current lane
-    Shared<const simmobility_network::Lane*> currLane_;
+    Shared<const Lane*> currLane_;
     
     //Indicates whether the driver is in an intersection
     Shared<bool> isInIntersection_;
     
     //Pointer to a turning object. The driver is either on the turning (if in intersection) or will be
     //soon (currently approaching an intersection)
-    Shared<const simmobility_network::TurningPath *> currTurning_;
+    Shared<const TurningPath *> currTurning_;
     
     //Represents the distance covered within an intersection (in centimetre)
     Shared<double> moveDisOnTurning_;
@@ -169,10 +155,10 @@ class UnPackageUtils;
     FixedDelayed<double> *perceivedDistToTrafficSignal;
 
     //The origin of the driver's trip
-    NodePoint origin;
+    const Node *origin;
     
     //The destination of the driver's trip
-    NodePoint goal;
+    const Node *goal;
 
     //For FMOD request
     Shared<std::string> stop_event_time;
@@ -244,14 +230,14 @@ class UnPackageUtils;
     const double getFwdVelocityM() const;
 
     //Returns the current position of the driver
-    const DPoint& getCurrPosition() const;
+    const Point& getCurrPosition() const;
 
     //Sets a new path from the current segment to the destination.
     //NOTE: Used only by road-runner. The vehicle will restart from the start of the current segment
     void rerouteWithPath(const std::vector<sim_mob::WayPoint>& path);
 
     //Sets the current position of the driver
-    void setCurrPosition(DPoint currPosition);
+    void setCurrPosition(Point currPosition);
 
     //Sets the reaction time of the driver to the one provided (in milli-seconds). 
     //Also resets the perception delays accordingly.

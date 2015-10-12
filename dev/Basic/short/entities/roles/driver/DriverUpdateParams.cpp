@@ -18,7 +18,8 @@ DriverUpdateParams::DriverUpdateParams()
 	v_lead(0), space_star(0), distanceToNormalStop(0), dis2stop(0), impatienceTimer(0.0), nextLaneIndex(0), justChangedToNewSegment(false),
 	justMovedIntoIntersection(false), overflowIntoIntersection(0), driver(NULL), isTargetLane(false), emergHeadway(999), acc(0),
 	density(0), initSegId(0), initDis(0), initSpeed(0), parentId(0), FFAccParamsBeta(0), nextStepSize(0), maxAcceleration(0), normalDeceleration(0),
-	lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), impatienceTimerStart(0.0), hasStoppedForStopSign(false)
+	lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), impatienceTimerStart(0.0), hasStoppedForStopSign(false), accessTime(0), isResponseReceived(false),
+	useIntAcc(false)
 {
 }
 
@@ -55,6 +56,7 @@ void DriverUpdateParams::buildDebugInfo()
 	
 	s << "            " << parentId << ":" << accSelect << ":" << acc;
 	s << ":speed:" << currSpeed;
+	s << ":arrTime:" << accessTime;
 
 #if 0
 	//debug car jump;
@@ -185,16 +187,16 @@ void DriverUpdateParams::buildDebugInfo()
 	debugInfo = s.str();
 }
 
-void DriverUpdateParams::addTargetLanes(set<const simmobility_network::Lane*> tl)
+void DriverUpdateParams::addTargetLanes(set<const Lane*> tl)
 {
-	set<const simmobility_network::Lane*> newTargetLanes;
-	set<const simmobility_network::Lane*>::iterator it;
+	set<const Lane*> newTargetLanes;
+	set<const Lane*>::iterator it;
 
 	// find Lane* in both tl and targetLanes
 	for(it = tl.begin(); it != tl.end(); ++it)
 	{
-		const simmobility_network::Lane* l = *it;
-		set<const simmobility_network::Lane*>::iterator itFind = targetLanes.find(l);
+		const Lane* l = *it;
+		set<const Lane*>::iterator itFind = targetLanes.find(l);
 		if(itFind != targetLanes.end())
 		{
 			newTargetLanes.insert(l);

@@ -19,7 +19,7 @@
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
-#include "entities/roles/pedestrian/Pedestrian.hpp"
+#include "entities/roles/pedestrian/Pedestrian2.hpp"
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "util/DebugFlags.hpp"
@@ -67,7 +67,7 @@ namespace
 
 	//used in lane changing, find the start index and end index of polyline in the target lane
 
-	size_t updateStartEndIndex(const std::vector<sim_mob::Point2D> * const currLanePolyLine, double currLaneOffset,
+	size_t updateStartEndIndex(const std::vector<sim_mob::Point> * const currLanePolyLine, double currLaneOffset,
 							   size_t defaultValue)
 	{
 		double offset = 0;
@@ -90,7 +90,7 @@ namespace
 	{
 		if (l)
 		{
-			const RoadSegment* r = l->getRoadSegment();
+			const RoadSegment* r = l->getParentSegment();
 			for (size_t i = 0; i < r->getLanes().size(); i++)
 			{
 				if (r->getLanes().at(i) == l)
@@ -338,7 +338,7 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	justChangedToNewSegment = false;
 
 	//Will be removed later.
-	TEMP_lastKnownPolypoint = DPoint(0, 0);
+	TEMP_lastKnownPolypoint = Point(0, 0);
 
 	//Set to true if we have just moved into an intersection.
 	justMovedIntoIntersection = false;
@@ -383,12 +383,12 @@ int Driver::getYieldingToInIntersection() const
 	return yieldingToInIntersection;
 }
 
-void Driver::setCurrPosition(DPoint currPosition)
+void Driver::setCurrPosition(Point currPosition)
 {
 	currPos = currPosition;
 }
 
-const DPoint& Driver::getCurrPosition() const
+const Point& Driver::getCurrPosition() const
 {
 	return currPos;
 }

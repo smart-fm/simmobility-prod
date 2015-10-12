@@ -18,13 +18,11 @@
 #include "entities/amodController/AMODController.hpp"
 #include "entities/IncidentStatus.hpp"
 #include "entities/roles/driver/models/CarFollowModel.hpp"
-#include "entities/roles/pedestrian/Pedestrian.hpp"
+#include "entities/roles/pedestrian/Pedestrian2.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/vehicle/Vehicle.hpp"
-#include "FmodSchedulesPerformer.hpp"
 #include "geospatial/Incident.hpp"
-#include "geospatial/RoadItem.hpp"
 #include "IncidentPerformer.hpp"
 #include "util/OneTimeFlag.hpp"
 
@@ -38,7 +36,7 @@ class CarFollowModel;
   {
   protected:
     Driver* parentDriver;
-  
+
   public:
     explicit DriverBehavior(sim_mob::Person* parentAgent = nullptr);
     virtual ~DriverBehavior();
@@ -80,10 +78,10 @@ class CarFollowModel;
     size_t targetLaneIndex;
 
     //The pointer to the lane in the next link which is connected to our current lane
-    const simmobility_network::Lane *nextLaneInNextLink;
-    
+    const Lane* nextLaneInNextLink;
+
     //Map of road segment vs the aggregate vehicle count over the collection interval
-    static map<const simmobility_network::RoadSegment *, unsigned long> rdSegDensityMap;
+    static map<const RoadSegment *, unsigned long> rdSegDensityMap;
 
     //Mutex to lock the density map
     static boost::mutex densityUpdateMutex;
@@ -107,15 +105,15 @@ class CarFollowModel;
     //Updates the information that is sensed. Such as, the positions of nearby vehicles, the traffic signal
     bool updateSensors(timeslice now);
 
-    //Moves the vehicle forward according to the accelerations and velocities calculated by the various 
+    //Moves the vehicle forward according to the accelerations and velocities calculated by the various
     //driver models
     bool updateMovement(timeslice now);
 
     //Deals with the effect of moving forward - Chooses next lane in next link, checks if we're approaching an
-    //intersection, calculates the intersection trajectory if we've moved into an intersection 
+    //intersection, calculates the intersection trajectory if we've moved into an intersection
     bool updatePostMovement(timeslice now);
 
-    //Returns true if there is a pedestrian on the crossing when the light has turned green, else 
+    //Returns true if there is a pedestrian on the crossing when the light has turned green, else
     //returns false
     bool isPedestrianOnTargetCrossing() const;
 
@@ -123,7 +121,7 @@ class CarFollowModel;
     void chooseNextLaneForNextLink(DriverUpdateParams& p);
 
     //Calculates the trajectory that the vehicle needs to follow within the intersection
-    void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
+    void calculateIntersectionTrajectory(Point movingFrom, double overflow);
 
     //Updates the information about the current lane and the neighbouring lanes
     void syncCurrLaneCachedInfo(DriverUpdateParams& p);
@@ -138,7 +136,7 @@ class CarFollowModel;
     bool updateNearbyAgent(const sim_mob::Agent* other, const sim_mob::Driver* other_driver);
 
     //Derives information about the nearby pedestrian
-    void updateNearbyAgent(const sim_mob::Agent* other, const sim_mob::Pedestrian* pedestrian);
+    void updateNearbyAgent(const sim_mob::Agent* other, const sim_mob::Pedestrian2* pedestrian);
 
     //Sets the current traffic signal based on the end node of the current Road Segment.
     void setTrafficSignal();
@@ -175,13 +173,16 @@ class CarFollowModel;
     //Pointer to the intersection driving model being used
     IntersectionDrivingModel* intModel;
 
+    //Pointer to the intersection driving model previously used (and which may be needed again)
+    IntersectionDrivingModel* intModelBkUp;
+
     //The speed which the vehicle will try to achieve.
     double targetSpeed;
 
     //Updates the position of the driver on the link
     virtual double updatePositionOnLink(DriverUpdateParams& p);
 
-    //Applies the lane changing and car following models and determines the current state of the 
+    //Applies the lane changing and car following models and determines the current state of the
     //vehicle i.e. accelerating/decelerating/changing lane/etc
     void calcVehicleStates(DriverUpdateParams& p);
 
@@ -210,7 +211,7 @@ class CarFollowModel;
     //NearestVehicle& nearestVehicle(DriverUpdateParams& p);
 
     //Updates the perceptions of the given nearest vehicle
-    void perceivedDataProcess(NearestVehicle &nv, DriverUpdateParams& params);
+    void perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params);
 
     //Returns the angle (orientation) of the vehicle.
     //Used for displaying on the visualiser only
@@ -243,7 +244,7 @@ class CarFollowModel;
       {
         throw std::runtime_error("parentDriver cannot be NULL");
       }
-      
+
       safe_delete_item(this->parentDriver);
       this->parentDriver = parentDriver;
     }
@@ -258,25 +259,25 @@ class CarFollowModel;
     void setParentBufferedData();
 
     //Builds a path consisting of road segments using the given way-points and starting lane
-    void buildAndSetPath(std::vector<simmobility_network::WayPoint> wp_path, int startLaneID);
+    void buildAndSetPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
 
     //Builds a path consisting of road segments using the given way-points, starting segment and starting lane
-    void buildAndSetPathWithInitSeg(std::vector<simmobility_network::WayPoint> wp_path, int startLaneID, int segId, int initPer,
+    void buildAndSetPathWithInitSeg(std::vector<sim_mob::WayPoint> wp_path, int startLaneID, int segId, int initPer,
                              int initSpeed);
 
     //Reset the path
-    void resetPath(std::vector<simmobility_network::WayPoint> wp_path);
+    void resetPath(std::vector<sim_mob::WayPoint> wp_path);
 
     //Returns true if the path contains the next segment, else returns false. The boolean parameter
     //allows us to check within the link or in the next link
-    const simmobility_network::RoadSegment* hasNextSegment(bool inSameLink) const;
+    const sim_mob::RoadSegment* hasNextSegment(bool inSameLink) const;
 
     //Returns the current position of the driver
-    DPoint getPosition();
-    
+    Point getPosition();
+
     //Gets the nearest obstacle within the given perceptionDis
-    const sim_mob::RoadItem* getRoadItemByDistance(sim_mob::RoadItemType type, double &dis,  double perceptionDis = 20000,
-                                                   bool isInSameLink = true);
+    /*const sim_mob::RoadItem* getRoadItemByDistance(sim_mob::RoadItemType type, double &dis,  double perceptionDis = 20000,
+                                                   bool isInSameLink = true);*/
 
     //Gets the distance to nearest forward stop point in the link
     //Returns -1 if stopping point was not found, returns value > 0 when the stopping point
@@ -285,10 +286,10 @@ class CarFollowModel;
 
     //Gets the lanes connected to the segment within the look ahead distance
     //The parameter lanePool stores the result
-    void getLanesConnectToLookAheadDis(double distance, std::vector<simmobility_network::Lane*>& lanePool);
+    void getLanesConnectToLookAheadDis(double distance, std::vector<sim_mob::Lane*>& lanePool);
 
     //Returns true if the lane is connected to the segment
-    bool isLaneConnectedToSegment(simmobility_network::Lane* lane, const simmobility_network::RoadSegment* rs);
+    bool isLaneConnectedToSegment(sim_mob::Lane* lane, const sim_mob::RoadSegment* rs);
 
     //Updates the information known about the adjacent lanes
     void updateAdjacentLanes(DriverUpdateParams& p);
@@ -307,18 +308,18 @@ class CarFollowModel;
 
     //Updates the intersection velocity
     void updateIntersectionVelocity();
-    
+
     /*Overridden functions*/
-    
+
     virtual ~DriverMovement();
 
     //Initialises the driver movement
     virtual void init();
-    
+
     virtual void frame_init();
-    
+
     virtual void frame_tick();
-    
+
     virtual void frame_tick_output();
 
     // mark startTimeand origin

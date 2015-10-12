@@ -12,9 +12,9 @@
 #include "entities/roles/driver/SMStatus.h"
 #include "entities/roles/driver/models/LaneChangeModel.hpp"
 #include "entities/signal/Signal.hpp"
-#include "geospatial/simmobility_network/Lane.hpp"
-#include "geospatial/simmobility_network/RoadSegment.hpp"
-#include "geospatial/simmobility_network/TurningConflict.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/TurningConflict.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/LangHelpers.hpp"
 
@@ -23,9 +23,10 @@ namespace sim_mob
 {
 
   //Forward declarations
-  class simmobility_network::Lane;
+  class Lane;
   class Driver;
   class IncidentPerformer;
+  class IntersectionAccessMessage;
 
 #ifndef SIMMOB_DISABLE_MPI
   class PackageUtils;
@@ -122,7 +123,8 @@ namespace sim_mob
     v_lead(0), space_star(0), distanceToNormalStop(0), dis2stop(0), impatienceTimer(0.0), justChangedToNewSegment(false),
     justMovedIntoIntersection(false), overflowIntoIntersection(0), driver(NULL), emergHeadway(999), acc(0),
     density(0), initSegId(0), initDis(0), initSpeed(0), parentId(0), FFAccParamsBeta(0), nextStepSize(0), maxAcceleration(0), normalDeceleration(0),
-    lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), impatienceTimerStart(0.0), hasStoppedForStopSign(false)
+    lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), impatienceTimerStart(0.0), hasStoppedForStopSign(false), accessTime(0.0), isResponseReceived(false),
+    useIntAcc(false)
     {
     }
 
@@ -135,7 +137,7 @@ namespace sim_mob
 
     bool willYield(unsigned int reason);
 
-    const simmobility_network::RoadSegment* nextLink();
+    const RoadSegment* nextLink();
 
     /**
      *  /brief add one kind of status to the vh
@@ -193,7 +195,7 @@ namespace sim_mob
     /**
      *  /brief add target lanes
      */
-    void addTargetLanes(set<const simmobility_network::Lane*> tl);
+    void addTargetLanes(set<const Lane*> tl);
 
     /**
      *  /brief calculate min gap
@@ -219,7 +221,7 @@ namespace sim_mob
     std::vector<double> targetGapParams;
 
     /// lanes,which are ok to change to
-    set<const simmobility_network::Lane*> targetLanes;
+    set<const Lane*> targetLanes;
 
     enum STOP_POINT_STATE
     {
@@ -231,13 +233,13 @@ namespace sim_mob
       NO_FOUND_STOP_POINT = 6
     } ;
 
-    const simmobility_network::Lane* currLane;
+    const Lane* currLane;
     size_t currLaneIndex;
     size_t nextLaneIndex;
-    const simmobility_network::Lane* leftLane;
-    const simmobility_network::Lane* rightLane;
-    const simmobility_network::Lane* leftLane2;
-    const simmobility_network::Lane* rightLane2;
+    const Lane* leftLane;
+    const Lane* rightLane;
+    const Lane* leftLane2;
+    const Lane* rightLane2;
 
     double currSpeed;
     double desiredSpeed;
@@ -281,7 +283,7 @@ namespace sim_mob
     NearestVehicle nvRightBack2;
 
     std::map<TurningConflict*, std::list<NearestVehicle> > conflictVehicles;
-    void insertConflictTurningDriver(simmobility_network::TurningConflict* tc, double distance, const Driver* driver);
+    void insertConflictTurningDriver(TurningConflict* tc, double distance, const Driver* driver);
 
     // used to check vh when do acceleration merging
     NearestVehicle nvLeadFreeway; // lead vh on freeway segment,used when subject vh on ramp
@@ -305,6 +307,15 @@ namespace sim_mob
     
     //Indicates if the driver has already stopped for the stop sign
     bool hasStoppedForStopSign;
+
+	//The access time sent by the intersection manager
+    double accessTime;
+
+    //Indicates if the access time has been received from the intersection manager
+    bool isResponseReceived;
+
+    //Indicates if the car following accelerations are to be over-ridden
+    bool useIntAcc;
     
     int crossingFwdDistance;
 
@@ -320,7 +331,7 @@ namespace sim_mob
 
     //Handles state information
     bool justChangedToNewSegment;
-    DPoint TEMP_lastKnownPolypoint;
+    Point TEMP_lastKnownPolypoint;
     bool justMovedIntoIntersection;
     double overflowIntoIntersection;
 
@@ -361,7 +372,7 @@ namespace sim_mob
     double disAlongPolyline; //cm
     double movementVectx;
     double movementVecty;
-    DPoint lastOrigPos_;
+    Point lastOrigPos_;
     double dorigPosx;
     double dorigPosy;
     DynamicVector latMv_;

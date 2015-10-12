@@ -4,9 +4,9 @@
 
 #include "util/LangHelpers.hpp"
 #include "metrics/Length.hpp"
-#include "geospatial/Point2D.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/Point.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "util/GeomHelpers.hpp"
 
 #include <map>
@@ -82,7 +82,7 @@ private:
     	const RoadSegment* after;
     	int beforeLaneID; //Only used by the Walking graph
     	int afterLaneID;  //Only used by the Walking graph
-    	Point2D tempPos; //Only used by Walking graph UniNodes, temporarily.
+    	Point tempPos; //Only used by Walking graph UniNodes, temporarily.
     	StreetDirectory::Vertex v;
 
     	//Equality comparison (be careful here!)
@@ -187,7 +187,7 @@ public:
 
 private:
     //Initialize
-    void initDrivingNetworkNew(const std::vector<sim_mob::Link*>& links);
+    void initDrivingNetworkNew(const std::map<unsigned int, Link *>& links);
 //    void initWalkingNetworkNew(const std::vector<sim_mob::Link*>& links);
 
     //New processing code: Driving path
@@ -199,14 +199,14 @@ private:
     		std::set<StreetDirectory::Edge> >& resSegLookup,
     		sim_mob::TimeRange tr);
     void procAddDrivingBusStops(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup, std::map<const BusStop*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> >& resLookup, std::map<const RoadSegment*, std::set<StreetDirectory::Edge> >& resSegLookup);
-    void procAddDrivingLaneConnectors(StreetDirectory::Graph& graph, const MultiNode* node, const std::map<const Node*, VertexLookup>& nodeLookup);
+    void procAddDrivingLaneConnectors(StreetDirectory::Graph& graph, const Node* node, const std::map<const Node*, VertexLookup>& nodeLookup);
 
     //New processing code: Walking path
     void procAddWalkingNodes(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup, std::map<const Node*, VertexLookup>& tempNodes);
     void procResolveWalkingMultiNodes(StreetDirectory::Graph& graph, const std::map<const Node*, VertexLookup>& unresolvedNodes, std::map<const Node*, VertexLookup>& nodeLookup);
     void procAddWalkingLinks(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup);
     void procAddWalkingBusStops(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup, std::map<const BusStop*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> >& resLookup);
-    void procAddWalkingCrossings(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup, std::set<const Crossing*>& completed);
+    //void procAddWalkingCrossings(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup, std::set<const Crossing*>& completed);
 
     //New processing code: Shared
     void procAddStartNodesAndEdges(StreetDirectory::Graph& graph, const std::map<const Node*, VertexLookup>& allNodes, std::map<const Node*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> >& resLookup);
@@ -226,7 +226,7 @@ private:
 
     //TODO: Replace with a space partition later.
     std::map<const Node*, std::pair<StreetDirectory::Vertex,StreetDirectory::Vertex> >::const_iterator
-    searchVertex(const std::map<const Node*, std::pair<StreetDirectory::Vertex,StreetDirectory::Vertex> >& srcNodes, const Point2D& point) const;
+    searchVertex(const std::map<const Node*, std::pair<StreetDirectory::Vertex,StreetDirectory::Vertex> >& srcNodes, const Point& point) const;
 
     std::vector<WayPoint> searchShortestPathWithBlacklist(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex, const StreetDirectory::Vertex& toVertex, const std::set<StreetDirectory::Edge>& blacklist) const;
     std::vector<WayPoint> searchShortestPath(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex, const StreetDirectory::Vertex& toVertex) const;
@@ -243,14 +243,14 @@ public:
 
 			double operator()(StreetDirectory::Vertex v)
 			{
-				const Point2D atPos = boost::get(boost::vertex_name, *m_graph, v);
+				const Point atPos = boost::get(boost::vertex_name, *m_graph, v);
 				return (sim_mob::dist(atPos, goalPos) / maxSegSpeed);
 			}
 
 		private:
 			const StreetDirectory::Graph* m_graph;
 			StreetDirectory::Vertex m_goal;
-			const Point2D goalPos;
+			const Point goalPos;
 			const double maxSegSpeed;
     };
 
@@ -282,14 +282,14 @@ public:
 
 			double operator()(StreetDirectory::Vertex v)
 			{
-				const Point2D atPos = boost::get(boost::vertex_name, *m_graph, v);
+				const Point atPos = boost::get(boost::vertex_name, *m_graph, v);
 				return (sim_mob::dist(atPos, goalPos) / maxSegSpeed);
 			}
 
 		private:
 			const boost::filtered_graph<StreetDirectory::Graph, blacklist_edge_constraint>* m_graph;
 			StreetDirectory::Vertex m_goal;
-			const Point2D goalPos;
+			const Point goalPos;
 			const double maxSegSpeed;
     };
 

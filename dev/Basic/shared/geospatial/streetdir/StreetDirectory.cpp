@@ -19,17 +19,14 @@
 #include "geospatial/aimsun/Loader.hpp"
 
 //TODO: Prune this include list later; it should be mostly moved out into the various Impl classes.
-#include "geospatial/Lane.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/RoadNetwork.hpp"
-#include "geospatial/Point2D.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/LaneConnector.hpp"
-#include "geospatial/BusStop.hpp"
-#include "geospatial/Crossing.hpp"
-#include "geospatial/ZebraCrossing.hpp"
-#include "geospatial/UniNode.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
+#include "geospatial/network/Point.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/LaneConnector.hpp"
+#include "geospatial/network/BusStop.hpp"
 #include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
 #include "conf/ConfigManager.hpp"
@@ -73,17 +70,17 @@ void sim_mob::StreetDirectory::init(const RoadNetwork& network, bool keepStats, 
     //}
 
     //Save a cache of Nodes to Links
-	const std::vector<sim_mob::Link*>& links = network.getLinks();
-	for (std::vector<sim_mob::Link*>::const_iterator it=links.begin(); it!=links.end(); it++) {
+	const std::map<unsigned int, Link *> links = network.getMapOfIdVsLinks();
+	for (std::map<unsigned int, Link *>::const_iterator it=links.begin(); it!=links.end(); it++) {
 		//Just overwrite the saved value for that Node; this is why node_link_loc is an arbitrary field.
-		node_link_loc_cache[(*it)->getStart()] = *it;
-		node_link_loc_cache[(*it)->getEnd()] = *it;
+		node_link_loc_cache[it->second->getFromNode()] = it->second;
+		node_link_loc_cache[it->second->getToNode()] = it->second;
 	}
 
 	//Save a cache of start,end Nodes to Links
-	for (std::vector<sim_mob::Link*>::const_iterator it=links.begin(); it!=links.end(); it++) {
+	for (std::map<unsigned int, Link*>::const_iterator it=links.begin(); it!=links.end(); it++) {
 		//Just overwrite the saved value for that Node; this is why node_link_loc is an arbitrary field.
-		links_by_node[std::make_pair((*it)->getStart(), (*it)->getEnd())] = *it;
+		links_by_node[std::make_pair(it->second->getFromNode(), it->second->getToNode())] = it->second;
 	}
 
 
@@ -97,6 +94,7 @@ void sim_mob::StreetDirectory::updateDrivingMap()
 	}
 }
 
+/*
 std::pair<RoadRunnerRegion, bool> sim_mob::StreetDirectory::getRoadRunnerRegion(const sim_mob::RoadSegment* seg)
 {
 	return pimpl_ ? pimpl_->getRoadRunnerRegion(seg) : std::make_pair(RoadRunnerRegion(), false);
@@ -106,9 +104,9 @@ std::vector<const sim_mob::RoadSegment*> sim_mob::StreetDirectory::getSegmentsFr
 {
 	return pimpl_ ? pimpl_->getSegmentsFromRegion(region) : std::vector<const sim_mob::RoadSegment*>();
 }
+*/
 
-
-const sim_mob::BusStop* sim_mob::StreetDirectory::getBusStop(const Point2D& point) const
+const sim_mob::BusStop* sim_mob::StreetDirectory::getBusStop(const Point& point) const
 {
     return pimpl_ ? pimpl_->getBusStop(point) : nullptr;
 }
@@ -118,20 +116,20 @@ const sim_mob::Node* sim_mob::StreetDirectory::getNode(const int id) const
 	return pimpl_ ? pimpl_->getNode(id) : nullptr;
 }
 
-StreetDirectory::LaneAndIndexPair sim_mob::StreetDirectory::getLane(const Point2D& point) const
+StreetDirectory::LaneAndIndexPair sim_mob::StreetDirectory::getLane(const Point& point) const
 {
     return pimpl_ ? pimpl_->getLane(point) : LaneAndIndexPair();
 }
 
-std::vector<StreetDirectory::RoadSegmentAndIndexPair> sim_mob::StreetDirectory::closestRoadSegments(const Point2D& point, centimeter_t halfWidth, centimeter_t halfHeight) const
+std::vector<StreetDirectory::RoadSegmentAndIndexPair> sim_mob::StreetDirectory::closestRoadSegments(const Point& point, centimeter_t halfWidth, centimeter_t halfHeight) const
 {
     return pimpl_ ? pimpl_->closestRoadSegments(point, halfWidth, halfHeight) : std::vector<RoadSegmentAndIndexPair>();
 }
 
-const MultiNode* sim_mob::StreetDirectory::GetCrossingNode(const Crossing* cross) const
+/*const MultiNode* sim_mob::StreetDirectory::GetCrossingNode(const Crossing* cross) const
 {
 	return pimpl_ ? pimpl_->GetCrossingNode(cross) : nullptr;
-}
+}*/
 
 const Signal* sim_mob::StreetDirectory::signalAt(Node const & node) const
 {
@@ -257,9 +255,9 @@ void sim_mob::StreetDirectory::printStatistics() const
 
 void sim_mob::StreetDirectory::registerSignal(const Signal& signal)
 {
-    const MultiNode *node = dynamic_cast<const MultiNode *>(&(signal.getNode()));
+    const Node *node = &(signal.getNode());
 
-    if (signals_.count(node) == 0 && node->isSignalized()) 
+    if (signals_.count(node) == 0 && node->getTrafficLightId() != 0) 
 	{
         signals_.insert(std::make_pair(node, &signal));
     }
@@ -294,7 +292,7 @@ const sim_mob::Link* sim_mob::StreetDirectory::searchLink(const sim_mob::Node* s
 		throw std::runtime_error("Can't call searchLink; StreetDirectory has not been initialized yet.");
 	}
 
-	std::map< std::pair<const sim_mob::Node*, const sim_mob::Node*>, sim_mob::Link*>::iterator it = links_by_node.find(std::make_pair(start, end));
+	std::map< std::pair<const sim_mob::Node*, const sim_mob::Node*>, const sim_mob::Link*>::iterator it = links_by_node.find(std::make_pair(start, end));
 	if (it!=links_by_node.end()) {
 		return it->second;
 	}
@@ -326,7 +324,7 @@ void sim_mob::StreetDirectory::registerStopAgent(const BusStop* busStop, Agent* 
 	allBusStopAgents[busStop] = busStopAgent;
 }
 
-double sim_mob::StreetDirectory::GetShortestDistance(const Point2D& origin, const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4)
+double sim_mob::StreetDirectory::GetShortestDistance(const Point& origin, const Point& p1, const Point& p2, const Point& p3, const Point& p4)
 {
 	double res = sim_mob::dist(origin, p1);
 	res = std::min(res, sim_mob::dist(origin, p2));
@@ -335,6 +333,7 @@ double sim_mob::StreetDirectory::GetShortestDistance(const Point2D& origin, cons
 	return res;
 }
 
+/*
 const MultiNode* sim_mob::StreetDirectory::FindNearestMultiNode(const RoadSegment* seg, const Crossing* cr)
 {
 	//Error case:
@@ -357,4 +356,5 @@ const MultiNode* sim_mob::StreetDirectory::FindNearestMultiNode(const RoadSegmen
 	double dEnd   = GetShortestDistance(end->getLocation(),   cr->nearLine.first, cr->nearLine.second, cr->farLine.first, cr->farLine.second);
 	return dStart < dEnd ? start : end;
 }
+*/
 

@@ -5,9 +5,9 @@
 
 #include <geospatial/streetdir/SMStreetDirectory.hpp>
 
-using namespace simmobility_network;
+using namespace sim_mob;
 
-SMStreetDirectory simmobility_network::SMStreetDirectory::instance_;
+SMStreetDirectory SMStreetDirectory::instance_;
 
 SMStreetDirectory::SMStreetDirectory() {
 	// TODO Auto-generated constructor stub

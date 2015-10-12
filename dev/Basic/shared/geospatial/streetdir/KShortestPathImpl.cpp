@@ -1,12 +1,11 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "KShortestPathImpl.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/UniNode.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/LaneConnector.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/LaneConnector.hpp"
 #include "path/PathSetManager.hpp"
 #include "path/Path.hpp"
 #include "entities/roles/RoleFacets.hpp"
@@ -156,16 +155,16 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 		{
 			//	nextRootPathLink = A,k-1 [i]
 			sim_mob::WayPoint nextRootPathLink = A[K-1][i];
-			const sim_mob::Node *SpurNode = nextRootPathLink.roadSegment_->getStart();
+			const sim_mob::Node *SpurNode = nextRootPathLink.roadSegment->getParentLink()->getFromNode();
 			//	Find links whose EndNode = SpurNode, and block them.
 			getEndSegments(SpurNode,BL);//find and store in the blacklist
-			if(nextRootPathLink.roadSegment_->getStart() == nextRootPathLink.roadSegment_->getLink()->getStart())//this line('if' condition only, not the if block) is an optimization to HE's pseudo code to bypass uninodes
+			//if(nextRootPathLink.roadSegment_->getStart() == nextRootPathLink.roadSegment_->getLink()->getStart())//this line('if' condition only, not the if block) is an optimization to HE's pseudo code to bypass uninodes
 			{
 				//	For each path Cj in path list C:
 				for(int j = 0; j < C.size(); j++)
 				{
 					//Block link Cj[i].
-					BL.insert(C[j][i].roadSegment_);
+					BL.insert(C[j][i].roadSegment);
 				}
 				//Find shortest path from SpurNode to D, and store it as SpurPath.
 				std::vector<sim_mob::WayPoint> SpurPath,temp;
@@ -230,7 +229,7 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 }
 
 void sim_mob::K_ShortestPathImpl::getEndSegments(const Node *SpurNode,std::set<const RoadSegment*>& blackList)
-{
+{/*
 	std::set<const RoadSegment*> endSegments;
 	//step-1: get ALL the segments, regardless of spurnode
 	const sim_mob::UniNode * uNode = dynamic_cast<const sim_mob::UniNode*>(SpurNode);
@@ -244,7 +243,7 @@ void sim_mob::K_ShortestPathImpl::getEndSegments(const Node *SpurNode,std::set<c
 	}
 	else
 	{
-		const sim_mob::MultiNode * mNode = dynamic_cast <const sim_mob::MultiNode*>(SpurNode);
+		const Node * mNode = dynamic_cast <const Node*>(SpurNode);
 		const std::set<sim_mob::RoadSegment*>& src = mNode->getRoadSegments();
 		for(std::set<RoadSegment*>::const_iterator it = src.begin(); it != src.end(); it++)
 		{
@@ -262,15 +261,15 @@ void sim_mob::K_ShortestPathImpl::getEndSegments(const Node *SpurNode,std::set<c
 	//step-3: add the results to blacklist
 	for (std::set<const RoadSegment*>::iterator it(endSegments.begin()) ; it != endSegments.end(); it++) {
 		blackList.insert(*it);
-	}
+	}*/
 }
 void sim_mob::K_ShortestPathImpl::storeSegments(std::vector<sim_mob::WayPoint> path)
 {
 	for(int i=0;i<path.size();++i)
 	{
-		if (path[i].type_ == WayPoint::ROAD_SEGMENT) {
-			const sim_mob::RoadSegment *roadSeg = path[i].roadSegment_;
-			A_Segments.insert(std::make_pair(roadSeg->originalDB_ID.getLogItem(),roadSeg));
+		if (path[i].type == WayPoint::ROAD_SEGMENT) {
+			const sim_mob::RoadSegment *roadSeg = path[i].roadSegment;
+			//A_Segments.insert(std::make_pair(roadSeg->getRoadSegmentId(),roadSeg));
 		}
 	}
 }
@@ -283,7 +282,7 @@ bool sim_mob::K_ShortestPathImpl::validatePath(const std::vector<sim_mob::WayPoi
 	}
 	if(!RootPath.empty())
 	{
-		if(!sim_mob::MovementFacet::isConnectedToNextSeg(RootPath.rbegin()->roadSegment_, SpurPath.begin()->roadSegment_))
+		if(!sim_mob::MovementFacet::isConnectedToNextSeg(RootPath.rbegin()->roadSegment, SpurPath.begin()->roadSegment))
 		{
 			return false;
 		}

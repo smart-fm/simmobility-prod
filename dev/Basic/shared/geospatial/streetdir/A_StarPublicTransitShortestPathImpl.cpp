@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include "geospatial/Point2D.hpp"
+#include "geospatial/network/Point.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/LangHelpers.hpp"
 #include "StreetDirectory.hpp"
@@ -115,8 +115,8 @@ void sim_mob::A_StarPublicTransitShortestPathImpl::initPublicNetwork(std::map<in
 void sim_mob::A_StarPublicTransitShortestPathImpl::procAddPublicNetworkVertices(StreetDirectory::PublicTransitGraph& graph,PT_NetworkVertex ptVertex)
 {
 	StreetDirectory::PT_Vertex v = boost::add_vertex(const_cast<StreetDirectory::PublicTransitGraph &>(graph));
-	boost::put(boost::vertex_name, const_cast<StreetDirectory::PublicTransitGraph &>(graph),v,ptVertex.getStopId());
-	vertexMap[ptVertex.getStopId()]=v;
+	boost::put(boost::vertex_name, const_cast<StreetDirectory::PublicTransitGraph &>(graph),v,ptVertex.getRoadItemId());
+	vertexMap[ptVertex.getRoadItemId()]=v;
 }
 
 void sim_mob::A_StarPublicTransitShortestPathImpl::procAddPublicNetworkEdges(StreetDirectory::PublicTransitGraph& graph,PT_NetworkEdge ptEdge)

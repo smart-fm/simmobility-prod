@@ -10,33 +10,25 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/utility.hpp>
-
-#include "geospatial/Point2D.hpp"
-#include "geospatial/WayPoint.hpp"
+#include "entities/params/PT_NetworkEntities.hpp"
+#include "geospatial/network/Point.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
+#include "geospatial/network/WayPoint.hpp"
 #include "metrics/Length.hpp"
 #include "util/LangHelpers.hpp"
-#include "entities/params/PT_NetworkEntities.hpp"
-
-#include "geospatial/simmobility_network/WayPoint.hpp"
-
 
 namespace sim_mob
 {
 
 class Lane;
 class Link;
-class Point2D;
+class Point;
 class RoadNetwork;
-class RoadRunnerRegion;
 class RoadSegment;
 class Node;
-class MultiNode;
 class BusStop;
-class Crossing;
 class Signal;
 class Agent;
-
-
 
 /**
  * A singleton that provides street-directory information.
@@ -157,11 +149,11 @@ public:
     /**
      * Internal typedef to StreetDirectory representing:
      *   key:    The "vertex_name" property.
-     *   value:  The Point2D representing that vertex's location. This point is not 100% accurate,
+     *   value:  The Point representing that vertex's location. This point is not 100% accurate,
      *           and should be considered a rough guideline as to the vertex's location.
      * This is just a handy way of retrieving data "stored" at a given vertex.
      */
-    typedef boost::property<boost::vertex_name_t, Point2D> VertexProperties;
+    typedef boost::property<boost::vertex_name_t, Point> VertexProperties;
 
 
     /**
@@ -290,19 +282,19 @@ public:
     protected:
         //Impl();  //Abstract?
 
-		virtual std::pair<sim_mob::RoadRunnerRegion, bool> getRoadRunnerRegion(const sim_mob::RoadSegment* seg) = 0;
+		//virtual std::pair<sim_mob::RoadRunnerRegion, bool> getRoadRunnerRegion(const sim_mob::RoadSegment* seg) = 0;
 
-		virtual std::vector<const sim_mob::RoadSegment*> getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region) = 0;
+		//virtual std::vector<const sim_mob::RoadSegment*> getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region) = 0;
 
-		virtual const BusStop* getBusStop(const Point2D& position) const = 0;
+		virtual const BusStop* getBusStop(const Point& position) const = 0;
 
 		virtual const Node* getNode(const int id) const = 0;
 
-        virtual LaneAndIndexPair getLane(const Point2D& position) const = 0;
+        virtual LaneAndIndexPair getLane(const Point& position) const = 0;
 
-        virtual const MultiNode* GetCrossingNode(const Crossing* cross) const = 0;
+        //virtual const MultiNode* GetCrossingNode(const Crossing* cross) const = 0;
 
-        virtual std::vector<RoadSegmentAndIndexPair> closestRoadSegments(const Point2D& point, centimeter_t halfWidth, centimeter_t halfHeight) const = 0;
+        virtual std::vector<RoadSegmentAndIndexPair> closestRoadSegments(const Point& point, centimeter_t halfWidth, centimeter_t halfHeight) const = 0;
 
         virtual const sim_mob::RoadSegment* getRoadSegment(const unsigned int id) = 0;
 
@@ -371,17 +363,17 @@ public:
      *       if its from/to line intersects one of that Region's line segments.
      * If multiple Regions overlap on a RoadSegment, an arbitrary one will be chosen.
      */
-    std::pair<sim_mob::RoadRunnerRegion, bool> getRoadRunnerRegion(const sim_mob::RoadSegment* seg);
+    //std::pair<sim_mob::RoadRunnerRegion, bool> getRoadRunnerRegion(const sim_mob::RoadSegment* seg);
 
     /**
      * Retrieve the list of RoadSegments that a given RoadRunnerRegion encompasses.
      * If multiple Regions overlap on a RoadSegment, that Segment will only be considered part of
      *   an arbitrary Region.
      */
-    std::vector<const sim_mob::RoadSegment*> getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region);
+    //std::vector<const sim_mob::RoadSegment*> getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region);
 
 
-    const BusStop* getBusStop(const Point2D& position) const;
+    const BusStop* getBusStop(const Point& position) const;
 
 	const Node* getNode(const int id) const;
 
@@ -389,20 +381,20 @@ public:
      * Return the lane that contains the specified \c point; 0 if the point is outside the
      * road network.
      */
-    LaneAndIndexPair getLane(const Point2D& point) const;
+    LaneAndIndexPair getLane(const Point& point) const;
 
 
     /**
      * Return the MultiNode closest to this Crossing (may be null).
      */
-    const MultiNode* GetCrossingNode(const Crossing* cross) const;
+    //const MultiNode* GetCrossingNode(const Crossing* cross) const;
 
 
     /**
      * Return the RoadSegments within a rectangle centered around a point;
      * possibly empty list if rectangle is too small.
      */
-    std::vector<RoadSegmentAndIndexPair> closestRoadSegments(const Point2D & point, centimeter_t halfWidth, centimeter_t halfHeight) const;
+    std::vector<RoadSegmentAndIndexPair> closestRoadSegments(const Point & point, centimeter_t halfWidth, centimeter_t halfHeight) const;
 
 
     /**
@@ -510,7 +502,7 @@ public:
     const sim_mob::Link* getLinkLoc(const sim_mob::Node* node) const;
 
     ///Helper: find the nearest MultiNode to this Segment.
-    static const MultiNode* FindNearestMultiNode(const RoadSegment* seg, const Crossing* cr);
+    //static const MultiNode* FindNearestMultiNode(const RoadSegment* seg, const Crossing* cr);
 
     ///Return the Link associated with a given start and end Node.
     const sim_mob::Link* searchLink(const sim_mob::Node* start, const sim_mob::Node* end);
@@ -543,7 +535,7 @@ public:
 
 private:
     //Helper: Find the point closest to the origin.
-    static double GetShortestDistance(const Point2D& origin, const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4);
+    static double GetShortestDistance(const Point& origin, const Point& p1, const Point& p2, const Point& p3, const Point& p4);
 
 
 private:
@@ -579,7 +571,7 @@ private:
 
 	///A lookup of all Links by their start/end Nodes
 	///key is <start, end>
-    std::map< std::pair<const sim_mob::Node*, const sim_mob::Node*>, sim_mob::Link*> links_by_node;
+    std::map<const std::pair<const sim_mob::Node*, const sim_mob::Node*>, const sim_mob::Link*> links_by_node;
 
 	///Map of <bus stop*, BusStopAgent*> for all bus stops in the network
     boost::unordered_map<const sim_mob::BusStop*, Agent*> allBusStopAgents;

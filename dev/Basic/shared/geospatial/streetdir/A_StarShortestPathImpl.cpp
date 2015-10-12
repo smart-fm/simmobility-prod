@@ -12,17 +12,14 @@
 
 //TODO: Prune this include list later; it was copied directly from StreetDirectory.cpp
 #include "entities/TrafficWatch.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/RoadNetwork.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/LaneConnector.hpp"
-#include "geospatial/BusStop.hpp"
-#include "geospatial/Crossing.hpp"
-#include "geospatial/ZebraCrossing.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/UniNode.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/LaneConnector.hpp"
+#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/Node.hpp"
 #include "logging/Log.hpp"
 
 using std::map;
@@ -48,8 +45,8 @@ namespace {
 
 sim_mob::A_StarShortestPathImpl::A_StarShortestPathImpl(const RoadNetwork& network)
 {
-	initDrivingNetworkNew(network.getLinks());
-	initWalkingNetworkNew(network.getLinks());
+	initDrivingNetworkNew(network.getMapOfIdVsLinks());
+	initWalkingNetworkNew(network.getMapOfIdVsLinks());
 }
 
 /*sim_mob::A_StarShortestPathImpl::~A_StarShortestPathImpl()
@@ -82,7 +79,7 @@ StreetDirectory::Edge sim_mob::A_StarShortestPathImpl::AddSimpleEdge(StreetDirec
 //Helper: Find the vertex for the starting node for a given road segment.
 StreetDirectory::Vertex sim_mob::A_StarShortestPathImpl::FindStartingVertex(const sim_mob::RoadSegment* rs, const std::map<const Node*, VertexLookup>& nodeLookup)
 {
-	map<const Node*, A_StarShortestPathImpl::VertexLookup>::const_iterator from = nodeLookup.find(rs->getStart());
+	map<const Node*, A_StarShortestPathImpl::VertexLookup>::const_iterator from = nodeLookup.find(rs->getParentLink()->getFromNode());
 	if (from==nodeLookup.end()) {
 		throw std::runtime_error("Road Segment's nodes are unknown by the vertex map.");
 	}
@@ -112,7 +109,7 @@ StreetDirectory::Vertex sim_mob::A_StarShortestPathImpl::FindStartingVertex(cons
 
 StreetDirectory::Vertex sim_mob::A_StarShortestPathImpl::FindEndingVertex(const sim_mob::RoadSegment* rs, const std::map<const Node*, VertexLookup>& nodeLookup)
 {
-	map<const Node*, A_StarShortestPathImpl::VertexLookup>::const_iterator to = nodeLookup.find(rs->getEnd());
+	map<const Node*, A_StarShortestPathImpl::VertexLookup>::const_iterator to = nodeLookup.find(rs->getParentLink()->getToNode());
 	if (to==nodeLookup.end()) {
 		throw std::runtime_error("Road Segment's nodes are unknown by the vertex map.");
 	}
@@ -140,31 +137,31 @@ StreetDirectory::Vertex sim_mob::A_StarShortestPathImpl::FindEndingVertex(const 
 }
 
 
-void sim_mob::A_StarShortestPathImpl::initDrivingNetworkNew(const vector<Link*>& links)
+void sim_mob::A_StarShortestPathImpl::initDrivingNetworkNew(const map<unsigned int, Link *>& links)
 {
 	//Various lookup structures
 	map<const Node*, VertexLookup> nodeLookup;
 
 	//Add our initial set of vertices. Iterate through Links to ensure no un-used Node are added.
-    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-    	procAddDrivingNodes(drivingMap_, (*iter)->getSegments(), nodeLookup);
+    for (map<unsigned int, Link *>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
+    	procAddDrivingNodes(drivingMap_, iter->second->getRoadSegments(), nodeLookup);
     }
 
     //Proceed through our Links, adding each RoadSegment path. Split vertices as required.
-    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-    	procAddDrivingLinks(drivingMap_, (*iter)->getSegments(), nodeLookup, drivingSegmentLookup_);
+    for (map<unsigned int, Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
+    	procAddDrivingLinks(drivingMap_, iter->second->getRoadSegments(), nodeLookup, drivingSegmentLookup_);
     }
 
     //Now add all Intersection edges (lane connectors)
     for (map<const Node*, VertexLookup>::const_iterator it=nodeLookup.begin(); it!=nodeLookup.end(); it++) {
-    	procAddDrivingLaneConnectors(drivingMap_, dynamic_cast<const MultiNode*>(it->first), nodeLookup);
+    	procAddDrivingLaneConnectors(drivingMap_, it->first, nodeLookup);
     }
 
     //Finally, add our "master" node vertices
     procAddStartNodesAndEdges(drivingMap_, nodeLookup, drivingNodeLookup_);
 }
 
-void sim_mob::A_StarShortestPathImpl::initWalkingNetworkNew(const vector<Link*>& links)
+void sim_mob::A_StarShortestPathImpl::initWalkingNetworkNew(const map<unsigned int, Link *>& links)
 {
 	//Various lookup structures
 	map<const Node*, VertexLookup> nodeLookup;
@@ -174,8 +171,8 @@ void sim_mob::A_StarShortestPathImpl::initWalkingNetworkNew(const vector<Link*>&
 	map<const Node*, VertexLookup> unresolvedNodes;
 
 	//Add our initial set of vertices. Iterate through Links to ensure no un-used Node are added.
-    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-    	procAddWalkingNodes(walkingMap_, (*iter)->getSegments(), nodeLookup, unresolvedNodes);
+    for (map<unsigned int, Link *>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
+    	procAddWalkingNodes(walkingMap_, iter->second->getRoadSegments(), nodeLookup, unresolvedNodes);
     }
 
     //Resolve MultiNodes here:
@@ -183,22 +180,22 @@ void sim_mob::A_StarShortestPathImpl::initWalkingNetworkNew(const vector<Link*>&
 	}
 
     //Proceed through our Links, adding each RoadSegment path. Split vertices as required.
-    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-    	procAddWalkingLinks(walkingMap_, (*iter)->getSegments(), nodeLookup);
+    for (map<unsigned int, Link *>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
+    	procAddWalkingLinks(walkingMap_, iter->second->getRoadSegments(), nodeLookup);
     }
 
     //Now add all Crossings
-    {
+    /*{
     set<const Crossing*> completedCrossings;
     for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
     	procAddWalkingCrossings(walkingMap_, (*iter)->getSegments(), nodeLookup, completedCrossings);
     }
-    }
+    }*/
 
     //Now add BusStops (this mutates the network slightly, by segmenting Edges where a BusStop is located).
-    for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
+    /*for (vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
     	procAddWalkingBusStops(walkingMap_, (*iter)->getSegments(), nodeLookup, walkingBusStopLookup_);
-    }
+    }*/
 
     //Finally, add our "master" node vertices
     procAddStartNodesAndEdges(walkingMap_, nodeLookup, walkingNodeLookup_);
@@ -220,11 +217,11 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingNodes(StreetDirectory::Graph
 		NodeDescriptor nd;
 		nd.before = (i==0) ? nullptr : const_cast<RoadSegment*>(roadway.at(i-1));
 		nd.after  = (i>=roadway.size()) ? nullptr : const_cast<RoadSegment*>(roadway.at(i));
-		const Node* origNode = nd.before ? nd.before->getEnd() : nd.after->getStart();
+		const Node* origNode = nd.before ? nd.before->getParentLink()->getToNode(): nd.after->getParentLink()->getFromNode();
 		if (nodeLookup.count(origNode)==0) {
 			nodeLookup[origNode] = VertexLookup();
 			nodeLookup[origNode].origNode = origNode;
-			nodeLookup[origNode].isUni = dynamic_cast<const UniNode*>(origNode);
+			nodeLookup[origNode].isUni = false;
 		}
 
 		//Construction varies drastically depending on whether or not this is a UniNode
@@ -235,17 +232,19 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingNodes(StreetDirectory::Graph
 
 			//We'll create a fake Node for this location (so it'll be represented properly). Once we've fully switched to the
 			//  new algorithm, we'll have to switch this to a value-based type; using "new" will leak memory.
-			Point2D newPos;
+			Point newPos;
 			//TODO: re-enable const after fixing RoadNetwork's sidewalks.
 			if (!nd.before && nd.after) {
-				newPos = const_cast<RoadSegment*>(nd.after)->getLaneEdgePolyline(1).front();
+				newPos = const_cast<RoadSegment*>(nd.after)->getLane(1)->getPolyLine()->getFirstPoint();
 			} else if (nd.before && !nd.after) {
-				newPos = const_cast<RoadSegment*>(nd.before)->getLaneEdgePolyline(1).back();
+				newPos = const_cast<RoadSegment*>(nd.before)->getLane(1)->getPolyLine()->getLastPoint();
 			} else {
 				//Estimate
-				DynamicVector vec(const_cast<RoadSegment*>(nd.before)->getLaneEdgePolyline(1).back(), const_cast<RoadSegment*>(nd.after)->getLaneEdgePolyline(1).front());
+				DynamicVector vec(const_cast<RoadSegment*>(nd.before)->getLane(1)->getPolyLine()->getLastPoint(), 
+								 const_cast<RoadSegment*>(nd.after)->getLane(1)->getPolyLine()->getFirstPoint());
+				
 				vec.scaleVectTo(vec.getMagnitude()/2.0).translateVect();
-				newPos = Point2D(vec.getX(), vec.getY());
+				newPos = Point(vec.getX(), vec.getY());
 			}
 
 			//Node* vNode = new UniNode(newPos.getX(), newPos.getY());
@@ -257,11 +256,11 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingNodes(StreetDirectory::Graph
 			nodeLookup[origNode].vertices.push_back(nd);
 
 			//Our Node positions are actually the same compared to UniNodes; we may merge this code later.
-			Point2D newPos;
+			Point newPos;
 			if (!nd.before && nd.after) {
-				newPos = const_cast<RoadSegment*>(nd.after)->getLaneEdgePolyline(1).front();
+				newPos = const_cast<RoadSegment*>(nd.after)->getLane(1)->getPolyLine()->getFirstPoint();
 			} else if (nd.before && !nd.after) {
-				newPos = const_cast<RoadSegment*>(nd.before)->getLaneEdgePolyline(1).back();
+				newPos = const_cast<RoadSegment*>(nd.before)->getLane(1)->getPolyLine()->getLastPoint();
 			} else {
 				//This, however, is different.
 				throw std::runtime_error("MultiNode vertices can't have both \"before\" and \"after\" segments.");
@@ -275,6 +274,7 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingNodes(StreetDirectory::Graph
 
 void sim_mob::A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Graph& graph, const vector<RoadSegment*>& roadway, const map<const Node*, VertexLookup>& nodeLookup, std::map<const BusStop*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> >& resLookup, std::map<const RoadSegment*, std::set<StreetDirectory::Edge> >& resSegLookup)
 {
+	/*
 	//Skip empty roadways
 	if (roadway.empty()) {
 		return;
@@ -298,7 +298,7 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Gr
 			//  1) Segment the current Edge into two smaller edges; one before the BusStop and one after.
 			//  2) Add a Vertex for the stop itself, and connect an incoming and outgoing Edge to it.
 			//Note that both of these tasks require calculating normal intersection of the BusStop and the RoadSegment.
-			Point2D bstopPoint(bstop->xPos, bstop->yPos);
+			Point bstopPoint(bstop->xPos, bstop->yPos);
 			DynamicVector roadSegVec(
 				boost::get(boost::vertex_name, graph, fromVertex),
 				boost::get(boost::vertex_name, graph, toVertex)
@@ -322,6 +322,7 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Gr
 		    resSegLookup[rs].insert(e2);
 		}
 	}
+	*/
 }
 
 
@@ -345,7 +346,7 @@ vector< std::pair<int, int> > GetSidewalkLanePairs(const RoadSegment* before, co
 	//Build up before
 	if (before) {
 		for (size_t i=0; i<before->getLanes().size(); i++) {
-			if (before->getLanes().at(i)->is_pedestrian_lane()) {
+			if (before->getLanes().at(i)->isPedestrianLane()) {
 				beforeLanes.push_back(i);
 			}
 		}
@@ -354,7 +355,7 @@ vector< std::pair<int, int> > GetSidewalkLanePairs(const RoadSegment* before, co
 	//Build up after
 	if (after) {
 		for (size_t i=0; i<after->getLanes().size(); i++) {
-			if (after->getLanes().at(i)->is_pedestrian_lane()) {
+			if (after->getLanes().at(i)->isPedestrianLane()) {
 				afterLanes.push_back(i);
 			}
 		}
@@ -393,6 +394,7 @@ vector< std::pair<int, int> > GetSidewalkLanePairs(const RoadSegment* before, co
 
 void sim_mob::A_StarShortestPathImpl::procAddWalkingBusStops(StreetDirectory::Graph& graph, const vector<RoadSegment*>& roadway, const map<const Node*, VertexLookup>& nodeLookup, std::map<const BusStop*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> >& resLookup)
 {
+	/*
 	//Skip empty roadways
 	if (roadway.empty()) {
 		return;
@@ -428,14 +430,14 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingBusStops(StreetDirectory::Gr
 			}
 
 			//Helper data
-			Point2D bstopPoint(bstop->xPos, bstop->yPos);
+			Point bstopPoint(bstop->xPos, bstop->yPos);
 
 			//What we're searching for.
 			StreetDirectory::Vertex fromV;
 			StreetDirectory::Vertex toV;
 
 			//Our quality control.
-			Point2D midPt;
+			Point midPt;
 			double minDist = -1; //<0 == error
 
 			//Use this to ensure that we aren't getting the wrong RoadSegment as an artifact.
@@ -458,7 +460,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingBusStops(StreetDirectory::Gr
 									boost::get(boost::vertex_name, graph, fromCandidate.v),
 									boost::get(boost::vertex_name, graph, toCandidate.v)
 								);
-								Point2D candMidPt;
+								Point candMidPt;
 
 								//For now, this is optional.
 								try {
@@ -524,6 +526,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingBusStops(StreetDirectory::Gr
 			AddSimpleEdge(graph, midSrcV, toV, WayPoint(rs));
 		}
 	}
+	*/
 }
 
 
@@ -539,8 +542,8 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingLinks(StreetDirectory::Graph
 	//  may be represented by multiple vertices; overall, though, it's a conceptually simple procedure.
 	for (vector<RoadSegment*>::const_iterator it=roadway.begin(); it!=roadway.end(); it++) {
 		const RoadSegment* rs = *it;
-		map<const Node*, VertexLookup>::const_iterator from = nodeLookup.find(rs->getStart());
-		map<const Node*, VertexLookup>::const_iterator to = nodeLookup.find(rs->getEnd());
+		map<const Node*, VertexLookup>::const_iterator from = nodeLookup.find(rs->getParentLink()->getFromNode());
+		map<const Node*, VertexLookup>::const_iterator to = nodeLookup.find(rs->getParentLink()->getToNode());
 		if (from==nodeLookup.end() || to==nodeLookup.end()) {
 			throw std::runtime_error("Road Segment's nodes are unknown by the vertex map.");
 		}
@@ -588,8 +591,9 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingLinks(StreetDirectory::Graph
 	}
 }
 
-void sim_mob::A_StarShortestPathImpl::procAddDrivingLaneConnectors(StreetDirectory::Graph& graph, const MultiNode* node, const map<const Node*, VertexLookup>& nodeLookup)
+void sim_mob::A_StarShortestPathImpl::procAddDrivingLaneConnectors(StreetDirectory::Graph& graph, const Node* node, const map<const Node*, VertexLookup>& nodeLookup)
 {
+	/*
 	//Skip nulled Nodes (may be UniNodes).
 	if (!node) {
 		return;
@@ -620,8 +624,8 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingLaneConnectors(StreetDirecto
 			throw std::runtime_error("Intersection's Node is unknown by the vertex map.");
 		}
 
-		//sim_mob::Point2D fromPoint;
-		//sim_mob::Point2D toPoint;
+		//sim_mob::Point fromPoint;
+		//sim_mob::Point toPoint;
 		//Find the "from" and "to" segments' associated end vertices. Keep track of each.
 		for (vector<NodeDescriptor>::const_iterator ndIt=vertCandidates->second.vertices.begin(); ndIt!=vertCandidates->second.vertices.end(); ndIt++) {
 			if (it->first == ndIt->before) {
@@ -655,6 +659,7 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingLaneConnectors(StreetDirecto
 	    boost::put(boost::edge_weight, graph, edge, 0);
 
 	}
+	*/
 }
 
 
@@ -662,6 +667,7 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingLaneConnectors(StreetDirecto
 
 void sim_mob::A_StarShortestPathImpl::procAddWalkingNodes(StreetDirectory::Graph& graph, const vector<RoadSegment*>& roadway, map<const Node*, VertexLookup>& nodeLookup, map<const Node*, VertexLookup>& tempNodes)
 {
+	/*
 	//Skip empty roadways
 	if (roadway.empty()) {
 		return;
@@ -696,7 +702,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingNodes(StreetDirectory::Graph
 				newNd.v = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
 				nodeLookup[origNode].vertices.push_back(newNd);
 
-				Point2D newPos;
+				Point newPos;
 				//TODO: re-enable const after fixing RoadNetwork's sidewalks.
 				if (!nd.before && nd.after) {
 					newPos = const_cast<RoadSegment*>(nd.after)->getLanes().at(it->second)->getPolyline().front();
@@ -706,7 +712,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingNodes(StreetDirectory::Graph
 					//Estimate
 					DynamicVector vec(const_cast<RoadSegment*>(nd.before)->getLanes().at(it->first)->getPolyline().back(), const_cast<RoadSegment*>(nd.after)->getLanes().at(it->second)->getPolyline().front());
 					vec.scaleVectTo(vec.getMagnitude()/2.0).translateVect();
-					newPos = Point2D(vec.getX(), vec.getY());
+					newPos = Point(vec.getX(), vec.getY());
 				}
 
 				//Node* vNode = new UniNode(newPos.getX(), newPos.getY());
@@ -732,7 +738,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingNodes(StreetDirectory::Graph
 				//newNd.v = boost::add_vertex(const_cast<Graph &>(graph)); //Don't add it yet.
 
 				//Our Node positions are actually the same compared to UniNodes; we may merge this code later.
-				Point2D newPos;
+				Point newPos;
 				//TODO: re-enable const after fixing RoadNetwork's sidewalks.
 				if (!nd.before && nd.after) {
 					newPos = const_cast<RoadSegment*>(nd.after)->getLanes().at(newNd.afterLaneID)->getPolyline().front();
@@ -749,6 +755,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingNodes(StreetDirectory::Graph
 			}
 		}
 	}
+	*/
 }
 
 namespace {
@@ -760,12 +767,12 @@ bool VectorContains(const vector<T>& vec, const T& value) {
 
 //Helper: do these two segments start/end at the same pair of nodes?
 bool SegmentCompare(const RoadSegment* self, const RoadSegment* other) {
-	if ((self->getStart()==other->getStart()) && (self->getEnd()==other->getEnd())) {
+	/*if ((self->getStart()==other->getStart()) && (self->getEnd()==other->getEnd())) {
 		return true;  //Exact same
 	}
 	if ((self->getStart()==other->getEnd()) && (self->getEnd()==other->getStart())) {
 		return true;  //Reversed, but same
-	}
+	}*/
 	return false; //Different.
 }
 } //End un-named namespace
@@ -833,7 +840,7 @@ void sim_mob::A_StarShortestPathImpl::procResolveWalkingMultiNodes(StreetDirecto
 			DynamicVector vec(it->second.first.tempPos, it->second.second.tempPos);
 			vec.scaleVectTo(vec.getMagnitude()/2.0).translateVect();
 			//Node* vNode = new UniNode(vec.getX(), vec.getY());   //TODO: Leaks memory!
-			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), newNd.v, Point2D(vec.getX(), vec.getY()));
+			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), newNd.v, Point(vec.getX(), vec.getY()));
 
 			//Tag each unmerged Vertex so that we don't re-use them.
 			alreadyMerged.push_back(it->second.first);
@@ -865,6 +872,7 @@ void sim_mob::A_StarShortestPathImpl::procResolveWalkingMultiNodes(StreetDirecto
 
 void sim_mob::A_StarShortestPathImpl::procAddWalkingLinks(StreetDirectory::Graph& graph, const vector<RoadSegment*>& roadway, const map<const Node*, VertexLookup>& nodeLookup)
 {
+	/*
 	//Skip empty roadways
 	if (roadway.empty()) {
 		return;
@@ -944,9 +952,10 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingLinks(StreetDirectory::Graph
 			}
 		}
 	}
+	*/
 }
 
-
+/*
 void sim_mob::A_StarShortestPathImpl::procAddWalkingCrossings(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup, std::set<const Crossing*>& completed)
 {
 	//Skip empty paths
@@ -982,7 +991,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingCrossings(StreetDirectory::G
 			const RoadSegment* fromSeg = *segIt;
 			int fromLane = -1;
 			for (size_t i=0; i<fromSeg->getLanes().size(); i++) {
-				if (fromSeg->getLanes().at(i)->is_pedestrian_lane()) {
+				if (fromSeg->getLanes().at(i)->isPedestrianLane()) {
 					fromLane = i;
 					break;
 				}
@@ -1001,7 +1010,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingCrossings(StreetDirectory::G
 					(toSeg->getStart()==fromSeg->getEnd() && toSeg->getEnd()==fromSeg->getStart())) {
 					//Scan lanes until we find an empty one (this covers the case where fromSeg and toSeg are the same).
 					for (size_t i=0; i<toSeg->getLanes().size(); i++) {
-						if (toSeg->getLanes().at(i)->is_pedestrian_lane()) {
+						if (toSeg->getLanes().at(i)->isPedestrianLane()) {
 							//Avoid adding the exact same from/to pair:
 							if (fromSeg==toSeg && fromLane==i) {
 								continue;
@@ -1072,7 +1081,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingCrossings(StreetDirectory::G
 		}
 	}
 }
-
+*/
 
 void sim_mob::A_StarShortestPathImpl::procAddStartNodesAndEdges(StreetDirectory::Graph& graph, const map<const Node*, VertexLookup>& allNodes, map<const Node*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> >& resLookup)
 {
@@ -1083,8 +1092,8 @@ void sim_mob::A_StarShortestPathImpl::procAddStartNodesAndEdges(StreetDirectory:
 		StreetDirectory::Vertex source = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
 		StreetDirectory::Vertex sink = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
 		resLookup[it->first] = std::make_pair(source, sink);
-		boost::put(boost::vertex_name, graph, source, it->first->location);
-		boost::put(boost::vertex_name, graph, sink, it->first->location);
+		boost::put(boost::vertex_name, graph, source, *(it->first->getLocation()));
+		boost::put(boost::vertex_name, graph, sink, *(it->first->getLocation()));
 
 		//Link to each child vertex. Assume a trivial distance.
 		for (std::vector<NodeDescriptor>::const_iterator it2=it->second.vertices.begin(); it2!=it->second.vertices.end(); it2++) {
@@ -1101,7 +1110,7 @@ void sim_mob::A_StarShortestPathImpl::procAddStartNodesAndEdges(StreetDirectory:
 			StreetDirectory::Edge edge;
 			bool ok;
 			WayPoint revWP(it->first);
-			revWP.directionReverse = true;
+			//revWP.directionReverse = true;
 			boost::tie(edge, ok) = boost::add_edge(it2->v, sink, graph);
 			boost::put(boost::edge_name, graph, edge, revWP);
 			boost::put(boost::edge_weight, graph, edge, 1);
@@ -1122,14 +1131,14 @@ void sim_mob::A_StarShortestPathImpl::updateEdgeProperty()
 //		std::cout<<"edge"<<std::endl;
 		StreetDirectory::Edge e = *iter;
 		WayPoint wp = boost::get(boost::edge_name, drivingMap_, e);
-		if (wp.type_ != WayPoint::ROAD_SEGMENT)
+		if (wp.type != WayPoint::ROAD_SEGMENT)
 			continue;
-		const RoadSegment * rs = wp.roadSegment_;
+		const RoadSegment * rs = wp.roadSegment;
 		avgSpeedRSMapIt = sim_mob::TrafficWatch::instance().getAvgSpeedRS().find(rs);
 		if(avgSpeedRSMapIt != sim_mob::TrafficWatch::instance().getAvgSpeedRS().end())
 			avgSpeed = avgSpeedRSMapIt->second;
 		else
-			avgSpeed = 100*rs->maxSpeed/3.6;
+			avgSpeed = 100*rs->getMaxSpeed()/3.6;
 		if(avgSpeed<=0)
 			avgSpeed = 10;
 		travelTime = rs->getLength() / avgSpeed;
@@ -1229,8 +1238,8 @@ vector<WayPoint> sim_mob::A_StarShortestPathImpl::GetShortestDrivingPath(StreetD
 	}
 
 	initCache(); //inits cache if it does not exist
-	const Point2D from_pt = boost::get(boost::vertex_name, drivingMap_, fromV);
-	const Point2D to_pt = boost::get(boost::vertex_name, drivingMap_, toV);
+	const Point from_pt = boost::get(boost::vertex_name, drivingMap_, fromV);
+	const Point to_pt = boost::get(boost::vertex_name, drivingMap_, toV);
 	std::stringstream keystr;
 	keystr << from_pt.getX() << from_pt.getY() << to_pt.getX() << to_pt.getY();
 	std::string key = keystr.str();
@@ -1426,14 +1435,14 @@ vector<WayPoint> sim_mob::A_StarShortestPathImpl::searchShortestPath(const Stree
 
 
 map<const Node*, std::pair<StreetDirectory::Vertex,StreetDirectory::Vertex> >::const_iterator
-sim_mob::A_StarShortestPathImpl::searchVertex(const map<const Node*, std::pair<StreetDirectory::Vertex,StreetDirectory::Vertex> >& srcNodes, const Point2D& point) const
+sim_mob::A_StarShortestPathImpl::searchVertex(const map<const Node*, std::pair<StreetDirectory::Vertex,StreetDirectory::Vertex> >& srcNodes, const Point& point) const
 {
 	typedef  map<const Node*, std::pair<StreetDirectory::Vertex,StreetDirectory::Vertex> >::const_iterator  NodeLookupIter;
 
 	double minDist = std::numeric_limits<double>::max();
 	NodeLookupIter minItem = srcNodes.end();
 	for (NodeLookupIter it=srcNodes.begin(); it!=srcNodes.end(); it++) {
-		double currDist = sim_mob::dist(point, it->first->getLocation());
+		double currDist = sim_mob::dist(point, *(it->first->getLocation()));
 		if (currDist < minDist) {
 			minDist = currDist;
 			minItem = it;
@@ -1454,7 +1463,7 @@ bool sim_mob::A_StarShortestPathImpl::checkIfExist(std::vector<std::vector<WayPo
 		bool same = true;
 		for(size_t j=0;j<temp.size();j++)
 		{
-			if(temp.at(j).roadSegment_ != path.at(j).roadSegment_)
+			if(temp.at(j).roadSegment != path.at(j).roadSegment)
 			{
 				same = false;
 				break;
@@ -1497,7 +1506,7 @@ void sim_mob::A_StarShortestPathImpl::printGraph(std::ostream& outFile, const st
     StreetDirectory::Graph::vertex_iterator iter, end;
     for (boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter) {
     	StreetDirectory::Vertex v = *iter;
-    	const Point2D pt = boost::get(boost::vertex_name, graph, v);
+    	const Point pt = boost::get(boost::vertex_name, graph, v);
     	outFile <<"(\"sd-vertex\""
     		<<","<<0
     		<<","<<v

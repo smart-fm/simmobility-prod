@@ -9,17 +9,14 @@
 //TODO: Prune this include list later; it was copied directly from StreetDirectory.cpp
 #include "buffering/Vector2D.hpp"
 #include "geospatial/coord/CoordinateTransform.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/RoadNetwork.hpp"
-#include "geospatial/Point2D.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/LaneConnector.hpp"
-#include "geospatial/BusStop.hpp"
-#include "geospatial/Crossing.hpp"
-#include "geospatial/ZebraCrossing.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/UniNode.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
+#include "geospatial/network/Point.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/LaneConnector.hpp"
+#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/RoadRunnerRegion.hpp"
 #include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
@@ -131,7 +128,7 @@ bool line_intersects_region(RoadRunnerRegion r, LatLngLocation start, LatLngLoca
 // projection falls outside of the line, then the closest point is one of the end points.
 // In that case the function returns -1.
 centimeter_t
-distanceOfPointFromLine(Point2D const & point, Point2D const & p1, Point2D const & p2)
+distanceOfPointFromLine(Point const & point, Point const & p1, Point const & p2)
 {
     // The Vector2D<T> class provides the dot product function.  We have to use T=float
     // because the multiplication in the dot product function may overflow on a 32-bit
@@ -167,10 +164,10 @@ sim_mob::GridStreetDirectoryImpl::GridStreetDirectoryImpl(const RoadNetwork& net
     partition(network);
 
     //Build additional lookups
-    set<const Crossing*> completedCrossings;
+    /*set<const Crossing*> completedCrossings;
     for (vector<Link*>::const_iterator iter = network.getLinks().begin(); iter != network.getLinks().end(); ++iter) {
     	buildLookups((*iter)->getSegments(), completedCrossings, network.roadRunnerRegions, network.getCoordTransform(false));
-    }
+    }*/
 }
 
 
@@ -183,13 +180,13 @@ void sim_mob::GridStreetDirectoryImpl::partition(const vector<RoadSegment*>& seg
 
 void sim_mob::GridStreetDirectoryImpl::partition(const RoadNetwork& network)
 {
-	const vector<Link*>& links = network.getLinks();
+	/*const vector<Link*>& links = network.getLinks();
     for (size_t i=0; i<links.size(); i++) {
     	const Link* link = links[i];
         if(link) {
         	partition(link->getSegments(), true);
         }
-    }
+    }*/
 }
 
 
@@ -200,14 +197,14 @@ namespace
 // They are aligned to the X- and Y- axes and they are bounding boxes of some object, that is,
 // the object is wholly inside the AABB.
 struct AABB {
-	Point2D lowerLeft_;
-	Point2D upperRight_;
+	Point lowerLeft_;
+	Point upperRight_;
 
-	AABB(Point2D const & lowerLeft, Point2D const & upperRight)
+	AABB(Point const & lowerLeft, Point const & upperRight)
 		: lowerLeft_(lowerLeft), upperRight_(upperRight)
 	{}
 
-	AABB(Point2D const & lowerLeft, centimeter_t width, centimeter_t height)
+	AABB(Point const & lowerLeft, centimeter_t width, centimeter_t height)
 		: lowerLeft_(lowerLeft), upperRight_(lowerLeft_.getX() + width, lowerLeft_.getY() + height)
 	{}
 
@@ -223,34 +220,32 @@ struct AABB {
 
 
 
-  //  AABB getBoundingBox(const Point2D& p1, const Point2D& p2, centimeter_t halfWidth);
+  //  AABB getBoundingBox(const Point& p1, const Point& p2, centimeter_t halfWidth);
 
 
     // Return true if <point> is inside the rectangle <aabb>.
-    bool isPointInsideAABB(Point2D const & point, AABB const & aabb) {
+    bool isPointInsideAABB(Point const & point, AABB const & aabb) {
     	return    aabb.left() <= point.getX()   && point.getX() <= aabb.right()
                && aabb.bottom() <= point.getY() && point.getY() <= aabb.top();
     }
 
     // Return the width of the specified road segment.
-    centimeter_t getWidth(RoadSegment const & segment) {
-    	if (segment.width != 0) {
-    		return segment.width;
-    	} else {
-    		centimeter_t width = 0;
-    		vector<Lane*> const & lanes = segment.getLanes();
-    		for (size_t i = 0; i < lanes.size(); i++) {
-    			width += lanes[i]->getWidth();
-    		}
-    		return width;
-    	}
-    }
+    centimeter_t getWidth(RoadSegment const & segment)
+	{
+		centimeter_t width = 0;
+		vector<Lane*> const & lanes = segment.getLanes();
+		for (size_t i = 0; i < lanes.size(); i++)
+		{
+			width += lanes[i]->getWidth();
+		}
+		return width;
+	}
 
     // Return the lane where <point> is located, 0 if the point is outside of the stretch of
     // the road segment.
     // The stretch is specified by <p1>, <p2>, and <segment->width>; the line from <p1> to <p2>
     // traces the middle of the stretch.
-    const Lane* getTheLane(const RoadSegment& segment, const Point2D& p1, const Point2D& p2, const Point2D& point);
+    const Lane* getTheLane(const RoadSegment& segment, const Point& p1, const Point& p2, const Point& point);
 
     // Return true if <aabb> covers <grid> completely.
     bool isGridWhollyInsideAABB(const AABB& grid, const AABB& aabb) {
@@ -261,9 +256,9 @@ struct AABB {
     // Return true if the stretch of road segment overlaps or lies within the rectangle <aabb>.
     // The stretch is specified by <p1>, <p2>, and <halfWidth>; the line from <p1> to <p2>
     // traces the middle of the stretch.
-    bool didRoadIntersectAABB(const Point2D& p1, const Point2D& p2, centimeter_t halfWidth, const AABB& aabb);
+    bool didRoadIntersectAABB(const Point& p1, const Point& p2, centimeter_t halfWidth, const AABB& aabb);
 
-    const Lane* getTheLane(const RoadSegment& segment, const Point2D& p1, const Point2D& p2, const Point2D& point)
+    const Lane* getTheLane(const RoadSegment& segment, const Point& p1, const Point& p2, const Point& point)
     {
         centimeter_t dist = distanceOfPointFromLine(point, p1, p2);
         if (dist < 0)
@@ -329,7 +324,7 @@ struct AABB {
     }
 
     // Return true if the line from <p1> to <p2> intersects or lies within the rectangle <aabb>.
-    bool didLineIntersectAABB(const Point2D& p1, const Point2D& p2, const AABB& aabb)
+    bool didLineIntersectAABB(const Point& p1, const Point& p2, const AABB& aabb)
     {
         // If either end of the line is inside the rectangle, then the line must either
         // intersects or lies within the rectangle.
@@ -357,7 +352,7 @@ struct AABB {
     // Calculate the AABB that would contain a stretch of a road segment.
     // The stretch is specified by <p1>, <p2>, and <halfWidth>; the line from <p1> to <p2>
     // traces the middle of the stretch.  The line may not be aligned to the X- and Y- axes.
-    AABB getBoundingBox(const Point2D& p1, const Point2D& p2, centimeter_t halfWidth) {
+    AABB getBoundingBox(const Point& p1, const Point& p2, centimeter_t halfWidth) {
          centimeter_t left = 0;
          centimeter_t right = 0;
          centimeter_t top = 0;
@@ -391,7 +386,7 @@ struct AABB {
          return AABB(left, right, bottom, top);
      }
 
-    bool didRoadIntersectAABB(const Point2D& p1, const Point2D& p2, centimeter_t halfWidth, const AABB& aabb)
+    bool didRoadIntersectAABB(const Point& p1, const Point& p2, centimeter_t halfWidth, const AABB& aabb)
     {
         if (didLineIntersectAABB(p1, p2, aabb)) {
             return true;
@@ -423,9 +418,9 @@ struct AABB {
             return true;
         if (distanceOfPointFromLine(aabb.upperRight_, p1, p2) < halfWidth)
             return true;
-        if (distanceOfPointFromLine(Point2D(aabb.left(), aabb.top()), p1, p2) < halfWidth)
+        if (distanceOfPointFromLine(Point(aabb.left(), aabb.top()), p1, p2) < halfWidth)
             return true;
-        if (distanceOfPointFromLine(Point2D(aabb.right(), aabb.bottom()), p1, p2) < halfWidth)
+        if (distanceOfPointFromLine(Point(aabb.right(), aabb.bottom()), p1, p2) < halfWidth)
             return true;
 
         return false;
@@ -437,15 +432,15 @@ struct AABB {
 
 
 
-bool sim_mob::GridStreetDirectoryImpl::checkGrid(int m, int n, const Point2D& p1, const Point2D& p2, centimeter_t halfWidth) const
+bool sim_mob::GridStreetDirectoryImpl::checkGrid(int m, int n, const Point& p1, const Point& p2, centimeter_t halfWidth) const
 {
-    AABB grid(Point2D(m * gridWidth_, n * gridHeight_), gridWidth_, gridHeight_);
+    AABB grid(Point(m * gridWidth_, n * gridHeight_), gridWidth_, gridHeight_);
     return didRoadIntersectAABB(p1, p2, halfWidth, grid);
 }
 
 
 
-void sim_mob::GridStreetDirectoryImpl::buildLookups(const vector<RoadSegment*>& roadway, set<const Crossing*>& completed, const std::map<int, sim_mob::RoadRunnerRegion>& roadRunnerRegions, sim_mob::CoordinateTransform* coords)
+/*void sim_mob::GridStreetDirectoryImpl::buildLookups(const vector<RoadSegment*>& roadway, set<const Crossing*>& completed, const std::map<int, sim_mob::RoadRunnerRegion>& roadRunnerRegions, sim_mob::CoordinateTransform* coords)
 {
 	//Warn if we have no coordinate transform, but also Regions
 	if (!roadRunnerRegions.empty() && !coords) {
@@ -462,10 +457,10 @@ void sim_mob::GridStreetDirectoryImpl::buildLookups(const vector<RoadSegment*>& 
     	if (coords && !roadRunnerRegions.empty()) {
     		//Get the midpoint of this Segment.
     		DynamicVector dv((*segIt)->getStart()->location, (*segIt)->getEnd()->location);
-    		LatLngLocation start = coords->transform(DPoint(dv.getX(), dv.getY()));
-    		LatLngLocation end = coords->transform(DPoint(dv.getEndX(), dv.getEndY()));
+    		LatLngLocation start = coords->transform(Point(dv.getX(), dv.getY()));
+    		LatLngLocation end = coords->transform(Point(dv.getEndX(), dv.getEndY()));
     		dv.scaleVectTo(dv.getMagnitude()/2.0);
-    		LatLngLocation midpt = coords->transform(DPoint(dv.getX(), dv.getY()));
+    		LatLngLocation midpt = coords->transform(Point(dv.getX(), dv.getY()));
 
     		//Check each region until we find one that matches.
 			for (std::map<int, sim_mob::RoadRunnerRegion>::const_iterator rrIt=roadRunnerRegions.begin(); rrIt!=roadRunnerRegions.end(); rrIt++) {
@@ -507,7 +502,7 @@ void sim_mob::GridStreetDirectoryImpl::buildLookups(const vector<RoadSegment*>& 
 		    }
 		}
 	}
-}
+}*/
 
 const sim_mob::RoadSegment* sim_mob::GridStreetDirectoryImpl::getRoadSegment(const unsigned int id){
 
@@ -521,7 +516,7 @@ const sim_mob::RoadSegment* sim_mob::GridStreetDirectoryImpl::getRoadSegment(con
 void sim_mob::GridStreetDirectoryImpl::partition(const RoadSegment& segment, bool isForward) {
     centimeter_t halfWidth = getWidth(segment) / 2;
 
-    for (size_t i = 0; i < segment.polyline.size() - 1; i++)
+    for (size_t i = 0; i < segment.getPolyLine()->getPoints().size() - 1; i++)
     {
         size_t startIndex = 0, endIndex = 0;
         if (isForward)
@@ -531,12 +526,12 @@ void sim_mob::GridStreetDirectoryImpl::partition(const RoadSegment& segment, boo
         }
         else
         {
-            startIndex = segment.polyline.size() - 1 - i;
-            endIndex = segment.polyline.size() - 1 - i - 1;
+            startIndex = segment.getPolyLine()->getPoints().size() - 1 - i;
+            endIndex = segment.getPolyLine()->getPoints().size() - 1 - i - 1;
         }
 
-        Point2D const & p1 = segment.polyline[startIndex];
-        Point2D const & p2 = segment.polyline[endIndex];
+        Point const & p1 = segment.getPolyLine()->getPoints()[startIndex];
+        Point const & p2 = segment.getPolyLine()->getPoints()[endIndex];
 
         // We calculate the AABB that encloses the road segment stretch so that we can
         // quickly determine which grid cells the road segment stretch is in.
@@ -557,10 +552,10 @@ void sim_mob::GridStreetDirectoryImpl::partition(const RoadSegment& segment, boo
                 // p1 is inside the (left, bottom) grid cell and p2 is inside (right, top)
                 // grid cell.  So we push this road segment stretch into these grid cells.
                 if ((m == left && n == bottom) || (m == right && n == top))
-                    grid_[Point2D(m, n)].push_back(pair);
+                    grid_[Point(m, n)].push_back(pair);
                 else if (checkGrid(m, n, p1, p2, halfWidth))
                 {
-                    grid_[Point2D(m, n)].push_back(pair);
+                    grid_[Point(m, n)].push_back(pair);
                 }
             }
         }
@@ -568,7 +563,7 @@ void sim_mob::GridStreetDirectoryImpl::partition(const RoadSegment& segment, boo
 }
 
 
-std::pair<sim_mob::RoadRunnerRegion, bool> sim_mob::GridStreetDirectoryImpl::getRoadRunnerRegion(const sim_mob::RoadSegment* seg)
+/*std::pair<sim_mob::RoadRunnerRegion, bool> sim_mob::GridStreetDirectoryImpl::getRoadRunnerRegion(const sim_mob::RoadSegment* seg)
 {
 	if (seg) {
 		//Try to find it.
@@ -591,17 +586,17 @@ std::vector<const sim_mob::RoadSegment*> sim_mob::GridStreetDirectoryImpl::getSe
 	}
 
 	return std::vector<const sim_mob::RoadSegment*>();
-}
+}*/
 
 
 
-const BusStop* sim_mob::GridStreetDirectoryImpl::getBusStop(const Point2D& position) const
+const BusStop* sim_mob::GridStreetDirectoryImpl::getBusStop(const Point& position) const
 {
 	//This function currently searches point-by-point, since we don't have that many BusStops.
 	//TODO: Ideally, it would use some kind of spatial index.
 	const int Threshold = 10 * 100; //10m
 	for (std::set<const BusStop*>::const_iterator it=busStops_.begin(); it!=busStops_.end(); it++) {
-		if (dist(Point2D((*it)->xPos, (*it)->yPos), position) < Threshold) {
+		if (dist(Point((*it)->getStopLocation().getX(), (*it)->getStopLocation().getY()), position) < Threshold) {
 			return *it;
 		}
 	}
@@ -612,7 +607,7 @@ const BusStop* sim_mob::GridStreetDirectoryImpl::getBusStop(const Point2D& posit
 const Node* sim_mob::GridStreetDirectoryImpl::getNode(const int id) const
 {
 	for (std::set<const Node*>::const_iterator it=nodes.begin(); it!=nodes.end(); it++) {
-		if ((*it)->getID() == id) {
+		if ((*it)->getNodeId() == id) {
 			return *it;
 		}
 	}
@@ -621,8 +616,8 @@ const Node* sim_mob::GridStreetDirectoryImpl::getNode(const int id) const
 
 
 
-StreetDirectory::LaneAndIndexPair sim_mob::GridStreetDirectoryImpl::getLane(const Point2D& point) const {
-    Point2D cell(point.getX() / gridWidth_, point.getY() / gridHeight_);
+StreetDirectory::LaneAndIndexPair sim_mob::GridStreetDirectoryImpl::getLane(const Point& point) const {
+    Point cell(point.getX() / gridWidth_, point.getY() / gridHeight_);
     GridType::const_iterator iter = grid_.find(cell);
     if (iter == grid_.end()) {
         // Either the road network for this grid cell was not loaded from the database
@@ -641,8 +636,8 @@ StreetDirectory::LaneAndIndexPair sim_mob::GridStreetDirectoryImpl::getLane(cons
         size_t end = pair.endIndex_;
 
         centimeter_t halfWidth = getWidth(*segment) / 2;
-        const Point2D& p1 = segment->polyline[start];
-        const Point2D& p2 = segment->polyline[end];
+        const Point& p1 = segment->getPolyLine()->getPoints()[start];
+        const Point& p2 = segment->getPolyLine()->getPoints()[end];
         AABB aabb = getBoundingBox(p1, p2, halfWidth);
 
         // The outer test is inexpensive.  We quickly skip road segments that are too far
@@ -659,20 +654,16 @@ StreetDirectory::LaneAndIndexPair sim_mob::GridStreetDirectoryImpl::getLane(cons
     return StreetDirectory::LaneAndIndexPair();
 }
 
-
-
-const MultiNode* sim_mob::GridStreetDirectoryImpl::GetCrossingNode(const Crossing* cross) const
+/*const MultiNode* sim_mob::GridStreetDirectoryImpl::GetCrossingNode(const Crossing* cross) const
 {
 	std::map<const Crossing*, const MultiNode*>::const_iterator res = crossings_to_multinodes.find(cross);
 	if (res!=crossings_to_multinodes.end()) {
 		return res->second;
 	}
 	return nullptr;
-}
+}*/
 
-
-
-vector<StreetDirectory::RoadSegmentAndIndexPair> sim_mob::GridStreetDirectoryImpl::closestRoadSegments(const Point2D& point, centimeter_t halfWidth, centimeter_t halfHeight) const
+vector<StreetDirectory::RoadSegmentAndIndexPair> sim_mob::GridStreetDirectoryImpl::closestRoadSegments(const Point& point, centimeter_t halfWidth, centimeter_t halfHeight) const
 {
     // <aabb> is the search rectangle.
     AABB aabb(point, halfWidth, halfHeight);
@@ -685,11 +676,11 @@ vector<StreetDirectory::RoadSegmentAndIndexPair> sim_mob::GridStreetDirectoryImp
     // The search rectangle overlaps the following grid cells (m. n).
     for (int m = left; m <= right; m++) {
         for (int n = bottom; n <= top; n++) {
-            GridType::const_iterator iter = grid_.find(Point2D(m, n));
+            GridType::const_iterator iter = grid_.find(Point(m, n));
             if (iter != grid_.end()) {
                 const vector<StreetDirectory::RoadSegmentAndIndexPair>& segments = iter->second;
 
-                AABB grid(Point2D(m * gridWidth_, n * gridHeight_), gridWidth_, gridHeight_);
+                AABB grid(Point(m * gridWidth_, n * gridHeight_), gridWidth_, gridHeight_);
                 if (isGridWhollyInsideAABB(grid, aabb)) {
                     // Wow, the search rectangle is larger than the grid size.
                     result.insert(result.end(), segments.begin(), segments.end());
@@ -702,8 +693,8 @@ vector<StreetDirectory::RoadSegmentAndIndexPair> sim_mob::GridStreetDirectoryImp
                         const size_t start = pair.startIndex_;
                         const size_t end = pair.endIndex_;
 
-                        const Point2D& p1 = segment->polyline[start];
-                        const Point2D& p2 = segment->polyline[end];
+                        const Point& p1 = segment->getPolyLine()->getPoints()[start];
+                        const Point& p2 = segment->getPolyLine()->getPoints()[end];
                         centimeter_t halfWidth = getWidth(*segment) / 2;
                         if (didRoadIntersectAABB(p1, p2, halfWidth, aabb)) {
                             result.push_back(pair);

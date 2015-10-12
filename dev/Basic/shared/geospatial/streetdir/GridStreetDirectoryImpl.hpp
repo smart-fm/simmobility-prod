@@ -19,8 +19,8 @@
 namespace sim_mob {
 
 class CoordinateTransform;
-
-class Point2D;
+class RoadRunnerRegion;
+class Point;
 
 class GridStreetDirectoryImpl : public StreetDirectory::Impl {
 public:
@@ -28,19 +28,19 @@ public:
 	virtual ~GridStreetDirectoryImpl() {}
 
 protected:
-	virtual std::pair<sim_mob::RoadRunnerRegion, bool> getRoadRunnerRegion(const sim_mob::RoadSegment* seg);
+	//virtual std::pair<sim_mob::RoadRunnerRegion, bool> getRoadRunnerRegion(const sim_mob::RoadSegment* seg);
 
-	virtual std::vector<const sim_mob::RoadSegment*> getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region);
+	//virtual std::vector<const sim_mob::RoadSegment*> getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region);
 
-	virtual const BusStop* getBusStop(const Point2D& position) const;
+	virtual const BusStop* getBusStop(const Point& position) const;
 
 	virtual const Node* getNode(const int id) const;
 
-	virtual StreetDirectory::LaneAndIndexPair getLane(const Point2D& position) const;
+	virtual StreetDirectory::LaneAndIndexPair getLane(const Point& position) const;
 
-    virtual const MultiNode* GetCrossingNode(const Crossing* cross) const;
+    //virtual const MultiNode* GetCrossingNode(const Crossing* cross) const;
 
-    virtual std::vector<StreetDirectory::RoadSegmentAndIndexPair> closestRoadSegments(const Point2D& point, centimeter_t halfWidth, centimeter_t halfHeight) const;
+    virtual std::vector<StreetDirectory::RoadSegmentAndIndexPair> closestRoadSegments(const Point& point, centimeter_t halfWidth, centimeter_t halfHeight) const;
 
     /**
      * return a road segment from a aimsun-id
@@ -67,10 +67,10 @@ private:
     // The stretch is specified by <p1>, <p2>, and <halfWidth>; the line from <p1> to <p2>
     // traces the middle of the stretch.  <m> and <n> specify the (m, n) grid cell of a
     // rectangular grid of gridWidth_ and gridHeight_.
-    bool checkGrid(int m, int n, const Point2D& p1, const Point2D& p2, centimeter_t halfWidth) const;
+    bool checkGrid(int m, int n, const Point& p1, const Point& p2, centimeter_t halfWidth) const;
 
     // Called once for each unique RoadSegment
-    void buildLookups(const std::vector<RoadSegment*>& roadway, std::set<const Crossing*>& completed, const std::map<int, sim_mob::RoadRunnerRegion>& roadRunnerRegions, sim_mob::CoordinateTransform* coords);
+    //void buildLookups(const std::vector<RoadSegment*>& roadway, std::set<const Crossing*>& completed, const std::map<int, sim_mob::RoadRunnerRegion>& roadRunnerRegions, sim_mob::CoordinateTransform* coords);
 
 private:
     centimeter_t gridWidth_;
@@ -78,26 +78,26 @@ private:
 
     // The following custom hash and equality functions were taken
     // from the boost::unordered documentation.
-    struct Hash2D : private std::unary_function<Point2D, std::size_t> {
-        size_t operator()(const Point2D& key) const {
+    struct Hash2D : private std::unary_function<Point, std::size_t> {
+        size_t operator()(const Point& key) const {
             std::size_t seed = 0;
             boost::hash_combine(seed, key.getX());
             boost::hash_combine(seed, key.getY());
             return seed;
         }
     };
-    struct Equal2D : private std::binary_function<Point2D, Point2D, bool> {
-        bool operator()(const Point2D& p1, const Point2D& p2) const {
+    struct Equal2D : private std::binary_function<Point, Point, bool> {
+        bool operator()(const Point& p1, const Point& p2) const {
             return p1.getX() == p2.getX() && p1.getY() == p2.getY();
         }
     };
 
     //Map of Crossings->MultiNode. May not contain all crossings.
-    std::map<const Crossing*, const MultiNode*> crossings_to_multinodes;
+    //std::map<const Crossing*, const MultiNode*> crossings_to_multinodes;
 
     // map< key, vector<value> > is used for GridType instead of multimap<key, value>.
     typedef std::vector<StreetDirectory::RoadSegmentAndIndexPair> RoadSegmentSet;
-    typedef boost::unordered_map<Point2D, RoadSegmentSet, Hash2D, Equal2D> GridType;
+    typedef boost::unordered_map<Point, RoadSegmentSet, Hash2D, Equal2D> GridType;
 
     GridType grid_;
     std::map<std::string, const RoadSegment*> roadSegments_;

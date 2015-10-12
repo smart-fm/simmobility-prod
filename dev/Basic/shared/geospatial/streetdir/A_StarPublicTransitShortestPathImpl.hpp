@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "geospatial/Point2D.hpp"
+#include "geospatial/network/Point.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/LangHelpers.hpp"
 #include <map>

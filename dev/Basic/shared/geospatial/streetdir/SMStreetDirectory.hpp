@@ -11,19 +11,17 @@
 #include <boost/unordered_map.hpp>
 #include <boost/utility.hpp>
 
-//#include "geospatial/Point2D.hpp"
-//#include "geospatial/WayPoint.hpp"
 //#include "metrics/Length.hpp"
 //#include "util/LangHelpers.hpp"
 //#include "entities/params/PT_NetworkEntities.hpp"
 
-#include "geospatial/simmobility_network/WayPoint.hpp"
-#include "geospatial/simmobility_network/Node.hpp"
-#include "geospatial/simmobility_network/Link.hpp"
-#include "geospatial/simmobility_network/Point.hpp"
+#include "geospatial/network/WayPoint.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/Point.hpp"
 
 
-namespace simmobility_network
+namespace sim_mob
 {
 
 class SMStreetDirectory : private boost::noncopyable{
@@ -43,7 +41,7 @@ public:
 	 *           and should be considered a rough guideline as to the vertex's location.
 	 * This is just a handy way of retrieving data "stored" at a given vertex.
 	 */
-	typedef boost::property<boost::vertex_name_t, simmobility_network::Point> SMVertexProperties;
+	typedef boost::property<boost::vertex_name_t, Point> SMVertexProperties;
 
 	/**
 	 * Internal typedef to StreetDirectory representing:
@@ -53,7 +51,7 @@ public:
 	 */
 
 	typedef boost::property<boost::edge_weight_t, double,
-				boost::property<boost::edge_name_t, simmobility_network::WayPoint > > SMEdgeProperties;
+				boost::property<boost::edge_name_t, WayPoint > > SMEdgeProperties;
 
 
 	/**
@@ -86,11 +84,11 @@ public:
 
 	//A return value for "Driving/WalkingVertex"
 	struct SMNodeVertexDesc {
-		Node* node;
+		const Node* node;
 		SMVertex source; //The outgoing Vertex (used for "source" master nodes).
 		SMVertex sink;   //The incoming Vertex (used for "sink" master nodes).
 
-		SMNodeVertexDesc(Node* node=NULL) : node(node),source(SMVertex()), sink(SMVertex()) {}
+		SMNodeVertexDesc(const Node* node=NULL) : node(node),source(SMVertex()), sink(SMVertex()) {}
 		SMNodeVertexDesc(const SMNodeVertexDesc& src):node(src.node),source(src.source),sink(src.sink){}
 		SMNodeVertexDesc& operator=(const SMNodeVertexDesc& rhs)
 		{
@@ -102,11 +100,11 @@ public:
 	};
 
 	struct SMLinkVertexDesc {
-		Link* link;
+		const Link* link;
 		SMVertex from; //The outgoing Vertex
 		SMVertex to;   //The incoming Vertex
 
-		SMLinkVertexDesc(simmobility_network::Link* link=NULL) : link(link),from(SMVertex()), to(SMVertex()) {}
+		SMLinkVertexDesc(const Link* link=NULL) : link(link),from(SMVertex()), to(SMVertex()) {}
 		SMLinkVertexDesc(const SMLinkVertexDesc& src):link(src.link),from(src.from),to(src.to){}
 		SMLinkVertexDesc& operator=(const SMLinkVertexDesc& rhs)
 		{
@@ -118,11 +116,11 @@ public:
 	};
 
 	struct SMTurningPathVertexDesc {
-		TurningPath* turningPath;
+		const TurningPath* turningPath;
 		SMVertex from; //The outgoing Vertex
 		SMVertex to;   //The incoming Vertex
 
-		SMTurningPathVertexDesc(simmobility_network::TurningPath* turningPath=NULL) : turningPath(turningPath),from(SMVertex()), to(SMVertex()) {}
+		SMTurningPathVertexDesc(const TurningPath* turningPath=NULL) : turningPath(turningPath),from(SMVertex()), to(SMVertex()) {}
 		SMTurningPathVertexDesc(const SMTurningPathVertexDesc& src):turningPath(src.turningPath),from(src.from),to(src.to){}
 		SMTurningPathVertexDesc& operator=(const SMTurningPathVertexDesc& rhs)
 		{
@@ -142,12 +140,12 @@ public:
     	//ShortestPathImpl();   //Abstract?
 
     	///Retrieve a Vertex based on a Node, BusStop, etc.. Flag in the return value is false to indicate failure.
-    	virtual SMNodeVertexDesc DrivingVertex(const simmobility_network::Node& n) const = 0;
+    	virtual SMNodeVertexDesc DrivingVertex(const Node& n) const = 0;
 
     	//Meant to be used with the "DrivingVertex/WalkingVertex" functions.
-        virtual std::vector<simmobility_network::WayPoint> GetShortestDrivingPath(simmobility_network::Node* from,
-        													 simmobility_network::Node* to,
-															 std::vector<const simmobility_network::Link*> blacklist=std::vector<const simmobility_network::Link*>()) const = 0;
+        virtual std::vector<WayPoint> GetShortestDrivingPath(Node* from,
+        													 Node* to,
+															 std::vector<const Link*> blacklist=std::vector<const Link*>()) const = 0;
 
         //TODO: Does this work the way I want it to?
         friend class SMStreetDirectory;

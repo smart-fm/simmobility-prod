@@ -12,7 +12,7 @@
 #include "conf/CMakeConfigParams.hpp"
 #include "conf/Constructs.hpp"
 #include "entities/AuraManager.hpp"
-#include "geospatial/Point2D.hpp"
+#include "geospatial/network/Point.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/DailyTime.hpp"
 
@@ -303,8 +303,8 @@ public:
 ///Represents an entity in the "Drivers" or "Pedestrians" section of the config file.
 struct EntityTemplate {
 	EntityTemplate();
-	Point2D originPos;
-	Point2D destPos;
+	Point originPos;
+	Point destPos;
 	unsigned int startTimeMs;// default is zero
 	unsigned int laneIndex;// default is zero
 	int angentId;

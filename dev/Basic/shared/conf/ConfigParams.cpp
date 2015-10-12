@@ -13,8 +13,8 @@
 #include "entities/misc/BusSchedule.hpp"
 #include "entities/misc/PublicTransit.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
-#include "geospatial/BusStop.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "network/CommunicationDataManager.hpp"
 #include "network/ControlManager.hpp"
 #include "password/password.hpp"
@@ -145,22 +145,6 @@ void sim_mob::ConfigParams::sealNetwork()
 {
 	sealedNetwork = true;
 }
-
-
-const sim_mob::RoadNetwork& sim_mob::ConfigParams::getNetwork() const
-{
-	return network;
-}
-
-
-sim_mob::RoadNetwork& sim_mob::ConfigParams::getNetworkRW()
-{
-	if (sealedNetwork) {
-		//throw std::runtime_error("getNetworkRW() failed; network has been sealed.");
-	}
-	return network;
-}
-
 
 std::vector<IncidentParams>& sim_mob::ConfigParams::getIncidents(){
 	return incidents;
@@ -530,19 +514,19 @@ const std::set<sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxes() const
 	return confluxes;
 }
 
-std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxNodes()
+std::map<const Node*, sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxNodes()
 {
 	return multinode_confluxes;
 }
 
-const std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxNodes() const
+const std::map<const Node*, sim_mob::Conflux*>& sim_mob::ConfigParams::getConfluxNodes() const
 {
 	return multinode_confluxes;
 }
 
-sim_mob::Conflux* sim_mob::ConfigParams::getConfluxForNode(const sim_mob::MultiNode* multinode) const
+sim_mob::Conflux* sim_mob::ConfigParams::getConfluxForNode(const Node* multinode) const
 {
-	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>::const_iterator cfxIt = multinode_confluxes.find(multinode);
+	std::map<const Node*, sim_mob::Conflux*>::const_iterator cfxIt = multinode_confluxes.find(multinode);
 	if(cfxIt == multinode_confluxes.end()) { return nullptr; }
 	return cfxIt->second;
 }

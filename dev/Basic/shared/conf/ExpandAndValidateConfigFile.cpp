@@ -18,20 +18,15 @@
 #include "entities/Entity.hpp"
 #include "entities/Person.hpp"
 #include "entities/amodController/AMODController.hpp"
-#include "entities/fmodController/FMOD_Controller.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
-#include "geospatial/Incident.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/RoadItem.hpp"
-#include "geospatial/RoadNetwork.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/UniNode.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/RoadItem.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/aimsun/Loader.hpp"
-#include "geospatial/simmobility_network/NetworkLoader.hpp"
+#include "geospatial/network/NetworkLoader.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
-#include "geospatial/xmlLoader/geo10.hpp"
-#include "geospatial/xmlWriter/boostXmlWriter.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "util/Profiler.hpp"
 #include "util/ReactionTimeDistributions.hpp"
@@ -159,18 +154,11 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 
 	//TEMP: Test network output via boost.
 	//todo: enable/disble through cinfig
-	BoostSaveXML(cfg.networkXmlOutputFile(), cfg.getNetworkRW());
+	//BoostSaveXML(cfg.networkXmlOutputFile(), cfg.getNetworkRW());
 
 	//Seal the network; no more changes can be made after this.
 	cfg.sealNetwork();
 	std::cout << "Network Sealed" << std::endl;
-
-	//Write the network (? This is weird. ?)
-	if (cfg.XmlWriterOn())
-	{
-		throw std::runtime_error("Old WriteXMLInput function deprecated; use boost instead.");
-		std::cout << "XML input for SimMobility Created....\n";
-	}
 
 	if (cfg.publicTransitEnabled)
 	{
@@ -178,7 +166,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	}
 
 	//Initialise the street directory.
-	StreetDirectory::instance().init(cfg.getNetwork(), true);
+	StreetDirectory::instance().init(*(RoadNetwork::getInstance()), true);
 	std::cout << "Street Directory initialised  " << std::endl;
 
 	if (ConfigManager::GetInstance().FullConfig().pathSet().privatePathSetMode == "generation")
@@ -205,7 +193,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	if (cfg.RunningMidSupply())
 	{
 		size_t sizeBefore = cfg.getConfluxes().size();
-		sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
+		sim_mob::aimsun::Loader::ProcessConfluxes(*(RoadNetwork::getInstance()));
 		std::cout << cfg.getConfluxes().size() << " Confluxes created" << std::endl;
 	}
 	//Running short-term
@@ -217,7 +205,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 		{
 			if (itIntModel->second == "slot-based")
 			{
-				sim_mob::aimsun::Loader::CreateIntersectionManagers(ConfigManager::GetInstance().FullConfig().getNetwork());
+				sim_mob::aimsun::Loader::CreateIntersectionManagers(*(RoadNetwork::getInstance()));
 			}
 		}
 	}
@@ -232,13 +220,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 		sim_mob::BusController::RegisterNewBusController(it->startTimeMs, cfg.mutexStategy());
 	}
 
-	//Start all "FMOD" entities.
-	LoadFMOD_Controller();
-
 	LoadAMOD_Controller();
-
-	//combine incident information to road network
-	verifyIncidents();
 
 	//Initialise all BusControllers.
 	if (BusController::HasBusControllers())
@@ -259,6 +241,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	}
 }
 
+/*
 void sim_mob::ExpandAndValidateConfigFile::verifyIncidents()
 {
 	std::vector<IncidentParams>& incidents = cfg.getIncidents();
@@ -286,7 +269,7 @@ void sim_mob::ExpandAndValidateConfigFile::verifyIncidents()
 			const std::vector<sim_mob::Lane*>& lanes = roadSeg->getLanes();
 			for (std::vector<IncidentParams::LaneParams>::iterator laneIt=incIt->laneParams.begin(); laneIt != incIt->laneParams.end(); ++laneIt)
 			{
-				Incident::LaneItem lane;
+				LaneItem lane;
 				lane.laneId = laneIt->laneId;
 				lane.speedLimit = laneIt->speedLimit;
 				item->laneItems.push_back(lane);
@@ -310,6 +293,7 @@ void sim_mob::ExpandAndValidateConfigFile::verifyIncidents()
 		}
 	}
 }
+*/
 
 void sim_mob::ExpandAndValidateConfigFile::CheckGranularities()
 {
@@ -393,8 +377,7 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetwork()
 	if (ConfigManager::GetInstance().FullConfig().networkSource()==SystemParams::NETSRC_DATABASE) 
 	{
 		Print() <<"Loading Road Network from the database.\n";
-		sim_mob::NetworkLoader nwLoader;
-		nwLoader.loadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
+		NetworkLoader::getInstance()->loadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
 	}
 	else 
 	{
@@ -406,15 +389,6 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetwork()
 void sim_mob::ExpandAndValidateConfigFile::LoadPublicTransitNetworkFromDatabase()
 {
 	PT_Network::getInstance().init();
-}
-
-void sim_mob::ExpandAndValidateConfigFile::LoadFMOD_Controller()
-{
-	if (cfg.fmod.enabled)
-	{
-		sim_mob::FMOD::FMOD_Controller::registerController(-1, cfg.mutexStategy());
-		sim_mob::FMOD::FMOD_Controller::instance()->connectFmodService();
-	}
 }
 
 void sim_mob::ExpandAndValidateConfigFile::LoadAMOD_Controller()
@@ -439,12 +413,6 @@ void sim_mob::ExpandAndValidateConfigFile::LoadAgentsInOrder(ConfigParams::Agent
 			
 			//Create an agent for each Trip Chain in the database.
 			GenerateAgentsFromTripChain(constraints);
-
-			//Initialize the FMOD controller now that all entities have been loaded.
-			if ( sim_mob::FMOD::FMOD_Controller::instanceExists() )
-			{
-				sim_mob::FMOD::FMOD_Controller::instance()->initialize();
-			}
 			
 			std::cout << "Loaded Database Agents (from Trip Chains).\n";
 			break;
@@ -497,18 +465,6 @@ void sim_mob::ExpandAndValidateConfigFile::GenerateAgentsFromTripChain(ConfigPar
 			person->setPersonCharacteristics();
 			addOrStashEntity(person, active_agents, pending_agents);
 		} 
-		else
-		{
-			//insert to FMOD controller so that collection of requests
-			if (sim_mob::FMOD::FMOD_Controller::instanceExists())
-			{
-				sim_mob::FMOD::FMOD_Controller::instance()->insertFmodItems(it_map->first, tc);
-			} 
-			else
-			{
-				Warn() << "Skipping FMOD agent; FMOD controller is not active.\n";
-			}
-		}
 	}
 }
 

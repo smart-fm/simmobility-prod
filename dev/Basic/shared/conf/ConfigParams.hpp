@@ -12,7 +12,7 @@
 #include "conf/RawConfigParams.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "entities/misc/PublicTransit.hpp"
-#include "geospatial/RoadNetwork.hpp"
+#include "geospatial/network/BusStop.hpp"
 #include "util/DailyTime.hpp"
 #include "util/Factory.hpp"
 
@@ -20,7 +20,6 @@
 namespace sim_mob {
 
 //Forward declarations
-class BusStop;
 class BusSchedule;
 class Conflux;
 class CommunicationDataManager;
@@ -122,17 +121,6 @@ public:
 	std::string getDatabaseConnectionString(bool maskPassword=true) const;
 	StoredProcedureMap getDatabaseProcMappings() const;
 
-	/**
-	 * Retrieve a reference to the current RoadNetwork.
-	 */
-	const sim_mob::RoadNetwork& getNetwork() const;
-
-	/**
-	 * Retrieve a reference to the current RoadNetwork; read-write access.
-	 * Fails if the network has been sealed.
-	 */
-	sim_mob::RoadNetwork& getNetworkRW();
-
 	std::vector<IncidentParams>& getIncidents();
 
 	/**
@@ -176,9 +164,9 @@ public:
 	std::set<sim_mob::Conflux*>& getConfluxes();
 	const std::set<sim_mob::Conflux*>& getConfluxes() const;
 
-	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes();
-	const std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes() const;
-	sim_mob::Conflux* getConfluxForNode(const sim_mob::MultiNode* multinode) const;
+	std::map<const Node*, sim_mob::Conflux*>& getConfluxNodes();
+	const std::map<const Node*, sim_mob::Conflux*>& getConfluxNodes() const;
+	sim_mob::Conflux* getConfluxForNode(const Node* multinode) const;
 	std::set<sim_mob::SegmentStats*>& getSegmentStatsWithBusStops();
 
 	const ModelScriptsMap& getLuaScriptsMap() const;
@@ -196,7 +184,6 @@ private:
 
 	//static ConfigParams instance;
 
-	sim_mob::RoadNetwork network;
 	sim_mob::RoleFactory roleFact;
 	sim_mob::Factory<sim_mob::Broker> brokerFact;
 
@@ -222,7 +209,7 @@ private:
 	//Confluxes in this network
 	std::set<sim_mob::Conflux*> confluxes;
 	std::set<sim_mob::SegmentStats*> segmentStatsWithBusStops;
-	std::map<const sim_mob::MultiNode*, sim_mob::Conflux*> multinode_confluxes; //map <MultiNode*, Conflux*>
+	std::map<const Node*, sim_mob::Conflux*> multinode_confluxes; //map <MultiNode*, Conflux*>
 
 	enum MidTermRunMode
 	{

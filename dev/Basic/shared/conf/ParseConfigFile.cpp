@@ -13,7 +13,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/RawConfigParams.hpp"
-#include "geospatial/Point2D.hpp"
+#include "geospatial/network/Point.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/XmlParseHelper.hpp"
 #include "path/ParsePathXmlConfig.hpp"
@@ -93,7 +93,7 @@ MutexStrategy ParseMutexStrategyEnum(const XMLCh* srcX, MutexStrategy* defValue)
 	return *defValue;
 }
 
-Point2D ParsePoint2D(const XMLCh* srcX, Point2D* defValue) {
+Point ParsePoint2D(const XMLCh* srcX, Point* defValue) {
 	if (srcX) {
 		std::string src = TranscodeString(srcX);
 		return parse_point(src);
@@ -101,7 +101,7 @@ Point2D ParsePoint2D(const XMLCh* srcX, Point2D* defValue) {
 
 	//Wasn't found.
 	if (!defValue) {
-		throw std::runtime_error("Mandatory Point2D variable; no default available.");
+		throw std::runtime_error("Mandatory Point variable; no default available.");
 	}
 	return *defValue;
 }
@@ -132,10 +132,10 @@ unsigned int ParseGranularitySingle(const XMLCh* srcX, unsigned int* defValue) {
 }
 
 //How to do defaults
-Point2D ParsePoint2D(const XMLCh* src, Point2D defValue) {
+Point ParsePoint2D(const XMLCh* src, Point defValue) {
 	return ParsePoint2D(src, &defValue);
 }
-Point2D ParsePoint2D(const XMLCh* src) { //No default
+Point ParsePoint2D(const XMLCh* src) { //No default
 	return ParsePoint2D(src, nullptr);
 }
 unsigned int ParseGranularitySingle(const XMLCh* src, unsigned int defValue) {
@@ -220,7 +220,6 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	ProcessTaxiDriversNode(GetSingleElementByName(rootNode, "taxidrivers"));
 	ProcessBusDriversNode(GetSingleElementByName(rootNode, "busdrivers"));
 	ProcessPassengersNode(GetSingleElementByName(rootNode, "passengers"));
-	ProcessSignalsNode(GetSingleElementByName(rootNode, "signals"));
 	ProcessBusControllersNode(GetSingleElementByName(rootNode, "buscontrollers"));
 	ProcessCBD_Node(GetSingleElementByName(rootNode, "CBD"));	
 	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
@@ -1018,8 +1017,8 @@ void sim_mob::ParseConfigFile::ProcessFutureAgentList(xercesc::DOMElement* node,
 	for (DOMElement* item=node->getFirstElementChild(); item; item=item->getNextElementSibling()) {
 		if (TranscodeString(item->getNodeName())==itemName) {
 			EntityTemplate ent;
-			ent.originPos = ParsePoint2D(GetNamedAttributeValue(item, "originPos", originReq),Point2D());
-			ent.destPos = ParsePoint2D(GetNamedAttributeValue(item, "destPos", destReq), Point2D());
+			ent.originPos = ParsePoint2D(GetNamedAttributeValue(item, "originPos", originReq),Point());
+			ent.destPos = ParsePoint2D(GetNamedAttributeValue(item, "destPos", destReq), Point());
 			ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(item, "time", timeReq), static_cast<unsigned int>(0));
 			ent.laneIndex = ParseUnsignedInt(GetNamedAttributeValue(item, "lane", laneReq), static_cast<unsigned int>(0));
 			ent.angentId = ParseUnsignedInt(GetNamedAttributeValue(item, "id", false), static_cast<unsigned int>(0));

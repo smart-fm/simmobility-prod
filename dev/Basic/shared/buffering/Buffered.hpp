@@ -29,8 +29,8 @@ namespace sim_mob
  * Do not delete this class until we decide what to do with it. See Shared.hpp for more information.
  *
  *  \todo Currently, Buffered types don't work well with classes. For example, if
- *  we have a "Buffered<Point2D> pos", then calling "pos.get().xPos = 10" will
- *  not work. You need to do something like "Point2D newPos(10, 20); pos.set(newPos)", which
+ *  we have a "Buffered<Point> pos", then calling "pos.get().xPos = 10" will
+ *  not work. You need to do something like "Point newPos(10, 20); pos.set(newPos)", which
  *  is pretty arbitrary and counter-intuitive. One option is to make a BufferedPoint2D class
  *  which extends BufferedBase, and give it "setXPos()" and "setYPos()" methods.
  *

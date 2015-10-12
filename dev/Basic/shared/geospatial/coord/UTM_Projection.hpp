@@ -37,7 +37,7 @@ public:
 	UTM_Projection() : coordSys(COORD_WGS84), utmZone(UTM_INVALID)
 	{}
 
-	virtual LatLngLocation transform(DPoint source) {
+	virtual LatLngLocation transform(Point source) {
 		throw std::runtime_error("Coordinate transform not yet supported for UTM projections.");
 	}
 

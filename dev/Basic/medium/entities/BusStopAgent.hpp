@@ -17,7 +17,7 @@
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/waitBusActivity/waitBusActivity.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
-#include "geospatial/BusStop.hpp"
+#include "geospatial/network/BusStop.hpp"
 
 namespace sim_mob {
 namespace medium {

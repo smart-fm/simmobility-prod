@@ -113,11 +113,22 @@ void Link::setToNodeId(unsigned int toNodeId)
 }
 
 double Link::getLength() const
-{
+{	
 	return length;
 }
 
 void Link::addRoadSegment(RoadSegment *roadSegment)
 {
 	this->roadSegments.push_back(roadSegment);
+}
+
+void Link::calculateLength()
+{
+	if(length == 0)
+	{
+		for (int i = 0; i < roadSegments.size(); ++i)
+		{
+			length += roadSegments.at(i)->getLength();
+		}
+	}
 }

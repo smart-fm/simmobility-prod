@@ -32,6 +32,9 @@ private:
 	/**The database connection session*/
 	soci::session sql;
 
+	/**Indicates whether the road network has been loaded successfully*/
+	bool isNetworkLoaded;
+
 	/**Private constructor as the class is a singleton*/
 	NetworkLoader();
 
@@ -133,5 +136,10 @@ public:
 	 * @param storedProcs - the map of stored procedures
 	 */
 	void loadNetwork(const string& connectionStr, const map<string, string>& storedProcs);
+
+	/**
+	 * This method does post processing on the road network
+     */
+	void processNetwork();
 };
 }

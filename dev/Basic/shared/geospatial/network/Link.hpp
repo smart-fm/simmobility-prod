@@ -136,11 +136,6 @@ public:
 	unsigned int getToNodeId() const;
 	void setToNodeId(unsigned int toNodeId);
 
-	/**
-	 * Calculates the length of the link by summing up the lengths of the road segments that make up the
-	 * link
-	 * @return length of the link
-	 */
 	double getLength() const;
 
 	/**
@@ -148,5 +143,10 @@ public:
 	 * @param roadSegment - the road segment to be added to the link
 	 */
 	void addRoadSegment(RoadSegment *roadSegment);
+
+	/**
+	 * Calculates the length of the link by summing up the lengths of the road segments within
+     */
+	void calculateLength();
 };
 }

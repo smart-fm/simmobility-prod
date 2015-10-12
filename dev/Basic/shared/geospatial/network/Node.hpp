@@ -80,6 +80,8 @@ public:
 	unsigned int getTrafficLightId() const;
 	void setTrafficLightId(unsigned int trafficLightId);
 
+    const std::map<unsigned int, std::map<unsigned int, TurningGroup *> >& getTurningGroups() const;
+
 	/**
 	 * This method adds a turning group to the map - turningGroups, based on the "from link" and "to link" of the
 	 * turning group

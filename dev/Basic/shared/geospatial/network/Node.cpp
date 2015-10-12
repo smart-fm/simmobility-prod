@@ -82,6 +82,11 @@ void Node::setTrafficLightId(unsigned int trafficLightId)
 	this->trafficLightId = trafficLightId;
 }
 
+const std::map<unsigned int, std::map<unsigned int, TurningGroup *> >& Node::getTurningGroups() const
+{
+	return turningGroups;
+}
+
 unsigned int Node::getTrafficLightId() const
 {
 	return trafficLightId;

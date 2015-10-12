@@ -37,7 +37,7 @@ string getStoredProcedure(const map<string, string>& storedProcs, const string& 
 }
 }
 
-NetworkLoader::NetworkLoader() : roadNetwork(RoadNetwork::getInstance())
+NetworkLoader::NetworkLoader() : roadNetwork(RoadNetwork::getInstance()), isNetworkLoaded(false)
 {
 }
 
@@ -240,6 +240,7 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 		//Close the connection
 		sql.close();
 
+		isNetworkLoaded = true;
 		sim_mob::Print() << "SimMobility network loaded!\n";
 	}
 	catch (soci::soci_error const &err)
@@ -251,6 +252,18 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 	{
 		sim_mob::Print() << "Exception occurred while loading the network!\n" << err.what() << std::endl;
 		exit(-1);
+	}
+}
+
+void NetworkLoader::processNetwork()
+{
+	//Calculate the lengths of all the links
+	std::map<unsigned int, Link *> mapOfLinks = roadNetwork->getMapOfIdVsLinks();
+	std::map<unsigned int, Link *>::iterator itLinks = mapOfLinks.begin();
+	
+	while(itLinks != mapOfLinks.end())
+	{
+		itLinks->second->calculateLength();
 	}
 }
 

@@ -10,7 +10,7 @@
 #include <boost/thread.hpp>
 
 #include "conf/settings/DisableMPI.h"
-#include "geospatial/simmobility_network/Point.hpp"
+#include "geospatial/network/Point.hpp"
 #include "logging/Log.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI

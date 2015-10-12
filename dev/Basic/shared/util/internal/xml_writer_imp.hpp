@@ -8,7 +8,7 @@
 
 //////////////////////////////////////////////////////////////////////
 // Xml writers specialized for certain primitives.
-// Note that you can even add simple items such as Point2D as "primitives", if
+// Note that you can even add simple items such as Point as "primitives", if
 //   they have their own operator<< which makes sense in this context.
 // (But you should probably just rely on write_xml()).
 //

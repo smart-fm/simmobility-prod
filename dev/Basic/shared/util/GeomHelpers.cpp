@@ -10,7 +10,7 @@
 #include <limits>
 
 #include "boost/lexical_cast.hpp"
-#include "geospatial/simmobility_network/Point.hpp"
+#include "geospatial/network/Point.hpp"
 
 using namespace sim_mob;
 using std::vector;
@@ -227,7 +227,7 @@ vector<Point> sim_mob::ShiftPolyline(const vector<Point>& orig, double shiftAmt,
 }
 
 //add by xuyan
-Point sim_mob::getMiddlePoint(const Point* start_point, const Point* end_point, double offset)
+Point sim_mob::getMiddlePoint2D(const Point* start_point, const Point* end_point, double offset)
 {
 	double distance = dist(start_point->getX(), start_point->getY(), end_point->getX(), end_point->getY());
 	double location_x = start_point->getX() + (offset * 100) / distance * (end_point->getX() - start_point->getX());

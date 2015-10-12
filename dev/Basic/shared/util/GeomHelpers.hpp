@@ -42,7 +42,7 @@ namespace sim_mob
 
   template <class T, class Y> double dist(const T& point1, const Y& point2);
 
-  ///Helper: Convert a Lane/Crossing/Point into a DPoint for use in the dist() function.
+  ///Helper: Convert a Lane/Crossing/Point into a Point for use in the dist() function.
   ///See specializations at the bottom of this file.
   template <class T> Point get_distarg(const T& item);
   
@@ -137,7 +137,7 @@ namespace sim_mob
   //add by xuyan
   //Calculate the middle point, given the start/end point and the offset.
   //used to get the boundary box
-  Point getMiddlePoint(const Point* start_point, const Point* end_point, double offset);
+  Point getMiddlePoint2D(const Point* start_point, const Point* end_point, double offset);
 
   //add by xuyan
   //Check whether one point is in the polygon, whose size is N

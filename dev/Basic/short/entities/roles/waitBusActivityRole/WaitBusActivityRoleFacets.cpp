@@ -13,9 +13,9 @@
 
 #include "entities/Person.hpp"
 #include "entities/roles/Role.hpp"
-#include "geospatial/BusStop.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/GeomHelpers.hpp"
 
@@ -25,14 +25,14 @@ namespace sim_mob {
 
 BusStop* getbusStop(const Node* node,sim_mob::RoadSegment* segment)
 {
- 	 std::map<centimeter_t, const RoadItem*>::const_iterator ob_it;
- 	 const std::map<centimeter_t, const RoadItem*> & obstacles =segment->obstacles;
+ 	 std::map<double, RoadItem*>::const_iterator ob_it;
+ 	 const std::map<double, RoadItem*> & obstacles =segment->getObstacles();
  	 for (ob_it = obstacles.begin(); ob_it != obstacles.end(); ++ob_it) {
  		RoadItem* ri = const_cast<RoadItem*>(ob_it->second);
  		BusStop *bs = dynamic_cast<BusStop*>(ri);
- 		if (bs && ((segment->getStart() == node) || (segment->getEnd() == node) )) {
+ 		/*if (bs && ((segment->getStart() == node) || (segment->getEnd() == node) )) {
  			return bs;
- 		}
+ 		}*/
  	 }
  	 return nullptr;
 }
@@ -57,10 +57,12 @@ sim_mob::WaitBusActivityRoleMovement::~WaitBusActivityRoleMovement() {
 
 BusStop* sim_mob::WaitBusActivityRoleMovement::setBusStopXY(const Node* node)//to find the nearest busstop to a node
 {
- 	 const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (node);
+ 	 const Node* currEndNode = node;
  	 double dist=0;
  	 BusStop*bs1=0;
- 	 if(currEndNode)
+ 	 
+	 /*
+	 if(currEndNode)
  	 {
  		 const std::set<sim_mob::RoadSegment*>& segments_ = currEndNode->getRoadSegments();
  		 BusStop* busStop_ptr = nullptr;
@@ -81,7 +83,7 @@ BusStop* sim_mob::WaitBusActivityRoleMovement::setBusStopXY(const Node* node)//t
  	 }
  	 else
  	 {
- 		 Point2D point = node->location;
+ 		 Point point = node->location;
  		 const StreetDirectory::LaneAndIndexPair lane_index =  StreetDirectory::instance().getLane(point);
  		 if(lane_index.lane_)
  		 {
@@ -131,7 +133,7 @@ BusStop* sim_mob::WaitBusActivityRoleMovement::setBusStopXY(const Node* node)//t
  			 }
  		 }
 
- 	 }
+ 	 }*/
  	 return bs1;
 }
 }

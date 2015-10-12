@@ -53,7 +53,7 @@ std::vector<sim_mob::BufferedBase*> sim_mob::WaitBusActivityRole::getSubscriptio
 // 	 }
 // 	 else
 // 	 {
-// 		 Point2D point = node->location;
+// 		 Point point = node->location;
 // 		 const StreetDirectory::LaneAndIndexPair lane_index =  StreetDirectory::instance().getLane(point);
 // 		 if(lane_index.lane_)
 // 		 {

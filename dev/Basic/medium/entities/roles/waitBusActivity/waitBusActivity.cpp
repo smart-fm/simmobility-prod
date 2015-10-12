@@ -5,7 +5,7 @@
 #include "waitBusActivity.hpp"
 #include "waitBusActivityFacets.hpp"
 #include "entities/Person.hpp"
-#include "geospatial/BusStop.hpp"
+#include "geospatial/network/BusStop.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "message/MT_Message.hpp"
 #include "entities/PT_Statistics.hpp"

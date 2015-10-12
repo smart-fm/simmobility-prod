@@ -7,8 +7,8 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/Agent.hpp"
-#include "geospatial/Point2D.hpp"
-#include "geospatial/Lane.hpp"
+#include "geospatial/network/Point.hpp"
+#include "geospatial/network/Lane.hpp"
 #include "spatial_trees/shared_funcs.hpp"
 
 using namespace sim_mob;
@@ -46,7 +46,7 @@ void sim_mob::SimAuraManager::registerNewAgent(Agent const* ag) {
 	new_agents.push_back(ag);
 }
 
-std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, const sim_mob::Agent* refAgent) const {
+std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRect(Point const & lowerLeft, Point const & upperRight, const sim_mob::Agent* refAgent) const {
 	//Can we use the optimized bottom-up query?
 	if (refAgent) {
 		std::map<const sim_mob::Agent*, TreeItem*>::const_iterator it = agent_connector_map.find(refAgent);
@@ -64,7 +64,7 @@ std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRect(Point2D const &
 	return tree_sim.rangeQuery(box);
 }
 
-std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const {
+std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgents(Point const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const {
 	//Use the optimized bottom-up query, please read the paper to get more insights on "bottom-up query"
 	//The idea is to start the search from the agent's location, instead of from the root node
 	if (refAgent) {
@@ -82,8 +82,8 @@ std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgents(Point2D const &
 	 */
 
 	// Find the stretch of the lane's polyline that <position> is in.
-	std::vector<Point2D> const & polyline = lane.getPolyline();
-	Point2D p1, p2;
+	const std::vector<PolyPoint> polyline = lane.getPolyLine()->getPoints();
+	Point p1, p2;
 	for (size_t index = 0; index < polyline.size() - 1; index++) {
 		p1 = polyline[index];
 		p2 = polyline[index + 1];
@@ -125,13 +125,13 @@ std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgents(Point2D const &
 	top += halfWidth;
 	bottom -= halfWidth;
 
-	Point2D lowerLeft(left, bottom);
-	Point2D upperRight(right, top);
+	Point lowerLeft(left, bottom);
+	Point upperRight(right, top);
 
 	return agentsInRect(lowerLeft, upperRight, nullptr);
 }
 
-std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRectBottomUpQuery(const Point2D& lowerLeft, const Point2D& upperRight, TreeItem* item) const {
+std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRectBottomUpQuery(const Point& lowerLeft, const Point& upperRight, TreeItem* item) const {
 	SimRTree::BoundingBox box;
 	box.edges[0].first = lowerLeft.getX();
 	box.edges[1].first = lowerLeft.getY();
@@ -145,10 +145,10 @@ std::vector<Agent const *> sim_mob::SimAuraManager::agentsInRectBottomUpQuery(co
 #endif
 }
 
-std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgentsBottomUpQuery(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const {
+std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgentsBottomUpQuery(const Point& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const {
 	// Find the stretch of the lane's polyline that <position> is in.
-	std::vector<Point2D> const & polyline = lane.getPolyline();
-	Point2D p1, p2;
+	const std::vector<PolyPoint> polyline = lane.getPolyLine()->getPoints();
+	Point p1, p2;
 	for (size_t index = 0; index < polyline.size() - 1; index++) {
 		p1 = polyline[index];
 		p2 = polyline[index + 1];
@@ -185,8 +185,8 @@ std::vector<Agent const *> sim_mob::SimAuraManager::nearbyAgentsBottomUpQuery(co
 	top += halfWidth;
 	bottom -= halfWidth;
 
-	Point2D lowerLeft(left, bottom);
-	Point2D upperRight(right, top);
+	Point lowerLeft(left, bottom);
+	Point upperRight(right, top);
 
 
 	return agentsInRectBottomUpQuery(lowerLeft, upperRight, item);

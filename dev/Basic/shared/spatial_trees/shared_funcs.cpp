@@ -9,9 +9,9 @@
 #include "buffering/Vector2D.hpp"
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
-#include "geospatial/Point2D.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/Point.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 
 
 using namespace sim_mob;
@@ -45,7 +45,7 @@ const sim_mob::Agent* sim_mob::temp_spatial::nearest_agent(const Agent* agent, c
 centimeter_t sim_mob::temp_spatial::getAdjacentLaneWidth(const Lane& lane)
 {
 	// Find the index of <lane> so that we can find the adjacent lanes.
-	const RoadSegment* segment = lane.getRoadSegment();
+	const RoadSegment* segment = lane.getParentSegment();
 	const std::vector<sim_mob::Lane*>& lanes = segment->getLanes();
 	size_t index = 0;
 	while (index < lanes.size()) {
@@ -77,7 +77,7 @@ centimeter_t sim_mob::temp_spatial::getAdjacentLaneWidth(const Lane& lane)
 }
 
 
-bool sim_mob::temp_spatial::isInBetween(const Point2D& point, const Point2D& p1, const Point2D& p2)
+bool sim_mob::temp_spatial::isInBetween(const Point& point, const Point& p1, const Point& p2)
 {
 	Vector2D<double> a(p1.getX(), p1.getY());
 	Vector2D<double> b(p2.getX(), p2.getY());
@@ -92,7 +92,7 @@ bool sim_mob::temp_spatial::isInBetween(const Point2D& point, const Point2D& p1,
 
 
 
-void sim_mob::temp_spatial::adjust(Point2D& p1, Point2D& p2, const Point2D& position, centimeter_t distanceInFront, centimeter_t distanceBehind)
+void sim_mob::temp_spatial::adjust(Point& p1, Point& p2, const Point& position, centimeter_t distanceInFront, centimeter_t distanceBehind)
 {
 	centimeter_t xDiff = p2.getX() - p1.getX();
 	centimeter_t yDiff = p2.getY() - p1.getY();
@@ -101,11 +101,11 @@ void sim_mob::temp_spatial::adjust(Point2D& p1, Point2D& p2, const Point2D& posi
 	double t = distanceInFront / h;
 	centimeter_t x = position.getX() + t * xDiff;
 	centimeter_t y = position.getY() + t * yDiff;
-	p2 = sim_mob::Point2D(x, y);
+	p2 = sim_mob::Point(x, y);
 
 	t = distanceBehind / h;
 	x = position.getX() - t * xDiff;
 	y = position.getY() - t * yDiff;
-	p1 = Point2D(x, y);
+	p1 = Point(x, y);
 }
 

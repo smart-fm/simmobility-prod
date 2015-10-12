@@ -9,7 +9,7 @@
 #include "spatial_trees/shared_funcs.hpp"
 #include "entities/Person.hpp"
 #include "entities/Agent.hpp"
-#include "geospatial/Lane.hpp"
+#include "geospatial/network/Lane.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::temp_spatial;
@@ -32,7 +32,7 @@ void RStarAuraManager::update(int time_step, const std::set<sim_mob::Agent*>& re
 	}
 }
 
-std::vector<Agent const *> RStarAuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, const sim_mob::Agent* refAgent) const
+std::vector<Agent const *> RStarAuraManager::agentsInRect(Point const & lowerLeft, Point const & upperRight, const sim_mob::Agent* refAgent) const
 {
 	R_tree::BoundingBox box;
 	box.edges[0].first = lowerLeft.getX();
@@ -43,11 +43,11 @@ std::vector<Agent const *> RStarAuraManager::agentsInRect(Point2D const & lowerL
 	return tree_rstar.query(box);
 }
 
-std::vector<Agent const *> RStarAuraManager::nearbyAgents(Point2D const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const
+std::vector<Agent const *> RStarAuraManager::nearbyAgents(Point const & position, Lane const & lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const
 {
 	// Find the stretch of the lane's polyline that <position> is in.
-	std::vector<Point2D> const & polyline = lane.getPolyline();
-	Point2D p1, p2;
+	const std::vector<PolyPoint> polyline = lane.getPolyLine()->getPoints();
+	Point p1, p2;
 	for (size_t index = 0; index < polyline.size() - 1; index++) {
 		p1 = polyline[index];
 		p2 = polyline[index + 1];
@@ -90,8 +90,8 @@ std::vector<Agent const *> RStarAuraManager::nearbyAgents(Point2D const & positi
 	top += halfWidth;
 	bottom -= halfWidth;
 
-	Point2D lowerLeft(left, bottom);
-	Point2D upperRight(right, top);
+	Point lowerLeft(left, bottom);
+	Point upperRight(right, top);
 	return agentsInRect(lowerLeft, upperRight, nullptr);
 }
 

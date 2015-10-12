@@ -15,7 +15,7 @@ namespace sim_mob {
 class Agent;
 class Entity;
 class Lane;
-class Point2D;
+class Point;
 class RoadSegment;
 
 
@@ -38,14 +38,14 @@ sim_mob::centimeter_t getAdjacentLaneWidth(const sim_mob::Lane& lane);
 
 // Return true if <point> is between <p1> and <p2>, even if <point> is not co-linear
 // with <p1> and <p2>.
-bool isInBetween(const sim_mob::Point2D& point, const sim_mob::Point2D& p1, const sim_mob::Point2D& p2);
+bool isInBetween(const sim_mob::Point& point, const sim_mob::Point& p1, const sim_mob::Point& p2);
 
 
 
 // Adjust <p1> and <p2> so that <p2> is <distanceInFront> from <position> and
 // <p1> is <distanceBehind> from <position>, while retaining the slope of the line
 // from <p1> to <p2>.
-void adjust(sim_mob::Point2D& p1, sim_mob::Point2D& p2, const sim_mob::Point2D& position, sim_mob::centimeter_t distanceInFront, sim_mob::centimeter_t distanceBehind);
+void adjust(sim_mob::Point& p1, sim_mob::Point& p2, const sim_mob::Point& position, sim_mob::centimeter_t distanceInFront, sim_mob::centimeter_t distanceBehind);
 
 
 

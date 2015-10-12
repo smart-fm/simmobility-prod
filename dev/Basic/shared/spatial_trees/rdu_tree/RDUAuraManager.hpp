@@ -16,7 +16,7 @@ namespace sim_mob
 {
 
 //Forward declarations.
-class Point2D;
+class Point;
 class RoadSegment;
 class Agent;
 class Lane;
@@ -32,9 +32,9 @@ public:
 
 	bool has_one_agent_du(int agent_id);
 
-	virtual std::vector<Agent const *> agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, const sim_mob::Agent* refAgent) const;
+	virtual std::vector<Agent const *> agentsInRect(const Point& lowerLeft, const Point& upperRight, const sim_mob::Agent* refAgent) const;
 
-	virtual std::vector<Agent const *> nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const;
+	virtual std::vector<Agent const *> nearbyAgents(const Point& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const;
 
 private:
 	sim_mob::R_tree_DU tree_du;

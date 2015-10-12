@@ -649,9 +649,9 @@ void sim_mob::Broker::processPublishers(timeslice now)
 	//std::string timeMsg = CommsimSerializer::makeTimeData(now.frame(), ConfigManager::GetInstance().FullConfig().baseGranMS());
 
 	//Create a single AllLocations message.
-	std::map<unsigned int, DPoint> allLocs;
+	std::map<unsigned int, Point> allLocs;
 	for (std::map<const Agent*, AgentInfo>::const_iterator it=registeredAgents.begin(); it!=registeredAgents.end(); it++) {
-		allLocs[it->first->getId()] = DPoint(it->first->xPos.get(), it->first->yPos.get());
+		allLocs[it->first->getId()] = Point(it->first->xPos.get(), it->first->yPos.get());
 	}
 	std::string allLocMsg = CommsimSerializer::makeAllLocations(allLocs);
 
@@ -667,9 +667,9 @@ void sim_mob::Broker::processPublishers(timeslice now)
 		if (cHandler->regisLocation) {
 			//Attempt to reverse-project the Agent's (x,y) location into Lat/Lng, if such a projection is possible.
 			LatLngLocation loc;
-			CoordinateTransform* trans = ConfigManager::GetInstance().FullConfig().getNetwork().getCoordTransform(false);
+			CoordinateTransform* trans = 0;//ConfigManager::GetInstance().FullConfig().getNetwork().getCoordTransform(false);
 			if (trans) {
-				loc = trans->transform(DPoint(cHandler->agent->xPos.get(), cHandler->agent->yPos.get()));
+				loc = trans->transform(Point(cHandler->agent->xPos.get(), cHandler->agent->yPos.get()));
 			}
 
 			insertSendBuffer(cHandler, CommsimSerializer::makeLocation(cHandler->agent->xPos.get(), cHandler->agent->yPos.get(), loc));

@@ -558,7 +558,7 @@ std::string sim_mob::CommsimSerializer::makeNewAgents(const std::vector<unsigned
 
 
 
-std::string sim_mob::CommsimSerializer::makeAllLocations(const std::map<unsigned int, DPoint>& allLocations)
+std::string sim_mob::CommsimSerializer::makeAllLocations(const std::map<unsigned int, Point>& allLocations)
 {
 	if (PREFER_BINARY_MESSAGES) {
 		throw std::runtime_error("addX() binary format not yet supported.");
@@ -567,8 +567,8 @@ std::string sim_mob::CommsimSerializer::makeAllLocations(const std::map<unsigned
 		res <<"{\"msg_type\":\"all_locations\",\"locations\":[";
 
 		//Add all "LOCATIONS"
-		for (std::map<unsigned int, DPoint>::const_iterator it=allLocations.begin(); it!=allLocations.end();) {
-			res <<"{\"id\":\"" <<it->first <<"\",\"x\":" <<it->second.x <<",\"y\":" <<it->second.y <<"}";
+		for (std::map<unsigned int, Point>::const_iterator it=allLocations.begin(); it!=allLocations.end();) {
+			res <<"{\"id\":\"" <<it->first <<"\",\"x\":" <<it->second.getX() <<",\"y\":" <<it->second.getY() <<"}";
 			it++;
 			res <<(it!=allLocations.end()?",":"");
 		}

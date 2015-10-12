@@ -158,8 +158,8 @@ void sim_mob::OpaqueSendHandler::handle(boost::shared_ptr<ConnectionHandler> han
 	if (sendMsg.broadcast) {
 		//Get agents around you.
 		std::vector<const Agent*> nearAgents = AuraManager::instance().agentsInRect(
-			Point2D((sendAgent->xPos - 3500), (sendAgent->yPos - 3500)),
-			Point2D((sendAgent->xPos + 3500), (sendAgent->yPos + 3500)),
+			Point((sendAgent->xPos - 3500), (sendAgent->yPos - 3500)),
+			Point((sendAgent->xPos + 3500), (sendAgent->yPos + 3500)),
 			sendAgent
 		);
 

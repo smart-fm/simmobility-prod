@@ -58,7 +58,7 @@ struct AgentsInfoMessage : public sim_mob::MessageBase {
 
 ///Used to inform ns-3 where every Agent is located for this time tick.
 struct AllLocationsMessage : public sim_mob::MessageBase {
-	std::map<unsigned int, DPoint> agentLocations; ///<Maps agentID=>(x,y) updates for locations.
+	std::map<unsigned int, Point> agentLocations; ///<Maps agentID=>(x,y) updates for locations.
 	AllLocationsMessage(const MessageBase& base) : MessageBase(base) {}
 };
 

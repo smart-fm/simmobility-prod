@@ -75,7 +75,7 @@ bool cmp_person_distToSegmentEnd::operator ()(const Person* x, const Person* y) 
  * The parameter values for min density, jam density, alpha and beta were suggested by Yang Lu on 11-Oct-14
  */
 SupplyParams::SupplyParams(const sim_mob::RoadSegment* rdSeg, double statsLength) :
-		freeFlowSpeed(convertKmphToCmps(rdSeg->maxSpeed)),
+		freeFlowSpeed(convertKmphToCmps(rdSeg->getMaxSpeed())),
 		minSpeed(0.2 * freeFlowSpeed), /*20% of free flow speed as suggested by Yang Lu*/
 		jamDensity(0.2), /*density during traffic jam in veh/meter*/
 		minDensity(0.0), /*minimum traffic density in veh/meter*/
@@ -91,7 +91,7 @@ SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double statslength
 		roadSegment(rdSeg), length(statslength), segDensity(0.0), segPedSpeed(0.0), segFlow(0), numPersons(0), statsNumberInSegment(1), supplyParams(rdSeg,
 				statslength), orderBySetting(SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION), debugMsgs(std::stringstream::out)
 {
-	segVehicleSpeed = convertKmphToCmps(getRoadSegment()->maxSpeed);
+	segVehicleSpeed = convertKmphToCmps(getRoadSegment()->getMaxSpeed());
 	numVehicleLanes = 0;
 
 	// initialize LaneAgents in the map
@@ -100,7 +100,7 @@ SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double statslength
 	{
 		laneStatsMap.insert(std::make_pair(*laneIt, new sim_mob::LaneStats(*laneIt, length)));
 		laneStatsMap[*laneIt]->initLaneParams(segVehicleSpeed, supplyParams.getCapacity());
-		if (!(*laneIt)->is_pedestrian_lane())
+		if (!(*laneIt)->isPedestrianLane())
 		{
 			numVehicleLanes++;
 			outermostLane = *laneIt;
@@ -113,7 +113,7 @@ SegmentStats::SegmentStats(const sim_mob::RoadSegment* rdSeg, double statslength
 	 * This lane is available only to the SegmentStats and not the parent RoadSegment.
 	 * TODO: Must check if we can have a bit pattern (Refer lane constructor) for laneInfinity.
 	 */
-	laneInfinity = new sim_mob::Lane(const_cast<sim_mob::RoadSegment*>(rdSeg), 9);
+	laneInfinity = new sim_mob::Lane();//(const_cast<sim_mob::RoadSegment*>(rdSeg), 9);
 	laneStatsMap.insert(std::make_pair(laneInfinity, new sim_mob::LaneStats(laneInfinity, statslength, true)));
 }
 
@@ -161,7 +161,7 @@ void SegmentStats::updateQueueStatus(const sim_mob::Lane* lane, sim_mob::Person*
 	if(laneIt==laneStatsMap.end())
 	{
 		std::stringstream out("");
-		out << "SegmentStats::updateQueueStatus lane not found in segment stats. Segment[" << roadSegment->getId() << "] index" << statsNumberInSegment ;
+		out << "SegmentStats::updateQueueStatus lane not found in segment stats. Segment[" << roadSegment->getRoadSegmentId() << "] index" << statsNumberInSegment ;
 		throw std::runtime_error(out.str());
 	}
 	laneIt->second->updateQueueStatus(p);
@@ -410,7 +410,7 @@ unsigned int SegmentStats::numMovingInSegment(bool hasVehicle) const
 	std::vector<sim_mob::Lane*>::const_iterator laneIt = segLanes.begin();
 	while (laneIt != segLanes.end())
 	{
-		if ((hasVehicle && !(*laneIt)->is_pedestrian_lane()) || (!hasVehicle && (*laneIt)->is_pedestrian_lane()))
+		if ((hasVehicle && !(*laneIt)->isPedestrianLane()) || (!hasVehicle && (*laneIt)->isPedestrianLane()))
 		{
 			LaneStatsMap::const_iterator laneStatsIt = laneStatsMap.find(*laneIt);
 			if (laneStatsIt != laneStatsMap.end())
@@ -432,7 +432,7 @@ double SegmentStats::getMovingLength() const
 	double movingLength = 0;
 	for (LaneStatsMap::const_iterator laneStatsIt = laneStatsMap.begin(); laneStatsIt != laneStatsMap.end(); laneStatsIt++)
 	{
-		if (!laneStatsIt->second->isLaneInfinity() && !laneStatsIt->first->is_pedestrian_lane())
+		if (!laneStatsIt->second->isLaneInfinity() && !laneStatsIt->first->isPedestrianLane())
 		{
 			movingLength = movingLength + laneStatsIt->second->getMovingLength();
 		}
@@ -445,7 +445,7 @@ double SegmentStats::getQueueLength() const
 	double queueLength = 0;
 	for (LaneStatsMap::const_iterator laneStatsIt = laneStatsMap.begin(); laneStatsIt != laneStatsMap.end(); laneStatsIt++)
 	{
-		if (!laneStatsIt->second->isLaneInfinity() && !laneStatsIt->first->is_pedestrian_lane())
+		if (!laneStatsIt->second->isLaneInfinity() && !laneStatsIt->first->isPedestrianLane())
 		{
 			queueLength = queueLength + laneStatsIt->second->getQueueLength();
 		}
@@ -458,7 +458,7 @@ double SegmentStats::getTotalVehicleLength() const
 	double totalLength = 0;
 	for (LaneStatsMap::const_iterator laneStatsIt = laneStatsMap.begin(); laneStatsIt != laneStatsMap.end(); laneStatsIt++)
 	{
-		if (!laneStatsIt->second->isLaneInfinity() && !laneStatsIt->first->is_pedestrian_lane())
+		if (!laneStatsIt->second->isLaneInfinity() && !laneStatsIt->first->isPedestrianLane())
 		{
 			totalLength = totalLength + laneStatsIt->second->getTotalVehicleLength();
 		}
@@ -506,7 +506,7 @@ unsigned int SegmentStats::numQueuingInSegment(bool hasVehicle) const
 	std::vector<sim_mob::Lane*>::const_iterator lane = segLanes.begin();
 	while (lane != segLanes.end())
 	{
-		if ((hasVehicle && !(*lane)->is_pedestrian_lane()) || (!hasVehicle && (*lane)->is_pedestrian_lane()))
+		if ((hasVehicle && !(*lane)->isPedestrianLane()) || (!hasVehicle && (*lane)->isPedestrianLane()))
 		{
 			LaneStatsMap::const_iterator laneStatsIt = laneStatsMap.find(*lane);
 			if (laneStatsIt != laneStatsMap.end())
@@ -608,7 +608,7 @@ unsigned int sim_mob::LaneStats::getMovingAgentsCount() const
 	{
 		printAgents();
 		std::stringstream debugMsgs;
-		debugMsgs << "number of lane agents cannot be less than the number of queuing agents." << "\nlane" << getLane()->getLaneID() << "|queueCount: "
+		debugMsgs << "number of lane agents cannot be less than the number of queuing agents." << "\nlane" << getLane()->getLaneId() << "|queueCount: "
 				<< queueCount << "|laneAgents count: " << numPersons << std::endl;
 		throw std::runtime_error(debugMsgs.str());
 	}
@@ -631,7 +631,7 @@ double sim_mob::LaneStats::getMovingLength() const
 	{
 		printAgents();
 		std::stringstream debugMsgs;
-		debugMsgs << "totalLength cannot be less than queueLength." << "\nlane" << getLane()->getLaneID()
+		debugMsgs << "totalLength cannot be less than queueLength." << "\nlane" << getLane()->getLaneId()
 				<< "|queueLength: " << queueLength
 				<< "|totalLength: "	<< totalLength
 				<< std::endl;
@@ -704,8 +704,8 @@ void sim_mob::LaneStats::updateQueueStatus(sim_mob::Person* p)
 			else
 			{
 				std::stringstream debugMsgs;
-				debugMsgs << "Error in updateQueueStatus(): queueCount cannot be lesser than 0 in lane." << "\nlane:" << lane->getLaneID() << "|Segment: "
-						<< lane->getRoadSegment()->getStartEnd() << "|Person: " << p->getId() << "\nQueuing: " << queueCount << "|Total: " << numPersons
+				debugMsgs << "Error in updateQueueStatus(): queueCount cannot be lesser than 0 in lane." << "\nlane:" << lane->getLaneId() << "|Segment: "
+						<< lane->getRoadSegmentId() << "|Person: " << p->getId() << "\nQueuing: " << queueCount << "|Total: " << numPersons
 						<< std::endl;
 				Print() << debugMsgs.str();
 				throw std::runtime_error(debugMsgs.str());
@@ -734,8 +734,8 @@ bool sim_mob::LaneStats::removePerson(sim_mob::Person* p, bool wasQueuing, doubl
 				else
 				{
 					std::stringstream debugMsgs;
-					debugMsgs << "Error in removePerson(): queueCount cannot be lesser than 0 in lane." << "\nlane:" << lane->getLaneID() << "|Segment: "
-							<< lane->getRoadSegment()->getStartEnd() << "|Person: " << p->getId() << "\nQueuing: " << queueCount << "|Total: " << laneAgents.size()
+					debugMsgs << "Error in removePerson(): queueCount cannot be lesser than 0 in lane." << "\nlane:" << lane->getLaneId() << "|Segment: "
+							<< lane->getRoadSegmentId() << "|Person: " << p->getId() << "\nQueuing: " << queueCount << "|Total: " << laneAgents.size()
 							<< std::endl;
 					Print() << debugMsgs.str();
 					throw std::runtime_error(debugMsgs.str());
@@ -755,7 +755,7 @@ void LaneStats::resetIterator()
 
 void sim_mob::LaneStats::initLaneParams(double vehSpeed, const double capacity)
 {
-	size_t numLanes = lane->getRoadSegment()->getLanes().size();
+	size_t numLanes = lane->getParentSegment()->getLanes().size();
 	if (numLanes > 0)
 	{
 		double orig = capacity / numLanes;
@@ -885,7 +885,7 @@ void sim_mob::SegmentStats::updateLaneParams(timeslice frameNumber)
 	for (; it != laneStatsMap.end(); ++it)
 	{
 		//filtering out the pedestrian lanes for now
-		if (!(it->first)->is_pedestrian_lane())
+		if (!(it->first)->isPedestrianLane())
 		{
 			(it->second)->updateOutputCounter();
 			(it->second)->updateAcceptRate(segVehicleSpeed);
@@ -917,7 +917,7 @@ std::string sim_mob::SegmentStats::reportSegmentStats(uint32_t frameNumber)
 			<< "\",\"queueL\":\"" << getQueueLength()
 			<< "\",\"numVehicleLanes\":\"" << numVehicleLanes
 			<< "\",\"segment_length\":\"" << length
-			<< "\",\"segment_id\":\"" << roadSegment->getSegmentAimsunId()
+			<< "\",\"segment_id\":\"" << roadSegment->getRoadSegmentId()
 			<< "\",\"stats_num\":\"" << statsNumberInSegment
 			<< "\"})"
 			<< "\n";
@@ -1056,7 +1056,7 @@ void SegmentStats::updateLinkDrivingTimes(double drivingTimeToEndOfLink)
 
 void SegmentStats::printAgents() const
 {
-	Print() << "\nSegment: " << roadSegment->getSegmentAimsunId() << "|stats#: " << statsNumberInSegment << "|length " << length << std::endl;
+	Print() << "\nSegment: " << roadSegment->getRoadSegmentId() << "|stats#: " << statsNumberInSegment << "|length " << length << std::endl;
 	for (LaneStatsMap::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++)
 	{
 		(*i).second->printAgents();
@@ -1069,7 +1069,7 @@ void SegmentStats::printAgents() const
 	for (BusStopList::const_reverse_iterator stopIt = busStops.rbegin(); stopIt != busStops.rend(); stopIt++)
 	{
 		const sim_mob::BusStop* stop = *stopIt;
-		debugMsgs << "Stop: " << stop->getBusstopno_();
+		debugMsgs << "Stop: " << stop->getRoadItemId();
 		const PersonList& driversAtStop = busDrivers.at(stop);
 		for (PersonList::const_iterator pIt = driversAtStop.begin(); pIt != driversAtStop.end(); pIt++)
 		{
@@ -1083,8 +1083,8 @@ void SegmentStats::printAgents() const
 void SegmentStats::printBusStops() const
 {
 	std::stringstream printStream;
-	printStream << "Segment: " << roadSegment->getSegmentAimsunId()
-			<< "|link: " << roadSegment->getLink()->getLinkId()
+	printStream << "Segment: " << roadSegment->getRoadSegmentId()
+			<< "|link: " << roadSegment->getLinkId()
 			<< "|stats#: " << statsNumberInSegment
 			<< "|length: " << length
 			<< "|numStops: " << busStops.size()
@@ -1093,7 +1093,7 @@ void SegmentStats::printBusStops() const
 	{
 		for (BusStopList::const_iterator it = busStops.begin(); it != busStops.end(); it++)
 		{
-			printStream << (*it)->getBusstopno_() << "\t";
+			printStream << (*it)->getRoadItemId() << "\t";
 		}
 	}
 	Print() << printStream.str() << std::endl;
@@ -1125,7 +1125,7 @@ double SegmentStats::getAllowedVehicleLengthForLaneGroup(const Link* downstreamL
 	if(!downstreamLink) { return (numLanes * length); }
 	std::map<const sim_mob::Link*, std::vector<sim_mob::LaneStats*> >::const_iterator lnGpIt = laneGroup.find(downstreamLink);
 	if(lnGpIt == laneGroup.end()) {
-		Print() << "DownstreamLink first seg: " <<  downstreamLink->getSegments().front()->getSegmentAimsunId() << std::endl;
+		Print() << "DownstreamLink first seg: " <<  downstreamLink->getRoadSegments().front()->getRoadSegmentId() << std::endl;
 		throw std::runtime_error("Invalid downstream link");
 	}
 	size_t numLanesInLG = lnGpIt->second.size();
@@ -1156,11 +1156,11 @@ double SegmentStats::getVehicleLengthForLaneGroup(const Link* downstreamLink) co
 void SegmentStats::printDownstreamLinks() const
 {
 	std::stringstream out;
-	out << "DownStreamLinks of " << roadSegment->getSegmentAimsunId() << "-" << statsNumberInSegment << std::endl;
+	out << "DownStreamLinks of " << roadSegment->getRoadSegmentId() << "-" << statsNumberInSegment << std::endl;
 	for (LaneStatsMap::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++)
 	{
 		if(i->second->isLaneInfinity()) { continue; }
-		out << i->first->getLaneID() << " - ";
+		out << i->first->getLaneId() << " - ";
 		const std::set<const Link*>& downStreamLinks = i->second->getDownstreamLinks();
 		for(std::set<const Link*>::const_iterator j=downStreamLinks.begin(); j!=downStreamLinks.end(); j++)
 		{
@@ -1176,7 +1176,7 @@ void LaneStats::printAgents(bool copy) const
 	std::stringstream debugMsgs;
 	if (!copy)
 	{
-		debugMsgs << "Lane: " << lane->getLaneID();
+		debugMsgs << "Lane: " << lane->getLaneId();
 		for (PersonList::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++)
 		{
 			debugMsgs << "|" << (*i)->getId() << "(" << (*i)->getRole()->getRoleName() << ")";
@@ -1184,7 +1184,7 @@ void LaneStats::printAgents(bool copy) const
 	}
 	else
 	{
-		debugMsgs << "LaneCopy: " << lane->getLaneID();
+		debugMsgs << "LaneCopy: " << lane->getLaneId();
 		for (PersonList::const_iterator i = laneAgentsCopy.begin(); i != laneAgentsCopy.end(); i++)
 		{
 			debugMsgs << "|" << (*i)->getId() << "(" << (*i)->getRole()->getRoleName() << ")";
@@ -1203,7 +1203,7 @@ void LaneStats::verifyOrdering()
 		{
 			std::stringstream debugMsgs;
 			debugMsgs << "Invariant violated: Ordering of laneAgents does not reflect ordering w.r.t. distance to end of segment." << "\nSegment: "
-					<< lane->getRoadSegment()->getStartEnd() << " length = " << lane->getRoadSegment()->getPolylineLength() << "\nLane: " << lane->getLaneID()
+					<< lane->getRoadSegmentId() << " length = " << lane->getPolyLine()->getLength() << "\nLane: " << lane->getLaneId()
 					<< "\nCulprit Person: " << (*i)->getId();
 			debugMsgs << "\nAgents ";
 			for (PersonList::const_iterator j = laneAgents.begin(); j != laneAgents.end(); j++)
@@ -1235,7 +1235,7 @@ sim_mob::Person* SegmentStats::dequeue(const sim_mob::Person* person, const sim_
 	else
 	{
 		printAgents();
-		debugMsgs << "Error: Person " << person->getId() << "|" << person->getDatabaseId() << " (" << person->getRole()->getRoleName() << ")" << " was not found in lane " << lane->getLaneID() << std::endl;
+		debugMsgs << "Error: Person " << person->getId() << " (" << person->getRole()->getRoleName() << ")" << " was not found in lane " << lane->getLaneId() << std::endl;
 		throw std::runtime_error(debugMsgs.str());
 	}
 	return dequeuedPerson;
@@ -1281,8 +1281,8 @@ sim_mob::Person* sim_mob::LaneStats::dequeue(const sim_mob::Person* person, bool
 			else
 			{
 				std::stringstream debugMsgs;
-				debugMsgs << "Error in dequeue(): queueCount cannot be lesser than 0 in lane." << "\nlane:" << lane->getLaneID() << "|Segment: "
-						<< lane->getRoadSegment()->getStartEnd() << "|Person: " << dequeuedPerson->getId() << "\nQueuing: " << queueCount << "|Total: " << laneAgents.size()
+				debugMsgs << "Error in dequeue(): queueCount cannot be lesser than 0 in lane." << "\nlane:" << lane->getLaneId() << "|Segment: "
+						<< lane->getRoadSegmentId() << "|Person: " << dequeuedPerson->getId() << "\nQueuing: " << queueCount << "|Total: " << laneAgents.size()
 						<< std::endl;
 				Print() << debugMsgs.str();
 				throw std::runtime_error(debugMsgs.str());

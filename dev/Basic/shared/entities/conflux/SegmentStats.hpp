@@ -7,10 +7,10 @@
 #include <string>
 #include <set>
 #include "entities/Person.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/BusStop.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/BusStop.hpp"
 
 namespace sim_mob {
 

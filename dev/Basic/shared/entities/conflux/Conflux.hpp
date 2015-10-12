@@ -12,7 +12,7 @@
 
 
 namespace sim_mob {
-class MultiNode;
+class Node;
 class Person;
 class RoadSegment;
 class Role;
@@ -91,8 +91,8 @@ private:
 	//typedefs
 	typedef std::deque<sim_mob::Person*> PersonList;
 	typedef std::vector<sim_mob::SegmentStats*> SegmentStatsList;
-	typedef std::map<sim_mob::Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
-	typedef std::map<sim_mob::Link*, PersonList> VirtualQueueMap;
+	typedef std::map<const Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
+	typedef std::map<const sim_mob::Link*, PersonList> VirtualQueueMap;
 	typedef std::map<const sim_mob::RoadSegment*, SegmentStatsList> SegmentStatsMap;
 
 	/**
@@ -117,7 +117,7 @@ private:
 	/**
 	 *  MultiNode (intersection) around which this conflux is constructed
 	 */
-	const sim_mob::MultiNode* multiNode;
+	const Node* multiNode;
 
 	/**
 	 * Signal at the multinode of this conflux (if any).
@@ -142,7 +142,7 @@ private:
 	 * data structure to hold a pointer to a road segment on each link to
 	 * keep track of the current segment that is being processed.
 	 */
-	std::map<sim_mob::Link*, sim_mob::SegmentStats*> currSegsOnUpLinks;
+	std::map<const sim_mob::Link*, sim_mob::SegmentStats*> currSegsOnUpLinks;
 
 	/**
 	 * segments on downstream links
@@ -176,7 +176,7 @@ private:
 	 * For each downstream link, this map stores the number of persons that can
 	 * be accepted by that link from this conflux in the current tick
 	 */
-	std::map<sim_mob::Link*, unsigned int> vqBounds;
+	std::map<const sim_mob::Link*, unsigned int> vqBounds;
 
 	/**holds the current frame number for which this conflux is being processed*/
 	timeslice currFrame;
@@ -359,7 +359,7 @@ protected:
 	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 public:
-	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1);
+	Conflux(Node* multinode, const MutexStrategy& mtxStrat, int id=-1);
 	virtual ~Conflux() ;
 
 	//Confluxes are non-spatial in nature.
@@ -372,7 +372,7 @@ public:
 	virtual Entity::UpdateStatus update(timeslice frameNumber);
 
 	// Getters
-	const sim_mob::MultiNode* getMultiNode() const {
+	const Node* getMultiNode() const {
 		return multiNode;
 	}
 
@@ -398,7 +398,7 @@ public:
 	 */
 	void initialize(const timeslice& now);
 
-	bool hasSpaceInVirtualQueue(sim_mob::Link* lnk);
+	bool hasSpaceInVirtualQueue(const sim_mob::Link* lnk);
 	void pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p);
 
 	/**

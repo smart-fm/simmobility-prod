@@ -8,8 +8,8 @@
 #include <vector>
 #include <sstream>
 
-#include "geospatial/Link.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "entities/signal/Signal.hpp"
 
 namespace sim_mob
@@ -47,12 +47,14 @@ std::string getColor(size_t id)
 		phaseOffset = phaseOffset_;
 		phaseLength = percentage_;
 	}
-	const crossings_map & Phase::getCrossingMaps() const { return crossings_map_ ; }
+	
+	//const crossings_map & Phase::getCrossingMaps() const { return crossings_map_ ; }
+	
 	/*
 	 * Functionalities of this function will be listed here as they emerge:
 	 * 1- update the color of the link_maps
 	 */
-	void Phase::update(double currentCycleTimer) const
+	/*void Phase::update(double currentCycleTimer) const
 	{
 		std::ostringstream o;
 
@@ -76,7 +78,7 @@ std::string getColor(size_t id)
 			 * this is especialy important when a full cycle has passed and current cycle timer is zero!
 			 * then instead of moving to the first phase , again the last phase may reset to green
 			 */
-			//
+			/*
 			(*linkIterator).second.currColor = (*linkIterator).second.colorSequence.computeColor(lapse);
 			if(((*linkIterator).second.currColor > sim_mob::FlashingGreen) || ((*linkIterator).second.currColor < sim_mob::Red))
 			{
@@ -98,7 +100,8 @@ std::string getColor(size_t id)
 				}
 		}
 
-}
+	}*/
+	
 //	assumption : total green time = the whole duration in the color sequence except red!
 //	formula : for a given phase, total_g is maximum (G+FG+...+A - All_red, red...) of the linkFrom(s)
 	/*todo a container should be created(probabely at split Plan level and mapped to "choiceSet" container)
@@ -120,18 +123,21 @@ std::string getColor(size_t id)
 		}
 		return maxGreen * 1000;
 	}
-	void Phase::addCrossingMapping(sim_mob::Link * link,sim_mob::Crossing * crossing, ColorSequence cs)
+	
+	/*void Phase::addCrossingMapping(sim_mob::Link * link,sim_mob::Crossing * crossing, ColorSequence cs)
 	{
 		sim_mob::Crossings crossing_(link,crossing);
 		crossing_.colorSequence.clear();
 		crossing_.colorSequence = cs;
 		crossings_map_.insert(std::make_pair(crossing,crossing_));
 	}
+	
 	void Phase::addCrossingMapping(sim_mob::Link * link,sim_mob::Crossing * crossing)
 	{
 		Crossings crossing_(link,crossing);
 		crossings_map_.insert(std::make_pair(crossing,crossing_));
-	}
+	}*/
+	
 /*this function will find those crossings in the intersection
  * which are not CFG (conflict green) with the rest of the phase movements
  * Developer note: the difficult point is that I don't have node information
@@ -140,7 +146,7 @@ std::string getColor(size_t id)
  * addLinkMapping).
  * todo: update this part
  */
-void Phase::addDefaultCrossings(LinkAndCrossingC const & LAC,sim_mob::MultiNode *node) const {
+/*void Phase::addDefaultCrossings(LinkAndCrossingC const & LAC,Node *node) const {
 	if (linksMap.empty())
 	{
 		throw std::runtime_error("Link maps empty, crossing mapping can not continue\n");
@@ -169,7 +175,7 @@ void Phase::addDefaultCrossings(LinkAndCrossingC const & LAC,sim_mob::MultiNode 
 			crossings_map_.insert(std::pair<sim_mob::Crossing *, sim_mob::Crossings>(crossing, sim_mob::Crossings(link, crossing)));
 		}
 	}
-}
+}*/
 
 void Phase::setParent(sim_mob::Signal* value){
 	parentSignal = value;
@@ -178,12 +184,12 @@ Signal * Phase::getParent()const{
 	return parentSignal;
 }
 
-void Phase::addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink & ll,sim_mob::MultiNode *node) const {
+void Phase::addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink & ll,Node *node) const {
 	linksMap.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf, ll));
 }
 
 std::string Phase::createStringRepresentation(std::string newLine) const {
-	std::ostringstream output;
+	std::ostringstream output;/*
 	if (linksMap.empty() && crossings_map_.empty())
 		return 0;
 	output << newLine << "{" << newLine;
@@ -224,7 +230,7 @@ std::string Phase::createStringRepresentation(std::string newLine) const {
 	}
 	output << newLine << "]";
 
-	output << newLine << "}" << newLine;
+	output << newLine << "}" << newLine;*/
 	return output.str();
 }
 
@@ -303,7 +309,7 @@ void Phase::calculateGreen_Crossings(){
 	 * 3.subtract them
 	 * what is the output? - it is the green time and flashing green
 	 */
-
+/*
 	for(crossings_map_iterator it = crossings_map_.begin()  ; it != crossings_map_.end(); ++it)
 	{
 		//1.what is the amount of time that is assigned to this phase
@@ -339,7 +345,7 @@ void Phase::calculateGreen_Crossings(){
 			//f green time is two third of available time
 			cs.changeColorDuration(cs.getColorDuration().at(flashingGreenIndex).first, ((phaseLength - otherThanGreen) / 3) * 2);
 		}
-	}
+	}*/
 }
 
 //amber, red are fixed but green time is calculated by cycle length and percentage given to that phase
@@ -363,6 +369,7 @@ const std::string & Phase::getName() const
 
 std::string Phase::outputPhaseTrafficLight(std::string newLine) const
 {
+	/*
 	std::ostringstream output;
 	output.str("");
 	if (linksMap.empty() && crossings_map_.empty())
@@ -414,7 +421,7 @@ std::string Phase::outputPhaseTrafficLight(std::string newLine) const
 	output << newLine << "}" << newLine;
 	return output.str();
 
-
+	*/
 //	std::ostringstream output;
 //	if(linksMap.size() == 0 && crossings_map_.size() == 0) return 0;
 //

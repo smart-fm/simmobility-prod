@@ -42,7 +42,6 @@ namespace sim_mob
   // Forwared declarations.
   class Node;
   class Lane;
-  class Crossing;
   class Link;
   class LoopDetector;
   class BasicLogger;
@@ -100,12 +99,12 @@ namespace sim_mob
            signalType = SIG_BASIC);
     signalType getSignalType() const;
     void setSignalType(signalType sigType);
-    void setLinkAndCrossing(LinkAndCrossingC & LinkAndCrossings);
+    /*void setLinkAndCrossing(LinkAndCrossingC & LinkAndCrossings);
     LinkAndCrossingC const& getLinkAndCrossing() const;
-    LinkAndCrossingC & getLinkAndCrossing();
+    LinkAndCrossingC & getLinkAndCrossing();*/
     virtual TrafficColor getDriverLight(Lane const & fromLane,
                                         Lane const & toLane) const;
-    virtual TrafficColor getPedestrianLight(Crossing const & crossing) const;
+    //virtual TrafficColor getPedestrianLight(Crossing const & crossing) const;
     virtual std::string toString() const;
     Node const & getNode() const;
     virtual void outputTrafficLights(timeslice now, std::string newLine) const;
@@ -135,7 +134,7 @@ namespace sim_mob
     /*The node associated with this traffic Signal */
     sim_mob::Node const & node_;
     sim_mob::signalType signalType_;
-    LinkAndCrossingC LinkAndCrossings_;
+    //LinkAndCrossingC LinkAndCrossings_;
     sim_mob::Signal::phases phases_;
   } ;
 
@@ -212,7 +211,7 @@ namespace sim_mob
     bool isIntersection();
     void createStringRepresentation(std::string newLine = "\n");
     void cycle_reset();
-    Crossing const * getCrossing(RoadSegment const * road);
+    //Crossing const * getCrossing(RoadSegment const * road);
 
     virtual const sim_mob::Link* getCurrLink()
     {
@@ -236,7 +235,7 @@ namespace sim_mob
      **/
     TrafficColor getDriverLight(Lane const & fromLane,
                                 Lane const & toLane) const;
-    TrafficColor getPedestrianLight(Crossing const & crossing) const;
+    //TrafficColor getPedestrianLight(Crossing const & crossing) const;
 
     double getUpdateInterval()
     {

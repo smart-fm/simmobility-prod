@@ -14,12 +14,11 @@
 #include "GenConfig.h"
 
 #include <cmath>
-#include "geospatial/Lane.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/Crossing.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/LaneConnector.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/LaneConnector.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -44,10 +43,13 @@ sim_mob::Signal::All_Signals sim_mob::Signal::all_signals_;
 using namespace sim_mob;
 
 sim_mob::Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id, signalType)
-: Agent(mtxStrat, id), node_(node){
+: Agent(mtxStrat, id), node_(node)
+{
 
 }
-signalType sim_mob::Signal::getSignalType() const {
+
+signalType sim_mob::Signal::getSignalType() const
+{
 	return signalType_;
 }
 
@@ -56,87 +58,111 @@ void sim_mob::Signal::setSignalType(signalType sigType)
 	signalType_ = sigType;
 }
 
-void sim_mob::Signal::setLinkAndCrossing(LinkAndCrossingC & LinkAndCrossings) {
+/*
+void sim_mob::Signal::setLinkAndCrossing(LinkAndCrossingC & LinkAndCrossings)
+{
 	LinkAndCrossings_ = LinkAndCrossings;
 }
 
-LinkAndCrossingC const& sim_mob::Signal::getLinkAndCrossing()const {
+LinkAndCrossingC const& sim_mob::Signal::getLinkAndCrossing()const
+{
 	return LinkAndCrossings_;
 }
 
-LinkAndCrossingC & sim_mob::Signal::getLinkAndCrossing() {
+LinkAndCrossingC & sim_mob::Signal::getLinkAndCrossing()
+{
 	return LinkAndCrossings_;
 }
+*/
 
-TrafficColor sim_mob::Signal::getDriverLight(Lane const & fromLane, Lane const & toLane) const {
+TrafficColor sim_mob::Signal::getDriverLight(Lane const & fromLane, Lane const & toLane) const
+{
 	throw std::runtime_error("getDriverLight Not implemented");
 }
 
-
-TrafficColor sim_mob::Signal::getPedestrianLight (Crossing const & crossing)const {
+/*
+TrafficColor sim_mob::Signal::getPedestrianLight(Crossing const & crossing)const
+{
 	throw std::runtime_error("getPedestrianLight Not implemented");
-}
+}*/
 
-
-std::string sim_mob::Signal::toString() const{
+std::string sim_mob::Signal::toString() const
+{
 	throw std::runtime_error("toString Not implemented");
 }
-Node  const & sim_mob::Signal::getNode() const {
+
+Node const & sim_mob::Signal::getNode() const
+{
 	return node_;
 }
-void sim_mob::Signal::outputTrafficLights(timeslice now,std::string newLine)const{
+
+void sim_mob::Signal::outputTrafficLights(timeslice now, std::string newLine)const
+{
 
 }
-unsigned int sim_mob::Signal::getSignalId() const{
+
+unsigned int sim_mob::Signal::getSignalId() const
+{
 	return -1;
 }
 
-bool sim_mob::Signal::isNonspatial() {
+bool sim_mob::Signal::isNonspatial()
+{
 	return true;
 }
 
-void sim_mob::Signal::createStringRepresentation(std::string str){
+void sim_mob::Signal::createStringRepresentation(std::string str)
+{
 };
 
-sim_mob::Signal::~Signal(){
+sim_mob::Signal::~Signal()
+{
 
 }
 
-void sim_mob::Signal::load(const std::map<std::string, std::string>& value) {
+void sim_mob::Signal::load(const std::map<std::string, std::string>& value)
+{
 
 }
 
-sim_mob::Signal::phases &sim_mob::Signal::getPhases(){
+sim_mob::Signal::phases &sim_mob::Signal::getPhases()
+{
 	return phases_;
 }
 
-const sim_mob::Signal::phases &sim_mob::Signal::getPhases() const{
+const sim_mob::Signal::phases &sim_mob::Signal::getPhases() const
+{
 	return phases_;
 }
+
 void sim_mob::Signal::addPhase(sim_mob::Phase &phase)
 {
 	phases_.push_back(phase);
 }
 
-bool sim_mob::Signal::frame_init(timeslice now){
+bool sim_mob::Signal::frame_init(timeslice now)
+{
 	return false;
 }
 
-
-void sim_mob::Signal::frame_output(timeslice now){
+void sim_mob::Signal::frame_output(timeslice now)
+{
 
 }
 
-
-sim_mob::Entity::UpdateStatus sim_mob::Signal::frame_tick(timeslice now){
+sim_mob::Entity::UpdateStatus sim_mob::Signal::frame_tick(timeslice now)
+{
 	return UpdateStatus::Continue;
 }
 
-
 Signal_SCATS const &
-sim_mob::Signal_SCATS::signalAt(Node const & node, const MutexStrategy& mtxStrat, bool *isNew ) {
-	if (isNew) { *isNew = false; }
-	Signal_SCATS const * signal = dynamic_cast<Signal_SCATS const *>(StreetDirectory::instance().signalAt(node));
+sim_mob::Signal_SCATS::signalAt(Node const & node, const MutexStrategy& mtxStrat, bool *isNew)
+{
+	if (isNew)
+	{
+		*isNew = false;
+	}
+	Signal_SCATS const * signal = dynamic_cast<Signal_SCATS const *> (StreetDirectory::instance().signalAt(node));
 	if (signal)
 	{
 		return *signal;
@@ -144,14 +170,33 @@ sim_mob::Signal_SCATS::signalAt(Node const & node, const MutexStrategy& mtxStrat
 
 	Signal_SCATS * sig = new Signal_SCATS(node, mtxStrat);
 	all_signals_.push_back(sig);
-	if (isNew) { *isNew = true; }
+	if (isNew)
+	{
+		*isNew = true;
+	}
 	StreetDirectory::instance().registerSignal(*sig);
 	return *sig;
 }
-std::string sim_mob::Signal_SCATS::toString() const { return strRepr; }
-unsigned int sim_mob::Signal_SCATS::getSignalId()   {return signalID;}
-unsigned int sim_mob::Signal_SCATS::getSignalId() const  {return signalID;}
-bool sim_mob::Signal_SCATS::isIntersection() { return isIntersection_;}
+
+std::string sim_mob::Signal_SCATS::toString() const
+{
+	return strRepr;
+}
+
+unsigned int sim_mob::Signal_SCATS::getSignalId()
+{
+	return signalID;
+}
+
+unsigned int sim_mob::Signal_SCATS::getSignalId() const
+{
+	return signalID;
+}
+
+bool sim_mob::Signal_SCATS::isIntersection()
+{
+	return isIntersection_;
+}
 
 void sim_mob::Signal_SCATS::createStringRepresentation(std::string newLine)
 {
@@ -159,16 +204,16 @@ void sim_mob::Signal_SCATS::createStringRepresentation(std::string newLine)
 	output << "{" << newLine << "\"TrafficSignal\":" << "{" << newLine;
 	output << "\"hex_id\":\"" << this << "\"," << newLine;
 	output << "\"frame\": " << -1 << "," << newLine; //this is added to indicate that
-	output << "\"simmob_id\":\"" <<  signalID << "\"," << newLine;
+	output << "\"simmob_id\":\"" << signalID << "\"," << newLine;
 	output << "\"node\": \"" << &getNode() << "\"," << newLine;
 	output << "\"phases\":" << newLine << "[";
 	for (int i = 0; i < getPhases().size(); i++)
 	{
-		output << ( getPhases()[i]).createStringRepresentation(newLine);
+		output << (getPhases()[i]).createStringRepresentation(newLine);
 		if ((i + 1) < getPhases().size()) output << ",";
 	}
 	output << newLine << "]";
-	output  << newLine << "}"  << newLine << "}";
+	output << newLine << "}" << newLine << "}";
 	strRepr = output.str(); //all the aim of the unrelated part
 }
 
@@ -176,7 +221,7 @@ void
 sim_mob::Signal_SCATS::printColors(double currCycleTimer)
 {
 	phases_iterator it = getPhases().begin();
-	while(it !=getPhases().end())
+	while (it != getPhases().end())
 	{
 		(*it).printPhaseColors(currCycleTimer);
 		it++;
@@ -185,12 +230,12 @@ sim_mob::Signal_SCATS::printColors(double currCycleTimer)
 
 /*Signal Constructor*/
 sim_mob::Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int id, signalType type_)
-  :  Signal(node,mtxStrat,id), loopDetectorAgent(nullptr)
-	/*, node_(node)*/
+: Signal(node, mtxStrat, id), loopDetectorAgent(nullptr)
+/*, node_(node)*/
 {
 	setSignalType(type_);
-	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
-	if(! mNode) isIntersection_ = false ;
+	const Node *mNode = &(this->getNode());
+	if (!mNode) isIntersection_ = false;
 	else isIntersection_ = true;
 	//some inits
 	currCycleTimer = 0;
@@ -198,25 +243,26 @@ sim_mob::Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxS
 	isNewCycle = false;
 	currOffset = 0;
 	//the best id for a signal is the node id itself
-	signalID = node.getID();
+	signalID = node.getNodeId();
 
-//	findSignalLinksAndCrossings(); todo:eoved temporarily
+	//	findSignalLinksAndCrossings(); todo:eoved temporarily
 
 	//for future use when user needs to switch between fixed and adaptive control
 	//NOTE: This wasn't being used, so I'm hard-coding it. ~Seth
 	//signalTimingMode = ConfigParams::GetInstance().signalTimingMode();
 	//signalTimingMode = 1;
 
-//	findIncomingLanes();//what was it used for? only Density?
+	//	findIncomingLanes();//what was it used for? only Density?
 	//it would be better to declare it as static const
 	updateInterval = sim_mob::ConfigManager::GetInstance().FullConfig().granSignalsTicks * sim_mob::ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000;
 	currCycleTimer = 0;
 
 	//TODO: Why all the ifdefs? Why does this depend on whether we're loading from XML or not? ~Seth
 #ifndef SIMMOB_XML_WRITER
-	if (ConfigManager::GetInstance().FullConfig().networkSource()==SystemParams::NETSRC_DATABASE) {
+	/*if (ConfigManager::GetInstance().FullConfig().networkSource() == SystemParams::NETSRC_DATABASE)
+	{
 		findSignalLinksAndCrossings();
-	}
+	}*/
 #else
 	findSignalLinksAndCrossings();
 #endif
@@ -224,6 +270,7 @@ sim_mob::Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxS
 
 // Return the Crossing object, if any, in the specified road segment.  If there are more
 // than one Crossing objects, return the one that has the least offset.
+/*
 Crossing const *
 sim_mob::Signal_SCATS::getCrossing(RoadSegment const * road) {
 	
@@ -282,23 +329,30 @@ sim_mob::Signal_SCATS::getCrossing(RoadSegment const * road) {
 	//Failure.
 	return nullptr;
 }
+ */
 
 // This functor calculates the angle between a link and a reference link, which have a node
 // in common.
-struct AngleCalculator {
+
+struct AngleCalculator
+{
 	// <node> is the node in common and <refLink> is the reference link.  Therefore <node>
 	// must be one of the ends of <refLink>.
+
 	AngleCalculator(Node const & node, Link const * refLink) :
-		center_(node) {
-		assert(refLink->getStart() == &center_ || refLink->getEnd() == &center_);
+	center_(node)
+	{
+		assert(refLink->getFromNode() == &center_ || refLink->getToNode() == &center_);
 		// <refAngle_> is the angle that the <refLink> makes with the X-axis.
 		refAngle_ = angle(refLink);
 	}
 
 	// Calculates the angle between <link> and <refLink>, which have <node> in common.
 	// Therefore <node> must be one of the ends of <link>.
-	double operator()(Link const * link) const {
-		assert(link->getStart() == &center_ || link->getEnd() == &center_);
+
+	double operator()(Link const * link) const
+	{
+		assert(link->getFromNode() == &center_ || link->getToNode() == &center_);
 		return angle(link) - refAngle_;
 	}
 
@@ -306,14 +360,16 @@ struct AngleCalculator {
 	double refAngle_;
 
 	// Calculates the angle that <link> with respect to the X-axis.
-	double angle(Link const * link) const {
-		Point2D point;
-		if (link->getStart() == &center_)
-			point = link->getEnd()->location;
+
+	double angle(Link const * link) const
+	{
+		Point *point;
+		if (link->getFromNode() == &center_)
+			point = link->getToNode()->getLocation();
 		else
-			point = link->getStart()->location;
-		double xDiff = point.getX() - center_.location.getX();
-		double yDiff = point.getY() - center_.location.getY();
+			point = link->getFromNode()->getLocation();
+		double xDiff = point->getX() - center_.getLocation()->getX();
+		double yDiff = point->getY() - center_.getLocation()->getY();
 		return atan2(yDiff, xDiff);
 	}
 };
@@ -326,6 +382,7 @@ struct AngleCalculator {
  * It is a trade-off between process and memory.
  * In order to save memory, we only keep the record of Lane pointers-vahid
  */
+/*
 void sim_mob::Signal_SCATS::findSignalLinksAndCrossings() {
 	LinkAndCrossingC & inserter = getLinkAndCrossing();
 	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
@@ -358,12 +415,17 @@ void sim_mob::Signal_SCATS::findSignalLinksAndCrossings() {
 		link = nullptr;
 	}
 }
+ */
 
 //find the minimum among the max projected DS
-int sim_mob::Signal_SCATS::fmin_ID(const std::vector<double>& maxproDS) {
+
+int sim_mob::Signal_SCATS::fmin_ID(const std::vector<double>& maxproDS)
+{
 	int min = 0;
-	for (int i = 1; i < maxproDS.size(); i++) {
-		if (maxproDS[i] < maxproDS[min]) {
+	for (int i = 1; i < maxproDS.size(); i++)
+	{
+		if (maxproDS[i] < maxproDS[min])
+		{
 			min = i;
 		}
 	}
@@ -372,33 +434,34 @@ int sim_mob::Signal_SCATS::fmin_ID(const std::vector<double>& maxproDS) {
 
 //This function will calculate the DS at the end of each phase considering only the max DS of lane in the LinkFrom(s)
 //LinkFrom(s) are the links from which vehicles enter the intersection during the corresponding phase
-double sim_mob::Signal_SCATS::computePhaseDS(int phaseId, const timeslice& now) {
+
+double sim_mob::Signal_SCATS::computePhaseDS(int phaseId, const timeslice& now)
+{
 	double lane_DS = 0, maxPhaseDS = 0;
 	sim_mob::Phase p_it = getPhases()[phaseId];
 
 	double total_g = p_it.computeTotalG(); //to do: I guess we can avoid calling this function EVERY time by adding an extra container at split plan level.(mapped to choiceSet container)
 	sim_mob::Phase::links_map_iterator linkIterator = (p_it).LinkFrom_begin();
-	for (; linkIterator != (p_it).LinkFrom_end(); linkIterator++) { //Loop2===>link
-		std::set<sim_mob::RoadSegment*> segments =
-				(*linkIterator).first->getUniqueSegments(); //optimisation: use either fwd or bed segments
-		std::set<sim_mob::RoadSegment*>::iterator seg_it = segments.begin();
-		for (; seg_it != segments.end(); ++seg_it) { //Loop3===>road segment
-			//discard the segments that don't end here(coz those who don't end here, don't cross the intersection neither)
-			//sim_mob::Link is bidirectional so we use RoadSegment's start and end to imply direction
-			if ((*seg_it)->getEnd() != &getNode())
+	for (; linkIterator != (p_it).LinkFrom_end(); linkIterator++)
+	{ 
+		//Loop2===>link
+		if (linkIterator->first->getToNode() != &getNode())
+		{
+			continue;
+		}
+		
+		const std::vector<sim_mob::Lane*> lanes = linkIterator->first->getRoadSegments().back()->getLanes();
+		for (std::size_t i = 0; i < lanes.size(); i++)
+		{ //Loop4===>lane
+			const Lane* lane = nullptr;
+			lane = lanes.at(i);
+			if (lane->isPedestrianLane())
 				continue;
-			const std::vector<sim_mob::Lane*> lanes = (*seg_it)->getLanes();
-			for (std::size_t i = 0; i < lanes.size(); i++) { //Loop4===>lane
-				const Lane* lane = nullptr;
-				lane = lanes.at(i);
-				if (lane->is_pedestrian_lane())
-					continue;
-				const Sensor::CountAndTimePair& ctPair =
-						loopDetectorAgent->getCountAndTimePair(*lane);			
-				lane_DS = LaneDS(ctPair, total_g);
-				if (lane_DS > maxPhaseDS)
-					maxPhaseDS = lane_DS;
-			}
+			const Sensor::CountAndTimePair& ctPair =
+					loopDetectorAgent->getCountAndTimePair(*lane);
+			lane_DS = LaneDS(ctPair, total_g);
+			if (lane_DS > maxPhaseDS)
+				maxPhaseDS = lane_DS;
 		}
 	}
 
@@ -414,80 +477,82 @@ double sim_mob::Signal_SCATS::computePhaseDS(int phaseId, const timeslice& now) 
  * at the moment total_g amounts to total_g at each phase,
  * However this function doesn't care total_g comes from which scop(phase level, cycle level....)
  */
-double sim_mob::Signal_SCATS::LaneDS(const Sensor::CountAndTimePair& ctPair,double total_g)
+double sim_mob::Signal_SCATS::LaneDS(const Sensor::CountAndTimePair& ctPair, double total_g)
 {
-//	CountAndTimePair would give you T and n of the formula 2 in section 3.2 of the memorandum (page 3)
+	//	CountAndTimePair would give you T and n of the formula 2 in section 3.2 of the memorandum (page 3)
 	std::size_t vehicleCount = ctPair.vehicleCount;
 	unsigned int spaceTime = ctPair.spaceTimeInMilliSeconds;
-	double standard_space_time = 1.04*1000;//1.04 seconds
+	double standard_space_time = 1.04 * 1000; //1.04 seconds
 	/*this is formula 2 in section 3.2 of the memorandum (page 3)*/
-	double used_g = (vehicleCount==0)?0:total_g - (spaceTime - standard_space_time*vehicleCount);
-	return used_g/total_g;//And this is formula 1 in section 3.2 of the memorandum (page 3)
+	double used_g = (vehicleCount == 0) ? 0 : total_g - (spaceTime - standard_space_time * vehicleCount);
+	return used_g / total_g; //And this is formula 1 in section 3.2 of the memorandum (page 3)
 }
+
 void sim_mob::Signal_SCATS::cycle_reset()
 {
-	loopDetectorAgent->reset();//extra
+	loopDetectorAgent->reset(); //extra
 	isNewCycle = false;
-	for(int i = 0; i < Phase_Density.size(); Phase_Density[i++] = 0);
+	for (int i = 0; i < Phase_Density.size(); Phase_Density[i++] = 0);
 }
 
 //This is a part of Signal_SCATS::update function that is executed only if a new cycle has reached
+
 void sim_mob::Signal_SCATS::newCycleUpdate()
 {
 	//	6-update split plan
-		splitPlan.Update(Phase_Density);
+	splitPlan.Update(Phase_Density);
 	//	7-update offset
-//		offset_.update(cycle_.getnextCL());
-		cycle_reset();
-		loopDetectorAgent->reset();//extra?
-		isNewCycle = false;
+	//		offset_.update(cycle_.getnextCL());
+	cycle_reset();
+	loopDetectorAgent->reset(); //extra?
+	isNewCycle = false;
 }
 
-bool sim_mob::Signal_SCATS::updateCurrCycleTimer() {
+bool sim_mob::Signal_SCATS::updateCurrCycleTimer()
+{
 	bool is_NewCycle = false;
-	if((currCycleTimer + updateInterval) >= splitPlan.getCycleLength())
-		{
-			is_NewCycle = true;
-		}
+	if ((currCycleTimer + updateInterval) >= splitPlan.getCycleLength())
+	{
+		is_NewCycle = true;
+	}
 	//even if it is a new cycle(and a ew cycle length, the currCycleTimer will hold the amount of time system has proceeded to the new cycle
-	currCycleTimer =  std::fmod((currCycleTimer + updateInterval) , splitPlan.getCycleLength());
+	currCycleTimer = std::fmod((currCycleTimer + updateInterval), splitPlan.getCycleLength());
 	return is_NewCycle;
 }
 
 //Output To Visualizer
+
 void sim_mob::Signal_SCATS::frame_output(timeslice now)
 {
 	LogOut(buffOut.str());
 	buffOut.str("");
 }
 
-
-
 void sim_mob::Signal_SCATS::buffer_output(timeslice now, std::string newLine)
 {
 	//Reset again, just in case:
 	buffOut.str("");
 	std::stringstream output;
-	output << newLine << "{" << newLine << "\"TrafficSignalUpdate\":" << newLine <<"{" << newLine ;
-	output << "\"hex_id\":\""<< this << "\"," << newLine;
+	output << newLine << "{" << newLine << "\"TrafficSignalUpdate\":" << newLine << "{" << newLine;
+	output << "\"hex_id\":\"" << this << "\"," << newLine;
 	output << "\"frame\": " << now.frame() << "," << newLine;
 	//phase.......
-	if(getNOF_Phases() == 0)
-		{
-			buffOut <<output.str() << newLine << "}" << newLine << "}" << std::endl;
-			return;
-		}
+	if (getNOF_Phases() == 0)
+	{
+		buffOut << output.str() << newLine << "}" << newLine << "}" << std::endl;
+		return;
+	}
 	output << "\"currPhase\": \"" << getPhases()[currPhaseID].getName() << "\"," << newLine;
 	output << "\"phases\":" << newLine << "[";
 
-	for(int i =0; i < getPhases().size(); i++)
+	for (int i = 0; i < getPhases().size(); i++)
 	{
-//		std::cout<<"outputPhaseTrafficLight: "<<now.frame()<<std::endl;
+		//		std::cout<<"outputPhaseTrafficLight: "<<now.frame()<<std::endl;
 		output << getPhases()[i].outputPhaseTrafficLight(newLine);
-		if((i + 1) < getPhases().size()) output << ",";
+		if ((i + 1) < getPhases().size()) output << ",";
 	}
 	output << newLine << "]";
-	buffOut <<output.str() << newLine << "}" << newLine << "}" << std::endl;
+	buffOut << output.str() << newLine << "}" << newLine << "}" << std::endl;
 }
 
 std::size_t sim_mob::Signal_SCATS::computeCurrPhase(double currCycleTimer)
@@ -496,26 +561,25 @@ std::size_t sim_mob::Signal_SCATS::computeCurrPhase(double currCycleTimer)
 
 	double sum = 0;
 	std::size_t i;
-	for(i = 0; i < getNOF_Phases(); i++)
+	for (i = 0; i < getNOF_Phases(); i++)
 	{
 		//expanded the single line loop, for better understanding of future readers
 		sum += splitPlan.getCycleLength() * currSplitPlan[i] / 100; //in each iteration sum will represent the time (with respect to cycle length) each phase would end
-		if(sum > currCycleTimer)
+		if (sum > currCycleTimer)
 		{
 			break;
 		}
 	}
 
-	if(i >= getNOF_Phases())
+	if (i >= getNOF_Phases())
 	{
 		std::stringstream str;
-		str << "Signal " << this->getId() << " CouldNot computeCurrPhase for the given currCycleTimer(" << currCycleTimer <<  "/" << splitPlan.getCycleLength() << ") getNOF_Phases()(" <<  getNOF_Phases() << ") , sum of cycleLength chunks(" << sum << ")";
+		str << "Signal " << this->getId() << " CouldNot computeCurrPhase for the given currCycleTimer(" << currCycleTimer << "/" << splitPlan.getCycleLength() << ") getNOF_Phases()(" << getNOF_Phases() << ") , sum of cycleLength chunks(" << sum << ")";
 		throw std::runtime_error(str.str());
 	}
-	
+
 	return i;
 }
-
 
 /*
  * 1- update current cycle timer
@@ -532,21 +596,21 @@ std::size_t sim_mob::Signal_SCATS::computeCurrPhase(double currCycleTimer)
  */
 Entity::UpdateStatus sim_mob::Signal_SCATS::frame_tick(timeslice now)
 {
-	if(ConfigManager::GetInstance().FullConfig().loopDetectorCounts.outputEnabled)
+	if (ConfigManager::GetInstance().FullConfig().loopDetectorCounts.outputEnabled)
 	{
 		curVehicleCounter.aggregateCounts(now);
 	}
 
-	if(!isIntersection_)
+	if (!isIntersection_)
 	{
 		return UpdateStatus::Continue;
 	}
-	
+
 	isNewCycle = false;
-	
+
 	//1- update current cycle timer( Signal_SCATS::currCycleTimer)
 	isNewCycle = updateCurrCycleTimer();
-	
+
 	//if the phase has changed, here we dont update currPhaseID to a new value coz we still need some info(like DS) obtained during the last phase
 	//3-Update Current Phase
 	int temp_PhaseId = computeCurrPhase(currCycleTimer);
@@ -554,8 +618,9 @@ Entity::UpdateStatus sim_mob::Signal_SCATS::frame_tick(timeslice now)
 	//2- update current phase color
 	if (temp_PhaseId < getNOF_Phases())
 	{
-		getPhases()[temp_PhaseId].update(currCycleTimer);
-	} else
+		//getPhases()[temp_PhaseId].update(currCycleTimer);
+	}
+	else
 	{
 		throw std::runtime_error("currPhaseID out of range");
 	}
@@ -563,14 +628,14 @@ Entity::UpdateStatus sim_mob::Signal_SCATS::frame_tick(timeslice now)
 	//Temporarily set to the old value; use an enum if you actually want different timing modes.
 	const bool signalTimingMode = true;
 
-	if((currPhaseID != temp_PhaseId) && signalTimingMode)//separated coz we may need to transfer computeDS here
+	if ((currPhaseID != temp_PhaseId) && signalTimingMode)//separated coz we may need to transfer computeDS here
 	{
 		computePhaseDS(currPhaseID, now);
-		currPhaseID  = temp_PhaseId;
+		currPhaseID = temp_PhaseId;
 		//updateLaneState(currPhaseID);
 	}
-	
-	if(isNewCycle && signalTimingMode)
+
+	if (isNewCycle && signalTimingMode)
 	{
 		newCycleUpdate();
 		initializePhases();
@@ -587,87 +652,95 @@ Entity::UpdateStatus sim_mob::Signal_SCATS::frame_tick(timeslice now)
  * He will get three colors for three options of heading directions(left, forward,right)
  */
 
-TrafficColor sim_mob::Signal_SCATS::getDriverLight(Lane const & fromLane, Lane const & toLane) const {
-	RoadSegment const * fromRoad = fromLane.getRoadSegment();
-	Link * const fromLink = fromRoad->getLink();
+TrafficColor sim_mob::Signal_SCATS::getDriverLight(Lane const & fromLane, Lane const & toLane) const
+{
+	const RoadSegment *fromRoad = fromLane.getParentSegment();
+	const Link *fromLink = fromRoad->getParentLink();
 
-	RoadSegment const * toRoad = toLane.getRoadSegment();
-	Link const * toLink = toRoad->getLink();
+	const RoadSegment *toRoad = toLane.getParentSegment();
+	const Link *toLink = toRoad->getParentLink();
 
 	const sim_mob::Phase &currPhase = getCurrPhase();
 	sim_mob::links_map &linkMap = currPhase.getlinksMap();
 	sim_mob::Phase::links_map_equal_range range = currPhase.getLinkTos(fromLink);
 	sim_mob::Phase::links_map_const_iterator iter;
-	for(iter = range.first; iter != range.second ; iter++ )
+	for (iter = range.first; iter != range.second; iter++)
 	{
-		if((*iter).second.LinkTo == toLink){
+		if ((*iter).second.LinkTo == toLink)
+		{
 			break;
 		}
 	}
 
 	//if the link is not listed in the current phase throw an error (alternatively, just return red)
-	if(iter == range.second)
+	if (iter == range.second)
 	{
 		//either through an error or return res-your choice
 		return sim_mob::Red;
 	}
 	return (*iter).second.currColor;
 }
+
 /*checks current phase for the current color of the crossing(if the crossing found),
  * other cases and phases, just return red.
  */
-TrafficColor sim_mob::Signal_SCATS::getPedestrianLight (Crossing const & crossing) const
+/*TrafficColor sim_mob::Signal_SCATS::getPedestrianLight(Crossing const & crossing) const
 {
 	const sim_mob::Phase & phase = getCurrPhase();
-	const sim_mob::Phase::crossings_map_const_iterator it = phase.getCrossingMaps().find((const_cast<Crossing *>(&crossing)));
-	if(it != phase.getCrossingMaps().end())
+	const sim_mob::Phase::crossings_map_const_iterator it = phase.getCrossingMaps().find((const_cast<Crossing *> (&crossing)));
+	if (it != phase.getCrossingMaps().end())
 	{
 		return (*it).second.currColor;
 	}
 	return sim_mob::Red;
-}
-
+}*/
 
 void sim_mob::Signal_SCATS::addSignalSite(centimeter_t /* xpos */, centimeter_t /* ypos */,
-		std::string const & /* typeCode */, double /* bearing */) {
+										  std::string const & /* typeCode */, double /* bearing */)
+{
 	// Not implemented yet.
 }
 
 /* Set Split plan  for the signal*/
 //might not be very necessary(not in use)
+
 void sim_mob::Signal_SCATS::setSplitPlan(sim_mob::SplitPlan plan)
 {
 	splitPlan = plan;
 }
-void sim_mob::Signal_SCATS::initializePhases() {
 
-	 /* you have each phase percentage from the choice set,
-		so you may set the phase percntage and phase offset of each phase,
-		then initialize phases(calculate its phase length, green time ...)*/
+void sim_mob::Signal_SCATS::initializePhases()
+{
+
+	/* you have each phase percentage from the choice set,
+	   so you may set the phase percntage and phase offset of each phase,
+	   then initialize phases(calculate its phase length, green time ...)*/
 	std::vector<double> choice = splitPlan.CurrSplitPlan();
-	if(choice.size() != getNOF_Phases())
+	if (choice.size() != getNOF_Phases())
 		throw std::runtime_error("Mismatch on number of phases");
-	int i = 0 ; double percentage_sum =0;
+	int i = 0;
+	double percentage_sum = 0;
 	//setting percentage and phaseoffset for each phase
-	for(int ph_it = 0; ph_it < getPhases().size(); ph_it++, i++)
+	for (int ph_it = 0; ph_it < getPhases().size(); ph_it++, i++)
 	{
 		//this ugly line of code is due to the fact that multi index renders constant versions of its elements
-		sim_mob::Phase & target_phase = const_cast<sim_mob::Phase &>(getPhases()[ph_it]);
-		if( i > 0) percentage_sum += choice[i - 1]; // i > 0 : the first phase has phase offset equal to zero,
+		sim_mob::Phase & target_phase = const_cast<sim_mob::Phase &> (getPhases()[ph_it]);
+		if (i > 0) percentage_sum += choice[i - 1]; // i > 0 : the first phase has phase offset equal to zero,
 		(target_phase).setPercentage(choice[i]);
 		(target_phase).setPhaseOffset(percentage_sum * splitPlan.getCycleLength() / 100);
 	}
 	//Now Initialize the phases(later you  may put this back to the above phase iteration loop
-	for(int ph_it = 0; ph_it < getPhases().size(); ph_it++, i++)
-		const_cast<sim_mob::Phase &>((getPhases()[ph_it])).initialize(splitPlan);//phaselength,and green time..
+	for (int ph_it = 0; ph_it < getPhases().size(); ph_it++, i++)
+		const_cast<sim_mob::Phase &> ((getPhases()[ph_it])).initialize(splitPlan); //phaselength,and green time..
 }
 
 /**Signal Initialization */
-void sim_mob::Signal_SCATS::initialize() {
+void sim_mob::Signal_SCATS::initialize()
+{
 	createStringRepresentation("");
 	//initialize phases......
-//	splitPlan.initialize();
-	NOF_Phases = getNOF_Phases();//remove this error prone line later
+	//	splitPlan.initialize();
+	NOF_Phases = getNOF_Phases(); //remove this error prone line later
 	initializePhases();
 	Phase_Density.resize(getNOF_Phases(), 0);
 
@@ -675,6 +748,7 @@ void sim_mob::Signal_SCATS::initialize() {
 
 /* Get Split plan  for the signal*/
 //might not be very necessary(not in use)
+
 const sim_mob::SplitPlan & sim_mob::Signal_SCATS::getPlan() const
 {
 	return splitPlan;
@@ -692,35 +766,35 @@ sim_mob::SplitPlan & sim_mob::Signal_SCATS::getPlan()
 std::vector<std::pair<sim_mob::Phase, double> > sim_mob::Signal_SCATS::predictSignal(double t)
 {
 	throw std::runtime_error("Signal_SCATS::predictSignal() is based on an old Signal.hpp; you'll have to change it.");
-/*	std::vector<std::pair<sim_mob::Phase, double> > phaseTimes;
-	if(signalTimingMode == 0  && t > 0){
-		int phaseId = currPhaseID;
-		sim_mob::Phase p = splitPlan.phases[phaseId];
-		// add the remaining time in the current phase
-		double remainingTimeInCurrPhase = p.phaseLength - (currCycleTimer - p.phaseOffset);
-		phaseTimes.push_back(std::make_pair(p, std::min(remainingTimeInCurrPhase, t)));
-		t = t - remainingTimeInCurrPhase;
-
-		// add the subsequent phases which fit into this time window
-		while(t > 0) {
-			phaseId = (phaseId + 1) % splitPlan.NOF_Plans;
+	/*	std::vector<std::pair<sim_mob::Phase, double> > phaseTimes;
+		if(signalTimingMode == 0  && t > 0){
+			int phaseId = currPhaseID;
 			sim_mob::Phase p = splitPlan.phases[phaseId];
-			if (p.phaseLength <= t) {
-				phaseTimes.push_back(std::make_pair(p, p.phaseLength));
-				t = t - p.phaseLength;
-			}
-			else {
-				phaseTimes.push_back(std::make_pair(p, t));
-				t = 0;
+			// add the remaining time in the current phase
+			double remainingTimeInCurrPhase = p.phaseLength - (currCycleTimer - p.phaseOffset);
+			phaseTimes.push_back(std::make_pair(p, std::min(remainingTimeInCurrPhase, t)));
+			t = t - remainingTimeInCurrPhase;
+
+			// add the subsequent phases which fit into this time window
+			while(t > 0) {
+				phaseId = (phaseId + 1) % splitPlan.NOF_Plans;
+				sim_mob::Phase p = splitPlan.phases[phaseId];
+				if (p.phaseLength <= t) {
+					phaseTimes.push_back(std::make_pair(p, p.phaseLength));
+					t = t - p.phaseLength;
+				}
+				else {
+					phaseTimes.push_back(std::make_pair(p, t));
+					t = 0;
+				}
 			}
 		}
-	}
-	return phaseTimes;*/
+		return phaseTimes;*/
 }
 
-sim_mob::VehicleCounter::VehicleCounter():simStartTime(sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime()),
-		frequency(ConfigManager::GetInstance().FullConfig().loopDetectorCounts.frequency), 
-		logger(sim_mob::Logger::log(ConfigManager::GetInstance().FullConfig().loopDetectorCounts.fileName)), curTimeSlice(0,0)
+sim_mob::VehicleCounter::VehicleCounter() : simStartTime(sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime()),
+frequency(ConfigManager::GetInstance().FullConfig().loopDetectorCounts.frequency),
+logger(sim_mob::Logger::log(ConfigManager::GetInstance().FullConfig().loopDetectorCounts.fileName)), curTimeSlice(0, 0)
 {
 }
 
@@ -732,14 +806,14 @@ sim_mob::VehicleCounter::~VehicleCounter()
 void sim_mob::VehicleCounter::init(const Signal_SCATS* signal)
 {
 	this->signal = signal;
-	nodeId = signal->getNode().getID();
-	nodeName = signal->getNode().name;
-	
+	nodeId = signal->getNode().getNodeId();
+	//nodeName = signal->getNode().getTrafficLightId();
+
 	const std::map<const Lane *, Shared<Sensor::CountAndTimePair> *>& countAndTimePairs =
 			signal->getLoopDetector()->getCountAndTimePairMap();
 	std::map<const Lane *, Shared<Sensor::CountAndTimePair> *>::const_iterator it(countAndTimePairs.begin());
-	
-	for(; it != countAndTimePairs.end(); ++it)
+
+	for (; it != countAndTimePairs.end(); ++it)
 	{
 		counter[it->first] = 0;
 	}
@@ -748,7 +822,7 @@ void sim_mob::VehicleCounter::init(const Signal_SCATS* signal)
 void sim_mob::VehicleCounter::resetCounter()
 {
 	std::map<const sim_mob::Lane*, int> ::iterator it(counter.begin());
-	for(; it != counter.end(); ++it)
+	for (; it != counter.end(); ++it)
 	{
 		it->second = 0;
 	}
@@ -761,8 +835,8 @@ void sim_mob::VehicleCounter::serialize(const uint32_t& time)
 		std::map<const sim_mob::Lane*, int> ::iterator it(counter.begin());
 		for (; it != counter.end(); it++)
 		{
-			logger << time << "," << nodeName << "," << nodeId << "," << it->first->getRoadSegment()->getId() \
-			   << ","  << it->first->getLaneID() << ","  << it->second << "\n";
+			logger << time << "," << nodeName << "," << nodeId << "," << it->first->getRoadSegmentId() \
+			   << "," << it->first->getLaneId() << "," << it->second << "\n";
 		}
 	}
 }
@@ -771,7 +845,7 @@ void sim_mob::VehicleCounter::update()
 {
 	std::map<const sim_mob::Lane*, int> ::iterator it(counter.begin());
 	const Sensor* loopDetector = signal->getLoopDetector();
-	
+
 	for (; it != counter.end(); ++it)
 	{
 		const Lane* lane = it->first;
@@ -785,8 +859,8 @@ void sim_mob::VehicleCounter::aggregateCounts(const timeslice& curTimeSlice_)
 {
 	curTimeSlice = curTimeSlice_;
 	const uint32_t& time = curTimeSlice_.ms();
-	
-	if( time != 0 && time % frequency == 0)
+
+	if (time != 0 && time % frequency == 0)
 	{
 		update();
 		serialize(time);

@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "Color.hpp"
-#include "geospatial/MultiNode.hpp"
+#include "geospatial/network/Node.hpp"
 #include "logging/Log.hpp"
 #include "util/LangHelpers.hpp"
 
@@ -23,7 +23,6 @@ class Phase_t_pimpl;
 namespace sim_mob
 {
 //Forward declarations
-class Crossing;
 class SplitPlan;
 class RoadSegment;
 class Signal;
@@ -57,10 +56,10 @@ struct linkToLink
 };
 //typedef ll linkToLink;
 
-typedef std::multimap<sim_mob::Link *, sim_mob::linkToLink> links_map; //mapping of LinkFrom to linkToLink{which is LinkTo,colorSequence,currColor}
+typedef std::multimap<const Link *, sim_mob::linkToLink> links_map; //mapping of LinkFrom to linkToLink{which is LinkTo,colorSequence,currColor}
 
 ////////////////////crossings////////////////////////////////////////////////////////////////////////////////////
-struct crossings
+/*struct crossings
 {
 	crossings(sim_mob::Link *link_,sim_mob::Crossing *crossig_):link(link_),crossig(crossig_), colorSequence(Pedestrian_Light){
 		colorSequence.addColorDuration(Green,0);
@@ -87,7 +86,7 @@ typedef struct crossings Crossings;
 typedef std::map<sim_mob::Crossing *, sim_mob::Crossings> crossings_map;
 typedef crossings_map::const_iterator crossings_map_const_iterator;
 typedef crossings_map::iterator crossings_map_iterator;
-typedef std::pair<crossings_map_const_iterator, crossings_map_const_iterator> crossings_map_equal_range;
+typedef std::pair<crossings_map_const_iterator, crossings_map_const_iterator> crossings_map_equal_range;*/
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
@@ -102,8 +101,8 @@ public:
 	typedef links_map::const_iterator links_map_const_iterator;
 	typedef std::pair<links_map_const_iterator, links_map_const_iterator> links_map_equal_range;
 
-	typedef crossings_map::iterator crossings_map_iterator;
-	typedef crossings_map::const_iterator crossings_map_const_iterator;
+	/*typedef crossings_map::iterator crossings_map_iterator;
+	typedef crossings_map::const_iterator crossings_map_const_iterator;*/
 
 	Phase():parentSignal(NULL), percentage(0), phaseOffset(0), phaseLength(0), parentPlan(NULL){}
 	Phase(std::string name_, sim_mob::SplitPlan *parent = nullptr):name(name_), parentPlan(parent),
@@ -142,19 +141,19 @@ public:
 		return linksMap.end();
 	}
 
-	links_map_equal_range getLinkTos(sim_mob::Link  *const LinkFrom)const//dont worry about constantization!! :) links_map_equal_range is using a constant iterator
+	links_map_equal_range getLinkTos(const Link *linkFrom) const
 	{
-		return linksMap.equal_range(LinkFrom);
+		return linksMap.equal_range(linkFrom);
 	}
 
-	void addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink &ll, sim_mob::MultiNode *node)const ;
-	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *, ColorSequence);
-	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *);
+	void addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink &ll, Node *node)const ;
+	//void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *, ColorSequence);
+	//void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *);
 
 	//add crossing to any link of this node which is not involved in this phase
-	void addDefaultCrossings(sim_mob::LinkAndCrossingC const & ,sim_mob::MultiNode *node)const;
+	//void addDefaultCrossings(sim_mob::LinkAndCrossingC const & ,Node *node)const;
 	const links_map & getLinkMaps() const { return linksMap;}//apparently not needed, getLinkTos is good enough for getdriverlight()...except for the xmlwrite :)
-	const crossings_map & getCrossingMaps() const;
+	//const crossings_map & getCrossingMaps() const;
 
 	void updatePhaseParams(double phaseOffset_, double percentage_);
 	/* Used in computing DS for split plan selection
@@ -173,7 +172,7 @@ public:
 	void printPhaseColors(double currCycleTimer) const;
 	const std::string & getName() const;
 	std::string outputPhaseTrafficLight(std::string newLine) const;
-	sim_mob::RoadSegment * findRoadSegment(sim_mob::Link *, sim_mob::MultiNode *) const;
+	sim_mob::RoadSegment * findRoadSegment(sim_mob::Link *, Node *) const;
 	void setParent(sim_mob::Signal*);
 	Signal * getParent()const;
 
@@ -187,7 +186,7 @@ private:
 	//The links that will get a green light at this phase
 	mutable sim_mob::links_map linksMap;
 	//The crossings that will get a green light at this phase
-	mutable sim_mob::crossings_map crossings_map_;
+	//mutable sim_mob::crossings_map crossings_map_;
 
 	sim_mob::SplitPlan *parentPlan;
 

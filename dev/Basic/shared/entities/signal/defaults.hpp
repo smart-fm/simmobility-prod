@@ -21,7 +21,7 @@ class Link;
 /**
  * Link and crossing of an intersection/traffic signal
  */
-struct LinkAndCrossing
+/*struct LinkAndCrossing
 {
 	LinkAndCrossing(int id_,sim_mob::Link const * link_,sim_mob::Crossing const * crossing_,double angle_);
 	LinkAndCrossing();
@@ -35,7 +35,7 @@ struct LinkAndCrossing
 
 struct LinkAndCrossingComparison {
 	bool operator() (const LinkAndCrossing&a, const LinkAndCrossing&b);
-};
+};*/
 
 /**
  * obtaining link and -its corresponding- crossong information from node variable(as amember of signal)
@@ -44,6 +44,6 @@ struct LinkAndCrossingComparison {
  * a small extra storage
  */
 
-typedef std::set<LinkAndCrossing,LinkAndCrossingComparison >LinkAndCrossingC;
+/*typedef std::set<LinkAndCrossing,LinkAndCrossingComparison >LinkAndCrossingC;*/
 }
 

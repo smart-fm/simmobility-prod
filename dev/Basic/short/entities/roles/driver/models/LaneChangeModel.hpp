@@ -3,8 +3,11 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
+
+#include <set>
+
 #include "conf/params/ParameterManager.hpp"
-#include "geospatial/Lane.hpp"
+#include "geospatial/network/Lane.hpp"
 #include "entities/models/Constants.h"
 #include "entities/roles/driver/DriverUpdateParams.hpp"
 

@@ -5,8 +5,8 @@
 #include <boost/random.hpp>
 
 #include "entities/roles/pedestrian/PedestrianPathMover.hpp"
-#include "geospatial/BusStop.hpp"
-#include "geospatial/WayPoint.hpp"
+#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/WayPoint.hpp"
 
 
 using boost::unordered_map;
@@ -18,11 +18,11 @@ boost::uniform_int<> zero_to_max(0, RAND_MAX);
 typedef vector<WayPoint> PEDESTRIAN_PATH;
 typedef PEDESTRIAN_PATH::iterator PEDESTRIAN_PATH_ITERATOR;
 
-typedef vector<sim_mob::Point2D> POLYLINEPOINTS;
+typedef vector<sim_mob::Point> POLYLINEPOINTS;
 typedef POLYLINEPOINTS::const_iterator POLYLINEPOINTS_ITERATOR;
 typedef POLYLINEPOINTS::const_reverse_iterator POLYLINEPOINTS_REVERSE_ITERATOR;
 
-typedef unordered_map<sim_mob::Point2D,WayPoint* > POLYLINEPOINTS_WAYPOINT_MAP;
+//typedef unordered_map<sim_mob::Point,WayPoint* > POLYLINEPOINTS_WAYPOINT_MAP;
 
 sim_mob::PedestrianPathMover::PedestrianPathMover() :
 		distAlongPolyline(0.0),isDoneWithEntirePath(false), currentWaypoint(nullptr), nextWaypoint(nullptr) {
@@ -101,7 +101,9 @@ sim_mob::PedestrianPathMover::~PedestrianPathMover() {
 	nextWaypoint = polylinePoint_wayPoint_map[*currPolylineEndpoint];
 }*/
 
-void sim_mob::PedestrianPathMover::setPath(const PEDESTRIAN_PATH path){
+void sim_mob::PedestrianPathMover::setPath(const PEDESTRIAN_PATH path)
+{
+	/*
 	pedestrian_path = path;
 	pedestrian_path_iter = pedestrian_path.begin();
 	bool first=false;
@@ -138,16 +140,16 @@ void sim_mob::PedestrianPathMover::setPath(const PEDESTRIAN_PATH path){
 		{
 				int x= wp->busStop_->xPos;
 				int y= wp->busStop_->yPos;
-				polylinePoints.push_back(Point2D(x,y));
-			    polylinePoint_wayPoint_map[Point2D(x,y)] = wp;
+				polylinePoints.push_back(Point(x,y));
+			    polylinePoint_wayPoint_map[Point(x,y)] = wp;
 		}
 		else if (wp->type_ == WayPoint::ROAD_SEGMENT)
 		{
-			/*const  RoadSegment* rs =wp->roadSegment_;
+			*//*const  RoadSegment* rs =wp->roadSegment_;
 			vector<sim_mob::Lane* >::const_iterator i;
 			for ( i = rs->getLanes().begin(); i !=rs->getLanes().end(); ++i)
 			{
-				if (((*i)->is_pedestrian_lane()))
+				if (((*i)->isPedestrianLane()))
 				{
 					  const POLYLINEPOINTS *p=&((*i)->getPolyline());
 					  if (wp->directionReverse)
@@ -169,7 +171,7 @@ void sim_mob::PedestrianPathMover::setPath(const PEDESTRIAN_PATH path){
 						  }
 					  }
 				}
-			}*/
+			}*//*
 		}
 		else if (wp->type_ == WayPoint::CROSSING)
 		{
@@ -205,20 +207,23 @@ void sim_mob::PedestrianPathMover::setPath(const PEDESTRIAN_PATH path){
 	currPolylineEndpoint = polylinePoints.begin() + 1;
 	currentWaypoint = polylinePoint_wayPoint_map[*currPolylineStartpoint];
 	nextWaypoint = polylinePoint_wayPoint_map[*currPolylineEndpoint];
+    */
 }
+
+
 POLYLINEPOINTS sim_mob::PedestrianPathMover::getCrossingPolylinePoints(WayPoint *wp)
 {
 	POLYLINEPOINTS points;
-
+	/*
 	double xRel, yRel;
 	double xAbs, yAbs;
 	double width, length, tmp;
 	const Crossing *currCross = wp->crossing_;
 
-	Point2D far1 = currCross->farLine.first;
-	Point2D far2 = currCross->farLine.second;
-	Point2D near1 = currCross->nearLine.first;
-	Point2D near2 = currCross->nearLine.second;
+	Point far1 = currCross->farLine.first;
+	Point far2 = currCross->farLine.second;
+	Point near1 = currCross->nearLine.first;
+	Point near2 = currCross->nearLine.second;
 
 	double cStartX = (double) near1.getX();
 	double cStartY = (double) near1.getY();
@@ -238,15 +243,16 @@ POLYLINEPOINTS sim_mob::PedestrianPathMover::getCrossingPolylinePoints(WayPoint 
 	relToAbs(xRel,yRel,xAbs,yAbs,cStartX,cStartY,cEndX,cEndY);
 	//parent->xPos.set((int)xAbs);
 	//parent->yPos.set((int)yAbs);
-	points.push_back(Point2D((int)xAbs,(int)yAbs));
+	points.push_back(Point((int)xAbs,(int)yAbs));
 
 	xRel = xRel+length;
 	relToAbs(xRel,yRel,xAbs,yAbs,cStartX,cStartY,cEndX,cEndY);
-	//goalInLane = Point2D((int)xAbs,(int)yAbs);
-	points.push_back(Point2D((int)xAbs,(int)yAbs));
-
+	//goalInLane = Point((int)xAbs,(int)yAbs);
+	points.push_back(Point((int)xAbs,(int)yAbs));
+	*/
 	return points;
 }
+	 
 void sim_mob::PedestrianPathMover::relToAbs(double xRel, double yRel, double & xAbs, double & yAbs,
 		double cStartX,double cStartY,double cEndX,double cEndY) {
 	double xDir = cEndX - cStartX;
@@ -257,6 +263,7 @@ void sim_mob::PedestrianPathMover::relToAbs(double xRel, double yRel, double & x
 	xAbs = xRel * xDirection - yRel * yDirection + cStartX;
 	yAbs = xRel * yDirection + yRel * xDirection + cStartY;
 }
+
 void sim_mob::PedestrianPathMover::absToRel(double xAbs, double yAbs, double & xRel, double & yRel,
 		double cStartX,double cStartY,double cEndX,double cEndY) {
 	double xDir = cEndX - cStartX;
@@ -269,6 +276,7 @@ void sim_mob::PedestrianPathMover::absToRel(double xAbs, double yAbs, double & x
 	xRel = xOffset * xDirection + yOffset * yDirection;
 	yRel = -xOffset * yDirection + yOffset * xDirection;
 }
+
 double sim_mob::PedestrianPathMover::currPolylineLength()
 {
 	DynamicVector temp(currPolylineStartpoint->getX(), currPolylineStartpoint->getY(),currPolylineEndpoint->getX(), currPolylineEndpoint->getY());
@@ -330,8 +338,8 @@ bool sim_mob::PedestrianPathMover::advanceToNextPolylinePoint()
 		// reset polyline start ,end point
 		currPolylineEndpoint++;
 		currPolylineStartpoint++;
-		currentWaypoint = polylinePoint_wayPoint_map[*currPolylineStartpoint];
-		nextWaypoint = polylinePoint_wayPoint_map[*currPolylineEndpoint];
+		//currentWaypoint = polylinePoint_wayPoint_map[*currPolylineStartpoint];
+		//nextWaypoint = polylinePoint_wayPoint_map[*currPolylineEndpoint];
 	}
 	else {
 		hasNextPloylinePoint = false;
@@ -348,16 +356,17 @@ bool sim_mob::PedestrianPathMover::isAtCrossing()
 	{
 		// maybe ped is on the polyline which connect corssing and segment ,which is gap whatever.
 		// so need check current polyline 's start point's waypoint and end's.
-		if (currentWaypoint->type_ == WayPoint::CROSSING && nextWaypoint->type_ == WayPoint::CROSSING )
+		/*if (currentWaypoint->type_ == WayPoint::CROSSING && nextWaypoint->type_ == WayPoint::CROSSING )*/
 			isoc = true;
 	}
 
 	return isoc;
 }
-DPoint sim_mob::PedestrianPathMover::getPosition() const
+
+Point sim_mob::PedestrianPathMover::getPosition() const
 {
 	//Else, scale a vector like normal
 	DynamicVector movementVect(currPolylineStartpoint->getX(), currPolylineStartpoint->getY(), currPolylineEndpoint->getX(), currPolylineEndpoint->getY());
 	movementVect.scaleVectTo(distAlongPolyline).translateVect();
-	return DPoint(movementVect.getX(), movementVect.getY());
+	return Point(movementVect.getX(), movementVect.getY());
 }

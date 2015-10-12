@@ -7,9 +7,8 @@
 #include <boost/unordered_map.hpp>
 #include <vector>
 
-#include "geospatial/Crossing.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "util/DynamicVector.hpp"
 
 namespace sim_mob
@@ -17,7 +16,7 @@ namespace sim_mob
 
 class WayPoint;
 
-inline std::size_t hash_value(const sim_mob::Point2D& p)
+inline std::size_t hash_value(const sim_mob::Point& p)
 {
     size_t seed = 0;
     boost::hash_combine(seed, boost::hash_value(p.getX()));
@@ -39,7 +38,7 @@ public:
 	//Returns any "overflow" distance if we are in an intersection, 0 otherwise.
 	double advance(double fwdDistance);
 	//Retrieve our X/Y position based ONLY on forward movement (e.g., nothing with Lanes)
-	sim_mob::DPoint getPosition() const;
+	sim_mob::Point getPosition() const;
 	WayPoint* getCurrentWaypoint(){ return currentWaypoint; };
 public:
 	std::vector<WayPoint> pedestrian_path;
@@ -52,7 +51,7 @@ private:
 	WayPoint *nextWaypoint;
 	// advance to next waypoint, if has next waypoint ,return true
 	bool advanceToNextPolylinePoint();
-	std::vector<sim_mob::Point2D> getCrossingPolylinePoints(WayPoint *wp);
+	std::vector<sim_mob::Point> getCrossingPolylinePoints(WayPoint *wp);
 	void relToAbs(double xRel, double yRel, double & xAbs, double & yAbs,
 			double cStartX,double cStartY,double cEndX,double cEndY);
 	void absToRel(double xAbs, double yAbs, double & xRel, double & yRel,double cStartX,
@@ -61,9 +60,9 @@ private:
 	double distAlongPolyline;
 	bool isDoneWithEntirePath;
 	//ploy line start ,end point , maybe cross two segments or segment->crossring
-	std::vector<sim_mob::Point2D> polylinePoints;
-	std::vector<sim_mob::Point2D>::iterator currPolylineStartpoint;
-	std::vector<sim_mob::Point2D>::iterator currPolylineEndpoint;
-	boost::unordered_map<sim_mob::Point2D,WayPoint* > polylinePoint_wayPoint_map;
+	std::vector<sim_mob::Point> polylinePoints;
+	std::vector<sim_mob::Point>::iterator currPolylineStartpoint;
+	std::vector<sim_mob::Point>::iterator currPolylineEndpoint;
+	boost::unordered_map<sim_mob::Point,WayPoint* > polylinePoint_wayPoint_map;
 };
 }

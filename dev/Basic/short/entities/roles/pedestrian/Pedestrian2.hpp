@@ -22,11 +22,9 @@
 #include "conf/settings/DisableMPI.h"
 
 #include "entities/roles/Role.hpp"
-#include "geospatial/Point2D.hpp"
-#include "geospatial/Crossing.hpp"
+#include "geospatial/network/Point.hpp"
 #include "entities/UpdateParams.hpp"
-#include "geospatial/RoadSegment.hpp"
-
+#include "geospatial/network/RoadSegment.hpp"
 #include "entities/roles/pedestrian/PedestrianPathMover.hpp"
 #include "Pedestrian2Facets.hpp"
 

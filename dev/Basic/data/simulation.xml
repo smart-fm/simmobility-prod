@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright Singapore-MIT Alliance for Research and Technology -->
+
+<config>
+	<!-- Various database connections, used for loading network and agent data. -->
+    <!-- Note that credentials (login details) are stored in a separate construct. -->
+	<databases>
+		<database id="fm_remote" dbtype="postgres">
+            <host value="172.25.184.48"/>
+            <port value="5432"/>
+            <dbname value="SimMobility_DB_2015"/>
+        </database>
+        
+        <database id="fm_remote_lt" dbtype="postgres">
+            <host value="172.25.184.14"/>
+            <port value="5432"/>
+            <dbname value="sim_mob_lt"/>
+        </database>
+        
+        <!-- Variables stores for preday demand simulator-->
+        <database id="fm_mongo" dbtype="mongodb">
+            <host value="localhost"/>
+            <port value="27017"/>
+            <dbname value="mydb"/>
+        </database>
+	</databases>
+
+	<!-- Login credentials to be used for database connections. These can be plaintext, -->
+    <!-- file-based, and possibly even signed. Note that invalid credentials will simply be ignored. -->
+    <credentials>
+        <!-- A file-based credential loads credentials from a JSON file with its own special format. -->
+        <!-- Multiple files can be listed, and they will be tried in order until one is found. -->
+        <!-- If the first existing file has an error, parsing will NOT continue to the next file. -->
+        <!-- The actual credentials file looks something like this: -->
+        <!-- 
+        {
+            "username" : "postgres",
+            "password" : "AbCdEfG=",
+            "algorithm" : ["clear","xor23","base64","cipher"]
+        }
+        -->
+        <!-- Here, the username is stored in cleartext. The password is stored according to the algorithm listed. -->
+        <!-- So in this example, the "clear" text is first "xor23"'d, then "base64" encoded, then finally we arrive at the "cipher" text. -->
+        <!-- If you  just want to store the password in cleartext, use "algorithm" : ["clear","cipher"] -->
+        <file-based-credential id="fm_remote">
+            <file path="private/fm_remote.cred.txt"/>
+            <file path="/usr/share/simmobility/credentials/fm_remote.cred.txt"/> <!-- For example -->
+        </file-based-credential>
+      
+        <!-- Plaintext credentials can be used to store the password verbatim. -->
+        <!-- BE CAREFUL with these; remember that EVERYONE can see them: -->
+        <!--    1) Don't put any passwords here that you care about (e.g., email accounts) -->
+        <!--    2) Don't put any passwords to databases on the FM server. -->
+        <plaintext-credential id="lt_cred">
+            <username value="fmstaff"/>
+            <password value="fm4trans"/>
+        </plaintext-credential>
+    </credentials>
+
+    <simulation>
+		<base_granularity   value="5"   units="seconds" />
+		<total_runtime      value="5"      units="minutes" />
+		<total_warmup       value="10"     units="seconds" />
+        
+		<start_time         value="07:00:00"/>
+
+		<!-- Strategy for adding new Agents to Workers. -->
+		<!-- "roundrobin" assigns in order. (default) -->
+		<!-- "smallest" assigns to the Worker with the smallest Agent count. -->
+		<!-- Note that "smallest" does not appear to offer any benefit over "roundrobin" -->
+		<workgroup_assignment value="roundrobin"/>
+
+		<!-- Optional. How we enforce mutual exclusion. Can be "buffered" (the default) or "locked" -->
+        <mutex_enforcement strategy="buffered"/>
+
+        <!-- Optional. At what value do we start counting for automatically -->
+        <!-- generated Agent IDs? Set to a high value if you want to avoid  -->
+        <!-- ID collisions when manually specifying Agent IDs in the config file. -->
+        <!-- Setting this to zero has the same effect as leaving it out; the default value is zero. -->
+        <auto_id_start value="0"/>
+    </simulation>
+
+    <generic_props>
+    </generic_props>
+
+    <merge_log_files value="true"/>
+</config>

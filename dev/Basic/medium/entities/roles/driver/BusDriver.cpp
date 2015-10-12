@@ -11,7 +11,6 @@
  */
 
 #include "BusDriver.hpp"
-#include "entities/Person.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "message/MT_Message.hpp"
 #include "entities/PT_Statistics.hpp"
@@ -21,6 +20,7 @@
 #include "config/MT_Config.hpp"
 
 using namespace sim_mob;
+using namespace sim_mob::medium;
 using std::max;
 using std::vector;
 using std::set;
@@ -47,7 +47,7 @@ sim_mob::medium::BusDriver::BusDriver(Person_MT* parent, MutexStrategy mtxStrat,
 		sim_mob::medium::BusDriverMovement* movement,
 		std::string roleName, Role<Person_MT>::Type roleType)
 : sim_mob::medium::Driver(parent, behavior, movement, roleName, roleType),
-  requestMode(mtxStrat, 0), visitedBusStop(mtxStrat, nullptr),
+  requestMode(mtxStrat, 0), visitedBusStop(mtxStrat, nullptr), busStopRealTimes(mtxStrat, nullptr),
   visitedBusStopSequenceNo(mtxStrat, -1), arrivalTime(mtxStrat, 0.0),
   dwellTime(mtxStrat, 0.0), visitedBusTripSequenceNo(mtxStrat, 0),
   visitedBusLine(mtxStrat, "0"), holdingTime(mtxStrat, 0.0),
@@ -56,7 +56,7 @@ sim_mob::medium::BusDriver::BusDriver(Person_MT* parent, MutexStrategy mtxStrat,
 
 sim_mob::medium::BusDriver::~BusDriver(){}
 
-Role<Person_MT>* sim_mob::medium::BusDriver::clone(Person* parent) const {
+Role<Person_MT>* sim_mob::medium::BusDriver::clone(Person_MT* parent) const {
 	BusDriverBehavior* behavior = new BusDriverBehavior(parent);
 	BusDriverMovement* movement = new BusDriverMovement(parent);
 	BusDriver* busdriver = new BusDriver(parent, parent->getMutexStrategy(), behavior, movement, "BusDriver_");
@@ -68,7 +68,7 @@ Role<Person_MT>* sim_mob::medium::BusDriver::clone(Person* parent) const {
 
 const std::vector<const sim_mob::BusStop*>* sim_mob::medium::BusDriver::getBusStopsVector() const {
 	const std::vector<const sim_mob::BusStop*>* stopsVec=nullptr;
-	sim_mob::Person* person = dynamic_cast<Person*>(parent);
+	Person_MT* person = dynamic_cast<Person_MT*>(parent);
 	if(!person){
 		return stopsVec;
 	}
@@ -110,7 +110,7 @@ unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusSto
 	{
 		stop = stop->getTwinStop();
 		if(stop->isVirtualStop()) { throw std::runtime_error("both of the twin stops are virtual"); }
-		busStopAgent = BusStopAgent::findBusStopAgentByBusStop(stop);
+		busStopAgent = BusStopAgent::getBusStopAgentForStop(stop);
 	}
 
 	while (itPassenger != passengerList.end()) {
@@ -135,23 +135,31 @@ unsigned int sim_mob::medium::BusDriver::alightPassenger(sim_mob::medium::BusSto
 
 void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, const std::string& waitTime, const sim_mob::BusStop* stop)
 {
-	sim_mob::Person* person = parent;
+	Person_MT* person = parent;
 	if (!person) {
 		return;
 	}
 
-	const BusTrip* busTrip =
-			dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
+	const BusTrip* busTrip = dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
 	if (busTrip) {
-		const BusLine* busLine = busTrip->getBusLine();
-		std::string stopNo = stop->getBusstopno_();
-		std::string tripId = busTrip->tripID;
-		std::string busLineId = busLine->getBusLineID();
-		//unsigned int sequenceNo = busTrip->getBusTripStopIndex(stop);
-		double pctOccupancy = (((double)passengerList.size())/MT_Config::getInstance().getBusCapacity()) * 100.0;
-
-		messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(), STORE_BUS_ARRIVAL,
-				messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(stopNo, busLineId, tripId, current, waitTime, this->busSequenceNumber,pctOccupancy)));
+		std::string busStopNo;
+		if(stop->isVirtualStop())
+		{
+			busStopNo = stop->getTwinStop()->getBusstopno_();
+		}
+		else
+		{
+			busStopNo = stop->getBusstopno_();
+		}
+		BusArrivalTime busArrivalInfo;
+		busArrivalInfo.busLine = busTrip->getBusLine()->getBusLineID();
+		busArrivalInfo.tripId = busTrip->tripID;
+		busArrivalInfo.sequenceNo = busSequenceNumber;
+		busArrivalInfo.arrivalTime = current;
+		busArrivalInfo.dwellTime = waitTime;
+		busArrivalInfo.pctOccupancy = (((double)passengerList.size())/MT_Config::getInstance().getBusCapacity()) * 100.0;
+		busArrivalInfo.busStopNo = busStopNo;
+		messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_BUS_ARRIVAL, messaging::MessageBus::MessagePtr(new BusArrivalTimeMessage(busArrivalInfo)));
 		this->busSequenceNumber++;
 	}
 }
@@ -175,7 +183,7 @@ void sim_mob::medium::BusDriver::predictArrivalAtBusStop(double preArrivalTime,
 		const BusLine* busLine = busTrip->getBusLine();
 		visitedBusLine.set(busLine->getBusLineID());
 		visitedBusTripSequenceNo.set(busTrip->getTotalSequenceNum());
-		requestMode.set(Role::REQUEST_DECISION_TIME);
+		requestMode.set(Role<Person_MT>::REQUEST_DECISION_TIME);
 		visitedBusStop.set(busStopAgent->getBusStop());
 		visitedBusStopSequenceNo.set(visitedBusStopSequenceNo.get() + 1);
 		arrivalTime.set(preArrivalTime);
@@ -238,8 +246,8 @@ void sim_mob::medium::BusDriver::openBusDoors(const std::string& current, sim_mo
 	storeArrivalTime(current, dwellTime.getStrRepr(), busStopAgent->getBusStop());
 
 
-	if (requestMode.get() == Role::REQUEST_DECISION_TIME) {
-		requestMode.set(Role::REQUEST_NONE);
+	if (requestMode.get() == Role<Person_MT>::REQUEST_DECISION_TIME) {
+		requestMode.set(Role<Person_MT>::REQUEST_NONE);
 		//final waiting time is maximum value between dwelling time and holding time
 		waitingTimeAtbusStop = std::max(waitingTimeAtbusStop, holdingTime.get());
 		holdingTime.set(0.0);

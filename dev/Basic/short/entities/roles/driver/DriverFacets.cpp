@@ -13,6 +13,7 @@
 #include "conf/ConfigParams.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/Person.hpp"
+#include "entities/Person_ST.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/UpdateParams.hpp"
 #include "geospatial/Crossing.hpp"
@@ -30,7 +31,7 @@
 #include "geospatial/UniNode.hpp"
 #include "IncidentPerformer.hpp"
 #include "network/CommunicationDataManager.hpp"
-#include "entities/Person_ST.hpp"
+#include "util/Utils.hpp"
 
 using namespace sim_mob;
 using std::vector;
@@ -2246,7 +2247,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle)
 				// if use path set
 				if (ConfigManager::GetInstance().FullConfig().PathSetMode())
 				{
-					path = PathSetManager::getInstance()->getPath(*(parentDriver->parent->currSubTrip), false, nullptr);
+					path = PrivateTrafficRouteChoice::getInstance()->getPath(*(parentDriver->parent->currSubTrip), false, nullptr);
 				}
 				else
 				{

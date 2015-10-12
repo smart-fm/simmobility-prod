@@ -3,9 +3,10 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
-#include<vector>
-#include<string>
+
 #include <boost/variant.hpp>
+#include <string>
+#include <vector>
 
 namespace sim_mob
 {
@@ -19,6 +20,7 @@ static const Parameters EMPTY_PARAMS;
 
 /**
  * Represents an Interface for DAO (Data Access Object) implementations.
+ *
  * \author Pedro Gandola
  */
 template<typename T>
@@ -27,7 +29,8 @@ class I_Dao
 public:
 
 	virtual ~I_Dao()
-	{}
+	{
+	}
 
 	/**
 	 * Inserts the given entity into the data source.

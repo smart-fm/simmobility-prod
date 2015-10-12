@@ -20,6 +20,11 @@ private:
 
 public:
 	/**
+	 * Initialize a single BusController with the given start time and MutexStrategy.
+	 */
+	static void RegisterBusController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
+
+	/**
 	 * processes requests from all bus drivers
 	 */
 	virtual void processRequests();

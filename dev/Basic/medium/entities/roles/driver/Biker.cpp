@@ -3,20 +3,22 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Biker.hpp"
-#include "entities/Person.hpp"
+#include "entities/Person_MT.hpp"
 
 using namespace sim_mob;
 
-sim_mob::medium::Biker::Biker(Person* parent, MutexStrategy mtxStrat,
-		sim_mob::medium::BikerBehavior* behavior,
-		sim_mob::medium::BikerMovement* movement,
-		std::string roleName, Role::Type roleType)
-: sim_mob::medium::Driver(parent, mtxStrat, behavior, movement, roleName, roleType)
-{}
+sim_mob::medium::Biker::Biker(Person_MT* parent, sim_mob::medium::BikerBehavior* behavior, sim_mob::medium::BikerMovement* movement, std::string roleName,
+		Role<Person_MT>::Type roleType) :
+		sim_mob::medium::Driver(parent, behavior, movement, roleName, roleType)
+{
+}
 
-sim_mob::medium::Biker::~Biker() {}
+sim_mob::medium::Biker::~Biker()
+{
+}
 
-Role* sim_mob::medium::Biker::clone(Person* parent) const {
+Role<Person_MT>* sim_mob::medium::Biker::clone(Person_MT* parent) const
+{
 	BikerBehavior* behavior = new BikerBehavior(parent);
 	BikerMovement* movement = new BikerMovement(parent);
 	Biker* biker = new Biker(parent, parent->getMutexStrategy(), behavior, movement, "Biker_");
@@ -25,7 +27,3 @@ Role* sim_mob::medium::Biker::clone(Person* parent) const {
 	movement->setParentDriver(biker);
 	return biker;
 }
-
-
-
-

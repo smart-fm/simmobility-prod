@@ -12,7 +12,7 @@
 #include "conf/ConfigParams.hpp"
 #include "entities/misc/BusTrip.hpp"
 #include "entities/roles/DriverRequestParams.hpp"
-#include "Person_ST.hpp"
+#include "Person_MT.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -27,14 +27,25 @@ BusControllerMT::~BusControllerMT()
 {
 }
 
+void sim_mob::medium::BusControllerMT::RegisterBusController(int id, const MutexStrategy& mtxStrat)
+{
+	BusControllerMT* mtBusController = new BusControllerMT(id, mtxStrat);
+	bool busControllerRegistered = BusController::RegisterBusController(mtBusController);
+	if(!busControllerRegistered)
+	{
+		safe_delete_item(mtBusController);
+		throw std::runtime_error("BusController already registered!");
+	}
+}
+
 void BusControllerMT::processRequests()
 {
 	for (vector<Entity*>::iterator it = busDrivers.begin(); it != busDrivers.end(); it++)
 	{
-		Person_ST* person = dynamic_cast<sim_mob::Person_ST*>(*it);
+		Person_MT* person = dynamic_cast<sim_mob::Person_MT*>(*it);
 		if (person)
 		{
-			Role<Person_ST>* role = person->getRole();
+			Role<Person_MT>* role = person->getRole();
 			if (role)
 			{
 				handleRequest(role->getDriverRequestParams());
@@ -53,7 +64,7 @@ void BusControllerMT::handleRequest(DriverRequestParams rParams)
 
 	Shared<int>* existedRequestMode = rParams.existedRequest_Mode;
 	if (existedRequestMode
-			&& (existedRequestMode->get() == Role<Person_ST>::REQUEST_DECISION_TIME || existedRequestMode->get() == Role<Person_ST>::REQUEST_STORE_ARRIVING_TIME))
+			&& (existedRequestMode->get() == Role<Person_MT>::REQUEST_DECISION_TIME || existedRequestMode->get() == Role<Person_MT>::REQUEST_STORE_ARRIVING_TIME))
 	{
 		Shared<string>* lastVisitedBusline = rParams.lastVisited_Busline;
 		Shared<int>* lastVisitedBusTripSequenceNo = rParams.lastVisited_BusTrip_SequenceNo;
@@ -68,13 +79,13 @@ void BusControllerMT::handleRequest(DriverRequestParams rParams)
 				&& lastBusStopRealTimes && waitingTime)
 		{
 			BusStopRealTimes realTime;
-			if (existedRequestMode->get() == Role<Person_ST>::REQUEST_DECISION_TIME)
+			if (existedRequestMode->get() == Role<Person_MT>::REQUEST_DECISION_TIME)
 			{
 				double waitingtime = computeDwellTime(lastVisitedBusline->get(), lastVisitedBusTripSequenceNo->get(), busstopSequenceNo->get(),
 						realArrivalTime->get(), dwellTime->get(), realTime, lastVisitedBusStop->get());
 				waitingTime->set(waitingtime);
 			}
-			else if (existedRequestMode->get() == Role<Person_ST>::REQUEST_STORE_ARRIVING_TIME)
+			else if (existedRequestMode->get() == Role<Person_MT>::REQUEST_STORE_ARRIVING_TIME)
 			{
 				storeRealTimesAtEachBusStop(lastVisitedBusline->get(), lastVisitedBusTripSequenceNo->get(), busstopSequenceNo->get(), realArrivalTime->get(),
 						dwellTime->get(), lastVisitedBusStop->get(), realTime);
@@ -82,14 +93,13 @@ void BusControllerMT::handleRequest(DriverRequestParams rParams)
 			lastBusStopRealTimes->set(realTime);
 		}
 	}
-
 }
 
 void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgents)
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	const map<string, BusLine*>& buslines = ptSchedule.getBusLines();
-	if (0 == buslines.size())
+	if (buslines.empty())
 	{
 		throw std::runtime_error("Error:  No busline in the ptSchedule, please check the setPTSchedule.");
 	}
@@ -99,11 +109,11 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 		BusLine* busline = buslinesIt->second;
 		const vector<BusTrip>& busTrips = busline->queryBusTrips();
 
-		for (vector<BusTrip>::const_iterator tripIt = busTrips.begin(); tripIt != busTrips.end(); tripIt++)
+		for (vector<BusTrip>::const_iterator tripIt = busTrips.begin();	tripIt != busTrips.end(); tripIt++)
 		{
-			if (tripIt->startTime.isAfterEqual(ConfigManager::GetInstance().FullConfig().simStartTime()))
+			if (tripIt->startTime.isAfterEqual(config.simStartTime()))
 			{
-				Person_ST* person = new Person_ST("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
+				Person* person = new Person_MT("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
 				person->setPersonCharacteristics();
 				vector<TripChainItem*> tripChain;
 				tripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));
@@ -119,5 +129,4 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 		(*it)->parentEntity = this;
 		busDrivers.push_back(*it);
 	}
-
 }

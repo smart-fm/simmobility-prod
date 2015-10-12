@@ -2,28 +2,22 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * PredayDao.hpp
- *
- *  Created on: Nov 15, 2013
- *      Author: Harish Loganathan
- */
-
 #pragma once
 
 #include <map>
 #include <bitset>
+#include "behavioral/params/PredayPersonParams.hpp"
 #include "database/dao/SqlAbstractDao.hpp"
 #include "database/DB_Connection.hpp"
-#include "behavioral/params/PredayPersonParams.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
 /**
  * Data access object for Population tables
  *
  * \author Harish Loganathan
  */
-class LT_PopulationSqlDao : public db::SqlAbstractDao<PredayPersonParams>
+class LT_PopulationSqlDao: public db::SqlAbstractDao<PredayPersonParams>
 {
 public:
 	LT_PopulationSqlDao(db::DB_Connection& connection);
@@ -61,21 +55,21 @@ public:
 	void getAddressTAZs(std::map<long, int>& outMap);
 
 private:
-    /**
-     * Virtual override.
-     * Fills the given outObj with all values contained on Row.
-     * @param result row with data to fill the out object.
-     * @param outObj to fill.
-     */
-    void fromRow(db::Row& result, PredayPersonParams& outObj);
+	/**
+	 * Virtual override.
+	 * Fills the given outObj with all values contained on Row.
+	 * @param result row with data to fill the out object.
+	 * @param outObj to fill.
+	 */
+	void fromRow(db::Row& result, PredayPersonParams& outObj);
 
-    /**
-     * Virtual override.
-     * Fills the outParam with all values to insert or update on datasource.
-     * @param data to get values.
-     * @param outParams to put the data parameters.
-     * @param update tells if operation is an Update or Insert.
-     */
-    void toRow(PredayPersonParams& data, db::Parameters& outParams, bool update);
+	/**
+	 * Virtual override.
+	 * Fills the outParam with all values to insert or update on datasource.
+	 * @param data to get values.
+	 * @param outParams to put the data parameters.
+	 * @param update tells if operation is an Update or Insert.
+	 */
+	void toRow(PredayPersonParams& data, db::Parameters& outParams, bool update);
 };
 } // end namespace sim_mob

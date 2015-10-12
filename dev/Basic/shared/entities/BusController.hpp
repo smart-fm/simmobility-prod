@@ -21,18 +21,18 @@ namespace sim_mob
 class BusStop;
 class BusController: public sim_mob::Agent
 {
-private:
+protected:
 	explicit BusController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) :
 			Agent(mtxStrat, id), nextTimeTickToStage(0)
 	{
 	}
 
-public:
 	/**
 	 * Initialize a single BusController with the given start time and MutexStrategy.
 	 */
-	static void RegisterBusController(unsigned int startTime, const MutexStrategy& mtxStrat);
+	static bool RegisterBusController(BusController* busController);
 
+public:
 	/**
 	 * get current instance
 	 */

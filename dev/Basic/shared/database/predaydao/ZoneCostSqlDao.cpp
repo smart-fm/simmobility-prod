@@ -4,19 +4,20 @@
 
 #include "ZoneCostSqlDao.hpp"
 
-#include <boost/lexical_cast.hpp>
 #include "DatabaseHelper.hpp"
 #include "logging/Log.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::db;
 
-CostSqlDao::CostSqlDao(DB_Connection& connection, const std::string& getAllQuery)
-: SqlAbstractDao<CostParams>(connection, "", "", "", "", getAllQuery, "")
-{}
+CostSqlDao::CostSqlDao(DB_Connection& connection, const std::string& getAllQuery) :
+		SqlAbstractDao<CostParams>(connection, "", "", "", "", getAllQuery, "")
+{
+}
 
 CostSqlDao::~CostSqlDao()
-{}
+{
+}
 
 void CostSqlDao::fromRow(Row& result, CostParams& outObj)
 {
@@ -35,12 +36,14 @@ void CostSqlDao::fromRow(Row& result, CostParams& outObj)
 }
 
 void CostSqlDao::toRow(CostParams& data, Parameters& outParams, bool update)
-{}
+{
+}
 
 bool CostSqlDao::getAll(boost::unordered_map<int, boost::unordered_map<int, CostParams*> >& outMap)
 {
 	bool hasValues = false;
-	if (isConnected()) {
+	if (isConnected())
+	{
 		Statement query(connection.getSession<soci::session>());
 		prepareStatement(defaultQueries[GET_ALL], EMPTY_PARAMS, query);
 		ResultSet rs(query);
@@ -55,12 +58,14 @@ bool CostSqlDao::getAll(boost::unordered_map<int, boost::unordered_map<int, Cost
 	return hasValues;
 }
 
-ZoneSqlDao::ZoneSqlDao(DB_Connection& connection)
-: SqlAbstractDao<ZoneParams>(connection, "", "", "", "", DB_GET_ALL_ZONES, "")
-{}
+ZoneSqlDao::ZoneSqlDao(DB_Connection& connection) :
+		SqlAbstractDao<ZoneParams>(connection, "", "", "", "", DB_GET_ALL_ZONES, "")
+{
+}
 
 ZoneSqlDao::~ZoneSqlDao()
-{}
+{
+}
 
 void ZoneSqlDao::fromRow(Row& result, ZoneParams& outObj)
 {
@@ -79,4 +84,5 @@ void ZoneSqlDao::fromRow(Row& result, ZoneParams& outObj)
 }
 
 void ZoneSqlDao::toRow(ZoneParams& data, Parameters& outParams, bool update)
-{}
+{
+}

@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Driver.hpp"
 #include "BikerFacets.hpp"
+#include "Driver.hpp"
 
 namespace sim_mob
 {
@@ -19,21 +19,16 @@ class BikerMovement;
  * Mid-term motor-cyclist
  * \author Harish Loganathan
  */
-class Biker : public sim_mob::medium::Driver
+class Biker: public sim_mob::medium::Driver
 {
 public:
-	Biker(Person* parent, MutexStrategy mtxStrat,
-			sim_mob::medium::BikerBehavior* behavior = nullptr,
-			sim_mob::medium::BikerMovement* movement = nullptr,
-			std::string roleName = std::string(),
-			Role::Type roleType = RL_BIKER);
+	Biker(Person_MT* parent, sim_mob::medium::BikerBehavior* behavior = nullptr, sim_mob::medium::BikerMovement* movement = nullptr, std::string roleName =
+			std::string(), Role<Person_MT>::Type roleType = RL_BIKER);
 	virtual ~Biker();
 
 	//Virtual overrides
-	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+	virtual sim_mob::Role<Person_MT>* clone(sim_mob::Person_MT* parent) const;
 };
-}//end namespace medium
-}//end namespace sim_mob
-
-
+} //end namespace medium
+} //end namespace sim_mob
 

@@ -154,7 +154,9 @@ public:
 	 *
      * @return the created role
      */
-	virtual Role<PERSON>* clone(PERSON* parent) const = 0;
+	virtual Role<PERSON>* clone(PERSON* parent) const
+	{
+	}
 
 	/**
 	 * Builds the list of subscriptions that need to be managed

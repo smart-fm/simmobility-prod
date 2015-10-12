@@ -8,6 +8,7 @@
 #include <map>
 
 #include "conf/settings/DisableMPI.h"
+#include "entities/Person_MT.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/Vehicle.hpp"
 #include "geospatial/WayPoint.hpp"

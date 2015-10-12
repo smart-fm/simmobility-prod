@@ -14,6 +14,8 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "geospatial/RoadSegment.hpp"
+#include "geospatial/Node.hpp"
 
 namespace sim_mob{
 
@@ -256,6 +258,7 @@ public:
 	MRT_Stop();
 	MRT_Stop(std::string stopId,int roadSegment);
 	~MRT_Stop();
+
 	std::string getmrtStopId() const
 	{
 		return this->mrtStopId;
@@ -269,6 +272,19 @@ public:
 	{
 		return this->roadSegments;
 	}
+
+	/**
+	 * finds a road segment attached with mrt stop that is closest to a node
+	 * @param nd simmobility node
+	 * @returns road segment attached with mrt stop and closest to nd
+	 */
+	const sim_mob::RoadSegment* getStationSegmentForNode(const sim_mob::Node* nd) const;
+
+	/**
+	 * finds a road segment attached with mrt stop that is closest to a node
+	 * @returns random road segment attached with mrt stop
+	 */
+	const sim_mob::RoadSegment* getRandomStationSegment() const;
 private:
 	std::string mrtStopId;
 	std::vector<int> roadSegments;
@@ -279,9 +295,9 @@ public:
 	//PT_Network();
 	//~PT_Network();
 
-	std::map<int,PT_NetworkEdge> PT_NetworkEdgeMap;
-	std::map<std::string,PT_NetworkVertex> PT_NetworkVertexMap;
-	std::map<std::string,MRT_Stop> MRTStopsMap;
+	std::map<int, PT_NetworkEdge> PT_NetworkEdgeMap;
+	std::map<std::string, PT_NetworkVertex> PT_NetworkVertexMap;
+	std::map<std::string, MRT_Stop> MRTStopsMap;
 
 	void init();
 	PT_NetworkVertex getVertexFromStopId(std::string stopId);

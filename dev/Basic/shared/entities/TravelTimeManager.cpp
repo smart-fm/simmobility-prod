@@ -1,21 +1,29 @@
 #include "TravelTimeManager.hpp"
 #include "path/PathSetManager.hpp"
+#include "boost/filesystem.hpp"
+#include "boost/foreach.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "boost/filesystem.hpp"
+#include "path/PathSetManager.hpp"
+#include "util/LangHelpers.hpp"
 
-unsigned int sim_mob::TravelTimeManager::curIntervalMS = 0;
-unsigned int sim_mob::TravelTimeManager::intervalMS = 0;
+sim_mob::TravelTimeManager* sim_mob::TravelTimeManager::instance = nullptr;
 
 sim_mob::TravelTimeManager::TravelTimeManager()
+	: intervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval),
+	  enRouteTT(new sim_mob::TravelTimeManager::EnRouteTT(*this))
+{}
+
+sim_mob::TravelTimeManager::~TravelTimeManager()
 {
-	enRouteTT.reset(new sim_mob::LastTT(*this));
+	safe_delete_item(enRouteTT);
 }
 
 void sim_mob::TravelTimeManager::addTravelTime(const RdSegTravelStat & stats) {
 	TT::TI timeInterval = TravelTimeManager::getTimeInterval(stats.entryTime * 1000, intervalMS);//milliseconds
 	{
-		boost::unique_lock<boost::mutex> lock(ttMapMutex);
+		boost::upgrade_lock<boost::shared_mutex> lock(ttMapMutex);
+		boost::upgrade_to_unique_lock<boost::shared_mutex> uniquelock(lock);
 		TT::TimeAndCount &tc = ttMap[timeInterval][stats.travelMode][stats.rs];
 		tc.totalTravelTime += stats.travelTime; //add to total travel time
 		tc.travelTimeCnt += 1; //increment the total contribution
@@ -32,16 +40,16 @@ double sim_mob::TravelTimeManager::getInSimulationSegTT(const std::string mode, 
 	return enRouteTT->getInSimulationSegTT(mode,rs);
 }
 
-double sim_mob::LastTT::getInSimulationSegTT(const std::string mode, const sim_mob::RoadSegment *rs) const
+double sim_mob::TravelTimeManager::EnRouteTT::getInSimulationSegTT(const std::string mode, const sim_mob::RoadSegment *rs) const
 {
-	boost::unique_lock<boost::mutex> lock(parent.ttMapMutex);
+	boost::shared_lock<boost::shared_mutex> lock(parent.ttMapMutex);
 	//[time interval][travel mode][road segment][average travel time]
 	//<-----TI-----><-------------------MRTC----------------------->
 	//start from the last recorded time interval (before the current time interval) and proceed to find a travel time for the given section.
 	//if no records found, check the previous time interval and so on.
 	sim_mob::TravelTime::reverse_iterator itTI = parent.ttMap.rbegin();
 	//like I said, not the current interval
-	if(itTI != parent.ttMap.rend() && itTI->first == TravelTimeManager::curIntervalMS) { itTI++; }
+	if(itTI != parent.ttMap.rend() && itTI->first == sim_mob::PathSetManager::curIntervalMS) { itTI++; }
 	sim_mob::TT::MRTC::iterator itMode;
 	sim_mob::TT::RSTC::iterator itSeg;
 	//search backwards. try to find a matching road segment in any of the previous time intervals
@@ -120,18 +128,11 @@ bool sim_mob::TravelTimeManager::storeRTT2DB()
 	return true;
 }
 
-sim_mob::TravelTimeManager::~TravelTimeManager()
+sim_mob::TravelTimeManager* sim_mob::TravelTimeManager::getInstance()
 {
-}
-
-void sim_mob::TravelTimeManager::initTimeInterval()
-{
-	intervalMS = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval* 1000 /*milliseconds*/;
-	uint32_t startTm = ConfigManager::GetInstance().FullConfig().simStartTime().getValue();
-	curIntervalMS = TravelTimeManager::getTimeInterval(startTm, intervalMS);
-}
-
-void sim_mob::TravelTimeManager::updateCurrTimeInterval()
-{
-	curIntervalMS += intervalMS;
+	if(!instance)
+	{
+		instance = new TravelTimeManager();
+	}
+	return instance;
 }

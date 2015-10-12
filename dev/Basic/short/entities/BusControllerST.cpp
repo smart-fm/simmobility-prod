@@ -7,6 +7,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <stdexcept>
 #include "buffering/Shared.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -24,6 +25,17 @@ BusControllerST::BusControllerST(int id, const MutexStrategy& mtxStrat) :
 
 sim_mob::BusControllerST::~BusControllerST()
 {
+}
+
+void sim_mob::BusControllerST::RegisterBusController(int id, const MutexStrategy& mtxStrat)
+{
+	BusControllerST* stBusController = new BusControllerST(id, mtxStrat);
+	bool busControllerRegistered = BusController::RegisterBusController(stBusController);
+	if(!busControllerRegistered)
+	{
+		safe_delete_item(stBusController);
+		throw std::runtime_error("BusController already registered!");
+	}
 }
 
 void sim_mob::BusControllerST::processRequests()
@@ -88,7 +100,7 @@ void sim_mob::BusControllerST::assignBusTripChainWithPerson(std::set<sim_mob::En
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	const map<string, BusLine*>& buslines = ptSchedule.getBusLines();
-	if (0 == buslines.size())
+	if (buslines.empty())
 	{
 		throw std::runtime_error("Error:  No busline in the ptSchedule, please check the setPTSchedule.");
 	}
@@ -98,11 +110,11 @@ void sim_mob::BusControllerST::assignBusTripChainWithPerson(std::set<sim_mob::En
 		BusLine* busline = buslinesIt->second;
 		const vector<BusTrip>& busTrips = busline->queryBusTrips();
 
-		for (vector<BusTrip>::const_iterator tripIt = busTrips.begin(); tripIt != busTrips.end(); tripIt++)
+		for (vector<BusTrip>::const_iterator tripIt = busTrips.begin();	tripIt != busTrips.end(); tripIt++)
 		{
-			if (tripIt->startTime.isAfterEqual(ConfigManager::GetInstance().FullConfig().simStartTime()))
+			if (tripIt->startTime.isAfterEqual(config.simStartTime()))
 			{
-				Person_ST* person = new Person_ST("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
+				Person* person = new Person_ST("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
 				person->setPersonCharacteristics();
 				vector<TripChainItem*> tripChain;
 				tripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));
@@ -118,5 +130,4 @@ void sim_mob::BusControllerST::assignBusTripChainWithPerson(std::set<sim_mob::En
 		(*it)->parentEntity = this;
 		busDrivers.push_back(*it);
 	}
-
 }

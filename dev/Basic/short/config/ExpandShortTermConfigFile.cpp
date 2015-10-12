@@ -2,6 +2,7 @@
 #include "geospatial/xmlLoader/geo10.hpp"
 #include "geospatial/xmlWriter/boostXmlWriter.hpp"
 #include "entities/BusController.hpp"
+#include "entities/BusControllerST.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "entities/amodController/AMODController.hpp"
@@ -156,13 +157,13 @@ void ExpandShortTermConfigFile::processConfig()
     GenerateXMLSignals();
 
     //register and initialize BusController
-    if(stConfig.busController.enabled)
-    {
-	sim_mob::BusController::RegisterBusController(it->startTimeMs, cfg.mutexStategy());
-	sim_mob::BusController* busController = sim_mob::BusController::GetInstance();
-	busController->initializeBusController(active_agents, cfg.getPT_BusDispatchFreq());
-	active_agents.insert(busController);
-    }
+	if (cfg.busController.enabled)
+	{
+		sim_mob::BusControllerST::RegisterBusController(-1, cfg.mutexStategy());
+		sim_mob::BusController* busController = sim_mob::BusController::GetInstance();
+		busController->initializeBusController(active_agents, cfg.getPT_BusDispatchFreq());
+		active_agents.insert(busController);
+	}
 }
 
 void ExpandShortTermConfigFile::loadNetworkFromDatabase()

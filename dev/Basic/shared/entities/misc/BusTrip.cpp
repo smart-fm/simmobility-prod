@@ -104,7 +104,7 @@ const int sim_mob::BusTrip::getBusTripStopIndex(const BusStop* stop) const {
 	return index;
 }
 
-bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*> roadSegment_vec, std::vector<const BusStop*> busStop_vec)
+bool sim_mob::BusTrip::setBusRouteInfo(const std::vector<const RoadSegment*>& roadSegment_vec, const std::vector<const BusStop*>& busStop_vec)
 {
 	if(roadSegment_vec.empty()) {
 		Warn() << "Error: no roadSegments!!!" << std::endl;
@@ -135,7 +135,6 @@ bool sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*> roadSegme
 			addBusStopScheduledTimes(busStop_ScheduledTimes);
 		}
 	}
-
 	return true;
 }
 

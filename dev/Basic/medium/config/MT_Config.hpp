@@ -1,11 +1,6 @@
-﻿/*
- * Copyright Singapore-MIT Alliance for Research and Technology
- *
- * File:   MT_Config.hpp
- * Author: zhang huai peng
- *
- * Created on 2 Jun, 2014
- */
+﻿//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 #include <string>
@@ -523,63 +518,63 @@ public:
      * @param supplyUpdateInterval interval to be set
      */
 	void setSupplyUpdateInterval(unsigned supplyUpdateInterval);
-
-    /**
+	
+	/**
      * Retrives journey time stats file name
      *
      * @return journey time file name
      */
-	const std::string& getFilenameOfJourneyTimeStats() const;
-
+	const std::string& getJourneyTimeStatsFilename() const;
+	
+	/**
+     * Sets journey time stats file name
+     *
+     * @param str journey time stats file name to be set
+     */
+	void setJourneyTimeStatsFilename(const std::string& str);
+	
     /**
      * Retrieves waiting time stats file name
      *
      * @return waiting time file name
      */
-	const std::string& getFilenameOfWaitingTimeStats() const;
-
-    /**
-     * Sets journey time stats file name
-     *
-     * @param str journey time stats file name to be set
-     */
-	void setFilenameOfJourneyTimeStats(const std::string& str);
-
+	const std::string& getWaitingTimeStatsFilename() const;
+		
     /**
      * Sets waiting time stats file name
      *
      * @param str waiting time stats file name to be set
      */
-	void setFilenameOfWaitingTimeStats(const std::string& str);
-
+	void setWaitingTimeStatsFilename(const std::string& str);
+	
     /**
-     * Retrieves waiting amount stats file name
+     * Retrieves waiting count stats file name
      *
-     * @return waiting amount stats file name
+     * @return waiting count stats file name
      */
-	const std::string& getFilenameOfWaitingAmountStats() const;
-
+	const std::string& getWaitingCountStatsFilename() const;
+	
     /**
-     * Sets waiting amount stats file name
+     * Sets waiting count stats file name
      *
-     * @param str waiting amount stats file name to be set
+     * @param str waiting count stats file name to be set
      */
-	void setFilenameOfWaitingAmountStats(const std::string& str);
-
+	void setWaitingCountStatsFilename(const std::string& str);
+	
     /**
      * Retrieves travel time stats file name
      *
      * @return travel time stats file name
      */
-	const std::string& getFilenameOfTravelTimeStats() const;
-
+	const std::string& getTravelTimeStatsFilename() const;
+	
     /**
      * Sets travel time stats file name
      *
      * @param str travel time stats file name to be set
      */
-	void setFilenameOfTravelTimeStats(const std::string& str);
-
+	void setTravelTimeStatsFilename(const std::string& str);
+	
     /**
      * Retrieves bus capacity
      *
@@ -813,19 +808,19 @@ private:
     /// container for mongo collections
 	MongoCollectionsMap mongoCollectionsMap;
 
-    /// the filename of storing journey statistics
-	std::string filenameOfJourneyTimeStats;
-
-    /// the filename of storing waiting time statistics
-	std::string filenameOfWaitingTimeStats;
-
-    /// the filename of storing waiting amount statistics
-	std::string filenameOfWaitingAmountStats;
-
-    /// the filename of storing travel time statistics
-	std::string filenameOfTravelTimeStats;
-
-    /// default capacity for bus
+	/** the filename of storing journey statistics */
+	std::string journeyTimeStatsFilename;
+	
+	/** the filename of storing waiting time statistics*/
+	std::string waitingTimeStatsFilename;
+	
+	/** the filename of storing waiting count statistics*/
+	std::string waitingCountStatsFilename;
+	
+	/** the filename of storing travel time statistics*/
+	std::string travelTimeStatsFilename;
+	
+	/** default capacity for bus*/
 	unsigned int busCapacity;
 
     /// supply update interval in frames

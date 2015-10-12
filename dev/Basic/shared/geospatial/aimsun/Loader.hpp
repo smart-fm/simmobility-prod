@@ -12,10 +12,11 @@
 #include <list>
 
 #include <boost/shared_ptr.hpp>
-#include "soci.h"
-#include "soci-postgresql.h"
-
+#include <boost/unordered_map.hpp>
+#include "soci/soci.h"
+#include "soci/postgresql/soci-postgresql.h"
 #include "path/Common.hpp"
+#include "path/PathSetParam.hpp"
 
 namespace sim_mob
 {
@@ -34,7 +35,7 @@ class PathSet;
 class ERP_Gantry_Zone;
 class ERP_Section;
 class ERP_Surcharge;
-class LinkTravelTime;
+class SegmentTravelTime;
 class PT_PathSet;
 class TurningSection;
 class TurningConflict;
@@ -93,12 +94,12 @@ public:
 			std::map<std::string,sim_mob::ERP_Gantry_Zone*>& erp_gantry_zone_pool,
 			std::map<int,sim_mob::ERP_Section*>& erp_section_pool);
 	static bool createTable(soci::session& sql,std::string& table_name);
-	static bool insertData2TravelTimeTmpTable(const std::string& connectionStr,	std::string& table_name, sim_mob::LinkTravelTime& data);
+	static bool insertData2TravelTimeTmpTable(const std::string& connectionStr,	std::string& table_name, sim_mob::SegmentTravelTime& data);
 	static bool upsertTravelTime(soci::session& sql,const std::string& csvFileName, const std::string& tableName, double alpha);
 	static bool insertCSV2Table(soci::session& sql, std::string& table_name,const std::string& csvFileName);
 	static bool truncateTable(soci::session& sql, std::string& table_name);
 	static bool excuString(soci::session& sql,std::string& str);
-	static void LoadDefaultTravelTimeData(soci::session& sql, std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >& pool);
+	static void LoadDefaultTravelTimeData(soci::session& sql, boost::unordered_map<unsigned long, sim_mob::SegmentTravelTimeVector*>& pool);
 	static bool LoadRealTimeTravelTimeData(soci::session& sql,int interval, sim_mob::AverageTravelTime& pool);
 	static bool storeSinglePath(soci::session& sql,
 					std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& pathPool,const std::string pathSetTableName);

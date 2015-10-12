@@ -1,12 +1,6 @@
 //Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
-/*
- * SystemOfModels.hpp
- *
- *  Created on: Nov 7, 2013
- *      Author: Harish Loganathan
- */
 
 #pragma once
 #include <boost/unordered_map.hpp>
@@ -22,8 +16,10 @@
 #include "database/PopulationSqlDao.hpp"
 #include "database/dao/MongoDao.hpp"
 
-namespace sim_mob {
-namespace medium {
+namespace sim_mob
+{
+namespace medium
+{
 
 /**
  * Class for pre-day behavioral system of models.
@@ -35,7 +31,8 @@ namespace medium {
  *
  * \author Harish Loganathan
  */
-class PredaySystem {
+class PredaySystem
+{
 private:
 	typedef boost::unordered_map<int, ZoneParams*> ZoneMap;
 	typedef boost::unordered_map<int, boost::unordered_map<int, CostParams*> > CostMap;
@@ -122,7 +119,7 @@ private:
 	 * @param primaryStop primary stop of tour
 	 * @param remainingTours number of tours remaining for person after tour
 	 */
-	void generateIntermediateStops(uint8_t halfTour, Tour& tour,  const Stop* primaryStop, size_t remainingTours);
+	void generateIntermediateStops(uint8_t halfTour, Tour& tour, const Stop* primaryStop, size_t remainingTours);
 
 	/**
 	 * Predicts the mode and destination together for stops.
@@ -265,59 +262,70 @@ private:
 	 */
 	PersonParams& personParams;
 
-    /**
-     * Reference to map of zone_id -> ZoneParams
-     * \note this map has 1092 elements
-     */
-    const ZoneMap& zoneMap;
-    const boost::unordered_map<int,int>& zoneIdLookup;
-    const std::map<int,int>& MTZ12_MTZ08_Map;
+	/**
+	 * Reference to map of zone_id -> ZoneParams
+	 */
+	const ZoneMap& zoneMap;
 
-    /**
-     * Reference to Costs [origin zone, destination zone] -> CostParams*
-     * \note these maps have (1092 zones * 1092 zones - 1092 (entries with same origin and destination is not available)) 1191372 elements
-     */
-    const CostMap& amCostMap;
-    const CostMap& pmCostMap;
-    const CostMap& opCostMap;
+	/**
+	 * Zone code --> zone id map
+	 */
+	const boost::unordered_map<int, int>& zoneIdLookup;
 
-    /**
-     * map of unavailable ODs for mode destination
-     */
-    const std::vector<OD_Pair>& unavailableODs;
+	/**
+	 * MTZ 12 --> 08 map
+	 */
+	const std::map<int, int>& MTZ12_MTZ08_Map;
 
-    /**
-     * list of tours for this person
-     */
-    TourList tours;
+	/**
+	 * AM Costs [origin zone, destination zone] -> CostParams*
+	 */
+	const CostMap& amCostMap;
 
-    /**
-     * The predicted day pattern for the person indicating whether the person wants to make tours and stops of each type (Work, Education, Shopping, Others).
-     */
-    boost::unordered_map<std::string, bool> dayPattern;
+	/**
+	 * PM Costs [origin zone, destination zone] -> CostParams*
+	 */
+	const CostMap& pmCostMap;
 
-    /**
-     * The predicted number of tours for each type of tour - Work, Education, Shopping, Others.
-     */
-    boost::unordered_map<std::string, int> numTours;
+	/**
+	 * OP Costs [origin zone, destination zone] -> CostParams*
+	 */
+	const CostMap& opCostMap;
 
-    /**
-     * Data access objects for mongo
-     */
-    std::map<std::string, db::MongoDao*> mongoDao;
+	/**
+	 * map of unavailable ODs for mode destination
+	 */
+	const std::vector<OD_Pair>& unavailableODs;
 
-    /**
-     * used for logging messages
-     */
-    std::stringstream logStream;
+	/**
+	 * list of tours for this person
+	 */
+	TourList tours;
+
+	/**
+	 * The predicted day pattern for the person indicating whether the person wants to make tours and stops of each type (Work, Education, Shopping, Others).
+	 */
+	boost::unordered_map<std::string, bool> dayPattern;
+
+	/**
+	 * The predicted number of tours for each type of tour - Work, Education, Shopping, Others.
+	 */
+	boost::unordered_map<std::string, int> numTours;
+
+	/**
+	 * Data access objects for mongo
+	 */
+	std::map<std::string, db::MongoDao*> mongoDao;
+
+	/**
+	 * used for logging messages
+	 */
+	std::stringstream logStream;
 
 public:
-	PredaySystem(PersonParams& personParams,
-			const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,
-			const CostMap& amCostMap, const CostMap& pmCostMap, const CostMap& opCostMap,
-			const std::map<std::string, db::MongoDao*>& mongoDao,
-			const std::vector<OD_Pair>& unavailableODs,
-			const std::map<int, int>& mtz12_08Map);
+	PredaySystem(PersonParams& personParams, const ZoneMap& zoneMap, const boost::unordered_map<int, int>& zoneIdLookup, const CostMap& amCostMap,
+			const CostMap& pmCostMap, const CostMap& opCostMap, const std::map<std::string, db::MongoDao*>& mongoDao,
+			const std::vector<OD_Pair>& unavailableODs, const std::map<int, int>& mtz12_08Map);
 
 	virtual ~PredaySystem();
 

@@ -10,12 +10,8 @@
 #include "DriverUpdateParams.hpp"
 #include "BusDriver.hpp"
 
-/*
- * BusDriverFacets.hpp
- *
- */
-
-namespace sim_mob {
+namespace sim_mob
+{
 namespace medium
 {
 class BusDriver;
@@ -24,9 +20,13 @@ class BusDriver;
  * Helper class to track the progress of the bus along its route
  * \author Harish Loganathan
  */
-class BusRouteTracker : public sim_mob::BusRouteInfo {
+class BusRouteTracker: public sim_mob::BusRouteInfo
+{
 public:
-	BusRouteTracker() : BusRouteInfo("") {}
+	BusRouteTracker() :
+			BusRouteInfo("")
+	{
+	}
 	BusRouteTracker(const BusRouteInfo& routeInfo);
 	BusRouteTracker(const BusRouteTracker& routeTracker);
 
@@ -79,9 +79,10 @@ private:
  * Behavior facet of BusDriver role
  * \author Harish Loganathan
  */
-class BusDriverBehavior: public DriverBehavior {
+class BusDriverBehavior: public DriverBehavior
+{
 public:
-	explicit BusDriverBehavior(sim_mob::Person* parentAgent = nullptr);
+	explicit BusDriverBehavior();
 	virtual ~BusDriverBehavior();
 
 	//Virtual overrides
@@ -89,28 +90,32 @@ public:
 	virtual void frame_tick();
 	virtual void frame_tick_output();
 
-	sim_mob::medium::BusDriver* getParentBusDriver() const {
+	BusDriver* getParentBusDriver() const
+	{
 		return parentBusDriver;
 	}
 
-	void setParentBusDriver(sim_mob::medium::BusDriver* parentBusDriver) {
-		if(!parentBusDriver) {
+	void setParentBusDriver(BusDriver* parentBusDriver)
+	{
+		if (!parentBusDriver)
+		{
 			throw std::runtime_error("parentBusDriver cannot be NULL");
 		}
 		this->parentBusDriver = parentBusDriver;
 	}
 
 protected:
-	sim_mob::medium::BusDriver* parentBusDriver;
+	BusDriver* parentBusDriver;
 };
 
 /**
  * Movement facet of BusDriver role
  * \author Harish Loganathan
  */
-class BusDriverMovement: public DriverMovement {
+class BusDriverMovement: public DriverMovement
+{
 public:
-	explicit BusDriverMovement(sim_mob::Person* parentAgent = nullptr);
+	explicit BusDriverMovement();
 	virtual ~BusDriverMovement();
 
 	//Virtual overrides
@@ -118,12 +123,15 @@ public:
 	virtual void frame_tick();
 	virtual void frame_tick_output();
 
-	sim_mob::medium::BusDriver* getParentBusDriver() const {
+	BusDriver* getParentBusDriver() const
+	{
 		return parentBusDriver;
 	}
 
-	void setParentBusDriver(sim_mob::medium::BusDriver* parentBusDriver) {
-		if(!parentBusDriver) {
+	void setParentBusDriver(BusDriver* parentBusDriver)
+	{
+		if (!parentBusDriver)
+		{
 			throw std::runtime_error("parentBusDriver cannot be NULL");
 		}
 		this->parentBusDriver = parentBusDriver;
@@ -132,9 +140,7 @@ public:
 protected:
 	virtual bool initializePath();
 
-	virtual const sim_mob::Lane* getBestTargetLane(
-			const sim_mob::SegmentStats* nextSegStats,
-			const sim_mob::SegmentStats* nextToNextSegStats);
+	virtual const sim_mob::Lane* getBestTargetLane(const sim_mob::SegmentStats* nextSegStats, const sim_mob::SegmentStats* nextToNextSegStats);
 
 	/**
 	 * In addition to the functionality of the base Driver class, bus drivers
@@ -146,7 +152,7 @@ protected:
 	virtual bool moveToNextSegment(DriverUpdateParams& params);
 
 	/**pointer to parent bus driver*/
-	sim_mob::medium::BusDriver* parentBusDriver;
+	BusDriver* parentBusDriver;
 
 	/**list of bus stops for the bus line of this driver*/
 	BusRouteTracker routeTracker;

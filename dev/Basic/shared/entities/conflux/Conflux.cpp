@@ -45,16 +45,18 @@ using namespace std;
 typedef Entity::UpdateStatus UpdateStatus;
 
 namespace{
-	sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("pathset.log");
+	//sim_mob::BasicLogger & pathsetLogger = sim_mob::Logger::log("pathset.log");
 
     const double INFINITESIMAL_DOUBLE = 0.000001;
     const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
     const double MAX_DOUBLE = std::numeric_limits<double>::max();
 }
 
-sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id)
-: Agent(mtxStrat, id), multiNode(multinode), parentWorker(nullptr), currFrame(0,0), debugMsgs(std::stringstream::out),
-  isBoundary(false), isMultipleReceiver(false), tickTimeInS(sim_mob::ConfigManager::GetInstance().FullConfig().baseGranSecond())
+unsigned sim_mob::Conflux::updateInterval = 0;
+
+sim_mob::Conflux::Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id, bool isLoader)
+: Agent(mtxStrat, id), multiNode(multinode), parentWorker(nullptr), currFrame(0,0), debugMsgs(std::stringstream::out), isBoundary(false), 
+  isMultipleReceiver(false), isLoader(isLoader), tickTimeInS(sim_mob::ConfigManager::GetInstance().FullConfig().baseGranSecond())
 {}
 
 sim_mob::Conflux::~Conflux()
@@ -68,10 +70,11 @@ sim_mob::Conflux::~Conflux()
 			safe_delete_item(*segIt);
 		}
 	}
-	// clear activity performers
+	// clear person lists
 	activityPerformers.clear();
-	//clear pedestrian list
 	pedestrianList.clear();
+	mrt.clear();
+	carSharing.clear();
 }
 
 void sim_mob::Conflux::initialize(const timeslice& now)
@@ -141,63 +144,70 @@ void sim_mob::Conflux::PersonProps::printProps(unsigned int personId, uint32_t f
 
 void sim_mob::Conflux::addAgent(sim_mob::Person* person)
 {
-	Role* role = person->getRole();
-	if(!role) { return; }
+	if(isLoader)
+	{
+		loadingQueue.push_back(person);
+	}
+	else
+	{
+		Role* role = person->getRole();
+		if(!role) { return; }
 
-	switch(role->roleType)
-	{
-	case Role::RL_DRIVER: //fall through
-	case Role::RL_BUSDRIVER:
-	case Role::RL_BIKER:
-	{
-		const sim_mob::RoadSegment* rdSeg = person->getCurrSegStats()->getRoadSegment();
-		if(!rdSeg) { throw std::runtime_error("Starting road segment cannot be NULL for drivers"); }
-		// we will always add the Person to the corresponding segment stats in "lane infinity".
-		SegmentStatsMap::iterator it = segmentAgents.find(rdSeg);
-		if(it!=segmentAgents.end())
+		switch(role->roleType)
 		{
-			SegmentStatsList& statsList = it->second;
-			sim_mob::SegmentStats* rdSegStats = statsList.front(); // we will start the person at the first segment stats of the segment
-			person->setCurrSegStats(rdSegStats);
-			person->setCurrLane(rdSegStats->laneInfinity);
-			person->distanceToEndOfSegment = rdSegStats->getLength();
-			person->remainingTimeThisTick = tickTimeInS;
-			rdSegStats->addAgent(rdSegStats->laneInfinity, person);
+		case Role::RL_DRIVER: //fall through
+		case Role::RL_BUSDRIVER:
+		case Role::RL_BIKER:
+		{
+			const sim_mob::RoadSegment* rdSeg = person->getCurrSegStats()->getRoadSegment();
+			if(!rdSeg) { throw std::runtime_error("Starting road segment cannot be NULL for drivers"); }
+			// we will always add the Person to the corresponding segment stats in "lane infinity".
+			SegmentStatsMap::iterator it = segmentAgents.find(rdSeg);
+			if(it!=segmentAgents.end())
+			{
+				SegmentStatsList& statsList = it->second;
+				sim_mob::SegmentStats* rdSegStats = statsList.front(); // we will start the person at the first segment stats of the segment
+				person->setCurrSegStats(rdSegStats);
+				person->setCurrLane(rdSegStats->laneInfinity);
+				person->distanceToEndOfSegment = rdSegStats->getLength();
+				person->remainingTimeThisTick = tickTimeInS;
+				rdSegStats->addAgent(rdSegStats->laneInfinity, person);
+			}
+			break;
 		}
-		break;
-	}
-	case Role::RL_PEDESTRIAN:
-	{
-        pedestrianList.push_back(person);
-		break;
-	}
-	case Role::RL_WAITBUSACTITITY:
-	{
-		assignPersonToBusStopAgent(person);
-		break;
-	}
-	case Role::RL_TRAINPASSENGER:
-	{
-		mrt.push_back(person);
-		//TODO: subscribe for time based event
-		break;
-	}
-	case Role::RL_CARPASSENGER:
-	{
-		assignPersonToCar(person);
-		break;
-	}
-	case Role::RL_ACTIVITY:
-	{
-		activityPerformers.push_back(person);
-		//TODO: subscribe for time based event
-		break;
-	}
-	case Role::RL_PASSENGER:
-	{
-		throw std::runtime_error("person cannot start as a passenger");
-		break;
-	}
+		case Role::RL_PEDESTRIAN:
+		{
+			pedestrianList.push_back(person);
+			break;
+		}
+		case Role::RL_WAITBUSACTITITY:
+		{
+			assignPersonToBusStopAgent(person);
+			break;
+		}
+		case Role::RL_TRAINPASSENGER:
+		{
+			mrt.push_back(person);
+			//TODO: subscribe for time based event
+			break;
+		}
+		case Role::RL_CARPASSENGER:
+		{
+			assignPersonToCar(person);
+			break;
+		}
+		case Role::RL_ACTIVITY:
+		{
+			activityPerformers.push_back(person);
+			//TODO: subscribe for time based event
+			break;
+		}
+		case Role::RL_PASSENGER:
+		{
+			throw std::runtime_error("person cannot start as a passenger");
+			break;
+		}
+		}
 	}
 }
 
@@ -226,12 +236,35 @@ UpdateStatus sim_mob::Conflux::update(timeslice frameNumber) {
 	}
 
 	currFrame = frameNumber;
-	resetPositionOfLastUpdatedAgentOnLanes();
-	resetPersonRemTimes(); //reset the remaining times of persons in lane infinity and VQ if required.
-	processAgents(); //process all agents in this conflux for this tick
-	setLastUpdatedFrame(frameNumber.frame());
+	if(isLoader)
+	{
+		loadPersons();
+	}
+	else
+	{
+		resetPositionOfLastUpdatedAgentOnLanes();
+		resetPersonRemTimes(); //reset the remaining times of persons in lane infinity and VQ if required.
+		processAgents(); //process all agents in this conflux for this tick
+		setLastUpdatedFrame(frameNumber.frame());
+	}
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE); //always return continue. Confluxes never die.
 	return retVal;
+}
+
+void sim_mob::Conflux::loadPersons()
+{
+	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	unsigned int nextTickMS = (currFrame.frame() + config.granPersonTicks) * config.baseGranMS();
+	while(!loadingQueue.empty())
+	{
+		Person* person = loadingQueue.front();
+		loadingQueue.pop_front();
+		sim_mob::Conflux* conflux = sim_mob::Conflux::findStartingConflux(person, nextTickMS);
+		if(conflux)
+		{
+			messaging::MessageBus::PostMessage(conflux, MSG_PERSON_LOAD, messaging::MessageBus::MessagePtr(new PersonMessage(person)));
+		}
+	}
 }
 
 void sim_mob::Conflux::processAgents()
@@ -624,8 +657,7 @@ void sim_mob::Conflux::pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Per
 void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
 	const ConfigManager& cfg = ConfigManager::GetInstance();
 	bool outputEnabled = cfg.CMakeConfig().OutputEnabled();
-	uint32_t updtInterval = boost::lexical_cast<uint32_t>(cfg.FullConfig().system.genericProps.at("update_interval"));
-	bool updateThisTick = ((frameNumber.frame() % updtInterval)==0);
+	bool updateThisTick = ((frameNumber.frame() % updateInterval)==0);
 	for(UpstreamSegmentStatsMap::iterator upstreamIt = upstreamSegStatsMap.begin(); upstreamIt != upstreamSegStatsMap.end(); upstreamIt++)
 	{
 		const SegmentStatsList& linkSegments = upstreamIt->second;
@@ -633,7 +665,7 @@ void sim_mob::Conflux::updateAndReportSupplyStats(timeslice frameNumber) {
 		{
 			if (updateThisTick && outputEnabled)
 			{
-				Log() << (*segIt)->reportSegmentStats(frameNumber.frame()/updtInterval);
+				Log() << (*segIt)->reportSegmentStats(frameNumber.frame()/updateInterval);
 			}
 			(*segIt)->updateLaneParams(frameNumber);
 		}
@@ -812,7 +844,7 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 	}
 	case MSG_INSERT_INCIDENT:
 	{
-		pathsetLogger << "Conflux received MSG_INSERT_INCIDENT" << std::endl;
+		//pathsetLogger << "Conflux received MSG_INSERT_INCIDENT" << std::endl;
 		const InsertIncidentMessage & msg = MSG_CAST(InsertIncidentMessage, message);
 		//change the flow rate of the segment
 		sim_mob::Conflux::insertIncident(msg.stats,msg.newFlowRate);
@@ -852,6 +884,11 @@ void sim_mob::Conflux::HandleMessage(messaging::Message::MessageType type, const
 		//switch to next trip chain item
 		switchTripChainItem(msg.person);
 		break;
+	}
+	case MSG_PERSON_LOAD:
+	{
+		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
+		addAgent(msg.person);
 	}
 	default:
 		break;
@@ -1110,7 +1147,7 @@ void sim_mob::Conflux::assignPersonToBusStopAgent(Person* person)
 		Agent* busStopAgent = strDirectory.findBusStopAgentByBusStop(stop);
 		if (busStopAgent)
 		{
-			messaging::MessageBus::SendMessage(busStopAgent, MSG_WAITING_PERSON_ARRIVAL_AT_BUSSTOP,
+			messaging::MessageBus::SendMessage(busStopAgent, MSG_WAITING_PERSON_ARRIVAL,
 					messaging::MessageBus::MessagePtr(new ArrivalAtStopMessage(person)));
 		}
 	}

@@ -2,26 +2,19 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * PredayClasses.hpp
- *
- *  Created on: Nov 11, 2013
- *      Author: Harish Loganathan
- */
-
 #pragma once
+
 #include <deque>
+#include <list>
 #include <string>
 #include <vector>
-
-#include <boost/unordered_map.hpp>
-#include <boost/algorithm/string.hpp>
-
 #include "behavioral/StopType.hpp"
 #include "util/LangHelpers.hpp"
 
-namespace sim_mob {
-namespace medium {
+namespace sim_mob
+{
+namespace medium
+{
 
 /**
  * An encapsulation of a time window and its availability.
@@ -48,24 +41,29 @@ namespace medium {
  * \author Harish Loganathan
  */
 
-class TimeWindowAvailability {
+class TimeWindowAvailability
+{
 public:
 	TimeWindowAvailability();
 	TimeWindowAvailability(double startTime, double endTime, bool availability = true);
 
-	int getAvailability() const {
+	int getAvailability() const
+	{
 		return availability;
 	}
 
-	void setAvailability(bool availability) {
+	void setAvailability(bool availability)
+	{
 		this->availability = availability;
 	}
 
-	double getEndTime() const {
+	double getEndTime() const
+	{
 		return endTime;
 	}
 
-	double getStartTime() const {
+	double getStartTime() const
+	{
 		return startTime;
 	}
 
@@ -90,58 +88,72 @@ class Tour;
  *
  * \author Harish Loganathan
  */
-class Stop {
+class Stop
+{
 public:
-	Stop(StopType stopType, const Tour& parentTour, bool primaryActivity, bool firstHalfTour)
-	: stopType(stopType), parentTour(parentTour), primaryActivity(primaryActivity), arrivalTime(0), departureTime(0), stopMode(0),
-	  stopLocation(0), stopId(0), inFirstHalfTour(firstHalfTour)
-	{}
+	Stop(StopType stopType, const Tour& parentTour, bool primaryActivity, bool firstHalfTour) :
+			stopType(stopType), parentTour(parentTour), primaryActivity(primaryActivity), arrivalTime(0), departureTime(0), stopMode(0), stopLocation(0),
+				stopId(0), inFirstHalfTour(firstHalfTour)
+	{
+	}
 
-	double getArrivalTime() const {
+	double getArrivalTime() const
+	{
 		return arrivalTime;
 	}
 
-	void setArrivalTime(double arrivalTime) {
+	void setArrivalTime(double arrivalTime)
+	{
 		this->arrivalTime = arrivalTime;
 	}
 
-	double getDepartureTime() const {
+	double getDepartureTime() const
+	{
 		return departureTime;
 	}
 
-	void setDepartureTime(double departureTime) {
+	void setDepartureTime(double departureTime)
+	{
 		this->departureTime = departureTime;
 	}
 
-	const Tour& getParentTour() const {
+	const Tour& getParentTour() const
+	{
 		return parentTour;
 	}
 
-	bool isPrimaryActivity() const {
+	bool isPrimaryActivity() const
+	{
 		return primaryActivity;
 	}
 
-	void setPrimaryActivity(bool primaryActivity) {
+	void setPrimaryActivity(bool primaryActivity)
+	{
 		this->primaryActivity = primaryActivity;
 	}
 
-	int getStopLocation() const {
+	int getStopLocation() const
+	{
 		return stopLocation;
 	}
 
-	void setStopLocation(int stopLocation) {
+	void setStopLocation(int stopLocation)
+	{
 		this->stopLocation = stopLocation;
 	}
 
-	int getStopMode() const {
+	int getStopMode() const
+	{
 		return stopMode;
 	}
 
-	void setStopMode(int stopMode) {
+	void setStopMode(int stopMode)
+	{
 		this->stopMode = stopMode;
 	}
 
-	StopType getStopType() const {
+	StopType getStopType() const
+	{
 		return stopType;
 	}
 
@@ -149,12 +161,18 @@ public:
 	 * returns the stop type as an integer
 	 * used for passing stop type to lua models
 	 */
-	int getStopTypeID() const {
-		switch(stopType) {
-		case WORK: return 1;
-		case EDUCATION: return 2;
-		case SHOP: return 3;
-		case OTHER: return 4;
+	int getStopTypeID() const
+	{
+		switch (stopType)
+		{
+		case WORK:
+			return 1;
+		case EDUCATION:
+			return 2;
+		case SHOP:
+			return 3;
+		case OTHER:
+			return 4;
 		}
 	}
 
@@ -162,16 +180,23 @@ public:
 	 * Returns the stop type in string format.
 	 * used for writing output.
 	 */
-	std::string getStopTypeStr() const {
-		switch(stopType) {
-		case WORK: return "Work";
-		case EDUCATION: return "Education";
-		case SHOP: return "Shop";
-		case OTHER: return "Other";
+	std::string getStopTypeStr() const
+	{
+		switch (stopType)
+		{
+		case WORK:
+			return "Work";
+		case EDUCATION:
+			return "Education";
+		case SHOP:
+			return "Shop";
+		case OTHER:
+			return "Other";
 		}
 	}
 
-	void setStopType(StopType stopType) {
+	void setStopType(StopType stopType)
+	{
 		this->stopType = stopType;
 	}
 
@@ -181,20 +206,24 @@ public:
 	 * @param arrivalTime arrival time (1 to 48)
 	 * @param departureTime departure time (1 to 40)
 	 */
-	void allotTime(double arrivalTime, double departureTime) {
+	void allotTime(double arrivalTime, double departureTime)
+	{
 		this->arrivalTime = arrivalTime;
 		this->departureTime = departureTime;
 	}
 
-	bool isInFirstHalfTour() const {
+	bool isInFirstHalfTour() const
+	{
 		return inFirstHalfTour;
 	}
 
-	int getStopLocationId() const {
+	int getStopLocationId() const
+	{
 		return stopId;
 	}
 
-	void setStopLocationId(int stopId) {
+	void setStopLocationId(int stopId)
+	{
 		this->stopId = stopId;
 	}
 
@@ -216,53 +245,66 @@ private:
  *
  *\author Harish Loganathan
  */
-class Tour {
+class Tour
+{
 public:
-	Tour(StopType tourType, bool subTour=false)
-	: tourType(tourType), usualLocation(false), subTour(subTour), tourMode(0), tourDestination(0), primaryStop(nullptr), startTime(0),
-	  endTime(0), firstTour(false)
-	{}
+	Tour(StopType tourType, bool subTour = false) :
+			tourType(tourType), usualLocation(false), subTour(subTour), tourMode(0), tourDestination(0), primaryStop(nullptr), startTime(0), endTime(0),
+				firstTour(false)
+	{
+	}
 
-	virtual ~Tour() {
-		for(std::list<Stop*>::iterator i = stops.begin(); i!=stops.end(); i++) {
+	virtual ~Tour()
+	{
+		for (std::list<Stop*>::iterator i = stops.begin(); i != stops.end(); i++)
+		{
 			safe_delete_item(*i);
 		}
 		stops.clear();
 	}
 
-	double getEndTime() const {
+	double getEndTime() const
+	{
 		return endTime;
 	}
 
-	void setEndTime(double endTime) {
+	void setEndTime(double endTime)
+	{
 		this->endTime = endTime;
 	}
 
-	double getStartTime() const {
+	double getStartTime() const
+	{
 		return startTime;
 	}
 
-	void setStartTime(double startTime) {
+	void setStartTime(double startTime)
+	{
 		this->startTime = startTime;
 	}
 
-	bool isSubTour() const {
+	bool isSubTour() const
+	{
 		return subTour;
 	}
 
-	void setSubTour(bool subTour) {
+	void setSubTour(bool subTour)
+	{
 		this->subTour = subTour;
 	}
 
-	int getTourMode() const {
+	int getTourMode() const
+	{
 		return tourMode;
 	}
 
-	void setTourMode(int tourMode) {
+	void setTourMode(int tourMode)
+	{
 		this->tourMode = tourMode;
 	}
 
-	StopType getTourType() const {
+	StopType getTourType() const
+	{
 		return tourType;
 	}
 
@@ -270,25 +312,35 @@ public:
 	 * Returns the tour type in string format.
 	 * used for writing outputs.
 	 */
-	std::string getTourTypeStr() const {
-		switch(tourType) {
-		case WORK: return "Work";
-		case EDUCATION: return "Education";
-		case SHOP: return "Shop";
-		case OTHER: return "Other";
-		default: return "NULL";
+	std::string getTourTypeStr() const
+	{
+		switch (tourType)
+		{
+		case WORK:
+			return "Work";
+		case EDUCATION:
+			return "Education";
+		case SHOP:
+			return "Shop";
+		case OTHER:
+			return "Other";
+		default:
+			return "NULL";
 		}
 	}
 
-	void setTourType(StopType tourType) {
+	void setTourType(StopType tourType)
+	{
 		this->tourType = tourType;
 	}
 
-	bool isUsualLocation() const {
+	bool isUsualLocation() const
+	{
 		return usualLocation;
 	}
 
-	void setUsualLocation(bool usualLocation) {
+	void setUsualLocation(bool usualLocation)
+	{
 		this->usualLocation = usualLocation;
 	}
 
@@ -298,40 +350,50 @@ public:
 	 *
 	 * @param stop stop to be added
 	 */
-	void addStop(Stop* stop) {
-		if(stop->isInFirstHalfTour()) {
+	void addStop(Stop* stop)
+	{
+		if (stop->isInFirstHalfTour())
+		{
 			stops.push_front(stop);
 		}
-		else {
+		else
+		{
 			stops.push_back(stop);
 		}
 	}
 
-	const Stop* getPrimaryStop() const {
+	const Stop* getPrimaryStop() const
+	{
 		return primaryStop;
 	}
 
-	void setPrimaryStop(Stop* primaryStop) {
+	void setPrimaryStop(Stop* primaryStop)
+	{
 		this->primaryStop = primaryStop;
 	}
 
-	int getTourDestination() const {
+	int getTourDestination() const
+	{
 		return tourDestination;
 	}
 
-	void setTourDestination(int tourDestination) {
+	void setTourDestination(int tourDestination)
+	{
 		this->tourDestination = tourDestination;
 	}
 
-	bool isFirstTour() const {
+	bool isFirstTour() const
+	{
 		return firstTour;
 	}
 
-	void setFirstTour(bool firstTour) {
+	void setFirstTour(bool firstTour)
+	{
 		this->firstTour = firstTour;
 	}
 
-	bool hasSubTours() const {
+	bool hasSubTours() const
+	{
 		return (!subTours.empty());
 	}
 
@@ -362,14 +424,20 @@ private:
 	bool firstTour;
 };
 
-class OD_Pair {
+class OD_Pair
+{
 private:
 	int origin;
 	int destination;
 
 public:
-	OD_Pair(int org, int dest) : origin(org), destination(dest) {}
-	virtual ~OD_Pair() {}
+	OD_Pair(int org, int dest) :
+			origin(org), destination(dest)
+	{
+	}
+	virtual ~OD_Pair()
+	{
+	}
 
 	bool operator ==(const OD_Pair& rhs) const;
 	bool operator !=(const OD_Pair& rhs) const;

@@ -17,6 +17,7 @@
 
 using namespace std;
 using namespace sim_mob;
+using namespace sim_mob::medium;
 
 Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, int id = -1, std::string databaseID = "")
 : Person(src, mtxStrat, id, databaseID),
@@ -46,7 +47,7 @@ Person_MT::~Person_MT()
 
 void Person_MT::convertODsToTrips()
 {
-	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
+	MT_Config& config = MT_Config::getInstance();
 	if (!config.publicTransitEnabled)
 	{
 		return;

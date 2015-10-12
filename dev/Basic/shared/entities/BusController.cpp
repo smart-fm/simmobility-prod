@@ -11,13 +11,13 @@
 #include "entities/Person.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/misc/BusTrip.hpp"
+#include "entities/misc/PublicTransit.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/LangHelpers.hpp"
-#include "boost/algorithm/string.hpp"
 
 using std::vector;
 using std::string;
@@ -40,26 +40,34 @@ const double SECS_CONVERT_UNIT = 0.001;
 const double MILLISECS_CONVERT_UNIT = 1000.0;
 }
 
-void sim_mob::BusController::RegisterBusController(unsigned int startTime, const MutexStrategy& mtxStrat)
+bool BusController::RegisterBusController(BusController* busController)
 {
-	if(!instance){
-		instance = new sim_mob::BusController(-1, mtxStrat);
-		instance->setStartTime(startTime);
+	if(!busController)
+	{
+		throw std::runtime_error("BusController passed for registration is null");
 	}
+
+	if(!instance)
+	{
+		instance = busController;
+		instance->setStartTime(startTime);
+		return true;
+	}
+	return false;
 }
 
-bool sim_mob::BusController::HasBusController()
+bool BusController::HasBusController()
 {
 	return (instance!=nullptr);
 }
 
-void sim_mob::BusController::initializeBusController(std::set<Entity*>& agentList, const vector<PT_BusDispatchFreq>& dispatchFreq)
+void BusController::initializeBusController(std::set<Entity*>& agentList, const vector<PT_BusDispatchFreq>& dispatchFreq)
 {
 	setPTScheduleFromConfig(dispatchFreq);
 	assignBusTripChainWithPerson(agentList);
 }
 
-BusController* sim_mob::BusController::GetInstance()
+BusController* BusController::GetInstance()
 {
 	if(!instance){
 		throw std::runtime_error("bus controller not registered");
@@ -67,7 +75,7 @@ BusController* sim_mob::BusController::GetInstance()
 	return instance;
 }
 
-std::vector<BufferedBase *> sim_mob::BusController::buildSubscriptionList()
+std::vector<BufferedBase *> BusController::buildSubscriptionList()
 {
 	return Agent::buildSubscriptionList();
 }
@@ -93,11 +101,8 @@ struct StopInfo
 	int index;
 };
 
-bool searchBusRoutes(const vector<const BusStop*>& stops,
-					 const std::string& busLine, std::deque<RouteInfo>& allRoutes,
-					 std::deque<StopInfo>& allStops)
+bool searchBusRoutes(const vector<const BusStop*>& stops, const std::string& busLine, std::deque<RouteInfo>& allRoutes, std::deque<StopInfo>& allStops)
 {
-
 	const BusStop* start;
 	const BusStop* end;
 	const BusStop* nextEnd;
@@ -225,11 +230,11 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 	return isFound;
 }
 
-void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_BusDispatchFreq>& dispatchFreq)
+void BusController::setPTScheduleFromConfig(const vector<PT_BusDispatchFreq>& dispatchFreq)
 {
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 	vector<const BusStop*> stops;
-	sim_mob::BusLine* busline = nullptr;
+	BusLine* busline = nullptr;
 	int step = 0;
 	busDrivers.clear();
 	bool busLineRegistered=false;
@@ -237,12 +242,14 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_BusDispatch
 	std::deque<RouteInfo> allRoutes;
 	std::deque<StopInfo> allStops;
 
-	for (vector<sim_mob::PT_BusDispatchFreq>::const_iterator curr=dispatchFreq.begin(); curr!=dispatchFreq.end(); curr++) {
-		vector<sim_mob::PT_BusDispatchFreq>::const_iterator next = curr+1;
+	for (vector<PT_BusDispatchFreq>::const_iterator curr=dispatchFreq.begin(); curr!=dispatchFreq.end(); curr++)
+	{
+		vector<PT_BusDispatchFreq>::const_iterator next = curr+1;
 
 		//If we're on a new BusLine, register it with the scheduler.
-		if(!busline || (curr->routeId != busline->getBusLineID())) {
-			busline = new sim_mob::BusLine(curr->routeId,config.busline_control_type());
+		if(!busline || (curr->routeId != busline->getBusLineID()))
+		{
+			busline = new BusLine(curr->routeId,config.busline_control_type());
 			ptSchedule.registerBusLine(curr->routeId, busline);
 			ptSchedule.registerControlType(curr->routeId, busline->getControlType());
 			step = 0;
@@ -253,10 +260,11 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_BusDispatch
 		busline->addFrequencyBusLine(FrequencyBusLine(curr->startTime,curr->endTime,curr->headwaySec));
 
 		//Set nextTime to the next frequency bus line's start time or the current line's end time if this is the last line.
-		sim_mob::DailyTime nextTime = curr->endTime;
+		DailyTime nextTime = curr->endTime;
 
 		DailyTime advance(curr->headwaySec*MILLISECS_CONVERT_UNIT);
-		for(DailyTime startTime = curr->startTime; startTime.isBeforeEqual(nextTime); startTime += advance) {
+		for(DailyTime startTime = curr->startTime; startTime.isBeforeEqual(nextTime); startTime += advance)
+		{
 			// deal with small gaps between the group dispatching times
 			if ((startTime - lastBusDispatchTime).isBeforeEqual(advance))
 			{
@@ -270,74 +278,71 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_BusDispatch
 			map<string, vector<const BusStop*> >::const_iterator stopsIt = config.getBusStops_Map().find(curr->routeId);
 
 			vector<const RoadSegment*> segments = vector<const RoadSegment*>();
-			const std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments = config.getRoadSegments_Map();
+			const std::map<std::string, std::vector<const RoadSegment*> >& routeID_roadSegments = config.getRoadSegments_Map();
 			map<string, vector<const RoadSegment*> >::const_iterator itSeg = routeID_roadSegments.find(curr->routeId);
-			if (itSeg != routeID_roadSegments.end()) {
+			if (itSeg != routeID_roadSegments.end())
+			{
 				segments = itSeg->second;
 			}
 
 			stops = vector<const BusStop*>();
-			const std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops = config.getBusStops_Map();
+			const std::map<std::string, std::vector<const BusStop*> >& routeID_busStops = config.getBusStops_Map();
+
 			map<string, vector<const BusStop*> >::const_iterator itStop = routeID_busStops.find(curr->routeId);
-			if (itStop != routeID_busStops.end()) {
+			if (itStop != routeID_busStops.end())
+			{
 				stops = itStop->second;
 			}
 
-			if (busLineRegistered
-                    && sim_mob::ConfigManager::GetInstance().FullConfig().generateBusRoutes) {
+			if (busLineRegistered && ConfigManager::GetInstance().FullConfig().generateBusRoutes)
+			{
 				searchBusRoutes(stops, curr->routeId, allRoutes,allStops);
 			}
 
 			if (busLineRegistered)
 			{
-				for (int k = 0; k < stops.size(); k++) {
+				for (int k = 0; k < stops.size(); k++)
+				{
 					//to store the bus line info at each bus stop
 					BusStop* busStop = const_cast<BusStop*>(stops[k]);
 					busStop->BusLines.push_back(busline);
 				}
 				busLineRegistered = false;
 			}
-			if (bustrip.setBusRouteInfo(segments, stops)) {
+			if (bustrip.setBusRouteInfo(segments, stops))
+			{
 				busline->addBusTrip(bustrip);
 			}
+
 			lastBusDispatchTime = startTime;
 		}
 	}
 
-    if (sim_mob::ConfigManager::GetInstance().FullConfig().generateBusRoutes)
+	if (ConfigManager::GetInstance().FullConfig().generateBusRoutes)
 	{
-
 		std::ofstream outputRoutes("routes.csv");
-		for (std::deque<RouteInfo>::const_iterator it =
-				allRoutes.begin(); it != allRoutes.end(); it++)
+		for (std::deque<RouteInfo>::const_iterator it = allRoutes.begin(); it != allRoutes.end(); it++)
 		{
 			if (outputRoutes.is_open())
 			{
-				outputRoutes << it->line << ","
-						<< it->index << ","
-						<< it->id
-						<< std::endl;
+				outputRoutes << it->line << "," << it->index << "," << it->id << std::endl;
 			}
 		}
 		outputRoutes.close();
 
 		std::ofstream outputStop("stops.csv");
-		for (std::deque<StopInfo>::const_iterator it =
-				allStops.begin(); it != allStops.end(); it++)
+		for (std::deque<StopInfo>::const_iterator it = allStops.begin(); it != allStops.end(); it++)
 		{
 			if (outputStop.is_open())
 			{
-				outputStop << it->line << ","
-						<< it->id << ","
-						<< it->index
-						<< std::endl;
+				outputStop << it->line << "," << it->id << "," << it->index << std::endl;
 			}
 		}
 		outputStop.close();
 	}
 }
 
-void sim_mob::BusController::storeRealTimesAtEachBusStop(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, const BusStop* lastVisitedBusStop, BusStopRealTimes& realTime)
+void BusController::storeRealTimesAtEachBusStop(const std::string& busLine, int trip, int sequence, double arrivalTime, double departTime, const BusStop* lastVisitedBusStop, BusStopRealTimes& realTime)
 {
 	BusLine* busline = ptSchedule.findBusLine(busLine);
 	if(!busline) {
@@ -355,7 +360,7 @@ void sim_mob::BusController::storeRealTimesAtEachBusStop(const std::string& busL
 	busline->resetBusTripStopRealTimes(trip, sequence, sharedStopRealTimes);
 }
 
-double sim_mob::BusController::computeDwellTime(const string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisitedBusStop)
+double BusController::computeDwellTime(const string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisitedBusStop)
 {
 	ControlTypes controlType = ptSchedule.findBusLineControlType(busLine);
 	BusLine* busline = ptSchedule.findBusLine(busLine);
@@ -393,7 +398,7 @@ double sim_mob::BusController::computeDwellTime(const string& busLine, int trip,
 	return waitTimeBusStop;
 }
 
-double sim_mob::BusController::scheduledDecision(const string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisitedBusStop)
+double BusController::scheduledDecision(const string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisitedBusStop)
 {
 	BusLine* busline = ptSchedule.findBusLine(busLine);
 	if(!busline) {
@@ -413,7 +418,7 @@ double sim_mob::BusController::scheduledDecision(const string& busLine, int trip
 	return estimatedTime;
 }
 
-double sim_mob::BusController::headwayDecision(const string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisitedBusStop)
+double BusController::headwayDecision(const string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisitedBusStop)
 {
 	BusLine* busline = ptSchedule.findBusLine(busLine);
 	if (!busline) {
@@ -442,7 +447,7 @@ double sim_mob::BusController::headwayDecision(const string& busLine, int trip, 
 	return estimatedTime;
 }
 
-double sim_mob::BusController::evenheadwayDecision(const string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisitedBusStop)
+double BusController::evenheadwayDecision(const string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisitedBusStop)
 {
 	BusLine* busline = ptSchedule.findBusLine(busLine);
 	if (!busline) {
@@ -491,7 +496,7 @@ double sim_mob::BusController::evenheadwayDecision(const string& busLine, int tr
 	return estimatedTime;
 }
 
-double sim_mob::BusController::hybridDecision(const string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisitedBusStop)
+double BusController::hybridDecision(const string& busLine, int trip, int sequence, double arrivalTime, double departTime, BusStopRealTimes& realTime, const BusStop* lastVisitedBusStop)
 {
 	BusLine* busline = ptSchedule.findBusLine(busLine);
 	if (!busline) {
@@ -538,7 +543,7 @@ double sim_mob::BusController::hybridDecision(const string& busLine, int trip, i
 	return estimatedTime;
 }
 
-void sim_mob::BusController::addOrStashBuses(Person* p, std::set<Entity*>& activeAgents)
+void BusController::addOrStashBuses(Person* p, std::set<Entity*>& activeAgents)
 {
 	if (p->getStartTime()==0) {
 		//Only agents with a start time of zero should start immediately in the all_agents list.
@@ -551,7 +556,7 @@ void sim_mob::BusController::addOrStashBuses(Person* p, std::set<Entity*>& activ
 	}
 }
 
-void sim_mob::BusController::unregisterChild(Entity* child) {
+void BusController::unregisterChild(Entity* child) {
 	if (child) {
 		std::vector<Entity*>::iterator it = std::find(busDrivers.begin(),
 				busDrivers.end(), child);
@@ -561,7 +566,7 @@ void sim_mob::BusController::unregisterChild(Entity* child) {
 	}
 }
 
-Entity::UpdateStatus sim_mob::BusController::frame_tick(timeslice now)
+Entity::UpdateStatus BusController::frame_tick(timeslice now)
 {
 	nextTimeTickToStage++;
 	unsigned int nextTickMS = (nextTimeTickToStage+3)*ConfigManager::GetInstance().FullConfig().baseGranMS();
@@ -582,12 +587,12 @@ Entity::UpdateStatus sim_mob::BusController::frame_tick(timeslice now)
 	return Entity::UpdateStatus::Continue;
 }
 
-bool sim_mob::BusController::frame_init(timeslice now)
+bool BusController::frame_init(timeslice now)
 {
 	return true;
 }
 
-void sim_mob::BusController::frame_output(timeslice now)
+void BusController::frame_output(timeslice now)
 {
 	LogOut("(\"BusController\""
 			<<","<<now.frame()
@@ -595,11 +600,11 @@ void sim_mob::BusController::frame_output(timeslice now)
 			<<","<<std::endl);
 }
 
-void sim_mob::BusController::load(const std::map<std::string, std::string>& configProps)
+void BusController::load(const std::map<std::string, std::string>& configProps)
 {
 }
 
-bool sim_mob::BusController::isNonspatial()
+bool BusController::isNonspatial()
 {
 	return true;
 }

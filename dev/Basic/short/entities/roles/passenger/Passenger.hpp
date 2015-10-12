@@ -17,7 +17,6 @@ namespace sim_mob
  * A Person in the Passenger role is likely just waiting for his or her bus stop.
  * \author Meenu
  */
-//class BusDriver;
 class BusStop;
 class Person;
 class Bus;

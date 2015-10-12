@@ -4,7 +4,6 @@
 
 #include "PredayPersonParams.hpp"
 
-#include <boost/algorithm/string.hpp>
 #include <sstream>
 #include "logging/Log.hpp"
 
@@ -19,17 +18,19 @@ double sim_mob::PredayPersonParams::incomeCategoryLowerLimits[] = {};
 std::map<int, std::bitset<4> > sim_mob::PredayPersonParams::vehicleCategoryLookup = std::map<int, std::bitset<4> >();
 std::map<long, int> sim_mob::PredayPersonParams::addressTazLookup = std::map<long,int>();
 
-sim_mob::PredayPersonParams::PredayPersonParams()
-: personId(""), hhId(""), personTypeId(-1), ageId(-1), isUniversityStudent(-1), studentTypeId(-1), isFemale(-1),
-  incomeId(-1), worksAtHome(-1), carOwn(-1), carOwnNormal(-1), carOwnOffpeak(-1), motorOwn(-1), hasFixedWorkTiming(-1), homeLocation(-1),
-  fixedWorkLocation(-1), fixedSchoolLocation(-1), stopType(-1), drivingLicence(-1), hhOnlyAdults(-1), hhOnlyWorkers(-1), hhNumUnder4(-1),
-  hasUnder15(-1), workLogSum(0), eduLogSum(0), shopLogSum(0), otherLogSum(0), dptLogsum(0), dpsLogsum(0), dpbLogsum(0), genderId(-1),
-  missingIncome(-1), homeAddressId(-1), activityAddressId(-1), carLicense(false), motorLicense(false), vanbusLicense(false), fixedWorkplace(false),
-  student(false), hhSize(-1), hhNumAdults(-1), hhNumWorkers(-1), hhNumUnder15(-1), householdFactor(-1), travelProbability(0), tripsExpected(0)
-{}
+sim_mob::PredayPersonParams::PredayPersonParams() :
+		personId(""), hhId(""), personTypeId(-1), ageId(-1), isUniversityStudent(-1), studentTypeId(-1), isFemale(-1), incomeId(-1), worksAtHome(-1),
+			carOwn(-1), carOwnNormal(-1), carOwnOffpeak(-1), motorOwn(-1), hasFixedWorkTiming(-1), homeLocation(-1), fixedWorkLocation(-1),
+			fixedSchoolLocation(-1), stopType(-1), drivingLicence(-1), hhOnlyAdults(-1), hhOnlyWorkers(-1), hhNumUnder4(-1), hasUnder15(-1), workLogSum(0),
+			eduLogSum(0), shopLogSum(0), otherLogSum(0), dptLogsum(0), dpsLogsum(0), dpbLogsum(0), genderId(-1), missingIncome(-1), homeAddressId(-1),
+			activityAddressId(-1), carLicense(false), motorLicense(false), vanbusLicense(false), fixedWorkplace(false), student(false), hhSize(-1),
+			hhNumAdults(-1), hhNumWorkers(-1), hhNumUnder15(-1), householdFactor(-1), travelProbability(0), tripsExpected(0)
+{
+}
 
 sim_mob::PredayPersonParams::~PredayPersonParams()
-{}
+{
+}
 
 void sim_mob::PredayPersonParams::setIncomeIdFromIncome(double income)
 {
@@ -75,7 +76,10 @@ void sim_mob::PredayPersonParams::fixUpForLtPerson()
 int sim_mob::PredayPersonParams::getTAZCodeForAddressId(long addressId)
 {
 	std::map<long, int>::const_iterator addressIdIt = addressTazLookup.find(addressId);
-	if(addressIdIt == addressTazLookup.end()) { throw std::runtime_error("invalid address id");	}
+	if (addressIdIt == addressTazLookup.end())
+	{
+		throw std::runtime_error("invalid address id");
+	}
 	return addressIdIt->second;
 }
 

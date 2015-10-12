@@ -9,7 +9,7 @@
 /// \author Seth N. Hetu
 
 #include "boost/algorithm/string.hpp"
-#include "soci.h"
+#include "soci/soci.h"
 #include "TripChain.hpp"
 
 

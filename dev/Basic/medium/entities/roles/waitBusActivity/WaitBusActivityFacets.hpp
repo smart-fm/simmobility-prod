@@ -21,14 +21,17 @@ namespace medium
 
 class WaitBusActivity;
 
-class WaitBusActivityBehavior : public BehaviorFacet
+/**
+ * A medium-term WaitBusActivity behavior facet.
+ * \author zhang huai peng
+ */
+class WaitBusActivityBehavior: public BehaviorFacet
 {
 public:
 	explicit WaitBusActivityBehavior();
 	virtual ~WaitBusActivityBehavior();
 
 	//Virtual overrides
-
 	virtual void frame_init()
 	{
 	}
@@ -51,7 +54,11 @@ protected:
 	sim_mob::medium::WaitBusActivity* parentWaitBusActivity;
 };
 
-class WaitBusActivityMovement : public MovementFacet
+/**
+ * A medium-term WaitBusActivity movement facet.
+ * \author zhang huai peng
+ */
+class WaitBusActivityMovement: public MovementFacet
 {
 public:
 	explicit WaitBusActivityMovement();
@@ -74,7 +81,6 @@ public:
 
 protected:
 	sim_mob::medium::WaitBusActivity* parentWaitBusActivity;
-	unsigned int totalTimeToCompleteMS;
 };
 
 }

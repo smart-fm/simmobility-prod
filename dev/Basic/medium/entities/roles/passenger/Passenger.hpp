@@ -4,8 +4,9 @@
 
 #pragma once
 
+#include "entities/Person_MT.hpp"
 #include "entities/roles/Role.hpp"
-#include "entities/roles/waitBusActivity/waitBusActivity.hpp"
+#include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
 #include "geospatial/Node.hpp"
 #include "PassengerFacets.hpp"
 
@@ -43,7 +44,7 @@ public:
 	}
 
 	//Virtual overrides
-	virtual Role<Person_MT>* clone(sim_mob::Person_MT *parent) const;
+	virtual Role<Person_MT>* clone(Person_MT *parent) const;
 
 	virtual void make_frame_tick_params(timeslice now)
 	{

@@ -36,7 +36,7 @@ public:
 
 	virtual ~Pedestrian();
 
-	virtual sim_mob::Role<Person_MT>* clone(sim_mob::Person_MT *parent) const;
+	virtual sim_mob::Role<Person_MT>* clone(Person_MT *parent) const;
 
 	virtual void make_frame_tick_params(timeslice now);
 

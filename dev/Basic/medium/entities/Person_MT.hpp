@@ -16,6 +16,9 @@
 namespace sim_mob
 {
 
+namespace medium
+{
+
 class Person_MT : public Person
 {
 private:
@@ -173,4 +176,5 @@ public:
 		return nextRole;
 	}
 };
-}
+} // namespace medium
+} //namespace sim_mob

@@ -9,7 +9,7 @@
 
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/Person.hpp"
-#include "geospatial/Link.hpp"
+#include "geospatial/RoadSegment.hpp"
 
 namespace sim_mob
 {
@@ -78,24 +78,25 @@ protected:
 	 * initialize the path at the beginning
 	 * @param path include aPathSetParams list of road segments
 	 * */
-	void initializePath(std::vector<const RoadSegment*>& path);
-
-	/**
-	 * choice shortest distance from node to mrt stop
-	 */
-	const sim_mob::RoadSegment* choiceNearestSegmentToMRT(const sim_mob::Node* src, const sim_mob::MRT_Stop* stop);
+	const sim_mob::RoadSegment* getDestSegment();
 
 	/**parent pedestrian*/
 	sim_mob::medium::Pedestrian* parentPedestrian;
+
 	/**record the current remaining time to the destination*/
 	double remainingTimeToComplete;
+
 	/**pedestrian's walking speed*/
 	const double walkSpeed;
-	/**store the pair of link and walking time*/
-	std::vector<std::pair<Link*, double> > trajectory;
-	/**starting link*/
-	sim_mob::Link* startLink;
+
+	/**destination segment*/
+	const sim_mob::RoadSegment* destinationSegment;
+
+	/** total time to complete in seconds*/
 	double totalTimeToCompleteSec;
+
+	/**seconds in tick*/
+	double secondsInTick;
 };
 
 }

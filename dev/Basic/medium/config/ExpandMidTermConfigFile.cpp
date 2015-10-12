@@ -1,5 +1,7 @@
 #include "ExpandMidTermConfigFile.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
+#include "entities/BusController.hpp"
+#include "entities/BusControllerMT.hpp"
 #include "path/PathSetManager.hpp"
 
 namespace sim_mob
@@ -75,6 +77,15 @@ void ExpandMidTermConfigFile::processConfig()
         sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
         std::cout << cfg.getConfluxes().size() << " Confluxes created" << std::endl;
     }
+
+    //register and initialize BusController
+	if (cfg.busController.enabled)
+	{
+		sim_mob::BusControllerMT::RegisterBusController(-1, cfg.mutexStategy());
+		sim_mob::BusController* busController = sim_mob::BusController::GetInstance();
+		busController->initializeBusController(active_agents, cfg.getPT_BusDispatchFreq());
+		active_agents.insert(busController);
+	}
 
     /// Enable/Disble restricted region support based on configuration
     setRestrictedRegionSupport();

@@ -201,7 +201,5 @@ std::string sim_mob::medium::MesoPathMover::printPath(const Path &path, const No
 	{
 		out << "\n";
 	}
-//	sim_mob::Logger::log("pathset.log") << out.str() << std::endl;
-//	std::cout << out.str() << std::endl;
 	return out.str();
 }

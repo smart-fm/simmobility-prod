@@ -2,13 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * PredayLuaModel.cpp
- *
- *  Created on: Nov 27, 2013
- *      Author: Harish Loganathan
- */
-
 #include "PredayLogsumLuaModel.hpp"
 
 #include "lua/LuaLibrary.hpp"
@@ -26,7 +19,8 @@ sim_mob::PredayLogsumLuaModel::PredayLogsumLuaModel()
 sim_mob::PredayLogsumLuaModel::~PredayLogsumLuaModel()
 {}
 
-void sim_mob::PredayLogsumLuaModel::mapClasses() {
+void sim_mob::PredayLogsumLuaModel::mapClasses()
+{
 	getGlobalNamespace(state.get())
 			.beginClass <PredayPersonParams> ("PredayPersonParams")
 				.addProperty("person_id", &PredayPersonParams::getPersonId)

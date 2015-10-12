@@ -208,9 +208,9 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		struct tm * now = localtime( & t );
 		Print() <<"Begin time:"<<std::endl;
 		Print() <<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
-		PathSetManager* psMgr = PathSetManager::getInstance();
+		PrivateTrafficRouteChoice* pvtRtChoice = PrivateTrafficRouteChoice::getInstance();
 		std::string name = configFileName;
-		psMgr->setScenarioName(name);
+		pvtRtChoice->setScenarioName(name);
 	}
 
 	//Initialize the control manager and wait for an IDLE state (interactive mode only).
@@ -451,7 +451,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//Store the segment travel times
 	if (config.PathSetMode()) 
 	{
-		PathSetManager::getInstance()->storeRTT();
+		TravelTimeManager::getInstance()->storeRTT2DB();
 	}
 
 	Print() << "Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;

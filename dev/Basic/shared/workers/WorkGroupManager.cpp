@@ -14,6 +14,10 @@
 #include "entities/Agent.hpp"
 #include "path/PathSetManager.hpp"
 
+#include <time.h>
+#include <sstream>
+#include "entities/profile/ProfileBuilder.hpp"
+
 using std::vector;
 
 using namespace sim_mob;
@@ -133,6 +137,9 @@ void sim_mob::WorkGroupManager::waitAllGroups()
 	//Collect entities.
 	std::set<Agent*> removedEntities;
 
+	timeval start, end, endFT, endFB, endDM, endMT;
+	std::stringstream timestream;
+	gettimeofday(&start, nullptr);
 	//Call each function in turn.
 	//NOTE: Each sub-function tests the current state.
     if(ConfigManager::GetInstance().FullConfig().RunningMidTerm() && firstTick)
@@ -144,9 +151,20 @@ void sim_mob::WorkGroupManager::waitAllGroups()
 		firstTick = false;
 	}
 	waitAllGroups_FrameTick();
+	gettimeofday(&endFT, nullptr);
+	timestream << "FT: "<< (ProfileBuilder::diff_ms(endFT, start))/1000.0 << "s|";
+
 	waitAllGroups_FlipBuffers(&removedEntities);
+	gettimeofday(&endFB, nullptr);
+	timestream << "FB: "<< (ProfileBuilder::diff_ms(endFB, endFT))/1000.0 << "s|";
+
 	waitAllGroups_DistributeMessages(removedEntities);
+	gettimeofday(&endDM, nullptr);
+	timestream << "DM: "<< (ProfileBuilder::diff_ms(endDM, endFB))/1000.0 << "s|";
+
 	waitAllGroups_MacroTimeTick();
+	gettimeofday(&endMT, nullptr);
+	timestream << "MT: "<< (ProfileBuilder::diff_ms(endMT, endDM))/1000.0 << "s|";
 
 	//Delete all collected entities:
 	while (!removedEntities.empty()) {
@@ -154,6 +172,10 @@ void sim_mob::WorkGroupManager::waitAllGroups()
 		removedEntities.erase(removedEntities.begin());
 		delete ag;
 	}
+
+	gettimeofday(&end, nullptr);
+	timestream << "total: "<< (ProfileBuilder::diff_ms(end, start))/1000.0 << "s" << std::endl;
+	std::cout << timestream.str();
 }
 
 void sim_mob::WorkGroupManager::waitAllGroups_FrameTick()

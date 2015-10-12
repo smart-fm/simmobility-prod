@@ -2,15 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * PredayLuaModel.hpp
- *
- *  Created on: Nov 27, 2013
- *      Author: Harish Loganathan
- */
-
 #pragma once
-#include <boost/unordered_map.hpp>
 #include "behavioral/params/PredayPersonParams.hpp"
 #include "behavioral/params/LogsumTourModeDestinationParams.hpp"
 #include "lua/LuaModel.hpp"

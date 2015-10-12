@@ -10,8 +10,8 @@
 #include <string>
 
 #include "entities/misc/TripChain.hpp"
-#include "soci.h"
-#include "soci-postgresql.h"
+#include "soci/soci.h"
+#include "soci/postgresql/soci-postgresql.h"
 #include "util/OneTimeFlag.hpp"
 
 namespace sim_mob

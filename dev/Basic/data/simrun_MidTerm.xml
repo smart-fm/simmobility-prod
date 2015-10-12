@@ -7,20 +7,20 @@
     <db_proc_groups>
         <!-- Entire singapore network with scaled activity_schedules from preday-->
         <proc_map id="withinday" format="aimsun">
-            <mapping name="node" procedure="get_updated_node_sg()"/>
-            <mapping name="section" procedure="get_updated_section_sg()"/>
-            <mapping name="turning" procedure="get_updated_lane_connector_sg()"/>
+            <mapping name="node" procedure="get_node_sg()"/>
+            <mapping name="section" procedure="get_section_sg()"/>
+            <mapping name="turning" procedure="get_lane_connector_sg()"/>
             <mapping name="busstop" procedure="get_bus_stop_location_interchange()"/>
-            <mapping name="polyline" procedure="get_updated_section_polyline()"/>
+            <mapping name="polyline" procedure="get_section_polyline()"/>
             <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_dispatch_freq('weekday')"/>
             <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>           
             <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>             
-            <mapping name="od_trips" procedure="get_od_trips()"/>  
-            <mapping name="day_activity_schedule" procedure="get_persons_between_all"/>
-            <mapping name="pt_edges" procedure="get_pt_map_edges_latest()"/>
-            <mapping name="pt_vertices" procedure="get_pt_map_vertex_latest()"/>
+            <mapping name="od_trips" procedure="get_od_trips()"/>
+            <mapping name="day_activity_schedule" procedure="get_persons_between"/>
+            <mapping name="pt_edges" procedure="get_pt_edges()"/>
+            <mapping name="pt_vertices" procedure="get_pt_vertices()"/>
             <mapping name="mrt_road_segments" procedure="get_mrt_road_segments()"/>
-            <mapping name="pt_pathset" procedure="get_pt_pathset_corrected"/>
+            <mapping name="pt_pathset" procedure="get_pt_pathset"/>
             <mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
             <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
@@ -105,12 +105,12 @@
                 
         <!-- these parameters are used to assign filename for the storage of statistics -->   
         <!-- if the value is empty, no output file is generated, otherwise store to csv file -->     
-        <statistics_output_paramemters>                              
-            <journey_time_csv_file_output value="journeytime.csv"/>
-            <waiting_time_csv_file_output value="waitingtime.csv"/>
-            <waiting_amount_csv_file_output value="waitingamount.csv"/>
-            <travel_time_csv_file_output value="traveltime.csv"/>
-        </statistics_output_paramemters>  
+        <output_pt_statistics>                              
+            <journey_time file="journeytime.csv"/>
+            <waiting_time file="waitingtime.csv"/>
+            <waiting_count file="waitingamount.csv"/>
+            <travel_time file="traveltime.csv"/>
+        </output_pt_statistics>  
     </supply>                                      
             
     <!-- config specific to preday simulator -->

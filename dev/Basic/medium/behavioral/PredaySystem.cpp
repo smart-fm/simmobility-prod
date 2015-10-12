@@ -24,7 +24,6 @@
 #include "behavioral/params/TimeOfDayParams.hpp"
 #include "behavioral/params/TourModeParams.hpp"
 #include "behavioral/params/TourModeDestinationParams.hpp"
-#include "behavioral/params/TripChainItemParams.hpp"
 #include "behavioral/StopType.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -192,28 +191,7 @@ namespace {
 		id << pid << "-" << tourNum << "-" << seqNum << suffix;
 		return id.str();
 	}
-
-	void constructTrip(TripChainItemParams& tcTrip, int prevNode, int nextNode, const std::string& startTime, int stopMode, bool primaryMode) {
-		//tcTrip.setSubtripMode(modeMap.at(stopMode));
-		//tcTrip.setPrimaryMode(primaryMode);
-		tcTrip.setSubtripMode(modeMap.at(4)); /*~ all trips are made to car trips. Done for running mid-term for TRB paper. ~*/
-		tcTrip.setPrimaryMode(true); /*~ running mid-term for TRB paper. ~*/
-		tcTrip.setTripOrigin(prevNode);
-		tcTrip.setTripDestination(nextNode);
-		tcTrip.setSubtripOrigin(prevNode);
-		tcTrip.setSubtripDestination(nextNode);
-		tcTrip.setStartTime(startTime);
-	}
-
-	std::string constructActivity(TripChainItemParams& tcActivity, const Stop* stop, int nextNode, const std::string& arrTimeStr, const std::string& deptTimeStr) {
-		tcActivity.setActivityType(stop->getStopTypeStr());
-		tcActivity.setActivityLocation(nextNode);
-		tcActivity.setPrimaryActivity(stop->isPrimaryActivity());
-		tcActivity.setActivityStartTime(arrTimeStr);
-		tcActivity.setActivityEndTime(deptTimeStr);
-		return deptTimeStr;
-	}
-}
+} // anon namespace
 
 PredaySystem::PredaySystem(PersonParams& personParams,
 		const ZoneMap& zoneMap, const boost::unordered_map<int,int>& zoneIdLookup,

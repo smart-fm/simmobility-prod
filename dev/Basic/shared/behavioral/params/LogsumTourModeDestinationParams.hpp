@@ -2,17 +2,7 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * ModeDestinationParams.hpp
- *
- *  Created on: Nov 30, 2013
- *      Author: Harish Loganathan
- */
-
 #pragma once
-#include <boost/unordered_map.hpp>
-#include <cmath>
-#include <string>
 #include "behavioral/params/ModeDestinationParams.hpp"
 #include "behavioral/params/ZoneCostParams.hpp"
 #include "behavioral/StopType.hpp"
@@ -20,9 +10,16 @@
 
 namespace sim_mob
 {
-class LogsumTourModeDestinationParams : public ModeDestinationParams {
+/**
+ * Class to hold parameters for tour mode destination parameters for logsum computation
+ *
+ * \author Harish Loganathan
+ */
+class LogsumTourModeDestinationParams: public ModeDestinationParams
+{
 public:
-	LogsumTourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PredayPersonParams& personParams, StopType tourType);
+	LogsumTourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap, const PredayPersonParams& personParams,
+			StopType tourType);
 	virtual ~LogsumTourModeDestinationParams();
 
 	double getCostPublicFirst(int zoneId) const;
@@ -62,7 +59,7 @@ private:
 
 /**
  * Simple class to store information pertaining tour tour-mode models
- * \note This class is used by the mid-term behavior models.
+ * NOTE: This class is used by the mid-term behavior models.
  *
  * \author Harish Loganathan
  */
@@ -109,8 +106,8 @@ private:
 	bool taxiAvailable;
 
 public:
-	LogsumTourModeParams(const ZoneParams* znOrgObj, const ZoneParams* znDesObj,
-			const CostParams* amObj, const CostParams* pmObj, const PredayPersonParams& personParams, StopType tourType);
+	LogsumTourModeParams(const ZoneParams* znOrgObj, const ZoneParams* znDesObj, const CostParams* amObj, const CostParams* pmObj,
+			const PredayPersonParams& personParams, StopType tourType);
 	virtual ~LogsumTourModeParams();
 
 	double getAvgTransfer() const

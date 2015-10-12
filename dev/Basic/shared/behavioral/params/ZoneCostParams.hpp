@@ -2,117 +2,138 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * ZoneParams.hpp
- *
- *  Created on: Nov 30, 2013
- *      Author: Harish Loganathan
- */
 #pragma once
 #include <string>
+#include <sstream>
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 /**
  * Class to hold properties of a zone
  *
  * \author Harish Loganathan
  */
-class ZoneParams {
+class ZoneParams
+{
 public:
-	virtual ~ZoneParams() {}
+	virtual ~ZoneParams()
+	{
+	}
 
-	double getArea() const {
+	double getArea() const
+	{
 		return area;
 	}
 
-	void setArea(double area) {
+	void setArea(double area)
+	{
 		this->area = area;
 	}
 
-	int getCentralDummy() const {
+	int getCentralDummy() const
+	{
 		return centralZone;
 	}
 
-	void setCentralDummy(bool centralDummy) {
+	void setCentralDummy(bool centralDummy)
+	{
 		this->centralZone = centralDummy;
 	}
 
-	double getEmployment() const {
+	double getEmployment() const
+	{
 		return employment;
 	}
 
-	void setEmployment(double employment) {
+	void setEmployment(double employment)
+	{
 		this->employment = employment;
 	}
 
-	double getParkingRate() const {
+	double getParkingRate() const
+	{
 		return parkingRate;
 	}
 
-	void setParkingRate(double parkingRate) {
+	void setParkingRate(double parkingRate)
+	{
 		this->parkingRate = parkingRate;
 	}
 
-	double getPopulation() const {
+	double getPopulation() const
+	{
 		return population;
 	}
 
-	void setPopulation(double population) {
+	void setPopulation(double population)
+	{
 		this->population = population;
 	}
 
-	double getResidentStudents() const {
+	double getResidentStudents() const
+	{
 		return residentStudents;
 	}
 
-	void setResidentStudents(double residentStudents) {
+	void setResidentStudents(double residentStudents)
+	{
 		this->residentStudents = residentStudents;
 	}
 
-	double getResidentWorkers() const {
+	double getResidentWorkers() const
+	{
 		return residentWorkers;
 	}
 
-	void setResidentWorkers(double residentWorkers) {
+	void setResidentWorkers(double residentWorkers)
+	{
 		this->residentWorkers = residentWorkers;
 	}
 
-	double getShop() const {
+	double getShop() const
+	{
 		return shop;
 	}
 
-	void setShop(double shop) {
+	void setShop(double shop)
+	{
 		this->shop = shop;
 	}
 
-	double getTotalEnrollment() const {
+	double getTotalEnrollment() const
+	{
 		return totalEnrollment;
 	}
 
-	void setTotalEnrollment(double totalEnrollment) {
+	void setTotalEnrollment(double totalEnrollment)
+	{
 		this->totalEnrollment = totalEnrollment;
 	}
 
-	int getZoneCode() const {
+	int getZoneCode() const
+	{
 		return zoneCode;
 	}
 
-	void setZoneCode(int zoneCode) {
+	void setZoneCode(int zoneCode)
+	{
 		this->zoneCode = zoneCode;
 	}
 
-	int getZoneId() const {
+	int getZoneId() const
+	{
 		return zoneId;
 	}
 
-	void setZoneId(int zoneId) {
+	void setZoneId(int zoneId)
+	{
 		this->zoneId = zoneId;
 	}
 
 	int getCbdDummy() const
 	{
-		return (cbdZone? 1 : 0);
+		return (cbdZone ? 1 : 0);
 	}
 
 	void setCbdDummy(int cbdZone)
@@ -140,150 +161,195 @@ private:
  *
  * \author Harish Loganathan
  */
-class CostParams {
+class CostParams
+{
 public:
-	virtual ~CostParams() {}
+	virtual ~CostParams()
+	{
+	}
 
-	const std::string getOrgDest() const {
+	const std::string getOrgDest() const
+	{
 		return orgDest;
 	}
 
-	void setOrgDest() {
+	void setOrgDest()
+	{
 		std::stringstream ss;
 		ss << originZone << "," << destinationZone;
 		orgDest = ss.str();
 	}
 
-	double getAvgTransfer() const {
+	double getAvgTransfer() const
+	{
 		return avgTransfer;
 	}
 
 	// a != a returns true if a is NaN. This check is used in many setters in this class.
-	void setAvgTransfer(double avgTransfer) {
-		if(avgTransfer != avgTransfer) {
+	void setAvgTransfer(double avgTransfer)
+	{
+		if (avgTransfer != avgTransfer)
+		{
 			this->avgTransfer = 0;
 		}
-		else {
+		else
+		{
 			this->avgTransfer = avgTransfer;
 		}
 	}
 
-	double getCarCostErp() const {
+	double getCarCostErp() const
+	{
 		return carCostERP;
 	}
 
-	void setCarCostErp(double carCostErp) {
-		if(carCostErp != carCostErp) {
+	void setCarCostErp(double carCostErp)
+	{
+		if (carCostErp != carCostErp)
+		{
 			this->carCostERP = 0;
 		}
-		else {
+		else
+		{
 			this->carCostERP = carCostErp;
 		}
 	}
 
-	double getCarIvt() const {
+	double getCarIvt() const
+	{
 		return carIvt;
 	}
 
-	void setCarIvt(double carIvt) {
-		if(carIvt != carIvt) {
+	void setCarIvt(double carIvt)
+	{
+		if (carIvt != carIvt)
+		{
 			this->carIvt = 0;
 		}
-		else {
+		else
+		{
 			this->carIvt = carIvt;
 		}
 	}
 
-	int getDestinationZone() const {
+	int getDestinationZone() const
+	{
 		return destinationZone;
 	}
 
-	void setDestinationZone(int destinationZone) {
+	void setDestinationZone(int destinationZone)
+	{
 		this->destinationZone = destinationZone;
 	}
 
-	double getDistance() const {
+	double getDistance() const
+	{
 		return distance;
 	}
 
-	void setDistance(double distance) {
-		if(distance != distance) {
+	void setDistance(double distance)
+	{
+		if (distance != distance)
+		{
 			this->distance = 0;
 		}
-		else {
+		else
+		{
 			this->distance = distance;
 		}
 	}
 
-	int getOriginZone() const {
+	int getOriginZone() const
+	{
 		return originZone;
 	}
 
-	void setOriginZone(int originZone) {
+	void setOriginZone(int originZone)
+	{
 		this->originZone = originZone;
 	}
 
-	double getPubCost() const {
+	double getPubCost() const
+	{
 		return pubCost;
 	}
 
-	void setPubCost(double pubCost) {
-		if(pubCost != pubCost) {
+	void setPubCost(double pubCost)
+	{
+		if (pubCost != pubCost)
+		{
 			this->pubCost = 0;
 		}
-		else {
+		else
+		{
 			this->pubCost = pubCost;
 		}
 	}
 
-	double getPubIvt() const {
+	double getPubIvt() const
+	{
 		return pubIvt;
 	}
 
-	void setPubIvt(double pubIvt) {
-		if(pubIvt != pubIvt) {
+	void setPubIvt(double pubIvt)
+	{
+		if (pubIvt != pubIvt)
+		{
 			this->pubIvt = 0;
 		}
-		else {
+		else
+		{
 			this->pubIvt = pubIvt;
 		}
 	}
 
-	double getPubOut() const {
+	double getPubOut() const
+	{
 		return pubOut;
 	}
 
-	void setPubOut(double pubOut) {
-		if(pubOut != pubOut) {
+	void setPubOut(double pubOut)
+	{
+		if (pubOut != pubOut)
+		{
 			this->pubOut = 0;
 		}
-		else {
+		else
+		{
 			this->pubOut = pubOut;
 		}
 	}
 
-	double getPubWalkt() const {
+	double getPubWalkt() const
+	{
 		return pubWalkt;
 	}
 
-	void setPubWalkt(double pubWalkt) {
-		if(pubWalkt != pubWalkt) {
+	void setPubWalkt(double pubWalkt)
+	{
+		if (pubWalkt != pubWalkt)
+		{
 			this->pubWalkt = 0;
 		}
-		else {
+		else
+		{
 			this->pubWalkt = pubWalkt;
 		}
 	}
 
-	double getPubWtt() const {
+	double getPubWtt() const
+	{
 		return pubWtt;
 	}
 
-	void setPubWtt(double pubWtt) {
-		if(pubWtt != pubWtt) {
+	void setPubWtt(double pubWtt)
+	{
+		if (pubWtt != pubWtt)
+		{
 			this->pubWtt = 0;
 		}
-		else {
+		else
+		{
 			this->pubWtt = pubWtt;
 		}
 	}
@@ -303,9 +369,12 @@ private:
 	double pubCost;
 };
 
-class ZoneNodeParams {
+class ZoneNodeParams
+{
 public:
-	virtual ~ZoneNodeParams() {}
+	virtual ~ZoneNodeParams()
+	{
+	}
 
 	long getAimsunNodeId() const
 	{
@@ -357,4 +426,4 @@ private:
 
 };
 
-}
+} // namespace sim_mob

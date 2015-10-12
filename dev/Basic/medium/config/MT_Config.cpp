@@ -24,11 +24,12 @@ PredayCalibrationParams::PredayCalibrationParams() :
 {}
 
 MT_Config::MT_Config() :
-		pedestrianWalkSpeed(0), numPredayThreads(0), configSealed(false), fileOutputEnabled(false),
-		consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA),
-		logsumComputationFrequency(0), supplyUpdateInterval(0), activityScheduleLoadInterval(0), busCapacity(0),
-		outputPredictions(false), populationSource(db::MONGO_DB), populationDB(), logsumDB()
-{}
+		publicTransitEnabled(false), cbd(false), numAgentsSkipped(0), midTermRunMode(MT_Config::NONE), pedestrianWalkSpeed(0), numPredayThreads(0),
+			configSealed(false), fileOutputEnabled(false), consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA),
+			logsumComputationFrequency(0), supplyUpdateInterval(0), activityScheduleLoadInterval(0), busCapacity(0), outputPredictions(false),
+			populationSource(db::MONGO_DB), populationDB(), logsumDB()
+{
+}
 
 MT_Config::~MT_Config()
 {
@@ -291,47 +292,55 @@ void MT_Config::setLogsumComputationFrequency(unsigned logsumComputationFrequenc
 	}
 }
 
-const std::string& MT_Config::getFilenameOfJourneyTimeStats() const {
-	return filenameOfJourneyTimeStats;
+const std::string& MT_Config::getJourneyTimeStatsFilename() const
+{
+	return journeyTimeStatsFilename;
 }
 
-const std::string& MT_Config::getFilenameOfWaitingTimeStats() const {
-	return filenameOfWaitingTimeStats;
+const std::string& MT_Config::getWaitingTimeStatsFilename() const
+{
+	return waitingTimeStatsFilename;
 }
 
-void MT_Config::setFilenameOfJourneyTimeStats(const std::string& str) {
+void MT_Config::setJourneyTimeStatsFilename(const std::string& str)
+{
 	if(!configSealed)
 	{
-		filenameOfJourneyTimeStats = str;
+		journeyTimeStatsFilename = str;
 	}
 }
 
-void MT_Config::setFilenameOfWaitingTimeStats(const std::string& str) {
+void MT_Config::setWaitingTimeStatsFilename(const std::string& str)
+{
 	if(!configSealed)
 	{
-		filenameOfWaitingTimeStats = str;
+		waitingTimeStatsFilename = str;
 	}
 }
 
-const std::string& MT_Config::getFilenameOfWaitingAmountStats() const {
-	return filenameOfWaitingAmountStats;
+const std::string& MT_Config::getWaitingCountStatsFilename() const
+{
+	return waitingCountStatsFilename;
 }
 
-void MT_Config::setFilenameOfWaitingAmountStats(const std::string& str) {
+void MT_Config::setWaitingCountStatsFilename(const std::string& str)
+{
 	if(!configSealed)
 	{
-		filenameOfWaitingAmountStats = str;
+		waitingCountStatsFilename = str;
 	}
 }
 
-const std::string& MT_Config::getFilenameOfTravelTimeStats() const {
-	return filenameOfTravelTimeStats;
+const std::string& MT_Config::getTravelTimeStatsFilename() const
+{
+	return travelTimeStatsFilename;
 }
 
-void MT_Config::setFilenameOfTravelTimeStats(const std::string& str) {
+void MT_Config::setTravelTimeStatsFilename(const std::string& str)
+{
 	if(!configSealed)
 	{
-		filenameOfTravelTimeStats = str;
+		travelTimeStatsFilename = str;
 	}
 }
 const unsigned int MT_Config::getBusCapacity() const

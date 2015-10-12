@@ -12,10 +12,8 @@
  * at list one segment before the rerouting point so that supply has the opportunity to choose the
  * correct lane.
  */
-sim_mob::medium::MesoReroute::MesoReroute(sim_mob::medium::DriverMovement &dm):dm(dm)
-{
-
-}
+sim_mob::medium::MesoReroute::MesoReroute(sim_mob::medium::DriverMovement &dm):dm(dm), currSegment(nullptr)
+{}
 
 bool sim_mob::medium::MesoReroute::shouldReroute()
 {
@@ -67,7 +65,7 @@ bool sim_mob::medium::MesoReroute::doReroute()
 	 subTrip.destination = sim_mob::WayPoint((*(dm.pathMover.getPath().rbegin()))->getRoadSegment()->getEnd());
 
 	 //STEP-2: find a new path
-	 std::vector<WayPoint> newWP_Path = sim_mob::PathSetManager::getInstance()->getPath(subTrip, true, currSegment);//new waypoint path
+	 std::vector<WayPoint> newWP_Path = sim_mob::PrivateTrafficRouteChoice::getInstance()->getPath(subTrip, true, currSegment);//new waypoint path
 
 	 //STEP-3: check for circles: if any segment in the new path had been traversed before, discard this new path
 	 //(which means: based on current implementation, just forget about rerouting from this point)

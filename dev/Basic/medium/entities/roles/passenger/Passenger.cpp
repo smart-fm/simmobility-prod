@@ -3,13 +3,12 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Passenger.hpp"
-#include "PassengerFacets.hpp"
-#include "entities/Person.hpp"
+#include "entities/PT_Statistics.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "message/MT_Message.hpp"
 #include "message/MT_Message.hpp"
-#include "entities/PT_Statistics.hpp"
-#include "entities/Person_MT.hpp"
+#include "PassengerFacets.hpp"
+
 using std::vector;
 using namespace sim_mob;
 
@@ -23,8 +22,8 @@ sim_mob::medium::Passenger::Passenger(Person_MT *parent,
 									  sim_mob::medium::PassengerBehavior* behavior,
 									  sim_mob::medium::PassengerMovement* movement,
 									  std::string roleName, Role<Person_MT>::Type roleType) :
-Role<Person_MT>(parent, behavior, movement, roleName, roleType),
-driver(nullptr), alightBus(false), startNode(nullptr), endNode(nullptr)
+				Role<Person_MT>(parent, behavior, movement, roleName, roleType), driver(nullptr), alightBus(false),
+				startNode(nullptr), endNode(nullptr)
 {
 }
 
@@ -82,41 +81,33 @@ void sim_mob::medium::Passenger::HandleParentMessage(messaging::Message::Message
 
 void sim_mob::medium::Passenger::collectTravelTime()
 {
-	std::string personId, tripStartPoint, tripEndPoint, subStartPoint,
-			subEndPoint, subStartType, subEndType, mode, service, arrivaltime,
-			travelTime;
-
-	personId = boost::lexical_cast<std::string>(parent->getId());
-	tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
-	tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
-	subStartPoint = parent->currSubTrip->startLocationId;
-	subEndPoint = parent->currSubTrip->endLocationId;
-	subStartType = parent->currSubTrip->startLocationType;
-	subEndType = parent->currSubTrip->endLocationType;
-	mode = parent->currSubTrip->getMode();
-	service = parent->currSubTrip->ptLineId;
-	travelTime = DailyTime(parent->getRole()->getTravelTime()).getStrRepr();
-	arrivaltime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
+	PersonTravelTime personTravelTime;
+	personTravelTime.personId = parent->getId();
+	personTravelTime.tripStartPoint = (*(parent->currTripChainItem))->startLocationId;
+	personTravelTime.tripEndPoint = (*(parent->currTripChainItem))->endLocationId;
+	personTravelTime.subStartPoint = parent->currSubTrip->startLocationId;
+	personTravelTime.subEndPoint = parent->currSubTrip->endLocationId;
+	personTravelTime.subStartType = parent->currSubTrip->startLocationType;
+	personTravelTime.subEndType = parent->currSubTrip->endLocationType;
+	personTravelTime.mode = parent->currSubTrip->getMode();
+	personTravelTime.service = parent->currSubTrip->ptLineId;
+	personTravelTime.travelTime = ((double)parent->getRole()->getTravelTime()) / 1000.0; //convert to seconds
+	personTravelTime.arrivalTime = DailyTime(parent->getRole()->getArrivalTime()).getStrRepr();
 	if (roleType == Role<Person_MT>::RL_TRAINPASSENGER)
 	{
-		mode = "MRT_TRAVEL";
+		personTravelTime.mode = "MRT_TRAVEL";
 	}
 	else if (roleType == Role<Person_MT>::RL_CARPASSENGER)
 	{
-		mode = "CARSHARING_TRAVEL";
+		personTravelTime.mode = "CARSHARING_TRAVEL";
 	}
 	else
 	{
-		mode = "BUS_TRAVEL";
+		personTravelTime.mode = "BUS_TRAVEL";
 	}
 
-	messaging::MessageBus::PostMessage(PT_Statistics::GetInstance(),
-									STORE_PERSON_TRAVEL,
-									messaging::MessageBus::MessagePtr(
-																	  new PersonTravelTimeMessage(personId, tripStartPoint,
-																								  tripEndPoint, subStartPoint, subEndPoint,
-																								  subStartType, subEndType, mode, service,
-																								  arrivaltime, travelTime)), true);
+	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
+			STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
 }
 
 }

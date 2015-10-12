@@ -16,36 +16,44 @@
 #include "buffering/BufferedDataManager.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "conf/ParseConfigFile.hpp"
 #include "conf/ExpandAndValidateConfigFile.hpp"
+#include "config/MT_Config.hpp"
+#include "config/ParseMidTermConfigFile.hpp"
+#include "conf/ParseConfigFile.hpp"
 #include "database/DB_Connection.hpp"
-#include "entities/incident/IncidentManager.hpp"
-#include "entities/AuraManager.hpp"
+#include "database/pt_network_dao/PT_NetworkSqlDao.hpp"
 #include "entities/Agent.hpp"
+#include "entities/AuraManager.hpp"
 #include "entities/BusController.hpp"
-#include "entities/Person.hpp"
-#include "entities/roles/activityRole/ActivityPerformer.hpp"
-#include "entities/roles/driver/Biker.hpp"
-#include "entities/roles/driver/Driver.hpp"
-#include "entities/roles/driver/BusDriver.hpp"
-#include "entities/roles/pedestrian/Pedestrian.hpp"
-#include "entities/roles/waitBusActivity/waitBusActivity.hpp"
-#include "entities/roles/passenger/Passenger.hpp"
 #include "entities/BusStopAgent.hpp"
+#include "entities/incident/IncidentManager.hpp"
+#include "entities/params/PT_NetworkEntities.hpp"
+#include "entities/Person.hpp"
 #include "entities/PersonLoader.hpp"
+#include "entities/Person_MT.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/PT_Statistics.hpp"
+#include "entities/roles/activityRole/ActivityPerformer.hpp"
+#include "entities/roles/driver/Biker.hpp"
+#include "entities/roles/driver/BusDriver.hpp"
+#include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
+#include "entities/roles/pedestrian/Pedestrian.hpp"
+#include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
+#include "entities/ScreenLineCounter.hpp"
 #include "entities/signal/Signal.hpp"
-#include "geospatial/aimsun/Loader.hpp"
-#include "geospatial/RoadNetwork.hpp"
-#include "geospatial/UniNode.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
-#include "geospatial/Lane.hpp"
-#include "path/PathSetManager.hpp"
 #include "entities/TravelTimeManager.hpp"
+#include "geospatial/aimsun/Loader.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/RoadNetwork.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "geospatial/streetdir/A_StarPublicTransitShortestPathImpl.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/UniNode.hpp"
 #include "logging/Log.hpp"
 #include "partitions/PartitionManager.hpp"
+#include "path/PathSetManager.hpp"
+#include "path/PathSetParam.hpp"
 #include "path/PT_PathSetManager.hpp"
 #include "path/PT_RouteChoiceLuaModel.hpp"
 #include "util/DailyTime.hpp"
@@ -54,13 +62,7 @@
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
-#include "config/MT_Config.hpp"
-#include "config/ParseMidTermConfigFile.hpp"
-#include "entities/params/PT_NetworkEntities.hpp"
-#include "database/pt_network_dao/PT_NetworkSqlDao.hpp"
-#include "geospatial/streetdir/A_StarPublicTransitShortestPathImpl.hpp"
-#include "path/ScreenLineCounter.hpp"
-#include "entities/Person_MT.hpp"
+
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -110,6 +112,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		prof = new ProfileBuilder();
 	}
 
+	sim_mob::DailyTime::initAllTimes();
+
 	//Loader params for our Agents
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 
@@ -128,7 +132,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	rf->registerRole("waitBusActivity", new sim_mob::medium::WaitBusActivity(nullptr));
 	rf->registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr));
 	rf->registerRole("passenger", new sim_mob::medium::Passenger(nullptr));
-	rf->registerRole("biker", new sim_mob::medium::Biker(nullptr, mtx));
+	rf->registerRole("biker", new sim_mob::medium::Biker(nullptr));
 
 	//Load our user config file, which is a time costly function
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
@@ -183,7 +187,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
 
-	messaging::MessageBus::RegisterHandler(PT_Statistics::GetInstance());
+	messaging::MessageBus::RegisterHandler(PT_Statistics::getInstance());
 
 	//Load persons for 0th tick
 	periodicPersonLoader.loadActivitySchedules();
@@ -207,7 +211,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//incident
 	personWorkers->assignAWorker(IncidentManager::getInstance());
 	//before starting the groups, initialize the time interval for one of the pathset manager's helpers
-	TravelTimeManager::initTimeInterval();
+	PathSetManager::initTimeInterval();
 	cout << "Initial Agents dispatched or pushed to pending.all_agents: " << Agent::all_agents.size() << " pending: " << Agent::pending_agents.size() << endl;
 
 	//Start work groups and all threads.
@@ -281,6 +285,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}
 
 	BusStopAgent::removeAllBusStopAgents();
+	sim_mob::PathSetParam::resetInstance();
 
 	//Finalize partition manager
 #ifndef SIMMOB_DISABLE_MPI
@@ -293,7 +298,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 	//finalize
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		PathSetManager::getInstance()->storeRTT();
+		TravelTimeManager::getInstance()->storeRTT2DB();
 	}
 
 	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;
@@ -338,7 +343,8 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			<< endl;
 	}
 
-	PT_Statistics::GetInstance()->PrintStatistics();
+	PT_Statistics::getInstance()->storeStatistics();
+	PT_Statistics::resetInstance();
 
 	if (ConfigManager::GetInstance().FullConfig().numAgentsSkipped>0)
 	{
@@ -352,13 +358,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		cout<< "WARNING! There are still " << Agent::pending_agents.size()
 			<< " Agents waiting to be scheduled; next start time is: "
 			<< Agent::pending_agents.top()->getStartTime() << " ms\n";
-	}
-
-	if(personWorkers->getNumAgentsWithNoPath() > 0)
-	{
-		cout<< personWorkers->getNumAgentsWithNoPath()
-			<< " persons were not added to the simulation because they could not find a path."
-			<< endl;
 	}
 
 	//Save our output files if we are merging them later.
@@ -376,7 +375,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
         ScreenLineCounter::getInstance()->exportScreenLineCount();
     }
 
-	//Test: At this point, it should be possible to delete all Signals and Agents.
+	//At this point, it should be possible to delete all Signals and Agents.
 	clear_delete_vector(Signal::all_signals_);
 	clear_delete_vector(Agent::all_agents);
 
@@ -392,7 +391,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
  */
 bool performMainDemand()
 {
-	std::srand(clock()); // set random seed for RNGs in preday
 	const MT_Config& mtConfig = MT_Config::getInstance();
 	const db::BackendType populationSource = mtConfig.getPopulationSource();
 	PredayManager predayManager;
@@ -439,6 +437,7 @@ bool performMainDemand()
  */
 bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles)
 {
+	std::srand(clock()); // set random seed for RNGs
 	cout <<"Starting SimMobility, version " << SIMMOB_VERSION << endl;
 
 	//Parse the config file (this *does not* create anything, it just reads it.).

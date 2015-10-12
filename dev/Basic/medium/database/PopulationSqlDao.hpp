@@ -2,29 +2,25 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * PredayDao.hpp
- *
- *  Created on: Nov 15, 2013
- *      Author: Harish Loganathan
- */
-
 #pragma once
 
-#include <map>
 #include <bitset>
+#include <map>
+#include <vector>
 #include "database/dao/SqlAbstractDao.hpp"
 #include "database/DB_Connection.hpp"
 #include "behavioral/params/PersonParams.hpp"
 
-namespace sim_mob {
-namespace medium {
+namespace sim_mob
+{
+namespace medium
+{
 /**
  * Data access object for Population tables
  *
  * \author Harish Loganathan
  */
-class PopulationSqlDao : public db::SqlAbstractDao<PersonParams>
+class PopulationSqlDao: public db::SqlAbstractDao<PersonParams>
 {
 public:
 	PopulationSqlDao(db::DB_Connection& connection);
@@ -62,22 +58,22 @@ public:
 	void getAddressTAZs(std::map<long, int>& outMap);
 
 private:
-    /**
-     * Virtual override.
-     * Fills the given outObj with all values contained on Row.
-     * @param result row with data to fill the out object.
-     * @param outObj to fill.
-     */
-    void fromRow(db::Row& result, PersonParams& outObj);
+	/**
+	 * Virtual override.
+	 * Fills the given outObj with all values contained on Row.
+	 * @param result row with data to fill the out object.
+	 * @param outObj to fill.
+	 */
+	void fromRow(db::Row& result, PersonParams& outObj);
 
-    /**
-     * Virtual override.
-     * Fills the outParam with all values to insert or update on datasource.
-     * @param data to get values.
-     * @param outParams to put the data parameters.
-     * @param update tells if operation is an Update or Insert.
-     */
-    void toRow(PersonParams& data, db::Parameters& outParams, bool update);
+	/**
+	 * Virtual override.
+	 * Fills the outParam with all values to insert or update on datasource.
+	 * @param data to get values.
+	 * @param outParams to put the data parameters.
+	 * @param update tells if operation is an Update or Insert.
+	 */
+	void toRow(PersonParams& data, db::Parameters& outParams, bool update);
 };
 
 /**
@@ -85,7 +81,7 @@ private:
  *
  * \author Harish Loganathan
  */
-class LogsumSqlDao : public db::SqlAbstractDao<PersonParams>
+class LogsumSqlDao: public db::SqlAbstractDao<PersonParams>
 {
 public:
 	LogsumSqlDao(db::DB_Connection& connection);
@@ -97,23 +93,24 @@ public:
 	 * @param outParam output parameter to load logsums
 	 */
 	void getLogsumById(long long id, PersonParams& outObj);
-private:
-    /**
-     * Virtual override.
-     * Fills the given outObj with all values contained on Row.
-     * @param result row with data to fill the out object.
-     * @param outObj to fill with logsums.
-     */
-    void fromRow(db::Row& result, PersonParams& outObj);
 
-    /**
-     * Virtual override.
-     * Fills the outParam with all values to insert or update on datasource.
-     * @param data to get values.
-     * @param outParams to put the data parameters.
-     * @param update tells if operation is an Update or Insert.
-     */
-    void toRow(PersonParams& data, db::Parameters& outParams, bool update);
+private:
+	/**
+	 * Virtual override.
+	 * Fills the given outObj with all values contained on Row.
+	 * @param result row with data to fill the out object.
+	 * @param outObj to fill with logsums.
+	 */
+	void fromRow(db::Row& result, PersonParams& outObj);
+
+	/**
+	 * Virtual override.
+	 * Fills the outParam with all values to insert or update on datasource.
+	 * @param data to get values.
+	 * @param outParams to put the data parameters.
+	 * @param update tells if operation is an Update or Insert.
+	 */
+	void toRow(PersonParams& data, db::Parameters& outParams, bool update);
 };
 } // end namespace medium
 } // end namespace sim_mib

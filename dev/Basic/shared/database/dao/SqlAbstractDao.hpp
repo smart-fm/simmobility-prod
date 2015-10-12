@@ -6,9 +6,9 @@
 #include <vector>
 #include <boost/algorithm/string.hpp>
 #include <boost/unordered_map.hpp>
+#include "soci/soci.h"
 #include "database/DB_Connection.hpp"
 #include "util/LangHelpers.hpp"
-#include "soci.h"
 #include "I_Dao.hpp"
 
 namespace
@@ -19,8 +19,10 @@ namespace
 class ParamBinder: public boost::static_visitor<>
 {
 public:
-	ParamBinder(soci::details::prepare_temp_type& statement) : statement(statement)
-	{}
+	ParamBinder(soci::details::prepare_temp_type& statement) :
+			statement(statement)
+	{
+	}
 
 	template<typename T>
 	void operator()(const T& val) const
@@ -38,6 +40,7 @@ const std::string DB_RETURNING_ALL_CLAUSE = " " + DB_RETURNING_CLAUSE + " * ";
 
 namespace sim_mob
 {
+
 namespace db
 {
 typedef soci::row Row;

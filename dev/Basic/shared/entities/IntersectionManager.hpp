@@ -10,7 +10,7 @@
 
 #include "Agent.hpp"
 #include "conf/params/ParameterManager.hpp"
-#include "geospatial/MultiNode.hpp"
+#include "geospatial/network/Node.hpp"
 #include "Person.hpp"
 
 using namespace std;
@@ -32,7 +32,7 @@ namespace sim_mob
     unsigned int intMgrId;
     
     //The multi-node that the intersection manager manages
-    const MultiNode *multinode;
+    const Node *node;
     
     //This map stores the most recent access time granted to a vehicle based on its turning id
     //Key: Turning id, Value: Previous access time
@@ -79,7 +79,7 @@ namespace sim_mob
     //Map holding the pointers to all the intersection manager objects
     static map<unsigned int, IntersectionManager *> intManagers;
     
-    IntersectionManager(MutexStrategy const &mutexStrategy, const MultiNode *multinode);
+    IntersectionManager(MutexStrategy const &mutexStrategy, const Node *node);
     
     virtual ~IntersectionManager();
     

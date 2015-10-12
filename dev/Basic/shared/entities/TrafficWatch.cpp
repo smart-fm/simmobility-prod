@@ -11,7 +11,7 @@
 
 #include "TrafficWatch.hpp"
 
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 
 using namespace sim_mob;
 
@@ -19,8 +19,8 @@ using namespace sim_mob;
 /*#include "util/DebugFlags.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/Lane.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/Lane.hpp"
 #include "geospatial/StreetDirectory.hpp"
 
 using std::vector;

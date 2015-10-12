@@ -121,7 +121,7 @@ private:
 	unsigned int tickStep;
 	std::vector<Bus*> managedBuses;// Saved all virtual managedBuses
 	StartTimePriorityQueue pending_buses; //Buses waiting to be added to the simulation, prioritized by start time.
-	DPoint posBus;// The sent position of a given bus ,only for test
+	Point posBus;// The sent position of a given bus ,only for test
 
 	PT_Schedule pt_schedule;
 	//The current Link. Used by Jenny's code (except we don't currently use buses in the medium term)

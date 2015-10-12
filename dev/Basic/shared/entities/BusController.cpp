@@ -11,8 +11,8 @@
 #include "entities/Person.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/misc/BusTrip.hpp"
-#include "geospatial/BusStop.hpp"
-#include "geospatial/Link.hpp"
+#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/Link.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
@@ -227,10 +227,10 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 			if (k == 0) {
 				start = busStop;
 				StopInfo stopInfo;
-				stopInfo.id = start->getBusstopno_();
+				stopInfo.id = start->getRoadItemId();
 				stopInfo.line = busLine;
-				stopInfo.posX = start->xPos;
-				stopInfo.posY = start->yPos;
+				stopInfo.posX = start->getStopLocation().getX();
+				stopInfo.posY = start->getStopLocation().getY();
 				stopIDs.push_back(stopInfo);
 			} else {
 				end = busStop;
@@ -238,7 +238,7 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 				StreetDirectory::VertexDesc startDes = stdir.DrivingVertex(*start);
 				StreetDirectory::VertexDesc endDes = stdir.DrivingVertex(*end);
 				vector<WayPoint> path;
-				if (start->getParentSegment() == end->getParentSegment()) {
+				if (start->getRoadSegmentId() == end->getRoadSegmentId()) {
 					path.push_back(WayPoint(start->getParentSegment()));
 				} else {
 					path = stdir.SearchShortestDrivingPath(startDes, endDes);
@@ -246,18 +246,18 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 
 				for (std::vector<WayPoint>::const_iterator it = path.begin();
 						it != path.end(); it++) {
-					if (it->type_ == WayPoint::ROAD_SEGMENT) {
+					if (it->type == WayPoint::ROAD_SEGMENT) {
 						unsigned int id =
-								(*it).roadSegment_->getSegmentAimsunId();
+								(*it).roadSegment->getRoadSegmentId();
 						if (routeIDs.size() == 0 || routeIDs.back().id != id) {
 							RouteInfo route;
 							route.id = id;
-							route.start = start->getBusstopno_();
-							route.end = end->getBusstopno_();
-							route.startPosX = start->xPos;
-							route.startPosY = start->yPos;
-							route.endPosX = end->xPos;
-							route.endPosY = end->yPos;
+							route.start = start->getRoadItemId();
+							route.end = end->getRoadItemId();
+							route.startPosX = start->getStopLocation().getX();
+							route.startPosY = start->getStopLocation().getY();
+							route.endPosX = end->getStopLocation().getX();
+							route.endPosY = end->getStopLocation().getY();
 							routeIDs.push_back(route);
 						}
 						isFound = true;
@@ -266,18 +266,18 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 
 				if (!isFound) {
 					std::cout << "can not find bus route in bus line:" << busLine
-							<< " start stop:" << start->getBusstopno_()
-							<< "  end stop:" << end->getBusstopno_()
+							<< " start stop:" << start->getRoadItemId()
+							<< "  end stop:" << end->getRoadItemId()
 							<< std::endl;
 					routeIDs.clear();
 					stopIDs.clear();
 					break;
 				} else {
 					StopInfo stopInfo;
-					stopInfo.id =   end->getBusstopno_();
+					stopInfo.id =   end->getRoadItemId();
 					stopInfo.line = busLine;
-					stopInfo.posX = end->xPos;
-					stopInfo.posY = end->yPos;
+					stopInfo.posX = end->getStopLocation().getX();
+					stopInfo.posY = end->getStopLocation().getY();
 					stopIDs.push_back(stopInfo);
 				}
 
@@ -403,7 +403,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 			  for(int k=0;k<stops.size();k++)//to store the bus line info at each bus stop
 			  {
 				 BusStop* busStop=const_cast<BusStop*>(stops[k]);
-				 busStop->BusLines.push_back(busline);
+				 //busStop->BusLines.push_back(busline);
 			  }
 		     busstop_busline_registered = false;
 			}
@@ -471,7 +471,8 @@ void sim_mob::BusController::storeRealTimes_eachBusStop(const std::string& busli
 		size_t iSize = busStopRealTimeTripkMinusOne.size();
 		for(size_t i = 0; i < iSize; i++) {
 			if(busStopRealTimeTripkMinusOne[i]->get().Real_busStop) {
-				std::cout << "real_ArrivalTime: " << i << " " << busStopRealTimeTripkMinusOne[i]->get().real_ArrivalTime.getStrRepr() << " bus stop no: " << busStopRealTimeTripkMinusOne[i]->get().Real_busStop->busstopno_ << std::endl;
+				std::cout << "real_ArrivalTime: " << i << " " << busStopRealTimeTripkMinusOne[i]->get().real_ArrivalTime.getStrRepr() 
+						<< " bus stop no: " << busStopRealTimeTripkMinusOne[i]->get().Real_busStop->getRoadItemId() << std::endl;
 			}
 		}
 	}
@@ -819,8 +820,8 @@ void sim_mob::BusController::frame_output(timeslice now)
 			<<","<<getId()
 			<<",{"
 			<<"\"managedBuses size\":\""<<static_cast<int>(managedBuses.size())
-			<<"\",\"Bus_xPos\":\""<<static_cast<int>(posBus.x)
-			<<"\",\"Bus_yPos\":\""<<static_cast<int>(posBus.y)
+			<<"\",\"Bus_xPos\":\""<<static_cast<int>(posBus.getX())
+			<<"\",\"Bus_yPos\":\""<<static_cast<int>(posBus.getY())
 			<<"\"})"<<std::endl);
 }
 

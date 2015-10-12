@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Sensor.hpp"
-#include "geospatial/Lane.hpp"
+#include "geospatial/network/Lane.hpp"
 
 namespace sim_mob {
 

@@ -6,7 +6,7 @@
  */
 
 #include "geospatial/Incident.hpp"
-#include "geospatial/Lane.hpp"
+#include "geospatial/network/Lane.hpp"
 #include "entities/models/Constants.h"
 #include "map"
 #ifndef INCIDENTRESPONSE_HPP_

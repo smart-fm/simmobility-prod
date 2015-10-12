@@ -21,6 +21,7 @@
 #include "Person.hpp"
 #include "util/DailyTime.hpp"
 #include "util/Utils.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -247,15 +248,15 @@ bool sim_mob::PeriodicPersonLoader::checkTimeForNextLoad()
 
 void sim_mob::PeriodicPersonLoader::makeSubTrip(const soci::row& r, sim_mob::Trip* parentTrip, unsigned short subTripNo)
 {
-	sim_mob::RoadNetwork& rn = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW();
+	sim_mob::RoadNetwork& rn = *(RoadNetwork::getInstance());
 	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 	sim_mob::SubTrip aSubTripInTrip;
 	aSubTripInTrip.setPersonID(r.get<string>(0));
 	aSubTripInTrip.itemType = sim_mob::TripChainItem::IT_TRIP;
 	aSubTripInTrip.tripID = parentTrip->tripID + "-" + boost::lexical_cast<string>(subTripNo);
-	aSubTripInTrip.fromLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(10)));
+	aSubTripInTrip.fromLocation = sim_mob::WayPoint((rn.getMapOfIdvsNodes().find(r.get<int>(10)))->second);
 	aSubTripInTrip.fromLocationType = sim_mob::TripChainItem::LT_NODE;
-	aSubTripInTrip.toLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(5)));
+	aSubTripInTrip.toLocation = sim_mob::WayPoint((rn.getMapOfIdvsNodes().find(r.get<int>(5)))->second);
 	aSubTripInTrip.toLocationType = sim_mob::TripChainItem::LT_NODE;
 	aSubTripInTrip.mode = r.get<string>(6);
 	aSubTripInTrip.isPrimaryMode = r.get<int>(7);
@@ -265,7 +266,7 @@ void sim_mob::PeriodicPersonLoader::makeSubTrip(const soci::row& r, sim_mob::Tri
 
 sim_mob::Activity* sim_mob::PeriodicPersonLoader::makeActivity(const soci::row& r, unsigned int seqNo)
 {
-	sim_mob::RoadNetwork& rn = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW();
+	sim_mob::RoadNetwork& rn = *(RoadNetwork::getInstance());
 	sim_mob::Activity* res = new sim_mob::Activity();
 	res->setPersonID(r.get<string>(0));
 	res->itemType = sim_mob::TripChainItem::IT_ACTIVITY;
@@ -274,7 +275,7 @@ sim_mob::Activity* sim_mob::PeriodicPersonLoader::makeActivity(const soci::row& 
 	res->isPrimary = r.get<int>(7);
 	res->isFlexible = false;
 	res->isMandatory = true;
-	res->location = rn.getNodeById(r.get<int>(5));
+	res->location = (rn.getMapOfIdvsNodes().find(r.get<int>(5)))->second;
 	res->locationType = sim_mob::TripChainItem::LT_NODE;
 	res->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(8), true));
 	res->endTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(9), false));
@@ -283,7 +284,7 @@ sim_mob::Activity* sim_mob::PeriodicPersonLoader::makeActivity(const soci::row& 
 
 sim_mob::Trip* sim_mob::PeriodicPersonLoader::makeTrip(const soci::row& r, unsigned int seqNo)
 {
-	sim_mob::RoadNetwork& rn = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW();
+	sim_mob::RoadNetwork& rn = *(RoadNetwork::getInstance());
 	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 	sim_mob::Trip* tripToSave = new sim_mob::Trip();
 	tripToSave->sequenceNumber = seqNo;
@@ -329,8 +330,8 @@ void sim_mob::RestrictedRegion::populate()
 	std::stringstream outStrm("");
 	BOOST_FOREACH(const sim_mob::RoadSegment*rs,zoneSegments)
 	{
-		outStrm << rs->getId() << ",";
-		rs->CBD = true;
+		outStrm << rs->getRoadSegmentId() << ",";
+		//rs->CBD = true;
 	}
 	zoneSegmentsStr = outStrm.str();
 
@@ -338,21 +339,21 @@ void sim_mob::RestrictedRegion::populate()
 	BOOST_FOREACH(Pair node, zoneNodes)
 	{
 		outStrm << node.first << ",";
-		node.second->CBD = true;
+		//node.second->CBD = true;
 	}
 	zoneNodesStr = outStrm.str();
 
 	outStrm.str(std::string());
 	BOOST_FOREACH(SegPair item, in)
 	{
-		outStrm << item.first->getId() << ":" << item.second->getId() << ",";
+		outStrm << item.first->getRoadSegmentId() << ":" << item.second->getRoadSegmentId() << ",";
 	}
 	inStr = outStrm.str();
 
 	outStrm.str(std::string());
 	BOOST_FOREACH(SegPair item, out)
 	{
-		outStrm << item.first->getId() << ":" << item.second->getId() << ",";
+		outStrm << item.first->getRoadSegmentId() << ":" << item.second->getRoadSegmentId() << ",";
 	}
 	outStr = outStrm.str();
 }
@@ -364,15 +365,15 @@ bool sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::Node* target) 
 
 bool sim_mob::RestrictedRegion::isInRestrictedZone(const sim_mob::WayPoint& target) const
 {
-	switch(target.type_)
+	switch(target.type)
 	{
 		case WayPoint::NODE:
 		{
-			return isInRestrictedZone(target.node_);
+			return isInRestrictedZone(target.node);
 		}
 		case WayPoint::ROAD_SEGMENT:
 		{
-			return isInRestrictedSegmentZone(target.roadSegment_);
+			return isInRestrictedSegmentZone(target.roadSegment);
 		}
 		default:
 		{
@@ -397,11 +398,11 @@ bool sim_mob::RestrictedRegion::isInRestrictedSegmentZone(const std::vector<WayP
 {
 	BOOST_FOREACH(WayPoint wp, target)
 	{
-		if(wp.type_ != WayPoint::ROAD_SEGMENT)
+		if(wp.type != WayPoint::ROAD_SEGMENT)
 		{
 			throw std::runtime_error("Invalid WayPoint type Supplied\n");
 		}
-		if(Impl->isInRestrictedSegmentZone(wp.roadSegment_))
+		if(Impl->isInRestrictedSegmentZone(wp.roadSegment))
 		{
 			return true;
 		}
@@ -428,18 +429,18 @@ bool sim_mob::RestrictedRegion::isExitingRestrictedZone(const sim_mob::RoadSegme
 sim_mob::RestrictedRegion::StrSearch::StrSearch(sim_mob::RestrictedRegion & instance):Search(instance){}
 bool sim_mob::RestrictedRegion::StrSearch::isInRestrictedZone(const Node* target) const
 {
-	return (instance.zoneNodesStr.find(boost::lexical_cast<string>(target->getID())) != std::string::npos ? true : false);
+	return (instance.zoneNodesStr.find(boost::lexical_cast<string>(target->getNodeId())) != std::string::npos ? true : false);
 }
 
 bool sim_mob::RestrictedRegion::StrSearch::isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const
 {
-	return (instance.zoneSegmentsStr.find(boost::lexical_cast<string>(target->getId())) != std::string::npos ? true : false);
+	return (instance.zoneSegmentsStr.find(boost::lexical_cast<string>(target->getRoadSegmentId())) != std::string::npos ? true : false);
 }
 
 sim_mob::RestrictedRegion::ObjSearch::ObjSearch(sim_mob::RestrictedRegion & instance):Search(instance){}
 bool sim_mob::RestrictedRegion::ObjSearch::isInRestrictedZone(const Node* target) const
 {
-	std::map<unsigned int, const Node*>::const_iterator it(instance.zoneNodes.find(target->getID()));
+	std::map<unsigned int, const Node*>::const_iterator it(instance.zoneNodes.find(target->getNodeId()));
 	return (instance.zoneNodes.end() == it ? false : true);
 }
 
@@ -456,12 +457,12 @@ bool sim_mob::RestrictedRegion::ObjSearch::isInRestrictedSegmentZone(const sim_m
 sim_mob::RestrictedRegion::TagSearch::TagSearch(sim_mob::RestrictedRegion & instance):Search(instance){}
 bool sim_mob::RestrictedRegion::TagSearch::isInRestrictedZone(const Node* target) const
 {
-	return target->CBD;
+	return false;//target->CBD;
 }
 
 bool sim_mob::RestrictedRegion::TagSearch::isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const
 {
-	return target->CBD;
+	return false;//target->CBD;
 }
 
 

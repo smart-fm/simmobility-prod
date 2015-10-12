@@ -14,7 +14,7 @@ namespace sim_mob
 {
 
 class Agent;
-class Point2D;
+class Point;
 class Lane;
 class TreeImpl;
 
@@ -30,8 +30,8 @@ struct TreeItem;
  * To locate nearby agents, calculate 2 points to form the search rectangle before calling
  * agentsInRect(). 
  *   \code
- *   Point2D p1 = ...;
- *   Point2D p2 = ...;
+ *   Point p1 = ...;
+ *   Point p2 = ...;
  *   const std::vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(p1, p2);
  *   \endcode
  *
@@ -83,11 +83,11 @@ public:
      * The caller is responsible to determine the "type" of each agent in the returned array.
      */
     std::vector<Agent const *>
-    agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, const sim_mob::Agent* refAgent) const;
+    agentsInRect(Point const & lowerLeft, Point const & upperRight, const sim_mob::Agent* refAgent) const;
 
     //only avaiable for Sim-Tree
     /*std::vector<Agent const *>
-    advanced_agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, TreeItem* item) const;*/
+    advanced_agentsInRect(Point const & lowerLeft, Point const & upperRight, TreeItem* item) const;*/
 
     /**
      * Return a collection of agents that are on the left, right, front, and back of the specified
@@ -111,12 +111,12 @@ public:
      * direction.
      */
     std::vector<Agent const *>
-    nearbyAgents(Point2D const & position, Lane const & lane,
+    nearbyAgents(Point const & position, Lane const & lane,
                  centimeter_t distanceInFront, centimeter_t distanceBehind, const Agent* refAgent) const;
 
     //only avaiable for Sim-Tree
     /*std::vector<Agent const *>
-    advanced_nearbyAgents(Point2D const & position, Lane const & lane,
+    advanced_nearbyAgents(Point const & position, Lane const & lane,
                  centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const;*/
 
     /**

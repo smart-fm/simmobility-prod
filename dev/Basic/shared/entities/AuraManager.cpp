@@ -9,8 +9,8 @@
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Point2D.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Point.hpp"
 
 #include "spatial_trees/TreeImpl.hpp"
 #include "spatial_trees/rstar_tree/RStarAuraManager.hpp"
@@ -65,7 +65,7 @@ AuraManager::update(const std::set<sim_mob::Agent*>& removedAgentPointers)
 }
 
 std::vector<Agent const *>
-AuraManager::agentsInRect(Point2D const & lowerLeft, Point2D const & upperRight, const sim_mob::Agent* refAgent)
+AuraManager::agentsInRect(Point const & lowerLeft, Point const & upperRight, const sim_mob::Agent* refAgent)
 const
 {
 	std::vector<Agent const *> results;
@@ -78,7 +78,7 @@ const
 
 //The "refAgent" can be used to provide more information (i.e., for the faster bottom-up query).
 std::vector<Agent const *>
-AuraManager::nearbyAgents(Point2D const & position, Lane const & lane,
+AuraManager::nearbyAgents(Point const & position, Lane const & lane,
                           centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent)
 const
 {

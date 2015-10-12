@@ -92,7 +92,7 @@ void IncidentStatus::setCurrentStatus(IncidentStatusType value) {
 int IncidentStatus::checkBlockingStatus(const Incident*inc) {
 	int ret = -1;
 	bool isFullyBlocking = true;
-	for (std::vector<Incident::LaneItem>::const_iterator laneIt =
+	for (std::vector<LaneItem>::const_iterator laneIt =
 			inc->laneItems.begin(); laneIt != inc->laneItems.end(); laneIt++) {
 		if ((*laneIt).speedLimit > 0) {
 			isFullyBlocking = false;

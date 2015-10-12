@@ -16,10 +16,10 @@
 #include "entities/profile/ProfileBuilder.hpp"
 #include "event/SystemEvents.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
@@ -273,13 +273,13 @@ Entity::UpdateStatus sim_mob::Agent::update(timeslice now) {
 		if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
 			std::stringstream msg;
 			msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
-			if(originNode.type_ == WayPoint::NODE)
+			if(originNode.type == WayPoint::NODE)
 			{
-				msg <<"\n  From node: " <<(originNode.node_?originNode.node_->originalDB_ID.getLogItem():"<Unknown>");
+				msg <<"\n  From node: " <<(originNode.node ? originNode.node->getNodeId():0);
 			}
-			if(destNode.type_ == WayPoint::NODE )
+			if(destNode.type == WayPoint::NODE )
 			{
-				msg <<"\n  To node: " <<(destNode.node_?destNode.node_->originalDB_ID.getLogItem():"<Unknown>");
+				msg <<"\n  To node: " <<(destNode.node?destNode.node->getNodeId():0);
 			}
 			msg <<"\n  " <<ex.what();
 			LogOut(msg.str() <<std::endl);
@@ -361,7 +361,7 @@ void sim_mob::Agent::onEvent(EventId eventId,
 				this, //Only when we are the Agent being requested to re-route..
 				this //Return this event to us (the agent).
 			);
-		} else if (eventId==event::EVT_CORE_COMMSIM_REROUTING_REQUEST) {
+		} /*else if (eventId==event::EVT_CORE_COMMSIM_REROUTING_REQUEST) {
 			//Were we requested to re-route?
 			const ReRouteEventArgs& rrArgs = MSG_CAST(ReRouteEventArgs, args);
 			const std::map<int, sim_mob::RoadRunnerRegion>& regions = ConfigManager::GetInstance().FullConfig().getNetwork().roadRunnerRegions;
@@ -370,7 +370,7 @@ void sim_mob::Agent::onEvent(EventId eventId,
 				std::vector<const sim_mob::RoadSegment*> blacklisted = StreetDirectory::instance().getSegmentsFromRegion(it->second);
 				rerouteWithBlacklist(blacklisted);
 			}
-		}
+		} */
 	}
 }
 

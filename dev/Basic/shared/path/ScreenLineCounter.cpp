@@ -7,10 +7,11 @@
 
 #include <algorithm>
 #include "path/ScreenLineCounter.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "geospatial/aimsun/Loader.hpp"
+#include "util/Profiler.hpp"
 
 namespace
 {
@@ -59,7 +60,7 @@ namespace sim_mob
 
 	void ScreenLineCounter::updateScreenLineCount(const Agent::RdSegTravelStat& rdSegStat)
 	{
-		if(!std::binary_search(screenLines.begin(), screenLines.end(), rdSegStat.rs->getId()))
+		if(!std::binary_search(screenLines.begin(), screenLines.end(), rdSegStat.rs->getRoadSegmentId()))
 		{
 			return;
 		}
@@ -97,7 +98,7 @@ namespace sim_mob
 				for(sim_mob::TT::RSTC::const_iterator rstcIter = modeTCIter->second.begin();
 						rstcIter != modeTCIter->second.end(); rstcIter++)
 				{
-					screenLineLogger << rstcIter->first->getId() << "\t" <<
+					screenLineLogger << rstcIter->first->getRoadSegmentId() << "\t" <<
 						startTime.getStrRepr() << "\t" << endTime.getStrRepr() <<
 						"\t" << modeTCIter->first <<
 						"\t" << rstcIter->second.travelTimeCnt << "\n";

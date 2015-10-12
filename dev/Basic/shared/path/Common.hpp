@@ -1,8 +1,10 @@
 #pragma once
-#include "geospatial/WayPoint.hpp"
+
+#include <sstream>
+
+#include "geospatial/network/WayPoint.hpp"
 #include "util/DailyTime.hpp"
-#include "geospatial/UniNode.hpp"
-#include "geospatial/MultiNode.hpp"
+#include "geospatial/network/Node.hpp"
 
 namespace sim_mob
 {
@@ -93,7 +95,7 @@ public:
 		origin(origin), destination(destination)
 	{
 		std::stringstream str("");
-		str << origin.node_->getID() << "," << destination.node_->getID();
+		str << origin.node->getNodeId() << "," << destination.node->getNodeId();
 		odIdStr = str.str();
 	}
 
@@ -101,7 +103,7 @@ public:
 		origin(sim_mob::WayPoint(origin)), destination(sim_mob::WayPoint(destination))
 	{
 		std::stringstream str("");
-		str << origin->getID() << "," << destination->getID();
+		str << origin->getNodeId() << "," << destination->getNodeId();
 		odIdStr = str.str();
 	}
 

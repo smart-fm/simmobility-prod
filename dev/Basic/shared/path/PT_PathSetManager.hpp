@@ -9,7 +9,7 @@
  */
 
 #include "entities/params/PT_NetworkEntities.hpp"
-#include "geospatial/Node.hpp"
+#include "geospatial/network/Node.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "path/Path.hpp"
 #include "util/threadpool/Threadpool.hpp"

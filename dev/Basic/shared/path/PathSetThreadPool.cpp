@@ -95,14 +95,14 @@ void sim_mob::PathSetWorkerThread::run() {
 					//Retrieve, add this edge's WayPoint.
 					WayPoint wp = boost::get(boost::edge_name, *graph,edge.first);
 					//todo this problem occurs during "highway bias distance" generation. dont know why, discarding the repeated segment
-					if (wp.type_ == WayPoint::ROAD_SEGMENT && wp.roadSegment_->getId() == dbgPrev)
+					if (wp.type == WayPoint::ROAD_SEGMENT && wp.roadSegment->getRoadSegmentId() == dbgPrev)
 					{
 							logger << dbgStr
 									<< " 1ERROR-exeThis:: repeating segment found in path from "
 									<< " seg: " << dbgPrev << " edge: " <<  edge.first << "  prev edge:" <<
 									dbgPrevEdge.first << "   " << edge.second << "  " << dbgPrevEdge.second << "  " <<
-									WayPoint(boost::get(boost::edge_name, *graph,dbgPrevEdge.first)).roadSegment_->getId() << "\n";
-						dbgPrev = wps.rbegin()->roadSegment_->getId();
+									WayPoint(boost::get(boost::edge_name, *graph,dbgPrevEdge.first)).roadSegment->getRoadSegmentId() << "\n";
+						dbgPrev = wps.rbegin()->roadSegment->getRoadSegmentId();
 						dbgPrevEdge = edge;
 					}
 					else
@@ -167,14 +167,14 @@ void sim_mob::PathSetWorkerThread::run() {
 						//Retrieve, add this edge's WayPoint.
 						WayPoint wp = boost::get(boost::edge_name, filtered,edge.first);
 						//todo this problem occurs during "highway bias distance" generation. dont know why, discarding the repeated segment
-						if (wp.type_ == WayPoint::ROAD_SEGMENT && wp.roadSegment_->getId() == dbgPrev)
+						if (wp.type == WayPoint::ROAD_SEGMENT && wp.roadSegment->getRoadSegmentId() == dbgPrev)
 						{
 							logger << dbgStr
 									<< " 1ERROR-exeThis:: repeating segment found in path from "
 									<< " seg: " << dbgPrev << " edge: " <<  edge.first << "  prev edge:" <<
 									dbgPrevEdge.first << "   " << edge.second << "  " << dbgPrevEdge.second << "  " <<
-									WayPoint(boost::get(boost::edge_name, *graph,dbgPrevEdge.first)).roadSegment_->getId() << "\n";
-							dbgPrev = wps.rbegin()->roadSegment_->getId();
+									WayPoint(boost::get(boost::edge_name, *graph,dbgPrevEdge.first)).roadSegment->getRoadSegmentId() << "\n";
+							dbgPrev = wps.rbegin()->roadSegment->getRoadSegmentId();
 							dbgPrevEdge = edge;
 						}
 						else
@@ -237,14 +237,14 @@ void sim_mob::PathSetWorkerThread::run() {
 						//Retrieve, add this edge's WayPoint.
 						WayPoint wp = boost::get(boost::edge_name, filtered,edge.first);
 						//todo this problem occurs during "highway bias distance" generation. dont know why, discarding the repeated segment
-						if (wp.type_ == WayPoint::ROAD_SEGMENT && wp.roadSegment_->getId() == dbgPrev)
+						if (wp.type == WayPoint::ROAD_SEGMENT && wp.roadSegment->getRoadSegmentId() == dbgPrev)
 						{
 							logger << dbgStr
 									<< " 1ERROR-exeThis:: repeating segment found in path from "
 									<< " seg: " << dbgPrev << " edge: " <<  edge.first << "  prev edge:" <<
 									dbgPrevEdge.first << "   " << edge.second << "  " << dbgPrevEdge.second << "  " <<
-									WayPoint(boost::get(boost::edge_name, *graph,dbgPrevEdge.first)).roadSegment_->getId() << "\n";
-							dbgPrev = wps.rbegin()->roadSegment_->getId();
+									WayPoint(boost::get(boost::edge_name, *graph,dbgPrevEdge.first)).roadSegment->getRoadSegmentId() << "\n";
+							dbgPrev = wps.rbegin()->roadSegment->getRoadSegmentId();
 							dbgPrevEdge = edge;
 						}
 						else
@@ -281,7 +281,7 @@ void sim_mob::PathSetWorkerThread::run() {
 			s->init(wps);
 			s->id = id;
 			s->pathSize = 0;
-			if(this->s->path.begin()->roadSegment_->getStart()->getID() != this->ps->subTrip.fromLocation.node_->getID())
+			if(this->s->path.begin()->roadSegment->getParentLink()->getFromNodeId() != this->ps->subTrip.fromLocation.node->getNodeId())
 			{
 				safe_delete_item(s);
 				hasPath = false;
@@ -289,7 +289,8 @@ void sim_mob::PathSetWorkerThread::run() {
 				 * todo I havent yet figured out what this bug is, but it happens, mainly for random perturbation(time), discarding for now-vahid
 				 * it may not be an issue after solving some multithreaded generation issue
 				 */
-				 logger << ps->scenario << dbgStr << " generation Mismatch : " << this->s->path.begin()->roadSegment_->getStart()->getID() << "   " <<  this->ps->subTrip.fromLocation.node_->getID() <<  "  " << fromVertex << "," << toVertex << std::endl;
+				 logger << ps->scenario << dbgStr << " generation Mismatch : " << this->s->path.begin()->roadSegment->getParentLink()->getFromNodeId() 
+						 << "   " <<  this->ps->subTrip.fromLocation.node->getNodeId() <<  "  " << fromVertex << "," << toVertex << std::endl;
 			}
 		}
 	}

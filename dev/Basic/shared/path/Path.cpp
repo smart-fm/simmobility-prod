@@ -4,14 +4,15 @@
 #include <math.h>
 #include <boost/iterator/filter_iterator.hpp>
 #include "entities/params/PT_NetworkEntities.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/WayPoint.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/LaneConnector.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/WayPoint.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/LaneConnector.hpp"
 #include "PathSetParam.hpp"
 #include "util/Utils.hpp"
+#include "util/Profiler.hpp"
 
 namespace{
 sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
@@ -58,11 +59,11 @@ bool sim_mob::SinglePath::includesRoadSegment(const std::set<const sim_mob::Road
 	BOOST_FOREACH(const sim_mob::WayPoint& wp, this->path)
 	{
 		pathSegId.str(std::string());
-		pathSegId << wp.roadSegment_->getId();
+		pathSegId << wp.roadSegment->getRoadSegmentId();
 		BOOST_FOREACH(const sim_mob::RoadSegment* seg, segs)
 		{
 			inputSegId.str(std::string());
-			inputSegId << seg->getId();
+			inputSegId << seg->getRoadSegmentId();
 			if(pathSegId.str() == inputSegId.str() ) { return true; }
 		}
 	}
@@ -72,7 +73,7 @@ bool sim_mob::SinglePath::includesRoadSegment(const std::set<const sim_mob::Road
 ///given a path of alternative nodes and segments, keep segments, loose the nodes
 struct segFilter{
 		bool operator()(const sim_mob::WayPoint value){
-			return value.type_ == sim_mob::WayPoint::ROAD_SEGMENT;
+			return value.type == sim_mob::WayPoint::ROAD_SEGMENT;
 		}
 };
 void sim_mob::SinglePath::filterOutNodes(std::vector<sim_mob::WayPoint>& input, std::vector<sim_mob::WayPoint>& output)
@@ -89,22 +90,22 @@ void sim_mob::SinglePath::init(std::vector<sim_mob::WayPoint>& wpPools)
 	if(this->path.empty())
 	{
 	   std::stringstream err("");
-	   err << "empty path [OD:" << this->pathSetId << "][PATH:"  << this->id << "][Graph Oputpout type chain:\n";
+	   err << "empty path [OD:" << this->pathSetId << "][PATH:"  << this->id << "][Graph Output type chain:\n";
 		if(wpPools.size())
 		{
 			for(std::vector<sim_mob::WayPoint>::iterator it = wpPools.begin(); it != wpPools.end(); it++)
 			{
-				err << "[" << it->type_ << "," << it->node_ << "],";
+				err << "[" << it->type << "," << it->node << "],";
 			}
 		}
 	   std::cerr << "[" << this->pathSetId << "] ERROR,IGNORED PATH:\n" << err.str() << std::endl;
 	}
 	//step-1.5 fill in the linkPath
 	{
-		sim_mob::Link* currLink = nullptr;
+		const sim_mob::Link* currLink = nullptr;
 		for(std::vector<sim_mob::WayPoint>::iterator it = path.begin(); it != path.end(); it++)
 		{
-			sim_mob::Link* link = it->roadSegment_->getLink();
+			const sim_mob::Link* link = it->roadSegment->getParentLink();
 			if(currLink != link)
 			{
 				linkPath.push_back(link);
@@ -116,7 +117,7 @@ void sim_mob::SinglePath::init(std::vector<sim_mob::WayPoint>& wpPools)
 	{
 		for(std::vector<sim_mob::WayPoint>::iterator it = path.begin(); it != path.end(); it++)
 		{
-			segSet.insert(it->roadSegment_);
+			segSet.insert(it->roadSegment);
 		}
 	}
 
@@ -237,7 +238,7 @@ bool sim_mob::PathSet::includesRoadSegment(const std::set<const sim_mob::RoadSeg
 		{
 			BOOST_FOREACH(const sim_mob::RoadSegment* seg, segs)
 			{
-				if(wp.roadSegment_ == seg)
+				if(wp.roadSegment == seg)
 				{
 					return true;
 				}
@@ -270,9 +271,10 @@ short sim_mob::PathSet::addOrDeleteSinglePath(sim_mob::SinglePath* s)
 	{
 		return 0;
 	}
-	if(s->path.begin()->roadSegment_->getStart()->getID() != subTrip.fromLocation.node_->getID())
+	if(s->path.begin()->roadSegment->getParentLink()->getFromNodeId() != subTrip.fromLocation.node->getNodeId())
 	{
-		std::cerr << s->scenario << " path begins with " << s->path.begin()->roadSegment_->getStart()->getID() << " while pathset begins with " << subTrip.fromLocation.node_->getID() << std::endl;
+		std::cerr << s->scenario << " path begins with " << s->path.begin()->roadSegment->getParentLink()->getFromNodeId() 
+				<< " while pathset begins with " << subTrip.fromLocation.node->getNodeId() << std::endl;
 		throw std::runtime_error("Mismatch");
 	}
 
@@ -296,8 +298,8 @@ double sim_mob::calculateHighWayDistance(sim_mob::SinglePath *sp)
 	if(!sp) return 0.0;
 	for(int i=0;i<sp->path.size();++i)
 	{
-		const sim_mob::RoadSegment* seg = sp->path[i].roadSegment_;
-		if(seg->isHighway())
+		const sim_mob::RoadSegment* seg = sp->path[i].roadSegment;
+		//if(seg->isHighway())
 		{
 			res += seg->getLength();
 		}
@@ -307,7 +309,7 @@ double sim_mob::calculateHighWayDistance(sim_mob::SinglePath *sp)
 
 size_t sim_mob::getLaneIndex2(const sim_mob::Lane* l){
 	if (l) {
-		const sim_mob::RoadSegment* r = l->getRoadSegment();
+		const sim_mob::RoadSegment* r = l->getParentSegment();
 		std::vector<sim_mob::Lane*>::const_iterator it( r->getLanes().begin()), itEnd(r->getLanes().end());
 		for (size_t i = 0; it != itEnd; it++, i++) {
 			if (*it == l) {
@@ -333,14 +335,14 @@ void sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::Single
 	++pathIt;
 	for(std::vector<sim_mob::WayPoint>::iterator it=sp->path.begin(); it!=sp->path.end(); ++it)
 	{
-		const RoadSegment* currentSeg = it->roadSegment_;
+		const RoadSegment* currentSeg = it->roadSegment;
 		const RoadSegment* targetSeg = NULL;
-		if(pathIt != sp->path.end()) { targetSeg = pathIt->roadSegment_; }
+		if(pathIt != sp->path.end()) { targetSeg = pathIt->roadSegment; }
 		else { break; } // already last segment
 
-		if(currentSeg->getEnd() == currentSeg->getLink()->getEnd()) // intersection
+		/*if(currentSeg->getEnd() == currentSeg->getLink()->getEnd()) // intersection
 		{
-			const sim_mob::MultiNode* linkEndNode = dynamic_cast<const sim_mob::MultiNode*> (currentSeg->getEnd());
+			const Node* linkEndNode = dynamic_cast<const Node*> (currentSeg->getEnd());
 			if(linkEndNode) // should always be true, but just double checking
 			{
 				if(linkEndNode->isSignalized()) { signalNumber++; }
@@ -360,6 +362,7 @@ void sim_mob::calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::Single
 			}// end if linkEndNode
 			else { throw std::runtime_error("end of link is not a Multinode"); }
 		}//end currEndNode
+		*/
 		++pathIt;
 	}//end for
 	sp->rightTurnNumber=rightTurnNumber;
@@ -376,7 +379,7 @@ double sim_mob::generateSinglePathLength(const std::vector<sim_mob::WayPoint>& w
 	double res = 0.0;
 	for(std::vector<sim_mob::WayPoint>::const_iterator it = wp.begin(); it != wp.end(); it++)
 	{
-		const sim_mob::RoadSegment* seg = it->roadSegment_;
+		const sim_mob::RoadSegment* seg = it->roadSegment;
 		res += seg->getLength();
 	}
 	return res/100.0; //meter
@@ -387,7 +390,7 @@ double sim_mob::calculateSinglePathDefaultTT(const std::vector<sim_mob::WayPoint
 	double res = 0.0;
 	for(std::vector<sim_mob::WayPoint>::const_iterator it = wp.begin(); it != wp.end(); it++)
 	{
-		const sim_mob::RoadSegment* rs = it->roadSegment_;
+		const sim_mob::RoadSegment* rs = it->roadSegment;
 		res += sim_mob::PathSetParam::getInstance()->getDefSegTT(rs);
 	}
 	return res; //hours
@@ -404,9 +407,9 @@ std::string sim_mob::makeWaypointsetString(const std::vector<sim_mob::WayPoint>&
 
 	for(std::vector<sim_mob::WayPoint>::const_iterator it = wp.begin(); it != wp.end(); it++)
 	{
-		if (it->type_ == WayPoint::ROAD_SEGMENT)
+		if (it->type == WayPoint::ROAD_SEGMENT)
 		{
-			str << it->roadSegment_->getId() << ",";
+			str << it->roadSegment->getRoadSegmentId() << ",";
 		} // if ROAD_SEGMENT
 	}
 

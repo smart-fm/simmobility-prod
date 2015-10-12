@@ -10,7 +10,7 @@
 
 #include "PathSetParam.hpp"
 #include "TravelTimeManager.hpp"
-#include "geospatial/Link.hpp"
+#include "geospatial/network/Link.hpp"
 #include "entities/Person.hpp"
 #include "util/Cache.hpp"
 #include "util/Utils.hpp"

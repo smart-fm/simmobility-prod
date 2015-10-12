@@ -10,12 +10,11 @@
 #include "entities/PersonLoader.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/incident/IncidentManager.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/UniNode.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/LaneConnector.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/LaneConnector.hpp"
 #include "path/PathSetThreadPool.hpp"
 #include "geospatial/streetdir/KShortestPathImpl.hpp"
 #include "util/threadpool/Threadpool.hpp"
@@ -23,6 +22,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "message/MessageBus.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 #include <cmath>
 #include <boost/algorithm/string.hpp>
 #include <boost/regex.hpp>
@@ -64,7 +64,7 @@ sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePa
 
 std::string getFromToString(const sim_mob::Node* fromNode,const sim_mob::Node* toNode ){
 	std::stringstream out("");
-	out << fromNode->getID()  << "," << toNode->getID();
+	out << fromNode->getNodeId()  << "," << toNode->getNodeId();
 	return out.str();
 }
 
@@ -108,7 +108,7 @@ bool sim_mob::PathSetManager::pathInBlackList(const std::vector<WayPoint> path, 
 {
 	BOOST_FOREACH(WayPoint wp, path)
 	{
-		if(blkLst.find(wp.roadSegment_) != blkLst.end())
+		if(blkLst.find(wp.roadSegment) != blkLst.end())
 		{
 			return true;
 		}
@@ -252,16 +252,16 @@ void sim_mob::PathSetManager::setPathSetTags(boost::shared_ptr<sim_mob::PathSet>
 std::string sim_mob::printWPpath(const std::vector<WayPoint> &wps , const sim_mob::Node* startingNode ){
 	std::ostringstream out("wp path--");
 	if(startingNode){
-		out << startingNode->getID() << ":";
+		out << startingNode->getNodeId() << ":";
 	}
 	BOOST_FOREACH(WayPoint wp, wps){
-		if(wp.type_ == sim_mob::WayPoint::ROAD_SEGMENT)
+		if(wp.type == sim_mob::WayPoint::ROAD_SEGMENT)
 		{
-			out << wp.roadSegment_->getSegmentAimsunId() << ",";
+			out << wp.roadSegment->getRoadSegmentId() << ",";
 		}
-		else if(wp.type_ == sim_mob::WayPoint::NODE)
+		else if(wp.type == sim_mob::WayPoint::NODE)
 		{
-			out << wp.node_->getID() << ",";
+			out << wp.node->getNodeId() << ",";
 		}
 	}
 	out << "\n";
@@ -273,7 +273,7 @@ std::string sim_mob::printWPpath(const std::vector<WayPoint> &wps , const sim_mo
 vector<WayPoint> sim_mob::PathSetManager::getPath(const sim_mob::SubTrip &subTrip, bool enRoute, const sim_mob::RoadSegment* approach)
 {
 	std::stringstream str("");
-	str << subTrip.fromLocation.node_->getID() << "," << subTrip.toLocation.node_->getID();
+	str << subTrip.fromLocation.node->getNodeId() << "," << subTrip.toLocation.node->getNodeId();
 	std::string fromToID(str.str());
 
 	vector<WayPoint> res = vector<WayPoint>();
@@ -335,7 +335,7 @@ unsigned short purgeCbdPaths(sim_mob::PathSet &ps)
 		std::vector<sim_mob::WayPoint>::iterator itWp = (*it)->path.begin();
 		for(; itWp != (*it)->path.end(); itWp++)
 		{
-			if(itWp->roadSegment_->CBD)
+			//if(itWp->roadSegment->CBD)
 			{
 				erase = true;
 				break;
@@ -431,8 +431,8 @@ bool sim_mob::PathSetManager::getBestPath(
 	std::set<const sim_mob::RoadSegment*> blckLstSegs(tempBlckLstSegs);
 	const std::set<const sim_mob::RoadSegment*>& partial = (usePartialExclusion ? this->partialExclusions : std::set<const sim_mob::RoadSegment*>());
 
-	const sim_mob::Node* fromNode = st.fromLocation.node_;
-	const sim_mob::Node* toNode = st.toLocation.node_;
+	const sim_mob::Node* fromNode = st.fromLocation.node;
+	const sim_mob::Node* toNode = st.toLocation.node;
 
 	if(!toNode || !fromNode)
 	{
@@ -440,9 +440,9 @@ bool sim_mob::PathSetManager::getBestPath(
 		return false;
 	}
 
-	if(toNode->getID() == fromNode->getID())
+	if(toNode->getNodeId() == fromNode->getNodeId())
 	{
-		logger << "Error: same O and D:" << toNode->getID() << "\n" ;
+		logger << "Error: same O and D:" << toNode->getNodeId() << "\n" ;
 		return false;
 	}
 
@@ -619,8 +619,8 @@ namespace
 	{
 		bool operator()(const Trip* lhs, const Trip* rhs)
 		{
-			return getFromToString(lhs->fromLocation.node_ , lhs->toLocation.node_) <
-					getFromToString(rhs->fromLocation.node_ , rhs->toLocation.node_);
+			return getFromToString(lhs->fromLocation.node , lhs->toLocation.node) <
+					getFromToString(rhs->fromLocation.node , rhs->toLocation.node);
 		}
 	};
 }
@@ -628,7 +628,7 @@ namespace
 void sim_mob::PathSetManager::bulkPathSetGenerator()
 {
 	const std::string odSourceTableName = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().odSourceTableName;
-	sim_mob::RoadNetwork& rn = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW();
+	sim_mob::RoadNetwork& rn = *(RoadNetwork::getInstance());
 	if (odSourceTableName.empty()) { return; }
 	//Our SQL statement
 	stringstream query;
@@ -637,14 +637,14 @@ void sim_mob::PathSetManager::bulkPathSetGenerator()
 	soci::rowset<soci::row> rs = ((*getSession()).prepare << query.str());
 	std::set<OD> odPairs;
 	int cnt = 0;
-	sim_mob::Node* originNode = nullptr;
-	sim_mob::Node* destinationNode = nullptr;
+	const sim_mob::Node* originNode = nullptr;
+	const sim_mob::Node* destinationNode = nullptr;
 	for (soci::rowset<soci::row>::const_iterator it=rs.begin(); it!=rs.end(); ++it)
 	{
 		const soci::row& r = (*it);
 		cnt++;
-		originNode = rn.getNodeById(r.get<int>(0));
-		destinationNode = rn.getNodeById(r.get<int>(1));
+		originNode = (rn.getMapOfIdvsNodes().find((r.get<int>(0))))->second;
+		destinationNode = (rn.getMapOfIdvsNodes().find((r.get<int>(1))))->second;
 		odPairs.insert(OD(originNode, destinationNode));
 	}
 	Print() << "[DISTINICT ODs:" <<  odPairs.size() << "]" << std::endl;
@@ -670,10 +670,10 @@ void sim_mob::PathSetManager::bulkPathSetGenerator()
 }
 
 int sim_mob::PathSetManager::genK_ShortestPath(boost::shared_ptr<sim_mob::PathSet> &ps, std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &KSP_Storage)
-{
-	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node_, ps->subTrip.toLocation.node_));
+{/*
+	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node, ps->subTrip.toLocation.node));
 	std::vector< std::vector<sim_mob::WayPoint> > ksp;
-	int kspn = sim_mob::K_ShortestPathImpl::getInstance()->getKShortestPaths(ps->subTrip.fromLocation.node_, ps->subTrip.toLocation.node_,ksp);
+	int kspn = sim_mob::K_ShortestPathImpl::getInstance()->getKShortestPaths(ps->subTrip.fromLocation.node, ps->subTrip.toLocation.node,ksp);
 
 	logger << "[" << fromToID << "][K-SHORTEST-PATH]\n";
 	for(int i=0;i<ksp.size();++i)
@@ -693,24 +693,24 @@ int sim_mob::PathSetManager::genK_ShortestPath(boost::shared_ptr<sim_mob::PathSe
 		KSP_Storage.insert(s);
 		logger << "[KSP:" << i << "] " << s->id << "[length: " << s->length << "]\n";
 	}
-	return kspn;
+	return kspn;*/return 0;
 }
 
 int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &SDLE_Storage)
-{
+{/*
 	sim_mob::Link *curLink = nullptr;
 	std::set<const RoadSegment*> blackList = std::set<const RoadSegment*>();
-	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node_, ps->subTrip.toLocation.node_));
+	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node, ps->subTrip.toLocation.node));
 	logger << "[" << fromToID << "][SHORTEST DISTANCE LINK ELIMINATION]\n";
 	A_StarShortestPathImpl * impl = (A_StarShortestPathImpl*)stdir.getDistanceImpl();
-	StreetDirectory::VertexDesc from = impl->DrivingVertex(*ps->subTrip.fromLocation.node_);
-	StreetDirectory::VertexDesc to = impl->DrivingVertex(*ps->subTrip.toLocation.node_);
+	StreetDirectory::VertexDesc from = impl->DrivingVertex(*ps->subTrip.fromLocation.node);
+	StreetDirectory::VertexDesc to = impl->DrivingVertex(*ps->subTrip.toLocation.node);
 	int cnt = 0;
 	if(ps->oriPath && !ps->oriPath->path.empty())
 	{
 		for(std::vector<sim_mob::WayPoint>::iterator it=ps->oriPath->path.begin();	it != ps->oriPath->path.end() ;++it)
 		{
-			const sim_mob::RoadSegment* currSeg = it->roadSegment_;
+			const sim_mob::RoadSegment* currSeg = it->roadSegment;
 			if(currSeg->getLink() != curLink)
 			{
 				curLink = currSeg->getLink();
@@ -721,8 +721,8 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 				work->segmentLookup = &impl->drivingSegmentLookup_;
 				work->fromVertex = from.source;
 				work->toVertex = to.sink;
-				work->fromNode = ps->subTrip.fromLocation.node_;
-				work->toNode =  ps->subTrip.toLocation.node_;
+				work->fromNode = ps->subTrip.fromLocation.node;
+				work->toNode =  ps->subTrip.toLocation.node;
 				blackList.clear();
 				blackList.insert(currSeg);
 				work->excludeSeg = blackList;
@@ -740,7 +740,7 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 					 * of pathset generation(link elimination, random perturbation, etc)  will use threadpool for its operation.
 					 * Whereas in "generation" mode,  each pathset generation task(as a whole) is assigned to a dedicated thread in threadpool.
 					 */
-					work->run();
+					/*work->run();
 				}
 				else
 				{
@@ -754,20 +754,20 @@ int sim_mob::PathSetManager::genSDLE(boost::shared_ptr<sim_mob::PathSet> &ps,std
 	if(!cnt)
 	{
 		logger  << "[" << fromToID << "]Nothing supplied to threadpool-SDLE" << std::endl;
-	}
+	}*/
 }
 
 int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &STTLE_Storage)
-{
+{/*
 	sim_mob::Link *curLink = nullptr;
 	std::set<const RoadSegment*> blackList = std::set<const RoadSegment*>();
-	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_));
+	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node,ps->subTrip.toLocation.node));
 
 	logger << "[" << fromToID << "][SHORTEST TRAVEL TIME LINK ELIMINATION]\n";
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir.getTravelTimeImpl();
-	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexDefault(*ps->subTrip.fromLocation.node_);
-	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexDefault(*ps->subTrip.toLocation.node_);
-	SinglePath* pathTT = generateShortestTravelTimePath(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_,sim_mob::Default);
+	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexDefault(*ps->subTrip.fromLocation.node);
+	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexDefault(*ps->subTrip.toLocation.node);
+	SinglePath* pathTT = generateShortestTravelTimePath(ps->subTrip.fromLocation.node,ps->subTrip.toLocation.node,sim_mob::Default);
 
 	int cnt = 0;
 	if(pathTT && !pathTT->path.empty())
@@ -782,7 +782,7 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 
 		for(std::vector<sim_mob::WayPoint>::iterator it(pathTT->path.begin()); it != pathTT->path.end() ;++it)
 		{
-			const sim_mob::RoadSegment* currSeg = it->roadSegment_;
+			const sim_mob::RoadSegment* currSeg = it->roadSegment;
 			if(currSeg->getLink() != curLink)
 			{
 				curLink = currSeg->getLink();
@@ -791,8 +791,8 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 				work->segmentLookup = &sttpImpl->drivingSegmentLookup_Default_;
 				work->fromVertex = from.source;
 				work->toVertex = to.sink;
-				work->fromNode = ps->subTrip.fromLocation.node_;
-				work->toNode = ps->subTrip.toLocation.node_;
+				work->fromNode = ps->subTrip.fromLocation.node;
+				work->toNode = ps->subTrip.toLocation.node;
 				blackList.clear();
 				blackList.insert(currSeg);
 				work->excludeSeg = blackList;
@@ -810,7 +810,7 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 					 * of pathset generation(link elimination, random perturbation, etc)  will use threadpool for its operation.
 					 * Whereas in "generation" mode,  each pathset generation task(as a whole) is assigned to a dedicated thread in threadpool.
 					 */
-					work->run();
+					/*work->run();
 				}
 				else
 				{
@@ -823,19 +823,19 @@ int sim_mob::PathSetManager::genSTTLE(boost::shared_ptr<sim_mob::PathSet> &ps,st
 	if(!cnt)
 	{
 		logger  << "[" << fromToID << "]Nothing supplied to threadpool-STTLE" << std::endl;
-	}
+	}*/
 }
 
 int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &STTHBLE_Storage)
-{
+{/*
 	sim_mob::Link *curLink = nullptr;
 	std::set<const RoadSegment*> blackList = std::set<const RoadSegment*>();
-	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_));
+	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node,ps->subTrip.toLocation.node));
 	logger << "[" << fromToID << "][SHORTEST TRAVEL TIME LINK ELIMINATION HIGHWAY BIAS]\n";
-	SinglePath *sinPathHighwayBias = generateShortestTravelTimePath(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_,sim_mob::HighwayBias_Default);
+	SinglePath *sinPathHighwayBias = generateShortestTravelTimePath(ps->subTrip.fromLocation.node,ps->subTrip.toLocation.node,sim_mob::HighwayBias_Default);
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir.getTravelTimeImpl();
-	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexHighwayBiasDefault(*ps->subTrip.fromLocation.node_);
-	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexHighwayBiasDefault(*ps->subTrip.toLocation.node_);
+	StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexHighwayBiasDefault(*ps->subTrip.fromLocation.node);
+	StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexHighwayBiasDefault(*ps->subTrip.toLocation.node);
 	int cnt = 0;
 	if(sinPathHighwayBias && !sinPathHighwayBias->path.empty())
 	{
@@ -849,7 +849,7 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 
 		for(std::vector<sim_mob::WayPoint>::iterator it(sinPathHighwayBias->path.begin()); it != sinPathHighwayBias->path.end() ;++it)
 		{
-			const sim_mob::RoadSegment* currSeg = it->roadSegment_;
+			const sim_mob::RoadSegment* currSeg = it->roadSegment;
 			if(currSeg->getLink() != curLink)
 			{
 				curLink = currSeg->getLink();
@@ -858,8 +858,8 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 				work->segmentLookup = &sttpImpl->drivingSegmentLookup_HighwayBias_Default_;
 				work->fromVertex = from.source;
 				work->toVertex = to.sink;
-				work->fromNode = ps->subTrip.fromLocation.node_;
-				work->toNode = ps->subTrip.toLocation.node_;
+				work->fromNode = ps->subTrip.fromLocation.node;
+				work->toNode = ps->subTrip.toLocation.node;
 				blackList.clear();
 				blackList.insert(currSeg);
 				work->excludeSeg = blackList;
@@ -877,7 +877,7 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 					 * of pathset generation(link elimination, random perturbation, etc)  will use threadpool for its operation.
 					 * Whereas in "generation" mode, each pathset generation task (as a whole) is assigned to a dedicated thread in threadpool.
 					 */
-					work->run();
+					/*work->run();
 				}
 				else
 				{
@@ -892,21 +892,21 @@ int sim_mob::PathSetManager::genSTTHBLE(boost::shared_ptr<sim_mob::PathSet> &ps,
 	if(!cnt)
 	{
 		logger  << "[" << fromToID << "]Nothing supplied to threadpool-STTH" << std::endl;
-	}
+	}*/
 }
 
 
 int sim_mob::PathSetManager::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps,std::vector<PathSetWorkerThread*> &RandPertStorage)
-{
-	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_));
+{/*
+	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node,ps->subTrip.toLocation.node));
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir.getTravelTimeImpl();
 	// generate random path
 	int randCnt = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().perturbationIteration;
 	int cnt = 0;
 	for(int i=0;i < randCnt ; ++i)
 	{
-		StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexRandom(*ps->subTrip.fromLocation.node_,i);
-		StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexRandom(*ps->subTrip.toLocation.node_,i);
+		StreetDirectory::VertexDesc from = sttpImpl->DrivingVertexRandom(*ps->subTrip.fromLocation.node,i);
+		StreetDirectory::VertexDesc to = sttpImpl->DrivingVertexRandom(*ps->subTrip.toLocation.node,i);
 		if(!(from.valid && to.valid))
 		{
 			std::cout << "Invalid VertexDesc\n";
@@ -919,8 +919,8 @@ int sim_mob::PathSetManager::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps
 		work->segmentLookup = &sttpImpl->drivingSegmentLookup_Random_pool[i];
 		work->fromVertex = from.source;
 		work->toVertex = to.sink;
-		work->fromNode = ps->subTrip.fromLocation.node_;
-		work->toNode = ps->subTrip.toLocation.node_;
+		work->fromNode = ps->subTrip.fromLocation.node;
+		work->toNode = ps->subTrip.toLocation.node;
 		work->ps = ps;
 		std::stringstream out("");
 		out << "TTRP-" << cnt++;  ;
@@ -930,14 +930,14 @@ int sim_mob::PathSetManager::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps
 		work->timeBased = true;
 
 		if(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
-		{
+		{*/
 			/*
 			 * NOTE:
 			 * when pathset runs in "normal" mode, during pathset generation for requested ODs, each method
 			 * of pathset generation(link elimination, random perturbation, etc)  will use threadpool for its operation.
 			 * Whereas in "generation" mode,  each pathset generation task(as a whole) is assigned to a dedicated thread in threadpool.
 			 */
-			work->run();
+			/*work->run();
 		}
 		else
 		{
@@ -947,20 +947,21 @@ int sim_mob::PathSetManager::genRandPert(boost::shared_ptr<sim_mob::PathSet> &ps
 	if(!cnt)
 	{
 		logger  << "[" << fromToID << "]Nothing supplied to threadpool-TTRP" << std::endl;
-	}
+	}*/
 }
 
 int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::PathSet> ps, std::set<OD> &recursiveODs, const std::set<const sim_mob::RoadSegment*> & excludedSegs)
 {
+	/*
 	Profiler gen("generateAllPathChoices", true);
 	//small sanity check
-	if(!ps || ps->subTrip.fromLocation.node_ == ps->subTrip.toLocation.node_ || !ps->subTrip.fromLocation.node_ || !ps->subTrip.toLocation.node_)
+	if(!ps || ps->subTrip.fromLocation.node == ps->subTrip.toLocation.node || !ps->subTrip.fromLocation.node || !ps->subTrip.toLocation.node)
 	{
 		return 0;
 	}
 
-	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_));
-	logger << "generateAllPathChoices" << std::endl;
+	std::string fromToID(getFromToString(ps->subTrip.fromLocation.node,ps->subTrip.toLocation.node));
+	logger << "generateAllPathChoices" << std::endl;*/
 	/**
 	 * step-1: find the shortest path. if not found: create an entry in the "PathSet" table and return(without adding any entry into SinglePath table)
 	 * step-2: K-SHORTEST PATH
@@ -971,8 +972,8 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 	 * step-7: Some caching/bookkeeping
 	 * step-8: RECURSION!!!
 	 */
-	std::set<std::string> duplicateChecker;//for extra optimization only(creating singlepath and discarding it later can be expensive)
-	sim_mob::SinglePath *s = findShortestDrivingPath(ps->subTrip.fromLocation.node_,ps->subTrip.toLocation.node_,duplicateChecker/*,excludedSegs*/);
+	/*std::set<std::string> duplicateChecker;//for extra optimization only(creating singlepath and discarding it later can be expensive)
+	sim_mob::SinglePath *s = findShortestDrivingPath(ps->subTrip.fromLocation.node,ps->subTrip.toLocation.node,duplicateChecker);
 	if(!s)
 	{
 		// no path
@@ -1021,7 +1022,7 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 	genRandPert(ps,randPertStorage);
 
 	if(!(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation"))
-	{
+	{*/
 		/*
 		 * NOTE:
 		 * when pathset runs in "normal" mode, at the time of generating a pathset for requested ODs, each method
@@ -1031,7 +1032,7 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 		 * Therefore, the following wait is not necessary in case of "generation" mode because "one" thread will take care of all types of
 		 * path generations.
 		 */
-		threadpool_->wait();
+		/*threadpool_->wait();
 	}
 
 	//record
@@ -1088,14 +1089,14 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 	}
 
 	//step -8 : RECURSE
-	boost::shared_ptr<sim_mob::PathSet> recursionPs;
+	boost::shared_ptr<sim_mob::PathSet> recursionPs;*/
 	/*
 	 * a) iterate through each path to first find ALL the multinodes to destination to make a set.
 	 * b) then iterate through this set to choose each of them as a new Origin(Destination is same).
 	 * call generateAllPathChoices on the new OD pair
 	 */
 	//a)
-	std::set<Node*> newOrigins = std::set<Node*>();
+	/*std::set<Node*> newOrigins = std::set<Node*>();
 	BOOST_FOREACH(sim_mob::SinglePath *sp, ps->pathChoices)
 	{
 		if(sp->path.size() <=1)
@@ -1111,7 +1112,7 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 		for(; it != itEnd; it++)
 		{
 			//skip uninodes
-			sim_mob::Node * newFrom = it->roadSegment_->getLink()->getEnd();
+			sim_mob::Node * newFrom = it->roadSegment->getLink()->getEnd();
 			// All segments of the link have the same link end node. Skip if already chosen
 			if(linkEnd == newFrom)
 			{
@@ -1122,7 +1123,7 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 				linkEnd = newFrom;
 			}
 			//check if the new OD you want to process is not already scheduled for processing by previous iterations(todo: or even by other threads!)
-			if(recursiveODs.insert(OD(newFrom,ps->subTrip.toLocation.node_)).second == false)
+			if(recursiveODs.insert(OD(newFrom,ps->subTrip.toLocation.node)).second == false)
 			{
 				continue;
 			}
@@ -1135,13 +1136,14 @@ int sim_mob::PathSetManager::generateAllPathChoices(boost::shared_ptr<sim_mob::P
 	{
 		boost::shared_ptr<sim_mob::PathSet> recursionPs(new sim_mob::PathSet());
 		recursionPs->subTrip = ps->subTrip;
-		recursionPs->subTrip.fromLocation.node_ = from;
-		recursionPs->id = getFromToString(recursionPs->subTrip.fromLocation.node_, recursionPs->subTrip.toLocation.node_);
+		recursionPs->subTrip.fromLocation.node = from;
+		recursionPs->id = getFromToString(recursionPs->subTrip.fromLocation.node, recursionPs->subTrip.toLocation.node);
 		recursionPs->scenario = ps->scenario;
 		total += generateAllPathChoices(recursionPs,recursiveODs,excludedSegs);
 	}
 
-	return total;
+	return total;*/
+	return 0;
 }
 
 
@@ -1158,8 +1160,8 @@ vector<WayPoint> sim_mob::PathSetManager::generateBestPathChoice2(const sim_mob:
 		return res;
 	}
 	//find the node id
-	const sim_mob::Node* fromNode = st->fromLocation.node_;
-	const sim_mob::Node* toNode = st->toLocation.node_;
+	const sim_mob::Node* fromNode = st->fromLocation.node;
+	const sim_mob::Node* toNode = st->toLocation.node;
 	std::string fromToID(getFromToString(fromNode,toNode));
 	std::string pathSetID=fromToID;
 	//check cache to save a trouble if the path already exists
@@ -1326,9 +1328,9 @@ void sim_mob::PathSetManager::generatePathesByLinkElimination(std::vector<WayPoi
 	for(int i=0;i<path.size();++i)
 	{
 		WayPoint &w = path[i];
-		if (w.type_ == WayPoint::ROAD_SEGMENT) {
+		if (w.type == WayPoint::ROAD_SEGMENT) {
 			std::set<const sim_mob::RoadSegment*> seg ;
-			seg.insert(w.roadSegment_);
+			seg.insert(w.roadSegment);
 			SinglePath *sinPath = findShortestDrivingPath(fromNode,toNode,duplicateChecker,seg);
 			if(!sinPath)
 			{
@@ -1353,8 +1355,8 @@ void sim_mob::PathSetManager::generatePathesByTravelTimeLinkElimination(std::vec
 	for(int i=0;i<path.size();++i)
 	{
 		WayPoint &w = path[i];
-		if (w.type_ == WayPoint::ROAD_SEGMENT) {
-			const sim_mob::RoadSegment* seg = w.roadSegment_;
+		if (w.type == WayPoint::ROAD_SEGMENT) {
+			const sim_mob::RoadSegment* seg = w.roadSegment;
 			SinglePath *sinPath = generateShortestTravelTimePath(fromNode,toNode,duplicateChecker,tr,seg);
 			if(!sinPath)
 			{
@@ -1670,7 +1672,7 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::findShortestDrivingPath(
 	 * step-3: create a new Single path object
 	 * step-4: return the resulting singlepath object as well as add it to the container supplied through args
 	 */
-	sim_mob::SinglePath *s=NULL;
+	/*sim_mob::SinglePath *s=NULL;
 	std::vector<WayPoint> wp = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*fromNode), stdir.DrivingVertex(*toNode));
 	if(wp.empty())
 	{
@@ -1693,7 +1695,7 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::findShortestDrivingPath(
 	// make sp id
 	std::string id = sim_mob::makeWaypointsetString(wp);
 	if(!id.size()){
-		logger << "Error: Empty shortest path for OD:" <<  fromNode->getID() << "," << toNode->getID() << "\n" ;
+		logger << "Error: Empty shortest path for OD:" <<  fromNode->getNodeId() << "," << toNode->getNodeId() << "\n" ;
 	}
 	// 1.31 check path pool
 	std::set<std::string>::iterator it =  duplicatePath.find(id);
@@ -1712,7 +1714,7 @@ sim_mob::SinglePath *  sim_mob::PathSetManager::findShortestDrivingPath(
 		logger<<"gSPByFTNodes3:duplicate pathset discarded\n";
 	}
 
-	return s;
+	return s;*/
 }
 
 sim_mob::SinglePath* sim_mob::PathSetManager::generateShortestTravelTimePath(const sim_mob::Node *fromNode, const sim_mob::Node *toNode,
@@ -1732,8 +1734,8 @@ sim_mob::SinglePath* sim_mob::PathSetManager::generateShortestTravelTimePath(con
 	if(wp.size()==0)
 	{
 		// no path
-		logger<<"generateShortestTravelTimePath: no path for nodes"<<fromNode->originalDB_ID.getLogItem()<<
-				toNode->originalDB_ID.getLogItem() << "\n";
+		logger<<"generateShortestTravelTimePath: no path for nodes"<<fromNode->getNodeId()<<
+				toNode->getNodeId() << "\n";
 		return s;
 	}
 	// make sp id
@@ -1773,12 +1775,12 @@ void sim_mob::generatePathSize(boost::shared_ptr<sim_mob::PathSet>&ps)
 		// For each link a in the path:
 		for(std::vector<WayPoint>::iterator it1=sp->path.begin(); it1!=sp->path.end(); ++it1)
 		{
-			const sim_mob::RoadSegment* seg = it1->roadSegment_;
+			const sim_mob::RoadSegment* seg = it1->roadSegment;
 			sim_mob::SinglePath* minSp = findShortestPath_LinkBased(ps->pathChoices, seg);
 			if(minSp == nullptr)
 			{
 				std::stringstream out("");
-				out << "couldn't find a min path for segment " << seg->getId();
+				out << "couldn't find a min path for segment " << seg->getRoadSegmentId();
 				throw std::runtime_error(out.str());
 			}
 			minL = minSp->length;
@@ -1823,7 +1825,7 @@ double sim_mob::PathSetManager::getPathTravelTime(sim_mob::SinglePath *sp,const 
 	for(int i=0;i<sp->path.size();++i)
 	{
 		double time = 0.0;
-		const sim_mob::RoadSegment * rs = sp->path[i].roadSegment_;
+		const sim_mob::RoadSegment * rs = sp->path[i].roadSegment;
 		const sim_mob::IncidentManager * inc = IncidentManager::getInstance();
 		if(inc->getCurrIncidents().find(rs) != inc->getCurrIncidents().end())
 		{
@@ -1842,7 +1844,7 @@ double sim_mob::PathSetManager::getPathTravelTime(sim_mob::SinglePath *sp,const 
 		}
 		if(time == 0.0)
 		{
-			Print() << "No Travel Time [SEGMENT: " << rs->getId() << "] [START TIME : " << startTime.getStrRepr() << "]\n";
+			Print() << "No Travel Time [SEGMENT: " << rs->getRoadSegmentId() << "] [START TIME : " << startTime.getStrRepr() << "]\n";
 		}
 		timeSum  += time;
 		startTime = startTime + sim_mob::DailyTime(time*1000);
@@ -1930,7 +1932,7 @@ sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePa
  */
 sim_mob::SinglePath* findShortestPath_LinkBased(const std::set<sim_mob::SinglePath*, sim_mob::SinglePath> &pathChoices, const sim_mob::RoadSegment *rs)
 {
-	const sim_mob::Link *ln = rs->getLink();
+	const sim_mob::Link *ln = rs->getParentLink();
 	return findShortestPath_LinkBased(pathChoices,ln);
 }
 
@@ -1944,10 +1946,10 @@ double getPathTravelCost(sim_mob::SinglePath *sp,const std::string & travelMode,
 	}
 	for(std::vector<WayPoint>::iterator it1 = sp->path.begin(); it1 != sp->path.end(); it1++)
 	{
-		unsigned long segId = (it1)->roadSegment_->getId();
+		unsigned long segId = (it1)->roadSegment->getRoadSegmentId();
 		std::map<int,sim_mob::ERP_Section*>::iterator it = sim_mob::PathSetParam::getInstance()->ERP_SectionPool.find(segId);//todo type mismatch
 		//get travel time to this segment
-		double t = sim_mob::PathSetParam::getInstance()->getSegTT((it1)->roadSegment_,travelMode, tripStartTime);
+		double t = sim_mob::PathSetParam::getInstance()->getSegTT((it1)->roadSegment,travelMode, tripStartTime);
 		ts += t;
 		tripStartTime = tripStartTime + sim_mob::DailyTime(t*1000);
 		if(it!=sim_mob::PathSetParam::getInstance()->ERP_SectionPool.end())

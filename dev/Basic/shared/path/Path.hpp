@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
-#include "geospatial/WayPoint.hpp"
+#include "geospatial/network/WayPoint.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
@@ -43,7 +43,7 @@ public:
 	/// path representation
 	std::vector<sim_mob::WayPoint> path;
 	///	link representation of path
-	std::vector<sim_mob::Link*> linkPath;
+	std::vector<const sim_mob::Link*> linkPath;
 	///	segment collection of the path
 	std::set<const sim_mob::RoadSegment*> segSet;
 

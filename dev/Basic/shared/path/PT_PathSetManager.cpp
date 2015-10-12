@@ -34,7 +34,7 @@ std::string PT_PathSetManager::getVertexIdFromNode(sim_mob::Node* node)
 	//As in the PT_Network vertices simMobility nodes are represented as the N_ and node id
 	// to avoid the conflict with the bus stop id's
 	string starter="N_";
-	unsigned int node_id = node->getID();
+	unsigned int node_id = node->getNodeId();
 	string stopId = boost::lexical_cast<std::string>("N_"+boost::lexical_cast<std::string>(node_id));
 	return stopId;
 }
@@ -76,13 +76,13 @@ void PT_PathSetManager::PT_BulkPathSetGenerator()
 	}
 	int total_count = PT_OD_Set.size();
 	Print() << "Total OD's in Bulk generation is "<<total_count;
-	for(std::set<PT_OD>::const_iterator OD_It=PT_OD_Set.begin();OD_It!=PT_OD_Set.end();OD_It++)
+	/*for(std::set<PT_OD>::const_iterator OD_It=PT_OD_Set.begin();OD_It!=PT_OD_Set.end();OD_It++)
 	{
 		sim_mob::Node* src_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(OD_It->getStartNode());
 		sim_mob::Node* dest_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(OD_It->getDestNode());
 		//sim_mob::PT_PathSetManager::Instance().makePathset(src_node,dest_node);
 		threadpool_->enqueue(boost::bind(&sim_mob::PT_PathSetManager::makePathset,this,src_node,dest_node));
-	}
+	}*/
 	threadpool_->wait();
 	conn.disconnect();
 }
@@ -109,7 +109,7 @@ PT_PathSet PT_PathSetManager::makePathset(sim_mob::Node* from,sim_mob::Node* to)
 	ptPathSet.checkPathFeasibilty();
 	// Writing the pathSet to the CSV file.
 
-	writePathSetToFile(ptPathSet,from->nodeId,to->nodeId);
+	writePathSetToFile(ptPathSet,from->getNodeId(),to->getNodeId());
 	return ptPathSet;
 }
 void PT_PathSetManager::writePathSetFileHeader()

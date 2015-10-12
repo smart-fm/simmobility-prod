@@ -83,7 +83,7 @@ void sim_mob::TravelTimeManager::insertTravelTime2TmpTable(const std::string fil
 			{
 
 				//easy reading
-				const unsigned long &segmentId = RS_Pair.first->getId();
+				const unsigned long &segmentId = RS_Pair.first->getRoadSegmentId();
 				TT::TimeAndCount & timeAndCount = RS_Pair.second;
 				double& totalTT = timeAndCount.totalTravelTime;
 				unsigned int& totalCount = timeAndCount.travelTimeCnt;

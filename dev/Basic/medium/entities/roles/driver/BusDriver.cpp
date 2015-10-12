@@ -144,7 +144,7 @@ void sim_mob::medium::BusDriver::storeArrivalTime(const std::string& current, co
 			dynamic_cast<const BusTrip*>(*(person->currTripChainItem));
 	if (busTrip) {
 		const Busline* busLine = busTrip->getBusline();
-		std::string stopNo = stop->getBusstopno_();
+		std::string stopNo = stop->getRoadItemId();
 		std::string tripId = busTrip->tripID;
 		std::string busLineId = busLine->getBusLineID();
 		//unsigned int sequenceNo = busTrip->getBusTripStopIndex(stop);

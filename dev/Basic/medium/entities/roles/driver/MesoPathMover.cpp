@@ -6,7 +6,7 @@
 
 #include <algorithm>
 #include <sstream>
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "logging/Log.hpp"
 
 void sim_mob::medium::MesoPathMover::setPath(const std::vector<const sim_mob::SegmentStats*>& segStatPath)

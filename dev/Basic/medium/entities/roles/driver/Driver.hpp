@@ -10,7 +10,7 @@
 #include "conf/settings/DisableMPI.h"
 #include "entities/roles/Role.hpp"
 #include "entities/Vehicle.hpp"
-#include "geospatial/WayPoint.hpp"
+#include "geospatial/network/WayPoint.hpp"
 #include "util/DynamicVector.hpp"
 #include "DriverUpdateParams.hpp"
 #include "DriverFacets.hpp"
@@ -30,7 +30,7 @@ class RoadSegment;
 class Lane;
 class Node;
 class MultiNode;
-class DPoint;
+class Point;
 class UpdateParams;
 
 namespace medium
@@ -48,10 +48,10 @@ class DriverMovement;
 
 class Driver : public sim_mob::Role, public UpdateWrapper<DriverUpdateParams> {
 private:
-	/** Helper class for grouping a Node and a Point2D together. */
+	/** Helper class for grouping a Node and a Point together. */
 	class NodePoint {
 	public:
-		Point2D point;
+		Point point;
 		const Node* node;
 		NodePoint() : point(0,0), node(nullptr) {}
 	};

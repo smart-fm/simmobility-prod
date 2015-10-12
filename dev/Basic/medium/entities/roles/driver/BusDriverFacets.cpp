@@ -10,7 +10,7 @@
 #include "entities/BusStopAgent.hpp"
 #include "entities/Person.hpp"
 #include "entities/Vehicle.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
 #include "message/MT_Message.hpp"
@@ -160,7 +160,7 @@ void BusDriverMovement::frame_tick() {
 //	if(parentBusDriver->getResource()->isMoving()) { logout << ",ServingStop:" << "false"; }
 //	else { logout << ",ServingStop:" << "true"; }
 //	const sim_mob::BusStop* nextStop = routeTracker.getNextStop();
-//	logout << ",NextStop:" << (nextStop? nextStop->getBusstopno_() : "0");
+//	logout << ",NextStop:" << (nextStop? nextStop->getRoadItemId() : "0");
 //
 //	if (person->isQueuing) { logout << ",queuing:" << "true"; }
 //	else { logout << ",queuing:" << "false";}
@@ -277,7 +277,7 @@ const sim_mob::Lane* BusDriverMovement::getBestTargetLane(const sim_mob::Segment
 		for (vector<sim_mob::Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
 		{
 			const Lane* lane = *lnIt;
-			if (!lane->is_pedestrian_lane())
+			if (!lane->isPedestrianLane())
 			{
 				if(nextToNextSegStats
 						&& !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())
@@ -314,7 +314,7 @@ const sim_mob::Lane* BusDriverMovement::getBestTargetLane(const sim_mob::Segment
 			//This code must be removed and an error must be thrown here in future.
 			for (vector<sim_mob::Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
 			{
-				if (!((*lnIt)->is_pedestrian_lane()))
+				if (!((*lnIt)->isPedestrianLane()))
 				{
 					const Lane* lane = *lnIt;
 					total = nextSegStats->getLaneTotalVehicleLength(lane);
@@ -404,7 +404,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		else
 		{
 			std::stringstream errorStrm;
-			errorStrm << "BusStopAgent not found for stop: " << nextStop->getBusstopno_()
+			errorStrm << "BusStopAgent not found for stop: " << nextStop->getRoadItemId()
 					<< "|SegmentStats: " << currSegStat
 					<< "|position: " << currSegStat->getStatsNumberInSegment()
 					<< "|num. stops: " << currSegStat->getNumStops()

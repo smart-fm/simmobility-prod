@@ -15,13 +15,13 @@
 #include "entities/UpdateParams.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/Vehicle.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/LaneConnector.hpp"
-#include "geospatial/Point2D.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/LaneConnector.hpp"
+#include "geospatial/network/Point.hpp"
 #include "path/PathSetManager.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "path/PathSetManager.hpp"
@@ -929,7 +929,7 @@ const sim_mob::Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextS
 	for (vector<sim_mob::Lane* >::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
 	{
 		const Lane* lane = *lnIt;
-		if (!lane->is_pedestrian_lane() && !lane->is_whole_day_bus_lane())
+		if (!lane->isPedestrianLane() && !lane->is_whole_day_bus_lane())
 		{
 			if(!laneConnectorOverride
 					&& nextToNextSegStats

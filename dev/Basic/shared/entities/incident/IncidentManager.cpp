@@ -59,8 +59,8 @@ void sim_mob::IncidentManager::readFromFile(std::string inputFile){
 	in.close();
 }
 
-void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
-	/*find the incidents in this tick*/
+void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){/*
+	//find the incidents in this tick
 	TickIncidents tickIncident = incidents.equal_range(tick);
 	if(tickIncident.first == tickIncident.second){
 		//no incidents for this tick
@@ -69,7 +69,7 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 
 	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::instance();
 	std::pair<uint32_t,Incident> incident;
-	/*inserting and informing: 1-Conflux 2-pathsetmanager 3-person*/
+	//inserting and informing: 1-Conflux 2-pathsetmanager 3-person
 	for(std::multimap<uint32_t,Incident>::iterator incident = tickIncident.first; incident != tickIncident.second; incident++){
 		//get the conflux
 		const sim_mob::RoadSegment* rs = stDir.getRoadSegment(incident->second.get<0>());
@@ -81,7 +81,7 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 		sim_mob::PathSetManager::getInstance()->inserIncidentList((*stats.begin())->getRoadSegment());
 		std::vector <const sim_mob::Person*> persons;
 		identifyAffectedDrivers(rs,persons);
-		logger << " INCIDENT  segment:"<< rs->getSegmentAimsunId() << " affected:" << persons.size() << "\n" ;
+		logger << " INCIDENT  segment:"<< rs->getRoadSegmentId() << " affected:" << persons.size() << "\n" ;
 
 		//find affected Drivers (only active agents for now)
 		//inform the drivers about the incident
@@ -94,6 +94,7 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){
 		//and finally, you have an incident
 		currIncidents[rs] = incident->second.get<1>();
 	}
+	*/
 }
 
 std::map<const sim_mob::RoadSegment*, double> & sim_mob::IncidentManager::getCurrIncidents(){

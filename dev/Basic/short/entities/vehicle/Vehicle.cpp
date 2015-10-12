@@ -5,8 +5,8 @@
 #include "Vehicle.hpp"
 
 #include "logging/Log.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -37,11 +37,11 @@ sim_mob::Vehicle::Vehicle(const Vehicle& copyFrom) :
 }
 
 void sim_mob::Vehicle::setPositionInIntersection(double x, double y) {
-	posInIntersection.x = x;
-	posInIntersection.y = y;
+	posInIntersection.setX(x);
+	posInIntersection.setY(y);
 }
 
-const DPoint& sim_mob::Vehicle::getPositionInIntersection()
+const Point& sim_mob::Vehicle::getPositionInIntersection()
 {
 	return posInIntersection;
 }
@@ -54,8 +54,8 @@ void sim_mob::Vehicle::resetPath(vector<WayPoint> wp_path) {
 	//Construct a list of RoadSegments.
 	vector<const RoadSegment*> path;
 	for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); ++it) {
-		if (it->type_ == WayPoint::ROAD_SEGMENT) {
-			path.push_back(it->roadSegment_);
+		if (it->type == WayPoint::ROAD_SEGMENT) {
+			path.push_back(it->roadSegment);
 		}
 	}
 
@@ -133,12 +133,12 @@ void sim_mob::Vehicle::setAcceleration(double value) {
 	fwdAccel = value;
 }
 
-void sim_mob::Vehicle::setCurrPosition(DPoint currPosition) {
+void sim_mob::Vehicle::setCurrPosition(Point currPosition) {
 	throw_if_error();
 	currPos = currPosition;
 }
 
-const DPoint& sim_mob::Vehicle::getCurrPosition() const {
+const Point& sim_mob::Vehicle::getCurrPosition() const {
 	throw_if_error();
 	return currPos;
 }

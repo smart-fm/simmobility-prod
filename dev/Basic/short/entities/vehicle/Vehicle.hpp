@@ -20,9 +20,9 @@
 #include "conf/settings/DisableMPI.h"
 #include "entities/vehicle/VehicleBase.hpp"
 #include "entities/models/Constants.h"
-#include "geospatial/Lane.hpp"
+#include "geospatial/network/Lane.hpp"
 #include "entities/roles/driver/GeneralPathMover.hpp"
-#include "geospatial/WayPoint.hpp"
+#include "geospatial/network/WayPoint.hpp"
 #include "util/MovementVector.hpp"
 #include "util/DynamicVector.hpp"
 
@@ -67,15 +67,15 @@ public:
 
 	const sim_mob::Lane* getCurrLane() const;
 	void setPositionInIntersection(double x, double y);
-	const DPoint& getPositionInIntersection();
+	const Point& getPositionInIntersection();
 	void setTurningDirection(LANE_CHANGE_SIDE direction);
 	//Modifiers
 	void setVelocity(double value);      ///<Set the forward velocity.
 	void setLatVelocity(double value);   ///<Set the lateral velocity.
 	void setAcceleration(double value);  ///<Set the forward acceleration.
 	// for path-mover splitting purpose
-	void setCurrPosition(DPoint currPosition);
-	const DPoint& getCurrPosition() const;
+	void setCurrPosition(Point currPosition);
+	const Point& getCurrPosition() const;
 
 	void moveLat(double amt);            ///<Move this car laterally. NOTE: This will _add_ the amt to the current value.
 	void resetLateralMovement();         ///<Put this car back in the center of the current lane.
@@ -111,9 +111,9 @@ private:
 	double fwdAccel;
 	LANE_CHANGE_SIDE turningDirection;
 	//Override for when we're in an intersection.
-	DPoint posInIntersection;
+	Point posInIntersection;
 	// driver path-mover split purpose, we save the currPos in the Vehicle
-	DPoint currPos;
+	Point currPos;
 
 	//NOTE: The error state is a temporary sanity check to help me debug this class. There are certainly
 	//      better ways to handle this (e.g., non-default constructor).

@@ -512,7 +512,7 @@ void sim_mob::Worker::migrateAllOut()
 		migrateOutConflux(**cfxIt);
 		//Debugging output
 		if (Debug::WorkGroupSemantics) {
-			PrintOut("Removing Conflux " << (*cfxIt)->getMultiNode()->getID() <<" from worker: " <<this <<std::endl);
+			//PrintOut("Removing Conflux " << (*cfxIt)->getMultiNode()->getID() <<" from worker: " <<this <<std::endl);
 		}
 	}
 	std::for_each(managedConfluxes.begin(), managedConfluxes.end(), ContainerDeleter<sim_mob::Conflux>()); // Delete all confluxes
@@ -563,7 +563,7 @@ void sim_mob::Worker::migrateOutConflux(Conflux& cfx) {
 		}
 		//Debugging output
 		if (Debug::WorkGroupSemantics) {
-			PrintOut("Removing Entity " <<person->getId() << " from conflux: " << cfx.getMultiNode()->getID() <<std::endl);
+			//PrintOut("Removing Entity " <<person->getId() << " from conflux: " << cfx.getMultiNode()->getID() <<std::endl);
 		}
 	}
 	//std::for_each(cfxPersons.begin(), cfxPersons.end(), ContainerDeleter<sim_mob::Person>()); // Delete all persons

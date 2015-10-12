@@ -21,9 +21,9 @@
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/Link.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/Link.hpp"
 #include "path/PathSetManager.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
@@ -555,6 +555,7 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 		sim_mob::Conflux* conflux, sim_mob::Worker* worker,
 		int numConfluxesToAddInWorker)
 {
+	/*
 	typedef std::set<const sim_mob::RoadSegment*> SegmentSet;
 
 	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
@@ -602,6 +603,7 @@ bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
 		}
 	}
 	return workerFilled;
+	*/
 }
 
 /**

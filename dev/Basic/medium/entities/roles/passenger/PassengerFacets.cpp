@@ -8,7 +8,7 @@
 #include "PassengerFacets.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "geospatial/MultiNode.hpp"
+#include "geospatial/network/Node.hpp"
 #include "Passenger.hpp"
 
 namespace sim_mob
@@ -71,7 +71,7 @@ sim_mob::Conflux* PassengerMovement::getStartingConflux() const
 {
 	if (parentPassenger->roleType == Role::RL_CARPASSENGER)
 	{
-		const sim_mob::MultiNode* location = dynamic_cast<const sim_mob::MultiNode*>(parentPassenger->parent->currSubTrip->toLocation.node_);
+		const Node* location = dynamic_cast<const Node*>(parentPassenger->parent->currSubTrip->toLocation.node_);
 		if (location)
 		{
 			return ConfigManager::GetInstanceRW().FullConfig().getConfluxForNode(location);

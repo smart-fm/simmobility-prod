@@ -23,6 +23,7 @@
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/ST_Config.hpp"
 #include "logging/Log.hpp"
 #include "util/Profiler.hpp"
 #include "entities/models/Constants.hpp"
@@ -57,6 +58,15 @@ void sim_mob::Signal::setSignalType(signalType sigType)
 
 void sim_mob::Signal::setLinkAndCrossing(LinkAndCrossingC & LinkAndCrossings) {
 	LinkAndCrossings_ = LinkAndCrossings;
+}
+
+const sim_mob::Signal* sim_mob::Signal::getSignalBasedOnNode(const sim_mob::Point2D* one_point)
+{
+    const sim_mob::RoadNetwork& rn = ConfigManager::GetInstance().FullConfig().getNetwork();
+    sim_mob::Node* one_node = rn.locateNode(*one_point, true);
+
+    sim_mob::StreetDirectory& directory = sim_mob::StreetDirectory::instance();
+    return directory.signalAt(*one_node);
 }
 
 LinkAndCrossingC const& sim_mob::Signal::getLinkAndCrossing()const {
@@ -144,7 +154,7 @@ sim_mob::Signal_SCATS::signalAt(Node const & node, const MutexStrategy& mtxStrat
 	Signal_SCATS * sig = new Signal_SCATS(node, mtxStrat);
 	all_signals_.push_back(sig);
 	if (isNew) { *isNew = true; }
-	StreetDirectory::instance().registerSignal(*sig);
+    //StreetDirectory::instance().registerSignal(*sig);
 	return *sig;
 }
 std::string sim_mob::Signal_SCATS::toString() const { return strRepr; }
@@ -208,12 +218,12 @@ sim_mob::Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxS
 
 //	findIncomingLanes();//what was it used for? only Density?
 	//it would be better to declare it as static const
-	updateInterval = sim_mob::ConfigManager::GetInstance().FullConfig().granSignalsTicks * sim_mob::ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000;
+    updateInterval = ST_Config::getInstance().granSignalsTicks * sim_mob::ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000;
 	currCycleTimer = 0;
 
 	//TODO: Why all the ifdefs? Why does this depend on whether we're loading from XML or not? ~Seth
 #ifndef SIMMOB_XML_WRITER
-	if (ConfigManager::GetInstance().FullConfig().networkSource()==SystemParams::NETSRC_DATABASE) {
+    if (ST_Config::getInstance().networkSource()==NETSRC_DATABASE) {
 		findSignalLinksAndCrossings();
 	}
 #else
@@ -531,7 +541,7 @@ std::size_t sim_mob::Signal_SCATS::computeCurrPhase(double currCycleTimer)
  */
 Entity::UpdateStatus sim_mob::Signal_SCATS::frame_tick(timeslice now)
 {
-	if(ConfigManager::GetInstance().FullConfig().loopDetectorCounts.outputEnabled)
+    if(ST_Config::getInstance().loopDetectorCounts.outputEnabled)
 	{
 		curVehicleCounter.aggregateCounts(now);
 	}
@@ -718,8 +728,8 @@ std::vector<std::pair<sim_mob::Phase, double> > sim_mob::Signal_SCATS::predictSi
 }
 
 sim_mob::VehicleCounter::VehicleCounter():simStartTime(sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime()),
-		frequency(ConfigManager::GetInstance().FullConfig().loopDetectorCounts.frequency), 
-		logger(sim_mob::Logger::log(ConfigManager::GetInstance().FullConfig().loopDetectorCounts.fileName)), curTimeSlice(0,0)
+        frequency(ST_Config::getInstance().loopDetectorCounts.frequency),
+        logger(sim_mob::Logger::log(ST_Config::getInstance().loopDetectorCounts.fileName)), curTimeSlice(0,0)
 {
 }
 
@@ -755,7 +765,7 @@ void sim_mob::VehicleCounter::resetCounter()
 
 void sim_mob::VehicleCounter::serialize(const uint32_t& time)
 {
-	if (ConfigManager::GetInstance().FullConfig().loopDetectorCounts.outputEnabled)
+    if (ST_Config::getInstance().loopDetectorCounts.outputEnabled)
 	{
 		std::map<const sim_mob::Lane*, int> ::iterator it(counter.begin());
 		for (; it != counter.end(); it++)

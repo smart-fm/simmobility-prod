@@ -131,6 +131,8 @@ namespace sim_mob
     typedef std::vector<sim_mob::Signal *>::const_iterator all_signals_const_Iterator;
     typedef std::vector<sim_mob::Signal *>::iterator all_signals_Iterator;
 
+    static const sim_mob::Signal* getSignalBasedOnNode(const sim_mob::Point2D* one_point);
+
   private:
     /*The node associated with this traffic Signal */
     sim_mob::Node const & node_;

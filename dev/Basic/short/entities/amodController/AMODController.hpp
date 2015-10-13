@@ -16,7 +16,7 @@
 #include <string>
 #include "AMODEvent.hpp"
 #include "entities/Agent.hpp"
-#include "entities/Person.hpp"
+#include "entities/Person_ST.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventPublisher.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
@@ -93,7 +93,7 @@ public:
 	// For finding the nearest free vehicle
 	typedef std::pair< double , std::string > distPair;
 	bool distPairComparator ( const distPair& l, const distPair& r){ return l.first < r.first; }
-	bool findNearestFreeVehicle(std::string originId, std::map<std::string, sim_mob::Node* > &nodePool, std::string &carParkId, Person**vh);
+    bool findNearestFreeVehicle(std::string originId, std::map<std::string, sim_mob::Node* > &nodePool, std::string &carParkId, Person_ST**vh);
 	//void findAllFreeVhs(std::vector<std::string> carParkIdsWithVhs);
 	void findNearestCarPark(std::string& originId, const RoadSegment* lastWPrs, std::vector<std::string>& AllCarParks, std::string &carParkIdArrival, std::vector<const sim_mob::RoadSegment*> &blacklist);
 	void findNearestCarParkToNode(std::string& destinationNode, const RoadSegment* lastWPrs, std::vector<std::string>& AllCarParks, std::string &carParkIdArrival,  std::vector<const sim_mob::RoadSegment*> &blacklist);
@@ -112,18 +112,18 @@ public:
 	std::vector < WayPoint > getShortestPath(std::string origNodeID, std::string destNodeID);
 	std::vector <WayPoint> getShortestPathWBlacklist(std::string origNodeID, std::string destNodeID, std::vector<const sim_mob::RoadSegment*> blacklist);
 
-	bool getVhFromCarPark(std::string& carParkId,Person** vh);
-	bool removeVhFromCarPark(std::string& carParkId,Person** vh); //removes a specific vehicle from the car park
+    bool getVhFromCarPark(std::string& carParkId,Person_ST** vh);
+    bool removeVhFromCarPark(std::string& carParkId,Person_ST** vh); //removes a specific vehicle from the car park
 	//removes vehicle from the carpark
 	void mergeWayPoints(const std::vector<sim_mob::WayPoint>& carparkToOrigin, const std::vector<sim_mob::WayPoint> &originToDestination, std::vector<sim_mob::WayPoint>& mergedWP);
 	//mergeWayPoints ->merge waypoints carpark-origin and origin-destination
 	// set predefined path
-	bool setPath2Vh(Person* vh,std::vector<WayPoint>& path);
+    bool setPath2Vh(Person_ST* vh,std::vector<WayPoint>& path);
 	// ad vh to main loop
-	bool dispatchVh(Person* vh);
+    bool dispatchVh(Person_ST* vh);
 
-	void rerouteWithPath(Person* vh,std::vector<sim_mob::WayPoint>& path);
-	void rerouteWithOriDest(Person* vh,Node* snode,Node* enode);
+    void rerouteWithPath(Person_ST* vh,std::vector<sim_mob::WayPoint>& path);
+    void rerouteWithOriDest(Person_ST* vh,Node* snode,Node* enode);
 	/// snode: start node
 	/// enode: end node
 	/// path: new path
@@ -150,11 +150,11 @@ public:
 			sim_mob::event::EventPublisher* sender,
 			const AMOD::AMODEventArgs& args);
 
-	void handleVHArrive(Person* vh);
-	void handleVHDestruction(Person *vh);
-	void handleVHPickup(Person *vh);
+    void handleVHArrive(Person_ST* vh);
+    void handleVHDestruction(Person_ST *vh);
+    void handleVHPickup(Person_ST *vh);
 
-	void processArrival(Person *vh);
+    void processArrival(Person_ST *vh);
 	boost::thread mThread;
 
 protected:
@@ -180,20 +180,20 @@ private:
 private:
 
 	/// key=node id, value= (key=vh id,value=vh)
-	typedef boost::unordered_map<std::string,boost::unordered_map<std::string,Person*> > AMODVirtualCarPark;
-	typedef boost::unordered_map<std::string,boost::unordered_map<std::string,Person*> >::iterator AMODVirtualCarParkItor;
+    typedef boost::unordered_map<std::string,boost::unordered_map<std::string,Person_ST*> > AMODVirtualCarPark;
+    typedef boost::unordered_map<std::string,boost::unordered_map<std::string,Person_ST*> >::iterator AMODVirtualCarParkItor;
 	AMODVirtualCarPark virtualCarPark;
 
-	boost::unordered_map<std::string,Person*> vhOnTheRoad;
-	boost::unordered_map<std::string,Person*> EmptyVhOnTheRoad;
-	boost::unordered_map<std::string,Person*> vhInCarPark;
-	boost::unordered_map<std::string,Person*> allAMODCars;
+    boost::unordered_map<std::string,Person_ST*> vhOnTheRoad;
+    boost::unordered_map<std::string,Person_ST*> EmptyVhOnTheRoad;
+    boost::unordered_map<std::string,Person_ST*> vhInCarPark;
+    boost::unordered_map<std::string,Person_ST*> allAMODCars;
 	std::vector<std::string> carParkIds;
 	std::vector<std::vector < double > > distancesBetweenCarparks; //inCM
 	std::string emptyTripId;
 
-	boost::unordered_map<Person*, AmodTrip  > vhTripMap;
-	typedef boost::unordered_map< Person*, AmodTrip >::iterator TripMapIterator;
+    boost::unordered_map<Person_ST*, AmodTrip  > vhTripMap;
+    typedef boost::unordered_map< Person_ST*, AmodTrip >::iterator TripMapIterator;
 
 	std::list < AmodTrip > serviceBuffer;
 	typedef std::list< AmodTrip >::iterator ServiceIterator;
@@ -215,7 +215,7 @@ public:
 	StreetDirectory* stdir;
 	std::map<const RoadSegment*, sim_mob::RdSegTravelTimes> RdSegTravelTimesMap;
 
-	void setRdSegTravelTimes(Person* ag, double rdSegExitTime);
+    void setRdSegTravelTimes(Person_ST* ag, double rdSegExitTime);
 	void updateTravelTimeGraph();
 	bool insertTravelTime2TmpTable(timeslice frameNumber, std::map<const RoadSegment*, sim_mob::RdSegTravelTimes>& rdSegTravelTimesMap);
 

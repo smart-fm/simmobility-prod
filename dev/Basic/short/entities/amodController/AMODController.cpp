@@ -25,6 +25,7 @@
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
+#include "entities/Person_ST.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
@@ -528,7 +529,7 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 	std::vector<sim_mob::TripChainItem*>  tcs;
 	tcs.push_back(tc);
 
-	sim_mob::Person* person = new sim_mob::Person("AMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
+    sim_mob::Person_ST* person = new sim_mob::Person_ST("AMOD_TripChain", ConfigManager::GetInstance().FullConfig().mutexStategy(), tcs);
 	if (!person) {
 		Print() << "Cannot create person!" << std::endl;
 		return;
@@ -545,14 +546,14 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 	if(it!=virtualCarPark.end())
 	{
 		// access this car park before
-		boost::unordered_map<std::string,Person*> cars = it->second;
+        boost::unordered_map<std::string,Person_ST*> cars = it->second;
 		cars.insert(std::make_pair(id,person));
 
 		it->second = cars;
 	}
 	else
 	{
-		boost::unordered_map<std::string,Person*> cars = boost::unordered_map<std::string,Person*>();
+        boost::unordered_map<std::string,Person_ST*> cars = boost::unordered_map<std::string,Person_ST*>();
 		cars.insert(std::make_pair(id,person));
 		virtualCarPark.insert(std::make_pair(nodeId,cars));
 	}
@@ -584,7 +585,7 @@ bool AMODController::getBestFreeVehicle(std::string originId, sim_mob::Person **
 	carParksMutex.lock();
 	std::vector < std::vector < sim_mob::WayPoint > > carParksToOriginWaypoints;
 	for (iter=virtualCarPark.begin(); iter != virtualCarPark.end(); iter++) {
-		boost::unordered_map<std::string,Person*> cars = iter->second;
+        boost::unordered_map<std::string,Person_ST*> cars = iter->second;
 		if (!cars.empty()) {
 			//this car park has cars, find distance to node
 			double travelCost;
@@ -626,8 +627,8 @@ bool AMODController::getBestFreeVehicle(std::string originId, sim_mob::Person **
 	// grab a vehicle from the car park, set the carParkId, way points and return
 	if (freeCarFound) {
 		carParkIdDeparture = bestCarParkIter->first;
-		boost::unordered_map<std::string,Person*> cars = bestCarParkIter->second;
-		boost::unordered_map<std::string,Person*>::iterator firstCarIt = cars.begin();
+        boost::unordered_map<std::string,Person_ST*> cars = bestCarParkIter->second;
+        boost::unordered_map<std::string,Person_ST*>::iterator firstCarIt = cars.begin();
 		freeCarFound = false;
 		for (firstCarIt = cars.begin(); firstCarIt != cars.end(); firstCarIt++) {
 			if (! firstCarIt->second->isToBeRemoved()) {
@@ -702,7 +703,7 @@ bool AMODController::findNearestFreeVehicle(std::string originId, std::map<std::
 	return false;
 }
 
-bool AMODController::getVhFromCarPark(std::string& carParkId,Person** vh)
+bool AMODController::getVhFromCarPark(std::string& carParkId,Person_ST** vh)
 {
 	carParksMutex.lock();
 	AMODVirtualCarParkItor it = virtualCarPark.find(carParkId);
@@ -711,10 +712,10 @@ bool AMODController::getVhFromCarPark(std::string& carParkId,Person** vh)
 		return false;
 	}
 
-	boost::unordered_map<std::string,Person*> cars = it->second;
+    boost::unordered_map<std::string,Person_ST*> cars = it->second;
 	if(!cars.empty())
 	{
-		boost::unordered_map<std::string,Person*>::iterator firstCarIt = cars.begin();
+        boost::unordered_map<std::string,Person_ST*>::iterator firstCarIt = cars.begin();
 		*vh = firstCarIt->second;
 		cars.erase(firstCarIt);
 		it->second = cars;
@@ -729,7 +730,7 @@ bool AMODController::getVhFromCarPark(std::string& carParkId,Person** vh)
 	return false;
 }
 
-bool AMODController::removeVhFromCarPark(std::string& carParkId,Person** vh)
+bool AMODController::removeVhFromCarPark(std::string& carParkId,Person_ST** vh)
 {
 	if ((*vh)->isToBeRemoved()) {
 		return false;
@@ -741,7 +742,7 @@ bool AMODController::removeVhFromCarPark(std::string& carParkId,Person** vh)
 		return false;
 	}
 
-	boost::unordered_map<std::string,Person*> cars = it->second;
+    boost::unordered_map<std::string,Person_ST*> cars = it->second;
 	if(!it->second.empty())
 	{
 		if (cars.find((*vh)->amodId) == cars.end()) {
@@ -776,13 +777,13 @@ void AMODController::mergeWayPoints(const std::vector<sim_mob::WayPoint>& carpar
 	}
 }
 
-bool AMODController::dispatchVh(Person* vh)
+bool AMODController::dispatchVh(Person_ST* vh)
 {
 	this->currWorkerProvider->scheduleForBred(vh);
 }
 
 
-void AMODController::handleVHDestruction(Person *vh)
+void AMODController::handleVHDestruction(Person_ST *vh)
 {
 	//if a vehicle gets destroyed by Simmobility, we have to make sure we're not still assuming it exists.
 	if (vh->currStatus == Person::REPLACED) {
@@ -793,7 +794,7 @@ void AMODController::handleVHDestruction(Person *vh)
 	std::string amodId = vh->amodId;
 	Print() << vh->amodId << " is being destroyed." << std::endl;
 
-	boost::unordered_map<std::string,Person*>::iterator itr;
+    boost::unordered_map<std::string,Person_ST*>::iterator itr;
 	allAMODCarsMutex.lock();
 	itr = allAMODCars.find(amodId);
 	if (itr == allAMODCars.end()) {
@@ -823,7 +824,7 @@ void AMODController::handleVHDestruction(Person *vh)
 	}
 }
 
-void AMODController::processArrival(Person *vh)
+void AMODController::processArrival(Person_ST *vh)
 {
 	if (vhTripMap.find(vh) == vhTripMap.end()) {
 		//this is not an AMOD vehicle
@@ -851,7 +852,7 @@ void AMODController::processArrival(Person *vh)
 	//mtx_.unlock();
 }
 
-void AMODController::handleVHPickup(Person *vh) {
+void AMODController::handleVHPickup(Person_ST *vh) {
 	TripMapIterator itr = vhTripMap.find(vh);
 	if (itr == vhTripMap.end()) {
 		//this is not an AMOD vehicle
@@ -864,24 +865,24 @@ void AMODController::handleVHPickup(Person *vh) {
 	}
 }
 
-void AMODController::handleVHArrive(Person* vh)
+void AMODController::handleVHArrive(Person_ST* vh)
 {
 	processArrival(vh);
 }
 
-void AMODController::rerouteWithPath(Person* vh,std::vector<sim_mob::WayPoint>& path)
+void AMODController::rerouteWithPath(Person_ST* vh,std::vector<sim_mob::WayPoint>& path)
 {
 	AMODRerouteEventArgs arg(NULL,NULL,path);
 	eventPub.publish(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_PATH, vh, arg);
 }
 
-void AMODController::rerouteWithOriDest(Person* vh,Node* snode,Node* enode)
+void AMODController::rerouteWithOriDest(Person_ST* vh,Node* snode,Node* enode)
 {
 	AMODRerouteEventArgs arg(snode,enode,std::vector<WayPoint>());
 	eventPub.publish(sim_mob::event::EVT_AMOD_REROUTING_REQUEST_WITH_ORI_DEST, vh, arg);
 }
 
-bool AMODController::setPath2Vh(Person* vh,std::vector<WayPoint>& path)
+bool AMODController::setPath2Vh(Person_ST* vh,std::vector<WayPoint>& path)
 {
 	vh->setPath(path);
 }
@@ -956,7 +957,7 @@ void AMODController::saveTripStat(AmodTrip &a) {
 
 void AMODController::unregisteredChild(Entity* child)
 {
-	Person *person = dynamic_cast<Person*>(child);
+    Person_ST *person = dynamic_cast<Person_ST*>(child);
 	if(person){
 		TripMapIterator itr = vhTripMap.find(person);
 		if(itr!=vhTripMap.end()){
@@ -1300,7 +1301,7 @@ void AMODController::assignVhsFast(std::vector<std::string>& tripID, std::vector
 
 			std::vector < sim_mob::WayPoint > leastCostPath;
 			double bestFreeVehTravelCost;
-			Person* vhAssigned = nullptr;
+            Person_ST* vhAssigned = nullptr;
 			std::string carParkIdDeparture = "";
 			std::string carParkIdArrival = "";
 			bool freeVehFound = getBestFreeVehicle(originNodeId, &vhAssigned, carParkIdDeparture, leastCostPath, bestFreeVehTravelCost);

@@ -13,7 +13,7 @@
 #include "entities/Person.hpp"
 #include "geospatial/Link.hpp"
 #include "PathSetParam.hpp"
-#include "TravelTimeManager.hpp"
+#include "entities/TravelTimeManager.hpp"
 #include "util/Cache.hpp"
 
 

@@ -8,14 +8,13 @@
 #include <set>
 
 #include "ST_Config.hpp"
-#include "conf/ExpandAndValidateConfigFile.hpp"
 
 namespace sim_mob
 {
 
 class StartTimePriorityQueue;
 
-class ExpandShortTermConfigFile : public ExpandAndValidateConfigFile
+class ExpandShortTermConfigFile : public boost::noncopyable
 {
 public:
     ExpandShortTermConfigFile(ST_Config& stConfig, ConfigParams& cfg,

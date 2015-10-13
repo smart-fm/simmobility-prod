@@ -170,6 +170,24 @@ private:
     void processAuraManagerImpNode(xercesc::DOMElement* node);
 
     /**
+	 * Helper function to process integer from nodes represented with "value" attribute
+	 *
+	 * @param node xml element to be processed
+	 *
+	 * @return extracted integer value
+	 */
+	int processValueInteger(xercesc::DOMElement* node);
+
+	/**
+	 * Helper function to process boolean from nodes represented with "value" attribute
+	 *
+	 * @param node xml element to be processed
+	 *
+	 * @return extracted boolean value
+	 */
+	bool processValueBoolean(xercesc::DOMElement* node);
+
+    /**
      * Processes the commsim element in the config file
      *
      * @param node node corresponding to the commsim element in the xml file

@@ -5,7 +5,6 @@
 #include "ConfigParams.hpp"
 
 #include "conf/ParseConfigFile.hpp"
-#include "conf/ExpandAndValidateConfigFile.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
@@ -23,9 +22,10 @@
 using namespace sim_mob;
 
 sim_mob::ConfigParams::ConfigParams() : RawConfigParams(),
-    totalRuntimeTicks(0), totalWarmupTicks(0), numAgentsSkipped(0),
+    totalRuntimeTicks(0), totalWarmupTicks(0), //numAgentsSkipped(0),
     using_MPI(false), outNetworkFileName("out.network.txt"),
-    is_simulation_repeatable(false), sealedNetwork(false), commDataMgr(nullptr), controlMgr(nullptr)
+    is_simulation_repeatable(false), sealedNetwork(false), controlMgr(nullptr),
+    workerPublisherEnabled(false)
 {}
 
 sim_mob::ConfigParams::~ConfigParams()
@@ -46,7 +46,7 @@ sim_mob::Factory<sim_mob::Broker>& sim_mob::ConfigParams::getBrokerFactoryRW()
 std::string sim_mob::ConfigParams::getDatabaseConnectionString(bool maskPassword) const
 {
     ///The database.
-	std::string dbKey = system.networkDatabase.database;
+	std::string dbKey = networkDatabase.database;
 	std::map<std::string, Database>::const_iterator dbIt = constructs.databases.find(dbKey);
     if (dbIt==constructs.databases.end())
     {
@@ -54,7 +54,7 @@ std::string sim_mob::ConfigParams::getDatabaseConnectionString(bool maskPassword
 	}
 
     ///The credentials
-	std::string credKey = system.networkDatabase.credentials;
+	std::string credKey = networkDatabase.credentials;
 	std::map<std::string, Credential>::const_iterator credIt = constructs.credentials.find(credKey);
     if (credIt==constructs.credentials.end())
     {
@@ -80,9 +80,9 @@ std::string sim_mob::ConfigParams::getDatabaseConnectionString(bool maskPassword
 
 StoredProcedureMap sim_mob::ConfigParams::getDatabaseProcMappings() const
 {
-	std::string key = system.networkDatabase.procedures;
-	std::map<std::string, StoredProcedureMap>::const_iterator it = constructs.procedureMaps.find(key);
-    if (it==constructs.procedureMaps.end())
+	std::string key = networkDatabase.procedures;
+	std::map<std::string, StoredProcedureMap>::const_iterator it = procedureMaps.find(key);
+    if (it==procedureMaps.end())
     {
 		throw std::runtime_error("Couldn't find stored procedure key.");
 	}
@@ -90,18 +90,18 @@ StoredProcedureMap sim_mob::ConfigParams::getDatabaseProcMappings() const
 }
 
 
-sim_mob::CommunicationDataManager&  sim_mob::ConfigParams::getCommDataMgr() const
-{
-    if (!InteractiveMode())
-    {
-		throw std::runtime_error("ConfigParams::getCommDataMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
-	}
-    if (!commDataMgr)
-    {
-		commDataMgr = new CommunicationDataManager();
-	}
-	return *commDataMgr;
-}
+//sim_mob::CommunicationDataManager&  sim_mob::ConfigParams::getCommDataMgr() const
+//{
+//    if (!InteractiveMode())
+//    {
+//		throw std::runtime_error("ConfigParams::getCommDataMgr() not supported; SIMMOB_INTERACTIVE_MODE is off.");
+//	}
+//    /*if (!commDataMgr)
+//    {
+//		commDataMgr = new CommunicationDataManager();
+//	}
+//	return *commDataMgr;*/
+//}
 
 sim_mob::ControlManager* sim_mob::ConfigParams::getControlMgr() const
 {
@@ -157,11 +157,11 @@ const double& sim_mob::ConfigParams::baseGranSecond() const
     return simulation.baseGranSecond;
 }
 
-bool& sim_mob::ConfigParams::mergeLogFiles()
+bool& sim_mob::ConfigParams::isMergeLogFiles()
 {
     return mergeLogFiles;
 }
-const bool& sim_mob::ConfigParams::mergeLogFiles() const
+const bool sim_mob::ConfigParams::isMergeLogFiles() const
 {
     return mergeLogFiles;
 }

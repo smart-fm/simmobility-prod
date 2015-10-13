@@ -9,8 +9,10 @@ namespace sim_mob
 namespace medium
 {
 
-ExpandMidTermConfigFile::ExpandMidTermConfigFile(MT_Config &mtCfg, ConfigParams &cfg) :
-    cfg(cfg), mtCfg(mtCfg)
+ExpandMidTermConfigFile::ExpandMidTermConfigFile(MT_Config &mtCfg, ConfigParams &cfg,
+												std::set<sim_mob::Entity*>& active_agents,
+												StartTimePriorityQueue& pending_agents) :
+    cfg(cfg), mtCfg(mtCfg), active_agents(active_agents), pending_agents(pending_agents)
 {
     processConfig();
 }
@@ -36,6 +38,8 @@ void ExpandMidTermConfigFile::processConfig()
     ConfigParams::AgentConstraints constraints;
     constraints.startingAutoAgentID = cfg.simulation.startingAutoAgentID;
 
+    loadNetworkFromDatabase();
+
     if (mtCfg.RunningMidSupply())
     {
         sim_mob::RestrictedRegion::getInstance().populate();
@@ -56,7 +60,7 @@ void ExpandMidTermConfigFile::processConfig()
         //	This mode can be executed in the main function also but we need the street directory to be initialized first
         //	to be least intrusive to the rest of the code, we take a safe approach and run this mode from here, although a lot of
         //	unnecessary code will be executed.
-        sim_mob::PathSetManager::getInstance()->bulkPathSetGenerator();
+        sim_mob::PrivatePathsetGenerator::getInstance()->bulkPathSetGenerator();
         Print() << "Bulk Generation Done " << profile.tick().first.count() << std::endl;
         exit(1);
     }
@@ -73,16 +77,16 @@ void ExpandMidTermConfigFile::processConfig()
     //Process Confluxes if required
     if (mtCfg.RunningMidSupply())
     {
-        size_t sizeBefore = cfg.getConfluxes().size();
+        size_t sizeBefore = mtCfg.getConfluxes().size();
         sim_mob::aimsun::Loader::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
-        std::cout << cfg.getConfluxes().size() << " Confluxes created" << std::endl;
+        std::cout << mtCfg.getConfluxes().size() << " Confluxes created" << std::endl;
     }
 
     //register and initialize BusController
 	if (cfg.busController.enabled)
 	{
-		sim_mob::BusControllerMT::RegisterBusController(-1, cfg.mutexStategy());
-		sim_mob::BusController* busController = sim_mob::BusController::GetInstance();
+		BusControllerMT::RegisterBusController(-1, cfg.mutexStategy());
+		BusController* busController = BusController::GetInstance();
 		busController->initializeBusController(active_agents, cfg.getPT_BusDispatchFreq());
 		active_agents.insert(busController);
 	}
@@ -101,7 +105,7 @@ void ExpandMidTermConfigFile::loadNetworkFromDatabase()
 {
     std::cout << "Loading Road Network from the database.\n";
     sim_mob::aimsun::Loader::LoadNetwork(cfg.getDatabaseConnectionString(false),
-                     cfg.procedureMaps,
+    		cfg.getDatabaseProcMappings().procedureMappings,
 					 cfg.getNetworkRW(), cfg.getTripChains(), nullptr);
 }
 
@@ -135,8 +139,8 @@ void ExpandMidTermConfigFile::WarnMidroadSidewalks()
 
 void ExpandMidTermConfigFile::verifyIncidents()
 {
-    std::vector<IncidentParams>& incidents = cfg.getIncidents();
-    const unsigned int baseGranMS = cfg.system.simulation.simStartTime.getValue();
+    std::vector<IncidentParams>& incidents = mtCfg.getIncidents();
+    const unsigned int baseGranMS = cfg.simulation.simStartTime.getValue();
 
     for (std::vector<IncidentParams>::iterator incIt = incidents.begin(); incIt != incidents.end(); ++incIt)
     {
@@ -187,7 +191,7 @@ void ExpandMidTermConfigFile::verifyIncidents()
 
 void ExpandMidTermConfigFile::setRestrictedRegionSupport()
 {
-    PathSetManager::getInstance()->setRegionRestrictonEnabled(mtCfg.cbd);
+    PrivateTrafficRouteChoice::getInstance()->setRegionRestrictonEnabled(mtCfg.cbd);
 }
 
 void ExpandMidTermConfigFile::checkGranularities()
@@ -196,11 +200,11 @@ void ExpandMidTermConfigFile::checkGranularities()
     const unsigned int baseGranMS = cfg.simulation.baseGranMS;
     const WorkerParams& workers = mtCfg.workers;
 
-    if (cfg.system.simulation.totalRuntimeMS < baseGranMS)
+    if (cfg.simulation.totalRuntimeMS < baseGranMS)
     {
 	    throw std::runtime_error("Total Runtime cannot be smaller than base granularity.");
     }
-    if (cfg.system.simulation.totalWarmupMS != 0 && cfg.system.simulation.totalWarmupMS < baseGranMS)
+    if (cfg.simulation.totalWarmupMS != 0 && cfg.simulation.totalWarmupMS < baseGranMS)
     {
 	    Warn() << "Warning! Total Warmup is smaller than base granularity.\n";
     }
@@ -212,21 +216,21 @@ void ExpandMidTermConfigFile::checkGranularities()
 
 bool ExpandMidTermConfigFile::setTickFromBaseGran(unsigned int& res, unsigned int tickLenMs)
 {
-	res = tickLenMs / cfg.system.simulation.baseGranMS;
-	return tickLenMs % cfg.system.simulation.baseGranMS == 0;
+	res = tickLenMs / cfg.simulation.baseGranMS;
+	return tickLenMs % cfg.simulation.baseGranMS == 0;
 }
 
 void ExpandMidTermConfigFile::setTicks()
 {
-    if (!setTickFromBaseGran(cfg.totalRuntimeTicks, cfg.system.simulation.totalRuntimeMS))
+    if (!setTickFromBaseGran(cfg.totalRuntimeTicks, cfg.simulation.totalRuntimeMS))
     {
 	Warn() << "Total runtime will be truncated by the base granularity\n";
     }
-    if (!setTickFromBaseGran(cfg.totalWarmupTicks, cfg.system.simulation.totalWarmupMS))
+    if (!setTickFromBaseGran(cfg.totalWarmupTicks, cfg.simulation.totalWarmupMS))
     {
 	Warn() << "Total warm-up will be truncated by the base granularity\n";
     }
-    if (!setTickFromBaseGran(cfg.granPersonTicks, cfg.system.workers.person.granularityMs))
+	if (!setTickFromBaseGran(mtCfg.granPersonTicks, mtCfg.workers.person.granularityMs))
     {
 	throw std::runtime_error("Person granularity not a multiple of base granularity.");
     }
@@ -256,7 +260,7 @@ void ExpandMidTermConfigFile::printSettings()
     std::cout << "  Base Granularity: " << cfg.baseGranMS() << " " << "ms" << "\n";
     std::cout << "  Total Runtime: " << cfg.totalRuntimeTicks << " " << "ticks" << "\n";
     std::cout << "  Total Warmup: " << cfg.totalWarmupTicks << " " << "ticks" << "\n";
-    std::cout << "  Person Granularity: " << cfg.granPersonTicks << " " << "ticks" << "\n";
+    std::cout << "  Person Granularity: " << mtCfg.granPersonTicks << " " << "ticks" << "\n";
     std::cout << "  Start time: " << cfg.simStartTime().getStrRepr() << "\n";
     std::cout << "  Mutex strategy: " << (cfg.mutexStategy() == MtxStrat_Locked ? "Locked" : cfg.mutexStategy() == MtxStrat_Buffered ? "Buffered" : "Unknown") << "\n";
 

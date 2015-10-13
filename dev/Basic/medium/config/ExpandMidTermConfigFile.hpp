@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/noncopyable.hpp>
+
 #include "MT_Config.hpp"
 
 namespace sim_mob
@@ -11,7 +13,9 @@ namespace medium
 class ExpandMidTermConfigFile : public boost::noncopyable
 {
 public:
-    ExpandMidTermConfigFile(MT_Config& mtCfg, ConfigParams& cfg);
+    ExpandMidTermConfigFile(MT_Config& mtCfg, ConfigParams& cfg,
+    						std::set<sim_mob::Entity*>& active_agents,
+    						StartTimePriorityQueue& pending_agents);
 
 private:
     void processConfig();
@@ -37,6 +41,11 @@ private:
 
     //The config file we are currently loading
     ConfigParams& cfg;
+
+    //Our active/pending agent lists.
+    std::set<sim_mob::Entity*>& active_agents;
+
+    StartTimePriorityQueue& pending_agents;
 };
 
 }

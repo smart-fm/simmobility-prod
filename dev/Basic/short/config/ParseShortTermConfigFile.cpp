@@ -1,3 +1,4 @@
+#include <boost/algorithm/string.hpp>
 #include "ParseShortTermConfigFile.hpp"
 #include "util/XmlParseHelper.hpp"
 #include "entities/AuraManager.hpp"
@@ -7,13 +8,13 @@ using namespace xercesc;
 namespace
 {
 
-sim_mob::NetworkSource ParseNetSourceEnum(const XMLCh* srcX, SystemParams::NetworkSource* defValue) {
+sim_mob::NetworkSource ParseNetSourceEnum(const XMLCh* srcX, NetworkSource* defValue) {
     if (srcX) {
         std::string src = TranscodeString(srcX);
         if (src=="xml") {
-            return SystemParams::NETSRC_XML;
+            return NETSRC_XML;
         } else if (src=="database") {
-            return SystemParams::NETSRC_DATABASE;
+            return NETSRC_DATABASE;
         }
         throw std::runtime_error("Expected SystemParams::NetworkSource value.");
     }
@@ -45,6 +46,19 @@ sim_mob::AuraManager::AuraManagerImplementation ParseAuraMgrImplEnum(const XMLCh
     return *defValue;
 }
 
+Point2D ParsePoint2D(const XMLCh* srcX, Point2D* defValue) {
+	if (srcX) {
+		std::string src = TranscodeString(srcX);
+		return parse_point(src);
+	}
+
+    ///Wasn't found.
+	if (!defValue) {
+		throw std::runtime_error("Mandatory Point2D variable; no default available.");
+	}
+	return *defValue;
+}
+
 sim_mob::AuraManager::AuraManagerImplementation ParseAuraMgrImplEnum(const XMLCh* srcX, sim_mob::AuraManager::AuraManagerImplementation defValue) {
     return ParseAuraMgrImplEnum(srcX, &defValue);
 }
@@ -63,6 +77,52 @@ void splitRoleString(std::string& roleString, std::vector<std::string>& roles)
         roles.push_back(token);
         roleString.erase(0, pos + delimiter.length());
     }
+}
+
+unsigned int ParseGranularitySingle(const XMLCh* srcX, unsigned int* defValue) {
+	if (srcX) {
+        ///Search for "[0-9]+ ?[^0-9]+), roughly.
+		std::string src = TranscodeString(srcX);
+		size_t digStart = src.find_first_of("1234567890");
+		size_t digEnd = src.find_first_not_of("1234567890", digStart+1);
+		size_t unitStart = src.find_first_not_of(" ", digEnd);
+		if (digStart!=0 || digStart==std::string::npos || digEnd==std::string::npos || unitStart==std::string::npos) {
+			throw std::runtime_error("Badly formatted single-granularity string.");
+		}
+
+        ///Now split/parse it.
+		double value = boost::lexical_cast<double>(src.substr(digStart, (digEnd-digStart)));
+		std::string units = src.substr(unitStart, std::string::npos);
+
+		return GetValueInMs(value, units, defValue);
+	}
+
+    ///Wasn't found.
+	if (!defValue) {
+		throw std::runtime_error("Mandatory integer (granularity) variable; no default available.");
+	}
+	return *defValue;
+}
+
+unsigned int ParseGranularitySingle(const XMLCh* src, unsigned int defValue) {
+	return ParseGranularitySingle(src, &defValue);
+}
+unsigned int ParseGranularitySingle(const XMLCh* src) { //No default
+	return ParseGranularitySingle(src, nullptr);
+}
+
+NetworkSource ParseNetSourceEnum(const XMLCh* srcX, NetworkSource defValue) {
+	return ParseNetSourceEnum(srcX, &defValue);
+}
+NetworkSource ParseNetSourceEnum(const XMLCh* srcX) {
+	return ParseNetSourceEnum(srcX, nullptr);
+}
+///How to do defaults
+Point2D ParsePoint2D(const XMLCh* src, Point2D defValue) {
+	return ParsePoint2D(src, &defValue);
+}
+Point2D ParsePoint2D(const XMLCh* src) { ///No default
+	return ParsePoint2D(src, nullptr);
 }
 
 }
@@ -197,11 +257,11 @@ void ParseShortTermConfigFile::processSystemNode(DOMElement *node)
 {
     if(node)
     {
-        processNetworkNode(GetSingleElementByName(rootNode, "network", true));
-        processAuraManagerImpNode(GetElementsByName(node, "aura_manager_impl", true));
-        processLoadAgentsOrder(GetElementsByName(node, "load_agents", true));
-        processCommSimNode(GetElementsByName(node, "commsim"));
-        processXmlSchemaFilesNode(GetSingleElementByName(rootNode, "xsd_schema_files"));
+        processNetworkNode(GetSingleElementByName(node, "network", true));
+        processAuraManagerImpNode(GetSingleElementByName(node, "aura_manager_impl", true));
+        processLoadAgentsOrder(GetSingleElementByName(node, "load_agents", true));
+        processCommSimNode(GetSingleElementByName(node, "commsim"));
+        processXmlSchemaFilesNode(GetSingleElementByName(node, "xsd_schema_files"));
         processGenericPropsNode(GetSingleElementByName(node, "generic_props"));
     }
     else
@@ -214,10 +274,10 @@ void ParseShortTermConfigFile::processNetworkNode(DOMElement *node)
 {
     if(node)
     {
-        processNetworkSourceNode(GetElementsByName(node, "network_source", true));
-        processDatabaseNode(GetElementsByName(node, "network_database", true));
-        processNetworkXmlInputNode(GetElementsByName(node, "network_xml_file_input", true));
-        processNetworkXmlOutputNode(GetElementsByName(node, "network_xml_file_output", true));
+        processNetworkSourceNode(GetSingleElementByName(node, "network_source", true));
+        processDatabaseNode(GetSingleElementByName(node, "network_database", true));
+        processNetworkXmlInputNode(GetSingleElementByName(node, "network_xml_file_input", true));
+        processNetworkXmlOutputNode(GetSingleElementByName(node, "network_xml_file_output", true));
     }
     else
     {
@@ -267,6 +327,16 @@ void ParseShortTermConfigFile::processLoadAgentsOrder(DOMElement *node)
     }
 }
 
+int ParseShortTermConfigFile::processValueInteger(xercesc::DOMElement* node)
+{
+	return ParseInteger(GetNamedAttributeValue(node, "value"));
+}
+
+bool sim_mob::ParseConfigFile::processValueBoolean(xercesc::DOMElement* node)
+{
+	return ParseBoolean(GetNamedAttributeValue(node, "value"));
+}
+
 void ParseShortTermConfigFile::processCommSimNode(DOMElement *node)
 {
     if (!node)
@@ -278,16 +348,16 @@ void ParseShortTermConfigFile::processCommSimNode(DOMElement *node)
     cfg.commsim.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 
     ///Number of threads assigned to the boost I/O service that reads from Android clients.
-    cfg.commsim.numIoThreads = ProcessValueInteger(GetSingleElementByName(node, "io_threads", true));
+    cfg.commsim.numIoThreads = processValueInteger(GetSingleElementByName(node, "io_threads", true));
 
     ///Minimum clients
-    cfg.commsim.minClients = ProcessValueInteger(GetSingleElementByName(node, "min_clients", true));
+    cfg.commsim.minClients = processValueInteger(GetSingleElementByName(node, "min_clients", true));
 
     ///Hold tick
-    cfg.commsim.holdTick = ProcessValueInteger(GetSingleElementByName(node, "hold_tick", true));
+    cfg.commsim.holdTick = processValueInteger(GetSingleElementByName(node, "hold_tick", true));
 
     ///Use ns-3 for routing?
-    cfg.commsim.useNs3 = ProcessValueBoolean(GetSingleElementByName(node, "use_ns3", true));
+    cfg.commsim.useNs3 = processValueBoolean(GetSingleElementByName(node, "use_ns3", true));
 }
 
 void ParseShortTermConfigFile::processLoopDetectorCountNode(DOMElement *node)
@@ -331,7 +401,7 @@ void ParseShortTermConfigFile::processXmlSchemaFilesNode(DOMElement *node)
                 {
                     ///Convert it to an absolute path.
                     boost::filesystem::path abs_path = boost::filesystem::absolute(path);
-                    cfg.roadNetworkXsdSchemaFile = abs_path.string();
+                    cfg.getRoadNetworkXsdSchemaFile() = abs_path.string();
                     break;
                 }
             }
@@ -347,17 +417,17 @@ void ParseShortTermConfigFile::processXmlSchemaFilesNode(DOMElement *node)
 
 void ParseShortTermConfigFile::processNetworkXmlOutputNode(DOMElement *node)
 {
-    cfg.networkXmlOutputFile = ParseNonemptyString(GetNamedAttributeValue(node, "value"), "");
+    cfg.getNetworkXmlOutputFile() = ParseNonemptyString(GetNamedAttributeValue(node, "value"), "");
 }
 
 void ParseShortTermConfigFile::processNetworkXmlInputNode(DOMElement *node)
 {
-    cfg.networkXmlInputFile = ParseNonemptyString(GetNamedAttributeValue(node, "value"), "private/SimMobilityInput.xml");
+    cfg.getNetworkXmlInputFile() = ParseNonemptyString(GetNamedAttributeValue(node, "value"), "private/SimMobilityInput.xml");
 }
 
 void ParseShortTermConfigFile::processNetworkSourceNode(DOMElement *node)
 {
-    cfg.networkSource = ParseNetSourceEnum(GetNamedAttributeValue(node, "value"), SystemParams::NETSRC_XML);
+    cfg.networkSource = ParseNetSourceEnum(GetNamedAttributeValue(node, "value"), NETSRC_XML);
 }
 
 void ParseShortTermConfigFile::processDatabaseNode(DOMElement *node)
@@ -371,7 +441,7 @@ void ParseShortTermConfigFile::processDatabaseNode(DOMElement *node)
     }
     else
     {
-        throw std::runtime("processDatabaseNode : Network database configuration not defined");
+        throw std::runtime_error("processDatabaseNode : Network database configuration not defined");
     }
 }
 
@@ -454,10 +524,10 @@ void ParseShortTermConfigFile::processPersonCharacteristicsNode(DOMElement *node
     std::map<int, PersonCharacteristics> personCharacteristics =  sharedConfig.personCharacteristicsParams.personCharacteristics;
     /// calculate lowest age and highest age in the ranges
     for(std::map<int, PersonCharacteristics>::const_iterator iter=personCharacteristics.begin();iter != personCharacteristics.end(); ++iter) {
-        if(cfg.personCharacteristicsParams.lowestAge > iter->second.lowerAge) {
+        if(sharedConfig.personCharacteristicsParams.lowestAge > iter->second.lowerAge) {
             sharedConfig.personCharacteristicsParams.lowestAge = iter->second.lowerAge;
         }
-        if(cfg.personCharacteristicsParams.highestAge < iter->second.upperAge) {
+        if(sharedConfig.personCharacteristicsParams.highestAge < iter->second.upperAge) {
             sharedConfig.personCharacteristicsParams.highestAge = iter->second.upperAge;
         }
     }
@@ -495,10 +565,10 @@ void ParseShortTermConfigFile::processVehicleTypesNode(DOMElement *node)
                throw std::runtime_error("ProcessVehicleTypesNode : Vehicle name cannot be empty");
            }
 
-           vehicleType.length = ParseFloat(GetNamedAttributeValue(*it, "length"), "4.0");
-           vehicleType.width = ParseFloat(GetNamedAttributeValue(*it, "width"), "2.0");
-           vehicleType.capacity = ParseInteger(GetNamedAttributeValue(*it, "capacity"), "4");
-           splitRoleString(ParseString(GetNamedAttributeValue(*it, "associated_roles"), ""), vehicleType.associatedRoles);
+           vehicleType.length = ParseFloat(GetNamedAttributeValue(*it, "length"), 4.0);
+           vehicleType.width = ParseFloat(GetNamedAttributeValue(*it, "width"), 2.0);
+           vehicleType.capacity = ParseInteger(GetNamedAttributeValue(*it, "capacity"), 4);
+           //splitRoleString(ParseString(GetNamedAttributeValue(*it, "associated_roles"), ""), vehicleType.associatedRoles);
 
            cfg.vehicleTypes.push_back(vehicleType);
         }
@@ -518,7 +588,7 @@ void ParseShortTermConfigFile::processTripFilesNode(DOMElement *node)
 {
     if(node)
     {
-        std::vector<DOMElement*> tripFiles = GetElementByName(node, "tripFile");
+        std::vector<DOMElement*> tripFiles = GetElementsByName(node, "tripFile");
         for(std::vector<DOMElement*>::const_iterator it = tripFiles.begin(); it != tripFiles.end(); it++)
         {
             std::string name = ParseString(GetNamedAttributeValue(*it, "name"), "");
@@ -529,7 +599,7 @@ void ParseShortTermConfigFile::processTripFilesNode(DOMElement *node)
             }
         }
 
-        for(std::map<string, string>::const_iterator it = cfg.tripFiles.begin(); it != cfg.tripFiles.end(); it++)
+        for(std::map<std::string, std::string>::const_iterator it = cfg.tripFiles.begin(); it != cfg.tripFiles.end(); it++)
         {
             ParseShortTermTripFile parse(it->second, it->first, cfg);
         }
@@ -541,7 +611,7 @@ void ParseShortTermConfigFile::processBusControllerNode(DOMElement *node)
     if(node)
     {
         ConfigParams& sharedConfig = ConfigManager::GetInstanceRW().FullConfig();
-        sharedConfig.busController.enabled = ParseBoolean(GetNameAttributeValue(node, "enabled"), "false");
+        sharedConfig.busController.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
         sharedConfig.busController.busLineControlType = ParseString(GetNamedAttributeValue(node, "busline_control_type"), "");
     }
 }
@@ -578,19 +648,18 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
 {
     if(node)
     {
-    std::vector<DOMElement*> trips = GetElementByName(node, "trip");
+    std::vector<DOMElement*> trips = GetElementsByName(node, "trip");
     for(std::vector<DOMElement*>::const_iterator it = trips.begin(); it != trips.end(); it++)
     {
-        unsigned int tripId = ParseInteger(GetNamedAttributeValue(*it, "id"), "0");
-        unsigned int personId = ParseUnsignedInt(GetNamedAttributeValue(item, "personId", false), static_cast<unsigned int>(0));
-        std::vector<DOMElement*> subTrips = GetElementsByName((*it), "subTrip");
-        for(std::vector<DOMElement*> stIter = subTrips.begin(); stIter != subTrips.end(); stIter++)
+        unsigned int tripId = ParseInteger(GetNamedAttributeValue(*it, "id"), 0);
+        unsigned int personId = ParseUnsignedInt(GetNamedAttributeValue(*it, "personId", false), static_cast<unsigned int>(0));
+        for(DOMElement* stIter = (*it)->getFirstElementChild(); stIter; stIter = (*it)->getNextElementSibling())
         {
             EntityTemplate ent;
-            ent.originPos = ParsePoint2D(GetNamedAttributeValue(stIter, "originPos", originReq),Point2D());
-            ent.destPos = ParsePoint2D(GetNamedAttributeValue(stIter, "destPos", destReq), Point2D());
-            ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(stIter, "time", timeReq), static_cast<unsigned int>(0));
-            ent.laneIndex = ParseUnsignedInt(GetNamedAttributeValue(stIter, "lane", laneReq), static_cast<unsigned int>(0));
+            ent.originPos = ParsePoint2D(GetNamedAttributeValue(stIter, "originPos", true), Point2D());
+            ent.destPos = ParsePoint2D(GetNamedAttributeValue(stIter, "destPos", true), Point2D());
+            ent.startTimeMs = ParseUnsignedInt(GetNamedAttributeValue(stIter, "time", true), static_cast<unsigned int>(0));
+            ent.laneIndex = ParseUnsignedInt(GetNamedAttributeValue(stIter, "lane"), static_cast<unsigned int>(0));
             ent.agentId = personId;
             ent.initSegId = ParseUnsignedInt(GetNamedAttributeValue(stIter, "initSegId", false), static_cast<unsigned int>(0));
             ent.initDis = ParseUnsignedInt(GetNamedAttributeValue(stIter, "initDis", false), static_cast<unsigned int>(0));
@@ -600,7 +669,7 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
             unsigned int stId = ParseUnsignedInt(GetNamedAttributeValue(stIter, "id", false), static_cast<unsigned int>(0));
             ent.tripId = std::make_pair(tripId, stId);
             ent.vehicleType = ParseString(GetNamedAttributeValue(stIter, "vehicleType"), "");
-            if(ent.vehicleType.empty() || cfg.vehicleTypes.find(ent.vehicleType) == cfg.vehicleTypes.end())
+            /*if(ent.vehicleType.empty() || cfg.vehicleTypes.find(ent.vehicleType) == cfg.vehicleTypes.end())
             {
                 throw std::runtime_error("ProcessTrips : Unknown vehicle type");
             }
@@ -608,7 +677,7 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
             if(ent.roleName.empty() || !(cfg.vehicleTypes.find(ent.vehicleType))->isValidRole(ent.roleName))
             {
                 throw std::runtime_error("ProcessTrips : Invalid Role Name");
-            }
+            }*/
             cfg.futureAgents[tripName] = ent;
         }
     }

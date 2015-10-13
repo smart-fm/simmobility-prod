@@ -759,6 +759,12 @@ public:
     /// screen line counts parameter
     ScreenLineParams screenLineParams;
 
+    /// Number of ticks to wait before updating all Person agents.
+	unsigned int granPersonTicks;
+
+    /// Generic properties, for testing new features.
+    std::map<std::string, std::string> genericProps;
+
 private:
     /**
      * Constructor

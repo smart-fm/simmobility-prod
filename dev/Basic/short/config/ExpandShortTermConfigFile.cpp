@@ -114,7 +114,7 @@ void ExpandShortTermConfigFile::processConfig()
     informLoadOrder(stConfig.loadAgentsOrder);
 
     //Print schema file.
-    const std::string schem = cfg.roadNetworkXsdSchemaFile();
+    const std::string schem = stConfig.getRoadNetworkXsdSchemaFile();
     Print() << "XML (road network) schema file: " << (schem.empty() ? "<default>" : schem) << std::endl;
 
     //Load from database or XML.
@@ -130,7 +130,7 @@ void ExpandShortTermConfigFile::processConfig()
 
     //TEMP: Test network output via boost.
     //todo: enable/disble through cinfig
-    BoostSaveXML(cfg.networkXmlOutputFile(), cfg.getNetworkRW());
+    BoostSaveXML(stConfig.getNetworkXmlOutputFile(), cfg.getNetworkRW());
 
     cfg.sealNetwork();
     std::cout << "Network Sealed" << std::endl;
@@ -148,13 +148,13 @@ void ExpandShortTermConfigFile::processConfig()
 	}
     }
 
-    LoadAMOD_Controller();
+    loadAMOD_Controller();
 
     //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
-    LoadAgentsInOrder(constraints);
+    loadAgentsInOrder(constraints);
 
     //Load signals, which are currently agents
-    GenerateXMLSignals();
+    generateXMLSignals();
 
     //register and initialize BusController
 	if (cfg.busController.enabled)
@@ -171,57 +171,57 @@ void ExpandShortTermConfigFile::loadNetworkFromDatabase()
     //Load from the database or from XML, depending.
     if (stConfig.networkSource == NETSRC_DATABASE)
     {
-	std::cout << "Loading Road Network from the database.\n";
-	sim_mob::aimsun::Loader::LoadNetwork(cfg.getDatabaseConnectionString(false),
-					     stConfig.procedureMaps,
-					     cfg.getNetworkRW(), cfg.getTripChains(), nullptr);
+		std::cout << "Loading Road Network from the database.\n";
+		sim_mob::aimsun::Loader::LoadNetwork(cfg.getDatabaseConnectionString(false),
+							 cfg.getDatabaseProcMappings().procedureMappings,
+							 cfg.getNetworkRW(), cfg.getTripChains(), nullptr);
     }
     else
     {
 	std::cout << "Loading Road Network from XML.\n";
-	if (!sim_mob::xml::InitAndLoadXML(cfg.networkXmlInputFile(), cfg.getNetworkRW(), cfg.getTripChains()))
+	if (!sim_mob::xml::InitAndLoadXML(stConfig.getNetworkXmlInputFile(), cfg.getNetworkRW(), cfg.getTripChains()))
 	{
 	    throw std::runtime_error("Error loading/parsing XML file (see stderr).");
 	}
     }
 }
 
-void ExpandShortTermConfigFile::LoadAMOD_Controller()
+void ExpandShortTermConfigFile::loadAMOD_Controller()
 {
-    if (cfg.amod.enabled)
+    if (stConfig.amod.enabled)
     {
-	sim_mob::AMOD::AMODController::registerController(-1, cfg.mutexStategy());
+    	sim_mob::AMOD::AMODController::registerController(-1, cfg.mutexStategy());
     }
 }
 
-void ExpandShortTermConfigFile::LoadAgentsInOrder(ConfigParams::AgentConstraints& constraints)
+void ExpandShortTermConfigFile::loadAgentsInOrder(ConfigParams::AgentConstraints& constraints)
 {
-    typedef std::vector<SimulationParams::LoadAgentsOrderOption> LoadOrder;
-    const LoadOrder& order = cfg.system.simulation.loadAgentsOrder;
+    typedef std::vector<LoadAgentsOrderOption> LoadOrder;
+    const LoadOrder& order = stConfig.loadAgentsOrder;
     for (LoadOrder::const_iterator it = order.begin(); it != order.end(); ++it)
     {
 	switch (*it)
 	{
-	case SimulationParams::LoadAg_Database: //fall-through
-	case SimulationParams::LoadAg_XmlTripChains:
+	case LoadAg_Database: //fall-through
+	case LoadAg_XmlTripChains:
 	    //Create an agent for each Trip Chain in the database.
-	    GenerateAgentsFromTripChain(constraints);
+	    generateAgentsFromTripChain(constraints);
 	    std::cout << "Loaded Database Agents (from Trip Chains).\n";
 	    break;
-	case SimulationParams::LoadAg_Drivers:
-	    for(std::map<std::string, std::vector<EntityTemplate> >::const_iterator it = stConfig.futureAgents.begin;
+	case LoadAg_Drivers:
+	    for(std::map<std::string, std::vector<EntityTemplate> >::const_iterator it = stConfig.futureAgents.begin();
 		it != stConfig.futureAgents.end(); it++)
 	    {
-		generateXMLAgents(it->second, it->first+"driver", constraints);
+	    	generateXMLAgents(it->second, it->first+"driver", constraints);
 	    }
 	    std::cout << "Loaded Driver Agents (from config file).\n";
 	    break;
-	case SimulationParams::LoadAg_Pedestrians:
-	    GenerateXMLAgents(cfg.pedestrianTemplates, "pedestrian", constraints);
+	case LoadAg_Pedestrians:
+	    generateXMLAgents(stConfig.futureAgents["pedestrian"], "pedestrian", constraints);
 	    std::cout << "Loaded Pedestrian Agents (from config file).\n";
 	    break;
-	case SimulationParams::LoadAg_Passengers:
-	    GenerateXMLAgents(cfg.passengerTemplates, "passenger", constraints);
+	case LoadAg_Passengers:
+	    generateXMLAgents(stConfig.futureAgents["passenger"], "passenger", constraints);
 	    std::cout << "Loaded Passenger Agents (from config file).\n";
 	    break;
 	default:
@@ -231,7 +231,7 @@ void ExpandShortTermConfigFile::LoadAgentsInOrder(ConfigParams::AgentConstraints
     std::cout << "Loading Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder: Success!\n";
 }
 
-void ExpandShortTermConfigFile::GenerateAgentsFromTripChain(ConfigParams::AgentConstraints &constraints)
+void ExpandShortTermConfigFile::generateAgentsFromTripChain(ConfigParams::AgentConstraints &constraints)
 {
     //NOTE: "constraints" are not used here, but they could be (for manual ID specification).
     typedef std::map<std::string, std::vector<TripChainItem*> > TripChainMap;
@@ -247,7 +247,7 @@ void ExpandShortTermConfigFile::GenerateAgentsFromTripChain(ConfigParams::AgentC
     }
 }
 
-void ExpandShortTermConfigFile::GenerateXMLAgents(const std::vector<EntityTemplate>& xmlItems,
+void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTemplate>& xmlItems,
 							 const std::string& roleName,
 							 ConfigParams::AgentConstraints& constraints)
 {
@@ -301,9 +301,9 @@ void ExpandShortTermConfigFile::GenerateXMLAgents(const std::vector<EntityTempla
 
 	int agentId = -1;
 
-	if (it->angentId != 0)
+	if (it->agentId != 0)
 	{
-	    agentId = it->angentId;
+	    agentId = it->agentId;
 	}
 
 	//Finally, set the "#mode" flag in the configProps array.
@@ -343,16 +343,16 @@ void ExpandShortTermConfigFile::GenerateXMLAgents(const std::vector<EntityTempla
     }
 }
 
-void sim_mob::ExpandAndValidateConfigFile::GenerateXMLSignals()
+void ExpandShortTermConfigFile::generateXMLSignals()
 {
-    if (cfg.signalTemplates.empty())
+    if (stConfig.futureAgents["signal"].empty())
     {
-	return;
+    	return;
     }
     StreetDirectory& streetDirectory = StreetDirectory::instance();
 
     //Loop through all agents of this type
-    for (std::vector<EntityTemplate>::const_iterator it = cfg.signalTemplates.begin(); it != cfg.signalTemplates.end(); ++it)
+    for (std::vector<EntityTemplate>::const_iterator it = stConfig.futureAgents["signal"].begin(); it != stConfig.futureAgents["signal"].end(); ++it)
     {
 	//Find the nearest Node for this Signal.
 	Node* road_node = cfg.getNetwork().locateNode(it->originPos, true);
@@ -409,11 +409,11 @@ void ExpandShortTermConfigFile::CheckGranularities()
     const unsigned int baseGranMS = cfg.simulation.baseGranMS;
     const WorkerParams& workers = stConfig.workers;
 
-    if (cfg.system.simulation.totalRuntimeMS < baseGranMS)
+    if (cfg.simulation.totalRuntimeMS < baseGranMS)
     {
 	    throw std::runtime_error("Total Runtime cannot be smaller than base granularity.");
     }
-    if (cfg.system.simulation.totalWarmupMS != 0 && cfg.system.simulation.totalWarmupMS < baseGranMS)
+    if (cfg.simulation.totalWarmupMS != 0 && cfg.simulation.totalWarmupMS < baseGranMS)
     {
 	    Warn() << "Warning! Total Warmup is smaller than base granularity.\n";
     }
@@ -435,15 +435,15 @@ void ExpandShortTermConfigFile::CheckGranularities()
     }
 }
 
-bool sim_mob::ExpandAndValidateConfigFile::SetTickFromBaseGran(unsigned int& res, unsigned int tickLenMs)
+bool ExpandShortTermConfigFile::SetTickFromBaseGran(unsigned int& res, unsigned int tickLenMs)
 {
-	res = tickLenMs / cfg.system.simulation.baseGranMS;
-	return tickLenMs % cfg.system.simulation.baseGranMS == 0;
+	res = tickLenMs / cfg.simulation.baseGranMS;
+	return tickLenMs % cfg.simulation.baseGranMS == 0;
 }
 
-void sim_mob::ExpandAndValidateConfigFile::SetTicks()
+void ExpandShortTermConfigFile::SetTicks()
 {
-    if (!SetTickFromBaseGran(cfg.totalRuntimeTicks, cfg.system.simulation.totalRuntimeMS))
+    /*if (!SetTickFromBaseGran(cfg.totalRuntimeTicks, cfg.system.simulation.totalRuntimeMS))
     {
 	Warn() << "Total runtime will be truncated by the base granularity\n";
     }
@@ -466,7 +466,7 @@ void sim_mob::ExpandAndValidateConfigFile::SetTicks()
     if (!SetTickFromBaseGran(cfg.granCommunicationTicks, cfg.system.workers.communication.granularityMs))
     {
 	    throw std::runtime_error("Communication granularity not a multiple of base granularity.");
-    }
+    }*/
 }
 
 void ExpandShortTermConfigFile::PrintSettings()
@@ -493,16 +493,16 @@ void ExpandShortTermConfigFile::PrintSettings()
     std::cout << "  Base Granularity: " << cfg.baseGranMS() << " " << "ms" << "\n";
     std::cout << "  Total Runtime: " << cfg.totalRuntimeTicks << " " << "ticks" << "\n";
     std::cout << "  Total Warmup: " << cfg.totalWarmupTicks << " " << "ticks" << "\n";
-    std::cout << "  Person Granularity: " << cfg.granPersonTicks << " " << "ticks" << "\n";
+    //std::cout << "  Person Granularity: " << cfg.granPersonTicks << " " << "ticks" << "\n";
     std::cout << "  Start time: " << cfg.simStartTime().getStrRepr() << "\n";
     std::cout << "  Mutex strategy: " << (cfg.mutexStategy() == MtxStrat_Locked ? "Locked" : cfg.mutexStategy() == MtxStrat_Buffered ? "Buffered" : "Unknown") << "\n";
 
     //Output Database details
-    if (cfg.system.networkSource == SystemParams::NETSRC_XML)
+    if (stConfig.networkSource == NETSRC_XML)
     {
 	std::cout << "Network details loaded from xml file: " << stConfig.networkXmlInputFile << "\n";
     }
-    if (cfg.system.networkSource == SystemParams::NETSRC_DATABASE)
+    if (stConfig.networkSource == NETSRC_DATABASE)
     {
 	std::cout << "Network details loaded from database connection: " << cfg.getDatabaseConnectionString() << "\n";
     }

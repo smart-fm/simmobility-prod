@@ -145,7 +145,7 @@ public:
      *
      * @return Reference to the current communication data manager
      */
-    sim_mob::CommunicationDataManager&  getCommDataMgr() const ;
+    //sim_mob::CommunicationDataManager&  getCommDataMgr() const ;
 
     /**
      * Retrieves a reference to the current control manager
@@ -345,7 +345,7 @@ public:
      *
      * @return true is allowed to merge, else false
      */
-	bool& mergeLogFiles();
+	bool& isMergeLogFiles();
 
     /**
      * Checks whether to merge log files at the end of simulation
@@ -353,7 +353,7 @@ public:
      *
      * @return true is allowed to merge, else false
      */
-    const bool& mergeLogFiles() const;
+    const bool isMergeLogFiles() const;
 
     /**
      * Retrieves the default workgroup assignment stratergy
@@ -428,6 +428,8 @@ public:
     bool isWorkerPublisherEnabled() const;
 
     void setWorkerPublisherEnabled(bool value);
+
+    bool isGenerateBusRoutes() const;
 };
 
 

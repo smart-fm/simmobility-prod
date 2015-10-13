@@ -224,6 +224,8 @@ private:
      */
     void processBusControllerNode(xercesc::DOMElement *node);
 
+    void processPathSetFileName(xercesc::DOMElement* node);
+
     /// The config we are currently loading
 	MT_Config& mtCfg;
 

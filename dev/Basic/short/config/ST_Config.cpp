@@ -9,7 +9,8 @@ VehicleType::VehicleType() : name(""), length(-1.0), width(-1.0), capacity(-1)
 
 bool VehicleType::isValidRole(const std::string &role) const
 {
-    return (associatedRoles.find(role) != associatedRoles.end());
+    //return (associatedRoles.find(role) != associatedRoles.end());
+	return true;
 }
 
 bool VehicleType::operator==(const VehicleType &rhs) const
@@ -23,8 +24,8 @@ bool VehicleType::operator!=(const VehicleType &rhs) const
 }
 
 EntityTemplate::EntityTemplate() : startTimeMs(0), laneIndex(0),originNode(-1),
-    destNode(-1),initSegId(-1),initDis(-1),initSpeed(0),angentId(-1), tripId(-1),
-    vehicleId(-1), vehicleType("")
+    destNode(-1),initSegId(-1),initDis(-1),initSpeed(0),agentId(-1), tripId(-1),
+    vehicleType("")
 {}
 
 ST_Config* ST_Config::instance = nullptr;
@@ -88,25 +89,25 @@ const NetworkSource& ST_Config::networkSource() const
     return networkSource;
 }
 
-std::string& ST_Config::networkXmlInputFile()
+std::string& ST_Config::getNetworkXmlInputFile()
 {
     return networkXmlInputFile;
 }
-const std::string& ST_Config::networkXmlInputFile() const
+const std::string& ST_Config::getNetworkXmlInputFile() const
 {
     return networkXmlInputFile;
 }
 
-std::string& ST_Config::networkXmlOutputFile()
+std::string& ST_Config::getNetworkXmlOutputFile()
 {
     return networkXmlOutputFile;
 }
-const std::string& ST_Config::networkXmlOutputFile() const
+const std::string& ST_Config::getNetworkXmlOutputFile() const
 {
     return networkXmlOutputFile;
 }
 
-std::string& ST_Config::roadNetworkXsdSchemaFile()
+std::string& ST_Config::getRoadNetworkXsdSchemaFile()
 {
     return roadNetworkXsdSchemaFile;
 }
@@ -114,18 +115,18 @@ void ST_Config::setRoadNetworkXsdSchemaFile(std::string& name)
 {
     roadNetworkXsdSchemaFile = name;
 }
-const std::string& ST_Config::roadNetworkXsdSchemaFile() const
+const std::string& ST_Config::getRoadNetworkXsdSchemaFile() const
 {
     return roadNetworkXsdSchemaFile;
 }
 
 AuraManager::AuraManagerImplementation& ST_Config::aura_manager_impl()
 {
-    return simulation.auraManagerImplementation;
+    return auraManagerImplementation;
 }
 const AuraManager::AuraManagerImplementation& ST_Config::aura_manager_impl() const
 {
-    return simulation.auraManagerImplementation;
+    return auraManagerImplementation;
 }
 
 bool ST_Config::commSimEnabled() const
@@ -151,15 +152,6 @@ unsigned int ST_Config::intMgrTimeStepInMilliSeconds() const
 unsigned int ST_Config::communicationTimeStepInMilliSeconds() const
 {
     return workers.communication.granularityMs;
-}
-
-std::string sim_mob::ConfigParams::busline_control_type() const
-{
-    std::map<std::string,std::string>::const_iterator it = system.genericProps.find("busline_control_type");
-    if (it==system.genericProps.end()) {
-        throw std::runtime_error("busline_control_type property not found.");
-    }
-    return it->second;
 }
 
 }

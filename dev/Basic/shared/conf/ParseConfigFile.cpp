@@ -56,19 +56,6 @@ MutexStrategy ParseMutexStrategyEnum(const XMLCh* srcX, MutexStrategy* defValue)
 	return *defValue;
 }
 
-Point2D ParsePoint2D(const XMLCh* srcX, Point2D* defValue) {
-	if (srcX) {
-		std::string src = TranscodeString(srcX);
-		return parse_point(src);
-	}
-
-    ///Wasn't found.
-	if (!defValue) {
-		throw std::runtime_error("Mandatory Point2D variable; no default available.");
-	}
-	return *defValue;
-}
-
 unsigned int ParseGranularitySingle(const XMLCh* srcX, unsigned int* defValue) {
 	if (srcX) {
         ///Search for "[0-9]+ ?[^0-9]+), roughly.
@@ -94,24 +81,11 @@ unsigned int ParseGranularitySingle(const XMLCh* srcX, unsigned int* defValue) {
 	return *defValue;
 }
 
-///How to do defaults
-Point2D ParsePoint2D(const XMLCh* src, Point2D defValue) {
-	return ParsePoint2D(src, &defValue);
-}
-Point2D ParsePoint2D(const XMLCh* src) { ///No default
-	return ParsePoint2D(src, nullptr);
-}
 unsigned int ParseGranularitySingle(const XMLCh* src, unsigned int defValue) {
 	return ParseGranularitySingle(src, &defValue);
 }
 unsigned int ParseGranularitySingle(const XMLCh* src) { ///No default
 	return ParseGranularitySingle(src, nullptr);
-}
-SystemParams::NetworkSource ParseNetSourceEnum(const XMLCh* srcX, SystemParams::NetworkSource defValue) {
-	return ParseNetSourceEnum(srcX, &defValue);
-}
-SystemParams::NetworkSource ParseNetSourceEnum(const XMLCh* srcX) {
-	return ParseNetSourceEnum(srcX, nullptr);
 }
 
 WorkGroup::ASSIGNMENT_STRATEGY ParseWrkGrpAssignEnum(const XMLCh* srcX, WorkGroup::ASSIGNMENT_STRATEGY defValue) {
@@ -161,22 +135,10 @@ void sim_mob::ParseConfigFile::processXmlFile(XercesDOMParser& parser)
 	}
 
     ///Now just parse the document recursively.
-    processSimulationNode(GetSingleElementByName(node, "simulation", true));
-    processMergeLogFilesNode(GetSingleElementByName(node, "merge_log_files"));
-    processGenericPropsNode(GetSingleElementByName(node, "generic_props"));
-	ProcessIncidentsNode(GetSingleElementByName(rootNode, "incidentsData"));
+    processSimulationNode(GetSingleElementByName(rootNode, "simulation", true));
+    processMergeLogFilesNode(GetSingleElementByName(rootNode, "merge_log_files"));
+    processGenericPropsNode(GetSingleElementByName(rootNode, "generic_props"));
     processConstructsNode(GetSingleElementByName(rootNode,"constructs"));
-
-    ///Agents all follow a template.
-	processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file"));
-
-    ///Take care of pathset manager confifuration in here
-	ParsePathXmlConfig(sim_mob::ConfigManager::GetInstance().FullConfig().pathsetFile, sim_mob::ConfigManager::GetInstanceRW().PathSetConfig());
-
-	if(cfg.cbd && ConfigManager::GetInstance().FullConfig().pathSet().psRetrievalWithoutBannedRegion.empty())
-	{
-        throw std::runtime_error("Pathset without banned area stored procedure name not found\n");
-	}
 }
 
 void sim_mob::ParseConfigFile::processConstructsNode(xercesc::DOMElement* node)
@@ -315,7 +277,7 @@ void sim_mob::ParseConfigFile::processSimulationNode(xercesc::DOMElement* node)
 {
     ///Several properties are set up as "x ms", or "x seconds", etc.
     cfg.simulation.baseGranMS = processTimegranUnits(GetSingleElementByName(node, "base_granularity", true));
-    cfg.simulation.baseGranSecond = cfg.system.simulation.baseGranMS / MILLISECONDS_IN_SECOND;
+    cfg.simulation.baseGranSecond = cfg.simulation.baseGranMS / MILLISECONDS_IN_SECOND;
     cfg.simulation.totalRuntimeMS = processTimegranUnits(GetSingleElementByName(node, "total_runtime", true));
     cfg.simulation.totalWarmupMS = processTimegranUnits(GetSingleElementByName(node, "total_warmup"));
 
@@ -329,7 +291,7 @@ void sim_mob::ParseConfigFile::processSimulationNode(xercesc::DOMElement* node)
 
 void sim_mob::ParseConfigFile::processMergeLogFilesNode(xercesc::DOMElement* node)
 {
-	cfg.system.mergeLogFiles = ParseBoolean(GetNamedAttributeValue(node, "value"), false);
+	cfg.mergeLogFiles = ParseBoolean(GetNamedAttributeValue(node, "value"), false);
 }
 
 
@@ -344,7 +306,7 @@ void sim_mob::ParseConfigFile::processGenericPropsNode(xercesc::DOMElement* node
 		std::string key = ParseString(GetNamedAttributeValue(*it, "key"), "");
 		std::string val = ParseString(GetNamedAttributeValue(*it, "value"), "");
 		if (!(key.empty() && val.empty())) {
-			cfg.system.genericProps[key] = val;
+			cfg.genericProps[key] = val;
 		}
 	}
 }

@@ -432,6 +432,9 @@ public:
     /// Stored procedure mappings
     std::map<std::string, StoredProcedureMap> procedureMaps;
 
+    /// Generic properties, for testing new features.
+    std::map<std::string, std::string> genericProps;
+
     /// If true, we take time to merge the output of the individual log files after the simulation is complete.
     bool mergeLogFiles;
 

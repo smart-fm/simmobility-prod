@@ -12,6 +12,8 @@
 #include <map>
 #include <vector>
 
+#include <boost/noncopyable.hpp>
+
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"
@@ -177,7 +179,7 @@ struct AMOD_ControllerParams
     bool enabled;
 };
 
-class ST_Config : public boost::non_copyable
+class ST_Config : public boost::noncopyable
 {
 public:
     /**
@@ -204,28 +206,28 @@ public:
      *
      * @return Network Xml input file name
      */
-    std::string& networkXmlInputFile();
+    std::string& getNetworkXmlInputFile();
 
     /**
      * If loading the network from an XML file, which file? Empty=private/SimMobilityInput.xml
      *
      * @return Network Xml input file name (const reference)
      */
-    const std::string& networkXmlInputFile() const;
+    const std::string& getNetworkXmlInputFile() const;
 
     /**
      * If writing the network to an XML file, which file? Empty= dont write at all
      *
      * @return Network Xml output file name
      */
-    std::string& networkXmlOutputFile();
+    std::string& getNetworkXmlOutputFile();
 
     /**
      * If writing the network to an XML file, which file? Empty= dont write at all
      *
      * @return Network Xml output file name (const reference)
      */
-    const std::string& networkXmlOutputFile() const;
+    const std::string& getNetworkXmlOutputFile() const;
 
     /**
      * retrieves road network xsd schema file name
@@ -233,7 +235,7 @@ public:
      *
      * @return road network xsd file name
      */
-    std::string& roadNetworkXsdSchemaFile();
+    std::string& getRoadNetworkXsdSchemaFile();
 
     /**
      * retrieves road network xsd schema file name
@@ -241,7 +243,7 @@ public:
      *
      * @return road network xsd file name (const reference)
      */
-    const std::string& roadNetworkXsdSchemaFile() const;
+    const std::string& getRoadNetworkXsdSchemaFile() const;
 
     /**
      * sets the road network xsd schema file name
@@ -306,6 +308,19 @@ public:
      */
     const unsigned int& commWorkGroupSize() const;
 
+	///Which tree implementation to use for spatial partitioning for the aura manager.
+	AuraManager::AuraManagerImplementation& aura_manager_impl();
+	const AuraManager::AuraManagerImplementation& aura_manager_impl() const;
+
+
+	unsigned int personTimeStepInMilliSeconds() const;
+
+	unsigned int signalTimeStepInMilliSeconds() const;
+
+	unsigned int intMgrTimeStepInMilliSeconds() const;
+
+	unsigned int communicationTimeStepInMilliSeconds() const;
+
     /// Container to store vehicle types
     std::vector<VehicleType> vehicleTypes;
 
@@ -359,6 +374,9 @@ public:
 
     ///Settings used for generation/retrieval of paths
     PathSetConf pathset;
+
+    /// Generic properties, for testing new features.
+    std::map<std::string, std::string> genericProps;
 private:
     /**
      * Constructor

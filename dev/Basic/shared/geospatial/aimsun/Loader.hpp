@@ -28,8 +28,6 @@ class RoadSegment;
 class DynamicVector;
 class Link;
 class ProfileBuilder;
-class Conflux;
-class SegmentStats;
 class SinglePath;
 class PathSet;
 class ERP_Gantry_Zone;

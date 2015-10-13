@@ -6,20 +6,29 @@
 
 #include <string>
 #include <set>
-#include "entities/Person.hpp"
+#include "entities/Person_MT.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/BusStop.hpp"
 
-namespace sim_mob {
+namespace sim_mob
+{
+namespace medium
+{
 
-struct cmp_person_distToSegmentEnd : public std::greater<Person*> {
+class Conflux;
+
+/**
+ * helper to compare two persons by distance to end of segment
+ */
+struct GreaterDistToSegmentEnd: public std::greater<Person_MT*>
+{
 	/**
 	 * compare 2 persons
 	 * x > y if x is further away from the end of segment than y.
 	 */
-	bool operator() (const Person* x, const Person* y) const;
+	bool operator()(const Person_MT* x, const Person_MT* y) const;
 };
 
 /*
@@ -27,35 +36,43 @@ struct cmp_person_distToSegmentEnd : public std::greater<Person*> {
  * speed density function for this road segment.
  * \author Harish Loganathan
  */
-struct SupplyParams {
+struct SupplyParams
+{
 public:
-	SupplyParams(const sim_mob::RoadSegment* rdSeg, double statsLength);
+	SupplyParams(const RoadSegment* rdSeg, double statsLength);
 
-	const double getAlpha() const {
+	const double getAlpha() const
+	{
 		return alpha;
 	}
 
-	const double getBeta() const {
+	const double getBeta() const
+	{
 		return beta;
 	}
 
-	const double getCapacity() const {
+	const double getCapacity() const
+	{
 		return capacity;
 	}
 
-	const double getFreeFlowSpeed() const {
+	const double getFreeFlowSpeed() const
+	{
 		return freeFlowSpeed;
 	}
 
-	const double getJamDensity() const {
+	const double getJamDensity() const
+	{
 		return jamDensity;
 	}
 
-	const double getMinDensity() const {
+	const double getMinDensity() const
+	{
 		return minDensity;
 	}
 
-	const double getMinSpeed() const {
+	const double getMinSpeed() const
+	{
 		return minSpeed;
 	}
 
@@ -74,7 +91,8 @@ private:
  *
  * \author Melani Jayasuriya
  */
-class LaneParams {
+class LaneParams
+{
 	friend class LaneStats;
 	friend class SegmentStats;
 
@@ -87,20 +105,46 @@ private:
 	double lastAcceptTime;
 
 public:
-	LaneParams() : outputFlowRate(0.0), origOutputFlowRate(0.0), outputCounter(0),
-			acceptRate(0.0), fraction(0.0), lastAcceptTime(0.0){}
+	LaneParams() :
+			outputFlowRate(0.0), origOutputFlowRate(0.0), outputCounter(0), acceptRate(0.0), fraction(0.0), lastAcceptTime(0.0)
+	{
+	}
 
-	double getOutputFlowRate() {return outputFlowRate;}
-	int getOutputCounter() {return outputCounter;}
-	double getAcceptRate() {return acceptRate;}
+	double getOutputFlowRate()
+	{
+		return outputFlowRate;
+	}
+	int getOutputCounter()
+	{
+		return outputCounter;
+	}
+	double getAcceptRate()
+	{
+		return acceptRate;
+	}
 
-	void setOutputCounter(int count) { outputCounter = count; }
+	void setOutputCounter(int count)
+	{
+		outputCounter = count;
+	}
 	void decrementOutputCounter();
-	void setOutputFlowRate(double output) {outputFlowRate = output;}
-	void setOrigOutputFlowRate(double orig) {origOutputFlowRate = orig;}
+	void setOutputFlowRate(double output)
+	{
+		outputFlowRate = output;
+	}
+	void setOrigOutputFlowRate(double orig)
+	{
+		origOutputFlowRate = orig;
+	}
 
-	void setLastAccept(double lastAccept) {lastAcceptTime = lastAccept;}
-	double getLastAccept() {return lastAcceptTime;}
+	void setLastAccept(double lastAccept)
+	{
+		lastAcceptTime = lastAccept;
+	}
+	double getLastAccept()
+	{
+		return lastAcceptTime;
+	}
 };
 
 /**
@@ -111,50 +155,53 @@ public:
  *
  * \author Harish Loganathan
  */
-class LaneStats {
+class LaneStats
+{
 private:
 	//typedefs
-	typedef std::deque<sim_mob::Person*> PersonList;
-	/**number of persons queueing in lane*/
+	typedef std::deque<Person_MT*> PersonList;
+
+	/** number of persons queueing in lane */
 	unsigned int queueCount;
-	/**number of queuing persons at the start of the current tick*/
+
+	/** number of queuing persons at the start of the current tick */
 	unsigned int initialQueueLength;
-	/**end position of the last updated person in this lane*/
+
+	/** end position of the last updated person in this lane */
 	double positionOfLastUpdatedAgent;
-	/**geospatial lane corresponding to this lane stats*/
-	const sim_mob::Lane* lane;
-	/**virtual lane to hold newly starting persons*/
+
+	/** geospatial lane corresponding to this lane stats */
+	const Lane* lane;
+
+	/** virtual lane to hold newly starting persons */
 	const bool laneInfinity;
-	/**length of the lane (corresponds to length of segment stats of this lane stats)*/
+
+	/** length of the lane (corresponds to length of segment stats of this lane stats) */
 	double length;
-	/**counter to track number of persons in this lane*/
+
+	/** counter to track number of persons in this lane */
 	unsigned int numPersons;
-	/**tracks the queuing length of this segment*/
+
+	/** tracks the queuing length of this segment */
 	double queueLength;
-	/**tracks the moving length of this segment*/
+
+	/** tracks the moving length of this segment */
 	double totalLength;
 
-	/*
-	 * laneAgentsCopy is a copy of laneAgents taken at the start of each tick
-	 * solely for iterating the agents. laneAgentsIt will iterate on laneAgentsCopy
-	 * and stays intact. Any handover of agents to the next segment is done by
-	 * removing the agent from laneAgents and adding to laneAgents of the next segment.
-	 */
-	PersonList laneAgentsCopy;
-	PersonList::iterator laneAgentsIt;
-
-	/**set of downstream links connected to this lanestats*/
-	std::set<const sim_mob::Link*> connectedDownstreamLinks;
+	/** set of downstream links connected to this lanestats */
+	std::set<const Link*> connectedDownstreamLinks;
 
 public:
 	PersonList laneAgents;
 
-	LaneStats(const sim_mob::Lane* laneInSegment, double length, bool isLaneInfinity = false) :
-		queueCount(0), initialQueueLength(0), laneParams(new LaneParams()),
-		positionOfLastUpdatedAgent(-1.0), lane(laneInSegment), length(length),
-		laneInfinity(isLaneInfinity), numPersons(0), queueLength(0),
-		totalLength(0) {}
-	~LaneStats() {
+	LaneStats(const Lane* laneInSegment, double length, bool isLaneInfinity = false) :
+			queueCount(0), initialQueueLength(0), laneParams(new LaneParams()), positionOfLastUpdatedAgent(-1.0), lane(laneInSegment), length(length),
+			laneInfinity(isLaneInfinity), numPersons(0), queueLength(0), totalLength(0)
+	{
+	}
+
+	~LaneStats()
+	{
 		safe_delete_item(laneParams);
 	}
 
@@ -163,15 +210,15 @@ public:
 	 * @param downStreamLink a link which is downstream through this lanestats
 	 * @return true if insertion was successful; false otherwise
 	 */
-	bool addDownstreamLink(const sim_mob::Link* downStreamLink);
+	bool addDownstreamLink(const Link* downStreamLink);
 
 	/**
 	 * adds a set of links as downstream to this lanestats
 	 * @param downStreamLinks a set of link which are downstream through this lanestats
 	 */
-	void addDownstreamLinks(const std::set<const sim_mob::Link*>& downStreamLinks);
+	void addDownstreamLinks(const std::set<const Link*>& downStreamLinks);
 
-	const std::set<const sim_mob::Link*>& getDownstreamLinks() const
+	const std::set<const Link*>& getDownstreamLinks() const
 	{
 		return connectedDownstreamLinks;
 	}
@@ -180,13 +227,13 @@ public:
 	 * adds person to laneAgents list
 	 * @param person the person to be added
 	 */
-	void addPerson(sim_mob::Person* person);
+	void addPerson(Person_MT* person);
 
 	/**
 	 * update the queue count of lane based on the queuing status of person
 	 * @param person the person whose queuing status has changed
 	 */
-	void updateQueueStatus(sim_mob::Person* person);
+	void updateQueueStatus(Person_MT* person);
 
 	/**
 	 * removes the person from the lane
@@ -195,7 +242,7 @@ public:
 	 * @param vehicleLength length of vehicle used by person
 	 * @return true if removal was successful; false otherwise.
 	 */
-	bool removePerson(sim_mob::Person* person, bool wasQueuing, double vehicleLength);
+	bool removePerson(Person_MT* person, bool wasQueuing, double vehicleLength);
 
 	/**
 	 * removes the person at the front in laneAgents list
@@ -203,7 +250,7 @@ public:
 	 * @param vehicleLength the length of vehicle used before update
 	 * @return pointer to the dequeued person
 	 */
-	sim_mob::Person* dequeue(const sim_mob::Person* person, bool isQueuingBfrUpdate, double vehicleLength);
+	Person_MT* dequeue(const Person_MT* person, bool isQueuingBfrUpdate, double vehicleLength);
 
 	/**
 	 * gets the number of queuing persons in lane
@@ -216,18 +263,6 @@ public:
 	 * @return number of moving persons in lane
 	 */
 	unsigned int getMovingAgentsCount() const;
-
-	/**
-	 * copies laneAgents to laneAgentsCopy; sets laneAgentsIt to the start of laneAgentsCopy
-	 * NOTE: this must be called once per time-tick
-	 */
-	void resetIterator();
-
-	/**
-	 * gets the person from laneAgentsIt and increments laneAgentsIt
-	 * @return the next person to be updated in lane
-	 */
-	sim_mob::Person* next();
 
 	/**
 	 * initializes the parameters of lane
@@ -255,9 +290,8 @@ public:
 
 	/**
 	 * This function prints all agents in laneAgents
-	 * @param copy boolean to determine whether to print laneAgentsCopy or laneAgents
 	 */
-	void printAgents(bool copy = false) const;
+	void printAgents() const;
 
 	/**
 	 * Verifies if the invariant that the order in laneAgents of each lane matches
@@ -265,43 +299,59 @@ public:
 	 */
 	void verifyOrdering();
 
-	double getTotalVehicleLength() const;
-	double getQueueLength() const;
+	double getTotalVehicleLength() const
+	{
+		return totalLength;
+	}
+
+	double getQueueLength() const
+	{
+		return queueLength;
+	}
+
 	double getMovingLength() const;
 
-	unsigned int getInitialQueueLength() const {
+	unsigned int getInitialQueueLength() const
+	{
 		return initialQueueLength;
 	}
 
-	void setInitialQueueLength(unsigned int initialQueueLength) {
+	void setInitialQueueLength(unsigned int initialQueueLength)
+	{
 		this->initialQueueLength = initialQueueLength;
 	}
 
-	double getPositionOfLastUpdatedAgent() const {
+	double getPositionOfLastUpdatedAgent() const
+	{
 		return positionOfLastUpdatedAgent;
 	}
 
-	void setPositionOfLastUpdatedAgent(double positionOfLastUpdatedAgent) {
+	void setPositionOfLastUpdatedAgent(double positionOfLastUpdatedAgent)
+	{
 		this->positionOfLastUpdatedAgent = positionOfLastUpdatedAgent;
 	}
 
-	const sim_mob::Lane* getLane() const {
+	const Lane* getLane() const
+	{
 		return lane;
 	}
 
-	const bool isLaneInfinity() const {
+	const bool isLaneInfinity() const
+	{
 		return laneInfinity;
 	}
 
-	double getLength() const {
+	double getLength() const
+	{
 		return length;
 	}
 
-	unsigned int getNumPersons() const {
+	unsigned int getNumPersons() const
+	{
 		return numPersons;
 	}
 
-	/**parameters for this lane*/
+	/** parameters for this lane */
 	LaneParams* laneParams;
 };
 
@@ -312,19 +362,24 @@ public:
  *
  * \author Harish Loganathan
  */
-class SegmentStats {
-	friend class sim_mob::aimsun::Loader;
-
+class SegmentStats
+{
 protected:
-	//typedefs
-	typedef std::deque<sim_mob::Person*> PersonList;
-	typedef std::map<const sim_mob::Lane*, sim_mob::LaneStats* > LaneStatsMap;
-	typedef std::vector<const sim_mob::BusStop*> BusStopList;
-	typedef std::vector<sim_mob::Agent*> AgentList;
-	typedef std::map<const sim_mob::BusStop*, PersonList> StopBusDriversMap;
+	friend class aimsun::Loader;
 
-	/**road segment which contains this SegmentStats*/
-	const sim_mob::RoadSegment* roadSegment;
+	//typedefs
+	typedef std::deque<Person_MT*> PersonList;
+	typedef std::map<const Lane*, LaneStats*> LaneStatsMap;
+	typedef std::vector<const BusStop*> BusStopList;
+	typedef std::vector<Agent*> AgentList;
+	typedef std::map<const BusStop*, PersonList> StopBusDriversMap;
+
+	/** road segment which contains this SegmentStats */
+	const RoadSegment* roadSegment;
+
+	/** Conflux to which this segment stats belongs to */
+	Conflux* parentConflux;
+
 	/**
 	 * List of bus stops in this SegmentStats. One SegmentStats can have
 	 * multiple stops. This design allows us to handle the case where there are
@@ -333,10 +388,10 @@ protected:
 	 */
 	BusStopList busStops;
 
-	/**BusStopAgents for bus stops in this segment stats*/
+	/** BusStopAgents for bus stops in this segment stats */
 	AgentList busStopAgents;
 
-	/**stop wise list of bus drivers currently serving the stop*/
+	/** stop wise list of bus drivers currently serving the stop */
 	StopBusDriversMap busDrivers;
 
 	/**
@@ -359,92 +414,121 @@ protected:
 	 */
 	const Lane* outermostLane;
 
-	/**
-	 * A map which stores the unprocessed person who is closest to the end of
-	 * this SegmentStats for each lane in the seg stats. This is used for
-	 * selecting the next person to update.
-	 * TODO: remove this, if TopCMerge seems to work perfectly well.
-	 */
-	std::map<const sim_mob::Lane*, sim_mob::Person* > frontalAgents;
-
-	/**length of this SegmentStats in cm*/
+	/** length of this SegmentStats in cm */
 	double length;
-	/**speed of vehicles in segment for each frame in cm/s*/
+
+	/** speed of vehicles in segment for each frame in cm/s */
 	double segVehicleSpeed;
-	/**speed of pedestrians on this segment for each frame in cm/s --not used at the moment*/
-	double segPedSpeed;
-	/**vehicle density of this segment stats in PCU/m*/
+
+	/** vehicle density of this segment stats in PCU/m */
 	double segDensity;
-	/**number of lanes in this SegmentStats which is meant for vehicles*/
+
+	/** number of lanes in this SegmentStats which is meant for vehicles */
 	int numVehicleLanes;
+
 	/**
 	 * counter which stores the number of vehicles which crossed the mid-point
 	 * of this segment stats in every tick
 	 */
 	unsigned int segFlow;
+
 	/**
 	 * counter which tracks the number of Persons currently on this SegmentStats
 	 */
 	unsigned int numPersons;
+
 	/**
 	 * structure to store parameters pertinent to supply
 	 */
-	sim_mob::SupplyParams supplyParams;
+	SupplyParams supplyParams;
 
 	/**
 	 * map of lanes connected to each downstream link
 	 */
-	std::map<const sim_mob::Link*, std::vector<sim_mob::LaneStats*> > laneGroup;
+	std::map<const Link*, std::vector<LaneStats*> > laneGroup;
 
 	/**
 	 * adds a bus stop to the list of stops
 	 * @param stop bus stop to be added
 	 */
-	void addBusStop(const sim_mob::BusStop* stop);
+	void addBusStop(const BusStop* stop);
 
 public:
-	SegmentStats(const sim_mob::RoadSegment* rdSeg, double length);
+	SegmentStats(const RoadSegment* rdSeg, double length);
 	~SegmentStats();
 
-	enum SegmentVehicleOrdering {
-		SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION,
-		SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION
+	enum SegmentVehicleOrdering
+	{
+		SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION, SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION
 	};
 
 	SegmentVehicleOrdering orderBySetting;
 
-	const sim_mob::RoadSegment* getRoadSegment() const {
+	const RoadSegment* getRoadSegment() const
+	{
 		return roadSegment;
 	}
 
-	int getNumVehicleLanes() const {
+	Conflux* getParentConflux() const
+	{
+		return parentConflux;
+	}
+
+	int getNumVehicleLanes() const
+	{
 		return numVehicleLanes;
 	}
 
-	double getLength() const {
+	double getLength() const
+	{
 		return length;
 	}
 
-	unsigned int getNumPersons() const {
+	unsigned int getNumPersons() const
+	{
 		return numPersons;
 	}
 
-	size_t getNumStops() const {
+	size_t getNumStops() const
+	{
 		return busStops.size();
 	}
 
-	uint16_t getStatsNumberInSegment() const {
+	uint16_t getStatsNumberInSegment() const
+	{
 		return statsNumberInSegment;
 	}
 
-	const Lane* getOutermostLane() const {
+	const Lane* getOutermostLane() const
+	{
 		return outermostLane;
 	}
 
-	double getSegSpeed(bool hasVehicle) const;
-	unsigned int getSegFlow();
+	double getSegSpeed(bool hasVehicle) const
+	{
+		if (hasVehicle)
+		{
+			return segVehicleSpeed;
+		}
+		return 0.0;
+	}
+
+	unsigned int getSegFlow()
+	{
+		return segFlow;
+	}
+
+	/** increments segment flow counter by 1 */
 	void incrementSegFlow();
+
+	/** resets segment flow counter to 0 */
 	void resetSegFlow();
+
+	/**
+	 * fetches queue length at start of tick
+	 * @param lane the lane for which queue length is requested
+	 * @return
+	 */
 	unsigned int getInitialQueueLength(const Lane* lane) const;
 
 	/**
@@ -452,13 +536,13 @@ public:
 	 * @param lane the lane to add the person in
 	 * @param person the person to be added
 	 */
-	void addAgent(const sim_mob::Lane* lane, sim_mob::Person* person);
+	void addAgent(const Lane* lane, Person_MT* person);
 
 	/**
 	 * adds bus stop agent
 	 * @param busStopAgent is a pointer to a bus stop agent
 	 */
-	void addBusStopAgent(sim_mob::Agent* busStopAgent);
+	void addBusStopAgent(Agent* busStopAgent);
 
 	/**
 	 * Initializes all the bus stops in this segment stats.
@@ -471,13 +555,13 @@ public:
 	 * add bus driver to stop
 	 * @param driver the bus driver to be added
 	 */
-	void addBusDriverToStop(sim_mob::Person* driver, const sim_mob::BusStop* stop);
+	void addBusDriverToStop(Person_MT* driver, const BusStop* stop);
 
 	/**
 	 * remove bus driver from stop
 	 * @param driver the bus driver to be removed
 	 */
-	void removeBusDriverFromStop(sim_mob::Person* driver, const sim_mob::BusStop* stop);
+	void removeBusDriverFromStop(Person_MT* driver, const BusStop* stop);
 
 	/**
 	 * removes person from lane
@@ -487,7 +571,7 @@ public:
 	 * @param vehicleLength the length of vehicle used before update
 	 * @return true if removal was successful; false otherwise
 	 */
-	bool removeAgent(const sim_mob::Lane* lane, sim_mob::Person* person, bool wasQueuing, double vehicleLength);
+	bool removeAgent(const Lane* lane, Person_MT* person, bool wasQueuing, double vehicleLength);
 
 	/**
 	 * removes person in the front from lane
@@ -497,20 +581,20 @@ public:
 	 * @param vehicleLength the length of vehicle used before update
 	 * @return the dequeued person
 	 */
-	sim_mob::Person* dequeue(const sim_mob::Person* person, const sim_mob::Lane* lane, bool isQueuingBfrUpdate, double vehicleLength);
+	Person_MT* dequeue(const Person_MT* person, const Lane* lane, bool isQueuingBfrUpdate, double vehicleLength);
 
 	/**
 	 * returns a reference to the list of persons in lane
 	 * @param lane the lane from which the list of persons is requested
 	 * @return reference to the list of persons in lane
 	 */
-	std::deque<Person*>& getPersons(const sim_mob::Lane* lane);
+	std::deque<Person_MT*>& getPersons(const Lane* lane);
 
 	/**
 	 * returns a reference to the list of bus stops
 	 * @return reference to the list of bus stops
 	 */
-	std::vector<const sim_mob::BusStop*>& getBusStops();
+	std::vector<const BusStop*>& getBusStops();
 
 	/**
 	 * update bus stop agent so as to perform further tasks
@@ -522,7 +606,7 @@ public:
 	 * get a list of all persons in the segment stats
 	 * @param out list for all persons in the segment stats
 	 */
-	void getPersons(std::deque<Person*>& outList);
+	void getPersons(std::deque<Person_MT*>& outList);
 
 	/**
 	 * updates the driving time to reach end of link of all persons in segment stats
@@ -542,28 +626,28 @@ public:
 	 * @param lane the lane for which the counts are required
 	 * @return std::pair<queuingCount, movingCount>
 	 */
-	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const sim_mob::Lane* lane) const;
+	std::pair<unsigned int, unsigned int> getLaneAgentCounts(const Lane* lane) const;
 
 	/**
 	 * gets the queue length of lane
 	 * @param lane the lane for which queue length is requested
 	 * @returns queue length of lane
 	 */
-	double getLaneQueueLength(const sim_mob::Lane* lane) const;
+	double getLaneQueueLength(const Lane* lane) const;
 
 	/**
 	 * gets the moving length of lane
 	 * @param lane the lane for which moving length is requested
 	 * @returns moving length of lane
 	 */
-	double getLaneMovingLength(const sim_mob::Lane* lane) const;
+	double getLaneMovingLength(const Lane* lane) const;
 
 	/**
 	 * Returns the total length of vehicles in lane.
 	 * @param lane the lane for which moving length is requested
 	 * @returns total length of vehicles in lane
 	 */
-	double getLaneTotalVehicleLength(const sim_mob::Lane* lane) const;
+	double getLaneTotalVehicleLength(const Lane* lane) const;
 
 	/**
 	 * Returns the sum of queuing lengths of all lanes in this seg stats.
@@ -591,25 +675,14 @@ public:
 	 * @param lane the lane for which the number of persons is required
 	 * @return the number of persons in lane
 	 */
-	unsigned int numAgentsInLane(const sim_mob::Lane* lane) const;
+	unsigned int numAgentsInLane(const Lane* lane) const;
 
 	/**
 	 * updates the queue count in lane due to change in queuing status of person
 	 * @param lane the lane whose queueing count needs to be updated
 	 * @param person the person who changed his queuing status
 	 */
-	void updateQueueStatus(const sim_mob::Lane* lane, sim_mob::Person* person);
-
-	/**
-	 * resets the frontal agents
-	 */
-	void resetFrontalAgents();
-
-	/**
-	 * gets the person closest to end of segment
-	 * @return person closest to end of segment
-	 */
-	sim_mob::Person* personClosestToSegmentEnd();
+	void updateQueueStatus(const Lane* lane, Person_MT* person);
 
 	/**
 	 * checks if the segment stats has persons
@@ -623,7 +696,7 @@ public:
 	 * @returns true if this segstats cotains busStop in its busStops list;
 	 * 			false otherwise
 	 */
-	bool hasBusStop(const sim_mob::BusStop* busStop) const;
+	bool hasBusStop(const BusStop* busStop) const;
 
 	/**
 	 * checks if this Segment stats contains a busStop in it
@@ -671,7 +744,7 @@ public:
 	 * gets the lane params of lane
 	 * @param lane the requested lane in segment stats
 	 */
-	sim_mob::LaneParams* getLaneParams(const Lane* lane) const;
+	LaneParams* getLaneParams(const Lane* lane) const;
 
 	/**
 	 * the speed density function for mid-term supply.
@@ -782,11 +855,7 @@ public:
 	 * and moving/queuing status is still unknown for persons in laneInfinity. The frame_init function of the agent's role will have
 	 * to put the persons from laneInfinity on moving/queuing vehicle lists on appropriate real lane.
 	 */
-	const sim_mob::Lane* laneInfinity;
-
-	std::stringstream debugMsgs; // handy to throw meaningful error messages
+	const Lane* laneInfinity;
 };
-
-typedef boost::shared_ptr<SegmentStats> SegmentStatsPtr;
-
-}
+} // namespace medium
+} // namespace sim_mob

@@ -70,7 +70,7 @@ public:
 	double drivingTimeToEndOfLink;
 
 	//Used by confluxes and movement facet of roles to move this person in the medium term
-	const sim_mob::SegmentStats* requestedNextSegStats;
+	const SegmentStats* requestedNextSegStats;
 
 	enum Permission //to be renamed later
 	{
@@ -137,12 +137,12 @@ public:
 		this->currLane = currLane;
 	}
 
-	const sim_mob::SegmentStats* getCurrSegStats() const
+	const SegmentStats* getCurrSegStats() const
 	{
 		return currSegStats;
 	}
 
-	void setCurrSegStats(const sim_mob::SegmentStats* currSegStats)
+	void setCurrSegStats(const SegmentStats* currSegStats)
 	{
 		this->currSegStats = currSegStats;
 	}
@@ -176,8 +176,6 @@ public:
 	{
 		return nextRole;
 	}
-
-	friend class Conflux;
 };
 } // namespace medium
 } //namespace sim_mob

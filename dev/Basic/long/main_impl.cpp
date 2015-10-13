@@ -225,7 +225,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         }
 
         //Save our output files if we are merging them later.
-        if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && config.mergeLogFiles())
+        if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && config.isMergeLogFiles())
         {
             resLogFiles = wgMgr.retrieveOutFileNames();
         }

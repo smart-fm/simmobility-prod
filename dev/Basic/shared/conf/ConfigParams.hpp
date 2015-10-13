@@ -21,7 +21,6 @@ namespace sim_mob {
 
 //Forward declarations
 class BusStop;
-class Conflux;
 class CommunicationDataManager;
 class ControlManager;
 class ConfigManager;
@@ -30,7 +29,6 @@ class PassengerDist;
 class ProfileBuilder;
 class TripChainItem;
 class Broker;
-class SegmentStats;
 
 
 

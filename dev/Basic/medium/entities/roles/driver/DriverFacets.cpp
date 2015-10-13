@@ -460,7 +460,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 	//commenting out - the delay from acceptRate is removed as per Yang Lu's suggestion
 	/*	if(nextRdSeg->getParentConflux()->numQueueingInSegment(nextRdSeg, true) == 0){
 			departTime = getLastAccept(nextLaneInNextSegment)
-							+ (0.01 * vehicle->length) / (nextRdSeg->getParentConflux()->getSegmentSpeed(nextRdSeg, true) ); // skip input capacity
+							+ (0.01 * vehicle->length) / (nextRdSeg->getParentConflux()->getSegmentSpeed(nextRdSeg) ); // skip input capacity
 		}*/
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - convertToSeconds(params.now.ms())); //in seconds
@@ -940,7 +940,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 	/*//skip acceptance capacity if there's no queue - this is done in DynaMIT
 	if(getCurrSegment()->getParentConflux()->numQueueingInSegment(getCurrSegment(), true) == 0){
 		departTime = getLastAccept(nextLaneInNextSegment)
-						+ (0.01 * vehicle->length) / (getCurrSegment()->getParentConflux()->getSegmentSpeed(getCurrSegment(), true) ); // skip input capacity
+						+ (0.01 * vehicle->length) / (getCurrSegment()->getParentConflux()->getSegmentSpeed(getCurrSegment()) ); // skip input capacity
 	}*/
 
 	params.elapsedSeconds = std::max(params.elapsedSeconds, departTime - (convertToSeconds(params.now.ms()))); //in seconds
@@ -1096,7 +1096,7 @@ void DriverMovement::updateLinkTravelTimes(const SegmentStats* prevSegStat, doub
 	if (prevLink == parentDriver->parent->currLinkTravelStats.link_)
 	{
 		parentDriver->parent->addToLinkTravelStatsMap(parentDriver->parent->currLinkTravelStats, linkExitTimeSec); //in seconds
-		prevSegStat->getRoadSegment()->getParentConflux()->setLinkTravelTimes(parentDriver->parent, linkExitTimeSec, prevLink);
+		prevSegStat->getParentConflux()->setLinkTravelTimes(linkExitTimeSec, prevLink);
 	}
 	//creating a new entry in agent's travelStats for the new link, with entry time
 	parentDriver->parent->currLinkTravelStats = LinkTravelStats(pathMover.getCurrSegStats()->getRoadSegment()->getLink(), linkExitTimeSec);

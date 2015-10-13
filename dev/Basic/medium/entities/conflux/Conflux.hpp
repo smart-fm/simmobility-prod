@@ -4,18 +4,19 @@
 
 #pragma once
 
+#include <boost/thread/shared_mutex.hpp>
 #include <deque>
 #include <map>
 #include <vector>
 #include "entities/Agent.hpp"
+#include "entities/Person.hpp"
+#include "entities/Person_MT.hpp"
 #include "geospatial/MultiNode.hpp"
-#include "boost/thread/shared_mutex.hpp"
+#include "SegmentStats.hpp"
 
-
-namespace sim_mob {
-class Person;
+namespace sim_mob
+{
 class RoadSegment;
-class SegmentStats;
 class Worker;
 
 namespace aimsun
@@ -24,7 +25,8 @@ namespace aimsun
 class Loader;
 }
 
-enum {
+enum
+{
 	MSG_PEDESTRIAN_TRANSFER_REQUEST = 5000000,
 	MSG_INSERT_INCIDENT,
 	MSG_WAITING_PERSON_ARRIVAL,
@@ -35,24 +37,28 @@ enum {
 	MSG_PERSON_LOAD
 };
 
+namespace medium
+{
 /**
  * Message to wrap a Person
  */
-class PersonMessage : public messaging::Message {
+class PersonMessage: public messaging::Message
+{
 public:
-	PersonMessage(Person* inPerson):person(inPerson){;}
-	virtual ~PersonMessage() {}
-	Person* person;
+	PersonMessage(Person_MT* inPerson);
+	virtual ~PersonMessage();
+	Person_MT* person;
 };
 
 /**
- * Subclasses message, This is to allow it to function as an message callback parameter.
+ * Message to notify incidents
  */
-class InsertIncidentMessage : public messaging::Message {
+class InsertIncidentMessage: public messaging::Message
+{
 public:
-	InsertIncidentMessage(const std::vector<sim_mob::SegmentStats*>& stats, double newFlowRate);
+	InsertIncidentMessage(const std::vector<SegmentStats*>& stats, double newFlowRate);
 	virtual ~InsertIncidentMessage();
-	const std::vector<sim_mob::SegmentStats*>& stats;
+	const std::vector<SegmentStats*>& stats;
 	double newFlowRate;
 };
 
@@ -60,64 +66,66 @@ public:
  * Subclass wraps a bus stop into message so as to make alighting decision.
  * This is to allow it to function as an message callback parameter.
  */
-class ArrivalAtStopMessage : public messaging::Message {
+class ArrivalAtStopMessage: public messaging::Message
+{
 public:
-	ArrivalAtStopMessage(Person* person):waitingPerson(person){;}
-	virtual ~ArrivalAtStopMessage() {}
-	Person* waitingPerson;
+	ArrivalAtStopMessage(Person_MT* person);
+	virtual ~ArrivalAtStopMessage();
+	Person_MT* waitingPerson;
 };
 
-struct cmp_person_remainingTimeThisTick : public std::greater<Person*> {
-  bool operator() (const Person* x, const Person* y) const;
+struct GreaterRemainingTimeThisTick: public std::greater<Person_MT*>
+{
+	bool operator()(const Person_MT* x, const Person_MT* y) const;
 };
 
 /**
  * Sort all persons in non-increasing order of remaining times in the current tick
  * @param personList list of persons to be sorted
  */
-void sortPersons_DecreasingRemTime(std::deque<Person*>& personList);
+void sortPersonsDecreasingRemTime(std::deque<Person_MT*>& personList);
 
 /**
- * Class representing a grouping of an intersection along with the links which
+ * Class to represent a grouping of an intersection along with the links which
  * are directly upstream to that intersection.
  *
  * \author Harish Loganathan
  */
-class Conflux : public sim_mob::Agent {
-
-	friend class sim_mob::aimsun::Loader;
+class Conflux : public Agent
+{
+	friend class aimsun::Loader;
 
 private:
 	//typedefs
-	typedef std::deque<sim_mob::Person*> PersonList;
-	typedef std::vector<sim_mob::SegmentStats*> SegmentStatsList;
-	typedef std::map<sim_mob::Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
-	typedef std::map<sim_mob::Link*, PersonList> VirtualQueueMap;
-	typedef std::map<const sim_mob::RoadSegment*, SegmentStatsList> SegmentStatsMap;
+	typedef std::deque<Person_MT*> PersonList;
+	typedef std::vector<SegmentStats*> SegmentStatsList;
+	typedef std::map<Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
+	typedef std::map<Link*, PersonList> VirtualQueueMap;
+	typedef std::map<const RoadSegment*, SegmentStatsList> SegmentStatsMap;
 
 	/**
 	 * helper to capture the status of a person before and after update
 	 */
-    struct PersonProps
-    {
-    public:
-    	const sim_mob::RoadSegment* segment;
-    	const sim_mob::Lane* lane;
-    	bool isQueuing;
-    	bool isMoving;
-    	unsigned int roleType;
-    	double vehicleLength;
-    	sim_mob::SegmentStats* segStats;
-    	const sim_mob::Conflux* conflux;
+	struct PersonProps
+	{
+	public:
+		const RoadSegment* segment;
+		const Lane* lane;
+		bool isQueuing;
+		bool isMoving;
+		unsigned int roleType;
+		double vehicleLength;
+		SegmentStats* segStats;
+		const Conflux* conflux;
 
-    	PersonProps(const sim_mob::Person* person, const sim_mob::Conflux* conflux);
-    	void printProps(unsigned int personId, uint32_t frame, std::string prefix) const;
-    };
+		PersonProps(const Person_MT* person, const Conflux* conflux);
+		void printProps(unsigned int personId, uint32_t frame, std::string prefix) const;
+	};
 
 	/**
 	 *  MultiNode (intersection) around which this conflux is constructed
 	 */
-	const sim_mob::MultiNode* multiNode;
+	const MultiNode* multiNode;
 
 	/**
 	 * Link-wise list of road segments in this conflux
@@ -133,16 +141,10 @@ private:
 	VirtualQueueMap virtualQueuesMap;
 
 	/**
-	 * data structure to hold a pointer to a road segment on each link to
-	 * keep track of the current segment that is being processed.
-	 */
-	std::map<sim_mob::Link*, sim_mob::SegmentStats*> currSegsOnUpLinks;
-
-	/**
 	 * segments on downstream links
 	 * These links conceptually belong to the adjacent confluxes.
 	 */
-	std::set<const sim_mob::RoadSegment*> downstreamSegments;
+	std::set<const RoadSegment*> downstreamSegments;
 
 	/**
 	 *  Map which stores the list of SegmentStats for all road segments on upstream links
@@ -154,12 +156,7 @@ private:
 	 *  Worker to which this conflux belongs to.
 	 *  Note: this
 	 */
-	sim_mob::Worker* parentWorker;
-
-	/**
-	 * structure to store the frontal agents in each road segment
-	 */
-	std::map<sim_mob::SegmentStats*, sim_mob::Person* > candidateAgents;
+	Worker* parentWorker;
 
 	/**
 	 * mutex to protect virtual queues
@@ -170,7 +167,7 @@ private:
 	 * For each downstream link, this map stores the number of persons that can
 	 * be accepted by that link from this conflux in the current tick
 	 */
-	std::map<sim_mob::Link*, unsigned int> vqBounds;
+	std::map<Link*, unsigned int> vqBounds;
 
 	/**holds the current frame number for which this conflux is being processed*/
 	timeslice currFrame;
@@ -212,15 +209,15 @@ private:
 	/**
 	 * moves the person and does housekeeping for the conflux
 	 * @param person the person to move
-	 * */
-	void updateAgent(sim_mob::Person* person);
+	 */
+	void updateAgent(Person_MT* person);
 
 	/**
 	 * calls frame_tick() of the movement facet for the person's role
 	 * @param now current time slice
 	 * @param person person to move
 	 */
-	UpdateStatus movePerson(timeslice now, Person* person);
+	UpdateStatus movePerson(timeslice now, Person_MT* person);
 
 	/**
 	 * calls frame_tick() for bus stop agent
@@ -231,19 +228,19 @@ private:
 	 * assign a waiting person to bus stop agent
 	 * @param person is with the role "waiting bus activity"
 	 */
-	void assignPersonToBusStopAgent(Person* person);
+	void assignPersonToBusStopAgent(Person_MT* person);
 
 	/**
 	 * assign person to MRT
 	 * @param person is going to board MRT
 	 */
-	void assignPersonToMRT(Person* person);
+	void assignPersonToMRT(Person_MT* person);
 
 	/**
 	 * assign person to car
 	 * @param person is going to board car
 	 */
-	void assignPersonToCar(Person* person);
+	void assignPersonToCar(Person_MT* person);
 
 	/**
 	 * calls frame_init of the movement facet for the person's role
@@ -251,7 +248,7 @@ private:
 	 * @param person person to initialize
 	 * @return true if the role corresponding to this subtrip has been constructed successfully; false otherwise
 	 */
-	bool callMovementFrameInit(timeslice now, Person* person);
+	bool callMovementFrameInit(timeslice now, Person_MT* person);
 
 	/**
 	 * calls frame_tick of the movement facet for the person's role
@@ -259,17 +256,14 @@ private:
 	 * @param person person to tick
 	 * @return update status
 	 */
-	Entity::UpdateStatus callMovementFrameTick(timeslice now, Person* person);
+	Entity::UpdateStatus callMovementFrameTick(timeslice now, Person_MT* person);
 
 	/**
 	 * calls frame_tick of the movement facet for the person's role
 	 * @param now current time slice
 	 * @param person person whose frame output is required
 	 */
-	void callMovementFrameOutput(timeslice now, Person* person);
-
-	/** sets the iterators on currSegToUpLinks to the segments at the end of the links*/
-	void resetCurrSegsOnUpLinks();
+	void callMovementFrameOutput(timeslice now, Person_MT* person);
 
 	/**
 	 * removes the agent from the conflux and marks it for removal by the worker.
@@ -277,37 +271,40 @@ private:
 	 * @param ag the person to be removed
 	 * @param beforeUpdate person properties before update
 	 */
-	void killAgent(sim_mob::Person* person, PersonProps& beforeUpdate);
+	void killAgent(Person_MT* person, PersonProps& beforeUpdate);
+
+/*	bool insertIncidentS(const std::string fileName)
+	{
+		ifstream in(fileName.c_str());
+		if (!in.is_open())
+		{
+			ostringstream out("");
+			out << "File " << fileName << " not found";
+			throw runtime_error(out.str());
+			//return false;
+		}
+		StreetDirectory & stDir = StreetDirectory::instance();
+		typedef tokenizer<escaped_list_separator<char> > Tokenizer;
+		vector < string > record;
+		string line;
+
+		while (getline(in, line))
+		{
+			Tokenizer record(line);
+			unsigned int sectionId = lexical_cast<unsigned int>(*(record.begin())); //first element
+			double newFlowRate = lexical_cast<double>(*(record.end())); //second element
+			const RoadSegment* rs = stDir.getRoadSegment(sectionId);
+			const std::vector<SegmentStats*>& stats = rs->getParentConflux()->findSegStats(rs);
+			SegmentStats* ss;
+			BOOST_FOREACH(ss,stats)
+			{
+				Conflux::insertIncident(ss, newFlowRate);
+			}
+		}
+		return true;
+	}*/
 
 	/**
-bool sim_mob::insertIncidentS(const std::string fileName){
-
-	ifstream in(fileName.c_str());
-	if (!in.is_open()){
-		ostringstream out("");
-		out << "File " << fileName << " not found";
-		throw runtime_error(out.str());
-		//return false;
-	}
-	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::instance();
-	typedef tokenizer< escaped_list_separator<char> > Tokenizer;
-	vector< string > record;
-	string line;
-
-	while (getline(in,line))
-	{
-		Tokenizer record(line);
-		unsigned int sectionId = lexical_cast<unsigned int>(*(record.begin()));//first element
-		double newFlowRate = lexical_cast<double>(*(record.end()));//second element
-		const sim_mob::RoadSegment* rs = stDir.getRoadSegment(sectionId);
-		const std::vector<sim_mob::SegmentStats*>& stats = rs->getParentConflux()->findSegStats(rs);
-		sim_mob::SegmentStats* ss;
-		BOOST_FOREACH(ss,stats){
-			sim_mob::Conflux::insertIncident(ss,newFlowRate);
-		}
-	}
-	return true;
-}
 	 * Resets the remainingTime of persons who remain in
 	 * lane infinities and virtual queues across ticks
 	 * Note: This may include
@@ -324,21 +321,21 @@ bool sim_mob::insertIncidentS(const std::string fileName){
 	 * @param afterUpdate person properties after update
 	 * @param person the person being handled
 	 */
-	void housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person);
+	void housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person);
 
 	/**
 	 * Gets the person to switch to the next trip chain item
 	 * @param person the person to switch
 	 * @return Entity::UpdateStatus update status
 	 */
-	Entity::UpdateStatus switchTripChainItem(Person* person);
+	Entity::UpdateStatus switchTripChainItem(Person_MT* person);
 
 	/**
 	 * gets the context of the agents right if the agent has moved out of this conflux
 	 * @param beforeUpdate person properties before update
 	 * @param afterUpdate person properties after update
 	 */
-	void updateAgentContext(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person* person) const;
+	void updateAgentContext(PersonProps& beforeUpdate, PersonProps& afterUpdate, Person_MT* person) const;
 
 protected:
 	/**
@@ -353,43 +350,56 @@ protected:
 	 */
 	virtual bool frame_init(timeslice now);
 
-	virtual Entity::UpdateStatus frame_tick(timeslice now) { throw std::runtime_error("frame_tick() is not required and are not implemented for Confluxes."); }
-	virtual void frame_output(timeslice now) { throw std::runtime_error("frame_output methods are not required and are not implemented for Confluxes."); }
+	/**
+	 * frame_tick overridden from agent class to throw error if called
+	 * @param now (description is irrelevant)
+	 * @return (description is irrelevant)
+	 */
+	virtual Entity::UpdateStatus frame_tick(timeslice now);
 
+	/**
+	 * frame_output overridden from agent class to throw error if called
+	 * @param now (description is irrelevant)
+	 */
+	virtual void frame_output(timeslice now);
 
-	//Inherited from Agent.
-	virtual void onEvent(event::EventId eventId, sim_mob::event::Context ctxId, event::EventPublisher* sender, const event::EventArgs& args);
-
-	//Inherited from Agent.
-	 virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
+	/**
+	 * Handles all possible messages that can be dispatched to this Conflux
+	 * @param type of the message.
+	 * @param message payload received.
+	 */
+	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 public:
-	Conflux(sim_mob::MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1, bool isLoader=false);
+	Conflux(MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1, bool isLoader=false);
 	virtual ~Conflux() ;
 
-	//Confluxes are non-spatial in nature.
-	virtual bool isNonspatial() { return true; }
+	/** Confluxes are non-spatial in nature. */
+	virtual bool isNonspatial();
 
-	virtual std::vector<BufferedBase *> buildSubscriptionList();
-
-	// functions from agent
-	virtual void load(const std::map<std::string, std::string>&) {}
+	/**
+	 * overriden update function which is called every tick from the workers
+	 * @param frameNumber represents current simulation time step
+	 */
 	virtual Entity::UpdateStatus update(timeslice frameNumber);
 
-	// Getters
-	const sim_mob::MultiNode* getMultiNode() const {
+	const MultiNode* getMultiNode() const
+	{
 		return multiNode;
 	}
 
-	std::set<const sim_mob::RoadSegment*> getDownstreamSegments() {
+	std::set<const RoadSegment*> getDownstreamSegments()
+	{
 		return downstreamSegments;
 	}
 
-	sim_mob::Worker* getParentWorker() const {
+	Worker* getParentWorker() const
+	{
 		return parentWorker;
 	}
 
-	void setParentWorker(sim_mob::Worker* parentWorker) {
+	void setParentWorker(Worker* parentWorker)
+	{
 		this->parentWorker = parentWorker;
 	}
 
@@ -399,15 +409,26 @@ public:
 	 */
 	void initialize(const timeslice& now);
 
-	bool hasSpaceInVirtualQueue(sim_mob::Link* lnk);
-	void pushBackOntoVirtualQueue(sim_mob::Link* lnk, sim_mob::Person* p);
+	/**
+	 * checks whether the virtual queue can accommodate a vehicle
+	 * @param link the link whose VQ is to be checked
+	 * @return true if vq bound is not zero; false otherwise
+	 */
+	bool hasSpaceInVirtualQueue(Link* lnk);
+
+	/**
+	 * puts person on VQ
+	 * @param lnk link of target VQ
+	 * @param person person to be added
+	 */
+	void pushBackOntoVirtualQueue(Link* lnk, Person_MT* person);
 
 	/**
 	 * adds a person into this conflux
-	 * @param ag person to be added
+	 * @param person person to be added
 	 * @param rdSeg starting road segment of ag
 	 */
-	void addAgent(sim_mob::Person* ag);
+	void addAgent(Person_MT* person);
 
 	/**
 	 * Searches upstream segments to get the segmentStats for the requested road segment
@@ -415,61 +436,89 @@ public:
 	 * @param statsNum position of the requested stats in the segment
 	 * @return segment stats
 	 */
-	sim_mob::SegmentStats* findSegStats(const sim_mob::RoadSegment* rdSeg, uint16_t statsNum);
+	SegmentStats* findSegStats(const RoadSegment* rdSeg, uint16_t statsNum);
 
 	/**
-	 * returns the list of segment stats corresponding to a road segment
-	 * @param rdSeg segment for which the stats list is required
-	 * @return constant list of segment stats corresponding to this segment
+	 * gets current speed of segStats
+	 * @param segStats seg stats for which speed is requested
+	 * @return speed in cm/s
 	 */
-	const std::vector<sim_mob::SegmentStats*>& findSegStats(const sim_mob::RoadSegment* rdSeg);
+	double getSegmentSpeed(SegmentStats* segStats) const;
 
 	/**
-	 * supply params related functions
+	 * resets position of last updated agent to -1 for all lanes in all seg stats in this conflux
 	 */
-	double getSegmentSpeed(SegmentStats* segStats, bool hasVehicle) const;
-
 	void resetPositionOfLastUpdatedAgentOnLanes();
+
+	/**
+	 * increments flow counter in segstats by 1
+	 * @param road segment for seg stats
+	 * @param statsNum position of stats within segment
+	 */
 	void incrementSegmentFlow(const RoadSegment* rdSeg, uint16_t statsNum);
+
+	/**
+	 * resets flow counter in segstats to 0
+	 */
 	void resetSegmentFlows();
 
-	/** updates lane params for all lanes within the conflux */
+	/**
+	 * updates lane params for all lanes within the conflux
+	 * @param frameNumber current time slice
+	 */
 	void updateAndReportSupplyStats(timeslice frameNumber);
 
-	/**process persons in the virtual queue*/
+	/** process persons in the virtual queue */
 	void processVirtualQueues();
 
-	//TODO: To be removed after debugging.
-	std::stringstream debugMsgs;
-
-	//=======link travel time computation for current frame tick =================
+	/**
+	 * helper struct to maintain sum of travel times experienced by drivers crossing a link along with the count of those drivers
+	 */
 	struct LinkTravelTimes
 	{
 	public:
 		double linkTravelTime_;
-		unsigned int agCnt;
+		unsigned int personCnt;
 
-		LinkTravelTimes(double linkTravelTime, unsigned int agentCount)
-		: linkTravelTime_(linkTravelTime), agCnt(agentCount) {}
+		LinkTravelTimes(double linkTravelTime, unsigned int agentCount) :
+				linkTravelTime_(linkTravelTime), personCnt(agentCount)
+		{
+		}
 	};
 
-	std::map<const Link*, LinkTravelTimes> LinkTravelTimesMap;
-	void setLinkTravelTimes(Person* ag, double linkExitTime, const Link* link);
-	void resetLinkTravelTimes(timeslice frameNumber);
-	void reportLinkTravelTimes(timeslice frameNumber);
+	/** map of link->LinkTravelTimes struct */
+	std::map<const Link*, LinkTravelTimes> linkTravelTimesMap;
 
-	//================ end of road segment travel time computation ========================
+	/**
+	 * puts a travel time entry on to LinkTravelTimesMap
+	 * @param travelTime experienced travel time for link
+	 * @param link the link just traversed by some person
+	 */
+	void setLinkTravelTimes(double travelTime, const Link* link);
+
+	/**
+	 * clears off the LinkTravelTimesMap
+	 */
+	void resetLinkTravelTimes(timeslice frameNumber);
+
+	/**
+	 * outputs average travel times in all links of this conflux for current frame
+	 * @param frameNumber current frame
+	 */
+	void reportLinkTravelTimes(timeslice frameNumber);
 
 	/**
 	 * update the number of persons that can be added to the downstream confluxes
 	 * from this conflux
+	 * @return existing number of agents in virtual queues for output
 	 */
 	unsigned int resetOutputBounds();
 
 	/**
 	 * get a list of all persons in this conflux
+	 * @return list of all persons in this conflux including activity performers and pedestrians
 	 */
-	std::deque<sim_mob::Person*> getAllPersons();
+	std::deque<Person_MT*> getAllPersons();
 
 	/**
 	 * counts the number of persons active in this conflux
@@ -481,7 +530,7 @@ public:
 	 * get an ordered list of all persons in this conflux
 	 * @param mergedPersonDeque output list that must contain the merged list of persons
 	 */
-	void getAllPersonsUsingTopCMerge(std::deque<sim_mob::Person*>& mergedPersonDeque);
+	void getAllPersonsUsingTopCMerge(std::deque<Person_MT*>& mergedPersonDeque);
 
 	/**
 	 * merges the ordered list of persons on each link of the conflux into 1
@@ -489,15 +538,13 @@ public:
 	 * @param allPersonLists list of list of persons to merge
 	 * @param capacity capacity till which the relative ordering of persons is important
 	 */
-	void topCMergeDifferentLinksInConflux(std::deque<sim_mob::Person*>& mergedPersonDeque,
-			std::vector< std::deque<sim_mob::Person*> >& allPersonLists, int capacity);
+	void topCMergeDifferentLinksInConflux(std::deque<Person_MT*>& mergedPersonDeque,
+			std::vector< std::deque<Person_MT*> >& allPersonLists, int capacity);
 
 	/**
 	 * get number of persons in lane infinities of this conflux
 	 */
 	unsigned int getNumRemainingInLaneInfinity();
-
-//	void reportRdSegTravelTimes(timeslice frameNumber);
 
 	/**
 	 * determines if this conflux is connected to any conflux that belongs to
@@ -514,7 +561,7 @@ public:
 	 * @param currentTime the current time (in ms) in which the function is called
 	 * @return pointer to the starting conflux of the person's constructed path
 	 */
-	static sim_mob::Conflux* findStartingConflux(Person* person, unsigned int currentTime);
+	static Conflux* findStartingConflux(Person_MT* person, unsigned int currentTime);
 
 	/**
 	 * Inserts an Incident by updating the flow rate for all lanes of a road segment to a new value.
@@ -522,25 +569,24 @@ public:
 	 * @param rdSeg roadSegment to insert incident
 	 * @param newFlowRate new flow rate to be updated
 	 */
-	static void insertIncident(sim_mob::SegmentStats* segStats, const double & newFlowRate);
-	///Same as above. Just, single road segment can have 'multiple' SegmentStats
-	static void insertIncident(const std::vector<sim_mob::SegmentStats*>  &segStats, const double & newFlowRate);
+	static void insertIncident(SegmentStats* segStats, double newFlowRate);
 
 	/**
 	 * Removes a previously inserted incident by restoring the flow rate of each lane of a road segment to normal values
 	 *
 	 * @param segStats road segment stats to remove incident
 	 */
-	static void removeIncident(sim_mob::SegmentStats* segStats);
+	static void removeIncident(SegmentStats* segStats);
 
 	/**
 	 * collect current person travel time
 	 */
-	void collectTravelTime(Person* person);
+	void collectTravelTime(Person_MT* person);
 
 	bool isBoundary; //A conflux that receives person from at least one conflux that belongs to another worker
 	bool isMultipleReceiver; //A conflux that receives persons from confluxes that belong to multiple other workers
 };
 
-} /* namespace sim_mob */
+} // namespace medium
+} // namespace sim_mob
 

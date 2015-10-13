@@ -88,11 +88,11 @@ public:
 	{
 		activityEndTime = endTime;
 	}
-	sim_mob::Node* getLocation() const
+	const sim_mob::Node* getLocation() const
 	{
 		return location;
 	}
-	void setLocation(sim_mob::Node* loc)
+	void setLocation(const sim_mob::Node* loc)
 	{
 		location = loc;
 	}
@@ -121,7 +121,7 @@ public:
 private:
 	sim_mob::DailyTime activityStartTime;
 	sim_mob::DailyTime activityEndTime;
-	sim_mob::Node* location;
+	const sim_mob::Node* location;
 	int remainingTimeToComplete;
 
 	friend class ActivityPerformerBehavior<PERSON>;

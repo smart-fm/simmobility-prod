@@ -32,7 +32,6 @@ class Person;
 class Entity;
 class PartitionManager;
 class AuraManager;
-class Conflux;
 class Worker;
 class WorkGroupManager;
 

@@ -22,7 +22,6 @@ class FlexiBarrier;
 class ProfileBuilder;
 class ControlManager;
 class WorkGroup;
-class Conflux;
 class Entity;
 class PathSetManager;
 

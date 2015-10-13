@@ -24,7 +24,6 @@ namespace sim_mob
 class Lane;
 class BusStop;
 class RoadNetworkPackageManager;
-class Conflux;
 
 enum SimSegmentType
 {
@@ -147,8 +146,6 @@ public:
 	//TODO: Added for xmlLoader
 	void setLanesLeftOfDivider(unsigned int val) { lanesLeftOfDivider = val; }
 
-	sim_mob::Conflux* getParentConflux() const { return parentConflux; }
-
 	const double getLengthOfSegment() const;
 
 	///computes total lenght of segment polyline loaded from the database
@@ -213,9 +210,6 @@ private:
 
 	///Which link this appears in
 	sim_mob::Link* parentLink;
-
-	/// Conflux to which this segment belongs to
-	mutable sim_mob::Conflux* parentConflux;
 
 	unsigned long segmentID;
 

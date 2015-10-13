@@ -4,7 +4,6 @@
 
 #include "RoleFacets.hpp"
 
-#include "entities/conflux/Conflux.hpp"
 #include "entities/Person.hpp"
 #include "workers/Worker.hpp"
 #include "geospatial/LaneConnector.hpp"
@@ -67,5 +66,3 @@ bool sim_mob::MovementFacet::isConnectedToNextSeg(const sim_mob::RoadSegment *sr
 	}
 	return false;
 }
-
-sim_mob::Conflux* sim_mob::MovementFacet::getStartingConflux() const { return nullptr; }

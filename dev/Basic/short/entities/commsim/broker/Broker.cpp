@@ -10,6 +10,7 @@
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/ST_Config.hpp"
 #include "workers/Worker.hpp"
 
 #include "entities/commsim/connection/ConnectionHandler.hpp"
@@ -103,14 +104,14 @@ void sim_mob::Broker::configure()
 	//registrationPublisher.registerEvent(comm::NS3_SIMULATOR);
 
 	//Dispatch differently depending on whether we are using "android-ns3" or "android-only"
-	bool useNs3 = ConfigManager::GetInstance().FullConfig().system.simulation.commsim.useNs3;
+    bool useNs3 = ST_Config.commsim.useNs3;
 
 	//Register handlers with "useNs3" flag. OpaqueReceive will throw an exception if it attempts to process a message and useNs3 is not set.
 	handleLookup.addHandlerOverride("opaque_send", new sim_mob::OpaqueSendHandler(useNs3));
 	handleLookup.addHandlerOverride("opaque_receive", new sim_mob::OpaqueReceiveHandler(useNs3));
 
 	//We always wait for MIN_CLIENTS Android emulators and MIN_CLIENTS Agents (and optionally, 1 ns-3 client).
-	waitAndroidBlocker.reset(ConfigManager::GetInstance().FullConfig().system.simulation.commsim.minClients);
+    waitAndroidBlocker.reset(ST_Config::getInstance().commsim.minClients);
 	waitNs3Blocker.reset(useNs3?1:0);
 }
 
@@ -614,7 +615,7 @@ void sim_mob::Broker::onAndroidClientRegister(sim_mob::event::EventId id, sim_mo
 	boost::shared_ptr<ClientHandler>clientHandler = argums.client;
 
 	//If we are operating on android-ns3 set up, each android client registration should be brought to ns3's attention
-	if (ConfigManager::GetInstance().FullConfig().system.simulation.commsim.useNs3) {
+    if (ST_Config::getInstance().commsim.useNs3) {
 		//note: based on the current implementation of
 		// the ns3 client registration handler, informing the
 		//statistics of android clients IS a part of ns3
@@ -774,7 +775,7 @@ void sim_mob::Broker::waitAndAcceptConnections(uint32_t tick) {
 		processClientRegistrationRequests();
 
 		//If this is not the "hold" time tick, then continue.
-		if (tick < ConfigManager::GetInstance().FullConfig().system.simulation.commsim.holdTick) {
+        if (tick < ST_Config::getInstance().commsim.holdTick) {
 			break;
 		}
 
@@ -869,7 +870,7 @@ Entity::UpdateStatus sim_mob::Broker::update(timeslice now)
 	//TODO: transfer this to frame_init
 	if (now.frame() == 0) {
 		//Not profiled; this only happens once.
-		connection.start(ConfigManager::GetInstance().FullConfig().system.simulation.commsim.numIoThreads);
+        connection.start(ST_Config::getInstance().commsim.numIoThreads);
 	}
 
 	if (EnableDebugOutput) {

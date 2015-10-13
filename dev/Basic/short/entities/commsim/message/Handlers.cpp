@@ -9,6 +9,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include "entities/Agent.hpp"
+#include "entities/AuraManager.hpp"
 #include "entities/commsim/broker/Broker.hpp"
 #include "entities/commsim/connection/WhoAreYouProtocol.hpp"
 #include "entities/commsim/message/Messages.hpp"
@@ -157,7 +158,7 @@ void sim_mob::OpaqueSendHandler::handle(boost::shared_ptr<ConnectionHandler> han
 	//If "broadcast" is set, we have to build up a list of receiving agents.
 	if (sendMsg.broadcast) {
 		//Get agents around you.
-		std::vector<const Agent*> nearAgents = AuraManager::instance().agentsInRect(
+        std::vector<const Agent*> nearAgents = AuraManager::instance().agentsInRect(
 			Point2D((sendAgent->xPos - 3500), (sendAgent->yPos - 3500)),
 			Point2D((sendAgent->xPos + 3500), (sendAgent->yPos + 3500)),
 			sendAgent

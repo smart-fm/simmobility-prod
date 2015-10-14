@@ -12,7 +12,6 @@
 #include "conf/settings/DisableMPI.h"
 #include "entities/Agent.hpp"
 #include "entities/amodController/AMODEvent.hpp"
-#include "entities/conflux/SegmentStats.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"

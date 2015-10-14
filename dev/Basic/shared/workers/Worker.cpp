@@ -448,7 +448,6 @@ struct EntityUpdater {
         if(ConfigManager::GetInstance().FullConfig().isWorkerPublisherEnabled())
 		{
 				Worker::GetUpdatePublisher().publish(event::EVT_CORE_AGENT_UPDATED,(void*)event::CXT_CORE_AGENT_UPDATE,UpdateEventArgs(entity));
-//				std::cout << "tick: " << currTime.frame() << " : Entity update-done published for agent [" << entity->getId() << "] " << std::endl;
 		}
         if (res.status == UpdateStatus::RS_DONE) {
             //This Entity is done; schedule for deletion.

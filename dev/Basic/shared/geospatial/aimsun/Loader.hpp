@@ -129,27 +129,6 @@ public:
 	static void TMP_TrimAllLaneLines(sim_mob::RoadSegment* seg, const sim_mob::DynamicVector& cutLine, bool trimStart);
 
 	/**
-	 * constructs confluxes around each multinode
-	 * @param rdnw the road network
-	 */
-	static void ProcessConfluxes(const sim_mob::RoadNetwork& rdnw);
-
-	/**
-	 * creates a list of SegmentStats for a given segment depending on the stops
-	 * in the segment. The list splitSegmentStats will contain SegmentStats objects
-	 * containing bus stops (and quite possibly a last SegmentStats with no bus stop)
-	 * @param rdSeg the road segment for which stats must be created
-	 * @param splitSegmentStats vector of SegmentStats* to be filled up
-	 */
-	static void CreateSegmentStats(const sim_mob::RoadSegment* rdSeg, std::list<sim_mob::SegmentStats*>& splitSegmentStats);
-
-	/**
-	 * Creates lane groups for every SegmentStats in each link.
-	 * Lane groups are elicited based on the lane connections (turnings) of the last segment of the link.
-	 */
-	static void CreateLaneGroups();
-        
-	/**
 	 * Creates an intersection manager for every multi-node that doesn't have a traffic signal
 	 * @param roadNetwork the road segment for which intersection managers must be created
 	 */

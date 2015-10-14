@@ -247,7 +247,7 @@ struct IncidentParams {
     std::vector<LaneParams> laneParams;
 };
 
-class MT_Config : private sim_mob::ProtectedCopyable
+class MT_Config : private ProtectedCopyable
 {
 public:
     /**
@@ -673,28 +673,28 @@ public:
      *
      * @return confluxes
      */
-    std::set<sim_mob::Conflux*>& getConfluxes();
+    std::set<Conflux*>& getConfluxes();
 
     /**
      * Retrives the confluxes
      *
      * @return confluxes (const reference)
      */
-    const std::set<sim_mob::Conflux*>& getConfluxes() const;
+    const std::set<Conflux*>& getConfluxes() const;
 
     /**
      * Retrieves conflux nodes
      *
      * @return conflux nodes
      */
-    std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes();
+    std::map<const MultiNode*, Conflux*>& getConfluxNodes();
 
     /**
      * Retrieves conflux nodes
      *
      * @return conflux nodes (const reference)
      */
-    const std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& getConfluxNodes() const;
+    const std::map<const MultiNode*, Conflux*>& getConfluxNodes() const;
 
     /**
      * Retrives the conflux corresponding to a node
@@ -703,14 +703,14 @@ public:
      *
      * @return conflux
      */
-    sim_mob::Conflux* getConfluxForNode(const sim_mob::MultiNode* multinode) const;
+    Conflux* getConfluxForNode(const MultiNode* multinode) const;
 
     /**
      * Retrives the segment stats with bus stops
      *
      * @return segment stats with bus stops
      */
-    std::set<sim_mob::SegmentStats*>& getSegmentStatsWithBusStops();
+    std::set<SegmentStats*>& getSegmentStatsWithBusStops();
 
     /**
      * Checks whether mid term supply is running

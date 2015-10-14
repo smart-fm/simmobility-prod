@@ -92,9 +92,9 @@ SupplyParams::SupplyParams(const RoadSegment* rdSeg, double statsLength) :
 	}
 }
 
-SegmentStats::SegmentStats(const RoadSegment* rdSeg, double statslength) :
+SegmentStats::SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, double statslength) :
 		roadSegment(rdSeg), length(statslength), segDensity(0.0), segFlow(0), numPersons(0), statsNumberInSegment(1), supplyParams(rdSeg, statslength), orderBySetting(
-				SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION), parentConflux(nullptr)
+				SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION), parentConflux(parentConflux)
 {
 	segVehicleSpeed = convertKmphToCmps(getRoadSegment()->maxSpeed);
 	numVehicleLanes = 0;

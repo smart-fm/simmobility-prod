@@ -437,34 +437,34 @@ std::vector<IncidentParams>& MT_Config::getIncidents(){
     return incidents;
 }
 
-const std::set<sim_mob::Conflux*>& MT_Config::getConfluxes() const
+const std::set<Conflux*>& MT_Config::getConfluxes() const
 {
     return confluxes;
 }
 
-std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& MT_Config::getConfluxNodes()
+std::map<const MultiNode*, Conflux*>& MT_Config::getConfluxNodes()
 {
     return multinode_confluxes;
 }
 
-const std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>& MT_Config::getConfluxNodes() const
+const std::map<const MultiNode*, Conflux*>& MT_Config::getConfluxNodes() const
 {
     return multinode_confluxes;
 }
 
-sim_mob::Conflux* MT_Config::getConfluxForNode(const sim_mob::MultiNode* multinode) const
+Conflux* MT_Config::getConfluxForNode(const MultiNode* multinode) const
 {
-    std::map<const sim_mob::MultiNode*, sim_mob::Conflux*>::const_iterator cfxIt = multinode_confluxes.find(multinode);
+    std::map<const MultiNode*, Conflux*>::const_iterator cfxIt = multinode_confluxes.find(multinode);
     if(cfxIt == multinode_confluxes.end()) { return nullptr; }
     return cfxIt->second;
 }
 
-std::set<sim_mob::Conflux*>& MT_Config::getConfluxes()
+std::set<Conflux*>& MT_Config::getConfluxes()
 {
     return confluxes;
 }
 
-std::set<sim_mob::SegmentStats*>& MT_Config::getSegmentStatsWithBusStops()
+std::set<SegmentStats*>& MT_Config::getSegmentStatsWithBusStops()
 {
     return segmentStatsWithBusStops;
 }
@@ -474,7 +474,7 @@ unsigned int MT_Config::personTimeStepInMilliSeconds() const
     return workers.person.granularityMs;
 }
 
-std::string sim_mob::ConfigParams::busline_control_type() const
+std::string ConfigParams::busline_control_type() const
 {
     std::map<std::string,std::string>::const_iterator it = system.genericProps.find("busline_control_type");
     if (it==system.genericProps.end()) {

@@ -454,7 +454,7 @@ protected:
 	void addBusStop(const BusStop* stop);
 
 public:
-	SegmentStats(const RoadSegment* rdSeg, double length);
+	SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, double length);
 	~SegmentStats();
 
 	enum SegmentVehicleOrdering

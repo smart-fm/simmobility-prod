@@ -949,12 +949,14 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 								BigSerial tazW = std::atoi( tazStrW.c_str() );
 
 								double lg =  0;
+								int vehicleOwnership = 0;
 
-								if( tazH > 0 && tazW > 0 )
-								{
-									PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( individuals[m] , tazH, tazW, -1 );
-									lg = personParam.getDpbLogsum(); //2.71 use this value as an average for testing purposes
-								}
+								if( individual->getVehicleCategoryId() > 0 )
+									vehicleOwnership = 1;
+
+								PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( individuals[m] , tazH, tazW, vehicleOwnership );
+								lg = personParam.getDpbLogsum(); //2.71 use this value as an average for testing purposes
+
 
 								logsum = logsum + lg * (double)(tazStats->getIndividuals());
 							}

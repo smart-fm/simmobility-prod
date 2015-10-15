@@ -1,8 +1,9 @@
 #include "Path.hpp"
 
 #include <boost/foreach.hpp>
-#include <math.h>
 #include <boost/iterator/filter_iterator.hpp>
+#include <cmath>
+#include <sstream>
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Link.hpp"
@@ -10,6 +11,7 @@
 #include "geospatial/WayPoint.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/LaneConnector.hpp"
+#include "logging/Log.hpp"
 #include "PathSetParam.hpp"
 #include "util/Utils.hpp"
 
@@ -424,7 +426,7 @@ std::string sim_mob::makePT_PathString(const std::vector<PT_NetworkEdge> &path)
 	std::stringstream str("");
 	if(path.size()==0)
 	{
-		std::cout<<"warning: empty output makePT_PathString id"<<std::endl;
+		Print()<<"warning: empty output makePT_PathString id"<<std::endl;
 	}
 	for(std::vector<PT_NetworkEdge>::const_iterator it = path.begin();it!=path.end();it++)
 	{
@@ -432,7 +434,7 @@ std::string sim_mob::makePT_PathString(const std::vector<PT_NetworkEdge> &path)
 	}
 	if(str.str().size()<1)
 	{
-		std::cout<<"warning: empty output makePT_PathString id"<<std::endl;
+		Print()<<"warning: empty output makePT_PathString id"<<std::endl;
 	}
 	return str.str();
 
@@ -442,13 +444,13 @@ std::string sim_mob::makePT_PathSetString(const std::vector<PT_NetworkEdge> &pat
 	std::stringstream str("");
 	if(path.size()==0)
 	{
-		std::cout<<"warning: empty output makePT_PathSetString id"<<std::endl;
+		Print()<<"warning: empty output makePT_PathSetString id"<<std::endl;
 	}
 	str<<path.front().getStartStop()<<",";
 	str<<path.back().getEndStop();
 	if(str.str().size()<1)
 	{
-		std::cout<<"warning: empty output makePT_PathSetString id"<<std::endl;
+		Print()<<"warning: empty output makePT_PathSetString id"<<std::endl;
 	}
 	return str.str();
 }
@@ -587,18 +589,22 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 	{
 		return;
 	}
+
+	std::stringstream pathErrors;
+	pathErrors << "generated pathset size: " << pathSet.size() << "\n";
 	std::string pathsetId =  itPathComp->getPtPathSetId();
 	bool incrementFlag;
 	while(itPathComp!=pathSet.end())
 	{
 		incrementFlag = false;
 		std::set<PT_Path>::iterator tempitPath = itPathComp;
-		// Check 1 : Total Number of transfers < = 6
+		// Check 1 : Total Number of transfers <= 4
 		if(itPathComp->getTotalNumberOfTransfers() > 4)
 		{
 			// Infeasible path
 			itPathComp++;
 			pathSet.erase(tempitPath);
+			pathErrors << "\t~1 path discarded because #transfers > 4\n";
 			continue;
 		}
 		std::string prevEdgeType = "";
@@ -615,6 +621,7 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 			{
 				// Infeasible path
 				itPathComp++;
+				pathErrors << "\t~1 path discarded because it had 2 consecutive walk edges\n";
 				pathSet.erase(tempitPath);
 				incrementFlag = true;
 				break;
@@ -634,6 +641,7 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 			{
 				// Infeasible path
 				itPathComp++;
+				pathErrors << "\t~1 path discarded because more than 2 nodes were encountered along the path\n";
 				pathSet.erase(tempitPath);
 				incrementFlag = true;
 				break;
@@ -646,6 +654,7 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 				{
 					// Infeasible path
 					itPathComp++;
+					pathErrors << "\t~1 path discarded because number of bus legs > 4\n";
 					pathSet.erase(tempitPath);
 					incrementFlag = true;
 					break;
@@ -659,7 +668,7 @@ void sim_mob::PT_PathSet::checkPathFeasibilty()
 	}
 	if(pathSet.empty())
 	{
-		std::cout << pathsetId << " has not left with any path after feasibility check"<< std::endl;
+		Print() << pathsetId << " has no path left after feasibility check\n" << pathErrors.str() << std::endl;
 	}
 
 }

@@ -1261,18 +1261,23 @@ bool HouseholdBidderRole::pickEntryToBid()
     }
     else
     {
-		/*
+
     	PrintOutV("choiceset was successful" << std::endl);
 
     	char temp[300];
     	for(int n = 0; n < screenedEntries.size(); n++)
     	{
-    		sprintf( temp, " %i ", (int)screenedEntries[n]->getUnitId());
+    		int strLength = 0;
+
+    		if( n > 0)
+    			strLength = strlen(temp);
+
+    		sprintf( temp + strLength, " %i ", (int)screenedEntries[n]->getUnitId());
     	}
 
     	PrintOutV(" The choiceset of household " << household->getId() << " is units: " << temp << std::endl );
-		*/
     }
+
     //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );
 
     // Choose the unit to bid with max surplus. However, we are not iterating through the whole list of available units.

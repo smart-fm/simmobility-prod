@@ -1526,50 +1526,21 @@ void HM_Model::getLogsumOfHouseholdVO(BigSerial householdId2)
 			tazStrH = tazObjH->getName();
 		BigSerial tazH = std::atoi( tazStrH.c_str() );
 
-		if( 1 )
-		{
-			PredayPersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 );
-			double logsumNoVehicle	= personParams1.getDpbLogsum();
-			double travelProbNV		= personParams1.getTravelProbability();
-			double tripsExpectedNV 	= personParams1.getTripsExpected();
-			logsum.push_back(logsumNoVehicle);
-			travelProbability.push_back(travelProbNV);
-			tripsExpected.push_back(tripsExpectedNV);
+		PredayPersonParams personParams1 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 0 );
+		double logsumNoVehicle	= personParams1.getDpbLogsum();
+		double travelProbNV		= personParams1.getTravelProbability();
+		double tripsExpectedNV 	= personParams1.getTripsExpected();
+		logsum.push_back(logsumNoVehicle);
+		travelProbability.push_back(travelProbNV);
+		tripsExpected.push_back(tripsExpectedNV);
 
-
-			PredayPersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 );
-			double logsumVehicle	= personParams2.getDpbLogsum();
-			double travelProbV		= personParams2.getTravelProbability();
-			double tripsExpectedV 	= personParams2.getTripsExpected();
-			logsum.push_back(logsumVehicle);
-			travelProbability.push_back(travelProbV);
-			tripsExpected.push_back(tripsExpectedV);
-		}
-		else
-		{
-			boost::mutex::scoped_lock lock( mtx4 );
-
-
-			logsum.push_back(-1.0);
-			logsum.push_back(-1.0);
-			travelProbability.push_back(-1.0);
-			travelProbability.push_back(-1.0);
-			tripsExpected.push_back(-1.0);
-			tripsExpected.push_back(-1.0);
-
-			/*
-			hitsSample = this->getHouseHoldHitsById( householdId );
-
-			if( !hitsSample )
-				continue;
-
-			std::string householdHitsIdStr = hitsSample->getHouseholdHitsId();
-
-			processedHouseholdHitsLogsum.erase( householdHitsIdStr );
-
-			continue;
-			*/
-		}
+		PredayPersonParams personParams2 = PredayLT_LogsumManager::getInstance().computeLogsum( householdIndividualIds[n],tazH, tazW, 1 );
+		double logsumVehicle	= personParams2.getDpbLogsum();
+		double travelProbV		= personParams2.getTravelProbability();
+		double tripsExpectedV 	= personParams2.getTripsExpected();
+		logsum.push_back(logsumVehicle);
+		travelProbability.push_back(travelProbV);
+		tripsExpected.push_back(tripsExpectedV);
 
 		simulationStopCounter++;
 

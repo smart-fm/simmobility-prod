@@ -1132,61 +1132,61 @@ bool HouseholdBidderRole::pickEntryToBid()
     PrintOut("prob total: " << total << endl);
 	*/
 
-    double randomDraw = (double)rand()/RAND_MAX;
-    int zoneHousingType = -1;
-    double cummulativeProbability = 0.0;
-    for( int n = 0; n < householdScreeningProbabilities.size(); n++ )
-    {
-    	cummulativeProbability +=  householdScreeningProbabilities[n];
-    	if( randomDraw >cummulativeProbability )
-    	{
-    		zoneHousingType = n + 1; //housing type is a one-based index
-    		break;
-    	}
-    }
-
-    Alternative *alt = nullptr;
-    PlanningArea *planArea = nullptr;
-    std::vector<PlanningSubzone*> planSubzone;
-    std::vector<Mtz*> mtz;
-    std::vector<BigSerial> taz;
-
-    if( zoneHousingType != -1)
-    {
-    	alt = model->getAlternativeById(zoneHousingType);
-    }
-
-    if( alt != nullptr)
-    {
-    	planArea = model->getPlanningAreaById( alt->getPlanAreaId() );
-    }
-
-    if( planArea != nullptr)
-    {
-    	planSubzone = model->getPlanningSubZoneByPlanningAreaId( planArea->getId() );
-    }
-
-    if( planSubzone.size() != 0)
-    {
-    	mtz = model->getMtzBySubzoneVec( planSubzone );
-    }
-
-    if( mtz.size() != 0)
-    {
-    	taz = model->getTazByMtzVec( mtz );
-    }
-
-    BigSerial housingType = -1;
-
-    if( alt != nullptr)
-    	housingType = alt->getDwellingTypeId();
-
     std::vector<const HousingMarket::Entry*> screenedEntries;
 
     //PrintOutV("household " << household->getId() << " entrySize: " << entries.size() << " tazSize: " << taz.size() << "screenedEntries: " << screenedEntries.size() << " housingtype: " << housingType << std::endl );
 
-    for(int n = 0; n < entries.size() /** housingMarketSearchPercentage*/ && housingType != -1 && taz.size() != 0 && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
+    for(int n = 0; n < entries.size() /** housingMarketSearchPercentage*/ && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
     {
+        double randomDraw = (double)rand()/RAND_MAX;
+        int zoneHousingType = -1;
+        double cummulativeProbability = 0.0;
+        for( int n = 0; n < householdScreeningProbabilities.size(); n++ )
+        {
+        	cummulativeProbability +=  householdScreeningProbabilities[n];
+        	if( randomDraw >cummulativeProbability )
+        	{
+        		zoneHousingType = n + 1; //housing type is a one-based index
+        		break;
+        	}
+        }
+
+        Alternative *alt = nullptr;
+        PlanningArea *planArea = nullptr;
+        std::vector<PlanningSubzone*> planSubzone;
+        std::vector<Mtz*> mtz;
+        std::vector<BigSerial> taz;
+
+        if( zoneHousingType != -1)
+        {
+        	alt = model->getAlternativeById(zoneHousingType);
+        }
+
+        if( alt != nullptr)
+        {
+        	planArea = model->getPlanningAreaById( alt->getPlanAreaId() );
+        }
+
+        if( planArea != nullptr)
+        {
+        	planSubzone = model->getPlanningSubZoneByPlanningAreaId( planArea->getId() );
+        }
+
+        if( planSubzone.size() != 0)
+        {
+        	mtz = model->getMtzBySubzoneVec( planSubzone );
+        }
+
+        if( mtz.size() != 0)
+        {
+        	taz = model->getTazByMtzVec( mtz );
+        }
+
+        BigSerial housingType = -1;
+
+        if( alt != nullptr)
+        	housingType = alt->getDwellingTypeId();
+
     	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
 
     	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;

@@ -120,6 +120,7 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 bool performMain(const std::string& configFileName, std::list<std::string>& resLogFiles, const std::string& XML_OutPutFileName) 
 {
 	Print() <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
+	sim_mob::DailyTime::initAllTimes();
 
 	//Parse the config file (this *does not* create anything, it just reads it.).
 	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());

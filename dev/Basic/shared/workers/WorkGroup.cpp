@@ -17,7 +17,6 @@
 #include "entities/Person.hpp"
 #include "entities/misc/BusTrip.hpp"
 #include "entities/AuraManager.hpp"
-#include "entities/conflux/Conflux.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
@@ -33,12 +32,6 @@
 using std::vector;
 
 using namespace sim_mob;
-
-namespace
-{
-	std::vector<Conflux*> confluxLoaders;
-	int nextConfluxIdx = 0;
-}
 
 sim_mob::WorkGroup::WorkGroup(unsigned int wgNum, unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep,
 		AuraManager* auraMgr, PartitionManager* partitionMgr, PeriodicPersonLoader* periodicLoader) :
@@ -234,26 +227,18 @@ void sim_mob::WorkGroup::stageEntities()
 			std::cout <<"Staging agent ID: " <<ag->getId() <<" in time for tick: " <<nextTimeTick <<"\n";
 		}
 
-		//Call its "load" function
-		//TODO: Currently, only Person::load() is called (I think there was some bug in BusController).
-		//      We should really call load for ANY Agent subclass. ~Seth
-		Person* person = dynamic_cast<Person*>(ag);
-		if (person) {
-			person->load(person->getConfigProperties());
-			person->clearConfigProperties();
+		if(ConfigManager::GetInstance().FullConfig().RunningMidTerm())
+		{
+			loadPerson(ag);
 		}
-
-		//Add it to our global list.
-		if (loader->entity_dest.find(ag) != loader->entity_dest.end()) {
-			Warn() <<"Attempting to add duplicate entity (" <<ag <<") with ID: " <<ag->getId() <<"\n";
-			continue;
-		}
-		loader->entity_dest.insert(ag);
-
-		//Find a worker/conflux to assign this to and send it the Entity to manage.
-        if (ConfigManager::GetInstance().FullConfig().RunningMidTerm() && person) {
-			putAgentOnConflux(person);
-		} else {
+		else
+		{
+			//Add it to our global list.
+			if (loader->entity_dest.find(ag) != loader->entity_dest.end()) {
+				Warn() <<"Attempting to add duplicate entity (" <<ag <<") with ID: " <<ag->getId() <<"\n";
+				continue;
+			}
+			loader->entity_dest.insert(ag);
 			assignAWorker(ag);
 		}
 	}
@@ -302,27 +287,42 @@ void sim_mob::WorkGroup::collectRemovedEntities(std::set<sim_mob::Agent*>* remov
 
 void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 {
-	//Let the AuraManager know about this Agent.
-	Agent* an_agent = dynamic_cast<Agent*>(ag);
-	if (an_agent && !an_agent->isNonspatial()) {
-		AuraManager::instance().registerNewAgent(an_agent);
+	if (ConfigManager::GetInstance().FullConfig().RunningShortTerm())
+	{
+		//Let the AuraManager know about this Agent.
+		Agent* an_agent = dynamic_cast<Agent*>(ag);
+		if (an_agent && !an_agent->isNonspatial())
+		{
+			AuraManager::instance().registerNewAgent(an_agent);
+		}
 	}
 
-	//For now, just rely on static access to ConfigParams.
-	// (We can allow per-workgroup configuration later).
+	//For now, just rely on static access to ConfigParams. (We can allow per-workgroup configuration later).
 	ASSIGNMENT_STRATEGY strat = ConfigManager::GetInstance().FullConfig().defaultWrkGrpAssignment();
-	if (strat == ASSIGN_ROUNDROBIN) {
+	if (strat == ASSIGN_ROUNDROBIN)
+	{
 		workers.at(nextWorkerID)->scheduleForAddition(ag);
-	} else {
+	}
+	else
+	{
 		GetLeastCongestedWorker(workers)->scheduleForAddition(ag);
 	}
 
-	//Increase "nextWorkID", even if we're not using it.
-	nextWorkerID = (nextWorkerID+1)%workers.size();
+	nextWorkerID = (nextWorkerID + 1) % workers.size();
+}
+
+bool sim_mob::WorkGroup::assignWorker(Entity* ag, unsigned int workerId)
+{
+	if(workerId >= workers.size())
+	{
+		return false;
+	}
+	workers.at(workerId)->scheduleForAddition(ag);
+	return true;
 }
 
 
-size_t sim_mob::WorkGroup::size()
+size_t sim_mob::WorkGroup::size() const
 {
 	return workers.size();
 }
@@ -376,7 +376,7 @@ void sim_mob::WorkGroup::waitFlipBuffers(bool singleThreaded, std::set<sim_mob::
 
 		if(periodicPersonLoader && periodicPersonLoader->checkTimeForNextLoad())
 		{
-			periodicPersonLoader->loadActivitySchedules();
+			periodicPersonLoader->loadPersonDemand();
 		}
 		//Stage Agent updates based on nextTimeTickToStage
 		stageEntities();
@@ -488,80 +488,6 @@ void sim_mob::WorkGroup::interrupt()
 	}
 }
 
-
-/*
- * This method takes a conflux and assigns it to a worker. It additionally tries to assign all the adjacent
- * confluxes to the same worker.
- *
- * Future work:
- * If this assignment performs badly, we might want to think of a heuristics based optimization algorithm
- * which improves this assignment. We can indeed model this problem as a graph partitioning problem. Each
- * worker is a partition; the confluxes can be modeled as the nodes of the graph; and the edges will represent
- * the flow of vehicles between confluxes. Our objective is to minimize the (expected) flow of agents from one
- * partition to the other. We can try to fit the Kernighan-Lin algorithm or Fiduccia-Mattheyses algorithm
- * for partitioning, if it works. This is a little more complex due to the variable flow rates of vehicles
- * (edge weights); might require more thinking.
- *
- * TODO: Must see if this assignment is acceptable and try to optimize if necessary.
- * ~ Harish
- */
-void sim_mob::WorkGroup::assignConfluxToWorkers() {
-	//Using confluxes by reference as we remove items as and when we assign them to a worker
-	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
-	int numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
-	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++)
-	{
-		if(numConfluxesPerWorker > 0)
-		{
-			assignConfluxToWorkerRecursive((*confluxes.begin()), (*i), numConfluxesPerWorker);
-		}
-		assignConfluxLoaderToWorker((*i));
-	}
-	if(confluxes.size() > 0)
-	{
-		//There can be up to (workers.size() - 1) confluxes for which the parent
-		//worker is not yet assigned. We distribute these confluxes to the workers in round robin fashion
-		std::vector<Worker*>::iterator wrkrIt = workers.begin();
-		for(std::set<sim_mob::Conflux*>::iterator cfxIt = confluxes.begin(); cfxIt!=confluxes.end(); cfxIt++, wrkrIt++)
-		{
-			sim_mob::Worker* worker = *wrkrIt;
-			if (worker->beginManagingConflux(*cfxIt))
-			{
-				(*cfxIt)->setParentWorker(worker);
-				(*cfxIt)->currWorkerProvider = worker;
-			}
-		}
-		confluxes.clear();
-	}
-
-	for(std::vector<Worker*>::iterator workerIt = workers.begin(); workerIt != workers.end(); workerIt++)
-	{
-		for(std::set<Conflux*>::iterator confluxIt = (*workerIt)->managedConfluxes.begin();
-				confluxIt != (*workerIt)->managedConfluxes.end(); confluxIt++)
-		{
-			// begin managing properties of the conflux
-			(*workerIt)->beginManaging((*confluxIt)->getSubscriptionList());
-		}
-		std::cout << "Worker "<< (*workerIt) << " Conflux size: "<< (*workerIt)->managedConfluxes.size() << std::endl;
-	}
-}
-
-void sim_mob::WorkGroup::assignConfluxLoaderToWorker(sim_mob::Worker* worker)
-{
-	const sim_mob::MutexStrategy& mtxStrat = ConfigManager::GetInstance().FullConfig().mutexStategy();
-	sim_mob::Conflux* conflux = new sim_mob::Conflux(nullptr, mtxStrat, -1, true);
-	if(worker && worker->beginManagingConflux(conflux))
-	{
-		conflux->setParentWorker(worker);
-		conflux->currWorkerProvider = worker;
-		confluxLoaders.push_back(conflux);
-	}
-	else
-	{
-		throw std::runtime_error("worker assignment failed for conflux loader");
-	}
-}
-
 void sim_mob::WorkGroup::processVirtualQueues(std::set<Agent*>& removedEntities) {
 	for(vector<Worker*>::iterator wrkr = workers.begin(); wrkr != workers.end(); wrkr++) {
 		(*wrkr)->processVirtualQueues();
@@ -577,78 +503,25 @@ void sim_mob::WorkGroup::outputSupplyStats() {
 	}
 }
 
-bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
-		sim_mob::Conflux* conflux, sim_mob::Worker* worker,
-		int numConfluxesToAddInWorker)
-{
-	typedef std::set<const sim_mob::RoadSegment*> SegmentSet;
-
-	std::set<sim_mob::Conflux*>& confluxes = ConfigManager::GetInstanceRW().FullConfig().getConfluxes();
-	bool workerFilled = false;
-
-	if(numConfluxesToAddInWorker > 0)
-	{
-		if (worker->beginManagingConflux(conflux)) {
-			confluxes.erase(conflux);
-			numConfluxesToAddInWorker--;
-			conflux->setParentWorker(worker);
-			conflux->currWorkerProvider = worker;
-		}
-
-		SegmentSet downStreamSegs = conflux->getDownstreamSegments();
-
-		// assign the confluxes of the downstream MultiNodes to the same worker if possible
-		for(SegmentSet::const_iterator i = downStreamSegs.begin();
-				i != downStreamSegs.end() && numConfluxesToAddInWorker > 0 && confluxes.size() > 0;
-				i++)
-		{
-			if(!(*i)->getParentConflux()->getParentWorker()) {
-				// insert this conflux if it has not already been assigned to another worker
-				if (worker->beginManagingConflux((*i)->getParentConflux()))
-				{
-					// One conflux was added by the insert. So...
-					confluxes.erase((*i)->getParentConflux());
-					numConfluxesToAddInWorker--;
-					// set the worker pointer in the Conflux
-					(*i)->getParentConflux()->setParentWorker(worker);
-					(*i)->getParentConflux()->currWorkerProvider = worker;
-				}
-			}
-		}
-
-		// after inserting all confluxes of the downstream segments
-		if(numConfluxesToAddInWorker > 0 && confluxes.size() > 0)
-		{
-			// call this function recursively with whichever conflux is at the beginning of the confluxes set
-			workerFilled = assignConfluxToWorkerRecursive((*confluxes.begin()), worker, numConfluxesToAddInWorker);
-		}
-		else
-		{
-			workerFilled = true;
-		}
-	}
-	return workerFilled;
-}
-
-/**
- * Determines the first road segment of the agent and puts the agent in the corresponding conflux.
- */
-void sim_mob::WorkGroup::putAgentOnConflux(Person* person) {
-	if(person)
-	{
-		Conflux* loaderCfx = confluxLoaders[nextConfluxIdx];
-		loaderCfx->addAgent(person);
-		nextConfluxIdx = (nextConfluxIdx+1)%numWorkers;
-	}
-}
-
-
-void sim_mob::WorkGroup::findBoundaryConfluxes() {
-	for ( std::vector<Worker*>::iterator itw = workers.begin(); itw != workers.end(); itw++){
-		(*itw)->findBoundaryConfluxes();
-	}
-}
-
 unsigned int sim_mob::WorkGroup::getNumberOfWorkers() const {
     return this->numWorkers;
+}
+
+void sim_mob::WorkGroup::registerLoaderEntity(Entity* loaderEntity)
+{
+	if(!loaderEntity)
+	{
+		throw std::runtime_error("loading entity passed for registration is NULL");
+	}
+	loaderEntities.push_back(loaderEntity);
+}
+
+void sim_mob::WorkGroup::loadPerson(Entity* person)
+{
+	if(person)
+	{
+		Entity* loaderEnt = loaderEntities[nextLoaderIdx];
+		loaderEnt->registerChild(person);
+		nextLoaderIdx = (nextLoaderIdx+1) % loaderEntities.size();
+	}
 }

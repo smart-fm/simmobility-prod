@@ -130,6 +130,7 @@ SegmentStats::~SegmentStats()
 	}
 	for (AgentList::iterator i = busStopAgents.begin(); i != busStopAgents.end(); i++)
 	{
+		(*i)->currWorkerProvider = nullptr;
 		safe_delete_item(*i);
 	}
 	safe_delete_item(laneInfinity);

@@ -119,10 +119,6 @@ private:
 	void scheduleForAddition(Entity* entity);
 	int getAgentSize(bool includeToBeAdded=false);
 	void migrateAllOut();
-	bool beginManagingConflux(Conflux* cf); ///<Returns true if the Conflux was inserted; false if it already exists in the managedConfluxes map.
-
-	//End of functions for friend WorkGroup
-
 
 public:
 	virtual ~Worker();
@@ -142,8 +138,6 @@ public:
 //	virtual sim_mob::PathSetManager *getPathSetMgr();
 
 	virtual ProfileBuilder* getProfileBuilder() const;
-
-	void findBoundaryConfluxes();
 
 protected:
 	///Simple struct that holds all of the params used throughout threaded_function_loop().
@@ -234,7 +228,6 @@ private:
 
 	///Entities managed by this worker
 	std::set<Entity*> managedEntities;
-	std::set<Conflux*> managedConfluxes;
 
 	///If non-null, used for profiling.
 	sim_mob::ProfileBuilder* profile;

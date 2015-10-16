@@ -49,8 +49,8 @@ const double MAX_DOUBLE = std::numeric_limits<double>::max();
 unsigned Conflux::updateInterval = 0;
 
 Conflux::Conflux(MultiNode* multinode, const MutexStrategy& mtxStrat, int id, bool isLoader) :
-		Agent(mtxStrat, id), multiNode(multinode), parentWorker(nullptr), currFrame(0, 0), isBoundary(false), isMultipleReceiver(false), isLoader(isLoader), tickTimeInS(
-				ConfigManager::GetInstance().FullConfig().baseGranSecond())
+		Agent(mtxStrat, id), multiNode(multinode), parentWorker(nullptr), currFrame(0, 0), isLoader(isLoader),
+		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond())
 {
 }
 
@@ -75,6 +75,22 @@ Conflux::~Conflux()
 bool Conflux::isNonspatial()
 {
 	return true;
+}
+
+void sim_mob::medium::Conflux::registerChild(Entity* child)
+{
+	if(isLoader)
+	{
+		Person_MT* person = dynamic_cast<Person_MT*>(child);
+		if(person)
+		{
+			loadingQueue.push_back(person);
+		}
+		else
+		{
+			throw std::runtime_error("Non-person entity cannot be loaded by loader conflux");
+		}
+	}
 }
 
 void Conflux::initialize(const timeslice& now)
@@ -337,7 +353,7 @@ void Conflux::updateAgent(Person_MT* person)
 	}
 
 	//let the person know which worker is (indirectly) managing him
-	person->currWorkerProvider = parentWorker;
+	person->currWorkerProvider = currWorkerProvider;
 
 	//capture person info before update
 	PersonProps beforeUpdate(person, this);
@@ -642,7 +658,7 @@ unsigned int Conflux::resetOutputBounds()
 	boost::unique_lock<boost::recursive_mutex> lock(mutexOfVirtualQueue);
 	unsigned int vqCount = 0;
 	vqBounds.clear();
-	Link* lnk = nullptr;
+	const Link* lnk = nullptr;
 	SegmentStats* segStats = nullptr;
 	int outputEstimate = 0;
 	for (VirtualQueueMap::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++)
@@ -668,7 +684,7 @@ unsigned int Conflux::resetOutputBounds()
 		outputEstimate = outputEstimate - segStats->numAgentsInLane(segStats->laneInfinity);
 		outputEstimate = (outputEstimate > 0 ? outputEstimate : 0);
 		vqBounds.insert(std::make_pair(lnk, (unsigned int) outputEstimate));
-		vqCount += virtualQueuesMap.at(lnk).size();
+		vqCount += i->second.size();
 	}			//loop
 
 	if (vqBounds.empty() && !virtualQueuesMap.empty())
@@ -678,7 +694,7 @@ unsigned int Conflux::resetOutputBounds()
 	return vqCount;
 }
 
-bool Conflux::hasSpaceInVirtualQueue(Link* lnk)
+bool Conflux::hasSpaceInVirtualQueue(const Link* lnk)
 {
 	bool res = false;
 	{
@@ -686,16 +702,18 @@ bool Conflux::hasSpaceInVirtualQueue(Link* lnk)
 		try
 		{
 			res = (vqBounds.at(lnk) > virtualQueuesMap.at(lnk).size());
-		} catch (std::out_of_range& ex)
+		}
+		catch (std::out_of_range& ex)
 		{
 			std::stringstream debugMsgs;
-			debugMsgs << boost::this_thread::get_id() << " out_of_range exception occured in hasSpaceInVirtualQueue()" << "|Conflux: "
-					<< this->multiNode->getID() << "|lnk:[" << lnk->getStart()->getID() << "," << lnk->getEnd()->getID() << "]" << "|lnk:" << lnk
-					<< "|virtualQueuesMap.size():" << virtualQueuesMap.size() << "|elements:";
-			for (std::map<Link*, std::deque<Person_MT*> >::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++)
+			debugMsgs << boost::this_thread::get_id() << " out_of_range exception occured in hasSpaceInVirtualQueue()"
+					<< "|Conflux: "	<< this->multiNode->getID()
+					<< "|lnk:[" << lnk->getStart()->getID() << "," << lnk->getEnd()->getID() << "]"
+					<< "|virtualQueuesMap.size():" << virtualQueuesMap.size()
+					<< "|elements:";
+			for (VirtualQueueMap::iterator i = virtualQueuesMap.begin(); i != virtualQueuesMap.end(); i++)
 			{
-				debugMsgs << " ([" << i->first->getStart()->getID() << "," << i->first->getEnd()->getID() << "]:" << i->first << "," << i->second.size()
-						<< "),";
+				debugMsgs << " ([" << i->first->getStart()->getID() << "," << i->first->getEnd()->getID() << "]:" << i->first << "," << i->second.size() << "),";
 			}
 			debugMsgs << "|\nvqBounds.size(): " << vqBounds.size() << std::endl;
 			throw std::runtime_error(debugMsgs.str());
@@ -704,7 +722,7 @@ bool Conflux::hasSpaceInVirtualQueue(Link* lnk)
 	return res;
 }
 
-void Conflux::pushBackOntoVirtualQueue(Link* lnk, Person_MT* p)
+void Conflux::pushBackOntoVirtualQueue(const Link* lnk, Person_MT* p)
 {
 	boost::unique_lock<boost::recursive_mutex> lock(mutexOfVirtualQueue);
 	virtualQueuesMap.at(lnk).push_back(p);
@@ -805,10 +823,10 @@ void Conflux::killAgent(Person_MT* person, PersonProps& beforeUpdate)
 	}
 	}
 
-	//Print()<<"agent is removed by conflux:"<<person->getId()<<"|role:"<<(int)personRoleType<<std::endl;
 	person->currWorkerProvider = nullptr;
-	parentWorker->remEntity(person);
-	parentWorker->scheduleForRemoval(person);
+	messaging::MessageBus::UnRegisterHandler(person);
+	person->onWorkerExit();
+	safe_delete_item(person);
 }
 
 void Conflux::resetPositionOfLastUpdatedAgentOnLanes()
@@ -915,7 +933,7 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 	case MSG_PEDESTRIAN_TRANSFER_REQUEST:
 	{
 		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
-		msg.person->currWorkerProvider = parentWorker;
+		msg.person->currWorkerProvider = currWorkerProvider;
 		messaging::MessageBus::ReRegisterHandler(msg.person, GetContext());
 		pedestrianList.push_back(msg.person);
 		break;
@@ -934,7 +952,7 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 	case MSG_MRT_PASSENGER_TELEPORTATION:
 	{
 		const PersonMessage& msg = MSG_CAST(PersonMessage, message);
-		msg.person->currWorkerProvider = parentWorker;
+		msg.person->currWorkerProvider = currWorkerProvider;
 		messaging::MessageBus::ReRegisterHandler(msg.person, GetContext());
 		mrt.push_back(msg.person);
 		DailyTime time = msg.person->currSubTrip->endTime;
@@ -1285,7 +1303,7 @@ void Conflux::assignPersonToMRT(Person_MT* person)
 	Role<Person_MT>* role = person->getRole();
 	if (role && role->roleType == Role<Person_MT>::RL_TRAINPASSENGER)
 	{
-		person->currWorkerProvider = parentWorker;
+		person->currWorkerProvider = currWorkerProvider;
 		messaging::MessageBus::ReRegisterHandler(person, GetContext());
 		mrt.push_back(person);
 		DailyTime time = person->currSubTrip->endTime;
@@ -1300,7 +1318,7 @@ void Conflux::assignPersonToCar(Person_MT* person)
 	Role<Person_MT>* role = person->getRole();
 	if (role && role->roleType == Role<Person_MT>::RL_CARPASSENGER)
 	{
-		person->currWorkerProvider = parentWorker;
+		person->currWorkerProvider = currWorkerProvider;
 		PersonList::iterator pIt = std::find(carSharing.begin(), carSharing.end(), person);
 		if (pIt == carSharing.end())
 		{
@@ -1560,40 +1578,6 @@ void Conflux::topCMergeDifferentLinksInConflux(std::deque<Person_MT*>& mergedPer
 ////	return res;
 //}
 
-void Conflux::findBoundaryConfluxes()
-{
-
-	Worker* firstUpstreamWorker = nullptr;
-	std::map<const MultiNode*, Conflux*>& multinode_confluxes = MT_Config::getInstance().getConfluxNodes();
-
-	for (UpstreamSegmentStatsMap::iterator i = upstreamSegStatsMap.begin(); i != upstreamSegStatsMap.end(); i++)
-	{
-		const MultiNode* upnode = dynamic_cast<const MultiNode*>(i->first->getStart());
-
-		if (upnode)
-		{
-			std::map<const MultiNode*, Conflux*>::iterator confIt = multinode_confluxes.find(upnode);
-			if (confIt != multinode_confluxes.end())
-			{
-				//check if upstream conflux belongs to another worker
-				if (confIt->second->getParentWorker() != this->getParentWorker())
-				{
-					if (!isBoundary)
-					{
-						isBoundary = true;
-						firstUpstreamWorker = confIt->second->getParentWorker();
-					}
-					else if (confIt->second->getParentWorker() != firstUpstreamWorker && firstUpstreamWorker)
-					{
-						isMultipleReceiver = true;
-						return;
-					}
-				}
-			}
-		}
-	}
-}
-
 unsigned int Conflux::getNumRemainingInLaneInfinity()
 {
 	unsigned int count = 0;
@@ -1671,6 +1655,15 @@ void Conflux::removeIncident(SegmentStats* segStats)
 	{
 		segStats->restoreLaneParams(*it);
 	}
+}
+
+void Conflux::addConnectedConflux(const Conflux* conflux)
+{
+	if(!conflux)
+	{
+		throw std::runtime_error("invalid conflux passed for addition to connected Conflux set");
+	}
+	connectedConfluxes.insert(conflux);
 }
 
 InsertIncidentMessage::InsertIncidentMessage(const std::vector<SegmentStats*>& stats, double newFlowRate) :

@@ -93,14 +93,12 @@ void sortPersonsDecreasingRemTime(std::deque<Person_MT*>& personList);
  */
 class Conflux : public Agent
 {
-	friend class aimsun::Loader;
-
 private:
 	//typedefs
 	typedef std::deque<Person_MT*> PersonList;
 	typedef std::vector<SegmentStats*> SegmentStatsList;
-	typedef std::map<Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
-	typedef std::map<Link*, PersonList> VirtualQueueMap;
+	typedef std::map<const Link*, const SegmentStatsList> UpstreamSegmentStatsMap;
+	typedef std::map<const Link*, PersonList> VirtualQueueMap;
 	typedef std::map<const RoadSegment*, SegmentStatsList> SegmentStatsMap;
 
 	/**
@@ -141,10 +139,10 @@ private:
 	VirtualQueueMap virtualQueuesMap;
 
 	/**
-	 * segments on downstream links
-	 * These links conceptually belong to the adjacent confluxes.
+	 * set of confluxes that own links downstream to this Conflux node
+	 * This is the set of adjacent confluxes to this conflux
 	 */
-	std::set<const RoadSegment*> downstreamSegments;
+	std::set<const Conflux*> connectedConfluxes;
 
 	/**
 	 *  Map which stores the list of SegmentStats for all road segments on upstream links
@@ -153,10 +151,10 @@ private:
 	SegmentStatsMap segmentAgents;
 
 	/**
-	 *  Worker to which this conflux belongs to.
-	 *  Note: this
+	 *  flag to indicate whether this conflux belongs to some worker
+	 *  Note: this is used only during the initial assignment of confluxes to workers
 	 */
-	Worker* parentWorker;
+	bool parentWorkerAssigned;
 
 	/**
 	 * mutex to protect virtual queues
@@ -167,7 +165,7 @@ private:
 	 * For each downstream link, this map stores the number of persons that can
 	 * be accepted by that link from this conflux in the current tick
 	 */
-	std::map<Link*, unsigned int> vqBounds;
+	std::map<const Link*, unsigned int> vqBounds;
 
 	/**holds the current frame number for which this conflux is being processed*/
 	timeslice currFrame;
@@ -190,7 +188,7 @@ private:
 	/**list of persons who are about to get into the simulation in the next tick*/
 	PersonList loadingQueue;
         
-        /**interval of output updates*/
+	/**interval of output updates*/
 	static uint32_t updateInterval;
 
 	/**time in seconds of a single tick*/
@@ -377,6 +375,8 @@ public:
 	/** Confluxes are non-spatial in nature. */
 	virtual bool isNonspatial();
 
+	virtual void registerChild(Entity* child);
+
 	/**
 	 * overriden update function which is called every tick from the workers
 	 * @param frameNumber represents current simulation time step
@@ -388,19 +388,19 @@ public:
 		return multiNode;
 	}
 
-	std::set<const RoadSegment*> getDownstreamSegments()
+	bool hasParentWorker() const
 	{
-		return downstreamSegments;
+		return parentWorkerAssigned;
 	}
 
-	Worker* getParentWorker() const
+	void setParentWorker()
 	{
-		return parentWorker;
+		this->parentWorkerAssigned = true;
 	}
 
-	void setParentWorker(Worker* parentWorker)
+	std::set<const Conflux*>& getConnectedConfluxes()
 	{
-		this->parentWorker = parentWorker;
+		return connectedConfluxes;
 	}
 
 	/**
@@ -414,14 +414,20 @@ public:
 	 * @param link the link whose VQ is to be checked
 	 * @return true if vq bound is not zero; false otherwise
 	 */
-	bool hasSpaceInVirtualQueue(Link* lnk);
+	bool hasSpaceInVirtualQueue(const Link* lnk);
 
 	/**
 	 * puts person on VQ
 	 * @param lnk link of target VQ
 	 * @param person person to be added
 	 */
-	void pushBackOntoVirtualQueue(Link* lnk, Person_MT* person);
+	void pushBackOntoVirtualQueue(const Link* lnk, Person_MT* person);
+
+	/**
+	 * adds a conflux to the set of connected confluxes
+	 * @param conflux Conflux to add
+	 */
+	void addConnectedConflux(const Conflux* conflux);
 
 	/**
 	 * adds a person into this conflux
@@ -547,13 +553,6 @@ public:
 	unsigned int getNumRemainingInLaneInfinity();
 
 	/**
-	 * determines if this conflux is connected to any conflux that belongs to
-	 * another worker; also determines if all connected confluxes have the same
-	 * worker or not
-	 */
-	void findBoundaryConfluxes();
-
-	/**
 	 * given a person with a trip chain, create path for his first trip and
 	 * return his starting conflux.
 	 *
@@ -582,9 +581,6 @@ public:
 	 * collect current person travel time
 	 */
 	void collectTravelTime(Person_MT* person);
-
-	bool isBoundary; //A conflux that receives person from at least one conflux that belongs to another worker
-	bool isMultipleReceiver; //A conflux that receives persons from confluxes that belong to multiple other workers
 };
 
 } // namespace medium

@@ -69,41 +69,43 @@ public:
 	};
 
 	//Migration parameters
-	struct EntityLoadParams {
+	struct EntityLoadParams
+	{
 		StartTimePriorityQueue& pending_source;
 		std::set<Entity*>& entity_dest;
-		EntityLoadParams(StartTimePriorityQueue& pending_source, std::set<Entity*>& entity_dest)
-					: pending_source(pending_source), entity_dest(entity_dest) {}
+		EntityLoadParams(StartTimePriorityQueue& pending_source, std::set<Entity*>& entity_dest) :
+				pending_source(pending_source), entity_dest(entity_dest)
+		{
+		}
 	};
-
-
 
 public:
 	virtual ~WorkGroup();
 
+	size_t size() const;
 	void initWorkers(EntityLoadParams* loader);
 	void assignAWorker(Entity* ag);
-	void assignConfluxToWorkers();
-	void putAgentOnConflux(Person* ag);
+	bool assignWorker(Entity* ag, unsigned int workerId);
 	void processVirtualQueues(std::set<Agent*>& removedEntities);
 	void outputSupplyStats();
-	/*
-	 * This function will check for
-	 * 1. Confluxes that have upstream Confluxes assigned to a different worker
-	 * 2. Confluxes that receive persons from multiple workers. i.e. a conflux
-	 * with immediate upstream confluxes that belong to multiple workers. This condition will occur only
-	 * when there are three or more person workers
-	 *
-	 * If the conditions are met, it will set isBoundary and isMultipleReceiver for the respective confluxes
-	 */
-	void findBoundaryConfluxes();
         
 	unsigned int getNumberOfWorkers() const;
+
+	/**
+	 * adds a loader entity
+	 * @param loaderEntity a loader entity to be registered
+	 */
+	void registerLoaderEntity(Entity* loaderEntity);
+
+	/**
+	 * adds a person to a loader Entity for loading in subsequent tick
+	 * @param person Person to be loaded
+	 */
+	void loadPerson(Entity* personEntity);
 
 private:
 	void clear();
 	void interrupt();
-	size_t size();
 
 	Worker* getWorker(int id);
 
@@ -150,10 +152,6 @@ private:
 	//  locally, but we'd rather avoid relying on static variables in case we ever make a WorkGroupGroup (or whatever) class.
 	void initializeBarriers(sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr);
 
-	bool assignConfluxToWorkerRecursive(sim_mob::Conflux* conflux, sim_mob::Worker* worker, int numConfluxesInWorker);
-
-	void assignConfluxLoaderToWorker(sim_mob::Worker* worker);
-
 private:
 	//The "number" of this WorkGroup. E.g., the first one created is 0, the second is 1, etc. Used ONLY for generating Log files; DON'T use this as an ID.
 	unsigned int wgNum;
@@ -188,6 +186,19 @@ private:
 	// Uses a round-robin approach to select the next Worker.
 	std::vector<Worker*> workers;
 	size_t nextWorkerID;
+
+	/**
+	 * In mid-term, workers manage conflux entities which in-turn manage person entities.
+	 * Each worker is assigned a loader conflux entity which are responsible for
+	 * dispatching new person entities to target conflux entities.
+	 * These loader confluxes are stored in the vector below.
+	 */
+	std::vector<Entity*> loaderEntities;
+
+	/**
+	 * index used for dispatching new persons to loader confluxes in round robin fashion
+	 */
+	size_t nextLoaderIdx = 0;
 
 	//Barriers for each locking stage
 	sim_mob::FlexiBarrier* frame_tick_barr;

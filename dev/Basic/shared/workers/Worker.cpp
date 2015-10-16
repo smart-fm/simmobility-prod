@@ -104,11 +104,6 @@ sim_mob::Worker::~Worker()
 
 void sim_mob::Worker::addEntity(Entity* entity)
 {
-	if (managedEntities.find(entity) != managedEntities.end()) {
-		Warn() <<"Entity (" <<entity <<") is already being managed, skipping: " <<entity->getId() <<"\n";
-		return;
-	}
-
 	managedEntities.insert(entity);
 }
 
@@ -269,26 +264,6 @@ void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
 			//vqCount += (*it)->resetOutputBounds();
 		}
 	}
-}
-
-void sim_mob::Worker::findBoundaryConfluxes() {
-	unsigned int boundaryCount = 0;
-	unsigned int multipleReceiverCount = 0;
-    if (ConfigManager::GetInstance().FullConfig().RunningMidTerm()) {
-		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-		{
-			(*it)->findBoundaryConfluxes();
-			if ( (*it)->isBoundary){
-				boundaryCount += 1;
-			}
-			if ( (*it)->isMultipleReceiver){
-				multipleReceiverCount += 1;
-			}
-		}
-	}
-
-	std::cout << "Worker::findBoundaryConfluxes | Worker: " << this << " |boundaryCount : "
-			<< boundaryCount << " |multipleReceiverCount: "<< multipleReceiverCount << std::endl;
 }
 
 void sim_mob::Worker::breedPendingEntities()
@@ -506,15 +481,6 @@ void sim_mob::Worker::migrateAllOut()
 	while (!managedEntities.empty()) {
 		migrateOut(**managedEntities.begin());
 	}
-	for (std::set<Conflux*>::iterator cfxIt = managedConfluxes.begin(); cfxIt != managedConfluxes.end(); cfxIt++) {
-
-		migrateOutConflux(**cfxIt);
-		//Debugging output
-		if (Debug::WorkGroupSemantics) {
-			PrintOut("Removing Conflux " << (*cfxIt)->getMultiNode()->getID() <<" from worker: " <<this <<std::endl);
-		}
-	}
-	std::for_each(managedConfluxes.begin(), managedConfluxes.end(), ContainerDeleter<sim_mob::Conflux>()); // Delete all confluxes
 }
 
 void sim_mob::Worker::migrateOut(Entity& ag)
@@ -539,25 +505,6 @@ void sim_mob::Worker::migrateOut(Entity& ag)
 	if (Debug::WorkGroupSemantics) {
 		PrintOut("Removing Entity " <<ag.getId() <<" from worker: " <<this <<std::endl);
 	}
-}
-
-void sim_mob::Worker::migrateOutConflux(Conflux& cfx) {
-	std::deque<sim_mob::Person*> cfxPersons = cfx.getAllPersons();
-	for(std::deque<sim_mob::Person*>::iterator pIt = cfxPersons.begin(); pIt != cfxPersons.end(); pIt++) {
-		Person* person = *pIt;
-		person->currWorkerProvider = nullptr;
-		stopManaging(person->getSubscriptionList());
-
-		//Debugging output
-		if (Debug::WorkGroupSemantics) {
-			PrintOut("Removing Entity " <<person->getId() << " from conflux: " << cfx.getMultiNode()->getID() <<std::endl);
-		}
-	}
-	//std::for_each(cfxPersons.begin(), cfxPersons.end(), ContainerDeleter<sim_mob::Person>()); // Delete all persons
-
-	//Now deal with the conflux itself
-	cfx.currWorkerProvider = nullptr;
-	stopManaging(cfx.getSubscriptionList());
 }
 
 void sim_mob::Worker::migrateIn(Entity& ag)
@@ -634,20 +581,3 @@ void sim_mob::Worker::update_entities(timeslice currTime)
 	//Updating of managed entities occurs regardless of whether or not confluxes are enabled.
 	std::for_each(managedEntities.begin(), managedEntities.end(), EntityUpdater(*this, currTime));
 }
-
-
-bool sim_mob::Worker::beginManagingConflux(Conflux* cf)
-{
-	// the set container for managedConfluxes takes care of eliminating duplicates
-	return managedConfluxes.insert(cf).second;
-}
-
-//sim_mob::PathSetManager *sim_mob::Worker::getPathSetMgr()
-//{
-//	if(!pathSetMgr)
-//	{
-//		pathSetMgr = new PathSetManager();
-//	}
-//
-//	return pathSetMgr;
-//}

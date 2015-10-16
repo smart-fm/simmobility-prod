@@ -251,8 +251,8 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		}
 
 		//Otherwise, make a trip chain for this Person.
-		this->originNode = WayPoint((RoadNetwork::getInstance()->getMapOfIdvsNodes().find(originNodeId))->second);
-		this->destNode = WayPoint((RoadNetwork::getInstance()->getMapOfIdvsNodes().find(destNodeid))->second);
+		this->originNode = WayPoint(RoadNetwork::getInstance()->getNodeById(originNodeId));
+		this->destNode = WayPoint(RoadNetwork::getInstance()->getNodeById(destNodeid));
 
 		Trip* singleTrip = MakePseudoTrip(*this, mode);
 

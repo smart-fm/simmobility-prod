@@ -284,9 +284,9 @@ void sim_mob::DriverUpdateParams::reset(timeslice now, const Driver& owner)
 	if(owner.currLane_.get()) 
 	{
 		currLane = owner.currLane_.get();
+		currLaneIndex = currLane->getLaneIndex();
 	}
 	
-	currLaneIndex = currLane->getLaneIndex();
 	currLaneLength = owner.currLaneLength_.get();
 	currLaneOffset = owner.currLaneOffset_.get();
 	nextLaneIndex = currLaneIndex;

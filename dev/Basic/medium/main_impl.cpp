@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <string>
+#include <set>
 #include <cstdlib>
 
 //TODO: Replace with <chrono> or something similar.
@@ -16,7 +17,7 @@
 #include "buffering/BufferedDataManager.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "conf/ExpandAndValidateConfigFile.hpp"
+#include "config/ExpandMidTermConfigFile.hpp"
 #include "config/MT_Config.hpp"
 #include "config/ParseMidTermConfigFile.hpp"
 #include "conf/ParseConfigFile.hpp"
@@ -29,7 +30,7 @@
 #include "entities/incident/IncidentManager.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "entities/Person.hpp"
-#include "entities/PersonLoader.hpp"
+#include "entities/MT_PersonLoader.hpp"
 #include "entities/Person_MT.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/PT_Statistics.hpp"
@@ -97,6 +98,116 @@ void unit_test_function(){
 	sim_mob::PT_PathSetManager::Instance().makePathset(src_node,dest_node);
 }
 
+void assignConfluxLoaderToWorker(WorkGroup* workGrp, unsigned int workerIdx)
+{
+	const sim_mob::MutexStrategy& mtxStrat = ConfigManager::GetInstance().FullConfig().mutexStategy();
+	Conflux* conflux = new Conflux(nullptr, mtxStrat, -1, true);
+	if(workGrp->assignWorker(conflux, workerIdx))
+	{
+		conflux->setParentWorker();
+		workGrp->registerLoaderEntity(conflux);
+	}
+	else
+	{
+		throw std::runtime_error("worker assignment failed for conflux loader");
+	}
+}
+
+bool assignConfluxToWorkerRecursive(WorkGroup* workGrp, Conflux* conflux, unsigned int workerIdx, int numConfluxesToAddInWorker)
+{
+	typedef std::set<const Conflux*> ConfluxSet;
+	std::set<Conflux*>& confluxes = MT_Config::getInstance().getConfluxes();
+	bool workerFilled = false;
+
+	if(numConfluxesToAddInWorker > 0)
+	{
+		if (workGrp->assignWorker(conflux, workerIdx)) {
+			confluxes.erase(conflux);
+			numConfluxesToAddInWorker--;
+			conflux->setParentWorker();
+		}
+
+		ConfluxSet connectedConfluxes = conflux->getConnectedConfluxes();
+
+		// assign the confluxes of the downstream MultiNodes to the same worker if possible
+		for(ConfluxSet::iterator i = connectedConfluxes.begin();
+				i != connectedConfluxes.end() && numConfluxesToAddInWorker > 0 && confluxes.size() > 0;
+				i++)
+		{
+			Conflux* connConflux = *i;
+			if(!(*i)->hasParentWorker()) {
+				// insert this conflux if it has not already been assigned to another worker
+				if (workGrp->assignWorker(conflux, workerIdx))
+				{
+					// One conflux was added by the insert. So...
+					confluxes.erase(connConflux);
+					numConfluxesToAddInWorker--;
+					// set the worker pointer in the Conflux
+					connConflux->setParentWorker();
+				}
+			}
+		}
+
+		// after inserting all confluxes of the downstream segments
+		if(numConfluxesToAddInWorker > 0 && confluxes.size() > 0)
+		{
+			// call this function recursively with whichever conflux is at the beginning of the confluxes set
+			workerFilled = assignConfluxToWorkerRecursive(workGrp, (*confluxes.begin()), workerIdx, numConfluxesToAddInWorker);
+		}
+		else
+		{
+			workerFilled = true;
+		}
+	}
+	return workerFilled;
+}
+
+/**
+ * adds each conflux to the managedEntities list of workers.
+ * This function attempts to assign all adjacent confluxes to the same worker.
+ *
+ * Future work:
+ * If this assignment performs badly, we might want to think of a heuristics based optimization algorithm
+ * which improves this assignment. We can indeed model this problem as a graph partitioning problem. Each
+ * worker is a partition; the confluxes can be modeled as the nodes of the graph; and the edges will represent
+ * the flow of vehicles between confluxes. Our objective is to minimize the (expected) flow of agents from one
+ * partition to the other. We can try to fit the Kernighan-Lin algorithm or Fiduccia-Mattheyses algorithm
+ * for partitioning, if it works. This is a little more complex due to the variable flow rates of vehicles
+ * (edge weights); might require more thinking.
+ *
+ * @param workGrp the work group containing workers which must take confluxes
+ */
+void assignConfluxToWorkers(WorkGroup* workGrp)
+{
+	//Using confluxes by reference as we remove items as and when we assign them to a worker
+	std::set<Conflux*>& confluxes = MT_Config::getInstance().getConfluxes();
+	size_t numWorkers = workGrp->size();
+	int numConfluxesPerWorker = (int)(confluxes.size() / numWorkers);
+
+	for(unsigned wrkrIdx=0; wrkrIdx<numWorkers; wrkrIdx++)
+	{
+		if(numConfluxesPerWorker > 0)
+		{
+			assignConfluxToWorkerRecursive(workGrp, (*confluxes.begin()), wrkrIdx, numConfluxesPerWorker);
+		}
+		assignConfluxLoaderToWorker(workGrp, wrkrIdx);
+	}
+	if(confluxes.size() > 0)
+	{
+		//There can be up to (workers.size() - 1) confluxes for which the parent
+		//worker is not yet assigned. We distribute these confluxes to the workers in round robin fashion
+		unsigned wrkrIdx=0;
+		for(std::set<Conflux*>::iterator cfxIt = confluxes.begin(); cfxIt!=confluxes.end(),  wrkrIdx<numWorkers; cfxIt++, wrkrIdx++)
+		{
+			if (workGrp->assignWorker(*cfxIt, wrkrIdx))
+			{
+				(*cfxIt)->setParentWorker();
+			}
+		}
+		confluxes.clear();
+	}
+}
+
 /**
  * Main simulation loop for the supply simulator
  * @param configFileName name of the input config xml file
@@ -118,12 +229,12 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 
 	//Register our Role types.
-	//TODO: Accessing ConfigParams before loading it is technically safe, but we
-	//      should really be clear about when this is not ok.
+	//NOTE: Accessing ConfigParams before loading it is technically safe, but we
+	//      should really be clear about when this is not okay.
 	const MutexStrategy& mtx = ConfigManager::GetInstance().FullConfig().mutexStategy();
 	
 	//Create an instance of role factory
-	RoleFactory<Person_MT>* rf = new RoleFactory<Person_MT>;
+	RoleFactory<Person_MT>* rf = new RoleFactory<Person_MT>();
 	RoleFactory<Person_MT>::setInstance(rf);
 	
 	rf->registerRole("driver", new sim_mob::medium::Driver(nullptr));
@@ -135,16 +246,16 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	rf->registerRole("biker", new sim_mob::medium::Biker(nullptr));
 
 	//Load our user config file, which is a time costly function
-	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
+	ExpandMidTermConfigFile expand(MT_Config::getInstance(), ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents);
 
 	//insert bus stop agent to segmentStats;
-	std::set<sim_mob::SegmentStats*>& segmentStatsWithStops = ConfigManager::GetInstanceRW().FullConfig().getSegmentStatsWithBusStops();
-	std::set<sim_mob::SegmentStats*>::iterator itSegStats;
+	std::set<SegmentStats*>& segmentStatsWithStops = MT_Config::getInstance().getSegmentStatsWithBusStops();
+	std::set<SegmentStats*>::iterator itSegStats;
 	std::vector<const sim_mob::BusStop*>::iterator itBusStop;
 	StreetDirectory& strDirectory= StreetDirectory::instance();
 	for (itSegStats = segmentStatsWithStops.begin(); itSegStats != segmentStatsWithStops.end(); itSegStats++)
 	{
-		sim_mob::SegmentStats* stats = *itSegStats;
+		SegmentStats* stats = *itSegStats;
 		std::vector<const sim_mob::BusStop*>& busStops = stats->getBusStops();
 		for (itBusStop = busStops.begin(); itBusStop != busStops.end(); itBusStop++)
 		{
@@ -155,34 +266,20 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			strDirectory.registerStopAgent(stop, busStopAgent);
 		}
 	}
-	//Save a handle to the shared definition of the configuration.
+	//Save handles to definition of configurations.
 	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+	const MT_Config& mtConfig = MT_Config::getInstance();
 
-	//Start boundaries
-#ifndef SIMMOB_DISABLE_MPI
-	if (config.using_MPI)
-	{
-		PartitionManager& partitionImpl = PartitionManager::instance();
-		partitionImpl.initBoundaryTrafficItems();
-	}
-#endif
-
-	PartitionManager* partMgr = nullptr;
-	if (!config.MPI_Disabled() && config.using_MPI)
-	{
-		partMgr = &PartitionManager::instance();
-	}
-
-	PeriodicPersonLoader periodicPersonLoader(Agent::all_agents, Agent::pending_agents);
+	PeriodicPersonLoader* periodicPersonLoader = new MT_PersonLoader(Agent::all_agents, Agent::pending_agents);
 
 	{ //Begin scope: WorkGroups
 	WorkGroupManager wgMgr;
-	wgMgr.setSingleThreadMode(config.singleThreaded());
+	wgMgr.setSingleThreadMode(false);
 
 	//Work Group specifications
 	//Mid-term is not using Aura Manager at the moment. Therefore setting it to nullptr
-	WorkGroup* personWorkers = wgMgr.newWorkGroup(config.personWorkGroupSize(), config.totalRuntimeTicks, config.granPersonTicks,
-			nullptr /*AuraManager is not used in mid-term*/, partMgr, &periodicPersonLoader);
+	WorkGroup* personWorkers = wgMgr.newWorkGroup(mtConfig.personWorkGroupSize(), config.totalRuntimeTicks, mtConfig.granPersonTicks,
+			nullptr /*AuraManager is not used in mid-term*/, nullptr/*partition manager is not used in mid-term*/, periodicPersonLoader);
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
@@ -190,18 +287,18 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	messaging::MessageBus::RegisterHandler(PT_Statistics::getInstance());
 
 	//Load persons for 0th tick
-	periodicPersonLoader.loadActivitySchedules();
+	periodicPersonLoader->loadPersonDemand();
 
 	//Initialize each work group individually
 	personWorkers->initWorkers(&entLoader);
 
-	personWorkers->assignConfluxToWorkers();
-	//personWorkers->findBoundaryConfluxes();
+	//distribute confluxes among workers
+	assignConfluxToWorkers(personWorkers);
 
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++)
 	{
-		personWorkers->putAgentOnConflux(dynamic_cast<sim_mob::Person*>(*it));
+		personWorkers->loadPerson((*it));
 	}
 
 	if(BusController::HasBusController())
@@ -210,22 +307,14 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}
 	//incident
 	personWorkers->assignAWorker(IncidentManager::getInstance());
+
 	//before starting the groups, initialize the time interval for one of the pathset manager's helpers
 	PathSetManager::initTimeInterval();
-	cout << "Initial Agents dispatched or pushed to pending.all_agents: " << Agent::all_agents.size() << " pending: " << Agent::pending_agents.size() << endl;
+
+	cout << "Initial Agents dispatched or pushed to pending.\nall_agents: " << Agent::all_agents.size() << " pending: " << Agent::pending_agents.size() << endl;
 
 	//Start work groups and all threads.
 	wgMgr.startAllWorkGroups();
-
-	//
-	if (!config.MPI_Disabled() && config.using_MPI)
-	{
-		PartitionManager& partitionImpl = PartitionManager::instance();
-		partitionImpl.setEntityWorkGroup(personWorkers, nullptr);
-		cout<< "partition_solution_id in main function:"
-			<< partitionImpl.partition_config->partition_solution_id
-			<< endl;
-	}
 
 	/////////////////////////////////////////////////////////////////
 	// NOTE: WorkGroups are able to handle skipping steps by themselves.
@@ -278,23 +367,14 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			}
 		}
 
-		//Agent-based cycle, steps 1,2,3,4 of 4
+		//Agent-based cycle, steps 1,2,3,4
 		wgMgr.waitAllGroups();
 
-		BusController::processRequests();
+		BusController::GetInstance()->processRequests();
 	}
 
 	BusStopAgent::removeAllBusStopAgents();
 	sim_mob::PathSetParam::resetInstance();
-
-	//Finalize partition manager
-#ifndef SIMMOB_DISABLE_MPI
-	if (config.using_MPI)
-	{
-		PartitionManager& partitionImpl = PartitionManager::instance();
-		partitionImpl.stopMPIEnvironment();
-	}
-#endif
 
 	//finalize
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
@@ -346,10 +426,10 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	PT_Statistics::getInstance()->storeStatistics();
 	PT_Statistics::resetInstance();
 
-	if (ConfigManager::GetInstance().FullConfig().numAgentsSkipped>0)
+	if (mtConfig.numAgentsSkipped>0)
 	{
 		cout<<"Agents SKIPPED due to invalid route assignment: "
-			<<ConfigManager::GetInstance().FullConfig().numAgentsSkipped
+			<<mtConfig.numAgentsSkipped
 			<<endl;
 	}
 
@@ -370,7 +450,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	}  //End scope: WorkGroups.
 
     //Save screen line counts
-    if(ConfigManager::GetInstance().FullConfig().screenLineParams.outputEnabled)
+    if(mtConfig.screenLineParams.outputEnabled)
     {
         ScreenLineCounter::getInstance()->exportScreenLineCount();
     }
@@ -378,7 +458,13 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	//At this point, it should be possible to delete all Signals and Agents.
 	clear_delete_vector(Signal::all_signals_);
 	clear_delete_vector(Agent::all_agents);
-
+	while(!Agent::pending_agents.empty())
+	{
+		Agent* topAg = Agent::pending_agents.top();
+		Agent::pending_agents.pop();
+		safe_delete_item(topAg);
+	}
+	safe_delete_item(periodicPersonLoader);
 	cout << "Simulation complete; closing worker threads." << endl;
 
 	//Delete our profile pointer (if it exists)

@@ -4,6 +4,7 @@
 
 
 #include "MT_PersonLoader.hpp"
+
 #include <algorithm>
 #include <boost/lexical_cast.hpp>
 #include <functional>
@@ -12,7 +13,6 @@
 #include <stdint.h>
 #include <utility>
 #include <vector>
-
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "logging/Log.hpp"

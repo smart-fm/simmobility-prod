@@ -13,7 +13,7 @@ namespace sim_mob
 namespace medium
 {
 /**
- * sub class of PersonLoader tailored for loading mid-term persons from day activity schedule
+ * Sub-class of PersonLoader tailored for loading mid-term persons from day activity schedule
  *
  * \author Harish Loganathan
  */

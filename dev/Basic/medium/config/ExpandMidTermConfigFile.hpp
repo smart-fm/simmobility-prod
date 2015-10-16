@@ -13,7 +13,7 @@ namespace medium
 class ExpandMidTermConfigFile: public boost::noncopyable
 {
 public:
-	ExpandMidTermConfigFile(MT_Config& mtCfg, ConfigParams& cfg, std::set<sim_mob::Entity*>& active_agents, StartTimePriorityQueue& pending_agents);
+	ExpandMidTermConfigFile(MT_Config& mtCfg, ConfigParams& cfg, std::set<sim_mob::Entity*>& active_agents);
 
 private:
 	void processConfig();
@@ -64,8 +64,6 @@ private:
 
 	//Our active/pending agent lists.
 	std::set<Entity*>& active_agents;
-
-	StartTimePriorityQueue& pending_agents;
 };
 } // namespace medium
 } // namespace sim_mob

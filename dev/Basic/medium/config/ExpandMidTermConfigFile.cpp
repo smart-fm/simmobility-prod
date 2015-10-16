@@ -16,12 +16,10 @@ namespace
 const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
 }
 
-ExpandMidTermConfigFile::ExpandMidTermConfigFile(MT_Config &mtCfg, ConfigParams &cfg,
-												std::set<Entity*>& active_agents,
-												StartTimePriorityQueue& pending_agents) :
-    cfg(cfg), mtCfg(mtCfg), active_agents(active_agents), pending_agents(pending_agents)
+ExpandMidTermConfigFile::ExpandMidTermConfigFile(MT_Config &mtCfg, ConfigParams &cfg, std::set<Entity*>& active_agents) :
+		cfg(cfg), mtCfg(mtCfg), active_agents(active_agents)
 {
-    processConfig();
+	processConfig();
 }
 
 void ExpandMidTermConfigFile::processConfig()
@@ -481,18 +479,19 @@ void ExpandMidTermConfigFile::ProcessConfluxes(const RoadNetwork& rdnw)
 
 	//Make a temporary map of <multi node, set of road-segments directly connected to the multinode>
 	//TODO: This should be done automatically *before* it's needed.
-	std::map<const MultiNode*, std::set<const RoadSegment*> > roadSegmentsAt;
+	std::map<const MultiNode*, std::set<const Link*> > linksAt;
 	for (std::vector<Link*>::const_iterator it = rdnw.links.begin(); it != rdnw.links.end(); it++)
 	{
-		MultiNode* start = dynamic_cast<MultiNode*>((*it)->getStart());
-		MultiNode* end = dynamic_cast<MultiNode*>((*it)->getEnd());
+		const Link* lnk = (*it);
+		MultiNode* start = dynamic_cast<MultiNode*>(lnk->getStart());
+		MultiNode* end = dynamic_cast<MultiNode*>(lnk->getEnd());
 		if ((!start) || (!end))
 		{
 			throw std::runtime_error("Link start/ends must be MultiNodes (in Conflux).");
 		}
-		roadSegmentsAt[start].insert((*it)->getSegments().front());
-		roadSegmentsAt[end].insert((*it)->getSegments().back());
-		end->addRoadSegmentAt((*it)->getSegments().back()); //tag upstream segments for each multinode
+		linksAt[start].insert(lnk);
+		linksAt[end].insert(lnk);
+		end->addRoadSegmentAt(lnk->getSegments().back()); //tag upstream segments for each multinode
 	}
 
 	for (std::vector<MultiNode*>::const_iterator i = rdnw.nodes.begin(); i != rdnw.nodes.end(); i++)
@@ -501,46 +500,38 @@ void ExpandMidTermConfigFile::ProcessConfluxes(const RoadNetwork& rdnw)
 		Conflux* conflux = new Conflux(*i, mtxStrat);
 		try
 		{
-			std::set<const RoadSegment*>& segmentsAtNode = roadSegmentsAt.at(*i);
-			if (!segmentsAtNode.empty())
+			std::set<const Link*>& linksAtNode = linksAt.at(*i);
+			if (!linksAtNode.empty())
 			{
-				for (std::set<const RoadSegment*>::iterator segmtIt = segmentsAtNode.begin(); segmtIt != segmentsAtNode.end(); segmtIt++)
+				for (std::set<const Link*>::const_iterator lnkIt = linksAtNode.begin(); lnkIt != linksAtNode.end(); lnkIt++)
 				{
-					Link* lnk = (*segmtIt)->getLink();
-					std::vector<SegmentStats*> upSegStatsList;
-					if (lnk->getStart() == (*i))
+					const Link* lnk = (*lnkIt);
+					if (lnk->getEnd() == (*i))
 					{
-						//lnk is downstream to the multinode and doesn't belong to this conflux
-						std::vector<RoadSegment*>& downSegs = lnk->getSegments();
-						conflux->downstreamSegments.insert(downSegs.begin(), downSegs.end());
-						if (lnk->getStart() != lnk->getEnd())
+						//lnk *ends* at the multinode of this conflux.
+						//lnk is upstream to the multinode and belongs to this conflux
+						std::vector<SegmentStats*> upSegStatsList;
+						const std::vector<RoadSegment*>& upSegs = lnk->getSegments();
+						//set conflux pointer to the segments and create SegmentStats for the segment
+						for (std::vector<RoadSegment*>::const_iterator segIt = upSegs.begin(); segIt != upSegs.end(); segIt++)
 						{
-							continue;
-						} // some links can start and end at the same section
-					}
-					//else
-					//lnk *ends* at the multinode of this conflux.
-					//lnk is upstream to the multinode and belongs to this conflux
-					std::vector<RoadSegment*>& upSegs = lnk->getSegments();
-					//set conflux pointer to the segments and create SegmentStats for the segment
-					for (std::vector<RoadSegment*>::iterator segIt = upSegs.begin(); segIt != upSegs.end(); segIt++)
-					{
-						RoadSegment* rdSeg = *segIt;
-						double rdSegmentLength = rdSeg->getPolylineLength();
+							const RoadSegment* rdSeg = *segIt;
+							double rdSegmentLength = rdSeg->getPolylineLength();
 
-						std::list<SegmentStats*> splitSegmentStats;
-						CreateSegmentStats(rdSeg, conflux, splitSegmentStats);
-						if (splitSegmentStats.empty())
-						{
-							debugMsgs << "no segment stats created for segment." << "|segment: " << rdSeg->getStartEnd() << "|conflux: " << conflux->multiNode << std::endl;
-							throw std::runtime_error(debugMsgs.str());
+							std::list<SegmentStats*> splitSegmentStats;
+							CreateSegmentStats(rdSeg, conflux, splitSegmentStats);
+							if (splitSegmentStats.empty())
+							{
+								debugMsgs << "no segment stats created for segment." << "|segment: " << rdSeg->getStartEnd() << "|conflux: " << conflux->multiNode << std::endl;
+								throw std::runtime_error(debugMsgs.str());
+							}
+							std::vector<SegmentStats*>& rdSegSatsList = conflux->segmentAgents[rdSeg];
+							rdSegSatsList.insert(rdSegSatsList.end(), splitSegmentStats.begin(), splitSegmentStats.end());
+							upSegStatsList.insert(upSegStatsList.end(), splitSegmentStats.begin(), splitSegmentStats.end());
 						}
-						std::vector<SegmentStats*>& rdSegSatsList = conflux->segmentAgents[rdSeg];
-						rdSegSatsList.insert(rdSegSatsList.end(), splitSegmentStats.begin(), splitSegmentStats.end());
-						upSegStatsList.insert(upSegStatsList.end(), splitSegmentStats.begin(), splitSegmentStats.end());
+						conflux->upstreamSegStatsMap.insert(std::make_pair(lnk, upSegStatsList));
+						conflux->virtualQueuesMap.insert(std::make_pair(lnk, std::deque<Person*>()));
 					}
-					conflux->upstreamSegStatsMap.insert(std::make_pair(lnk, upSegStatsList));
-					conflux->virtualQueuesMap.insert(std::make_pair(lnk, std::deque<Person*>()));
 				} // end for
 			} //end if
 		}
@@ -556,6 +547,18 @@ void ExpandMidTermConfigFile::ProcessConfluxes(const RoadNetwork& rdnw)
 		confluxes.insert(conflux);
 		multinodeConfluxesMap.insert(std::make_pair(*i, conflux));
 	} // end for each multinode
+
+	//now we go through each link again to tag confluxes with adjacent confluxes
+	for (std::vector<Link*>::const_iterator it = rdnw.links.begin(); it != rdnw.links.end(); it++)
+	{
+		const Link* lnk = (*it);
+		MultiNode* start = dynamic_cast<MultiNode*>(lnk->getStart());
+		MultiNode* end = dynamic_cast<MultiNode*>(lnk->getEnd());
+		Conflux* startConflux = multinodeConfluxesMap.at(start);
+		Conflux* endConflux = multinodeConfluxesMap.at(end);
+		startConflux->addConnectedConflux(endConflux); //duplicates are naturally discarded by set container
+		endConflux->addConnectedConflux(startConflux); //duplicates are naturally discarded by set container
+	}
 	CreateLaneGroups();
 }
 

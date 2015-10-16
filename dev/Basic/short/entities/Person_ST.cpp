@@ -321,7 +321,7 @@ void Person_ST::initTripChain()
 	isFirstTick = true;
 }
 
-UpdateStatus Person_ST::checkTripChain()
+Entity::UpdateStatus Person_ST::checkTripChain()
 {
 	if (tripChain.empty())
 	{
@@ -454,6 +454,10 @@ vector<BufferedBase *> Person_ST::buildSubscriptionList()
 
 bool Person_ST::frame_init(timeslice now)
 {
+	//Call its "load" function
+	load(configProperties);
+	clearConfigProperties();
+
 	messaging::MessageBus::RegisterHandler(this);
 	currTick = now;
 
@@ -461,7 +465,7 @@ bool Person_ST::frame_init(timeslice now)
 	//regionAndPathTracker.reset();
 
 	//Register for communication simulator messages, if applicable.
-	if (!commEventRegistered && ConfigManager::GetInstance().XmlConfig().system.simulation.commsim.enabled)
+	if (!commEventRegistered && ST_Config::getInstance().commsim.enabled)
 	{
 		commEventRegistered = true;
 		messaging::MessageBus::SubscribeEvent(event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT, this, this);
@@ -651,7 +655,7 @@ void Person_ST::onEvent(event::EventId eventId, event::Context ctxId, event::Eve
 		else if (eventId == event::EVT_CORE_COMMSIM_REROUTING_REQUEST)
 		{
 			//Were we requested to re-route?
-			const ReRouteEventArgs &rrArgs = MSG_CAST(ReRouteEventArgs, args);
+			const event::ReRouteEventArgs &rrArgs = MSG_CAST(event::ReRouteEventArgs, args);
 			const std::map<int, sim_mob::RoadRunnerRegion>& regions = ConfigManager::GetInstance().FullConfig().getNetwork().roadRunnerRegions;
 			std::map<int, sim_mob::RoadRunnerRegion>::const_iterator it = regions.find(boost::lexical_cast<int>(rrArgs.getBlacklistRegion()));
 			if (it != regions.end())

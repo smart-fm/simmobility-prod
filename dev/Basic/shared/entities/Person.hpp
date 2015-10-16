@@ -69,9 +69,6 @@ private:
 
 	/**Marks the first call to update function*/
 	bool isFirstTick;
-	
-	/**Stores the configuration properties of the agent loaded from the XML configuration file*/
-	std::map<std::string, std::string> configProperties;
 
 	/**Indicates if the detailed path for the current sub-trip is already planned*/
 	bool nextPathPlanned;

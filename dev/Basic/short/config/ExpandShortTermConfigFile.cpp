@@ -70,24 +70,16 @@ void informLoadOrder(const std::vector<LoadAgentsOrderOption>& order)
 
 void addOrStashEntity(Agent* p, std::set<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
-    //Only agents with a start time of zero should start immediately in the all_agents list.
-    if (p->getStartTime() == 0)
-    {
-	Person_ST *person = dynamic_cast<Person_ST *> (p);
-
-	if (person != nullptr)
+	//Only agents with a start time of zero should start immediately in the all_agents list.
+	if (p->getStartTime() == 0)
 	{
-	    person->load(person->getConfigProperties());
-	    person->clearConfigProperties();
+		active_agents.insert(p);
 	}
-
-	active_agents.insert(p);
-    }
-    else
-    {
-	//Start later.
-	pending_agents.push(p);
-    }
+	else
+	{
+		//Start later.
+		pending_agents.push(p);
+	}
 }
 
 } //End un-named namespace

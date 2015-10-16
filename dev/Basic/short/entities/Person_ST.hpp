@@ -30,6 +30,9 @@ private:
 	/**Indicates whether we have registered to receive communication simulator related messages*/
 	bool commEventRegistered;
 
+	/**Stores the configuration properties of the agent loaded from the XML configuration file*/
+	std::map<std::string, std::string> configProperties;
+
 	/**
 	 * Advances the current trip chain item to the next item if all the sub-trips in the trip have been completed.
 	 * If not, calls the advanceCurrentTripChainItem() method

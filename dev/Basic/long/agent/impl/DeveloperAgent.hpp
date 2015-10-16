@@ -113,7 +113,7 @@ namespace sim_mob {
              * set a 20% of new units at each month after 6th month of the simulation
              * to be sent to HM via real estate agent
              */
-            void setUnitsForHM(std::vector<Unit*>::iterator &first,std::vector<Unit*>::iterator &last);
+            void setUnitsForHM(std::vector<boost::shared_ptr<Unit> >::iterator &first,std::vector<boost::shared_ptr<Unit> >::iterator &last);
 
             /*
              * set whether there are new units remaining to enter to market
@@ -151,8 +151,7 @@ namespace sim_mob {
             IdVector parcelsToProcess;
             bool active;
             std::vector<boost::shared_ptr<Building> > newBuildings;
-            //std::vector<boost::shared_ptr<Unit> > newUnits;
-            std::vector<Unit*> newUnits;
+            std::vector<boost::shared_ptr<Unit> > newUnits;
             boost::shared_ptr<Project> fmProject;
             int monthlyUnitCount;
             bool unitsRemain;

@@ -470,9 +470,7 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 	}
 	else
 	{
-
-		return ++buildingIdForDevAgent;
-
+		 return ++buildingIdForDevAgent;
 	}
 
 }
@@ -584,4 +582,19 @@ const TazLevelLandPrice* DeveloperModel::getTazLevelLandPriceByTazId(BigSerial t
 		return itr->second;
 	}
 	return nullptr;
+}
+
+void DeveloperModel::insertBuildingsToDB(Building &building)
+{
+	DB_Config dbConfig(LT_DB_CONFIG_FILE);
+	dbConfig.load();
+
+	// Connect to database and load data for this model.
+	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+	conn.connect();
+	if (conn.isConnected()) {
+			BuildingDao buildingDao(conn);
+			buildingDao.insert(building);
+	}
+
 }

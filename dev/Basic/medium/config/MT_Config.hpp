@@ -173,13 +173,13 @@ private:
  */
 class WorkerParams {
 public:
-    struct Worker {
-        Worker();
+    struct WorkerConf {
+        WorkerConf();
         unsigned int count;
         unsigned int granularityMs;
     };
 
-    Worker person;
+    WorkerConf person;
 };
 
 struct DB_Details
@@ -847,24 +847,6 @@ private:
     /// worker allocation details
     WorkerParams workers;
 
-    ///	is CBD area restriction enforced
-    bool cbd;
-
-    /// is public transit enabled
-    bool publicTransitEnabled;
-
-    ///setting for the incidents
-    std::vector<IncidentParams> incidents;
-
-    ///Some settings for bus stop arrivals/departures.
-    std::map<int, BusStopScheduledTime> busScheduledTimes; //The int is a "bus stop ID", starting from 0.
-
-    /// set of confluxes
-    std::set<Conflux*> confluxes;
-
-    /// key:value (MultiNode:Conflux) map
-    std::map<const MultiNode*, Conflux*> multinode_confluxes;
-
     /**
      * Enumerator for calibration methodology
      */
@@ -888,6 +870,27 @@ private:
 
     /// Logsum computation frequency
 	unsigned logsumComputationFrequency;
+
+    ///	is CBD area restriction enforced
+    bool cbd;
+
+    /// is public transit enabled
+    bool publicTransitEnabled;
+
+    ///setting for the incidents
+    std::vector<IncidentParams> incidents;
+
+    ///Some settings for bus stop arrivals/departures.
+    std::map<int, BusStopScheduledTime> busScheduledTimes; //The int is a "bus stop ID", starting from 0.
+
+    /// set of confluxes
+    std::set<Conflux*> confluxes;
+
+    /// key:value (MultiNode:Conflux) map
+    std::map<const MultiNode*, Conflux*> multinode_confluxes;
+
+    /// set of segment stats with bus stops
+    std::set<sim_mob::SegmentStats*> segmentStatsWithBusStops;
 };
 }
 }

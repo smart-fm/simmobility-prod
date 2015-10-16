@@ -29,7 +29,6 @@ private:
     bool SetTickFromBaseGran(unsigned int& res, unsigned int tickLenMs);
     void loadNetworkFromDatabase();
 
-    void loadFMOD_Controller();
     void loadAMOD_Controller();
     void loadAgentsInOrder(ConfigParams::AgentConstraints& constraints);
     void generateAgentsFromTripChain(ConfigParams::AgentConstraints& constraints);

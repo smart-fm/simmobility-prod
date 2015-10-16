@@ -13,7 +13,7 @@ namespace sim_mob
 namespace db
 {
 
-typedef boost::variant<int, std::string, double, long long, unsigned long> Parameter;
+typedef boost::variant<int, std::string, std::tm,double, long long, unsigned long> Parameter;
 typedef std::vector<Parameter> Parameters;
 static const Parameters EMPTY_PARAMS;
 

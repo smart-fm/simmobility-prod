@@ -263,7 +263,6 @@ public:
 	bool isPrimaryMode;
 	std::string ptLineId; //Public transit (bus or train) line identifier.
 
-	FMODSchedule* schedule;
 	mutable sim_mob::TravelMetric::CDB_TraverseType cbdTraverseType;
 	const std::string getMode() const ;
 	const std::string getBusLineID() const;

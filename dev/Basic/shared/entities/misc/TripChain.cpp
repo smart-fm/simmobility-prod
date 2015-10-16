@@ -94,7 +94,7 @@ sim_mob::SubTrip::SubTrip(std::string entId, std::string type, unsigned int seqN
 		DailyTime start, DailyTime end, const Node* from,
 		std::string fromLocType, const Node* to, std::string toLocType, std::string mode,
 		bool isPrimary, std::string ptLineId) : Trip(entId, type, seqNumber, requestTime, start, end, "", from, fromLocType, to, toLocType),
-		mode(mode) , isPrimaryMode(isPrimary),isPT_Walk(false),walkTime(0.0),ptLineId(ptLineId), schedule(nullptr),cbdTraverseType(sim_mob::TravelMetric::CBD_NONE)
+		mode(mode) , isPrimaryMode(isPrimary),isPT_Walk(false),walkTime(0.0),ptLineId(ptLineId),cbdTraverseType(sim_mob::TravelMetric::CBD_NONE)
 {
 }
 

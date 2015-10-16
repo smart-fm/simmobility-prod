@@ -20,20 +20,20 @@ using std::vector;
 sim_mob::Vehicle::Vehicle(const VehicleType vehType, double lengthCM, double widthCM) :
 	VehicleBase(vehType,lengthCM,widthCM), vehicleId(0), latMovement(0),
 	fwdVelocity(0), latVelocity(0), fwdAccel(0), errorState(false),
-	turningDirection(LCS_SAME), schedule(nullptr)
+	turningDirection(LCS_SAME)
 {}
 
 sim_mob::Vehicle::Vehicle(const VehicleType vehType, int vehicleId, double lengthCM, double widthCM) :
 		VehicleBase(vehType,lengthCM,widthCM), vehicleId(vehicleId),
 		latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0),
-		errorState(false), turningDirection(LCS_SAME), schedule(nullptr)
+		errorState(false), turningDirection(LCS_SAME)
 {}
 
 sim_mob::Vehicle::Vehicle(const Vehicle& copyFrom) :
 	VehicleBase(copyFrom), vehicleId(copyFrom.vehicleId), latMovement(copyFrom.latMovement),
 	fwdVelocity(copyFrom.fwdVelocity), latVelocity(copyFrom.latVelocity), fwdAccel(copyFrom.fwdAccel),
 	posInIntersection(copyFrom.posInIntersection), errorState(copyFrom.errorState),
-	turningDirection(LCS_SAME), schedule(copyFrom.schedule) {
+	turningDirection(LCS_SAME){
 }
 
 void sim_mob::Vehicle::setPositionInIntersection(double x, double y) {

@@ -80,16 +80,6 @@ public:
 	void moveLat(double amt);            ///<Move this car laterally. NOTE: This will _add_ the amt to the current value.
 	void resetLateralMovement();         ///<Put this car back in the center of the current lane.
 
-	FMODSchedule * getFMODSchedule()
-	{
-		return schedule;
-	}
-
-	void setFMOD_Schedule(FMODSchedule *fmodSchedule)
-	{
-		schedule = fmodSchedule;
-	}
-
 #ifndef SIMMOB_DISABLE_MPI
 public:
 	///Serialization
@@ -99,8 +89,6 @@ public:
 #endif
 
 private:
-
-	FMODSchedule* schedule;
 
 	//Trying a slightly more dynamic moving model.
 	int vehicleId;

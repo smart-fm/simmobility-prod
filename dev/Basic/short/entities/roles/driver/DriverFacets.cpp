@@ -2160,32 +2160,15 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle)
 		}
 		else
 		{
-			if (subTrip->schedule == nullptr)
+			// if use path set
+			if (ConfigManager::GetInstance().FullConfig().PathSetMode())
 			{
-				// if use path set
-				if (ConfigManager::GetInstance().FullConfig().PathSetMode())
-				{
-					path = PathSetManager::getInstance()->getPath(*(parent->currSubTrip), false, nullptr);
-				}
-				else
-				{
-					const StreetDirectory& stdir = StreetDirectory::Instance();
-					path = stdir.SearchShortestDrivingPath(*(parentDriver->origin), *(parentDriver->goal));
-				}
+				path = PathSetManager::getInstance()->getPath(*(parent->currSubTrip), false, nullptr);
 			}
 			else
 			{
-				std::vector<Node*>& routes = subTrip->schedule->routes;
-				std::vector<Node*>::iterator first = routes.begin();
-				std::vector<Node*>::iterator second = first;
-
-				path.clear();
-				
-				for (++second; first != routes.end() && second != routes.end(); ++first, ++second)
-				{
-					vector<WayPoint> subPath = stdir.SearchShortestDrivingPath(**first, **second);
-					path.insert(path.end(), subPath.begin(), subPath.end());
-				}
+				const StreetDirectory& stdir = StreetDirectory::Instance();
+				path = stdir.SearchShortestDrivingPath(*(parentDriver->origin), *(parentDriver->goal));
 			}
 		}
 
@@ -2253,12 +2236,6 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle)
 			res = new Vehicle(VehicleBase::CAR, length, width);
 			buildAndSetPath(path, startLaneId);
 		}
-
-		if (subTrip->schedule && res) 
-		{
-			res->setFMOD_Schedule(subTrip->schedule);
-		}
-
 	}
 
 	//to indicate that the path to next activity is already planned

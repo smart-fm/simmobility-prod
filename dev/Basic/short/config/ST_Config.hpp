@@ -97,16 +97,16 @@ struct Commsim {
  */
 class WorkerParams {
 public:
-    struct Worker {
-        Worker();
+    struct WorkerConf {
+        WorkerConf();
         unsigned int count;
         unsigned int granularityMs;
     };
 
-    Worker person;
-    Worker signal;
-    Worker intersectionMgr;
-    Worker communication;
+    WorkerConf person;
+    WorkerConf signal;
+    WorkerConf intersectionMgr;
+    WorkerConf communication;
 };
 
 /**

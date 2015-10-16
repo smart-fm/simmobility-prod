@@ -173,13 +173,13 @@ private:
  */
 class WorkerParams {
 public:
-    struct Worker {
-        Worker();
+    struct WorkerConf {
+        WorkerConf();
         unsigned int count;
         unsigned int granularityMs;
     };
 
-    Worker person;
+    WorkerConf person;
 };
 
 struct DB_Details

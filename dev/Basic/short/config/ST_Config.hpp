@@ -95,18 +95,23 @@ struct Commsim {
 /**
  * Represents the "Workers" section of the config file.
  */
-class WorkerParams {
+class WorkerParams
+{
 public:
-    struct WorkerConf {
-        WorkerConf();
-        unsigned int count;
-        unsigned int granularityMs;
-    };
+	struct WorkerConf
+	{
+		WorkerConf() :
+				count(0), granularityMs(0)
+		{
+		}
+		unsigned int count;
+		unsigned int granularityMs;
+	};
 
-    WorkerConf person;
-    WorkerConf signal;
-    WorkerConf intersectionMgr;
-    WorkerConf communication;
+	WorkerConf person;
+	WorkerConf signal;
+	WorkerConf intersectionMgr;
+	WorkerConf communication;
 };
 
 /**
@@ -182,6 +187,11 @@ struct AMOD_ControllerParams
 class ST_Config : public boost::noncopyable
 {
 public:
+    /**
+     * Destructor
+     */
+    ~ST_Config(){}
+
     /**
      * retrieves the singleton instance of ST_Config instance
      *
@@ -381,12 +391,7 @@ private:
     /**
      * Constructor
      */
-    ST_Config(){}
-
-    /**
-     * Destructor
-     */
-    ~ST_Config(){}
+    ST_Config();
 
     /// Singleton instance
     static ST_Config* instance;

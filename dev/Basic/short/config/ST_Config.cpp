@@ -30,6 +30,13 @@ EntityTemplate::EntityTemplate() : startTimeMs(0), laneIndex(0),originNode(-1),
 
 ST_Config* ST_Config::instance = nullptr;
 
+ST_Config::ST_Config() :
+    roadNetworkXsdSchemaFile(""), networkXmlOutputFile(""), networkXmlInputFile(""),
+    partitioningSolutionId(0), auraManagerImplementation(AuraManager::IMPL_RSTAR),
+    networkSource(NETSRC_XML)
+{
+}
+
 ST_Config& ST_Config::getInstance()
 {
     if(!instance)

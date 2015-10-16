@@ -27,7 +27,7 @@ MT_Config::MT_Config() :
 		publicTransitEnabled(false), cbd(false), numAgentsSkipped(0), midTermRunMode(MT_Config::NONE), pedestrianWalkSpeed(0), numPredayThreads(0),
 			configSealed(false), fileOutputEnabled(false), consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA),
 			logsumComputationFrequency(0), supplyUpdateInterval(0), activityScheduleLoadInterval(0), busCapacity(0), outputPredictions(false),
-			populationSource(db::MONGO_DB), populationDB(), logsumDB()
+            populationSource(db::MONGO_DB), populationDB(), logsumDB()
 {
 }
 
@@ -437,11 +437,6 @@ std::vector<IncidentParams>& MT_Config::getIncidents(){
     return incidents;
 }
 
-const std::set<Conflux*>& MT_Config::getConfluxes() const
-{
-    return confluxes;
-}
-
 std::map<const MultiNode*, Conflux*>& MT_Config::getConfluxNodes()
 {
     return multinode_confluxes;
@@ -464,6 +459,11 @@ std::set<Conflux*>& MT_Config::getConfluxes()
     return confluxes;
 }
 
+const std::set<Conflux*>& MT_Config::getConfluxes() const
+{
+    return confluxes;
+}
+
 std::set<SegmentStats*>& MT_Config::getSegmentStatsWithBusStops()
 {
     return segmentStatsWithBusStops;
@@ -472,15 +472,6 @@ std::set<SegmentStats*>& MT_Config::getSegmentStatsWithBusStops()
 unsigned int MT_Config::personTimeStepInMilliSeconds() const
 {
     return workers.person.granularityMs;
-}
-
-std::string ConfigParams::busline_control_type() const
-{
-    std::map<std::string,std::string>::const_iterator it = system.genericProps.find("busline_control_type");
-    if (it==system.genericProps.end()) {
-        throw std::runtime_error("busline_control_type property not found.");
-    }
-    return it->second;
 }
 
 }

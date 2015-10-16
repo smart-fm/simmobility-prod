@@ -38,6 +38,7 @@
 #include "entities/Person_MT.hpp"
 
 using namespace sim_mob;
+using namespace sim_mob::medium;
 
 using std::max;
 using std::vector;

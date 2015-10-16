@@ -86,30 +86,31 @@ void PT_PathSetManager::PT_BulkPathSetGenerator()
 	threadpool_->wait();
 	conn.disconnect();
 }
+
 PT_PathSet PT_PathSetManager::makePathset(sim_mob::Node* from,sim_mob::Node* to)
 {
-	StreetDirectory::PT_VertexId fromId =getVertexIdFromNode(from);
-	StreetDirectory::PT_VertexId toId= getVertexIdFromNode(to);
 	PT_PathSet ptPathSet;
-
-	// KShortestpath Approach
-	getkShortestPaths(fromId,toId,ptPathSet);
-	//Labeling Approach
-	getLabelingApproachPaths(fromId,toId,ptPathSet);
-
-	// Link Elimination Approach
-	getLinkEliminationApproachPaths(fromId,toId,ptPathSet);
-
-	//Simulation approach
-	getSimulationApproachPaths(fromId,toId,ptPathSet);
-	ptPathSet.computeAndSetPathSize();
-
-	// Checking the feasibility of the paths in the pathset.
-	// Infeasible paths are removed.
-	ptPathSet.checkPathFeasibilty();
-	// Writing the pathSet to the CSV file.
-
-	writePathSetToFile(ptPathSet,from->getNodeId(),to->getNodeId());
+//	StreetDirectory::PT_VertexId fromId =getVertexIdFromNode(from);
+//	StreetDirectory::PT_VertexId toId= getVertexIdFromNode(to);
+//
+//	// KShortestpath Approach
+//	getkShortestPaths(fromId,toId,ptPathSet);
+//	//Labeling Approach
+//	getLabelingApproachPaths(fromId,toId,ptPathSet);
+//
+//	// Link Elimination Approach
+//	getLinkEliminationApproachPaths(fromId,toId,ptPathSet);
+//
+//	//Simulation approach
+//	getSimulationApproachPaths(fromId,toId,ptPathSet);
+//	ptPathSet.computeAndSetPathSize();
+//
+//	// Checking the feasibility of the paths in the pathset.
+//	// Infeasible paths are removed.
+//	ptPathSet.checkPathFeasibilty();
+//	// Writing the pathSet to the CSV file.
+//
+//	writePathSetToFile(ptPathSet,from->getNodeId(),to->getNodeId());
 	return ptPathSet;
 }
 void PT_PathSetManager::writePathSetFileHeader()
@@ -134,97 +135,97 @@ void PT_PathSetManager::writePathSetToFile(PT_PathSet &ptPathSet,unsigned int fr
 	fileExclusiveWrite.unlock();
 }
 
-void PT_PathSetManager::getLabelingApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet)
-{
-	for(int i=0;i<labelPoolSize;i++)
-	{
-		vector<PT_NetworkEdge> path;
-		path = StreetDirectory::instance().getPublicTransitShortestPathImpl()->searchShortestPath(fromId,toId,i+LabelingApproach1);
-		if(path.size()!=0)
-		{
-			PT_Path ptPath(path);
-			if(i==LabelingApproach1){
-				ptPath.setMinInVehicleTravelTimeSecs(true);
-			}
-			if(i==LabelingApproach2){
-				ptPath.setMinNumberOfTransfers(true);
-			}
-			if(i==LabelingApproach3){
-				ptPath.setMinWalkingDistance(true);
-			}
-			if(i==LabelingApproach4){
-				ptPath.setMinTravelOnMrt(true);
-			}
-			if(i==LabelingApproach5){
-				ptPath.setMinTravelOnBus(true);
-			}
-			std::stringstream scenario;
-			scenario<<LABELLING_APPROACH<<i;
-			ptPath.setScenario(scenario.str());
-			ptPathSet.pathSet.insert(ptPath);
-		}
-	}
-}
-
-void PT_PathSetManager::getkShortestPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet)
-{
-	int i=0;
-	vector<vector<PT_NetworkEdge> > kShortestPaths;
-	int kShortestLevel = ConfigManager::GetInstance().FullConfig().pathSet().publickShortestPathLevel;
-	StreetDirectory::instance().getPublicTransitShortestPathImpl()->getKShortestPaths(kShortestLevel,fromId,toId,kShortestPaths);
-	for(vector<vector<PT_NetworkEdge> >::iterator itPath=kShortestPaths.begin();itPath!=kShortestPaths.end();itPath++)
-	{
-		i++;
-		PT_Path ptPath(*itPath);
-		if(kShortestPaths.begin() == itPath){
-			ptPath.setShortestPath(true);
-		}
-		std::stringstream scenario;
-		scenario<<KSHORTEST_PATH<<i;
-		ptPath.setScenario(scenario.str());
-		ptPathSet.pathSet.insert(ptPath);
-	}
-}
-
-void PT_PathSetManager::getLinkEliminationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet)
-{
-	int i=0;
-	vector<PT_NetworkEdge> shortestPath;
-	shortestPath = StreetDirectory::instance().getPublicTransitShortestPathImpl()->searchShortestPath(fromId,toId,KshortestPath);
-
-	for(vector<PT_NetworkEdge>::iterator edgeIt=shortestPath.begin();edgeIt!=shortestPath.end();edgeIt++)
-	{
-		vector<PT_NetworkEdge> path;
-		double cost=0;
-		std::set<StreetDirectory::PT_EdgeId> blackList = std::set<StreetDirectory::PT_EdgeId>();
-		blackList.insert(edgeIt->getEdgeId());
-		path=StreetDirectory::instance().getPublicTransitShortestPathImpl()->searchShortestPathWithBlacklist(fromId,toId,blackList,cost);
-		if(path.size()!=0)
-		{
-			i++;
-			PT_Path ptPath(path);
-			std::stringstream scenario;
-			scenario<<LINK_ELIMINATION_APPROACH<<i;
-			ptPath.setScenario(scenario.str());
-			ptPathSet.pathSet.insert(ptPath);
-		}
-	}
-}
-
-void PT_PathSetManager::getSimulationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet)
-{
-	int simulationApproachPoolSize = ConfigManager::GetInstance().FullConfig().pathSet().simulationApproachIterations;
-	for(int i=0;i<simulationApproachPoolSize;i++)
-	{
-		vector<PT_NetworkEdge> path;
-		path = StreetDirectory::instance().getPublicTransitShortestPathImpl()->searchShortestPath(fromId,toId,i+SimulationApproach1);
-		if(path.size()!=0)
-		{
-			PT_Path ptPath(path);
-			std::stringstream scenario;
-			scenario<<SIMULATION_APPROACH<<(i+1);
-			ptPath.setScenario(scenario.str());
-			ptPathSet.pathSet.insert(ptPath);
-		}
-	}
-}
+//void PT_PathSetManager::getLabelingApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet)
+//{
+//	for(int i=0;i<labelPoolSize;i++)
+//	{
+//		vector<PT_NetworkEdge> path;
+//		path = StreetDirectory::Instance().getPublicTransitShortestPathImpl()->searchShortestPath(fromId,toId,i+LabelingApproach1);
+//		if(path.size()!=0)
+//		{
+//			PT_Path ptPath(path);
+//			if(i==LabelingApproach1){
+//				ptPath.setMinInVehicleTravelTimeSecs(true);
+//			}
+//			if(i==LabelingApproach2){
+//				ptPath.setMinNumberOfTransfers(true);
+//			}
+//			if(i==LabelingApproach3){
+//				ptPath.setMinWalkingDistance(true);
+//			}
+//			if(i==LabelingApproach4){
+//				ptPath.setMinTravelOnMrt(true);
+//			}
+//			if(i==LabelingApproach5){
+//				ptPath.setMinTravelOnBus(true);
+//			}
+//			std::stringstream scenario;
+//			scenario<<LABELLING_APPROACH<<i;
+//			ptPath.setScenario(scenario.str());
+//			ptPathSet.pathSet.insert(ptPath);
+//		}
+//	}
+//}
+//
+//void PT_PathSetManager::getkShortestPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet)
+//{
+//	int i=0;
+//	vector<vector<PT_NetworkEdge> > kShortestPaths;
+//	int kShortestLevel = ConfigManager::GetInstance().FullConfig().pathSet().publickShortestPathLevel;
+//	StreetDirectory::Instance().getPublicTransitShortestPathImpl()->getKShortestPaths(kShortestLevel,fromId,toId,kShortestPaths);
+//	for(vector<vector<PT_NetworkEdge> >::iterator itPath=kShortestPaths.begin();itPath!=kShortestPaths.end();itPath++)
+//	{
+//		i++;
+//		PT_Path ptPath(*itPath);
+//		if(kShortestPaths.begin() == itPath){
+//			ptPath.setShortestPath(true);
+//		}
+//		std::stringstream scenario;
+//		scenario<<KSHORTEST_PATH<<i;
+//		ptPath.setScenario(scenario.str());
+//		ptPathSet.pathSet.insert(ptPath);
+//	}
+//}
+//
+//void PT_PathSetManager::getLinkEliminationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet)
+//{
+//	int i=0;
+//	vector<PT_NetworkEdge> shortestPath;
+//	shortestPath = StreetDirectory::Instance().getPublicTransitShortestPathImpl()->searchShortestPath(fromId,toId,KshortestPath);
+//
+//	for(vector<PT_NetworkEdge>::iterator edgeIt=shortestPath.begin();edgeIt!=shortestPath.end();edgeIt++)
+//	{
+//		vector<PT_NetworkEdge> path;
+//		double cost=0;
+//		std::set<StreetDirectory::PT_EdgeId> blackList = std::set<StreetDirectory::PT_EdgeId>();
+//		blackList.insert(edgeIt->getEdgeId());
+//		path=StreetDirectory::Instance().getPublicTransitShortestPathImpl()->searchShortestPathWithBlacklist(fromId,toId,blackList,cost);
+//		if(path.size()!=0)
+//		{
+//			i++;
+//			PT_Path ptPath(path);
+//			std::stringstream scenario;
+//			scenario<<LINK_ELIMINATION_APPROACH<<i;
+//			ptPath.setScenario(scenario.str());
+//			ptPathSet.pathSet.insert(ptPath);
+//		}
+//	}
+//}
+//
+//void PT_PathSetManager::getSimulationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet)
+//{
+//	int simulationApproachPoolSize = ConfigManager::GetInstance().FullConfig().pathSet().simulationApproachIterations;
+//	for(int i=0;i<simulationApproachPoolSize;i++)
+//	{
+//		vector<PT_NetworkEdge> path;
+//		path = StreetDirectory::Instance().getPublicTransitShortestPathImpl()->searchShortestPath(fromId,toId,i+SimulationApproach1);
+//		if(path.size()!=0)
+//		{
+//			PT_Path ptPath(path);
+//			std::stringstream scenario;
+//			scenario<<SIMULATION_APPROACH<<(i+1);
+//			ptPath.setScenario(scenario.str());
+//			ptPathSet.pathSet.insert(ptPath);
+//		}
+//	}
+//}

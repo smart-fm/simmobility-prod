@@ -303,7 +303,7 @@ void sim_mob::DriverMovement::frame_tick()
 			for (std::vector<const RoadSegment*>::const_iterator it = rrPathToSend.begin(); it != rrPathToSend.end(); ++it)
 			{
 				//Determine if this road segment is within a Region.
-				std::pair<RoadRunnerRegion, bool> rReg = StreetDirectory::instance().getRoadRunnerRegion(*it);
+				std::pair<RoadRunnerRegion, bool> rReg = StreetDirectory::Instance().getRoadRunnerRegion(*it);
 				
 				if (rReg.second)
 				{
@@ -2160,7 +2160,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle)
 		}
 		else
 		{
-			const StreetDirectory& stdir = StreetDirectory::instance();
+			const StreetDirectory& stdir = StreetDirectory::Instance();
 
 			if (subTrip->schedule == nullptr)
 			{
@@ -2171,9 +2171,8 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle)
 				}
 				else
 				{
-					const StreetDirectory& stdir = StreetDirectory::instance();
-					path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin)),
-														   stdir.DrivingVertex(*(parentDriver->goal)));
+					const StreetDirectory& stdir = StreetDirectory::Instance();
+					path = stdir.SearchShortestDrivingPath(*(parentDriver->origin), *(parentDriver->goal));
 				}
 			}
 			else
@@ -2186,7 +2185,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle)
 				
 				for (++second; first != routes.end() && second != routes.end(); ++first, ++second)
 				{
-					vector<WayPoint> subPath = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(**first), stdir.DrivingVertex(**second));
+					vector<WayPoint> subPath = stdir.SearchShortestDrivingPath(**first, **second);
 					path.insert(path.end(), subPath.begin(), subPath.end());
 				}
 			}
@@ -2292,10 +2291,8 @@ void sim_mob::DriverMovement::rerouteWithBlacklist(
 	//NOTE: This path may be invalid, is there is no LaneConnector from the current Segment to the first segment of the result path.
 	const RoadSegment* currSeg = fwdDriverMovement.getCurrSegment();
 	const Node* node = currSeg->getParentLink()->getToNode();
-	const StreetDirectory& stdir = StreetDirectory::instance();
-	vector<WayPoint> path = stdir.SearchShortestDrivingPath(
-			stdir.DrivingVertex(*node),
-			stdir.DrivingVertex(*(parentDriver->goal)), blacklisted);
+	const StreetDirectory& stdir = StreetDirectory::Instance();
+	vector<WayPoint> path = stdir.SearchShortestDrivingPath(*node, *(parentDriver->goal), blacklisted);
 
 	//Given this (tentative) path, we still have to transition from the current Segment.
 	//At the moment this is a bit tedious (since we can't search mid-segment in the StreetDir), but
@@ -3193,7 +3190,7 @@ void sim_mob::DriverMovement::setTrafficSignal()
 		node = fwdDriverMovement.getCurrLink()->getFromNode();
 	}
 	
-	trafficSignal = node ? StreetDirectory::instance().signalAt(*node) : nullptr;
+	//trafficSignal = node ? StreetDirectory::Instance().signalAt(*node) : nullptr;
 }
 
 void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p) 

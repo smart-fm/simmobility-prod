@@ -134,7 +134,7 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 						{
 							stop = stop->getTwinStop();
 							if(stop->terminusType == sim_mob::BusStop::SINK_TERMINUS) { throw std::runtime_error("both twin stops are SINKs"); } //sanity check
-							const StreetDirectory& strDirectory = StreetDirectory::instance();
+							const StreetDirectory& strDirectory = StreetDirectory::Instance();
 							Agent* twinStopAgent = strDirectory.findBusStopAgentByBusStop(stop);
 							if (twinStopAgent)
 							{

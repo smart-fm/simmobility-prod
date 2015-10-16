@@ -36,6 +36,16 @@ void TurningPath::setTurningPathId(unsigned int turningPathId)
 	this->turningPathId = turningPathId;
 }
 
+const Lane* TurningPath::getFromLane() const
+{
+	return fromLane;
+}
+
+void TurningPath::setFromLane(Lane* fromLane)
+{
+	this->fromLane = fromLane;
+}
+
 unsigned int TurningPath::getFromLaneId() const
 {
 	return fromLaneId;
@@ -56,6 +66,16 @@ void TurningPath::setPolyLine(PolyLine* polyLine)
 	this->polyLine = polyLine;
 }
 
+const Lane* TurningPath::getToLane() const
+{
+	return toLane;
+}
+
+void TurningPath::setToLane(Lane* toLane)
+{
+	this->toLane = toLane;
+}
+
 unsigned int TurningPath::getToLaneId() const
 {
 	return toLaneId;
@@ -74,16 +94,6 @@ unsigned int TurningPath::getTurningGroupId() const
 void TurningPath::setTurningGroupId(unsigned int turningGroupId)
 {
 	this->turningGroupId = turningGroupId;
-}
-
-const Lane* TurningPath::getFromLane() const
-{
-	return fromLane;
-}
-
-const Lane* TurningPath::getToLane() const
-{
-	return toLane;
 }
 
 double TurningPath::getLength() const

@@ -53,7 +53,7 @@ namespace{
 }
 
 sim_mob::Conflux::Conflux(Node* multinode, const MutexStrategy& mtxStrat, int id)
-: Agent(mtxStrat, id), multiNode(multinode), signal(StreetDirectory::instance().signalAt(*multinode)),
+: Agent(mtxStrat, id), multiNode(multinode), signal(NULL/*StreetDirectory::Instance().signalAt(*multinode)*/),
 parentWorker(nullptr), currFrame(0,0), debugMsgs(std::stringstream::out), isBoundary(false), isMultipleReceiver(false)
 {}
 
@@ -1173,7 +1173,7 @@ void sim_mob::Conflux::updateBusStopAgents()
 }
 
 void sim_mob::Conflux::assignPersonToBusStopAgent(Person* person)
-{
+{/*
 	Role* role = person->getRole();
 	if (role && role->roleType == Role::RL_WAITBUSACTITITY)
 	{
@@ -1200,14 +1200,14 @@ void sim_mob::Conflux::assignPersonToBusStopAgent(Person* person)
 			if(stop->getTerminusType() == sim_mob::SINK_TERMINUS) { throw std::runtime_error("both twin stops are SINKs"); } //sanity check
 		}
 
-		const StreetDirectory& strDirectory = StreetDirectory::instance();
+		const StreetDirectory& strDirectory = StreetDirectory::Instance();
 		Agent* busStopAgent = strDirectory.findBusStopAgentByBusStop(stop);
 		if (busStopAgent)
 		{
 			messaging::MessageBus::SendMessage(busStopAgent, MSG_WAITING_PERSON_ARRIVAL_AT_BUSSTOP,
 					messaging::MessageBus::MessagePtr(new ArrivalAtStopMessage(person)));
 		}
-	}
+	}*/
 }
 
 void sim_mob::Conflux::assignPersonToMRT(Person* person) {

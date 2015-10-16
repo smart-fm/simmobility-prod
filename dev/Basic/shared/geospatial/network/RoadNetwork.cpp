@@ -76,6 +76,16 @@ const std::map<unsigned int, Node *>& RoadNetwork::getMapOfIdvsNodes() const
 	return mapOfIdvsNodes;
 }
 
+const std::map<unsigned int, Lane*>& RoadNetwork::getMapOfIdVsLanes() const
+{
+	return mapOfIdVsLanes;
+}
+
+const std::map<unsigned int, RoadSegment*>& RoadNetwork::getMapOfIdVsRoadSegments() const
+{
+	return mapOfIdVsRoadSegments;
+}
+
 const std::map<unsigned int, TurningGroup *>& RoadNetwork::getMapOfIdvsTurningGroups() const
 {
 	return mapOfIdvsTurningGroups;
@@ -116,8 +126,10 @@ void RoadNetwork::addLane(Lane* lane)
 	else
 	{
 		std::stringstream msg;
-		msg << "Lane " << lane->getRoadSegmentId() << " refers to an invalid segment " << lane->getRoadSegmentId();
-		throw std::runtime_error(msg.str());
+		msg << "\nLane " << lane->getRoadSegmentId() << " refers to an invalid segment " << lane->getRoadSegmentId();
+		Print() << msg.str();
+		safe_delete_item(lane);		
+		//throw std::runtime_error(msg.str());		
 	}
 }
 
@@ -142,7 +154,8 @@ void RoadNetwork::addLaneConnector(LaneConnector* connector)
 		std::stringstream msg;
 		msg << "\nLane connector " << connector->getLaneConnectionId() << " refers to an invalid lane - " << connector->getFromLaneId()
 			<< " or " << connector->getToLaneId();
-		//Print() << msg.str();
+		Print() << msg.str();
+		safe_delete_item(connector);
 		//throw std::runtime_error(msg.str());
 	}
 }
@@ -188,16 +201,14 @@ void RoadNetwork::addLanePolyLine(PolyPoint point)
 	else
 	{
 		std::stringstream msg;
-		msg << "Lane poly-line " << point.getPolyLineId() << " refers to an invalid lane " << point.getPolyLineId();
-		throw std::runtime_error(msg.str());
+		msg << "\nLane poly-line " << point.getPolyLineId() << " refers to an invalid lane " << point.getPolyLineId();
+		Print() << msg.str();
+		//throw std::runtime_error(msg.str());
 	}
 }
 
 void RoadNetwork::addLink(Link *link)
 {
-	//Add link to the map of links
-	mapOfIdVsLinks.insert(std::make_pair(link->getLinkId(), link));
-	
 	//Set the from node of the link
 	std::map<unsigned int, Node *>::iterator itNodes = mapOfIdvsNodes.find(link->getFromNodeId());
 	
@@ -210,6 +221,8 @@ void RoadNetwork::addLink(Link *link)
 		std::stringstream msg;
 		msg << "\nLink " << link->getLinkId() << " refers to an invalid fromNode " << link->getFromNodeId();
 		Print() << msg.str();
+		safe_delete_item(link);
+		return;
 		//throw std::runtime_error(msg.str());
 	}
 	
@@ -219,12 +232,16 @@ void RoadNetwork::addLink(Link *link)
 	if(itNodes != mapOfIdvsNodes.end())
 	{
 		link->setToNode(itNodes->second);
+		
+		//Add link to the map of links
+		mapOfIdVsLinks.insert(std::make_pair(link->getLinkId(), link));
 	}
 	else
 	{
 		std::stringstream msg;
 		msg << "\nLink " << link->getLinkId() << " refers to an invalid toNode " << link->getToNodeId();
-		//Print() << msg.str();
+		Print() << msg.str();
+		safe_delete_item(link);
 		//throw std::runtime_error(msg.str());
 	}
 }
@@ -254,8 +271,10 @@ void RoadNetwork::addRoadSegment(RoadSegment* segment)
 	else
 	{
 		std::stringstream msg;
-		msg << "RoadSegment " << segment->getRoadSegmentId() << " refers to an invalid link " << segment->getLinkId();
-		throw std::runtime_error(msg.str());
+		msg << "\nRoadSegment " << segment->getRoadSegmentId() << " refers to an invalid link " << segment->getLinkId();
+		Print() << msg.str();
+		safe_delete_item(segment);
+		//throw std::runtime_error(msg.str());
 	}
 }
 
@@ -300,8 +319,9 @@ void RoadNetwork::addSegmentPolyLine(PolyPoint point)
 	else
 	{
 		std::stringstream msg;
-		msg << "Segment poly-line " << point.getPolyLineId() << " refers to an invalid road segment " << point.getPolyLineId();
-		throw std::runtime_error(msg.str());
+		msg << "\nSegment poly-line " << point.getPolyLineId() << " refers to an invalid road segment " << point.getPolyLineId();
+		Print() << msg.str();
+		//throw std::runtime_error(msg.str());
 	}
 }
 
@@ -324,8 +344,11 @@ void RoadNetwork::addTurningConflict(TurningConflict* turningConflict)
 	else
 	{
 		std::stringstream msg;
-		msg << "Turning conflict " << turningConflict->getConflictId() << " refers to an invalid turning path " << turningConflict->getFirstTurningId();
-		throw std::runtime_error(msg.str());
+		msg << "\nTurning conflict " << turningConflict->getConflictId() << " refers to an invalid turning path " << turningConflict->getFirstTurningId();		
+		Print() << msg.str();
+		safe_delete_item(turningConflict);
+		return;
+		//throw std::runtime_error(msg.str());
 	}
 	
 	//Second turning
@@ -336,23 +359,25 @@ void RoadNetwork::addTurningConflict(TurningConflict* turningConflict)
 	if(itPaths != mapOfIdvsTurningPaths.end())
 	{
 		second = itPaths->second;
-		
+
 		//Set the turning path to the conflict
 		turningConflict->setSecondTurning(itPaths->second);
+
+		//Add the conflict to the turning - to both the turnings
+		first->addTurningConflict(second, turningConflict);
+		second->addTurningConflict(first, turningConflict);
+
+		//Add the conflict to the map of conflicts
+		mapOfIdVsTurningConflicts.insert(std::make_pair(turningConflict->getConflictId(), turningConflict));
 	}
 	else
 	{
 		std::stringstream msg;
-		msg << "Turning conflict " << turningConflict->getConflictId() << " refers to an invalid turning path " << turningConflict->getSecondTurningId();
-		throw std::runtime_error(msg.str());
-	}
-	
-	//Add the conflict to the turning - to both the turnings
-	first->addTurningConflict(second, turningConflict);
-	second->addTurningConflict(first, turningConflict);
-	
-	//Add the conflict to the map of conflicts
-	mapOfIdVsTurningConflicts.insert(std::make_pair(turningConflict->getConflictId(), turningConflict));
+		msg << "\nTurning conflict " << turningConflict->getConflictId() << " refers to an invalid turning path " << turningConflict->getSecondTurningId();
+		Print() << msg.str();
+		safe_delete_item(turningConflict);
+		//throw std::runtime_error(msg.str());
+	}	
 }
 
 void RoadNetwork::addTurningGroup(TurningGroup *turningGroup)
@@ -360,20 +385,34 @@ void RoadNetwork::addTurningGroup(TurningGroup *turningGroup)
 	//Find the node to which the turning group belongs
 	std::map<unsigned int, Node *>::iterator itNodes = mapOfIdvsNodes.find(turningGroup->getNodeId());
 	
-	//Check if the node exists in the map
-	if(itNodes != mapOfIdvsNodes.end())
+	//Check if the links that the turning group connects exist
+	if(mapOfIdVsLinks.count(turningGroup->getFromLinkId()) && mapOfIdVsLinks.count(turningGroup->getToLinkId()))
 	{
-		//Add the turning to the node
-		itNodes->second->addTurningGroup(turningGroup);
-		
-		//Add the turning group to the map of turning groups
-		mapOfIdvsTurningGroups.insert(std::make_pair(turningGroup->getTurningGroupId(), turningGroup));
+		//Check if the node exists in the map
+		if (itNodes != mapOfIdvsNodes.end())
+		{
+			//Add the turning to the node
+			itNodes->second->addTurningGroup(turningGroup);
+
+			//Add the turning group to the map of turning groups
+			mapOfIdvsTurningGroups.insert(std::make_pair(turningGroup->getTurningGroupId(), turningGroup));
+		}
+		else
+		{
+			std::stringstream msg;
+			msg << "\nTurning group " << turningGroup->getTurningGroupId() << " refers to an invalid Node " << turningGroup->getNodeId();
+			Print() << msg.str();
+			safe_delete_item(turningGroup);
+			//throw std::runtime_error(msg.str());
+		}
 	}
 	else
 	{
 		std::stringstream msg;
-		msg << "\nTurning group " << turningGroup->getTurningGroupId() << " refers to an invalid Node " << turningGroup->getNodeId();
+		msg << "\nTurning group " << turningGroup->getTurningGroupId() << " refers to an invalid Link " << turningGroup->getFromLinkId()
+			<< " or " << turningGroup->getToLinkId();
 		Print() << msg.str();
+		safe_delete_item(turningGroup);
 		//throw std::runtime_error(msg.str());
 	}
 }
@@ -383,20 +422,42 @@ void RoadNetwork::addTurningPath(TurningPath* turningPath)
 	//Find the turning group to which the turning path belongs
 	std::map<unsigned int, TurningGroup *>::iterator itGroups = mapOfIdvsTurningGroups.find(turningPath->getTurningGroupId());
 	
-	//Check if the turning group exists in the map
+	//Find the lanes which the turning path connects
+	std::map<unsigned int, Lane *>::iterator itFromLanes = mapOfIdVsLanes.find(turningPath->getFromLaneId());
+	std::map<unsigned int, Lane *>::iterator itToLanes = mapOfIdVsLanes.find(turningPath->getToLaneId());
+	
+	//Check if the turning group and the lanes exists in the map
 	if(itGroups != mapOfIdvsTurningGroups.end())
 	{
-		//Add the turning path to the turning group
-		itGroups->second->addTurningPath(turningPath);
-		
-		//Add the turning path to the map of turning paths
-		mapOfIdvsTurningPaths.insert(std::make_pair(turningPath->getTurningPathId(), turningPath));
+		if (itFromLanes != mapOfIdVsLanes.end() && itToLanes != mapOfIdVsLanes.end())
+		{
+			//Add the turning path to the turning group
+			itGroups->second->addTurningPath(turningPath);
+			
+			//Add the from and to lanes
+			turningPath->setFromLane(itFromLanes->second);
+			turningPath->setToLane(itToLanes->second);
+
+			//Add the turning path to the map of turning paths
+			mapOfIdvsTurningPaths.insert(std::make_pair(turningPath->getTurningPathId(), turningPath));
+		}
+		else
+		{
+			std::stringstream msg;
+			msg << "\nTurning path " << turningPath->getTurningPathId() << " refers to an invalid lane " << turningPath->getFromLaneId()
+				<< " or " << turningPath->getToLaneId();
+			Print() << msg.str();
+			safe_delete_item(turningPath);
+			//throw std::runtime_error(msg.str());
+		}
 	}
 	else
 	{
 		std::stringstream msg;
-		msg << "Turning path " << turningPath->getTurningPathId() << " refers to an invalid turning group " << turningPath->getTurningGroupId();
-		throw std::runtime_error(msg.str());
+		msg << "\nTurning path " << turningPath->getTurningPathId() << " refers to an invalid turning group " << turningPath->getTurningGroupId();
+		Print() << msg.str();
+		safe_delete_item(turningPath);
+		//throw std::runtime_error(msg.str());
 	}
 }
 
@@ -441,8 +502,9 @@ void RoadNetwork::addTurningPolyLine(PolyPoint point)
 	else
 	{
 		std::stringstream msg;
-		msg << "Turning poly-line " << point.getPolyLineId() << " refers to an invalid turning path " << point.getPolyLineId();
-		throw std::runtime_error(msg.str());
+		msg << "\nTurning poly-line " << point.getPolyLineId() << " refers to an invalid turning path " << point.getPolyLineId();
+		Print() << msg.str();
+		//throw std::runtime_error(msg.str());
 	}
 }
 
@@ -455,6 +517,7 @@ void RoadNetwork::addBusStop(BusStop* stop)
 	{
 		std::stringstream msg;
 		msg << "Bus stop " << stop->getRoadItemId() << " has already been added!";
+		safe_delete_item(stop);
 		throw std::runtime_error(msg.str());
 	}
 	else
@@ -477,6 +540,7 @@ void RoadNetwork::addBusStop(BusStop* stop)
 		{
 			std::stringstream msg;
 			msg << "Bus stop " << stop->getRoadItemId() << " refers to an invalid road segment " << stop->getRoadSegmentId();
+			safe_delete_item(stop);
 			throw std::runtime_error(msg.str());
 		}
 	}

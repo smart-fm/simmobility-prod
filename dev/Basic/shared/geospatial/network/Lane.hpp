@@ -116,7 +116,6 @@ public:
 	const std::vector<LaneConnector*>& getLaneConnectors() const;
 
 	unsigned int getLaneIndex() const;
-	void setLaneIndex(unsigned int laneIndex);
 
 	const RoadSegment* getParentSegment() const;
 	void setParentSegment(RoadSegment* parentSegment);

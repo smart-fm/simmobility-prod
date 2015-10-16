@@ -158,11 +158,12 @@ sim_mob::Entity::UpdateStatus sim_mob::Signal::frame_tick(timeslice now)
 Signal_SCATS const &
 sim_mob::Signal_SCATS::signalAt(Node const & node, const MutexStrategy& mtxStrat, bool *isNew)
 {
+	/*
 	if (isNew)
 	{
 		*isNew = false;
 	}
-	Signal_SCATS const * signal = dynamic_cast<Signal_SCATS const *> (StreetDirectory::instance().signalAt(node));
+	Signal_SCATS const * signal = dynamic_cast<Signal_SCATS const *> (StreetDirectory::Instance().signalAt(node));
 	if (signal)
 	{
 		return *signal;
@@ -174,7 +175,10 @@ sim_mob::Signal_SCATS::signalAt(Node const & node, const MutexStrategy& mtxStrat
 	{
 		*isNew = true;
 	}
-	StreetDirectory::instance().registerSignal(*sig);
+	StreetDirectory::Instance().registerSignal(*sig);
+	return *sig;
+	*/
+	Signal_SCATS *sig = new Signal_SCATS(node, mtxStrat);
 	return *sig;
 }
 

@@ -284,7 +284,7 @@ bool sim_mob::insertIncidentS(const std::string fileName){
 		throw runtime_error(out.str());
 		//return false;
 	}
-	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::instance();
+	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::Instance();
 	typedef tokenizer< escaped_list_separator<char> > Tokenizer;
 	vector< string > record;
 	string line;

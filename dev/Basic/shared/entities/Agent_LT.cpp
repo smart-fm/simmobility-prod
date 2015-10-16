@@ -337,7 +337,7 @@ void sim_mob::Agent_LT::onEvent(EventId eventId, Context ctxId, EventPublisher* 
 
 			if (it != regions.end())
 			{
-				std::vector<const sim_mob::RoadSegment*> blacklisted = StreetDirectory::instance().getSegmentsFromRegion(it->second);
+				std::vector<const sim_mob::RoadSegment*> blacklisted = StreetDirectory::Instance().getSegmentsFromRegion(it->second);
 				rerouteWithBlacklist(blacklisted);
 			}
 		}*/

@@ -210,20 +210,14 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 
 		//Open the connection to the database
 		sql.open(soci::postgresql, connectionStr);
+		
+		sim_mob::Print() << "Connection established...\nLoading SimMobility network...\n";
 
 		//Load the components of the network
 		
 		loadNodes(getStoredProcedure(storedProcs, "nodes"));
 
 		loadLinks(getStoredProcedure(storedProcs, "links"));
-
-		loadTurningGroups(getStoredProcedure(storedProcs, "turning_groups"));
-
-		loadTurningPaths(getStoredProcedure(storedProcs, "turning_paths"));
-
-		loadTurningPolyLines(getStoredProcedure(storedProcs, "turning_polylines"));
-
-		loadTurningConflicts(getStoredProcedure(storedProcs, "turning_conflicts"));
 
 		loadRoadSegments(getStoredProcedure(storedProcs, "road_segments"));
 
@@ -234,6 +228,14 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 		loadLanePolyLines(getStoredProcedure(storedProcs, "lane_polylines"));
 
 		loadLaneConnectors(getStoredProcedure(storedProcs, "lane_connectors"));
+		
+		loadTurningGroups(getStoredProcedure(storedProcs, "turning_groups"));
+
+		loadTurningPaths(getStoredProcedure(storedProcs, "turning_paths"));
+
+		loadTurningPolyLines(getStoredProcedure(storedProcs, "turning_polylines"));
+
+		loadTurningConflicts(getStoredProcedure(storedProcs, "turning_conflicts"));
 		
 		//loadBusStops(getStoredProcedure(storedProcs, "bus_stops"));
 		
@@ -264,6 +266,7 @@ void NetworkLoader::processNetwork()
 	while(itLinks != mapOfLinks.end())
 	{
 		itLinks->second->calculateLength();
+		++itLinks;
 	}
 }
 

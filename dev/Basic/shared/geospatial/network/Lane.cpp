@@ -36,6 +36,7 @@ unsigned int Lane::getLaneId() const
 void Lane::setLaneId(unsigned int laneId)
 {
 	this->laneId = laneId;
+	this->laneIndex = laneId % 10;
 }
 
 BusLaneRules Lane::getBusLaneRules() const
@@ -96,11 +97,6 @@ const std::vector<LaneConnector*>& Lane::getLaneConnectors() const
 unsigned int Lane::getLaneIndex() const
 {
 	return laneIndex;
-}
-
-void Lane::setLaneIndex(unsigned int laneIndex)
-{
-	this->laneIndex = laneIndex;
 }
 
 void Lane::setParentSegment(RoadSegment* parentSegment)

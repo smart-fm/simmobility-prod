@@ -215,7 +215,7 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 	const BusStop* end;
 	const BusStop* nextEnd;
 	bool isFound = true;
-	if (stops.size() > 0) {
+/*	if (stops.size() > 0) {
 		start = nullptr;
 		end = nullptr;
 		nextEnd = nullptr;
@@ -234,7 +234,7 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 				stopIDs.push_back(stopInfo);
 			} else {
 				end = busStop;
-				const StreetDirectory& stdir = StreetDirectory::instance();
+				const StreetDirectory& stdir = StreetDirectory::Instance();
 				StreetDirectory::VertexDesc startDes = stdir.DrivingVertex(*start);
 				StreetDirectory::VertexDesc endDes = stdir.DrivingVertex(*end);
 				vector<WayPoint> path;
@@ -317,7 +317,7 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 			}
 		}
 	}
-
+*/
 	return isFound;
 }
 

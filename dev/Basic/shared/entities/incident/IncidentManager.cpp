@@ -40,14 +40,12 @@ void sim_mob::IncidentManager::readFromFile(std::string inputFile){
 //		throw std::runtime_error(out.str());
 		return;
 	}
-	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::instance();
 	typedef boost::tokenizer< boost::escaped_list_separator<char> > Tokenizer;
 	std::string line;
 	std::vector< std::string > vec;
 	while (getline(in,line))
 	{
 		Tokenizer record(line);
-		Tokenizer::iterator it = record.begin();
 		vec.clear();
 		vec.assign(record.begin(),record.end());
 		unsigned int sectionId = boost::lexical_cast<unsigned int>(vec[0]);//first element
@@ -67,7 +65,7 @@ void sim_mob::IncidentManager::insertTickIncidents(uint32_t tick){/*
 		return;
 	}
 
-	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::instance();
+	sim_mob::StreetDirectory & stDir = sim_mob::StreetDirectory::Instance();
 	std::pair<uint32_t,Incident> incident;
 	//inserting and informing: 1-Conflux 2-pathsetmanager 3-person
 	for(std::multimap<uint32_t,Incident>::iterator incident = tickIncident.first; incident != tickIncident.second; incident++){

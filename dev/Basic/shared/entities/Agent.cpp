@@ -367,7 +367,7 @@ void sim_mob::Agent::onEvent(EventId eventId,
 			const std::map<int, sim_mob::RoadRunnerRegion>& regions = ConfigManager::GetInstance().FullConfig().getNetwork().roadRunnerRegions;
 			std::map<int, sim_mob::RoadRunnerRegion>::const_iterator it = regions.find(boost::lexical_cast<int>(rrArgs.getBlacklistRegion()));
 			if (it != regions.end()) {
-				std::vector<const sim_mob::RoadSegment*> blacklisted = StreetDirectory::instance().getSegmentsFromRegion(it->second);
+				std::vector<const sim_mob::RoadSegment*> blacklisted = StreetDirectory::Instance().getSegmentsFromRegion(it->second);
 				rerouteWithBlacklist(blacklisted);
 			}
 		} */

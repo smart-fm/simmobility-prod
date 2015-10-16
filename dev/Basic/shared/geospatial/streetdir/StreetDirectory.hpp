@@ -144,7 +144,7 @@ public:
 		 *
 		 * @return the shortest path result.
 		 */
-		virtual std::vector<WayPoint> GetShortestDrivingPath(const VertexDesc from, const VertexDesc to, const std::vector<const Link *> &blackList) const = 0;
+		virtual std::vector<WayPoint> GetShortestDrivingPath(const VertexDesc &from, const VertexDesc &to, const std::vector<const Link *> &blackList) const = 0;
 
 		/**
 		 * Prints the graph structure
@@ -197,7 +197,7 @@ public:
 	 */
 	template<class EDGE = Link, class VERTEX_FROM = Node, class VERTEX_TO = Node>
 	std::vector<WayPoint> SearchShortestDrivingPath(const VERTEX_FROM &from, const VERTEX_TO &to,
-													std::vector<const EDGE*>& blackList = std::vector<const EDGE*>()) const
+													const std::vector<const EDGE*>& blackList = std::vector<const EDGE*>()) const
 	{
 		std::vector<WayPoint> res;
 		if (!spImpl)

@@ -167,7 +167,7 @@ void sim_mob::Pedestrian2Movement::frame_tick_output() {
 void sim_mob::Pedestrian2Movement::setSubPath() 
 {
 	/*
-	const StreetDirectory& stdir = StreetDirectory::instance();
+	const StreetDirectory& stdir = StreetDirectory::Instance();
 
 	StreetDirectory::VertexDesc source, destination;
 	if(getParent()->originNode.type_==WayPoint::NODE)
@@ -195,7 +195,7 @@ void sim_mob::Pedestrian2Movement::setSubPath()
 		} else if (it->type_ == WayPoint::BUS_STOP) {
 //			std::cout<<"  Bus Stop: (not supported) id "<< it->busStop_->id << std::endl;
 		} else if (it->type_ == WayPoint::CROSSING){
-//			std::cout<<"  Crossing at Node: " <<StreetDirectory::instance().GetCrossingNode(it->crossing_)->originalDB_ID.getLogItem() <<std::endl;
+//			std::cout<<"  Crossing at Node: " <<StreetDirectory::Instance().GetCrossingNode(it->crossing_)->originalDB_ID.getLogItem() <<std::endl;
 		} else if (it->type_ == WayPoint::NODE) {
 //			std::cout<<"  Node: " <<it->node_->originalDB_ID.getLogItem() <<std::endl;
 		} else if (it->type_ == WayPoint::INVALID) {
@@ -211,7 +211,7 @@ void sim_mob::Pedestrian2Movement::setSubPath()
 
 void sim_mob::Pedestrian2Movement::updatePedestrianSignal()
 {
-	/*const MultiNode* node = StreetDirectory::instance().GetCrossingNode(pedMovement.getCurrentWaypoint()->crossing_);
+	/*const MultiNode* node = StreetDirectory::Instance().GetCrossingNode(pedMovement.getCurrentWaypoint()->crossing_);
 	if (!node) {
 		throw std::runtime_error("Coulding find Pedestrian Sginal for crossing.");
 	}
@@ -237,7 +237,7 @@ void sim_mob::Pedestrian2Movement::updatePedestrianSignal()
 	if(rs)
 		node = ConfigParams::GetInstance().getNetwork().locateNode(location, true);*//*
 	if (node)
-		trafficSignal = StreetDirectory::instance().signalAt(*node);
+		trafficSignal = StreetDirectory::Instance().signalAt(*node);
 	else
 		trafficSignal = nullptr;
 

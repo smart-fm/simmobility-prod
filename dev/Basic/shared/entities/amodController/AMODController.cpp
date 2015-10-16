@@ -60,7 +60,7 @@ sim_mob::AMOD::AMODController::~AMODController() {
 
 void sim_mob::AMOD::AMODController::init()
 {
-/*	stdir = &StreetDirectory::instance();
+/*	stdir = &StreetDirectory::Instance();
 
 	const sim_mob::RoadNetwork& roadNetwork = ConfigManager::GetInstance().FullConfig().getNetwork();
 	const std::vector<Node*>& multiNodesPool = roadNetwork.getNodes();
@@ -167,12 +167,12 @@ void AMODController::precomputeAllPairsShortestPaths()
 			// compute shortest path
 			std::vector<const sim_mob::RoadSegment*> blacklist; //empty vector -> nothing blacklisted
 
-			std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*(origItr->second)), stdir->DrivingVertex(*(destItr->second)),blacklist);
+			/*std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*(origItr->second)), stdir->DrivingVertex(*(destItr->second)),blacklist);
 			for (int i=0; i<wp2.size(); i++) {
 				if (wp2[i].type == WayPoint::ROAD_SEGMENT ) {
 					wp.push_back(wp2[i]);
 				}
-			}
+			}*/
 
 			shortestPaths.insert(std::make_pair(nodeKey, wp));
 		}
@@ -200,11 +200,9 @@ bool AMODController::hasShortestPath(std::string origNodeID, std::string destNod
 		}
 
 		// compute shortest path
-		std::vector<const sim_mob::RoadSegment*> blacklist;
+		const std::vector<const sim_mob::RoadSegment*> blacklist;
 
-		std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingPath(
-				stdir->DrivingVertex(*origNode),
-				stdir->DrivingVertex(*destNode), blacklist);
+		std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingPath(*origNode, *destNode, blacklist);
 
 		for (std::vector<WayPoint>::iterator itWayPts = wp2.begin(); itWayPts != wp2.end(); ++itWayPts)
 		{
@@ -247,7 +245,7 @@ vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::s
 		// compute shortest path
 		std::vector<const sim_mob::RoadSegment*> blacklist;
 
-		std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(stdir->DrivingVertex(*origNode), stdir->DrivingVertex(*destNode),blacklist);
+		std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(*origNode, *destNode, blacklist);
 		/*std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingTimePath(
 					stdir->DrivingTimeVertex(*origNode,sim_mob::Default),
 					stdir->DrivingTimeVertex(*destNode,sim_mob::Default),
@@ -268,7 +266,7 @@ vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::s
 vector <WayPoint> AMODController::getShortestPathWBlacklist(std::string origNodeID, std::string destNodeID, std::vector<const sim_mob::RoadSegment*> blacklist)
 {
 	std::vector < WayPoint > wp;
-
+/*
 	const Node* origNode = nodePool.at(origNodeID);
 	const Node* destNode = nodePool.at(destNodeID);
 
@@ -287,7 +285,7 @@ vector <WayPoint> AMODController::getShortestPathWBlacklist(std::string origNode
 			wp.push_back(wp2[i]);
 		}
 	}
-
+*/
 	return wp;
 }
 
@@ -964,7 +962,7 @@ bool AMODController::insertTravelTime2TmpTable(timeslice frameNumber, std::map<c
 
 
 void AMODController::testTravelTimePath()
-{
+{/*
 	std::string destNodeId="61688";
 	std::string carParkId = "75780";
 	const Node *startNode = nodePool.at(carParkId);
@@ -984,7 +982,7 @@ void AMODController::testTravelTimePath()
 			const RoadSegment* rs = wp[i].roadSegment;
 			//Print() <<"from node: "<<rs->getStart()->originalDB_ID.getLogItem()<<" to node: "<<rs->getEnd()->originalDB_ID.getLogItem()<<std::endl;
 		}
-	}
+	}*/
 }
 
 void AMODController::handleAMODEvent(sim_mob::event::EventId id,

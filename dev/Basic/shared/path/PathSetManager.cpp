@@ -80,7 +80,7 @@ boost::shared_ptr<sim_mob::batched::ThreadPool> sim_mob::PathSetManager::threadp
 unsigned int sim_mob::PathSetManager::curIntervalMS = 0;
 unsigned int sim_mob::PathSetManager::intervalMS = 0;
 
-sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::instance()), isUseCache(true),
+sim_mob::PathSetManager::PathSetManager():stdir(StreetDirectory::Instance()), isUseCache(true),
 		pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName),
 		psRetrieval(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrieval),
 		psRetrievalWithoutRestrictedRegion(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrievalWithoutBannedRegion),
@@ -1726,11 +1726,11 @@ sim_mob::SinglePath* sim_mob::PathSetManager::generateShortestTravelTimePath(con
 	{
 		blacklist.push_back(excludedSegs);
 	}
-	std::vector<WayPoint> wp = stdir.SearchShortestDrivingTimePath(stdir.DrivingTimeVertex(*fromNode,tr,random_graph_idx),
+	std::vector<WayPoint> wp;/* = stdir.SearchShortestDrivingTimePath(stdir.DrivingTimeVertex(*fromNode,tr,random_graph_idx),
 			stdir.DrivingTimeVertex(*toNode,tr,random_graph_idx),
 			blacklist,
 			tr,
-			random_graph_idx);
+			random_graph_idx);*/
 	if(wp.size()==0)
 	{
 		// no path

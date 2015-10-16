@@ -63,7 +63,7 @@ StreetDirectory::Vertex A_StarShortestPathImpl::addSimpleVertex(StreetDirectory:
 StreetDirectory::Vertex A_StarShortestPathImpl::findStartingVertex(const RoadSegment *rs, const SegmentVertexLookup& segVerLookup)
 {
 	SegmentVertexLookup::const_iterator from = segVerLookup.find(rs);
-	
+
 	if (from == segVerLookup.end())
 	{
 		throw std::runtime_error("The starting road segment was not found in the vertex map");
@@ -78,7 +78,7 @@ StreetDirectory::Vertex A_StarShortestPathImpl::findStartingVertex(const RoadSeg
 StreetDirectory::Vertex A_StarShortestPathImpl::findEndingVertex(const RoadSegment* rs, const SegmentVertexLookup& segVerLookup)
 {
 	SegmentVertexLookup::const_iterator to = segVerLookup.find(rs);
-	
+
 	if (to == segVerLookup.end())
 	{
 		throw std::runtime_error("The end road segment was not found in the vertex map");
@@ -201,7 +201,7 @@ void A_StarShortestPathImpl::procAddDrivingNodes(StreetDirectory::Graph& graph, 
 	nodeLookup[dNode].vertices.push_back(ndSink);
 }
 
-void A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Graph& graph, const Link* link, const SegmentVertexLookup& segVerLookup, 
+void A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Graph& graph, const Link* link, const SegmentVertexLookup& segVerLookup,
 													SegmentEdgeLookup& resSegEdgeLookup, StopVertexLookup& resStopVerLookup)
 {
 	//Skip empty link
@@ -215,8 +215,8 @@ void A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Graph& grap
 	for (vector<RoadSegment*>::const_iterator rsIt = roadway.begin(); rsIt != roadway.end(); rsIt++)
 	{
 		const RoadSegment* rs = *rsIt;
-		const std::map<double, const RoadItem*> &obstacles = rs->getObstacles();
-		for (map<double, const RoadItem*>::const_iterator it = obstacles.begin(); it != obstacles.end(); it++)
+		const std::map<double, RoadItem *> obstacles = rs->getObstacles();
+		for (map<double, RoadItem *>::const_iterator it = obstacles.begin(); it != obstacles.end(); it++)
 		{
 			const BusStop* stop = dynamic_cast<const BusStop*> (it->second);
 			if (!stop)
@@ -251,7 +251,7 @@ void A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Graph& grap
 	}
 }
 
-void A_StarShortestPathImpl::procAddDrivingSegments(StreetDirectory::Graph& graph, const Link* link, const NodeLookup& nodeLookup, 
+void A_StarShortestPathImpl::procAddDrivingSegments(StreetDirectory::Graph& graph, const Link* link, const NodeLookup& nodeLookup,
 													SegmentEdgeLookup& resSegEdgeLookup, SegmentVertexLookup& resSegVerLookup)
 {
 	//Skip empty link
@@ -646,8 +646,8 @@ vector<WayPoint> A_StarShortestPathImpl::GetShortestDrivingPath(const StreetDire
 	}
 }
 
-std::vector<WayPoint> A_StarShortestPathImpl::searchShortestPathWithBlackList(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex, 
-																			  const StreetDirectory::Vertex& toVertex, 
+std::vector<WayPoint> A_StarShortestPathImpl::searchShortestPathWithBlackList(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex,
+																			  const StreetDirectory::Vertex& toVertex,
 																			  const std::set<StreetDirectory::Edge>& blacklist) const
 {
 	//Lock for read access.
@@ -711,7 +711,7 @@ std::vector<WayPoint> A_StarShortestPathImpl::searchShortestPathWithBlackList(co
 	return res;
 }
 
-vector<WayPoint> A_StarShortestPathImpl::searchShortestPath(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex, 
+vector<WayPoint> A_StarShortestPathImpl::searchShortestPath(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex,
 															const StreetDirectory::Vertex& toVertex) const
 {
 	vector<WayPoint> res;

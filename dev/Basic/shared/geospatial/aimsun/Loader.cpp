@@ -3521,11 +3521,11 @@ sim_mob::BusStop* sim_mob::BusStopFinder::findNearbyBusStop(const Node* node)
 	 else
 	 {
 		 Point point = node->location;
-		 const StreetDirectory::LaneAndIndexPair lane_index =  StreetDirectory::instance().getLane(point);
+		 const StreetDirectory::LaneAndIndexPair lane_index =  StreetDirectory::Instance().getLane(point);
 		 if(lane_index.lane_)
 		 {
 			 sim_mob::Link* link_= lane_index.lane_->getRoadSegment()->getLink();
-			 const sim_mob::Link* link_2 = StreetDirectory::instance().searchLink(link_->getEnd(),link_->getStart());
+			 const sim_mob::Link* link_2 = StreetDirectory::Instance().searchLink(link_->getEnd(),link_->getStart());
 			 BusStop* busStop_ptr = nullptr;
 
 			 std::vector<sim_mob::RoadSegment*> segments_ ;
@@ -3595,7 +3595,7 @@ void sim_mob::aimsun::Loader::CreateIntersectionManagers(const sim_mob::RoadNetw
 	for (vector<Node*>::const_iterator itIntersection = roadNetwork.nodes.begin(); itIntersection != roadNetwork.nodes.end(); itIntersection++)
 	{		
 		//Check if it has a traffic signal
-		if(!StreetDirectory::instance().signalAt(**itIntersection))
+		if(!StreetDirectory::Instance().signalAt(**itIntersection))
 		{
 			//No traffic signal at the multi-node, so create an intersection manager
 			IntersectionManager *intMgr = new IntersectionManager(sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy(), *itIntersection);

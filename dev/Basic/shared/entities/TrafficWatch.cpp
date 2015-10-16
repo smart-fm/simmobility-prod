@@ -67,7 +67,7 @@ std::map<const RoadSegment*, size_t> sim_mob::TrafficWatch::numVehRS;
 			}
 		}
 	}
-	StreetDirectory::instance().updateDrivingMap();
+	StreetDirectory::Instance().updateDrivingMap();
 }
 
 */

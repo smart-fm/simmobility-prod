@@ -130,7 +130,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	std::set<sim_mob::SegmentStats*>& segmentStatsWithStops = ConfigManager::GetInstanceRW().FullConfig().getSegmentStatsWithBusStops();
 	std::set<sim_mob::SegmentStats*>::iterator itSegStats;
 	std::vector<const sim_mob::BusStop*>::iterator itBusStop;
-	StreetDirectory& strDirectory= StreetDirectory::instance();
+	StreetDirectory& strDirectory= StreetDirectory::Instance();
 	for (itSegStats = segmentStatsWithStops.begin(); itSegStats != segmentStatsWithStops.end(); itSegStats++)
 	{
 		sim_mob::SegmentStats* stats = *itSegStats;

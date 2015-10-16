@@ -868,11 +868,11 @@ void sim_mob::Person::convertODsToTrips() {
 						itSubTrip->endLocationType="NODE";
 						itSubTrip->mode = "Sharing";
 
-						const StreetDirectory& streetDirectory = StreetDirectory::instance();
-						StreetDirectory::VertexDesc source, destination;
+						const StreetDirectory& streetDirectory = StreetDirectory::Instance();
+						/*StreetDirectory::VertexDesc source, destination;
 						source = streetDirectory.DrivingVertex(*itSubTrip->fromLocation.node);
-						destination = streetDirectory.DrivingVertex(*itSubTrip->toLocation.node);
-						std::vector<WayPoint> wayPoints = streetDirectory.SearchShortestDrivingPath(source, destination);
+						destination = streetDirectory.DrivingVertex(*itSubTrip->toLocation.node);*/
+						std::vector<WayPoint> wayPoints = streetDirectory.SearchShortestDrivingPath(*itSubTrip->fromLocation.node, *itSubTrip->toLocation.node);
 						double travelTime = 0.0;
 						for (std::vector<WayPoint>::iterator it = wayPoints.begin(); it != wayPoints.end(); it++)
 						{

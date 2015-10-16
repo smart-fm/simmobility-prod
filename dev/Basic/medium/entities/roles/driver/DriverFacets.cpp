@@ -270,7 +270,7 @@ bool sim_mob::medium::DriverMovement::initializePath()
 		}
 		else
 		{
-			const StreetDirectory& stdir = StreetDirectory::instance();
+			const StreetDirectory& stdir = StreetDirectory::Instance();
 			wp_path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node), stdir.DrivingVertex(*(parentDriver->goal).node));
 		}
 

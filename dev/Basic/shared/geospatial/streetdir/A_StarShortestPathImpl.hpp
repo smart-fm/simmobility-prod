@@ -29,6 +29,7 @@ class RoadNetwork;
 class A_StarShortestPathImpl : public StreetDirectory::ShortestPathImpl
 {
 private:
+
 	/**
 	 * Helper class: Identifies a Node exactly. This requires the incoming/outgoing RoadSegment(s), and the generated Vertex.
 	 */
@@ -60,6 +61,13 @@ private:
 		{
 		}
 	};
+
+	typedef std::map<const Node*, VertexLookup> NodeLookup;
+	typedef std::map<const Node*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> > NodeVertexLookup;
+	typedef std::map<const RoadSegment*, std::set<StreetDirectory::Edge> > SegmentEdgeLookup;
+	typedef std::map<const Link*, std::set<StreetDirectory::Edge> > LinkEdgeLookup;
+	typedef std::map<const RoadSegment*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> > SegmentVertexLookup;
+	typedef std::map<const BusStop*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> > StopVertexLookup;
 
 	/**
 	 * Initialize  segments-based graph
@@ -220,6 +228,7 @@ private:
 	std::vector<WayPoint> searchShortestPath(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex, const StreetDirectory::Vertex& toVertex) const;
 
 protected:
+
 	/**
 	 * black list constraint for our A* search algorithm
 	 */
@@ -229,6 +238,7 @@ protected:
 		std::set<StreetDirectory::Edge> blackList;
 
 	public:
+
 		BlackListEdgeConstraint(const std::set<StreetDirectory::Edge>& list = std::set<StreetDirectory::Edge>()) : blackList(list)
 		{
 		}
@@ -250,6 +260,7 @@ protected:
 		StreetDirectory::Vertex goal;
 
 	public:
+
 		DistanceHeuristicGraph(const StreetDirectory::Graph* graph, StreetDirectory::Vertex goal) : graph(graph), goal(goal)
 		{
 		}
@@ -270,8 +281,9 @@ protected:
 	private:
 		const boost::filtered_graph<StreetDirectory::Graph, BlackListEdgeConstraint>* graph;
 		StreetDirectory::Vertex goal;
-		
+
 	public:
+
 		DistanceHeuristicFiltered(const boost::filtered_graph<StreetDirectory::Graph, BlackListEdgeConstraint>* graph, StreetDirectory::Vertex goal) :
 		graph(graph), goal(goal)
 		{
@@ -301,6 +313,7 @@ protected:
 		StreetDirectory::Vertex goal;
 
 	public:
+
 		GoalVisitor(StreetDirectory::Vertex goal) : goal(goal)
 		{
 		}
@@ -316,61 +329,51 @@ protected:
 	};
 
 public:
-	typedef std::map<const Node*, VertexLookup> NodeLookup;
-	typedef std::map<const Node*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> > NodeVertexLookup;
-	typedef std::map<const RoadSegment*, std::set<StreetDirectory::Edge> > SegmentEdgeLookup;
-	typedef std::map<const Link*, std::set<StreetDirectory::Edge> > LinkEdgeLookup;
-	typedef std::map<const RoadSegment*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> > SegmentVertexLookup;
-	typedef std::map<const BusStop*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> > StopVertexLookup;
-
 	explicit A_StarShortestPathImpl(const RoadNetwork& network);
 	virtual ~A_StarShortestPathImpl()
 	{
 	}
 
-	/**
-	 * A map for drivers, containing road-segments as edges.
-	 */
+	/**A map for drivers, containing road-segments as edges.*/
 	StreetDirectory::Graph drivingSegMap;
-	/**
-	 * A map for pedestrians, containing side-walks and crossings as edges.
-	 */
+
+	/**A map for pedestrians, containing side-walks and crossings as edges.*/
 	StreetDirectory::Graph walkingMap;
-	/**
-	 * A map for drivers, containing road-links as edges.
-	 */
+
+	/**A map for drivers, containing road-links as edges.*/
 	StreetDirectory::Graph drivingLinkMap;
+	
 	/**
-	 * Lookup the master Node for each Node-related vertex in driving graph.The first item is the "source" vertex, used to search *from* that Node. The second item is the "sink" vertex, used to search *to* that Node.
+	 * Lookup the master Node for each Node-related vertex in driving graph.The first item is the "source" vertex, used to search *from* that Node.
+	 * The second item is the "sink" vertex, used to search *to* that Node.
 	 */
 	NodeVertexLookup drivingNodeLookup;
+
 	/**
-	 * Lookup the master Node for each Node-related vertex in walking graph.The first item is the "source" vertex, used to search *from* that Node. The second item is the "sink" vertex, used to search *to* that Node.
+	 * Lookup the master Node for each Node-related vertex in walking graph.The first item is the "source" vertex, used to search *from* that Node.
+	 * The second item is the "sink" vertex, used to search *to* that Node.
 	 */
 	NodeVertexLookup walkingNodeLookup;
+
 	/**
-	 * Lookup for road segments. This maps each RoadSegment to *all* Edges that are related to it (usually only 1, but bus stops may include a few "virtual" segments related to this Segment).
+	 * Lookup for road segments. This maps each RoadSegment to *all* Edges that are related to it
+	 * (usually only 1, but bus stops may include a few "virtual" segments related to this Segment).
 	 */
 	SegmentEdgeLookup drivingSegmentEdgeLookup;
-	/**
-	 * Lookup for road links. This maps each Links to *all* Edges that are related to it.
-	 */
+
+	/**Lookup for road links. This maps each Links to *all* Edges that are related to it.*/
 	LinkEdgeLookup drivingLinkEdgeLookup;
-	/**
-	 * Lookup for road segments mapping to vertexes.
-	 */
+
+	/**Lookup for road segments mapping to vertexes.*/
 	SegmentVertexLookup drivingSegVertexLookup;
-	/**
-	 * Lookups for Bus Stops in driving graph; the "source" and "sink" for these are the same.
-	 */
+
+	/**Lookups for Bus Stops in driving graph; the "source" and "sink" for these are the same.*/
 	StopVertexLookup drivingBusStopLookup;
-	/**
-	 * Lookups for Bus Stops in walking graph; the "source" and "sink" for these are the same.
-	 */
+
+	/**Lookups for Bus Stops in walking graph; the "source" and "sink" for these are the same.*/
 	StopVertexLookup walkingBusStopLookup;
-	/**
-	 * Used for locking modifications to the graph (currently only affects the blacklisted search).
-	 */
+
+	/**Used for locking modifications to the graph (currently only affects the blacklisted search).*/
 	static boost::shared_mutex GraphSearchMutex;
 
 	virtual StreetDirectory::VertexDesc DrivingVertex(const Node& n) const;
@@ -379,7 +382,7 @@ public:
 	virtual std::vector<WayPoint> GetShortestDrivingPath(const StreetDirectory::VertexDesc &from, const StreetDirectory::VertexDesc &to,
 														const std::vector<const RoadSegment*> &blacklist) const;
 
-	virtual std::vector<WayPoint> GetShortestDrivingPath(const StreetDirectory::VertexDesc *from, const StreetDirectory::VertexDesc &to,
+	virtual std::vector<WayPoint> GetShortestDrivingPath(const StreetDirectory::VertexDesc &from, const StreetDirectory::VertexDesc &to,
 														const std::vector<const Link*> &blacklist) const;
 
 	virtual void printDrivingGraph(std::ostream& outFile) const;

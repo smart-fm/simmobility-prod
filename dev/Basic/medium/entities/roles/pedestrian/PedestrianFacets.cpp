@@ -140,7 +140,7 @@ const sim_mob::RoadSegment* PedestrianMovement::choiceNearestSegmentToMRT(
 	double minDis = std::numeric_limits<double>::max();
 	for (std::vector<int>::iterator i = segs.begin(); i != segs.end(); i++) {
 		unsigned int id = *i;
-		const sim_mob::RoadSegment* segment = StreetDirectory::instance().getRoadSegment(id);
+		const sim_mob::RoadSegment* segment = StreetDirectory::Instance().getRoadSegment(id);
 		const sim_mob::Node* node = segment->getStart();
 		DynamicVector EstimateDist(src->getLocation().getX(),src->getLocation().getY(),
 				node->getLocation().getX(),	node->getLocation().getY());
@@ -156,7 +156,7 @@ const sim_mob::RoadSegment* PedestrianMovement::choiceNearestSegmentToMRT(
 
 void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 	sim_mob::SubTrip& subTrip = *(getParent()->currSubTrip);
-	const StreetDirectory& streetDirectory = StreetDirectory::instance();
+	const StreetDirectory& streetDirectory = StreetDirectory::Instance();
 
 	StreetDirectory::VertexDesc source, destination;
 	std::vector<WayPoint> wayPoints;
@@ -233,7 +233,7 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 			std::vector<int> segs = subTrip.fromLocation.mrtStop_->getRoadSegments();
 			if(segs.size()>0){
 				unsigned int id = segs.front();
-				const sim_mob::RoadSegment* seg = StreetDirectory::instance().getRoadSegment(id);
+				const sim_mob::RoadSegment* seg = StreetDirectory::Instance().getRoadSegment(id);
 				node = seg->getStart();
 				startLink = seg->getLink();
 				source = streetDirectory.DrivingVertex(*node);
@@ -257,7 +257,7 @@ void PedestrianMovement::initializePath(std::vector<const RoadSegment*>& path) {
 			std::vector<int> segs = subTrip.toLocation.mrtStop_->getRoadSegments();
 			if(segs.size()>0){
 				unsigned int id = segs.front();
-				const sim_mob::RoadSegment* seg = StreetDirectory::instance().getRoadSegment(id);
+				const sim_mob::RoadSegment* seg = StreetDirectory::Instance().getRoadSegment(id);
 				node = seg->getStart();
 				destination = streetDirectory.DrivingVertex(*node);
 				path.push_back(seg);

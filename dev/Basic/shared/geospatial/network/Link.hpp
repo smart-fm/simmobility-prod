@@ -32,11 +32,8 @@ enum LinkCategory
 	/**Category E*/
 	LINK_CATEGORY_E = 4,
 
-	/**Roundabout*/
-	LINK_CATEGORY_ROUND_ABOUT = 5,
-
 	/**Slip-road*/
-	LINK_CATEGORY_SLIP_ROAD = 6
+	LINK_CATEGORY_SLIP_ROAD = 5
 };
 
 /**Defines the various types of links supported by SimMobility*/

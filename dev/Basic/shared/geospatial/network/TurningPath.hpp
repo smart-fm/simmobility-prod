@@ -60,20 +60,23 @@ public:
 	unsigned int getTurningPathId() const;
 	void setTurningPathId(unsigned int turningPathId);
 
+    const Lane* getFromLane() const;
+	void setFromLane(Lane* fromLane);
+
 	unsigned int getFromLaneId() const;
 	void setFromLaneId(unsigned int fromLaneId);
 
 	PolyLine* getPolyLine() const;
 	void setPolyLine(PolyLine* polyLine);
 
+	const Lane* getToLane() const;
+    void setToLane(Lane* toLane);
+
 	unsigned int getToLaneId() const;
 	void setToLaneId(unsigned int toLaneId);
 
 	unsigned int getTurningGroupId() const;
 	void setTurningGroupId(unsigned int turningGroupId);
-
-    const Lane* getFromLane() const;
-	const Lane* getToLane() const;
 
 	/**
 	 * Gets the length of the turning path poly-line. This is equal to the length of the turning path.

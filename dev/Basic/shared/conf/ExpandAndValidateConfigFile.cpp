@@ -11,7 +11,7 @@
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "conf/PrintNetwork.hpp"
+#include "conf/NetworkPrinter.hpp"
 #include "conf/settings/DisableMPI.h"
 #include "entities/Agent.hpp"
 #include "entities/BusController.hpp"
@@ -249,7 +249,7 @@ void sim_mob::ExpandAndValidateConfigFile::verifyIncidents()
 
 	for (std::vector<IncidentParams>::iterator incIt=incidents.begin(); incIt != incidents.end(); ++incIt)
 	{
-		const RoadSegment* roadSeg = StreetDirectory::instance().getRoadSegment((*incIt).segmentId);
+		const RoadSegment* roadSeg = StreetDirectory::Instance().getRoadSegment((*incIt).segmentId);
 
 		if (roadSeg)
 		{
@@ -617,6 +617,6 @@ void sim_mob::ExpandAndValidateConfigFile::PrintSettings()
 
 	//Print the network (this will go to a different output file...)
 	std::cout << "------------------\n";
-	PrintNetwork(cfg, cfg.outNetworkFileName);
+	NetworkPrinter(cfg, cfg.outNetworkFileName);
 	std::cout << "------------------\n";
 }

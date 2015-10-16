@@ -2160,8 +2160,6 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle)
 		}
 		else
 		{
-			const StreetDirectory& stdir = StreetDirectory::Instance();
-
 			if (subTrip->schedule == nullptr)
 			{
 				// if use path set

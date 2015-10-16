@@ -97,7 +97,7 @@ void NetworkPrinter::PrintNodes(const map<unsigned int, Node *> &nodes) const
 	
 	for (map<unsigned int, Node *>::const_iterator it = nodes.begin(); it != nodes.end(); ++it)
 	{
-		out << "\n(\"node\", 0, " << it->second->getNodeId() << ", {";
+		out << "\n(\"node\", " << it->second->getNodeId() << ", {";
 		out << "\"location\":\"[";
 		out << "(" << it->second->getLocation()->getX() << "," << it->second->getLocation()->getY() << "),";
 		out << "]\",";
@@ -114,7 +114,7 @@ void NetworkPrinter::PrintLinks(const map<unsigned int, Link *> &links) const
 	
 	for (map<unsigned int, Link *>::const_iterator it = links.begin(); it != links.end(); ++it)
 	{
-		out << "\n(\"link\", 0, " << it->second->getLinkId() << ", {";
+		out << "\n(\"link\", " << it->second->getLinkId() << ", {";
 		out << "\"name\":\"" << it->second->getRoadName() << "\",";
 		out << "\"from\":\"" << it->second->getFromNodeId() << "\",";
 		out << "\"to\":\"" << it->second->getToNodeId() << "\",";
@@ -141,7 +141,7 @@ void NetworkPrinter::PrintSegments(const map<unsigned int, RoadSegment *> &segme
 
 	for (map<unsigned int, RoadSegment *>::const_iterator it = segments.begin(); it != segments.end(); ++it)
 	{
-		out << "\n(\"segment\", 0, " << it->second->getRoadSegmentId() << ", {";
+		out << "\n(\"segment\", " << it->second->getRoadSegmentId() << ", {";
 		out << "\"link\":\"" << it->second->getLinkId() << "\",";
 		out << "\"seq-number\":\"" << it->second->getSequenceNumber() << "\",";
 		out << "\"max-speed\":\"" << it->second->getMaxSpeed() << "\",";
@@ -159,8 +159,8 @@ void NetworkPrinter::PrintSegments(const map<unsigned int, RoadSegment *> &segme
 		const vector<Lane *> &lanes = it->second->getLanes();		
 		for (size_t index = 0; index < lanes.size(); ++index)
 		{
-			out << "\n(\"lane\", 0, " << lanes[index]->getLaneId() << ", {";
-			out << "\"index\":\"" << lanes[index]->getLaneIndex();
+			out << "\n(\"lane\", " << lanes[index]->getLaneId() << ", {";
+			out << "\"index\":\"" << lanes[index]->getLaneIndex() << "\",";
 			out << "\"points\":\"[";
 			PolyLine *polyLine = lanes[index]->getPolyLine();
 			for (vector<PolyPoint>::const_iterator itPts = polyLine->getPoints().begin(); itPts != polyLine->getPoints().end(); ++itPts)
@@ -189,7 +189,7 @@ void NetworkPrinter::PrintLaneConnectors(const map<unsigned int, Lane *> &lanes)
 		const vector<LaneConnector *> &connectors = it->second->getLaneConnectors();
 		for (vector<LaneConnector *>::const_iterator itConnectors = connectors.begin(); itConnectors != connectors.end(); ++itConnectors)
 		{
-			out << "\n(\"lane-connector\", 0, " << (*itConnectors)->getLaneConnectionId() << ", {";
+			out << "\n(\"lane-connector\", " << (*itConnectors)->getLaneConnectionId() << ", {";
 			out << "\"from-segment\":\"" << (*itConnectors)->getFromRoadSegmentId() << "\",";
 			out << "\"from-lane\":\"" << (*itConnectors)->getFromLaneId() << "\",";
 			out << "\"to-segment\":\"" << (*itConnectors)->getToRoadSegmentId() << "\",";
@@ -208,7 +208,7 @@ void NetworkPrinter::PrintTurningGroups(const std::map<unsigned int, TurningGrou
 	for (map<unsigned int, TurningGroup *>::const_iterator it = turningGroups.begin(); it != turningGroups.end(); ++it)
 	{
 		const TurningGroup *group = it->second;
-		out << "\n(\"turning-group\", 0, " << group->getTurningGroupId() << ", {";
+		out << "\n(\"turning-group\", " << group->getTurningGroupId() << ", {";
 		out << "\"node\":\"" << group->getNodeId() << "\",";
 		out << "\"from\":\"" << group->getFromLinkId() << "\",";
 		out << "\"to\":\"" << group->getToLinkId() << "\",";
@@ -225,7 +225,7 @@ void NetworkPrinter::PrintTurnings(const map<unsigned int, TurningPath*>& turnin
 	for (map<unsigned int, TurningPath *>::const_iterator it = turnings.begin(); it != turnings.end(); ++it)
 	{
 		const TurningPath *turningPath = it->second;
-		out << "\n(\"turning-path\", 0, " << turningPath << ", {";
+		out << "\n(\"turning-path\", " << turningPath->getTurningPathId() << ", {";
 		out << "\"group\":\"" << turningPath->getTurningGroupId() << "\",";
 		out << "\"from-segment\":\"" << turningPath->getFromLane()->getRoadSegmentId() << "\",";
 		out << "\"to-segment\":\"" << turningPath->getToLane()->getRoadSegmentId() << "\",";
@@ -251,7 +251,7 @@ void NetworkPrinter::PrintConflicts(const std::map<unsigned int, TurningConflict
 	for (std::map<unsigned int, TurningConflict* >::const_iterator it = conflicts.begin(); it != conflicts.end(); ++it)
 	{
 		const TurningConflict *conflict = it->second;
-		out << "\n(\"conflict\", 0, " << conflict->getConflictId() << ", {";
+		out << "\n(\"conflict\", " << conflict->getConflictId() << ", {";
 		out << "\"turning-1\":\"" << conflict->getFirstTurningId() << "\",";
 		out << std::setprecision(8) << "\"conflict-dist-1\":\"" << conflict->getFirstConflictDistance() << "\",";
 		out << "\"turning-2\":\"" << conflict->getSecondTurningId() << "\",";

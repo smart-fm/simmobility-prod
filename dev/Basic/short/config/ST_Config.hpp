@@ -97,16 +97,17 @@ struct Commsim {
  */
 class WorkerParams {
 public:
-    struct Worker {
-        Worker();
+    struct WorkerConf {
+        WorkerConf() : count(0), granularityMs(0)
+        {}
         unsigned int count;
         unsigned int granularityMs;
     };
 
-    Worker person;
-    Worker signal;
-    Worker intersectionMgr;
-    Worker communication;
+    WorkerConf person;
+    WorkerConf signal;
+    WorkerConf intersectionMgr;
+    WorkerConf communication;
 };
 
 /**
@@ -182,6 +183,11 @@ struct AMOD_ControllerParams
 class ST_Config : public boost::noncopyable
 {
 public:
+    /**
+     * Destructor
+     */
+    ~ST_Config(){}
+
     /**
      * retrieves the singleton instance of ST_Config instance
      *
@@ -381,12 +387,7 @@ private:
     /**
      * Constructor
      */
-    ST_Config(){}
-
-    /**
-     * Destructor
-     */
-    ~ST_Config(){}
+    ST_Config();
 
     /// Singleton instance
     static ST_Config* instance;

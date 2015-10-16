@@ -467,7 +467,7 @@ void ParseMidTermConfigFile::processGenericPropsNode(DOMElement *node)
         std::string val = ParseString(GetNamedAttributeValue(*it, "value"), "");
         if (!(key.empty() && val.empty()))
         {
-            cfg.genericProps[key] = val;
+            mtCfg.genericProps[key] = val;
         }
     }
 }

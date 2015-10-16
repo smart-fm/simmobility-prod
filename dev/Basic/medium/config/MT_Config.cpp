@@ -473,6 +473,5 @@ unsigned int MT_Config::personTimeStepInMilliSeconds() const
 {
     return workers.person.granularityMs;
 }
-
 }
 }

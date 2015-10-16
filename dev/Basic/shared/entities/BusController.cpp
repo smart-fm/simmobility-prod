@@ -249,7 +249,7 @@ void BusController::setPTScheduleFromConfig(const vector<PT_BusDispatchFreq>& di
 		//If we're on a new BusLine, register it with the scheduler.
 		if(!busline || (curr->routeId != busline->getBusLineID()))
 		{
-			busline = new BusLine(curr->routeId,config.busline_control_type());
+			busline = new BusLine(curr->routeId,config.busController.busLineControlType);
 			ptSchedule.registerBusLine(curr->routeId, busline);
 			ptSchedule.registerControlType(curr->routeId, busline->getControlType());
 			step = 0;

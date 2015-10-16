@@ -12,6 +12,8 @@
 #include "conf/Constructs.hpp"
 #include "conf/RawConfigParams.hpp"
 #include "database/DB_Connection.hpp"
+#include "entities/conflux/Conflux.hpp"
+#include "entities/conflux/SegmentStats.hpp"
 #include "util/ProtectedCopyable.hpp"
 
 namespace sim_mob
@@ -632,13 +634,6 @@ public:
      * @param populationCred credentials for population database
      */
 	void setPopulationDb(const std::string& populationDb, const std::string& populationCred);
-
-    /**
-     * Retrives busline control type
-     *
-     * @return busline control method
-     */
-    std::string buslineControlType() const;
 
     /**
      * Retrieves number of workers for handling agents

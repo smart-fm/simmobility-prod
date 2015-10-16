@@ -65,3 +65,11 @@ void sim_mob::Entity::onWorkerEnter()
 void sim_mob::Entity::onWorkerExit()
 {
 }
+
+void sim_mob::Entity::registerChild(Entity* child)
+{
+}
+
+void sim_mob::Entity::unregisterChild(Entity* child)
+{
+}

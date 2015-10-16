@@ -173,13 +173,16 @@ public:
 	virtual bool isNonspatial() = 0;
 
 	/**
+	 * registers child entity
+	 */
+	virtual void registerChild(Entity* child = nullptr);
+
+	/**
 	 * Inform parent to cut off connection with it if necessary
 	 *
 	 * @param child The child entity to be un-registered
 	 */
-	virtual void unregisterChild(Entity* child = nullptr)
-	{
-	}
+	virtual void unregisterChild(Entity* child = nullptr);
 
 	/**
 	 * Returns a list of pointers to each Buffered<> type that this entity managed.

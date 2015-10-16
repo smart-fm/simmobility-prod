@@ -1242,8 +1242,8 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddStartNodesAndEdges(Street
 		StreetDirectory::Vertex source = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
 		StreetDirectory::Vertex sink = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
 		resLookup[it->first] = std::make_pair(source, sink);
-		boost::put(boost::vertex_name, graph, source, *(it->first->getLocation()));
-		boost::put(boost::vertex_name, graph, sink, *(it->first->getLocation()));
+		boost::put(boost::vertex_name, graph, source, it->first->getLocation());
+		boost::put(boost::vertex_name, graph, sink, it->first->getLocation());
 
 		//Link to each child vertex. Assume a trivial distance.
 		for (std::vector<NodeDescriptor>::const_iterator it2=it->second.vertices.begin(); it2!=it->second.vertices.end(); it2++) {
@@ -2000,7 +2000,7 @@ sim_mob::A_StarShortestTravelTimePathImpl::searchVertex(const map<const Node*, s
 	double minDist = std::numeric_limits<double>::max();
 	NodeLookupIter minItem = srcNodes.end();
 	for (NodeLookupIter it=srcNodes.begin(); it!=srcNodes.end(); it++) {
-		double currDist = sim_mob::dist(point, *(it->first->getLocation()));
+		double currDist = sim_mob::dist(point, it->first->getLocation());
 		if (currDist < minDist) {
 			minDist = currDist;
 			minItem = it;

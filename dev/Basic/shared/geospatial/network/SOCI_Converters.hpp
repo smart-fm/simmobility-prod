@@ -97,7 +97,7 @@ template<> struct type_conversion<sim_mob::Node>
 		double x = vals.get<double>("x", 0);
 		double y = vals.get<double>("y", 0);
 		double z = vals.get<double>("z", 0);
-		Point *location = new Point(x, y, z);
+		Point location(x, y, z);
 		res.setLocation(location);
 	}
 };

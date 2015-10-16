@@ -367,13 +367,13 @@ struct AngleCalculator
 
 	double angle(Link const * link) const
 	{
-		Point *point;
+		Point point;
 		if (link->getFromNode() == &center_)
 			point = link->getToNode()->getLocation();
 		else
 			point = link->getFromNode()->getLocation();
-		double xDiff = point->getX() - center_.getLocation()->getX();
-		double yDiff = point->getY() - center_.getLocation()->getY();
+		double xDiff = point.getX() - center_.getLocation().getX();
+		double yDiff = point.getY() - center_.getLocation().getY();
 		return atan2(yDiff, xDiff);
 	}
 };

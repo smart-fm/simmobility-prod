@@ -521,8 +521,8 @@ void A_StarShortestPathImpl::procAddStartNodesAndEdges(StreetDirectory::Graph& g
 		{
 			(*resLookup)[it->first] = std::make_pair(source, sink);
 		}
-		boost::put(boost::vertex_name, graph, source, *it->first->getLocation());
-		boost::put(boost::vertex_name, graph, sink, *it->first->getLocation());
+		boost::put(boost::vertex_name, graph, source, it->first->getLocation());
+		boost::put(boost::vertex_name, graph, sink, it->first->getLocation());
 
 		//Link to each child vertex. Assume a trivial distance.
 		for (std::vector<NodeDescriptor>::const_iterator it2 = it->second.vertices.begin(); it2 != it->second.vertices.end(); it2++)

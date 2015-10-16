@@ -99,7 +99,7 @@ void NetworkPrinter::PrintNodes(const map<unsigned int, Node *> &nodes) const
 	{
 		out << "\n(\"node\", " << it->second->getNodeId() << ", {";
 		out << "\"location\":\"[";
-		out << "(" << it->second->getLocation()->getX() << "," << it->second->getLocation()->getY() << "),";
+		out << "(" << it->second->getLocation().getX() << "," << it->second->getLocation().getY() << "),";
 		out << "]\",";
 		out << "\"type\":\"" << it->second->getNodeType() << "\",";
 		out << "})";

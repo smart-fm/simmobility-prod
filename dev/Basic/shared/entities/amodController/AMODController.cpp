@@ -664,8 +664,8 @@ bool AMODController::findNearestFreeVehicle(std::string originId, std::map<std::
 	Node *originNode = nodePool[originId];
 
 	// get the positions of the nodes
-	double oX = originNode->getLocation()->getX();
-	double oY = originNode->getLocation()->getY();
+	double oX = originNode->getLocation().getX();
+	double oY = originNode->getLocation().getY();
 
 	std::vector< distPair > nodeDistances;
 
@@ -675,8 +675,8 @@ bool AMODController::findNearestFreeVehicle(std::string originId, std::map<std::
 		std::string nodeId = iterator->first;
 		Node *tempNode = iterator->second;
 
-		double tX = tempNode->getLocation()->getX();
-		double tY = tempNode->getLocation()->getY();
+		double tX = tempNode->getLocation().getX();
+		double tY = tempNode->getLocation().getY();
 
 		double dist = pow( tX - oX,2) + pow( tY - oY, 2);
 		nodeDistances.push_back( distPair(dist, nodeId) );

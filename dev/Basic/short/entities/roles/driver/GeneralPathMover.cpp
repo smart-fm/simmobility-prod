@@ -838,15 +838,15 @@ double sim_mob::GeneralPathMover::getDistanceMovedInSegment() const {
 
 double sim_mob::GeneralPathMover::getDistanceToSegmentStart() const {
 	DynamicVector dis(this->getX(), this->getY(),
-			this->getCurrSegment()->getParentLink()->getFromNode()->getLocation()->getX(),
-			this->getCurrSegment()->getParentLink()->getFromNode()->getLocation()->getY());
+			this->getCurrSegment()->getParentLink()->getFromNode()->getLocation().getX(),
+			this->getCurrSegment()->getParentLink()->getFromNode()->getLocation().getY());
 	return dis.getMagnitude();
 }
 
 double sim_mob::GeneralPathMover::getDistanceToSegmentEnd() const {
 	DynamicVector dis(this->getX(), this->getY(),
-			this->getCurrSegment()->getParentLink()->getFromNode()->getLocation()->getX(),
-			this->getCurrSegment()->getParentLink()->getFromNode()->getLocation()->getY());
+			this->getCurrSegment()->getParentLink()->getFromNode()->getLocation().getX(),
+			this->getCurrSegment()->getParentLink()->getFromNode()->getLocation().getY());
 	return dis.getMagnitude();
 }
 double sim_mob::GeneralPathMover::getTotalRoadSegmentLength() const

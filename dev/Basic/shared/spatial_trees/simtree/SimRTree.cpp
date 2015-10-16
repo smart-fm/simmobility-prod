@@ -24,7 +24,7 @@ namespace {
 
 Point WayPointToLocation(const WayPoint& wp) {
 	if (wp.type == WayPoint::NODE) {
-		return *(wp.node->getLocation());
+		return wp.node->getLocation();
 	}
 	if (wp.type == WayPoint::BUS_STOP) {
 		return wp.busStop->getStopLocation();

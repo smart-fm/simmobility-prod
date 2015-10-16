@@ -8,19 +8,12 @@
 using namespace sim_mob;
 
 Node::Node() :
-nodeId(0), location(NULL), nodeType(DEFAULT_NODE), trafficLightId(0)
+nodeId(0), location(), nodeType(DEFAULT_NODE), trafficLightId(0)
 {
 }
 
 Node::~Node()
 {
-	//Delete the point storing the location
-	if (location)
-	{
-		delete location;
-		location = NULL;
-	}
-
 	//Delete the turning groups
 
 	//Iterate through the outer map
@@ -57,12 +50,12 @@ unsigned int Node::getNodeId() const
 	return nodeId;
 }
 
-void Node::setLocation(Point* location)
+void Node::setLocation(Point location)
 {
 	this->location = location;
 }
 
-Point* Node::getLocation() const
+const Point& Node::getLocation() const
 {
 	return location;
 }

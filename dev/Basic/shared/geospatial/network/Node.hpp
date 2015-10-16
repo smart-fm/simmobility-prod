@@ -46,7 +46,7 @@ private:
 	unsigned int nodeId;
 
 	/**The location of the node*/
-	Point *location;
+	Point location;
 
 	/**The type of the node*/
 	NodeType nodeType;
@@ -71,8 +71,8 @@ public:
 	unsigned int getNodeId() const;
 	void setNodeId(unsigned int nodeId);
 
-	Point* getLocation() const;
-	void setLocation(Point *location);
+	const Point& getLocation() const;
+	void setLocation(Point location);
 
 	NodeType getNodeType() const;
 	void setNodeType(NodeType nodeType);

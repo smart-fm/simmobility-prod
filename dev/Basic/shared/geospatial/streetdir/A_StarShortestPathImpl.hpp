@@ -214,7 +214,7 @@ private:
 	 *
 	 * @return a shortest path
 	 */
-	std::vector<WayPoint> searchShortestPathWithBlackList(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex, const StreetDirectory::Vertex& toVertex, const std::set<StreetDirectory::Edge>& blacklist) const;
+	static std::vector<WayPoint> searchShortestPathWithBlackList(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex, const StreetDirectory::Vertex& toVertex, const std::set<StreetDirectory::Edge>& blacklist);
 
 	/**
 	 * Search the shortest path without black list.
@@ -225,7 +225,7 @@ private:
 	 *
 	 * @return a shortest path
 	 */
-	std::vector<WayPoint> searchShortestPath(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex, const StreetDirectory::Vertex& toVertex) const;
+	static std::vector<WayPoint> searchShortestPath(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex, const StreetDirectory::Vertex& toVertex);
 
 protected:
 
@@ -343,6 +343,7 @@ public:
 	/**A map for drivers, containing road-links as edges.*/
 	StreetDirectory::Graph drivingLinkMap;
 	
+
 	/**
 	 * Lookup the master Node for each Node-related vertex in driving graph.The first item is the "source" vertex, used to search *from* that Node.
 	 * The second item is the "sink" vertex, used to search *to* that Node.
@@ -375,6 +376,9 @@ public:
 
 	/**Used for locking modifications to the graph (currently only affects the blacklisted search).*/
 	static boost::shared_mutex GraphSearchMutex;
+
+	/**indicate whether segment graph is created*/
+	bool isValidSegGraph;
 
 	virtual StreetDirectory::VertexDesc DrivingVertex(const Node& n) const;
 	virtual StreetDirectory::VertexDesc DrivingVertex(const BusStop& b) const;

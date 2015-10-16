@@ -29,10 +29,9 @@ using namespace sim_mob;
 
 boost::shared_mutex A_StarShortestPathImpl::GraphSearchMutex;
 
-A_StarShortestPathImpl::A_StarShortestPathImpl(const RoadNetwork& network)
+A_StarShortestPathImpl::A_StarShortestPathImpl(const RoadNetwork& network):isValidSegGraph(false)
 {
 	initLinkDrivingNetwork(network);
-	initSegDrivingNetwork(network);
 }
 
 StreetDirectory::Edge A_StarShortestPathImpl::addSimpleEdge(StreetDirectory::Graph& graph, StreetDirectory::Vertex& fromV, StreetDirectory::Vertex& toV,
@@ -115,7 +114,7 @@ void A_StarShortestPathImpl::initLinkDrivingNetwork(const RoadNetwork& roadNetwo
 	}
 
 	//Finally, add our "master" node vertices
-	procAddStartNodesAndEdges(drivingLinkMap, nodeLookup);
+	procAddStartNodesAndEdges(drivingLinkMap, nodeLookup, &drivingNodeLookup);
 }
 
 void A_StarShortestPathImpl::initSegDrivingNetwork(const RoadNetwork& roadNetwork)
@@ -145,6 +144,7 @@ void A_StarShortestPathImpl::initSegDrivingNetwork(const RoadNetwork& roadNetwor
 
 	//Finally, add our "master" node vertices
 	procAddStartNodesAndEdges(drivingSegMap, nodeLookup, &drivingNodeLookup);
+	isValidSegGraph = true;
 }
 
 void A_StarShortestPathImpl::procAddDrivingNodes(StreetDirectory::Graph& graph, const Link* link, NodeLookup& nodeLookup)
@@ -514,31 +514,26 @@ void A_StarShortestPathImpl::procAddStartNodesAndEdges(StreetDirectory::Graph& g
 {
 	for (std::map<const Node*, VertexLookup>::const_iterator it = allNodes.begin(); it != allNodes.end(); it++)
 	{
-		//Add the master vertices.
-		StreetDirectory::Vertex source = boost::add_vertex(const_cast<StreetDirectory::Graph &> (graph));
-		StreetDirectory::Vertex sink = boost::add_vertex(const_cast<StreetDirectory::Graph &> (graph));
-		if (resLookup)
-		{
+		StreetDirectory::Vertex source = addSimpleVertex(graph, *it->first->getLocation());
+		StreetDirectory::Vertex sink = addSimpleVertex(graph, *it->first->getLocation());
+		if (resLookup) {
 			(*resLookup)[it->first] = std::make_pair(source, sink);
 		}
-		boost::put(boost::vertex_name, graph, source, *it->first->getLocation());
-		boost::put(boost::vertex_name, graph, sink, *it->first->getLocation());
 
 		//Link to each child vertex. Assume a trivial distance.
-		for (std::vector<NodeDescriptor>::const_iterator it2 = it->second.vertices.begin(); it2 != it->second.vertices.end(); it2++)
-		{
+		for (std::vector<NodeDescriptor>::const_iterator it2 =it->second.vertices.begin(); it2 != it->second.vertices.end();it2++) {
 			//From source to "other"
-			StreetDirectory::Edge edge;
-			bool ok;
-			boost::tie(edge, ok) = boost::add_edge(source, it2->v, graph);
-			boost::put(boost::edge_name, graph, edge, WayPoint(it->first));
-			boost::put(boost::edge_weight, graph, edge, 1);
+			StreetDirectory::Vertex v =it2->v;
+			if(!it2->after)
+			{
+				addSimpleEdge(graph, source, v, WayPoint(it->first), 1.0);
+			}
 
 			//From "other" to sink
-			WayPoint revWP(it->first);
-			boost::tie(edge, ok) = boost::add_edge(it2->v, sink, graph);
-			boost::put(boost::edge_name, graph, edge, revWP);
-			boost::put(boost::edge_weight, graph, edge, 1);
+			if(!it2->before)
+			{
+				addSimpleEdge(graph,v, sink, WayPoint(it->first), 1.0);
+			}
 
 		}
 	}
@@ -622,6 +617,11 @@ vector<WayPoint> A_StarShortestPathImpl::GetShortestDrivingPath(const StreetDire
 		return vector<WayPoint>();
 	}
 
+	if(!isValidSegGraph)
+	{
+		return vector<WayPoint>();
+	}
+
 	StreetDirectory::Vertex fromV = from.source;
 	StreetDirectory::Vertex toV = to.sink;
 
@@ -648,7 +648,7 @@ vector<WayPoint> A_StarShortestPathImpl::GetShortestDrivingPath(const StreetDire
 
 std::vector<WayPoint> A_StarShortestPathImpl::searchShortestPathWithBlackList(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex,
 																			  const StreetDirectory::Vertex& toVertex,
-																			  const std::set<StreetDirectory::Edge>& blacklist) const
+																			  const std::set<StreetDirectory::Edge>& blacklist)
 {
 	//Lock for read access.
 	boost::shared_lock<boost::shared_mutex> lock(GraphSearchMutex);
@@ -712,7 +712,7 @@ std::vector<WayPoint> A_StarShortestPathImpl::searchShortestPathWithBlackList(co
 }
 
 vector<WayPoint> A_StarShortestPathImpl::searchShortestPath(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex,
-															const StreetDirectory::Vertex& toVertex) const
+															const StreetDirectory::Vertex& toVertex)
 {
 	vector<WayPoint> res;
 	std::list<StreetDirectory::Vertex> partialRes;
@@ -760,6 +760,12 @@ vector<WayPoint> A_StarShortestPathImpl::searchShortestPath(const StreetDirector
 
 				//Retrieve, add this edge WayPoint.
 				WayPoint wp = boost::get(boost::edge_name, graph, edge.first);
+				/*if(wp.type==WayPoint::LINK){
+					const vector<RoadSegment*>& segs = wp.link->getRoadSegments();
+					for(vector<RoadSegment*>::const_iterator it=segs.begin(); it!=segs.end(); it++){
+						Print()<<(*it)->getRoadSegmentId()<<std::endl;
+					}
+				}*/
 				res.push_back(wp);
 			}
 

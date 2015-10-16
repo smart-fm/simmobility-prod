@@ -488,9 +488,9 @@ void sim_mob::WorkGroup::interrupt()
 	}
 }
 
-void sim_mob::WorkGroup::processVirtualQueues(std::set<Agent*>& removedEntities) {
+void sim_mob::WorkGroup::processMultiUpdateEntities(std::set<Agent*>& removedEntities) {
 	for(vector<Worker*>::iterator wrkr = workers.begin(); wrkr != workers.end(); wrkr++) {
-		(*wrkr)->processVirtualQueues();
+		(*wrkr)->processMultiUpdateEntities(currTimeTick);
 		(*wrkr)->removePendingEntities();
 		//we must collect removed entities and procrastinate their deletion till they have handled all messages destined for them
 		collectRemovedEntities(&removedEntities);

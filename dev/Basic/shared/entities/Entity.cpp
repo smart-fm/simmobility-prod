@@ -14,10 +14,12 @@ using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
 const UpdateStatus sim_mob::Entity::UpdateStatus::Continue(UpdateStatus::RS_CONTINUE);
+const UpdateStatus sim_mob::Entity::UpdateStatus::ContinueIncomplete(UpdateStatus::RS_CONTINUE_INCOMPLETE);
 const UpdateStatus sim_mob::Entity::UpdateStatus::Done(UpdateStatus::RS_DONE);
 
-sim_mob::Entity::Entity(unsigned int id)
-: id(id), startTime(0), currWorkerProvider(nullptr), isFake(false), parentEntity(nullptr), MessageHandler(id)
+sim_mob::Entity::Entity(unsigned int id) :
+		id(id), startTime(0), currWorkerProvider(nullptr), isFake(false), parentEntity(nullptr), isDuplicateFakeEntity(false), MessageHandler(id),
+		multiUpdate(false)
 {
 }
 

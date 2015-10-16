@@ -230,15 +230,21 @@ void sim_mob::WorkGroupManager::waitAllGroups_DistributeMessages(std::set<Agent*
 		return;
 	}
 
-	for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
-        if (ConfigManager::GetInstance().FullConfig().RunningMidTerm()) {
-			(*it)->processVirtualQueues(removedEntities);
-			(*it)->outputSupplyStats();
+	if(!ConfigManager::GetInstance().FullConfig().RunningLongTerm())
+	{
+		for (vector<WorkGroup*>::iterator it=registeredWorkGroups.begin(); it!=registeredWorkGroups.end(); it++) {
+			if (ConfigManager::GetInstance().FullConfig().RunningMidTerm())
+			{
+				(*it)->processMultiUpdateEntities(removedEntities); // VQ
+				(*it)->processMultiUpdateEntities(removedEntities); // output & reset for next tick
+			}
+			else // RunningShortTerm()
+			{
+				(*it)->waitAuraManager(removedEntities);
+			}
 		}
-
-		(*it)->waitAuraManager(removedEntities);
+		TravelTimeManager::updateCurrTimeInterval();
 	}
-	TravelTimeManager::updateCurrTimeInterval();
 
 	//Now is a good time to distribute messages since all agents have finished processing for this tick
 	sim_mob::messaging::MessageBus::DistributeMessages();

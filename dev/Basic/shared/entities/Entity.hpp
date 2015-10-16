@@ -39,11 +39,14 @@ private:
 
 protected:
 
-	/**The entity id*/
+	/** The entity id */
 	unsigned int id;
 
-	/**The start-time of the entity (milliseconds)*/
+	/** The start-time of the entity (milliseconds) */
 	unsigned int startTime;
+
+	/** indicator for entity which has to update multiple times in a time tick */
+	bool multiUpdate;
 
 	/**
 	 * Handles all messages sent to the MessageHandler implementation.
@@ -100,12 +103,16 @@ public:
 			/**Continue processing next time tick.*/
 			RS_CONTINUE,
 
+			/**More processing required in same time tick*/
+			RS_CONTINUE_INCOMPLETE,
+
 			/**Done, remove from the simulation*/
 			RS_DONE
 		};
 
 		/**Helper variable: represents a simple "Done" state with no changed variables.*/
 		static const UpdateStatus Continue;
+		static const UpdateStatus ContinueIncomplete;
 		static const UpdateStatus Done;
 
 		/**
@@ -141,6 +148,11 @@ public:
 	unsigned int getId() const
 	{
 		return id;
+	}
+
+	bool isMultiUpdate() const
+	{
+		return multiUpdate;
 	}
 
 	/**

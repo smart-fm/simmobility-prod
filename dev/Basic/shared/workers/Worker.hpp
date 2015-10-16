@@ -129,8 +129,7 @@ public:
 	void scheduleForRemoval(Entity* entity);
 	void scheduleForBred(Entity* entity);
 
-	void processVirtualQueues();
-	void outputSupplyStats(uint32_t currTick);
+	void processMultiUpdateEntities(uint32_t currTick);
 
 	virtual std::ostream* getLogFile() const;
 
@@ -172,7 +171,6 @@ private:
 
 	//Helper functions for various update functionality.
 	virtual void update_entities(timeslice currTime);
-	void initializeConfluxes(timeslice currTime);
 
 	void migrateOut(Entity& ent);
 	void migrateOutConflux(Conflux& cfx);
@@ -226,8 +224,15 @@ private:
 	///All parameters used by main_thread. Maintained by the object so that we don't need to use boost::coroutines.
 	MgmtParams loop_params;
 
-	///Entities managed by this worker
+	///Simple Entities managed by this worker
 	std::set<Entity*> managedEntities;
+
+	///Some Entities need to be updated multiple times in each time step.
+	///This typically happens when part of the update of an Entity depends on the partial update of other entities.
+	///Confluxes in mid-term are a good example of multi-update entities
+	///NOTE: The entities in this set also belong to managedEntities set.
+	///      In other words, managedMultiUpdateEntities is a subset of managedEntities containing only multi-update entities
+	std::set<Entity*> managedMultiUpdateEntities;
 
 	///If non-null, used for profiling.
 	sim_mob::ProfileBuilder* profile;

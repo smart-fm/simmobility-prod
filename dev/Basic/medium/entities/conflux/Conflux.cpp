@@ -49,8 +49,8 @@ const double MAX_DOUBLE = std::numeric_limits<double>::max();
 unsigned Conflux::updateInterval = 0;
 
 Conflux::Conflux(MultiNode* multinode, const MutexStrategy& mtxStrat, int id, bool isLoader) :
-		Agent(mtxStrat, id), multiNode(multinode), parentWorker(nullptr), currFrame(0, 0), isLoader(isLoader),
-		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond())
+		Agent(mtxStrat, id), multiNode(multinode), parentWorkerAssigned(false), currFrame(0, 0), isLoader(isLoader), numUpdatesThisTick(0),
+		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond()), multiUpdate(true)
 {
 }
 
@@ -297,24 +297,46 @@ UpdateStatus Conflux::update(timeslice frameNumber)
 {
 	if (!isInitialized())
 	{
-		frame_init(frameNumber);
-		setInitialized(true);
+		initialize(frameNumber);
+		return UpdateStatus::ContinueIncomplete;
 	}
-
-	currFrame = frameNumber;
-	if (isLoader)
+	switch (numUpdatesThisTick)
 	{
-		loadPersons();
-	}
-	else
+	case 0:
 	{
-		resetPositionOfLastUpdatedAgentOnLanes();
-		resetPersonRemTimes(); //reset the remaining times of persons in lane infinity and VQ if required.
-		processAgents(); //process all agents in this conflux for this tick
-		setLastUpdatedFrame(frameNumber.frame());
+		currFrame = frameNumber;
+		if (isLoader)
+		{
+			loadPersons();
+			return UpdateStatus::Continue;
+		}
+		else
+		{
+			resetPositionOfLastUpdatedAgentOnLanes();
+			resetPersonRemTimes(); //reset the remaining times of persons in lane infinity and VQ if required.
+			processAgents(); //process all agents in this conflux for this tick
+			setLastUpdatedFrame(frameNumber.frame());
+			numUpdatesThisTick++;
+			return UpdateStatus::ContinueIncomplete;
+		}
 	}
-	UpdateStatus retVal(UpdateStatus::RS_CONTINUE); //always return continue. Confluxes never die.
-	return retVal;
+	case 1:
+	{
+		processVirtualQueues();
+		numUpdatesThisTick++;
+		return UpdateStatus::ContinueIncomplete;
+	}
+	case 2:
+	{
+		updateAndReportSupplyStats(currFrame);
+		reportLinkTravelTimes(currFrame);
+		resetLinkTravelTimes(currFrame);
+		resetSegmentFlows();
+		resetOutputBounds();
+		numUpdatesThisTick = 0;
+		return UpdateStatus::ContinueIncomplete;
+	}
+	}
 }
 
 void Conflux::loadPersons()

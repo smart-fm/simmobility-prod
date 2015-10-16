@@ -195,6 +195,11 @@ private:
 	const double tickTimeInS;
 
 	/**
+	 * number of times update function was called for this conflux in current tick
+	 */
+	unsigned int numUpdatesThisTick;
+
+	/**
 	 * updates agents in this conflux
 	 */
 	void processAgents();

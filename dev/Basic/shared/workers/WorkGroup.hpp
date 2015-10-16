@@ -86,7 +86,7 @@ public:
 	void initWorkers(EntityLoadParams* loader);
 	void assignAWorker(Entity* ag);
 	bool assignWorker(Entity* ag, unsigned int workerId);
-	void processVirtualQueues(std::set<Agent*>& removedEntities);
+	void processMultiUpdateEntities(std::set<Agent*>& removedEntities);
 	void outputSupplyStats();
         
 	unsigned int getNumberOfWorkers() const;

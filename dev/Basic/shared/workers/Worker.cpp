@@ -105,6 +105,10 @@ sim_mob::Worker::~Worker()
 void sim_mob::Worker::addEntity(Entity* entity)
 {
 	managedEntities.insert(entity);
+	if(entity->isMultiUpdate())
+	{
+		managedMultiUpdateEntities.insert(entity);
+	}
 }
 
 
@@ -112,8 +116,17 @@ void sim_mob::Worker::remEntity(Entity* entity)
 {
 	//Remove this entity from the data vector.
 	std::set<Entity*>::iterator it = managedEntities.find(entity);
-	if (it!=managedEntities.end()) {
+	if (it != managedEntities.end())
+	{
 		managedEntities.erase(it);
+	}
+	if (entity->isMultiUpdate())
+	{
+		std::set<Entity*>::iterator it = managedMultiUpdateEntities.find(entity);
+		if (it != managedMultiUpdateEntities.end())
+		{
+			managedMultiUpdateEntities.erase(it);
+		}
 	}
 }
 
@@ -240,16 +253,9 @@ void sim_mob::Worker::removePendingEntities()
 	toBeRemoved.clear();
 }
 
-void sim_mob::Worker::processVirtualQueues() {
-	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-	{
-		(*it)->processVirtualQueues();
-	}
-}
-
 void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
     if (ConfigManager::GetInstance().FullConfig().RunningMidTerm()) {
-		for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
+		for (std::set<Conflux*>::iterator it = managedEntities.begin(); it != managedEntities.end(); it++)
 		{
 			const unsigned int msPerFrame = ConfigManager::GetInstance().FullConfig().baseGranMS();
 			timeslice currTime = timeslice(currTick, currTick*msPerFrame);
@@ -352,11 +358,16 @@ void sim_mob::Worker::threaded_function_loop()
 	///      Instead, add functionality into the sub-functions (perform_frame_tick(), etc.).
 	///      This is needed so that singleThreaded mode can be implemented easily. ~Seth
 	while (loop_params.active) {
-        if(ConfigManager::GetInstance().FullConfig().RunningMidTerm() && loop_params.currTick == 0)
+		if (ConfigManager::GetInstance().FullConfig().RunningMidTerm() && loop_params.currTick == 0)
 		{
-			initializeConfluxes(timeslice(loop_params.currTick, loop_params.currTick*loop_params.msPerFrame));
+			// This is extremely hackish. As of now, the only multi-update entities are Confluxes.
+			// All Confluxes need to be initialized before any conflux can update for the 0th tick.
+			// We therefore add an extra frametick barrier for the 0th tick alone.
+			// TODO: Re-design multi-update logic to gracefully take care of this ~ Harish
+			processMultiUpdateEntities(loop_params.currTick);
 			//Zero barrier
-			if (frame_tick_barr) {
+			if (frame_tick_barr)
+			{
 				frame_tick_barr->wait();
 			}
 		}
@@ -411,34 +422,56 @@ void sim_mob::Worker::threaded_function_loop()
 namespace {
 
 ///This class performs the operator() function on an Entity, and is meant to be used inside of a for_each loop.
-struct EntityUpdater {
-	EntityUpdater(Worker& wrk, timeslice currTime) : wrk(wrk), currTime(currTime) {}
-	virtual ~EntityUpdater() {}
+struct EntityUpdater
+{
+	EntityUpdater(Worker& wrk, timeslice currTime) :
+			wrk(wrk), currTime(currTime)
+	{
+	}
+	virtual ~EntityUpdater()
+	{
+	}
 
 	Worker& wrk;
 	timeslice currTime;
 
-	virtual void operator() (sim_mob::Entity* entity) {
+	virtual void operator()(sim_mob::Entity* entity)
+	{
 		UpdateStatus res = entity->update(currTime);
-        if(ConfigManager::GetInstance().FullConfig().isWorkerPublisherEnabled())
+		if (ConfigManager::GetInstance().FullConfig().isWorkerPublisherEnabled())
 		{
-				Worker::GetUpdatePublisher().publish(event::EVT_CORE_AGENT_UPDATED,(void*)event::CXT_CORE_AGENT_UPDATE,UpdateEventArgs(entity));
+			Worker::GetUpdatePublisher().publish(event::EVT_CORE_AGENT_UPDATED, (void*) event::CXT_CORE_AGENT_UPDATE, UpdateEventArgs(entity));
 		}
-        if (res.status == UpdateStatus::RS_DONE) {
-            //This Entity is done; schedule for deletion.
-            wrk.scheduleForRemoval(entity);
-            //entity->can_remove_by_RTREE = true;
-        } else if (res.status == UpdateStatus::RS_CONTINUE) {
-            //Still going, but we may have properties to start/stop managing
-            for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
-                wrk.stopManaging(*it);
-            }
-            for (set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
-                wrk.beginManaging(*it);
-            }
-        } else {
-            throw std::runtime_error("Unknown/unexpected update() return status.");
-        }
+		switch(res.status)
+		{
+		case UpdateStatus::RS_DONE:
+		{
+			//This Entity is done; schedule for deletion.
+			wrk.scheduleForRemoval(entity);
+			break;
+		}
+		case UpdateStatus::RS_CONTINUE:
+		{
+			//Still going, but we may have properties to start/stop managing
+			for (set<BufferedBase*>::iterator it = res.toRemove.begin(); it != res.toRemove.end(); it++)
+			{
+				wrk.stopManaging(*it);
+			}
+			for (set<BufferedBase*>::iterator it = res.toAdd.begin(); it != res.toAdd.end(); it++)
+			{
+				wrk.beginManaging(*it);
+			}
+			break;
+		}
+		case UpdateStatus::RS_CONTINUE_INCOMPLETE:
+		{
+			break;
+		}
+		default:
+		{
+			throw std::runtime_error("Unknown/unexpected update() return status.");
+		}
+		}
 	}
 };
 
@@ -531,53 +564,16 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 	}
 }
 
-void sim_mob::Worker::initializeConfluxes(timeslice currTime)
-{
-	for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-	{
-		if(!(*it)->isInitialized()) { (*it)->initialize(currTime); }
-	}
-}
-
 //TODO: It seems that beginManaging() and stopManaging() can also be called during update?
 //      May want to dig into this a bit more. ~Seth
 void sim_mob::Worker::update_entities(timeslice currTime)
 {
-	//Confluxes require an additional set of updates.
-    if (ConfigManager::GetInstance().FullConfig().RunningMidTerm())
-	{
-		Conflux* conflux = nullptr;
-		if(ConfigManager::GetInstance().FullConfig().OutputEnabled())
-		{
-			unsigned int total = 0;
-			unsigned int infCount = 0;
-			unsigned int vqCount = 0;
-
-			for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-			{
-				conflux = *it;
-				vqCount += conflux->resetOutputBounds();
-				total += conflux->countPersons(); //total = numInLanes+numInLaneInf. VQ is not included here
-				infCount += conflux->getNumRemainingInLaneInfinity();
-			}
-			if(managedConfluxes.size() > 0)
-			{
-				Print() << "Worker::update_entities Time: "<< currTime.ms()/1000 << "s \tnumInLanes: "<< (total - infCount) << "\tnumInLaneInf: "<< infCount << "\tvqCount: " << vqCount << std::endl;
-			}
-		}
-		else
-		{
-			for (std::set<Conflux*>::iterator it = managedConfluxes.begin(); it != managedConfluxes.end(); it++)
-			{
-				conflux = *it;
-				conflux->resetOutputBounds();
-			}
-		}
-
-		//All workers perform the same tasks for their set of managedConfluxes.
-		std::for_each(managedConfluxes.begin(), managedConfluxes.end(), EntityUpdater(*this, currTime));
-	}
-
-	//Updating of managed entities occurs regardless of whether or not confluxes are enabled.
 	std::for_each(managedEntities.begin(), managedEntities.end(), EntityUpdater(*this, currTime));
+}
+
+void sim_mob::Worker::processMultiUpdateEntities(uint32_t currTick)
+{
+	const unsigned int msPerFrame = ConfigManager::GetInstance().FullConfig().baseGranMS();
+	timeslice currTime = timeslice(currTick, currTick*msPerFrame);
+	std::for_each(managedMultiUpdateEntities.begin(), managedMultiUpdateEntities.end(), EntityUpdater(*this, currTime));
 }

@@ -129,6 +129,8 @@ public:
 	double getWidth() const;
 	void setWidth(double width);
 
+	double getLength() const;
+
 	/**
 	 * Checks if the lane is a pedestrian lane
 	 * @return true if the lane is a pedestrian lane; false otherwise

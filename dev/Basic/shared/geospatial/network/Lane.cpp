@@ -139,6 +139,11 @@ void Lane::setWidth(double width)
 	this->width = width;
 }
 
+double Lane::getLength() const
+{
+	return this->polyLine->getLength();
+}
+
 bool Lane::isPedestrianLane() const
 {
 	return (vehicleMode & PEDESTRIAN_LANE);

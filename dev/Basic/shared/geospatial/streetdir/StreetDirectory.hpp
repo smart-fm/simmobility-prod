@@ -13,6 +13,7 @@
 
 #include "geospatial/network/Point.hpp"
 #include "geospatial/network/WayPoint.hpp"
+#include "entities/params/PT_NetworkEntities.hpp"
 
 namespace sim_mob
 {
@@ -37,8 +38,121 @@ enum TimeRange
 	Random
 };
 
+enum PT_CostLabel{
+	KshortestPath=0,
+	LabelingApproach1,
+	LabelingApproach2,
+	LabelingApproach3,
+	LabelingApproach4,
+	LabelingApproach5,
+	LabelingApproach6,
+	LabelingApproach7,
+	LabelingApproach8,
+	LabelingApproach9,
+	LabelingApproach10,
+	SimulationApproach1,
+	SimulationApproach2,
+	SimulationApproach3,
+	SimulationApproach4,
+	SimulationApproach5,
+	SimulationApproach6,
+	SimulationApproach7,
+	SimulationApproach8,
+	SimulationApproach9,
+	SimulationApproach10,
+	weightLabelscount
+};
+
 class StreetDirectory : private boost::noncopyable
 {
+public:
+	/**
+	 * Below public Transport graph is defined. We used different graph than private transit with a purpose
+	 * of not using multiple graphs instead single graph of all Pathset Generation algorithms
+	 *
+	 */
+
+	/*
+	 * Just a typedef for edgeId and vertexId of the public network data. Not to get confused with graph edges and vertex.
+	 */
+	typedef int PT_EdgeId;
+	typedef std::string PT_VertexId;
+
+	/*
+	 * This is the public transport edge properties. Different weights are being assigned used by different algorithms.
+	 * In this way we get rid of using multiple graphs.
+	 */
+	struct PT_EdgeProperties{
+		PT_EdgeId edge_id;
+
+		/** This weight used by both K-shortest path and Link elimination approach algorithms.*/
+		double kShortestPathWeight;
+
+		/** Weights used by Labeling Approach */
+		double labelingApproach1Weight;
+		double labelingApproach2Weight;
+		double labelingApproach3Weight;
+		double labelingApproach4Weight;
+		double labelingApproach5Weight;
+		double labelingApproach6Weight;
+		double labelingApproach7Weight;
+		double labelingApproach8Weight;
+		double labelingApproach9Weight;
+		double labelingApproach10Weight;
+
+		/**Weights used by Simulation approach*/
+		double simulationApproach1Weight;
+		double simulationApproach2Weight;
+		double simulationApproach3Weight;
+		double simulationApproach4Weight;
+		double simulationApproach5Weight;
+		double simulationApproach6Weight;
+		double simulationApproach7Weight;
+		double simulationApproach8Weight;
+		double simulationApproach9Weight;
+		double simulationApproach10Weight;
+	};
+
+	/*
+	 * This is the public transport graph vertex property. It uses vertexId as vertex_name
+	 */
+    typedef boost::property<boost::vertex_name_t, std::string> PT_VertexProperties;
+
+    /*
+     * Definition of public transport graph is a directed graph with above defined edge and vertex properties
+     */
+    typedef boost::adjacency_list<boost::vecS,
+                                      boost::vecS,
+                                      boost::directedS,
+                                      PT_VertexProperties,
+                                      PT_EdgeProperties> PublicTransitGraph;
+
+    typedef PublicTransitGraph::vertex_descriptor PT_Vertex;
+
+    typedef PublicTransitGraph::edge_descriptor PT_Edge;
+
+    /*
+     * Its an abstract class for the public transport shortest path implementation .
+     * This class is extended by A_StarPublicTransitShortestPathImpl class in A_StarPublicTransitShortestPathImpl.hpp
+     */
+    class PublicTransitShortestPathImpl{
+    public:
+    	/*
+    	 * Pure virtual function to get shortest path in public transport network given pair of vertices
+    	 */
+    	virtual std::vector<PT_NetworkEdge> searchShortestPath(const PT_VertexId& from, const PT_VertexId& to,const PT_CostLabel cost)=0;
+
+    	/*
+    	 * Pure virtual function to get shortest path along with some blacklisted edges in public transport network given pair of vertices
+    	 */
+    	virtual std::vector<PT_NetworkEdge> searchShortestPathWithBlacklist(const StreetDirectory::PT_VertexId& from,const StreetDirectory::PT_VertexId& to, const std::set<StreetDirectory::PT_EdgeId>& blackList, double& cost)=0;
+    	/*
+    	 * Pure virtual Function to get first K shortest paths in public transport network given pair of vertices.
+    	 */
+    	virtual void searchK_ShortestPaths(uint32_t k, const StreetDirectory::PT_VertexId& from,const StreetDirectory::PT_VertexId& to, std::vector< std::vector<PT_NetworkEdge> > & outPathList)=0;
+    	friend class StreetDirectory;
+    };
+
 public:
 	/**
 	 * Internal typedef to StreetDirectory representing:
@@ -181,6 +295,12 @@ public:
 	ShortestPathImpl* getTravelTimeImpl();
 
 	/**
+	 * Retrieves the implementation pointer to the shortest path based on public transit
+	 * @return the pointer of the implementation
+	 */
+	PublicTransitShortestPathImpl* getPublicTransitShortestPathImpl();
+
+	/**
 	 * Return the distance-based shortest path to drive from one node to another. Performs a search (currently using
 	 * the A* algorithm) from one node to another.
 	 *
@@ -256,6 +376,9 @@ private:
 
 	/** shortest travel time path*/
 	ShortestPathImpl* sttpImpl;
+
+    /**Public Transit implementation*/
+    PublicTransitShortestPathImpl* ptImpl;
 };
 }
 

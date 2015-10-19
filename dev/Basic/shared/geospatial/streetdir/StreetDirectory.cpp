@@ -14,7 +14,7 @@ namespace sim_mob
 
 StreetDirectory StreetDirectory::instance;
 
-StreetDirectory::StreetDirectory() : spImpl(nullptr), sttpImpl(nullptr)
+StreetDirectory::StreetDirectory() : spImpl(nullptr), sttpImpl(nullptr), ptImpl(nullptr)
 {
 }
 
@@ -27,6 +27,10 @@ StreetDirectory::~StreetDirectory()
 	if (sttpImpl)
 	{
 		delete sttpImpl;
+	}
+	if (ptImpl)
+	{
+		delete ptImpl;
 	}
 }
 
@@ -46,6 +50,11 @@ StreetDirectory::ShortestPathImpl* StreetDirectory::getDistanceImpl()
 StreetDirectory::ShortestPathImpl* StreetDirectory::getTravelTimeImpl()
 {
 	return sttpImpl;
+}
+
+StreetDirectory::PublicTransitShortestPathImpl* StreetDirectory::getPublicTransitShortestPathImpl()
+{
+	return ptImpl;
 }
 
 StreetDirectory::VertexDesc StreetDirectory::DrivingTimeVertex(const Node& node, TimeRange timeRange,int randomGraphId) const

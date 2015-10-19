@@ -34,10 +34,10 @@ public:
 	boost::mutex fileExclusiveWrite;
 	PT_PathSet makePathset(sim_mob::Node* from,sim_mob::Node* to);
 	std::string getVertexIdFromNode(sim_mob::Node*);
-//	void getLabelingApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
-//	void getkShortestPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
-//	void getLinkEliminationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
-//	void getSimulationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
+	void getLabelingApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
+	void getkShortestPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
+	void getLinkEliminationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
+	void getSimulationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet);
 	void writePathSetToFile(PT_PathSet &ptPathSet,unsigned int fromNodeId, unsigned int toNodeId);
 	void PT_BulkPathSetGenerator();
 	void writePathSetFileHeader();

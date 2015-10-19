@@ -3,6 +3,8 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Person_ST.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "entities/amodController/AMODController.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
@@ -512,6 +514,8 @@ bool Person_ST::frame_init(timeslice now)
 
 Entity::UpdateStatus Person_ST::frame_tick(timeslice now)
 {
+    ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+
 	currTick = now;
 	//TODO: Here is where it gets risky.
 	if (resetParamsRequired)
@@ -538,7 +542,7 @@ Entity::UpdateStatus Person_ST::frame_tick(timeslice now)
 	if (isToBeRemoved())
 	{
 		//Reset the start time (to the NEXT time tick) so our dispatcher doesn't complain.
-		setStartTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS());
+        setStartTime(now.ms() + config.baseGranMS());
 
 		retVal = checkTripChain();
 
@@ -553,8 +557,8 @@ Entity::UpdateStatus Person_ST::frame_tick(timeslice now)
 					//since start time of the activity is usually later than what is configured initially,
 					//we have to make adjustments so that the person waits for exact amount of time
 					sim_mob::ActivityPerformer<Person_ST>* ap = dynamic_cast<sim_mob::ActivityPerformer<Person_ST>* > (currRole);
-					ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS()));
-					ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + ConfigManager::GetInstance().FullConfig().baseGranMS() + (tcItem->endTime.getValue() - tcItem->startTime.getValue())));
+                    ap->setActivityStartTime(sim_mob::DailyTime(now.ms() + config.baseGranMS()));
+                    ap->setActivityEndTime(sim_mob::DailyTime(now.ms() + config.baseGranMS() + (tcItem->endTime.getValue() - tcItem->startTime.getValue())));
 				}
 				if (!isInitialized())
 				{

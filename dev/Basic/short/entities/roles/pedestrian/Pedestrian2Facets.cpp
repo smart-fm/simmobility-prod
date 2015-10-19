@@ -13,6 +13,7 @@
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/ST_Config.hpp"
 
 #include "geospatial/BusStop.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
@@ -117,14 +118,14 @@ void sim_mob::Pedestrian2Movement::frame_tick()
 		updatePedestrianSignal();
 
 		if (sigColor == signalGreen) //Green phase
-			vel = speed * 2.0 * 100 * ConfigManager::GetInstance().FullConfig().personTimeStepInMilliSeconds() / 1000.0;
+            vel = speed * 2.0 * 100 * ST_Config::getInstance().personTimeStepInMilliSeconds() / 1000.0;
 		else
 			vel = 0;
 	}
 	else
 	{
 		if (!pedMovement.isDoneWithEntireRoute())
-			vel = speed * 1.2 * 100 * ConfigManager::GetInstance().FullConfig().personTimeStepInMilliSeconds() / 1000.0;
+            vel = speed * 1.2 * 100 * ST_Config::getInstance().personTimeStepInMilliSeconds() / 1000.0;
 		else
 		{
 			if (parentPedestrian2->parent && (parentPedestrian2->parent->destNode.type_ == WayPoint::BUS_STOP))

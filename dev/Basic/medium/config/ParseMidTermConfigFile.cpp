@@ -587,7 +587,7 @@ void ParseMidTermConfigFile::processBusStopScheduledTimesNode(xercesc::DOMElemen
         BusStopScheduledTime res;
         res.offsetAT = ParseUnsignedInt(GetNamedAttributeValue(item, "offsetAT"), static_cast<unsigned int>(0));
         res.offsetDT = ParseUnsignedInt(GetNamedAttributeValue(item, "offsetDT"), static_cast<unsigned int>(0));
-        mtCfg.busScheduledTimes[count++] = res;
+        cfg.busScheduledTimes[count++] = res;
     }
 }
 

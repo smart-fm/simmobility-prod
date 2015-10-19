@@ -104,7 +104,7 @@ void sim_mob::Broker::configure()
 	//registrationPublisher.registerEvent(comm::NS3_SIMULATOR);
 
 	//Dispatch differently depending on whether we are using "android-ns3" or "android-only"
-    bool useNs3 = ST_Config.commsim.useNs3;
+    bool useNs3 = ST_Config::getInstance().commsim.useNs3;
 
 	//Register handlers with "useNs3" flag. OpaqueReceive will throw an exception if it attempts to process a message and useNs3 is not set.
 	handleLookup.addHandlerOverride("opaque_send", new sim_mob::OpaqueSendHandler(useNs3));

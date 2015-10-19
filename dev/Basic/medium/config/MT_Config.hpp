@@ -209,16 +209,6 @@ struct ScreenLineParams
 };
 
 /**
- * Represents a Bust Stop in the config file. (NOTE: Further documentation needed.)
- */
-struct BusStopScheduledTime {
-    BusStopScheduledTime() : offsetAT(0), offsetDT(0) {}
-
-    unsigned int offsetAT; //<Presumably arrival time?
-    unsigned int offsetDT; //<Presumably departure time?
-};
-
-/**
  * represent the incident data section of the config file
  */
 struct IncidentParams {
@@ -753,9 +743,6 @@ public:
 
     /// Mid term run mode identifier
     MidTermRunMode midTermRunMode;
-
-    /// Number of agents skipped in loading
-    unsigned int numAgentsSkipped;
 
     /// screen line counts parameter
     ScreenLineParams screenLineParams;

@@ -381,6 +381,16 @@ struct BusControllerParams
 };
 
 /**
+ * Represents a Bust Stop in the config file. (NOTE: Further documentation needed.)
+ */
+struct BusStopScheduledTime {
+    BusStopScheduledTime() : offsetAT(0), offsetDT(0) {}
+
+    unsigned int offsetAT; //<Presumably arrival time?
+    unsigned int offsetDT; //<Presumably departure time?
+};
+
+/**
  * Contains the properties of the config file as they appear in, e.g., test_road_network.xml, with
  *   minimal conversion.
  * Derived properties (such as the road network) are listed in ConfigParams.
@@ -434,6 +444,9 @@ public:
 
     /// Generic properties, for testing new features.
     std::map<std::string, std::string> genericProps;
+
+    ///Some settings for bus stop arrivals/departures.
+    std::map<int, BusStopScheduledTime> busScheduledTimes; ///The int is a "bus stop ID", starting from 0.
 
     /// If true, we take time to merge the output of the individual log files after the simulation is complete.
     bool mergeLogFiles;

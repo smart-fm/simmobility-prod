@@ -96,7 +96,7 @@ public:
 	int initDis;
 
 	/**The speed at which the person starts*/
-	int initSpeed;
+    int initSpeed;
 
 	/**Id of the autonomous vehicle. If it is a normal vehicle, this id is -1*/
 	std::string amodId;

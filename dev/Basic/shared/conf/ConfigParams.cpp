@@ -22,7 +22,7 @@
 using namespace sim_mob;
 
 sim_mob::ConfigParams::ConfigParams() : RawConfigParams(),
-    totalRuntimeTicks(0), totalWarmupTicks(0), //numAgentsSkipped(0),
+    totalRuntimeTicks(0), totalWarmupTicks(0), numAgentsSkipped(0),
     using_MPI(false), outNetworkFileName("out.network.txt"),
     is_simulation_repeatable(false), sealedNetwork(false), controlMgr(nullptr),
     workerPublisherEnabled(false)

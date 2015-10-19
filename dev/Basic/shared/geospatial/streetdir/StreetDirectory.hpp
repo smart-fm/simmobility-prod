@@ -31,7 +31,7 @@ class Node;
 class MultiNode;
 class BusStop;
 class Crossing;
-class Signal;
+//class Signal;
 class Agent;
 
 
@@ -407,7 +407,7 @@ public:
      * It is possible that the intersection, specified by \c node, is an unsignalized junction.
      * All road users must observe the highway code.
      */
-    const Signal* signalAt(const sim_mob::Node& node) const;
+    //const Signal* signalAt(const sim_mob::Node& node) const;
 
 
 	VertexDesc DrivingVertex(const sim_mob::Node& n) const;
@@ -479,7 +479,7 @@ public:
     /**
      * Register the Signal object with the StreetDirectory (to be invoked by the simulator kernel).
      */
-    void registerSignal(const Signal& signal);
+    //void registerSignal(const Signal& signal);
 
 
     /**
@@ -567,7 +567,7 @@ private:
     //Stats* stats_;
 
     ///A lookup of all Signals in the RoadNetwork
-    std::map<const Node*, const Signal*> signals_;
+    //std::map<const Node*, const Signal*> signals_;
 
     ///A lookup of all Nodes/Links by a very specific criteria; see getLinkLoc() above.
     /// This criteria should definitely be re-examined.

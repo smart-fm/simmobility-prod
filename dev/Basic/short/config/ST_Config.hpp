@@ -38,15 +38,17 @@ struct VehicleType
 
     int capacity;
 
-    std::vector<std::string> associatedRoles;
-
     bool isValidRole(const std::string& role) const;
 
-    bool operator==(const VehicleType& rhs) const;
+    bool operator==(const std::string& rhs) const;
 
-    bool operator!=(const VehicleType& rhs) const;
+    bool operator!=(const std::string& rhs) const;
 
     VehicleType();
+
+    VehicleType(const std::string& name, const double len,
+                const double width, const double capacity);
+
 };
 
 /**
@@ -65,8 +67,7 @@ struct EntityTemplate {
     int originNode;
     int destNode;
     std::pair<unsigned int, unsigned int> tripId;
-    std::string vehicleType;
-    std::string roleName;
+    std::string mode;
 };
 
 /**
@@ -322,7 +323,6 @@ public:
 	AuraManager::AuraManagerImplementation& aura_manager_impl();
 	const AuraManager::AuraManagerImplementation& aura_manager_impl() const;
 
-
 	unsigned int personTimeStepInMilliSeconds() const;
 
 	unsigned int signalTimeStepInMilliSeconds() const;
@@ -387,6 +387,11 @@ public:
 
     /// Generic properties, for testing new features.
     std::map<std::string, std::string> genericProps;
+
+    unsigned int granPersonTicks;     ///<Number of ticks to wait before updating all Person agents.
+    unsigned int granSignalsTicks;    ///<Number of ticks to wait before updating all signals.
+    unsigned int granIntMgrTicks;     ///<Number of ticks to wait before updating all intersection managers.
+    unsigned int granCommunicationTicks;      ///<Number of ticks to wait before updating all communication brokers.
 private:
     /**
      * Constructor

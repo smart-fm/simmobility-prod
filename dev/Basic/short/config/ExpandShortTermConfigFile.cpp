@@ -1,6 +1,5 @@
 #include "ExpandShortTermConfigFile.hpp"
-#include "geospatial/xmlLoader/geo10.hpp"
-#include "geospatial/xmlWriter/boostXmlWriter.hpp"
+#include "conf/PrintNetwork.hpp"
 #include "entities/BusController.hpp"
 #include "entities/BusControllerST.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -115,14 +114,14 @@ void ExpandShortTermConfigFile::processConfig()
     //Set PartitionManager instance (if using MPI and it's enabled).
     if (cfg.MPI_Enabled() && cfg.using_MPI)
     {
-	int partId = stConfig.partitioningSolutionId;
-	PartitionManager::instance().partition_config->partition_solution_id = partId;
-	std::cout << "partition_solution_id in configuration:" << partId << std::endl;
+        int partId = stConfig.partitioningSolutionId;
+        PartitionManager::instance().partition_config->partition_solution_id = partId;
+        std::cout << "partition_solution_id in configuration:" << partId << std::endl;
     }
 
     //TEMP: Test network output via boost.
     //todo: enable/disble through cinfig
-    BoostSaveXML(stConfig.getNetworkXmlOutputFile(), cfg.getNetworkRW());
+    //BoostSaveXML(stConfig.getNetworkXmlOutputFile(), cfg.getNetworkRW());
 
     cfg.sealNetwork();
     std::cout << "Network Sealed" << std::endl;
@@ -134,10 +133,10 @@ void ExpandShortTermConfigFile::processConfig()
     std::map<std::string, std::string>::iterator itIntModel = stConfig.genericProps.find("intersection_driving_model");
     if (itIntModel != stConfig.genericProps.end())
     {
-	if (itIntModel->second == "slot-based")
-	{
-	    sim_mob::aimsun::Loader::CreateIntersectionManagers(cfg.getNetwork());
-	}
+        if (itIntModel->second == "slot-based")
+        {
+            sim_mob::aimsun::Loader::CreateIntersectionManagers(cfg.getNetwork());
+        }
     }
 
     loadAMOD_Controller();
@@ -170,11 +169,11 @@ void ExpandShortTermConfigFile::loadNetworkFromDatabase()
     }
     else
     {
-	std::cout << "Loading Road Network from XML.\n";
-	if (!sim_mob::xml::InitAndLoadXML(stConfig.getNetworkXmlInputFile(), cfg.getNetworkRW(), cfg.getTripChains()))
-	{
-	    throw std::runtime_error("Error loading/parsing XML file (see stderr).");
-	}
+        std::cout << "Loading Road Network from XML.\n";
+        if (!sim_mob::xml::InitAndLoadXML(stConfig.getNetworkXmlInputFile(), cfg.getNetworkRW(), cfg.getTripChains()))
+        {
+            throw std::runtime_error("Error loading/parsing XML file (see stderr).");
+        }
     }
 }
 
@@ -192,33 +191,33 @@ void ExpandShortTermConfigFile::loadAgentsInOrder(ConfigParams::AgentConstraints
     const LoadOrder& order = stConfig.loadAgentsOrder;
     for (LoadOrder::const_iterator it = order.begin(); it != order.end(); ++it)
     {
-	switch (*it)
-	{
-	case LoadAg_Database: //fall-through
-	case LoadAg_XmlTripChains:
-	    //Create an agent for each Trip Chain in the database.
-	    generateAgentsFromTripChain(constraints);
-	    std::cout << "Loaded Database Agents (from Trip Chains).\n";
-	    break;
-	case LoadAg_Drivers:
-	    for(std::map<std::string, std::vector<EntityTemplate> >::const_iterator it = stConfig.futureAgents.begin();
-		it != stConfig.futureAgents.end(); it++)
-	    {
-	    	generateXMLAgents(it->second, it->first+"driver", constraints);
-	    }
-	    std::cout << "Loaded Driver Agents (from config file).\n";
-	    break;
-	case LoadAg_Pedestrians:
-	    generateXMLAgents(stConfig.futureAgents["pedestrian"], "pedestrian", constraints);
-	    std::cout << "Loaded Pedestrian Agents (from config file).\n";
-	    break;
-	case LoadAg_Passengers:
-	    generateXMLAgents(stConfig.futureAgents["passenger"], "passenger", constraints);
-	    std::cout << "Loaded Passenger Agents (from config file).\n";
-	    break;
-	default:
-	    throw std::runtime_error("Unknown item in load_agents");
-	}
+        switch (*it)
+        {
+        case LoadAg_Database: //fall-through
+        case LoadAg_XmlTripChains:
+            //Create an agent for each Trip Chain in the database.
+            generateAgentsFromTripChain(constraints);
+            std::cout << "Loaded Database Agents (from Trip Chains).\n";
+            break;
+        case LoadAg_Drivers:
+            for(std::map<std::string, std::vector<EntityTemplate> >::const_iterator it = stConfig.futureAgents.begin();
+            it != stConfig.futureAgents.end(); it++)
+            {
+                generateXMLAgents(it->second);
+            }
+            std::cout << "Loaded Driver Agents (from config file).\n";
+            break;
+        case LoadAg_Pedestrians:
+            generateXMLAgents(stConfig.futureAgents["pedestrian"]);
+            std::cout << "Loaded Pedestrian Agents (from config file).\n";
+            break;
+        case LoadAg_Passengers:
+            generateXMLAgents(stConfig.futureAgents["passenger"]);
+            std::cout << "Loaded Passenger Agents (from config file).\n";
+            break;
+        default:
+            throw std::runtime_error("Unknown item in load_agents");
+        }
     }
     std::cout << "Loading Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder: Success!\n";
 }
@@ -232,16 +231,14 @@ void ExpandShortTermConfigFile::generateAgentsFromTripChain(ConfigParams::AgentC
     //The current agent we are working on.
     for (TripChainMap::const_iterator it_map = tcs.begin(); it_map != tcs.end(); ++it_map)
     {
-	TripChainItem *tc = it_map->second.front();
-	Person *person = new Person_ST("XML_TripChain", cfg.mutexStategy(), it_map->second);
-	person->setPersonCharacteristics();
-	addOrStashEntity(person, active_agents, pending_agents);
+        TripChainItem *tc = it_map->second.front();
+        Person *person = new Person_ST("XML_TripChain", cfg.mutexStategy(), it_map->second);
+        person->setPersonCharacteristics();
+        addOrStashEntity(person, active_agents, pending_agents);
     }
 }
 
-void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTemplate>& xmlItems,
-							 const std::string& roleName,
-							 ConfigParams::AgentConstraints& constraints)
+void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTemplate>& xmlItems)
 {
     //Do nothing for empty roles.
     if (xmlItems.empty())
@@ -249,89 +246,51 @@ void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTempla
 	    return;
     }
 
-    //At the moment, we only load *Roles* from the config file. So, check if this is a valid role.
-    // This will only generate an error if someone actually tries to load an agent of this type.
-    const RoleFactory<Person_ST> *rf = RoleFactory<Person_ST>::getInstance();
-    bool knownRole = rf->isKnownRole(roleName);
-
-    //If at least one elemnt of an unknown type exists, it's an error.
-    if (!knownRole)
-    {
-	    std::stringstream msg;
-	    msg << "Unexpected agent type: " << roleName;
-	    throw std::runtime_error(msg.str().c_str());
-    }
-
     //Loop through all agents of this type.
     for (std::vector<EntityTemplate>::const_iterator it = xmlItems.begin(); it != xmlItems.end(); ++it)
     {
-	//Keep track of the properties we have found.
-	std::map<std::string, std::string> props;
-	props["lane"] = Utils::toStr<unsigned int>(it->laneIndex);
-	props["initSegId"] = Utils::toStr<unsigned int>(it->initSegId);
-	props["initDis"] = Utils::toStr<unsigned int>(it->initDis);
-	props["initSpeed"] = Utils::toStr<unsigned int>(it->initSpeed);
+        //Keep track of the properties we have found.
+        std::map<std::string, std::string> props;
+        props["lane"] = Utils::toStr<unsigned int>(it->laneIndex);
+        props["initSegId"] = Utils::toStr<unsigned int>(it->initSegId);
+        props["initDis"] = Utils::toStr<unsigned int>(it->initDis);
+        props["initSpeed"] = Utils::toStr<unsigned int>(it->initSpeed);
 
-	if (it->originNode > 0 && it->destNode > 0)
-	{
-	    props["originNode"] = Utils::toStr<unsigned int>(it->originNode);
-	    props["destNode"] = Utils::toStr<unsigned int>(it->destNode);
-	}
-	else
-	{
-	    {
-		std::stringstream msg;
-		msg << it->originPos.getX() << "," << it->originPos.getY();
-		props["originPos"] = msg.str();
-	    }
-	    {
-		std::stringstream msg;
-		msg << it->destPos.getX() << "," << it->destPos.getY();
-		props["destPos"] = msg.str();
-	    }
-	}
+        if (it->originNode > 0 && it->destNode > 0)
+        {
+            props["originNode"] = Utils::toStr<unsigned int>(it->originNode);
+            props["destNode"] = Utils::toStr<unsigned int>(it->destNode);
+        }
+        else
+        {
+            {
+                std::stringstream msg;
+                msg << it->originPos.getX() << "," << it->originPos.getY();
+                props["originPos"] = msg.str();
+            }
+            {
+                std::stringstream msg;
+                msg << it->destPos.getX() << "," << it->destPos.getY();
+                props["destPos"] = msg.str();
+            }
+        }
 
-	int agentId = -1;
+        int agentId = -1;
 
-	if (it->agentId != 0)
-	{
-	    agentId = it->agentId;
-	}
+        if (it->agentId != 0)
+        {
+            agentId = it->agentId;
+        }
 
-	//Finally, set the "#mode" flag in the configProps array.
-	// (XML can't have # inside tag names, so this will never be overwritten)
-	if (roleName == "driver")
-	{
-	    props["#mode"] = "Car";
-	}
-	else if (roleName == "taxidriver")
-	{
-	    props["#mode"] = "Taxi";
-	}
-	else if (roleName == "pedestrian")
-	{
-	    props["#mode"] = "Walk";
-	}
-	else if (roleName == "busdriver")
-	{
-	    props["#mode"] = "Bus";
-	}
-	else if (roleName == "passenger")
-	{
-	    props["#mode"] = "BusTravel";
-	}
-	else
-	{
-	    props["#mode"] = "Unknown";
-	}
+        props["#mode"] = it->mode;
 
-	//Create the Person agent with that given ID (or an auto-generated one)
-	Person* agent = new Person_ST("XML_Def", cfg.mutexStategy(), agentId);
-	agent->setConfigProperties(props);
-	agent->setStartTime(it->startTimeMs);
+        //Create the Person agent with that given ID (or an auto-generated one)
+        Person* agent = new Person_ST("XML_Def", cfg.mutexStategy(), agentId);
+        agent->setConfigProperties(props);
+        agent->setStartTime(it->startTimeMs);
 
-	//Add it or stash it
-	addOrStashEntity(agent, active_agents, pending_agents);
+        //Add it or stash it
+        addOrStashEntity(agent, active_agents, pending_agents);
     }
 }
 
@@ -435,30 +394,30 @@ bool ExpandShortTermConfigFile::SetTickFromBaseGran(unsigned int& res, unsigned 
 
 void ExpandShortTermConfigFile::SetTicks()
 {
-    /*if (!SetTickFromBaseGran(cfg.totalRuntimeTicks, cfg.system.simulation.totalRuntimeMS))
+    if (!SetTickFromBaseGran(cfg.totalRuntimeTicks, cfg.simulation.totalRuntimeMS))
     {
 	Warn() << "Total runtime will be truncated by the base granularity\n";
     }
-    if (!SetTickFromBaseGran(cfg.totalWarmupTicks, cfg.system.simulation.totalWarmupMS))
+    if (!SetTickFromBaseGran(cfg.totalWarmupTicks, cfg.simulation.totalWarmupMS))
     {
 	Warn() << "Total warm-up will be truncated by the base granularity\n";
     }
-    if (!SetTickFromBaseGran(cfg.granPersonTicks, cfg.system.workers.person.granularityMs))
+    if (!SetTickFromBaseGran(stConfig.granPersonTicks, stConfig.workers.person.granularityMs))
     {
 	throw std::runtime_error("Person granularity not a multiple of base granularity.");
     }
-    if (!SetTickFromBaseGran(cfg.granSignalsTicks, cfg.system.workers.signal.granularityMs))
+    if (!SetTickFromBaseGran(stConfig.granSignalsTicks, stConfig.workers.signal.granularityMs))
     {
 	throw std::runtime_error("Signal granularity not a multiple of base granularity.");
     }
-    if (!SetTickFromBaseGran(cfg.granIntMgrTicks, cfg.system.workers.intersectionMgr.granularityMs))
+    if (!SetTickFromBaseGran(stConfig.granIntMgrTicks, stConfig.workers.intersectionMgr.granularityMs))
     {
 	    throw std::runtime_error("Signal granularity not a multiple of base granularity.");
     }
-    if (!SetTickFromBaseGran(cfg.granCommunicationTicks, cfg.system.workers.communication.granularityMs))
+    if (!SetTickFromBaseGran(stConfig.granCommunicationTicks, stConfig.workers.communication.granularityMs))
     {
 	    throw std::runtime_error("Communication granularity not a multiple of base granularity.");
-    }*/
+    }
 }
 
 void ExpandShortTermConfigFile::PrintSettings()
@@ -470,15 +429,15 @@ void ExpandShortTermConfigFile::PrintSettings()
     std::cout << "WorkGroup assignment: ";
     switch (cfg.defaultWrkGrpAssignment())
     {
-    case WorkGroup::ASSIGN_ROUNDROBIN:
-	std::cout << "roundrobin" << std::endl;
-	break;
-    case WorkGroup::ASSIGN_SMALLEST:
-	std::cout << "smallest" << std::endl;
-	break;
-    default:
-	std::cout << "<unknown>" << std::endl;
-	break;
+        case WorkGroup::ASSIGN_ROUNDROBIN:
+        std::cout << "roundrobin" << std::endl;
+        break;
+        case WorkGroup::ASSIGN_SMALLEST:
+        std::cout << "smallest" << std::endl;
+        break;
+        default:
+        std::cout << "<unknown>" << std::endl;
+        break;
     }
 
     //Basic statistics
@@ -492,11 +451,11 @@ void ExpandShortTermConfigFile::PrintSettings()
     //Output Database details
     if (stConfig.networkSource == NETSRC_XML)
     {
-	std::cout << "Network details loaded from xml file: " << stConfig.networkXmlInputFile << "\n";
+        std::cout << "Network details loaded from xml file: " << stConfig.networkXmlInputFile << "\n";
     }
     if (stConfig.networkSource == NETSRC_DATABASE)
     {
-	std::cout << "Network details loaded from database connection: " << cfg.getDatabaseConnectionString() << "\n";
+        std::cout << "Network details loaded from database connection: " << cfg.getDatabaseConnectionString() << "\n";
     }
 
     //Print the network (this will go to a different output file...)

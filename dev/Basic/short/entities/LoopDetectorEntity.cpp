@@ -11,6 +11,7 @@
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/ST_Config.hpp"
 
 #include "entities/AuraManager.hpp"
 #include "entities/Person.hpp"
@@ -182,7 +183,7 @@ LoopDetector::LoopDetector(Lane const * lane, centimeter_t innerLength, centimet
     dy *= ratio;
     center_ = Point2D(p2.getX() - dx, p2.getY() - dy);
 
-    timeStepInMilliSeconds_ = ConfigManager::GetInstance().FullConfig().personTimeStepInMilliSeconds();
+    timeStepInMilliSeconds_ = ST_Config::getInstance().personTimeStepInMilliSeconds();
 }
 
 namespace

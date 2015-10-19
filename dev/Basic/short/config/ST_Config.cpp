@@ -7,25 +7,24 @@ namespace sim_mob
 VehicleType::VehicleType() : name(""), length(-1.0), width(-1.0), capacity(-1)
 {}
 
-bool VehicleType::isValidRole(const std::string &role) const
+VehicleType::VehicleType(const std::string& name, const double len,
+                const double width, const double capacity) :
+   name(name), length(len), width(width), capacity(capacity)
+{}
+
+bool VehicleType::operator==(const std::string& rhs) const
 {
-    //return (associatedRoles.find(role) != associatedRoles.end());
-	return true;
+    return (this->name == rhs);
 }
 
-bool VehicleType::operator==(const VehicleType &rhs) const
+bool VehicleType::operator!=(const std::string& rhs) const
 {
-    return (this->name == rhs.name);
-}
-
-bool VehicleType::operator!=(const VehicleType &rhs) const
-{
-    return (this->name != rhs.name);
+    return (this->name != rhs);
 }
 
 EntityTemplate::EntityTemplate() : startTimeMs(0), laneIndex(0),originNode(-1),
     destNode(-1),initSegId(-1),initDis(-1),initSpeed(0),agentId(-1), tripId(-1),
-    vehicleType("")
+    mode("")
 {}
 
 ST_Config* ST_Config::instance = nullptr;

@@ -101,6 +101,9 @@ public:
     /// Is the simulation repeatable?
 	bool is_simulation_repeatable;
 
+    /// Number of agents skipped in loading
+    unsigned int numAgentsSkipped;
+
 public:
     /**
      * Retrieves/Builds the database connection string

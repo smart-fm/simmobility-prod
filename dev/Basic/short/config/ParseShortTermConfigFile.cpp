@@ -568,7 +568,6 @@ void ParseShortTermConfigFile::processVehicleTypesNode(DOMElement *node)
            vehicleType.length = ParseFloat(GetNamedAttributeValue(*it, "length"), 4.0);
            vehicleType.width = ParseFloat(GetNamedAttributeValue(*it, "width"), 2.0);
            vehicleType.capacity = ParseInteger(GetNamedAttributeValue(*it, "capacity"), 4);
-           //splitRoleString(ParseString(GetNamedAttributeValue(*it, "associated_roles"), ""), vehicleType.associatedRoles);
 
            cfg.vehicleTypes.push_back(vehicleType);
         }
@@ -668,17 +667,13 @@ void ParseShortTermTripFile::processTrips(DOMElement *node)
             ent.destNode = ParseUnsignedInt(GetNamedAttributeValue(stIter, "destNode", false), static_cast<double>(0));
             unsigned int stId = ParseUnsignedInt(GetNamedAttributeValue(stIter, "id", false), static_cast<unsigned int>(0));
             ent.tripId = std::make_pair(tripId, stId);
-            ent.vehicleType = ParseString(GetNamedAttributeValue(stIter, "vehicleType"), "");
-            /*if(ent.vehicleType.empty() || cfg.vehicleTypes.find(ent.vehicleType) == cfg.vehicleTypes.end())
+            ent.mode = ParseString(GetNamedAttributeValue(stIter, "mode"), "");
+            std::vector<VehicleType>::iterator vehTypeIter = std::find(cfg.vehicleTypes.begin(), cfg.vehicleTypes.end(), ent.mode);
+            if(ent.mode.empty() || vehTypeIter == cfg.vehicleTypes.end())
             {
-                throw std::runtime_error("ProcessTrips : Unknown vehicle type");
+                throw std::runtime_error("ProcessTrips : Unknown Mode");
             }
-            ent.roleName = ParseString(GetNamedAttributeValue(stIter, "roleName"), "");
-            if(ent.roleName.empty() || !(cfg.vehicleTypes.find(ent.vehicleType))->isValidRole(ent.roleName))
-            {
-                throw std::runtime_error("ProcessTrips : Invalid Role Name");
-            }*/
-            cfg.futureAgents[tripName] = ent;
+            cfg.futureAgents[tripName].push_back(ent);
         }
     }
     }

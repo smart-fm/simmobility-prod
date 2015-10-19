@@ -25,7 +25,6 @@
 #include "workers/Worker.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "message/MessageBus.hpp"
-#include "entities/amodController/AMODController.hpp"
 #include "path/PT_RouteChoiceLuaModel.hpp"
 #include "path/PT_RouteChoiceLuaProvider.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
@@ -54,7 +53,7 @@ const int DEFAULT_HIGHEST_AGE = 60;
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID)
 : Agent(mtxStrat, id), databaseID(databaseID), agentSrc(src),
-tripChain(nullptr), age(0), resetParamsRequired(false), isFirstTick(true), nextPathPlanned(false), 
+/**tripChain(nullptr),*/ age(0), resetParamsRequired(false), isFirstTick(true), nextPathPlanned(false),
 originNode(), destNode(), currLinkTravelStats(nullptr, 0.0), currRdSegTravelStats(nullptr)
 {
 }

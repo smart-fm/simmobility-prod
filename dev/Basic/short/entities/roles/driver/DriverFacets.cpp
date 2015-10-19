@@ -11,6 +11,7 @@
 #include "BusDriver.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/ST_Config.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/Person.hpp"
 #include "entities/Person_ST.hpp"
@@ -185,14 +186,14 @@ void sim_mob::DriverMovement::init()
 	cfModel = new MITSIM_CF_Model(params);
 
 	//Get the specified intersection driving model from the configuration
-	const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
-	std::map<std::string, std::string>::const_iterator itProp = configParams.system.genericProps.find("intersection_driving_model");
+    const ST_Config& configParams = ST_Config::getInstance();
+    std::map<std::string, std::string>::const_iterator itProp = configParams.genericProps.find("intersection_driving_model");
 
 	//Set the default model as 'conflict-based'
 	std::string intersectionModel = "conflict-based";
 
 	//Check if a model is specified
-	if (itProp != configParams.system.genericProps.end())
+    if (itProp != configParams.genericProps.end())
 	{
 		intersectionModel = itProp->second;
 	}
@@ -681,10 +682,11 @@ void sim_mob::DriverMovement::updateDensityMap()
  */
 void sim_mob::DriverMovement::outputDensityMap(unsigned int tick)
 {
-	const ConfigParams &config = ConfigManager::GetInstance().FullConfig();
+    const ConfigParams &config = ConfigManager::GetInstance().FullConfig();
+    const ST_Config& stCfg = ST_Config::getInstance();
 
 	//Get the logger instance
-	sim_mob::BasicLogger &logger = sim_mob::Logger::log(config.segDensityMap.fileName);
+    sim_mob::BasicLogger &logger = sim_mob::Logger::log(stCfg.segDensityMap.fileName);
 
 	//Iterator to access all elements in the map
 	map<const RoadSegment *, unsigned long>::iterator itDensityMap = rdSegDensityMap.begin();
@@ -693,7 +695,7 @@ void sim_mob::DriverMovement::outputDensityMap(unsigned int tick)
 	while (itDensityMap != rdSegDensityMap.end())
 	{
 		//Get collection time
-		unsigned int period = config.segDensityMap.updateInterval / config.baseGranMS();
+        unsigned int period = stCfg.segDensityMap.updateInterval / config.baseGranMS();
 
 		//Get the average vehicle count
 		double avgVehCount = (double) itDensityMap->second / period;
@@ -857,7 +859,7 @@ bool sim_mob::DriverMovement::updateMovement(timeslice now)
 	if ((!(fwdDriverMovement.isDoneWithEntireRoute())) && ((fwdDriverMovement.isPathSet())))
 	{
 		//Update the road segment density map
-		if (ConfigManager::GetInstance().FullConfig().segDensityMap.outputEnabled)
+        if (ST_Config::getInstance().segDensityMap.outputEnabled)
 		{
 			updateDensityMap();
 		}
@@ -2275,7 +2277,7 @@ Vehicle* sim_mob::DriverMovement::initializePath(bool allocateVehicle)
 		//Empty paths aren't supported.
 		if (path.empty())
 		{
-			throw std::runtime_error("Can't initializePath(); path is empty.");
+            throw std::runtime_error("Can't initializePath(); path is empty.");
 		}
 
 		//RoadRunner may need to know of our path, but it can't be send inevitably.

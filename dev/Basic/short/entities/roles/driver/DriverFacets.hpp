@@ -15,7 +15,6 @@
 #include "Driver.hpp"
 #include "DriverPathMover.hpp"
 #include "DriverUpdateParams.hpp"
-#include "entities/amodController/AMODController.hpp"
 #include "entities/IncidentStatus.hpp"
 #include "entities/roles/driver/models/CarFollowModel.hpp"
 #include "entities/roles/Role.hpp"

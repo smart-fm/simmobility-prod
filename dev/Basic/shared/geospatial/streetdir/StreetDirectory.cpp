@@ -34,7 +34,6 @@
 #include "util/GeomHelpers.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "entities/signal/Signal.hpp"
 #include "entities/Agent.hpp"
 #include "entities/TrafficWatch.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
@@ -133,7 +132,7 @@ const MultiNode* sim_mob::StreetDirectory::GetCrossingNode(const Crossing* cross
 	return pimpl_ ? pimpl_->GetCrossingNode(cross) : nullptr;
 }
 
-const Signal* sim_mob::StreetDirectory::signalAt(Node const & node) const
+/*const Signal* sim_mob::StreetDirectory::signalAt(Node const & node) const
 {
 	map<const Node *, Signal const *>::const_iterator iter = signals_.find(&node);
     if (signals_.end() == iter) 
@@ -141,7 +140,7 @@ const Signal* sim_mob::StreetDirectory::signalAt(Node const & node) const
         return nullptr;
     }
     return iter->second;
-}
+}*/
 
 
 StreetDirectory::VertexDesc sim_mob::StreetDirectory::DrivingVertex(const Node& n) const
@@ -255,7 +254,7 @@ void sim_mob::StreetDirectory::printStatistics() const
     //}
 }
 
-void sim_mob::StreetDirectory::registerSignal(const Signal& signal)
+/*void sim_mob::StreetDirectory::registerSignal(const Signal& signal)
 {
     const MultiNode *node = dynamic_cast<const MultiNode *>(&(signal.getNode()));
 
@@ -263,7 +262,7 @@ void sim_mob::StreetDirectory::registerSignal(const Signal& signal)
 	{
         signals_.insert(std::make_pair(node, &signal));
     }
-}
+}*/
 
 void sim_mob::StreetDirectory::printDrivingGraph(std::ostream& outFile)
 {

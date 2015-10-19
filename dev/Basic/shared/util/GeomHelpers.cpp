@@ -30,7 +30,6 @@
 #include "geospatial/Link.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadSegment.hpp"
-#include "entities/signal/Signal.hpp"
 #include "geospatial/Crossing.hpp"
 
 using namespace sim_mob;
@@ -384,16 +383,6 @@ const sim_mob::RoadSegment* sim_mob::getRoadSegmentBasedOnNodes(const sim_mob::P
 
 	Warn() << "Error: can not find one boundary road segment in Loader.cpp:" << start_point->getX() << "," << start_point->getY() << "," << end_point->getX() << "," << end_point->getY() << std::endl;
 	return 0;
-}
-
-//add by xuyan
-const sim_mob::Signal* sim_mob::getSignalBasedOnNode(const sim_mob::Point2D* one_point)
-{
-	const sim_mob::RoadNetwork& rn = ConfigManager::GetInstance().FullConfig().getNetwork();
-	sim_mob::Node* one_node = rn.locateNode(*one_point, true);
-
-	sim_mob::StreetDirectory& directory = sim_mob::StreetDirectory::instance();
-	return directory.signalAt(*one_node);
 }
 
 //add by xuyan

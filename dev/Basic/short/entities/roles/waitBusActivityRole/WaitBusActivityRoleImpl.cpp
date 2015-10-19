@@ -4,9 +4,6 @@
 
 #include "WaitBusActivityRoleImpl.hpp"
 
-#include "conf/ConfigParams.hpp"
-#include "conf/ConfigManager.hpp"
-
 #include "entities/Person.hpp"
 #include "entities/vehicle/Bus.hpp"
 #include "entities/roles/passenger/Passenger.hpp"

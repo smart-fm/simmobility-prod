@@ -27,13 +27,15 @@
 //main.cpp (top-level) files can generally get away with including GenConfig.h
 #include "GenConfig.h"
 
-#include "buffering/Buffered.hpp"
 #include "buffering/BufferedDataManager.hpp"
+#include "buffering/Buffered.hpp"
 #include "buffering/Locked.hpp"
 #include "buffering/Shared.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "conf/ExpandAndValidateConfigFile.hpp"
+#include "config/ExpandShortTermConfigFile.hpp"
+#include "config/ParseShortTermConfigFile.hpp"
+#include "config/ST_Config.hpp"
 #include "conf/ParseConfigFile.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/BusStopAgent.hpp"
@@ -41,23 +43,25 @@
 #include "entities/IntersectionManager.hpp"
 #include "entities/LoopDetectorEntity.hpp"
 #include "entities/Person.hpp"
+#include "entities/Person_ST.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
-#include "entities/roles/Role.hpp"
-#include "entities/roles/RoleFactory.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
-#include "entities/roles/waitBusActivityRole/WaitBusActivityRoleImpl.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
-#include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/driver/driverCommunication/DriverComm.hpp"
-#include "entities/roles/pedestrian/Pedestrian2.hpp"
+#include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
+#include "entities/roles/pedestrian/Pedestrian2.hpp"
+#include "entities/roles/RoleFactory.hpp"
+#include "entities/roles/Role.hpp"
+#include "entities/roles/waitBusActivityRole/WaitBusActivityRoleImpl.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/TrafficWatch.hpp"
+#include "entities/TravelTimeManager.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Intersection.hpp"
-#include "geospatial/Lane.hpp"
 #include "geospatial/LaneConnector.hpp"
+#include "geospatial/Lane.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/RoadSegment.hpp"
@@ -67,11 +71,10 @@
 #include "logging/Log.hpp"
 #include "network/CommunicationManager.hpp"
 #include "network/ControlManager.hpp"
+#include "partitions/ParitionDebugOutput.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "partitions/ShortTermBoundaryProcessor.hpp"
-#include "partitions/ParitionDebugOutput.hpp"
 #include "path/PathSetManager.hpp"
-#include "entities/TravelTimeManager.hpp"
 #include "perception/FixedDelayed.hpp"
 #include "util/DailyTime.hpp"
 #include "util/StateSwitcher.hpp"
@@ -79,7 +82,7 @@
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
-#include "entities/Person_ST.hpp"
+
 
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
@@ -117,13 +120,17 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
  *
  * This function is separate from main() to allow for easy scoping of WorkGroup objects.
  */
-bool performMain(const std::string& configFileName, std::list<std::string>& resLogFiles, const std::string& XML_OutPutFileName) 
+bool performMain(const std::string& configFileName, const std::string& shortConfigFile, std::list<std::string>& resLogFiles, const std::string& XML_OutPutFileName)
 {
 	Print() <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
 	sim_mob::DailyTime::initAllTimes();
 
+    ST_Config& stCfg = ST_Config::getInstance();
+
 	//Parse the config file (this *does not* create anything, it just reads it.).
-	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
+    ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
+
+    ParseShortTermConfigFile stParse(shortConfigFile, stCfg);
 	
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
@@ -152,14 +159,17 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		prof = new ProfileBuilder();
 	}
 	
-	const MutexStrategy& mtx = ConfigManager::GetInstance().FullConfig().mutexStategy();
+    //Save a handle to the shared definition of the configuration.
+    const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
+
+    const MutexStrategy& mtx = config.mutexStategy();
 
 	//Create an instance of role factory
 	RoleFactory<Person_ST> rf = new RoleFactory<Person_ST>;
 	RoleFactory<Person_ST>::setInstance(rf);
 
 	//Register our Role types.
-	if (ConfigManager::GetInstance().FullConfig().commSimEnabled()) 
+    if (stCfg.commSimEnabled())
 	{
 		rf->registerRole("driver", new sim_mob::DriverComm(nullptr, mtx));
 	}
@@ -180,7 +190,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 	//Load our user config file
 	Print() << "Expanding user configuration file..." << std::endl;
-	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
+    ExpandShortTermConfigFile expand(stCfg, ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
 	
     //Some random stuff with signals??
     //TODO: Not quite sure how this is supposed to fit into the overall order of things. ~Seth
@@ -202,7 +212,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 
 	Print() << "User configuration file loaded." << std::endl;
 
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) 
+    if (config.PathSetMode())
 	{
 		// init path set manager
 		time_t t = time(0);   // get time now
@@ -228,9 +238,6 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 		}
 	}
-
-	//Save a handle to the shared definition of the configuration.
-	const ConfigParams& config = ConfigManager::GetInstance().FullConfig();
 
 	//Start boundaries
 	if (!config.MPI_Disabled() && config.using_MPI) 
@@ -276,7 +283,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	communicationWorkers->initWorkers(nullptr);
 
 	//If commsim is enabled, start the Broker.
-	if(ConfigManager::GetInstance().FullConfig().commSimEnabled()) 
+    if(stCfg.commSimEnabled())
 	{
 		//NOTE: I am fairly sure that MtxStrat_Locked is the wrong mutex strategy. However, Broker doesn't
 		//      register any buffered properties (except x/y, which Agent registers), and it never updates these.
@@ -358,7 +365,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	
 	for (unsigned int currTick = 0; currTick < endTick; currTick++) 
 	{
-		if (ConfigManager::GetInstance().FullConfig().InteractiveMode()) 
+        if (config.InteractiveMode())
 		{
 			if(ctrlMgr->getSimState() == STOP) 
 			{
@@ -506,7 +513,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 				- numDriver - numPedestrian) << " (Other)" << endl;
 	}
 
-	if (ConfigManager::GetInstance().FullConfig().numAgentsSkipped>0) 
+    if (config.numAgentsSkipped>0)
 	{
 		Print() <<"Agents SKIPPED due to invalid route assignment: " <<ConfigManager::GetInstance().FullConfig().numAgentsSkipped <<endl;
 	}
@@ -519,7 +526,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	}
 
 	//Save our output files if we are merging them later.
-	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && ConfigManager::GetInstance().FullConfig().mergeLogFiles()) 
+    if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled() && config.mergeLogFiles)
 	{
 		resLogFiles = wgMgr.retrieveOutFileNames();
 	}
@@ -578,7 +585,8 @@ int run_simmob_interactive_loop(){
 			std::map<std::string,std::string> paras;
 			ctrlMgr->getLoadScenarioParas(paras);
 			std::string configFileName = paras["configFileName"];
-			retVal = performMain(configFileName,resLogFiles, "XML_OutPut.xml") ? 0 : 1;
+            std::string stConfigFile = paras["shortTermConfigFile"];
+            retVal = performMain(configFileName, stConfigFile, resLogFiles, "XML_OutPut.xml") ? 0 : 1;
 			ctrlMgr->setSimState(STOP);
 			ConfigManager::GetInstanceRW().reset();
 			Print() << "scenario finished" << std::endl;
@@ -601,15 +609,23 @@ int main_impl(int ARGC, char* ARGV[])
 	//Note: Don't change this here; change it by supplying an argument on the
 	//      command line, or through Eclipse's "Run Configurations" dialog.
 	std::string configFileName = "data/config.xml";
-	if (args.size() > 1) {
+    std::string shortConfigFile = "data/shortTerm.xml";
+    if (args.size() > 2) {
 		configFileName = args[1];
-	} else {
+        shortConfigFile = args[2];
+    }
+    else if (args.size() > 1) {
+        configFileName = args[1];
+        Print() << "No short term config file specified; using default config file" << endl;
+    }
+    else {
 		Print() << "No config file specified; using the default config file." << endl;
 	}
 	Print() << "Using config file: " << configFileName << endl;
+    Print() << "Using Short term config file: " << shortConfigFile << endl;
 
 	std::string outputFileName = "out.txt";
-	if(args.size() > 2)
+    if(args.size() > 3)
 	{
 		outputFileName = args[2];
 	}
@@ -669,7 +685,7 @@ int main_impl(int ARGC, char* ARGV[])
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
 		returnVal = run_simmob_interactive_loop();
 	} else {
-		returnVal = performMain(configFileName, resLogFiles, "XML_OutPut.xml") ? 0 : 1;
+        returnVal = performMain(configFileName, shortConfigFile, resLogFiles, "XML_OutPut.xml") ? 0 : 1;
 	}
 
 	//Concatenate output files?

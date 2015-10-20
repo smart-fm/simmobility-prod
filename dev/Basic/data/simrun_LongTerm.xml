@@ -35,11 +35,20 @@
             </database>
 
 		<!-- public ip for remote midterm server -->
-	    <database id="fm_remote_mt" dbtype="postgres">
+	    <database id="fm_remote_mt3" dbtype="postgres">
 	        <host value="137.132.22.82"/>
 	        <port value="15061"/> <!--old port: 15025 -->
 	        <dbname value="SimMobility_DB_2015"/>
 	    </database>
+
+		<!-- public ip for remote midterm server -->
+	    <database id="fm_remote_mt" dbtype="postgres">
+	        <host value="fmhpchead"/>
+	        <port value="5432"/> <!--old port: 15025 -->
+	        <dbname value="SimMobility_DB_2015"/>
+	    </database>
+
+
 	 </databases>
     
 		    <!-- Groupings of stored procedures, used for loading network data from certain tables. -->

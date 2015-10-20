@@ -9,9 +9,6 @@ using namespace sim_mob;
 sim_mob::RawConfigParams::RawConfigParams() : mergeLogFiles(false), generateBusRoutes(false)
 {}
 
-sim_mob::EntityTemplate::EntityTemplate() : startTimeMs(0), laneIndex(0),originNode(-1),destNode(-1),initSegId(-1),initDis(-1),initSpeed(0),angentId(-1)
-{}
-
 sim_mob::SimulationParams::SimulationParams() :
     baseGranMS(0), baseGranSecond(0), totalRuntimeMS(0), totalWarmupMS(0),
     workGroupAssigmentStrategy(WorkGroup::ASSIGN_ROUNDROBIN), startingAutoAgentID(0),

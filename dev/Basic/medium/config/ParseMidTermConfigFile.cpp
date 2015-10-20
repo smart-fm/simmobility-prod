@@ -8,6 +8,7 @@
 #include <boost/lexical_cast.hpp>
 #include <string>
 #include "behavioral/CalibrationStatistics.hpp"
+#include "path/ParsePathXmlConfig.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/XmlParseHelper.hpp"
 
@@ -96,9 +97,9 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
 	}
 
     ///Take care of pathset manager confifuration in here
-    ParsePathXmlConfig(cfg.pathsetFile, cfg.pathSet());
+    ParsePathXmlConfig(cfg.pathsetFile, cfg.getPathSetConf());
 
-	if(mtCfg.cbd && cfg.pathSet().psRetrievalWithoutBannedRegion.empty())
+	if(mtCfg.CBD() && cfg.getPathSetConf().psRetrievalWithoutBannedRegion.empty())
 	{
         throw std::runtime_error("Pathset without banned area stored procedure name not found\n");
 	}
@@ -354,7 +355,7 @@ void ParseMidTermConfigFile::processMongoCollectionsNode(xercesc::DOMElement* no
 	mtCfg.setMongoCollectionsMap(mongoColls);
 }
 
-void sim_mob::ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement* node)
+void ParseMidTermConfigFile::processCalibrationNode(xercesc::DOMElement* node)
 {
 	if(mtCfg.runningPredayCalibration())
 	{
@@ -532,8 +533,8 @@ void ParseMidTermConfigFile::processPublicTransit(xercesc::DOMElement* node)
     }
     else
     {
-        mtCfg.publicTransitEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
-        if(mtCfg.publicTransitEnabled)
+    	 mtCfg.publicTransitEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+        if(mtCfg.isPublicTransitEnabled())
         {
             const std::string& key = cfg.networkDatabase.procedures;
             std::map<std::string, StoredProcedureMap>::const_iterator procMapIt = cfg.procedureMaps.find(key);

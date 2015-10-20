@@ -42,7 +42,6 @@
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
 #include "entities/ScreenLineCounter.hpp"
-#include "entities/signal/Signal.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Lane.hpp"
@@ -115,7 +114,7 @@ void assignConfluxLoaderToWorker(WorkGroup* workGrp, unsigned int workerIdx)
 
 bool assignConfluxToWorkerRecursive(WorkGroup* workGrp, Conflux* conflux, unsigned int workerIdx, int numConfluxesToAddInWorker)
 {
-	typedef std::set<const Conflux*> ConfluxSet;
+	typedef std::set<Conflux*> ConfluxSet;
 	std::set<Conflux*>& confluxes = MT_Config::getInstance().getConfluxes();
 	bool workerFilled = false;
 
@@ -127,7 +126,7 @@ bool assignConfluxToWorkerRecursive(WorkGroup* workGrp, Conflux* conflux, unsign
 			conflux->setParentWorker();
 		}
 
-		ConfluxSet connectedConfluxes = conflux->getConnectedConfluxes();
+		ConfluxSet& connectedConfluxes = conflux->getConnectedConfluxes();
 
 		// assign the confluxes of the downstream MultiNodes to the same worker if possible
 		for(ConfluxSet::iterator i = connectedConfluxes.begin();
@@ -426,10 +425,10 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	PT_Statistics::getInstance()->storeStatistics();
 	PT_Statistics::resetInstance();
 
-	if (mtConfig.numAgentsSkipped>0)
+	if (config.numAgentsSkipped>0)
 	{
 		cout<<"Agents SKIPPED due to invalid route assignment: "
-			<<mtConfig.numAgentsSkipped
+			<<config.numAgentsSkipped
 			<<endl;
 	}
 
@@ -442,7 +441,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 
 	//Save our output files if we are merging them later.
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()
-			&& ConfigManager::GetInstance().FullConfig().mergeLogFiles())
+			&& ConfigManager::GetInstance().FullConfig().isMergeLogFiles())
 	{
 		resLogFiles = wgMgr.retrieveOutFileNames();
 	}
@@ -456,11 +455,10 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
     }
 
 	//At this point, it should be possible to delete all Signals and Agents.
-	clear_delete_vector(Signal::all_signals_);
-	clear_delete_vector(Agent::all_agents);
+    clear_delete_vector(Agent::all_agents);
 	while(!Agent::pending_agents.empty())
 	{
-		Agent* topAg = Agent::pending_agents.top();
+		Entity* topAg = Agent::pending_agents.top();
 		Agent::pending_agents.pop();
 		safe_delete_item(topAg);
 	}

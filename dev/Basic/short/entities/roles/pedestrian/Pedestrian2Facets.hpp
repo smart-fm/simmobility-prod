@@ -30,7 +30,7 @@ public:
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
+	virtual std::string frame_tick_output();
 
 	Pedestrian2* getParentPedestrian2() const
 	{
@@ -56,7 +56,7 @@ public:
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
+	virtual std::string frame_tick_output();
 
 	// mark startTimeand origin
 	virtual TravelMetric & startTravelTimeMetric()

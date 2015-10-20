@@ -11,6 +11,19 @@ using std::string;
 using std::vector;
 using namespace sim_mob;
 
+//Implementation of our comparison function for Agents by start time.
+bool sim_mob::cmp_agent_start::operator()(const Entity* x, const Entity* y) const
+{
+	//TODO: Not sure what to do in this case...
+	if ((!x) || (!y))
+	{
+		return 0;
+	}
+
+	//We want a lower start time to translate into a higher priority.
+	return x->getStartTime() > y->getStartTime();
+}
+
 typedef Entity::UpdateStatus UpdateStatus;
 
 const UpdateStatus sim_mob::Entity::UpdateStatus::Continue(UpdateStatus::RS_CONTINUE);

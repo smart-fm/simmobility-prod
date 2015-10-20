@@ -11,6 +11,7 @@
 #include <xercesc/dom/DOMNodeList.hpp>
 
 #include "conf/ParseConfigXmlBase.hpp"
+#include "conf/RawConfigParams.hpp"
 #include "util/DailyTime.hpp"
 
 using namespace sim_mob;

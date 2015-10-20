@@ -33,7 +33,7 @@ boost::shared_ptr<K_ShortestPathImpl> sim_mob::K_ShortestPathImpl::getInstance()
 }
 void sim_mob::K_ShortestPathImpl::init()
 {
-	k = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().kspLevel;
+	k = sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().kspLevel;
 	stdir = &StreetDirectory::instance();
 }
 

@@ -45,7 +45,7 @@ void BusDriverBehavior::frame_tick() {
 	throw std::runtime_error("BusDriverBehavior::frame_tick is not implemented yet");
 }
 
-void BusDriverBehavior::frame_tick_output() {
+std::string BusDriverBehavior::frame_tick_output() {
 	throw std::runtime_error("BusDriverBehavior::frame_tick_output is not implemented yet");
 }
 
@@ -411,10 +411,10 @@ void sim_mob::BusDriverMovement::frame_tick() {
 	DriverMovement::frame_tick();
 }
 
-void sim_mob::BusDriverMovement::frame_tick_output() {
+std::string sim_mob::BusDriverMovement::frame_tick_output() {
 	DriverUpdateParams &p = parentBusDriver->getParams();
 	if (this->getParentDriver()->IsVehicleInLoadingQueue() || fwdDriverMovement.isDoneWithEntireRoute()) {
-		return;
+		return std::string();
 	}
 
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled()) {
@@ -425,7 +425,7 @@ void sim_mob::BusDriverMovement::frame_tick_output() {
 		//MPI-specific output.
 		std::stringstream addLine;
 		if (ConfigManager::GetInstance().FullConfig().using_MPI) {
-			addLine <<"\",\"fake\":\"" <<(this->parent->isFake?"true":"false");
+			addLine <<"\",\"fake\":\"" <<(parentBusDriver->parent->isFake?"true":"false");
 		}
 
 		Bus* bus = dynamic_cast<Bus*>(parentBusDriver->getVehicle());
@@ -434,10 +434,10 @@ void sim_mob::BusDriverMovement::frame_tick_output() {
 			passengerCount = bus->getPassengerCount();
 		}
 
-		LogOut(
+		return (
 			"(\"BusDriver\""
 			<<","<<p.now.frame()
-			<<","<<parent->getId()
+			<<","<<parentBusDriver->parent->getId()
 			<<",{"
 			<<"\"xPos\":\""<<static_cast<int>(parentBusDriver->getPositionX())
 			<<"\",\"yPos\":\""<<static_cast<int>(parentBusDriver->getPositionY())
@@ -450,7 +450,7 @@ void sim_mob::BusDriverMovement::frame_tick_output() {
 			<<"\",\"buslineID\":\""<<(bus?bus->getBusLineID():0)
 			<<addLine.str()
 			<<"\",\"info\":\""<<p.debugInfo
-			<<"\"})"<<std::endl);
+			<<"\"})\n");
 	}
 }
 
@@ -491,7 +491,7 @@ void sim_mob::BusDriverMovement::AlightingPassengers(Bus* bus)//for alighting pa
 
 void sim_mob::BusDriverMovement::BoardingPassengers_Choice(Bus* bus)
 {
-	const Agent* parentAgent = parent;
+	const Agent* parentAgent = parentBusDriver->parent;
  	std::vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((parentBusDriver->lastVisited_BusStop.get()->xPos - 3500),(parentBusDriver->lastVisited_BusStop.get()->yPos - 3500)),Point2D((parentBusDriver->lastVisited_BusStop.get()->xPos + 3500),(parentBusDriver->lastVisited_BusStop.get()->yPos + 3500)), parentAgent); //  nearbyAgents(Point2D(lastVisited_BusStop.get()->xPos, lastVisited_BusStop.get()->yPos), *params.currLane,3500,3500);
  	for (std::vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); ++it)
  	{

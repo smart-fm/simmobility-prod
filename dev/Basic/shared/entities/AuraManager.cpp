@@ -54,7 +54,7 @@ void AuraManager::destory()
 }
 
 /* virtual */ void
-AuraManager::update(const std::set<sim_mob::Agent*>& removedAgentPointers)
+AuraManager::update(const std::set<sim_mob::Entity*>& removedAgentPointers)
 {
 
 	if (impl_) {

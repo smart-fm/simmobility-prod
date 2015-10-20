@@ -30,7 +30,7 @@ public:
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
+	virtual std::string frame_tick_output();
 
 	Passenger* getParentPassenger() const
 	{
@@ -57,7 +57,7 @@ public:
 	void setParentBufferedData();
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
+	virtual std::string frame_tick_output();
 
 	// mark startTimeand origin
 

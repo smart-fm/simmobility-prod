@@ -24,7 +24,7 @@ sim_mob::medium::Pedestrian::Pedestrian(Person_MT *parent,
 										sim_mob::medium::PedestrianBehavior* behavior,
 										sim_mob::medium::PedestrianMovement* movement,
 										std::string roleName, Role<Person_MT>::Type roleType) :
-				sim_mob::Role(parent, behavior, movement, roleName, roleType)
+		sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType)
 {
 }
 

@@ -88,7 +88,7 @@ public:
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
+	virtual std::string frame_tick_output();
 
 	BusDriver* getParentBusDriver() const
 	{
@@ -121,7 +121,7 @@ public:
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
+	virtual std::string frame_tick_output();
 
 	BusDriver* getParentBusDriver() const
 	{
@@ -140,7 +140,7 @@ public:
 protected:
 	virtual bool initializePath();
 
-	virtual const sim_mob::Lane* getBestTargetLane(const sim_mob::SegmentStats* nextSegStats, const sim_mob::SegmentStats* nextToNextSegStats);
+	virtual const sim_mob::Lane* getBestTargetLane(const SegmentStats* nextSegStats, const SegmentStats* nextToNextSegStats);
 
 	/**
 	 * In addition to the functionality of the base Driver class, bus drivers

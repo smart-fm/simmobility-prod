@@ -47,7 +47,7 @@ void sim_mob::WaitBusActivityRoleBehaviorImpl::frame_tick() {
 	throw std::runtime_error("WaitBusActivityRoleBehavior::frame_tick is not implemented yet");
 }
 
-void sim_mob::WaitBusActivityRoleBehaviorImpl::frame_tick_output() {
+std::string sim_mob::WaitBusActivityRoleBehaviorImpl::frame_tick_output() {
 	throw std::runtime_error("WaitBusActivityRoleBehavior::frame_tick_output is not implemented yet");
 }
 
@@ -113,7 +113,7 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick() {
 	}
 }
 
-void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick_output() {
+std::string sim_mob::WaitBusActivityRoleMovementImpl::frame_tick_output() {
 	WaitBusActivityRoleUpdateParams &p = parentWaitBusActivityRole->getParams();
 
 	//Reset our offset if it's set to zero
@@ -128,5 +128,5 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick_output() {
 	   value= (unsigned int)varY();
 	   displayOffset.setY(value+1);
 	}
-	LogOut("("<<"\"passenger\","<<parent->currTick.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+displayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+displayOffset.getY())<<"\",})"<<std::endl);
+	return ("("<<"\"passenger\","<<parent->currTick.frame()<<","<<parent->getId()<<","<<"{\"xPos\":\""<<(parent->xPos.get()+displayOffset.getX())<<"\"," <<"\"yPos\":\""<<(parent->yPos.get()+displayOffset.getY())<<"\",})\n");
 }

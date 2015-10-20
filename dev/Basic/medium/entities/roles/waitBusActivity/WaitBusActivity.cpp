@@ -22,7 +22,7 @@ namespace medium
 
 sim_mob::medium::WaitBusActivity::WaitBusActivity(Person_MT* parent, sim_mob::medium::WaitBusActivityBehavior* behavior,
 		sim_mob::medium::WaitBusActivityMovement* movement, std::string roleName, Role<Person_MT>::Type roleType) :
-		sim_mob::Role(behavior, movement, parent, roleName, roleType), waitingTime(0), stop(nullptr), boardBus(false), failedToBoardCount(0)
+		sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType), waitingTime(0), stop(nullptr), boardBus(false), failedToBoardCount(0)
 {
 }
 

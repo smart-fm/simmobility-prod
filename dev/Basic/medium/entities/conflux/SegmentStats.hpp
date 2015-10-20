@@ -365,7 +365,7 @@ public:
 class SegmentStats
 {
 protected:
-	friend class aimsun::Loader;
+	friend class Conflux;
 
 	//typedefs
 	typedef std::deque<Person_MT*> PersonList;
@@ -446,12 +446,6 @@ protected:
 	 * map of lanes connected to each downstream link
 	 */
 	std::map<const Link*, std::vector<LaneStats*> > laneGroup;
-
-	/**
-	 * adds a bus stop to the list of stops
-	 * @param stop bus stop to be added
-	 */
-	void addBusStop(const BusStop* stop);
 
 public:
 	SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, double length);
@@ -537,6 +531,12 @@ public:
 	 * @param person the person to be added
 	 */
 	void addAgent(const Lane* lane, Person_MT* person);
+
+	/**
+	 * adds a bus stop to the list of stops
+	 * @param stop bus stop to be added
+	 */
+	void addBusStop(const BusStop* stop);
 
 	/**
 	 * adds bus stop agent

@@ -8,13 +8,14 @@
 
 #include "spatial_trees/shared_funcs.hpp"
 #include "entities/Person.hpp"
+#include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
 #include "geospatial/Lane.hpp"
 
 using namespace sim_mob;
 using namespace sim_mob::temp_spatial;
 
-void RStarAuraManager::update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers)
+void RStarAuraManager::update(int time_step, const std::set<sim_mob::Entity*>& removedAgentPointers)
 {
 	tree_rstar.RemoveAll();
 	assert(tree_rstar.GetSize() == 0);

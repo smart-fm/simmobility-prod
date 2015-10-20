@@ -177,16 +177,6 @@ UpdateStatus sim_mob::Agent_LT::perform_update(timeslice now)
 	//Reset the Region tracking data structures, if applicable.
 	//regionAndPathTracker.reset();
 
-	//Register for commsim messages, if applicable.
-	if (!commEventRegistered && ConfigManager::GetInstance().XmlConfig().system.simulation.commsim.enabled)
-	{
-		commEventRegistered = true;
-		messaging::MessageBus::SubscribeEvent( 	sim_mob::event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT,
-												this, //Only when we are the Agent having commsim enabled.
-												this //Return this event to us (the agent).
-											 );
-	}
-
 	//We give the Agent the benefit of the doubt here and simply call frame_init().
 	//This allows them to override the start_time if it seems appropriate (e.g., if they
 	// are swapping trip chains). If frame_init() returns false, immediately exit.

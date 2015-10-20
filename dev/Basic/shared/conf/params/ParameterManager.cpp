@@ -65,9 +65,9 @@ ParameterManager::ParameterManager(bool isAMOD_InstanceRequeseted)
 		filePathProperty = "driver_behaviour_file";
 	}
 	
-	std::map<std::string,std::string>::const_iterator itProperty = configParams.system.genericProps.find(filePathProperty);
+	std::map<std::string,std::string>::const_iterator itProperty = configParams.genericProps.find(filePathProperty);
 
-	if (itProperty != configParams.system.genericProps.end())
+	if (itProperty != configParams.genericProps.end())
 	{
 		ParseParamFile ppfile(itProperty->second, this);
 	}

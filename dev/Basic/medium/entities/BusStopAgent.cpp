@@ -93,7 +93,7 @@ void BusStopAgent::removeWaitingPerson(sim_mob::medium::WaitBusActivity* waiting
 
 void BusStopAgent::addAlightingPerson(sim_mob::medium::Passenger* passenger)
 {
-	Person* person = passenger->getParent();
+	Person_MT* person = passenger->getParent();
 	person->getRole()->collectTravelTime();
 	alightingPersons.push_back(passenger);
 }
@@ -118,15 +118,15 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 		bool ret = false;
 		sim_mob::medium::Passenger* alightedPassenger = *personIt;
 		alightedPassenger->setEndNode(busStop->getParentSegment()->getEnd());
-		Person* person = alightedPassenger->getParent();
+		Person_MT* person = alightedPassenger->getParent();
 		if (person)
 		{
 			UpdateStatus val = person->checkTripChain();
 			person->setStartTime(now.ms());
-			Role* role = person->getRole();
+			Role<Person_MT>* role = person->getRole();
 			if (role)
 			{
-				if (role->roleType == Role::RL_WAITBUSACTITITY && val.status == UpdateStatus::RS_CONTINUE)
+				if (role->roleType == Role<Person_MT>::RL_WAITBUSACTITITY && val.status == UpdateStatus::RS_CONTINUE)
 				{
 					WaitBusActivity* waitActivity = dynamic_cast<WaitBusActivity*>(role);
 					if (waitActivity)
@@ -154,14 +154,14 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 						ret = true;
 					}
 				}
-				else if (role->roleType == Role::RL_PEDESTRIAN && val.status == UpdateStatus::RS_CONTINUE)
+				else if (role->roleType == Role<Person_MT>::RL_PEDESTRIAN && val.status == UpdateStatus::RS_CONTINUE)
 				{
-					Conflux* conflux = parentSegmentStats->getRoadSegment()->getParentConflux();
+					Conflux* conflux = parentSegmentStats->getParentConflux();
 					messaging::MessageBus::PostMessage(conflux, MSG_PEDESTRIAN_TRANSFER_REQUEST,
 							messaging::MessageBus::MessagePtr(new PersonMessage(person)));
 					ret = true;
 				}
-				else if (role->roleType == Role::RL_PASSENGER && val.status == UpdateStatus::RS_DONE)
+				else if (role->roleType == Role<Person_MT>::RL_PASSENGER && val.status == UpdateStatus::RS_DONE)
 				{
 					throw std::runtime_error("The next role of the person who just alighted at a bus stop cannot be PASSENGER");
 				}
@@ -233,8 +233,8 @@ void BusStopAgent::HandleMessage(messaging::Message::MessageType type, const mes
 	case MSG_WAITING_PERSON_ARRIVAL:
 	{
 		const ArrivalAtStopMessage& msg = MSG_CAST(ArrivalAtStopMessage, message);
-		Person* person = msg.waitingPerson;
-		Role* role = person->getRole();
+		Person_MT* person = msg.waitingPerson;
+		Role<Person_MT>* role = person->getRole();
 		if (role)
 		{
 			WaitBusActivity* waitPerson = dynamic_cast<WaitBusActivity*>(role);
@@ -294,7 +294,7 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 	while (itWaitingPerson != waitingPersons.end())
 	{
 		WaitBusActivity* waitingRole = *itWaitingPerson;
-		Person* person = waitingRole->getParent();
+		Person_MT* person = waitingRole->getParent();
 		unsigned int waitingTm = waitingRole->getWaitingTime();
 		if (waitingTm > ONE_HOUR_IN_MS)
 		{
@@ -311,7 +311,7 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 				waitingRole->collectTravelTime();
 				storeWaitingTime(waitingRole);
 				person->checkTripChain();
-				Role* curRole = person->getRole();
+				Role<Person_MT>* curRole = person->getRole();
 				curRole->setArrivalTime(currentTimeMS);
 				sim_mob::medium::Passenger* passenger = dynamic_cast<sim_mob::medium::Passenger*>(curRole);
 				if (passenger)

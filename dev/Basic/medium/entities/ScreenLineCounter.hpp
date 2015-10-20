@@ -11,7 +11,7 @@
 #include <boost/thread/mutex.hpp>
 
 #include "entities/Agent.hpp"
-#include "Common.hpp"
+#include "path/Common.hpp"
 
 namespace sim_mob
 {

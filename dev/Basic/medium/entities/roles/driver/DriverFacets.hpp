@@ -4,6 +4,7 @@
 
 #pragma once
 #include "conf/settings/DisableMPI.h"
+#include "entities/conflux/Conflux.hpp"
 #include "Driver.hpp"
 #include "DriverUpdateParams.hpp"
 #include "entities/roles/RoleFacets.hpp"
@@ -34,7 +35,7 @@ public:
 	 */
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
+	virtual std::string frame_tick_output();
 
 	Driver* getParentDriver() const
 	{
@@ -75,7 +76,7 @@ public:
 	//virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
+	virtual std::string frame_tick_output();
 	virtual Conflux* getStartingConflux() const;
 
 	Driver* getParentDriver() const
@@ -121,7 +122,6 @@ protected:
 	 * to collect the metrics collected during the previous
 	 * role's period.
 	 */
-	//
 	virtual TravelMetric& finalizeTravelTimeMetric();
 
 
@@ -131,7 +131,6 @@ protected:
 	 * @param  nextRS the next Road Segment to be visited next(if any)
 	 * @return Travel Metrics member object
 	 */
-
 	virtual TravelMetric& processCBD_TravelMetrics(const RoadSegment* completedRS, const RoadSegment* nextRS);
 
 	/**
@@ -361,7 +360,7 @@ protected:
 	 * \param remaining lists of segstats from the original path which are remaining to reach to each of the suggested re-routing point
 	 * return the number of intersections
 	 */
-	int findReroutingPoints(const std::vector<SegmentStats*>& stats, std::map<const Node*, std::vector<const SegmentStats*> > & remaining) const;
+	int findReroutingPoints(const RoadSegment* rdSeg, std::map<const Node*, std::vector<const SegmentStats*> > & remaining) const;
 
 	bool wantReRoute()
 	{

@@ -31,6 +31,7 @@
 #include "geospatial/TurningSection.hpp"
 #include "geospatial/UniNode.hpp"
 #include "IncidentPerformer.hpp"
+#include "logging/Log.hpp"
 #include "network/CommunicationDataManager.hpp"
 #include "util/Utils.hpp"
 
@@ -139,7 +140,7 @@ void DriverBehavior::frame_tick()
 	throw std::runtime_error("DriverBehavior::frame_tick is not implemented yet");
 }
 
-void DriverBehavior::frame_tick_output()
+std::string DriverBehavior::frame_tick_output()
 {
 	throw std::runtime_error("DriverBehavior::frame_tick_output is not implemented yet");
 }
@@ -569,19 +570,19 @@ bool sim_mob::DriverMovement::findEmptySpaceAhead()
 	return isSpaceFound;
 }
 
-void sim_mob::DriverMovement::frame_tick_output()
+std::string sim_mob::DriverMovement::frame_tick_output()
 {
 	DriverUpdateParams &p = parentDriver->getParams();
 
 	//Skip
 	if (parentDriver->isVehicleInLoadingQueue || fwdDriverMovement.isDoneWithEntireRoute())
 	{
-		return;
+		return std::string();
 	}
 
 	if (ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
 	{
-		return;
+		return std::string();
 	}
 
 	double baseAngle = fwdDriverMovement.isInIntersection() ? intModel->getCurrentAngle() : getAngle();
@@ -632,7 +633,7 @@ void sim_mob::DriverMovement::frame_tick_output()
 		}
 	}
 
-	LogOut(
+	return (
 		"(\"Driver\"" << "," <<
 		p.now.frame() << "," <<
 		id << ",{" <<
@@ -646,7 +647,7 @@ void sim_mob::DriverMovement::frame_tick_output()
 		"\",\"fwd-accel\":\"" << parentDriver->vehicle->getAcceleration() <<
 		"\",\"info\":\"" << p.debugInfo <<
 		"\",\"mandatory\":\"" << incidentPerformer.getIncidentStatus().getChangedLane() << addLine.str() <<
-		"\"})" << std::endl);
+		"\"})\n");
 }
 
 /*

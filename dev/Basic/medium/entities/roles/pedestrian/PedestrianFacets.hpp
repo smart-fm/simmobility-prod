@@ -6,7 +6,7 @@
  */
 
 #pragma once
-
+#include "entities/conflux/Conflux.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/Person.hpp"
 #include "geospatial/RoadSegment.hpp"
@@ -37,18 +37,19 @@ public:
 	{
 	}
 
-	virtual void frame_tick_output()
+	virtual std::string frame_tick_output()
 	{
+		return std::string();
 	}
 
 	/**
 	 * set parent reference to pedestrian.
 	 * @param parentPedestrian is pointer to parent pedestrian
 	 */
-	void setParentPedestrian(sim_mob::medium::Pedestrian* parentPedestrian);
+	void setParentPedestrian(medium::Pedestrian* parentPedestrian);
 
 protected:
-	sim_mob::medium::Pedestrian* parentPedestrian;
+	medium::Pedestrian* parentPedestrian;
 
 };
 
@@ -61,14 +62,14 @@ public:
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
-	virtual sim_mob::Conflux* getStartingConflux() const;
+	virtual std::string frame_tick_output();
+	virtual Conflux* getStartingConflux() const;
 
 	/**
 	 * set parent reference to pedestrian.
 	 * @param parentPedestrian is pointer to parent pedestrian
 	 */
-	void setParentPedestrian(sim_mob::medium::Pedestrian* parentPedestrian);
+	void setParentPedestrian(medium::Pedestrian* parentPedestrian);
 
 	TravelMetric & startTravelTimeMetric();
 	TravelMetric & finalizeTravelTimeMetric();
@@ -78,10 +79,10 @@ protected:
 	 * initialize the path at the beginning
 	 * @param path include aPathSetParams list of road segments
 	 * */
-	const sim_mob::RoadSegment* getDestSegment();
+	const RoadSegment* getDestSegment();
 
 	/**parent pedestrian*/
-	sim_mob::medium::Pedestrian* parentPedestrian;
+	medium::Pedestrian* parentPedestrian;
 
 	/**record the current remaining time to the destination*/
 	double remainingTimeToComplete;
@@ -90,7 +91,7 @@ protected:
 	const double walkSpeed;
 
 	/**destination segment*/
-	const sim_mob::RoadSegment* destinationSegment;
+	const RoadSegment* destinationSegment;
 
 	/** total time to complete in seconds*/
 	double totalTimeToCompleteSec;

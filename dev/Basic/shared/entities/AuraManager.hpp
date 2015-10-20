@@ -12,7 +12,7 @@
 
 namespace sim_mob
 {
-
+class Entity;
 class Agent;
 class Point2D;
 class Lane;
@@ -68,7 +68,7 @@ public:
      * Note: The pointers in removedAgentPointers will be deleted after this time tick; do *not*
      *       save them anywhere.
      */
-    void update(const std::set<sim_mob::Agent*>& removedAgentPointers);
+    void update(const std::set<sim_mob::Entity*>& removedAgentPointers);
 
 
     /**

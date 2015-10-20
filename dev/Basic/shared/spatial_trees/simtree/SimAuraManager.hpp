@@ -29,7 +29,7 @@ public:
 	 *
 	 *   The pointers in removedAgentPointers will be deleted after this time tick; do *not* save them anywhere.
 	 *   */
-	virtual void update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers);
+	virtual void update(int time_step, const std::set<sim_mob::Entity*>& removedAgentPointers);
 
 	/**
 	 * Init the Sim-Tree using the Network Boundary (Locations of Multi-Nodes)

@@ -43,7 +43,7 @@ void sim_mob::PathSetParam::getDataFromDB()
 	setRTTT(cfg.getRTTT());
 	sim_mob::aimsun::Loader::LoadERPData(cfg.getDatabaseConnectionString(false), ERP_SurchargePool,	ERP_Gantry_ZonePool, ERP_SectionPool);
 	sim_mob::aimsun::Loader::LoadDefaultTravelTimeData(dbSession, segDefTT);
-	bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(dbSession, cfg.pathSet().interval, segHistoryTT);
+	bool res = sim_mob::aimsun::Loader::LoadRealTimeTravelTimeData(dbSession, cfg.getPathSetConf().interval, segHistoryTT);
 	if(!res) // no realtime travel time table
 	{
 		//create
@@ -284,7 +284,7 @@ uint32_t sim_mob::PathSetParam::getSize()
 sim_mob::PathSetParam::PathSetParam() :
 		roadNetwork(ConfigManager::GetInstance().FullConfig().getNetwork()),
 		multiNodesPool(ConfigManager::GetInstance().FullConfig().getNetwork().getNodes()), uniNodesPool(ConfigManager::GetInstance().FullConfig().getNetwork().getUniNodes()),
-		RTTT(""),intervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval* 1000 /*milliseconds*/)
+		RTTT(""),intervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().interval* 1000 /*milliseconds*/)
 {
 	initParameters();
 	populate();

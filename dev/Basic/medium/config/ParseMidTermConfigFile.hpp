@@ -15,6 +15,9 @@ using namespace xercesc;
 
 namespace sim_mob
 {
+
+namespace medium
+{
 /**
  * Parser for the mid-term config file
  *
@@ -232,4 +235,5 @@ private:
     /// Shared configuration
     ConfigParams& cfg;
 };
-}
+} // namespace medium
+} // namespace sim_mob

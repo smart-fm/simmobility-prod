@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/MT_Config.hpp"
+#include "entities/conflux/SegmentStats.hpp"
 #include "entities/misc/PublicTransit.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/RoleFactory.hpp"
@@ -19,7 +21,7 @@ using namespace std;
 using namespace sim_mob;
 using namespace sim_mob::medium;
 
-Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, int id = -1, std::string databaseID = "")
+Person_MT::Person_MT(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID)
 : Person(src, mtxStrat, id, databaseID),
 isQueuing(false), distanceToEndOfSegment(0.0), drivingTimeToEndOfLink(0.0), remainingTimeThisTick(0.0),
 requestedNextSegStats(NULL), canMoveToNextSegment(NONE), nextLinkRequired(NULL), currSegStats(NULL), currLane(NULL),
@@ -48,7 +50,7 @@ Person_MT::~Person_MT()
 void Person_MT::convertODsToTrips()
 {
 	MT_Config& config = MT_Config::getInstance();
-	if (!config.publicTransitEnabled)
+	if (!config.isPublicTransitEnabled())
 	{
 		return;
 	}

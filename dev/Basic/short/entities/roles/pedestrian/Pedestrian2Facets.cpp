@@ -46,7 +46,7 @@ void Pedestrian2Behavior::frame_tick()
 	throw std::runtime_error("Pedestrian2Behavior::frame_tick is not implemented yet");
 }
 
-void Pedestrian2Behavior::frame_tick_output()
+std::string Pedestrian2Behavior::frame_tick_output()
 {
 	throw std::runtime_error("Pedestrian2Behavior::frame_tick_output is not implemented yet");
 }
@@ -160,7 +160,7 @@ void sim_mob::Pedestrian2Movement::frame_tick()
 	parentPedestrian2->parent->yPos.set(pedMovement.getPosition().y);
 }
 
-void sim_mob::Pedestrian2Movement::frame_tick_output()
+std::string sim_mob::Pedestrian2Movement::frame_tick_output()
 {
 	//	if (dynamic_cast<const PedestrianUpdateParams2&>(p).skipThisFrame) {
 	//		return;
@@ -180,7 +180,7 @@ void sim_mob::Pedestrian2Movement::frame_tick_output()
 	//	std::string s=stream.str();
 	//	CommunicationDataManager::GetInstance()->sendTrafficData(s);
 
-	LogOut("(" << "\"pedestrian\"," << p.now.frame() << "," << parent->getId() << "," << "{\"xPos\":\"" << parent->xPos.get() << "\"," << "\"yPos\":\"" << this->parent->yPos.get() << addLine.str() << "\",})" << std::endl);
+	return ("(" << "\"pedestrian\"," << p.now.frame() << "," << parent->getId() << "," << "{\"xPos\":\"" << parent->xPos.get() << "\"," << "\"yPos\":\"" << this->parent->yPos.get() << addLine.str() << "\",})\n");
 }
 
 void sim_mob::Pedestrian2Movement::setSubPath()

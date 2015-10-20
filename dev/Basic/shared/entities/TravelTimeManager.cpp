@@ -10,7 +10,7 @@
 sim_mob::TravelTimeManager* sim_mob::TravelTimeManager::instance = nullptr;
 
 sim_mob::TravelTimeManager::TravelTimeManager()
-	: intervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval),
+	: intervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().interval),
 	  enRouteTT(new sim_mob::TravelTimeManager::EnRouteTT(*this))
 {}
 
@@ -78,7 +78,7 @@ void sim_mob::TravelTimeManager::insertTravelTime2TmpTable(const std::string fil
 	//	destination file
 	sim_mob::BasicLogger & TTLogger  = sim_mob::Logger::log(fileName);
 	// config interval(in seconds)
-	int intervalSec = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval;
+	int intervalSec = sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().interval;
 	//time range
 	BOOST_FOREACH(TRPs &TT_Pair, ttMap)
 	{

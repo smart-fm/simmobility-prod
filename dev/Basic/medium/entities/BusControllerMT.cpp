@@ -18,8 +18,7 @@ using namespace std;
 using namespace sim_mob;
 using namespace sim_mob::medium;
 
-BusControllerMT::BusControllerMT(int id, const MutexStrategy& mtxStrat) :
-		BusController(id, mtxStrat), nextTimeTickToStage(0)
+BusControllerMT::BusControllerMT(int id, const MutexStrategy& mtxStrat) : BusController(id, mtxStrat)
 {
 }
 
@@ -42,7 +41,7 @@ void BusControllerMT::processRequests()
 {
 	for (vector<Entity*>::iterator it = busDrivers.begin(); it != busDrivers.end(); it++)
 	{
-		Person_MT* person = dynamic_cast<sim_mob::Person_MT*>(*it);
+		Person_MT* person = dynamic_cast<Person_MT*>(*it);
 		if (person)
 		{
 			Role<Person_MT>* role = person->getRole();
@@ -113,7 +112,7 @@ void BusControllerMT::assignBusTripChainWithPerson(std::set<Entity*>& activeAgen
 		{
 			if (tripIt->startTime.isAfterEqual(config.simStartTime()))
 			{
-				Person* person = new Person_MT("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
+				Person_MT* person = new Person_MT("BusController", config.mutexStategy(), -1, tripIt->getPersonID());
 				person->setPersonCharacteristics();
 				vector<TripChainItem*> tripChain;
 				tripChain.push_back(const_cast<BusTrip*>(&(*tripIt)));

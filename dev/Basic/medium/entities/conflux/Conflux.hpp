@@ -56,9 +56,9 @@ public:
 class InsertIncidentMessage: public messaging::Message
 {
 public:
-	InsertIncidentMessage(const std::vector<SegmentStats*>& stats, double newFlowRate);
+	InsertIncidentMessage(const RoadSegment* rs, double newFlowRate);
 	virtual ~InsertIncidentMessage();
-	const std::vector<SegmentStats*>& stats;
+	const RoadSegment* affectedSegment;
 	double newFlowRate;
 };
 
@@ -142,7 +142,7 @@ private:
 	 * set of confluxes that own links downstream to this Conflux node
 	 * This is the set of adjacent confluxes to this conflux
 	 */
-	std::set<const Conflux*> connectedConfluxes;
+	std::set<Conflux*> connectedConfluxes;
 
 	/**
 	 *  Map which stores the list of SegmentStats for all road segments on upstream links
@@ -403,7 +403,7 @@ public:
 		this->parentWorkerAssigned = true;
 	}
 
-	std::set<const Conflux*>& getConnectedConfluxes()
+	std::set<Conflux*>& getConnectedConfluxes()
 	{
 		return connectedConfluxes;
 	}
@@ -432,7 +432,7 @@ public:
 	 * adds a conflux to the set of connected confluxes
 	 * @param conflux Conflux to add
 	 */
-	void addConnectedConflux(const Conflux* conflux);
+	void addConnectedConflux(Conflux* conflux);
 
 	/**
 	 * adds a person into this conflux
@@ -447,7 +447,14 @@ public:
 	 * @param statsNum position of the requested stats in the segment
 	 * @return segment stats
 	 */
-	SegmentStats* findSegStats(const RoadSegment* rdSeg, uint16_t statsNum);
+	SegmentStats* findSegStats(const RoadSegment* rdSeg, uint16_t statsNum) const;
+
+	/**
+	 * returns the list of segment stats for a road segment
+	 * @param rdSeg input road segment
+	 * @return const list of segstats for rdSeg
+	 */
+	const std::vector<SegmentStats*>& findSegStats(const RoadSegment* rdSeg) const;
 
 	/**
 	 * gets current speed of segStats
@@ -558,6 +565,11 @@ public:
 	unsigned int getNumRemainingInLaneInfinity();
 
 	/**
+	 * collect current person travel time
+	 */
+	void collectTravelTime(Person_MT* person);
+
+	/**
 	 * given a person with a trip chain, create path for his first trip and
 	 * return his starting conflux.
 	 *
@@ -566,6 +578,15 @@ public:
 	 * @return pointer to the starting conflux of the person's constructed path
 	 */
 	static Conflux* findStartingConflux(Person_MT* person, unsigned int currentTime);
+
+	/**
+	 * finds the conflux owning a road segment
+	 *
+	 * @param rdSeg input road segment
+	 *
+	 * @return Conflux to with rdSeg belongs to
+	 */
+	static Conflux* getConflux(const RoadSegment* rdSeg);
 
 	/**
 	 * Inserts an Incident by updating the flow rate for all lanes of a road segment to a new value.
@@ -583,9 +604,25 @@ public:
 	static void removeIncident(SegmentStats* segStats);
 
 	/**
-	 * collect current person travel time
+	 * constructs confluxes around each multinode
+	 * @param rdnw the road network
 	 */
-	void collectTravelTime(Person_MT* person);
+	static void ProcessConfluxes(const RoadNetwork& rdnw);
+
+	/**
+	 * creates a list of SegmentStats for a given segment depending on the stops
+	 * in the segment. The list splitSegmentStats will contain SegmentStats objects
+	 * containing bus stops (and quite possibly a last SegmentStats with no bus stop)
+	 * @param rdSeg the road segment for which stats must be created
+	 * @param splitSegmentStats vector of SegmentStats* to be filled up
+	 */
+	static void CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std::list<SegmentStats*>& splitSegmentStats);
+
+	/**
+	 * Creates lane groups for every SegmentStats in each link.
+	 * Lane groups are elicited based on the lane connections (turnings) of the last segment of the link.
+	 */
+	static void CreateLaneGroups();
 };
 
 } // namespace medium

@@ -14,7 +14,7 @@
 using namespace sim_mob;
 using namespace sim_mob::temp_spatial;
 
-void sim_mob::SimAuraManager::update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers) {
+void sim_mob::SimAuraManager::update(int time_step, const std::set<sim_mob::Entity*>& removedAgentPointers) {
 	tree_sim.updateAllInternalAgents(agent_connector_map, removedAgentPointers);
 
 	for (std::vector<Agent const*>::iterator it = new_agents.begin(); it != new_agents.end(); ++it) {

@@ -58,7 +58,7 @@ boost::shared_mutex sim_mob::A_StarShortestTravelTimePathImpl::GraphSearchMutex_
 sim_mob::A_StarShortestTravelTimePathImpl::A_StarShortestTravelTimePathImpl(const RoadNetwork& network,double highwayBias) : highwayBias(highwayBias)
 {
 	// init random graph pool
-	int randomCount = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().perturbationIteration;
+	int randomCount = sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().perturbationIteration;
 	for(int i=0;i < randomCount;++i)
 	{
 		StreetDirectory::Graph g;
@@ -729,7 +729,7 @@ void sim_mob::A_StarShortestTravelTimePathImpl::procAddDrivingLinks(StreetDirect
 	    {
 	    	boost::random_device seedGen;
 	    	boost::mt19937 rng(seedGen());
-	    	const std::pair<int,int> &range = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().perturbationRange;
+	    	const std::pair<int,int> &range = sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().perturbationRange;
 	    	boost::uniform_int<> uniformInt(range.first, range.second);
 	    	boost::variate_generator< boost::mt19937, boost::uniform_int<> > rollDice(rng, uniformInt);
 	    	edgeWeight = rollDice() * PathSetParam::getInstance()->getDefSegTT(rs); //randomNo * defTT

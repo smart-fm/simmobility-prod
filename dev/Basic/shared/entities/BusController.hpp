@@ -25,6 +25,7 @@ protected:
 	explicit BusController(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered) :
 			Agent(mtxStrat, id), nextTimeTickToStage(0)
 	{
+			startTime = 0; // bus controllers are alive for the entire duration of the simulation
 	}
 
 	/**

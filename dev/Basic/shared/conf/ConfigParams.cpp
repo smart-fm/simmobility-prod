@@ -5,7 +5,6 @@
 #include "ConfigParams.hpp"
 
 #include "conf/ParseConfigFile.hpp"
-#include "entities/conflux/Conflux.hpp"
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
@@ -31,7 +30,7 @@ sim_mob::ConfigParams::ConfigParams() : RawConfigParams(),
 sim_mob::ConfigParams::~ConfigParams()
 {
     ///Delete all pointers
-    safe_delete_item(commDataMgr);
+//	safe_delete_item(commDataMgr);
 	safe_delete_item(controlMgr);
 
     clear_delete_map(busStopNo_busStops);
@@ -284,24 +283,29 @@ bool sim_mob::ConfigParams::PathSetMode() const
 	return pathset.enabled;
 }
 
-const PathSetConf & sim_mob::ConfigParams::pathSet() const
+PathSetConf& sim_mob::ConfigParams::getPathSetConf()
+{
+    return pathset;
+}
+
+const PathSetConf& sim_mob::ConfigParams::getPathSetConf() const
 {
     return pathset;
 }
 
 bool ConfigParams::RunningMidTerm() const
 {
-    return (simMobRunMode == SimMobRunMode::MID_TERM);
+    return (simMobRunMode == MID_TERM);
 }
 
 bool ConfigParams::RunningShortTerm() const
 {
-    return (simMobRunMode == SimMobRunMode::SHORT_TERM);
+    return (simMobRunMode == SHORT_TERM);
 }
 
 bool ConfigParams::RunningLongTerm() const
 {
-    return (simMobRunMode == SimMobRunMode::LONG_TERM);
+    return (simMobRunMode == LONG_TERM);
 }
 
 const ModelScriptsMap& sim_mob::ConfigParams::getLuaScriptsMap() const

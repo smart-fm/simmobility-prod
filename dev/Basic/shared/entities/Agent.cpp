@@ -43,19 +43,6 @@ StartTimePriorityQueue sim_mob::Agent::pending_agents;
 std::set<Entity*> sim_mob::Agent::all_agents;
 unsigned int sim_mob::Agent::nextAgentId = 0;
 
-//Implementation of our comparison function for Agents by start time.
-bool sim_mob::cmp_agent_start::operator()(const Agent* x, const Agent* y) const
-{
-	//TODO: Not sure what to do in this case...
-	if ((!x) || (!y))
-	{
-		return 0;
-	}
-
-	//We want a lower start time to translate into a higher priority.
-	return x->getStartTime() > y->getStartTime();
-}
-
 unsigned int sim_mob::Agent::getAndIncrementID(int preferredID)
 {
 	//If the ID is valid, modify next_agent_id;

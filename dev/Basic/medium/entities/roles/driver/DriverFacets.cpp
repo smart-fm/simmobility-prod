@@ -83,7 +83,7 @@ void DriverBehavior::frame_tick()
 	throw std::runtime_error("DriverBehavior::frame_tick is not implemented yet");
 }
 
-void DriverBehavior::frame_tick_output()
+std::string DriverBehavior::frame_tick_output()
 {
 	throw std::runtime_error("DriverBehavior::frame_tick_output is not implemented yet");
 }
@@ -181,14 +181,14 @@ void DriverMovement::frame_tick()
 	}
 }
 
-void DriverMovement::frame_tick_output()
+std::string DriverMovement::frame_tick_output()
 {
 	const DriverUpdateParams& params = parentDriver->getParams();
 	if (pathMover.isPathCompleted()
 			|| ConfigManager::GetInstance().FullConfig().using_MPI
 			|| ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
 	{
-		return;
+		return std::string();
 	}
 
 	std::stringstream logout;
@@ -209,7 +209,7 @@ void DriverMovement::frame_tick_output()
 		logout << "\",\"queuing\":\"" << "false";
 	}
 	logout << "\"})" << std::endl;
-	LogOut(logout.str());
+	return logout.str();
 }
 
 void DriverMovement::randomizeStartingSegment(std::vector<WayPoint>& wpPath)
@@ -265,7 +265,7 @@ void DriverMovement::initSegStatsPath(vector<WayPoint>& wpPath, vector<const Seg
 		if (it->type_ == WayPoint::ROAD_SEGMENT)
 		{
 			const RoadSegment* rdSeg = it->roadSegment_;
-			const vector<SegmentStats*>& statsInSegment = rdSeg->getParentConflux()->findSegStats(rdSeg);
+			const vector<SegmentStats*>& statsInSegment = Conflux::getConflux(rdSeg)->findSegStats(rdSeg);
 			ssPath.insert(ssPath.end(), statsInSegment.begin(), statsInSegment.end());
 		}
 	}
@@ -276,7 +276,7 @@ void DriverMovement::initSegStatsPath(const std::vector<const RoadSegment*>& rsP
 	for (vector<const RoadSegment*>::const_iterator it = rsPath.begin(); it != rsPath.end(); it++)
 	{
 		const RoadSegment* rdSeg = *it;
-		const vector<SegmentStats*>& statsInSegment = rdSeg->getParentConflux()->findSegStats(rdSeg);
+		const vector<SegmentStats*>& statsInSegment = Conflux::getConflux(rdSeg)->findSegStats(rdSeg);
 		ssPath.insert(ssPath.end(), statsInSegment.begin(), statsInSegment.end());
 	}
 }
@@ -525,7 +525,7 @@ void DriverMovement::onSegmentCompleted(const RoadSegment* completedRS, const Ro
 void DriverMovement::onLinkCompleted(const Link * completedLink, const Link * nextLink)
 {
 	//2. Re-routing
-	if (ConfigManager::GetInstance().FullConfig().pathSet().reroute)
+	if (ConfigManager::GetInstance().FullConfig().getPathSetConf().reroute)
 	{
 		reroute();
 	}
@@ -908,7 +908,7 @@ void DriverMovement::updateFlow(const SegmentStats* segStats, double startPos, d
 	const RoadSegment* rdSeg = segStats->getRoadSegment();
 	if (startPos >= mid && mid >= endPos)
 	{
-		rdSeg->getParentConflux()->incrementSegmentFlow(rdSeg, segStats->getStatsNumberInSegment());
+		segStats->getParentConflux()->incrementSegmentFlow(rdSeg, segStats->getStatsNumberInSegment());
 	}
 }
 
@@ -1247,14 +1247,15 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const RoadSegment* comple
 	return travelMetric;
 }
 
-int DriverMovement::findReroutingPoints(const std::vector<SegmentStats*>& stats,
+int DriverMovement::findReroutingPoints(const RoadSegment* rdSeg,
 										std::map<const Node*, std::vector<const SegmentStats*> >& remaining) const
 {
 
 	//some variables and iterators before the Actual Operation
 	const std::vector<const SegmentStats*> & path = getMesoPathMover().getPath(); //driver's current path
+	const SegmentStats* incidentSegStat = Conflux::getConflux(rdSeg)->findSegStats(rdSeg, 1);
 	std::vector<const SegmentStats*>::const_iterator startIt = std::find(path.begin(), path.end(), getMesoPathMover().getCurrSegStats()); //iterator to driver's current location
-	std::vector<const SegmentStats*>::const_iterator endIt = std::find(path.begin(), path.end(), *(stats.begin())); //iterator to incident segstat
+	std::vector<const SegmentStats*>::const_iterator endIt = std::find(path.begin(), path.end(), incidentSegStat); //iterator to incident segstat
 	std::vector<const SegmentStats*> rem; //stats remaining from the current location to the re-routing point
 	//Actual Operation : As you move from your current location towards the incident, store the intersections on your way + the segstats you travrsed until you reach that intersection.
 	//	//debug
@@ -1389,7 +1390,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg)
 	//step-1
 	std::map<const Node*, std::vector<const SegmentStats*> > deTourOptions; //< detour point, segments to travel before getting to the detour point>
 	deTourOptions.clear(); // :)
-	int numReRoute = findReroutingPoints(msg.stats, deTourOptions);
+	int numReRoute = findReroutingPoints(msg.affectedSegment, deTourOptions);
 	if (!numReRoute)
 	{
 		return;
@@ -1517,7 +1518,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg)
 Conflux* DriverMovement::getStartingConflux() const
 {
 	const SegmentStats* firstSegStats = pathMover.getCurrSegStats(); //first segstats of the remaining path.
-	return firstSegStats->getRoadSegment()->getParentConflux();
+	return firstSegStats->getParentConflux();
 }
 
 void DriverMovement::handleMessage(messaging::Message::MessageType type, const messaging::Message& message)
@@ -1527,7 +1528,7 @@ void DriverMovement::handleMessage(messaging::Message::MessageType type, const m
 	case MSG_INSERT_INCIDENT:
 	{
 		const InsertIncidentMessage &msg = MSG_CAST(InsertIncidentMessage, message);
-		PrivateTrafficRouteChoice::getInstance()->addPartialExclusion((*msg.stats.begin())->getRoadSegment());
+		PrivateTrafficRouteChoice::getInstance()->addPartialExclusion(msg.affectedSegment);
 		reroute(msg);
 		break;
 	}

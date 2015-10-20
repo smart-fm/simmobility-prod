@@ -43,7 +43,7 @@ public:
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
+	virtual std::string frame_tick_output();
 
 	Driver* getParentDriver() const
 	{
@@ -317,7 +317,7 @@ public:
 
 	virtual void frame_tick();
 
-	virtual void frame_tick_output();
+	virtual std::string frame_tick_output();
 
 	// mark startTimeand origin
 	virtual TravelMetric & startTravelTimeMetric();

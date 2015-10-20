@@ -26,8 +26,6 @@ void PeriodicPersonLoader::addOrStashPerson(Person* p)
 	//Only agents with a start time of zero should start immediately in the all_agents list.
 	if (p->getStartTime()==0)
 	{
-		p->load(p->getConfigProperties());
-		p->clearConfigProperties();
 		activeAgents.insert(p);
 	}
 	else

@@ -156,6 +156,7 @@ public:
      */
 	virtual Role<PERSON>* clone(PERSON* parent) const
 	{
+		return nullptr;
 	}
 
 	/**
@@ -263,6 +264,11 @@ public:
 	void setResource(VehicleBase* currResource)
 	{
 		this->currResource = currResource;
+	}
+
+	PERSON* getParent() const
+	{
+		return parent;
 	}
 
 	void setParent(PERSON *person)

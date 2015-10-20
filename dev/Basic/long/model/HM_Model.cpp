@@ -1250,7 +1250,7 @@ void HM_Model::startImpl()
 	unitsFiltering();
 
 	workGroup.assignAWorker(&market);
-	int numWorkers = workGroup.getNumberOfWorkers();
+	int numWorkers = workGroup.size();
 
 	//
 	//Create freelance seller agents to sell vacant units.

@@ -35,28 +35,6 @@ private:
 
 	void setRestrictedRegionSupport();
 
-	/**
-	 * constructs confluxes around each multinode
-	 * @param rdnw the road network
-	 */
-	static void ProcessConfluxes(const RoadNetwork& rdnw);
-
-	/**
-	 * creates a list of SegmentStats for a given segment depending on the stops
-	 * in the segment. The list splitSegmentStats will contain SegmentStats objects
-	 * containing bus stops (and quite possibly a last SegmentStats with no bus stop)
-	 * @param rdSeg the road segment for which stats must be created
-	 * @param splitSegmentStats vector of SegmentStats* to be filled up
-	 */
-	static void CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std::list<SegmentStats*>& splitSegmentStats);
-
-	/**
-	 * Creates lane groups for every SegmentStats in each link.
-	 * Lane groups are elicited based on the lane connections (turnings) of the last segment of the link.
-	 */
-	static void CreateLaneGroups();
-
-
 	MT_Config& mtCfg;
 
 	//The config file we are currently loading

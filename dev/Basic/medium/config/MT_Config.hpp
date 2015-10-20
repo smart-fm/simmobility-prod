@@ -20,6 +20,8 @@ namespace sim_mob
 {
 namespace medium
 {
+class ParseMidTermConfigFile;
+
 class MongoCollectionsMap
 {
 public:
@@ -176,7 +178,7 @@ private:
 class WorkerParams {
 public:
     struct WorkerConf {
-        WorkerConf();
+        WorkerConf() : count(0), granularityMs(0) {}
         unsigned int count;
         unsigned int granularityMs;
     };
@@ -241,6 +243,7 @@ struct IncidentParams {
 
 class MT_Config : private ProtectedCopyable
 {
+	friend class ParseMidTermConfigFile;
 public:
     /**
      * Destructor
@@ -637,7 +640,7 @@ public:
      *
      * @return number of workers
      */
-    const unsigned int& personWorkGroupSize() const;
+    unsigned int personWorkGroupSize() const;
 
     /**
      * Checks whether CBD area restriction enforced
@@ -651,7 +654,9 @@ public:
      *
      * @return true if enabled, else false
      */
-    bool PublicTransitEnabled() const;
+    bool isPublicTransitEnabled() const;
+
+    void setPublicTransitEnabled(bool val);
 
     /**
      * Retrives the confluxes
@@ -672,14 +677,14 @@ public:
      *
      * @return conflux nodes
      */
-    std::map<const MultiNode*, Conflux*>& getConfluxNodes();
+    std::map<const Node*, Conflux*>& getConfluxNodes();
 
     /**
      * Retrieves conflux nodes
      *
      * @return conflux nodes (const reference)
      */
-    const std::map<const MultiNode*, Conflux*>& getConfluxNodes() const;
+    const std::map<const Node*, Conflux*>& getConfluxNodes() const;
 
     /**
      * Retrives the conflux corresponding to a node
@@ -688,7 +693,7 @@ public:
      *
      * @return conflux
      */
-    Conflux* getConfluxForNode(const MultiNode* multinode) const;
+    Conflux* getConfluxForNode(const Node* multinode) const;
 
     /**
      * Retrives the segment stats with bus stops
@@ -731,14 +736,16 @@ public:
      */
     unsigned int personTimeStepInMilliSeconds() const;
 
+	const WorkerParams& getWorkerParams() const;
+
     /**
      * Enumerator for mid term run mode
      */
     enum MidTermRunMode
     {
-        NONE,
-        SUPPLY,
-        PREDAY
+        MT_NONE,
+        MT_SUPPLY,
+        MT_PREDAY
     };
 
     /// Mid term run mode identifier
@@ -776,11 +783,11 @@ private:
      */
 	enum PredayRunMode
 	{
-		NONE,
-		SIMULATION,
-		CALIBRATION,
-		LOGSUM_COMPUTATION,
-		LOGSUM_COMPUTATION_LT
+		PREDAY_NONE,
+		PREDAY_SIMULATION,
+		PREDAY_CALIBRATION,
+		PREDAY_LOGSUM_COMPUTATION,
+		PREDAY_LOGSUM_COMPUTATION_LT
 	};
 	PredayRunMode predayRunMode;
 
@@ -868,14 +875,11 @@ private:
     ///setting for the incidents
     std::vector<IncidentParams> incidents;
 
-    ///Some settings for bus stop arrivals/departures.
-    std::map<int, BusStopScheduledTime> busScheduledTimes; //The int is a "bus stop ID", starting from 0.
-
     /// set of confluxes
     std::set<Conflux*> confluxes;
 
     /// key:value (MultiNode:Conflux) map
-    std::map<const MultiNode*, Conflux*> multinode_confluxes;
+    std::map<const Node*, Conflux*> multinode_confluxes;
 
     /// set of segment stats with bus stops
     std::set<SegmentStats*> segmentStatsWithBusStops;

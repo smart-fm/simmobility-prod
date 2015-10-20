@@ -6,7 +6,8 @@
 
 #include <set>
 #include "entities/Agent.hpp"
-#include "roles/DriverRequestParams.hpp"
+#include "entities/BusController.hpp"
+#include "entities/roles/DriverRequestParams.hpp"
 
 namespace sim_mob
 {
@@ -14,14 +15,11 @@ namespace sim_mob
 namespace medium
 {
 
-class BusControllerMT: public sim_mob::BusController
+class BusControllerMT : public sim_mob::BusController
 {
-private:
-	explicit BusControllerMT(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
-
+public:
 	virtual ~BusControllerMT();
 
-public:
 	/**
 	 * Initialize a single BusController with the given start time and MutexStrategy.
 	 */
@@ -38,6 +36,8 @@ public:
 	virtual void handleRequest(sim_mob::DriverRequestParams rParams);
 
 private:
+	explicit BusControllerMT(int id = -1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
+
 	/**
 	 * assign bus trip information to person so as to travel on the road
 	 */

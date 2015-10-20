@@ -8,7 +8,6 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/random.hpp>
 #include <functional>
-#include <queue>
 #include <set>
 #include <stdexcept>
 #include <vector>
@@ -41,17 +40,6 @@ class RoadRunnerRegion;
 //It is not a good design, now. Need to verify.
 //The class is used in Sim-Tree for Bottom-Up Query
 struct TreeItem;
-
-/**Comparison for the priority queue*/
-struct cmp_agent_start : public std::less<Agent*>
-{
-	bool operator()(const Agent* x, const Agent* y) const;
-};
-
-/**C++ static constructors*/
-class StartTimePriorityQueue : public std::priority_queue<Agent*, std::vector<Agent*>, cmp_agent_start>
-{
-};
 
 /**
  * Basic Agent class.

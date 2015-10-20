@@ -128,10 +128,13 @@ bool sim_mob::BusTrip::setBusRouteInfo(const std::vector<const RoadSegment*>& ro
 		addBusStopRealTimes(pBusStopRealTimes);
 	}
 
-    if(config.busController.busLineControlType == "schedule_based" || config.busController.busLineControlType == "evenheadway_based" ||
-            config.busController.busLineControlType == "hybrid_based") {
+    if(config.busController.busLineControlType == "schedule_based"
+    		|| config.busController.busLineControlType == "evenheadway_based"
+    		|| config.busController.busLineControlType == "hybrid_based")
+    {
 		std::map<int, BusStopScheduledTime> scheduledTimes =  config.busScheduledTimes;
-		for(std::map<int, BusStopScheduledTime>::iterator temp=scheduledTimes.begin();temp != scheduledTimes.end();temp++) {
+		for(std::map<int, BusStopScheduledTime>::iterator temp=scheduledTimes.begin();temp != scheduledTimes.end();temp++)
+		{
 			BusStopScheduledTimes busStop_ScheduledTimes(startTime + DailyTime(temp->second.offsetAT),startTime + DailyTime(temp->second.offsetDT));
 			addBusStopScheduledTimes(busStop_ScheduledTimes);
 		}

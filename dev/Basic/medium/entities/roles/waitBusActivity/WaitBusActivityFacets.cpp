@@ -13,11 +13,8 @@
 #include "geospatial/BusStop.hpp"
 #include "WaitBusActivity.hpp"
 
-namespace sim_mob
-{
-
-namespace medium
-{
+using namespace sim_mob;
+using namespace sim_mob::medium;
 
 WaitBusActivityBehavior::WaitBusActivityBehavior() :
 BehaviorFacet(), parentWaitBusActivity(nullptr)
@@ -68,15 +65,17 @@ void WaitBusActivityMovement::frame_tick()
 	parentWaitBusActivity->parent->setRemainingTimeThisTick(0);
 }
 
-void WaitBusActivityMovement::frame_tick_output()
-{}
+std::string WaitBusActivityMovement::frame_tick_output()
+{
+	return std::string();
+}
 
-sim_mob::Conflux* WaitBusActivityMovement::getStartingConflux() const
+Conflux* WaitBusActivityMovement::getStartingConflux() const
 {
 	const sim_mob::medium::BusStopAgent* stopAg = sim_mob::medium::BusStopAgent::getBusStopAgentForStop(parentWaitBusActivity->getStop());
 	if(stopAg)
 	{
-		return stopAg->getParentSegmentStats()->getRoadSegment()->getParentConflux();
+		return stopAg->getParentSegmentStats()->getParentConflux();
 	}
 	return nullptr;
 }
@@ -90,6 +89,3 @@ TravelMetric& WaitBusActivityMovement::finalizeTravelTimeMetric()
 {
 	return travelMetric;
 }
-
-} /* namespace medium */
-} /* namespace sim_mob */

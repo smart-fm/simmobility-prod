@@ -21,6 +21,7 @@
 
 using namespace sim_mob;
 using namespace sim_mob::medium;
+
 using std::max;
 using std::vector;
 using std::set;
@@ -42,23 +43,20 @@ inline unsigned int converToMilliseconds(double timeInMs) {
 }
 }
 
-sim_mob::medium::BusDriver::BusDriver(Person_MT* parent, MutexStrategy mtxStrat,
-		sim_mob::medium::BusDriverBehavior* behavior,
-		sim_mob::medium::BusDriverMovement* movement,
-		std::string roleName, Role<Person_MT>::Type roleType)
-: sim_mob::medium::Driver(parent, behavior, movement, roleName, roleType),
-  requestMode(mtxStrat, 0), visitedBusStop(mtxStrat, nullptr), busStopRealTimes(mtxStrat, nullptr),
-  visitedBusStopSequenceNo(mtxStrat, -1), arrivalTime(mtxStrat, 0.0),
-  dwellTime(mtxStrat, 0.0), visitedBusTripSequenceNo(mtxStrat, 0),
-  visitedBusLine(mtxStrat, "0"), holdingTime(mtxStrat, 0.0),
-  waitingTimeAtbusStop(0.0),busSequenceNumber(1)
-{}
+sim_mob::medium::BusDriver::BusDriver(Person_MT* parent, const MutexStrategy& mtxStrat, medium::BusDriverBehavior* behavior,
+		medium::BusDriverMovement* movement, std::string roleName, Role<Person_MT>::Type roleType) :
+		medium::Driver(parent, behavior, movement, roleName, roleType),
+		requestMode(mtxStrat, 0), visitedBusStop(mtxStrat, nullptr), visitedBusStopSequenceNo(mtxStrat, -1),
+		arrivalTime(mtxStrat, 0.0), dwellTime(mtxStrat, 0.0), visitedBusTripSequenceNo(mtxStrat, 0), visitedBusLine(mtxStrat, "0"),
+		holdingTime(mtxStrat, 0.0), waitingTimeAtbusStop(0.0), busSequenceNumber(1)
+{
+}
 
 sim_mob::medium::BusDriver::~BusDriver(){}
 
 Role<Person_MT>* sim_mob::medium::BusDriver::clone(Person_MT* parent) const {
-	BusDriverBehavior* behavior = new BusDriverBehavior(parent);
-	BusDriverMovement* movement = new BusDriverMovement(parent);
+	BusDriverBehavior* behavior = new BusDriverBehavior();
+	BusDriverMovement* movement = new BusDriverMovement();
 	BusDriver* busdriver = new BusDriver(parent, parent->getMutexStrategy(), behavior, movement, "BusDriver_");
 	behavior->setParentBusDriver(busdriver);
 	movement->setParentBusDriver(busdriver);

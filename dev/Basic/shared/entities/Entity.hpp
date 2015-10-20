@@ -5,6 +5,7 @@
 #pragma once
 
 #include <iostream>
+#include <queue>
 #include <string>
 #include <set>
 #include <vector>
@@ -210,6 +211,18 @@ public:
 	friend class Worker;
 	friend class WorkerGroup;
 	friend class PartitionManager;
+};
+
+
+/**Comparison for the priority queue*/
+struct cmp_agent_start : public std::less<Entity*>
+{
+	bool operator()(const Entity* x, const Entity* y) const;
+};
+
+/**C++ static constructors*/
+class StartTimePriorityQueue : public std::priority_queue<Entity*, std::vector<Entity*>, cmp_agent_start>
+{
 };
 }
 

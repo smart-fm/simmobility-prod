@@ -13,15 +13,23 @@
 #include <vector>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/MT_Config.hpp"
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/Entity.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
+#include "entities/roles/driver/BikerFacets.hpp"
+#include "entities/roles/driver/BusDriverFacets.hpp"
+#include "entities/roles/driver/DriverFacets.hpp"
+#include "entities/roles/passenger/PassengerFacets.hpp"
+#include "entities/roles/pedestrian/PedestrianFacets.hpp"
+#include "entities/roles/waitBusActivity/WaitBusActivityFacets.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
 #include "event/args/EventArgs.hpp"
 #include "event/EventPublisher.hpp"
 #include "event/SystemEvents.hpp"
+#include "geospatial/LaneConnector.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
@@ -44,14 +52,25 @@ namespace
 const double INFINITESIMAL_DOUBLE = 0.000001;
 const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
 const double MAX_DOUBLE = std::numeric_limits<double>::max();
+const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * sim_mob::PASSENGER_CAR_UNIT; // 5 times a car's length
+}
+
+void sim_mob::medium::sortPersonsDecreasingRemTime(std::deque<Person_MT*>& personList)
+{
+	GreaterRemainingTimeThisTick greaterRemainingTimeThisTick;
+	if (personList.size() > 1)
+	{ //ordering is required only if we have more than 1 person in the deque
+		std::sort(personList.begin(), personList.end(), greaterRemainingTimeThisTick);
+	}
 }
 
 unsigned Conflux::updateInterval = 0;
 
 Conflux::Conflux(MultiNode* multinode, const MutexStrategy& mtxStrat, int id, bool isLoader) :
 		Agent(mtxStrat, id), multiNode(multinode), parentWorkerAssigned(false), currFrame(0, 0), isLoader(isLoader), numUpdatesThisTick(0),
-		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond()), multiUpdate(true)
+		tickTimeInS(ConfigManager::GetInstance().FullConfig().baseGranSecond())
 {
+	multiUpdate = true;
 }
 
 Conflux::~Conflux()
@@ -863,18 +882,23 @@ void Conflux::resetPositionOfLastUpdatedAgentOnLanes()
 	}
 }
 
-SegmentStats* Conflux::findSegStats(const RoadSegment* rdSeg, uint16_t statsNum)
+const std::vector<SegmentStats*>& sim_mob::medium::Conflux::findSegStats(const RoadSegment* rdSeg) const
+{
+	return segmentAgents.find(rdSeg)->second;
+}
+
+SegmentStats* Conflux::findSegStats(const RoadSegment* rdSeg, uint16_t statsNum) const
 {
 	if (!rdSeg || statsNum == 0)
 	{
 		return nullptr;
 	}
-	SegmentStatsList& statsList = segmentAgents.find(rdSeg)->second;
+	const SegmentStatsList& statsList = segmentAgents.find(rdSeg)->second;
 	if (statsList.size() < statsNum)
 	{
 		return nullptr;
 	}
-	SegmentStatsList::iterator statsIt = statsList.begin();
+	SegmentStatsList::const_iterator statsIt = statsList.begin();
 	if (statsNum == 1)
 	{
 		return (*statsIt);
@@ -963,9 +987,10 @@ void Conflux::HandleMessage(messaging::Message::MessageType type, const messagin
 	case MSG_INSERT_INCIDENT:
 	{
 		//pathsetLogger << "Conflux received MSG_INSERT_INCIDENT" << std::endl;
-		const InsertIncidentMessage & msg = MSG_CAST(InsertIncidentMessage, message);
+		const InsertIncidentMessage& msg = MSG_CAST(InsertIncidentMessage, message);
+		SegmentStatsList& statsList = segmentAgents.find(msg.affectedSegment)->second;
 		//change the flow rate of the segment
-		BOOST_FOREACH(SegmentStats* stat, msg.stats)
+		BOOST_FOREACH(SegmentStats* stat, statsList)
 		{
 			Conflux::insertIncident(stat, msg.newFlowRate);
 		}
@@ -1109,6 +1134,7 @@ Entity::UpdateStatus Conflux::switchTripChainItem(Person_MT* person)
 
 Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* person)
 {
+	const MT_Config& mtCfg = MT_Config::getInstance();
 	Role<Person_MT>* personRole = person->getRole();
 	if (person->isResetParamsRequired())
 	{
@@ -1159,7 +1185,7 @@ Entity::UpdateStatus Conflux::callMovementFrameTick(timeslice now, Person_MT* pe
 
 		if (person->getNextLinkRequired())
 		{
-			Conflux* nextConflux = person->getNextLinkRequired()->getSegments().front()->getParentConflux();
+			Conflux* nextConflux = mtCfg.getConfluxForNode(person->getNextLinkRequired()->getEnd());
 			messaging::MessageBus::PostMessage(nextConflux, MSG_PEDESTRIAN_TRANSFER_REQUEST, messaging::MessageBus::MessagePtr(new PersonMessage(person)));
 			person->setNextLinkRequired(nullptr);
 			PersonList::iterator pIt = std::find(pedestrianList.begin(), pedestrianList.end(), person);
@@ -1226,7 +1252,7 @@ void Conflux::callMovementFrameOutput(timeslice now, Person_MT* person)
 	//Save the output
 	if (!isToBeRemoved())
 	{
-		person->currRole->Movement()->frame_tick_output();
+		LogOut(person->currRole->Movement()->frame_tick_output());
 	}
 }
 
@@ -1396,15 +1422,6 @@ bool GreaterRemainingTimeThisTick::operator ()(const Person_MT* x, const Person_
 	}
 	//We want greater remaining time in this tick to translate into a higher priority.
 	return (x->getRemainingTimeThisTick() > y->getRemainingTimeThisTick());
-}
-
-void sortPersonsDecreasingRemTime(std::deque<Person_MT*>& personList)
-{
-	GreaterRemainingTimeThisTick greaterRemainingTimeThisTick;
-	if (personList.size() > 1)
-	{ //ordering is required only if we have more than 1 person in the deque
-		std::sort(personList.begin(), personList.end(), greaterRemainingTimeThisTick);
-	}
 }
 
 std::deque<Person_MT*> Conflux::getAllPersons()
@@ -1632,22 +1649,7 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 	}
 	if ((*person->currTripChainItem)->itemType == TripChainItem::IT_ACTIVITY)
 	{
-		//IT_ACTIVITY as of now is just a matter of waiting for a period of time(between its start and end time)
-		//since start time of the activity is usually later than what is configured initially,
-		//we have to make adjustments so that it waits for exact amount of time
-		ActivityPerformer<Person_MT>* ap = dynamic_cast<ActivityPerformer<Person_MT>*>(personRole);
-		ap->setActivityStartTime(DailyTime(now + ConfigManager::GetInstance().FullConfig().baseGranMS()));
-		ap->setActivityEndTime(
-				DailyTime(
-						now + ConfigManager::GetInstance().FullConfig().baseGranMS()
-								+ ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
 
-		const MultiNode* activityLocation = dynamic_cast<MultiNode*>(ap->getLocation());
-		if (activityLocation) //activity locations must ideally be multinodes
-		{
-			return MT_Config::getInstance().getConfluxForNode(activityLocation);
-		}
-		return nullptr;
 	}
 
 	//Now that the Role<Person_MT> has been fully constructed, initialize it.
@@ -1658,7 +1660,105 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 	} //if agent initialization fails, person is set to be removed
 	person->setInitialized(true);
 
-	return personRole->Movement()->getStartingConflux();
+	switch(personRole->roleType)
+	{
+	case Role<Person_MT>::RL_DRIVER:
+	{
+		const medium::DriverMovement* driverMvt = dynamic_cast<const medium::DriverMovement*>(personRole->Movement());
+		if(driverMvt)
+		{
+			return driverMvt->getStartingConflux();
+		}
+		else
+		{
+			throw std::runtime_error("Driver role facets not/incorrectly initialized");
+		}
+		break;
+	}
+	case Role<Person_MT>::RL_BIKER:
+	{
+		const medium::BikerMovement* bikerMvt = dynamic_cast<const medium::BikerMovement*>(personRole->Movement());
+		if(bikerMvt)
+		{
+			return bikerMvt->getStartingConflux();
+		}
+		else
+		{
+			throw std::runtime_error("Biker role facets not/incorrectly initialized");
+		}
+		break;
+	}
+	case Role<Person_MT>::RL_PEDESTRIAN:
+	{
+		const medium::PedestrianMovement* pedestrianMvt = dynamic_cast<const medium::PedestrianMovement*>(personRole->Movement());
+		if(pedestrianMvt)
+		{
+			return pedestrianMvt->getStartingConflux();
+		}
+		else
+		{
+			throw std::runtime_error("Pedestrian role facets not/incorrectly initialized");
+		}
+		break;
+	}
+	case Role<Person_MT>::RL_BUSDRIVER:
+	{
+		const medium::BusDriverMovement* busDriverMvt = dynamic_cast<const medium::BusDriverMovement*>(personRole->Movement());
+		if(busDriverMvt)
+		{
+			return busDriverMvt->getStartingConflux();
+		}
+		else
+		{
+			throw std::runtime_error("Bus-Driver role facets not/incorrectly initialized");
+		}
+		break;
+	}
+	case Role<Person_MT>::RL_ACTIVITY:
+	{
+		//IT_ACTIVITY is just a matter of waiting for a period of time(between its start and end time)
+		//since start time of the activity is usually later than what is configured initially,
+		//we have to make adjustments so that it waits for exact amount of time
+		ActivityPerformer<Person_MT>* ap = dynamic_cast<ActivityPerformer<Person_MT>*>(personRole);
+		ap->setActivityStartTime(DailyTime(now + ConfigManager::GetInstance().FullConfig().baseGranMS()));
+		ap->setActivityEndTime(DailyTime(now + ConfigManager::GetInstance().FullConfig().baseGranMS()
+							+ ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
+		return MT_Config::getInstance().getConfluxForNode(ap->getLocation());
+	}
+	case Role<Person_MT>::RL_PASSENGER: //Fall through
+	case Role<Person_MT>::RL_TRAINPASSENGER: //Fall through
+	case Role<Person_MT>::RL_CARPASSENGER: //Fall through
+	{
+		const medium::PassengerMovement* passengerMvt = dynamic_cast<const medium::PassengerMovement*>(personRole->Movement());
+		if(passengerMvt)
+		{
+			return passengerMvt->getStartingConflux();
+		}
+		else
+		{
+			throw std::runtime_error("Bus-Driver role facets not/incorrectly initialized");
+		}
+		break;
+	}
+	case Role<Person_MT>::RL_WAITBUSACTITITY:
+	{
+		const medium::WaitBusActivityMovement* waitBusMvt = dynamic_cast<const medium::WaitBusActivityMovement*>(personRole->Movement());
+		if(waitBusMvt)
+		{
+			return waitBusMvt->getStartingConflux();
+		}
+		else
+		{
+			throw std::runtime_error("WaitBusActivity role facets not/incorrectly initialized");
+		}
+		break;
+	}
+	}
+}
+
+Conflux* sim_mob::medium::Conflux::getConflux(const RoadSegment* rdSeg)
+{
+	return MT_Config::getInstance().getConfluxForNode(rdSeg->getLink()->getEnd());
 }
 
 void Conflux::insertIncident(SegmentStats* segStats, double newFlowRate)
@@ -1679,7 +1779,7 @@ void Conflux::removeIncident(SegmentStats* segStats)
 	}
 }
 
-void Conflux::addConnectedConflux(const Conflux* conflux)
+void Conflux::addConnectedConflux(Conflux* conflux)
 {
 	if(!conflux)
 	{
@@ -1688,8 +1788,8 @@ void Conflux::addConnectedConflux(const Conflux* conflux)
 	connectedConfluxes.insert(conflux);
 }
 
-InsertIncidentMessage::InsertIncidentMessage(const std::vector<SegmentStats*>& stats, double newFlowRate) :
-		stats(stats), newFlowRate(newFlowRate)
+InsertIncidentMessage::InsertIncidentMessage(const RoadSegment* rs, double newFlowRate) :
+		affectedSegment(rs), newFlowRate(newFlowRate)
 {
 }
 
@@ -1713,4 +1813,406 @@ ArrivalAtStopMessage::ArrivalAtStopMessage(Person_MT* person) :
 
 ArrivalAtStopMessage::~ArrivalAtStopMessage()
 {
+}
+
+void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std::list<SegmentStats*>& splitSegmentStats) {
+	if(!rdSeg)
+	{
+		throw std::runtime_error("CreateSegmentStats(): NULL RoadSegment was passed");
+	}
+	std::stringstream debugMsgs;
+	const std::map<centimeter_t, const RoadItem*>& obstacles = rdSeg->obstacles;
+	double lengthCoveredInSeg = 0;
+	double segStatLength;
+	double rdSegmentLength = rdSeg->getPolylineLength();
+	// NOTE: std::map implements strict weak ordering which defaults to less<key_type>
+	// This is precisely the order in which we want to iterate the stops to create SegmentStats
+	for(std::map<centimeter_t, const RoadItem*>::const_iterator obsIt = obstacles.begin(); obsIt != obstacles.end(); obsIt++)
+	{
+		const BusStop* busStop = dynamic_cast<const BusStop*>(obsIt->second);
+		if(busStop)
+		{
+			double stopOffset = (double) (obsIt->first);
+			if(stopOffset <= 0)
+			{
+				SegmentStats* segStats = new SegmentStats(rdSeg, conflux, rdSegmentLength);
+				segStats->addBusStop(busStop);
+				//add the current stop and the remaining stops (if any) to the end of the segment as well
+				while(++obsIt != obstacles.end())
+				{
+					busStop = dynamic_cast<const BusStop*>(obsIt->second);
+					if(busStop)
+					{
+						segStats->addBusStop(busStop);
+					}
+				}
+				splitSegmentStats.push_back(segStats);
+				lengthCoveredInSeg = rdSegmentLength;
+				break;
+			}
+			if(stopOffset < lengthCoveredInSeg) {
+				debugMsgs<<"bus stops are iterated in wrong order"
+						<<"|seg: "<<rdSeg->getStartEnd()
+						<<"|seg length: "<<rdSegmentLength
+						<<"|curr busstop offset: "<<obsIt->first
+						<<"|prev busstop offset: "<<lengthCoveredInSeg
+						<<"|busstop: " << busStop->getBusstopno_()
+						<<std::endl;
+				throw std::runtime_error(debugMsgs.str());
+			}
+			if(stopOffset >= rdSegmentLength) {
+				//this is probably due to error in data and needs manual fixing
+				segStatLength = rdSegmentLength - lengthCoveredInSeg;
+				lengthCoveredInSeg = rdSegmentLength;
+				SegmentStats* segStats = new SegmentStats(rdSeg, conflux, segStatLength);
+				segStats->addBusStop(busStop);
+				//add the current stop and the remaining stops (if any) to the end of the segment as well
+				while(++obsIt != obstacles.end()) {
+					busStop = dynamic_cast<const BusStop*>(obsIt->second);
+					if(busStop) {
+						segStats->addBusStop(busStop);
+					}
+				}
+				splitSegmentStats.push_back(segStats);
+				break;
+			}
+			//the relation (lengthCoveredInSeg < stopOffset < rdSegmentLength) holds here
+			segStatLength = stopOffset - lengthCoveredInSeg;
+			lengthCoveredInSeg = stopOffset;
+			SegmentStats* segStats = new SegmentStats(rdSeg, conflux, segStatLength);
+			segStats->addBusStop(busStop);
+			splitSegmentStats.push_back(segStats);
+		}
+	}
+
+	// manually adjust the position of the stops to avoid short segments
+	if(!splitSegmentStats.empty()) { // if there are stops in the segment
+		//another segment stats has to be created for the remaining length.
+		//this segment stats does not contain a bus stop
+		//adjust the length of the last segment stats if the remaining length is short
+		double remainingSegmentLength = rdSegmentLength - lengthCoveredInSeg;
+		if(remainingSegmentLength < 0) {
+			debugMsgs<<"Lengths of segment stats computed incorrectly\n";
+			debugMsgs<<"segmentLength: "<<rdSegmentLength<<"|stat lengths: ";
+			double totalStatsLength = 0;
+			for(std::list<SegmentStats*>::iterator statsIt=splitSegmentStats.begin();
+					statsIt!=splitSegmentStats.end(); statsIt++){
+				debugMsgs<<(*statsIt)->getLength()<<"|";
+				totalStatsLength = totalStatsLength + (*statsIt)->getLength();
+			}
+			debugMsgs<<"totalStatsLength: "<<totalStatsLength<<std::endl;
+			throw std::runtime_error(debugMsgs.str());
+		}
+		else if(remainingSegmentLength == 0) {
+			// do nothing
+		}
+		else if(remainingSegmentLength < SHORT_SEGMENT_LENGTH_LIMIT) {
+			// if the remaining length creates a short segment,
+			// add this length to the last segment stats
+			remainingSegmentLength = splitSegmentStats.back()->getLength() + remainingSegmentLength;
+			splitSegmentStats.back()->length = remainingSegmentLength;
+		}
+		else {
+			// if the remaining length is long enough create a new SegmentStats
+			SegmentStats* segStats = new SegmentStats(rdSeg, conflux, remainingSegmentLength);
+			splitSegmentStats.push_back(segStats);
+		}
+
+		// if there is atleast 1 bus stop in the segment and the length of the
+		// created segment stats is short, we will try to adjust the lengths to
+		// avoid short segments
+		bool noMoreShortSegs = false;
+		while (!noMoreShortSegs && splitSegmentStats.size() > 1) {
+			noMoreShortSegs = true; //hopefully
+			SegmentStats* lastStats = splitSegmentStats.back();
+			std::list<SegmentStats*>::iterator statsIt = splitSegmentStats.begin();
+			while((*statsIt)!=lastStats) {
+				SegmentStats* currStats = *statsIt;
+				std::list<SegmentStats*>::iterator nxtStatsIt = statsIt; nxtStatsIt++; //get a copy and increment for next
+				SegmentStats* nextStats = *nxtStatsIt;
+				if(currStats->getLength() < SHORT_SEGMENT_LENGTH_LIMIT) {
+					noMoreShortSegs = false; //there is a short segment
+					if(nextStats->getLength() >= SHORT_SEGMENT_LENGTH_LIMIT) {
+						double lengthDiff = SHORT_SEGMENT_LENGTH_LIMIT - currStats->getLength();
+						currStats->length = SHORT_SEGMENT_LENGTH_LIMIT;
+						nextStats->length = nextStats->getLength() - lengthDiff;
+					}
+					else {
+						// we will merge i-th SegmentStats with i+1-th SegmentStats
+						// and add both bus stops to the merged SegmentStats
+						nextStats->length = currStats->getLength() + nextStats->getLength();
+						for(std::vector<const BusStop*>::iterator stopIt=currStats->busStops.begin(); stopIt!=currStats->busStops.end(); stopIt++) {
+							nextStats->addBusStop(*stopIt);
+						}
+						statsIt = splitSegmentStats.erase(statsIt);
+						safe_delete_item(currStats);
+						continue;
+					}
+				}
+				statsIt++;
+			}
+		}
+		if(splitSegmentStats.size() > 1) {
+			// the last segment stat is handled separately
+			std::list<SegmentStats*>::iterator statsIt = splitSegmentStats.end();
+			statsIt--;
+			SegmentStats* lastSegStats = *(statsIt);
+			statsIt--;
+			SegmentStats* lastButOneSegStats = *(statsIt);
+			if(lastSegStats->getLength() < SHORT_SEGMENT_LENGTH_LIMIT) {
+				lastSegStats->length = lastButOneSegStats->getLength() + lastSegStats->getLength();
+				for(std::vector<const BusStop*>::iterator stopIt=lastButOneSegStats->busStops.begin();
+						stopIt!=lastButOneSegStats->busStops.end(); stopIt++) {
+					lastSegStats->addBusStop(*stopIt);
+				}
+				splitSegmentStats.erase(statsIt);
+				safe_delete_item(lastButOneSegStats);
+			}
+		}
+	}
+	else {
+		// if there are no stops in the segment, we create a single SegmentStats for this segment
+		SegmentStats* segStats = new SegmentStats(rdSeg, conflux, rdSegmentLength);
+		splitSegmentStats.push_back(segStats);
+	}
+
+	uint16_t statsNum = 1;
+	std::set<SegmentStats*>& segmentStatsWithStops = MT_Config::getInstance().getSegmentStatsWithBusStops();
+	for(std::list<SegmentStats*>::iterator statsIt=splitSegmentStats.begin(); statsIt!=splitSegmentStats.end(); statsIt++) {
+		SegmentStats* stats = *statsIt;
+		//number the segment stats
+		stats->statsNumberInSegment = statsNum;
+		statsNum++;
+
+		//add to segmentStatsWithStops if there is a bus stop in stats
+		if (!(stats->getBusStops().empty())) {
+			segmentStatsWithStops.insert(stats);
+		}
+	}
+}
+
+/*
+ * iterates multinodes and creates confluxes for all of them
+ */
+// TODO: Remove debug messages
+void Conflux::ProcessConfluxes(const RoadNetwork& rdnw)
+{
+	std::stringstream debugMsgs(std::stringstream::out);
+	ConfigParams& cfg = ConfigManager::GetInstanceRW().FullConfig();
+	MT_Config& mtCfg = MT_Config::getInstance();
+	Conflux::updateInterval = boost::lexical_cast<uint32_t>(cfg.genericProps.at("update_interval"));
+	std::set<Conflux*>& confluxes = mtCfg.getConfluxes();
+	const MutexStrategy& mtxStrat = cfg.mutexStategy();
+	std::map<const Node*, Conflux*>& multinodeConfluxesMap = mtCfg.getConfluxNodes();
+
+	//Make a temporary map of <multi node, set of road-segments directly connected to the multinode>
+	//TODO: This should be done automatically *before* it's needed.
+	std::map<const MultiNode*, std::set<const Link*> > linksAt;
+	for (std::vector<Link*>::const_iterator it = rdnw.links.begin(); it != rdnw.links.end(); it++)
+	{
+		Link* lnk = (*it);
+		MultiNode* start = dynamic_cast<MultiNode*>(lnk->getStart());
+		MultiNode* end = dynamic_cast<MultiNode*>(lnk->getEnd());
+		if ((!start) || (!end))
+		{
+			throw std::runtime_error("Link start/ends must be MultiNodes (in Conflux).");
+		}
+		linksAt[start].insert(lnk);
+		linksAt[end].insert(lnk);
+		end->addRoadSegmentAt(lnk->getSegments().back()); //tag upstream segments for each multinode
+	}
+
+	for (std::vector<MultiNode*>::const_iterator i = rdnw.nodes.begin(); i != rdnw.nodes.end(); i++)
+	{
+		// we create a conflux for each multinode
+		Conflux* conflux = new Conflux(*i, mtxStrat);
+		try
+		{
+			std::set<const Link*>& linksAtNode = linksAt.at(*i);
+			if (!linksAtNode.empty())
+			{
+				for (std::set<const Link*>::const_iterator lnkIt = linksAtNode.begin(); lnkIt != linksAtNode.end(); lnkIt++)
+				{
+					const Link* lnk = (*lnkIt);
+					if (lnk->getEnd() == (*i))
+					{
+						//lnk *ends* at the multinode of this conflux.
+						//lnk is upstream to the multinode and belongs to this conflux
+						std::vector<SegmentStats*> upSegStatsList;
+						const std::vector<RoadSegment*>& upSegs = lnk->getSegments();
+						//set conflux pointer to the segments and create SegmentStats for the segment
+						for (std::vector<RoadSegment*>::const_iterator segIt = upSegs.begin(); segIt != upSegs.end(); segIt++)
+						{
+							const RoadSegment* rdSeg = *segIt;
+							double rdSegmentLength = rdSeg->getPolylineLength();
+
+							std::list<SegmentStats*> splitSegmentStats;
+							CreateSegmentStats(rdSeg, conflux, splitSegmentStats);
+							if (splitSegmentStats.empty())
+							{
+								debugMsgs << "no segment stats created for segment." << "|segment: " << rdSeg->getStartEnd() << "|conflux: " << conflux->multiNode << std::endl;
+								throw std::runtime_error(debugMsgs.str());
+							}
+							std::vector<SegmentStats*>& rdSegSatsList = conflux->segmentAgents[rdSeg];
+							rdSegSatsList.insert(rdSegSatsList.end(), splitSegmentStats.begin(), splitSegmentStats.end());
+							upSegStatsList.insert(upSegStatsList.end(), splitSegmentStats.begin(), splitSegmentStats.end());
+						}
+						conflux->upstreamSegStatsMap.insert(std::make_pair(lnk, upSegStatsList));
+						conflux->virtualQueuesMap.insert(std::make_pair(lnk, std::deque<Person_MT*>()));
+					}
+				} // end for
+			} //end if
+		}
+		catch (const std::out_of_range& oor)
+		{
+			debugMsgs << "Loader::ProcessConfluxes() : No segments were found at multinode: " << (*i)->getID() << "|location: " << (*i)->getLocation()
+					<< std::endl;
+			Print() << debugMsgs.str();
+			debugMsgs.str(std::string());
+			continue;
+		}
+		conflux->resetOutputBounds();
+		confluxes.insert(conflux);
+		multinodeConfluxesMap.insert(std::make_pair(*i, conflux));
+	} // end for each multinode
+
+	//now we go through each link again to tag confluxes with adjacent confluxes
+	for (std::vector<Link*>::const_iterator it = rdnw.links.begin(); it != rdnw.links.end(); it++)
+	{
+		Link* lnk = (*it);
+		MultiNode* start = dynamic_cast<MultiNode*>(lnk->getStart());
+		MultiNode* end = dynamic_cast<MultiNode*>(lnk->getEnd());
+		Conflux* startConflux = multinodeConfluxesMap.at(start);
+		Conflux* endConflux = multinodeConfluxesMap.at(end);
+		startConflux->addConnectedConflux(endConflux); //duplicates are naturally discarded by set container
+		endConflux->addConnectedConflux(startConflux); //duplicates are naturally discarded by set container
+	}
+	CreateLaneGroups();
+}
+
+void Conflux::CreateLaneGroups()
+{
+	std::set<Conflux*>& confluxes = MT_Config::getInstance().getConfluxes();
+	if(confluxes.empty()) { return; }
+
+	typedef std::map<const Lane*, LaneStats* > LaneStatsMap;
+
+	for(std::set<Conflux*>::const_iterator cfxIt=confluxes.begin(); cfxIt!=confluxes.end(); cfxIt++)
+	{
+		UpstreamSegmentStatsMap& upSegsMap = (*cfxIt)->upstreamSegStatsMap;
+		const MultiNode* cfxMultinode = (*cfxIt)->getMultiNode();
+		for(UpstreamSegmentStatsMap::const_iterator upSegsMapIt=upSegsMap.begin(); upSegsMapIt!=upSegsMap.end(); upSegsMapIt++)
+		{
+			const SegmentStatsList& segStatsList = upSegsMapIt->second;
+			if(segStatsList.empty()) { throw std::runtime_error("No segment stats for link"); }
+
+			//assign downstreamLinks to the last segment stats
+			SegmentStats* lastStats = segStatsList.back();
+			const std::set<LaneConnector*>& lcs = cfxMultinode->getOutgoingLanes(lastStats->getRoadSegment());
+			std::set<const Lane*> connLanes;
+			for (std::set<LaneConnector*>::const_iterator lcIt = lcs.begin(); lcIt != lcs.end(); lcIt++)
+			{
+				const Lane* fromLane = (*lcIt)->getLaneFrom();
+				connLanes.insert(fromLane);
+				const Link* downStreamLink = (*lcIt)->getLaneTo()->getRoadSegment()->getLink();
+				lastStats->laneStatsMap.at(fromLane)->addDownstreamLink(downStreamLink); //duplicates are eliminated by the std::set containing the downstream links
+			}
+
+			//construct inverse lookup for convenience
+			for (LaneStatsMap::const_iterator lnStatsIt = lastStats->laneStatsMap.begin(); lnStatsIt != lastStats->laneStatsMap.end(); lnStatsIt++)
+			{
+				if(lnStatsIt->second->isLaneInfinity()) { continue; }
+				const std::set<const Link*>& downstreamLnks = lnStatsIt->second->getDownstreamLinks();
+				for(std::set<const Link*>::const_iterator dnStrmIt = downstreamLnks.begin(); dnStrmIt != downstreamLnks.end(); dnStrmIt++)
+				{
+					lastStats->laneGroup[*dnStrmIt].push_back(lnStatsIt->second);
+				}
+			}
+
+			//extend the downstream links assignment to the segmentStats upstream to the last segmentStats
+			SegmentStatsList::const_reverse_iterator upSegsRevIt = segStatsList.rbegin();
+			upSegsRevIt++; //lanestats of last segmentstats is already assigned with downstream links... so skip the last segmentstats
+			const SegmentStats* downstreamSegStats = lastStats;
+			for(; upSegsRevIt!=segStatsList.rend(); upSegsRevIt++)
+			{
+				SegmentStats* currSegStats = (*upSegsRevIt);
+				const RoadSegment* currSeg = currSegStats->getRoadSegment();
+				const std::vector<Lane*>& currLanes = currSeg->getLanes();
+				if(currSeg == downstreamSegStats->getRoadSegment())
+				{	//currSegStats and downstreamSegStats have the same parent segment
+					//lanes of the two segstats are same
+					for (std::vector<Lane*>::const_iterator lnIt = currLanes.begin(); lnIt != currLanes.end(); lnIt++)
+					{
+						const Lane* ln = (*lnIt);
+						if(ln->is_pedestrian_lane()) { continue; }
+						const LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(ln);
+						LaneStats* currLnStats = currSegStats->laneStatsMap.at(ln);
+						currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
+					}
+				}
+				else
+				{
+					const UniNode* uninode = dynamic_cast<const UniNode*>(currSeg->getEnd());
+					if(!uninode) { throw std::runtime_error("Multinode found in the middle of a link"); }
+					for (std::vector<Lane*>::const_iterator lnIt = currLanes.begin(); lnIt != currLanes.end(); lnIt++)
+					{
+						const Lane* ln = (*lnIt);
+						if(ln->is_pedestrian_lane()) { continue; }
+						LaneStats* currLnStats = currSegStats->laneStatsMap.at(ln);
+						const UniNode::UniLaneConnector uniLnConnector = uninode->getForwardLanes(*ln);
+						if(uniLnConnector.left)
+						{
+							const LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(uniLnConnector.left);
+							currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
+						}
+						if(uniLnConnector.right)
+						{
+							const LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(uniLnConnector.right);
+							currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
+						}
+						if(uniLnConnector.center)
+						{
+							const LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(uniLnConnector.center);
+							currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
+						}
+					}
+				}
+
+				//construct inverse lookup for convenience
+				for (LaneStatsMap::const_iterator lnStatsIt = currSegStats->laneStatsMap.begin(); lnStatsIt != currSegStats->laneStatsMap.end(); lnStatsIt++)
+				{
+					if(lnStatsIt->second->isLaneInfinity()) { continue; }
+					const std::set<const Link*>& downstreamLnks = lnStatsIt->second->getDownstreamLinks();
+					for(std::set<const Link*>::const_iterator dnStrmIt = downstreamLnks.begin(); dnStrmIt != downstreamLnks.end(); dnStrmIt++)
+					{
+						currSegStats->laneGroup[*dnStrmIt].push_back(lnStatsIt->second);
+					}
+				}
+
+				downstreamSegStats = currSegStats;
+			}
+
+//			*********** the commented for loop below is to print the lanes which do not have lane groups ***
+//			for(SegmentStatsList::const_reverse_iterator statsRevIt=segStatsList.rbegin(); statsRevIt!=segStatsList.rend(); statsRevIt++)
+//			{
+//				const LaneStatsMap lnStatsMap = (*statsRevIt)->laneStatsMap;
+//				unsigned int segId = (*statsRevIt)->getRoadSegment()->getSegmentAimsunId();
+//				uint16_t statsNum = (*statsRevIt)->statsNumberInSegment;
+//				const std::vector<Lane*>& lanes = (*statsRevIt)->getRoadSegment()->getLanes();
+//				unsigned int numLanes = 0;
+//				for(std::vector<Lane*>::const_iterator lnIt = lanes.begin(); lnIt!=lanes.end(); lnIt++)
+//				{
+//					if(!(*lnIt)->is_pedestrian_lane()) { numLanes++; }
+//				}
+//				for (LaneStatsMap::const_iterator lnStatsIt = lnStatsMap.begin(); lnStatsIt != lnStatsMap.end(); lnStatsIt++)
+//				{
+//					if(lnStatsIt->second->isLaneInfinity() || lnStatsIt->first->is_pedestrian_lane()) { continue; }
+//					if(lnStatsIt->second->getDownstreamLinks().empty())
+//					{
+//						Print() << "~~~ " << segId << "," << statsNum << "," << lnStatsIt->first->getLaneID() << "," << numLanes << std::endl;
+//					}
+//				}
+//			}
+		}
+	}
 }

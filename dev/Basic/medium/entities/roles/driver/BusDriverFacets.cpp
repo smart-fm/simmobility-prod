@@ -60,7 +60,7 @@ void BusDriverBehavior::frame_tick() {
 	throw std::runtime_error("BusDriverBehavior::frame_tick is not implemented yet");
 }
 
-void BusDriverBehavior::frame_tick_output() {
+std::string BusDriverBehavior::frame_tick_output() {
 	throw std::runtime_error("BusDriverBehavior::frame_tick_output is not implemented yet");
 }
 
@@ -163,13 +163,14 @@ void BusDriverMovement::frame_tick() {
 //	Print()<<logout.str();
 }
 
-void BusDriverMovement::frame_tick_output() {
+std::string BusDriverMovement::frame_tick_output() {
 	DriverUpdateParams &p = parentBusDriver->getParams();
 	//Skip?
 	if (pathMover.isPathCompleted()
 			|| ConfigManager::GetInstance().FullConfig().using_MPI
-			|| ConfigManager::GetInstance().CMakeConfig().OutputDisabled()) {
-		return;
+			|| ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
+	{
+		return std::string();
 	}
 
 	std::stringstream logout;
@@ -187,7 +188,7 @@ void BusDriverMovement::frame_tick_output() {
 	if (person->isQueuing) { logout << "\",\"queuing\":\"" << "true"; }
 	else { logout << "\",\"queuing\":\"" << "false";}
 	logout << "\"})" << std::endl;
-	LogOut(logout.str());
+	return logout.str();
 }
 
 bool BusDriverMovement::initializePath()

@@ -229,5 +229,21 @@ public:
 	{
 		return nextRole;
 	}
+
+	/** Clears the map configProperties which contains the configuration properties */
+	void clearConfigProperties()
+	{
+		this->configProperties.clear();
+	}
+
+	void setConfigProperties(const std::map<std::string, std::string> &props)
+	{
+		this->configProperties = props;
+	}
+
+	const std::map<std::string, std::string>& getConfigProperties()
+	{
+		return this->configProperties;
+	}
 };
 }

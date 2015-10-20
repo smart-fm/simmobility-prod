@@ -54,7 +54,7 @@ void PassengerBehavior::frame_tick()
 	throw std::runtime_error("PassengerBehavior::frame_tick is not implemented yet");
 }
 
-void PassengerBehavior::frame_tick_output()
+std::string PassengerBehavior::frame_tick_output()
 {
 	throw std::runtime_error("PassengerBehavior::frame_tick_output is not implemented yet");
 }
@@ -180,7 +180,7 @@ void sim_mob::PassengerMovement::frame_tick()
 	}
 }
 
-void sim_mob::PassengerMovement::frame_tick_output()
+std::string sim_mob::PassengerMovement::frame_tick_output()
 {
 	PassengerUpdateParams &p = parentPassenger->getParams();
 	//Reset our offset if it's set to zero
@@ -223,13 +223,13 @@ void sim_mob::PassengerMovement::frame_tick_output()
 		yPos = displayY - displayOffset.getY() - displayOffset.getY();
 	}
 
-	LogOut("(\"passenger"
-		<< "\"," << parent->currTick.frame()
-		<< "," << parent->getId()
+	return ("(\"passenger"
+		<< "\"," << parentPassenger->parent->currTick.frame()
+		<< "," << parentPassenger->parent->getId()
 		<< "," << "{\"xPos\":\"" << xPos
 		<< "\"," << "\"yPos\":\"" << yPos
 		<< addLine.str()
-		<< "\",})" << std::endl);
+		<< "\",})\n");
 }
 
 bool sim_mob::PassengerMovement::isAtBusStop()

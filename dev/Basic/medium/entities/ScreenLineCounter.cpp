@@ -31,14 +31,14 @@ boost::mutex ScreenLineCounter::instanceMutex;
 
 ScreenLineCounter::ScreenLineCounter()
 {
-    const medium::MT_Config& configParams = medium::MT_Config::getInstance();
-    if(configParams.screenLineParams.outputEnabled)
+    const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
+    const MT_Config& mtCfg = MT_Config::getInstance();
+    if(mtCfg.screenLineParams.outputEnabled)
     {
         screenLines.clear();
         sim_mob::aimsun::Loader::getScreenLineSegments(configParams.getDatabaseConnectionString(false),
                 configParams.getDatabaseProcMappings().procedureMappings,screenLines);
-        std::sort(screenLines.begin(), screenLines.end());
-        INTERVAL_MS = configParams.screenLineParams.interval * 1000;
+        INTERVAL_MS = mtCfg.screenLineParams.interval * 1000;
     }
 }
 
@@ -80,9 +80,9 @@ double ScreenLineCounter::getTimeInterval(const double time)
 
 void ScreenLineCounter::exportScreenLineCount()
 {
-    const medium::MT_Config& configParams = medium::MT_Config::getInstance();
-
-    const std::string& fileName = configParams.screenLineParams.fileName;
+    const medium::MT_Config& mtCfg = medium::MT_Config::getInstance();
+    const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
+    const std::string& fileName = mtCfg.screenLineParams.fileName;
 
     sim_mob::BasicLogger& screenLineLogger  = sim_mob::Logger::log(fileName);
 

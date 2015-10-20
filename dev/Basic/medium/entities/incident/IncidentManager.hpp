@@ -12,30 +12,19 @@
 #include <boost/lexical_cast.hpp>
 
 namespace sim_mob {
-
-class Person;
+namespace medium {
+class Person_MT;
 
 /**
  * A class designed to manage the incidents.
  * It can read the load the incidents for preday/test planning as well as en-route incidents
  */
-
-namespace {
-//todo put this in the utils(and code style!)
-boost::mt19937 myOwngen;
-
-int roll_dice(int l,int r) {
-    boost::uniform_int<> dist(l,r);
-    boost::variate_generator<boost::mt19937&, boost::uniform_int<> > dice(myOwngen, dist);
-    return dice();
-}
-}
-
 class IncidentManager : public sim_mob::Agent {
-	typedef boost::tuples::tuple<unsigned int, double, uint32_t> Incident; //<sectionId, flowrate, start_tick>
+private:
+	typedef boost::tuples::tuple<unsigned int, double, uint32_t> Incident; /** <sectionId, flowrate, start_tick>*/
+
 	std::multimap<uint32_t,Incident> incidents;
 	typedef std::pair<std::multimap<uint32_t,Incident>::iterator, std::multimap<uint32_t,Incident>::iterator> TickIncidents;
-//	boost::shared_mutex
 	static std::map<const sim_mob::RoadSegment*, double> currIncidents; //<incident RS, flowrate>
 	std::string inputFile;
 
@@ -74,21 +63,21 @@ public:
 	 * \param in targetRS the target road segment that is having an incident
 	 * \param out filteredPersons persons to be notified of the incident in the target roadsegment
 	 */
-	void identifyAffectedDrivers(const sim_mob::RoadSegment * targetRS,std::vector <const sim_mob::Person*> & filteredPersons);
+	void identifyAffectedDrivers(const sim_mob::RoadSegment * targetRS,std::vector <const Person_MT*> & filteredPersons);
 	/**
 	 * given a list of drivers who are affected by incident,
 	 * use a distribution to keep those who will react to the incident and filter out the rest
 	 * let's for simplicity, just toss a coin to find out who will react and who won't.
 	 * \param persons ,inout, candidate drivers
 	 */
-	void findReactingDrivers(std::vector <const sim_mob::Person*> & persons);
+	void findReactingDrivers(std::vector <const Person_MT*> & persons);
 	/**
 	 * given a driver who is affected by incident,
 	 * use a distribution to see if the driver should react to incident or not.
 	 * let's for simplicity, just toss a coin to find out who will react and who won't.
 	 * \param person ,inout, candidate driver
 	 */
-	bool shouldDriverReact(const sim_mob::Person* person);
+	bool shouldDriverReact(const Person_MT* person);
 
 	bool frame_init(timeslice now);
 
@@ -96,7 +85,8 @@ public:
 	virtual void frame_output(timeslice now){}
 	bool isNonspatial();
 	void load(const std::map<std::string, std::string>& configProps){}
-	static sim_mob::IncidentManager * getInstance();
+	static IncidentManager * getInstance();
 };
 
+}
 }

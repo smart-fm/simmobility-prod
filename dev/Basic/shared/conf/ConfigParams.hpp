@@ -262,7 +262,9 @@ public:
      *
      * @return const reference to the pathset configuration
      */
-    const PathSetConf & pathSet() const;
+    PathSetConf& getPathSetConf();
+
+    const PathSetConf& getPathSetConf() const;
 
     bool RunningMidTerm() const;
 

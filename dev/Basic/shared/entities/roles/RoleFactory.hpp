@@ -7,14 +7,12 @@
 #include <map>
 #include <stdexcept>
 #include <string>
-
+#include "entities/misc/TripChain.hpp"
 
 namespace sim_mob
 {
 
 template <class PERSON> class Role;
-class Person;
-class TripChainItem;
 
 /**
  * Class which handles the creation of Roles.

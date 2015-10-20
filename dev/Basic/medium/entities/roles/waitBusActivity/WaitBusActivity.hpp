@@ -20,7 +20,7 @@ class BusDriver;
  * \author Seth N. Hetu
  * \author zhang huai peng
  */
-class WaitBusActivity: public sim_mob::Role, public UpdateWrapper<UpdateParams>
+class WaitBusActivity: public sim_mob::Role<Person_MT>, public UpdateWrapper<UpdateParams>
 {
 public:
 	explicit WaitBusActivity(Person_MT* parent,

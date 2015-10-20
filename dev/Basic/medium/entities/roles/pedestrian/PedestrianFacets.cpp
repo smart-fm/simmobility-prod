@@ -19,6 +19,9 @@
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "util/Utils.hpp"
 
+using namespace sim_mob;
+using namespace sim_mob::medium;
+
 namespace
 {
 	/**
@@ -26,17 +29,17 @@ namespace
 	 * @param node the node of interest
 	 * @returns random upstream segment
 	 */
-	const sim_mob::RoadSegment* getRandomUpstreamSegAtNode(const sim_mob::Node* node)
+	const RoadSegment* getRandomUpstreamSegAtNode(const Node* node)
 	{
-		const sim_mob::MultiNode* multiNd = dynamic_cast<const sim_mob::MultiNode*>(node);
+		const MultiNode* multiNd = dynamic_cast<const MultiNode*>(node);
 		if(!multiNd)
 		{
-			const sim_mob::UniNode* uniNd = dynamic_cast<const sim_mob::UniNode*>(node);
+			const UniNode* uniNd = dynamic_cast<const UniNode*>(node);
 			if(!uniNd)
 			{
 				throw std::runtime_error("not a node");
 			}
-			int random = sim_mob::Utils::generateInt(0, 1);
+			int random = Utils::generateInt(0, 1);
 			if(random == 0)
 			{
 				return uniNd->firstPair.first; //first is a from section
@@ -46,7 +49,7 @@ namespace
 				return uniNd->secondPair.first; //first is a from section
 			}
 		}
-		const std::set<sim_mob::RoadSegment*>& segmentsAtDest = multiNd->getRoadSegments();
+		const std::set<RoadSegment*>& segmentsAtDest = multiNd->getRoadSegments();
 		if(segmentsAtDest.empty()) { throw std::runtime_error("no segments at multinode"); }
 		if(segmentsAtDest.size() == 1)
 		{
@@ -54,8 +57,8 @@ namespace
 		}
 		else
 		{
-			int random = sim_mob::Utils::generateInt(0, segmentsAtDest.size()-1);
-			std::set<sim_mob::RoadSegment*>::const_iterator segIt = segmentsAtDest.begin();
+			int random = Utils::generateInt(0, segmentsAtDest.size()-1);
+			std::set<RoadSegment*>::const_iterator segIt = segmentsAtDest.begin();
 			std::advance(segIt, random);
 			return *(segIt);
 		}
@@ -85,7 +88,7 @@ PedestrianMovement::~PedestrianMovement()
 {
 }
 
-void PedestrianMovement::setParentPedestrian(sim_mob::medium::Pedestrian* parentPedestrian)
+void PedestrianMovement::setParentPedestrian(medium::Pedestrian* parentPedestrian)
 {
 	this->parentPedestrian = parentPedestrian;
 }
@@ -100,7 +103,7 @@ TravelMetric& PedestrianMovement::finalizeTravelTimeMetric()
 	return travelMetric;
 }
 
-void PedestrianBehavior::setParentPedestrian(sim_mob::medium::Pedestrian* parentPedestrian)
+void PedestrianBehavior::setParentPedestrian(medium::Pedestrian* parentPedestrian)
 {
 	this->parentPedestrian = parentPedestrian;
 }
@@ -113,7 +116,7 @@ void PedestrianMovement::frame_init()
 		throw std::runtime_error("destination segment not found");
 	}
 
-	sim_mob::SubTrip& subTrip = *(parentPedestrian->parent->currSubTrip);
+	SubTrip& subTrip = *(parentPedestrian->parent->currSubTrip);
 	double walkTime = 0.0;
 	if(subTrip.isPT_Walk)
 	{
@@ -136,9 +139,9 @@ void PedestrianMovement::frame_init()
 	parentPedestrian->setTravelTime(walkTime*1000);
 }
 
-const sim_mob::RoadSegment* PedestrianMovement::getDestSegment()
+const RoadSegment* PedestrianMovement::getDestSegment()
 {
-	sim_mob::SubTrip& subTrip = *(parentPedestrian->parent->currSubTrip);
+	SubTrip& subTrip = *(parentPedestrian->parent->currSubTrip);
 	const RoadSegment* destSeg = nullptr;
 
 	switch(subTrip.destination.type_)
@@ -150,7 +153,7 @@ const sim_mob::RoadSegment* PedestrianMovement::getDestSegment()
 	}
 	case WayPoint::MRT_STOP:
 	{
-		const sim_mob::Node* srcNode = nullptr;
+		const Node* srcNode = nullptr;
 		switch(subTrip.origin.type_)
 		{
 		case WayPoint::NODE:
@@ -196,15 +199,16 @@ void PedestrianMovement::frame_tick()
 	parentPedestrian->parent->setRemainingTimeThisTick(0);
 }
 
-void PedestrianMovement::frame_tick_output()
+std::string PedestrianMovement::frame_tick_output()
 {
+	return std::string();
 }
 
-sim_mob::Conflux* PedestrianMovement::getStartingConflux() const
+Conflux* PedestrianMovement::getStartingConflux() const
 {
 	if (destinationSegment)
 	{
-		return destinationSegment->getParentConflux();
+		return Conflux::getConflux(destinationSegment);
 	}
 	return nullptr;
 }

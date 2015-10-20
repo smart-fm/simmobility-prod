@@ -20,7 +20,6 @@
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "entities/incident/IncidentManager.hpp"
 #include "entities/PersonLoader.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -356,7 +355,7 @@ boost::shared_ptr<sim_mob::batched::ThreadPool> sim_mob::PrivatePathsetGenerator
 unsigned int sim_mob::PathSetManager::curIntervalMS = 0;
 unsigned int sim_mob::PathSetManager::intervalMS = 0;
 
-sim_mob::PathSetManager::PathSetManager(): pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().pathSetTableName)
+sim_mob::PathSetManager::PathSetManager(): pathSetTableName(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().pathSetTableName)
 {
 	pathSetParam = PathSetParam::getInstance();
 	std::string dbStr(ConfigManager::GetInstance().FullConfig().getDatabaseConnectionString(false));
@@ -731,7 +730,7 @@ namespace
 
 void sim_mob::PrivatePathsetGenerator::bulkPathSetGenerator()
 {
-	const std::string odSourceTableName = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().odSourceTableName;
+	const std::string odSourceTableName = sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().odSourceTableName;
 	sim_mob::RoadNetwork& rn = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW();
 	if (odSourceTableName.empty()) { return; }
 	//Our SQL statement
@@ -982,7 +981,7 @@ int sim_mob::PrivatePathsetGenerator::genRandPert(boost::shared_ptr<sim_mob::Pat
 	std::string fromToID(getFromToString(ps->subTrip.origin.node_,ps->subTrip.destination.node_));
 	A_StarShortestTravelTimePathImpl * sttpImpl = (A_StarShortestTravelTimePathImpl*)stdir.getTravelTimeImpl();
 	// generate random path
-	int randCnt = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().perturbationIteration;
+	int randCnt = sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().perturbationIteration;
 	int cnt = 0;
 	for(int i=0;i < randCnt ; ++i)
 	{
@@ -1158,7 +1157,7 @@ int sim_mob::PrivatePathsetGenerator::generateAllPathChoices(boost::shared_ptr<s
 	onGeneratePathSet(ps);
 	std::pair <boost::chrono::microseconds,	boost::chrono::microseconds> tick = gen.tick();
 	Print() << "[" << fromToID << " PATHSET SIZE: " << ps->pathChoices.size() << " , TIME:" << tick.first.count()/1000000 << " seconds]\n";
-	if(!ConfigManager::GetInstance().FullConfig().pathSet().recPS)
+	if(!ConfigManager::GetInstance().FullConfig().getPathSetConf().recPS)
 	{
 		//end the method here, no need to proceed to recursive pathset generation
 		return total;
@@ -1506,12 +1505,13 @@ double sim_mob::PrivateTrafficRouteChoice::getPathTravelTime(sim_mob::SinglePath
 	{
 		double time = 0.0;
 		const sim_mob::RoadSegment * rs = sp->path[i].roadSegment_;
-		const sim_mob::IncidentManager * inc = IncidentManager::getInstance();
-		if(inc->getCurrIncidents().find(rs) != inc->getCurrIncidents().end())
-		{
-			return std::numeric_limits<double>::max();
-		}
-		else
+// TODO: Make PrivateTrafficRouteChoice a message handler and notify it about any incidents through message. Incident manager must not be used here
+//		const sim_mob::IncidentManager * inc = IncidentManager::getInstance();
+//		if(inc->getCurrIncidents().find(rs) != inc->getCurrIncidents().end())
+//		{
+//			return std::numeric_limits<double>::max();
+//		}
+//		else
 		{
 			if(enRoute)
 			{
@@ -1546,7 +1546,7 @@ double sim_mob::PrivateTrafficRouteChoice::getInSimulationSegTT(const sim_mob::R
 
 void sim_mob::PathSetManager::initTimeInterval()
 {
-	intervalMS = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval * 1000 /*milliseconds*/;
+	intervalMS = sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().interval * 1000 /*milliseconds*/;
 	if(intervalMS <= 0) { throw runtime_error("invalid interval specified in config file"); }
 	uint32_t startTm = ConfigManager::GetInstance().FullConfig().simStartTime().getValue();
 	curIntervalMS = TravelTimeManager::getTimeInterval(startTm, intervalMS);
@@ -1569,8 +1569,8 @@ sim_mob::PrivatePathsetGenerator::~PrivatePathsetGenerator()
 {}
 
 sim_mob::PrivateTrafficRouteChoice::PrivateTrafficRouteChoice() : PathSetManager(),
-		psRetrieval(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrieval),
-		psRetrievalWithoutRestrictedRegion(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().psRetrievalWithoutBannedRegion),
+		psRetrieval(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().psRetrieval),
+		psRetrievalWithoutRestrictedRegion(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().psRetrievalWithoutBannedRegion),
 		cacheLRU(2500), processTT(*(sim_mob::TravelTimeManager::getInstance())), regionRestrictonEnabled(false)
 {}
 

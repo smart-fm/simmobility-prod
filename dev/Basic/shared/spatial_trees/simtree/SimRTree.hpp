@@ -29,8 +29,8 @@ namespace sim_mob
 {
 
 //Forward declarations.
+class Entity;
 class Agent;
-
 //Forward declare structs used in this class.
 struct TreeItem;
 struct TreeLeaf;
@@ -127,7 +127,7 @@ public:
 	 * Note: The pointers in removedAgentPointers will be deleted after this time tick; do *not*
 	 *       save them anywhere.
 	 */
-	void updateAllInternalAgents(std::map<const sim_mob::Agent*, TreeItem*>& connectorMap, const std::set<sim_mob::Agent*>& removedAgentPointers);
+	void updateAllInternalAgents(std::map<const sim_mob::Agent*, TreeItem*>& connectorMap, const std::set<sim_mob::Entity*>& removedAgentPointers);
 
 	/**
 	 *DEBUG purpose

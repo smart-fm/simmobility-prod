@@ -24,8 +24,8 @@ PredayCalibrationParams::PredayCalibrationParams() :
 {}
 
 MT_Config::MT_Config() :
-        publicTransitEnabled(false), cbd(false), midTermRunMode(MT_Config::NONE), pedestrianWalkSpeed(0), numPredayThreads(0),
-			configSealed(false), fileOutputEnabled(false), consoleOutput(false), predayRunMode(MT_Config::NONE), calibrationMethodology(MT_Config::WSPSA),
+        publicTransitEnabled(false), cbd(false), midTermRunMode(MT_Config::MT_NONE), pedestrianWalkSpeed(0), numPredayThreads(0),
+			configSealed(false), fileOutputEnabled(false), consoleOutput(false), predayRunMode(MT_Config::PREDAY_NONE), calibrationMethodology(MT_Config::WSPSA),
 			logsumComputationFrequency(0), supplyUpdateInterval(0), activityScheduleLoadInterval(0), busCapacity(0), outputPredictions(false),
             populationSource(db::MONGO_DB), populationDB(), logsumDB()
 {
@@ -55,10 +55,10 @@ void MT_Config::setPredayRunMode(const std::string runMode)
 {
 	if(!configSealed)
 	{
-		if(runMode == "simulation") { predayRunMode = MT_Config::SIMULATION; }
-		else if(runMode == "logsum") { predayRunMode = MT_Config::LOGSUM_COMPUTATION; }
-		else if(runMode == "calibration") { predayRunMode = MT_Config::CALIBRATION; }
-		else if(runMode == "lt_logsum") { predayRunMode = MT_Config::LOGSUM_COMPUTATION_LT; }
+		if(runMode == "simulation") { predayRunMode = MT_Config::PREDAY_SIMULATION; }
+		else if(runMode == "logsum") { predayRunMode = MT_Config::PREDAY_LOGSUM_COMPUTATION; }
+		else if(runMode == "calibration") { predayRunMode = MT_Config::PREDAY_CALIBRATION; }
+		else if(runMode == "lt_logsum") { predayRunMode = MT_Config::PREDAY_LOGSUM_COMPUTATION_LT; }
 		else { throw std::runtime_error("Inadmissible value for preday run_mode"); }
 	}
 }
@@ -216,22 +216,22 @@ void MT_Config::setConsoleOutput(bool consoleOutput)
 
 bool MT_Config::runningPredaySimulation() const
 {
-	return (predayRunMode == MT_Config::SIMULATION);
+	return (predayRunMode == MT_Config::PREDAY_SIMULATION);
 }
 
 bool MT_Config::runningPredayCalibration() const
 {
-	return (predayRunMode == MT_Config::CALIBRATION);
+	return (predayRunMode == MT_Config::PREDAY_CALIBRATION);
 }
 
 bool MT_Config::runningPredayLogsumComputation() const
 {
-	return (predayRunMode == MT_Config::LOGSUM_COMPUTATION);
+	return (predayRunMode == MT_Config::PREDAY_LOGSUM_COMPUTATION);
 }
 
 bool MT_Config::runningPredayLogsumComputationForLT() const
 {
-	return (predayRunMode == MT_Config::LOGSUM_COMPUTATION_LT);
+	return (predayRunMode == MT_Config::PREDAY_LOGSUM_COMPUTATION_LT);
 }
 
 bool MT_Config::runningSPSA() const
@@ -400,11 +400,11 @@ void MT_Config::setPopulationDb(const std::string& populationDb, const std::stri
 }
 
 bool MT_Config::RunningMidSupply() const {
-    return (midTermRunMode == MT_Config::SUPPLY);
+    return (midTermRunMode == MT_Config::MT_SUPPLY);
 }
 
 bool MT_Config::RunningMidDemand() const {
-    return (midTermRunMode == MT_Config::PREDAY);
+    return (midTermRunMode == MT_Config::MT_PREDAY);
 }
 
 void MT_Config::setMidTermRunMode(const std::string& runMode)
@@ -412,11 +412,11 @@ void MT_Config::setMidTermRunMode(const std::string& runMode)
     if(runMode.empty()) { return; }
     if(runMode == "supply" || runMode == "withinday")
     {
-        midTermRunMode = MT_Config::SUPPLY;
+        midTermRunMode = MT_Config::MT_SUPPLY;
     }
     else if (runMode == "preday")
     {
-        midTermRunMode = MT_Config::PREDAY;
+        midTermRunMode = MT_Config::MT_PREDAY;
     }
     else
     {
@@ -428,28 +428,27 @@ bool MT_Config::CBD() const{
     return cbd;
 }
 
-bool MT_Config::PublicTransitEnabled() const{
+bool MT_Config::isPublicTransitEnabled() const{
     return publicTransitEnabled;
 }
-
 
 std::vector<IncidentParams>& MT_Config::getIncidents(){
     return incidents;
 }
 
-std::map<const MultiNode*, Conflux*>& MT_Config::getConfluxNodes()
+std::map<const Node*, Conflux*>& MT_Config::getConfluxNodes()
 {
     return multinode_confluxes;
 }
 
-const std::map<const MultiNode*, Conflux*>& MT_Config::getConfluxNodes() const
+const std::map<const Node*, Conflux*>& MT_Config::getConfluxNodes() const
 {
     return multinode_confluxes;
 }
 
-Conflux* MT_Config::getConfluxForNode(const MultiNode* multinode) const
+Conflux* MT_Config::getConfluxForNode(const Node* multinode) const
 {
-    std::map<const MultiNode*, Conflux*>::const_iterator cfxIt = multinode_confluxes.find(multinode);
+    std::map<const Node*, Conflux*>::const_iterator cfxIt = multinode_confluxes.find(multinode);
     if(cfxIt == multinode_confluxes.end()) { return nullptr; }
     return cfxIt->second;
 }
@@ -473,5 +472,21 @@ unsigned int MT_Config::personTimeStepInMilliSeconds() const
 {
     return workers.person.granularityMs;
 }
+
+const WorkerParams& MT_Config::getWorkerParams() const
+{
+	return workers;
+}
+
+unsigned int& sim_mob::medium::MT_Config::personWorkGroupSize()
+{
+	return workers.person.count;
+}
+
+unsigned int sim_mob::medium::MT_Config::personWorkGroupSize() const
+{
+	return workers.person.count;
+}
+
 }
 }

@@ -439,14 +439,14 @@ public:
     /// Bus controller parameters
     BusControllerParams busController;
 
+    ///Some settings for bus stop arrivals/departures.
+    std::map<int, BusStopScheduledTime> busScheduledTimes; //The int is a "bus stop ID", starting from 0.
+
     /// Stored procedure mappings
     std::map<std::string, StoredProcedureMap> procedureMaps;
 
     /// Generic properties, for testing new features.
     std::map<std::string, std::string> genericProps;
-
-    ///Some settings for bus stop arrivals/departures.
-    std::map<int, BusStopScheduledTime> busScheduledTimes; ///The int is a "bus stop ID", starting from 0.
 
     /// If true, we take time to merge the output of the individual log files after the simulation is complete.
     bool mergeLogFiles;

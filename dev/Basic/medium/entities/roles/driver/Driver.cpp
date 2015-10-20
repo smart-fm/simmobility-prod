@@ -68,7 +68,7 @@ sim_mob::medium::Driver::Driver(Person_MT* parent,
 		sim_mob::medium::DriverBehavior* behavior,
 		sim_mob::medium::DriverMovement* movement,
 		std::string roleName, Role<Person_MT>::Type roleType) :
-	sim_mob::Role(behavior, movement, parent, roleName, roleType),
+	sim_mob::Role<Person_MT>::Role(parent, behavior, movement, roleName, roleType),
 	currLane(nullptr)
 {}
 
@@ -85,8 +85,8 @@ void sim_mob::medium::Driver::make_frame_tick_params(timeslice now)
 
 Role<Person_MT>* sim_mob::medium::Driver::clone(Person_MT* parent) const
 {
-	DriverBehavior* behavior = new DriverBehavior(parent);
-	DriverMovement* movement = new DriverMovement(parent);
+	DriverBehavior* behavior = new DriverBehavior();
+	DriverMovement* movement = new DriverMovement();
 	Driver* driver = new Driver(parent, behavior, movement, "Driver_");
 	behavior->setParentDriver(driver);
 	movement->setParentDriver(driver);

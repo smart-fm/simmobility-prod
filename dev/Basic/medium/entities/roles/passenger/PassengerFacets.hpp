@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "entities/conflux/Conflux.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/Person.hpp"
 
@@ -33,18 +34,19 @@ public:
 	{
 	}
 
-	virtual void frame_tick_output()
+	virtual std::string frame_tick_output()
 	{
+		return std::string();
 	}
 
 	/**
 	 * set parent reference to passenger role.
 	 * @param parentPassenger is pointer to parent passenger role
 	 */
-	void setParentPassenger(sim_mob::medium::Passenger* parentPassenger);
+	void setParentPassenger(Passenger* parentPassenger);
 
 protected:
-	sim_mob::medium::Passenger* parentPassenger;
+	Passenger* parentPassenger;
 };
 
 class PassengerMovement : public MovementFacet
@@ -56,19 +58,19 @@ public:
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
-	virtual sim_mob::Conflux* getStartingConflux() const;
+	virtual std::string frame_tick_output();
+	virtual Conflux* getStartingConflux() const;
 
 	/**
 	 * set parent reference to passenger role.
 	 * @param parentPassenger is pointer to parent passenger role
 	 */
-	void setParentPassenger(sim_mob::medium::Passenger* parentPassenger);
+	void setParentPassenger(Passenger* parentPassenger);
 	TravelMetric & startTravelTimeMetric();
 	TravelMetric & finalizeTravelTimeMetric();
 
 protected:
-	sim_mob::medium::Passenger* parentPassenger;
+	Passenger* parentPassenger;
 	unsigned int totalTimeToCompleteMS;
 };
 

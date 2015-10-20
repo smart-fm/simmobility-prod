@@ -6,15 +6,12 @@
  */
 
 #include "PassengerFacets.hpp"
-#include "conf/ConfigManager.hpp"
-#include "conf/ConfigParams.hpp"
+#include "config/MT_Config.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "Passenger.hpp"
 
-namespace sim_mob
-{
-namespace medium
-{
+using namespace sim_mob;
+using namespace medium;
 
 PassengerBehavior::PassengerBehavior() : BehaviorFacet(), parentPassenger(nullptr)
 {
@@ -32,12 +29,12 @@ PassengerMovement::~PassengerMovement()
 {
 }
 
-void PassengerMovement::setParentPassenger(sim_mob::medium::Passenger* parentPassenger)
+void PassengerMovement::setParentPassenger(Passenger* parentPassenger)
 {
 	this->parentPassenger = parentPassenger;
 }
 
-void PassengerBehavior::setParentPassenger(sim_mob::medium::Passenger* parentPassenger)
+void PassengerBehavior::setParentPassenger(Passenger* parentPassenger)
 {
 	this->parentPassenger = parentPassenger;
 }
@@ -54,8 +51,9 @@ void PassengerMovement::frame_tick()
 	parentPassenger->setTravelTime(totalTimeToCompleteMS);
 }
 
-void PassengerMovement::frame_tick_output()
+std::string PassengerMovement::frame_tick_output()
 {
+	return std::string();
 }
 
 TravelMetric & PassengerMovement::startTravelTimeMetric()
@@ -75,17 +73,11 @@ TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
 	return travelMetric;
 }
 
-sim_mob::Conflux* PassengerMovement::getStartingConflux() const
+Conflux* PassengerMovement::getStartingConflux() const
 {
-	if (parentPassenger->roleType == Role::RL_CARPASSENGER)
+	if (parentPassenger->roleType == Role<Person_MT>::RL_CARPASSENGER)
 	{
-		const sim_mob::MultiNode* location = dynamic_cast<const sim_mob::MultiNode*> (parentPassenger->parent->currSubTrip->destination.node_);
-		if (location)
-		{
-			return ConfigManager::GetInstanceRW().FullConfig().getConfluxForNode(location);
-		}
+		return MT_Config::getInstance().getConfluxForNode(parentPassenger->parent->currSubTrip->destination.node_);
 	}
 	return nullptr;
 }
-}//medium
-} /* namespace sim_mob */

@@ -23,7 +23,7 @@ PT_PathSetManager sim_mob::PT_PathSetManager::_instance;
 boost::shared_ptr<sim_mob::batched::ThreadPool> sim_mob::PT_PathSetManager::threadpool_;
 
 PT_PathSetManager::PT_PathSetManager():labelPoolSize(10){
-	ptPathSetWriter.open(ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetOutputFile.c_str());
+	ptPathSetWriter.open(ConfigManager::GetInstance().FullConfig().getPathSetConf().publicPathSetOutputFile.c_str());
 	//ptPathSetWriter.open("/home/data1/pt_paths.csv");
 }
 PT_PathSetManager::~PT_PathSetManager() {
@@ -44,7 +44,7 @@ bool sim_mob::compare_OD::operator()(const PT_OD& A,const PT_OD& B) const {
 
 void PT_PathSetManager::PT_BulkPathSetGenerator()
 {
-	this->ptPathSetWriter.open(ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetOutputFile.c_str());
+	this->ptPathSetWriter.open(ConfigManager::GetInstance().FullConfig().getPathSetConf().publicPathSetOutputFile.c_str());
 	std::set<PT_OD,compare_OD> PT_OD_Set;
 	//Reading the data from the database
     const std::string& dbId = ConfigManager::GetInstance().FullConfig().networkDatabase.database;
@@ -60,7 +60,7 @@ void PT_PathSetManager::PT_BulkPathSetGenerator()
 	soci::session& sql_ = conn.getSession<soci::session>();
 
 	std::stringstream query;
-	query << "select * from " << sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetOdSource;
+	query << "select * from " << sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().publicPathSetOdSource;
 	soci::rowset<soci::row> rs = (sql_.prepare << query.str());
 	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it)
 	{
@@ -170,7 +170,7 @@ void PT_PathSetManager::getkShortestPaths(StreetDirectory::PT_VertexId fromId,St
 {
 	int i=0;
 	vector<vector<PT_NetworkEdge> > kShortestPaths;
-	int kShortestLevel = ConfigManager::GetInstance().FullConfig().pathSet().publickShortestPathLevel;
+	int kShortestLevel = ConfigManager::GetInstance().FullConfig().getPathSetConf().publickShortestPathLevel;
 	StreetDirectory::instance().getPublicTransitShortestPathImpl()->getKShortestPaths(kShortestLevel,fromId,toId,kShortestPaths);
 	for(vector<vector<PT_NetworkEdge> >::iterator itPath=kShortestPaths.begin();itPath!=kShortestPaths.end();itPath++)
 	{
@@ -213,7 +213,7 @@ void PT_PathSetManager::getLinkEliminationApproachPaths(StreetDirectory::PT_Vert
 
 void PT_PathSetManager::getSimulationApproachPaths(StreetDirectory::PT_VertexId fromId,StreetDirectory::PT_VertexId toId,PT_PathSet& ptPathSet)
 {
-	int simulationApproachPoolSize = ConfigManager::GetInstance().FullConfig().pathSet().simulationApproachIterations;
+	int simulationApproachPoolSize = ConfigManager::GetInstance().FullConfig().getPathSetConf().simulationApproachIterations;
 	for(int i=0;i<simulationApproachPoolSize;i++)
 	{
 		vector<PT_NetworkEdge> path;

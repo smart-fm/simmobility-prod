@@ -21,6 +21,7 @@
 #include "./Signal.hpp"
 #include "Phase.hpp"
 #include "path/Path.hpp"
+#include "path/PathSetManager.hpp"
 #include "path/PathSetParam.hpp"
 #include "entities/PersonLoader.hpp"
 #include "geospatial/TurningSection.hpp"
@@ -40,7 +41,7 @@ class ERP_Gantry_Zone;
 class LinkTravelTime;
 class PathSet;
 class SinglePath;
-class CBD_Pair;
+
 template<> struct type_conversion<sim_mob::CBD_Pair>
 {
     typedef values base_type;

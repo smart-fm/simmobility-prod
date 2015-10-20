@@ -14,6 +14,7 @@ namespace sim_mob
 {
 
 //Forward declarations.
+class Entity;
 class Point2D;
 class Agent;
 class Lane;
@@ -24,7 +25,7 @@ class RStarAuraManager : public TreeImpl
 public:
 	//Note: The pointers in removedAgentPointers will be deleted after this time tick; do *not*
 	//      save them anywhere.
-	virtual void update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers);
+	virtual void update(int time_step, const std::set<sim_mob::Entity*>& removedAgentPointers);
 
 	virtual std::vector<Agent const *> agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, const sim_mob::Agent* refAgent) const;
 

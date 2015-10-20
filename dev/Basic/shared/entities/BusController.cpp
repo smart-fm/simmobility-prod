@@ -15,6 +15,7 @@
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/aimsun/Loader.hpp"
+#include "logging/Log.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/LangHelpers.hpp"
@@ -50,7 +51,6 @@ bool BusController::RegisterBusController(BusController* busController)
 	if(!instance)
 	{
 		instance = busController;
-		instance->setStartTime(startTime);
 		return true;
 	}
 	return false;
@@ -547,8 +547,6 @@ void BusController::addOrStashBuses(Person* p, std::set<Entity*>& activeAgents)
 {
 	if (p->getStartTime()==0) {
 		//Only agents with a start time of zero should start immediately in the all_agents list.
-		p->load(p->getConfigProperties());
-		p->clearConfigProperties();
 		activeAgents.insert(p);
 	} else {
 		//Start later.
@@ -575,7 +573,7 @@ Entity::UpdateStatus BusController::frame_tick(timeslice now)
 	while (!pendingChildren.empty()
 			&& pendingChildren.top()->getStartTime() <= nextTickMS) {
 		//Ask the current worker's parent WorkGroup to schedule this Entity.
-		Agent* child = pendingChildren.top();
+		Entity* child = pendingChildren.top();
 		pendingChildren.pop();
 		child->parentEntity = this;
 		currWorkerProvider->scheduleForBred(child);
@@ -594,10 +592,7 @@ bool BusController::frame_init(timeslice now)
 
 void BusController::frame_output(timeslice now)
 {
-	LogOut("(\"BusController\""
-			<<","<<now.frame()
-			<<","<<getId()
-			<<","<<std::endl);
+	LogOut("(\"BusController\"" << "," << now.frame() << "," << getId() << "," << std::endl);
 }
 
 void BusController::load(const std::map<std::string, std::string>& configProps)

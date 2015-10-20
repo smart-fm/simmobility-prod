@@ -21,6 +21,7 @@
 #include "conf/ConfigParams.hpp"
 #include "logging/Log.hpp"
 #include "geospatial/Node.hpp"
+#include "geospatial/BusStop.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "workers/Worker.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -52,16 +53,15 @@ const int DEFAULT_HIGHEST_AGE = 60;
 } //End unnamed namespace
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID)
-: Agent(mtxStrat, id), databaseID(databaseID), agentSrc(src),
-/**tripChain(nullptr),*/ age(0), resetParamsRequired(false), isFirstTick(true), nextPathPlanned(false),
-originNode(), destNode(), currLinkTravelStats(nullptr, 0.0), currRdSegTravelStats(nullptr)
+: Agent(mtxStrat, id), databaseID(databaseID), agentSrc(src), age(0), resetParamsRequired(false), isFirstTick(true), nextPathPlanned(false),
+originNode(), destNode(), currLinkTravelStats(nullptr, 0.0), currRdSegTravelStats(RdSegTravelStat(nullptr))
 {
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc)
 : Agent(mtxStrat), databaseID(tc.front()->getPersonID()), agentSrc(src), tripChain(tc), age(0), resetParamsRequired(false), 
 isFirstTick(true), nextPathPlanned(false), originNode(), destNode(), currLinkTravelStats(nullptr, 0.0), 
-currRdSegTravelStats(nullptr)
+currRdSegTravelStats(RdSegTravelStat(nullptr))
 {
 	if (!tripChain.empty())
 	{
@@ -108,10 +108,12 @@ void sim_mob::Person::HandleMessage(messaging::Message::MessageType type, const 
 
 bool sim_mob::Person::frame_init(timeslice now)
 {
+	return false;
 }
 
 Entity::UpdateStatus sim_mob::Person::frame_tick(timeslice now)
 {
+	return UpdateStatus::Continue;
 }
 
 void sim_mob::Person::frame_output(timeslice now)
@@ -425,7 +427,7 @@ sim_mob::OneTimeFlag titleSubPredayTT;
 void sim_mob::Person::serializeSubTripChainItemTravelTimeMetrics(const TravelMetric& subtripMetrics, std::vector<TripChainItem*>::iterator currTripChainItem, 
 																 std::vector<SubTrip>::iterator currSubTrip) const
 {
-	sim_mob::BasicLogger& csv = sim_mob::Logger::log(ConfigManager::GetInstance().FullConfig().pathSet().subTripOP);
+	sim_mob::BasicLogger& csv = sim_mob::Logger::log(ConfigManager::GetInstance().FullConfig().getPathSetConf().subTripOP);
 	if (!(subtripMetrics.finalized && subtripMetrics.started))
 	{
 		return;
@@ -685,3 +687,6 @@ void sim_mob::Person::addToLinkTravelStatsMap(LinkTravelStats ts, double exitTim
 	travelMap.insert(std::make_pair(exitTime, ts));
 }
 
+void sim_mob::Person::initTripChain()
+{
+}

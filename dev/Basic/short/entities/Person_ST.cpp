@@ -577,7 +577,7 @@ void Person_ST::frame_output(timeslice now)
 	//Save the output
 	if (!isToBeRemoved())
 	{
-		currRole->Movement()->frame_tick_output();
+		LogOut(currRole->Movement()->frame_tick_output());
 	}
 
 	resetParamsRequired = true;

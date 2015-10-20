@@ -6,7 +6,6 @@
 
 #include <vector>
 #include <string>
-#include <string>
 
 #include "geospatial/WayPoint.hpp"
 #include "util/LangHelpers.hpp"

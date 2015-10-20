@@ -2,15 +2,9 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * WaitBusActivityFacets.h
- *
- *  Created on: Mar 13, 2014
- *      Author: zhang huai peng
- */
-
 #pragma once
 
+#include "entities/conflux/Conflux.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/Person.hpp"
 
@@ -40,18 +34,19 @@ public:
 	{
 	}
 
-	virtual void frame_tick_output()
+	virtual std::string frame_tick_output()
 	{
+		return std::string();
 	}
 
 	/**
 	 * set parent reference to waiting activity role.
 	 * @param parentWaitBusActivity is pointer to parent waiting activity role
 	 */
-	void setParentWaitBusActivity(sim_mob::medium::WaitBusActivity* parentWaitBusActivity);
+	void setParentWaitBusActivity(WaitBusActivity* parentWaitBusActivity);
 
 protected:
-	sim_mob::medium::WaitBusActivity* parentWaitBusActivity;
+	WaitBusActivity* parentWaitBusActivity;
 };
 
 /**
@@ -67,8 +62,8 @@ public:
 	//Virtual overrides
 	virtual void frame_init();
 	virtual void frame_tick();
-	virtual void frame_tick_output();
-	virtual sim_mob::Conflux* getStartingConflux() const;
+	virtual std::string frame_tick_output();
+	virtual Conflux* getStartingConflux() const;
 
 	TravelMetric & startTravelTimeMetric();
 	TravelMetric & finalizeTravelTimeMetric();
@@ -77,10 +72,10 @@ public:
 	 * set parent reference to waiting activity role.
 	 * @param parentWaitBusActivity is pointer to parent waiting activity role
 	 */
-	void setParentWaitBusActivity(sim_mob::medium::WaitBusActivity* parentWaitBusActivity);
+	void setParentWaitBusActivity(WaitBusActivity* parentWaitBusActivity);
 
 protected:
-	sim_mob::medium::WaitBusActivity* parentWaitBusActivity;
+	WaitBusActivity* parentWaitBusActivity;
 };
 
 }

@@ -63,17 +63,8 @@ private:
 	/**Indicates the source of creation of the person*/
 	std::string agentSrc;
 
-	/**Holds the person's trip-chain*/
-	std::vector<TripChainItem *> tripChain;
-
-	/**Marks the first call to update function*/
-	bool isFirstTick;
-
 	/**Indicates if the detailed path for the current sub-trip is already planned*/
 	bool nextPathPlanned;
-
-	/**Used by confluxes to move the person for his tick duration across link and sub-trip boundaries*/
-	double remainingTimeThisTick;
 	
 	/**
 	 * Ask this person to re-route to the destination with the given set of blacklisted RoadSegments
@@ -83,21 +74,13 @@ private:
 	 */
 	virtual void rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment *>& blacklisted);
 
-	/**
-	 * Advances the current sub-trip to the next item.
-     *
-	 * @return true, if the sub-trip is advanced
-     */
-	bool advanceCurrentSubTrip();
-
-	/**
-	 * Sets the current sub-trip to the first sub-trip of the current trip chain
-	 *
-     * @return an iterator pointing to the first sub-trip of the current trip chain \
-     */
-	std::vector<sim_mob::SubTrip>::iterator resetCurrSubTrip();
-
 protected:
+	/**Holds the person's trip-chain*/
+	std::vector<TripChainItem *> tripChain;
+
+	/**Marks the first call to update function*/
+	bool isFirstTick;
+
 	/**
 	 * Called during the first call to update() for the person
 	 *
@@ -132,6 +115,20 @@ protected:
 	/**Inherited from MessageHandler.*/
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message &message);
 
+	/**
+	 * Advances the current sub-trip to the next item.
+     *
+	 * @return true, if the sub-trip is advanced
+     */
+	bool advanceCurrentSubTrip();
+
+	/**
+	 * Sets the current sub-trip to the first sub-trip of the current trip chain
+	 *
+     * @return an iterator pointing to the first sub-trip of the current trip chain \
+     */
+	std::vector<sim_mob::SubTrip>::iterator resetCurrSubTrip();
+
 public:
 	/**The agent's start node*/
 	WayPoint originNode;
@@ -165,12 +162,6 @@ public:
 	 * tmp addition for debugging ~ Harish
 	 */
 	std::string busLine;
-
-	/**
-	 * The bus trip number taken by the person
-	 * tmp addition for debugging ~ Harish
-	 */
-	int bustripnum;
 
 	/**Stores all the metrics of the sub-trips
 	 * The implementation inserts information at sub-trip resolution while pre-day will require Trip-level metrics.
@@ -335,12 +326,6 @@ public:
 	{
 		return false;
 	}
-	
-	/**Clears the map configProperties which contains the configuration properties*/
-	void clearConfigProperties()
-	{
-		this->configProperties.clear();
-	}
 
 	/**Clears the flag indicating that the agent is marked for removal*/
 	void clearToBeRemoved()
@@ -383,16 +368,6 @@ public:
 		return currWorkerProvider->getGenerator();
 	}
 
-	void setConfigProperties(const std::map<std::string, std::string> &props)
-	{
-		this->configProperties = props;
-	}
-
-	const std::map<std::string, std::string>& getConfigProperties()
-	{
-		return this->configProperties;
-	}
-
 	void setNextPathPlanned(bool value)
 	{
 		nextPathPlanned = value;
@@ -401,16 +376,6 @@ public:
 	bool getNextPathPlanned()
 	{
 		return nextPathPlanned;
-	}
-
-	double getRemainingTimeThisTick() const
-	{
-		return remainingTimeThisTick;
-	}
-
-	void setRemainingTimeThisTick(double remainingTimeThisTick)
-	{
-		this->remainingTimeThisTick = remainingTimeThisTick;
 	}
 
 #ifndef SIMMOB_DISABLE_MPI

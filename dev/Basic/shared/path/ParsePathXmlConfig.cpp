@@ -5,6 +5,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <sstream>
+#include "logging/Log.hpp"
 
 using namespace xercesc;
 using namespace std;

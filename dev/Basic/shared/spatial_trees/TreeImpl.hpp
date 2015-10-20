@@ -11,6 +11,7 @@
 namespace sim_mob {
 
 //Forward declarations
+class Entity;
 class Agent;
 class Lane;
 class Point2D;
@@ -33,7 +34,7 @@ public:
 	///Update the structure.
 	//Note: The pointers in removedAgentPointers will be deleted after this time tick; do *not*
 	//      save them anywhere.
-	virtual void update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers) = 0;
+	virtual void update(int time_step, const std::set<sim_mob::Entity*>& removedAgentPointers) = 0;
 
 	///Return the Agents within a given rectangle.
 	virtual std::vector<Agent const *> agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, const sim_mob::Agent* refAgent) const = 0;

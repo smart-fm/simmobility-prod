@@ -6,6 +6,7 @@
 
 #include "spatial_trees/shared_funcs.hpp"
 #include "entities/Agent.hpp"
+#include "entities/Entity.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "entities/Person.hpp"
@@ -19,7 +20,7 @@ bool sim_mob::RDUAuraManager::has_one_agent_du(int agent_id)
 	return tree_du.has_one_agent(agent_id);
 }
 
-void sim_mob::RDUAuraManager::update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers)
+void sim_mob::RDUAuraManager::update(int time_step, const std::set<sim_mob::Entity*>& removedAgentPointers)
 {
 	for (std::set<Entity*>::iterator itr = Agent::all_agents.begin(); itr != Agent::all_agents.end(); ++itr) {
 		Agent* an_agent = dynamic_cast<Agent*>(*itr);

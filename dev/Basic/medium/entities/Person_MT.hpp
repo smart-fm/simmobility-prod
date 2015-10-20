@@ -9,8 +9,6 @@
 #include "entities/Person.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/Link.hpp"
-#include "entities/conflux/Conflux.hpp"
-#include "entities/conflux/SegmentStats.hpp"
 #include "entities/roles/Role.hpp"
 #include "buffering/BufferedDataManager.hpp"
 
@@ -19,18 +17,22 @@ namespace sim_mob
 
 namespace medium
 {
+class Conflux;
+class SegmentStats;
 
 class Person_MT : public Person
 {
 private:
+	/** Conflux needs access to certain sensitive members of Person_MT */
+	friend Conflux;
 	/**Current lane (used by confluxes to track the person)*/
-	const sim_mob::Lane* currLane;
+	const Lane* currLane;
 
 	/***/
-	const sim_mob::SegmentStats* currSegStats;
+	const SegmentStats* currSegStats;
 
 	/***/
-	const sim_mob::Link* nextLinkRequired;
+	const Link* nextLinkRequired;
 
 	/**The previous role that was played by the person.*/
 	Role<Person_MT>* prevRole;
@@ -40,6 +42,9 @@ private:
 
 	/**The next role that the person will play. However, this variable is only temporary and will not be used to update the currRole*/
 	Role<Person_MT>* nextRole;
+
+	/**Used by confluxes to move the person for his tick duration across link and sub-trip boundaries*/
+	double remainingTimeThisTick;
 
 	/**Alters trip chain in accordance to route choice for public transit trips*/
 	void convertODsToTrips();
@@ -81,7 +86,7 @@ public:
 	Permission canMoveToNextSegment;
 
 	Person_MT(const std::string& src, const MutexStrategy& mtxStrat, int id = -1, std::string databaseID = "");
-	Person_MT(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc);
+	Person_MT(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<TripChainItem*>& tc);
 	virtual ~Person_MT();
 
 	/**
@@ -127,12 +132,12 @@ public:
 	 */
 	virtual std::vector<BufferedBase *> buildSubscriptionList();
 
-	const sim_mob::Lane* getCurrLane() const
+	const Lane* getCurrLane() const
 	{
 		return currLane;
 	}
 
-	void setCurrLane(const sim_mob::Lane* currLane)
+	void setCurrLane(const Lane* currLane)
 	{
 		this->currLane = currLane;
 	}
@@ -175,6 +180,16 @@ public:
 	Role<Person_MT>* getNextRole() const
 	{
 		return nextRole;
+	}
+
+	double getRemainingTimeThisTick() const
+	{
+		return remainingTimeThisTick;
+	}
+
+	void setRemainingTimeThisTick(double remainingTimeThisTick)
+	{
+		this->remainingTimeThisTick = remainingTimeThisTick;
 	}
 };
 } // namespace medium

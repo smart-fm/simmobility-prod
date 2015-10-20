@@ -5,7 +5,6 @@
 #include "PrintNetwork.hpp"
 
 #include "conf/ConfigParams.hpp"
-#include "entities/signal/Signal.hpp"
 #include "logging/Log.hpp"
 #include "geospatial/UniNode.hpp"
 #include "geospatial/MultiNode.hpp"
@@ -17,7 +16,6 @@
 #include "geospatial/Lane.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
-#include "network/CommunicationDataManager.hpp"
 #include "util/DynamicVector.hpp"
 #include "metrics/Length.hpp"
 
@@ -141,11 +139,11 @@ void sim_mob::PrintNetwork::LogNetworkLegacyFormat() const
 	const std::map<std::string,sim_mob::TurningConflict* > &conflicts = cfg.getNetwork().getConflicts();
 	LogConflicts(conflicts);
 
-	//Tell the GUI this is done.
-	if (cfg.InteractiveMode()) {
-		string end = "END";
-		cfg.getCommDataMgr().sendRoadNetworkData(end);
-	}
+//	//Tell the GUI this is done.
+//	if (cfg.InteractiveMode()) {
+//		string end = "END";
+//		cfg.getCommDataMgr().sendRoadNetworkData(end);
+//	}
 
 	//Print the StreetDirectory graphs.
 	StreetDirectory::instance().printDrivingGraph(out);
@@ -176,10 +174,10 @@ void sim_mob::PrintNetwork::LogLegacySimulationProps() const
 void sim_mob::PrintNetwork::LogLegacySignalProps() const
 {
 	//Save signal information.
-	for (std::vector<Signal*>::const_iterator it = sim_mob::Signal::all_signals_.begin(); it!= sim_mob::Signal::all_signals_.end(); it++) {
-		//Print the Signal representation.
-		out <<(*it)->toString() <<std::endl;
-	}
+//	for (std::vector<Signal*>::const_iterator it = sim_mob::Signal::all_signals_.begin(); it!= sim_mob::Signal::all_signals_.end(); it++) {
+//		//Print the Signal representation.
+//		out <<(*it)->toString() <<std::endl;
+//	}
 }
 
 
@@ -510,10 +508,10 @@ void sim_mob::PrintNetwork::PrintToFileAndGui(const std::stringstream& str) cons
 	//Print to file.
 	out <<str.str() <<std::endl;
 
-	//Print to GUI (if it's active).
-	if (cfg.InteractiveMode()) {
-		cfg.getCommDataMgr().sendRoadNetworkData(str.str());
-	}
+//	//Print to GUI (if it's active).
+//	if (cfg.InteractiveMode()) {
+//		cfg.getCommDataMgr().sendRoadNetworkData(str.str());
+//	}
 }
 
 

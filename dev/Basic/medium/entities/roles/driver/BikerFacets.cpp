@@ -7,38 +7,40 @@
 #include "entities/Person.hpp"
 #include "entities/Vehicle.hpp"
 
+using namespace sim_mob;
+using namespace sim_mob::medium;
+
 namespace
 {
 /**
  * length of a bike is hard coded to 0.5 times the PCU for now.
  * TODO: this must be made configurable.
  */
-const double BIKE_LENGTH = 0.5 * sim_mob::PASSENGER_CAR_UNIT; //cm. half of PASSENGER_CAR_UNIT
+const double BIKE_LENGTH = 0.5 * PASSENGER_CAR_UNIT; //cm. half of PASSENGER_CAR_UNIT
 }
 
-sim_mob::medium::BikerBehavior::BikerBehavior(sim_mob::Person* parentAgent) :
-DriverBehavior(parentAgent), parentBiker(nullptr) {}
+BikerBehavior::BikerBehavior() :
+DriverBehavior(), parentBiker(nullptr) {}
 
-sim_mob::medium::BikerBehavior::~BikerBehavior() {}
+BikerBehavior::~BikerBehavior() {}
 
-void sim_mob::medium::BikerBehavior::frame_init() {
+void BikerBehavior::frame_init() {
 	throw std::runtime_error("BikerBehavior::frame_init is not implemented yet");
 }
 
-void sim_mob::medium::BikerBehavior::frame_tick() {
+void BikerBehavior::frame_tick() {
 	throw std::runtime_error("BikerBehavior::frame_tick is not implemented yet");
 }
 
-void sim_mob::medium::BikerBehavior::frame_tick_output() {
+std::string BikerBehavior::frame_tick_output() {
 	throw std::runtime_error("BikerBehavior::frame_tick_output is not implemented yet");
 }
 
-sim_mob::medium::BikerMovement::BikerMovement(sim_mob::Person* parentAgent) :
-DriverMovement(parentAgent), parentBiker(nullptr) {}
+BikerMovement::BikerMovement() : DriverMovement(), parentBiker(nullptr) {}
 
-sim_mob::medium::BikerMovement::~BikerMovement() {}
+BikerMovement::~BikerMovement() {}
 
-void sim_mob::medium::BikerMovement::frame_init()
+void BikerMovement::frame_init()
 {
 	bool pathInitialized = initializePath();
 	if (pathInitialized)
@@ -48,5 +50,5 @@ void sim_mob::medium::BikerMovement::frame_init()
 		safe_delete_item(oldBus);
 		parentBiker->setResource(newVeh);
 	}
-	else { parent->setToBeRemoved(); }
+	else { parentBiker->getParent()->setToBeRemoved(); }
 }

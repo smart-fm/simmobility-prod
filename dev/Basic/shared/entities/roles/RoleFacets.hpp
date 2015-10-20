@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include <string>
 #include "conf/settings/DisableMPI.h"
-
 #include "util/LangHelpers.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"
@@ -67,7 +67,7 @@ public:
 	virtual void frame_tick() = 0;
 
 	///Generate output for this frame's tick for this Agent.
-	virtual void frame_tick_output() = 0;
+	virtual std::string frame_tick_output() = 0;
 
 	/**
 	 * message handler which provide a chance to handle message transfered from parent agent.

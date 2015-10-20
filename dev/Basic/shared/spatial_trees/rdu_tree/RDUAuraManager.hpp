@@ -18,6 +18,7 @@ namespace sim_mob
 //Forward declarations.
 class Point2D;
 class RoadSegment;
+class Entity;
 class Agent;
 class Lane;
 
@@ -28,7 +29,7 @@ class RDUAuraManager : public TreeImpl
 public:
 	//Note: The pointers in removedAgentPointers will be deleted after this time tick; do *not*
 	//      save them anywhere.
-	virtual void update(int time_step, const std::set<sim_mob::Agent*>& removedAgentPointers);
+	virtual void update(int time_step, const std::set<sim_mob::Entity*>& removedAgentPointers);
 
 	bool has_one_agent_du(int agent_id);
 

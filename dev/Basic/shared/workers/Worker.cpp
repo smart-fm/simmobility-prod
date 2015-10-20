@@ -20,8 +20,6 @@
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/roles/Role.hpp"
-#include "entities/conflux/Conflux.hpp"
-#include "entities/Person.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "path/PathSetManager.hpp"
 #include "network/ControlManager.hpp"
@@ -30,8 +28,6 @@
 #include "util/FlexiBarrier.hpp"
 #include "util/LangHelpers.hpp"
 #include "message/MessageBus.hpp"
-
-#include "entities/commsim/broker/Broker.hpp"
 
 using std::set;
 using std::vector;
@@ -251,25 +247,6 @@ void sim_mob::Worker::removePendingEntities()
 		(*it)->onWorkerExit();
 	}
 	toBeRemoved.clear();
-}
-
-void sim_mob::Worker::outputSupplyStats(uint32_t currTick) {
-    if (ConfigManager::GetInstance().FullConfig().RunningMidTerm()) {
-		for (std::set<Conflux*>::iterator it = managedEntities.begin(); it != managedEntities.end(); it++)
-		{
-			const unsigned int msPerFrame = ConfigManager::GetInstance().FullConfig().baseGranMS();
-			timeslice currTime = timeslice(currTick, currTick*msPerFrame);
-			(*it)->updateAndReportSupplyStats(currTime);
-			(*it)->reportLinkTravelTimes(currTime);
-			(*it)->resetLinkTravelTimes(currTime);
-//			if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-//				(*it)->reportRdSegTravelTimes(currTime);
-//				(*it)->resetRdSegTravelTimes();
-//			}
-			(*it)->resetSegmentFlows();
-			//vqCount += (*it)->resetOutputBounds();
-		}
-	}
 }
 
 void sim_mob::Worker::breedPendingEntities()

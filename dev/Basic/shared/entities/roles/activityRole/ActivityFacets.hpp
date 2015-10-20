@@ -35,7 +35,7 @@ public:
 	{
 		throw std::runtime_error("ActivityPerformerBehavior::frame_tick() is not implemented yet");
 	}
-	virtual void frame_tick_output()
+	virtual std::string frame_tick_output()
 	{
 		throw std::runtime_error("ActivityPerformerBehavior::frame_tick_output() is not implemented yet");
 	}
@@ -75,8 +75,9 @@ public:
 		parentActivity->parent->setRemainingTimeThisTick(0.0);
 	}
 
-	virtual void frame_tick_output()
+	virtual std::string frame_tick_output()
 	{
+		return std::string();
 	}
 
 	/// mark startTimeand origin

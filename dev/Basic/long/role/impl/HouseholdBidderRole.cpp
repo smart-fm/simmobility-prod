@@ -1262,9 +1262,9 @@ bool HouseholdBidderRole::pickEntryToBid()
     else
     {
 
-    	PrintOutV("choiceset was successful" << std::endl);
+    	//PrintOutV("choiceset was successful" << std::endl);
 
-    	char temp[300];
+    	char temp[1000];
     	for(int n = 0; n < screenedEntries.size(); n++)
     	{
     		int strLength = 0;
@@ -1272,10 +1272,18 @@ bool HouseholdBidderRole::pickEntryToBid()
     		if( n > 0)
     			strLength = strlen(temp);
 
-    		sprintf( temp + strLength, " %i ", (int)screenedEntries[n]->getUnitId());
+    		const Unit *thisUnit = model->getUnitById( screenedEntries[n]->getUnitId());
+
+    		sprintf( temp + strLength, " %i, %lld, %f, %i", (int)screenedEntries[n]->getUnitId(), screenedEntries[n]->getTazId(), thisUnit->getFloorArea(), thisUnit->getUnitType() );
     	}
 
-    	PrintOutV(" The choiceset of household " << household->getId() << " is units: " << temp << std::endl );
+    	const Unit *currentUnit = model->getUnitById(household->getUnitId());
+
+    	BigSerial currentTazId = model->getUnitTazId(household->getUnitId());
+
+    	PrintOutV( household->getId() << ", " << household->getAgeOfHead() << ", "<< household->getChildUnder15() << ", " << household->getChildUnder4() << ", "
+    				<< household->getSize() << ", " << household->getIncome()  << ", " << currentUnit->getId() << ", " << currentUnit->getFloorArea() << ", "
+					<< currentUnit->getUnitType() << ", " << currentTazId << ", " << temp << std::endl );
     }
 
     //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );

@@ -202,6 +202,11 @@ namespace sim_mob {
              */
             const TazLevelLandPrice* getTazLevelLandPriceByTazId(BigSerial tazId) const;
 
+            /*
+             * insert newly created units,buildings and projects toDB
+             */
+            void insertBuildingsToDB(Building &building);
+
         protected:
             /**
              * Inherited from Model.
@@ -264,6 +269,7 @@ namespace sim_mob {
             UnitPriceSumMap unitPriceSumByParcelId;
             TazLevelLandPriceList tazLevelLandPriceList;
             TazLevelLandPriceMap tazLevelLandPriceByTazId;
+            boost::mutex dbLockForBuildings;
         };
     }
 }

@@ -269,6 +269,7 @@ namespace sim_mob {
             UnitPriceSumMap unitPriceSumByParcelId;
             TazLevelLandPriceList tazLevelLandPriceList;
             TazLevelLandPriceMap tazLevelLandPriceByTazId;
+            boost::mutex dbLockForBuildings;
         };
     }
 }

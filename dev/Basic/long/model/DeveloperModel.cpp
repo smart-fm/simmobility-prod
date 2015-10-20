@@ -586,6 +586,8 @@ const TazLevelLandPrice* DeveloperModel::getTazLevelLandPriceByTazId(BigSerial t
 
 void DeveloperModel::insertBuildingsToDB(Building &building)
 {
+	dbLockForBuildings.lock();
+
 	DB_Config dbConfig(LT_DB_CONFIG_FILE);
 	dbConfig.load();
 
@@ -596,5 +598,6 @@ void DeveloperModel::insertBuildingsToDB(Building &building)
 			BuildingDao buildingDao(conn);
 			buildingDao.insert(building);
 	}
+	dbLockForBuildings.unlock();
 
 }

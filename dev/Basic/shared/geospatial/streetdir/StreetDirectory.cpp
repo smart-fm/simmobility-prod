@@ -7,7 +7,10 @@
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/BusStop.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "A_StarShortestPathImpl.hpp"
+#include "A_StarPublicTransitShortestPathImpl.hpp"
 
 namespace sim_mob
 {
@@ -36,9 +39,11 @@ StreetDirectory::~StreetDirectory()
 
 void StreetDirectory::Init(const RoadNetwork& network)
 {
-	if (!spImpl)
-	{
+	if (!spImpl) {
 		spImpl = new A_StarShortestPathImpl(network);
+	}
+	if (ConfigManager::GetInstance().FullConfig().publicTransitEnabled) {
+		ptImpl = new A_StarPublicTransitShortestPathImpl(PT_Network::getInstance().PT_NetworkEdgeMap,PT_Network::getInstance().PT_NetworkVertexMap);
 	}
 }
 

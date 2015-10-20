@@ -32,7 +32,7 @@
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/Utils.hpp"
 #include "workers/WorkGroup.hpp"
-//#include "path/PT_PathSetManager.hpp"
+#include "path/PT_PathSetManager.hpp"
 
 using namespace sim_mob;
 
@@ -184,7 +184,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	if (ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetMode == "generation")
 	{
 		Print() << "Public Transit bulk pathSet Generation started: " << std::endl;
-		//sim_mob::PT_PathSetManager::Instance().PT_BulkPathSetGenerator();
+		sim_mob::PT_PathSetManager::Instance().BulkPathSetGenerator();
 		Print() << "Public Transit bulk pathSet Generation Done: " << std::endl;
 		exit(1);
 	}

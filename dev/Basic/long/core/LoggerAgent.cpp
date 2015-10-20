@@ -94,6 +94,13 @@ LoggerAgent::LoggerAgent() : Entity(-1)
     //individual hits logsum for vehicle ownership
     std::ofstream* individualHitsLogsumForVOFile = new std::ofstream("IndividualHitsLogsum4VO.csv");
     streams.insert(std::make_pair(LOG_INDIVIDUAL_LOGSUM_VO, individualHitsLogsumForVOFile));
+
+    //screening probabilities
+    std::ofstream* screeningProbabilitiesFile = new std::ofstream("ScreeningProbabilities.csv");
+    streams.insert(std::make_pair(LOG_SCREENINGPROBABILITIES, screeningProbabilitiesFile));
+    //screening probabilities
+    std::ofstream* hhChoiceSetFile = new std::ofstream("HHChoiceSet.csv");
+    streams.insert(std::make_pair(LOG_HHCHOICESET, hhChoiceSetFile));
 }
 
 LoggerAgent::~LoggerAgent()

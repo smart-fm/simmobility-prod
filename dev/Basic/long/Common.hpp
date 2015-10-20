@@ -143,11 +143,11 @@ namespace sim_mob {
         /**
          * Configs
          */
-        const std::string LT_CONFIG_FILE = "../data/long/lt-config.ini";
-        const std::string LT_DB_CONFIG_FILE = "../private/lt-db.ini";
-        const std::string HM_LUA_DIR = "../scripts/lua/long/housing-market";
-        const std::string EX_EV_LUA_DIR = "../scripts/lua/long/external-events";
-        const std::string DEV_LUA_DIR = "../scripts/lua/long/developer";
+        const std::string LT_CONFIG_FILE = "data/long/lt-config.ini";
+        const std::string LT_DB_CONFIG_FILE = "private/lt-db.ini";
+        const std::string HM_LUA_DIR = "scripts/lua/long/housing-market";
+        const std::string EX_EV_LUA_DIR = "scripts/lua/long/external-events";
+        const std::string DEV_LUA_DIR = "scripts/lua/long/developer";
 
 		//#define VERBOSE
 		//#define VERBOSE_POSTCODE

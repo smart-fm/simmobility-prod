@@ -228,6 +228,11 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 		BusController::InitializeAllControllers(active_agents, cfg.getPT_bus_dispatch_freq());
 	}
 
+	if(sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes())
+	{
+		exit(0);
+	}
+
 	//Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
 	LoadAgentsInOrder(constraints);
 

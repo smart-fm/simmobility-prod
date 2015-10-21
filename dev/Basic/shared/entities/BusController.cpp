@@ -14,6 +14,7 @@
 #include "geospatial/network/BusStop.hpp"
 #include "geospatial/network/Link.hpp"
 #include "geospatial/aimsun/Loader.hpp"
+#include "geospatial/streetdir/A_StarShortestPathImpl.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/LangHelpers.hpp"
@@ -239,7 +240,8 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 				if (start->getRoadSegmentId() == end->getRoadSegmentId()) {
 					path.push_back(WayPoint(start->getParentSegment()));
 				} else {
-					path = stdir.SearchShortestDrivingPath<RoadSegment>(*start, *end);
+					const A_StarShortestPathImpl* shortestDir = (A_StarShortestPathImpl*)(stdir.getDistanceImpl());
+					path = shortestDir->SearchShortestDrivingPath<RoadSegment>(*start, *end);
 				}
 
 				for (std::vector<WayPoint>::const_iterator it = path.begin();

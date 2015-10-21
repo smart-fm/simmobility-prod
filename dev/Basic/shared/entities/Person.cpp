@@ -63,10 +63,6 @@ sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, c
 isFirstTick(true), nextPathPlanned(false), originNode(), destNode(), currLinkTravelStats(nullptr, 0.0), 
 currRdSegTravelStats(RdSegTravelStat(nullptr))
 {
-	if (!tripChain.empty())
-	{
-		initTripChain();
-	}
 }
 
 sim_mob::Person::~Person()

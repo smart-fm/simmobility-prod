@@ -45,7 +45,7 @@ void ExpandMidTermConfigFile::processConfig()
 
     loadNetworkFromDatabase();
 
-    if (mtCfg.RunningMidSupply())
+    if (mtCfg.RunningMidSupply() && mtCfg.isRegionRestrictionEnabled())
     {
         RestrictedRegion::getInstance().populate();
     }
@@ -196,7 +196,7 @@ void ExpandMidTermConfigFile::verifyIncidents()
 
 void ExpandMidTermConfigFile::setRestrictedRegionSupport()
 {
-    PrivateTrafficRouteChoice::getInstance()->setRegionRestrictonEnabled(mtCfg.CBD());
+    PrivateTrafficRouteChoice::getInstance()->setRegionRestrictonEnabled(mtCfg.isRegionRestrictionEnabled());
 }
 
 void ExpandMidTermConfigFile::checkGranularities()
@@ -283,6 +283,6 @@ void ExpandMidTermConfigFile::printSettings()
 
     //Print the network (this will go to a different output file...)
     std::cout << "------------------\n";
-    PrintNetwork(cfg, cfg.outNetworkFileName);
+    //PrintNetwork(cfg, cfg.outNetworkFileName);
     std::cout << "------------------\n";
 }

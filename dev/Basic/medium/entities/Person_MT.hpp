@@ -92,7 +92,7 @@ public:
 	/**
 	 * Initialises the trip chain
      */
-	void initTripChain();
+	virtual void initTripChain();
 
 	/**
 	 * Check if any role changing is required.

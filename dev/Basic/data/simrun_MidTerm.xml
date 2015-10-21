@@ -41,9 +41,15 @@
         <!-- the config file. This is intended to be used for new or temporary features. -->
         <generic_props>
             <!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
-            <property key="busline_control_type" value="headway_based"/>
+            <property key="update_interval" value="60"/>
         </generic_props>
     </system>
+    
+	<!-- List of all Worker types and their properties. -->
+	<!-- granularity of each component must be a multiple of the "base" granularity -->
+	<workers>
+		<person count="6" granularity="5 seconds"/> <!-- Person agents (with Roles) -->
+	</workers>
       
     <incidentsData enabled="false">
         <incident id="0" visibility="4000" segment="40200" position="60" cap_factor="1.0" start_time="08:30:00" duration="00:32:00" length="1000" compliance="50" accessibility="50" > 
@@ -67,18 +73,22 @@
         <stop offsetAT="376100" offsetDT="382100" />    
         <stop offsetAT="403600" offsetDT="409600" />        
     </scheduledTimes>
-    
-<!--<signals> -->
-    <!-- Any of the following signals will not be created if it has already been created by -->
-    <!-- the 'signal' stored procedure above.  Note that this <signals> section will be -->
-    <!-- removed soon and without notice.  After that, only signals found in the database -->
-    <!-- will be created. -->
-<!--<signal xpos="37250760" ypos="14355120"/>
-    </signals> -->
+
+	<!-- To Enable Buses: make sure the following stored procedures in your <proc_map> not empty and valid -->
+	<!-- 1. "pt_bus_dispatch_freq" -->
+	<!-- 2. "pt_bus_routes" -->
+	<!-- 3. "pt_bus_stops" -->
+	<!-- With the above three procedures present and valid, enable buses with "<buscontroller time="0" />" in the <buscontrollers> -->
+	<!-- To Disable Buses: user can simply comment the buscontroller in the <buscontrollers> -->
+	<!-- The current control strategy for buses. Can be "headway_based", "evenheadway_based", "hybrid_based", or (default) "no_control" -->
+	<busController enabled="true" busline_control_type="headway_based"/>
+	
+	<path-set-config-file value="data/pathset_config.xml" />
+
     <CBD enabled="false"/>
     <generateBusRoutes enabled="false" /> 
     <travel_time_update interval="300" alpha="0.5" />
-    <public_transit enabled="true"/>
+    <public_transit enabled="false"/>
     <screen-line_count interval="900" file-name="screenLineCount.txt" enabled="true" />
 
     <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->

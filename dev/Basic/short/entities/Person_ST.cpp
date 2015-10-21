@@ -73,6 +73,10 @@ Person_ST::Person_ST(const std::string &src, const MutexStrategy &mtxStrat, cons
 prevRole(NULL), currRole(NULL), nextRole(NULL), commEventRegistered(false), amodId("-1"),
 amodPickUpSegmentStr("-1"), amodPickUpOffset(0.0), initSegId(0), initDis(0), initSpeed(0), amodDropOffset(0)
 {
+	if (!tripChain.empty())
+	{
+		initTripChain();
+	}
 }
 
 Person_ST::~Person_ST()

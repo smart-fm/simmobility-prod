@@ -398,7 +398,7 @@ public:
 		return parentWorkerAssigned;
 	}
 
-	void setParentWorker()
+	void setParentWorkerAssigned()
 	{
 		this->parentWorkerAssigned = true;
 	}

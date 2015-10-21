@@ -38,6 +38,10 @@ prevRole(NULL), currRole(NULL), nextRole(NULL)
 	convertODsToTrips();
 	insertWaitingActivityToTrip();
 	assignSubtripIds();
+	if (!tripChain.empty())
+	{
+		initTripChain();
+	}
 }
 
 Person_MT::~Person_MT()

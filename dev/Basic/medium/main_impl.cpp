@@ -82,11 +82,6 @@ using namespace sim_mob::medium;
 //Start time of program
 timeval start_time_med;
 
-namespace
-{
-const std::string MT_CONFIG_FILE = "data/medium/mt-config.xml";
-} //End anonymous namespace
-
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
 
@@ -103,7 +98,7 @@ void assignConfluxLoaderToWorker(WorkGroup* workGrp, unsigned int workerIdx)
 	Conflux* conflux = new Conflux(nullptr, mtxStrat, -1, true);
 	if(workGrp->assignWorker(conflux, workerIdx))
 	{
-		conflux->setParentWorker();
+		conflux->setParentWorkerAssigned();
 		workGrp->registerLoaderEntity(conflux);
 	}
 	else
@@ -115,40 +110,40 @@ void assignConfluxLoaderToWorker(WorkGroup* workGrp, unsigned int workerIdx)
 bool assignConfluxToWorkerRecursive(WorkGroup* workGrp, Conflux* conflux, unsigned int workerIdx, int numConfluxesToAddInWorker)
 {
 	typedef std::set<Conflux*> ConfluxSet;
-	std::set<Conflux*>& confluxes = MT_Config::getInstance().getConfluxes();
+	ConfluxSet& confluxes = MT_Config::getInstance().getConfluxes();
 	bool workerFilled = false;
 
 	if(numConfluxesToAddInWorker > 0)
 	{
-		if (workGrp->assignWorker(conflux, workerIdx)) {
+		if (workGrp->assignWorker(conflux, workerIdx))
+		{
 			confluxes.erase(conflux);
 			numConfluxesToAddInWorker--;
-			conflux->setParentWorker();
+			conflux->setParentWorkerAssigned();
 		}
 
 		ConfluxSet& connectedConfluxes = conflux->getConnectedConfluxes();
 
 		// assign the confluxes of the downstream MultiNodes to the same worker if possible
 		for(ConfluxSet::iterator i = connectedConfluxes.begin();
-				i != connectedConfluxes.end() && numConfluxesToAddInWorker > 0 && confluxes.size() > 0;
+				i != connectedConfluxes.end() && numConfluxesToAddInWorker > 0 && !confluxes.empty();
 				i++)
 		{
 			Conflux* connConflux = *i;
 			if(!(*i)->hasParentWorker()) {
 				// insert this conflux if it has not already been assigned to another worker
-				if (workGrp->assignWorker(conflux, workerIdx))
+				if (workGrp->assignWorker(connConflux, workerIdx))
 				{
 					// One conflux was added by the insert. So...
 					confluxes.erase(connConflux);
 					numConfluxesToAddInWorker--;
-					// set the worker pointer in the Conflux
-					connConflux->setParentWorker();
+					connConflux->setParentWorkerAssigned(); // set the worker pointer in the Conflux
 				}
 			}
 		}
 
 		// after inserting all confluxes of the downstream segments
-		if(numConfluxesToAddInWorker > 0 && confluxes.size() > 0)
+		if(numConfluxesToAddInWorker > 0 && !confluxes.empty())
 		{
 			// call this function recursively with whichever conflux is at the beginning of the confluxes set
 			workerFilled = assignConfluxToWorkerRecursive(workGrp, (*confluxes.begin()), workerIdx, numConfluxesToAddInWorker);
@@ -191,17 +186,19 @@ void assignConfluxToWorkers(WorkGroup* workGrp)
 		}
 		assignConfluxLoaderToWorker(workGrp, wrkrIdx);
 	}
-	if(confluxes.size() > 0)
+	if(!confluxes.empty())
 	{
 		//There can be up to (workers.size() - 1) confluxes for which the parent
 		//worker is not yet assigned. We distribute these confluxes to the workers in round robin fashion
 		unsigned wrkrIdx=0;
-		for(std::set<Conflux*>::iterator cfxIt = confluxes.begin(); cfxIt!=confluxes.end(),  wrkrIdx<numWorkers; cfxIt++, wrkrIdx++)
+		for(std::set<Conflux*>::iterator cfxIt=confluxes.begin(); cfxIt!=confluxes.end(); cfxIt++)
 		{
-			if (workGrp->assignWorker(*cfxIt, wrkrIdx))
+			Conflux* cfx = *cfxIt;
+			if (workGrp->assignWorker(cfx, wrkrIdx))
 			{
-				(*cfxIt)->setParentWorker();
+				cfx->setParentWorkerAssigned();
 			}
+			wrkrIdx = (wrkrIdx+1)%numWorkers;
 		}
 		confluxes.clear();
 	}
@@ -369,7 +366,10 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 		//Agent-based cycle, steps 1,2,3,4
 		wgMgr.waitAllGroups();
 
-		BusController::GetInstance()->processRequests();
+		if(config.busController.enabled)
+		{
+			BusController::GetInstance()->processRequests();
+		}
 	}
 
 	BusStopAgent::removeAllBusStopAgents();
@@ -519,7 +519,7 @@ bool performMainDemand()
  *
  * This function is separate from main() to allow for easy scoping of WorkGroup objects.
  */
-bool performMainMed(const std::string& configFileName, std::list<std::string>& resLogFiles)
+bool performMainMed(const std::string& configFileName, const std::string& mtConfigFileName, std::list<std::string>& resLogFiles)
 {
 	std::srand(clock()); // set random seed for RNGs
 	cout <<"Starting SimMobility, version " << SIMMOB_VERSION << endl;
@@ -528,7 +528,7 @@ bool performMainMed(const std::string& configFileName, std::list<std::string>& r
 	ParseConfigFile parse(configFileName, ConfigManager::GetInstanceRW().FullConfig());
 
 	//load configuration file for mid-term
-	ParseMidTermConfigFile parseMT_Cfg(MT_CONFIG_FILE, MT_Config::getInstance(), ConfigManager::GetInstanceRW().FullConfig());
+	ParseMidTermConfigFile parseMT_Cfg(mtConfigFileName, MT_Config::getInstance(), ConfigManager::GetInstanceRW().FullConfig());
 
 	//Enable or disable logging (all together, for now).
 	//NOTE: This may seem like an odd place to put this, but it makes sense in context.
@@ -606,15 +606,17 @@ int main_impl(int ARGC, char* ARGV[])
 	//Argument 1: Config file
 	//Note: Don't change this here; change it by supplying an argument on the
 	//      command line, or through Eclipse's "Run Configurations" dialog.
-	std::string configFileName = "data/config.xml";
+	std::string configFileName = "data/simulation.xml";
+	std::string mtConfigFileName = "data/simrun_MidTerm.xml";
 
-	if (args.size() > 1)
+	if (args.size() > 2)
 	{
 		configFileName = args[1];
+		mtConfigFileName = args[2];
 	}
 	else
 	{
-		Print() << "No config file specified; using default." << endl;
+		Print() << "One or both config file not specified; using defaults: " << configFileName << " and " << mtConfigFileName << endl;
 	}
 	Print() << "Using config file: " << configFileName << endl;
 
@@ -630,7 +632,7 @@ int main_impl(int ARGC, char* ARGV[])
 	gettimeofday(&simStartTime, nullptr);
 
 	std::list<std::string> resLogFiles;
-	int returnVal = performMainMed(configFileName, resLogFiles) ? 0 : 1;
+	int returnVal = performMainMed(configFileName, mtConfigFileName, resLogFiles) ? 0 : 1;
 
 	//Concatenate output files?
 	if (!resLogFiles.empty())

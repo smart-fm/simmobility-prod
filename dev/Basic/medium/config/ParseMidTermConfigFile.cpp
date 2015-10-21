@@ -83,7 +83,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
     processTT_Update(GetSingleElementByName(rootNode, "travel_time_update", true));
     processPublicTransit(GetSingleElementByName(rootNode, "public_transit", true));
     processCBDNode(GetSingleElementByName(rootNode, "cbd"));
-    processPathSetFileName(GetSingleElementByName(rootNode, "pathset", true));
+    processPathSetFileName(GetSingleElementByName(rootNode, "path-set-config-file", true));
 
 	processMidTermRunMode(GetSingleElementByName(rootNode, "mid_term_run_mode", true));
 
@@ -99,7 +99,7 @@ void ParseMidTermConfigFile::processXmlFile(xercesc::XercesDOMParser& parser)
     ///Take care of pathset manager confifuration in here
     ParsePathXmlConfig(cfg.pathsetFile, cfg.getPathSetConf());
 
-	if(mtCfg.CBD() && cfg.getPathSetConf().psRetrievalWithoutBannedRegion.empty())
+	if(mtCfg.isRegionRestrictionEnabled() && cfg.getPathSetConf().psRetrievalWithoutBannedRegion.empty())
 	{
         throw std::runtime_error("Pathset without banned area stored procedure name not found\n");
 	}
@@ -217,7 +217,6 @@ void ParseMidTermConfigFile::processUpdateIntervalElement(xercesc::DOMElement* n
 		throw std::runtime_error("update interval is 0");
 	}
 	mtCfg.setSupplyUpdateInterval(interval);
-    mtCfg.genericProps["update_interval"] = boost::lexical_cast<std::string>(interval);
 }
 
 void ParseMidTermConfigFile::processDwellTimeElement(xercesc::DOMElement* node)
@@ -563,10 +562,10 @@ void ParseMidTermConfigFile::processCBDNode(xercesc::DOMElement* node){
 
     if (!node) {
 
-        mtCfg.cbd = false;
+        mtCfg.regionRestrictionEnabled = false;
         return;
     }
-    mtCfg.cbd = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+    mtCfg.regionRestrictionEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
 }
 
 

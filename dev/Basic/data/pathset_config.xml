@@ -6,7 +6,7 @@
 		<od_source table="bulkpathgen_od"/>
 		<bulk_generation_output_file name="pathset-bulk.csv" />
 		<tables singlepath_table="pvt_path" realtime_traveltime="supply.realtime_travel_time" default_traveltime = "supply.link_default_travel_time"/>
-		<functions pathset="get_pvt_path_set" pathset_without_banned_area="get_path_set_woba" travel_time="upsert_realtime" />
+		<functions pathset="get_pvt_pathset" pathset_without_banned_area="get_path_set_woba" travel_time="upsert_realtime" />
 		<recursive_pathset_generation value="false"/>
 		<reroute enabled="false" />
 		<subtrip_travel_metrics_output enabled="true" file="subtrip_level_travel_metrics_for_preday.csv" />    	

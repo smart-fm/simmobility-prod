@@ -647,7 +647,7 @@ public:
      *
      * @return true if restriction enforced, else false
      */
-    bool CBD() const;
+    bool isRegionRestrictionEnabled() const;
 
     /**
      * Checks whether public transit is enabeld/disabled
@@ -738,7 +738,7 @@ public:
 
 	const WorkerParams& getWorkerParams() const;
 
-    /**
+	/**
      * Enumerator for mid term run mode
      */
     enum MidTermRunMode
@@ -867,7 +867,7 @@ private:
 	unsigned logsumComputationFrequency;
 
     ///	is CBD area restriction enforced
-    bool cbd;
+    bool regionRestrictionEnabled;
 
     /// is public transit enabled
     bool publicTransitEnabled;

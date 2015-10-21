@@ -785,12 +785,6 @@ vector<WayPoint> A_StarShortestPathImpl::searchShortestPath(const StreetDirector
 
 				//Retrieve, add this edge WayPoint.
 				WayPoint wp = boost::get(boost::edge_name, graph, edge.first);
-				if(wp.type==WayPoint::LINK){
-					const vector<RoadSegment*>& segs = wp.link->getRoadSegments();
-					for(vector<RoadSegment*>::const_iterator it=segs.begin(); it!=segs.end(); it++){
-						Print()<<(*it)->getRoadSegmentId()<<std::endl;
-					}
-				}
 				res.push_back(wp);
 			}
 

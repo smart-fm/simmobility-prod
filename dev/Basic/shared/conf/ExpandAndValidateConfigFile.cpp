@@ -226,12 +226,13 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	if (BusController::HasBusControllers())
 	{
 		BusController::InitializeAllControllers(active_agents, cfg.getPT_bus_dispatch_freq());
+		if(sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes())
+		{
+			Print()<<"Bus routes generation complete. close."<<std::endl;
+			exit(0);
+		}
 	}
 
-	if(sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes())
-	{
-		exit(0);
-	}
 
 	//Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
 	LoadAgentsInOrder(constraints);

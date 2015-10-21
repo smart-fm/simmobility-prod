@@ -191,6 +191,10 @@ void NetworkLoader::loadTurningPolyLines(const std::string& storedProc)
 
 void NetworkLoader::loadBusStops(const std::string& storedProc)
 {
+	if(storedProc ==""){
+		return;
+	}
+
 	//SQL statement
 	soci::rowset<sim_mob::BusStop> stops = (sql.prepare << "select * from " + storedProc);
 
@@ -237,7 +241,7 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 
 		loadTurningConflicts(getStoredProcedure(storedProcs, "turning_conflicts"));
 		
-		//loadBusStops(getStoredProcedure(storedProcs, "bus_stops"));
+		loadBusStops(getStoredProcedure(storedProcs, "bus_stops"));
 		
 		//Close the connection
 		sql.close();

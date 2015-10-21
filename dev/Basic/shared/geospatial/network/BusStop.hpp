@@ -36,7 +36,7 @@ private:
 	TerminusType terminusType;
 
 	/**How many meters of "bus" can park in the bus lane/bay to pick up pedestrians*/
-	unsigned int capacityAsLengthCM;
+	double length;
 
 	/**store bus line info at each bus stop for passengers*/
 	//std::vector<Busline> busLines;
@@ -50,8 +50,14 @@ private:
 	/**offset to its parent segment's obstacle list*/
 	double offset;
 
+	/**bus stop code*/
+	std::string stopCode;
+
 	/**bus stop name*/
 	std::string stopName;
+
+	/**bus stop Id*/
+	unsigned int stopId;
 
 public:	
 	BusStop();
@@ -66,8 +72,8 @@ public:
 	const TerminusType& getTerminusType() const;
 	void setTerminusType(TerminusType type);
 
-	unsigned int getCapacityAsLength() const;
-	void setCapacityAsLength(unsigned int len);
+	double getCapacityAsLength() const;
+	void setCapacityAsLength(double len);
 
 	//void addBusLine(Busline& line);
 	//const std::vector<Busline>& getBusLine() const;
@@ -82,7 +88,13 @@ public:
 	void setOffset(double val);
 
 	const std::string& getStopName() const;
-	void setStopName(std::string name);
+	void setStopName(const std::string name);
+
+	unsigned int getStopId() const;
+	void setStopId(unsigned int id);
+
+	const std::string& getStopCode() const;
+	void setStopCode(const std::string& code);
 };
 
 }

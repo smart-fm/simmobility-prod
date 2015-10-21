@@ -227,13 +227,13 @@ template<> struct type_conversion<sim_mob::BusStop>
 
 	static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::BusStop& res)
 	{
-		res.setRoadItemId(vals.get<unsigned int>("id", 0));
-		res.setCapacityAsLength(vals.get<unsigned int>("length", 0));
-		res.setRoadSegmentId(vals.get<unsigned int>("segment_id", 0));
+		res.setStopId(vals.get<unsigned int>("id", 0));
+		res.setCapacityAsLength(vals.get<double>("length", 0.0));
+		res.setRoadSegmentId(vals.get<unsigned int>("section_id", 0));
 		res.setStopName(vals.get<std::string>("name", ""));
-		res.setTerminusType((sim_mob::TerminusType)vals.get<unsigned int>("type", 0));
-		res.setOffset(vals.get<double>("offset", 0.0));
+		res.setStopCode(vals.get<std::string>("code", ""));
+		res.setTerminusType((sim_mob::TerminusType)vals.get<int>("terminal", 0));
+		res.setOffset(vals.get<double>("section_offset", 0.0));
 	}
 };
-
 }

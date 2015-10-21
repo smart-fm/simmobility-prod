@@ -11,7 +11,7 @@
 using namespace sim_mob;
 
 BusStop::BusStop() :
-terminusType(NOT_A_TERMINUS), capacityAsLengthCM(0.0), twinStop(nullptr), virtualStop(false), offset(0.0)
+terminusType(NOT_A_TERMINUS), length(0.0), twinStop(nullptr), virtualStop(false), offset(0.0)
 {
 }
 
@@ -51,14 +51,14 @@ void BusStop::setTerminusType(TerminusType type)
 	terminusType = type;
 }
 
-unsigned int BusStop::getCapacityAsLength() const
+double BusStop::getCapacityAsLength() const
 {
-	return capacityAsLengthCM;
+	return length;
 }
 
-void BusStop::setCapacityAsLength(unsigned int len)
+void BusStop::setCapacityAsLength(double len)
 {
-	capacityAsLengthCM = len;
+	length = len;
 }
 
 /*
@@ -111,4 +111,22 @@ const std::string& BusStop::getStopName() const
 void BusStop::setStopName(std::string name)
 {
 	stopName = name;
+}
+
+unsigned int BusStop::getStopId() const
+{
+	return stopId;
+}
+void BusStop::setStopId(unsigned int id)
+{
+	stopId = id;
+}
+
+const std::string& BusStop::getStopCode() const
+{
+	return stopCode;
+}
+void BusStop::setStopCode(const std::string& code)
+{
+	stopCode = code;
 }

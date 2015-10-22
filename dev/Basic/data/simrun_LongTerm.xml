@@ -21,7 +21,7 @@
             </database>
             
 	    <!-- internal ip for remote midterm server -->
-            <database id="fm_remote_mt1" dbtype="postgres">
+            <database id="fm_remote_mt" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
                 <dbname value="SimMobility_DB_2015"/>
@@ -38,11 +38,11 @@
 	    <database id="fm_remote_mt3" dbtype="postgres">
 	        <host value="137.132.22.82"/>
 	        <port value="15061"/> <!--old port: 15025 -->
-	        <dbname value="SimMobility_DB_2015"/>
+	        <dbname value="SimMobility_DB_2014"/>
 	    </database>
 
 		<!-- public ip for remote midterm server -->
-	    <database id="fm_remote_mt" dbtype="postgres">
+	    <database id="fm_remote_mt4" dbtype="postgres">
 	        <host value="fmhpchead"/>
 	        <port value="5432"/> <!--old port: 15025 -->
 	        <dbname value="SimMobility_DB_2015"/>
@@ -70,7 +70,7 @@
 		        -->
 		        
 		        <file-based-credential id="fm_remote_mt">
-		            <file path="../private/fm_remote.cred.txt"/>
+		            <file path="private/fm_remote.cred"/>
 		        </file-based-credential>
 		        
 		        <plaintext-credential id="LT_cred">
@@ -203,7 +203,7 @@
 	</vehicleOwnershipModel>
     </longTermParams>
 
-    <model_scripts path="../scripts/lua/mid/behavior-models/" format="lua">
+    <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
 	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
 	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->

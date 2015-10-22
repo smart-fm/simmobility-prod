@@ -387,6 +387,8 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetwork()
 		NetworkLoader *loader = NetworkLoader::getInstance();
 		loader->loadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
 		loader->processNetwork();
+
+		sim_mob::aimsun::Loader::LoadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
 	}
 	else 
 	{

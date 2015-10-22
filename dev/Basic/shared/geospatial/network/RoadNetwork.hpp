@@ -155,6 +155,13 @@ public:
 	 * @return a pointer to the node if found; NULL otherwise
 	 */
 	const Node * getNodeById(unsigned int nodeId) const;
+
+	/**
+	 * Looks-up the required segment from the map of segments
+	 * @param id - the id of the required road segment
+	 * @return a pointer to the node if found; NULL otherwise
+	 */
+	const RoadSegment * getSegmentById(unsigned int id) const;
 };
 }
 

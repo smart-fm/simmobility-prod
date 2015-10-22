@@ -130,9 +130,9 @@ struct type_conversion<sim_mob::PT_bus_routes>
     {
     	pt_bus_routes.route_id = values.get<std::string>("route_id", "");
     	boost::trim(pt_bus_routes.route_id);
-    	pt_bus_routes.link_id = values.get<std::string>("link_id", "");
+    	pt_bus_routes.link_id = values.get<std::string>("section_id", "");
     	boost::trim(pt_bus_routes.link_id);
-    	pt_bus_routes.link_sequence_no = values.get<int>("link_sequence_no", 0);
+    	pt_bus_routes.link_sequence_no = values.get<int>("sequence_no", 0);
     }
 
     static void
@@ -155,9 +155,9 @@ struct type_conversion<sim_mob::PT_bus_stops>
     {
     	pt_bus_stops.route_id = values.get<std::string>("route_id", "");
     	boost::trim(pt_bus_stops.route_id);
-    	pt_bus_stops.busstop_no = values.get<std::string>("busstop_no", "");
+    	pt_bus_stops.busstop_no = values.get<std::string>("stop_code", "");
     	boost::trim(pt_bus_stops.busstop_no);
-    	pt_bus_stops.busstop_sequence_no = values.get<int>("busstop_sequence_no", 0);
+    	pt_bus_stops.busstop_sequence_no = values.get<int>("sequence_no", 0);
     }
 
     static void

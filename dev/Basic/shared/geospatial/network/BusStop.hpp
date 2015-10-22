@@ -59,6 +59,9 @@ private:
 	/**bus stop Id*/
 	unsigned int stopId;
 
+	/**This map stores all the bus stops in the network with bus stop code as the key*/
+	static std::map<std::string, BusStop *> mapOfCodevsBusStops;
+
 public:	
 	BusStop();
 	virtual ~BusStop();
@@ -95,6 +98,9 @@ public:
 
 	const std::string& getStopCode() const;
 	void setStopCode(const std::string& code);
+
+	static void RegisterBusStop(BusStop* stop);
+	static BusStop* findBusStop(const std::string& code);
 };
 
 }

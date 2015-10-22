@@ -535,6 +535,7 @@ void RoadNetwork::addBusStop(BusStop* stop)
 			
 			//Add the stop to the segment
 			itSegments->second->addObstacle(stop->getOffset(), stop);
+			BusStop::RegisterBusStop(stop);
 		}
 		else
 		{
@@ -557,6 +558,21 @@ const Node* RoadNetwork::getNodeById(unsigned int nodeId) const
 	else
 	{
 		sim_mob::Print() << "Node " << nodeId << " was not found!";
+		return NULL;
+	}
+}
+
+const RoadSegment * RoadNetwork::getSegmentById(unsigned int id) const
+{
+	std::map<unsigned int, RoadSegment *>::const_iterator itSeg = mapOfIdVsRoadSegments.find(id);
+
+	if(itSeg != mapOfIdVsRoadSegments.end())
+	{
+		return itSeg->second;
+	}
+	else
+	{
+		sim_mob::Print() << "Segment " << id << " was not found!";
 		return NULL;
 	}
 }

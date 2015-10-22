@@ -265,9 +265,9 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 				}
 
 				if (!isFound) {
-					std::cout << "can not find bus route in bus line:" << busLine
-							<< " start stop:" << start->getRoadItemId()
-							<< "  end stop:" << end->getRoadItemId()
+					std::cout << "can not find route in bus line:" << busLine
+							<< " start stop:" << start->getStopCode()
+							<< "  end stop:" << end->getStopCode()
 							<< std::endl;
 					routeIDs.clear();
 					stopIDs.clear();

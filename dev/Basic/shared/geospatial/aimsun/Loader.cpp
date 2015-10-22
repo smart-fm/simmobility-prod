@@ -1110,7 +1110,7 @@ void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<
 	{
 		sim_mob::PT_bus_routes pt_bus_routesTemp = *iter;
 		pt_bus_routes.push_back(pt_bus_routesTemp);
-		sim_mob::RoadSegment *seg = sections_[atoi(pt_bus_routesTemp.link_id.c_str())].generatedSegment;
+		const sim_mob::RoadSegment *seg = sim_mob::RoadNetwork::getInstance()->getSegmentById(atoi(pt_bus_routesTemp.link_id.c_str()));
 		if(seg) {
 			routeID_roadSegments[iter->route_id].push_back(seg);
 		}
@@ -1121,7 +1121,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 		std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops,
 		std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments)
 {
-	/*
+
 	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 	if (storedProc.empty())
 	{
@@ -1139,7 +1139,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 			routeID_busStops[iter->route_id].push_back(bs);
 		}
 	}
-
+/*
 	for(std::map<std::string, std::vector<const sim_mob::BusStop*> >::iterator routeIt=routeID_busStops.begin();
 			routeIt!=routeID_busStops.end(); routeIt++)
 	{
@@ -2995,8 +2995,8 @@ void sim_mob::aimsun::Loader::getScreenLineSegments(const std::string& connectio
 	loader.LoadScreenLineSegmentIDs(storedProcs, screenLineList);
 }
 
-void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<std::string, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
-{/*
+void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs)
+{
 	std::cout << "Attempting to connect to database (generic)" << std::endl;
 
 	//Connection string will look something like this:
@@ -3007,7 +3007,7 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	//Mutable config file reference.
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 
-	//Step One: Load
+/*	//Step One: Load
 	loader.LoadBasicAimsunObjects(storedProcs);
 
 	if(!config.RunningMidSupply()) //TODO: add config for flag indicating short-term
@@ -3083,13 +3083,13 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 		loader.TransferBoundaryRoadSegment();
 	}
 #endif
-	
+*/
 	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), config.getPT_bus_dispatch_freq());
 	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), config.getPT_bus_routes(), config.getRoadSegments_Map());
 	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), config.getPT_bus_stops(), config.getBusStops_Map(), config.getRoadSegments_Map());
 
 	std::cout <<"AIMSUN Network successfully imported.\n";
-*/
+
 }
 
 void sim_mob::aimsun::Loader::CreateSegmentStats(const sim_mob::RoadSegment* rdSeg, std::list<sim_mob::SegmentStats*>& splitSegmentStats) {

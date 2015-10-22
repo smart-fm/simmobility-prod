@@ -10,6 +10,7 @@
 #include <functional>
 #include <map>
 #include <sstream>
+#include <string>
 #include <stdint.h>
 #include <utility>
 #include <vector>
@@ -32,6 +33,78 @@ const unsigned int SECONDS_IN_ONE_HOUR = 3600;
 const double TWENTY_FOUR_HOURS = 24.0;
 const double LAST_30MIN_WINDOW_OF_DAY = 26.75;
 const string HOME_ACTIVITY_TYPE = "Home";
+
+/**
+ * a verbose, dangerous and yet fast helper function to get characters corresponding to decimal numbers 0 through 59
+ * buildStringRepr() uses this function to quickly get the string representation for a time value in milliseconds
+ */
+inline char* timeDecimalDigitToChar(int num, char* c)
+{
+	switch(num)
+	{
+		case 0: { *c='0'; c++; *c='0'; break; }
+		case 1: { *c='0'; c++; *c='1'; break; }
+		case 2: { *c='0'; c++; *c='2'; break; }
+		case 3: { *c='0'; c++; *c='3'; break; }
+		case 4: { *c='0'; c++; *c='4'; break; }
+		case 5: { *c='0'; c++; *c='5'; break; }
+		case 6: { *c='0'; c++; *c='6'; break; }
+		case 7: { *c='0'; c++; *c='7'; break; }
+		case 8: { *c='0'; c++; *c='8'; break; }
+		case 9: { *c='0'; c++; *c='9'; break; }
+		case 10: { *c='1'; c++; *c='0'; break; }
+		case 11: { *c='1'; c++; *c='1'; break; }
+		case 12: { *c='1'; c++; *c='2'; break; }
+		case 13: { *c='1'; c++; *c='3'; break; }
+		case 14: { *c='1'; c++; *c='4'; break; }
+		case 15: { *c='1'; c++; *c='5'; break; }
+		case 16: { *c='1'; c++; *c='6'; break; }
+		case 17: { *c='1'; c++; *c='7'; break; }
+		case 18: { *c='1'; c++; *c='8'; break; }
+		case 19: { *c='1'; c++; *c='9'; break; }
+		case 20: { *c='2'; c++; *c='0'; break; }
+		case 21: { *c='2'; c++; *c='1'; break; }
+		case 22: { *c='2'; c++; *c='2'; break; }
+		case 23: { *c='2'; c++; *c='3'; break; }
+		case 24: { *c='2'; c++; *c='4'; break; }
+		case 25: { *c='2'; c++; *c='5'; break; }
+		case 26: { *c='2'; c++; *c='6'; break; }
+		case 27: { *c='2'; c++; *c='7'; break; }
+		case 28: { *c='2'; c++; *c='8'; break; }
+		case 29: { *c='2'; c++; *c='9'; break; }
+		case 30: { *c='3'; c++; *c='0'; break; }
+		case 31: { *c='3'; c++; *c='1'; break; }
+		case 32: { *c='3'; c++; *c='2'; break; }
+		case 33: { *c='3'; c++; *c='3'; break; }
+		case 34: { *c='3'; c++; *c='4'; break; }
+		case 35: { *c='3'; c++; *c='5'; break; }
+		case 36: { *c='3'; c++; *c='6'; break; }
+		case 37: { *c='3'; c++; *c='7'; break; }
+		case 38: { *c='3'; c++; *c='8'; break; }
+		case 39: { *c='3'; c++; *c='9'; break; }
+		case 40: { *c='4'; c++; *c='0'; break; }
+		case 41: { *c='4'; c++; *c='1'; break; }
+		case 42: { *c='4'; c++; *c='2'; break; }
+		case 43: { *c='4'; c++; *c='3'; break; }
+		case 44: { *c='4'; c++; *c='4'; break; }
+		case 45: { *c='4'; c++; *c='5'; break; }
+		case 46: { *c='4'; c++; *c='6'; break; }
+		case 47: { *c='4'; c++; *c='7'; break; }
+		case 48: { *c='4'; c++; *c='8'; break; }
+		case 49: { *c='4'; c++; *c='9'; break; }
+		case 50: { *c='5'; c++; *c='0'; break; }
+		case 51: { *c='5'; c++; *c='1'; break; }
+		case 52: { *c='5'; c++; *c='2'; break; }
+		case 53: { *c='5'; c++; *c='3'; break; }
+		case 54: { *c='5'; c++; *c='4'; break; }
+		case 55: { *c='5'; c++; *c='5'; break; }
+		case 56: { *c='5'; c++; *c='6'; break; }
+		case 57: { *c='5'; c++; *c='7'; break; }
+		case 58: { *c='5'; c++; *c='8'; break; }
+		case 59: { *c='5'; c++; *c='9'; break; }
+	}
+	return c;
+}
 
 /**
  * given a time value in seconds measured from 00:00:00 (12AM)
@@ -73,21 +146,24 @@ double getHalfHourWindow(uint32_t time) //time is in seconds
  * 							The arrival time can be chosen in the first 15 minutes and dep. time can be chosen in the 2nd 1 mins of the window
  * @return a random time within the window in hh24:mm:ss format
  */
-std::string getRandomTimeInWindow(double mid, bool firstFifteenMins, const std::string pid = "") {
+std::string getRandomTimeInWindow(double mid, bool firstFifteenMins, const std::string pid = "")
+{
 	int hour = int(std::floor(mid));
 	int min = 0, max = 29;
 	if(firstFifteenMins) { min = 0; max = 14; }
 	int minute = Utils::generateInt(min,max) + ((mid - hour - 0.25)*60);
 	int second = Utils::generateInt(0,60);
-	std::stringstream random_time;
-	hour = hour % 24;
-	if (hour < 10) { random_time << "0"; }
-	random_time << hour << ":";
-	if (minute < 10) { random_time << "0"; }
-	random_time << minute << ":";
-	if(second < 10) { random_time << "0"; }
-	random_time << second;
-	return random_time.str(); //HH24:MI:SS format
+
+	//construct string representation
+	std::string random_time;
+	random_time.resize(8); //hh:mi:ss - 8 characters
+	char* c = &random_time[0];
+	c = timeDecimalDigitToChar(hour, c);
+	c++; *c=':'; c++;
+	c = timeDecimalDigitToChar(minute, c);
+	c++; *c=':'; c++;
+	c = timeDecimalDigitToChar(second, c);
+	return random_time; //HH24:MI:SS format
 }
 
 }//anon namespace

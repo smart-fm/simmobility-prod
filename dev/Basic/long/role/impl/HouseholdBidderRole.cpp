@@ -1076,6 +1076,9 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 							 otherHousingHhSizeOne		<< " l " << DWL800  << std::endl);
 		*/
 
+		if( isnan(probability) )
+			probability = 0.0;
+
 		probabilities.push_back(probability);
 
 		probabilitySum += exp(probability);
@@ -1161,6 +1164,8 @@ bool HouseholdBidderRole::pickEntryToBid()
 
     for(int n = 0; n < entries.size() /** housingMarketSearchPercentage*/ && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
     {
+	srand(time(NULL));
+
         double randomDraw = (double)rand()/RAND_MAX;
         int zoneHousingType = -1;
         double cummulativeProbability = 0.0;

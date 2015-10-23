@@ -46,6 +46,10 @@ HouseholdAgent::HouseholdAgent(BigSerial id, HM_Model* model, const Household* h
     ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
     buySellInterval = config.ltParams.housingModel.offsetBetweenUnitBuyingAndSelling;
     householdBiddingWindow = config.ltParams.housingModel.householdBiddingWindow;
+
+    //srand() is thread-specific
+	time_t timeInSeconds = std::time(0);
+	srand(timeInSeconds);
 }
 
 HouseholdAgent::~HouseholdAgent()
@@ -242,7 +246,12 @@ Entity::UpdateStatus HouseholdAgent::onFrameTick(timeslice now)
 			const Household *hh = this->getHousehold();
 
 			if( hh != NULL )
-				model->getLogsumOfHousehold(hh->getId());
+			{
+				model->getLogsumOfHouseholdVO(hh->getId());
+				//model->getLogsumOfHousehold(hh->getId());
+			}
+
+			return Entity::UpdateStatus(UpdateStatus::RS_CONTINUE);
 		}
 	}
 

@@ -24,22 +24,31 @@
             <database id="fm_remote_mt" dbtype="postgres">
                 <host value="172.25.184.48"/>
                 <port value="5432"/>
-                <dbname value="simmobility_db_2014"/>
+                <dbname value="SimMobility_DB_2015"/>
             </database>
 
             <!-- localhost for midterm server -->
             <database id="fm_remote_mt2" dbtype="postgres">
                 <host value="localhost"/>
                 <port value="5432"/>
-                <dbname value="sim_mob_lt"/>
+                <dbname value="SimMobility_DB_2015"/>
             </database>
 
 		<!-- public ip for remote midterm server -->
 	    <database id="fm_remote_mt3" dbtype="postgres">
 	        <host value="137.132.22.82"/>
 	        <port value="15061"/> <!--old port: 15025 -->
-	        <dbname value="simmobility_db_2014"/>
+	        <dbname value="SimMobility_DB_2014"/>
 	    </database>
+
+		<!-- public ip for remote midterm server -->
+	    <database id="fm_remote_mt4" dbtype="postgres">
+	        <host value="fmhpchead"/>
+	        <port value="5432"/> <!--old port: 15025 -->
+	        <dbname value="SimMobility_DB_2015"/>
+	    </database>
+
+
 	 </databases>
     
 		    <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
@@ -61,7 +70,7 @@
 		        -->
 		        
 		        <file-based-credential id="fm_remote_mt">
-		            <file path="../private/fm_remote.cred.txt"/>
+		            <file path="private/fm_remote.cred"/>
 		        </file-based-credential>
 		        
 		        <plaintext-credential id="LT_cred">
@@ -163,7 +172,7 @@
               
     <!-- Long Term Configurations parameters -->
     <longTermParams enabled ="true">
-    	<days value="365"/>
+    	<days value="3"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
     	<tickStep value="1"/>       
@@ -177,24 +186,24 @@
 		<minLotSize value = "100.00" />
     	</developerModel>
         <housingModel enabled="true"> 
-	    <outputHouseholdLogsums value="false"/>
+	    <outputHouseholdLogsums value="true"/>
             <timeOnMarket value="90"/>
             <timeOffMarket value="150"/>
             <timeInterval value="7"/>
-	    <InitialHouseholdsOnMarket value="1000"/>
+	    <InitialHouseholdsOnMarket value="10"/>
 	    <vacantUnitActivationProbability value="0.375"/>
 	    <housingMarketSearchPercentage value="0.15"/>
 	    <housingMoveInDaysInterval value="30"/>
 	    <offsetBetweenUnitBuyingAndSelling value ="7"/>
-	    <bidderUnitsChoiceSet value = "100"/>
-	    <householdBiddingWindow value = "100" />
+	    <bidderUnitsChoiceSet value = "10"/>
+	    <householdBiddingWindow value = "10" />
         </housingModel>
 	<vehicleOwnershipModel enabled='true'>
 		<vehicleBuyingWaitingTimeInDays value= "60"/>
 	</vehicleOwnershipModel>
     </longTermParams>
 
-    <model_scripts path="../scripts/lua/mid/behavior-models/" format="lua">
+    <model_scripts path="scripts/lua/mid/behavior-models/" format="lua">
 	<script name="logit" file="logit.lua"/> <!--The main logit code for multinomial and nested logit models-->
 	<script name="dpb" file="dpb.lua"/> <!-- Day Pattern Binary -->
 	<script name="dpt" file="dpt.lua"/> <!-- Day Pattern Tours -->

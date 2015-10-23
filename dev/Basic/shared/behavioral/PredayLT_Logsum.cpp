@@ -25,7 +25,7 @@ using namespace sim_mob::db;
 namespace
 {
 
-const std::string LT_DB_CONFIG_FILE = "../private/lt-db.ini";
+const std::string LT_DB_CONFIG_FILE = "private/lt-db.ini";
 
 
 /**
@@ -238,18 +238,54 @@ PredayPersonParams sim_mob::PredayLT_LogsumManager::computeLogsum(long individua
 
 	if(personParams.hasFixedWorkPlace())
 	{
-		int workLoc = personParams.getFixedWorkLocation();
-		ZoneParams* orgZnParams = zoneMap.at(zoneIdLookup.at(homeLoc));
-		ZoneParams* destZnParams = zoneMap.at(zoneIdLookup.at(workLoc));
+		int workLoc = workLoc = personParams.getFixedWorkLocation();
+		ZoneParams* orgZnParams = nullptr;
+		ZoneParams* destZnParams = nullptr;
 		CostParams* amCostParams = nullptr;
 		CostParams* pmCostParams = nullptr;
+
+		try
+		{
+			orgZnParams = zoneMap.at(zoneIdLookup.at(homeLoc));
+		}
+		catch(...)
+		{
+			orgZnParams = new ZoneParams();
+		}
+
+		try
+		{
+			destZnParams = zoneMap.at(zoneIdLookup.at(workLoc));
+		}
+		catch(...)
+		{
+			destZnParams = new ZoneParams();
+		}
+
 		if(homeLoc != workLoc)
 		{
-			amCostParams = amCostMap.at(homeLoc).at(workLoc);
-			pmCostParams = pmCostMap.at(workLoc).at(homeLoc);
+			try
+			{
+				amCostParams = amCostMap.at(homeLoc).at(workLoc);
+			}
+			catch(...)
+			{
+				amCostParams = new CostParams();
+			}
+
+			try
+			{
+				pmCostParams = pmCostMap.at(workLoc).at(homeLoc);
+			}
+			catch(...)
+			{
+				pmCostParams = new CostParams();
+			}
+
 		}
 		LogsumTourModeParams tmParams(orgZnParams, destZnParams, amCostParams, pmCostParams, personParams, WORK);
 		PredayLogsumLuaProvider::getPredayModel().computeTourModeLogsum(personParams, tmParams);
+
 	}
 
 	LogsumTourModeDestinationParams tmdParams(zoneMap, amCostMap, pmCostMap, personParams, NULL_STOP);

@@ -216,6 +216,16 @@ public:
 		return getByValues(query, EMPTY_PARAMS, outList);
 	}
 
+	/*
+	 * execute a given query
+	 * @param query to be executed query
+	 * @param outList gives the result of the query
+	 */
+	virtual bool getByQueryId(std::string query, const Parameters& ids,std::vector<T*>& outList)
+	{
+		return getByValues(query, ids, outList);
+	}
+
 protected:
 	// Protected types
 

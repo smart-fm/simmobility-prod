@@ -202,6 +202,11 @@ namespace sim_mob {
              */
             const TazLevelLandPrice* getTazLevelLandPriceByTazId(BigSerial tazId) const;
 
+            /*
+             * return the average age of all the buildings in a given parcel for the current simulation date
+             */
+            int getBuildingAvgAge(const BigSerial fmParcelId) const;
+
         protected:
             /**
              * Inherited from Model.
@@ -251,7 +256,7 @@ namespace sim_mob {
             BigSerial unitIdForDevAgent;
             BigSerial buildingIdForDevAgent;
             BigSerial projectIdForDevAgent;
-            BigSerial simYearForDevAgent;
+            BigSerial simYear;
             AccessibilityLogsumList accessibilityList;
             AccessibilityLogsumMap accessibilityByTazId;
             ParcelsWithHDBList parcelsWithHDB;

@@ -45,9 +45,9 @@ namespace sim_mob
 
         public:
             /*
-            * Get the parcels with no buildings as a vector
+            * Get the parcels of given parcel id
             */
-            std::vector<Building*> getBuildingsOfParcel();
+            std::vector<Building*> getBuildingsByParcelId(const long long parcelId);
         };
     }
 }

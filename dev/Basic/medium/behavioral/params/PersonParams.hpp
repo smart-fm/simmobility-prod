@@ -8,8 +8,10 @@
 #include <stdint.h>
 #include "behavioral/PredayClasses.hpp"
 
-namespace sim_mob {
-namespace medium {
+namespace sim_mob
+{
+namespace medium
+{
 
 /**
  * Simple class to store information about a person from population database.
@@ -18,7 +20,8 @@ namespace medium {
  *
  * \author Harish Loganathan
  */
-class PersonParams {
+class PersonParams
+{
 public:
 	PersonParams();
 	virtual ~PersonParams();
@@ -33,211 +36,263 @@ public:
 		this->hhId = hhId;
 	}
 
-	int getAgeId() const {
+	int getAgeId() const
+	{
 		return ageId;
 	}
 
-	void setAgeId(int ageId) {
+	void setAgeId(int ageId)
+	{
 		this->ageId = ageId;
 	}
 
-	int getCarOwnNormal() const {
+	int getCarOwnNormal() const
+	{
 		return carOwnNormal;
 	}
 
-	void setCarOwnNormal(int carOwnNormal) {
+	void setCarOwnNormal(int carOwnNormal)
+	{
 		this->carOwnNormal = carOwnNormal;
 	}
 
-	int getCarOwnOffpeak() const {
+	int getCarOwnOffpeak() const
+	{
 		return carOwnOffpeak;
 	}
 
-	void setCarOwnOffpeak(int carOwnOffpeak) {
+	void setCarOwnOffpeak(int carOwnOffpeak)
+	{
 		this->carOwnOffpeak = carOwnOffpeak;
 	}
 
-	int getFixedWorkLocation() const {
+	int getFixedWorkLocation() const
+	{
 		return fixedWorkLocation;
 	}
 
-	void setFixedWorkLocation(int fixedWorkLocation) {
+	void setFixedWorkLocation(int fixedWorkLocation)
+	{
 		this->fixedWorkLocation = fixedWorkLocation;
 	}
 
-	int hasFixedWorkPlace() const {
+	int hasFixedWorkPlace() const
+	{
 		return (fixedWorkLocation != 0);
 	}
 
-	int getHasFixedWorkTiming() const {
+	int getHasFixedWorkTiming() const
+	{
 		return hasFixedWorkTiming;
 	}
 
-	void setHasFixedWorkTiming(int hasFixedWorkTiming) {
+	void setHasFixedWorkTiming(int hasFixedWorkTiming)
+	{
 		this->hasFixedWorkTiming = hasFixedWorkTiming;
 	}
 
-	int getHomeLocation() const {
+	int getHomeLocation() const
+	{
 		return homeLocation;
 	}
 
-	void setHomeLocation(int homeLocation) {
+	void setHomeLocation(int homeLocation)
+	{
 		this->homeLocation = homeLocation;
 	}
 
-	int getIncomeId() const {
+	int getIncomeId() const
+	{
 		return incomeId;
 	}
 
-	void setIncomeId(int income_id) {
+	void setIncomeId(int income_id)
+	{
 		this->incomeId = income_id;
 	}
 
-	int getIsFemale() const {
+	int getIsFemale() const
+	{
 		return isFemale;
 	}
 
-	void setIsFemale(int isFemale) {
+	void setIsFemale(int isFemale)
+	{
 		this->isFemale = isFemale;
 	}
 
-	int getIsUniversityStudent() const {
+	int getIsUniversityStudent() const
+	{
 		return isUniversityStudent;
 	}
 
-	void setIsUniversityStudent(int isUniversityStudent) {
+	void setIsUniversityStudent(int isUniversityStudent)
+	{
 		this->isUniversityStudent = isUniversityStudent;
 	}
 
-	int getMotorOwn() const {
+	int getMotorOwn() const
+	{
 		return motorOwn;
 	}
 
-	void setMotorOwn(int motorOwn) {
+	void setMotorOwn(int motorOwn)
+	{
 		this->motorOwn = motorOwn;
 	}
 
-	int getPersonTypeId() const {
+	int getPersonTypeId() const
+	{
 		return personTypeId;
 	}
 
-	void setPersonTypeId(int personTypeId) {
+	void setPersonTypeId(int personTypeId)
+	{
 		this->personTypeId = personTypeId;
 	}
 
-	int getWorksAtHome() const {
+	int getWorksAtHome() const
+	{
 		return worksAtHome;
 	}
 
-	void setWorksAtHome(int worksAtHome) {
+	void setWorksAtHome(int worksAtHome)
+	{
 		this->worksAtHome = worksAtHome;
 	}
 
-	int getFixedSchoolLocation() const {
+	int getFixedSchoolLocation() const
+	{
 		return fixedSchoolLocation;
 	}
 
-	void setFixedSchoolLocation(int fixedSchoolLocation) {
+	void setFixedSchoolLocation(int fixedSchoolLocation)
+	{
 		this->fixedSchoolLocation = fixedSchoolLocation;
 	}
 
-	int getStopType() const {
+	int getStopType() const
+	{
 		return stopType;
 	}
 
-	void setStopType(int stopType) {
+	void setStopType(int stopType)
+	{
 		this->stopType = stopType;
 	}
 
-	int isWorker() const {
+	int isWorker() const
+	{
 		return (personTypeId == 1 || personTypeId == 2 || personTypeId == 3 || personTypeId == 8 || personTypeId == 9 || personTypeId == 10);
 	}
 
-	int hasDrivingLicence() const {
+	int hasDrivingLicence() const
+	{
 		return drivingLicence;
 	}
 
-	void setHasDrivingLicence(bool hasDrivingLicence) {
-		this->drivingLicence = (int)hasDrivingLicence;
+	void setHasDrivingLicence(bool hasDrivingLicence)
+	{
+		this->drivingLicence = (int) hasDrivingLicence;
 	}
 
-	std::string getPersonId() const {
+	std::string getPersonId() const
+	{
 		return personId;
 	}
 
-	void setPersonId(std::string personId) {
+	void setPersonId(std::string personId)
+	{
 		this->personId = personId;
 	}
 
-	int getHH_HasUnder15() const {
+	int getHH_HasUnder15() const
+	{
 		return hasUnder15;
 	}
 
-	void setHH_HasUnder15(int hhUnder15) {
+	void setHH_HasUnder15(int hhUnder15)
+	{
 		this->hasUnder15 = (hhUnder15 > 0);
 	}
 
-	int getHH_NumUnder4() const {
+	int getHH_NumUnder4() const
+	{
 		return hhNumUnder4;
 	}
 
-	void setHH_NumUnder4(int hhNumUnder4) {
+	void setHH_NumUnder4(int hhNumUnder4)
+	{
 		this->hhNumUnder4 = hhNumUnder4;
 	}
 
-	int getHH_OnlyAdults() const {
+	int getHH_OnlyAdults() const
+	{
 		return hhOnlyAdults;
 	}
 
-	void setHH_OnlyAdults(int hhOnlyAdults) {
+	void setHH_OnlyAdults(int hhOnlyAdults)
+	{
 		this->hhOnlyAdults = hhOnlyAdults;
 	}
 
-	int getHH_OnlyWorkers() const {
+	int getHH_OnlyWorkers() const
+	{
 		return hhOnlyWorkers;
 	}
 
-	void setHH_OnlyWorkers(int hhOnlyWorkers) {
+	void setHH_OnlyWorkers(int hhOnlyWorkers)
+	{
 		this->hhOnlyWorkers = hhOnlyWorkers;
 	}
 
-	double getEduLogSum() const {
+	double getEduLogSum() const
+	{
 		return eduLogSum;
 	}
 
-	void setEduLogSum(double eduLogSum) {
+	void setEduLogSum(double eduLogSum)
+	{
 		this->eduLogSum = eduLogSum;
 	}
 
-	double getOtherLogSum() const {
+	double getOtherLogSum() const
+	{
 		return otherLogSum;
 	}
 
-	void setOtherLogSum(double otherLogSum) {
+	void setOtherLogSum(double otherLogSum)
+	{
 		this->otherLogSum = otherLogSum;
 	}
 
-	double getShopLogSum() const {
+	double getShopLogSum() const
+	{
 		return shopLogSum;
 	}
 
-	void setShopLogSum(double shopLogSum) {
+	void setShopLogSum(double shopLogSum)
+	{
 		this->shopLogSum = shopLogSum;
 	}
 
-	double getWorkLogSum() const {
+	double getWorkLogSum() const
+	{
 		return workLogSum;
 	}
 
-	void setWorkLogSum(double workLogSum) {
+	void setWorkLogSum(double workLogSum)
+	{
 		this->workLogSum = workLogSum;
 	}
 
-	int getStudentTypeId() const {
+	int getStudentTypeId() const
+	{
 		return studentTypeId;
 	}
 
-	void setStudentTypeId(int studentTypeId) {
+	void setStudentTypeId(int studentTypeId)
+	{
 		this->studentTypeId = studentTypeId;
 	}
 
@@ -270,27 +325,6 @@ public:
 	{
 		this->carOwn = carOwn;
 	}
-
-	/** makes all time windows to available*/
-	void initTimeWindows();
-
-	/**
-	 * get the availability for a time window for tour
-	 */
-	int getTimeWindowAvailability(size_t timeWnd) const;
-
-	/**
-	 * overload function to set availability of times in timeWnd to 0
-	 *
-	 * @param startTime start time
-	 * @param endTime end time
-	 */
-	void blockTime(double startTime, double endTime);
-
-	/**
-	 * prints the fields of this object
-	 */
-	void print();
 
 	double getDpsLogsum() const
 	{
@@ -432,7 +466,8 @@ public:
 		this->fixedWorkplace = hasFixedWorkplace;
 	}
 
-	int isStudent() const {
+	int isStudent() const
+	{
 		return student;
 	}
 
@@ -456,15 +491,64 @@ public:
 		return addressTazLookup;
 	}
 
+	/**
+	 * makes all time windows to available
+	 */
+	void initTimeWindows();
+
+	/**
+	 * get the availability for a time window for tour
+	 *
+	 * @param timeWnd time window index to check availability
+	 *
+	 * @return 0 if time window is not available; 1 if available
+	 *
+	 * NOTE: This function is invoked from the Lua layer. The return type is int in order to be compatible with Lua.
+	 *       Lua does not support boolean types.
+	 */
+	int getTimeWindowAvailability(size_t timeWnd) const;
+
+	/**
+	 * overload function to set availability of times in timeWnd to 0
+	 *
+	 * @param startTime start time
+	 * @param endTime end time
+	 */
+	void blockTime(double startTime, double endTime);
+
+	/**
+	 * prints the fields of this object
+	 */
+	void print();
+
+	/**
+	 * looks up TAZ code for a given address ID from LT population data
+	 *
+	 * @param addressId input address id
+	 *
+	 * @return TAZ code for addressId
+	 */
 	int getTAZCodeForAddressId(long addressId);
 
+	/**
+	 * sets income ID by looking up income on a pre loaded map of income ranges.
+	 * handles incomeId value mismatch between preday and long-term formats. See implementation for details.
+	 *
+	 * @param income the income value
+	 */
 	void setIncomeIdFromIncome(double income);
+
+	/**
+	 * maps vehicleCategoryID from LT db to preday understandable format
+	 *
+	 * @param vehicleCategoryId LT vechicle category id
+	 */
 	void setVehicleOwnershipFromCategoryId(int vehicleCategoryId);
 
 	/**
-	 * function to infer params used in preday system of models from params read from LT population
+	 * infers params used in preday system of models from params obtained from LT population
 	 */
-	void fixUpForLtPerson();
+	void fixUpParamsForLtPerson();
 
 private:
 	std::string personId;
@@ -519,24 +603,24 @@ private:
 	/**
 	 * Time windows availability for the person.
 	 */
-    std::vector<sim_mob::medium::TimeWindowAvailability> timeWindowAvailability;
+	std::vector<sim_mob::medium::TimeWindowAvailability> timeWindowAvailability;
 
-    /**
-     * income category lookup containing lower limits of each category.
-     * income category id for a specific income is the index of the greatest element lower than the income in this array
-     * index 0 corresponds no income.
-     */
-    static double incomeCategoryLowerLimits[12];
+	/**
+	 * income category lookup containing lower limits of each category.
+	 * income category id for a specific income is the index of the greatest element lower than the income in this array
+	 * index 0 corresponds no income.
+	 */
+	static double incomeCategoryLowerLimits[12];
 
-    /**
-     * vehicle category map of id->bitset<4> (4 bits representing 0-carOwn, 1-carOwnNormal, 2-carOwnOffPeak and 3-motorOwn bit for the id)
-     */
-    static std::map<int, std::bitset<4> > vehicleCategoryLookup;
+	/**
+	 * vehicle category map of id->bitset<4> (4 bits representing 0-carOwn, 1-carOwnNormal, 2-carOwnOffPeak and 3-motorOwn bit for the id)
+	 */
+	static std::map<int, std::bitset<4> > vehicleCategoryLookup;
 
-    /**
-     * address to taz map
-     */
-    static std::map<long, int> addressTazLookup;
+	/**
+	 * address to taz map
+	 */
+	static std::map<long, int> addressTazLookup;
 };
 
 /**
@@ -544,45 +628,56 @@ private:
  *
  * \author Harish Loganathan
  */
-class UsualWorkParams {
+class UsualWorkParams
+{
 public:
-	int getFirstOfMultiple() const {
+	int getFirstOfMultiple() const
+	{
 		return firstOfMultiple;
 	}
 
-	void setFirstOfMultiple(int firstOfMultiple) {
+	void setFirstOfMultiple(int firstOfMultiple)
+	{
 		this->firstOfMultiple = firstOfMultiple;
 	}
 
-	int getSubsequentOfMultiple() const {
+	int getSubsequentOfMultiple() const
+	{
 		return subsequentOfMultiple;
 	}
 
-	void setSubsequentOfMultiple(int subsequentOfMultiple) {
+	void setSubsequentOfMultiple(int subsequentOfMultiple)
+	{
 		this->subsequentOfMultiple = subsequentOfMultiple;
 	}
 
-	double getWalkDistanceAm() const {
+	double getWalkDistanceAm() const
+	{
 		return walkDistanceAM;
 	}
 
-	void setWalkDistanceAm(double walkDistanceAm) {
+	void setWalkDistanceAm(double walkDistanceAm)
+	{
 		walkDistanceAM = walkDistanceAm;
 	}
 
-	double getWalkDistancePm() const {
+	double getWalkDistancePm() const
+	{
 		return walkDistancePM;
 	}
 
-	void setWalkDistancePm(double walkDistancePm) {
+	void setWalkDistancePm(double walkDistancePm)
+	{
 		walkDistancePM = walkDistancePm;
 	}
 
-	double getZoneEmployment() const {
+	double getZoneEmployment() const
+	{
 		return zoneEmployment;
 	}
 
-	void setZoneEmployment(double zoneEmployment) {
+	void setZoneEmployment(double zoneEmployment)
+	{
 		this->zoneEmployment = zoneEmployment;
 	}
 
@@ -600,7 +695,8 @@ private:
  *
  * \author Harish Loganathan
  */
-class SubTourParams {
+class SubTourParams
+{
 public:
 	SubTourParams(const Tour& tour);
 	virtual ~SubTourParams();
@@ -655,15 +751,43 @@ public:
 		this->subTourPurpose = subTourpurpose;
 	}
 
+	int isCbdDestZone() const
+	{
+		return (cbdDestZone ? 1 : 0);
+	}
+
+	void setCbdDestZone(int cbdDestZone)
+	{
+		this->cbdDestZone = cbdDestZone;
+	}
+
+	int isCbdOrgZone() const
+	{
+		return (cbdOrgZone ? 1 : 0);
+	}
+
+	void setCbdOrgZone(int cbdOrgZone)
+	{
+		this->cbdOrgZone = cbdOrgZone;
+	}
+
 	/**
 	 * make time windows between startTime and endTime available
+	 *
 	 * @param startTime start time of available window
 	 * @param endTime end time of available window
 	 */
 	void initTimeWindows(double startTime, double endTime);
 
 	/**
-	 * get the availability for a time window for sub-tour
+	 * get the availability for a time window for tour
+	 *
+	 * @param timeWnd time window index to check availability
+	 *
+	 * @return 0 if time window is not available; 1 if available
+	 *
+	 * NOTE: This function is invoked from the Lua layer. The return type is int in order to be compatible with Lua.
+	 *       Lua does not support boolean types.
 	 */
 	int getTimeWindowAvailability(size_t timeWnd) const;
 
@@ -677,49 +801,50 @@ public:
 
 	/**
 	 * check if all time windows are unavailable
+	 *
 	 * @return true if all time windows are unavailable; false otherwise
 	 */
 	bool allWindowsUnavailable();
 
-	int isCbdDestZone() const
-	{
-		return (cbdDestZone? 1 : 0);
-	}
-
-	void setCbdDestZone(int cbdDestZone)
-	{
-		this->cbdDestZone = cbdDestZone;
-	}
-
-	int isCbdOrgZone() const
-	{
-		return (cbdOrgZone? 1 : 0);
-	}
-
-	void setCbdOrgZone(int cbdOrgZone)
-	{
-		this->cbdOrgZone = cbdOrgZone;
-	}
-
 private:
-	/**mode choice for parent tour*/
+	/**
+	 * mode choice for parent tour
+	 */
 	int tourMode;
-	/**parent tour is the first of many tours for person*/
-	bool firstOfMultipleTours;
-	/**parent tour is the 2+ of many tours for person*/
-	bool subsequentOfMultipleTours;
-	/**parent tour is to a usual location*/
-	bool usualLocation;
-	/**sub tour type*/
-	StopType subTourPurpose;
-	/** Time windows available for sub-tour.*/
-	std::vector<sim_mob::medium::TimeWindowAvailability> timeWindowAvailability;
-    /** bitset of availablilities for fast checking*/
-    std::bitset<1176> availabilityBit;
 
-    int cbdOrgZone;
-    int cbdDestZone;
+	/**
+	 * parent tour is the first of many tours for person
+	 */
+	bool firstOfMultipleTours;
+
+	/**
+	 * parent tour is the 2+ of many tours for person
+	 */
+	bool subsequentOfMultipleTours;
+
+	/**
+	 * parent tour is to a usual location
+	 */
+	bool usualLocation;
+
+	/**
+	 * sub tour type
+	 */
+	StopType subTourPurpose;
+
+	/**
+	 * Time windows available for sub-tour.
+	 */
+	std::vector<sim_mob::medium::TimeWindowAvailability> timeWindowAvailability;
+
+	/**
+	 * bitset of availablilities for fast checking
+	 */
+	std::bitset<1176> availabilityBit;
+
+	int cbdOrgZone;
+	int cbdDestZone;
 };
 
 } //end namespace medium
-}// end namespace sim_mob
+} // end namespace sim_mob

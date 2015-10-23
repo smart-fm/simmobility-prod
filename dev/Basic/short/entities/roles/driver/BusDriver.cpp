@@ -43,7 +43,7 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat, sim_mob::B
 	real_DepartureTime(mtxStrat, 0), real_ArrivalTime(mtxStrat, 0), DwellTime_ijk(mtxStrat, 0), busstop_sequence_no(mtxStrat, 0),
 	xpos_approachingbusstop(-1), ypos_approachingbusstop(-1)
 {
-	last_busStopRealTimes = new Shared<BusStop_RealTimes>(mtxStrat,BusStop_RealTimes());
+	last_busStopRealTimes = new Shared<BusStopRealTimes>(mtxStrat,BusStopRealTimes());
 	if(parent) {
 		if(parent->getAgentSrc() == "BusController") {
 			BusTrip* bustrip = dynamic_cast<BusTrip*>(*(parent->currTripChainItem));
@@ -51,7 +51,7 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat, sim_mob::B
 				std::vector<const BusStop*> busStops_temp = bustrip->getBusRouteInfo().getBusStops();
 				std::cout << "busStops_temp.size() " << busStops_temp.size() << std::endl;
 				for(int i = 0; i < busStops_temp.size(); i++) {
-					Shared<BusStop_RealTimes>* pBusStopRealTimes = new Shared<BusStop_RealTimes>(mtxStrat,BusStop_RealTimes());
+					Shared<BusStopRealTimes>* pBusStopRealTimes = new Shared<BusStopRealTimes>(mtxStrat,BusStopRealTimes());
 					busStopRealTimes_vec_bus.push_back(pBusStopRealTimes);
 				}
 			}
@@ -98,7 +98,7 @@ vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {
 	return res;
 }
 
-void sim_mob::BusDriver::setBusStopRealTimes(const int& busStopSeqNum, const BusStop_RealTimes& busStopRealTimes) {
+void sim_mob::BusDriver::setBusStopRealTimes(const int& busStopSeqNum, const BusStopRealTimes& busStopRealTimes) {
 	// busStopRealTimes_vec_bus empty validation
 	if(!busStopRealTimes_vec_bus.empty()) {
 		// busstop_sequence_no range validation

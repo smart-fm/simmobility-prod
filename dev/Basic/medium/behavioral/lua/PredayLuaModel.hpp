@@ -2,13 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * PredayLuaModel.hpp
- *
- *  Created on: Nov 27, 2013
- *      Author: Harish Loganathan
- */
-
 #pragma once
 #include <boost/unordered_map.hpp>
 #include "behavioral/params/PersonParams.hpp"
@@ -16,19 +9,22 @@
 #include "behavioral/params/TimeOfDayParams.hpp"
 #include "behavioral/params/TourModeParams.hpp"
 #include "behavioral/params/TourModeDestinationParams.hpp"
+#include "behavioral/StopType.hpp"
 #include "lua/LuaModel.hpp"
-#include "behavioral/PredayClasses.hpp"
 
-namespace sim_mob {
-namespace medium {
+namespace sim_mob
+{
+namespace medium
+{
 
 /**
- * Class which communicates with the preday models specified in Lua scripts.
+ * Interface between C++ layer and preday discrete choice models specified in Lua scripts.
  * This class contains a separate function for each model.
  *
  * \author Harish Loganathan
  */
-class PredayLuaModel : public lua::LuaModel {
+class PredayLuaModel: public lua::LuaModel
+{
 public:
 	PredayLuaModel();
 	virtual ~PredayLuaModel();
@@ -46,8 +42,10 @@ public:
 	 *
 	 * @param personParams object containing person and household related variables
 	 * @param dayPattern map containing the day pattern of this person
+	 * @param numStops output container for setting tour counts predicted by this function
 	 */
-	void predictNumTours(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern, boost::unordered_map<std::string, int>& numTours) const;
+	void predictNumTours(PersonParams& personParams, boost::unordered_map<std::string, bool>& dayPattern,
+			boost::unordered_map<std::string, int>& numTours) const;
 
 	/**
 	 * For each work tour, if the person has a usual work location, this function predicts whether the person goes to his usual location or some other location.
@@ -175,12 +173,11 @@ public:
 	 */
 	int predictSubTourTimeOfDay(PersonParams& personParams, SubTourParams& subTourParams) const;
 
-
 private:
-    /**
-     * Inherited from LuaModel
-     */
-    void mapClasses();
+	/**
+	 * Inherited from LuaModel
+	 */
+	void mapClasses();
 };
 } // end namespace medium
-}//end namespace sim_mob
+} //end namespace sim_mob

@@ -16,7 +16,7 @@
                 <!-- these parameters will be organized in a better way after finding the meaning of these numbers -->
                 <dwell_time_parameters>
                 <!--parameters : minimum and maximum of fixed dwelling time, minimum and maximum of individual dwelling time-->
-                <parameters value="0.0, 0.0, 2.0, 3.0"/>
+                <parameters value="0.0, 15.0, 2.0, 3.0"/>
                 </dwell_time_parameters>
 
                 <!-- pedestrian walking speed in cm/s (approximately 5 km/h)-->
@@ -27,12 +27,12 @@
                         
                 <!-- these parameters are used to assign filename for the storage of statistics -->   
                 <!-- if the value is empty, no output file is generated, otherwise store to csv file -->     
-                <statistics_output_paramemters>                              
-                        <journey_time_csv_file_output value="journeytime.csv"/>
-                        <waiting_time_csv_file_output value="waitingtime.csv"/>
-                        <waiting_amount_csv_file_output value="waitingamount.csv"/>
-                        <travel_time_csv_file_output value="traveltime.csv"/>
-                </statistics_output_paramemters>  
+                <output_pt_statistics>                              
+                        <journey_time file="journeytime.csv"/>
+                        <waiting_time file="waitingtime.csv"/>
+                        <waiting_count file="waitingamount.csv"/>
+                        <travel_time file="traveltime.csv"/>
+                </output_pt_statistics>  
         </supply>                                      
                 
         <!-- config specific to preday simulator -->
@@ -41,13 +41,13 @@
                 <run_mode value="logsum"/>
                 <!-- Number of threads to create for processing the population in-->
                 <!-- the preday demand simulator -->
-                <threads value="1"/>
+                <threads value="7"/>
                 <!-- outputs the preday predictions as activity schedule in CSV format if enabled with simulation run_mode -->
                 <output_activity_schedule enabled="true"/>
                 <!-- outputs the preday's predicted tours and stops to mongodb if enabled -->
-                <output_predictions enabled="true"/>
+                <output_predictions enabled="false"/>
                 <!-- prints person ids and tour details in console for each person if enabled -->
-                <console_output enabled="true"/>
+                <console_output enabled="false"/>
                 
                 <!-- Data source for population and logsums. 
                      Admissible values for source are 'pgsql' and 'mongodb' which points to LT database or local MongoDB respectively. 

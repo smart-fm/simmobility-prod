@@ -1,18 +1,28 @@
 #include "TravelTimeManager.hpp"
-#include "PathSetManager.hpp"
+#include "boost/filesystem.hpp"
+#include "boost/foreach.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "boost/filesystem.hpp"
+#include "path/PathSetManager.hpp"
+#include "util/LangHelpers.hpp"
 
-sim_mob::TravelTimeManager::TravelTimeManager(unsigned int &intervalMS, unsigned int &curIntervalMS):intervalMS(intervalMS), curIntervalMS(curIntervalMS)
+sim_mob::TravelTimeManager* sim_mob::TravelTimeManager::instance = nullptr;
+
+sim_mob::TravelTimeManager::TravelTimeManager()
+	: intervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().interval),
+	  enRouteTT(new sim_mob::TravelTimeManager::EnRouteTT(*this))
+{}
+
+sim_mob::TravelTimeManager::~TravelTimeManager()
 {
-	enRouteTT.reset(new sim_mob::LastTT(*this));
+	safe_delete_item(enRouteTT);
 }
 
 void sim_mob::TravelTimeManager::addTravelTime(const Agent::RdSegTravelStat & stats) {
 	TT::TI timeInterval = TravelTimeManager::getTimeInterval(stats.entryTime * 1000, intervalMS);//milliseconds
 	{
-		boost::unique_lock<boost::mutex> lock(ttMapMutex);
+		boost::upgrade_lock<boost::shared_mutex> lock(ttMapMutex);
+		boost::upgrade_to_unique_lock<boost::shared_mutex> uniquelock(lock);
 		TT::TimeAndCount &tc = ttMap[timeInterval][stats.travelMode][stats.rs];
 		tc.totalTravelTime += stats.travelTime; //add to total travel time
 		tc.travelTimeCnt += 1; //increment the total contribution
@@ -29,9 +39,9 @@ double sim_mob::TravelTimeManager::getInSimulationSegTT(const std::string mode, 
 	return enRouteTT->getInSimulationSegTT(mode,rs);
 }
 
-double sim_mob::LastTT::getInSimulationSegTT(const std::string mode, const sim_mob::RoadSegment *rs) const
+double sim_mob::TravelTimeManager::EnRouteTT::getInSimulationSegTT(const std::string mode, const sim_mob::RoadSegment *rs) const
 {
-	boost::unique_lock<boost::mutex> lock(parent.ttMapMutex);
+	boost::shared_lock<boost::shared_mutex> lock(parent.ttMapMutex);
 	//[time interval][travel mode][road segment][average travel time]
 	//<-----TI-----><-------------------MRTC----------------------->
 	//start from the last recorded time interval (before the current time interval) and proceed to find a travel time for the given section.
@@ -117,6 +127,11 @@ bool sim_mob::TravelTimeManager::storeRTT2DB()
 	return true;
 }
 
-sim_mob::TravelTimeManager::~TravelTimeManager()
+sim_mob::TravelTimeManager* sim_mob::TravelTimeManager::getInstance()
 {
+	if(!instance)
+	{
+		instance = new TravelTimeManager();
+	}
+	return instance;
 }

@@ -8,6 +8,7 @@
 #include "BusDriverFacets.hpp"
 #include "entities/misc/BusTrip.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
+#include "entities/roles/DriverRequestParams.hpp"
 
 /*
  * BusDriver.hpp
@@ -23,6 +24,7 @@ namespace medium
 class BusDriverBehavior;
 class BusDriverMovement;
 class BusStopAgent;
+class Passenger;
 
 class BusDriver : public sim_mob::medium::Driver {
 public:
@@ -102,7 +104,7 @@ private:
 	/**real arrival time set by bus driver*/
 	Shared<double> arrivalTime;
 	/**current bus stop real times including departure and arrival time*/
-	Shared<BusStop_RealTimes>* busStopRealTimes;
+	Shared<BusStopRealTimes>* busStopRealTimes;
 	/** dwell time set by bus driver*/
 	Shared<double> dwellTime;
 	/**holding time set by bus controller*/

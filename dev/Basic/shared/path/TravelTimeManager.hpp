@@ -16,31 +16,23 @@ class TravelTimeManager
 {
 public:
 	/**
+	 * gets the singleton instance of TravelTimeManager
+	 */
+	static sim_mob::TravelTimeManager* getInstance();
+
+	/**
 	 *	container to stor road segment travel times at different time intervals
 	 */
 	sim_mob::TravelTime ttMap;
-	boost::mutex ttMapMutex;
+	boost::shared_mutex ttMapMutex;
 
 	/**
 	 * time interval value used for processing data.
 	 * This value is based on its counterpart in pathset manager.
 	 */
-	unsigned int &intervalMS;
+	unsigned int intervalMS;
 
 	/**
-	* current time interval, with respect to simulation time
-	* this is used to avoid continuous calculation of the current
-	* time interval.
-	* Note: Updating this happens once in one of the barriers, currently
-	* Aura Manager barrier(void sim_mob::WorkGroupManager::waitAllGroups_AuraManager())
-	*/
-	unsigned int &curIntervalMS;
-
-	TravelTimeManager(unsigned int &intervalMS, unsigned int &curIntervalMS);
-
-	~TravelTimeManager();
-
-	/*
 	 * accumulates Travel Time data
 	 * @param stats travel time record
 	 * @person the recording person
@@ -74,51 +66,35 @@ public:
 	 */
 	double getInSimulationSegTT(const std::string mode,const  sim_mob::RoadSegment *rs) const;
 
-	friend class sim_mob::PathSetManager;
-
 	/**
 	 * a helper class that maintains the latest processed travel time information.
 	 */
 	class EnRouteTT
-	 {
-	 protected:
-	 	TravelTimeManager &parent;
-//	 	sim_mob::TravelTime &ttMap;
-	 public:
-	 	EnRouteTT(TravelTimeManager &parent):parent(parent)/*ttMap(parent.ttMap)*/{}
-	 	/**
-	 	 * get the desired travel time based on the implementation
-	 	 * @param rs the roadsegment for which TT is retrieved
-	 	 */
-	 	virtual double getInSimulationSegTT(const std::string mode, const sim_mob::RoadSegment *rs)const  = 0;
-	 	/**
-	 	 * do the implementation-specific internal updates based on the information given
-	 	 * @param mode travel mode
-	 	 * @param  timeInterval the time interval for which the travel time has been produced.
-	 	 * @param rs the road segment for which the travel time has been produced.
-	 	 * @param ttInfo actual travel time information
-	 	 */
-//	 	virtual void updateStats(std::string &mode, sim_mob::TT::TI timeInterval, sim_mob::RoadSegment* rs, sim_mob::TT::STC::iterator ttInfo) = 0;
-	 };
+	{
+	private:
+		TravelTimeManager &parent;
+
+	public:
+		EnRouteTT(TravelTimeManager &parent) : parent(parent) {}
+		~EnRouteTT() {}
+
+		/**
+		 * get the desired travel time
+		 * @param mode	travel mode
+		 * @param rs	the roadsegment for which TT is retrieved
+		 */
+		double getInSimulationSegTT(const std::string mode, const sim_mob::RoadSegment* rs) const;
+	};
 
 	/**
 	 * instance of EnRouteTT helper class
 	 */
-	boost::shared_ptr<EnRouteTT> enRouteTT;
-};
+	EnRouteTT* enRouteTT;
 
-
-class LastTT : public TravelTimeManager::EnRouteTT
-{
-	friend class sim_mob::TravelTimeManager;
 private:
-public:
-	LastTT(TravelTimeManager &parent):EnRouteTT(parent){}
-	/**
-	 * get the travel time from latest time interval having a record
-	 * for this read segment
-	 */
-	double getInSimulationSegTT(const std::string mode, const sim_mob::RoadSegment *rs) const;
-	virtual ~LastTT(){}
+	TravelTimeManager();
+	~TravelTimeManager();
+
+	static sim_mob::TravelTimeManager* instance;
 };
 }//namespace

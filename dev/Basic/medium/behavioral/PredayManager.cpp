@@ -12,7 +12,6 @@
 #include "PredayManager.hpp"
 
 #include <algorithm>
-#include <boost/algorithm/string/trim.hpp>
 #include <boost/thread.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
@@ -72,14 +71,14 @@ matrix<double> weightMatrix;
 /**keep a file wise list of variables to calibrate*/
 boost::unordered_map<std::string, std::vector<std::string> > variablesInFileMap;
 
-std::vector< std::map<std::string, db::MongoDao*> > mongoDaoStore;
+std::vector<std::map<std::string, db::MongoDao*> > mongoDaoStore;
 
 template<typename V>
 void printVector(const std::string vecName, const std::vector<V>& vec)
 {
 	std::stringstream ss;
 	ss << vecName << " - [";
-	for(typename std::vector<V>::const_iterator vIt=vec.begin(); vIt!=vec.end(); vIt++)
+	for (typename std::vector<V>::const_iterator vIt = vec.begin(); vIt != vec.end(); vIt++)
 	{
 		ss << "," << (*vIt);
 	}
@@ -95,7 +94,7 @@ void printVector(const std::string vecName, const std::vector<V>& vec)
 template<typename V>
 void streamVector(const std::vector<V>& vectorToLog, std::stringstream& logStream)
 {
-	for(typename std::vector<V>::const_iterator vIt=vectorToLog.begin(); vIt!=vectorToLog.end(); vIt++)
+	for (typename std::vector<V>::const_iterator vIt = vectorToLog.begin(); vIt != vectorToLog.end(); vIt++)
 	{
 		logStream << "," << *vIt;
 	}
@@ -111,7 +110,8 @@ void streamVector(const std::vector<V>& vectorToLog, std::stringstream& logStrea
 struct RandomSymmetricPlusMinusVector
 {
 public:
-	RandomSymmetricPlusMinusVector(size_t dimension) : dimension(dimension)
+	RandomSymmetricPlusMinusVector(size_t dimension) :
+			dimension(dimension)
 	{
 		//set the seed
 		srand(time(0));
@@ -124,10 +124,16 @@ public:
 	void init()
 	{
 		randomVector.clear();
-		for(size_t i=0; i < dimension; i++)
+		for (size_t i = 0; i < dimension; i++)
 		{
-			if((rand() % 2) == 0){ randomVector.push_back(1); }
-			else { randomVector.push_back(-1); }
+			if ((rand() % 2) == 0)
+			{
+				randomVector.push_back(1);
+			}
+			else
+			{
+				randomVector.push_back(-1);
+			}
 		}
 	}
 
@@ -151,24 +157,24 @@ private:
 void populateScalesVector(const std::vector<std::string>& scalesVector)
 {
 	size_t numStats = observedHITS_Stats.size();
-	if(scalesVector.empty())
+	if (scalesVector.empty())
 	{
 		statsScale = std::vector<double>(numStats, 1); // initialize the vector with 1 as scale for all stats
 	}
 	else
 	{
-		if(scalesVector.size() != numStats)
+		if (scalesVector.size() != numStats)
 		{
 			throw std::runtime_error("scale not provided for all statistics. Check observed statistics CSV file");
 		}
 		try
 		{
-			for(std::vector<std::string>::const_iterator sclIt=scalesVector.begin(); sclIt!=scalesVector.end(); sclIt++)
+			for (std::vector<std::string>::const_iterator sclIt = scalesVector.begin(); sclIt != scalesVector.end(); sclIt++)
 			{
 				statsScale.push_back(boost::lexical_cast<double>(*sclIt));
 			}
 		}
-		catch(boost::bad_lexical_cast const& badCast)
+		catch (boost::bad_lexical_cast const& badCast)
 		{
 			throw std::runtime_error("observed statistics file has non-numeric values for scale");
 		}
@@ -177,17 +183,20 @@ void populateScalesVector(const std::vector<std::string>& scalesVector)
 
 void createMongoDaoStore(size_t numMaps, const MongoCollectionsMap& mongoColl)
 {
-	if(numMaps == 0) { return; }
+	if (numMaps == 0)
+	{
+		return;
+	}
 	Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
 	std::string emptyString;
 	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
 	db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
-	for(size_t i=0; i<numMaps; i++)
+	for (size_t i = 0; i < numMaps; i++)
 	{
 		std::map<std::string, db::MongoDao*> mongoDao;
-		for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++)
+		for (std::map<std::string, std::string>::const_iterator i = collectionNameMap.begin(); i != collectionNameMap.end(); i++)
 		{
-			mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
+			mongoDao[i->first] = new db::MongoDao(dbConfig, db.dbName, i->second);
 		}
 		mongoDaoStore.push_back(mongoDao);
 	}
@@ -195,11 +204,12 @@ void createMongoDaoStore(size_t numMaps, const MongoCollectionsMap& mongoColl)
 
 void destroyMongoDaoStore()
 {
-	for(std::vector< std::map<std::string, db::MongoDao*> >::iterator storeIt=mongoDaoStore.begin(); storeIt!=mongoDaoStore.end(); storeIt++)
+	for (std::vector<std::map<std::string, db::MongoDao*> >::iterator storeIt = mongoDaoStore.begin(); storeIt != mongoDaoStore.end(); storeIt++)
 	{
 		std::map<std::string, db::MongoDao*>& mongoDaoMap = (*storeIt);
 		// destroy Dao objects
-		for(std::map<std::string, db::MongoDao*>::iterator i=mongoDaoMap.begin(); i!=mongoDaoMap.end(); i++) {
+		for (std::map<std::string, db::MongoDao*>::iterator i = mongoDaoMap.begin(); i != mongoDaoMap.end(); i++)
+		{
 			safe_delete_item(i->second);
 		}
 		mongoDaoMap.clear();
@@ -213,18 +223,17 @@ void destroyMongoDaoStore()
  */
 void computeAntiGradient(std::vector<double>& gradientVector)
 {
-	if(gradientVector.size() != calibrationVariablesList.size())
+	if (gradientVector.size() != calibrationVariablesList.size())
 	{
 		throw std::runtime_error("gradientVector.size() != calibrationVariablesList.size()");
 	}
 	double antiGradient = 0;
 	size_t variableIdx = 0;
-	for(std::vector<double>::iterator gradIt=gradientVector.begin(); gradIt!=gradientVector.end(); gradIt++, variableIdx++)
+	for (std::vector<double>::iterator gradIt = gradientVector.begin(); gradIt != gradientVector.end(); gradIt++, variableIdx++)
 	{
 		double& gradient = *gradIt;
 		const CalibrationVariable& calVar = calibrationVariablesList[variableIdx];
-		if((gradient > 0 && calVar.getLowerLimit() == calVar.getCurrentValue()) ||
-				(gradient < 0 && calVar.getUpperLimit() == calVar.getCurrentValue()))
+		if ((gradient > 0 && calVar.getLowerLimit() == calVar.getCurrentValue()) || (gradient < 0 && calVar.getUpperLimit() == calVar.getCurrentValue()))
 		{
 			gradient = 0;
 		}
@@ -244,7 +253,7 @@ void computeAntiGradient(std::vector<double>& gradientVector)
 template<typename V>
 void multiplyScalarWithVector(double scalarLhs, const std::vector<V>& vectorRhs, std::vector<double>& output)
 {
-	for(typename std::vector<V>::const_iterator vIt=vectorRhs.begin(); vIt!=vectorRhs.end(); vIt++)
+	for (typename std::vector<V>::const_iterator vIt = vectorRhs.begin(); vIt != vectorRhs.end(); vIt++)
 	{
 		double result = (*vIt) * scalarLhs;
 		output.push_back(result);
@@ -258,18 +267,30 @@ void multiplyScalarWithVector(double scalarLhs, const std::vector<V>& vectorRhs,
  * @param scale the scaling factor for gradients
  */
 template<typename V>
-void updateVariablesByAddition(std::vector<CalibrationVariable>& calVarList, const std::vector<V>& gradientVector, double scale=1)
+void updateVariablesByAddition(std::vector<CalibrationVariable>& calVarList, const std::vector<V>& gradientVector, double scale = 1)
 {
-	if(calVarList.size() != gradientVector.size()) { throw std::runtime_error("cannot add vectors of different sizes"); }
-	size_t i=0;
+	if (calVarList.size() != gradientVector.size())
+	{
+		throw std::runtime_error("cannot add vectors of different sizes");
+	}
+	size_t i = 0;
 	double newVal = 0;
-	for(std::vector<CalibrationVariable>::iterator calVarIt=calVarList.begin(); calVarIt!=calVarList.end(); calVarIt++, i++)
+	for (std::vector<CalibrationVariable>::iterator calVarIt = calVarList.begin(); calVarIt != calVarList.end(); calVarIt++, i++)
 	{
 		CalibrationVariable& calVar = (*calVarIt);
-		newVal = calVar.getCurrentValue() - (scale*gradientVector[i]);
-		if(newVal > calVar.getUpperLimit()) {calVar.setCurrentValue(calVar.getUpperLimit());}
-		else if(newVal < calVar.getLowerLimit()) {calVar.setCurrentValue(calVar.getLowerLimit());}
-		else { calVar.setCurrentValue(newVal); }
+		newVal = calVar.getCurrentValue() - (scale * gradientVector[i]);
+		if (newVal > calVar.getUpperLimit())
+		{
+			calVar.setCurrentValue(calVar.getUpperLimit());
+		}
+		else if (newVal < calVar.getLowerLimit())
+		{
+			calVar.setCurrentValue(calVar.getLowerLimit());
+		}
+		else
+		{
+			calVar.setCurrentValue(newVal);
+		}
 	}
 }
 
@@ -280,24 +301,36 @@ void updateVariablesByAddition(std::vector<CalibrationVariable>& calVarList, con
  * @param scale the scaling factor for gradients
  */
 template<typename V>
-void updateVariablesBySubtraction(std::vector<CalibrationVariable>& calVarList, const std::vector<V>& gradientVector, double scale=1)
+void updateVariablesBySubtraction(std::vector<CalibrationVariable>& calVarList, const std::vector<V>& gradientVector, double scale = 1)
 {
-	if(calVarList.size() != gradientVector.size()) { throw std::runtime_error("cannot subtract vectors of different sizes"); }
-	size_t i=0;
+	if (calVarList.size() != gradientVector.size())
+	{
+		throw std::runtime_error("cannot subtract vectors of different sizes");
+	}
+	size_t i = 0;
 	double newVal = 0;
-	for(std::vector<CalibrationVariable>::iterator calVarIt=calVarList.begin(); calVarIt!=calVarList.end(); calVarIt++, i++)
+	for (std::vector<CalibrationVariable>::iterator calVarIt = calVarList.begin(); calVarIt != calVarList.end(); calVarIt++, i++)
 	{
 		CalibrationVariable& calVar = (*calVarIt);
-		newVal = calVar.getCurrentValue() - (scale*gradientVector[i]);
-		if(newVal < calVar.getLowerLimit()) {calVar.setCurrentValue(calVar.getLowerLimit());}
-		else if(newVal > calVar.getUpperLimit()) {calVar.setCurrentValue(calVar.getUpperLimit());}
-		else { calVar.setCurrentValue(newVal); }
+		newVal = calVar.getCurrentValue() - (scale * gradientVector[i]);
+		if (newVal < calVar.getLowerLimit())
+		{
+			calVar.setCurrentValue(calVar.getLowerLimit());
+		}
+		else if (newVal > calVar.getUpperLimit())
+		{
+			calVar.setCurrentValue(calVar.getUpperLimit());
+		}
+		else
+		{
+			calVar.setCurrentValue(newVal);
+		}
 	}
 }
 
 void constructVariablesInFileMap(const std::vector<CalibrationVariable>& calVarList)
 {
-	for(std::vector<CalibrationVariable>::const_iterator calVarIt = calVarList.begin(); calVarIt != calVarList.end(); calVarIt++)
+	for (std::vector<CalibrationVariable>::const_iterator calVarIt = calVarList.begin(); calVarIt != calVarList.end(); calVarIt++)
 	{
 		const CalibrationVariable& calVar = *calVarIt;
 		variablesInFileMap[calVar.getScriptFileName()].push_back(calVar.getVariableName());
@@ -313,7 +346,7 @@ void constructVariablesInFileMap(const std::vector<CalibrationVariable>& calVarL
 void updateVariablesInLuaFiles(const std::string& scriptFilesPath, const std::vector<CalibrationVariable>& calVarList)
 {
 	int result = 0;
-	if(std::system(nullptr)) // If command processor is available, we can simply use sed to search and replace in files
+	if (std::system(nullptr)) // If command processor is available, we can simply use sed to search and replace in files
 	{
 		std::stringstream cmdStream;
 		for (std::vector<CalibrationVariable>::const_iterator calVarIt = calVarList.begin(); calVarIt != calVarList.end(); calVarIt++)
@@ -326,12 +359,12 @@ void updateVariablesInLuaFiles(const std::string& scriptFilesPath, const std::ve
 					<< "/g' " << origFileName << " > " << tmpFileName;
 			result = std::system(cmdStream.str().c_str());
 			result = std::rename(tmpFileName.c_str(), origFileName.c_str());
-		    if(result)
-		    {
+			if (result)
+			{
 				std::stringstream err;
 				err << "Renaming failed for file " << origFileName << ": error - " << std::strerror(errno) << std::endl;
 				throw std::runtime_error(err.str());
-		    }
+			}
 		}
 	}
 	else // we need to do it the hard way
@@ -345,73 +378,79 @@ void updateVariablesInLuaFiles(const std::string& scriptFilesPath, const std::ve
 		}
 
 		//iterate all lua files to check for variables to change
-		for(boost::unordered_map<std::string, std::vector<std::string> >::iterator i=variablesInFileMap.begin();
-				i!=variablesInFileMap.end(); i++)
+		for (boost::unordered_map<std::string, std::vector<std::string> >::iterator i = variablesInFileMap.begin(); i != variablesInFileMap.end(); i++)
 		{
 			const std::string origFileName(scriptFilesPath + i->first);
 			const std::string tmpFileName(origFileName + ".tmp");
 
 			//open the lua file
 			ifstream in(origFileName.c_str());
-		    if(!in.is_open())
-		    {
-		    	std::stringstream err;
-		    	err << "Could not open file: " << origFileName;
-		        throw std::runtime_error(err.str());
-		    }
+			if (!in.is_open())
+			{
+				std::stringstream err;
+				err << "Could not open file: " << origFileName;
+				throw std::runtime_error(err.str());
+			}
 
-		    //open the tmp output file
-		    ofstream out(tmpFileName.c_str());
+			//open the tmp output file
+			ofstream out(tmpFileName.c_str());
 
-		    //loop through each line and search for patterns. update new value if pattern is matched
-		    std::string line;
-		    std::string assignmentLhs;
-		    while( std::getline(in,line) )
-		    {
-		    	size_t pos;
-		    	pos = line.find("local ");
-		    	if(pos == std::string::npos) { out << line << "\n"; continue; } // quickly skip irrelevant lines
+			//loop through each line and search for patterns. update new value if pattern is matched
+			std::string line;
+			std::string assignmentLhs;
+			while (std::getline(in, line))
+			{
+				size_t pos;
+				pos = line.find("local ");
+				if (pos == std::string::npos)
+				{
+					out << line << "\n";
+					continue;
+				} // quickly skip irrelevant lines
 
-		    	const std::vector<std::string>& varNames = i->second;
-		    	bool updated = false;
-		    	for(std::vector<std::string>::const_iterator strIt=varNames.begin(); strIt!=varNames.end(); strIt++)
-		    	{
-		    		const std::string& varName = *strIt;
-		    		pos = line.find("local " + varName);
-		    		if(pos != std::string::npos) //found
-		    		{
-				    	pos = line.find("=");
-				    	if(pos != std::string::npos)
-				    	{
-				    		std::stringstream updatedLine;
-				    		updatedLine << line.substr(0, pos) << "= " << variableValueMap.at(varName);
-				    		out << updatedLine.str() << "\n";
-				    		updated = true;
-				    		break; //there can only be one variable declaration in one line in lua
-				    	}
-		    		}
-		    	}
-		    	if(!updated) { out << line << "\n"; }
-		    }
+				const std::vector<std::string>& varNames = i->second;
+				bool updated = false;
+				for (std::vector<std::string>::const_iterator strIt = varNames.begin(); strIt != varNames.end(); strIt++)
+				{
+					const std::string& varName = *strIt;
+					pos = line.find("local " + varName);
+					if (pos != std::string::npos) //found
+					{
+						pos = line.find("=");
+						if (pos != std::string::npos)
+						{
+							std::stringstream updatedLine;
+							updatedLine << line.substr(0, pos) << "= " << variableValueMap.at(varName);
+							out << updatedLine.str() << "\n";
+							updated = true;
+							break; //there can only be one variable declaration in one line in lua
+						}
+					}
+				}
+				if (!updated)
+				{
+					out << line << "\n";
+				}
+			}
 
-		    in.close();
-		    out.close();
-		    // delete the original file
-		    result = std::remove(origFileName.c_str());
-		    if(result)
-		    {
+			in.close();
+			out.close();
+			// delete the original file
+			result = std::remove(origFileName.c_str());
+			if (result)
+			{
 				std::stringstream err;
 				err << "File deletion failed for file " << origFileName << ": error - " << std::strerror(errno) << std::endl;
 				throw std::runtime_error(err.str());
-		    }
-		    // rename tmp file to original file name
-		    result = std::rename(tmpFileName.c_str(), origFileName.c_str());
-		    if(result)
-		    {
+			}
+			// rename tmp file to original file name
+			result = std::rename(tmpFileName.c_str(), origFileName.c_str());
+			if (result)
+			{
 				std::stringstream err;
 				err << "Renaming failed for file " << origFileName << ": error - " << std::strerror(errno) << std::endl;
 				throw std::runtime_error(err.str());
-		    }
+			}
 		}
 	}
 }
@@ -423,12 +462,15 @@ void updateVariablesInLuaFiles(const std::string& scriptFilesPath, const std::ve
  */
 double computeSumOfDifferenceSquared(const std::vector<double>& observed, const std::vector<double>& simulated)
 {
-	if(observed.size() != simulated.size()) { throw std::runtime_error("size mis-match between observed and simulated values");	}
+	if (observed.size() != simulated.size())
+	{
+		throw std::runtime_error("size mis-match between observed and simulated values");
+	}
 	double objFnVal = 0, scaledDiff = 0;
 	size_t numStats = observed.size();
-	for(size_t i=0; i<numStats; i++)
+	for (size_t i = 0; i < numStats; i++)
 	{
-		scaledDiff = statsScale[i] * (simulated[i]-observed[i]);
+		scaledDiff = statsScale[i] * (simulated[i] - observed[i]);
 		objFnVal = objFnVal + std::pow(scaledDiff, 2);
 	}
 	return objFnVal;
@@ -441,8 +483,7 @@ double computeSumOfDifferenceSquared(const std::vector<double>& observed, const 
  */
 void aggregateStatistics(const std::vector<CalibrationStatistics>& calStatsVect, CalibrationStatistics& aggregate)
 {
-	for(std::vector<CalibrationStatistics>::const_iterator csIt=calStatsVect.begin();
-			csIt!=calStatsVect.end(); csIt++)
+	for (std::vector<CalibrationStatistics>::const_iterator csIt = calStatsVect.begin(); csIt != calStatsVect.end(); csIt++)
 	{
 		aggregate = aggregate + (*csIt);
 	}
@@ -469,10 +510,10 @@ void printParameters(const std::vector<CalibrationVariable>& calVarList, const s
 {
 	std::stringstream ss;
 	ss << "Values for " << simType << std::endl;
-	for(std::vector<CalibrationVariable>::const_iterator i=calVarList.begin(); i!=calVarList.end(); i++)
+	for (std::vector<CalibrationVariable>::const_iterator i = calVarList.begin(); i != calVarList.end(); i++)
 	{
 		const CalibrationVariable& calVar = *i;
-		ss << calVar.getScriptFileName() << " - " << calVar.getVariableName() << " = " <<  calVar.getCurrentValue() << std::endl;
+		ss << calVar.getScriptFileName() << " - " << calVar.getVariableName() << " = " << calVar.getCurrentValue() << std::endl;
 	}
 	Print() << ss.str();
 }
@@ -497,7 +538,7 @@ void outputToFile(std::ofstream& logHandle, std::stringstream& strm)
 void constructFileNames(size_t numFiles, const std::string& prefix, std::list<std::string>& outFileNamesList)
 {
 	std::stringstream fileName;
-	for(unsigned i=1; i<=numFiles; i++)
+	for (unsigned i = 1; i <= numFiles; i++)
 	{
 		fileName << prefix << i << ".log";
 		outFileNamesList.push_back(fileName.str());
@@ -510,15 +551,22 @@ void mergeCSV_Files(const std::list<std::string>& fileNameList, const std::strin
 	//This can take some time.
 	StopWatch sw;
 	sw.start();
-	std::cout <<"Merging files, this can take several minutes...\n";
+	std::cout << "Merging files, this can take several minutes...\n";
 
 	//One-by-one.
-	std::ofstream out(fileName.c_str(), std::ios::trunc|std::ios::binary);
-	if (!out.good()) { throw std::runtime_error("Error: Can't write to file."); }
-	for (std::list<std::string>::const_iterator it=fileNameList.begin(); it!=fileNameList.end(); it++) {
-		Print() <<"  Merging: " << *it <<std::endl;
+	std::ofstream out(fileName.c_str(), std::ios::trunc | std::ios::binary);
+	if (!out.good())
+	{
+		throw std::runtime_error("Error: Can't write to file.");
+	}
+	for (std::list<std::string>::const_iterator it = fileNameList.begin(); it != fileNameList.end(); it++)
+	{
+		Print() << "  Merging: " << *it << std::endl;
 		std::ifstream src(it->c_str(), std::ios::binary);
-		if (src.fail()) { throw std::runtime_error("Error: Can't read from file."); }
+		if (src.fail())
+		{
+			throw std::runtime_error("Error: Can't read from file.");
+		}
 
 		//If src is good, this part's easy.
 		out << src.rdbuf();
@@ -532,30 +580,37 @@ void mergeCSV_Files(const std::list<std::string>& fileNameList, const std::strin
 
 } //end anonymous namespace
 
-sim_mob::medium::PredayManager::PredayManager() : mtConfig(MT_Config::getInstance()), logFile(nullptr)
+sim_mob::medium::PredayManager::PredayManager() :
+		mtConfig(MT_Config::getInstance()), logFile(nullptr)
 {
 }
 
-sim_mob::medium::PredayManager::~PredayManager() {
+sim_mob::medium::PredayManager::~PredayManager()
+{
 	Print() << "Clearing Person List" << std::endl;
 	// clear Persons
-	for(PersonList::iterator i = personList.begin(); i!=personList.end(); i++) {
+	for (PersonList::iterator i = personList.begin(); i != personList.end(); i++)
+	{
 		delete *i;
 	}
 	personList.clear();
 
 	// clear Zones
 	Print() << "Clearing zoneMap" << std::endl;
-	for(ZoneMap::iterator i = zoneMap.begin(); i!=zoneMap.end(); i++) {
+	for (ZoneMap::iterator i = zoneMap.begin(); i != zoneMap.end(); i++)
+	{
 		delete i->second;
 	}
 	zoneMap.clear();
 
 	// clear AMCosts
 	Print() << "Clearing amCostMap" << std::endl;
-	for(CostMap::iterator i = amCostMap.begin(); i!=amCostMap.end(); i++) {
-		for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
-			if(j->second) {
+	for (CostMap::iterator i = amCostMap.begin(); i != amCostMap.end(); i++)
+	{
+		for (boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j != i->second.end(); j++)
+		{
+			if (j->second)
+			{
 				delete j->second;
 			}
 		}
@@ -564,9 +619,12 @@ sim_mob::medium::PredayManager::~PredayManager() {
 
 	// clear PMCosts
 	Print() << "Clearing pmCostMap" << std::endl;
-	for(CostMap::iterator i = pmCostMap.begin(); i!=pmCostMap.end(); i++) {
-		for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
-			if(j->second) {
+	for (CostMap::iterator i = pmCostMap.begin(); i != pmCostMap.end(); i++)
+	{
+		for (boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j != i->second.end(); j++)
+		{
+			if (j->second)
+			{
 				delete j->second;
 			}
 		}
@@ -575,9 +633,12 @@ sim_mob::medium::PredayManager::~PredayManager() {
 
 	// clear OPCosts
 	Print() << "Clearing opCostMap" << std::endl;
-	for(CostMap::iterator i = opCostMap.begin(); i!=opCostMap.end(); i++) {
-		for(boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j!=i->second.end(); j++) {
-			if(j->second) {
+	for (CostMap::iterator i = opCostMap.begin(); i != opCostMap.end(); i++)
+	{
+		for (boost::unordered_map<int, CostParams*>::iterator j = i->second.begin(); j != i->second.end(); j++)
+		{
+			if (j->second)
+			{
 				delete j->second;
 			}
 		}
@@ -586,16 +647,20 @@ sim_mob::medium::PredayManager::~PredayManager() {
 
 	// clear Zone node map
 	Print() << "Clearing zoneNodeMap" << std::endl;
-	for(ZoneNodeMap::iterator i = zoneNodeMap.begin(); i!=zoneNodeMap.end(); i++) {
-		for(std::vector<ZoneNodeParams*>::iterator j=i->second.begin(); j!=i->second.end(); j++) {
+	for (ZoneNodeMap::iterator i = zoneNodeMap.begin(); i != zoneNodeMap.end(); i++)
+	{
+		for (std::vector<ZoneNodeParams*>::iterator j = i->second.begin(); j != i->second.end(); j++)
+		{
 			delete *j;
 		}
 	}
 	zoneNodeMap.clear();
 }
 
-void sim_mob::medium::PredayManager::loadPersonIds(BackendType dbType) {
-	switch(dbType) {
+void sim_mob::medium::PredayManager::loadPersonIds(BackendType dbType)
+{
+	switch (dbType)
+	{
 	case POSTGRES:
 	{
 		// population data source
@@ -637,63 +702,67 @@ void sim_mob::medium::PredayManager::loadPersonIds(BackendType dbType) {
 	}
 }
 
-void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType) {
-	switch(dbType)
+void sim_mob::medium::PredayManager::loadZones(db::BackendType dbType)
+{
+	switch (dbType)
 	{
-		case POSTGRES:
-		{
-			throw std::runtime_error("Zone information is not available in PostgreSQL database yet");
-			break;
-		}
-		case MONGO_DB:
-		{
-			std::string zoneCollectionName = mtConfig.getMongoCollectionsMap().getCollectionName("Zone");
-			Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
-			std::string emptyString;
-			db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
-			ZoneMongoDao zoneDao(dbConfig, db.dbName, zoneCollectionName);
-			zoneDao.getAllZones(zoneMap);
-			Print() << "MTZ Zones loaded" << std::endl;
-			break;
-		}
-		default:
-		{
-			throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
-		}
+	case POSTGRES:
+	{
+		throw std::runtime_error("Zone information is not available in PostgreSQL database yet");
+		break;
+	}
+	case MONGO_DB:
+	{
+		std::string zoneCollectionName = mtConfig.getMongoCollectionsMap().getCollectionName("Zone");
+		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+		std::string emptyString;
+		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+		ZoneMongoDao zoneDao(dbConfig, db.dbName, zoneCollectionName);
+		zoneDao.getAllZones(zoneMap);
+		Print() << "MTZ Zones loaded" << std::endl;
+		break;
+	}
+	default:
+	{
+		throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
+	}
 	}
 
-	for(ZoneMap::iterator i=zoneMap.begin(); i!=zoneMap.end(); i++) {
+	for (ZoneMap::iterator i = zoneMap.begin(); i != zoneMap.end(); i++)
+	{
 		zoneIdLookup[i->second->getZoneCode()] = i->first;
 	}
 }
 
-void sim_mob::medium::PredayManager::loadZoneNodes(db::BackendType dbType) {
-	switch(dbType) {
-		case POSTGRES:
-		{
-			throw std::runtime_error("Zone to node mapping is not available in PostgreSQL database");
-		}
-		case MONGO_DB:
-		{
-			std::string zoneNodeCollectionName = mtConfig.getMongoCollectionsMap().getCollectionName("zone_node");
-			Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
-			std::string emptyString;
-			db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
-			ZoneNodeMappingDao zoneNodeDao(dbConfig, db.dbName, zoneNodeCollectionName);
-			zoneNodeDao.getAll(zoneNodeMap);
-			Print() << "Zones-Node mapping loaded" << std::endl;
-			break;
-		}
-		default:
-		{
-			throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
-		}
+void sim_mob::medium::PredayManager::loadZoneNodes(db::BackendType dbType)
+{
+	switch (dbType)
+	{
+	case POSTGRES:
+	{
+		throw std::runtime_error("Zone to node mapping is not available in PostgreSQL database");
+	}
+	case MONGO_DB:
+	{
+		std::string zoneNodeCollectionName = mtConfig.getMongoCollectionsMap().getCollectionName("zone_node");
+		Database db = ConfigManager::GetInstance().FullConfig().constructs.databases.at("fm_mongo");
+		std::string emptyString;
+		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
+		ZoneNodeMappingDao zoneNodeDao(dbConfig, db.dbName, zoneNodeCollectionName);
+		zoneNodeDao.getAll(zoneNodeMap);
+		Print() << "Zones-Node mapping loaded" << std::endl;
+		break;
+	}
+	default:
+	{
+		throw std::runtime_error("Unsupported backend type. Only PostgreSQL and MongoDB are currently supported.");
+	}
 	}
 }
 
 void sim_mob::medium::PredayManager::load2012_2008ZoneMapping(db::BackendType dbType)
 {
-	switch(dbType)
+	switch (dbType)
 	{
 	case POSTGRES:
 	{
@@ -717,8 +786,10 @@ void sim_mob::medium::PredayManager::load2012_2008ZoneMapping(db::BackendType db
 	}
 }
 
-void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
-	switch(dbType) {
+void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType)
+{
+	switch (dbType)
+	{
 	case POSTGRES:
 	{
 		throw std::runtime_error("AM, PM and off peak costs are not available in PostgreSQL database yet");
@@ -734,17 +805,18 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
 		db::DB_Config dbConfig(db.host, db.port, db.dbName, emptyString, emptyString);
 
 		ZoneMap::size_type nZones = zoneMap.size();
-		if(nZones > 0) {
+		if (nZones > 0)
+		{
 			// if the zone data was loaded already we can reserve space for costs to speed up the loading
 			// Cost data will be available foe every pair (a,b) of zones where a!=b
 			CostMap::size_type mapSz = nZones * nZones - nZones;
-                        
-                        //boost 1.49
-                        amCostMap.rehash(ceil(mapSz / amCostMap.max_load_factor()));
-                        pmCostMap.rehash(ceil(mapSz / pmCostMap.max_load_factor()));
-                        opCostMap.rehash(ceil(mapSz / opCostMap.max_load_factor()));
+
+			//boost 1.49
+			amCostMap.rehash(ceil(mapSz / amCostMap.max_load_factor()));
+			pmCostMap.rehash(ceil(mapSz / pmCostMap.max_load_factor()));
+			opCostMap.rehash(ceil(mapSz / opCostMap.max_load_factor()));
 			//boost >= 1.50
-                        //amCostMap.reserve(mapSz);
+			//amCostMap.reserve(mapSz);
 			//pmCostMap.reserve(mapSz);
 			//opCostMap.reserve(mapSz);
 		}
@@ -766,7 +838,8 @@ void sim_mob::medium::PredayManager::loadCosts(db::BackendType dbType) {
 
 void sim_mob::medium::PredayManager::loadUnavailableODs(db::BackendType dbType)
 {
-	switch(dbType) {
+	switch (dbType)
+	{
 	case POSTGRES:
 	{
 		throw std::runtime_error("Unavailable ODs are not available in PostgreSQL database");
@@ -786,7 +859,7 @@ void sim_mob::medium::PredayManager::loadUnavailableODs(db::BackendType dbType)
 		BSONObj originDestinationQuery, tcostBusDocObj;
 
 		tcostBusDao.getMultiple(unavailabilityQuery, cursorBus);
-		while(cursorBus->more())
+		while (cursorBus->more())
 		{
 			BSONObj currObj = cursorBus->next();
 			origin = currObj.getField("origin").Int();
@@ -795,7 +868,7 @@ void sim_mob::medium::PredayManager::loadUnavailableODs(db::BackendType dbType)
 		}
 
 		tcostCarDao.getMultiple(unavailabilityQuery, cursorCar);
-		while(cursorCar->more())
+		while (cursorCar->more())
 		{
 			BSONObj currObj = cursorCar->next();
 			origin = currObj.getField("origin").Int();
@@ -814,22 +887,36 @@ void sim_mob::medium::PredayManager::dispatchMongodbPersons()
 	unsigned numWorkers = mtConfig.getNumPredayThreads();
 	std::list<std::string> logFileNames;
 	std::string logFileNamePrefix;
-	if(mtConfig.runningPredaySimulation()) { logFileNamePrefix = "activity_schedule"; }
-	else if(mtConfig.runningPredayLogsumComputationForLT()) { logFileNamePrefix = "lt_logsums"; }
+	if (mtConfig.runningPredaySimulation())
+	{
+		logFileNamePrefix = "activity_schedule";
+	}
+	else if (mtConfig.runningPredayLogsumComputationForLT())
+	{
+		logFileNamePrefix = "lt_logsums";
+	}
 	constructFileNames(numWorkers, logFileNamePrefix, logFileNames);
 
-	if(numWorkers == 1)
+	if (numWorkers == 1)
 	{ // if single threaded execution was requested
-		if(mtConfig.runningPredaySimulation()) { processPersons(personIdList.begin(), personIdList.end(), logFileNames.front()); }
-		else if(mtConfig.runningPredayLogsumComputation()) { computeLogsums(personIdList.begin(), personIdList.end()); }
-		else if(mtConfig.runningPredayLogsumComputationForLT()) { computeLT_FeedbackLogsums(personIdList.begin(), personIdList.end(), logFileNames.front()); }
+		if (mtConfig.runningPredaySimulation())
+		{
+			processPersons(personIdList.begin(), personIdList.end(), logFileNames.front());
+		}
+		else if (mtConfig.runningPredayLogsumComputation())
+		{
+			computeLogsums(personIdList.begin(), personIdList.end());
+		}
+		else if (mtConfig.runningPredayLogsumComputationForLT())
+		{
+			computeLT_FeedbackLogsums(personIdList.begin(), personIdList.end(), logFileNames.front());
+		}
 	}
 	else
 	{
 		PersonIdList::size_type numPersons = personIdList.size();
 		PersonIdList::size_type numPersonsPerThread = numPersons / numWorkers;
-		Print() << "numPersons:" << numPersons << "|numWorkers:" << numWorkers
-				<< "|numPersonsPerThread:" << numPersonsPerThread << std::endl;
+		Print() << "numPersons:" << numPersons << "|numWorkers:" << numWorkers << "|numPersonsPerThread:" << numPersonsPerThread << std::endl;
 
 		/*
 		 * We are passing different iterators on the same list into the threaded
@@ -841,31 +928,33 @@ void sim_mob::medium::PredayManager::dispatchMongodbPersons()
 		 * threads change the personList.
 		 */
 		PersonIdList::iterator first = personIdList.begin();
-		PersonIdList::iterator last = personIdList.begin()+numPersonsPerThread;
+		PersonIdList::iterator last = personIdList.begin() + numPersonsPerThread;
 		std::list<std::string>::const_iterator fileNameIt = logFileNames.begin();
-		for(int i = 1; i<=numWorkers; i++)
+		for (int i = 1; i <= numWorkers; i++)
 		{
-			if(mtConfig.runningPredaySimulation())
+			if (mtConfig.runningPredaySimulation())
 			{
-				threadGroup.create_thread( boost::bind(&PredayManager::processPersons, this, first, last, (*fileNameIt)) );
+				threadGroup.create_thread(boost::bind(&PredayManager::processPersons, this, first, last, (*fileNameIt)));
 				fileNameIt++;
 			}
-			else if(mtConfig.runningPredayLogsumComputation())
+			else if (mtConfig.runningPredayLogsumComputation())
 			{
-				threadGroup.create_thread( boost::bind(&PredayManager::computeLogsums, this, first, last) );
+				threadGroup.create_thread(boost::bind(&PredayManager::computeLogsums, this, first, last));
 			}
-			else if(mtConfig.runningPredayLogsumComputationForLT())
+			else if (mtConfig.runningPredayLogsumComputationForLT())
 			{
-				threadGroup.create_thread( boost::bind(&PredayManager::computeLT_FeedbackLogsums, this, first, last, (*fileNameIt)) );
+				threadGroup.create_thread(boost::bind(&PredayManager::computeLT_FeedbackLogsums, this, first, last, (*fileNameIt)));
 				fileNameIt++;
 			}
 
 			first = last;
-			if(i+1 == numWorkers) {
+			if (i + 1 == numWorkers)
+			{
 				// if the next iteration is the last take all remaining persons
 				last = personIdList.end();
 			}
-			else {
+			else
+			{
 				last = last + numPersonsPerThread;
 			}
 		}
@@ -873,7 +962,10 @@ void sim_mob::medium::PredayManager::dispatchMongodbPersons()
 	}
 
 	// merge log files from each thread into 1 file.
-	if(mtConfig.isFileOutputEnabled()) { mergeCSV_Files(logFileNames, logFileNamePrefix); }
+	if (mtConfig.isFileOutputEnabled())
+	{
+		mergeCSV_Files(logFileNames, logFileNamePrefix);
+	}
 }
 
 void sim_mob::medium::PredayManager::dispatchLT_Persons()
@@ -882,22 +974,64 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 	unsigned numWorkers = mtConfig.getNumPredayThreads();
 	std::list<std::string> logFileNames;
 	std::string logFileNamePrefix;
-	if(mtConfig.runningPredaySimulation()) { logFileNamePrefix = "activity_schedule"; }
-	else if(mtConfig.runningPredayLogsumComputationForLT()) { logFileNamePrefix = "lt_logsums"; }
+	if (mtConfig.runningPredaySimulation())
+	{
+		logFileNamePrefix = "activity_schedule";
+	}
+	else if (mtConfig.runningPredayLogsumComputationForLT())
+	{
+		logFileNamePrefix = "lt_logsums";
+	}
 	constructFileNames(numWorkers, logFileNamePrefix, logFileNames);
 
-	if(numWorkers == 1)
+	if(mtConfig.runningPredayLogsumComputation())
+	{
+		// logsum data source
+		const std::string& logsumDbId = mtConfig.getLogsumDb().database;
+		Database logsumDatabase = ConfigManager::GetInstance().FullConfig().constructs.databases.at(logsumDbId);
+		std::string cred_id = mtConfig.getLogsumDb().credentials;
+		Credential logsumCredentials = ConfigManager::GetInstance().FullConfig().constructs.credentials.at(cred_id);
+		std::string username = logsumCredentials.getUsername();
+		std::string password = logsumCredentials.getPassword(false);
+		DB_Config logsumDbConfig(logsumDatabase.host, logsumDatabase.port, logsumDatabase.dbName, username, password);
+		DB_Connection logsumConn(sim_mob::db::POSTGRES, logsumDbConfig);
+		logsumConn.connect();
+		if (!logsumConn.isConnected())
+		{
+			throw std::runtime_error("logsum db connection failure!");
+		}
+		LogsumSqlDao logsumSqlDao(logsumConn);
+		bool truncated = logsumSqlDao.erase(db::EMPTY_PARAMS);
+		if(truncated)
+		{
+			Print() << DB_TABLE_LOGSUMS << " truncated on " << logsumDatabase.dbName << std::endl;
+		}
+		else
+		{
+			Print() << DB_TABLE_LOGSUMS << " truncation failed!" << std::endl;
+		}
+	}
+
+	if (numWorkers == 1)
 	{ // if single threaded execution was requested
-		if(mtConfig.runningPredaySimulation()) { processPersonsForLT_Population(ltPersonIdList.begin(), ltPersonIdList.end(), logFileNames.front()); }
-		else if(mtConfig.runningPredayLogsumComputation()) { computeLogsumsForLT_Population(ltPersonIdList.begin(), ltPersonIdList.end()); }
-		else if(mtConfig.runningPredayLogsumComputationForLT()) { computeLT_PopulationFeedbackLogsums(ltPersonIdList.begin(), ltPersonIdList.end(), logFileNames.front()); }
+		if (mtConfig.runningPredaySimulation())
+		{
+			processPersonsForLT_Population(ltPersonIdList.begin(), ltPersonIdList.end(), logFileNames.front());
+		}
+		else if (mtConfig.runningPredayLogsumComputation())
+		{
+			computeLogsumsForLT_Population(ltPersonIdList.begin(), ltPersonIdList.end());
+		}
+		else if (mtConfig.runningPredayLogsumComputationForLT())
+		{
+			computeLT_PopulationFeedbackLogsums(ltPersonIdList.begin(), ltPersonIdList.end(), logFileNames.front());
+		}
 	}
 	else
 	{
 		LT_PersonIdList::size_type numPersons = ltPersonIdList.size();
 		LT_PersonIdList::size_type numPersonsPerThread = numPersons / numWorkers;
-		Print() << "numPersons:" << numPersons << "|numWorkers:" << numWorkers
-				<< "|numPersonsPerThread:" << numPersonsPerThread << std::endl;
+		Print() << "numPersons:" << numPersons << "|numWorkers:" << numWorkers << "|numPersonsPerThread:" << numPersonsPerThread << std::endl;
 
 		/*
 		 * We are passing different iterators on the same list into the threaded
@@ -909,31 +1043,33 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 		 * threads change the personList.
 		 */
 		LT_PersonIdList::iterator first = ltPersonIdList.begin();
-		LT_PersonIdList::iterator last = ltPersonIdList.begin()+numPersonsPerThread;
+		LT_PersonIdList::iterator last = ltPersonIdList.begin() + numPersonsPerThread;
 		std::list<std::string>::const_iterator fileNameIt = logFileNames.begin();
-		for(int i = 1; i<=numWorkers; i++)
+		for (int i = 1; i <= numWorkers; i++)
 		{
-			if(mtConfig.runningPredaySimulation())
+			if (mtConfig.runningPredaySimulation())
 			{
-				threadGroup.create_thread( boost::bind(&PredayManager::processPersonsForLT_Population, this, first, last, (*fileNameIt)) );
+				threadGroup.create_thread(boost::bind(&PredayManager::processPersonsForLT_Population, this, first, last, (*fileNameIt)));
 				fileNameIt++;
 			}
-			else if(mtConfig.runningPredayLogsumComputation())
+			else if (mtConfig.runningPredayLogsumComputation())
 			{
-				threadGroup.create_thread( boost::bind(&PredayManager::computeLogsumsForLT_Population, this, first, last) );
+				threadGroup.create_thread(boost::bind(&PredayManager::computeLogsumsForLT_Population, this, first, last));
 			}
-			else if(mtConfig.runningPredayLogsumComputationForLT())
+			else if (mtConfig.runningPredayLogsumComputationForLT())
 			{
-				threadGroup.create_thread( boost::bind(&PredayManager::computeLT_PopulationFeedbackLogsums, this, first, last, (*fileNameIt)) );
+				threadGroup.create_thread(boost::bind(&PredayManager::computeLT_PopulationFeedbackLogsums, this, first, last, (*fileNameIt)));
 				fileNameIt++;
 			}
 
 			first = last;
-			if(i+1 == numWorkers) {
+			if (i + 1 == numWorkers)
+			{
 				// if the next iteration is the last take all remaining persons
 				last = ltPersonIdList.end();
 			}
-			else {
+			else
+			{
 				last = last + numPersonsPerThread;
 			}
 		}
@@ -941,23 +1077,27 @@ void sim_mob::medium::PredayManager::dispatchLT_Persons()
 	}
 
 	// merge log files from each thread into 1 file.
-	if(mtConfig.isFileOutputEnabled()) { mergeCSV_Files(logFileNames, logFileNamePrefix); }
+	if (mtConfig.isFileOutputEnabled())
+	{
+		mergeCSV_Files(logFileNames, logFileNamePrefix);
+	}
 }
 
 void sim_mob::medium::PredayManager::distributeAndProcessForCalibration(threadedFnPtr fnPtr)
 {
 	boost::thread_group threadGroup;
 	size_t numWorkers = mtConfig.getNumPredayThreads();
-	if(numWorkers == 1) { // if single threaded execution was requested
+	if (numWorkers == 1)
+	{ // if single threaded execution was requested
 		(this->*fnPtr)(personList.begin(), personList.end(), 0);
 	}
-	else {
+	else
+	{
 		size_t numPersons = personList.size();
 		size_t numPersonsPerThread = numPersons / numWorkers;
 		PersonList::iterator first = personList.begin();
-		PersonList::iterator last = personList.begin()+numPersonsPerThread;
-		Print() << "numPersons:" << numPersons << "|numWorkers:" << numWorkers
-				<< "|numPersonsPerThread:" << numPersonsPerThread << std::endl;
+		PersonList::iterator last = personList.begin() + numPersonsPerThread;
+		Print() << "numPersons:" << numPersons << "|numWorkers:" << numWorkers << "|numPersonsPerThread:" << numPersonsPerThread << std::endl;
 
 		/*
 		 * Passing different iterators on the same list into the threaded
@@ -968,15 +1108,18 @@ void sim_mob::medium::PredayManager::distributeAndProcessForCalibration(threaded
 		 * start and end iterators. It is therefore important that none of the
 		 * threads change the personList.
 		 */
-		for(size_t i = 1; i<=numWorkers; i++) {
-			threadGroup.create_thread( boost::bind(fnPtr, this, first, last, i-1) );
+		for (size_t i = 1; i <= numWorkers; i++)
+		{
+			threadGroup.create_thread(boost::bind(fnPtr, this, first, last, i - 1));
 
 			first = last;
-			if(i+1 == numWorkers) {
+			if (i + 1 == numWorkers)
+			{
 				// if the next iteration is the last take all remaining persons
 				last = personList.end();
 			}
-			else {
+			else
+			{
 				last = last + numPersonsPerThread;
 			}
 		}
@@ -986,7 +1129,10 @@ void sim_mob::medium::PredayManager::distributeAndProcessForCalibration(threaded
 
 void sim_mob::medium::PredayManager::calibratePreday()
 {
-	if(!mtConfig.runningPredayCalibration()) { return; }
+	if (!mtConfig.runningPredayCalibration())
+	{
+		return;
+	}
 	const PredayCalibrationParams& predayParams = mtConfig.getPredayCalibrationParams();
 
 	/* initialize log file and log header line*/
@@ -997,7 +1143,8 @@ void sim_mob::medium::PredayManager::calibratePreday()
 
 		/* load variables to calibrate */
 		loadCalibrationVariables();
-		for(std::vector<CalibrationVariable>::const_iterator calVarIt=calibrationVariablesList.begin(); calVarIt!=calibrationVariablesList.end(); calVarIt++)
+		for (std::vector<CalibrationVariable>::const_iterator calVarIt = calibrationVariablesList.begin(); calVarIt != calibrationVariablesList.end();
+				calVarIt++)
 		{
 			logStream << "," << (*calVarIt).getVariableName();
 		}
@@ -1027,7 +1174,10 @@ void sim_mob::medium::PredayManager::calibratePreday()
 	} //scope out unnecessary objects
 
 	/* load weight matrix if required */
-	if(mtConfig.runningWSPSA()) { loadWeightMatrix(); }
+	if (mtConfig.runningWSPSA())
+	{
+		loadWeightMatrix();
+	}
 
 	/*initializations*/
 	simulatedStatsVector = std::vector<CalibrationStatistics>(mtConfig.getNumPredayThreads());
@@ -1052,31 +1202,37 @@ void sim_mob::medium::PredayManager::calibratePreday()
 	streamVector(simulatedHITS_Stats, logStream);
 	log();
 
-	for(unsigned k=1; k<=iterationLimit; k++)
+	for (unsigned k = 1; k <= iterationLimit; k++)
 	{
 		// iteration k
 		Print() << "~~~~~ iteration " << k << " ~~~~~" << std::endl;
 		simulatedHITS_Stats.clear();
 
 		// 1. compute perturbation step size
-		initialGradientStepSize = predayParams.getInitialGradientStepSize() / std::pow((1+k), predayParams.getAlgorithmCoefficient2());
-		Print() << "initialGradientStepSize = " << initialGradientStepSize <<std::endl;
+		initialGradientStepSize = predayParams.getInitialGradientStepSize() / std::pow((1 + k), predayParams.getAlgorithmCoefficient2());
+		Print() << "initialGradientStepSize = " << initialGradientStepSize << std::endl;
 
 		// 2. compute logsums if required
-		if((k%mtConfig.getLogsumComputationFrequency()) == 0)
+		if ((k % mtConfig.getLogsumComputationFrequency()) == 0)
 		{
 			distributeAndProcessForCalibration(&PredayManager::computeLogsumsForCalibration);
 		}
 
 		// 3. compute gradients using SPSA technique
 		std::vector<double> gradientVector;
-		if(mtConfig.runningWSPSA()) { computeWeightedGradient(randomVector.get(), initialGradientStepSize, gradientVector); }
-		else { computeGradient(randomVector.get(), initialGradientStepSize, gradientVector); }
+		if (mtConfig.runningWSPSA())
+		{
+			computeWeightedGradient(randomVector.get(), initialGradientStepSize, gradientVector);
+		}
+		else
+		{
+			computeGradient(randomVector.get(), initialGradientStepSize, gradientVector);
+		}
 		computeAntiGradient(gradientVector); // checks limits and negates gradient
 		printVector("gradient vector", gradientVector);
 
 		// 4. compute norm of the gradient (root of sum of squares of gradients)
-		for(std::vector<double>::const_iterator gradIt=gradientVector.begin(); gradIt!=gradientVector.end(); gradIt++)
+		for (std::vector<double>::const_iterator gradIt = gradientVector.begin(); gradIt != gradientVector.end(); gradIt++)
 		{
 			normOfGradient = normOfGradient + std::pow((*gradIt), 2);
 		}
@@ -1084,8 +1240,9 @@ void sim_mob::medium::PredayManager::calibratePreday()
 		Print() << "norm of gradient vector: " << normOfGradient << std::endl;
 
 		// 5. compute step size
-		stepSize = predayParams.getInitialStepSize() / std::pow((predayParams.getInitialStepSize()+k+predayParams.getStabilityConstant()), predayParams.getAlgorithmCoefficient1());
-		Print() << "stepSize = " << stepSize <<std::endl;
+		stepSize = predayParams.getInitialStepSize()
+				/ std::pow((predayParams.getInitialStepSize() + k + predayParams.getStabilityConstant()), predayParams.getAlgorithmCoefficient1());
+		Print() << "stepSize = " << stepSize << std::endl;
 
 		// 6. update the variables being calibrated and compute objective function
 		updateVariablesByAddition(calibrationVariablesList, gradientVector, stepSize);
@@ -1100,7 +1257,7 @@ void sim_mob::medium::PredayManager::calibratePreday()
 		log();
 
 		// 8. check termination. At this point there would be atleast k+1 elements in objectiveFunctionValues
-		if(std::abs(objectiveFunctionValues[k] - objectiveFunctionValues[k-1]) <= predayParams.getTolerance())
+		if (std::abs(objectiveFunctionValues[k] - objectiveFunctionValues[k - 1]) <= predayParams.getTolerance())
 		{
 			break; //converged!
 		}
@@ -1130,12 +1287,10 @@ void sim_mob::medium::PredayManager::loadCalibrationVariables()
 			calibrationVariable.setLowerLimit(boost::lexical_cast<double>(variableRow.at(LOWER_LIMIT_CSV_HEADER)));
 			calibrationVariable.setUpperLimit(boost::lexical_cast<double>(variableRow.at(UPPER_LIMIT_CSV_HEADER)));
 			calibrationVariablesList.push_back(calibrationVariable);
-		}
-		catch(const std::out_of_range& oor)
+		} catch (const std::out_of_range& oor)
 		{
 			throw std::runtime_error("Header mis-match while reading calibration variables csv");
-		}
-		catch(boost::bad_lexical_cast const&)
+		} catch (boost::bad_lexical_cast const&)
 		{
 			throw std::runtime_error("Invalid value found in calibration variables csv");
 		}
@@ -1153,22 +1308,22 @@ void sim_mob::medium::PredayManager::loadWeightMatrix()
 	weightMatrix = matrix<double>(numStatistics, numVariables);
 	std::vector<std::string> matrixRow;
 	matrixReader.getNextRow(matrixRow);
-	size_t row=0, col=0;
-	while(!matrixRow.empty())
+	size_t row = 0, col = 0;
+	while (!matrixRow.empty())
 	{
-		std::vector<std::string>::iterator strIt=matrixRow.begin();
+		std::vector<std::string>::iterator strIt = matrixRow.begin();
 		strIt++; //first element is the name of the observation
-		for(; strIt!=matrixRow.end(); strIt++)
+		for (; strIt != matrixRow.end(); strIt++)
 		{
 			try
 			{
-				weightMatrix(row,col) = boost::lexical_cast<double>(*strIt);
+				weightMatrix(row, col) = boost::lexical_cast<double>(*strIt);
 			}
-			catch(boost::bad_lexical_cast const& badCastEx)
+			catch (boost::bad_lexical_cast const& badCastEx)
 			{
 				throw std::runtime_error("Invalid value found in weight matrix csv");
 			}
-			catch(bad_index const& badIdxEx)
+			catch (bad_index const& badIdxEx)
 			{
 				throw std::runtime_error("weight matrix csv has incorrect number of elements");
 			}
@@ -1181,19 +1336,23 @@ void sim_mob::medium::PredayManager::loadWeightMatrix()
 	}
 }
 
-void sim_mob::medium::PredayManager::processPersonsForCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum)
+void sim_mob::medium::PredayManager::processPersonsForCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt,
+		size_t threadNum)
 {
 	CalibrationStatistics& simStats = simulatedStatsVector.at(threadNum);
 	bool consoleOutput = mtConfig.isConsoleOutput();
 
 	const std::map<std::string, db::MongoDao*>& mongoDao = mongoDaoStore.at(threadNum);
 
-	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++)
+	for (PersonList::iterator i = firstPersonIt; i != oneAfterLastPersonIt; i++)
 	{
 		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 		predaySystem.planDay();
 		predaySystem.updateStatistics(simStats);
-		if(consoleOutput) { predaySystem.printLogs(); }
+		if (consoleOutput)
+		{
+			predaySystem.printLogs();
+		}
 	}
 }
 
@@ -1201,7 +1360,10 @@ void sim_mob::medium::PredayManager::computeGradient(const std::vector<short>& r
 		std::vector<double>& gradientVector)
 {
 	size_t numVariables = calibrationVariablesList.size();
-	if(randomVector.size() != calibrationVariablesList.size()) {throw std::runtime_error("size mis-match between calibrationVariablesList and randomVector"); }
+	if (randomVector.size() != calibrationVariablesList.size())
+	{
+		throw std::runtime_error("size mis-match between calibrationVariablesList and randomVector");
+	}
 	std::vector<double> scaledRandomVector;
 	multiplyScalarWithVector(initialGradientStepSize, randomVector, scaledRandomVector);
 	std::vector<CalibrationVariable> localCopyCalVarList = calibrationVariablesList;
@@ -1215,9 +1377,9 @@ void sim_mob::medium::PredayManager::computeGradient(const std::vector<short>& r
 
 	gradientVector.clear();
 	double varGradient = 0;
-	for(size_t i=0; i<numVariables; i++)
+	for (size_t i = 0; i < numVariables; i++)
 	{
-		varGradient = (objFnPlus - objFnMinus)/(2*scaledRandomVector[i]);
+		varGradient = (objFnPlus - objFnMinus) / (2 * scaledRandomVector[i]);
 		gradientVector.push_back(varGradient);
 	}
 }
@@ -1228,7 +1390,10 @@ void sim_mob::medium::PredayManager::computeWeightedGradient(const std::vector<s
 	size_t numVariables = calibrationVariablesList.size();
 	size_t numStatistics = observedHITS_Stats.size();
 
-	if(randomVector.size() != calibrationVariablesList.size()) {throw std::runtime_error("size mis-match between calibrationVariablesList and randomVector"); }
+	if (randomVector.size() != calibrationVariablesList.size())
+	{
+		throw std::runtime_error("size mis-match between calibrationVariablesList and randomVector");
+	}
 
 	std::vector<double> scaledRandomVector;
 	multiplyScalarWithVector(initialGradientStepSize, randomVector, scaledRandomVector);
@@ -1238,32 +1403,39 @@ void sim_mob::medium::PredayManager::computeWeightedGradient(const std::vector<s
 	std::vector<CalibrationVariable> localCopyCalVarList = calibrationVariablesList;
 	updateVariablesByAddition(localCopyCalVarList, scaledRandomVector);
 	computeObservationsVector(localCopyCalVarList, simStatisticsPlus);
-	if(observedHITS_Stats.size() != simStatisticsPlus.size()) { throw std::runtime_error("size mis-match between observed and simulated values");	}
+	if (observedHITS_Stats.size() != simStatisticsPlus.size())
+	{
+		throw std::runtime_error("size mis-match between observed and simulated values");
+	}
 
 	localCopyCalVarList = calibrationVariablesList;
 	updateVariablesBySubtraction(localCopyCalVarList, scaledRandomVector);
 	computeObservationsVector(localCopyCalVarList, simStatisticsMinus);
-	if(observedHITS_Stats.size() != simStatisticsMinus.size()) { throw std::runtime_error("size mis-match between observed and simulated values");	}
+	if (observedHITS_Stats.size() != simStatisticsMinus.size())
+	{
+		throw std::runtime_error("size mis-match between observed and simulated values");
+	}
 
 	gradientVector.clear();
 	double gradient = 0, squaredDifferencePlus = 0, squaredDifferenceMinus = 0, scaledDiff = 0;
-	for(size_t j=0; j<numVariables; j++)
+	for (size_t j = 0; j < numVariables; j++)
 	{
 		gradient = 0;
-		for(size_t i=0; i<numStatistics; i++)
+		for (size_t i = 0; i < numStatistics; i++)
 		{
-			scaledDiff = statsScale[i] * (simStatisticsPlus[i]-observedHITS_Stats[i]);
+			scaledDiff = statsScale[i] * (simStatisticsPlus[i] - observedHITS_Stats[i]);
 			squaredDifferencePlus = std::pow(scaledDiff, 2);
-			scaledDiff = statsScale[i] * (simStatisticsMinus[i]-observedHITS_Stats[i]);
+			scaledDiff = statsScale[i] * (simStatisticsMinus[i] - observedHITS_Stats[i]);
 			squaredDifferenceMinus = std::pow(scaledDiff, 2);
-			gradient = gradient + (weightMatrix(i,j) * (squaredDifferencePlus - squaredDifferenceMinus));
+			gradient = gradient + (weightMatrix(i, j) * (squaredDifferencePlus - squaredDifferenceMinus));
 		}
-		gradient = gradient / (2*scaledRandomVector[j]);
+		gradient = gradient / (2 * scaledRandomVector[j]);
 		gradientVector.push_back(gradient);
 	}
 }
 
-void sim_mob::medium::PredayManager::processPersons(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& activityScheduleLog)
+void sim_mob::medium::PredayManager::processPersons(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt,
+		const std::string& activityScheduleLog)
 {
 	bool outputTripchains = mtConfig.isFileOutputEnabled();
 	bool outputPredictions = mtConfig.isOutputPredictions();
@@ -1277,8 +1449,9 @@ void sim_mob::medium::PredayManager::processPersons(const PersonIdList::iterator
 
 	// construct MongoDao-s for this thread
 	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
-	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
-		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
+	for (std::map<std::string, std::string>::const_iterator i = collectionNameMap.begin(); i != collectionNameMap.end(); i++)
+	{
+		mongoDao[i->first] = new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
 
 	// construct population dao specially
@@ -1286,32 +1459,41 @@ void sim_mob::medium::PredayManager::processPersons(const PersonIdList::iterator
 	PopulationMongoDao populationDao(dbConfig, db.dbName, populationCollectionName);
 
 	// open log file for this thread
-    std::ofstream activityScheduleLogFile(activityScheduleLog.c_str(), std::ios::trunc|std::ios::out);
-    std::stringstream activityScheduleStream;
+	std::ofstream activityScheduleLogFile(activityScheduleLog.c_str(), std::ios::trunc | std::ios::out);
+	std::stringstream activityScheduleStream;
 
 	// loop through all persons within the range and plan their day
-	for(PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++) {
+	for (PersonIdList::iterator i = firstPersonIdIt; i != oneAfterLastPersonIdIt; i++)
+	{
 		PersonParams personParams;
 		populationDao.getOneById(*i, personParams);
 		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 		predaySystem.planDay();
-		if(outputPredictions) { predaySystem.outputPredictionsToMongo(); }
-		if(outputTripchains)
+		if (outputPredictions)
+		{
+			predaySystem.outputPredictionsToMongo();
+		}
+		if (outputTripchains)
 		{
 			predaySystem.outputActivityScheduleToStream(zoneNodeMap, activityScheduleStream);
 			outputToFile(activityScheduleLogFile, activityScheduleStream);
 		}
-		if(consoleOutput) { predaySystem.printLogs(); }
+		if (consoleOutput)
+		{
+			predaySystem.printLogs();
+		}
 	}
 
 	// destroy local objects
-	for(std::map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
+	for (std::map<std::string, db::MongoDao*>::iterator i = mongoDao.begin(); i != mongoDao.end(); i++)
+	{
 		safe_delete_item(i->second);
 	}
 	mongoDao.clear();
 }
 
-void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_PersonIdList::iterator& firstPersonIdIt, const LT_PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& activityScheduleLog)
+void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_PersonIdList::iterator& firstPersonIdIt,
+		const LT_PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& activityScheduleLog)
 {
 	bool outputTripchains = mtConfig.isFileOutputEnabled();
 	bool outputPredictions = mtConfig.isOutputPredictions();
@@ -1325,8 +1507,9 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 
 	// construct MongoDao-s for this thread
 	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
-	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
-		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
+	for (std::map<std::string, std::string>::const_iterator i = collectionNameMap.begin(); i != collectionNameMap.end(); i++)
+	{
+		mongoDao[i->first] = new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
 
 	// construct population dao specially
@@ -1339,7 +1522,10 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 	DB_Config populationDbConfig(populationDatabase.host, populationDatabase.port, populationDatabase.dbName, username, password);
 	DB_Connection populationConn(sim_mob::db::POSTGRES, populationDbConfig);
 	populationConn.connect();
-	if(!populationConn.isConnected()) { throw std::runtime_error("population db connection failure!"); }
+	if (!populationConn.isConnected())
+	{
+		throw std::runtime_error("population db connection failure!");
+	}
 	PopulationSqlDao populationDao(populationConn);
 
 	// logsum data source
@@ -1352,66 +1538,82 @@ void sim_mob::medium::PredayManager::processPersonsForLT_Population(const LT_Per
 	DB_Config logsumDbConfig(logsumDatabase.host, logsumDatabase.port, logsumDatabase.dbName, username, password);
 	DB_Connection logsumConn(sim_mob::db::POSTGRES, logsumDbConfig);
 	logsumConn.connect();
-	if (!logsumConn.isConnected()) { throw std::runtime_error("logsum db connection failure!"); }
+	if (!logsumConn.isConnected())
+	{
+		throw std::runtime_error("logsum db connection failure!");
+	}
 	LogsumSqlDao logsumSqlDao(logsumConn);
 
 	// open log file for this thread
-	std::ofstream activityScheduleLogFile(activityScheduleLog.c_str(), std::ios::trunc|std::ios::out);
+	std::ofstream activityScheduleLogFile(activityScheduleLog.c_str(), std::ios::trunc | std::ios::out);
 	std::stringstream activityScheduleStream;
 
 	// loop through all persons within the range and plan their day
-	for(LT_PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++) {
+	for (LT_PersonIdList::iterator i = firstPersonIdIt; i != oneAfterLastPersonIdIt; i++)
+	{
 		PersonParams personParams;
 		populationDao.getOneById(*i, personParams);
-		if(personParams.getPersonId().empty()) { continue; } // some persons are not complete in the database
+		if (personParams.getPersonId().empty())
+		{
+			continue;
+		} // some persons are not complete in the database
 		logsumSqlDao.getLogsumById(*i, personParams);
 		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 		predaySystem.planDay();
-		if(outputPredictions) { predaySystem.outputPredictionsToMongo(); }
-		if(outputTripchains)
+		if (outputPredictions)
+		{
+			predaySystem.outputPredictionsToMongo();
+		}
+		if (outputTripchains)
 		{
 			predaySystem.outputActivityScheduleToStream(zoneNodeMap, activityScheduleStream);
 			outputToFile(activityScheduleLogFile, activityScheduleStream);
 		}
-		if(consoleOutput) { predaySystem.printLogs(); }
+		if (consoleOutput)
+		{
+			predaySystem.printLogs();
+		}
 	}
 
 	// destroy local objects
-	for(std::map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
+	for (std::map<std::string, db::MongoDao*>::iterator i = mongoDao.begin(); i != mongoDao.end(); i++)
+	{
 		safe_delete_item(i->second);
 	}
 	mongoDao.clear();
 }
 
-void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum)
+void sim_mob::medium::PredayManager::computeLogsumsForCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt,
+		size_t threadNum)
 {
 	bool consoleOutput = mtConfig.isConsoleOutput();
 
 	const std::map<std::string, db::MongoDao*>& mongoDao = mongoDaoStore.at(threadNum);
 
 	// loop through all persons within the range and plan their day
-	for(PersonList::iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++) {
+	for (PersonList::iterator i = firstPersonIt; i != oneAfterLastPersonIt; i++)
+	{
 		PredaySystem predaySystem(**i, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 		predaySystem.computeLogsums();
-		if(consoleOutput) { predaySystem.printLogs(); }
+		if (consoleOutput)
+		{
+			predaySystem.printLogs();
+		}
 	}
 }
 
-void sim_mob::medium::PredayManager::updateLogsumsToMongoAfterCalibration(const PersonList::iterator& firstPersonIt, const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum)
+void sim_mob::medium::PredayManager::updateLogsumsToMongoAfterCalibration(const PersonList::iterator& firstPersonIt,
+		const PersonList::iterator& oneAfterLastPersonIt, size_t threadNum)
 {
 	const std::map<std::string, db::MongoDao*>& mongoDao = mongoDaoStore.at(threadNum);
 
-	for(PersonList::const_iterator i = firstPersonIt; i!=oneAfterLastPersonIt; i++)
+	for (PersonList::const_iterator i = firstPersonIt; i != oneAfterLastPersonIt; i++)
 	{
 		const PersonParams* personParams = (*i);
 		Query query = QUERY("_id" << personParams->getPersonId());
-		BSONObj updateObj = BSON("$set" << BSON(
-				MONGO_FIELD_WORK_LOGSUM << personParams->getWorkLogSum() <<
-				MONGO_FIELD_SHOP_LOGSUM << personParams->getShopLogSum() <<
-				MONGO_FIELD_OTHER_LOGSUM << personParams->getOtherLogSum() <<
-				MONGO_FIELD_DPT_LOGSUM << personParams->getDptLogsum() <<
-				MONGO_FIELD_DPS_LOGSUM << personParams->getDpsLogsum()
-				));
+		BSONObj updateObj =
+				BSON(
+						"$set" << BSON( MONGO_FIELD_WORK_LOGSUM << personParams->getWorkLogSum() << MONGO_FIELD_SHOP_LOGSUM << personParams->getShopLogSum() << MONGO_FIELD_OTHER_LOGSUM << personParams->getOtherLogSum() << MONGO_FIELD_DPT_LOGSUM << personParams->getDptLogsum() << MONGO_FIELD_DPS_LOGSUM << personParams->getDpsLogsum() ));
 		mongoDao.at("population")->update(query, updateObj);
 	}
 }
@@ -1428,8 +1630,9 @@ void sim_mob::medium::PredayManager::computeLogsums(const PersonIdList::iterator
 
 	// construct MongoDao-s for this thread
 	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
-	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
-		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
+	for (std::map<std::string, std::string>::const_iterator i = collectionNameMap.begin(); i != collectionNameMap.end(); i++)
+	{
+		mongoDao[i->first] = new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
 
 	// construct population dao specially
@@ -1437,23 +1640,29 @@ void sim_mob::medium::PredayManager::computeLogsums(const PersonIdList::iterator
 	PopulationMongoDao populationDao(dbConfig, db.dbName, populationCollectionName);
 
 	// loop through all persons within the range and plan their day
-	for(PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++) {
+	for (PersonIdList::iterator i = firstPersonIdIt; i != oneAfterLastPersonIdIt; i++)
+	{
 		PersonParams personParams;
 		populationDao.getOneById(*i, personParams);
 		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 		predaySystem.computeLogsums();
 		predaySystem.updateLogsumsToMongo();
-		if(consoleOutput) { predaySystem.printLogs(); }
+		if (consoleOutput)
+		{
+			predaySystem.printLogs();
+		}
 	}
 
 	// destroy Dao objects
-	for(std::map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
+	for (std::map<std::string, db::MongoDao*>::iterator i = mongoDao.begin(); i != mongoDao.end(); i++)
+	{
 		safe_delete_item(i->second);
 	}
 	mongoDao.clear();
 }
 
-void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_PersonIdList::iterator& firstPersonIdIt, const LT_PersonIdList::iterator& oneAfterLastPersonIdIt)
+void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_PersonIdList::iterator& firstPersonIdIt,
+		const LT_PersonIdList::iterator& oneAfterLastPersonIdIt)
 {
 	bool consoleOutput = mtConfig.isConsoleOutput();
 
@@ -1465,9 +1674,9 @@ void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_Per
 
 	// construct MongoDao-s for this thread
 	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
-	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++)
+	for (std::map<std::string, std::string>::const_iterator i = collectionNameMap.begin(); i != collectionNameMap.end(); i++)
 	{
-		mongoDao[i->first]= new db::MongoDao(dbConfig, db.dbName, i->second);
+		mongoDao[i->first] = new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
 
 	// construct population dao specially
@@ -1480,7 +1689,10 @@ void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_Per
 	DB_Config populationDbConfig(populationDatabase.host, populationDatabase.port, populationDatabase.dbName, username, password);
 	DB_Connection populationConn(sim_mob::db::POSTGRES, populationDbConfig);
 	populationConn.connect();
-	if(!populationConn.isConnected()) { throw std::runtime_error("population db connection failure!"); }
+	if (!populationConn.isConnected())
+	{
+		throw std::runtime_error("population db connection failure!");
+	}
 	PopulationSqlDao populationDao(populationConn);
 
 	// logsum data source
@@ -1493,30 +1705,40 @@ void sim_mob::medium::PredayManager::computeLogsumsForLT_Population(const LT_Per
 	DB_Config logsumDbConfig(logsumDatabase.host, logsumDatabase.port, logsumDatabase.dbName, username, password);
 	DB_Connection logsumConn(sim_mob::db::POSTGRES, logsumDbConfig);
 	logsumConn.connect();
-	if (!logsumConn.isConnected()) { throw std::runtime_error("logsum db connection failure!"); }
+	if (!logsumConn.isConnected())
+	{
+		throw std::runtime_error("logsum db connection failure!");
+	}
 	LogsumSqlDao logsumSqlDao(logsumConn);
 
 	// loop through all persons within the range and plan their day
-	for(LT_PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++)
+	for (LT_PersonIdList::iterator i = firstPersonIdIt; i != oneAfterLastPersonIdIt; i++)
 	{
 		PersonParams personParams;
 		populationDao.getOneById(*i, personParams);
-		if(personParams.getPersonId().empty()) { continue; } // some persons are not complete in the database
+		if (personParams.getPersonId().empty())
+		{
+			continue;
+		} // some persons are not complete in the database
 		PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
 		predaySystem.computeLogsums();
 		logsumSqlDao.insert(personParams);
-		if(consoleOutput) { predaySystem.printLogs(); }
+		if (consoleOutput)
+		{
+			predaySystem.printLogs();
+		}
 	}
 
 	// destroy Dao objects
-	for(std::map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++)
+	for (std::map<std::string, db::MongoDao*>::iterator i = mongoDao.begin(); i != mongoDao.end(); i++)
 	{
 		safe_delete_item(i->second);
 	}
 	mongoDao.clear();
 }
 
-void sim_mob::medium::PredayManager::computeLT_PopulationFeedbackLogsums(const LT_PersonIdList::iterator& firstPersonIdIt, const LT_PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& logsumOutputFileName)
+void sim_mob::medium::PredayManager::computeLT_PopulationFeedbackLogsums(const LT_PersonIdList::iterator& firstPersonIdIt,
+		const LT_PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& logsumOutputFileName)
 {
 	std::map<std::string, db::MongoDao*> mongoDao;
 	bool consoleOutput = mtConfig.isConsoleOutput();
@@ -1527,7 +1749,8 @@ void sim_mob::medium::PredayManager::computeLT_PopulationFeedbackLogsums(const L
 
 	// construct MongoDao-s for this thread
 	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
-	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
+	for (std::map<std::string, std::string>::const_iterator i = collectionNameMap.begin(); i != collectionNameMap.end(); i++)
+	{
 		mongoDao[i->first] = new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
 
@@ -1541,34 +1764,45 @@ void sim_mob::medium::PredayManager::computeLT_PopulationFeedbackLogsums(const L
 	DB_Config populationDbConfig(populationDatabase.host, populationDatabase.port, populationDatabase.dbName, username, password);
 	DB_Connection populationConn(sim_mob::db::POSTGRES, populationDbConfig);
 	populationConn.connect();
-	if(!populationConn.isConnected()) { throw std::runtime_error("population db connection failure!"); }
+	if (!populationConn.isConnected())
+	{
+		throw std::runtime_error("population db connection failure!");
+	}
 	PopulationSqlDao populationDao(populationConn);
 
 	/* initialize log file for this thread and log header line*/
-    std::ofstream logsumOutputFile(logsumOutputFileName.c_str(), std::ios::trunc|std::ios::out);
-    std::stringstream logsumStream;
-    outputToFile(logsumOutputFile, logsumStream);
+	std::ofstream logsumOutputFile(logsumOutputFileName.c_str(), std::ios::trunc | std::ios::out);
+	std::stringstream logsumStream;
+	outputToFile(logsumOutputFile, logsumStream);
 
 	// loop through all persons within the range and plan their day
-    PersonParams personParams;
+	PersonParams personParams;
 	PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
-	for(LT_PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++)
+	for (LT_PersonIdList::iterator i = firstPersonIdIt; i != oneAfterLastPersonIdIt; i++)
 	{
 		populationDao.getOneById(*i, personParams);
-		if(personParams.getPersonId().empty()) { continue; } // some persons are not complete in the database
+		if (personParams.getPersonId().empty())
+		{
+			continue;
+		} // some persons are not complete in the database
 		predaySystem.computeLogsumsForLT(logsumStream);
 		outputToFile(logsumOutputFile, logsumStream);
-		if(consoleOutput) { predaySystem.printLogs(); }
+		if (consoleOutput)
+		{
+			predaySystem.printLogs();
+		}
 	}
 
 	// destroy Dao objects
-	for(std::map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
+	for (std::map<std::string, db::MongoDao*>::iterator i = mongoDao.begin(); i != mongoDao.end(); i++)
+	{
 		safe_delete_item(i->second);
 	}
 	mongoDao.clear();
 }
 
-void sim_mob::medium::PredayManager::computeLT_FeedbackLogsums(const PersonIdList::iterator& firstPersonIdIt, const PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& logsumOutputFileName)
+void sim_mob::medium::PredayManager::computeLT_FeedbackLogsums(const PersonIdList::iterator& firstPersonIdIt,
+		const PersonIdList::iterator& oneAfterLastPersonIdIt, const std::string& logsumOutputFileName)
 {
 	std::map<std::string, db::MongoDao*> mongoDao;
 	bool consoleOutput = mtConfig.isConsoleOutput();
@@ -1579,7 +1813,8 @@ void sim_mob::medium::PredayManager::computeLT_FeedbackLogsums(const PersonIdLis
 
 	// construct MongoDao-s for this thread
 	const std::map<std::string, std::string>& collectionNameMap = mongoColl.getCollectionsMap();
-	for(std::map<std::string, std::string>::const_iterator i=collectionNameMap.begin(); i!=collectionNameMap.end(); i++) {
+	for (std::map<std::string, std::string>::const_iterator i = collectionNameMap.begin(); i != collectionNameMap.end(); i++)
+	{
 		mongoDao[i->first] = new db::MongoDao(dbConfig, db.dbName, i->second);
 	}
 
@@ -1588,30 +1823,34 @@ void sim_mob::medium::PredayManager::computeLT_FeedbackLogsums(const PersonIdLis
 	PopulationMongoDao populationDao(dbConfig, db.dbName, populationCollectionName);
 
 	/* initialize log file for this thread and log header line*/
-    std::ofstream logsumOutputFile(logsumOutputFileName.c_str(), std::ios::trunc|std::ios::out);
-    std::stringstream logsumStream;
-    outputToFile(logsumOutputFile, logsumStream);
+	std::ofstream logsumOutputFile(logsumOutputFileName.c_str(), std::ios::trunc | std::ios::out);
+	std::stringstream logsumStream;
+	outputToFile(logsumOutputFile, logsumStream);
 
 	// loop through all persons within the range and plan their day
-    PersonParams personParams;
+	PersonParams personParams;
 	PredaySystem predaySystem(personParams, zoneMap, zoneIdLookup, amCostMap, pmCostMap, opCostMap, mongoDao, unavailableODs, MTZ12_MTZ08_Map);
-	for(PersonIdList::iterator i = firstPersonIdIt; i!=oneAfterLastPersonIdIt; i++)
+	for (PersonIdList::iterator i = firstPersonIdIt; i != oneAfterLastPersonIdIt; i++)
 	{
 		populationDao.getOneById(*i, personParams);
-		if(personParams.hasFixedWorkPlace())
+		if (personParams.hasFixedWorkPlace())
 		{
-			for(ZoneMap::const_iterator znIt=zoneMap.begin(); znIt!=zoneMap.end(); znIt++)
+			for (ZoneMap::const_iterator znIt = zoneMap.begin(); znIt != zoneMap.end(); znIt++)
 			{
 				personParams.setFixedWorkLocation(znIt->second->getZoneCode());
 				predaySystem.computeLogsumsForLT(logsumStream);
 				outputToFile(logsumOutputFile, logsumStream);
-				if(consoleOutput) { predaySystem.printLogs(); }
+				if (consoleOutput)
+				{
+					predaySystem.printLogs();
+				}
 			}
 		}
 	}
 
 	// destroy Dao objects
-	for(std::map<std::string, db::MongoDao*>::iterator i=mongoDao.begin(); i!=mongoDao.end(); i++) {
+	for (std::map<std::string, db::MongoDao*>::iterator i = mongoDao.begin(); i != mongoDao.end(); i++)
+	{
 		safe_delete_item(i->second);
 	}
 	mongoDao.clear();

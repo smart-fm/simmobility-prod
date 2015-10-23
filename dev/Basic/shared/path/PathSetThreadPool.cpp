@@ -22,7 +22,7 @@ using namespace std;
 
 namespace
 {
-	sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
+	//sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
 }
 
 sim_mob::PathSetWorkerThread::PathSetWorkerThread():s(nullptr)
@@ -97,11 +97,11 @@ void sim_mob::PathSetWorkerThread::run() {
 					//todo this problem occurs during "highway bias distance" generation. dont know why, discarding the repeated segment
 					if (wp.type_ == WayPoint::ROAD_SEGMENT && wp.roadSegment_->getId() == dbgPrev)
 					{
-							logger << dbgStr
-									<< " 1ERROR-exeThis:: repeating segment found in path from "
-									<< " seg: " << dbgPrev << " edge: " <<  edge.first << "  prev edge:" <<
-									dbgPrevEdge.first << "   " << edge.second << "  " << dbgPrevEdge.second << "  " <<
-									WayPoint(boost::get(boost::edge_name, *graph,dbgPrevEdge.first)).roadSegment_->getId() << "\n";
+//							logger << dbgStr
+//									<< " 1ERROR-exeThis:: repeating segment found in path from "
+//									<< " seg: " << dbgPrev << " edge: " <<  edge.first << "  prev edge:" <<
+//									dbgPrevEdge.first << "   " << edge.second << "  " << dbgPrevEdge.second << "  " <<
+//									WayPoint(boost::get(boost::edge_name, *graph,dbgPrevEdge.first)).roadSegment_->getId() << "\n";
 						dbgPrev = wps.rbegin()->roadSegment_->getId();
 						dbgPrevEdge = edge;
 					}
@@ -169,11 +169,11 @@ void sim_mob::PathSetWorkerThread::run() {
 						//todo this problem occurs during "highway bias distance" generation. dont know why, discarding the repeated segment
 						if (wp.type_ == WayPoint::ROAD_SEGMENT && wp.roadSegment_->getId() == dbgPrev)
 						{
-							logger << dbgStr
-									<< " 1ERROR-exeThis:: repeating segment found in path from "
-									<< " seg: " << dbgPrev << " edge: " <<  edge.first << "  prev edge:" <<
-									dbgPrevEdge.first << "   " << edge.second << "  " << dbgPrevEdge.second << "  " <<
-									WayPoint(boost::get(boost::edge_name, *graph,dbgPrevEdge.first)).roadSegment_->getId() << "\n";
+//							logger << dbgStr
+//									<< " 1ERROR-exeThis:: repeating segment found in path from "
+//									<< " seg: " << dbgPrev << " edge: " <<  edge.first << "  prev edge:" <<
+//									dbgPrevEdge.first << "   " << edge.second << "  " << dbgPrevEdge.second << "  " <<
+//									WayPoint(boost::get(boost::edge_name, *graph,dbgPrevEdge.first)).roadSegment_->getId() << "\n";
 							dbgPrev = wps.rbegin()->roadSegment_->getId();
 							dbgPrevEdge = edge;
 						}
@@ -239,11 +239,11 @@ void sim_mob::PathSetWorkerThread::run() {
 						//todo this problem occurs during "highway bias distance" generation. dont know why, discarding the repeated segment
 						if (wp.type_ == WayPoint::ROAD_SEGMENT && wp.roadSegment_->getId() == dbgPrev)
 						{
-							logger << dbgStr
-									<< " 1ERROR-exeThis:: repeating segment found in path from "
-									<< " seg: " << dbgPrev << " edge: " <<  edge.first << "  prev edge:" <<
-									dbgPrevEdge.first << "   " << edge.second << "  " << dbgPrevEdge.second << "  " <<
-									WayPoint(boost::get(boost::edge_name, *graph,dbgPrevEdge.first)).roadSegment_->getId() << "\n";
+//							logger << dbgStr
+//									<< " 1ERROR-exeThis:: repeating segment found in path from "
+//									<< " seg: " << dbgPrev << " edge: " <<  edge.first << "  prev edge:" <<
+//									dbgPrevEdge.first << "   " << edge.second << "  " << dbgPrevEdge.second << "  " <<
+//									WayPoint(boost::get(boost::edge_name, *graph,dbgPrevEdge.first)).roadSegment_->getId() << "\n";
 							dbgPrev = wps.rbegin()->roadSegment_->getId();
 							dbgPrevEdge = edge;
 						}
@@ -268,10 +268,10 @@ void sim_mob::PathSetWorkerThread::run() {
 		std::string id = sim_mob::makeWaypointsetString(wps);
 		if(!id.size()){
 			hasPath = false;
-			logger << "Error: Empty choice!!! yet valid=>" << dbgStr <<  "\n";
+			//logger << "Error: Empty choice!!! yet valid=>" << dbgStr <<  "\n";
 		}
 		else{
-			logger << "Path generated through:" << dbgStr <<  ":" << id << "\n" ;
+			//logger << "Path generated through:" << dbgStr <<  ":" << id << "\n" ;
 			s = new sim_mob::SinglePath();
 			// fill data
 			s->isNeedSave2DB = true;
@@ -289,7 +289,7 @@ void sim_mob::PathSetWorkerThread::run() {
 				 * todo I havent yet figured out what this bug is, but it happens, mainly for random perturbation(time), discarding for now-vahid
 				 * it may not be an issue after solving some multithreaded generation issue
 				 */
-				 logger << ps->scenario << dbgStr << " generation Mismatch : " << this->s->path.begin()->roadSegment_->getStart()->getID() << "   " <<  this->ps->subTrip.fromLocation.node_->getID() <<  "  " << fromVertex << "," << toVertex << std::endl;
+				// logger << ps->scenario << dbgStr << " generation Mismatch : " << this->s->path.begin()->roadSegment_->getStart()->getID() << "   " <<  this->ps->subTrip.fromLocation.node_->getID() <<  "  " << fromVertex << "," << toVertex << std::endl;
 			}
 		}
 	}

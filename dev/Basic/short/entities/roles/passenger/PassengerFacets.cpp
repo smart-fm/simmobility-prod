@@ -379,7 +379,7 @@ void sim_mob::PassengerMovement::FindBusLines() //find bus lines there and decid
  {
 	 if(originBusStop!=nullptr && parentPassenger->BoardedBus.get()==false)
 	 {
-		 vector<Busline*> buslines=originBusStop->BusLines;//list of available buslines at busstop
+		 vector<BusLine*> buslines=originBusStop->BusLines;//list of available buslines at busstop
          int prev=0;
 		 for(int i=0;i<buslines.size();i++)
 		 {
@@ -423,7 +423,7 @@ void sim_mob::PassengerMovement::FindBusLines() //find bus lines there and decid
 	 }
  }
 
-std::vector<Busline*> sim_mob::PassengerMovement::ReturnBusLines()
+std::vector<BusLine*> sim_mob::PassengerMovement::ReturnBusLines()
 {
 	 return buslinesToTake;
 }

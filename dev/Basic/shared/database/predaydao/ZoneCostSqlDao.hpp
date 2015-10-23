@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <map>
-#include <bitset>
 #include <boost/unordered_map.hpp>
 #include "database/dao/SqlAbstractDao.hpp"
 #include "database/DB_Connection.hpp"

@@ -35,6 +35,7 @@
 #include "database/dao/ParcelsWithHDBDao.hpp"
 #include "database/dao/TAO_Dao.hpp"
 #include "database/dao/UnitPriceSumDao.hpp"
+#include "database/dao/TazLevelLandPriceDao.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
@@ -110,6 +111,8 @@ void DeveloperModel::startImpl() {
 		PrintOutV("TAO by quarters loaded " << taoList.size() << std::endl);
 		loadData<UnitPriceSumDao>(conn,unitPriceSumList,unitPriceSumByParcelId,&UnitPriceSum::getFmParcelId);
 		PrintOutV("unit price sums loaded " << unitPriceSumList.size() << std::endl);
+		loadData<TazLevelLandPriceDao>(conn,tazLevelLandPriceList,tazLevelLandPriceByTazId,&TazLevelLandPrice::getTazId);
+		PrintOutV("land values loaded " << tazLevelLandPriceList.size() << std::endl);
 
 	}
 	setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
@@ -312,8 +315,8 @@ void DeveloperModel::processParcels()
 
 		if (parcel)
 		{
-			//parcel has an ongoing project.
-			if (parcel->getStatus()==1)
+			//parcel has an ongoing project. unitPrice sum null means that the parcel has buildings without units or buildings with HDB units.
+			if ((parcel->getStatus()==1) || ((!isEmptyParcel(parcel->getId())) && (getUnitPriceSumByParcelId(parcel->getId())==nullptr)))
 			{
 				parcelsWithProjectsList.push_back(parcel);
 			}
@@ -467,9 +470,7 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 	}
 	else
 	{
-
-		return ++buildingIdForDevAgent;
-
+		 return ++buildingIdForDevAgent;
 	}
 
 }
@@ -571,4 +572,32 @@ const UnitPriceSum* DeveloperModel::getUnitPriceSumByParcelId(BigSerial fmParcel
 		return itr->second;
 	}
 	return nullptr;
+}
+
+const TazLevelLandPrice* DeveloperModel::getTazLevelLandPriceByTazId(BigSerial tazId) const
+{
+	TazLevelLandPriceMap::const_iterator itr = tazLevelLandPriceByTazId.find(tazId);
+	if (itr != tazLevelLandPriceByTazId.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+}
+
+void DeveloperModel::insertBuildingsToDB(Building &building)
+{
+	dbLockForBuildings.lock();
+
+	DB_Config dbConfig(LT_DB_CONFIG_FILE);
+	dbConfig.load();
+
+	// Connect to database and load data for this model.
+	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+	conn.connect();
+	if (conn.isConnected()) {
+			BuildingDao buildingDao(conn);
+			buildingDao.insert(building);
+	}
+	dbLockForBuildings.unlock();
+
 }

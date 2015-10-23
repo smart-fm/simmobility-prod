@@ -3,9 +3,10 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
-#include<vector>
-#include<string>
+
 #include <boost/variant.hpp>
+#include <string>
+#include <vector>
 
 namespace sim_mob
 {
@@ -13,12 +14,13 @@ namespace sim_mob
 namespace db
 {
 
-typedef boost::variant<int, std::string, double, long long, unsigned long> Parameter;
+typedef boost::variant<int, std::string, std::tm,double, long long, unsigned long> Parameter;
 typedef std::vector<Parameter> Parameters;
 static const Parameters EMPTY_PARAMS;
 
 /**
  * Represents an Interface for DAO (Data Access Object) implementations.
+ *
  * \author Pedro Gandola
  */
 template<typename T>
@@ -27,7 +29,8 @@ class I_Dao
 public:
 
 	virtual ~I_Dao()
-	{}
+	{
+	}
 
 	/**
 	 * Inserts the given entity into the data source.

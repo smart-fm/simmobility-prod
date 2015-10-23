@@ -14,8 +14,6 @@
 #include "event/SystemEvents.hpp"
 #include "event/args/EventArgs.hpp"
 //#include "event/EventListener.hpp"
-#include "soci.h"
-#include "soci-postgresql.h"
 
 namespace sim_mob {
 

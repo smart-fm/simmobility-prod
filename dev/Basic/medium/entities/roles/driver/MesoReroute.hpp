@@ -53,7 +53,6 @@ class DriverMovement;
 		/**
 		 *	Actual rerouting operation in this class
 		 */
-
 		bool doReroute();
 	};
 }

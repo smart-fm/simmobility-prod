@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <boost/lexical_cast.hpp>
+#include <cmath>
 #include <functional>
 #include <map>
 #include <sstream>
@@ -146,13 +147,13 @@ double getHalfHourWindow(uint32_t time) //time is in seconds
  * 							The arrival time can be chosen in the first 15 minutes and dep. time can be chosen in the 2nd 1 mins of the window
  * @return a random time within the window in hh24:mm:ss format
  */
-std::string getRandomTimeInWindow(double mid, bool firstFifteenMins, const std::string pid = "")
+std::string getRandomTimeInWindow(double mid, bool firstFifteenMins)
 {
 	int hour = int(std::floor(mid));
 	int min = 0, max = 29;
 	if(firstFifteenMins) { min = 0; max = 14; }
 	int minute = Utils::generateInt(min,max) + ((mid - hour - 0.25)*60);
-	int second = Utils::generateInt(0,60);
+	int second = Utils::generateInt(0,59);
 
 	//construct string representation
 	std::string random_time;
@@ -293,7 +294,7 @@ Trip* MT_PersonLoader::makeTrip(const soci::row& r, unsigned int seqNo)
 	tripToSave->originType = TripChainItem::LT_NODE;
 	tripToSave->destination = WayPoint(rn.getNodeById(r.get<int>(5)));
 	tripToSave->destinationType = TripChainItem::LT_NODE;
-	tripToSave->startTime = DailyTime(getRandomTimeInWindow(r.get<double>(11), false, tripToSave->getPersonID()));
+	tripToSave->startTime = DailyTime(getRandomTimeInWindow(r.get<double>(11), false));
 	//just a sanity check
 	if(tripToSave->origin == tripToSave->destination)
 	{

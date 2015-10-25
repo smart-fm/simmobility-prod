@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "DailyTime.hpp"
-
+#include <cmath>
 #include <cstdlib>
 #include <stdexcept>
 #include <sstream>

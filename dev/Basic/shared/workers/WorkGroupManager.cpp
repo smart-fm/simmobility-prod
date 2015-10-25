@@ -274,7 +274,7 @@ void sim_mob::WorkGroupManager::waitAllGroups_DistributeMessages(std::set<Entity
 				(*it)->processMultiUpdateEntities(removedEntities); // VQ
 				(*it)->processMultiUpdateEntities(removedEntities); // output & reset for next tick
 			}
-			else // RunningShortTerm()
+			else if (ConfigManager::GetInstance().FullConfig().RunningShortTerm())
 			{
 				(*it)->waitAuraManager(removedEntities);
 			}

@@ -184,7 +184,7 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 	return odTrips;
 }
 
-bool PT_RouteChoiceLuaModel::getBestPT_Path(const std::string& origin, const std::string& dest, std::vector<sim_mob::OD_Trip>& odTrips)
+bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, std::vector<sim_mob::OD_Trip>& odTrips)
 {
 	bool ret = false;
 	PT_PathSet pathSet;
@@ -194,9 +194,12 @@ bool PT_RouteChoiceLuaModel::getBestPT_Path(const std::string& origin, const std
 		Print() << "[PT pathset]load pathset failed:[" << origin << "]:[" << dest << "]" << std::endl;
 	}
 
-	if(pathSet.pathSet.size()>0){
+	if(pathSet.pathSet.size()>0)
+	{
+		std::string originId = boost::lexical_cast<std::string>(origin);
+		std::string destId = boost::lexical_cast<std::string>(dest);
 		publicTransitPathSet = &pathSet;
-		odTrips = makePT_RouteChoice(origin, dest);
+		odTrips = makePT_RouteChoice(originId, destId);
 		ret = true;
 	}
 	return ret;
@@ -239,12 +242,10 @@ void PT_RouteChoiceLuaModel::mapClasses()
 			.endClass();
 }
 
-PT_PathSet PT_RouteChoiceLuaModel::loadPT_PathSet(const std::string& origin, const std::string& dest)
+PT_PathSet PT_RouteChoiceLuaModel::loadPT_PathSet(int origin, int dest)
 {
 	PT_PathSet pathSet;
-	int sNodeId = boost::lexical_cast<int>(origin);
-	int dNodeId = boost::lexical_cast<int>(dest);
-	aimsun::Loader::LoadPT_PathsetFrmDB(*dbSession, ptPathsetStoredProcName, sNodeId, dNodeId, pathSet);
+	aimsun::Loader::LoadPT_PathsetFrmDB(*dbSession, ptPathsetStoredProcName, origin, dest, pathSet);
 	return pathSet;
 }
 

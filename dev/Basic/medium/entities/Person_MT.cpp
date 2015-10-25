@@ -86,10 +86,7 @@ void Person_MT::convertODsToTrips()
 					if (itSubTrip->mode == "BusTravel" || itSubTrip->mode == "MRT")
 					{
 						std::vector<sim_mob::OD_Trip> odTrips;
-						std::string originId = boost::lexical_cast<std::string>(itSubTrip->origin.node_->getID());
-						std::string destId = boost::lexical_cast<std::string>(itSubTrip->destination.node_->getID());
-
-						bool ret = sim_mob::PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(originId, destId, odTrips);
+						bool ret = sim_mob::PT_RouteChoiceLuaProvider::getPTRC_Model().getBestPT_Path(itSubTrip->origin.node_->getID(), itSubTrip->destination.node_->getID(), odTrips);
 						if (ret)
 						{
 							ret = makeODsToTrips(&(*itSubTrip), newSubTrips, odTrips);

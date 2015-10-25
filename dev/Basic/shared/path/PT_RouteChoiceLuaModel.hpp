@@ -37,7 +37,7 @@ public:
 	 * @param odTrips		list of trip legs in pt path
 	 * @return				true if route choice was successful; false otherwise
 	 */
-	bool getBestPT_Path(const std::string& origin, const std::string& destination, std::vector<sim_mob::OD_Trip>& odTrips);
+	bool getBestPT_Path(int origin, int destination, std::vector<sim_mob::OD_Trip>& odTrips);
 
 	/**
 	 * store chosen path in file
@@ -56,7 +56,7 @@ private:
 	 * @param dest		trip destination
 	 * @return 			pathset retrieved from database
 	 */
-	PT_PathSet loadPT_PathSet(const std::string& origin, const std::string& dest);
+	PT_PathSet loadPT_PathSet(int origin, int dest);
 
 	/**
      * Inherited from LuaModel

@@ -184,9 +184,7 @@ void DriverMovement::frame_tick()
 std::string DriverMovement::frame_tick_output()
 {
 	const DriverUpdateParams& params = parentDriver->getParams();
-	if (pathMover.isPathCompleted()
-			|| ConfigManager::GetInstance().FullConfig().using_MPI
-			|| ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
+	if (pathMover.isPathCompleted() || ConfigManager::GetInstance().CMakeConfig().OutputDisabled())
 	{
 		return std::string();
 	}
@@ -198,7 +196,6 @@ std::string DriverMovement::frame_tick_output()
 			<< ",{"
 			<< "\"RoadSegment\":\"" << (parentDriver->parent->getCurrSegStats()->getRoadSegment()->getId())
 			<< "\",\"Lane\":\"" << ((parentDriver->parent->getCurrLane()) ? parentDriver->parent->getCurrLane()->getLaneID() : 0)
-			<< "\",\"Segment\":\"" << (parentDriver->parent->getCurrSegStats()->getRoadSegment()->getStartEnd())
 			<< "\",\"DistanceToEndSeg\":\"" << parentDriver->parent->distanceToEndOfSegment;
 	if (this->parentDriver->parent->isQueuing)
 	{
@@ -919,8 +916,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		stepFwdInTime(params, (parentDriver->parent->getStartTime() - params.now.ms()) / 1000.0); //set time to start - to accommodate drivers starting during the frame
 	}
 
-	// here the person tries to move into a proper lane in the current segstats
-	// from lane infinity
+	// here the person tries to move into a proper lane in the current segstats from lane infinity
 	const SegmentStats* currSegStats = pathMover.getCurrSegStats();
 	const SegmentStats* nextSegStats = nullptr;
 	if (pathMover.hasNextSegStats(true))

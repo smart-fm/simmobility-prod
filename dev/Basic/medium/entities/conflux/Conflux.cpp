@@ -37,7 +37,6 @@
 #include "message/MessageBus.hpp"
 #include "path/PathSetManager.hpp"
 #include "util/Utils.hpp"
-#include "workers/Worker.hpp"
 
 using namespace boost;
 using namespace sim_mob;
@@ -218,7 +217,7 @@ void Conflux::addAgent(Person_MT* person)
 	}
 	else
 	{
-		Role<Person_MT>* role = person->getRole();
+		Role<Person_MT>* role = person->getRole(); // at this point, we expect the role to have been initialized already
 		if (!role)
 		{
 			return;
@@ -230,23 +229,11 @@ void Conflux::addAgent(Person_MT* person)
 		case Role<Person_MT>::RL_BUSDRIVER:
 		case Role<Person_MT>::RL_BIKER:
 		{
-			const RoadSegment* rdSeg = person->getCurrSegStats()->getRoadSegment();
-			if (!rdSeg)
-			{
-				throw std::runtime_error("Starting road segment cannot be NULL for drivers");
-			}
-			// we will always add the Person to the corresponding segment stats in "lane infinity".
-			SegmentStatsMap::iterator it = segmentAgents.find(rdSeg);
-			if (it != segmentAgents.end())
-			{
-				SegmentStatsList& statsList = it->second;
-				SegmentStats* rdSegStats = statsList.front(); // we will start the person at the first segment stats of the segment
-				person->setCurrSegStats(rdSegStats);
-				person->setCurrLane(rdSegStats->laneInfinity);
-				person->distanceToEndOfSegment = rdSegStats->getLength();
-				person->remainingTimeThisTick = tickTimeInS;
-				rdSegStats->addAgent(rdSegStats->laneInfinity, person);
-			}
+			SegmentStats* rdSegStats = const_cast<SegmentStats*>(person->getCurrSegStats()); // person->currSegStats is set when frame_init of role is called
+			person->setCurrLane(rdSegStats->laneInfinity);
+			person->distanceToEndOfSegment = rdSegStats->getLength();
+			person->remainingTimeThisTick = tickTimeInS;
+			rdSegStats->addAgent(rdSegStats->laneInfinity, person);
 			break;
 		}
 		case Role<Person_MT>::RL_PEDESTRIAN:
@@ -335,14 +322,14 @@ UpdateStatus Conflux::update(timeslice frameNumber)
 			resetPersonRemTimes(); //reset the remaining times of persons in lane infinity and VQ if required.
 			processAgents(); //process all agents in this conflux for this tick
 			setLastUpdatedFrame(frameNumber.frame());
-			numUpdatesThisTick++;
+			numUpdatesThisTick = 1;
 			return UpdateStatus::ContinueIncomplete;
 		}
 	}
 	case 1:
 	{
 		processVirtualQueues();
-		numUpdatesThisTick++;
+		numUpdatesThisTick = 2;
 		return UpdateStatus::ContinueIncomplete;
 	}
 	case 2:
@@ -353,7 +340,11 @@ UpdateStatus Conflux::update(timeslice frameNumber)
 		resetSegmentFlows();
 		resetOutputBounds();
 		numUpdatesThisTick = 0;
-		return UpdateStatus::ContinueIncomplete;
+		return UpdateStatus::Continue;
+	}
+	default:
+	{
+		throw std::runtime_error("numUpdatesThisTick managed incorrectly");
 	}
 	}
 }
@@ -1551,8 +1542,8 @@ void Conflux::topCMergeDifferentLinksInConflux(std::deque<Person_MT*>& mergedPer
 				int chosenIdx = rand() % numElements;
 				chosenPair = equiTimeList[chosenIdx];
 			}
-			iteratorLists.at(chosenPair.first)++;mergedPersonDeque
-			.push_back(chosenPair.second);
+			iteratorLists.at(chosenPair.first)++;
+			mergedPersonDeque.push_back(chosenPair.second);
 		}
 	}
 
@@ -1649,7 +1640,13 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 	}
 	if ((*person->currTripChainItem)->itemType == TripChainItem::IT_ACTIVITY)
 	{
-
+		//IT_ACTIVITY is just a matter of waiting for a period of time(between its start and end time)
+		//since start time of the activity is usually later than what is configured initially,
+		//we have to make adjustments so that it waits for exact amount of time
+		ActivityPerformer<Person_MT>* ap = dynamic_cast<ActivityPerformer<Person_MT>*>(personRole);
+		ap->setActivityStartTime(DailyTime(now + ConfigManager::GetInstance().FullConfig().baseGranMS()));
+		ap->setActivityEndTime(DailyTime(now + ConfigManager::GetInstance().FullConfig().baseGranMS()
+							+ ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
 	}
 
 	//Now that the Role<Person_MT> has been fully constructed, initialize it.
@@ -1716,13 +1713,7 @@ Conflux* Conflux::findStartingConflux(Person_MT* person, unsigned int now)
 	}
 	case Role<Person_MT>::RL_ACTIVITY:
 	{
-		//IT_ACTIVITY is just a matter of waiting for a period of time(between its start and end time)
-		//since start time of the activity is usually later than what is configured initially,
-		//we have to make adjustments so that it waits for exact amount of time
 		ActivityPerformer<Person_MT>* ap = dynamic_cast<ActivityPerformer<Person_MT>*>(personRole);
-		ap->setActivityStartTime(DailyTime(now + ConfigManager::GetInstance().FullConfig().baseGranMS()));
-		ap->setActivityEndTime(DailyTime(now + ConfigManager::GetInstance().FullConfig().baseGranMS()
-							+ ((*person->currTripChainItem)->endTime.getValue() - (*person->currTripChainItem)->startTime.getValue())));
 		return MT_Config::getInstance().getConfluxForNode(ap->getLocation());
 	}
 	case Role<Person_MT>::RL_PASSENGER: //Fall through

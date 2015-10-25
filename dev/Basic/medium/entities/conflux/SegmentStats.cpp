@@ -263,10 +263,8 @@ void SegmentStats::getPersons(std::deque<Person_MT*>& segAgents)
 
 void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 {
-	//let's not forget the bus drivers serving stops in this segment stats
-	//Bus drivers go in the front of the list, because bus stops are (virtually)
-	//located at the end of the segment
 	mergedPersonList.clear();
+	//Bus drivers go in the front of the list, because bus stops are (virtually) located at the end of the segment
 	for (BusStopList::const_reverse_iterator stopIt = busStops.rbegin(); stopIt != busStops.rend(); stopIt++)
 	{
 		const BusStop* stop = *stopIt;
@@ -278,12 +276,14 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 	}
 
 	int capacity = (int) (ceil(supplyParams.getCapacity()));
-	std::vector<PersonList::iterator> iteratorLists;
-
 	//init iterator list to the front of each lane
+	std::vector<PersonList::iterator> iteratorLists;
 	for (LaneStatsMap::iterator lnIt = laneStatsMap.begin(); lnIt != laneStatsMap.end(); lnIt++)
 	{
-		iteratorLists.push_back(lnIt->second->laneAgents.begin());
+		if(!lnIt->second->isLaneInfinity())
+		{
+			iteratorLists.push_back(lnIt->second->laneAgents.begin());
+		}
 	}
 
 	//pick the Top C
@@ -295,46 +295,44 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 		int i = 0;
 		for (LaneStatsMap::iterator lnIt = laneStatsMap.begin(); lnIt != laneStatsMap.end(); lnIt++)
 		{
-			PersonList& personsInLane = lnIt->second->laneAgents;
-			if (iteratorLists[i] != personsInLane.end())
+			if(!lnIt->second->isLaneInfinity())
 			{
-				currPerson = (*(iteratorLists[i]));
-				if (orderBySetting == SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION)
+				PersonList& personsInLane = lnIt->second->laneAgents;
+				if (iteratorLists[i] != personsInLane.end())
 				{
-					if (currPerson->distanceToEndOfSegment == minVal)
+					currPerson = (*(iteratorLists[i]));
+					if (orderBySetting == SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION)
 					{
-						equiDistantList.push_back(std::make_pair(i, currPerson));
+						if (currPerson->distanceToEndOfSegment == minVal)
+						{
+							equiDistantList.push_back(std::make_pair(i, currPerson));
+						}
+						else if (currPerson->distanceToEndOfSegment < minVal)
+						{
+							minVal = currPerson->distanceToEndOfSegment;
+							equiDistantList.clear();
+							equiDistantList.push_back(std::make_pair(i, currPerson));
+						}
 					}
-					else if (currPerson->distanceToEndOfSegment < minVal)
+					else if (orderBySetting == SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION)
 					{
-						minVal = currPerson->distanceToEndOfSegment;
-						equiDistantList.clear();
-						equiDistantList.push_back(std::make_pair(i, currPerson));
+						if (currPerson->drivingTimeToEndOfLink == minVal)
+						{
+							equiDistantList.push_back(std::make_pair(i, currPerson));
+						}
+						else if (currPerson->drivingTimeToEndOfLink < minVal)
+						{
+							minVal = currPerson->drivingTimeToEndOfLink;
+							equiDistantList.clear();
+							equiDistantList.push_back(std::make_pair(i, currPerson));
+						}
 					}
 				}
-				else if (orderBySetting == SEGMENT_ORDERING_BY_DRIVING_TIME_TO_INTERSECTION)
-				{
-
-					if (currPerson->drivingTimeToEndOfLink == minVal)
-					{
-						equiDistantList.push_back(std::make_pair(i, currPerson));
-					}
-					else if (currPerson->drivingTimeToEndOfLink < minVal)
-					{
-						minVal = currPerson->drivingTimeToEndOfLink;
-						equiDistantList.clear();
-						equiDistantList.push_back(std::make_pair(i, currPerson));
-					}
-				}
+				i++;
 			}
-			i++;
 		}
 
-		if (equiDistantList.empty())
-		{
-			return; //no more vehicles
-		}
-		else
+		if (!equiDistantList.empty())
 		{
 			//we have to randomly choose from persons in equiDistantList
 			size_t numElements = equiDistantList.size();
@@ -348,8 +346,8 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 				int chosenIdx = rand() % numElements;
 				chosenPair = equiDistantList[chosenIdx];
 			}
-			iteratorLists.at(chosenPair.first)++;mergedPersonList
-			.push_back(chosenPair.second);
+			iteratorLists.at(chosenPair.first)++;
+			mergedPersonList.push_back(chosenPair.second);
 		}
 	}
 
@@ -357,13 +355,20 @@ void SegmentStats::topCMergeLanesInSegment(PersonList& mergedPersonList)
 	int i = 0;
 	for (LaneStatsMap::iterator lnIt = laneStatsMap.begin(); lnIt != laneStatsMap.end(); lnIt++)
 	{
-		PersonList& personsInLane = lnIt->second->laneAgents;
-		if (iteratorLists[i] != personsInLane.end())
+		if(!lnIt->second->isLaneInfinity())
 		{
-			mergedPersonList.insert(mergedPersonList.end(), iteratorLists[i], personsInLane.end());
+			PersonList& personsInLane = lnIt->second->laneAgents;
+			if (iteratorLists[i] != personsInLane.end())
+			{
+				mergedPersonList.insert(mergedPersonList.end(), iteratorLists[i], personsInLane.end());
+			}
+			i++;
 		}
-		i++;
 	}
+
+	//insert lane infinity persons at the tail of mergedPersonList
+	LaneStats* lnInfStats =  laneStatsMap[laneInfinity];
+	mergedPersonList.insert(mergedPersonList.end(), lnInfStats->laneAgents.begin(), lnInfStats->laneAgents.end());
 }
 
 std::pair<unsigned int, unsigned int> SegmentStats::getLaneAgentCounts(const Lane* lane) const
@@ -621,6 +626,7 @@ void LaneStats::addPerson(Person_MT* p)
 				queueLength = queueLength + vehicle->getLengthCm();
 			}
 		}
+		verifyOrdering();
 	}
 }
 
@@ -971,10 +977,7 @@ void SegmentStats::printAgents() const
 	{
 		(*i).second->printAgents();
 	}
-	for (LaneStatsMap::const_iterator i = laneStatsMap.begin(); i != laneStatsMap.end(); i++)
-	{
-		(*i).second->printAgents();
-	}
+
 	std::stringstream debugMsgs;
 	for (BusStopList::const_reverse_iterator stopIt = busStops.rbegin(); stopIt != busStops.rend(); stopIt++)
 	{
@@ -1116,7 +1119,7 @@ void LaneStats::verifyOrdering()
 	double distance = -1.0;
 	for (PersonList::const_iterator i = laneAgents.begin(); i != laneAgents.end(); i++)
 	{
-		if (distance >= (*i)->distanceToEndOfSegment)
+		if (distance > (*i)->distanceToEndOfSegment)
 		{
 			std::stringstream debugMsgs;
 			debugMsgs << "Invariant violated: Ordering of laneAgents does not reflect ordering w.r.t. distance to end of segment." << "\nSegment: "

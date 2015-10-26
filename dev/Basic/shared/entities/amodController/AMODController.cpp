@@ -535,7 +535,6 @@ void AMODController::addNewVh2CarPark(std::string& id,std::string& nodeId)
 	person->parentEntity = this;
 	person->amodId = id;
 	person->parkingNode = nodeId;
-	person->initSpeed = 0;
 
 	// add to virtual car park
 	carParksMutex.lock();

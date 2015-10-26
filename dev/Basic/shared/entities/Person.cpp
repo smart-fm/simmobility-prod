@@ -98,16 +98,16 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID) : Agent(mtxStrat, id),
 	prevRole(nullptr), currRole(nullptr), nextRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), remainingTimeThisTick(0.0),
-	requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), laneID(-1),
+	requestedNextSegStats(nullptr), canMoveToNextSegment(NONE), databaseID(databaseID), debugMsgs(std::stringstream::out), tripchainInitialized(false), startLaneIndex(-1),
 	age(0), boardingTimeSecs(0), alightingTimeSecs(0), client_id(-1), resetParamsRequired(false), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),amodSegmLength(0.0),
-	initSegId(0), initDis(0), initSpeed(0), amodSegmLength2(0), currStatus(IN_CAR_PARK), firstTick(true), currLane(NULL)
+	startSegmentId(0), amodSegmLength2(0), currStatus(IN_CAR_PARK), firstTick(true), currLane(NULL)
 {
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc)
 	: Agent(mtxStrat), remainingTimeThisTick(0.0), requestedNextSegStats(nullptr), canMoveToNextSegment(NONE),
 	  databaseID(tc.front()->getPersonID()), debugMsgs(std::stringstream::out), prevRole(nullptr), currRole(nullptr),
-	  nextRole(nullptr), laneID(-1), agentSrc(src), tripChain(tc), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
+	  nextRole(nullptr), startLaneIndex(-1), agentSrc(src), tripChain(tc), tripchainInitialized(false), age(0), boardingTimeSecs(0), alightingTimeSecs(0),
 	  client_id(-1),amodPath( std::vector<WayPoint>() ), nextLinkRequired(nullptr), currSegStats(nullptr),amodId("-1"),amodPickUpSegmentStr("-1"),
 	  amodSegmLength(0.0)
 {
@@ -198,7 +198,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 	{
 		try {
 		    int x = boost::lexical_cast<int>( lanepointer->second );
-		    laneID = x;
+		    startLaneIndex = x;
 		} catch( boost::bad_lexical_cast const& ) {
 		    Warn() << "Error: input string was not valid" << std::endl;
 		}
@@ -209,29 +209,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 	{
 		try {
 			int x = boost::lexical_cast<int>( itt->second );
-			initSegId = x;
-		} catch( boost::bad_lexical_cast const& ) {
-			Warn() << "Error: input string was not valid" << std::endl;
-		}
-	}
-	// initSegPer
-	itt = configProps.find("initDis");
-	if(itt != configProps.end())
-	{
-		try {
-			int x = boost::lexical_cast<int>( itt->second );
-			initDis = x;
-		} catch( boost::bad_lexical_cast const& ) {
-			Warn() << "Error: input string was not valid" << std::endl;
-		}
-	}
-	// initPosSegPer
-	itt = configProps.find("initSpeed");
-	if(itt != configProps.end())
-	{
-		try {
-			int x = boost::lexical_cast<int>( itt->second );
-			initSpeed = x;
+			startSegmentId = x;
 		} catch( boost::bad_lexical_cast const& ) {
 			Warn() << "Error: input string was not valid" << std::endl;
 		}

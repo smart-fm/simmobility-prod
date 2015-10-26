@@ -66,7 +66,7 @@ namespace sim_mob
 			void	setFamilyType(int);
 			int		getFamilyType();
 			void 	setTaxiAvailability(bool taxiAvailable);
-			bool 	getTaxiAvailability();
+			bool 	getTaxiAvailability() const;
 			void 	setVehicleOwnershipOptionId(int vehicleOwnershipOption);
 			int 	getVehicleOwnershipOptionId();
 

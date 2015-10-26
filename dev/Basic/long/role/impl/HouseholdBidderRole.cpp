@@ -1597,37 +1597,6 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId,double vehicleOwnershipL
 		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_ABOVE60_ONE_CAR)->getCoefficientEstimate();
 	}
 
-	if(isCEO)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_CEO_ONECAR)->getCoefficientEstimate();
-	}
-
-	if(numFullWorkers==1)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER1_ONECAR)->getCoefficientEstimate();
-	}
-	else if(numFullWorkers==2)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER2_ONECAR)->getCoefficientEstimate();
-	}
-	else if(numFullWorkers>=3)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER3p_ONECAR)->getCoefficientEstimate();
-	}
-
-	if(numStudents == 1)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_STUDENT1_ONECAR)->getCoefficientEstimate();
-	}
-	else if(numStudents == 2)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_STUDENT2_ONECAR)->getCoefficientEstimate();
-	}
-	if(numStudents >= 3)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_STUDENT3_ONECAR)->getCoefficientEstimate();
-	}
-
 	if(numWhiteCollars==1)
 	{
 		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_WHITECOLLAR1_ONECAR)->getCoefficientEstimate();
@@ -1637,28 +1606,16 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId,double vehicleOwnershipL
 		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_WHITECOLLAR2_ONECAR)->getCoefficientEstimate();
 	}
 
-	valueOneCar = valueOneCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_HAS_MC_ONECAR)->getCoefficientEstimate();
-
-	if(this->getParent()->getHousehold()->getSize()<=3)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE3_ONECAR)->getCoefficientEstimate();
-	}else if (this->getParent()->getHousehold()->getSize()==4)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE4_ONECAR)->getCoefficientEstimate();
-	}
-	else if (this->getParent()->getHousehold()->getSize() == 5)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE5_ONECAR)->getCoefficientEstimate();
-	}
-	else if (this->getParent()->getHousehold()->getSize() >= 6)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE6_ONECAR)->getCoefficientEstimate();
-	}
+	valueOneCar = valueOneCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_MC_ONECAR)->getCoefficientEstimate();
 
 	int incomeCatId = getIncomeCategoryId(this->getParent()->getHousehold()->getIncome());
-	if(incomeCatId == 1 || incomeCatId == 2)
+	if(incomeCatId == 1)
+		{
+			valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC1_ONECAR)->getCoefficientEstimate();
+		}
+	else if(incomeCatId == 2)
 	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC12_ONECAR)->getCoefficientEstimate();
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC2_ONECAR)->getCoefficientEstimate();
 	}
 	else if(incomeCatId == 3)
 	{
@@ -1672,10 +1629,6 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId,double vehicleOwnershipL
 	{
 		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC5_ONECAR)->getCoefficientEstimate();
 	}
-	else if(incomeCatId == 6)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC6_ONECAR)->getCoefficientEstimate();
-	}
 
 	if(this->getParent()->getHousehold()->getEthnicityId() == INDIAN)
 	{
@@ -1687,37 +1640,27 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId,double vehicleOwnershipL
 	}
 	else if (this->getParent()->getHousehold()->getEthnicityId() == OTHERS)
 	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_OTHER_RACE_ONECAR)->getCoefficientEstimate();
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_OTHERS_ONECAR)->getCoefficientEstimate();
 	}
 
 	if (this->getParent()->getHousehold()->getChildUnder4()==1)
 	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_KID1_ONECAR)->getCoefficientEstimate();
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_KIDS1_ONECAR)->getCoefficientEstimate();
 	}
 	else if (this->getParent()->getHousehold()->getChildUnder4()>1)
 	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_KID2p_ONECAR)->getCoefficientEstimate();
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_KIDS2p_ONECAR)->getCoefficientEstimate();
 	}
-	//finds out whether the household is a landed property(terrace, semi detached, detached) or not
-	if( (unitTypeId>=17) && (unitTypeId<=31))
-	{
-		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LANDED_ONECAR)->getCoefficientEstimate();
-	}
-	else if((unitTypeId>=7) && (unitTypeId<=36)) //finds out whether the household is a private property(Apartment, Terrace, Semi Detached, Detached, Condo  and EC) or not
+
+	if((unitTypeId>=7) && (unitTypeId<=36)) //finds out whether the household is a private property(Apartment, Terrace, Semi Detached, Detached, Condo  and EC) or not
 	{
 		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_PRIVATE_ONECAR)->getCoefficientEstimate();
 	}
 
-	if(selfEmployed)
+	if (this->getParent()->getHousehold()->getTaxiAvailability())
 	{
-		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_SELFEMPLOYED_ONECAR)->getCoefficientEstimate();
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_TAXI_ONECAR)->getCoefficientEstimate();
 	}
-
-//	LogSumVehicleOwnership* logsum = model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId());
-//	if(logsum != nullptr)
-//	{
-//		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * logsum->getAvgLogsum();
-//	}
 //we are getting the logsums from mid term now.
 	valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * vehicleOwnershipLogsum;
 
@@ -1795,36 +1738,6 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId, double vehicleOwner
 			break;
 		}
 	}
-	if(isCEO)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_CEO_TWOplusCAR)->getCoefficientEstimate();
-	}
-
-	if(numFullWorkers==1)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER1_TWOplusCAR)->getCoefficientEstimate();
-	}
-	else if(numFullWorkers==2)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER2_TWOplusCAR)->getCoefficientEstimate();
-	}
-	else if(numFullWorkers>=3)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER3p_TWOplusCAR)->getCoefficientEstimate();
-	}
-
-	if(numStudents == 1)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_STUDENT1_TWOplusCAR)->getCoefficientEstimate();
-	}
-	else if(numStudents == 2)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_STUDENT2_TWOplusCAR)->getCoefficientEstimate();
-	}
-	if(numStudents >= 3)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_STUDENT3_TWOplusCAR)->getCoefficientEstimate();
-	}
 
 	if(numWhiteCollars==1)
 	{
@@ -1835,28 +1748,16 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId, double vehicleOwner
 		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_WHITECOLLAR2_TWOplusCAR)->getCoefficientEstimate();
 	}
 
-	valueTwoPlusCar = valueTwoPlusCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_HAS_MC_TWOplusCAR)->getCoefficientEstimate();
-
-	if(this->getParent()->getHousehold()->getSize()<=3)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE3_TWOplusCAR)->getCoefficientEstimate();
-	}else if (this->getParent()->getHousehold()->getSize()==4)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE4_TWOplusCAR)->getCoefficientEstimate();
-	}
-	else if (this->getParent()->getHousehold()->getSize() == 5)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE5_TWOplusCAR)->getCoefficientEstimate();
-	}
-	else if (this->getParent()->getHousehold()->getSize() >= 6)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE6_TWOplusCAR)->getCoefficientEstimate();
-	}
+	valueTwoPlusCar = valueTwoPlusCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_MC_TWOplusCAR)->getCoefficientEstimate();
 
 	int incomeCatId = getIncomeCategoryId(this->getParent()->getHousehold()->getIncome());
-	if(incomeCatId == 1 || incomeCatId == 2)
+	if(incomeCatId == 1)
 	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC12_TWOplusCAR)->getCoefficientEstimate();
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC1_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 2)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC2_TWOplusCAR)->getCoefficientEstimate();
 	}
 	else if(incomeCatId == 3)
 	{
@@ -1870,10 +1771,6 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId, double vehicleOwner
 	{
 		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC5_TWOplusCAR)->getCoefficientEstimate();
 	}
-	else if(incomeCatId == 6)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC6_TWOplusCAR)->getCoefficientEstimate();
-	}
 
 	if(this->getParent()->getHousehold()->getEthnicityId() == INDIAN)
 	{
@@ -1885,32 +1782,27 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId, double vehicleOwner
 	}
 	else if (this->getParent()->getHousehold()->getEthnicityId() == OTHERS)
 	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_OTHER_RACE_TWOplusCAR)->getCoefficientEstimate();
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_OTHERS_TWOplusCAR)->getCoefficientEstimate();
 	}
 
 	if (this->getParent()->getHousehold()->getChildUnder4()==1)
 	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_KID1_TWOplusCAR)->getCoefficientEstimate();
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_KIDS1_TWOplusCAR)->getCoefficientEstimate();
 	}
 	else if (this->getParent()->getHousehold()->getChildUnder4()>1)
 	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_KID2p_TWOplusCAR)->getCoefficientEstimate();
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_KIDS2p_TWOplusCAR)->getCoefficientEstimate();
 	}
-	//finds out whether the household is a landed property(terrace, semi detached, detached) or not
-	if( (unitTypeId>=17) && (unitTypeId<=31))
-	{
-		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LANDED_TWOplusCAR)->getCoefficientEstimate();
-	}
-	else if((unitTypeId>=7) && (unitTypeId<=36)) //finds out whether the household is a private property(Apartment, Terrace, Semi Detached, Detached, Condo  and EC) or not
+
+	if((unitTypeId>=7) && (unitTypeId<=36)) //finds out whether the household is a private property(Apartment, Terrace, Semi Detached, Detached, Condo  and EC) or not
 	{
 		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_PRIVATE_TWOplusCAR)->getCoefficientEstimate();
 	}
 
-	if(selfEmployed)
+	if (this->getParent()->getHousehold()->getTaxiAvailability())
 	{
-		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_SELFEMPLOYED_TWOplusCAR)->getCoefficientEstimate();
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_TAXI_TWOplusCAR)->getCoefficientEstimate();
 	}
-
 //	LogSumVehicleOwnership* logsum = model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId());
 
 //	if(logsum != nullptr)

@@ -217,7 +217,7 @@ int Household::getFamilyType()
 	return familyType;
 }
 
-bool Household::getTaxiAvailability()
+bool Household::getTaxiAvailability() const
 {
 	return this->taxiAvailability;
 }

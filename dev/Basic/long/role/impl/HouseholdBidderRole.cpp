@@ -1162,10 +1162,10 @@ bool HouseholdBidderRole::pickEntryToBid()
 
     std::vector<const HousingMarket::Entry*> screenedEntries;
 
+    srand( time(NULL) );
+
     for(int n = 0; n < entries.size() /** housingMarketSearchPercentage*/ && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
     {
-	srand(time(NULL));
-
         double randomDraw = (double)rand()/RAND_MAX;
         int zoneHousingType = -1;
         double cummulativeProbability = 0.0;
@@ -1275,8 +1275,14 @@ bool HouseholdBidderRole::pickEntryToBid()
     		{
     			//PrintOutV("entry " << entry->getTazId() << " taz " << taz[m]  << std::endl);
 
-    			if( entry->getTazId() == taz[m] )
-    				screenedEntries.push_back(entries[m]);
+    			if( entry->getTazId() == taz[m]  )
+    			{
+    				std::vector<const HousingMarket::Entry*>::iterator screenedEntriesItr;
+    				screenedEntriesItr = std::find(screenedEntries.begin(), screenedEntries.end(), entry );
+
+    				if( screenedEntriesItr == screenedEntries.end() )
+    					screenedEntries.push_back(entry);
+    			}
     		}
     	}
     }

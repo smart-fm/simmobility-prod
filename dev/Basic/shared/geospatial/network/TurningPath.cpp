@@ -41,7 +41,7 @@ const Lane* TurningPath::getFromLane() const
 	return fromLane;
 }
 
-void TurningPath::setFromLane(Lane* fromLane)
+void TurningPath::setFromLane(Lane *fromLane)
 {
 	this->fromLane = fromLane;
 }
@@ -56,12 +56,22 @@ void TurningPath::setFromLaneId(unsigned int fromLaneId)
 	this->fromLaneId = fromLaneId;
 }
 
+double TurningPath::getMaxSpeed() const
+{
+	return maxSpeed;
+}
+
+void TurningPath::setMaxSpeed(double maxSpeedKmph)
+{
+	this->maxSpeed = maxSpeedKmph / 3.6;
+}
+
 PolyLine* TurningPath::getPolyLine() const
 {
 	return polyLine;
 }
 
-void TurningPath::setPolyLine(PolyLine* polyLine)
+void TurningPath::setPolyLine(PolyLine *polyLine)
 {
 	this->polyLine = polyLine;
 }
@@ -71,7 +81,7 @@ const Lane* TurningPath::getToLane() const
 	return toLane;
 }
 
-void TurningPath::setToLane(Lane* toLane)
+void TurningPath::setToLane(Lane *toLane)
 {
 	this->toLane = toLane;
 }
@@ -101,12 +111,12 @@ double TurningPath::getLength() const
 	return polyLine->getLength();
 }
 
-void TurningPath::addTurningConflict(TurningPath* other, TurningConflict* conflict)
+void TurningPath::addTurningConflict(TurningPath *other, TurningConflict *conflict)
 {
 	turningConflicts.insert(std::make_pair(other, conflict));
 }
 
-const TurningConflict* TurningPath::getTurningConflict(TurningPath* turningPath)
+const TurningConflict* TurningPath::getTurningConflict(TurningPath *turningPath)
 {
 	//Get the conflict on this turning shared with the given turning
 	std::map<TurningPath *, TurningConflict *>::const_iterator itConflicts = turningConflicts.find(turningPath);

@@ -3,6 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include <stdexcept>
+#include <sstream>
 #include "RoadSegment.hpp"
 
 using namespace sim_mob;
@@ -52,7 +53,7 @@ void RoadSegment::setCapacity(unsigned int capacity)
 	this->capacity = capacity;
 }
 
-const std::vector<Lane*>& RoadSegment::getLanes() const
+const std::vector<Lane *>& RoadSegment::getLanes() const
 {
 	return lanes;
 }
@@ -72,14 +73,14 @@ void RoadSegment::setLinkId(unsigned int linkId)
 	this->linkId = linkId;
 }
 
-unsigned int RoadSegment::getMaxSpeed() const
+double RoadSegment::getMaxSpeed() const
 {
 	return maxSpeed;
 }
 
-void RoadSegment::setMaxSpeed(unsigned int maxSpeed)
+void RoadSegment::setMaxSpeed(double maxSpeedKmph)
 {
-	this->maxSpeed = maxSpeed;
+	this->maxSpeed = maxSpeedKmph / 3.6;
 }
 
 const Link* RoadSegment::getParentLink() const
@@ -87,7 +88,7 @@ const Link* RoadSegment::getParentLink() const
 	return parentLink;
 }
 
-void RoadSegment::setParentLink(Link* parentLink)
+void RoadSegment::setParentLink(Link *parentLink)
 {
 	this->parentLink = parentLink;
 }
@@ -112,9 +113,14 @@ void RoadSegment::setSequenceNumber(unsigned int sequenceNumber)
 	this->sequenceNumber = sequenceNumber;
 }
 
-const std::map<double, RoadItem *> & RoadSegment::getObstacles() const
+const std::map<double, RoadItem *>& RoadSegment::getObstacles() const
 {
 	return obstacles;
+}
+
+unsigned int RoadSegment::getNoOfLanes() const
+{
+	return lanes.size();
 }
 
 double RoadSegment::getLength() const

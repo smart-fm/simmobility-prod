@@ -3,29 +3,20 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Lane.hpp"
+#include "util/LangHelpers.hpp"
 
 using namespace sim_mob;
 
 Lane::Lane() :
 laneId(0), busLaneRules(BUS_LANE_RULES_CAR_AND_BUS), canVehiclePark(false), canVehicleStop(false), hasRoadShoulder(false),
-isHOV_Allowed(false), laneIndex(0), parentSegment(NULL), polyLine(NULL), roadSegmentId(0), vehicleMode(0), width(0)
+isHOV_Allowed(false), laneConnector(NULL), laneIndex(0), parentSegment(NULL), polyLine(NULL), roadSegmentId(0), vehicleMode(0), width(0)
 {
 }
 
 Lane::~Lane()
 {
-	//Delete the outgoing lane connectors
-	for (std::vector<LaneConnector *>::iterator itConnectors = laneConnectors.begin(); itConnectors != laneConnectors.end(); ++itConnectors)
-	{
-		delete *itConnectors;
-		*itConnectors = NULL;
-	}
-
-	if (polyLine)
-	{
-		delete polyLine;
-		polyLine = NULL;
-	}
+	safe_delete_item(laneConnector);
+	safe_delete_item(polyLine);
 }
 
 unsigned int Lane::getLaneId() const
@@ -89,9 +80,14 @@ void Lane::setHighOccupancyVehicleAllowed(bool HighOccupancyVehicleAllowed)
 	isHOV_Allowed = HighOccupancyVehicleAllowed;
 }
 
-const std::vector<LaneConnector*>& Lane::getLaneConnectors() const
+const LaneConnector* Lane::getLaneConnector() const
 {
-	return laneConnectors;
+	return laneConnector;
+}
+
+void Lane::setLaneConnector(LaneConnector *laneConnector)
+{
+	this->laneConnector = laneConnector;
 }
 
 unsigned int Lane::getLaneIndex() const
@@ -99,7 +95,7 @@ unsigned int Lane::getLaneIndex() const
 	return laneIndex;
 }
 
-void Lane::setParentSegment(RoadSegment* parentSegment)
+void Lane::setParentSegment(RoadSegment *parentSegment)
 {
 	this->parentSegment = parentSegment;
 }
@@ -114,7 +110,7 @@ PolyLine* Lane::getPolyLine() const
 	return polyLine;
 }
 
-void Lane::setPolyLine(PolyLine* polyLine)
+void Lane::setPolyLine(PolyLine *polyLine)
 {
 	this->polyLine = polyLine;
 }
@@ -152,9 +148,4 @@ bool Lane::isPedestrianLane() const
 bool Lane::isBicycleLane() const
 {
 	return (vehicleMode & BICYCLE_LANE);
-}
-
-void Lane::addLaneConnector(LaneConnector *laneConnector)
-{
-	this->laneConnectors.push_back(laneConnector);
 }

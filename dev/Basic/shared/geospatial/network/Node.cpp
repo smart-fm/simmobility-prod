@@ -134,3 +134,17 @@ const TurningGroup* Node::getTurningGroup(unsigned int fromLinkId, unsigned int 
 		return NULL;
 	}
 }
+
+const std::map<unsigned int, TurningGroup *>* Node::getTurningGroups(unsigned int fromLinkId) const
+{
+	std::map<unsigned int, std::map<unsigned int, TurningGroup *> >::const_iterator it = turningGroups.find(fromLinkId);
+	
+	if(it != turningGroups.end())
+	{
+		return &(it->second);
+	}
+	else
+	{
+		return NULL;
+	}
+}

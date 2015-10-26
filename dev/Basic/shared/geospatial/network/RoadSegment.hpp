@@ -41,8 +41,8 @@ private:
 	/**The id of the link to which the segment belongs*/
 	unsigned int linkId;
 
-	/**Indicates the maximum speed the vehicles should adhere to when travelling on the road segment*/
-	unsigned int maxSpeed;
+	/**Indicates the maximum speed the vehicles should adhere to when travelling on the road segment (m/s)*/
+	double maxSpeed;
 
 	/**The link to which this segment belongs*/
 	Link *parentLink;
@@ -69,17 +69,17 @@ public:
 	unsigned int getCapacity() const;
 	void setCapacity(unsigned int capacity);
 
-	const std::vector<Lane*>& getLanes() const;
+	const std::vector<Lane *>& getLanes() const;
 	const Lane* getLane(int index) const;
 
 	unsigned int getLinkId() const;
 	void setLinkId(unsigned int linkId);
 
-	unsigned int getMaxSpeed() const;
-	void setMaxSpeed(unsigned int maxSpeed);
+	double getMaxSpeed() const;
+	void setMaxSpeed(double maxSpeedKmph);
 
 	const Link* getParentLink() const;
-	void setParentLink(Link* parentLink);
+	void setParentLink(Link *parentLink);
 
 	PolyLine* getPolyLine() const;
 	void setPolyLine(PolyLine *polyLine);
@@ -87,7 +87,8 @@ public:
 	unsigned int getSequenceNumber() const;
 	void setSequenceNumber(unsigned int sequenceNumber);
 
-	const std::map<double, RoadItem *> &getObstacles() const;
+	const std::map<double, RoadItem *>& getObstacles() const;
+	unsigned int getNoOfLanes() const;
 
 	/**
 	 * Gets the length of the road segment poly-line. This is equal to the length of the segment

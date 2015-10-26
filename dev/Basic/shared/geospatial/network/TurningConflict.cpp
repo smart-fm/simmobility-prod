@@ -46,12 +46,12 @@ void TurningConflict::setFirstConflictDistance(double firstConflictDistance)
 	this->firstConflictDistance = firstConflictDistance;
 }
 
-TurningPath* TurningConflict::getFirstTurning() const
+const TurningPath* TurningConflict::getFirstTurning() const
 {
 	return firstTurning;
 }
 
-void TurningConflict::setFirstTurning(TurningPath* firstTurning)
+void TurningConflict::setFirstTurning(TurningPath *firstTurning)
 {
 	this->firstTurning = firstTurning;
 }
@@ -86,12 +86,12 @@ void TurningConflict::setSecondConflictDistance(double secondConflictDistance)
 	this->secondConflictDistance = secondConflictDistance;
 }
 
-TurningPath* TurningConflict::getSecondTurning() const
+const TurningPath* TurningConflict::getSecondTurning() const
 {
 	return secondTurning;
 }
 
-void TurningConflict::setSecondTurning(TurningPath* secondTurning)
+void TurningConflict::setSecondTurning(TurningPath *secondTurning)
 {
 	this->secondTurning = secondTurning;
 }

@@ -61,16 +61,19 @@ public:
 	void setTurningPathId(unsigned int turningPathId);
 
     const Lane* getFromLane() const;
-	void setFromLane(Lane* fromLane);
+	void setFromLane(Lane *fromLane);
 
 	unsigned int getFromLaneId() const;
 	void setFromLaneId(unsigned int fromLaneId);
+    
+    double getMaxSpeed() const;
+	void setMaxSpeed(double maxSpeedKmph);
 
 	PolyLine* getPolyLine() const;
-	void setPolyLine(PolyLine* polyLine);
+	void setPolyLine(PolyLine *polyLine);
 
 	const Lane* getToLane() const;
-    void setToLane(Lane* toLane);
+    void setToLane(Lane *toLane);
 
 	unsigned int getToLaneId() const;
 	void setToLaneId(unsigned int toLaneId);

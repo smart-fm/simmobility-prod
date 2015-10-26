@@ -126,6 +126,7 @@ template<> struct type_conversion<sim_mob::TurningPath>
 	{
 		res.setTurningPathId((unsigned int) vals.get<int>("id", 0));
 		res.setFromLaneId(vals.get<unsigned int>("from_lane", 0));
+		res.setMaxSpeed(vals.get<double>("max_speed"));
 		res.setToLaneId(vals.get<unsigned int>("to_lane", 0));
 		res.setTurningGroupId(vals.get<unsigned int>("group_id", 0));
 	}
@@ -171,7 +172,7 @@ template<> struct type_conversion<sim_mob::RoadSegment>
 		res.setRoadSegmentId(vals.get<unsigned int>("id", 0));
 		res.setCapacity(vals.get<unsigned int>("capacity", 0));
 		res.setLinkId(vals.get<unsigned int>("link_id", 0));
-		res.setMaxSpeed(vals.get<unsigned int>("max_speed", 0));
+		res.setMaxSpeed(vals.get<double>("max_speed", 0));
 		res.setSequenceNumber(vals.get<unsigned int>("sequence_num", 0));
 	}
 };

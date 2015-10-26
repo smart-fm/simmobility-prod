@@ -51,7 +51,7 @@ public:
 	unsigned int getLaneConnectionId() const;
 	void setLaneConnectionId(unsigned int laneConnectionId);
     
-	void setFromLane(Lane* fromLane);
+	void setFromLane(Lane *fromLane);
     const Lane* getFromLane() const;
 
 	unsigned int getFromLaneId() const;
@@ -60,7 +60,7 @@ public:
 	unsigned int getFromRoadSegmentId() const;
 	void setFromRoadSegmentId(unsigned int fromRoadSectionId);
     
-	void setToLane(Lane* toLane);
+	void setToLane(Lane *toLane);
     const Lane* getToLane() const;
 
 	unsigned int getToLaneId() const;

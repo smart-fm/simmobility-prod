@@ -15,24 +15,13 @@ TurningGroup::~TurningGroup()
 {
 	//Delete the turning paths
 
-	//Iterate through the outer map
-	std::map<unsigned int, std::map<unsigned int, TurningPath *> >::iterator itOuterMap = turningPaths.begin();
-	while (itOuterMap != turningPaths.end())
+	//Iterate through the map and delete the turnings
+	std::map<unsigned int, TurningPath *>::iterator itTurnings = turningPaths.begin();
+	while (itTurnings != turningPaths.end())
 	{
-		//Iterate through the inner map
-		std::map<unsigned int, TurningPath *>::iterator itInnerMap = itOuterMap->second.begin();
-		while (itInnerMap != itOuterMap->second.end())
-		{
-			//Delete the turning group
-			delete itInnerMap->second;
-			itInnerMap->second = NULL;
-			++itInnerMap;
-		}
-
-		//Clear the inner map
-		itOuterMap->second.clear();
-
-		++itOuterMap;
+		delete itTurnings->second;
+		itTurnings->second = NULL;
+		++itTurnings;
 	}
 
 	//Clear the map
@@ -109,49 +98,19 @@ void TurningGroup::setVisibility(double visibility)
 	this->visibility = visibility;
 }
 
-void TurningGroup::addTurningPath(TurningPath* turningPath)
+void TurningGroup::addTurningPath(TurningPath *turningPath)
 {
-	//Find the map entry having the key given by the 'from lane' of the turning path
-	std::map<unsigned int, std::map<unsigned int, TurningPath *> >::iterator itOuter = turningPaths.find(turningPath->getFromLaneId());
-
-	//Check if such an entry exists
-	if (itOuter != turningPaths.end())
-	{
-		//Entry found, so just add a new entry in the inner map using the 'to lane' as the key
-		itOuter->second.insert(std::make_pair(turningPath->getToLaneId(), turningPath));
-	}
-	//Inner map doesn't exist
-	else
-	{
-		//Create the inner map
-		std::map<unsigned int, TurningPath *> innerMap;
-
-		//Make a new entry in the inner map
-		innerMap.insert(std::make_pair(turningPath->getToLaneId(), turningPath));
-
-		//Make a new entry into the outer map
-		turningPaths.insert(std::make_pair(turningPath->getFromLaneId(), innerMap));
-	}
+	//Make a new entry into the map
+	turningPaths.insert(std::make_pair(turningPath->getFromLaneId(), turningPath));
 }
 
-const TurningPath * TurningGroup::getTurningPath(unsigned int fromLaneId, unsigned int toLaneId)
+const TurningPath* TurningGroup::getTurningPath(unsigned int fromLaneId) const
 {
-	//Get the map of turning groups starting from the "fromLink"
-	std::map<unsigned int, std::map<unsigned int, TurningPath *> >::const_iterator itPathsFrom = turningPaths.find(fromLaneId);
+	std::map<unsigned int, TurningPath *>::const_iterator itPathsFrom = turningPaths.find(fromLaneId);
 	
 	if(itPathsFrom != turningPaths.end())
 	{
-		//Get the turning group ending at the "toLink"
-		std::map<unsigned int, TurningPath *>::const_iterator itPaths = itPathsFrom->second.find(toLaneId);
-		
-		if(itPaths != itPathsFrom->second.end())
-		{
-			return itPaths->second;
-		}
-		else
-		{
-			return NULL;
-		}
+		return itPathsFrom->second;
 	}
 	else
 	{

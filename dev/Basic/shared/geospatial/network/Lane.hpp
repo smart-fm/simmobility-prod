@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <vector>
-
 #include "PolyLine.hpp"
 #include "LaneConnector.hpp"
 #include "RoadSegment.hpp"
@@ -64,8 +62,8 @@ private:
 	/**Defines whether a high occupancy vehicle is allowed on the lane*/
 	bool isHOV_Allowed;
 
-	/**The outgoing lane connectors*/
-	std::vector<LaneConnector *> laneConnectors;
+	/**The outgoing lane connector*/
+	LaneConnector *laneConnector;
 
 	/**Indicates the index of the lane*/
 	unsigned int laneIndex;
@@ -90,9 +88,7 @@ private:
 	double width;
 
 public:
-
 	Lane();
-
 	virtual ~Lane();
 
 	unsigned int getLaneId() const;
@@ -113,12 +109,13 @@ public:
 	bool isHighOccupancyVehicleAllowed() const;
 	void setHighOccupancyVehicleAllowed(bool HighOccupancyVehicleAllowed);
 
-	const std::vector<LaneConnector*>& getLaneConnectors() const;
+	const LaneConnector* getLaneConnector() const;
+	void setLaneConnector(LaneConnector *laneConnector);
 
 	unsigned int getLaneIndex() const;
 
 	const RoadSegment* getParentSegment() const;
-	void setParentSegment(RoadSegment* parentSegment);
+	void setParentSegment(RoadSegment *parentSegment);
 
 	PolyLine* getPolyLine() const;
 	void setPolyLine(PolyLine* polyLine);
@@ -142,11 +139,5 @@ public:
 	 * @return true if the lane is a bicycle lane; false otherwise
 	 */
 	bool isBicycleLane() const;
-
-	/**
-	 * Adds lane connector to the vector of outgoing lane connectors
-	 * @param laneConnector - The lane connector object to be added to the lane
-	 */
-	void addLaneConnector(LaneConnector *laneConnector);
 };
 }

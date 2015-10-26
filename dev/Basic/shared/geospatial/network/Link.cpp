@@ -32,7 +32,7 @@ void Link::setLinkId(unsigned int linkId)
 	this->linkId = linkId;
 }
 
-Node* Link::getFromNode() const
+const Node* Link::getFromNode() const
 {
 	return fromNode;
 }
@@ -87,12 +87,12 @@ const std::vector<RoadSegment*>& Link::getRoadSegments() const
 	return roadSegments;
 }
 
-const RoadSegment* Link::getRoadSegment(int idx) const
+const RoadSegment* Link::getRoadSegment(int index) const
 {
-	return roadSegments.at(idx);
+	return roadSegments.at(index);
 }
 
-Node* Link::getToNode() const
+const Node* Link::getToNode() const
 {
 	return toNode;
 }

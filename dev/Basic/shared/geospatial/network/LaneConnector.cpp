@@ -25,7 +25,7 @@ void LaneConnector::setLaneConnectionId(unsigned int laneConnectionId)
 	this->laneConnectionId = laneConnectionId;
 }
 
-void LaneConnector::setFromLane(Lane* fromLane)
+void LaneConnector::setFromLane(Lane *fromLane)
 {
 	this->fromLane = fromLane;
 }
@@ -55,7 +55,7 @@ void LaneConnector::setFromRoadSegmentId(unsigned int fromRoadSectionId)
 	this->fromRoadSegmentId = fromRoadSectionId;
 }
 
-void LaneConnector::setToLane(Lane* toLane)
+void LaneConnector::setToLane(Lane *toLane)
 {
 	this->toLane = toLane;
 }

@@ -74,8 +74,8 @@ public:
 	double getFirstConflictDistance() const;
 	void setFirstConflictDistance(double firstConflictDistance);
 
-	TurningPath* getFirstTurning() const;
-	void setFirstTurning(TurningPath* firstTurning);
+	const TurningPath* getFirstTurning() const;
+	void setFirstTurning(TurningPath *firstTurning);
 
 	unsigned int getFirstTurningId() const;
 	void setFirstTurningId(unsigned int firstTurningId);
@@ -86,8 +86,8 @@ public:
 	double getSecondConflictDistance() const;
 	void setSecondConflictDistance(double secondConflictDistance);
 
-	TurningPath* getSecondTurning() const;
-	void setSecondTurning(TurningPath* secondTurning);
+	const TurningPath* getSecondTurning() const;
+	void setSecondTurning(TurningPath *secondTurning);
 
 	unsigned int getSecondTurningId() const;
 	void setSecondTurningId(unsigned int secondTurningId);

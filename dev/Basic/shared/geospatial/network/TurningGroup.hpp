@@ -50,10 +50,11 @@ public:
 	/**Indicates the link at which this turning group terminates*/
 	unsigned int toLinkId;
 
-	/**The turning paths located in a turning group. The outer map stores the 'from lane id' vs
-	 * an inner map, which store the 'to lane id' vs the turning path
+	/**
+	 * The turning paths located in a turning group. The map stores the 'from lane id' as the key and
+	 * the turning path as the value
 	 */
-	std::map<unsigned int, std::map<unsigned int, TurningPath *> > turningPaths;
+	std::map<unsigned int, TurningPath *> turningPaths;
 
 	/**Defines the visibility of the intersection from the turning group (m/s)*/
 	double visibility;
@@ -92,13 +93,12 @@ public:
 	void addTurningPath(TurningPath *turningPath);
 
 	/**
-	 * This method looks up the turning path connecting the given from and to lanes and returns a pointer to it.
+	 * This method looks up the turning path connecting the given from lane and returns a pointer to it.
 	 *
      * @param fromLaneId - the lane id where the turning path begins
-     * @param toLaneId - the lane id where the turning path ends
 	 *
      * @return the turning path if found, else NULL
      */
-	const TurningPath* getTurningPath(unsigned int fromLaneId, unsigned int toLaneId);
+	const TurningPath* getTurningPath(unsigned int fromLaneId) const;
 };
 }

@@ -109,7 +109,7 @@ public:
 	unsigned int getLinkId() const;
 	void setLinkId(unsigned int linkId);
 
-	Node* getFromNode() const;
+	const Node* getFromNode() const;
 	void setFromNode(Node *fromNode);
 
 	unsigned int getFromNodeId() const;
@@ -124,10 +124,10 @@ public:
 	std::string getRoadName() const;
 	void setRoadName(std::string roadName);
 
-	const std::vector<RoadSegment*>& getRoadSegments() const;
-	const RoadSegment* getRoadSegment(int idx) const;
+	const std::vector<RoadSegment *>& getRoadSegments() const;
+	const RoadSegment* getRoadSegment(int index) const;
 
-	Node* getToNode() const;
+	const Node* getToNode() const;
 	void setToNode(Node *toNode);
 
 	unsigned int getToNodeId() const;

@@ -99,5 +99,15 @@ public:
      * @return the turning group if found, else NULL
      */
 	const TurningGroup* getTurningGroup(unsigned int fromLinkId, unsigned int toLinkId) const;
+
+	/**
+	 * This method looks up the turning group originating at the given 'from link' and returns a map of
+	 * turning groups with 'to link id' as the key
+	 *
+     * @param fromLinkId the id of the link from which the required turning groups must originate
+	 *
+     * @return pointer to the map of turning groups with 'to link id' as the key
+     */
+	const std::map<unsigned int, TurningGroup *>* getTurningGroups(unsigned int fromLinkId) const;
 };
 }

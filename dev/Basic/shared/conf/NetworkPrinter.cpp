@@ -161,8 +161,9 @@ void NetworkPrinter::PrintSegments(const map<unsigned int, RoadSegment *> &segme
 		{
 			out << "\n(\"lane\", " << lanes[index]->getLaneId() << ", {";
 			out << "\"index\":\"" << lanes[index]->getLaneIndex() << "\",";
+			out << "\"width\":\"" << lanes[index]->getWidth() << "\",";
 			out << "\"points\":\"[";
-			PolyLine *polyLine = lanes[index]->getPolyLine();
+			const PolyLine *polyLine = lanes[index]->getPolyLine();
 			for (vector<PolyPoint>::const_iterator itPts = polyLine->getPoints().begin(); itPts != polyLine->getPoints().end(); ++itPts)
 			{
 				out << "(" << itPts->getX() << "," << itPts->getY() << "),";
@@ -186,16 +187,13 @@ void NetworkPrinter::PrintLaneConnectors(const map<unsigned int, Lane *> &lanes)
 	
 	for(map<unsigned int, Lane *>::const_iterator it = lanes.begin(); it != lanes.end(); ++it)
 	{
-		const vector<LaneConnector *> &connectors = it->second->getLaneConnectors();
-		for (vector<LaneConnector *>::const_iterator itConnectors = connectors.begin(); itConnectors != connectors.end(); ++itConnectors)
-		{
-			out << "\n(\"lane-connector\", " << (*itConnectors)->getLaneConnectionId() << ", {";
-			out << "\"from-segment\":\"" << (*itConnectors)->getFromRoadSegmentId() << "\",";
-			out << "\"from-lane\":\"" << (*itConnectors)->getFromLaneId() << "\",";
-			out << "\"to-segment\":\"" << (*itConnectors)->getToRoadSegmentId() << "\",";
-			out << "\"to-lane\":\"" << (*itConnectors)->getToLaneId() << "\",";
-			out << "})";
-		}
+		const LaneConnector *connector = it->second->getLaneConnector();
+		out << "\n(\"lane-connector\", " << connector->getLaneConnectionId() << ", {";
+		out << "\"from-segment\":\"" << connector->getFromRoadSegmentId() << "\",";
+		out << "\"from-lane\":\"" << connector->getFromLaneId() << "\",";
+		out << "\"to-segment\":\"" << connector->getToRoadSegmentId() << "\",";
+		out << "\"to-lane\":\"" << connector->getToLaneId() << "\",";
+		out << "})";
 	}
 
 	PrintToFileAndGui(out);

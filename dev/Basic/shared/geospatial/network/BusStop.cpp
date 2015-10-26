@@ -10,8 +10,27 @@
 
 using namespace sim_mob;
 
+std::map<std::string, BusStop *> BusStop::mapOfCodevsBusStops;
+
+void BusStop::RegisterBusStop(BusStop* stop)
+{
+	std::string code = stop->getStopCode();
+	if(mapOfCodevsBusStops.find(code)==mapOfCodevsBusStops.end()){
+		mapOfCodevsBusStops[code] = stop;
+	}
+}
+BusStop* BusStop::findBusStop(const std::string& code)
+{
+	BusStop* stop = nullptr;
+	std::map<std::string, BusStop *>::iterator it = mapOfCodevsBusStops.find(code);
+	if(it!=mapOfCodevsBusStops.end()){
+		stop = it->second;
+	}
+	return stop;
+}
+
 BusStop::BusStop() :
-terminusType(NOT_A_TERMINUS), capacityAsLengthCM(0.0), twinStop(nullptr), virtualStop(false), offset(0.0)
+terminusType(NOT_A_TERMINUS), length(0.0), twinStop(nullptr), virtualStop(false), offset(0.0)
 {
 }
 
@@ -51,14 +70,14 @@ void BusStop::setTerminusType(TerminusType type)
 	terminusType = type;
 }
 
-unsigned int BusStop::getCapacityAsLength() const
+double BusStop::getCapacityAsLength() const
 {
-	return capacityAsLengthCM;
+	return length;
 }
 
-void BusStop::setCapacityAsLength(unsigned int len)
+void BusStop::setCapacityAsLength(double len)
 {
-	capacityAsLengthCM = len;
+	length = len;
 }
 
 /*
@@ -111,4 +130,22 @@ const std::string& BusStop::getStopName() const
 void BusStop::setStopName(std::string name)
 {
 	stopName = name;
+}
+
+unsigned int BusStop::getStopId() const
+{
+	return stopId;
+}
+void BusStop::setStopId(unsigned int id)
+{
+	stopId = id;
+}
+
+const std::string& BusStop::getStopCode() const
+{
+	return stopCode;
+}
+void BusStop::setStopCode(const std::string& code)
+{
+	stopCode = code;
 }

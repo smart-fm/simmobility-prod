@@ -32,7 +32,7 @@
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/Utils.hpp"
 #include "workers/WorkGroup.hpp"
-//#include "path/PT_PathSetManager.hpp"
+#include "path/PT_PathSetManager.hpp"
 
 using namespace sim_mob;
 
@@ -184,7 +184,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	if (ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetMode == "generation")
 	{
 		Print() << "Public Transit bulk pathSet Generation started: " << std::endl;
-		//sim_mob::PT_PathSetManager::Instance().PT_BulkPathSetGenerator();
+		sim_mob::PT_PathSetManager::Instance().BulkPathSetGenerator();
 		Print() << "Public Transit bulk pathSet Generation Done: " << std::endl;
 		exit(1);
 	}
@@ -226,7 +226,13 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	if (BusController::HasBusControllers())
 	{
 		BusController::InitializeAllControllers(active_agents, cfg.getPT_bus_dispatch_freq());
+		if(sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes())
+		{
+			Print()<<"Bus routes generation complete. close."<<std::endl;
+			exit(0);
+		}
 	}
+
 
 	//Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
 	LoadAgentsInOrder(constraints);
@@ -381,6 +387,8 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetwork()
 		NetworkLoader *loader = NetworkLoader::getInstance();
 		loader->loadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
 		loader->processNetwork();
+
+		sim_mob::aimsun::Loader::LoadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
 	}
 	else 
 	{

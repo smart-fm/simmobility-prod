@@ -9,6 +9,8 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/tss.hpp>
 
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 #include "geospatial/network/Lane.hpp"
 #include "geospatial/network/Link.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
@@ -31,7 +33,16 @@ boost::shared_mutex A_StarShortestPathImpl::GraphSearchMutex;
 
 A_StarShortestPathImpl::A_StarShortestPathImpl(const RoadNetwork& network):isValidSegGraph(false)
 {
-	initLinkDrivingNetwork(network);
+	if (sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes()) {
+		initSegDrivingNetwork(network);
+	} else {
+		initLinkDrivingNetwork(network);
+	}
+}
+
+A_StarShortestPathImpl::A_StarShortestPathImpl():isValidSegGraph(false)
+{
+
 }
 
 StreetDirectory::Edge A_StarShortestPathImpl::addSimpleEdge(StreetDirectory::Graph& graph, StreetDirectory::Vertex& fromV, StreetDirectory::Vertex& toV,
@@ -133,13 +144,18 @@ void A_StarShortestPathImpl::initSegDrivingNetwork(const RoadNetwork& roadNetwor
 	for (iter = links.begin(); iter != links.end(); ++iter)
 	{
 		procAddDrivingSegments(drivingSegMap, iter->second, nodeLookup, drivingSegmentEdgeLookup, drivingSegVertexLookup);
-		procAddDrivingBusStops(drivingSegMap, iter->second, drivingSegVertexLookup, drivingSegmentEdgeLookup, drivingBusStopLookup);
 	}
 
-	//Now add all Intersection edges (turning connectors)
+	//Process all Intersection edges (turning connectors)
 	for (NodeLookup::const_iterator it = nodeLookup.begin(); it != nodeLookup.end(); it++)
 	{
 		procAddDrivingLinkConnectors(drivingSegMap, (it->first), nodeLookup);
+	}
+
+	//Process through our links, adding each stop.
+	for (iter = links.begin(); iter != links.end(); ++iter)
+	{
+		procAddDrivingBusStops(drivingSegMap, iter->second, drivingSegVertexLookup, drivingSegmentEdgeLookup, drivingBusStopLookup);
 	}
 
 	//Finally, add our "master" node vertices
@@ -241,8 +257,8 @@ void A_StarShortestPathImpl::procAddDrivingBusStops(StreetDirectory::Graph& grap
 			resStopVerLookup[stop] = std::make_pair(vStop, vStop);
 
 			//Add the new route.
-			StreetDirectory::Edge e1 = addSimpleEdge(graph, fromVertex, vStop, WayPoint(rs));
-			StreetDirectory::Edge e2 = addSimpleEdge(graph, vStop, toVertex, WayPoint(rs));
+			StreetDirectory::Edge e1 = addSimpleEdge(graph, fromVertex, vStop, WayPoint(rs), rs->getLength());
+			StreetDirectory::Edge e2 = addSimpleEdge(graph, vStop, toVertex, WayPoint(rs), rs->getLength());
 
 			//Save them in our lookup.
 			resSegEdgeLookup[rs].insert(e1);
@@ -260,6 +276,9 @@ void A_StarShortestPathImpl::procAddDrivingSegments(StreetDirectory::Graph& grap
 		return;
 	}
 
+	StreetDirectory::Vertex fromVertex = StreetDirectory::Vertex();
+	StreetDirectory::Vertex toVertex = StreetDirectory::Vertex();
+
 	//Here, we are simply assigning one Edge per RoadSegment in the Link.
 	const vector<RoadSegment*>& roadway = link->getRoadSegments();
 	for (vector<RoadSegment*>::const_iterator it = roadway.begin(); it != roadway.end(); it++)
@@ -269,8 +288,7 @@ void A_StarShortestPathImpl::procAddDrivingSegments(StreetDirectory::Graph& grap
 		{
 			throw std::runtime_error("The segment does not have an associated poly-line");
 		}
-		StreetDirectory::Vertex fromVertex;
-		StreetDirectory::Vertex toVertex;
+
 		if (it == roadway.begin())
 		{
 			NodeLookup::const_iterator from = nodeLookup.find(link->getFromNode());
@@ -301,11 +319,8 @@ void A_StarShortestPathImpl::procAddDrivingSegments(StreetDirectory::Graph& grap
 					throw std::runtime_error("Unable to find Node with proper outgoing link in the \"from\" vertex map.");
 				}
 			}
-			PolyPoint sPos = rs->getPolyLine()->getFirstPoint();
-			PolyPoint dPos = rs->getPolyLine()->getLastPoint();
-			toVertex = addSimpleVertex(graph, dPos);
 		}
-		else if (it == --roadway.end())
+		if (it == --roadway.end())
 		{
 			NodeLookup::const_iterator to = nodeLookup.find(link->getToNode());
 			if (to == nodeLookup.end())
@@ -324,7 +339,7 @@ void A_StarShortestPathImpl::procAddDrivingSegments(StreetDirectory::Graph& grap
 				bool error = true;
 				for (std::vector<NodeDescriptor>::const_iterator it = to->second.vertices.begin(); it != to->second.vertices.end(); it++)
 				{
-					if (rs->getParentLink() == it->before)
+					if (link == it->before)
 					{
 						toVertex = it->v;
 						error = false;
@@ -335,15 +350,14 @@ void A_StarShortestPathImpl::procAddDrivingSegments(StreetDirectory::Graph& grap
 					throw std::runtime_error("Unable to find Node with proper outgoing Link in \"to\" vertex map.");
 				}
 			}
-			PolyPoint sPos = rs->getPolyLine()->getFirstPoint();
-			PolyPoint dPos = rs->getPolyLine()->getLastPoint();
+		}
+
+		PolyPoint sPos = rs->getPolyLine()->getFirstPoint();
+		PolyPoint dPos = rs->getPolyLine()->getLastPoint();
+		if (fromVertex == StreetDirectory::Vertex()) {
 			fromVertex = addSimpleVertex(graph, sPos);
 		}
-		else
-		{
-			PolyPoint sPos = rs->getPolyLine()->getFirstPoint();
-			PolyPoint dPos = rs->getPolyLine()->getLastPoint();
-			fromVertex = addSimpleVertex(graph, sPos);
+		if (toVertex == StreetDirectory::Vertex()) {
 			toVertex = addSimpleVertex(graph, dPos);
 		}
 
@@ -352,10 +366,13 @@ void A_StarShortestPathImpl::procAddDrivingSegments(StreetDirectory::Graph& grap
 		//Save this in our lookup.
 		resSegEdgeLookup[rs].insert(edge);
 		resSegVerLookup[rs] = std::make_pair(fromVertex, toVertex);
+
+		fromVertex = toVertex;
+		toVertex = StreetDirectory::Vertex();
 	}
 }
 
-void A_StarShortestPathImpl::procAddDrivingLinks(StreetDirectory::Graph& graph, const Link* link, const NodeLookup& nodeLookup, LinkEdgeLookup& resLinkEdgeLookup)
+void A_StarShortestPathImpl::procAddDrivingLinks(StreetDirectory::Graph& graph, const Link* link, const NodeLookup& nodeLookup, LinkEdgeLookup& resLinkEdgeLookup, double weight)
 {
 	//Skip empty link
 	if (!link)
@@ -418,8 +435,11 @@ void A_StarShortestPathImpl::procAddDrivingLinks(StreetDirectory::Graph& graph, 
 		}
 	}
 
+	if(weight<0.0){
+		weight = link->getLength();
+	}
 	//Create an edge.
-	StreetDirectory::Edge edge = addSimpleEdge(graph, fromVertex, toVertex, WayPoint(link), link->getLength());
+	StreetDirectory::Edge edge = addSimpleEdge(graph, fromVertex, toVertex, WayPoint(link), weight);
 	//Save this in our lookup.
 	resLinkEdgeLookup[link].insert(edge);
 }
@@ -489,13 +509,21 @@ void A_StarShortestPathImpl::procAddDrivingLinkConnectors(StreetDirectory::Graph
 		{
 			if (it->first == ndIt->before)
 			{
-				fromVertex.first = ndIt->v;
-				fromVertex.second = true;
+				if(!fromVertex.second){
+					fromVertex.first = ndIt->v;
+					fromVertex.second = true;
+				} else {
+					throw std::runtime_error("Intersection's Node find merging link.");
+				}
 			}
 			if (it->second == ndIt->after)
 			{
-				toVertex.first = ndIt->v;
-				toVertex.second = true;
+				if(!toVertex.second){
+					toVertex.first = ndIt->v;
+					toVertex.second = true;
+				} else {
+					throw std::runtime_error("Intersection's Node find merging link.");
+				}
 			}
 		}
 
@@ -584,8 +612,16 @@ std::vector<WayPoint> A_StarShortestPathImpl::GetShortestDrivingPath(const Stree
 		return vector<WayPoint>();
 	}
 
+	if(isValidSegGraph)
+	{
+		return vector<WayPoint>();
+	}
+
 	StreetDirectory::Vertex fromV = from.source;
 	StreetDirectory::Vertex toV = to.sink;
+	if (fromV == toV) {
+		return vector<WayPoint>();
+	}
 
 	//Convert the blacklist into a list of blocked Vertices.
 	set<StreetDirectory::Edge> blacklistV;
@@ -624,6 +660,9 @@ vector<WayPoint> A_StarShortestPathImpl::GetShortestDrivingPath(const StreetDire
 
 	StreetDirectory::Vertex fromV = from.source;
 	StreetDirectory::Vertex toV = to.sink;
+	if (fromV == toV) {
+		return vector<WayPoint>();
+	}
 
 	//Convert the blacklist into a list of blocked Vertices.
 	set<StreetDirectory::Edge> blacklistV;
@@ -760,12 +799,6 @@ vector<WayPoint> A_StarShortestPathImpl::searchShortestPath(const StreetDirector
 
 				//Retrieve, add this edge WayPoint.
 				WayPoint wp = boost::get(boost::edge_name, graph, edge.first);
-				/*if(wp.type==WayPoint::LINK){
-					const vector<RoadSegment*>& segs = wp.link->getRoadSegments();
-					for(vector<RoadSegment*>::const_iterator it=segs.begin(); it!=segs.end(); it++){
-						Print()<<(*it)->getRoadSegmentId()<<std::endl;
-					}
-				}*/
 				res.push_back(wp);
 			}
 
@@ -820,9 +853,18 @@ void A_StarShortestPathImpl::printGraph(std::ostream& outFile, const std::string
 			StreetDirectory::Edge ed = *iter;
 			StreetDirectory::Vertex srcV = boost::source(ed, graph);
 			StreetDirectory::Vertex destV = boost::target(ed, graph);
+			WayPoint wp = boost::get(boost::edge_name, graph, ed);
+			std::stringstream ssEdge;
+			if(wp.type==WayPoint::ROAD_SEGMENT){
+				ssEdge <<"{segment:"<<wp.roadSegment->getRoadSegmentId()<<"}";
+			} else if(wp.type==WayPoint::NODE){
+				ssEdge<<"{node:"<<wp.node->getNodeId()<<"}";
+			} else if(wp.type==WayPoint::LINK){
+				ssEdge<<"{link:"<<wp.link->getLinkId()<<"}";
+			}
 			outFile << "(\"sd-edge\"" << "," << 0 << "," << id++ << ",{"
 					<< "\"parent\":\"" << &graph << "\",\"fromVertex\":\""
-					<< srcV << "\",\"toVertex\":\"" << destV << "\"})"
+					<< srcV << "\",\"toVertex\":\"" << destV <<ssEdge.str()<< "\"})"
 					<< std::endl;
 		}
 	}

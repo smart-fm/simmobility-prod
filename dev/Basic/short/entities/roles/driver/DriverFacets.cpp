@@ -2267,7 +2267,7 @@ void sim_mob::DriverMovement::rerouteWithBlacklist(
 	const RoadSegment* currSeg = fwdDriverMovement.getCurrSegment();
 	const Node* node = currSeg->getParentLink()->getToNode();
 	const StreetDirectory& stdir = StreetDirectory::Instance();
-	vector<WayPoint> path = stdir.SearchShortestDrivingPath(*node, *(parentDriver->goal), blacklisted);
+	vector<WayPoint> path = stdir.SearchShortestDrivingPath(*node, *(parentDriver->goal));
 
 	//Given this (tentative) path, we still have to transition from the current Segment.
 	//At the moment this is a bit tedious (since we can't search mid-segment in the StreetDir), but

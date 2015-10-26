@@ -142,7 +142,7 @@ void RoadSegment::addObstacle(double offset, RoadItem* item)
 
 	if (offset > this->getLength())
 	{
-		throw std::runtime_error("Can't add obstacle; offset is greater than the segment length.");
+		//throw std::runtime_error("Can't add obstacle; offset is greater than the segment length.");
 	}
 
 	//Already something there

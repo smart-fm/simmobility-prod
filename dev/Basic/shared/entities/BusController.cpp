@@ -14,6 +14,7 @@
 #include "geospatial/network/BusStop.hpp"
 #include "geospatial/network/Link.hpp"
 #include "geospatial/aimsun/Loader.hpp"
+#include "geospatial/streetdir/A_StarShortestPathImpl.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/LangHelpers.hpp"
@@ -215,7 +216,7 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 	const BusStop* end;
 	const BusStop* nextEnd;
 	bool isFound = true;
-/*	if (stops.size() > 0) {
+	if (stops.size() > 0) {
 		start = nullptr;
 		end = nullptr;
 		nextEnd = nullptr;
@@ -235,13 +236,12 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 			} else {
 				end = busStop;
 				const StreetDirectory& stdir = StreetDirectory::Instance();
-				StreetDirectory::VertexDesc startDes = stdir.DrivingVertex(*start);
-				StreetDirectory::VertexDesc endDes = stdir.DrivingVertex(*end);
 				vector<WayPoint> path;
 				if (start->getRoadSegmentId() == end->getRoadSegmentId()) {
 					path.push_back(WayPoint(start->getParentSegment()));
 				} else {
-					path = stdir.SearchShortestDrivingPath(startDes, endDes);
+					const A_StarShortestPathImpl* shortestDir = (A_StarShortestPathImpl*)(stdir.getDistanceImpl());
+					path = shortestDir->SearchShortestDrivingPath<RoadSegment>(*start, *end);
 				}
 
 				for (std::vector<WayPoint>::const_iterator it = path.begin();
@@ -265,9 +265,9 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 				}
 
 				if (!isFound) {
-					std::cout << "can not find bus route in bus line:" << busLine
-							<< " start stop:" << start->getRoadItemId()
-							<< "  end stop:" << end->getRoadItemId()
+					std::cout << "can not find route in bus line:" << busLine
+							<< " start stop:" << start->getStopCode()
+							<< "  end stop:" << end->getStopCode()
 							<< std::endl;
 					routeIDs.clear();
 					stopIDs.clear();
@@ -317,7 +317,7 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 			}
 		}
 	}
-*/
+
 	return isFound;
 }
 

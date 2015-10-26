@@ -200,9 +200,7 @@ bool AMODController::hasShortestPath(std::string origNodeID, std::string destNod
 		}
 
 		// compute shortest path
-		const std::vector<const sim_mob::RoadSegment*> blacklist;
-
-		std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingPath(*origNode, *destNode, blacklist);
+		std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingPath(*origNode, *destNode);
 
 		for (std::vector<WayPoint>::iterator itWayPts = wp2.begin(); itWayPts != wp2.end(); ++itWayPts)
 		{
@@ -245,7 +243,7 @@ vector <WayPoint> AMODController::getShortestPath(std::string origNodeID, std::s
 		// compute shortest path
 		std::vector<const sim_mob::RoadSegment*> blacklist;
 
-		std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(*origNode, *destNode, blacklist);
+		std::vector < WayPoint > wp2 = stdir->SearchShortestDrivingPath(*origNode, *destNode);
 		/*std::vector<WayPoint> wp2 = stdir->SearchShortestDrivingTimePath(
 					stdir->DrivingTimeVertex(*origNode,sim_mob::Default),
 					stdir->DrivingTimeVertex(*destNode,sim_mob::Default),

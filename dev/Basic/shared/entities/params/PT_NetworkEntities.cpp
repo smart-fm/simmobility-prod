@@ -82,7 +82,9 @@ void PT_Network::init()
 int PT_Network::getVertexTypeFromStopId(std::string stopId)
 {
 	if(PT_NetworkVertexMap.find(stopId) != PT_NetworkVertexMap.end())
+	{
 		return PT_NetworkVertexMap.find(stopId)->second.getStopType();
+	}
 	return -1;
 }
 

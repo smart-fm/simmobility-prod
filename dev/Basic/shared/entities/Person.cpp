@@ -6,9 +6,8 @@
 
 #include <algorithm>
 #include <sstream>
-
-#include "boost/lexical_cast.hpp"
-#include "boost/algorithm/string.hpp"
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
 
 //For debugging
 #include "roles/Role.hpp"
@@ -137,7 +136,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 {
 	bool ret = true;
 	bool invalidFlag = false;
-	if (matchedTrips.size() > 0)
+	if (!matchedTrips.empty())
 	{
 		std::vector<sim_mob::OD_Trip>::const_iterator it = matchedTrips.begin();
 		while (it != matchedTrips.end())

@@ -13,7 +13,7 @@ namespace sim_mob {
 
 IncidentStatus::IncidentStatus() :
 		currentStatus(INCIDENT_CLEARANCE), defaultSpeedLimit(0), distanceTo(0), laneSide(
-				LCS_SAME), currentLaneIndex(0), nextLaneIndex(-1), incidentLength(
+				LANE_CHANGE_TO_NONE), currentLaneIndex(0), nextLaneIndex(-1), incidentLength(
 				0), changedLane(false), slowdownVelocity(false) {
 	randomNum = Utils::generateFloat(0, 1.0);
 }
@@ -61,10 +61,10 @@ float IncidentStatus::getRandomValue() {
 	return randomNum;
 }
 
-void IncidentStatus::setLaneSide(LANE_CHANGE_SIDE value) {
+void IncidentStatus::setLaneSide(LaneChangeTo value) {
 	laneSide = value;
 }
-LANE_CHANGE_SIDE IncidentStatus::getLaneSide() {
+LaneChangeTo IncidentStatus::getLaneSide() {
 	return laneSide;
 }
 
@@ -162,9 +162,9 @@ bool IncidentStatus::insertIncident(const Incident* inc) {
 			currentStatus = INCIDENT_OCCURANCE_LANE;
 			nextLaneIndex = destinationLaneId;
 			if (currentLaneIndex < nextLaneIndex) {
-				laneSide = LCS_LEFT;
+				laneSide = LANE_CHANGE_TO_LEFT;
 			} else {
-				laneSide = LCS_RIGHT;
+				laneSide = LANE_CHANGE_TO_RIGHT;
 			}
 		} else {
 			currentStatus = INCIDENT_ADJACENT_LANE;

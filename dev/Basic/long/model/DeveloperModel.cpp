@@ -49,10 +49,10 @@ namespace {
     const string MODEL_NAME = "Developer Model";
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false),unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYearForDevAgent(0),minLotSize(0){ //In days (7 - weekly, 30 - Monthly)
+DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false),unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYear(0),minLotSize(0){ //In days (7 - weekly, 30 - Monthly)
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false), unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYearForDevAgent(0),minLotSize(0){
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false), unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYear(0),minLotSize(0){
 }
 
 DeveloperModel::~DeveloperModel() {
@@ -121,7 +121,7 @@ void DeveloperModel::startImpl() {
 	unitIdForDevAgent = config.ltParams.developerModel.initialUnitId;
 	buildingIdForDevAgent = config.ltParams.developerModel.initialBuildingId;
 	projectIdForDevAgent = config.ltParams.developerModel.initialProjectId;
-	simYearForDevAgent = config.ltParams.developerModel.year;
+	simYear = config.ltParams.developerModel.year;
 	minLotSize= config.ltParams.developerModel.minLotSize;
 
 	PrintOut("minLotSize"<<minLotSize<<std::endl);
@@ -272,7 +272,7 @@ void DeveloperModel::createDeveloperAgents(ParcelList devCandidateParcelList)
 				devAgent->setRealEstateAgent(realEstateAgent);
 				devAgent->setPostcode(getPostcodeForDeveloperAgent());
 				devAgent->setHousingMarketModel(housingMarketModel);
-				devAgent->setSimYear(simYearForDevAgent);
+				devAgent->setSimYear(simYear);
 				agents.push_back(devAgent);
 				developers.push_back(devAgent);
 				workGroup.assignAWorker(devAgent);
@@ -509,7 +509,7 @@ int DeveloperModel::getCurrentTick()
 
 int DeveloperModel::getSimYearForDevAgent()
 {
-	return this->simYearForDevAgent;
+	return this->simYear;
 }
 
 void DeveloperModel::addProjects(boost::shared_ptr<Project> project)
@@ -584,14 +584,14 @@ const TazLevelLandPrice* DeveloperModel::getTazLevelLandPriceByTazId(BigSerial t
 	return nullptr;
 }
 
+
 void DeveloperModel::insertBuildingsToDB(Building &building)
 {
 	dbLockForBuildings.lock();
-
 	DB_Config dbConfig(LT_DB_CONFIG_FILE);
 	dbConfig.load();
 
-	// Connect to database and load data for this model.
+	// Connect to database.
 	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
 	conn.connect();
 	if (conn.isConnected()) {
@@ -599,5 +599,32 @@ void DeveloperModel::insertBuildingsToDB(Building &building)
 			buildingDao.insert(building);
 	}
 	dbLockForBuildings.unlock();
+}
 
+const int DeveloperModel::getBuildingAvgAge(const BigSerial fmParcelId) const
+{
+	mtx1.lock();
+
+	DB_Config dbConfig(LT_DB_CONFIG_FILE);
+	dbConfig.load();
+
+	// Connect to database.
+	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+	conn.connect();
+	int ageSum = 0;
+	std::vector<Building*> buildingsPerParcel;
+	if (conn.isConnected())
+	{
+		BuildingDao buildingDao(conn);
+		buildingsPerParcel =  buildingDao.getBuildingsByParcelId(fmParcelId);
+		std::vector<Building*>::iterator itr;
+		for (itr = buildingsPerParcel.begin(); itr != buildingsPerParcel.end(); itr++) {
+			int fromYear = (*itr)->getFromDate().tm_year + 1900;
+			int age = simYear - fromYear;
+			ageSum = age + ageSum;
+		}
+	}
+	int avgAge = ageSum / buildingsPerParcel.size();
+	mtx1.unlock();
+	return avgAge;
 }

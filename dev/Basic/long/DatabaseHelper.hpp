@@ -36,9 +36,9 @@ namespace sim_mob {
          */
         const std::string DB_TABLE_HOUSEHOLD = APPLY_SCHEMA(MAIN_SCHEMA, "household");
         const std::string DB_TABLE_BUILDING = APPLY_SCHEMA(MAIN_SCHEMA, "fm_building");
-        const std::string DB_TABLE_UNIT = APPLY_SCHEMA(MAIN_SCHEMA, "unit");
+        const std::string DB_TABLE_UNIT = APPLY_SCHEMA(MAIN_SCHEMA, "fm_unit_res");
         const std::string DB_TABLE_DEVELOPER = APPLY_SCHEMA(MAIN_SCHEMA, "developer");
-        const std::string DB_TABLE_PARCEL = APPLY_SCHEMA(MAIN_SCHEMA, "parcel");
+        const std::string DB_TABLE_PARCEL = APPLY_SCHEMA(MAIN_SCHEMA, "fm_parcel");
         const std::string DB_TABLE_TEMPLATE = APPLY_SCHEMA(MAIN_SCHEMA, "template");
         const std::string DB_TABLE_POSTCODE = APPLY_SCHEMA(MAIN_SCHEMA, "sla_addresses");
         const std::string DB_TABLE_POSTCODE_AMENITIES = APPLY_SCHEMA(MAIN_SCHEMA, "postcode_amenities");
@@ -404,6 +404,7 @@ namespace sim_mob {
         const std::string DB_GETBYID_ZONALLANDUSEVARIABLEVALUES = "SELECT * FROM " + DB_TABLE_ZONALLANDUSEVARIABLEVALUES + " WHERE id = :v1;";
         const std::string DB_GETBYID_POPULATION_PER_PLANNING_AREA = "SELECT * FROM " + DB_FUNC_GET_POPULATION_PER_PLANNING_AREA + " WHERE planning_area_id = :v1;";
         const std::string DB_GETBYID_HITSINDIVIDUALLOGSUM = "SELECT * FROM " + DB_TABLE_HITSINDIVIDUALLOGSUM + " WHERE id = :v1;";
+        const std::string DB_GETBUILDINGS_BY_PARCELID      = "SELECT * FROM " + DB_TABLE_BUILDING + " WHERE fm_parcel_id = :v1;";
     }
 }
 

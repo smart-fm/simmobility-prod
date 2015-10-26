@@ -203,7 +203,12 @@ namespace sim_mob {
             const TazLevelLandPrice* getTazLevelLandPriceByTazId(BigSerial tazId) const;
 
             /*
-             * insert newly created units,buildings and projects toDB
+             * return the average age of all the buildings in a given parcel for the current simulation date
+             */
+            const int getBuildingAvgAge(const BigSerial fmParcelId) const;
+
+            /*
+             * insert newly created buildings to DB
              */
             void insertBuildingsToDB(Building &building);
 
@@ -256,7 +261,7 @@ namespace sim_mob {
             BigSerial unitIdForDevAgent;
             BigSerial buildingIdForDevAgent;
             BigSerial projectIdForDevAgent;
-            BigSerial simYearForDevAgent;
+            BigSerial simYear;
             AccessibilityLogsumList accessibilityList;
             AccessibilityLogsumMap accessibilityByTazId;
             ParcelsWithHDBList parcelsWithHDB;
@@ -270,6 +275,7 @@ namespace sim_mob {
             TazLevelLandPriceList tazLevelLandPriceList;
             TazLevelLandPriceMap tazLevelLandPriceByTazId;
             boost::mutex dbLockForBuildings;
+            mutable boost::mutex mtx1;
         };
     }
 }

@@ -17,7 +17,7 @@ const std::string EMPTY_STRING = "";
  * Schemas
  */
 const std::string MAIN_SCHEMA = "main2012.";
-const std::string PUBLIC_SCHEMA = "public.";
+const std::string PUBLIC_SCHEMA = "demand.";
 
 /**
  * Tables
@@ -27,7 +27,7 @@ const std::string DB_TABLE_VEHICLE_CATEGORIES = APPLY_SCHEMA(MAIN_SCHEMA, "vehic
 const std::string DB_TABLE_AM_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "amcosts");
 const std::string DB_TABLE_PM_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "pmcosts");
 const std::string DB_TABLE_OP_COSTS = APPLY_SCHEMA(PUBLIC_SCHEMA, "opcosts");
-const std::string DB_TABLE_TAZ = APPLY_SCHEMA(PUBLIC_SCHEMA, "zone_preday2012");
+const std::string DB_TABLE_TAZ = APPLY_SCHEMA(PUBLIC_SCHEMA, "taz_2012");
 
 /**
  * Stored procedures for long-term population database

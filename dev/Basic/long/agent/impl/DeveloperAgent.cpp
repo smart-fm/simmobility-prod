@@ -225,9 +225,13 @@ inline void calculateProjectProfit(PotentialProject& project,const DeveloperMode
 	double demolitionCostPerUnit = 0;
 	double constructionCostPerUnit = 0;
 	double totalDemolitionCost = 0;
+	int unitAge = 0;
+	const BigSerial fmParcelId = project.getParcel()->getId();
+
+	bool isEmptyParcel = model->isEmptyParcel(fmParcelId);
 
 	for (unitsItr = units.begin(); unitsItr != units.end(); unitsItr++) {
-		const ParcelAmenities *amenities = model->getAmenitiesById(project.getParcel()->getId());
+		const ParcelAmenities *amenities = model->getAmenitiesById(fmParcelId);
 		//commented the below code in 2012 data as we are now getting logsum per taz id.
 		//double logsum = model->getAccessibilityLogsumsByFmParcelId(project.getParcel()->getId())->getAccessibility();
 		const LogsumForDevModel *logsumDev = model->getAccessibilityLogsumsByTAZId(project.getParcel()->getTazId());
@@ -237,6 +241,15 @@ inline void calculateProjectProfit(PotentialProject& project,const DeveloperMode
 			logsum = logsumDev->getAccessibility();
 		}
 
+
+		if(isEmptyParcel)
+		{
+			unitAge = 0;//::TODO add code to calculate average unit of all the units in this parcel;
+		}
+		else
+		{
+			unitAge = model->getBuildingAvgAge(fmParcelId);
+		}
 		if((amenities != nullptr))
 		{
 			const DeveloperLuaModel& luaModel = LuaProvider::getDeveloperModel();
@@ -267,9 +280,9 @@ inline void calculateProjectProfit(PotentialProject& project,const DeveloperMode
 				taoValue = tao->getEc();
 			}
 			//pass futureYear variable as 0 as we are calculating the profit for current year only.
-			double revenuePerUnit = luaModel.calculateUnitRevenue((*unitsItr),*amenities,logsum, quarter,0,taoValue);
+			double revenuePerUnit = luaModel.calculateUnitRevenue((*unitsItr),*amenities,logsum, quarter,0,taoValue,unitAge);
 
-			if (!(model->isEmptyParcel(project.getParcel()->getId())))
+			if (!isEmptyParcel)
 			{
 				demolitionCostPerUnit = (*unitsItr).getDemolitionCostPerUnit();
 			}
@@ -283,7 +296,7 @@ inline void calculateProjectProfit(PotentialProject& project,const DeveloperMode
 			#ifdef VERBOSE_DEVELOPER
 			PrintOutV("revenue calculated per unit type "<<revenuePerUnit<<model->getUnitTypeById((*unitsItr).getUnitTypeId())->getName()<<" with logsum "<<logsum<<"with parcel id"<<project.getParcel()->getId()<<std::endl);
 			PrintOutV("construction Cost Per Unit type"<<constructionCostPerUnit<<"**"<<model->getUnitTypeById((*unitsItr).getUnitTypeId())->getName()<<std::endl);
-			if (!(model->isEmptyParcel(project.getParcel()->getId())))
+			if (!isEmptyParcel)
 			{
 				PrintOutV("demolition cost per unit type"<<demolitionCostPerUnit<<std::endl);
 
@@ -303,10 +316,10 @@ inline void calculateProjectProfit(PotentialProject& project,const DeveloperMode
 	//double demolitionCost = 0;
 	double acqusitionCost = 0;
 	double landCost = 0;
-	if (!(model->isEmptyParcel(project.getParcel()->getId())))
+	if (!isEmptyParcel)
 	{
 		project.setDemolitionCost(totalDemolitionCost);
-		const UnitPriceSum* unitPriceSum = model->getUnitPriceSumByParcelId(project.getParcel()->getId());
+		const UnitPriceSum* unitPriceSum = model->getUnitPriceSumByParcelId(fmParcelId);
 		if(unitPriceSum != nullptr)
 		{
 			acqusitionCost = unitPriceSum->getUnitPriceSum();

@@ -264,7 +264,13 @@ namespace sim_mob {
 												+ DB_FIELD_HOUSING_DURATION
 												+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)";
 
-        const std::string DB_INSERT_BUILDING = DB_EMPTY_QUERY;
+        const std::string DB_INSERT_BUILDING = "INSERT INTO " + DB_TABLE_BUILDING
+        		+ " (" + "fm_building_id" + ", " + "fm_project_id" + ", " + "fm_parcel_id"
+        		+ ", " + "storeys_above_ground" + ", " + "storeys_below_ground" + ", "
+        		+ "from_date" + ", " + "to_date"  + ", "+ "building_status" + ", " + "gross_sq_m_res" + ", "
+        		+ "gross_sq_m_office" + ", " + "gross_sq_m_retail" + ", " + "gross_sq_m_other"  + ", " + "last_changed_date"
+        		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13)";
+
         const std::string DB_INSERT_UNIT = DB_EMPTY_QUERY;
         const std::string DB_INSERT_POSTCODE = DB_EMPTY_QUERY;
         const std::string DB_INSERT_POSTCODE_AMENITIES = DB_EMPTY_QUERY;

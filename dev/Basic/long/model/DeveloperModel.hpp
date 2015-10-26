@@ -205,7 +205,12 @@ namespace sim_mob {
             /*
              * return the average age of all the buildings in a given parcel for the current simulation date
              */
-            int getBuildingAvgAge(const BigSerial fmParcelId) const;
+            const int getBuildingAvgAge(const BigSerial fmParcelId) const;
+
+            /*
+             * insert newly created buildings to DB
+             */
+            void insertBuildingsToDB(Building &building);
 
         protected:
             /**
@@ -269,6 +274,8 @@ namespace sim_mob {
             UnitPriceSumMap unitPriceSumByParcelId;
             TazLevelLandPriceList tazLevelLandPriceList;
             TazLevelLandPriceMap tazLevelLandPriceByTazId;
+            boost::mutex dbLockForBuildings;
+            mutable boost::mutex mtx1;
         };
     }
 }

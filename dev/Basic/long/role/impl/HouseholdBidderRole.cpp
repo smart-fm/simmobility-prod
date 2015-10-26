@@ -67,6 +67,41 @@ namespace
     	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%")% day % householdId % unitId % postcodeCurrent % postcodeNew % wp;
     	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HOUSEHOLDBIDLIST,fmtr.str());
     }
+
+    inline void printProbabilityList( BigSerial householdId, std::vector<double>probabilities )
+    {
+    	boost::format fmtr = boost::format("%1%, %2%, %3%, %4%, %5%, %6%, %7%, %8%, %9%, %10%, %11%, %12%, %13%, %14%, %15%, %16%, %17%, %18%, %19%, %20%, %21%, %22%, %23%, %24%, %25%, %26%, %27%, %28%, %29%, %30%, %31%, %32%, %33%, %34%, %35%, %36%, %37%, %38%, %39%, %40%, %41%, %42%, "
+											"%43%, %44%, %45%, %46%, %47%, %48%, %49%, %50%, %51%, %52%, %53%, %54%, %55%, %56%, %57%, %58%, %59%, %60%, %61%, %62%, %63%, %64%, %65%, %66%, %67%, %68%, %69%, %70%, %71%, %72%, %73%, %74%, %75%, %76%, %77%, %78%, %79%, %80%, %81%, %82%, "
+											"%83%, %84%, %85%, %86%, %87%, %88%, %89%, %90%, %91%, %92%, %93%, %94%, %95%, %96%, %97%, %98%, %99%, %100%, %101%, %102%, %103%, %104%, %105%, %106%, %107%, %108%, %109%, %110%, %111%, %112%, %113%, %114%, %115%, %116%, %117%, %118%, "
+											"%119%, %120%, %121%, %122%, %123%, %124%, %125%, %126%, %127%, %128%, %129%, %130%, %131%, %132%, %133%, %134%, %135%, %136%, %137%, %138%, %139%, %140%, %141%, %142%, %143%, %144%, %145%, %146%, %147%, %148%, %149%, %150%, %151%, "
+											"%152%, %153%, %154%, %155%, %156%, %157%, %158%, %159%, %160%, %161%, %162%, %163%, %164%, %165%, %166%, %167%, %168%, %169%, %170%, %171%, %172%, %173%, %174%, %175%, %176%, %177%, %178%, %179%, %180%, %181%, %182%, %183%, %184%, "
+											"%185%, %186%, %187%, %188%, %189%, %190%, %191%, %192%, %193%, %194%, %195%, %196%, %197%, %198%, %199%, %200%, %201%, %202%, %203%, %204%, %205%, %206%, %207%, %208%, %209%, %210%, %211%, %212%, %213%, %214%, %215% , %216% "
+											)% householdId % probabilities[0]  % probabilities[1]  % probabilities[2]  % probabilities[3]  % probabilities[4]  % probabilities[5]  % probabilities[6]  % probabilities[7]  % probabilities[8]  % probabilities[9]  % probabilities[10]  % probabilities[11]  % probabilities[12]  % probabilities[13]
+											% probabilities[14]  % probabilities[15]  % probabilities[16]  % probabilities[17]  % probabilities[18]  % probabilities[19]  % probabilities[20]  % probabilities[21]  % probabilities[22]  % probabilities[23]  % probabilities[24]  % probabilities[25]  % probabilities[26]  % probabilities[27]
+											% probabilities[28]  % probabilities[29]  % probabilities[30]  % probabilities[31]  % probabilities[32]  % probabilities[33]  % probabilities[34]  % probabilities[35]  % probabilities[36]  % probabilities[37]  % probabilities[38]  % probabilities[39]  % probabilities[40]  % probabilities[41]
+											% probabilities[42]  % probabilities[43]  % probabilities[44]  % probabilities[45]  % probabilities[46]  % probabilities[47]  % probabilities[48]  % probabilities[49]  % probabilities[50]  % probabilities[51]  % probabilities[52]  % probabilities[53]  % probabilities[54]  % probabilities[55]
+											% probabilities[56]  % probabilities[57]  % probabilities[58]  % probabilities[59]  % probabilities[60]  % probabilities[61]  % probabilities[62]  % probabilities[63]  % probabilities[64]  % probabilities[65]  % probabilities[66]  % probabilities[67]  % probabilities[68]  % probabilities[69]
+											% probabilities[70]  % probabilities[71]  % probabilities[72]  % probabilities[73]  % probabilities[74]  % probabilities[75]  % probabilities[76]  % probabilities[77]  % probabilities[78]  % probabilities[79]  % probabilities[80]  % probabilities[81]  % probabilities[82]  % probabilities[83]
+											% probabilities[84]  % probabilities[85]  % probabilities[86]  % probabilities[87]  % probabilities[88]  % probabilities[89]  % probabilities[90]  % probabilities[91]  % probabilities[92]  % probabilities[93]  % probabilities[94]  % probabilities[95]  % probabilities[96]  % probabilities[97]
+											% probabilities[98]  % probabilities[99]  % probabilities[100]  % probabilities[101]  % probabilities[102]  % probabilities[103]  % probabilities[104]  % probabilities[105]  % probabilities[106]  % probabilities[107]  % probabilities[108]  % probabilities[109]  % probabilities[110]
+											% probabilities[111]  % probabilities[112]  % probabilities[113]  % probabilities[114]  % probabilities[115]  % probabilities[116]  % probabilities[117]  % probabilities[118]  % probabilities[119]  % probabilities[120]  % probabilities[121]  % probabilities[122]  % probabilities[123]
+											% probabilities[124]  % probabilities[125]  % probabilities[126]  % probabilities[127]  % probabilities[128]  % probabilities[129]  % probabilities[130]  % probabilities[131]  % probabilities[132]  % probabilities[133]  % probabilities[134]  % probabilities[135]  % probabilities[136]
+											% probabilities[137]  % probabilities[138]  % probabilities[139]  % probabilities[140]  % probabilities[141]  % probabilities[142]  % probabilities[143]  % probabilities[144]  % probabilities[145]  % probabilities[146]  % probabilities[147]  % probabilities[148]  % probabilities[149]
+											% probabilities[150]  % probabilities[151]  % probabilities[152]  % probabilities[153]  % probabilities[154]  % probabilities[155]  % probabilities[156]  % probabilities[157]  % probabilities[158]  % probabilities[159]  % probabilities[160]  % probabilities[161]  % probabilities[162]
+											% probabilities[163]  % probabilities[164]  % probabilities[165]  % probabilities[166]  % probabilities[167]  % probabilities[168]  % probabilities[169]  % probabilities[170]  % probabilities[171]  % probabilities[172]  % probabilities[173]  % probabilities[174]  % probabilities[175]
+											% probabilities[176]  % probabilities[177]  % probabilities[178]  % probabilities[179]  % probabilities[180]  % probabilities[181]  % probabilities[182]  % probabilities[183]  % probabilities[184]  % probabilities[185]  % probabilities[186]  % probabilities[187]  % probabilities[188]
+											% probabilities[189]  % probabilities[190]  % probabilities[191]  % probabilities[192]  % probabilities[193]  % probabilities[194]  % probabilities[195]  % probabilities[196]  % probabilities[197]  % probabilities[198]  % probabilities[199]  % probabilities[200]  % probabilities[201]
+											% probabilities[202]  % probabilities[203]  % probabilities[204]  % probabilities[205]  % probabilities[206]  % probabilities[207]  % probabilities[208]  % probabilities[209]  % probabilities[210]  % probabilities[211]  % probabilities[212]  % probabilities[213]  % probabilities[214];
+
+    	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_SCREENINGPROBABILITIES,fmtr.str());
+    }
+
+    inline void printChoiceset( BigSerial householdId, std::string choiceset)
+       {
+       	boost::format fmtr = boost::format("%1%, %2% ")% householdId % choiceset;
+
+       	AgentsLookupSingleton::getInstance().getLogger().log(LoggerAgent::LOG_HHCHOICESET,fmtr.str());
+       }
 }
 
 HouseholdBidderRole::CurrentBiddingEntry::CurrentBiddingEntry( const BigSerial unitId, double bestBid, const double wp, double lastSurplus ) : unitId(unitId), bestBid(bestBid), wp(wp), tries(0), lastSurplus(lastSurplus){}
@@ -153,17 +188,32 @@ void HouseholdBidderRole::setActive(bool activeArg)
 void HouseholdBidderRole::computeHouseholdAffordability()
 {
 	double householdAffordabilityAmount = 0;
+	//This is the inflation-adjusted income of individuals thourough the years starting from age 20 (first elemet) based on the 2012 HITS survey.
+	//This model was done by Jingsi Shaw [xujs@mit.edu]
+	int incomeProjection[] = { 	13, 15, 16, 18, 21, 23, 26, 28, 31, 34, 37, 41, 44, 48, 51, 55, 59, 63, 66, 70, 74, 77, 81, 84, 87, 90, 92, 94, 96, 98, 99,
+								100, 100, 100, 100, 99, 98, 96, 95, 92, 90, 87, 84, 81, 78, 74, 71, 67, 63, 59, 56, 52, 48, 45, 41, 38, 35, 32, 29, 26, 23 };
 
-	Household *bidderHousehold = const_cast<Household*>(getParent()->getHousehold());
+	Household *bidderHousehold = const_cast<Household*>(getParent()->getHousehold()); 
+	//Household *bidderHousehold = getParent()->getModel()->getHouseholdById(30);
 
 	std::vector<BigSerial> individuals = bidderHousehold->getIndividuals();
+
+	/*
+	 * For testing purposes
+	 *
+	individuals.push_back(117);
+	individuals.push_back(118);
+	individuals.push_back(119);
+	individuals.push_back(120);
+	 */
+
 	int householdSize = individuals.size();
 
 	const double DTIR_Single = 0.33; //Debt to income ratio of a single person.
 	const double DTIR_Couple = 0.30; //Debt to income ratio of a child-less couple.
 	const double DTIR_Family = 0.27; //Debt to income ratio of a family.
-	const  int retirementAge = 65;
-	const int maturityAge = 18;
+	const int retirementAge  = 65;
+	const int maturityAge 	 = 18;
 
 	double debtToIncomeRatio = DTIR_Single;
 
@@ -175,26 +225,19 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 		for( int n = 0; n < householdSize; n++ )
 		{
 			Individual * householdIndividual = getParent()->getModel()->getIndividualById( individuals[n] );
-
 			std::tm dob = householdIndividual->getDateOfBirth();
 
-			  struct tm thisTime;
-			  time_t now;
-			  time(&now);
-			  thisTime = *localtime(&now);
-			  int difference = thisTime.tm_year - dob.tm_year;
+			int age = HITS_SURVEY_YEAR - dob.tm_year;
 
-			  if( householdIndividual->getHouseholdHead() )
-			  {
-				  householdHeadAge = difference;
-			  }
+			if( householdIndividual->getHouseholdHead() )
+			{
+				householdHeadAge = age;
+			}
 
-
-			  if( difference < maturityAge )
-			  {
-				  children++;
-				  //PrintOutV("children: "<< children << std::endl);
-			  }
+			if( age < maturityAge )
+			{
+				children++;
+			}
 		}
 
 		debtToIncomeRatio = DTIR_Couple;
@@ -205,41 +248,73 @@ void HouseholdBidderRole::computeHouseholdAffordability()
 		}
 	}
 
-	double income = debtToIncomeRatio * bidderHousehold->getIncome();
-	double loanTenure = retirementAge - householdHeadAge * 12.0; //times 12 to get he tenure in months, not years.
-
-	loanTenure = std::min( 360.0, loanTenure ); //tenure has a max for 30 years.
-
-	HM_Model::HousingInterestRateList *interestRateListX = getParent()->getModel()->getHousingInterestRateList();
-
-	const double quarter = 365.0 / 4.0; // a yearly quarter
-	int index =	day / quarter;
-	double interestRate = (*interestRateListX)[index]->getInterestRate() / 100 / 12.0; // divide by 12 to get the monthly interest rate.
-
-	//Household affordability formula based on excel PV function:
-	//https://support.office.com/en-ca/article/PV-function-3d25f140-634f-4974-b13b-5249ff823415
-	double maxMortgage = income / interestRate *  ( 1.0 - pow( 1 + interestRate, loanTenure ) );
-
-	maxMortgage = std::max(0.0, maxMortgage);
-
+	//
 	const Household *household = getParent()->getHousehold();
+	int maxMortgage = 0;
 
+	for( int n = 0; n < household->getSize(); n++ )
+	{
+		Individual * householdIndividual = getParent()->getModel()->getIndividualById( individuals[n] );
+		std::tm dob = householdIndividual->getDateOfBirth();
+
+		double income = debtToIncomeRatio * householdIndividual->getIncome();
+		double loanTenure = ( retirementAge - ( HITS_SURVEY_YEAR - ( 1900 + dob.tm_year ) ) ) * 12.0; //times 12 to get he tenure in months, not years.
+
+		loanTenure = std::min( 360.0, loanTenure ); //tenure has a max for 30 years.
+
+		HM_Model::HousingInterestRateList *interestRateListX = getParent()->getModel()->getHousingInterestRateList();
+
+		const double quarter = 365.0 / 4.0; // a yearly quarter
+		int index =	day / quarter;
+		double interestRate = (*interestRateListX)[index]->getInterestRate() / 100 / 12.0; // divide by 12 to get the monthly interest rate.
+
+		//Household affordability formula based on excel PV function:
+		//https://support.office.com/en-ca/article/PV-function-3d25f140-634f-4974-b13b-5249ff823415
+		double mortgage = income / interestRate *  ( 1.0 - pow( 1 + interestRate, -loanTenure ) );
+
+		mortgage = std::max(0.0, mortgage);
+		//PrintOutV("mortage " << householdIndividual->getId() << " " << mortgage << std::endl);
+		maxMortgage += mortgage;
+	}
+
+	//
+	// We use the current income as a baseline and estimate the income to the current age
+	// starting from 20 years old. We can then estimate how much this individual has saved.
 	double alpha = 0.03;
 
-	if( householdHeadAge < 30 )
+	if( householdSize > 1 )
 		alpha = 0.05;
 
-	double maxDownpayment = ( householdHeadAge - 20 ) *  bidderHousehold->getIncome() * 12 * (0.36 * alpha);
+	double savedIncome = 0.0;
+	double individualIncome = 0.0;
+
+	for( int m = 0; m < household->getSize(); m++ )
+	{
+		Individual * householdIndividual = getParent()->getModel()->getIndividualById( individuals[m] );
+		std::tm dob = householdIndividual->getDateOfBirth();
+
+		int age = HITS_SURVEY_YEAR - ( 1900 + dob.tm_year );
+
+		for( int n = 0; n < ( age - 20 ); n++ )
+		{
+			double normIncome = householdIndividual->getIncome() * 12 * (0.3 + alpha);
+			double increment = ( ( normIncome / incomeProjection[ ( age - 20 ) ] ) * incomeProjection[n] );
+
+			individualIncome = individualIncome + increment;
+		}
+
+		savedIncome = savedIncome + individualIncome;
+		individualIncome = 0;
+	}
+
+	double maxDownpayment = savedIncome + ( bidderHousehold->getIncome() * 12 * (0.3 + alpha) );
 
 	maxDownpayment = std::max(0.0, maxDownpayment);
 
-	householdAffordabilityAmount = ( maxMortgage + maxDownpayment ) / 500000.0;
+	householdAffordabilityAmount = ( maxMortgage + maxDownpayment ) / 1000000.0; //Roberto's model calculates housing prices in units of million.
 	householdAffordabilityAmount = std::max(householdAffordabilityAmount, 0.0);
 
 	bidderHousehold->setAffordabilityAmount( householdAffordabilityAmount );
-
-	//PrintOutV(" affordability " << householdAffordabilityAmount << "income " << household->getIncome() << " tenure " << loanTenure << " interestRate " << interestRate << " maxMortgage " << maxMortgage << " maxDownpayment " <<  maxDownpayment << std::endl);
-	//PrintOutV( "Interest rate: " << std::setPrecision(5) << interestRate << ". Household affordability: " << householdAffordabilityAmount << std::endl);
 }
 
 void HouseholdBidderRole::init()
@@ -888,10 +963,35 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 							{
 								tazPopulation += tazStats->getIndividuals();
 
-								int tazInt = atoi(thisTaz->getName().c_str());
+								HouseHoldHitsSample *hitsSample = model->getHouseHoldHitsById( household->getId() );
+								int tazH = atoi(thisTaz->getName().c_str());
 
-								PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( individuals[m] , tazInt, -1, -1 );
-								double lg = personParam.getDpbLogsum(); //2.71 use this value as an average for testing purposes
+								int p = 0;
+								int tazIdW = -1;
+								for(p = 0; p < model->getHitsIndividualLogsumVec().size(); p++ )
+								{
+									if ( model->getHitsIndividualLogsumVec()[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
+									{
+										tazIdW = model->getHitsIndividualLogsumVec()[p]->getWorkTaz();
+										break;
+									}
+								}
+
+								Taz *tazObjW = model->getTazById( tazIdW );
+							    std::string tazStrW;
+								if( tazObjW != NULL )
+									tazStrW = tazObjW->getName();
+								BigSerial tazW = std::atoi( tazStrW.c_str() );
+
+								double lg =  0;
+								int vehicleOwnership = 0;
+
+								if( individual->getVehicleCategoryId() > 0 )
+									vehicleOwnership = 1;
+
+								PredayPersonParams personParam = PredayLT_LogsumManager::getInstance().computeLogsum( individuals[m] , tazH, tazW, vehicleOwnership );
+								lg = personParam.getDpbLogsum(); //2.71 use this value as an average for testing purposes
+
 
 								logsum = logsum + lg * (double)(tazStats->getIndividuals());
 							}
@@ -901,7 +1001,7 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 
 					if( tazPopulation && patSize )
 					{
-						logsum = logsum / tazPopulation / patSize;
+						logsum = logsum / tazPopulation / patSize; //TODO: check the avg logsum computation. might not need tazpopulation.
 					}
 
 					workerLogsumAtPlanningAreaLevel.push_back(logsum);
@@ -975,6 +1075,9 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 							 landedPropertyHhSizeOne	<< " k " << DWL700  << " " <<
 							 otherHousingHhSizeOne		<< " l " << DWL800  << std::endl);
 		*/
+
+		if( isnan(probability) )
+			probability = 0.0;
 
 		probabilities.push_back(probability);
 
@@ -1055,71 +1158,63 @@ bool HouseholdBidderRole::pickEntryToBid()
     //model->getScreeningProbabilities(hitsId, householdScreeningProbabilities);
     getScreeningProbabilities(household->getId(), householdScreeningProbabilities);
 
-	/*
-    PrintOut("probability size: " << householdScreeningProbabilities.size() << std::endl);
-    double total = 0.0;
-    for(int n = 0; n < householdScreeningProbabilities.size(); n++ )
-    {
-    	PrintOut(" " << std::setprecision(5) << householdScreeningProbabilities[n]);
-    	total += householdScreeningProbabilities[n];
-    }
-
-    PrintOut("prob total: " << total << endl);
-	*/
-
-    double randomDraw = (double)rand()/RAND_MAX;
-    int zoneHousingType = -1;
-    double cummulativeProbability = 0.0;
-    for( int n = 0; n < householdScreeningProbabilities.size(); n++ )
-    {
-    	cummulativeProbability +=  householdScreeningProbabilities[n];
-    	if( randomDraw >cummulativeProbability )
-    	{
-    		zoneHousingType = n + 1; //housing type is a one-based index
-    		break;
-    	}
-    }
-
-    Alternative *alt = nullptr;
-    PlanningArea *planArea = nullptr;
-    std::vector<PlanningSubzone*> planSubzone;
-    std::vector<Mtz*> mtz;
-    std::vector<BigSerial> taz;
-
-    if( zoneHousingType != -1)
-    {
-    	alt = model->getAlternativeById(zoneHousingType);
-    }
-
-    if( alt != nullptr)
-    {
-    	planArea = model->getPlanningAreaById( alt->getPlanAreaId() );
-    }
-
-    if( planArea != nullptr)
-    {
-    	planSubzone = model->getPlanningSubZoneByPlanningAreaId( planArea->getId() );
-    }
-
-    if( planSubzone.size() != 0)
-    {
-    	mtz = model->getMtzBySubzoneVec( planSubzone );
-    }
-
-    if( mtz.size() != 0)
-    {
-    	taz = model->getTazByMtzVec( mtz );
-    }
-
-    BigSerial housingType = -1;
-
-    if( alt != nullptr)
-    	housingType = alt->getDwellingTypeId();
+    printProbabilityList(household->getId(), householdScreeningProbabilities);
 
     std::vector<const HousingMarket::Entry*> screenedEntries;
 
-    for(int n = 0; n < entries.size() /** housingMarketSearchPercentage*/ && housingType != -1 && taz.size() != 0 && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
+    for(int n = 0; n < entries.size() /** housingMarketSearchPercentage*/ && screenedEntries.size() < config.ltParams.housingModel.bidderUnitsChoiceSet; n++)
     {
+	srand(time(NULL));
+
+        double randomDraw = (double)rand()/RAND_MAX;
+        int zoneHousingType = -1;
+        double cummulativeProbability = 0.0;
+        for( int m = 0; m < householdScreeningProbabilities.size(); m++ )
+        {
+        	cummulativeProbability +=  householdScreeningProbabilities[m];
+        	if( randomDraw >cummulativeProbability )
+        	{
+        		zoneHousingType = m + 1; //housing type is a one-based index
+        		break;
+        	}
+        }
+
+        Alternative *alt = nullptr;
+        PlanningArea *planArea = nullptr;
+        std::vector<PlanningSubzone*> planSubzone;
+        std::vector<Mtz*> mtz;
+        std::vector<BigSerial> taz;
+
+        if( zoneHousingType != -1)
+        {
+        	alt = model->getAlternativeById(zoneHousingType);
+        }
+
+        if( alt != nullptr)
+        {
+        	planArea = model->getPlanningAreaById( alt->getPlanAreaId() );
+        }
+
+        if( planArea != nullptr)
+        {
+        	planSubzone = model->getPlanningSubZoneByPlanningAreaId( planArea->getId() );
+        }
+
+        if( planSubzone.size() != 0)
+        {
+        	mtz = model->getMtzBySubzoneVec( planSubzone );
+        }
+
+        if( mtz.size() != 0)
+        {
+        	taz = model->getTazByMtzVec( mtz );
+        }
+
+        BigSerial housingType = -1;
+
+        if( alt != nullptr)
+        	housingType = alt->getDwellingTypeId();
+
     	int offset = (float)rand() / RAND_MAX * ( entries.size() - 1 );
 
     	HousingMarket::ConstEntryList::const_iterator itr = entries.begin() + offset;
@@ -1172,6 +1267,8 @@ bool HouseholdBidderRole::pickEntryToBid()
         	thisDwellingType = 800;
         }
 
+        //PrintOutV("thisDwellingType " << thisDwellingType << std::endl);
+
     	if( thisDwellingType == housingType )
     	{
     		for( int m = 0; m < taz.size(); m++ )
@@ -1192,8 +1289,26 @@ bool HouseholdBidderRole::pickEntryToBid()
     }
     else
     {
+
     	//PrintOutV("choiceset was successful" << std::endl);
+
+    	char temp[1000];
+    	for(int n = 0; n < screenedEntries.size(); n++)
+    	{
+    		int strLength = 0;
+
+    		if( n > 0)
+    			strLength = strlen(temp);
+
+    		const Unit *thisUnit = model->getUnitById( screenedEntries[n]->getUnitId());
+
+    		sprintf( temp + strLength, " %i,", (int)screenedEntries[n]->getUnitId() );
+    	}
+
+    	PrintOutV( household->getId() << ", " << temp << std::endl );
+    	printChoiceset(household->getId(), temp);
     }
+
     //PrintOutV("Screening  entries is now: " << screenedEntries.size() << std::endl );
 
     // Choose the unit to bid with max surplus. However, we are not iterating through the whole list of available units.
@@ -1482,37 +1597,6 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId,double vehicleOwnershipL
 		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_ABOVE60_ONE_CAR)->getCoefficientEstimate();
 	}
 
-	if(isCEO)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_CEO_ONECAR)->getCoefficientEstimate();
-	}
-
-	if(numFullWorkers==1)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER1_ONECAR)->getCoefficientEstimate();
-	}
-	else if(numFullWorkers==2)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER2_ONECAR)->getCoefficientEstimate();
-	}
-	else if(numFullWorkers>=3)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER3p_ONECAR)->getCoefficientEstimate();
-	}
-
-	if(numStudents == 1)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_STUDENT1_ONECAR)->getCoefficientEstimate();
-	}
-	else if(numStudents == 2)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_STUDENT2_ONECAR)->getCoefficientEstimate();
-	}
-	if(numStudents >= 3)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_STUDENT3_ONECAR)->getCoefficientEstimate();
-	}
-
 	if(numWhiteCollars==1)
 	{
 		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_WHITECOLLAR1_ONECAR)->getCoefficientEstimate();
@@ -1522,28 +1606,16 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId,double vehicleOwnershipL
 		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_WHITECOLLAR2_ONECAR)->getCoefficientEstimate();
 	}
 
-	valueOneCar = valueOneCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_HAS_MC_ONECAR)->getCoefficientEstimate();
-
-	if(this->getParent()->getHousehold()->getSize()<=3)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE3_ONECAR)->getCoefficientEstimate();
-	}else if (this->getParent()->getHousehold()->getSize()==4)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE4_ONECAR)->getCoefficientEstimate();
-	}
-	else if (this->getParent()->getHousehold()->getSize() == 5)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE5_ONECAR)->getCoefficientEstimate();
-	}
-	else if (this->getParent()->getHousehold()->getSize() >= 6)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE6_ONECAR)->getCoefficientEstimate();
-	}
+	valueOneCar = valueOneCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_MC_ONECAR)->getCoefficientEstimate();
 
 	int incomeCatId = getIncomeCategoryId(this->getParent()->getHousehold()->getIncome());
-	if(incomeCatId == 1 || incomeCatId == 2)
+	if(incomeCatId == 1)
+		{
+			valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC1_ONECAR)->getCoefficientEstimate();
+		}
+	else if(incomeCatId == 2)
 	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC12_ONECAR)->getCoefficientEstimate();
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC2_ONECAR)->getCoefficientEstimate();
 	}
 	else if(incomeCatId == 3)
 	{
@@ -1557,10 +1629,6 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId,double vehicleOwnershipL
 	{
 		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC5_ONECAR)->getCoefficientEstimate();
 	}
-	else if(incomeCatId == 6)
-	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_INC6_ONECAR)->getCoefficientEstimate();
-	}
 
 	if(this->getParent()->getHousehold()->getEthnicityId() == INDIAN)
 	{
@@ -1572,37 +1640,27 @@ double HouseholdBidderRole::getExpOneCar(int unitTypeId,double vehicleOwnershipL
 	}
 	else if (this->getParent()->getHousehold()->getEthnicityId() == OTHERS)
 	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_OTHER_RACE_ONECAR)->getCoefficientEstimate();
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_OTHERS_ONECAR)->getCoefficientEstimate();
 	}
 
 	if (this->getParent()->getHousehold()->getChildUnder4()==1)
 	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_KID1_ONECAR)->getCoefficientEstimate();
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_KIDS1_ONECAR)->getCoefficientEstimate();
 	}
 	else if (this->getParent()->getHousehold()->getChildUnder4()>1)
 	{
-		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_KID2p_ONECAR)->getCoefficientEstimate();
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_KIDS2p_ONECAR)->getCoefficientEstimate();
 	}
-	//finds out whether the household is a landed property(terrace, semi detached, detached) or not
-	if( (unitTypeId>=17) && (unitTypeId<=31))
-	{
-		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LANDED_ONECAR)->getCoefficientEstimate();
-	}
-	else if((unitTypeId>=7) && (unitTypeId<=36)) //finds out whether the household is a private property(Apartment, Terrace, Semi Detached, Detached, Condo  and EC) or not
+
+	if((unitTypeId>=7) && (unitTypeId<=36)) //finds out whether the household is a private property(Apartment, Terrace, Semi Detached, Detached, Condo  and EC) or not
 	{
 		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_PRIVATE_ONECAR)->getCoefficientEstimate();
 	}
 
-	if(selfEmployed)
+	if (this->getParent()->getHousehold()->getTaxiAvailability())
 	{
-		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_SELFEMPLOYED_ONECAR)->getCoefficientEstimate();
+		valueOneCar = valueOneCar + model->getVehicleOwnershipCoeffsById(B_TAXI_ONECAR)->getCoefficientEstimate();
 	}
-
-//	LogSumVehicleOwnership* logsum = model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId());
-//	if(logsum != nullptr)
-//	{
-//		valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * logsum->getAvgLogsum();
-//	}
 //we are getting the logsums from mid term now.
 	valueOneCar = valueOneCar +  model->getVehicleOwnershipCoeffsById(B_LOGSUM_ONECAR)->getCoefficientEstimate() * vehicleOwnershipLogsum;
 
@@ -1680,36 +1738,6 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId, double vehicleOwner
 			break;
 		}
 	}
-	if(isCEO)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_CEO_TWOplusCAR)->getCoefficientEstimate();
-	}
-
-	if(numFullWorkers==1)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER1_TWOplusCAR)->getCoefficientEstimate();
-	}
-	else if(numFullWorkers==2)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER2_TWOplusCAR)->getCoefficientEstimate();
-	}
-	else if(numFullWorkers>=3)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_FULLWORKER3p_TWOplusCAR)->getCoefficientEstimate();
-	}
-
-	if(numStudents == 1)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_STUDENT1_TWOplusCAR)->getCoefficientEstimate();
-	}
-	else if(numStudents == 2)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_STUDENT2_TWOplusCAR)->getCoefficientEstimate();
-	}
-	if(numStudents >= 3)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_STUDENT3_TWOplusCAR)->getCoefficientEstimate();
-	}
 
 	if(numWhiteCollars==1)
 	{
@@ -1720,28 +1748,16 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId, double vehicleOwner
 		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_WHITECOLLAR2_TWOplusCAR)->getCoefficientEstimate();
 	}
 
-	valueTwoPlusCar = valueTwoPlusCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_HAS_MC_TWOplusCAR)->getCoefficientEstimate();
-
-	if(this->getParent()->getHousehold()->getSize()<=3)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE3_TWOplusCAR)->getCoefficientEstimate();
-	}else if (this->getParent()->getHousehold()->getSize()==4)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE4_TWOplusCAR)->getCoefficientEstimate();
-	}
-	else if (this->getParent()->getHousehold()->getSize() == 5)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE5_TWOplusCAR)->getCoefficientEstimate();
-	}
-	else if (this->getParent()->getHousehold()->getSize() >= 6)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_HHSIZE6_TWOplusCAR)->getCoefficientEstimate();
-	}
+	valueTwoPlusCar = valueTwoPlusCar + isMotorCycle(this->getParent()->getHousehold()->getVehicleCategoryId()) * model->getVehicleOwnershipCoeffsById(B_MC_TWOplusCAR)->getCoefficientEstimate();
 
 	int incomeCatId = getIncomeCategoryId(this->getParent()->getHousehold()->getIncome());
-	if(incomeCatId == 1 || incomeCatId == 2)
+	if(incomeCatId == 1)
 	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC12_TWOplusCAR)->getCoefficientEstimate();
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC1_TWOplusCAR)->getCoefficientEstimate();
+	}
+	else if(incomeCatId == 2)
+	{
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC2_TWOplusCAR)->getCoefficientEstimate();
 	}
 	else if(incomeCatId == 3)
 	{
@@ -1755,10 +1771,6 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId, double vehicleOwner
 	{
 		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC5_TWOplusCAR)->getCoefficientEstimate();
 	}
-	else if(incomeCatId == 6)
-	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_INC6_TWOplusCAR)->getCoefficientEstimate();
-	}
 
 	if(this->getParent()->getHousehold()->getEthnicityId() == INDIAN)
 	{
@@ -1770,32 +1782,27 @@ double HouseholdBidderRole::getExpTwoPlusCar(int unitTypeId, double vehicleOwner
 	}
 	else if (this->getParent()->getHousehold()->getEthnicityId() == OTHERS)
 	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_OTHER_RACE_TWOplusCAR)->getCoefficientEstimate();
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_OTHERS_TWOplusCAR)->getCoefficientEstimate();
 	}
 
 	if (this->getParent()->getHousehold()->getChildUnder4()==1)
 	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_KID1_TWOplusCAR)->getCoefficientEstimate();
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_KIDS1_TWOplusCAR)->getCoefficientEstimate();
 	}
 	else if (this->getParent()->getHousehold()->getChildUnder4()>1)
 	{
-		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_KID2p_TWOplusCAR)->getCoefficientEstimate();
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_KIDS2p_TWOplusCAR)->getCoefficientEstimate();
 	}
-	//finds out whether the household is a landed property(terrace, semi detached, detached) or not
-	if( (unitTypeId>=17) && (unitTypeId<=31))
-	{
-		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_LANDED_TWOplusCAR)->getCoefficientEstimate();
-	}
-	else if((unitTypeId>=7) && (unitTypeId<=36)) //finds out whether the household is a private property(Apartment, Terrace, Semi Detached, Detached, Condo  and EC) or not
+
+	if((unitTypeId>=7) && (unitTypeId<=36)) //finds out whether the household is a private property(Apartment, Terrace, Semi Detached, Detached, Condo  and EC) or not
 	{
 		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_PRIVATE_TWOplusCAR)->getCoefficientEstimate();
 	}
 
-	if(selfEmployed)
+	if (this->getParent()->getHousehold()->getTaxiAvailability())
 	{
-		valueTwoPlusCar = valueTwoPlusCar +  model->getVehicleOwnershipCoeffsById(B_SELFEMPLOYED_TWOplusCAR)->getCoefficientEstimate();
+		valueTwoPlusCar = valueTwoPlusCar + model->getVehicleOwnershipCoeffsById(B_TAXI_TWOplusCAR)->getCoefficientEstimate();
 	}
-
 //	LogSumVehicleOwnership* logsum = model->getVehicleOwnershipLogsumsById(this->getParent()->getHousehold()->getId());
 
 //	if(logsum != nullptr)

@@ -37,7 +37,22 @@ void BuildingDao::fromRow(Row& result, Building& outObj)
     outObj.lastChangedDate = result.get<std::tm>(       "last_changed_date", std::tm());
 }
 
-void BuildingDao::toRow(Building& data, Parameters& outParams, bool update) {}
+void BuildingDao::toRow(Building& data, Parameters& outParams, bool update)
+{
+	outParams.push_back(data.getFmBuildingId());
+	outParams.push_back(data.getFmProjectId());
+	outParams.push_back(data.getFmParcelId());
+	outParams.push_back(data.getStoreysAboveGround());
+	outParams.push_back(data.getStoreysBelowGround());
+	outParams.push_back(data.getFromDate());
+	outParams.push_back(data.getToDate());
+	outParams.push_back(data.getBuildingStatus());
+	outParams.push_back(data.getGrossSqmRes());
+	outParams.push_back(data.getGrossSqmOffice());
+	outParams.push_back(data.getGrossSqmRetail());
+	outParams.push_back(data.getGrossSqmOther());
+	outParams.push_back(data.getLastChangedDate());
+}
 
 std::vector<Building*> BuildingDao::getBuildingsByParcelId(const long long parcelId)
 {

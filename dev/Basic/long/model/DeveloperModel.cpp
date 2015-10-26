@@ -470,9 +470,7 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 	}
 	else
 	{
-
-		return ++buildingIdForDevAgent;
-
+		 return ++buildingIdForDevAgent;
 	}
 
 }
@@ -586,12 +584,31 @@ const TazLevelLandPrice* DeveloperModel::getTazLevelLandPriceByTazId(BigSerial t
 	return nullptr;
 }
 
-int DeveloperModel::getBuildingAvgAge(const BigSerial fmParcelId) const
+
+void DeveloperModel::insertBuildingsToDB(Building &building)
 {
+	dbLockForBuildings.lock();
 	DB_Config dbConfig(LT_DB_CONFIG_FILE);
 	dbConfig.load();
 
-	// Connect to database and load data for this model.
+	// Connect to database.
+	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+	conn.connect();
+	if (conn.isConnected()) {
+			BuildingDao buildingDao(conn);
+			buildingDao.insert(building);
+	}
+	dbLockForBuildings.unlock();
+}
+
+const int DeveloperModel::getBuildingAvgAge(const BigSerial fmParcelId) const
+{
+	mtx1.lock();
+
+	DB_Config dbConfig(LT_DB_CONFIG_FILE);
+	dbConfig.load();
+
+	// Connect to database.
 	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
 	conn.connect();
 	int ageSum = 0;
@@ -608,5 +625,6 @@ int DeveloperModel::getBuildingAvgAge(const BigSerial fmParcelId) const
 		}
 	}
 	int avgAge = ageSum / buildingsPerParcel.size();
+	mtx1.unlock();
 	return avgAge;
 }

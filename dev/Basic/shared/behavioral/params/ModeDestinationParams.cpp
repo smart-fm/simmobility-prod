@@ -50,12 +50,11 @@ int ModeDestinationParams::getDestination(int choice) const
 	return zoneId;
 }
 
-LogsumTourModeDestinationParams::LogsumTourModeDestinationParams(const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
-		const PredayPersonParams& personParams, StopType tourType) :
-		ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation()),
-			drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()), modeForParentWorkTour(0), costIncrease(1)
-{
-}
+LogsumTourModeDestinationParams::LogsumTourModeDestinationParams( const ZoneMap& zoneMap, const CostMap& amCostsMap, const CostMap& pmCostsMap,
+																  const PredayPersonParams& personParams, StopType tourType)
+																: ModeDestinationParams(zoneMap, amCostsMap, pmCostsMap, tourType, personParams.getHomeLocation()),
+																  drive1Available(personParams.hasDrivingLicence() * personParams.getCarOwn()), modeForParentWorkTour(0), costIncrease(1){}
+
 
 LogsumTourModeDestinationParams::~LogsumTourModeDestinationParams()
 {
@@ -334,6 +333,7 @@ int sim_mob::LogsumTourModeDestinationParams::isCbdOrgZone() const
 {
 	return cbdOrgZone;
 }
+
 
 sim_mob::LogsumTourModeParams::LogsumTourModeParams(const ZoneParams* znOrgObj, const ZoneParams* znDesObj, const CostParams* amObj, const CostParams* pmObj,
 		const PredayPersonParams& personParams, StopType tourType) :

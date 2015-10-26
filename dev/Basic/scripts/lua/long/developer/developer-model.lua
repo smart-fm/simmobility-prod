@@ -1,6 +1,6 @@
 --ATTENTION requies cant be used with c++ (for now)
 
-package.path = package.path .. ";../scripts/lua/long/?.lua;../?.lua"
+package.path = package.path .. ";scripts/lua/long/?.lua;../?.lua"
 require "common"
 
 --[[****************************************************************************

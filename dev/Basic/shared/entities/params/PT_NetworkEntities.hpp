@@ -199,7 +199,7 @@ public:
 		this->stopDesc = stopDesc;
 	}
 
-	const std::string& getStopId() const {
+	const std::string& getRoadItemId() const {
 		return stopId;
 	}
 

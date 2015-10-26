@@ -11,7 +11,7 @@
 #include <limits>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "geospatial/BusStop.hpp"
+#include "geospatial/network/BusStop.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/UniNode.hpp"

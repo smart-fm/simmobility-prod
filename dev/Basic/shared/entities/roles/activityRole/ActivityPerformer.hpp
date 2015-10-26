@@ -11,7 +11,7 @@
 #include "entities/roles/Role.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/UpdateParams.hpp"
-#include "geospatial/Node.hpp"
+#include "geospatial/network/Node.hpp"
 
 using namespace std;
 

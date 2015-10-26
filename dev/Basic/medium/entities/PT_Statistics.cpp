@@ -102,6 +102,7 @@ void PT_Statistics::storeStatistics()
 			for (; itWaitingTime != personWaitingTimes.end(); itWaitingTime++)
 			{
 				outputFile << itWaitingTime->second.getCSV();
+					outputFile << itArrivalTm->pctOccupancy << ",";
 			}
 			outputFile.close();
 		}
@@ -118,6 +119,7 @@ void PT_Statistics::storeStatistics()
 			for (; itWaitingCnt!=waitingCounts.end(); itWaitingCnt++)
 			{
 				outputFile << itWaitingCnt->getCSV();
+					outputFile << itWaitingTime->second.busLines << ",";
 			}
 			outputFile.close();
 		}

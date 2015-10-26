@@ -13,7 +13,7 @@
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
-#include "geospatial/BusStop.hpp"
+#include "geospatial/network/BusStop.hpp"
 
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
@@ -22,16 +22,16 @@ using namespace sim_mob;
 
 namespace {
 
-Point2D WayPointToLocation(const WayPoint& wp) {
-	if (wp.type_ == WayPoint::NODE) {
-		return wp.node_->location;
+Point WayPointToLocation(const WayPoint& wp) {
+	if (wp.type == WayPoint::NODE) {
+		return wp.node->getLocation();
 	}
-	if (wp.type_ == WayPoint::BUS_STOP) {
-		return Point2D(wp.busStop_->xPos, wp.busStop_->yPos);
+	if (wp.type == WayPoint::BUS_STOP) {
+		return wp.busStop->getStopLocation();
 	}
 
 	//TODO: Exception?
-	return Point2D(0, 0);
+	return Point(0, 0);
 }
 
 } //End unnamed namespace
@@ -687,7 +687,8 @@ void sim_mob::SimRTree::buildTreeStructure() {
 	int max_x = INT_MIN;
 	int max_y = INT_MIN;
 
-	std::vector<sim_mob::MultiNode*>::const_iterator itr = ConfigManager::GetInstance().FullConfig().getNetwork().nodes.begin();
+	/*
+	std::vector<Node*>::const_iterator itr = ConfigManager::GetInstance().FullConfig().getNetwork().nodes.begin();
 	for (; itr != ConfigManager::GetInstance().FullConfig().getNetwork().nodes.end(); itr++) {
 		if (min_x > (*itr)->location.getX()) {
 			min_x = (*itr)->location.getX();
@@ -702,7 +703,7 @@ void sim_mob::SimRTree::buildTreeStructure() {
 		if (max_y < (*itr)->location.getY()) {
 			max_y = (*itr)->location.getY();
 		}
-	}
+	}*/
 
 	min_x -= division_x_unit_;
 	min_y -= division_y_unit_;
@@ -863,19 +864,15 @@ SimRTree::BoundingBox sim_mob::SimRTree::locationBoundingBox(Agent * agent) {
 }
 
 SimRTree::BoundingBox sim_mob::SimRTree::ODBoundingBox(Agent * agent) {
-	
-	SimRTree::BoundingBox box;
-	Person *person = dynamic_cast<Person *>(agent);
-	
-	if(person != nullptr)
-	{
-		//Retrieve the location (Point) of the OriginWayPoint.
-		Point2D originLoc = WayPointToLocation(person->originNode);
-		Point2D destLoc = WayPointToLocation(person->destNode);
+	//Retrieve the location (Point) of the OriginWayPoint.
+	//TODO: This only occurs here, so I'm removing it from the WayPoint class.
+	//      We need a better way to do this; it really has nothing to do with WayPoints ~Seth.
+	Point originLoc = WayPointToLocation(agent->originNode);
+	Point densiLoc = WayPointToLocation(agent->destNode);
 
-		box.edges[0].first = box.edges[0].second = originLoc.getX();
-		box.edges[1].first = box.edges[1].second = originLoc.getY();
-	}
+	SimRTree::BoundingBox box;
+	box.edges[0].first = box.edges[0].second = originLoc.getX();
+	box.edges[1].first = box.edges[1].second = originLoc.getY();
 
 	return box;
 }
@@ -1016,7 +1013,7 @@ std::vector<Agent const*> sim_mob::SimRTree::rangeQuery(SimRTree::BoundingBox & 
 /**
  *
  */
-void sim_mob::SimRTree::updateAllInternalAgents(std::map<const sim_mob::Agent*, TreeItem*>& connectorMap, const std::set<sim_mob::Entity*>& removedAgentPointers) {
+void sim_mob::SimRTree::updateAllInternalAgents(std::map<const sim_mob::Agent*, TreeItem*>& connectorMap, const std::set<sim_mob::Agent*>& removedAgentPointers) {
 	TreeLeaf* one_leaf = first_leaf;
 
 	while (one_leaf) {

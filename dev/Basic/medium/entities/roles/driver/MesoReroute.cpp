@@ -1,6 +1,6 @@
 #include "MesoReroute.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Link.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/Link.hpp"
 #include "entities/roles/driver/DriverFacets.hpp"
 #include "path/PathSetManager.hpp"
 #include "conf/ConfigManager.hpp"

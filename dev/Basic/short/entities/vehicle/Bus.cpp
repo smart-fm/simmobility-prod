@@ -13,7 +13,7 @@
 
 //bool sim_mob::Bus::isSendToBusController(BusController &busctrller)
 //{
-//	DPoint pt = this->getPosition();
+//	Point pt = this->getPosition();
 //	if(dist(pt.x, pt.y, ptCheck.x, ptCheck.y) < DistThreshold)// Threshold check
 //	{
 //		busctrller.update(pt);// update position in the BusController

@@ -15,7 +15,7 @@
 namespace sim_mob {
 
 //Forward declaration.
-class Point2D;
+class Point;
 class Lane;
 class Agent;
 
@@ -52,7 +52,7 @@ public:
 	 *	 \return a collection of agents
 	 * The caller is responsible to determine the "type" of each agent in the returned array.
 	 */
-	virtual std::vector<Agent const *> agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, const sim_mob::Agent* refAgent) const;
+	virtual std::vector<Agent const *> agentsInRect(const Point& lowerLeft, const Point& upperRight, const sim_mob::Agent* refAgent) const;
 
 	/**
 	 * Return a collection of agents that are on the left, right, front, and back of the specified
@@ -74,7 +74,7 @@ public:
 	 * rectangle extends 300 centimeters to include the sidewalk or the road segment of the reverse
 	 * direction.
 	 */
-	virtual std::vector<Agent const *> nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const;
+	virtual std::vector<Agent const *> nearbyAgents(const Point& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const;
 
 	/**
 	 * Return a collection of agents that are located in the axially-aligned rectangle.
@@ -86,7 +86,7 @@ public:
 	 *	 \return a collection of agents
 	 * The function is the same with function agentsInRect(), but it is optimized for performance.
 	 */
-	std::vector<Agent const *> agentsInRectBottomUpQuery(const Point2D& lowerLeft, const Point2D& upperRight, TreeItem* item) const;
+	std::vector<Agent const *> agentsInRectBottomUpQuery(const Point& lowerLeft, const Point& upperRight, TreeItem* item) const;
 
 	/**
 	 * Return a collection of agents that are on the left, right, front, and back of the specified
@@ -101,7 +101,7 @@ public:
 	 *	 \return a collection of agents
 	 * The function is the same with function nearbyAgents, but it is optimized for performance.
 	 */
-	std::vector<Agent const *> nearbyAgentsBottomUpQuery(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const;
+	std::vector<Agent const *> nearbyAgentsBottomUpQuery(const Point& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, TreeItem* item) const;
 
 private:
 	sim_mob::SimRTree tree_sim;

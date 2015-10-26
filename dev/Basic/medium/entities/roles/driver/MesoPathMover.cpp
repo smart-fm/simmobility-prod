@@ -6,7 +6,7 @@
 
 #include <algorithm>
 #include <sstream>
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "logging/Log.hpp"
 
 using namespace sim_mob;
@@ -110,6 +110,25 @@ const SegmentStats* MesoPathMover::getPrevSegStats(bool inSameLink) const
 	}
 
 	return prevSegStats;
+}
+
+const sim_mob::SegmentStats* sim_mob::medium::MesoPathMover::getFirstSegStatsInNextLink(const SegmentStats* segStats) const
+{
+	if(!segStats || currSegStatIt == path.end()) { return nullptr; }
+
+	Path::iterator it = currSegStatIt;
+	for(; it!=path.end(); it++) // locate segStats in downstream path
+	{
+		if((*it) == segStats) { break; }
+	}
+	if(it == path.end()) { return nullptr; }
+	const sim_mob::Link* currLink = (*it)->getRoadSegment()->getLink(); //note segStats's link
+	it++; //start looking from stats after segStats
+	for(; it!=path.end(); it++)
+	{
+		if((*it)->getRoadSegment()->getLink() != currLink) { return (*it); } //return if different link is found
+	}
+	return nullptr;
 }
 
 const SegmentStats* MesoPathMover::getFirstSegStatsInNextLink(const SegmentStats* segStats) const

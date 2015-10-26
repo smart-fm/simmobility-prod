@@ -247,6 +247,24 @@ local function computeUtilities(params,dbparams)
 	end
 
 
+	local age_id = params.age_id
+	-- age group related variables
+	local age20,age2025,age2635,age3650,age5165,age65 = 0,0,0,0,0,0
+	if age_id < 4 then 
+		age20 = 1
+	elseif age_id == 4 then 
+		age2025 = 1
+	elseif age_id == 5 or age_id == 6 then 
+		age2635 = 1
+	elseif age_id == 7 or age_id == 8 or age_id == 9 then 
+		age3650 = 1
+	elseif age_id == 10 or age_id == 11 or age_id == 12 then 
+		age5165 = 1
+	elseif age_id > 12 then 
+		age65 = 1
+	end
+
+
 	--dbparams.cost_public_first = AM[(origin,destination)]['pub_cost']
 	--origin is home, destination is tour destination
 	--0 if origin == destination

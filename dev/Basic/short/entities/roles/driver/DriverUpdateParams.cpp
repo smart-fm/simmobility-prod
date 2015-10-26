@@ -196,7 +196,7 @@ void DriverUpdateParams::addTargetLanes(set<const Lane*> tl)
 	set<const Lane*>::iterator it;
 
 	// find Lane* in both tl and targetLanes
-	for(it=tl.begin();it!=tl.end();++it)
+	for(it = tl.begin(); it != tl.end(); ++it)
 	{
 		const Lane* l = *it;
 		set<const Lane*>::iterator itFind = targetLanes.find(l);

@@ -17,21 +17,18 @@ namespace sim_mob
 
 //Forward declarations
 class Node;
-class Intersection;
 
-struct NodeType
+/*struct NodeType
 {
 	std::string id;
 	int type;
-};
+};*/
 
 namespace aimsun
 {
 
 //Forward declarations
 class Section;
-class Crossing;
-
 
 ///An AIMSUN road intersection or segment intersection.
 /// \author Seth N. Hetu
@@ -46,7 +43,6 @@ public:
 
 	//Decorated data
 	std::vector<Section*> sectionsAtNode;
-	std::map<int, std::vector<Crossing*> > crossingsAtNode; //Arranged by laneID
 	std::map<Node*, std::vector<int> > crossingLaneIdsByOutgoingNode;
 	bool candidateForSegmentNode;
 

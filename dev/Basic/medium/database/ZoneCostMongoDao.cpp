@@ -159,3 +159,21 @@ bool sim_mob::medium::MTZ12_MTZ08_MappingDao::getAll(std::map<int, int>& outList
 	}
 	return true;
 }
+
+sim_mob::medium::MTZ12_MTZ08_MappingDao::MTZ12_MTZ08_MappingDao(db::DB_Config& dbConfig, const std::string& database, const std::string& collection)
+: db::MongoDao(dbConfig, database, collection)
+{}
+
+sim_mob::medium::MTZ12_MTZ08_MappingDao::~MTZ12_MTZ08_MappingDao()
+{}
+
+bool sim_mob::medium::MTZ12_MTZ08_MappingDao::getAll(std::map<int, int >& outList)
+{
+	std::auto_ptr<mongo::DBClientCursor> cursor = connection.getSession<mongo::DBClientConnection>().query(collectionName, mongo::BSONObj());
+	while(cursor->more())
+	{
+		mongo::BSONObj document = cursor->next();
+		outList[document.getField(MONGO_FIELD_ID).Int()] = document.getField(MONGO_FIELD_MTZ1092).Int();
+	}
+	return true;
+}

@@ -8,8 +8,8 @@
 #include <vector>
 
 #include "conf/settings/DisableMPI.h"
-#include "geospatial/Point2D.hpp"
-#include "geospatial/TurningSection.hpp"
+#include "geospatial/network/Point.hpp"
+#include "geospatial/network/TurningPath.hpp"
 #include "metrics/Length.hpp"
 #include "util/DynamicVector.hpp"
 
@@ -81,9 +81,9 @@ public:
 	const sim_mob::RoadSegment* getPrevSegment(bool sameLink) const;
 	const sim_mob::Link* getCurrLink() const;
 	const sim_mob::Lane* getCurrLane() const;
-	const sim_mob::Point2D& getCurrPolypoint() const;
-	const sim_mob::Point2D& getNextPolypoint() const;
-	const sim_mob::Point2D& getNextPolypointNew() const;
+	const PolyPoint& getCurrPolypoint() const;
+	const PolyPoint& getNextPolypoint() const;
+	const PolyPoint& getNextPolypointNew() const;
 	double getCurrLinkReportedLengthCM() const;
 
 	//Retrieve useful properties of the current polypoint
@@ -111,7 +111,7 @@ public:
 	double getAllRestRoadSegmentsLengthCM() const;
 
 	//Retrieve our X/Y position based ONLY on forward movement (e.g., nothing with Lanes)
-	sim_mob::DPoint getPosition();
+	sim_mob::Point getPosition();
 
 	//We might be able to fold Lane movement in here later. For now, it has to be called externally.
 	void shiftToNewPolyline(bool moveLeft);
@@ -130,16 +130,16 @@ public:
 	std::vector<const sim_mob::RoadSegment*>::iterator currSegmentIt;
 
 	//This can change dynamically (lane changes, etc.)
-	std::vector<sim_mob::Point2D> polypointsList;
-	std::vector<sim_mob::Point2D> laneZeroPolypointsList;
-	std::vector<sim_mob::Point2D>::iterator currPolypoint;
-	std::vector<sim_mob::Point2D>::iterator nextPolypoint;
+	std::vector<PolyPoint> polypointsList;
+	std::vector<PolyPoint> laneZeroPolypointsList;
+	std::vector<PolyPoint>::iterator currPolypoint;
+	std::vector<PolyPoint>::iterator nextPolypoint;
 
 	DynamicVector movementVect;
 
 	//Unfortuante duplication, but necessary to avoid aliasing
-	std::vector<sim_mob::Point2D>::const_iterator currLaneZeroPolypoint;
-	std::vector<sim_mob::Point2D>::const_iterator nextLaneZeroPolypoint;
+	std::vector<PolyPoint>::const_iterator currLaneZeroPolypoint;
+	std::vector<PolyPoint>::const_iterator nextLaneZeroPolypoint;
 
 	//Movement along a single line
 	double distAlongPolylineCM;
@@ -165,7 +165,7 @@ public:
 	//Intersection driving is different.
 	bool inIntersection;
 
-	const TurningSection* currTurning;
+	const TurningPath *currTurning;
 
 	//We might be moving backwards on a Link.
 	//TODO: This is still relevant (even with 1-way Links) since Pedestrians can move backwards on a Link.

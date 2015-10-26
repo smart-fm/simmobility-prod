@@ -25,7 +25,6 @@ sim_mob::medium::Passenger::Passenger(Person_MT *parent,
 				Role<Person_MT>(parent, behavior, movement, roleName, roleType), driver(nullptr), alightBus(false),
 				startNode(nullptr), endNode(nullptr)
 {
-}
 
 Role<Person_MT>* sim_mob::medium::Passenger::clone(Person_MT *parent) const
 {

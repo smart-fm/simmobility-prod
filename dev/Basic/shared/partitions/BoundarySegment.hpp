@@ -13,7 +13,7 @@
 
 #include <vector>
 
-#include "geospatial/Point2D.hpp"
+#include "geospatial/network/Point.hpp"
 
 namespace sim_mob
 {
@@ -39,10 +39,10 @@ public:
 	double end_node_y;
 
 	//boundary box
-	Point2D* cut_line_start;
-	Point2D* cut_line_to;
+	Point* cut_line_start;
+	Point* cut_line_to;
 
-	std::vector<Point2D> bounary_box;
+	std::vector<Point> bounary_box;
 
 public:
 	void buildBoundaryBox(double width, double height);

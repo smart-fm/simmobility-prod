@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "IntersectionManager.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "message/MessageBus.hpp"
 
 using namespace sim_mob;
@@ -11,8 +11,8 @@ using namespace sim_mob;
 //Initialise static member
 map<unsigned int, IntersectionManager *> IntersectionManager::intManagers;
 
-IntersectionManager::IntersectionManager(const MutexStrategy& mutexStrategy, const MultiNode *node) :
-Agent(mutexStrategy), intMgrId(node->getID()), multinode(node)
+IntersectionManager::IntersectionManager(const MutexStrategy& mutexStrategy, const Node *node) :
+Agent(mutexStrategy), intMgrId(node->getNodeId()), node(node)
 {
 }
 
@@ -62,15 +62,15 @@ bool IntersectionManager::frame_init(timeslice now)
 	parameterMgr->param(modelName, "conflict_separation_time", conflictSeparationTime, 2.5);
 	
 	//Get the road segments connected to the multi-node
-	set<RoadSegment *>::const_iterator itRoadSegments = multinode->getRoadSegments().begin();
+	/*set<RoadSegment *>::const_iterator itRoadSegments = node->getRoadSegments().begin();
 	
 	//Iterate through all the road segments and get the turnings for each of them
-	while(itRoadSegments != multinode->getRoadSegments().end())
+	while(itRoadSegments != node->getRoadSegments().end())
 	{
 		//Get the turnings in the road segment
-		set<TurningSection *>::const_iterator itTurnings = multinode->getTurnings(*itRoadSegments).begin();
+		set<TurningPath *>::const_iterator itTurnings = node->getTurnings(*itRoadSegments).begin();
 		
-		while(itTurnings != multinode->getTurnings(*itRoadSegments).end())
+		while(itTurnings != node->getTurnings(*itRoadSegments).end())
 		{
 			//Add the turning to the map of previous access times with initial value -T1
 			mapOfPrevAccessTimes.insert(make_pair((*itTurnings)->getDbId(), -tailgateSeparationTime));
@@ -79,7 +79,7 @@ bool IntersectionManager::frame_init(timeslice now)
 		}
 		
 		++itRoadSegments;
-	}
+	}*/
 	
 	return true;
 }
@@ -200,13 +200,13 @@ void IntersectionManager::load(const std::map<std::string,std::string>& configPr
 void IntersectionManager::getConflicts(IntersectionAccessMessage &request, list<IntersectionAccessMessage> &conflicts)
 {
 	//The turning section of the current requesting vehicle
-	const TurningSection *currTurning = multinode->getTurning(request.getTurningId());
+	/*const TurningPath *currTurning = node->getTurning(request.getTurningId());
 
 	//Iterate through the processed requests and find the requests that are incompatible with the current request
 	for (list<IntersectionAccessMessage>::const_iterator itResponse = sentResponses.begin(); itResponse != sentResponses.end(); ++itResponse)
 	{
 		//The turning section of the vehicle whose request has been processed
-		const TurningSection *processedTurning = multinode->getTurning((*itResponse).getTurningId());
+		const TurningPath *processedTurning = node->getTurning((*itResponse).getTurningId());
 
 		//Check if there is a conflict between the turnings
 		if (currTurning->getTurningConflict(processedTurning))
@@ -214,7 +214,7 @@ void IntersectionManager::getConflicts(IntersectionAccessMessage &request, list<
 			//Add the request into the vector of conflicts
 			conflicts.push_back(*itResponse);
 		}
-	}
+	}*/
 }
 
 void IntersectionManager::filterConflicts(double accessTime, list<IntersectionAccessMessage> &conflicts)

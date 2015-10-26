@@ -7,7 +7,7 @@
 #include <vector>
 #include <string>
 
-#include "geospatial/WayPoint.hpp"
+#include "geospatial/network/WayPoint.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
 #include "util/OneTimeFlag.hpp"
@@ -19,12 +19,7 @@
 #include "partitions/UnPackageUtils.hpp"
 #endif
 #include <boost/shared_ptr.hpp>
-namespace geo
-{
-//Forward Declaration
-class Trip_t_pimpl;
-class SubTrip_t;
-}
+
 namespace sim_mob
 {
 
@@ -129,7 +124,7 @@ public:
 	 */
 	enum ItemType
 	{
-		IT_TRIP, IT_ACTIVITY, IT_BUSTRIP, IT_WAITBUSACTIVITY
+		IT_TRIP, IT_ACTIVITY, IT_BUSTRIP, IT_FMODSIM, IT_WAITBUSACTIVITY
 	};
 
 
@@ -192,6 +187,7 @@ class Activity : public sim_mob::TripChainItem
 public:
 	//NOTE: I've gone with Harish's implementation here. Please double-check. ~Seth
 	std::string description;
+	const Node* location;
 	bool isPrimary;
 	bool isFlexible;
 	bool isMandatory;
@@ -209,9 +205,6 @@ public:
  */
 class Trip : public sim_mob::TripChainItem
 {
-	friend class ::geo::Trip_t_pimpl;
-	friend class ::geo::SubTrip_t;
-
 public:
 	std::string tripID;
 
@@ -238,26 +231,7 @@ public:
 
 private:
 	std::vector<sim_mob::SubTrip> subTrips;
-};
-
-class FMODSchedule
-{
-public:
-
-	struct STOP
-	{
-		int stopId;
-		int scheduleId;
-		double dwellTime;
-		std::string arrivalTime;
-		std::string depatureTime;
-		std::vector< int > boardingPassengers;
-		std::vector< int > alightingPassengers;
-	};
-	std::vector<STOP> stopSchdules;
-	std::vector<Node*> routes;
-	std::vector<const Person*> insidePassengers;
-};
+} ;
 
 /**
  * \author Harish
@@ -276,7 +250,6 @@ public:
 	bool isPrimaryMode;
 	std::string ptLineId; //Public transit (bus or train) line identifier.
 
-	FMODSchedule* schedule;
 	mutable sim_mob::TravelMetric::CDB_TraverseType cbdTraverseType;
 	const std::string getMode() const;
 	const std::string getBusLineID() const;
@@ -284,7 +257,7 @@ public:
 	bool isPT_Walk;
 	double walkTime;
 
-};
+} ;
 
 //Non-member comparison functions
 bool operator==(const SubTrip& s1, const SubTrip& s2);

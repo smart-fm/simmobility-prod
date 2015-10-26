@@ -306,6 +306,9 @@ public:
 		return arrivalTimeMS;
 	}
 
+
+	/* TODO: totalTravelTimeMS and arrivalTimeMS does not belong here.
+	 * This has to be re-factored and moved into relevant sub classes of role after July workshop 2015. ~Harish*/
 #ifndef SIMMOB_DISABLE_MPI
 	friend class sim_mob::PartitionManager;
 

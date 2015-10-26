@@ -15,7 +15,7 @@
 #include "conf/ConfigParams.hpp"
 #include "config/ST_Config.hpp"
 
-#include "geospatial/BusStop.hpp"
+#include "geospatial/network/BusStop.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
@@ -94,8 +94,9 @@ void sim_mob::Pedestrian2Movement::frame_init()
 	//dynamic_cast<PedestrianUpdateParams2&>(p).skipThisFrame = true;
 }
 
-void sim_mob::Pedestrian2Movement::frame_tick()
+void sim_mob::Pedestrian2Movement::frame_tick() 
 {
+	/*
 	PedestrianUpdateParams2& p2 = parentPedestrian2->getParams();
 
 	//Is this the first frame tick?
@@ -158,10 +159,12 @@ void sim_mob::Pedestrian2Movement::frame_tick()
 
 	parentPedestrian2->parent->xPos.set(pedMovement.getPosition().x);
 	parentPedestrian2->parent->yPos.set(pedMovement.getPosition().y);
+	*/
 }
 
 std::string sim_mob::Pedestrian2Movement::frame_tick_output()
 {
+	/*
 	//	if (dynamic_cast<const PedestrianUpdateParams2&>(p).skipThisFrame) {
 	//		return;
 	//	}
@@ -181,11 +184,13 @@ std::string sim_mob::Pedestrian2Movement::frame_tick_output()
 	//	CommunicationDataManager::GetInstance()->sendTrafficData(s);
 
 	return ("(" << "\"pedestrian\"," << p.now.frame() << "," << parent->getId() << "," << "{\"xPos\":\"" << parent->xPos.get() << "\"," << "\"yPos\":\"" << this->parent->yPos.get() << addLine.str() << "\",})\n");
+	*/
 }
 
 void sim_mob::Pedestrian2Movement::setSubPath()
 {
-	const StreetDirectory& stdir = StreetDirectory::instance();
+	/*
+	const StreetDirectory& stdir = StreetDirectory::Instance();
 
 	StreetDirectory::VertexDesc source, destination;
 	if (parentPedestrian2->parent->originNode.type_ == WayPoint::NODE)
@@ -203,7 +208,7 @@ void sim_mob::Pedestrian2Movement::setSubPath()
 	//Used to debug pedestrian walking paths.
 	//for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
 	//std::cout<<"Pedestrian requested path from: " <<parent->originNode.getID() <<" => " <<parent->destNode.node_->getID() <<"  {" <<std::endl;
-	/*for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
+	*//*for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
 		if (it->type_ == WayPoint::SIDE_WALK) {
 			const Node* start = !it->directionReverse ? it->lane_->getRoadSegment()->getStart() : it->lane_->getRoadSegment()->getEnd();
 			const Node* end = !it->directionReverse ? it->lane_->getRoadSegment()->getEnd() : it->lane_->getRoadSegment()->getStart();
@@ -213,7 +218,7 @@ void sim_mob::Pedestrian2Movement::setSubPath()
 		} else if (it->type_ == WayPoint::BUS_STOP) {
 //			std::cout<<"  Bus Stop: (not supported) id "<< it->busStop_->id << std::endl;
 		} else if (it->type_ == WayPoint::CROSSING){
-//			std::cout<<"  Crossing at Node: " <<StreetDirectory::instance().GetCrossingNode(it->crossing_)->originalDB_ID.getLogItem() <<std::endl;
+//			std::cout<<"  Crossing at Node: " <<StreetDirectory::Instance().GetCrossingNode(it->crossing_)->originalDB_ID.getLogItem() <<std::endl;
 		} else if (it->type_ == WayPoint::NODE) {
 //			std::cout<<"  Node: " <<it->node_->originalDB_ID.getLogItem() <<std::endl;
 		} else if (it->type_ == WayPoint::INVALID) {
@@ -222,30 +227,31 @@ void sim_mob::Pedestrian2Movement::setSubPath()
 //			std::cout<<"  Unknown type."<<std::endl;
 		}
 	}
-	std::cout<<"}" <<std::endl;*/
+	std::cout<<"}" <<std::endl;*//*
 	pedMovement.setPath(wp_path);
+	*/
 }
 
 void sim_mob::Pedestrian2Movement::updatePedestrianSignal()
 {
-	const MultiNode* node = StreetDirectory::instance().GetCrossingNode(pedMovement.getCurrentWaypoint()->crossing_);
+	/*const MultiNode* node = StreetDirectory::Instance().GetCrossingNode(pedMovement.getCurrentWaypoint()->crossing_);
 	if (!node)
 	{
 		throw std::runtime_error("Coulding find Pedestrian Sginal for crossing.");
 	}
 
-	/*	const RoadSegment *rs = pedMovement.getCurrentWaypoint()->crossing_->getRoadSegment();
+	*//*const RoadSegment *rs = pedMovement.getCurrentWaypoint()->crossing_->getRoadSegment();
 
 		// find intersection's multi node,compare the distance to start ,end nodes of segment,any other way?
-		Point2D currentSegmentStartLocation(rs->getStart()->location);
-		Point2D currentSegmentEndLocation(rs->getEnd()->location);
+	Point currentSegmentStartLocation(rs->getStart()->location);
+	Point currentSegmentEndLocation(rs->getEnd()->location);
 		DynamicVector pedDistanceToStartLocation(pedMovement.getPosition().x, pedMovement.getPosition().y,
 				currentSegmentStartLocation.getX(), currentSegmentStartLocation.getY());
 		DynamicVector pedDistanceToEndLocation(pedMovement.getPosition().x, pedMovement.getPosition().y,
 				currentSegmentEndLocation.getX(), currentSegmentEndLocation.getY());
 
 		const Node* node = NULL;
-		Point2D location;
+	Point location;
 		if(pedDistanceToStartLocation.getMagnitude() >= pedDistanceToEndLocation.getMagnitude())
 			location = rs->getEnd()->location;
 		else
@@ -253,9 +259,9 @@ void sim_mob::Pedestrian2Movement::updatePedestrianSignal()
 
 		// we have multi node ,so get signal
 		if(rs)
-			node = ConfigParams::GetInstance().getNetwork().locateNode(location, true);*/
+		node = ConfigParams::GetInstance().getNetwork().locateNode(location, true);*//*
 	if (node)
-		trafficSignal = StreetDirectory::instance().signalAt(*node);
+		trafficSignal = StreetDirectory::Instance().signalAt(*node);
 	else
 		trafficSignal = nullptr;
 
@@ -272,7 +278,7 @@ void sim_mob::Pedestrian2Movement::updatePedestrianSignal()
 		}
 		else
 			std::cout << "Current crossing not found!" << std::endl;
-	}
+	}*/
 }
 
 void sim_mob::Pedestrian2Movement::checkForCollisions()

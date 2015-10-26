@@ -28,7 +28,7 @@ struct LatLngLocation {
 class CoordinateTransform {
 public:
 	virtual ~CoordinateTransform() {}
-	virtual LatLngLocation transform(DPoint source) = 0;
+	virtual LatLngLocation transform(Point source) = 0;
 };
 
 

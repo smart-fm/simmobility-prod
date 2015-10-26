@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "geospatial/Point2D.hpp"
+#include "geospatial/network/Point.hpp"
 #include "DynamicVector.hpp"
 
 namespace sim_mob
@@ -31,10 +31,10 @@ public:
 
 	//Retrieval functions
 	double getX() const {
-		return getPos().x;
+		return getPos().getX();
 	}
 	double getY() const {
-		return getPos().y;
+		return getPos().getY();
 	}
 	double getAmountMoved() const {
 		return std::min(std::max(0.0,amount), vect.getMagnitude());
@@ -79,11 +79,11 @@ private:
 	double amount;
 
 	//Helper function
-	DPoint getPos() const {
+	Point getPos() const {
 		DynamicVector temp(vect);
 		double adjustedMag = std::min(std::max(0.0,amount), temp.getMagnitude());
 		temp.scaleVectTo(adjustedMag);
-		return DPoint(temp.getEndX()+lat.getEndX(), temp.getEndY()+lat.getEndY());
+		return Point(temp.getEndX()+lat.getEndX(), temp.getEndY()+lat.getEndY());
 	}
 };
 

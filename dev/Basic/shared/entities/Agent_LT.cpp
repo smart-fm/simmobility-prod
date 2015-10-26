@@ -16,10 +16,10 @@
 #include "entities/profile/ProfileBuilder.hpp"
 #include "event/SystemEvents.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
@@ -314,7 +314,7 @@ void sim_mob::Agent_LT::onEvent(EventId eventId, Context ctxId, EventPublisher* 
 												 );
 
 		}
-		else if (eventId==event::EVT_CORE_COMMSIM_REROUTING_REQUEST)
+		/*else if (eventId==event::EVT_CORE_COMMSIM_REROUTING_REQUEST)
 		{
 			//Were we requested to re-route?
 			const ReRouteEventArgs& rrArgs = MSG_CAST(ReRouteEventArgs, args);
@@ -323,10 +323,10 @@ void sim_mob::Agent_LT::onEvent(EventId eventId, Context ctxId, EventPublisher* 
 
 			if (it != regions.end())
 			{
-				std::vector<const sim_mob::RoadSegment*> blacklisted = StreetDirectory::instance().getSegmentsFromRegion(it->second);
+				std::vector<const sim_mob::RoadSegment*> blacklisted = StreetDirectory::Instance().getSegmentsFromRegion(it->second);
 				rerouteWithBlacklist(blacklisted);
 			}
-		}
+		}*/
 	}
 }
 

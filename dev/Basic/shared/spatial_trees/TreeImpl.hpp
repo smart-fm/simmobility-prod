@@ -14,7 +14,7 @@ namespace sim_mob {
 class Entity;
 class Agent;
 class Lane;
-class Point2D;
+class Point;
 
 struct TreeItem;
 
@@ -37,10 +37,10 @@ public:
 	virtual void update(int time_step, const std::set<sim_mob::Entity*>& removedAgentPointers) = 0;
 
 	///Return the Agents within a given rectangle.
-	virtual std::vector<Agent const *> agentsInRect(const Point2D& lowerLeft, const Point2D& upperRight, const sim_mob::Agent* refAgent) const = 0;
+	virtual std::vector<Agent const *> agentsInRect(const Point& lowerLeft, const Point& upperRight, const sim_mob::Agent* refAgent) const = 0;
 
 	///Return Agents near to a given Position, with offsets (and Lane) taken into account.
-	virtual std::vector<Agent const *> nearbyAgents(const Point2D& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const = 0;
+	virtual std::vector<Agent const *> nearbyAgents(const Point& position, const Lane& lane, centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent) const = 0;
 };
 
 

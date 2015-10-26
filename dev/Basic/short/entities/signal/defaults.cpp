@@ -8,11 +8,10 @@
 #include<sstream>
 #include<iostream>
 
-#include "geospatial/Link.hpp"
-#include "geospatial/Crossing.hpp"
+#include "geospatial/network/Link.hpp"
 
 namespace sim_mob {
-
+/*
 sim_mob::LinkAndCrossing::LinkAndCrossing(int id_,sim_mob::Link const * link_,sim_mob::Crossing const * crossing_,double angle_):
 			id(id_),
 			link(link_),
@@ -31,7 +30,7 @@ size_t sim_mob::LinkAndCrossing::getId() const{
 
 bool sim_mob::LinkAndCrossingComparison::operator() (const LinkAndCrossing&a, const LinkAndCrossing&b){
 		return a.link > b.link;
-	}
+	}*/
 }
 
 

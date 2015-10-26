@@ -15,9 +15,9 @@
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Point2D.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Point.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
 
 /*
@@ -155,7 +155,7 @@ void sim_mob::GeneralPathMover::pack(PackageUtils& package, GeneralPathMover* fw
 		{
 			//copy from GeneralPathMover.cpp, the design of current_zero_poly is not good.
 			//I thought current_zero_poly is the iterator of currPolypoint
-			const std::vector<Point2D>& tempLaneZero = const_cast<RoadSegment*> (*(fwdMovement->currSegmentIt))->getLaneEdgePolyline(0);
+			const std::vector<Point>& tempLaneZero = const_cast<RoadSegment*> (*(fwdMovement->currSegmentIt))->getLaneEdgePolyline(0);
 
 //			ParitionDebugOutput::outputToConsole("d44455555555");
 
@@ -251,7 +251,7 @@ void sim_mob::GeneralPathMover::unpack(UnPackageUtils& unpackage, GeneralPathMov
 
 		if (hasArrivedDestination == false)
 		{
-			const std::vector<Point2D>& tempLaneZero = const_cast<RoadSegment*> (*(one_motor->currSegmentIt))->getLaneEdgePolyline(0);
+			const std::vector<Point>& tempLaneZero = const_cast<RoadSegment*> (*(one_motor->currSegmentIt))->getLaneEdgePolyline(0);
 
 			int current_zero_poly = 0;
 			unpackage >> current_zero_poly;

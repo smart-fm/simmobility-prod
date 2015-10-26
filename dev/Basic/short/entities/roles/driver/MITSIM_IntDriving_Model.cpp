@@ -47,27 +47,18 @@ double MITSIM_IntDriving_Model::getImpatienceFactor() const
 	return impatienceFactor;
 }
 
-void MITSIM_IntDriving_Model::startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset)
+void MITSIM_IntDriving_Model::startDriving(const Point& fromLanePt, const Point& toLanePt, double startOffset)
 {
-	polypoints = currTurning->getPolylinePoints();
+	polypoints = currTurning->getPolyLine()->getPoints();
 	
 	// calculate polyline length
-	length = 0;
-	
-	for(int i=0;i<polypoints.size()-1;++i)
-	{
-		double dx = polypoints.at(i+1).x-polypoints.at(i).x;
-		dx=dx*dx;
-		double dy = polypoints.at(i+1).y-polypoints.at(i).y;
-		dy=dy*dy;
-		length += sqrt(dx+dy);
-	}
+	length = currTurning->getLength();
 	
 	polypointIter = polypoints.begin();
-	DPoint p1 = (*polypointIter);
-	DPoint p2 = *(polypointIter+1);
+	Point p1 = (*polypointIter);
+	Point p2 = *(polypointIter+1);
 	
-	currPolyline = DynamicVector ( p1.x, p1.y, p2.x, p2.y);
+	currPolyline = DynamicVector ( p1.getX(), p1.getY(), p2.getX(), p2.getY());
 	polypointIter++;
 	
 	if(polypointIter == polypoints.end()) 
@@ -82,7 +73,7 @@ void MITSIM_IntDriving_Model::startDriving(const DPoint& fromLanePt, const DPoin
 	polylineMovement = startOffset;
 }
 
-DPoint MITSIM_IntDriving_Model::continueDriving(double amount,DriverUpdateParams& p)
+Point MITSIM_IntDriving_Model::continueDriving(double amount,DriverUpdateParams& p)
 {
 	if(amount == 0)
 	{
@@ -92,14 +83,14 @@ DPoint MITSIM_IntDriving_Model::continueDriving(double amount,DriverUpdateParams
 	totalMovement += amount;
 	
 	// check "amount" exceed the rest length of the DynamicVector
-	DynamicVector tt(currPosition.x,currPosition.y,currPolyline.getEndX(),currPolyline.getEndY());
+	DynamicVector tt(currPosition.getX(),currPosition.getY(),currPolyline.getEndX(),currPolyline.getEndY());
 	double restLen = tt.getMagnitude();
 	
 	if (amount > restLen &&  polypointIter != polypoints.end() && polypointIter+1 != polypoints.end())
 	{
 		// move to next polyline, if has
 		polylineMovement = amount - restLen;
-		currPolyline = DynamicVector ( (*polypointIter).x, (*polypointIter).y, (*(polypointIter+1)).x, (*(polypointIter+1)).y);
+		currPolyline = DynamicVector ( (*polypointIter).getX(), (*polypointIter).getY(), (*(polypointIter+1)).getX(), (*(polypointIter+1)).getY());
 		polypointIter++;
 		
 		// current polyline length
@@ -108,7 +99,7 @@ DPoint MITSIM_IntDriving_Model::continueDriving(double amount,DriverUpdateParams
 		while(polylineMovement > l && polypointIter != polypoints.end() && polypointIter+1 != polypoints.end())
 		{
 			polylineMovement = polylineMovement - l;
-			currPolyline = DynamicVector ( (*polypointIter).x, (*polypointIter).y, (*(polypointIter+1)).x, (*(polypointIter+1)).y);
+			currPolyline = DynamicVector ( (*polypointIter).getX(), (*polypointIter).getY(), (*(polypointIter+1)).getX(), (*(polypointIter+1)).getY());
 			polypointIter++;
 		}
 	}
@@ -120,7 +111,7 @@ DPoint MITSIM_IntDriving_Model::continueDriving(double amount,DriverUpdateParams
 	DynamicVector temp = currPolyline;
 	temp.scaleVectTo (polylineMovement).translateVect ();
 
-	currPosition = DPoint (temp.getX (), temp.getY ());
+	currPosition = Point (temp.getX (), temp.getY ());
 
 	return currPosition;
 }
@@ -135,8 +126,9 @@ double MITSIM_IntDriving_Model::getCurrentAngle()
 	return currPolyline.getAngle();
 }
 
-void MITSIM_IntDriving_Model::makePolypoints(const DPoint& fromLanePt, const DPoint& toLanePt) 
+void MITSIM_IntDriving_Model::makePolypoints(const Point& fromLanePt, const Point& toLanePt) 
 {
+	/*
 	// 1.0 calculate circle radius
 	//http://rossum.sourceforge.net/papers/CalculationsForRobotics/CirclePath.htm
 
@@ -179,7 +171,7 @@ void MITSIM_IntDriving_Model::makePolypoints(const DPoint& fromLanePt, const DPo
 	double xx = b* cos(kk) + xm;
 	double yy = b*sin(kk) + ym;
 
-	DPoint dp(xx,yy);
+	Point dp(xx,yy);
 
 	polypoints.push_back(fromLanePt);
 	polypoints.push_back(dp);
@@ -187,6 +179,7 @@ void MITSIM_IntDriving_Model::makePolypoints(const DPoint& fromLanePt, const DPo
 
 	length = sqrt((fromLanePt.x - dp.x)*(fromLanePt.x - dp.x) + (fromLanePt.y - dp.y)*(fromLanePt.y - dp.y));
 	length += sqrt((toLanePt.x - dp.x)*(toLanePt.x - dp.x) + (toLanePt.y - dp.y)*(toLanePt.y - dp.y));
+	*/
 }
 
 double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& params)
@@ -194,15 +187,14 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& par
 	double acc = params.maxAcceleration;
 	const double vehicleLength = params.driver->getVehicleLengthM();
 	
+	/*
 	//Safety margin distance in front of the vehicle (half a vehicle length seems a reasonable margin)
 	const double safeDist = 1.5 * vehicleLength;
 	double distToStopLine = params.driver->distToIntersection_.get() - safeDist;
 	
-	/*
-	Print() << "\nTime:" << params.now.frame();
-	Print() << "\nID:" << params.parentId;
-	Print() << "\nDistToStopLine:" << distToStopLine;
-	*/
+	//Print() << "\nTime:" << params.now.frame();
+	//Print() << "\nID:" << params.parentId;
+	//Print() << "\nDistToStopLine:" << distToStopLine;
 			
 	//Check if we've stopped close enough to the stop line
 	if (distToStopLine <= 1 && params.currSpeed <= 0.1)
@@ -281,9 +273,8 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& par
 			cfltDistFrmTurning = (*itConflicts)->getSecond_cd();
 		}
 		
-		/*
-		Print() << "\tConfDist:" << cfltDistFrmTurning;
-		Print() << "\tDistOnTurn:" << params.driver->moveDisOnTurning_ / 100;*/
+		//Print() << "\tConfDist:" << cfltDistFrmTurning;
+		//Print() << "\tDistOnTurn:" << params.driver->moveDisOnTurning_ / 100;
 	
 		//Calculate the distance to conflict point from current position
 		distToConflict = cfltDistFrmTurning - (params.driver->moveDisOnTurning_ / 100);
@@ -542,7 +533,7 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& par
 			//Print() << "\nConflict " << (*itConflicts)->getDbId() << " crossed. Distance: " << distToConflict;
 		}
 	}
-	
+	*/
 	return acc;
 }
 
@@ -670,7 +661,7 @@ double MITSIM_IntDriving_Model::calcArrivalTime(double distance, DriverUpdatePar
 	//So, a = (v^2 - u^2) / (2s)
 	
 	//Get the speed limit and convert it to m/s
-	finalVel = currTurning->getTurningSpeed() / 3.6;
+	finalVel = 1;//currTurning->getTurningSpeed() / 3.6;
 	
 	//Calculate the acceleration
 	acceleration = ((finalVel * finalVel) - (params.currSpeed * params.currSpeed)) / (2 * distance);

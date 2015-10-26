@@ -40,7 +40,6 @@
 #include "entities/AuraManager.hpp"
 #include "entities/BusStopAgent.hpp"
 #include "entities/commsim/broker/Broker.hpp"
-#include "entities/IntersectionManager.hpp"
 #include "entities/LoopDetectorEntity.hpp"
 #include "entities/Person.hpp"
 #include "entities/Person_ST.hpp"
@@ -48,7 +47,6 @@
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/driver/driverCommunication/DriverComm.hpp"
-#include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/pedestrian/Pedestrian2.hpp"
 #include "entities/roles/RoleFactory.hpp"
@@ -57,17 +55,8 @@
 #include "entities/signal/Signal.hpp"
 #include "entities/TrafficWatch.hpp"
 #include "entities/TravelTimeManager.hpp"
-#include "geospatial/aimsun/Loader.hpp"
-#include "geospatial/BusStop.hpp"
-#include "geospatial/Intersection.hpp"
-#include "geospatial/LaneConnector.hpp"
+#include "geospatial/network/NetworkLoader.hpp"
 #include "geospatial/Lane.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/RoadNetwork.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Roundabout.hpp"
-#include "geospatial/Route.hpp"
-#include "geospatial/UniNode.hpp"
 #include "logging/Log.hpp"
 #include "network/CommunicationManager.hpp"
 #include "network/ControlManager.hpp"
@@ -188,7 +177,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	//Loader params for our Agents
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 
-	//Load our user config file
+	//Load the configuration file
 	Print() << "Expanding user configuration file..." << std::endl;
     ExpandShortTermConfigFile expand(stCfg, ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
 	
@@ -214,9 +203,11 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 
     if (config.PathSetMode())
 	{
-		// init path set manager
-		time_t t = time(0);   // get time now
+		//Initialise path-set manager
+		//Get time
+		time_t t = time(0);
 		struct tm * now = localtime( & t );
+		
 		Print() <<"Begin time:"<<std::endl;
 		Print() <<now->tm_hour<<" "<<now->tm_min<<" "<<now->tm_sec<< std::endl;
 		PrivateTrafficRouteChoice* pvtRtChoice = PrivateTrafficRouteChoice::getInstance();
@@ -224,12 +215,13 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		pvtRtChoice->setScenarioName(name);
 	}
 
-	//Initialize the control manager and wait for an IDLE state (interactive mode only).
+	//Initialise the control manager and wait for an IDLE state (interactive mode only).
 	sim_mob::ControlManager* ctrlMgr = nullptr;
 	
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) 
 	{
 		Print() << "Scenario loaded...\nSimulation state is IDLE"<<std::endl;
+		
 		ctrlMgr = ConfigManager::GetInstance().FullConfig().getControlMgr();
 		ctrlMgr->setSimState(IDLE);
 		
@@ -270,19 +262,19 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	//        2) Have some way of telling the parent Worker to "delay" this Agent (e.g., add it to a temporary list) from *within* update.
 	WorkGroup* communicationWorkers = wgMgr.newWorkGroup(config.commWorkGroupSize(), config.totalRuntimeTicks, config.granCommunicationTicks);
 
-	//Initialize the aura manager
+	//Initialise the aura manager
 	AuraManager::instance().init(config.aura_manager_impl());
 
-	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
+	//Initialise all work groups (this creates barriers, and locks down creation of new groups).
 	wgMgr.initAllGroups();
 
-	//Initialize each work group individually
+	//Initialise each work group individually
 	personWorkers->initWorkers(&entLoader);
 	signalStatusWorkers->initWorkers(nullptr);
 	intMgrWorkers->initWorkers(nullptr);
 	communicationWorkers->initWorkers(nullptr);
 
-	//If commsim is enabled, start the Broker.
+	//If communication simulator is enabled, start the Broker.
     if(stCfg.commSimEnabled())
 	{
 		//NOTE: I am fairly sure that MtxStrat_Locked is the wrong mutex strategy. However, Broker doesn't
@@ -313,8 +305,6 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	for (map<unsigned int, IntersectionManager *>::iterator it = IntersectionManager::intManagers.begin(); it != IntersectionManager::intManagers.end(); ++it)
 	{
 		intMgrWorkers->assignAWorker(it->second);
-	}
-
 	if(sim_mob::AMOD::AMODController::instanceExists())
 	{
 		personWorkers->assignAWorker( sim_mob::AMOD::AMODController::instance() );
@@ -322,7 +312,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 
 	Print() << "Initial agents dispatched or pushed to pending." << endl;
 	
-	//before starting the groups, initialise the time interval for one of the PathSet manager's helpers
+	//Before starting the groups, initialise the time interval for one of the PathSet manager's helpers
 	TravelTimeManager::initTimeInterval();
 
 	//
@@ -334,7 +324,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	//Start work groups and all threads.
 	wgMgr.startAllWorkGroups();
 
-	//
+	if (!config.MPI_Disabled() && config.using_MPI) 
 	if (!config.MPI_Disabled() && config.using_MPI) 
 	{
 		PartitionManager& partitionImpl = PartitionManager::instance();
@@ -482,9 +472,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 		
 		for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it) 
 		{
-			Person* p = dynamic_cast<Person*> (*it);
-			
-			if (p) 
+			if (person) 			
 			{
 				numPerson++;
 				
@@ -542,7 +530,7 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	//TODO: I think that the WorkGroups and Workers need to have the "endTick" value propagated to
 	//      them from the main loop, in the event that the simulator is shutting down early. This is
 	//      probably causing the Workers to hang if clear_delete_vector is called. ~Seth
-	//EDIT: Actually, Worker seems to handle the synchronization fine too.... but I still think the main
+	//EDIT: Actually, Worker seems to handle the synchronisation fine too.... but I still think the main
 	//      loop should propagate this value down. ~Seth
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) 
 	{
@@ -557,6 +545,9 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
 	}
 
 	Print() << "Simulation complete; closing worker threads." << endl;
+	
+	//Destroy the road network
+	NetworkLoader::deleteInstance();
 
 	//Delete the AMOD controller instance
 	sim_mob::AMOD::AMODController::deleteInstance();
@@ -574,11 +565,14 @@ bool performMain(const std::string& configFileName, const std::string& shortConf
  * Run the main loop of Sim Mobility, using command-line input.
  * Returns the value of the last completed run of performMain().
  */
-int run_simmob_interactive_loop(){
+int run_simmob_interactive_loop()
+{
 	sim_mob::ControlManager *ctrlMgr = ConfigManager::GetInstance().FullConfig().getControlMgr();
 	std::list<std::string> resLogFiles;
 	int retVal = 1;
-	for (;;) {
+	
+	for (;;) 
+	{
 		if(ctrlMgr->getSimState() == LOADSCENARIO)
 		{
 			ctrlMgr->setSimState(RUNNING);
@@ -605,12 +599,13 @@ int main_impl(int ARGC, char* ARGV[])
 {
 	std::vector<std::string> args = Utils::parseArgs(ARGC, ARGV);
 
-	//Argument 1: Config file
+	//Argument 1: Configuration file
 	//Note: Don't change this here; change it by supplying an argument on the
 	//      command line, or through Eclipse's "Run Configurations" dialog.
 	std::string configFileName = "data/config.xml";
     std::string shortConfigFile = "data/shortTerm.xml";
     if (args.size() > 2) {
+	{
 		configFileName = args[1];
         shortConfigFile = args[2];
     }
@@ -619,10 +614,13 @@ int main_impl(int ARGC, char* ARGV[])
         Print() << "No short term config file specified; using default config file" << endl;
     }
     else {
-		Print() << "No config file specified; using the default config file." << endl;
 	}
-	Print() << "Using config file: " << configFileName << endl;
+	else 
     Print() << "Using Short term config file: " << shortConfigFile << endl;
+		Print() << "Configuration file not specified. Using the default configuration file." << endl;
+	}
+	
+	Print() << "Using configuration file: " << configFileName << endl;
 
 	std::string outputFileName = "out.txt";
     if(args.size() > 3)
@@ -649,6 +647,7 @@ int main_impl(int ARGC, char* ARGV[])
 	 */
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
 	config.using_MPI = false;
+	
 #ifndef SIMMOB_DISABLE_MPI
 	if (args.size()>2 && args[2]=="mpi") {
 		config.using_MPI = true;
@@ -682,14 +681,18 @@ int main_impl(int ARGC, char* ARGV[])
 	//Perform main loop (this differs for interactive mode)
 	int returnVal = 1;
 	std::list<std::string> resLogFiles;
-	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) {
+	
+	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) 
+	{
 		returnVal = run_simmob_interactive_loop();
-	} else {
+	}
         returnVal = performMain(configFileName, shortConfigFile, resLogFiles, "XML_OutPut.xml") ? 0 : 1;
+	{
 	}
 
 	//Concatenate output files?
-	if (!resLogFiles.empty()) {
+	if (!resLogFiles.empty()) 
+	{
 		resLogFiles.insert(resLogFiles.begin(), ConfigManager::GetInstance().FullConfig().outNetworkFileName);
 		Utils::printAndDeleteLogFiles(resLogFiles,outputFileName);
 	}

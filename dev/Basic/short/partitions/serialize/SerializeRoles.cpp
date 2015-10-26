@@ -17,9 +17,9 @@
 
 #include "entities/roles/driver/DriverUpdateParams.hpp"
 
-#include "geospatial/Lane.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 
 #include "util/GeomHelpers.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
@@ -250,7 +250,7 @@ void sim_mob::Pedestrian::unpackProxy(UnPackageUtils& unpackageUtil) {
 //
 //	bool hasSignal = unpackageUtil.unpackBasicData<bool> ();
 //	if (hasSignal) {
-//		Point2D* signal_location = unpackageUtil.unpackPoint2D();
+//		Point* signal_location = unpackageUtil.unpackPoint2D();
 //		trafficSignal = sim_mob::getSignalBasedOnNode(signal_location);
 //	}
 //
@@ -499,7 +499,7 @@ void sim_mob::Driver::unpack(UnPackageUtils& unpackageUtil) {
 	unpackageUtil >> hasSignal;
 	if(hasSignal)
 	{
-		Point2D signal_location;
+		Point signal_location;
 		unpackageUtil >> signal_location;
 		trafficSignal = sim_mob::getSignalBasedOnNode(&signal_location);
 	}

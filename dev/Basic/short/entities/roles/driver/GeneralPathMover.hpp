@@ -9,7 +9,7 @@
 
 #include "conf/settings/DisableMPI.h"
 
-#include "geospatial/Point2D.hpp"
+#include "geospatial/network/Point.hpp"
 #include "metrics/Length.hpp"
 #include "util/DynamicVector.hpp"
 
@@ -80,9 +80,9 @@ public:
 	const sim_mob::RoadSegment* getPrevSegment(bool sameLink) const;
 	const sim_mob::Link* getCurrLink() const;
 	const sim_mob::Lane* getCurrLane() const;
-	const sim_mob::Point2D& getCurrPolypoint() const;
-	const sim_mob::Point2D& getNextPolypoint() const;
-	const sim_mob::Point2D& getNextPolypointNew() const;
+	const sim_mob::Point& getCurrPolypoint() const;
+	const sim_mob::Point& getNextPolypoint() const;
+	const sim_mob::Point& getNextPolypointNew() const;
 	//bool isMovingForwardsOnCurrSegment() const;
 	double getCurrLinkReportedLength() const;
 
@@ -108,7 +108,7 @@ public:
 	double getAllRestRoadSegmentsLength() const;
 
 	//Retrieve our X/Y position based ONLY on forward movement (e.g., nothing with Lanes)
-	sim_mob::DPoint getPosition() const;
+	sim_mob::Point getPosition() const;
 
 	//Accessors
 	double getX() const;   ///<Retrieve the vehicle's absolute position, x
@@ -144,14 +144,14 @@ public:
 	std::vector<const sim_mob::RoadSegment*>::iterator currSegmentIt;
 
 	//This can change dynamically (lane changes, etc.)
-	std::vector<sim_mob::Point2D> polypointsList;
-	std::vector<sim_mob::Point2D> laneZeroPolypointsList;
-	std::vector<sim_mob::Point2D>::iterator currPolypoint;
-	std::vector<sim_mob::Point2D>::iterator nextPolypoint;
+	std::vector<PolyPoint> polypointsList;
+	std::vector<PolyPoint> laneZeroPolypointsList;
+	std::vector<PolyPoint>::iterator currPolypoint;
+	std::vector<PolyPoint>::iterator nextPolypoint;
 
 	//Unfortuante duplication, but necessary to avoid aliasing
-	std::vector<sim_mob::Point2D>::const_iterator currLaneZeroPolypoint;
-	std::vector<sim_mob::Point2D>::const_iterator nextLaneZeroPolypoint;
+	std::vector<PolyPoint>::const_iterator currLaneZeroPolypoint;
+	std::vector<PolyPoint>::const_iterator nextLaneZeroPolypoint;
 
 	//Movement along a single line
 	double distAlongPolylineCM;

@@ -1,8 +1,18 @@
+#pragman once
+#include <vector>
+#include "geospatial/network/RoadItem.hpp"
 
-#pragma once
-#include "geospatial/RoadItem.hpp"
+namespace sim_mob
+{
 
-namespace sim_mob {
+struct LaneItem
+{
+	LaneItem() : laneId(0), speedLimit(0)
+	{
+	}
+	unsigned int laneId;
+	float speedLimit;
+};
 
 class Incident : public sim_mob::RoadItem{
 
@@ -18,12 +28,6 @@ public:
 	float length;
 	float compliance;
 	float accessibility;
-
-	struct LaneItem {
-		LaneItem() : laneId(0), speedLimit(0){}
-		unsigned int laneId;
-		float speedLimit;
-	};
 
 	std::vector<LaneItem> laneItems;
 

@@ -74,8 +74,8 @@ public:
 	bool isAtBusStop();
 	bool isBusBoarded();
 	bool isDestBusStopReached();
-	Point2D getXYPosition();
-	Point2D getDestPosition();
+	Point getXYPosition();
+	Point getDestPosition();
 
 	const BusStop* getOriginBusStop()
 	{
@@ -154,7 +154,7 @@ private:
 	uint32_t timeOfStartTrip;
 	uint32_t travelTime;
 	///For display purposes: offset this Passenger by a given +x, +y
-	Point2D displayOffset;
+	Point displayOffset;
 
 	///for display purpose of alighting passengers
 	int displayX;

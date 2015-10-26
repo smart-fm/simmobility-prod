@@ -12,9 +12,9 @@
 #include "entities/roles/driver/SMStatus.hpp"
 #include "entities/roles/driver/models/LaneChangeModel.hpp"
 #include "entities/signal/Signal.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/TurningConflict.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/TurningConflict.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/LangHelpers.hpp"
 
@@ -233,12 +233,12 @@ namespace sim_mob
       NO_FOUND_STOP_POINT = 6
     } ;
 
-    const Lane* currLane;	//TODO: This should really be tied to PolyLineMover, but for now it's not important.
-    size_t currLaneIndex; 	//Cache of currLane's index.
-    size_t nextLaneIndex; 	//for lane changing model
+    const Lane* currLane;
+    size_t currLaneIndex;
+    size_t nextLaneIndex;
     const Lane* leftLane;
     const Lane* rightLane;
-    const Lane* leftLane2; 	//the second left lane
+    const Lane* leftLane2;
     const Lane* rightLane2;
 
     double currSpeed;
@@ -307,6 +307,15 @@ namespace sim_mob
     
     //Indicates if the driver has already stopped for the stop sign
     bool hasStoppedForStopSign;
+
+	//The access time sent by the intersection manager
+    double accessTime;
+
+    //Indicates if the access time has been received from the intersection manager
+    bool isResponseReceived;
+
+    //Indicates if the car following accelerations are to be over-ridden
+    bool useIntAcc;
     
     //The access time sent by the intersection manager
     double accessTime;
@@ -331,7 +340,7 @@ namespace sim_mob
 
     //Handles state information
     bool justChangedToNewSegment;
-    DPoint TEMP_lastKnownPolypoint;
+    Point TEMP_lastKnownPolypoint;
     bool justMovedIntoIntersection;
     double overflowIntoIntersection;
 
@@ -372,7 +381,7 @@ namespace sim_mob
     double disAlongPolyline; //cm
     double movementVectx;
     double movementVecty;
-    DPoint lastOrigPos_;
+    Point lastOrigPos_;
     double dorigPosx;
     double dorigPosy;
     DynamicVector latMv_;

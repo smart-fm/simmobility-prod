@@ -18,9 +18,9 @@
 #include "entities/roles/passenger/Passenger.hpp"
 #include "logging/Log.hpp"
 
-#include "geospatial/Point2D.hpp"
-#include "geospatial/BusStop.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/Point.hpp"
+#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
@@ -72,11 +72,11 @@ Role* sim_mob::BusDriver::clone(Person* parent) const {
 }
 
 double sim_mob::BusDriver::getPositionX() const {
-	return currPos.x;
+	return currPos.getX();
 }
 
 double sim_mob::BusDriver::getPositionY() const {
-	return currPos.y;
+	return currPos.getY();
 }
 
 vector<BufferedBase*> sim_mob::BusDriver::getSubscriptionParams() {

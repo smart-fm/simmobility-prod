@@ -6,7 +6,7 @@
 
 #include "entities/Person.hpp"
 #include "workers/Worker.hpp"
-#include "geospatial/LaneConnector.hpp"
+#include "geospatial/network/LaneConnector.hpp"
 unsigned int sim_mob::Facet::msgHandlerId = FACET_MSG_HDLR_ID;
 
 void sim_mob::Facet::handleMessage(messaging::Message::MessageType type, const messaging::Message& message)
@@ -19,7 +19,7 @@ bool sim_mob::MovementFacet::isConnectedToNextSeg(const Lane* lane, const sim_mo
 {
 	if(!nxtRdSeg) { throw std::runtime_error("isConnectedToNextSeg() - destination road segment is null"); }
 	if(!lane) { throw std::runtime_error("isConnectedToNextSeg() - null lane is passed"); }
-	const sim_mob::RoadSegment* currSeg = lane->getRoadSegment();
+	/*const sim_mob::RoadSegment* currSeg = lane->getRoadSegment();
 	if (nxtRdSeg->getLink() != currSeg->getLink())
 	{
 		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (currSeg->getEnd());
@@ -38,13 +38,13 @@ bool sim_mob::MovementFacet::isConnectedToNextSeg(const Lane* lane, const sim_mo
 		//crossing a uni-node. At uninodes, we assume all lanes of the current
 		//segment are connected to all lanes of the next segment
 		return true;
-	}
+	}*/
 	return false;
 }
 
 bool sim_mob::MovementFacet::isConnectedToNextSeg(const sim_mob::RoadSegment *srcRdSeg, const sim_mob::RoadSegment *nxtRdSeg)
 {
-	if(!nxtRdSeg || !srcRdSeg) { throw std::runtime_error("DriverMovement::getConnectionsToNextSeg() - one or both of the Road Segments are not available!"); }
+	/*if(!nxtRdSeg || !srcRdSeg) { throw std::runtime_error("DriverMovement::getConnectionsToNextSeg() - one or both of the Road Segments are not available!"); }
 	if (nxtRdSeg->getLink() != srcRdSeg->getLink())
 	{
 		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (srcRdSeg->getEnd());
@@ -63,6 +63,6 @@ bool sim_mob::MovementFacet::isConnectedToNextSeg(const sim_mob::RoadSegment *sr
 		//crossing a uni-node. At uninodes, we assume all lanes of the current
 		//segment are connected to all lanes of the next segment
 		return true;
-	}
+	}*/
 	return false;
 }

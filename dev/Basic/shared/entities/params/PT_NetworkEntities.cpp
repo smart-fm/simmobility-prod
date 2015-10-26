@@ -50,7 +50,7 @@ void PT_Network::init()
 	// Building a Public transit map for edges and vertices
 	for(vector<PT_NetworkVertex>::const_iterator ptVertexIt=PublicTransitVertices.begin();ptVertexIt!=PublicTransitVertices.end();ptVertexIt++)
 	{
-		PT_NetworkVertexMap[(*ptVertexIt).getStopId()]=*ptVertexIt;
+		PT_NetworkVertexMap[(*ptVertexIt).getRoadItemId()]=*ptVertexIt;
 	}
 	for(vector<PT_NetworkEdge>::const_iterator ptEdgeIt=PublicTransitEdges.begin();ptEdgeIt!=PublicTransitEdges.end();ptEdgeIt++)
 	{

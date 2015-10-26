@@ -77,6 +77,7 @@ void BusStopAgent::registerWaitingPerson(sim_mob::medium::WaitBusActivity* waiti
 	{
 		throw std::runtime_error("attempt to add waiting person at SINK_TERMINUS");
 	}
+	}
 	messaging::MessageBus::ReRegisterHandler(waitingPerson->getParent(), GetContext());
 	waitingPersons.push_back(waitingPerson);
 }
@@ -279,6 +280,7 @@ void BusStopAgent::storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingAct
 	personWaitInfo.deniedBoardingCount = waitingActivity->getDeniedBoardingCount();
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_PERSON_WAITING,
 			messaging::MessageBus::MessagePtr(new PersonWaitingTimeMessage(personWaitInfo)));
+	std::string busLines = waitingActivity->getBusLines();
 }
 
 void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)

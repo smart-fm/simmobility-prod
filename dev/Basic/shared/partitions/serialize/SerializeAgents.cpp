@@ -15,7 +15,7 @@
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 
-#include "geospatial/Node.hpp"
+#include "geospatial/network/Node.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
 

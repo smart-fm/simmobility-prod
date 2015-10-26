@@ -216,7 +216,7 @@ public:
 	static std::string makeNewAgents(const std::vector<unsigned int>& addAgents, const std::vector<unsigned int>& remAgents);
 
 	///Serialize "all_locations" to a string.
-	static std::string makeAllLocations(const std::map<unsigned int, DPoint>& allLocations);
+	static std::string makeAllLocations(const std::map<unsigned int, Point>& allLocations);
 
 	///Serialize "opaque_send" to a string.
 	static std::string makeOpaqueSend(const std::string& fromId, const std::vector<std::string>& toIds, const std::string& format, const std::string& tech, bool broadcast, const std::string& data);

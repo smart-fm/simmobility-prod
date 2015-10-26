@@ -11,7 +11,7 @@
 #include "entities/Person_MT.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/Vehicle.hpp"
-#include "geospatial/WayPoint.hpp"
+#include "geospatial/network/WayPoint.hpp"
 #include "util/DynamicVector.hpp"
 #include "DriverUpdateParams.hpp"
 #include "DriverFacets.hpp"
@@ -31,7 +31,7 @@ class RoadSegment;
 class Lane;
 class Node;
 class MultiNode;
-class DPoint;
+class Point;
 class UpdateParams;
 
 namespace medium

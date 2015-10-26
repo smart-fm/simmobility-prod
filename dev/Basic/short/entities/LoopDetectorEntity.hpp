@@ -6,7 +6,7 @@
 
 #include "entities/Sensor.hpp"
 #include "entities/signal/Signal.hpp"
-#include "geospatial/Lane.hpp"
+#include "geospatial/network/Lane.hpp"
 
 namespace sim_mob
 {

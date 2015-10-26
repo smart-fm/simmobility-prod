@@ -62,12 +62,14 @@ sim_mob::WaitBusActivityRoleMovementImpl::~WaitBusActivityRoleMovementImpl() {
 
 }
 
-void sim_mob::WaitBusActivityRoleMovementImpl::frame_init() {
+void sim_mob::WaitBusActivityRoleMovementImpl::frame_init() 
+{
+	/*
 	// special case: fnode, tnode are all stop ids, for scenarios
 	isTagged = false;
 	isBoarded = false;
 	if(parent->originNode.type_== WayPoint::BUS_STOP && parent->destNode.type_== WayPoint::BUS_STOP) {
-		busStopAgent = BusStopAgent::findBusStopAgentByBusStopNo(parent->originNode.busStop_->getBusstopno_());
+		busStopAgent = BusStopAgent::findBusStopAgentByBusStopNo(getParent()->originNode.busStop_->getRoadItemId());
 		parent->xPos.force(busStopAgent->getBusStop().xPos);// set xPos to WaitBusActivityRole
 		parent->yPos.force(busStopAgent->getBusStop().yPos);// set yPos to WaitBusActivityRole
 		parentWaitBusActivityRole->TimeOfReachingBusStop = parentWaitBusActivityRole->getParams().now.ms();
@@ -75,18 +77,19 @@ void sim_mob::WaitBusActivityRoleMovementImpl::frame_init() {
 		return;
 	}
 	if(parent->destNode.type_== WayPoint::BUS_STOP) { // to here waiting(busstop)
-		busStopAgent = BusStopAgent::findBusStopAgentByBusStopNo(parent->destNode.busStop_->getBusstopno_());
+		busStopAgent = BusStopAgent::findBusStopAgentByBusStopNo(getParent()->destNode.busStop_->getRoadItemId());
 		parent->xPos.set(busStopAgent->getBusStop().xPos);// set xPos to WaitBusActivityRole
 		parent->yPos.set(busStopAgent->getBusStop().yPos);// set yPos to WaitBusActivityRole
 	} else {
 		sim_mob::BusStop* busStop_dest = setBusStopXY(parent->destNode.node_);// to here waiting(node)
-		busStopAgent = BusStopAgent::findBusStopAgentByBusStopNo(busStop_dest->getBusstopno_());// assign the BusStopAgent to WaitBusActivityRole
+		busStopAgent = BusStopAgent::findBusStopAgentByBusStopNo(busStop_dest->getRoadItemId());// assign the BusStopAgent to WaitBusActivityRole
 		parent->xPos.set(busStop_dest->xPos);// set xPos to WaitBusActivityRole
 		parent->yPos.set(busStop_dest->yPos);// set yPos to WaitBusActivityRole
 	}
 //	parentWaitBusActivityRole->TimeOfReachingBusStop = parentWaitBusActivityRole->getParams().now.ms();
 	parentWaitBusActivityRole->TimeOfReachingBusStop = parent->currTick.ms();
 	buslineId = "857_1";// set Busline information(hardcoded now, later from Public Transit Route Choice to choose the busline)
+	*/
 }
 
 void sim_mob::WaitBusActivityRoleMovementImpl::frame_tick() {

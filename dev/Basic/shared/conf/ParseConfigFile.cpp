@@ -13,7 +13,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/RawConfigParams.hpp"
-#include "geospatial/Point2D.hpp"
+#include "geospatial/network/Point.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/XmlParseHelper.hpp"
 #include "path/ParsePathXmlConfig.hpp"

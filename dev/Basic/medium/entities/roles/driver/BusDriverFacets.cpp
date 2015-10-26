@@ -10,7 +10,7 @@
 #include "entities/BusStopAgent.hpp"
 #include "entities/Person.hpp"
 #include "entities/Vehicle.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
 #include "message/MT_Message.hpp"
@@ -270,7 +270,7 @@ const Lane* BusDriverMovement::getBestTargetLane(const SegmentStats* nextSegStat
 		for (vector<Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
 		{
 			const Lane* lane = *lnIt;
-			if (!lane->is_pedestrian_lane())
+			if (!lane->isPedestrianLane())
 			{
 				if(nextToNextSegStats
 						&& !isConnectedToNextSeg(lane, nextToNextSegStats->getRoadSegment())
@@ -307,7 +307,7 @@ const Lane* BusDriverMovement::getBestTargetLane(const SegmentStats* nextSegStat
 			//This code must be removed and an error must be thrown here in future.
 			for (vector<Lane* >::const_iterator lnIt=lanes.begin(); lnIt!=lanes.end(); ++lnIt)
 			{
-				if (!((*lnIt)->is_pedestrian_lane()))
+				if (!((*lnIt)->isPedestrianLane()))
 				{
 					const Lane* lane = *lnIt;
 					total = nextSegStats->getLaneTotalVehicleLength(lane);
@@ -397,7 +397,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		else
 		{
 			std::stringstream errorStrm;
-			errorStrm << "BusStopAgent not found for stop: " << nextStop->getBusstopno_()
+			errorStrm << "BusStopAgent not found for stop: " << nextStop->getRoadItemId()
 					<< "|SegmentStats: " << currSegStat
 					<< "|position: " << currSegStat->getStatsNumberInSegment()
 					<< "|num. stops: " << currSegStat->getNumStops()

@@ -10,6 +10,9 @@
 
 #pragma once
 
+#include <vector>
+
+#include "entities/Agent.hpp"
 #include "BusRoute.hpp"
 #include "Vehicle.hpp"
 
@@ -56,7 +59,7 @@ private:
 	
 	BusRoute route;
 	
-	DPoint ptCheck;// Later connect to Stops, calculate the position to some stops
+	Point ptCheck;// Later connect to Stops, calculate the position to some stops
 	
 	double DistThreshold;
 	

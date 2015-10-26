@@ -12,9 +12,9 @@
 
 #include <vector>
 
-#include "geospatial/BusStop.hpp"
-#include "geospatial/Point2D.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/Point.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/LangHelpers.hpp"
 
@@ -35,7 +35,7 @@ public:
 	double distance;
 	double percent;
 	double finalDist;
-	const sim_mob::Point2D* position;
+	const sim_mob::Point* position;
 
 	bool operator== (const DemoBusStop& a) const
 	{

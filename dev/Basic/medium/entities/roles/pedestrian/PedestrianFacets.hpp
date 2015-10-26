@@ -9,7 +9,7 @@
 #include "entities/conflux/Conflux.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/Person.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/Link.hpp"
 
 namespace sim_mob
 {

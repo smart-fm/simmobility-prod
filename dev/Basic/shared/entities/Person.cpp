@@ -19,7 +19,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "logging/Log.hpp"
-#include "geospatial/Node.hpp"
+#include "geospatial/network/Node.hpp"
 #include "geospatial/BusStop.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "workers/Worker.hpp"
@@ -28,6 +28,7 @@
 #include "path/PT_RouteChoiceLuaModel.hpp"
 #include "path/PT_RouteChoiceLuaProvider.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"

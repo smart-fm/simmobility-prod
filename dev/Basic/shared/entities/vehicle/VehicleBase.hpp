@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 
 namespace sim_mob {
 /**

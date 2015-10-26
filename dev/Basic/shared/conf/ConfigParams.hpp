@@ -12,7 +12,7 @@
 #include "conf/RawConfigParams.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "entities/misc/PublicTransit.hpp"
-#include "geospatial/RoadNetwork.hpp"
+#include "geospatial/network/BusStop.hpp"
 #include "util/DailyTime.hpp"
 #include "util/Factory.hpp"
 

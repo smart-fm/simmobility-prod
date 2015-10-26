@@ -8,8 +8,9 @@
 #include "PassengerFacets.hpp"
 #include "config/MT_Config.hpp"
 #include "geospatial/MultiNode.hpp"
+#include "geospatial/network/Node.hpp"
 #include "Passenger.hpp"
-
+{
 using namespace sim_mob;
 using namespace medium;
 
@@ -68,7 +69,7 @@ TravelMetric & PassengerMovement::finalizeTravelTimeMetric()
 {
 	travelMetric.destination = WayPoint(parentPassenger->getEndNode());
 	travelMetric.endTime = DailyTime(parentPassenger->getArrivalTime() + totalTimeToCompleteMS);
-	travelMetric.travelTime = TravelMetric::getTimeDiffHours(travelMetric.endTime, travelMetric.startTime); // = totalTimeToCompleteMS in hours
+	travelMetric.travelTime = TravelMetric::getTimeDiffHours(travelMetric.endTime , travelMetric.startTime); // = totalTimeToCompleteMS in hours
 	travelMetric.finalized = true;
 	return travelMetric;
 }

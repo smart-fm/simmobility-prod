@@ -8,6 +8,7 @@
 #include "entities/roles/Role.hpp"
 #include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
 #include "geospatial/Node.hpp"
+#include "geospatial/network/Node.hpp"
 #include "PassengerFacets.hpp"
 
 namespace sim_mob
@@ -49,8 +50,8 @@ public:
 	virtual void make_frame_tick_params(timeslice now)
 	{
 	}
+	
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-
 	/**
 	 * make a decision for alighting.
 	 * @param nextStop is the next stop which bus will arrive at
@@ -63,6 +64,11 @@ public:
 	 * @param message data received.
 	 */
 	virtual void HandleParentMessage(messaging::Message::MessageType type, const messaging::Message& message);
+
+	/**
+	 * collect travel time for current role
+	 */
+	virtual void collectTravelTime();
 
 	/**
 	 * collect travel time for current role
@@ -118,6 +124,11 @@ private:
 
 	/**flag to indicate whether the passenger has decided to alight the bus*/
 	bool alightBus;
+
+	/** starting node of passenger - for travel time storage */
+	const sim_mob::Node* startNode;
+
+	const sim_mob::Node* endNode;
 
 	/** starting node of passenger - for travel time storage */
 	const sim_mob::Node* startNode;

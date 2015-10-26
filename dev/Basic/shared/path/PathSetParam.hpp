@@ -176,8 +176,6 @@ public:
 
 	double getHighwayBias() const { return highwayBias; }
 
-	///	return the current rough size of the class todo:obsolete
-	uint32_t getSize();
 	///	pathset parameters
 	double bTTVOT;
 	double bCommonFactor;
@@ -195,10 +193,10 @@ public:
 	double maxHighwayParam;
 
 	///	store all multi nodes in the map
-	const std::vector<sim_mob::MultiNode*>  &multiNodesPool;
+	std::vector<Node*>  multiNodesPool;
 
 	///	store all uni nodes
-	const std::set<sim_mob::UniNode*> & uniNodesPool;
+	//const std::set<sim_mob::UniNode*> & uniNodesPool;
 
 	///	ERP surcharge  information <gantryNo , value=ERP_Surcharge with same No diff time stamp>
 	std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > ERP_SurchargePool;

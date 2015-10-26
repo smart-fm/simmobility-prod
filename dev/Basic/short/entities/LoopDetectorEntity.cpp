@@ -19,10 +19,10 @@
 #include "entities/signal/Signal.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 
-#include "geospatial/Node.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 
 #include "logging/Log.hpp"
 
@@ -41,8 +41,8 @@ namespace sim_mob
 // would contain something.
 struct AABB
 {
-    Point2D lowerLeft_;
-    Point2D upperRight_;
+    Point lowerLeft_;
+    Point upperRight_;
 
     // Expand this AABB to include another AABB.  That is, this = this union <another>.
     // union is a keyword in C++, so the method name is united.
@@ -74,8 +74,8 @@ AABB::united(AABB const & another)
     else
         top = another.upperRight_.getY();
 
-    this->lowerLeft_ = Point2D(left, bottom);
-    this->upperRight_ = Point2D(right, top);
+    this->lowerLeft_ = Point(left, bottom);
+    this->upperRight_ = Point(right, top);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -117,7 +117,7 @@ public:
     void reset() { request_to_reset_ = true; }
 
 private:
-    Point2D center_;
+    Point center_;
     Vector2D<double> orientationL_;  // orientation of the OBB along its length.
     Vector2D<double> orientationW_;  // orientation of the OBB along its width.
     centimeter_t width_;
@@ -156,11 +156,11 @@ LoopDetector::LoopDetector(Lane const * lane, centimeter_t innerLength, centimet
   , countAndTimePair_(pair)
   , vehicle_(nullptr)
 {
-    std::vector<Point2D> const & polyline = lane->getPolyline();
+    const std::vector<PolyPoint> polyline = lane->getPolyLine()->getPoints();
     size_t count = polyline.size();
     // The last line of the lane's polyline is from <p1> to <p2>.
-    Point2D const & p1 = polyline[count - 2];
-    Point2D const & p2 = polyline[count - 1];
+    Point const & p1 = polyline[count - 2];
+    Point const & p2 = polyline[count - 1];
 
     centimeter_t dx = p2.getX() - p1.getX();
     centimeter_t dy = p2.getY() - p1.getY();
@@ -181,7 +181,7 @@ LoopDetector::LoopDetector(Lane const * lane, centimeter_t innerLength, centimet
     double ratio = (3 * 100 + innerLength_) / lineLength;
     dx *= ratio;
     dy *= ratio;
-    center_ = Point2D(p2.getX() - dx, p2.getY() - dy);
+    center_ = Point(p2.getX() - dx, p2.getY() - dy);
 
     timeStepInMilliSeconds_ = ST_Config::getInstance().personTimeStepInMilliSeconds();
 }
@@ -224,8 +224,8 @@ const
     getBounds(c - vL - vW, left, bottom, right, top);
 
     AABB aabb;
-    aabb.lowerLeft_ = Point2D(left, bottom);
-    aabb.upperRight_ = Point2D(right, top);
+    aabb.lowerLeft_ = Point(left, bottom);
+    aabb.upperRight_ = Point(right, top);
     return aabb;
 }
 
@@ -281,7 +281,7 @@ LoopDetector::check(boost::unordered_set<Vehicle const *> & vehicles)
 bool
 LoopDetector::check(Vehicle const & vehicle)
 {
-    Vector2D<double> pos(vehicle.getCurrPosition().x - center_.getX(), vehicle.getCurrPosition().y - center_.getY());
+    Vector2D<double> pos(vehicle.getCurrPosition().getX() - center_.getX(), vehicle.getCurrPosition().getY() - center_.getY());
     // The dot product produces the projection onto the orientation vector.  If the projection
     // falls within the extents (ie, the width and length), then the vehicle is hovering over
     // the loop detector.
@@ -378,24 +378,24 @@ LoopDetectorEntity::Impl::~Impl()
 void
 LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetectorEntity & entity)
 {
-    Node const & node = signal.getNode();
+    /*Node const & node = signal.getNode();
 	LinkAndCrossingC const &LAC = signal.getLinkAndCrossing();
 
 	LinkAndCrossingC::iterator iter = LAC.begin();
 	//TODO: This code will need some re-writing, once merged with Vahid's branch.
     for (; iter != LAC.end(); ++iter) {
     	const Link* link  = iter->link;
-        if (link->getEnd() == &node) {
+        if (link->getToNode() == &node) {
             // <link> is approaching <node>.  The loop-detectors should be at the end of the
             // last road segment in the forward direction, if any.
-            std::vector<RoadSegment *> const & roads = link->getSegments();
+            const std::vector<RoadSegment *> roads = link->getRoadSegments();
             if (! roads.empty()) {
                 createLoopDetectors(roads, entity);
             } else {
             	Print() << "No RoadSegments in the link " << link->getLinkId() << ". Loop Detectors not created.\n";
             }
         }
-    }
+    }*/
 }
 
 #if 0
@@ -434,12 +434,13 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
 
 namespace
 {
-    Point2D zero(0, 0);
+    Point zero(0, 0);
 
     bool
     isNotInitialized(AABB const & aabb)
     {
-        return (aabb.lowerLeft_ == zero && aabb.upperRight_ == zero);
+        return (aabb.lowerLeft_.getX() == zero.getX() && aabb.lowerLeft_.getY() == zero.getY() 
+				&& aabb.upperRight_.getX() == zero.getX() && aabb.upperRight_.getY() == zero.getY());
     }
 }
 
@@ -454,13 +455,13 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
     if(! lanes.size())
     	{
     		std::ostringstream str;
-    		str << " There is no lane associated with road segment " << road->getId();
+    		str << " There is no lane associated with road segment " << road->getRoadSegmentId();
     		throw std::runtime_error(str.str());
     	}
     for (size_t i = 0; i < lanes.size(); ++i)
     {
         Lane const * lane = lanes[i];
-        if (lane->is_pedestrian_lane())
+        if (lane->isPedestrianLane())
         {
             continue;
         }
@@ -493,7 +494,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
     if(createdLDs == 0)
     {
     	std::ostringstream str;
-    	str << " could not create any loop detector in road segment " << road->getId()
+    	str << " could not create any loop detector in road segment " << road->getRoadSegmentId()
         		<< " this will create problem for you later if you don't watch out !\n"
         		"for instance, while calculating laneDS";
     	throw std::runtime_error(str.str());

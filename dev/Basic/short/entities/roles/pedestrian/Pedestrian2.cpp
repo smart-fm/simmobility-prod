@@ -11,21 +11,17 @@
 #include "entities/Person.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
-#include "geospatial/Node.hpp"
+#include "geospatial/network/Node.hpp"
 #include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/UniNode.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/LaneConnector.hpp"
-#include "geospatial/Crossing.hpp"
-#include "geospatial/BusStop.hpp"
-
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/LaneConnector.hpp"
+#include "geospatial/network/BusStop.hpp"
 #include "util/GeomHelpers.hpp"
-#include "geospatial/Point2D.hpp"
+#include "geospatial/network/Point.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/Person_ST.hpp"
 
@@ -50,8 +46,9 @@ vector<const RoadSegment*> BuildUpPath(vector<RoadSegment*>::iterator curr, vect
 }
 
 vector<const RoadSegment*> ForceForwardSubpath(const RoadSegment* revSegment, vector<RoadSegment*> candList1, vector<
-											   RoadSegment*> candList2)
+		RoadSegment*> candList2) 
 {
+	/*
 	//First, iterate through each list until we find an item that is the REVERSE of our revSegment
 	for (int i = 0; i < 2; i++)
 	{
@@ -71,7 +68,7 @@ vector<const RoadSegment*> ForceForwardSubpath(const RoadSegment* revSegment, ve
 			}
 		}
 	}
-
+	*/
 	//Error:
 	throw std::runtime_error("Can't retrieve forward subpath for the given candidates.");
 }

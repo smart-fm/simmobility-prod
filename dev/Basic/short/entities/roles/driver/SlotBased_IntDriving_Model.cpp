@@ -69,7 +69,7 @@ void SlotBased_IntDriving_Model::sendAccessRequest(DriverUpdateParams& params)
 	if(currTurning && isRequestSent == false)
 	{
 		//Get the approaching intersection manager
-		IntersectionManager *intMgr = IntersectionManager::getIntManager(currTurning->getFromSeg()->getEnd()->getID());
+		IntersectionManager *intMgr = IntersectionManager::getIntManager(currTurning->getFromLane()->getParentSegment()->getParentLink()->getFromNodeId());
 		
 		//Calculate the arrival time according to the current speed and the distance to the intersection
 		double arrivalTime = calcArrivalTime(params.driver->distToIntersection_.get(), params);		
@@ -80,7 +80,7 @@ void SlotBased_IntDriving_Model::sendAccessRequest(DriverUpdateParams& params)
 			arrivalTime += ((double) params.now.ms() / 1000);
 			
 			//Pointer to the access request sent by the driver
-			IntersectionAccessMessage *accessRequest = new IntersectionAccessMessage(arrivalTime, currTurning->getDbId());
+			IntersectionAccessMessage *accessRequest = new IntersectionAccessMessage(arrivalTime, currTurning->getTurningPathId());
 			accessRequest->SetSender(params.driver->getParent());
 			
 			//For debugging

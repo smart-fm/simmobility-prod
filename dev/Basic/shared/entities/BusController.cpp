@@ -12,10 +12,11 @@
 #include "entities/roles/Role.hpp"
 #include "entities/misc/BusTrip.hpp"
 #include "entities/misc/PublicTransit.hpp"
-#include "geospatial/BusStop.hpp"
-#include "geospatial/Link.hpp"
+#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/Link.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "logging/Log.hpp"
+#include "geospatial/streetdir/A_StarShortestPathImpl.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/LangHelpers.hpp"
@@ -122,26 +123,25 @@ bool searchBusRoutes(const vector<const BusStop*>& stops, const std::string& bus
 			{
 				start = busStop;
 				StopInfo stopInfo;
-				stopInfo.id = start->getBusstopno_();
+				stopInfo.id = start->getRoadItemId();
 				stopInfo.line = busLine;
-				stopInfo.posX = start->xPos;
-				stopInfo.posY = start->yPos;
+				stopInfo.posX = start->getStopLocation().getX();
+				stopInfo.posY = start->getStopLocation().getY();
 				stopIDs.push_back(stopInfo);
 			}
 			else
 			{
 				end = busStop;
-				const StreetDirectory& stdir = StreetDirectory::instance();
-				StreetDirectory::VertexDesc startDes = stdir.DrivingVertex(*start);
-				StreetDirectory::VertexDesc endDes = stdir.DrivingVertex(*end);
+				const StreetDirectory& stdir = StreetDirectory::Instance();
 				vector<WayPoint> path;
-				if (start->getParentSegment() == end->getParentSegment())
+				if (start->getRoadSegmentId() == end->getRoadSegmentId()) {
 				{
 					path.push_back(WayPoint(start->getParentSegment()));
 				}
 				else
 				{
-					path = stdir.SearchShortestDrivingPath(startDes, endDes);
+					const A_StarShortestPathImpl* shortestDir = (A_StarShortestPathImpl*)(stdir.getDistanceImpl());
+					path = shortestDir->SearchShortestDrivingPath<RoadSegment>(*start, *end);
 				}
 
 				for (std::vector<WayPoint>::const_iterator it = path.begin();
@@ -150,17 +150,17 @@ bool searchBusRoutes(const vector<const BusStop*>& stops, const std::string& bus
 					if (it->type_ == WayPoint::ROAD_SEGMENT)
 					{
 						unsigned int id =
-								(*it).roadSegment_->getSegmentAimsunId();
+								(*it).roadSegment->getRoadSegmentId();
 						if (routeIDs.size() == 0 || routeIDs.back().id != id)
 						{
 							RouteInfo route;
 							route.id = id;
-							route.start = start->getBusstopno_();
-							route.end = end->getBusstopno_();
-							route.startPosX = start->xPos;
-							route.startPosY = start->yPos;
-							route.endPosX = end->xPos;
-							route.endPosY = end->yPos;
+							route.start = start->getRoadItemId();
+							route.end = end->getRoadItemId();
+							route.startPosX = start->getStopLocation().getX();
+							route.startPosY = start->getStopLocation().getY();
+							route.endPosX = end->getStopLocation().getX();
+							route.endPosY = end->getStopLocation().getY();
 							routeIDs.push_back(route);
 						}
 						isFound = true;
@@ -169,9 +169,8 @@ bool searchBusRoutes(const vector<const BusStop*>& stops, const std::string& bus
 
 				if (!isFound)
 				{
-					std::cout << "can not find bus route in bus line:" << busLine
-							<< " start stop:" << start->getBusstopno_()
-							<< "  end stop:" << end->getBusstopno_()
+							<< " start stop:" << start->getStopCode()
+							<< "  end stop:" << end->getStopCode()
 							<< std::endl;
 					routeIDs.clear();
 					stopIDs.clear();
@@ -180,10 +179,10 @@ bool searchBusRoutes(const vector<const BusStop*>& stops, const std::string& bus
 				else
 				{
 					StopInfo stopInfo;
-					stopInfo.id = end->getBusstopno_();
+					stopInfo.id =  end->getRoadItemId();
 					stopInfo.line = busLine;
-					stopInfo.posX = end->xPos;
-					stopInfo.posY = end->yPos;
+					stopInfo.posX = end->getStopLocation().getX();
+					stopInfo.posY = end->getStopLocation().getY();
 					stopIDs.push_back(stopInfo);
 				}
 

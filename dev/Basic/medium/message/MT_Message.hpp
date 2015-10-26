@@ -40,6 +40,7 @@ public:
 	{
 	}
 	const BusStop* nextStop;
+	std::string busLines;
 };
 
 /**

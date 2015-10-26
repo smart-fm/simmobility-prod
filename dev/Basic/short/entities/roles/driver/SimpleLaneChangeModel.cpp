@@ -5,7 +5,7 @@
 #include <limits>
 
 #include "entities/roles/driver/models/LaneChangeModel.hpp"
-#include "geospatial/Lane.hpp"
+#include "geospatial/network/Lane.hpp"
 
 using std::numeric_limits;
 using namespace sim_mob;

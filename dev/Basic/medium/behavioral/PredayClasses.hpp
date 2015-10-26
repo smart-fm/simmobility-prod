@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include "behavioral/StopType.hpp"
+#include "behavioral/StopType.hpp"
 #include "util/LangHelpers.hpp"
 
 namespace sim_mob

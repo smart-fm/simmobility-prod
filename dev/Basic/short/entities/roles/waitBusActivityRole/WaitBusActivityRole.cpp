@@ -58,12 +58,12 @@ std::vector<sim_mob::BufferedBase*> sim_mob::WaitBusActivityRole::getSubscriptio
 // 	 }
 // 	 else
 // 	 {
-// 		 Point2D point = node->location;
-// 		 const StreetDirectory::LaneAndIndexPair lane_index =  StreetDirectory::instance().getLane(point);
+// 		 Point point = node->location;
+// 		 const StreetDirectory::LaneAndIndexPair lane_index =  StreetDirectory::Instance().getLane(point);
 // 		 if(lane_index.lane_)
 // 		 {
 // 			 sim_mob::Link* link_= lane_index.lane_->getRoadSegment()->getLink();
-// 			 const sim_mob::Link* link_2 = StreetDirectory::instance().searchLink(link_->getEnd(),link_->getStart());
+// 			 const sim_mob::Link* link_2 = StreetDirectory::Instance().searchLink(link_->getEnd(),link_->getStart());
 // 			 BusStop* busStop_ptr = nullptr;
 //
 // 			 std::vector<sim_mob::RoadSegment*> segments_ ;

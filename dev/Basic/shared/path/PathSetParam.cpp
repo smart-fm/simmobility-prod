@@ -7,6 +7,7 @@
 #include "geospatial/aimsun/Loader.hpp"
 #include "PathSetManager.hpp"
 #include "util/Profiler.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 
 
 namespace{
@@ -120,11 +121,11 @@ double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs) const
 	 * Instead, it searches for all occurrences of the given road segment in the
 	 * default travel time container, and returns an average.
 	 */
-	boost::unordered_map<unsigned long, sim_mob::SegmentTravelTimeVector*>::const_iterator it = segDefTT.find(rs->getId());
+	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >::const_iterator it = segDefTT.find(rs->getRoadSegmentId());
 	if(it == segDefTT.end() || it->second->vecSegTT.empty())
 	{
 		std::stringstream out("");
-		out <<  "[NO DTT FOR : " <<  rs->getId() << "]\n";
+		out <<  "[NO DTT FOR : " <<  rs->getRoadSegmentId() << "]\n";
 		//logger << out.str();
 		throw std::runtime_error(out.str());
 	}
@@ -146,7 +147,7 @@ double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs, const 
 	 *	if found, it returns the first occurrence of travel time
 	 *	which includes the given time
 	 */
-	boost::unordered_map<unsigned long, sim_mob::SegmentTravelTimeVector*>::const_iterator it = segDefTT.find(rs->getId());
+	std::map<unsigned long, std::vector<sim_mob::LinkTravelTime> >::iterator it = segDefTT.find(rs->getRoadSegmentId());
 	if(it == segDefTT.end()) { return 0.0; }
 	const std::vector<sim_mob::SegmentTravelTime>& e = (*it).second->vecSegTT;
 	for(std::vector<sim_mob::SegmentTravelTime>::const_iterator itL(e.begin());itL != e.end();++itL)
@@ -215,77 +216,14 @@ void sim_mob::PathSetParam::initParameters()
 	maxHighwayParam = pathset.params.maxHighwayParam ;//0.422;
 }
 
-//todo:obsolete
-uint32_t sim_mob::PathSetParam::getSize()
-{
-	uint32_t sum = 0;
-	sum += sizeof(double); //double bTTVOT;
-	sum += sizeof(double); //double bCommonFactor;
-	sum += sizeof(double); //double bLength;
-	sum += sizeof(double); //double bHighway;
-	sum += sizeof(double); //double bCost;
-	sum += sizeof(double); //double bSigInter;
-	sum += sizeof(double); //double bLeftTurns;
-	sum += sizeof(double); //double bWork;
-	sum += sizeof(double); //double bLeisure;
-	sum += sizeof(double); //double highwayBias;
-	sum += sizeof(double); //double minTravelTimeParam;
-	sum += sizeof(double); //double minDistanceParam;
-	sum += sizeof(double); //double minSignalParam;
-	sum += sizeof(double); //double maxHighwayParam;
-
-	//std::map<std::string,sim_mob::RoadSegment*> segPool;
-	typedef std::map<std::string,sim_mob::RoadSegment*>::value_type SPP;
-
-//		const std::vector<sim_mob::MultiNode*>  &multiNodesPool;
-	sum += sizeof(sim_mob::MultiNode*) * multiNodesPool.size();
-
-//		const std::set<sim_mob::UniNode*> & uniNodesPool;
-	sum += sizeof(sim_mob::UniNode*) * uniNodesPool.size();
-
-//		std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > ERP_SurchargePool;
-	typedef std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::value_type ERPSCP;
-	BOOST_FOREACH(ERPSCP & ERP_Surcharge_pool_pair,ERP_SurchargePool)
-	{
-		sum += ERP_Surcharge_pool_pair.first.length();
-		sum += sizeof(sim_mob::ERP_Surcharge*) * ERP_Surcharge_pool_pair.second.size();
-	}
-
-//		std::map<std::string,sim_mob::ERP_Gantry_Zone*> ERP_Gantry_ZonePool;
-	typedef std::map<std::string,sim_mob::ERP_Gantry_Zone*>::value_type ERPGZP;
-	BOOST_FOREACH(ERPGZP & ERP_Gantry_Zone_pool_pair,ERP_Gantry_ZonePool)
-	{
-		sum += ERP_Gantry_Zone_pool_pair.first.length();
-	}
-	sum += sizeof(sim_mob::ERP_Gantry_Zone*) * ERP_Gantry_ZonePool.size();
-
-//		std::map<std::string,sim_mob::ERP_Section*> ERP_Section_pool;
-	typedef std::map<int,sim_mob::ERP_Section*>::value_type  ERPSP;
-	BOOST_FOREACH(ERPSP&ERP_Section_pair,ERP_SectionPool)
-	{
-		sum += sizeof(int);
-	}
-	sum += sizeof(sim_mob::ERP_Section*) * ERP_SectionPool.size();
-
-//		std::map<std::string,std::vector<sim_mob::LinkTravelTime*> > segDefTT;
-	typedef boost::unordered_map<unsigned long, sim_mob::SegmentTravelTimeVector*>::value_type LDTTPP;
-	BOOST_FOREACH(LDTTPP& ldttpp, segDefTT)
-	{
-		sum += sizeof(unsigned long);
-		sum += sizeof(sim_mob::SegmentTravelTime) * ldttpp.second->vecSegTT.size();
-	}
-	//todo historical avg travel time
-	sum += sizeof(sim_mob::RoadNetwork&);
-
-	sum += RTTT.length();
-	return sum;
-}
-
 sim_mob::PathSetParam::PathSetParam() :
-		roadNetwork(ConfigManager::GetInstance().FullConfig().getNetwork()),
-		multiNodesPool(ConfigManager::GetInstance().FullConfig().getNetwork().getNodes()), uniNodesPool(ConfigManager::GetInstance().FullConfig().getNetwork().getUniNodes()),
+		roadNetwork(*(RoadNetwork::getInstance())),
 		RTTT(""),intervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().interval* 1000 /*milliseconds*/)
 {
+	for(std::map<unsigned int, Node *>::const_iterator it = roadNetwork.getMapOfIdvsNodes().begin(); it != roadNetwork.getMapOfIdvsNodes().end(); it++)
+	{
+		multiNodesPool.push_back(it->second);
+	}
 	initParameters();
 	populate();
 }
@@ -332,13 +270,13 @@ sim_mob::ERP_Section::ERP_Section(ERP_Section &src)
 	ERP_Gantry_No_str = boost::lexical_cast<std::string>(src.ERP_Gantry_No);
 }
 
-sim_mob::SegmentTravelTime::SegmentTravelTime(const SegmentTravelTime& src)
+sim_mob::LinkTravelTime::LinkTravelTime(const LinkTravelTime& src)
 	: linkId(src.linkId),
 			startTime(src.startTime),endTime(src.endTime),travelTime(src.travelTime),interval(src.interval)
 			,startTime_DT(sim_mob::DailyTime(src.startTime)),endTime_DT(sim_mob::DailyTime(src.endTime))
 {
 }
-sim_mob::SegmentTravelTime::SegmentTravelTime()
+sim_mob::LinkTravelTime::LinkTravelTime()
 	: linkId(0),
 			startTime(""),endTime(""),travelTime(0.0),
 			startTime_DT(0),endTime_DT(0)

@@ -29,8 +29,8 @@
 #include "conf/ConfigParams.hpp"
 #include "workers/WorkGroup.hpp"
 
-#include "geospatial/Node.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
@@ -64,25 +64,25 @@ bool isOneagentInPolygon(int location_x, int location_y, BoundarySegment* bounda
 		std::cerr << "Boundary Segment's boundary should have 4 nodes, but not." << std::endl;
 	}
 
-	Point2D pointlist[BOUNDARY_BOX_SIZE + 1];
-	Point2D agent_location(location_x, location_y);
+	Point pointlist[BOUNDARY_BOX_SIZE + 1];
+	Point agent_location(location_x, location_y);
 
 	int index = 0;
-	vector<Point2D>::iterator itr = boundary_segment->bounary_box.begin();
+	vector<Point>::iterator itr = boundary_segment->bounary_box.begin();
 	for (; itr != boundary_segment->bounary_box.end(); itr++)
 	{
-		Point2D point((*itr).getX(), (*itr).getY());
+		Point point((*itr).getX(), (*itr).getY());
 		pointlist[index] = point;
 		index++;
 	}
 
-	Point2D last_point(pointlist[0].getX(), pointlist[0].getY());
+	Point last_point(pointlist[0].getX(), pointlist[0].getY());
 	pointlist[index] = last_point;
 
 	return sim_mob::PointInsidePolygon(pointlist, BOUNDARY_BOX_SIZE + 1, agent_location);
 }
 
-void outputLineT(Point2D& start_p, Point2D& end_p, string color)
+void outputLineT(Point& start_p, Point& end_p, string color)
 {
 	static int line_id = 100;
 	if (line_id < 105) {
@@ -92,7 +92,7 @@ void outputLineT(Point2D& start_p, Point2D& end_p, string color)
 	}
 }
 
-const Signal* findOneSignalByNode(const Point2D& point)
+const Signal* findOneSignalByNode(const Point& point)
 {
 	for (size_t i=0; i<Signal::all_signals_.size(); i++) {
 		if (Signal::all_signals_.at(i)->getNode().location == point) {
@@ -623,7 +623,7 @@ void sim_mob::ShortTermBoundaryProcessor::processPackageData(string data)
 
 	for (int i = 0; i < signal_size; i++)
 	{
-		Point2D location;
+		Point location;
 		unpackageUtil >> location;
 
 		Signal* one_signal = const_cast<Signal*> (getSignalBasedOnNode(&location));
@@ -891,7 +891,7 @@ vector<Agent const *> sim_mob::ShortTermBoundaryProcessor::agentsInSegmentBounda
 	int box_minumum_y = std::numeric_limits<int>::max();
 
 	//get all agents in the box
-	vector<Point2D>::iterator itr = boundary_segment->bounary_box.begin();
+	vector<Point>::iterator itr = boundary_segment->bounary_box.begin();
 	for (; itr != boundary_segment->bounary_box.end(); itr++)
 	{
 		if ((*itr).getX() > box_maximum_x)
@@ -907,8 +907,8 @@ vector<Agent const *> sim_mob::ShortTermBoundaryProcessor::agentsInSegmentBounda
 			box_minumum_y = (*itr).getY();
 	}
 
-	Point2D lower_left_point(box_minumum_x, box_minumum_y);
-	Point2D upper_right_point(box_maximum_x, box_maximum_y);
+	Point lower_left_point(box_minumum_x, box_minumum_y);
+	Point upper_right_point(box_maximum_x, box_maximum_y);
 
 	AuraManager& auraMgr = AuraManager::instance();
 	vector<Agent const *> all_agents = auraMgr.agentsInRect(lower_left_point, upper_right_point);

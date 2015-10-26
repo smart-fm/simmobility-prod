@@ -15,7 +15,6 @@ UPDATED VERSION - Adnan
 --travel constants
 local cons_travel = 3.347
 
-
 --Person type
 local beta_homemaker = 0.442
 local beta_retired = -0.419

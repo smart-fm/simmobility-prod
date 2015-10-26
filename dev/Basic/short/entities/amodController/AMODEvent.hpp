@@ -9,8 +9,8 @@
 #define AMODEVENT_HPP_
 #include "event/args/EventArgs.hpp"
 #include "event/EventPublisher.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/WayPoint.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/WayPoint.hpp"
 #include <vector>
 namespace sim_mob {
 

@@ -113,5 +113,18 @@ public:
 	 */
 	bool getAll(std::map<int, int>& outList);
 };
+
+class MTZ12_MTZ08_MappingDao : db::MongoDao {
+public:
+	MTZ12_MTZ08_MappingDao(db::DB_Config& dbConfig, const std::string& database, const std::string& collection);
+	virtual ~MTZ12_MTZ08_MappingDao();
+
+    /**
+     * Gets all values from the source and put them on the given list.
+     * @param outList to put the retrieved values.
+     * @return true if some values were returned, false otherwise.
+     */
+    bool getAll(std::map<int,int>& outList);
+};
 } // end namespace medium
 } // end namespace sim_mob

@@ -80,7 +80,7 @@ protected:
 	sim_mob::BusStopAgent* busStopAgent;
 	//uint32_t TimeOfReachingBusStop;
 	std::string buslineId;
-	Point2D displayOffset;
+	Point displayOffset;
 	Person_ST *parent;
 
 public:

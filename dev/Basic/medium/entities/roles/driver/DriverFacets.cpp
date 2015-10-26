@@ -16,12 +16,13 @@
 #include "entities/ScreenLineCounter.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/Vehicle.hpp"
-#include "geospatial/LaneConnector.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/Point2D.hpp"
+#include "geospatial/network/Link.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/LaneConnector.hpp"
+#include "geospatial/network/Point.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "logging/Log.hpp"
@@ -31,7 +32,6 @@
 #include "partitions/ParitionDebugOutput.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "partitions/UnPackageUtils.hpp"
-#include "path/PathSetManager.hpp"
 #include "path/PathSetManager.hpp"
 #include "util/DebugFlags.hpp"
 #include "util/Utils.hpp"
@@ -304,7 +304,7 @@ bool DriverMovement::initializePath()
 		}
 		else
 		{
-			const StreetDirectory& stdir = StreetDirectory::instance();
+			const StreetDirectory& stdir = StreetDirectory::Instance();
 			wp_path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node_), stdir.DrivingVertex(*(parentDriver->goal).node_));
 		}
 
@@ -644,6 +644,14 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& params, const SegmentS
 	if (nextSegStats->getRoadSegment()->isBusTerminusSegment())
 	{
 		return true;
+	if(hasSpaceInNextStats && nextLink)
+	{
+		//additionally check if the length of vehicles in the lanegroup is not too long to accommodate this driver
+		double maxAllowedInLG = nextSegStats->getAllowedVehicleLengthForLaneGroup(nextLink);
+		double totalInLG = nextSegStats->getVehicleLengthForLaneGroup(nextLink);
+		return (totalInLG < maxAllowedInLG);
+	}
+	return hasSpaceInNextStats;
 	}
 
 	bool hasSpaceInNextStats = ((maxAllowed - total) >= enteringVehicleLength);
@@ -1031,7 +1039,7 @@ const Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, 
 	for (vector<Lane* >::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
 	{
 		const Lane* lane = *lnIt;
-		if (!lane->is_pedestrian_lane() && !lane->is_whole_day_bus_lane())
+		if (!lane->isPedestrianLane() && !lane->is_whole_day_bus_lane())
 		{
 			if (!laneConnectorOverride
 					&& nextToNextSegStats
@@ -1116,6 +1124,9 @@ void DriverMovement::updateRdSegTravelTimes(const SegmentStats* prevSegStat, dou
 		}
 
 		ScreenLineCounter::getInstance()->updateScreenLineCount(parent->currRdSegTravelStats);
+		}
+
+		ScreenLineCounter::getInstance()->updateScreenLineCount(currStats);
 	}
 	//creating a new entry in agent's travelStats for the new road segment, with entry time
 	parent->currRdSegTravelStats.reset();
@@ -1238,6 +1249,22 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const RoadSegment* comple
 			travelMetric.cbdTravelTime = TravelMetric::getTimeDiffHours(travelMetric.cbdEndTime , travelMetric.cbdStartTime);
 		}
 		break;
+	case TravelMetric::CBD_PASS:{
+		if(!cbd.isInRestrictedSegmentZone(completedRS)&&cbd.isInRestrictedSegmentZone(nextRS) && travelMetric.cbdEntered.check())
+		{
+			out << getParent()->getId() << "onSegmentCompleted Pass Enter CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
+			travelMetric.cbdOrigin = sim_mob::WayPoint(completedRS->getEnd());
+			travelMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+		}
+		if(cbd.isInRestrictedSegmentZone(completedRS)&&!cbd.isInRestrictedSegmentZone(nextRS))
+		{
+			out << getParent()->getId() << "onSegmentCompleted Pass exit CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
+			travelMetric.cbdDestination = sim_mob::WayPoint(completedRS->getEnd());
+			travelMetric.cbdEndTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
+			travelMetric.cbdTravelTime = sim_mob::TravelMetric::getTimeDiffHours(travelMetric.cbdEndTime , travelMetric.cbdStartTime);
+		}
+		break;
+	}
 	}
 	};
 	return travelMetric;

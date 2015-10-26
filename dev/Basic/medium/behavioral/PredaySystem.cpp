@@ -25,6 +25,7 @@
 #include "behavioral/params/TourModeParams.hpp"
 #include "behavioral/params/TourModeDestinationParams.hpp"
 #include "behavioral/StopType.hpp"
+#include "behavioral/StopType.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/Constructs.hpp"

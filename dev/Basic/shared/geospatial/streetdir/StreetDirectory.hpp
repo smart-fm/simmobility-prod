@@ -11,79 +11,34 @@
 #include <boost/unordered_map.hpp>
 #include <boost/utility.hpp>
 
-#include "geospatial/Point2D.hpp"
-#include "geospatial/WayPoint.hpp"
-#include "metrics/Length.hpp"
-#include "util/LangHelpers.hpp"
+#include "geospatial/network/Point.hpp"
+#include "geospatial/network/WayPoint.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
-
 
 namespace sim_mob
 {
 
-class Lane;
-class Link;
-class Point2D;
-class RoadNetwork;
-class RoadRunnerRegion;
-class RoadSegment;
 class Node;
-class MultiNode;
 class BusStop;
-class Crossing;
-//class Signal;
-class Agent;
+class Link;
+class RoadSegment;
+class RoadNetwork;
 
-
-
-/**
- * A singleton that provides street-directory information.
- *
- * Any agent (usually a Driver or Pedestrian) can call the getLane() method to find
- * which lane it is currently located.
- *   \code
- *   StreetDirectory::LaneAndIndexPair pair = StreetDirectory::instance().getLane(myPosition);
- *   if (pair.lane_ != 0)
- *   {
- *       ...
- *   }
- *   \endcode
- * The test on <tt>pair.lane</tt> is necessary because the agent may not be positioned on
- * any portion of the road network.
- *
- * If an agent (usually a pedestrian) knows it is not on any road, it can call
- * closestRoadSegments().
- * It should call this with an
- * initial small search rectangle, expanding the search area if the return list is empty.  The
- * following example starts with a initial search area of 5 meter square, increasing the sides
- * of the search area by 2 meters until the StreetDirectory returns some road segments.
- *   \code
- *   centimeter_t side = 500;
- *   std::vector<StreetDirectory::RoadSegmentAndIndexPair> segments;
- *   do
- *   {
- *       segments = StreetDirectory::instance().closestRoadSegments(myPosition, side, side);
- *       side += 200;
- *   }
- *   while (segments.empty());
- *   \endcode
- *
- *   \sa LaneAndIndexPair
- *   \sa RoadSegmentAndIndexPair
- */
-enum TimeRange{
-	MorningPeak=0,
-	EveningPeak=1,
-	OffPeak=2,
-	Default=3,
-	HighwayBias_Distance=4,
-	HighwayBias_MorningPeak=5,
-	HighwayBias_EveningPeak=6,
-	HighwayBias_OffPeak=7,
-	HighwayBias_Default=8,
+enum TimeRange
+{
+	MorningPeak = 0,
+	EveningPeak = 1,
+	OffPeak = 2,
+	Default = 3,
+	HighwayBiasDistance = 4,
+	HighwayBiasMorningPeak = 5,
+	HighwayBiasEveningPeak = 6,
+	HighwayBiasOffPeak = 7,
+	HighwayBiasDefault = 8,
 	Random
 };
-enum PT_WeightLabels{
+
+enum PT_CostLabel{
 	KshortestPath=0,
 	LabelingApproach1,
 	LabelingApproach2,
@@ -107,108 +62,10 @@ enum PT_WeightLabels{
 	SimulationApproach10,
 	weightLabelscount
 };
+
 class StreetDirectory : private boost::noncopyable
 {
 public:
-	///Retrieve the current StreetDirectory instance. There can only be one StreetDirectory at any given time.
-    static StreetDirectory& instance() {
-        return instance_;
-    }
-
-    /**
-     * Data structure returned by getLane().
-     *
-     * \c startIndex_ and \c endIndex_ are indices into the RoadSegment::polyline array.
-     * If \c lane_ is not \c 0, then the area of interest is that stretch of the road segment.
-     */
-    struct LaneAndIndexPair {
-        const Lane* lane_;
-        size_t startIndex_;
-        size_t endIndex_;
-
-        explicit LaneAndIndexPair(const Lane* lane=nullptr, size_t startIndex=0, size_t endIndex=0)
-        	: lane_(lane), startIndex_(startIndex), endIndex_(endIndex)
-        {}
-    };
-
-
-    /**
-     * Data structure returned by closestRoadSegments().
-     *
-     * \c startIndex_ and \c endIndex_ are indices into the RoadSegment::polyline array.
-     * If \c segment_ is not \c 0, then the area of interest is that stretch of the road segment.
-     * If the search area is too large, the list returned by closestRoadSegments() may contain
-     * the same road segment several times.  They are different stretches of the road segment
-     * as reflected by different \c startIndex and \c endIndex values.
-     */
-    struct RoadSegmentAndIndexPair {
-        const RoadSegment* segment_;
-        size_t startIndex_;
-        size_t endIndex_;
-
-        RoadSegmentAndIndexPair(const RoadSegment* segment, size_t startIndex, size_t endIndex)
-        	: segment_(segment), startIndex_(startIndex), endIndex_(endIndex)
-        {}
-    };
-
-
-    /**
-     * Internal typedef to StreetDirectory representing:
-     *   key:    The "vertex_name" property.
-     *   value:  The Point2D representing that vertex's location. This point is not 100% accurate,
-     *           and should be considered a rough guideline as to the vertex's location.
-     * This is just a handy way of retrieving data "stored" at a given vertex.
-     */
-    typedef boost::property<boost::vertex_name_t, Point2D> VertexProperties;
-
-
-    /**
-     * Internal typedef to StreetDirectory representing:
-     *   keys:   The "edge_weight" and "edge_name" properties.
-     *   values: The Euclidean distance of this edge, and the WayPoint which represents this edge's traversal.
-     * The distance is needed for our A* search, and the WayPoint is used when returning the actual results.
-     */
-    typedef boost::property<boost::edge_weight_t, double,
-    		boost::property<boost::edge_name_t, WayPoint > > EdgeProperties;
-
-
-    /**
-     * Internal typedef to StreetDirectory representing:
-     *   The actual graph, bound to its VertexProperties and EdgeProperties (see those comments for details on what they store).
-     * You can use StreetDirectory::Graph to mean "a graph" in all contexts.
-     */
-    typedef boost::adjacency_list<boost::vecS,
-                                  boost::vecS,
-                                  boost::directedS,
-                                  VertexProperties,
-                                  EdgeProperties> Graph;
-
-    /**
-     * Internal typedef to StreetDirectory representing:
-     *   A Vertex within our graph. Internally, these are defined as some kind of integer, but you should
-     *   simply treat this as an identifying handle.
-     * You can use StreetDirectory::Vertex to mean "a vertex" in all contexts.
-     */
-    typedef Graph::vertex_descriptor Vertex;
-
-    /**
-     * Internal typedef to StreetDirectory representing:
-     *   An Edge within our graph. Internally, these are defined as pairs of integers (fromVertex, toVertex),
-     *   but you should simply treat this as an identifying handle.
-     * You can use StreetDirectory::Edge to mean "an edge" in all contexts.
-     */
-    typedef Graph::edge_descriptor Edge;
-
-
-	//A return value for "Driving/WalkingVertex"
-	struct VertexDesc {
-		bool valid;    //Is this a valid struct? If false, treat as "null"
-		Vertex source; //The outgoing Vertex (used for "source" master nodes).
-		Vertex sink;   //The incoming Vertex (used for "sink" master nodes).
-
-		VertexDesc(bool valid=false) : valid(valid), source(Vertex()), sink(Vertex()) {}
-	};
-
 	/**
 	 * Below public Transport graph is defined. We used different graph than private transit with a purpose
 	 * of not using multiple graphs instead single graph of all Pathset Generation algorithms
@@ -228,10 +85,10 @@ public:
 	struct PT_EdgeProperties{
 		PT_EdgeId edge_id;
 
-		// This weight used by both Kshortest path and Link elimination approach algorithms.
+		/** This weight used by both K-shortest path and Link elimination approach algorithms.*/
 		double kShortestPathWeight;
 
-		// Weights used by Labelling Approach
+		/** Weights used by Labeling Approach */
 		double labelingApproach1Weight;
 		double labelingApproach2Weight;
 		double labelingApproach3Weight;
@@ -243,7 +100,7 @@ public:
 		double labelingApproach9Weight;
 		double labelingApproach10Weight;
 
-		//Weights used by Simulation approach
+		/**Weights used by Simulation approach*/
 		double simulationApproach1Weight;
 		double simulationApproach2Weight;
 		double simulationApproach3Weight;
@@ -274,313 +131,233 @@ public:
 
     typedef PublicTransitGraph::edge_descriptor PT_Edge;
 
-
-    /**
-     * Provides an implementation of the main StreetDirectory functionality. We define this as a public class
-     *   to allow the testing of different implementations, rather than restricting ourselves to cpp-defined functionality.
-     *
-     * All methods in this class are protected, so that only the StreetDirectory can use them. Any sub-classes should define
-     *   a public constructor, and leave the remainder of the fields as-is. This (should) allow proper hiding of internal details.
-     */
-    class Impl {
-    protected:
-        //Impl();  //Abstract?
-
-		virtual std::pair<sim_mob::RoadRunnerRegion, bool> getRoadRunnerRegion(const sim_mob::RoadSegment* seg) = 0;
-
-		virtual std::vector<const sim_mob::RoadSegment*> getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region) = 0;
-
-		virtual const BusStop* getBusStop(const Point2D& position) const = 0;
-
-		virtual const Node* getNode(const int id) const = 0;
-
-        virtual LaneAndIndexPair getLane(const Point2D& position) const = 0;
-
-        virtual const MultiNode* GetCrossingNode(const Crossing* cross) const = 0;
-
-        virtual std::vector<RoadSegmentAndIndexPair> closestRoadSegments(const Point2D& point, centimeter_t halfWidth, centimeter_t halfHeight) const = 0;
-
-        virtual const sim_mob::RoadSegment* getRoadSegment(const unsigned int id) = 0;
-
-        //TODO: Does this work the way I want it to?
-        friend class StreetDirectory;
-    };
-
-
-    /**
-     * Provides an implementation of the StreetDirectory's shortest-path lookup functionality. See Impl's description for
-     *  the general idea with these classes.
-     */
-    class ShortestPathImpl {
-    protected:
-    	//ShortestPathImpl();   //Abstract?
-
-    	///Retrieve a Vertex based on a Node, BusStop, etc.. Flag in the return value is false to indicate failure.
-    	virtual VertexDesc DrivingVertex(const Node& n) const = 0;
-    	virtual VertexDesc WalkingVertex(const Node& n) const = 0;
-    	virtual VertexDesc DrivingVertex(const BusStop& b) const = 0;
-    	virtual VertexDesc WalkingVertex(const BusStop& b) const = 0;
-
-    	//Meant to be used with the "DrivingVertex/WalkingVertex" functions.
-        virtual std::vector<WayPoint> GetShortestDrivingPath(VertexDesc from, VertexDesc to, std::vector<const sim_mob::RoadSegment*> blacklist) const = 0;
-        virtual std::vector<WayPoint> GetShortestWalkingPath(VertexDesc from, VertexDesc to) const = 0;
-
-        virtual void updateEdgeProperty() = 0;
-
-        virtual void printDrivingGraph(std::ostream& outFile) const = 0;
-        virtual void printWalkingGraph(std::ostream& outFile) const = 0;
-
-        //TODO: Does this work the way I want it to?
-        friend class StreetDirectory;
-    };
-
-
     /*
      * Its an abstract class for the public transport shortest path implementation .
      * This class is extended by A_StarPublicTransitShortestPathImpl class in A_StarPublicTransitShortestPathImpl.hpp
      */
-
     class PublicTransitShortestPathImpl{
     public:
     	/*
     	 * Pure virtual function to get shortest path in public transport network given pair of vertices
     	 */
-    	virtual std::vector<PT_NetworkEdge> searchShortestPath(PT_VertexId,PT_VertexId,int)=0;
+    	virtual std::vector<PT_NetworkEdge> searchShortestPath(const PT_VertexId& from, const PT_VertexId& to,const PT_CostLabel cost)=0;
 
     	/*
     	 * Pure virtual function to get shortest path along with some blacklisted edges in public transport network given pair of vertices
     	 */
-    	virtual std::vector<PT_NetworkEdge> searchShortestPathWithBlacklist(StreetDirectory::PT_VertexId from,StreetDirectory::PT_VertexId to, const std::set<StreetDirectory::PT_EdgeId>& blackList, double& cost)=0;
+    	virtual std::vector<PT_NetworkEdge> searchShortestPathWithBlacklist(const StreetDirectory::PT_VertexId& from,const StreetDirectory::PT_VertexId& to, const std::set<StreetDirectory::PT_EdgeId>& blackList, double& cost)=0;
     	/*
     	 * Pure virtual Function to get first K shortest paths in public transport network given pair of vertices.
     	 */
-    	virtual void getKShortestPaths(uint32_t k, StreetDirectory::PT_VertexId from, StreetDirectory::PT_VertexId to, std::vector< std::vector<PT_NetworkEdge> > & outPathList)=0;
+    	virtual void searchK_ShortestPaths(uint32_t k, const StreetDirectory::PT_VertexId& from,const StreetDirectory::PT_VertexId& to, std::vector< std::vector<PT_NetworkEdge> > & outPathList)=0;
     	friend class StreetDirectory;
-
     };
 
-
-    /**
-     * Retrieve the RoadRunnerRegion that a given RoadSegment passes through.
-     * boolean value indicates success.
-     * NOTE: We assume that a Segment is "inside" a Region if its midpoint is inside that Region, or
-     *       if its from/to line intersects one of that Region's line segments.
-     * If multiple Regions overlap on a RoadSegment, an arbitrary one will be chosen.
-     */
-    std::pair<sim_mob::RoadRunnerRegion, bool> getRoadRunnerRegion(const sim_mob::RoadSegment* seg);
-
-    /**
-     * Retrieve the list of RoadSegments that a given RoadRunnerRegion encompasses.
-     * If multiple Regions overlap on a RoadSegment, that Segment will only be considered part of
-     *   an arbitrary Region.
-     */
-    std::vector<const sim_mob::RoadSegment*> getSegmentsFromRegion(const sim_mob::RoadRunnerRegion& region);
-
-
-    const BusStop* getBusStop(const Point2D& position) const;
-
-	const Node* getNode(const int id) const;
-
-    /**
-     * Return the lane that contains the specified \c point; 0 if the point is outside the
-     * road network.
-     */
-    LaneAndIndexPair getLane(const Point2D& point) const;
-
-
-    /**
-     * Return the MultiNode closest to this Crossing (may be null).
-     */
-    const MultiNode* GetCrossingNode(const Crossing* cross) const;
-
-
-    /**
-     * Return the RoadSegments within a rectangle centered around a point;
-     * possibly empty list if rectangle is too small.
-     */
-    std::vector<RoadSegmentAndIndexPair> closestRoadSegments(const Point2D & point, centimeter_t halfWidth, centimeter_t halfHeight) const;
-
-
-    /**
-     * Return the Signal object, possibly none, located at the specified node.
-     *
-     * It is possible that the intersection, specified by \c node, is an unsignalized junction.
-     * All road users must observe the highway code.
-     */
-    //const Signal* signalAt(const sim_mob::Node& node) const;
-
-
-	VertexDesc DrivingVertex(const sim_mob::Node& n) const;
-	VertexDesc DrivingTimeVertex(const sim_mob::Node& n,sim_mob::TimeRange tr = sim_mob::MorningPeak,int random_graph_idx=0) const;
-	VertexDesc WalkingVertex(const sim_mob::Node& n) const;
-	VertexDesc DrivingVertex(const sim_mob::BusStop& b) const;
-	VertexDesc WalkingVertex(const sim_mob::BusStop& b) const;
-
-
-    /**
-     * Return the distance-based shortest path to drive from one node to another. Performs a search (currently using
-     *  the A* algorithm) from "fromNode" to "toNode".
-     *
-     * The function may return an empty array if \c toNode is not reachable from \c fromNode via
-     * road-segments allocated for vehicle traffic.
-     *
-     * The resulting array contains only ROAD_SEGMENT and NODE WayPoint types. NODES at the beginning or end
-     *  of the array can be ignored; NODES in the middle represent LaneConnectors.
-     *
-     * \todo
-     * Although A* is pretty fast, we might want to cache the X most recent from/to pairs, since we're likely to have
-     *   a lot of drivers asking for the same path information. This is trickier than one might think, since the
-     *   StreetDirectory is used in parallel, so a shared structure will need to be designed carefully. ~Seth
-     */
-    std::vector<WayPoint> SearchShortestDrivingPath(VertexDesc from, VertexDesc to, std::vector<const sim_mob::RoadSegment*> blacklist=std::vector<const sim_mob::RoadSegment*>()) const;
-
-    std::vector<WayPoint> SearchShortestDrivingTimePath(VertexDesc from,
-    		VertexDesc to,
-    		std::vector<const sim_mob::RoadSegment*> blacklist=std::vector<const sim_mob::RoadSegment*>(),
-    		sim_mob::TimeRange tr=sim_mob::MorningPeak,
-    		int random_graph_idx=0) const;
-
-    /**
-     * Return the distance-based shortest path to walk from one point to another.
-     *
-     * The function may return an empty array if \c toPoint is not reachable from \c fromPoint
-     * via side-walks and crossings.
-     *
-     * The array contains only SIDE_WALK, CROSSING and NODE WayPoint types.
-     *
-     * It is possible that \c fromPoint or \c toPoint are off the road network (for example,
-     * inside a building).  In that case, the first (last) wayPoint in the array would be a NODE
-     * type if \c fromPoint (\c toPoint) is not within the road network; the NODE way-point would
-     * be located in the road network.  The pedestrian is required to move from \c fromPoint to the
-     * way-point (or from the way-point to \c toPoint) by some undefined mean.
-     *
-     * \todo
-     * Adding of ad-hoc points is untested at the moment.
-     */
-    std::vector<WayPoint> SearchShortestWalkingPath(VertexDesc from, VertexDesc to) const;
-
-
-    /**
-     * Initialize the StreetDirectory object (to be invoked by the simulator kernel).
-     *
-     * The StreetDirectory partitions the road network into a rectangular grid for fast lookup.
-     * This method is used to initialize the spatial index with the loaded road network.
-     *   \param network The road network that was loaded into the simulator.
-     *   \param keepStats Keep statistics on internal operations if true.
-     *   \param gridWidth Width of the grid, default of 1000 meters.
-     *   \param gridHeight Height of the grid, default of 800 meters.
-     * In future version, the first parameter, \c network, may be removed; the StreetDirectory
-     * singleton will load the road network on demand during calls to getLane() and
-     * closestRoadSegments().
-     */
-    void init(const RoadNetwork& network, bool keepStats=false, centimeter_t gridWidth=100000, centimeter_t gridHeight=80000);
-
-
-    /**
-     * Register the Signal object with the StreetDirectory (to be invoked by the simulator kernel).
-     */
-    //void registerSignal(const Signal& signal);
-
-
-    /**
-     * Print statistics collected on internal operations.
-     *
-     * Useful only if \c keepStats is \c true when \c init() was called.
-     */
-    void printStatistics() const;
-
-
-    void updateDrivingMap();
-
-
-    ///Print the Driving graph to LogOut(), in the old output format (out.txt)
-    void printDrivingGraph(std::ostream& outFile);
-
-    ///Print the Walking graph to LogOut(), in the old output format (out.txt)
-    void printWalkingGraph(std::ostream& outFile);
-
-    ///Return the Link associated with a given Node.
-    ///Appears to associate Nodes based on an arbitrary choice (whether they appear as "start" nodes in a Link)
-    ///However, since multiple Links share the same "start" Node, this isn't very realistic. Leaving in for now for
-    /// compatibility purposes.
-    const sim_mob::Link* getLinkLoc(const sim_mob::Node* node) const;
-
-    ///Helper: find the nearest MultiNode to this Segment.
-    static const MultiNode* FindNearestMultiNode(const RoadSegment* seg, const Crossing* cr);
-
-    ///Return the Link associated with a given start and end Node.
-    const sim_mob::Link* searchLink(const sim_mob::Node* start, const sim_mob::Node* end);
-
-    /**
-     * return a road segment from a aimsun-id
-     * @param id is a given aimsun id
-     * return a pointer to associated road segment
-     */
-    const sim_mob::RoadSegment* getRoadSegment(const unsigned int id);
-
-    ShortestPathImpl* getDistanceImpl() { return spImpl_; }
-	ShortestPathImpl* getTravelTimeImpl() { return sttpImpl_; }
-	PublicTransitShortestPathImpl* getPublicTransitShortestPathImpl(){return ptImpl_;}
-
-	 /* find one BusStopAgent by BusStop
-	 * @param busStop is a pointer to a given bus stop
-	 * return a pointer to bus stop agent if found, otherwise return null
+public:
+	/**
+	 * Internal typedef to StreetDirectory representing:
+	 * key:		The "vertex_name" property.
+	 * value:	The Point representing that vertex location. This point is not 100% accurate,
+	 *			and should be considered a rough guideline as to the vertex location.
+	 * This is just a handy way of retrieving data "stored" at a given vertex.
 	 */
-	Agent* findBusStopAgentByBusStop(const BusStop* busStop) const;
+	typedef boost::property<boost::vertex_name_t, Point> VertexProperties;
 
 	/**
-	 * initialize a map item from bus stop agent to bus stop
-	 * @param busStop is a pointer to a given bus stop
-	 * @param busStopAgent is a pointer to bus stop agent
-	 * return void
+	 * Internal typedef to StreetDirectory representing:
+	 * keys:	The "edge_weight" and "edge_name" properties.
+	 * values:	The Euclidean distance of this edge, and the WayPoint which represents this edge traversal.
+	 * The distance is needed for our A* search, and the WayPoint is used when returning the actual results.
 	 */
-	void registerStopAgent(const BusStop* busStop, Agent* busStopAgent);
+	typedef boost::property<boost::edge_weight_t, double, boost::property<boost::edge_name_t, WayPoint> > EdgeProperties;
 
+	/**
+	 * Internal typedef to StreetDirectory representing:
+	 * The actual graph, bound to its VertexProperties and EdgeProperties (see those comments for details on what they store).
+	 * You can use StreetDirectory::Graph to mean "a graph" in all contexts.
+	 */
+	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, VertexProperties, EdgeProperties> Graph;
+
+	/**
+	 * Internal typedef to StreetDirectory representing:
+	 * A Vertex within our graph. Internally, these are defined as some kind of integer, but you should
+	 * simply treat this as an identifying handle.
+	 * You can use StreetDirectory::Vertex to mean "a vertex" in all contexts.
+	 */
+	typedef Graph::vertex_descriptor Vertex;
+
+	/**
+	 * Internal typedef to StreetDirectory representing:
+	 * An Edge within our graph. Internally, these are defined as pairs of integers (fromVertex, toVertex),
+	 * but you should simply treat this as an identifying handle.
+	 * You can use StreetDirectory::Edge to mean "an edge" in all contexts.
+	 */
+	typedef Graph::edge_descriptor Edge;
+
+	/**
+	 * A return value for "Driving/WalkingVertex"
+	 */
+	struct VertexDesc
+	{
+		/**Is this a valid value? If false, treat as "null"*/
+		bool valid;
+
+		/**The outgoing Vertex (used for "source" master nodes).*/
+		Vertex source;
+
+		/**The incoming Vertex (used for "sink" master nodes).*/
+		Vertex sink;
+
+		VertexDesc(bool valid = false) :
+		valid(valid), source(Vertex()), sink(Vertex())
+		{
+		}
+	};
+
+	/**
+	 * Provides an implementation of the StreetDirectory's shortest-path lookup functionality.
+	 */
+	class ShortestPathImpl
+	{
+	protected:
+		/**
+		 * Retrieves a Vertex based on a Node. A flag in the return value is false to indicate failure.
+		 *
+		 * @param Node is a reference to the input Node
+		 *
+		 * @return a VertexDesc with a flag value to indicate success or failure
+		 */
+		virtual VertexDesc DrivingVertex(const Node& n) const = 0;
+
+		/**
+		 * Retrieve a Vertex based on a BusStop. A flag in the return value is false to indicate failure.
+		 *
+		 * @param BusStop is a reference to the input bus stop
+		 *
+		 * @return a VertexDesc with a flag value to indicate success or failure
+		 */
+		virtual VertexDesc DrivingVertex(const BusStop& b) const = 0;
+
+		/**
+		 * Retrieves shortest driving path from original point to destination
+		 *
+		 * @param from is original vertex in the graph
+		 * @param to is destination vertex in the graph
+		 * @param blackList is the black list to mask some edge in the graph
+		 *
+		 * @return the shortest path result.
+		 */
+		virtual std::vector<WayPoint> GetShortestDrivingPath(const VertexDesc &from, const VertexDesc &to, const std::vector<const Link *> &blackList) const = 0;
+
+		/**
+		 * Prints the graph structure
+		 * @param outFile is a output stream is original vertex in the graph
+		 */
+		virtual void printDrivingGraph(std::ostream& outFile) const = 0;
+
+		/**friend class to access protected function*/
+		friend class StreetDirectory;
+	};
+
+	/**
+	 * Retrieves the current StreetDirectory instance. There can only be one StreetDirectory at any given time.
+	 * @return the instance of the street directory
+	 */
+	static StreetDirectory& Instance()
+	{
+		return instance;
+	}
+
+	virtual ~StreetDirectory();
+
+	/**
+	 * Retrieves the implementation pointer to the shortest path based on distance
+	 *
+	 * @return the pointer of the implementation
+	 */
+	ShortestPathImpl* getDistanceImpl() const;
+
+	/**
+	 * Retrieves the implementation pointer to the shortest path based on travel time
+	 * @return the pointer of the implementation
+	 */
+	ShortestPathImpl* getTravelTimeImpl() const;
+
+	/**
+	 * Retrieves the implementation pointer to the shortest path based on public transit
+	 * @return the pointer of the implementation
+	 */
+	PublicTransitShortestPathImpl* getPublicTransitShortestPathImpl() const;
+
+	/**
+	 * Return the distance-based shortest path to drive from one node to another. Performs a search (currently using
+	 * the A* algorithm) from one node to another.
+	 *
+	 * The function may return an empty array if the "toNode" is not reachable from the "fromNode"
+	 *
+	 * The resulting array contains LINK or NODE WayPoint types. NODES at the beginning or end
+	 * of the array can be ignored; NODES in the middle represent Link Connectors.
+	 *
+	 * @param from is a parameter to hold starting node
+	 * @param to is a parameter to hold ending node
+	 * @param blackList take black list when searching shortest path
+	 *
+	 * @return the shortest path result.
+	 */
+	std::vector<WayPoint> SearchShortestDrivingPath(const Node &from, const Node &to,
+													const std::vector<const Link*>& blackList = std::vector<const Link*>()) const;
+	/**
+	 * Retrieves a vertex in the distance graph
+	 *
+	 * @param node is a parameter which is node
+	 * @return a VertexDesc which hold vertex in the graph
+	 */
+	VertexDesc DrivingVertex(const Node& node) const;
+	/**
+	 * Retrieves a vertex in the time graph
+	 *
+	 * @param node
+	 * @param timeRange is time range, default value is peak time in the morning
+	 * @param randomGraphId is random graph index, default value is 0.
+	 *
+	 * @return a VertexDesc which hold vertex in the graph
+	 */
+	VertexDesc DrivingTimeVertex(const Node& node, TimeRange timeRange = MorningPeak, int randomGraphId = 0) const;
+	/**
+	 * Return the time-based shortest path to drive from to another. Performs a search (currently using
+	 *  the A* algorithm) from one to another.
+	 * @param from hold starting node
+	 * @param to hold ending node
+	 * @param blackList take black list when searching shortest path
+	 * @param timeRange is time range, default value is peak time in the morning
+	 * @param randomGraphId is random graph index, default value is 0.
+	 * @return the shortest path result.
+	 */
+	std::vector<sim_mob::WayPoint> SearchShortestDrivingTimePath(
+			const sim_mob::Node& from,	const sim_mob::Node& to,
+			const std::vector<const sim_mob::Link*>& blacklist =std::vector<const sim_mob::Link*>(),
+			TimeRange timeRange = MorningPeak,unsigned int randomGraphId = 0) const;
+	/**
+	 * Initialize the StreetDirectory object (to be invoked by the simulator kernel).
+	 *
+	 * @param network The road network that was loaded into the simulator.
+	 */
+	void Init(const RoadNetwork& network);
 
 private:
-    //Helper: Find the point closest to the origin.
-    static double GetShortestDistance(const Point2D& origin, const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4);
+	StreetDirectory();
 
+	/**the single instance of the street directory */
+	static StreetDirectory instance;
 
-private:
-    StreetDirectory() : pimpl_(nullptr), spImpl_(nullptr), sttpImpl_(nullptr),ptImpl_(nullptr)/*, stats_(nullptr)*/
-    {}
+	/**Our current implementation of the shortest path searcher. */
+	ShortestPathImpl* spImpl;
 
-    static StreetDirectory instance_;
+	/** shortest travel time path*/
+	ShortestPathImpl* sttpImpl;
 
-
-private:
-    ///Our current implementation of StreetDirectory functionality.
-    Impl* pimpl_;
-
-    ///Our current implementation of the shortest path searcher.
-    ShortestPathImpl* spImpl_;
-
-    // shortest travel time path
-    ShortestPathImpl* sttpImpl_;
-
-    //Public Transit implementation
-
-    PublicTransitShortestPathImpl* ptImpl_;
-
-    ///The current set of StreetDirectoryStats
-    //Stats* stats_;
-
-    ///A lookup of all Signals in the RoadNetwork
-    //std::map<const Node*, const Signal*> signals_;
-
-    ///A lookup of all Nodes/Links by a very specific criteria; see getLinkLoc() above.
-    /// This criteria should definitely be re-examined.
-	std::map<const sim_mob::Node*, const sim_mob::Link*> node_link_loc_cache;
-
-	///A lookup of all Links by their start/end Nodes
-	///key is <start, end>
-    std::map< std::pair<const sim_mob::Node*, const sim_mob::Node*>, sim_mob::Link*> links_by_node;
-
-	///Map of <bus stop*, BusStopAgent*> for all bus stops in the network
-    boost::unordered_map<const sim_mob::BusStop*, Agent*> allBusStopAgents;
-
+    /**Public Transit implementation*/
+    PublicTransitShortestPathImpl* ptImpl;
 };
-
-
 }
+

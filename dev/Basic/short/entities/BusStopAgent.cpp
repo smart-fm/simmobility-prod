@@ -10,7 +10,7 @@
 #include "entities/Person.hpp"
 #include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
 #include "entities/roles/waitBusActivityRole/WaitBusActivityRoleFacets.hpp"
-#include "geospatial/BusStop.hpp"
+#include "geospatial/network/BusStop.hpp"
 #include "workers/WorkGroup.hpp"
 
 using std::vector;
@@ -36,8 +36,8 @@ void sim_mob::BusStopAgent::AssignAllBusStopAgents(sim_mob::WorkGroup& wg)
 void sim_mob::BusStopAgent::RegisterNewBusStopAgent(BusStop& busstop, const MutexStrategy& mtxStrat)
 {
 	BusStopAgent* sig_ag = new BusStopAgent(busstop, mtxStrat);
-	sig_ag->setBusStopAgentNo(busstop.getBusstopno_());
-	allBusstopAgents[busstop.getBusstopno_()] = sig_ag;
+	//sig_ag->setBusStopAgentNo(busstop.getRoadItemId());
+	//allBusstopAgents[busstop.getRoadItemId()] = sig_ag;
 }
 
 bool sim_mob::BusStopAgent::HasBusStopAgents()
@@ -70,7 +70,7 @@ void sim_mob::BusStopAgent::PlaceAllBusStopAgents(std::vector<sim_mob::Entity*>&
 BusStopAgent* sim_mob::BusStopAgent::findBusStopAgentByBusStop(const BusStop* busstop)
 {
 	try {
-		return allBusstopAgents.at(busstop->getBusstopno_());
+		return nullptr;// allBusstopAgents.at(busstop->getRoadItemId());
 	}
 	catch (const std::out_of_range& oor) {
 		return nullptr;
@@ -119,7 +119,7 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 				currReachedMSOut << "currReachedMsInformation for buslineId " << (it->first) << std::endl;
 				for(int i = 0; i < it->second.size(); i++) {
 					currReachedMSOut << now.frame() << " "
-									 << "at stop " << this->busstop_.busstopno_ << " "
+									 << "at stop " << this->busstop_.getRoadItemId() << " "
 									 << (it->first) << " "
 									 << (it->second)[i] << std::endl;
 				}
@@ -134,7 +134,7 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 				currReachedMSOut << "AlightingInformation for buslineId " << (it->first) << std::endl;
 				for(int j = 0; j < it->second.size(); j++) {
 					currReachedMSOut << now.frame() << " "
-									 << "alightingNum " << this->busstop_.busstopno_ << " "
+									 << "alightingNum " << this->busstop_.getRoadItemId() << " "
 									 << (it->first) << " "
 									 << (it->second)[j] << std::endl;
 				}
@@ -149,7 +149,7 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 				currReachedMSOut << "BoardingInformation for buslineId " << (it->first) << std::endl;
 				for(int k = 0; k < it->second.size(); k++) {
 					currReachedMSOut << now.frame() << " "
-									 << "boardingNum " << this->busstop_.busstopno_ << " "
+									 << "boardingNum " << this->busstop_.getRoadItemId() << " "
 									 << (it->first) << " "
 									 << (it->second)[k] << std::endl;
 				}
@@ -165,7 +165,7 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 				currReachedMSOut << "BoardingAlightingSecs_Information for buslineId " << (it1->first) << std::endl;
 				for(int m = 0; m < it1->second.size(); m++) {
 					currReachedMSOut << now.frame() << " "
-									 << "boardingAlightingSecs " << this->busstop_.busstopno_ << " "
+									 << "boardingAlightingSecs " << this->busstop_.getRoadItemId() << " "
 									 << (it1->first) << " "
 									 << (it1->second)[m] << std::endl;
 				}
@@ -181,7 +181,7 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 				currReachedMSOut << "BusTripRunSequenceNumInformation for buslineId " << (it2->first) << std::endl;
 				for(int n = 0; n < it2->second.size(); n++) {
 					currReachedMSOut << now.frame() << " "
-									 << "bustripRunSequenceNum " << this->busstop_.busstopno_ << " "
+									 << "bustripRunSequenceNum " << this->busstop_.getRoadItemId() << " "
 									 << (it2->first) << " "
 									 << (it2->second)[n] << std::endl;
 				}
@@ -196,7 +196,7 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 				currReachedMSOut << "PassengerCountsInformation for buslineId " << (it2->first) << std::endl;
 				for(int s = 0; s < it2->second.size(); s++) {
 					currReachedMSOut << now.frame() << " "
-									 << "passengerCounts " << this->busstop_.busstopno_ << " "
+									 << "passengerCounts " << this->busstop_.getRoadItemId() << " "
 									 << (it2->first) << " "
 									 << (it2->second)[s] << std::endl;
 				}
@@ -231,7 +231,11 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 Entity::UpdateStatus sim_mob::BusStopAgent::frame_tick(timeslice now)
 {
 	if(now.ms() % busStopUpdateFrequencyMS == 0) {// every 5000ms check AuraManager
-		vector<const Agent*> nearby_agents = AuraManager::instance().agentsInRect(Point2D((busstop_.xPos - 3500),(busstop_.yPos - 3500)),Point2D((busstop_.xPos + 3500),(busstop_.yPos + 3500)), this);
+		vector<const Agent*> nearby_agents = 
+		AuraManager::instance().agentsInRect(Point((busstop_.getStopLocation().getX() - 3500), 
+												 (busstop_.getStopLocation().getY() - 3500)), 
+											 Point((busstop_.getStopLocation().getX() + 3500),(busstop_.getStopLocation().getY() + 3500)), this);
+		
 		for (vector<const Agent*>::iterator it = nearby_agents.begin();it != nearby_agents.end(); ++it)
 		{
 			//Retrieve only agents with WaitBusActivityRoles.

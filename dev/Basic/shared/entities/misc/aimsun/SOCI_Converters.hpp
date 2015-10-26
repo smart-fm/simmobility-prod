@@ -11,6 +11,7 @@
 #include "boost/algorithm/string.hpp"
 #include "soci/soci.h"
 #include "TripChain.hpp"
+#include "entities/misc/BusSchedule.hpp"
 
 
 using namespace sim_mob::aimsun;
@@ -68,6 +69,27 @@ template<> struct type_conversion<sim_mob::aimsun::TripChainItem>
 };
 
 
+template<>
+struct type_conversion<sim_mob::BusSchedule>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::BusSchedule& bus_schedule)
+    {
+    	bus_schedule.tripid = values.get<std::string>("trip_id", "");
+    	boost::trim(bus_schedule.tripid);
+    	bus_schedule.startTime = sim_mob::DailyTime(values.get<std::string>("start_time", ""));
+    }
+
+    static void
+    to_base(sim_mob::BusSchedule const & bus_schedule, soci::values & values, soci::indicator & indicator)
+    {
+        values.set("trip_id", bus_schedule.tripid);
+        values.set("start_time", bus_schedule.startTime.getStrRepr());
+        indicator = i_ok;
+    }
+};
 
 template<>
 struct type_conversion<sim_mob::PT_BusDispatchFreq>
@@ -108,9 +130,9 @@ struct type_conversion<sim_mob::PT_BusRoutes>
     {
     	ptBusRoutes.routeId = values.get<std::string>("route_id", "");
     	boost::trim(ptBusRoutes.routeId);
-    	ptBusRoutes.linkId = values.get<std::string>("link_id", "");
+    	ptBusRoutes.linkId = values.get<std::string>("section_id", "");
     	boost::trim(ptBusRoutes.linkId);
-    	ptBusRoutes.sequenceNo = values.get<int>("link_sequence_no", 0);
+    	ptBusRoutes.sequenceNo = values.get<int>("sequence_no", 0);
     }
 
     static void
@@ -133,9 +155,9 @@ struct type_conversion<sim_mob::PT_BusStops>
     {
     	ptBusStops.routeId = values.get<std::string>("route_id", "");
     	boost::trim(ptBusStops.routeId);
-    	ptBusStops.stopNo = values.get<std::string>("busstop_no", "");
+    	ptBusStops.stopNo = values.get<std::string>("stop_code", "");
     	boost::trim(ptBusStops.stopNo);
-    	ptBusStops.sequenceNo = values.get<int>("busstop_sequence_no", 0);
+    	ptBusStops.sequenceNo = values.get<int>("sequence_no", 0);
     }
 
     static void

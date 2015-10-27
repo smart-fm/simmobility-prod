@@ -38,7 +38,7 @@
 #include "geospatial/network/TurningPath.hpp"
 #include "geospatial/network/TurningConflict.hpp"
 #include "geospatial/network/PolyLine.hpp"
-#include "geospatial/WayPoint.hpp"
+#include "geospatial/network/WayPoint.hpp"
 #include "path/PathSetManager.hpp"
 #include "path/PT_RouteChoiceLuaModel.hpp"
 

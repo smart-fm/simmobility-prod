@@ -62,7 +62,6 @@
 #include "workers/WorkGroup.hpp"
 #include "workers/WorkGroupManager.hpp"
 
-#include "path/ScreenLineCounter.hpp"
 
 //If you want to force a header file to compile, you can put it here temporarily:
 //#include "entities/BusController.hpp"
@@ -87,8 +86,10 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 
 
 void unit_test_function(){
-	sim_mob::Node* src_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(14934);
-	sim_mob::Node* dest_node = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(11392);
+	const RoadNetwork* rn = RoadNetwork::getInstance();
+	const std::map<unsigned int, Node *>& nodeLookup = rn->getMapOfIdvsNodes();
+	sim_mob::Node* src_node = rn->getById(nodeLookup, 14934);
+	sim_mob::Node* dest_node = rn->getById(nodeLookup, 11392);
 	sim_mob::PT_PathSetManager::Instance().makePathset(src_node,dest_node);
 }
 
@@ -644,7 +645,7 @@ int main_impl(int ARGC, char* ARGV[])
 	timeval simEndTime;
 	gettimeofday(&simEndTime, nullptr);
 
-	if(ConfigManager::GetInstance().FullConfig().screenLineParams.outputEnabled)
+	if(MT_Config::getInstance().screenLineParams.outputEnabled)
 	{
 		ScreenLineCounter::getInstance()->exportScreenLineCount();
 	}

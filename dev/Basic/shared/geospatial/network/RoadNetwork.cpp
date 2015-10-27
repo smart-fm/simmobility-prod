@@ -10,6 +10,7 @@
 #include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
 #include "RoadItem.hpp"
+#include "geospatial/network/NetworkLoader.cpp"
 
 using namespace sim_mob;
 
@@ -547,37 +548,7 @@ void RoadNetwork::addBusStop(BusStop* stop)
 	}
 }
 
-const Node* RoadNetwork::getNodeById(unsigned int nodeId) const
-{
-	std::map<unsigned int, Node *>::const_iterator itNodes = mapOfIdvsNodes.find(nodeId);
-	
-	if(itNodes != mapOfIdvsNodes.end())
-	{
-		return itNodes->second;
-	}
-	else
-	{
-		sim_mob::Print() << "Node " << nodeId << " was not found!";
-		return NULL;
-	}
-}
-
-const RoadSegment * RoadNetwork::getSegmentById(unsigned int id) const
-{
-	std::map<unsigned int, RoadSegment *>::const_iterator itSeg = mapOfIdVsRoadSegments.find(id);
-
-	if(itSeg != mapOfIdVsRoadSegments.end())
-	{
-		return itSeg->second;
-	}
-	else
-	{
-		sim_mob::Print() << "Segment " << id << " was not found!";
-		return NULL;
-	}
-}
-
-RoadNetwork* sim_mob::RoadNetwork::getInstance()
+const RoadNetwork* sim_mob::RoadNetwork::getInstance()
 {
 	if(!roadNetwork)
 	{

@@ -29,8 +29,6 @@ private:
 
 	void loadPublicTransitNetworkFromDatabase();
 
-	void WarnMidroadSidewalks();
-
 	void verifyIncidents();
 
 	void setRestrictedRegionSupport();

@@ -48,5 +48,7 @@ public:
 	 * @param point - the poly-point to be added
 	 */
 	void addPoint(PolyPoint point);
+
+	size_t size() const;
 };
 }

@@ -8,6 +8,7 @@
 #include "entities/amodController/AMODController.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "event/args/ReRouteEventArgs.hpp"
+#include "logging/Log.hpp"
 
 using namespace std;
 using namespace sim_mob;
@@ -18,10 +19,10 @@ namespace
 Trip* MakePseudoTrip(const Person &ag, const std::string &mode)
 {
 	//Make sure we have something to work with
-	if (!(ag.originNode.node_ && ag.destNode.node_))
+	if (!(ag.originNode.node && ag.destNode.node))
 	{
 		std::stringstream msg;
-		msg << "Can't make a pseudo-trip for an Agent with no origin and destination nodes: " << ag.originNode.node_ << " , " << ag.destNode.node_;
+		msg << "Can't make a pseudo-trip for an Agent with no origin and destination nodes: " << ag.originNode.node << " , " << ag.destNode.node;
 		throw std::runtime_error(msg.str().c_str());
 	}
 
@@ -241,8 +242,15 @@ void Person_ST::load(const map<string, string> &configProps)
 		}
 
 		//Otherwise, make a trip chain for this Person.
-		this->originNode = WayPoint(ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(originNodeId));
-		this->destNode = WayPoint(ConfigManager::GetInstanceRW().FullConfig().getNetworkRW().getNodeById(destNodeid));
+		const RoadNetwork* rn = RoadNetwork::getInstance();
+		const Node* originNd = rn->getById(rn->getMapOfIdvsNodes(), originNodeId);
+		const Node* destinNd = rn->getById(rn->getMapOfIdvsNodes(), destNodeid);
+		if(!originNd || !destinNd)
+		{
+			throw std::runtime_error("invalid OD node ids passed for person");
+		}
+		this->originNode = WayPoint(originNd);
+		this->destNode = WayPoint(destinNd);
 
 		Trip* singleTrip = MakePseudoTrip(*this, mode);
 
@@ -257,36 +265,7 @@ void Person_ST::load(const map<string, string> &configProps)
 	}
 	else
 	{
-		map<string, string>::const_iterator origIt = configProps.find("originPos");
-		map<string, string>::const_iterator destIt = configProps.find("destPos");
-		
-		if (origIt != configProps.end() && destIt != configProps.end())
-		{
-			//Double-check some potential error states.
-			if (!tripChain.empty())
-			{
-				throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
-			}
-			if (this->originNode.node_ || this->destNode.node_)
-			{
-				throw std::runtime_error("Manual position specified for Agent with existing start and end of Trip Chain.");
-			}
-
-			//Otherwise, make a trip chain for this Person.
-			this->originNode = WayPoint(ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(origIt->second), true));
-			this->destNode = WayPoint(ConfigManager::GetInstance().FullConfig().getNetwork().locateNode(parse_point(destIt->second), true));
-
-			Trip* singleTrip = MakePseudoTrip(*this, mode);
-
-			std::vector<TripChainItem*> trip_chain;
-			trip_chain.push_back(singleTrip);
-
-			this->originNode = singleTrip->origin;
-			this->destNode = singleTrip->destination;
-			this->setNextPathPlanned(false);
-			this->setTripChain(trip_chain);
-			this->initTripChain();
-		}
+		throw std::runtime_error("originNode and destNode specified incorrectly in config xml");
 	}
 }
 
@@ -645,34 +624,34 @@ bool Person_ST::advanceCurrentTripChainItem()
 void Person_ST::onEvent(event::EventId eventId, event::Context ctxId, event::EventPublisher *sender, const event::EventArgs &args)
 {
 	Agent::onEvent(eventId, ctxId, sender, args);
-	//Some events only matter if they are for us.
-	if (ctxId == this)
-	{
-		if (eventId == event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT)
-		{
-			//Was communication simulator enabled for us? If so, start tracking Regions.
-			Print() << "Enabling Region support for agent: " << this << "\n";
-			enableRegionSupport();
-
-			//This requires us to now listen for a new set of events.
-			messaging::MessageBus::SubscribeEvent(sim_mob::event::EVT_CORE_COMMSIM_REROUTING_REQUEST,
-												this, //Only when we are the Agent being requested to re-route..
-												this //Return this event to us (the agent).
-												);
-		}
-		else if (eventId == event::EVT_CORE_COMMSIM_REROUTING_REQUEST)
-		{
-			//Were we requested to re-route?
-			const event::ReRouteEventArgs &rrArgs = MSG_CAST(event::ReRouteEventArgs, args);
-			const std::map<int, sim_mob::RoadRunnerRegion>& regions = ConfigManager::GetInstance().FullConfig().getNetwork().roadRunnerRegions;
-			std::map<int, sim_mob::RoadRunnerRegion>::const_iterator it = regions.find(boost::lexical_cast<int>(rrArgs.getBlacklistRegion()));
-			if (it != regions.end())
-			{
-				std::vector<const sim_mob::RoadSegment*> blacklisted = StreetDirectory::instance().getSegmentsFromRegion(it->second);
-				rerouteWithBlacklist(blacklisted);
-			}
-		}
-	}
+//	//Some events only matter if they are for us.
+//	if (ctxId == this)
+//	{
+//		if (eventId == event::EVT_CORE_COMMSIM_ENABLED_FOR_AGENT)
+//		{
+//			//Was communication simulator enabled for us? If so, start tracking Regions.
+//			Print() << "Enabling Region support for agent: " << this << "\n";
+//			enableRegionSupport();
+//
+//			//This requires us to now listen for a new set of events.
+//			messaging::MessageBus::SubscribeEvent(sim_mob::event::EVT_CORE_COMMSIM_REROUTING_REQUEST,
+//												this, //Only when we are the Agent being requested to re-route..
+//												this //Return this event to us (the agent).
+//												);
+//		}
+//		else if (eventId == event::EVT_CORE_COMMSIM_REROUTING_REQUEST)
+//		{
+//			//Were we requested to re-route?
+//			const event::ReRouteEventArgs &rrArgs = MSG_CAST(event::ReRouteEventArgs, args);
+//			const std::map<int, sim_mob::RoadRunnerRegion>& regions = ConfigManager::GetInstance().FullConfig().getNetwork().roadRunnerRegions;
+//			std::map<int, sim_mob::RoadRunnerRegion>::const_iterator it = regions.find(boost::lexical_cast<int>(rrArgs.getBlacklistRegion()));
+//			if (it != regions.end())
+//			{
+//				std::vector<const sim_mob::RoadSegment*> blacklisted = StreetDirectory::instance().getSegmentsFromRegion(it->second);
+//				rerouteWithBlacklist(blacklisted);
+//			}
+//		}
+//	}
 
 	if (currRole)
 	{

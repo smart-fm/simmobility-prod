@@ -59,7 +59,7 @@ boost::shared_ptr<sim_mob::batched::ThreadPool> sim_mob::PT_PathSetManager::thre
 
 PT_PathSetManager::PT_PathSetManager():labelPoolSize(10)
 {
-	ptPathSetWriter.open(ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetOutputFile.c_str());
+	ptPathSetWriter.open(ConfigManager::GetInstance().FullConfig().getPathSetConf().publicPathSetOutputFile.c_str());
 }
 PT_PathSetManager::~PT_PathSetManager()
 {
@@ -79,14 +79,14 @@ std::string PT_PathSetManager::getVertexIdFromNode(const sim_mob::Node* node)
 }
 
 
-void PT_PathSetManager::BulkPathSetGenerator()
+void PT_PathSetManager::PT_BulkPathSetGenerator()
 {
-	ptPathSetWriter.open(ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetOutputFile.c_str());
+	ptPathSetWriter.open(ConfigManager::GetInstance().FullConfig().getPathSetConf().publicPathSetOutputFile.c_str());
 	std::set<simpleOD, compareOD> simpleOD_Set;
 	//Reading the data from the database
-	const std::string& dbId =ConfigManager::GetInstance().FullConfig().system.networkDatabase.database;
+	const std::string& dbId =ConfigManager::GetInstance().FullConfig().networkDatabase.database;
 	Database database =ConfigManager::GetInstance().FullConfig().constructs.databases.at(dbId);
-	std::string credId =ConfigManager::GetInstance().FullConfig().system.networkDatabase.credentials;
+	std::string credId =ConfigManager::GetInstance().FullConfig().networkDatabase.credentials;
 	Credential credentials =ConfigManager::GetInstance().FullConfig().constructs.credentials.at(credId);
 	std::string username = credentials.getUsername();
 	std::string password = credentials.getPassword(false);
@@ -96,7 +96,7 @@ void PT_PathSetManager::BulkPathSetGenerator()
 	conn.connect();
 	std::stringstream query;
 	soci::session& sql_ = conn.getSession<soci::session>();
-	query << "select * from "<< sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().publicPathSetOdSource;
+	query << "select * from "<< sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().publicPathSetOdSource;
 	soci::rowset < soci::row > rs = (sql_.prepare << query.str());
 	for (soci::rowset<soci::row>::const_iterator it = rs.begin();it != rs.end(); ++it) {
 		simpleOD singleOD((*it).get<int>(0), (*it).get<int>(1));
@@ -110,10 +110,12 @@ void PT_PathSetManager::BulkPathSetGenerator()
 	}
 	int total_count = simpleOD_Set.size();
 	Print() << "Total OD's in Bulk generation is " << total_count;
+	const RoadNetwork* rn = RoadNetwork::getInstance();
+	const std::map<unsigned int, Node *>& nodeLookup = rn->getMapOfIdvsNodes();
 	for(std::set<simpleOD>::const_iterator it=simpleOD_Set.begin();it!=simpleOD_Set.end();it++)
 	{
-		const sim_mob::Node* srcNode = RoadNetwork::getInstance()->getNodeById(it->getStartNode());
-		const sim_mob::Node* destNode = RoadNetwork::getInstance()->getNodeById(it->getDestNode());
+		const sim_mob::Node* srcNode = rn->getById(nodeLookup, it->getStartNode());
+		const sim_mob::Node* destNode = rn->getById(nodeLookup, it->getDestNode());
 		threadpool->enqueue(boost::bind(&sim_mob::PT_PathSetManager::makePathset,this,srcNode,destNode));
 	}
 	threadpool->wait();
@@ -218,7 +220,7 @@ void PT_PathSetManager::getK_ShortestPaths(const StreetDirectory::PT_VertexId& f
 {
 	int i = 0;
 	vector<vector<PT_NetworkEdge> > kShortestPaths;
-	int kShortestLevel = ConfigManager::GetInstance().FullConfig().pathSet().publickShortestPathLevel;
+	int kShortestLevel = ConfigManager::GetInstance().FullConfig().getPathSetConf().publickShortestPathLevel;
 	StreetDirectory::Instance().getPublicTransitShortestPathImpl()->searchK_ShortestPaths(kShortestLevel, fromId, toId, kShortestPaths);
 	for (vector<vector<PT_NetworkEdge> >::iterator itPath =	kShortestPaths.begin(); itPath != kShortestPaths.end(); itPath++) {
 		i++;

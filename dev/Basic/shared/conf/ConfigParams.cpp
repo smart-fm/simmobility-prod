@@ -12,6 +12,7 @@
 #include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/network/BusStop.hpp"
 #include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 #include "network/CommunicationDataManager.hpp"
 #include "network/ControlManager.hpp"
 #include "password/password.hpp"
@@ -120,22 +121,6 @@ sim_mob::ControlManager* sim_mob::ConfigParams::getControlMgr() const
 void sim_mob::ConfigParams::sealNetwork()
 {
 	sealedNetwork = true;
-}
-
-
-const sim_mob::RoadNetwork& sim_mob::ConfigParams::getNetwork() const
-{
-	return network;
-}
-
-
-sim_mob::RoadNetwork& sim_mob::ConfigParams::getNetworkRW()
-{
-    if (sealedNetwork)
-    {
-        throw std::runtime_error("getNetworkRW() failed; network has been sealed.");
-	}
-	return network;
 }
 
 ////////////////////////////////////////////////////////////////////////////

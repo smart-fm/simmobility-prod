@@ -25,6 +25,7 @@ class CommunicationDataManager;
 class ControlManager;
 class ConfigManager;
 class RoadSegment;
+class RoadNetwork;
 class PassengerDist;
 class ProfileBuilder;
 class TripChainItem;
@@ -120,21 +121,6 @@ public:
      * @return stored procedure map
      */
     StoredProcedureMap getDatabaseProcMappings() const;
-
-	/**
-	 * Retrieve a reference to the current RoadNetwork.
-     *
-     * @return Reference to the current RoadNetwork
-	 */
-	const sim_mob::RoadNetwork& getNetwork() const;
-
-	/**
-	 * Retrieve a reference to the current RoadNetwork; read-write access.
-	 * Fails if the network has been sealed.
-     *
-     * @return Reference to the current RoadNetwork with read-write access
-	 */
-	sim_mob::RoadNetwork& getNetworkRW();
 
 	/**
 	 * Seal the network. After this, no more editing of the network can take place.
@@ -277,9 +263,6 @@ private:
      * Constructor
      */
 	ConfigParams();
-
-    /// Road Network
-    sim_mob::RoadNetwork network;
 
     /// Broker Factory
     sim_mob::Factory<sim_mob::Broker> brokerFact;

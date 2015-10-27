@@ -26,7 +26,7 @@ public:
 	/**
 	 * generate all path set for all node pairs
 	 */
-	void BulkPathSetGenerator();
+	void PT_BulkPathSetGenerator();
 
 private:
 	/**

@@ -6,8 +6,8 @@
 
 #include <map>
 #include <string>
-#include "soci.h"
-#include "soci-postgresql.h"
+#include <soci/soci.h>
+#include <soci/postgresql/soci-postgresql.h>
 #include "RoadNetwork.hpp"
 
 using namespace std;

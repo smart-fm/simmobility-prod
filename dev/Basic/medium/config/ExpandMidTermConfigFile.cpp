@@ -3,13 +3,13 @@
 #include <boost/lexical_cast.hpp>
 #include <map>
 #include <vector>
-#include "conf/PrintNetwork.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "entities/BusController.hpp"
 #include "entities/BusControllerMT.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "geospatial/Incident.hpp"
-#include "geospatial/aimsun/Loader.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
+#include "geospatial/network/NetworkLoader.hpp"
 #include "path/PathSetManager.hpp"
 #include "path/PT_PathSetManager.hpp"
 
@@ -50,9 +50,6 @@ void ExpandMidTermConfigFile::processConfig()
         RestrictedRegion::getInstance().populate();
     }
 
-    //Detect sidewalks in the middle of the road.
-    WarnMidroadSidewalks();
-
     if (mtCfg.isPublicTransitEnabled())
     {
         loadPublicTransitNetworkFromDatabase();
@@ -83,7 +80,7 @@ void ExpandMidTermConfigFile::processConfig()
     if (mtCfg.RunningMidSupply())
     {
         size_t sizeBefore = mtCfg.getConfluxes().size();
-        Conflux::ProcessConfluxes(ConfigManager::GetInstance().FullConfig().getNetwork());
+        Conflux::ProcessConfluxes(*RoadNetwork::getInstance());
         std::cout << mtCfg.getConfluxes().size() << " Confluxes created" << std::endl;
     }
 
@@ -109,9 +106,7 @@ void ExpandMidTermConfigFile::processConfig()
 void ExpandMidTermConfigFile::loadNetworkFromDatabase()
 {
     std::cout << "Loading Road Network from the database.\n";
-    aimsun::Loader::LoadNetwork(cfg.getDatabaseConnectionString(false),
-    		cfg.getDatabaseProcMappings().procedureMappings,
-					 cfg.getNetworkRW(), cfg.getTripChains(), nullptr);
+    NetworkLoader::getInstance()->loadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
 }
 
 void ExpandMidTermConfigFile::loadPublicTransitNetworkFromDatabase()
@@ -119,79 +114,58 @@ void ExpandMidTermConfigFile::loadPublicTransitNetworkFromDatabase()
     PT_Network::getInstance().init();
 }
 
-void ExpandMidTermConfigFile::WarnMidroadSidewalks()
-{
-    const std::vector<Link*>& links = cfg.getNetwork().getLinks();
-    for (std::vector<Link*>::const_iterator linkIt = links.begin(); linkIt != links.end(); ++linkIt)
-    {
-	const std::set<RoadSegment*>& segs = (*linkIt)->getUniqueSegments();
-	for (std::set<RoadSegment*>::const_iterator segIt = segs.begin(); segIt != segs.end(); ++segIt)
-	{
-	    const std::vector<Lane*>& lanes = (*segIt)->getLanes();
-	    for (std::vector<Lane*>::const_iterator laneIt = lanes.begin(); laneIt != lanes.end(); ++laneIt)
-	    {
-		//Check it.
-		if ((*laneIt)->is_pedestrian_lane() &&
-			    ((*laneIt) != (*segIt)->getLanes().front()) &&
-			    ((*laneIt) != (*segIt)->getLanes().back()))
-		{
-		    Warn() << "Pedestrian lane is located in the middle of segment" << (*segIt)->getId() << "\n";
-		}
-	    }
-	}
-    }
-}
-
 void ExpandMidTermConfigFile::verifyIncidents()
 {
-    std::vector<IncidentParams>& incidents = mtCfg.getIncidents();
-    const unsigned int baseGranMS = cfg.simulation.simStartTime.getValue();
+	std::vector<IncidentParams>& incidents = mtCfg.getIncidents();
+	const unsigned int baseGranMS = cfg.simulation.simStartTime.getValue();
 
-    for (std::vector<IncidentParams>::iterator incIt = incidents.begin(); incIt != incidents.end(); ++incIt)
-    {
-	const RoadSegment* roadSeg = StreetDirectory::instance().getRoadSegment((*incIt).segmentId);
-
-	if (roadSeg)
+	for (std::vector<IncidentParams>::iterator incIt = incidents.begin(); incIt != incidents.end(); ++incIt)
 	{
-	    Incident* item = new Incident();
-	    item->accessibility = (*incIt).accessibility;
-	    item->capFactor = (*incIt).capFactor;
-	    item->compliance = (*incIt).compliance;
-	    item->duration = (*incIt).duration;
-	    item->incidentId = (*incIt).incidentId;
-	    item->position = (*incIt).position;
-	    item->segmentId = (*incIt).segmentId;
-	    item->length = (*incIt).length;
-	    item->severity = (*incIt).severity;
-	    item->startTime = (*incIt).startTime - baseGranMS;
-	    item->visibilityDistance = (*incIt).visibilityDistance;
-
-	    const std::vector<Lane*>& lanes = roadSeg->getLanes();
-	    for (std::vector<IncidentParams::LaneParams>::iterator laneIt = incIt->laneParams.begin(); laneIt != incIt->laneParams.end(); ++laneIt)
-	    {
-		Incident::LaneItem lane;
-		lane.laneId = laneIt->laneId;
-		lane.speedLimit = laneIt->speedLimit;
-		item->laneItems.push_back(lane);
-		if (lane.laneId < lanes.size() && lane.laneId < incIt->laneParams.size())
+		const std::map<unsigned int, RoadSegment*>& segLookup = RoadNetwork::getInstance()->getMapOfIdVsRoadSegments();
+		const std::map<unsigned int, RoadSegment*>::const_iterator segIt = segLookup.find((*incIt).segmentId);
+		if (segIt == segLookup.end())
 		{
-		    incIt->laneParams[lane.laneId].xLaneStartPos = lanes[lane.laneId]->polyline_[0].getX();
-		    incIt->laneParams[lane.laneId].yLaneStartPos = lanes[lane.laneId]->polyline_[0].getY();
-		    if (lanes[lane.laneId]->polyline_.size() > 0)
-		    {
-			unsigned int sizePoly = lanes[lane.laneId]->polyline_.size();
-			incIt->laneParams[lane.laneId].xLaneEndPos = lanes[lane.laneId]->polyline_[sizePoly - 1].getX();
-			incIt->laneParams[lane.laneId].yLaneEndPos = lanes[lane.laneId]->polyline_[sizePoly - 1].getY();
-		    }
+			throw std::runtime_error("invalid segment id supplied for incident injection");
 		}
-	    }
+		const RoadSegment* roadSeg = segIt->second;
 
-	    RoadSegment* rs = const_cast<RoadSegment*> (roadSeg);
-	    float length = rs->getLengthOfSegment();
-	    centimeter_t pos = length * item->position / 100.0;
-	    rs->addObstacle(pos, item);
+		if (roadSeg)
+		{
+			Incident* item = new Incident();
+			item->accessibility = (*incIt).accessibility;
+			item->capFactor = (*incIt).capFactor;
+			item->compliance = (*incIt).compliance;
+			item->duration = (*incIt).duration;
+			item->incidentId = (*incIt).incidentId;
+			item->position = (*incIt).position;
+			item->segmentId = (*incIt).segmentId;
+			item->length = (*incIt).length;
+			item->severity = (*incIt).severity;
+			item->startTime = (*incIt).startTime - baseGranMS;
+			item->visibilityDistance = (*incIt).visibilityDistance;
+
+			const std::vector<Lane*>& lanes = roadSeg->getLanes();
+			for (std::vector<IncidentParams::LaneParams>::iterator laneIt = incIt->laneParams.begin(); laneIt != incIt->laneParams.end(); ++laneIt)
+			{
+				LaneItem lane;
+				lane.laneId = laneIt->laneId;
+				lane.speedLimit = laneIt->speedLimit;
+				item->laneItems.push_back(lane);
+				if (lane.laneId < lanes.size() && lane.laneId < incIt->laneParams.size())
+				{
+					incIt->laneParams[lane.laneId].xLaneStartPos = lanes[lane.laneId]->getPolyLine()->getFirstPoint().getX();
+					incIt->laneParams[lane.laneId].yLaneStartPos = lanes[lane.laneId]->getPolyLine()->getFirstPoint().getY();
+					incIt->laneParams[lane.laneId].xLaneEndPos = lanes[lane.laneId]->getPolyLine()->getLastPoint().getX();
+					incIt->laneParams[lane.laneId].yLaneEndPos = lanes[lane.laneId]->getPolyLine()->getLastPoint().getY();
+				}
+			}
+
+			RoadSegment* rs = const_cast<RoadSegment*>(roadSeg);
+			float length = rs->getLength();
+			centimeter_t pos = length * item->position / 100.0;
+			rs->addObstacle(pos, item);
+		}
 	}
-    }
 }
 
 void ExpandMidTermConfigFile::setRestrictedRegionSupport()

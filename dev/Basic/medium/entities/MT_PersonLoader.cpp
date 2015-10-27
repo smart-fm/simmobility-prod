@@ -17,6 +17,7 @@
 #include <vector>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "geospatial/network/RoadNetwork.cpp"
 #include "logging/Log.hpp"
 #include "Person_MT.hpp"
 #include "util/DailyTime.hpp"
@@ -249,12 +250,15 @@ MT_PersonLoader::~MT_PersonLoader()
 
 void MT_PersonLoader::makeSubTrip(const soci::row& r, Trip* parentTrip, unsigned short subTripNo)
 {
-	RoadNetwork& rn = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW();
+	const RoadNetwork* rn = RoadNetwork::getInstance();
+	const std::map<unsigned int, Node *>& nodeLookup = rn->getMapOfIdvsNodes();
 	SubTrip aSubTripInTrip;
 	aSubTripInTrip.setPersonID(r.get<string>(0));
 	aSubTripInTrip.itemType = TripChainItem::IT_TRIP;
 	aSubTripInTrip.tripID = parentTrip->tripID + "-" + boost::lexical_cast<string>(subTripNo);
-	aSubTripInTrip.origin = WayPoint(rn.getNodeById(r.get<int>(10)));
+	std::map<unsigned int, Node*>::const_iterator nodeMapIt = nodeLookup.find(r.get<int>(10));
+	if(nodeMapIt==nodeLookup)
+	aSubTripInTrip.origin = WayPoint(rn.getNodeById());
 	aSubTripInTrip.originType = TripChainItem::LT_NODE;
 	aSubTripInTrip.destination = WayPoint(rn.getNodeById(r.get<int>(5)));
 	aSubTripInTrip.destinationType = TripChainItem::LT_NODE;
@@ -266,7 +270,7 @@ void MT_PersonLoader::makeSubTrip(const soci::row& r, Trip* parentTrip, unsigned
 
 Activity* MT_PersonLoader::makeActivity(const soci::row& r, unsigned int seqNo)
 {
-	RoadNetwork& rn = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW();
+	const RoadNetwork* rn = RoadNetwork::getInstance();
 	Activity* res = new Activity();
 	res->setPersonID(r.get<string>(0));
 	res->itemType = TripChainItem::IT_ACTIVITY;
@@ -284,7 +288,7 @@ Activity* MT_PersonLoader::makeActivity(const soci::row& r, unsigned int seqNo)
 
 Trip* MT_PersonLoader::makeTrip(const soci::row& r, unsigned int seqNo)
 {
-	RoadNetwork& rn = ConfigManager::GetInstanceRW().FullConfig().getNetworkRW();
+	const RoadNetwork* rn = RoadNetwork::getInstance();
 	Trip* tripToSave = new Trip();
 	tripToSave->sequenceNumber = seqNo;
 	tripToSave->tripID = boost::lexical_cast<string>(r.get<int>(1) * 100 + r.get<int>(3)); //each row corresponds to 1 trip and 1 activity. The tour and stop number can be used to generate unique tripID

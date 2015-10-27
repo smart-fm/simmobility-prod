@@ -37,7 +37,7 @@ string getStoredProcedure(const map<string, string>& storedProcs, const string& 
 }
 }
 
-NetworkLoader::NetworkLoader() : roadNetwork(RoadNetwork::getInstance()), isNetworkLoaded(false)
+NetworkLoader::NetworkLoader() : roadNetwork(RoadNetwork::getWritableInstance()), isNetworkLoaded(false)
 {
 }
 

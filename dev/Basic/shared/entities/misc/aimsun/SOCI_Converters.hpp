@@ -11,7 +11,6 @@
 #include "boost/algorithm/string.hpp"
 #include "soci/soci.h"
 #include "TripChain.hpp"
-#include "entities/misc/BusSchedule.hpp"
 
 
 using namespace sim_mob::aimsun;
@@ -65,29 +64,6 @@ template<> struct type_conversion<sim_mob::aimsun::TripChainItem>
     static void to_base(const sim_mob::aimsun::TripChainItem& src, soci::values& vals, soci::indicator& ind)
     {
     	throw std::runtime_error("TripChainItem::to_base() not implemented");
-    }
-};
-
-
-template<>
-struct type_conversion<sim_mob::BusSchedule>
-{
-    typedef values base_type;
-
-    static void
-    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::BusSchedule& bus_schedule)
-    {
-    	bus_schedule.tripid = values.get<std::string>("trip_id", "");
-    	boost::trim(bus_schedule.tripid);
-    	bus_schedule.startTime = sim_mob::DailyTime(values.get<std::string>("start_time", ""));
-    }
-
-    static void
-    to_base(sim_mob::BusSchedule const & bus_schedule, soci::values & values, soci::indicator & indicator)
-    {
-        values.set("trip_id", bus_schedule.tripid);
-        values.set("start_time", bus_schedule.startTime.getStrRepr());
-        indicator = i_ok;
     }
 };
 

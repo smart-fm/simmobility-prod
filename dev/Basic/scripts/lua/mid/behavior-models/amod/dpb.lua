@@ -327,3 +327,17 @@ function choose_dpb(params)
 	idx = make_final_choice(probability)
 	return choice[idx]
 end
+
+
+-- function to call from C++ preday simulator for logsums computation
+-- params table contain person data passed from C++
+-- to check variable bindings in params, refer PredayLuaModel::mapClasses() function in dev/Basic/medium/behavioral/lua/PredayLuaModel.cpp
+function compute_logsum_dpb(params)
+	computeUtilities(params) 
+	local probability = calculate_probability("mnl", choice, utility, availability, scale)
+	local return_table = {}
+	return_table[1] = compute_mnl_logsum(utility, availability)
+	return_table[2] = probability[2]
+	return return_table
+end
+

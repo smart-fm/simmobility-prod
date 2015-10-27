@@ -186,7 +186,7 @@
 		<minLotSize value = "100.00" />
     	</developerModel>
         <housingModel enabled="true"> 
-	    <outputHouseholdLogsums value="true"/>
+	    <outputHouseholdLogsums value="false"/>
             <timeOnMarket value="90"/>
             <timeOffMarket value="150"/>
             <timeInterval value="7"/>

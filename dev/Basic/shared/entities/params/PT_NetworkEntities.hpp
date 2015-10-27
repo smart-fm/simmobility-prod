@@ -14,8 +14,8 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Node.hpp"
+#include "geospatial/network/RoadSegment.hpp"
+#include "geospatial/network/Node.hpp"
 
 namespace sim_mob{
 

@@ -11,7 +11,7 @@
 #include <boost/shared_ptr.hpp>
 #include <soci/soci.h>
 #include "entities/Person.hpp"
-#include "geospatial/Link.hpp"
+#include "geospatial/network/Link.hpp"
 #include "PathSetParam.hpp"
 #include "entities/TravelTimeManager.hpp"
 #include "util/Cache.hpp"

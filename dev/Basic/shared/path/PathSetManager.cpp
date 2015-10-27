@@ -23,13 +23,12 @@
 #include "entities/PersonLoader.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "geospatial/aimsun/Loader.hpp"
-#include "geospatial/LaneConnector.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/RoadSegment.hpp"
+#include "geospatial/network/LaneConnector.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/Node.hpp"
+#include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/streetdir/KShortestPathImpl.hpp"
-#include "geospatial/UniNode.hpp"
 #include "message/MessageBus.hpp"
 #include "Path.hpp"
 #include "path/PathSetThreadPool.hpp"
@@ -173,7 +172,7 @@ namespace
 			// For each link a in the path:
 			for(std::vector<WayPoint>::iterator it1=sp->path.begin(); it1!=sp->path.end(); ++it1)
 			{
-				const sim_mob::RoadSegment* seg = it1->roadSegment_;
+				const sim_mob::RoadSegment* seg = it1->roadSegment;
 				sim_mob::SinglePath* minSp = findShortestPath_LinkBased(ps->pathChoices, seg);
 				if(minSp == nullptr)
 				{

@@ -11,7 +11,7 @@
 #include "buffering/Shared.hpp"
 #include "conf/CMakeConfigParams.hpp"
 #include "conf/Constructs.hpp"
-#include "geospatial/Point2D.hpp"
+#include "geospatial/network/Point.hpp"
 #include "workers/WorkGroup.hpp"
 #include "util/DailyTime.hpp"
 #include "conf/Constructs.hpp"

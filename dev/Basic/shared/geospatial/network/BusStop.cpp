@@ -30,7 +30,8 @@ BusStop* BusStop::findBusStop(const std::string& code)
 }
 
 BusStop::BusStop() :
-terminusType(NOT_A_TERMINUS), length(0.0), twinStop(nullptr), virtualStop(false), offset(0.0)
+		terminusType(NOT_A_TERMINUS), length(0.0), twinStop(nullptr), virtualStop(false), offset(0.0),
+		reverseSectionId(0), terminalNodeId(0), roadSegment(NULL), stopId(0), stopCode(std::string())
 {
 }
 
@@ -45,7 +46,7 @@ const Point& BusStop::getStopLocation() const
 	return location;
 }
 
-void BusStop::setStopLocation(Point& loc)
+void BusStop::setStopLocation(Point loc)
 {
 	location = loc;
 }
@@ -107,9 +108,9 @@ bool BusStop::isVirtualStop() const
 	return virtualStop;
 }
 
-void BusStop::setVirtualStop(bool val)
+void BusStop::setVirtualStop()
 {
-	virtualStop = val;
+	virtualStop = true;
 }
 
 double BusStop::getOffset() const
@@ -148,4 +149,24 @@ const std::string& BusStop::getStopCode() const
 void BusStop::setStopCode(const std::string& code)
 {
 	stopCode = code;
+}
+
+unsigned int BusStop::getReverseSectionId() const
+{
+	return reverseSectionId;
+}
+
+void BusStop::setReverseSectionId(unsigned int reverseSectionId)
+{
+	this->reverseSectionId = reverseSectionId;
+}
+
+unsigned int BusStop::getTerminalNodeId() const
+{
+	return terminalNodeId;
+}
+
+void BusStop::setTerminalNodeId(unsigned int terminalNodeId)
+{
+	this->terminalNodeId = terminalNodeId;
 }

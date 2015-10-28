@@ -517,14 +517,14 @@ void RoadNetwork::addBusStop(BusStop* stop)
 	if (itStop != mapOfIdvsBusStops.end())
 	{
 		std::stringstream msg;
-		msg << "Bus stop " << stop->getStopId() << " has already been added!";
+		msg << "Bus stop " << stop->getStopId()  << " with stop code " << stop->getStopCode() << " has already been added!";
 		safe_delete_item(stop);
 		throw std::runtime_error(msg.str());
 	}
 	else
 	{
 		//Insert the stop into the map
-		mapOfIdvsBusStops.insert(std::make_pair(stop->getRoadItemId(), stop));
+		mapOfIdvsBusStops.insert(std::make_pair(stop->getStopId(), stop));
 		
 		//Get the road segment to which the bus stop belongs
 		std::map<unsigned int, RoadSegment *>::iterator itSegments = mapOfIdVsRoadSegments.find(stop->getRoadSegmentId());

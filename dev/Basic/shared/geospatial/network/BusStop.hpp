@@ -59,6 +59,12 @@ private:
 	/**bus stop Id*/
 	unsigned int stopId;
 
+	/** reverse section for creating twin stop, in case of terminal stop*/
+	unsigned int reverseSectionId;
+
+	/** terminal node for identifying source/sink stop, in case of terminal stop*/
+	unsigned int terminalNodeId;
+
 	/**This map stores all the bus stops in the network with bus stop code as the key*/
 	static std::map<std::string, BusStop *> mapOfCodevsBusStops;
 
@@ -67,7 +73,7 @@ public:
 	virtual ~BusStop();
 
 	const Point& getStopLocation() const;
-	void setStopLocation(Point& location);
+	void setStopLocation(Point location);
 
 	const RoadSegment* getParentSegment() const;
 	void setParentSegment(RoadSegment *roadSegment);
@@ -85,7 +91,7 @@ public:
 	void setTwinStop(const BusStop* stop);
 
 	bool isVirtualStop() const;
-	void setVirtualStop(bool val);
+	void setVirtualStop();
 
 	double getOffset() const;
 	void setOffset(double val);
@@ -101,6 +107,12 @@ public:
 
 	static void RegisterBusStop(BusStop* stop);
 	static BusStop* findBusStop(const std::string& code);
+
+	unsigned int getReverseSectionId() const;
+	void setReverseSectionId(unsigned int reverseSectionId);
+
+	unsigned int getTerminalNodeId() const;
+	void setTerminalNodeId(unsigned int terminalNodeId);
 };
 
 }

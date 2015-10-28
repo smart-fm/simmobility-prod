@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 #include "entities/Person.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/Link.hpp"
+#include "geospatial/network/Lane.hpp"
+#include "geospatial/network/Link.hpp"
 #include "entities/roles/Role.hpp"
 #include "buffering/BufferedDataManager.hpp"
 
@@ -47,7 +47,7 @@ private:
 	double remainingTimeThisTick;
 
 	/**Alters trip chain in accordance to route choice for public transit trips*/
-	void convertODsToTrips();
+	void convertPublicTransitODsToTrips();
 
 	/**Inserts a waiting activity before bus travel*/
 	void insertWaitingActivityToTrip();

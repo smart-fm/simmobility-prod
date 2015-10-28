@@ -3,6 +3,8 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "NetworkLoader.hpp"
+
+#include <stdexcept>
 #include "logging/Log.hpp"
 #include "SOCI_Converters.hpp"
 
@@ -12,6 +14,7 @@ NetworkLoader* NetworkLoader::networkLoader = NULL;
 
 namespace
 {
+const unsigned int TWIN_STOP_ID_START = 9900000;
 
 /**Returns the required stored procedure from the map of stored procedures*/
 string getStoredProcedure(const map<string, string>& storedProcs, const string& procedureName, bool mandatory = true)
@@ -206,6 +209,44 @@ void NetworkLoader::loadBusStops(const std::string& storedProc)
 		//Create new bus stop and add it to road network
 		BusStop* stop = new BusStop(*itStop);
 		roadNetwork->addBusStop(stop);
+
+		if(stop->getReverseSectionId() != 0) // this condition is true only for bus interchange stops
+		{
+			//Create twin bus stop for this interchange stop and add it to road network
+			BusStop* twinStop = new BusStop();
+			unsigned int twinStopId = TWIN_STOP_ID_START + stop->getRoadItemId(); // expected result is 990<orig. stop id>
+			std::string twinStopCode = "twin_" + stop->getStopCode(); //"twin_<orig. stop code>
+			twinStop->setVirtualStop();
+			twinStop->setRoadItemId(twinStopId);
+			twinStop->setStopCode(twinStopCode);
+			twinStop->setRoadSegmentId(stop->getReverseSectionId());
+			twinStop->setStopName(stop->getStopName());
+			twinStop->setLength(stop->getLength());
+			twinStop->setOffset(stop->getOffset());
+			twinStop->setReverseSectionId(stop->getRoadSegmentId());
+			twinStop->setTerminalNodeId(stop->getTerminalNodeId());
+			Point location(stop->getStopLocation().getX(), stop->getStopLocation().getY());
+			twinStop->setStopLocation(location);
+			roadNetwork->addBusStop(twinStop);
+
+			//source and sink must be determined after adding the stop since the parentSegment will be available only now
+			if(stop->getParentSegment()->getParentLink()->getFromNode()->getNodeId() == stop->getTerminalNodeId())
+			{
+				stop->setTerminusType(sim_mob::SOURCE_TERMINUS);
+				twinStop->setTerminusType(sim_mob::SINK_TERMINUS);
+			}
+			else if(stop->getParentSegment()->getParentLink()->getToNode()->getNodeId() == stop->getTerminalNodeId())
+			{
+				twinStop->setTerminusType(sim_mob::SOURCE_TERMINUS);
+				stop->setTerminusType(sim_mob::SINK_TERMINUS);
+			}
+			else
+			{
+				throw std::runtime_error("invalid assignment of terminal node for interchange busstop");
+			}
+			stop->setTwinStop(twinStop);
+			twinStop->setTwinStop(stop);
+		}
 	}
 }
 

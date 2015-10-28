@@ -299,6 +299,9 @@ private:
 
     bool workerPublisherEnabled;
 
+    /// is public transit enabled
+    bool publicTransitEnabled;
+
 public:
 	/////////////////////////////////////////////////////////////////////////////////////
     /// These are helper functions, to make compatibility between old/new parsing easier.
@@ -416,6 +419,8 @@ public:
     void setWorkerPublisherEnabled(bool value);
 
     bool isGenerateBusRoutes() const;
+
+    bool isPublicTransitEnabled() const;
 };
 
 

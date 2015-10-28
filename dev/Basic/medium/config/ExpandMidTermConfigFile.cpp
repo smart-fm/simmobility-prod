@@ -50,7 +50,7 @@ void ExpandMidTermConfigFile::processConfig()
         RestrictedRegion::getInstance().populate();
     }
 
-    if (mtCfg.isPublicTransitEnabled())
+    if (cfg.isPublicTransitEnabled())
     {
         loadPublicTransitNetworkFromDatabase();
     }

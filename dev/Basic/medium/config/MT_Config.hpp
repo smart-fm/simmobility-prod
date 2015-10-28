@@ -649,13 +649,6 @@ public:
      */
     bool isRegionRestrictionEnabled() const;
 
-    /**
-     * Checks whether public transit is enabeld/disabled
-     *
-     * @return true if enabled, else false
-     */
-    bool isPublicTransitEnabled() const;
-
     void setPublicTransitEnabled(bool val);
 
     /**
@@ -868,9 +861,6 @@ private:
 
     ///	is CBD area restriction enforced
     bool regionRestrictionEnabled;
-
-    /// is public transit enabled
-    bool publicTransitEnabled;
 
     ///setting for the incidents
     std::vector<IncidentParams> incidents;

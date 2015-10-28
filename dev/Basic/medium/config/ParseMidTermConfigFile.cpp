@@ -515,34 +515,35 @@ void ParseMidTermConfigFile::processScreenLineNode(DOMElement *node)
     }
 }
 
-void ParseMidTermConfigFile::processGenerateBusRoutesNode(xercesc::DOMElement* node){
-    if (!node) {
-
-        cfg.generateBusRoutes = false;
-        return;
-    }
-    cfg.generateBusRoutes = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
+void ParseMidTermConfigFile::processGenerateBusRoutesNode(xercesc::DOMElement* node)
+{
+	if (!node)
+	{
+		cfg.generateBusRoutes = false;
+		return;
+	}
+	cfg.generateBusRoutes = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
 }
 
 void ParseMidTermConfigFile::processPublicTransit(xercesc::DOMElement* node)
 {
-    if(!node)
-    {
-        mtCfg.publicTransitEnabled = false;
-    }
-    else
-    {
-    	 mtCfg.publicTransitEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), "false");
-        if(mtCfg.isPublicTransitEnabled())
-        {
-            const std::string& key = cfg.networkDatabase.procedures;
-            std::map<std::string, StoredProcedureMap>::const_iterator procMapIt = cfg.procedureMaps.find(key);
-            if(procMapIt->second.procedureMappings.count("pt_vertices")==0 || procMapIt->second.procedureMappings.count("pt_edges")==0)
-            {
-                throw std::runtime_error("Public transit is enabled , but stored procedures not defined");
-            }
-        }
-    }
+	if (!node)
+	{
+		cfg.publicTransitEnabled = false;
+	}
+	else
+	{
+		cfg.publicTransitEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+		if (cfg.isPublicTransitEnabled())
+		{
+			const std::string& key = cfg.networkDatabase.procedures;
+			std::map<std::string, StoredProcedureMap>::const_iterator procMapIt = cfg.procedureMaps.find(key);
+			if (procMapIt->second.procedureMappings.count("pt_vertices") == 0 || procMapIt->second.procedureMappings.count("pt_edges") == 0)
+			{
+				throw std::runtime_error("Public transit is enabled , but stored procedures not defined");
+			}
+		}
+	}
 }
 
 void ParseMidTermConfigFile::processTT_Update(xercesc::DOMElement* node){

@@ -24,7 +24,7 @@ PredayCalibrationParams::PredayCalibrationParams() :
 {}
 
 MT_Config::MT_Config() :
-        publicTransitEnabled(false), regionRestrictionEnabled(false), midTermRunMode(MT_Config::MT_NONE), pedestrianWalkSpeed(0), numPredayThreads(0),
+       regionRestrictionEnabled(false), midTermRunMode(MT_Config::MT_NONE), pedestrianWalkSpeed(0), numPredayThreads(0),
 			configSealed(false), fileOutputEnabled(false), consoleOutput(false), predayRunMode(MT_Config::PREDAY_NONE), calibrationMethodology(MT_Config::WSPSA),
 			logsumComputationFrequency(0), supplyUpdateInterval(0), activityScheduleLoadInterval(0), busCapacity(0), outputPredictions(false),
             populationSource(db::MONGO_DB), populationDB(), logsumDB()
@@ -426,10 +426,6 @@ void MT_Config::setMidTermRunMode(const std::string& runMode)
 
 bool MT_Config::isRegionRestrictionEnabled() const{
     return regionRestrictionEnabled;
-}
-
-bool MT_Config::isPublicTransitEnabled() const{
-    return publicTransitEnabled;
 }
 
 std::vector<IncidentParams>& MT_Config::getIncidents(){

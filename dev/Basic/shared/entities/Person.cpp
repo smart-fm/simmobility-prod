@@ -281,13 +281,14 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 }
 
 
-void Person::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
+void Person::rerouteWithBlacklist(const std::vector<const sim_mob::Link*>& blacklisted)
 {
 	//This requires the Role's intervention.
 	if (currRole) {
 		currRole->rerouteWithBlacklist(blacklisted);
 	}
 }
+
 void sim_mob::Person::handleAMODEvent(sim_mob::event::EventId id,
             sim_mob::event::Context ctxId,
             sim_mob::event::EventPublisher* sender,

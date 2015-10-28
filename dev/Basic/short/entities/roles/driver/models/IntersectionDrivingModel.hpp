@@ -54,7 +54,7 @@ protected:
 	DynamicVector intTrajectory;
 
 	//Distance covered within the intersection
-	double totalMovement;
+	double distCoveredOnTurning;
 
 	//Distance at which an intersection and vehicles approaching it from other links
 	//is visible to the driver (metre)
@@ -66,7 +66,7 @@ protected:
 public:
 
 	IntersectionDrivingModel() :
-	totalMovement(0), intersectionVisbility(100), currTurning(nullptr)
+	distCoveredOnTurning(0), intersectionVisbility(100), currTurning(nullptr)
 	{
 	}
 
@@ -96,16 +96,16 @@ public:
 
 	//Returns the distance covered within the intersection
 
-	double getMoveDistance()
+	double getDistCoveredOnTurning()
 	{
-		return totalMovement;
+		return distCoveredOnTurning;
 	}
 
 	//Checks whether we've completed driving in the intersection
 
 	virtual bool isDone()
 	{
-		return totalMovement >= intTrajectory.getMagnitude();
+		return distCoveredOnTurning >= intTrajectory.getMagnitude();
 	}
 
 	//Getter for the intersection visibility distance
@@ -157,14 +157,14 @@ public:
 	virtual void startDriving(const Point& fromLanePt, const Point& toLanePt, double startOffset)
 	{
 		intTrajectory = DynamicVector(fromLanePt.getX(), fromLanePt.getY(), toLanePt.getX(), toLanePt.getY());
-		totalMovement = startOffset;
+		distCoveredOnTurning = startOffset;
 	}
 
 	virtual Point continueDriving(double amount, DriverUpdateParams& params)
 	{
-		totalMovement += amount;
+		distCoveredOnTurning += amount;
 		DynamicVector temp(intTrajectory);
-		temp.scaleVectTo(totalMovement).translateVect();
+		temp.scaleVectTo(distCoveredOnTurning).translateVect();
 		return Point(temp.getX(), temp.getY());
 	}
 

@@ -59,10 +59,11 @@ public:
 	/**Defines the visibility of the intersection from the turning group (m/s)*/
 	double visibility;
 
-public:
+	/**The length of the turning group. This is an average of the lengths of the turning paths that belong to the turning group*/
+	double length;
 
+public:
 	TurningGroup();
-	
 	virtual ~TurningGroup();
 
 	unsigned int getTurningGroupId() const;
@@ -85,6 +86,8 @@ public:
 
 	double getVisibility() const;
 	void setVisibility(double visibility);
+
+	double getLength() const;
 
 	/**
 	 * Adds the turning path into the map of turningPaths

@@ -111,15 +111,15 @@ double TurningPath::getLength() const
 	return polyLine->getLength();
 }
 
-void TurningPath::addTurningConflict(TurningPath *other, TurningConflict *conflict)
+void TurningPath::addTurningConflict(const TurningPath *other, TurningConflict *conflict)
 {
 	turningConflicts.insert(std::make_pair(other, conflict));
 }
 
-const TurningConflict* TurningPath::getTurningConflict(TurningPath *turningPath)
+const TurningConflict* TurningPath::getTurningConflict(const TurningPath *turningPath) const
 {
 	//Get the conflict on this turning shared with the given turning
-	std::map<TurningPath *, TurningConflict *>::const_iterator itConflicts = turningConflicts.find(turningPath);
+	std::map<const TurningPath *, TurningConflict *>::const_iterator itConflicts = turningConflicts.find(turningPath);
 	
 	if(itConflicts != turningConflicts.end())
 	{

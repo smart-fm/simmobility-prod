@@ -17,12 +17,13 @@
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/vehicle/Bus.hpp"
 
-
-namespace sim_mob {
+namespace sim_mob
+{
 
 class BusDriver;
 
-class BusDriverBehavior: public sim_mob::DriverBehavior {
+class BusDriverBehavior : public sim_mob::DriverBehavior
+{
 public:
 	explicit BusDriverBehavior(sim_mob::Person* parentAgent = nullptr);
 	virtual ~BusDriverBehavior();
@@ -32,12 +33,15 @@ public:
 	virtual void frame_tick();
 	virtual void frame_tick_output();
 
-	BusDriver* getParentBusDriver() const {
+	BusDriver* getParentBusDriver() const
+	{
 		return parentBusDriver;
 	}
 
-	void setParentBusDriver(BusDriver* parentBusDriver) {
-		if(!parentBusDriver) {
+	void setParentBusDriver(BusDriver* parentBusDriver)
+	{
+		if (!parentBusDriver)
+		{
 			throw std::runtime_error("parentBusDriver cannot be NULL");
 		}
 		this->parentBusDriver = parentBusDriver;
@@ -47,7 +51,8 @@ protected:
 	BusDriver* parentBusDriver;
 };
 
-class BusDriverMovement: public sim_mob::DriverMovement {
+class BusDriverMovement : public sim_mob::DriverMovement
+{
 public:
 	explicit BusDriverMovement(sim_mob::Person* parentAgent = nullptr);
 	virtual ~BusDriverMovement();
@@ -60,17 +65,26 @@ public:
 	virtual void frame_tick_output();
 
 	// mark startTimeand origin
-	virtual TravelMetric & startTravelTimeMetric() {}
+
+	virtual TravelMetric & startTravelTimeMetric()
+	{
+	}
 
 	//	mark the destination and end time and travel time
-	virtual TravelMetric & finalizeTravelTimeMetric() {}
 
-	BusDriver* getParentBusDriver() const {
+	virtual TravelMetric & finalizeTravelTimeMetric()
+	{
+	}
+
+	BusDriver* getParentBusDriver() const
+	{
 		return parentBusDriver;
 	}
 
-	void setParentBusDriver(BusDriver* parentBusDriver) {
-		if(!parentBusDriver) {
+	void setParentBusDriver(BusDriver* parentBusDriver)
+	{
+		if (!parentBusDriver)
+		{
 			throw std::runtime_error("parentBusDriver cannot be NULL");
 		}
 		this->parentBusDriver = parentBusDriver;
@@ -118,18 +132,26 @@ public:
 	// reset some boarding and alighting variables after leaving the BusStop(Yao Jin)
 	void resetBoardingAlightingVariables();
 
-    void AlightingPassengers(Bus* bus);
+	void AlightingPassengers(Bus* bus);
 
-    ///dwell time calculation module
- 	virtual double dwellTimeCalculation(int A,int B,int delta_bay,int delta_full,int Pfront,int no_of_passengers); // dwell time calculation module
+	///dwell time calculation module
+	virtual double dwellTimeCalculation(int A, int B, int delta_bay, int delta_full, int Pfront, int no_of_passengers); // dwell time calculation module
 
- 	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
+	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
 	// get total waiting time at the BusStop
-	double getWaitTime_BusStop() { return busStopWaitTime; }
+
+	double getWaitTime_BusStop()
+	{
+		return busStopWaitTime;
+	}
 
 	// set total waiting time at the BusStop
-	void setWaitTime_BusStop(double time) { busStopWaitTime = time; }
+
+	void setWaitTime_BusStop(double time)
+	{
+		busStopWaitTime = time;
+	}
 
 	// initialize Bus Path by BusTrip information
 	Vehicle* initializePath_bus(bool allocateVehicle);
@@ -143,9 +165,8 @@ private:
 
 	bool demoPassengerIncrease;
 
-	double dwellTimeRecord;// set by BusDriver(temporary), only needed by BusDriver
+	double dwellTimeRecord; // set by BusDriver(temporary), only needed by BusDriver
 
-	//double xpos_approachingbusstop,ypos_approachingbusstop;
 	bool firstBusStop;
 
 	bool lastBusStop;

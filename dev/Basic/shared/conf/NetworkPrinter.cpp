@@ -188,12 +188,15 @@ void NetworkPrinter::PrintLaneConnectors(const map<unsigned int, Lane *> &lanes)
 	for(map<unsigned int, Lane *>::const_iterator it = lanes.begin(); it != lanes.end(); ++it)
 	{
 		const LaneConnector *connector = it->second->getLaneConnector();
-		out << "\n(\"lane-connector\", " << connector->getLaneConnectionId() << ", {";
-		out << "\"from-segment\":\"" << connector->getFromRoadSegmentId() << "\",";
-		out << "\"from-lane\":\"" << connector->getFromLaneId() << "\",";
-		out << "\"to-segment\":\"" << connector->getToRoadSegmentId() << "\",";
-		out << "\"to-lane\":\"" << connector->getToLaneId() << "\",";
-		out << "})";
+		if(connector)
+		{
+			out << "\n(\"lane-connector\", " << connector->getLaneConnectionId() << ", {";
+			out << "\"from-segment\":\"" << connector->getFromRoadSegmentId() << "\",";
+			out << "\"from-lane\":\"" << connector->getFromLaneId() << "\",";
+			out << "\"to-segment\":\"" << connector->getToRoadSegmentId() << "\",";
+			out << "\"to-lane\":\"" << connector->getToLaneId() << "\",";
+			out << "})";
+		}
 	}
 
 	PrintToFileAndGui(out);

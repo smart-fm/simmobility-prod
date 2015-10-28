@@ -21,7 +21,6 @@
 #include "entities/vehicle/VehicleBase.hpp"
 #include "entities/models/Constants.h"
 #include "geospatial/network/Lane.hpp"
-#include "entities/roles/driver/GeneralPathMover.hpp"
 #include "geospatial/network/WayPoint.hpp"
 #include "util/MovementVector.hpp"
 #include "util/DynamicVector.hpp"
@@ -30,7 +29,6 @@ namespace sim_mob {
 
 class PackageUtils;
 class UnPackageUtils;
-class FMODSchedule;
 
 /**
  * The Vehicle class has vehicle Id, position, forward velocity, lat velocity and acceleration parameters etc for Driver use
@@ -47,13 +45,11 @@ public:
 
 	double getLateralMovement() const;         ///<Retrieve a value representing how far to the LEFT of the current lane the vehicle has moved.
 	double getVelocity() const;      ///<Retrieve forward velocity.
-	double getLatVelocity() const;   ///<Retrieve lateral velocity.
+	double getLateralVelocity() const;   ///<Retrieve lateral velocity.
 	double getAcceleration() const;  ///<Retrieve forward acceleration.
-	
-	void resetPath(std::vector<sim_mob::WayPoint> wp_path);
 
 	//Special
-	LANE_CHANGE_SIDE getTurningDirection() const;
+	LaneChangeTo getTurningDirection() const;
 
 	//More stuff; some might be optional.
 	const sim_mob::RoadSegment* getCurrSegment() const;
@@ -68,10 +64,10 @@ public:
 	const sim_mob::Lane* getCurrLane() const;
 	void setPositionInIntersection(double x, double y);
 	const Point& getPositionInIntersection();
-	void setTurningDirection(LANE_CHANGE_SIDE direction);
+	void setTurningDirection(LaneChangeTo direction);
 	//Modifiers
 	void setVelocity(double value);      ///<Set the forward velocity.
-	void setLatVelocity(double value);   ///<Set the lateral velocity.
+	void setLateralVelocity(double value);   ///<Set the lateral velocity.
 	void setAcceleration(double value);  ///<Set the forward acceleration.
 	// for path-mover splitting purpose
 	void setCurrPosition(Point currPosition);
@@ -92,12 +88,11 @@ private:
 
 	//Trying a slightly more dynamic moving model.
 	int vehicleId;
-	GeneralPathMover fwdMovement;
 	double latMovement; // latMovement not equal to lateral position
-	double fwdVelocity;
-	double latVelocity;
-	double fwdAccel;
-	LANE_CHANGE_SIDE turningDirection;
+	double forwardVelocity;
+	double lateralVelocity;
+	double forwardAcceleration;
+	LaneChangeTo turningDirection;
 	//Override for when we're in an intersection.
 	Point posInIntersection;
 	// driver path-mover split purpose, we save the currPos in the Vehicle

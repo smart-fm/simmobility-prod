@@ -85,15 +85,14 @@ namespace sim_mob
     {
     }
 
-    StopPoint(std::string& segId, double& dis, double& dwellT) : id(-1), segmentId(segId), distance(dis), isPassed(false), dwellTime(dwellT)
+    StopPoint(unsigned int segId, double dis, double dwellT) : segmentId(segId), distance(dis), isPassed(false), dwellTime(dwellT)
     {
     }
 
-    StopPoint(const StopPoint& source) : id(source.id), segmentId(source.segmentId), distance(source.distance), dwellTime(source.dwellTime), isPassed(source.isPassed)
+    StopPoint(const StopPoint &source) : segmentId(source.segmentId), distance(source.distance), dwellTime(source.dwellTime), isPassed(source.isPassed)
     {
     }
-    int id;
-    std::string segmentId;
+    unsigned int segmentId;
     double distance;
     double dwellTime; //10 sec
     bool isPassed;
@@ -108,25 +107,8 @@ namespace sim_mob
   class DriverUpdateParams : public UpdateParams
   {
   public:
-
     DriverUpdateParams();
-
-    explicit DriverUpdateParams(boost::mt19937 & gen) : UpdateParams(gen) , nextLaneIndex(0), isTargetLane(true),
-    status(0), flags(0), yieldTime(0, 0), lcTimeTag(200), speedOnSign(0), newFwdAcc(0), cftimer(0.0), newLatVelM(0.0), utilityLeft(0),
-    utilityCurrent(0), utilityRight(0), perceivedDistToTrafficSignal(500), rnd(0),
-    disAlongPolyline(0), dorigPosx(0), dorigPosy(0), movementVectx(0), movementVecty(0), headway(999), currLane(NULL),
-    stopPointPerDis(100), stopPointState(NO_FOUND_STOP_POINT), startStopTime(0), disToSP(999),
-    currLaneIndex(0), leftLane(NULL), rightLane(NULL), leftLane2(NULL), rightLane2(NULL), currSpeed(0), desiredSpeed(0), currLaneOffset(0),
-    currLaneLength(0), trafficSignalStopDistance(0), elapsedSeconds(0), perceivedFwdVelocity(0), perceivedLatVelocity(0), perceivedFwdVelocityOfFwdCar(0),
-    perceivedLatVelocityOfFwdCar(0), perceivedAccelerationOfFwdCar(0), perceivedDistToFwdCar(0),
-    laneChangingVelocity(0), isCrossingAhead(false), isApproachingIntersection(false), crossingFwdDistance(0), space(0), a_lead(0),
-    v_lead(0), space_star(0), distanceToNormalStop(0), dis2stop(0), impatienceTimer(0.0), justChangedToNewSegment(false),
-    justMovedIntoIntersection(false), overflowIntoIntersection(0), driver(NULL), emergHeadway(999), acc(0),
-    density(0), initSegId(0), initDis(0), initSpeed(0), parentId(0), FFAccParamsBeta(0), nextStepSize(0), maxAcceleration(0), normalDeceleration(0),
-    lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), impatienceTimerStart(0.0), hasStoppedForStopSign(false), accessTime(0.0), isResponseReceived(false),
-    useIntAcc(false)
-    {
-    }
+    explicit DriverUpdateParams(boost::mt19937 & gen);
 
     double getNextStepSize()
     {
@@ -147,7 +129,7 @@ namespace sim_mob
     /*
      *  /brief set status to "performing lane change"
      */
-    void setStatusDoingLC(LANE_CHANGE_SIDE& lcs);
+    void setStatusDoingLC(LaneChangeTo& lcs);
 
     /**
      *  /brief get status of the vh
@@ -223,14 +205,14 @@ namespace sim_mob
     /// lanes,which are ok to change to
     set<const Lane*> targetLanes;
 
-    enum STOP_POINT_STATE
+    enum StopPointState
     {
-      APPROACHING_STOP_POINT = 1,
-      CLOSE_STOP_POINT = 2,
-      JUST_ARRIVE_STOP_POINT = 3,
+      STOP_POINT_FOUND = 1,
+      ARRIVING_AT_STOP_POINT = 2,
+      ARRIVED_AT_STOP_POINT = 3,
       WAITING_AT_STOP_POINT = 4,
       LEAVING_STOP_POINT = 5,
-      NO_FOUND_STOP_POINT = 6
+      STOP_POINT_NOT_FOUND = 6
     } ;
 
     const Lane* currLane;
@@ -243,10 +225,7 @@ namespace sim_mob
 
     double currSpeed;
     double desiredSpeed;
-
-    double currLaneOffset;
-    double currLaneLength;
-
+	
     double elapsedSeconds;
     double trafficSignalStopDistance;
     sim_mob::TrafficColor trafficColor;
@@ -260,11 +239,11 @@ namespace sim_mob
     double perceivedDistToFwdCar;
     double perceivedDistToTrafficSignal;
 
-    LANE_CHANGE_SIDE turningDirection;
+    LaneChangeTo turningDirection;
 
     /// record last lane change decision
     /// both lc model and driverfacet can set this value
-    LANE_CHANGE_SIDE lastDecision;
+    LaneChangeTo lastDecision;
 
     //Nearest vehicles in the current lane, and left/right (including fwd/back for each).
     //Nearest vehicles' distances are initialized to threshold values.
@@ -282,8 +261,8 @@ namespace sim_mob
     NearestVehicle nvRightFwd2;
     NearestVehicle nvRightBack2;
 
-    std::map<TurningConflict*, std::list<NearestVehicle> > conflictVehicles;
-    void insertConflictTurningDriver(TurningConflict* tc, double distance, const Driver* driver);
+    std::map<const TurningConflict*, std::list<NearestVehicle> > conflictVehicles;
+    void insertConflictTurningDriver(const TurningConflict* tc, double distance, const Driver* driver);
 
     // used to check vh when do acceleration merging
     NearestVehicle nvLeadFreeway; // lead vh on freeway segment,used when subject vh on ramp
@@ -292,8 +271,6 @@ namespace sim_mob
     NearestPedestrian npedFwd;
 
     double laneChangingVelocity;
-
-    bool isCrossingAhead;
 
     //Indicates whether a vehicle is approaching an unsignalised intersection
     bool isApproachingIntersection;
@@ -317,17 +294,13 @@ namespace sim_mob
     //Indicates if the car following accelerations are to be over-ridden
     bool useIntAcc;
     
-    int crossingFwdDistance;
-
     //Related to our car following model.
     double space;
     double a_lead;
     double v_lead;
     double space_star;
     double distanceToNormalStop;
-
-    //Related to our lane changing model.
-    double dis2stop; //meter
+    double distToStop;
 
     //Handles state information
     bool justChangedToNewSegment;
@@ -344,8 +317,8 @@ namespace sim_mob
     // perception distance to stop point
     double stopPointPerDis;
 
-    STOP_POINT_STATE stopPointState;
-    double disToSP;
+    StopPointState stopPointState;
+    double distanceToStoppingPt;
     StopPoint currentStopPoint;
     double startStopTime;
 
@@ -364,18 +337,8 @@ namespace sim_mob
 
     double density;
 
-    int initSegId;
-    int initDis;
-    int initSpeed;
+    int initialSpeed;
 
-    //debug car jump
-    double disAlongPolyline; //cm
-    double movementVectx;
-    double movementVecty;
-    Point lastOrigPos_;
-    double dorigPosx;
-    double dorigPosy;
-    DynamicVector latMv_;
 
     std::string cfDebugStr;
     std::stringstream  lcDebugStr;
@@ -387,16 +350,17 @@ namespace sim_mob
 
     double FFAccParamsBeta;
 
-    double newLatVelM; //meter/sec
+    double lateralVelocity;
 
     SMStatusManager statusMgr;
 
-    // key=segment aimsun id, value= stoppoint vector, one segment may has more than one stoppoint
-    std::map<std::string, std::vector<StopPoint> > stopPointPool;
+	/**
+	 * Stores the stopping points for the driver
+	 * Key = segment id, value= vector of stopping points (one segment may have more than one stop point)
+	 */
+    std::map<unsigned int, std::vector<StopPoint> > stopPointPool;
 
-    /// decision timer (second)
-    /// count down in DriverMovement
-    double cftimer;
+    double reactionTimeCounter;
 
     double nextStepSize;
 
@@ -417,7 +381,7 @@ namespace sim_mob
     double maxLaneSpeed;
 
     /// fwd acc from car follow model m/s^2
-    double newFwdAcc;
+    double acceleration;
 
     // critical gap param
     std::vector< std::vector<double> > LC_GAP_MODELS;

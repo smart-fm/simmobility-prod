@@ -150,7 +150,7 @@ void sim_mob::Agent::resetFrameInit() {
 	initialized = false;
 }
 
-void sim_mob::Agent::rerouteWithBlacklist(const std::vector<const sim_mob::RoadSegment*>& blacklisted)
+void sim_mob::Agent::rerouteWithBlacklist(const std::vector<const sim_mob::Link*>& blacklisted)
 {
 	//By default, re-routing does nothing. Subclasses of Agent can add behavior for this.
 }

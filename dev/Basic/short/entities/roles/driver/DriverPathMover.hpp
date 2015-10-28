@@ -10,222 +10,182 @@
 #include "conf/settings/DisableMPI.h"
 #include "geospatial/network/Point.hpp"
 #include "geospatial/network/TurningPath.hpp"
+#include "geospatial/network/WayPoint.hpp"
 #include "metrics/Length.hpp"
 #include "util/DynamicVector.hpp"
 
-
 namespace sim_mob
 {
-
-//Forward declarations
 class RoadSegment;
 class Link;
 class Lane;
-
 class PackageUtils;
 class UnPackageUtils;
-
-
 
 /**
  * The DriverPathMover allows to move forward in a series of RoadSegments based entirely
  * on its forward movement "amount".
  *
- * \author Yao Jin
-
+ * \author Neeraj D
  */
-class DriverPathMover {
-public:
-	DriverPathMover();
-	DriverPathMover(const DriverPathMover& copyFrom); ///<Copy constructor, used to make sure iterators work cleanly.
+class DriverPathMover
+{
+private:
+	/**The current lane of the driver (this will be null while driving in an intersection)*/
+	const Lane *currLane;
 
-	///Set the path of RoadSegments contained in our path. These segments need not
-	/// necessarily be in the same Link.
-	///TODO: I'm not entirely sure that all cases of fwd/rev RoadSegments are handled properly.
-	void setPath(const std::vector<const sim_mob::RoadSegment*>& path, std::vector<bool>& areFwds, int startLaneID);
-	void setPath(const std::vector<const sim_mob::RoadSegment*>& path, int startLaneID);
-	void setPathWithInitSeg(const std::vector<const sim_mob::RoadSegment*>& path,
-			int startLaneID,int initSegId,int initPer,int initSpeed);
-
-	//reset path
-	//in route choice model, it will be used when the vehicle is approaching an intersection
-	//and it needs to find a new route
-	void resetPath(const std::vector<const sim_mob::RoadSegment*>& path);
-
-	///Is it possible to move? Attempting to operate on a GeneralPathmover which has no RoadSegments in
-	/// its path is an error.
-	bool isPathSet() const;
-
-	///General forward movement function: move X cm forward. Automatically switches to a new polypoint or
-	///  road segment as applicable.
-	//Returns any "overflow" distance if we are in an intersection, 0 otherwise.
-	double advance(double fwdDistance);
-	double advance(const RoadSegment* currSegment, std::vector<const RoadSegment*> path, std::vector<bool> areFwds, double fwdDistance);
-
-	///Are we completely done?
-	bool isDoneWithEntireRoute() const;
-
-	//Are we within an intersection?
-	//Note that this will NOT return true if you end on an intersection --all movement stops once
-	// the destination node has been reached.
-	bool isInIntersection() const { return inIntersection; }
-
-	//Indicate that we are done processing the current intersection. Moves the user to the next
-	//  road segment.
-	const Lane* leaveIntersection();
-
-	//Retrieve properties of your current position in the path.
-	const sim_mob::RoadSegment* getCurrSegment() const;
-	const sim_mob::RoadSegment* getNextSegment(bool sameLink) const;
-	const RoadSegment* getNextToNextSegment() const;
-	const sim_mob::RoadSegment* getPrevSegment(bool sameLink) const;
-	const sim_mob::Link* getCurrLink() const;
-	const sim_mob::Lane* getCurrLane() const;
-	const PolyPoint& getCurrPolypoint() const;
-	const PolyPoint& getNextPolypoint() const;
-	const PolyPoint& getNextPolypointNew() const;
-	double getCurrLinkReportedLengthCM() const;
-
-	//Retrieve useful properties of the current polypoint
-	double getCurrDistAlongPolylineCM() const;
-	double getCurrDistAlongPolylineM() { return getCurrDistAlongPolylineCM()/100.0; }
-	double getCurrPolylineTotalDistCM() const;
-
-	// segment length is based on lane's polypoints , be careful, it is not relate to segment's start ,end nodes
-	// unit cm
-	double getCurrentSegmentLengthCM();
-
-	double getDistToLinkEndM();
-
-	//Retrieve the current distance moved in this road segment. Due to lane changing, etc., it
-	//  is entirely possible that this may appear longer than the actual RoadSegment.
-	//Note that this function does not attempt to subtract any distance moved beyond the
-	//  limit of the current polyline. (But it should be close; we try to normalize it).
-	//You will almost always want to use getCurrDistAlongPolyline() instead of this function.
-	double getCurrDistAlongRoadSegmentCM() const;
-
-	//Get what should be the total distance of the RoadSegment.
-	double getTotalRoadSegmentLengthCM() const;
-
-	//Get the length of rest road segments in current link, include current road segment
-	double getAllRestRoadSegmentsLengthCM() const;
-
-	//Retrieve our X/Y position based ONLY on forward movement (e.g., nothing with Lanes)
-	sim_mob::Point getPosition();
-
-	//We might be able to fold Lane movement in here later. For now, it has to be called externally.
-	void shiftToNewPolyline(bool moveLeft);
-	void moveToNewPolyline(int newLaneID);
-
-	double currPolylineLengthCM() const;
-
-	double getDisToCurrSegEnd();
-	double getDisToCurrSegEndM()
-	{
-		return getDisToCurrSegEnd() / 100.0;
-	}
-
-	//List of RoadSegments we're moving to in order.
-	std::vector<const sim_mob::RoadSegment*> fullPath;
-	std::vector<const sim_mob::RoadSegment*>::iterator currSegmentIt;
-
-	//This can change dynamically (lane changes, etc.)
-	std::vector<PolyPoint> polypointsList;
-	std::vector<PolyPoint> laneZeroPolypointsList;
-	std::vector<PolyPoint>::iterator currPolypoint;
-	std::vector<PolyPoint>::iterator nextPolypoint;
-
-	DynamicVector movementVect;
-
-	//Unfortuante duplication, but necessary to avoid aliasing
-	std::vector<PolyPoint>::const_iterator currLaneZeroPolypoint;
-	std::vector<PolyPoint>::const_iterator nextLaneZeroPolypoint;
-
-	//Movement along a single line
-	double distAlongPolylineCM;
-
-	//Counter
-	//NOTE: This is always the same regardless of what lane you're in. In other words,
-	//      you take (distAlongPolyline/currPolylineLength) and multiply that by some "normalized"
-	//      distance for that Segment (e.g., the median lane line) and then add that to the normalized distances
-	//      for all previous Segments. This is important as it prevents obstacles from appearing in the wrong
-	//      places to different drivers.
-	//NOTE:  This does NOT include the distance moved in the current polyline.
-	double distMovedInCurrSegmentCM;
-
-	//And track the expected total distance(CM).
-	double distOfThisSegmentCM;
-
-	//length(CM) of rest road segments in current link, include current segment
-	double distOfRestSegmentsCM;
-
-	//distance(CM) to the end of the current segment. needed by mid-term
-	double distToEndSegmentCM;
-
-	//Intersection driving is different.
-	bool inIntersection;
-
+	/**The current turning path of the driver (this will be non-null while driving in an intersection)*/
 	const TurningPath *currTurning;
 
-	//We might be moving backwards on a Link.
-	//TODO: This is still relevant (even with 1-way Links) since Pedestrians can move backwards on a Link.
-	//       Note that we need to merge this code with GeneralPathMover2.
-	bool isMovingForwardsInLink;
+	/**The entire driving path consisting of road-segments and turning groups*/
+	std::vector<WayPoint> drivingPath;
 
-	//For tracking lane IDs
-	int currLaneID;
+	/**An iterator pointing to the current way-point (road segment/turning group) in the driving path*/
+	std::vector<WayPoint>::const_iterator currWayPointIt;
 
-	//Debug, the debug message also will be transformed and reset PC
-	mutable std::stringstream DebugStream;
+	/**The current poly-line*/
+	const PolyLine *currPolyLine;
 
-	struct PathWithDirection
-	{
-		std::vector<const RoadSegment*> path;
-		std::vector<bool> areFwds;
-	} pathWithDirection;
+	/**An iterator pointing to the current poly-point in the current poly-line*/
+	std::vector<PolyPoint>::const_iterator currPolyPoint;
 
+	/**An iterator pointing to the next poly-point in the current poly-line*/
+	std::vector<PolyPoint>::const_iterator nextPolyPoint;
+
+	/**Indicates whether the driver is in an intersection*/
+	bool inIntersection;
+
+	/**Stores the distance moved along the partial poly-line (from the current point to the next point)*/
+	double distCoveredFromCurrPtToNextPt;
+
+	/**Stores the distance covered by the driver on the current way-point*/
+	double distCoveredOnCurrWayPt;
+
+	/**
+	 * Calculates the distance between the current poly-point and the next poly-point
+	 *
+     * @return the calculated distance
+     */
+	double calcDistFromCurrToNextPt();
+
+	/**
+	 * Advances the driver's position along the poly-line to the next poly-point
+	 *
+     * @return overflow distance, if we move into an intersection, 0 otherwise
+     */
+	double advanceToNextPoint();
+
+	/**
+	 * Advances the driver's position to the next poly-line
+	 *
+     * @return overflow distance, if we move into an intersection, 0 otherwise
+     */
+	double advanceToNextPolyLine();
+	
+	/**
+	 * NOTE: We are keeping these as constant & static because the simulation runtime keeps re-creating
+	 * them on each call to throwIf().
+	 */
+
+	/**Error message to be thrown if the path is not set*/
+	const static std::string ErrorDrivingPathNotSet;
+
+	/**Error message to be thrown if the driver is not in an intersection*/
+	const static std::string ErrorNotInIntersection;
+
+	/**Error message to be thrown if the entire route is done*/
+	const static std::string ErrorEntireRouteDone;
+
+public:
+	DriverPathMover();
+	DriverPathMover(const DriverPathMover &pathMover);
+
+	const Lane* getCurrLane() const;
+    const TurningPath* getCurrTurning() const;
+    
+    const std::vector<WayPoint>& getDrivingPath() const;
+    std::vector<WayPoint>::const_iterator getCurrWayPointIt() const;
+    
+    bool isInIntersection() const;
+
+	const PolyPoint& getCurrPolyPoint() const;
+	const PolyPoint& getNextPolyPoint() const;
+
+	const WayPoint& getCurrWayPoint() const;
+	const WayPoint* getNextWayPoint() const;
+
+	const RoadSegment* getCurrSegment() const;
+	const RoadSegment* getNextSegment() const;
+
+	const Link* getCurrLink() const;
+	const Link* getNextLink() const;
+
+	/**
+	 * Sets the driving path and initialises the internal members to point to the elements in the path
+	 *
+     * @param path the path retrieved from the street directory or the path set manager
+     * @param startLaneIndex the index of the starting lane (optional)
+	 * @param startSegmentId the id of starting segment (optional)
+     */
+	void setPath(const std::vector<WayPoint> &path, int startLaneIndex = -1, int startSegmentId = 0);
+
+	/**
+	 * Checks if the path has been set
+	 *
+     * @return true if the path is set, else false
+     */
+	bool isDrivingPathSet() const;
+
+	/**
+	 * Checks if the driver has completed driving along the assigned path
+	 *
+     * @return true if the route has been completed, else false
+     */
+	bool isDoneWithEntireRoute() const;
+
+	/**
+	 * Advances the driver's position along the poly-line by the given amount.
+	 *
+     * @param distance the distance (in metre) by which the driver is to be moved forward
+	 *
+     * @return overflow distance, if we move into an intersection, 0 otherwise
+     */
+	double advance(double distance);
+
+	/**
+	 * Calculates the distance covered on the current road way-point
+	 *
+     * @return the distance covered on the current way point (in metre)
+     */
+	double getDistCoveredOnCurrWayPt() const;
+
+	/**
+	 * Calculates the distance remaining to the end of the current way point
+     * 
+	 * @return the distance remaining to the end of the current way point (in metre)
+     */
+	double getDistToEndOfCurrWayPt() const;
+
+	/**
+	 * Calculates the distance remaining to the end of the current link
+	 *
+     * @return  the distance remaining to the end of the current link (in metre)
+     */
+	double getDistToEndOfCurrLink() const;
+
+	/**
+	 * Computes the current position based on the poly-line and the distance moved
+	 *
+     * @return the point representing the current position
+     */
+	const Point getPosition();
 
 #ifndef SIMMOB_DISABLE_MPI
-public:
-	///Serialization
-	static void pack(PackageUtils& package, GeneralPathMover* one_mover);
-
-	static void unpack(UnPackageUtils& unpackage, GeneralPathMover* one_motor);
-#endif
-
-private:
-
-	//Helper functions
-	double advanceToNextPolyline(bool isFwd);
-	double advanceToNextRoadSegment();
-	const Lane* actualMoveToNextSegmentAndUpdateDir();
-	void generateNewPolylineArray(const RoadSegment* currSegment, std::vector<const RoadSegment*> path, std::vector<bool> areFwds);
-	void generateNewPolylineArray();
-	void calcNewLaneDistancesCM();
-	static double CalcSegmentLaneZeroDistCM(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);
-	static double CalcRestSegmentsLaneZeroDistCM(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);
-	static std::string centimeterToMeter(centimeter_t dist); //Helper to format cm as m for debug output.
-
-	//General throw function. There is probably a better way to do this.
-	void throwIf(bool conditional, const std::string& msg) const;
-
-	//Error messages for throw_if.
-	//NOTE: We are keeping these as const-static because the simulation runtime keeps re-creating them
-	//      on each call to throwIf().
-	const static std::string ErrorPathNotSet;
-	const static std::string ErrorPolylineLength;
-	const static std::string ErrorNotInIntersection;
-	const static std::string ErrorAdvancePathDone1;
-	const static std::string ErrorAdvancePathDone2;
-	const static std::string ErrorPolylineCantAdvance;
-	const static std::string ErrorRoadSegmentAtEnd;
-	const static std::string ErrorPathDoneActual;
-	const static std::string ErrorGeneralPathDone;
-
-	//Serialization-related friends
 	friend class PackageUtils;
 	friend class UnPackageUtils;
-};
 
-
+	static void pack(PackageUtils& package, DriverPathMover* one_mover);
+	static void unpack(UnPackageUtils& unpackage, DriverPathMover* one_motor);
+#endif
+} ;
 }

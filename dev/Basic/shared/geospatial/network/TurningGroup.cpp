@@ -3,11 +3,12 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "TurningGroup.hpp"
+#include "util/GeomHelpers.hpp"
 
 using namespace sim_mob;
 
 TurningGroup::TurningGroup() :
-turningGroupId(0), fromLinkId(0), nodeId(0), phases(""), groupRule(TURNING_GROUP_RULE_NO_STOP_SIGN), toLinkId(0), visibility(0)
+turningGroupId(0), fromLinkId(0), nodeId(0), phases(""), groupRule(TURNING_GROUP_RULE_NO_STOP_SIGN), toLinkId(0), visibility(0), length(0)
 {
 }
 
@@ -98,8 +99,22 @@ void TurningGroup::setVisibility(double visibility)
 	this->visibility = visibility;
 }
 
+double TurningGroup::getLength() const
+{
+	return length;
+}
+
 void TurningGroup::addTurningPath(TurningPath *turningPath)
 {
+	//Update the turning group length
+	unsigned int noOfPaths = turningPaths.size();
+	
+	const PolyPoint from = turningPath->getFromLane()->getPolyLine()->getLastPoint();
+	const PolyPoint to = turningPath->getToLane()->getPolyLine()->getLastPoint();
+	
+	double distance = dist(from.getX(), from.getY(), to.getX(), to.getY());
+	length = ((length * noOfPaths) + distance) / (noOfPaths + 1);
+	
 	//Make a new entry into the map
 	turningPaths.insert(std::make_pair(turningPath->getFromLaneId(), turningPath));
 }

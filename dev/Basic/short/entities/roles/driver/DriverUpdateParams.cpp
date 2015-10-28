@@ -8,16 +8,16 @@
 namespace sim_mob
 {
 DriverUpdateParams::DriverUpdateParams()
-    : UpdateParams() , status(0), flags(0), yieldTime(0, 0), lcTimeTag(200), speedOnSign(0), newFwdAcc(0), cftimer(0.0), newLatVelM(0.0),
-    utilityCurrent(0), utilityRight(0), utilityLeft(0), rnd(0), perceivedDistToTrafficSignal(500), disAlongPolyline(0), dorigPosx(0), dorigPosy(0),
-    movementVectx(0), movementVecty(0), headway(999), currLane(NULL), stopPointPerDis(100), stopPointState(NO_FOUND_STOP_POINT), startStopTime(0), disToSP(999),
-    currLaneIndex(0), leftLane(NULL), rightLane(NULL), leftLane2(NULL), rightLane2(NULL), currSpeed(0), desiredSpeed(0), currLaneOffset(0),
-	currLaneLength(0), trafficSignalStopDistance(0), elapsedSeconds(0), perceivedFwdVelocity(0), perceivedLatVelocity(0), perceivedFwdVelocityOfFwdCar(0),
+    : UpdateParams() , status(0), flags(0), yieldTime(0, 0), lcTimeTag(200), speedOnSign(0), acceleration(0), reactionTimeCounter(0.0), lateralVelocity(0.0),
+    utilityCurrent(0), utilityRight(0), utilityLeft(0), rnd(0), perceivedDistToTrafficSignal(500), 
+    headway(999), currLane(NULL), stopPointPerDis(100), stopPointState(STOP_POINT_NOT_FOUND), startStopTime(0), distanceToStoppingPt(999),
+    currLaneIndex(0), leftLane(NULL), rightLane(NULL), leftLane2(NULL), rightLane2(NULL), currSpeed(0), desiredSpeed(0), 
+	trafficSignalStopDistance(0), elapsedSeconds(0), perceivedFwdVelocity(0), perceivedLatVelocity(0), perceivedFwdVelocityOfFwdCar(0),
 	perceivedLatVelocityOfFwdCar(0), perceivedAccelerationOfFwdCar(0), perceivedDistToFwdCar(0),
-	laneChangingVelocity(0), isCrossingAhead(false), isApproachingIntersection(false), crossingFwdDistance(0), space(0), a_lead(0),
-	v_lead(0), space_star(0), distanceToNormalStop(0), dis2stop(0), impatienceTimer(0.0), nextLaneIndex(0), justChangedToNewSegment(false),
+	laneChangingVelocity(0), isApproachingIntersection(false), space(0), a_lead(0),
+	v_lead(0), space_star(0), distanceToNormalStop(0), distToStop(0), impatienceTimer(0.0), nextLaneIndex(0), justChangedToNewSegment(false),
 	justMovedIntoIntersection(false), overflowIntoIntersection(0), driver(NULL), isTargetLane(false), emergHeadway(999), acc(0),
-	density(0), initSegId(0), initDis(0), initSpeed(0), parentId(0), FFAccParamsBeta(0), nextStepSize(0), maxAcceleration(0), normalDeceleration(0),
+	density(0), initialSpeed(0), parentId(0), FFAccParamsBeta(0), nextStepSize(0), maxAcceleration(0), normalDeceleration(0),
 	lcMaxNosingTime(0), maxLaneSpeed(0), maxDeceleration(0), impatienceTimerStart(0.0), hasStoppedForStopSign(false), accessTime(0), isResponseReceived(false),
 	useIntAcc(false)
 {
@@ -36,13 +36,13 @@ StatusValue DriverUpdateParams::getStatus(string name) {
 	return statusMgr.getStatus(name);
 }
 
-void DriverUpdateParams::setStatusDoingLC(LANE_CHANGE_SIDE& lcs)
+void DriverUpdateParams::setStatusDoingLC(LaneChangeTo& lcs)
 {
-	if(lcs == LCS_RIGHT)
+	if(lcs == LANE_CHANGE_TO_RIGHT)
 	{
 		setStatus(STATUS_LC_RIGHT);
 	}
-	else if(lcs == LCS_LEFT)
+	else if(lcs == LANE_CHANGE_TO_LEFT)
 	{
 		setStatus(STATUS_LC_LEFT);
 	}
@@ -81,7 +81,7 @@ void DriverUpdateParams::buildDebugInfo()
 #if 0
 	//debug car following
 	char newFwdAccChar[20] = "\0";
-	sprintf(newFwdAccChar,"acc%03.1f",newFwdAcc);
+	sprintf(newFwdAccChar,"acc%03.1f",acceleration);
 
 	s<<"            "<<parentId
 	<<":"<<newFwdAccChar
@@ -214,7 +214,7 @@ void DriverUpdateParams::unsetStatus(unsigned int s)
 const RoadSegment* DriverUpdateParams::nextLink()
 {
 	DriverMovement *driverMvt = (DriverMovement*)driver->Movement();
-	return driverMvt->fwdDriverMovement.getNextSegment(false);
+	return driverMvt->fwdDriverMovement.getNextLink()->getRoadSegment(0);
 }
 
 bool DriverUpdateParams::willYield(unsigned int reason)
@@ -230,7 +230,7 @@ double DriverUpdateParams::lcMinGap(int type)
 }
 
 void DriverUpdateParams::insertStopPoint(StopPoint& sp){
-	std::map<std::string,std::vector<StopPoint> >::iterator it = stopPointPool.find(sp.segmentId);
+	std::map<unsigned int, std::vector<StopPoint> >::iterator it = stopPointPool.find(sp.segmentId);
 	if(it!=stopPointPool.end()){
 		it->second.push_back(sp);
 	}
@@ -240,13 +240,13 @@ void DriverUpdateParams::insertStopPoint(StopPoint& sp){
 		stopPointPool.insert(std::make_pair(sp.segmentId,v));
 	}
 }
-void DriverUpdateParams::insertConflictTurningDriver(TurningConflict* conflict, double distance, const Driver* driver) {
+void DriverUpdateParams::insertConflictTurningDriver(const TurningConflict* conflict, double distance, const Driver* driver) {
 	NearestVehicle nearestVehicle;
 	nearestVehicle.distance = distance;
 	nearestVehicle.driver = driver;
 	
 	// find turning conflict
-	std::map<TurningConflict*,std::list<NearestVehicle> >::iterator it = conflictVehicles.find(conflict);
+	std::map<const TurningConflict*,std::list<NearestVehicle> >::iterator it = conflictVehicles.find(conflict);
 	
 	if(it != conflictVehicles.end()) {
 		std::list<NearestVehicle>& nearestVehicles = it->second;

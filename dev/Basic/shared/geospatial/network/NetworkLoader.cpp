@@ -242,7 +242,7 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 
 		loadTurningConflicts(getStoredProcedure(storedProcs, "turning_conflicts"));
 		
-		loadBusStops(getStoredProcedure(storedProcs, "bus_stops"));
+		//loadBusStops(getStoredProcedure(storedProcs, "bus_stops"));
 		
 		//Close the connection
 		sql.close();

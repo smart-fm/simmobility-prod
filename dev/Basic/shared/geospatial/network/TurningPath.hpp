@@ -48,7 +48,7 @@ private:
 	/**The turning conflicts that lie on the turning.
 	 * The key for this map is the other turning path
 	 */
-	std::map<TurningPath *, TurningConflict *> turningConflicts;
+	std::map<const TurningPath *, TurningConflict *> turningConflicts;
 
 	/**Indicates the id of the turning group to which this turning path belongs*/
 	unsigned int turningGroupId;
@@ -92,7 +92,7 @@ public:
 	 * @param other - the conflicting turning path
 	 * @param conflict - the turning conflict to be added
 	 */
-	void addTurningConflict(TurningPath *other, TurningConflict *conflict);
+	void addTurningConflict(const TurningPath *other, TurningConflict *conflict);
 
 	/**
 	 * This method looks up and returns the turning conflict between this turning path and the given turning path
@@ -101,6 +101,6 @@ public:
      *
 	 * @return the turning conflict if found, else NULL
      */
-	const TurningConflict* getTurningConflict(TurningPath *turningPath);
+	const TurningConflict* getTurningConflict(const TurningPath *turningPath) const;
 };
 }

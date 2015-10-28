@@ -11,79 +11,60 @@
 #include "entities/models/Constants.h"
 #include "entities/roles/driver/DriverUpdateParams.hpp"
 
-namespace sim_mob {
-
-//Forward declaration
+namespace sim_mob
+{
 class DriverUpdateParams;
 class NearestVehicle;
 
-//enum LANE_CHANGE_MODE {	//as a mask
-//	DLC = 0,
-//	MLC = 2,
-//	MLC_C = 4,
-//	MLC_F = 6
-//};
-
-/*
- * \file LaneChangeModel.hpp
- *
- * \author Wang Xinyuan
- * \author Li Zhemin
- * \author Seth N. Hetu
+/**
+ * Defines a base template for the LaneChangingModel
  */
-class LaneChangeModel {
+class LaneChangingModel
+{
 public:
-	//Allow propagation of delete
-	virtual ~LaneChangeModel() {}
+	virtual ~LaneChangingModel()
+	{
+	}
 
-	virtual LANE_CHANGE_SIDE makeLaneChangingDecision(DriverUpdateParams& p) = 0;
+	virtual LaneChangeTo makeLaneChangingDecision(DriverUpdateParams &params) = 0;
+
 	///to execute the lane changing, meanwhile, check if crash will happen and avoid it
-	///Return new lateral velocity, or <0 to keep the velocity at its previous value.
-//	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode) = 0;
-	virtual double executeLaneChanging(DriverUpdateParams& p)=0;
-	virtual void chooseTargetGap(DriverUpdateParams& p)=0;
-	virtual double executeLaterVel(LANE_CHANGE_SIDE& lcs)=0;
+	///Return new lateral velocity, or <0 to keep the velocity at its previous value.	
+	virtual double executeLaneChanging(DriverUpdateParams &params) = 0;
+
+	virtual void chooseTargetGap(DriverUpdateParams &params) = 0;
+
+	virtual double executeLaterVel(LaneChangeTo &laneChangeTo) = 0;
+
 	/**
 	 *  /brief this function checks for bad events that will override the lookahead,like incident
 	 *  /param vehicle info
 	 *  /return true only if has events
 	 */
 	virtual int checkIfLookAheadEvents(DriverUpdateParams& p) = 0;
+
 	/**
 	 *  /brief this function determines the lane changing that a lookahead vehicle
 	 *          will try if it is constrained by an event.
 	 *  /param vehicle info
 	 *  /return turn direction
 	 */
-	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p) = 0;
+	virtual LaneChangeTo checkMandatoryEventLC(DriverUpdateParams& p) = 0;
 };
 
-
-/**
- *
- * Simple version of the lane changing model
- * The purpose of this model is to demonstrate a very simple (yet reasonably accurate) model
- * which generates somewhat plausible visuals. This model should NOT be considered valid, but
- * it can be used for demonstrations and for learning how to write your own *Model subclasses.
- *
- * \author Seth N. Hetu
- */
-class SimpleLaneChangeModel : public LaneChangeModel {
-public:
-	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir, LANE_CHANGE_MODE mode);
-};
-
-class MITSIM_LC_Model : public LaneChangeModel {
+class MITSIM_LC_Model : public LaneChangingModel
+{
 public:
 
-    /**
-     * Simple struct to hold mandatory lane changing parameters
-     */
-    struct MandLaneChgParam {
-        double lowbound; // meter
-        double delta;  // meter
-        double lane_mintime; // sec
-    };
+	/**
+	 * Holds the mandatory lane changing parameters
+	 */
+	struct MandatoryLaneChangeParams
+	{
+		double lowbound; // meter
+		double delta; // meter
+		double lane_mintime; // sec
+	};
 
 	MITSIM_LC_Model(DriverUpdateParams& p);
 	/**
@@ -95,26 +76,26 @@ public:
 	///\param dis from critical pos
 	///\param spd spd of the follower
 	///\param dv spd difference from the leader));
-	virtual double lcCriticalGap(sim_mob::DriverUpdateParams& p, int type,	double dis, double spd, double dv);
-//	virtual sim_mob::LaneSide gapAcceptance(sim_mob::DriverUpdateParams& p, int type);
-	virtual double calcSideLaneUtility(sim_mob::DriverUpdateParams& p, bool isLeft);  ///<return utility of adjacent gap
-//	virtual sim_mob::LANE_CHANGE_SIDE makeDiscretionaryLaneChangingDecision(sim_mob::DriverUpdateParams& p);  ///<DLC model, vehicles freely decide which lane to move. Returns 1 for Right, -1 for Left, and 0 for neither.
+	virtual double lcCriticalGap(DriverUpdateParams& p, int type, double dis, double spd, double dv);
+	//	virtual LaneSide gapAcceptance(DriverUpdateParams& p, int type);
+	virtual double calcSideLaneUtility(DriverUpdateParams& p, bool isLeft); ///<return utility of adjacent gap
+	//	virtual LANE_CHANGE_SIDE makeDiscretionaryLaneChangingDecision(DriverUpdateParams& p);  ///<DLC model, vehicles freely decide which lane to move. Returns 1 for Right, -1 for Left, and 0 for neither.
 
-//	virtual sim_mob::LANE_CHANGE_SIDE makeMandatoryLaneChangingDecision(sim_mob::DriverUpdateParams& p); ///<MLC model, vehicles must change lane, Returns 1 for Right, -1 for Left.
+	//	virtual LANE_CHANGE_SIDE makeMandatoryLaneChangingDecision(DriverUpdateParams& p); ///<MLC model, vehicles must change lane, Returns 1 for Right, -1 for Left.
 
-//	virtual sim_mob::LANE_CHANGE_SIDE executeNGSIMModel(sim_mob::DriverUpdateParams& p);
+	//	virtual LANE_CHANGE_SIDE executeNGSIMModel(DriverUpdateParams& p);
 	virtual bool ifCourtesyMerging(DriverUpdateParams& p);
-//	virtual bool ifForcedMerging(DriverUpdateParams& p);
-//	virtual sim_mob::LANE_CHANGE_SIDE makeCourtesyMerging(sim_mob::DriverUpdateParams& p);
-//	virtual sim_mob::LANE_CHANGE_SIDE makeForcedMerging(sim_mob::DriverUpdateParams& p);
-	virtual void chooseTargetGap(sim_mob::DriverUpdateParams& p,std::vector<TARGET_GAP>& tg);
+	//	virtual bool ifForcedMerging(DriverUpdateParams& p);
+	//	virtual LANE_CHANGE_SIDE makeCourtesyMerging(DriverUpdateParams& p);
+	//	virtual LANE_CHANGE_SIDE makeForcedMerging(DriverUpdateParams& p);
+	virtual void chooseTargetGap(DriverUpdateParams& p, std::vector<TARGET_GAP>& tg);
 	/*
 	 *  /brief when left,right gap is not possible, choose adjacent,forward,backward gap
 	 *         set the status to STATUS_ADJACENT,STATUS_FORWARD,STATUS_BACKWARD
 	 */
 	virtual void chooseTargetGap(DriverUpdateParams& p);
-	double gapExpOfUtility(DriverUpdateParams& p,int n, float effGap, float gSpeed, float gapDis, float remDis);
-//	vector<double> targetGapParams;
+	double gapExpOfUtility(DriverUpdateParams& p, int n, float effGap, float gSpeed, float gapDis, float remDis);
+	//	vector<double> targetGapParams;
 
 public:
 	/**
@@ -135,24 +116,32 @@ public:
 	 * and 0 otherwise.
 	 *--------------------------------------------------------------------
 	 **/
-	LANE_CHANGE_SIDE makeLaneChangingDecision(DriverUpdateParams& p);
+	LaneChangeTo makeLaneChangingDecision(DriverUpdateParams& p);
 	/**
 	 *  /brief this function check if can perform lane change(set status STATUS_LC_RIGHT,STATUS_LC_LEFT)
 	 *         if can not, check if can do nosing
 	 *         this function not return lateral velocity, it is conduct in executeLaterVel()
 	 */
 	double executeLaneChanging(DriverUpdateParams& p);
-	int isReadyForNextDLC(DriverUpdateParams& p,int mode);
+	int isReadyForNextDLC(DriverUpdateParams& p, int mode);
 
 	double minTimeInLaneSameDir;
-	double getDlcMinTimeInLaneSameDir() { return minTimeInLaneSameDir; }
+
+	double getDlcMinTimeInLaneSameDir()
+	{
+		return minTimeInLaneSameDir;
+	}
 	double minTimeInLaneDiffDir;
-	double getDlcMinTimeInLaneDiffDir() { return minTimeInLaneDiffDir; }
-//	double executionLC(LANE_CHANGE_SIDE& change);
+
+	double getDlcMinTimeInLaneDiffDir()
+	{
+		return minTimeInLaneDiffDir;
+	}
+	//	double executionLC(LANE_CHANGE_SIDE& change);
 	/**
 	 *  /return lateral velocity (m/s)
 	 */
-	virtual double executeLaterVel(LANE_CHANGE_SIDE& change);
+	virtual double executeLaterVel(LaneChangeTo& change);
 	/**
 	 *  /brief this function gives the LC direction when the driver is
 	 *         constrained by the lookahead
@@ -161,7 +150,7 @@ public:
 	 */
 
 	std::vector<double> mlcParams;
-	LANE_CHANGE_SIDE checkForLookAheadLC(DriverUpdateParams& p);
+	LaneChangeTo checkForLookAheadLC(DriverUpdateParams& p);
 	/**
 	 *  /brief check if has path
 	 *  /param p vehicle info
@@ -187,25 +176,25 @@ public:
 	 *   0 = nothing serious
 	 * 	 -1 = requires a mandatory lane change
 	 */
-	int isThereLaneDrop(DriverUpdateParams& p,set<const Lane*>& targetLanes);
+	int isThereLaneDrop(DriverUpdateParams& p, set<const Lane*>& targetLanes);
 
 	/**
 	 *  /brief check if lane connect to next link,set dis2stop
 	 *   0 = nothing serious
 	 * 	 -1 = requires a mandatory lane change
 	 */
-	int isLaneConnectToNextLink(DriverUpdateParams& p,set<const Lane*>& targetLanes);
+	int isLaneConnectToNextLink(DriverUpdateParams& p, set<const Lane*>& targetLanes);
 
 	/**
 	 *  @brief if has stop point forward, do mandatory lane change to road side left/right base on config
 	 *   0 = nothing serious
 	 * 	 -1 = requires a mandatory lane change
 	 */
-	int isLaneConnectToStopPoint(DriverUpdateParams& p,set<const Lane*>& targetLanes);
+	int isLaneConnectToStopPoint(DriverUpdateParams& p, set<const Lane*>& targetLanes);
 
 	// TODO: add incident code
-	virtual LANE_CHANGE_SIDE checkMandatoryEventLC(DriverUpdateParams& p);
-	double lcUtilityLookAheadLeft(DriverUpdateParams& p,int n, float LCdistance);
+	virtual LaneChangeTo checkMandatoryEventLC(DriverUpdateParams& p);
+	double lcUtilityLookAheadLeft(DriverUpdateParams& p, int n, float LCdistance);
 	double LCUtilityLeft(DriverUpdateParams& p);
 	double LCUtilityRight(DriverUpdateParams& p);
 	double LCUtilityCurrent(DriverUpdateParams& p);
@@ -217,25 +206,25 @@ public:
 	 *	 0  = this lane is fine
 	 *	 +n = number of lane changes to left requied
 	 */
-	int isWrongLane(DriverUpdateParams& p,const Lane* lane);
+	int isWrongLane(DriverUpdateParams& p, const Lane* lane);
 
-	double lcUtilityLookAheadRight(DriverUpdateParams& p,int n, float LCdistance);
-	double lcUtilityLookAheadCurrent(DriverUpdateParams& p,int n, float LCdistance);
-	double lcCriticalGap(sim_mob::DriverUpdateParams& p, int type,double dv);
+	double lcUtilityLookAheadRight(DriverUpdateParams& p, int n, float LCdistance);
+	double lcUtilityLookAheadCurrent(DriverUpdateParams& p, int n, float LCdistance);
+	double lcCriticalGap(DriverUpdateParams& p, int type, double dv);
 	vector<double> criticalGapParams;
 	void makeCriticalGapParams(std::string& str);
-//	vector<double> nosingParams;
+	//	vector<double> nosingParams;
 	double lcMaxNosingDis;
-	void makeNosingParams(DriverUpdateParams& p,string& str);
-	float lcNosingProb(float dis, float lead_rel_spd, float gap,int num);
+	void makeNosingParams(DriverUpdateParams& p, string& str);
+	float lcNosingProb(float dis, float lead_rel_spd, float gap, int num);
 	vector<double> kaziNosingParams;
 	void makekaziNosingParams(string& str);
-	float lcProdNoseRejProb;	// used in sampling nosing prob
+	float lcProdNoseRejProb; // used in sampling nosing prob
 	double CF_CRITICAL_TIMER_RATIO;
 	// Returns 1 if the vehicle can nose in or 0 otherwise
-	int checkNosingFeasibility(DriverUpdateParams& p,const NearestVehicle * av,const NearestVehicle * bv,double dis2stop);
+	int checkNosingFeasibility(DriverUpdateParams& p, const NearestVehicle * av, const NearestVehicle * bv, double dis2stop);
 	double lcMaxStuckTime;
-//	double lcMinGap(int type);
+	//	double lcMinGap(int type);
 	float lcNosingConstStateTime;
 	vector<double> lcYieldingProb;
 	void makelcYieldingProb(string& str);
@@ -255,11 +244,11 @@ public:
 	// split delimiter in xml param file
 	string splitDelimiter;
 
-	MandLaneChgParam MLC_PARAMETERS;
+	MandatoryLaneChangeParams MLC_PARAMETERS;
 
 	double minSpeed; // minimum speed to consider for a moving vehicle
-//	double mlcMinTimeInLane;  // minimum time in lane , seconds
-//	double lcTimeTag;		// time changed lane , ms
+	//	double mlcMinTimeInLane;  // minimum time in lane , seconds
+	//	double lcTimeTag;		// time changed lane , ms
 	double timeSinceTagged(DriverUpdateParams& p);
 
 	double lookAheadDistance;
@@ -275,13 +264,13 @@ public:
 	 */
 	void makeMCLParam(std::string& str);
 
-//	// critical gap param
-//	std::vector< std::vector<double> > LC_GAP_MODELS;
+	//	// critical gap param
+	//	std::vector< std::vector<double> > LC_GAP_MODELS;
 	/**
 	 *  /brief make double matrix, store the matrix to LC_GAP_MODELS
 	 *  /strMatrix string matrix
 	 */
-	void makeCtriticalGapParam(DriverUpdateParams& p,std::vector< std::string >& strMatrix);
+	void makeCtriticalGapParam(DriverUpdateParams& p, std::vector< std::string >& strMatrix);
 
 	// choose target gap param
 	std::vector< std::vector<double> > GAP_PARAM;
@@ -292,6 +281,4 @@ public:
 	void makeTargetGapPram(std::vector< std::string >& strMatrix);
 
 };
-
-
 }

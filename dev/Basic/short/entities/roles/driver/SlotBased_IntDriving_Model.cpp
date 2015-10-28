@@ -44,7 +44,7 @@ double SlotBased_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& 
 		
 		if (timeToReachInt >= 0)
 		{
-			double speed = params.driver->distToIntersection_.get() / timeToReachInt;
+			double speed = params.driver->getDistToIntersection() / timeToReachInt;
 			speed = speed * 100;
 			params.driver->getVehicle()->setVelocity(speed);
 			
@@ -72,7 +72,7 @@ void SlotBased_IntDriving_Model::sendAccessRequest(DriverUpdateParams& params)
 		IntersectionManager *intMgr = IntersectionManager::getIntManager(currTurning->getFromLane()->getParentSegment()->getParentLink()->getFromNodeId());
 		
 		//Calculate the arrival time according to the current speed and the distance to the intersection
-		double arrivalTime = calcArrivalTime(params.driver->distToIntersection_.get(), params);		
+		double arrivalTime = calcArrivalTime(params.driver->getDistToIntersection(), params);		
 		
 		if(arrivalTime > 0)
 		{

@@ -69,7 +69,7 @@ void MITSIM_IntDriving_Model::startDriving(const Point& fromLanePt, const Point&
 	}
 	
 	currPosition = fromLanePt;
-	totalMovement = startOffset;
+	distCoveredOnTurning = startOffset;
 	polylineMovement = startOffset;
 }
 
@@ -80,7 +80,7 @@ Point MITSIM_IntDriving_Model::continueDriving(double amount,DriverUpdateParams&
 		return currPosition;
 	}
 	
-	totalMovement += amount;
+	distCoveredOnTurning += amount;
 	
 	// check "amount" exceed the rest length of the DynamicVector
 	DynamicVector tt(currPosition.getX(),currPosition.getY(),currPolyline.getEndX(),currPolyline.getEndY());
@@ -118,7 +118,7 @@ Point MITSIM_IntDriving_Model::continueDriving(double amount,DriverUpdateParams&
 
 bool MITSIM_IntDriving_Model::isDone() 
 {
-	return totalMovement >= length;
+	return distCoveredOnTurning >= length;
 }
 
 double MITSIM_IntDriving_Model::getCurrentAngle()
@@ -182,10 +182,13 @@ void MITSIM_IntDriving_Model::makePolypoints(const Point& fromLanePt, const Poin
 	*/
 }
 
-double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams& params)
+double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &params)
 {
 	double acc = params.maxAcceleration;
-	const double vehicleLength = params.driver->getVehicleLengthM();
+	const double vehicleLength = params.driver->getVehicleLength();
+
+	//Reduce the reaction time in intersection			
+	params.reactionTimeCounter = params.reactionTimeCounter * Utils::generateFloat(intersectionAttentivenessFactorMin, intersectionAttentivenessFactorMax);
 	
 	/*
 	//Safety margin distance in front of the vehicle (half a vehicle length seems a reasonable margin)

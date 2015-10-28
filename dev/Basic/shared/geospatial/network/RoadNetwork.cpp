@@ -114,11 +114,11 @@ void RoadNetwork::addLane(Lane* lane)
 	//Check if the segment exists in the map
 	if(itSegments != mapOfIdVsRoadSegments.end())
 	{
-		//Add the lane to the road segment
-		itSegments->second->addLane(lane);
-		
 		//Link the lane and its parent segment
 		lane->setParentSegment(itSegments->second);
+		
+		//Add the lane to the road segment
+		itSegments->second->addLane(lane);
 
 		//Add the lane to the map of lanes
 		mapOfIdVsLanes.insert(std::make_pair(lane->getLaneId(), lane));
@@ -259,11 +259,11 @@ void RoadNetwork::addRoadSegment(RoadSegment* segment)
 	//Check if the link exists in the map
 	if(itLinks != mapOfIdVsLinks.end())
 	{
-		//Add the road segment to the link
-		itLinks->second->addRoadSegment(segment);
-		
 		//Link the segment and its parent link
 		segment->setParentLink(itLinks->second);
+		
+		//Add the road segment to the link
+		itLinks->second->addRoadSegment(segment);
 
 		//Add the road segment to the map of road segments
 		mapOfIdVsRoadSegments.insert(std::make_pair(segment->getRoadSegmentId(), segment));
@@ -430,13 +430,13 @@ void RoadNetwork::addTurningPath(TurningPath* turningPath)
 	if(itGroups != mapOfIdvsTurningGroups.end())
 	{
 		if (itFromLanes != mapOfIdVsLanes.end() && itToLanes != mapOfIdVsLanes.end())
-		{
-			//Add the turning path to the turning group
-			itGroups->second->addTurningPath(turningPath);
-			
+		{			
 			//Add the from and to lanes
 			turningPath->setFromLane(itFromLanes->second);
 			turningPath->setToLane(itToLanes->second);
+			
+			//Add the turning path to the turning group
+			itGroups->second->addTurningPath(turningPath);
 
 			//Add the turning path to the map of turning paths
 			mapOfIdvsTurningPaths.insert(std::make_pair(turningPath->getTurningPathId(), turningPath));

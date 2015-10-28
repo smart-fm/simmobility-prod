@@ -53,14 +53,14 @@ void BusStop::setTerminusType(TerminusType type)
 	terminusType = type;
 }
 
-double BusStop::getCapacityAsLength() const
+void BusStop::setLength(double length)
 {
-	return length;
+	this->length = length;
 }
 
-void BusStop::setCapacityAsLength(double len)
+double BusStop::getLength() const
 {
-	length = len;
+	return length;
 }
 
 /*
@@ -113,16 +113,6 @@ const std::string& BusStop::getStopName() const
 void BusStop::setStopName(std::string name)
 {
 	stopName = name;
-}
-
-unsigned int BusStop::getStopId() const
-{
-	return stopId;
-}
-
-void BusStop::setStopId(unsigned int id)
-{
-	stopId = id;
 }
 
 const std::string& BusStop::getStopCode() const

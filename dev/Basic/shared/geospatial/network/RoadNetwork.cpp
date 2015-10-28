@@ -511,30 +511,40 @@ void RoadNetwork::addTurningPolyLine(PolyPoint point)
 void RoadNetwork::addBusStop(BusStop* stop)
 {
 	//Check if the bus stop has already been added to the map
-	std::map<unsigned int, BusStop *>::iterator itStop = mapOfIdvsBusStops.find(stop->getStopId());
+	std::map<unsigned int, BusStop *>::iterator itStop = mapOfIdvsBusStops.find(stop->getRoadItemId());
 
 	if (itStop != mapOfIdvsBusStops.end())
 	{
 		std::stringstream msg;
-		msg << "Bus stop " << stop->getStopId() << " has already been added!";
+		msg << "Bus stop " << stop->getRoadItemId() << " has already been added!";
 		safe_delete_item(stop);
 		throw std::runtime_error(msg.str());
 	}
 	else
-	{
-		//Insert the stop into the map
-		mapOfIdvsBusStops.insert(std::make_pair(stop->getRoadItemId(), stop));
-		
+	{			
 		//Get the road segment to which the bus stop belongs
 		std::map<unsigned int, RoadSegment *>::iterator itSegments = mapOfIdVsRoadSegments.find(stop->getRoadSegmentId());
 		
 		if (itSegments != mapOfIdVsRoadSegments.end())
 		{
+			double offset = stop->getOffset();
+			double stopHalfLength = stop->getLength() / 2;
+			
+			//Ensure that the stop doesn't go beyond the road segment
+			if ((offset + stopHalfLength) > itSegments->second->getLength())
+			{
+				offset = itSegments->second->getLength() - stopHalfLength;
+				stop->setOffset(offset);
+			}
+
 			//Set the parent segment of the bus stop
 			stop->setParentSegment(itSegments->second);
 			
 			//Add the stop to the segment
-			itSegments->second->addObstacle(stop->getOffset(), stop);
+			itSegments->second->addObstacle(offset, stop);
+			
+			//Insert the stop into the map
+			mapOfIdvsBusStops.insert(std::make_pair(stop->getRoadItemId(), stop));
 			BusStop::registerBusStop(stop);
 		}
 		else

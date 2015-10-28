@@ -47,7 +47,7 @@ private:
 	/**indicator to determine whether this stop is virtually created for terminus stops*/
 	bool virtualStop;
 
-	/**offset to its parent segment's obstacle list*/
+	/**Distance from the start of the parent segment*/
 	double offset;
 
 	/**bus stop code*/
@@ -55,9 +55,6 @@ private:
 
 	/**bus stop name*/
 	std::string stopName;
-
-	/**bus stop Id*/
-	unsigned int stopId;
 
 	/**This map stores all the bus stops in the network with bus stop code as the key*/
 	static std::map<std::string, BusStop *> mapOfCodevsBusStops;
@@ -74,6 +71,9 @@ public:
 
 	const TerminusType& getTerminusType() const;
 	void setTerminusType(TerminusType type);
+
+	void setLength(double length);
+    double getLength() const;
 
 	double getCapacityAsLength() const;
 	void setCapacityAsLength(double len);
@@ -92,9 +92,6 @@ public:
 
 	const std::string& getStopName() const;
 	void setStopName(const std::string name);
-
-	unsigned int getStopId() const;
-	void setStopId(unsigned int id);
 
 	const std::string& getStopCode() const;
 	void setStopCode(const std::string& code);

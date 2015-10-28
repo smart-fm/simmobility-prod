@@ -1172,7 +1172,7 @@ bool HouseholdBidderRole::pickEntryToBid()
         for( int m = 0; m < householdScreeningProbabilities.size(); m++ )
         {
         	cummulativeProbability +=  householdScreeningProbabilities[m];
-        	if( randomDraw >cummulativeProbability )
+        	if( cummulativeProbability > randomDraw )
         	{
         		zoneHousingType = m + 1; //housing type is a one-based index
         		break;
@@ -1258,7 +1258,7 @@ bool HouseholdBidderRole::pickEntryToBid()
         	thisDwellingType = 600;
         }
         else
-        if( thisUnit->getUnitType() >= 17 && thisUnit->getUnitType() <= 31)
+        if( thisUnit->getUnitType() >= 17 && thisUnit->getUnitType() <= 31 )
         {
         	thisDwellingType = 700;
         }
@@ -1267,7 +1267,7 @@ bool HouseholdBidderRole::pickEntryToBid()
         	thisDwellingType = 800;
         }
 
-        //PrintOutV("thisDwellingType " << thisDwellingType << std::endl);
+
 
     	if( thisDwellingType == housingType )
     	{
@@ -1311,7 +1311,6 @@ bool HouseholdBidderRole::pickEntryToBid()
     		sprintf( temp + strLength, " %i,", (int)screenedEntries[n]->getUnitId() );
     	}
 
-    	PrintOutV( household->getId() << ", " << temp << std::endl );
     	printChoiceset(household->getId(), temp);
     }
 

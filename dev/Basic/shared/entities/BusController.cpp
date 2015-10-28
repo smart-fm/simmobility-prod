@@ -123,7 +123,7 @@ bool searchBusRoutes(const vector<const BusStop*>& stops, const std::string& bus
 			{
 				start = busStop;
 				StopInfo stopInfo;
-				stopInfo.id = start->getRoadItemId();
+				stopInfo.id = start->getStopCode();
 				stopInfo.line = busLine;
 				stopInfo.posX = start->getStopLocation().getX();
 				stopInfo.posY = start->getStopLocation().getY();
@@ -155,8 +155,8 @@ bool searchBusRoutes(const vector<const BusStop*>& stops, const std::string& bus
 						{
 							RouteInfo route;
 							route.id = id;
-							route.start = start->getRoadItemId();
-							route.end = end->getRoadItemId();
+							route.start = start->getStopCode();
+							route.end = end->getStopCode();
 							route.startPosX = start->getStopLocation().getX();
 							route.startPosY = start->getStopLocation().getY();
 							route.endPosX = end->getStopLocation().getX();
@@ -179,7 +179,7 @@ bool searchBusRoutes(const vector<const BusStop*>& stops, const std::string& bus
 				else
 				{
 					StopInfo stopInfo;
-					stopInfo.id =  end->getRoadItemId();
+					stopInfo.id =  end->getStopCode();
 					stopInfo.line = busLine;
 					stopInfo.posX = end->getStopLocation().getX();
 					stopInfo.posY = end->getStopLocation().getY();

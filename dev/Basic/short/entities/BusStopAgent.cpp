@@ -119,7 +119,7 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 				currReachedMSOut << "currReachedMsInformation for buslineId " << (it->first) << std::endl;
 				for(int i = 0; i < it->second.size(); i++) {
 					currReachedMSOut << now.frame() << " "
-									 << "at stop " << this->busstop_.getRoadItemId() << " "
+									 << "at stop " << this->busstop_.getStopCode() << " "
 									 << (it->first) << " "
 									 << (it->second)[i] << std::endl;
 				}
@@ -134,7 +134,7 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 				currReachedMSOut << "AlightingInformation for buslineId " << (it->first) << std::endl;
 				for(int j = 0; j < it->second.size(); j++) {
 					currReachedMSOut << now.frame() << " "
-									 << "alightingNum " << this->busstop_.getRoadItemId() << " "
+									 << "alightingNum " << this->busstop_.getStopCode() << " "
 									 << (it->first) << " "
 									 << (it->second)[j] << std::endl;
 				}
@@ -149,7 +149,7 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 				currReachedMSOut << "BoardingInformation for buslineId " << (it->first) << std::endl;
 				for(int k = 0; k < it->second.size(); k++) {
 					currReachedMSOut << now.frame() << " "
-									 << "boardingNum " << this->busstop_.getRoadItemId() << " "
+									 << "boardingNum " << this->busstop_.getStopCode() << " "
 									 << (it->first) << " "
 									 << (it->second)[k] << std::endl;
 				}
@@ -165,7 +165,7 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 				currReachedMSOut << "BoardingAlightingSecs_Information for buslineId " << (it1->first) << std::endl;
 				for(int m = 0; m < it1->second.size(); m++) {
 					currReachedMSOut << now.frame() << " "
-									 << "boardingAlightingSecs " << this->busstop_.getRoadItemId() << " "
+									 << "boardingAlightingSecs " << this->busstop_.getStopCode() << " "
 									 << (it1->first) << " "
 									 << (it1->second)[m] << std::endl;
 				}
@@ -181,7 +181,7 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 				currReachedMSOut << "BusTripRunSequenceNumInformation for buslineId " << (it2->first) << std::endl;
 				for(int n = 0; n < it2->second.size(); n++) {
 					currReachedMSOut << now.frame() << " "
-									 << "bustripRunSequenceNum " << this->busstop_.getRoadItemId() << " "
+									 << "bustripRunSequenceNum " << this->busstop_.getStopCode() << " "
 									 << (it2->first) << " "
 									 << (it2->second)[n] << std::endl;
 				}
@@ -196,7 +196,7 @@ void sim_mob::BusStopAgent::frame_output(timeslice now)
 				currReachedMSOut << "PassengerCountsInformation for buslineId " << (it2->first) << std::endl;
 				for(int s = 0; s < it2->second.size(); s++) {
 					currReachedMSOut << now.frame() << " "
-									 << "passengerCounts " << this->busstop_.getRoadItemId() << " "
+									 << "passengerCounts " << this->busstop_.getStopCode() << " "
 									 << (it2->first) << " "
 									 << (it2->second)[s] << std::endl;
 				}

@@ -352,7 +352,7 @@ double sim_mob::BusDriverMovement::getDistanceToBusStopOfSegment(const RoadSegme
 			bool isFound = false;
 
 			for (i = 0; i < busStops.size(); ++i) {
-				if (bs->getRoadItemId() == busStops[i]->getRoadItemId()) {
+				if (bs->getStopCode() == busStops[i]->getStopCode()) {
 					isFound = true;
 					parentBusDriver->busstop_sequence_no.set(i);
 					parentBusDriver->lastVisited_BusStop.set(busStops[i]);

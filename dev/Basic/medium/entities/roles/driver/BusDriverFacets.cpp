@@ -397,7 +397,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		else
 		{
 			std::stringstream errorStrm;
-			errorStrm << "BusStopAgent not found for stop: " << nextStop->getRoadItemId()
+			errorStrm << "BusStopAgent not found for stop: " << nextStop->getStopCode()
 					<< "|SegmentStats: " << currSegStat
 					<< "|position: " << currSegStat->getStatsNumberInSegment()
 					<< "|num. stops: " << currSegStat->getNumStops()

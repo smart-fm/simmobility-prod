@@ -325,25 +325,6 @@ void DatabaseLoader::getCBD_Nodes(const std::string& cnn, std::map<unsigned int,
 	*/
 }
 
-void DatabaseLoader::getCBD_Nodes(const std::string& cnn, std::map<unsigned int, const sim_mob::Node*>& nodes)
-{
-	soci::session sql(soci::postgresql, cnn);
-
-	const std::string& restrictedNodesFunc = sim_mob::ConfigManager::GetInstance().FullConfig().getDatabaseProcMappings().
-															procedureMappings["restricted_reg_nodes"];
-
-	soci::rowset<int> rs = sql.prepare << std::string("select * from ") + restrictedNodesFunc;
-	for(soci::rowset<int>::iterator it = rs.begin(); it != rs.end(); it++)
-	{
-		std::map<unsigned int, const sim_mob::Node*>::iterator itNode = sim_mob::Node::allNodes.find((*it));
-		if(itNode != sim_mob::Node::allNodes.end())
-		{
-			itNode->second->CBD = true;
-			nodes[itNode->second->getID()] = itNode->second;
-		}
-	}
-}
-
 bool DatabaseLoader::InsertSinglePath2DB(soci::session& sql,std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& spPool,const std::string pathSetTableName)
 {
 	BOOST_FOREACH(sim_mob::SinglePath* sp, spPool)
@@ -1124,12 +1105,13 @@ void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<
 		sim_mob::Warn() << "WARNING: An empty 'pt_bus_routes' stored-procedure was specified in the config file; " << std::endl;
 		return;
 	}
+	const sim_mob::RoadNetwork* rn = sim_mob::RoadNetwork::getInstance();
 	soci::rowset<sim_mob::PT_BusRoutes> rows = (sql_.prepare <<"select * from " + storedProc);
 	for (soci::rowset<sim_mob::PT_BusRoutes>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
 	{
 		sim_mob::PT_BusRoutes pt_bus_routesTemp = *iter;
 		pt_bus_routes.push_back(pt_bus_routesTemp);
-		const sim_mob::RoadSegment *seg = sim_mob::RoadNetwork::getInstance()->getSegmentById(atoi(pt_bus_routesTemp.link_id.c_str()));
+		const sim_mob::RoadSegment *seg = rn->getById(rn->getMapOfIdVsRoadSegments(), atoi(pt_bus_routesTemp.linkId.c_str()));
 		if(seg) {
 			routeID_roadSegments[iter->routeId].push_back(seg);
 		}
@@ -1158,7 +1140,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 			routeID_busStops[iter->routeId].push_back(bs);
 		}
 	}
-/*
+
 	for(std::map<std::string, std::vector<const sim_mob::BusStop*> >::iterator routeIt=routeID_busStops.begin();
 			routeIt!=routeID_busStops.end(); routeIt++)
 	{
@@ -1176,7 +1158,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 		stopList.clear(); //empty stopList
 
 		const sim_mob::BusStop* firstStop = stopListCopy.front();
-		if(firstStop->terminusType == sim_mob::BusStop::SINK_TERMINUS)
+		if(firstStop->terminusType == sim_mob::SINK_TERMINUS)
 		{
 			const sim_mob::BusStop* firstStopTwin = firstStop->getTwinStop();
 			if(!firstStopTwin) { throw std::runtime_error("Sink bus stop found without a twin!"); }
@@ -1204,12 +1186,12 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 			const sim_mob::BusStop* stop = stopListCopy[stopIt];
 			switch(stop->terminusType)
 			{
-				case sim_mob::BusStop::NOT_A_TERMINUS:
+				case sim_mob::NOT_A_TERMINUS:
 				{
 					stopList.push_back(stop);
 					break;
 				}
-				case sim_mob::BusStop::SOURCE_TERMINUS:
+				case sim_mob::SOURCE_TERMINUS:
 				{
 					const sim_mob::BusStop* stopTwin = stop->getTwinStop();
 					if(!stopTwin) { throw std::runtime_error("Source bus stop found without a twin!"); }
@@ -1217,7 +1199,7 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 					stopList.push_back(stop);
 					break;
 				}
-				case sim_mob::BusStop::SINK_TERMINUS:
+				case sim_mob::SINK_TERMINUS:
 				{
 					const sim_mob::BusStop* stopTwin = stop->getTwinStop();
 					if(!stopTwin) { throw std::runtime_error("Sink bus stop found without a twin!"); }
@@ -1229,102 +1211,11 @@ void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<s
 		}
 
 		const sim_mob::BusStop* lastStop = stopListCopy[stopListCopy.size()-1];
-		if(lastStop->terminusType == sim_mob::BusStop::SOURCE_TERMINUS)
+		if(lastStop->terminusType == sim_mob::SOURCE_TERMINUS)
 		{
 			const sim_mob::BusStop* lastStopTwin = lastStop->getTwinStop();
 			if(!lastStopTwin) { throw std::runtime_error("Source bus stop found without a twin!"); }
 			stopList.pop_back();
-			stopList.push_back(lastStopTwin);
-			if(!segList.empty())
-			{
-				std::vector<const sim_mob::RoadSegment*>::iterator itToDelete = --segList.end();
-				while((*itToDelete) != lastStopTwin->getParentSegment())
-				{
-					itToDelete = segList.erase(itToDelete); //the bus must end at the segment of twin stop
-					itToDelete--; //itToDelete will be segList.end(); so decrement to get last valid iterator
-				}
-				if(segList.empty())
-				{
-					throw std::runtime_error("Bus route violates terminus assumption. Entire route was deleted");
-				}
-			}
-		}
-		else
-		{
-			stopList.push_back(lastStop);
-		}
-	}
-	*/
-		}
-		std::vector<const sim_mob::BusStop*>& stopList = routeIt->second;
-		std::vector<const sim_mob::RoadSegment*>& segList = routeIDSegIt->second;
-
-		if(stopList.empty()) { throw std::runtime_error("empty stopList!"); }
-		std::vector<const sim_mob::BusStop*> stopListCopy = stopList; //copy locally
-		stopList.clear(); //empty stopList
-
-		const sim_mob::BusStop* firstStop = stopListCopy.front();
-		if(firstStop->terminusType == sim_mob::BusStop::SINK_TERMINUS)
-		{
-			const sim_mob::BusStop* firstStopTwin = firstStop->getTwinStop();
-			if(!firstStopTwin) { throw std::runtime_error("Sink bus stop found without a twin!"); }
-			stopList.push_back(firstStopTwin);
-			if(!segList.empty())
-			{
-				std::vector<const sim_mob::RoadSegment*>::iterator itToDelete = segList.begin();
-				while(itToDelete!=segList.end() && (*itToDelete) != firstStopTwin->getParentSegment())
-				{
-					itToDelete = segList.erase(itToDelete); // the bus must start from the segment of the twinStop
-				}
-				if(segList.empty())
-				{
-					throw std::runtime_error("Bus route violates terminus assumption. Entire route was deleted");
-				}
-			}
-		}
-		else
-		{
-			stopList.push_back(firstStop);
-		}
-
-		for(size_t stopIt = 1; stopIt < (stopListCopy.size()-1); stopIt++) //iterate through all stops but the first and last
-		{
-			const sim_mob::BusStop* stop = stopListCopy[stopIt];
-			switch(stop->terminusType)
-			{
-				case sim_mob::BusStop::NOT_A_TERMINUS:
-				{
-					stopList.push_back(stop);
-					break;
-				}
-				case sim_mob::BusStop::SOURCE_TERMINUS:
-				{
-					const sim_mob::BusStop* stopTwin = stop->getTwinStop();
-					if(!stopTwin) { throw std::runtime_error("Source bus stop found without a twin!"); }
-					stopList.push_back(stopTwin);
-					stopList.push_back(stop);
-					break;
-				}
-				case sim_mob::BusStop::SINK_TERMINUS:
-				{
-					const sim_mob::BusStop* stopTwin = stop->getTwinStop();
-					if(!stopTwin) { throw std::runtime_error("Sink bus stop found without a twin!"); }
-					stopList.push_back(stop);
-					stopList.push_back(stopTwin);
-					break;
-				}
-				default:
-				{
-					throw std::runtime_error("unknown terminus type for stop");
-				}
-			}
-		}
-
-		const sim_mob::BusStop* lastStop = stopListCopy.back();
-		if(lastStop->terminusType == sim_mob::BusStop::SOURCE_TERMINUS)
-		{
-			const sim_mob::BusStop* lastStopTwin = lastStop->getTwinStop();
-			if(!lastStopTwin) { throw std::runtime_error("Source bus stop found without a twin!"); }
 			stopList.push_back(lastStopTwin);
 			if(!segList.empty())
 			{
@@ -2266,148 +2157,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 //}
 } //End anon namespace
 
-void DatabaseLoader::createBusStopAgents()
-{
-	//get stop capacity from genericProps
-	int numBusesPerStop = 2;
-	int numBusesPerTerminus = 10;
-	try
-	{
-		std::string busPerStopStr = sim_mob::ConfigManager::GetInstance().FullConfig().genericProps.at("buses_per_stop");
-		numBusesPerStop = std::atoi(busPerStopStr.c_str());
-		if(numBusesPerStop < 1)
-		{
-			throw std::runtime_error("inadmissible value for buses per stop. Please check generic property 'buses_per_stop'");
-		}
-	}
-	catch (const std::out_of_range& oorx)
-	{
-		sim_mob::Print() << "Generic property 'buses_per_stop' was not specified." << " Defaulting to " << numBusesPerStop << " buses." << std::endl;
-	}
 
-	std::map<std::string, sim_mob::BusStop*>& busStopMap = sim_mob::ConfigManager::GetInstanceRW().FullConfig().getBusStopNo_BusStops();
-
-	//Save all bus stops
-	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++)
-	{
-		std::map<int,Section>::iterator attachedSectionIt = sections_.find(it->second.TMP_AtSectionID);
-		if(attachedSectionIt == sections_.end()) { continue; }
-
-		//Create the bus stop
-		sim_mob::BusStop* busstop = new sim_mob::BusStop();
-		busstop->setParentSegment((*attachedSectionIt).second.generatedSegment);
-		busstop->busstopno_ = it->second.bus_stop_no;
-		busstop->busCapacityAsLength = BUS_LENGTH * numBusesPerStop;
-
-		busstop->xPos = it->second.xPos;
-		busstop->yPos = it->second.yPos;
-
-		//Add the bus stop to its parent segment's obstacle list at an estimated offset.
-		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, busstop->getParentSegment());
-		if(!busstop->getParentSegment()->addObstacle(distOrigin, busstop)) {
-			sim_mob::Warn() << "Can't add obstacle; something is already at that offset. " << busstop->busstopno_ << std::endl;
-		}
-		//set obstacle ID only after adding it to obstacle list.
-		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));
-
-		busStopMap[busstop->busstopno_] = busstop;
-		sim_mob::BusStop::RegisterNewBusStop(busstop->busstopno_, busstop);
-
-		//if current busstop is a terminus stop, we duplicate this stop and make one of them source and the other one as sink.
-		//All buses ending at this terminus will end at the sink stop and all buses starting from the terminus will start from the source stop.
-		//The source and sink stops are assumed to be in opposing but adjacent segments. If this assumption is violated, we might run into errors.
-
-		if(it->second.TMP_RevSectionID != 0)
-		{
-			std::map<int,Section>::iterator revSectionIt = sections_.find(it->second.TMP_RevSectionID);
-			if(revSectionIt != sections_.end())
-			{
-				map<int, Node>::iterator terminusNodeIt = nodes_.find(it->second.TMP_TerminalNodeID);
-				if(terminusNodeIt==nodes_.end()) { throw std::runtime_error("node not found for terminus"); }
-				const sim_mob::Node* terminusNode = terminusNodeIt->second.generatedNode;
-				sim_mob::RoadSegment* reverseSectionForTerminus = (*revSectionIt).second.generatedSegment;
-				sim_mob::BusStop* virtualStop = new sim_mob::BusStop();
-				virtualStop->setVirtualStop();
-				virtualStop->setParentSegment(reverseSectionForTerminus);
-				virtualStop->busstopno_ = it->second.bus_stop_no + "_twin";
-				virtualStop->busCapacityAsLength = BUS_LENGTH * numBusesPerTerminus;
-
-				virtualStop->xPos = it->second.xPos;
-				virtualStop->yPos = it->second.yPos;
-
-				//Add the bus stop to its parent segment's obstacle list at an estimated offset.
-				double distOrigin = sim_mob::BusStop::EstimateStopPoint(virtualStop->xPos, virtualStop->yPos, virtualStop->getParentSegment());
-				if(!virtualStop->getParentSegment()->addObstacle(distOrigin, virtualStop)) {
-					sim_mob::Warn() << "Can't add obstacle; something is already at that offset. " << virtualStop->busstopno_ << std::endl;
-				}
-				//set obstacle ID only after adding it to obstacle list.
-				virtualStop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(virtualStop->getParentSegment())));
-
-				//more sanity checks
-				if(busstop->getParentSegment() == virtualStop->getParentSegment())
-				{
-					throw std::runtime_error("invalid reverse section");
-				}
-				if(!((busstop->getParentSegment()->getStart() == terminusNode || busstop->getParentSegment()->getEnd() == terminusNode)
-						&& (virtualStop->getParentSegment()->getStart() == terminusNode || virtualStop->getParentSegment()->getEnd() == terminusNode)))
-				{
-					throw std::runtime_error("invalid terminus node");
-				}
-
-				//now determine source and sink stops
-				if(virtualStop->getParentSegment()->getStart() == terminusNode) // reverse section is downstream to attached section
-				{
-					virtualStop->terminusType = sim_mob::BusStop::SOURCE_TERMINUS;
-					busstop->terminusType = sim_mob::BusStop::SINK_TERMINUS; //terminusNode must be the end node of the section for busstop
-				}
-				else
-				{
-					busstop->terminusType = sim_mob::BusStop::SOURCE_TERMINUS; //terminusNode must be the start node of the section for busstop
-					virtualStop->terminusType = sim_mob::BusStop::SINK_TERMINUS;
-				}
-
-				busstop->busCapacityAsLength = BUS_LENGTH * numBusesPerTerminus; //update capacity of original stop as well
-				busstop->setTwinStop(virtualStop);
-				virtualStop->setTwinStop(busstop);
-				busstop->getParentSegment()->setBusTerminusSegment();
-				virtualStop->getParentSegment()->setBusTerminusSegment();
-
-				busStopMap[virtualStop->busstopno_] = virtualStop;
-				sim_mob::BusStop::RegisterNewBusStop(virtualStop->busstopno_, virtualStop);
-			}
-		}
-	}
-
-	for(map<std::string,BusStopSG>::iterator it = bustopSG_.begin(); it != bustopSG_.end(); it++) {
-		std::map<int,Section>::iterator findPtr = sections_.find(it->second.aimsun_section);
-		if(findPtr == sections_.end())
-		{
-			continue;
-		}
-		//Create the bus stop
-		sim_mob::BusStop *busstop = new sim_mob::BusStop();
-		sim_mob::RoadSegment* parentSeg = sections_[it->second.aimsun_section].generatedSegment;
-		busstop->busstopno_ = it->second.bus_stop_no;
-		busstop->busCapacityAsLength = BUS_LENGTH * numBusesPerStop;
-
-		busstop->setParentSegment(parentSeg);
-
-		busstop->xPos = it->second.xPos;
-		busstop->yPos = it->second.yPos;
-
-		//Add the bus stop to its parent segment's obstacle list at an estimated offset.
-		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.aimsun_section].generatedSegment);
-		if(!busstop->getParentSegment()->addObstacle(distOrigin, busstop)) {
-			sim_mob::Warn() << "Can't add obstacle; something is already at that offset. " << busstop->busstopno_ << std::endl;
-		}
-
-		sim_mob::ConfigManager::GetInstanceRW().FullConfig().getBusStopNo_BusStops()[busstop->busstopno_] = busstop;
-
-		//set obstacle ID only after adding it to obstacle list. For Now, it is how it works. sorry
-		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->getParentSegment())));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
-		sim_mob::BusStop::RegisterNewBusStop(busstop->busstopno_, busstop);
-	}
-}
 
 //Another temporary function
 void sim_mob::aimsun::Loader::TMP_TrimAllLaneLines(sim_mob::RoadSegment* seg, const DynamicVector& cutLine, bool trimStart)

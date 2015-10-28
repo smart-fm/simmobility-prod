@@ -228,7 +228,7 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 			if (k == 0) {
 				start = busStop;
 				StopInfo stopInfo;
-				stopInfo.id = start->getRoadItemId();
+				stopInfo.id = start->getStopCode();
 				stopInfo.line = busLine;
 				stopInfo.posX = start->getStopLocation().getX();
 				stopInfo.posY = start->getStopLocation().getY();
@@ -252,8 +252,8 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 						if (routeIDs.size() == 0 || routeIDs.back().id != id) {
 							RouteInfo route;
 							route.id = id;
-							route.start = start->getRoadItemId();
-							route.end = end->getRoadItemId();
+							route.start = start->getStopCode();
+							route.end = end->getStopCode();
 							route.startPosX = start->getStopLocation().getX();
 							route.startPosY = start->getStopLocation().getY();
 							route.endPosX = end->getStopLocation().getX();
@@ -274,7 +274,7 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 					break;
 				} else {
 					StopInfo stopInfo;
-					stopInfo.id =   end->getRoadItemId();
+					stopInfo.id =   end->getStopCode();
 					stopInfo.line = busLine;
 					stopInfo.posX = end->getStopLocation().getX();
 					stopInfo.posY = end->getStopLocation().getY();
@@ -388,8 +388,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 			}
 
 			if (busstop_busline_registered && sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes()) {
-				if (searchBusRoutes(stops, curr->route_id, allRoutes,
-						allStops)) {
+				if (searchBusRoutes(stops, curr->route_id, allRoutes, allStops)) {
 					amount++;
 				} else {
 					amountFailed++;

@@ -8,7 +8,7 @@
 
 #include "PathSetThreadPool.hpp"
 #include "Path.hpp"
-#include "geospatial/streetdir/AStarShortestTravelTimePathImpl.hpp"
+#include "geospatial/streetdir/A_StarShortestTravelTimePathImpl.hpp"
 #include "geospatial/streetdir/A_StarShortestPathImpl.hpp"
 
 #include <stdlib.h>

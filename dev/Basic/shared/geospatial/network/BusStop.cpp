@@ -123,6 +123,7 @@ unsigned int BusStop::getStopId() const
 void BusStop::setStopId(unsigned int id)
 {
 	stopId = id;
+	setRoadItemId(id);
 }
 
 const std::string& BusStop::getStopCode() const

@@ -137,7 +137,7 @@ void RoadSegment::addObstacle(double offset, RoadItem *item)
 {
 	if (offset < 0)
 	{
-		stringstream msg;
+		std::stringstream msg;
 		msg << "Could not add obstacle " << item->getRoadItemId() << " to road segment " << this->roadSegmentId
 			<< "\nOffset < 0";
 		throw std::runtime_error(msg.str());
@@ -145,15 +145,14 @@ void RoadSegment::addObstacle(double offset, RoadItem *item)
 
 	if (offset > this->getLength())
 	{
-		stringstream msg;
+		std::stringstream msg;
 		msg << "Could not add obstacle " << item->getRoadItemId() << " to road segment " << this->roadSegmentId
 			<< "\nOffset > Segment length";
-		throw std::runtime_error(msg.str());
 	}
 
 	if (obstacles.count(offset) > 0)
 	{
-		stringstream msg;
+		std::stringstream msg;
 		msg << "Could not add obstacle " << item->getRoadItemId() << " to road segment " << this->roadSegmentId
 			<< "\nAnother obstacle at the same offset";
 		throw std::runtime_error(msg.str());

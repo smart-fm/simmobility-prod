@@ -249,9 +249,9 @@ enum ControlTypes {
 	NO_CONTROL, SCHEDULE_BASED, HEADWAY_BASED, EVENHEADWAY_BASED, HYBRID_BASED
 };
 
-class FrequencyBusLine {
+class BusLineFrequency {
 public:
-	FrequencyBusLine(DailyTime startTime = DailyTime("00:00:00"),
+	BusLineFrequency(DailyTime startTime = DailyTime("00:00:00"),
 			DailyTime endTime = DailyTime("00:00:00"), int headway = 0);
 	/**
 	 * starting time for first dispatched bus
@@ -301,7 +301,7 @@ public:
 	/**
 	 * add one bus frequency to current bus line
 	 */
-	void addFrequencyBusLine(const FrequencyBusLine& aFrequencyBusline);
+	void addBusLineFrequency(const BusLineFrequency& aFrequencyBusline);
 	/**
 	 * query all the bus trips related to current bus line
 	 */
@@ -311,8 +311,8 @@ public:
 	/**
 	 * query all the bus frequencies related to current bus line
 	 */
-	const std::vector<FrequencyBusLine>& queryFrequencyBusline() const {
-		return frequencyBusLine;
+	const std::vector<BusLineFrequency>& queryFrequencyBusline() const {
+		return busLineFrequency;
 	}
 	/**
 	 * reset the bus arrival time to zero when necessary
@@ -335,7 +335,7 @@ private:
 	/**
 	 * provide different headways according to the offset from simulation for each busline
 	 */
-	std::vector<FrequencyBusLine> frequencyBusLine;
+	std::vector<BusLineFrequency> busLineFrequency;
 	/**
 	 * constructed based on MSOffset_headway
 	 */

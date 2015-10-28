@@ -142,7 +142,7 @@ bool sim_mob::BusTrip::setBusRouteInfo(const std::vector<const RoadSegment*>& ro
 	return true;
 }
 
-sim_mob::FrequencyBusLine::FrequencyBusLine(DailyTime start_Time, DailyTime end_Time, int headway)
+sim_mob::BusLineFrequency::BusLineFrequency(DailyTime start_Time, DailyTime end_Time, int headway)
 : startTime(start_Time), endTime(end_Time), headwaySec(headway)
 {
 
@@ -188,9 +188,9 @@ void sim_mob::BusLine::addBusTrip(BusTrip& trip)
 	busTrips.push_back(trip);
 }
 
-void sim_mob::BusLine::addFrequencyBusLine(const FrequencyBusLine& frequency)
+void sim_mob::BusLine::addBusLineFrequency(const BusLineFrequency& frequency)
 {
-	frequencyBusLine.push_back(frequency);
+	busLineFrequency.push_back(frequency);
 }
 
 void sim_mob::BusLine::resetBusTripStopRealTimes(int trip, int sequence, Shared<BusStopRealTimes>* realTimes)

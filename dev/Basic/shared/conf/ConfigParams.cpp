@@ -207,36 +207,6 @@ const std::map<std::string, std::vector<sim_mob::TripChainItem*> >& sim_mob::Con
 	return tripchains;
 }
 
-std::vector<sim_mob::PT_BusDispatchFreq>& sim_mob::ConfigParams::getPT_BusDispatchFreq()
-{
-	return ptBusDispatchFreq;
-}
-
-const std::vector<sim_mob::PT_BusDispatchFreq>& sim_mob::ConfigParams::getPT_BusDispatchFreq() const
-{
-	return ptBusDispatchFreq;
-}
-
-std::vector<sim_mob::PT_BusRoutes>& sim_mob::ConfigParams::getPT_BusRoutes()
-{
-	return ptBusRoutes;
-}
-
-std::vector<sim_mob::PT_BusStops>& sim_mob::ConfigParams::getPT_BusStops()
-{
-	return ptBusStops;
-}
-
-const std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& sim_mob::ConfigParams::getRoadSegments_Map() const
-{
-	return routeID_roadSegments;
-}
-
-std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& sim_mob::ConfigParams::getRoadSegments_Map()
-{
-	return routeID_roadSegments;
-}
-
 std::map<std::string, sim_mob::BusStop*>& sim_mob::ConfigParams::getBusStopNo_BusStops()
 {
 	return busStopNo_busStops;
@@ -245,16 +215,6 @@ std::map<std::string, sim_mob::BusStop*>& sim_mob::ConfigParams::getBusStopNo_Bu
 const std::map<std::string, sim_mob::BusStop*>& sim_mob::ConfigParams::getBusStopNo_BusStops() const
 {
 	return busStopNo_busStops;
-}
-
-std::map<std::string, std::vector<const sim_mob::BusStop*> >& sim_mob::ConfigParams::getBusStops_Map()
-{
-	return routeID_busStops;
-}
-
-const std::map<std::string, std::vector<const sim_mob::BusStop*> >& sim_mob::ConfigParams::getBusStops_Map() const
-{
-	return routeID_busStops;
 }
 
 bool sim_mob::ConfigParams::isGenerateBusRoutes() const

@@ -47,7 +47,7 @@ public:
 	/**
 	 * Initialize all bus controller objects based on the parameters.
 	 */
-	void initializeBusController(std::set<sim_mob::Entity*>& agentList, const std::vector<sim_mob::PT_BusDispatchFreq>& dispatchFreq);
+	void initializeBusController(std::set<sim_mob::Entity*>& agentList);
 
 	/**
 	 * inherited function to load configurable items
@@ -168,6 +168,17 @@ protected:
 	 * keep all children agents to communicate with it
 	 */
 	std::vector<Entity*> busDrivers;
+
+	/**
+	 * map of busline id -> bus route (as list of segments)
+	 */
+	std::map<std::string, std::vector<const RoadSegment*> > busRouteMap;
+
+	/**
+	 * map of busline id -> list of bus stops
+	 */
+	std::map<std::string, std::vector<const BusStop*> > busStopSequenceMap;
+
 };
 
 }

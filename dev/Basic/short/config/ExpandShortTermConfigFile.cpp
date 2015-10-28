@@ -152,7 +152,7 @@ void ExpandShortTermConfigFile::processConfig()
 	{
 		sim_mob::BusControllerST::RegisterBusController(-1, cfg.mutexStategy());
 		sim_mob::BusController* busController = sim_mob::BusController::GetInstance();
-		busController->initializeBusController(active_agents, cfg.getPT_BusDispatchFreq());
+		busController->initializeBusController(active_agents);
 		active_agents.insert(busController);
 	}
 }

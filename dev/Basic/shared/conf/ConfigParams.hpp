@@ -156,52 +156,6 @@ public:
 	const std::map<std::string, std::vector<sim_mob::TripChainItem*> >& getTripChains() const;
 
     /**
-     * Retrieves a reference to the list of PT Bus Dispatch frequency
-     *
-     * @return reference to the list of PT Bus Dispatch frequency
-     */
-	std::vector<sim_mob::PT_BusDispatchFreq>& getPT_BusDispatchFreq();
-
-    /**
-     * Retrieves a const reference to the list of PT Bus Dispatch frequency
-     *
-     * @return const reference to the list of PT Bus Dispatch frequency
-     */
-	const std::vector<sim_mob::PT_BusDispatchFreq>& getPT_BusDispatchFreq() const;
-
-    /**
-     * Retrieves a reference to the list of PT Bus routes
-     *
-     * @return reference to the list of PT bus routes
-     */
-	std::vector<sim_mob::PT_BusRoutes>& getPT_BusRoutes();
-
-    /**
-     * Retrieves a reference to the list of PT Bus Stops
-     *
-     * @return reference to the list of PT Bus Stops
-     */
-    std::vector<sim_mob::PT_BusStops>& getPT_BusStops();
-
-    /// NOTE: Technically we use the "sealed" property to indicate data structures that cannot change later.
-    ///      From that point, there's no need for a "RW" function. For now, this is a necessary workaround, but
-    ///      it also indicates that these data structures should not be located in simpleconf.hpp. ~Seth
-
-    /**
-     * Retrieves a const reference to the route id to RoadSegments map
-     *
-     * @return const reference to the route id to roadsegments map
-     */
-    const std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() const;
-
-    /**
-     * Retrieves a reference to the route id to roadsegments map
-     *
-     * @return reference to the route id to roadsegments map
-     */
-	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map();
-
-    /**
      * Retrives a reference to the bus stop num to bus stop map
      *
      * @return reference to the bus stop num to bus stop map
@@ -214,20 +168,6 @@ public:
      * @return const reference to the bus stop num to bus stop map
      */
 	const std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() const;
-
-    /**
-     * Retrieves a reference to the route id to bus stops map
-     *
-     * @return reference to the route id to bus stops map
-     */
-	std::map<std::string, std::vector<const sim_mob::BusStop*> >& getBusStops_Map();
-
-    /**
-     * Retrieves a const reference to the route id to bus stops map
-     *
-     * @return const reference to the route id to bus stops map
-     */
-    const std::map<std::string, std::vector<const sim_mob::BusStop*> >& getBusStops_Map() const;
 
     /**
      * Retrives a const reference to the lua scripts map
@@ -276,23 +216,8 @@ private:
     /// Mutable because they are set when retrieved.
 	mutable ControlManager* controlMgr;
 
-    /// PT Bus Dispatch Frequency list
-	std::vector<sim_mob::PT_BusDispatchFreq> ptBusDispatchFreq;
-
-    /// PT Bus Routes list
-	std::vector<sim_mob::PT_BusRoutes> ptBusRoutes;
-
-    /// PT Bus Stops list
-	std::vector<sim_mob::PT_BusStops> ptBusStops;
-
     /// OD Trips list
 	std::vector<sim_mob::OD_Trip> ODsTripsMap;
-
-    /// Route ID to road segments mapping
-    std::map<std::string, std::vector<const sim_mob::RoadSegment*> > routeID_roadSegments;
-
-    /// Route ID to Bus Stops mapping
-    std::map<std::string, std::vector<const sim_mob::BusStop*> > routeID_busStops;
 
     /// Flag to indicate whether the network is sealed after loading
 	bool sealedNetwork;

@@ -89,7 +89,7 @@ void ExpandMidTermConfigFile::processConfig()
 	{
 		BusControllerMT::RegisterBusController(-1, cfg.mutexStategy());
 		BusController* busController = BusController::GetInstance();
-		busController->initializeBusController(active_agents, cfg.getPT_BusDispatchFreq());
+		busController->initializeBusController(active_agents);
 		active_agents.insert(busController);
 	}
 

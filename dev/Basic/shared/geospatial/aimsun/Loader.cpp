@@ -111,7 +111,7 @@ public:
 	static void loadLinkDefaultTravelTime(soci::session& sql, boost::unordered_map<unsigned long, sim_mob::SegmentTravelTimeVector*>& pool);
 	static bool loadLinkRealTimeTravelTime(soci::session& sql,int interval, sim_mob::AverageTravelTime& pool);
 	static bool CreateTable(soci::session& sql,std::string& tableName);
-	bool InsertData2TravelTimeTmpTable(std::string& tableName,sim_mob::SegmentTravelTime& data);
+	bool InsertData2TravelTimeTmpTable(std::string& tableName,sim_mob::LinkTravelTime& data);
 	static bool InsertCSV2Table(soci::session& sql,std::string& tableName,const std::string& csvFileName);
 	static bool upsertTravelTime(soci::session& sql,const std::string& csvFileName, const std::string& tableName, double alpha);
 	static bool TruncateTable(soci::session& sql,std::string& tableName);
@@ -191,17 +191,9 @@ public:
 	void LoadTripchains(const std::string& storedProc);
 
 public:
-	//New-style Loader functions can simply load data directly into the result vectors.
-	void LoadPTBusDispatchFreq(const std::string& storedProc, std::vector<sim_mob::PT_BusDispatchFreq>& ptBusDispatchFreq);
-	void LoadPTBusRoutes(const std::string& storedProc, std::vector<sim_mob::PT_BusRoutes>& ptBusRoutes, std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments);
-	void LoadPTBusStops(const std::string& storedProc, std::vector<sim_mob::PT_BusStops>& ptBusStops,
-			std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops,
-			std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments);
-
 	void LoadOD_Trips(const std::string& storedProc, std::vector<sim_mob::OD_Trip>& OD_Trips);
 
 private:
-	void LoadBusStop(const std::string& storedProc);
 	void LoadBusStopSG(const std::string& storedProc);
 	void LoadPhase(const std::string& storedProc);
 
@@ -512,7 +504,7 @@ bool DatabaseLoader::CreateTable(soci::session& sql,std::string& tableName)
 	return true;
 }
 bool DatabaseLoader::InsertData2TravelTimeTmpTable(std::string& tableName,
-		sim_mob::SegmentTravelTime& data)
+		sim_mob::LinkTravelTime& data)
 {
 	try {
 		sql_<<"insert into "+ tableName +" (\"link_id\", \"start_time\",\"end_time\",\"travel_time\") "
@@ -1040,22 +1032,6 @@ DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
 //    }
 }
 
-void DatabaseLoader::LoadBusStop(const std::string& storedProc)
-{
-	//Bus stops are optional
-	if (storedProc.empty()) { return; }
-
-	soci::rowset<BusStop> rows = (sql_.prepare <<"select * from " + storedProc);
-	for (soci::rowset<BusStop>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
-	{
-		BusStop busstop = *iter;
-		//Convert from meters to centimeters.
-		busstop.xPos *= 100;
-		busstop.yPos *= 100;
-		busstop_.insert(std::make_pair(busstop.bus_stop_no, busstop));
-	}
-}
-
 void DatabaseLoader::LoadBusStopSG(const std::string& storedProc)
 {
 	//Bus stops are optional
@@ -1077,167 +1053,6 @@ void DatabaseLoader::LoadBusStopSG(const std::string& storedProc)
 		bustopSG_.insert(std::make_pair(busstop.bus_stop_no, busstop));
 	}
 }
-
-void DatabaseLoader::LoadPTBusDispatchFreq(const std::string& storedProc, std::vector<sim_mob::PT_BusDispatchFreq>& ptBusDispatchFreq)
-{
-	if (storedProc.empty())
-	{
-		sim_mob::Warn() << "WARNING: An empty 'PT_BusDispatchFreq' stored-procedure was specified in the config file; " << std::endl;
-		return;
-	}
-	soci::rowset<sim_mob::PT_BusDispatchFreq> rows = (sql_.prepare <<"select * from " + storedProc);
-	for (soci::rowset<sim_mob::PT_BusDispatchFreq>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
-	{
-		//sim_mob::PT_bus_dispatch_freq* pt_bus_freqTemp = new sim_mob::PT_bus_dispatch_freq(*iter);
-		sim_mob::PT_BusDispatchFreq pt_bus_freqTemp = *iter;
-		pt_bus_freqTemp.routeId.erase(remove_if(pt_bus_freqTemp.routeId.begin(), pt_bus_freqTemp.routeId.end(), ::isspace),
-				pt_bus_freqTemp.routeId.end());
-		pt_bus_freqTemp.frequencyId.erase(remove_if(pt_bus_freqTemp.frequencyId.begin(), pt_bus_freqTemp.frequencyId.end(), ::isspace),
-				pt_bus_freqTemp.frequencyId.end());
-		ptBusDispatchFreq.push_back(pt_bus_freqTemp);
-	}
-}
-
-void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<sim_mob::PT_BusRoutes>& pt_bus_routes, std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments)
-{
-	if (storedProc.empty())
-	{
-		sim_mob::Warn() << "WARNING: An empty 'pt_bus_routes' stored-procedure was specified in the config file; " << std::endl;
-		return;
-	}
-	const sim_mob::RoadNetwork* rn = sim_mob::RoadNetwork::getInstance();
-	soci::rowset<sim_mob::PT_BusRoutes> rows = (sql_.prepare <<"select * from " + storedProc);
-	for (soci::rowset<sim_mob::PT_BusRoutes>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
-	{
-		sim_mob::PT_BusRoutes pt_bus_routesTemp = *iter;
-		pt_bus_routes.push_back(pt_bus_routesTemp);
-		const sim_mob::RoadSegment *seg = rn->getById(rn->getMapOfIdVsRoadSegments(), atoi(pt_bus_routesTemp.linkId.c_str()));
-		if(seg) {
-			routeID_roadSegments[iter->routeId].push_back(seg);
-		}
-	}
-}
-
-void DatabaseLoader::LoadPTBusStops(const std::string& storedProc, std::vector<sim_mob::PT_BusStops>& pt_bus_stops,
-		std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops,
-		std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments)
-{
-
-	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
-	if (storedProc.empty())
-	{
-		sim_mob::Warn() << "WARNING: An empty 'pt_bus_stops' stored-procedure was specified in the config file; " << std::endl;
-		return;
-	}
-	soci::rowset<sim_mob::PT_BusStops> rows = (sql_.prepare <<"select * from " + storedProc);
-	for (soci::rowset<sim_mob::PT_BusStops>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
-	{
-		sim_mob::PT_BusStops pt_bus_stopsTemp = *iter;
-		pt_bus_stops.push_back(pt_bus_stopsTemp);
-
-		sim_mob::BusStop* bs = sim_mob::BusStop::findBusStop(pt_bus_stopsTemp.stopNo);
-		if(bs) {
-			routeID_busStops[iter->routeId].push_back(bs);
-		}
-	}
-
-	for(std::map<std::string, std::vector<const sim_mob::BusStop*> >::iterator routeIt=routeID_busStops.begin();
-			routeIt!=routeID_busStops.end(); routeIt++)
-	{
-		std::map<std::string, std::vector<const sim_mob::RoadSegment*> >::iterator routeIDSegIt = routeID_roadSegments.find(routeIt->first);
-		if(routeIDSegIt == routeID_roadSegments.end())
-		{
-			sim_mob::Warn() << routeIt->first << " has no route";
-			continue;
-		}
-		std::vector<const sim_mob::BusStop*>& stopList = routeIt->second;
-		std::vector<const sim_mob::RoadSegment*>& segList = routeIDSegIt->second;
-
-		if(stopList.empty()) { throw std::runtime_error("empty stopList!"); }
-		std::vector<const sim_mob::BusStop*> stopListCopy = stopList; //copy locally
-		stopList.clear(); //empty stopList
-
-		const sim_mob::BusStop* firstStop = stopListCopy.front();
-		if(firstStop->terminusType == sim_mob::SINK_TERMINUS)
-		{
-			const sim_mob::BusStop* firstStopTwin = firstStop->getTwinStop();
-			if(!firstStopTwin) { throw std::runtime_error("Sink bus stop found without a twin!"); }
-			stopList.push_back(firstStopTwin);
-			if(!segList.empty())
-			{
-				std::vector<const sim_mob::RoadSegment*>::iterator itToDelete = segList.begin();
-				while(itToDelete!=segList.end() && (*itToDelete) != firstStopTwin->getParentSegment())
-				{
-					itToDelete = segList.erase(itToDelete); // the bus must start from the segment of the twinStop
-				}
-				if(segList.empty())
-				{
-					throw std::runtime_error("Bus route violates terminus assumption. Entire route was deleted");
-				}
-			}
-		}
-		else
-		{
-			stopList.push_back(firstStop);
-		}
-
-		for(size_t stopIt = 1; stopIt < (stopListCopy.size()-1); stopIt++) //iterate through all stops but the first and last
-		{
-			const sim_mob::BusStop* stop = stopListCopy[stopIt];
-			switch(stop->terminusType)
-			{
-				case sim_mob::NOT_A_TERMINUS:
-				{
-					stopList.push_back(stop);
-					break;
-				}
-				case sim_mob::SOURCE_TERMINUS:
-				{
-					const sim_mob::BusStop* stopTwin = stop->getTwinStop();
-					if(!stopTwin) { throw std::runtime_error("Source bus stop found without a twin!"); }
-					stopList.push_back(stopTwin);
-					stopList.push_back(stop);
-					break;
-				}
-				case sim_mob::SINK_TERMINUS:
-				{
-					const sim_mob::BusStop* stopTwin = stop->getTwinStop();
-					if(!stopTwin) { throw std::runtime_error("Sink bus stop found without a twin!"); }
-					stopList.push_back(stop);
-					stopList.push_back(stopTwin);
-					break;
-				}
-			}
-		}
-
-		const sim_mob::BusStop* lastStop = stopListCopy[stopListCopy.size()-1];
-		if(lastStop->terminusType == sim_mob::SOURCE_TERMINUS)
-		{
-			const sim_mob::BusStop* lastStopTwin = lastStop->getTwinStop();
-			if(!lastStopTwin) { throw std::runtime_error("Source bus stop found without a twin!"); }
-			stopList.pop_back();
-			stopList.push_back(lastStopTwin);
-			if(!segList.empty())
-			{
-				std::vector<const sim_mob::RoadSegment*>::iterator itToDelete = --segList.end();
-				while((*itToDelete) != lastStopTwin->getParentSegment())
-				{
-					itToDelete = segList.erase(itToDelete); //the bus must end at the segment of twin stop
-					itToDelete--; //itToDelete will be segList.end(); so decrement to get last valid iterator
-				}
-				if(segList.empty())
-				{
-					throw std::runtime_error("Bus route violates terminus assumption. Entire route was deleted");
-				}
-			}
-		}
-		else
-		{
-			stopList.push_back(lastStop);
-		}
-	}
-}
-
 
 void DatabaseLoader::LoadOD_Trips(const std::string& storedProc, std::vector<sim_mob::OD_Trip>& OD_Trips)
 {
@@ -1379,7 +1194,6 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadNodes(getStoredProcedure(storedProcs, "node"));
 	LoadSections(getStoredProcedure(storedProcs, "section"));
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
-	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
 	LoadBusStopSG(getStoredProcedure(storedProcs, "busstopSG", false));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 }
@@ -2584,7 +2398,7 @@ bool sim_mob::aimsun::Loader::createTable(soci::session& sql, std::string& table
 }
 bool sim_mob::aimsun::Loader::insertData2TravelTimeTmpTable(const std::string& connectionStr,
 		std::string& tableName,
-		sim_mob::SegmentTravelTime& data)
+		sim_mob::LinkTravelTime& data)
 {
 	DatabaseLoader loader(connectionStr);
 	bool res = loader.InsertData2TravelTimeTmpTable(tableName,data);
@@ -2769,10 +2583,6 @@ void sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map
 	}
 #endif
 */
-	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), config.getPT_BusDispatchFreq());
-	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), config.getPT_BusRoutes(), config.getRoadSegments_Map());
-	loader.LoadPTBusStops(getStoredProcedure(storedProcs, "pt_bus_stops", false), config.getPT_BusStops(), config.getBusStops_Map(), config.getRoadSegments_Map());
-
 	std::cout <<"AIMSUN Network successfully imported.\n";
 
 }

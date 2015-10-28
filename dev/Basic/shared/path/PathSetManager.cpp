@@ -628,7 +628,7 @@ namespace
 void sim_mob::PathSetManager::bulkPathSetGenerator()
 {
 	const std::string odSourceTableName = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().odSourceTableName;
-	sim_mob::RoadNetwork& rn = *(RoadNetwork::getInstance());
+	const sim_mob::RoadNetwork& rn = *(RoadNetwork::getInstance());
 	if (odSourceTableName.empty()) { return; }
 	//Our SQL statement
 	stringstream query;

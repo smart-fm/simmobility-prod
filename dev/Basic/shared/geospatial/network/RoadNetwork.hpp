@@ -13,10 +13,12 @@
 #include "PolyLine.hpp"
 #include "TurningGroup.hpp"
 #include "TurningPath.hpp"
+#include "NetworkLoader.hpp"
 
 namespace sim_mob
 {
 
+class NetworkLoader;
 /**
  * class for holding the network for simulation
  * \author Neeraj D
@@ -25,6 +27,8 @@ namespace sim_mob
 class RoadNetwork
 {
 private:
+	friend NetworkLoader;
+	
 	/**Points to the singleton instance of the road network*/
 	static RoadNetwork *roadNetwork;
 
@@ -55,11 +59,19 @@ private:
 	/**Private constructor as the class is a singleton*/
 	RoadNetwork();
 
+	/**
+	 * Returns a non-constant pointer to RoadNetwork
+	 * This function is private because only the NetworkLoader (a friend of this class) must gain access to this writable instance.
+     *
+	 * @return a non-constant pointer to RoadNetwork
+     */
+	static RoadNetwork* getWritableInstance();
+
 public:
 	virtual ~RoadNetwork();
 
 	/**Returns pointer to the singleton instance of RoadNetwork*/
-	static RoadNetwork* getInstance();
+	static const RoadNetwork* getInstance();
 
 	const std::map<unsigned int, Link *>& getMapOfIdVsLinks() const;
 
@@ -150,18 +162,26 @@ public:
 	void addBusStop(BusStop* stop);
 
 	/**
-	 * Looks-up the required node from the map of nodes
-	 * @param nodeId - the id of the required node
-	 * @return a pointer to the node if found; NULL otherwise
+	 * templated class to lookup any map with an unsigned int id
+	 *
+	 * @param lookup the map to look-up id
+	 * @param id the id to look-up in map
+	 * @return value mapped to id in map, if found; NULL otherwise
 	 */
-	const Node * getNodeById(unsigned int nodeId) const;
+	template <class T>
+	const T* getById(const std::map<unsigned int, T*>& lookup, unsigned int id) const
+	{
+		typename std::map<unsigned int, T*>::const_iterator lookupIt = lookup.find(id);
 
-	/**
-	 * Looks-up the required segment from the map of segments
-	 * @param id - the id of the required road segment
-	 * @return a pointer to the node if found; NULL otherwise
-	 */
-	const RoadSegment * getSegmentById(unsigned int id) const;
+		if(lookupIt != lookup.end())
+		{
+			return (lookupIt->second);
+		}
+		else
+		{
+			return NULL;
+		}
+	}
 };
 }
 

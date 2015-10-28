@@ -462,7 +462,7 @@ void A_StarShortestPathImpl::procAddDrivingLinkConnectors(StreetDirectory::Graph
 
 	//We actually only care about Link to Link connections.
 	set<std::pair<Link*, Link*> > connectors;
-	RoadNetwork* roadNetwork = RoadNetwork::getInstance();
+	const RoadNetwork* roadNetwork = RoadNetwork::getInstance();
 	const std::map<unsigned int, Link *>& mapOfIdToLinks = roadNetwork->getMapOfIdVsLinks();
 	const std::map<unsigned int, std::map<unsigned int, TurningGroup *> >& turningGroups = node->getTurningGroups();
 	for (std::map<unsigned int, std::map<unsigned int, TurningGroup *> >::const_iterator conIt = turningGroups.begin(); conIt != turningGroups.end(); conIt++)

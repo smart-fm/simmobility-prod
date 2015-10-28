@@ -6,8 +6,8 @@
 
 #include <map>
 #include <string>
-#include "soci.h"
-#include "soci-postgresql.h"
+#include <soci/soci.h>
+#include <soci/postgresql/soci-postgresql.h>
 #include "RoadNetwork.hpp"
 
 using namespace std;
@@ -15,6 +15,7 @@ using namespace std;
 namespace sim_mob
 {
 
+class RoadNetwork;
 /**
  * class for loading the network for simulation
  * \author Neeraj D

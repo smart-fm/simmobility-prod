@@ -1302,7 +1302,8 @@ void DriverMovement::rerouteWithBlacklist(const std::vector<const Link *> &black
 	}
 	else
 	{
-		node = RoadNetwork::getInstance()->getNodeById(currWayPt.turningGroup->getNodeId());
+		const RoadNetwork *network = RoadNetwork::getInstance();
+		node = network->getById(network->getMapOfIdvsNodes(), currWayPt.turningGroup->getNodeId());
 	}
 	
 	const StreetDirectory& stdir = StreetDirectory::Instance();

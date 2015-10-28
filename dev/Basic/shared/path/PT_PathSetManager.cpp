@@ -112,8 +112,9 @@ void PT_PathSetManager::BulkPathSetGenerator()
 	Print() << "Total OD's in Bulk generation is " << total_count;
 	for(std::set<simpleOD>::const_iterator it=simpleOD_Set.begin();it!=simpleOD_Set.end();it++)
 	{
-		const sim_mob::Node* srcNode = RoadNetwork::getInstance()->getNodeById(it->getStartNode());
-		const sim_mob::Node* destNode = RoadNetwork::getInstance()->getNodeById(it->getDestNode());
+		const RoadNetwork *network = RoadNetwork::getInstance();
+		const sim_mob::Node* srcNode = network->getById(network->getMapOfIdvsNodes(), it->getStartNode());
+		const sim_mob::Node* destNode = network->getById(network->getMapOfIdvsNodes(), it->getDestNode());
 		threadpool->enqueue(boost::bind(&sim_mob::PT_PathSetManager::makePathset,this,srcNode,destNode));
 	}
 	threadpool->wait();

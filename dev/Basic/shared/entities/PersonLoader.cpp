@@ -248,7 +248,7 @@ bool sim_mob::PeriodicPersonLoader::checkTimeForNextLoad()
 
 void sim_mob::PeriodicPersonLoader::makeSubTrip(const soci::row& r, sim_mob::Trip* parentTrip, unsigned short subTripNo)
 {
-	sim_mob::RoadNetwork& rn = *(RoadNetwork::getInstance());
+	const sim_mob::RoadNetwork& rn = *(RoadNetwork::getInstance());
 	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 	sim_mob::SubTrip aSubTripInTrip;
 	aSubTripInTrip.setPersonID(r.get<string>(0));
@@ -266,7 +266,7 @@ void sim_mob::PeriodicPersonLoader::makeSubTrip(const soci::row& r, sim_mob::Tri
 
 sim_mob::Activity* sim_mob::PeriodicPersonLoader::makeActivity(const soci::row& r, unsigned int seqNo)
 {
-	sim_mob::RoadNetwork& rn = *(RoadNetwork::getInstance());
+	const sim_mob::RoadNetwork& rn = *(RoadNetwork::getInstance());
 	sim_mob::Activity* res = new sim_mob::Activity();
 	res->setPersonID(r.get<string>(0));
 	res->itemType = sim_mob::TripChainItem::IT_ACTIVITY;
@@ -284,16 +284,16 @@ sim_mob::Activity* sim_mob::PeriodicPersonLoader::makeActivity(const soci::row& 
 
 sim_mob::Trip* sim_mob::PeriodicPersonLoader::makeTrip(const soci::row& r, unsigned int seqNo)
 {
-	sim_mob::RoadNetwork& rn = *(RoadNetwork::getInstance());
+	const sim_mob::RoadNetwork& rn = *(RoadNetwork::getInstance());
 	sim_mob::ConfigParams& config = sim_mob::ConfigManager::GetInstanceRW().FullConfig();
 	sim_mob::Trip* tripToSave = new sim_mob::Trip();
 	tripToSave->sequenceNumber = seqNo;
 	tripToSave->tripID = boost::lexical_cast<string>(r.get<int>(1) * 100 + r.get<int>(3)); //each row corresponds to 1 trip and 1 activity. The tour and stop number can be used to generate unique tripID
 	tripToSave->setPersonID(r.get<string>(0));
 	tripToSave->itemType = sim_mob::TripChainItem::IT_TRIP;
-	tripToSave->fromLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(10)));
+	tripToSave->fromLocation = sim_mob::WayPoint(rn.getById(rn.getMapOfIdvsNodes(), r.get<int>(10)));
 	tripToSave->fromLocationType = sim_mob::TripChainItem::LT_NODE;
-	tripToSave->toLocation = sim_mob::WayPoint(rn.getNodeById(r.get<int>(5)));
+	tripToSave->toLocation = sim_mob::WayPoint(rn.getById(rn.getMapOfIdvsNodes(), r.get<int>(5)));
 	tripToSave->toLocationType = sim_mob::TripChainItem::LT_NODE;
 	tripToSave->startTime = sim_mob::DailyTime(getRandomTimeInWindow(r.get<double>(11), false, tripToSave->getPersonID()));
 	//just a sanity check

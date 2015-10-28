@@ -1110,7 +1110,8 @@ void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<
 	{
 		sim_mob::PT_bus_routes pt_bus_routesTemp = *iter;
 		pt_bus_routes.push_back(pt_bus_routesTemp);
-		const sim_mob::RoadSegment *seg = sim_mob::RoadNetwork::getInstance()->getSegmentById(atoi(pt_bus_routesTemp.link_id.c_str()));
+		const sim_mob::RoadNetwork *network = sim_mob::RoadNetwork::getInstance();
+		const sim_mob::RoadSegment *seg = network->getById(network->getMapOfIdVsRoadSegments(), atoi(pt_bus_routesTemp.link_id.c_str()));
 		if(seg) {
 			routeID_roadSegments[iter->route_id].push_back(seg);
 		}

@@ -547,37 +547,16 @@ void RoadNetwork::addBusStop(BusStop* stop)
 	}
 }
 
-const Node* RoadNetwork::getNodeById(unsigned int nodeId) const
+const RoadNetwork* sim_mob::RoadNetwork::getInstance()
 {
-	std::map<unsigned int, Node *>::const_iterator itNodes = mapOfIdvsNodes.find(nodeId);
-	
-	if(itNodes != mapOfIdvsNodes.end())
+	if(!roadNetwork)
 	{
-		return itNodes->second;
+		roadNetwork = new RoadNetwork();
 	}
-	else
-	{
-		sim_mob::Print() << "Node " << nodeId << " was not found!";
-		return NULL;
-	}
+	return roadNetwork;
 }
 
-const RoadSegment * RoadNetwork::getSegmentById(unsigned int id) const
-{
-	std::map<unsigned int, RoadSegment *>::const_iterator itSeg = mapOfIdVsRoadSegments.find(id);
-
-	if(itSeg != mapOfIdVsRoadSegments.end())
-	{
-		return itSeg->second;
-	}
-	else
-	{
-		sim_mob::Print() << "Segment " << id << " was not found!";
-		return NULL;
-	}
-}
-
-RoadNetwork* sim_mob::RoadNetwork::getInstance()
+RoadNetwork* RoadNetwork::getWritableInstance()
 {
 	if(!roadNetwork)
 	{

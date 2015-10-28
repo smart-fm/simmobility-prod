@@ -48,5 +48,10 @@ public:
 	 * @param point - the poly-point to be added
 	 */
 	void addPoint(PolyPoint point);
+
+	/**
+     * @return the size of the poly-line (i.e. the number of points in the poly-line)
+     */
+	std::size_t size() const;
 };
 }

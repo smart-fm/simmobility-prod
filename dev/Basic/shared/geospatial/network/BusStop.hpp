@@ -26,7 +26,7 @@ enum TerminusType
 class BusStop : public RoadItem
 {
 private:
-	/**bus stop location*/
+	/**Bus stop location*/
 	Point location;
 
 	/**The road segment that contains the bus stop*/
@@ -82,7 +82,7 @@ public:
 	//const std::vector<Busline>& getBusLine() const;
 
 	const BusStop* getTwinStop() const;
-	void setTwinStop(const BusStop* stop);
+	void setTwinStop(const BusStop *stop);
 
 	bool isVirtualStop() const;
 	void setVirtualStop(bool val);
@@ -99,8 +99,8 @@ public:
 	const std::string& getStopCode() const;
 	void setStopCode(const std::string& code);
 
-	static void RegisterBusStop(BusStop* stop);
-	static BusStop* findBusStop(const std::string& code);
+	static void registerBusStop(BusStop *stop);
+	static BusStop* findBusStop(const std::string &code);
 };
 
 }

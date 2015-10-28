@@ -191,8 +191,10 @@ void NetworkLoader::loadTurningPolyLines(const std::string& storedProc)
 
 void NetworkLoader::loadBusStops(const std::string& storedProc)
 {
-	if(storedProc.empty()){
-		sim_mob::Warn() << "WARNING: An empty 'bus_stops' stored-procedure was specified in the config file; " << std::endl;
+	if (storedProc.empty())
+	{
+		Print() << "Stored procedure to load bus stops not specified in the configuration file." 
+				<< "\nBus Stops not loaded..." << std::endl;
 		return;
 	}
 
@@ -242,7 +244,7 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 
 		loadTurningConflicts(getStoredProcedure(storedProcs, "turning_conflicts"));
 		
-		//loadBusStops(getStoredProcedure(storedProcs, "bus_stops"));
+		loadBusStops(getStoredProcedure(storedProcs, "bus_stops", false));
 		
 		//Close the connection
 		sql.close();

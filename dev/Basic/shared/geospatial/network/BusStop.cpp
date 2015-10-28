@@ -12,23 +12,6 @@ using namespace sim_mob;
 
 std::map<std::string, BusStop *> BusStop::mapOfCodevsBusStops;
 
-void BusStop::RegisterBusStop(BusStop* stop)
-{
-	std::string code = stop->getStopCode();
-	if(mapOfCodevsBusStops.find(code)==mapOfCodevsBusStops.end()){
-		mapOfCodevsBusStops[code] = stop;
-	}
-}
-BusStop* BusStop::findBusStop(const std::string& code)
-{
-	BusStop* stop = nullptr;
-	std::map<std::string, BusStop *>::iterator it = mapOfCodevsBusStops.find(code);
-	if(it!=mapOfCodevsBusStops.end()){
-		stop = it->second;
-	}
-	return stop;
-}
-
 BusStop::BusStop() :
 terminusType(NOT_A_TERMINUS), length(0.0), twinStop(nullptr), virtualStop(false), offset(0.0)
 {
@@ -45,7 +28,7 @@ const Point& BusStop::getStopLocation() const
 	return location;
 }
 
-void BusStop::setStopLocation(Point& loc)
+void BusStop::setStopLocation(Point &loc)
 {
 	location = loc;
 }
@@ -81,7 +64,7 @@ void BusStop::setCapacityAsLength(double len)
 }
 
 /*
-void BusStop::addBusLine(Busline& line)
+void BusStop::addBusLine(Busline &line)
 {
 	busLines.push_back(line);
 }
@@ -90,14 +73,14 @@ const std::vector<Busline>& BusStop::getBusLine() const
 {
 	return busLines;
 }
-*/
+ */
 
 const BusStop* BusStop::getTwinStop() const
 {
 	return twinStop;
 }
 
-void BusStop::setTwinStop(const BusStop* stop)
+void BusStop::setTwinStop(const BusStop *stop)
 {
 	twinStop = stop;
 }
@@ -136,6 +119,7 @@ unsigned int BusStop::getStopId() const
 {
 	return stopId;
 }
+
 void BusStop::setStopId(unsigned int id)
 {
 	stopId = id;
@@ -145,7 +129,30 @@ const std::string& BusStop::getStopCode() const
 {
 	return stopCode;
 }
+
 void BusStop::setStopCode(const std::string& code)
 {
 	stopCode = code;
+}
+
+void BusStop::registerBusStop(BusStop *stop)
+{
+	std::string code = stop->getStopCode();
+	if (mapOfCodevsBusStops.find(code) == mapOfCodevsBusStops.end())
+	{
+		mapOfCodevsBusStops[code] = stop;
+	}
+}
+
+BusStop* BusStop::findBusStop(const std::string& code)
+{
+	BusStop *stop = nullptr;
+	std::map<std::string, BusStop *>::iterator it = mapOfCodevsBusStops.find(code);
+	
+	if (it != mapOfCodevsBusStops.end())
+	{
+		stop = it->second;
+	}
+	
+	return stop;
 }

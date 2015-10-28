@@ -535,7 +535,7 @@ void RoadNetwork::addBusStop(BusStop* stop)
 			
 			//Add the stop to the segment
 			itSegments->second->addObstacle(stop->getOffset(), stop);
-			BusStop::RegisterBusStop(stop);
+			BusStop::registerBusStop(stop);
 		}
 		else
 		{

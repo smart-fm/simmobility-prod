@@ -43,7 +43,7 @@ void StreetDirectory::Init(const RoadNetwork& network)
 	if (!spImpl) {
 		spImpl = new A_StarShortestPathImpl(network);
 	}
-	if (!ptImpl && ConfigManager::GetInstance().FullConfig().publicTransitEnabled) {
+	if (!ptImpl && ConfigManager::GetInstance().FullConfig().isPublicTransitEnabled()) {
 		ptImpl = new A_StarPublicTransitShortestPathImpl(PT_Network::getInstance().PT_NetworkEdgeMap,PT_Network::getInstance().PT_NetworkVertexMap);
 	}
 	if(!sttpImpl){

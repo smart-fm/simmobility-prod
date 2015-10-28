@@ -55,7 +55,7 @@ void PolyLine::addPoint(PolyPoint point)
 	this->points.push_back(point);
 }
 
-size_t sim_mob::PolyLine::size() const
+std::size_t sim_mob::PolyLine::size() const
 {
 	return points.size();
 }

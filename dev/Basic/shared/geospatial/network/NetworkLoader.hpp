@@ -15,6 +15,7 @@ using namespace std;
 namespace sim_mob
 {
 
+class RoadNetwork;
 /**
  * class for loading the network for simulation
  * \author Neeraj D

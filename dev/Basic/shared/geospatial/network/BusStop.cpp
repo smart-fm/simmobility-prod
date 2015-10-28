@@ -13,14 +13,13 @@ using namespace sim_mob;
 std::map<std::string, BusStop *> BusStop::mapOfCodevsBusStops;
 
 BusStop::BusStop() :
-		terminusType(NOT_A_TERMINUS), length(0.0), twinStop(nullptr), virtualStop(false), offset(0.0),
-		reverseSectionId(0), terminalNodeId(0), roadSegment(NULL), stopCode(std::string())
+terminusType(NOT_A_TERMINUS), length(0.0), twinStop(nullptr), virtualStop(false), offset(0.0),
+reverseSectionId(0), terminalNodeId(0), roadSegment(NULL), stopCode(std::string())
 {
 }
 
 BusStop::~BusStop()
 {
-	safe_delete_item(twinStop);
 	//busLines.clear();
 }
 

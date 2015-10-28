@@ -546,11 +546,3 @@ RoadNetwork* RoadNetwork::getWritableInstance()
 	return roadNetwork;
 }
 
-RoadNetwork* RoadNetwork::getWritableInstance()
-{
-	if (!roadNetwork)
-	{
-		roadNetwork = new RoadNetwork();
-	}
-	return roadNetwork;
-}

@@ -199,6 +199,8 @@ struct RouteInfo{
 	unsigned int startPosY;
 	unsigned int endPosX;
 	unsigned int endPosY;
+	unsigned int linkId;
+	int segmentIndex;
 };
 struct StopInfo{
 	std::string line;
@@ -247,8 +249,8 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 				for (std::vector<WayPoint>::const_iterator it = path.begin();
 						it != path.end(); it++) {
 					if (it->type == WayPoint::ROAD_SEGMENT) {
-						unsigned int id =
-								(*it).roadSegment->getRoadSegmentId();
+						unsigned int id = (*it).roadSegment->getRoadSegmentId();
+						const sim_mob::Link* link = (*it).roadSegment->getParentLink();
 						if (routeIDs.size() == 0 || routeIDs.back().id != id) {
 							RouteInfo route;
 							route.id = id;
@@ -258,6 +260,8 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 							route.startPosY = start->getStopLocation().getY();
 							route.endPosX = end->getStopLocation().getX();
 							route.endPosY = end->getStopLocation().getY();
+							route.linkId = link->getLinkId();
+							route.segmentIndex = link->getRoadSegmentIndex((*it).roadSegment);
 							routeIDs.push_back(route);
 						}
 						isFound = true;
@@ -298,6 +302,8 @@ bool searchBusRoutes(const vector<const BusStop*>& stops,
 				routeInfo.startPosY = it->startPosY;
 				routeInfo.endPosX = it->endPosX;
 				routeInfo.endPosY = it->endPosY;
+				routeInfo.linkId = it->linkId;
+				routeInfo.segmentIndex = it->segmentIndex;
 				routeInfo.index = index;
 				allRoutes.push_back(routeInfo);
 				index++;
@@ -421,7 +427,11 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 			if (outputRoutes.is_open()){
 				outputRoutes << it->line << ","
 						<< it->index << ","
-						<< it->id
+						<< it->id << ","
+						<< it->start <<","
+						<< it->end<<","
+						<< it->linkId<<","
+						<< it->segmentIndex
 						<< std::endl;
 			}
 		}

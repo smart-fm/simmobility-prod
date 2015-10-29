@@ -322,7 +322,7 @@ double DriverPathMover::advance(double distance)
 	double distBetwCurrAndNxtPt = calcDistFromCurrToNextPt();
 	
 	//Check if we've crossed the next point, if so advance to the next point
-	while(distCoveredFromCurrPtToNextPt >= distBetwCurrAndNxtPt && !inIntersection)
+	while(distCoveredFromCurrPtToNextPt >= distBetwCurrAndNxtPt)
 	{
 		distCoveredFromCurrPtToNextPt -= distBetwCurrAndNxtPt;
 		overflowAmount = advanceToNextPoint();
@@ -400,7 +400,8 @@ double DriverPathMover::advanceToNextPolyLine()
 			}
 			else
 			{
-				//Since we are in a turning group, we will be heading into a segment
+				//Since we are in a turning group, we will be heading into a segment				
+				inIntersection = false;
 				
 				//Use the current turning to get the next lane
 				currLane = currTurning->getToLane();

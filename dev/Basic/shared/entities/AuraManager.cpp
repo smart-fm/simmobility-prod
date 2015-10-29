@@ -9,8 +9,8 @@
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
-#include "geospatial/network/Lane.hpp"
 #include "geospatial/network/Point.hpp"
+#include "geospatial/network/WayPoint.hpp"
 
 #include "spatial_trees/TreeImpl.hpp"
 #include "spatial_trees/rstar_tree/RStarAuraManager.hpp"
@@ -19,57 +19,61 @@
 
 namespace sim_mob
 {
-/* static */ AuraManager AuraManager::instance_;
+
+AuraManager AuraManager::instance_;
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // AuraManager
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-void
-AuraManager::init(AuraManagerImplementation implType)
+void AuraManager::init(AuraManagerImplementation implType)
 {
-    //Reset time tick.
-    time_step = 0;
+	//Reset time tick.
+	time_step = 0;
 
-	if (implType == IMPL_RSTAR) {
+	if (implType == IMPL_RSTAR)
+	{
 		std::cout << "RSTAR" << std::endl;
 		impl_ = new RStarAuraManager();
 		impl_->init();
-	} else if (implType == IMPL_SIMTREE) {
+	}
+	else if (implType == IMPL_SIMTREE)
+	{
 		std::cout << "SIMTREE" << std::endl;
 		impl_ = new SimAuraManager();
 		impl_->init();
-	} else if (implType == IMPL_RDU) {
+	}
+	else if (implType == IMPL_RDU)
+	{
 		std::cout << "RDU" << std::endl;
 		impl_ = new RDUAuraManager();
 		impl_->init();
-	} else {
+	}
+	else
+	{
 		throw std::runtime_error("Unknown tree type.");
 	}
 }
 
-void AuraManager::destory()
+void AuraManager::destroy()
 {
 	delete impl_;
 }
 
-/* virtual */ void
-AuraManager::update(const std::set<sim_mob::Agent*>& removedAgentPointers)
+void AuraManager::update(const std::set<sim_mob::Agent *>& removedAgentPointers)
 {
-
-	if (impl_) {
+	if (impl_)
+	{
 		impl_->update(time_step, removedAgentPointers);
 	}
 	time_step++;
-
 }
 
-std::vector<Agent const *>
-AuraManager::agentsInRect(Point const & lowerLeft, Point const & upperRight, const sim_mob::Agent* refAgent)
-const
+std::vector<Agent const *> AuraManager::agentsInRect(Point const &lowerLeft, Point const &upperRight, const sim_mob::Agent *refAgent) const
 {
 	std::vector<Agent const *> results;
-	if (impl_) {
+	if (impl_)
+	{
 		results = impl_->agentsInRect(lowerLeft, upperRight, refAgent);
 	}
 	return results;
@@ -77,24 +81,24 @@ const
 
 
 //The "refAgent" can be used to provide more information (i.e., for the faster bottom-up query).
-std::vector<Agent const *>
-AuraManager::nearbyAgents(Point const & position, Lane const & lane,
-                          centimeter_t distanceInFront, centimeter_t distanceBehind, const sim_mob::Agent* refAgent)
-const
+std::vector<Agent const *> AuraManager::nearbyAgents(Point const &position, WayPoint const &wayPoint, double distanceInFront, double distanceBehind, 
+													 const sim_mob::Agent *refAgent) const
 {
 	std::vector<Agent const *> results;
-	if (impl_) {
-		results = impl_->nearbyAgents(position, lane, distanceInFront, distanceBehind, refAgent);
+	if (impl_)
+	{
+		results = impl_->nearbyAgents(position, wayPoint, distanceInFront, distanceBehind, refAgent);
 	}
 	return results;
 }
 
-void AuraManager::registerNewAgent(Agent const* one_agent)
+void AuraManager::registerNewAgent(Agent const *one_agent)
 {
-	//if ((local_implType == IMPL_SIMTREE) && impl_) {
-	if (impl_) {
-		//We only register Person agents (TODO: why?)
-		if (dynamic_cast<Person const*>(one_agent)) {
+	if (impl_)
+	{
+		//We only register Person agents
+		if (dynamic_cast<Person const*> (one_agent))
+		{
 			impl_->registerNewAgent(one_agent);
 		}
 	}

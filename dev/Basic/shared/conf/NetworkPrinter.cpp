@@ -275,10 +275,4 @@ void NetworkPrinter::PrintToFileAndGui(const std::stringstream& str) const
 {
 	//Print to file.
 	out << str.str() << std::endl;
-
-	//Print to GUI (if it's active).
-	if (cfg.InteractiveMode())
-	{
-		cfg.getCommDataMgr().sendRoadNetworkData(str.str());
-	}
 }

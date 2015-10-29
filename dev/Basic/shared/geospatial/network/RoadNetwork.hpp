@@ -62,9 +62,9 @@ private:
 	/**
 	 * Returns a non-constant pointer to RoadNetwork
 	 * This function is private because only the NetworkLoader (a friend of this class) must gain access to this writable instance.
-     *
+	 *
 	 * @return a non-constant pointer to RoadNetwork
-     */
+	 */
 	static RoadNetwork* getWritableInstance();
 
 public:
@@ -168,12 +168,12 @@ public:
 	 * @param id the id to look-up in map
 	 * @return value mapped to id in map, if found; NULL otherwise
 	 */
-	template <class T>
+	template<class T>
 	const T* getById(const std::map<unsigned int, T*>& lookup, unsigned int id) const
 	{
 		typename std::map<unsigned int, T*>::const_iterator lookupIt = lookup.find(id);
 
-		if(lookupIt != lookup.end())
+		if (lookupIt != lookup.end())
 		{
 			return (lookupIt->second);
 		}

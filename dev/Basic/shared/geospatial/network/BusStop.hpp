@@ -47,7 +47,7 @@ private:
 	/**indicator to determine whether this stop is virtually created for terminus stops*/
 	bool virtualStop;
 
-	/**offset to its parent segment's obstacle list*/
+	/**Distance from the start of the parent segment*/
 	double offset;
 
 	/**bus stop code*/
@@ -56,8 +56,11 @@ private:
 	/**bus stop name*/
 	std::string stopName;
 
-	/**bus stop Id*/
-	unsigned int stopId;
+	/** reverse section for creating twin stop, in case of terminal stop*/
+	unsigned int reverseSectionId;
+
+	/** terminal node for identifying source/sink stop, in case of terminal stop*/
+	unsigned int terminalNodeId;
 
 	/**This map stores all the bus stops in the network with bus stop code as the key*/
 	static std::map<std::string, BusStop *> mapOfCodevsBusStops;
@@ -67,13 +70,16 @@ public:
 	virtual ~BusStop();
 
 	const Point& getStopLocation() const;
-	void setStopLocation(Point& location);
+	void setStopLocation(Point location);
 
 	const RoadSegment* getParentSegment() const;
 	void setParentSegment(RoadSegment *roadSegment);
 
 	const TerminusType& getTerminusType() const;
 	void setTerminusType(TerminusType type);
+
+	void setLength(double length);
+    double getLength() const;
 
 	double getCapacityAsLength() const;
 	void setCapacityAsLength(double len);
@@ -85,7 +91,7 @@ public:
 	void setTwinStop(const BusStop *stop);
 
 	bool isVirtualStop() const;
-	void setVirtualStop(bool val);
+	void setVirtualStop();
 
 	double getOffset() const;
 	void setOffset(double val);
@@ -93,14 +99,17 @@ public:
 	const std::string& getStopName() const;
 	void setStopName(const std::string name);
 
-	unsigned int getStopId() const;
-	void setStopId(unsigned int id);
-
 	const std::string& getStopCode() const;
 	void setStopCode(const std::string& code);
 
 	static void registerBusStop(BusStop *stop);
 	static BusStop* findBusStop(const std::string &code);
+
+	unsigned int getReverseSectionId() const;
+	void setReverseSectionId(unsigned int reverseSectionId);
+
+	unsigned int getTerminalNodeId() const;
+	void setTerminalNodeId(unsigned int terminalNodeId);
 };
 
 }

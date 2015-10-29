@@ -11,6 +11,7 @@
 #include <iostream>
 #include <vector>
 #include "path/PathSetManager.hpp"
+#include "geospatial/network/Link.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 
 using namespace std;
@@ -30,10 +31,10 @@ public:
 	StreetDirectory::Vertex toVertex;
 	const sim_mob::Node *fromNode;
 	const sim_mob::Node *toNode;
-	std::set<const RoadSegment*> excludeSeg;
-	std::map<const RoadSegment*, std::set<StreetDirectory::Edge> > *segmentLookup;
-	SinglePath *s;
-	boost::shared_ptr<sim_mob::PathSet> ps;
+	std::set<const Link*> excludeSeg;
+	std::map<const Link*, std::set<StreetDirectory::Edge> > *linkLookup;
+	SinglePath *path;
+	boost::shared_ptr<sim_mob::PathSet> pathSet;
 	bool hasPath;
 	bool timeBased;
 	///used by local profilers to report to the profiler in higher level.

@@ -19,6 +19,7 @@
 #include "boost/filesystem.hpp"
 #include "PT_PathSetManager.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
+#include "logging/Log.hpp"
 
 using namespace luabridge;
 
@@ -193,10 +194,13 @@ bool PT_RouteChoiceLuaModel::getBestPT_Path(int origin, int dest, std::vector<si
 	{
 		Print() << "[PT pathset]load pathset failed:[" << origin << "]:[" << dest << "]" << std::endl;
 	}
+
 	if(pathSet.pathSet.size()>0)
 	{
+		std::string originId = boost::lexical_cast<std::string>(origin);
+		std::string destId = boost::lexical_cast<std::string>(dest);
 		publicTransitPathSet = &pathSet;
-		odTrips = makePT_RouteChoice(origin,destId);
+		odTrips = makePT_RouteChoice(originId, destId);
 		ret = true;
 	}
 	return ret;

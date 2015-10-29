@@ -20,7 +20,7 @@
 #include "conf/ConfigParams.hpp"
 #include "logging/Log.hpp"
 #include "geospatial/network/Node.hpp"
-#include "geospatial/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "workers/Worker.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -158,7 +158,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 				endType = "NODE";
 				int id = boost::lexical_cast<unsigned int>(sEnd);
 				const RoadNetwork* rn = RoadNetwork::getInstance();
-				sim_mob::Node* node = rn->getById(rn->getMapOfIdvsNodes() , id);
+				const sim_mob::Node* node = rn->getById(rn->getMapOfIdvsNodes() , id);
 				if (node)
 				{
 					dest = WayPoint(node);
@@ -178,7 +178,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			case 2:
 			{
 				endType = "MRT_STOP";
-				sim_mob::MRT_Stop* stop = sim_mob::PT_Network::getInstance().findMRT_Stop(sEnd);
+				sim_mob::TrainStop* stop = sim_mob::PT_Network::getInstance().findMRT_Stop(sEnd);
 				if (stop)
 				{
 					dest = WayPoint(stop);
@@ -194,7 +194,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 				srcType = "NODE";
 				int id = boost::lexical_cast<unsigned int>(sSrc);
 				const RoadNetwork* rn = RoadNetwork::getInstance();
-				sim_mob::Node* node = rn->getById(rn->getMapOfIdvsNodes() , id);
+				const sim_mob::Node* node = rn->getById(rn->getMapOfIdvsNodes() , id);
 				if (node)
 				{
 					source = WayPoint(node);
@@ -214,7 +214,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 			case 2:
 			{
 				srcType = "MRT_STOP";
-				sim_mob::MRT_Stop* stop = sim_mob::PT_Network::getInstance().findMRT_Stop(sSrc);
+				sim_mob::TrainStop* stop = sim_mob::PT_Network::getInstance().findMRT_Stop(sSrc);
 				if (stop)
 				{
 					source = WayPoint(stop);
@@ -243,7 +243,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 				subTrip.startLocationType = srcType;
 				subTrip.endLocationId = sEnd;
 				subTrip.endLocationType = endType;
-				if (source.type == WayPoint::BUS_STOP)
+				if (source.type == WayPoint::BUS_STOP || source.type == WayPoint::TRAIN_STOP)
 				{
 					subTrip.originType = TripChainItem::LT_PUBLIC_TRANSIT_STOP;
 				}
@@ -252,7 +252,7 @@ bool sim_mob::Person::makeODsToTrips(SubTrip* curSubTrip, std::vector<sim_mob::S
 					subTrip.originType = TripChainItem::LT_NODE;
 				}
 				subTrip.destination = dest;
-				if (dest.type == WayPoint::BUS_STOP)
+				if (dest.type == WayPoint::BUS_STOP || dest.type == WayPoint::TRAIN_STOP)
 				{
 					subTrip.destinationType = TripChainItem::LT_PUBLIC_TRANSIT_STOP;
 				}

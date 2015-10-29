@@ -14,7 +14,7 @@
 namespace sim_mob
 {
 
-class MRT_Stop;
+class TrainStop;
 
 namespace medium
 {

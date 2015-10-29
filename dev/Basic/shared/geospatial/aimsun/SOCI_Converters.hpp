@@ -17,7 +17,6 @@
 #include "Crossing.hpp"
 #include "Turning.hpp"
 #include "Polyline.hpp"
-#include "BusStop.hpp"
 #include "Signal.hpp"
 #include "Phase.hpp"
 #include "path/Path.hpp"
@@ -27,6 +26,7 @@
 #include "geospatial/network/TurningPath.hpp"
 #include "geospatial/network/TurningConflict.hpp"
 #include "geospatial/network/PolyLine.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 
 //using namespace sim_mob::aimsun;
 //using std::string;
@@ -403,63 +403,6 @@ struct type_conversion<sim_mob::aimsun::Signal>
         values.set("type_cd", signal.typeCode);
         values.set("bearg", signal.bearing);
         indicator = i_ok;
-    }
-};
-
-
-template<> struct type_conversion<sim_mob::aimsun::BusStop>
-{
-    typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::aimsun::BusStop &res)
-    {
-    	res.bus_stop_no = vals.get<std::string>("bus_stop_no", "");
-    	res.TMP_AtSectionID= vals.get<int>("section_id", 0);
-    	res.TMP_RevSectionID = vals.get<int>("reverse_section_id", 0);
-    	res.TMP_TerminalNodeID = vals.get<int>("terminal_node_id", 0);
-    	res.status = vals.get<std::string>("status", "");
-    	res.lane_type = vals.get<std::string>("lane_type", "");
-    	res.road_name = vals.get<std::string>("road_name", "");
-    	res.xPos = vals.get<double>("x_pos", 0.0);
-    	res.yPos = vals.get<double>("y_pos", 0.0);
-    }
-    static void to_base(const sim_mob::aimsun::BusStop& src, soci::values& vals, soci::indicator& ind)
-    {
-    	//std::cout<<"I am here"<<src.xPos<<"    "<<src.yPos<<std::endl;
-    	vals.set("bus_stop_id", src.bus_stop_no);
-    	vals.set("section_id", src.atSection->id);
-    	vals.set("status", src.status);
-    	vals.set("lane_type", src.lane_type);
-    	vals.set("road_name", src.road_name);
-        vals.set("x_pos", src.xPos);
-        vals.set("y_pos", src.yPos);
-        ind = i_ok;
-    }
-};
-
-template<> struct type_conversion<sim_mob::aimsun::BusStopSG>
-{
-    typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::aimsun::BusStopSG &res)
-    {
-    	res.bus_stop_no = vals.get<std::string>("stop_id", "");
-    	res.stop_code= vals.get<std::string>("stop_code", "");
-    	res.stop_name = vals.get<std::string>("stop_name", "");
-    	res.stop_lat = vals.get<std::string>("stop_lat", "");
-    	res.stop_lon = vals.get<std::string>("stop_lon", "");
-    	res.section_id = vals.get<std::string>("section_id", "");
-    	res.aimsun_section = vals.get<int>("aimsun_section", 0);
-    }
-    static void to_base(const sim_mob::aimsun::BusStopSG& src, soci::values& vals, soci::indicator& ind)
-    {
-    	//std::cout<<"I am here"<<src.xPos<<"    "<<src.yPos<<std::endl;
-    	vals.set("stop_id", src.bus_stop_no);
-    	vals.set("stop_code", src.stop_code);
-    	vals.set("stop_name", src.stop_name);
-    	vals.set("stop_lat", src.xPos);
-    	vals.set("stop_lon", src.yPos);
-        vals.set("section_id", src.section_id);
-        vals.set("aimsun_section", src.aimsun_section);
-        ind = i_ok;
     }
 };
 

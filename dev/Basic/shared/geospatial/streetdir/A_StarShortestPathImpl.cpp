@@ -16,7 +16,7 @@
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/LaneConnector.hpp"
-#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/PolyLine.hpp"
 #include "geospatial/network/TurningGroup.hpp"

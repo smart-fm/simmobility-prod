@@ -70,36 +70,41 @@ bool sim_mob::SinglePath::includesRoadSegment(const std::set<const sim_mob::Road
 	return false;
 }
 
-///given a path of alternative nodes and segments, keep segments, loose the nodes
-struct segFilter{
-		bool operator()(const sim_mob::WayPoint value){
-			return value.type == sim_mob::WayPoint::ROAD_SEGMENT;
-		}
+///given a path of alternative nodes and Links, keep Links, loose the nodes
+struct LinkFilter
+{
+	bool operator()(const sim_mob::WayPoint value)
+	{
+		return value.type == sim_mob::WayPoint::LINK;
+	}
 };
+
 void sim_mob::SinglePath::filterOutNodes(std::vector<sim_mob::WayPoint>& input, std::vector<sim_mob::WayPoint>& output)
 {
-	typedef boost::filter_iterator<segFilter,std::vector<sim_mob::WayPoint>::iterator> FilterIterator;
+	typedef boost::filter_iterator<LinkFilter,std::vector<sim_mob::WayPoint>::iterator> FilterIterator;
 	std::copy(FilterIterator(input.begin(), input.end()),FilterIterator(input.end(), input.end()),std::back_inserter(output));
 }
 
-void sim_mob::SinglePath::init(std::vector<sim_mob::WayPoint>& wpPools)
+void sim_mob::SinglePath::init(std::vector<sim_mob::WayPoint>& wpPath)
 {
 	//step-1 fill in the path
-	filterOutNodes(wpPools, this->path);
+	filterOutNodes(wpPath, this->path);
+
 	//sanity check
 	if(this->path.empty())
 	{
 	   std::stringstream err("");
 	   err << "empty path [OD:" << this->pathSetId << "][PATH:"  << this->id << "][Graph Output type chain:\n";
-		if(wpPools.size())
+		if(wpPath.size())
 		{
-			for(std::vector<sim_mob::WayPoint>::iterator it = wpPools.begin(); it != wpPools.end(); it++)
+			for(std::vector<sim_mob::WayPoint>::iterator it = wpPath.begin(); it != wpPath.end(); it++)
 			{
 				err << "[" << it->type << "," << it->node << "],";
 			}
 		}
 	   std::cerr << "[" << this->pathSetId << "] ERROR,IGNORED PATH:\n" << err.str() << std::endl;
 	}
+
 	//step-1.5 fill in the linkPath
 	{
 		const sim_mob::Link* currLink = nullptr;
@@ -271,10 +276,10 @@ short sim_mob::PathSet::addOrDeleteSinglePath(sim_mob::SinglePath* s)
 	{
 		return 0;
 	}
-	if(s->path.begin()->roadSegment->getParentLink()->getFromNodeId() != subTrip.origin.node_->getNodeId())
+	if(s->path.begin()->link->getFromNodeId() != subTrip.origin.node->getNodeId())
 	{
-		std::cerr << s->scenario << " path begins with " << s->path.begin()->roadSegment->getParentLink()->getFromNodeId() 
-				<< " while pathset begins with " << subTrip.fromLocation.node->getNodeId() << std::endl;
+		std::cerr << s->scenario << " path begins with " << s->path.begin()->link->getFromNodeId()
+				<< " while pathset begins with " << subTrip.origin.node->getNodeId() << std::endl;
 		throw std::runtime_error("Mismatch");
 	}
 
@@ -400,25 +405,13 @@ double sim_mob::calculateSinglePathDefaultTT(const std::vector<sim_mob::WayPoint
 std::string sim_mob::makeWaypointsetString(const std::vector<sim_mob::WayPoint>& wp)
 {
 	std::stringstream str("");
-//	if(wp.size()==0)
-//	{
-//		sim_mob::Logger::log("pathset.log") << "warning: empty input for makeWaypointsetString" << std::endl;
-//	}
-
 	for(std::vector<sim_mob::WayPoint>::const_iterator it = wp.begin(); it != wp.end(); it++)
 	{
-		if (it->type == WayPoint::ROAD_SEGMENT)
+		if (it->type == WayPoint::LINK)
 		{
-			str << it->roadSegment->getRoadSegmentId() << ",";
-		} // if ROAD_SEGMENT
+			str << it->link->getLinkId() << ",";
+		}
 	}
-
-//	if(str.str().size()<1)
-//	{
-//		// when same f,t node, it happened
-//		sim_mob::Logger::log("pathset.log") << "warning: empty output makeWaypointsetString id" << std::endl;
-//	}
-
 	return str.str();
 }
 

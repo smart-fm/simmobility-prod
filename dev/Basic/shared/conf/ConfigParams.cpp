@@ -10,7 +10,7 @@
 #include "entities/Person.hpp"
 #include "entities/misc/PublicTransit.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
-#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "network/CommunicationDataManager.hpp"

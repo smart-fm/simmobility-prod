@@ -8,7 +8,7 @@
 
 #include "PathSetThreadPool.hpp"
 #include "Path.hpp"
-#include "geospatial/streetdir/AStarShortestTravelTimePathImpl.hpp"
+#include "geospatial/streetdir/A_StarShortestTravelTimePathImpl.hpp"
 #include "geospatial/streetdir/A_StarShortestPathImpl.hpp"
 
 #include <stdlib.h>
@@ -25,7 +25,8 @@ namespace
 	//sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
 }
 
-sim_mob::PathSetWorkerThread::PathSetWorkerThread():s(nullptr)
+sim_mob::PathSetWorkerThread::PathSetWorkerThread() :
+		path(nullptr), linkLookup(nullptr)
 {
 	hasPath = false;
 	dbgStr = "";

@@ -70,11 +70,11 @@ void PT_Network::init()
 	   int roadsegmentId = row.get<int>(1);
 	   if(MRTStopsMap.find(mrtstopid) == MRTStopsMap.end())
 	   {
-		   MRT_Stop mrtStopObj(mrtstopid,roadsegmentId);
+		   TrainStop mrtStopObj(mrtstopid,roadsegmentId);
 		   MRTStopsMap[mrtstopid]=mrtStopObj;
 	   }
 	   else{
-		   MRTStopsMap[mrtstopid].addRoadSegment(roadsegmentId);
+		   MRTStopsMap[mrtstopid].addAccessRoadSegment(roadsegmentId);
 	   }
 	}
 	cout<<"Public Transport Network Loaded ";
@@ -88,51 +88,13 @@ int PT_Network::getVertexTypeFromStopId(std::string stopId)
 	return -1;
 }
 
-MRT_Stop* PT_Network::findMRT_Stop(const std::string& stopId){
+TrainStop* PT_Network::findMRT_Stop(const std::string& stopId){
 	if(MRTStopsMap.find(stopId) != MRTStopsMap.end()){
 		return &MRTStopsMap[stopId];
 	}
 	else {
 		return nullptr;
 	}
-}
-
-
-MRT_Stop::MRT_Stop(){}
-
-MRT_Stop::~MRT_Stop(){}
-
-MRT_Stop::MRT_Stop(std::string stopId,int roadSegment){
-	this->mrtStopId=stopId;
-	this->roadSegments.push_back(roadSegment);
-}
-
-const sim_mob::RoadSegment* MRT_Stop::getStationSegmentForNode(const sim_mob::Node* nd) const
-{
-	const sim_mob::RoadSegment* res = nullptr;
-	double minDis = std::numeric_limits<double>::max();
-	for (std::vector<int>::const_iterator segIt = roadSegments.begin(); segIt != roadSegments.end(); segIt++)
-	{
-		unsigned int id = *segIt;
-		const sim_mob::RoadSegment* segment = sim_mob::StreetDirectory::instance().getRoadSegment(id);
-		const sim_mob::Node* node = segment->getStart();
-		sim_mob::DynamicVector estimateDistVector(nd->getLocation().getX(),nd->getLocation().getY(), node->getLocation().getX(),	node->getLocation().getY());
-		double actualDistanceStart = estimateDistVector.getMagnitude();
-		if (minDis > actualDistanceStart)
-		{
-			minDis = actualDistanceStart;
-			res = segment;
-		}
-	}
-	return res;
-}
-
-const sim_mob::RoadSegment* sim_mob::MRT_Stop::getRandomStationSegment() const
-{
-	int random = sim_mob::Utils::generateInt(0, roadSegments.size()-1);
-	std::vector<int>::const_iterator segIt = roadSegments.begin();
-	std::advance(segIt, random);
-	return sim_mob::StreetDirectory::instance().getRoadSegment(*segIt);
 }
 
 PT_NetworkEdge::PT_NetworkEdge():startStop(""),endStop(""),rType(""),road_index(""),roadEdgeId(""),

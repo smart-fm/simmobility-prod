@@ -10,7 +10,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "entities/BusStopAgent.hpp"
-#include "geospatial/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "WaitBusActivity.hpp"
 
 using namespace sim_mob;

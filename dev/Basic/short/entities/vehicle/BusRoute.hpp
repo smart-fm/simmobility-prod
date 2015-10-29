@@ -12,7 +12,7 @@
 
 #include <vector>
 
-#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/network/Point.hpp"
 #include "geospatial/network/RoadSegment.hpp"
 #include "util/GeomHelpers.hpp"

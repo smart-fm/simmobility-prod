@@ -14,7 +14,7 @@
 #include "entities/roles/Role.hpp"
 #include "entities/misc/BusTrip.hpp"
 #include "entities/misc/PublicTransit.hpp"
-#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/network/Link.hpp"
 #include "geospatial/network/SOCI_Converters.hpp"
 #include "logging/Log.hpp"

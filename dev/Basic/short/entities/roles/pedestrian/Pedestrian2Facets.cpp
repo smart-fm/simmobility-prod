@@ -15,7 +15,7 @@
 #include "conf/ConfigParams.hpp"
 #include "config/ST_Config.hpp"
 
-#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/passenger/Passenger.hpp"

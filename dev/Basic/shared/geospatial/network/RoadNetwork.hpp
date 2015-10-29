@@ -6,7 +6,7 @@
 
 #include <map>
 
-#include "BusStop.hpp"
+#include "PT_Stop.hpp"
 #include "Link.hpp"
 #include "Node.hpp"
 #include "Point.hpp"

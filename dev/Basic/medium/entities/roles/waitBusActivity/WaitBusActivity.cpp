@@ -8,7 +8,7 @@
 #include "entities/Person.hpp"
 #include "entities/PT_Statistics.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
-#include "geospatial/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "message/MT_Message.hpp"
 
 using std::vector;

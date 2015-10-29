@@ -5,11 +5,10 @@
 #include "NetworkPrinter.hpp"
 
 #include "conf/ConfigParams.hpp"
-#include "entities/signal/Signal.hpp"
 #include "logging/Log.hpp"
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/RoadSegment.hpp"
-#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/network/Point.hpp"
 #include "geospatial/network/LaneConnector.hpp"
 #include "geospatial/network/Lane.hpp"
@@ -64,12 +63,12 @@ void NetworkPrinter::PrintNetwork(const RoadNetwork *network) const
 	
 	PrintBusStops();
 
-	//Tell the GUI this is done.
-	if (cfg.InteractiveMode())
-	{
-		string end = "END";
-		cfg.getCommDataMgr().sendRoadNetworkData(end);
-	}
+//	//Tell the GUI this is done.
+//	if (cfg.InteractiveMode())
+//	{
+//		string end = "END";
+//		cfg.getCommDataMgr().sendRoadNetworkData(end);
+//	}
 
 	//Print the StreetDirectory graphs.
 	//StreetDirectory::Instance().printDrivingGraph(out);
@@ -273,9 +272,9 @@ void NetworkPrinter::PrintToFileAndGui(const std::stringstream& str) const
 	//Print to file.
 	out << str.str() << std::endl;
 
-	//Print to GUI (if it's active).
-	if (cfg.InteractiveMode())
-	{
-		cfg.getCommDataMgr().sendRoadNetworkData(str.str());
-	}
+//	//Print to GUI (if it's active).
+//	if (cfg.InteractiveMode())
+//	{
+//		cfg.getCommDataMgr().sendRoadNetworkData(str.str());
+//	}
 }

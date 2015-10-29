@@ -1,7 +1,7 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 #pragma once
 #include "A_StarShortestPathImpl.hpp"
-#include "AStarShortestTravelTimePathImpl.hpp"
+#include "A_StarShortestTravelTimePathImpl.hpp"
 #include "StreetDirectory.hpp"
 
 #include <map>

@@ -9,6 +9,7 @@
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "logging/Log.hpp"
 
 using std::vector;
 using std::string;

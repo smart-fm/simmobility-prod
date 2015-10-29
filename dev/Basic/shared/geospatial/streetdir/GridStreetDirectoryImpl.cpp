@@ -14,7 +14,7 @@
 #include "geospatial/network/Point.hpp"
 #include "geospatial/network/Link.hpp"
 #include "geospatial/network/LaneConnector.hpp"
-#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/RoadRunnerRegion.hpp"

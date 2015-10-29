@@ -12,7 +12,7 @@
 #include "conf/RawConfigParams.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "entities/misc/PublicTransit.hpp"
-#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "util/DailyTime.hpp"
 #include "util/Factory.hpp"
 
@@ -215,9 +215,6 @@ private:
 
     /// Mutable because they are set when retrieved.
 	mutable ControlManager* controlMgr;
-
-    /// OD Trips list
-	std::vector<sim_mob::OD_Trip> ODsTripsMap;
 
     /// Flag to indicate whether the network is sealed after loading
 	bool sealedNetwork;

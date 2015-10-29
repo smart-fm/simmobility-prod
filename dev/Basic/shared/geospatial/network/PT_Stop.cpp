@@ -2,11 +2,15 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-#include "BusStop.hpp"
+#include "PT_Stop.hpp"
 #include "Node.hpp"
 #include "RoadSegment.hpp"
 #include "Lane.hpp"
+#include "Point.hpp"
+#include "util/DynamicVector.cpp"
 #include "util/LangHelpers.hpp"
+#include "util/Utils.hpp"
+#include "RoadNetwork.hpp"
 
 using namespace sim_mob;
 
@@ -169,4 +173,54 @@ unsigned int BusStop::getTerminalNodeId() const
 void BusStop::setTerminalNodeId(unsigned int terminalNodeId)
 {
 	this->terminalNodeId = terminalNodeId;
+}
+
+TrainStop::TrainStop(){}
+
+TrainStop::~TrainStop(){}
+
+TrainStop::TrainStop(std::string stopId,int roadSegment){
+	this->trainStopId=stopId;
+	this->addAccessRoadSegment(roadSegment);
+}
+
+const RoadSegment* TrainStop::getStationSegmentForNode(const Node* nd) const
+{
+	const RoadSegment* res = nullptr;
+	double minDis = std::numeric_limits<double>::max();
+	for (std::vector<const RoadSegment*>::const_iterator segIt = roadSegments.begin(); segIt != roadSegments.end(); segIt++)
+	{
+		const RoadSegment* segment = *segIt;
+		const Point& firstPoint = segment->getPolyLine()->getFirstPoint();
+		DynamicVector estimateDistVector(nd->getLocation().getX(),nd->getLocation().getY(), firstPoint.getX(), firstPoint.getY());
+		double actualDistanceStart = estimateDistVector.getMagnitude();
+		if (minDis > actualDistanceStart)
+		{
+			minDis = actualDistanceStart;
+			res = segment;
+		}
+	}
+	return res;
+}
+
+const RoadSegment* TrainStop::getRandomStationSegment() const
+{
+	int random = Utils::generateInt(0, roadSegments.size()-1);
+	std::vector<const RoadSegment*>::const_iterator segIt = roadSegments.begin();
+	std::advance(segIt, random);
+	return (*segIt);
+}
+
+void TrainStop::addAccessRoadSegment(int segmentId)
+{
+	const RoadNetwork* rn = RoadNetwork::getInstance();
+	const RoadSegment* accessSegment = rn->getById(rn->getMapOfIdVsRoadSegments(), segmentId);
+	if(accessSegment)
+	{
+		this->roadSegments.push_back(accessSegment);
+	}
+	else
+	{
+		throw std::runtime_error("invalid segment id for train stop access");
+	}
 }

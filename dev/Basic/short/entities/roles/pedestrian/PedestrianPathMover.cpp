@@ -5,7 +5,7 @@
 #include <boost/random.hpp>
 
 #include "entities/roles/pedestrian/PedestrianPathMover.hpp"
-#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/network/WayPoint.hpp"
 
 

@@ -11,10 +11,8 @@
 #include <limits>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "geospatial/network/BusStop.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/MultiNode.hpp"
-#include "geospatial/UniNode.hpp"
+#include "geospatial/network/PT_Stop.hpp"
+#include "geospatial/network/Node.hpp"
 #include "Pedestrian.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "util/Utils.hpp"

@@ -320,48 +320,4 @@ struct type_conversion<sim_mob::PT_BusStops>
         indicator = i_ok;
     }
 };
-
-template<>
-struct type_conversion<sim_mob::OD_Trip>
-{
-    typedef values base_type;
-
-    static void
-    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::OD_Trip& od_trip)
-    {
-    	od_trip.startStop = values.get<std::string>("start_stop", "");
-    	od_trip.endStop = values.get<std::string>("end_stop", "");
-    	od_trip.sType = values.get<int>("start_type", -1);
-    	od_trip.eType = values.get<int>("end_type", -1);
-    	od_trip.tType = values.get<std::string>("r_type", "");
-    	od_trip.serviceLines = values.get<std::string>("r_service_lines", "");
-    	od_trip.originNode = values.get<std::string>("origin_node", "");
-    	od_trip.destNode = values.get<std::string>("dest_node", "");
-    	od_trip.pathset = values.get<std::string>("pathset", "");
-       	od_trip.id = values.get<int>("id", 0);
-       	od_trip.travelTime = values.get<double>("travel_time", 0);
-       	boost::trim_right(od_trip.startStop);
-       	boost::trim_right(od_trip.endStop);
-       	boost::trim_right(od_trip.serviceLines);
-       	boost::trim_right(od_trip.tType);
-       	boost::trim_right(od_trip.pathset);
-       	boost::trim_right(od_trip.originNode);
-       	boost::trim_right(od_trip.destNode);
-    }
-
-    static void
-    to_base(sim_mob::OD_Trip const & od_trip, soci::values & values, soci::indicator & indicator)
-    {
-    	values.set("start_stop", od_trip.startStop);
-       	values.set("end_stop", od_trip.endStop);
-       	values.set("r_type", od_trip.tType);
-       	values.set("r_service_lines", od_trip.serviceLines);
-       	values.set("origin_node", od_trip.originNode);
-       	values.set("dest_node", od_trip.destNode);
-       	values.set("pathset", od_trip.pathset);
-       	values.set("id", od_trip.id);
-        indicator = i_ok;
-    }
-};
-
-}
+} //namesace soci

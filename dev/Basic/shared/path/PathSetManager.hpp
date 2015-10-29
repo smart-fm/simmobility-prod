@@ -303,7 +303,7 @@ private:
 	 * @returns shortest distance driving path
 	 */
 	sim_mob::SinglePath* findShortestDrivingPath(const sim_mob::Node* fromNode, const sim_mob::Node* toNode, std::set<std::string> duplicateChecker,
-			const std::set<const sim_mob::RoadSegment*>& excludedSegs=std::set<const sim_mob::RoadSegment*>());
+			const std::set<const sim_mob::Link*>& excludedSegs=std::set<const sim_mob::Link*>());
 
 	/**
 	 * generate a path based on shortest travel time
@@ -315,7 +315,7 @@ private:
 	 * @returns shortest travel time path for the specified time period
 	 */
 	sim_mob::SinglePath* generateShortestTravelTimePath(const sim_mob::Node* fromNode, const sim_mob::Node* toNode,
-			sim_mob::TimeRange tr=sim_mob::MorningPeak, const sim_mob::RoadSegment* excludedSegs=NULL, int random_graph_idx=0);
+			sim_mob::TimeRange tr=sim_mob::MorningPeak, const sim_mob::Link* excludedSegs=NULL, int random_graph_idx=0);
 
 	 /**
 	  * generate K-shortest path

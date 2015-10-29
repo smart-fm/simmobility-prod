@@ -8,14 +8,13 @@
 #include "Node.hpp"
 #include "RoadSegment.hpp"
 #include "TurningGroup.hpp"
-#include "BusStop.hpp"
+#include "PT_Stop.hpp"
 
 namespace sim_mob
 {
 
 struct WayPoint
 {
-
 	enum
 	{
 		/**The way point is invalid. None of the pointers are valid*/
@@ -40,7 +39,10 @@ struct WayPoint
 		TURNING_GROUP,
 
 		/**The way point is a bus stop. busStop points to a BusStop object*/
-		BUS_STOP
+		BUS_STOP,
+
+		/**The way point is an MRT stop. trainStop points to an TrainStop object*/
+		TRAIN_STOP
 	} type;
 
 	union
@@ -52,6 +54,7 @@ struct WayPoint
 		const TurningPath *turningPath;
 		const TurningGroup *turningGroup;
 		const BusStop *busStop;
+		const TrainStop *trainStop;
 	};
 
 	WayPoint() :
@@ -94,6 +97,11 @@ struct WayPoint
 	{
 	}
 
+	explicit WayPoint(const TrainStop *trainStop) :
+	type(TRAIN_STOP), trainStop(trainStop)
+	{
+	}
+
 	WayPoint(const WayPoint& orig)
 	{
 		type = orig.type;
@@ -131,13 +139,24 @@ struct WayPoint
 		case BUS_STOP:
 			busStop = orig.busStop;
 			break;
+
+		case TRAIN_STOP:
+			trainStop = orig.trainStop;
+			break;
 		}
 	}
 
 	bool operator==(const WayPoint& rhs) const
 	{
-		return (type == rhs.type && node == rhs.node && lane == rhs.lane && roadSegment == rhs.roadSegment &&
-				link == rhs.link && turningPath == rhs.turningPath && turningGroup == rhs.turningGroup && busStop == rhs.busStop);
+		return (type == rhs.type &&
+				node == rhs.node &&
+				lane == rhs.lane &&
+				roadSegment == rhs.roadSegment &&
+				link == rhs.link &&
+				turningPath == rhs.turningPath &&
+				turningGroup == rhs.turningGroup &&
+				busStop == rhs.busStop &&
+				trainStop == rhs.trainStop);
 	}
 
 	bool operator!=(const WayPoint& rhs) const
@@ -182,6 +201,10 @@ struct WayPoint
 
 		case BUS_STOP:
 			busStop = rhs.busStop;
+			break;
+
+		case TRAIN_STOP:
+			trainStop = rhs.trainStop;
 			break;
 		}
 

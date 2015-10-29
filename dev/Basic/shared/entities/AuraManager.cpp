@@ -14,7 +14,6 @@
 
 #include "spatial_trees/TreeImpl.hpp"
 #include "spatial_trees/rstar_tree/RStarAuraManager.hpp"
-#include "spatial_trees/simtree/SimAuraManager.hpp"
 #include "spatial_trees/rdu_tree/RDUAuraManager.hpp"
 
 namespace sim_mob
@@ -34,10 +33,6 @@ AuraManager::init(AuraManagerImplementation implType)
 	if (implType == IMPL_RSTAR) {
 		std::cout << "RSTAR" << std::endl;
 		impl_ = new RStarAuraManager();
-		impl_->init();
-	} else if (implType == IMPL_SIMTREE) {
-		std::cout << "SIMTREE" << std::endl;
-		impl_ = new SimAuraManager();
 		impl_->init();
 	} else if (implType == IMPL_RDU) {
 		std::cout << "RDU" << std::endl;

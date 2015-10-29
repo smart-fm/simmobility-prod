@@ -19,7 +19,7 @@
 #include "geospatial/network/Lane.hpp"
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/LaneConnector.hpp"
-#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "util/GeomHelpers.hpp"
 #include "geospatial/network/Point.hpp"
 #include "entities/signal/Signal.hpp"

@@ -30,7 +30,7 @@
 #include "geospatial/network/LaneConnector.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/Lane.hpp"
-#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/aimsun/CrossingLoader.hpp"
 #include "geospatial/aimsun/LaneLoader.hpp"
@@ -51,7 +51,6 @@
 #include "util/GeomHelpers.hpp"
 
 //todo: almost all the following are already included in the above include-SOCI_Converters.hpp -->vahid
-#include "BusStop.hpp"
 #include "Node.hpp"
 #include "Section.hpp"
 #include "Crossing.hpp"
@@ -111,7 +110,7 @@ public:
 	static void loadLinkDefaultTravelTime(soci::session& sql, boost::unordered_map<unsigned long, sim_mob::SegmentTravelTimeVector*>& pool);
 	static bool loadLinkRealTimeTravelTime(soci::session& sql,int interval, sim_mob::AverageTravelTime& pool);
 	static bool CreateTable(soci::session& sql,std::string& tableName);
-	bool InsertData2TravelTimeTmpTable(std::string& tableName,sim_mob::LinkTravelTime& data);
+	bool InsertData2TravelTimeTmpTable(std::string& tableName,sim_mob::SegmentTravelTime& data);
 	static bool InsertCSV2Table(soci::session& sql,std::string& tableName,const std::string& csvFileName);
 	static bool upsertTravelTime(soci::session& sql,const std::string& csvFileName, const std::string& tableName, double alpha);
 	static bool TruncateTable(soci::session& sql,std::string& tableName);
@@ -164,8 +163,6 @@ private:
 	//map<int, Signal> signals_;
 	//vector<sim_mob::BusSchedule> busschedule_;
 
-	map<std::string,BusStop> busstop_;
-	map<std::string,BusStopSG> bustopSG_;
 	multimap<int,Phase> phases_;//one node_id is mapped to many phases
 
 	vector<sim_mob::BoundarySegment*> boundary_segments;
@@ -189,9 +186,6 @@ private:
 	void loadPolypointByPolyline(const std::string& storedProc, sim_mob::TurningPolyline *t);
 public:
 	void LoadTripchains(const std::string& storedProc);
-
-public:
-	void LoadOD_Trips(const std::string& storedProc, std::vector<sim_mob::OD_Trip>& OD_Trips);
 
 private:
 	void LoadBusStopSG(const std::string& storedProc);
@@ -504,7 +498,7 @@ bool DatabaseLoader::CreateTable(soci::session& sql,std::string& tableName)
 	return true;
 }
 bool DatabaseLoader::InsertData2TravelTimeTmpTable(std::string& tableName,
-		sim_mob::LinkTravelTime& data)
+		sim_mob::SegmentTravelTime& data)
 {
 	try {
 		sql_<<"insert into "+ tableName +" (\"link_id\", \"start_time\",\"end_time\",\"travel_time\") "
@@ -1030,42 +1024,6 @@ DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
 //        iter->yPos *= 100;
 //        signals_.insert(std::make_pair(iter->id, *iter));
 //    }
-}
-
-void DatabaseLoader::LoadBusStopSG(const std::string& storedProc)
-{
-	//Bus stops are optional
-	if (storedProc.empty()) { return; }
-
-	soci::rowset<BusStopSG> rows = (sql_.prepare <<"select * from " + storedProc);
-	for (soci::rowset<BusStopSG>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
-	{
-		BusStopSG busstop = *iter;
-		// Convert from meters to centimeters.
-		busstop.bus_stop_no.erase(remove_if(busstop.bus_stop_no.begin(), busstop.bus_stop_no.end(), ::isspace), busstop.bus_stop_no.end());
-		busstop.stop_lat.erase(remove_if(busstop.stop_lat.begin(), busstop.stop_lat.end(), ::isspace), busstop.stop_lat.end());
-		busstop.stop_lon.erase(remove_if(busstop.stop_lon.begin(), busstop.stop_lon.end(), ::isspace), busstop.stop_lon.end());
-
-		busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat) * 100;
-		busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon) * 100;
-		busstop.xPos = boost::lexical_cast<double>(busstop.stop_lat);
-		busstop.yPos = boost::lexical_cast<double>(busstop.stop_lon);
-		bustopSG_.insert(std::make_pair(busstop.bus_stop_no, busstop));
-	}
-}
-
-void DatabaseLoader::LoadOD_Trips(const std::string& storedProc, std::vector<sim_mob::OD_Trip>& OD_Trips)
-{
-    if (storedProc.empty()) {
-    	sim_mob::Warn() << "WARNING: An empty 'od_trips' stored-procedure was specified in the config file; "
-               << "will not lookup the database to create any signal found in there" << std::endl;
-        return;
-    }
-    soci::rowset<sim_mob::OD_Trip> rows = (sql_.prepare <<"select * from " + storedProc);
-    for (soci::rowset<sim_mob::OD_Trip>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
-    {
-    	OD_Trips.push_back(sim_mob::OD_Trip(*iter));
-    }
 }
 
 std::string getStoredProcedure(map<string, string> const & storedProcs, string const & procedureName, bool mandatory=true)
@@ -2398,7 +2356,7 @@ bool sim_mob::aimsun::Loader::createTable(soci::session& sql, std::string& table
 }
 bool sim_mob::aimsun::Loader::insertData2TravelTimeTmpTable(const std::string& connectionStr,
 		std::string& tableName,
-		sim_mob::LinkTravelTime& data)
+		sim_mob::SegmentTravelTime& data)
 {
 	DatabaseLoader loader(connectionStr);
 	bool res = loader.InsertData2TravelTimeTmpTable(tableName,data);

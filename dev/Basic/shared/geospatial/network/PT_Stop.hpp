@@ -115,4 +115,41 @@ public:
 	void setTerminalNodeId(unsigned int terminalNodeId);
 };
 
+class TrainStop
+{
+public:
+	TrainStop();
+	TrainStop(std::string stopId, int roadSegment);
+	~TrainStop();
+
+	std::string getTrainStopId() const
+	{
+		return this->trainStopId;
+	}
+
+	/**
+	 * adds to list of segments from which this train stop can be accessed
+	 *
+	 * @param segmentId id of segment to add
+	 */
+	void addAccessRoadSegment(int segmentId);
+
+	/**
+	 * finds a road segment attached with mrt stop that is closest to a node
+	 * @param nd simmobility node
+	 * @returns road segment attached with mrt stop and closest to nd
+	 */
+	const sim_mob::RoadSegment* getStationSegmentForNode(const sim_mob::Node* nd) const;
+
+	/**
+	 * finds a road segment attached with mrt stop that is closest to a node
+	 * @returns random road segment attached with mrt stop
+	 */
+	const sim_mob::RoadSegment* getRandomStationSegment() const;
+
+private:
+	std::string trainStopId;
+	std::vector<const RoadSegment*> roadSegments;
+};
+
 }

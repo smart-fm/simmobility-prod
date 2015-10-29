@@ -5,7 +5,7 @@
 #include "StreetDirectory.hpp"
 #include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/network/Node.hpp"
-#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"

@@ -1,4 +1,5 @@
 #pragma once
+#include <boost/thread/shared_mutex.hpp>
 #include "path/Common.hpp"
 
 namespace sim_mob

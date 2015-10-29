@@ -13,7 +13,7 @@
 
 #include "entities/Person.hpp"
 #include "entities/roles/Role.hpp"
-#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/network/Link.hpp"
 #include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"

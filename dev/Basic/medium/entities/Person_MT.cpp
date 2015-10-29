@@ -71,7 +71,6 @@ void Person_MT::convertPublicTransitODsToTrips()
 		if ((*tripChainItem)->itemType == sim_mob::TripChainItem::IT_TRIP)
 		{
 			Trip* trip = dynamic_cast<Trip*>(*tripChainItem);
-			std::vector<sim_mob::OD_Trip> odTrips;
 			std::string originId = boost::lexical_cast<std::string>(trip->origin.node->getNodeId());
 			std::string destId = boost::lexical_cast<std::string>(trip->destination.node->getNodeId());
 			(*tripChainItem)->startLocationId = originId;

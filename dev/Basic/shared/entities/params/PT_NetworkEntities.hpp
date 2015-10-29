@@ -16,6 +16,7 @@
 #include <map>
 #include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/network/Node.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 
 namespace sim_mob{
 
@@ -253,43 +254,6 @@ private:
 	std::string stopDesc;   // Description of stops . Usually street where the stop is located
 };
 
-class MRT_Stop{
-public:
-	MRT_Stop();
-	MRT_Stop(std::string stopId,int roadSegment);
-	~MRT_Stop();
-
-	std::string getmrtStopId() const
-	{
-		return this->mrtStopId;
-	}
-
-	void addRoadSegment(int segmentId)
-	{
-		this->roadSegments.push_back(segmentId);
-	}
-	std::vector<int> getRoadSegments() const
-	{
-		return this->roadSegments;
-	}
-
-	/**
-	 * finds a road segment attached with mrt stop that is closest to a node
-	 * @param nd simmobility node
-	 * @returns road segment attached with mrt stop and closest to nd
-	 */
-	const sim_mob::RoadSegment* getStationSegmentForNode(const sim_mob::Node* nd) const;
-
-	/**
-	 * finds a road segment attached with mrt stop that is closest to a node
-	 * @returns random road segment attached with mrt stop
-	 */
-	const sim_mob::RoadSegment* getRandomStationSegment() const;
-private:
-	std::string mrtStopId;
-	std::vector<int> roadSegments;
-};
-
 class PT_Network{
 public:
 	//PT_Network();
@@ -297,12 +261,12 @@ public:
 
 	std::map<int, PT_NetworkEdge> PT_NetworkEdgeMap;
 	std::map<std::string, PT_NetworkVertex> PT_NetworkVertexMap;
-	std::map<std::string, MRT_Stop> MRTStopsMap;
+	std::map<std::string, TrainStop> MRTStopsMap;
 
 	void init();
 	PT_NetworkVertex getVertexFromStopId(std::string stopId);
 
-	MRT_Stop* findMRT_Stop(const std::string& stopId);
+	TrainStop* findMRT_Stop(const std::string& stopId);
 
 	int getVertexTypeFromStopId(std::string stopId);
 	static PT_Network instance_;

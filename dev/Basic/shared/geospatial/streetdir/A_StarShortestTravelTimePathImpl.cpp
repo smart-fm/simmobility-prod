@@ -11,7 +11,7 @@
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/LaneConnector.hpp"
-#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/PolyLine.hpp"
 #include "geospatial/network/TurningGroup.hpp"
@@ -54,7 +54,7 @@ namespace
 A_StarShortestTravelTimePathImpl::A_StarShortestTravelTimePathImpl(const sim_mob::RoadNetwork& network)
 {
 	//initialize random graph pool
-	int randomCount = sim_mob::ConfigManager::GetInstance().FullConfig().pathSet().perturbationIteration;
+	int randomCount = sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().perturbationIteration;
 	for (int i = 0; i < randomCount; ++i) {
 		drivingMapRandomPool.push_back(StreetDirectory::Graph());
 		drivingNodeLookupRandomPool.push_back(NodeVertexLookup());

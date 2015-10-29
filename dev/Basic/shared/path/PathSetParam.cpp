@@ -121,7 +121,7 @@ double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs) const
 	 * Instead, it searches for all occurrences of the given road segment in the
 	 * default travel time container, and returns an average.
 	 */
-	std::map<unsigned long,std::vector<sim_mob::LinkTravelTime> >::const_iterator it = segDefTT.find(rs->getRoadSegmentId());
+	boost::unordered_map<unsigned long, sim_mob::SegmentTravelTimeVector*>::const_iterator it = segDefTT.find(rs->getRoadSegmentId());
 	if(it == segDefTT.end() || it->second->vecSegTT.empty())
 	{
 		std::stringstream out("");
@@ -147,7 +147,7 @@ double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs, const 
 	 *	if found, it returns the first occurrence of travel time
 	 *	which includes the given time
 	 */
-	std::map<unsigned long, std::vector<sim_mob::LinkTravelTime> >::iterator it = segDefTT.find(rs->getRoadSegmentId());
+	boost::unordered_map<unsigned long, sim_mob::SegmentTravelTimeVector*>::const_iterator it = segDefTT.find(rs->getRoadSegmentId());
 	if(it == segDefTT.end()) { return 0.0; }
 	const std::vector<sim_mob::SegmentTravelTime>& e = (*it).second->vecSegTT;
 	for(std::vector<sim_mob::SegmentTravelTime>::const_iterator itL(e.begin());itL != e.end();++itL)
@@ -270,13 +270,13 @@ sim_mob::ERP_Section::ERP_Section(ERP_Section &src)
 	ERP_Gantry_No_str = boost::lexical_cast<std::string>(src.ERP_Gantry_No);
 }
 
-sim_mob::LinkTravelTime::LinkTravelTime(const LinkTravelTime& src)
+sim_mob::SegmentTravelTime::SegmentTravelTime(const SegmentTravelTime& src)
 	: linkId(src.linkId),
 			startTime(src.startTime),endTime(src.endTime),travelTime(src.travelTime),interval(src.interval)
 			,startTime_DT(sim_mob::DailyTime(src.startTime)),endTime_DT(sim_mob::DailyTime(src.endTime))
 {
 }
-sim_mob::LinkTravelTime::LinkTravelTime()
+sim_mob::SegmentTravelTime::SegmentTravelTime()
 	: linkId(0),
 			startTime(""),endTime(""),travelTime(0.0),
 			startTime_DT(0),endTime_DT(0)

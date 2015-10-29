@@ -10,7 +10,7 @@
 #include "entities/Person.hpp"
 #include "entities/roles/waitBusActivityRole/WaitBusActivityRole.hpp"
 #include "entities/roles/waitBusActivityRole/WaitBusActivityRoleFacets.hpp"
-#include "geospatial/network/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "workers/WorkGroup.hpp"
 
 using std::vector;

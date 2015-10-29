@@ -5,7 +5,7 @@
 #pragma once
 
 #include "entities/roles/Role.hpp"
-#include "geospatial/BusStop.hpp"
+#include "geospatial/network/PT_Stop.hpp"
 #include "entities/Person_MT.hpp"
 #include "WaitBusActivityFacets.hpp"
 

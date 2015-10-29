@@ -3,6 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Link.hpp"
+#include <algorithm>
 
 using namespace sim_mob;
 
@@ -90,6 +91,16 @@ const std::vector<RoadSegment*>& Link::getRoadSegments() const
 const RoadSegment* Link::getRoadSegment(int index) const
 {
 	return roadSegments.at(index);
+}
+
+int Link::getRoadSegmentIndex(const RoadSegment * seg)const
+{
+	int index = -1;
+	std::vector<RoadSegment *>::const_iterator it = std::find(roadSegments.begin(), roadSegments.end(), seg);
+	if (it != roadSegments.end()) {
+		index = std::distance(roadSegments.begin(), it);
+	}
+	return index;
 }
 
 const Node* Link::getToNode() const

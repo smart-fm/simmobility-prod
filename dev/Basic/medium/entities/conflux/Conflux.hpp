@@ -11,7 +11,7 @@
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/Person_MT.hpp"
-#include "geospatial/MultiNode.hpp"
+#include "geospatial/network/Node.hpp"
 #include "SegmentStats.hpp"
 
 namespace sim_mob
@@ -123,7 +123,7 @@ private:
 	/**
 	 *  MultiNode (intersection) around which this conflux is constructed
 	 */
-	const MultiNode* multiNode;
+	const Node* confluxNode;
 
 	/**
 	 * Link-wise list of road segments in this conflux
@@ -374,7 +374,7 @@ protected:
 	virtual void HandleMessage(messaging::Message::MessageType type, const messaging::Message& message);
 
 public:
-	Conflux(MultiNode* multinode, const MutexStrategy& mtxStrat, int id=-1, bool isLoader=false);
+	Conflux(Node* confluxNode, const MutexStrategy& mtxStrat, int id=-1, bool isLoader=false);
 	virtual ~Conflux() ;
 
 	/** Confluxes are non-spatial in nature. */
@@ -388,9 +388,9 @@ public:
 	 */
 	virtual Entity::UpdateStatus update(timeslice frameNumber);
 
-	const MultiNode* getMultiNode() const
+	const Node* getConfluxNode() const
 	{
-		return multiNode;
+		return confluxNode;
 	}
 
 	bool hasParentWorker() const
@@ -607,7 +607,7 @@ public:
 	 * constructs confluxes around each multinode
 	 * @param rdnw the road network
 	 */
-	static void ProcessConfluxes(const RoadNetwork& rdnw);
+	static void ProcessConfluxes();
 
 	/**
 	 * creates a list of SegmentStats for a given segment depending on the stops

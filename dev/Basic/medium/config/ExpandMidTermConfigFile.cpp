@@ -80,7 +80,7 @@ void ExpandMidTermConfigFile::processConfig()
     if (mtCfg.RunningMidSupply())
     {
         size_t sizeBefore = mtCfg.getConfluxes().size();
-        Conflux::ProcessConfluxes(*RoadNetwork::getInstance());
+        Conflux::ProcessConfluxes();
         std::cout << mtCfg.getConfluxes().size() << " Confluxes created" << std::endl;
     }
 

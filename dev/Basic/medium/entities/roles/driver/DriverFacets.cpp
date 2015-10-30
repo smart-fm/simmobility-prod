@@ -1209,7 +1209,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const RoadSegment* comple
 	RestrictedRegion &cbd = RestrictedRegion::getInstance();
 
 	//	update travel distance
-	if (cbd.isInRestrictedSegmentZone(completedRS))
+	if (cbd.isInRestrictedZone(completedRS))
 	{
 		travelMetric.cbdDistance += completedRS->getPolylineLength();
 	}
@@ -1220,7 +1220,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const RoadSegment* comple
 	case TravelMetric::CBD_ENTER:
 	{
 		//search if you are about to enter CBD (we assume the trip started outside cbd and  is going to end inside cbd)
-		if (!cbd.isInRestrictedSegmentZone(completedRS) && cbd.isInRestrictedSegmentZone(nextRS) && travelMetric.cbdEntered.check())
+		if (!cbd.isInRestrictedZone(completedRS) && cbd.isInRestrictedZone(nextRS) && travelMetric.cbdEntered.check())
 		{
 			travelMetric.cbdOrigin = WayPoint(completedRS->getEnd());
 			travelMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
@@ -1230,7 +1230,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const RoadSegment* comple
 	case TravelMetric::CBD_EXIT:
 	{
 		//search if you are about to exit CBD(we assume the trip started inside cbd and is going to end outside cbd)
-		if (cbd.isInRestrictedSegmentZone(completedRS)&&!cbd.isInRestrictedSegmentZone(nextRS) && travelMetric.cbdExitted.check())
+		if (cbd.isInRestrictedZone(completedRS)&&!cbd.isInRestrictedZone(nextRS) && travelMetric.cbdExitted.check())
 		{
 			travelMetric.cbdDestination = WayPoint(completedRS->getEnd());
 			travelMetric.cbdEndTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
@@ -1242,7 +1242,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const RoadSegment* comple
 	{
 		travelMetric.cbdOrigin = WayPoint(completedRS->getEnd());
 		travelMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
-		if(cbd.isInRestrictedSegmentZone(completedRS)&&!cbd.isInRestrictedSegmentZone(nextRS))
+		if(cbd.isInRestrictedZone(completedRS)&&!cbd.isInRestrictedZone(nextRS))
 		{
 			travelMetric.cbdDestination = WayPoint(completedRS->getEnd());
 			travelMetric.cbdEndTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
@@ -1250,13 +1250,13 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const RoadSegment* comple
 		}
 		break;
 	case TravelMetric::CBD_PASS:{
-		if(!cbd.isInRestrictedSegmentZone(completedRS)&&cbd.isInRestrictedSegmentZone(nextRS) && travelMetric.cbdEntered.check())
+		if(!cbd.isInRestrictedZone(completedRS)&&cbd.isInRestrictedZone(nextRS) && travelMetric.cbdEntered.check())
 		{
 			out << getParent()->getId() << "onSegmentCompleted Pass Enter CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
 			travelMetric.cbdOrigin = sim_mob::WayPoint(completedRS->getEnd());
 			travelMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 		}
-		if(cbd.isInRestrictedSegmentZone(completedRS)&&!cbd.isInRestrictedSegmentZone(nextRS))
+		if(cbd.isInRestrictedZone(completedRS)&&!cbd.isInRestrictedZone(nextRS))
 		{
 			out << getParent()->getId() << "onSegmentCompleted Pass exit CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
 			travelMetric.cbdDestination = sim_mob::WayPoint(completedRS->getEnd());

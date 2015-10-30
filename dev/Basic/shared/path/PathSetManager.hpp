@@ -50,11 +50,6 @@ class RestrictedRegion : private boost::noncopyable
 {
 private:
 	/**
-	 * set of all segments of the restricted area(aka CBD)
-	 */
-	std::set<const sim_mob::RoadSegment*> zoneSegments;//get_ban_section_CBD_aimsun()
-
-	/**
 	 * restricted area border segments categorized based on in segments and out segments.
 	 * each term in each container is a from/to segment pair:
 	 * for example in 'in' container, the first item in each pair
@@ -67,67 +62,14 @@ private:
 	 * restricted area.
 	 */
 	typedef std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> SegPair;
-
 	std::set<SegPair> in, out;
+
 	std::map<unsigned int, const Node*> zoneNodes; //<id, node>
+	/**
+	 * set of all segments of the restricted area(aka CBD)
+	 */
+	std::set<const sim_mob::RoadSegment*> zoneSegments;//get_ban_section_CBD_aimsun()
 	sim_mob::OneTimeFlag populated;
-
-	/**
-	 * String representation of the information
-	 * used for optimization
-	 */
-	std::string inStr, outStr;
-	std::string zoneNodesStr;
-	std::string zoneSegmentsStr;
-
-	class Search
-	{
-	public:
-		Search(RestrictedRegion &instance):instance(instance){}
-		virtual bool isInRestrictedZone(const Node* target) const = 0;
-		virtual bool isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const = 0;
-	protected:
-		RestrictedRegion &instance;
-	};
-
-	Search *Impl;
-
-	/**
-	 * Instead of searching the objects one by one and comparing IDs,
-	 * keep IDs in a string and search the string for an id.
-	 */
-	class StrSearch : public Search
-	{
-	public:
-		StrSearch(RestrictedRegion &instance);
-		bool isInRestrictedZone(const Node* target) const;
-		bool isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const;
-
-	};
-
-	/**
-	 * Conventional method
-	 */
-	class ObjSearch : public Search
-	{
-	public:
-		ObjSearch(RestrictedRegion &instance);
-		bool isInRestrictedZone(const Node* target) const;
-		bool isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const;
-	};
-
-	/**
-	 * Instead of querying for IDs to see if a segment or node is related to CBD,
-	 * put a temporary flag inside RoadSegment and Node,
-	 * And when the need be, look at the value of that TAG.
-	 */
-	class TagSearch : public Search
-	{
-	public:
-		TagSearch(RestrictedRegion &instance);
-		bool isInRestrictedZone(const Node* target) const;
-		bool isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const;
-	};
 
 public:
 	RestrictedRegion();
@@ -142,12 +84,6 @@ public:
 	bool isInRestrictedZone(const WayPoint& target) const;
 
 	/**
-	 * does the given Path "RoadSegments"(segments wrapped in WayPoints) lie in the restricted area,
-	 * returns true if any part of the target is in the restricted zone
-	 */
-	bool isInRestrictedSegmentZone(const std::vector<WayPoint> & target) const;
-
-	/**
 	 * does the given Path "RoadSegments" and "Nodes"(segments wrapped in WayPoints) lie in the restricted area,
 	 * returns true if any part of the target is in the restricted zone
 	 */
@@ -157,19 +93,10 @@ public:
 	 * does the given "RoadSegment" lie in the restricted area,
 	 * returns true if the target is in the restricted zone
 	 */
-	bool isInRestrictedSegmentZone(const sim_mob::RoadSegment * target) const;
+	bool isInRestrictedZone(const sim_mob::RoadSegment * target) const;
 
 	bool isEnteringRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg);
 	bool isExitingRestrictedZone(const sim_mob::RoadSegment* curSeg ,const sim_mob::RoadSegment* nxtSeg);
-
-	std::set<const sim_mob::RoadSegment*>& getZoneSegments()
-	{
-		if(populated.check())
-		{
-			throw std::runtime_error("Requesting For CBD zone segments before attempting to populate the containers\n");
-		}
-		return zoneSegments;
-	}
 
 	/**
 	 * fill the input data into in,out,zoneSegments

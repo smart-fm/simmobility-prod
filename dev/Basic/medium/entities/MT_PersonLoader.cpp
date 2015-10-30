@@ -344,8 +344,6 @@ void MT_PersonLoader::loadPersonDemand()
 	{
 		addOrStashPerson(*i);
 	}
-	//CBD specific processing of trip chain
-	//RestrictedRegion::getInstance().processTripChains(tripchains);//todo, plan changed, we are not chopping off the trips here
 
 	Print() << "PeriodicPersonLoader:: activities loaded from " << nextLoadStart << " to " << end << ": " << actCtr << " | new persons loaded: " << personsLoaded << endl;
 	Print() << "active_agents: " << activeAgents.size() << " | pending_agents: " << pendingAgents.size() << endl;

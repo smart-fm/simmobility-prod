@@ -52,7 +52,7 @@ const std::string sim_mob::TripChainItem::getMode() const
 }
 
 sim_mob::Activity::Activity(string locType) : TripChainItem(), description(""),
-isPrimary(false), isFlexible(false), isMandatory(false)
+isPrimary(false), isFlexible(false), isMandatory(false), location(NULL)
 {
 	destinationType = getLocationType(locType);
 }
@@ -111,7 +111,7 @@ void sim_mob::Trip::setSubTrips(const std::vector<sim_mob::SubTrip>& subTrips)
 sim_mob::SubTrip::SubTrip(std::string entId, std::string type, unsigned int seqNumber, int requestTime, DailyTime start, DailyTime end, const Node* from,
 						  std::string fromLocType, const Node* to, std::string toLocType, std::string mode, bool isPrimary, std::string ptLineId) :
 Trip(entId, type, seqNumber, requestTime, start, end, "", from, fromLocType, to, toLocType),
-mode(mode), isPrimaryMode(isPrimary), isPT_Walk(false), walkTime(0.0), ptLineId(ptLineId), schedule(nullptr), cbdTraverseType(sim_mob::TravelMetric::CBD_NONE)
+mode(mode), isPrimaryMode(isPrimary), isPT_Walk(false), walkTime(0.0), ptLineId(ptLineId), cbdTraverseType(sim_mob::TravelMetric::CBD_NONE)
 {
 }
 

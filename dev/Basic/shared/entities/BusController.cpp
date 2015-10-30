@@ -4,6 +4,7 @@
 
 #include "BusController.hpp"
 
+#include <boost/noncopyable.hpp>
 #include <map>
 #include <stdexcept>
 #include <vector>
@@ -59,7 +60,7 @@ public:
 			std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments);
 	void loadPTBusStops(const std::string& storedProc,
 			std::map<std::string, std::vector<const sim_mob::BusStop*> >& routeID_busStops,
-			std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments)
+			std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments);
 };
 
 DbLoader::DbLoader(string const & connectionString)
@@ -146,7 +147,7 @@ void DbLoader::loadPTBusStops(const std::string& storedProc,
 		stopList.clear(); //empty stopList
 
 		const sim_mob::BusStop* firstStop = stopListCopy.front();
-		if(firstStop->terminusType == sim_mob::SINK_TERMINUS)
+		if(firstStop->getTerminusType() == sim_mob::SINK_TERMINUS)
 		{
 			const sim_mob::BusStop* firstStopTwin = firstStop->getTwinStop();
 			if(!firstStopTwin) { throw std::runtime_error("Sink bus stop found without a twin!"); }
@@ -172,7 +173,7 @@ void DbLoader::loadPTBusStops(const std::string& storedProc,
 		for(size_t stopIt = 1; stopIt < (stopListCopy.size()-1); stopIt++) //iterate through all stops but the first and last
 		{
 			const sim_mob::BusStop* stop = stopListCopy[stopIt];
-			switch(stop->terminusType)
+			switch(stop->getTerminusType())
 			{
 				case sim_mob::NOT_A_TERMINUS:
 				{
@@ -199,7 +200,7 @@ void DbLoader::loadPTBusStops(const std::string& storedProc,
 		}
 
 		const sim_mob::BusStop* lastStop = stopListCopy[stopListCopy.size()-1];
-		if(lastStop->terminusType == sim_mob::SOURCE_TERMINUS)
+		if(lastStop->getTerminusType() == sim_mob::SOURCE_TERMINUS)
 		{
 			const sim_mob::BusStop* lastStopTwin = lastStop->getTwinStop();
 			if(!lastStopTwin) { throw std::runtime_error("Source bus stop found without a twin!"); }
@@ -252,9 +253,9 @@ void BusController::initializeBusController(std::set<Entity*>& agentList)
 	const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
 	vector<PT_BusDispatchFreq> dispatchFreq;
 
-	DbLoader dataLoader = DbLoader(configParams.getDatabaseConnectionString(false));
+	DbLoader dataLoader(configParams.getDatabaseConnectionString(false));
 
-	const std::map<std::string, std::string>& storedProcs = cfg.getDatabaseProcMappings().procedureMappings;
+	const std::map<std::string, std::string>& storedProcs = configParams.getDatabaseProcMappings().procedureMappings;
 
 	std::map<std::string, std::string>::const_iterator spIt = storedProcs.find("pt_bus_dispatch_freq");
 	if(spIt == storedProcs.end())
@@ -503,17 +504,6 @@ void BusController::setPTScheduleFromConfig(const vector<PT_BusDispatchFreq>& di
 			if (busLineRegistered && ConfigManager::GetInstance().FullConfig().generateBusRoutes)
 			{
 				searchBusRoutes(stops, curr->routeId, allRoutes,allStops);
-			}
-
-			if (busLineRegistered)
-			{
-				for (int k = 0; k < stops.size(); k++)
-				{
-					//to store the bus line info at each bus stop
-					BusStop* busStop = const_cast<BusStop*>(stops[k]);
-					busStop->BusLines.push_back(busline);
-				}
-				busLineRegistered = false;
 			}
 
 			if (bustrip.setBusRouteInfo(segments, stops))

@@ -85,18 +85,6 @@ void BusStop::setCapacityAsLength(double len)
 	length = len;
 }
 
-/*
-void BusStop::addBusLine(Busline& line)
-{
-	busLines.push_back(line);
-}
-
-const std::vector<Busline>& BusStop::getBusLine() const
-{
-	return busLines;
-}
-*/
-
 const BusStop* BusStop::getTwinStop() const
 {
 	return twinStop;

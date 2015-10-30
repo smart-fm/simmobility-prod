@@ -84,9 +84,6 @@ public:
 	double getCapacityAsLength() const;
 	void setCapacityAsLength(double len);
 
-	//void addBusLine(Busline& line);
-	//const std::vector<Busline>& getBusLine() const;
-
 	const BusStop* getTwinStop() const;
 	void setTwinStop(const BusStop* stop);
 

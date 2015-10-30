@@ -88,12 +88,10 @@ private:
 	 * @return path set retrieved from database
 	 */
 	PT_PathSet loadPT_PathSet(const std::string& origin, const std::string& dest);
-
 	/**
 	 * Inherited from LuaModel
 	 */
 	void mapClasses();
-
 	/**
 	 * make public transit route choice from lua scripts.
 	 * @param origin is	trip origin
@@ -101,7 +99,6 @@ private:
 	 * @return the map from OD pair to public transit trip
 	 */
 	std::vector<sim_mob::OD_Trip> makePT_RouteChoice(const std::string& origin,const std::string& dest);
-
 	/**
 	 * get the size of current path set.
 	 * @return the size of current choice set

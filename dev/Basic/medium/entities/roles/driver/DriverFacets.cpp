@@ -23,7 +23,6 @@
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/LaneConnector.hpp"
 #include "geospatial/network/Point.hpp"
-#include "geospatial/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "logging/Log.hpp"
 #include "MesoReroute.hpp"
@@ -194,8 +193,8 @@ std::string DriverMovement::frame_tick_output()
 			<< "," << parentDriver->parent->getId()
 			<< "," << params.now.frame()
 			<< ",{"
-			<< "\"RoadSegment\":\"" << (parentDriver->parent->getCurrSegStats()->getRoadSegment()->getId())
-			<< "\",\"Lane\":\"" << ((parentDriver->parent->getCurrLane()) ? parentDriver->parent->getCurrLane()->getLaneID() : 0)
+			<< "\"RoadSegment\":\"" << (parentDriver->parent->getCurrSegStats()->getRoadSegment()->getRoadSegmentId())
+			<< "\",\"Lane\":\"" << ((parentDriver->parent->getCurrLane()) ? parentDriver->parent->getCurrLane()->getLaneId() : 0)
 			<< "\",\"DistanceToEndSeg\":\"" << parentDriver->parent->distanceToEndOfSegment;
 	if (this->parentDriver->parent->isQueuing)
 	{
@@ -217,22 +216,19 @@ void DriverMovement::randomizeStartingSegment(std::vector<WayPoint>& wpPath)
 	} //no randomization for very short paths
 
 	//compute number of segments in the first link of path
-	int numSegsInFirstLink = 0;
+	size_t numSegsInFirstLink = 0;
 	Node* firstLinkEnd = nullptr;
 	for (vector<WayPoint>::const_iterator it = wpPath.begin(); it != wpPath.end(); it++)
 	{
-		if (it->type_ == WayPoint::ROAD_SEGMENT)
+		if (it->type == WayPoint::ROAD_SEGMENT)
 		{
-			const RoadSegment* rdSeg = it->roadSegment_;
+			const RoadSegment* rdSeg = it->roadSegment;
 			if (!firstLinkEnd)
 			{
-				firstLinkEnd = rdSeg->getLink()->getEnd();
+				firstLinkEnd = rdSeg->getParentLink()->getToNode();
 			}
-			numSegsInFirstLink++;
-			if (firstLinkEnd == rdSeg->getEnd())
-			{
-				break;
-			}
+			numSegsInFirstLink = rdSeg->getParentLink()->getRoadSegments().size();
+			break; //exit loop when we find the first segment and extract required info
 		}
 	}
 
@@ -247,7 +243,7 @@ void DriverMovement::randomizeStartingSegment(std::vector<WayPoint>& wpPath)
 	//the removals are guaranteed to stay within the first link
 	for (int i = 0; i < randomIdx; i++)
 	{
-		if (wpPath.front().type_ != WayPoint::ROAD_SEGMENT)
+		if (wpPath.front().type != WayPoint::ROAD_SEGMENT)
 		{
 			wpPath.erase(wpPath.begin());
 		} //extra erase for other items which are not Road segments
@@ -259,9 +255,9 @@ void DriverMovement::initSegStatsPath(vector<WayPoint>& wpPath, vector<const Seg
 {
 	for (vector<WayPoint>::iterator it = wpPath.begin(); it != wpPath.end(); it++)
 	{
-		if (it->type_ == WayPoint::ROAD_SEGMENT)
+		if (it->type == WayPoint::ROAD_SEGMENT)
 		{
-			const RoadSegment* rdSeg = it->roadSegment_;
+			const RoadSegment* rdSeg = it->roadSegment;
 			const vector<SegmentStats*>& statsInSegment = Conflux::getConflux(rdSeg)->findSegStats(rdSeg);
 			ssPath.insert(ssPath.end(), statsInSegment.begin(), statsInSegment.end());
 		}
@@ -285,13 +281,13 @@ bool DriverMovement::initializePath()
 	if (!person->getNextPathPlanned())
 	{
 		//Save local copies of the parent's origin/destination nodes.
-		parentDriver->origin.node_ = person->originNode.node_;
-		parentDriver->goal.node_ = person->destNode.node_;
+		parentDriver->origin.node = person->originNode.node;
+		parentDriver->goal.node = person->destNode.node;
 
-		if (person->originNode.node_ == person->destNode.node_)
+		if (person->originNode.node == person->destNode.node)
 		{
 			Print() << "DriverMovement::initializePath | Can't initializePath because origin and destination are the same for driver " << person->getId()
-					<< "\norigin:" << person->originNode.node_->getID() << "\ndestination:" << person->destNode.node_->getID() << std::endl;
+					<< "\norigin:" << person->originNode.node->getNodeId() << "\ndestination:" << person->destNode.node->getNodeId() << std::endl;
 			return false;
 		}
 
@@ -305,7 +301,7 @@ bool DriverMovement::initializePath()
 		else
 		{
 			const StreetDirectory& stdir = StreetDirectory::Instance();
-			wp_path = stdir.SearchShortestDrivingPath(stdir.DrivingVertex(*(parentDriver->origin).node_), stdir.DrivingVertex(*(parentDriver->goal).node_));
+			wp_path = stdir.SearchShortestDrivingPath(*(parentDriver->origin).node, *(parentDriver->goal).node);
 		}
 
 		randomizeStartingSegment(wp_path); //start driver in random segment of first link
@@ -416,7 +412,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 
 	if (isNewLinkNext)
 	{
-		onLinkCompleted(curRs->getLink(), (nxtRs ? nxtRs->getLink() : nullptr));
+		onLinkCompleted(curRs->getParentLink(), (nxtRs ? nxtRs->getParentLink() : nullptr));
 	}
 
 	//reset these local variables in case path has been changed in onLinkCompleted
@@ -513,7 +509,7 @@ void DriverMovement::onSegmentCompleted(const RoadSegment* completedRS, const Ro
 	traversed.push_back(completedRS);
 
 	//2. update travel distance
-	travelMetric.distance += completedRS->getPolylineLength();
+	travelMetric.distance += completedRS->getPolyLine()->getLength();
 
 	//3. CBD
 	processCBD_TravelMetrics(completedRS, nextRS);
@@ -598,12 +594,12 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 		{
 			DebugStream << "Driver " << parentDriver->parent->getId()
 					<< "was neither in virtual queue nor in previous segment!"
-					<< "\ndriver| segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getStartEnd()
-					<< "|id: " << pathMover.getCurrSegStats()->getRoadSegment()->getId()
-					<< "|lane: " << currLane->getLaneID()
-					<< "\nPerson| segment: " << parentDriver->parent->getCurrSegStats()->getRoadSegment()->getStartEnd()
-					<< "|id: " << parentDriver->parent->getCurrSegStats()->getRoadSegment()->getId()
-					<< "|lane: " << (parentDriver->parent->getCurrLane() ? parentDriver->parent->getCurrLane()->getLaneID() : 0)
+					<< "\ndriver| segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId()
+					<< "|id: " << pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId()
+					<< "|lane: " << currLane->getLaneId()
+					<< "\nPerson| segment: " << parentDriver->parent->getCurrSegStats()->getRoadSegment()->getRoadSegmentId()
+					<< "|id: " << parentDriver->parent->getCurrSegStats()->getRoadSegment()->getRoadSegmentId()
+					<< "|lane: " << (parentDriver->parent->getCurrLane() ? parentDriver->parent->getCurrLane()->getLaneId() : 0)
 					<< std::endl;
 
 			throw::std::runtime_error(DebugStream.str());
@@ -638,20 +634,6 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& params, const SegmentS
 	if ((maxAllowed < enteringVehicleLength) && (total <= 0))
 	{
 		return true;
-	}
-
-	//if this segment is a bus terminus segment, we assume only buses try to enter this segment and allow the bus inside irrespective of available space.
-	if (nextSegStats->getRoadSegment()->isBusTerminusSegment())
-	{
-		return true;
-	if(hasSpaceInNextStats && nextLink)
-	{
-		//additionally check if the length of vehicles in the lanegroup is not too long to accommodate this driver
-		double maxAllowedInLG = nextSegStats->getAllowedVehicleLengthForLaneGroup(nextLink);
-		double totalInLG = nextSegStats->getVehicleLengthForLaneGroup(nextLink);
-		return (totalInLG < maxAllowedInLG);
-	}
-	return hasSpaceInNextStats;
 	}
 
 	bool hasSpaceInNextStats = ((maxAllowed - total) >= enteringVehicleLength);
@@ -959,7 +941,7 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		}
 		currLane = laneInNextSegment;
 		double actualT = params.elapsedSeconds + (convertToSeconds(params.now.ms()));
-		parentDriver->parent->currLinkTravelStats = LinkTravelStats(currSegStats->getRoadSegment()->getLink(), actualT);
+		parentDriver->parent->currLinkTravelStats = LinkTravelStats(currSegStats->getRoadSegment()->getParentLink(), actualT);
 
 		setLastAccept(currLane, actualT, currSegStats);
 		setParentData(params);
@@ -996,8 +978,8 @@ void DriverMovement::addToQueue()
 		else
 		{
 			DebugStream << "addToQueue() was called for a driver who is already in queue. Person: " << parentDriver->parent->getId()
-					<< "|RoadSegment: " << currLane->getRoadSegment()->getStartEnd()
-					<< "|Lane: " << currLane->getLaneID() << std::endl;
+					<< "|RoadSegment: " << currLane->getParentSegment()->getRoadSegmentId()
+					<< "|Lane: " << currLane->getLaneId() << std::endl;
 			throw std::runtime_error(DebugStream.str());
 		}
 	}
@@ -1015,8 +997,8 @@ void DriverMovement::removeFromQueue()
 		else
 		{
 			DebugStream << "removeFromQueue() was called for a driver who is not in queue. Person: " << parentDriver->parent->getId()
-					<< "|RoadSegment: " << currLane->getRoadSegment()->getStartEnd()
-					<< "|Lane: " << currLane->getLaneID() << std::endl;
+					<< "|RoadSegment: " << currLane->getParentSegment()->getRoadSegmentId()
+					<< "|Lane: " << currLane->getLaneId() << std::endl;
 			throw std::runtime_error(DebugStream.str());
 		}
 	}
@@ -1039,7 +1021,7 @@ const Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, 
 	for (vector<Lane* >::const_iterator lnIt = lanes.begin(); lnIt != lanes.end(); ++lnIt)
 	{
 		const Lane* lane = *lnIt;
-		if (!lane->isPedestrianLane() && !lane->is_whole_day_bus_lane())
+		if (!lane->isPedestrianLane())
 		{
 			if (!laneConnectorOverride
 					&& nextToNextSegStats
@@ -1074,12 +1056,12 @@ const Lane* DriverMovement::getBestTargetLane(const SegmentStats* nextSegStats, 
 		Print() << MesoPathMover::printPath(pathMover.getPath());
 
 		std::ostringstream out("");
-		out << "best target lane was not set!" << "\nCurrent Segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getSegmentAimsunId() <<
-				" =>" << nextSegStats->getRoadSegment()->getSegmentAimsunId() <<
-				" =>" << nextToNextSegStats->getRoadSegment()->getSegmentAimsunId() << std::endl;
-		out << "firstSegInNextLink:" << (nextLink ? nextLink->getSegments().front()->getSegmentAimsunId() : 0)
+		out << "best target lane was not set!" << "\nCurrent Segment: " << pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId() <<
+				" =>" << nextSegStats->getRoadSegment()->getRoadSegmentId() <<
+				" =>" << nextToNextSegStats->getRoadSegment()->getRoadSegmentId() << std::endl;
+		out << "firstSegInNextLink:" << (nextLink ? nextLink->getRoadSegments().front()->getRoadSegmentId() : 0)
 				<< "|NextLink: " << (nextLink ? nextLink->getLinkId() : 0)
-				<< "|downstreamLinks of " << nextSegStats->getRoadSegment()->getSegmentAimsunId() << std::endl;
+				<< "|downstreamLinks of " << nextSegStats->getRoadSegment()->getRoadSegmentId() << std::endl;
 
 		Print() << out.str();
 		nextSegStats->printDownstreamLinks();
@@ -1096,14 +1078,14 @@ double DriverMovement::getInitialQueueLength(const Lane* lane)
 void DriverMovement::updateLinkTravelTimes(const SegmentStats* prevSegStat, double linkExitTimeSec)
 {
 	const RoadSegment* prevSeg = prevSegStat->getRoadSegment();
-	const Link* prevLink = prevSeg->getLink();
+	const Link* prevLink = prevSeg->getParentLink();
 	if (prevLink == parentDriver->parent->currLinkTravelStats.link_)
 	{
 		parentDriver->parent->addToLinkTravelStatsMap(parentDriver->parent->currLinkTravelStats, linkExitTimeSec); //in seconds
 		prevSegStat->getParentConflux()->setLinkTravelTimes(linkExitTimeSec, prevLink);
 	}
 	//creating a new entry in agent's travelStats for the new link, with entry time
-	parentDriver->parent->currLinkTravelStats = LinkTravelStats(pathMover.getCurrSegStats()->getRoadSegment()->getLink(), linkExitTimeSec);
+	parentDriver->parent->currLinkTravelStats = LinkTravelStats(pathMover.getCurrSegStats()->getRoadSegment()->getParentLink(), linkExitTimeSec);
 }
 
 void DriverMovement::updateRdSegTravelTimes(const SegmentStats* prevSegStat, double segEnterExitTime)
@@ -1124,9 +1106,6 @@ void DriverMovement::updateRdSegTravelTimes(const SegmentStats* prevSegStat, dou
 		}
 
 		ScreenLineCounter::getInstance()->updateScreenLineCount(parent->currRdSegTravelStats);
-		}
-
-		ScreenLineCounter::getInstance()->updateScreenLineCount(currStats);
 	}
 	//creating a new entry in agent's travelStats for the new road segment, with entry time
 	parent->currRdSegTravelStats.reset();
@@ -1137,7 +1116,7 @@ TravelMetric & DriverMovement::startTravelTimeMetric()
 {
 	std::string now((DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime()).getStrRepr());
 	travelMetric.startTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
-	const Node* startNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getStart();
+	const Node* startNode = (*(pathMover.getPath().begin()))->getRoadSegment()->getParentLink()->getFromNode();
 	travelMetric.origin = WayPoint(startNode);
 	travelMetric.started = true;
 
@@ -1168,7 +1147,7 @@ TravelMetric& DriverMovement::finalizeTravelTimeMetric()
 	}
 
 	const SegmentStats * currSegStat = ((pathMover.getCurrSegStats() == nullptr) ? *(pathMover.getPath().rbegin()) : (pathMover.getCurrSegStats()));
-	const Node* endNode = currSegStat->getRoadSegment()->getEnd();
+	const Node* endNode = currSegStat->getRoadSegment()->getParentLink()->getToNode();
 	travelMetric.destination = WayPoint(endNode);
 	travelMetric.endTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 	travelMetric.travelTime = TravelMetric::getTimeDiffHours(travelMetric.endTime, travelMetric.startTime);
@@ -1211,7 +1190,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const RoadSegment* comple
 	//	update travel distance
 	if (cbd.isInRestrictedZone(completedRS))
 	{
-		travelMetric.cbdDistance += completedRS->getPolylineLength();
+		travelMetric.cbdDistance += completedRS->getPolyLine()->getLength();
 	}
 
 	//process either enter or exit
@@ -1222,7 +1201,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const RoadSegment* comple
 		//search if you are about to enter CBD (we assume the trip started outside cbd and  is going to end inside cbd)
 		if (!cbd.isInRestrictedZone(completedRS) && cbd.isInRestrictedZone(nextRS) && travelMetric.cbdEntered.check())
 		{
-			travelMetric.cbdOrigin = WayPoint(completedRS->getEnd());
+			travelMetric.cbdOrigin = WayPoint(completedRS->getParentLink()->getToNode());
 			travelMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 		}
 		break;
@@ -1232,7 +1211,7 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const RoadSegment* comple
 		//search if you are about to exit CBD(we assume the trip started inside cbd and is going to end outside cbd)
 		if (cbd.isInRestrictedZone(completedRS)&&!cbd.isInRestrictedZone(nextRS) && travelMetric.cbdExitted.check())
 		{
-			travelMetric.cbdDestination = WayPoint(completedRS->getEnd());
+			travelMetric.cbdDestination = WayPoint(completedRS->getParentLink()->getToNode());
 			travelMetric.cbdEndTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 			travelMetric.cbdTravelTime = TravelMetric::getTimeDiffHours(travelMetric.cbdEndTime, travelMetric.cbdStartTime);
 		}
@@ -1240,33 +1219,17 @@ TravelMetric& DriverMovement::processCBD_TravelMetrics(const RoadSegment* comple
 	}
 	case TravelMetric::CBD_PASS:
 	{
-		travelMetric.cbdOrigin = WayPoint(completedRS->getEnd());
+		travelMetric.cbdOrigin = WayPoint(completedRS->getParentLink()->getToNode());
 		travelMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 		if(cbd.isInRestrictedZone(completedRS)&&!cbd.isInRestrictedZone(nextRS))
 		{
-			travelMetric.cbdDestination = WayPoint(completedRS->getEnd());
+			travelMetric.cbdDestination = WayPoint(completedRS->getParentLink()->getToNode());
 			travelMetric.cbdEndTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
 			travelMetric.cbdTravelTime = TravelMetric::getTimeDiffHours(travelMetric.cbdEndTime , travelMetric.cbdStartTime);
 		}
 		break;
-	case TravelMetric::CBD_PASS:{
-		if(!cbd.isInRestrictedZone(completedRS)&&cbd.isInRestrictedZone(nextRS) && travelMetric.cbdEntered.check())
-		{
-			out << getParent()->getId() << "onSegmentCompleted Pass Enter CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
-			travelMetric.cbdOrigin = sim_mob::WayPoint(completedRS->getEnd());
-			travelMetric.cbdStartTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
-		}
-		if(cbd.isInRestrictedZone(completedRS)&&!cbd.isInRestrictedZone(nextRS))
-		{
-			out << getParent()->getId() << "onSegmentCompleted Pass exit CBD " << completedRS->getId() << "," << (nextRS ? nextRS->getId() : 0) << "\n";
-			travelMetric.cbdDestination = sim_mob::WayPoint(completedRS->getEnd());
-			travelMetric.cbdEndTime = DailyTime(getParentDriver()->getParams().now.ms()) + ConfigManager::GetInstance().FullConfig().simStartTime();
-			travelMetric.cbdTravelTime = sim_mob::TravelMetric::getTimeDiffHours(travelMetric.cbdEndTime , travelMetric.cbdStartTime);
-		}
-		break;
 	}
 	}
-	};
 	return travelMetric;
 }
 
@@ -1285,19 +1248,19 @@ int DriverMovement::findReroutingPoints(const RoadSegment* rdSeg,
 	//	pathsetLogger << "Original Path:" << std::endl;
 	//	MesoPathMover::printPath(path);
 	//	//debug...
-	for (const Link * currLink = (*startIt)->getRoadSegment()->getLink(); startIt <= endIt; startIt++)
+	for (const Link * currLink = (*startIt)->getRoadSegment()->getParentLink(); startIt <= endIt; startIt++)
 	{
 		//record the remaining segstats
 		rem.push_back(*startIt);
 		//link changed?
-		if (currLink != (*startIt)->getRoadSegment()->getLink())
+		if (currLink != (*startIt)->getRoadSegment()->getParentLink())
 		{
 			//record
-			remaining[currLink->getEnd()] = rem; //no need to clear rem!
+			remaining[currLink->getToNode()] = rem; //no need to clear rem!
 			//last segment lies in the next link, remove it
-			remaining[currLink->getEnd()].pop_back();
+			remaining[currLink->getToNode()].pop_back();
 			//update the current iteration link
-			currLink = (*startIt)->getRoadSegment()->getLink();
+			currLink = (*startIt)->getRoadSegment()->getParentLink();
 		}
 	}
 	//filter out no paths
@@ -1313,61 +1276,12 @@ int DriverMovement::findReroutingPoints(const RoadSegment* rdSeg,
 	return remaining.size();
 }
 
-/*here is how we detect UTurns. If
-	//S1 is the 'last' segment of the old path with O1 and D1 as the start and end node respectively, and
-	//S2 is the 'first' segment of the new path with O2 and D2 as the start and end node respectively,
-	//if the following condition holds, we have a UTurn:
-	// (O1==D2) && (D2 == O1)  make sense?
- */
-bool DriverMovement::hasUTurn(std::vector<WayPoint> & newPath, std::vector<const SegmentStats*> & oldPath)
-{
-
-	const Node *O_new = newPath.begin()->roadSegment_->getStart();
-	const Node *D_new = newPath.begin()->roadSegment_->getEnd();
-	const Node *O_old = (*oldPath.rbegin())->getRoadSegment()->getStart(); //using .begin() or .end() makes no difference
-	const Node *D_old = (*oldPath.rbegin())->getRoadSegment()->getEnd();
-
-	if ((O_old == D_new) && (D_old == O_new))
-	{
-		return true;
-	}
-	return false;
-}
-
-bool DriverMovement::UTurnFree(std::vector<WayPoint> & newPath, std::vector<const SegmentStats*> & oldPath, SubTrip &subTrip, std::set<const RoadSegment*> & excludeRS)
-{
-	if (!hasUTurn(newPath, oldPath))
-	{
-		return true;
-	}
-	//exclude/blacklist the UTurn segment on the new path(first segment)
-	excludeRS.insert((*newPath.begin()).roadSegment_);
-	//create a path using updated black list
-	//and then try again
-	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
-	//if no path, return false, if path found, return true
-	std::stringstream outDbg("");
-	PrivateTrafficRouteChoice::getInstance()->getBestPath(newPath, subTrip, true, excludeRS, false, false, false, nullptr);
-	//try again
-	if (!newPath.size())
-	{
-		return false; //wasn't successful, so return false
-	}
-
-	if (hasUTurn(newPath, oldPath))
-	{
-		throw std::runtime_error("UTurn detected where the corresponding segment involved in the UTurn is already excluded");
-	}
-
-	return true;
-}
-
 bool DriverMovement::canJoinPaths(std::vector<WayPoint> & newPath, std::vector<const SegmentStats*> & oldPath,
 								   SubTrip &subTrip, std::set<const RoadSegment*> & excludeRS)
 {
 
 	const RoadSegment *from = (*oldPath.rbegin())->getRoadSegment(); //using .begin() or .end() makes no difference
-	const RoadSegment *to = newPath.begin()->roadSegment_;
+	const RoadSegment *to = newPath.begin()->roadSegment;
 	if (isConnectedToNextSeg(from, to))
 	{
 		return true;
@@ -1377,13 +1291,13 @@ bool DriverMovement::canJoinPaths(std::vector<WayPoint> & newPath, std::vector<c
 	//	printWPpath(newPath);
 
 	//exclude/blacklist the segment on the new path(first segment)
-	excludeRS.insert((*newPath.begin()).roadSegment_);
+	excludeRS.insert((*newPath.begin()).roadSegment);
 	//create a path using updated black list
 	//and then try again
 	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
 	//if no path, return false, if path found, return true
 	PrivateTrafficRouteChoice::getInstance()->getBestPath(newPath,subTrip, true, excludeRS,false,false,false,nullptr);
-	to = newPath.begin()->roadSegment_;
+	to = newPath.begin()->roadSegment;
 	bool res = isConnectedToNextSeg(from, to);
 	return res;
 }
@@ -1436,7 +1350,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg)
 	{
 		// change the origin
 		//todo and the start time !!!-vahid
-		subTrip.origin.node_ = detourNode.first;
+		subTrip.origin.node = detourNode.first;
 		//	record the new paths using the updated subtrip. (including no paths)
 		PrivateTrafficRouteChoice::getInstance()->getBestPath(newPaths[detourNode.first], subTrip,true, std::set<const RoadSegment*>(), false,false,false,nullptr);//partially excluded sections must be already added
 	}
@@ -1455,13 +1369,13 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg)
 		//4.a
 		if (newPath.second.empty())
 		{
-			Warn() << "No path on Detour Candidate node " << newPath.first->getID() << std::endl;
+			Warn() << "No path on Detour Candidate node " << newPath.first->getNodeId() << std::endl;
 			deTourOptions.erase(newPath.first);
 			continue;
 		}
 		//4.b
 		// change the origin
-		subTrip.origin.node_ = newPath.first;
+		subTrip.origin.node = newPath.first;
 		//		MesoPathMover::printPath(deTourOptions[newPath.first], newPath.first);
 		//		printWPpath(newPath.second, newPath.first);
 		//check if join possible
@@ -1531,7 +1445,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg)
 //	pathsetLogger << "----------------------------------\n"
 //			"Original path:" << std::endl;
 //	pathsetLogger << getMesoPathMover().printPath(getMesoPathMover().getPath());
-//	pathsetLogger << "Detour option chosen[" << dbgIndx << "] : " << it->first->getID() << std::endl;
+//	pathsetLogger << "Detour option chosen[" << dbgIndx << "] : " << it->first->getNodeId() << std::endl;
 //	pathsetLogger << getMesoPathMover().printPath(it->second);
 //	pathsetLogger << "----------------------------------" << std::endl;
 	//debug...
@@ -1564,7 +1478,7 @@ const Link* DriverMovement::getNextLinkForLaneChoice(const SegmentStats* nextSeg
 	const SegmentStats* firstStatsInNextLink = pathMover.getFirstSegStatsInNextLink(nextSegStats);
 	if (firstStatsInNextLink)
 	{
-		nextLink = firstStatsInNextLink->getRoadSegment()->getLink();
+		nextLink = firstStatsInNextLink->getRoadSegment()->getParentLink();
 	}
 	return nextLink;
 }

@@ -111,6 +111,11 @@ double TurningPath::getLength() const
 	return polyLine->getLength();
 }
 
+double TurningPath::getWidth() const
+{
+	return (fromLane->getWidth() + toLane->getWidth()) / 2;
+}
+
 void TurningPath::addTurningConflict(const TurningPath *other, TurningConflict *conflict)
 {
 	turningConflicts.insert(std::make_pair(other, conflict));

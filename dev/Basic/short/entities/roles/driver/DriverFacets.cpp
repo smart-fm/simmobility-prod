@@ -167,7 +167,7 @@ void DriverMovement::frame_tick()
 	}
 
 	//General update behaviour.
-	if (parentDriver->isVehicleInLoadingQueue == false && params.currLane && parentDriver->vehicle)
+	if (parentDriver->isVehicleInLoadingQueue == false)
 	{
 		if (updateSensors() && updateMovement() && updatePostMovement())
 		{
@@ -217,8 +217,9 @@ bool DriverMovement::findEmptySpaceAhead()
 	//queue
 	pair<Driver *, double> driverApproachingFromRear(NULL, DBL_MAX);
 
-	//Get the agents in nearby the current vehicle 
-	nearby_agents = AuraManager::instance().nearbyAgents(parentDriver->getCurrPosition(), *driverUpdateParams.currLane, distanceInFront, distanceBehind, NULL);
+	//Get the agents in nearby the current vehicle
+	WayPoint wayPoint(fwdDriverMovement.getCurrLane());
+	nearby_agents = AuraManager::instance().nearbyAgents(parentDriver->getCurrPosition(), wayPoint, distanceInFront, distanceBehind, NULL);
 
 	//Now if a particular agent is a vehicle and is in the same lane as the one we want to get into
 	//then we have to check if it's occupying the space we need
@@ -245,37 +246,37 @@ bool DriverMovement::findEmptySpaceAhead()
 					{
 						DriverMovement *nearbyDriverMovement = dynamic_cast<DriverMovement *> (nearbyDriver->Movement());
 
-						//Get the gap to the nearby driver (in cm)
-						double availableGapInCM = fwdDriverMovement.getDistToEndOfCurrWayPt() - nearbyDriverMovement->fwdDriverMovement.getDistToEndOfCurrWayPt();
+						//Get the gap to the nearby driver
+						double availableGapIn = fwdDriverMovement.getDistToEndOfCurrWayPt() - nearbyDriverMovement->fwdDriverMovement.getDistToEndOfCurrWayPt();
 
 						//The gap between current driver and the one in front (or the one coming from behind) should be greater than
 						//length(in cm) + (headway(in s) * initial speed(in cm/s))
 						double requiredGapInCM = 0;
-						if (availableGapInCM > 0)
+						if (availableGapIn > 0)
 						{
 							//As the gap is positive, there is a vehicle in front of us. We should have enough distance
 							//so as to avoid crashing into it
 							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *> (cfModel);
-							requiredGapInCM = (2 * parentDriver->vehicle->getLengthCm()) + (mitsim_cf_model->hBufferUpper * (driverUpdateParams.initialSpeed * 100));
+							requiredGapInCM = (2 * parentDriver->getVehicleLength()) + (mitsim_cf_model->hBufferUpper * driverUpdateParams.initialSpeed);
 						}
 						else
 						{
 							//As the gap is negative, there is a vehicle coming in from behind. We shouldn't appear right
 							//in front of it, so consider it's speed to calculate required gap
 							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *> (nearbyDriverMovement->cfModel);
-							requiredGapInCM = (2 * nearbyDriver->vehicle->getLengthCm())+ (mitsim_cf_model->hBufferUpper)* (nearbyDriversParams.currSpeed * 100);
+							requiredGapInCM = (2 * nearbyDriver->getVehicleLength())+ (mitsim_cf_model->hBufferUpper * nearbyDriversParams.currSpeed);
 
 							//In case a driver is approaching from the rear, we need to reduce the reaction time, so that he/she
 							//is aware of the presence of the car appearing in front.
 							//But we need only the closest one
-							if (driverApproachingFromRear.second > availableGapInCM)
+							if (driverApproachingFromRear.second > availableGapIn)
 							{
 								driverApproachingFromRear.first = nearbyDriver;
-								driverApproachingFromRear.second = availableGapInCM;
+								driverApproachingFromRear.second = availableGapIn;
 							}
 						}
 
-						if (abs(availableGapInCM) <= abs(requiredGapInCM))
+						if (abs(availableGapIn) <= abs(requiredGapInCM))
 						{
 							//at least one vehicle is too close, so no need to search further
 							isSpaceFound = false;
@@ -333,7 +334,8 @@ void DriverMovement::frame_tick_output()
 		ConfigManager::GetInstance().FullConfig().getCommDataMgr().sendTrafficData(s);
 	}
 
-	const bool inLane = parentDriver->vehicle && (!fwdDriverMovement.isInIntersection());
+	const int wayPtId = fwdDriverMovement.isInIntersection() ?
+			fwdDriverMovement.getCurrTurning()->getTurningPathId() : fwdDriverMovement.getCurrSegment()->getRoadSegmentId();
 
 	//MPI-specific output.
 	std::stringstream addLine;
@@ -373,7 +375,7 @@ void DriverMovement::frame_tick_output()
 		"\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) <<
 		"\",\"length\":\"" << static_cast<int> (parentDriver->vehicle->getLengthCm()) <<
 		"\",\"width\":\"" << static_cast<int> (parentDriver->vehicle->getWidthCm()) <<
-		"\",\"curr-segment\":\"" << (inLane ? fwdDriverMovement.getCurrSegment()->getRoadSegmentId() : -1) <<
+		"\",\"curr-waypoint\":\"" << wayPtId <<
 		"\",\"fwd-speed\":\"" << parentDriver->vehicle->getVelocity() <<
 		"\",\"fwd-accel\":\"" << parentDriver->vehicle->getAcceleration() <<
 		"\",\"info\":\"" << params.debugInfo <<
@@ -513,6 +515,9 @@ bool DriverMovement::updateMovement()
 		return false;
 	}
 	
+	//Store the speed
+	params.currSpeed = parentDriver->vehicle->getVelocity();
+	
 	//Count down the reaction timer
 	params.reactionTimeCounter -= params.elapsedSeconds;
 	
@@ -566,15 +571,15 @@ bool DriverMovement::updatePostMovement()
 	{
 		//Check if the turning group is visible
 		if (distToIntersection <= nextWayPt->turningGroup->getVisibility())
-		{
-			params.isApproachingIntersection = true;
-			
+		{			
 			//The current lane
 			const Lane *currLane = fwdDriverMovement.getCurrLane();
 			
 			//If we have a current lane, it means that we're approaching the intersection but not yet inside it
 			if (currLane)
 			{
+				params.isApproachingIntersection = true;
+				
 				//The turning path we will mostly take to get across the intersection
 				parentDriver->expectedTurning_.set(nextWayPt->turningGroup->getTurningPath(currLane->getLaneId()));
 				
@@ -654,9 +659,7 @@ void DriverMovement::applyDrivingModels(DriverUpdateParams &params)
 {
 	params.lcDebugStr.str(std::string());
 
-	perceiveParameters(params);
-	
-	params.currSpeed = parentDriver->vehicle->getVelocity();
+	perceiveParameters(params);	
 
 	//Currently on AMOD and Buses have stop points, so at the moment calls to check for stop point
 	//for private cars and taxis will be a burden.
@@ -665,20 +668,23 @@ void DriverMovement::applyDrivingModels(DriverUpdateParams &params)
 		checkForStoppingPoints(params);
 	}
 
-	//Apply the lane changing model to make the lane changing decision
-	lcModel->makeLaneChangingDecision(params);
-
-	//If we've decided to change the lane, execute the lane change manoeuvre
-	if (params.getStatus() & STATUS_CHANGING)
+	if(!fwdDriverMovement.isInIntersection())
 	{
-		params.lcDebugStr << ";CHING";
+		//Apply the lane changing model to make the lane changing decision
+		//lcModel->makeLaneChangingDecision(params);
 
-		lcModel->executeLaneChanging(params);
-
-		if (params.flag(FLAG_LC_FAILED))
+		//If we've decided to change the lane, execute the lane change manoeuvre
+		if (params.getStatus() & STATUS_CHANGING)
 		{
-			params.lcDebugStr << ";COG";
-			lcModel->chooseTargetGap(params);
+			params.lcDebugStr << ";CHING";
+
+			lcModel->executeLaneChanging(params);
+
+			if (params.flag(FLAG_LC_FAILED))
+			{
+				params.lcDebugStr << ";COG";
+				lcModel->chooseTargetGap(params);
+			}
 		}
 	}
 
@@ -802,7 +808,8 @@ void DriverMovement::buildPath(std::vector<WayPoint> &wayPoints, int startLaneIn
 	//The path containing the links and turning groups
 	vector<WayPoint> path;
 	
-	Print() << "\nPath:: ";
+	double length = 0;
+	Print() << "Path:: ";
 	
 	//Add the road segments and turning groups that lie along the links in the path
 	for (vector<WayPoint>::iterator itWayPts = pathOfLinks.begin(); itWayPts != pathOfLinks.end(); ++itWayPts)
@@ -810,11 +817,14 @@ void DriverMovement::buildPath(std::vector<WayPoint> &wayPoints, int startLaneIn
 		//The segments in the link
 		const vector<RoadSegment *> &segments = itWayPts->link->getRoadSegments();
 
+		length += itWayPts->link->getLength();
+		Print() << "\nS:";
+		
 		//Create a way point for every segment and insert it into the path
 		for (vector<RoadSegment *>::const_iterator itSegments = segments.begin(); itSegments != segments.end(); ++itSegments)
 		{
 			path.push_back(WayPoint(*itSegments));
-			Print() << "\nS:" << (*itSegments)->getRoadSegmentId() << " ";
+			Print() << " " << (*itSegments)->getRoadSegmentId();
 		}
 
 		if((itWayPts + 1) != pathOfLinks.end())
@@ -829,7 +839,8 @@ void DriverMovement::buildPath(std::vector<WayPoint> &wayPoints, int startLaneIn
 			if (turningGroup)
 			{
 				path.push_back(WayPoint(turningGroup));
-				Print() << "\nT:" << turningGroup->getTurningGroupId() << " ";
+				length += turningGroup->getLength();
+				Print() << "\nT: " << turningGroup->getTurningGroupId();
 			}
 			else
 			{
@@ -840,6 +851,7 @@ void DriverMovement::buildPath(std::vector<WayPoint> &wayPoints, int startLaneIn
 		}				
 	}
 
+	Print() << "\nPath length = " << length << "m\n";
 	fwdDriverMovement.setPath(path, startLaneIndex, startSegmentId);
 }
 
@@ -1780,7 +1792,19 @@ void DriverMovement::updateNearbyAgents()
 	if (parentDriver->getCurrPosition().getX() > 0 && parentDriver->getCurrPosition().getY() > 0)
 	{
 		//Retrieve a list of nearby agents
-		nearbyAgentsList = AuraManager::instance().nearbyAgents(parentDriver->getCurrPosition(), *params.currLane, distanceInFront, distanceBehind, parent);
+		
+		//Depending on whether we are on a turning or a lane, send the way-point with the corresponding object to 
+		//th aura manager
+		if(fwdDriverMovement.isInIntersection())
+		{
+			nearbyAgentsList = AuraManager::instance().nearbyAgents(parentDriver->getCurrPosition(), WayPoint(fwdDriverMovement.getCurrTurning()),
+																	distanceInFront, distanceBehind, parent);
+		}
+		else
+		{
+			nearbyAgentsList = AuraManager::instance().nearbyAgents(parentDriver->getCurrPosition(), WayPoint(fwdDriverMovement.getCurrLane()),
+																	distanceInFront, distanceBehind, parent);
+		}		
 	}
 	else
 	{

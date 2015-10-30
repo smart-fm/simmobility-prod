@@ -530,7 +530,7 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	sim_mob::AMOD::AMODController::deleteInstance();
 
 	//Delete the aura manger implementation instance
-	AuraManager::instance().destory();
+	AuraManager::instance().destroy();
 
 	//Delete our profiler, if it exists.
 	safe_delete_item(prof);

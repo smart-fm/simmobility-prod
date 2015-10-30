@@ -86,6 +86,13 @@ public:
 	 * @return length of the turning path
 	 */
 	double getLength() const;
+	
+	/**
+	 * Gets the width of the turning path. This is equal to the average of the widths of the from and 
+	 * to lanes
+     * @return width of the turning path
+     */
+    double getWidth() const;
 
 	/**
 	 * Adds the turning conflict to the map of conflicts

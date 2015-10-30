@@ -87,6 +87,7 @@ public:
 	double getVisibility() const;
 	void setVisibility(double visibility);
 
+	const std::map<unsigned int, TurningPath*>& getTurningPaths() const;
 	double getLength() const;
 
 	/**

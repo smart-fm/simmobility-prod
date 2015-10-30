@@ -99,6 +99,11 @@ void TurningGroup::setVisibility(double visibility)
 	this->visibility = visibility;
 }
 
+const std::map<unsigned int, TurningPath *>& TurningGroup::getTurningPaths() const
+{
+	return turningPaths;
+}
+
 double TurningGroup::getLength() const
 {
 	return length;

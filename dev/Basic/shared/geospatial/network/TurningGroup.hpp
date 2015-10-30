@@ -100,5 +100,12 @@ public:
      * @return the turning path if found, else NULL
      */
 	const TurningPath* getTurningPath(unsigned int fromLaneId) const;
+
+	/**
+	 * returns the full set of turning paths in this turning group
+	 *
+	 * @return all turning paths in this group
+	 */
+	const std::map<unsigned int, TurningPath *>& getTurningPaths() const;
 };
 }

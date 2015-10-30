@@ -108,6 +108,6 @@ public:
 	 *
      * @return pointer to the map of turning groups with 'to link id' as the key
      */
-	const std::map<unsigned int, TurningGroup *>* getTurningGroups(unsigned int fromLinkId) const;
+	const std::map<unsigned int, TurningGroup *>& getTurningGroups(unsigned int fromLinkId) const;
 };
 }

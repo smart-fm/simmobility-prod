@@ -117,3 +117,8 @@ const TurningPath* TurningGroup::getTurningPath(unsigned int fromLaneId) const
 		return NULL;
 	}
 }
+
+const std::map<unsigned int, TurningPath*>& sim_mob::TurningGroup::getTurningPaths() const
+{
+	return turningPaths;
+}

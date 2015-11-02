@@ -402,7 +402,9 @@ double DriverPathMover::advanceToNextPolyLine()
 					}
 					else
 					{
-						throw std::runtime_error("Reached intersection on a lane not connected to a turning path!");
+						std::stringstream msg;
+						msg << "Reached intersection from lane " << currLane->getLaneId() << ". It is not connected to a turning path!";
+						throw std::runtime_error(msg.str());
 					}
 				}
 			}
@@ -435,6 +437,34 @@ double DriverPathMover::advanceToNextPolyLine()
 	}
 	
 	return overflow;
+}
+
+void DriverPathMover::updateLateralMovement(const Lane* lane)
+{
+	if(lane)
+	{
+		//Points covered on the previous poly-line
+		unsigned int pointsCovered = currPolyPoint - currPolyLine->getPoints().begin();
+
+		//Update the current lane, poly-line and points
+		currLane = lane;
+		currPolyLine = currLane->getPolyLine();
+		currPolyPoint = currPolyLine->getPoints().begin();
+		nextPolyPoint = currPolyPoint + 1;
+		
+		//Map progress to current poly-line
+		if(pointsCovered > 0)
+		{
+			currPolyPoint += pointsCovered;
+			nextPolyPoint += pointsCovered;
+		}
+		
+		advance(0);
+	}
+	else
+	{
+		throw std::runtime_error("DriverPathMover::updateLateralMovement(): Invalid lane!");
+	}
 }
 
 double DriverPathMover::getDistCoveredOnCurrWayPt() const

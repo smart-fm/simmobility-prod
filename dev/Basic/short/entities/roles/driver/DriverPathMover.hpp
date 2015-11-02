@@ -153,6 +153,14 @@ public:
 	double advance(double distance);
 
 	/**
+	 * Updates the current lane and the current poly-line information after a lane changing move
+	 * has completed
+	 *
+     * @param lane the new lane
+     */
+	void updateLateralMovement(const Lane *lane);
+
+	/**
 	 * Calculates the distance covered on the current road way-point
 	 *
      * @return the distance covered on the current way point (in metre)

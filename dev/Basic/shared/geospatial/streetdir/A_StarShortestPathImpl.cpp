@@ -161,8 +161,6 @@ void A_StarShortestPathImpl::initSegDrivingNetwork(const RoadNetwork& roadNetwor
 	//Finally, add our "master" node vertices
 	procAddStartNodesAndEdges(drivingSegMap, nodeLookup, &drivingNodeLookup);
 	isValidSegGraph = true;
-	std::ofstream fileStream("segments");
-	printGraph(fileStream, "driving", drivingSegMap);
 }
 
 void A_StarShortestPathImpl::procAddDrivingNodes(StreetDirectory::Graph& graph, const Link* link, NodeLookup& nodeLookup)

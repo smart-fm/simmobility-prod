@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include "logging/Log.hpp"
 #include "SOCI_Converters.hpp"
+#include "conf/ConfigManager.hpp"
+#include "conf/ConfigParams.hpp"
 
 using namespace sim_mob;
 
@@ -208,8 +210,14 @@ void NetworkLoader::loadBusStops(const std::string& storedProc)
 	{
 		//Create new bus stop and add it to road network
 		BusStop* stop = new BusStop(*itStop);
-		roadNetwork->addBusStop(stop);
+		if(!sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes()){
+			if(stop->getStopName().find("Virtual Bus Stop")!=std::string::npos){
+				delete stop;
+				continue;
+			}
+		}
 
+		roadNetwork->addBusStop(stop);
 		if(stop->getReverseSectionId() != 0) // this condition is true only for bus interchange stops
 		{
 			//Create twin bus stop for this interchange stop and add it to road network

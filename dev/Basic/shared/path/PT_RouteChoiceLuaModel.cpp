@@ -43,8 +43,7 @@ PT_RouteChoiceLuaModel::~PT_RouteChoiceLuaModel()
 unsigned int PT_RouteChoiceLuaModel::getSizeOfChoiceSet()
 {
 	unsigned int size = 0;
-	if (publicTransitPathSet)
-	{
+	if (publicTransitPathSet) {
 		size = publicTransitPathSet->pathSet.size();
 	}
 	return size;
@@ -54,8 +53,7 @@ double PT_RouteChoiceLuaModel::getTotalInVehicleTime(unsigned int index)
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
-	{
+	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0) {
 		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
 		ret = it->getTotalInVehicleTravelTimeSecs();
@@ -67,8 +65,7 @@ double PT_RouteChoiceLuaModel::getTotalWalkTime(unsigned int index)
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
-	{
+	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0) {
 		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
 		ret = it->getTotalWalkingTimeSecs();
@@ -80,8 +77,7 @@ double PT_RouteChoiceLuaModel::getTotalWaitTime(unsigned int index)
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
-	{
+	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0) {
 		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
 		ret = it->getTotalWaitingTimeSecs();
@@ -119,8 +115,7 @@ double PT_RouteChoiceLuaModel::getTotalCost(unsigned int index)
 {
 	double ret = 0.0;
 	unsigned int sizeOfChoiceSet = getSizeOfChoiceSet();
-	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0)
-	{
+	if (publicTransitPathSet && index <= sizeOfChoiceSet && index > 0) {
 		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
 		ret = it->getTotalCost();
@@ -136,37 +131,32 @@ std::vector<sim_mob::OD_Trip> PT_RouteChoiceLuaModel::makePT_RouteChoice(const s
 	LuaRef funcRef = getGlobal(state.get(), "choose_PT_path");
 	LuaRef retVal = funcRef(this, sizeOfChoiceSet);
 	int index = -1;
-	if (retVal.isNumber())
-	{
+	if (retVal.isNumber()) {
 		index = retVal.cast<int>();
 	}
 
-	if (index > sizeOfChoiceSet || index <= 0)
-	{
+	if (index > sizeOfChoiceSet || index <= 0) {
 		std::stringstream errStrm;
-		errStrm << "invalid path index (" << index << ") returned from PT route choice for OD " << pathSetId
-				<< " with " <<  sizeOfChoiceSet << "path choices" << std::endl;
+		errStrm << "invalid path index (" << index
+				<< ") returned from PT route choice for OD " << pathSetId
+				<< " with " << sizeOfChoiceSet << "path choices" << std::endl;
 		throw std::runtime_error(errStrm.str());
 	}
 
-	if (publicTransitPathSet)
-	{
+	if (publicTransitPathSet) {
 		std::set<PT_Path, cmp_path_vector>::iterator it = publicTransitPathSet->pathSet.begin();
 		std::advance(it, index - 1);
 		const std::vector<PT_NetworkEdge>& pathEdges = it->getPathEdges();
-		for (std::vector<PT_NetworkEdge>::const_iterator itEdge = pathEdges.begin(); itEdge != pathEdges.end(); itEdge++)
-		{
+		for (std::vector<PT_NetworkEdge>::const_iterator itEdge = pathEdges.begin(); itEdge != pathEdges.end(); itEdge++) {
 			sim_mob::OD_Trip trip;
 			trip.startStop = itEdge->getStartStop();
 			trip.sType = PT_Network::getInstance().getVertexTypeFromStopId(trip.startStop);
-			if (trip.startStop.find("N_") != std::string::npos)
-			{
+			if (trip.startStop.find("N_") != std::string::npos) {
 				trip.startStop = trip.startStop.substr(2);
 			}
 			trip.endStop = itEdge->getEndStop();
 			trip.eType = PT_Network::getInstance().getVertexTypeFromStopId(trip.endStop);
-			if (trip.endStop.find("N_") != std::string::npos)
-			{
+			if (trip.endStop.find("N_") != std::string::npos) {
 				trip.endStop = trip.endStop.substr(2);
 			}
 			trip.tType = itEdge->getType();
@@ -189,12 +179,14 @@ bool PT_RouteChoiceLuaModel::getBestPT_Path(const std::string& origin, const std
 	bool ret = false;
 	PT_PathSet pathSet;
 	pathSet = loadPT_PathSet(origin, dest);
-	if (pathSet.pathSet.size() == 0)
-	{
-		Print() << "[PT pathset]load pathset failed:[" << origin << "]:[" << dest << "]" << std::endl;
+	if (pathSet.pathSet.size() == 0) {
+		Print() << "[PT pathset]load pathset failed:["
+				<< origin << "]:["
+				<< dest << "]"
+				<< std::endl;
 	}
 
-	if(pathSet.pathSet.size()>0){
+	if (pathSet.pathSet.size() > 0) {
 		publicTransitPathSet = &pathSet;
 		odTrips = makePT_RouteChoice(origin, dest);
 		ret = true;
@@ -205,11 +197,9 @@ bool PT_RouteChoiceLuaModel::getBestPT_Path(const std::string& origin, const std
 void PT_RouteChoiceLuaModel::storeBestPT_Path()
 {
 	std::ofstream outputFile("od_to_trips.csv");
-	if (outputFile.is_open())
-	{
+	if (outputFile.is_open()) {
 		std::vector<sim_mob::OD_Trip>::iterator odIt = odTripMapGen.begin();
-		for (; odIt != odTripMapGen.end(); odIt++)
-		{
+		for (; odIt != odTripMapGen.end(); odIt++) {
 			outputFile << odIt->startStop << ",";
 			outputFile << odIt->endStop << ",";
 			outputFile << odIt->sType << ",";
@@ -226,16 +216,14 @@ void PT_RouteChoiceLuaModel::storeBestPT_Path()
 	}
 }
 
-void PT_RouteChoiceLuaModel::mapClasses()
-{
-	getGlobalNamespace(state.get())
-			.beginClass<PT_RouteChoiceLuaModel>("PT_RouteChoiceLuaModel")
-				.addFunction("total_in_vehicle_time", &PT_RouteChoiceLuaModel::getTotalInVehicleTime)
-				.addFunction("total_walk_time", &PT_RouteChoiceLuaModel::getTotalWalkTime)
-				.addFunction("total_wait_time", &PT_RouteChoiceLuaModel::getTotalWaitTime)
-				.addFunction("total_path_size", &PT_RouteChoiceLuaModel::getTotalPathSize)
-				.addFunction("total_no_txf", &PT_RouteChoiceLuaModel::getTotalNumTxf)
-				.addFunction("total_cost", &PT_RouteChoiceLuaModel::getTotalCost)
+void PT_RouteChoiceLuaModel::mapClasses() {
+	getGlobalNamespace(state.get()).beginClass <PT_RouteChoiceLuaModel> ("PT_RouteChoiceLuaModel")
+			.addFunction("total_in_vehicle_time",&PT_RouteChoiceLuaModel::getTotalInVehicleTime)
+			.addFunction("total_walk_time",&PT_RouteChoiceLuaModel::getTotalWalkTime)
+			.addFunction("total_wait_time",&PT_RouteChoiceLuaModel::getTotalWaitTime)
+			.addFunction("total_path_size",&PT_RouteChoiceLuaModel::getTotalPathSize)
+			.addFunction("total_no_txf", &PT_RouteChoiceLuaModel::getTotalNumTxf)
+			.addFunction("total_cost", &PT_RouteChoiceLuaModel::getTotalCost)
 			.endClass();
 }
 

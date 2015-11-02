@@ -427,11 +427,7 @@ void sim_mob::BusController::setPTScheduleFromConfig(const vector<PT_bus_dispatc
 			if (outputRoutes.is_open()){
 				outputRoutes << it->line << ","
 						<< it->index << ","
-						<< it->id << ","
-						<< it->start <<","
-						<< it->end<<","
-						<< it->linkId<<","
-						<< it->segmentIndex
+						<< it->id
 						<< std::endl;
 			}
 		}

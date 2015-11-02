@@ -577,14 +577,20 @@ bool DriverMovement::updatePostMovement()
 			
 			//If we have a current lane, it means that we're approaching the intersection but not yet inside it
 			if (currLane)
-			{
-				params.isApproachingIntersection = true;
-				
+			{				
 				//The turning path we will mostly take to get across the intersection
-				parentDriver->expectedTurning_.set(nextWayPt->turningGroup->getTurningPath(currLane->getLaneId()));
+				const TurningPath *expectedTurning = nextWayPt->turningGroup->getTurningPath(currLane->getLaneId());
 				
-				//Set the max turning speed
-				params.maxLaneSpeed = parentDriver->expectedTurning_.get()->getMaxSpeed();
+				if(expectedTurning)
+				{
+					params.isApproachingIntersection = true;
+
+					//Set the max turning speed
+					params.maxLaneSpeed = expectedTurning->getMaxSpeed();
+
+					//Add it to the buffer, it will be available in the next tick
+					parentDriver->expectedTurning_.set(expectedTurning);
+				}				
 			}
 			else
 			{
@@ -671,7 +677,7 @@ void DriverMovement::applyDrivingModels(DriverUpdateParams &params)
 	if(!fwdDriverMovement.isInIntersection())
 	{
 		//Apply the lane changing model to make the lane changing decision
-		//lcModel->makeLaneChangingDecision(params);
+		lcModel->makeLaneChangingDecision(params);
 
 		//If we've decided to change the lane, execute the lane change manoeuvre
 		if (params.getStatus() & STATUS_CHANGING)
@@ -776,7 +782,7 @@ double DriverMovement::drive(DriverUpdateParams &params)
 		laneChangeTo = LANE_CHANGE_TO_NONE;
 	}
 
-	params.lateralVelocity = lcModel->executeLaterVel(laneChangeTo);
+	params.lateralVelocity = lcModel->calculateLateralVelocity(laneChangeTo);
 
 	parentDriver->vehicle->setTurningDirection(laneChangeTo);
 	parentDriver->vehicle->setLateralVelocity(params.lateralVelocity);
@@ -959,148 +965,87 @@ double DriverMovement::getDistanceToStopPoint(double perceptionDistance)
 	return distance;
 }
 
-void DriverMovement::getLanesConnectToLookAheadDis(double distance, std::vector<Lane*>& lanePool)
+void DriverMovement::getConnectedLanesInLookAheadDistance(double lookAheadDist, std::vector<Lane *> &lanePool)
 {
-/*	std::vector<const RoadSegment*>::iterator currentSegIt = fwdDriverMovement.currSegmentIt;
-
-	++currentSegIt; // next segment
-
-	std::vector<const RoadSegment*>::iterator currentSegItEnd = fwdDriverMovement.fullPath.end();
-
-	const RoadSegment* currentSeg = fwdDriverMovement.getCurrSegment();
-	const std::vector<Lane*> lanes = currentSeg->getLanes();
-
-	//check each lanes of current segment
-	int maxLaneNumber = 8;
-	for (int i = 0; i < maxLaneNumber; ++i)
+	double scannedDist = 0;
+	std::vector<WayPoint> wayPtsInLookAheadDist;
+			
+	std::vector<WayPoint>::const_iterator itWayPts = fwdDriverMovement.getCurrWayPointIt();
+	std::vector<WayPoint>::const_iterator end = fwdDriverMovement.getDrivingPath().end();
+	
+	//Scan till look ahead distance or end or path, whichever is smaller and make a list of the way-points
+	while(scannedDist < lookAheadDist && itWayPts != end)
 	{
-		double x = fwdDriverMovement.getDistToEndOfCurrWayPt() / 100.0;
-		Lane* l = NULL;
-
-		if (i < lanes.size())
-		{
-			l = lanes[i];
+		wayPtsInLookAheadDist.push_back(*itWayPts);
+		
+		if(itWayPts->type == WayPoint::ROAD_SEGMENT)
+		{			
+			scannedDist += itWayPts->roadSegment->getLength();
 		}
 		else
 		{
-			// use most left lane
-			if (lanes.at(lanes.size() - 1)->isPedestrianLane())
-			{
-				l = lanes.at(lanes.size() - 2);
-			}
-			else
-			{
-				l = lanes.at(lanes.size() - 1);
-			}
+			scannedDist += itWayPts->turningGroup->getLength();
 		}
-
-		currentSegIt = fwdDriverMovement.currSegmentIt;
-		++currentSegIt; // current's next segment
-
-		size_t landIdx = i;
-
-		for (; currentSegIt != currentSegItEnd; ++currentSegIt)
+		
+		++itWayPts;
+	}
+	
+	//Lanes in the current segment
+	const std::vector<Lane *> &lanes = fwdDriverMovement.getCurrSegment()->getLanes();
+	
+	//The way points in the look ahead distance
+	itWayPts = wayPtsInLookAheadDist.begin() + 1;
+	end = wayPtsInLookAheadDist.end();
+	
+	//Check the connectivity of each of the lanes to the way points in the look ahead distance
+	for(std::vector<Lane *>::const_iterator itLanes = lanes.begin(); itLanes != lanes.end(); ++itLanes)
+	{
+		const Lane *lane = *itLanes;
+		
+		while(itWayPts != end)
 		{
-
-			bool isLaneOK = true;
-			// already reach end of path
-			if (currentSegIt + 1 == currentSegItEnd)
+			if(itWayPts->type == WayPoint::ROAD_SEGMENT)
 			{
-				if (l)
+				//The next way point is a road segment. If we have a lane connector, then we're connected to it
+				
+				const LaneConnector *connector = lane->getLaneConnector();
+				
+				if (connector)
 				{
-					lanePool.push_back(l);
-				}
-				break;
-			}
-
-			const RoadSegment* rs = *currentSegIt;
-
-			x += rs->getLength() / 100.0;
-
-			if (!rs)
-			{
-				break;
-			}
-
-			// find last segment
-			// check lane landIdx of rs 's previous segment can connect to rs
-			if (rs != fwdDriverMovement.fullPath[0])
-			{
-				std::vector<const RoadSegment*>::iterator it = currentSegIt - 1;
-				const RoadSegment* lastSeg = *it;
-
-				if (lastSeg->getLanes().size() < landIdx) // target segment lane size smaller than index
-				{
-					isLaneOK = false;
+					lane = connector->getToLane();
 				}
 				else
 				{
-					if (landIdx < lastSeg->getNoOfLanes())
-					{
-						const Lane *lane = lastSeg->getLane(landIdx);
-						isLaneOK = isLaneConnectedToSegment(lane, rs);
-					}
-					else
-					{
-						isLaneOK = false;
-					}
+					//We're not connected to the next segment
+					break;
 				}
 			}
 			else
 			{
-				if (l)
+				//The next way point is a turning group. If we have a turning path, then we're connected to it
+				
+				const TurningPath *turning = itWayPts->turningGroup->getTurningPath(lane->getLaneId());
+				
+				if(turning)
 				{
-					isLaneOK = isLaneConnectedToSegment(l, rs);
+					lane = turning->getToLane();
 				}
 				else
 				{
-					isLaneOK = false;
+					//We're not connected to the next link
+					break;
 				}
 			}
-
-			if (!isLaneOK)
-			{
-				break;
-			}
-
-			// l can connect to next segment
-			if (x > distance)
-			{
-				// if this lane index is ok, but is pedestrian lane, then use its right lane
-				if (l->isPedestrianLane())
-				{
-					if (i != 0)
-					{
-						l = lanes[i - 1];
-					}
-					else
-					{
-						l = NULL;
-					}
-				}
-				// push to pool
-				bool ff = false;
-
-				for (int jj = 0; jj < lanePool.size(); ++jj)
-				{
-					if (lanePool[jj] == l)
-					{
-						ff = true;
-					}
-				}
-
-				if (!ff)
-				{
-					if (l)
-					{
-						lanePool.push_back(l);
-					}
-				}
-
-				break;
-			}
-		} //end of for currentSegIt
-	} //end for lanes*/
+			
+			++itWayPts;
+		}
+		
+		//Lane is connected as we reached the end of the way points
+		if(itWayPts == end)
+		{
+			lanePool.push_back(*itLanes);
+		}
+	}
 }
 
 bool DriverMovement::isLaneConnectedToSegment(const Lane *fromLane, const RoadSegment *toSegment)
@@ -1188,7 +1133,7 @@ void DriverMovement::identifyAdjacentLanes(DriverUpdateParams &params)
 	params.rightLane = NULL;
 	params.leftLane2 = NULL;
 	params.rightLane2 = NULL;
-	
+
 	params.currLane = fwdDriverMovement.getCurrLane();
 
 	//No adjacent lanes to update if the current lane is not known
@@ -1815,13 +1760,13 @@ void DriverMovement::updateNearbyAgents()
 
 	//Update each nearby Pedestrian/Driver
 	params.nvFwdNextLink.driver = NULL;
-	params.nvFwdNextLink.distance = DEFAULT_DISTANCE;
+	params.nvFwdNextLink.distance = DBL_MAX;
 	params.nvLeadFreeway.driver = NULL;
-	params.nvLeadFreeway.distance = DEFAULT_DISTANCE;
+	params.nvLeadFreeway.distance = DBL_MAX;
 	params.nvLagFreeway.driver = NULL;
-	params.nvLagFreeway.distance = DEFAULT_DISTANCE;
+	params.nvLagFreeway.distance = DBL_MAX;
 	params.nvFwd.driver = NULL;
-	params.nvFwd.distance = DEFAULT_DISTANCE;
+	params.nvFwd.distance = DBL_MAX;
 
 	for (vector<const Agent *>::iterator it = nearbyAgentsList.begin(); it != nearbyAgentsList.end(); ++it)
 	{
@@ -1954,6 +1899,9 @@ void DriverMovement::syncLaneInfoPostLateralMove(DriverUpdateParams &params)
 
 	//The lane may have changed; reset the current lane index.
 	params.currLaneIndex = params.currLane->getLaneIndex();
+	
+	//Update the driver path mover
+	fwdDriverMovement.updateLateralMovement(params.currLane);
 
 	//Update which lanes are adjacent.
 	identifyAdjacentLanes(params);

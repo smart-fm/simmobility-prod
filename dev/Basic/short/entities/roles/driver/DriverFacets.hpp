@@ -18,7 +18,7 @@
 #include "entities/amodController/AMODController.hpp"
 #include "entities/IncidentStatus.hpp"
 #include "entities/roles/driver/models/CarFollowModel.hpp"
-#include "entities/roles/pedestrian/Pedestrian2.hpp"
+#include "entities/roles/driver/models/LaneChangeModel.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/vehicle/Vehicle.hpp"
@@ -387,10 +387,10 @@ public:
 	/**
 	 * Gets the lanes connected to the segment within the look ahead distance
 	 * 
-     * @param distance
+     * @param lookAheadDist look ahead distance
      * @param lanePool stores the result
      */
-	void getLanesConnectToLookAheadDis(double distance, std::vector<Lane *> &lanePool);
+	void getConnectedLanesInLookAheadDistance(double lookAheadDist, std::vector<Lane *> &lanePool);
 
 	/**
 	 * Checks if a connection exists between the given lane and segment, either in the form of a lane connector or a turning path.

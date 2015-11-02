@@ -124,7 +124,7 @@ const WayPoint* DriverPathMover::getNextWayPoint() const
 		{
 			if((currWayPointIt + 1) != drivingPath.end())
 			{
-				return &(*currWayPointIt);
+				return &(*(currWayPointIt + 1));
 			}
 			else
 			{
@@ -394,8 +394,16 @@ double DriverPathMover::advanceToNextPolyLine()
 					
 					const TurningGroup *turningGroup = (currWayPointIt + 1)->turningGroup;
 					currTurning = turningGroup->getTurningPath(currLane->getLaneId());
-					currPolyLine = currTurning->getPolyLine();
-					currLane = NULL;
+					
+					if(currTurning)
+					{
+						currPolyLine = currTurning->getPolyLine();
+						currLane = NULL;
+					}
+					else
+					{
+						throw std::runtime_error("Reached intersection on a lane not connected to a turning path!");
+					}
 				}
 			}
 			else

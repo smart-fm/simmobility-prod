@@ -278,7 +278,6 @@ void DriverUpdateParams::reset(timeslice now, const Driver& owner)
 
 	turningDirection = LANE_CHANGE_TO_NONE;
 
-	nvFwd.distance = maxVisibleDis;
 	nvFwd = NearestVehicle();
 	nvLeftFwd = NearestVehicle();
 	nvRightFwd = NearestVehicle();

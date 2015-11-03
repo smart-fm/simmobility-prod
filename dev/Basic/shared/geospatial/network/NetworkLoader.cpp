@@ -208,16 +208,15 @@ void NetworkLoader::loadBusStops(const std::string& storedProc)
 
 	for (soci::rowset<BusStop>::const_iterator itStop = stops.begin(); itStop != stops.end(); ++itStop)
 	{
+		if (!sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes() && itStop->getStopName().find("Virtual Bus Stop") != std::string::npos)
+		{
+			continue;
+		}
+		
 		//Create new bus stop and add it to road network
 		BusStop* stop = new BusStop(*itStop);
-		if(!sim_mob::ConfigManager::GetInstance().FullConfig().isGenerateBusRoutes()){
-			if(stop->getStopName().find("Virtual Bus Stop")!=std::string::npos){
-				delete stop;
-				continue;
-			}
-		}
-
 		roadNetwork->addBusStop(stop);
+		
 		if(stop->getReverseSectionId() != 0) // this condition is true only for bus interchange stops
 		{
 			//Create twin bus stop for this interchange stop and add it to road network
@@ -250,7 +249,7 @@ void NetworkLoader::loadBusStops(const std::string& storedProc)
 			}
 			else
 			{
-				throw std::runtime_error("invalid assignment of terminal node for interchange busstop");
+				throw std::runtime_error("Invalid assignment of terminal node for interchange bus stop");
 			}
 			stop->setTwinStop(twinStop);
 			twinStop->setTwinStop(stop);

@@ -2126,6 +2126,11 @@ void Conflux::CreateLaneGroups()
 			//assign downstreamLinks to the last segment stats
 			SegmentStats* lastStats = segStatsList.back();
 			const std::map<unsigned int, TurningGroup *>& turningGroupsFromLnk = cfxNode->getTurningGroups(lnk->getLinkId());
+			if(turningGroupsFromLnk.empty())
+			{
+				throw std::runtime_error("No turngroups found for link");
+			}
+
 			for (std::map<unsigned int, TurningGroup*>::const_iterator tgIt = turningGroupsFromLnk.begin(); tgIt != turningGroupsFromLnk.end(); tgIt++)
 			{
 				const TurningGroup* turnGrp = tgIt->second;

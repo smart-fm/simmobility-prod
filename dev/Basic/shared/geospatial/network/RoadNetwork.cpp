@@ -115,7 +115,7 @@ void RoadNetwork::addLaneConnector(LaneConnector* connector)
 	if (itFromLanes != mapOfIdVsLanes.end() && itToLanes != mapOfIdVsLanes.end())
 	{
 		//Add the outgoing lane connector to the lane
-		itFromLanes->second->setLaneConnector(connector);
+		itFromLanes->second->addLaneConnector(connector);
 
 		//Add the from and to lanes to the lane connector
 		connector->setFromLane(itFromLanes->second);

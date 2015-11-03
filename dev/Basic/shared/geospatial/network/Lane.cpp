@@ -9,7 +9,7 @@ using namespace sim_mob;
 
 Lane::Lane() :
 laneId(0), busLaneRules(BUS_LANE_RULES_CAR_AND_BUS), canVehiclePark(false), canVehicleStop(false), hasRoadShoulder(false),
-isHOV_Allowed(false), laneConnector(NULL), laneIndex(0), parentSegment(NULL), polyLine(NULL), roadSegmentId(0), vehicleMode(0), width(0)
+isHOV_Allowed(false), laneIndex(0), parentSegment(NULL), polyLine(NULL), roadSegmentId(0), vehicleMode(0), width(0)
 {
 }
 
@@ -80,14 +80,14 @@ void Lane::setHighOccupancyVehicleAllowed(bool HighOccupancyVehicleAllowed)
 	isHOV_Allowed = HighOccupancyVehicleAllowed;
 }
 
-const LaneConnector* Lane::getLaneConnector() const
+const std::vector<LaneConnector *>& Lane::getLaneConnector() const
 {
-	return laneConnector;
+	return laneConnectors;
 }
 
-void Lane::setLaneConnector(LaneConnector *laneConnector)
+void Lane::addLaneConnector(LaneConnector *laneConnector)
 {
-	this->laneConnector = laneConnector;
+	this->laneConnectors.push_back(laneConnector);
 }
 
 unsigned int Lane::getLaneIndex() const

@@ -3,7 +3,7 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
-
+#include <vector>
 #include "PolyLine.hpp"
 #include "LaneConnector.hpp"
 #include "RoadSegment.hpp"
@@ -63,7 +63,7 @@ private:
 	bool isHOV_Allowed;
 
 	/**The outgoing lane connector*/
-	LaneConnector *laneConnector;
+	std::vector<LaneConnector *> laneConnectors;
 
 	/**Indicates the index of the lane*/
 	unsigned int laneIndex;
@@ -109,8 +109,7 @@ public:
 	bool isHighOccupancyVehicleAllowed() const;
 	void setHighOccupancyVehicleAllowed(bool HighOccupancyVehicleAllowed);
 
-	const LaneConnector* getLaneConnector() const;
-	void setLaneConnector(LaneConnector *laneConnector);
+	const std::vector<LaneConnector *>& getLaneConnector() const;
 
 	unsigned int getLaneIndex() const;
 
@@ -127,6 +126,12 @@ public:
 	void setWidth(double width);
 
 	double getLength() const;
+
+	/**
+	 * adds a lane connector to the set of out-going lane connections from this lane
+	 * @param laneConnector the lane connection to add
+	 */
+	void addLaneConnector(LaneConnector *laneConnector);
 
 	/**
 	 * Checks if the lane is a pedestrian lane

@@ -370,8 +370,8 @@ void DriverMovement::frame_tick_output()
 		"(\"Driver\"" << "," <<
 		params.now.frame() << "," <<
 		id << ",{" <<
-		"\"xPos\":\"" << static_cast<int> (parentDriver->getCurrPosition().getX()) <<
-		"\",\"yPos\":\"" << static_cast<int> (parentDriver->getCurrPosition().getY()) <<
+		"\"xPos\":\"" << parentDriver->getCurrPosition().getX() <<
+		"\",\"yPos\":\"" << parentDriver->getCurrPosition().getY() <<
 		"\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) <<
 		"\",\"length\":\"" << static_cast<int> (parentDriver->vehicle->getLengthCm()) <<
 		"\",\"width\":\"" << static_cast<int> (parentDriver->vehicle->getWidthCm()) <<

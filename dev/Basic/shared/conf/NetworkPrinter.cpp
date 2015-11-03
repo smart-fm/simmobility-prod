@@ -94,6 +94,7 @@ void NetworkPrinter::PrintSimulationProperties() const
 void NetworkPrinter::PrintNodes(const map<unsigned int, Node *> &nodes) const
 {
 	std::stringstream out;
+	out << std::setprecision(8);
 	
 	for (map<unsigned int, Node *>::const_iterator it = nodes.begin(); it != nodes.end(); ++it)
 	{
@@ -111,6 +112,7 @@ void NetworkPrinter::PrintNodes(const map<unsigned int, Node *> &nodes) const
 void NetworkPrinter::PrintLinks(const map<unsigned int, Link *> &links) const
 {
 	std::stringstream out;
+	out << std::setprecision(8);
 	
 	for (map<unsigned int, Link *>::const_iterator it = links.begin(); it != links.end(); ++it)
 	{
@@ -138,6 +140,7 @@ void NetworkPrinter::PrintLinks(const map<unsigned int, Link *> &links) const
 void NetworkPrinter::PrintSegments(const map<unsigned int, RoadSegment *> &segments) const
 {
 	std::stringstream out;
+	out << std::setprecision(8);
 
 	for (map<unsigned int, RoadSegment *>::const_iterator it = segments.begin(); it != segments.end(); ++it)
 	{
@@ -184,6 +187,7 @@ void NetworkPrinter::PrintSegments(const map<unsigned int, RoadSegment *> &segme
 void NetworkPrinter::PrintLaneConnectors(const map<unsigned int, Lane *> &lanes) const
 {
 	std::stringstream out;
+	out << std::setprecision(8);
 	
 	for(map<unsigned int, Lane *>::const_iterator it = lanes.begin(); it != lanes.end(); ++it)
 	{
@@ -205,6 +209,7 @@ void NetworkPrinter::PrintLaneConnectors(const map<unsigned int, Lane *> &lanes)
 void NetworkPrinter::PrintTurningGroups(const std::map<unsigned int, TurningGroup *>& turningGroups) const
 {
 	std::stringstream out;
+	out << std::setprecision(8);
 
 	for (map<unsigned int, TurningGroup *>::const_iterator it = turningGroups.begin(); it != turningGroups.end(); ++it)
 	{
@@ -222,6 +227,7 @@ void NetworkPrinter::PrintTurningGroups(const std::map<unsigned int, TurningGrou
 void NetworkPrinter::PrintTurnings(const map<unsigned int, TurningPath*>& turnings) const
 {
 	std::stringstream out;
+	out << std::setprecision(8);
 
 	for (map<unsigned int, TurningPath *>::const_iterator it = turnings.begin(); it != turnings.end(); ++it)
 	{
@@ -248,15 +254,16 @@ void NetworkPrinter::PrintTurnings(const map<unsigned int, TurningPath*>& turnin
 void NetworkPrinter::PrintConflicts(const std::map<unsigned int, TurningConflict* >& conflicts) const
 {
 	std::stringstream out;
+	out << std::setprecision(8);
 
 	for (std::map<unsigned int, TurningConflict* >::const_iterator it = conflicts.begin(); it != conflicts.end(); ++it)
 	{
 		const TurningConflict *conflict = it->second;
 		out << "\n(\"conflict\", 0, " << conflict->getConflictId() << ", {";
 		out << "\"turning-1\":\"" << conflict->getFirstTurningId() << "\",";
-		out << std::setprecision(8) << "\"conflict-dist-1\":\"" << conflict->getFirstConflictDistance() << "\",";
+		out << "\"conflict-dist-1\":\""<< std::setprecision(8) << conflict->getFirstConflictDistance() << "\",";
 		out << "\"turning-2\":\"" << conflict->getSecondTurningId() << "\",";
-		out << std::setprecision(8) << "\"conflict-dist-2\":\"" << conflict->getSecondConflictDistance() << "\",";
+		out << "\"conflict-dist-2\":\"" << std::setprecision(8) << conflict->getSecondConflictDistance() << "\",";
 		out << "})";
 	}
 

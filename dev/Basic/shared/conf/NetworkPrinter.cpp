@@ -186,7 +186,7 @@ void NetworkPrinter::PrintLaneConnectors(const map<unsigned int, Lane *> &lanes)
 	
 	for(map<unsigned int, Lane *>::const_iterator it = lanes.begin(); it != lanes.end(); ++it)
 	{
-		const LaneConnector *connector = it->second->getLaneConnector();
+		const LaneConnector *connector = it->second->getLaneConnectors();
 		out << "\n(\"lane-connector\", " << connector->getLaneConnectionId() << ", {";
 		out << "\"from-segment\":\"" << connector->getFromRoadSegmentId() << "\",";
 		out << "\"from-lane\":\"" << connector->getFromLaneId() << "\",";

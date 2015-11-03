@@ -109,7 +109,7 @@ public:
 	bool isHighOccupancyVehicleAllowed() const;
 	void setHighOccupancyVehicleAllowed(bool HighOccupancyVehicleAllowed);
 
-	const std::vector<LaneConnector *>& getLaneConnector() const;
+	const std::vector<LaneConnector *>& getLaneConnectors() const;
 
 	unsigned int getLaneIndex() const;
 

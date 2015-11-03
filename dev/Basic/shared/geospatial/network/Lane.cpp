@@ -80,7 +80,7 @@ void Lane::setHighOccupancyVehicleAllowed(bool HighOccupancyVehicleAllowed)
 	isHOV_Allowed = HighOccupancyVehicleAllowed;
 }
 
-const std::vector<LaneConnector *>& Lane::getLaneConnector() const
+const std::vector<LaneConnector *>& Lane::getLaneConnectors() const
 {
 	return laneConnectors;
 }

@@ -15,7 +15,7 @@ isHOV_Allowed(false), laneIndex(0), parentSegment(NULL), polyLine(NULL), roadSeg
 
 Lane::~Lane()
 {
-	safe_delete_item(laneConnector);
+	clear_delete_vector(laneConnectors);
 	safe_delete_item(polyLine);
 }
 

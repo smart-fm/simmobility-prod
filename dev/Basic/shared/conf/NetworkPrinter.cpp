@@ -186,13 +186,17 @@ void NetworkPrinter::PrintLaneConnectors(const map<unsigned int, Lane *> &lanes)
 	
 	for(map<unsigned int, Lane *>::const_iterator it = lanes.begin(); it != lanes.end(); ++it)
 	{
-		const LaneConnector *connector = it->second->getLaneConnectors();
-		out << "\n(\"lane-connector\", " << connector->getLaneConnectionId() << ", {";
-		out << "\"from-segment\":\"" << connector->getFromRoadSegmentId() << "\",";
-		out << "\"from-lane\":\"" << connector->getFromLaneId() << "\",";
-		out << "\"to-segment\":\"" << connector->getToRoadSegmentId() << "\",";
-		out << "\"to-lane\":\"" << connector->getToLaneId() << "\",";
-		out << "})";
+		const std::vector<LaneConnector *> connectors = it->second->getLaneConnectors();
+		for(std::vector<LaneConnector *>::const_iterator lcIt=connectors.begin(); lcIt!=connectors.end(); lcIt++)
+		{
+			LaneConnector *connector = *lcIt;
+			out << "\n(\"lane-connector\", " << connector->getLaneConnectionId() << ", {";
+			out << "\"from-segment\":\"" << connector->getFromRoadSegmentId() << "\",";
+			out << "\"from-lane\":\"" << connector->getFromLaneId() << "\",";
+			out << "\"to-segment\":\"" << connector->getToRoadSegmentId() << "\",";
+			out << "\"to-lane\":\"" << connector->getToLaneId() << "\",";
+			out << "})";
+		}
 	}
 
 	PrintToFileAndGui(out);

@@ -7,6 +7,11 @@
 
 using namespace sim_mob;
 
+namespace
+{
+const std::map<unsigned int, TurningGroup *> EMPTY_MAP;
+}
+
 Node::Node() :
 nodeId(0), location(), nodeType(DEFAULT_NODE), trafficLightId(0)
 {
@@ -138,13 +143,12 @@ const TurningGroup* Node::getTurningGroup(unsigned int fromLinkId, unsigned int 
 const std::map<unsigned int, TurningGroup *>& Node::getTurningGroups(unsigned int fromLinkId) const
 {
 	std::map<unsigned int, std::map<unsigned int, TurningGroup *> >::const_iterator it = turningGroups.find(fromLinkId);
-	
 	if(it != turningGroups.end())
 	{
-		return &(it->second);
+		return (it->second);
 	}
 	else
 	{
-		return NULL;
+		return EMPTY_MAP;
 	}
 }

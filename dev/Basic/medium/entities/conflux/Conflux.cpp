@@ -14,6 +14,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "config/MT_Config.hpp"
+#include "entities/BusStopAgent.hpp"
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/Entity.hpp"
 #include "entities/misc/TripChain.hpp"
@@ -1329,8 +1330,7 @@ void Conflux::assignPersonToBusStopAgent(Person_MT* person)
 			} //sanity check
 		}
 
-		const StreetDirectory& strDirectory = StreetDirectory::instance();
-		Agent* busStopAgent = strDirectory.findBusStopAgentByBusStop(stop);
+		BusStopAgent* busStopAgent = BusStopAgent::getBusStopAgentForStop(stop);
 		if (busStopAgent)
 		{
 			messaging::MessageBus::SendMessage(busStopAgent, MSG_WAITING_PERSON_ARRIVAL, messaging::MessageBus::MessagePtr(new ArrivalAtStopMessage(person)));
@@ -2138,8 +2138,8 @@ void Conflux::CreateLaneGroups()
 				const std::map<unsigned int, TurningPath*>& turnPaths = turnGrp->getTurningPaths();
 				for(std::map<unsigned int, TurningPath*>::const_iterator tpIt=turnPaths.begin(); tpIt!=turnPaths.end(); tpIt++)
 				{
-					const TurningPath* turnPth = tpIt->second;
-					lastStats->laneStatsMap.at(turnPth->getFromLane())->addDownstreamLink(downStreamLink); //duplicates are eliminated by the std::set containing the downstream links
+					const TurningPath* turnPath = tpIt->second;
+					lastStats->laneStatsMap.at(turnPath->getFromLane())->addDownstreamLink(downStreamLink); //duplicates are eliminated by the std::set containing the downstream links
 				}
 			}
 
@@ -2150,10 +2150,20 @@ void Conflux::CreateLaneGroups()
 				{
 					continue;
 				}
-				const std::set<const Link*>& downstreamLnks = lnStatsIt->second->getDownstreamLinks();
+				LaneStats* lnStats = lnStatsIt->second;
+				const std::set<const Link*>& downstreamLnks = lnStats->getDownstreamLinks();
+				if(downstreamLnks.empty())
+				{
+					std::stringstream err;
+					err << "no downstream links found for lane " << lnStatsIt->first->getLaneId()
+							<< "in last segment " << lnStatsIt->first->getParentSegment()->getRoadSegmentId()
+							<< "of link " << lnStatsIt->first->getParentSegment()->getParentLink()->getLinkId()
+							<< "\n";
+					throw std::runtime_error(err.str());
+				}
 				for (std::set<const Link*>::const_iterator dnStrmIt = downstreamLnks.begin(); dnStrmIt != downstreamLnks.end(); dnStrmIt++)
 				{
-					lastStats->laneGroup[*dnStrmIt].push_back(lnStatsIt->second);
+					lastStats->laneGroup[*dnStrmIt].push_back(lnStats);
 				}
 			}
 
@@ -2172,7 +2182,7 @@ void Conflux::CreateLaneGroups()
 					for (std::vector<Lane*>::const_iterator lnIt = currLanes.begin(); lnIt != currLanes.end(); lnIt++)
 					{
 						const Lane* ln = (*lnIt);
-						if (ln->is_pedestrian_lane())
+						if (ln->isPedestrianLane())
 						{
 							continue;
 						}
@@ -2183,33 +2193,18 @@ void Conflux::CreateLaneGroups()
 				}
 				else
 				{
-					const UniNode* uninode = dynamic_cast<const UniNode*>(currSeg->getEnd());
-					if (!uninode)
-					{
-						throw std::runtime_error("Multinode found in the middle of a link");
-					}
 					for (std::vector<Lane*>::const_iterator lnIt = currLanes.begin(); lnIt != currLanes.end(); lnIt++)
 					{
 						const Lane* ln = (*lnIt);
-						if (ln->is_pedestrian_lane())
+						if (ln->isPedestrianLane())
 						{
 							continue;
 						}
 						LaneStats* currLnStats = currSegStats->laneStatsMap.at(ln);
-						const UniNode::UniLaneConnector uniLnConnector = uninode->getForwardLanes(*ln);
-						if (uniLnConnector.left)
+						const std::vector<LaneConnector*>& lnConnectors = ln->getLaneConnectors();
+						for(std::vector<LaneConnector*>::const_iterator lcIt=lnConnectors.begin(); lcIt!=lnConnectors.end(); lcIt++)
 						{
-							const LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(uniLnConnector.left);
-							currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
-						}
-						if (uniLnConnector.right)
-						{
-							const LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(uniLnConnector.right);
-							currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
-						}
-						if (uniLnConnector.center)
-						{
-							const LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at(uniLnConnector.center);
+							const LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap((*lcIt)->getToLane());
 							currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
 						}
 					}
@@ -2223,6 +2218,15 @@ void Conflux::CreateLaneGroups()
 						continue;
 					}
 					const std::set<const Link*>& downstreamLnks = lnStatsIt->second->getDownstreamLinks();
+					if(downstreamLnks.empty())
+					{
+						std::stringstream err;
+						err << "no downstream links found for lane " << lnStatsIt->first->getLaneId()
+								<< "in segment " << lnStatsIt->first->getParentSegment()->getRoadSegmentId()
+								<< "of link " << lnStatsIt->first->getParentSegment()->getParentLink()->getLinkId()
+								<< "\n";
+						throw std::runtime_error(err.str());
+					}
 					for (std::set<const Link*>::const_iterator dnStrmIt = downstreamLnks.begin(); dnStrmIt != downstreamLnks.end(); dnStrmIt++)
 					{
 						currSegStats->laneGroup[*dnStrmIt].push_back(lnStatsIt->second);

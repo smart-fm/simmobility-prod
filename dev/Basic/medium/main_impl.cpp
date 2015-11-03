@@ -260,7 +260,6 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 			sim_mob::medium::BusStopAgent* busStopAgent = new sim_mob::medium::BusStopAgent(mtx, -1, stop, stats);
 			stats->addBusStopAgent(busStopAgent);
 			BusStopAgent::registerBusStopAgent(busStopAgent);
-			strDirectory.registerStopAgent(stop, busStopAgent);
 		}
 	}
 	//Save handles to definition of configurations.

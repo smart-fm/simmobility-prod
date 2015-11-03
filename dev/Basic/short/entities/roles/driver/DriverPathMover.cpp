@@ -206,6 +206,38 @@ const Link* DriverPathMover::getNextLink() const
 	return nextLink;
 }
 
+const Lane* DriverPathMover::getNextLane() const
+{
+	const Lane *nextLane = NULL;
+	
+	if(currLane)
+	{
+		//Use the lane connectors to find the next lane
+		
+		//Get all the connectors that are physically connected to the next segment
+		std::vector<const LaneConnector *> trueConnections;
+		currLane->getPhysicalConnectors(trueConnections);
+		
+		if(!trueConnections.empty())
+		{
+			//Try to choose the one in the middle
+			unsigned int midConnection = trueConnections.size() / 2;
+			nextLane = trueConnections.at(midConnection)->getToLane();
+		}
+		else
+		{
+			std::stringstream msg;
+			msg << "Lane " << currLane->getLaneId() << "is not physically connected to any lane in the next segment ";
+			throw std::runtime_error(msg.str());
+		}
+	}
+	else
+	{
+		nextLane = currTurning->getToLane();
+	}
+	
+	return nextLane;
+}
 
 void DriverPathMover::setPath(const std::vector<WayPoint> &path, int startLaneIndex, int startSegmentId)
 {
@@ -380,9 +412,8 @@ double DriverPathMover::advanceToNextPolyLine()
 				{
 					inIntersection = false;
 					
-					//Use the lane connector to get the next lane
-					const LaneConnector *connector = currLane->getLaneConnector();
-					currLane = connector->getToLane();
+					//Get the next lane					
+					currLane = getNextLane();
 					currPolyLine = currLane->getPolyLine();
 				}
 				else
@@ -414,7 +445,7 @@ double DriverPathMover::advanceToNextPolyLine()
 				inIntersection = false;
 				
 				//Use the current turning to get the next lane
-				currLane = currTurning->getToLane();
+				currLane = getNextLane();
 				currPolyLine = currLane->getPolyLine();
 				currTurning = NULL;
 			}

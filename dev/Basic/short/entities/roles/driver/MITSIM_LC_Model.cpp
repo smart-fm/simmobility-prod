@@ -1960,17 +1960,24 @@ int MITSIM_LC_Model::isLaneConnectedToNextWayPt(DriverUpdateParams &params, set<
 		std::vector<Lane *>::const_iterator itLanes = currLane->getParentSegment()->getLanes().begin();
 		while (itLanes != currLane->getParentSegment()->getLanes().end())
 		{
-			if ((*itLanes)->getLaneConnector())
+			//Check the physical lane connectors
+			std::vector<const LaneConnector *> connectors;
+			(*itLanes)->getPhysicalConnectors(connectors);
+			
+			//If at least one lane connector is physically connected to the next segment, 
+			//add the lane to the target lanes
+			if(!connectors.empty())
 			{
 				targetLanes.insert(*itLanes);
-			}
+			}			
 			++itLanes;
 		}
 
 		//Check if we have a connector to the next segment		
-		const LaneConnector *connector = currLane->getLaneConnector();
-
-		if (!connector)
+		std::vector<const LaneConnector *> connectors;
+		currLane->getPhysicalConnectors(connectors);
+		
+		if (connectors.empty())
 		{
 			//No lane connector for this lane, so we need to change lane
 			double distToStop = driverMvt->fwdDriverMovement.getDistToEndOfCurrWayPt();
@@ -2248,9 +2255,10 @@ void MITSIM_LC_Model::setLaneConnectionStatus(DriverUpdateParams &params)
 	{
 		//Check if we have a connector to the next segment from the current, left and right lanes
 
-		const LaneConnector *connector = currLane->getLaneConnector();
+		std::vector<const LaneConnector *> connectors;
+		currLane->getPhysicalConnectors(connectors);
 
-		if (connector)
+		if (!connectors.empty())
 		{
 			params.setStatus(STATUS_CURRENT_LANE_OK, STATUS_YES, str);
 		}
@@ -2261,9 +2269,10 @@ void MITSIM_LC_Model::setLaneConnectionStatus(DriverUpdateParams &params)
 
 		if (params.leftLane)
 		{
-			connector = params.leftLane->getLaneConnector();
+			connectors.clear();
+			params.leftLane->getPhysicalConnectors(connectors);
 
-			if (connector)
+			if (!connectors.empty())
 			{
 				params.setStatus(STATUS_LEFT_SIDE_OK, STATUS_YES, str);
 			}
@@ -2275,9 +2284,10 @@ void MITSIM_LC_Model::setLaneConnectionStatus(DriverUpdateParams &params)
 
 		if (params.rightLane)
 		{
-			connector = params.rightLane->getLaneConnector();
+			connectors.clear();
+			params.rightLane->getPhysicalConnectors(connectors);
 
-			if (connector)
+			if (!connectors.empty())
 			{
 				params.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_YES, str);
 			}

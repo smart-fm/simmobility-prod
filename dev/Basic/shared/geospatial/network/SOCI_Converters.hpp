@@ -205,6 +205,7 @@ template<> struct type_conversion<sim_mob::LaneConnector>
 		res.setFromRoadSegmentId(vals.get<unsigned int>("from_segment", 0));
 		res.setToLaneId(vals.get<unsigned int>("to_lane", 0));
 		res.setToRoadSegmentId(vals.get<unsigned int>("to_segment", 0));
+		res.setIsTrueConnector(vals.get<unsigned int>("is_true_connector", 0));
 	}
 };
 

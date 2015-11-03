@@ -7,7 +7,7 @@
 using namespace sim_mob;
 
 LaneConnector::LaneConnector() :
-laneConnectionId(0), fromLaneId(0), fromRoadSegmentId(0), toLaneId(0), toRoadSegmentId(0)
+laneConnectionId(0), fromLaneId(0), fromRoadSegmentId(0), toLaneId(0), toRoadSegmentId(0), isTrueConnection(false)
 {
 }
 
@@ -83,5 +83,15 @@ unsigned int LaneConnector::getToRoadSegmentId() const
 void LaneConnector::setToRoadSegmentId(unsigned int toRoadSectionId)
 {
 	this->toRoadSegmentId = toRoadSectionId;
+}
+
+void LaneConnector::setIsTrueConnector(bool TrueConnector)
+{
+	isTrueConnection = TrueConnector;
+}
+
+bool LaneConnector::isTrueConnector() const
+{
+	return isTrueConnection;
 }
 

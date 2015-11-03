@@ -120,6 +120,8 @@ public:
 	const Link* getCurrLink() const;
 	const Link* getNextLink() const;
 
+	const Lane* getNextLane() const;
+
 	/**
 	 * Sets the driving path and initialises the internal members to point to the elements in the path
 	 *

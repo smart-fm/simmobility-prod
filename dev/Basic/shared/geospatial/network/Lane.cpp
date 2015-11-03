@@ -15,7 +15,7 @@ isHOV_Allowed(false), laneIndex(0), parentSegment(NULL), polyLine(NULL), roadSeg
 
 Lane::~Lane()
 {
-	safe_delete_item(laneConnector);
+	clear_delete_vector(laneConnectors);
 	safe_delete_item(polyLine);
 }
 
@@ -80,9 +80,20 @@ void Lane::setHighOccupancyVehicleAllowed(bool HighOccupancyVehicleAllowed)
 	isHOV_Allowed = HighOccupancyVehicleAllowed;
 }
 
-const std::vector<LaneConnector *>& Lane::getLaneConnector() const
+const std::vector<LaneConnector *>& Lane::getLaneConnectors() const
 {
 	return laneConnectors;
+}
+
+void Lane::getPhysicalConnectors(std::vector<const LaneConnector *> &phyConnectors) const
+{
+	for(std::vector<LaneConnector *>::const_iterator it = laneConnectors.begin(); it != laneConnectors.end(); ++it)
+	{
+		if((*it)->isTrueConnector())
+		{
+			phyConnectors.push_back(*it);
+		}
+	}
 }
 
 void Lane::addLaneConnector(LaneConnector *laneConnector)

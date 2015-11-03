@@ -1008,11 +1008,12 @@ void DriverMovement::getConnectedLanesInLookAheadDistance(double lookAheadDist, 
 			{
 				//The next way point is a road segment. If we have a lane connector, then we're connected to it
 				
-				const LaneConnector *connector = lane->getLaneConnector();
+				std::vector<const LaneConnector *> connectors;
+				lane->getPhysicalConnectors(connectors);
 				
-				if (connector)
+				if (!connectors.empty())
 				{
-					lane = connector->getToLane();
+					lane = connectors[connectors.size() / 2]->getToLane();
 				}
 				else
 				{
@@ -1057,9 +1058,20 @@ bool DriverMovement::isLaneConnectedToSegment(const Lane *fromLane, const RoadSe
 	if(fromSegment->getLinkId() == toSegment->getLinkId())
 	{
 		//They're in the same link. Use the lane connector to check the connection
-		if(fromLane->getLaneConnector()->getToRoadSegmentId() == toSegment->getRoadSegmentId())
+		
+		std::vector<const LaneConnector *> connectors;
+		fromLane->getPhysicalConnectors(connectors);
+		
+		std::vector<const LaneConnector *>::const_iterator itConnectors = connectors.begin();
+		
+		while(itConnectors != connectors.end())
 		{
-			isLaneConnected = true;
+			if ((*itConnectors)->getFromRoadSegmentId() == toSegment->getRoadSegmentId())
+			{
+				isLaneConnected = true;
+				break;
+			}
+			++itConnectors;
 		}
 	}
 	else
@@ -1524,7 +1536,7 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 			//Vehicle is on the next segment
 			
 			const Lane *currLane = fwdDriverMovement.getCurrLane();
-			const Lane *nextLane = currLane->getLaneConnector()->getToLane();
+			const Lane *nextLane = fwdDriverMovement.getNextLane();
 			unsigned int nextLaneIndex = nextLane->getLaneIndex();
 			
 			const Lane *leftOfNextLane = NULL;
@@ -1676,7 +1688,7 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 		//Merging in car following
 		if (fwdDriverMovement.getCurrLink()->getToNode() == otherSegment->getParentLink()->getToNode())
 		{
-			unsigned int nextLaneIndex = fwdDriverMovement.getCurrLane()->getLaneConnector()->getToLane()->getLaneIndex();
+			unsigned int nextLaneIndex = fwdDriverMovement.getNextLane()->getLaneIndex();
 			unsigned int otherLaneIndex = otherLane->getLaneIndex();
 			
 			if (nextLaneIndex == otherLaneIndex)

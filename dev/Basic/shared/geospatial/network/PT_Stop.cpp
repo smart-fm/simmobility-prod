@@ -7,7 +7,7 @@
 #include "RoadSegment.hpp"
 #include "Lane.hpp"
 #include "Point.hpp"
-#include "util/DynamicVector.cpp"
+#include "util/DynamicVector.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/Utils.hpp"
 #include "RoadNetwork.hpp"

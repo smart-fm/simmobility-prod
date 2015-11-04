@@ -8,7 +8,6 @@
 #include <string>
 #include <soci/soci.h>
 #include <soci/postgresql/soci-postgresql.h>
-#include "RoadNetwork.hpp"
 
 using namespace std;
 

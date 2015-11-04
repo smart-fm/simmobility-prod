@@ -11,7 +11,7 @@
 #include "util/GeomHelpers.hpp"
 #include "util/LangHelpers.hpp"
 #include "RoadItem.hpp"
-#include "geospatial/network/NetworkLoader.cpp"
+#include "NetworkLoader.hpp"
 
 using namespace sim_mob;
 

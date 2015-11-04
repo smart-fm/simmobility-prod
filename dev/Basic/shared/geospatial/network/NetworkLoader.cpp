@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include "logging/Log.hpp"
 #include "SOCI_Converters.hpp"
+#include "RoadNetwork.hpp"
 
 using namespace sim_mob;
 

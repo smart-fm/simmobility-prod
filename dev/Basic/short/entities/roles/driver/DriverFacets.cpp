@@ -608,7 +608,7 @@ bool DriverMovement::updatePostMovement()
 void DriverMovement::checkForStoppingPoints(DriverUpdateParams &params)
 {
 	//Get the distance to stopping point in the current link
-	double distance = getDistanceToStopPoint(params.stopPointPerDis);
+	double distance = getDistanceToStopPoint(params.stopVisibilityDistance);
 
 	if (abs(distance) < 50)
 	{
@@ -1873,7 +1873,7 @@ void DriverMovement::updateLateralMovement(DriverUpdateParams &params)
 		}
 
 		params.unsetStatus(STATUS_CHANGING);
-		params.lcTimeTag = params.now.ms();
+		params.laneChangeTime = params.now.ms();
 
 		//Lane change complete, unset the "performing lane change" status
 		params.unsetStatus(STATUS_LC_CHANGING);

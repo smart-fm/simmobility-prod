@@ -127,7 +127,7 @@ void MITSIM_LC_Model::readDriverParameters(DriverUpdateParams &params)
 	parameterMgr->param(modelName, "Target_Gap_Model", str, string("-0.837   0.913  0.816  -1.218  -2.393  -1.662"));
 	Utils::convertStringToArray(str, params.targetGapParams);
 
-	parameterMgr->param(modelName, "check_stop_point_distance", params.stopPointPerDis, 100.0);
+	parameterMgr->param(modelName, "check_stop_point_distance", params.stopVisibilityDistance, 100.0);
 }
 
 double MITSIM_LC_Model::calcCriticalGapKaziModel(DriverUpdateParams &params, int type, double distance, double diffInSpeed)
@@ -477,7 +477,7 @@ void MITSIM_LC_Model::makeNosingParams(DriverUpdateParams &params, string &str)
 	lcMaxNosingDis = params.nosingParams[8];
 	lcMaxStuckTime = params.nosingParams[7];
 	lcNosingConstStateTime = params.nosingParams[0];
-	params.lcMaxNosingTime = params.nosingParams[6];
+	params.lcMaxYieldingTime = params.nosingParams[6];
 }
 
 void MITSIM_LC_Model::makeKaziNosingParams(string &str)
@@ -588,7 +588,6 @@ LaneChangeTo MITSIM_LC_Model::checkForLC_WithLookAhead(DriverUpdateParams &param
 
 	double rnd = Utils::generateFloat(0, 1);
 	if (rnd >= 1.0) rnd = 0.99;
-	params.rnd = rnd;
 	params.lcDebugStr << ";rnd" << rnd;
 	float probOfCurrentLane = euc / sum;
 	params.lcDebugStr << ";pc" << probOfCurrentLane;
@@ -1319,7 +1318,6 @@ LaneChangeTo MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdateParams &param
 	params.utilityCurrent = 0;
 	params.utilityLeft = 0;
 	params.utilityRight = 0;
-	params.rnd = 0;
 
 	//Update the lane connectivity status
 	setLaneConnectionStatus(params);
@@ -1769,7 +1767,7 @@ double MITSIM_LC_Model::calculateLateralVelocity(LaneChangeTo &change)
 double MITSIM_LC_Model::timeSinceTagged(DriverUpdateParams &params)
 {
 	double currentTime = params.now.ms();
-	double t = (currentTime - params.lcTimeTag) / 1000.0; //convert ms to s
+	double t = (currentTime - params.laneChangeTime) / 1000.0; //convert ms to s
 	return t;
 }
 

@@ -657,7 +657,7 @@ double MITSIM_CF_Model::calcCarFollowingAcc(DriverUpdateParams &params, NearestV
 	
 	//Unset status
 	params.unsetStatus(STATUS_REGIME_EMERGENCY);
-	params.space = params.perceivedDistToFwdCar;
+	params.gapBetnVehicles = params.perceivedDistToFwdCar;
 
 	debugStr << "t" << params.now.frame();
 
@@ -673,25 +673,24 @@ double MITSIM_CF_Model::calcCarFollowingAcc(DriverUpdateParams &params, NearestV
 		debugStr << "ELSE;";
 		// when nv is left/right vh , can not use perceivedxxx!
 		// create perceived left,right varialbe
-		params.v_lead = params.perceivedFwdVelocityOfFwdCar / 100;
-		params.a_lead = params.perceivedAccelerationOfFwdCar / 100;
+		params.velocityLeadVehicle = params.perceivedFwdVelocityOfFwdCar / 100;
+		params.accLeadVehicle = params.perceivedAccelerationOfFwdCar / 100;
 
 		double dt = params.nextStepSize;
 		float auxspeed =
 				params.perceivedFwdVelocity / 100 == 0 ?
 				0.00001 : params.perceivedFwdVelocity / 100;
 
-		float headway = 2.0 * params.space
+		float headway = 2.0 * params.gapBetnVehicles
 				/ (auxspeed + params.perceivedFwdVelocity / 100);
 
-		debugStr << "+" << headway << "+" << params.space << "+" << auxspeed << "+"
+		debugStr << "+" << headway << "+" << params.gapBetnVehicles << "+" << auxspeed << "+"
 				<< params.perceivedFwdVelocity << ";";
 
 		double emergSpace = nearestVehicle.distance / 100;
 
 		debugStr << emergSpace << ";";
 
-		params.emergHeadway = -1;
 		if (emergSpace <= params.driver->getVehicleLength())
 		{
 			double speed = params.perceivedFwdVelocity / 100;
@@ -700,16 +699,15 @@ double MITSIM_CF_Model::calcCarFollowingAcc(DriverUpdateParams &params, NearestV
 			if (emergHeadway < hBufferLower)
 			{
 				//We need to brake. Override.
-				params.space = emergSpace;
+				params.gapBetnVehicles = emergSpace;
 				headway = emergHeadway;
 			}
-			params.emergHeadway = emergHeadway;
 
 			debugStr << "EM;" << emergHeadway << ";";
 		}
 
-		float v = params.v_lead + params.a_lead * dt;
-		params.space_star = params.space + 0.5 * (params.v_lead + v) * dt;
+		float v = params.velocityLeadVehicle + params.accLeadVehicle * dt;
+		params.spaceStar = params.gapBetnVehicles + 0.5 * (params.velocityLeadVehicle + v) * dt;
 		if (headway < hBufferLower)
 		{
 			res = accOfEmergencyDecelerating(params);
@@ -935,13 +933,13 @@ double MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p)
 		// Make sure a vehicle will not yield infinitely.
 		uint32_t dt_sec = convertFrmMillisecondToSecond(p.now.ms() - p.yieldTime.ms());
 		p.lcDebugStr << ";dt" << dt_sec;
-		if (dt_sec > p.lcMaxNosingTime)
+		if (dt_sec > p.lcMaxYieldingTime)
 		{
 			p.driver->setYieldingToDriver(NULL);
 			p.unsetFlag(FLAG_YIELDING);
 			p.lcDebugStr << ";yd1";
 			return p.maxAcceleration;
-		} //end of lcMaxNosingTime
+		}
 
 		// This vehicle is yielding to another vehicle
 
@@ -1167,9 +1165,9 @@ double MITSIM_CF_Model::calcDesiredSpeed(
 												  DriverUpdateParams& p)
 {
 	double signedSpeed;
-	if (p.speedOnSign)
+	if (p.speedLimit)
 	{
-		signedSpeed = p.speedOnSign;
+		signedSpeed = p.speedLimit;
 	}
 	else
 	{
@@ -1350,13 +1348,13 @@ double MITSIM_CF_Model::calcStopPointRate(DriverUpdateParams& p)
 		debugStr << "SP-Arrive0;";
 		acc = -10;
 		p.stopPointState = DriverUpdateParams::WAITING_AT_STOP_POINT;
-		p.startStopTime = p.now.ms();
+		p.stopTimeTimer = p.now.ms();
 	}
 	if (p.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT)
 	{
 		debugStr << "SP-Waiting;";
 		double currentTime = p.now.ms();
-		double t = (currentTime - p.startStopTime) / 1000.0; // convert ms to s
+		double t = (currentTime - p.stopTimeTimer) / 1000.0; // convert ms to s
 
 		debugStr << "SPt;" << t;
 
@@ -1473,7 +1471,7 @@ double MITSIM_CF_Model::accOfEmergencyDecelerating(
 															DriverUpdateParams& p)
 {
 	double v = p.perceivedFwdVelocity / 100;
-	double dv = v - p.v_lead;
+	double dv = v - p.velocityLeadVehicle;
 	double epsilon_v = Math::DOUBLE_EPSILON;
 	if (v < epsilon_v) return 0;
 	double aNormalDec = p.normalDeceleration;
@@ -1481,19 +1479,19 @@ double MITSIM_CF_Model::accOfEmergencyDecelerating(
 	double a;
 	if (dv < epsilon_v)
 	{
-		a = p.a_lead + 0.25 * aNormalDec;
+		a = p.accLeadVehicle + 0.25 * aNormalDec;
 	}
-	else if (p.space > 0.01)
+	else if (p.gapBetnVehicles > 0.01)
 	{
-		a = p.a_lead - dv * dv / 2 / p.space;
+		a = p.accLeadVehicle - dv * dv / 2 / p.gapBetnVehicles;
 	}
 	else
 	{
 		//double dt	=	p.elapsedSeconds;
 		double dt = p.nextStepSize;
-		//p.space_star	=	p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
-		double s = p.space_star;
-		double v = p.v_lead + p.a_lead * dt;
+		//p.spaceStar	=	p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
+		double s = p.spaceStar;
+		double v = p.velocityLeadVehicle + p.accLeadVehicle * dt;
 		a = brakeToTargetSpeed(p, s, v);
 	}
 	return min(p.normalDeceleration, a);
@@ -1504,8 +1502,8 @@ double MITSIM_CF_Model::accOfCarFollowing(DriverUpdateParams& p)
 
 	double density = p.density;
 	double v = p.perceivedFwdVelocity / 100;
-	int i = (v > p.v_lead) ? 1 : 0;
-	double dv = (v > p.v_lead) ? (v - p.v_lead) : (p.v_lead - v);
+	int i = (v > p.velocityLeadVehicle) ? 1 : 0;
+	double dv = (v > p.velocityLeadVehicle) ? (v - p.velocityLeadVehicle) : (p.velocityLeadVehicle - v);
 
 	double res = CF_parameters[i].alpha * pow(v, CF_parameters[i].beta)
 			/ pow(p.nvFwd.distance / 100, CF_parameters[i].gama);
@@ -1538,16 +1536,16 @@ double MITSIM_CF_Model::calcFreeFlowingAcc(DriverUpdateParams &params, double ta
 double MITSIM_CF_Model::accOfMixOfCFandFF(DriverUpdateParams& p,
 												   double targetSpeed, double maxLaneSpeed)
 {
-	if (p.space > p.distanceToNormalStop)
+	if (p.gapBetnVehicles > p.distanceToNormalStop)
 	{
 		return calcFreeFlowingAcc(p, targetSpeed, maxLaneSpeed);
 	}
 	else
 	{
 		double dt = p.nextStepSize;
-		//p.space_star	=	p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
-		double s = p.space_star;
-		double v = p.v_lead + p.a_lead * dt;
+		//p.spaceStar	=	p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
+		double s = p.spaceStar;
+		double v = p.velocityLeadVehicle + p.accLeadVehicle * dt;
 		return brakeToTargetSpeed(p, s, v);
 	}
 }

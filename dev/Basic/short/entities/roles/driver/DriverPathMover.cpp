@@ -154,6 +154,18 @@ const RoadSegment* DriverPathMover::getCurrSegment() const
 	}
 }
 
+const Link* DriverPathMover::getCurrLink() const
+{
+	if (currLane)
+	{
+		return currLane->getParentSegment()->getParentLink();
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
 const RoadSegment* DriverPathMover::getNextSegment() const
 {
 	const RoadSegment *nextSeg = NULL;
@@ -174,17 +186,19 @@ const RoadSegment* DriverPathMover::getNextSegment() const
 	return nextSeg;
 }
 
-const Link* DriverPathMover::getCurrLink() const
+const RoadSegment* DriverPathMover::getNextSegInNextLink() const
 {
-	if (currLane)
+	const RoadSegment *nextSeg = NULL;
+	const Link *nextLink = getNextLink();
+	
+	if(nextLink)
 	{
-		return currLane->getParentSegment()->getParentLink();
+		nextSeg = nextLink->getRoadSegment(0);
 	}
-	else
-	{
-		return NULL;
-	}
+	
+	return nextSeg;
 }
+
 
 const Link* DriverPathMover::getNextLink() const
 {

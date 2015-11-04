@@ -82,7 +82,7 @@ void DriverMovement::init()
 	params.parentId = parent->getId();
 
 	//Create the driving models
-	lcModel = new MITSIM_LC_Model(params);
+	lcModel = new MITSIM_LC_Model(params, &fwdDriverMovement);
 	cfModel = new MITSIM_CF_Model(params);
 	intModel = new MITSIM_IntDriving_Model(params);
 

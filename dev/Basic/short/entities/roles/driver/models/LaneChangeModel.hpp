@@ -9,6 +9,7 @@
 #include "conf/params/ParameterManager.hpp"
 #include "geospatial/network/Lane.hpp"
 #include "entities/models/Constants.h"
+#include "entities/roles/driver/DriverPathMover.hpp"
 #include "entities/roles/driver/DriverUpdateParams.hpp"
 
 namespace sim_mob
@@ -28,8 +29,13 @@ protected:
 	/**The delimiter to split the parameters specified in the XML file*/
 	string splitDelimiter;
 
-public:
+	/**The pointer to the driver path mover object*/
+	DriverPathMover *fwdDriverMovement;
 
+public:
+	LaneChangingModel(DriverPathMover *pathMover) : fwdDriverMovement(pathMover)
+	{
+	}
 	virtual ~LaneChangingModel()
 	{
 	}
@@ -379,7 +385,7 @@ private:
 	double calcCriticalGapKaziModel(DriverUpdateParams &params, int type, double distance, double diffInSpeed);
 
 public:
-	MITSIM_LC_Model(DriverUpdateParams& params);
+	MITSIM_LC_Model(DriverUpdateParams &params, DriverPathMover *pathMover);
 	virtual ~MITSIM_LC_Model();
 
 	/**

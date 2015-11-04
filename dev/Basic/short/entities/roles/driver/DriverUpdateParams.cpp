@@ -122,12 +122,6 @@ void DriverUpdateParams::unsetStatus(unsigned int s)
 	status &= ~s;
 }
 
-const RoadSegment* DriverUpdateParams::nextLink()
-{
-	DriverMovement *driverMvt = (DriverMovement*) driver->Movement();
-	return driverMvt->fwdDriverMovement.getNextLink()->getRoadSegment(0);
-}
-
 double DriverUpdateParams::lcMinGap(int type)
 {
 	std::vector<double> b = LC_GAP_MODELS[type];

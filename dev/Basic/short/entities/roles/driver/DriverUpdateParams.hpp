@@ -478,11 +478,6 @@ public:
 	virtual void reset(timeslice now, const Driver &owner);
 
 	/**
-     * @return the first road segment in the next link if the link is in the path, else NULL
-     */
-	const RoadSegment* nextLink();
-
-	/**
 	 * Adds the driver to the map of conflicting vehicles.
 	 *
      * @param conflict the conflict towards which the driver is heading

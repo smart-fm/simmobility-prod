@@ -28,12 +28,12 @@ template <class T> struct LeadLag
 };
 }
 
-MITSIM_LC_Model::MITSIM_LC_Model(DriverUpdateParams& p)
+MITSIM_LC_Model::MITSIM_LC_Model(DriverUpdateParams &params, DriverPathMover *pathMover) : LaneChangingModel(pathMover)
 {
 	modelName = "general_driver_model";
 	splitDelimiter = " ,";
 
-	readDriverParameters(p);
+	readDriverParameters(params);
 }
 
 MITSIM_LC_Model::~MITSIM_LC_Model()
@@ -680,10 +680,9 @@ int MITSIM_LC_Model::getNumberOfLCToEndOfLink(DriverUpdateParams &params, const 
 	int noOfWayPts = lastSeg->getSequenceNumber() - currLane->getParentSegment()->getSequenceNumber() + 1;
 
 	//3.0 Access the way-point representing the turning group in the path
-	DriverMovement *driverMvt = dynamic_cast<DriverMovement*> (params.driver->Movement());
-	std::vector<WayPoint>::const_iterator itTurningGroup = driverMvt->fwdDriverMovement.getCurrWayPointIt() + noOfWayPts;
+	std::vector<WayPoint>::const_iterator itTurningGroup = fwdDriverMovement->getCurrWayPointIt() + noOfWayPts;
 
-	if (itTurningGroup != driverMvt->fwdDriverMovement.getDrivingPath().end())
+	if (itTurningGroup != fwdDriverMovement->getDrivingPath().end())
 	{
 		if (itTurningGroup->type == WayPoint::TURNING_GROUP)
 		{
@@ -1480,11 +1479,11 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 
 			float pmf;
 
-			if (params.getStatus(STATUS_CURRENT_LANE_OK) && params.nextLink())
+			if (params.getStatus(STATUS_CURRENT_LANE_OK) && fwdDriverMovement->getNextSegInNextLink())
 			{
 				// current lane connects to next link on path
 				params.lcDebugStr << ";CN";
-				float longer_dis = params.distToStop + params.nextLink()->getLength();
+				float longer_dis = params.distToStop + fwdDriverMovement->getNextSegInNextLink()->getLength();
 				pmf = lcNosingProbability(longer_dis, dv, gap, nlanes);
 				// remaining distance for forced merging is the length remaining
 				// in the current link plus at least the length of the first
@@ -1854,11 +1853,9 @@ int MITSIM_LC_Model::isIncidentAhead(DriverUpdateParams& p)
 int MITSIM_LC_Model::isLaneConnectedToNextWayPt(DriverUpdateParams &params, set<const Lane *> &targetLanes)
 {
 	std::string str = "isLaneConnectedToNextWayPt";
+	const Lane *currLane = fwdDriverMovement->getCurrLane();
 
-	DriverMovement *driverMvt = dynamic_cast<DriverMovement*> (params.driver->Movement());
-	const Lane *currLane = driverMvt->fwdDriverMovement.getCurrLane();
-
-	if (!driverMvt->isLastSegmentInLink())
+	if (fwdDriverMovement->getNextSegment())
 	{
 		//Fill targetLanes - select only lanes that are connected to the next segment
 		std::vector<Lane *>::const_iterator itLanes = currLane->getParentSegment()->getLanes().begin();
@@ -1884,7 +1881,7 @@ int MITSIM_LC_Model::isLaneConnectedToNextWayPt(DriverUpdateParams &params, set<
 		if (connectors.empty())
 		{
 			//No lane connector for this lane, so we need to change lane
-			double distToStop = driverMvt->fwdDriverMovement.getDistToEndOfCurrWayPt();
+			double distToStop = fwdDriverMovement->getDistToEndOfCurrWayPt();
 			if (distToStop < params.distToStop)
 			{
 				params.distToStop = distToStop;
@@ -1897,7 +1894,7 @@ int MITSIM_LC_Model::isLaneConnectedToNextWayPt(DriverUpdateParams &params, set<
 	else
 	{
 		//Last segment on the link
-		double distToStop = driverMvt->fwdDriverMovement.getDistToEndOfCurrLink() - driverMvt->getParentDriver()->getVehicleLength() / 2;
+		double distToStop = fwdDriverMovement->getDistToEndOfCurrLink() - params.driver->getVehicleLength() / 2;
 
 		if (distToStop < params.distToStop)
 		{
@@ -1905,7 +1902,7 @@ int MITSIM_LC_Model::isLaneConnectedToNextWayPt(DriverUpdateParams &params, set<
 		}
 
 		//Fill targetLanes - select only lanes that are connected to the next turning
-		const WayPoint *nextWayPt = driverMvt->fwdDriverMovement.getNextWayPoint();
+		const WayPoint *nextWayPt = fwdDriverMovement->getNextWayPoint();
 
 		if (nextWayPt)
 		{
@@ -1952,8 +1949,7 @@ int MITSIM_LC_Model::isLaneConnectedToStopPoint(DriverUpdateParams &params, set<
 		//Only most left lane is target lane
 		if (params.currLaneIndex != 0)
 		{
-			DriverMovement *driverMvt = dynamic_cast<DriverMovement*> (params.driver->Movement());
-			const Lane *lane = driverMvt->fwdDriverMovement.getCurrSegment()->getLane(0);
+			const Lane *lane = fwdDriverMovement->getCurrSegment()->getLane(0);
 			targetLanes.insert(lane);
 			res = -1;
 		}
@@ -2151,11 +2147,9 @@ LaneChangeTo MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdateParams &params)
 void MITSIM_LC_Model::setLaneConnectionStatus(DriverUpdateParams &params)
 {
 	std::string str = "setLaneConnectionStatus";
+	const Lane *currLane = fwdDriverMovement->getCurrLane();
 
-	DriverMovement *driverMvt = dynamic_cast<DriverMovement*> (params.driver->Movement());
-	const Lane *currLane = driverMvt->fwdDriverMovement.getCurrLane();
-
-	if (!driverMvt->isLastSegmentInLink())
+	if (fwdDriverMovement->getNextSegment())
 	{
 		//Check if we have a connector to the next segment from the current, left and right lanes
 
@@ -2205,7 +2199,7 @@ void MITSIM_LC_Model::setLaneConnectionStatus(DriverUpdateParams &params)
 	{
 		//Last segment on the link, so if it is not the end of the path, there is a turning group ahead
 
-		const WayPoint *nextWayPt = driverMvt->fwdDriverMovement.getNextWayPoint();
+		const WayPoint *nextWayPt = fwdDriverMovement->getNextWayPoint();
 
 		if (nextWayPt)
 		{

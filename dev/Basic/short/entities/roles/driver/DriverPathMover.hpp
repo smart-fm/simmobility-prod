@@ -115,11 +115,34 @@ public:
 	const WayPoint* getNextWayPoint() const;
 
 	const RoadSegment* getCurrSegment() const;
+	const Link* getCurrLink() const;
+
+	/**
+	 * Determines the next segment of the current link in the driving path and returns it
+	 *
+     * @return the next segment (in the current link) in the driving path if it exists, else NULL
+     */
 	const RoadSegment* getNextSegment() const;
 
-	const Link* getCurrLink() const;
+	/**
+	 * Determines the next segment of the next link in the driving path and returns it
+	 *
+     * @return the next segment (in the next link) in the driving path if it exists, else NULL
+     */
+	const RoadSegment* getNextSegInNextLink() const;
+
+	/**
+	 * Determines the next link in the driver path and returns it
+	 *
+     * @return the next link in the driving path if it exists, else NULL
+     */
 	const Link* getNextLink() const;
 
+	/**
+	 * Uses the physical lane connections (i.e. connected poly-lines) to determine the next lane.
+	 *
+     * @return the next lane
+     */
 	const Lane* getNextLane() const;
 
 	/**

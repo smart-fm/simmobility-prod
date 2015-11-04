@@ -9,7 +9,7 @@
 #include "entities/conflux/Conflux.hpp"
 #include "entities/roles/RoleFacets.hpp"
 #include "entities/Person.hpp"
-#include "geospatial/network/Link.hpp"
+#include "geospatial/network/Node.hpp"
 
 namespace sim_mob
 {
@@ -79,7 +79,7 @@ protected:
 	 * initialize the path at the beginning
 	 * @param path include aPathSetParams list of road segments
 	 * */
-	const RoadSegment* getDestSegment();
+	const Node* getDestNode();
 
 	/**parent pedestrian*/
 	medium::Pedestrian* parentPedestrian;
@@ -91,7 +91,7 @@ protected:
 	const double walkSpeed;
 
 	/**destination segment*/
-	const RoadSegment* destinationSegment;
+	const Node* destinationNode;
 
 	/** total time to complete in seconds*/
 	double totalTimeToCompleteSec;

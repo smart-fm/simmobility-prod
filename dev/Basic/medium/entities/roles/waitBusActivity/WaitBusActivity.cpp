@@ -105,9 +105,9 @@ void sim_mob::medium::WaitBusActivity::makeBoardingDecision(BusDriver* driver)
 	}
 
 	const sim_mob::BusStop* destStop = nullptr;
-	if (parent->destNode.type_ == WayPoint::BUS_STOP && parent->destNode.busStop_)
+	if (parent->destNode.type == WayPoint::BUS_STOP && parent->destNode.busStop)
 	{
-		destStop = parent->destNode.busStop_;
+		destStop = parent->destNode.busStop;
 	}
 
 	if (!destStop)

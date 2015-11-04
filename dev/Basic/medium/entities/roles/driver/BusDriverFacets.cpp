@@ -179,9 +179,8 @@ std::string BusDriverMovement::frame_tick_output() {
 			<<","<<person->getId()
 			<<","<<parentBusDriver->getParams().now.frame()
 			<<",{"
-			<<"\"RoadSegment\":\""<< (person->getCurrSegStats()->getRoadSegment()->getId())
-			<<"\",\"Lane\":\""<<(person->getCurrLane()->getLaneID())
-			<<"\",\"UpNode\":\""<<(person->getCurrSegStats()->getRoadSegment()->getStart()->getID())
+			<<"\"RoadSegment\":\""<< (person->getCurrSegStats()->getRoadSegment()->getRoadSegmentId())
+			<<"\",\"Lane\":\""<<(person->getCurrLane()->getLaneId())
 			<<"\",\"DistanceToEndSeg\":\""<<person->distanceToEndOfSegment;
 	if(parentBusDriver->getResource()->isMoving()) { logout << "\",\"ServingStop\":\"" << "false"; }
 	else { logout << "\",\"ServingStop\":\"" << "true"; }
@@ -202,10 +201,10 @@ bool BusDriverMovement::initializePath()
 	//Only initialize if the next path has not been planned for yet.
 	if(!person->getNextPathPlanned()){
 		//Save local copies of the parent's origin/destination nodes.
-		if( person->originNode.type_ != WayPoint::INVALID){
+		if( person->originNode.type != WayPoint::INVALID){
 			parentBusDriver->origin = (*(person->currTripChainItem))->origin;
 		}
-		if( person->destNode.type_ != WayPoint::INVALID ){
+		if( person->destNode.type != WayPoint::INVALID ){
 			parentBusDriver->goal = person->destNode;
 		}
 
@@ -451,14 +450,14 @@ void BusRouteTracker::printBusRoute(unsigned int personId)
 	for (vector<const RoadSegment*>::const_iterator it = rsPath.begin(); it != rsPath.end(); it++)
 	{
 		const RoadSegment* rdSeg = *it;
-		printStrm << rdSeg->getSegmentAimsunId() << "|";
+		printStrm << rdSeg->getRoadSegmentId() << "|";
 	}
 	printStrm << std::endl;
 	const vector<const BusStop*>& stops = this->getBusStops();
 	printStrm << "stops in bus trip: "<< stops.size() << "\nstops: ";
 	for (vector<const BusStop*>::const_iterator it = stops.begin(); it != stops.end(); it++)
 	{
-		printStrm << (*it)->busstopno_ << "|";
+		printStrm << (*it)->getStopCode() << "|";
 	}
 	printStrm << std::endl;
 	Print() << printStrm.str();

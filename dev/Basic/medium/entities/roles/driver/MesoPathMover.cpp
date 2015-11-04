@@ -22,7 +22,8 @@ void MesoPathMover::setPath(const std::vector<const SegmentStats*>& segStatPath)
 	currSegStatIt = path.begin();
 }
 
-const std::vector<const SegmentStats*> & MesoPathMover::getPath() const{
+const std::vector<const SegmentStats*> & MesoPathMover::getPath() const
+{
 	return path;
 }
 void MesoPathMover::resetPath(const std::vector<const SegmentStats*>& segStatPath)
@@ -70,7 +71,7 @@ const SegmentStats* MesoPathMover::getNextSegStats(bool inSameLink) const
 		return nullptr;
 	}
 	const SegmentStats* nextSegStats = (*nextStatIt);
-	if (inSameLink && (nextSegStats->getRoadSegment()->getLink() != (*currSegStatIt)->getRoadSegment()->getLink()))
+	if (inSameLink && (nextSegStats->getRoadSegment()->getParentLink() != (*currSegStatIt)->getRoadSegment()->getParentLink()))
 	{
 		return nullptr;
 	}
@@ -104,7 +105,7 @@ const SegmentStats* MesoPathMover::getPrevSegStats(bool inSameLink) const
 	}
 	Path::iterator prevStatIt = currSegStatIt - 1;
 	const SegmentStats* prevSegStats = (*prevStatIt);
-	if (inSameLink && (prevSegStats->getRoadSegment()->getLink() != (*currSegStatIt)->getRoadSegment()->getLink()))
+	if (inSameLink && (prevSegStats->getRoadSegment()->getParentLink() != (*currSegStatIt)->getRoadSegment()->getParentLink()))
 	{
 		return nullptr;
 	}
@@ -112,40 +113,33 @@ const SegmentStats* MesoPathMover::getPrevSegStats(bool inSameLink) const
 	return prevSegStats;
 }
 
-const sim_mob::SegmentStats* sim_mob::medium::MesoPathMover::getFirstSegStatsInNextLink(const SegmentStats* segStats) const
-{
-	if(!segStats || currSegStatIt == path.end()) { return nullptr; }
-
-	Path::iterator it = currSegStatIt;
-	for(; it!=path.end(); it++) // locate segStats in downstream path
-	{
-		if((*it) == segStats) { break; }
-	}
-	if(it == path.end()) { return nullptr; }
-	const sim_mob::Link* currLink = (*it)->getRoadSegment()->getLink(); //note segStats's link
-	it++; //start looking from stats after segStats
-	for(; it!=path.end(); it++)
-	{
-		if((*it)->getRoadSegment()->getLink() != currLink) { return (*it); } //return if different link is found
-	}
-	return nullptr;
-}
-
 const SegmentStats* MesoPathMover::getFirstSegStatsInNextLink(const SegmentStats* segStats) const
 {
-	if(!segStats || currSegStatIt == path.end()) { return nullptr; }
+	if (!segStats || currSegStatIt == path.end())
+	{
+		return nullptr;
+	}
 
 	Path::iterator it = currSegStatIt;
-	for(; it!=path.end(); it++) // locate segStats in downstream path
+	for (; it != path.end(); it++) // locate segStats in downstream path
 	{
-		if((*it) == segStats) { break; }
+		if ((*it) == segStats)
+		{
+			break;
+		}
 	}
-	if(it == path.end()) { return nullptr; }
-	const Link* currLink = (*it)->getRoadSegment()->getLink(); //note segStats's link
-	it++; //start looking from stats after segStats
-	for(; it!=path.end(); it++)
+	if (it == path.end())
 	{
-		if((*it)->getRoadSegment()->getLink() != currLink) { return (*it); } //return if different link is found
+		return nullptr;
+	}
+	const Link* currLink = (*it)->getRoadSegment()->getParentLink(); //note segStats's link
+	it++; //start looking from stats after segStats
+	for (; it != path.end(); it++)
+	{
+		if ((*it)->getRoadSegment()->getParentLink() != currLink)
+		{
+			return (*it);
+		} //return if different link is found
 	}
 	return nullptr;
 }
@@ -159,11 +153,11 @@ bool MesoPathMover::hasNextSegStats(bool inSameLink) const
 	Path::iterator nextStatIt = currSegStatIt + 1;
 	if (inSameLink)
 	{
-		return ((*currSegStatIt)->getRoadSegment()->getLink() == (*nextStatIt)->getRoadSegment()->getLink());
+		return ((*currSegStatIt)->getRoadSegment()->getParentLink() == (*nextStatIt)->getRoadSegment()->getParentLink());
 	}
 	else
 	{
-		return ((*currSegStatIt)->getRoadSegment()->getLink() != (*nextStatIt)->getRoadSegment()->getLink());
+		return ((*currSegStatIt)->getRoadSegment()->getParentLink() != (*nextStatIt)->getRoadSegment()->getParentLink());
 	}
 }
 
@@ -200,26 +194,31 @@ void MesoPathMover::printPath()
 {
 	std::stringstream pathStream;
 	pathStream << "SegmentStats path: ";
-	for(Path::iterator i=path.begin(); i!=path.end(); i++)
+	for (Path::iterator i = path.begin(); i != path.end(); i++)
 	{
-		pathStream << (*i)->getRoadSegment()->getSegmentAimsunId() << "-" << (*i)->getStatsNumberInSegment() << "|";
+		pathStream << (*i)->getRoadSegment()->getRoadSegmentId() << "-" << (*i)->getStatsNumberInSegment() << "|";
 	}
 	pathStream << std::endl;
 	Print() << pathStream.str();
 }
-std::string MesoPathMover::printPath(const Path &path, const Node *node){
+
+std::string MesoPathMover::printPath(const Path &path, const Node *node)
+{
 	std::ostringstream out("");
 	unsigned int id = 0;
-	if(node){
-		out << node->getID() << ": " ;
+	if (node)
+	{
+		out << node->getNodeId() << ": ";
 	}
-	for(Path::const_iterator it = path.begin(); it != path.end(); it++){
-		if(id != (*it)->getRoadSegment()->getSegmentAimsunId()){
-			id = (*it)->getRoadSegment()->getSegmentAimsunId();
-			out << id << "," ;
+	for (Path::const_iterator it = path.begin(); it != path.end(); it++)
+	{
+		if (id != (*it)->getRoadSegment()->getRoadSegmentId())
+		{
+			id = (*it)->getRoadSegment()->getRoadSegmentId();
+			out << id << ",";
 		}
 	}
-	if(out.str().size())
+	if (out.str().size())
 	{
 		out << "\n";
 	}

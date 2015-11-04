@@ -25,6 +25,7 @@ sim_mob::medium::Passenger::Passenger(Person_MT *parent,
 				Role<Person_MT>(parent, behavior, movement, roleName, roleType), driver(nullptr), alightBus(false),
 				startNode(nullptr), endNode(nullptr)
 {
+}
 
 Role<Person_MT>* sim_mob::medium::Passenger::clone(Person_MT *parent) const
 {
@@ -52,8 +53,8 @@ std::vector<BufferedBase*> sim_mob::medium::Passenger::getSubscriptionParams()
 
 void sim_mob::medium::Passenger::makeAlightingDecision(const sim_mob::BusStop* nextStop)
 {
-	if (parent->destNode.type_ == WayPoint::BUS_STOP
-			&& parent->destNode.busStop_ == nextStop)
+	if (parent->destNode.type == WayPoint::BUS_STOP
+			&& parent->destNode.busStop == nextStop)
 	{
 		setAlightBus(true);
 		setDriver(nullptr);

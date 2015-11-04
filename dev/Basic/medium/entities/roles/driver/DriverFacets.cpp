@@ -217,16 +217,11 @@ void DriverMovement::randomizeStartingSegment(std::vector<WayPoint>& wpPath)
 
 	//compute number of segments in the first link of path
 	size_t numSegsInFirstLink = 0;
-	Node* firstLinkEnd = nullptr;
 	for (vector<WayPoint>::const_iterator it = wpPath.begin(); it != wpPath.end(); it++)
 	{
 		if (it->type == WayPoint::ROAD_SEGMENT)
 		{
 			const RoadSegment* rdSeg = it->roadSegment;
-			if (!firstLinkEnd)
-			{
-				firstLinkEnd = rdSeg->getParentLink()->getToNode();
-			}
 			numSegsInFirstLink = rdSeg->getParentLink()->getRoadSegments().size();
 			break; //exit loop when we find the first segment and extract required info
 		}

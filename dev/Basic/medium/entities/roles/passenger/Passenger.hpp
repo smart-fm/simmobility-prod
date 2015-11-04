@@ -7,7 +7,6 @@
 #include "entities/Person_MT.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/roles/waitBusActivity/WaitBusActivity.hpp"
-#include "geospatial/Node.hpp"
 #include "geospatial/network/Node.hpp"
 #include "PassengerFacets.hpp"
 
@@ -70,11 +69,6 @@ public:
 	 */
 	virtual void collectTravelTime();
 
-	/**
-	 * collect travel time for current role
-	 */
-	virtual void collectTravelTime();
-
 	bool canAlightBus() const
 	{
 		return alightBus;
@@ -128,11 +122,7 @@ private:
 	/** starting node of passenger - for travel time storage */
 	const sim_mob::Node* startNode;
 
-	const sim_mob::Node* endNode;
-
-	/** starting node of passenger - for travel time storage */
-	const sim_mob::Node* startNode;
-
+	/** ending node of passenger - for travel time storage */
 	const sim_mob::Node* endNode;
 };
 

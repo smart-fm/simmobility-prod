@@ -13,12 +13,7 @@
 
 using std::vector;
 using namespace sim_mob;
-
-namespace sim_mob
-{
-
-namespace medium
-{
+using namespace sim_mob::medium;
 
 sim_mob::medium::Pedestrian::Pedestrian(Person_MT *parent,
 										sim_mob::medium::PedestrianBehavior* behavior,
@@ -52,8 +47,6 @@ void sim_mob::medium::Pedestrian::make_frame_tick_params(timeslice now)
 {
 }
 
-}
-
 void sim_mob::medium::Pedestrian::collectTravelTime()
 {
 	PersonTravelTime personTravelTime;
@@ -61,10 +54,11 @@ void sim_mob::medium::Pedestrian::collectTravelTime()
 	if(parent->getPrevRole() && parent->getPrevRole()->roleType==Role<Person_MT>::RL_ACTIVITY)
 	{
 		ActivityPerformer<Person_MT>* activity = dynamic_cast<ActivityPerformer<Person_MT>* >(parent->getPrevRole());
-		personTravelTime.tripStartPoint = boost::lexical_cast<std::string>(activity->getLocation()->getID());
-		personTravelTime.tripEndPoint = boost::lexical_cast<std::string>(activity->getLocation()->getID());
-		personTravelTime.subStartPoint = boost::lexical_cast<std::string>(activity->getLocation()->getID());
-		personTravelTime.subEndPoint = boost::lexical_cast<std::string>(activity->getLocation()->getID());
+		std::string activityLocNodeIdStr = boost::lexical_cast<std::string>(activity->getLocation()->getNodeId());
+		personTravelTime.tripStartPoint = activityLocNodeIdStr;
+		personTravelTime.tripEndPoint = activityLocNodeIdStr;
+		personTravelTime.subStartPoint = activityLocNodeIdStr;
+		personTravelTime.subEndPoint = activityLocNodeIdStr;
 		personTravelTime.subStartType = "NODE";
 		personTravelTime.subEndType = "NODE";
 		personTravelTime.mode = "ACTIVITY";
@@ -87,5 +81,3 @@ void sim_mob::medium::Pedestrian::collectTravelTime()
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(),
 			STORE_PERSON_TRAVEL_TIME, messaging::MessageBus::MessagePtr(new PersonTravelTimeMessage(personTravelTime)), true);
 }
-}
-

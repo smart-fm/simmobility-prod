@@ -6,17 +6,41 @@
 #include <vector>
 #include "entities/conflux/SegmentStats.hpp"
 
-namespace sim_mob {
-namespace medium {
+namespace sim_mob
+{
+namespace medium
+{
 class MesoReroute;
-class MesoPathMover {
-public:
-	MesoPathMover() : distToSegmentEnd(0) {}
+class MesoPathMover
+{
+protected:
+	//Note: Be careful if you want to change the container type of Path.
+	//The functions in this class assume that Path is a container with random
+	//access iterators. They perform operations like it+n where n is an integer.
+	//If random access iterators are not available for Path, this class will
+	//not work as expected.
+	typedef std::vector<const SegmentStats*> Path;
+	Path path;
+	Path::iterator currSegStatIt;
 
-	double getPositionInSegment() const {
+	//representation of position within segment stats
+	double distToSegmentEnd;
+
+	friend MesoReroute;
+
+public:
+	MesoPathMover() :
+			distToSegmentEnd(0)
+	{
+	}
+
+	double getPositionInSegment() const
+	{
 		return this->distToSegmentEnd;
 	}
-	void setPositionInSegment(double distanceToEnd) {
+
+	void setPositionInSegment(double distanceToEnd)
+	{
 		this->distToSegmentEnd = distanceToEnd;
 	}
 
@@ -25,7 +49,7 @@ public:
 	 * @param path the path to be set
 	 */
 	void setPath(const std::vector<const SegmentStats*>& path);
-	const std::vector<const SegmentStats*> & getPath()const;
+	const std::vector<const SegmentStats*> & getPath() const;
 
 	/**
 	 * resets the path. used when the path changes enroute.
@@ -108,31 +132,9 @@ public:
 	 */
 	const SegmentStats* getFirstSegStatsInNextLink(const SegmentStats* segStats) const;
 
-protected:
-	//Note: Be careful if you want to change the container type of Path.
-	//The functions in this class assume that Path is a container with random
-	//access iterators. They perform operations like it+n where n is an integer.
-	//If random access iterators are not available for Path, this class will
-	//not work as expected.
-	typedef std::vector<const SegmentStats*> Path;
-	Path path;
-	Path::iterator currSegStatIt;
-
-	//representation of position within segment stats
-	double distToSegmentEnd;
-public:
 	//debug
 	///return string of path by aimsun section id
 	static std::string printPath(const MesoPathMover::Path &path, const Node *node = 0);
-private:
-	/**
-	 * gets the SegmentStats iterator
-	 * @return currSegStatIt
-	 */
-	Path::iterator getCurrSegStatsIt(){
-		return currSegStatIt;
-	}
-	friend MesoReroute;
 };
 }
 }

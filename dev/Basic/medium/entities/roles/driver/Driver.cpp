@@ -23,8 +23,6 @@
 #include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/network/Lane.hpp"
 #include "geospatial/network/Node.hpp"
-#include "geospatial/UniNode.hpp"
-#include "geospatial/network/Node.hpp"
 #include "geospatial/network/LaneConnector.hpp"
 #include "geospatial/network/Point.hpp"
 
@@ -52,7 +50,7 @@ namespace {
 //TODO:I think lane index should be a data member in the lane class
 size_t getLaneIndex(const Lane* l) {
 	if (l) {
-		const RoadSegment* r = l->getRoadSegment();
+		const RoadSegment* r = l->getParentSegment();
 		for (size_t i = 0; i < r->getLanes().size(); i++) {
 			if (r->getLanes().at(i) == l) {
 				return i;

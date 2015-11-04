@@ -7,10 +7,9 @@
 
 #include "PassengerFacets.hpp"
 #include "config/MT_Config.hpp"
-#include "geospatial/MultiNode.hpp"
 #include "geospatial/network/Node.hpp"
 #include "Passenger.hpp"
-{
+
 using namespace sim_mob;
 using namespace medium;
 
@@ -78,7 +77,7 @@ Conflux* PassengerMovement::getStartingConflux() const
 {
 	if (parentPassenger->roleType == Role<Person_MT>::RL_CARPASSENGER)
 	{
-		return MT_Config::getInstance().getConfluxForNode(parentPassenger->parent->currSubTrip->destination.node_);
+		return MT_Config::getInstance().getConfluxForNode(parentPassenger->parent->currSubTrip->destination.node);
 	}
 	return nullptr;
 }

@@ -95,31 +95,58 @@ double sim_mob::spatial::getAdjacentPathWidth(const WayPoint &wayPoint)
 		//Get the turning group
 		const RoadNetwork *network = RoadNetwork::getInstance();
 		const TurningGroup *group = network->getById(network->getMapOfIdvsTurningGroups(), turning->getTurningGroupId());
-		std::map<unsigned int, TurningPath *> turnings = group->getTurningPaths();
 
-		if(turnings.size() == 1)
+		if(group->getNoOfPaths() == 1)
 		{
 			//Only one turning in the group i.e. no lane on the left or right
 			width += 0.6;
 		}
 		else
 		{
-			unsigned int turningOnLeft = turning->getFromLaneId() - 1;
-			unsigned int turningOnRight = turning->getFromLaneId() + 1;
-			
-			if(group->getTurningPath(turningOnLeft))
+			//Check if there are other turning paths from the same lane
+			const std::map<unsigned int, TurningPath *> *turnings = group->getTurningPaths(turning->getFromLaneId());
+
+			unsigned int turningOnLeft = 0;
+			unsigned int turningOnRight = 0;
+
+			if (turnings->size() == 1)
 			{
-				width += group->getTurningPath(turningOnLeft)->getWidth();
+				//Only 1 turning path from this lane, which is the current turning path
+				//So the turning to our left is the turning originating from the left lane, and the one to our right is
+				//the turning originating from the right lane
+
+				turningOnLeft = turning->getFromLaneId() - 1;
+				turningOnRight = turning->getFromLaneId() + 1;
+			}
+			else
+			{
+				//Multiple turnings originate from the lane our current turning path originates at
+				//So the turning to our left is the turning ending at the left lane, and the one to our right is
+				//the turning ending at the right lane
+
+				turningOnLeft = turning->getToLaneId() - 1;
+				turningOnRight = turning->getToLaneId() + 1;
+			}
+			
+			//Get the turnings to our left
+			turnings = group->getTurningPaths(turningOnLeft);
+			if (turnings)
+			{
+				//Although there are multiple turnings, only 1 is adjacent us. So just use the width of the first one
+				width += turnings->begin()->second->getWidth();
 			}
 			else
 			{
 				//No turning on the left
 				width += 0.3;
 			}
-			
-			if(group->getTurningPath(turningOnRight))
+
+			//Get the turnings to our right
+			turnings = group->getTurningPaths(turningOnRight);
+			if (turnings)
 			{
-				width += group->getTurningPath(turningOnRight)->getWidth();
+				//Although there are multiple turnings, only 1 is adjacent us. So just use the width of the first one
+				width += turnings->begin()->second->getWidth();
 			}
 			else
 			{

@@ -577,11 +577,11 @@ bool DriverMovement::updatePostMovement()
 			
 			//If we have a current lane, it means that we're approaching the intersection but not yet inside it
 			if (currLane)
-			{				
+			{
 				//The turning path we will mostly take to get across the intersection
-				const TurningPath *expectedTurning = nextWayPt->turningGroup->getTurningPath(currLane->getLaneId());
-				
-				if(expectedTurning)
+				const TurningPath *expectedTurning = fwdDriverMovement.getNextTurning();
+
+				if (expectedTurning)
 				{
 					params.isApproachingIntersection = true;
 
@@ -590,7 +590,7 @@ bool DriverMovement::updatePostMovement()
 
 					//Add it to the buffer, it will be available in the next tick
 					parentDriver->expectedTurning_.set(expectedTurning);
-				}				
+				}
 			}
 			else
 			{
@@ -1025,11 +1025,11 @@ void DriverMovement::getConnectedLanesInLookAheadDistance(double lookAheadDist, 
 			{
 				//The next way point is a turning group. If we have a turning path, then we're connected to it
 				
-				const TurningPath *turning = itWayPts->turningGroup->getTurningPath(lane->getLaneId());
+				const std::map<unsigned int, TurningPath *> *turnings = itWayPts->turningGroup->getTurningPaths(lane->getLaneId());
 				
-				if(turning)
+				if(turnings)
 				{
-					lane = turning->getToLane();
+					lane = turnings->begin()->second->getToLane();
 				}
 				else
 				{
@@ -1086,11 +1086,18 @@ bool DriverMovement::isLaneConnectedToSegment(const Lane *fromLane, const RoadSe
 		if(turningGroup)
 		{
 			//The turning path from the given lane
-			const TurningPath *turning = turningGroup->getTurningPath(fromLane->getLaneId());
+			const std::map<unsigned int, TurningPath *> *turnings = turningGroup->getTurningPaths(fromLane->getLaneId());
 			
-			if(turning && turning->getToLane()->getRoadSegmentId() == toSegment->getRoadSegmentId())
+			if(turnings)
 			{
-				isLaneConnected = true;
+				for(std::map<unsigned int, TurningPath *>::const_iterator itTurnings = turnings->begin(); itTurnings != turnings->end(); ++itTurnings)
+				{
+					if(itTurnings->second->getToLane()->getRoadSegmentId() == toSegment->getRoadSegmentId())
+					{
+						isLaneConnected = true;
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -1972,7 +1979,7 @@ void DriverMovement::setTrafficSignalParams(DriverUpdateParams &params)
 					std::map<unsigned int, TurningGroup *>::const_iterator itGroups = groups->begin();
 					while(itGroups != groups->end())
 					{
-						if(itGroups->second->getTurningPath(currLane->getLaneId()))
+						if(itGroups->second->getTurningPaths(currLane->getLaneId()))
 						{
 							//colour = trafficSignal->getDriverLight(itGroups->second->getTurningGroupId());
 							break;

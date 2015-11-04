@@ -146,6 +146,12 @@ public:
 	const Lane* getNextLane() const;
 
 	/**
+	 * Uses the turnings from the current lane to determine the next turning
+     * @return
+     */
+	const TurningPath *getNextTurning() const;
+
+	/**
 	 * Sets the driving path and initialises the internal members to point to the elements in the path
 	 *
      * @param path the path retrieved from the street directory or the path set manager

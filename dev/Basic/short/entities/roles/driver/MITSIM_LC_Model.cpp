@@ -12,6 +12,7 @@
 #include "geospatial/network/LaneConnector.hpp"
 #include "util/Math.hpp"
 #include "util/Utils.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 
 using std::numeric_limits;
 using namespace sim_mob;
@@ -687,10 +688,12 @@ int MITSIM_LC_Model::getNumberOfLCToEndOfLink(DriverUpdateParams &params, const 
 		if (itTurningGroup->type == WayPoint::TURNING_GROUP)
 		{
 			//4.0 Find the minimum number of lane changes required to access a turning path in the turning group
-			std::map<unsigned int, TurningPath *>::const_iterator itTurnings = itTurningGroup->turningGroup->getTurningPaths().begin();
+			std::map<unsigned int, std::map<unsigned int, TurningPath *> >::const_iterator itTurnings = itTurningGroup->turningGroup->getTurningPaths().begin();
 			while (itTurnings != itTurningGroup->turningGroup->getTurningPaths().end())
 			{
-				int laneChanges = params.currLaneIndex - itTurnings->second->getFromLane()->getLaneIndex();
+				//Lane index is lane id % 10, so use the "from lane id" to get the index
+				
+				int laneChanges = params.currLaneIndex - (itTurnings->first % 10);
 
 				//Update only if fewer lane changes required
 				if (noOfLaneChanges == 0 || abs(noOfLaneChanges) > abs(laneChanges))
@@ -1907,15 +1910,20 @@ int MITSIM_LC_Model::isLaneConnectedToNextWayPt(DriverUpdateParams &params, set<
 		if (nextWayPt)
 		{
 			const TurningGroup *turningGroup = nextWayPt->turningGroup;
-			std::map<unsigned int, TurningPath *>::const_iterator itTurnings = turningGroup->getTurningPaths().begin();
+			std::map<unsigned int, std::map<unsigned int, TurningPath *> >::const_iterator itTurnings = turningGroup->getTurningPaths().begin();
 
+			//Iterate through the turnings, and add the from lanes of the turnings
 			while (itTurnings != turningGroup->getTurningPaths().end())
 			{
-				targetLanes.insert(itTurnings->second->getFromLane());
+				//Get the pointer to the from lane from the road network
+				const RoadNetwork *network = RoadNetwork::getInstance();
+				const Lane *fromLane = network->getById(network->getMapOfIdVsLanes(), itTurnings->first);
+				
+				targetLanes.insert(fromLane);
 				++itTurnings;
 			}
 
-			if (!turningGroup->getTurningPath(currLane->getLaneId()))
+			if (!turningGroup->getTurningPaths(currLane->getLaneId()))
 			{
 				//No turning path from current lane
 				params.setStatus(STATUS_CURRENT_LANE_OK, STATUS_NO, str);
@@ -2205,9 +2213,9 @@ void MITSIM_LC_Model::setLaneConnectionStatus(DriverUpdateParams &params)
 		{
 			//Check if we have a turning path to the next link from the current, left and right lanes
 
-			const TurningPath *turning = nextWayPt->turningGroup->getTurningPath(currLane->getLaneId());
+			const std::map<unsigned int, TurningPath *> *turnings = nextWayPt->turningGroup->getTurningPaths(currLane->getLaneId());
 
-			if (turning)
+			if (turnings)
 			{
 				params.setStatus(STATUS_CURRENT_LANE_OK, STATUS_YES, str);
 			}
@@ -2218,9 +2226,9 @@ void MITSIM_LC_Model::setLaneConnectionStatus(DriverUpdateParams &params)
 
 			if (params.leftLane)
 			{
-				turning = nextWayPt->turningGroup->getTurningPath(params.leftLane->getLaneId());
+				turnings = nextWayPt->turningGroup->getTurningPaths(params.leftLane->getLaneId());
 
-				if (turning)
+				if (turnings)
 				{
 					params.setStatus(STATUS_LEFT_SIDE_OK, STATUS_YES, str);
 				}
@@ -2232,9 +2240,9 @@ void MITSIM_LC_Model::setLaneConnectionStatus(DriverUpdateParams &params)
 
 			if (params.rightLane)
 			{
-				turning = nextWayPt->turningGroup->getTurningPath(params.rightLane->getLaneId());
+				turnings = nextWayPt->turningGroup->getTurningPaths(params.rightLane->getLaneId());
 
-				if (turning)
+				if (turnings)
 				{
 					params.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_YES, str);
 				}

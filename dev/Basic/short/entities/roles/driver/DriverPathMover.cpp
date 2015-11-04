@@ -234,14 +234,14 @@ const Lane* DriverPathMover::getNextLane() const
 		
 		if(!trueConnections.empty())
 		{
-			//Try to choose the one in the middle
+			//Choose randomly
 			unsigned int midConnection = trueConnections.size() / 2;
 			nextLane = trueConnections.at(midConnection)->getToLane();
 		}
 		else
 		{
 			std::stringstream msg;
-			msg << "Lane " << currLane->getLaneId() << "is not physically connected to any lane in the next segment ";
+			msg << "Lane " << currLane->getLaneId() << " is not physically connected to any lane in the next segment ";
 			throw std::runtime_error(msg.str());
 		}
 	}
@@ -251,6 +251,47 @@ const Lane* DriverPathMover::getNextLane() const
 	}
 	
 	return nextLane;
+}
+
+const TurningPath* DriverPathMover::getNextTurning() const
+{
+	const TurningPath *nextTurning = NULL;
+	
+	if(currLane && currWayPointIt != drivingPath.end() && (currWayPointIt + 1) != drivingPath.end()) 
+	{
+		//Get next way point. It should be a turning group
+		const WayPoint nextWayPt = *(currWayPointIt + 1);
+		if(nextWayPt.type == WayPoint::TURNING_GROUP)
+		{
+			//The turnings from the current lane
+			const std::map<unsigned int, TurningPath *> *turnings = nextWayPt.turningGroup->getTurningPaths(currLane->getLaneId());
+			
+			if(turnings)
+			{
+				unsigned int toLane = 0;
+				std::map<unsigned int, TurningPath *>::const_iterator itTurnings = turnings->begin();
+				
+				while(itTurnings != turnings->end())
+				{
+					if(toLane < itTurnings->first)
+					{
+						toLane = itTurnings->first;
+					}
+					++itTurnings;
+				}
+				
+				nextTurning = turnings->at(toLane);
+			}
+			else
+			{
+				std::stringstream msg;
+				msg << "Lane " << currLane->getLaneId() << " is not connected to any turning in the next segment ";
+				throw std::runtime_error(msg.str());
+			}
+		}
+	}
+	
+	return nextTurning;
 }
 
 void DriverPathMover::setPath(const std::vector<WayPoint> &path, int startLaneIndex, int startSegmentId)
@@ -435,10 +476,8 @@ double DriverPathMover::advanceToNextPolyLine()
 					inIntersection = true;
 					overflow = distCoveredFromCurrPtToNextPt;
 					
-					//We're entering an intersection. Use the turning group and the current lane to get the turning path
-					
-					const TurningGroup *turningGroup = (currWayPointIt + 1)->turningGroup;
-					currTurning = turningGroup->getTurningPath(currLane->getLaneId());
+					//We're entering an intersection. Use the turning group and the current lane to get the turning path			
+					currTurning = getNextTurning();
 					
 					if(currTurning)
 					{

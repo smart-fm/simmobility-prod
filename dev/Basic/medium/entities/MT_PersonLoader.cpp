@@ -251,16 +251,13 @@ MT_PersonLoader::~MT_PersonLoader()
 void MT_PersonLoader::makeSubTrip(const soci::row& r, Trip* parentTrip, unsigned short subTripNo)
 {
 	const RoadNetwork* rn = RoadNetwork::getInstance();
-	const std::map<unsigned int, Node *>& nodeLookup = rn->getMapOfIdvsNodes();
 	SubTrip aSubTripInTrip;
 	aSubTripInTrip.setPersonID(r.get<string>(0));
 	aSubTripInTrip.itemType = TripChainItem::IT_TRIP;
 	aSubTripInTrip.tripID = parentTrip->tripID + "-" + boost::lexical_cast<string>(subTripNo);
-	std::map<unsigned int, Node*>::const_iterator nodeMapIt = nodeLookup.find(r.get<int>(10));
-	if(nodeMapIt==nodeLookup)
-	aSubTripInTrip.origin = WayPoint(rn.getNodeById());
+	aSubTripInTrip.origin = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(10)));
 	aSubTripInTrip.originType = TripChainItem::LT_NODE;
-	aSubTripInTrip.destination = WayPoint(rn.getNodeById(r.get<int>(5)));
+	aSubTripInTrip.destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(5)));
 	aSubTripInTrip.destinationType = TripChainItem::LT_NODE;
 	aSubTripInTrip.mode = r.get<string>(6);
 	aSubTripInTrip.isPrimaryMode = r.get<int>(7);
@@ -279,7 +276,7 @@ Activity* MT_PersonLoader::makeActivity(const soci::row& r, unsigned int seqNo)
 	res->isPrimary = r.get<int>(7);
 	res->isFlexible = false;
 	res->isMandatory = true;
-	res->destination = WayPoint(rn.getNodeById(r.get<int>(5)));
+	res->destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(5)));
 	res->destinationType = TripChainItem::LT_NODE;
 	res->startTime = DailyTime(getRandomTimeInWindow(r.get<double>(8), true));
 	res->endTime = DailyTime(getRandomTimeInWindow(r.get<double>(9), false));
@@ -294,9 +291,9 @@ Trip* MT_PersonLoader::makeTrip(const soci::row& r, unsigned int seqNo)
 	tripToSave->tripID = boost::lexical_cast<string>(r.get<int>(1) * 100 + r.get<int>(3)); //each row corresponds to 1 trip and 1 activity. The tour and stop number can be used to generate unique tripID
 	tripToSave->setPersonID(r.get<string>(0));
 	tripToSave->itemType = TripChainItem::IT_TRIP;
-	tripToSave->origin = WayPoint(rn.getNodeById(r.get<int>(10)));
+	tripToSave->origin = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(10)));
 	tripToSave->originType = TripChainItem::LT_NODE;
-	tripToSave->destination = WayPoint(rn.getNodeById(r.get<int>(5)));
+	tripToSave->destination = WayPoint(rn->getById(rn->getMapOfIdvsNodes(), r.get<int>(5)));
 	tripToSave->destinationType = TripChainItem::LT_NODE;
 	tripToSave->startTime = DailyTime(getRandomTimeInWindow(r.get<double>(11), false));
 	//just a sanity check

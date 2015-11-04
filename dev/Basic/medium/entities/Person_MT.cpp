@@ -118,7 +118,7 @@ void Person_MT::convertPublicTransitODsToTrips()
 						itSubTrip->endLocationType = "NODE";
 						itSubTrip->mode = "Sharing";
 
-						const StreetDirectory& streetDirectory = StreetDirectory::instance();
+						const StreetDirectory& streetDirectory = StreetDirectory::Instance();
 						std::vector<WayPoint> wayPoints = streetDirectory.SearchShortestDrivingPath(*itSubTrip->origin.node, *itSubTrip->destination.node);
 						double travelTime = 0.0;
 						for (std::vector<WayPoint>::iterator it = wayPoints.begin(); it != wayPoints.end(); it++)

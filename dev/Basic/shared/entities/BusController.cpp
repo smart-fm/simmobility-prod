@@ -18,6 +18,7 @@
 #include "geospatial/network/PT_Stop.hpp"
 #include "geospatial/network/Link.hpp"
 #include "geospatial/network/SOCI_Converters.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 #include "logging/Log.hpp"
 #include "geospatial/streetdir/A_StarShortestPathImpl.hpp"
 #include "workers/Worker.hpp"

@@ -4,7 +4,7 @@
 #include "entities/conflux/Conflux.hpp"
 #include "entities/conflux/SegmentStats.hpp"
 #include "entities/Person_MT.hpp"
-#include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 #include "config/MT_Config.hpp"
 #include "path/PathSetManager.hpp"
 #include "message/MessageBus.hpp"
@@ -78,12 +78,12 @@ void IncidentManager::insertTickIncidents(uint32_t tick){
 		return;
 	}
 
-	StreetDirectory & stDir = StreetDirectory::instance();
+	const RoadNetwork* rn = RoadNetwork::getInstance();
 	std::pair<uint32_t,Incident> incident;
 	//inserting and informing: 1-Conflux 2-pathsetmanager 3-person
 	for(std::multimap<uint32_t,Incident>::iterator incident = tickIncident.first; incident != tickIncident.second; incident++){
 		//get the conflux
-		const RoadSegment* rs = stDir.getRoadSegment(incident->second.get<0>());
+		const RoadSegment* rs = rn->getById(rn->getMapOfIdVsRoadSegments(), incident->second.get<0>());
 		Conflux* incidentConflux = Conflux::getConflux(rs);
 		if(!incidentConflux)
 		{
@@ -108,7 +108,6 @@ void IncidentManager::insertTickIncidents(uint32_t tick){
 		//and finally, you have an incident
 		currIncidents[rs] = incident->second.get<1>();
 	}
-	*/
 }
 
 std::map<const RoadSegment*, double> & IncidentManager::getCurrIncidents(){

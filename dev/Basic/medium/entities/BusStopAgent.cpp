@@ -50,7 +50,7 @@ void BusStopAgent::removeAllBusStopAgents()
 
 
 BusStopAgent::BusStopAgent(const MutexStrategy& mtxStrat, int id, const BusStop* stop, SegmentStats* stats) :
-		Agent(mtxStrat, id), busStop(stop), parentSegmentStats(stats), availableLength(stop->getBusCapacityAsLength()), currentTimeMS(0)
+		Agent(mtxStrat, id), busStop(stop), parentSegmentStats(stats), availableLength(stop->getCapacityAsLength()), currentTimeMS(0)
 {}
 
 BusStopAgent::~BusStopAgent()
@@ -73,10 +73,9 @@ void BusStopAgent::onEvent(event::EventId eventId, event::Context ctxId, event::
 
 void BusStopAgent::registerWaitingPerson(sim_mob::medium::WaitBusActivity* waitingPerson)
 {
-	if(busStop->terminusType == sim_mob::BusStop::SINK_TERMINUS)
+	if(busStop->getTerminusType() == sim_mob::SINK_TERMINUS)
 	{
 		throw std::runtime_error("attempt to add waiting person at SINK_TERMINUS");
-	}
 	}
 	messaging::MessageBus::ReRegisterHandler(waitingPerson->getParent(), GetContext());
 	waitingPersons.push_back(waitingPerson);
@@ -118,7 +117,7 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 	{
 		bool ret = false;
 		sim_mob::medium::Passenger* alightedPassenger = *personIt;
-		alightedPassenger->setEndNode(busStop->getParentSegment()->getEnd());
+		alightedPassenger->setEndNode(busStop->getParentSegment()->getParentLink()->getToNode());
 		Person_MT* person = alightedPassenger->getParent();
 		if (person)
 		{
@@ -134,10 +133,10 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 					{
 						//always make sure we dispatch this person only to SOURCE_TERMINUS or NOT_A_TERMINUS stops
 						const sim_mob::BusStop* stop = busStop;
-						if(stop->terminusType == sim_mob::BusStop::SINK_TERMINUS)
+						if(stop->getTerminusType() == sim_mob::SINK_TERMINUS)
 						{
 							stop = stop->getTwinStop();
-							if(stop->terminusType == sim_mob::BusStop::SINK_TERMINUS) //sanity check
+							if(stop->getTerminusType() == sim_mob::SINK_TERMINUS) //sanity check
 							{
 								throw std::runtime_error("both twin stops are SINKs");
 							}
@@ -187,7 +186,7 @@ Entity::UpdateStatus BusStopAgent::frame_tick(timeslice now)
 	}
 
 	sim_mob::medium::WaitingCount waitingCnt;
-	waitingCnt.busStopNo = busStop->getBusstopno_();
+	waitingCnt.busStopNo = busStop->getStopCode();
 	waitingCnt.currTime = DailyTime(now.ms()).getStrRepr();
 	waitingCnt.count = waitingPersons.size();
 	messaging::MessageBus::PostMessage(PT_Statistics::getInstance(), STORE_WAITING_PERSON_COUNT,
@@ -272,7 +271,7 @@ void BusStopAgent::storeWaitingTime(sim_mob::medium::WaitBusActivity* waitingAct
 {
 	if(!waitingActivity) { return; }
 	PersonWaitingTime personWaitInfo;
-	personWaitInfo.busStopNo = busStop->getBusstopno_();
+	personWaitInfo.busStopNo = busStop->getStopCode();
 	personWaitInfo.personId  = waitingActivity->getParent()->getId();
 	personWaitInfo.currentTime = DailyTime(currentTimeMS).getStrRepr();
 	personWaitInfo.waitingTime = ((double) waitingActivity->getWaitingTime())/1000.0; //convert ms to second
@@ -302,7 +301,7 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 		{
 			const sim_mob::SubTrip& subTrip = *(person->currSubTrip);
 			Warn() << "[waiting long]Person[" << person->getId() << "] waiting for [" << subTrip.getBusLineID()
-					<< " ] at [" << busStop->getBusstopno_() << "] for ["
+					<< " ] at [" << busStop->getStopCode() << "] for ["
 					<< DailyTime(waitingTm).getStrRepr() << "]" << std::endl;
 		}
 		if ((*itWaitingPerson)->canBoardBus())
@@ -319,7 +318,7 @@ void BusStopAgent::boardWaitingPersons(BusDriver* busDriver)
 				if (passenger)
 				{
 					busDriver->addPassenger(passenger);
-					passenger->setStartNode(busStop->getParentSegment()->getEnd());
+					passenger->setStartNode(busStop->getParentSegment()->getParentLink()->getFromNode());
 					passenger->Movement()->startTravelTimeMetric();
 					ret = true;
 				}

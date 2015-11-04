@@ -84,15 +84,6 @@ timeval start_time_med;
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
 
-
-void unit_test_function(){
-	const RoadNetwork* rn = RoadNetwork::getInstance();
-	const std::map<unsigned int, Node *>& nodeLookup = rn->getMapOfIdvsNodes();
-	sim_mob::Node* src_node = rn->getById(nodeLookup, 14934);
-	sim_mob::Node* dest_node = rn->getById(nodeLookup, 11392);
-	sim_mob::PT_PathSetManager::Instance().makePathset(src_node,dest_node);
-}
-
 void assignConfluxLoaderToWorker(WorkGroup* workGrp, unsigned int workerIdx)
 {
 	const sim_mob::MutexStrategy& mtxStrat = ConfigManager::GetInstance().FullConfig().mutexStategy();

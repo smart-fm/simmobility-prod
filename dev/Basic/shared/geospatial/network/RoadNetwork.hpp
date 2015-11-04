@@ -76,7 +76,7 @@ public:
 
 	const std::map<unsigned int, Node *>& getMapOfIdvsNodes() const;
 
-	const std::map<unsigned int, Lane*>& getMapOfIdVsLanes() const;
+	const std::map<unsigned int, Lane *>& getMapOfIdVsLanes() const;
 
 	const std::map<unsigned int, RoadSegment*>& getMapOfIdVsRoadSegments() const;
 

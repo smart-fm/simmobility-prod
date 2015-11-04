@@ -1,12 +1,10 @@
-//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Copyright (c) 2015 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
 #include <map>
-#include <vector>
-
 #include "TurningPath.hpp"
 
 namespace sim_mob
@@ -60,7 +58,7 @@ public:
 	double visibility;
 
 	/**The total number of turning paths that are in this turning group*/
-	unsigned int noOfPaths;
+	unsigned int numTurningPaths;
 
 	/**The length of the turning group. This is an average of the lengths of the turning paths that belong to the turning group*/
 	double length;
@@ -92,7 +90,7 @@ public:
 
 	const std::map<unsigned int, std::map<unsigned int, TurningPath *> >& getTurningPaths() const;
 
-	unsigned int getNoOfPaths() const;
+	unsigned int getNumTurningPaths() const;
 	double getLength() const;
 
 	/**
@@ -104,11 +102,11 @@ public:
 	/**
 	 * This method looks up the turning paths from the given lane and returns map of with the destination lane as key and
 	 * the turning path as the value.
+	 * 
+	 * @param fromLaneId - the lane id where the turning path begins
 	 *
-     * @param fromLaneId - the lane id where the turning path begins
-	 *
-     * @return the map of "to lane id" vs turning path if found, else NULL
-     */
+	 * @return the map of "to lane id" vs turning path if found, else NULL
+	 */
 	const std::map<unsigned int, TurningPath *>* getTurningPaths(unsigned int fromLaneId) const;
 };
 }

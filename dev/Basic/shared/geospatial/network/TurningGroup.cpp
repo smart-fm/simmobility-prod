@@ -1,4 +1,4 @@
-//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Copyright (c) 2015 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
@@ -8,7 +8,8 @@
 using namespace sim_mob;
 
 TurningGroup::TurningGroup() :
-turningGroupId(0), fromLinkId(0), nodeId(0), phases(""), groupRule(TURNING_GROUP_RULE_NO_STOP_SIGN), toLinkId(0), visibility(0), length(0)
+turningGroupId(0), fromLinkId(0), nodeId(0), phases(""), groupRule(TURNING_GROUP_RULE_NO_STOP_SIGN), toLinkId(0), visibility(0),
+numTurningPaths(0), length(0)
 {
 }
 
@@ -103,9 +104,9 @@ const std::map<unsigned int, std::map<unsigned int, TurningPath *> >& TurningGro
 	return turningPaths;
 }
 
-unsigned int TurningGroup::getNoOfPaths() const
+unsigned int TurningGroup::getNumTurningPaths() const
 {
-	return noOfPaths;
+	return numTurningPaths;
 }
 
 double TurningGroup::getLength() const
@@ -120,7 +121,7 @@ void TurningGroup::addTurningPath(TurningPath *turningPath)
 	const PolyPoint to = turningPath->getToLane()->getPolyLine()->getLastPoint();
 	
 	double distance = dist(from.getX(), from.getY(), to.getX(), to.getY());
-	length = ((length * noOfPaths) + distance) / (noOfPaths + 1);
+	length = ((length * numTurningPaths) + distance) / (numTurningPaths + 1);
 	
 	//Look up the entry for turning path with the same from lane
 	std::map<unsigned int, std::map<unsigned int, TurningPath *> >::iterator itPaths = turningPaths.find(turningPath->getFromLaneId());
@@ -141,7 +142,7 @@ void TurningGroup::addTurningPath(TurningPath *turningPath)
 	}
 	
 	//Increment number of turning paths
-	noOfPaths++;
+	numTurningPaths++;
 }
 
 const std::map<unsigned int, TurningPath *>* TurningGroup::getTurningPaths(unsigned int fromLaneId) const

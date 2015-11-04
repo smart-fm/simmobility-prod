@@ -378,13 +378,6 @@ private:
 	 */
 	double calcCriticalGapKaziModel(DriverUpdateParams &params, int type, double distance, double diffInSpeed);
 
-	/**
-	 * Checks if courtesy merging is feasible
-	 * @param params
-	 * @return true if the gap is less than critical gap
-	 */
-	bool ifCourtesyMerging(DriverUpdateParams &params);
-
 public:
 	MITSIM_LC_Model(DriverUpdateParams& params);
 	virtual ~MITSIM_LC_Model();

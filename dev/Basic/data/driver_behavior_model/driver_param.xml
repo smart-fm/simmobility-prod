@@ -274,19 +274,19 @@
 	-0.6		# next exit, each additional lane changes required
 	-0.309		# distance to exit
 	-->
-	<!-- From mitsim: -->
-	<param name="lane_utility_model" value="
+	<!-- From mitsim (right hand driving): -->
+	<!--<param name="lane_utility_model" value="
 	3.9443		# current lane constant
-	0		# right lane constant
-	0		# right most lane dummy
+	-0.3213		# right lane constant
+	-1.1683		# right most lane dummy
 	 0.0		# currently unused
 	 0.0633		# front vehicle speed (all lanes)
         -1.0   	        # bus following dummy
-         0.0108		# front vehicle spacing
+         0.0058		# front vehicle spacing
 	-0.2664		# heavy neighbor in lane
         -0.0088		# density in lane	
         -3.3754		# tailgate
-    	 15     	# gap behind threshold for tailgate dummy (meters)
+    	 10     	# gap behind threshold for tailgate dummy (meters)
 	 19         	# density threshold for tailgate dummy	
 	-2.3400		# one lane change required
 	-4.5084		# two lane changes required
@@ -294,7 +294,28 @@
 	-1.2597		# next exit, one lane change required
 	-0.7239		# next exit, each additional lane changes required
         -0.3269  	# distance to exit
-	"/> 
+	"/>-->
+	<!-- From mitsim (left hand driving): -->
+	<param name="lane_utility_model" value="
+	4.2656		# current lane constant
+	0.3213		# right lane constant
+	-1.1683		# right most lane dummy
+	 0.0		# currently unused
+	 0.0633		# front vehicle speed (all lanes)
+        -1.0   	        # bus following dummy
+         0.0058		# front vehicle spacing
+	-0.2664		# heavy neighbor in lane
+        -0.0088		# density in lane	
+        -3.3754		# tailgate
+    	 10     	# gap behind threshold for tailgate dummy (meters)
+	19         	# density threshold for tailgate dummy	
+	-2.3400		# one lane change required
+	-4.5084		# two lane changes required
+	-2.8257		# each additional lane change required
+	-1.2597		# next exit, one lane change required
+	-0.7239		# next exit, each additional lane changes required
+        -0.3269  	# distance to exit
+	"/>
 
 <!--  I. GAP MODEL PARAMETERS -->
 <!--  I.1 CRITICAL GAP MODEL PARAMETERS
@@ -325,6 +346,8 @@
 		  6.0		# max speed difference
 
 	"/>
+	
+	<param name="Target_Gap_Model" value="-0.837   0.913  0.816  -1.218  -2.393  -1.662"/>
 
 <!--  I.2 GAP UTILITY MODEL PARAMETERS - TARGET GAP CHOICE
 						const	   dis2gap	gap-size	gap-vel		dummy	vn-->
@@ -405,8 +428,8 @@
 	<!-- minimum speed to consider for a moving vehicle -->
 	<param name="min_speed" value="0.1"/>  <!-- m/s -->
 	<!-- minimum time required between lane changing decisions -->
-	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir" value="7"/> <!-- s -->
-	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir" value="7"/> <!-- s -->
+	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneSameDir" value="1"/> <!-- s -->
+	<param name="LC_Discretionary_Lane_Change_Model_MinTimeInLaneDiffDir" value="1"/> <!-- s -->
 
 	<!-- Visibility of stopping points (default value) -->
 	<param name="check_stop_point_distance" value="200"/> <!-- meters -->

@@ -163,100 +163,6 @@ double MITSIM_LC_Model::calcCriticalGapKaziModel(DriverUpdateParams &params, int
 	return (criGap < a[1]) ? a[1] : criGap;
 }
 
-bool MITSIM_LC_Model::ifCourtesyMerging(DriverUpdateParams &params)
-{
-	//[0:left,1:right]
-
-	//the speed of the closest vehicle in adjacent lane
-	LeadLag<double> otherSpeed[2];
-
-	//the distance to the closest vehicle in adjacent lane
-	LeadLag<double> otherDistance[2];
-
-	//the acceleration of the closet vehicles in the adjacent lane
-	LeadLag<double> otherAcc[2];
-
-	const Lane * adjacentLanes[2] = {params.leftLane, params.rightLane};
-	const NearestVehicle * fwd;
-	const NearestVehicle * back;
-	for (int i = 0; i < 2; i++)
-	{
-		fwd = (i == 0) ? &params.nvLeftFwd : &params.nvRightFwd;
-		back = (i == 0) ? &params.nvLeftBack : &params.nvRightBack;
-
-		if (adjacentLanes[i])
-		{
-			//the left/right side exists
-			if (!fwd->exists())
-			{
-				//no vehicle ahead on current lane
-				otherSpeed[i].lead = maxVisibleDis;
-				otherDistance[i].lead = maxVisibleDis;
-				otherAcc[i].lead = maxVisibleDis;
-			}
-			else
-			{
-				//has vehicle ahead
-				otherSpeed[i].lead = fwd->driver->getFwdVelocity();
-				otherDistance[i].lead = fwd->distance;
-				otherAcc[i].lead = fwd->driver->getFwdAcceleration();
-			}
-
-			if (!back->exists())
-			{
-				//no vehicle behind
-				otherSpeed[i].lag = maxVisibleDis;
-				otherDistance[i].lag = maxVisibleDis;
-				otherAcc[i].lag = maxVisibleDis;
-			}
-			else
-			{
-				//has vehicle behind, check the gap
-				otherSpeed[i].lag = back->driver->getFwdVelocity();
-				otherDistance[i].lag = back->distance;
-				otherAcc[i].lag = back->driver->getFwdAcceleration();
-			}
-		}
-		else
-		{
-			//no left/right side exists
-			otherSpeed[i].lead = 0;
-			otherDistance[i].lead = 0;
-			otherAcc[i].lead = 0;
-			otherSpeed[i].lag = 0;
-			otherDistance[i].lag = 0;
-			otherAcc[i].lag = 0;
-		}
-	}
-
-	int direction = params.nextLaneIndex - params.currLaneIndex;
-
-	//[0:left,1:right]
-	int i = direction > 0 ? 0 : 1;
-
-	double dis_lead = otherDistance[i].lead;
-	double dis_lag = otherDistance[i].lag;
-
-	double v_lead = otherSpeed[i].lead;
-	double v_lag = otherSpeed[i].lag;
-
-	double acc_lead = otherAcc[i].lead;
-	double acc_lag = otherAcc[i].lag;
-
-
-	double gap = dis_lead + dis_lag + (v_lead - v_lag) * params.elapsedSeconds + 0.5 * (acc_lead - acc_lag) * params.elapsedSeconds * params.elapsedSeconds;
-
-	double para[4] = {1.82, 1.81, -0.153, 0.0951};
-
-	double v = v_lag - params.perceivedFwdVelocity;
-	double dv = v > 0 ? v : 0;
-
-	//calculate critical gap for courtesy merging
-	double critical_gap = exp(para[0] + para[1] * dv + para[3] * params.distToStop);
-	bool courtesy = gap - critical_gap > 0 ? true : false;
-	return courtesy;
-}
-
 void MITSIM_LC_Model::chooseTargetGap(DriverUpdateParams &params)
 {
 	params.lcDebugStr << "===CTG";
@@ -596,7 +502,7 @@ LaneChangeTo MITSIM_LC_Model::checkForLC_WithLookAhead(DriverUpdateParams &param
 	params.lcDebugStr << ";checkDLC";
 
 	//Check if we're already changing the lane
-	if (params.flag(FLAG_ESCAPE))
+	/*if (params.flag(FLAG_ESCAPE))
 	{
 		if (params.statusMgr.getStatus(STATUS_LEFT_SIDE_OK))
 		{
@@ -610,7 +516,7 @@ LaneChangeTo MITSIM_LC_Model::checkForLC_WithLookAhead(DriverUpdateParams &param
 		params.setStatus(STATUS_MANDATORY);
 		params.lcDebugStr << ";FLAG_ESCAPE";
 		return change;
-	}
+	}*/
 
 	if (params.distanceToStoppingPt != 999 && params.distanceToStoppingPt > -10)
 	{
@@ -847,16 +753,16 @@ double MITSIM_LC_Model::lcUtilityCurrent(DriverUpdateParams &params)
 		heavy_neighbor = (bv->driver->getVehicle()->getVehicleType() != VehicleBase::BUS) ? heavy_neighbor : a[7];
 	}
 
-	float right_most = 0.0;
+	float left_most = 0.0;
 
-	//Check if current lane is the right most lane
-	if (params.currLaneIndex == params.currLane->getParentSegment()->getNoOfLanes() - 1)
+	//Check if current lane is the left most lane
+	if (params.currLaneIndex == 0)
 	{
-		right_most = 0.0;
+		left_most = 0.0;
 	}
 	else
 	{
-		right_most = a[2];
+		left_most = a[2];
 	}
 
 	switch (n)
@@ -895,7 +801,7 @@ double MITSIM_LC_Model::lcUtilityCurrent(DriverUpdateParams &params)
 		}
 	}
 
-	double u = a[0] + a[4] * vld + a[6] * spacing + a[8] * density + mlc + heavy_neighbor + right_most + a[5] * busAheadDummy;
+	double u = a[0] + a[4] * vld + a[6] * spacing + a[8] * density + mlc + heavy_neighbor + left_most + a[5] * busAheadDummy;
 
 	return exp(u);
 }
@@ -933,16 +839,16 @@ double MITSIM_LC_Model::lcUtilityRight(DriverUpdateParams &params)
 		heavy_neighbor = (bv->driver->getVehicle()->getVehicleType() != VehicleBase::BUS) ? heavy_neighbor : a[7];
 	}
 
-	float right_most = 0.0;
+	float left_most = 0.0;
 
-	//Check if current lane is the right most lane
-	if (params.currLaneIndex == params.currLane->getParentSegment()->getNoOfLanes() - 1)
+	//Check if current lane is the left most lane
+	if (params.currLaneIndex == 0)
 	{
-		right_most = 0.0;
+		left_most = 0.0;
 	}
 	else
 	{
-		right_most = a[2];
+		left_most = a[2];
 	}
 
 	switch (n)
@@ -981,7 +887,7 @@ double MITSIM_LC_Model::lcUtilityRight(DriverUpdateParams &params)
 		}
 	}
 
-	double u = a[1] + a[4] * vld + a[6] * spacing + a[8] * density + mlc + heavy_neighbor + right_most + a[5] * busAheadDummy;
+	double u = a[1] + a[4] * vld + a[6] * spacing + a[8] * density + mlc + heavy_neighbor + left_most + a[5] * busAheadDummy;
 
 	return exp(u);
 }
@@ -1177,16 +1083,16 @@ double MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams &params, int 
 		}
 	}
 
-	float right_most = 0.0;
+	float left_most = 0.0;
 
-	//Check if the current lane is right most lane
-	if (params.currLane->getLaneIndex() == params.currLane->getParentSegment()->getNoOfLanes() - 1)
+	//Check if the current lane is left most lane
+	if (params.currLane->getLaneIndex() == 0)
 	{
-		right_most = 0.0;
+		left_most = 0.0;
 	}
 	else
 	{
-		right_most = a[2];
+		left_most = a[2];
 	}
 
 	switch (noOfChanges)
@@ -1225,7 +1131,7 @@ double MITSIM_LC_Model::lcUtilityLookAheadRight(DriverUpdateParams &params, int 
 		}
 	}
 
-	double u = a[1] + a[4] * vld + a[6] * spacing + a[8] * density + mlc + heavy_neighbor + right_most + a[5] * busAheadDummy;
+	double u = a[1] + a[4] * vld + a[6] * spacing + a[8] * density + mlc + heavy_neighbor + left_most + a[5] * busAheadDummy;
 	double res = exp(u);
 	return res;
 }
@@ -1267,16 +1173,16 @@ double MITSIM_LC_Model::lcUtilityLookAheadCurrent(DriverUpdateParams &params, in
 		}
 	}
 
-	float right_most = 0.0;
+	float left_most = 0.0;
 
-	//Check if the current lane is right most lane
-	if (params.currLane->getLaneIndex() == params.currLane->getParentSegment()->getNoOfLanes() - 1)
+	//Check if the current lane is left most lane
+	if (params.currLane->getLaneIndex() == 0)
 	{
-		right_most = 0.0;
+		left_most = 0.0;
 	}
 	else
 	{
-		right_most = a[2];
+		left_most = a[2];
 	}
 
 	switch (noOfChanges)
@@ -1323,7 +1229,7 @@ double MITSIM_LC_Model::lcUtilityLookAheadCurrent(DriverUpdateParams &params, in
 		}
 	}
 
-	double u = a[0] + a[4] * vld + a[6] * spacing + a[8] * density + mlc + heavy_neighbor + right_most + tailgate_dummy + a[5] * busAheadDummy;
+	double u = a[0] + a[4] * vld + a[6] * spacing + a[8] * density + mlc + heavy_neighbor + left_most + tailgate_dummy + a[5] * busAheadDummy;
 
 	double res = exp(u);
 	return res;
@@ -1923,7 +1829,7 @@ int MITSIM_LC_Model::checkForEventsAhead(DriverUpdateParams& params)
 		params.setFlag(FLAG_AVOID);
 	}
 
-	// 3.0 if has mld require and not enough headway, set STATUS_MANDATORY
+	// 3.0 MLC is required and not enough headway, set STATUS_MANDATORY
 	if (needMLC && params.distToStop < lookAheadDistance)
 	{
 		params.setStatus(STATUS_MANDATORY);

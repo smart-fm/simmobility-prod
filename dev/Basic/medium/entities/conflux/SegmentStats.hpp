@@ -855,7 +855,7 @@ public:
 	 * and moving/queuing status is still unknown for persons in laneInfinity. The frame_init function of the agent's role will have
 	 * to put the persons from laneInfinity on moving/queuing vehicle lists on appropriate real lane.
 	 */
-	const Lane* laneInfinity;
+	Lane* laneInfinity;
 };
 } // namespace medium
 } // namespace sim_mob

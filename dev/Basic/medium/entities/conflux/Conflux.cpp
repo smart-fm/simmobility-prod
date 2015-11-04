@@ -32,10 +32,12 @@
 #include "event/SystemEvents.hpp"
 #include "geospatial/network/LaneConnector.hpp"
 #include "geospatial/network/Link.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "logging/Log.hpp"
 #include "message/MessageBus.hpp"
+#include "metrics/Length.hpp"
 #include "path/PathSetManager.hpp"
 #include "util/Utils.hpp"
 
@@ -1321,10 +1323,10 @@ void Conflux::assignPersonToBusStopAgent(Person_MT* person)
 		}
 
 		//always make sure we dispatch this person only to SOURCE_TERMINUS or NOT_A_TERMINUS stops
-		if (stop->terminusType == sim_mob::SINK_TERMINUS)
+		if (stop->getTerminusType() == sim_mob::SINK_TERMINUS)
 		{
 			stop = stop->getTwinStop();
-			if (stop->terminusType == sim_mob::SINK_TERMINUS)
+			if (stop->getTerminusType() == sim_mob::SINK_TERMINUS)
 			{
 				throw std::runtime_error("both twin stops are SINKs");
 			} //sanity check
@@ -1814,18 +1816,18 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 		throw std::runtime_error("CreateSegmentStats(): NULL RoadSegment was passed");
 	}
 	std::stringstream debugMsgs;
-	const std::map<centimeter_t, const RoadItem*>& obstacles = rdSeg->obstacles;
+	const std::map<double, RoadItem*>& obstacles = rdSeg->getObstacles();
 	double lengthCoveredInSeg = 0;
 	double segStatLength;
 	double rdSegmentLength = rdSeg->getPolyLine()->getLength();
 	// NOTE: std::map implements strict weak ordering which defaults to less<key_type>
 	// This is precisely the order in which we want to iterate the stops to create SegmentStats
-	for (std::map<centimeter_t, const RoadItem*>::const_iterator obsIt = obstacles.begin(); obsIt != obstacles.end(); obsIt++)
+	for (std::map<double, RoadItem*>::const_iterator obsIt = obstacles.begin(); obsIt != obstacles.end(); obsIt++)
 	{
 		const BusStop* busStop = dynamic_cast<const BusStop*>(obsIt->second);
 		if (busStop)
 		{
-			double stopOffset = (double) (obsIt->first);
+			double stopOffset = obsIt->first;
 			if (stopOffset <= 0)
 			{
 				SegmentStats* segStats = new SegmentStats(rdSeg, conflux, rdSegmentLength);
@@ -2041,7 +2043,7 @@ void Conflux::ProcessConfluxes()
 		if (!linksAtNode.empty())
 		{
 			// we create a conflux for each multinode
-			conflux = new Conflux(*i, mtxStrat);
+			conflux = new Conflux(i->second, mtxStrat);
 
 			for (std::set<const Link*>::const_iterator lnkIt = linksAtNode.begin(); lnkIt != linksAtNode.end(); lnkIt++)
 			{
@@ -2077,7 +2079,7 @@ void Conflux::ProcessConfluxes()
 
 			conflux->resetOutputBounds();
 			confluxes.insert(conflux);
-			nodeConfluxesMap.insert(std::make_pair(*i, conflux));
+			nodeConfluxesMap[i->second] = conflux;
 		} //end if
 	} // end for each multinode
 	debugMsgs << "]\n";
@@ -2209,7 +2211,7 @@ void Conflux::CreateLaneGroups()
 						const std::vector<LaneConnector*>& lnConnectors = ln->getLaneConnectors();
 						for(std::vector<LaneConnector*>::const_iterator lcIt=lnConnectors.begin(); lcIt!=lnConnectors.end(); lcIt++)
 						{
-							const LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap((*lcIt)->getToLane());
+							const LaneStats* downStreamLnStats = downstreamSegStats->laneStatsMap.at((*lcIt)->getToLane());
 							currLnStats->addDownstreamLinks(downStreamLnStats->getDownstreamLinks());
 						}
 					}

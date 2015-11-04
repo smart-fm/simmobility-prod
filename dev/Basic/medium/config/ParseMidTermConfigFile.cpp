@@ -529,11 +529,11 @@ void ParseMidTermConfigFile::processPublicTransit(xercesc::DOMElement* node)
 {
 	if (!node)
 	{
-		cfg.publicTransitEnabled = false;
+		cfg.setPublicTransitEnabled(false);
 	}
 	else
 	{
-		cfg.publicTransitEnabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
+		cfg.setPublicTransitEnabled(ParseBoolean(GetNamedAttributeValue(node, "enabled"), false));
 		if (cfg.isPublicTransitEnabled())
 		{
 			const std::string& key = cfg.networkDatabase.procedures;

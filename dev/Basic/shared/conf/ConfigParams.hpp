@@ -343,6 +343,8 @@ public:
     bool isGenerateBusRoutes() const;
 
     bool isPublicTransitEnabled() const;
+
+    void setPublicTransitEnabled(bool value);
 };
 
 

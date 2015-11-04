@@ -271,3 +271,8 @@ bool ConfigParams::isWorkerPublisherEnabled() const
 bool ConfigParams::isPublicTransitEnabled() const{
     return publicTransitEnabled;
 }
+
+void ConfigParams::setPublicTransitEnabled(bool value)
+{
+	publicTransitEnabled = value;
+}

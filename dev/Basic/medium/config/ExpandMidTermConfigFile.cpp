@@ -10,6 +10,7 @@
 #include "geospatial/Incident.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "geospatial/network/NetworkLoader.hpp"
+#include "metrics/Length.hpp"
 #include "path/PathSetManager.hpp"
 #include "path/PT_PathSetManager.hpp"
 

@@ -1,12 +1,10 @@
-//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Copyright (c) 2015 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #pragma once
 
 #include <map>
-#include <vector>
-
 #include "TurningPath.hpp"
 
 namespace sim_mob
@@ -52,12 +50,18 @@ public:
 
 	/**
 	 * The turning paths located in a turning group. The map stores the 'from lane id' as the key and
-	 * the turning path as the value
+	 * an inner map with the 'to lane id' as the key and the turning path as the value
 	 */
-	std::map<unsigned int, TurningPath *> turningPaths;
+	std::map<unsigned int, std::map<unsigned int, TurningPath *> > turningPaths;
 
 	/**Defines the visibility of the intersection from the turning group (m/s)*/
 	double visibility;
+
+	/**The total number of turning paths that are in this turning group*/
+	unsigned int numTurningPaths;
+
+	/**The length of the turning group. This is an average of the lengths of the turning paths that belong to the turning group*/
+	double length;
 
 public:
 
@@ -86,6 +90,11 @@ public:
 	double getVisibility() const;
 	void setVisibility(double visibility);
 
+	const std::map<unsigned int, std::map<unsigned int, TurningPath *> >& getTurningPaths() const;
+
+	unsigned int getNumTurningPaths() const;
+	double getLength() const;
+
 	/**
 	 * Adds the turning path into the map of turningPaths
 	 * @param turningPath - turning path to be added to the turning group
@@ -93,19 +102,13 @@ public:
 	void addTurningPath(TurningPath *turningPath);
 
 	/**
-	 * This method looks up the turning path connecting the given from lane and returns a pointer to it.
+	 * This method looks up the turning paths from the given lane and returns map of with the destination lane as key and
+	 * the turning path as the value.
 	 *
      * @param fromLaneId - the lane id where the turning path begins
 	 *
-     * @return the turning path if found, else NULL
+     * @return the map of "to lane id" vs turning path if found, else NULL
      */
-	const TurningPath* getTurningPath(unsigned int fromLaneId) const;
-
-	/**
-	 * returns the full set of turning paths in this turning group
-	 *
-	 * @return all turning paths in this group
-	 */
-	const std::map<unsigned int, TurningPath *>& getTurningPaths() const;
+	const std::map<unsigned int, TurningPath *>* getTurningPaths(unsigned int fromLaneId) const;
 };
 }

@@ -1,4 +1,4 @@
-//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Copyright (c) 2015 Singapore-MIT Alliance for Research and Technology
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
@@ -7,7 +7,8 @@
 using namespace sim_mob;
 
 TurningGroup::TurningGroup() :
-turningGroupId(0), fromLinkId(0), nodeId(0), phases(""), groupRule(TURNING_GROUP_RULE_NO_STOP_SIGN), toLinkId(0), visibility(0)
+		turningGroupId(0), fromLinkId(0), nodeId(0), phases(""), groupRule(TURNING_GROUP_RULE_NO_STOP_SIGN), toLinkId(0), visibility(0),
+		numTurningPaths(0), length(0)
 {
 }
 
@@ -16,11 +17,10 @@ TurningGroup::~TurningGroup()
 	//Delete the turning paths
 
 	//Iterate through the map and delete the turnings
-	std::map<unsigned int, TurningPath *>::iterator itTurnings = turningPaths.begin();
+	std::map<unsigned int, std::map<unsigned int, TurningPath *> >::iterator itTurnings = turningPaths.begin();
 	while (itTurnings != turningPaths.end())
 	{
-		delete itTurnings->second;
-		itTurnings->second = NULL;
+		clear_delete_map(itTurnings->second);
 		++itTurnings;
 	}
 
@@ -98,27 +98,62 @@ void TurningGroup::setVisibility(double visibility)
 	this->visibility = visibility;
 }
 
-void TurningGroup::addTurningPath(TurningPath *turningPath)
+const std::map<unsigned int, std::map<unsigned int, TurningPath *> >& TurningGroup::getTurningPaths() const
 {
-	//Make a new entry into the map
-	turningPaths.insert(std::make_pair(turningPath->getFromLaneId(), turningPath));
+	return turningPaths;
 }
 
-const TurningPath* TurningGroup::getTurningPath(unsigned int fromLaneId) const
+unsigned int TurningGroup::getNumTurningPaths() const
 {
-	std::map<unsigned int, TurningPath *>::const_iterator itPathsFrom = turningPaths.find(fromLaneId);
+	return numTurningPaths;
+}
+
+double TurningGroup::getLength() const
+{
+	return length;
+}
+
+void TurningGroup::addTurningPath(TurningPath *turningPath)
+{
+	//Update the turning group length
+	const PolyPoint from = turningPath->getFromLane()->getPolyLine()->getLastPoint();
+	const PolyPoint to = turningPath->getToLane()->getPolyLine()->getLastPoint();
+	
+	double distance = dist(from.getX(), from.getY(), to.getX(), to.getY());
+	length = ((length * numTurningPaths) + distance) / (numTurningPaths + 1);
+	
+	//Look up the entry for turning path with the same from lane
+	std::map<unsigned int, std::map<unsigned int, TurningPath *> >::iterator itPaths = turningPaths.find(turningPath->getFromLaneId());
+	
+	if(itPaths != turningPaths.end())
+	{
+		//Update the inner map, as the entry for this "from lane" exists
+		itPaths->second.insert(std::make_pair(turningPath->getToLaneId(), turningPath));
+	}
+	else
+	{
+		//Create a new inner map as it doesn't exist for this "from lane"
+		std::map<unsigned int, TurningPath *> innerMap;
+		innerMap.insert(std::make_pair(turningPath->getToLaneId(), turningPath));
+		
+		//Add a new entry
+		turningPaths.insert(std::make_pair(turningPath->getFromLaneId(), innerMap));
+	}
+	
+	//Increment number of turning paths
+	numTurningPaths++;
+}
+
+const std::map<unsigned int, TurningPath *>* TurningGroup::getTurningPaths(unsigned int fromLaneId) const
+{
+	std::map<unsigned int, std::map<unsigned int, TurningPath *> >::const_iterator itPathsFrom = turningPaths.find(fromLaneId);
 	
 	if(itPathsFrom != turningPaths.end())
 	{
-		return itPathsFrom->second;
+		return &(itPathsFrom->second);
 	}
 	else
 	{
 		return NULL;
 	}
-}
-
-const std::map<unsigned int, TurningPath*>& sim_mob::TurningGroup::getTurningPaths() const
-{
-	return turningPaths;
 }

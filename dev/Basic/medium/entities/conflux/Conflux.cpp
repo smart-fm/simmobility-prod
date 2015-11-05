@@ -2142,11 +2142,14 @@ void Conflux::CreateLaneGroups()
 					throw std::runtime_error("to link of turn group does not exist");
 				}
 
-				const std::map<unsigned int, TurningPath*>& turnPaths = turnGrp->getTurningPaths();
-				for(std::map<unsigned int, TurningPath*>::const_iterator tpIt=turnPaths.begin(); tpIt!=turnPaths.end(); tpIt++)
+				const std::map<unsigned int, std::map<unsigned int, TurningPath *> >& turnPaths = turnGrp->getTurningPaths();
+				for(std::map<unsigned int, std::map<unsigned int, TurningPath *> >::const_iterator tpOuterIt=turnPaths.begin(); tpOuterIt!=turnPaths.end(); tpOuterIt++)
 				{
-					const TurningPath* turnPath = tpIt->second;
-					lastStats->laneStatsMap.at(turnPath->getFromLane())->addDownstreamLink(downStreamLink); //duplicates are eliminated by the std::set containing the downstream links
+					for(std::map<unsigned int, TurningPath*>::const_iterator tpIt=tpOuterIt->second.begin(); tpIt!=tpOuterIt->second.end(); tpIt++)
+					{
+						const TurningPath* turnPath = tpIt->second;
+						lastStats->laneStatsMap.at(turnPath->getFromLane())->addDownstreamLink(downStreamLink); //duplicates are eliminated by the std::set containing the downstream links
+					}
 				}
 			}
 

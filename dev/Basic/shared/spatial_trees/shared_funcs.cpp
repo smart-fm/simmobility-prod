@@ -96,7 +96,7 @@ double sim_mob::spatial::getAdjacentPathWidth(const WayPoint &wayPoint)
 		const RoadNetwork *network = RoadNetwork::getInstance();
 		const TurningGroup *group = network->getById(network->getMapOfIdvsTurningGroups(), turning->getTurningGroupId());
 
-		if(group->getNoOfPaths() == 1)
+		if(group->getNumTurningPaths() == 1)
 		{
 			//Only one turning in the group i.e. no lane on the left or right
 			width += 0.6;

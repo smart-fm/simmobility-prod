@@ -3,6 +3,8 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "TurningGroup.hpp"
+#include "util/GeomHelpers.hpp"
+#include "util/LangHelpers.hpp"
 
 using namespace sim_mob;
 

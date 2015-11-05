@@ -366,21 +366,22 @@ void DriverMovement::frame_tick_output()
 		}
 	}
 
-	LogOut(
-		"(\"Driver\"" << "," <<
-		params.now.frame() << "," <<
-		id << ",{" <<
-		"\"xPos\":\"" << parentDriver->getCurrPosition().getX() <<
-		"\",\"yPos\":\"" << parentDriver->getCurrPosition().getY() <<
-		"\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) <<
-		"\",\"length\":\"" << static_cast<int> (parentDriver->vehicle->getLengthCm()) <<
-		"\",\"width\":\"" << static_cast<int> (parentDriver->vehicle->getWidthCm()) <<
-		"\",\"curr-waypoint\":\"" << wayPtId <<
-		"\",\"fwd-speed\":\"" << parentDriver->vehicle->getVelocity() <<
-		"\",\"fwd-accel\":\"" << parentDriver->vehicle->getAcceleration() <<
-		"\",\"info\":\"" << params.debugInfo <<
-		"\",\"mandatory\":\"" << incidentPerformer.getIncidentStatus().getChangedLane() << addLine.str() <<
-		"\"})" << std::endl);
+	std::stringstream output;
+	output << std::setprecision(8);
+	output << "(\"Driver\"" << "," << params.now.frame() << "," << id
+			<< ",{" << "\"xPos\":\"" << parentDriver->getCurrPosition().getX()
+			<< "\",\"yPos\":\"" << parentDriver->getCurrPosition().getY()
+			<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI))
+			<< "\",\"length\":\"" << static_cast<int> (parentDriver->vehicle->getLengthCm())
+			<< "\",\"width\":\"" << static_cast<int> (parentDriver->vehicle->getWidthCm())
+			<< "\",\"curr-waypoint\":\"" << wayPtId
+			<< "\",\"fwd-speed\":\"" << parentDriver->vehicle->getVelocity()
+			<< "\",\"fwd-accel\":\"" << parentDriver->vehicle->getAcceleration()
+			<< "\",\"info\":\"" << params.debugInfo
+			<< "\",\"mandatory\":\"" << incidentPerformer.getIncidentStatus().getChangedLane()
+			<< addLine.str() << "\"})" << std::endl;
+	
+	LogOut(output.str());
 }
 
 void DriverMovement::updateDensityMap()

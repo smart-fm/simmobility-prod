@@ -27,6 +27,11 @@ void TAO_Dao::fromRow(Row& result, TAO& outObj)
 	outObj.semi = result.get<double>("semi", .0);
 	outObj.detached = result.get<double>("detached", .0);
 	outObj.ec = result.get<double>("ec", .0);
+	outObj.hdb12 = result.get<double>("hdb12", .0);
+	outObj.hdb3 = result.get<double>("hdb3", .0);
+	outObj.hdb4 = result.get<double>("hdb4", .0);
+	outObj.hdb5 = result.get<double>("hdb5", .0);
+	outObj.exec = result.get<double>("exec", .0);
 }
 
 void TAO_Dao::toRow(TAO& data, Parameters& outParams, bool update) {

@@ -18,7 +18,8 @@ namespace sim_mob
     	class TAO
 		{
 		public:
-    		TAO(BigSerial id = 0, std::string quarter = std::string(), double condo = 0, double apartment = 0, double terrace = 0, double semi = 0, double detached = 0, double ec = 0);
+    		TAO(BigSerial id = 0, std::string quarter = std::string(), double condo = 0, double apartment = 0, double terrace = 0, double semi = 0, double detached = 0, double ec = 0,
+    			double hdb12 = 0, double hdb3 = 0, double hdb4 = 0, double hdb5 = 0, double exec = 0);
 			virtual ~TAO();
 
 			double getApartment() const;
@@ -29,6 +30,11 @@ namespace sim_mob
 			double getSemi() const;
 			double getTerrace() const;
 			BigSerial getId() const;
+			double getHdb12() const;
+			double getHdb3() const;
+			double getHdb4() const;
+			double getHdb5() const;
+			double getExec() const;
 
 			void setApartment(double apartment);
 			void setCondo(double condo);
@@ -38,6 +44,11 @@ namespace sim_mob
 			void setSemi(double semi);
 			void setTerrace(double terrace);
 			void setId(BigSerial id);
+			void setHdb12(double value);
+			void setHdb3(double value);
+			void setHdb4(double value);
+			void setHdb5(double value);
+			void setExec(double value);
 			/**
 			* Assign operator.
 			* @param source to assign.
@@ -61,6 +72,11 @@ namespace sim_mob
 			double semi;
 			double detached;
 			double ec;
+			double hdb12;
+			double hdb3;
+			double hdb4;
+			double hdb5;
+			double exec;
 		};
 
     }

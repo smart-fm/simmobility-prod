@@ -1385,7 +1385,7 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 	//1.0 Get the current turnings of both, the current driver and the nearby drivers
 	
 	const TurningPath *otherTurning = nearbyDriver->isInIntersection_.get() ? nearbyDriver->currTurning_.get() : nearbyDriver->expectedTurning_.get();
-	const TurningPath *currTurning = fwdDriverMovement.getCurrTurning();
+	const TurningPath *currTurning = fwdDriverMovement.isInIntersection() ? fwdDriverMovement.getCurrTurning() : parentDriver->expectedTurning_.get();
 
 	//Check if both drivers have a valid turning - meaning they are approaching or in the intersection
 	if (currTurning && otherTurning)
@@ -1460,10 +1460,10 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 			
 			double distance = 0;
 
-			//The other driver can be the front driver only for a few meters, say 5m
+			//The other driver can be the front driver only for a few meters, say 10m
 			//till the turning has some common area
 			
-			const double turningOverlapDist = 5;
+			const double turningOverlapDist = 10;
 			
 			if (nearbyDriver->isInIntersection_.get() && nearbyDriver->distCoveredOnCurrWayPt_.get() <= turningOverlapDist)
 			{
@@ -1478,9 +1478,8 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 		}
 	}
 
-	//The other driver is in the intersection, we've already done the required updates above so return
-	//But if he's approaching, we still may need to do other updates
-	if (nearbyDriver->isInIntersection_.get())
+	//Either we or the other driver are in the intersection, we've already done the required updates above so return
+	if (fwdDriverMovement.isInIntersection() || nearbyDriver->isInIntersection_.get())
 	{
 		return true;
 	}
@@ -1494,7 +1493,7 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 	//We need the length of the link while calculating the lane level density
 	//as we will be considering the vehicles on a particular lane of a link.
 	double linkLength = fwdDriverMovement.getCurrLink()->getLength();
-
+	
 	//If the vehicle is in the same Road segment
 	if (fwdDriverMovement.getCurrSegment() == otherSegment)
 	{

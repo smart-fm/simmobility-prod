@@ -122,7 +122,7 @@ end
 ]]
 function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum)
 	local simulationYear = CONSTANTS.SIMULATION_YEAR;
-	local hedonicPrice = getStoreyEstimation(unit.storey) + ((building ~= nil) and ((simulationYear - building.builtYear) * -23.26) or 0)
+	local hedonicPrice = 0; --getStoreyEstimation(unit.storey) + ((building ~= nil) and ((simulationYear - building.builtYear) * -23.26) or 0)
 
 	if amenities == nil then
 		return 100000000;
@@ -141,6 +141,27 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum)
 	local ZZ_freehold = 0;
 	local ZZ_logsum = logsum;
 	local ZZ_bus_400m = 0;
+
+	local ZZ_hdb12 = 0;
+	local ZZ_hdb3  = 0;
+	local ZZ_hdb4  = 0;
+	local ZZ_hdb5m = 0;
+
+	local age = 112 - unit.physicalFromYear;
+
+
+	if( age > 30 ) then
+		age = 30;
+	end
+
+	local ageSquared = age * age;
+
+	local age30m = 0;
+
+	if( age > 30 ) then
+		age30m = 1;
+	end
+
 
 	if( unit.floorArea ~= nil ) then
 		DD_logarea  = math.log(unit.floorArea);
@@ -182,18 +203,23 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum)
 		ZZ_mrt_800m = 1;
 	end
 
-	if( unit.unitType < 4 ) then
-		ZZ_hdb123 = 1;
+	if( unit.unitType < 3 ) then
+		ZZ_hdb12 = 1;
 	end
+
+	if( unit.unitType == 3 ) then
+		ZZ_hdb3 = 1;
+	end	
 	
 	if( unit.unitType == 4 ) then
 		ZZ_hdb4 = 1;
 	end	
 
-	if( unit.unitType == 5 ) then
-		ZZ_hdb5 = 1;
+	if( unit.unitType > 4 ) then
+		ZZ_hdb5m = 1;
 	end
 
+	--[[
    	if (ZZ_hdb123 == 1) then
 		return(-5.6642939 				+
 			0.7399724	*	DD_logarea 	+
@@ -229,6 +255,81 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum)
 			 -0.031353	*	ZZ_bus_200m);
 
  	end
+	]]--
+
+
+	-----------------------------
+	-----------------------------
+	if (ZZ_hdb12 == 1) then
+		hedonicPrice =   6.848847355 	+ 
+				 0.436454323	*	DD_logarea 	+ 
+				 1.425775446	*	ZZ_logsum 	+ 
+				-0.001812507	*	ZZ_pms1km 	+ 
+				-0.017356589	*	ZZ_dis_mall 	+ 
+				 0.12593333	*	ZZ_mrt_200m 	+ 
+				 0.008691113	*	ZZ_mrt_400m 	+ 
+				-0.012386765	*	ZZ_express_200m + 
+				 0.045913095	*	ZZ_bus_400m 	+ 
+				-0.00112725	*	age 		+ 
+				 3.52E-05	*	age^2 		+ 
+				 0.018782865	*	age30m;
+	elseif (ZZ_hdb3 == 1) then
+		hedonicPrice = -6.621078298 	+ 
+				0.770612786	*	DD_logarea	+ 
+				6.043678591	*	ZZ_logsum 	+ 
+				4.46E-05	*	ZZ_pms1km 	+ 
+				-0.012916874	*	ZZ_dis_mall 	+ 
+				0.040907994	*	ZZ_mrt_200m 	+ 
+				0.039269537	*	ZZ_mrt_400m 	+ 
+				-0.016480515	*	ZZ_express_200m + 
+				-0.003329949	*	ZZ_bus_400m 	+ 
+				-0.022220604	*	age 		+ 
+				0.000376281	*	ageSquared	+ 
+				0.00442484	*	age30m;
+	elseif (ZZ_hdb4 == 1) then
+		hedonicPrice =  -11.05822938 	+ 
+				0.555391977	*	DD_logarea 	+ 
+				8.068356026	*	ZZ_logsum 	+ 
+				-0.007935505	*	ZZ_pms1km 	+ 
+				-0.015869669	*	ZZ_dis_mall 	+ 
+				0.071967105	*	ZZ_mrt_200m 	+ 
+			       	0.051345789	*	ZZ_mrt_400m 	+ 
+				-0.017976885	*	ZZ_express_200m	+ 
+				0.011143845	*	ZZ_bus_400m 	+ 
+				-0.027661065	*	age 		+ 
+				0.000529645	*	ageSquared	+ 
+				0.016603561	*	age30m;
+	elseif (ZZ_hdb5m == 1) then
+		hedonicPrice = -15.92090409 	+ 
+				0.931672979	*	DD_logarea 	+ 
+				9.238094212	*	ZZ_logsum 	+ 
+				0.00557408	*	ZZ_pms1km 	+	 
+				-0.013448111	*	ZZ_dis_mall 	+ 
+				0.082384142	*	ZZ_mrt_200m 	+ 
+				0.040629054	*	ZZ_mrt_400m 	+ 
+				-0.017177823	*	ZZ_express_200m + 
+				0.019294964	*	ZZ_bus_400m 	+ 
+				-0.032293775	*	age 		+ 
+				0.000655319	*	ageSquared	+ 
+				0.082523075	*	age30m;
+	else 
+		hedonicPrice = -10.56097603 	+ 
+				0.770965021	*	DD_logarea 	+ 
+				7.454534834	*	ZZ_logsum 	+ 
+				0.003687724	*	ZZ_pms1km 	+ 
+				-0.023468107	*	ZZ_dis_mall 	+	 
+				0.078803451	*	ZZ_mrt_200m 	+ 
+				0.028197726	*	ZZ_mrt_400m 	+ 
+				-0.018227609	*	ZZ_express_200m	+ 
+				0.004238152	*	ZZ_bus_400m 	+ 
+				-0.000741825	*	age 		+ 
+				-5.07E-05	*	ageSquared	+ 
+				0.075272042	*	age30m;
+	end
+	
+	--print("hedonic " .. hedonicPrice);
+	---------------------------------
+	---------------------------------
 
    
 --print(string.format("HDB Price: %d, dist_job: %s, dist_cdb: %s, pms1KM: %s, dist_mall: %s, mrt_200m: %s, mrt_400m: %s, dist_express_200m: %s, bus_200m: %s"
@@ -249,12 +350,6 @@ end
 ]]
 function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logsum)
 	local hedonicPrice = 0
-
-	if amenities == nil then
-		print("amenities for unit " .. unit " not found");
-		return 100000000;
-	end
-
 	local DD_logarea  = 0;
 	local ZZ_dis_cbd  = 0;
 	local ZZ_pms1km   = 0;
@@ -268,6 +363,30 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logs
 	local ZZ_freehold = 1; 
 	local ZZ_logsum = logsum; 
 	local ZZ_bus_400m = 0;
+	local ZZ_bus_gt400m = 0;
+
+
+	local age = 112 - unit.physicalFromYear;
+
+	if( age > 25 ) then
+	    age = 25;
+	end
+
+	local ageSquared =  age *  age;
+	local agem25_50 = 0;
+
+	if( age > 25 and age < 50 ) then
+		agem25_50 = 1;
+	end
+
+	local agem50 = 0;
+
+	if( age > 50 ) then
+		agem50 = 1;
+	end
+
+	local misage = 0;
+
 
 	if( unit.floorArea ~= nil ) then
 		DD_logarea  = math.log(unit.floorArea);
@@ -305,10 +424,15 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logs
 		ZZ_bus_400m = 1;
 	end
 
-	if(amenities.distanceToMRT ~= nil and amenities.distanceToMRT < 0.8) then
+	if(amenities.distanceToMRT < 0.8) then
 		ZZ_mrt_800m = 1;
 	end
 
+	if( amenities.distanceToBus > 0.4) then	
+		ZZ_bus_gt400m = 1;
+	end
+
+	--[[
 	if( (unit.unitType >= 12 and unit.unitType  <= 16 ) or ( unit.unitType >= 32 and unit.unitType  < 36 ) ) then -- Executive Condominium and Condominium	
 	  hedonicPrice =  -36.748568 			+
 			    0.963625 *	DD_logarea	+
@@ -378,6 +502,115 @@ function calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logs
 			  -0.22743	*	ZZ_bus_200m	+
 			  -0.15131	*	ZZ_bus_400m;
 	end
+	]]--
+
+	-----------------------------
+	-----------------------------
+	if( (unit.unitType >= 12 and unit.unitType  <= 16 ) or ( unit.unitType >= 32 and unit.unitType  < 36 ) ) then -- Executive Condominium and Condominium
+		hedonicPrice = -25.54928193 	+ 
+				0.969230027	*	DD_logarea 	+ 
+				0.178603032	*	ZZ_freehold 	+ 
+				12.91048136	*	ZZ_logsum 	+ 
+				-0.002453952	*	ZZ_pms1km 	+ 
+				-0.041115924	*	ZZ_dis_mall 	+ 
+				-0.08167267	*	ZZ_mrt_200m 	+ 
+				-0.022713371	*	ZZ_mrt_400m 	+ 
+				0.053584268	*	ZZ_express_200m + 
+				-0.370359	*	ZZ_bus_400m 	+ 
+				0.348895837	*	ZZ_bus_gt400m 	+ 
+				-0.016519062	*	age 		+ 
+				-0.00012883	*	ageSquared	+ 
+				0.134831364	*	agem25_50 	+ 
+				0.474173547	*	agem50 		+ 
+				-0.105709958	*	misage;
+	elseif (unit.unitType >= 7 and unit.unitType  <= 11 ) then --"Apartment"
+		hedonicPrice = -23.08166378 	+ 
+				0.838905717	*	DD_logarea 	+ 
+				0.036665412	*	ZZ_freehold 	+ 
+				12.19561161	*	ZZ_logsum 	+ 
+				0.041185213	*	ZZ_pms1km 	+ 
+				-0.108448088	*	ZZ_dis_mall 	+ 
+				-0.071465284	*	ZZ_mrt_200m 	+ 
+				0.106852355	*	ZZ_mrt_400m 	+ 
+				-0.037059068	*	ZZ_express_200m	+ 
+				0.096846927	*	ZZ_bus_400m 	+ 
+				0.224145375	*	ZZ_bus_gt400m 	+ 
+				-0.02603531	*	age 		+ 
+				8.67E-05	*	ageSquared	+ 
+				0.076709586	*	agem25_50 	+ 
+				0.523295627	*	agem50 		+ 
+				-0.124793173	*	misage;
+	elseif (unit.unitType >= 17 and unit.unitType  <= 21 ) then --"Terrace House"
+		hedonicPrice = 	2.115617129 	+ 
+				0.468612265	*	DD_logarea 	+ 
+				0.135114204	*	ZZ_freehold 	+ 
+				3.591528177	*	ZZ_logsum 	+ 
+				0.029715641	*	ZZ_pms1km 	+ 
+				-0.0026513	*	ZZ_dis_mall 	+ 
+				0.008829052	*	ZZ_mrt_200m 	+ 
+				0.00153972	*	ZZ_mrt_400m 	+ 
+				0.004728968	*	ZZ_express_200m + 
+				0.028124909	*	ZZ_bus_400m 	+ 
+				0.220693908	*	ZZ_bus_gt400m 	+ 
+				-0.031700344	*	age 		+ 
+				0.001123349	*	ageSquared	+ 
+				-0.165532208	*	agem25_50 	+ 
+				0.044950323	*	agem50 		+ 
+				-0.1407557	*	misage;
+	elseif ( unit.unitType >= 22 and unit.unitType  <= 26 ) then --"Semi-Detached House"	
+		hedonicPrice = -19.1340235 	+ 
+				0.439412904	*	DD_logarea 	+ 
+				0.078858977	*	ZZ_freehold 	+ 
+				11.59805493	*	ZZ_logsum 	+ 
+				0.019830039	*	ZZ_pms1km 	+ 
+				0.00781082	*	ZZ_dis_mall 	+ 
+				-0.228086333	*	ZZ_mrt_200m 	+ 
+				-0.046377882	*	ZZ_mrt_400m 	+ 
+				-0.164674723	*	ZZ_express_200m	+ 
+				0.023352674	*	ZZ_bus_400m 	+ 
+				0.150093763	*	ZZ_bus_gt400m 	+ 
+				-0.025372566	*	age 		+ 
+				0.000807147	*	ageSquared	+ 
+				-0.166701637	*	agem25_50 	+ 
+				0.023981051	*	agem50 		+ 
+				-0.088263362	*	misage;
+	elseif ( unit.unitType >= 27 and unit.unitType  <= 31 ) then --"Detached House"	
+		hedonicPrice = -26.03977798 	+ 
+				0.811576331	*	DD_logarea 	+	 
+				-0.053529572	*	ZZ_freehold 	+ 
+				13.39605601	*	ZZ_logsum 	+ 
+				-0.003305346	*	ZZ_pms1km 	+ 
+				0.01970628	*	ZZ_dis_mall 	+ 
+				0.035937868	*	ZZ_mrt_200m 	+ 
+				-0.07363059	*	ZZ_mrt_400m 	+ 
+				-0.109209837	*	ZZ_express_200m + 
+				0.106419072	*	ZZ_bus_400m 	+ 
+				0.254100391	*	ZZ_bus_gt400m 	+ 
+				-0.023193191	*	age 		+ 
+				0.000394237	*	ageSquared	+ 
+				-0.077718103	*	agem25_50 	+ 
+				-0.068276746	*	agem50 		+ 
+				-0.221324717	*	misage;
+	else 
+		hedonicPrice = 	 1.608609087 	+ 
+				 0.732167784 	* DD_logarea 		+ 
+				 0 		* ZZ_freehold 		+ 
+				 3.062183727 	* ZZ_logsum 		+ 
+				-0.040562506 	* ZZ_pms1km 		+ 
+				-0.02150639  	* ZZ_dis_mall 		+ 
+			         0 		* ZZ_mrt_200m 		+ 
+				 0.001145249 	* ZZ_mrt_400m 	 	+ 
+				-0.043523853 	* ZZ_express_200m 	+ 
+				-0.014385463 	* ZZ_bus_400m  		+ 
+			        -0.033681751 	* ZZ_bus_gt400m 	+ 
+				 0.005228958 	* age 			+ 
+				-0.000607114 	* ageSquared		+ 
+			         0 		* agem25_50 		+ 
+				 0 		* agem50 		+ 
+				-0.074834872 	* misage;
+	end
+	------------------------------------------
+	------------------------------------------
 
 	return hedonicPrice;
 end
@@ -392,8 +625,9 @@ end
     @param amenities close to the unit.
 ]]
 function calculateHedonicPrice(unit, building, postcode, amenities, logsum)
+  
     if unit ~= nil and building ~= nil and postcode ~= nil and amenities ~= nil then
-         if(amenities.unitType ~= nil and amenities.unitType < 5) then
+ 	if(unit.unitType < 5) then
 		return calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum) 
 	 else 
 		return calculatePrivate_HedonicPrice(unit, building, postcode, amenities, logsum);
@@ -467,6 +701,7 @@ function calulateUnitExpectations (unit, timeOnMarket, logsum, building, postcod
             expectations[i] = entry
         end
     end
+
     return expectations
 end
 

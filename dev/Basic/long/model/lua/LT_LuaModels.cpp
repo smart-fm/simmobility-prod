@@ -71,7 +71,7 @@ namespace {
         	.addProperty("storey", &Unit::getStorey)
         	.addProperty("rent", &Unit::getRent)
         	.addProperty("saleFromDate", &Unit::getSaleFromDate)
-        	.addProperty("physicalFromDate", &Unit::getPhysicalFromDate)
+        	.addProperty("physicalFromYear", &Unit::getPhysicalFromYear)
         	.addProperty("saleStatus", &Unit::getSaleStatus)
         	.addProperty("physicalStatus", &Unit::getPhysicalStatus)
             .endClass();

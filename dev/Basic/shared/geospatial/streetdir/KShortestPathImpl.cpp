@@ -4,15 +4,9 @@
 
 #include <list>
 #include <utility>
-#include <vector>
 #include "geospatial/network/RoadNetwork.hpp"
-#include "geospatial/network/RoadSegment.hpp"
-#include "geospatial/network/Lane.hpp"
-#include "geospatial/network/Node.hpp"
-#include "geospatial/network/LaneConnector.hpp"
-#include "path/PathSetManager.hpp"
+#include "geospatial/network/TurningGroup.hpp"
 #include "path/Path.hpp"
-#include "entities/roles/RoleFacets.hpp"
 #include "conf/ConfigParams.hpp"
 #include "conf/ConfigManager.hpp"
 #include "StreetDirectory.hpp"
@@ -23,11 +17,13 @@ boost::shared_ptr<K_ShortestPathImpl> sim_mob::K_ShortestPathImpl::instance;
 
 sim_mob::K_ShortestPathImpl::K_ShortestPathImpl() : k(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().kspLevel)
 {
+	// build set of upstream links for each link in the network
 	const RoadNetwork* rn = RoadNetwork::getInstance();
-	const std::map<unsigned int, TurningGroup *>& turningGroupsMap = rn->getMapOfIdvsTurningGroups();
-	for(std::map<unsigned int, TurningGroup *>::const_iterator tgIt=turningGroupsMap.begin(); tgIt!=turningGroupsMap.end(); tgIt++)
+	const std::map<unsigned int, Link *>& linksMap = rn->getMapOfIdVsLinks();
+	for(std::map<unsigned int, Link *>::const_iterator lnkIt=linksMap.begin(); lnkIt!=linksMap.end(); lnkIt++)
 	{
-		const TurningGroup* tg = tgIt->second;
+		const Link* lnk = lnkIt->second;
+		upstreamLinksLookup[lnk->getToNode()].insert(lnk);
 	}
 }
 
@@ -172,7 +168,7 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 			const sim_mob::Node *spurNode = nextRootPathLink.link->getFromNode();
 
 			// Find links whose EndNode = SpurNode, and block them.
-			getUpstreamLinks(spurNode, blSet); //find and store in the blacklist
+			blSet = getUpstreamLinks(spurNode); //find and store in the blacklist
 			//if(nextRootPathLink.roadSegment_->getStart() == nextRootPathLink.roadSegment_->getLink()->getStart())//this line('if' condition only, not the if block) is an optimization to HE's pseudo code to bypass uninodes
 			{
 				//	For each path Cj in path list C:
@@ -186,14 +182,14 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 				temp = stdir.SearchShortestDrivingPath(*spurNode, *to, BL_VECTOR(blSet));
 				std::vector<sim_mob::WayPoint> spurPath;
 				sim_mob::SinglePath::filterOutNodes(temp, spurPath);
-				std::vector<sim_mob::WayPoint> totalPath;
+				std::vector<sim_mob::WayPoint> fullPath;
 				if(validatePath(rootPath, spurPath))
 				{
 					//	Set TotalPath = RootPath + SpurPath.
-					totalPath.insert(totalPath.end(), rootPath.begin(),rootPath.end());
-					totalPath.insert(totalPath.end(), spurPath.begin(), spurPath.end());
+					fullPath.insert(fullPath.end(), rootPath.begin(),rootPath.end());
+					fullPath.insert(fullPath.end(), spurPath.begin(), spurPath.end());
 					//	Add TotalPath to path list B.
-					B.insert(sim_mob::generateSinglePathLength(totalPath), totalPath);
+					B.insert(sim_mob::generateSinglePathLength(fullPath), fullPath);
 				}
 			}
 			//	For each path Cj in path list C:
@@ -240,44 +236,12 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 		}
 	}//while
 	//	The final path list A contains the K shortest paths (if possible) from O to D.
-	//std::cout << "Created " << A.size() << " K shortest paths\n";
 	return A.size();
 }
 
-void sim_mob::K_ShortestPathImpl::getUpstreamLinks(const Node *spurNode, std::set<const Link*>& upLinks) const
+std::set<const Link*> sim_mob::K_ShortestPathImpl::getUpstreamLinks(const Node *spurNode) const
 {
-	std::set<const RoadSegment*> endSegments;
-	//step-1: get ALL the segments, regardless of spurnode
-	const sim_mob::UniNode * uNode = dynamic_cast<const sim_mob::UniNode*>(spurNode);
-	if(uNode)
-	{
-		const std::vector<const RoadSegment*>& src = uNode->getRoadSegments();
-		for(std::vector<const RoadSegment*>::const_iterator it = src.begin(); it != src.end(); it++)
-		{
-			endSegments.insert(*it);
-		}
-	}
-	else
-	{
-		const Node * mNode = dynamic_cast <const Node*>(spurNode);
-		const std::set<sim_mob::RoadSegment*>& src = mNode->getRoadSegments();
-		for(std::set<RoadSegment*>::const_iterator it = src.begin(); it != src.end(); it++)
-		{
-			endSegments.insert(*it);
-		}
-	}
-	//step-2: filter out the segments for whom SpurNode is a start node
-	for (std::set<const RoadSegment*>::iterator it(endSegments.begin()) ; it != endSegments.end(); ) {
-	  if ((*it)->getEnd() !=  spurNode){
-	    endSegments.erase(it++);
-	  } else {
-	    ++it;
-	  }
-	}
-	//step-3: add the results to blacklist
-	for (std::set<const RoadSegment*>::iterator it(endSegments.begin()) ; it != endSegments.end(); it++) {
-		blackList.insert(*it);
-	}
+	return upstreamLinksLookup[spurNode];
 }
 
 bool sim_mob::K_ShortestPathImpl::validatePath(const std::vector<sim_mob::WayPoint> &rootPath, const std::vector<sim_mob::WayPoint> &spurPath)
@@ -289,7 +253,10 @@ bool sim_mob::K_ShortestPathImpl::validatePath(const std::vector<sim_mob::WayPoi
 
 	if(!rootPath.empty())
 	{
-		if(!sim_mob::MovementFacet::isConnectedToNextSeg(rootPath.rbegin()->roadSegment, spurPath.begin()->roadSegment))
+		const Link *spurPathFirstLnk = spurPath.begin()->link;
+		const Link *rootPathLastLnk = rootPath.rbegin()->link;
+		const TurningGroup* connectingTurnGroup = spurPathFirstLnk->getFromNode()->getTurningGroup(rootPathLastLnk->getLinkId(), spurPathFirstLnk->getLinkId());
+		if(!connectingTurnGroup)
 		{
 			return false;
 		}

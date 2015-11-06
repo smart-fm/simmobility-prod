@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include "geospatial/network/Link.hpp"
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/WayPoint.hpp"
 
@@ -54,7 +55,7 @@ private:
 	 * @param spurNode input node
 	 * @param upLinks output
 	 */
-	void getUpstreamLinks(const Node *spurNode, std::set<const Link*> &upLinks) const;
+	std::set<const Link*> getUpstreamLinks(const Node *spurNode) const;
 
 	/**
 	 * Validates the intermediary results
@@ -75,9 +76,9 @@ private:
 	std::map<std::string, const sim_mob::RoadSegment*> A_Segments;
 
 	/**
-	 * store all upstream links for each link
+	 * store all upstream links for each node
 	 */
-	std::map<const Link *, std::set<const Link*> > upstreamLinksLookup;
+	std::map<const Node *, std::set<const Link *> > upstreamLinksLookup;
 
 	/**
 	 * static singleton instance

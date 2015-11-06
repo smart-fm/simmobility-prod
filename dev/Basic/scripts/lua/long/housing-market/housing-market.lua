@@ -271,7 +271,7 @@ function calculateHDB_HedonicPrice(unit, building, postcode, amenities, logsum)
 				-0.012386765	*	ZZ_express_200m + 
 				 0.045913095	*	ZZ_bus_400m 	+ 
 				-0.00112725	*	age 		+ 
-				 3.52E-05	*	age^2 		+ 
+				 3.52E-05	*	ageSquared	+ 
 				 0.018782865	*	age30m;
 	elseif (ZZ_hdb3 == 1) then
 		hedonicPrice = -6.621078298 	+ 

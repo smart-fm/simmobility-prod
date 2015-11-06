@@ -1,60 +1,58 @@
-/*
- * SMStatus.h
- *
- *  Created on: Jul 7, 2014
- *      Author: Max
- */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
-#ifndef SMSTATUS_H_
-#define SMSTATUS_H_
+#pragma once
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
+
 #include "entities/models/Constants.h"
 
 using namespace std;
 
-namespace sim_mob {
+namespace sim_mob
+{
 
-enum StatusValue {
+enum StatusValue
+{
 	STATUS_NO = -1,
 	STATUS_UNKNOWN = 0,
 	STATUS_YES = 1
 };
-//enum StatusType {
-//	STATUS_LEFT_LANE,
-//	STATUS_RIGHT_LANE,
-//	STATUS_CURRENT_LANE
-//};
 
-
-class SMStatus {
-public:
-	SMStatus();
-	SMStatus(const SMStatus& source);
-	virtual ~SMStatus();
-
-public:
+struct SMStatus
+{
+	/**Indicates the type of status*/
 	string statusName;
+
+	/**Indicates the status value*/
 	StatusValue status;
-	/// record information,like who set the value
+
+	/**Indicates information such as the method that set the status*/
 	string recordInfo;
 
+	SMStatus();
+	virtual ~SMStatus();
 };
 
-class SMStatusManager {
-public:
-	SMStatusManager() {}
-	virtual ~SMStatusManager() {}
-public:
-	void setStatus(string name,StatusValue v,string whoSet);
-	StatusValue getStatus(string name);
-
+class SMStatusManager
+{
 private:
-	/// key = status name, value = SMStatus
-	map<string,SMStatus> statusMap;
+	/**Stores the the type of status as key and the status value as the value*/
+	map<string, SMStatus> statusMap;
+public:
+	SMStatusManager()
+	{
+	}
+
+	virtual ~SMStatusManager()
+	{
+	}
+
+	void setStatus(string name, StatusValue value, string whoSet);
+	StatusValue getStatus(string name);
 };
 
-} /* namespace sim_mob */
-#endif /* SMSTATUS_H_ */
+}

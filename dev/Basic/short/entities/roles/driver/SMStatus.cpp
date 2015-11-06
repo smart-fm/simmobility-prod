@@ -1,76 +1,57 @@
-/*
- * SMStatus.cpp
- *
- *  Created on: Jul 7, 2014
- *      Author: redheli
- */
+//Copyright (c) 2013 Singapore-MIT Alliance for Research and Technology
+//Licensed under the terms of the MIT License, as described in the file:
+//   license.txt   (http://opensource.org/licenses/MIT)
 
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+
 #include "SMStatus.h"
 
 using namespace std;
-
-namespace sim_mob {
+using namespace sim_mob;
 
 SMStatus::SMStatus()
-: status(STATUS_UNKNOWN),statusName("no name"),recordInfo("init")
+: status(STATUS_UNKNOWN), statusName("No Name"), recordInfo("Initial Status")
 {
-
 }
-SMStatus::SMStatus(const SMStatus& source)
-	:statusName(source.statusName),status(source.status),recordInfo(source.recordInfo)
+
+SMStatus::~SMStatus()
 {
-
-}
-SMStatus::~SMStatus() {
 }
 
-void SMStatusManager::setStatus(string name,StatusValue v,string whoSet) {
-	map<string,SMStatus>::iterator it = statusMap.find(name);
-	if(it != statusMap.end()) {
-		// when new value is STATUS_UNKNOWN, set status
-		// when new value is STATUS_NO, set status
-		// when new value is STATUS_YES, check current value if is STATUS_NO
-		if(it->second.status == STATUS_NO || v == STATUS_UNKNOWN) {
-			it->second.status = v;
-			it->second.recordInfo = whoSet;
-		}
-		else if(v == STATUS_YES && it->second.status != STATUS_NO){
-			it->second.status = v;
-			it->second.recordInfo = whoSet;
-		} else {
-			return;
-		}
+void SMStatusManager::setStatus(string name, StatusValue value, string whoSet)
+{
+	map<string, SMStatus>::iterator it = statusMap.find(name);
+	
+	if (it != statusMap.end())
+	{
+		it->second.status = value;
+		it->second.recordInfo = whoSet;
 	}
-	else {
-//		std::stringstream msg;
-//		msg << "setStatus: Error: not such type name "
-//				<< typeName;
-//		throw std::runtime_error(msg.str().c_str());
-
-		//create one
-		SMStatus s;
-		s.statusName = name;
-		s.status = v;
-		s.recordInfo = whoSet;
-		statusMap.insert(std::make_pair(name,s));
+	else
+	{
+		//Add status
+		SMStatus status;
+		status.statusName = name;
+		status.status = value;
+		status.recordInfo = whoSet;
+		statusMap.insert(std::make_pair(name, status));
 	}
 }
+
 StatusValue SMStatusManager::getStatus(string name)
 {
-	map<string,SMStatus>::iterator it = statusMap.find(name);
-	if(it != statusMap.end()) {
+	map<string, SMStatus>::iterator it = statusMap.find(name);
+	if (it != statusMap.end())
+	{
 		StatusValue v = it->second.status;
 		return v;
 	}
-	else {
+	else
+	{
 		std::stringstream msg;
-		msg << "setStatus: Error: no such status name "
-				<< name;
+		msg << "setStatus: Error: no such status name " << name;
 		throw std::runtime_error(msg.str().c_str());
 	}
 }
-
-} /* namespace sim_mob */

@@ -450,12 +450,6 @@ public:
 	void insertStopPoint(StopPoint &stopPt);
 
 	/**
-	 * Sets the status of the vehicle
-     * @param status the status value to be set
-     */
-	void setStatus(unsigned int status);
-
-	/**
 	 * Clears the given status of the vehicle
 	 *
      * @param status status to be cleared
@@ -499,6 +493,11 @@ public:
 	unsigned int getStatus(unsigned int mask)
 	{
 		return (status & mask);
+	}
+
+	void setStatus(unsigned int mask)
+	{
+		status |= mask;
 	}
 
 	void toggleFlag(unsigned int flag)

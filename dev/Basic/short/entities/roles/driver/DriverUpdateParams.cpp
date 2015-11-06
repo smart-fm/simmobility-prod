@@ -24,11 +24,6 @@ DriverUpdateParams::~DriverUpdateParams()
 {
 }
 
-void DriverUpdateParams::setStatus(unsigned int status)
-{
-	status |= status;
-}
-
 void DriverUpdateParams::setStatus(string name, StatusValue value, string whoSet)
 {
 	statusMgr.setStatus(name, value, whoSet);

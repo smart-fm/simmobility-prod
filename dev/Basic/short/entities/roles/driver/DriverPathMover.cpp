@@ -173,14 +173,12 @@ const RoadSegment* DriverPathMover::getNextSegment() const
 	//Access the next way-point
 	std::vector<WayPoint>::const_iterator itWayPt = currWayPointIt + 1;
 	
-	while(itWayPt != drivingPath.end())
+	if(itWayPt != drivingPath.end())
 	{
 		if(itWayPt->type == WayPoint::ROAD_SEGMENT)
 		{
 			nextSeg = itWayPt->roadSegment;
-			break;
 		}
-		++itWayPt;
 	}
 	
 	return nextSeg;
@@ -238,12 +236,6 @@ const Lane* DriverPathMover::getNextLane() const
 			unsigned int midConnection = trueConnections.size() / 2;
 			nextLane = trueConnections.at(midConnection)->getToLane();
 		}
-		else
-		{
-			std::stringstream msg;
-			msg << "Lane " << currLane->getLaneId() << " is not physically connected to any lane in the next segment ";
-			throw std::runtime_error(msg.str());
-		}
 	}
 	else
 	{
@@ -281,12 +273,6 @@ const TurningPath* DriverPathMover::getNextTurning() const
 				}
 				
 				nextTurning = turnings->at(toLane);
-			}
-			else
-			{
-				std::stringstream msg;
-				msg << "Lane " << currLane->getLaneId() << " is not connected to any turning in the next segment ";
-				throw std::runtime_error(msg.str());
 			}
 		}
 	}
@@ -469,7 +455,18 @@ double DriverPathMover::advanceToNextPolyLine()
 					
 					//Get the next lane					
 					currLane = getNextLane();
-					currPolyLine = currLane->getPolyLine();
+					
+					if(currLane)
+					{
+						currPolyLine = currLane->getPolyLine();
+					}
+					else
+					{
+						std::stringstream msg;
+						msg << "Reached end of segment from lane " << currLane->getLaneId() 
+							<< ". It is not physically connected to any lane in the next segment ";
+						throw std::runtime_error(msg.str());
+					}
 				}
 				else
 				{

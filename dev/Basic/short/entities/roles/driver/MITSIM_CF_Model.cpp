@@ -2,13 +2,6 @@
 //Licensed under the terms of the MIT License, as described in the file:
 //   license.txt   (http://opensource.org/licenses/MIT)
 
-/*
- * CF_Model.cpp
- *
- *  Created on: 2011-8-15
- *      Author: wangxy & Li Zhemin
- */
-
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/nondet_random.hpp>
@@ -33,12 +26,12 @@ double feet2Unit(double feet)
 	return feet * 0.158;
 }
 
-double convertFrmMillisecondToSecond(double v)
+double millisecondToSecond(double milliSec)
 {
-	return v / 1000.0;
+	return milliSec / 1000.0;
 }
 
-double calcHeadway(double space, double speed, double elapsedSeconds, double maxAcceleration)
+double calculateHeadway(double space, double speed, double elapsedSeconds, double maxAcceleration)
 {
 	if (speed == 0)
 	{
@@ -50,328 +43,276 @@ double calcHeadway(double space, double speed, double elapsedSeconds, double max
 	}
 }
 
-} //End anon namespace
+}
 
-/*
- *--------------------------------------------------------------------
- * The acceleration model calculates the acceleration rate based on
- * interaction with other vehicles. The function returns a the
- * most restrictive acceleration (deceleration if negative) rate
- * among the rates given by several constraints.
- *--------------------------------------------------------------------
- */
-MITSIM_CF_Model::MITSIM_CF_Model(DriverUpdateParams& p)
+MITSIM_CF_Model::MITSIM_CF_Model(DriverUpdateParams &params)
 {
 	modelName = "general_driver_model";
 	splitDelimiter = " ,";
-	initParam(p);
+	
+	readDriverParameters(params);
 }
 
-void MITSIM_CF_Model::initParam(DriverUpdateParams& p)
+MITSIM_CF_Model::~MITSIM_CF_Model()
 {
+}
 
-	// speed scaler
-	string speedScalerStr, maxAccStr, decelerationStr, maxAccScaleStr,
-			normalDecScaleStr, maxDecScaleStr;
+void MITSIM_CF_Model::readDriverParameters(DriverUpdateParams &params)
+{
+	string speedScalarStr, maxAccStr, decelerationStr, maxAccScaleStr, normalDecScaleStr, maxDecScaleStr;
+	string addOn, hBufferUpperStr;
 	bool isAMOD = false;
 
-	if (p.driver->getParent()->amodId != "-1")
+	if (params.driver->getParent()->amodId != "-1")
 	{
 		isAMOD = true;
 	}
 
 	ParameterManager *parameterMgr = ParameterManager::Instance(isAMOD);
 
-	parameterMgr->param(modelName, "speed_scaler",
-						speedScalerStr, string("5 20 20"));
+	parameterMgr->param(modelName, "speed_scaler", speedScalarStr, string("5 20 20"));
+	parameterMgr->param(modelName, "max_acc_car1", maxAccStr, string("10.00  7.90  5.60  4.00  4.00"));
+	createSpeedIndices(Vehicle::CAR, speedScalarStr, maxAccStr, maxAccelerationIndex, maxAccUpperBound);
+	
+	parameterMgr->param(modelName, "max_acceleration_scale", maxAccScaleStr, string("0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"));
+	createScaleIndices(maxAccScaleStr, maxAccelerationScale);
 
-	// max acceleration
-	parameterMgr->param(modelName, "max_acc_car1", maxAccStr,
-						string("10.00  7.90  5.60  4.00  4.00"));
-	makeSpeedIndex(Vehicle::CAR, speedScalerStr, maxAccStr, maxAccIndex,
-				maxAccUpperBound);
-	parameterMgr->param(modelName, "max_acceleration_scale",
-						maxAccScaleStr, string("0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"));
-	makeScaleIdx(maxAccScaleStr, maxAccScale);
+	parameterMgr->param(modelName, "normal_deceleration_car1", decelerationStr, string("7.8 	6.7 	4.8 	4.8 	4.8"));
+	createSpeedIndices(Vehicle::CAR, speedScalarStr, decelerationStr, normalDecelerationIndex, normalDecelerationUpperBound);
+	
+	parameterMgr->param(modelName, "normal_deceleration_scale", normalDecScaleStr, string("1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0"));
+	createScaleIndices(maxAccScaleStr, normalDecelerationScale);
+	
+	parameterMgr->param(modelName, "speed_limit_add_on", addOn, string("-0.1911 -0.0708 -0.0082 0.0397 0.0810 0.1248 0.1661 0.2180 0.2745 0.3657"));
+	createScaleIndices(addOn, speedLimitAddon);
 
-	// normal deceleration
-	parameterMgr->param(modelName, "normal_deceleration_car1",
-						decelerationStr, string("7.8 	6.7 	4.8 	4.8 	4.8"));
-	makeSpeedIndex(Vehicle::CAR, speedScalerStr, decelerationStr,
-				normalDecelerationIndex, normalDecelerationUpperBound);
-	parameterMgr->param(modelName, "normal_deceleration_scale",
-						normalDecScaleStr,
-						string("1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0"));
-	makeScaleIdx(maxAccScaleStr, normalDecelerationScale);
+	parameterMgr->param(modelName, "Car_following_acceleration_add_on", addOn, string("-1.3564 -0.8547 -0.5562 -0.3178 -0.1036 0.1036 0.3178 0.5562 0.8547 1.3564"));
+	Utils::convertStringToArray(addOn, accelerationAddon);
 
-	// speed limit add on
-	string str;
-	parameterMgr->param(modelName, "speed_limit_add_on", str,
-						string("-0.1911 -0.0708 -0.0082 0.0397 0.0810 0.1248 0.1661 0.2180 0.2745 0.3657"));
-	makeScaleIdx(str, speedLimitAddon);
+	parameterMgr->param(modelName, "Car_following_deceleration_add_on", addOn, string("-1.3187 -0.8309 -0.5407 -0.3089 -0.1007 0.1007 0.3089 0.5407 0.8309 1.3187"));
+	Utils::convertStringToArray(addOn, decelerationAddon);
 
-	// acc add on
-	parameterMgr->param(modelName, "Car_following_acceleration_add_on", str,
-						string("-1.3564 -0.8547 -0.5562 -0.3178 -0.1036 0.1036 0.3178 0.5562 0.8547 1.3564"));
-	Utils::convertStringToArray(str, accAddon);
+	parameterMgr->param(modelName, "max_deceleration_car1", decelerationStr, string("-16.0   -14.5   -13.0   -11.0   -9.0"));
+	createSpeedIndices(Vehicle::CAR, speedScalarStr, decelerationStr, maxDecelerationIndex, maxDecelerationUpperBound);
+	
+	parameterMgr->param(modelName, "max_deceleration_scale", maxDecScaleStr, string("1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0"));
+	createScaleIndices(maxDecScaleStr, maxDecelerationScale);
 
-	// decl add on
-	parameterMgr->param(modelName, "Car_following_deceleration_add_on", str,
-						string("-1.3187 -0.8309 -0.5407 -0.3089 -0.1007 0.1007 0.3089 0.5407 0.8309 1.3187"));
-	Utils::convertStringToArray(str, declAddon);
+	parameterMgr->param(modelName, "acceleration_grade_factor",	accGradeFactor, 0.305);
+	parameterMgr->param(modelName, "tmp_all_grades", allGrades, 0.0);
 
-	// max deceleration
-	parameterMgr->param(modelName, "max_deceleration_car1",
-						decelerationStr, string("-16.0   -14.5   -13.0   -11.0   -9.0"));
-	makeSpeedIndex(Vehicle::CAR, speedScalerStr, decelerationStr,
-				maxDecelerationIndex, maxDecelerationUpperBound);
-	parameterMgr->param(modelName, "max_deceleration_scale",
-						maxDecScaleStr, string("1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0"));
-	makeScaleIdx(maxDecScaleStr, maxDecelerationScale);
-
-	// acceleration grade factor
-	parameterMgr->param(modelName, "acceleration_grade_factor",
-						accGradeFactor, 0.305);
-	parameterMgr->param(modelName, "tmp_all_grades", tmpGrade,
-						0.0);
-
-	// param for distanceToNormalStop()
 	parameterMgr->param(modelName, "min_speed", minSpeed, 0.1);
-	parameterMgr->param(modelName, "min_response_distance",
-						minResponseDistance, 5.0);
+	parameterMgr->param(modelName, "min_response_distance", minResponseDistance, 5.0);
 
-	// param of calcSignalRate()
-	parameterMgr->param(modelName, "yellow_stop_headway",
-						yellowStopHeadway, 1.0);
-	parameterMgr->param(modelName, "min_speed_yellow",
-						minSpeedYellow, 2.2352);
+	parameterMgr->param(modelName, "yellow_stop_headway", maxYellowLightHeadway, 1.0);
+	parameterMgr->param(modelName, "min_speed_yellow", minYellowLightSpeed, 2.2352);
 
-	// param of carFollowingRate()
-	parameterMgr->param(modelName, "hbuffer_lower",
-						hBufferLower, 0.8);
-	string hBufferUpperStr;
-	parameterMgr->param(modelName, "hbuffer_Upper",
-						hBufferUpperStr,
-						string("1.7498 2.2737 2.5871 2.8379 3.0633 3.2814 3.5068 3.7578 4.0718 4.5979"));
-	makeScaleIdx(hBufferUpperStr, hBufferUpperScale);
-	hBufferUpper = getBufferUppder();
+	parameterMgr->param(modelName, "hbuffer_lower", hBufferLower, 0.8);
+	parameterMgr->param(modelName, "hbuffer_Upper", hBufferUpperStr, string("1.7498 2.2737 2.5871 2.8379 3.0633 3.2814 3.5068 3.7578 4.0718 4.5979"));
+	createScaleIndices(hBufferUpperStr, hBufferUpperScale);
+	hBufferUpper = getH_BufferUpperBound();
 
-	// Car following parameters
 	string cfParamStr;
-	parameterMgr->param(modelName, "CF_parameters_1",
-						cfParamStr,
-						string("0.0400, 0.7220, 0.2420, 0.6820, 0.6000, 0.8250"));
-	makeCFParam(cfParamStr, CF_parameters[0]);
-	parameterMgr->param(modelName, "CF_parameters_2",
-						cfParamStr, string("-0.0418 0.0000 0.1510 0.6840 0.6800 0.8020"));
-	makeCFParam(cfParamStr, CF_parameters[1]);
+	parameterMgr->param(modelName, "CF_parameters_1", cfParamStr, string("0.0400, 0.7220, 0.2420, 0.6820, 0.6000, 0.8250"));
+	createCF_Params(cfParamStr, CF_parameters[0]);
+	
+	parameterMgr->param(modelName, "CF_parameters_2", cfParamStr, string("-0.0418 0.0000 0.1510 0.6840 0.6800 0.8020"));
+	createCF_Params(cfParamStr, CF_parameters[1]);
 
 	string targetGapAccParmStr;
-	parameterMgr->param(modelName, "target_gap_acc_parm",
-						targetGapAccParmStr,
-						string(
-							   "0.604, 0.385, 0.323, 0.0678, 0.217,0.583, -0.596, -0.219, 0.0832, -0.170, 1.478, 0.131, 0.300"));
-	makeScaleIdx(targetGapAccParmStr, targetGapAccParm);
+	parameterMgr->param(modelName, "target_gap_acc_parm", targetGapAccParmStr, string("0.604, 0.385, 0.323, 0.0678, 0.217,0.583, -0.596, -0.219, 0.0832, -0.170, 1.478, 0.131, 0.300"));
+	createScaleIndices(targetGapAccParmStr, targetGapAccParm);
 
-	//UPDATE STEP SIZE (REACTION TIME RELATED)
 	string updateStepSizeStr;
+	parameterMgr->param(modelName, "dec_update_step_size", updateStepSizeStr, string("0.5 0.0 0.5 0.5 0.5"));
+	createUpdateSizeParams(updateStepSizeStr, decUpdateStepSize);
 
-	// dec
-	parameterMgr->param(modelName, "dec_update_step_size",
-						updateStepSizeStr, string("0.5     0.0     0.5     0.5 0.5"));
-	makeUpdateSizeParam(updateStepSizeStr, decUpdateStepSize);
+	parameterMgr->param(modelName, "speed_factor", speedFactor, 1.0);
 
-	//speed factor
-	parameterMgr->param(modelName, "speed_factor", speedFactor,
-						1.0);
+	parameterMgr->param(modelName, "acc_update_step_size", updateStepSizeStr, string("1.0 0.0 1.0 1.0 0.5"));
+	createUpdateSizeParams(updateStepSizeStr, accUpdateStepSize);
 
-	// acc
-	parameterMgr->param(modelName, "acc_update_step_size",
-						updateStepSizeStr, string("1.0     0.0     1.0     1.0 0.5"));
-	makeUpdateSizeParam(updateStepSizeStr, accUpdateStepSize);
+	parameterMgr->param(modelName, "uniform_speed_update_step_size", updateStepSizeStr, string("1.0 0.0 1.0 1.0 0.5"));
+	createUpdateSizeParams(updateStepSizeStr, uniformSpeedUpdateStepSize);
 
-	// uniform speed
-	parameterMgr->param(modelName,
-						"uniform_speed_update_step_size", updateStepSizeStr,
-						string("1.0     0.0     1.0     1.0 0.5"));
-	makeUpdateSizeParam(updateStepSizeStr, uniformSpeedUpdateStepSize);
+	parameterMgr->param(modelName, "stopped_vehicle_update_step_size", updateStepSizeStr, string("0.5 0.0 0.5 0.5 0.5"));
+	createUpdateSizeParams(updateStepSizeStr, stoppedUpdateStepSize);
 
-	// stopped vehicle
-	parameterMgr->param(modelName,
-						"stopped_vehicle_update_step_size", updateStepSizeStr,
-						string("0.5     0.0     0.5     0.5 0.5"));
-	makeUpdateSizeParam(updateStepSizeStr, stoppedUpdateStepSize);
+	parameterMgr->param(modelName, "visibility_distance", visibilityDistance, 10.0);
 
+	parameterMgr->param(modelName, "FF_Acc_Params_b2", params.FFAccParamsBeta, 0.3091);
+
+	parameterMgr->param(modelName, "driver_signal_perception_distance", signalVisibilityDist, 75.0);
+	
 	boost::random_device seed_gen;
-	long int r = seed_gen();
-	updateSizeRm = boost::mt19937(r);
+	long int seed = seed_gen();
+	updateSizeRNG = boost::mt19937(seed);
+	
 	calcUpdateStepSizes();
-
-	// init step size , i=3 stopped vehicle
-	p.nextStepSize = updateStepSize[3];
-	if (p.nextStepSize == 0)
+	
+	//Initialise step size, i = 3 is for stopped vehicle
+	params.nextStepSize = updateStepSize[3];
+	
+	if (params.nextStepSize == 0)
 	{
-		p.nextStepSize = p.elapsedSeconds;
+		params.nextStepSize = params.elapsedSeconds;
 	}
+	
 	nextPerceptionSize = perceptionSize[3];
-
-	// visibility
-	parameterMgr->param(modelName, "visibility_distance",
-						visibilityDistance, 10.0);
-
-	//FF Acc Params
-	parameterMgr->param(modelName,
-						"FF_Acc_Params_b2", p.FFAccParamsBeta,
-						0.3091);
-
-	//density
-	parameterMgr->param(modelName,
-						"density", p.density,
-						40.0);
-
-	// driver signal perception distance
-	parameterMgr->param(modelName,
-						"driver_signal_perception_distance", percepDisM,
-						75.0);
 }
 
-void MITSIM_CF_Model::makeCFParam(string& s, CarFollowingParams &cfParam)
+void MITSIM_CF_Model::createCF_Params(string &strParams, CarFollowingParams &cfParams)
 {
 	std::vector<std::string> arrayStr;
-	vector<double> c;
-	boost::trim(s);
-	boost::split(arrayStr, s, boost::is_any_of(splitDelimiter),
-				boost::token_compress_on);
+	vector<double> params;
+	
+	boost::trim(strParams);
+	boost::split(arrayStr, strParams, boost::is_any_of(splitDelimiter), boost::token_compress_on);
+	
 	for (int i = 0; i < arrayStr.size(); ++i)
 	{
-		double res;
+		double res = 0;
+		
 		try
 		{
 			res = boost::lexical_cast<double>(arrayStr[i].c_str());
 		}
 		catch (boost::bad_lexical_cast&)
 		{
-			std::string str = "can not covert <" + s + "> to double.";
+			std::string str = "Error: Cannot convert <" + strParams + "> to type double";
 			throw std::runtime_error(str);
 		}
-		c.push_back(res);
+		
+		params.push_back(res);
 	}
-	cfParam.alpha = c[0];
-	cfParam.beta = c[1];
-	cfParam.gama = c[2];
-	cfParam.lambda = c[3];
-	cfParam.rho = c[4];
-	cfParam.stddev = c[5];
+	
+	cfParams.alpha = params[0];
+	cfParams.beta = params[1];
+	cfParams.gama = params[2];
+	cfParams.lambda = params[3];
+	cfParams.rho = params[4];
+	cfParams.stddev = params[5];
 }
 
-void MITSIM_CF_Model::makeUpdateSizeParam(string& s,
-												   UpdateStepSizeParam& sParam)
+void MITSIM_CF_Model::createUpdateSizeParams(string &strParams, UpdateStepSizeParam &stepSizeParams)
 {
 	std::vector<std::string> arrayStr;
-	vector<double> c;
-	boost::trim(s);
-	boost::split(arrayStr, s, boost::is_any_of(splitDelimiter),
-				boost::token_compress_on);
+	vector<double> params;
+	
+	boost::trim(strParams);
+	boost::split(arrayStr, strParams, boost::is_any_of(splitDelimiter), boost::token_compress_on);
+	
 	for (int i = 0; i < arrayStr.size(); ++i)
 	{
-		double res;
+		double res = 0;
+		
 		try
 		{
 			res = boost::lexical_cast<double>(arrayStr[i].c_str());
 		}
 		catch (boost::bad_lexical_cast&)
 		{
-			std::string str = "can not covert <" + s + "> to double.";
+			std::string str = "Error: Cannot convert <" + strParams + "> to type double";
 			throw std::runtime_error(str);
 		}
-		c.push_back(res);
+		
+		params.push_back(res);
 	}
-	sParam.mean = c[0];
-	sParam.stdev = c[1];
-	sParam.lower = c[2];
-	sParam.upper = c[3];
-	sParam.percep = c[4];
+	
+	stepSizeParams.mean = params[0];
+	stepSizeParams.stdev = params[1];
+	stepSizeParams.lower = params[2];
+	stepSizeParams.upper = params[3];
+	stepSizeParams.perception = params[4];
 }
 
-void MITSIM_CF_Model::makeScaleIdx(string& s, vector<double>& c)
+void MITSIM_CF_Model::createScaleIndices(string &data, vector<double> &container)
 {
 	std::vector<std::string> arrayStr;
-	boost::trim(s);
-	boost::split(arrayStr, s, boost::is_any_of(splitDelimiter),
-				boost::token_compress_on);
+	
+	boost::trim(data);
+	boost::split(arrayStr, data, boost::is_any_of(splitDelimiter), boost::token_compress_on);
+	
 	for (int i = 0; i < arrayStr.size(); ++i)
 	{
-		double res;
+		double res = 0;
+		
 		try
 		{
 			res = boost::lexical_cast<double>(arrayStr[i].c_str());
 		}
 		catch (boost::bad_lexical_cast&)
 		{
-			std::string str = "can not covert <" + s + "> to double.";
+			std::string str = "Error: Cannot convert <" + data + "> to type double";
 			throw std::runtime_error(str);
 		}
-		c.push_back(res);
+		
+		container.push_back(res);
 	}
 }
 
-void MITSIM_CF_Model::makeSpeedIndex(VehicleBase::VehicleType vhType,
-											  string& speedScalerStr, string& cstr,
-											  map<VehicleBase::VehicleType, map<int, double> >& idx,
-											  int& upperBound)
+void MITSIM_CF_Model::createSpeedIndices(VehicleBase::VehicleType vhType, string &speedScalerStr, string &cstr,
+										 map<VehicleBase::VehicleType, map<int, double> > &idx, int &upperBound)
 {
-	// for example
-	// speedScalerStr "5 20 20" ft/sec
-	// maxAccStr      "10.00  7.90  5.60  4.00  4.00" ft/(s^2)
+	//For example
+	//speedScalerStr "5 20 20" ft/sec
+	//maxAccStr      "10.00  7.90  5.60  4.00  4.00" ft/(s^2)
 	std::vector<std::string> arrayStr;
+	
 	boost::trim(speedScalerStr);
-	boost::split(arrayStr, speedScalerStr, boost::is_any_of(splitDelimiter),
-				boost::token_compress_on);
+	boost::split(arrayStr, speedScalerStr, boost::is_any_of(splitDelimiter), boost::token_compress_on);
+	
 	std::vector<double> speedScalerArrayDouble;
+	
 	for (int i = 0; i < arrayStr.size(); ++i)
 	{
-		double res;
+		double res = 0;
 		try
 		{
 			res = boost::lexical_cast<double>(arrayStr[i].c_str());
 		}
 		catch (boost::bad_lexical_cast&)
 		{
-			std::string str = "can not covert <" + speedScalerStr
-					+ "> to double.";
+			std::string str = "Error: Cannot convert <" + speedScalerStr + "> to type double.";
 			throw std::runtime_error(str);
 		}
+		
 		speedScalerArrayDouble.push_back(res);
 	}
+	
 	arrayStr.clear();
 
 	boost::algorithm::trim(cstr);
-	boost::split(arrayStr, cstr, boost::is_any_of(splitDelimiter),
-				boost::token_compress_on);
+	boost::split(arrayStr, cstr, boost::is_any_of(splitDelimiter), boost::token_compress_on);
+	
 	std::vector<double> cArrayDouble;
+	
 	for (int i = 0; i < arrayStr.size(); ++i)
 	{
-		double res;
+		double res = 0;
 		try
 		{
 			res = boost::lexical_cast<double>(arrayStr[i].c_str());
 		}
 		catch (boost::bad_lexical_cast&)
 		{
-			std::string str = "can not covert <" + cstr + "> to double.";
+			std::string str = "Error: Cannot convert <" + cstr + "> to type double.";
 			throw std::runtime_error(str);
 		}
+		
 		cArrayDouble.push_back(res);
 	}
 
-	upperBound = round(
-					speedScalerArrayDouble[1] * (speedScalerArrayDouble[0] - 1));
+	upperBound = round(speedScalerArrayDouble[1] * (speedScalerArrayDouble[0] - 1));
+	
 	map<int, double> cIdx;
+	
 	for (int speed = 0; speed <= upperBound; ++speed)
 	{
-		double maxAcc;
 		// Convert speed value to a table index.
 		int j = speed / speedScalerArrayDouble[1];
+		double maxAcc = 0;		
+		
 		if (j >= (speedScalerArrayDouble[0] - 1))
 		{
 			maxAcc = cArrayDouble[speedScalerArrayDouble[0] - 1];
@@ -380,322 +321,326 @@ void MITSIM_CF_Model::makeSpeedIndex(VehicleBase::VehicleType vhType,
 		{
 			maxAcc = cArrayDouble[j];
 		}
+		
 		cIdx.insert(std::make_pair(speed, maxAcc));
 	}
 
 	idx[vhType] = cIdx;
 }
 
-double MITSIM_CF_Model::getMaxAcceleration(
-													DriverUpdateParams& p, VehicleBase::VehicleType vhType)
+double MITSIM_CF_Model::getMaxAcceleration(DriverUpdateParams &params, VehicleBase::VehicleType vhType)
 {
-	if (!p.driver)
+	int speed = params.perceivedFwdVelocity;
+	
+	if (speed < 0)
 	{
-		throw std::runtime_error("no driver");
+		speed = 0;
+	}
+	
+	if (speed > maxAccUpperBound)
+	{
+		speed = maxAccUpperBound;
 	}
 
-	// convert speed to int
-	int speed = round(p.perceivedFwdVelocity / 100);
-	if (speed < 0)
-		speed = 0;
-	if (speed > maxAccUpperBound)
-		speed = maxAccUpperBound;
+	double maxTableAcc = maxAccelerationIndex[vhType][speed];
 
-	double maxTableAcc = maxAccIndex[vhType][speed];
-
-	// TODO: get random multiplier from data file and normal distribution
-
-	double maxAcc = (maxTableAcc - tmpGrade * accGradeFactor)
-			* getMaxAccScale();
+	double maxAcc = (maxTableAcc - allGrades * accGradeFactor) * getMaxAccScalar();
 
 	return maxAcc;
 }
 
-double MITSIM_CF_Model::getNormalDeceleration(
-													   DriverUpdateParams& p, VehicleBase::VehicleType vhType)
+double MITSIM_CF_Model::getNormalDeceleration(DriverUpdateParams &params, VehicleBase::VehicleType vhType)
 {
-	if (!p.driver)
-	{
-		throw std::runtime_error("no driver");
-	}
-
-	// convert speed to int
-	int speed = round(p.perceivedFwdVelocity / 100);
+	int speed = params.perceivedFwdVelocity;
+	
 	if (speed < 0)
+	{
 		speed = 0;
+	}
+	
 	if (speed > normalDecelerationUpperBound)
+	{
 		speed = normalDecelerationUpperBound;
+	}
 
 	double normalDec = normalDecelerationIndex[vhType][speed];
 
-	double dec = (normalDec - tmpGrade * accGradeFactor) * getNormalDecScale();
+	double dec = (normalDec - allGrades * accGradeFactor) * getNormalDecScalar();
 
 	return dec;
 }
 
-double MITSIM_CF_Model::getMaxDeceleration(
-													DriverUpdateParams& p, VehicleBase::VehicleType vhType)
+double MITSIM_CF_Model::getMaxDeceleration(DriverUpdateParams &params, VehicleBase::VehicleType vhType)
 {
-	if (!p.driver)
-	{
-		throw std::runtime_error("no driver");
-	}
-
-	// convert speed to int
-	int speed = round(p.perceivedFwdVelocity / 100);
+	int speed = params.perceivedFwdVelocity;
+	
 	if (speed < 0)
+	{
 		speed = 0;
+	}
+	
 	if (speed > maxDecelerationUpperBound)
+	{
 		speed = maxDecelerationUpperBound;
+	}
 
 	double maxDec = maxDecelerationIndex[vhType][speed];
 
-	double dec = (maxDec - tmpGrade * accGradeFactor) * getMaxDecScale();
+	double dec = (maxDec - allGrades * accGradeFactor) * getMaxDecScalar();
 
 	return dec;
 }
 
-double MITSIM_CF_Model::getMaxAccScale()
+double MITSIM_CF_Model::getMaxAccScalar()
 {
-	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
-	int scaleNo = Utils::generateInt(1, maxAccScale.size() - 1);
-	double res = Utils::generateFloat(maxAccScale[scaleNo - 1], maxAccScale[scaleNo]);
-	// return max acc scale,as maxAccScale() in MITSIM TS_Parameter.h
-	return res; //maxAccScale[scaleNo];
+	int scaleNo = Utils::generateInt(1, maxAccelerationScale.size() - 1);
+	double res = Utils::generateFloat(maxAccelerationScale[scaleNo - 1], maxAccelerationScale[scaleNo]);
+	
+	return res;
 }
 
-double MITSIM_CF_Model::getNormalDecScale()
+double MITSIM_CF_Model::getNormalDecScalar()
 {
-	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
 	int scaleNo = Utils::generateInt(1, normalDecelerationScale.size() - 1);
 	double res = Utils::generateFloat(normalDecelerationScale[scaleNo - 1], normalDecelerationScale[scaleNo]);
-	// return normal dec scale,as maxAccScale() in MITSIM TS_Parameter.h
-	return res; //normalDecelerationScale[scaleNo];
+	
+	return res;
 }
 
-double MITSIM_CF_Model::getMaxDecScale()
+double MITSIM_CF_Model::getMaxDecScalar()
 {
-	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
 	int scaleNo = Utils::generateInt(1, maxDecelerationScale.size() - 1);
 	double res = Utils::generateFloat(normalDecelerationScale[scaleNo - 1], normalDecelerationScale[scaleNo]);
-	// return max dec scale,as maxAccScale() in MITSIM TS_Parameter.h
-	return res; //maxDecelerationScale[scaleNo];
+
+	return res;
 }
 
 double MITSIM_CF_Model::getSpeedLimitAddon()
 {
-	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
 	int scaleNo = Utils::generateInt(1, speedLimitAddon.size() - 1);
 	double res = Utils::generateFloat(speedLimitAddon[scaleNo - 1], speedLimitAddon[scaleNo]);
-	return res; //speedLimitAddon[scaleNo];
-}
-
-double MITSIM_CF_Model::getAccAddon()
-{
-	int scaleNo = Utils::generateInt(1, accAddon.size() - 1);
-	double res = Utils::generateFloat(accAddon[scaleNo - 1], accAddon[scaleNo]);
-	return res; //accAddon[scaleNo];
-}
-
-double MITSIM_CF_Model::getDeclAddon()
-{
-	int scaleNo = Utils::generateInt(1, declAddon.size() - 1);
-	double res = Utils::generateFloat(declAddon[scaleNo - 1], declAddon[scaleNo]);
+	
 	return res;
 }
 
-double MITSIM_CF_Model::getBufferUppder()
+double MITSIM_CF_Model::getAccelerationAddon()
 {
-	// get random number (uniform distribution), as Random::urandom(int n) in MITSIM Random.cc
+	int scaleNo = Utils::generateInt(1, accelerationAddon.size() - 1);
+	double res = Utils::generateFloat(accelerationAddon[scaleNo - 1], accelerationAddon[scaleNo]);
+	
+	return res;
+}
+
+double MITSIM_CF_Model::getDecelerationAddon()
+{
+	int scaleNo = Utils::generateInt(1, decelerationAddon.size() - 1);
+	double res = Utils::generateFloat(decelerationAddon[scaleNo - 1], decelerationAddon[scaleNo]);
+	
+	return res;
+}
+
+double MITSIM_CF_Model::getH_BufferUpperBound()
+{
 	int scaleNo = Utils::generateInt(1, hBufferUpperScale.size() - 1);
 	double res = Utils::generateFloat(hBufferUpperScale[scaleNo - 1], hBufferUpperScale[scaleNo]);
-	// return max acc scale,as maxAccScale() in MITSIM TS_Parameter.h
+	
 	return res;
 }
 
-double MITSIM_CF_Model::headwayBuffer()
+double MITSIM_CF_Model::getHeadwayBuffer()
 {
 	return Utils::generateFloat(hBufferLower, hBufferUpper);
 }
 
-double MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p)
+double MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams &params)
 {
-	p.cfDebugStr = "";
+	params.cfDebugStr = "";
 
-	calcStateBasedVariables(p);
-	p.desiredSpeed = calcDesiredSpeed(p);
+	//Calculate the state based variables for the current state
+	calcStateBasedVariables(params);
+	
+	//Calculate the desired speed
+	params.desiredSpeed = calcDesiredSpeed(params);
 
-	double acc = p.maxAcceleration;
-	p.accSelect = "max";
-	//double aB = calcMergingRate(p);
-	double aC = calcSignalRate(p); // near signal or incidents
-	double aD = calcYieldingRate(p); // when yielding
-	//double aE = waitExitLaneRate(p); //
-	//double aF = waitAllowedLaneRate(p);
-	//double  aG = calcLaneDropRate(p);	// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
-	//double aH1 = calcAdjacentRate(p); // to reach adjacent gap
-	//double aH2 = calcBackwardRate(p); // to reach backward gap
-	//double aH3 = calcForwardRate(p);  // to reach forward gap
-	// The target gap acceleration should be based on the target gap status and not on the min
-	// MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
-	double aH = p.maxAcceleration;
+	//Select maximum acceleration by default
+	double acceleration = params.maxAcceleration;
+	params.accSelect = "max";
+	
+	//Calculate the different accelerations
+	
+	double aB = calcMergingAcc(params);
+	double aC = calcTrafficSignalAcc(params);
+	double aD = calcYieldingAcc(params);
+	
+	//double aE = calcWaitForLaneExitAcc(params);
+	//double aF = calcWaitForAllowedLaneAcc(params);
+	
+	//MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
+	//double aG = calcLaneDropRate(p);
+	
+	double aH = params.maxAcceleration;
 	std::string aHStr = "aH";
-	if (!p.getStatus(STATUS_LC_CHANGING)) // not in middle of performing lane change
+	
+	//Check if we're in middle of performing lane change
+	if (!params.getStatus(STATUS_LC_CHANGING))
 	{
-		if (p.getStatus(STATUS_ADJACENT))
+		if (params.getStatus(STATUS_ADJACENT))
 		{
-			aH = calcAdjacentRate(p); // to reach adjacent gap
+			aH = calcAdjacentGapRate(params);
 			aHStr = "aHA";
 		}
-		else if (p.getStatus(STATUS_BACKWARD))
+		else if (params.getStatus(STATUS_BACKWARD))
 		{
-			aH = calcBackwardRate(p); // to reach backward gap
+			aH = calcBackwardGapAcc(params);
 			aHStr = "aHB";
 		}
-		else if (p.getStatus(STATUS_FORWARD))
+		else if (params.getStatus(STATUS_FORWARD))
 		{
-			aH = calcForwardRate(p); // to reach forward gap
+			aH = calcForwardGapAcc(params);
 			aHStr = "aHF";
 		}
 		else
 		{
-			aH = desiredSpeedRate(p);
+			aH = calcDesiredSpeedAcc(params);
 			aHStr = "aHD";
 		}
 	}
 
-	double aZ = calcCarFollowingAcc(p);
-
-	// stop point acc
-	double aSP = calcStopPointRate(p);
-
-	// Make decision
-	// Use the smallest
-	//	if(acc > aB) acc = aB;
-
-	if (acc > aD)
+	double aZ = calcCarFollowingAcc(params);
+	double aSP = calcAccForStoppingPoint(params);
+	
+	//Choose the minimum acceleration
+	
+	if(acceleration > aB)
 	{
-		acc = aD;
-		p.accSelect = "aD";
+		acceleration = aB;
+		params.accSelect = "aB";
 	}
-	//if(acc > aF) acc = aF;
-	if (acc > aH)
+	
+	if(acceleration > aC)
 	{
-		acc = aH;
-		p.accSelect = aHStr;
-	}
-	//if (acc > aH1)
-	//acc = aH1;
-	//if (acc > aH2)
-	//acc = aH2;
-	//if (acc > aH3)
-	//acc = aH3;
-	//if(acc > aG) acc = aG;
-
-	if (acc > aC)
-	{
-		acc = aC;
-		p.accSelect = "aC";
+		acceleration = aC;
+		params.accSelect = "aC";
 	}
 
-	//if (acc > aE)
-	//acc = aE;
-
-	if (acc > aZ)
+	if (acceleration > aD)
 	{
-		acc = aZ;
-		p.accSelect = "aZ";
+		acceleration = aD;
+		params.accSelect = "aD";
+	}
+	
+	/*if(acceleration > aE)
+	{
+		acceleration = aE;
+		params.accSelect = "aE";
+	}*/
+	
+	if (acceleration > aH)
+	{
+		acceleration = aH;
+		params.accSelect = aHStr;
 	}
 
-	if (acc > aSP)
+	if (acceleration > aC)
 	{
-		acc = aSP;
-		p.accSelect = "aSP";
+		acceleration = aC;
+		params.accSelect = "aC";
 	}
 
-	// SEVERAL CONDITONS MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
-
-	p.acc = acc;
-
-	// if brake ,alarm follower
-	if (acc < -ACC_EPSILON)
+	if (acceleration > aZ)
 	{
+		acceleration = aZ;
+		params.accSelect = "aZ";
+	}
 
-		// I am braking, alert the vehicle behind if it is close
-		if (p.nvBack.exists())
+	if (acceleration > aSP)
+	{
+		acceleration = aSP;
+		params.accSelect = "aSP";
+	}
+
+	//SEVERAL CONDITONS MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
+
+	//Update the selected the acceleration (for debugging)
+	params.acc = acceleration;
+
+	//If we are braking, alert the follower
+	if (acceleration < -ACC_EPSILON)
+	{
+		//alert the vehicle behind if it is close
+		if (params.nvBack.exists())
 		{
-			Driver* bvd = const_cast<Driver*> (p.nvBack.driver);
-			DriverUpdateParams& bvp = bvd->getParams();
-			if (p.nvBack.distance < visibility() &&
-					!(bvd->IsBusDriver() && bvp.getStatus(STATUS_STOPPED)))
+			Driver *rearDriver = const_cast<Driver*> (params.nvBack.driver);
+			DriverUpdateParams &rearDriverParams = rearDriver->getParams();
+			
+			if (params.nvBack.distance < visibilityDistance && !(rearDriver->IsBusDriver() && rearDriverParams.getStatus(STATUS_STOPPED)))
 			{
 				float alert = CF_CRITICAL_TIMER_RATIO * updateStepSize[0];
-				bvp.reactionTimeCounter = std::min<double>(alert, bvp.reactionTimeCounter);
+				rearDriverParams.reactionTimeCounter = std::min<double>(alert, rearDriverParams.reactionTimeCounter);
 			}
 		}
 	}
 
-
-	// if in emergency regime , reduce cftimer
-	p.reactionTimeCounter = calcNextStepSize(p);
-	if (p.getStatus(STATUS_REGIME_EMERGENCY))
+	//Calculate the next step size
+	params.reactionTimeCounter = calcNextStepSize(params);
+	
+	//If we're in emergency regime, reduce the reactionTimeCounter
+	if (params.getStatus(STATUS_REGIME_EMERGENCY))
 	{
-		p.reactionTimeCounter = p.getNextStepSize() * CF_CRITICAL_TIMER_RATIO;
+		params.reactionTimeCounter = params.getNextStepSize() * CF_CRITICAL_TIMER_RATIO;
 	}
 	else
 	{
-		p.reactionTimeCounter = p.getNextStepSize();
+		params.reactionTimeCounter = params.getNextStepSize();
 	}
 
-	return acc;
+	return acceleration;
 }
 
 double MITSIM_CF_Model::calcCarFollowingAcc(DriverUpdateParams &params, NearestVehicle &nearestVehicle)
 {
 	double res = 0;
 	std::stringstream debugStr;
-	
+
 	//Unset status
 	params.unsetStatus(STATUS_REGIME_EMERGENCY);
 	params.gapBetnVehicles = params.perceivedDistToFwdCar;
 
 	debugStr << "t" << params.now.frame();
 
-	//If we have no space left to move, immediately cut off acceleration.
 	params.headway = 99;
-	if (params.perceivedDistToFwdCar == DEFAULT_DISTANCE)
+	if (params.perceivedDistToFwdCar == DBL_MAX)
 	{
-		res = calcFreeFlowingAcc(params, params.desiredSpeed, params.maxLaneSpeed);
+		res = calcFreeFlowingAcc(params, params.desiredSpeed);
 		debugStr << "DEF;" << res;
 	}
 	else
 	{
 		debugStr << "ELSE;";
-		// when nv is left/right vh , can not use perceivedxxx!
-		// create perceived left,right varialbe
-		params.velocityLeadVehicle = params.perceivedFwdVelocityOfFwdCar / 100;
-		params.accLeadVehicle = params.perceivedAccelerationOfFwdCar / 100;
+		
+		//When nearest vehicle is the left/right vehicle, we cannot use perceived values!
+		//Create perceived left, right values
+		
+		params.velocityLeadVehicle = params.perceivedFwdVelocityOfFwdCar;
+		params.accLeadVehicle = params.perceivedAccelerationOfFwdCar;
 
 		double dt = params.nextStepSize;
-		float auxspeed =
-				params.perceivedFwdVelocity / 100 == 0 ?
-				0.00001 : params.perceivedFwdVelocity / 100;
+		float auxspeed = params.perceivedFwdVelocity == 0 ? 0.00001 : params.perceivedFwdVelocity;
 
-		float headway = 2.0 * params.gapBetnVehicles
-				/ (auxspeed + params.perceivedFwdVelocity / 100);
+		float headway = 2.0 * params.gapBetnVehicles / (auxspeed + params.perceivedFwdVelocity);
 
-		debugStr << "+" << headway << "+" << params.gapBetnVehicles << "+" << auxspeed << "+"
-				<< params.perceivedFwdVelocity << ";";
+		debugStr << "+" << headway << "+" << params.gapBetnVehicles << "+" << auxspeed << "+" << params.perceivedFwdVelocity << ";";
 
-		double emergSpace = nearestVehicle.distance / 100;
+		double emergSpace = nearestVehicle.distance;
 
 		debugStr << emergSpace << ";";
 
+		//If we have no space left to move, immediately cut off acceleration.
 		if (emergSpace <= params.driver->getVehicleLength())
 		{
-			double speed = params.perceivedFwdVelocity / 100;
-			double emergHeadway = calcHeadway(emergSpace, speed,
-											params.elapsedSeconds, params.maxAcceleration);
+			double speed = params.perceivedFwdVelocity;
+			double emergHeadway = calculateHeadway(emergSpace, speed, params.elapsedSeconds, params.maxAcceleration);
+			
 			if (emergHeadway < hBufferLower)
 			{
 				//We need to brake. Override.
@@ -708,87 +653,83 @@ double MITSIM_CF_Model::calcCarFollowingAcc(DriverUpdateParams &params, NearestV
 
 		float v = params.velocityLeadVehicle + params.accLeadVehicle * dt;
 		params.spaceStar = params.gapBetnVehicles + 0.5 * (params.velocityLeadVehicle + v) * dt;
+		
 		if (headway < hBufferLower)
 		{
-			res = accOfEmergencyDecelerating(params);
+			res = calcEmergencyDeceleration(params);
 			params.setStatus(STATUS_REGIME_EMERGENCY);
 			debugStr << "LO;";
 		}
-		hBufferUpper = getBufferUppder();
+		
+		hBufferUpper = getH_BufferUpperBound();
+		
 		if (headway > hBufferUpper)
 		{
-			res = accOfMixOfCFandFF(params, params.desiredSpeed, params.maxLaneSpeed);
+			res = accOfMixOfCFandFF(params, params.desiredSpeed);
 			debugStr << "UP;";
 		}
+		
 		if (headway <= hBufferUpper && headway >= hBufferLower)
 		{
-			res = accOfCarFollowing(params);
+			res = calcAccOfCarFollowing(params);
 			debugStr << "LOUP;";
 		}
 
 		params.headway = headway;
-
-	} //end of else
+	}
 
 	return res;
 }
 
 double MITSIM_CF_Model::calcCarFollowingAcc(DriverUpdateParams &params)
 {
-	double acc = 0;
-
 	double aZ1 = calcCarFollowingAcc(params, params.nvFwd);
 	double aZ2 = calcCarFollowingAcc(params, params.nvFwdNextLink);
-	
-	if (aZ1 < aZ2)
-	{
-		acc = aZ1;
-	}
-	else
-	{
-		acc = aZ2;
-	}
 
-	return acc;
+	return std::min(aZ1, aZ2);
 }
 
-double MITSIM_CF_Model::calcMergingRate(DriverUpdateParams &params)
+double MITSIM_CF_Model::calcMergingAcc(DriverUpdateParams &params)
 {
 	double acc = params.maxAcceleration;
-	
+
 	//Vehicles from freeways and on ramps have different priority. 
 	//Separate procedures are applied. (MITSIM TS_CFModels.cc)
 	DriverMovement *driverMvt = dynamic_cast<DriverMovement*> (params.driver->Movement());
 
-	if (driverMvt->fwdDriverMovement.getCurrLink()->getLinkType() == LINK_TYPE_EXPRESSWAY)
+	if(!driverMvt->fwdDriverMovement.isInIntersection())
 	{
-		if (params.nvLeadFreeway.exists())
-		{
-			double headway = headwayBuffer(); //TODO: headway is correct?
-			if (params.nvLeadFreeway.distance < headway)
-			{
-				//MITSIM TS_CFModels.cc
-				acc = params.nvLeadFreeway.driver->getFwdAcceleration() 
-						+ brakeToTargetSpeed(params, params.nvLeadFreeway.distance, params.nvLeadFreeway.driver->getFwdVelocity());
-			}
-		}
-	}
-	else if (driverMvt->fwdDriverMovement.getCurrLink()->getLinkType() == LINK_TYPE_RAMP)
-	{
-		if (params.nvLagFreeway.exists())
-		{
-			if (!isGapAcceptable(params, params.nvLagFreeway))
-			{
-				// The gap is not acceptable. Prepare to stop.
-				return brakeToStop(params, params.distToStop);
-			}
-		}
-		else
+		if (driverMvt->fwdDriverMovement.getCurrLink()->getLinkType() == LINK_TYPE_EXPRESSWAY)
 		{
 			if (params.nvLeadFreeway.exists())
 			{
-				//Lead vehicle exists, brake to target speed
-				acc = brakeToTargetSpeed(params, params.nvLeadFreeway.distance, params.nvLeadFreeway.driver->getFwdVelocity());
+				double headway = getHeadwayBuffer();
+
+				if (params.nvLeadFreeway.distance < headway)
+				{
+					//MITSIM TS_CFModels.cc
+					acc = params.nvLeadFreeway.driver->getFwdAcceleration()
+							+ calcTargetSpeedAcc(params, params.nvLeadFreeway.distance, params.nvLeadFreeway.driver->getFwdVelocity());
+				}
+			}
+		}
+		else if (driverMvt->fwdDriverMovement.getCurrLink()->getLinkType() == LINK_TYPE_RAMP)
+		{
+			if (params.nvLagFreeway.exists())
+			{
+				if (!isGapAcceptable(params, params.nvLagFreeway))
+				{
+					// The gap is not acceptable. Prepare to stop.
+					return calcBrakeToStopAcc(params, params.distToStop);
+				}
+			}
+			else
+			{
+				if (params.nvLeadFreeway.exists())
+				{
+					//Lead vehicle exists, brake to target speed
+					acc = calcTargetSpeedAcc(params, params.nvLeadFreeway.distance, params.nvLeadFreeway.driver->getFwdVelocity());
+				}
 			}
 		}
 	}
@@ -803,7 +744,7 @@ bool MITSIM_CF_Model::isGapAcceptable(DriverUpdateParams &params, NearestVehicle
 
 	Driver *otherDriver = const_cast<Driver *> (nearestVehicle.driver);
 	DriverUpdateParams &otherDriverParams = otherDriver->getParams();
-	
+
 	float maxAcc = otherDriverParams.maxAcceleration;
 	float speed;
 
@@ -818,7 +759,7 @@ bool MITSIM_CF_Model::isGapAcceptable(DriverUpdateParams &params, NearestVehicle
 		speed = currentSpeed * currentSpeed + 2.0 * acceleration * distance;
 		speed = (speed > Math::DOUBLE_EPSILON) ? sqrt(speed) : 0.0;
 
-		// shortest time required to arrive at the end of the lane
+		//Shortest time required to arrive at the end of the lane
 		dt = (speed - currentSpeed) / acceleration;
 	}
 	else
@@ -831,10 +772,11 @@ bool MITSIM_CF_Model::isGapAcceptable(DriverUpdateParams &params, NearestVehicle
 
 	// Speed at the predicted position
 	speedOfOtherVehicle += maxAcc * dt;
-	float sd = (speedOfOtherVehicle - speed) * headwayBuffer();
+	
+	float sd = (speedOfOtherVehicle - speed) * getHeadwayBuffer();
 	float threshold = (sd > 0.0) ? sd : 0.0;
 
-	// check if the gap is acceptable
+	//Check if the gap is acceptable
 	if (gap > threshold)
 	{
 		return true;
@@ -845,123 +787,87 @@ bool MITSIM_CF_Model::isGapAcceptable(DriverUpdateParams &params, NearestVehicle
 	}
 }
 
-double MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
+double MITSIM_CF_Model::calcTrafficSignalAcc(DriverUpdateParams& p)
 {
-	double minacc = p.maxAcceleration;
+	double minAcc = p.maxAcceleration;
+	TrafficColor color = p.perceivedTrafficColor;
+	double distanceToTrafficSignal = p.perceivedDistToTrafficSignal;
 
-	TrafficColor color;
-
-#if 0
-	Signal::TrafficColor color;
-#endif
-	double distanceToTrafficSignal;
-	distanceToTrafficSignal = p.perceivedDistToTrafficSignal;
-	color = p.perceivedTrafficColor;
-
-	if (distanceToTrafficSignal < percepDisM * 100)
+	if (distanceToTrafficSignal < signalVisibilityDist)
 	{
-		double dis = distanceToTrafficSignal / 100;
-
-#if 0
-		if (p.perceivedTrafficColor == Red)
-		{
-			double a = brakeToStop(p, dis);
-			if (a < minacc)
-				minacc = a;
-		}
-		else if (p.perceivedTrafficColor == Amber)
-		{
-			double maxSpeed = (speed > minSpeedYellow) ? speed : minSpeedYellow;
-			if (dis / maxSpeed > yellowStopHeadway)
-			{
-				double a = brakeToStop(p, dis);
-				if (a < minacc)
-					minacc = a;
-			}
-		}
-		else if (p.perceivedTrafficColor == Green)
-		{
-			minacc = maxAcceleration;
-		}
-#else
 		if (color == Red)
-#if 0
-			if (color == Signal::Red)
-#endif
+		{
+			double acc = calcBrakeToStopAcc(p, distanceToTrafficSignal);
+			minAcc = std::min(acc, minAcc);
+		}
+		else if (color == Amber)
+		{
+			double maxSpeed = (p.perceivedFwdVelocity > minYellowLightSpeed) ? p.perceivedFwdVelocity : minYellowLightSpeed;
+			
+			if (distanceToTrafficSignal / maxSpeed > maxYellowLightHeadway)
 			{
-
-				double a = brakeToStop(p, dis);
-				if (a < minacc)
-					minacc = a;
+				double acc = calcBrakeToStopAcc(p, distanceToTrafficSignal);
+				minAcc = std::min(acc, minAcc);
 			}
-			else if (color == Amber)
-#if 0
-			else if (color == Signal::Amber)
-#endif
-			{
-				double maxSpeed =
-						(p.perceivedFwdVelocity / 100 > minSpeedYellow) ?
-						p.perceivedFwdVelocity / 100 : minSpeedYellow;
-				if (dis / maxSpeed > yellowStopHeadway)
-				{
-					double a = brakeToStop(p, dis);
-					if (a < minacc)
-						minacc = a;
-				}
-			}
-			else if (color == Green)
-#if 0
-			else if (color == Signal::Green)
-#endif
-			{
-				minacc = p.maxAcceleration;
-			}
-
-#endif
-
+		}
+		else if (color == Green)
+		{
+			minAcc = p.maxAcceleration;
+		}
 	}
-	return minacc;
+	
+	return minAcc;
 }
 
-double MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p)
+double MITSIM_CF_Model::calcYieldingAcc(DriverUpdateParams &params)
 {
 	float acc = 0;
-	p.lcDebugStr << ";---CYR";
-	if (p.flag(FLAG_YIELDING))
+	params.lcDebugStr << ";---CYR";
+	
+	if (params.flag(FLAG_YIELDING))
 	{
-		p.lcDebugStr << ";DING";
-		// Make sure a vehicle will not yield infinitely.
-		uint32_t dt_sec = convertFrmMillisecondToSecond(p.now.ms() - p.yieldTime.ms());
-		p.lcDebugStr << ";dt" << dt_sec;
-		if (dt_sec > p.lcMaxYieldingTime)
+		// This vehicle is yielding to another vehicle
+		
+		params.lcDebugStr << ";DING";
+		
+		uint32_t dt_sec = millisecondToSecond(params.now.ms() - params.yieldTime.ms());
+		
+		params.lcDebugStr << ";dt" << dt_sec;
+		
+		//Make sure a vehicle will not yield infinitely.
+		if (dt_sec > params.lcMaxYieldingTime)
 		{
-			p.driver->setYieldingToDriver(NULL);
-			p.unsetFlag(FLAG_YIELDING);
-			p.lcDebugStr << ";yd1";
-			return p.maxAcceleration;
+			params.driver->setYieldingToDriver(NULL);
+			params.unsetFlag(FLAG_YIELDING);
+			params.lcDebugStr << ";yd1";
+			return params.maxAcceleration;
 		}
 
-		// This vehicle is yielding to another vehicle
-
 		bool rightFwdVhFlag = false;
-		if (p.nvRightFwd.exists())
+		
+		if (params.nvRightFwd.exists())
 		{
-			p.lcDebugStr << ";yd2";
-			Driver* dRF = const_cast<Driver*> (p.nvRightFwd.driver);
+			params.lcDebugStr << ";yd2";
+			
+			Driver* dRF = const_cast<Driver*> (params.nvRightFwd.driver);
 			DriverUpdateParams& pRF = dRF->getParams();
+			
 			if (pRF.flag(FLAG_NOSING_LEFT))
 			{
 				rightFwdVhFlag = true;
-				p.lcDebugStr << ";yd3";
+				params.lcDebugStr << ";yd3";
 			}
 		}
 
 		bool leftFwdVhFlag = false;
-		if (p.nvLeftFwd.exists())
+		
+		if (params.nvLeftFwd.exists())
 		{
-			p.lcDebugStr << ";yd4";
-			Driver* d = const_cast<Driver*> (p.nvLeftFwd.driver);
+			params.lcDebugStr << ";yd4";
+			
+			Driver* d = const_cast<Driver*> (params.nvLeftFwd.driver);
 			DriverUpdateParams& p = d->getParams();
+			
 			if (p.flag(FLAG_NOSING_RIGHT))
 			{
 				leftFwdVhFlag = true;
@@ -969,334 +875,347 @@ double MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p)
 			}
 		}
 
-		if (p.flag(FLAG_YIELDING_RIGHT))
+		if (params.flag(FLAG_YIELDING_RIGHT))
 		{
-			p.lcDebugStr << ";yd6";
-			if ((p.rightLane) && // right side has lane
-					(p.nvRightFwd.exists()) && // right lane has fwd vh
-					p.nvRightFwd.driver == p.driver->getYieldingToDriver() && // the right fwd vh is nosing
-					rightFwdVhFlag // right fwd vh nosing
-					)
+			params.lcDebugStr << ";yd6";
+			
+			//Check if the right front vehicle is nosing
+			if ((params.rightLane) && (params.nvRightFwd.exists()) && params.nvRightFwd.driver == params.driver->getYieldingToDriver() && rightFwdVhFlag)
 			{
-				p.lcDebugStr << ";yd7";
-				acc = calcCarFollowingAcc(p, p.nvRightFwd);
-				if (acc < p.normalDeceleration)
+				params.lcDebugStr << ";yd7";
+				
+				acc = calcCarFollowingAcc(params, params.nvRightFwd);
+				
+				if (acc < params.normalDeceleration)
 				{
-					acc = p.normalDeceleration;
+					acc = params.normalDeceleration;
 				}
 				else if (acc > 0)
 				{
 					acc = 0.0;
 				}
-				p.lcDebugStr << ";acc" << acc;
+				
+				params.lcDebugStr << ";acc" << acc;
+				
 				return acc;
 			}
 		}
-		else if (p.flag(FLAG_YIELDING_LEFT))
+		else if (params.flag(FLAG_YIELDING_LEFT))
 		{
-			p.lcDebugStr << ";yd8";
-			if ((p.leftLane) && // left side has lane
-					(p.nvLeftFwd.exists()) && // left lane has fwd vh
-					p.nvLeftFwd.driver == p.driver->getYieldingToDriver() && // the left fwd vh is nosing
-					leftFwdVhFlag)
+			params.lcDebugStr << ";yd8";
+			
+			//Check if the left front vehicle is nosing
+			if ((params.leftLane) && (params.nvLeftFwd.exists()) && params.nvLeftFwd.driver == params.driver->getYieldingToDriver() && leftFwdVhFlag)
 			{
-				p.lcDebugStr << ";yd9";
-				acc = calcCarFollowingAcc(p, p.nvLeftFwd);
-				if (acc < p.normalDeceleration)
+				params.lcDebugStr << ";yd9";
+				
+				acc = calcCarFollowingAcc(params, params.nvLeftFwd);
+				
+				if (acc < params.normalDeceleration)
 				{
-					acc = p.normalDeceleration;
+					acc = params.normalDeceleration;
 				}
 				else if (acc > 0)
 				{
 					acc = 0.0;
 				}
-				p.lcDebugStr << ";acc" << acc;
+				
+				params.lcDebugStr << ";acc" << acc;
+				
 				return acc;
 			}
-		} // end of else
+		}
 
-		p.driver->setYieldingToDriver(NULL);
-		p.unsetFlag(FLAG_YIELDING);
-		p.lcDebugStr << ";yd10" << acc;
-		return p.maxAcceleration;
-
-	} //end if flag(FLAG_YIELDING)
-	else if (p.flag(FLAG_NOSING))
+		params.driver->setYieldingToDriver(NULL);
+		params.unsetFlag(FLAG_YIELDING);
+		
+		params.lcDebugStr << ";yd10" << acc;
+		
+		return params.maxAcceleration;
+	}
+	else if (params.flag(FLAG_NOSING))
 	{
-		p.lcDebugStr << ";SING";
 		// This vehicle is nosing
+		
+		params.lcDebugStr << ";SING";
+		
 		bool rightBackVhFlag = false;
-		if (p.nvRightBack.exists())
+		
+		if (params.nvRightBack.exists())
 		{
-			Driver* d = const_cast<Driver*> (p.nvRightBack.driver);
+			Driver* d = const_cast<Driver*> (params.nvRightBack.driver);
 			DriverUpdateParams& pd = d->getParams();
+			
 			if (pd.flag(FLAG_YIELDING_LEFT) || pd.flag(FLAG_NOSING))
 			{
 				rightBackVhFlag = true;
 			}
 		}
+		
 		bool leftBackVhFlag = false;
-		if (p.nvLeftBack.exists())
+		
+		if (params.nvLeftBack.exists())
 		{
-			Driver* d = const_cast<Driver*> (p.nvLeftBack.driver);
+			Driver* d = const_cast<Driver*> (params.nvLeftBack.driver);
 			DriverUpdateParams& pd = d->getParams();
+			
 			if (pd.flag(FLAG_YIELDING_RIGHT) || pd.flag(FLAG_NOSING))
 			{
 				leftBackVhFlag = true;
 			}
 		}
 
-		if (p.flag(FLAG_NOSING_RIGHT))
+		if (params.flag(FLAG_NOSING_RIGHT))
 		{
-			p.lcDebugStr << ";RT";
-			p.lcDebugStr << ";RBD" << p.nvRightBack.distance / 100.0;
-			p.lcDebugStr << ";RFD" << p.nvRightFwd.distance / 100.0;
-			if ((p.rightLane) && // has right lane
-					(p.nvRightBack.exists()) && // has right back vh
-					rightBackVhFlag) // right back vh yielding left
+			params.lcDebugStr << ";RT";
+			params.lcDebugStr << ";RBD" << params.nvRightBack.distance;
+			params.lcDebugStr << ";RFD" << params.nvRightFwd.distance;
+			
+			//Check if the right rear vehicle is yielding to the left
+			if ((params.rightLane) && (params.nvRightBack.exists()) && rightBackVhFlag)
 			{
-				acc = calcCreateGapRate(p, p.nvRightFwd,
-										p.lcMinGap(2) + Math::DOUBLE_EPSILON); //other->vehicleAhead(),theParameter->lcMinGap(2) + DIS_EPSILON);
-				double res = std::max<double>(p.maxDeceleration, acc);
-				p.lcDebugStr << ";acc" << acc;
+				acc = calcAccToCreateGap(params, params.nvRightFwd, params.lcMinGap(2) + Math::DOUBLE_EPSILON);
+				double res = std::max<double>(params.maxDeceleration, acc);
+				
+				params.lcDebugStr << ";acc" << acc;
+				
 				return res;
 			}
 		}
-		else if (p.flag(FLAG_NOSING_LEFT))
+		else if (params.flag(FLAG_NOSING_LEFT))
 		{
-			p.lcDebugStr << ";LT";
-			if ((p.leftLane) && // has left lane
-					(p.nvLeftBack.exists()) && leftBackVhFlag)
+			params.lcDebugStr << ";LT";
+			
+			if ((params.leftLane) && (params.nvLeftBack.exists()) && leftBackVhFlag)
 			{
-				acc = calcCreateGapRate(p, p.nvLeftFwd,
-										p.lcMinGap(2) + Math::DOUBLE_EPSILON);
-				return std::max<double>(p.maxDeceleration, acc);
+				acc = calcAccToCreateGap(params, params.nvLeftFwd, params.lcMinGap(2) + Math::DOUBLE_EPSILON);
+				return std::max<double>(params.maxDeceleration, acc);
 			}
 		}
 
-		if (p.getStatus(STATUS_CHANGING) && p.flag(FLAG_LC_FAILED_LEAD))
+		if (params.getStatus(STATUS_CHANGING) && params.flag(FLAG_LC_FAILED_LEAD))
 		{
-			return p.normalDeceleration;
+			return params.normalDeceleration;
 		}
 		else
 		{
-			return p.maxAcceleration;
+			return params.maxAcceleration;
 		}
 
-	} //end if flag(FLAG_NOSING_RIGHT)
+	}
 	else
 	{
-		p.lcDebugStr << ";NTH";
-		// Currently this vehicle is neither yielding, nor nosing.
-
-		return p.maxAcceleration;
+		//Currently this vehicle is neither yielding, nor nosing.
+		
+		params.lcDebugStr << ";NTH";
+		
+		return params.maxAcceleration;
 	}
 }
 
-double MITSIM_CF_Model::calcCreateGapRate(DriverUpdateParams& p,
-												   NearestVehicle& vh, float gap)
+double MITSIM_CF_Model::calcAccToCreateGap(DriverUpdateParams &params, NearestVehicle &nearestVeh, float gap)
 {
+	if (!nearestVeh.exists())
+	{
+		//No vehicle ahead, this constraint does not apply
+		return params.maxAcceleration;
+	}
 
-	// No vehicle ahead, this constraint does not apply
-	if (!vh.exists())
-		return p.maxAcceleration;
-
-	// freedom left
-	float dx = vh.distance / 100.0 - gap; //gapDistance(front) - gap;
-	float dv = p.currSpeed - vh.driver->getFwdVelocity();
-
-	float dt = p.nextStepSize;
+	//freedom left
+	float dx = nearestVeh.distance - gap;
+	float dv = params.currSpeed - nearestVeh.driver->getFwdVelocity();
+	float dt = params.nextStepSize;
+	
 	if (dt <= 0.0)
-		return p.maxAcceleration;
-#if 0
-	double res = vh.driver->fwdAccel_.get() / 100.0 + 2.0 * (dx - dv * dt) / (dt * dt);
-	return res;
-#else
+	{
+		return params.maxAcceleration;
+	}
+
 	if (dx < 0.01 || dv < 0.0)
 	{
-		// insufficient gap or my speed is slower than the leader
+		//insufficient gap or my speed is slower than the leader
 		//front->accRate_ + 2.0 * (dx - dv * dt) / (dt * dt);
-		double res = vh.driver->getFwdAcceleration() + 2.0 * (dx - dv * dt) / (dt * dt);
+		double res = nearestVeh.driver->getFwdAcceleration() + 2.0 * (dx - dv * dt) / (dt * dt);
 		return res;
 	}
 	else
 	{
-		// gap is ok and my speed is higher.
+		//gap is ok and my speed is higher.
 		//front->accRate_ - 0.5 * dv * dv / dx;
-		double res = vh.driver->getFwdAcceleration() - 0.5 * dv * dv / dx;
+		double res = nearestVeh.driver->getFwdAcceleration() - 0.5 * dv * dv / dx;
 		return res;
 	}
-#endif
 }
 
-double MITSIM_CF_Model::waitExitLaneRate(DriverUpdateParams& p)
+double MITSIM_CF_Model::calcWaitForLaneExitAcc(DriverUpdateParams &params)
 {
-
-	// dis2stop is distance to fwd vh or distance to end node
-	DriverMovement *driverMvt = dynamic_cast<DriverMovement*> (p.driver->Movement());
+	DriverMovement *driverMvt = dynamic_cast<DriverMovement*> (params.driver->Movement());
 	double dx = driverMvt->fwdDriverMovement.getDistToEndOfCurrLink() - 5.0;
 
-	if (!p.getStatus(STATUS_CURRENT_LANE_OK) && dx < p.distanceToNormalStop)
+	if (dx < params.distanceToNormalStop && params.getStatus(STATUS_CURRENT_LANE_OK) != StatusValue::STATUS_YES)
 	{
-		return brakeToStop(p, dx);
+		return calcBrakeToStopAcc(params, dx);
 	}
 	else
 	{
-		return p.maxAcceleration;
+		return params.maxAcceleration;
 	}
 }
 
-double MITSIM_CF_Model::waitAllowedLaneRate(
-													 DriverUpdateParams& p)
+double MITSIM_CF_Model::calcWaitForAllowedLaneAcc(DriverUpdateParams &params)
 {
-	if (p.distToStop < p.distanceToNormalStop && !p.isTargetLane)
+	if (params.distToStop < params.distanceToNormalStop && !params.isTargetLane)
 	{
-		if (p.flag(FLAG_NOSING))
+		if (params.flag(FLAG_NOSING))
 		{
-			return p.maxAcceleration;
+			return params.maxAcceleration;
 		}
-		double acc = brakeToStop(p, p.distanceToNormalStop);
-		return acc;
+		
+		return calcBrakeToStopAcc(params, params.distanceToNormalStop);
 	}
-	return p.maxAcceleration;
+	
+	return params.maxAcceleration;
 }
 
-double MITSIM_CF_Model::calcDesiredSpeed(
-												  DriverUpdateParams& p)
+double MITSIM_CF_Model::calcDesiredSpeed(DriverUpdateParams &params)
 {
-	double signedSpeed;
-	if (p.speedLimit)
+	double speedOnSign = 0;
+	
+	if (params.speedLimit)
 	{
-		signedSpeed = p.speedLimit;
+		speedOnSign = params.speedLimit;
 	}
 	else
 	{
-		signedSpeed = p.maxLaneSpeed;
+		speedOnSign = params.maxLaneSpeed;
 	}
 
-	float desired = speedFactor * signedSpeed;
+	float desired = speedFactor * speedOnSign;
 	desired = desired * (1 + getSpeedLimitAddon());
 
-	double desiredSpeed = std::min<double>(desired, p.maxLaneSpeed);
+	double desiredSpeed = std::min<double>(desired, params.maxLaneSpeed);
 	return desiredSpeed;
 }
 
-double MITSIM_CF_Model::calcForwardRate(DriverUpdateParams& p)
+double MITSIM_CF_Model::calcForwardGapAcc(DriverUpdateParams &params)
 {
-	const NearestVehicle * av = NULL; // side leader vh
+	//Adjacent lead vehicle
+	const NearestVehicle *adjVehicle = NULL;
 
-	if (p.getStatus(STATUS_LEFT))
+	if (params.getStatus(STATUS_LEFT))
 	{
-		av = &p.nvLeftFwd;
+		adjVehicle = &params.nvLeftFwd;
 	}
-	else if (p.getStatus(STATUS_RIGHT))
+	else if (params.getStatus(STATUS_RIGHT))
 	{
-		av = &p.nvRightFwd;
+		adjVehicle = &params.nvRightFwd;
 	}
 	else
 	{
 		// No request for lane change
-		return p.maxAcceleration;
+		return params.maxAcceleration;
 	}
 
-	std::vector<double> a = targetGapAccParm;
-
-	double dis;
-	double dv;
-	if (av->exists())
+	const std::vector<double> &gapAcceptanceParams = targetGapAccParm;
+	double distance = 0;
+	double dv = 0;
+	
+	if (adjVehicle->exists())
 	{
-		dis = av->distance + a[0];
-		Driver *avDriver = const_cast<Driver*> (av->driver);
-		dv = avDriver->getFwdVelocity() - p.driver->getFwdVelocity();
+		distance = adjVehicle->distance + gapAcceptanceParams[0];
+		Driver *adjDriver = const_cast<Driver*> (adjVehicle->driver);
+		dv = adjDriver->getFwdVelocity() - params.driver->getFwdVelocity();
 	}
 	else
 	{
-		dis = av->distance + a[0];
-		dv = 0 - p.driver->getFwdVelocity();
+		distance = adjVehicle->distance + gapAcceptanceParams[0];
+		dv = 0 - params.driver->getFwdVelocity();
 	}
 
-	float acc = a[1] * pow(dis, a[2]);
+	float acc = gapAcceptanceParams[1] * pow(distance, gapAcceptanceParams[2]);
 
 	if (dv > 0)
 	{
-		acc *= pow(dv, a[3]);
+		acc *= pow(dv, gapAcceptanceParams[3]);
 	}
 	else if (dv < 0)
 	{
-		acc *= pow(-dv, a[4]);
+		acc *= pow(-dv, gapAcceptanceParams[4]);
 	}
 
-	acc += getAccAddon() * a[5] / 0.824;
+	acc += getAccelerationAddon() * gapAcceptanceParams[5] / 0.824;
 	return acc;
 }
 
-double MITSIM_CF_Model::calcBackwardRate(DriverUpdateParams& p)
+double MITSIM_CF_Model::calcBackwardGapAcc(DriverUpdateParams &params)
 {
+	//Rear vehicle
+	const NearestVehicle *rearVehicle = NULL;
 
-	const NearestVehicle * bv = NULL; // side follower vh
-
-	if (p.getStatus(STATUS_LEFT))
+	if (params.getStatus(STATUS_LEFT))
 	{
-		bv = &p.nvLeftBack;
+		rearVehicle = &params.nvLeftBack;
 	}
-	else if (p.getStatus(STATUS_RIGHT))
+	else if (params.getStatus(STATUS_RIGHT))
 	{
-		bv = &p.nvRightBack;
+		rearVehicle = &params.nvRightBack;
 	}
 	else
 	{
 		// No request for lane change
-		return p.maxAcceleration;
+		return params.maxAcceleration;
 	}
 
-	std::vector<double> a = targetGapAccParm;
+	const std::vector<double> &gapAcceptanceParams = targetGapAccParm;
 
-	double dis;
-	double dv;
+	double distance = 0;
+	double dv = 0;
 
-	if (bv->exists())
+	if (rearVehicle->exists())
 	{
-		Driver *bvDriver = const_cast<Driver*> (bv->driver);
+		Driver *rearDriver = const_cast<Driver*> (rearVehicle->driver);
 
-		dis = bv->distance + a[0];
-		dv = bvDriver->getFwdVelocity() - p.driver->getFwdVelocity();
+		distance = rearVehicle->distance + gapAcceptanceParams[0];
+		dv = rearDriver->getFwdVelocity() - params.driver->getFwdVelocity();
 	}
 	else
 	{
-		dis = bv->distance + a[0];
-		dv = 0 - p.driver->getFwdVelocity();
+		distance = rearVehicle->distance + gapAcceptanceParams[0];
+		dv = 0 - params.driver->getFwdVelocity();
 	}
 
-	float acc = a[6] * pow(dis, a[7]);
+	float acc = gapAcceptanceParams[6] * pow(distance, gapAcceptanceParams[7]);
 
 	if (dv > 0)
 	{
-		acc *= pow(dv, a[8]);
+		acc *= pow(dv, gapAcceptanceParams[8]);
 	}
 	else if (dv < 0)
 	{
-		acc *= pow(-dv, a[9]);
+		acc *= pow(-dv, gapAcceptanceParams[9]);
 	}
 
-	acc += getAccAddon() * a[10] / 0.824;
+	acc += getAccelerationAddon() * gapAcceptanceParams[10] / 0.824;
 	return acc;
 }
 
-double MITSIM_CF_Model::calcAdjacentRate(DriverUpdateParams& p)
+double MITSIM_CF_Model::calcAdjacentGapRate(DriverUpdateParams& p)
 {
-
-	const NearestVehicle * av = NULL; // side leader vh
-	const NearestVehicle * bv = NULL; // side follower vh
+	//Adjacent vehicle
+	const NearestVehicle *adjVehicle = NULL;
+	
+	//Vehicle behind the adjacent vehicle
+	const NearestVehicle * adjRearVehicle = NULL;
 
 	if (p.getStatus(STATUS_LEFT))
 	{
-		av = &p.nvLeftFwd;
-		bv = &p.nvLeftBack;
+		adjVehicle = &p.nvLeftFwd;
+		adjRearVehicle = &p.nvLeftBack;
 	}
 	else if (p.getStatus(STATUS_RIGHT))
 	{
-		av = &p.nvRightFwd;
-		bv = &p.nvRightBack;
+		adjVehicle = &p.nvRightFwd;
+		adjRearVehicle = &p.nvRightBack;
 	}
 	else
 	{
@@ -1304,96 +1223,97 @@ double MITSIM_CF_Model::calcAdjacentRate(DriverUpdateParams& p)
 		return p.maxAcceleration;
 	}
 
-	std::vector<double> a = targetGapAccParm;
+	const std::vector<double> &gapAcceptanceParams = targetGapAccParm;
 
-	if (!av->exists()) return p.maxAcceleration;
+	if (!adjVehicle->exists())
+	{
+		return p.maxAcceleration;
+	}
 
-	if (!bv->exists()) return p.maxAcceleration;
+	if (!adjRearVehicle->exists())
+	{
+		return p.maxAcceleration;
+	}
 
-	Driver *avDriver = const_cast<Driver*> (av->driver);
-	Driver *bvDriver = const_cast<Driver*> (bv->driver);
+	Driver *adjDriver = const_cast<Driver*> (adjVehicle->driver);
+	Driver *adjRearDriver = const_cast<Driver*> (adjRearVehicle->driver);
 
-	float gap = bvDriver->gapDistance(avDriver);
-	float position = bvDriver->gapDistance(p.driver) + p.driver->getVehicleLength();
-	float acc = a[11] * (a[0] * gap - position);
+	float gap = adjRearDriver->gapDistance(adjDriver);
+	float position = adjRearDriver->gapDistance(p.driver) + p.driver->getVehicleLength();
+	float acc = gapAcceptanceParams[11] * (gapAcceptanceParams[0] * gap - position);
 
-	acc += getAccAddon() * a[12] / 0.824;
+	acc += getAccelerationAddon() * gapAcceptanceParams[12] / 0.824;
 	p.lcDebugStr << "+++acc+++" << acc;
+	
 	return acc;
 }
 
-double MITSIM_CF_Model::calcStopPointRate(DriverUpdateParams& p)
+double MITSIM_CF_Model::calcAccForStoppingPoint(DriverUpdateParams &params)
 {
-
 	std::stringstream debugStr;
-	debugStr << ";SSPP" << p.distanceToStoppingPt << ";" << p.stopPointState << ";";
-	double acc = p.maxAcceleration;
-	if (!p.getStatus(STATUS_CHANGING))
+	debugStr << ";SSPP" << params.distanceToStoppingPt << ";" << params.stopPointState << ";";
+	
+	double acc = params.maxAcceleration;
+	
+	if (!params.getStatus(STATUS_CHANGING))
 	{
-		if (p.stopPointState == DriverUpdateParams::ARRIVING_AT_STOP_POINT)
+		if (params.stopPointState == DriverUpdateParams::ARRIVING_AT_STOP_POINT)
 		{
-			acc = brakeToStop(p, p.distToStop);
+			acc = calcBrakeToStopAcc(params, params.distToStop);
 			debugStr << "SP-Close;";
-			p.cfDebugStr += debugStr.str();
+			params.cfDebugStr += debugStr.str();
 			return acc;
 		}
-		if (p.stopPointState == DriverUpdateParams::ARRIVED_AT_STOP_POINT || p.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT)
+		if (params.stopPointState == DriverUpdateParams::ARRIVED_AT_STOP_POINT || params.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT)
 		{
 			debugStr << "SP-Arrive;";
 			acc = -10;
-		}// end of stopPointState
-	}
-	if (p.stopPointState == DriverUpdateParams::ARRIVED_AT_STOP_POINT && p.perceivedFwdVelocity / 100 < 0.1)
-	{
-		debugStr << "SP-Arrive0;";
-		acc = -10;
-		p.stopPointState = DriverUpdateParams::WAITING_AT_STOP_POINT;
-		p.stopTimeTimer = p.now.ms();
-	}
-	if (p.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT)
-	{
-		debugStr << "SP-Waiting;";
-		double currentTime = p.now.ms();
-		double t = (currentTime - p.stopTimeTimer) / 1000.0; // convert ms to s
-
-		debugStr << "SPt;" << t;
-
-		if (t > p.currentStopPoint.dwellTime)
-		{
-			p.stopPointState = DriverUpdateParams::LEAVING_STOP_POINT;
 		}
 	}
-	p.cfDebugStr += debugStr.str();
+	
+	if (params.stopPointState == DriverUpdateParams::ARRIVED_AT_STOP_POINT && params.perceivedFwdVelocity < 0.1)
+	{
+		debugStr << "SP-Arrive0;";
+		acc = params.maxDeceleration;
+		params.stopPointState = DriverUpdateParams::WAITING_AT_STOP_POINT;
+		params.stopTimeTimer = params.now.ms();
+	}
+	
+	if (params.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT)
+	{
+		debugStr << "SP-Waiting;";
+		double currentTime = params.now.ms();
+		double waitTime = millisecondToSecond(currentTime - params.stopTimeTimer);
+
+		debugStr << "SPt;" << waitTime;
+
+		if (waitTime > params.currentStopPoint.dwellTime)
+		{
+			params.stopPointState = DriverUpdateParams::LEAVING_STOP_POINT;
+		}
+	}
+	
+	params.cfDebugStr += debugStr.str();
 	return acc;
 }
 
-/*
- *-------------------------------------------------------------------
- * This function returns the acceleration rate required to
- * accelerate / decelerate from current speed to a full
- * stop within a given distance.
- *-------------------------------------------------------------------
- */
-double MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p,
-											 double dis)
+double MITSIM_CF_Model::calcBrakeToStopAcc(DriverUpdateParams &params, double distance)
 {
-
-	if (dis > Math::DOUBLE_EPSILON)
+	if (distance > Math::DOUBLE_EPSILON)
 	{
-		double u2 = (p.perceivedFwdVelocity / 100)
-				* (p.perceivedFwdVelocity / 100);
-		double acc = -u2 / dis * 0.5;
+		double u2 = (params.perceivedFwdVelocity) * (params.perceivedFwdVelocity);
+		double acc = -u2 / distance * 0.5;
 
-		if (acc <= p.normalDeceleration)
+		if (acc <= params.normalDeceleration)
 		{
 			return acc;
 		}
 
-		double dt = p.nextStepSize;
-		double vt = p.perceivedFwdVelocity / 100 * dt;
+		double dt = params.nextStepSize;
+		double vt = params.perceivedFwdVelocity * dt;
 		double a = dt * dt;
-		double b = 2.0 * vt - p.normalDeceleration * a;
-		double c = u2 + 2.0 * p.normalDeceleration * (dis - vt);
+		double b = 2.0 * vt - params.normalDeceleration * a;
+		double c = u2 + 2.0 * params.normalDeceleration * (distance - vt);
 		double d = b * b - 4.0 * a * c;
 
 		if (d < 0 || a <= 0.0)
@@ -1405,31 +1325,25 @@ double MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p,
 	}
 	else
 	{
-		double dt = p.nextStepSize;
-		return (dt > 0.0) ?
-				-(p.perceivedFwdVelocity / 100) / dt : p.maxDeceleration;
+		double dt = params.nextStepSize;
+		return (dt > 0.0) ?	-params.perceivedFwdVelocity / dt : params.maxDeceleration;
 	}
 }
 
-/*
- *-------------------------------------------------------------------
- * Returns the acceleration rate constrained by the desired speed.
- * CLA 18/06/2014
- *-------------------------------------------------------------------
- */
-double MITSIM_CF_Model::desiredSpeedRate(DriverUpdateParams& p)
+double MITSIM_CF_Model::calcDesiredSpeedAcc(DriverUpdateParams &params)
 {
-	float maxspd = p.maxLaneSpeed;
+	float maxspd = params.maxLaneSpeed;
 	double epsilon_v = Math::DOUBLE_EPSILON;
-	if (p.perceivedFwdVelocity / 100 < maxspd - epsilon_v)
+	
+	if (params.perceivedFwdVelocity < maxspd - epsilon_v)
 	{
 		// Use maximum acceleration
-		return p.maxAcceleration;
+		return params.maxAcceleration;
 	}
-	else if (p.perceivedFwdVelocity / 100 > maxspd + epsilon_v)
+	else if (params.perceivedFwdVelocity > maxspd + epsilon_v)
 	{
 		// Decelerate
-		return p.normalDeceleration;
+		return params.normalDeceleration;
 	}
 	else
 	{
@@ -1438,88 +1352,77 @@ double MITSIM_CF_Model::desiredSpeedRate(DriverUpdateParams& p)
 	}
 }
 
-/*
- *-------------------------------------------------------------------
- * This function returns the acceleration rate required to
- * accelerate / decelerate from current speed to a target
- * speed within a given distance.
- *-------------------------------------------------------------------
- */
-double MITSIM_CF_Model::brakeToTargetSpeed(DriverUpdateParams& p,
-													double s, double v)
+double MITSIM_CF_Model::calcTargetSpeedAcc(DriverUpdateParams &params, double distance, double velocity)
 {
-	double dt = p.nextStepSize;
-	double currentSpeed_ = p.perceivedFwdVelocity / 100;
+	double dt = params.nextStepSize;
+	double currentSpeed = params.perceivedFwdVelocity;
 
-	if (s > Math::DOUBLE_EPSILON)
+	if (distance > Math::DOUBLE_EPSILON)
 	{
-		float v2 = v * v;
-		float u2 = currentSpeed_ * currentSpeed_;
-		float acc = (v2 - u2) / s * 0.5;
+		float v2 = velocity * velocity;
+		float u2 = currentSpeed * currentSpeed;
+		float acc = (v2 - u2) / distance * 0.5;
 
 		return acc;
 	}
 	else
 	{
-		//	float dt = nextStepSize;
-		//if (dt <= 0.0) return maxAcceleration ;
-		return (v - currentSpeed_) / dt;
+		return (velocity - currentSpeed) / dt;
 	}
 }
 
-double MITSIM_CF_Model::accOfEmergencyDecelerating(
-															DriverUpdateParams& p)
+double MITSIM_CF_Model::calcEmergencyDeceleration(DriverUpdateParams &params)
 {
-	double v = p.perceivedFwdVelocity / 100;
-	double dv = v - p.velocityLeadVehicle;
+	double velocity = params.perceivedFwdVelocity;
+	double dv = velocity - params.velocityLeadVehicle;
 	double epsilon_v = Math::DOUBLE_EPSILON;
-	if (v < epsilon_v) return 0;
-	double aNormalDec = p.normalDeceleration;
-
-	double a;
+	
+	if (velocity < epsilon_v)
+	{
+		return 0;
+	}
+	
+	double aNormalDec = params.normalDeceleration;
+	double a = 0;
+	
 	if (dv < epsilon_v)
 	{
-		a = p.accLeadVehicle + 0.25 * aNormalDec;
+		a = params.accLeadVehicle + 0.25 * aNormalDec;
 	}
-	else if (p.gapBetnVehicles > 0.01)
+	else if (params.gapBetnVehicles > 0.01)
 	{
-		a = p.accLeadVehicle - dv * dv / 2 / p.gapBetnVehicles;
+		a = params.accLeadVehicle - dv * dv / 2 / params.gapBetnVehicles;
 	}
 	else
 	{
-		//double dt	=	p.elapsedSeconds;
-		double dt = p.nextStepSize;
-		//p.spaceStar	=	p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
-		double s = p.spaceStar;
-		double v = p.velocityLeadVehicle + p.accLeadVehicle * dt;
-		a = brakeToTargetSpeed(p, s, v);
+		double dt = params.nextStepSize;
+		double s = params.spaceStar;
+		double v = params.velocityLeadVehicle + params.accLeadVehicle * dt;
+		a = calcTargetSpeedAcc(params, s, v);
 	}
-	return min(p.normalDeceleration, a);
+	
+	return min(params.normalDeceleration, a);
 }
 
-double MITSIM_CF_Model::accOfCarFollowing(DriverUpdateParams& p)
+double MITSIM_CF_Model::calcAccOfCarFollowing(DriverUpdateParams &params)
 {
+	double density = params.density;
+	double velocity = params.perceivedFwdVelocity;
+	int i = (velocity > params.velocityLeadVehicle) ? 1 : 0;
+	
+	double dv = (velocity > params.velocityLeadVehicle) ? (velocity - params.velocityLeadVehicle) : (params.velocityLeadVehicle - velocity);
 
-	double density = p.density;
-	double v = p.perceivedFwdVelocity / 100;
-	int i = (v > p.velocityLeadVehicle) ? 1 : 0;
-	double dv = (v > p.velocityLeadVehicle) ? (v - p.velocityLeadVehicle) : (p.velocityLeadVehicle - v);
-
-	double res = CF_parameters[i].alpha * pow(v, CF_parameters[i].beta)
-			/ pow(p.nvFwd.distance / 100, CF_parameters[i].gama);
-
-	res *= pow(dv, CF_parameters[i].lambda)
-			* pow(density, CF_parameters[i].rho);
-
+	double res = CF_parameters[i].alpha * pow(velocity, CF_parameters[i].beta) / pow(params.nvFwd.distance, CF_parameters[i].gama);
+	res *= pow(dv, CF_parameters[i].lambda)	* pow(density, CF_parameters[i].rho);
 	res += feet2Unit(Utils::nRandom(0, CF_parameters[i].stddev));
 
 	return res;
 }
 
-double MITSIM_CF_Model::calcFreeFlowingAcc(DriverUpdateParams &params, double targetSpeed, double maxLaneSpeed)
+double MITSIM_CF_Model::calcFreeFlowingAcc(DriverUpdateParams &params, double targetSpeed)
 {
 	double velocity = params.perceivedFwdVelocity;
-	
+
 	if (velocity < targetSpeed - minSpeed)
 	{
 		double acc = params.FFAccParamsBeta * (targetSpeed - velocity);
@@ -1529,141 +1432,163 @@ double MITSIM_CF_Model::calcFreeFlowingAcc(DriverUpdateParams &params, double ta
 	{
 		return params.normalDeceleration;
 	}
-	
+
 	return 0;
 }
 
-double MITSIM_CF_Model::accOfMixOfCFandFF(DriverUpdateParams& p,
-												   double targetSpeed, double maxLaneSpeed)
+double MITSIM_CF_Model::accOfMixOfCFandFF(DriverUpdateParams &params, double targetSpeed)
 {
-	if (p.gapBetnVehicles > p.distanceToNormalStop)
+	if (params.gapBetnVehicles > params.distanceToNormalStop)
 	{
-		return calcFreeFlowingAcc(p, targetSpeed, maxLaneSpeed);
+		return calcFreeFlowingAcc(params, targetSpeed);
 	}
 	else
 	{
-		double dt = p.nextStepSize;
-		//p.spaceStar	=	p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
-		double s = p.spaceStar;
-		double v = p.velocityLeadVehicle + p.accLeadVehicle * dt;
-		return brakeToTargetSpeed(p, s, v);
+		double dt = params.nextStepSize;
+		double s = params.spaceStar;
+		double v = params.velocityLeadVehicle + params.accLeadVehicle * dt;
+		return calcTargetSpeedAcc(params, s, v);
 	}
 }
 
-void MITSIM_CF_Model::distanceToNormalStop(DriverUpdateParams& p)
+void MITSIM_CF_Model::calcDistanceForNormalStop(DriverUpdateParams &params)
 {
-
-	if (p.perceivedFwdVelocity / 100 > minSpeed)
+	if (params.perceivedFwdVelocity > minSpeed)
 	{
-		p.distanceToNormalStop = Math::DOUBLE_EPSILON
-				- 0.5 * (p.perceivedFwdVelocity / 100)
-				* (p.perceivedFwdVelocity / 100) / p.normalDeceleration;
-		if (p.distanceToNormalStop < minResponseDistance)
+		params.distanceToNormalStop = Math::DOUBLE_EPSILON - 0.5 * params.perceivedFwdVelocity * params.perceivedFwdVelocity / params.normalDeceleration;
+		
+		if (params.distanceToNormalStop < minResponseDistance)
 		{
-			p.distanceToNormalStop = minResponseDistance;
+			params.distanceToNormalStop = minResponseDistance;
 		}
 	}
 	else
 	{
-		p.distanceToNormalStop = minResponseDistance;
+		params.distanceToNormalStop = minResponseDistance;
 	}
 }
 
-void MITSIM_CF_Model::calcStateBasedVariables(DriverUpdateParams& p)
+void MITSIM_CF_Model::calcStateBasedVariables(DriverUpdateParams &params)
 {
-	distanceToNormalStop(p);
+	calcDistanceForNormalStop(params);
 
 	// Acceleration rate for a vehicle (a function of vehicle type,
 	// facility type, segment grade, current speed).
-	p.maxAcceleration = getMaxAcceleration(p);
+	params.maxAcceleration = getMaxAcceleration(params);
 
 	// Deceleration rate for a vehicle (a function of vehicle type, and
 	// segment grade).
-	p.normalDeceleration = getNormalDeceleration(p);
+	params.normalDeceleration = getNormalDeceleration(params);
 
 	// Maximum deceleration is function of speed and vehicle class
-	p.maxDeceleration = getMaxDeceleration(p);
+	params.maxDeceleration = getMaxDeceleration(params);
 
 	// unsetStatus;
-	p.unsetStatus(STATUS_REGIME);
+	params.unsetStatus(STATUS_REGIME);
 }
 
 void MITSIM_CF_Model::calcUpdateStepSizes()
 {
-	// dec
-	double totalReactionTime = makeNormalDist(decUpdateStepSize);
-	double perceptionTime = totalReactionTime * decUpdateStepSize.percep; // perception time  = reaction time * percentage
+	//Deceleration
+	double totalReactionTime = sampleFromNormalDistribution(decUpdateStepSize);
+	
+	//Perception time  = reaction time * perception percentage
+	double perceptionTime = totalReactionTime * decUpdateStepSize.perception;
 
 	updateStepSize.push_back(totalReactionTime);
 	perceptionSize.push_back(perceptionTime);
 
-	// acc
-	totalReactionTime = makeNormalDist(accUpdateStepSize);
-	perceptionTime = totalReactionTime * accUpdateStepSize.percep; // perception time  = reaction time * percentage
+	//Acceleration
+	totalReactionTime = sampleFromNormalDistribution(accUpdateStepSize);
+	
+	//Perception time  = reaction time * perception percentage
+	perceptionTime = totalReactionTime * accUpdateStepSize.perception;
 
 	updateStepSize.push_back(totalReactionTime);
 	perceptionSize.push_back(perceptionTime);
 
-	// uniform Speed
-	totalReactionTime = makeNormalDist(uniformSpeedUpdateStepSize);
-	perceptionTime = totalReactionTime * uniformSpeedUpdateStepSize.percep; // perception time  = reaction time * percentage
+	//Uniform Speed
+	totalReactionTime = sampleFromNormalDistribution(uniformSpeedUpdateStepSize);
+	
+	//Perception time  = reaction time * perception percentage
+	perceptionTime = totalReactionTime * uniformSpeedUpdateStepSize.perception;
 
 	updateStepSize.push_back(totalReactionTime);
 	perceptionSize.push_back(perceptionTime);
 
-	// stopped vehicle
-	totalReactionTime = makeNormalDist(stoppedUpdateStepSize);
-	perceptionTime = totalReactionTime * stoppedUpdateStepSize.percep; // perception time  = reaction time * percentage
+	//Stopped vehicle
+	totalReactionTime = sampleFromNormalDistribution(stoppedUpdateStepSize);
+	
+	//Perception time  = reaction time * perception percentage
+	perceptionTime = totalReactionTime * stoppedUpdateStepSize.perception;
 
 	updateStepSize.push_back(totalReactionTime);
 	perceptionSize.push_back(perceptionTime);
 }
 
-double MITSIM_CF_Model::makeNormalDist(UpdateStepSizeParam& sp)
+double MITSIM_CF_Model::sampleFromNormalDistribution(UpdateStepSizeParam &stepSizeParams)
 {
 
-	if (sp.mean == 0)
+	if (stepSizeParams.mean == 0)
 	{
 		return 0;
-	}//boost::normal_distribution<double> nor(sp.mean, sp.stdev);
-	boost::lognormal_distribution<double> nor(sp.mean, sp.stdev);
-	boost::variate_generator<boost::mt19937, boost::lognormal_distribution<double> > dice(
-																						updateSizeRm, nor);
+	}
+	
+	boost::lognormal_distribution<double> nor(stepSizeParams.mean, stepSizeParams.stdev);
+	boost::variate_generator<boost::mt19937, boost::lognormal_distribution<double> > dice(updateSizeRNG, nor);
 	double v = dice();
-	//TODO need use truncated log distribution
-	if (v < sp.lower)
-		return sp.lower;
-	if (v > sp.upper)
-		return sp.upper;
+	
+	if (v < stepSizeParams.lower)
+	{
+		return stepSizeParams.lower;
+	}
+	if (v > stepSizeParams.upper)
+	{
+		return stepSizeParams.upper;
+	}
+	
 	return v;
 }
 
-double CarFollowingModel::calcNextStepSize(DriverUpdateParams& p)
+double CarFollowingModel::calcNextStepSize(DriverUpdateParams &params)
 {
-	double accRate_ = p.driver->getFwdAcceleration();
-	double currentSpeed_ = p.driver->getFwdVelocity();
+	double currAcc = params.driver->getFwdAcceleration();
+	double currentSpeed = params.driver->getFwdVelocity();
 
-	int i;
-	if (currentSpeed_ < minSpeed)
+	int i = 0;
+	if (currentSpeed < minSpeed)
+	{
 		i = 3;
+	}
 	else
 	{
-		if (accRate_ < -Math::DOUBLE_EPSILON)
+		if (currAcc < -Math::DOUBLE_EPSILON)
+		{
 			i = 0;
-		else if (accRate_ > Math::DOUBLE_EPSILON)
+		}
+		else if (currAcc > Math::DOUBLE_EPSILON)
+		{
 			i = 1;
-		else if (currentSpeed_ > Math::DOUBLE_EPSILON)
+		}
+		else if (currentSpeed > Math::DOUBLE_EPSILON)
+		{
 			i = 2;
+		}
 		else
+		{
 			i = 3;
+		}
 	}
 
-	p.nextStepSize = updateStepSize[i];
-	if (p.nextStepSize == 0)
+	params.nextStepSize = updateStepSize[i];
+	
+	if (params.nextStepSize == 0)
 	{
-		p.nextStepSize = p.elapsedSeconds;
+		params.nextStepSize = params.elapsedSeconds;
 	}
+	
 	nextPerceptionSize = perceptionSize[i];
-	p.driver->resetReactionTime(nextPerceptionSize * 1000);
-	return p.nextStepSize;
+	params.driver->resetReactionTime(nextPerceptionSize * 1000);
+	
+	return params.nextStepSize;
 }

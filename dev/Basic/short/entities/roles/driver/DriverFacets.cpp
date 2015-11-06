@@ -247,36 +247,36 @@ bool DriverMovement::findEmptySpaceAhead()
 						DriverMovement *nearbyDriverMovement = dynamic_cast<DriverMovement *> (nearbyDriver->Movement());
 
 						//Get the gap to the nearby driver
-						double availableGapIn = fwdDriverMovement.getDistToEndOfCurrWayPt() - nearbyDriverMovement->fwdDriverMovement.getDistToEndOfCurrWayPt();
+						double availableGap = fwdDriverMovement.getDistToEndOfCurrWayPt() - nearbyDriverMovement->fwdDriverMovement.getDistToEndOfCurrWayPt();
 
 						//The gap between current driver and the one in front (or the one coming from behind) should be greater than
-						//length(in cm) + (headway(in s) * initial speed(in cm/s))
-						double requiredGapInCM = 0;
-						if (availableGapIn > 0)
+						//length(in m) + (headway(in s) * initial speed(in m/s))
+						double requiredGap = 0;
+						if (availableGap > 0)
 						{
 							//As the gap is positive, there is a vehicle in front of us. We should have enough distance
 							//so as to avoid crashing into it
 							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *> (cfModel);
-							requiredGapInCM = (2 * parentDriver->getVehicleLength()) + (mitsim_cf_model->hBufferUpper * driverUpdateParams.initialSpeed);
+							requiredGap = (2 * parentDriver->getVehicleLength()) + (mitsim_cf_model->getHBufferUpper() * driverUpdateParams.initialSpeed);
 						}
 						else
 						{
 							//As the gap is negative, there is a vehicle coming in from behind. We shouldn't appear right
 							//in front of it, so consider it's speed to calculate required gap
 							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *> (nearbyDriverMovement->cfModel);
-							requiredGapInCM = (2 * nearbyDriver->getVehicleLength())+ (mitsim_cf_model->hBufferUpper * nearbyDriversParams.currSpeed);
+							requiredGap = (2 * nearbyDriver->getVehicleLength())+ (mitsim_cf_model->getHBufferUpper() * nearbyDriversParams.currSpeed);
 
 							//In case a driver is approaching from the rear, we need to reduce the reaction time, so that he/she
 							//is aware of the presence of the car appearing in front.
 							//But we need only the closest one
-							if (driverApproachingFromRear.second > availableGapIn)
+							if (driverApproachingFromRear.second > availableGap)
 							{
 								driverApproachingFromRear.first = nearbyDriver;
-								driverApproachingFromRear.second = availableGapIn;
+								driverApproachingFromRear.second = availableGap;
 							}
 						}
 
-						if (abs(availableGapIn) <= abs(requiredGapInCM))
+						if (abs(availableGap) <= abs(requiredGap))
 						{
 							//at least one vehicle is too close, so no need to search further
 							isSpaceFound = false;
@@ -748,7 +748,7 @@ void DriverMovement::perceiveParameters(DriverUpdateParams &params)
 	}
 	else
 	{
-		NearestVehicle & nv = params.nvFwd;
+		NearestVehicle &nv = params.nvFwd;
 		params.perceivedFwdVelocityOfFwdCar = nv.driver ? nv.driver->fwdVelocity_.get() : 0;
 		params.perceivedLatVelocityOfFwdCar = nv.driver ? nv.driver->latVelocity_.get() : 0;
 		params.perceivedAccelerationOfFwdCar = nv.driver ? nv.driver->fwdAccel_.get() : 0;

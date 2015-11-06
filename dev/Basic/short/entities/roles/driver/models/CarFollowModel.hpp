@@ -24,7 +24,7 @@ class Driver;
 
 /**Abstract class which describes car following*/
 class CarFollowingModel
-{	
+{
 public:
 	/**The model name*/
 	string modelName;
@@ -44,16 +44,22 @@ public:
 	/**The perception sizes*/
 	std::vector<double> perceptionSize;
 
+	/**Split delimiter in the driver parameters XML file*/
+	string splitDelimiter;
+
 	/**
 	 * Calculates the step size of update state variables
-     *
+	 *
 	 * @param params
-     *
+	 *
 	 * @return
-     */
+	 */
 	double calcNextStepSize(DriverUpdateParams &params);
 
 public:
+	CarFollowingModel()
+	{
+	}
 	virtual ~CarFollowingModel()
 	{
 		updateStepSize.clear();
@@ -63,10 +69,10 @@ public:
 	/**
 	 * Calculates the acceleration rate based on interaction with other vehicles
 	 *
-     * @param params the update parameters
+	 * @param params the update parameters
 	 *
-     * @return the acceleration
-     */
+	 * @return the acceleration
+	 */
 	virtual double makeAcceleratingDecision(DriverUpdateParams &params) = 0;
 };
 
@@ -76,8 +82,220 @@ public:
 class MITSIM_CF_Model : public CarFollowingModel
 {
 private:
+	/**Represents the container to store the normal distribution*/
+	struct UpdateStepSizeParam
+	{
+		double mean;
+		double stdev;
+		double lower;
+		double upper;
+		double perception; //percentage of total reaction time
+	};
+
+	/**Represents the container to store the car following model parameters*/
+	struct CarFollowingParams
+	{
+		double alpha;
+		double beta;
+		double gama;
+		double lambda;
+		double rho;
+		double stddev;
+	};
+
+	/**The upper bound on the maximum acceleration*/
+	int maxAccUpperBound;
+
+	/**The upper bound on the normal deceleration*/
+	int normalDecelerationUpperBound;
+
+	/**The upper bound on the maximum deceleration*/
+	int maxDecelerationUpperBound;
+
+	/**This parameter is used to compute the desired speed based on the posted speed limit*/
+	double speedFactor;
+
+	/**The visibility distance of the traffic signal*/
+	double signalVisibilityDist;
+
+	/**The maximum value of headway a driver can have to pass a yellow light.*/
+	double maxYellowLightHeadway;
+
+	/**The minimum speed for approaching a yellow light*/
+	double minYellowLightSpeed;
+
+	/**The road slope*/
+	double allGrades;
+
+	/**
+	 * This is the minimum space headway between the lead and following vehicles for which the following
+	 * vehicle must apply some acceleration (or deceleration)
+	 */
+	double minResponseDistance;
+
+	/**Upper bound for the headway buffer*/
+	double hBufferUpper;
+
+	/**Lower bound for the headway buffer*/
+	double hBufferLower;
+
+	/**Defines how close the lead vehicle needs to be in order for the following vehicle to brake (in meter)*/
+	double visibilityDistance;
+
+	/**Random number generator for calculating update step sizes*/
+	boost::mt19937 updateSizeRNG;
+
+	/**The car following parameters*/
+	CarFollowingParams CF_parameters[2];
+	
 	/**Merging parameters*/
 	vector<double> mergingParams;
+
+	/**Update step size while deceleration*/
+	UpdateStepSizeParam decUpdateStepSize;
+
+	/**Update step size while acceleration*/
+	UpdateStepSizeParam accUpdateStepSize;
+
+	/**Update step size when the speed is constant*/
+	UpdateStepSizeParam uniformSpeedUpdateStepSize;
+
+	/**Update step size when the vehicle has stopped*/
+	UpdateStepSizeParam stoppedUpdateStepSize;
+
+	/**Parameters to calculate the target gap acceleration*/
+	vector<double> targetGapAccParm;
+
+	/**The maximum acceleration scale*/
+	vector<double> maxAccelerationScale;
+
+	/**The normal deceleration scale*/
+	vector<double> normalDecelerationScale;
+
+	/**The maximum deceleration scale*/
+	vector<double> maxDecelerationScale;
+
+	/**The speed limit add-on distribution*/
+	vector<double> speedLimitAddon;
+
+	/**The car following acceleration add-on distribution*/
+	vector<double> accelerationAddon;
+
+	/**The car following deceleration add-on distribution*/
+	vector<double> decelerationAddon;
+
+	/**The distribution for the headway upperbound*/
+	vector<double> hBufferUpperScale;
+
+	/**The maximum acceleration indices. Key: Vehicle type, Value: Map with Key: Speed, Value: Max. Acceleration*/
+	map< VehicleBase::VehicleType, map<int, double> > maxAccelerationIndex;
+
+	/**The normal deceleration indices. Key: Vehicle type, Value: Map with Key: Speed, Value: Normal deceleration*/
+	map< VehicleBase::VehicleType, map<int, double> > normalDecelerationIndex;
+
+	/**The maximum deceleration indices. Key: Vehicle type, Value: Map with Key: Speed, Value: Normal deceleration*/
+	map< VehicleBase::VehicleType, map<int, double> > maxDecelerationIndex;
+
+	/**
+	 * Reads the car following model parameters from the driver parameters XML file
+	 *
+	 * @param params the drivers parameters
+	 */
+	void readDriverParameters(DriverUpdateParams &params);
+
+	/**
+	 * Creates the car following parameters from the given parameter values in string format
+     *
+	 * @param strParams the parameter string
+     * @param cfParams the car following parameters
+     */
+	void createCF_Params(string &strParams, CarFollowingParams &cfParams);
+
+	/**
+	 * Creates the speed indices based on the speed scalars
+	 *
+     * @param vehicleType vehicle type
+     * @param speedScalerStr speed scalar
+     * @param cstr the index value
+     * @param idx the container holding the indices
+     * @param upperBound the upper bound of the index
+     */
+	void createSpeedIndices(VehicleBase::VehicleType vehicleType, string &speedScalerStr, string &cstr, map< VehicleBase::VehicleType, map<int, double> > &idx,
+							int &upperBound);
+
+	/**
+	 * Creates the scale indices based on the string data
+     *
+	 * @param data the data in the format "0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"
+     * @param container the container that stores the created indices
+     */
+	void createScaleIndices(string &data, vector<double> &container);
+
+	/**
+	 * Creates the update step size parameters from the given parameter values in string format
+     * @param strParams the parameter string
+     * @param stepSizeParams the container for the update step size parameters
+     */
+	void createUpdateSizeParams(string &strParams, UpdateStepSizeParam &stepSizeParams);
+
+	/**
+	 * Builds and gets a sample from the normal distribution created from the given parameters
+     *
+	 * @param stepSizeParams the step size parameters from which the distribution is to be created and sampled
+     *
+	 * @return sampled value from the distribution
+     */
+	double sampleFromNormalDistribution(UpdateStepSizeParam &stepSizeParams);
+
+	/**
+	 * Returns the maximum acceleration for the given vehicle type
+	 *
+     * @param params the driver parameters
+     * @param vhType the vehicle type
+	 *
+     * @return max acceleration of the given vehicle type
+     */
+	double getMaxAcceleration(DriverUpdateParams &params, VehicleBase::VehicleType vhType = VehicleBase::CAR);
+
+	/**
+	 * Returns the normal deceleration for the given vehicle type
+	 *
+     * @param params the driver parameters
+     * @param vhType the vehicle type
+	 *
+     * @return normal deceleration of the given vehicle type
+     */
+	double getNormalDeceleration(DriverUpdateParams &params, VehicleBase::VehicleType vhType = VehicleBase::CAR);
+
+	/**
+	 * Returns the maximum deceleration for the given vehicle type
+     * @param params the driver parameters
+     * @param vhType the vehicle type
+	 *
+     * @return the maximum deceleration for the given vehicle type
+     */
+	double getMaxDeceleration(DriverUpdateParams &params, VehicleBase::VehicleType vhType = VehicleBase::CAR);
+
+	/**
+	 * Calculates the maximum acceleration scalar
+	 *
+     * @return maximum acceleration scalar
+     */
+	double getMaxAccScalar();
+
+	/**
+	 * Calculates the normal deceleration scalar
+     *
+	 * @return normal deceleration scalar
+     */
+	double getNormalDecScalar();
+
+	/**
+	 * Calculates the maximum deceleration scalar
+	 *
+     * @return maximum deceleration scalar
+     */
+	double getMaxDecScalar();
 
 	/**
 	 * Calculates the acceleration based on the car-following constraints. 
@@ -86,11 +304,11 @@ private:
 	 * same segment.
 	 * A modified GM model is used in this implementation.
 	 *
-     * @param params the update parameters
-     * @param nearestVehicle the nearest vehicle
-     *
+	 * @param params the update parameters
+	 * @param nearestVehicle the nearest vehicle
+	 *
 	 * @return acceleration
-     */
+	 */
 	double calcCarFollowingAcc(DriverUpdateParams &params, NearestVehicle &nearestVehicle);
 
 	/**
@@ -99,128 +317,248 @@ private:
 	 * 2. Vehicle in front is on the next link (beyond the intersection)
 	 * and returns the lower of the two values
 	 *
-     * @param params the update parameters
+	 * @param params the update parameters
 	 *
-     * @return acceleration
-     */
+	 * @return acceleration
+	 */
 	double calcCarFollowingAcc(DriverUpdateParams &params);
 
 	/**
 	 * Calculate the acceleration based on the merging constraints
 	 *
-     * @param params the update parameters
+	 * @param params the update parameters
 	 *
-     * @return acceleration
-     */
-	double calcMergingRate(DriverUpdateParams &params);
+	 * @return acceleration
+	 */
+	double calcMergingAcc(DriverUpdateParams &params);
 
 	/**
 	 * Checks if this driver considers the gap from an incoming vehicle to be an acceptable gap for merging or crossing.
 	 * It depends on the speed of the coming vehicle and this driver's behaviour parameters
 	 *
-     * @param params update parameters
-     * @param nearestVehicle the incoming vehicle
+	 * @param params update parameters
+	 * @param nearestVehicle the incoming vehicle
 	 *
-     * @return returns true if the gap is acceptable, or false otherwise.
-     */
+	 * @return returns true if the gap is acceptable, or false otherwise.
+	 */
 	bool isGapAcceptable(DriverUpdateParams &params, NearestVehicle &nearestVehicle);
 
-	/** \brief this function calculates the acceleration rate when the car is stopped at a traffic light
-	 *  \param p driver's parameters
-	 *  \return acceleration rate
-	 **/
-	double calcSignalRate(DriverUpdateParams& p);
 	/**
-	 *  \brief The function calcYieldingRate calculates the acceleration rate when performing a courtesy yielding.
-	 *  \param p driver's parameters
-	 *  \return acceleration rate
-	 */
-	double calcYieldingRate(DriverUpdateParams& p);
-	/*
-	 *  /brief Calculate the maximum acceleration rate subject to the the gap from the leading vehicle.
+	 * Calculates the acceleration when the car needs to stop for a red light or needs to start moving for a
+	 * green light
 	 *
-	 */
-	double calcCreateGapRate(DriverUpdateParams& p, NearestVehicle& vh, float gap);
-	/** \brief this function calculates the acceleration rate before exiting a specific lane
-	 *  \param p driver's parameters
-	 *  \return acceleration rate
-	 **/
-	double waitExitLaneRate(DriverUpdateParams& p);
-	/** \brief this function calculates the acceleration rate when
-	 *   current lane is incorrect and the distance is close to the an incurrent lane of the segment
-	 *  \param p driver's parameters
-	 *  \return acceleration rate
-	 **/
-	double waitAllowedLaneRate(DriverUpdateParams& p);
-
-	/**
-	 *  \brief The function calcForwardRate calculates the acceleration for the forward gap
-	 *  \param p driver's parameters
-	 *  \return acceleration rate
-	 */
-	double calcForwardRate(DriverUpdateParams& p);
-
-	/*
-	 *  \brief calculate desired speed
-	 *  \param p driver's parameters
-	 *  \return speed m/s
-	 */
-	double calcDesiredSpeed(DriverUpdateParams& p);
-
-	/**
-	 *  \brief The function calcBackwardRate calculates the acceleration for the backward gap
-	 *  \param p driver's parameters
-	 *  \return acceleration rate
-	 */
-	double calcBackwardRate(DriverUpdateParams& p);
-	/**
-	 *  \brief The function calcAdjacentRate calculates the acceleration for the adjacent gap
-	 *  \param p driver's parameters
-	 *  \return acceleration rate
-	 */
-	double calcAdjacentRate(DriverUpdateParams& p);
-
-	/**
-	 *  @brief calculates the acceleration for stop point
-	 *  \param p driver's parameters
-	 *  \return acceleration rate
-	 */
-	double calcStopPointRate(DriverUpdateParams& p);
-
-	/** \brief return the acc to a target speed within a specific distance
-	 *  \param p vehicle state value
-	 *  \param s distance (meter)
-	 *  \param v velocity (m/s)
-	 *  \return acceleration (m/s^2)
-	 **/
-	double desiredSpeedRate(DriverUpdateParams& p);
-	double brakeToTargetSpeed(DriverUpdateParams& p, double s, double v);
-	double brakeToStop(DriverUpdateParams& p, double dis);
-	double accOfEmergencyDecelerating(DriverUpdateParams& p); ///<when headway < lower threshold, use this function
-	double accOfCarFollowing(DriverUpdateParams& p); ///<when lower threshold < headway < upper threshold, use this function
-
-	/**
-	 * Calculates the free flowing acceleration
-     * @param params
-     * @param targetSpeed
-     * @param maxLaneSpeed
+     * @param params the driver parameters
 	 *
      * @return acceleration
      */
-	double calcFreeFlowingAcc(DriverUpdateParams &params, double targetSpeed, double maxLaneSpeed);
+	double calcTrafficSignalAcc(DriverUpdateParams &params);
 
-	double accOfMixOfCFandFF(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed); ///<mix of car following and free flowing
-	void distanceToNormalStop(DriverUpdateParams& p);
-	/** \brief This function update the variables that depend only on the speed of
-	 *         the vehicle and type.
-	 *  \param p vehicle state value
-	 **/
+	/**
+	 * Calculates the acceleration when performing a courtesy yielding
+     * @param params the driver parameters
+     * @return acceleration
+     */
+	double calcYieldingAcc(DriverUpdateParams &params);
+
+	/**
+	 * Calculate the maximum acceleration for creating a gap to the nearest vehicle
+     *
+	 * @param params the driver parameters
+     * @param nearestVeh the vehicle to which we are trying to open a gap
+     * @param gap the gap distance required
+     * 
+	 * @return acceleration
+     */
+	double calcAccToCreateGap(DriverUpdateParams &params, NearestVehicle &nearestVeh, float gap);
+	
+	/**
+	 * Calculates the acceleration while exiting a specific lane. For e.g: If a vehicle is not in the correct lane
+	 * close to the end of a link, it may decelerate to a stop and wait for lane changing.
+     * 
+	 * @param params
+     * 
+	 * @return acceleration
+     */
+	double calcWaitForLaneExitAcc(DriverUpdateParams &params);
+
+	/**
+	 * Calculates the acceleration rate when current lane is incorrect and the distance is close to the
+	 * an incurrent lane of the segment
+     *
+	 * @param params driver parameters
+     *
+	 * @return acceleration
+     */
+	double calcWaitForAllowedLaneAcc(DriverUpdateParams& p);
+
+	/**
+	 * Calculates the acceleration required to reach the forward gap
+	 *
+     * @param params driver parameters
+     * @return acceleration
+     */
+	double calcForwardGapAcc(DriverUpdateParams &params);
+
+	/**
+	 * Calculates the desired speed
+     * @param params driver parameters
+     * @return desired speed (m/s)
+     */
+	double calcDesiredSpeed(DriverUpdateParams &params);
+
+	/**
+	 * Calculates the acceleration to reach the backward gap
+     *
+	 * @param params driver parameters
+     *
+	 * @return acceleration
+     */
+	double calcBackwardGapAcc(DriverUpdateParams &params);
+
+	/**
+	 * Calculates the acceleration to reach the adjacent gap
+     * @param params driver parameters
+     * @return acceleration
+     */
+	double calcAdjacentGapRate(DriverUpdateParams &params);
+
+	/**
+	 * Calculates the acceleration required to stop at a stopping point
+     * 
+	 * @param params
+     * 
+	 * @return acceleration
+     */
+	double calcAccForStoppingPoint(DriverUpdateParams &params);
+
+	/**
+	 * Calculates acceleration required to reach the desired speed
+     * 
+	 * @param params driver parameters
+     * 
+	 * @return acceleration
+     */
+	double calcDesiredSpeedAcc(DriverUpdateParams &params);
+
+	/**
+	 * Calculates the acceleration / deceleration required to speed up / slow down to the target speed
+	 * with in the given distance
+	 *
+     * @param params driver parameters
+     * @param distance distance within which the target speed is to be achieved
+     * @param velocity the target speed
+	 *
+     * @return acceleration
+     */
+	double calcTargetSpeedAcc(DriverUpdateParams &params, double distance, double velocity);
+
+	/**
+	 * Calculates the acceleration rate required to accelerate / decelerate from current speed to a full
+	 * stop within a given distance
+     *
+	 * @param params driver parameters
+     * @param distance distance within which we need to stop
+     *
+	 * @return acceleration
+     */
+	double calcBrakeToStopAcc(DriverUpdateParams &params, double distance);
+
+	/**
+	 * Calculates the acceleration required to slow down in an emergency
+	 * NOTE: when headway \< lower threshold, use this function
+	 *
+     * @param params driver parameters
+	 *
+     * @return acceleration
+     */
+	double calcEmergencyDeceleration(DriverUpdateParams &params);
+
+	/**
+	 * Calculates the acceleration required to follow another car
+	 * NOTE: when lower threshold \< headway \< upper threshold, use this function
+     * 
+	 * @param params driver parameters
+     * 
+	 * @return acceleration
+     */
+	double calcAccOfCarFollowing(DriverUpdateParams &params);
+
+	/**
+	 * Calculates the acceleration when the traffic is freely flowing
+	 *
+	 * @param params driver parameters
+	 * @param targetSpeed the target speed
+	 * @param maxLaneSpeed the speed limit of the current lane
+	 *
+	 * @return acceleration
+	 */
+	double calcFreeFlowingAcc(DriverUpdateParams &params, double targetSpeed);
+
+	/**
+	 * Calculates either the car following acceleration or the free flow acceleration depending on the gap between
+	 * the vehicles
+	 *
+     * @param params driver parameters
+     * @param targetSpeed the desired speed
+	 *
+     * @return acceleration
+     */
+	double accOfMixOfCFandFF(DriverUpdateParams &params, double targetSpeed);
+
+	/**
+	 * Calculates the distance required for the vehicle to arrive to a stop under normal circumstances
+     * 
+	 * @param params driver parameters
+     */
+	void calcDistanceForNormalStop(DriverUpdateParams &params);
+
+	/**
+	 * Updates the variables that depend on the vehicle type and speed (i.e. the current state)
+	 *
+     * @param params driver parameters driver parameters
+     */
 	void calcStateBasedVariables(DriverUpdateParams& p);
 
-	/** \brief Calculate the step sizes for making car-following decisions, load only when init
-	 *
-	 **/
+	/**
+	 * Calculates the step sizes for making car-following decisions
+     */
 	void calcUpdateStepSizes();
+
+	/**
+	 * Calculates the upper bound of the headway buffer
+	 *
+     * @return upper bound of the headway buffer
+     */
+	double getH_BufferUpperBound();
+
+	/**
+	 * Calculates a headway buffer for a vehicle, which is a behavioural parameter that describes the aggressiveness
+	 * of a driver for accepting a headway gap in lane changing, merging, and car-following.
+	 *
+     * @return headway (seconds)
+     */
+	double getHeadwayBuffer();
+
+	/**
+	 * Calculates the add on for calculating the desired speed
+	 *
+     * @return add on value (m/s)
+     */
+	double getSpeedLimitAddon();
+
+	/**
+	 * Calculates the add on for the acceleration
+	 *
+     * @return add on value (m/s^2)
+     */
+	double getAccelerationAddon();
+
+	/**
+	 * Calculates the add on for the deceleration
+	 *
+     * @return add on value (m/s^2)
+     */
+	double getDecelerationAddon();
 
 	double upMergingArea()
 	{
@@ -241,179 +579,28 @@ private:
 	{
 		return mergingParams[3];
 	}
-	
+
 public:
-	/**Holds the car following model parameters*/
-	struct CarFollowingParams
-	{
-		double alpha;
-		double beta;
-		double gama;
-		double lambda;
-		double rho;
-		double stddev;
-	};
+	MITSIM_CF_Model(DriverUpdateParams &params);
+	~MITSIM_CF_Model();
 
-	MITSIM_CF_Model(DriverUpdateParams& p);
-	void initParam(DriverUpdateParams& p);
-	/** \brief make index base on speed scaler
-	 *  \param speedScalerStr speed scaler
-	 *  \param cstr index value
-	 *  \param idx  index container
-	 *  \param upperBound store upper bound of index
-	 **/
-	void makeSpeedIndex(VehicleBase::VehicleType vhType,
-						string& speedScalerStr,
-						string& cstr,
-						map< VehicleBase::VehicleType, map<int, double> >& idx,
-						int& upperBound);
-	/** \brief create scale index base on string data ,like "0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5"
-	 *  \param s data string
-	 *  \param c container to store data
-	 **/
-	void makeScaleIdx(string& s, vector<double>& c);
-	double getMaxAcceleration(DriverUpdateParams& p, VehicleBase::VehicleType vhType = VehicleBase::CAR);
-	double getNormalDeceleration(DriverUpdateParams& p, VehicleBase::VehicleType vhType = VehicleBase::CAR);
-	double getMaxDeceleration(DriverUpdateParams& p, VehicleBase::VehicleType vhType = VehicleBase::CAR);
-	/** \brief get max acc scaler
-	 *  \return scaler value
-	 **/
-	double getMaxAccScale();
-	/** \brief normal deceleration scaler
-	 *  \return scaler value
-	 **/
-	double getNormalDecScale();
-	/** \brief max deceleration scaler
-	 *  \return scaler value
-	 **/
-	double getMaxDecScale();
 	/**
-	 * The Car-Following model calculates the acceleration rate based on
-	 * interaction with other vehicles.  The function returns a the
-	 * most restrictive acceleration (deceleration if negative) rate
-	 * among the rates given by several constraints.
+	 * Calculates the acceleration rate based on interaction with other vehicles. The function returns a the
+	 * most restrictive acceleration (deceleration if negative) rate among the rates given by several constraints.
 	 *
-	 * This function updates accRate_ at the end.
-
-	 * Car following algorithm is evaluated every CFStepSize seconds,
-	 * or whenever some special event has set cfTimer of this vehicle
-	 * to 0. After each evaluation, we set the countdown clock cfTimer
+	 * Car following algorithm is evaluated every stepSize seconds, or whenever some special event has set
+	 * reactionTimeCounter of this vehicle to 0. After each evaluation, we set the countdown clock reactionTimeCounter
 	 * back to nextStepSize().
-	 **/
-	virtual double makeAcceleratingDecision(DriverUpdateParams& p);
+	 * 
+     * @param params driver parameters
+     * 
+	 * @return most restrictive acceleration
+     */
+	virtual double makeAcceleratingDecision(DriverUpdateParams &params);
 
-public:
-	// split delimiter in xml param file
-	string splitDelimiter;
-	/// key=vehicle type
-	/// submap key=speed, value=max acc
-	map< VehicleBase::VehicleType, map<int, double> > maxAccIndex;
-	int maxAccUpperBound;
-	vector<double> maxAccScale;
-
-	map< VehicleBase::VehicleType, map<int, double> > normalDecelerationIndex;
-	int normalDecelerationUpperBound;
-	vector<double> normalDecelerationScale;
-
-	double speedFactor;
-	/// store speed limit addon parameter
-	vector<double> speedLimitAddon;
-
-	/// driver signal perception distance
-	double percepDisM;
-
-	/**
-	 *  /brief calculate speed add on
-	 *  /return add on value
-	 */
-	double getSpeedLimitAddon();
-
-	vector<double> accAddon;
-	vector<double> declAddon;
-	double getAccAddon();
-	double getDeclAddon();
-
-	map< VehicleBase::VehicleType, map<int, double> > maxDecelerationIndex;
-	int maxDecelerationUpperBound;
-	vector<double> maxDecelerationScale;
-
-	// param of calcSignalRate()
-	double yellowStopHeadway;
-	double minSpeedYellow;
-
-	//	/// decision timer (second)
-	//	double cftimer;
-
-	/// grade is the road slope
-	double tmpGrade;
-
-
-	double minResponseDistance;
-
-	// param of carFollowingRate()
-	double hBufferUpper;
-	vector<double> hBufferUpperScale;
-	/** \brief calculate hBufferUpper value uniform distribution
-	 *  \return hBufferUpper
-	 **/
-	double getBufferUppder();
-	double hBufferLower;
-	/**
-	 * /brief Find a headway buffer for a vehicle.  This is a behavior parameter
-	 *        that describe how aggressive for a driver to accept a headway
-	 *        gap in lane changing, merging, and car-following.  The value
-	 *         return by this function will be added to the minimum headway gaps
-	 *         for the population, which are constants provided in parameter
-	 *         file.
-	 *
-	 * The returned value is in seconds.
-	 **/
-	double headwayBuffer();
-
-	//Car following parameters
-	CarFollowingParams CF_parameters[2];
-	/** \brief convert string to CarFollowParam
-	 *  \param s string data
-	 *  \param cfParam CarFollowParam to store converted double value
-	 **/
-	void makeCFParam(string& s, CarFollowingParams& cfParam);
-
-	// target gap parameters
-	vector<double> targetGapAccParm;
-
-
-
-	/// param of normal distributions
-
-	struct UpdateStepSizeParam
+	double getHBufferUpper()
 	{
-		double mean;
-		double stdev;
-		double lower;
-		double upper;
-		double percep; // percentage of total reaction time
-	};
-	/// deceleration update size
-	UpdateStepSizeParam decUpdateStepSize;
-	/// acceleration update size
-	UpdateStepSizeParam accUpdateStepSize;
-	/// uniform Speed update size
-	UpdateStepSizeParam uniformSpeedUpdateStepSize;
-	/// stopped vehicle update size
-	UpdateStepSizeParam stoppedUpdateStepSize;
-	/** \brief convert string to CarFollowParam
-	 *  \param s string data
-	 *  \param cfParam CarFollowParam to store converted double value
-	 **/
-	void makeUpdateSizeParam(string& s, UpdateStepSizeParam& sParam);
-	boost::mt19937 updateSizeRm;
-	double makeNormalDist(UpdateStepSizeParam& sp);
-
-	double visibilityDistance;
-
-	double visibility()
-	{
-		return visibilityDistance;
+		return hBufferUpper;
 	}
 };
 }

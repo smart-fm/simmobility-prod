@@ -384,10 +384,10 @@ double sim_mob::generateSinglePathLength(const std::vector<sim_mob::WayPoint>& w
 	double res = 0.0;
 	for(std::vector<sim_mob::WayPoint>::const_iterator it = wp.begin(); it != wp.end(); it++)
 	{
-		const sim_mob::RoadSegment* seg = it->roadSegment;
-		res += seg->getLength();
+		const sim_mob::Link* lnk = it->link;
+		res += lnk->getLength();
 	}
-	return res/100.0; //meter
+	return res; //meter
 }
 
 double sim_mob::calculateSinglePathDefaultTT(const std::vector<sim_mob::WayPoint>& wp)
@@ -402,7 +402,7 @@ double sim_mob::calculateSinglePathDefaultTT(const std::vector<sim_mob::WayPoint
 }
 
 
-std::string sim_mob::makeWaypointsetString(const std::vector<sim_mob::WayPoint>& wp)
+std::string sim_mob::makePathString(const std::vector<sim_mob::WayPoint>& wp)
 {
 	std::stringstream str("");
 	for(std::vector<sim_mob::WayPoint>::const_iterator it = wp.begin(); it != wp.end(); it++)

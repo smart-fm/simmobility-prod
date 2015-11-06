@@ -33,7 +33,13 @@ void calculateRightTurnNumberAndSignalNumberByWaypoints(sim_mob::SinglePath *sp)
 double calculateHighWayDistance(sim_mob::SinglePath *sp);
 double generateSinglePathLength(const std::vector<sim_mob::WayPoint>& wp);
 double calculateSinglePathDefaultTT(const std::vector<sim_mob::WayPoint>& wp);
-std::string makeWaypointsetString(const std::vector<WayPoint>& wp);
+
+/**
+ * Constructs a string of comma separated link-ids from a waypoint path
+ * @param wp input waypoint path
+ * @return csv of link-ids od links in wp
+ */
+std::string makePathString(const std::vector<WayPoint>& wp);
 std::string makePT_PathString(const std::vector<PT_NetworkEdge> &path);
 std::string makePT_PathSetString(const std::vector<PT_NetworkEdge> &path);
 

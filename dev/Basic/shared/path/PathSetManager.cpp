@@ -781,7 +781,7 @@ int sim_mob::PrivatePathsetGenerator::genK_ShortestPath(boost::shared_ptr<sim_mo
 	for(int i=0;i<ksp.size();++i)
 	{
 		std::vector<sim_mob::WayPoint> &path_ = ksp[i];
-		std::string id = sim_mob::makeWaypointsetString(path_);
+		std::string id = sim_mob::makePathString(path_);
 		std::stringstream out("");
 		out << ps->scenario << "KSHP-" << i;
 		sim_mob::SinglePath *s = new sim_mob::SinglePath();
@@ -1419,7 +1419,7 @@ sim_mob::SinglePath *  sim_mob::PrivatePathsetGenerator::findShortestDrivingPath
 		return s;
 	}
 	// make sp id
-	std::string id = sim_mob::makeWaypointsetString(wpPath);
+	std::string id = sim_mob::makePathString(wpPath);
 
 	// 1.31 check path pool
 	std::set<std::string>::iterator it =  duplicatePath.find(id);
@@ -1459,7 +1459,7 @@ sim_mob::SinglePath* sim_mob::PrivatePathsetGenerator::generateShortestTravelTim
 		return s;
 	}
 	// make sp id
-	std::string id = sim_mob::makeWaypointsetString(wp);
+	std::string id = sim_mob::makePathString(wp);
 
 	s = new SinglePath();
 	// fill data

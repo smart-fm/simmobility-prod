@@ -1423,7 +1423,7 @@ double MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams &params)
 	int escape = params.flag(FLAG_ESCAPE);
 
 	int lctype;
-	if (params.getStatus(STATUS_MANDATORY) && (!params.getStatus(STATUS_CURRENT_LANE_OK)))
+	if (params.getStatus(STATUS_MANDATORY) && params.getStatus(STATUS_CURRENT_LANE_OK) != StatusValue::STATUS_YES)
 	{
 		params.lcDebugStr << ";M";
 		lctype = 2; // must do lane changing

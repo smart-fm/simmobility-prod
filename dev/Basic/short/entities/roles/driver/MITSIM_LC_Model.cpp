@@ -502,30 +502,14 @@ LaneChangeTo MITSIM_LC_Model::checkForLC_WithLookAhead(DriverUpdateParams &param
 
 	params.lcDebugStr << ";checkDLC";
 
-	//Check if we're already changing the lane
-	/*if (params.flag(FLAG_ESCAPE))
+	//Check if we will be doing a mandatory lane change soon
+	if (params.flag(FLAG_ESCAPE))
 	{
-		if (params.statusMgr.getStatus(STATUS_LEFT_SIDE_OK))
-		{
-			change = LANE_CHANGE_TO_LEFT;
-		}
-		else if (params.statusMgr.getStatus(STATUS_RIGHT_SIDE_OK))
-		{
-			change = LANE_CHANGE_TO_RIGHT;
-		}
-
-		params.setStatus(STATUS_MANDATORY);
 		params.lcDebugStr << ";FLAG_ESCAPE";
-		return change;
-	}*/
-
-	if (params.distanceToStoppingPt != 999 && params.distanceToStoppingPt > -10)
-	{
-		//Has a stop point ahead, no DLC
 		return change;
 	}
 
-	// find lanes connect to target segment in lookahead distance
+	//Find lanes connect to target segment in lookahead distance
 	std::vector<Lane*> connectedLanes;
 	DriverMovement *driverMvt = dynamic_cast<DriverMovement*> (params.driver->Movement());
 	driverMvt->getConnectedLanesInLookAheadDistance(lookAheadDistance, connectedLanes);
@@ -1798,16 +1782,24 @@ int MITSIM_LC_Model::checkForEventsAhead(DriverUpdateParams& params)
 	if (res == -1) needMLC = true;
 	if (res == 1) needDLC = true;
 	params.targetLanes = connectedLanes;
-
-	// 1.2 check stop point, like bus stop
-	set<const Lane*> laneConnectStopPoint;
-	res = isLaneConnectedToStopPoint(params, laneConnectStopPoint);
+	
+	// 1.2 check connections to the next link
+	//This is equivalent to the previous check only when we're on the last segment of the link
+	connectedLanes.clear();
+	res = isLaneConnectedToNextLink(params, connectedLanes);
 	if (res == -1) needMLC = true;
 	if (res == 1) needDLC = true;
-	if (laneConnectStopPoint.size() > 0)
+	params.targetLanes = connectedLanes;
+
+	// 1.2 check stop point, like bus stop
+	connectedLanes.clear();
+	res = isLaneConnectedToStopPoint(params, connectedLanes);
+	if (res == -1) needMLC = true;
+	if (res == 1) needDLC = true;
+	if (connectedLanes.size() > 0)
 	{
-		//stop point lane maybe not in laneConnectorTargetLanes, so just assign to targetLanes
-		params.targetLanes = laneConnectStopPoint;
+		//stop point lane maybe not in targetLanes, so just assign to targetLanes
+		params.targetLanes = connectedLanes;
 	}
 	if (params.stopPointState == DriverUpdateParams::STOP_POINT_FOUND || params.stopPointState == DriverUpdateParams::ARRIVING_AT_STOP_POINT ||
 			params.stopPointState == DriverUpdateParams::ARRIVED_AT_STOP_POINT || params.stopPointState == DriverUpdateParams::WAITING_AT_STOP_POINT)
@@ -1884,25 +1876,19 @@ int MITSIM_LC_Model::isLaneConnectedToNextWayPt(DriverUpdateParams &params, set<
 		if (connectors.empty())
 		{
 			//No lane connector for this lane, so we need to change lane
-			double distToStop = fwdDriverMovement->getDistToEndOfCurrWayPt();
+			double distToStop = fwdDriverMovement->getDistToEndOfCurrWayPt() - params.driver->getVehicleLength();
+			
 			if (distToStop < params.distToStop)
 			{
 				params.distToStop = distToStop;
 			}
 
-			params.setStatus(STATUS_CURRENT_LANE_OK, STATUS_NO, str);
 			return -1;
 		}
 	}
 	else
 	{
 		//Last segment on the link
-		double distToStop = fwdDriverMovement->getDistToEndOfCurrLink() - params.driver->getVehicleLength() / 2;
-
-		if (distToStop < params.distToStop)
-		{
-			params.distToStop = distToStop;
-		}
 
 		//Fill targetLanes - select only lanes that are connected to the next turning
 		const WayPoint *nextWayPt = fwdDriverMovement->getNextWayPoint();
@@ -1926,7 +1912,13 @@ int MITSIM_LC_Model::isLaneConnectedToNextWayPt(DriverUpdateParams &params, set<
 			if (!turningGroup->getTurningPaths(currLane->getLaneId()))
 			{
 				//No turning path from current lane
-				params.setStatus(STATUS_CURRENT_LANE_OK, STATUS_NO, str);
+				double distToStop = fwdDriverMovement->getDistToEndOfCurrLink() - params.driver->getVehicleLength();
+				
+				if (distToStop < params.distToStop)
+				{
+					params.distToStop = distToStop;
+				}
+				
 				return -1;
 			}
 		}
@@ -1935,10 +1927,61 @@ int MITSIM_LC_Model::isLaneConnectedToNextWayPt(DriverUpdateParams &params, set<
 	return 0;
 }
 
+int MITSIM_LC_Model::isLaneConnectedToNextLink(DriverUpdateParams &params, set<const Lane *> &targetLanes)
+{
+	int result = 0;
+	bool isLaneConnected = false;
+	
+	const RoadSegment *currSeg = params.currLane->getParentSegment();
+	const Link *currLink = currSeg->getParentLink();
+	const Link *nextLink = fwdDriverMovement->getNextLink();
+	
+	//The turning group connecting the current and next links.
+	const TurningGroup *turningGroup = currLink->getToNode()->getTurningGroup(currLink->getLinkId(), nextLink->getLinkId());
+	
+	//The turning paths belonging to the turning group
+	const std::map<unsigned int, std::map<unsigned int, TurningPath *> > &turningPaths = turningGroup->getTurningPaths();
+	
+	std::map<unsigned int, std::map<unsigned int, TurningPath *> >::const_iterator itPaths = turningPaths.begin();
+	
+	//Check the connectivity to the "from lane" of each of the turning paths
+	while(itPaths != turningPaths.end())
+	{
+		//The lane index of the "from lane" of the turning path
+		unsigned int connectedLaneIdx = itPaths->first % 10;
+		
+		//Make sure the current segment has a lane with the same index
+		if(connectedLaneIdx <= currSeg->getNoOfLanes() - 1)
+		{
+			targetLanes.insert(currSeg->getLane(connectedLaneIdx));
+		}
+		
+		if(connectedLaneIdx == params.currLaneIndex)
+		{
+			isLaneConnected = true;
+		}
+		
+		++itPaths;
+	}
+	
+	if(!isLaneConnected)
+	{
+		double distToStop = fwdDriverMovement->getDistToEndOfCurrLink() - params.driver->getVehicleLength();
+
+		if (distToStop < params.distToStop)
+		{
+			params.distToStop = distToStop;
+		}
+
+		result = -1;
+	}
+	
+	return result;
+}
+
 int MITSIM_LC_Model::isLaneConnectedToStopPoint(DriverUpdateParams &params, set<const Lane *> &targetLanes)
 {
-	//Check state machine
-	int res = 0;
+	int result = 0;
 
 	// 1.0 find nearest forward stop point
 
@@ -1951,7 +1994,7 @@ int MITSIM_LC_Model::isLaneConnectedToStopPoint(DriverUpdateParams &params, set<
 		//In case car stop just bit ahead of the stop point
 		if (params.stopPointState == DriverUpdateParams::LEAVING_STOP_POINT)
 		{
-			return res;
+			return result;
 		}
 
 		//Only most left lane is target lane
@@ -1959,13 +2002,13 @@ int MITSIM_LC_Model::isLaneConnectedToStopPoint(DriverUpdateParams &params, set<
 		{
 			const Lane *lane = fwdDriverMovement->getCurrSegment()->getLane(0);
 			targetLanes.insert(lane);
-			res = -1;
+			result = -1;
 		}
 
-		return res;
+		return result;
 	}
 
-	return res;
+	return result;
 }
 
 LaneChangeTo MITSIM_LC_Model::checkMandatoryEventLC(DriverUpdateParams &params)

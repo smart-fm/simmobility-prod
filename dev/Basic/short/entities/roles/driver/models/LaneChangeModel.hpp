@@ -239,6 +239,17 @@ private:
 	int isLaneConnectedToNextWayPt(DriverUpdateParams &params, set<const Lane *> &targetLanes);
 
 	/**
+	 * Checks if the current lane is connected to the next link and sets the dis2stop.
+	 * This method checks for connections to the turning group at the end of the current link
+	 *
+	 * @param params drivers parameters
+	 * @param targetLanes target lanes, if lane change is required
+	 *
+	 * @return -1 if mandatory lane change, 0 otherwise
+	 */
+	int isLaneConnectedToNextLink(DriverUpdateParams &params, set<const Lane *> &targetLanes);
+
+	/**
 	 * Check if there is a stop point ahead. If so, check if we need to do a lane change towards the road side
 	 * @param params driver parameters
 	 * @param targetLanes the lanes connected to the stop point

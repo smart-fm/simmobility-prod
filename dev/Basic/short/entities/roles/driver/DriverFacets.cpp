@@ -992,15 +992,14 @@ void DriverMovement::getConnectedLanesInLookAheadDistance(double lookAheadDist, 
 	}
 	
 	//Lanes in the current segment
-	const std::vector<Lane *> &lanes = fwdDriverMovement.getCurrSegment()->getLanes();
-	
-	//The way points in the look ahead distance
-	itWayPts = wayPtsInLookAheadDist.begin() + 1;
+	const std::vector<Lane *> &lanes = fwdDriverMovement.getCurrSegment()->getLanes();	
 	end = wayPtsInLookAheadDist.end();
 	
 	//Check the connectivity of each of the lanes to the way points in the look ahead distance
 	for(std::vector<Lane *>::const_iterator itLanes = lanes.begin(); itLanes != lanes.end(); ++itLanes)
 	{
+		//The way points in the look ahead distance
+		itWayPts = wayPtsInLookAheadDist.begin() + 1;
 		const Lane *lane = *itLanes;
 		
 		while(itWayPts != end)

@@ -232,7 +232,7 @@ const Lane* DriverPathMover::getNextLane() const
 		
 		if(!trueConnections.empty())
 		{
-			//Choose randomly
+			//Choose the middle connection
 			unsigned int midConnection = trueConnections.size() / 2;
 			nextLane = trueConnections.at(midConnection)->getToLane();
 		}
@@ -260,19 +260,8 @@ const TurningPath* DriverPathMover::getNextTurning() const
 			
 			if(turnings)
 			{
-				unsigned int toLane = 0;
-				std::map<unsigned int, TurningPath *>::const_iterator itTurnings = turnings->begin();
-				
-				while(itTurnings != turnings->end())
-				{
-					if(toLane < itTurnings->first)
-					{
-						toLane = itTurnings->first;
-					}
-					++itTurnings;
-				}
-				
-				nextTurning = turnings->at(toLane);
+				//Select the first turning path that we find
+				nextTurning = turnings->begin()->second;
 			}
 		}
 	}

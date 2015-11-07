@@ -335,7 +335,7 @@ void DriverMovement::frame_tick_output()
 	}
 
 	const int wayPtId = fwdDriverMovement.isInIntersection() ?
-			fwdDriverMovement.getCurrTurning()->getTurningPathId() : fwdDriverMovement.getCurrSegment()->getRoadSegmentId();
+			fwdDriverMovement.getCurrTurning()->getTurningGroupId() : fwdDriverMovement.getCurrSegment()->getRoadSegmentId();
 
 	//MPI-specific output.
 	std::stringstream addLine;

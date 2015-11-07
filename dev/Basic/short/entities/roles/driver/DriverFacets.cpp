@@ -320,7 +320,7 @@ void DriverMovement::frame_tick_output()
 		return;
 	}
 
-	double baseAngle = fwdDriverMovement.isInIntersection() ? intModel->getCurrentAngle() : getAngle();
+	double baseAngle = getAngle();
 
 	//Inform the GUI if interactive mode is active.
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode())
@@ -1738,13 +1738,10 @@ double DriverMovement::getAngle() const
 	{
 		return 0; //Shouldn't matter.
 	}
+	
+	DynamicVector vector(fwdDriverMovement.getCurrPolyPoint(), fwdDriverMovement.getNextPolyPoint());
 
-	DynamicVector temp(fwdDriverMovement.getCurrPolyPoint().getX(),
-					fwdDriverMovement.getCurrPolyPoint().getY(),
-					fwdDriverMovement.getNextPolyPoint().getX(),
-					fwdDriverMovement.getNextPolyPoint().getY());
-
-	return temp.getAngle();
+	return vector.getAngle();
 }
 
 void DriverMovement::updateNearbyAgents()

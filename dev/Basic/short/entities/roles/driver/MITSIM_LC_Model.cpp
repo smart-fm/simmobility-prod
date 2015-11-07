@@ -1282,6 +1282,19 @@ LaneChangeTo MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdateParams &param
 			throw std::runtime_error("makeLaneChangingDecision: Error: In the middle of changing lanes, but status is LANE_CHANGE_TO_NONE");
 		}
 	}
+	
+	//Reset status
+	params.setStatus(STATUS_LEFT_SIDE_OK, STATUS_UNKNOWN, string("makeLaneChangingDecision"));
+	params.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_UNKNOWN, string("makeLaneChangingDecision"));
+	params.setStatus(STATUS_CURRENT_LANE_OK, STATUS_UNKNOWN, string("makeLaneChangingDecision"));
+	
+	//Reset utilities
+	params.utilityCurrent = 0;
+	params.utilityLeft = 0;
+	params.utilityRight = 0;
+
+	//Update the lane connectivity status
+	setLaneConnectionStatus(params);
 
 	if (params.perceivedFwdVelocity < minSpeed)
 	{
@@ -1295,18 +1308,7 @@ LaneChangeTo MITSIM_LC_Model::makeLaneChangingDecision(DriverUpdateParams &param
 		return LANE_CHANGE_TO_NONE;
 	}
 
-	LaneChangeTo change = LANE_CHANGE_TO_NONE; // direction to change
-
-	//Reset status
-	params.setStatus(STATUS_LEFT_SIDE_OK, STATUS_UNKNOWN, string("makeLaneChangingDecision"));
-	params.setStatus(STATUS_RIGHT_SIDE_OK, STATUS_UNKNOWN, string("makeLaneChangingDecision"));
-	params.setStatus(STATUS_CURRENT_LANE_OK, STATUS_UNKNOWN, string("makeLaneChangingDecision"));
-	params.utilityCurrent = 0;
-	params.utilityLeft = 0;
-	params.utilityRight = 0;
-
-	//Update the lane connectivity status
-	setLaneConnectionStatus(params);
+	LaneChangeTo change = LANE_CHANGE_TO_NONE; // direction to change	
 
 	if (checkForEventsAhead(params))
 	{

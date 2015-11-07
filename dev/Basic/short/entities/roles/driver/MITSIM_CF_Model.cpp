@@ -472,7 +472,7 @@ double MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams &params)
 	double aC = calcTrafficSignalAcc(params);
 	double aD = calcYieldingAcc(params);
 	
-	//double aE = calcWaitForLaneExitAcc(params);
+	double aE = calcWaitForLaneExitAcc(params);
 	//double aF = calcWaitForAllowedLaneAcc(params);
 	
 	//MISSING! > NOT YET IMPLEMENTED (@CLA_04/14)
@@ -529,11 +529,11 @@ double MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams &params)
 		params.accSelect = "aD";
 	}
 	
-	/*if(acceleration > aE)
+	if(acceleration > aE)
 	{
 		acceleration = aE;
 		params.accSelect = "aE";
-	}*/
+	}
 	
 	if (acceleration > aH)
 	{
@@ -1049,17 +1049,20 @@ double MITSIM_CF_Model::calcAccToCreateGap(DriverUpdateParams &params, NearestVe
 
 double MITSIM_CF_Model::calcWaitForLaneExitAcc(DriverUpdateParams &params)
 {
+	double acceleration = params.maxAcceleration;
 	DriverMovement *driverMvt = dynamic_cast<DriverMovement*> (params.driver->Movement());
-	double dx = driverMvt->fwdDriverMovement.getDistToEndOfCurrLink() - 5.0;
+	
+	if(!driverMvt->fwdDriverMovement.isInIntersection())
+	{
+		double dx = driverMvt->fwdDriverMovement.getDistToEndOfCurrLink() - params.driver->getVehicleLength();
 
-	if (dx < params.distanceToNormalStop && params.getStatus(STATUS_CURRENT_LANE_OK) != StatusValue::STATUS_YES)
-	{
-		return calcBrakeToStopAcc(params, dx);
+		if (dx < params.distanceToNormalStop && params.getStatus(STATUS_CURRENT_LANE_OK) != StatusValue::STATUS_YES)
+		{
+			acceleration = calcBrakeToStopAcc(params, dx);
+		}
 	}
-	else
-	{
-		return params.maxAcceleration;
-	}
+	
+	return acceleration;
 }
 
 double MITSIM_CF_Model::calcWaitForAllowedLaneAcc(DriverUpdateParams &params)

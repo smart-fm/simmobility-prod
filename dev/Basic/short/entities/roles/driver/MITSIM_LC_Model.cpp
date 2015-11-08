@@ -1938,32 +1938,42 @@ int MITSIM_LC_Model::isLaneConnectedToNextLink(DriverUpdateParams &params, set<c
 	const Link *currLink = currSeg->getParentLink();
 	const Link *nextLink = fwdDriverMovement->getNextLink();
 	
-	//The turning group connecting the current and next links.
-	const TurningGroup *turningGroup = currLink->getToNode()->getTurningGroup(currLink->getLinkId(), nextLink->getLinkId());
-	
-	//The turning paths belonging to the turning group
-	const std::map<unsigned int, std::map<unsigned int, TurningPath *> > &turningPaths = turningGroup->getTurningPaths();
-	
-	std::map<unsigned int, std::map<unsigned int, TurningPath *> >::const_iterator itPaths = turningPaths.begin();
-	
-	//Check the connectivity to the "from lane" of each of the turning paths
-	while(itPaths != turningPaths.end())
+	//Check if next link exists (This may be last link in the path)
+	if(nextLink)
 	{
-		//The lane index of the "from lane" of the turning path
-		unsigned int connectedLaneIdx = itPaths->first % 10;
-		
-		//Make sure the current segment has a lane with the same index
-		if(connectedLaneIdx <= currSeg->getNoOfLanes() - 1)
+		//The turning group connecting the current and next links.
+		const TurningGroup *turningGroup = currLink->getToNode()->getTurningGroup(currLink->getLinkId(), nextLink->getLinkId());
+
+		//The turning paths belonging to the turning group
+		const std::map<unsigned int, std::map<unsigned int, TurningPath *> > &turningPaths = turningGroup->getTurningPaths();
+
+		std::map<unsigned int, std::map<unsigned int, TurningPath *> >::const_iterator itPaths = turningPaths.begin();
+
+		//Check the connectivity to the "from lane" of each of the turning paths
+		while (itPaths != turningPaths.end())
 		{
-			targetLanes.insert(currSeg->getLane(connectedLaneIdx));
+			//The lane index of the "from lane" of the turning path
+			unsigned int connectedLaneIdx = itPaths->first % 10;
+
+			//Make sure the current segment has a lane with the same index
+			if (connectedLaneIdx <= currSeg->getNoOfLanes() - 1)
+			{
+				targetLanes.insert(currSeg->getLane(connectedLaneIdx));
+			}
+
+			if (connectedLaneIdx == params.currLaneIndex)
+			{
+				isLaneConnected = true;
+			}
+
+			++itPaths;
 		}
-		
-		if(connectedLaneIdx == params.currLaneIndex)
-		{
-			isLaneConnected = true;
-		}
-		
-		++itPaths;
+	}
+	else
+	{
+		//Last link in the path, any lane is OK
+		isLaneConnected = true;
+		targetLanes.insert(currSeg->getLanes().begin(), currSeg->getLanes().end());
 	}
 	
 	if(!isLaneConnected)

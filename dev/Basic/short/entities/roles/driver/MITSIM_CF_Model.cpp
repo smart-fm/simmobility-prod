@@ -768,7 +768,7 @@ bool MITSIM_CF_Model::isGapAcceptable(DriverUpdateParams &params, NearestVehicle
 		dt = 0;
 	}
 
-	float gap = nearestVehicle.distance / 100.0;
+	float gap = nearestVehicle.distance;
 
 	// Speed at the predicted position
 	speedOfOtherVehicle += maxAcc * dt;

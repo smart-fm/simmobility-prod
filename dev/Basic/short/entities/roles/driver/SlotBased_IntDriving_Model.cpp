@@ -16,14 +16,6 @@ SlotBased_IntDriving_Model::SlotBased_IntDriving_Model() :
 isRequestSent(false)
 {
 	modelType = Int_Model_SlotBased;
-
-	string modelName = "general_driver_model";
-
-	//Get the parameter manager instance for the AMOD, as these intersections are for AMOD
-	ParameterManager *parameterMgr = ParameterManager::Instance(true);
-
-	//Read the parameter values
-	parameterMgr->param(modelName, "intersection_visibility", intersectionVisbility, 50.0);
 }
 
 SlotBased_IntDriving_Model::~SlotBased_IntDriving_Model()

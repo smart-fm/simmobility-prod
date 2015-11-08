@@ -75,6 +75,11 @@ void Driver::setYieldingToInIntersection(int driverId)
 	yieldingToInIntersection = driverId;
 }
 
+double Driver::getDistCoveredOnCurrWayPt() const
+{
+	return distCoveredOnCurrWayPt_.get();
+}
+
 double Driver::getDistToIntersection() const
 {
 	return distToIntersection_.get();

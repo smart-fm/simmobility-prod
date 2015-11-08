@@ -458,9 +458,7 @@ void sim_mob::BusDriverMovement::frame_tick_output()
 
 	if (ConfigManager::GetInstance().CMakeConfig().OutputEnabled())
 	{
-		double baseAngle =
-				fwdDriverMovement.isInIntersection() ?
-				intModel->getCurrentAngle() : getAngle();
+		double baseAngle = getAngle();
 
 		//MPI-specific output.
 		std::stringstream addLine;

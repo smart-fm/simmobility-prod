@@ -169,6 +169,7 @@ public:
 	int getYieldingToInIntersection() const;
 	void setYieldingToInIntersection(int);
 
+	double getDistCoveredOnCurrWayPt() const;
 	double getDistToIntersection() const;
 
 	const double getFwdVelocity() const;

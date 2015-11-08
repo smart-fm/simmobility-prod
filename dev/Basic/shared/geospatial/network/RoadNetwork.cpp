@@ -406,6 +406,9 @@ void RoadNetwork::addTurningPath(TurningPath* turningPath)
 			turningPath->setFromLane(itFromLanes->second);
 			turningPath->setToLane(itToLanes->second);
 			
+			//Set the turning group
+			turningPath->setTurningGroup(itGroups->second);
+			
 			//Add the turning path to the turning group
 			itGroups->second->addTurningPath(turningPath);
 

@@ -96,6 +96,11 @@ void TurningPath::setToLaneId(unsigned int toLaneId)
 	this->toLaneId = toLaneId;
 }
 
+const std::map<const TurningPath *, TurningConflict *>& TurningPath::getTurningConflicts() const
+{
+	return turningConflicts;
+}
+
 unsigned int TurningPath::getTurningGroupId() const
 {
 	return turningGroupId;
@@ -104,6 +109,16 @@ unsigned int TurningPath::getTurningGroupId() const
 void TurningPath::setTurningGroupId(unsigned int turningGroupId)
 {
 	this->turningGroupId = turningGroupId;
+}
+
+void TurningPath::setTurningGroup(TurningGroup* turningGroup)
+{
+	this->turningGroup = turningGroup;
+}
+
+const TurningGroup* TurningPath::getTurningGroup() const
+{
+	return turningGroup;
 }
 
 double TurningPath::getLength() const

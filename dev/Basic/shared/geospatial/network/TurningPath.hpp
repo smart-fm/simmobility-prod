@@ -5,15 +5,17 @@
 #pragma once
 
 #include <map>
-#include <vector>
 
 #include "PolyLine.hpp"
-#include "TurningConflict.hpp"
 #include "Lane.hpp"
+#include "TurningConflict.hpp"
+#include "TurningGroup.hpp"
 
 namespace sim_mob
 {
+
 class Lane;
+class TurningGroup;
 
 /**
  * A turning path connects one lane of a road segment in a link to another lane of a road segment in the next link.
@@ -53,6 +55,9 @@ private:
 	/**Indicates the id of the turning group to which this turning path belongs*/
 	unsigned int turningGroupId;
 
+	/**The turning group to which this turning path belongs*/
+	TurningGroup *turningGroup;
+
 public:
 	TurningPath();
 	virtual ~TurningPath();
@@ -78,8 +83,13 @@ public:
 	unsigned int getToLaneId() const;
 	void setToLaneId(unsigned int toLaneId);
 
+	const std::map<const TurningPath *, TurningConflict *>& getTurningConflicts() const;
+
 	unsigned int getTurningGroupId() const;
 	void setTurningGroupId(unsigned int turningGroupId);
+
+	void setTurningGroup(TurningGroup *turningGroup);
+	const TurningGroup* getTurningGroup() const;
 
 	/**
 	 * Gets the length of the turning path poly-line. This is equal to the length of the turning path.

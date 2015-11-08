@@ -10,6 +10,8 @@
 namespace sim_mob
 {
 
+class TurningPath;
+
 /**Defines the rules vehicles must observe at all the turnings in the same group*/
 enum TurningGroupRule
 {

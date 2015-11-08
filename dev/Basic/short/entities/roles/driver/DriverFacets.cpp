@@ -1688,45 +1688,6 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 				}
 			}
 		}
-		
-		const Link *currLink = fwdDriverMovement.getCurrLink();
-
-		//Merging in car following
-		if (fwdDriverMovement.getCurrLink()->getToNode() == otherSegment->getParentLink()->getToNode())
-		{
-			unsigned int nextLaneIndex = fwdDriverMovement.getNextLane()->getLaneIndex();
-			unsigned int otherLaneIndex = otherLane->getLaneIndex();
-			
-			if (nextLaneIndex == otherLaneIndex)
-			{
-				//Check the end node type and current link type
-				if (currLink->getToNode()->getNodeType() == MERGE_NODE && currLink->getLinkType() == LINK_TYPE_RAMP)
-				{
-					//Distance between the drivers
-					double distance = fwdDriverMovement.getDistToEndOfCurrLink() - nearbyDriver->distToIntersection_;
-					
-					if (distance >= 0)
-					{
-						setNearestVehicle(params.nvLeadFreeway, distance, nearbyDriver);
-					}
-					else
-					{
-						setNearestVehicle(params.nvLagFreeway, -distance, nearbyDriver);
-					}
-				}
-			}
-		}
-		
-		if (currLink->getToNode() == otherSegment->getParentLink()->getFromNode())
-		{
-			if (currLink->getToNode()->getNodeType() == MERGE_NODE && 
-					(currLink->getLinkType() == LINK_TYPE_RAMP ||  currLink->getLinkType() == LINK_TYPE_EXPRESSWAY))
-			{
-				//Distance between the two drivers
-				double distance = fwdDriverMovement.getDistToEndOfCurrLink() + nearbyDriver->distCoveredOnCurrWayPt_.get();
-				setNearestVehicle(params.nvLeadFreeway, distance, nearbyDriver);
-			}
-		}
 	}
 
 	return true;

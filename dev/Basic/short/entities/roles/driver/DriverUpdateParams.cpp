@@ -169,40 +169,7 @@ void DriverUpdateParams::buildDebugInfo()
 	std::stringstream s;
 	
 	s << "            " << parentId << ":" << accSelect << ":" << acc;
-	s << ":speed:" << currSpeed;
-	s << ":arrTime:" << accessTime;
-
-#if 0
-	//debug car jump;
-	char dl[20] = "\0";
-	sprintf(dl, "dl%3.2f", disAlongPolyline / 100.0);
-	char dox[20] = "\0";
-	sprintf(dox, "dox%3.2f", dorigPosx / 100.0);
-	char doy[20] = "\0";
-	sprintf(doy, "doy%3.2f", dorigPosy / 100.0);
-	char latx[20] = "\0";
-	sprintf(latx, "latx%3.2f", latMv_.getX() / 100.0);
-	char laty[20] = "\0";
-	sprintf(laty, "laty%3.2f", latMv_.getY() / 100.0);
-	char mx[20] = "\0";
-	sprintf(mx, "mx%12f", movementVectx);
-	char my[20] = "\0";
-	sprintf(my, "my%12f", movementVecty);
-	s << "            " << parentId << ":" << latx << ":" << laty << ":" << dl << ":" << dox << ":" << doy << ":" << mx << ":" << my;
-#endif
-
-#if 0
-	//debug car following
-	char newFwdAccChar[20] = "\0";
-	sprintf(newFwdAccChar, "acc%03.1f", acceleration);
-
-	s << "            " << parentId << ":" << newFwdAccChar	<< ":" << accSelect;
-
-	char ds[200] = "\0";
-	sprintf(ds, "ds%3.2f", perceivedDistToTrafficSignal);
-	s << ds;
-
-#endif
+	s << ":speed:" << perceivedFwdVelocity;
 
 #if 0
 	//debug lane changing
@@ -264,7 +231,7 @@ void DriverUpdateParams::buildDebugInfo()
 	 s<<":rfwd"<<rightFwdcarid;*/
 #endif
 
-#if 0
+#if 1
 	int fwdcarid = -1;
 	char fwdnvdis[20] = "\0";
 	if (this->nvFwd.exists())

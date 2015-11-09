@@ -379,6 +379,15 @@ int HM_Model::getNumberOfBidders()
 	return numberOfBidders;
 }
 
+void HM_Model::setDeveloperModel(DeveloperModel *developerModelPointer)
+{
+	developerModel = developerModelPointer;
+}
+
+DeveloperModel* HM_Model::getDeveloperModel() const
+{
+	return developerModel;
+}
 
 Job* HM_Model::getJobById(BigSerial id) const
 {

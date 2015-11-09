@@ -36,6 +36,7 @@
 #include "database/entity/HitsIndividualLogsum.hpp"
 #include "core/HousingMarket.hpp"
 #include "boost/unordered_map.hpp"
+#include "DeveloperModel.hpp"
 
 namespace sim_mob
 {
@@ -232,6 +233,10 @@ namespace sim_mob
 
             HouseholdList* getHouseholdList();
 
+            void setDeveloperModel(DeveloperModel *developerModel);
+            DeveloperModel* getDeveloperModel() const;
+
+
             HousingInterestRateList* getHousingInterestRateList();
 
             double ComputeHedonicPriceLogsumFromMidterm(BigSerial taz);
@@ -381,6 +386,8 @@ namespace sim_mob
             bool hasTaxiAccess;
             int householdLogsumCounter;
             int simulationStopCounter;
+
+            DeveloperModel *developerModel;
         };
     }
 }

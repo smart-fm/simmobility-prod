@@ -164,6 +164,10 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         	 models.push_back(developerModel);
         }
 
+
+		if( enableHousingMarket )
+        	housingMarketModel->setDeveloperModel(developerModel);
+
         //start all models.
         for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)
         {

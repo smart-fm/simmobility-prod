@@ -66,7 +66,7 @@ namespace sim_mob {
              *        to calculate.
              * @param outValues vector that will hold returned expectations.
              */
-            void calulateUnitExpectations(const Unit& unit, int timeOnMarket, double logsum, std::vector<ExpectationEntry>& outValues) const;
+            void calulateUnitExpectations(const Unit& unit, int timeOnMarket, double logsum, double lagCoefficient, std::vector<ExpectationEntry>& outValues) const;
 
             /**
              * Calculates the hedonic price for the given unit.

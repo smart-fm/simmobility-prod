@@ -241,7 +241,6 @@ void HouseholdSellerRole::update(timeslice now)
         	//this only applies to empty units. These units are given a random dayOnMarket value
         	//so that not all empty units flood the market on day 1. There's a timeOnMarket and timeOffMarket
         	//variable that is fed to simmobility through the long term XML file.
-            int day = currentTime.ms();
 
 
             UnitsInfoMap::iterator it = sellingUnitsMap.find(unitId);
@@ -250,7 +249,7 @@ void HouseholdSellerRole::update(timeslice now)
             	continue;
             }
 
-            if( day != unit->getbiddingMarketEntryDay() )
+            if( currentTime.ms() != unit->getbiddingMarketEntryDay() )
             {
             	continue;
             }
@@ -445,8 +444,103 @@ void HouseholdSellerRole::calculateUnitExpectations(const Unit& unit)
 	//double logsum =  model->ComputeHedonicPriceLogsumFromMidterm( taz );
 	double logsum = model->ComputeHedonicPriceLogsumFromDatabase( taz );
 
+	//Current Quarter
+	double currentQuarter = currentTime.ms() / 365.0 * 4.0;
+
+
+	DeveloperModel *devModel = model->getDeveloperModel();
+	const TAO*  currentTao = devModel->getTaoByQuarter(68 + currentQuarter); // 68 is first quarter of 2012
+
+	vector<double> lagCoefficient;
+	double finalCoefficient = 0;
+
+	if( unit.getUnitType() < 3 )
+	{
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getHdb12());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getHdb12());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getHdb12());
+
+		finalCoefficient = (lagCoefficient[0] * 1) + (lagCoefficient[1] * 1) + (lagCoefficient[2] * 0);
+	}
+
+	else if( unit.getUnitType() == 3 )
+	{
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getHdb3());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getHdb3());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getHdb3());
+
+		finalCoefficient = (lagCoefficient[0] * 1) + (lagCoefficient[1] * 1) + (lagCoefficient[2] * 0);
+	}
+	else if( unit.getUnitType() == 4 )
+	{
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getHdb4());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getHdb4());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getHdb4());
+
+		finalCoefficient = (lagCoefficient[0] * 1) + (lagCoefficient[1] * 1) + (lagCoefficient[2] * 0);
+	}
+	else if( unit.getUnitType() == 5 )
+	{
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getHdb5());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getHdb5());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getHdb5());
+
+		finalCoefficient = (lagCoefficient[0] * 1) + (lagCoefficient[1] * 1) + (lagCoefficient[2] * 0);
+	}
+	else if( unit.getUnitType() >= 32 and unit.getUnitType()  < 36 )  //Executive Condominium
+	{
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getEc());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getEc());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getEc());
+
+		finalCoefficient = (lagCoefficient[0] * 1.2096032467) + (lagCoefficient[1] * -0.1792877201) + (lagCoefficient[2] * 0);
+
+	}
+	else if( unit.getUnitType() >= 12 && unit.getUnitType()  <= 16 )   //Condominium
+	{
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getCondo());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getCondo());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getCondo());
+
+		finalCoefficient = (lagCoefficient[0] * 1.4844876679) + (lagCoefficient[1] * -0.6052100987) + (lagCoefficient[2] * 0);
+	}
+	else if(unit.getUnitType() >= 7 && unit.getUnitType()  <= 11 ) //"Apartment"
+	{
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getApartment());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getApartment());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getApartment());
+
+		finalCoefficient = (lagCoefficient[0] * 0.9871695457) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * -0.2613884519);
+	}
+	else if(unit.getUnitType() >= 17 && unit.getUnitType()  <= 21 )  //"Terrace House"
+	{
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getTerrace());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getTerrace());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getTerrace());
+
+		finalCoefficient = (lagCoefficient[0] * 1.3913443465 ) + (lagCoefficient[1] * -0.4404391521 ) + (lagCoefficient[2] * 0);
+
+	}
+	else if( unit.getUnitType() >= 22 && unit.getUnitType()  <= 26 )  //"Semi-Detached House"
+	{
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getSemi());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getSemi());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getSemi());
+
+		finalCoefficient = (lagCoefficient[0] * 1.2548759133) + (lagCoefficient[1] * -0.0393621411 ) + (lagCoefficient[2] * 0);
+
+	}
+	else if( unit.getUnitType() >= 27 && unit.getUnitType()  <= 31 )  //"Detached House"
+	{
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getDetached());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getDetached());
+		lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getDetached());
+
+		finalCoefficient = (lagCoefficient[0] * 1.1383691158) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
+	}
+
     info.numExpectations = (info.interval == 0) ? 0 : ceil((double) info.daysOnMarket / (double) info.interval);
-    luaModel.calulateUnitExpectations(unit, info.numExpectations, logsum, info.expectations );
+    luaModel.calulateUnitExpectations(unit, info.numExpectations, logsum, finalCoefficient, info.expectations );
 
     //number of expectations should match 
     if (info.expectations.size() == info.numExpectations)

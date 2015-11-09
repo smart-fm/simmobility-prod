@@ -230,12 +230,12 @@ void HM_LuaModel::mapClasses()
     mapCommonClasses(state.get());
 }
 
-void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, double logsum, vector<ExpectationEntry>& outValues) const
+void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, double logsum, double lagCoefficient, vector<ExpectationEntry>& outValues ) const
 {
     const BigSerial pcId = unit.getSlaAddressId();
     LuaRef funcRef = getGlobal(state.get(), "calulateUnitExpectations");
 
-	LuaRef retVal = funcRef(&unit, timeOnMarket, logsum, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
+	LuaRef retVal = funcRef(&unit, timeOnMarket, logsum, lagCoefficient, getBuilding(unit.getBuildingId()), getPostcode(pcId), getAmenities(pcId));
 
     if (retVal.isTable())
     {
@@ -254,7 +254,7 @@ void HM_LuaModel::calulateUnitExpectations(const Unit& unit, int timeOnMarket, d
     	const PostcodeAmenities* amen = getAmenities(pcId);
     	std::string buildingName = amen == NULL? "<empty>": amen->getBuildingName();
 
-    	//PrintOutV("[ERROR] Unit Expectations is empty for unit " << unit.getId() << " from building ID: "  << build->getFmBuildingId() << " at addressId: " << postcode->getAddressId() << " with building name: " << buildingName << std::endl );
+    	PrintOutV("[ERROR] Unit Expectations is empty for unit " << unit.getId() << " from building ID: "  << build->getFmBuildingId() << " at addressId: " << postcode->getAddressId() << " with building name: " << buildingName << std::endl );
 
     }
 }

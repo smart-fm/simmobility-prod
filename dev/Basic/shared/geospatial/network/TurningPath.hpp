@@ -47,10 +47,14 @@ private:
 	/**Indicates the id of the lane at which the turning path ends*/
 	unsigned int toLaneId;
 
-	/**The turning conflicts that lie on the turning.
+	/**
+	 * The turning conflicts that lie on the turning.
 	 * The key for this map is the other turning path
 	 */
 	std::map<const TurningPath *, TurningConflict *> turningConflicts;
+
+	/**The turning conflicts that lie on the turning in a sorted order (nearest conflict first)*/
+	std::vector<TurningConflict *> conflicts;
 
 	/**Indicates the id of the turning group to which this turning path belongs*/
 	unsigned int turningGroupId;
@@ -84,6 +88,7 @@ public:
 	void setToLaneId(unsigned int toLaneId);
 
 	const std::map<const TurningPath *, TurningConflict *>& getTurningConflicts() const;
+	const std::vector<TurningConflict *>& getConflictsOnPath() const;
 
 	unsigned int getTurningGroupId() const;
 	void setTurningGroupId(unsigned int turningGroupId);
@@ -93,6 +98,7 @@ public:
 
 	/**
 	 * Gets the length of the turning path poly-line. This is equal to the length of the turning path.
+	 *
 	 * @return length of the turning path
 	 */
 	double getLength() const;
@@ -100,12 +106,14 @@ public:
 	/**
 	 * Gets the width of the turning path. This is equal to the average of the widths of the from and 
 	 * to lanes
-     * @return width of the turning path
+     *
+	 * @return width of the turning path
      */
     double getWidth() const;
 
 	/**
 	 * Adds the turning conflict to the map of conflicts
+	 *
 	 * @param other - the conflicting turning path
 	 * @param conflict - the turning conflict to be added
 	 */

@@ -33,6 +33,7 @@
 #include "util/Utils.hpp"
 #include "workers/WorkGroup.hpp"
 #include "path/PT_PathSetManager.hpp"
+#include "entities/IntersectionManager.hpp"
 
 using namespace sim_mob;
 
@@ -205,7 +206,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 		{
 			if (itIntModel->second == "slot-based")
 			{
-				sim_mob::aimsun::Loader::CreateIntersectionManagers(*(RoadNetwork::getInstance()));
+				IntersectionManager::CreateIntersectionManagers(cfg.mutexStategy());
 			}
 		}
 	}

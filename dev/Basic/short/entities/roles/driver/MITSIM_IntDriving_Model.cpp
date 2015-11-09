@@ -316,13 +316,17 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 		//Print() << "\tDistOnTurn:" << params.driver->getDistCoveredOnCurrWayPt();
 
 		//Calculate the distance to conflict point from current position
-		distToConflict = cfltDistFrmTurning - (params.driver->getDistCoveredOnCurrWayPt());
 
 		//If the vehicle is approaching the intersection rather than already in it, add the distance to the end
 		//of the segment to the distance to conflict
 		if (params.isApproachingIntersection)
 		{
-			distToConflict += params.driver->getDistToIntersection();
+			distToConflict = cfltDistFrmTurning + params.driver->getDistToIntersection();
+		}
+		else
+		{
+			//Vehicle is in the intersection, so subtract the distance covered on the turning
+			distToConflict = cfltDistFrmTurning - params.driver->getDistCoveredOnCurrWayPt();
 		}
 
 		//Print() << "\tDistToConflict:" << distToConflict;

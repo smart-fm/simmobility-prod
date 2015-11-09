@@ -35,12 +35,12 @@ sim_mob::TT::TI sim_mob::TravelTimeManager::getTimeInterval(const unsigned long 
 	return time / interval ;/*milliseconds*/
 }
 
-double sim_mob::TravelTimeManager::getInSimulationSegTT(const std::string mode, const sim_mob::RoadSegment *rs) const
+double sim_mob::TravelTimeManager::getInSimulationLinkTT(const std::string mode, const sim_mob::Link *lnk) const
 {
-	return enRouteTT->getInSimulationSegTT(mode,rs);
+	return enRouteTT->getInSimulationLinkTT(mode,lnk);
 }
 
-double sim_mob::TravelTimeManager::EnRouteTT::getInSimulationSegTT(const std::string mode, const sim_mob::RoadSegment *rs) const
+double sim_mob::TravelTimeManager::EnRouteTT::getInSimulationLinkTT(const std::string mode, const sim_mob::Link *lnk) const
 {
 	boost::shared_lock<boost::shared_mutex> lock(parent.ttMapMutex);
 	//[time interval][travel mode][road segment][average travel time]
@@ -58,7 +58,7 @@ double sim_mob::TravelTimeManager::EnRouteTT::getInSimulationSegTT(const std::st
 		itMode = itTI->second.find(mode);
 		if(itMode != itTI->second.end())
 		{
-			itSeg = itMode->second.find(rs);
+			itSeg = itMode->second.find(lnk);
 			if(itSeg != itMode->second.end())
 			{
 				return itSeg->second.totalTravelTime / itSeg->second.travelTimeCnt;

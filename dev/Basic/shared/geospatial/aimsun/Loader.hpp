@@ -40,15 +40,6 @@ class TurningConflict;
 class TurningPolyline;
 class Polypoint;
 
-
-enum HasPath
-{
-	PSM_HASPATH,//found and valid
-	PSM_NOGOODPATH,//previous attempt to build pathset failed
-	PSM_NOTFOUND,//search didn't find anything
-	PSM_UNKNOWN,
-};
-
 namespace aimsun
 {
 
@@ -77,28 +68,14 @@ public:
 	//  (e.g., Node ID reference that doesn't exist).
 	static void LoadNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs);
 	static void loadSegNodeType(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn);
-	static bool LoadPathSetDataWithId(const std::string& connectionStr,
-			std::map<std::string,sim_mob::SinglePath*>& pathPool,
-			std::map<std::string,SinglePath*> &waypoint_singlepathPool,
-			std::map<std::string,boost::shared_ptr<sim_mob::PathSet> > & pathSetPool,std::string& pathset_id);
-	static sim_mob::HasPath loadSinglePathFromDB(soci::session& sql,std::string& pathset_id,
-			std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string functionName,
-//			std::stringstream *outDbg=0,
-			const std::set<const sim_mob::RoadSegment *> & excludedRS = std::set<const sim_mob::RoadSegment *>());
 	static void LoadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet);
 	static void LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet);
-	static void LoadERPData(const std::string& connectionStr,
-			std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> > &erp_surcharge_pool,
-			std::map<std::string,sim_mob::ERP_Gantry_Zone*>& erp_gantry_zone_pool,
-			std::map<int,sim_mob::ERP_Section*>& erp_section_pool);
 	static bool createTable(soci::session& sql,std::string& table_name);
-	static bool insertData2TravelTimeTmpTable(const std::string& connectionStr,	std::string& table_name, sim_mob::SegmentTravelTime& data);
+	static bool insertData2TravelTimeTmpTable(const std::string& connectionStr,	std::string& table_name, sim_mob::LinkTravelTime& data);
 	static bool upsertTravelTime(soci::session& sql,const std::string& csvFileName, const std::string& tableName, double alpha);
 	static bool insertCSV2Table(soci::session& sql, std::string& table_name,const std::string& csvFileName);
 	static bool truncateTable(soci::session& sql, std::string& table_name);
 	static bool excuString(soci::session& sql,std::string& str);
-	static void LoadDefaultTravelTimeData(soci::session& sql, boost::unordered_map<unsigned long, sim_mob::SegmentTravelTimeVector*>& pool);
-	static bool LoadRealTimeTravelTimeData(soci::session& sql,int interval, sim_mob::AverageTravelTime& pool);
 	static bool storeSinglePath(soci::session& sql,
 					std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& pathPool,const std::string pathSetTableName);
 	///For partial network loading.

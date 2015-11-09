@@ -110,7 +110,7 @@ void sim_mob::SinglePath::init(std::vector<sim_mob::WayPoint>& wpPath)
 		const sim_mob::Link* currLink = nullptr;
 		for(std::vector<sim_mob::WayPoint>::iterator it = path.begin(); it != path.end(); it++)
 		{
-			const sim_mob::Link* link = it->roadSegment->getParentLink();
+			const sim_mob::Link* link = it->link;
 			if(currLink != link)
 			{
 				linkPath.push_back(link);

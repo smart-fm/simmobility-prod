@@ -20,11 +20,14 @@
             <mapping name="pt_vertices" procedure="get_pt_vertices()"/>
             <mapping name="mrt_road_segments" procedure="get_mrt_road_segments()"/>
             <mapping name="pt_pathset" procedure="get_pt_pathset"/>
+            <mapping name="screen_line" procedure="get_screen_line_segments()"/>
+            <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
+            <mapping name="erp_section" procedure="get_erp_section()"/>
+            <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
             <mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
             <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
             <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>
-            <mapping name="screen_line" procedure="get_screen_line_segments()"/>
         </proc_map>
     </db_proc_groups>
     

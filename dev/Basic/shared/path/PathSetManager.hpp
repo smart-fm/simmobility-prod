@@ -31,6 +31,14 @@ class Node;
 class TripChainItem;
 class WayPoint;
 
+enum HasPath
+{
+	PSM_HASPATH,//found and valid
+	PSM_NOGOODPATH,//previous attempt to build pathset failed
+	PSM_NOTFOUND,//search didn't find anything
+	PSM_UNKNOWN
+};
+
 /**
  * from_section, to_section pair
  * \author Vahid
@@ -143,7 +151,7 @@ public:
 	 * @param path waypoint path
 	 * @param blkLst black list to check against
 	 */
-	bool pathInBlackList(const std::vector<WayPoint> path, const std::set<const sim_mob::RoadSegment*> & blkLst) const;
+	bool pathInBlackList(const std::vector<WayPoint> path, const std::set<const Link*> & blkLst) const;
 
 	/**
 	 * calculate those part of the utility function that are always fixed(like path length)
@@ -162,9 +170,9 @@ public:
 
 	/**
 	 * basically delete all the dynamically allocated memories, in addition to some more cleanups
-	 * @param ps pathset
+	 * @param ps pathset to clear
 	 */
-	void clearSinglePaths(boost::shared_ptr<sim_mob::PathSet> &ps);
+	void clearPathSet(boost::shared_ptr<sim_mob::PathSet> &ps);
 
 	/**
 	 * initializes intervalMS
@@ -229,8 +237,8 @@ private:
 	 * @param excludedSegs set of black listed segments that must not be a part of generated path
 	 * @returns shortest distance driving path
 	 */
-	sim_mob::SinglePath* findShortestDrivingPath(const sim_mob::Node* fromNode, const sim_mob::Node* toNode, std::set<std::string> duplicateChecker,
-			const std::set<const sim_mob::Link*>& excludedSegs=std::set<const sim_mob::Link*>());
+	sim_mob::SinglePath* findShortestDrivingPath(const sim_mob::Node* fromNode, const sim_mob::Node* toNode,
+			const std::set<const sim_mob::Link*>& excludedLinks=std::set<const sim_mob::Link*>());
 
 	/**
 	 * generate a path based on shortest travel time
@@ -242,7 +250,7 @@ private:
 	 * @returns shortest travel time path for the specified time period
 	 */
 	sim_mob::SinglePath* generateShortestTravelTimePath(const sim_mob::Node* fromNode, const sim_mob::Node* toNode,
-			sim_mob::TimeRange tr=sim_mob::MorningPeak, const sim_mob::Link* excludedSegs=NULL, int random_graph_idx=0);
+			sim_mob::TimeRange tr=sim_mob::MorningPeak, std::set<const Link *> excludedLinks = std::set<const Link *>(), int random_graph_idx=0);
 
 	 /**
 	  * generate K-shortest path
@@ -417,6 +425,23 @@ private:
 			const std::set<const sim_mob::RoadSegment *> & partialExclusion,
 			const std::set<const sim_mob::RoadSegment*> &blckLstSegs, bool enRoute);
 
+	/**
+	 * loads set of paths pre-generated for an OD
+	 *
+	 * @param sql soci session to use for querying DB
+	 * @param pathsetId <origin_node>,<destination_node> in string format
+	 * @param spPool output set of SinglePaths
+	 * @param functionName name of DB stored procedure to fetch pathset for an OD
+	 * @param excludedLnks set of black listed links (if any)
+	 *
+	 * @return status of pathset retrieval as an enumerated value from sim_mob::HasPath
+	 */
+	sim_mob::HasPath loadPathsetFromDB(soci::session& sql,
+			std::string& pathsetId,
+			std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,
+			const std::string functionName,
+			const std::set<const sim_mob::Link*>& excludedRS = std::set<const sim_mob::Link*>()) const;
+
 public:
 	PrivateTrafficRouteChoice();
 	virtual ~PrivateTrafficRouteChoice();
@@ -430,7 +455,7 @@ public:
 	void setRegionRestrictonEnabled(bool regionRestrictonEnabled);
 
 	/**
-	 * gets the average travel time of a segment experienced during the current simulation.
+	 * gets the average travel time for link experienced during the current simulation.
 	 * Whether the desired travel time is coming from the last time interval
 	 * or from the average of all previous time intervals is implementation dependent.
 	 * @param rs input road segment
@@ -438,7 +463,7 @@ public:
 	 * @param startTime indicates when the segment is to be traversed.
 	 * @return travel time in seconds
 	 */
-	double getInSimulationSegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime) const;
+	double getInSimulationLinkTT(const sim_mob::Link* lnk, const std::string &travelMode, const sim_mob::DailyTime &startTime) const;
 
 	/**
 	 * insert roadsegment into incident list
@@ -466,7 +491,7 @@ public:
 	 */
 	 bool getBestPath(std::vector<sim_mob::WayPoint>& res,
 			 const sim_mob::SubTrip& st,bool useCache,
-			 const std::set<const sim_mob::RoadSegment*> tempBlckLstSegs/*=std::set<const sim_mob::RoadSegment*>()*/,
+			 const std::set<const sim_mob::Link*> tempBlckLstSegs/*=std::set<const sim_mob::RoadSegment*>()*/,
 			 bool usePartialExclusion ,
 			 bool useBlackList ,
 			 bool enRoute ,const sim_mob::RoadSegment* approach);

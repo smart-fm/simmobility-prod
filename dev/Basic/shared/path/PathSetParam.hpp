@@ -1,10 +1,10 @@
 #pragma once
 
 #include <boost/unordered_map.hpp>
+#include <soci/soci.h>
+#include <soci/postgresql/soci-postgresql.h>
 #include "Common.hpp"
 #include "Path.hpp"
-#include "soci/soci.h"
-#include "soci/postgresql/soci-postgresql.h"
 
 namespace sim_mob
 {
@@ -21,9 +21,10 @@ public:
 class ERP_Section
 {
 public:
-	ERP_Section(): section_id(-1), ERP_Gantry_No(-1) {}
+	ERP_Section(): sectionId(-1), ERP_Gantry_No(-1), linkId(-1) {}
 	ERP_Section(ERP_Section &src);
-	int section_id;
+	int sectionId;
+	int linkId;
 	int ERP_Gantry_No;
 	std::string ERP_Gantry_No_str;
 };
@@ -46,32 +47,25 @@ public:
 	std::string day;
 };
 
-class SegmentTravelTime
+class LinkTravelTime
 {
 public:
-	SegmentTravelTime();
-	SegmentTravelTime(const SegmentTravelTime& src);
-	/**
-	 * Common Information
-	 */
+	LinkTravelTime();
+	LinkTravelTime(const LinkTravelTime& src);
+	/** link id */
 	unsigned long linkId;
-	///	travel time in seconds
+	/**	travel time in seconds */
 	double travelTime;
+	/** mode of travel for this trvel time */
 	std::string travelMode;
-	int interval;
-	/**
-	 * Filled during data Retrieval From DB and information usage
-	 */
-	std::string startTime;
-	std::string endTime;
-	sim_mob::DailyTime startTime_DT;
-	sim_mob::DailyTime endTime_DT;
+	sim_mob::DailyTime startTimeDT;
+	sim_mob::DailyTime endTimeDT;
 };
 
-struct SegmentTravelTimeVector
+struct LinkTravelTimeVector
 {
 public:
-	std::vector<sim_mob::SegmentTravelTime> vecSegTT;
+	std::vector<sim_mob::LinkTravelTime> vecSegTT;
 };
 
 /**
@@ -131,45 +125,45 @@ public:
 	 * @param endTime end of the time range
 	 * @return travel time in seconds
 	 */
-	double getSegRangeTT(const sim_mob::RoadSegment* rs, const std::string travelMode, const sim_mob::DailyTime& startTime, const sim_mob::DailyTime& endTime) const;
+	double getLinkRangeTT(const sim_mob::Link* lnk, const std::string travelMode, const sim_mob::DailyTime& startTime, const sim_mob::DailyTime& endTime) const;
 
 	/**
 	 * gets the average 'default' travel time of a segment.
 	 * it doesn't consider time of day.
-	 * @param rs the input road segment
+	 * @param lnk input Link
 	 * @return travel time in seconds
 	 */
-	double getDefSegTT(const sim_mob::RoadSegment* rs) const;
+	double getDefaultLinkTT(const sim_mob::Link* lnk) const;
 
 	/**
 	 * gets the 'default' travel time of a segment based on the given time of day.
 	 * @param rs the input road segment
 	 * @return travel time in seconds
 	 */
-	double getDefSegTT(const sim_mob::RoadSegment* rs, const sim_mob::DailyTime &startTime) const;
+	double getDefaultLinkTT(const sim_mob::Link* lnk, const sim_mob::DailyTime &startTime) const;
 
 	/**
-	 * get historical average travel time of a segment in a specific time of day
+	 * get historical average travel time of a link in a specific time of day
 	 * from previous simulations.
-	 * @param rs input road segment
+	 * @param lnk input Link
 	 * @param travelMode intended mode of traversing the segment
 	 * @param startTime start of the time range
 	 * @return travel time in seconds
 	 */
-	double getHistorySegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime) const;
+	double getHistoricalLinkTT(const sim_mob::Link* lnk, const std::string &travelMode, const sim_mob::DailyTime &startTime) const;
 
 	/**
-	 * base method to get travel time of a segment in a specific time of
+	 * base method to get travel time of a link in a specific time of
 	 * day from different sources. This method searches for segment travel
 	 * time in different sources arranged in the specified order:
 	 * in-simulation, previous simulations, default.
 	 * the method will returns the first value found.
-	 * @param rs input road segment
+	 * @param lnk input Link
 	 * @param travelMode intended mode of traversing the segment
 	 * @param startTime start of the time range
 	 * @return travel time in seconds
 	 */
-	double getSegTT(const sim_mob::RoadSegment* rs, const std::string &travelMode, const sim_mob::DailyTime &startTime) const;
+	double getLinkTT(const sim_mob::Link* lnk, const std::string &travelMode, const sim_mob::DailyTime &startTime) const;
 
 //	///	return cached node given its id
 //	sim_mob::Node* getCachedNode(std::string id);
@@ -204,11 +198,11 @@ public:
 	///	ERP Zone information <gantryNo, ERP_Gantry_Zone>
 	std::map<std::string,sim_mob::ERP_Gantry_Zone*> ERP_Gantry_ZonePool;
 
-	///	ERP section <aim-sun id , ERP_Section>
+	///	ERP section <link id , ERP_Section>
 	std::map<int,sim_mob::ERP_Section*> ERP_SectionPool;
 
 	///	information of "Segment" default travel time <segment aim-sun id ,segment_default_travel_time with diff time stamp>
-	boost::unordered_map<unsigned long, sim_mob::SegmentTravelTimeVector*> segDefTT;
+	std::map<unsigned long, sim_mob::LinkTravelTimeVector*> segDefTT;
 
 	///	a structure to keep history of average travel time records from previous simulations
 	///	[time interval][travel mode][road segment][average travel time]

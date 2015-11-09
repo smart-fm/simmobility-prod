@@ -19,6 +19,7 @@ public:
 	RdSegTravelTimes(double rdSegTravelTime, unsigned int agentCount)
 	: travelTimeSum(rdSegTravelTime), agCnt(agentCount) {}
 };
+
 namespace TT
 {
 	struct TimeAndCount
@@ -53,10 +54,10 @@ namespace TT
 	 *******************************************************************************/
 
 	///	part of the structure used for retrieving the stored travel time (average) from database
-	typedef std::map<std::string , std::map<const sim_mob::RoadSegment*,double > >  MST;//MST:M:mode, S:segment, T:time-average
+	typedef std::map<std::string , std::map<const sim_mob::Link *, double > >  MLT;//MLT:M:mode, L:link, T:time-average
 
 	///	map[time interval][travel mode][road segment][average travel time]
-	typedef std::map<TI,MST> TravelTimeStore;
+	typedef std::map<TI,MLT> TravelTimeStore;
 }
 
 ///	typedef of TT namespace structures
@@ -69,8 +70,8 @@ typedef sim_mob::TT::TravelTimeCollector TravelTime;
 
 /**
  * Container used to retrieve Previous travel time data stored in external source(database)
- * [time interval][travel mode][road segment][average travel time]
- * <-----TI-----> <-------------------MST------------------------>
+ * [time interval][travel mode][link][average travel time]
+ * <-----TI-----> <-------------------MLT------------------------>
  */
 typedef sim_mob::TT::TravelTimeStore AverageTravelTime;
 }

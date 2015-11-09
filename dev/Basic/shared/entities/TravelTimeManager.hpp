@@ -152,7 +152,7 @@ public:
 	 * @param rs target road segment
 	 * @return the travel time
 	 */
-	double getInSimulationSegTT(const std::string mode,const  sim_mob::RoadSegment *rs) const;
+	double getInSimulationLinkTT(const std::string mode, const sim_mob::Link *lnk) const;
 
 	/**
 	 * a helper class that maintains the latest processed travel time information.
@@ -171,7 +171,7 @@ public:
 		 * @param mode	travel mode
 		 * @param rs	the roadsegment for which TT is retrieved
 		 */
-		double getInSimulationSegTT(const std::string mode, const sim_mob::RoadSegment* rs) const;
+		double getInSimulationLinkTT(const std::string mode, const sim_mob::Link* lnk) const;
 	};
 
 	/**

@@ -42,6 +42,9 @@
 			<mapping name="lanes" procedure="get_singapore_lanes()"/>
 			<mapping name="lane_polylines" procedure="get_singapore_lane_polylines()"/>
 			<mapping name="lane_connectors" procedure="get_singapore_lane_connectors()"/>
+			<mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
+            <mapping name="erp_section" procedure="get_erp_section()"/>
+            <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
 		</proc_map>
 
 		<proc_map id="extended_cbd_updated" format="aimsun"> 

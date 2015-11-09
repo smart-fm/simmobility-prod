@@ -259,13 +259,13 @@ double MITSIM_IntDriving_Model::makeAcceleratingDecision(DriverUpdateParams &par
 	}
 
 	//The turning conflicts for the current turning
-	const map<const TurningPath *, TurningConflict *> &conflicts = currTurning->getTurningConflicts();
+	const vector<TurningConflict *> &conflicts = currTurning->getConflictsOnPath();
 
-	//Select the nearest conflict ahead of us (the map is sorted according to the distance from the start of the turning,
+	//Select the nearest conflict ahead of us (the vector is sorted according to the distance from the start of the turning,
 	//we may have crossed some)
-	for (map<const TurningPath *, TurningConflict *>::const_iterator itConflicts = conflicts.begin(); itConflicts != conflicts.end(); ++itConflicts)
+	for (vector<TurningConflict *>::const_iterator itConflicts = conflicts.begin(); itConflicts != conflicts.end(); ++itConflicts)
 	{
-		const TurningConflict *conflict = itConflicts->second;
+		const TurningConflict *conflict = *itConflicts;
 		bool isGapRejected = false;
 		//Print() << "\nConflict:" << (*itConflicts)->getDbId();
 

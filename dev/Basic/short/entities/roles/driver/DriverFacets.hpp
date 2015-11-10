@@ -350,7 +350,8 @@ public:
 	void setParentBufferedData();
 
 	/**
-	 * Builds a path consisting of road segments using the given way-points, starting road segment and starting lane
+	 * Builds a path of way-points consisting of road segments and turning groups using the given way-points, 
+	 * starting road segment and starting lane
 	 *
      * @param wayPoints The list of way points along the path
      * @param startLaneIndex The index of the lane where the driver starts

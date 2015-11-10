@@ -278,7 +278,7 @@ void DriverPathMover::setPath(const std::vector<WayPoint> &path, int startLaneIn
 	
 	if(!path.empty())
 	{
-		//Copy the road-segments from the given path
+		//Copy the way-points from the given path
 		drivingPath = path;
 		
 		//Check if the start segment is given, if not start at the first segment

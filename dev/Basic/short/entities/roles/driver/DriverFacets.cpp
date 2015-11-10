@@ -815,18 +815,12 @@ void DriverMovement::buildPath(std::vector<WayPoint> &wayPoints, int startLaneIn
 	//The path containing the links and turning groups
 	vector<WayPoint> path;
 	
-	double length = 0;
-	Print() << "Path:: ";
-	
 	//Add the road segments and turning groups that lie along the links in the path
 	for (vector<WayPoint>::iterator itWayPts = pathOfLinks.begin(); itWayPts != pathOfLinks.end(); ++itWayPts)
 	{
 		//The segments in the link
 		const vector<RoadSegment *> &segments = itWayPts->link->getRoadSegments();
 
-		length += itWayPts->link->getLength();
-		Print() << "\nS:";
-		
 		//Create a way point for every segment and insert it into the path
 		for (vector<RoadSegment *>::const_iterator itSegments = segments.begin(); itSegments != segments.end(); ++itSegments)
 		{
@@ -846,8 +840,6 @@ void DriverMovement::buildPath(std::vector<WayPoint> &wayPoints, int startLaneIn
 			if (turningGroup)
 			{
 				path.push_back(WayPoint(turningGroup));
-				length += turningGroup->getLength();
-				Print() << "\nT: " << turningGroup->getTurningGroupId();
 			}
 			else
 			{
@@ -858,7 +850,6 @@ void DriverMovement::buildPath(std::vector<WayPoint> &wayPoints, int startLaneIn
 		}				
 	}
 
-	Print() << "\nPath length = " << length << "m\n";
 	fwdDriverMovement.setPath(path, startLaneIndex, startSegmentId);
 }
 
@@ -1235,8 +1226,7 @@ Vehicle* DriverMovement::initializePath(bool createVehicle)
 			path = stdir.SearchShortestDrivingPath(*(parentDriver->origin), *(parentDriver->destination));
 		}
 
-		// Bus should be at least 1200 to be displayed on Visualiser
-		const double length = dynamic_cast<BusDriver *> (this->getParentDriver()) ? 1200 : 400;
+		const double length = 400;
 		const double width = 200;
 
 		if (createVehicle)

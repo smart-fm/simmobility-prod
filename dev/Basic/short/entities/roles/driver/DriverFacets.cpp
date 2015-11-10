@@ -825,7 +825,6 @@ void DriverMovement::buildPath(std::vector<WayPoint> &wayPoints, int startLaneIn
 		for (vector<RoadSegment *>::const_iterator itSegments = segments.begin(); itSegments != segments.end(); ++itSegments)
 		{
 			path.push_back(WayPoint(*itSegments));
-			Print() << " " << (*itSegments)->getRoadSegmentId();
 		}
 
 		if((itWayPts + 1) != pathOfLinks.end())

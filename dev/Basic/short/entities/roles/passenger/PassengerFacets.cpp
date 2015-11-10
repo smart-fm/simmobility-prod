@@ -232,8 +232,8 @@ bool sim_mob::PassengerMovement::PassengerAlightBus(Driver* driver)
 	BusDriver* busdriver = dynamic_cast<BusDriver*>( driver );
 	if(busdriver) {
 		Bus* bus = dynamic_cast<Bus*>(busdriver->getVehicle());
-		int xpos_approachingbusstop=busdriver->get_xPosApproachingBusStop();
-		int ypos_approachingbusstop=busdriver->get_yPosApproachingBusStop();
+		int xpos_approachingbusstop=0;//busdriver->get_xPosApproachingBusStop();
+		int ypos_approachingbusstop=0;//busdriver->get_yPosApproachingBusStop();
 		 if (xpos_approachingbusstop-getDestPosition().getX()==0 && ypos_approachingbusstop-getDestPosition().getY()==0)
 		 {
 			 //alight-delete passenger agent from list

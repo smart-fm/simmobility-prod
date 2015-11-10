@@ -5,16 +5,15 @@
 #pragma once
 
 #include <vector>
+
 #include "Driver.hpp"
+#include "BusDriverFacets.hpp"
 #include "entities/misc/BusTrip.hpp"
 #include "entities/vehicle/BusRoute.hpp"
-#include "BusDriverFacets.hpp"
-
 
 namespace sim_mob
 {
 
-//Forward declarations
 class DriverUpdateParams;
 class PackageUtils;
 class UnPackageUtils;
@@ -24,118 +23,50 @@ class Passenger;
 class BusDriverBehavior;
 class BusDriverMovement;
 
-/**
- * This class maintains a single, non-looping route with a series of stops.
- * Most driving behaviour is re-used from the Driver class.
- * At bus stops, the BusDriver will simply pull over to the left-most lane and stop for a length of time.
- *
- * \author Seth N. Hetu
- */
-class BusDriver : public sim_mob::Driver
+class BusDriver : public Driver
 {
 private:
-	// can get some passenger count, passenger information and busStop information
-	Shared<const BusStop*> lastVisited_BusStop;
-
-	// last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)---> move to BusTrip later
-	Shared<int> lastVisited_BusStopSequenceNum;
-
-	// set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)
-	Shared<double> real_DepartureTime;
-
-	// set by BusDriver, reset once stop at any busStop
-	Shared<double> real_ArrivalTime;
-
-	// current BusStop real Times, convenient for reset
-	Shared<BusStop_RealTimes>* last_busStopRealTimes;
-
-	// set by BusDriver, reset once stop at any busStop
-	Shared<double> DwellTime_ijk;
-
-	// set by BusDriver(temporary), only needed by BusDriver
-	double dwellTimeRecord;
-
-	// set by BusDriver, has 0.1sec delay
-	Shared<int> busstop_sequence_no;
-
-	//get bus line information
-	Shared<std::string> lastVisited_Busline;
-
-	Shared<int> lastVisited_BusTrip_SequenceNo;
-
-	Shared<int> existed_Request_Mode;
-
-	Shared<double> waiting_Time;
-
-	double xpos_approachingbusstop, ypos_approachingbusstop;
-
-	// can be different for different pair<busLine_id,busTripRun_sequenceNum>
-	std::vector<Shared<BusStop_RealTimes>* > busStopRealTimes_vec_bus;
 
 public:
-	BusDriver(sim_mob::Person* parent, sim_mob::MutexStrategy mtxStrat, sim_mob::BusDriverBehavior* behavior = nullptr, sim_mob::BusDriverMovement* movement = nullptr, Role::type roleType_ = RL_BUSDRIVER);
+	BusDriver(Person *parent, MutexStrategy mtxStrat, BusDriverBehavior *behavior = nullptr, BusDriverMovement *movement = nullptr,
+			Role::type roleType_ = RL_BUSDRIVER);
 
-	//Overrides
-	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
-	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-	virtual sim_mob::DriverRequestParams getDriverRequestParams();
+	/**
+	 * Creates and initialises the movement and behaviour objects required for the BusDriver role,
+	 * assigns them to a new driver and returns a pointer to the driver.
+     *
+	 * @param parent the person who will be taking up the requested role
+     *
+	 * @return the created role
+     */
+	virtual Role* clone(Person *parent) const;
+
+	/**
+	 * Creates a vector of the subscription parameters and returns it
+	 *
+     * @return vector of the subscription parameters
+     */
+	virtual std::vector<BufferedBase *> getSubscriptionParams();
+
+	/**
+	 * Creates the Driver request parameters
+	 * 
+	 * @return the driver request parameters
+	 */
+	virtual DriverRequestParams getDriverRequestParams();
 
 	double getPositionX() const;
 	double getPositionY() const;
-
-	// get the last bus stop real times
-
-	Shared<BusStop_RealTimes>* getLastBusStopRealTimes()
-	{
-		return last_busStopRealTimes;
-	}
-
-	// get the bus stop real times vector
-
-	std::vector<Shared<BusStop_RealTimes>* >& getBusStopRealTimes()
-	{
-		return busStopRealTimes_vec_bus;
-	}
-
-	/**
-	 * set BusStop RealTimes for a particular bus stop.
-	 * @param busStopSeqNum the sequence number of the bus stop to be set.
-	 * @param busStopRealTimes the busStopRealTimes that will be set later and will be valid at the next time tick.
-	 */
-	void setBusStopRealTimes(const int& busStopSeqNum, const BusStop_RealTimes& busStopRealTimes);
-
-	double get_xPosApproachingBusStop()
-	{
-		return xpos_approachingbusstop;
-	}
-
-	double get_yPosApproachingBusStop()
-	{
-		return ypos_approachingbusstop;
-	}
 
 	friend class BusDriverBehavior;
 	friend class BusDriverMovement;
 
 #ifndef SIMMOB_DISABLE_MPI
-
-	virtual void pack(PackageUtils& packageUtil)
-	{
-	};
-
-	virtual void unpack(UnPackageUtils& unpackageUtil)
-	{
-	};
-
-	virtual void packProxy(PackageUtils& packageUtil)
-	{
-	};
-
-	virtual void unpackProxy(UnPackageUtils& unpackageUtil)
-	{
-	};
-	
+	virtual void pack(PackageUtils& packageUtil);
+	virtual void unpack(UnPackageUtils& unpackageUtil);
+	virtual void packProxy(PackageUtils& packageUtil);
+	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
 #endif
 
-} ;
+};
 }

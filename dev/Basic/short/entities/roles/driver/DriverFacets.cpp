@@ -1144,9 +1144,8 @@ void DriverMovement::identifyAdjacentLanes(DriverUpdateParams &params)
 	params.rightLane2 = NULL;
 
 	params.currLane = fwdDriverMovement.getCurrLane();
-
-	//No adjacent lanes to update if the current lane is not known
-	if (!params.currLane)
+	
+	if (fwdDriverMovement.isInIntersection())
 	{
 		return;
 	}
@@ -1198,6 +1197,9 @@ void DriverMovement::identifyAdjacentLanes(DriverUpdateParams &params)
 			params.rightLane2 = temp;
 		}
 	}
+	
+	//Update max lane speed
+	params.maxLaneSpeed = fwdDriverMovement.getCurrSegment()->getMaxSpeed();
 }
 
 Vehicle* DriverMovement::initializePath(bool createVehicle)
@@ -1869,10 +1871,7 @@ void DriverMovement::syncLaneInfoPostLateralMove(DriverUpdateParams &params)
 	fwdDriverMovement.updateLateralMovement(params.currLane);
 
 	//Update which lanes are adjacent.
-	identifyAdjacentLanes(params);
-
-	//update max lane speed
-	params.maxLaneSpeed = fwdDriverMovement.getCurrSegment()->getMaxSpeed();
+	identifyAdjacentLanes(params);	
 }
 
 void DriverMovement::setTrafficSignal()

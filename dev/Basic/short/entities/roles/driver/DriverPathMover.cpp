@@ -528,8 +528,6 @@ void DriverPathMover::updateLateralMovement(const Lane* lane)
 			currPolyPoint += pointsCovered;
 			nextPolyPoint += pointsCovered;
 		}
-		
-		advance(0);
 	}
 	else
 	{

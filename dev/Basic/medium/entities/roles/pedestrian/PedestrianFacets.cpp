@@ -26,18 +26,20 @@ namespace
 	 * @param node the node of interest
 	 * @returns random upstream segment
 	 */
-	const sim_mob::RoadSegment* getRandomUpstreamSegAtNode(const sim_mob::Node* node)
+const sim_mob::RoadSegment* getRandomUpstreamSegAtNode(const sim_mob::Node* node)
+{
+	const sim_mob::MultiNode* multiNd = dynamic_cast<const sim_mob::MultiNode*>(node);
+	if (!multiNd)
 	{
-		const sim_mob::MultiNode* multiNd = dynamic_cast<const sim_mob::MultiNode*>(node);
-		if(!multiNd)
+		const sim_mob::UniNode* uniNd = dynamic_cast<const sim_mob::UniNode*>(node);
+		if (!uniNd)
 		{
-			const sim_mob::UniNode* uniNd = dynamic_cast<const sim_mob::UniNode*>(node);
-			if(!uniNd)
-			{
-				throw std::runtime_error("not a node");
-			}
+			throw std::runtime_error("not a node");
+		}
+		if (uniNd->secondPair.first)
+		{
 			int random = sim_mob::Utils::generateInt(0, 1);
-			if(random == 0)
+			if (random == 0)
 			{
 				return uniNd->firstPair.first; //first is a from section
 			}
@@ -46,20 +48,28 @@ namespace
 				return uniNd->secondPair.first; //first is a from section
 			}
 		}
-		const std::set<sim_mob::RoadSegment*>& segmentsAtDest = multiNd->getRoadSegments();
-		if(segmentsAtDest.empty()) { throw std::runtime_error("no segments at multinode"); }
-		if(segmentsAtDest.size() == 1)
-		{
-			return *(segmentsAtDest.begin());
-		}
 		else
 		{
-			int random = sim_mob::Utils::generateInt(0, segmentsAtDest.size()-1);
-			std::set<sim_mob::RoadSegment*>::const_iterator segIt = segmentsAtDest.begin();
-			std::advance(segIt, random);
-			return *(segIt);
+			return uniNd->firstPair.first;
 		}
 	}
+	const std::set<sim_mob::RoadSegment*>& segmentsAtDest = multiNd->getRoadSegments();
+	if (segmentsAtDest.empty())
+	{
+		throw std::runtime_error("no segments at multinode");
+	}
+	if (segmentsAtDest.size() == 1)
+	{
+		return *(segmentsAtDest.begin());
+	}
+	else
+	{
+		int random = sim_mob::Utils::generateInt(0, segmentsAtDest.size() - 1);
+		std::set<sim_mob::RoadSegment*>::const_iterator segIt = segmentsAtDest.begin();
+		std::advance(segIt, random);
+		return *(segIt);
+	}
+}
 }
 
 namespace sim_mob

@@ -233,7 +233,7 @@ void DriverUpdateParams::buildDebugInfo()
 
 #if 1
 	int fwdcarid = -1;
-	char fwdnvdis[20] = "\0";
+	char fwdnvdis[30] = "\0";
 	if (this->nvFwd.exists())
 	{
 		Driver* fwd_driver_ = const_cast<Driver*> (nvFwd.driver);
@@ -248,7 +248,7 @@ void DriverUpdateParams::buildDebugInfo()
 	}
 
 	int backcarid = -1;
-	char backnvdis[20] = "\0";
+	char backnvdis[30] = "\0";
 	if (this->nvBack.exists())
 	{
 		Driver* back_driver_ = const_cast<Driver*> (nvBack.driver);

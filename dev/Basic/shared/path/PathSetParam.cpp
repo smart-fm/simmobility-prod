@@ -146,13 +146,14 @@ double sim_mob::PathSetParam::getDefSegTT(const sim_mob::RoadSegment* rs, const 
 	 *	if found, it returns the first occurrence of travel time
 	 *	which includes the given time
 	 */
+	DailyTime timeFromMidMight = startTime.getTimeFromMidNight();
 	boost::unordered_map<unsigned long, sim_mob::SegmentTravelTimeVector*>::const_iterator it = segDefTT.find(rs->getId());
 	if(it == segDefTT.end()) { return 0.0; }
 	const std::vector<sim_mob::SegmentTravelTime>& e = (*it).second->vecSegTT;
 	for(std::vector<sim_mob::SegmentTravelTime>::const_iterator itL(e.begin());itL != e.end();++itL)
 	{
 		const sim_mob::SegmentTravelTime& l = *itL;
-		if( l.startTime_DT.isBeforeEqual(startTime) && l.endTime_DT.isAfter(startTime) )
+		if( l.startTime_DT.isBeforeEqual(timeFromMidMight) && l.endTime_DT.isAfterEqual(timeFromMidMight) )
 		{
 			return l.travelTime;
 		}
@@ -165,7 +166,7 @@ double sim_mob::PathSetParam::getHistorySegTT(const sim_mob::RoadSegment* rs, co
 	std::ostringstream dbg("");
 	//1. check realtime table
 	double res = 0.0;
-	TT::TI timeInterval = TravelTimeManager::getTimeInterval(startTime.getValue(),intervalMS);
+	TT::TI timeInterval = TravelTimeManager::getTimeInterval(startTime.getTimeFromMidNight().getValue(),intervalMS);
 	AverageTravelTime::const_iterator itRange = segHistoryTT.find(timeInterval);
 	if(itRange != segHistoryTT.end())
 	{

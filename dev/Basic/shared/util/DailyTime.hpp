@@ -62,6 +62,7 @@ public:
 	//Accessors
 	inline uint32_t getValue() const { return time_; }
 	std::string getStrRepr() const;
+	DailyTime getTimeFromMidNight() const;
 
 	//operator overloads
 	DailyTime& operator=(const DailyTime& dailytime);

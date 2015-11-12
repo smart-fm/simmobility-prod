@@ -315,7 +315,7 @@ namespace
 			//get travel time to this segment
 			double t = sim_mob::PathSetParam::getInstance()->getSegTT((it1)->roadSegment_,travelMode, tripStartTime);
 			ts += t;
-			tripStartTime = tripStartTime + sim_mob::DailyTime(t*1000);
+			tripStartTime = (tripStartTime + sim_mob::DailyTime(t*1000)).getTimeFromMidNight();
 			if(it!=sim_mob::PathSetParam::getInstance()->ERP_SectionPool.end())
 			{
 				sim_mob::ERP_Section* erp_section = (*it).second;
@@ -327,7 +327,7 @@ namespace
 					for(int i=0;i<erp_surcharges.size();++i)
 					{
 						sim_mob::ERP_Surcharge* s = erp_surcharges[i];
-						if( s->startTime_DT.isBeforeEqual(tripStartTime) && s->endTime_DT.isAfter(tripStartTime) &&
+						if( s->startTime_DT.isBeforeEqual(tripStartTime) && s->endTime_DT.isAfterEqual(tripStartTime) &&
 								s->vehicleTypeId == 1 && s->day == "Weekdays")
 						{
 							res += s->rate;
@@ -1554,7 +1554,9 @@ double sim_mob::PrivateTrafficRouteChoice::getPathTravelTime(sim_mob::SinglePath
 		}
 		if(time == 0.0)
 		{
-			Print() << "No Travel Time [SEGMENT: " << rs->getId() << "] [START TIME : " << startTime.getStrRepr() << "]\n";
+			std::stringstream ss;
+			ss << "No Travel Time [SEGMENT: " << rs->getId() << "] [START TIME : " << startTime.getStrRepr() << "]\n";
+			throw std::runtime_error(ss.str());
 		}
 		timeSum  += time;
 		startTime = startTime + sim_mob::DailyTime(time*1000);

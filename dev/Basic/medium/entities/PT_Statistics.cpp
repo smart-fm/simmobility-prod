@@ -143,7 +143,7 @@ void PT_Statistics::storeStatistics()
 
 std::string PersonWaitingTime::getCSV() const
 {
-	char csvArray[100];
+	char csvArray[200];
 	sprintf(csvArray, "%u,%s,%s,%s,%.2f,%u\n",
 			personId,
 			busStopNo.c_str(),

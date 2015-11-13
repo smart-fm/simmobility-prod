@@ -30,7 +30,10 @@
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
 #include "model/DeveloperModel.hpp"
-
+#include "database/dao/SimulationVersionDao.hpp"
+#include "database/dao/StatusOfWorldDao.hpp"
+#include "database/entity/SimulationVersion.hpp"
+#include "util/HelperFunctions.hpp"
 
 using std::cout;
 using std::endl;
@@ -41,6 +44,7 @@ using std::pair;
 using std::map;
 using namespace sim_mob;
 using namespace sim_mob::long_term;
+using namespace sim_mob::db;
 
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + "." + SIMMOB_VERSION_MINOR;
@@ -99,6 +103,10 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     const bool enableDeveloperModel = config.ltParams.developerModel.enabled;
     const unsigned int timeIntervalDevModel = config.ltParams.developerModel.timeInterval;
 
+    int lastStoppedTick = 0;
+    int simStoppedTick = 0;
+    bool restart = false;
+
     //configure time.
     config.baseGranMS() = tickStep;
     config.totalRuntimeTicks = days;
@@ -116,7 +124,32 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     AgentsLookup& agentsLookup = AgentsLookupSingleton::getInstance();
     //loads all necessary data
     dataManager.load();
-    
+
+
+    std::vector<SimulationVersion*> simulationVersionList;
+    DB_Config dbConfig(LT_DB_CONFIG_FILE);
+    dbConfig.load();
+
+    // Connect to database.
+    DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+    conn.connect();
+    if (conn.isConnected())
+    {
+    	loadData<SimulationVersionDao>(conn,simulationVersionList);
+    }
+    	BigSerial simVersionId = 0;
+
+    	if(simulationVersionList.empty())
+    	{
+    		simVersionId = 1;
+    	}
+    	else
+    	{
+    		simVersionId = simulationVersionList[simulationVersionList.size()-1]->getId() + 1;
+    		lastStoppedTick = simulationVersionList[simulationVersionList.size()-1]->getSimStoppedTick();
+    	}
+
+
     vector<Model*> models;
     {
         WorkGroupManager wgMgr;
@@ -151,6 +184,15 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         logsWorker->assignAWorker(&(agentsLookup.getLogger()));
         eventsWorker->assignAWorker(&(agentsLookup.getEventsInjector()));
 
+        unsigned int currentTick = 0;
+
+        //set the currentTick to the last stopped date if it is a restart run
+        if (lastStoppedTick < days && lastStoppedTick > 0)
+        {
+        	currentTick = lastStoppedTick;
+        	restart = true;
+        }
+
         if( enableHousingMarket )
         	 housingMarketModel = new HM_Model(*hmWorkers);//initializing the housing market model
         	 models.push_back(housingMarketModel);
@@ -161,6 +203,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         	 developerModel = new DeveloperModel(*devWorkers, timeIntervalDevModel);
         	 developerModel->setHousingMarketModel(housingMarketModel);
         	 developerModel->setDays(days);
+        	 developerModel->setIsRestart(restart);
         	 models.push_back(developerModel);
         }
 
@@ -176,8 +219,11 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         PrintOutV("Started all workgroups." << endl);
         PrintOutV("Day of Simulation: " << std::endl);
 
-        for (unsigned int currTick = 0; currTick < days; currTick++)
+
+
+        for (unsigned int currTick = currentTick; currTick < days; currTick++)
         {
+        	simStoppedTick = currTick;
             if( currTick == 0 )
             {
 				PrintOutV(" Lifestyle1: " << (dynamic_cast<HM_Model*>(models[0]))->getLifestyle1HHs() <<
@@ -217,7 +263,6 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
             wgMgr.waitAllGroups();
 
-            developerModel->setCurrentTick(currTick);
             DeveloperModel::ParcelList parcels;
             DeveloperModel::DeveloperList developerAgents;
             developerAgents = developerModel->getDeveloperAgents();
@@ -231,6 +276,23 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
             resLogFiles = wgMgr.retrieveOutFileNames();
         }
         
+        unsigned int year = config.ltParams.year;
+        std::string scenario = config.ltParams.simulationScenario;
+        std::string simScenario = boost::lexical_cast<std::string>(scenario)+"_"+boost::lexical_cast<std::string>(year);
+        time_t rawtime;
+        struct tm * timeinfo;
+        time (&rawtime);
+        timeinfo = localtime (&rawtime);
+        boost::shared_ptr<SimulationVersion>simVersionObj(new SimulationVersion(simVersionId,simScenario,*timeinfo,simStoppedTick));
+        if(conn.isConnected())
+        {
+        	SimulationVersionDao simVersionDao(conn);
+        	simVersionDao.insert(*simVersionObj.get());
+
+        	StatusOfWorldDao statusOfWorldDao(conn);
+        	statusOfWorldDao.insert(*(developerModel->getStatusOfWorldObj(simVersionId)).get());
+        }
+
         //stop all models.
         for (vector<Model*>::iterator it = models.begin(); it != models.end(); it++)
         {
@@ -239,6 +301,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
     }
     
     simulationWatch.stop();
+
     printReport(simulationNumber, models, simulationWatch);
     //delete all models.
     while (!models.empty())

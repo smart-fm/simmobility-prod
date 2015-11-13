@@ -48,6 +48,8 @@ struct LongTermParams{
 	unsigned int days;
 	unsigned int tickStep;
 	unsigned int maxIterations;
+	int year;
+	std::string simulationScenario;
 
 	struct DeveloperModel{
 		DeveloperModel();
@@ -57,7 +59,6 @@ struct LongTermParams{
 		int initialUnitId;
 		int initialBuildingId;
 		int initialProjectId;
-		int year;
 		double minLotSize;
 	} developerModel;
 

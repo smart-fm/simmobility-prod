@@ -15,9 +15,9 @@ using namespace sim_mob;
 using namespace sim_mob::long_term;
 
 Unit::Unit( BigSerial id, BigSerial building_id, BigSerial sla_address_id, int unit_type, int storey_range, int unit_status, double floor_area, int storey,
-			double rent, std::tm sale_from_date, std::tm physical_from_date, int sale_status, int physical_status, std::tm lastChangedDate, int biddingMarketEntryDay, int timeOnMarket, int timeOffMarket)
+			double rent, int ownership, std::tm sale_from_date, std::tm physical_from_date, int sale_status, int physical_status, std::tm lastChangedDate, int biddingMarketEntryDay, int timeOnMarket, int timeOffMarket)
 		   : id(id), building_id(building_id), sla_address_id(sla_address_id), unit_type(unit_type), storey_range(storey_range), unit_status(unit_status),
-		     floor_area(floor_area), storey(storey), rent(rent), sale_from_date(sale_from_date), physical_from_date(physical_from_date), sale_status(sale_status),
+		     floor_area(floor_area), storey(storey), rent(rent), ownership(ownership), sale_from_date(sale_from_date), physical_from_date(physical_from_date), sale_status(sale_status),
 		     physical_status(physical_status), lastChangedDate(lastChangedDate), biddingMarketEntryDay(biddingMarketEntryDay),timeOnMarket(timeOnMarket), timeOffMarket(timeOffMarket){}
 
 
@@ -32,6 +32,7 @@ Unit::Unit(const Unit& source)
     this->floor_area  = source.floor_area;
     this->storey  = source.storey;
     this->rent  = source.rent;
+    this->ownership = source.ownership;
     this->sale_from_date  = source.sale_from_date;
     this->physical_from_date  = source.physical_from_date;
     this->sale_status  = source.sale_status;
@@ -55,6 +56,7 @@ Unit& Unit::operator=(const Unit& source)
     this->floor_area  = source.floor_area;
     this->storey  = source.storey;
     this->rent  = source.rent;
+    this->ownership = source.ownership;
     this->sale_from_date  = source.sale_from_date;
     this->physical_from_date  = source.physical_from_date;
     this->sale_status  = source.sale_status;
@@ -111,6 +113,12 @@ double Unit::getRent() const
 {
     return rent;
 }
+
+int Unit::getOwnership() const
+{
+	return ownership;
+}
+
 std::tm Unit::getSaleFromDate() const
 {
 	return sale_from_date;
@@ -158,6 +166,11 @@ void Unit::setPhysicalStatus(int physicalStatus) {
 
 void Unit::setRent(double rent) {
 	this->rent = rent;
+}
+
+void Unit::setOwnership(int ownership)
+{
+	this->ownership = ownership;
 }
 
 void Unit::setSaleFromDate(const std::tm& saleFromDate) {
@@ -239,6 +252,7 @@ namespace sim_mob
 						<< "\"floor_area \":\"" << data.floor_area << "\","
 						<< "\"storey \":\"" << data.storey << "\","
 						<< "\"rent \":\"" << data.rent << "\","
+						<< "\"ownership \":\"" << data.ownership << "\","
 						<< "\"sale_from_date \":\"" << data.sale_from_date.tm_year << data.sale_from_date.tm_mon << data.sale_from_date.tm_wday << "\","
 						<< "\"physical_from_date \":\"" << data.physical_from_date.tm_year << data.physical_from_date.tm_mon << data.physical_from_date.tm_wday << "\","
 						<< "\"sale_status \":\"" << data.sale_status << "\","

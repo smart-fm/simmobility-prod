@@ -27,38 +27,64 @@ private:
 	/**The configuration parameters*/
 	ConfigParams &cfg;
 
-	/**The ouput stream to which we are writing the file*/
+	/**The output stream to which we are writing the file*/
 	mutable std::ofstream out;
 
 	/**Prints the simulation wide properties and the header*/
 	void PrintSimulationProperties() const;
 
-	/**Prints the nodes*/
+	/**
+	 * Prints the nodes
+	 * @param nodes map of id vs nodes
+	 */
 	void PrintNodes(const std::map<unsigned int, Node *> &nodes) const;
 
-	/**Prints the links*/
+	/**
+	 * Prints the links
+	 * @param links map of id vs links
+	 */
 	void PrintLinks(const std::map<unsigned int, Link *> &links) const;
 
-	/**Prints the segments, their poly-lines and lanes*/
+	/**
+	 * Prints the segments, their poly-lines and lanes
+	 * @param segments map of id vs segments
+	 */
 	void PrintSegments(const std::map<unsigned int, RoadSegment *> &segments) const;
 
-	/**Prints the lane connectors*/
+	/**
+	 * Prints the lane connectors
+	 * @param lanes map of is vs lanes
+	 */
 	void PrintLaneConnectors(const std::map<unsigned int, Lane *> &lanes) const;
 
-	/**Prints the turning groups*/
+	/**
+	 * Prints the turning groups 
+	 * @param turningGroups map of id vs turning-groups
+	 */
 	void PrintTurningGroups(const std::map<unsigned int, TurningGroup *>& turningGroups) const;
 
-	/**Prints the turning paths*/
+	/**
+	 * Prints the turning paths
+	 * @param turnings map of id vs turning-paths
+	 */
 	void PrintTurnings(const std::map<unsigned int, TurningPath *> &turnings) const;
 
-	/**Prints the turning conflicts*/
+	/**
+	 * Prints the turning conflicts 
+	 * @param conflicts map of id vs turning-conflicts
+	 */
 	void PrintConflicts(const std::map<unsigned int, TurningConflict *> &conflicts) const;
 
-	/**Prints the signals*/
+	/**
+	 * Prints the signals
+	 */
 	void PrintSignals() const;
 
-	/**Prints the bus stops*/
-	void PrintBusStops() const;
+	/**
+	 * Prints the bus stops
+	 * @param stops map of id vs bus stops
+	 */
+	void PrintBusStops(const std::map<unsigned int, BusStop *> &stops) const;
 
 	/**
 	 * This method prints the stream to the output file and to the GUI, if Interactive mode is on.
@@ -72,7 +98,8 @@ public:
 protected:
 	/**
 	 * Prints the road network to the output file
-     */
+	 * @param network the road network
+	 */
 	void PrintNetwork(const RoadNetwork *network) const;
 };
 

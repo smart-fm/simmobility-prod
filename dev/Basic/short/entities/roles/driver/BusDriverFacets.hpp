@@ -107,24 +107,6 @@ public:
      */
 	virtual void frame_tick_output();
 
-	/**
-	 * Marks the start time and origin
-	 * 
-	 * @return the updated travel metric structure
-	 */
-	virtual TravelMetric& startTravelTimeMetric()
-	{
-	}
-
-	/**
-	 * Marks the destination and end time and travel time
-     *
-	 * @return the updated travel metric structure
-     */
-	virtual TravelMetric& finalizeTravelTimeMetric()
-	{
-	}
-
 	void setParentBusDriver(BusDriver *parentBusDriver)
 	{
 		if (!parentBusDriver)

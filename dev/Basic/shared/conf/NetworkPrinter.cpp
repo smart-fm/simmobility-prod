@@ -62,7 +62,7 @@ void NetworkPrinter::PrintNetwork(const RoadNetwork *network) const
 	
 	PrintSignals();
 	
-	PrintBusStops();
+	PrintBusStops(network->getMapOfIdvsBusStops());
 
 	//Tell the GUI this is done.
 	if (cfg.InteractiveMode())
@@ -274,8 +274,26 @@ void NetworkPrinter::PrintSignals() const
 {
 }
 
-void NetworkPrinter::PrintBusStops() const
+void NetworkPrinter::PrintBusStops(const std::map<unsigned int, BusStop *> &stops) const
 {
+	std::stringstream out;
+	out << std::setprecision(8);
+	
+	for(std::map<unsigned int, BusStop *>::const_iterator it = stops.begin(); it != stops.end(); ++it)
+	{
+		const BusStop *stop = it->second;
+		out << "\n(\"bus-stop\", 0, " << stop->getRoadItemId() << ", {";
+		out << "\"code\":\"" << stop->getStopCode() << "\",";
+		out << "\"name\":\"" << stop->getStopName() << "\",";
+		out << "\"length\":\"" << stop->getLength() << "\",";
+		out << "\"segment\":\"" << stop->getRoadSegmentId() << "\",";
+		out << "\"location\":\"[";
+		out << "(" << stop->getStopLocation().getX() << "," << stop->getStopLocation().getY() << "),";
+		out << "]\",";		
+		out << "})";
+	}
+	
+	PrintToFileAndGui(out);
 }
 
 void NetworkPrinter::PrintToFileAndGui(const std::stringstream& str) const

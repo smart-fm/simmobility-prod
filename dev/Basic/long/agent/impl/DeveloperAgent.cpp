@@ -21,7 +21,10 @@
 #include "message/LT_Message.hpp"
 #include "core/DataManager.hpp"
 #include "core/AgentsLookup.hpp"
-
+#include "database/dao/BuildingDao.hpp"
+#include "database/dao/UnitDao.hpp"
+#include "database/dao/ProjectDao.hpp"
+#include "database/dao/ParcelDao.hpp"
 #include "behavioral/PredayLT_Logsum.hpp"
 
 using namespace sim_mob::long_term;
@@ -507,7 +510,7 @@ inline void createPotentialProjects(BigSerial parcelId, const DeveloperModel* mo
 }
 
 DeveloperAgent::DeveloperAgent(Parcel* parcel, DeveloperModel* model)
-: LT_Agent((parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(housingMarketModel),simYear(simYear){
+: LT_Agent((parcel) ? parcel->getId() : INVALID_ID), devModel(model),parcel(parcel),active(false),monthlyUnitCount(0),unitsRemain(true),realEstateAgent(nullptr),postcode(INVALID_ID),housingMarketModel(housingMarketModel),simYear(simYear),currentTick(currentTick){
 
 }
 
@@ -529,15 +532,17 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
 
     if (devModel && isActive())
     {
+    	currentTick = now.ms();
     	if(this->parcel->getStatus()== 0)
     	{
-    		std::tm currentDate = getDate(devModel->getCurrentTick());
+    		std::tm currentDate = getDate(now.ms());
     		int quarter = ((currentDate.tm_mon)/4) + 1; //get the current month of the simulation and divide it by 4 to determine the quarter
     		if(quarter> 4){
     			quarter = 4;
     		}
     		std::string quarterStr = "Y"+boost::lexical_cast<std::string>(simYear)+"Q"+boost::lexical_cast<std::string>(quarter);
     		const TAO *tao = devModel->getTaoByQuarter(getQuarterIdByQuarterStr(quarterStr));
+    		//PrintOutV(now.ms()<<" now"<<devModel->getCurrentTick()<<"currtick"<<std::endl);
     		//BigSerial homeTazId = this->parcel->getTazId();
     		//Taz *homeTazObj = housingMarketModel->getTazById( homeTazId );
     		//std::string homeTazStr;
@@ -574,7 +579,7 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
 
 void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial projectId)
 {
-	std::tm currentDate = getDate(devModel->getCurrentTick());
+	std::tm currentDate = getDate(currentTick);
 	int currentMonth = currentDate.tm_mon;
 	int currentYear = currentDate.tm_year;
 
@@ -592,12 +597,14 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	//next available date of the parcel for the consideration of a new development is assumed to be one year after.
 	nextAvailableDate.tm_year = nextAvailableDate.tm_year+1;
 	parcel.setNextAvailableDate(nextAvailableDate);
+	parcel.setLastChangedDate(currentDate);
 	int newDevelopment = 0;
 	if(devModel->isEmptyParcel(parcel.getId()))
 	{
 		newDevelopment = 1;
 	}
-	writeParcelDataToFile(parcel,newDevelopment,project.getProfit());
+	//writeParcelDataToFile(parcel,newDevelopment,project.getProfit());
+	devModel->insertToDB<ParcelDao,Parcel>(parcel);
 	//check whether the parcel is empty; if not send a message to HM model with building id and future demolition date about the units that are going to be demolished.
 	if (!(devModel->isEmptyParcel(parcel.getId()))) {
 		DeveloperModel::BuildingList buildings = devModel->getBuildings();
@@ -641,7 +648,8 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	toDate.tm_year = completionYear;
 	boost::shared_ptr<Building>building(new Building(buildingId,projectId,parcel.getId(),0,0,currentDate,toDate,BUILDING_UNCOMPLETED_WITHOUT_PREREQUISITES,project.getGrosArea(),0,0,0,toDate));
 	newBuildings.push_back(building);
-	devModel->insertBuildingsToDB(*building.get());
+	devModel->insertToDB<BuildingDao,Building>(*building.get());
+	//devModel->insertBuildingsToDB(*building.get());
 	MessageBus::PostMessage(this, LTEID_DEV_BUILDING_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*building.get())), true);
 
 	//create new units and add all the units to the newly created building.
@@ -651,11 +659,12 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	for (unitsItr = units.begin(); unitsItr != units.end(); ++unitsItr) {
 		for(size_t i=0; i< (*unitsItr).getNumUnits();i++)
 		{
-			boost::shared_ptr<Unit>unit(new Unit( devModel->getUnitIdForDeveloperAgent(), buildingId, postcode, (*unitsItr).getUnitTypeId(), 0, DeveloperAgent::UNIT_PLANNED, (*unitsItr).getFloorArea(), 0, 0, toDate, std::tm(),DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY, std::tm(), 0, 0, 0));
+			boost::shared_ptr<Unit>unit(new Unit( devModel->getUnitIdForDeveloperAgent(), buildingId, postcode, (*unitsItr).getUnitTypeId(), 0, DeveloperAgent::UNIT_PLANNED, (*unitsItr).getFloorArea(), 0, 0, 0,toDate, currentDate,DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY, currentDate, 0, 0, 0));
 			newUnits.push_back(unit);
+			devModel->insertToDB<UnitDao,Unit>(*unit.get());
 			double profit = (*unitsItr).getUnitProfit();
 			double demolitionCost = (*unitsItr).getDemolitionCostPerUnit();
-			writeUnitDataToFile(*unit, profit,parcel.getId(),demolitionCost);
+			//writeUnitDataToFile(*unit, profit,parcel.getId(),demolitionCost);
 			MessageBus::PostMessage(this, LTEID_DEV_UNIT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg(*unit.get())), true);
 		}
 
@@ -668,7 +677,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 void DeveloperAgent::createProject(PotentialProject &project, BigSerial projectId)
 {
 
-	std::tm constructionDate = getDate(devModel->getCurrentTick());
+	std::tm constructionDate = getDate(currentTick);
 	std::tm completionDate = constructionDate;
 	completionDate.tm_year = completionDate.tm_year + 1;
 	double constructionCost = project.getConstructionCost();
@@ -677,8 +686,10 @@ void DeveloperAgent::createProject(PotentialProject &project, BigSerial projectI
 	double fmLotSize = parcel->getLotSize();
 	double grossArea = project.getGrosArea();
 	std::string grossRatio = boost::lexical_cast<std::string>(grossArea / fmLotSize);
-	boost::shared_ptr<Project>fmProject(new Project(projectId,parcel->getId(),0,project.getDevTemplate()->getTemplateId(),std::string(),constructionDate,completionDate,constructionCost,demolitionCost,totalCost,fmLotSize,grossRatio,grossArea,0,constructionDate,"active"));
-	writeProjectDBDataToFile(fmProject);
+	std::string projectStatus = "Active";
+	boost::shared_ptr<Project>fmProject(new Project(projectId,parcel->getId(),INVALID_ID,project.getDevTemplate()->getTemplateId(),EMPTY_STR,constructionDate,completionDate,constructionCost,demolitionCost,totalCost,fmLotSize,grossRatio,grossArea,0,constructionDate,projectStatus));
+	//writeProjectDBDataToFile(fmProject);
+	devModel->insertToDB<ProjectDao,Project>(*fmProject.get());
 	this->fmProject = fmProject;
 	MessageBus::PostMessage(this, LTEID_DEV_PROJECT_ADDED, MessageBus::MessagePtr(new DEV_InternalMsg()), true);
 
@@ -789,8 +800,8 @@ void DeveloperAgent::setUnitsRemain (bool unitRemain)
 std::tm DeveloperAgent::getDate(int day)
 {
 	int year = simYear-1900;
-	int month = ((day+1)/30); //divide by 30 to get the month; +1 since the tick starts from 0
-	int dayMonth = ((day+1)%30)+1; // get the remainder of divide by 30 to roughly calculate the day of the month
+	int month = ((day)/30); //divide by 30 to get the month
+	int dayMonth = ((day)%30)+1; // get the remainder of divide by 30 to roughly calculate the day of the month
 	std::tm currentDate = std::tm();
 	currentDate.tm_mday = dayMonth;
 	currentDate.tm_mon = month;

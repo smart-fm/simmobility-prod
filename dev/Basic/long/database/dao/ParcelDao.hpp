@@ -48,6 +48,11 @@ namespace sim_mob {
             * Get the parcels with no buildings as a vector
             */
             std::vector<Parcel*> getEmptyParcels();
+
+            /*
+             * Get parcels with ongoing projects
+             */
+            std::vector<Parcel*> getParcelsWithOngoingProjects();
         };
     }
 }

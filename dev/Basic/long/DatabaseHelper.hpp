@@ -306,6 +306,10 @@ namespace sim_mob {
 		                		+ ", "+ "centroid_y"  + ", " + "award_date" + ", " + "award_status" + ", " + "use_restriction" + ", " + "development_type_code"  + ", " + "successful_tender_id"
 		                		+ ", "+ "successful_tender_price"  + ", " + "tender_closing_date" + ", " + "lease" + ", " + "development_status" + ", " + "development_allowed" + ", " + "next_available_date"  + ", " + "last_changed_date"
 		                		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :v25, :v26)";
+
+        const std::string DB_INSERT_STATUS_OF_WORLD = "INSERT INTO " + DB_TABLE_STATUS_OF_WORLD
+        		+ " (" + "sim_version_id" + ", " + "postcode" + ", " + "building_id" + ", " + "unit_id " + ", " + "project_id"
+        		+ ") VALUES (:v1, :v2, :v3, :v4, :v5)";
         /**
          * UPDATE
          */

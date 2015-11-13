@@ -18,6 +18,7 @@
 #include "entities/Entity.hpp"
 #include "entities/Person.hpp"
 #include "entities/amodController/AMODController.hpp"
+#include "entities/fmodController/FMOD_Controller.hpp"
 #include "entities/params/PT_NetworkEntities.hpp"
 #include "geospatial/network/Link.hpp"
 #include "geospatial/network/Node.hpp"
@@ -222,6 +223,7 @@ void sim_mob::ExpandAndValidateConfigFile::ProcessConfig()
 	}
 
 	LoadAMOD_Controller();
+	LoadFMOD_Controller();
 
 	//Initialise all BusControllers.
 	if (BusController::HasBusControllers())
@@ -408,6 +410,18 @@ void sim_mob::ExpandAndValidateConfigFile::LoadAMOD_Controller()
 	if (cfg.amod.enabled) 
 	{
 		sim_mob::AMOD::AMODController::registerController(-1, cfg.mutexStategy());
+	}
+}
+
+void sim_mob::ExpandAndValidateConfigFile::LoadFMOD_Controller()
+{
+	if(cfg.fmod.enabled){
+		sim_mob::FMOD::FMOD_Controller::registerController(-1, cfg.mutexStategy());
+		sim_mob::FMOD::FMOD_Controller::instance()->settings(cfg.fmod.ipAddress, cfg.fmod.port, cfg.fmod.updateTimeMS, cfg.fmod.mapfile, cfg.fmod.blockingTimeSec);
+		std::map<std::string, TripChainItem*>::iterator it;
+		for(it=cfg.fmod.allItems.begin(); it!=cfg.fmod.allItems.end(); it++){
+			sim_mob::FMOD::FMOD_Controller::instance()->insertFmodItems(it->first, it->second);
+		}
 	}
 }
 

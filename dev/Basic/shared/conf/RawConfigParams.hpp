@@ -31,6 +31,7 @@ struct FMOD_ControllerParams {
 	unsigned int updateTimeMS;
 	std::string mapfile;
 	unsigned int blockingTimeSec;
+	std::map<std::string, TripChainItem*> allItems;
 };
 
 struct AMOD_ControllerParams

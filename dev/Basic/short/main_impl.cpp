@@ -52,6 +52,7 @@
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/TrafficWatch.hpp"
+#include "entities/fmodController/FMOD_Controller.hpp"
 #include "geospatial/network/NetworkLoader.hpp"
 #include "logging/Log.hpp"
 #include "network/CommunicationManager.hpp"
@@ -287,6 +288,10 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	if(sim_mob::AMOD::AMODController::instanceExists())
 	{
 		personWorkers->assignAWorker( sim_mob::AMOD::AMODController::instance() );
+	}
+	if(sim_mob::FMOD::FMOD_Controller::instanceExists())
+	{
+		personWorkers->assignAWorker( sim_mob::FMOD::FMOD_Controller::instance() );
 	}
 
 	Print() << "Initial agents dispatched or pushed to pending." << endl;
@@ -529,6 +534,10 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	//Delete the AMOD controller instance
 	sim_mob::AMOD::AMODController::deleteInstance();
 
+	if(sim_mob::FMOD::FMOD_Controller::instanceExists())
+	{
+		sim_mob::FMOD::FMOD_Controller::instance()->finalizeMessageToFMOD();
+	}
 	//Delete the aura manger implementation instance
 	AuraManager::instance().destroy();
 

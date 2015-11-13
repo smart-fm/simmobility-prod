@@ -26,6 +26,7 @@ namespace sim_mob {
         const std::string DB_SCHEMA_EMPTY = "";
         const std::string MAIN_SCHEMA = "main2012.";
         const std::string CALIBRATION_SCHEMA = "calibration2012.";
+        const std::string OUTPUT_SCHEMA = "output2012.";
         const std::string LIMIT_10000 = " order by random() limit 10000";
         const std::string LIMIT_RAND0_DOT1 = "WHERE random() < 0.01";
         const std::string LIMIT_ALL = "";
@@ -78,7 +79,8 @@ namespace sim_mob {
 
         const std::string DB_TABLE_TAZ_LEVEL_LAND_PRICE = APPLY_SCHEMA(CALIBRATION_SCHEMA, "taz_level_land_price");
 
-
+        const std::string DB_TABLE_SIM_VERSION = APPLY_SCHEMA( OUTPUT_SCHEMA, "simulation_version");
+        const std::string DB_TABLE_STATUS_OF_WORLD = APPLY_SCHEMA( OUTPUT_SCHEMA, "status_of_the_world");
 
         /**
          * Views
@@ -159,7 +161,7 @@ namespace sim_mob {
         const std::string DB_FUNC_GET_TOTAL_BUILDING_SPACE = APPLY_SCHEMA( MAIN_SCHEMA, "getTotalBuildingSpacePerParcel()");
         //const std::string DB_FUNC_GET_BUILDINGS_OF_PARCEL = APPLY_SCHEMA( MAIN_SCHEMA, "getBuildingsOfParcel(_parcelId BIGINT)");
         const std::string DB_FUNC_GET_PARCEL_AMENITIES 	   = APPLY_SCHEMA( MAIN_SCHEMA, "getParcelAmenities()");
-        const std::string DB_FUNC_GET_UNIT_WITH_MAX_ID = APPLY_SCHEMA( MAIN_SCHEMA, "getUnitWithMaxId()");
+        const std::string DB_FUNC_GET_UNIT_WITH_MAX_ID = APPLY_SCHEMA( OUTPUT_SCHEMA, "getUnitWithMaxId()");
 
         const std::string DB_FUNC_GET_DIST_MRT = APPLY_SCHEMA( MAIN_SCHEMA, "getdistMrt()");
         const std::string DB_FUNC_GET_PARCELS_WITH_HDB = APPLY_SCHEMA( MAIN_SCHEMA, "getParcelsWithHDB()");
@@ -264,22 +266,46 @@ namespace sim_mob {
 												+ DB_FIELD_HOUSING_DURATION
 												+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7)";
 
-        const std::string DB_INSERT_BUILDING = "INSERT INTO " + DB_TABLE_BUILDING
+        const std::string DB_INSERT_BUILDING = "INSERT INTO " + APPLY_SCHEMA(OUTPUT_SCHEMA, "fm_building")
         		+ " (" + "fm_building_id" + ", " + "fm_project_id" + ", " + "fm_parcel_id"
         		+ ", " + "storeys_above_ground" + ", " + "storeys_below_ground" + ", "
         		+ "from_date" + ", " + "to_date"  + ", "+ "building_status" + ", " + "gross_sq_m_res" + ", "
         		+ "gross_sq_m_office" + ", " + "gross_sq_m_retail" + ", " + "gross_sq_m_other"  + ", " + "last_changed_date"
         		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13)";
 
-        const std::string DB_INSERT_UNIT = DB_EMPTY_QUERY;
+        const std::string DB_INSERT_UNIT = "INSERT INTO " + APPLY_SCHEMA(OUTPUT_SCHEMA, "fm_unit_res")
+        		+ " (" + "fm_unit_id" + ", " + "fm_building_id" + ", " + "sla_address_id"
+        		+ ", " + "unit_type" + ", " + "storey_range" + ", "
+        		+ "unit_status" + ", " + "floor_area"  + ", "+ "storey" + ", " + "rent" + ", "
+        		+ "ownership" + ", " + "sale_from_date" + ", " + "physical_from_date"  + ", " + "sale_status"
+        		+ ", "+ "physical_status"  + ", " + "last_changed_date"
+        		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15)";
+
         const std::string DB_INSERT_POSTCODE = DB_EMPTY_QUERY;
         const std::string DB_INSERT_POSTCODE_AMENITIES = DB_EMPTY_QUERY;
-        const std::string DB_INSERT_PROJECT = DB_EMPTY_QUERY;
+        const std::string DB_INSERT_PROJECT = "INSERT INTO " + APPLY_SCHEMA(OUTPUT_SCHEMA, "fm_project")
+                		+ " (" + "fm_project_id" + ", " + "fm_parcel_id" + ", " + "developer_id"
+                		+ ", " + "template_id" + ", " + "project_name" + ", "
+                		+ "construction_date" + ", " + "completion_date"  + ", "+ "construction_cost" + ", " + "demolition_cost" + ", "
+                		+ "total_cost" + ", " + "fm_lot_size" + ", " + "gross_ratio"  + ", " + "gross_area"
+                		+ ", "+ "planned_date"  + ", " + "project_status"
+                		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15)";
         const std::string DB_INSERT_INDIVIDUAL = DB_EMPTY_QUERY;
         const std::string DB_INSERT_RESIDENTIAL_STATUS = DB_EMPTY_QUERY;
         const std::string DB_INSERT_AWAKENING = DB_EMPTY_QUERY;
 
+        const std::string DB_INSERT_SIM_VERSION = "INSERT INTO " + DB_TABLE_SIM_VERSION
+        		+ " (" + "id" + ", " + "scenario" + ", " + "simulation_start_date" + ", " + "sim_stopped_tick"
+        		+ ") VALUES (:v1, :v2, :v3, :v4)";
 
+        const std::string DB_INSERT_PARCEL = "INSERT INTO " + APPLY_SCHEMA(OUTPUT_SCHEMA, "fm_parcel")
+								+ " (" + "fm_parcel_id" + ", " + "taz_id" + ", " + "lot_size"
+		                		+ ", " + "gpr" + ", " + "land_use_type_id" + ", "
+		                		+ "owner_name" + ", " + "owner_category"  + ", "+ "last_transaction_date" + ", " + "last_transaction_type_total" + ", "
+		                		+ "psm_per_gps" + ", " + "lease_type" + ", " + "lease_start_date"  + ", " + "centroid_x"
+		                		+ ", "+ "centroid_y"  + ", " + "award_date" + ", " + "award_status" + ", " + "use_restriction" + ", " + "development_type_code"  + ", " + "successful_tender_id"
+		                		+ ", "+ "successful_tender_price"  + ", " + "tender_closing_date" + ", " + "lease" + ", " + "development_status" + ", " + "development_allowed" + ", " + "next_available_date"  + ", " + "last_changed_date"
+		                		+ ") VALUES (:v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10, :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19, :v20, :v21, :v22, :v23, :v24, :v25, :v26)";
         /**
          * UPDATE
          */
@@ -369,7 +395,9 @@ namespace sim_mob {
         const std::string DB_GETALL_POPULATION_PER_PLANNING_AREA = "SELECT * FROM " + DB_FUNC_GET_POPULATION_PER_PLANNING_AREA + LIMIT;
         const std::string DB_GETALL_HITSINDIVIDUALLOGSUM = "SELECT * FROM " + DB_TABLE_HITSINDIVIDUALLOGSUM + LIMIT;
         const std::string DB_GETALL_TAZ_LEVEL_LAND_PRICES = "SELECT * FROM " + DB_TABLE_TAZ_LEVEL_LAND_PRICE + LIMIT;
-
+        const std::string DB_GETALL_SIMVERSION = "SELECT * FROM " + DB_TABLE_SIM_VERSION + LIMIT;
+        const std::string DB_GETALL_STAUS_OF_WORLD = "SELECT * FROM " + DB_TABLE_STATUS_OF_WORLD + LIMIT;
+        const std::string DB_GETALL_PARCELS_WITH_ONGOING_PROJECTS = "SELECT * FROM " + APPLY_SCHEMA(OUTPUT_SCHEMA, "fm_parcel") + LIMIT;
 
         /**
          * GET BY ID

@@ -14,17 +14,17 @@
 
 using namespace sim_mob::long_term;
 
-Parcel::Parcel(BigSerial id,BigSerial tazId, float lot_size, std::string gpr,std::string owner_name,  int	owner_category, std::tm last_transaction_date,
+Parcel::Parcel(BigSerial id,BigSerial tazId, float lot_size, std::string gpr,int land_use_type_id,std::string owner_name,  int	owner_category, std::tm last_transaction_date,
 	   float last_transaction_type_total, float psm_per_gps, int lease_type, std::tm lease_start_date, float centroid_x, float centroid_y, std::tm award_date,
-       bool	award_status, std::string use_restriction, int	successful_tender_id,
-       float successful_tender_price, std::tm tender_closing_date,int lease,float actual_gpr,float allowed_gpr, int land_use_type_id,int development_type_code,int status,
-       int developmentAllowed, std::tm nextAvailableDate)
-	   : id(id),tazId(tazId),lot_size(lot_size), owner_name(owner_name), owner_category(owner_category),
+       bool	award_status, int use_restriction , int development_type_code,int	successful_tender_id,
+       float successful_tender_price, std::tm tender_closing_date,int lease,int status,
+       int developmentAllowed, std::tm nextAvailableDate,std::tm lastChangedDate)
+	   : id(id),tazId(tazId),lot_size(lot_size) ,gpr(gpr),land_use_type_id(land_use_type_id),owner_name(owner_name), owner_category(owner_category),
 	     last_transaction_date(last_transaction_date), last_transaction_type_total(last_transaction_type_total), psm_per_gps(psm_per_gps),
 	     lease_type(lease_type), lease_start_date(lease_start_date), centroid_x(centroid_x), centroid_y(centroid_y), award_date(award_date),
-	     award_status(award_status), use_restriction(use_restriction),successful_tender_id(successful_tender_id), successful_tender_price(successful_tender_price),
-	     tender_closing_date(tender_closing_date), lease(lease),gpr(gpr),land_use_type_id(land_use_type_id),development_type_code(development_type_code),status(status),
-	     developmentAllowed(developmentAllowed),nextAvailableDate(nextAvailableDate)
+	     award_status(award_status), use_restriction(use_restriction),development_type_code(development_type_code),successful_tender_id(successful_tender_id), successful_tender_price(successful_tender_price),
+	     tender_closing_date(tender_closing_date), lease(lease),status(status),
+	     developmentAllowed(developmentAllowed),nextAvailableDate(nextAvailableDate),lastChangedDate(lastChangedDate)
 {
 }
 
@@ -110,9 +110,9 @@ bool Parcel::getAwardStatus() const
 	return award_status;
 }
 
-std::string	Parcel::getUseRestriction() const
+int	Parcel::getUseRestriction() const
 {
-			return use_restriction;
+	return use_restriction;
 }
 
 int	Parcel::getDevelopmentTypeCode() const
@@ -170,6 +170,15 @@ void Parcel::setNextAvailableDate(std::tm nextAvailableDate)
 	this->nextAvailableDate = nextAvailableDate;
 }
 
+std::tm Parcel::getLastChangedDate() const
+{
+	return this->lastChangedDate;
+}
+
+void Parcel::setLastChangedDate(std::tm date)
+{
+	this->lastChangedDate = date;
+}
 
 namespace sim_mob {
     namespace long_term {
@@ -201,6 +210,7 @@ namespace sim_mob {
 						<< "\"status\":\"" << data.status << "\","
 						<< "\"development_allowed\":\"" << data.developmentAllowed << "\","
 						<< "\"next_available_date\":\"" << data.nextAvailableDate.tm_year << data.nextAvailableDate.tm_mon << data.nextAvailableDate.tm_mday << "\""
+						<< "\"last_changed_date\":\"" << data.lastChangedDate.tm_year << data.lastChangedDate.tm_mon << data.lastChangedDate.tm_mday << "\""
 						<< "}";
 
         }

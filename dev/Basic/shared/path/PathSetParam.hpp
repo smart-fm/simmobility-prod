@@ -1,6 +1,6 @@
 #pragma once
 
-#include <boost/unordered_map.hpp>
+#include <map>
 #include <soci/soci.h>
 #include <soci/postgresql/soci-postgresql.h>
 #include "Common.hpp"
@@ -13,7 +13,6 @@ class ERP_Gantry_Zone
 {
 public:
 	ERP_Gantry_Zone() {}
-	ERP_Gantry_Zone(ERP_Gantry_Zone &src):gantryNo(src.gantryNo),zoneId(src.zoneId) {}
 	std::string gantryNo;
 	std::string zoneId;
 };
@@ -22,7 +21,6 @@ class ERP_Section
 {
 public:
 	ERP_Section(): sectionId(-1), ERP_Gantry_No(-1), linkId(-1) {}
-	ERP_Section(ERP_Section &src);
 	int sectionId;
 	int linkId;
 	int ERP_Gantry_No;
@@ -33,9 +31,6 @@ class ERP_Surcharge
 {
 public:
 	ERP_Surcharge() : rate(-1.0), vehicleTypeId(-1) {}
-	ERP_Surcharge(ERP_Surcharge& src):gantryNo(src.gantryNo),startTime(src.startTime),endTime(src.endTime),rate(src.rate),
-			vehicleTypeId(src.vehicleTypeId),vehicleTypeDesc(src.vehicleTypeDesc),day(src.day),
-			startTime_DT(sim_mob::DailyTime(src.startTime)),endTime_DT(sim_mob::DailyTime(src.endTime)){}
 	std::string gantryNo;
 	std::string startTime;
 	std::string endTime;
@@ -49,23 +44,75 @@ public:
 
 class LinkTravelTime
 {
+private:
+	/**	time interval */
+	typedef unsigned int TimeInterval;
+
+	/** typedef for travel time for this link for each downstream link */
+	typedef std::map<unsigned int, double> LinkDownStreamLinkTT_Map;
+
+	/**	map of [time interval][Link][downstream Link] --> [average travel time] */
+	typedef std::map<TimeInterval, LinkDownStreamLinkTT_Map> TravelTimeStore;
+
+	/** link id */
+	unsigned int linkId;
+
+	/**	travel time in seconds */
+	double defaultTravelTime;
+
+	/** map of downstream link --> tt for this link in seconds */
+	TravelTimeStore downstreamLinkTT_Map;
+
 public:
 	LinkTravelTime();
-	LinkTravelTime(const LinkTravelTime& src);
-	/** link id */
-	unsigned long linkId;
-	/**	travel time in seconds */
-	double travelTime;
-	/** mode of travel for this trvel time */
-	std::string travelMode;
-	sim_mob::DailyTime startTimeDT;
-	sim_mob::DailyTime endTimeDT;
-};
+	virtual ~LinkTravelTime();
 
-struct LinkTravelTimeVector
-{
-public:
-	std::vector<sim_mob::LinkTravelTime> vecSegTT;
+	double getDefaultTravelTime() const
+	{
+		return defaultTravelTime;
+	}
+
+	void setDefaultTravelTime(double defaultTravelTime)
+	{
+		this->defaultTravelTime = defaultTravelTime;
+	}
+
+	unsigned int getLinkId() const
+	{
+		return linkId;
+	}
+
+	void setLinkId(unsigned int linkId)
+	{
+		this->linkId = linkId;
+	}
+
+	/**
+	 * adds travel time of this link for specific next downstream link
+	 * @param downstreamLinkId id of downstream link
+	 * @param travelTime travel time in seconds for this link when next link is downstreamLinkId
+	 *
+	 * NOTE: this function assumes that the supplied downstream link is connected to current link. It does not check connectivity.
+	 */
+	void addHistoricalTravelTime(unsigned int downstreamLinkId, double travelTime);
+
+	/**
+	 * fetches tt in seconds for provided downstream link and time interval index
+	 * @param downstreamLinkId id of downstream link
+	 * @param timeInterval index of time interval for which tt is requested
+	 * @return tt found from downstreamLinkTT_Map if available; -1 otherwise
+	 */
+	double getHistoricalLinkTT(unsigned int downstreamLinkId, unsigned int timeInterval) const;
+
+	/**
+	 * fetches tt in seconds for provided time interval index
+	 * this function averages the traveltime for each downstream link and returns the average travel time
+	 * @param timeInterval index of time interval for which tt is requested
+	 * @return tt found from downstreamLinkTT_Map if available; -1 otherwise
+	 */
+	double getHistoricalLinkTT(unsigned int timeInterval) const;
+
+	static TimeInterval getTimeInterval(const DailyTime& dt) const;
 };
 
 /**
@@ -101,6 +148,12 @@ private:
 	 */
 	void setRTTT(const std::string& value);
 
+	void loadERP_Surcharge(soci::session& sql);
+	void loadERP_Section(soci::session& sql);
+	void loadERP_GantryZone(soci::session& sql);
+	void loadLinkDefaultTravelTime(soci::session& sql);
+	void loadLinkHistoricalTravelTime(soci::session& sql);
+
 public:
 	static PathSetParam* getInstance();
 
@@ -118,55 +171,17 @@ public:
 	void storeSinglePath(soci::session& sql,std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool,const std::string pathSetTableName);
 
 	/**
-	 * get the average travel time of a segment within a time range
-	 * @param rs input road segment
-	 * @param travelMode intended mode of traversing the segment
-	 * @param startTime start of the time range
-	 * @param endTime end of the time range
-	 * @return travel time in seconds
-	 */
-	double getLinkRangeTT(const sim_mob::Link* lnk, const std::string travelMode, const sim_mob::DailyTime& startTime, const sim_mob::DailyTime& endTime) const;
-
-	/**
-	 * gets the average 'default' travel time of a segment.
-	 * it doesn't consider time of day.
-	 * @param lnk input Link
-	 * @return travel time in seconds
-	 */
-	double getDefaultLinkTT(const sim_mob::Link* lnk) const;
-
-	/**
-	 * gets the 'default' travel time of a segment based on the given time of day.
-	 * @param rs the input road segment
-	 * @return travel time in seconds
-	 */
-	double getDefaultLinkTT(const sim_mob::Link* lnk, const sim_mob::DailyTime &startTime) const;
-
-	/**
-	 * get historical average travel time of a link in a specific time of day
-	 * from previous simulations.
-	 * @param lnk input Link
-	 * @param travelMode intended mode of traversing the segment
-	 * @param startTime start of the time range
-	 * @return travel time in seconds
-	 */
-	double getHistoricalLinkTT(const sim_mob::Link* lnk, const std::string &travelMode, const sim_mob::DailyTime &startTime) const;
-
-	/**
 	 * base method to get travel time of a link in a specific time of
-	 * day from different sources. This method searches for segment travel
-	 * time in different sources arranged in the specified order:
+	 * day from different sources. This method searches for link travel
+	 * time in different sources in the below order:
 	 * in-simulation, previous simulations, default.
-	 * the method will returns the first value found.
+	 * the method returns the first value found.
 	 * @param lnk input Link
-	 * @param travelMode intended mode of traversing the segment
+	 * @param downstreamLink the next link which is to be taken after lnk
 	 * @param startTime start of the time range
 	 * @return travel time in seconds
 	 */
-	double getLinkTT(const sim_mob::Link* lnk, const std::string &travelMode, const sim_mob::DailyTime &startTime) const;
-
-//	///	return cached node given its id
-//	sim_mob::Node* getCachedNode(std::string id);
+	double getLinkTT(const sim_mob::Link* lnk, const sim_mob::Link* downstreamLink, const sim_mob::DailyTime &startTime) const;
 
 	double getHighwayBias() const { return highwayBias; }
 
@@ -201,12 +216,10 @@ public:
 	///	ERP section <link id , ERP_Section>
 	std::map<int,sim_mob::ERP_Section*> ERP_SectionPool;
 
-	///	information of "Segment" default travel time <segment aim-sun id ,segment_default_travel_time with diff time stamp>
-	std::map<unsigned long, sim_mob::LinkTravelTimeVector*> segDefTT;
-
-	///	a structure to keep history of average travel time records from previous simulations
-	///	[time interval][travel mode][road segment][average travel time]
-	AverageTravelTime segHistoryTT;
+	/**
+	 * a structure to keep history of average travel time records from previous simulations
+	 */
+	std::map<unsigned int, sim_mob::LinkTravelTime> lnkTravelTimeMap;
 
 	///	simmobility's road network
 	const sim_mob::RoadNetwork& roadNetwork;

@@ -299,7 +299,7 @@ namespace
 		}
 	};
 
-	double getPathTravelCost(sim_mob::SinglePath *sp,const std::string & travelMode, const sim_mob::DailyTime & startTime_)
+	double getPathTravelCost(sim_mob::SinglePath *sp, const sim_mob::DailyTime & startTime_)
 	{
 		sim_mob::DailyTime tripStartTime(startTime_);
 		double res=0.0;
@@ -307,9 +307,15 @@ namespace
 		for(std::vector<WayPoint>::iterator it1 = sp->path.begin(); it1 != sp->path.end(); it1++)
 		{
 			unsigned long lnkId = (it1)->link->getLinkId();
+			const Link* nextLink = NULL;
+			std::vector<WayPoint>::iterator itNextLink = it1 + 1;
+			if(itNextLink != sp->path.end())
+			{
+				nextLink = itNextLink->link;
+			}
 			std::map<int,sim_mob::ERP_Section*>::iterator it = sim_mob::PathSetParam::getInstance()->ERP_SectionPool.find(lnkId);
 			//get travel time to this segment
-			double t = sim_mob::PathSetParam::getInstance()->getLinkTT((it1)->link,travelMode, tripStartTime);
+			double t = sim_mob::PathSetParam::getInstance()->getLinkTT((it1)->link, nextLink, tripStartTime);
 			ts += t;
 			tripStartTime = tripStartTime + sim_mob::DailyTime(t*1000);
 			if(it!=sim_mob::PathSetParam::getInstance()->ERP_SectionPool.end())
@@ -540,8 +546,8 @@ void sim_mob::PrivateTrafficRouteChoice::onPathSetRetrieval(boost::shared_ptr<Pa
 	sim_mob::SinglePath *minSP = *(ps->pathChoices.begin());
 	BOOST_FOREACH(SinglePath *sp, ps->pathChoices)
 	{
-		sp->travelTime = getPathTravelTime(sp,ps->subTrip.mode,ps->subTrip.startTime, enRoute);
-		sp->travelCost = getPathTravelCost(sp,ps->subTrip.mode,ps->subTrip.startTime );
+		sp->travelTime = getPathTravelTime(sp,ps->subTrip.startTime, enRoute);
+		sp->travelCost = getPathTravelCost(sp, ps->subTrip.startTime);
 		//MIN_TRAVEL_TIME
 		if(sp->travelTime < minTravelTime)
 		{
@@ -1423,14 +1429,19 @@ sim_mob::SinglePath* sim_mob::PrivatePathsetGenerator::generateShortestTravelTim
 
 
 
-double sim_mob::PrivateTrafficRouteChoice::getPathTravelTime(sim_mob::SinglePath *sp,const std::string & travelMode, const sim_mob::DailyTime & startTime_, bool enRoute)
+double sim_mob::PrivateTrafficRouteChoice::getPathTravelTime(sim_mob::SinglePath *sp, const sim_mob::DailyTime & startTime_, bool enRoute)
 {
 	sim_mob::DailyTime startTime = startTime_;
 	double timeSum = 0.0;
 	for(int i=0;i<sp->path.size();++i)
 	{
 		double time = 0.0;
-		const sim_mob::Link * lnk = sp->path[i].link;
+		const sim_mob::Link *lnk = sp->path[i].link;
+		const sim_mob::Link *nextLink = NULL;
+		if((i+1) < sp->path.size())
+		{
+			nextLink = sp->path[i+1].link;
+		}
 // TODO: Make PrivateTrafficRouteChoice a message handler and notify it about any incidents through message. Incident manager must not be used here
 //		const sim_mob::IncidentManager * inc = IncidentManager::getInstance();
 //		if(inc->getCurrIncidents().find(rs) != inc->getCurrIncidents().end())
@@ -1441,11 +1452,11 @@ double sim_mob::PrivateTrafficRouteChoice::getPathTravelTime(sim_mob::SinglePath
 		{
 			if(enRoute)
 			{
-				time = getInSimulationLinkTT(lnk, travelMode, startTime);
+				time = getInSimulationLinkTT(lnk, startTime);
 			}
 			if(!enRoute || time == 0.0)
 			{
-				time = sim_mob::PathSetParam::getInstance()->getLinkTT(lnk,travelMode, startTime);
+				time = sim_mob::PathSetParam::getInstance()->getLinkTT(lnk, nextLink, startTime);
 			}
 		}
 		if(time == 0.0)
@@ -1465,7 +1476,7 @@ double sim_mob::PrivateTrafficRouteChoice::getPathTravelTime(sim_mob::SinglePath
 }
 
 
-double sim_mob::PrivateTrafficRouteChoice::getInSimulationLinkTT(const sim_mob::Link* lnk, const std::string &travelMode, const sim_mob::DailyTime &startTime) const
+double sim_mob::PrivateTrafficRouteChoice::getInSimulationLinkTT(const sim_mob::Link* lnk, const sim_mob::DailyTime &startTime) const
 {
 	return processTT.getInSimulationLinkTT(travelMode,lnk);
 }

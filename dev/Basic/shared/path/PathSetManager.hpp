@@ -395,7 +395,7 @@ private:
 	 * @enRoute decided whether in simulation travel time should be searched or not
 	 * @returns path's travel time
 	 */
-	double getPathTravelTime(sim_mob::SinglePath *sp,const std::string & travelMode, const sim_mob::DailyTime & startTime, bool enRoute = false);
+	double getPathTravelTime(sim_mob::SinglePath *sp, const sim_mob::DailyTime & startTime, bool enRoute = false);
 
 	/**
 	 * update pathset paramenters before selecting the best path
@@ -463,7 +463,7 @@ public:
 	 * @param startTime indicates when the segment is to be traversed.
 	 * @return travel time in seconds
 	 */
-	double getInSimulationLinkTT(const sim_mob::Link* lnk, const std::string &travelMode, const sim_mob::DailyTime &startTime) const;
+	double getInSimulationLinkTT(const sim_mob::Link* lnk, const sim_mob::DailyTime &startTime) const;
 
 	/**
 	 * insert roadsegment into incident list

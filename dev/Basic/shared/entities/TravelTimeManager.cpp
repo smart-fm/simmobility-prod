@@ -20,7 +20,7 @@ sim_mob::TravelTimeManager::~TravelTimeManager()
 }
 
 void sim_mob::TravelTimeManager::addTravelTime(const RdSegTravelStat & stats) {
-	TT::TI timeInterval = TravelTimeManager::getTimeInterval(stats.entryTime * 1000, intervalMS);//milliseconds
+	TT::TimeInterval timeInterval = TravelTimeManager::getTimeInterval(stats.entryTime * 1000, intervalMS);//milliseconds
 	{
 		boost::upgrade_lock<boost::shared_mutex> lock(ttMapMutex);
 		boost::upgrade_to_unique_lock<boost::shared_mutex> uniquelock(lock);
@@ -30,7 +30,7 @@ void sim_mob::TravelTimeManager::addTravelTime(const RdSegTravelStat & stats) {
 	}
 }
 
-sim_mob::TT::TI sim_mob::TravelTimeManager::getTimeInterval(const unsigned long time, const unsigned int interval)
+sim_mob::TT::TimeInterval sim_mob::TravelTimeManager::getTimeInterval(const unsigned long time, const unsigned int interval)
 {
 	return time / interval ;/*milliseconds*/
 }
@@ -69,7 +69,7 @@ double sim_mob::TravelTimeManager::EnRouteTT::getInSimulationLinkTT(const std::s
 	return 0.0;
 }
 
-void sim_mob::TravelTimeManager::insertTravelTime2TmpTable(const std::string fileName)
+void sim_mob::TravelTimeManager::dumpTravelTimesToFile(const std::string fileName)
 {
 	//	easy reading down the line
 	typedef std::map<const sim_mob::RoadSegment*,sim_mob::TT::TimeAndCount >::value_type STC;//SegmentTimeCount
@@ -82,7 +82,7 @@ void sim_mob::TravelTimeManager::insertTravelTime2TmpTable(const std::string fil
 	//time range
 	BOOST_FOREACH(TRPs &TT_Pair, ttMap)
 	{
-		const TT::TI & timeInterval = TT_Pair.first;
+		const TT::TimeInterval & timeInterval = TT_Pair.first;
 		TT::MRTC & travelModes = TT_Pair.second;
 		//travel mode
 		BOOST_FOREACH(TravelModes &travelMode, travelModes)
@@ -117,7 +117,7 @@ bool sim_mob::TravelTimeManager::storeRTT2DB()
 {
 	typedef std::map<boost::thread::id, boost::shared_ptr<TravelTimeManager> >::value_type TTs;
 	std::string tempFileName = sim_mob::PathSetParam::getInstance()->RTTT;
-	insertTravelTime2TmpTable(tempFileName);
+	dumpTravelTimesToFile(tempFileName);
 	sim_mob::Logger::log(tempFileName).flush();
 	tempFileName += ".txt";
 	/*The below fucntion only works when SimMobility is executed on the same machine as the location of the db

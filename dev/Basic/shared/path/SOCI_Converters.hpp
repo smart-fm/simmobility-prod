@@ -126,19 +126,13 @@ template<> struct type_conversion<sim_mob::LinkTravelTime>
 	typedef values base_type;
 	static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::LinkTravelTime &res)
 	{
-		res.linkId = vals.get<int>("link_id", 0);
-		res.travelMode = vals.get<std::string>("travel_mode", "");
-		res.startTimeDT = sim_mob::DailyTime(vals.get<std::string>("start_time", "00:00:00"));
-		res.endTimeDT = sim_mob::DailyTime(vals.get<std::string>("end_time", "00:00:00"));
-		res.travelTime = vals.get<double>("travel_time", 0.0);
+		res.setLinkId(vals.get<int>("link_id", 0));
+		res.setDefaultTravelTime(vals.get<double>("travel_time", 0.0));
 	}
 	static void to_base(const sim_mob::LinkTravelTime& src, soci::values& vals, soci::indicator& ind)
 	{
-		vals.set("link_id", src.linkId);
-		vals.set("travel_mode", src.travelMode);
-		vals.set("start_time", src.startTimeDT.getStrRepr());
-		vals.set("end_time", src.endTimeDT.getStrRepr());
-		vals.set("travel_time", src.travelTime);
+		vals.set("link_id", src.getLinkId());
+		vals.set("travel_time", src.getDefaultTravelTime());
 
 		ind = i_ok;
 	}

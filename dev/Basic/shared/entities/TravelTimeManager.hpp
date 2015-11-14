@@ -94,6 +94,45 @@ struct RdSegTravelStat
 	}
 };
 
+namespace TT
+{
+
+struct TimeAndCount
+{
+	///	total travel time
+	double totalTravelTime;
+
+	///	total count of contributions to travel time
+	unsigned int travelTimeCnt;
+
+	TimeAndCount() :
+			totalTravelTime(0.0), travelTimeCnt(0)
+	{
+	}
+};
+
+/** time interval */
+typedef unsigned int TimeInterval;
+
+/** the heart of the final container holding accumulated travel time */
+typedef std::map<const sim_mob::RoadSegment*, TimeAndCount> RSTC;
+
+/// part of the data structure used in travel time collection mechanism
+typedef std::map<std::string, RSTC> MRTC; //MTITC=> M:mode, TI:Time Interval, T:time, C:count
+
+///	final container for collecting in simulation data:
+///	map[time interval][travel mode][road segment][pair(total-time , number-of-records)]
+typedef std::map<TimeInterval, MRTC> TravelTimeCollector;
+
+} // namespace TT
+
+/**
+ * Container used for TravelTime collection during simulation     :
+ * [road segment][travel mode][time interval][average travel time]
+ * <-----RS-----><-------------------MTITC----------------------->
+ */
+typedef sim_mob::TT::TravelTimeCollector TravelTime;
+
 /**
  * TravelTimeManager is a small helper class to process Real Time Travel Time at RoadSegment Level.
  * PathSetManager receives Real Time Travel Time and delegates
@@ -130,7 +169,7 @@ public:
 	/**
 	 * Writes the aggregated data into the file
 	 */
-	void insertTravelTime2TmpTable(const std::string fileName);
+	void dumpTravelTimesToFile(const std::string fileName);
 
 	/**
 	 * save Realtime Travel Time into Database
@@ -144,7 +183,7 @@ public:
 	 * @return Time interval corresponding the give time
 	 * Note: for uniformity purposes this methods works with milliseconds values
 	 */
-	static sim_mob::TT::TI getTimeInterval(const unsigned long timeMS, const unsigned int intervalMS);
+	static sim_mob::TT::TimeInterval getTimeInterval(const unsigned long timeMS, const unsigned int intervalMS);
 
 	/**
 	 * returns the travel time experienced by other drivers in the current simulation

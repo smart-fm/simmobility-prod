@@ -67,7 +67,7 @@ void ScreenLineCounter::updateScreenLineCount(const RdSegTravelStat& rdSegStat)
         return;
     }
 
-    TT::TI timeInterval = ScreenLineCounter::getTimeInterval(rdSegStat.entryTime * 1000);
+    TT::TimeInterval timeInterval = ScreenLineCounter::getTimeInterval(rdSegStat.entryTime * 1000);
     TT::TimeAndCount &tc = ttMap[timeInterval][rdSegStat.travelMode][rdSegStat.rs];
     tc.totalTravelTime += rdSegStat.travelTime; //add to total travel time
     tc.travelTimeCnt += 1; //increment the total contribution
@@ -88,7 +88,7 @@ void ScreenLineCounter::exportScreenLineCount()
 
     for(TravelTime::const_iterator travelTimeIter = ttMap.begin(); travelTimeIter != ttMap.end(); travelTimeIter++)
     {
-        const TT::TI & timeInterval = travelTimeIter->first;
+        const TT::TimeInterval & timeInterval = travelTimeIter->first;
 
         const DailyTime &simStartTime = configParams.simStartTime();
         DailyTime startTime(simStartTime.getValue() +  (timeInterval* INTERVAL_MS) );

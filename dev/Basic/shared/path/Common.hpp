@@ -19,61 +19,6 @@ public:
 	RdSegTravelTimes(double rdSegTravelTime, unsigned int agentCount)
 	: travelTimeSum(rdSegTravelTime), agCnt(agentCount) {}
 };
-
-namespace TT
-{
-	struct TimeAndCount
-	{
-		///	total travel time
-		double totalTravelTime;
-
-		///	total count of contributions to travel time
-		unsigned int travelTimeCnt;
-
-		TimeAndCount():totalTravelTime(0.0),travelTimeCnt(0){}
-	};
-
-	///	time interval
-	typedef unsigned int TI;
-
-	/*******************************************************************************
-	 * ************* In Simulation Travel Time Collection **************************
-	 *******************************************************************************/
-	///	the heart of the final container holding accumulated travel time
-	typedef std::map<const sim_mob::RoadSegment*,TimeAndCount > RSTC;
-
-	/// part of the data structure used in travel time collection mechanism
-	typedef std::map<std::string , RSTC >  MRTC;//MTITC=> M:mode, TI:Time Interval, T:time, C:count
-
-	///	final container for collecting in simulation data:
-	///	map[time interval][travel mode][road segment][pair(total-time , number-of-records)]
-	typedef std::map<TI,MRTC> TravelTimeCollector;
-
-	/*******************************************************************************
-	 * ********** Average Travel Time Collection from previous Simulations *********
-	 *******************************************************************************/
-
-	///	part of the structure used for retrieving the stored travel time (average) from database
-	typedef std::map<std::string , std::map<const sim_mob::Link *, double > >  MLT;//MLT:M:mode, L:link, T:time-average
-
-	///	map[time interval][travel mode][road segment][average travel time]
-	typedef std::map<TI,MLT> TravelTimeStore;
-}
-
-///	typedef of TT namespace structures
-/**
- * Container used for TravelTime collection during simulation     :
- * [road segment][travel mode][time interval][average travel time]
- * <-----RS-----><-------------------MTITC----------------------->
- */
-typedef sim_mob::TT::TravelTimeCollector TravelTime;
-
-/**
- * Container used to retrieve Previous travel time data stored in external source(database)
- * [time interval][travel mode][link][average travel time]
- * <-----TI-----> <-------------------MLT------------------------>
- */
-typedef sim_mob::TT::TravelTimeStore AverageTravelTime;
 }
 
 

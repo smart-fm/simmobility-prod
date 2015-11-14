@@ -212,14 +212,14 @@ template<> struct type_conversion<sim_mob::LinkTravelTime>
     	res.travelMode = vals.get<std::string>("travel_mode", "");
     	res.startTime = vals.get<std::string>("start_time", "00:00:00");
     	res.endTime = vals.get<std::string>("end_time", "00:00:00");
-    	res.travelTime = vals.get<double>("travel_time", 0.0);
+    	res.defaultTravelTime = vals.get<double>("travel_time", 0.0);
     }
     static void to_base(const sim_mob::LinkTravelTime& src, soci::values& vals, soci::indicator& ind)
     {
     	vals.set("link_id", src.linkId);
         vals.set("start_time", src.startTime);
         vals.set("end_time", src.endTime);
-        vals.set("travel_time", src.travelTime);
+        vals.set("travel_time", src.defaultTravelTime);
         vals.set("travel_mode", src.travelMode);
         ind = i_ok;
     }

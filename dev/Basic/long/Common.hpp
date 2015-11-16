@@ -139,6 +139,26 @@ namespace sim_mob {
         const int TIME_UNIT = TIME_UNIT_WEEKLY;
 
         const int HITS_SURVEY_YEAR = 2012;
+        const int TAO_YEAR_INDEX = 68; // The 68th index of the calibration2012.tao_hedonic_price table represents the 1st quarter of 2012 (our starting simulation year)
+
+
+        const int ID_HDB1 = 1;
+        const int ID_HDB2 = 2;
+        const int ID_HDB3 = 3;
+        const int ID_HDB4 = 4;
+        const int ID_HDB5 = 5;
+        const int ID_EC85 =  32;
+        const int ID_EC144 = 36;
+        const int ID_CONDO60 = 12;
+        const int ID_CONDO134 = 16;
+        const int ID_APARTM70 = 7;
+        const int ID_APARTM159 = 11;
+        const int ID_TERRACE180 = 17;
+        const int ID_TERRACE379 = 21;
+        const int ID_SEMID230 = 22;
+        const int ID_SEMID499 = 26;
+        const int ID_DETACHED480 = 27;
+        const int ID_DETACHED1199 = 31;
 
         /**
          * Configs

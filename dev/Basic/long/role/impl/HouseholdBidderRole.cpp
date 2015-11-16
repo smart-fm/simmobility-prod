@@ -1487,12 +1487,45 @@ void HouseholdBidderRole::reconsiderVehicleOwnershipOption()
 	//		}
 	//		else
 	//		{
+
+
+				HouseHoldHitsSample *hitsSample = model->getHouseHoldHitsById( this->getParent()->getHousehold()->getId() );
+
+				int p = 0;
+				int tazIdWork = -1;
+				int tazIdHome = -1;
+				for(p = 0; p < model->getHitsIndividualLogsumVec().size(); p++ )
+				{
+					if ( model->getHitsIndividualLogsumVec()[p]->getHitsId().compare( hitsSample->getHouseholdHitsId() ) == 0 )
+					{
+						tazIdWork = model->getHitsIndividualLogsumVec()[p]->getWorkTaz();
+						tazIdHome = model->getHitsIndividualLogsumVec()[p]->getHomeTaz();
+						break;
+					}
+				}
+
+				Taz *tazObjW = model->getTazById( tazIdWork );
+			    std::string tazStrW;
+				if( tazObjW != NULL )
+				{
+					tazStrW = tazObjW->getName();
+				}
+				BigSerial tazW = std::atoi( tazStrW.c_str() );
+
+				Taz *tazObjH = model->getTazById( tazIdHome );
+			    std::string tazStrH;
+				if( tazObjH != NULL )
+				{
+					tazStrH = tazObjH->getName();
+				}
+				BigSerial tazH = std::atoi( tazStrH.c_str() );
+
 				//replace householdHeadId with individualId
-				PredayPersonParams personParam1 = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), -1, -1,1) ;
+				PredayPersonParams personParam1 = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), tazH, tazW,1) ;
 
 				double vehicleOwnershipLogsumCar = personParam1.getDpbLogsum();
 
-				PredayPersonParams personParam2 = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), -1, -1,0);
+				PredayPersonParams personParam2 = PredayLT_LogsumManager::getInstance().computeLogsum( individual->getId(), tazH, tazW,0);
 				double vehicleOwnershipLogsumTransit =personParam2.getDpbLogsum();
 
 				vehicleOwnershipLogsum = (vehicleOwnershipLogsumCar - vehicleOwnershipLogsumTransit);

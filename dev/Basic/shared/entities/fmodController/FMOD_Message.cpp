@@ -16,6 +16,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 #include "entities/Person.hpp"
 
 namespace sim_mob {
@@ -410,6 +411,12 @@ void MsgSchedule::createMessage(const std::string& msg)
 			stop.arrivalTime = item["arrival_time"].asString();
 			stop.depatureTime = item["departure_time"].asString();
 			stop.dwellTime = 0;
+
+			Point pos;
+			pos.setX(boost::lexical_cast<double>(stop.longitude));
+			pos.setY(boost::lexical_cast<double>(stop.latitude));
+			sim_mob::Node* node = sim_mob::RoadNetwork::getInstance()->locateNearestNode(pos);
+			schedule.routes.push_back(node);
 
 			Json::Value arrPassengers = item["board_passengers"];
 			for(int k=0; k<arrPassengers.size(); k++){

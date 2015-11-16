@@ -18,6 +18,7 @@
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
+#include "geospatial/network/RoadNetwork.hpp"
 #include <utility>
 #include <stdexcept>
 
@@ -151,6 +152,12 @@ void FMOD_Controller::collectRequest()
 		if(trip == nullptr){
 			continue;
 		}
+
+		const RoadNetwork *network = RoadNetwork::getInstance();
+		const Node* node = network->getById(network->getMapOfIdvsNodes(), boost::lexical_cast<unsigned int>(trip->startLocationId));
+		trip->fromLocation = WayPoint(node);
+		node = network->getById(network->getMapOfIdvsNodes(), boost::lexical_cast<unsigned int>(trip->endLocationId));
+		trip->toLocation = WayPoint(node);
 
 		if( trip->sequenceNumber > 0 ){
 

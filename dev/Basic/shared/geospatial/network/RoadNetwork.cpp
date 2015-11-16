@@ -4,6 +4,7 @@
 
 #include <stdexcept>
 #include <sstream>
+#include <limits>
 
 #include "RoadNetwork.hpp"
 #include "Link.hpp"
@@ -549,3 +550,17 @@ RoadNetwork* RoadNetwork::getWritableInstance()
 	return roadNetwork;
 }
 
+Node* RoadNetwork::locateNearestNode(const Point& position) const
+{
+	double minDistance = std::numeric_limits<double>::max();
+	Node* candidate = nullptr;
+	std::map<unsigned int, Node *>::const_iterator it;
+	for(it=mapOfIdvsNodes.begin(); it!=mapOfIdvsNodes.end(); it++){
+		double distance = sim_mob::dist((it->second)->getLocation(), position);
+		if(distance < minDistance){
+			minDistance = distance;
+			candidate = it->second;
+		}
+	}
+	return candidate;
+}

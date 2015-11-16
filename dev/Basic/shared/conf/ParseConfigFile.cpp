@@ -540,6 +540,8 @@ void sim_mob::ParseConfigFile::ProcessFMOD_Node(xercesc::DOMElement* node)
 				trip->endTime = DailyTime(ParseString(GetNamedAttributeValue(item, "endTime"),""));
 				trip->requestTime = ParseUnsignedInt(GetNamedAttributeValue(item, "timeWinSec"));
 				trip->sequenceNumber = ParseUnsignedInt(GetNamedAttributeValue(item, "frequency"));
+				trip->startLocationId = ParseString(GetNamedAttributeValue(item, "originNode"), "");
+				trip->endLocationId = ParseString(GetNamedAttributeValue(item, "destNode"), "");
 				std::string startId = ParseString(GetNamedAttributeValue(item, "startId"), "");
 				cfg.fmod.allItems[startId] = trip;
 			}

@@ -182,6 +182,12 @@ public:
 			return NULL;
 		}
 	}
+	/**
+	 * locate nearest node from position
+	 * @param position is point wanted to locate
+	 * @return nearest node.
+	 */
+	Node* locateNearestNode(const Point& position) const;
 };
 }
 

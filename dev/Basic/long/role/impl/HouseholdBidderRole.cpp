@@ -483,26 +483,38 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	//These constants are extracted from Roberto Ponce's bidding model
 	//
 	/* willingness to pay in million of dollars*/
-	double sde		=  1.0684375114;
-	double barea	=  0.7147660817;
-	double blogsum	=  0.0719486398;
-	double bchin	= -0.1358159957;
-	double bmalay	= -0.5778758359;
-	double bHighInc =  0.1382808285;
-	const double bMIncChildApart  =	 0.5287412793;
-	const double bHIncChildApart  =	-0.2048701544;
-	const double bMIncChildCondo  =	-0.1536915619;
-	const double bHIncChildCondo  =	-0.05558812;
-	const double bapartment =	-2.8851520518;
-	const double bcondo 	= 	-2.8373445517;
-	const double bdetachedAndSemiDetached = -2.5475656034;
-	const double terrace 	=	-2.7867069129;
+	double sde		=  0.7922954584;
+	double barea	=  0.6922591951;
+	double blogsum	=  0.0184661069;
+	double bchin	= -0.0727597459;
+	double bmalay	= -0.3067308978;
+	double bHighInc =  0.0558738418;
+	const double bHIncChildApart  	=  0.085270578;
+	const double bHIncChildCondo  	= -0.0496929496;
+	const double bapartment 		= -3.1147976249;
+	const double bcondo 			= -2.9582377947;
+	const double bdetachedAndSemiDetached = -2.6753868759;
+	const double terrace 			= -2.9801756451;
+	const double bageOfUnit25		= -0.0432841653;
+	const double bageOfUnit25Squared= -0.0164360119;
+	const double bageGreaterT25LessT50 =  0.1883170202;
+	const double bageGreaterT50 	=  0.3565907423;
+	const double bmissingAge 		= -0.1679748285;
+	const double bfreeholdAppartm 	=  0.599136353;
+	const double bfreeholdCondo 	=  0.4300148333;
+	const double fbreeholdTerrace 	=  0.3999045196;
 
-	const double midIncChildHDB4 = -0.035671715;
-	const double midIncChildHDB5 = -0.0493279029;
-	const double bhdb123	=	-3.4469197526;
-	const double bhdb4 		=	-3.4572917076;
-	const double bhdb5		=	-3.4542929656;
+	const double midIncChildHDB3 = -0.0044485643;
+	const double midIncChildHDB4 = -0.0068614137;
+	const double midIncChildHDB5 = -0.0090473027;
+
+	const double bhdb12	=	-3.7770973415;
+	const double bhdb3  =  	-3.4905971667;
+	const double bhdb4 	=	-3.4851295051;
+	const double bhdb5	=	-3.5070548459;
+	const double bageOfUnit30 = -0.7012864149;
+	const double bageOfUnit30Squared = 0.1939266362;
+	const double bageOfUnitGreater30 = 0.0521622428;
 
 	const PostcodeAmenities* pcAmenities = DataManagerSingleton::getInstance().getAmenitiesById( unit->getSlaAddressId() );
 
@@ -510,7 +522,8 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 	double Condo		= 0;
 	double DetachedAndSemidetaced	= 0;
 	double Terrace		= 0;
-	double HDB123 		= 0;
+	double HDB12 		= 0;
+	double HDB3			= 0;
 	double HDB4			= 0;
 	double HDB5			= 0;
 	double HH_size1		= 0;
@@ -526,35 +539,38 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 	int unitType = unit->getUnitType();
 
-	if( unitType == 1 || unitType == 2 || unitType == 3 )
-		HDB123 = 1;
+	if( unitType == ID_HDB1 || unitType == ID_HDB2 )
+		HDB12 = 1;
 
-	if( unitType == 4 )
+	if( unitType == ID_HDB3 )
+		HDB3 = 1;
+
+	if( unitType == ID_HDB4 )
 		HDB4 = 1;
 
-	if( unitType == 5 )
+	if( unitType == ID_HDB5 )
 		HDB5 = 1;
 
-	if( unitType >= 7 && unitType <= 11 )
+	if( unitType >= ID_APARTM70 && unitType <= ID_APARTM159 )
 		Apartment = 1;
 
-	if( unitType >= 12 && unitType <= 16 )
+	if( unitType >= ID_CONDO60 && unitType <= ID_CONDO134 )
 		Condo = 1;
 
-	if( unitType >= 17 && unitType <= 21 )
+	if( unitType >= ID_TERRACE180 && unitType <= ID_TERRACE379 )
 		Terrace = 1;
 
-	if( unitType >= 22 && unitType <= 31 )
+	if( unitType >= ID_SEMID230 && unitType <= ID_DETACHED1199 )
 		DetachedAndSemidetaced = 1;
 
-	if( unitType < 6 )
+	if( unitType <= ID_HDB5 )
 	{
-		sde 	 = 0.538087157;
-		barea 	 = 0.7137466092;
-		blogsum	 = 0.0118120497;
-		bchin 	 = 0.0995361594;
-		bmalay 	 =-0.0670756414;
-		bHighInc = 0.0238942053;
+		sde 	 = 0.4371165786;
+		barea 	 = 0.8095874824;
+		blogsum	 = 0.0035517989;
+		bchin 	 = 0.0555546991;
+		bmalay 	 = -0.0056135472;
+		bHighInc = 0.0229342784;
 	}
 
 	if( household->getSize() == 1)
@@ -591,11 +607,8 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 		{
 			Individual * householdIndividual = getParent()->getModel()->getIndividualById( householdOccupants[n] );
 			std::tm dob = householdIndividual->getDateOfBirth();
-			struct tm thisTime;
-			time_t now;
-			time(&now);
-			thisTime = *localtime(&now);
-			int age = thisTime.tm_year - dob.tm_year;
+
+			int age = HITS_SURVEY_YEAR + ( day / 365 ) - dob.tm_year;
 
 			if( age >  eldestHouseholdMemberAge )
 			{
@@ -604,6 +617,36 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 			}
 		}
 	}
+
+	const int ageOfUnitPrivate = HITS_SURVEY_YEAR + ( day / 365 ) - unit->getPhysicalFromDate().tm_year;
+
+
+	int ZZ_ageOfUnitPrivate	 = ageOfUnitPrivate;
+	int ZZ_ageBet25And50 = 0;
+	int ZZ_ageGreater50  = 0;
+	int ZZ_missingAge    = 0;
+	int ZZ_freehold 	 = 0;
+
+	if( ageOfUnitPrivate > 25 )
+		ZZ_ageOfUnitPrivate = 25;
+
+	if( ageOfUnitPrivate > 25 && ageOfUnitPrivate < 50)
+		ZZ_ageBet25And50 = 1;
+
+	if( ageOfUnitPrivate > 50 )
+		ZZ_ageGreater50 = 1;
+
+
+	const int ageOfUnitHDB = HITS_SURVEY_YEAR + ( day / 365 ) - unit->getPhysicalFromDate().tm_year;
+	int ZZ_ageOfUnitHDB	 = ageOfUnitPrivate;
+	int ZZ_ageGreater30  = 0;
+
+	if( ageOfUnitHDB > 30 )
+		ZZ_ageOfUnitHDB = 30;
+
+	if( ageOfUnitHDB > 30 )
+		ZZ_ageGreater30 = 1;
+
 
 	HM_Model *model = getParent()->getModel();
 	Job *job = model->getJobById(headOfHousehold->getJobId());
@@ -711,24 +754,47 @@ double HouseholdBidderRole::calculateWillingnessToPay(const Unit* unit, const Ho
 
 
 
-	V = 	(barea		*  DD_area 		) +
-			(blogsum	* ZZ_logsumhh 	) +
-			(bchin	  	* ZZ_hhchinese 	) +
-			(bmalay		* ZZ_hhmalay 	) +
-			(bHighInc   * ZZ_highInc 	) +
-			(bMIncChildApart * ZZ_children * ZZ_middleInc 	* Apartment 	) +
-			(bHIncChildApart * ZZ_children * ZZ_highInc 	* Apartment 	) +
-			(bMIncChildCondo * ZZ_children * ZZ_middleInc 	* Condo 		) +
-			(bHIncChildCondo * ZZ_children * ZZ_highInc 	* Condo 		) +
-			(midIncChildHDB4 * ZZ_children * ZZ_middleInc 	* HDB4 			) +
-			(midIncChildHDB5 * ZZ_children * ZZ_middleInc 	* HDB5 			) +
-			(bhdb123 * HDB123 	) +
-			(bhdb4 	 * HDB4	 	) +
-			(bhdb5 	 * HDB5	 	) +
-			(bapartment  * Apartment ) +
-			(bcondo 	 * Condo 	 ) +
-			(bdetachedAndSemiDetached * DetachedAndSemidetaced ) +
-			(terrace	* Terrace);
+	double Vpriv = 	(barea		*  DD_area 		) +
+					(blogsum	* ZZ_logsumhh 	) +
+					(bchin	  	* ZZ_hhchinese 	) +
+					(bmalay		* ZZ_hhmalay 	) +
+					(bHighInc   * ZZ_highInc 	) +
+					(bHIncChildApart * ZZ_children * ZZ_highInc	* Apartment 	) +
+					(bHIncChildCondo * ZZ_children * ZZ_highInc	* Condo 		) +
+					(bapartment  * Apartment ) +
+					(bcondo 	 * Condo 	 ) +
+					(bdetachedAndSemiDetached * DetachedAndSemidetaced ) +
+					(terrace	* Terrace		) +
+					(bageOfUnit25 * ZZ_ageOfUnitPrivate 	) +
+					(bageOfUnit25Squared 	* ZZ_ageOfUnitPrivate * ZZ_ageOfUnitPrivate ) +
+					(bageGreaterT25LessT50  * ZZ_ageBet25And50 	) +
+					(bageGreaterT50  		* ZZ_ageGreater50 	) +
+					(bmissingAge  			* ZZ_missingAge 	) +
+					(bfreeholdAppartm  		* ZZ_freehold * Apartment 	) +
+					(bfreeholdCondo  		* ZZ_freehold * Condo 		) +
+					(fbreeholdTerrace  		* ZZ_freehold * Terrace 	);
+
+
+	double Vhdb = 	(barea		*  DD_area 		) +
+					(blogsum	* ZZ_logsumhh 	) +
+					(bchin	  	* ZZ_hhchinese 	) +
+					(bmalay		* ZZ_hhmalay 	) +
+					(bHighInc   * ZZ_highInc 	) +
+					(midIncChildHDB3 * ZZ_children * ZZ_middleInc 	* HDB3	) +
+					(midIncChildHDB4 * ZZ_children * ZZ_middleInc 	* HDB4	) +
+					(midIncChildHDB5 * ZZ_children * ZZ_middleInc 	* HDB5	) +
+					(bhdb12  * HDB12 ) +
+					(bhdb3   * HDB3  ) +
+					(bhdb4 	 * HDB4	 ) +
+					(bhdb5 	 * HDB5	 ) +
+					(bageOfUnit30 * ZZ_ageOfUnitHDB ) +
+					(bageOfUnit30Squared * ZZ_ageOfUnitHDB * ZZ_ageOfUnitHDB ) +
+					(bageOfUnitGreater30 * ZZ_ageBet25And50 );
+
+	if( unit->getUnitType() <= ID_HDB5 )
+		V = Vhdb;
+	else
+		V = Vpriv;
 
 	boost::mt19937 rng( clock() );
 	boost::normal_distribution<> nd( 0.0, sde);
@@ -1025,7 +1091,103 @@ void HouseholdBidderRole::getScreeningProbabilities(int hhId, std::vector<double
 			tazNum = atoi(thisTaz->getName().c_str());
 
 		double logsumHP = model->ComputeHedonicPriceLogsumFromDatabase( tazNum );
-	    luaModel.calulateUnitExpectations(*unit, 1, logsumHP, expectations);
+
+		double currentQuarter = day / 365.0 * 4.0;
+
+		DeveloperModel *devModel = model->getDeveloperModel();
+		const TAO*  currentTao = devModel->getTaoByQuarter(68 + currentQuarter); // 68 is first quarter of 2012
+
+		std::vector<double> lagCoefficient;
+		double finalCoefficient = 0;
+
+		if( unit->getUnitType() < 3 )
+		{
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getHdb12());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getHdb12());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getHdb12());
+
+			finalCoefficient = (lagCoefficient[0] * 0) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
+		}
+
+		else if( unit->getUnitType() == 3 )
+		{
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getHdb3());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getHdb3());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getHdb3());
+
+			finalCoefficient = (lagCoefficient[0] * 0) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
+		}
+		else if( unit->getUnitType() == 4 )
+		{
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getHdb4());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getHdb4());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getHdb4());
+
+			finalCoefficient = (lagCoefficient[0] * 0) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
+		}
+		else if( unit->getUnitType() == 5 )
+		{
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getHdb5());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getHdb5());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getHdb5());
+
+			finalCoefficient = (lagCoefficient[0] * 0) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
+		}
+		else if( unit->getUnitType() >= 32 and unit->getUnitType()  < 36 )  //Executive Condominium
+		{
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getEc());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getEc());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getEc());
+
+			finalCoefficient = (lagCoefficient[0] * 1.2096032467) + (lagCoefficient[1] * -0.1792877201) + (lagCoefficient[2] * 0);
+
+		}
+		else if( unit->getUnitType() >= 12 && unit->getUnitType()  <= 16 )   //Condominium
+		{
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getCondo());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getCondo());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getCondo());
+
+			finalCoefficient = (lagCoefficient[0] * 1.4844876679) + (lagCoefficient[1] * -0.6052100987) + (lagCoefficient[2] * 0);
+		}
+		else if(unit->getUnitType() >= 7 && unit->getUnitType()  <= 11 ) //"Apartment"
+		{
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getApartment());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getApartment());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getApartment());
+
+			finalCoefficient = (lagCoefficient[0] * 0.9871695457) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * -0.2613884519);
+		}
+		else if(unit->getUnitType() >= 17 && unit->getUnitType()  <= 21 )  //"Terrace House"
+		{
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getTerrace());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getTerrace());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getTerrace());
+
+			finalCoefficient = (lagCoefficient[0] * 1.3913443465 ) + (lagCoefficient[1] * -0.4404391521 ) + (lagCoefficient[2] * 0);
+
+		}
+		else if( unit->getUnitType() >= 22 && unit->getUnitType()  <= 26 )  //"Semi-Detached House"
+		{
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getSemi());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getSemi());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getSemi());
+
+			finalCoefficient = (lagCoefficient[0] * 1.2548759133) + (lagCoefficient[1] * -0.0393621411 ) + (lagCoefficient[2] * 0);
+
+		}
+		else if( unit->getUnitType() >= 27 && unit->getUnitType()  <= 31 )  //"Detached House"
+		{
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 1)->getDetached());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 2)->getDetached());
+			lagCoefficient.push_back(  devModel->getTaoByQuarter(68 + currentQuarter + 3)->getDetached());
+
+			finalCoefficient = (lagCoefficient[0] * 1.1383691158) + (lagCoefficient[1] * 0) + (lagCoefficient[2] * 0);
+		}
+
+
+
+	    luaModel.calulateUnitExpectations(*unit, 1, logsumHP, finalCoefficient, expectations);
 	    logZonalMedianHousingPrice = log(expectations[0].hedonicPrice);
 		//////////////////////////////////
 
@@ -1172,7 +1334,7 @@ bool HouseholdBidderRole::pickEntryToBid()
         for( int m = 0; m < householdScreeningProbabilities.size(); m++ )
         {
         	cummulativeProbability +=  householdScreeningProbabilities[m];
-        	if( randomDraw >cummulativeProbability )
+        	if( cummulativeProbability > randomDraw )
         	{
         		zoneHousingType = m + 1; //housing type is a one-based index
         		break;
@@ -1258,7 +1420,7 @@ bool HouseholdBidderRole::pickEntryToBid()
         	thisDwellingType = 600;
         }
         else
-        if( thisUnit->getUnitType() >= 17 && thisUnit->getUnitType() <= 31)
+        if( thisUnit->getUnitType() >= 17 && thisUnit->getUnitType() <= 31 )
         {
         	thisDwellingType = 700;
         }
@@ -1267,7 +1429,7 @@ bool HouseholdBidderRole::pickEntryToBid()
         	thisDwellingType = 800;
         }
 
-        //PrintOutV("thisDwellingType " << thisDwellingType << std::endl);
+
 
     	if( thisDwellingType == housingType )
     	{
@@ -1311,7 +1473,6 @@ bool HouseholdBidderRole::pickEntryToBid()
     		sprintf( temp + strLength, " %i,", (int)screenedEntries[n]->getUnitId() );
     	}
 
-    	PrintOutV( household->getId() << ", " << temp << std::endl );
     	printChoiceset(household->getId(), temp);
     }
 

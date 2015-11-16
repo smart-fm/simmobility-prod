@@ -379,6 +379,15 @@ int HM_Model::getNumberOfBidders()
 	return numberOfBidders;
 }
 
+void HM_Model::setDeveloperModel(DeveloperModel *developerModelPointer)
+{
+	developerModel = developerModelPointer;
+}
+
+DeveloperModel* HM_Model::getDeveloperModel() const
+{
+	return developerModel;
+}
 
 Job* HM_Model::getJobById(BigSerial id) const
 {
@@ -1639,7 +1648,7 @@ void HM_Model::getLogsumOfHousehold(BigSerial householdId2)
 		printHouseholdHitsLogsum( "logsum", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], paxId, logsum );
 		printHouseholdHitsLogsum( "travelProbability", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], paxId, travelProbability );
 		printHouseholdHitsLogsum( "tripsExpected", hitsSample->getHouseholdHitsId() , householdId, householdIndividualIds[n], paxId, tripsExpected );
-		PrintOutV( hitsIndividualLogsum[p]->getHitsId() << ", " << hitsSample->getHouseholdHitsId() << ", " << householdId << ", " << paxId << ", " << thisIndividual->getMemberId() << ", " << householdIndividualIds[n] << ", " << std::setprecision(5)
+		PrintOutV( simulationStopCounter << ". " << hitsIndividualLogsum[p]->getHitsId() << ", " << hitsSample->getHouseholdHitsId() << ", " << householdId << ", " << paxId << ", " << thisIndividual->getMemberId() << ", " << householdIndividualIds[n] << ", " << std::setprecision(5)
 														<< logsum[0]  << ", " << logsum[1]  << ", " << logsum[2]  << ", " << logsum[3]  << ", " << logsum[4]  << ", " << logsum[5]  << ", " << logsum[6]  << ", " << logsum[7]  << ", " << logsum[8]  << ", " << logsum[9]  << ", " << logsum[10]  << ", " << logsum[11]  << ", " << logsum[12]  << ", " << logsum[13]
 														<< ", " << logsum[14]  << ", " << logsum[15]  << ", " << logsum[16]  << ", " << logsum[17]  << ", " << logsum[18]  << ", " << logsum[19]  << ", " << logsum[20]  << ", " << logsum[21]  << ", " << logsum[22]  << ", " << logsum[23]  << ", " << logsum[24]  << ", " << logsum[25]  << ", " << logsum[26]  << ", " << logsum[27]
 														<< ", " << logsum[28]  << ", " << logsum[29]  << ", " << logsum[30]  << ", " << logsum[31]  << ", " << logsum[32]  << ", " << logsum[33]  << ", " << logsum[34]  << ", " << logsum[35]  << ", " << logsum[36]  << ", " << logsum[37]  << ", " << logsum[38]  << ", " << logsum[39]  << ", " << logsum[40]  << ", " << logsum[41]

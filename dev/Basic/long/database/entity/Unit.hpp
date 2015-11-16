@@ -54,6 +54,7 @@ namespace sim_mob
             double getRent() const;
             std::tm getSaleFromDate() const;
             std::tm getPhysicalFromDate() const;
+            int getPhysicalFromYear() const;
             int getSaleStatus() const;
             int getPhysicalStatus() const;
             std::tm getLastChangedDate() const;

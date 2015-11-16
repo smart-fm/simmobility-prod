@@ -121,6 +121,12 @@ std::tm Unit::getPhysicalFromDate() const
 	return physical_from_date;
 }
 
+int Unit::getPhysicalFromYear() const
+{
+	return physical_from_date.tm_year;
+}
+
+
 int Unit::getSaleStatus() const
 {
 	return sale_status;

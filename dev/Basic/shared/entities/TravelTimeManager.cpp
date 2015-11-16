@@ -10,7 +10,7 @@
 sim_mob::TravelTimeManager* sim_mob::TravelTimeManager::instance = nullptr;
 
 sim_mob::TravelTimeManager::TravelTimeManager()
-	: intervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().interval),
+	: intervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().interval * 1000), //conversion from seconds to milliseconds
 	  enRouteTT(new sim_mob::TravelTimeManager::EnRouteTT(*this))
 {}
 
@@ -105,7 +105,7 @@ void sim_mob::TravelTimeManager::dumpTravelTimesToFile(const std::string fileNam
 				//start and end time:
 				const DailyTime &simStartTime = sim_mob::ConfigManager::GetInstance().FullConfig().simStartTime();
 				DailyTime startTime(simStartTime.getValue() +  (timeInterval* intervalMS) );
-				DailyTime endTime(simStartTime.getValue() + ((timeInterval + 1) * intervalMS - 1) );
+				DailyTime endTime(simStartTime.getValue() + ((timeInterval + 1) * intervalMS - 1000) );
 				//now simply write it to the file
 				TTLogger << segmentId << ";" << startTime.getStrRepr() << ";" << endTime.getStrRepr() << ";" << avgTravelTime << ";"  << intervalSec << ";"  << travelModeStr <<  "\n";
 			}

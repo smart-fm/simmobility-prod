@@ -19,9 +19,9 @@ const std::string& Phase::getName() const
 	return phaseName;
 }
 
-void Phase::setPhaseLength(double phaseLength)
+void Phase::setPercentage(double percentage)
 {
-	this->phaseLength = phaseLength;
+	this->percentage = percentage;
 }
 
 void Phase::setPhaseOffset(double offset)
@@ -45,8 +45,8 @@ void Phase::update(double currentCycleTimer) const
 	//2. We are at the beginning of this phase [so the rest (computeColor) will be OK]
 	if (lapse < 0)
 	{
-		Warn() << "Phase::update(): " << phaseName << " has lapse < 0";
-		Warn() << "lapse (" << lapse << ") = currentCycleTimer (" << currentCycleTimer << ") - phaseOffset (" << phaseOffset << ")";
+		Warn() << "\nPhase::update(): " << phaseName << " has lapse < 0";
+		Warn() << "\nlapse (" << lapse << ") = currentCycleTimer (" << currentCycleTimer << ") - phaseOffset (" << phaseOffset << ")";
 		return;
 	}
 	
@@ -96,6 +96,7 @@ double Phase::computeTotalGreenTime()const
 void Phase::initialize(SplitPlan *plan)
 {
 	parentPlan = plan;
+	phaseLength = parentPlan->getCycleLength() * percentage / 100;
 	calculateGreen();
 }
 

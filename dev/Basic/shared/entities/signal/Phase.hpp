@@ -58,6 +58,9 @@ private:
 	/**The amount of time from the start of the cycle until the start of this phase*/
 	mutable double phaseOffset;
 	
+	/**Percentage*/
+	double percentage;
+	
 	/**Length of the phase*/
 	double phaseLength;
 
@@ -91,7 +94,7 @@ public:
 	
 	const std::string& getName() const;
 	
-	void setPhaseLength(double phaseLength);
+    void setPercentage(double percentage);
 	void setPhaseOffset(double offset);
 
 	linksMapping& getLinksMap() const

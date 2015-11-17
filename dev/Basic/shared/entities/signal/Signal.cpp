@@ -284,10 +284,9 @@ TrafficColor Signal_SCATS::getDriverLight(unsigned int fromLink, unsigned int to
 		}
 	}
 
-	//If the link is not listed in the current phase warn and return red
+	//If the link is not listed in the current phase return red
 	if (iter == range.second)
 	{
-		Warn() << "The requested fromLink (" << fromLink << ") is not in the current phase\n";
 		return TrafficColor::TRAFFIC_COLOUR_RED;
 	}
 	
@@ -379,8 +378,8 @@ void Signal_SCATS::initialisePhases()
 			percentageSum += choice[i - 1];
 		}
 		
-		phase->setPhaseLength(percentageSum * splitPlan->getCycleLength() / 100);
-		phase->setPhaseOffset(choice[i]);
+		phase->setPercentage(choice[i]);
+		phase->setPhaseOffset(percentageSum * splitPlan->getCycleLength() / 100);
 	}
 	
 	//Initialise the phases

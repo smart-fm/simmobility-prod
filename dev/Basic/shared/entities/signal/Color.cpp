@@ -74,8 +74,8 @@ TrafficColor ColorSequence::computeColor(double duration)
 	}
 	
 	//The return inside the loop must execute before the loop exits otherwise something is wrong!
-	Warn() << "ColorSequence::computeColor(): colour duration (" << duration << ") > sum of colour durations (" << sum << ")";
-	Warn() << "Returning TRAFFIC_COLOUR_RED...";
+	Warn() << "\nColorSequence::computeColor(): colour duration (" << duration << ") > sum of colour durations (" << sum << ")";
+	Warn() << "\nReturning TRAFFIC_COLOUR_RED...";
 	
 	return TRAFFIC_COLOUR_RED;
 }

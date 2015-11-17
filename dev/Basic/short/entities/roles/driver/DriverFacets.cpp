@@ -1955,8 +1955,7 @@ void DriverMovement::setTrafficSignalParams(DriverUpdateParams &params)
 
 		parentDriver->perceivedTrafficColor->delay(params.trafficColor);
 
-		params.trafficSignalStopDistance = fwdDriverMovement.getDistToEndOfCurrLink() - fwdDriverMovement.getDistCoveredOnCurrWayPt() -
-				(parentDriver->getVehicleLength() / 2);
+		params.trafficSignalStopDistance = fwdDriverMovement.getDistToEndOfCurrLink() - (parentDriver->getVehicleLength() / 2);
 
 		if (!parentDriver->perceivedDistToTrafficSignal->can_sense())
 		{

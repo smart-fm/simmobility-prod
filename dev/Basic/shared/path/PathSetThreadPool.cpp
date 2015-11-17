@@ -55,8 +55,8 @@ void sim_mob::PathSetWorkerThread::run()
 			blacklistEdges.insert(lookIt->second.begin(), lookIt->second.end());
 		}
 	}
+
 	//used for error checking and validation
-	unsigned long dbgPrev = 0;
 	std::pair<StreetDirectory::Edge, bool> dbgPrevEdge;
 	//output container
 	vector<WayPoint> wps;
@@ -100,21 +100,7 @@ void sim_mob::PathSetWorkerThread::run()
 					}
 					//Retrieve, add this edge's WayPoint.
 					WayPoint wp = boost::get(boost::edge_name, *graph,edge.first);
-					//todo this problem occurs during "highway bias distance" generation. dont know why, discarding the repeated segment
-					if (wp.type == WayPoint::ROAD_SEGMENT && wp.roadSegment->getRoadSegmentId() == dbgPrev)
-					{
-//							logger << dbgStr
-//									<< " 1ERROR-exeThis:: repeating segment found in path from "
-//									<< " seg: " << dbgPrev << " edge: " <<  edge.first << "  prev edge:" <<
-//									dbgPrevEdge.first << "   " << edge.second << "  " << dbgPrevEdge.second << "  " <<
-//									WayPoint(boost::get(boost::edge_name, *graph,dbgPrevEdge.first)).roadSegment->getRoadSegmentId() << "\n";
-						dbgPrev = wps.rbegin()->roadSegment->getRoadSegmentId();
-						dbgPrevEdge = edge;
-					}
-					else
-					{
-						wps.push_back(wp);
-					}
+					wps.push_back(wp);
 				}
 				//Save for later.
 				prev = it;
@@ -172,21 +158,7 @@ void sim_mob::PathSetWorkerThread::run()
 						}
 						//Retrieve, add this edge's WayPoint.
 						WayPoint wp = boost::get(boost::edge_name, filtered,edge.first);
-						//todo this problem occurs during "highway bias distance" generation. dont know why, discarding the repeated segment
-						if (wp.type == WayPoint::ROAD_SEGMENT && wp.roadSegment->getRoadSegmentId() == dbgPrev)
-						{
-//							logger << dbgStr
-//									<< " 1ERROR-exeThis:: repeating segment found in path from "
-//									<< " seg: " << dbgPrev << " edge: " <<  edge.first << "  prev edge:" <<
-//									dbgPrevEdge.first << "   " << edge.second << "  " << dbgPrevEdge.second << "  " <<
-//									WayPoint(boost::get(boost::edge_name, *graph,dbgPrevEdge.first)).roadSegment->getRoadSegmentId() << "\n";
-							dbgPrev = wps.rbegin()->roadSegment->getRoadSegmentId();
-							dbgPrevEdge = edge;
-						}
-						else
-						{
-							wps.push_back(wp);
-						}
+						wps.push_back(wp);
 					}
 
 					//Save for later.
@@ -242,27 +214,13 @@ void sim_mob::PathSetWorkerThread::run()
 						}
 						//Retrieve, add this edge's WayPoint.
 						WayPoint wp = boost::get(boost::edge_name, filtered,edge.first);
-						//todo this problem occurs during "highway bias distance" generation. dont know why, discarding the repeated segment
-						if (wp.type == WayPoint::ROAD_SEGMENT && wp.roadSegment->getRoadSegmentId() == dbgPrev)
-						{
-//							logger << dbgStr
-//									<< " 1ERROR-exeThis:: repeating segment found in path from "
-//									<< " seg: " << dbgPrev << " edge: " <<  edge.first << "  prev edge:" <<
-//									dbgPrevEdge.first << "   " << edge.second << "  " << dbgPrevEdge.second << "  " <<
-//									WayPoint(boost::get(boost::edge_name, *graph,dbgPrevEdge.first)).roadSegment->getRoadSegmentId() << "\n";
-							dbgPrev = wps.rbegin()->roadSegment->getRoadSegmentId();
-							dbgPrevEdge = edge;
-						}
-						else
-						{
-							wps.push_back(wp);
-						}
+						wps.push_back(wp);
 					}
 
 					//Save for later.
 					prev = it;
 				}
-			}				//catch
+			}
 		}
 	}
 

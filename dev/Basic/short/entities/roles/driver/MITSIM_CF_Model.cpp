@@ -795,12 +795,12 @@ double MITSIM_CF_Model::calcTrafficSignalAcc(DriverUpdateParams& p)
 
 	if (distanceToTrafficSignal < signalVisibilityDist)
 	{
-		if (color == Red)
+		if (color == TRAFFIC_COLOUR_RED)
 		{
 			double acc = calcBrakeToStopAcc(p, distanceToTrafficSignal);
 			minAcc = std::min(acc, minAcc);
 		}
-		else if (color == Amber)
+		else if (color == TRAFFIC_COLOUR_AMBER)
 		{
 			double maxSpeed = (p.perceivedFwdVelocity > minYellowLightSpeed) ? p.perceivedFwdVelocity : minYellowLightSpeed;
 			
@@ -810,7 +810,7 @@ double MITSIM_CF_Model::calcTrafficSignalAcc(DriverUpdateParams& p)
 				minAcc = std::min(acc, minAcc);
 			}
 		}
-		else if (color == Green)
+		else if (color == TRAFFIC_COLOUR_GREEN)
 		{
 			minAcc = p.maxAcceleration;
 		}

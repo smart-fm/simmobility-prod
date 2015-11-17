@@ -69,7 +69,7 @@ void DriverUpdateParams::reset(timeslice now, const Driver &owner)
 	currSpeed = 0;
 	perceivedFwdVelocity = 0;
 	perceivedLatVelocity = 0;
-	trafficColor = Green;
+	trafficColor = TRAFFIC_COLOUR_GREEN;
 	elapsedSeconds = ConfigManager::GetInstance().FullConfig().baseGranMS() / 1000.0;
 	perceivedFwdVelocityOfFwdCar = 0;
 	perceivedLatVelocityOfFwdCar = 0;

@@ -387,9 +387,17 @@ void sim_mob::ExpandAndValidateConfigFile::LoadNetwork()
 	{
 		Print() <<"Loading Road Network from the database.\n";
 		
+		//The instance of the network loader
 		NetworkLoader *loader = NetworkLoader::getInstance();
+		
+		//Load the road network
 		loader->loadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
+		
+		//Post processing on the network
 		loader->processNetwork();
+		
+		//Create traffic signals
+		loader->createTrafficSignals(cfg.mutexStategy());
 
 		sim_mob::aimsun::Loader::LoadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
 	}

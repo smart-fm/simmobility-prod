@@ -9,6 +9,7 @@
 #include "SOCI_Converters.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "entities/signal/Signal.hpp"
 
 using namespace sim_mob;
 
@@ -315,13 +316,34 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 void NetworkLoader::processNetwork()
 {
 	//Calculate the lengths of all the links
-	std::map<unsigned int, Link *> mapOfLinks = roadNetwork->getMapOfIdVsLinks();
-	std::map<unsigned int, Link *>::iterator itLinks = mapOfLinks.begin();
+	const std::map<unsigned int, Link *> &mapOfLinks = roadNetwork->getMapOfIdVsLinks();
+	std::map<unsigned int, Link *>::const_iterator itLinks = mapOfLinks.begin();
 	
 	while(itLinks != mapOfLinks.end())
 	{
 		itLinks->second->calculateLength();
 		++itLinks;
+	}
+}
+
+void NetworkLoader::createTrafficSignals(const MutexStrategy &mtxStrat)
+{
+	const std::map<unsigned int, Node *> &nodes = roadNetwork->getMapOfIdvsNodes();
+	
+	for(std::map<unsigned int, Node *>::const_iterator itNodes = nodes.begin(); itNodes != nodes.end(); ++itNodes)
+	{
+		const Node *node = itNodes->second;
+		unsigned int trafficLightId = node->getTrafficLightId();
+		
+		//Check if a traffic signal exists at this node
+		if(trafficLightId != 0)
+		{
+			//Create a new traffic signal
+			Signal_SCATS *signal = new Signal_SCATS(node, mtxStrat);
+			
+			//Add the signal in the map
+			roadNetwork->addTrafficSignal(trafficLightId, signal);			
+		}
 	}
 }
 

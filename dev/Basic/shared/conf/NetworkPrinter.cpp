@@ -60,7 +60,7 @@ void NetworkPrinter::PrintNetwork(const RoadNetwork *network) const
 
 	PrintConflicts(network->getMapOfIdvsTurningConflicts());
 	
-	PrintSignals();
+	PrintSignals(network->getMapOfIdVsSignals());
 	
 	PrintBusStops(network->getMapOfIdvsBusStops());
 
@@ -75,7 +75,7 @@ void NetworkPrinter::PrintNetwork(const RoadNetwork *network) const
 	//StreetDirectory::Instance().printDrivingGraph(out);
 	//StreetDirectory::Instance().printWalkingGraph(out);
 
-	//Required for the visualizer
+	//Required for the visualiser
 	out << "ROADNETWORK_DONE" << std::endl;
 }
 
@@ -270,7 +270,7 @@ void NetworkPrinter::PrintConflicts(const std::map<unsigned int, TurningConflict
 	PrintToFileAndGui(out);
 }
 
-void NetworkPrinter::PrintSignals() const
+void NetworkPrinter::PrintSignals(const std::map<unsigned int, Signal *> &signals) const
 {
 }
 

@@ -843,7 +843,7 @@ void DriverMovement::buildPath(std::vector<WayPoint> &wayPoints, int startLaneIn
 			else
 			{
 				stringstream msg;
-				msg << "No turning between the links " << currLink << "and " << nextLink << "!\nInvalid Path!!!";
+				msg << "No turning between the links " << currLink << " and " << nextLink << "!\nInvalid Path!!!";
 				throw std::runtime_error(msg.str());
 			}
 		}				
@@ -1890,12 +1890,12 @@ void DriverMovement::setTrafficSignalParams(DriverUpdateParams &params)
 {
 	if (!trafficSignal)
 	{
-		params.trafficColor = Green;
+		params.trafficColor = TRAFFIC_COLOUR_GREEN;
 		parentDriver->perceivedTrafficColor->delay(params.trafficColor);
 	}
 	else
 	{
-		TrafficColor colour = InvalidTrafficColor;
+		TrafficColor colour = TRAFFIC_COLOUR_INVALID;
 
 		if (isLastSegmentInLink())
 		{
@@ -1935,13 +1935,13 @@ void DriverMovement::setTrafficSignalParams(DriverUpdateParams &params)
 				else
 				{
 					//The destination node is a sink node. No turnings originate from it
-					colour = Green;
+					colour = TRAFFIC_COLOUR_GREEN;
 				}
 			}
 		}
 		else
 		{
-			colour = Green;
+			colour = TRAFFIC_COLOUR_GREEN;
 		}
 
 		if (!parentDriver->perceivedTrafficColor->can_sense())

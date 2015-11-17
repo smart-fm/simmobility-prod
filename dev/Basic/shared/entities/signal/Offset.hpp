@@ -4,21 +4,41 @@
 
 #pragma once
 
-#include "defaults.hpp"
+namespace sim_mob
+{
 
-namespace sim_mob {
-
-class Offset {
+class Offset
+{
+private:
+	double currOffset;
+	double nextOffset;
+	
 public:
-	/*--------Offset----------*/
-	Offset():currOffset(0), nextOffset(0) {}
-	void setnextOffset(double nextCL);
-	double getcurrOffset()const {return currOffset;}
-	double getnextOffset();
-	void updateCurrOffset();
+	Offset() : currOffset(0), nextOffset(0)
+	{
+	}
+	
+	double getcurrOffset() const;
+	double getnextOffset() const;	
+	
+	/**
+	 * Updates the offset
+	 * @param nextCL the next cycle length
+	 */
 	void update(double nextCL);
+	
+	/**
+	 * Uses next cycle length to calculate next offset
+	 * @param nextCL the next cycle length
+	 */
+	void calcNextOffset(double nextCL);
+	
+	/**
+	 * Sets the next offset as the current offset when the cycle changes
+	 */
+	void updateCurrOffset();
 
-	//parameters for calculating next cycle length
+	//Parameters for calculating next cycle length
 	const static double DSmax;
 	const static double DSmed;
 	const static double DSmin;
@@ -27,20 +47,13 @@ public:
 	const static double CLmed;
 	const static double CLmin;
 
-	//parameters for calculating next Offset
+	//Parameters for calculating next Offset
 	const static double CL_low;
 	const static double CL_up;
 	const static double Off_low;
 	const static double Off_up;
 
 	const static double fixedCL;
+} ;
 
-private:
-	/*-------------------------------------------------------------------------
-	 * -------------------Offset Indicators------------------------------
-	 * ------------------------------------------------------------------------*/
-	//current and next Offset
-	double currOffset, nextOffset;
-};
-
-}//namespace sim_mob
+}

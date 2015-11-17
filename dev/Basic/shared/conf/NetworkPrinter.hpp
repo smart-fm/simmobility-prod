@@ -76,9 +76,10 @@ private:
 	void PrintConflicts(const std::map<unsigned int, TurningConflict *> &conflicts) const;
 
 	/**
-	 * Prints the signals
+	 * Prints the traffic signals
+	 * @param signals map of id vs traffic signals
 	 */
-	void PrintSignals() const;
+	void PrintSignals(const std::map<unsigned int, Signal *> &signals) const;
 
 	/**
 	 * Prints the bus stops

@@ -3,76 +3,79 @@
 //   license.txt   (http://opensource.org/licenses/MIT)
 
 #include "Color.hpp"
+#include "logging/Log.hpp"
 
-namespace sim_mob
+using namespace sim_mob;
+
+const std::vector< std::pair<TrafficColor, int> > & ColorSequence::getColorDuration() const
 {
+	return colourDurations;
+}
 
-TrafficColor ColorSequence::computeColor(double Duration)
+void ColorSequence::setColorDuration(std::vector< std::pair<TrafficColor, int> > durations)
 {
+	colourDurations = durations;
+}
 
-	short sum = 0;
-	std::vector< std::pair<TrafficColor,int> >::iterator it = ColorDuration.begin();
-	for(; it != ColorDuration.end(); ++it)
+const TrafficLightType ColorSequence::getTrafficLightType() const
+{
+	return type;
+}
+
+void ColorSequence::setTrafficLightType(TrafficLightType trafficLightType)
+{
+	type = trafficLightType;
+}
+
+void ColorSequence::addColorDuration(TrafficColor color, int duration)
+{
+	colourDurations.push_back(std::make_pair(color, duration));
+}
+
+void ColorSequence::clearColorDurations()
+{
+	colourDurations.clear();
+}
+
+void ColorSequence::changeColorDuration(std::size_t color, int duration)
+{
+	std::vector< std::pair<TrafficColor, int> >::iterator it;
+	for (it = colourDurations.begin(); it != colourDurations.end(); ++it)
 	{
-		sum += (*it).second;
-		if(Duration < sum )
-			{
-				return (*it).first;
-			}
-	}
-	//the return inside the loop must execute befor the loop exits otherwise something is wrong!
-//	return ColorDuration[ColorDuration.size() -1].first; //will return the last color in the sequence if there is an error!
-	return sim_mob::Red;
-}
-
-void ColorSequence::setColorDuration(std::vector< std::pair<TrafficColor,int> > cs)
-{
-	ColorDuration = cs;
-}
-
-void ColorSequence::setTrafficLightType(TrafficLightType t)
-{
-	type = t;
-}
-
-const std::vector< std::pair<TrafficColor,int> > & ColorSequence::getColorDuration() const { return ColorDuration; }
-const TrafficLightType ColorSequence::getTrafficLightType() const { return type; }
-
-void ColorSequence::addColorDuration(TrafficColor color,int duration)
-{
-	ColorDuration.push_back(std::make_pair(color,duration));
-
-}
-void ColorSequence::addColorPair(std::pair<TrafficColor,int> p)
-{
-	ColorDuration.push_back(p);
-}
-
-void ColorSequence::removeColorPair(int position = 0)
-{
-	ColorDuration.erase(ColorDuration.begin() + position );
-}
-void ColorSequence::clear()
-{
-	ColorDuration.clear();
-}
-
-void ColorSequence::changeColorDuration(std::size_t color,int duration)
-{
-	std::vector< std::pair<TrafficColor,int> >::iterator it=ColorDuration.begin();
-	for(it=ColorDuration.begin(); it!=ColorDuration.end(); ++it)
-		if((*it).first == color)
+		if ((*it).first == color)
 		{
 			(*it).second = duration;
 			break;
 		}
+	}
 }
 
-std::string ColorSequence::getTrafficLightColorString(const TrafficColor& value) {
-	if(trafficColorMap.find(value) == trafficColorMap.end()){
-		return trafficColorMap[InvalidTrafficColor];
+std::string ColorSequence::getTrafficLightColor(const TrafficColor &value)
+{
+	if (trafficColorMap.find(value) == trafficColorMap.end())
+	{
+		return trafficColorMap[TRAFFIC_COLOUR_INVALID];
 	}
+
 	return trafficColorMap[value];
 }
 
-}//namespace
+TrafficColor ColorSequence::computeColor(double duration)
+{
+	short sum = 0;
+
+	for (std::vector< std::pair<TrafficColor, int> >::iterator itDurations = colourDurations.begin(); itDurations != colourDurations.end(); ++itDurations)
+	{
+		sum += (*itDurations).second;
+		if (duration < sum)
+		{
+			return (*itDurations).first;
+		}
+	}
+	
+	//The return inside the loop must execute before the loop exits otherwise something is wrong!
+	Warn() << "ColorSequence::computeColor(): colour duration (" << duration << ") > sum of colour durations (" << sum << ")";
+	Warn() << "Returning TRAFFIC_COLOUR_RED...";
+	
+	return TRAFFIC_COLOUR_RED;
+}

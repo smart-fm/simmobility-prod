@@ -8,6 +8,8 @@
 #include <string>
 #include <soci/soci.h>
 #include <soci/postgresql/soci-postgresql.h>
+
+#include "buffering/Shared.hpp"
 #include "RoadNetwork.hpp"
 
 using namespace std;
@@ -142,5 +144,11 @@ public:
 	 * This method does post processing on the road network
      */
 	void processNetwork();
+	
+	/**
+	 * This method creates the traffic signals at nodes with traffic signals using the phase information 
+	 * present in the turning groups.
+	 */
+	void createTrafficSignals(const MutexStrategy &mtxStrat);
 };
 }

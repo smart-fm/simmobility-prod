@@ -2107,97 +2107,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 void
 DatabaseLoader::createSignals()
 {
-    int j = 0, nof_signals = 0;
-    for (map<int, Signal>::const_iterator iter = signals_.begin(); iter != signals_.end(); ++iter,j++)
-    {
-        Signal const & dbSignal = iter->second;
-        map<int, Node>::const_iterator iter2 = nodes_.find(dbSignal.nodeId);
-
-        //filter out signals which are not in the territory of our nodes_
-        if (iter2 == nodes_.end())
-        {
-            std::ostringstream stream;
-            stream << "cannot find node (id=" << dbSignal.nodeId
-                   << ") in the database for signal id=" << iter->first;
-            continue;
-        }
-
-        Node const & dbNode = iter2->second;
-        sim_mob::Node const * node = dbNode.generatedNode;
-    	//the traffic signal currently works with multinode only. so, although we have done conversions wherever necessary it
-    	//would have been better to discard non multi nodes here only
-    	if(!dynamic_cast<const Node*>(node)) continue;
-//        // There are 2 factors determining whether the following code fragment remains or should
-//        // be deleted in the near future.  Firstly, in the current version, Signal is designed
-//        // only for intersections with 4 links, the code in Signal.cpp and the visualizer expects
-//        // to access 4 links and 4 crossings.  This needs to be fixed, Signal.cpp needs to be
-//        // extended to model traffic signals at all kinds of intersections or at uni-nodes.
-//        //
-//        // However, even when Signal.cpp is fixed, the following code fragment may still remain
-//        // here, although it may be modified.  The reason is that the entire road network may not
-//        // be loaded.  There will be signal sites, especially at the edges of the loaded road
-//        // networks, with missing links.  In some cases, it may not make any sense to create a
-//        // Signal object there, even though a signal is present at that site in the database.
-//        // One example is an intersection with 4 links, but only one link is loaded in.  That
-//        // intersection would look like a dead-end to the Driver and Pedestrian objects.  Or
-//        // an intersection with 4-way traffic, but only 3 links are loaded in.  This would "turn"
-//        // the intersection into a T-junction.
-//        std::set<sim_mob::Link const *> links;//links at the target node
-//        if (Node const * multi_node = dynamic_cast<Node const *>(node))
-//        {
-//            std::set<sim_mob::RoadSegment*> const & roads = multi_node->getRoadSegments();
-//            std::set<sim_mob::RoadSegment*>::const_iterator iter;
-//            for (iter = roads.begin(); iter != roads.end(); ++iter)
-//            {
-//                sim_mob::RoadSegment const * road = *iter;
-//                links.insert(road->getLink());//collecting links at the target node
-//            }
-//        }
-//        if (links.size() != 4)//should change to what?
-//        {
-//            if (badNodes.count(node) == 0)
-//            {
-//                badNodes.insert(node);
-//                std::cerr << "Hi, the node at " << node->location << " (database-id="
-//                          << dbSignal.nodeId << ") does not have 4 links; "
-//                          << "no signal will be created here." << std::endl;
-//            }
-//            continue;
-//        }
-        /*vahid:
-         * ATTENTION: THIS PART OF THE FUNCTION ONWARDS IS DEPENDENT ON THE SCATS IMPLEMENTATION OF TRAFFIC SIGNAL
-         * IF YOU ARE DEVELOPING A TRAFFIC SIGNAL BASED ON ANOTHER MODEL, YOU MUST CHANGED THIS PART ACCORDINGLY.
-         * the following lines are the major tasks of this function(signalAt and addSignalSite functions)
-         * the first line checks for availability of he signal in the street directory based on the node
-         * (if not available, it will create a signal entry in the street directory)
-         * the second line will add a signal site there are-on average- 16 sites for a signal
-         * to clarify more the signal and signal site terms, think of a signal as a traffic controller box located at
-         * an intersection. And think of signal site as the traffic light units installed at an intersection
-         */
-        //check validity of this signal cnadidate in terms of if availability of any phases
-    	pair<multimap<int,sim_mob::aimsun::Phase>::iterator, multimap<int,sim_mob::aimsun::Phase>::iterator> ppp;
-    	ppp = phases_.equal_range(node->getNodeId()); //I repeate: Assumption is that node id and signal id are same
-    	if(ppp.first == ppp.second)
-    	{
-    		continue;
-    	}
-    	bool isNew = false;
-        const sim_mob::Signal_SCATS & signal = sim_mob::Signal_SCATS::signalAt(*node, sim_mob::ConfigManager::GetInstance().FullConfig().mutexStategy(), &isNew);
-        //sorry I am calling the following function out of signal constructor. I am heavily dependent on the existing code
-        //so sometimes a new functionality(initialize) needs to be taken care of separately
-        //while it should be called with in other functions(constructor)-vahid
-        if(isNew)
-        {
-        	createPlans(const_cast<sim_mob::Signal_SCATS &>(signal));
-        	const_cast<sim_mob::Signal_SCATS &>(signal).initialize();
-        	nof_signals++;
-        }
-        else
-        	continue;
-//		  not needed for the time being
-//        const_cast<sim_mob::Signal &>(signal).addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, dbSignal.bearing);
-    }
-    sim_mob::Print() << "signals created: " << nof_signals << std::endl;
+    
 }
 
 /*SCATS IMPLEMENTATION ONLY.
@@ -2206,74 +2116,16 @@ DatabaseLoader::createSignals()
 void
 DatabaseLoader::createPlans(sim_mob::Signal_SCATS & signal)
 {
-	unsigned int sid ;
-		sid = signal.getSignalId();//remember our assumption!  : node id and signal id(whtever their name is) are same
-		sim_mob::SplitPlan & plan = signal.getPlan();
-		plan.setParentSignal(&signal);
-		createPhases(signal);
-
-		//now that we have the number of phases, we can continue initializing our split plan.
-		int nof_phases = signal.getNOF_Phases();
-		if(nof_phases > 0)
-		{
-			if(nof_phases > 7)
-				sim_mob::Print() << sid << " ignored due to lack of default choice set" << nof_phases ;
-			else
-			{
-				plan.setDefaultSplitPlan(nof_phases);
-			}
-		}
-		else
-		{
-			sim_mob::Print() << sid << " ignored due to no phases" << nof_phases <<  std::endl;
-		}
+	
 }
 
 
 void
 DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 {
-
-	pair<multimap<int,sim_mob::aimsun::Phase>::iterator, multimap<int,sim_mob::aimsun::Phase>::iterator> ppp;
-
-	ppp = phases_.equal_range(signal.getSignalId());
-	multimap<int,sim_mob::aimsun::Phase>::iterator ph_it = ppp.first;
-
-	//some-initially weird looking- boost multi_index provisions to search for a phase by its name, instead of having loops to do that.
-	sim_mob::Signal_SCATS::phases::iterator sim_ph_it;
-
-	for(; ph_it != ppp.second; ph_it++)
-	{
-		const sim_mob::Link * linkFrom = (*ph_it).second.FromSection->generatedSegment->getParentLink();
-		const sim_mob::Link * linkTo = (*ph_it).second.ToSection->generatedSegment->getParentLink();
-		//sim_mob::linkToLink ll(linkTo,(*ph_it).second.FromSection->generatedSegment,(*ph_it).second.ToSection->generatedSegment);
-//		ll.RS_From = (*ph_it).second.FromSection->generatedSegment;
-//		ll.RS_To = (*ph_it).second.ToSection->generatedSegment;
-		std::string name = (*ph_it).second.name;
-		for(sim_ph_it = signal.getPhases().begin(); sim_ph_it != signal.getPhases().end(); sim_ph_it++)
-		{
-			if(sim_ph_it->getName() == name)
-				break;
-		}
-		if(sim_ph_it != signal.getPhases().end()) //means: if a phase with this name already exists in this plan...(usually u need a loop but with boost multi index, well, you don't :)
-		{
-			//sim_ph_it->addLinkMapping(linkFrom,ll,dynamic_cast<Node *>(nodes_[(*ph_it).second.nodeId].generatedNode));
-		}
-		else //new phase, new mapping
-		{
-			sim_mob::Phase phase(name,&(signal.getPlan()));//for general copy
-			Node * mNode = dynamic_cast<Node *>(nodes_[(*ph_it).second.nodeId].generatedNode);
-			if(!mNode)
-			{
-				std::cout << "We have a null MultiNode for " << nodes_[(*ph_it).second.nodeId].generatedNode->getNodeId() << "here\n";
-				continue;
-			}
-			//phase.addLinkMapping(linkFrom,ll,mNode);
-			//phase.addDefaultCrossings(signal.getLinkAndCrossing(),mNode);
-			signal.addPhase(phase);//congrates
-		}
-	}
+	
 }
+
 } //End anon namespace
 
 void DatabaseLoader::createBusStopAgents()

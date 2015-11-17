@@ -92,7 +92,7 @@ void BusDriverMovement::buildPath(const std::vector<const RoadSegment *> &pathOf
 			else
 			{
 				stringstream msg;
-				msg << "No turning between the links " << currLink->getLinkId() << "and " << nextLinkId << "!\nInvalid Path!!!";
+				msg << "No turning between the links " << currLink->getLinkId() << " and " << nextLinkId << "!\nInvalid Path!!!";
 				throw std::runtime_error(msg.str());
 			}
 		}

@@ -163,27 +163,10 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 
 	//Load the configuration file
-	Print() << "Expanding user configuration file..." << std::endl;
+	Print() << "Loading the configuration file..." << std::endl;
 	ExpandAndValidateConfigFile expand(ConfigManager::GetInstanceRW().FullConfig(), Agent::all_agents, Agent::pending_agents);
-	
-    //Some random stuff with signals??
-    //TODO: Not quite sure how this is supposed to fit into the overall order of things. ~Seth
-    std::vector<Signal*>& all_signals = Signal::all_signals_;
-    for (size_t i=0; i<all_signals.size(); ++i) 
-	{
-    	Signal* signal = all_signals.at(i);
-    	Signal_SCATS* signalScats = dynamic_cast<Signal_SCATS*>(signal);
-    	if(signalScats) 
-		{
-    		LoopDetectorEntity* loopDetector = new LoopDetectorEntity(mtx);
-    		signalScats->setLoopDetector(loopDetector);
-    		loopDetector->init(*signal);			
-    		Agent::all_agents.insert(loopDetector);
-			signalScats->curVehicleCounter.init(signalScats);
-    	}
-    }
 
-	Print() << "User configuration file loaded." << std::endl;
+	Print() << "Configuration file loaded!" << std::endl;
 
 	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) 
 	{
@@ -268,27 +251,38 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 		Broker *broker =  new sim_mob::Broker(MtxStrat_Buffered);
 		Broker::SetSingleBroker(broker);
 		communicationWorkers->assignAWorker(broker);
-	}
+	}	
 
+	//Assign all BusStopAgents
+	BusStopAgent::AssignAllBusStopAgents(*personWorkers);
+
+	//Assign all signals to the signals worker
+	const RoadNetwork *network = RoadNetwork::getInstance();
+	const std::map<unsigned int, Signal *> &signals = network->getMapOfIdVsSignals();
+	
+	for (std::map<unsigned int, Signal *>::const_iterator it = signals.begin(); it != signals.end(); ++it)
+	{
+		Signal_SCATS *signalScats = dynamic_cast<Signal_SCATS *>(it->second);
+		
+		//Create and initialise loop detectors
+		LoopDetectorEntity *loopDetectorEntity = new LoopDetectorEntity(config.mutexStategy());
+		loopDetectorEntity->init(*signalScats);
+		Agent::all_agents.insert(loopDetectorEntity);
+		signalScats->setLoopDetector(loopDetectorEntity);
+		signalStatusWorkers->assignAWorker(it->second);
+	}
+	
 	//Anything in all_agents is starting on time 0, and should be added now.
 	for (std::set<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); ++it) 
 	{
 		personWorkers->assignAWorker(*it);
 	}
 
-	//Assign all BusStopAgents
-	BusStopAgent::AssignAllBusStopAgents(*personWorkers);
-
-	//Assign all signals too
-	for (vector<Signal*>::iterator it = Signal::all_signals_.begin(); it != Signal::all_signals_.end(); ++it) 
-	{
-		signalStatusWorkers->assignAWorker(*it);
-	}
-
 	if(sim_mob::AMOD::AMODController::instanceExists())
 	{
 		personWorkers->assignAWorker( sim_mob::AMOD::AMODController::instance() );
 	}
+	
 	if(sim_mob::FMOD::FMOD_Controller::instanceExists())
 	{
 		personWorkers->assignAWorker( sim_mob::FMOD::FMOD_Controller::instance() );
@@ -517,12 +511,10 @@ bool performMain(const std::string& configFileName, std::list<std::string>& resL
 	
 	if (ConfigManager::GetInstance().CMakeConfig().InteractiveMode()) 
 	{
-		Signal::all_signals_.clear();
 		Agent::all_agents.clear();
 	}
 	else 
 	{
-		clear_delete_vector(Signal::all_signals_);
 		clear_delete_vector(Agent::all_agents);
 	}
 

@@ -54,14 +54,13 @@ const int DEFAULT_HIGHEST_AGE = 60;
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id, std::string databaseID)
 : Agent(mtxStrat, id), databaseID(databaseID), agentSrc(src), age(0), resetParamsRequired(false), isFirstTick(true), nextPathPlanned(false),
-originNode(), destNode(), currLinkTravelStats(nullptr, 0.0), currRdSegTravelStats(RdSegTravelStat(nullptr))
+originNode(), destNode(), currLinkTravelStats(nullptr)
 {
 }
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, const std::vector<sim_mob::TripChainItem*>& tc)
 : Agent(mtxStrat), databaseID(tc.front()->getPersonID()), agentSrc(src), tripChain(tc), age(0), resetParamsRequired(false), 
-isFirstTick(true), nextPathPlanned(false), originNode(), destNode(), currLinkTravelStats(nullptr, 0.0), 
-currRdSegTravelStats(RdSegTravelStat(nullptr))
+isFirstTick(true), nextPathPlanned(false), originNode(), destNode(), currLinkTravelStats(nullptr)
 {
 }
 
@@ -677,12 +676,6 @@ void sim_mob::Person::serializeTripTravelTimeMetrics()
 			<< "\n";
 	}
 	tripTravelMetrics.clear();
-}
-
-void sim_mob::Person::addToLinkTravelStatsMap(LinkTravelStats ts, double exitTime)
-{
-	std::map<double, LinkTravelStats>& travelMap = linkTravelStatsMap;
-	travelMap.insert(std::make_pair(exitTime, ts));
 }
 
 void sim_mob::Person::initTripChain()

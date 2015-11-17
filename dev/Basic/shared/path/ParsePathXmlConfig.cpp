@@ -196,12 +196,29 @@ void sim_mob::ParsePathXmlConfig::processPrivatePathsetNode(xercesc::DOMElement*
 	}
 
 	xercesc::DOMElement* tableNode = GetSingleElementByName(pvtConfNode, "tables");
-	if (!tableNode) {
+	if (!tableNode)
+	{
 		throw std::runtime_error("Pathset Tables specification not found");
-	} else {
-		cfg.pathSetTableName = ParseString(GetNamedAttributeValue(tableNode, "singlepath_table"), "");
-		cfg.RTTT_Conf = ParseString(GetNamedAttributeValue(tableNode, "realtime_traveltime"), "");
+	}
+	else
+	{
+		cfg.pathSetTableName = ParseString(GetNamedAttributeValue(tableNode, "pathset_table"), "");
+		if (cfg.pathSetTableName.empty())
+		{
+			throw std::runtime_error("private pathset table name missing in configuration");
+		}
+
+		cfg.RTTT_Conf = ParseString(GetNamedAttributeValue(tableNode, "historical_traveltime"), "");
+		if (cfg.RTTT_Conf.empty())
+		{
+			throw std::runtime_error("historical travel time table name missing in pathset configuration");
+		}
+
 		cfg.DTT_Conf = ParseString(GetNamedAttributeValue(tableNode, "default_traveltime"), "");
+		if (cfg.DTT_Conf.empty())
+		{
+			throw std::runtime_error("default travel time table name missing in pathset configuration");
+		}
 	}
 	//function
 	xercesc::DOMElement* functionNode = GetSingleElementByName(pvtConfNode, "functions");

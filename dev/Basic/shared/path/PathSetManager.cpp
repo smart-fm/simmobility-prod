@@ -30,10 +30,13 @@
 #include "geospatial/network/Node.hpp"
 #include "geospatial/network/RoadSegment.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
+#include "geospatial/streetdir/A_StarShortestPathImpl.hpp"
+#include "geospatial/streetdir/A_StarShortestTravelTimePathImpl.hpp"
 #include "geospatial/streetdir/KShortestPathImpl.hpp"
 #include "message/MessageBus.hpp"
 #include "Path.hpp"
 #include "path/PathSetThreadPool.hpp"
+#include "SOCI_Converters.hpp"
 #include "util/threadpool/Threadpool.hpp"
 #include "util/Utils.hpp"
 #include "workers/Worker.hpp"
@@ -315,7 +318,7 @@ namespace
 			}
 			std::map<int,sim_mob::ERP_Section*>::iterator it = sim_mob::PathSetParam::getInstance()->ERP_SectionPool.find(lnkId);
 			//get travel time to this segment
-			double t = sim_mob::PathSetParam::getInstance()->getLinkTT((it1)->link, nextLink, tripStartTime);
+			double t = sim_mob::TravelTimeManager::getInstance()->getLinkTT((it1)->link, tripStartTime, nextLink);
 			ts += t;
 			tripStartTime = tripStartTime + sim_mob::DailyTime(t*1000);
 			if(it!=sim_mob::PathSetParam::getInstance()->ERP_SectionPool.end())
@@ -1380,7 +1383,7 @@ sim_mob::SinglePath * sim_mob::PrivatePathsetGenerator::findShortestDrivingPath(
 		const std::set<const sim_mob::Link*> & excludedLinks)
 {
 	std::vector<const sim_mob::Link*> blacklist;
-	if (excludedLinks)
+	if (!excludedLinks.empty())
 	{
 		blacklist.insert(blacklist.end(), excludedLinks.begin(), excludedLinks.end());
 	}
@@ -1456,7 +1459,7 @@ double sim_mob::PrivateTrafficRouteChoice::getPathTravelTime(sim_mob::SinglePath
 			}
 			if(!enRoute || time == 0.0)
 			{
-				time = sim_mob::PathSetParam::getInstance()->getLinkTT(lnk, nextLink, startTime);
+				time = sim_mob::TravelTimeManager::getInstance()->getLinkTT(lnk, startTime, nextLink);
 			}
 		}
 		if(time == 0.0)
@@ -1478,7 +1481,7 @@ double sim_mob::PrivateTrafficRouteChoice::getPathTravelTime(sim_mob::SinglePath
 
 double sim_mob::PrivateTrafficRouteChoice::getInSimulationLinkTT(const sim_mob::Link* lnk, const sim_mob::DailyTime &startTime) const
 {
-	return processTT.getInSimulationLinkTT(travelMode,lnk);
+	return ttMgr.getInSimulationLinkTT(lnk);
 }
 
 void sim_mob::PathSetManager::initTimeInterval()
@@ -1486,7 +1489,7 @@ void sim_mob::PathSetManager::initTimeInterval()
 	intervalMS = sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().interval * 1000 /*milliseconds*/;
 	if(intervalMS <= 0) { throw runtime_error("invalid interval specified in config file"); }
 	uint32_t startTm = ConfigManager::GetInstance().FullConfig().simStartTime().getValue();
-	curIntervalMS = TravelTimeManager::getTimeInterval(startTm, intervalMS);
+	curIntervalMS = startTm / intervalMS;
 }
 
 void sim_mob::PathSetManager::updateCurrTimeInterval()
@@ -1508,7 +1511,7 @@ sim_mob::PrivatePathsetGenerator::~PrivatePathsetGenerator()
 sim_mob::PrivateTrafficRouteChoice::PrivateTrafficRouteChoice() : PathSetManager(),
 		psRetrieval(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().psRetrieval),
 		psRetrievalWithoutRestrictedRegion(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().psRetrievalWithoutBannedRegion),
-		cacheLRU(2500), processTT(*(sim_mob::TravelTimeManager::getInstance())), regionRestrictonEnabled(false)
+		cacheLRU(2500), ttMgr(*(sim_mob::TravelTimeManager::getInstance())), regionRestrictonEnabled(false)
 {}
 
 sim_mob::PrivateTrafficRouteChoice::~PrivateTrafficRouteChoice()

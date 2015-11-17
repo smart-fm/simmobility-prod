@@ -368,7 +368,7 @@ private:
 	const std::string& psRetrievalWithoutRestrictedRegion;
 
 	/**	Travel time processing */
-	const TravelTimeManager& processTT;
+	const TravelTimeManager& ttMgr;
 
 	/** flag to indicate whether restricted region case study is enabled*/
 	bool regionRestrictonEnabled;

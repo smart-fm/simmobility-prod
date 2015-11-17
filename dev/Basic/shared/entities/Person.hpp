@@ -10,8 +10,9 @@
 #include <vector>
 
 #include "conf/settings/DisableMPI.h"
-#include "entities/Agent.hpp"
+#include "Agent.hpp"
 #include "entities/misc/TripChain.hpp"
+#include "entities/TravelTimeManager.hpp"
 #include "entities/vehicle/VehicleBase.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/LangHelpers.hpp"
@@ -136,14 +137,8 @@ public:
 	/**The agent's end node*/
 	WayPoint destNode;
 
-	/**Holds the road segment travel time*/
-	RdSegTravelStat currRdSegTravelStats;
-
 	/**Holds the link travel time*/
 	LinkTravelStats currLinkTravelStats;
-
-	/**Stores the link travel times with link exit time as the key*/
-	std::map<double, LinkTravelStats> linkTravelStatsMap;
 
 	/**The current item in trip chain*/
 	std::vector<TripChainItem *>::iterator currTripChainItem;
@@ -186,14 +181,6 @@ public:
 	 * Initialises the trip chain
      */
 	virtual void initTripChain();
-
-	/**
-	 * Inserts the LinkTravelStats into the map
-	 * 
-	 * @param ts the LinkTravelStats to be added
-	 * @param exitTime the time of exiting the link
-	 */
-	void addToLinkTravelStatsMap(LinkTravelStats ts, double exitTime);		
 
 	/**
 	 * Load a Person's properties (specified in the configuration file), creating a placeholder trip chain if

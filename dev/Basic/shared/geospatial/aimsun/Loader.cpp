@@ -104,10 +104,7 @@ public:
 	 */
 	void LoadTurningSection(map<string, string> const & storedProcs,sim_mob::RoadNetwork& rn);
 	void storeTurningPoints(sim_mob::RoadNetwork& rn);
-	static bool CreateTable(soci::session& sql,std::string& tableName);
-	bool InsertData2TravelTimeTmpTable(std::string& tableName,sim_mob::LinkTravelTime& data);
 	static bool InsertCSV2Table(soci::session& sql,std::string& tableName,const std::string& csvFileName);
-	static bool upsertTravelTime(soci::session& sql,const std::string& csvFileName, const std::string& tableName, double alpha);
 	static bool TruncateTable(soci::session& sql,std::string& tableName);
 	static bool ExcuString(soci::session& sql,std::string& str);
 	// save path set data
@@ -332,50 +329,6 @@ void DatabaseLoader::LoadPT_PathsetFrmDB(soci::session& sql, const std::string& 
 }
 std::map<std::string, sim_mob::OneTimeFlag> ontimeFlog;
 
-bool DatabaseLoader::CreateTable(soci::session& sql,std::string& tableName)
-{
-	try {
-		sql  << ("CREATE TABLE "+tableName);
-		sql.commit();
-	}
-	catch (soci::soci_error const & err)
-	{
-		std::cout<< "CreateTable: " << err.what() << std::endl;
-		return false;
-	}
-	std::cout << "CreateTable: create table " << tableName << " ok"<< std::endl;
-	return true;
-}
-bool DatabaseLoader::InsertData2TravelTimeTmpTable(std::string& tableName,
-		sim_mob::LinkTravelTime& data)
-{
-	try {
-		sql_<<"insert into "+ tableName +" (\"link_id\", \"start_time\",\"end_time\",\"travel_time\") "
-							"values(:link_id, :start_time,:end_time,:travel_time)", soci::use(data);
-		sql_.commit();
-	}
-	catch (soci::soci_error const & err)
-	{
-		std::cout<<"InsertData2TravelTimeTmpTable: "<<err.what()<<std::endl;
-		return false;
-	}
-	return true;
-}
-bool DatabaseLoader::upsertTravelTime(soci::session& sql,const std::string& csvFileName, const std::string& tableName, double alpha)
-{
-	std::stringstream query("");
-	query << "select * from " <<  sim_mob::ConfigManager::GetInstance().PathSetConfig().upsert  <<
-			"('" << csvFileName << "','" << tableName << "'," << alpha << ");";
-	std::cout << "executing query : " << query.str() << "\n";
-	try
-	{
-		sql << query.str();
-	}
-	catch(std::exception &e){
-		std::cout << "Error upserting the query( " << query.str() << " ) :\n" << e.what() << "\n";
-	}
-	return true;
-}
 bool DatabaseLoader::InsertCSV2Table(soci::session& sql,std::string& tableName,const std::string& csvFileName)
 {
 	try {
@@ -2152,22 +2105,6 @@ void sim_mob::aimsun::Loader::getCBD_Nodes(std::map<unsigned int, const sim_mob:
 	DatabaseLoader::getCBD_Nodes(cnn, nodes);
 }
 
-bool sim_mob::aimsun::Loader::createTable(soci::session& sql, std::string& tableName)
-{
-	return DatabaseLoader::CreateTable(sql, tableName);
-}
-bool sim_mob::aimsun::Loader::insertData2TravelTimeTmpTable(const std::string& connectionStr,
-		std::string& tableName,
-		sim_mob::LinkTravelTime& data)
-{
-	DatabaseLoader loader(connectionStr);
-	bool res = loader.InsertData2TravelTimeTmpTable(tableName,data);
-	return res;
-}
-bool sim_mob::aimsun::Loader::upsertTravelTime(soci::session& sql, const std::string& csvFileName, const std::string& tableName, double alpha)
-{
-	bool res = DatabaseLoader::upsertTravelTime(sql,csvFileName, tableName, alpha);
-}
 bool sim_mob::aimsun::Loader::insertCSV2Table(soci::session& sql, std::string& tableName, const std::string& csvFileName)
 {
 	bool res = DatabaseLoader::InsertCSV2Table(sql,tableName,csvFileName);
@@ -2193,45 +2130,6 @@ void sim_mob::aimsun::Loader::LoadPT_ChoiceSetFrmDB(soci::session& sql, std::str
 void sim_mob::aimsun::Loader::LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet)
 {
 	DatabaseLoader::LoadPT_PathsetFrmDB(sql, funcName, originalNode, destNode, pathSet);
-}
-
-bool sim_mob::aimsun::Loader::storeSinglePath(soci::session& sql,
-		std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& pathPool,const std::string pathSetTableName)
-{
-	bool res = false;
-	if(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
-	{
-		sim_mob::BasicLogger & pathsetCSV = sim_mob::Logger::log(ConfigManager::GetInstance().PathSetConfig().bulkFile);
-		BOOST_FOREACH(sim_mob::SinglePath* sp, pathPool)
-		{
-			if(sp->isNeedSave2DB)
-			{
-				pathsetCSV << ("\"" + sp->id + "\"") << ","
-						<< ("\"" + sp->pathSetId + "\"") << ","
-						<< sp->partialUtility << ","
-						<< sp->pathSize << ","
-						<< sp->signalNumber << ","
-						<< sp->rightTurnNumber << ","
-						<< ("\"" + sp->scenario  + "\"") << ","
-						<< sp->length << ","
-						<< sp->highWayDistance << ","
-						<< sp->isMinDistance << ","
-						<< sp->isMinSignal << ","
-						<< sp->isMinRightTurn << ","
-						<< sp->isMaxHighWayUsage << ","
-						<< sp->valid_path << ","
-						<< sp->isShortestPath << ","
-						<< sp->travelTime << ","
-						<< sp->isMinTravelTime << ","
-						<< sp->pathSetId << "\n";
-			}
-		}
-	}
-	else
-	{
-		res = DatabaseLoader::InsertSinglePath2DB(sql,pathPool,pathSetTableName);
-	}
-	return res;
 }
 
 void sim_mob::aimsun::Loader::loadSegNodeType(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn)

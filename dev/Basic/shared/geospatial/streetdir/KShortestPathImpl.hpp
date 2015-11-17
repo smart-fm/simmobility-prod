@@ -4,6 +4,7 @@
 #include <boost/shared_ptr.hpp>
 #include <map>
 #include <vector>
+#include <set>
 #include <string>
 #include "geospatial/network/Link.hpp"
 #include "geospatial/network/Node.hpp"

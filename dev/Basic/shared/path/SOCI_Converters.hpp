@@ -6,6 +6,7 @@
 
 #include "soci/soci.h"
 #include "path/Path.hpp"
+#include "path/PathSetManager.hpp"
 #include "path/PathSetParam.hpp"
 #include "geospatial/network/PT_Stop.hpp"
 #include "util/DailyTime.hpp"

@@ -10,6 +10,7 @@
 #include "Path.hpp"
 #include "geospatial/streetdir/A_StarShortestTravelTimePathImpl.hpp"
 #include "geospatial/streetdir/A_StarShortestPathImpl.hpp"
+#include "logging/Log.hpp"
 
 #include <pthread.h>
 #include <semaphore.h>
@@ -288,7 +289,7 @@ void sim_mob::PathSetWorkerThread::run()
 			path->pathSize = 0;
 			if(this->path->path.begin()->roadSegment->getParentLink()->getFromNodeId() != this->pathSet->subTrip.origin.node->getNodeId())
 			{
-				safe_delete_item(s);
+				safe_delete_item(path);
 				hasPath = false;
 			}
 		}

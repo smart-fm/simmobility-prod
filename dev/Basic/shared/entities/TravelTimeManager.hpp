@@ -1,66 +1,86 @@
 #pragma once
 #include <boost/thread/shared_mutex.hpp>
+#include <map>
+#include <soci/soci.h>
+#include <soci/postgresql/soci-postgresql.h>
+#include <string>
 #include "path/Common.hpp"
 
 namespace sim_mob
 {
 /**
- * Structure to record travel time of agents through a link
+ * Simple helper struct to store info needed to track average travel time for a link.
+ * Stores the sum of all travel times experienced by agents on a link along with the count of those agents.
+ * This total travel time and count is supposed to be maintained for a defined interval of time.
+ *
+ * \author Harish Loganathan
  */
-struct LinkTravelStats
+struct TimeAndCount
 {
-	const Link* link_;
-	double entryTime;
+	/**	total travel time in seconds*/
+	double totalTravelTime;
 
-	LinkTravelStats(const Link* link, unsigned int linkEntryTime)
-	: link_(link), entryTime(linkEntryTime)
+	/**	total count of contributions to travel time */
+	unsigned int travelTimeCnt;
+
+	TimeAndCount() : totalTravelTime(0.0), travelTimeCnt(0)
 	{
+	}
+
+	double getTravelTime() const
+	{
+		if(travelTimeCnt>0)
+		{
+			return totalTravelTime/travelTimeCnt;
+		}
+		return 0.0;
 	}
 };
 
 /**
- * Structure to record travel time of agents through a road segment
+ * Structure to record travel time of agents through a link
  */
-struct RdSegTravelStat
+struct LinkTravelStats
 {
-	const RoadSegment* rs;
+	const Link* link;
+	const Link* downstreamLink;
 	double entryTime;
 	double travelTime;
-	std::string travelMode;
 	bool started;
 	bool finalized;
 
-	RdSegTravelStat(const RoadSegment* rdSeg, std::string travelMode = "")
-	: rs(rdSeg), entryTime(0.0), travelTime(0.0), started(false), finalized(false), travelMode(travelMode)
+	LinkTravelStats(const Link* link) :
+			link(link), downstreamLink(NULL), entryTime(0.0), travelTime(0.0), started(false), finalized(false)
 	{
 	}
 
 	/**
-	 * Records the entry time for the road segment.
+	 * Records the entry time for the link
 	 *
-	 * @param rdSeg The road segment which the agent has entered
-	 * @param rdSegEntryTime The time of entry on the road segment
+	 * @param lnk The link which was entered
+	 * @param lnkEntryTime The time of entry into the link
 	 */
-	void start(const RoadSegment* rdSeg, double &rdSegEntryTime)
+	void start(const Link* lnk, double& lnkEntryTime)
 	{
 		if (started)
 		{
 			throw std::runtime_error("Starting a travel time which was started before");
 		}
-		rs = rdSeg;
-		entryTime = rdSegEntryTime;
+		link = lnk;
+		entryTime = lnkEntryTime;
 		started = true;
 	}
 
 	/**
-	 * Records the exit time for the road segment.
+	 * Records the exit time for the link
 	 *
 	 * @param rdSeg The road segment which the agent has exited
 	 * @param rdSegExitTime The time of exit on the road segment
 	 * @param travelMode_ The mode of travel being used by the agent
 	 */
-	void finalize(const RoadSegment* rdSeg, double &rdSegExitTime, const std::string &travelMode_)
+	void finalize(const Link* lnk, double& lnkExitTime, const Link* nextLink)
 	{
+		//validations
 		if (!started)
 		{
 			throw std::runtime_error("Finalizing a travel time which never started");
@@ -69,69 +89,136 @@ struct RdSegTravelStat
 		{
 			throw std::runtime_error("Finalizing a travel time which is already finalized");
 		}
-		if (rdSeg != rs)
-		{
-			throw std::runtime_error("Finalizing a wrong travel time");
-		}
-		if (rs == nullptr)
+		if (link == nullptr)
 		{
 			throw std::runtime_error("empty road segment supplied for travel time calculations.");
 		}
+		if (lnk != link)
+		{
+			throw std::runtime_error("Finalizing a wrong travel time");
+		}
+		if(lnkExitTime > entryTime)
+		{
+			throw std::runtime_error("link exit time is before entry time");
+		}
+
+		travelTime = lnkExitTime - entryTime;
 		finalized = true;
-		travelTime = rdSegExitTime - entryTime;
-		/*
-		 * we set the travel_mode in the end coz in our team, the probability of programmers "calling start() method of this structure before changing a role"
-		 * is more than the probability of "calling finalize 'after' changing the role". So we set the travel mode(which is dependent on the role type) at the end.
-		 * You may change it later if you wish so.
-		 */
-		travelMode = travelMode_;
 	}
 
 	/**Reset the member variables to their un-initialized values*/
 	void reset()
 	{
-		*this = RdSegTravelStat(nullptr);
+		*this = LinkTravelStats(NULL);
 	}
 };
-
-namespace TT
-{
-
-struct TimeAndCount
-{
-	///	total travel time
-	double totalTravelTime;
-
-	///	total count of contributions to travel time
-	unsigned int travelTimeCnt;
-
-	TimeAndCount() :
-			totalTravelTime(0.0), travelTimeCnt(0)
-	{
-	}
-};
-
-/** time interval */
-typedef unsigned int TimeInterval;
-
-/** the heart of the final container holding accumulated travel time */
-typedef std::map<const sim_mob::RoadSegment*, TimeAndCount> RSTC;
-
-/// part of the data structure used in travel time collection mechanism
-typedef std::map<std::string, RSTC> MRTC; //MTITC=> M:mode, TI:Time Interval, T:time, C:count
-
-///	final container for collecting in simulation data:
-///	map[time interval][travel mode][road segment][pair(total-time , number-of-records)]
-typedef std::map<TimeInterval, MRTC> TravelTimeCollector;
-
-} // namespace TT
 
 /**
- * Container used for TravelTime collection during simulation     :
- * [road segment][travel mode][time interval][average travel time]
- * <-----RS-----><-------------------MTITC----------------------->
+ * Class to hold default, historical and in-simulation travel times for a link
+ *
+ * \author Harish Loganathan
  */
-typedef sim_mob::TT::TravelTimeCollector TravelTime;
+class LinkTravelTime
+{
+private:
+	/**	time interval */
+	typedef unsigned int TimeInterval;
+
+	/** typedef for downstream link id -> travel time of this link; allows different travel times to be stored for this link for each immediate downstream link */
+	typedef std::map<unsigned int, double> DownStreamLinkSpecificTT_Map;
+
+	/** typedef of downstream link id -> (travel time and count) for this link; this is used for storing in-simulation link travel times*/
+	typedef std::map<unsigned int, TimeAndCount> DownStreamLinkSpecificTimeAndCount_Map;
+
+	/**	map of [time interval][downstream Link] --> [average travel time for Link] */
+	typedef std::map<TimeInterval, DownStreamLinkSpecificTT_Map> TravelTimeStore;
+
+	/** map of [time interval][downstream Link] --> [TimeAndCount for link] */
+	typedef std::map<TimeInterval, DownStreamLinkSpecificTimeAndCount_Map> TimeAndCountStore;
+
+	/** link id */
+	unsigned int linkId;
+
+	/**	travel time in seconds */
+	double defaultTravelTime;
+
+	/** time specific turning based historical TT map */
+	TravelTimeStore historicalTT_Map;
+
+	/** time specific turning based in-simulation TT map */
+	TimeAndCountStore currentSimulationTT_Map;
+
+	/** mutex for adding travel times in currentSimulationTT_Map */
+	boost::shared_mutex ttMapMutex;
+
+public:
+	LinkTravelTime();
+	virtual ~LinkTravelTime();
+
+	/**
+	 * custom assignment operator - becasue implicit assignment operator would not be auto-constructed for this class
+	 * this would be used while loading default travel times
+	 */
+	LinkTravelTime& operator=(const LinkTravelTime& rhs);
+
+	double getDefaultTravelTime() const
+	{
+		return defaultTravelTime;
+	}
+
+	void setDefaultTravelTime(double defaultTravelTime)
+	{
+		this->defaultTravelTime = defaultTravelTime;
+	}
+
+	unsigned int getLinkId() const
+	{
+		return linkId;
+	}
+
+	void setLinkId(unsigned int linkId)
+	{
+		this->linkId = linkId;
+	}
+
+	/**
+	 * adds travel time of this link for specific next downstream link
+	 * @param dt time of day at which the added travel time is applicable
+	 * @param downstreamLinkId id of downstream link
+	 * @param travelTime travel time in seconds for this link when next link is downstreamLinkId
+	 *
+	 * NOTE: this function assumes that the supplied downstream link is connected to current link. It does not check connectivity.
+	 */
+	void addHistoricalTravelTime(const DailyTime& dt, unsigned int downstreamLinkId, double travelTime);
+
+	/**
+	 * accumulates in-simulation Travel Time data
+	 * @param stats travel time record
+	 */
+	void addInSimulationTravelTime(const LinkTravelStats& stats);
+
+	/**
+	 * fetches tt in seconds for provided downstream link and time interval index
+	 * @param downstreamLinkId id of downstream link
+	 * @param dt time of day for which travel time is to be fetched
+	 * @return tt found from downstreamLinkTT_Map if available; -1 otherwise
+	 */
+	double getHistoricalLinkTT(unsigned int downstreamLinkId, const DailyTime& dt) const;
+
+	/**
+	 * fetches tt in seconds for provided time interval index
+	 * this function averages the traveltime for each downstream link and returns the average travel time
+	 * @param timeInterval index of time interval for which tt is requested
+	 * @return tt found from downstreamLinkTT_Map if available; -1 otherwise
+	 */
+	double getHistoricalLinkTT(const DailyTime& dt) const;
+
+	/**
+	 * Writes the aggregated data into the file
+	 * @param fileName name of file to dump travel times
+	 */
+	void dumpTravelTimesToFile(const std::string fileName) const;
+};
 
 /**
  * TravelTimeManager is a small helper class to process Real Time Travel Time at RoadSegment Level.
@@ -149,10 +236,35 @@ public:
 	static sim_mob::TravelTimeManager* getInstance();
 
 	/**
-	 *	container to stor road segment travel times at different time intervals
+	 * loads default and historical simulation travel times for all links from database
 	 */
-	sim_mob::TravelTime ttMap;
-	boost::shared_mutex ttMapMutex;
+	void loadTravelTimes();
+
+	/**
+	 * base method to get travel time of a link in a specific time of
+	 * day from different sources. This method searches for link travel
+	 * time in different sources in the below order:
+	 * in-simulation, previous simulations, default.
+	 * the method returns the first value found.
+	 * @param lnk input Link
+	 * @param startTime start of the time range
+	 * @param downstreamLink the next link which is to be taken after lnk
+	 * @return travel time in seconds
+	 */
+	double getLinkTT(const sim_mob::Link* lnk, const sim_mob::DailyTime& startTime, const sim_mob::Link* downstreamLink = NULL) const;
+
+	/**
+	 * fetches the default travel time for link
+	 */
+	double getDefaultLinkTT(const Link* lnk) const;
+
+	/**
+	 * returns the travel time experienced by other drivers in the current simulation
+	 * @param mode mode of travel requested
+	 * @param rs target road segment
+	 * @return the travel time
+	 */
+	double getInSimulationLinkTT(const sim_mob::Link *lnk) const;
 
 	/**
 	 * simulation time interval in milliseconds
@@ -162,36 +274,19 @@ public:
 	/**
 	 * accumulates Travel Time data
 	 * @param stats travel time record
-	 * @person the recording person
 	 */
-	void addTravelTime(const RdSegTravelStat & stats);
+	void addTravelTime(const LinkTravelStats& stats);
 
 	/**
 	 * Writes the aggregated data into the file
+	 * @param fileName name of file to dump travel times
 	 */
-	void dumpTravelTimesToFile(const std::string fileName);
+	void dumpTravelTimesToFile(const std::string fileName) const;
 
 	/**
 	 * save Realtime Travel Time into Database
 	 */
-	bool storeRTT2DB();
-
-	/**
-	 * get corresponding TI (Time interval) give a time of day
-	 * @param time a time within the day (usually segment entry time)
-	 * @param interval travel time intreval specified for this simulation
-	 * @return Time interval corresponding the give time
-	 * Note: for uniformity purposes this methods works with milliseconds values
-	 */
-	static sim_mob::TT::TimeInterval getTimeInterval(const unsigned long timeMS, const unsigned int intervalMS);
-
-	/**
-	 * returns the travel time experienced by other drivers in the current simulation
-	 * @param mode mode of travel requested
-	 * @param rs target road segment
-	 * @return the travel time
-	 */
-	double getInSimulationLinkTT(const std::string mode, const sim_mob::Link *lnk) const;
+	bool storeCurrentSimulationTT();
 
 	/**
 	 * a helper class that maintains the latest processed travel time information.
@@ -210,7 +305,7 @@ public:
 		 * @param mode	travel mode
 		 * @param rs	the roadsegment for which TT is retrieved
 		 */
-		double getInSimulationLinkTT(const std::string mode, const sim_mob::Link* lnk) const;
+		double getInSimulationLinkTT(const sim_mob::Link* lnk) const;
 	};
 
 	/**
@@ -221,6 +316,29 @@ public:
 private:
 	TravelTimeManager();
 	~TravelTimeManager();
+
+	/**
+	 * loads default travel times for all links from database into lnkTravelTimeMap
+	 * @param sql soci::session object for db connection
+	 */
+	void loadLinkDefaultTravelTime(soci::session& sql);
+
+	/**
+	 * loads historical simulation travel times for all links from database into lnkTravelTimeMap
+	 * @param sql soci::session object for db connection
+	 */
+	void loadLinkHistoricalTravelTime(soci::session& sql);
+
+	/**
+	 * a structure to keep history of average travel time records
+	 */
+	std::map<unsigned int, sim_mob::LinkTravelTime> lnkTravelTimeMap;
+
+	/** historical travel time table name */
+	std::string historicalTT_TableName;
+
+	/** default travel time table name */
+	std::string defaultTT_TableName;
 
 	static sim_mob::TravelTimeManager* instance;
 };

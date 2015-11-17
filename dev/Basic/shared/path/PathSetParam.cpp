@@ -1,15 +1,16 @@
 #include "PathSetParam.hpp"
 
+#include <boost/foreach.hpp>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 #include "geospatial/network/RoadNetwork.hpp"
 #include "SOCI_Converters.hpp"
+#include "util/Profiler.hpp"
 
 namespace
 {
 
 //sim_mob::BasicLogger & logger = sim_mob::Logger::log("pathset.log");
-unsigned int TT_STORAGE_TIME_INTERVAL_WIDTH = 0;
 } //anonymous namespace
 
 sim_mob::PathSetParam *sim_mob::PathSetParam::instance_ = NULL;
@@ -39,77 +40,42 @@ void sim_mob::PathSetParam::getDataFromDB()
 	const sim_mob::ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
 	std::string dbStr(cfg.getDatabaseConnectionString(false));
 	soci::session dbSession(soci::postgresql, dbStr);
-	setRTTT(cfg.getRTTT());
 	loadERP_Surcharge(dbSession);
 	loadERP_Section(dbSession);
 	loadERP_GantryZone(dbSession);
-	loadLinkDefaultTravelTime(dbSession);
-	loadLinkHistoricalTravelTime(dbSession);
+	ttMgr->loadTravelTimes();
 }
+
 void sim_mob::PathSetParam::storeSinglePath(soci::session& sql, std::set<sim_mob::SinglePath*, sim_mob::SinglePath>& spPool, const std::string pathSetTableName)
 {
-	sim_mob::aimsun::Loader::storeSinglePath(sql, spPool, pathSetTableName);
-}
-
-bool sim_mob::PathSetParam::createTravelTimeRealtimeTable(soci::session& dbSession)
-{
-	bool res = false;
-	std::string createTableStr = "create table " + RTTT + "("
-			"link_id integer NOT NULL,"
-			"start_time time without time zone NOT NULL,"
-			"end_time time without time zone NOT NULL,"
-			"travel_time double precision NOT NULL,"
-			"interval_time integer NOT NULL,"
-			"travel_mode character varying NOT NULL,"
-			"history integer NOT NULL DEFAULT 1"
-			")"
-			"WITH ("
-			"  OIDS=FALSE"
-			");"
-			"ALTER TABLE " + RTTT + "  OWNER TO postgres;";
-	res = sim_mob::aimsun::Loader::excuString(dbSession, createTableStr);
-	return res;
-}
-
-void sim_mob::PathSetParam::setRTTT(const std::string& value)
-{
-	if (!value.size())
+	if(ConfigManager::GetInstance().PathSetConfig().privatePathSetMode == "generation")
 	{
-		throw std::runtime_error("Missing Travel Time Table Name.\n "
-				"It is either missing in the XML configuration file,\n"
-				"or you are trying to access the file name before reading the Configuration file");
+		sim_mob::BasicLogger & pathsetCSV = sim_mob::Logger::log(ConfigManager::GetInstance().PathSetConfig().bulkFile);
+		BOOST_FOREACH(sim_mob::SinglePath* sp, spPool)
+		{
+			if(sp->isNeedSave2DB)
+			{
+				pathsetCSV << ("\"" + sp->id + "\"") << ","
+						<< ("\"" + sp->pathSetId + "\"") << ","
+						<< sp->partialUtility << ","
+						<< sp->pathSize << ","
+						<< sp->signalNumber << ","
+						<< sp->rightTurnNumber << ","
+						<< ("\"" + sp->scenario  + "\"") << ","
+						<< sp->length << ","
+						<< sp->highWayDistance << ","
+						<< sp->isMinDistance << ","
+						<< sp->isMinSignal << ","
+						<< sp->isMinRightTurn << ","
+						<< sp->isMaxHighWayUsage << ","
+						<< sp->valid_path << ","
+						<< sp->isShortestPath << ","
+						<< sp->travelTime << ","
+						<< sp->isMinTravelTime << ","
+						<< sp->pathSetId << "\n";
+			}
+		}
 	}
-	RTTT = value;
-	//logger << "[REALTIME TABLE NAME : " << RTTT << "]\n";
-}
-
-double sim_mob::PathSetParam::getLinkTT(const sim_mob::Link* lnk, const sim_mob::Link* downstreamLink, const sim_mob::DailyTime &startTime) const
-{
-	LinkTravelTime::TimeInterval timeInterval = LinkTravelTime::getTimeInterval(startTime);
-	std::map<unsigned long, sim_mob::LinkTravelTime>::const_iterator it = lnkTravelTimeMap.find(lnk->getLinkId());
-	if (it == lnkTravelTimeMap.end())
-	{
-		std::stringstream out;
-		out << "NO DTT FOR : " << lnk->getLinkId() << "\n";
-		throw std::runtime_error(out.str());
-	}
-	const LinkTravelTime& lnkTT = it->second;
-	double res = 0;
-	if(downstreamLink)
-	{
-		res = lnkTT.getHistoricalLinkTT(downstreamLink->getLinkId(), timeInterval);
-	}
-	else
-	{
-		res = lnkTT.getHistoricalLinkTT(timeInterval);
-	}
-
-	if (res <= 0.0)
-	{
-		//check default if travel time is not found
-		res = lnkTT.getDefaultTravelTime();
-	}
-	return res;
 }
 
 void sim_mob::PathSetParam::initParameters()
@@ -132,8 +98,9 @@ void sim_mob::PathSetParam::initParameters()
 }
 
 sim_mob::PathSetParam::PathSetParam() :
-		roadNetwork(*(RoadNetwork::getInstance())), RTTT(""),
-			intervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().interval * 1000 /*milliseconds*/)
+		roadNetwork(*(RoadNetwork::getInstance())),
+		intervalMS(sim_mob::ConfigManager::GetInstance().FullConfig().getPathSetConf().interval * 1000 /*milliseconds*/),
+		ttMgr(TravelTimeManager::getInstance())
 {
 	for (std::map<unsigned int, Node *>::const_iterator it = roadNetwork.getMapOfIdvsNodes().begin(); it != roadNetwork.getMapOfIdvsNodes().end(); it++)
 	{
@@ -229,114 +196,4 @@ void sim_mob::PathSetParam::loadERP_GantryZone(soci::session& sql)
 		sim_mob::ERP_Gantry_Zone *s = new sim_mob::ERP_Gantry_Zone(*it);
 		ERP_Gantry_ZonePool.insert(std::make_pair(s->gantryNo, s));
 	}
-}
-
-void sim_mob::PathSetParam::loadLinkDefaultTravelTime(soci::session& sql)
-{
-	const std::string &tableName = sim_mob::ConfigManager::GetInstance().PathSetConfig().DTT_Conf;
-	std::string query = "select link_id, to_char(start_time,'HH24:MI:SS') AS start_time, to_char(end_time,'HH24:MI:SS') AS end_time, travel_time from " + tableName;
-	soci::rowset<sim_mob::LinkTravelTime> rs = sql.prepare << query;
-
-	for (soci::rowset<sim_mob::LinkTravelTime>::iterator lttIt = rs.begin(); lttIt != rs.end(); ++lttIt)
-	{
-		lnkTravelTimeMap[lttIt->getLinkId()] = *lttIt;
-	}
-}
-
-void sim_mob::PathSetParam::loadLinkHistoricalTravelTime(soci::session& sql)
-{
-	const sim_mob::ConfigParams& cfg = ConfigManager::GetInstance().FullConfig();
-	TT_STORAGE_TIME_INTERVAL_WIDTH = cfg.getPathSetConf().interval * 1000; // initialize to proper interval from config
-	const std::string &tableName = sim_mob::ConfigManager::GetInstance().PathSetConfig().RTTT_Conf;
-	std::string query = "select link_id, downstream_link_id, to_char(start_time,'HH24:MI:SS') AS start_time, to_char(end_time,'HH24:MI:SS') AS end_time,"
-			"travel_time from " + tableName + " order by link_id, downstream_link_id";
-
-	//main loop
-		unsigned int timeInterval;
-		soci::rowset<soci::row> rs = (sql.prepare << query);
-		for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); ++it)
-		{
-			const soci::row& rowData = *it;
-			unsigned int linkId = rowData.get<unsigned int>(0);
-			unsigned int downstreamLinkId = rowData.get<unsigned int>(1);
-			DailyTime startTime(rowData.get<std::string>(2));
-			DailyTime endTime(rowData.get<std::string>(3));
-			double travelTime = rowData.get<double>(4);
-
-			//time interval validation
-			DailyTime interval = endTime - startTime;
-			if(interval.getValue() != TT_STORAGE_TIME_INTERVAL_WIDTH)
-			{
-				throw std::runtime_error("mismatch between time interval width specified in config and that found from link_travel_time table");
-			}
-			timeInterval = sim_mob::LinkTravelTime::getTimeInterval(startTime);
-
-			//store data
-			std::map<unsigned int, sim_mob::LinkTravelTime>::iterator lttIt = lnkTravelTimeMap.find(linkId); // must have an entry for all link ids after loading default travel times
-			if(lttIt == lnkTravelTimeMap.end())
-			{
-				throw std::runtime_error("linkId specified in historical travel time table does not have a default travel time");
-			}
-			LinkTravelTime& lnkTT = lttIt->second;
-			lnkTT.addHistoricalTravelTime(downstreamLinkId, travelTime);
-		}
-
-}
-
-sim_mob::LinkTravelTime::LinkTravelTime() : linkId(0), defaultTravelTime(0.0)
-{
-}
-
-sim_mob::LinkTravelTime::~LinkTravelTime()
-{
-}
-
-sim_mob::LinkTravelTime::TimeInterval sim_mob::LinkTravelTime::getTimeInterval(const DailyTime& dt) const
-{
-	if(TT_STORAGE_TIME_INTERVAL_WIDTH == 0)
-	{
-		throw std::runtime_error("width of time interval for travel time storage is 0");
-	}
-	return (dt.getValue() / TT_STORAGE_TIME_INTERVAL_WIDTH);
-}
-
-void sim_mob::LinkTravelTime::addHistoricalTravelTime(unsigned int downstreamLinkId, double travelTime)
-{
-	downstreamLinkTT_Map[downstreamLinkId] = travelTime;
-}
-
-double sim_mob::LinkTravelTime::getHistoricalLinkTT(unsigned int downstreamLinkId, unsigned int timeInterval) const
-{
-	TravelTimeStore::const_iterator ttMapIt = downstreamLinkTT_Map.find(timeInterval);
-	if(ttMapIt == downstreamLinkTT_Map.end())
-	{
-		return -1;
-	}
-	const LinkDownStreamLinkTT_Map& ttInnerMap = ttMapIt->second;
-	LinkDownStreamLinkTT_Map::const_iterator ttInnerMapIt = ttInnerMap.find(downstreamLinkId);
-	if(ttInnerMapIt == ttInnerMap.end())
-	{
-		return -1;
-	}
-	return ttInnerMapIt->second;
-}
-
-double sim_mob::LinkTravelTime::getHistoricalLinkTT(unsigned int timeInterval) const
-{
-	TravelTimeStore::const_iterator ttMapIt = downstreamLinkTT_Map.find(timeInterval);
-	if(ttMapIt == downstreamLinkTT_Map.end())
-	{
-		return -1;
-	}
-	const LinkDownStreamLinkTT_Map& ttInnerMap = ttMapIt->second;
-	if(ttInnerMap.empty())
-	{
-		return -1;
-	}
-	double totalTT = 0.0;
-	for(LinkDownStreamLinkTT_Map::const_iterator ttInnerMapIt=ttInnerMap.begin(); ttInnerMapIt!=ttInnerMap.end(); ttInnerMapIt++)
-	{
-		totalTT = totalTT + ttInnerMapIt->second;
-	}
-	return (totalTT/ttInnerMap.size());
 }

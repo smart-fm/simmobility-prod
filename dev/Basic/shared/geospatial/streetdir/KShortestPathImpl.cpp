@@ -241,7 +241,7 @@ int sim_mob::K_ShortestPathImpl::getKShortestPaths(const sim_mob::Node *from, co
 
 std::set<const Link*> sim_mob::K_ShortestPathImpl::getUpstreamLinks(const Node *spurNode) const
 {
-	return upstreamLinksLookup[spurNode];
+	return upstreamLinksLookup.find(spurNode)->second;
 }
 
 bool sim_mob::K_ShortestPathImpl::validatePath(const std::vector<sim_mob::WayPoint> &rootPath, const std::vector<sim_mob::WayPoint> &spurPath)

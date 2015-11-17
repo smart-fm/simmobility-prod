@@ -393,10 +393,11 @@ double sim_mob::generateSinglePathLength(const std::vector<sim_mob::WayPoint>& w
 double sim_mob::calculateSinglePathDefaultTT(const std::vector<sim_mob::WayPoint>& wp)
 {
 	double res = 0.0;
+	const TravelTimeManager* ttMgr = sim_mob::TravelTimeManager::getInstance();
 	for(std::vector<sim_mob::WayPoint>::const_iterator it = wp.begin(); it != wp.end(); it++)
 	{
-		const sim_mob::RoadSegment* rs = it->roadSegment;
-		res += sim_mob::PathSetParam::getInstance()->getDefSegTT(rs);
+		const sim_mob::Link* lnk = it->link;
+		res += ttMgr->getDefaultLinkTT(lnk);
 	}
 	return res; //hours
 }

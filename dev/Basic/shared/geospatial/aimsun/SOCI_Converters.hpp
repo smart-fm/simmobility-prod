@@ -203,28 +203,6 @@ template<> struct type_conversion<sim_mob::ERP_Gantry_Zone>
     }
 };
 
-template<> struct type_conversion<sim_mob::LinkTravelTime>
-{
-    typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::LinkTravelTime &res)
-    {
-    	res.linkId = vals.get<int>("link_id", 0);
-    	res.travelMode = vals.get<std::string>("travel_mode", "");
-    	res.startTime = vals.get<std::string>("start_time", "00:00:00");
-    	res.endTime = vals.get<std::string>("end_time", "00:00:00");
-    	res.defaultTravelTime = vals.get<double>("travel_time", 0.0);
-    }
-    static void to_base(const sim_mob::LinkTravelTime& src, soci::values& vals, soci::indicator& ind)
-    {
-    	vals.set("link_id", src.linkId);
-        vals.set("start_time", src.startTime);
-        vals.set("end_time", src.endTime);
-        vals.set("travel_time", src.defaultTravelTime);
-        vals.set("travel_mode", src.travelMode);
-        ind = i_ok;
-    }
-};
-
 template<> struct type_conversion<sim_mob::aimsun::Section>
 {
     typedef values base_type;

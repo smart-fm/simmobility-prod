@@ -70,14 +70,9 @@ public:
 	static void loadSegNodeType(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn);
 	static void LoadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet);
 	static void LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet);
-	static bool createTable(soci::session& sql,std::string& table_name);
-	static bool insertData2TravelTimeTmpTable(const std::string& connectionStr,	std::string& table_name, sim_mob::LinkTravelTime& data);
-	static bool upsertTravelTime(soci::session& sql,const std::string& csvFileName, const std::string& tableName, double alpha);
 	static bool insertCSV2Table(soci::session& sql, std::string& table_name,const std::string& csvFileName);
 	static bool truncateTable(soci::session& sql, std::string& table_name);
 	static bool excuString(soci::session& sql,std::string& str);
-	static bool storeSinglePath(soci::session& sql,
-					std::set<sim_mob::SinglePath*,sim_mob::SinglePath>& pathPool,const std::string pathSetTableName);
 	///For partial network loading.
 	static std::map<std::string, std::vector<sim_mob::TripChainItem*> > LoadTripChainsFromNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs);
 	/// get CBD's border information

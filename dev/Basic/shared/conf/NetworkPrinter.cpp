@@ -83,12 +83,11 @@ void NetworkPrinter::PrintSimulationProperties() const
 {
 	//Initial message
 	out << "Printing node network" << std::endl;
-	out << "NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." << std::endl;
 
 	//Print some properties of the simulation itself
 	out << "(\"simulation\", 0, 0, {";
 	out << "\"frame-time-ms\":\"" << cfg.baseGranMS() << "\",";
-	out << "})";
+	out << "})\n";
 }
 
 void NetworkPrinter::PrintNodes(const map<unsigned int, Node *> &nodes) const
@@ -98,12 +97,12 @@ void NetworkPrinter::PrintNodes(const map<unsigned int, Node *> &nodes) const
 	
 	for (map<unsigned int, Node *>::const_iterator it = nodes.begin(); it != nodes.end(); ++it)
 	{
-		out << "\n(\"node\", 0, " << it->second->getNodeId() << ", {";
+		out << "(\"node\", 0, " << it->second->getNodeId() << ", {";
 		out << "\"location\":\"[";
 		out << "(" << it->second->getLocation().getX() << "," << it->second->getLocation().getY() << "),";
 		out << "]\",";
 		out << "\"type\":\"" << it->second->getNodeType() << "\",";
-		out << "})";
+		out << "})\n";
 	}
 	
 	PrintToFileAndGui(out);
@@ -116,7 +115,7 @@ void NetworkPrinter::PrintLinks(const map<unsigned int, Link *> &links) const
 	
 	for (map<unsigned int, Link *>::const_iterator it = links.begin(); it != links.end(); ++it)
 	{
-		out << "\n(\"link\", 0, " << it->second->getLinkId() << ", {";
+		out << "(\"link\", 0, " << it->second->getLinkId() << ", {";
 		out << "\"name\":\"" << it->second->getRoadName() << "\",";
 		out << "\"from\":\"" << it->second->getFromNodeId() << "\",";
 		out << "\"to\":\"" << it->second->getToNodeId() << "\",";
@@ -131,7 +130,7 @@ void NetworkPrinter::PrintLinks(const map<unsigned int, Link *> &links) const
 			out << (*segIt)->getRoadSegmentId() << ",";
 		}
 		out << "]\",";
-		out << "})";
+		out << "})\n";
 	}
 	
 	PrintToFileAndGui(out);
@@ -144,7 +143,7 @@ void NetworkPrinter::PrintSegments(const map<unsigned int, RoadSegment *> &segme
 
 	for (map<unsigned int, RoadSegment *>::const_iterator it = segments.begin(); it != segments.end(); ++it)
 	{
-		out << "\n(\"segment\", 0, " << it->second->getRoadSegmentId() << ", {";
+		out << "(\"segment\", 0, " << it->second->getRoadSegmentId() << ", {";
 		out << "\"link\":\"" << it->second->getLinkId() << "\",";
 		out << "\"seq-number\":\"" << it->second->getSequenceNumber() << "\",";
 		out << "\"max-speed\":\"" << it->second->getMaxSpeed() << "\",";
@@ -156,13 +155,13 @@ void NetworkPrinter::PrintSegments(const map<unsigned int, RoadSegment *> &segme
 			out << "(" << itPts->getX() << "," << itPts->getY() << "),";
 		}
 		out << "]\",";
-		out << "})";
+		out << "})\n";
 
 		//The associated lanes
 		const vector<Lane *> &lanes = it->second->getLanes();		
 		for (size_t index = 0; index < lanes.size(); ++index)
 		{
-			out << "\n(\"lane\", 0, " << lanes[index]->getLaneId() << ", {";
+			out << "(\"lane\", 0, " << lanes[index]->getLaneId() << ", {";
 			out << "\"index\":\"" << lanes[index]->getLaneIndex() << "\",";
 			out << "\"width\":\"" << lanes[index]->getWidth() << "\",";
 			out << "\"points\":\"[";
@@ -177,7 +176,7 @@ void NetworkPrinter::PrintSegments(const map<unsigned int, RoadSegment *> &segme
 			{
 				out << "\"lane-" << lanes[index]->getLaneIndex() << "is-pedestrian-lane\":\"true\",";
 			}
-			out << "})";
+			out << "})\n";
 		}
 	}
 
@@ -194,12 +193,12 @@ void NetworkPrinter::PrintLaneConnectors(const map<unsigned int, Lane *> &lanes)
 		const std::vector<LaneConnector *> &connectors = it->second->getLaneConnectors();
 		for(std::vector<LaneConnector *>::const_iterator itConnectors = connectors.begin(); itConnectors != connectors.end(); ++itConnectors)
 		{
-			out << "\n(\"lane-connector\", 0, " << (*itConnectors)->getLaneConnectionId() << ", {";
+			out << "(\"lane-connector\", 0, " << (*itConnectors)->getLaneConnectionId() << ", {";
 			out << "\"from-segment\":\"" << (*itConnectors)->getFromRoadSegmentId() << "\",";
 			out << "\"from-lane\":\"" << (*itConnectors)->getFromLaneId() << "\",";
 			out << "\"to-segment\":\"" << (*itConnectors)->getToRoadSegmentId() << "\",";
 			out << "\"to-lane\":\"" << (*itConnectors)->getToLaneId() << "\",";
-			out << "})";
+			out << "})\n";
 		}
 	}
 
@@ -214,11 +213,11 @@ void NetworkPrinter::PrintTurningGroups(const std::map<unsigned int, TurningGrou
 	for (map<unsigned int, TurningGroup *>::const_iterator it = turningGroups.begin(); it != turningGroups.end(); ++it)
 	{
 		const TurningGroup *group = it->second;
-		out << "\n(\"turning-group\", 0, " << group->getTurningGroupId() << ", {";
+		out << "(\"turning-group\", 0, " << group->getTurningGroupId() << ", {";
 		out << "\"node\":\"" << group->getNodeId() << "\",";
 		out << "\"from\":\"" << group->getFromLinkId() << "\",";
 		out << "\"to\":\"" << group->getToLinkId() << "\",";
-		out << "})";
+		out << "})\n";
 	}
 
 	PrintToFileAndGui(out);
@@ -232,7 +231,7 @@ void NetworkPrinter::PrintTurnings(const map<unsigned int, TurningPath*>& turnin
 	for (map<unsigned int, TurningPath *>::const_iterator it = turnings.begin(); it != turnings.end(); ++it)
 	{
 		const TurningPath *turningPath = it->second;
-		out << "\n(\"turning-path\", 0, " << turningPath->getTurningPathId() << ", {";
+		out << "(\"turning-path\", 0, " << turningPath->getTurningPathId() << ", {";
 		out << "\"group\":\"" << turningPath->getTurningGroupId() << "\",";
 		out << "\"from-segment\":\"" << turningPath->getFromLane()->getRoadSegmentId() << "\",";
 		out << "\"to-segment\":\"" << turningPath->getToLane()->getRoadSegmentId() << "\",";
@@ -245,7 +244,7 @@ void NetworkPrinter::PrintTurnings(const map<unsigned int, TurningPath*>& turnin
 			out << "(" << itPts->getX() << "," << itPts->getY() << "),";
 		}
 		out << "]\",";
-		out << "})";
+		out << "})\n";
 	}
 
 	PrintToFileAndGui(out);
@@ -259,12 +258,12 @@ void NetworkPrinter::PrintConflicts(const std::map<unsigned int, TurningConflict
 	for (std::map<unsigned int, TurningConflict* >::const_iterator it = conflicts.begin(); it != conflicts.end(); ++it)
 	{
 		const TurningConflict *conflict = it->second;
-		out << "\n(\"conflict\", 0, " << conflict->getConflictId() << ", {";
+		out << "(\"conflict\", 0, " << conflict->getConflictId() << ", {";
 		out << "\"turning-1\":\"" << conflict->getFirstTurningId() << "\",";
 		out << "\"conflict-dist-1\":\""<< std::setprecision(8) << conflict->getFirstConflictDistance() << "\",";
 		out << "\"turning-2\":\"" << conflict->getSecondTurningId() << "\",";
 		out << "\"conflict-dist-2\":\"" << std::setprecision(8) << conflict->getSecondConflictDistance() << "\",";
-		out << "})";
+		out << "})\n";
 	}
 
 	PrintToFileAndGui(out);
@@ -272,6 +271,18 @@ void NetworkPrinter::PrintConflicts(const std::map<unsigned int, TurningConflict
 
 void NetworkPrinter::PrintSignals(const std::map<unsigned int, Signal *> &signals) const
 {
+	std::stringstream out;
+	out << std::setprecision(8);
+	
+	for (std::map<unsigned int, Signal *>::const_iterator it = signals.begin(); it != signals.end(); ++it)
+	{	
+		out << "{\"TrafficSignal\":" << "{";
+		out << "\"id\":\"" << it->second->getNode()->getTrafficLightId() << "\",";
+		out << "\"node\": \"" << it->second->getNode()->getNodeId() << "\",";
+		out << "}}\n";
+	}
+	
+	PrintToFileAndGui(out);
 }
 
 void NetworkPrinter::PrintBusStops(const std::map<unsigned int, BusStop *> &stops) const
@@ -282,7 +293,7 @@ void NetworkPrinter::PrintBusStops(const std::map<unsigned int, BusStop *> &stop
 	for(std::map<unsigned int, BusStop *>::const_iterator it = stops.begin(); it != stops.end(); ++it)
 	{
 		const BusStop *stop = it->second;
-		out << "\n(\"bus-stop\", 0, " << stop->getRoadItemId() << ", {";
+		out << "(\"bus-stop\", 0, " << stop->getRoadItemId() << ", {";
 		out << "\"code\":\"" << stop->getStopCode() << "\",";
 		out << "\"name\":\"" << stop->getStopName() << "\",";
 		out << "\"length\":\"" << stop->getLength() << "\",";
@@ -290,7 +301,7 @@ void NetworkPrinter::PrintBusStops(const std::map<unsigned int, BusStop *> &stop
 		out << "\"location\":\"[";
 		out << "(" << stop->getStopLocation().getX() << "," << stop->getStopLocation().getY() << "),";
 		out << "]\",";		
-		out << "})";
+		out << "})\n";
 	}
 	
 	PrintToFileAndGui(out);

@@ -525,14 +525,28 @@ void sim_mob::ParseConfigFile::ProcessFMOD_Node(xercesc::DOMElement* node)
 
 	//The fmod tag has an attribute
 	cfg.fmod.enabled = ParseBoolean(GetNamedAttributeValue(node, "enabled"), false);
-
-	//Now set the rest.
-	cfg.fmod.ipAddress = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "ip_address"), "value"), "");
-	cfg.fmod.port = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "port"), "value"), static_cast<unsigned int>(0));
-	//cfg.fmod.updateTravelMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "interval_travel_MS"), "value"), static_cast<unsigned int>(0));
-	//cfg.fmod.updatePosMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "interval_pos_MS"), "value"), static_cast<unsigned int>(0));
-	cfg.fmod.mapfile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "map_file"), "value"), "");
-	cfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blocking_time_Sec"), "value"), static_cast<unsigned int>(0));
+	if (cfg.fmod.enabled) {
+		//Now set the rest.
+		cfg.fmod.ipAddress = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "ip_address"), "value"),"");
+		cfg.fmod.port = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "port"),"value"), static_cast<unsigned int>(0));
+		cfg.fmod.updateTimeMS = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "update_time_ms"),"value"), static_cast<unsigned int>(0));
+		cfg.fmod.mapfile = ParseString(GetNamedAttributeValue(GetSingleElementByName(node, "map_file"),"value"), "");
+		cfg.fmod.blockingTimeSec = ParseUnsignedInt(GetNamedAttributeValue(GetSingleElementByName(node, "blocking_time_sec"),"value"), static_cast<unsigned int>(0));
+		xercesc::DOMElement* resNodes = GetSingleElementByName(node,"requests");
+		for (DOMElement* item = resNodes->getFirstElementChild(); item; item =item->getNextElementSibling()) {
+			if (TranscodeString(item->getNodeName()) == "trip") {
+				TripChainItem* trip = new Trip();
+				trip->startTime = DailyTime(ParseString(GetNamedAttributeValue(item, "startTime"),""));
+				trip->endTime = DailyTime(ParseString(GetNamedAttributeValue(item, "endTime"),""));
+				trip->requestTime = ParseUnsignedInt(GetNamedAttributeValue(item, "timeWinSec"));
+				trip->sequenceNumber = ParseUnsignedInt(GetNamedAttributeValue(item, "frequency"));
+				trip->startLocationId = ParseString(GetNamedAttributeValue(item, "originNode"), "");
+				trip->endLocationId = ParseString(GetNamedAttributeValue(item, "destNode"), "");
+				std::string startId = ParseString(GetNamedAttributeValue(item, "startId"), "");
+				cfg.fmod.allItems[startId] = trip;
+			}
+		}
+	}
 }
 
 void sim_mob::ParseConfigFile::ProcessAMOD_Node(xercesc::DOMElement* node)

@@ -128,14 +128,15 @@ public:
 	virtual bool isNonspatial();
 
 	/**
-	 * Based on the current phase gets the traffic light colour shown to the drivers accessing the given turning
+	 * Based on the current phase, gets the traffic light colour shown to the drivers accessing the given turning
 	 * group
 	 * 
-	 * @param turningGroupId the id of the turning group for which the traffic light colour is required
+	 * @param fromLink the id of the link the driver is arriving from
+	 * @param toLink the id of the link the driver is moving towards
 	 * 
 	 * @return traffic light colour
 	 */
-	virtual TrafficColor getDriverLight(unsigned int turningGroupId) const = 0;
+	virtual TrafficColor getDriverLight(unsigned int fromLink, unsigned int toLink) const = 0;
 
 	/**
 	 * Compulsory override from Agent class (Does nothing for signals)
@@ -308,11 +309,15 @@ public:
 	virtual ~Signal_SCATS();
 
 	/**
+	 * Based on the current phase, gets the traffic light colour shown to the drivers accessing the given turning
+	 * group
 	 * 
-	 * @param turningGroupId
-	 * @return 
+	 * @param fromLink the id of the link the driver is arriving from
+	 * @param toLink the id of the link the driver is moving towards
+	 * 
+	 * @return traffic light colour
 	 */
-	TrafficColor getDriverLight(unsigned int turningGroupId) const;
+	TrafficColor getDriverLight(unsigned int fromLink, unsigned int toLink) const;
 	
 	const Sensor* getLoopDetector() const
 	{

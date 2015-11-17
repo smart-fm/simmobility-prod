@@ -97,7 +97,9 @@ Entity::UpdateStatus Signal_SCATS::frame_tick(timeslice now)
 	}
 	else
 	{
-		throw std::runtime_error("Error: Signal_SCATS::computeCurrPhase() returned a phaseId which is out of range");
+		std::stringstream msg;
+		msg << "Error: Signal_SCATS::frame_tick(): phaseId (" << phaseId << ") out of range (" << phases.size() << ")";
+		throw std::runtime_error(msg.str());
 	}
 
 	if (currPhaseAtGreen != phaseId)
@@ -181,8 +183,8 @@ std::size_t Signal_SCATS::computeCurrPhase(double currCycleTimer)
 
 	if (phase >= phases.size())
 	{
-		std::stringstream str;
-		str << "\nError: Signal_SCATS::computeCurrPhase(): phase (" << phase << ") >= numOfPhases (" << phases.size() << ")"; 
+		std::stringstream str("");
+		str << "Error: Signal_SCATS::computeCurrPhase(): phase (" << phase << ") >= numOfPhases (" << phases.size() << ")"; 
 		str << "\ncurrCycleTimer(" << currCycleTimer << ") <= sum (" << sum << ")";
 		throw std::runtime_error(str.str());
 	}
@@ -268,34 +270,28 @@ void Signal_SCATS::resetCycle()
 	}
 }
 
-TrafficColor Signal_SCATS::getDriverLight(unsigned int turningGroupId) const
+TrafficColor Signal_SCATS::getDriverLight(unsigned int fromLink, unsigned int toLink) const
 {
-	/*const RoadSegment *fromRoad = fromLane.getParentSegment();
-	const Link *fromLink = fromRoad->getParentLink();
-
-	const RoadSegment *toRoad = toLane.getParentSegment();
-	const Link *toLink = toRoad->getParentLink();
-
-	const Phase &currPhase = phases[currPhaseAtGreen];
-	links_map &linkMap = currPhase.getLinksMap();
-	Phase::links_map_equal_range range = currPhase.getLinkTos(fromLink);
-	Phase::links_map_const_iterator iter;
+	const Phase *currPhase = phases[currPhaseAtGreen];
+	Phase::linksMappingEqualRange range = currPhase->getLinkTos(fromLink);
+	Phase::linksMappingConstIterator iter;
 	
 	for (iter = range.first; iter != range.second; iter++)
 	{
-		if ((*iter).second.LinkTo == toLink)
+		if ((*iter).second.toLink == toLink)
 		{
 			break;
 		}
 	}
 
-	//if the link is not listed in the current phase throw an error (alternatively, just return red)
+	//If the link is not listed in the current phase warn and return red
 	if (iter == range.second)
 	{
-		//either through an error or return res-your choice
-		return Red;
+		Warn() << "The requested fromLink (" << fromLink << ") is not in the current phase\n";
+		return TrafficColor::TRAFFIC_COLOUR_RED;
 	}
-	return (*iter).second.currColor;*/
+	
+	return (*iter).second.currColor;
 }
 
 void Signal_SCATS::createPlans()

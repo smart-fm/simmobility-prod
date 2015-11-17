@@ -1882,7 +1882,7 @@ void DriverMovement::setTrafficSignal()
 	if(currWayPt.type == WayPoint::ROAD_SEGMENT)
 	{
 		node = currWayPt.roadSegment->getParentLink()->getToNode();
-		//trafficSignal = RoadNetwork::getInstance()->getTrafficSignal(node->getTrafficLightId());
+		trafficSignal = RoadNetwork::getInstance()->getById(RoadNetwork::getInstance()->getMapOfIdVsSignals(), node->getTrafficLightId());
 	}
 }
 
@@ -1905,7 +1905,9 @@ void DriverMovement::setTrafficSignalParams(DriverUpdateParams &params)
 			//If the next way point is valid, then we know the turning group
 			if(nextWayPt)
 			{
-				//colour = trafficSignal->getDriverLight(nextWayPt->turningGroup->getTurningGroupId());
+				unsigned int fromLink = nextWayPt->turningGroup->getFromLinkId();
+				unsigned int toLink = nextWayPt->turningGroup->getToLinkId();
+				colour = trafficSignal->getDriverLight(fromLink, toLink);
 			}
 			else				
 			{
@@ -1926,7 +1928,9 @@ void DriverMovement::setTrafficSignalParams(DriverUpdateParams &params)
 					{
 						if(itGroups->second->getTurningPaths(currLane->getLaneId()))
 						{
-							//colour = trafficSignal->getDriverLight(itGroups->second->getTurningGroupId());
+							unsigned int fromLink = itGroups->second->getFromLinkId();
+							unsigned int toLink = itGroups->second->getToLinkId();
+							colour = trafficSignal->getDriverLight(fromLink, toLink);
 							break;
 						}
 						++itGroups;

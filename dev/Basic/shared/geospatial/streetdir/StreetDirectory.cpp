@@ -73,31 +73,53 @@ StreetDirectory::VertexDesc StreetDirectory::DrivingVertex(const Node& node) con
 	}
 	return spImpl->DrivingVertex(node);
 }
-StreetDirectory::VertexDesc StreetDirectory::DrivingTimeVertex(const Node& node, TimeRange timeRange,int randomGraphId) const
+
+StreetDirectory::VertexDesc StreetDirectory::DrivingTimeVertex(const Node& node, TimeRange timeRange, int randomGraphId) const
 {
-	if (!sttpImpl) {
+	if (!sttpImpl)
+	{
 		return StreetDirectory::VertexDesc(false);
 	}
 
-	if (timeRange == MorningPeak) {
-		return ((A_StarShortestTravelTimePathImpl *) sttpImpl)->DrivingVertexMorningPeak(node);
-	} else if (timeRange == EveningPeak) {
-		return ((A_StarShortestTravelTimePathImpl *) sttpImpl)->DrivingVertexEveningPeak(node);
-	} else if (timeRange == OffPeak) {
-		return ((A_StarShortestTravelTimePathImpl *) sttpImpl)->DrivingVertexNormalTime(node);
-	} else if (timeRange == Default) {
-		return ((A_StarShortestTravelTimePathImpl *) sttpImpl)->DrivingVertexNormalTime(node);
-	} else if (timeRange == HighwayBiasDistance) {
+//	if (timeRange == MorningPeak)
+//	{
+//		return ((A_StarShortestTravelTimePathImpl *) sttpImpl)->DrivingVertexMorningPeak(node);
+//	}
+//	else if (timeRange == EveningPeak)
+//	{
+//		return ((A_StarShortestTravelTimePathImpl *) sttpImpl)->DrivingVertexEveningPeak(node);
+//	}
+//	else if (timeRange == OffPeak)
+//	{
+//		return ((A_StarShortestTravelTimePathImpl *) sttpImpl)->DrivingVertexNormalTime(node);
+//	}
+//	else
+	if (timeRange == Default)
+	{
+		return ((A_StarShortestTravelTimePathImpl *) sttpImpl)->DrivingVertexDefault(node);
+	}
+	else if (timeRange == HighwayBiasDistance)
+	{
 		return ((A_StarShortestTravelTimePathImpl *) sttpImpl)->DrivingVertexHighwayBiasDistance(node);
-	} else if (timeRange == HighwayBiasMorningPeak) {
-		return ((A_StarShortestTravelTimePathImpl *) sttpImpl)->DrivingVertexHighwayBiasMorningPeak(node);
-	} else if (timeRange == HighwayBiasEveningPeak) {
-		return ((A_StarShortestTravelTimePathImpl *) sttpImpl)->DrivingVertexHighwayBiasEveningPeak(node);
-	} else if (timeRange == HighwayBiasOffPeak) {
-		return ((A_StarShortestTravelTimePathImpl *) sttpImpl)->DrivingVertexHighwayBiasNormalTIme(node);
-	} else if (timeRange == HighwayBiasDefault) {
+	}
+//	else if (timeRange == HighwayBiasMorningPeak)
+//	{
+//		return ((A_StarShortestTravelTimePathImpl *) sttpImpl)->DrivingVertexHighwayBiasMorningPeak(node);
+//	}
+//	else if (timeRange == HighwayBiasEveningPeak)
+//	{
+//		return ((A_StarShortestTravelTimePathImpl *) sttpImpl)->DrivingVertexHighwayBiasEveningPeak(node);
+//	}
+//	else if (timeRange == HighwayBiasOffPeak)
+//	{
+//		return ((A_StarShortestTravelTimePathImpl *) sttpImpl)->DrivingVertexHighwayBiasNormalTIme(node);
+//	}
+	else if (timeRange == HighwayBiasDefault)
+	{
 		return ((A_StarShortestTravelTimePathImpl *) sttpImpl)->DrivingVertexHighwayBiasDefault(node);
-	} else if (timeRange == Random) {
+	}
+	else if (timeRange == Random)
+	{
 		return ((A_StarShortestTravelTimePathImpl *) sttpImpl)->DrivingVertexRandom(node, randomGraphId);
 	}
 

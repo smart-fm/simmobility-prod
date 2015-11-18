@@ -23,24 +23,24 @@ public:
 	 * @return a VertexDesc which hold vertex in the graph
 	 */
 	virtual StreetDirectory::VertexDesc DrivingVertex(const sim_mob::Node& node) const;
-	/**
-	 * retrieve a vertex in the travel-time graph for the morning peak hours
-	 * @param node is a pointer to the node
-	 * @return a VertexDesc which hold vertex information in the graph
-	 */
-	StreetDirectory::VertexDesc DrivingVertexMorningPeak(const sim_mob::Node& node) const;
-	/**
-	 * retrieve a vertex in the travel-time graph for the evening peak hours
-	 * @param node is a pointer to the node
-	 * @return a VertexDesc which hold vertex information in the graph
-	 */
-	StreetDirectory::VertexDesc DrivingVertexEveningPeak(const sim_mob::Node& node) const;
-	/**
-	 * retrieve a vertex in the travel-time graph for the normal-time hours
-	 * @param node is a pointer to the node
-	 * @return a VertexDesc which hold vertex information in the graph
-	 */
-	StreetDirectory::VertexDesc DrivingVertexNormalTime(const sim_mob::Node& node) const;
+//	/**
+//	 * retrieve a vertex in the travel-time graph for the morning peak hours
+//	 * @param node is a pointer to the node
+//	 * @return a VertexDesc which hold vertex information in the graph
+//	 */
+//	StreetDirectory::VertexDesc DrivingVertexMorningPeak(const sim_mob::Node& node) const;
+//	/**
+//	 * retrieve a vertex in the travel-time graph for the evening peak hours
+//	 * @param node is a pointer to the node
+//	 * @return a VertexDesc which hold vertex information in the graph
+//	 */
+//	StreetDirectory::VertexDesc DrivingVertexEveningPeak(const sim_mob::Node& node) const;
+//	/**
+//	 * retrieve a vertex in the travel-time graph for the normal-time hours
+//	 * @param node is a pointer to the node
+//	 * @return a VertexDesc which hold vertex information in the graph
+//	 */
+//	StreetDirectory::VertexDesc DrivingVertexNormalTime(const sim_mob::Node& node) const;
 	/**
 	 * retrieve a vertex in the travel-time graph for the default-time hours
 	 * @param node is a pointer to the node
@@ -53,24 +53,24 @@ public:
 	 * @return a VertexDesc which hold vertex information in the graph
 	 */
 	StreetDirectory::VertexDesc DrivingVertexHighwayBiasDistance(const sim_mob::Node& node) const;
-	/**
-	 * retrieve a vertex in the travel-time graph with highway bias morning peak
-	 * @param node is a pointer to the node
-	 * @return a VertexDesc which hold vertex information in the graph
-	 */
-	StreetDirectory::VertexDesc DrivingVertexHighwayBiasMorningPeak(const sim_mob::Node& node) const;
-	/**
-	 * retrieve a vertex in the travel-time graph with highway bias evening peak
-	 * @param node is a pointer to the node
-	 * @return a VertexDesc which hold vertex information in the graph
-	 */
-	StreetDirectory::VertexDesc DrivingVertexHighwayBiasEveningPeak(const sim_mob::Node& node) const;
-	/**
-	 * retrieve a vertex in the travel-time graph with highway bias normal time
-	 * @param node is a pointer to the node
-	 * @return a VertexDesc which hold vertex information in the graph
-	 */
-	StreetDirectory::VertexDesc DrivingVertexHighwayBiasNormalTIme(const sim_mob::Node& node) const;
+//	/**
+//	 * retrieve a vertex in the travel-time graph with highway bias morning peak
+//	 * @param node is a pointer to the node
+//	 * @return a VertexDesc which hold vertex information in the graph
+//	 */
+//	StreetDirectory::VertexDesc DrivingVertexHighwayBiasMorningPeak(const sim_mob::Node& node) const;
+//	/**
+//	 * retrieve a vertex in the travel-time graph with highway bias evening peak
+//	 * @param node is a pointer to the node
+//	 * @return a VertexDesc which hold vertex information in the graph
+//	 */
+//	StreetDirectory::VertexDesc DrivingVertexHighwayBiasEveningPeak(const sim_mob::Node& node) const;
+//	/**
+//	 * retrieve a vertex in the travel-time graph with highway bias normal time
+//	 * @param node is a pointer to the node
+//	 * @return a VertexDesc which hold vertex information in the graph
+//	 */
+//	StreetDirectory::VertexDesc DrivingVertexHighwayBiasNormalTIme(const sim_mob::Node& node) const;
 	/**
 	 * retrieve a vertex in the travel-time graph with highway bias default time
 	 * @param node is a pointer to the node
@@ -105,21 +105,21 @@ public:
 	std::vector<sim_mob::WayPoint> GetShortestDrivingPath(
 			const StreetDirectory::VertexDesc& from, const StreetDirectory::VertexDesc& to,
 			const std::vector<const sim_mob::Link*>& blacklist,
-			sim_mob::TimeRange timeRange = sim_mob::MorningPeak, unsigned int randomGraphId = 0) const;
+			sim_mob::TimeRange timeRange = sim_mob::Default, unsigned int randomGraphId = 0) const;
 
 public:
-	/**
-	 * the graph with the travel time based on 06:00:00AM-10:00:00AM
-	 */
-	StreetDirectory::Graph drivingMapMorningPeak;
-	/**
-	 * the graph with the travel time based on 17:00:00PM-20:00:00PM
-	 */
-	StreetDirectory::Graph drivingMapEveningPeak;
-	/**
-	 * the graph with travel time excluding morning & evening peak time
-	 */
-	StreetDirectory::Graph drivingMapNormalTime;
+//	/**
+//	 * the graph with the travel time based on 06:00:00AM-10:00:00AM
+//	 */
+//	StreetDirectory::Graph drivingMapMorningPeak;
+//	/**
+//	 * the graph with the travel time based on 17:00:00PM-20:00:00PM
+//	 */
+//	StreetDirectory::Graph drivingMapEveningPeak;
+//	/**
+//	 * the graph with travel time excluding morning & evening peak time
+//	 */
+//	StreetDirectory::Graph drivingMapNormalTime;
 	/**
 	 * the graph with default travel time
 	 */
@@ -128,18 +128,18 @@ public:
 	 * the graph with travel time modified by highway bias distance.
 	 */
 	StreetDirectory::Graph drivingMapHighwayBiasDistance;
-	/**
-	 * the graph with travel time modified by highway bias morning peak.
-	 */
-	StreetDirectory::Graph drivingMapHighwayBiasMorningPeak;
-	/**
-	 * the graph with travel time modified by highway bias evening peak.
-	 */
-	StreetDirectory::Graph drivingMapHighwayBiasEveningPeak;
-	/**
-	 * the graph with travel time modified by highway bias normal time
-	 */
-	StreetDirectory::Graph drivingMapHighwayBiasNormalTime;
+//	/**
+//	 * the graph with travel time modified by highway bias morning peak.
+//	 */
+//	StreetDirectory::Graph drivingMapHighwayBiasMorningPeak;
+//	/**
+//	 * the graph with travel time modified by highway bias evening peak.
+//	 */
+//	StreetDirectory::Graph drivingMapHighwayBiasEveningPeak;
+//	/**
+//	 * the graph with travel time modified by highway bias normal time
+//	 */
+//	StreetDirectory::Graph drivingMapHighwayBiasNormalTime;
 	/**
 	 * the graph with travel time modified by highway bias default time
 	 */
@@ -148,18 +148,18 @@ public:
 	 * the graph with random travel time
 	 */
 	std::vector<StreetDirectory::Graph> drivingMapRandomPool;
-	/**
-	 * the map lookup from node to vertex in morning peak graph
-	 */
-	NodeVertexLookup drivingNodeLookupMorningPeak;
-	/**
-	 * the map lookup from node to vertex in evening peak graph
-	 */
-	NodeVertexLookup drivingNodeLookupEveningPeak;
-	/**
-	 * the map lookup from node to vertex in normal-time graph
-	 */
-	NodeVertexLookup drivingNodeLookupNormalTime;
+//	/**
+//	 * the map lookup from node to vertex in morning peak graph
+//	 */
+//	NodeVertexLookup drivingNodeLookupMorningPeak;
+//	/**
+//	 * the map lookup from node to vertex in evening peak graph
+//	 */
+//	NodeVertexLookup drivingNodeLookupEveningPeak;
+//	/**
+//	 * the map lookup from node to vertex in normal-time graph
+//	 */
+//	NodeVertexLookup drivingNodeLookupNormalTime;
 	/**
 	 * the map lookup from node to vertex in default-time graph
 	 */
@@ -168,18 +168,18 @@ public:
 	 * the map lookup from node to vertex in travel-time graph with highway bias distance
 	 */
 	NodeVertexLookup drivingNodeLookupHighwayBiasDistance;
-	/**
-	 * the map lookup from node to vertex in travel-time graph with highway bias morning peak
-	 */
-	NodeVertexLookup drivingNodeLookupHighwayBiasMorningPeak;
-	/**
-	 * the map lookup from node to vertex in travel-time graph with highway bias evening peak
-	 */
-	NodeVertexLookup drivingNodeLookupHighwayBiasEveningPeak;
-	/**
-	 * the map lookup from node to vertex in travel-time graph with highway bias normal time
-	 */
-	NodeVertexLookup drivingNodeLookupHighwayBiasNormalTime;
+//	/**
+//	 * the map lookup from node to vertex in travel-time graph with highway bias morning peak
+//	 */
+//	NodeVertexLookup drivingNodeLookupHighwayBiasMorningPeak;
+//	/**
+//	 * the map lookup from node to vertex in travel-time graph with highway bias evening peak
+//	 */
+//	NodeVertexLookup drivingNodeLookupHighwayBiasEveningPeak;
+//	/**
+//	 * the map lookup from node to vertex in travel-time graph with highway bias normal time
+//	 */
+//	NodeVertexLookup drivingNodeLookupHighwayBiasNormalTime;
 	/**
 	 * the map lookup from node to vertex in travel-time graph with highway bias default time
 	 */
@@ -188,18 +188,18 @@ public:
 	 * the map lookup from node to vertex in travel-time graph with random time
 	 */
 	std::vector<NodeVertexLookup> drivingNodeLookupRandomPool;
-	/**
-	 * the map lookup from link to edge in morning peak graph
-	 */
-	LinkEdgeLookup drivingLinkLookupMorningPeak;
-	/**
-	 * the map lookup from link to edge in evening peak graph
-	 */
-	LinkEdgeLookup drivingLinkLookupEveningPeak;
-	/**
-	 * the map lookup from link to edge in normal-time graph
-	 */
-	LinkEdgeLookup drivingLinkLookupNormalTime;
+//	/**
+//	 * the map lookup from link to edge in morning peak graph
+//	 */
+//	LinkEdgeLookup drivingLinkLookupMorningPeak;
+//	/**
+//	 * the map lookup from link to edge in evening peak graph
+//	 */
+//	LinkEdgeLookup drivingLinkLookupEveningPeak;
+//	/**
+//	 * the map lookup from link to edge in normal-time graph
+//	 */
+//	LinkEdgeLookup drivingLinkLookupNormalTime;
 	/**
 	 * the map lookup from link to edge in default-time graph
 	 */
@@ -208,18 +208,18 @@ public:
 	 * the map lookup from link to edge in travel-time graph with highway bias distance
 	 */
 	LinkEdgeLookup drivingLinkLookupHighwayBiasDistance;
-	/**
-	 * the map lookup from link to edge in travel-time graph with highway bias morning peak
-	 */
-	LinkEdgeLookup drivingLinkLookupHighwayBiasMorningPeak;
-	/**
-	 * the map lookup from link to edge in travel-time graph with highway bias evening peak
-	 */
-	LinkEdgeLookup drivingLinkLookupHighwayBiasEveningPeak;
-	/**
-	 * the map lookup from link to edge in travel-time graph with highway bias normal time
-	 */
-	LinkEdgeLookup drivingLinkLookupHighwayBiasNormalTime;
+//	/**
+//	 * the map lookup from link to edge in travel-time graph with highway bias morning peak
+//	 */
+//	LinkEdgeLookup drivingLinkLookupHighwayBiasMorningPeak;
+//	/**
+//	 * the map lookup from link to edge in travel-time graph with highway bias evening peak
+//	 */
+//	LinkEdgeLookup drivingLinkLookupHighwayBiasEveningPeak;
+//	/**
+//	 * the map lookup from link to edge in travel-time graph with highway bias normal time
+//	 */
+//	LinkEdgeLookup drivingLinkLookupHighwayBiasNormalTime;
 	/**
 	 * the map lookup from link to edge in travel-time graph with highway bias default time
 	 */

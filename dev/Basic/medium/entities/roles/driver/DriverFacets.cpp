@@ -11,6 +11,7 @@
 #include "buffering/BufferedDataManager.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
+#include "config/MT_Config.hpp"
 #include "entities/conflux/Conflux.hpp"
 #include "entities/Person_MT.hpp"
 #include "entities/ScreenLineCounter.hpp"
@@ -208,53 +209,21 @@ std::string DriverMovement::frame_tick_output()
 	return logout.str();
 }
 
-void DriverMovement::randomizeStartingSegment(std::vector<WayPoint>& wpPath)
+void DriverMovement::initSegStatsPath(vector<WayPoint>& wpPath, vector<const SegmentStats*>& ssPath) const
 {
-	if (wpPath.size() < 2)
-	{
-		return;
-	} //no randomization for very short paths
-
-	//compute number of segments in the first link of path
-	size_t numSegsInFirstLink = 0;
-	for (vector<WayPoint>::const_iterator it = wpPath.begin(); it != wpPath.end(); it++)
-	{
-		if (it->type == WayPoint::ROAD_SEGMENT)
-		{
-			const RoadSegment* rdSeg = it->roadSegment;
-			numSegsInFirstLink = rdSeg->getParentLink()->getRoadSegments().size();
-			break; //exit loop when we find the first segment and extract required info
-		}
-	}
-
-	if (numSegsInFirstLink >= wpPath.size())
-	{
-		return;
-	} //no randomization if the entire path is contained in 1 link
-
-	//generate uniform random number between 0 and numSegsInFirstLink-1 (minus 1 to keep atleast 1 segment in first link)
-	int randomIdx = Utils::generateInt(0, numSegsInFirstLink - 1);
-	//remove that many elements from the front of the path
-	//the removals are guaranteed to stay within the first link
-	for (int i = 0; i < randomIdx; i++)
-	{
-		if (wpPath.front().type != WayPoint::ROAD_SEGMENT)
-		{
-			wpPath.erase(wpPath.begin());
-		} //extra erase for other items which are not Road segments
-		wpPath.erase(wpPath.begin());
-	}
-}
-
-void DriverMovement::initSegStatsPath(vector<WayPoint>& wpPath, vector<const SegmentStats*>& ssPath)
-{
+	MT_Config& mtCfg = MT_Config::getInstance();
 	for (vector<WayPoint>::iterator it = wpPath.begin(); it != wpPath.end(); it++)
 	{
-		if (it->type == WayPoint::ROAD_SEGMENT)
+		if (it->type == WayPoint::LINK)
 		{
-			const RoadSegment* rdSeg = it->roadSegment;
-			const vector<SegmentStats*>& statsInSegment = Conflux::getConflux(rdSeg)->findSegStats(rdSeg);
-			ssPath.insert(ssPath.end(), statsInSegment.begin(), statsInSegment.end());
+			const Link* lnk = it->link;
+			const Conflux* confluxForLnk = mtCfg.getConfluxForNode(lnk->getToNode());
+			const vector<RoadSegment*>& segsInLnk = lnk->getRoadSegments();
+			for(vector<RoadSegment*>::const_iterator segIt=segsInLnk.begin(); segIt!=segsInLnk.end(); segIt++)
+			{
+				const vector<SegmentStats*>& statsInSegment = confluxForLnk->findSegStats(*segIt);
+				ssPath.insert(ssPath.end(), statsInSegment.begin(), statsInSegment.end());
+			}
 		}
 	}
 }
@@ -298,8 +267,6 @@ bool DriverMovement::initializePath()
 			const StreetDirectory& stdir = StreetDirectory::Instance();
 			wp_path = stdir.SearchShortestDrivingPath(*(parentDriver->origin).node, *(parentDriver->goal).node);
 		}
-
-		randomizeStartingSegment(wp_path); //start driver in random segment of first link
 
 		if (wp_path.empty()) //ideally should not be empty after randomization.
 		{

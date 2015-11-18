@@ -281,19 +281,12 @@ protected:
 	 * accepts a list of WayPoint-s and returns a list of SegmentStats* corresponding
 	 * to RoadSegment* in the list of WayPoint.
 	 */
-	void initSegStatsPath(std::vector<WayPoint>& input,
-						std::vector<const SegmentStats*>& output);
+	void initSegStatsPath(std::vector<WayPoint>& input, std::vector<const SegmentStats*>& output) const;
 	/**
 	 * overload of the above
 	 */
 	void initSegStatsPath(const std::vector<const RoadSegment*>& input,
 						std::vector<const SegmentStats*>& output);
-
-	/**
-	 * randomly chooses the starting segment from the first link of the path
-	 * @param path the path for which first segment has to be randomized
-	 */
-	void randomizeStartingSegment(std::vector<WayPoint>& path);
 
 	/**
 	 * constructs the path for this driver if required.

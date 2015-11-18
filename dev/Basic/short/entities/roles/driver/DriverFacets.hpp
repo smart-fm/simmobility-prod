@@ -374,24 +374,7 @@ public:
 	bool isLastSegmentInLink() const;
 
 	/**Returns the current position of the driver*/
-	Point getPosition();
-
-	/**
-	 * Gets the distance to nearest stopping point in the link
-     *
-	 * @param perceptionDistance the perception distance
-     *
-	 * @return Returns -1 if stopping point was not found, returns value > 0 when the stopping point was found.
-	 * This value is the distance to the stop point
-     */
-
-	/**
-	 * Gets the lanes connected to the segment within the look ahead distance
-	 * 
-     * @param lookAheadDist look ahead distance
-     * @param lanePool stores the result
-     */
-	void getConnectedLanesInLookAheadDistance(double lookAheadDist, std::vector<Lane *> &lanePool);
+	Point getPosition();	
 
 	/**
 	 * Checks if a connection exists between the given lane and segment, either in the form of a lane connector or a turning path.

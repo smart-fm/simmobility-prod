@@ -956,89 +956,6 @@ double DriverMovement::getDistanceToStopPoint(double perceptionDistance)
 	return distance;
 }
 
-void DriverMovement::getConnectedLanesInLookAheadDistance(double lookAheadDist, std::vector<Lane *> &lanePool)
-{
-	double scannedDist = 0;
-	std::vector<WayPoint> wayPtsInLookAheadDist;
-			
-	std::vector<WayPoint>::const_iterator itWayPts = fwdDriverMovement.getCurrWayPointIt();
-	std::vector<WayPoint>::const_iterator end = fwdDriverMovement.getDrivingPath().end();
-	
-	//Scan till look ahead distance or end or path, whichever is smaller and make a list of the way-points
-	while(scannedDist < lookAheadDist && itWayPts != end)
-	{
-		wayPtsInLookAheadDist.push_back(*itWayPts);
-		
-		if(itWayPts->type == WayPoint::ROAD_SEGMENT)
-		{			
-			scannedDist += itWayPts->roadSegment->getLength();
-		}
-		else
-		{
-			scannedDist += itWayPts->turningGroup->getLength();
-		}
-		
-		++itWayPts;
-	}
-	
-	//Lanes in the current segment
-	const std::vector<Lane *> &lanes = fwdDriverMovement.getCurrSegment()->getLanes();	
-	end = wayPtsInLookAheadDist.end();
-	
-	//Check the connectivity of each of the lanes to the way points in the look ahead distance
-	for(std::vector<Lane *>::const_iterator itLanes = lanes.begin(); itLanes != lanes.end(); ++itLanes)
-	{
-		//The way points in the look ahead distance
-		itWayPts = wayPtsInLookAheadDist.begin() + 1;
-		const Lane *lane = *itLanes;
-		
-		while(itWayPts != end)
-		{
-			if(itWayPts->type == WayPoint::ROAD_SEGMENT)
-			{
-				//The next way point is a road segment. If we have a lane connector, then we're connected to it
-				
-				std::vector<const LaneConnector *> connectors;
-				lane->getPhysicalConnectors(connectors);
-				
-				if (!connectors.empty())
-				{
-					lane = connectors[connectors.size() / 2]->getToLane();
-				}
-				else
-				{
-					//We're not connected to the next segment
-					break;
-				}
-			}
-			else
-			{
-				//The next way point is a turning group. If we have a turning path, then we're connected to it
-				
-				const std::map<unsigned int, TurningPath *> *turnings = itWayPts->turningGroup->getTurningPaths(lane->getLaneId());
-				
-				if(turnings)
-				{
-					lane = turnings->begin()->second->getToLane();
-				}
-				else
-				{
-					//We're not connected to the next link
-					break;
-				}
-			}
-			
-			++itWayPts;
-		}
-		
-		//Lane is connected as we reached the end of the way points
-		if(itWayPts == end)
-		{
-			lanePool.push_back(*itLanes);
-		}
-	}
-}
-
 bool DriverMovement::isLaneConnectedToSegment(const Lane *fromLane, const RoadSegment *toSegment)
 {
 	bool isLaneConnected = false;
@@ -1143,13 +1060,14 @@ void DriverMovement::identifyAdjacentLanes(DriverUpdateParams &params)
 	params.leftLane2 = NULL;
 	params.rightLane2 = NULL;
 
-	params.currLane = fwdDriverMovement.getCurrLane();
+	params.currLane = fwdDriverMovement.getCurrLane();	
 	
 	if (fwdDriverMovement.isInIntersection())
 	{
 		return;
 	}
-
+	
+	params.currLaneIndex = params.currLane->getLaneIndex();
 	const unsigned int numOfLanes = params.currLane->getParentSegment()->getNoOfLanes();
 
 	//Only 1 lane in the segment, so no adjacent lanes
@@ -1178,7 +1096,7 @@ void DriverMovement::identifyAdjacentLanes(DriverUpdateParams &params)
 		}
 	}
 
-	if (params.currLaneIndex < numOfLanes - 1)
+	if (params.currLaneIndex + 1 < numOfLanes)
 	{
 		const Lane *temp = params.currLane->getParentSegment()->getLane(params.currLaneIndex + 1);
 
@@ -1188,7 +1106,7 @@ void DriverMovement::identifyAdjacentLanes(DriverUpdateParams &params)
 		}
 	}
 
-	if (params.currLaneIndex < numOfLanes - 2)
+	if (params.currLaneIndex + 2 < numOfLanes)
 	{
 		const Lane *temp = params.currLane->getParentSegment()->getLane(params.currLaneIndex + 2);
 
@@ -1541,22 +1459,22 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 			const Lane *leftOfNextLane2 = NULL;
 			const Lane *rightOfNextLane2 = NULL;
 
-			if (nextLaneIndex > 0)
+			if (nextLaneIndex > 0 && nextLaneIndex - 1 < otherSegment->getNoOfLanes())
 			{
 				leftOfNextLane = otherSegment->getLane(nextLaneIndex - 1);
 			}
 
-			if (nextLaneIndex < otherSegment->getNoOfLanes() - 1)
+			if (nextLaneIndex + 1 < otherSegment->getNoOfLanes())
 			{
 				rightOfNextLane = otherSegment->getLane(nextLaneIndex + 1);
 			}
 
-			if (nextLaneIndex > 1)
+			if (nextLaneIndex > 1 && nextLaneIndex - 2 < otherSegment->getNoOfLanes())
 			{
 				leftOfNextLane2 = otherSegment->getLane(nextLaneIndex - 2);
 			}
 
-			if (nextLaneIndex < otherSegment->getNoOfLanes() - 2)
+			if (nextLaneIndex + 2 < otherSegment->getNoOfLanes())
 			{
 				rightOfNextLane2 = otherSegment->getLane(nextLaneIndex + 2);
 			}
@@ -1605,20 +1523,33 @@ bool DriverMovement::updateNearbyAgent(const Agent *nearbyAgent, const Driver *n
 			const Lane *leftOfPrevLane2 = NULL;
 			const Lane *rightOfPrevLane2 = NULL;
 			
-			if ((fwdDriverMovement.getCurrSegment()->getNoOfLanes() >= otherSegment->getNoOfLanes()) || (currLaneIndex < otherSegment->getNoOfLanes() - 1))
+			//If the current lane index is less than the number of lanes in the previous segment, then the previous lane had the same index
+			if (currLaneIndex < otherSegment->getNoOfLanes())
 			{
 				prevLane = otherSegment->getLane(currLaneIndex);
-			}
-			else
-			{
-				if(currLaneIndex + 1 <= otherSegment->getNoOfLanes() - 1)
+
+				//Check if there are any lanes to the right of the previous lane
+				if (currLaneIndex + 1 < otherSegment->getNoOfLanes())
 				{
 					rightOfPrevLane = otherSegment->getLane(currLaneIndex + 1);
 				}
-				
-				if(currLaneIndex + 2 <= otherSegment->getNoOfLanes() - 1)
+
+				if (currLaneIndex + 2 < otherSegment->getNoOfLanes())
 				{
 					rightOfPrevLane2 = otherSegment->getLane(currLaneIndex + 2);
+				}
+			}
+			else if(fwdDriverMovement.getCurrSegment()->getNoOfLanes() > otherSegment->getNoOfLanes())
+			{
+				//Since the currLaneIndex is >= the number of lanes of the other segment, these lanes are to our left
+				if (currLaneIndex >= 1 && currLaneIndex - 1 < otherSegment->getNoOfLanes())
+				{
+					leftOfPrevLane = otherSegment->getLane(currLaneIndex - 1);
+				}
+
+				if (currLaneIndex >= 2 && currLaneIndex - 2 < otherSegment->getNoOfLanes())
+				{
+					leftOfPrevLane2 = otherSegment->getLane(currLaneIndex - 2);
 				}
 			}
 
@@ -1863,10 +1794,7 @@ void DriverMovement::syncLaneInfoPostLateralMove(DriverUpdateParams &params)
 				<< ") is attempting to change lane when no lane changing decision made";
 		throw std::runtime_error(msg.str().c_str());
 	}
-
-	//The lane may have changed; reset the current lane index.
-	params.currLaneIndex = params.currLane->getLaneIndex();
-	
+		
 	//Update the driver path mover
 	fwdDriverMovement.updateLateralMovement(params.currLane);
 

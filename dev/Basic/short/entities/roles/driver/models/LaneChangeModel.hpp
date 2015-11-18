@@ -251,12 +251,22 @@ private:
 
 	/**
 	 * Check if there is a stop point ahead. If so, check if we need to do a lane change towards the road side
+	 * 
 	 * @param params driver parameters
 	 * @param targetLanes the lanes connected to the stop point
 	 *
 	 * @return -1 if lance change is require, 0 otherwise
 	 */
 	int isLaneConnectedToStopPoint(DriverUpdateParams &params, set<const Lane *> &targetLanes);
+	
+	/**
+	 * Gets the lanes connected to the segment within the look ahead distance
+	 * 
+	 * @param params driver parameters
+     * @param lookAheadDist look ahead distance
+     * @param lanePool stores the result
+     */
+	void getConnectedLanesInLookAheadDistance(DriverUpdateParams &params, double lookAheadDist, std::vector<Lane *> &lanePool);
 
 	/**
 	 * Calculates the utility of the left lane when looking ahead for lane change

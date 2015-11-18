@@ -145,6 +145,17 @@ void Project::setPlannedDate(std::tm lastPlannedDate)
 {
 	this->plannedDate = lastPlannedDate;
 }
+
+std::string Project::getProjectStatus() const
+{
+	return this->projectStatus;
+}
+
+void Project::setProjectStatus(std::string prjStatus)
+{
+	this->projectStatus = prjStatus;
+}
+
 namespace sim_mob
 {
     namespace long_term

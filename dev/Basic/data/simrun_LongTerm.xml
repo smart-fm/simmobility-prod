@@ -175,14 +175,15 @@
     	<days value="3"/>
     	<maxIterations value="1"/>
     	<workers value="8"/>
-    	<tickStep value="1"/>       
+    	<tickStep value="1"/>  
+	<year value = "2012" />  
+	<simulationScenario value="baselline"/>   
     	<developerModel enabled="true">
     		<timeInterval value="30"/>
 		<InitialPostcode value = "1000000"/>
 		<initialBuildingId value = "300000" />
 		<initialUnitId value = "2000000" />
 		<initialProjectId value = "200000" />
-		<year value = "2012" />
 		<minLotSize value = "100.00" />
     	</developerModel>
         <housingModel enabled="true"> 

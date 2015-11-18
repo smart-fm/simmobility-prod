@@ -20,10 +20,10 @@ namespace sim_mob
         class Parcel
         {
         public:
-            Parcel(BigSerial id = INVALID_ID,BigSerial tazId = INVALID_ID, float lot_size = .0, std::string gpr = EMPTY_STR, std::string owner_name = EMPTY_STR,  int	owner_category = 0, std::tm last_transaction_date = std::tm(), float last_transation_type_total = .0,
-                   float	psm_per_gps = .0, int lease_type = 0, std::tm lease_start_date = std::tm(), float centroid_x = .0, float centroid_y = .0, std::tm award_date = std::tm(),bool	award_status = false, std::string	use_restriction = EMPTY_STR,
-                   int	successful_tender_id = 0, float	successful_tender_price = .0,std::tm	tender_closing_date = std::tm(), int lease = 0,float	actual_gpr = .0, float allowed_gpr = .0,int land_use_type_id = 0 ,int	development_type_code = 0, int status = 0,
-                   int developmentAllowed = 0, std::tm nextAvailableDate = std::tm());
+            Parcel(BigSerial id = INVALID_ID,BigSerial tazId = INVALID_ID, float lot_size = .0, std::string gpr = EMPTY_STR, int land_use_type_id = 0, std::string owner_name = EMPTY_STR,  int	owner_category = 0, std::tm last_transaction_date = std::tm(), float last_transation_type_total = .0,
+                   float	psm_per_gps = .0, int lease_type = 0, std::tm lease_start_date = std::tm(), float centroid_x = .0, float centroid_y = .0, std::tm award_date = std::tm(),bool	award_status = false, int	use_restriction = 0, int	development_type_code = 0,
+                   int	successful_tender_id = 0, float	successful_tender_price = .0,std::tm	tender_closing_date = std::tm(), int lease = 0, int status = 0,
+                   int developmentAllowed = 0, std::tm nextAvailableDate = std::tm(), std::tm lastChangedDate = std::tm());
 
             virtual ~Parcel();
 
@@ -46,7 +46,7 @@ namespace sim_mob
             float	getCentroidY() const;
             std::tm	getAwardDate() const;
             bool	getAwardStatus() const;
-            std::string	getUseRestriction() const;
+            int	getUseRestriction() const;
             int 	getDevelopmentTypeCode() const;
             int		getSuccessfulTenderId() const;
             float	getSuccessfulTenderPrice() const;
@@ -58,6 +58,8 @@ namespace sim_mob
             void setDevelopmentAllowed(int developmentAllowed);
             std::tm getNextAvailableDate() const;
             void setNextAvailableDate(std::tm date);
+            std::tm getLastChangedDate() const;
+            void setLastChangedDate(std::tm date);
 
 
             /**
@@ -84,7 +86,7 @@ namespace sim_mob
             float	centroid_y;
             std::tm	award_date;
             bool	award_status;
-            std::string	use_restriction;
+            int	use_restriction;
             int	development_type_code;
             int		successful_tender_id;
             float	successful_tender_price;
@@ -93,6 +95,7 @@ namespace sim_mob
             int status;
             int developmentAllowed;
             std::tm nextAvailableDate;
+            std::tm lastChangedDate;
          };
     }
 }

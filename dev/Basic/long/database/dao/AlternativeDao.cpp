@@ -9,8 +9,6 @@
  *  Author: Chetan Rogbeer <chetan.rogbeer@smart.mit.edu>
  *
  */
-
-#pragma once
 #include "AlternativeDao.hpp"
 #include "DatabaseHelper.hpp"
 

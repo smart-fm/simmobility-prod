@@ -28,7 +28,7 @@ namespace sim_mob
         {
         public:
             Unit( BigSerial id = INVALID_ID, BigSerial buildingId = INVALID_ID, BigSerial sla_address_id = INVALID_ID, int unit_type = INVALID_ID,
-            	  int story_range = 0, int unit_status = 0, double floor_area = .0f, int storey = 0, double rent = .0f, std::tm sale_from_date = std::tm(),
+            	  int story_range = 0, int unit_status = 0, double floor_area = .0f, int storey = 0, double rent = .0f, int ownership = 0, std::tm sale_from_date = std::tm(),
             	  std::tm physical_from_date = std::tm(), int sale_status = 0, int physical_status = 0, std::tm lastChangedDate = std::tm(), int biddingMarketEntryDay = 0, int timeOnMarket = 0, int timeOffMarket = 0);
             Unit( const Unit& source );
             virtual ~Unit();
@@ -52,6 +52,7 @@ namespace sim_mob
             double getFloorArea() const;
             int getStorey() const;
             double getRent() const;
+            int getOwnership() const;
             std::tm getSaleFromDate() const;
             std::tm getPhysicalFromDate() const;
             int getPhysicalFromYear() const;
@@ -67,6 +68,7 @@ namespace sim_mob
             void setPhysicalFromDate(const std::tm& physicalFromDate);
             void setPhysicalStatus(int physicalStatus);
             void setRent(double rent);
+            void setOwnership(int ownership);
             void setSaleFromDate(const std::tm& saleFromDate);
             void setSaleStatus(int saleStatus);
             void setSlaAddressId(BigSerial slaAddressId);
@@ -103,6 +105,7 @@ namespace sim_mob
             double floor_area;
             int storey; 
             double rent;
+            int ownership;
             std::tm sale_from_date;
             std::tm physical_from_date;
             int sale_status;

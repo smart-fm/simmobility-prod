@@ -36,6 +36,7 @@
 #include "database/dao/TAO_Dao.hpp"
 #include "database/dao/UnitPriceSumDao.hpp"
 #include "database/dao/TazLevelLandPriceDao.hpp"
+#include "database/dao/StatusOfWorldDao.hpp"
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
 
@@ -49,10 +50,10 @@ namespace {
     const string MODEL_NAME = "Developer Model";
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false),unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYear(0),minLotSize(0){ //In days (7 - weekly, 30 - Monthly)
+DeveloperModel::DeveloperModel(WorkGroup& workGroup): Model(MODEL_NAME, workGroup), timeInterval( 30 ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false),unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYear(0),minLotSize(0),isRestart(false){ //In days (7 - weekly, 30 - Monthly)
 }
 
-DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),currentTick(0),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false), unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYear(0),minLotSize(0){
+DeveloperModel::DeveloperModel(WorkGroup& workGroup, unsigned int timeIntervalDevModel ): Model(MODEL_NAME, workGroup), timeInterval( timeIntervalDevModel ),dailyParcelCount(0),isParcelRemain(true),numSimulationDays(0),dailyAgentCount(0),isDevAgentsRemain(true),realEstateAgentIdIndex(0),housingMarketModel(nullptr),postcodeForDevAgent(0),initPostcode(false), unitIdForDevAgent(0),buildingIdForDevAgent(0),projectIdForDevAgent(0),devAgentCount(0),simYear(0),minLotSize(0),isRestart(false){
 }
 
 DeveloperModel::~DeveloperModel() {
@@ -78,6 +79,11 @@ void DeveloperModel::startImpl() {
 		//Index all empty parcels.
 		for (ParcelList::iterator it = emptyParcels.begin(); it != emptyParcels.end(); it++) {
 			emptyParcelsById.insert(std::make_pair((*it)->getId(), *it));
+		}
+		parcelsWithOngoingProjects = parcelDao.getParcelsWithOngoingProjects();
+		//Index all parcels with ongoing projects.
+		for (ParcelList::iterator it = parcelsWithOngoingProjects.begin(); it != parcelsWithOngoingProjects.end(); it++) {
+			parcelsWithOngoingProjectsById.insert(std::make_pair((*it)->getId(), *it));
 		}
 		//load DevelopmentType-Templates
 		loadData<DevelopmentTypeTemplateDao>(conn, developmentTypeTemplates);
@@ -117,11 +123,24 @@ void DeveloperModel::startImpl() {
 	}
 	setRealEstateAgentIds(housingMarketModel->getRealEstateAgentIds());
 	ConfigParams& config = ConfigManager::GetInstanceRW().FullConfig();
-	postcodeForDevAgent = config.ltParams.developerModel.initialPostcode;
-	unitIdForDevAgent = config.ltParams.developerModel.initialUnitId;
-	buildingIdForDevAgent = config.ltParams.developerModel.initialBuildingId;
-	projectIdForDevAgent = config.ltParams.developerModel.initialProjectId;
-	simYear = config.ltParams.developerModel.year;
+
+	loadData<StatusOfWorldDao>(conn,statusOfWorld);
+	if(!statusOfWorld.empty())
+	{
+		postcodeForDevAgent = statusOfWorld[statusOfWorld.size()-1]->getPostcode();
+		unitIdForDevAgent = statusOfWorld[statusOfWorld.size()-1]->getUnitId();
+		buildingIdForDevAgent = statusOfWorld[statusOfWorld.size()-1]->getBuildingId();
+		projectIdForDevAgent = statusOfWorld[statusOfWorld.size()-1]->getProjectId();
+	}
+	else
+	{
+		postcodeForDevAgent = config.ltParams.developerModel.initialPostcode;
+		unitIdForDevAgent = config.ltParams.developerModel.initialUnitId;
+		buildingIdForDevAgent = config.ltParams.developerModel.initialBuildingId;
+		projectIdForDevAgent = config.ltParams.developerModel.initialProjectId;
+	}
+
+	simYear = config.ltParams.year;
 	minLotSize= config.ltParams.developerModel.minLotSize;
 
 	PrintOut("minLotSize"<<minLotSize<<std::endl);
@@ -315,7 +334,14 @@ void DeveloperModel::processParcels()
 
 		if (parcel)
 		{
-			//parcel has an ongoing project. unitPrice sum null means that the parcel has buildings without units or buildings with HDB units.
+			//parcel has an ongoing project.
+			if(getParcelWithOngoingProjectById(parcel->getId())!= nullptr)
+			{
+				parcelsWithProjectsList.push_back(parcel);
+			}
+			else
+			{
+			//unitPrice sum null means that the parcel has buildings without units or buildings with HDB units.
 			if ((parcel->getStatus()==1) || ((!isEmptyParcel(parcel->getId())) && (getUnitPriceSumByParcelId(parcel->getId())==nullptr)))
 			{
 				parcelsWithProjectsList.push_back(parcel);
@@ -347,6 +373,7 @@ void DeveloperModel::processParcels()
 					}
 
 				}
+			}
 
 			}
 		}
@@ -456,30 +483,37 @@ const bool DeveloperModel::isEmptyParcel(BigSerial id) const {
 
 BigSerial DeveloperModel::getProjectIdForDeveloperAgent()
 {
-	return ++projectIdForDevAgent;
+	{
+		boost::mutex::scoped_lock lock(projectIdLock);
+		return ++projectIdForDevAgent;
+	}
 }
 
 BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 {
-	if(!newBuildingIdList.empty())
 	{
-		BigSerial buildingId = newBuildingIdList.back();
-		//remove the last building Id in the list
-		newBuildingIdList.erase(newBuildingIdList.end()-1);
-		return buildingId;
+		boost::mutex::scoped_lock lock( buildingIdLock );
+		if(!newBuildingIdList.empty())
+		{
+			BigSerial buildingId = newBuildingIdList.back();
+			//remove the last building Id in the list
+			newBuildingIdList.erase(newBuildingIdList.end()-1);
+			return buildingId;
+		}
+		else
+		{
+			 ++buildingIdForDevAgent;
+		}
+		return buildingIdForDevAgent;
 	}
-	else
-	{
-		 return ++buildingIdForDevAgent;
-	}
-
 }
 
 BigSerial DeveloperModel::getUnitIdForDeveloperAgent()
 {
-	boost::lock_guard<boost::recursive_mutex> lock(m_guard);
-	return ++unitIdForDevAgent;
-
+	{
+		boost::mutex::scoped_lock lock( unitIdLock );
+		return ++unitIdForDevAgent;
+	}
 }
 
 void DeveloperModel::setUnitId(BigSerial unitId)
@@ -495,16 +529,6 @@ DeveloperModel::BuildingList DeveloperModel::getBuildings()
 void DeveloperModel::addNewBuildingId(BigSerial buildingId)
 {
 	newBuildingIdList.push_back(buildingId);
-}
-
-void DeveloperModel::setCurrentTick(int currTick)
-{
-	this->currentTick = currTick;
-}
-
-int DeveloperModel::getCurrentTick()
-{
-	return this->currentTick;
 }
 
 int DeveloperModel::getSimYearForDevAgent()
@@ -552,16 +576,18 @@ void DeveloperModel::setHousingMarketModel(HM_Model *housingModel)
 
 int DeveloperModel::getPostcodeForDeveloperAgent()
 {
-	if(initPostcode)
 	{
-		initPostcode = false;
-		return postcodeForDevAgent;
+		boost::mutex::scoped_lock lock( postcodeLock);
+		if(initPostcode)
+		{
+			initPostcode = false;
+			return postcodeForDevAgent;
+		}
+		else
+		{
+			return ++postcodeForDevAgent;
+		}
 	}
-	else
-	{
-		return ++postcodeForDevAgent;
-	}
-
 }
 
 const UnitPriceSum* DeveloperModel::getUnitPriceSumByParcelId(BigSerial fmParcelId) const
@@ -582,23 +608,6 @@ const TazLevelLandPrice* DeveloperModel::getTazLevelLandPriceByTazId(BigSerial t
 		return itr->second;
 	}
 	return nullptr;
-}
-
-
-void DeveloperModel::insertBuildingsToDB(Building &building)
-{
-	dbLockForBuildings.lock();
-	DB_Config dbConfig(LT_DB_CONFIG_FILE);
-	dbConfig.load();
-
-	// Connect to database.
-	DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
-	conn.connect();
-	if (conn.isConnected()) {
-			BuildingDao buildingDao(conn);
-			buildingDao.insert(building);
-	}
-	dbLockForBuildings.unlock();
 }
 
 const int DeveloperModel::getBuildingAvgAge(const BigSerial fmParcelId) const
@@ -627,4 +636,24 @@ const int DeveloperModel::getBuildingAvgAge(const BigSerial fmParcelId) const
 	int avgAge = ageSum / buildingsPerParcel.size();
 	mtx1.unlock();
 	return avgAge;
+}
+
+void DeveloperModel::setIsRestart(bool restart)
+{
+	isRestart = restart;
+}
+
+const boost::shared_ptr<StatusOfWorld> DeveloperModel::getStatusOfWorldObj(BigSerial simVersionId)
+{
+	const boost::shared_ptr<StatusOfWorld> statusOfWorldnObj(new StatusOfWorld(simVersionId,postcodeForDevAgent,buildingIdForDevAgent,unitIdForDevAgent,projectIdForDevAgent));
+	return statusOfWorldnObj;
+}
+
+Parcel* DeveloperModel::getParcelWithOngoingProjectById(BigSerial id) const {
+    ParcelMap::const_iterator itr = parcelsWithOngoingProjectsById.find(id);
+    if (itr != parcelsWithOngoingProjectsById.end())
+    {
+        return itr->second;
+    }
+    return nullptr;
 }

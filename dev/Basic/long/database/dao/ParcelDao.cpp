@@ -17,7 +17,7 @@ using namespace sim_mob::db;
 using namespace sim_mob::long_term;
 
 ParcelDao::ParcelDao(DB_Connection& connection)
-: SqlAbstractDao<Parcel>(connection, DB_TABLE_PARCEL,EMPTY_STR, EMPTY_STR, EMPTY_STR,DB_GETALL_PARCELS, DB_GETBYID_PARCEL) {}
+: SqlAbstractDao<Parcel>(connection, DB_TABLE_PARCEL,DB_INSERT_PARCEL, EMPTY_STR, EMPTY_STR,DB_GETALL_PARCELS, DB_GETBYID_PARCEL) {}
 
 ParcelDao::~ParcelDao() {}
 
@@ -48,9 +48,38 @@ void ParcelDao::fromRow(Row& result, Parcel& outObj)
     outObj.status = result.get<int>("development_status",0);
     outObj.developmentAllowed = result.get<int>("development_allowed",0);
     outObj.nextAvailableDate = result.get<std::tm>("next_available_date", std::tm());
+    outObj.lastChangedDate = result.get<std::tm>("last_changed_date", std::tm());
 }
 
-void ParcelDao::toRow(Parcel& data, Parameters& outParams, bool update) {}
+void ParcelDao::toRow(Parcel& data, Parameters& outParams, bool update)
+{
+	outParams.push_back(data.getId());
+	outParams.push_back(data.getTazId());
+	outParams.push_back(data.getLotSize());
+	outParams.push_back(data.getGpr());
+	outParams.push_back(data.getLandUseTypeId());
+	outParams.push_back(data.getOwnerName());
+	outParams.push_back(data.getOwnerCategory());
+	outParams.push_back(data.getLastTransactionDate());
+	outParams.push_back(data.getLastTransationTypeTotal());
+	outParams.push_back(data.getPsmPerGps());
+	outParams.push_back(data.getLeaseType());
+	outParams.push_back(data.getLeaseStartDate());
+	outParams.push_back(data.getCentroidX());
+	outParams.push_back(data.getCentroidY());
+	outParams.push_back(data.getAwardDate());
+	outParams.push_back(data.getAwardStatus());
+	outParams.push_back(data.getUseRestriction());
+	outParams.push_back(data.getDevelopmentTypeCode());
+	outParams.push_back(data.getSuccessfulTenderId());
+	outParams.push_back(data.getSuccessfulTenderPrice());
+	outParams.push_back(data.getTenderClosingDate());
+	outParams.push_back(data.getLease());
+	outParams.push_back(data.getStatus());
+	outParams.push_back(data.getDevelopmentAllowed());
+	outParams.push_back(data.getNextAvailableDate());
+	outParams.push_back(data.getLastChangedDate());
+}
 
 std::vector<Parcel*>  ParcelDao::getEmptyParcels()
 {
@@ -58,4 +87,12 @@ std::vector<Parcel*>  ParcelDao::getEmptyParcels()
 	std::vector<Parcel*> emptyParcelList;
 	getByQuery(queryStr,emptyParcelList);
 	return emptyParcelList;
+}
+
+std::vector<Parcel*> ParcelDao::getParcelsWithOngoingProjects()
+{
+	const std::string queryStr = DB_GETALL_PARCELS_WITH_ONGOING_PROJECTS;
+	std::vector<Parcel*> parcelsWithOngoingProjectsList;
+	getByQuery(queryStr,parcelsWithOngoingProjectsList);
+	return parcelsWithOngoingProjectsList;
 }

@@ -160,6 +160,7 @@ namespace sim_mob {
             int postcode;
             HM_Model *housingMarketModel;
             int simYear;
+            int currentTick;
 
         };
     }

@@ -36,7 +36,25 @@ void UnitDao::fromRow(Row& result, Unit& outObj)
     outObj.physical_status  = result.get<int>("physical_status", 0);
 }
 
-void UnitDao::toRow(Unit& data, Parameters& outParams, bool update) {}
+void UnitDao::toRow(Unit& data, Parameters& outParams, bool update)
+{
+	outParams.push_back(data.getId());
+	outParams.push_back(data.getBuildingId());
+	outParams.push_back(data.getSlaAddressId());
+	outParams.push_back(data.getUnitType());
+	outParams.push_back(data.getStoreyRange());
+	outParams.push_back(data.getUnitStatus());
+	outParams.push_back(data.getFloorArea());
+	outParams.push_back(data.getStorey());
+	outParams.push_back(data.getRent());
+	outParams.push_back(data.getOwnership());
+	outParams.push_back(data.getSaleFromDate());
+	outParams.push_back(data.getPhysicalFromDate());
+	outParams.push_back(data.getSaleStatus());
+	outParams.push_back(data.getPhysicalStatus());
+	outParams.push_back(data.getLastChangedDate());
+
+}
 
 BigSerial UnitDao::getMaxUnitId()
 {

@@ -37,7 +37,23 @@ void ProjectDao::fromRow(Row& result, Project& outObj)
 	 outObj.projectStatus = result.get<std::string>("project_status",EMPTY_STR);
 }
 
-void ProjectDao::toRow(Project& data, Parameters& outParams, bool update) {
+void ProjectDao::toRow(Project& data, Parameters& outParams, bool update)
+{
+	outParams.push_back(data.getProjectId());
+	outParams.push_back(data.getParcelId());
+	outParams.push_back(data.getDeveloperId());
+	outParams.push_back(data.getTemplateId());
+	outParams.push_back(data.getProjectName());
+	outParams.push_back(data.getConstructionDate());
+	outParams.push_back(data.getCompletionDate());
+	outParams.push_back(data.getConstructionCost());
+	outParams.push_back(data.getDemolitionCost());
+	outParams.push_back(data.getTotalCost());
+	outParams.push_back(data.getFmLotSize());
+	outParams.push_back(data.getGrossRatio());
+	outParams.push_back(data.getGrossArea());
+	outParams.push_back(data.getPlannedDate());
+	outParams.push_back(data.getProjectStatus());
 }
 
 

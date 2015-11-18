@@ -29,13 +29,13 @@
 #include "database/entity/TAO.hpp"
 #include "database/entity/UnitPriceSum.hpp"
 #include "database/entity/TazLevelLandPrice.hpp"
+#include "database/entity/StatusOfWorld.hpp"
 #include "agent/impl/DeveloperAgent.hpp"
 #include "agent/impl/RealEstateAgent.hpp"
 #include "model/HM_Model.hpp"
 
 namespace sim_mob {
     namespace long_term {
-
         class DeveloperModel : public Model {
         public:
 
@@ -56,6 +56,7 @@ namespace sim_mob {
             typedef std::vector<TAO*> TAOList;
             typedef std::vector<UnitPriceSum*> UnitPriceSumList;
             typedef std::vector<TazLevelLandPrice*>TazLevelLandPriceList;
+            typedef std::vector<StatusOfWorld*>StatusOfWorldList;
 
             //maps
             typedef boost::unordered_map<BigSerial,Parcel*> ParcelMap;
@@ -148,7 +149,7 @@ namespace sim_mob {
              * increment the id of the last building in db
              * @return next unitId.
              */
-            boost::recursive_mutex m_guard;
+            boost::mutex unitIdLock;
             BigSerial getUnitIdForDeveloperAgent();
 
             void setUnitId(BigSerial unitId);
@@ -161,16 +162,7 @@ namespace sim_mob {
              * @param building Id of the demolished building
              */
             void addNewBuildingId(BigSerial buildingId);
-            /*
-             * set the current tick of the simulation from main
-             * @param current tick
-             */
-            void setCurrentTick(int currTick);
-            /*
-             * get the current tick of the simulation
-             * @return current tick
-             */
-            int getCurrentTick();
+
             /*
              * get the year of the simulation
              * @return simulation year
@@ -208,9 +200,17 @@ namespace sim_mob {
             const int getBuildingAvgAge(const BigSerial fmParcelId) const;
 
             /*
-             * insert newly created buildings to DB
+             * set whether the simulation is a restart or a new run
              */
-            void insertBuildingsToDB(Building &building);
+            void setIsRestart(bool restart);
+
+            /*
+             * @return StatusOfWorld object to be inserted to DB at the end of the simulation
+             */
+            const boost::shared_ptr<StatusOfWorld> getStatusOfWorldObj(BigSerial simVersionId);
+
+            Parcel* getParcelWithOngoingProjectById(BigSerial parcelId) const;
+
 
         protected:
             /**
@@ -227,6 +227,7 @@ namespace sim_mob {
             ParcelList developmentCandidateParcelList;
             ParcelList nonEligibleParcelList;
             ParcelList emptyParcels;
+            ParcelList parcelsWithOngoingProjects;
             BuildingList buildings;
             std::vector<boost::shared_ptr<Building> > newBuildings;
             DevelopmentTypeTemplateList developmentTypeTemplates;
@@ -237,6 +238,7 @@ namespace sim_mob {
             ParcelMap parcelsById;
             ParcelMap emptyParcelsById;
             ParcelMap devCandidateParcelsById;
+            ParcelMap parcelsWithOngoingProjectsById;
             unsigned int timeInterval;
             std::vector<BigSerial> existingProjectIds;
             std::vector<BigSerial> newBuildingIdList;
@@ -250,7 +252,6 @@ namespace sim_mob {
             int numSimulationDays;
             AmenitiesList amenities;
             AmenitiesMap amenitiesById;
-            int currentTick;
             MacroEconomicsList macroEconomics;
             MacroEconomicsMap macroEconomicsById;
             std::vector<BigSerial> realEstateAgentIds;
@@ -274,8 +275,12 @@ namespace sim_mob {
             UnitPriceSumMap unitPriceSumByParcelId;
             TazLevelLandPriceList tazLevelLandPriceList;
             TazLevelLandPriceMap tazLevelLandPriceByTazId;
-            boost::mutex dbLockForBuildings;
+            boost::mutex buildingIdLock;
             mutable boost::mutex mtx1;
+            bool isRestart;
+            StatusOfWorldList statusOfWorld;
+            boost::mutex projectIdLock;
+            boost::mutex postcodeLock;
         };
     }
 }

@@ -127,7 +127,6 @@ public:
 
 			// prepare statement.
 			prepareStatement(upperQuery, params, query);
-
 			//TODO: POSTGRES ONLY for now
 			//execute and return data if (RETURNING clause is defined)
 			ResultSet rs(query);
@@ -194,6 +193,7 @@ public:
 		return getByValues(defaultQueries[GET_ALL], EMPTY_PARAMS, outList);
 	}
 
+
 	template<typename K, typename F>
 	bool getAll(boost::unordered_map<K, T>& outMap, F getter)
 	{
@@ -217,7 +217,7 @@ public:
 	}
 
 	/*
-	 * execute a given query
+	 * execute a given query with given parameters(ids)
 	 * @param query to be executed query
 	 * @param outList gives the result of the query
 	 */

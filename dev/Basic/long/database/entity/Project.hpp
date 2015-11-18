@@ -70,6 +70,8 @@ namespace sim_mob
 	void setCurrTick(int currentTick);
 	std::tm getPlannedDate() const;
 	void setPlannedDate(std::tm lastPlannedDate);
+	std::string getProjectStatus() const;
+	void setProjectStatus(std::string prjStatus);
 
 	/* Operator to print the Parcel Match data.*/
 	friend std::ostream& operator<<(std::ostream& strm, const Project& data);

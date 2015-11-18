@@ -258,6 +258,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	const MT_Config& mtConfig = MT_Config::getInstance();
 
 	PeriodicPersonLoader* periodicPersonLoader = new MT_PersonLoader(Agent::all_agents, Agent::pending_agents);
+	const ScreenLineCounter* screenLnCtr = ScreenLineCounter::getInstance(); //This line is necessary. It creates the singleton ScreenlineCounter object before any workers are created.
 
 	{ //Begin scope: WorkGroups
 	WorkGroupManager wgMgr;
@@ -367,9 +368,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
 	sim_mob::PathSetParam::resetInstance();
 
 	//finalize
-	if (ConfigManager::GetInstance().FullConfig().PathSetMode()) {
-		TravelTimeManager::getInstance()->storeHistoricalTT();
-	}
+	TravelTimeManager::getInstance()->storeCurrentSimulationTT();
 
 	cout <<"Database lookup took: " << (loop_start_offset/1000.0) <<" s" <<endl;
 	cout << "Max Agents at any given time: " <<maxAgents <<endl;
@@ -442,7 +441,7 @@ bool performMainSupply(const std::string& configFileName, std::list<std::string>
     //Save screen line counts
     if(mtConfig.screenLineParams.outputEnabled)
     {
-        ScreenLineCounter::getInstance()->exportScreenLineCount();
+        screenLnCtr->exportScreenLineCount();
     }
 
 	//At this point, it should be possible to delete all Signals and Agents.
@@ -634,11 +633,6 @@ int main_impl(int ARGC, char* ARGV[])
 
 	timeval simEndTime;
 	gettimeofday(&simEndTime, nullptr);
-
-	if(MT_Config::getInstance().screenLineParams.outputEnabled)
-	{
-		ScreenLineCounter::getInstance()->exportScreenLineCount();
-	}
 
 	Print() << "Done" << endl;
 	cout << "Total simulation time: "<< (ProfileBuilder::diff_ms(simEndTime, simStartTime))/1000.0 << " seconds." << endl;

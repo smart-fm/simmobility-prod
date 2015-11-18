@@ -17,7 +17,7 @@
 #include <vector>
 #include "conf/ConfigManager.hpp"
 #include "conf/ConfigParams.hpp"
-#include "geospatial/network/RoadNetwork.cpp"
+#include "geospatial/network/RoadNetwork.hpp"
 #include "logging/Log.hpp"
 #include "Person_MT.hpp"
 #include "util/DailyTime.hpp"

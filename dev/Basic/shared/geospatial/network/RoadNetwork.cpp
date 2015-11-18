@@ -6,7 +6,6 @@
 #include <sstream>
 
 #include "RoadNetwork.hpp"
-#include "Link.hpp"
 #include "logging/Log.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/LangHelpers.hpp"

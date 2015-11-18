@@ -13,6 +13,7 @@
 #include "entities/misc/PublicTransit.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/RoleFactory.hpp"
+#include "entities/TravelTimeManager.hpp"
 #include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/network/WayPoint.hpp"
 #include "path/PT_RouteChoiceLuaProvider.hpp"
@@ -121,11 +122,12 @@ void Person_MT::convertPublicTransitODsToTrips()
 						const StreetDirectory& streetDirectory = StreetDirectory::Instance();
 						std::vector<WayPoint> wayPoints = streetDirectory.SearchShortestDrivingPath(*itSubTrip->origin.node, *itSubTrip->destination.node);
 						double travelTime = 0.0;
+						const TravelTimeManager* ttMgr = TravelTimeManager::getInstance();
 						for (std::vector<WayPoint>::iterator it = wayPoints.begin(); it != wayPoints.end(); it++)
 						{
-							if (it->type == WayPoint::ROAD_SEGMENT)
+							if (it->type == WayPoint::LINK)
 							{
-								travelTime += it->roadSegment->getDefaultTravelTime();
+								travelTime += ttMgr->getDefaultLinkTT(it->link);
 							}
 						}
 						itSubTrip->endTime = DailyTime(travelTime * 1000);

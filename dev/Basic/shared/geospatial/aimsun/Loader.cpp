@@ -112,7 +112,7 @@ public:
 	static void loadPT_ChoiceSetFrmDB(soci::session& sql, std::string& pathSetId, sim_mob::PT_PathSet& pathSet);
 	static void LoadPT_PathsetFrmDB(soci::session& sql, const std::string& funcName, int originalNode, int destNode, sim_mob::PT_PathSet& pathSet);
 
-    void LoadScreenLineSegmentIDs(const map<string, string>& storedProcs, std::set<unsigned long> &screenLines);
+    void LoadScreenLineSegmentIDs(const map<string, string>& storedProcs, std::set<unsigned int> &screenLines);
 #ifndef SIMMOB_DISABLE_MPI
 	void TransferBoundaryRoadSegment();
 #endif
@@ -866,7 +866,7 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 #endif
 
 
-void DatabaseLoader::LoadScreenLineSegmentIDs(const map<string, string>& storedProcs, std::set<unsigned long>& screenLines)
+void DatabaseLoader::LoadScreenLineSegmentIDs(const map<string, string>& storedProcs, std::set<unsigned int>& screenLines)
 {
 	screenLines.clear();
 
@@ -917,7 +917,6 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadNodes(getStoredProcedure(storedProcs, "node"));
 	LoadSections(getStoredProcedure(storedProcs, "section"));
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
-	LoadBusStopSG(getStoredProcedure(storedProcs, "busstopSG", false));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 }
 
@@ -2139,7 +2138,7 @@ void sim_mob::aimsun::Loader::loadSegNodeType(const std::string& connectionStr, 
 
 void sim_mob::aimsun::Loader::getScreenLineSegments(const std::string& connectionStr,
         const std::map<std::string, std::string>& storedProcs,
-        std::set<unsigned long> &screenLineList)
+        std::set<unsigned int> &screenLineList)
 {
 	DatabaseLoader loader(connectionStr);
 

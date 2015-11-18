@@ -351,7 +351,7 @@ protected:
 	 * @param prevSeg the last segment in the link from which the driver has just exited
 	 * @param linkExitTimeSec time at which the link was exited
 	 */
-	void updateRdSegTravelTimes(const SegmentStats* prevSegStat, double segEnterExitTime);
+	void updateScreenlineCounts(const SegmentStats* prevSegStat, double segEnterExitTime);
 
 	/**
 	 * get number of intersections between the agent's location and incident location
@@ -386,7 +386,7 @@ protected:
 
 	///checks to see if it is possible to join an old path to a new one
 	///it even tries to create a second new path  it the check fails once
-	bool canJoinPaths(std::vector<WayPoint> & oldPath, std::vector<const SegmentStats*> & newPath, SubTrip & subTrip, std::set<const RoadSegment*> & excludeRS);
+	bool canJoinPaths(std::vector<WayPoint> & oldPath, std::vector<const SegmentStats*> & newPath, SubTrip & subTrip, std::set<const Link*> & excludeRS);
 
 	//checks if there is a uturn
 	bool hasUTurn(std::vector<WayPoint> & oldPath, std::vector<const SegmentStats*> & newPath);

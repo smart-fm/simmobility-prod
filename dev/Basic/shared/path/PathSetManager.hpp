@@ -353,10 +353,10 @@ private:
 	sim_mob::LRU_Cache<std::string, boost::shared_ptr<PathSet> > cacheLRU;
 
 	/**
-	 * list of partially excluded segments
-	 * example:like segments with incidents which have to be assigned a maximum travel time
+	 * list of partially excluded links
+	 * example:like links with incidents which have to be assigned a maximum travel time
 	 */
-	std::set<const sim_mob::RoadSegment*> partialExclusions;
+	std::set<const sim_mob::Link*> partialExclusions;
 
 	/**	protect access to incidents list */
 	boost::shared_mutex mutexExclusion;
@@ -422,8 +422,8 @@ private:
 	 * with their counterparts in PathSetmanager only during the scope of this method to serve temporary purposes.
 	 */
 	bool getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet> &ps,
-			const std::set<const sim_mob::RoadSegment *> & partialExclusion,
-			const std::set<const sim_mob::RoadSegment*> &blckLstSegs, bool enRoute);
+			const std::set<const sim_mob::Link*>& partialExclusion,
+			const std::set<const sim_mob::Link*>& blckLstLnks, bool enRoute);
 
 	/**
 	 * loads set of paths pre-generated for an OD

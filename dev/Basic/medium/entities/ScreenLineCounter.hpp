@@ -10,9 +10,6 @@
 #include <set>
 #include <boost/thread/mutex.hpp>
 
-#include "entities/Agent.hpp"
-#include "path/Common.hpp"
-
 namespace sim_mob
 {
 namespace medium
@@ -25,35 +22,61 @@ public:
     /**
      * Update the count of vehicles passing through a screen line segment
      *
-     * @param rdSegStat Road Segment statistics
+     * @param segId Road Segment id
+     * @param entryTimeSec time of entry (in seconds) into road segment
+     * @param travelMode vehicle mode
      */
-    void updateScreenLineCount(const RdSegTravelStat& rdSegStat);
+    void updateScreenLineCount(unsigned int segId, double entryTimeSec, const std::string& travelMode);
 
     /**
      * Export the screen line count to a file.
      */
-    void exportScreenLineCount();
+    void exportScreenLineCount() const;
+
 private:
+    struct VehicleCount
+    {
+    	unsigned int count;
+    	VehicleCount() : count(0)
+    	{
+    	}
+    };
+
+	/** time interval */
+	typedef unsigned int TimeInterval;
+
+	/** the heart of the final container holding accumulated mode-wise vehicle counts */
+	typedef std::map<std::string, VehicleCount> CountMap;
+
+	/** map of road segment id --> CountMap */
+	typedef std::map<unsigned int, CountMap> RoadSegmentCountMap;
+
+	/**
+	 * final container for collecting in simulation data:
+	 * map[time interval][road segment id][travel mode]-->[number-of-vehicles]
+	 */
+	typedef std::map<TimeInterval, RoadSegmentCountMap> ScreenLineCountCollector;
+
     ScreenLineCounter();
     virtual ~ScreenLineCounter();
 
     /**
      * Get the Time Interval based on user configuration
      */
-    double getTimeInterval(const double time);
+    unsigned int getTimeInterval(const double time) const;
 
     /**
      * container to store road segment travel times at different time intervals
      */
-    sim_mob::TravelTime ttMap;
+    ScreenLineCountCollector screenlineMap;
 
     /**
-     * List of Screen Lines
+     * List of Screen Lines segment ids
      */
-    std::set<unsigned long> screenLines;
+    std::set<unsigned int> screenLineSegments;
 
     static ScreenLineCounter* instance;
-    static boost::mutex instanceMutex;
+    boost::mutex instanceMutex;
 };
 
 }

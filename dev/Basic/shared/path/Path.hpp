@@ -98,7 +98,7 @@ public:
 	///	returns the raugh size of object in Bytes
 	uint32_t getSize();
 	///does these SinglePath include the any of given RoadSegment(s)
-	bool includesRoadSegment(const std::set<const sim_mob::RoadSegment*> &segs) const;
+	bool includesLinks(const std::set<const sim_mob::Link*>& lnks) const;
 	static void filterOutNodes(std::vector<sim_mob::WayPoint>& input, std::vector<sim_mob::WayPoint>& output);
 
 };
@@ -120,10 +120,6 @@ public:
 	 * Note: This can be a computationally very expensive operation, use it with caution
 	 */
 	bool includesRoadSegment(const std::set<const sim_mob::RoadSegment*> & segs);
-	/**
-	 * eliminate those SinglePaths which have a section in the given set
-	 */
-	void excludeRoadSegment(const std::set<const sim_mob::RoadSegment*> & segs);
 	short addOrDeleteSinglePath(sim_mob::SinglePath* s);
 	std::vector<WayPoint> *bestPath;  //best choice
 	SinglePath* oriPath;  // shortest path with all segments

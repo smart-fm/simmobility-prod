@@ -16,8 +16,8 @@
 
 namespace sim_mob
 {
-
 class NetworkLoader;
+
 /**
  * class for holding the network for simulation
  * \author Neeraj D

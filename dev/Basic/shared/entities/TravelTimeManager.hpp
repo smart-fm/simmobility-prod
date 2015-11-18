@@ -49,8 +49,8 @@ struct LinkTravelStats
 	bool started;
 	bool finalized;
 
-	LinkTravelStats(const Link* link) :
-			link(link), downstreamLink(NULL), entryTime(0.0), travelTime(0.0), started(false), finalized(false)
+	LinkTravelStats(const Link* link = nullptr) :
+			link(link), downstreamLink(nullptr), entryTime(0.0), travelTime(0.0), started(false), finalized(false)
 	{
 	}
 
@@ -97,19 +97,20 @@ struct LinkTravelStats
 		{
 			throw std::runtime_error("Finalizing a wrong travel time");
 		}
-		if(lnkExitTime > entryTime)
+		if(lnkExitTime < entryTime)
 		{
 			throw std::runtime_error("link exit time is before entry time");
 		}
 
 		travelTime = lnkExitTime - entryTime;
+		downstreamLink = nextLink;
 		finalized = true;
 	}
 
 	/**Reset the member variables to their un-initialized values*/
 	void reset()
 	{
-		*this = LinkTravelStats(NULL);
+		*this = LinkTravelStats(nullptr);
 	}
 };
 

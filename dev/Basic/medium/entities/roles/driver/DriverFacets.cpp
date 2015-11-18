@@ -472,7 +472,7 @@ bool DriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		if (prevSegStats)
 		{
 			// update road segment travel times
-			updateRdSegTravelTimes(prevSegStats, segExitTimeSec);
+			updateScreenlineCounts(prevSegStats, segExitTimeSec);
 		}
 
 		res = advance(params);
@@ -555,8 +555,8 @@ void DriverMovement::flowIntoNextLinkIfPossible(DriverUpdateParams& params)
 			// update link travel times
 			updateLinkTravelTimes(prevSegStats, linkExitTimeSec);
 
-			// update road segment travel times
-			updateRdSegTravelTimes(prevSegStats, linkExitTimeSec);
+			// update road segment screenline counts
+			updateScreenlineCounts(prevSegStats, linkExitTimeSec);
 		}
 		setLastAccept(currLane, linkExitTimeSec, nextSegStats);
 		setParentData(params);
@@ -936,14 +936,11 @@ void DriverMovement::setOrigin(DriverUpdateParams& params)
 		}
 		currLane = laneInNextSegment;
 		double actualT = params.elapsedSeconds + (convertToSeconds(params.now.ms()));
-		parentDriver->parent->currLinkTravelStats = LinkTravelStats(currSegStats->getRoadSegment()->getParentLink(), actualT);
+		parentDriver->parent->currLinkTravelStats.start(currSegStats->getRoadSegment()->getParentLink(), actualT);
 
 		setLastAccept(currLane, actualT, currSegStats);
 		setParentData(params);
 		parentDriver->parent->canMoveToNextSegment = Person_MT::NONE;
-		// segment travel time related line(s)
-		parentDriver->parent->currRdSegTravelStats.start(currSegStats->getRoadSegment(), actualT);
-
 		if (getParentDriver()->roleType == Role<Person_MT>::RL_DRIVER)
 		{
 			//initialize some travel metrics for this subTrip
@@ -1073,38 +1070,28 @@ double DriverMovement::getInitialQueueLength(const Lane* lane)
 void DriverMovement::updateLinkTravelTimes(const SegmentStats* prevSegStat, double linkExitTimeSec)
 {
 	const RoadSegment* prevSeg = prevSegStat->getRoadSegment();
+	const SegmentStats* currSegStats = pathMover.getCurrSegStats();
 	const Link* prevLink = prevSeg->getParentLink();
-	if (prevLink == parentDriver->parent->currLinkTravelStats.link_)
+	const Link* currLink = currSegStats ? currSegStats->getRoadSegment()->getParentLink() : nullptr;
+	if (prevLink == parentDriver->parent->currLinkTravelStats.link)
 	{
-		parentDriver->parent->addToLinkTravelStatsMap(parentDriver->parent->currLinkTravelStats, linkExitTimeSec); //in seconds
+		parentDriver->parent->currLinkTravelStats.finalize(prevLink, linkExitTimeSec, currLink);
+		TravelTimeManager::getInstance()->addTravelTime(parentDriver->parent->currLinkTravelStats); //in seconds
 		prevSegStat->getParentConflux()->setLinkTravelTimes(linkExitTimeSec, prevLink);
 	}
 	//creating a new entry in agent's travelStats for the new link, with entry time
-	parentDriver->parent->currLinkTravelStats = LinkTravelStats(pathMover.getCurrSegStats()->getRoadSegment()->getParentLink(), linkExitTimeSec);
+	parentDriver->parent->currLinkTravelStats.reset();
+	parentDriver->parent->currLinkTravelStats.start(currLink, linkExitTimeSec);
 }
 
-void DriverMovement::updateRdSegTravelTimes(const SegmentStats* prevSegStat, double segEnterExitTime)
+void DriverMovement::updateScreenlineCounts(const SegmentStats* prevSegStat, double segEnterExitTime)
 {
 	//if prevSeg is already in travelStats, update it's rdSegTT and add to rdSegTravelStatsMap
 	const RoadSegment* prevSeg = prevSegStat->getRoadSegment();
 	Person_MT *parent = parentDriver->parent;
-	if (prevSeg == parent->currRdSegTravelStats.rs)
-	{
-		const TripChainItem* tripChain = *(parent->currTripChainItem);
-		const std::string& travelMode = tripChain->getMode();
-
-		parent->currRdSegTravelStats.finalize(prevSeg,segEnterExitTime, travelMode);
-
-		if (ConfigManager::GetInstance().FullConfig().PathSetMode())
-		{
-			TravelTimeManager::getInstance()->addTravelTime(parent->currRdSegTravelStats);
-		}
-
-		ScreenLineCounter::getInstance()->updateScreenLineCount(parent->currRdSegTravelStats);
-	}
-	//creating a new entry in agent's travelStats for the new road segment, with entry time
-	parent->currRdSegTravelStats.reset();
-	parent->currRdSegTravelStats.start(pathMover.getCurrSegStats()->getRoadSegment(), segEnterExitTime);
+	const TripChainItem* tripChain = *(parent->currTripChainItem);
+	const std::string& travelMode = tripChain->getMode();
+	ScreenLineCounter::getInstance()->updateScreenLineCount(pathMover.getCurrSegStats()->getRoadSegment()->getRoadSegmentId(), segEnterExitTime, travelMode);
 }
 
 TravelMetric & DriverMovement::startTravelTimeMetric()
@@ -1272,29 +1259,30 @@ int DriverMovement::findReroutingPoints(const RoadSegment* rdSeg,
 }
 
 bool DriverMovement::canJoinPaths(std::vector<WayPoint> & newPath, std::vector<const SegmentStats*> & oldPath,
-								   SubTrip &subTrip, std::set<const RoadSegment*> & excludeRS)
+								   SubTrip &subTrip, std::set<const Link*> & excludeLink)
 {
+	throw std::runtime_error("DriverMovement::canJoinPaths not implemented for new road network");
 
-	const RoadSegment *from = (*oldPath.rbegin())->getRoadSegment(); //using .begin() or .end() makes no difference
-	const RoadSegment *to = newPath.begin()->roadSegment;
-	if (isConnectedToNextSeg(from, to))
-	{
-		return true;
-	}
-	//now try to find another path
-	//	MesoPathMover::printPath(oldPath);
-	//	printWPpath(newPath);
-
-	//exclude/blacklist the segment on the new path(first segment)
-	excludeRS.insert((*newPath.begin()).roadSegment);
-	//create a path using updated black list
-	//and then try again
-	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
-	//if no path, return false, if path found, return true
-	PrivateTrafficRouteChoice::getInstance()->getBestPath(newPath,subTrip, true, excludeRS,false,false,false,nullptr);
-	to = newPath.begin()->roadSegment;
-	bool res = isConnectedToNextSeg(from, to);
-	return res;
+//	const RoadSegment *from = (*oldPath.rbegin())->getRoadSegment(); //using .begin() or .end() makes no difference
+//	const RoadSegment *to = newPath.begin()->roadSegment;
+//	if (isConnectedToNextSeg(from, to))
+//	{
+//		return true;
+//	}
+//	//now try to find another path
+//	//	MesoPathMover::printPath(oldPath);
+//	//	printWPpath(newPath);
+//
+//	//exclude/blacklist the segment on the new path(first segment)
+//	excludeLink.insert((*newPath.begin()).link);
+//	//create a path using updated black list
+//	//and then try again
+//	//try to remove UTurn by excluding the segment (in the new part of the path) from the graph and regenerating pathset
+//	//if no path, return false, if path found, return true
+//	PrivateTrafficRouteChoice::getInstance()->getBestPath(newPath,subTrip, true, excludeLink,false,false,false,nullptr);
+//	to = newPath.begin()->roadSegment;
+//	bool res = isConnectedToNextSeg(from, to);
+//	return res;
 }
 
 //todo put this in the utils(and code style!)
@@ -1336,7 +1324,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg)
 	//pathsetLogger << numReRoute << "Rerouting Points were identified" << std::endl;
 	//step-3:
 	typedef std::map<const Node*, std::vector<const SegmentStats*> >::value_type DetourOption; //for 'deTourOptions' container
-	std::set<const RoadSegment*> excludeRS = std::set<const RoadSegment*>();
+	std::set<const Link*> excludeLink = std::set<const Link*>();
 	//	get a 'copy' of the person's current subtrip
 	SubTrip subTrip = *(parentDriver->parent->currSubTrip);
 	std::map<const Node*, std::vector<WayPoint> > newPaths; //stores new paths starting from the re-routing points
@@ -1347,7 +1335,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg)
 		//todo and the start time !!!-vahid
 		subTrip.origin.node = detourNode.first;
 		//	record the new paths using the updated subtrip. (including no paths)
-		PrivateTrafficRouteChoice::getInstance()->getBestPath(newPaths[detourNode.first], subTrip,true, std::set<const RoadSegment*>(), false,false,false,nullptr);//partially excluded sections must be already added
+		PrivateTrafficRouteChoice::getInstance()->getBestPath(newPaths[detourNode.first], subTrip,true, std::set<const Link*>(), false,false,false,nullptr);//partially excluded sections must be already added
 	}
 
 	/*step-4: prepend the old path to the new path
@@ -1374,7 +1362,7 @@ void DriverMovement::reroute(const InsertIncidentMessage &msg)
 		//		MesoPathMover::printPath(deTourOptions[newPath.first], newPath.first);
 		//		printWPpath(newPath.second, newPath.first);
 		//check if join possible
-		bool canJoin = canJoinPaths(newPath.second, deTourOptions[newPath.first], subTrip, excludeRS);
+		bool canJoin = canJoinPaths(newPath.second, deTourOptions[newPath.first], subTrip, excludeLink);
 		if (!canJoin)
 		{
 			//			printWPpath(newPath.second, newPath.first);

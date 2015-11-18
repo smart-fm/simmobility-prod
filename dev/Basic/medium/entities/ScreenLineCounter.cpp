@@ -7,7 +7,6 @@
 
 #include <algorithm>
 #include "ScreenLineCounter.hpp"
-#include "geospatial/network/RoadSegment.hpp"
 #include "conf/ConfigManager.hpp"
 #include "config/MT_Config.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -27,7 +26,6 @@ namespace medium
 {
 
 ScreenLineCounter* ScreenLineCounter::instance = nullptr;
-boost::mutex ScreenLineCounter::instanceMutex;
 
 ScreenLineCounter::ScreenLineCounter()
 {
@@ -35,50 +33,47 @@ ScreenLineCounter::ScreenLineCounter()
     const MT_Config& mtCfg = MT_Config::getInstance();
     if(mtCfg.screenLineParams.outputEnabled)
     {
-        screenLines.clear();
+        screenLineSegments.clear();
         sim_mob::aimsun::Loader::getScreenLineSegments(configParams.getDatabaseConnectionString(false),
-                configParams.getDatabaseProcMappings().procedureMappings,screenLines);
+                configParams.getDatabaseProcMappings().procedureMappings, screenLineSegments);
         INTERVAL_MS = mtCfg.screenLineParams.interval * 1000;
     }
 }
 
 ScreenLineCounter::~ScreenLineCounter()
 {
-    screenLines.clear();
-    ttMap.clear();
+    screenLineSegments.clear();
+    screenlineMap.clear();
 }
 
 ScreenLineCounter* ScreenLineCounter::getInstance()
 {
-    {
-        boost::unique_lock<boost::mutex> lock(instanceMutex);
-        if(!instance)
-        {
-            instance = new ScreenLineCounter();
-        }
-    }
-    return instance;
+	if (!instance)
+	{
+		instance = new ScreenLineCounter();
+	}
+	return instance;
 }
 
-void ScreenLineCounter::updateScreenLineCount(const RdSegTravelStat& rdSegStat)
+void ScreenLineCounter::updateScreenLineCount(unsigned int segId, double entryTimeSec, const std::string& travelMode)
 {
-    if(screenLines.find(rdSegStat.rs->getRoadSegmentId()) == screenLines.end())
+    if(screenLineSegments.find(segId) == screenLineSegments.end())
     {
         return;
     }
-
-    TT::TimeInterval timeInterval = ScreenLineCounter::getTimeInterval(rdSegStat.entryTime * 1000);
-    TT::TimeAndCount &tc = ttMap[timeInterval][rdSegStat.travelMode][rdSegStat.rs];
-    tc.totalTravelTime += rdSegStat.travelTime; //add to total travel time
-    tc.travelTimeCnt += 1; //increment the total contribution
+    TimeInterval timeInterval = ScreenLineCounter::getTimeInterval(entryTimeSec * 1000);
+    {
+		boost::unique_lock<boost::mutex> lock(instanceMutex);
+		screenlineMap[timeInterval][segId][travelMode].count++; //increment count for the relevant time interval, segment and mode
+    }
 }
 
-double ScreenLineCounter::getTimeInterval(const double time)
+unsigned int ScreenLineCounter::getTimeInterval(double time) const
 {
     return time / INTERVAL_MS;
 }
 
-void ScreenLineCounter::exportScreenLineCount()
+void ScreenLineCounter::exportScreenLineCount() const
 {
     const medium::MT_Config& mtCfg = medium::MT_Config::getInstance();
     const ConfigParams& configParams = ConfigManager::GetInstance().FullConfig();
@@ -86,24 +81,23 @@ void ScreenLineCounter::exportScreenLineCount()
 
     sim_mob::BasicLogger& screenLineLogger  = sim_mob::Logger::log(fileName);
 
-    for(TravelTime::const_iterator travelTimeIter = ttMap.begin(); travelTimeIter != ttMap.end(); travelTimeIter++)
+    for(ScreenLineCountCollector::const_iterator travelTimeIter = screenlineMap.begin(); travelTimeIter != screenlineMap.end(); travelTimeIter++)
     {
-        const TT::TimeInterval & timeInterval = travelTimeIter->first;
-
-        const DailyTime &simStartTime = configParams.simStartTime();
-        DailyTime startTime(simStartTime.getValue() +  (timeInterval* INTERVAL_MS) );
+        const TimeInterval& timeInterval = travelTimeIter->first;
+        const DailyTime& simStartTime = configParams.simStartTime();
+        DailyTime startTime(simStartTime.getValue() +  (timeInterval * INTERVAL_MS) );
         DailyTime endTime(simStartTime.getValue() + ((timeInterval + 1) * INTERVAL_MS - 1) );
 
-        for(sim_mob::TT::MRTC::const_iterator modeTCIter = travelTimeIter->second.begin();
-                modeTCIter != travelTimeIter->second.end(); modeTCIter++)
+        for(RoadSegmentCountMap::const_iterator segCountIt = travelTimeIter->second.begin();
+                segCountIt != travelTimeIter->second.end(); segCountIt++)
         {
-            for(sim_mob::TT::RSTC::const_iterator rstcIter = modeTCIter->second.begin();
-                    rstcIter != modeTCIter->second.end(); rstcIter++)
+            for(CountMap::const_iterator countIter = segCountIt->second.begin();
+                    countIter != segCountIt->second.end(); countIter++)
             {
-                screenLineLogger << rstcIter->first->getRoadSegmentId() << "\t" <<
+                screenLineLogger << segCountIt->first << "\t" <<
                     startTime.getStrRepr() << "\t" << endTime.getStrRepr() <<
-                    "\t" << modeTCIter->first <<
-                    "\t" << rstcIter->second.travelTimeCnt << "\n";
+                    "\t" << countIter->first <<
+                    "\t" << countIter->second.count << "\n";
             }
         }
     }

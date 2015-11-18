@@ -52,19 +52,16 @@ sim_mob::SinglePath::~SinglePath() {
 	clear();
 }
 
-bool sim_mob::SinglePath::includesRoadSegment(const std::set<const sim_mob::RoadSegment*>& segs) const
+bool sim_mob::SinglePath::includesLinks(const std::set<const sim_mob::Link*>& lnks) const
 {
-	if(segs.empty()) { return false; } //trivial case
-	std::stringstream pathSegId(""), inputSegId("");
+	if(lnks.empty()) { return false; } //trivial case
+	unsigned int linkId = 0;
 	BOOST_FOREACH(const sim_mob::WayPoint& wp, this->path)
 	{
-		pathSegId.str(std::string());
-		pathSegId << wp.roadSegment->getRoadSegmentId();
-		BOOST_FOREACH(const sim_mob::RoadSegment* seg, segs)
+		linkId = wp.link->getLinkId();
+		BOOST_FOREACH(const sim_mob::Link* lnk, lnks)
 		{
-			inputSegId.str(std::string());
-			inputSegId << seg->getRoadSegmentId();
-			if(pathSegId.str() == inputSegId.str() ) { return true; }
+			if(linkId == lnk->getLinkId()) { return true; }
 		}
 	}
 	return false;
@@ -251,23 +248,6 @@ bool sim_mob::PathSet::includesRoadSegment(const std::set<const sim_mob::RoadSeg
 		}
 	}
 	return false;
-}
-
-
-void sim_mob::PathSet::excludeRoadSegment(const std::set<const sim_mob::RoadSegment*> & segs)
-{
-	std::set<sim_mob::SinglePath*>::iterator it(pathChoices.begin());
-	for(; it != pathChoices.end();)
-	{
-		if((*it)->includesRoadSegment(segs))
-		{
-			pathChoices.erase(it++);
-		}
-		else
-		{
-			++it;
-		}
-	}
 }
 
 short sim_mob::PathSet::addOrDeleteSinglePath(sim_mob::SinglePath* s)

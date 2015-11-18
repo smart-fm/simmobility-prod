@@ -307,28 +307,28 @@ namespace
 		sim_mob::DailyTime tripStartTime(startTime_);
 		double res=0.0;
 		double ts=0.0;
-		for(std::vector<WayPoint>::iterator it1 = sp->path.begin(); it1 != sp->path.end(); it1++)
+		for(std::vector<WayPoint>::iterator pathIt = sp->path.begin(); pathIt != sp->path.end(); pathIt++)
 		{
-			unsigned long lnkId = (it1)->link->getLinkId();
+			unsigned long lnkId = (pathIt)->link->getLinkId();
 			const Link* nextLink = NULL;
-			std::vector<WayPoint>::iterator itNextLink = it1 + 1;
+			std::vector<WayPoint>::iterator itNextLink = pathIt + 1;
 			if(itNextLink != sp->path.end())
 			{
 				nextLink = itNextLink->link;
 			}
-			std::map<int,sim_mob::ERP_Section*>::iterator it = sim_mob::PathSetParam::getInstance()->ERP_SectionPool.find(lnkId);
+			std::map<int,sim_mob::ERP_Section*>::iterator erpSectionIt = sim_mob::PathSetParam::getInstance()->ERP_SectionPool.find(lnkId);
 			//get travel time to this segment
-			double t = sim_mob::TravelTimeManager::getInstance()->getLinkTT((it1)->link, tripStartTime, nextLink);
+			double t = sim_mob::TravelTimeManager::getInstance()->getLinkTT((pathIt)->link, tripStartTime, nextLink);
 			ts += t;
 			tripStartTime = tripStartTime + sim_mob::DailyTime(t*1000);
-			if(it!=sim_mob::PathSetParam::getInstance()->ERP_SectionPool.end())
+			if(erpSectionIt!=sim_mob::PathSetParam::getInstance()->ERP_SectionPool.end())
 			{
-				sim_mob::ERP_Section* erp_section = (*it).second;
-				std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::iterator itt =
+				sim_mob::ERP_Section* erp_section = (*erpSectionIt).second;
+				std::map<std::string,std::vector<sim_mob::ERP_Surcharge*> >::iterator erpSurchargePoolIt =
 						sim_mob::PathSetParam::getInstance()->ERP_SurchargePool.find(erp_section->ERP_Gantry_No_str);
-				if(itt!=sim_mob::PathSetParam::getInstance()->ERP_SurchargePool.end())
+				if(erpSurchargePoolIt!=sim_mob::PathSetParam::getInstance()->ERP_SurchargePool.end())
 				{
-					std::vector<sim_mob::ERP_Surcharge*> erp_surcharges = (*itt).second;
+					std::vector<sim_mob::ERP_Surcharge*> erp_surcharges = (*erpSurchargePoolIt).second;
 					for(int i=0;i<erp_surcharges.size();++i)
 					{
 						sim_mob::ERP_Surcharge* s = erp_surcharges[i];
@@ -388,8 +388,11 @@ bool sim_mob::PathSetManager::pathInBlackList(const std::vector<WayPoint> path, 
 }
 
 void sim_mob::PrivateTrafficRouteChoice::insertIncidentList(const sim_mob::RoadSegment* rs) {
-	boost::unique_lock<boost::shared_mutex> lock(mutexExclusion);
-	partialExclusions.insert(rs);
+	if(rs)
+	{
+		boost::unique_lock<boost::shared_mutex> lock(mutexExclusion);
+		partialExclusions.insert(rs->getParentLink());
+	}
 }
 
 const boost::shared_ptr<soci::session>& sim_mob::PathSetManager::getSession()
@@ -612,7 +615,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(
 
 	//take care of partially excluded and blacklisted segments here
 	std::set<const sim_mob::Link*> blckLstSegs(tempBlckLstSegs);
-	const std::set<const sim_mob::RoadSegment*>& partial = (usePartialExclusion ? this->partialExclusions : std::set<const sim_mob::RoadSegment*>());
+	const std::set<const sim_mob::Link*>& partial = (usePartialExclusion ? this->partialExclusions : std::set<const sim_mob::Link*>());
 
 	const sim_mob::Node* fromNode = st.origin.node;
 	const sim_mob::Node* toNode = st.destination.node;
@@ -640,7 +643,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPath(
 	 * supply only the temporary blacklist, because with the current implementation,
 	 * cache should never be filled with paths containing permanent black listed segments
 	 */
-	std::set<const sim_mob::RoadSegment*> emptyBlkLst = std::set<const sim_mob::RoadSegment*>(); //sometimes you don't need a black list at all!
+	std::set<const sim_mob::Link*> emptyBlkLst = std::set<const sim_mob::Link*>(); //sometimes you don't need a black list at all!
 	if(useCache && findCachedPathSet(fromToID, pathset))
 	{
 		pathset->subTrip = st;//at least for the travel start time, subtrip is needed
@@ -1301,8 +1304,8 @@ double sim_mob::PrivateTrafficRouteChoice::generateUtility(const sim_mob::Single
 }
 
 bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::shared_ptr<sim_mob::PathSet> &ps,
-		const std::set<const sim_mob::RoadSegment *> & partialExclusion ,
-		const std::set<const sim_mob::RoadSegment*> &blckLstSegs , bool enRoute)
+		const std::set<const sim_mob::Link*> & partialExclusion ,
+		const std::set<const sim_mob::Link*> &blckLstLnks , bool enRoute)
 {
 	bool computeUtility = false;
 	// step 1.1 : For each path i in the path choice:
@@ -1314,10 +1317,11 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::sha
 	//std:ostringstream utilityDbg("");
 	//utilityDbg << ps->id << "\nutility:\n";
 
+	std::vector<sim_mob::SinglePath*> availablePathsForRouteChoice;
 	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
 	{
 		if(sp->path.empty()) { throw std::runtime_error ("Empty Path"); }
-		if(sp->includesRoadSegment(blckLstSegs)) { continue; } //do the same thing while measuring the probability in the loop below
+		if(sp->includesLinks(blckLstLnks)) { continue; } //do the same thing while measuring the probability in the loop below
 
 		if(sp->travelTime <= 0.0 )
 		{
@@ -1326,7 +1330,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::sha
 			throw std::runtime_error(out.str());
 		}
 
-		if (sp->includesRoadSegment(partialExclusion) )
+		if (sp->includesLinks(partialExclusion) )
 		{
 			sp->travelTime = std::numeric_limits<double>::max();//some large value like infinity
 			sp->utility = generateUtility(sp); //re-calculate utility
@@ -1334,6 +1338,7 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::sha
 
 		//utilityDbg << "[" << sp->utility << "," << exp(sp->utility) << "]";
 		ps->logsum += exp(sp->utility);
+		availablePathsForRouteChoice.push_back(sp);
 	}
 	//utilityDbg << "\n\nlogsum: " << ps->logsum;
 	// step 2: find the best waypoint path :
@@ -1346,9 +1351,8 @@ bool sim_mob::PrivateTrafficRouteChoice::getBestPathChoiceFromPathSet(boost::sha
 	//utilityDbg << "\nrandom number:" << random << "\n";
 	// 2.2 For each path i in the path choice set PathSet(O, D):
 	int i = -1;
-	BOOST_FOREACH(sim_mob::SinglePath* sp, ps->pathChoices)
+	BOOST_FOREACH(sim_mob::SinglePath* sp, availablePathsForRouteChoice)
 	{
-		if(sp->includesRoadSegment(blckLstSegs)) { continue; } //do the same thing while processing the single path in the loop above
 		i++;
 		double prob = exp(sp->utility)/(ps->logsum);
 		upperProb += prob;
@@ -1440,7 +1444,7 @@ double sim_mob::PrivateTrafficRouteChoice::getPathTravelTime(sim_mob::SinglePath
 	{
 		double time = 0.0;
 		const sim_mob::Link *lnk = sp->path[i].link;
-		const sim_mob::Link *nextLink = NULL;
+		const sim_mob::Link *nextLink = nullptr;
 		if((i+1) < sp->path.size())
 		{
 			nextLink = sp->path[i+1].link;
@@ -1549,7 +1553,10 @@ void sim_mob::PrivatePathsetGenerator::resetInstance()
 
 void sim_mob::PrivateTrafficRouteChoice::addPartialExclusion(const sim_mob::RoadSegment* value)
 {
-	partialExclusions.insert(value);
+	if(value)
+	{
+		partialExclusions.insert(value->getParentLink());
+	}
 }
 
 sim_mob::HasPath PrivateTrafficRouteChoice::loadPathsetFromDB(soci::session& sql, std::string& pathsetId,

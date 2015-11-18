@@ -8,13 +8,12 @@
 #include <string>
 #include <soci/soci.h>
 #include <soci/postgresql/soci-postgresql.h>
+#include "RoadNetwork.hpp"
 
 using namespace std;
 
 namespace sim_mob
 {
-
-class RoadNetwork;
 /**
  * class for loading the network for simulation
  * \author Neeraj D

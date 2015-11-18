@@ -33,12 +33,9 @@
 #include "agent/impl/DeveloperAgent.hpp"
 #include "agent/impl/RealEstateAgent.hpp"
 #include "model/HM_Model.hpp"
-#include "database/DB_Connection.hpp"
-
 
 namespace sim_mob {
     namespace long_term {
-    using namespace sim_mob::db;
         class DeveloperModel : public Model {
         public:
 
@@ -213,26 +210,7 @@ namespace sim_mob {
             const boost::shared_ptr<StatusOfWorld> getStatusOfWorldObj(BigSerial simVersionId);
 
             Parcel* getParcelWithOngoingProjectById(BigSerial parcelId) const;
-            /*
-             * insert newly created objects from the simulation to DB
-             */
-            template<typename T,typename K>
-            void insertToDB(K &object)
-            {
-            	{
-            		boost::mutex::scoped_lock lock( dbLock );
-            		DB_Config dbConfig(LT_DB_CONFIG_FILE);
-            		dbConfig.load();
 
-            		// Connect to database.
-            		DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
-            		conn.connect();
-            		if (conn.isConnected()) {
-            					T dao(conn);
-            					dao.insert(object);
-            			}
-            	}
-            }
 
         protected:
             /**
@@ -299,9 +277,10 @@ namespace sim_mob {
             TazLevelLandPriceMap tazLevelLandPriceByTazId;
             boost::mutex buildingIdLock;
             mutable boost::mutex mtx1;
-            boost::mutex dbLock;
             bool isRestart;
             StatusOfWorldList statusOfWorld;
+            boost::mutex projectIdLock;
+            boost::mutex postcodeLock;
         };
     }
 }

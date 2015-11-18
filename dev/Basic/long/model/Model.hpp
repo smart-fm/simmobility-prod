@@ -13,11 +13,14 @@
 #include "workers/WorkGroup.hpp"
 #include "entities/Agent_LT.hpp"
 #include "util/Utils.hpp"
+#include "database/DB_Connection.hpp"
+#include "Common.hpp"
 
 namespace sim_mob
 {
     namespace long_term
     {
+    using namespace sim_mob::db;
         /**
          * Represents a generic model that runs within a given workgroup.
          */
@@ -99,6 +102,28 @@ namespace sim_mob
             
             virtual void update(int day);
 
+            /*
+             * insert newly created objects from the simulation to DB
+             */
+            template<typename T,typename K>
+            void insertToDB(K &object)
+            {
+            	{
+            		//boost::mutex::scoped_lock lock( dbLock );
+            		DB_Config dbConfig(LT_DB_CONFIG_FILE);
+            		dbConfig.load();
+
+            		// Connect to database.
+            		DB_Connection conn(sim_mob::db::POSTGRES, dbConfig);
+            		conn.connect();
+            		if (conn.isConnected()) {
+            			T dao(conn);
+            			dao.insert(object);
+            		}
+            	}
+            }
+
+
         protected:
             /**
              * Abstract method to be implemented by Model specializations.
@@ -146,6 +171,8 @@ namespace sim_mob
                     metadataMapping.insert(std::make_pair(entry.getKey(), entry.getValue()));
                 }
             }
+
+
         protected:
             WorkGroup& workGroup;
             std::vector<Agent_LT*> agents;
@@ -160,6 +187,7 @@ namespace sim_mob
             std::string name;
             Metadata metadata;
             MetadataMap metadataMapping;// only for mapping.
+            boost::mutex dbLock;
         };
     }
 }

@@ -483,7 +483,10 @@ const bool DeveloperModel::isEmptyParcel(BigSerial id) const {
 
 BigSerial DeveloperModel::getProjectIdForDeveloperAgent()
 {
-	return ++projectIdForDevAgent;
+	{
+		boost::mutex::scoped_lock lock(projectIdLock);
+		return ++projectIdForDevAgent;
+	}
 }
 
 BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
@@ -499,7 +502,7 @@ BigSerial DeveloperModel::getBuildingIdForDeveloperAgent()
 		}
 		else
 		{
-			 buildingIdForDevAgent++;
+			 ++buildingIdForDevAgent;
 		}
 		return buildingIdForDevAgent;
 	}
@@ -573,16 +576,18 @@ void DeveloperModel::setHousingMarketModel(HM_Model *housingModel)
 
 int DeveloperModel::getPostcodeForDeveloperAgent()
 {
-	if(initPostcode)
 	{
-		initPostcode = false;
-		return postcodeForDevAgent;
+		boost::mutex::scoped_lock lock( postcodeLock);
+		if(initPostcode)
+		{
+			initPostcode = false;
+			return postcodeForDevAgent;
+		}
+		else
+		{
+			return ++postcodeForDevAgent;
+		}
 	}
-	else
-	{
-		return ++postcodeForDevAgent;
-	}
-
 }
 
 const UnitPriceSum* DeveloperModel::getUnitPriceSumByParcelId(BigSerial fmParcelId) const
@@ -640,8 +645,8 @@ void DeveloperModel::setIsRestart(bool restart)
 
 const boost::shared_ptr<StatusOfWorld> DeveloperModel::getStatusOfWorldObj(BigSerial simVersionId)
 {
-	const boost::shared_ptr<StatusOfWorld>simVersionObj(new StatusOfWorld(simVersionId,postcodeForDevAgent,buildingIdForDevAgent,unitIdForDevAgent,projectIdForDevAgent));
-	return simVersionObj;
+	const boost::shared_ptr<StatusOfWorld> statusOfWorldnObj(new StatusOfWorld(simVersionId,postcodeForDevAgent,buildingIdForDevAgent,unitIdForDevAgent,projectIdForDevAgent));
+	return statusOfWorldnObj;
 }
 
 Parcel* DeveloperModel::getParcelWithOngoingProjectById(BigSerial id) const {

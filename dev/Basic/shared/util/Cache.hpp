@@ -1,6 +1,7 @@
 #include <cassert>
 #include <list>
 #include <map>
+#include <boost/shared_ptr.hpp>
 
 namespace sim_mob
 {
@@ -19,10 +20,10 @@ public:
 	typedef boost::shared_ptr<VAL> ValueType;
 
 	// Key access history, most recent at back
-	typedef std::list<KeyType> keyTrackerType;
+	typedef std::list<KeyType> KeyTrackerType;
 
 	// Key to value and key history iterator
-	typedef std::map<KeyType, std::pair<ValueType, typename keyTrackerType::iterator> > KeyToValueType;
+	typedef std::map<KeyType, std::pair<ValueType, typename KeyTrackerType::iterator> > KeyToValueType;
 
 	/// Constuctor specifies the cached function and the maximum number of records to be stored
 	LRU_Cache(size_t c) : capacity(c)
@@ -67,7 +68,7 @@ public:
 		}
 
 		// Record k as most-recently-used key
-		typename keyTrackerType::iterator it = keyTracker.insert(keyTracker.end(),k);
+		typename KeyTrackerType::iterator it = keyTracker.insert(keyTracker.end(),k);
 
 		// Create the key-value entry,
 		// linked to the usage record.
@@ -100,7 +101,7 @@ private:
 	const size_t capacity;
 
 	/// Key access history
-	keyTrackerType keyTracker;
+	KeyTrackerType keyTracker;
 
 	/// Key-to-value lookup
 	KeyToValueType keyToValue;

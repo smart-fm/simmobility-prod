@@ -173,15 +173,6 @@ void DriverUpdateParams::buildDebugInfo()
 
 #if 0
 	//debug lane changing
-	/*
-	s<<ct
-	s<<":"<<newFwdAccChar
-	<<":"<<accSelect
-	<<":acc"<<newFwdAccChar
-	<<":"<<sp
-	<<":"<<lc;
-	<<":"<<ds;
-	 */
 
 	// utility
 	char ul[20] = "\0";
@@ -196,6 +187,7 @@ void DriverUpdateParams::buildDebugInfo()
 
 	char ds[200] = "\0";
 	sprintf(ds, "ds%3.2f", perceivedDistToTrafficSignal);
+	
 	// lc
 	string lc = "lc-s";
 	if (getStatus(STATUS_LC_LEFT))
@@ -206,32 +198,19 @@ void DriverUpdateParams::buildDebugInfo()
 	{
 		lc = "lc-r";
 	}
-	s << "            " << parentId;
-	s << ":" << accSelect;
 
-	/*
 	s<<":"<<ul;
 	s<<":"<<uc;
 	s<<":"<<ur;
-	s<<":"<<rnd_;
 	s<<":"<<lcd;
 	s<<":"<<lc;
 	s<<":"<<sp;
 	s<<"=="<<lcDebugStr.str();
-	 */
 
 	s << "++" << cfDebugStr;
-
-	/*int rightFwdcarid=-1;
-	 if(this->nvRightFwd.exists())
-	 {
-		 Driver* driver_ = const_cast<Driver*>(nvRightFwd.driver);
-		 rightFwdcarid = driver_->getParent()->getId();
-	 }
-	 s<<":rfwd"<<rightFwdcarid;*/
 #endif
 
-#if 1
+#if 0
 	int fwdcarid = -1;
 	char fwdnvdis[30] = "\0";
 	if (this->nvFwd.exists())

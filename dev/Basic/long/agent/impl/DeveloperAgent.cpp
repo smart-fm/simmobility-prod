@@ -537,23 +537,8 @@ Entity::UpdateStatus DeveloperAgent::onFrameTick(timeslice now) {
     	{
     		std::tm currentDate = getDate(now.ms());
     		int quarter = ((currentDate.tm_mon)/4) + 1; //get the current month of the simulation and divide it by 4 to determine the quarter
-    		if(quarter> 4){
-    			quarter = 4;
-    		}
     		std::string quarterStr = "Y"+boost::lexical_cast<std::string>(simYear)+"Q"+boost::lexical_cast<std::string>(quarter);
     		const TAO *tao = devModel->getTaoByQuarter(getQuarterIdByQuarterStr(quarterStr));
-    		//PrintOutV(now.ms()<<" now"<<devModel->getCurrentTick()<<"currtick"<<std::endl);
-    		//BigSerial homeTazId = this->parcel->getTazId();
-    		//Taz *homeTazObj = housingMarketModel->getTazById( homeTazId );
-    		//std::string homeTazStr;
-    		//if( homeTazObj != NULL )
-    		//{
-    		//	homeTazStr = homeTazObj->getName();
-    		//}
-
-    		//BigSerial homeTaz = std::atoi( homeTazStr.c_str() );
-    		//const double scaleFactor = 1.566070312;
-    		//double logsum = housingMarketModel->ComputeHedonicPriceLogsum(homeTaz) * scaleFactor;
     		PotentialProject project;
     		createPotentialProjects(this->parcel->getId(),devModel,project,quarter,tao);
     		if(project.getUnits().size()>0)
@@ -657,7 +642,7 @@ void DeveloperAgent::createUnitsAndBuildings(PotentialProject &project,BigSerial
 	std::vector<PotentialUnit>::iterator unitsItr;
 
 	for (unitsItr = units.begin(); unitsItr != units.end(); ++unitsItr) {
-		for(size_t i=0; i< (*unitsItr).getNumUnits();i++)
+		for(size_t i=0; i< *unitsItr->getNumUnits();i++)
 		{
 			boost::shared_ptr<Unit>unit(new Unit( devModel->getUnitIdForDeveloperAgent(), buildingId, postcode, (*unitsItr).getUnitTypeId(), 0, DeveloperAgent::UNIT_PLANNED, (*unitsItr).getFloorArea(), 0, 0, 0,toDate, currentDate,DeveloperAgent::UNIT_NOT_LAUNCHED, DeveloperAgent::UNIT_NOT_READY_FOR_OCCUPANCY, currentDate, 0, 0, 0));
 			newUnits.push_back(unit);
@@ -800,8 +785,8 @@ void DeveloperAgent::setUnitsRemain (bool unitRemain)
 std::tm DeveloperAgent::getDate(int day)
 {
 	int year = simYear-1900;
-	int month = ((day)/30); //divide by 30 to get the month
-	int dayMonth = ((day)%30)+1; // get the remainder of divide by 30 to roughly calculate the day of the month
+	int month = day/30; //divide by 30 to get the month
+	int dayMonth = (day%30)+1; // get the remainder of divide by 30 to roughly calculate the day of the month
 	std::tm currentDate = std::tm();
 	currentDate.tm_mday = dayMonth;
 	currentDate.tm_mon = month;

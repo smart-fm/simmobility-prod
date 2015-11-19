@@ -2,8 +2,8 @@
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
 <pathset enabled="true"> 
 	<thread_pool size="7"/>
-	<private_pathset enabled="true" mode="normal"> <!-- currently, "normal" and "generation" are supported modes -->
-		<od_source table="bulkpathgen_od"/>
+	<private_pathset enabled="true" mode="generation"> <!-- currently, "normal" and "generation" are supported modes -->
+		<od_source table="pvt_od"/>
 		<bulk_generation_output_file name="pathset-bulk.csv" />
 		<tables pathset_table="pvt_path" historical_traveltime="supply.link_travel_time" default_traveltime = "supply.link_default_travel_time"/>
 		<functions pathset="get_pvt_pathset" pathset_without_banned_area="get_path_set_woba" travel_time="upsert_realtime" />

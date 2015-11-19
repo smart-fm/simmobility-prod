@@ -3,13 +3,13 @@
 <!-- Copyright Singapore-MIT Alliance for Research and Technology -->
 <config>
 	<constructs>
-		<!-- Various database connections, used for loading network and agent data. -->
+            <!-- Various database connections, used for loading network and agent data. -->
 	    <!-- Note that credentials (login details) are stored in a separate construct. -->
-		<databases>
-			<database id="fm_remote" dbtype="postgres">
+            <databases>
+                <database id="fm_remote" dbtype="postgres">
 	            <host value="172.25.184.48"/>
 	            <port value="5432"/>
-	            <dbname value="SimMobility_DB_2015"/>
+	            <dbname value="simmobility"/>
 	        </database>
 	        
 	        <database id="fm_remote_lt" dbtype="postgres">
@@ -24,7 +24,7 @@
 	            <port value="27017"/>
 	            <dbname value="mydb"/>
 	        </database>
-		</databases>
+            </databases>
 	
 		<!-- Login credentials to be used for database connections. These can be plaintext, -->
 	    <!-- file-based, and possibly even signed. Note that invalid credentials will simply be ignored. -->

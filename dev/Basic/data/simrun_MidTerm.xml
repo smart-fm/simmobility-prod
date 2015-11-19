@@ -5,8 +5,8 @@
 <config>
     <!-- Groupings of stored procedures, used for loading network data from certain tables. -->
     <db_proc_groups>
-        <!-- Entire singapore network with scaled activity_schedules from preday-->
-        <proc_map id="withinday" format="aimsun">
+        <!-- Entire singapore network in old format -->
+        <proc_map id="withinday_old_network" format="aimsun">
             <mapping name="node" procedure="get_node_sg()"/>
             <mapping name="section" procedure="get_section_sg()"/>
             <mapping name="turning" procedure="get_lane_connector_sg()"/>
@@ -29,6 +29,39 @@
             <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
             <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>
         </proc_map>
+
+        <!-- Entire Singapore network in new format -->
+        <proc_map id="withinday" format="aimsun">
+            <mapping name="nodes" procedure="get_singapore_nodes()"/>
+            <mapping name="links" procedure="get_singapore_links()"/>
+            <mapping name="turning_groups" procedure="get_singapore_turning_groups()"/>
+            <mapping name="turning_paths" procedure="get_singapore_turning_paths()"/>
+            <mapping name="turning_polylines" procedure="get_singapore_turning_polylines()"/>
+            <mapping name="turning_conflicts" procedure="get_singapore_turning_conflicts()"/>
+            <mapping name="road_segments" procedure="get_singapore_road_segments()"/>
+            <mapping name="segment_polylines" procedure="get_singapore_segment_polylines()"/>
+            <mapping name="lanes" procedure="get_singapore_lanes()"/>
+            <mapping name="lane_polylines" procedure="get_singapore_lane_polylines()"/>
+            <mapping name="lane_connectors" procedure="get_singapore_lane_connectors()"/>
+            <mapping name="bus_stops" procedure="get_singapore_bus_stops()"/>
+            <mapping name="pt_bus_dispatch_freq" procedure="get_pt_bus_frequency()"/>
+            <mapping name="pt_bus_routes" procedure="get_pt_bus_routes()"/>
+            <mapping name="pt_bus_stops" procedure="get_pt_bus_stops()"/>
+
+            <!-- MT specific stored procedures -->
+            <mapping name="pt_vertices" procedure="get_pt_map_vertices()"/>
+            <mapping name="pt_edges" procedure="get_pt_map_edges()"/>
+            <mapping name="pt_pathset" procedure="get_pt_pathset"/>
+            <mapping name="mrt_road_segments" procedure="get_pt_mrt_segments()"/>
+            <mapping name="erp_gantry_zone" procedure="get_erp_gantry_zone()"/>
+            <mapping name="erp_section" procedure="get_erp_section()"/>
+            <mapping name="erp_surcharge" procedure="get_erp_surcharge()"/>
+            <!--<mapping name="screen_line" procedure="get_screen_line_segments()"/>
+            <mapping name="restricted_reg_segments" procedure="get_section_banned_area()"/>
+            <mapping name="restricted_reg_in_turning" procedure="get_banned_area_in_turning()"/>
+            <mapping name="restricted_reg_out_turning" procedure="get_banned_area_out_turning()"/>
+            <mapping name="restricted_reg_nodes" procedure="get_restricted_region_nodes()"/>-->
+        </proc_map> 
     </db_proc_groups>
     
     <system>         
@@ -91,7 +124,7 @@
     <generateBusRoutes enabled="false" /> 
     <travel_time_update interval="300" alpha="0.5" />
     <public_transit enabled="false"/>
-    <screen-line_count interval="900" file-name="screenLineCount.txt" enabled="true" />
+    <screen-line_count interval="900" file-name="screenLineCount.txt" enabled="false" />
 
     <!-- Determines whether to run SimMobility_Medium's demand simulator or the supply simulator -->
     <!-- Admissible values are "preday", "withinday" and "supply". Values "withinday" and "supply" runs the same code. Two different values are allowed just for convenience.--> 

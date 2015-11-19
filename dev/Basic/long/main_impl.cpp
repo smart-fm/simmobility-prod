@@ -187,7 +187,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
         unsigned int currentTick = 0;
 
         //set the currentTick to the last stopped date if it is a restart run
-        if (lastStoppedTick < days && lastStoppedTick > 0)
+        if ((lastStoppedTick+1) < days && lastStoppedTick > 0)
         {
         	currentTick = lastStoppedTick;
         	restart = true;
@@ -195,6 +195,7 @@ void performMain(int simulationNumber, std::list<std::string>& resLogFiles)
 
         if( enableHousingMarket )
         	 housingMarketModel = new HM_Model(*hmWorkers);//initializing the housing market model
+             housingMarketModel->setStartDay(currentTick);
         	 models.push_back(housingMarketModel);
 
         if( enableDeveloperModel )

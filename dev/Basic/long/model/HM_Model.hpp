@@ -281,6 +281,7 @@ namespace sim_mob
             Alternative* getAlternativeByPlanningAreaId(int id) const;
             std::vector<PopulationPerPlanningArea*> getPopulationByPlanningAreaId(BigSerial id)const;
             HitsIndividualLogsumList getHitsIndividualLogsumVec() const;
+            void setStartDay(int day);
 
         protected:
             /**
@@ -388,6 +389,7 @@ namespace sim_mob
             int simulationStopCounter;
 
             DeveloperModel *developerModel;
+            int startDay; //start tick of the simulation
         };
     }
 }

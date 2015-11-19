@@ -357,7 +357,7 @@ double HM_Model::TazStats::getAvgHHSize() const
 }
 
 
-HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),householdLogsumCounter(0), simulationStopCounter(0){}
+HM_Model::HM_Model(WorkGroup& workGroup) :	Model(MODEL_NAME, workGroup),numberOfBidders(0), initialHHAwakeningCounter(0), numLifestyle1HHs(0), numLifestyle2HHs(0), numLifestyle3HHs(0), hasTaxiAccess(false),householdLogsumCounter(0), simulationStopCounter(0), developerModel(nullptr),startDay(0){}
 
 HM_Model::~HM_Model()
 {
@@ -971,6 +971,10 @@ HM_Model::HitsIndividualLogsumList HM_Model::getHitsIndividualLogsumVec() const
 	return hitsIndividualLogsum;
 }
 
+void HM_Model::setStartDay(int day)
+{
+	startDay = day;
+}
 
 void HM_Model::addHouseholdGroupByGroupId(HouseholdGroup* hhGroup)
 {
@@ -1389,7 +1393,7 @@ void HM_Model::startImpl()
 
 				if( awakeningProbability < config.ltParams.housingModel.vacantUnitActivationProbability )
 				{
-					(*it)->setbiddingMarketEntryDay( 0 );
+					(*it)->setbiddingMarketEntryDay( startDay );
 					(*it)->setTimeOnMarket( 1 + int((float)rand() / RAND_MAX * ( config.ltParams.housingModel.timeOnMarket )) );
 
 					onMarket++;

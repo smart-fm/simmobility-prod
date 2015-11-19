@@ -1824,52 +1824,14 @@ void DriverMovement::setTrafficSignalParams(DriverUpdateParams &params)
 	else
 	{
 		TrafficColor colour = TRAFFIC_COLOUR_INVALID;
-
-		if (isLastSegmentInLink())
+		
+		const Link *fromLink = fwdDriverMovement.getCurrLink();
+		const Link *toLink = fwdDriverMovement.getNextLink();
+		
+		//Check if we have a next link in the path
+		if(toLink)
 		{
-			const WayPoint &currWayPt = fwdDriverMovement.getCurrWayPoint();
-			const WayPoint *nextWayPt = fwdDriverMovement.getNextWayPoint();
-			
-			//If the next way point is valid, then we know the turning group
-			if(nextWayPt)
-			{
-				unsigned int fromLink = nextWayPt->turningGroup->getFromLinkId();
-				unsigned int toLink = nextWayPt->turningGroup->getToLinkId();
-				colour = trafficSignal->getDriverLight(fromLink, toLink);
-			}
-			else				
-			{
-				//Next way point is not valid, this means that the approaching node is the end node
-				//So get the turning group which is connected to the lane we are in
-				
-				const Lane *currLane = fwdDriverMovement.getCurrLane();
-				const Node *node= currWayPt.roadSegment->getParentLink()->getToNode();
-				const std::map<unsigned int, TurningGroup *> *groups = node->getTurningGroups(currWayPt.roadSegment->getLinkId());
-				
-				if(groups)
-				{
-					//Iterate through the groups and find the group that has a turning path originating from 
-					//the current lane
-					
-					std::map<unsigned int, TurningGroup *>::const_iterator itGroups = groups->begin();
-					while(itGroups != groups->end())
-					{
-						if(itGroups->second->getTurningPaths(currLane->getLaneId()))
-						{
-							unsigned int fromLink = itGroups->second->getFromLinkId();
-							unsigned int toLink = itGroups->second->getToLinkId();
-							colour = trafficSignal->getDriverLight(fromLink, toLink);
-							break;
-						}
-						++itGroups;
-					}
-				}
-				else
-				{
-					//The destination node is a sink node. No turnings originate from it
-					colour = TRAFFIC_COLOUR_GREEN;
-				}
-			}
+			colour = trafficSignal->getDriverLight(fromLink->getLinkId(), toLink->getLinkId());
 		}
 		else
 		{
@@ -1883,7 +1845,7 @@ void DriverMovement::setTrafficSignalParams(DriverUpdateParams &params)
 
 		parentDriver->perceivedTrafficColor->delay(params.trafficColor);
 
-		params.trafficSignalStopDistance = fwdDriverMovement.getDistToEndOfCurrLink() - (parentDriver->getVehicleLength() / 2);
+		params.trafficSignalStopDistance = fwdDriverMovement.getDistToEndOfCurrLink() - parentDriver->getVehicleLength();
 
 		if (!parentDriver->perceivedDistToTrafficSignal->can_sense())
 		{

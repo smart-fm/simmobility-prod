@@ -1694,7 +1694,7 @@ int MITSIM_LC_Model::checkNosingFeasibility(DriverUpdateParams& p,const NearestV
 	else
 	{
 		p.lcDebugStr<<";CF0";
-		double length = p.driver->getVehicle()->getLengthCm()/100.0;// vh length
+		double length = p.driver->getVehicle()->getLengthInM()/100.0;// vh length
 		if (dis2stop < length && p.currSpeed < Math::DOUBLE_EPSILON)
 		{
 			p.lcDebugStr<<";CF1";

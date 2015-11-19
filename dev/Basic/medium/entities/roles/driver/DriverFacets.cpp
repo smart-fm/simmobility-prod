@@ -585,7 +585,7 @@ bool DriverMovement::canGoToNextRdSeg(DriverUpdateParams& params, const SegmentS
 		return false;
 	}
 
-	double enteringVehicleLength = parentDriver->getResource()->getLengthCm();
+	double enteringVehicleLength = parentDriver->getResource()->getLengthInM();
 	double maxAllowed = nextSegStats->getNumVehicleLanes() * nextSegStats->getLength();
 	double total = nextSegStats->getTotalVehicleLength();
 

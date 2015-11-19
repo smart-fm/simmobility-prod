@@ -344,7 +344,7 @@ bool BusDriverMovement::moveToNextSegment(DriverUpdateParams& params)
 		BusStopAgent* stopAg = BusStopAgent::getBusStopAgentForStop(nextStop);
 		if(stopAg)
 		{
-			if(stopAg->canAccommodate(parentBusDriver->getResource()->getLengthCm()))
+			if(stopAg->canAccommodate(parentBusDriver->getResource()->getLengthInM()))
 			{
 				if(isQueuing)
 				{

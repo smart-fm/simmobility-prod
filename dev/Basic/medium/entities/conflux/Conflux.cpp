@@ -143,7 +143,7 @@ Conflux::PersonProps::PersonProps(const Person_MT* person, const Conflux* cnflx)
 		VehicleBase* vehicle = role->getResource();
 		if (vehicle)
 		{
-			vehicleLength = vehicle->getLengthCm();
+			vehicleLength = vehicle->getLengthInM();
 		}
 		else
 		{
@@ -606,7 +606,7 @@ void Conflux::housekeep(PersonProps& beforeUpdate, PersonProps& afterUpdate, Per
 	if (afterUpdate.lane && afterUpdate.lane != afterUpdate.segStats->laneInfinity)
 	{
 		//if the person did not end up in a VQ and his lane is not lane infinity of segAfterUpdate
-		double lengthToVehicleEnd = person->distanceToEndOfSegment + person->getRole()->getResource()->getLengthCm();
+		double lengthToVehicleEnd = person->distanceToEndOfSegment + person->getRole()->getResource()->getLengthInM();
 		afterUpdate.segStats->setPositionOfLastUpdatedAgentInLane(lengthToVehicleEnd, afterUpdate.lane);
 	}
 }
@@ -1819,7 +1819,7 @@ void Conflux::CreateSegmentStats(const RoadSegment* rdSeg, Conflux* conflux, std
 	const std::map<double, RoadItem*>& obstacles = rdSeg->getObstacles();
 	double lengthCoveredInSeg = 0;
 	double segStatLength;
-	double rdSegmentLength = rdSeg->getPolyLine()->getLength();
+	double rdSegmentLength = rdSeg->getLength();
 	// NOTE: std::map implements strict weak ordering which defaults to less<key_type>
 	// This is precisely the order in which we want to iterate the stops to create SegmentStats
 	for (std::map<double, RoadItem*>::const_iterator obsIt = obstacles.begin(); obsIt != obstacles.end(); obsIt++)

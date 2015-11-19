@@ -32,8 +32,8 @@ private:
 	/**Unique identifier for the road segment*/
 	unsigned int roadSegmentId;
 
-	/**Indicates the maximum number of vehicles that the road segment can accommodate*/
-	unsigned int capacity;
+	/**Indicates the maximum number of vehicles that the road segment allow to exit this segment per second*/
+	double capacity;
 
 	/**The lanes that make up th road segment*/
 	std::vector<Lane *> lanes;
@@ -41,7 +41,7 @@ private:
 	/**The id of the link to which the segment belongs*/
 	unsigned int linkId;
 
-	/**Indicates the maximum speed the vehicles should adhere to when travelling on the road segment (m/s)*/
+	/**Indicates the maximum speed the vehicles should adhere to when traveling on the road segment (m/s)*/
 	double maxSpeed;
 
 	/**The link to which this segment belongs*/
@@ -66,8 +66,12 @@ public:
 	unsigned int getRoadSegmentId() const;
 	void setRoadSegmentId(unsigned int roadSegmentId);
 
-	unsigned int getCapacity() const;
-	void setCapacity(unsigned int capacity);
+	double getCapacity() const;
+	/**
+	 * sets the output capacity of this segment in vehicles/s
+	 * @param capacity capacity value to set in vehicles/hour
+	 */
+	void setCapacity(unsigned int capacityVph);
 
 	const std::vector<Lane *>& getLanes() const;
 	const Lane* getLane(int index) const;

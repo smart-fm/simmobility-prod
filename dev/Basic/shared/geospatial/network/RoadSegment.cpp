@@ -43,14 +43,14 @@ void RoadSegment::setRoadSegmentId(unsigned int roadSegmentId)
 	this->roadSegmentId = roadSegmentId;
 }
 
-unsigned int RoadSegment::getCapacity() const
+double RoadSegment::getCapacity() const
 {
 	return capacity;
 }
 
-void RoadSegment::setCapacity(unsigned int capacity)
+void RoadSegment::setCapacity(unsigned int capacityVph)
 {
-	this->capacity = capacity;
+	this->capacity = ((double)capacityVph) / 3600.0;
 }
 
 const std::vector<Lane *>& RoadSegment::getLanes() const

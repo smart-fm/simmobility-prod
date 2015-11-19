@@ -220,7 +220,7 @@ void NetworkLoader::loadBusStops(const std::string& storedProc)
 			twinStop->setStopCode(twinStopCode);
 			twinStop->setRoadSegmentId(stop->getReverseSectionId());
 			twinStop->setStopName(stop->getStopName());
-			twinStop->setCapacityAsLength(stop->getCapacityAsLength());
+			twinStop->setLength(stop->getLength());
 			twinStop->setOffset(stop->getOffset());
 			twinStop->setReverseSectionId(stop->getRoadSegmentId());
 			twinStop->setTerminalNodeId(stop->getTerminalNodeId());

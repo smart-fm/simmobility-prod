@@ -24,22 +24,11 @@ namespace
 #define GET_LANE_INFINITY_ID(X) (X*100+9)
 
 const double INFINITESIMAL_DOUBLE = 0.000001;
-const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * PASSENGER_CAR_UNIT; // 5 times a car's length
+const double SHORT_SEGMENT_LENGTH_LIMIT = 5 * PASSENGER_CAR_UNIT; // 5 times a car's length (in m)
 const double LARGE_OUTPUT_FLOW_RATE = 2.0; //veh/s (considered high output flow rate for a lane) (suggested by Yang Lu on 23-Apr-2015)
 
 const double SINGLE_LANE_SEGMENT_CAPACITY = 1200.0; //veh/hr. suggested by Yang Lu on 11-Oct-2014
 const double DOUBLE_LANE_SEGMENT_CAPACITY = 3000.0; //veh/hr. suggested by Yang Lu on 11-Oct-2014
-const double UNIT_KMPH_IN_CMPS = 100000.0 / 3600.0; // 1km = 100000 cm; 1hr = 3600 s;
-
-/**
- * converts the unit of speed from Km/h to cm/s
- * @param speedInKmph speed in Km/h
- * @return speed in cm/s
- */
-inline double convertKmphToCmps(double speedInKmph)
-{
-	return (speedInKmph * UNIT_KMPH_IN_CMPS);
-}
 }
 
 bool GreaterDistToSegmentEnd::operator ()(const Person_MT* x, const Person_MT* y) const
@@ -77,10 +66,10 @@ bool GreaterDistToSegmentEnd::operator ()(const Person_MT* x, const Person_MT* y
  * The parameter values for min density, jam density, alpha and beta were suggested by Yang Lu on 11-Oct-14
  */
 SupplyParams::SupplyParams(const RoadSegment* rdSeg, double statsLength) :
-		freeFlowSpeed(convertKmphToCmps(rdSeg->getMaxSpeed())), minSpeed(0.2 * freeFlowSpeed), /*20% of free flow speed as suggested by Yang Lu*/
+		freeFlowSpeed(rdSeg->getMaxSpeed()), minSpeed(0.2 * freeFlowSpeed), /*20% of free flow speed as suggested by Yang Lu*/
 		jamDensity(0.2), /*density during traffic jam in veh/meter*/
 		minDensity(0.0), /*minimum traffic density in veh/meter*/
-		capacity(rdSeg->getCapacity() / 3600.0), /*converting capacity to vehicles/hr to vehicles/s*/
+		capacity(rdSeg->getCapacity()), /*capacity in vehicles/s*/
 		alpha(3.0), beta(1.5)
 {
 	//update capacity of single and double lane segments to avoid bottle necks. Suggested by Yang Lu on 11-Oct-14
@@ -94,11 +83,11 @@ SupplyParams::SupplyParams(const RoadSegment* rdSeg, double statsLength) :
 	}
 }
 
-SegmentStats::SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, double statslength) :
-		roadSegment(rdSeg), length(statslength), segDensity(0.0), segFlow(0), numPersons(0), statsNumberInSegment(1), supplyParams(rdSeg, statslength), orderBySetting(
+SegmentStats::SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, double statslengthInM) :
+		roadSegment(rdSeg), length(statslengthInM), segDensity(0.0), segFlow(0), numPersons(0), statsNumberInSegment(1), supplyParams(rdSeg, statslengthInM), orderBySetting(
 				SEGMENT_ORDERING_BY_DISTANCE_TO_INTERSECTION), parentConflux(parentConflux)
 {
-	segVehicleSpeed = convertKmphToCmps(getRoadSegment()->getMaxSpeed());
+	segVehicleSpeed = roadSegment->getMaxSpeed();
 	numVehicleLanes = 0;
 
 	// initialize LaneAgents in the map
@@ -130,7 +119,7 @@ SegmentStats::SegmentStats(const RoadSegment* rdSeg, Conflux* parentConflux, dou
 	laneInfinity->setRoadSegmentId(rdSeg->getRoadSegmentId());
 	laneInfinity->setParentSegment(const_cast<RoadSegment*>(rdSeg));
 	laneInfinity->setWidth(0);
-	laneStatsMap.insert(std::make_pair(laneInfinity, new LaneStats(laneInfinity, statslength, true)));
+	laneStatsMap.insert(std::make_pair(laneInfinity, new LaneStats(laneInfinity, statslengthInM, true)));
 }
 
 SegmentStats::~SegmentStats()
@@ -499,15 +488,16 @@ double SegmentStats::getTotalVehicleLength() const
 double SegmentStats::getDensity(bool hasVehicle)
 {
 	double density = 0.0;
-	double movingPartLength = length * numVehicleLanes - getQueueLength();
+	double queueLength = getQueueLength();
+	double movingPartLength = length * numVehicleLanes - queueLength;
 	double movingPCUs = getMovingLength() / PASSENGER_CAR_UNIT;
 	if (movingPartLength > PASSENGER_CAR_UNIT)
 	{
-		density = movingPCUs / (movingPartLength / 100.0);
+		density = movingPCUs / movingPartLength;
 	}
 	else
 	{
-		density = 1 / (PASSENGER_CAR_UNIT / 100.0);
+		density = 1 / PASSENGER_CAR_UNIT;
 	}
 	return density;
 }
@@ -630,11 +620,11 @@ void LaneStats::addPerson(Person_MT* p)
 		if (vehicle)
 		{
 			numPersons++; // record addition
-			totalLength = totalLength + vehicle->getLengthCm();
+			totalLength = totalLength + vehicle->getLengthInM();
 			if (p->isQueuing)
 			{
 				queueCount++;
-				queueLength = queueLength + vehicle->getLengthCm();
+				queueLength = queueLength + vehicle->getLengthInM();
 			}
 		}
 		verifyOrdering();
@@ -649,14 +639,14 @@ void LaneStats::updateQueueStatus(Person_MT* p)
 		if (p->isQueuing)
 		{
 			queueCount++;
-			queueLength = queueLength + vehicle->getLengthCm();
+			queueLength = queueLength + vehicle->getLengthInM();
 		}
 		else
 		{
 			if (queueCount > 0)
 			{
 				queueCount--;
-				queueLength = queueLength - vehicle->getLengthCm();
+				queueLength = queueLength - vehicle->getLengthInM();
 			}
 			else
 			{
@@ -718,7 +708,7 @@ void LaneStats::initLaneParams(double vehSpeed, const double capacity)
 	if (length < SHORT_SEGMENT_LENGTH_LIMIT)
 	{
 		laneParams->origOutputFlowRate = LARGE_OUTPUT_FLOW_RATE;
-		laneParams->outputFlowRate = LARGE_OUTPUT_FLOW_RATE; //some large number
+		laneParams->outputFlowRate = LARGE_OUTPUT_FLOW_RATE;
 	}
 
 	updateOutputCounter();

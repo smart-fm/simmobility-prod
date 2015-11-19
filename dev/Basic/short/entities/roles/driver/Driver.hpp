@@ -213,7 +213,7 @@ class UnPackageUtils;
     //Getter to the length of the vehicle being driven by this driver (in centimetre). Returns a constant value.
     const double getVehicleLengthCM() const
     {
-      return vehicle->getLengthCm();
+      return vehicle->getLengthInM();
     }
 
     //Getter to the length of the vehicle being driven by this driver (in metre). Returns a constant value.

@@ -77,10 +77,10 @@ public:
 	}
 
 private:
-	double freeFlowSpeed;  ///<Maximum speed of the road segment in cm/s
+	double freeFlowSpeed;  ///<Maximum speed of the road segment in m/s
 	double jamDensity;     ///<density during traffic jam in vehicles/m
 	double minDensity;     ///<minimum traffic density in vehicles/m
-	double minSpeed;       ///<minimum speed in the segment in cm/s
+	double minSpeed;       ///<minimum speed in the segment in m/s
 	double capacity;       ///<segment capacity in vehicles/s
 	const double alpha;          ///<Model parameter of speed density function
 	const double beta;           ///<Model parameter of speed density function
@@ -97,8 +97,8 @@ class LaneParams
 	friend class SegmentStats;
 
 private:
-	double outputFlowRate;
-	double origOutputFlowRate;
+	double outputFlowRate; //vehicles/s
+	double origOutputFlowRate; //vehicles/s
 	int outputCounter;
 	double acceptRate;
 	double fraction;
@@ -176,16 +176,16 @@ private:
 	/** virtual lane to hold newly starting persons */
 	const bool laneInfinity;
 
-	/** length of the lane (corresponds to length of segment stats of this lane stats) */
+	/** length of the lane in m (corresponds to length of segment stats of this lane stats) */
 	double length;
 
 	/** counter to track number of persons in this lane */
 	unsigned int numPersons;
 
-	/** tracks the queuing length of this segment */
+	/** tracks the queuing length of this segment in m*/
 	double queueLength;
 
-	/** tracks the moving length of this segment */
+	/** tracks the moving length of this segment in m*/
 	double totalLength;
 
 	/** set of downstream links connected to this lanestats */
@@ -266,7 +266,7 @@ public:
 
 	/**
 	 * initializes the parameters of lane
-	 * @param vehSpeed speed of vehicles in lane
+	 * @param vehSpeed speed of vehicles in lane in m/s
 	 * @param capacity of the segment stats containing this lane stats (in vehicles/s)
 	 */
 	void initLaneParams(double vehSpeed, double capacity);
@@ -284,7 +284,7 @@ public:
 
 	/**
 	 * updates the accept rate of lane
-	 * @param upSpeed lane speed
+	 * @param upSpeed lane speed in m/s
 	 */
 	void updateAcceptRate(double upSpeed);
 
@@ -414,10 +414,10 @@ protected:
 	 */
 	const Lane* outermostLane;
 
-	/** length of this SegmentStats in cm */
+	/** length of this SegmentStats in m */
 	double length;
 
-	/** speed of vehicles in segment for each frame in cm/s */
+	/** speed of vehicles in segment for each frame in m/s */
 	double segVehicleSpeed;
 
 	/** vehicle density of this segment stats in PCU/m */

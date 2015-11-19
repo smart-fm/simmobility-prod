@@ -475,14 +475,14 @@ bool sim_mob::DriverMovement::findEmptySpaceAhead()
 							//As the gap is positive, there is a vehicle in front of us. We should have enough distance
 							//so as to avoid crashing into it
 							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *>(cfModel);
-							requiredGapInCM = (2 * parentDriver->vehicle->getLengthCm()) + (mitsim_cf_model->hBufferUpper * (driverUpdateParams.initSpeed * 100));
+							requiredGapInCM = (2 * parentDriver->vehicle->getLengthInM()) + (mitsim_cf_model->hBufferUpper * (driverUpdateParams.initSpeed * 100));
 						}
 						else
 						{
 							//As the gap is negative, there is a vehicle coming in from behind. We shouldn't appear right
 							//in front of it, so consider it's speed to calculate required gap
 							MITSIM_CF_Model *mitsim_cf_model = dynamic_cast<MITSIM_CF_Model *>(nearbyDriverMovement->cfModel);
-							requiredGapInCM = (2 * nearbyDriver->vehicle->getLengthCm())+ (mitsim_cf_model->hBufferUpper)* (nearbyDriversParams.currSpeed * 100);
+							requiredGapInCM = (2 * nearbyDriver->vehicle->getLengthInM())+ (mitsim_cf_model->hBufferUpper)* (nearbyDriversParams.currSpeed * 100);
 
 							//In case a driver is approaching from the rear, we need to reduce the reaction time, so that he/she
 							//is aware of the presence of the car apprearing in front.
@@ -593,8 +593,8 @@ void sim_mob::DriverMovement::frame_tick_output()
 		"\"xPos\":\"" << static_cast<int> (parentDriver->getCurrPosition().getX()) <<
 		"\",\"yPos\":\"" << static_cast<int> (parentDriver->getCurrPosition().getY()) <<
 		"\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) <<
-		"\",\"length\":\"" << static_cast<int> (parentDriver->vehicle->getLengthCm()) <<
-		"\",\"width\":\"" << static_cast<int> (parentDriver->vehicle->getWidthCm()) <<
+		"\",\"length\":\"" << static_cast<int> (parentDriver->vehicle->getLengthInM()) <<
+		"\",\"width\":\"" << static_cast<int> (parentDriver->vehicle->getWidthInM()) <<
 		"\",\"curr-segment\":\"" << (inLane ? fwdDriverMovement.getCurrSegment()->getRoadSegmentId() : 0x0) <<
 		"\",\"fwd-speed\":\"" << parentDriver->vehicle->getVelocity() <<
 		"\",\"fwd-accel\":\"" << parentDriver->vehicle->getAcceleration() <<
@@ -2425,7 +2425,7 @@ double sim_mob::DriverMovement::updatePositionOnLink(DriverUpdateParams& p)
 void sim_mob::DriverMovement::setNearestVehicle(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other) 
 {
 	//Subtract the size of the car from the distance between them
-	distance = fabs(distance) - veh->getLengthCm() / 2 - other->getVehicleLengthCM() / 2;
+	distance = fabs(distance) - veh->getLengthInM() / 2 - other->getVehicleLengthCM() / 2;
 
 	if (distance <= res.distance) 
 	{
@@ -3222,7 +3222,7 @@ void sim_mob::DriverMovement::setTrafficSignalParams(DriverUpdateParams& p)
 		p.trafficSignalStopDistance =
 				fwdDriverMovement.getAllRestRoadSegmentsLengthCM()
 				- fwdDriverMovement.getCurrDistAlongRoadSegmentCM()
-				- parentDriver->vehicle->getLengthCm() / 2;
+				- parentDriver->vehicle->getLengthInM() / 2;
 
 		if (!parentDriver->perceivedDistToTrafficSignal->can_sense()) 
 		{

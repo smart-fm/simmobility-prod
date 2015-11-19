@@ -50,7 +50,7 @@ void BusStopAgent::removeAllBusStopAgents()
 
 
 BusStopAgent::BusStopAgent(const MutexStrategy& mtxStrat, int id, const BusStop* stop, SegmentStats* stats) :
-		Agent(mtxStrat, id), busStop(stop), parentSegmentStats(stats), availableLength(stop->getCapacityAsLength()), currentTimeMS(0)
+		Agent(mtxStrat, id), busStop(stop), parentSegmentStats(stats), availableLength(stop->getLength()), currentTimeMS(0)
 {}
 
 BusStopAgent::~BusStopAgent()
@@ -357,7 +357,7 @@ bool BusStopAgent::acceptBusDriver(BusDriver* driver)
 {
 	if (driver)
 	{
-		double vehicleLength = driver->getResource()->getLengthCm();
+		double vehicleLength = driver->getResource()->getLengthInM();
 		if (availableLength >= vehicleLength)
 		{
 			servingDrivers.push_back(driver);
@@ -373,7 +373,7 @@ bool BusStopAgent::removeBusDriver(BusDriver* driver)
 {
 	if (driver)
 	{
-		double vehicleLength = driver->getResource()->getLengthCm();
+		double vehicleLength = driver->getResource()->getLengthInM();
 		std::list<sim_mob::medium::BusDriver*>::iterator driverIt = std::find(servingDrivers.begin(), servingDrivers.end(), driver);
 		if (driverIt != servingDrivers.end())
 		{

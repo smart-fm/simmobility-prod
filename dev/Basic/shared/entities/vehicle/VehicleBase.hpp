@@ -12,7 +12,7 @@ namespace sim_mob {
  * TODO: Defining this as a global variable for now. Must make this
  * configurable in future.
  */
-const double PASSENGER_CAR_UNIT = 400.0; //cm; 4 m.
+const double PASSENGER_CAR_UNIT = 4.0; //m.
 
 /**
  * A simple base class for all Vehicles
@@ -29,22 +29,22 @@ public:
 	};
 
 	VehicleBase(const VehicleType vehType, const double length, const double width)
-	: vehicleType(vehType), lengthCM(length), widthCM(width), moving(true)
+	: vehicleType(vehType), lengthM(length), widthM(width), moving(true)
 	{}
 
 	VehicleBase(const VehicleBase& copy)
-	: vehicleType(copy.vehicleType), lengthCM(copy.lengthCM),
-	  widthCM(copy.widthCM), moving(copy.moving)
+	: vehicleType(copy.vehicleType), lengthM(copy.lengthM),
+	  widthM(copy.widthM), moving(copy.moving)
 	{}
 
 	virtual ~VehicleBase() {}
 
-	const double getLengthCm() const {
-		return lengthCM;
+	const double getLengthInM() const {
+		return lengthM;
 	}
 
-	const double getWidthCm() const {
-		return widthCM;
+	const double getWidthInM() const {
+		return widthM;
 	}
 
 	const VehicleType getVehicleType() const {
@@ -85,10 +85,10 @@ public:
 	}*/
 
 protected:
-	/**length of the vehicle in cm*/
-	const double lengthCM;
-	/**width of the vehicle in cm*/
-	const double widthCM;
+	/**length of the vehicle in m*/
+	const double lengthM;
+	/**width of the vehicle in m*/
+	const double widthM;
 	/**type of vehicle*/
 	const VehicleType vehicleType;
 	/**flag to indicate moving status of vehicle*/

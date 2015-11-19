@@ -442,8 +442,8 @@ void sim_mob::BusDriverMovement::frame_tick_output() {
 			<<"\"xPos\":\""<<static_cast<int>(parentBusDriver->getPositionX())
 			<<"\",\"yPos\":\""<<static_cast<int>(parentBusDriver->getPositionY())
 			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
-			<<"\",\"length\":\""<<static_cast<int>(bus->getLengthCm())
-			<<"\",\"width\":\""<<static_cast<int>(bus->getWidthCm())
+			<<"\",\"length\":\""<<static_cast<int>(bus->getLengthInM())
+			<<"\",\"width\":\""<<static_cast<int>(bus->getWidthInM())
 			<<"\",\"passengers\":\""<<passengerCount
 			<<"\",\"real_ArrivalTime\":\""<<(bus?parentBusDriver->real_ArrivalTime.get():0)
 			<<"\",\"DwellTime_ijk\":\""<<(bus?parentBusDriver->DwellTime_ijk.get():0)

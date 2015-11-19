@@ -81,8 +81,8 @@ public:
 	const TerminusType& getTerminusType() const;
 	void setTerminusType(TerminusType type);
 
-	double getCapacityAsLength() const;
-	void setCapacityAsLength(double len);
+	double getLength() const;
+	void setLength(double len);
 
 	const BusStop* getTwinStop() const;
 	void setTwinStop(const BusStop* stop);

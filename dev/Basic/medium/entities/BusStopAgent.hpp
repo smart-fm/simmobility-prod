@@ -152,7 +152,7 @@ private:
 	SegmentStats* parentSegmentStats;
 	/**record last boarding number for a given bus*/
 	std::map<sim_mob::medium::BusDriver*, unsigned int> lastBoardingRecorder;
-	/**available length in cm for incoming vehicles*/
+	/**available length in m for incoming vehicles*/
 	double availableLength;
 	/**current time in milliseconds from start of simulation*/
 	unsigned int currentTimeMS;

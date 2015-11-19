@@ -75,12 +75,12 @@ void BusStop::setTerminusType(TerminusType type)
 	terminusType = type;
 }
 
-double BusStop::getCapacityAsLength() const
+double BusStop::getLength() const
 {
 	return length;
 }
 
-void BusStop::setCapacityAsLength(double len)
+void BusStop::setLength(double len)
 {
 	length = len;
 }

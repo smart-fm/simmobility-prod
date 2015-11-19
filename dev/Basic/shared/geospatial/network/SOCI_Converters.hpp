@@ -127,7 +127,7 @@ template<> struct type_conversion<sim_mob::TurningPath>
 	{
 		res.setTurningPathId((unsigned int) vals.get<int>("id", 0));
 		res.setFromLaneId(vals.get<unsigned int>("from_lane", 0));
-		res.setMaxSpeed(vals.get<double>("max_speed"));
+		res.setMaxSpeed((double)vals.get<unsigned int>("max_speed"));
 		res.setToLaneId(vals.get<unsigned int>("to_lane", 0));
 		res.setTurningGroupId(vals.get<unsigned int>("group_id", 0));
 	}
@@ -173,7 +173,7 @@ template<> struct type_conversion<sim_mob::RoadSegment>
 		res.setRoadSegmentId(vals.get<unsigned int>("id", 0));
 		res.setCapacity(vals.get<unsigned int>("capacity", 0));
 		res.setLinkId(vals.get<unsigned int>("link_id", 0));
-		res.setMaxSpeed(vals.get<double>("max_speed", 0));
+		res.setMaxSpeed((double)vals.get<unsigned int>("max_speed", 0));
 		res.setSequenceNumber(vals.get<unsigned int>("sequence_num", 0));
 	}
 };
@@ -234,7 +234,7 @@ template<> struct type_conversion<sim_mob::BusStop>
 		res.setRoadSegmentId(vals.get<unsigned int>("section_id", 0));
 		res.setStopName(vals.get<std::string>("name", ""));
 		res.setTerminusType((sim_mob::TerminusType)vals.get<int>("terminal", 0));
-		res.setCapacityAsLength(vals.get<double>("length", 0.0));
+		res.setLength(vals.get<double>("length", 0.0));
 		res.setOffset(vals.get<double>("section_offset", 0.0));
 		res.setReverseSectionId(vals.get<unsigned int>("reverse_section", 0));
 		res.setTerminalNodeId(vals.get<unsigned int>("terminal_node", 0));

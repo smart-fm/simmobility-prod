@@ -278,7 +278,7 @@ void NetworkPrinter::PrintSignals(const std::map<unsigned int, Signal *> &signal
 	{	
 		out << "{\"TrafficSignal\":" << "{";
 		out << "\"id\":\"" << it->second->getNode()->getTrafficLightId() << "\",";
-		out << "\"node\": \"" << it->second->getNode()->getNodeId() << "\",";
+		out << "\"node\":\"" << it->second->getNode()->getNodeId() << "\",";
 		out << "}}\n";
 	}
 	

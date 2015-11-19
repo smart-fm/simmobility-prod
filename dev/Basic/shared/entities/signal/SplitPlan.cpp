@@ -284,6 +284,9 @@ void SplitPlan::setDefaultSplitPlan(int approaches)
 	case 7:
 		fill(defaultChoiceSet_7, 7);
 		break;
+	default:
+		fill(defaultChoiceSet_7, 7);
+		break;
 	}
 
 	currSplitPlanIdx = 0;

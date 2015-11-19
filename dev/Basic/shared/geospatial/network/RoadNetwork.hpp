@@ -195,10 +195,12 @@ public:
 			return NULL;
 		}
 	}
+	
 	/**
-	 * locate nearest node from position
-	 * @param position is point wanted to locate
-	 * @return nearest node.
+	 * Locates the node that is closest to the given position
+	 * 
+	 * @param position the location closest to which the node is to be found
+	 * @return nearest node
 	 */
 	Node* locateNearestNode(const Point& position) const;
 };

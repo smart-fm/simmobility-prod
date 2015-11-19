@@ -566,9 +566,11 @@ Node* RoadNetwork::locateNearestNode(const Point& position) const
 	double minDistance = std::numeric_limits<double>::max();
 	Node* candidate = nullptr;
 	std::map<unsigned int, Node *>::const_iterator it;
-	for(it=mapOfIdvsNodes.begin(); it!=mapOfIdvsNodes.end(); it++){
+	for (it = mapOfIdvsNodes.begin(); it != mapOfIdvsNodes.end(); it++)
+	{
 		double distance = sim_mob::dist((it->second)->getLocation(), position);
-		if(distance < minDistance){
+		if (distance < minDistance)
+		{
 			minDistance = distance;
 			candidate = it->second;
 		}

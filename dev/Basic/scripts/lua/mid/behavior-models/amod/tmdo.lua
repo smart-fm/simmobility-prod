@@ -28,10 +28,9 @@ local beta_cost_share3_2 = 0
 local beta_cost_motor_2 = 0
 local beta_cost_taxi_2 = 0
 
-local AMOD_cost = 10.00
+local AMOD_cost = 3
 local AMOD_wtc = -1.10
 local AMOD_wt = 0.167
-
 
 local beta_tt_bus_mrt = -2.44
 local beta_tt_private_bus =  -0.158
@@ -65,15 +64,15 @@ local beta_distance_walk = 0
 local beta_distance_taxi = -0.0260
 
 
-local beta_cons_bus = 1.10
-local beta_cons_mrt = 0.527
-local beta_cons_private_bus =-4.74 
-local beta_cons_drive1 = 0
-local beta_cons_share2 = -2.38
-local beta_cons_share3 = -2.01
-local beta_cons_motor = -3.19
-local beta_cons_walk = 0.157
-local beta_cons_taxi = -2.32
+local beta_cons_bus = 1.008
+local beta_cons_mrt = 0.368
+local beta_cons_private_bus =-5.41 
+local beta_cons_drive1 = 4.37
+local beta_cons_share2 = -0.83
+local beta_cons_share3 = -0.866
+local beta_cons_motor = -2.19
+local beta_cons_walk = -2.82
+local beta_cons_taxi = -0.68
 
 local beta_zero_bus = 0
 local beta_oneplus_bus = -1.32
@@ -148,6 +147,7 @@ end
 -- 5 for shared2; 6 for shared3+; 7 for motor; 8 for walk; 9 for taxi
 local utility = {}
 local function computeUtilities(params,dbparams)
+	local cost_increase = dbparams.cost_increase
 	local cbd_dummy_origin= dbparams.cbd_dummy_origin
 	local female_dummy = params.female_dummy
 	local income_id = params.income_id
@@ -238,10 +238,9 @@ local function computeUtilities(params,dbparams)
 		cbd_dummy[i] = dbparams:cbd_dummy(i)
 		cost_public_first[i] = dbparams:cost_public_first(i)
 		cost_public_second[i] = dbparams:cost_public_second(i)
-		cost_bus[i] = cost_public_first[i] + cost_public_second[i]
-		cost_mrt[i] = cost_public_first[i] + cost_public_second[i]
-		
-		cost_private_bus[i] = cost_public_first[i] + cost_public_second[i]+ cbd_dummy[i]*AMOD_cost + cbd_dummy_origin *(1-cbd_dummy[i])*AMOD_cost
+		cost_bus[i] = cost_public_first[i] + cost_public_second[i] + cost_increase
+		cost_mrt[i] = cost_public_first[i] + cost_public_second[i] + cost_increase
+		cost_private_bus[i] = cost_public_first[i] + cost_public_second[i] + cost_increase + cbd_dummy[i]*AMOD_cost + cbd_dummy_origin *(1-cbd_dummy[i])*AMOD_cost
 
 		--dbparams:cost_car_ERP_first(i) = AM[(origin,destination[i])]['car_cost_erp']
 		--dbparams:cost_car_ERP_second(i) = PM[(destination[i],origin)]['car_cost_erp']
@@ -250,10 +249,10 @@ local function computeUtilities(params,dbparams)
 		--dbparams:cost_car_parking(i) = 8 * ZONE[destination[i]]['parking_rate']
 		--for the above 5 variables, origin is home, destination[i] is tour destination from 1 to 1169
 		--0 if origin == destination
-		cost_drive1[i] = dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)+ cbd_dummy[i]*AMOD_cost + cbd_dummy_origin *(1-cbd_dummy[i])*AMOD_cost
-		cost_share2[i] = dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)/2 + cbd_dummy[i]*AMOD_cost + cbd_dummy_origin *(1-cbd_dummy[i])*AMOD_cost
-		cost_share3[i] = dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)/3 + cbd_dummy[i]*AMOD_cost + cbd_dummy_origin *(1-cbd_dummy[i])*AMOD_cost
-		cost_motor[i] = 0.5*(dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i))+0.65*dbparams:cost_car_parking(i) + cbd_dummy[i]*AMOD_cost + cbd_dummy_origin *(1-cbd_dummy[i])*AMOD_cost
+		cost_drive1[i] = dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)+cost_increase + cbd_dummy[i]*AMOD_cost + cbd_dummy_origin *(1-cbd_dummy[i])*AMOD_cost
+		cost_share2[i] = (dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)+cost_increase)/2 + cbd_dummy[i]*AMOD_cost + cbd_dummy_origin *(1-cbd_dummy[i])*AMOD_cost
+		cost_share3[i] = (dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i)+dbparams:cost_car_parking(i)+cost_increase)/3 + cbd_dummy[i]*AMOD_cost + cbd_dummy_origin *(1-cbd_dummy[i])*AMOD_cost
+		cost_motor[i] = 0.5*(dbparams:cost_car_ERP_first(i)+dbparams:cost_car_ERP_second(i)+dbparams:cost_car_OP_first(i)+dbparams:cost_car_OP_second(i))+0.65*dbparams:cost_car_parking(i)+cost_increase + cbd_dummy[i]*AMOD_cost + cbd_dummy_origin *(1-cbd_dummy[i])*AMOD_cost
 		
 		--dbparams:walk_distance1(i)= AM[(origin,destination[i])]['AM2dis']
 		--dbparams:walk_distance2(i)= PM[(destination[i],origin)]['PM2dis']
@@ -265,7 +264,7 @@ local function computeUtilities(params,dbparams)
 		central_dummy[i] = dbparams:central_dummy(i)
 		cost_taxi_1[i] = 3.4+((d1[i]*(d1[i]>10 and 1 or 0)-10*(d1[i]>10 and 1 or 0))/0.35+(d1[i]*(d1[i]<=10 and 1 or 0)+10*(d1[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_first(i)+central_dummy[i]*3
 		cost_taxi_2[i] = 3.4+((d2[i]*(d2[i]>10 and 1 or 0)-10*(d2[i]>10 and 1 or 0))/0.35+(d2[i]*(d2[i]<=10 and 1 or 0)+10*(d2[i]>10 and 1 or 0))/0.4)*0.22+ dbparams:cost_car_ERP_second(i)+central_dummy[i]*3
-		cost_taxi[i] = cost_taxi_1[i] + cost_taxi_2[i]
+		cost_taxi[i] = cost_taxi_1[i] + cost_taxi_2[i] + cost_increase
 
 		cost_over_income_bus[i]=30*cost_bus[i]/(0.5+income_mid)
 		cost_over_income_mrt[i]=30*cost_mrt[i]/(0.5+income_mid)

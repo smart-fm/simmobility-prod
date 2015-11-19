@@ -108,7 +108,7 @@ local function computeUtilities(params,dbparams)
 	local cbd_dummy_origin = dbparams.cbd_dummy_origin
 	-- work time flexibility 1 for fixed hour, 2 for flexible hour
 	--local worktime = params.worktime	
-	local AMOD_cost = 10	
+	local AMOD_cost = 3
 	local pow = math.pow
 
 	local cost_HT1_am = dbparams.cost_HT1_am + (cbd_dummy * AMOD_cost + cbd_dummy_origin * (1-cbd_dummy)* AMOD_cost)*0.5

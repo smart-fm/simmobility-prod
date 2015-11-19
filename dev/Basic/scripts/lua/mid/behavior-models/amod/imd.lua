@@ -24,7 +24,7 @@ local beta_cost_share3_2 = 0
 local beta_cost_motor_2 = -0.338
 local beta_cost_taxi_2 = 0
 
-local AMOD_cost = 10.0
+local AMOD_cost = 3
 local AMOD_wtc = -1.10
 local AMOD_wt = 0.167
 
@@ -60,15 +60,15 @@ local beta_distance_motor = 0.00259
 local beta_distance_walk = 0
 local beta_distance_taxi = 0.000622
 
-local beta_cons_bus = 5.40
-local beta_cons_mrt = 5.22
-local beta_cons_private_bus = 4.48
-local beta_cons_drive1 = 0
-local beta_cons_share2 = 3.14
-local beta_cons_share3 = 3.38
-local beta_cons_motor = -2.74
-local beta_cons_walk = -30
-local beta_cons_taxi = -0.0659
+local beta_cons_bus = 5.607
+local beta_cons_mrt = 5.511
+local beta_cons_private_bus = 3.3
+local beta_cons_drive1 = 1.128
+local beta_cons_share2 = 4.29
+local beta_cons_share3 = 3.4
+local beta_cons_motor = -1.27
+local beta_cons_walk = -100
+local beta_cons_taxi = -4.10
 
 local beta_zero_drive1 = 0
 local beta_oneplus_drive1 = 3.83
@@ -165,7 +165,7 @@ local function computeUtilities(params,dbparams)
 	local d2={}
 	local central_dummy={}
 	local cbd_dummy = {}
-
+	
 	local cost_over_income_bus = {}
 	local cost_over_income_mrt = {}
 	local cost_over_income_private_bus = {}
@@ -196,22 +196,15 @@ local function computeUtilities(params,dbparams)
 	local population = {}
 	local area = {}
 	local shop = {}
-	local person_type_id= params.person_type_id
 
 	for i =1,1169 do
 		--dbparams.cost_public(i) = 
+
 		cbd_dummy[i] = dbparams:cbd_dummy(i)
 		cost_public[i] = dbparams:cost_public(i)
-		
-	if person_type_id == 4 or person_type_id == 6 or person_type_id == 8 then
-	
-		cost_bus[i] = cost_public[i] 
-		cost_mrt[i] = cost_public[i] 
-	else
-		cost_bus[i] = cost_public[i] 
-		cost_mrt[i] = cost_public[i] 
-	end
-		cost_private_bus[i] = cost_public[i] + cbd_dummy[i]*AMOD_cost + cbd_dummy_origin *(1-cbd_dummy[i])*AMOD_cost
+		cost_bus[i] = cost_public[i]
+		cost_mrt[i] = cost_public[i]
+		cost_private_bus[i] = cost_public[i] + cbd_dummy[i]*AMOD_cost + cbd_dummy_origin*(1-cbd_dummy[i])*AMOD_cost
 
 		--dbparams.cost_car_ERP(i) = 
 		--dbparams.cost_car_OP(i) = 

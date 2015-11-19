@@ -41,7 +41,7 @@ local beta_ARR_1_3= -0.727
 local beta_ARR_1_2= -5.91 
 local beta_ARR_1_1= -9.47 
 local beta_DUR_3_other= 0
-local AMOD_cost =10.0
+local AMOD_cost = 3
 
 local Begin={}
 local End={}

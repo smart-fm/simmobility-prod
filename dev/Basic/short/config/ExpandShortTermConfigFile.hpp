@@ -24,9 +24,9 @@ private:
     void processConfig();
 
     //These functions are called by ProcessConfig()
-    void CheckGranularities();
-    void SetTicks();
-    bool SetTickFromBaseGran(unsigned int& res, unsigned int tickLenMs);
+    void checkGranularities();
+    void setTicks();
+    bool setTickFromBaseGran(unsigned int& res, unsigned int tickLenMs);
     void loadNetworkFromDatabase();
 
     void loadAMOD_Controller();

@@ -106,6 +106,10 @@ void ExpandShortTermConfigFile::processConfig()
 
     //Inform of load order (drivers, database, pedestrians, etc.).
     informLoadOrder(stConfig.loadAgentsOrder);
+	
+	//Ensure granularities are multiples of each other. Then set the "ticks" based on each granularity.
+    checkGranularities();
+    setTicks();
 
     //Print schema file.
     const std::string schem = stConfig.getRoadNetworkXsdSchemaFile();
@@ -316,7 +320,7 @@ void ExpandShortTermConfigFile::generateXMLAgents(const std::vector<EntityTempla
     }
 }
 
-void ExpandShortTermConfigFile::CheckGranularities()
+void ExpandShortTermConfigFile::checkGranularities()
 {
 	//Granularity check
     const unsigned int baseGranMS = cfg.simulation.baseGranMS;
@@ -348,35 +352,35 @@ void ExpandShortTermConfigFile::CheckGranularities()
     }
 }
 
-bool ExpandShortTermConfigFile::SetTickFromBaseGran(unsigned int& res, unsigned int tickLenMs)
+bool ExpandShortTermConfigFile::setTickFromBaseGran(unsigned int& res, unsigned int tickLenMs)
 {
 	res = tickLenMs / cfg.simulation.baseGranMS;
 	return tickLenMs % cfg.simulation.baseGranMS == 0;
 }
 
-void ExpandShortTermConfigFile::SetTicks()
+void ExpandShortTermConfigFile::setTicks()
 {
-    if (!SetTickFromBaseGran(cfg.totalRuntimeTicks, cfg.simulation.totalRuntimeMS))
+    if (!setTickFromBaseGran(cfg.totalRuntimeTicks, cfg.simulation.totalRuntimeMS))
     {
 	Warn() << "Total runtime will be truncated by the base granularity\n";
     }
-    if (!SetTickFromBaseGran(cfg.totalWarmupTicks, cfg.simulation.totalWarmupMS))
+    if (!setTickFromBaseGran(cfg.totalWarmupTicks, cfg.simulation.totalWarmupMS))
     {
 	Warn() << "Total warm-up will be truncated by the base granularity\n";
     }
-    if (!SetTickFromBaseGran(stConfig.granPersonTicks, stConfig.workers.person.granularityMs))
+    if (!setTickFromBaseGran(stConfig.granPersonTicks, stConfig.workers.person.granularityMs))
     {
 	throw std::runtime_error("Person granularity not a multiple of base granularity.");
     }
-    if (!SetTickFromBaseGran(stConfig.granSignalsTicks, stConfig.workers.signal.granularityMs))
+    if (!setTickFromBaseGran(stConfig.granSignalsTicks, stConfig.workers.signal.granularityMs))
     {
 	throw std::runtime_error("Signal granularity not a multiple of base granularity.");
     }
-    if (!SetTickFromBaseGran(stConfig.granIntMgrTicks, stConfig.workers.intersectionMgr.granularityMs))
+    if (!setTickFromBaseGran(stConfig.granIntMgrTicks, stConfig.workers.intersectionMgr.granularityMs))
     {
 	    throw std::runtime_error("Signal granularity not a multiple of base granularity.");
     }
-    if (!SetTickFromBaseGran(stConfig.granCommunicationTicks, stConfig.workers.communication.granularityMs))
+    if (!setTickFromBaseGran(stConfig.granCommunicationTicks, stConfig.workers.communication.granularityMs))
     {
 	    throw std::runtime_error("Communication granularity not a multiple of base granularity.");
     }
@@ -406,7 +410,7 @@ void ExpandShortTermConfigFile::PrintSettings()
     std::cout << "  Base Granularity: " << cfg.baseGranMS() << " " << "ms" << "\n";
     std::cout << "  Total Runtime: " << cfg.totalRuntimeTicks << " " << "ticks" << "\n";
     std::cout << "  Total Warmup: " << cfg.totalWarmupTicks << " " << "ticks" << "\n";
-    //std::cout << "  Person Granularity: " << cfg.granPersonTicks << " " << "ticks" << "\n";
+    std::cout << "  Person Granularity: " << stConfig.granPersonTicks << " " << "ticks" << "\n";
     std::cout << "  Start time: " << cfg.simStartTime().getStrRepr() << "\n";
     std::cout << "  Mutex strategy: " << (cfg.mutexStategy() == MtxStrat_Locked ? "Locked" : cfg.mutexStategy() == MtxStrat_Buffered ? "Buffered" : "Unknown") << "\n";
 

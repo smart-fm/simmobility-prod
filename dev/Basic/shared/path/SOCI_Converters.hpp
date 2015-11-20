@@ -106,8 +106,8 @@ template<> struct type_conversion<sim_mob::ERP_Section>
 	typedef values base_type;
 	static void from_base(const soci::values& vals, soci::indicator& ind, sim_mob::ERP_Section &res)
 	{
-		res.sectionId = vals.get<int>("section_id", 0);
-		res.linkId = vals.get<int>("link_id", 0);
+		res.sectionId = vals.get<unsigned int>("section_id", 0);
+		res.linkId = vals.get<unsigned int>("link_id", 0);
 		res.ERP_Gantry_No = vals.get<int>("erp_gantry_no", 0);
 	}
 };

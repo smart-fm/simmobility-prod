@@ -261,12 +261,12 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 {
 	try
 	{
-		sim_mob::Print() << "Connecting to the database...\n";
+		sim_mob::Print() << "Database connection: ";
 
 		//Open the connection to the database
 		sql.open(soci::postgresql, connectionStr);
 		
-		sim_mob::Print() << "Connection established...\nLoading SimMobility network...\n";
+		sim_mob::Print() << "successful\nSimMobility network loading: ";
 
 		//Load the components of the network
 		
@@ -298,16 +298,16 @@ void NetworkLoader::loadNetwork(const string& connectionStr, const map<string, s
 		sql.close();
 
 		isNetworkLoaded = true;
-		sim_mob::Print() << "SimMobility network loaded!\n";
+		sim_mob::Print() << "done\n";
 	}
 	catch (soci::soci_error const &err)
 	{
-		sim_mob::Print() << "Exception occurred while loading the network!\n" << err.what() << std::endl;
+		sim_mob::Print() << "failed\nException occurred while loading the network!\n" << err.what() << std::endl;
 		exit(-1);
 	}
 	catch (runtime_error const &err)
 	{
-		sim_mob::Print() << "Exception occurred while loading the network!\n" << err.what() << std::endl;
+		sim_mob::Print() << "failed\nException occurred while loading the network!\n" << err.what() << std::endl;
 		exit(-1);
 	}
 }

@@ -21,9 +21,9 @@ public:
 class ERP_Section
 {
 public:
-	ERP_Section(): sectionId(-1), ERP_Gantry_No(-1), linkId(-1) {}
-	int sectionId;
-	int linkId;
+	ERP_Section(): sectionId(0), ERP_Gantry_No(0), linkId(0) {}
+	unsigned int sectionId;
+	unsigned int linkId;
 	int ERP_Gantry_No;
 	std::string ERP_Gantry_No_str;
 };

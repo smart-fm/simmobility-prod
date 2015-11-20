@@ -57,15 +57,21 @@ void ExpandMidTermConfigFile::processConfig()
         loadPublicTransitNetworkFromDatabase();
     }
 
+    cfg.sealNetwork();
+    std::cout << "Network sealed" << std::endl;
+
+    //Initialize the street directory.
+    StreetDirectory::Instance().Init(*(RoadNetwork::getInstance()));
+    std::cout << "Street directory initialized" << std::endl;
+
     if (ConfigManager::GetInstance().FullConfig().getPathSetConf().privatePathSetMode == "generation")
     {
-        Print() << "bulk profiler start: " << std::endl;
         Profiler profile("bulk profiler start", true);
         //	This mode can be executed in the main function also but we need the street directory to be initialized first
         //	to be least intrusive to the rest of the code, we take a safe approach and run this mode from here, although a lot of
         //	unnecessary code will be executed.
         PrivatePathsetGenerator::getInstance()->bulkPathSetGenerator();
-        Print() << "Bulk Generation Done " << profile.tick().first.count() << std::endl;
+        Print() << "Pathset generation done (in " << profile.tick().first.count()/1000.0 << "s)"<< std::endl;
         exit(1);
     }
     if (ConfigManager::GetInstance().FullConfig().getPathSetConf().publicPathSetMode == "generation")
@@ -107,8 +113,13 @@ void ExpandMidTermConfigFile::processConfig()
 
 void ExpandMidTermConfigFile::loadNetworkFromDatabase()
 {
-    std::cout << "Loading Road Network from the database.\n";
-    NetworkLoader::getInstance()->loadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
+    NetworkLoader *loader = NetworkLoader::getInstance();
+
+    //load network
+    loader->loadNetwork(cfg.getDatabaseConnectionString(false), cfg.getDatabaseProcMappings().procedureMappings);
+
+	//Post processing on the network
+	loader->processNetwork();
 }
 
 void ExpandMidTermConfigFile::loadPublicTransitNetworkFromDatabase()
